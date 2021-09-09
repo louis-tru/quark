@@ -592,4 +592,15 @@ namespace flare {
 		fQueuePresentKHR(fPresentQueue, &presentInfo);
 	}
 
+	void VulkanRender::resize() override {
+		auto size = _host->display()->size();
+		createSwapchain(size.x(), size.y(), fDisplayParams);
+	}
+
+	void VulkanRender::setDisplayParams(const DisplayParams& params) {
+		destroyContext();
+		fDisplayParams = params;
+		initializeContext();
+	}
+
 }   //namespace sk_app

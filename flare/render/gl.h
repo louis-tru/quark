@@ -36,6 +36,9 @@
 #include "skia/core/SkRefCnt.h"
 #include "skia/core/SkSurface.h"
 
+
+
+
 namespace flare {
 
 	class GLRender: public Render {
@@ -44,7 +47,7 @@ namespace flare {
 
 		bool isValid() override;
 
-		void resize(Vec2 size, Rect surface_region) override;
+		void resize() override;
 		void swapBuffers() override;
 
 		void setDisplayParams(const DisplayParams& params) override;

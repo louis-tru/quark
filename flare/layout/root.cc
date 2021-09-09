@@ -112,4 +112,10 @@ namespace flare {
 		FX_UNREACHABLE();
 	}
 
+	void Root::draw(SkCanvas* canvas) {
+		if (v->visible() && v->region_visible()) {
+			Box::draw(canvas);
+		}
+	}
+
 }

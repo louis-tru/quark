@@ -118,7 +118,7 @@ namespace flare {
 		/**
 		* @func draw_region
 		*/
-		inline const Region& display_region() const {
+		inline Region display_region() const {
 			return _display_region.back();
 		}
 
@@ -190,7 +190,9 @@ namespace flare {
 		 */
 		inline float best_display_scale() const { return _best_display_scale; }
 		inline void set_best_display_scale(float value) { _best_display_scale = value; }
-		inline Rect surface_region() const { return _surface_region; }
+		inline Region surface_region() const { return _surface_region; }
+		inline Vec2 phy_size() const { return Vec2(_surface_region.width, _surface_region.height); }
+		bool set_surface_region(Region surface_region); // call from render loop
 
 		/**
 		* @func default_atom_pixel
@@ -205,7 +207,6 @@ namespace flare {
 	private:
 		void render_frame();
 		void refresh();
-		void set_surface_region(Rect surface_region); // call from render loop
 		
 		Application*      _host;
 		Vec2              _lock_size;  // 锁定视口的尺寸
@@ -218,7 +219,7 @@ namespace flare {
 		List<Cb>          _next_frame;
 		uint32_t          _fsp, _record_fsp;
 		int64_t           _record_fsp_time;
-		Rect              _surface_region;  /* 选择绘图表面有区域 */
+		Region            _surface_region;  /* 选择绘图表面有区域 */
 		Mutex             _Mutex;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);

@@ -42,7 +42,7 @@
 namespace flare {
 
 	class FX_EXPORT GLDrawProxy {
-		public:
+	public:
 		GLDrawProxy(GLDraw* host, EAGLContext* ctx);
 		~GLDrawProxy();
 		void commit_render();
@@ -52,7 +52,7 @@ namespace flare {
 		bool refresh_surface_size(::Rect rect);
 		inline GLDraw* host() { return _host; }
 		static GLDrawProxy* create(Application* host, cJSON& options);
-		private:
+	private:
 		UIView* _surface_view;
 		CAEAGLLayer* _layer;
 		EAGLContext* _context;

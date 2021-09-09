@@ -68,9 +68,9 @@ namespace flare {
 		SkCanvas* canvas();
 
 		/**
-		 * @func begin_render()
+		 * @func beginRender()
 		 */
-		virtual void begin_render();
+		virtual void beginRender();
 
 		/**
 		 * @func getBackbufferSurface()
@@ -81,7 +81,7 @@ namespace flare {
 
 		virtual bool isValid() = 0;
 
-		virtual void resize(Vec2 size, Rect surface_region) = 0;
+		virtual void resize() = 0;
 
 		virtual void activate(bool isActive);
 
@@ -91,8 +91,6 @@ namespace flare {
 
 		inline GrDirectContext* directContext() const { return fContext.get(); }
 
-		inline int width() const { return fWidth; }
-		inline int height() const { return fHeight; }
 		inline int sampleCount() const { return fSampleCount; }
 		inline int stencilBits() const { return fStencilBits; }
 
@@ -111,11 +109,7 @@ namespace flare {
 		Application*  _host;
 
 		sk_sp<GrDirectContext> fContext;
-
-		int               fWidth;
-		int               fHeight;
 		DisplayParams     fDisplayParams;
-
 		// parameters obtained from the native window
 		// Note that the platform .cpp file is responsible for
 		// initializing fSampleCount and fStencilBits!

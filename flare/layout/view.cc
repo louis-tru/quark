@@ -32,8 +32,12 @@
 
 namespace flare {
 
-	void View::Visitor::visitView(View *v) {
-		v->visit(this);
+	void View::Visitor::visitView(View *view) {
+		auto v = view->first();
+		while(v) {
+			v->accept(visitor);
+			v = v->next();
+		}
 	}
 
 	// --------------- L a y o u t  V i e w ---------------
@@ -96,13 +100,9 @@ namespace flare {
 				if ( layout_depth() != depth ) {
 					set_layout_depth(depth++);
 
-					if ( layout_mark() ) { // remark
+					if ( layout_mark() ) // remark
 						mark(M_NONE);
-						auto r = layout_mark() & M_RECURSIVE;
-						if (r) {
-							mark_recursive(r);
-						}
-					}
+					mark_recursive(M_TRANSFORM);
 
 					View *v = _first;
 					while ( v ) {
@@ -361,12 +361,15 @@ namespace flare {
 	}
 
 	/**
-		* @func visit(visitor)
+		* @func draw(canvas)
 		*/
-	void View::visit(Visitor *visitor) {
+	void View::draw(SkCanvas* canvas) {
+		// visit child
 		auto v = _first;
 		while(v) {
-			v->accept(visitor);
+			if (v->visible() && v->region_visible()) {
+				v->draw(canvas);
+			}
 			v = v->_next;
 		}
 	}
@@ -689,19 +692,32 @@ namespace flare {
 				_matrix = layout_matrix();
 			}
 
+			unmark(M_TRANSFORM | M_LAYOUT_SHAPE); // unmark
+
 			_region_visible = solve_region_visible();
 
-			unmark(M_TRANSFORM | M_LAYOUT_SHAPE); // unmark
-			
-			View *v = _first;
-			while (v) {
-				v->layout_recursive(M_TRANSFORM | v->layout_mark());
-				v = v->_next;
+			if (_region_visible) {
+				View *v = _first;
+				while (v) {
+					v->layout_recursive(M_TRANSFORM | v->layout_mark());
+					v = v->_next;
+				}
 			}
 		} else if (mark & M_LAYOUT_SHAPE) {
-			_region_visible = solve_region_visible();
-
 			unmark(M_LAYOUT_SHAPE); // unmark
+
+			bool visible = solve_region_visible();
+			if (visible != _region_visible) {
+				_region_visible = visible;
+
+				if (visible) {
+					View *v = _first;
+					while (v) {
+						v->layout_recursive(M_LAYOUT_SHAPE | v->layout_mark());
+						v = v->_next;
+					}
+				}
+			}
 		}
 	}
 

@@ -48,8 +48,8 @@ namespace flare {
 
 			if (_lock_size.x() == 0 && _lock_size.y() == 0) { // 使用系统默认的最合适的尺寸
 				_size = {
-					_surface_region.size.x() / _best_display_scale,
-					_surface_region.size.y() / _best_display_scale,
+					_surface_region.width / _best_display_scale,
+					_surface_region.height / _best_display_scale,
 				};
 			}
 			else if (_lock_size.x() != 0 && _lock_size.y() != 0) { // 尺寸全部锁定
@@ -57,15 +57,15 @@ namespace flare {
 			}
 			else if (_lock_size.x() != 0) { // 只锁定宽度
 				_size.y(_lock_size.x());
-				_size.y(_size.x() / _surface_region.size.x() * _surface_region.size.y());
+				_size.y(_size.x() / _surface_region.width * _surface_region.height);
 			}
 			else { // _lock_height == 0 // 只锁定高度
 				_size.y(_lock_size.y());
-				_size.x(_size.y() / _surface_region.size.y() * _surface_region.size.x());
+				_size.x(_size.y() / _surface_region.height * _surface_region.width);
 			}
 			
-			_scale.x(_surface_region.size.x() / _size.x());
-			_scale.y(_surface_region.size.y() / _size.y());
+			_scale.x(_surface_region.width / _size.x());
+			_scale.y(_surface_region.height / _size.y());
 
 			float scale = (_scale.x() + _scale.y()) / 2;
 			
@@ -73,8 +73,8 @@ namespace flare {
 			
 			Rect region = _surface_region;
 			
-			Vec2 start = Vec2(-region.origin.x() / _scale.x(), -region.origin.y() / _scale.y());
-			Vec2 end   = Vec2(region.size.x() / _scale.x() + start.x(), region.size.y() / _scale.y() + start.y());
+			Vec2 start = Vec2(-region.x / _scale.x(), -region.y / _scale.y());
+			Vec2 end   = Vec2(region.x2 / _scale.x(), region.y2 / _scale.y());
 			
 			_root_matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f); // 计算2D视图变换矩阵
 
@@ -165,7 +165,7 @@ namespace flare {
 
 			auto render = _host->render();
 			
-			render->begin_render();
+			render->beginRender();
 			root->draw(render->canvas()); // 开始绘图
 			_inl(this)->solve_next_frame();
 			
@@ -242,11 +242,21 @@ namespace flare {
 		_next_frame.push_back(cb);
 	}
 
-	void Display::set_surface_region(Rect region) {
-		if (_surface_region.origin != region.origin || _surface_region.size != region.size) {
+	void Display::set_surface_region(Region region) {
+		ASSERT(_host->has_current_render_thread());
+		if (
+					_surface_region.x != region.x 
+			||	_surface_region.y != region.y
+			||	_surface_region.x1 != region.x1
+			||	_surface_region.y1 != region.y1
+			||	_surface_region.width != region.width
+			||	_surface_region.height != region.height
+		) {
 			_surface_region = region;
 			_inl(this)->update_from_render_loop();
+			return true;
 		}
+		return false;
 	}
 
 }

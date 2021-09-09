@@ -52,15 +52,9 @@ namespace flare {
 
 		bool isValid() override { return fDevice != VK_NULL_HANDLE; }
 
-		void resize(int w, int h) override {
-			this->createSwapchain(w, h, fDisplayParams);
-		}
+		void resize() override;
 
-		void setDisplayParams(const DisplayParams& params) override {
-			this->destroyContext();
-			fDisplayParams = params;
-			this->initializeContext();
-		}
+		void setDisplayParams(const DisplayParams& params) override;
 
 		/** Platform specific function that creates a VkSurfaceKHR for a window */
 		using CreateVkSurfaceFn = std::function<VkSurfaceKHR(VkInstance)>;

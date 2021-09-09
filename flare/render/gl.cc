@@ -86,6 +86,10 @@ namespace flare {
 				fbInfo.fFBOID = buffer;
 				fbInfo.fFormat = GR_GL_RGBA8;
 
+				auto size = _host->display()->size();
+				float fWidth = size.x();
+				float fHeight = size.y();
+
 				GrBackendRenderTarget backendRT(fWidth,
 												fHeight,
 												fSampleCount,
@@ -107,14 +111,14 @@ namespace flare {
 		this->onSwapBuffers();
 	}
 
-	void GLRender::resize(Vec2 size, Rect surface_region) {
+	void GLRender::resize() {
 		this->destroyContext();
 		this->initializeContext();
 	}
 
 	void GLRender::setDisplayParams(const DisplayParams& params) {
-		fDisplayParams = params;
 		this->destroyContext();
+		fDisplayParams = params;
 		this->initializeContext();
 	}
 

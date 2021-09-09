@@ -51,22 +51,12 @@ namespace flare {
 		return getBackbufferSurface()->getCanvas();
 	}
 	
-	void Render::begin_render() {}
+	void Render::beginRender() {}
 
 	void Render::activate(bool isActive) {}
 
 	Render::DisplayParams Render::parseDisplayParams(cJSON& options) {
 		// parse options to render params
-		// struct DisplayParams {
-		// 	SkColorType             fColorType; = kN32_SkColorType;
-		// 	sk_sp<SkColorSpace>     fColorSpace; = nullptr;
-		// 	sk_sp<GrContextOptions> fGrContextOptions;
-		// 	SkSurfaceProps      fSurfaceProps; = fSurfaceProps(0, kRGB_H_SkPixelGeometry);
-		// 	int                 fMSAASampleCount; = 1;
-		// 	bool                fDisableVsync; = false;
-		// 	bool                fDelayDrawableAcquisition; = false;
-		// 	bool                fEnableBinaryArchive; = false;
-		// };
 		return DisplayParams();
 	}
 

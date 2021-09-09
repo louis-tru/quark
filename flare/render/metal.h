@@ -31,10 +31,10 @@
 #ifndef __flare__render__metal__
 #define __flare__render__metal__
 
+#include "./render.h"
 #include "skia/core/SkRefCnt.h"
 #include "skia/core/SkSurface.h"
 #include "skia/ports/SkCFObject.h"
-#include "./render.h"
 
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>

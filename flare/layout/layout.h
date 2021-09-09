@@ -57,7 +57,7 @@ namespace flare {
 			M_LAYOUT_TYPESETTING      = (1 << 4), /* 布局内容偏移, 需要重新对子布局排版 */
 			M_LAYOUT_SHAPE            = (1 << 5), /* 形状变化 */
 			//**
-			M_RECURSIVE               = (M_TRANSFORM | M_TRANSFORM_ORIGIN), /* 需要被递归的标记 */
+			M_RECURSIVE               = (M_TRANSFORM | M_TRANSFORM_ORIGIN | M_LAYOUT_SHAPE), /* 需要被递归的标记 */
 		};
 
 		// TypesettingChangeMark
@@ -230,6 +230,13 @@ namespace flare {
 			*/
 		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 
+		/**
+			* @func layout_mark()
+			*/
+		inline uint32_t layout_mark() const {
+			return _layout_mark;
+		}
+
 	protected:
 		/**
 			* 
@@ -254,14 +261,6 @@ namespace flare {
 			*/
 		inline void unmark(uint32_t mark = (~M_NONE/*default unmark all*/)) {
 			_layout_mark &= (~mark);
-		}
-
-	public:
-		/**
-			* @func layout_mark()
-			*/
-		inline uint32_t layout_mark() const {
-			return _layout_mark;
 		}
 
 	private:

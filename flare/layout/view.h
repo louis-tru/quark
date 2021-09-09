@@ -38,24 +38,27 @@ class SkCanvas;
 namespace flare {
 
 	# define FX_Views(F) \
-		F(View)           F(Box)             F(Image) \
-		F(Flow)           F(Flex ) \
-		F(Input)          F(Label)           F(Root) \
-		F(Scroll)         F(Text)            F(Video) \
+		F(View) \
+		F(Box) \
+		F(Flow) \
+		F(Flex ) \
+		F(Image) \
+		F(Input) \
+		F(Label) \
+		F(Root) \
+		F(Scroll) \
+		F(Text) \
+		F(Video) \
+
+	# define FX_Define_View(N) \
+	public: \
+		virtual void accept(Visitor *visitor); \
 
 	# define FX_View_Class(N) class N;
 		FX_Views(FX_View_Class);
 	# undef  FX_View_Class
 
-	# define FX_Define_View(N) \
-		public: \
-		friend class GLRender; \
-		friend class SkiaRender; \
-		virtual void accept(Visitor *visitor); \
-
-	class Action; // class Action
-	class GLRender; // class GLRender
-	class SkiaRender; // class SkiaRender
+	class Action;
 
 	/**
 		* The basic elements of GUI tree
@@ -64,10 +67,7 @@ namespace flare {
 		*/
 	class FX_EXPORT View: public Layout {
 		FX_HIDDEN_ALL_COPY(View);
-		public:
-
-		friend class GLRender;
-		friend class SkiaRender;
+	public:
 
 		/**
 			* @constructors
@@ -179,13 +179,13 @@ namespace flare {
 			*
 			* @func set_parent(parent)
 			*/
-		protected:
+	protected:
 		virtual void set_parent(View* parent);
 
 		/**
 			* @class Visitor
 			*/
-		public: class Visitor {
+	public: class Visitor {
 			public:
 			# define FX_Visitor(N) virtual void visit##N(N *v);
 				FX_Views(FX_Visitor);
@@ -199,11 +199,6 @@ namespace flare {
 			* @func accept(visitor)
 			*/
 		virtual void accept(Visitor *visitor);
-
-		/**
-			* @func visit(visitor)
-			*/
-		void visit(Visitor *visitor);
 
 		/**
 		 * @func draw(canvas)
@@ -562,7 +557,7 @@ namespace flare {
 			float rotate; // z轴旋转角度值
 		};
 
-		private:
+	private:
 		Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
 		// node tree:
 		View *_parent;

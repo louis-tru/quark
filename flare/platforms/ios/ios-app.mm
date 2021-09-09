@@ -53,342 +53,337 @@ static NSString* app_delegate_name = @"";
  * @interface GLView
  */
 @interface GLView: UIView;
-@property (assign, nonatomic) AppInl* app;
+	@property (assign, nonatomic) AppInl* app;
+@end
+
+@implementation GLView
+
+	+ (Class)layerClass {
+		return [CAEAGLLayer class];
+	}
+
+	- (BOOL)isMultipleTouchEnabled {
+		return YES;
+	}
+
+	- (BOOL)isUserInteractionEnabled {
+		return YES;
+	}
+
+	- (List<GUITouch>)toGUITouchs:(NSSet<UITouch*>*)touches {
+		NSEnumerator* enumerator = [touches objectEnumerator];
+		List<GUITouch> rv; // (uint(touches.count));
+		
+		Vec2 size = _app->display_port()->size();
+		
+		float scale_x = size.width() / app_delegate.glview.frame.size.width;
+		float scale_y = size.height() / app_delegate.glview.frame.size.height;
+		
+		for (UITouch* touch in enumerator) {
+			CGPoint point = [touch locationInView:touch.view];
+			CGFloat force = touch.force;
+			// CGFloat angle = touch.altitudeAngle;
+			// CGFloat max_force = touch.maximumPossibleForce;
+			rv.push_back({
+				uint((size_t)touch % Uint32::max),
+				0, 0,
+				float(point.x * scale_x),
+				float(point.y * scale_y),
+				float(force),
+				false,
+				nullptr,
+			});
+		}
+		
+		return rv;
+	}
+
+	- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
+		_app->dispatch()->dispatch_touchstart( [self toGUITouchs:touches] );
+	}
+
+	- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
+		// FX_DEBUG("touchesMoved, count: %d", touches.count);
+		_app->dispatch()->dispatch_touchmove( [self toGUITouchs:touches] );
+	}
+
+	- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event{
+		_app->dispatch()->dispatch_touchend( [self toGUITouchs:touches] );
+	}
+
+	- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
+		_app->dispatch()->dispatch_touchcancel( [self toGUITouchs:touches] );
+	}
+
 @end
 
 /**
- * @interface ApplicationDelegate
+ * @interface RootViewController
  */
 @interface RootViewController: UIViewController;
 @end
 
+@implementation RootViewController
+
+	- (BOOL)shouldAutorotate {
+		return YES;
+	}
+
+	- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+		switch ( app_delegate.setting_orientation ) {
+			case Orientation::ORIENTATION_PORTRAIT:
+				return UIInterfaceOrientationMaskPortrait;
+			case Orientation::ORIENTATION_LANDSCAPE:
+				return UIInterfaceOrientationMaskLandscapeRight;
+			case Orientation::ORIENTATION_REVERSE_PORTRAIT:
+				return UIInterfaceOrientationMaskPortraitUpsideDown;
+			case Orientation::ORIENTATION_REVERSE_LANDSCAPE:
+				return UIInterfaceOrientationMaskLandscapeLeft;
+			case Orientation::ORIENTATION_USER: default:
+				return UIInterfaceOrientationMaskAll;
+			case Orientation::ORIENTATION_USER_PORTRAIT:
+				return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
+			case Orientation::ORIENTATION_USER_LANDSCAPE:
+				return UIInterfaceOrientationMaskLandscape;
+			case Orientation::ORIENTATION_USER_LOCKED:
+				switch(app_delegate.current_orientation  ) {
+					default:
+					case Orientation::ORIENTATION_INVALID:
+						return UIInterfaceOrientationMaskAll;
+					case Orientation::ORIENTATION_PORTRAIT:
+						return UIInterfaceOrientationMaskPortrait;
+					case Orientation::ORIENTATION_LANDSCAPE:
+						return UIInterfaceOrientationMaskLandscapeRight;
+					case Orientation::ORIENTATION_REVERSE_PORTRAIT:
+						return UIInterfaceOrientationMaskPortraitUpsideDown;
+					case Orientation::ORIENTATION_REVERSE_LANDSCAPE:
+						return UIInterfaceOrientationMaskLandscapeLeft;
+				}
+		}
+		return UIInterfaceOrientationMaskAll;
+	}
+
+	- (void)viewWillTransitionToSize:(CGSize)size
+				withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
+	{
+		[coordinator animateAlongsideTransition:^(id context) {
+			Orientation ori = app_delegate.app->display_port()->orientation();
+			::Rect rect = app_delegate.glview.frame;
+			app_delegate.app->render_loop()->post(Cb([ori, rect](CbData& d) {
+				gl_draw_context->refresh_surface_size(rect);
+				if (ori != app_delegate.current_orientation) {
+					app_delegate.current_orientation = ori;
+					main_loop()->post(Cb([](CbData& e) {
+						app_delegate.app->display_port()->FX_Trigger(orientation);
+					}));
+				}
+			}));
+		} completion:nil];
+		[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+	}
+
+	- (UIStatusBarStyle)preferredStatusBarStyle {
+		return app_delegate.status_bar_style;
+	}
+
+	- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
+		// UIApplicationWillChangeStatusBarFrameNotification
+		return UIStatusBarAnimationSlide;
+	}
+
+	- (BOOL)prefersStatusBarHidden {
+		return !app_delegate.visible_status_bar;
+	}
+
+@end
+
 /**
  * @interface ApplicationDelegate
  */
-@interface ApplicationDelegate()<MFMailComposeViewControllerDelegate> {
-	UIWindow* _window;
-	BOOL _is_background;
-	Cb  _render_exec;
-}
-@property (strong, nonatomic) GLView* glview;
-@property (strong, nonatomic) IOSIMEHelprt* ime;
-@property (strong, nonatomic) CADisplayLink* display_link;
-@property (strong, nonatomic) UIApplication* host;
-@property (strong, nonatomic) RootViewController* root_ctr;
-@property (assign, nonatomic) Orientation setting_orientation;
-@property (assign, nonatomic) Orientation current_orientation;
-@property (assign, nonatomic) bool visible_status_bar;
-@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
-@property (assign, atomic) NSInteger render_task_count;
-@end
-
-/**
- * @implementation RootViewController
- * ***********************************************************************************
- */
-@implementation RootViewController
-
-- (BOOL)shouldAutorotate {
-	return YES;
-}
-
-- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-	switch ( app_delegate.setting_orientation ) {
-		case Orientation::ORIENTATION_PORTRAIT:
-			return UIInterfaceOrientationMaskPortrait;
-		case Orientation::ORIENTATION_LANDSCAPE:
-			return UIInterfaceOrientationMaskLandscapeRight;
-		case Orientation::ORIENTATION_REVERSE_PORTRAIT:
-			return UIInterfaceOrientationMaskPortraitUpsideDown;
-		case Orientation::ORIENTATION_REVERSE_LANDSCAPE:
-			return UIInterfaceOrientationMaskLandscapeLeft;
-		case Orientation::ORIENTATION_USER: default:
-			return UIInterfaceOrientationMaskAll;
-		case Orientation::ORIENTATION_USER_PORTRAIT:
-			return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
-		case Orientation::ORIENTATION_USER_LANDSCAPE:
-			return UIInterfaceOrientationMaskLandscape;
-		case Orientation::ORIENTATION_USER_LOCKED:
-			switch(app_delegate.current_orientation  ) {
-				default:
-				case Orientation::ORIENTATION_INVALID:
-					return UIInterfaceOrientationMaskAll;
-				case Orientation::ORIENTATION_PORTRAIT:
-					return UIInterfaceOrientationMaskPortrait;
-				case Orientation::ORIENTATION_LANDSCAPE:
-					return UIInterfaceOrientationMaskLandscapeRight;
-				case Orientation::ORIENTATION_REVERSE_PORTRAIT:
-					return UIInterfaceOrientationMaskPortraitUpsideDown;
-				case Orientation::ORIENTATION_REVERSE_LANDSCAPE:
-					return UIInterfaceOrientationMaskLandscapeLeft;
-			}
+@interface ApplicationDelegate()<MFMailComposeViewControllerDelegate>
+	{
+		UIWindow* _window;
+		BOOL _is_background;
+		Cb  _render_exec;
 	}
-	return UIInterfaceOrientationMaskAll;
-}
-
-- (void)viewWillTransitionToSize:(CGSize)size
-			 withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
-{
-	[coordinator animateAlongsideTransition:^(id context) {
-		Orientation ori = app_delegate.app->display_port()->orientation();
-		::Rect rect = app_delegate.glview.frame;
-		app_delegate.app->render_loop()->post(Cb([ori, rect](CbData& d) {
-			gl_draw_context->refresh_surface_size(rect);
-			if (ori != app_delegate.current_orientation) {
-				app_delegate.current_orientation = ori;
-				main_loop()->post(Cb([](CbData& e) {
-					app_delegate.app->display_port()->FX_Trigger(orientation);
-				}));
-			}
-		}));
-	} completion:nil];
-	[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
-}
-
-- (UIStatusBarStyle)preferredStatusBarStyle {
-	return app_delegate.status_bar_style;
-}
-
-- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
-	// UIApplicationWillChangeStatusBarFrameNotification
-	return UIStatusBarAnimationSlide;
-}
-
-- (BOOL)prefersStatusBarHidden {
-	return !app_delegate.visible_status_bar;
-}
-
+	@property (strong, nonatomic) GLView* glview;
+	@property (strong, nonatomic) IOSIMEHelprt* ime;
+	@property (strong, nonatomic) CADisplayLink* display_link;
+	@property (strong, nonatomic) UIApplication* host;
+	@property (strong, nonatomic) RootViewController* root_ctr;
+	@property (assign, nonatomic) Orientation setting_orientation;
+	@property (assign, nonatomic) Orientation current_orientation;
+	@property (assign, nonatomic) bool visible_status_bar;
+	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
+	@property (assign, atomic) NSInteger render_task_count;
 @end
 
-/**
- * @implementation OGLView
- * ***********************************************************************************
- */
-@implementation GLView
-
-+ (Class)layerClass {
-	return [CAEAGLLayer class];
-}
-
-- (BOOL)isMultipleTouchEnabled {
-	return YES;
-}
-
-- (BOOL)isUserInteractionEnabled {
-	return YES;
-}
-
-- (List<GUITouch>)toGUITouchs:(NSSet<UITouch*>*)touches {
-	NSEnumerator* enumerator = [touches objectEnumerator];
-	List<GUITouch> rv; // (uint(touches.count));
-	
-	Vec2 size = _app->display_port()->size();
-	
-	float scale_x = size.width() / app_delegate.glview.frame.size.width;
-	float scale_y = size.height() / app_delegate.glview.frame.size.height;
-	
-	for (UITouch* touch in enumerator) {
-		CGPoint point = [touch locationInView:touch.view];
-		CGFloat force = touch.force;
-		// CGFloat angle = touch.altitudeAngle;
-		// CGFloat max_force = touch.maximumPossibleForce;
-		rv.push_back({
-			uint((size_t)touch % Uint32::max),
-			0, 0,
-			float(point.x * scale_x),
-			float(point.y * scale_y),
-			float(force),
-			false,
-			nullptr,
-		});
-	}
-	
-	return rv;
-}
-
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
-	_app->dispatch()->dispatch_touchstart( [self toGUITouchs:touches] );
-}
-
-- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
-	// FX_DEBUG("touchesMoved, count: %d", touches.count);
-	_app->dispatch()->dispatch_touchmove( [self toGUITouchs:touches] );
-}
-
-- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event{
-	_app->dispatch()->dispatch_touchend( [self toGUITouchs:touches] );
-}
-
-- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
-	_app->dispatch()->dispatch_touchcancel( [self toGUITouchs:touches] );
-}
-
-@end
-
-/**
- * @implementation ApplicationDelegate
- * ***********************************************************************************
- */
 @implementation ApplicationDelegate
 
-static void render_exec_func(CbData& evt, Object* ctx) {
-	app_delegate.render_task_count--;
-	_inl_app(app_delegate.app)->triggerRender();
-}
-
-- (void)display_link_callback:(CADisplayLink*)displayLink {
-	if (self.render_task_count == 0) {
-		self.render_task_count++;
-		_app->render_loop()->post(_render_exec);
-	} else {
-		FX_DEBUG("miss frame");
+	static void render_exec_func(CbData& evt, Object* ctx) {
+		app_delegate.render_task_count--;
+		_inl_app(app_delegate.app)->triggerRender();
 	}
-}
 
-- (void)refresh_status {
-	if ( self.window.rootViewController == self.root_ctr ) {
-		self.window.rootViewController = nil;
+	- (void)display_link_callback:(CADisplayLink*)displayLink {
+		if (self.render_task_count == 0) {
+			self.render_task_count++;
+			_app->render_loop()->post(_render_exec);
+		} else {
+			FX_DEBUG("miss frame");
+		}
+	}
+
+	- (void)refresh_status {
+		if ( self.window.rootViewController == self.root_ctr ) {
+			self.window.rootViewController = nil;
+			self.window.rootViewController = self.root_ctr;
+		}
+	}
+
+	- (UIWindow*)window {
+		return _window;
+	}
+
+	- (void)add_system_notification {
+		// TODO ..
+	}
+
+	- (void)refresh_surface_size {
+		::Rect rect = app_delegate.glview.frame;
+		_app->render_loop()->post(Cb([self, rect](CbData& d) {
+			gl_draw_context->refresh_surface_size(rect);
+		}));
+	}
+
+	+ (void)set_application_delegate:(NSString*)name {
+		app_delegate_name = name;
+	}
+
+	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
+		ASSERT(!app_delegate); 
+		app_delegate = self;
+		
+		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
+		//[app setStatusBarHidden:NO];
+		
+		_app = Inl_Application(Application::shared()); 
+		ASSERT(self.app);
+		_window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+		_is_background = NO;
+		_render_exec = Cb(render_exec_func);
+		
+		self.host = app;
+		self.setting_orientation = Orientation::ORIENTATION_USER;
+		self.current_orientation = Orientation::ORIENTATION_INVALID;
+		self.visible_status_bar = YES;
+		self.status_bar_style = UIStatusBarStyleLightContent;
+		self.render_task_count = 0;
+		self.root_ctr = [[RootViewController alloc] init];
+		self.display_link = [CADisplayLink displayLinkWithTarget:self
+																										selector:@selector(display_link_callback:)];
+		self.window.backgroundColor = [UIColor blackColor];
 		self.window.rootViewController = self.root_ctr;
+		
+		[self.window makeKeyAndVisible];
+		
+		UIView* view = self.window.rootViewController.view;
+		self.glview = [[GLView alloc] initWithFrame:[view bounds]];
+		self.glview.contentScaleFactor = UIScreen.mainScreen.scale;
+		self.glview.translatesAutoresizingMaskIntoConstraints = NO;
+		self.glview.app = _inl_app(self.app);
+		self.ime = [[IOSIMEHelprt alloc] initWithApplication:self.app];
+		
+		[view addSubview:self.glview];
+		[view addSubview:self.ime];
+		[view addConstraint:[NSLayoutConstraint
+												constraintWithItem:self.glview
+												attribute:NSLayoutAttributeWidth
+												relatedBy:NSLayoutRelationEqual
+												toItem:view
+												attribute:NSLayoutAttributeWidth
+												multiplier:1
+												constant:0]];
+		[view addConstraint:[NSLayoutConstraint
+												constraintWithItem:self.glview
+												attribute:NSLayoutAttributeHeight
+												relatedBy:NSLayoutRelationEqual
+												toItem:view
+												attribute:NSLayoutAttributeHeight
+												multiplier:1
+												constant:0]];
+		
+		[self add_system_notification];
+		
+		// CAEAGLLayer* layer = (CAEAGLLayer*)self.glview.layer;
+		// ::Rect rect = self.glview.frame;
+		
+		// layer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
+		// 														[NSNumber numberWithBool: NO],
+		// 														kEAGLDrawablePropertyRetainedBacking,
+		// 														kEAGLColorFormatRGBA8,
+		// 														kEAGLDrawablePropertyColorFormat, nil];
+		
+		_app->render_loop()->post(Cb([self, layer, rect](CbData& d) {
+			gl_draw_context->set_surface_view(self.glview, layer);
+			gl_draw_context->refresh_surface_size(rect);
+			_inl_app(self.app)->triggerLoad();
+			[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
+															forMode:NSDefaultRunLoopMode];
+		}));
+		
+		return YES;
 	}
-}
 
-- (UIWindow*)window {
-	return _window;
-}
+	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(::Rect)frame {
+		if ( app_delegate && !_is_background ) {
+			[self refresh_surface_size];
+		}
+	}
 
-- (void)add_system_notification {
-	// TODO ..
-}
+	- (void)applicationWillResignActive:(UIApplication*) application {
+		_inl_app(_app)->triggerPause();
+	}
 
-- (void)refresh_surface_size {
-	::Rect rect = app_delegate.glview.frame;
-	_app->render_loop()->post(Cb([self, rect](CbData& d) {
-		gl_draw_context->refresh_surface_size(rect);
-	}));
-}
-
-+ (void)set_application_delegate:(NSString*)name {
-	app_delegate_name = name;
-}
-
-- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-	ASSERT(!app_delegate); 
-	app_delegate = self;
-	
-	//[app setStatusBarStyle:UIStatusBarStyleLightContent];
-	//[app setStatusBarHidden:NO];
-	
-	_app = Inl_Application(Application::shared()); 
-	ASSERT(self.app);
-	_window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-	_is_background = NO;
-	_render_exec = Cb(render_exec_func);
-	
-	self.host = app;
-	self.setting_orientation = Orientation::ORIENTATION_USER;
-	self.current_orientation = Orientation::ORIENTATION_INVALID;
-	self.visible_status_bar = YES;
-	self.status_bar_style = UIStatusBarStyleLightContent;
-	self.render_task_count = 0;
-	self.root_ctr = [[RootViewController alloc] init];
-	self.display_link = [CADisplayLink displayLinkWithTarget:self
-																									selector:@selector(display_link_callback:)];
-	self.window.backgroundColor = [UIColor blackColor];
-	self.window.rootViewController = self.root_ctr;
-	
-	[self.window makeKeyAndVisible];
-	
-	UIView* view = self.window.rootViewController.view;
-	self.glview = [[GLView alloc] initWithFrame:[view bounds]];
-	self.glview.contentScaleFactor = UIScreen.mainScreen.scale;
-	self.glview.translatesAutoresizingMaskIntoConstraints = NO;
-	self.glview.app = _inl_app(self.app);
-	self.ime = [[IOSIMEHelprt alloc] initWithApplication:self.app];
-	
-	[view addSubview:self.glview];
-	[view addSubview:self.ime];
-	[view addConstraint:[NSLayoutConstraint
-											 constraintWithItem:self.glview
-											 attribute:NSLayoutAttributeWidth
-											 relatedBy:NSLayoutRelationEqual
-											 toItem:view
-											 attribute:NSLayoutAttributeWidth
-											 multiplier:1
-											 constant:0]];
-	[view addConstraint:[NSLayoutConstraint
-											 constraintWithItem:self.glview
-											 attribute:NSLayoutAttributeHeight
-											 relatedBy:NSLayoutRelationEqual
-											 toItem:view
-											 attribute:NSLayoutAttributeHeight
-											 multiplier:1
-											 constant:0]];
-	
-	[self add_system_notification];
-	
-	CAEAGLLayer* layer = (CAEAGLLayer*)self.glview.layer;
-	::Rect rect = self.glview.frame;
-	
-	layer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
-															[NSNumber numberWithBool: NO],
-															kEAGLDrawablePropertyRetainedBacking,
-															kEAGLColorFormatRGBA8,
-															kEAGLDrawablePropertyColorFormat, nil];
-	
-	_app->render_loop()->post(Cb([self, layer, rect](CbData& d) {
-		gl_draw_context->set_surface_view(self.glview, layer);
-		gl_draw_context->refresh_surface_size(rect);
-		_inl_app(self.app)->triggerLoad();
-		[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
-														forMode:NSDefaultRunLoopMode];
-	}));
-	
-	return YES;
-}
-
-- (void)application:(UIApplication*)app didChangeStatusBarFrame:(::Rect)frame {
-	if ( app_delegate && !_is_background ) {
+	- (void)applicationDidBecomeActive:(UIApplication*) application {
+		_inl_app(_app)->triggerResume();
 		[self refresh_surface_size];
 	}
-}
 
-- (void)applicationWillResignActive:(UIApplication*) application {
-	_inl_app(_app)->triggerPause();
-}
+	- (void)applicationDidEnterBackground:(UIApplication*) application {
+		_is_background = YES;
+		_inl_app(_app)->triggerBackground();
+	}
 
-- (void)applicationDidBecomeActive:(UIApplication*) application {
-	_inl_app(_app)->triggerResume();
-	[self refresh_surface_size];
-}
+	- (void)applicationWillEnterForeground:(UIApplication*) application {
+		_is_background = NO;
+		_inl_app(_app)->triggerForeground();
+	}
 
-- (void)applicationDidEnterBackground:(UIApplication*) application {
-	_is_background = YES;
-	_inl_app(_app)->triggerBackground();
-}
+	- (void)applicationDidReceiveMemoryWarning:(UIApplication*) application {
+		_inl_app(_app)->triggerMemorywarning();
+	}
 
-- (void)applicationWillEnterForeground:(UIApplication*) application {
-	_is_background = NO;
-	_inl_app(_app)->triggerForeground();
-}
+	- (void)applicationWillTerminate:(UIApplication*)application {
+		[self.display_link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+		_inl_app(_app)->triggerUnload();
+	}
 
-- (void)applicationDidReceiveMemoryWarning:(UIApplication*) application {
-	_inl_app(_app)->triggerMemorywarning();
-}
-
-- (void)applicationWillTerminate:(UIApplication*)application {
-	[self.display_link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-	_inl_app(_app)->triggerUnload();
-}
-
-- (void) mailComposeController:(MFMailComposeViewController*)controller
-					 didFinishWithResult:(MFMailComposeResult)result
-												 error:(NSError*)error {
-	[controller dismissViewControllerAnimated:YES completion:nil];
-}
+	- (void) mailComposeController:(MFMailComposeViewController*)controller
+						didFinishWithResult:(MFMailComposeResult)result
+													error:(NSError*)error {
+		[controller dismissViewControllerAnimated:YES completion:nil];
+	}
 
 @end
 
 // ******************************* Application *******************************
+
+Render* Render::create(Application* host, cJSON& options) {
+	// TODO ...
+	auto parems = Render::parseDisplayParams(options);
+	return nullptr;
+}
 
 /**
  * @func pending() 挂起应用进程
@@ -408,22 +403,20 @@ void Application::open_url(cString& url) {
 }
 
 /**
- * @func split_ns_array(str)
- */
-static NSArray<NSString*>* split_ns_array(cString& str) {
-	NSMutableArray<NSString*>* arr = [NSMutableArray<NSString*> new];
-	for (auto& i : str.split(',')) {
-		[arr addObject: [NSString stringWithUTF8String:i.c_str()]];
-	}
-	return arr;
-}
-
-/**
- * @func send_email
+ * @func send_email()
  */
 void Application::send_email(cString& recipient,
-																cString& subject,
-																cString& cc, cString& bcc, cString& body) {
+															cString& subject,
+															cString& cc, cString& bcc, cString& body) {
+
+	static NSArray<NSString*>* split_ns_array(cString& str) {
+		NSMutableArray<NSString*>* arr = [NSMutableArray<NSString*> new];
+		for (auto& i : str.split(',')) {
+			[arr addObject: [NSString stringWithUTF8String:i.c_str()]];
+		}
+		return arr;
+	}
+
 	id recipient_ = split_ns_array(recipient);
 	id subject_ = [NSString stringWithUTF8String:*subject];
 	id cc_ = split_ns_array(cc);
@@ -439,16 +432,6 @@ void Application::send_email(cString& recipient,
 		mail.mailComposeDelegate = app_delegate;
 			[app_delegate.root_ctr presentViewController:mail animated:YES completion:nil];
 	});
-}
-
-/**
- * @func initialize(options)
- */
-void AppInl::initialize(cJSON& options) {
-	ASSERT(!gl_draw_context);
-	gl_draw_context = GLDrawProxy::create(this, options);
-	_render = gl_draw_context->host();
-	ASSERT(_render);
 }
 
 /**
@@ -564,7 +547,7 @@ void Display::set_visible_status_bar(bool visible) {
 			_host->render_loop()->post(Cb([this, rect](CbData& ev) {
 				if ( !gl_draw_context->refresh_surface_size(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
-					main_loop()->post(Cb([this](CbData& e){
+					main_loop()->post(Cb([this](CbData& e) {
 						FX_Trigger(change);
 					}));
 				}

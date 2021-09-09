@@ -47,6 +47,10 @@
 
 namespace flare {
 
+	struct IOSWindowInfo {
+		UIViewController* fViewController;
+	};
+
 	class GLRender_ios : public GLRender {
 	public:
 		GLRender_ios(Application* host, const IOSWindowInfo&, const DisplayParams&);
@@ -58,23 +62,19 @@ namespace flare {
 		sk_sp<const GrGLInterface> onInitializeContext() override;
 		void onDestroyContext() override;
 
-		void resize(int w, int h) override;
+		void resize(Vec2 size, Region surface_region) override;
 
 	private:
-		sk_app::Window_ios*  fWindow;
-		UIViewController*    fViewController;
 		GLView*              fGLView;
 		EAGLContext*         fGLContext;
 		GLuint               fFramebuffer;
 		GLuint               fRenderbuffer;
-
-		using INHERITED = GLWindowContext;
 	};
 
 	GLRender_ios::GLRender_ios(const IOSWindowInfo& info, const DisplayParams& params)
 		: INHERITED(params)
-		, fWindow(info.fWindow)
-		, fViewController(info.fViewController)
+		// , fWindow(info.fWindow)
+		// , fViewController(info.fViewController)
 		, fGLContext(nil) {
 
 		// any config code here (particularly for msaa)?
@@ -84,24 +84,35 @@ namespace flare {
 
 	GLRender_ios::~GLRender_ios() {
 		this->destroyContext();
-		[fGLView removeFromSuperview];
-		[fGLView release];
+		// [fGLView removeFromSuperview];
+		// [fGLView release];
 	}
 
 	sk_sp<const GrGLInterface> GLRender_ios::onInitializeContext() {
-		SkASSERT(nil != fViewController);
-		SkASSERT(!fGLContext);
+		SkASSERT(fGLView);
 
-		CGRect frameRect = [fViewController.view frame];
-		fGLView = [[[GLView alloc] initWithFrame:frameRect] initWithWindow:fWindow];
-		[fViewController.view addSubview:fGLView];
+		if (!fGLContext) {
+			fGLContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
 
-		fGLContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+			if (!fGLContext)
+			{
+				SkDebugf("Could Not Create OpenGL ES Context\n");
+				return nullptr;
+			}
 
-		if (!fGLContext)
-		{
-			SkDebugf("Could Not Create OpenGL ES Context\n");
-			return nullptr;
+			fGLContext.multiThreaded = NO;
+
+			// Set up EAGLLayer
+			CAEAGLLayer* eaglLayer = (CAEAGLLayer*)fGLView.layer;
+			eaglLayer.drawableProperties = @{
+				kEAGLDrawablePropertyRetainedBacking: @NO,
+				kEAGLDrawablePropertyColorFormat    : kEAGLColorFormatRGBA8
+			};
+
+			eaglLayer.opaque = YES;
+			// eaglLayer.frame = frameRect;
+			// eaglLayer.contentsGravity = kCAGravityTopLeft;
+
 		}
 
 		if (![EAGLContext setCurrentContext:fGLContext]) {
@@ -109,14 +120,6 @@ namespace flare {
 			this->onDestroyContext();
 			return nullptr;
 		}
-
-		// Set up EAGLLayer
-		CAEAGLLayer* eaglLayer = (CAEAGLLayer*)fGLView.layer;
-		eaglLayer.drawableProperties = @{kEAGLDrawablePropertyRetainedBacking : @NO,
-										kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8 };
-		eaglLayer.opaque = YES;
-		eaglLayer.frame = frameRect;
-		eaglLayer.contentsGravity = kCAGravityTopLeft;
 
 		// Set up framebuffer
 		glGenFramebuffers(1, &fFramebuffer);
@@ -155,8 +158,8 @@ namespace flare {
 		glDeleteFramebuffers(1, &fFramebuffer);
 		glDeleteRenderbuffers(1, &fRenderbuffer);
 		[EAGLContext setCurrentContext:nil];
-		[fGLContext release];
-		fGLContext = nil;
+		// [fGLContext release];
+		// fGLContext = nil;
 	}
 
 	void GLRender_ios::onSwapBuffers() {
@@ -164,10 +167,10 @@ namespace flare {
 		[fGLContext presentRenderbuffer:GL_RENDERBUFFER];
 	}
 
-	void GLRender_ios::resize(int w, int h) {
+	void GLRender_ios::resize(Vec2 size, Region surface_region) {
 		// TODO: handle rotation
 		// [fGLContext update];
-		INHERITED::resize(w, h);
+		INHERITED::resize(size, surface_region);
 	}
 
 	Render* MakeGLForIOS(Application* host, const IOSWindowInfo& info,
