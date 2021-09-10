@@ -28,24 +28,24 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__linux_gl_1__
-#define __flare__linux_gl_1__
+#ifndef __flare__unix_gl_1__
+#define __flare__unix_gl_1__
 
 #include "flare/util/macros.h"
 
-#if FX_LINUX || FX_ANDROID
+#if FX_UNIX || FX_ANDROID
 
-#include "flare/gl/gl.h"
+#include "flare/render/gl.h"
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <EGL/eglplatform.h>
 
 namespace flare {
 
-	class GLDrawProxy {
-		public:
-		GLDrawProxy(GLDraw* host, EGLDisplay display, EGLConfig cfg, EGLContext ctx);
-		~GLDrawProxy();
+	class GLRender_unix {
+	public:
+		GLRender_unix(GLDraw* host, EGLDisplay display, EGLConfig cfg, EGLContext ctx);
+		~GLRender_unix();
 		void initialize();
 		bool create_surface(EGLNativeWindowType window);
 		void destroy_surface(EGLNativeWindowType window);
@@ -58,7 +58,7 @@ namespace flare {
 		GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 		inline GLDraw* host() { return _host; }
 		static GLDrawProxy* create(Application* host, cJSON& options);
-		protected:
+	protected:
 		EGLDisplay _display;
 		EGLConfig _config;
 		EGLContext _context;

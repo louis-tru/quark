@@ -191,8 +191,13 @@ namespace flare {
 		inline float best_display_scale() const { return _best_display_scale; }
 		inline void set_best_display_scale(float value) { _best_display_scale = value; }
 		inline Region surface_region() const { return _surface_region; }
-		inline Vec2 phy_size() const { return Vec2(_surface_region.width, _surface_region.height); }
 		bool set_surface_region(Region surface_region); // call from render loop
+		void render_frame(bool force = false); // call from render loop
+
+		/**
+		 * @func phy_size()
+		 */
+		Vec2 phy_size() const;
 
 		/**
 		* @func default_atom_pixel
@@ -205,9 +210,6 @@ namespace flare {
 		static float default_status_bar_height();
 
 	private:
-		void render_frame();
-		void refresh();
-		
 		Application*      _host;
 		Vec2              _lock_size;  // 锁定视口的尺寸
 		Vec2              _size;       // 当前视口尺寸

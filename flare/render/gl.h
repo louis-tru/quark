@@ -36,41 +36,31 @@
 #include "skia/core/SkRefCnt.h"
 #include "skia/core/SkSurface.h"
 
-
-
-
 namespace flare {
 
 	class GLRender: public Render {
 	public:
-		sk_sp<SkSurface> getBackbufferSurface() override;
-
-		bool isValid() override;
-
-		void resize() override;
-		void swapBuffers() override;
-
-		void setDisplayParams(const DisplayParams& params) override;
+		virtual void initialize() override;
+		virtual bool isValid() override;
+		virtual void reload() override;
+		virtual void start() override;
+		virtual void commit() override;
+		virtual sk_sp<SkSurface> getSurface() override;
+		virtual bool isGpu() override { return true; }
+		virtual void glRenderbufferStorageMain();
+		int gpuMSAASample() const;
 
 	protected:
 		GLRender(Application* host, const DisplayParams& params);
-		// This should be called by subclass constructor. It is also called when window/display
-		// parameters change. This will in turn call onInitializeContext().
-		void initializeContext();
-		virtual sk_sp<const DisplayParams> onInitializeContext() = 0;
 
-		// This should be called by subclass destructor. It is also called when window/display
-		// parameters change prior to initializing a new GL context. This will in turn call
-		// onDestroyContext().
-		void destroyContext();
-		virtual void onDestroyContext() = 0;
-
-		virtual void onSwapBuffers() = 0;
-
-		bool isGpuContext() override { return true; }
-
-		sk_sp<const GrGLInterface> fBackendContext;
-		sk_sp<SkSurface>           fSurface;
+		sk_sp<const GrGLInterface> _BackendContext;
+		sk_sp<SkSurface> _Surface;
+		uint32_t  _frame_buffer_cur;
+		uint32_t  _render_buffer;
+		uint32_t  _frame_buffer;
+		uint32_t  _msaa_render_buffer;
+		uint32_t  _msaa_frame_buffer;
+		bool _is_support_multisampled;
 	};
 
 }   // namespace flare

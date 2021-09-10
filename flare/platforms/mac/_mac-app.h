@@ -1,3 +1,6 @@
+
+
+
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,24 +31,26 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/util/macros.h"
+#import "flare/util/macros.h"
 
-#if FX_IOS
+#if FX_IOS || FX_OSX
 
-#import <UIKit/UIKit.h>
-#import "flare/app.h"
-#import "flare/event.h"
+#import <flare/app.h>
 
-using namespace flare;
+#if FX_OSX
+	#import <AppKit/AppKit.h>
+	#define UIResponder NSResponder
+	#define UIApplicationDelegate NSApplicationDelegate
+	#define UIWindow NSWindow
+#else
+	#import <UIKit/UIKit.h>
+#endif
 
-@interface IOSIMEHelprt: UIView<UITextInput>
-- (id)initWithApplication:(Application*)app;
-- (void)open;
-- (void)close;
-- (void)clear;
-- (void)set_keyboard_can_backspace:(bool)can_backspace can_delete:(bool)can_delete;
-- (void)set_keyboard_type:(KeyboardType)type;
-- (void)set_keyboard_return_type:(KeyboardReturnType)type;
+@interface ApplicationDelegate: UIResponder<UIApplicationDelegate>
+
+@property (assign, nonatomic, readonly) flare::Application* app;
+	+ (void)set_application_delegate:(NSString*)name;
+	- (UIWindow*)window;
 @end
 
 #endif

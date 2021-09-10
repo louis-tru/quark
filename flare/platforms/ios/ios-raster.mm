@@ -28,15 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "include/core/SkCanvas.h"
+#include "include/core/SkImageInfo.h"
 #import <OpenGLES/ES3/gl.h>
 #import <UIKit/UIKit.h>
 
 #include "../../render/gl.h"
 #include "../mac/_mac-render_.h"
 
-namespace flare {
+namespace {
 
-	class GLRenderIOS: public GLRender, public RenderMAC {
+	class RasterRenderIOS: public GLRender, public RenderMAC {
 	public:
 		GLRenderIOS(GUIApplication* host, EAGLContext* ctx, const DisplayParams& params, bool gles2)
 			: GLRender(host, params), _glctx(ctx), _gles2(gles2)
@@ -58,42 +60,40 @@ namespace flare {
 				kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
 			};
 			_layer.opaque = YES;
-			// _layer.frame = frameRect;
-			// _layer.contentsGravity = kCAGravityTopLeft;
 			_host->display()->set_best_display_scale(UIScreen.mainScreen.scale);
 		}
 
 		Render* render() override { return this; }
+		bool isGpu() override { return false; }
+		sk_sp<SkSurface> getSurface() override { return _RasterSurface; }
 
 		void glRenderbufferStorageMain() override {
 			[_glctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
 		}
 
-		void commit() override {
-			if (gpuMSAASample()) {
-				glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
-				GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-				if (_gles2) {
-					glResolveMultisampleFramebufferAPPLE();
-					glDiscardFramebufferEXT(GL_READ_FRAMEBUFFER, 3, attachments);
-				} else {
-					auto region = _host->display()->surface_region();
-					glBlitFramebuffer(0, 0, region.width, region.height,
-														0, 0, region.width, region.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-					glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
-				}
-				glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-				glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
-			} else {
-				GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-				if (_gles2) {
-					glDiscardFramebufferEXT(GL_FRAMEBUFFER, 2, attachments);
-				} else {
-					glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
-				}
-			}
+		void reload() override {
+			GLRender::reload();
+			// make the offscreen image
+			auto region = _host->display()->surface_region();
+			SkImageInfo info = SkImageInfo::Make(region.width, region.height, _DisplayParams.fColorType,
+												kPremul_SkAlphaType, _DisplayParams.fColorSpace);
+			_RasterSurface = SkSurface::MakeRaster(info);
+		}
 
+		void commit() override {
+			// We made/have an off-screen surface. Get the contents as an SkImage:
+			sk_sp<SkImage> snapshot = _RasterSurface->makeImageSnapshot();
+			sk_sp<SkSurface> gpuSurface = GLRender::getSurface();
+			SkCanvas* gpuCanvas = gpuSurface->getCanvas();
+			gpuCanvas->drawImage(snapshot, 0, 0);
+			gpuCanvas->flush();
+
+			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
+			if (_gles2) {
+				glDiscardFramebufferEXT(GL_FRAMEBUFFER, 2, attachments);
+			} else {
+				glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
+			}
 			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 			// you present its contents by making it the current renderbuffer
 			// and calling the presentRenderbuffer: method on your rendering context.
@@ -105,14 +105,15 @@ namespace flare {
 		UIView* _view;
 		CAEAGLLayer* _layer;
 		bool _gles2;
+		sk_sp<SkSurface> _RasterSurface;
 	};
 
-	RenderMAC* MakeMetalRender(GUIApplication* host, const DisplayParams& parems) {
+	RenderMAC* MakeRasterRender(GUIApplication* host, const DisplayParams& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
-			return new GLRenderIOS(host, ctx, parems, false);
+			return new RasterRenderIOS(host, ctx, parems, false);
 		} else if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES2] ) {
-			return new GLRenderIOS(host, ctx, parems, true);
+			return new RasterRenderIOS(host, ctx, parems, true);
 		} else {
 			return nullptr;
 		}

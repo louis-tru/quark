@@ -28,99 +28,35 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__app_1__
-#define __flare__app_1__
-
-#include "./app.h"
-
-/**
- * @ns flare
- */
+#include "./_mac-render.h"
 
 namespace flare {
 
-	FX_DEFINE_INLINE_MEMBERS(Application, Inl) {
-	public:
-		#define _inl_app(self) static_cast<AppInl*>(self)
-
-		struct KeyboardOptions {
-			bool               is_clear;
-			KeyboardType       type;
-			KeyboardReturnType return_type;
-			Vec2               spot_location;
-		};
-
-		void triggerLoad();
-		void triggerRender();
-		void triggerPause();
-		void triggerResume();
-		void triggerBackground();
-		void triggerForeground();
-		void triggerMemorywarning();
-		void triggerUnload();
-		
-		/**
-		* @func set_volume_up()
-		*/
-		void set_volume_up();
-
-		/**
-		* @func set_volume_down()
-		*/
-		void set_volume_down();
-		
-		/**
-		* @func set_root
-		*/
-		void set_root(Root* value) throw(Error);
-		
-		/**
-		* @func runMain
-		*/
-		inline static void runMain(int argc, Char* argv[]) {
-			Application::runMain(argc, argv);
+	bool RenderMAC::resize(::CGRect rect) {
+		float scale = UIScreen.mainScreen.scale;
+		float x = rect.size.width * scale;
+		float y = rect.size.height * scale;
+		if ( x != 0 && y != 0 ) {
+			return render()->host()->display()->set_surface_region({ 0,0,x,y,x,y });
 		}
-		
-		/**
-		* @func set_focus_view
-		*/
-		bool set_focus_view(View* view);
-		
-		/**
-		* @func dispatch
-		* */
-		inline GUIEventDispatch* dispatch() { return _dispatch; }
-		
-		/**
-		* @func ime_keyboard_open
-		*/
-		void ime_keyboard_open(KeyboardOptions options);
-		
-		/**
-		* @func ime_keyboard_can_backspace
-		*/
-		void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
-		
-		/**
-		* @func ime_keyboard_close
-		*/
-		void ime_keyboard_close();
-		
-		/**
-		* @func ime_keyboard_spot_location
-		*/
-		void ime_keyboard_spot_location(Vec2 location);
+		return false;
+	}
 
-		/**
-		* @func onExit(code)
-		*/
-		int onExit(int code);
-	};
+	RenderMAC* MakeRasterRender(GUIApplication* host, const DisplayParams& parems);
+	RenderMAC* MakeGLRender(GUIApplication* host, const DisplayParams& parems);
+	RenderMAC* MakeMetalRender(GUIApplication* host, const DisplayParams& parems);
 
-	typedef Application::Inl AppInl;
+	RenderMAC* RenderMAC::create(GUIApplication* host, cJSON& options) {
+		auto parems = Render::parseDisplayParams(options);
 
-	void safeExit(int rc);
+		auto r = MakeGLRender(host, parems);
 
-}
+		// return MakeRasterRender(host, parems);
+		// return MakeGLRender(host, parems);
+		// return MakeMetalRender(host, parems);
+		// FX_FATAL("Unable to initialize OGL device does not support OpenGLES");
 
-#endif
+		return r;
+	}
+
+}  // namespace flare

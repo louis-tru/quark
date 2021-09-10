@@ -39,6 +39,10 @@
 
 namespace flare {
 
+	Vec2 Display::phy_size() const {
+		return Vec2(_surface_region.x - _surface_region.x2, _surface_region.y - _surface_region.y2);
+	}
+
 	FX_DEFINE_INLINE_MEMBERS(Display, Inl) {
 	public:
 		#define _inl(self) static_cast<Display::Inl*>(self)
@@ -46,10 +50,14 @@ namespace flare {
 		void update_from_render_loop() {
 			ScopeLock lock(_Mutex);
 
+			float _phy_size = phy_size();
+			float width = _phy_size.x();
+			float height = _phy_size.y();
+
 			if (_lock_size.x() == 0 && _lock_size.y() == 0) { // 使用系统默认的最合适的尺寸
 				_size = {
-					_surface_region.width / _best_display_scale,
-					_surface_region.height / _best_display_scale,
+					width / _best_display_scale,
+					height / _best_display_scale,
 				};
 			}
 			else if (_lock_size.x() != 0 && _lock_size.y() != 0) { // 尺寸全部锁定
@@ -57,25 +65,25 @@ namespace flare {
 			}
 			else if (_lock_size.x() != 0) { // 只锁定宽度
 				_size.y(_lock_size.x());
-				_size.y(_size.x() / _surface_region.width * _surface_region.height);
+				_size.y(_size.x() / width * height);
 			}
 			else { // _lock_height == 0 // 只锁定高度
 				_size.y(_lock_size.y());
-				_size.x(_size.y() / _surface_region.height * _surface_region.width);
+				_size.x(_size.y() / height * width);
 			}
 			
-			_scale.x(_surface_region.width / _size.x());
-			_scale.y(_surface_region.height / _size.y());
+			_scale.x(width / _size.x());
+			_scale.y(height / _size.y());
 
 			float scale = (_scale.x() + _scale.y()) / 2;
 			
 			_atom_pixel = 1.0f / scale;
 			
 			Rect region = _surface_region;
-			
+
 			Vec2 start = Vec2(-region.x / _scale.x(), -region.y / _scale.y());
-			Vec2 end   = Vec2(region.x2 / _scale.x(), region.y2 / _scale.y());
-			
+			Vec2 end = Vec2(region.width / _scale.x() + start.x(),
+											region.height / _scale.y() + start.y());
 			_root_matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f); // 计算2D视图变换矩阵
 
 			// update root
@@ -95,7 +103,7 @@ namespace flare {
 				FX_Trigger(change); // 通知事件
 			}));
 
-			_render->resize(_size, _surface_region);
+			_render->reload();
 		}
 		
 		/**
@@ -150,12 +158,12 @@ namespace flare {
 	# define PRINT_RENDER_FRAME_TIME 0
 	#endif
 
-	void Display::render_frame() {// 必须要渲染循环中调用
+	void Display::render_frame(bool force) {// 必须要渲染循环中调用
 		Root* root = _host->root();
 		int64_t now_time = os::time_monotonic();
 		_host->action_center()->advance(now_time); // advance action
 		
-		if (root && _host->_pre_render->solve(now_time)) {
+		if (root && (force || _host->_pre_render->solve(now_time))) {
 			if (now_time - _record_fsp_time >= 1e6) {
 				_fsp = _record_fsp;
 				_record_fsp = 0;
@@ -165,7 +173,7 @@ namespace flare {
 
 			auto render = _host->render();
 			
-			render->beginRender();
+			render->start();
 			root->draw(render->canvas()); // 开始绘图
 			_inl(this)->solve_next_frame();
 			
@@ -178,7 +186,7 @@ namespace flare {
 			* 如果能够确保绘图函数的调用都在渲染线程,那就不会有安全问题。
 			*/
 			Inl2_RunLoop(_host->render_loop())->independent_mutex_unlock();
-			render->swapBuffers();
+			render->commit();
 			Inl2_RunLoop(_host->render_loop())->independent_mutex_lock();
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t ts2 = (os::time() - st) / 1e3;
@@ -190,18 +198,6 @@ namespace flare {
 			#endif
 		} else {
 			_inl(this)->solve_next_frame();
-		}
-	}
-
-	void Display::refresh() {
-		// 必须要渲染循环中调用
-		auto root = _host->root();
-		if ( root ) {
-			auto render = _host->render();
-			_host->_pre_render->solve(os::time_monotonic());
-			render->begin_render();
-			root->draw(render->canvas()); // draw
-			render->swapBuffers();
 		}
 	}
 
@@ -242,7 +238,7 @@ namespace flare {
 		_next_frame.push_back(cb);
 	}
 
-	void Display::set_surface_region(Region region) {
+	bool Display::set_surface_region(Region region) {
 		ASSERT(_host->has_current_render_thread());
 		if (
 					_surface_region.x != region.x 

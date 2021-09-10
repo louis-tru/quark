@@ -68,31 +68,27 @@ namespace flare {
 		SkCanvas* canvas();
 
 		/**
-		 * @func beginRender()
+		 * @func getSurface()
 		 */
-		virtual void beginRender();
+		virtual sk_sp<SkSurface> getSurface() = 0;
 
 		/**
-		 * @func getBackbufferSurface()
+		 * @func initialize()
 		 */
-		virtual sk_sp<SkSurface> getBackbufferSurface() = 0;
-
-		virtual void swapBuffers() = 0;
-
+		virtual void initialize() = 0;
+		virtual void start() = 0;
+		virtual void commit() = 0;
 		virtual bool isValid() = 0;
-
-		virtual void resize() = 0;
-
+		virtual void reload() = 0;
 		virtual void activate(bool isActive);
+		virtual bool isGpu() { return false; }
+		virtual void setDisplayParams(const DisplayParams& params);
 
-		inline const DisplayParams& getDisplayParams() { return fDisplayParams; }
-
-		virtual void setDisplayParams(const DisplayParams& params) = 0;
-
-		inline GrDirectContext* directContext() const { return fContext.get(); }
-
-		inline int sampleCount() const { return fSampleCount; }
-		inline int stencilBits() const { return fStencilBits; }
+		inline const DisplayParams& displayParams() { return _DisplayParams; }
+		inline GrDirectContext* directContext() { return _Context.get(); }
+		inline Application* host() { return _host; }
+		inline int sampleCount() const { return _SampleCount; }
+		inline int stencilBits() const { return _StencilBits; }
 
 		/**
 		 * @func create(host, options)
@@ -100,21 +96,15 @@ namespace flare {
 		static Render* create(Application* host, cJSON& options);
 
 		static DisplayParams parseDisplayParams(cJSON& options);
-		
+
 	protected:
 		Render(Application* host, const DisplayParams& params);
 
-		virtual bool isGpuContext() { return false; }
-
 		Application*  _host;
 
-		sk_sp<GrDirectContext> fContext;
-		DisplayParams     fDisplayParams;
-		// parameters obtained from the native window
-		// Note that the platform .cpp file is responsible for
-		// initializing fSampleCount and fStencilBits!
-		int               fSampleCount;
-		int               fStencilBits;
+		sk_sp<GrDirectContext> _Context;
+		DisplayParams     _DisplayParams;
+		int _SampleCount, _StencilBits;
 	};
 
 	inline Render* render() { return app()->render(); }

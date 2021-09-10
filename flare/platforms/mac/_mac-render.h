@@ -1,6 +1,3 @@
-
-
-
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -31,25 +28,27 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "flare/util/macros.h"
+#ifndef __flare__ios_render__
+#define __flare__ios_render__
 
-#if FX_IOS || FX_OSX
+#import "../util/macros.h"
 
-#import <flare/app.h>
+#if FX_IOS
 
-#if FX_OSX
- #import <AppKit/AppKit.h>
- #define UIResponder NSResponder
- #define UIApplicationDelegate NSApplicationDelegate
- #define UIWindow NSWindow
-#else
- #import <UIKit/UIKit.h>
+#import "../../render/render.h"
+#include "./_mac-app.h"
+
+namespace flare {
+
+	class FX_EXPORT RenderMAC {
+	public:
+		virtual Render* render() = 0;
+		virtual void set_view(UIView* view) = 0;
+		bool resize(::CGRect rect);
+		static RenderMAC* create(Application* host, cJSON& options);
+	};
+
+}
+
 #endif
-
-@interface ApplicationDelegate: UIResponder<UIApplicationDelegate>
-@property (assign, nonatomic, readonly) flare::Application* app;
-+ (void)set_application_delegate:(NSString*)name;
-- (UIWindow*)window;
-@end
-
 #endif

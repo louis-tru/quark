@@ -34,26 +34,29 @@ namespace flare {
 
 	Render::Render(Application* host, const DisplayParams& params)
 		: _host(host)
-		, fDisplayParams(params)
-		, fSampleCount(1)
-		, fStencilBits(0)
+		, _DisplayParams(params)
+		, _SampleCount(1)
+		, _StencilBits(0)
 	{
-		fDisplayParams.fMSAASampleCount = GrNextPow2(fDisplayParams.fMSAASampleCount);
+		_DisplayParams.fMSAASampleCount = GrNextPow2(_DisplayParams.fMSAASampleCount);
+		_DisplayParams.fMSAASampleCount = FX_MIN(_DisplayParams.fMSAASampleCount, 8);
 	}
 
 	Render::~Render() {
 	}
 
-	/**
-		* @func canvas()
-		*/
 	SkCanvas* Render::canvas() {
-		return getBackbufferSurface()->getCanvas();
+		return getSurface()->getCanvas();
 	}
-	
-	void Render::beginRender() {}
 
 	void Render::activate(bool isActive) {}
+
+	void Render::setDisplayParams(const DisplayParams& params) {
+		_DisplayParams = params;
+		_DisplayParams.fMSAASampleCount = GrNextPow2(_DisplayParams.fMSAASampleCount);
+		_DisplayParams.fMSAASampleCount = FX_MIN(_DisplayParams.fMSAASampleCount, 8);
+		reload();
+	}
 
 	Render::DisplayParams Render::parseDisplayParams(cJSON& options) {
 		// parse options to render params

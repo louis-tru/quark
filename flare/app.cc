@@ -91,10 +91,6 @@ namespace flare {
 		}
 	}
 
-	void AppInl::refresh_display() {
-		_display->refresh();
-	}
-
 	void AppInl::triggerLoad() {
 		if (!_is_load) {
 			_is_load = true;

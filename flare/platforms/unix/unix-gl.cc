@@ -375,19 +375,28 @@ namespace flare {
 		if ( _window ) {
 			_raw_surface_size = get_window_size(_window);
 		}
-
 		if ( _raw_surface_size[0] == 0 || _raw_surface_size[1] == 0 ) return;
 
 		if ( rect == nullptr ) {
-			Rect region = _host->selected_region(); // 使用上次的区域，如果这是有效的
+			auto region = _host->display()->surface_region(); // 使用上次的区域，如果这是有效的
 
-			if (region.size[0] == 0 || region.size[1] == 0) { // 区域无效
-				_host->set_surface_size(_raw_surface_size);
+			if (region.x2 == 0 || region.y2 == 0) { // 区域无效
+				_host->display()->set_surface_region({ 
+					0, 0, _raw_surface_size.x(), _raw_surface_size.y(),
+					_raw_surface_size.x(), _raw_surface_size.y(),
+				});
 			} else {
-				_host->set_surface_size(_raw_surface_size, &region);
+				_host->display()->set_surface_region({
+					region.x, region.y, region.x2, region.y2,
+					_raw_surface_size.x(), _raw_surface_size.y(),
+				});
 			}
 		} else {
-			_host->set_surface_size(_raw_surface_size, rect);
+			_host->display()->set_surface_region({
+				rect->origin.x(), rect->origin.y(),
+				rect->origin.x() + rect->size.x(), rect->origin.y() + rect->size.y(),
+				_raw_surface_size.x(), _raw_surface_size.y(),
+			});
 		}
 
 		// set virtual keys rect
@@ -399,28 +408,30 @@ namespace flare {
 		#if FX_ANDROID
 			_virtual_keys_rect = Rect();
 
-			Vec2 scale = _host->host()->display_port()->scale_value();
-			Rect region = _host->selected_region();
+			Vec2 scale = _host->display()->scale();
+			Region region = _host->display()->surface_region();
 
-			int width = int(_host->surface_size().width() - region.size.width());
-			int height = int(_host->surface_size().height() - region.size.height());
+			auto x3 = region.x2 - region.x;
+			auto y3 = region.y2 - region.y;
+			auto w = region.width - x3;
+			auto h = region.height - y3;
 
-			if ( width > 0 ) { // left / right
-				if ( region.origin.x() == 0 ) { // right，虚拟键盘在`right`
+			if ( w > 0 ) { // left / right
+				if ( region.x == 0 ) { // right，虚拟键盘在`right`
 					_virtual_keys_rect = {
-									Vec2(region.size.width() / scale[0], 0),
-									Vec2(width / scale[0], region.size.height() / scale[1])
+						Vec2(x3 / scale[0], 0),
+						Vec2(w / scale[0], region.height / scale[1])
 					};
 				} else { // left，虚拟键盘在`left`
 					_virtual_keys_rect = {
-									Vec2(-region.origin.x() / scale[0], 0),
-									Vec2(region.origin.x() / scale[0], region.size.height() / scale[1])
+						Vec2(),
+						Vec2(w / scale[0], region.height / scale[1])
 					};
 				}
-			} else if ( height > 0 ) { // bottom，虚拟键盘在`bottom`
+			} else if ( h > 0 ) { // bottom，虚拟键盘在`bottom`
 				_virtual_keys_rect = {
-								Vec2(0, region.size.height() / scale[0]),
-								Vec2(region.size.width() / scale[0], height / scale[1])
+					Vec2(0, y3 / scale[0]),
+					Vec2(region.width / scale[0], h / scale[1])
 				};
 			}
 		#endif 

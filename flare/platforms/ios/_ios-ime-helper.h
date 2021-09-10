@@ -28,38 +28,24 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__ios_gl__
-#define __flare__ios_gl__
-
-#import "../util/macros.h"
+#include "flare/util/macros.h"
 
 #if FX_IOS
 
-#import "flare/gl/gl.h"
 #import <UIKit/UIKit.h>
-#import <OpenGLES/EAGL.h>
+#import "flare/app.h"
+#import "flare/event.h"
 
-namespace flare {
+using namespace flare;
 
-	class FX_EXPORT GLDrawProxy {
-	public:
-		GLDrawProxy(GLDraw* host, EAGLContext* ctx);
-		~GLDrawProxy();
-		void commit_render();
-		GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
-		void gl_main_render_buffer_storage();
-		void set_surface_view(UIView* view, CAEAGLLayer* layer);
-		bool refresh_surface_size(::Rect rect);
-		inline GLDraw* host() { return _host; }
-		static GLDrawProxy* create(Application* host, cJSON& options);
-	private:
-		UIView* _surface_view;
-		CAEAGLLayer* _layer;
-		EAGLContext* _context;
-		GLDraw*      _host;
-	};
+@interface IOSIMEHelprt: UIView<UITextInput>
+	- (id)initWithApplication:(Application*)app;
+	- (void)open;
+	- (void)close;
+	- (void)clear;
+	- (void)set_keyboard_can_backspace:(bool)can_backspace can_delete:(bool)can_delete;
+	- (void)set_keyboard_type:(KeyboardType)type;
+	- (void)set_keyboard_return_type:(KeyboardReturnType)type;
+@end
 
-}
-
-#endif
 #endif

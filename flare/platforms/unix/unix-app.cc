@@ -356,7 +356,7 @@ namespace flare {
 				if (_is_init) {
 					Rect rect = {Vec2(), get_window_size()};
 					gl_draw_context->refresh_surface_size(&rect);
-					_host->refresh_display(); // 刷新显示
+					_host->display()->render_frame(); // 刷新显示
 				} else {
 					_is_init = 1;
 					ASSERT(gl_draw_context->create_surface(_win));

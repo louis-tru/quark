@@ -29,25 +29,24 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import <UIKit/UIKit.h>
-#import <OpenGLES/ES2/glext.h>
-#import "../util/loop.h"
-#import "./_ios-gl.h"
-#import "./_ios-ime-helper.h"
-#import "./_mac-app.h"
-#import "../app.h"
-#import "../display-port.h"
-#import "../_app.h"
-#import "../event.h"
+// #import <OpenGLES/ES2/glext.h>
 #import <MessageUI/MFMailComposeViewController.h>
+
+#import "../../util/loop.h"
+#import "../../_app.h"
+#import "../../display.h"
+#import "../../event.h"
+#import "../mac/_mac-render.h"
+#import "./_ios-ime-helper.h"
 
 using namespace flare;
 
 typedef Display::Orientation Orientation;
 typedef Display::StatusBarStyle StatusBarStyle;
 
-static ApplicationDelegate* app_delegate = nil;
-static GLDrawProxy* gl_draw_context = nil;
-static NSString* app_delegate_name = @"";
+static ApplicationDelegate* G_AppDelegate = nil;
+static RenderMAC* G_render = nil;
+static NSString* G_AppDelegate_name = @"";
 
 /**
  * @interface GLView
@@ -74,10 +73,10 @@ static NSString* app_delegate_name = @"";
 		NSEnumerator* enumerator = [touches objectEnumerator];
 		List<GUITouch> rv; // (uint(touches.count));
 		
-		Vec2 size = _app->display_port()->size();
+		Vec2 size = _app->display()->size();
 		
-		float scale_x = size.width() / app_delegate.glview.frame.size.width;
-		float scale_y = size.height() / app_delegate.glview.frame.size.height;
+		float scale_x = size.width() / G_AppDelegate.glview.frame.size.width;
+		float scale_y = size.height() / G_AppDelegate.glview.frame.size.height;
 		
 		for (UITouch* touch in enumerator) {
 			CGPoint point = [touch locationInView:touch.view];
@@ -130,7 +129,7 @@ static NSString* app_delegate_name = @"";
 	}
 
 	- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-		switch ( app_delegate.setting_orientation ) {
+		switch ( G_AppDelegate.setting_orientation ) {
 			case Orientation::ORIENTATION_PORTRAIT:
 				return UIInterfaceOrientationMaskPortrait;
 			case Orientation::ORIENTATION_LANDSCAPE:
@@ -146,7 +145,7 @@ static NSString* app_delegate_name = @"";
 			case Orientation::ORIENTATION_USER_LANDSCAPE:
 				return UIInterfaceOrientationMaskLandscape;
 			case Orientation::ORIENTATION_USER_LOCKED:
-				switch(app_delegate.current_orientation  ) {
+				switch(G_AppDelegate.current_orientation  ) {
 					default:
 					case Orientation::ORIENTATION_INVALID:
 						return UIInterfaceOrientationMaskAll;
@@ -167,14 +166,14 @@ static NSString* app_delegate_name = @"";
 				withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 	{
 		[coordinator animateAlongsideTransition:^(id context) {
-			Orientation ori = app_delegate.app->display_port()->orientation();
-			::Rect rect = app_delegate.glview.frame;
-			app_delegate.app->render_loop()->post(Cb([ori, rect](CbData& d) {
-				gl_draw_context->refresh_surface_size(rect);
-				if (ori != app_delegate.current_orientation) {
-					app_delegate.current_orientation = ori;
+			Orientation ori = G_AppDelegate.app->display()->orientation();
+			::CGRect rect = G_AppDelegate.glview.frame;
+			G_AppDelegate.app->render_loop()->post(Cb([ori, rect](CbData& d) {
+				G_reader->resize(rect);
+				if (ori != G_AppDelegate.current_orientation) {
+					G_AppDelegate.current_orientation = ori;
 					main_loop()->post(Cb([](CbData& e) {
-						app_delegate.app->display_port()->FX_Trigger(orientation);
+						G_AppDelegate.app->display()->FX_Trigger(orientation);
 					}));
 				}
 			}));
@@ -183,7 +182,7 @@ static NSString* app_delegate_name = @"";
 	}
 
 	- (UIStatusBarStyle)preferredStatusBarStyle {
-		return app_delegate.status_bar_style;
+		return G_AppDelegate.status_bar_style;
 	}
 
 	- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
@@ -192,7 +191,7 @@ static NSString* app_delegate_name = @"";
 	}
 
 	- (BOOL)prefersStatusBarHidden {
-		return !app_delegate.visible_status_bar;
+		return !G_AppDelegate.visible_status_bar;
 	}
 
 @end
@@ -221,8 +220,8 @@ static NSString* app_delegate_name = @"";
 @implementation ApplicationDelegate
 
 	static void render_exec_func(CbData& evt, Object* ctx) {
-		app_delegate.render_task_count--;
-		_inl_app(app_delegate.app)->triggerRender();
+		G_AppDelegate.render_task_count--;
+		_inl_app(G_AppDelegate.app)->triggerRender();
 	}
 
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
@@ -249,20 +248,20 @@ static NSString* app_delegate_name = @"";
 		// TODO ..
 	}
 
-	- (void)refresh_surface_size {
-		::Rect rect = app_delegate.glview.frame;
+	- (void)resize {
+		::CGRect rect = G_AppDelegate.glview.frame;
 		_app->render_loop()->post(Cb([self, rect](CbData& d) {
-			gl_draw_context->refresh_surface_size(rect);
+			G_render->resize(rect);
 		}));
 	}
 
 	+ (void)set_application_delegate:(NSString*)name {
-		app_delegate_name = name;
+		G_AppDelegate_name = name;
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		ASSERT(!app_delegate); 
-		app_delegate = self;
+		ASSERT(!G_AppDelegate); 
+		G_AppDelegate = self;
 		
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];
@@ -315,29 +314,22 @@ static NSString* app_delegate_name = @"";
 		
 		[self add_system_notification];
 		
-		// CAEAGLLayer* layer = (CAEAGLLayer*)self.glview.layer;
-		// ::Rect rect = self.glview.frame;
+		::CGRect rect = self.glview.frame;
 		
-		// layer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
-		// 														[NSNumber numberWithBool: NO],
-		// 														kEAGLDrawablePropertyRetainedBacking,
-		// 														kEAGLColorFormatRGBA8,
-		// 														kEAGLDrawablePropertyColorFormat, nil];
-		
-		_app->render_loop()->post(Cb([self, layer, rect](CbData& d) {
-			gl_draw_context->set_surface_view(self.glview, layer);
-			gl_draw_context->refresh_surface_size(rect);
+		_app->render_loop()->post(Cb([self, rect](CbData& d) {
+			G_render->set_view(self.glview);
+			G_render->resize(rect);
 			_inl_app(self.app)->triggerLoad();
 			[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
 															forMode:NSDefaultRunLoopMode];
 		}));
-		
+
 		return YES;
 	}
 
-	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(::Rect)frame {
-		if ( app_delegate && !_is_background ) {
-			[self refresh_surface_size];
+	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(::CGRect)frame {
+		if ( G_AppDelegate && !_is_background ) {
+			[self resize];
 		}
 	}
 
@@ -347,7 +339,7 @@ static NSString* app_delegate_name = @"";
 
 	- (void)applicationDidBecomeActive:(UIApplication*) application {
 		_inl_app(_app)->triggerResume();
-		[self refresh_surface_size];
+		[self resize];
 	}
 
 	- (void)applicationDidEnterBackground:(UIApplication*) application {
@@ -380,9 +372,8 @@ static NSString* app_delegate_name = @"";
 // ******************************* Application *******************************
 
 Render* Render::create(Application* host, cJSON& options) {
-	// TODO ...
-	auto parems = Render::parseDisplayParams(options);
-	return nullptr;
+	G_render = RenderMAC::create(host, options);
+	return G_render->render();
 }
 
 /**
@@ -398,7 +389,7 @@ void Application::pending() {
 void Application::open_url(cString& url) {
 	NSURL* url2 = [NSURL URLWithString:[NSString stringWithUTF8String:*url]];
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[app_delegate.host openURL:url2 options:@{ } completionHandler:nil];
+		[G_AppDelegate.host openURL:url2 options:@{ } completionHandler:nil];
 	});
 }
 
@@ -429,8 +420,8 @@ void Application::send_email(cString& recipient,
 		[mail setCcRecipients:cc_];
 		[mail setBccRecipients:bcc_];
 		[mail setMessageBody:body_ isHTML:NO];
-		mail.mailComposeDelegate = app_delegate;
-			[app_delegate.root_ctr presentViewController:mail animated:YES completion:nil];
+		mail.mailComposeDelegate = G_AppDelegate;
+			[G_AppDelegate.root_ctr presentViewController:mail animated:YES completion:nil];
 	});
 }
 
@@ -439,12 +430,12 @@ void Application::send_email(cString& recipient,
  */
 void AppInl::ime_keyboard_open(KeyboardOptions options) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[app_delegate.ime set_keyboard_type:options.type];
-		[app_delegate.ime set_keyboard_return_type:options.return_type];
+		[G_AppDelegate.ime set_keyboard_type:options.type];
+		[G_AppDelegate.ime set_keyboard_return_type:options.return_type];
 		if ( options.is_clear ) {
-			[app_delegate.ime clear];
+			[G_AppDelegate.ime clear];
 		}
-		[app_delegate.ime open];
+		[G_AppDelegate.ime open];
 	});
 }
 
@@ -453,7 +444,7 @@ void AppInl::ime_keyboard_open(KeyboardOptions options) {
  */
 void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[app_delegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
+		[G_AppDelegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
 	});
 }
 
@@ -462,7 +453,7 @@ void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
  */
 void AppInl::ime_keyboard_close() {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[app_delegate.ime close];
+		[G_AppDelegate.ime close];
 	});
 }
 
@@ -502,9 +493,9 @@ float Display::default_atom_pixel() {
 void Display::keep_screen(bool keep) {
 	dispatch_async(dispatch_get_main_queue(), ^{
 		if ( keep ) {
-			app_delegate.host.idleTimerDisabled = YES;
+			G_AppDelegate.host.idleTimerDisabled = YES;
 		} else {
-			app_delegate.host.idleTimerDisabled = NO;
+			G_AppDelegate.host.idleTimerDisabled = NO;
 		}
 	});
 }
@@ -513,7 +504,7 @@ void Display::keep_screen(bool keep) {
  * @func status_bar_height()
  */
 float Display::status_bar_height() {
-	::Rect rect = app_delegate.host.statusBarFrame;
+	::CGRect rect = G_AppDelegate.host.statusBarFrame;
 	return FX_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale_value[1];
 }
 
@@ -521,8 +512,8 @@ float Display::status_bar_height() {
  * @func default_status_bar_height
  */
 float Display::default_status_bar_height() {
-	if (app_delegate && app_delegate.app) {
-		return app_delegate.app->display_port()->status_bar_height();
+	if (G_AppDelegate && G_AppDelegate.app) {
+		return G_AppDelegate.app->display()->status_bar_height();
 	} else {
 		return 20;
 	}
@@ -533,19 +524,20 @@ float Display::default_status_bar_height() {
  */
 void Display::set_visible_status_bar(bool visible) {
 	
-	if ( visible != app_delegate.visible_status_bar ) {
-		app_delegate.visible_status_bar = visible;
+	if ( visible != G_AppDelegate.visible_status_bar ) {
+		G_AppDelegate.visible_status_bar = visible;
 		dispatch_async(dispatch_get_main_queue(), ^{
 			//if ( visible ) {
-			//  [app_delegate.host setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
+			//  [G_AppDelegate.host setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
 			//} else {
-			//  [app_delegate.host setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
+			//  [G_AppDelegate.host setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
 			//}
-			[app_delegate refresh_status];
+			[G_AppDelegate refresh_status];
 			
-			::Rect rect = app_delegate.glview.frame;
+			::CGRect rect = G_AppDelegate.glview.frame;
 			_host->render_loop()->post(Cb([this, rect](CbData& ev) {
-				if ( !gl_draw_context->refresh_surface_size(rect) ) {
+
+				if ( !G_render->resize(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
 					main_loop()->post(Cb([this](CbData& e) {
 						FX_Trigger(change);
@@ -566,11 +558,11 @@ void Display::set_status_bar_style(StatusBarStyle style) {
 	} else {
 		style_2 = UIStatusBarStyleDefault;
 	}
-	if ( app_delegate.status_bar_style != style_2 ) {
-		app_delegate.status_bar_style = style_2;
+	if ( G_AppDelegate.status_bar_style != style_2 ) {
+		G_AppDelegate.status_bar_style = style_2;
 		dispatch_async(dispatch_get_main_queue(), ^{
-			//[app_delegate.host setStatusBarStyle:app_delegate.status_bar_style];
-			[app_delegate refresh_status];
+			//[G_AppDelegate.host setStatusBarStyle:G_AppDelegate.status_bar_style];
+			[G_AppDelegate refresh_status];
 		});
 	}
 }
@@ -587,7 +579,7 @@ void Display::request_fullscreen(bool fullscreen) {
  */
 Orientation Display::orientation() {
 	Orientation r = ORIENTATION_INVALID;
-	switch ( app_delegate.host.statusBarOrientation ) {
+	switch ( G_AppDelegate.host.statusBarOrientation ) {
 		case UIInterfaceOrientationPortrait:
 			r = ORIENTATION_PORTRAIT;
 			break;
@@ -611,10 +603,10 @@ Orientation Display::orientation() {
  * @func set_orientation(orientation)
  */
 void Display::set_orientation(Orientation orientation) {
-	if ( app_delegate.setting_orientation != orientation ) {
-		app_delegate.setting_orientation = orientation;
+	if ( G_AppDelegate.setting_orientation != orientation ) {
+		G_AppDelegate.setting_orientation = orientation;
 		dispatch_async(dispatch_get_main_queue(), ^{
-			[app_delegate refresh_status];
+			[G_AppDelegate refresh_status];
 		});
 	}
 }
@@ -629,10 +621,10 @@ extern "C" FX_EXPORT int main(int argc, Char* argv[]) {
 	
 	if ( app() ) {
 		@autoreleasepool {
-			if ( [app_delegate_name isEqual:@""] ) {
+			if ( [G_AppDelegate_name isEqual:@""] ) {
 				UIApplicationMain(argc, argv, nil, NSStringFromClass(ApplicationDelegate.class));
 			} else {
-				UIApplicationMain(argc, argv, nil, app_delegate_name);
+				UIApplicationMain(argc, argv, nil, G_AppDelegate_name);
 			}
 		}
 	}

@@ -68,7 +68,7 @@ namespace flare {
 		void destroyContext();
 		virtual void onDestroyContext() = 0;
 
-		bool isGpuContext() override { return true; }
+		bool isGpu() override { return true; }
 
 		bool                        fValid;
 		sk_cfp<id<MTLDevice>>       fDevice;

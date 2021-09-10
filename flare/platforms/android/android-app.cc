@@ -50,7 +50,6 @@ namespace flare {
 	*/
 	class AndroidApplication {
 	public:
-
 		typedef NonObjectTraits Traits;
 
 		inline void start_render_task() {
@@ -71,6 +70,19 @@ namespace flare {
 			return _host; 
 		}
 
+	private:
+		AndroidApplication()
+		: _activity(nullptr), _window(nullptr)
+		, _host(nullptr), _queue(nullptr)
+		, _looper(nullptr), _render_looper(nullptr), _dispatch( nullptr )
+		, _current_orientation(Orientation::ORIENTATION_INVALID)
+		, _is_init_ok(false)
+		{
+			ASSERT(!application); application = this;
+			_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+		}
+
+	public:
 		// -------------------------------static---------------------------------
 
 		static void onCreate(ANativeActivity* activity, void* saved_state, size_t saved_state_size) {
@@ -144,7 +156,7 @@ namespace flare {
 				if ( ok ) {
 					if ( application->_is_init_ok ) {
 						gl_draw_context->refresh_surface_size(nullptr);
-						application->_host->refresh_display(); // 更新画面
+						application->_host->display()->render_frame(true); // 更新画面
 					} else {
 						application->_is_init_ok = true;
 						gl_draw_context->initialize();
@@ -212,13 +224,13 @@ namespace flare {
 				// 这里有点奇怪，因为绘图表面反应迟钝，
 				// 也就是说 `ANativeWindow_getWidth()` 返回值可能与当前真实值不相同，
 				// 但调用eglSwapBuffers()会刷新绘图表面。
-				application->_host->refresh_display(); // 刷新绘图表面
+				application->_host->display()->render_frame(true); // 所以刷新绘图表面
 				// ****************************************
 				gl_draw_context->refresh_surface_size(&application->_rect);
 
 				if ( targger_orientation ) { // 触发方向变化事件
 					application->_host->main_loop()->post(Cb([](CbData& e) {
-						application->_host->display_port()->FX_Trigger(orientation);
+						application->_host->display()->FX_Trigger(orientation);
 					}));
 				}
 				ev.data->complete();
@@ -425,18 +437,6 @@ namespace flare {
 		}
 
 	private:
-
-		AndroidApplication()
-		: _activity(nullptr), _window(nullptr)
-		, _host(nullptr), _queue(nullptr)
-		, _looper(nullptr), _render_looper(nullptr), _dispatch( nullptr )
-		, _current_orientation(Orientation::ORIENTATION_INVALID)
-		, _is_init_ok(false)
-		{
-			ASSERT(!application); application = this;
-			_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-		}
-
 		ANativeActivity* _activity;
 		ANativeWindow* _window;
 		AppInl* _host;
