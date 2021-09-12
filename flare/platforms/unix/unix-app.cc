@@ -605,7 +605,7 @@ namespace flare {
 		Display* _dpy;
 		Window _root, _win;
 		RenderLooper* _render_looper;
-		GUIEventDispatch* _dispatch;
+		EventDispatch* _dispatch;
 		Orientation _current_orientation;
 		int _screen, _s_width, _s_height;
 		int _x, _y;

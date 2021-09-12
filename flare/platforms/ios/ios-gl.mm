@@ -50,26 +50,29 @@ namespace flare {
 			[EAGLContext setCurrentContext:nullptr];
 		}
 
-		void set_view(UIView* view) override {
+		void setView(UIView* view) {
+			ASSERT(!_view);
 			_view = view;
 			_layer = view.layer;
 			_layer.drawableProperties = @{
 				kEAGLDrawablePropertyRetainedBacking : @NO,
 				kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
 			};
-			_layer.opaque = YES;
+			// _layer.opaque = YES;
 			// _layer.frame = frameRect;
 			// _layer.contentsGravity = kCAGravityTopLeft;
 			_host->display()->set_best_display_scale(UIScreen.mainScreen.scale);
 		}
 
-		Render* render() override { return this; }
+		Class layerClass() { return [CAEAGLLayer class]; }
 
-		void glRenderbufferStorageMain() override {
+		Render* render() { return this; }
+
+		void glRenderbufferStorageMain() {
 			[_glctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
 		}
 
-		void commit() override {
+		void commit() {
 			if (gpuMSAASample()) {
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);

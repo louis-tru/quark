@@ -43,51 +43,131 @@
 namespace flare {
 
 	MetalRender::MetalRender(Application* host, const DisplayParams& params)
-			: Render(host, params)
-			, fValid(false)
-			, fDrawableHandle(nil) {
-		// fDisplayParams.fMSAASampleCount = GrNextPow2(fDisplayParams.fMSAASampleCount);
+		: Render(host, params)
+		, _Device(nil), _Queue(nil),
+		, _layer(nil)
+		, _DrawableHandle(nil), _PipelineArchive(nil) {
 	}
 
-	NSURL* MetalRender::CacheURL() {
-		NSArray *paths = [[NSFileManager defaultManager] URLsForDirectory:NSCachesDirectory
-																inDomains:NSUserDomainMask];
-		NSURL* cachePath = [paths objectAtIndex:0];
-		return [cachePath URLByAppendingPathComponent:@"binaryArchive.metallib"];
+	void MetalRender::initialize() {
 	}
 
-	void MetalRender::initializeContext() {
-		SkASSERT(!fContext);
+	void MetalRender::start() {
+	}
 
-		fDevice.reset(MTLCreateSystemDefaultDevice());
-		fQueue.reset([*fDevice newCommandQueue]);
+	void MetalRender::commit() {
+		id<CAMetalDrawable> currentDrawable = (id<CAMetalDrawable>)_DrawableHandle;
 
-		if (fDisplayParams.fMSAASampleCount > 1) {
+		id<MTLCommandBuffer> commandBuffer([*_Queue commandBuffer]);
+		commandBuffer.label = @"Present";
+
+		[commandBuffer presentDrawable:currentDrawable];
+		[commandBuffer commit];
+		// ARC is off in sk_app, so we need to release the CF ref manually
+		CFRelease(_DrawableHandle);
+		_DrawableHandle = nil;
+		_Surface.reset();
+	}
+
+	sk_sp<SkSurface> MetalRender::getSurface() {
+		if (!_Surface) {
+			if (_Context) {
+				if (_DisplayParams.fDelayDrawableAcquisition) {
+					_Surface = SkSurface::MakeFromCAMetalLayer(_Context.get(),
+																(__bridge GrMTLHandle)_layer,
+																kTopLeft_GrSurfaceOrigin, _SampleCount,
+																kBGRA_8888_SkColorType,
+																_DisplayParams.fColorSpace,
+																&_DisplayParams.fSurfaceProps,
+																&_DrawableHandle);
+				} else {
+					id<CAMetalDrawable> currentDrawable = [_layer nextDrawable];
+
+					GrMtlTextureInfo fbInfo;
+					fbInfo.fTexture.retain(currentDrawable.texture);
+
+					GrBackendRenderTarget backendRT(fWidth,
+													fHeight,
+													fSampleCount,
+													fbInfo);
+
+					_Surface = SkSurface::MakeFromBackendRenderTarget(_Context.get(), backendRT,
+																	kTopLeft_GrSurfaceOrigin,
+																	kBGRA_8888_SkColorType,
+																	_DisplayParams.fColorSpace,
+																	&_DisplayParams.fSurfaceProps);
+
+					_DrawableHandle = CFRetain((GrMTLHandle) currentDrawable);
+				}
+			}
+		}
+
+		return _Surface;
+	}
+
+	void MetalRender::reload() {
+		if (_Context) {
+			// in case we have outstanding refs to this (lua?)
+			_Context->abandonContext();
+			_Context.reset();
+		}
+
+	#if GR_METAL_SDK_VERSION >= 230
+		if (@available(macOS 11.0, iOS 14.0, *)) {
+			[_PipelineArchive release];
+		}
+	#endif
+		if (_DrawableHandle) {
+			CFRelease(_DrawableHandle);
+			_DrawableHandle = nil;
+		}
+		_Surface.reset();
+
+		// -------------------------------
+		if (!_Device) {
+			_Device.reset(MTLCreateSystemDefaultDevice());
+			_Queue.reset([*_Device newCommandQueue]);
+		}
+
+		if (_DisplayParams.fMSAASampleCount > 1) {
 			if (@available(macOS 10.11, iOS 9.0, *)) {
-				if (![*fDevice supportsTextureSampleCount:fDisplayParams.fMSAASampleCount]) {
+				if (![*_Device supportsTextureSampleCount:_DisplayParams.fMSAASampleCount]) {
+					_DisplayParams.fMSAASampleCount /= 2;
+					reload();
 					return;
 				}
 			} else {
 				return;
 			}
 		}
-		fSampleCount = fDisplayParams.fMSAASampleCount;
-		fStencilBits = 8;
 
-		fValid = this->onInitializeContext();
+		ASSERT(_layer);
+
+		auto region = _host->display()->surface_region();
+		auto rect = CGRectMake(0, 0, region.width, region.height);
+
+		_layer.device = _Device.get();
+		_layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+		_layer.drawableSize = rect.size;
+		// _layer.frame = rect;
+		// _layer.displaySyncEnabled = _DisplayParams.fDisableVsync ? NO : YES;
+		// _layer.contentsGravity = kCAGravityTopLeft;
+
+		_SampleCount = _DisplayParams.fMSAASampleCount;
+		_StencilBits = 8;
 
 	#if GR_METAL_SDK_VERSION >= 230
-		if (fDisplayParams.fEnableBinaryArchive) {
+		if (_DisplayParams.fEnableBinaryArchive) {
 			if (@available(macOS 11.0, iOS 14.0, *)) {
 				sk_cfp<MTLBinaryArchiveDescriptor*> desc([MTLBinaryArchiveDescriptor new]);
 				(*desc).url = CacheURL(); // try to load
 				NSError* error;
-				fPipelineArchive = [*fDevice newBinaryArchiveWithDescriptor:*desc error:&error];
-				if (!fPipelineArchive) {
+				_PipelineArchive = [*_Device newBinaryArchiveWithDescriptor:*desc error:&error];
+				if (!_PipelineArchive) {
 					(*desc).url = nil; // create new
 					NSError* error;
-					fPipelineArchive = [*fDevice newBinaryArchiveWithDescriptor:*desc error:&error];
-					if (!fPipelineArchive) {
+					_PipelineArchive = [*_Device newBinaryArchiveWithDescriptor:*desc error:&error];
+					if (!_PipelineArchive) {
 						SkDebugf("Error creating MTLBinaryArchive:\n%s\n",
 								error.debugDescription.UTF8String);
 					}
@@ -95,100 +175,23 @@ namespace flare {
 			}
 		} else {
 			if (@available(macOS 11.0, iOS 14.0, *)) {
-				fPipelineArchive = nil;
+				_PipelineArchive = nil;
 			}
 		}
 	#endif
 
 		GrMtlBackendContext backendContext = {};
-		backendContext.fDevice.retain((GrMTLHandle)fDevice.get());
-		backendContext.fQueue.retain((GrMTLHandle)fQueue.get());
+		backendContext.fDevice.retain((GrMTLHandle)_Device.get());
+		backendContext.fQueue.retain((GrMTLHandle)_Queue.get());
 	#if GR_METAL_SDK_VERSION >= 230
 		if (@available(macOS 11.0, iOS 14.0, *)) {
-			backendContext.fBinaryArchive.retain((__bridge GrMTLHandle)fPipelineArchive);
+			backendContext.fBinaryArchive.retain((__bridge GrMTLHandle)_PipelineArchive);
 		}
 	#endif
-		fContext = GrDirectContext::MakeMetal(backendContext, fDisplayParams.fGrContextOptions);
-		if (!fContext && fDisplayParams.fMSAASampleCount > 1) {
-			fDisplayParams.fMSAASampleCount /= 2;
-			this->initializeContext();
-			return;
-		}
-	}
 
-	void MetalRender::destroyContext() {
-		if (fContext) {
-			// in case we have outstanding refs to this (lua?)
-			fContext->abandonContext();
-			fContext.reset();
-		}
+		_Context = GrDirectContext::MakeMetal(backendContext, _DisplayParams.fGrContextOptions);
 
-		this->onDestroyContext();
-
-		fMetalLayer = nil;
-		fValid = false;
-
-	#if GR_METAL_SDK_VERSION >= 230
-		if (@available(macOS 11.0, iOS 14.0, *)) {
-			[fPipelineArchive release];
-		}
-	#endif
-		fQueue.reset();
-		fDevice.reset();
-	}
-
-	sk_sp<SkSurface> MetalRender::getBackbufferSurface() {
-		sk_sp<SkSurface> surface;
-		if (fContext) {
-			if (fDisplayParams.fDelayDrawableAcquisition) {
-				surface = SkSurface::MakeFromCAMetalLayer(fContext.get(),
-															(__bridge GrMTLHandle)fMetalLayer,
-															kTopLeft_GrSurfaceOrigin, fSampleCount,
-															kBGRA_8888_SkColorType,
-															fDisplayParams.fColorSpace,
-															&fDisplayParams.fSurfaceProps,
-															&fDrawableHandle);
-			} else {
-				id<CAMetalDrawable> currentDrawable = [fMetalLayer nextDrawable];
-
-				GrMtlTextureInfo fbInfo;
-				fbInfo.fTexture.retain(currentDrawable.texture);
-
-				GrBackendRenderTarget backendRT(fWidth,
-												fHeight,
-												fSampleCount,
-												fbInfo);
-
-				surface = SkSurface::MakeFromBackendRenderTarget(fContext.get(), backendRT,
-																kTopLeft_GrSurfaceOrigin,
-																kBGRA_8888_SkColorType,
-																fDisplayParams.fColorSpace,
-																&fDisplayParams.fSurfaceProps);
-
-				fDrawableHandle = CFRetain((GrMTLHandle) currentDrawable);
-			}
-		}
-
-		return surface;
-	}
-
-	void MetalRender::swapBuffers() {
-		id<CAMetalDrawable> currentDrawable = (id<CAMetalDrawable>)fDrawableHandle;
-
-		id<MTLCommandBuffer> commandBuffer([*fQueue commandBuffer]);
-		commandBuffer.label = @"Present";
-
-		[commandBuffer presentDrawable:currentDrawable];
-		[commandBuffer commit];
-		// ARC is off in sk_app, so we need to release the CF ref manually
-		CFRelease(fDrawableHandle);
-		fDrawableHandle = nil;
-	}
-
-	void MetalRender::setDisplayParams(const DisplayParams& params) {
-		this->destroyContext();
-		fDisplayParams = params;
-		this->initializeContext();
+		ASSERT(_Context);
 	}
 
 	void MetalRender::activate(bool isActive) {
@@ -196,9 +199,9 @@ namespace flare {
 		if (!isActive) {
 	#if GR_METAL_SDK_VERSION >= 230
 			if (@available(macOS 11.0, iOS 14.0, *)) {
-				if (fPipelineArchive) {
+				if (_PipelineArchive) {
 					NSError* error;
-					[fPipelineArchive serializeToURL:CacheURL() error:&error];
+					[_PipelineArchive serializeToURL:CacheURL() error:&error];
 					if (error) {
 						SkDebugf("Error storing MTLBinaryArchive:\n%s\n",
 								error.debugDescription.UTF8String);
@@ -209,4 +212,11 @@ namespace flare {
 		}
 	}
 
-}   //namespace sk_app
+	NSURL* MetalRender::CacheURL() {
+		NSArray *paths = [[NSFileManager defaultManager] URLsForDirectory:NSCachesDirectory
+																inDomains:NSUserDomainMask];
+		NSURL* cachePath = [paths objectAtIndex:0];
+		return [cachePath URLByAppendingPathComponent:@"binaryArchive.metallib"];
+	}
+
+}   //namespace flare

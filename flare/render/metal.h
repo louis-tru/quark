@@ -32,8 +32,6 @@
 #define __flare__render__metal__
 
 #include "./render.h"
-#include "skia/core/SkRefCnt.h"
-#include "skia/core/SkSurface.h"
 #include "skia/ports/SkCFObject.h"
 
 #import <Metal/Metal.h>
@@ -43,42 +41,23 @@ namespace flare {
 
 	class MetalRender : public Render {
 	public:
-		sk_sp<SkSurface> getBackbufferSurface() override;
-
-		bool isValid() override { return fValid; }
-
-		void swapBuffers() override;
-
-		void setDisplayParams(const DisplayParams& params) override;
-
-		void activate(bool isActive) override;
+		virtual void initialize() override;
+		virtual void reload() override;
+		virtual void start() override;
+		virtual void commit() override;
+		virtual sk_sp<SkSurface> getSurface() override;
+		virtual bool isGpu() override { return true; }
 
 	protected:
 		static NSURL* CacheURL();
-
 		MetalRender(Application* host, const DisplayParams& params);
-		// This should be called by subclass constructor. It is also called when window/display
-		// parameters change. This will in turn call onInitializeContext().
-		void initializeContext();
-		virtual bool onInitializeContext() = 0;
 
-		// This should be called by subclass destructor. It is also called when window/display
-		// parameters change prior to initializing a new Metal context. This will in turn call
-		// onDestroyContext().
-		void destroyContext();
-		virtual void onDestroyContext() = 0;
-
-		bool isGpu() override { return true; }
-
-		bool                        fValid;
-		sk_cfp<id<MTLDevice>>       fDevice;
-		sk_cfp<id<MTLCommandQueue>> fQueue;
-		CAMetalLayer*               fMetalLayer;
-		GrMTLHandle                 fDrawableHandle;
-	#if GR_METAL_SDK_VERSION >= 230
-		// wrapping this in sk_cfp throws up an availability warning, so we'll track lifetime manually
-		id<MTLBinaryArchive>        fPipelineArchive SK_API_AVAILABLE(macos(11.0), ios(14.0));
-	#endif
+		sk_cfp<id<MTLDevice>>       _Device;
+		sk_cfp<id<MTLCommandQueue>> _Queue;
+		CAMetalLayer*               _layer;
+		GrMTLHandle                 _DrawableHandle;
+		sk_sp<SkSurface>            _Surface;
+		id/*<MTLBinaryArchive>*/    _PipelineArchive;
 	};
 
 }   // namespace flare

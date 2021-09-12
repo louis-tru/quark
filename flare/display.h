@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__display_port__
-#define __flare__display_port__
+#ifndef __flare__display__
+#define __flare__display__
 
 #include "./util/util.h"
 #include "./util/event.h"

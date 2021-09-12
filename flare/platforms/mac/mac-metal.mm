@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,53 +25,37 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_mac-render.h"
+#import <Metal/Metal.h>
+#import "./mac-render.h"
+#import "../../render/metal.h"
 
-namespace flare {
+namespace {
 
-	bool RenderMAC::resize(::CGRect rect) {
-		float scale = UIScreen.mainScreen.scale;
-		float x = rect.size.width * scale;
-		float y = rect.size.height * scale;
-		if ( x != 0 && y != 0 ) {
-			return render()->host()->display()->set_surface_region({ 0,0,x,y,x,y });
+	class MetalRenderMAC : public MetalRender, public RenderMAC {
+	public:
+		MetalRenderMAC(GUIApplication* host, const DisplayParams& params): MetalRender(host, params) {}
+		void setView(UIView* view) {
+			ASSERT(!_view);
+			_view = view;
+			_layer = view.layer;
+			_host->display()->set_best_display_scale(UIScreen.mainScreen.scale);
 		}
-		return false;
+		Class layerClass() { return [CAMetalLayer class]; }
+		Render* render() { return this; }
+	private:
+		UIView* _view;
+	};
+
+	RenderMAC* MakeMetalRender(GUIApplication* host, const DisplayParams& parems) {
+#if GR_METAL_SDK_VERSION >= 230
+		if (@available(macOS 11.0, iOS 14.0, *)) {
+			return new MetalRenderMAC(host, parems);
+		}
+#endif
+		return nullptr;
 	}
 
-	RenderMAC* MakeRasterRender(GUIApplication* host, const DisplayParams& parems);
-	RenderMAC* MakeGLRender(GUIApplication* host, const DisplayParams& parems);
-	RenderMAC* MakeMetalRender(GUIApplication* host, const DisplayParams& parems);
-
-	RenderMAC* RenderMAC::create(GUIApplication* host, cJSON& options) {
-		RenderMAC* r = nullptr;
-
-		auto parems = Render::parseDisplayParams(options);
-
-		bool gpu = true;
-		bool metal = true;
-
-		if (gpu) {
-			if (metal) {
-				r = MakeMetalRender(host, parems);
-			}
-			if (r) {
-				return r;
-			}
-			r = MakeGLRender(host, parems);
-		}
-
-		if (r) {
-			return r;
-		}
-
-		r = MakeRasterRender(host, parems);
-		ASSERT(r);
-
-		return r;
-	}
-
-}  // namespace flare
+}

@@ -49,16 +49,16 @@ static RenderMAC* G_render = nil;
 static NSString* G_AppDelegate_name = @"";
 
 /**
- * @interface GLView
+ * @interface MainView
  */
-@interface GLView: UIView;
+@interface MainView: UIView;
 	@property (assign, nonatomic) AppInl* app;
 @end
 
-@implementation GLView
+@implementation MainView
 
 	+ (Class)layerClass {
-		return [CAEAGLLayer class];
+		return G_reader->layerClass();
 	}
 
 	- (BOOL)isMultipleTouchEnabled {
@@ -75,8 +75,8 @@ static NSString* G_AppDelegate_name = @"";
 		
 		Vec2 size = _app->display()->size();
 		
-		float scale_x = size.width() / G_AppDelegate.glview.frame.size.width;
-		float scale_y = size.height() / G_AppDelegate.glview.frame.size.height;
+		float scale_x = size.width() / G_AppDelegate.view.frame.size.width;
+		float scale_y = size.height() / G_AppDelegate.view.frame.size.height;
 		
 		for (UITouch* touch in enumerator) {
 			CGPoint point = [touch locationInView:touch.view];
@@ -167,7 +167,7 @@ static NSString* G_AppDelegate_name = @"";
 	{
 		[coordinator animateAlongsideTransition:^(id context) {
 			Orientation ori = G_AppDelegate.app->display()->orientation();
-			::CGRect rect = G_AppDelegate.glview.frame;
+			::CGRect rect = G_AppDelegate.view.frame;
 			G_AppDelegate.app->render_loop()->post(Cb([ori, rect](CbData& d) {
 				G_reader->resize(rect);
 				if (ori != G_AppDelegate.current_orientation) {
@@ -205,7 +205,7 @@ static NSString* G_AppDelegate_name = @"";
 		BOOL _is_background;
 		Cb  _render_exec;
 	}
-	@property (strong, nonatomic) GLView* glview;
+	@property (strong, nonatomic) MainView* view;
 	@property (strong, nonatomic) IOSIMEHelprt* ime;
 	@property (strong, nonatomic) CADisplayLink* display_link;
 	@property (strong, nonatomic) UIApplication* host;
@@ -249,7 +249,7 @@ static NSString* G_AppDelegate_name = @"";
 	}
 
 	- (void)resize {
-		::CGRect rect = G_AppDelegate.glview.frame;
+		::CGRect rect = G_AppDelegate.view.frame;
 		_app->render_loop()->post(Cb([self, rect](CbData& d) {
 			G_render->resize(rect);
 		}));
@@ -286,38 +286,38 @@ static NSString* G_AppDelegate_name = @"";
 		
 		[self.window makeKeyAndVisible];
 		
-		UIView* view = self.window.rootViewController.view;
-		self.glview = [[GLView alloc] initWithFrame:[view bounds]];
-		self.glview.contentScaleFactor = UIScreen.mainScreen.scale;
-		self.glview.translatesAutoresizingMaskIntoConstraints = NO;
-		self.glview.app = _inl_app(self.app);
+		UIView* root_view = self.window.rootViewController.view;
+		self.view = [[MainView alloc] initWithFrame:[root_view bounds]];
+		self.view.contentScaleFactor = UIScreen.mainScreen.scale;
+		self.view.translatesAutoresizingMaskIntoConstraints = NO;
+		self.view.app = _inl_app(self.app);
 		self.ime = [[IOSIMEHelprt alloc] initWithApplication:self.app];
 		
-		[view addSubview:self.glview];
-		[view addSubview:self.ime];
-		[view addConstraint:[NSLayoutConstraint
-												constraintWithItem:self.glview
+		[root_view addSubview:self.view];
+		[root_view addSubview:self.ime];
+		[root_view addConstraint:[NSLayoutConstraint
+												constraintWithItem:self.view
 												attribute:NSLayoutAttributeWidth
 												relatedBy:NSLayoutRelationEqual
-												toItem:view
+												toItem:root_view
 												attribute:NSLayoutAttributeWidth
 												multiplier:1
 												constant:0]];
-		[view addConstraint:[NSLayoutConstraint
-												constraintWithItem:self.glview
+		[root_view addConstraint:[NSLayoutConstraint
+												constraintWithItem:self.view
 												attribute:NSLayoutAttributeHeight
 												relatedBy:NSLayoutRelationEqual
-												toItem:view
+												toItem:root_view
 												attribute:NSLayoutAttributeHeight
 												multiplier:1
 												constant:0]];
 		
 		[self add_system_notification];
 		
-		::CGRect rect = self.glview.frame;
+		::CGRect rect = self.view.frame;
 		
 		_app->render_loop()->post(Cb([self, rect](CbData& d) {
-			G_render->set_view(self.glview);
+			G_render->setView(self.view);
 			G_render->resize(rect);
 			_inl_app(self.app)->triggerLoad();
 			[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
@@ -534,7 +534,7 @@ void Display::set_visible_status_bar(bool visible) {
 			//}
 			[G_AppDelegate refresh_status];
 			
-			::CGRect rect = G_AppDelegate.glview.frame;
+			::CGRect rect = G_AppDelegate.view.frame;
 			_host->render_loop()->post(Cb([this, rect](CbData& ev) {
 
 				if ( !G_render->resize(rect) ) {

@@ -49,7 +49,7 @@ namespace flare {
 	GLRender::GLRender(Application* host, const DisplayParams& params)
 		: Render(host, params)
 		, _BackendContext(nullptr)
-		, _Surface(nullptr) {
+		, _Surface(nullptr), _frame_buffer(0) {
 	}
 
 	GLRender::~GLRender() {
@@ -57,10 +57,6 @@ namespace flare {
 		glDeleteFramebuffers(1, &_frame_buffer);
 		glDeleteFramebuffers(1, &_msaa_render_buffer);
 		glDeleteRenderbuffers(1, &_msaa_frame_buffer);
-	}
-
-	bool GLRender::isValid () {
-		return return SkToBool(_BackendContext.get());
 	}
 
 	void GLRender::initialize() {

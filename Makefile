@@ -28,7 +28,7 @@ check_osx=\
 
 .PHONY: $(FORWARD) ios android linux osx \
 	product install install-fproj \
-	help web doc watch all all_on_linux all_on_osx pull
+	help web doc watch all all_on_linux all_on_osx pull skia
 
 .SECONDEXPANSION:
 
@@ -129,3 +129,10 @@ pull: # init git submodule
 	fi
 	@git pull
 	@git submodule update --init --recursive
+
+
+# https://skia.org/docs/user/build/
+skia:
+	python deps/skia/tools/git-sync-deps
+	cd deps/skia && ./bin/gn gen out/Release --args='is_debug=false is_official_build=false is_component_build=false'
+	ninja -C deps/skia/out/Release

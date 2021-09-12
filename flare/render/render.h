@@ -35,6 +35,7 @@
 #include "skia/core/SkRefCnt.h"
 #include "skia/core/SkSurfaceProps.h"
 #include "skia/core/SkImageInfo.h"
+#include "skia/core/SkSurface.h"
 #include "skia/core/SkCanvas.h"
 #include "skia/gpu/GrTypes.h"
 #include "skia/gpu/GrDirectContext.h"
@@ -78,7 +79,6 @@ namespace flare {
 		virtual void initialize() = 0;
 		virtual void start() = 0;
 		virtual void commit() = 0;
-		virtual bool isValid() = 0;
 		virtual void reload() = 0;
 		virtual void activate(bool isActive);
 		virtual bool isGpu() { return false; }

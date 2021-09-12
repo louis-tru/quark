@@ -41,7 +41,6 @@ namespace flare {
 	class GLRender: public Render {
 	public:
 		virtual void initialize() override;
-		virtual bool isValid() override;
 		virtual void reload() override;
 		virtual void start() override;
 		virtual void commit() override;

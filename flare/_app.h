@@ -89,7 +89,7 @@ namespace flare {
 		/**
 		* @func dispatch
 		* */
-		inline GUIEventDispatch* dispatch() { return _dispatch; }
+		inline EventDispatch* dispatch() { return _dispatch; }
 		
 		/**
 		* @func ime_keyboard_open

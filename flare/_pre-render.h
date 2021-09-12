@@ -54,7 +54,7 @@ namespace flare {
 		virtual ~PreRender();
 
 		class FX_EXPORT Task {
-			public:
+		public:
 			typedef List<Task*>::Iterator ID;
 			inline Task(): _timeout(0) {}
 			virtual ~Task();
@@ -66,7 +66,7 @@ namespace flare {
 			inline void set_task_id(ID id) { _task_id = id; }
 			inline int64_t get_task_timeout() const { return _timeout; }
 			inline void set_task_timeout(int64_t timeout_us) { _timeout = timeout_us; }
-			private:
+		private:
 			ID      _task_id;
 			int64_t _timeout;
 		};

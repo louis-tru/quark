@@ -198,9 +198,9 @@ namespace flare {
 	}
 
 	/**
-	 * @class GUIEventDispatch::OriginTouche
+	 * @class EventDispatch::OriginTouche
 	 */
-	class GUIEventDispatch::OriginTouche {
+	class EventDispatch::OriginTouche {
 	 public:
 		OriginTouche() { FX_UNREACHABLE(); }
 		OriginTouche(View* view)
@@ -241,9 +241,9 @@ namespace flare {
 	};
 
 	/**
-	 * @class GUIEventDispatch::MouseHandle
+	 * @class EventDispatch::MouseHandle
 	 */
-	class GUIEventDispatch::MouseHandle {
+	class EventDispatch::MouseHandle {
 	 public:
 		MouseHandle(): _view(nullptr), _click_view(nullptr) {}
 		~MouseHandle() { Release(_view); }
@@ -271,11 +271,11 @@ namespace flare {
 	};
 
 	/**
-	 * @class GUIEventDispatch::Inl
+	 * @class EventDispatch::Inl
 	 */
-	FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
+	FX_DEFINE_INLINE_MEMBERS(EventDispatch, Inl) {
 		public:
-		#define _inl_di(self) static_cast<GUIEventDispatch::Inl*>(self)
+		#define _inl_di(self) static_cast<EventDispatch::Inl*>(self)
 		
 		// -------------------------- touch --------------------------
 		
@@ -804,12 +804,12 @@ namespace flare {
 		// ---------------
 	};
 
-	GUIEventDispatch::GUIEventDispatch(Application* app): app_(app), _text_input(nullptr) {
+	EventDispatch::EventDispatch(Application* app): app_(app), _text_input(nullptr) {
 		_keyboard = KeyboardAdapter::create();
 		_mouse_h = new MouseHandle();
 	}
 
-	GUIEventDispatch::~GUIEventDispatch() {
+	EventDispatch::~EventDispatch() {
 		for (auto& i : _origin_touches)
 			delete i.value;
 		Release(_keyboard);
@@ -841,27 +841,27 @@ namespace flare {
 		}), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_touchstart(List<GUITouch>&& list) {
+	void EventDispatch::dispatch_touchstart(List<GUITouch>&& list) {
 		async_resolve(Callback<List<GUITouch>>(
 			&Inl::dispatch_touchstart, _inl_di(this)), std::move(list), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_touchmove(List<GUITouch>&& list) {
+	void EventDispatch::dispatch_touchmove(List<GUITouch>&& list) {
 		async_resolve(Callback<List<GUITouch>>(
 			&Inl::dispatch_touchmove, _inl_di(this)), std::move(list), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_touchend(List<GUITouch>&& list) {
+	void EventDispatch::dispatch_touchend(List<GUITouch>&& list) {
 		async_resolve(Callback<List<GUITouch>>(
 			&Inl::dispatch_touchend, _inl_di(this)), std::move(list), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_touchcancel(List<GUITouch>&& list) {
+	void EventDispatch::dispatch_touchcancel(List<GUITouch>&& list) {
 		async_resolve(Callback<List<GUITouch>>(
 			&Inl::dispatch_touchcancel, _inl_di(this)), std::move(list), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_mousemove(float x, float y) {
+	void EventDispatch::dispatch_mousemove(float x, float y) {
 		async_resolve(Cb([=](CbData& evt) {
 			GUILock lock;
 			Vec2 pos(x, y);
@@ -875,7 +875,7 @@ namespace flare {
 		}), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_mousepress(KeyboardKeyName name, bool down) {
+	void EventDispatch::dispatch_mousepress(KeyboardKeyName name, bool down) {
 		async_resolve(Cb([=](CbData& evt) {
 			GUILock lock;
 			switch(name) {
@@ -897,7 +897,7 @@ namespace flare {
 		}), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_ime_delete(int count) {
+	void EventDispatch::dispatch_ime_delete(int count) {
 		async_resolve(Cb([=](CbData& d) {
 			GUILock lock;
 			if ( _text_input ) {
@@ -909,7 +909,7 @@ namespace flare {
 		}), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_ime_insert(cString& text) {
+	void EventDispatch::dispatch_ime_insert(cString& text) {
 		async_resolve(Cb([=](CbData& d) {
 			GUILock lock;
 			if ( _text_input ) {
@@ -918,7 +918,7 @@ namespace flare {
 		}), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_ime_marked(cString& text) {
+	void EventDispatch::dispatch_ime_marked(cString& text) {
 		async_resolve(Cb([=](CbData& d) {
 			GUILock lock;
 			if ( _text_input ) {
@@ -927,7 +927,7 @@ namespace flare {
 		}), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_ime_unmark(cString& text) {
+	void EventDispatch::dispatch_ime_unmark(cString& text) {
 		async_resolve(Cb([=](CbData& d) {
 			GUILock lock;
 			if ( _text_input ) {
@@ -936,7 +936,7 @@ namespace flare {
 		}), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_ime_control(KeyboardKeyName name) {
+	void EventDispatch::dispatch_ime_control(KeyboardKeyName name) {
 		async_resolve(Cb([=](CbData& d) {
 			GUILock lock;
 			if ( _text_input ) {
@@ -945,7 +945,7 @@ namespace flare {
 		}), _loop);
 	}
 
-	void GUIEventDispatch::make_text_input(ITextInput* input) {
+	void EventDispatch::make_text_input(ITextInput* input) {
 		DLOG("make_text_input");
 		if ( input != _text_input ) {
 			_text_input = input;

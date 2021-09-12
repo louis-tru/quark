@@ -40,7 +40,7 @@ namespace flare {
 	* @class QuadraticBezier # 二次贝塞尔曲线
 	*/
 	class FX_EXPORT QuadraticBezier {
-		public:
+	public:
 
 		/**
 		* @constructor
@@ -67,7 +67,7 @@ namespace flare {
 		*/
 		Array<Vec2> sample_curve_points(uint32_t sample_count) const;
 		
-		private:
+	private:
 		
 		float p0x, p0y;
 		float p1x, p1y;
@@ -78,7 +78,7 @@ namespace flare {
 	* @class CubicBezier # 三次贝塞尔曲线
 	*/
 	class FX_EXPORT CubicBezier {
-		public:
+	public:
 
 		/**
 		* @constructor
@@ -115,7 +115,7 @@ namespace flare {
 		*/
 		Array<Vec2> sample_curve_points(uint32_t sample_count) const;
 		
-		protected:
+	protected:
 
 		float ax, bx, cx;
 		float ay, by, cy;
@@ -127,7 +127,7 @@ namespace flare {
 	* @bases CubicBezier
 	*/
 	class FX_EXPORT FixedCubicBezier: public CubicBezier {
-		public:
+	public:
 		
 		/**
 		* @constructor
@@ -176,7 +176,7 @@ namespace flare {
 			return (this->*_solve)(x, epsilon);
 		}
 		
-		private:
+	private:
 		
 		typedef float (FixedCubicBezier::*Solve)(float x, float epsilon) const;
 		

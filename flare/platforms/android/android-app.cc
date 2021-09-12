@@ -319,7 +319,7 @@ namespace flare {
 		}
 
 		static void dispatchEvent(AInputEvent* event) {
-			GUIEventDispatch* dispatch = application->_dispatch;
+			EventDispatch* dispatch = application->_dispatch;
 
 			int type = AInputEvent_getType(event);
 			int device = AInputEvent_getDeviceId(event);
@@ -443,7 +443,7 @@ namespace flare {
 		AInputQueue* _queue;
 		ALooper* _looper;
 		RenderLooper* _render_looper;
-		GUIEventDispatch* _dispatch;
+		EventDispatch* _dispatch;
 		Orientation _current_orientation;
 		Rect _rect;
 		// Mutex _mutex;

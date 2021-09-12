@@ -52,7 +52,7 @@ namespace {
 			[EAGLContext setCurrentContext:nullptr];
 		}
 
-		void set_view(UIView* view) override {
+		void setView(UIView* view) override {
 			_view = view;
 			_layer = view.layer;
 			_layer.drawableProperties = @{
@@ -64,7 +64,11 @@ namespace {
 		}
 
 		Render* render() override { return this; }
+
+		Class layerClass() { return [CAEAGLLayer class]; }
+
 		bool isGpu() override { return false; }
+
 		sk_sp<SkSurface> getSurface() override { return _RasterSurface; }
 
 		void glRenderbufferStorageMain() override {

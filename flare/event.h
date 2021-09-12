@@ -176,11 +176,11 @@ namespace flare {
 	};
 
 	/**
-	* @class GUIActionEvent
+	* @class ActionEvent
 	*/
-	class FX_EXPORT GUIActionEvent: public GUIEvent {
+	class FX_EXPORT ActionEvent: public GUIEvent {
 		public:
-		inline GUIActionEvent(Action* action, View* view, uint64_t delay, uint32_t frame, uint32_t loop)
+		inline ActionEvent(Action* action, View* view, uint64_t delay, uint32_t frame, uint32_t loop)
 			: GUIEvent(view), action_(action), delay_(delay), frame_(frame), loop_(loop) { }
 		inline Action* action() const { return action_; }
 		inline uint64_t delay() const { return delay_; }
@@ -196,9 +196,9 @@ namespace flare {
 	/**
 	* @func GUIKeyEvent keyboard event
 	*/
-	class FX_EXPORT GUIKeyEvent: public GUIEvent {
+	class FX_EXPORT KeyEvent: public GUIEvent {
 		public:
-		inline GUIKeyEvent(View* origin, uint32_t keycode,
+		inline KeyEvent(View* origin, uint32_t keycode,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat, int device, int source)
 			: GUIEvent(origin), keycode_(keycode)
@@ -226,12 +226,12 @@ namespace flare {
 	};
 
 	/**
-	* @class GUIClickEvent click event
+	* @class ClickEvent click event
 	*/
-	class FX_EXPORT GUIClickEvent: public GUIEvent {
+	class FX_EXPORT ClickEvent: public GUIEvent {
 		public:
 		enum Type { TOUCH = 1, KEYBOARD = 2, MOUSE = 3 };
-		inline GUIClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1)
+		inline ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1)
 			: GUIEvent(origin), x_(x), y_(y), count_(count), type_(type) { }
 		inline float x() const { return x_; }
 		inline float y() const { return y_; }
@@ -246,12 +246,12 @@ namespace flare {
 	/**
 	* @class GUIMouseEvent mouse event
 	*/
-	class FX_EXPORT GUIMouseEvent: public GUIKeyEvent {
+	class FX_EXPORT MouseEvent: public KeyEvent {
 		public:
-		inline GUIMouseEvent(View* origin, float x, float y, uint32_t keycode,
+		inline MouseEvent(View* origin, float x, float y, uint32_t keycode,
 												bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 												uint32_t repeat = 0, int device = 0, int source = 0)
-			: GUIKeyEvent(origin, keycode, shift, ctrl, alt,
+			: KeyEvent(origin, keycode, shift, ctrl, alt,
 				command, caps_lock, repeat, device, source), x_(x), y_(y) { }
 		inline float x() const { return x_; }
 		inline float y() const { return y_; }
@@ -260,11 +260,11 @@ namespace flare {
 	};
 
 	/**
-	* @class GUIHighlightedEvent status event
+	* @class HighlightedEvent status event
 	*/
-	class FX_EXPORT GUIHighlightedEvent: public GUIEvent {
+	class FX_EXPORT HighlightedEvent: public GUIEvent {
 		public:
-		inline GUIHighlightedEvent(View* origin, HighlightedStatus status)
+		inline HighlightedEvent(View* origin, HighlightedStatus status)
 			: GUIEvent(origin), _status(status) { }
 		inline HighlightedStatus status() const { return _status; }
 		private:
@@ -272,9 +272,9 @@ namespace flare {
 	};
 
 	/**
-	* @class GUITouchEvent touch event
+	* @class TouchEvent touch event
 	*/
-	class FX_EXPORT GUITouchEvent: public GUIEvent {
+	class FX_EXPORT TouchEvent: public GUIEvent {
 		public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
@@ -283,7 +283,6 @@ namespace flare {
 			bool     click_in;
 			View*    view;
 		};
-		typedef TouchPoint Touch;
 		inline GUITouchEvent(View* origin, Array<TouchPoint>& touches)
 			: GUIEvent(origin), _change_touches(touches) {}
 		inline Array<TouchPoint>& changed_touches() { return _change_touches; }
@@ -291,14 +290,14 @@ namespace flare {
 		Array<TouchPoint> _change_touches;
 	};
 
-	typedef GUITouchEvent::Touch GUITouch;
+	typedef TouchEvent::TouchPoint TouchPoint;
 
 	/**
-	* @class GUIFocusMoveEvent
+	* @class FocusMoveEvent
 	*/
-	class FX_EXPORT GUIFocusMoveEvent: public GUIEvent {
-		public:
-		inline GUIFocusMoveEvent(View* origin, View* old_focus, View* new_focus)
+	class FX_EXPORT FocusMoveEvent: public GUIEvent {
+	public:
+		inline FocusMoveEvent(View* origin, View* old_focus, View* new_focus)
 			: GUIEvent(origin), _old_focus(old_focus), _new_focus(new_focus) {}
 		inline View* old_focus() { return _old_focus; }
 		inline View* new_focus() { return _new_focus; }
@@ -308,7 +307,7 @@ namespace flare {
 			_old_focus = nullptr;
 			_new_focus = nullptr; GUIEvent::release();
 		}
-		private:
+	private:
 		View* _old_focus;
 		View* _new_focus;
 	};
@@ -317,7 +316,7 @@ namespace flare {
 	* @class ITextInput
 	*/
 	class FX_EXPORT ITextInput: public Protocol {
-		public:
+	public:
 		virtual void input_delete(int count) = 0;
 		virtual void input_insert(cString& text) = 0;
 		virtual void input_marked(cString& text) = 0;
@@ -331,17 +330,17 @@ namespace flare {
 	};
 
 	/**
-	* @class GUIEventDispatch
+	* @class EventDispatch
 	*/
-	class FX_EXPORT GUIEventDispatch: public Object {
-		public:
-		GUIEventDispatch(Application* app);
-		virtual ~GUIEventDispatch();
+	class FX_EXPORT EventDispatch: public Object {
+	public:
+		EventDispatch(Application* app);
+		virtual ~EventDispatch();
 		// touch
-		void dispatch_touchstart(List<GUITouch>&& touches);
-		void dispatch_touchmove(List<GUITouch>&& touches);
-		void dispatch_touchend(List<GUITouch>&& touches);
-		void dispatch_touchcancel(List<GUITouch>&& touches);
+		void dispatch_touchstart(List<TouchPoint>&& touches);
+		void dispatch_touchmove(List<TouchPoint>&& touches);
+		void dispatch_touchend(List<TouchPoint>&& touches);
+		void dispatch_touchcancel(List<TouchPoint>&& touches);
 		// mouse
 		void dispatch_mousemove(float x, float y);
 		void dispatch_mousepress(KeyboardKeyName key, bool down);
@@ -364,12 +363,12 @@ namespace flare {
 			return _keyboard;
 		}
 			
-		private:
+	private:
 		class OriginTouche;
 		class MouseHandle;
 		typedef Dict<View*, OriginTouche*> OriginTouches;
 		
-		Application*     app_;
+		Application*        _host;
 		OriginTouches       _origin_touches;
 		MouseHandle*        _mouse_h;
 		KeyboardAdapter*    _keyboard;

@@ -43,7 +43,8 @@ namespace flare {
 	class FX_EXPORT RenderMAC {
 	public:
 		virtual Render* render() = 0;
-		virtual void set_view(UIView* view) = 0;
+		virtual void setView(UIView* view) = 0;
+		virtual Class layerClass() = 0;
 		bool resize(::CGRect rect);
 		static RenderMAC* create(Application* host, cJSON& options);
 	};

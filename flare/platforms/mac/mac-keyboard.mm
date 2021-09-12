@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../keyboard.h"
+#import "../../keyboard.h"
 
 namespace flare {
 
