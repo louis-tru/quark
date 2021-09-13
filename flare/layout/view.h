@@ -173,13 +173,13 @@ namespace flare {
 			*/
 		virtual void remove_all_child();
 
+	protected:
 		/**
 			*
 			* Setting parent parent view
 			*
 			* @func set_parent(parent)
 			*/
-	protected:
 		virtual void set_parent(View* parent);
 
 		/**

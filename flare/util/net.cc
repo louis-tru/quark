@@ -30,7 +30,7 @@
 
 #include "./net.h"
 #include "./string.h"
-#include "./_uv.h"
+#include "./uv.h"
 #include "./fs.h"
 #include <errno.h>
 #include <openssl/ssl.h>

@@ -28,6 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __flare__ios_render__
 #define __flare__ios_render__
 
@@ -36,7 +38,7 @@
 #if FX_IOS
 
 #import "../../render/render.h"
-#include "./_mac-app.h"
+#include "./mac-app.h"
 
 namespace flare {
 

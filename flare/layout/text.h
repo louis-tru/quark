@@ -37,9 +37,9 @@ namespace flare {
 
 	class FX_EXPORT Text: public Box {
 		FX_Define_View(Text);
-		public:
+	public:
 		// TODO ...
-		private:
+	private:
 		// TODO ...
 	};
 

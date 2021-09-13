@@ -28,6 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #include "./action.h"
 #include "./group.h"
 #include "./keyframe.h"
@@ -42,14 +44,14 @@ namespace flare {
 	typedef KeyframeAction::Property Property;
 
 	FX_DEFINE_INLINE_MEMBERS(View, ActionInl) {
-		public:
+	public:
 		inline ReturnValue& trigger(const NameType& name, GUIEvent& evt) {
 			return View::trigger(name, evt);
 		}
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(Action, Inl) {
-		public:
+	public:
 		#define _inl_action(self) static_cast<Action::Inl*>(static_cast<Action*>(self))
 		void set_parent(Action* parent) throw(Error);
 		View* first_view();
@@ -65,14 +67,14 @@ namespace flare {
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(ActionCenter, Inl) {
-		public:
+	public:
 		#define _inl_action_center(self) static_cast<ActionCenter::Inl*>(self)
 		void add(Action* action);
 		void del(Action* action);
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(GroupAction, Inl) {
-		public:
+	public:
 		#define _inl_group_action(self) \
 			static_cast<GroupAction::Inl*>(static_cast<GroupAction*>(self))
 		void clear_all();
@@ -81,7 +83,7 @@ namespace flare {
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(KeyframeAction, Inl) {
-		public:
+	public:
 		#define _inl_key_action(self) static_cast<KeyframeAction::Inl*>(self)
 		void transition(uint32_t f1, uint32_t f2, float x, float y, Action* root);
 		void transition(uint32_t f1, Action* root);
@@ -95,7 +97,7 @@ namespace flare {
 	*/
 	template<class T>
 	class Property2: public Property {
-		public:
+	public:
 		typedef T    (View::*GetPropertyFunc)() const;
 		typedef void (View::*SetPropertyFunc)(T value);
 		
@@ -172,7 +174,7 @@ namespace flare {
 	*/
 	template<class T, PropertyName Name>
 	class Property3: public Property2<T> {
-		public:
+	public:
 		typedef typename Property2<T>::GetPropertyFunc GetPropertyFunc;
 		typedef typename Property2<T>::SetPropertyFunc SetPropertyFunc;
 		
@@ -187,7 +189,7 @@ namespace flare {
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(Frame, Inl) {
-		public:
+	public:
 		#define _inl_frame(self) static_cast<KeyframeAction::Frame::Inl*>(self)
 
 		template<PropertyName Name, class T> inline T property_value() {

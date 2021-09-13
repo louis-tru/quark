@@ -44,7 +44,7 @@ namespace flare {
 	* @class TextFont
 	*/
 	class FX_EXPORT TextFont: public Protocol {
-		public:
+	public:
 		typedef FontGlyph::TexureLevel TexureLevel;
 		
 		TextFont();
@@ -122,8 +122,7 @@ namespace flare {
 		*/
 		float simple_layout_width(cString16& text);
 		
-		protected:
-		
+	protected:
 		/**
 		* @func set_glyph_texture_level
 		*/
@@ -141,8 +140,7 @@ namespace flare {
 		*/
 		virtual void mark_text(uint32_t value) = 0;
 		
-		protected:
-
+	protected:
 		TextColor   _text_background_color;  // 文本背景颜色
 		TextColor   _text_color;             // 字体颜色
 		TextSize    _text_size;              // 字体尺寸
@@ -159,7 +157,7 @@ namespace flare {
 	* @class TextLayout
 	*/
 	class FX_EXPORT TextLayout: public TextFont {
-		public:
+	public:
 		TextLayout();
 		
 		inline TextOverflow text_overflow() const { return _text_overflow; }
@@ -189,8 +187,7 @@ namespace flare {
 		*/
 		static bool is_auto_wrap(TextLayout* text);
 		
-		protected:
-
+	protected:
 		/**
 		* @func set_text_layout_offset
 		*/
@@ -224,13 +221,11 @@ namespace flare {
 		*/
 		void solve_text_layout_mark();
 		
-		protected:
-		
+	protected:
 		TextOverflow    _text_overflow;     // 文本溢出
 		TextWhiteSpace  _text_white_space;  // 空白处理
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
-		
 	};
 
 }

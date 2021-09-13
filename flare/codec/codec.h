@@ -43,7 +43,7 @@ namespace flare {
 	* @class PixelData
 	*/
 	class FX_EXPORT PixelData: public Object {
-		public:
+	public:
 		enum Format: uint64_t {
 			PVRTCI_2BPP_RGB = 0,
 			PVRTCI_2BPP_RGBA,
@@ -154,7 +154,7 @@ namespace flare {
 		*/
 		static uint32_t get_pixel_data_size(Format format);
 		
-		private:
+	private:
 		Buffer      _data;
 		int _width, _height;
 		Array<WeakBuffer> _body;
@@ -166,7 +166,7 @@ namespace flare {
 	* @class ImageCodec
 	*/
 	class FX_EXPORT ImageCodec: public Object {
-		public:
+	public:
 		enum ImageFormat {
 			Unknown = 0,
 			TGA,
@@ -214,7 +214,7 @@ namespace flare {
 	* @class TGAImageCodec
 	*/
 	class FX_EXPORT TGAImageCodec: public ImageCodec {
-		public:
+	public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);
@@ -225,7 +225,7 @@ namespace flare {
 	* @class JPEGImageCodec
 	*/
 	class FX_EXPORT JPEGImageCodec: public ImageCodec {
-		public:
+	public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);
@@ -235,7 +235,7 @@ namespace flare {
 	* @class GIFImageCodec
 	*/
 	class FX_EXPORT GIFImageCodec: public ImageCodec {
-		public:
+	public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);
@@ -245,7 +245,7 @@ namespace flare {
 	* @class PNGImageParser
 	*/
 	class FX_EXPORT PNGImageCodec: public ImageCodec {
-		public:
+	public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);
@@ -255,7 +255,7 @@ namespace flare {
 	* @class WEBPImageCodec
 	*/
 	class FX_EXPORT WEBPImageCodec: public ImageCodec {
-		public:
+	public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);
@@ -270,7 +270,7 @@ namespace flare {
 	* @class PVRTImageParser
 	*/
 	class FX_EXPORT PVRTCImageCodec: public ImageCodec {
-		public:
+	public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);

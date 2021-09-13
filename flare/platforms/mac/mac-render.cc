@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,30 +25,53 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__util__android_log__
-#define __flare__util__android_log__
-
-#include "../log.h"
-
-#if FX_ANDROID
+#include "./mac-render.h"
 
 namespace flare {
 
-	/**
-	* @class AndroidConsole # util log
-	*/
-	class FX_EXPORT AndroidConsole: public Console {
-		public:
-		virtual void log(cString& str);
-		virtual void warn(cString& str);
-		virtual void error(cString& str);
-		virtual void print(cString& str);
-		virtual void print_err(cString& str);
-		virtual void clear();
-	};
-}
-#endif
-#endif
+	bool RenderMAC::resize(::CGRect rect) {
+		float scale = UIScreen.mainScreen.scale;
+		float x = rect.size.width * scale;
+		float y = rect.size.height * scale;
+		if ( x != 0 && y != 0 ) {
+			return render()->host()->display()->set_surface_region({ 0,0,x,y,x,y });
+		}
+		return false;
+	}
+
+	RenderMAC* MakeRasterRender(GUIApplication* host, const DisplayParams& parems);
+	RenderMAC* MakeGLRender(GUIApplication* host, const DisplayParams& parems);
+	RenderMAC* MakeMetalRender(GUIApplication* host, const DisplayParams& parems);
+
+	RenderMAC* RenderMAC::create(GUIApplication* host, cJSON& options) {
+		RenderMAC* r = nullptr;
+
+		auto parems = Render::parseDisplayParams(options);
+
+		bool gpu = true;
+		bool metal = true;
+
+		if (gpu) {
+			if (metal) {
+				r = MakeMetalRender(host, parems);
+			}
+			if (r) {
+				return r;
+			}
+			r = MakeGLRender(host, parems);
+		}
+
+		if (r) {
+			return r;
+		}
+
+		r = MakeRasterRender(host, parems);
+		ASSERT(r);
+
+		return r;
+	}
+
+}  // namespace flare

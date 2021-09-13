@@ -42,7 +42,7 @@
 namespace flare {
 
 	class FX_EXPORT CSSName {
-		public:
+	public:
 		CSSName(const Array<String>& classs);
 		CSSName(cString& name);
 		inline String value() const { return _name; }
@@ -64,7 +64,7 @@ namespace flare {
 	*/
 	class FX_EXPORT StyleSheets: public Object {
 		FX_HIDDEN_ALL_COPY(StyleSheets);
-		protected:
+	protected:
 		StyleSheets(const CSSName& name, StyleSheets* parent, CSSPseudoClass pseudo);
 		
 		/**
@@ -72,11 +72,11 @@ namespace flare {
 		*/
 		virtual ~StyleSheets();
 		
-		public:
+	public:
 		typedef KeyframeAction::Frame Frame;
 		
 		class FX_EXPORT Property {
-			public:
+		public:
 			virtual ~Property() = default;
 			virtual void assignment(View* view) = 0;
 			virtual void assignment(Frame* frame) = 0;
@@ -163,7 +163,7 @@ namespace flare {
 		*/
 		inline CSSPseudoClass pseudo() const { return _pseudo; }
 	
-		private:
+	private:
 		CSSName                       _css_name;
 		StyleSheets*                  _parent;
 		Dict<uint32_t, StyleSheets*>     _children;
@@ -184,7 +184,7 @@ namespace flare {
 	* @class RootStyleSheets
 	*/
 	class FX_EXPORT RootStyleSheets: public StyleSheets {
-		public:
+	public:
 		
 		RootStyleSheets();
 		
@@ -200,7 +200,7 @@ namespace flare {
 		*/
 		static RootStyleSheets* shared();
 		
-		private:
+	private:
 		Dict<uint32_t, int>                    _all_css_names;
 		Dict<uint32_t, Array<uint32_t>>  _css_query_group_cache;
 
@@ -212,7 +212,7 @@ namespace flare {
 	*/
 	class FX_EXPORT StyleSheetsClass: public Object {
 		FX_HIDDEN_ALL_COPY(StyleSheetsClass);
-		public:
+	public:
 		StyleSheetsClass(View* host);
 		
 		/**
@@ -276,7 +276,7 @@ namespace flare {
 			return _child_style_sheets;
 		}
 		
-		private:
+	private:
 		View*           _host;
 		Array<String>   _classs;
 		Array<uint32_t> _query_group;
@@ -293,7 +293,7 @@ namespace flare {
 	*/
 	class FX_EXPORT StyleSheetsScope: public Object {
 		FX_HIDDEN_ALL_COPY(StyleSheetsScope);
-		public:
+	public:
 		struct Scope {
 			struct Wrap {
 				StyleSheets* sheets; int ref;
@@ -306,7 +306,7 @@ namespace flare {
 		void pop_scope();
 		inline View* bottom_scope() { return _scopes.length() ? _scopes.back() : nullptr; }
 		inline const List<Scope>& style_sheets() { return _style_sheets; }
-		private:
+	private:
 		typedef Dict<StyleSheets*, Scope::Wrap> StyleSheetsMap;
 		List<View*>   _scopes;
 		List<Scope>   _style_sheets;

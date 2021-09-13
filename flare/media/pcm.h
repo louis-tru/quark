@@ -40,7 +40,7 @@ namespace flare {
 	* @class PCMPlayer
 	*/
 	class PCMPlayer: public Protocol {
-		public:
+	public:
 
 		/**
 		* @func write

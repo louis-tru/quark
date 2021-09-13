@@ -28,50 +28,61 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_mac-render.h"
+#include "./render-looper.h"
+#include "./util/loop.h"
 
 namespace flare {
 
-	bool RenderMAC::resize(::CGRect rect) {
-		float scale = UIScreen.mainScreen.scale;
-		float x = rect.size.width * scale;
-		float y = rect.size.height * scale;
-		if ( x != 0 && y != 0 ) {
-			return render()->host()->display()->set_surface_region({ 0,0,x,y,x,y });
-		}
-		return false;
+	RenderLooper::RenderLooper(AppInl* host)
+		: _host(host), _id(nullptr) 
+	{}
+
+	RenderLooper::~RenderLooper() {
+		stop();
 	}
 
-	RenderMAC* MakeRasterRender(GUIApplication* host, const DisplayParams& parems);
-	RenderMAC* MakeGLRender(GUIApplication* host, const DisplayParams& parems);
-	RenderMAC* MakeMetalRender(GUIApplication* host, const DisplayParams& parems);
+	struct LooperData: Object {
+		int id;
+		AppInl* host;
+		Callback<> cb;
+	};
 
-	RenderMAC* RenderMAC::create(GUIApplication* host, cJSON& options) {
-		RenderMAC* r = nullptr;
-
-		auto parems = Render::parseDisplayParams(options);
-
-		bool gpu = true;
-		bool metal = true;
-
-		if (gpu) {
-			if (metal) {
-				r = MakeMetalRender(host, parems);
-			}
-			if (r) {
-				return r;
-			}
-			r = MakeGLRender(host, parems);
+	void looper(CbData& ev, LooperData* data) {
+		if ( data->id && !is_exited() ) {
+			// 60fsp
+			data->host->render_loop()->post(data->cb, 1000.0 / 60.0 * 1000);
+			data->host->triggerRender();
+			// DLOG("onRender");
+		} else {
+			Release(data);
 		}
-
-		if (r) {
-			return r;
-		}
-
-		r = MakeRasterRender(host, parems);
-		ASSERT(r);
-
-		return r;
 	}
 
-}  // namespace flare
+	void RenderLooper::start() {
+		typedef Callback<RunLoop::PostSyncData> Cb;
+		_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
+			if (!_id) {
+				LooperData* data = new LooperData();
+				data->id = getId32();
+				data->host = _host;
+				data->cb = Callback<>(&looper, data);
+				_id = &data->id;
+				Callback<>::Data d;
+				looper(d, data);
+			}
+			ev.data->complete();
+		}));
+	}
+
+	void RenderLooper::stop() {
+		typedef Callback<RunLoop::PostSyncData> Cb;
+		_host->render_loop()->post_sync(Cb([this](Cb::Data& ev) {
+			if (_id) {
+				*_id = 0;
+				_id = nullptr;
+			}
+			ev.data->complete();
+		}));
+	}
+
+}

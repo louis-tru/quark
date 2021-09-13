@@ -111,7 +111,7 @@ namespace flare {
 	 * @class PropertysAccessor
 	 */
 	class FX_EXPORT PropertysAccessor: public Object {
-		public:
+	public:
 		
 		typedef void (View::*Func)();
 		typedef int ViewType;
@@ -144,7 +144,7 @@ namespace flare {
 		 */
 		static PropertysAccessor* shared();
 		
-		private:
+	private:
 		
 		typedef Dict<PropertyName, Accessor> Accessors;
 		

@@ -40,7 +40,7 @@ namespace flare {
 		*/
 	class FX_EXPORT Flow: public Box {
 		FX_Define_View(Flow);
-		public:
+	public:
 
 		/**
 			* @constructors
@@ -58,7 +58,7 @@ namespace flare {
 		virtual bool layout_reverse(uint32_t mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
-		private:
+	private:
 		friend class Flex;
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

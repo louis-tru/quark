@@ -51,7 +51,7 @@ namespace flare {
 	* @class Action
 	*/
 	class FX_EXPORT Action: public Reference {
-		public:
+	public:
 		Action();
 		
 		/**
@@ -176,8 +176,7 @@ namespace flare {
 		*/
 		virtual KeyframeAction* as_keyframe() { return nullptr; }
 		
-		private:
-		
+	private:
 		/**
 		* @func advance
 		*/
@@ -198,8 +197,7 @@ namespace flare {
 		*/
 		virtual void bind_view(View* view) = 0;
 		
-		protected:
-
+	protected:
 		Action* _parent;
 		int     _loop, _loopd;
 		int64_t _full_duration, _delay, _delayd;

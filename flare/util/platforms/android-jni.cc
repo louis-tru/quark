@@ -30,8 +30,8 @@
 
 #include <android/api-level.h>
 #include "../../../android/android.h"
-#include "./android-jni_.h"
-#include "./android-log_.h"
+#include "./android-jni.h"
+#include "./android-log.h"
 #include "./string.h"
 #include "./loop.h"
 

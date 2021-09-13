@@ -47,7 +47,7 @@ namespace flare {
 	*/
 	class FX_EXPORT FontPool: public Object {
 		FX_HIDDEN_ALL_COPY(FontPool);
-		public:
+	public:
 		
 		FontPool(Application* host);
 		
@@ -193,8 +193,7 @@ namespace flare {
 		*/
 		static const Array<SimpleFontFamily>& system_font_family();
 		
-		private:
-
+	private:
 		/**
 		* @func set_display_port
 		*/

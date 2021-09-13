@@ -39,7 +39,7 @@ namespace flare {
 	* @class GroupAction
 	*/
 	class FX_EXPORT GroupAction: public Action {
-		public:
+	public:
 		/**
 		* @func operator[]
 		*/
@@ -76,8 +76,8 @@ namespace flare {
 		virtual GroupAction* as_group() {
 			return this;
 		}
-			
-		protected:
+		
+	protected:
 		/**
 		* @destructor
 		*/
@@ -102,7 +102,7 @@ namespace flare {
 	* @class SpawnAction
 	*/
 	class FX_EXPORT SpawnAction: public GroupAction {
-		public:
+	public:
 		/**
 		* @func spawn
 		*/
@@ -116,7 +116,7 @@ namespace flare {
 		virtual void insert(uint32_t index, Action* action) throw(Error);
 		virtual void remove_child(uint32_t index);
 
-		private:
+	private:
 		/**
 		* @overwrite
 		*/
@@ -129,7 +129,7 @@ namespace flare {
 	* @class SequenceAction
 	*/
 	class FX_EXPORT SequenceAction: public GroupAction {
-		public:
+	public:
 		/**
 		* @func seq
 		*/
@@ -144,7 +144,7 @@ namespace flare {
 		virtual void remove_child(uint32_t index);
 		virtual void clear();
 		
-		private:
+	private:
 		/**
 		* @overwrite
 		*/

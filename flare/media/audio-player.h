@@ -44,7 +44,7 @@ namespace flare {
 	class FX_EXPORT AudioPlayer: public Notification<Event<>, GUIEventName>,
 																public MultimediaSource::Delegate {
 		FX_HIDDEN_ALL_COPY(AudioPlayer);
-		public:
+	public:
 
 		typedef MultimediaSource::TrackInfo TrackInfo;
 		typedef MediaCodec::OutputBuffer    OutputBuffer;
@@ -184,8 +184,7 @@ namespace flare {
 		*/
 		inline bool disable_wait_buffer() const { return _disable_wait_buffer; }
 
-		private:
-
+	private:
 		MultimediaSource* _source;
 		PCMPlayer*    _pcm;
 		MediaCodec*   _audio;

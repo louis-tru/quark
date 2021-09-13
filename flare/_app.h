@@ -28,6 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __flare__app_1__
 #define __flare__app_1__
 

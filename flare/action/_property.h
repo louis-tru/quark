@@ -28,6 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __flare__action___property__
 #define __flare__action___property__
 

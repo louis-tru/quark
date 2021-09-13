@@ -30,7 +30,7 @@
 
 #include <unistd.h>
 #include "../fs.h"
-#include "../_android-jni.h"
+#include "../android-jni.h"
 #include "../../../android/android.h"
 
 namespace flare {

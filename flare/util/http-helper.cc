@@ -31,7 +31,7 @@
 #include "../version.h"
 #include "./http.h"
 #include "./fs.h"
-#include "./_uv.h"
+#include "./uv.h"
 #include "./os.h"
 
 namespace flare {

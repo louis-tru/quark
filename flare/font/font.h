@@ -49,12 +49,12 @@ namespace flare {
 	* @class FontFamilysID
 	*/
 	class FX_EXPORT FontFamilysID {
-		public:
+	public:
 		inline const Array<String>& names() const { return _names; }
 		inline cString& name() const { return _name; }
 		inline uint32_t code() const { return _code; }
 		
-		private:
+	private:
 		~FontFamilysID() {}
 		
 		Array<String> _names;
@@ -69,7 +69,7 @@ namespace flare {
 	* @class BaseFont
 	*/
 	class FX_EXPORT BaseFont: public Object {
-		public:
+	public:
 		virtual cString& name() const = 0;
 		virtual Font* font(TextStyleValue style = TextStyleValue::NORMAL, TextWeightValue weight = TextWeightValue::REGULAR) = 0;
 	};
@@ -80,7 +80,7 @@ namespace flare {
 	*/
 	class FX_EXPORT Font: public BaseFont {
 		FX_HIDDEN_ALL_COPY(Font);
-		protected:
+	protected:
 
 		inline Font() {}
 		
@@ -89,7 +89,7 @@ namespace flare {
 		*/
 		virtual ~Font();
 		
-		public:
+	public:
 		/**
 		* @overwrite
 		*/
@@ -156,7 +156,7 @@ namespace flare {
 		*/
 		inline TextStyleValue style() const { return _style; }
 		
-		private:
+	private:
 		
 		/**
 		* @func install
@@ -185,7 +185,7 @@ namespace flare {
 		GlyphContainer** _containers;  /* 字型描叙块指针,0x0000-0xFFFF共计512个区 */
 		GlyphContainerFlag**  _flags;
 		
-		protected:
+	protected:
 		uint32_t      _face_index;   // 当前字体在字体文件中的索引
 		void*         _ft_lib;       /* FT_Library */
 		void*         _ft_face;      /* FT_Face */
@@ -202,7 +202,7 @@ namespace flare {
 	* @class FontGlyph # 字体中一个文字的字型轮廓
 	*/
 	class FX_EXPORT FontGlyph {
-		public:
+	public:
 		
 		/**
 		* @enum TexureLevel
@@ -287,8 +287,7 @@ namespace flare {
 		*/
 		Font* font();
 		
-		private:
-		
+	private:
 		typedef Font::GlyphContainer Container;
 		
 		uint32_t        _textures[12];       /* 纹理集合 */

@@ -33,7 +33,7 @@
 #include "./handle.h"
 #include "./error.h"
 #include "./http.h"
-#include "./_uv.h"
+#include "./uv.h"
 #include "./dict.h"
 
 namespace flare {

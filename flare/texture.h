@@ -74,7 +74,7 @@ namespace flare {
 	*/
 	class FX_EXPORT Texture: public Reference {
 		FX_HIDDEN_ALL_COPY(Texture);
-		public:
+	public:
 
 		typedef PixelData::Format PixelFormat;
 
@@ -148,7 +148,7 @@ namespace flare {
 		inline int diagonal() const { return _diagonal; }
 		inline PixelFormat format() const { return _format; }
 
-		protected:
+	protected:
 		/**
 		* @constructor
 		*/
@@ -174,7 +174,7 @@ namespace flare {
 	};
 
 	class FX_EXPORT TextureYUV: public Texture {
-		public:
+	public:
 		bool load_yuv(cPixelData& data);
 		virtual bool unload(Level level = LEVEL_NONE);
 	};
@@ -183,7 +183,7 @@ namespace flare {
 	* @class FileTexture
 	*/
 	class FX_EXPORT FileTexture: public Texture {
-		public:
+	public:
 		typedef ImageCodec::ImageFormat ImageFormat;
 		
 		/**
@@ -205,8 +205,7 @@ namespace flare {
 			return _image_format;
 		}
 		
-		private:
-		
+	private:
 		FileTexture(cString& path);
 		
 		String        _path;
@@ -232,7 +231,7 @@ namespace flare {
 	*/
 	class FX_EXPORT TexturePool: public Object {
 		FX_HIDDEN_ALL_COPY(TexturePool);
-		public:
+	public:
 		
 		/**
 		* @event onchange 纹理载入变化事件
@@ -274,8 +273,7 @@ namespace flare {
 		*/
 		void clear(bool full = false);
 		
-		private:
-		
+	private:
 		Application* _host;
 		Dict<String, FileTexture*> _textures;
 		Dict<Texture*, bool> _completes;

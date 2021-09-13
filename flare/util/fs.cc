@@ -30,7 +30,7 @@
 
 #include "./error.h"
 #include "./fs.h"
-#include "./_uv.h"
+#include "./uv.h"
 #include <list>
 
 namespace flare {

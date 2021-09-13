@@ -40,10 +40,10 @@ namespace flare {
 	* @class KeyframeAction
 	*/
 	class FX_EXPORT KeyframeAction: public Action {
-		public:
+	public:
 		
 		class FX_EXPORT Property {
-			public:
+		public:
 			virtual ~Property() { }
 			virtual void bind_view(int view_type) = 0;
 			virtual void transition(uint32_t frame1, Action* root) = 0;
@@ -55,7 +55,7 @@ namespace flare {
 		
 		class FX_EXPORT Frame: public Object {
 			FX_HIDDEN_ALL_COPY(Frame);
-			public:
+		public:
 			inline Frame(KeyframeAction* host, uint32_t index, const FixedCubicBezier& curve)
 			: _host(host) , _index(index) , _curve(curve), _time(0) {}
 			
@@ -109,7 +109,7 @@ namespace flare {
 			FX_EACH_PROPERTY_TABLE(fx_def_property)
 			#undef fx_def_property
 		
-			private:
+		private:
 			KeyframeAction*   _host;
 			uint32_t          _index;
 			FixedCubicBezier  _curve;
@@ -194,7 +194,7 @@ namespace flare {
 		*/
 		inline bool is_bind_view() { return _bind_view_type; }
 			
-		private:
+	private:
 		/**
 		* @overwrite
 		*/

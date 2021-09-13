@@ -28,59 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./handle.h"
-#include "./_uv.h"
-#include "./dict.h"
+// @private head
+
+#ifndef __flare__util__android_log__
+#define __flare__util__android_log__
+
+#include "../log.h"
+
+#if FX_ANDROID
 
 namespace flare {
 
-	struct TaskList {
-		Mutex mutex;
-		Dict<uint32_t, AsyncIOTask*> values;
+	/**
+	* @class AndroidConsole # util log
+	*/
+	class FX_EXPORT AndroidConsole: public Console {
+	public:
+		virtual void log(cString& str);
+		virtual void warn(cString& str);
+		virtual void error(cString& str);
+		virtual void print(cString& str);
+		virtual void print_err(cString& str);
+		virtual void clear();
 	};
-
-	static TaskList* tasks = new TaskList;
-
-	AsyncIOTask::AsyncIOTask(RunLoop* loop)
-	: _id(getId32()), _abort(false), _loop(loop) {
-		FX_CHECK(_loop);
-		ScopeLock scope(tasks->mutex);
-		tasks->values[_id] = this;
-	}
-
-	AsyncIOTask::~AsyncIOTask() {
-		ScopeLock scope(tasks->mutex);
-		tasks->values.erase(_id);
-	}
-
-	void AsyncIOTask::abort() {
-		if ( !_abort ) {
-			_abort = true;
-			release(); // end
-		}
-	}
-
-	void AsyncIOTask::safe_abort(uint32_t id) {
-		if (id) {
-			ScopeLock scope(tasks->mutex);
-			auto i = tasks->values.find(id);
-			if (i == tasks->values.end())
-				return;
-			
-			i->value->_loop->post(Cb([id](CbData& e) {
-				AsyncIOTask* task = nullptr;
-				{ //
-					ScopeLock scope(tasks->mutex);
-					auto i = tasks->values.find(id);
-					if (i != tasks->values.end()) {
-						task = i->value;
-					}
-				}
-				if (task) {
-					task->abort();
-				}
-			}));
-		}
-	}
-
 }
+#endif
+#endif

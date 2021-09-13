@@ -51,7 +51,7 @@ namespace flare {
 	* @class BoxFill
 	*/
 	class FX_EXPORT BoxFill: public Reference {
-		public:
+	public:
 		
 		enum Type {
 			M_INVALID,
@@ -121,8 +121,7 @@ namespace flare {
 		virtual bool retain();
 		virtual void release();
 		
-		protected:
-		
+	protected:
 		/**
 		* @func mark_value()
 		*/
@@ -148,7 +147,7 @@ namespace flare {
 	 * @class FillColor
 	 */
 	class FX_EXPORT FillColor: public BoxFill {
-		public:
+	public:
 		// TODO ...
 		protected:
 		virtual Fill copy(Fill to);
@@ -158,8 +157,7 @@ namespace flare {
 	* @class FillImage
 	*/
 	class FX_EXPORT FillImage: public BoxFill {
-		public:
-
+	public:
 		FillImage();
 		virtual ~FillImage();
 		virtual Type type() const { return M_IMAGE; }
@@ -181,11 +179,9 @@ namespace flare {
 		void set_size_x(FillSize value);
 		void set_size_y(FillSize value);
 		bool get_background_image_data(Box* host, Vec2& size_out, Vec2& position_out, int& level_out);
-
-		protected:
+	protected:
 		virtual BoxFill* copy(BoxFill* to);
-		private:
-
+	private:
 		String    _src;
 		bool      _has_base64_src;
 		Texture*  _texture;
@@ -200,7 +196,7 @@ namespace flare {
 	* @class FillGradient
 	*/
 	class FX_EXPORT FillGradient: public BoxFill {
-		public:
+	public:
 		FillGradient();
 		virtual Type type() const { return M_GRADIENT; }
 		virtual FillGradient* as_gradient() { return nullptr; }
@@ -212,7 +208,7 @@ namespace flare {
 	 * @class FillShadow
 	 */
 	class FX_EXPORT FillShadow: public BoxFill {
-		public:
+	public:
 		// TODO ...
 		protected:
 		virtual Fill copy(Fill to);
@@ -222,9 +218,9 @@ namespace flare {
 	 * @class FillBorder
 	 */
 	class FX_EXPORT FillBorder: public BoxFill {
-		public:
+	public:
 		// TODO ...
-		protected:
+	protected:
 		virtual Fill copy(Fill to);
 		float _width;
 		Color _color;
@@ -234,9 +230,9 @@ namespace flare {
 	 * @class FillBorderRadius
 	 */
 	class FX_EXPORT FillBorderRadius: public BoxFill {
-		public:
+	public:
 		// TODO ...
-		protected:
+	protected:
 		virtual Fill copy(Fill to);
 	};
 

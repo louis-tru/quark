@@ -28,24 +28,29 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/util/macros.h"
+// @private head
 
-#if FX_IOS
+#ifndef __flare__gui_render_looper__
+#define __flare__gui_render_looper__
 
-#import <UIKit/UIKit.h>
-#import "flare/app.h"
-#import "flare/event.h"
+#include "./_app.h"
 
-using namespace flare;
+namespace flare {
 
-@interface IOSIMEHelprt: UIView<UITextInput>
-	- (id)initWithApplication:(Application*)app;
-	- (void)open;
-	- (void)close;
-	- (void)clear;
-	- (void)set_keyboard_can_backspace:(bool)can_backspace can_delete:(bool)can_delete;
-	- (void)set_keyboard_type:(KeyboardType)type;
-	- (void)set_keyboard_return_type:(KeyboardReturnType)type;
-@end
+	/**
+	 * @class RenderLooper
+	 */
+	class RenderLooper {
+	public:
+		RenderLooper(AppInl* host);
+		~RenderLooper();
+		void start();
+		void stop();
+	private:
+		AppInl* _host;
+		int* _id;
+	};
+
+}
 
 #endif

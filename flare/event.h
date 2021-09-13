@@ -115,7 +115,7 @@ namespace flare {
 	};
 
 	class FX_EXPORT GUIEventName {
-		public:
+	public:
 		inline GUIEventName() { FX_UNREACHABLE(); }
 		inline GUIEventName(cString& n, uint32_t category, int flag)
 			: name_(n), code_((uint32_t)n.hash_code()), category_(category), flag_(flag) { }
@@ -128,7 +128,7 @@ namespace flare {
 		inline bool operator!=(const GUIEventName& type) const { return type.code_ != code_; }
 		inline bool operator>(const GUIEventName& type) const { return code_ > type.code_; }
 		inline bool operator<(const GUIEventName& type) const { return code_ < type.code_; }
-		private:
+	private:
 		String  name_;
 		uint32_t  code_, category_;
 		int  flag_;
@@ -153,7 +153,7 @@ namespace flare {
 	* @func GUIEvent gui event
 	*/
 	class FX_EXPORT GUIEvent: public Event<Object, View> {
-		public:
+	public:
 		inline GUIEvent(cSendData data): Event<Object, View>() { FX_UNREACHABLE(); }
 		inline GUIEvent(View* origin, cSendData data = SendData())
 			: Event(data), origin_(origin), time_(os::time()), valid_(true) {
@@ -169,7 +169,7 @@ namespace flare {
 			valid_ = false;
 			origin_ = nullptr; Event<Object, View>::release();
 		}
-		protected:
+	protected:
 		View*   origin_;
 		uint64_t  time_;
 		bool    valid_;
@@ -179,7 +179,7 @@ namespace flare {
 	* @class ActionEvent
 	*/
 	class FX_EXPORT ActionEvent: public GUIEvent {
-		public:
+	public:
 		inline ActionEvent(Action* action, View* view, uint64_t delay, uint32_t frame, uint32_t loop)
 			: GUIEvent(view), action_(action), delay_(delay), frame_(frame), loop_(loop) { }
 		inline Action* action() const { return action_; }
@@ -187,7 +187,7 @@ namespace flare {
 		inline uint32_t frame() const { return frame_; }
 		inline uint32_t loop() const { return loop_; }
 		virtual void release() { action_ = nullptr; GUIEvent::release(); }
-		private:
+	private:
 		Action* action_;
 		uint64_t  delay_;
 		uint32_t  frame_, loop_;
@@ -197,7 +197,7 @@ namespace flare {
 	* @func GUIKeyEvent keyboard event
 	*/
 	class FX_EXPORT KeyEvent: public GUIEvent {
-		public:
+	public:
 		inline KeyEvent(View* origin, uint32_t keycode,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat, int device, int source)
@@ -217,7 +217,7 @@ namespace flare {
 		inline View* focus_move() const { return focus_move_; }
 		inline void set_focus_move(View* view) { if (valid_) focus_move_ = view; }
 		virtual void release() { focus_move_ = nullptr; GUIEvent::release(); }
-		private:
+	private:
 		int  keycode_;
 		int  device_, source_, repeat_;
 		bool shift_, ctrl_, alt_;
@@ -229,7 +229,7 @@ namespace flare {
 	* @class ClickEvent click event
 	*/
 	class FX_EXPORT ClickEvent: public GUIEvent {
-		public:
+	public:
 		enum Type { TOUCH = 1, KEYBOARD = 2, MOUSE = 3 };
 		inline ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1)
 			: GUIEvent(origin), x_(x), y_(y), count_(count), type_(type) { }
@@ -237,7 +237,7 @@ namespace flare {
 		inline float y() const { return y_; }
 		inline uint32_t count() const { return count_; }
 		inline Type type() const { return type_; }
-		private:
+	private:
 		float x_, y_;
 		uint32_t count_;
 		Type type_;
@@ -247,7 +247,7 @@ namespace flare {
 	* @class GUIMouseEvent mouse event
 	*/
 	class FX_EXPORT MouseEvent: public KeyEvent {
-		public:
+	public:
 		inline MouseEvent(View* origin, float x, float y, uint32_t keycode,
 												bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 												uint32_t repeat = 0, int device = 0, int source = 0)
@@ -255,7 +255,7 @@ namespace flare {
 				command, caps_lock, repeat, device, source), x_(x), y_(y) { }
 		inline float x() const { return x_; }
 		inline float y() const { return y_; }
-		private:
+	private:
 		float x_, y_;
 	};
 
@@ -263,11 +263,11 @@ namespace flare {
 	* @class HighlightedEvent status event
 	*/
 	class FX_EXPORT HighlightedEvent: public GUIEvent {
-		public:
+	public:
 		inline HighlightedEvent(View* origin, HighlightedStatus status)
 			: GUIEvent(origin), _status(status) { }
 		inline HighlightedStatus status() const { return _status; }
-		private:
+	private:
 		HighlightedStatus _status;
 	};
 
@@ -275,7 +275,7 @@ namespace flare {
 	* @class TouchEvent touch event
 	*/
 	class FX_EXPORT TouchEvent: public GUIEvent {
-		public:
+	public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
 			float    start_x, start_y;
@@ -286,7 +286,7 @@ namespace flare {
 		inline GUITouchEvent(View* origin, Array<TouchPoint>& touches)
 			: GUIEvent(origin), _change_touches(touches) {}
 		inline Array<TouchPoint>& changed_touches() { return _change_touches; }
-		private:
+	private:
 		Array<TouchPoint> _change_touches;
 	};
 

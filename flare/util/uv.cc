@@ -28,29 +28,59 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <android/log.h>
-#include "./android-log_.h"
-#include "./string.h"
+#include "./handle.h"
+#include "./uv.h"
+#include "./dict.h"
 
 namespace flare {
 
-	void AndroidConsole::log(cString& str) {
-		__android_log_print(ANDROID_LOG_INFO, "LOG", "%s\n", *str);
+	struct TaskList {
+		Mutex mutex;
+		Dict<uint32_t, AsyncIOTask*> values;
+	};
+
+	static TaskList* tasks = new TaskList;
+
+	AsyncIOTask::AsyncIOTask(RunLoop* loop)
+	: _id(getId32()), _abort(false), _loop(loop) {
+		FX_CHECK(_loop);
+		ScopeLock scope(tasks->mutex);
+		tasks->values[_id] = this;
 	}
-	void AndroidConsole::warn(cString& str) {
-		__android_log_print(ANDROID_LOG_WARN, "FX_WARN", "%s\n", *str);
+
+	AsyncIOTask::~AsyncIOTask() {
+		ScopeLock scope(tasks->mutex);
+		tasks->values.erase(_id);
 	}
-	void AndroidConsole::error(cString& str) {
-		__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s\n", *str);
+
+	void AsyncIOTask::abort() {
+		if ( !_abort ) {
+			_abort = true;
+			release(); // end
+		}
 	}
-	void AndroidConsole::print(cString& str) {
-		__android_log_print(ANDROID_LOG_INFO, "LOG", "%s", *str);
-	}
-	void AndroidConsole::print_err(cString& str) {
-		__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s", *str);
-	}
-	void AndroidConsole::clear() {
-		// noop
+
+	void AsyncIOTask::safe_abort(uint32_t id) {
+		if (id) {
+			ScopeLock scope(tasks->mutex);
+			auto i = tasks->values.find(id);
+			if (i == tasks->values.end())
+				return;
+			
+			i->value->_loop->post(Cb([id](CbData& e) {
+				AsyncIOTask* task = nullptr;
+				{ //
+					ScopeLock scope(tasks->mutex);
+					auto i = tasks->values.find(id);
+					if (i != tasks->values.end()) {
+						task = i->value;
+					}
+				}
+				if (task) {
+					task->abort();
+				}
+			}));
+		}
 	}
 
 }

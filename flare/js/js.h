@@ -109,7 +109,8 @@ namespace flare {
  * @ns flare::js
  */
 
-JS_BEGIN
+namespace flare {
+namespace js {
 
 class ValueProgram;
 class Worker;
@@ -140,7 +141,7 @@ class JSArrayBuffer;
 class JSClass;
 
 class FX_EXPORT NoCopy {
- public:
+public:
 	FX_INLINE NoCopy() {}
 	FX_HIDDEN_ALL_COPY(NoCopy);
 	FX_HIDDEN_HEAP_ALLOC();
@@ -148,7 +149,7 @@ class FX_EXPORT NoCopy {
 
 template<class T>
 class FX_EXPORT Maybe {
-	public:
+public:
 	Maybe() : val_ok_(false) {}
 	explicit Maybe(const T& t) : val_ok_(true), val_(t) {}
 	explicit Maybe(T&& t) : val_ok_(true), val_(move(t)) {}
@@ -163,14 +164,14 @@ class FX_EXPORT Maybe {
 	FX_INLINE T FromMaybe(const T& default_value) {
 		return val_ok_ ? move(val_) : default_value;
 	}
-	private:
+private:
 	bool val_ok_;
 	T val_;
 };
 
 template <class T>
 class FX_EXPORT MaybeLocal {
-	public:
+public:
 	FX_INLINE MaybeLocal() : val_(nullptr) {}
 	template <class S>
 	FX_INLINE MaybeLocal(Local<S> that)
@@ -188,13 +189,13 @@ class FX_EXPORT MaybeLocal {
 	FX_INLINE Local<S> FromMaybe(Local<S> default_value) const {
 		return IsEmpty() ? default_value : Local<S>(val_);
 	}
-	private:
+private:
 	T* val_;
 };
 
 template<class T>
 class FX_EXPORT Local {
-	public:
+public:
 	FX_INLINE Local() : val_(0) {}
 	template <class S>
 	FX_INLINE Local(Local<S> that)
@@ -212,7 +213,7 @@ class FX_EXPORT Local {
 		// unsafe conversion 
 		return Local<S>::Cast(*this);
 	}
-	private:
+private:
 	friend class JSValue;
 	friend class JSFunction;
 	friend class JSString;
@@ -224,7 +225,7 @@ class FX_EXPORT Local {
 
 template<class T>
 class FX_EXPORT PersistentBase: public NoCopy {
-	public:
+public:
 	typedef void (*WeakCallback)(void* ptr);
 	FX_INLINE void Reset() {
 		JS_TYPE_CHECK(JSValue, T);
@@ -247,7 +248,7 @@ class FX_EXPORT PersistentBase: public NoCopy {
 		return *reinterpret_cast<Local<T>*>(const_cast<PersistentBase*>(this));
 	}
 	FX_INLINE Worker* worker() const { return worker_; }
-	private:
+private:
 	friend class WrapObject;
 	friend class Worker;
 	template<class F1, class F2> friend class Persistent;
@@ -260,7 +261,7 @@ class FX_EXPORT PersistentBase: public NoCopy {
 
 template<class T> class
 FX_EXPORT NonCopyablePersistentTraits {
-	public:
+public:
 	static constexpr bool kResetInDestructor = true;
 	FX_INLINE static void CopyCheck() { Uncompilable<Object>(); }
 	template<class O> static void Uncompilable() {
@@ -270,7 +271,7 @@ FX_EXPORT NonCopyablePersistentTraits {
 
 template<class T> class
 FX_EXPORT CopyablePersistentTraits {
-	public:
+public:
 	typedef Persistent<T, CopyablePersistentTraits<T>> Handle;
 	static constexpr bool kResetInDestructor = true;
 	static FX_INLINE void CopyCheck() { }
@@ -278,7 +279,7 @@ FX_EXPORT CopyablePersistentTraits {
 
 template<class T, class M>
 class FX_EXPORT Persistent: public PersistentBase<T> {
-	public:
+public:
 	FX_INLINE Persistent() { }
 	
 	~Persistent() { if(M::kResetInDestructor) this->Reset(); }
@@ -313,7 +314,7 @@ class FX_EXPORT Persistent: public PersistentBase<T> {
 		return *this;
 	}
 	
-	private:
+private:
 	template<class F1, class F2> friend class Persistent;
 	template<class S>
 	FX_INLINE void Copy(const PersistentBase<S>& that) {
@@ -328,7 +329,7 @@ class FX_EXPORT Persistent: public PersistentBase<T> {
 };
 
 class FX_EXPORT ReturnValue {
-	public:
+public:
 	template <class S>
 	inline void Set(Local<S> value) {
 		JS_TYPE_CHECK(JSValue, S);
@@ -342,12 +343,12 @@ class FX_EXPORT ReturnValue {
 	void SetNull();
 	void SetUndefined();
 	void SetEmptyString();
-	private:
+private:
 	void* val_;
 };
 
 class FX_EXPORT FunctionCallbackInfo: public NoCopy {
-	public:
+public:
 	Worker* worker() const;
 	int Length() const;
 	Local<JSValue> operator[](int i) const;
@@ -357,7 +358,7 @@ class FX_EXPORT FunctionCallbackInfo: public NoCopy {
 };
 
 class FX_EXPORT PropertyCallbackInfo: public NoCopy {
-	public:
+public:
 	Worker* worker() const;
 	Local<JSObject> This() const;
 	ReturnValue GetReturnValue() const;
@@ -379,23 +380,23 @@ typedef void (*IndexedPropertyGetterCallback)(uint32_t index, PropertyCall info)
 typedef void (*IndexedPropertySetterCallback)(uint32_t index, Local<JSValue> value, PropertyCall info);
 
 class FX_EXPORT HandleScope: public NoCopy {
-	public:
+public:
 	explicit HandleScope(Worker* worker);
 	~HandleScope();
-	private:
+private:
 	void* val_[3];
 };
 
 class FX_EXPORT CallbackScope: public NoCopy {
-	public:
+public:
 	explicit CallbackScope(Worker* worker);
 	~CallbackScope();
-	private:
+private:
 	void* val_;
 };
 
 class FX_EXPORT JSValue: public NoCopy {
-	public:
+public:
 	bool IsUndefined() const;
 	bool IsNull() const;
 	bool IsString() const;
@@ -451,7 +452,7 @@ class FX_EXPORT JSValue: public NoCopy {
 };
 
 class FX_EXPORT JSString: public JSValue {
-	public:
+public:
 	int Length(Worker* worker) const;
 	String Value(Worker* worker, bool ascii = false) const;
 	String16 Ucs2Value(Worker* worker) const;
@@ -459,7 +460,7 @@ class FX_EXPORT JSString: public JSValue {
 };
 
 class FX_EXPORT JSObject: public JSValue {
-	public:
+public:
 	Local<JSValue> Get(Worker* worker, Local<JSValue> key);
 	Local<JSValue> Get(Worker* worker, uint32_t index);
 	bool Set(Worker* worker, Local<JSValue> key, Local<JSValue> val);
@@ -482,7 +483,7 @@ class FX_EXPORT JSObject: public JSValue {
 };
 
 class FX_EXPORT JSArray: public JSObject {
-	public:
+public:
 	int Length(Worker* worker) const;
 	Maybe<Array<String>> ToStringArrayMaybe(Worker* worker);
 	Maybe<Array<double>> ToNumberArrayMaybe(Worker* worker);
@@ -490,37 +491,37 @@ class FX_EXPORT JSArray: public JSObject {
 };
 
 class FX_EXPORT JSDate: public JSObject {
-	public:
+public:
 	double ValueOf(Worker* worker) const;
 };
 
 class FX_EXPORT JSNumber: public JSValue {
-	public:
+public:
 	double Value(Worker* worker) const;
 };
 
 class FX_EXPORT JSInt32: public JSNumber {
-	public:
+public:
 	int Value(Worker* worker) const;
 };
 
 class FX_EXPORT JSInteger: public JSNumber {
-	public:
+public:
 	int64_t Value(Worker* worker) const;
 };
 
 class FX_EXPORT JSUint32: public JSNumber {
-	public:
+public:
 	uint32_t Value(Worker* worker) const;
 };
 
 class FX_EXPORT JSBoolean: public JSValue {
-	public:
+public:
 	bool Value(Worker* worker) const;
 };
 
 class FX_EXPORT JSFunction: public JSObject {
-	public:
+public:
 	Local<JSValue> Call(Worker* worker, int argc = 0,
 											Local<JSValue> argv[] = nullptr,
 											Local<JSValue> recv = Local<JSValue>());
@@ -530,14 +531,14 @@ class FX_EXPORT JSFunction: public JSObject {
 };
 
 class FX_EXPORT JSArrayBuffer: public JSObject {
-	public:
+public:
 	int ByteLength(Worker* worker) const;
 	Char* Data(Worker* worker);
 	WeakBuffer weakBuffer(Worker* worker);
 };
 
 class FX_EXPORT JSTypedArray: public JSObject {
-	public:
+public:
 	Local<JSArrayBuffer> Buffer(Worker* worker);
 	WeakBuffer weakBuffer(Worker* worker);
 	int ByteLength(Worker* worker);
@@ -548,14 +549,14 @@ class FX_EXPORT JSUint8Array: public JSTypedArray {
 };
 
 class FX_EXPORT JSSet: public JSObject {
-	public:
+public:
 	MaybeLocal<JSSet> Add(Worker* worker, Local<JSValue> key);
 	Maybe<bool> Has(Worker* worker, Local<JSValue> key);
 	Maybe<bool> Delete(Worker* worker, Local<JSValue> key);
 };
 
 class FX_EXPORT JSClass: public NoCopy {
-	public:
+public:
 	uint64_t ID() const;
 	bool HasInstance(Worker* worker, Local<JSValue> val);
 	Local<JSFunction> GetFunction(Worker* worker);
@@ -577,7 +578,7 @@ class FX_EXPORT JSClass: public NoCopy {
 };
 
 class FX_EXPORT TryCatch: public NoCopy {
-	public:
+public:
 	TryCatch();
 	~TryCatch();
 	bool HasCaught() const;
@@ -591,7 +592,7 @@ class FX_EXPORT TryCatch: public NoCopy {
  */
 class FX_EXPORT Worker: public Object {
 	FX_HIDDEN_ALL_COPY(Worker);
-	public:
+public:
 	typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
 	typedef void (*WrapAttachCallback)(WrapObject* wrap);
 
@@ -826,7 +827,7 @@ class FX_EXPORT Worker: public Object {
 	 */
 	void garbageCollection();
 	
- private:
+private:
 
 	friend class NativeValue;
 	friend class WorkerIMPL;
@@ -841,7 +842,7 @@ class FX_EXPORT Worker: public Object {
  */
 class FX_EXPORT WrapObject {
 	FX_HIDDEN_ALL_COPY(WrapObject);
-	protected:
+protected:
 	
 	inline WrapObject() {}
 	
@@ -868,7 +869,7 @@ class FX_EXPORT WrapObject {
 	
 	static WrapObject* attach(FunctionCall args);
 
-	public:
+public:
 	virtual bool addEventListener(cString& name, cString& func, int id) {
 		return false;
 	}
@@ -929,7 +930,7 @@ class FX_EXPORT WrapObject {
 	static WrapObject* pack2(Object* object, uint64_t type_id);
 	void init2(FunctionCall args);
 
-	protected:
+protected:
 	Persistent<JSObject> handle_;
 	FX_DEFINE_INLINE_CLASS(Inl);
 	friend class Allocator;
@@ -938,7 +939,7 @@ class FX_EXPORT WrapObject {
 template<class T = Object>
 class FX_EXPORT Wrap: public WrapObject {
 	Wrap() = delete;
-	public:
+public:
 	inline static Wrap<T>* unpack(Local<JSObject> value) {
 		return WrapObject::unpack<T>(value);
 	}
@@ -1000,5 +1001,5 @@ Local<T> MaybeLocal<T>::ToLocalChecked() {
 }
 template <> FX_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked();
 
-JS_END
+}}
 #endif

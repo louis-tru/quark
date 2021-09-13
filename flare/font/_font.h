@@ -80,9 +80,9 @@ namespace flare {
 	 * @class FontFromData
 	 */
 	class FontFromData: public Font {
-		public:
+	public:
 		class Data: public Reference {
-			public:
+		public:
 			Data(Buffer& buff);
 			FT_Byte*  value;
 			uint32_t  length;
@@ -92,7 +92,7 @@ namespace flare {
 		FontFromData(Data* data);
 		virtual ~FontFromData();
 		void install();
-		private:
+	private:
 		Data* _data;
 	};
 
@@ -100,10 +100,10 @@ namespace flare {
 	* @class FontFromFile
 	*/
 	class FontFromFile: public Font {
-		public:
+	public:
 		FontFromFile(cString& path);
 		void install();
-		private:
+	private:
 		String _font_path; // 字体文件路径
 	};
 
@@ -111,7 +111,7 @@ namespace flare {
 	 * @class Font::Inl
 	 */
 	FX_DEFINE_INLINE_MEMBERS(Font, Inl) {
-		public:
+	public:
 		#define _inl_font(self) static_cast<Font::Inl*>(self)
 		
 		void initialize(
@@ -222,13 +222,13 @@ namespace flare {
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(FontFamilysID, Inl) {
-		public:
+	public:
 		#define _inl_ff_id(self) static_cast<FontFamilysID::Inl*>(self)
 		void initialize(const Array<String>& names);
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(FontGlyphTable, Inl) {
-		public:
+	public:
 		#define _inl_table(self) static_cast<FontGlyphTable::Inl*>(self)
 		void clear_table();
 		void initialize(FFID ffid, TextStyleValue style, FontPool* pool);
@@ -239,14 +239,14 @@ namespace flare {
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(FontFamily, Inl) {
-		public:
+	public:
 		#define _inl_family(self) static_cast<FontFamily::Inl*>(self)
 		int get_font_style_index(TextStyleValue style);
 		void add_font(Font* font);
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(FontPool, Inl) {
-		public:
+	public:
 		#define _inl_pool(self) static_cast<FontPool::Inl*>(self)
 		void initialize_default_fonts();
 		bool register_font(

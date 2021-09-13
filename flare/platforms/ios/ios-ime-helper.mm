@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./_ios-ime-helper.h"
+#import "./ios-ime-helper.h"
 #import "../../util/util.h"
 #import "../../event.h"
 #import "../../_app.h"

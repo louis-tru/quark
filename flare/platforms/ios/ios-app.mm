@@ -36,8 +36,8 @@
 #import "../../_app.h"
 #import "../../display.h"
 #import "../../event.h"
-#import "../mac/_mac-render.h"
-#import "./_ios-ime-helper.h"
+#import "../mac/mac-render.h"
+#import "./ios-ime-helper.h"
 
 using namespace flare;
 

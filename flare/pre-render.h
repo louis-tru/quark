@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,64 +25,78 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_render-looper.h"
-#include "./util/loop.h"
+// @private head
+
+#ifndef __flare__pre_render__
+#define __flare__pre_render__
+
+#include "./util/util.h"
+#include "./util/list.h"
+
+/**
+ * @ns flare
+ */
 
 namespace flare {
 
-	RenderLooper::RenderLooper(AppInl* host)
-		: _host(host), _id(nullptr) 
-	{}
+	class Layout;
 
-	RenderLooper::~RenderLooper() {
-		stop();
-	}
+	/**
+	* @class PreRender 预渲染
+	*/
+	class FX_EXPORT PreRender: public Object {
+		FX_HIDDEN_ALL_COPY(PreRender);
+	public:
 
-	struct LooperData: Object {
-		int id;
-		AppInl* host;
-		Callback<> cb;
+		PreRender();
+
+		virtual ~PreRender();
+
+		class FX_EXPORT Task {
+		public:
+			typedef List<Task*>::Iterator ID;
+			inline Task(): _timeout(0) {}
+			virtual ~Task();
+			virtual bool run_task(int64_t sys_time) = 0;
+			void register_task();
+			void unregister_task();
+			inline bool is_register_task() const { return _task_id != ID(); }
+			inline ID get_task_id() const { return _task_id; }
+			inline void set_task_id(ID id) { _task_id = id; }
+			inline int64_t get_task_timeout() const { return _timeout; }
+			inline void set_task_timeout(int64_t timeout_us) { _timeout = timeout_us; }
+		private:
+			ID      _task_id;
+			int64_t _timeout;
+		};
+
+		/**
+			* @func solve 解决预先渲染问题,如果需要更新视图返回true
+			*/
+		bool solve(int64_t now_time);
+
+		/**
+			* @func mark
+			*/
+		void mark(Layout *layout, uint32_t depth);
+		void mark_recursive(Layout *layout, uint32_t depth);
+		void delete_mark(Layout *layout, uint32_t depth);
+		void delete_mark_recursive(Layout *layout, uint32_t depth);
+
+	private:
+		Application* _host;
+		bool _is_render;
+		int32_t _mark_total, _mark_recursive_total;
+		List<Task*>  _tasks;
+		Array<Array<Layout*>> _marks; // 被标记的视图
+		Array<Array<Layout*>> _mark_recursives;
+
+		FX_DEFINE_INLINE_CLASS(Inl)
 	};
 
-	void looper(CbData& ev, LooperData* data) {
-		if ( data->id && !is_exited() ) {
-			// 60fsp
-			data->host->render_loop()->post(data->cb, 1000.0 / 60.0 * 1000);
-			data->host->triggerRender();
-			// DLOG("onRender");
-		} else {
-			Release(data);
-		}
-	}
-
-	void RenderLooper::start() {
-		typedef Callback<RunLoop::PostSyncData> Cb;
-		_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
-			if (!_id) {
-				LooperData* data = new LooperData();
-				data->id = getId32();
-				data->host = _host;
-				data->cb = Callback<>(&looper, data);
-				_id = &data->id;
-				Callback<>::Data d;
-				looper(d, data);
-			}
-			ev.data->complete();
-		}));
-	}
-
-	void RenderLooper::stop() {
-		typedef Callback<RunLoop::PostSyncData> Cb;
-		_host->render_loop()->post_sync(Cb([this](Cb::Data& ev) {
-			if (_id) {
-				*_id = 0;
-				_id = nullptr;
-			}
-			ev.data->complete();
-		}));
-	}
-
 }
+#endif
+

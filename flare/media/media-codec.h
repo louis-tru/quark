@@ -92,7 +92,7 @@ namespace flare {
 	class FX_EXPORT MultimediaSource: public Object {
 		FX_HIDDEN_ALL_COPY(MultimediaSource);
 		FX_DEFINE_INLINE_CLASS(Inl);
-		public:
+	public:
 		
 		struct FX_EXPORT TrackInfo {
 			TrackInfo();
@@ -125,7 +125,7 @@ namespace flare {
 		};
 		
 		class FX_EXPORT Delegate {
-			public:
+		public:
 			virtual void multimedia_source_ready(MultimediaSource* source) = 0;
 			virtual void multimedia_source_wait_buffer(MultimediaSource* source, float process) = 0;
 			virtual void multimedia_source_eof(MultimediaSource* source) = 0;
@@ -137,7 +137,7 @@ namespace flare {
 		*/
 		class FX_EXPORT Extractor: public Object {
 			FX_HIDDEN_ALL_COPY(Extractor);
-			public:
+		public:
 			
 			/**
 			* @func track_count
@@ -248,8 +248,7 @@ namespace flare {
 			* */
 			inline bool is_disable() const { return _disable; }
 			
-			private:
-
+		private:
 			Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& tracks);
 
 			struct SampleData {
@@ -353,8 +352,7 @@ namespace flare {
 		*/
 		AVStream* get_stream(const TrackInfo& track);
 		
-		private:
-
+	private:
 		friend class Extractor;
 		friend class MediaCodec;
 		Inl*         _inl;
@@ -365,8 +363,7 @@ namespace flare {
 	*/
 	class FX_EXPORT MediaCodec: public Object {
 		FX_HIDDEN_ALL_COPY(MediaCodec);
-		public:
-
+	public:
 		typedef MultimediaSource::Extractor Extractor;
 		
 		struct FX_EXPORT OutputBuffer {
@@ -380,7 +377,7 @@ namespace flare {
 		};
 		
 		class FX_EXPORT Delegate {
-			public:
+		public:
 			virtual void media_decoder_eof(MediaCodec* de, uint64_t timeUs) { }
 			virtual void media_decoder_error(MediaCodec* de, cError& err) { }
 		};
@@ -500,7 +497,7 @@ namespace flare {
 		* */
 		static MediaCodec* software(MediaType type, MultimediaSource* source);
 		
-		protected:
+	protected:
 		MediaCodec(Extractor* extractor);
 		
 		Extractor*  _extractor;

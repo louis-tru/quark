@@ -37,9 +37,9 @@ namespace flare {
 
 	class FX_EXPORT Image: public Box {
 		FX_Define_View(Image);
-		public:
+	public:
 		// TODO ...
-		private:
+	private:
 		// TODO ...
 	};
 
