@@ -283,7 +283,7 @@ namespace flare {
 			bool     click_in;
 			View*    view;
 		};
-		inline GUITouchEvent(View* origin, Array<TouchPoint>& touches)
+		inline TouchEvent(View* origin, Array<TouchPoint>& touches)
 			: GUIEvent(origin), _change_touches(touches) {}
 		inline Array<TouchPoint>& changed_touches() { return _change_touches; }
 	private:

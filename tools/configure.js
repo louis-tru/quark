@@ -59,7 +59,8 @@ def_opts('arm-fpu', opts.arm_neon ? 'neon': opts.arm_vfp,
 def_opts('clang', opts.os.match(/osx|ios|iwatch|tvos/) ? 1 : 0, 
 																'--clang        enable clang compiler [{0}]');
 def_opts('media', 'auto',       '--media        compile media [{0}]');
-def_opts(['ndk-path','ndk'], '','--ndk-path     android NDK path [{0}]');
+def_opts(['ndk-path','ndk'], process.env.ANDROID_NDK || '', 
+																'--ndk-path     android NDK path [{0}]');
 def_opts(['use-v8','v8'],'auto','--use-v8,-v8   force use javascript v8 library [{0}]');
 def_opts('without-snapshot', 0, '--without-snapshot without snapshot for v8 [{0}]');
 def_opts('without-ssl', 0,      '--without-ssl  build without SSL (disables crypto, https, inspector, etc.)');
@@ -335,6 +336,71 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 	return true;
 }
 
+function configure_skia(opts, variables) {
+	var os = opts.os;
+	var arch_name = variables.arch_name;
+	var source = __dirname + '/../deps/skia';
+
+	var args0 = `--sysroot="${variables.build_sysroot}" `;
+	var args = ` \
+		is_component_build=false \
+		target_cxx="${variables.cxx}" \
+		target_cc="${variables.cc}" \
+		target_link="${variables.ld}" \
+		target_cpu="${arch_name}" \
+		skia_enable_skottie=false \
+	`;
+
+	if (variables.debug) {
+		args += ` \
+			is_debug=true \
+			is_official_build=false \
+		`;
+	} else {
+		args += ` \
+			is_debug=false \
+			is_official_build=true \
+			skia_use_system_harfbuzz=false \
+			skia_use_system_libjpeg_turbo=false \
+			skia_use_system_libpng=false \
+			skia_use_system_libwebp=false \
+			skia_use_icu=false \
+		`;
+	}
+
+	if (os == 'android') {
+		args0 += `--ndk="${opts.ndk_path}" `;
+		args += ` \
+			target_os="android" \
+		`;
+	} else if (os=='linux') {
+		args += ` \
+			target_os="linux" \
+		`;
+	} else if (os == 'ios') {
+		args += ` \
+			target_os="ios" \
+			xcode_sysroot="${variables.build_sysroot}" \
+		`;
+	} else if (os == 'osx') {
+		variables.cc
+		args += ` \
+			target_os="darwin" \
+			xcode_sysroot="${variables.build_sysroot}" \
+		`;
+	}
+
+	console.log(`export PATH=${__dirname}:${variables.build_bin}:$PATH`);
+
+	var cmd = `cd ${source} && \
+		./bin/gn gen out/${variables.output_name} ${args0} --args='${args}'`;
+	console.log(cmd);
+
+	var log = syscall(cmd.replace(/\t/gm, ' '));
+	console.error(log.stderr.join('\n'));
+	console.log(log.stdout.join('\n'));
+}
+
 function bs(a) {
 	return a ? 'true' : 'false';
 }
@@ -482,11 +548,9 @@ async function install_check(app, cmd) {
 		for (var i in cmd.deps) {
 			await install_check(i, cmd.deps[i]);
 		}
-		if (!cmds.length) {
-			if (cmd.pkgCmds && cmd.pkgCmds.length) {
-				pkgCmd = true;
-				cmds = cmd.pkgCmds;
-			}
+		if (cmd.pkgCmds && cmd.pkgCmds.length) {
+			pkgCmd = true;
+			cmds = cmds.concat(cmd.pkgCmds);
 		}
 	}
 
@@ -533,6 +597,11 @@ async function install_depe(opts, variables) {
 		pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
 		deps: { autoconf, automake },
 	};
+	var ninja = {
+		pkgCmds: [ 'cmake .', 'make -j2', '*make install' ],
+	};
+
+	dpkg.ninja = ninja;
 
 	if (host_os == 'linux') {
 		if (arch == 'x86' || arch == 'x64') {
@@ -628,6 +697,7 @@ async function configure() {
 		},
 		variables: {
 			/* config */
+			configuration,
 			asan: 0,
 			host_node: process.execPath,
 			host_os: host_os == 'osx' ? 'mac' : host_os,    // v8 host_os
@@ -656,7 +726,9 @@ async function configure() {
 			use_system_zlib: bi(os.match(/^(android|linux|ios|osx)$/)),
 			media: opts.media,
 			version_min: '',
-			output: '',
+			source: path.resolve(__dirname, '..'),
+			output_name: '',
+			output: '<(source)/<(output_name)',
 			cc: 'gcc',
 			cxx: 'g++',
 			ld: 'g++',
@@ -668,7 +740,6 @@ async function configure() {
 			android_api_level: android_api_level,
 			build_sysroot: '/',
 			build_bin: '/usr/bin',
-			build_tools: __dirname,
 			android_abi: '',
 			xcode_version: 0,
 			llvm_version: 0,
@@ -982,6 +1053,7 @@ async function configure() {
 
 	if (shared) 
 		output += '.' + shared;
+	variables.output_name = output;
 	variables.output = path.resolve(`${__dirname}/../out/${output}`);
 	variables.suffix = suffix;
 
@@ -1013,8 +1085,6 @@ async function configure() {
 		config_mk.push(`JAVAC=${java_home}/bin/javac`);
 		config_mk.push(`JAR=${java_home}/bin/jar`);
 	}
-	
-	// -------------------------- configure ffmpeg --------------------------
 
 	{ // configure ffmpeg
 		var ff_install_dir = `${variables.output}/obj.target/ffmpeg`;
@@ -1041,6 +1111,9 @@ async function configure() {
 		 }
 		}
 	}
+
+	// configure skia
+	configure_skia(opts, variables, configuration, opts.clang);
 
 	// ------------------ output config.mk, config.gypi ------------------ 
 	

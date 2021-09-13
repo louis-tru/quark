@@ -30,7 +30,7 @@
 
 #include "./box.h"
 #include "../app.h"
-#include "../display-port.h"
+#include "../display.h"
 
 namespace flare {
 
@@ -582,11 +582,11 @@ namespace flare {
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 		* 这种模糊测试在大多数时候都是正确有效的。
 		*/
-		Region dre = app()->display()->region();
+		Region dre = app()->display()->display_region();
 		Region re = screen_region_from_convex_quadrilateral(vertex);
 		
-		if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) <= re.h + dre.h &&
-				FX_MAX( dre.x2, re.x2 ) - FX_MIN( dre.x, re.x ) <= re.w + dre.w
+		if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) <= re.height + dre.height &&
+				FX_MAX( dre.x2, re.x2 ) - FX_MIN( dre.x, re.x ) <= re.width + dre.width
 		) {
 			visible = true;
 		}
@@ -597,7 +597,7 @@ namespace flare {
 	void Box::draw(SkCanvas* canvas) {
 		if (_fill) {
 			// TODO ...
-			_fill->draw(canvas);
+			// _fill->draw(canvas);
 			View::draw(canvas);
 		} else {
 			View::draw(canvas);

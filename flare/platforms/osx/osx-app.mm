@@ -28,16 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// ******************** U n r e a l i z e d ********************
-
 #import <AppKit/AppKit.h>
-#import "flare/util/loop.h"
-#import "mac-app_.h"
-#import "osx-gl-1.h"
-#import "flare/app.h"
-#import "flare/display-port.h"
-#import "flare/app-1.h"
-#import "flare/event.h"
+#import "../../util/loop.h"
+#import "../../_app.h"
+#import "../../display.h"
+#import "../../event.h"
+#import "../mac/mac-render.h"
+#import "./ios-ime-helper.h"
 
 using namespace flare;
 

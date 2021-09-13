@@ -32,14 +32,15 @@
 #import <UIKit/UIKit.h>
 
 #include "../../render/gl.h"
-#include "../mac/_mac-render_.h"
+#include "../mac/mac-render.h"
+#include "../../display.h"
 
 namespace flare {
 
 	class GLRenderIOS: public GLRender, public RenderMAC {
 	public:
-		GLRenderIOS(GUIApplication* host, EAGLContext* ctx, const DisplayParams& params, bool gles2)
-			: GLRender(host, params), _glctx(ctx), _gles2(gles2)
+		GLRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
+			: GLRender(host, params), _glctx(ctx)
 		{
 			ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
@@ -53,7 +54,7 @@ namespace flare {
 		void setView(UIView* view) {
 			ASSERT(!_view);
 			_view = view;
-			_layer = view.layer;
+			_layer = (CAEAGLLayer*)view.layer;
 			_layer.drawableProperties = @{
 				kEAGLDrawablePropertyRetainedBacking : @NO,
 				kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
@@ -77,24 +78,15 @@ namespace flare {
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
 				GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-				if (_gles2) {
-					glResolveMultisampleFramebufferAPPLE();
-					glDiscardFramebufferEXT(GL_READ_FRAMEBUFFER, 3, attachments);
-				} else {
-					auto region = _host->display()->surface_region();
-					glBlitFramebuffer(0, 0, region.width, region.height,
-														0, 0, region.width, region.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-					glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
-				}
+				auto region = _host->display()->surface_region();
+				glBlitFramebuffer(0, 0, region.width, region.height,
+													0, 0, region.width, region.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+				glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
 				glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
 				glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 			} else {
 				GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-				if (_gles2) {
-					glDiscardFramebufferEXT(GL_FRAMEBUFFER, 2, attachments);
-				} else {
-					glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
-				}
+				glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
 			}
 
 			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
@@ -107,15 +99,12 @@ namespace flare {
 		EAGLContext* _glctx;
 		UIView* _view;
 		CAEAGLLayer* _layer;
-		bool _gles2;
 	};
 
-	RenderMAC* MakeMetalRender(GUIApplication* host, const DisplayParams& parems) {
+	RenderMAC* MakeMetalRender(Application* host, const GLRender::DisplayParams& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
-			return new GLRenderIOS(host, ctx, parems, false);
-		} else if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES2] ) {
-			return new GLRenderIOS(host, ctx, parems, true);
+			return new GLRenderIOS(host, ctx, parems);
 		} else {
 			return nullptr;
 		}

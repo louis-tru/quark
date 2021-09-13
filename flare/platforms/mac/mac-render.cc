@@ -42,9 +42,9 @@ namespace flare {
 		return false;
 	}
 
-	RenderMAC* MakeRasterRender(GUIApplication* host, const DisplayParams& parems);
-	RenderMAC* MakeGLRender(GUIApplication* host, const DisplayParams& parems);
-	RenderMAC* MakeMetalRender(GUIApplication* host, const DisplayParams& parems);
+	RenderMAC* MakeRasterRender(GUIApplication* host, const Render::DisplayParams& parems);
+	RenderMAC* MakeGLRender(GUIApplication* host, const Render::DisplayParams& parems);
+	RenderMAC* MakeMetalRender(GUIApplication* host, const Render::DisplayParams& parems);
 
 	RenderMAC* RenderMAC::create(GUIApplication* host, cJSON& options) {
 		RenderMAC* r = nullptr;

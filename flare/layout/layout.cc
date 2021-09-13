@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./layout.h"
-#include "../_pre-render.h"
+#include "../pre-render.h"
 #include "../app.h"
 
 namespace flare {

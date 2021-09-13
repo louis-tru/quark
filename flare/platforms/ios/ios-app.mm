@@ -55,10 +55,37 @@ static NSString* G_AppDelegate_name = @"";
 	@property (assign, nonatomic) AppInl* app;
 @end
 
+/**
+ * @interface RootViewController
+ */
+@interface RootViewController: UIViewController;
+@end
+
+/**
+ * @interface ApplicationDelegate
+ */
+@interface ApplicationDelegate()<MFMailComposeViewControllerDelegate>
+	{
+		UIWindow* _window;
+		BOOL _is_background;
+		Cb  _render_exec;
+	}
+	@property (strong, nonatomic) MainView* view;
+	@property (strong, nonatomic) IOSIMEHelprt* ime;
+	@property (strong, nonatomic) CADisplayLink* display_link;
+	@property (strong, nonatomic) UIApplication* host;
+	@property (strong, nonatomic) RootViewController* root_ctr;
+	@property (assign, nonatomic) Orientation setting_orientation;
+	@property (assign, nonatomic) Orientation current_orientation;
+	@property (assign, nonatomic) bool visible_status_bar;
+	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
+	@property (assign, atomic) NSInteger render_task_count;
+@end
+
 @implementation MainView
 
 	+ (Class)layerClass {
-		return G_reader->layerClass();
+		return G_render->layerClass();
 	}
 
 	- (BOOL)isMultipleTouchEnabled {
@@ -69,9 +96,9 @@ static NSString* G_AppDelegate_name = @"";
 		return YES;
 	}
 
-	- (List<GUITouch>)toGUITouchs:(NSSet<UITouch*>*)touches {
+	- (List<TouchPoint>)toGUITouchs:(NSSet<UITouch*>*)touches {
 		NSEnumerator* enumerator = [touches objectEnumerator];
-		List<GUITouch> rv; // (uint(touches.count));
+		List<TouchPoint> rv; // (uint(touches.count));
 		
 		Vec2 size = _app->display()->size();
 		
@@ -84,7 +111,7 @@ static NSString* G_AppDelegate_name = @"";
 			// CGFloat angle = touch.altitudeAngle;
 			// CGFloat max_force = touch.maximumPossibleForce;
 			rv.push_back({
-				uint((size_t)touch % Uint32::max),
+				uint((size_t)touch % Uint32::limit_max),
 				0, 0,
 				float(point.x * scale_x),
 				float(point.y * scale_y),
@@ -114,12 +141,6 @@ static NSString* G_AppDelegate_name = @"";
 		_app->dispatch()->dispatch_touchcancel( [self toGUITouchs:touches] );
 	}
 
-@end
-
-/**
- * @interface RootViewController
- */
-@interface RootViewController: UIViewController;
 @end
 
 @implementation RootViewController
@@ -169,10 +190,10 @@ static NSString* G_AppDelegate_name = @"";
 			Orientation ori = G_AppDelegate.app->display()->orientation();
 			::CGRect rect = G_AppDelegate.view.frame;
 			G_AppDelegate.app->render_loop()->post(Cb([ori, rect](CbData& d) {
-				G_reader->resize(rect);
+				G_render->resize(rect);
 				if (ori != G_AppDelegate.current_orientation) {
 					G_AppDelegate.current_orientation = ori;
-					main_loop()->post(Cb([](CbData& e) {
+					G_AppDelegate.app->main_loop()->post(Cb([](CbData& e) {
 						G_AppDelegate.app->display()->FX_Trigger(orientation);
 					}));
 				}
@@ -194,27 +215,6 @@ static NSString* G_AppDelegate_name = @"";
 		return !G_AppDelegate.visible_status_bar;
 	}
 
-@end
-
-/**
- * @interface ApplicationDelegate
- */
-@interface ApplicationDelegate()<MFMailComposeViewControllerDelegate>
-	{
-		UIWindow* _window;
-		BOOL _is_background;
-		Cb  _render_exec;
-	}
-	@property (strong, nonatomic) MainView* view;
-	@property (strong, nonatomic) IOSIMEHelprt* ime;
-	@property (strong, nonatomic) CADisplayLink* display_link;
-	@property (strong, nonatomic) UIApplication* host;
-	@property (strong, nonatomic) RootViewController* root_ctr;
-	@property (assign, nonatomic) Orientation setting_orientation;
-	@property (assign, nonatomic) Orientation current_orientation;
-	@property (assign, nonatomic) bool visible_status_bar;
-	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
-	@property (assign, atomic) NSInteger render_task_count;
 @end
 
 @implementation ApplicationDelegate
@@ -393,20 +393,20 @@ void Application::open_url(cString& url) {
 	});
 }
 
+static NSArray<NSString*>* split_ns_array(cString& str) {
+	NSMutableArray<NSString*>* arr = [NSMutableArray<NSString*> new];
+	for (auto& i : str.split(',')) {
+		[arr addObject: [NSString stringWithUTF8String:i.c_str()]];
+	}
+	return arr;
+}
+
 /**
  * @func send_email()
  */
 void Application::send_email(cString& recipient,
 															cString& subject,
 															cString& cc, cString& bcc, cString& body) {
-
-	static NSArray<NSString*>* split_ns_array(cString& str) {
-		NSMutableArray<NSString*>* arr = [NSMutableArray<NSString*> new];
-		for (auto& i : str.split(',')) {
-			[arr addObject: [NSString stringWithUTF8String:i.c_str()]];
-		}
-		return arr;
-	}
 
 	id recipient_ = split_ns_array(recipient);
 	id subject_ = [NSString stringWithUTF8String:*subject];
@@ -505,7 +505,7 @@ void Display::keep_screen(bool keep) {
  */
 float Display::status_bar_height() {
 	::CGRect rect = G_AppDelegate.host.statusBarFrame;
-	return FX_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale_value[1];
+	return FX_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale[1];
 }
 
 /**
@@ -539,7 +539,7 @@ void Display::set_visible_status_bar(bool visible) {
 
 				if ( !G_render->resize(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
-					main_loop()->post(Cb([this](CbData& e) {
+					_host->main_loop()->post(Cb([this](CbData& e) {
 						FX_Trigger(change);
 					}));
 				}

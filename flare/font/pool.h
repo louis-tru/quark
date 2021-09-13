@@ -150,6 +150,11 @@ namespace flare {
 		String get_family_name(cString& path) const;
 		
 		/**
+		 * @func total_data_size()
+		 */
+		inline uint64_t total_data_size() const { return _total_data_size; }
+		
+		/**
 		* @func get_glyph_texture_size 通过等级大小获取字型纹理大小
 		*/
 		static float get_glyph_texture_size(FontGlyph::TexureLevel level);
@@ -194,10 +199,6 @@ namespace flare {
 		static const Array<SimpleFontFamily>& system_font_family();
 		
 	private:
-		/**
-		* @func set_display_port
-		*/
-		void set_display_port(Display* display_port);
 		
 		Application*                 _host;
 		void*                        _ft_lib;     /* FT_Library object */
@@ -216,9 +217,8 @@ namespace flare {
 		
 		friend class Font;
 		friend class FontGlyphTable;
-		friend class Application;
+		// friend class Application;
 		friend class Render;
-		// friend class GLDraw;
 	};
 
 }

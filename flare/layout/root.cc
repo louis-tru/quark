@@ -32,7 +32,7 @@
 #include "../fill.h"
 #include "../_app.h"
 #include "../util/handle.h"
-#include "../display-port.h"
+#include "../display.h"
 
 namespace flare {
 
@@ -81,7 +81,7 @@ namespace flare {
 
 	bool Root::layout_forward(uint32_t mark) {
 		if (mark & (M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT)) {
-			Size size = { Vec2(), app()->display_port()->size(), false, false };
+			Size size = { Vec2(), app()->display()->size(), false, false };
 			auto x = solve_layout_content_width(size.content_size.x(), &size.wrap_x);
 			auto y = solve_layout_content_height(size.content_size.y(), &size.wrap_y);
 			Vec2 mp(
@@ -113,7 +113,7 @@ namespace flare {
 	}
 
 	void Root::draw(SkCanvas* canvas) {
-		if (v->visible() && v->region_visible()) {
+		if (visible() && region_visible()) {
 			Box::draw(canvas);
 		}
 	}

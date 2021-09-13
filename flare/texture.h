@@ -272,6 +272,11 @@ namespace flare {
 		* @func clear
 		*/
 		void clear(bool full = false);
+
+		/**
+		 * @func total_data_size()
+		 */
+		inline uint64_t total_data_size() const { return _total_data_size; }
 		
 	private:
 		Application* _host;

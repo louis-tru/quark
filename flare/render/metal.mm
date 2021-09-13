@@ -39,6 +39,7 @@
 #include "src/gpu/GrDirectContextPriv.h"
 #include "src/image/SkImage_Base.h"
 #include "./metal.h"
+#include "../display.h"
 
 namespace flare {
 
@@ -86,9 +87,13 @@ namespace flare {
 					GrMtlTextureInfo fbInfo;
 					fbInfo.fTexture.retain(currentDrawable.texture);
 
-					GrBackendRenderTarget backendRT(fWidth,
-													fHeight,
-													fSampleCount,
+					auto size = _host->display()->size();
+					float width = size.x();
+					float height = size.y();
+
+					GrBackendRenderTarget backendRT(width,
+													height,
+													_SampleCount,
 													fbInfo);
 
 					_Surface = SkSurface::MakeFromBackendRenderTarget(_Context.get(), backendRT,
@@ -181,8 +186,8 @@ namespace flare {
 	#endif
 
 		GrMtlBackendContext backendContext = {};
-		backendContext.fDevice.retain((GrMTLHandle)_Device.get());
-		backendContext.fQueue.retain((GrMTLHandle)_Queue.get());
+		backendContext.fDevice.retain((__bridge GrMTLHandle)_Device.get());
+		backendContext.fQueue.retain((__bridge GrMTLHandle)_Queue.get());
 	#if GR_METAL_SDK_VERSION >= 230
 		if (@available(macOS 11.0, iOS 14.0, *)) {
 			backendContext.fBinaryArchive.retain((__bridge GrMTLHandle)_PipelineArchive);

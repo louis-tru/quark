@@ -23,6 +23,9 @@
 			'font/langou.ttf',
 			'font/iconfont.ttf',
 		],
+		'skia_build': '<(tools)/build_skia.sh',
+		'skia_source': '<(source)/deps/skia',
+		'skia_install_dir':  '<(output)/obj.target/skia',
 	},
 	'targets':[
 	{
@@ -40,6 +43,7 @@
 			'deps/tess2/tess2.gyp:tess2', 
 			'deps/freetype2/freetype2.gyp:ft2',
 			'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
+			'skia',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '..' ],
@@ -121,11 +125,12 @@
 			'font/levels.cc',
 			'font/pool.cc',
 			#
-			# 'gl/gl.h',
-			# 'gl/gl.cc',
-			# 'gl/gl-draw.cc',
-			# 'gl/gl-texture.cc',
-			# 'gl/gl-font.cc',
+			'render/render.h',
+			'render/render.cc',
+			'render/gl.h',
+			'render/gl.cc',
+			'render/metal.h',
+			'render/metal.mm',
 			#
 			'math.h',
 			'math.cc',
@@ -135,20 +140,20 @@
 			'media/media.cc',
 			#
 			'_app.h',
-			'_pre-render.h',
-			'_pre-render.cc',
+			'pre-render.h',
+			'pre-render.cc',
 			# '_property.h',
 			# '_property.cc',
-			'_render-looper.h',
-			'_render-looper.cc',
+			'render-looper.h',
+			'render-looper.cc',
 			# '_text-rows.cc',
 			# '_text-rows.h',
 			'app.h',
 			'app.cc',
 			# 'fill.h',
 			# 'fill.cc',
-			'display-port.h',
-			# 'display-port.cc',
+			'display.h',
+			# 'display.cc',
 			# 'draw.h',
 			# 'draw.cc',
 			'errno.h',
@@ -165,7 +170,7 @@
 		'conditions': [
 			['os=="android"', {
 				'sources': [
-					'platforms/_linux-gl.h',
+					'platforms/linux-gl.h',
 					'platforms/linux-gl.cc',
 					'platforms/android-app.cc',
 					'platforms/android-keyboard.cc',
@@ -202,9 +207,12 @@
 			}],
 			['OS=="mac"', {
 				'sources':[
-					'platforms/_mac-app.h',
-					'platforms/mac-image-codec.mm',
-					'platforms/mac-keyboard.mm',
+					'platforms/mac/mac-app.h',
+					'platforms/mac/mac-image-codec.mm',
+					'platforms/mac/mac-keyboard.mm',
+					'platforms/mac/mac-metal.mm',
+					'platforms/mac/mac-render.mm',
+					'platforms/mac/mac-render.h',
 				],
 				'link_settings': {
 					'libraries': [
@@ -216,11 +224,11 @@
 			}],
 			['os=="ios"', {
 				'sources':[
-					# 'platforms/ios-app.mm',
-					# 'platforms/_ios-ime-helper.h',
-					# 'platforms/ios-ime-helper.mm',
-					# 'platforms/_ios-gl.h',
-					# 'platforms/ios-gl.mm',
+					'platforms/ios/ios-app.mm',
+					'platforms/ios/ios-gl.mm',
+					'platforms/ios/ios-ime-helper.h',
+					'platforms/ios/ios-ime-helper.mm',
+					'platforms/ios/ios-raster.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -232,9 +240,8 @@
 			}],
 			['os=="osx"', {
 				'sources': [
-					'platforms/osx-app.mm',
-					'platforms/_osx-gl.h',
-					'platforms/osx-gl.mm',
+					'platforms/osx/osx-app.mm',
+					'platforms/osx/osx-gl.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -262,24 +269,6 @@
 			# conditions end
 		],
 		'actions': [
-			{
-				'action_name': 'gen_glsl_natives',
-				'inputs': [
-					'../tools/gen-glsl-natives.js',
-					'<@(gui_glsl_files)',
-				],
-				'outputs': [
-					'../out/native-glsl.h',
-					# '../out/native-glsl.cc',
-				],
-				'action': [
-					'<(node)',
-					'<@(_inputs)',
-					'<@(_outputs)',
-					'',
-				],
-				'process_outputs_as_sources': 1,
-			},
 			{
 				'action_name': 'gen_font_natives',
 				'inputs': [
@@ -311,13 +300,13 @@
 			'media/pcm.h',
 			'media/audio-player.h',
 			'media/audio-player.cc',
-			'layout/video.cc',
 			'media/media-codec.h',
 			'media/media-codec.cc',
 			'media/_media-codec.h',
 			'media/_media-codec.cc',
 			'media/media-codec-software.cc',
 			'media/media-init.cc',
+			'layout/video.cc',
 		],
 		'conditions': [
 			['os=="android"', {
@@ -332,8 +321,8 @@
 			}],
 			['OS=="mac"', {
 				'sources':[
-					'platforms/mac-media-codec.mm',
-					'platforms/mac-pcm-player.mm',
+					'platforms/mac/mac-media-codec.mm',
+					'platforms/mac/mac-pcm-player.mm',
 				],
 			}],
 			['os=="linux"', {
@@ -343,6 +332,51 @@
 				],
 				'link_settings': { 
 					'libraries': [ '-lasound' ],
+				},
+			}],
+		],
+	},
+	{
+		'target_name': 'skia',
+		'type': 'none',
+		'direct_dependent_settings': {
+			'include_dirs': [ '<(skia_install_dir)', '<(skia_source)', ],
+		},
+		'sources': [
+		],
+		'actions': [{
+			'action_name': 'skia_compile',
+			'inputs': [
+				'../deps/skia/out/<(output_name)/args.gn',
+			],
+			'outputs': [
+				'../out/<(output_name)/obj.target/skia/libskia.a',
+			],
+			'action': [
+				'<(skia_build)',
+				'<(skia_source)',
+				'<(skia_source)/out/<(output_name)',
+				'<(skia_install_dir)',
+			],
+		}],
+		'link_settings': {
+			'libraries': [
+				'<(skia_install_dir)/libskia.a',
+			]
+		},
+		'conditions': [
+			['os in "ios osx"', {
+				'link_settings': {
+					'libraries': [
+					],
+				},
+			}],
+			['os=="android"', {
+				'link_settings': {
+				},
+			}],
+			['os=="linux"', {
+				'link_settings': {
 				},
 			}],
 		],

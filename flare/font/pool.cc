@@ -33,7 +33,7 @@
 #include "./_font.h"
 #include "../bezier.h"
 #include "../texture.h"
-#include "../display-port.h"
+#include "../display.h"
 // #include "../draw.h"
 #include "../_app.h"
 #include <native-font.h>
@@ -200,7 +200,7 @@ namespace flare {
 	
 	void FontPool::Inl::display_port_change_handle(Event<>& evt) {
 
-		Vec2 scale_value = _display_port->scale_value();
+		Vec2 scale_value = _host->display()->scale();
 		float scale = FX_MAX(scale_value[0], scale_value[1]);
 		
 		if ( scale != _display_port_scale ) {
@@ -216,7 +216,7 @@ namespace flare {
 			// 	_inl_app(_draw_ctx->host())->refresh_display();
 			// }));
 			
-			Vec2 size = _display_port->size();
+			Vec2 size = _host->display()->size();
 			uint32_t font_size = sqrtf(size.width() * size.height()) / 10;
 			
 			// 最大纹理字体不能超过上下文支持的大小
@@ -347,12 +347,15 @@ namespace flare {
 	*/
 	FontPool::FontPool(Application* host)
 		: _ft_lib(nullptr)
-		, _host(ctx)
+		, _host(host)
 		, _total_data_size(0)
 		, _max_glyph_texture_size(0)
 		, _display_port_scale(0)
 	{
 		ASSERT(host);
+		ASSERT(_host->display());
+
+		_host->display()->FX_On(change, &Inl::display_port_change_handle, _inl_pool(this));
 		
 		FT_Init_FreeType((FT_Library*)&_ft_lib);
 			
@@ -423,8 +426,8 @@ namespace flare {
 		
 		FT_Done_FreeType((FT_Library)_ft_lib); _ft_lib = nullptr;
 		
-		if ( _display_port ) {
-			_display_port->FX_Off(change, &Inl::display_port_change_handle, _inl_pool(this));
+		if ( _host->display() ) {
+      _host->display()->FX_Off(change, &Inl::display_port_change_handle, _inl_pool(this));
 		}
 	}
 
@@ -659,15 +662,6 @@ namespace flare {
 		for ( auto& i : _fonts ) {
 			_inl_font(i.value)->clear(full);
 		}
-	}
-
-	/**
-	* @func set_display_port
-	*/
-	void FontPool::set_display_port(Display* display_port) {
-		ASSERT(!_display_port);
-		display_port->FX_On(change, &Inl::display_port_change_handle, _inl_pool(this));
-		_display_port = display_port;
 	}
 
 	/**

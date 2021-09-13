@@ -33,7 +33,7 @@
 #ifndef __flare__ios_render__
 #define __flare__ios_render__
 
-#import "../util/macros.h"
+#import "../../util/macros.h"
 
 #if FX_IOS
 

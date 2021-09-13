@@ -35,7 +35,7 @@ namespace flare {
 	void View::Visitor::visitView(View *view) {
 		auto v = view->first();
 		while(v) {
-			v->accept(visitor);
+			v->accept(this);
 			v = v->next();
 		}
 	}
@@ -788,7 +788,7 @@ namespace flare {
 	*/
 	Rect View::screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]) {
 		Region re = screen_region_from_convex_quadrilateral(quadrilateral_vertex);
-		return { Vec2(re.x, re.y), Vec2(re.w, re.h) };
+		return { Vec2(re.x, re.y), Vec2(re.width, re.height) };
 	}
 
 	/**

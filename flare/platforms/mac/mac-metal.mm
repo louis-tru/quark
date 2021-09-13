@@ -32,7 +32,7 @@
 #import "./mac-render.h"
 #import "../../render/metal.h"
 
-namespace {
+namespace flare {
 
 	class MetalRenderMAC : public MetalRender, public RenderMAC {
 	public:
@@ -49,7 +49,7 @@ namespace {
 		UIView* _view;
 	};
 
-	RenderMAC* MakeMetalRender(GUIApplication* host, const DisplayParams& parems) {
+	RenderMAC* MakeMetalRender(GUIApplication* host, const Render::DisplayParams& parems) {
 #if GR_METAL_SDK_VERSION >= 230
 		if (@available(macOS 11.0, iOS 14.0, *)) {
 			return new MetalRenderMAC(host, parems);

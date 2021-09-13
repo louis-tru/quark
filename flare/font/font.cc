@@ -211,7 +211,7 @@ namespace flare {
 		
 		if ( container ) {
 			FontGlyph* glyph = container->glyphs;
-			auto ctx = _pool->_render_ctx;
+			//auto ctx = _host->render();
 			
 			for ( int i = 0; i < 128; i++, glyph++ ) {
 				if ( glyph->_vertex_value ) {

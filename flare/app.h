@@ -142,7 +142,7 @@ namespace flare {
 		inline PreRender* pre_render() { return _pre_render; }
 		inline Render* render() { return _render; }
 		inline FontPool* font_pool() { return _font_pool; }
-		inline TexturePool* _tex_pool() { return _tex_pool; }
+		inline TexturePool* tex_pool() { return _tex_pool; }
 
 		/**
 		* @func has_current_render_thread()

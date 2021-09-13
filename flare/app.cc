@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./util/loop.h"
-#include "./util/_working.h"
+#include "./util/working.h"
 #include "./util/http.h"
-#include "./render.h"
+#include "./render/render.h"
 #include "./layout/root.h"
 #include "./display.h"
 #include "./_app.h"
@@ -39,7 +39,7 @@
 // #include "./css/css.h"
 #include "./font/pool.h"
 #include "./texture.h"
-#include "./_pre-render.h"
+#include "./pre-render.h"
 #include "./layout/text.h"
 #include "./event.h"
 
@@ -291,7 +291,7 @@ namespace flare {
 		}
 		Release(_default_text_settings); _default_text_settings = nullptr;
 		Release(_dispatch);      _dispatch = nullptr;
-		Release(_action_center); _action_center = nullptr;
+		// Release(_action_center); _action_center = nullptr;
 		Release(_display);       _display = nullptr;
 		Release(_pre_render);    _pre_render = nullptr;
 		Release(_render);      _render = nullptr;
@@ -321,7 +321,7 @@ namespace flare {
 		_font_pool = new FontPool(this);
 		_tex_pool = new TexturePool(this);
 		_dispatch = new EventDispatch(this); FX_DEBUG("new EventDispatch ok");
-		_action_center = new ActionCenter(); FX_DEBUG("new ActionCenter ok");
+		// _action_center = new ActionCenter(); FX_DEBUG("new ActionCenter ok");
 	}
 
 	/**
@@ -335,7 +335,7 @@ namespace flare {
 	* @func clear([full]) 清理不需要使用的资源
 	*/
 	void Application::clear(bool full) {
-		_render_loop->post(Cb([&, full](CbD& e){
+		_render_loop->post(Cb([&, full](CbData& e){
 			_tex_pool->clear(full);
 			_font_pool->clear(full);
 		}));
@@ -345,7 +345,7 @@ namespace flare {
 	* @func max_texture_memory_limit()
 	*/
 	uint64_t Application::max_texture_memory_limit() const {
-		return _render->max_texture_memory_limit();
+		return _max_texture_memory_limit;
 	}
 	
 	/**
@@ -359,7 +359,7 @@ namespace flare {
 	* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
 	*/
 	uint64_t Application::used_texture_memory() const {
-		return _tex_pool->m_total_data_size + _font_pool->m_total_data_size;
+		return _tex_pool->total_data_size() + _font_pool->total_data_size();
 	}
 
 	/**

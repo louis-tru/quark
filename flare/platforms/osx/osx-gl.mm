@@ -30,11 +30,10 @@
 
 // ******************** U n r e a l i z e d ********************
 
-#import "osx-gl-1.h"
-#import "flare/app.h"
-#import "flare/display-port.h"
-#import "flare/sys.h"
 #import <OpenGL/gl.h>
+#include "../../render/gl.h"
+#include "../mac/mac-render.h"
+#include "../../display.h"
 
 #define UIScreen NSScreen
 

@@ -1,5 +1,6 @@
 {
 	'variables': {
+		'configuration%': 'Release',
 		'arch%': 'x86',
 		'arch_name%': '<(arch)',
 		'suffix%': '<(arch)',
@@ -12,7 +13,7 @@
 		'debug%': 0,
 		'project%': 'make',
 		'media%': 1,
-		'cplusplus11%': 1,
+		'std_cpp%': 'c++14',
 		'gcc_version%': 0,
 		'llvm_version%': 0,
 		'xcode_version%': 0,
@@ -20,6 +21,7 @@
 		'gas_version%': 0,
 		'sysroot': '<(build_sysroot)',
 		'SDKROOT': '<(build_sysroot)',
+		'build_tools': '<(source)/tools',
 		'bin': '<(build_bin)', 
 		'tools': '<(build_tools)',
 		'cc%': 'gcc', 
@@ -28,6 +30,7 @@
 		'ranlib%': 'ranlib', 
 		'strip%': 'strip',
 		'android_api_level%': 21,
+		'output_name%': '',
 		'output%': '<(PRODUCT_DIR)',
 		'version_min%': '',
 		'android_abi%': '',
@@ -173,7 +176,12 @@
 			}
 		},
 		'cflags!': ['-Werror'],
-		'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
+		'cflags_cc': [ '-fno-rtti', '-fno-exceptions', '-std=<(std_cpp)' ],
+		'xcode_settings': {
+			'CLANG_CXX_LANGUAGE_STANDARD': '<(std_cpp)',# -std=c++0x
+			'CLANG_CXX_LIBRARY': 'libc++',             # c++11 libc support
+				# 'GCC_C_LANGUAGE_STANDARD': 'c99',
+		},
 		'include_dirs': [
 			'..',
 			'../deps/libuv/include',
@@ -252,12 +260,13 @@
 				],
 			}],
 			['os=="ios"', {
-				'cflags': [ 
+				'cflags': [
 					'-miphoneos-version-min=<(version_min)', 
 					'-arch <(arch_name)'
 					'-isysroot <(sysroot)', 
 					# '-fembed-bitcode', #'-fembed-bitcode-marker',
 				],
+				'cflags_cc': [ '-stdlib=libc++' ],
 				'ldflags': [ 
 					'-miphoneos-version-min=<(version_min)',
 					'-arch <(arch_name)',
@@ -267,7 +276,6 @@
 					'libraries': [ '$(SDKROOT)/System/Library/Frameworks/Foundation.framework' ],
 				},
 				'conditions': [
-					['cplusplus11==1', { 'cflags_cc': [ '-stdlib=libc++' ] }],
 					['arch in "arm arm64"', { 'defines': [ 'USE_SIMULATOR' ]} ], # v8 setting
 					['without_embed_bitcode==1', { 
 						'cflags': [ 
@@ -312,14 +320,12 @@
 					'-arch <(arch_name)',
 					'-isysroot <(sysroot)', 
 				],
+				'cflags_cc': [ '-stdlib=libc++' ],
 				'ldflags': [ 
 					'-mmacosx-version-min=<(version_min)',
 					'-arch <(arch_name)',
 				],
 				'ldflags!': [ '-pthread', '-s' ],
-				'conditions': [
-					['cplusplus11==1', { 'cflags_cc': [ '-stdlib=libc++' ] }],
-				],
 				'link_settings': { 
 					'libraries!': [ '-lm' ],
 					'libraries': [ 
@@ -354,14 +360,6 @@
 					'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',   # -fno-exceptions
 					'GCC_ENABLE_CPP_RTTI':       'NO',   # -fno-rtti
 				},
-			}],
-			['cplusplus11==1', {
-				'xcode_settings': {
-					'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',    # -std=c++0x
-					'CLANG_CXX_LIBRARY': 'libc++',             # c++11 libc support
-					 # 'GCC_C_LANGUAGE_STANDARD': 'c99',
-				},
-				'cflags_cc': [ '-std=c++0x' ], 
 			}],
 			['use_v8==0 and os=="ios"', {
 				'defines': [ 'USE_JSC=1' ],
