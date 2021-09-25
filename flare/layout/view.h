@@ -38,17 +38,10 @@ class SkCanvas;
 namespace flare {
 
 	# define FX_Views(F) \
-		F(View) \
-		F(Box) \
-		F(Flow) \
-		F(Flex ) \
-		F(Image) \
-		F(Input) \
-		F(Label) \
-		F(Root) \
-		F(Scroll) \
-		F(Text) \
-		F(Video) \
+		F(View) F(Box) \
+		F(Image) F(Video) F(Scroll) \
+		F(Input) F(Text) F(Label) F(Root) \
+		F(FlowLayout) F(FlexLayout) F(FlexGrid) \
 
 	# define FX_Define_View(N) \
 	public: \
@@ -182,10 +175,11 @@ namespace flare {
 			*/
 		virtual void set_parent(View* parent);
 
+	public:
 		/**
 			* @class Visitor
 			*/
-	public: class Visitor {
+		class Visitor {
 			public:
 			# define FX_Visitor(N) virtual void visit##N(N *v);
 				FX_Views(FX_Visitor);

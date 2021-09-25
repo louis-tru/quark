@@ -38,11 +38,11 @@ namespace flare {
 	/**
 		* @class Flex
 		*/
-	class FX_EXPORT Flex: public Flow {
-		FX_Define_View(Flex);
+	class FX_EXPORT FlexLayout: public FlowLayout {
+		FX_Define_View(FlexLayout);
 	public:
 
-		Flex();
+		FlexLayout();
 
 		// define props
 		FX_Define_Prop(ItemsAlign, items_align); // items_align 主轴的对齐方式

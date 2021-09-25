@@ -29,8 +29,18 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./render.h"
+#include <math.h>
 
 namespace flare {
+
+	static inline uint32_t integerExp(uint32_t n) {
+		return (uint32_t) powf(2, floor(log2(n)));
+	}
+
+	static inline uint32_t massSample(uint32_t n) {
+		n = integerExp(n);
+		return FX_MIN(n, 8);
+	}
 
 	Render::Render(Application* host, const DisplayParams& params)
 		: _host(host)
@@ -38,8 +48,7 @@ namespace flare {
 		, _SampleCount(1)
 		, _StencilBits(0)
 	{
-		_DisplayParams.fMSAASampleCount = GrNextPow2(_DisplayParams.fMSAASampleCount);
-		_DisplayParams.fMSAASampleCount = FX_MIN(_DisplayParams.fMSAASampleCount, 8);
+		_DisplayParams.fMSAASampleCount = massSample(_DisplayParams.fMSAASampleCount);
 	}
 
 	Render::~Render() {
@@ -53,8 +62,7 @@ namespace flare {
 
 	void Render::setDisplayParams(const DisplayParams& params) {
 		_DisplayParams = params;
-		_DisplayParams.fMSAASampleCount = GrNextPow2(_DisplayParams.fMSAASampleCount);
-		_DisplayParams.fMSAASampleCount = FX_MIN(_DisplayParams.fMSAASampleCount, 8);
+		_DisplayParams.fMSAASampleCount = massSample(_DisplayParams.fMSAASampleCount);
 		reload();
 	}
 

@@ -32,7 +32,7 @@
 
 namespace flare {
 
-	void View::Visitor::visitFlow(Flow *v) {
+	void View::Visitor::visitFlowLayout(FlowLayout *v) {
 		visitBox(v);
 	}
 
@@ -42,13 +42,17 @@ namespace flare {
 		* 
 		* @func accept(visitor)
 		*/
-	void Flow::accept(Visitor *visitor) {
-		visitor->visitFlow(this);
+	void FlowLayout::accept(Visitor *visitor) {
+		visitor->visitFlowLayout(this);
 	}
 
-	FX_DEFINE_INLINE_MEMBERS(Flow, Inl) {
+	FX_DEFINE_INLINE_MEMBERS(FlowLayout, Inl) {
 	 public:
-		#define _inl(self) static_cast<Flow::Inl*>(self)
+		#define _inl(self) static_cast<FlowLayout::Inl*>(self)
+
+		void set_wrap(Wrap wrap) {
+			_wrap = wrap;
+		}
 
 		static float parseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out) {
 			float offset_x = 0, space = 0;
@@ -288,13 +292,13 @@ namespace flare {
 	};
 
 	float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out) {
-		return Flow::Inl::parseAlignSpace(align, is_reverse, overflow, count, space_out);
+		return FlowLayout::Inl::parseAlignSpace(align, is_reverse, overflow, count, space_out);
 	}
 
 	/**
 		* @constructors
 		*/
-	Flow::Flow()
+	FlowLayout::FlowLayout()
 		: _direction(Direction::ROW)
 		, _cross_align(CrossAlign::START)
 		, _wrap(Wrap::WRAP)
@@ -308,7 +312,7 @@ namespace flare {
 		*
 		* @func set_direction(val)
 		*/
-	void Flow::set_direction(Direction val) {
+	void FlowLayout::set_direction(Direction val) {
 		if (val != _direction) {
 			_direction = val;
 			mark(M_LAYOUT_TYPESETTING); // 排版参数改变,后续需对子布局重新排版
@@ -321,7 +325,7 @@ namespace flare {
 		*
 		* @func set_cross_align(align)
 		*/
-	void Flow::set_cross_align(CrossAlign align) {
+	void FlowLayout::set_cross_align(CrossAlign align) {
 		if (align != _cross_align) {
 			_cross_align = align;
 			mark(M_LAYOUT_TYPESETTING);
@@ -334,7 +338,7 @@ namespace flare {
 		*
 		* @func set_wrap_reverse(wrap)
 		*/
-	void Flow::set_wrap(Wrap wrap) {
+	void FlowLayout::set_wrap(Wrap wrap) {
 		if (wrap != _wrap) {
 			_wrap = wrap;
 			mark(M_LAYOUT_TYPESETTING);
@@ -347,7 +351,7 @@ namespace flare {
 		*
 		* @func set_wrap_align(align)
 		*/
-	void Flow::set_wrap_align(WrapAlign align) {
+	void FlowLayout::set_wrap_align(WrapAlign align) {
 		if (align != _wrap_align) {
 			_wrap_align = align;
 			mark(M_LAYOUT_TYPESETTING);
@@ -356,7 +360,7 @@ namespace flare {
 
 	// --------------- o v e r w r i t e ---------------
 
-	bool Flow::layout_reverse(uint32_t mark) {
+	bool FlowLayout::layout_reverse(uint32_t mark) {
 		if (mark & (M_LAYOUT_TYPESETTING)) {
 			if (!is_ready_layout_typesetting()) {
 				return true; // continue iteration

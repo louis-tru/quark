@@ -28,17 +28,33 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "include/core/SkCanvas.h"
-#include "include/core/SkSurface.h"
-#include "include/gpu/GrBackendSurface.h"
-#include "include/gpu/GrDirectContext.h"
-#include "src/core/SkMathPriv.h"
-#include "src/gpu/GrCaps.h"
-#include "src/gpu/GrDirectContextPriv.h"
-#include "src/gpu/gl/GrGLDefines.h"
-#include "src/gpu/gl/GrGLUtil.h"
-#include "src/image/SkImage_Base.h"
+#define SK_GL
+
+#include "skia/core/SkCanvas.h"
+#include "skia/core/SkSurface.h"
+#include "skia/gpu/GrBackendSurface.h"
+#include "skia/gpu/GrDirectContext.h"
+
 #include "./gl.h"
+#include "../display.h"
+
+#if FX_IOS
+# include <OpenGLES/ES3/gl.h>
+# include <OpenGLES/ES3/glext.h>
+#elif FX_ANDROID
+# define GL_GLEXT_PROTOTYPES
+# include <GLES3/gl3.h>
+# include <GLES3/gl3ext.h>
+#elif FX_OSX
+# include <OpenGL/gl3.h>
+# include <OpenGL/gl3ext.h>
+#elif FX_LINUX
+# define GL_GLEXT_PROTOTYPES
+# include <GLES3/gl3.h>
+# include <GLES3/gl3ext.h>
+#else
+# error "The operating system does not support"
+#endif
 
 #ifndef fx_use_depth_test
 #define fx_use_depth_test 0
@@ -106,7 +122,7 @@ namespace flare {
 		}
 	}
 
-	int GLRender::gpuMSAASample() const {
+	int GLRender::gpuMSAASample() {
 		if ( _DisplayParams.fMSAASampleCount > 1 && _is_support_multisampled && isGpu()) {
 			return _DisplayParams.fMSAASampleCount;
 		}
@@ -137,15 +153,16 @@ namespace flare {
 		}
 	}
 
-	sk_sp<SkSurface> GLRender::getSurface() {
+    sk_sp<SkSurface> GLRender::getSurface() {
 		if (!_Surface) {
 			if (_Context) {
 				GrGLint buffer;
-				GR_GL_CALL(_BackendContext.get(), GetIntegerv(GR_GL_FRAMEBUFFER_BINDING, &buffer));
-
+                // GR_GL_CALL(_BackendContext.get(), GetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer));
+                 _BackendContext.get()->fFunctions.fGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
+                
 				GrGLFramebufferInfo fbInfo;
 				fbInfo.fFBOID = buffer;
-				fbInfo.fFormat = GR_GL_RGBA8;
+				fbInfo.fFormat = GL_RGBA8;
 
 				auto size = _host->display()->size();
 				float width = size.x();
@@ -164,7 +181,7 @@ namespace flare {
 		return _Surface;
 	}
 
-	void GLDraw::glRenderbufferStorageMain() {
+	void GLRender::glRenderbufferStorageMain() {
 		auto region = _host->display()->surface_region();
 		::glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, region.width, region.height);
 	}

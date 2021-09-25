@@ -31,16 +31,18 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkImageInfo.h"
 #import <OpenGLES/ES3/gl.h>
+#import <OpenGLES/ES2/glext.h>
 #import <UIKit/UIKit.h>
 
 #include "../../render/gl.h"
-#include "../mac/_mac-render_.h"
+#include "../../display.h"
+#include "../mac/mac-render.h"
 
-namespace {
+namespace flare {
 
 	class RasterRenderIOS: public GLRender, public RenderMAC {
 	public:
-		GLRenderIOS(GUIApplication* host, EAGLContext* ctx, const DisplayParams& params, bool gles2)
+        RasterRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params, bool gles2)
 			: GLRender(host, params), _glctx(ctx), _gles2(gles2)
 		{
 			ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
@@ -48,13 +50,13 @@ namespace {
 			initialize();
 		}
 
-		~GLRenderIOS() {
+		~RasterRenderIOS() {
 			[EAGLContext setCurrentContext:nullptr];
 		}
 
 		void setView(UIView* view) override {
 			_view = view;
-			_layer = view.layer;
+			_layer = (CAEAGLLayer*)view.layer;
 			_layer.drawableProperties = @{
 				kEAGLDrawablePropertyRetainedBacking : @NO,
 				kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
@@ -65,7 +67,7 @@ namespace {
 
 		Render* render() override { return this; }
 
-		Class layerClass() { return [CAEAGLLayer class]; }
+		Class layerClass() override { return [CAEAGLLayer class]; }
 
 		bool isGpu() override { return false; }
 
@@ -112,7 +114,7 @@ namespace {
 		sk_sp<SkSurface> _RasterSurface;
 	};
 
-	RenderMAC* MakeRasterRender(GUIApplication* host, const DisplayParams& parems) {
+	RenderMAC* MakeRasterRender(Application* host, const Render::DisplayParams& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
 			return new RasterRenderIOS(host, ctx, parems, false);

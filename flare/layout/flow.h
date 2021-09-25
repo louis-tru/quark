@@ -38,14 +38,14 @@ namespace flare {
 	/**
 		* @class Flow
 		*/
-	class FX_EXPORT Flow: public Box {
-		FX_Define_View(Flow);
+	class FX_EXPORT FlowLayout: public Box {
+		FX_Define_View(FlowLayout);
 	public:
 
 		/**
 			* @constructors
 			*/
-		Flow();
+		FlowLayout();
 
 		// define props
 		FX_Define_Prop(Direction, direction); // direction 排版方向

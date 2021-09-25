@@ -37,6 +37,7 @@
 // #include "../draw.h"
 #include "../_app.h"
 #include <native-font.h>
+#include <math.h>
 
 #ifndef FX_SUPPORT_MAX_TEXTURE_FONT_SIZE
 #define FX_SUPPORT_MAX_TEXTURE_FONT_SIZE 512

@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./view.h"
+#include <math.h>
 
 namespace flare {
 

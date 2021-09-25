@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./mac-render.h"
+#include "../../display.h"
 
 namespace flare {
 
@@ -42,11 +43,11 @@ namespace flare {
 		return false;
 	}
 
-	RenderMAC* MakeRasterRender(GUIApplication* host, const Render::DisplayParams& parems);
-	RenderMAC* MakeGLRender(GUIApplication* host, const Render::DisplayParams& parems);
-	RenderMAC* MakeMetalRender(GUIApplication* host, const Render::DisplayParams& parems);
+	RenderMAC* MakeRasterRender(Application* host, const Render::DisplayParams& parems);
+	RenderMAC* MakeGLRender(Application* host, const Render::DisplayParams& parems);
+	RenderMAC* MakeMetalRender(Application* host, const Render::DisplayParams& parems);
 
-	RenderMAC* RenderMAC::create(GUIApplication* host, cJSON& options) {
+	RenderMAC* RenderMAC::create(Application* host, cJSON& options) {
 		RenderMAC* r = nullptr;
 
 		auto parems = Render::parseDisplayParams(options);

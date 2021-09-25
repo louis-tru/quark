@@ -31,16 +31,17 @@
 #import <Metal/Metal.h>
 #import "./mac-render.h"
 #import "../../render/metal.h"
+#import "../../display.h"
 
 namespace flare {
 
 	class MetalRenderMAC : public MetalRender, public RenderMAC {
 	public:
-		MetalRenderMAC(GUIApplication* host, const DisplayParams& params): MetalRender(host, params) {}
+		MetalRenderMAC(Application* host, const DisplayParams& params): MetalRender(host, params) {}
 		void setView(UIView* view) {
 			ASSERT(!_view);
 			_view = view;
-			_layer = view.layer;
+			_layer = (CAMetalLayer*)view.layer;
 			_host->display()->set_best_display_scale(UIScreen.mainScreen.scale);
 		}
 		Class layerClass() { return [CAMetalLayer class]; }
@@ -49,7 +50,7 @@ namespace flare {
 		UIView* _view;
 	};
 
-	RenderMAC* MakeMetalRender(GUIApplication* host, const Render::DisplayParams& parems) {
+	RenderMAC* MakeMetalRender(Application* host, const Render::DisplayParams& parems) {
 #if GR_METAL_SDK_VERSION >= 230
 		if (@available(macOS 11.0, iOS 14.0, *)) {
 			return new MetalRenderMAC(host, parems);

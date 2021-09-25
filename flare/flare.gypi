@@ -351,6 +351,7 @@
 			],
 			'outputs': [
 				'../out/<(output_name)/obj.target/skia/libskia.a',
+				'../out/<(output_name)/obj.target/skia/skia',
 			],
 			'action': [
 				'<(skia_build)',

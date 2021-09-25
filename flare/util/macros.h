@@ -363,7 +363,7 @@ defined(__DragonFly__)
 	#define FX_INIT_BLOCK(fn)	\
 	extern void __cdecl fn(void);	\
 	__declspec(dllexport, allocate(".CRT$XCU"))	\
-	void (__cdecl*fn ## _)(void) = fn;	\
+	void (__cdecl*fn##_)(void) = fn;	\
 	extern void __cdecl fn(void)
 #else // FX_MSC
 	# define FX_INIT_BLOCK(fn)	\

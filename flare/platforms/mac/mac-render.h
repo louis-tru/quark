@@ -33,11 +33,11 @@
 #ifndef __flare__ios_render__
 #define __flare__ios_render__
 
-#import "../../util/macros.h"
+#include "../../util/macros.h"
 
-#if FX_IOS
+#if FX_IOS || FX_OSX
 
-#import "../../render/render.h"
+#include "../../render/render.h"
 #include "./mac-app.h"
 
 namespace flare {

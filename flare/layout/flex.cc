@@ -32,8 +32,8 @@
 
 namespace flare {
 
-	void View::Visitor::visitFlex(Flex *v) {
-		visitFlow(v);
+	void View::Visitor::visitFlexLayout(FlexLayout *v) {
+		visitFlowLayout(v);
 	}
 
 	/**
@@ -42,16 +42,22 @@ namespace flare {
 		* 
 		* @func accept(visitor)
 		*/
-	void Flex::accept(Visitor *visitor) {
-		visitor->visitFlex(this);
+	void FlexLayout::accept(Visitor *visitor) {
+		visitor->visitFlexLayout(this);
 	}
 
 	float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out);
 
+	FX_DEFINE_INLINE_MEMBERS(FlowLayout, Inl) {
+	public:
+		#define _inl_flow(self) static_cast<FlowLayout::Inl*>(static_cast<FlowLayout*>(self))
+		void set_wrap(Wrap wrap);
+	};
+
 	// flex private members method
-	FX_DEFINE_INLINE_MEMBERS(Flex, Inl) {
-	 public:
-		#define _inl(self) static_cast<Flex::Inl*>(self)
+	FX_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
+	public:
+		#define _inl(self) static_cast<FlexLayout::Inl*>(self)
 
 		// auto layout horizontal or vertical
 		template<bool is_horizontal>
@@ -79,7 +85,7 @@ namespace flare {
 				auto size = v->layout_size().layout_size;
 				auto align = v->layout_align();
 				float offset_cross = 0;
-				switch (align == Align::AUTO ? _cross_align: (CrossAlign)align) {
+				switch (align == Align::AUTO ? cross_align(): (CrossAlign)align) {
 					default:
 					case CrossAlign::START: break; // 与交叉轴内的起点对齐
 					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
@@ -159,7 +165,7 @@ namespace flare {
 				auto v = i.v;
 				auto align = v->layout_align();
 				float offset_cross = 0;
-				switch (align == Align::AUTO ? _cross_align: (CrossAlign)align) {
+				switch (align == Align::AUTO ? cross_align(): (CrossAlign)align) {
 					default:
 					case CrossAlign::START: break; // 与交叉轴内的起点对齐
 					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
@@ -207,7 +213,7 @@ namespace flare {
 			float main_size = is_wrap_main ? 0 : (is_horizontal ? cur.x(): cur.y());
 			float max_main = 0;
 			float total_cross = 0;
-			bool wrap_reverse = _wrap == Wrap::WRAP_REVERSE;
+			bool wrap_reverse = wrap() == Wrap::WRAP_REVERSE;
 
 			Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
 
@@ -253,11 +259,11 @@ namespace flare {
 			float cross_space = 0, cross_offset = 0;
 
 			if (!is_wrap_cross) {
-				if (WrapAlign::STRETCH == _wrap_align) {
+				if (WrapAlign::STRETCH == wrap_align()) {
 					cross_overflow_item = lines.length() ? cross_overflow / lines.length() : 0;
 				} else {
 					cross_offset = __Flow_ParseAlignSpace(
-						_wrap_align, wrap_reverse, cross_overflow, lines.length(), &cross_space);
+						wrap_align(), wrap_reverse, cross_overflow, lines.length(), &cross_space);
 				}
 			}
 
@@ -272,7 +278,7 @@ namespace flare {
 					auto v = j.v;
 					auto align = v->layout_align();
 					float cross_offset_item = cross_offset;
-					switch (align == Align::AUTO ? _cross_align: (CrossAlign)align) {
+					switch (align == Align::AUTO ? cross_align(): (CrossAlign)align) {
 						default:
 						case CrossAlign::START: break; // 与交叉轴内的起点对齐
 						case CrossAlign::CENTER: // 与交叉轴内的中点对齐
@@ -305,15 +311,15 @@ namespace flare {
 			bool is_lock_child = false;
 
 			if (parent()->is_layout_lock_child()) {
-				if (_wrap == Wrap::NO_WRAP) {
+				if (wrap() == Wrap::NO_WRAP) {
 					is_lock_child = true;
 				}
-			} else if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) {
-				if (!layout_wrap_x() && _wrap == Wrap::NO_WRAP) {
+			} else if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) {
+				if (!layout_wrap_x() && wrap() == Wrap::NO_WRAP) {
 					is_lock_child = true;
 				}
 			} else {
-				if (!layout_wrap_y() && _wrap == Wrap::NO_WRAP) {
+				if (!layout_wrap_y() && wrap() == Wrap::NO_WRAP) {
 					is_lock_child = true;
 				}
 			}
@@ -337,11 +343,11 @@ namespace flare {
 	/**
 		* @constructors
 		*/
-	Flex::Flex()
+	FlexLayout::FlexLayout()
 		: _items_align(ItemsAlign::START)
 		, _is_lock_child(false)
 	{
-		_wrap = Wrap::NO_WRAP;
+		_inl_flow(this)->set_wrap(Wrap::NO_WRAP);
 	}
 
 	/**
@@ -350,7 +356,7 @@ namespace flare {
 		*
 		* @func stt_items_align(align)
 		*/
-	void Flex::set_items_align(ItemsAlign align) {
+	void FlexLayout::set_items_align(ItemsAlign align) {
 		if (align != _items_align) {
 			_items_align = align;
 			mark(M_LAYOUT_TYPESETTING);
@@ -358,7 +364,7 @@ namespace flare {
 	}
 
 
-	bool Flex::layout_forward(uint32_t mark) {
+	bool FlexLayout::layout_forward(uint32_t mark) {
 		auto layout_content_size_change_mark = solve_layout_size(mark);
 
 		if (layout_content_size_change_mark) {
@@ -372,7 +378,7 @@ namespace flare {
 				return true;
 			}
 			if (_is_lock_child) { // flex
-				if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) {
+				if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) {
 					/*
 						|-----------------------------|
 						|  width=PIXEL,wrap=NO_WRAP   |
@@ -382,7 +388,7 @@ namespace flare {
 						|                             |
 						|-----------------------------|
 					*/
-					_inl(this)->layout_typesetting_from_flex<true>(layout_size(), _direction == Direction::ROW_REVERSE); // flex horizontal
+					_inl(this)->layout_typesetting_from_flex<true>(layout_size(), direction() == Direction::ROW_REVERSE); // flex horizontal
 				} else {
 					/*
 						|---------------------------|
@@ -402,7 +408,7 @@ namespace flare {
 						|            ---            |
 						|---------------------------|
 					*/
-					_inl(this)->layout_typesetting_from_flex<false>(layout_size(), _direction == Direction::COLUMN_REVERSE); // flex vertical
+					_inl(this)->layout_typesetting_from_flex<false>(layout_size(), direction() == Direction::COLUMN_REVERSE); // flex vertical
 				}
 			} else {
 				return true; // layout_reverse() 必需在反向迭代中处理
@@ -413,13 +419,13 @@ namespace flare {
 		return false;
 	}
 
-	bool Flex::layout_reverse(uint32_t mark) {
+	bool FlexLayout::layout_reverse(uint32_t mark) {
 		if(mark & M_LAYOUT_TYPESETTING) {
 			if (!is_ready_layout_typesetting()) {
 				return true; // continue iteration
 			}
-			if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) {
-				if (_wrap == Wrap::NO_WRAP) {
+			if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) {
+				if (wrap() == Wrap::NO_WRAP) {
 					if (layout_wrap_x()) { // auto horizontal layout
 						/*
 							|-------------....------------|
@@ -430,7 +436,7 @@ namespace flare {
 							|                             |
 							|-------------....------------|
 						*/
-						_inl(this)->layout_typesetting_from_auto<true>(layout_size(), _direction == Direction::ROW_REVERSE);
+						_inl(this)->layout_typesetting_from_auto<true>(layout_size(), direction() == Direction::ROW_REVERSE);
 					} else { // flex
 						return true; // layout_forward() 必需在正向迭代中处理
 					}
@@ -453,10 +459,10 @@ namespace flare {
 							|   --- --- ---         ---   |
 							|-----------------------------|
 						*/
-					_inl(this)->layout_typesetting_from_wrap<true>(layout_size(), _direction == Direction::ROW_REVERSE);
+					_inl(this)->layout_typesetting_from_wrap<true>(layout_size(), direction() == Direction::ROW_REVERSE);
 				}
 			} else {
-				if (_wrap == Wrap::NO_WRAP) {
+				if (wrap() == Wrap::NO_WRAP) {
 					if (layout_wrap_y()) { // auto vertical layout
 						/*
 							|-----------|
@@ -476,7 +482,7 @@ namespace flare {
 							|    ---    |
 							|-----------|
 						*/
-						_inl(this)->layout_typesetting_from_auto<false>(layout_size(), _direction == Direction::COLUMN_REVERSE);
+						_inl(this)->layout_typesetting_from_auto<false>(layout_size(), direction() == Direction::COLUMN_REVERSE);
 					} else {
 						return true; // layout_forward()
 					}
@@ -499,7 +505,7 @@ namespace flare {
 						|   --- --- ---         ---   |
 						|-----------------------------|
 					*/
-					_inl(this)->layout_typesetting_from_wrap<false>(layout_size(), _direction == Direction::COLUMN_REVERSE);
+					_inl(this)->layout_typesetting_from_wrap<false>(layout_size(), direction() == Direction::COLUMN_REVERSE);
 				}
 			}
 			unmark(M_LAYOUT_TYPESETTING);
@@ -507,11 +513,11 @@ namespace flare {
 		return false;
 	}
 
-	bool Flex::is_layout_lock_child() {
+	bool FlexLayout::is_layout_lock_child() {
 		return _is_lock_child;
 	}
 
-	void Flex::layout_typesetting_change(Layout* child, TypesettingChangeMark _mark) {
+	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark _mark) {
 		mark(M_LAYOUT_TYPESETTING);
 	}
 
