@@ -31,7 +31,6 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkImageInfo.h"
 #import <OpenGLES/ES3/gl.h>
-#import <OpenGLES/ES2/glext.h>
 #import <UIKit/UIKit.h>
 
 #include "../../render/gl.h"
@@ -42,8 +41,8 @@ namespace flare {
 
 	class RasterRenderIOS: public GLRender, public RenderMAC {
 	public:
-        RasterRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params, bool gles2)
-			: GLRender(host, params), _glctx(ctx), _gles2(gles2)
+        RasterRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
+			: GLRender(host, params), _glctx(ctx)
 		{
 			ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
@@ -95,11 +94,7 @@ namespace flare {
 			gpuCanvas->flush();
 
 			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-			if (_gles2) {
-				glDiscardFramebufferEXT(GL_FRAMEBUFFER, 2, attachments);
-			} else {
-				glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
-			}
+            glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
 			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 			// you present its contents by making it the current renderbuffer
 			// and calling the presentRenderbuffer: method on your rendering context.
@@ -110,16 +105,13 @@ namespace flare {
 		EAGLContext* _glctx;
 		UIView* _view;
 		CAEAGLLayer* _layer;
-		bool _gles2;
 		sk_sp<SkSurface> _RasterSurface;
 	};
 
 	RenderMAC* MakeRasterRender(Application* host, const Render::DisplayParams& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
-			return new RasterRenderIOS(host, ctx, parems, false);
-		} else if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES2] ) {
-			return new RasterRenderIOS(host, ctx, parems, true);
+			return new RasterRenderIOS(host, ctx, parems);
 		} else {
 			return nullptr;
 		}
