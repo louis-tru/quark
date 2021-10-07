@@ -42,254 +42,254 @@ namespace flare {
 	* @class ApplePCMPlayer
 	*/
 	class ApplePCMPlayer: public Object, public PCMPlayer {
-		public:
-			typedef ObjectTraits Traits;
+	public:
+		typedef ObjectTraits Traits;
 
-			virtual Object* to_object() { return this; }
+		virtual Object* to_object() { return this; }
+		
+		struct WaitWriteBuffer {
+			Buffer  data;
+			uint32_t    size = 0;
+		};
+		
+		ApplePCMPlayer()
+		: _queue(NULL)
+		, _wait_write_buffer_index(0)
+		, _wait_write_buffer_count(0)
+		, _channel_count(0), _sample_rate(0), _volume(1), _player(false), _flush(false) {
+			memset(_buffer_all, 0, sizeof(_buffer_all));
+			memset(_buffer_free, 0, sizeof(_buffer_free));
+		}
+		
+		virtual ~ApplePCMPlayer() {
 			
-			struct WaitWriteBuffer {
-				Buffer  data;
-				uint32_t    size = 0;
-			};
-			
-			ApplePCMPlayer()
-			: _queue(NULL)
-			, _wait_write_buffer_index(0)
-			, _wait_write_buffer_count(0)
-			, _channel_count(0), _sample_rate(0), _volume(1), _player(false), _flush(false) {
-				memset(_buffer_all, 0, sizeof(_buffer_all));
-				memset(_buffer_free, 0, sizeof(_buffer_free));
+			for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) {
+				if ( _buffer_all[i] ) {
+					AudioQueueFreeBuffer(_queue, _buffer_all[i]);
+				}
 			}
+			if ( _queue ) {
+				AudioQueueStop(_queue, false);
+				AudioQueueDispose(_queue, false); _queue = NULL;
+			}
+		}
+		
+		bool initialize(uint32_t channel_count, uint32_t sample_rate) {
+			OSStatus status;
 			
-			virtual ~ApplePCMPlayer() {
+			_channel_count = channel_count;
+			_sample_rate = sample_rate;
+			
+			AudioStreamBasicDescription desc;
+			
+			desc.mSampleRate  = sample_rate;
+			desc.mFormatID    = kAudioFormatLinearPCM;
+			desc.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
+			desc.mChannelsPerFrame  = channel_count;
+			desc.mFramesPerPacket   = 1;
+			desc.mBitsPerChannel    = 16;
+			desc.mBytesPerFrame     = 2 * channel_count;
+			desc.mBytesPerPacket    = 2 * channel_count;
+			
+			AudioQueueOutputCallback cb = (AudioQueueOutputCallback)&ApplePCMPlayer::buffer_callback;
+			
+			if ( AudioQueueNewOutput(&desc, cb, this, NULL, NULL, 0, &_queue) == noErr ) { // new
+				uint32_t size = buffer_size() * 4;
 				
 				for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) {
-					if ( _buffer_all[i] ) {
-						AudioQueueFreeBuffer(_queue, _buffer_all[i]);
+					if ( AudioQueueAllocateBuffer(_queue, size, &_buffer_all[i]) == noErr ) {
+						_buffer_free[i] = _buffer_all[i];
+					} else {
+						return false;
 					}
 				}
-				if ( _queue ) {
-					AudioQueueStop(_queue, false);
-					AudioQueueDispose(_queue, false); _queue = NULL;
-				}
+				return true;
+			}
+			return false;
+		}
+		
+		/**
+		* @func buffer_callback
+		*/
+		static void buffer_callback(ApplePCMPlayer* self,
+																AudioQueueRef queue, AudioQueueBufferRef in) {
+			self->buffer_callback2(in);
+		}
+		
+		/**
+		* @func buffer_callback2
+		*/
+		void buffer_callback2(AudioQueueBufferRef in) {
+			ScopeLock scope(_mutex);
+			
+			if ( _flush ) {
+				_flush = false;
+				AudioQueueReset(_queue);
+				AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, _volume);
 			}
 			
-			bool initialize(uint32_t channel_count, uint32_t sample_rate) {
-				OSStatus status;
-				
-				_channel_count = channel_count;
-				_sample_rate = sample_rate;
-				
-				AudioStreamBasicDescription desc;
-				
-				desc.mSampleRate  = sample_rate;
-				desc.mFormatID    = kAudioFormatLinearPCM;
-				desc.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
-				desc.mChannelsPerFrame  = channel_count;
-				desc.mFramesPerPacket   = 1;
-				desc.mBitsPerChannel    = 16;
-				desc.mBytesPerFrame     = 2 * channel_count;
-				desc.mBytesPerPacket    = 2 * channel_count;
-				
-				AudioQueueOutputCallback cb = (AudioQueueOutputCallback)&ApplePCMPlayer::buffer_callback;
-				
-				if ( AudioQueueNewOutput(&desc, cb, this, NULL, NULL, 0, &_queue) == noErr ) { // new
-					uint32_t size = buffer_size() * 4;
+			if ( _player ) {
+				if ( _wait_write_buffer_count ) { // Write waiting buffer data
+					WaitWriteBuffer* buf = _wait_write_buffer + _wait_write_buffer_index;
 					
-					for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) {
-						if ( AudioQueueAllocateBuffer(_queue, size, &_buffer_all[i]) == noErr ) {
-							_buffer_free[i] = _buffer_all[i];
-						} else {
-							return false;
-						}
-					}
-					return true;
-				}
-				return false;
-			}
-			
-			/**
-			* @func buffer_callback
-			*/
-			static void buffer_callback(ApplePCMPlayer* self,
-																	AudioQueueRef queue, AudioQueueBufferRef in) {
-				self->buffer_callback2(in);
-			}
-			
-			/**
-			* @func buffer_callback2
-			*/
-			void buffer_callback2(AudioQueueBufferRef in) {
-				ScopeLock scope(_mutex);
-				
-				if ( _flush ) {
-					_flush = false;
-					AudioQueueReset(_queue);
-					AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, _volume);
-				}
-				
-				if ( _player ) {
-					if ( _wait_write_buffer_count ) { // Write waiting buffer data
-						WaitWriteBuffer* buf = _wait_write_buffer + _wait_write_buffer_index;
+					if (buf->size <= in->mAudioDataBytesCapacity) {
+						in->mAudioDataByteSize = buf->size;            // size
+						memcpy(in->mAudioData, *buf->data, buf->size);  // copy audio data
 						
-						if (buf->size <= in->mAudioDataBytesCapacity) {
-							in->mAudioDataByteSize = buf->size;            // size
-							memcpy(in->mAudioData, *buf->data, buf->size);  // copy audio data
-							
-							// next buffer
-							_wait_write_buffer_index = (_wait_write_buffer_index + 1) % WAIT_WRITE_BUFFER_COUNT;
-							_wait_write_buffer_count--;
-							
-							if ( AudioQueueEnqueueBuffer(_queue, in, 0, NULL) == noErr ) { // input success
-								return;
-							}
-						} else {
-							FX_ERR("self->_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
+						// next buffer
+						_wait_write_buffer_index = (_wait_write_buffer_index + 1) % WAIT_WRITE_BUFFER_COUNT;
+						_wait_write_buffer_count--;
+						
+						if ( AudioQueueEnqueueBuffer(_queue, in, 0, NULL) == noErr ) { // input success
+							return;
 						}
-					}
-					
-					if ( AudioQueuePause(_queue) == noErr ) {
-						_player = false;
+					} else {
+						FX_ERR("self->_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
 					}
 				}
 				
-				for ( int i = 0; i < QUEUE_BUFFER_COUNT; i++ ) {
-					if ( !_buffer_free[i] ) {
-						_buffer_free[i] = in;
-						break;
+				if ( AudioQueuePause(_queue) == noErr ) {
+					_player = false;
+				}
+			}
+			
+			for ( int i = 0; i < QUEUE_BUFFER_COUNT; i++ ) {
+				if ( !_buffer_free[i] ) {
+					_buffer_free[i] = in;
+					break;
+				}
+			}
+		}
+		
+		/**
+		* @overwrite
+		*/
+		virtual bool write(cBuffer& buffer) {
+			ScopeLock scope(_mutex);
+			
+			if ( !_player ) {
+				for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) { // First fill audio queue
+					AudioQueueBufferRef in = _buffer_free[i];
+					if (in) {
+						if ( buffer.length() <= in->mAudioDataBytesCapacity ) {
+							in->mAudioDataByteSize = buffer.length();          // set size
+							memcpy(in->mAudioData, *buffer, buffer.length());  // copy data
+							//
+							if ( AudioQueueEnqueueBuffer(_queue, in, 0, NULL) == noErr ) { // input data
+								_buffer_free[i] = NULL;
+								return true;
+							}
+						}
+						return false;
 					}
 				}
 			}
 			
-			/**
-			* @overwrite
-			*/
-			virtual bool write(cBuffer& buffer) {
-				ScopeLock scope(_mutex);
+			bool r = false;
+			
+			// Wait write buffer
+			if ( _wait_write_buffer_count < WAIT_WRITE_BUFFER_COUNT ) {
+				WaitWriteBuffer* buf =  _wait_write_buffer +
+				(_wait_write_buffer_index + _wait_write_buffer_count) % WAIT_WRITE_BUFFER_COUNT;
+				_wait_write_buffer_count++;
 				
-				if ( !_player ) {
-					for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) { // First fill audio queue
-						AudioQueueBufferRef in = _buffer_free[i];
-						if (in) {
-							if ( buffer.length() <= in->mAudioDataBytesCapacity ) {
-								in->mAudioDataByteSize = buffer.length();          // set size
-								memcpy(in->mAudioData, *buffer, buffer.length());  // copy data
-								//
-								if ( AudioQueueEnqueueBuffer(_queue, in, 0, NULL) == noErr ) { // input data
-									_buffer_free[i] = NULL;
-									return true;
-								}
-							}
-							return false;
-						}
-					}
-				}
-				
-				bool r = false;
-				
-				// Wait write buffer
-				if ( _wait_write_buffer_count < WAIT_WRITE_BUFFER_COUNT ) {
-					WaitWriteBuffer* buf =  _wait_write_buffer +
-					(_wait_write_buffer_index + _wait_write_buffer_count) % WAIT_WRITE_BUFFER_COUNT;
-					_wait_write_buffer_count++;
-					
-					buf->data.write(buffer, 0);
-					buf->size = buffer.length();
-					r = true;
-				}
-				
-				if ( !_player && _wait_write_buffer_count == WAIT_WRITE_BUFFER_COUNT ) { // start play
-					if ( AudioQueueStart(_queue, NULL) == noErr ) {
-						_player = true;
-					}
-				}
-				return r;
+				buf->data.write(buffer, 0);
+				buf->size = buffer.length();
+				r = true;
 			}
 			
-			/**
-			* @overwrite
-			*/
-			virtual float compensate() {
-				return -1.0;
+			if ( !_player && _wait_write_buffer_count == WAIT_WRITE_BUFFER_COUNT ) { // start play
+				if ( AudioQueueStart(_queue, NULL) == noErr ) {
+					_player = true;
+				}
 			}
+			return r;
+		}
+		
+		/**
+		* @overwrite
+		*/
+		virtual float compensate() {
+			return -1.0;
+		}
 
-			/**
-			* @overwrite
-			*/
-			virtual void flush() {
+		/**
+		* @overwrite
+		*/
+		virtual void flush() {
+			ScopeLock scope(_mutex);
+			_wait_write_buffer_index = 0;
+			_wait_write_buffer_count = 0;
+			AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, 0);
+			_flush = true;
+		}
+		
+		/**
+		* @overwrite
+		* */
+		virtual bool set_mute(bool value) {
+			AudioQueueParameterValue volume;
+			OSStatus status;
+			
+			{ //
 				ScopeLock scope(_mutex);
-				_wait_write_buffer_index = 0;
-				_wait_write_buffer_count = 0;
-				AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, 0);
-				_flush = true;
+				status = AudioQueueGetParameter(_queue, kAudioQueueParam_Volume, &volume);
 			}
 			
-			/**
-			* @overwrite
-			* */
-			virtual bool set_mute(bool value) {
-				AudioQueueParameterValue volume;
-				OSStatus status;
-				
-				{ //
-					ScopeLock scope(_mutex);
-					status = AudioQueueGetParameter(_queue, kAudioQueueParam_Volume, &volume);
-				}
-				
-				if ( status == noErr ) {
-					if ( value ) { // mute ok
-						if ( volume != 0 ) {
-							_volume = volume;
-							return set_volume(0);
-						}
-					} else { // no mute
-						if ( volume == 0 ) {
-							return set_volume(_volume * 100);
-						}
+			if ( status == noErr ) {
+				if ( value ) { // mute ok
+					if ( volume != 0 ) {
+						_volume = volume;
+						return set_volume(0);
+					}
+				} else { // no mute
+					if ( volume == 0 ) {
+						return set_volume(_volume * 100);
 					}
 				}
-				return false;
 			}
+			return false;
+		}
+		
+		/**
+		* @overwrite
+		* */
+		virtual bool set_volume(uint32_t value) {
+			ScopeLock scope(_mutex);
+			OSStatus status;
+			AudioQueueParameterValue v;
 			
-			/**
-			* @overwrite
-			* */
-			virtual bool set_volume(uint32_t value) {
-				ScopeLock scope(_mutex);
-				OSStatus status;
-				AudioQueueParameterValue v;
-				
-				v = FX_MIN(value, 100) / 100.0;
-				
-				status = AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, _flush ? 0 : v);
-				
-				if ( status == noErr ) {
-					_volume = v;
-					return true;
-				}
-				return false;
+			v = FX_MIN(value, 100) / 100.0;
+			
+			status = AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, _flush ? 0 : v);
+			
+			if ( status == noErr ) {
+				_volume = v;
+				return true;
 			}
-			
-			/**
-			* @overwrite
-			* */
-			virtual uint32_t buffer_size() {
-				return FX_MAX(4096, _channel_count * _sample_rate / 10);
-			}
-			
-		private:
-			AudioQueueRef             _queue;
-			AudioQueueBufferRef       _buffer_all[QUEUE_BUFFER_COUNT];
-			AudioQueueBufferRef       _buffer_free[QUEUE_BUFFER_COUNT];
-			WaitWriteBuffer           _wait_write_buffer[WAIT_WRITE_BUFFER_COUNT];
-			uint32_t                      _wait_write_buffer_index;
-			uint32_t                      _wait_write_buffer_count;
-			uint32_t                      _channel_count;
-			uint32_t                      _sample_rate;
-			Mutex                     _mutex;
-			AudioQueueParameterValue  _volume;
-			bool                      _player;
-			bool                      _flush;
+			return false;
+		}
+		
+		/**
+		* @overwrite
+		* */
+		virtual uint32_t buffer_size() {
+			return FX_MAX(4096, _channel_count * _sample_rate / 10);
+		}
+		
+	private:
+		AudioQueueRef             _queue;
+		AudioQueueBufferRef       _buffer_all[QUEUE_BUFFER_COUNT];
+		AudioQueueBufferRef       _buffer_free[QUEUE_BUFFER_COUNT];
+		WaitWriteBuffer           _wait_write_buffer[WAIT_WRITE_BUFFER_COUNT];
+		uint32_t                      _wait_write_buffer_index;
+		uint32_t                      _wait_write_buffer_count;
+		uint32_t                      _channel_count;
+		uint32_t                      _sample_rate;
+		Mutex                     _mutex;
+		AudioQueueParameterValue  _volume;
+		bool                      _player;
+		bool                      _flush;
 	};
 
 	PCMPlayer* PCMPlayer::create(uint32_t channel_count, uint32_t sample_rate) {

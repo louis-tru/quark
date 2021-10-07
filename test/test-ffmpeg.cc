@@ -70,7 +70,7 @@ static int audio_frame_count = 0;
  * differences of API usage between them. */
 static int refcount = 0;
 
-static uint64 systemtime() {
+static uint64_t systemtime() {
 	timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
@@ -87,19 +87,19 @@ static int decode_packet(int *got_frame, int cached)
 	
 	*got_frame = 0;
 	
-	uint64 st = systemtime();
+	uint64_t st = systemtime();
 	
 	if (pkt.stream_index == video_stream_idx) {
 		/* decode video frame */
 		
-		ret = avcodec_send_packet(video_dec_ctx, &pkt); uint64 st2 = systemtime();
+		ret = avcodec_send_packet(video_dec_ctx, &pkt); uint64_t st2 = systemtime();
 		
 		if (ret < 0) {
 			// fprintf(stderr, "Error decoding video frame (%s)\n", av_err2str(ret));
 			return ret;
 		}
 		
-		ret = avcodec_receive_frame(video_dec_ctx, frame); uint64 st3 = systemtime();
+		ret = avcodec_receive_frame(video_dec_ctx, frame); uint64_t st3 = systemtime();
 		// LOG("-----------------st:%ld, st2:%ld", st2 - st, st3 - st2);
 		
 		if (ret >= 0 || *got_frame) {
@@ -304,8 +304,8 @@ int test_ffmpeg (int argc, char **argv)
 	
 	char b[256];
 	
-	cchar* name2 = avcodec_get_name(fmt_ctx->streams[1]->codecpar->codec_id);
-	cchar* name3 = avcodec_profile_name(fmt_ctx->streams[1]->codecpar->codec_id, fmt_ctx->streams[1]->codecpar->profile);
+	cChar* name2 = avcodec_get_name(fmt_ctx->streams[1]->codecpar->codec_id);
+	cChar* name3 = avcodec_profile_name(fmt_ctx->streams[1]->codecpar->codec_id, fmt_ctx->streams[1]->codecpar->profile);
 	av_get_codec_tag_string(b, 255, fmt_ctx->streams[0]->codecpar->codec_tag);
 	avcodec_string(b, 255, fmt_ctx->streams[0]->codec, 0);
 	

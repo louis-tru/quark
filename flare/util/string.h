@@ -66,7 +66,7 @@ namespace flare {
 		ArrayStringBase(const ArrayStringBase& str);
 		ArrayStringBase(uint32_t len, AAlloc alloc, uint8_t size_of);
 		ArrayStringBase(uint32_t len, uint32_t capacity, char* val, uint8_t size_of);
-		void assign(uint32_t len, uint32_t capacity, char* val, uint8_t size_of, Free free);
+		void assign(    uint32_t len, uint32_t capacity, char* val, uint8_t size_of, Free free);
 		void assign(const ArrayStringBase& s, Free free);
 		char*       ptr();
 		const char* ptr() const;
@@ -120,6 +120,7 @@ namespace flare {
 		ArrayString& operator=(const ArrayString& s);
 		// assign value operator
 		ArrayString& assign(const T* s, uint32_t len); // operator=
+		ArrayString& assign(const T s); // operator=
 		// operator+
 		// concat string, create new string
 		// call ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len)
@@ -368,7 +369,7 @@ namespace flare {
 
 		ArrayString s;
 		if (v)
-			s.ArrayStringBase::assign(size.len, size.capacity, v, sizeof(T), &A::free);
+			s.ArrayStringBase::assign(size.len, size.capacity, (char*)v, sizeof(T), &A::free);
 		return s;
 	}
 
@@ -412,6 +413,11 @@ namespace flare {
 	ArrayString<T, A>& ArrayString<T, A>::assign(const T* s, uint32_t len) {
 		_Str::strcpy((T*)realloc(len, &A::aalloc, &A::free, sizeof(T)), s, len); // copy str
 		return *this;
+	}
+
+	template <typename T, typename A>
+	ArrayString<T, A>& ArrayString<T, A>::assign(const T s) {
+		return assign(&s, 1);
 	}
 
 	template <typename T, typename A>

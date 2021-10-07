@@ -153,7 +153,7 @@ namespace flare {
 		}
 	}
 
-    sk_sp<SkSurface> GLRender::getSurface() {
+	sk_sp<SkSurface> GLRender::getSurface() {
 		if (!_Surface) {
 			if (_Context) {
 				GrGLint buffer;

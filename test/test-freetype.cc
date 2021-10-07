@@ -30,10 +30,10 @@
 
 #include <flare/util/util.h>
 #include <flare/util/string.h>
-#include <flare/util/map.h>
+#include <flare/util/dict.h>
 #include <flare/util/fs.h>
 #include <trial/fs.h>
-#include <flare/sys.h>
+#include <flare/util/os.h>
 #include <trial/fs.h>
 
 #include <ft2build.h>
@@ -46,15 +46,15 @@
 #include <chrono>
 
 //
-#include "flare/image-codec.h"
+#include "flare/util/codec.h"
 #include "flare/texture.h"
-#include "flare/image.h"
-#include "flare/sprite.h"
-#include "flare/box.h"
-#include "flare/app.h"
-#include "flare/display-port.h"
-#include "flare/root.h"
-#include "flare/gl/gl.h"
+//#include "flare/image.h"
+//#include "flare/sprite.h"
+//#include "flare/box.h"
+//#include "flare/app.h"
+//#include "flare/display.h"
+//#include "flare/root.h"
+//#include "flare/gl/gl.h"
 
 using namespace flare;
 
@@ -66,7 +66,7 @@ void each_fonts () {
 	FT_Error error;
 	
 	auto ns = std::chrono::system_clock::now().time_since_epoch();
-	int64 st = std::chrono::duration_cast<std::chrono::milliseconds>(ns).count(), st2;
+	int64_t st = std::chrono::duration_cast<std::chrono::milliseconds>(ns).count(), st2;
 	
 	LOG("start st:%d", st);
 	
@@ -75,7 +75,7 @@ void each_fonts () {
 	//  String path0 = Path::format("%s/res/SF-UI", *Path::resources_dir());
 	String path0 = "/System/Library/Fonts";
 	
-	FileHelper::each_sync(path0, Cb([&](CbD& d) {
+	FileHelper::each_sync(path0, Cb([&](CbData& d) {
 		
 		Dirent* ent = static_cast<Dirent*>(d.data);
 		
@@ -97,7 +97,7 @@ void each_fonts () {
 				
 				while(1) {
 					
-					cchar* name = FT_Get_Postscript_Name(face);
+					cChar* name = FT_Get_Postscript_Name(face);
 					
 					LOG("font:%s | style:%s | style_flags:%d | glyphs:%d",
 								name,
@@ -125,7 +125,7 @@ void each_fonts () {
 			}
 		}
 		
-	 d.return_value = 1;
+	 d.rc = 1;
 	}));
 	
 	ns = std::chrono::system_clock::now().time_since_epoch();
@@ -153,7 +153,7 @@ void each_glyph() {
 	//  String font_path = FileSearch::share()->get_absolute_path("res/font/lateef.ttf");
 	//  String font_path = "/System/Library/Fonts/LanguageSupport/PingFang.ttc";
 	
-	cchar* text = "A-penType-B";
+	cChar* text = "A-penType-B";
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	
@@ -175,21 +175,21 @@ void each_glyph() {
 	
 	ASSERT(!error);
 	
-	uint ch[6] = { 0, 26970, 23398, 25991, 65533, 65 }; // 妤氬鏂囷拷A
+	uint32_t ch[6] = { 0, 26970, 23398, 25991, 65533, 65 }; // 妤氬鏂囷拷A
 	
 	FT_UInt glyph_index = FT_Get_Char_Index( face, 65533 );
 	
 	error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
 	
-	uint unicode = 0;
-	uint count = 0;
+	uint32_t unicode = 0;
+	uint32_t count = 0;
 	
-	LOG("%s", *Coder::encoding(Encoding::utf8, Ucs2String((uint16*)&unicode, 1)) );
+	LOG("%s", Codec::encode(Encoding::utf8, String16((uint16_t*)&unicode, 1)).val() );
 	
 	do {
 		unicode = FT_Get_Next_Char(face, unicode, &glyph_index);
 		
-		Buffer data = Coder::encoding(Encoding::utf8, Ucs2String((uint16*)&unicode, 1));
+		Buffer data = Codec::encode(Encoding::utf8, String16((uint16_t*)&unicode, 1));
 		
 		LOG("unicode:%d, glyph_index:%d, char:%s", unicode, glyph_index, *data);
 		count++;
@@ -236,7 +236,7 @@ void onload_f(Event<>& evt, void* user) {
 	
 	FT_Glyph_Metrics& metrics = gl->metrics;
 	
-	uint ch[6] = { 0, 26970, 23398, 25991, 65533, 'A' }; //
+	uint32_t ch[6] = { 0, 26970, 23398, 25991, 65533, 'A' }; //
 	
 	FT_UInt glyph_index = FT_Get_Char_Index( face, '\t' );
 	

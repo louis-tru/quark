@@ -29,13 +29,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "flare/util/util.h"
-#include "flare/util/buffer.h"
+#include "flare/util/array.h"
 
 using namespace flare;
 
 void test_buffer(int argc, char **argv) {
 	
-	Buffer bf(5);
+	Buffer bf = Buffer::alloc(5);
 	
 	bf[0] = 'a';
 	bf[1] = 'b';
@@ -45,11 +45,11 @@ void test_buffer(int argc, char **argv) {
 	
 	WeakBuffer bf2(bf);
 	
-	WeakBuffer bf3(move(bf2));
+	WeakBuffer bf3(std::move(bf2));
 	
 	WeakBuffer bf4;
 	
-	bf4 = move(bf2);
+	bf4 = std::move(bf2);
 	
 	LOG("%i,%s", *bf, *bf);
 	LOG("%i,%s", *bf2, *bf2);

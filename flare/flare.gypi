@@ -369,6 +369,7 @@
 			['os in "ios osx"', {
 				'link_settings': {
 					'libraries': [
+						'$(SDKROOT)/System/Library/Frameworks/CoreText.framework',
 					],
 				},
 			}],

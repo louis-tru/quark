@@ -51,7 +51,7 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 		"Accept: */*\r\n"
 		"User-Agent: Mozilla/5.0 AppleWebKit flare Net Test\r\n\r\n";
 		
-		write(header.collapse_buffer());
+		write(header.collapse());
 	}
 	
 	virtual void trigger_socket_open(Socket* stream) {
@@ -64,7 +64,7 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 		//RunLoop::current()->stop();
 	}
 	virtual void trigger_socket_error(Socket* stream, cError& error) {
-		LOG("Error, %d, %s", error.code(), error.message().c());
+		LOG("Error, %d, %s", error.code(), error.message().c_str());
 	}
 	virtual void trigger_socket_data(Socket* stream, Buffer& buffer) {
 		//LOG( String(buffer.value(), buffer.length()) );

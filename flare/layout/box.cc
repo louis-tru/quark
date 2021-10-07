@@ -31,6 +31,8 @@
 #include "./box.h"
 #include "../app.h"
 #include "../display.h"
+#include "skia/core/SkCanvas.h"
+#include "skia/core/SkFont.h"
 
 namespace flare {
 
@@ -598,6 +600,12 @@ namespace flare {
 		if (_fill) {
 			// TODO ...
 			// _fill->draw(canvas);
+            
+            SkFont font;
+            SkPaint paint;
+            
+            canvas->drawString("ABCD", 0, 0, font, paint);
+            
 			View::draw(canvas);
 		} else {
 			View::draw(canvas);

@@ -47,14 +47,14 @@ class TestAsyncFile: public AsyncFile, public AsyncFile::Delegate {
 	}
 
 	virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
-		LOG("Error, %s", error.message().c());
+		LOG("Error, %s", error.message().c_str());
 	}
 
 	virtual void trigger_async_file_open(AsyncFile* file) {
 		LOG("Open, %s", *path());
 
 		for ( i = 0; i < 30; i++ ) {
-			write(write_str.copy_buffer(), 0);
+			write(write_str.copy().collapse(), 0);
 		}
 	}
 
@@ -68,7 +68,7 @@ class TestAsyncFile: public AsyncFile, public AsyncFile::Delegate {
 		LOG("Write ok, %d", i);
 
 		if (i == 0) {
-			String s = f_reader()->read_file_sync(Path::documents("test_fs2.txt"));
+			String s = fs_reader()->read_file_sync(Path::documents("test_fs2.txt"));
 			LOG("Write count, %d", s.length());
 			close();
 		}
@@ -84,7 +84,7 @@ void test_fs2(int argc, char **argv) {
 
 	LOG("START");
 	
-	write_str = f_reader()->read_file_sync(Path::resources("flare/ctr.js"));
+	write_str = fs_reader()->read_file_sync(Path::resources("flare/ctr.js"));
 
 	TestAsyncFile* file = new TestAsyncFile(Path::documents("test_fs2.txt"));
 

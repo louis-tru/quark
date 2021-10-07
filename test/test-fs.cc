@@ -78,16 +78,16 @@ void test_fs(int argc, char **argv) {
 	LOG("cc.txt,exist,%d", search->exists("cc.txt"));
 	LOG("dd.txt,exist,%d", search->exists("dd.txt"));
 	
-	LOG("aa.txt,abs,%s", search->get_absolute_path("aa.txt").c());
-	LOG("bb.txt,abs,%s", search->get_absolute_path("bb.txt").c());
-	LOG("cc.txt,abs,%s", search->get_absolute_path("cc.txt").c());
-	LOG("dd.txt,abs,%s", search->get_absolute_path("dd.txt").c());
+	LOG("aa.txt,abs,%s", search->get_absolute_path("aa.txt").c_str());
+	LOG("bb.txt,abs,%s", search->get_absolute_path("bb.txt").c_str());
+	LOG("cc.txt,abs,%s", search->get_absolute_path("cc.txt").c_str());
+	LOG("dd.txt,abs,%s", search->get_absolute_path("dd.txt").c_str());
 	
 	// The normal need to release the memory
-	LOG("aa.txt,data,%s", search->read("aa.txt").value());
-	LOG("bb.txt,data,%s", search->read("bb.txt").value());
-	LOG("cc.txt,data,%s", search->read("cc.txt").value());
-	LOG("dd.txt,data,%s", search->read("dd.txt").value());
+	LOG("aa.txt,data,%s", search->read("aa.txt").val());
+	LOG("bb.txt,data,%s", search->read("bb.txt").val());
+	LOG("cc.txt,data,%s", search->read("cc.txt").val());
+	LOG("dd.txt,data,%s", search->read("dd.txt").val());
 	
 	LOG("\nTEST zip\n");
 	
@@ -96,50 +96,50 @@ void test_fs(int argc, char **argv) {
 	LOG("thk/res_r_hd/ad/39.jpg_v94859,exist,%d", search->exists("thk/res_r_hd/ad/39.jpg_v94859"));
 	LOG("ad/39.jpg_v94859,exist,%d", search->exists("ad/39.jpg_v94859"));
 	
-	LOG("bgm/1.mp3,abs,%s", search->get_absolute_path("bgm/1.mp3").c());
-	LOG("bin/_nmxOB.js_v274443,abs,%s", search->get_absolute_path("bin/_nmxOB.js_v274443").c());
-	LOG("thk/res_r_hd/ad/39.jpg_v94859,abs,%s", search->get_absolute_path("thk/res_r_hd/ad/39.jpg_v94859").c());
-	LOG("ad/39.jpg_v94859,abs,%s", search->get_absolute_path("ad/39.jpg_v94859").c());
+	LOG("bgm/1.mp3,abs,%s", search->get_absolute_path("bgm/1.mp3").c_str());
+	LOG("bin/_nmxOB.js_v274443,abs,%s", search->get_absolute_path("bin/_nmxOB.js_v274443").c_str());
+	LOG("thk/res_r_hd/ad/39.jpg_v94859,abs,%s", search->get_absolute_path("thk/res_r_hd/ad/39.jpg_v94859").c_str());
+	LOG("ad/39.jpg_v94859,abs,%s", search->get_absolute_path("ad/39.jpg_v94859").c_str());
 
 	// The normal need to release the memory
-	LOG("bgm/1.mp3,data,%s", search->read("bgm/1.mp3").value());
+	LOG("bgm/1.mp3,data,%s", search->read("bgm/1.mp3").val());
 	
 	
 	Buffer s = search->read("bin/_nmxOB.js_v274443");
 	LOG("Copy data");
 	Buffer d = s;
 	LOG("%i", s.is_null());
-	LOG("bin/_nmxOB.js_v274443,data,%s", d.value());
+	LOG("bin/_nmxOB.js_v274443,data,%s", d.val());
 	LOG("Copy string");
-	String ss = move(d);
+	String ss = std::move(d);
 	LOG("%i", d.is_null());
-	LOG("bin/_nmxOB.js_v274443,data,%s", ss.c());
+	LOG("bin/_nmxOB.js_v274443,data,%s", ss.c_str());
 	LOG("\n");
 	
 	LOG("Copy string 2");
 	String s2 = search->read("bin/_nmxOB.js_v274443");
-	LOG("bin/_nmxOB.js_v274443,data,%s", s2.c());
+	LOG("bin/_nmxOB.js_v274443,data,%s", s2.c_str());
 	LOG("\n");
 	
 	LOG("Copy string operator=, default call copy constructor ");
 	String s3 = "String2";
-	s3 = search->read("bin/_nmxOB.js_v274443").value();
+	s3 = search->read("bin/_nmxOB.js_v274443").val();
 	LOG("BB");
-	LOG("bin/_nmxOB.js_v274443,data,%s", s3.c());
+	LOG("bin/_nmxOB.js_v274443,data,%s", s3.c_str());
 	LOG("\n");
 	
 	LOG("Copy data operator=");
 	d = search->read("bin/_nmxOB.js_v274443");
-	LOG("bin/_nmxOB.js_v274443,data,%s", d.value());
+	LOG("bin/_nmxOB.js_v274443,data,%s", d.val());
 	LOG("\n");
 	
-	LOG("thk/res_r_hd/ad/39.jpg_v94859,data,%s", search->read("thk/res_r_hd/ad/39.jpg_v94859").value());
-	LOG("ad/39.jpg_v94859,data,%s", search->read("ad/39.jpg_v94859").value());
+	LOG("thk/res_r_hd/ad/39.jpg_v94859,data,%s", search->read("thk/res_r_hd/ad/39.jpg_v94859").val());
+	LOG("ad/39.jpg_v94859,data,%s", search->read("ad/39.jpg_v94859").val());
 	LOG("\n");
 
 	LOG("Test zip path");
 	LOG(search->get_absolute_path("bin/_nmxOB.js_v274443"));
-	LOG("ad/39.jpg_v94859,data,%s", search->read(search->get_absolute_path("bin/_nmxOB.js_v274443")).value());
+	LOG("ad/39.jpg_v94859,data,%s", search->read(search->get_absolute_path("bin/_nmxOB.js_v274443")).val());
 	LOG("\n");
 	
 	LOG("Test zip get_absolute_path");

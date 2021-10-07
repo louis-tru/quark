@@ -42,7 +42,7 @@ void test_json(int argc, char **argv) {
 	
 	LOG("OK");
 	
-	cchar* json_str = "{ \"a\": \"ABCD\", \"b\": 100 }";
+	cChar* json_str = "{ \"a\": \"ABCD\", \"b\": 100 }";
 	
 	JSON json = JSON::parse(json_str);
 	
@@ -56,14 +56,14 @@ void test_json(int argc, char **argv) {
 	
 	LOG("\n");
 	
-	LOG(sizeof(int));
-	LOG(sizeof(int*));
-	LOG(sizeof(long));
-//  LOG(sizeof(EventDelegate<>));
+	LOG("%d", sizeof(int));
+	LOG("%d", sizeof(int*));
+	LOG("%d", sizeof(long));
+	//  LOG(sizeof(EventDelegate<>));
 	
-	std::map<String, cchar*> m;
+	std::map<String, cChar*> m;
 	LOG("%s", m["a"]);
-	cchar*& a = m["a"];
+	cChar*& a = m["a"];
 	a = "110";
 	LOG("%s", m["a"]);
 	

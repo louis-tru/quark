@@ -2,7 +2,7 @@
 	'includes': [
 		'flare/util/util.gypi',
 		'flare/flare.gypi',
-		'flare/js/js.gypi',
+		# 'flare/js/js.gypi',
 		'trial/trial.gypi',
 		'tools/default_target.gypi',
 	],
@@ -29,9 +29,9 @@
 					'-Wl,--whole-archive',
 					'<(output)/obj.target/libflare-utils.a',
 					'<(output)/obj.target/libflare.a',
-					'<(output)/obj.target/libflare-js.a',
 					'<(output)/obj.target/libflare-media.a',
-					'<(output)/obj.target/deps/node/libnode.a',
+					# '<(output)/obj.target/libflare-js.a',
+					# '<(output)/obj.target/deps/node/libnode.a',
 					'-Wl,--no-whole-archive',
 				],
 			}],
@@ -55,9 +55,9 @@
 		'type': 'none',
 		'dependencies': [
 			'flare',
-			'flare-js',
 			'flare-media',
-			'flare-node',
+			# 'flare-js',
+			# 'flare-node',
 		],
 		'conditions': [
 			# output mac shared library for "flare.framework"
@@ -100,9 +100,9 @@
 						'<(output)/libcares.a',
 						'<(output)/libflare-utils.a',
 						'<(output)/libflare.a',
-						'<(output)/libflare-js.a',
 						'<(output)/libflare-media.a',
-						'<(output)/libnode.a',
+						# '<(output)/libflare-js.a',
+						# '<(output)/libnode.a',
 						'<@(lib_v8_a)',
 					],
 					'outputs': [

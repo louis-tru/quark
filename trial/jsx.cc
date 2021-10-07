@@ -29,10 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./jsx.h"
-#include "flare/util/string.h"
-#include "flare/util/string-builder.h"
-#include "flare/util/map.h"
+#include "flare/util/dict.h"
 #include "flare/util/fs.h"
+#include "flare/util/codec.h"
 
 namespace flare {
 
@@ -51,14 +50,14 @@ namespace flare {
 	#define CHECK(con, ...) if(!(con)) error(__VA_ARGS__)
 
 	#define DEF_STATIC_STR_LIST(F) \
-		F(SPACE, ' ') \
+		F(SPACE, " ") \
 		F(INDENT, "  ") \
-		F(LT, '<') \
-		F(GT, '>') \
-		F(ADD, '+') \
-		F(SUB, '-') \
-		F(DIV, '/') \
-		F(ASSIGN, '=') \
+		F(LT, "<") \
+		F(GT, ">") \
+		F(ADD, "+") \
+		F(SUB, "-") \
+		F(DIV, "/") \
+		F(ASSIGN, "=") \
 		F(INC, "++") \
 		F(DEC, "--") \
 		F(ASSIGN_BIT_OR, "|=") \
@@ -84,32 +83,32 @@ namespace flare {
 		F(NE_STRICT, "!==") \
 		F(LTE, "<=") \
 		F(GTE, ">=") \
-		F(PERIOD, '.') \
+		F(PERIOD, ".") \
 		F(COMMAND, "${") \
-		F(LBRACE, '{') \
-		F(RBRACE, '}') \
-		F(LBRACK, '[') \
-		F(RBRACK, ']') \
-		F(LPAREN, '(') \
-		F(RPAREN, ')') \
-		F(CONDITIONAL, '?') \
-		F(NOT, '!') \
-		F(BIT_OR, '|') \
-		F(BIT_NOT, '~') \
-		F(BIT_XOR, '^') \
-		F(MUL, '*') \
+		F(LBRACE, "{") \
+		F(RBRACE, "}") \
+		F(LBRACK, "[") \
+		F(RBRACK, "]") \
+		F(LPAREN, "(") \
+		F(RPAREN, ")") \
+		F(CONDITIONAL, "?") \
+		F(NOT, "!") \
+		F(BIT_OR, "|") \
+		F(BIT_NOT, "~") \
+		F(BIT_XOR, "^") \
+		F(MUL, "*") \
 		F(POWER, "**") \
-		F(BIT_AND, '&') \
-		F(MOD, '%') \
-		F(AT, '@') \
-		F(QUOTES, '"') \
-		F(NEWLINE, '\n') \
+		F(BIT_AND, "&") \
+		F(MOD, "%") \
+		F(AT, "@") \
+		F(QUOTES, "\"") \
+		F(NEWLINE, "\n") \
 		F(CONST, "const"); /*const*/ \
 		F(VAR, "var");     /*var*/ \
 		F(REQUIRE, "require");   /*require*/ \
-		F(COMMA, ',') \
-		F(COLON, ':') \
-		F(SEMICOLON, ';') \
+		F(COMMA, ",") \
+		F(COLON, ":") \
+		F(SEMICOLON, ";") \
 		F(XML_COMMENT, "/***") \
 		F(XML_COMMENT_END, "**/") \
 		F(COMMENT, "/*") \
@@ -134,17 +133,17 @@ namespace flare {
 		F(ARROW, "=>") \
 
 	struct static_str_list_t {
-	#define F(N,V) Ucs2String N = V;
-	DEF_STATIC_STR_LIST(F)
-	#undef F
+#define F(N,V) String16 N = String16::format("%s", V);
+        DEF_STATIC_STR_LIST(F)
+#undef F
 	} static *static_str_list = nullptr;
 
 	#define S (*static_str_list)
 
 	//LF
-	static inline bool is_carriage_return(int c) {
-		return c == 0x000D;
-	}
+	 static inline bool is_carriage_return(int c) {
+		 return c == 0x000D;
+	 }
 
 	//CR
 	static inline bool is_line_feed(int c) {
@@ -164,7 +163,7 @@ namespace flare {
 
 	static inline bool is_in_range(int value, int lower_limit, int higher_limit) {
 		ASSERT(lower_limit <= higher_limit);
-		return (uint)(value - lower_limit) <= (uint)(higher_limit - lower_limit);
+		return (uint32_t)(value - lower_limit) <= (uint32_t)(higher_limit - lower_limit);
 	}
 
 	static inline bool is_decimal_digit(int c) {
@@ -177,7 +176,7 @@ namespace flare {
 		return is_decimal_digit(c) || is_in_range(ascii_alpha_to_lower(c), 'a', 'f');
 	}
 
-	static inline bool is_int(int64 i) {
+	static inline bool is_int(int64_t i) {
 		return !(1 << 31 & i);
 	}
 
@@ -216,9 +215,9 @@ namespace flare {
 		return is_identifier_start(c) || is_decimal_digit(c);
 	}
 
-	static inline int64 int64_multiplication(int64 i, int multiple, int add) {
+	static inline int64_t int64_multiplication(int64_t i, int multiple, int add) {
 		
-		double f = 1.0 * i / Int64::max;
+		double f = 1.0 * i / Int64::limit_max;
 		
 		if (f * multiple > 1) { // 溢出
 			return -1;
@@ -344,7 +343,7 @@ namespace flare {
 	class Scanner : public Object {
 	public:
 		
-		Scanner(const uint16* code, uint size, bool clean_comment)
+		Scanner(const uint16_t* code, uint32_t size, bool clean_comment)
 		: code_(code), size_(size)
 		, pos_(0), line_(0)
 		, current_(new TokenDesc())
@@ -360,14 +359,14 @@ namespace flare {
 				advance();
 				if ( c0_ == '!' ) {
 					next_->token = SHELL_HEADER;
-					next_->string_value.push('#');
+					next_->string_value.append('#');
 					do {
-						next_->string_value.push(c0_);
+						next_->string_value.append(c0_);
 						advance();
 					} while(c0_ != '\n' && c0_ != EOS);
 					if (c0_ == '\n') {
 						advance();
-						next_->string_value.push('\n');
+						next_->string_value.append('\n');
 					}
 					next_->location.beg_pos = 0;
 					next_->location.end_pos = pos_;
@@ -384,15 +383,15 @@ namespace flare {
 		}
 		
 		struct Location {
-			uint beg_pos;
-			uint end_pos;
-			uint line;
+			uint32_t beg_pos;
+			uint32_t end_pos;
+			uint32_t line;
 		};
 		
 		Token next() {
 			
 			// Table of one-character tokens, by character (0x00..0x7f only).
-			static cbyte one_char_tokens[] = {
+			static uint8_t one_char_tokens[] = {
 				Token::ILLEGAL,
 				Token::ILLEGAL,
 				Token::ILLEGAL,
@@ -529,11 +528,11 @@ namespace flare {
 			next_ = cur;
 			next_->location.beg_pos = pos_;
 			next_->location.line = line_;
-			next_->string_space = Ucs2String();
-			next_->string_value = Ucs2String();
+			next_->string_space = String16();
+			next_->string_value = String16();
 			next_->before_line_feed = false;
 			
-			if ((uint)c0_ <= 0x7f) {
+			if ((uint32_t)c0_ <= 0x7f) {
 				Token token = (Token)one_char_tokens[c0_];
 				if (token != ILLEGAL) {
 					next_->token = token;
@@ -546,14 +545,14 @@ namespace flare {
 			return current_->token;
 		}
 		
-		Token scan_xml_content(uint pos, bool& ignore_space) {
+		Token scan_xml_content(uint32_t pos, bool& ignore_space) {
 			if ( !set_pos(pos) ) {
 				return ILLEGAL;
 			}
 			
 			next_->location.beg_pos = pos_;
 			next_->location.line = line_;
-			next_->string_value = next_->string_space = Ucs2String();
+			next_->string_value = next_->string_space = String16();
 			
 			Token token = ILLEGAL;
 			
@@ -573,7 +572,7 @@ namespace flare {
 			return token;
 		}
 		
-		Token scan_regexp_content(uint pos) {
+		Token scan_regexp_content(uint32_t pos) {
 			if ( !set_pos(pos) ) {
 				return ILLEGAL;
 			}
@@ -581,7 +580,7 @@ namespace flare {
 			Token token = REGEXP_LITERAL;
 			next_->location.beg_pos = pos_;
 			next_->location.line = line_;
-			next_->string_value = next_->string_space = Ucs2String();
+			next_->string_value = next_->string_space = String16();
 			
 			ASSERT(c0_ == '/');
 			
@@ -589,16 +588,16 @@ namespace flare {
 			if (c0_ == '/' || c0_ == '*') { // ILLEGAL
 				token = ILLEGAL;
 			} else {
-				next_->string_value.push('/');
+				next_->string_value.append('/');
 				
 				bool is_LBRACK = false; // [
 				
 				do {
-					next_->string_value.push(c0_);
+					next_->string_value.append(c0_);
 					if ( c0_ == '\\' ) { // 正则转义符
 						advance();
 						if (c0_ < 0) break;
-						next_->string_value.push(c0_);
+						next_->string_value.append(c0_);
 					} else if ( c0_ == '[' ) {
 						is_LBRACK = true;
 					} else if ( c0_ == ']' ) {
@@ -608,22 +607,22 @@ namespace flare {
 				} while( c0_ >= 0  && (is_LBRACK || c0_ != '/') && !is_line_terminator(c0_) );
 				
 				if (c0_ == '/') {
-					next_->string_value.push('/');
+					next_->string_value.append('/');
 					
 					int i = 0, m = 0, g = 0, y = 0, u = 0;
 					
 					while (true) { // regexp flags
 						advance();
 						if (c0_ == 'i') {
-							if (i) break; else { i = 1; next_->string_value.push('i'); }
+							if (i) break; else { i = 1; next_->string_value.append('i'); }
 						} else if (c0_ == 'm') {
-							if (m) break; else { m = 1; next_->string_value.push('m'); }
+							if (m) break; else { m = 1; next_->string_value.append('m'); }
 						} else if (c0_ == 'g') {
-							if (g) break; else { g = 1; next_->string_value.push('g'); }
+							if (g) break; else { g = 1; next_->string_value.append('g'); }
 						} else if (c0_ == 'y') {
-							if (y) break; else { y = 1; next_->string_value.push('y'); }
+							if (y) break; else { y = 1; next_->string_value.append('y'); }
 						} else if (c0_ == 'u') {
-							if (u) break; else { u = 1; next_->string_value.push('u'); }
+							if (u) break; else { u = 1; next_->string_value.append('u'); }
 						} else {
 							break;
 						}
@@ -639,7 +638,7 @@ namespace flare {
 			return token;
 		}
 		
-		Token scan_command_string(uint pos) {
+		Token scan_command_string(uint32_t pos) {
 			if ( ! set_pos(pos) ) {
 				return ILLEGAL;
 			}
@@ -663,14 +662,14 @@ namespace flare {
 					}
 				}
 				else if ( is_line_terminator(c) ) { // \n
-					next_->string_space.push(c);
+					next_->string_space.append(c);
 				}
-				next_->string_value.push(c);
+				next_->string_value.append(c);
 			}
 
 			if (c0_ == '`') {
 				advance();  // consume quote
-				next_->string_value.push('`');
+				next_->string_value.append('`');
 			} else if (c0_ != '{') { // err
 				token = ILLEGAL;
 			}
@@ -683,15 +682,15 @@ namespace flare {
 		
 		inline Token        token()             { return current_->token; }
 		inline Location     location()          { return current_->location; }
-		inline Ucs2String&  string_space()      { return current_->string_space; }
-		inline Ucs2String&  string_value()      { return current_->string_value; }
+		inline String16&  string_space()      { return current_->string_space; }
+		inline String16&  string_value()      { return current_->string_value; }
 		inline bool         has_scape_before()  { return current_->before_scape; }
 		inline bool         before_line_feed()  { return current_->before_line_feed; }
 		inline Token        prev()              { return prev_; }
 		inline Token        peek()              { return next_->token; }
 		inline Location     next_location()     { return next_->location; }
-		inline Ucs2String&  next_string_space() { return next_->string_space; }
-		inline Ucs2String&  next_string_value() { return next_->string_value; }
+		inline String16&  next_string_space() { return next_->string_space; }
+		inline String16&  next_string_value() { return next_->string_value; }
 		inline bool         next_before_line_feed() { return next_->before_line_feed; }
 		inline bool         has_scape_before_next() { return next_->before_scape; }
 		
@@ -700,8 +699,8 @@ namespace flare {
 		struct TokenDesc {
 			Token token;
 			Location location;
-			Ucs2String string_space;
-			Ucs2String string_value;
+			String16 string_space;
+			String16 string_value;
 			bool before_line_feed;
 			bool before_scape;
 		};
@@ -709,8 +708,8 @@ namespace flare {
 		void scan() { // scan javascript code
 			
 			Token token;
-			next_->string_value = Ucs2String();
-			next_->string_space = Ucs2String();
+			next_->string_value = String16();
+			next_->string_space = String16();
 			next_->before_line_feed = false;
 			next_->before_scape = false;
 			
@@ -722,14 +721,14 @@ namespace flare {
 				switch (c0_) {
 					case ' ':
 					case '\t':
-						next_->string_space.push(c0_);
+						next_->string_space.append(c0_);
 						next_->before_scape = true;
 						advance();
 						token = Token::WHITESPACE;
 						break;
 						
 					case '\n':
-						next_->string_space.push(c0_);
+						next_->string_space.append(c0_);
 						next_->before_scape = true;
 						next_->before_line_feed = true;
 						advance();
@@ -743,7 +742,7 @@ namespace flare {
 						
 					case '`': // 检查指令字符串内部是否有 `str ${
 						advance();
-						next_->string_value.push('`');
+						next_->string_value.append('`');
 						token = scan_command_string(pos_);
 						if ( token == COMMAND_END ) {
 							token = STRIFX_LITERAL;
@@ -967,12 +966,12 @@ namespace flare {
 			
 			// Scan the rest of the identifier characters.
 			do {
-				next_->string_value.push(c0_);
+				next_->string_value.append(c0_);
 				advance();
 			} while(is_identifier_part(c0_));
 			
 			const int input_length = next_->string_value.length();
-			const uint16* input = next_->string_value.c();
+			const uint16_t* input = next_->string_value.c_str();
 			const int kMinLength = 2;
 			const int kMaxLength = 10;
 			
@@ -1079,33 +1078,33 @@ namespace flare {
 										advance();
 										return XML_COMMENT;
 									} else {
-										next_->string_value.push('-');
-										next_->string_value.push('-');
+										next_->string_value.append('-');
+										next_->string_value.append('-');
 										if (clean_comment_) {
 											if (c0_ == '\n')
-												next_->string_value.push(c0_);
+												next_->string_value.append(c0_);
 										}
 										else
-											next_->string_value.push(c0_ == '*' ? 'x' : c0_);
+											next_->string_value.append(c0_ == '*' ? 'x' : c0_);
 									}
 								} else break;
 							} else {
-								next_->string_value.push('-');
+								next_->string_value.append('-');
 								if (clean_comment_) {
 									if (c0_ == '\n')
-										next_->string_value.push(c0_);
+										next_->string_value.append(c0_);
 								}
 								else
-									next_->string_value.push(c0_ == '*' ? 'x' : c0_);
+									next_->string_value.append(c0_ == '*' ? 'x' : c0_);
 							}
 						} else break;
 					} else {
 						if (clean_comment_) {
 							if (c0_ == '\n')
-								next_->string_value.push(c0_);
+								next_->string_value.append(c0_);
 						}
 						else
-							next_->string_value.push(c0_ == '*' ? 'x' : c0_);
+							next_->string_value.append(c0_ == '*' ? 'x' : c0_);
 					}
 					advance();
 				}
@@ -1121,7 +1120,7 @@ namespace flare {
 				advance();
 				
 				if (c == ':' && is_xml_element_start(c0_)) {
-					next_->string_value.push(':');
+					next_->string_value.append(':');
 					scan_xml_tag_identifier();
 				} else {
 					back();
@@ -1142,7 +1141,7 @@ namespace flare {
 						return XML_ELEMENT_TAG_END;
 					}
 					if (c == ':' && is_xml_element_start(c0_)) {
-						next_->string_value.push(':');
+						next_->string_value.append(':');
 						
 						scan_xml_tag_identifier();
 						
@@ -1170,7 +1169,7 @@ namespace flare {
 			while ( c0_ == '.') {
 				advance();
 				if ( is_xml_element_start(c0_) ) {
-					next_->string_value.push('.');
+					next_->string_value.append('.');
 					scan_identifier();
 				} else {
 					back();
@@ -1182,23 +1181,23 @@ namespace flare {
 		Token scan_xml_content_string(bool& ignore_space) {
 			do {
 				if ( ignore_space && skip_white_space(true) ) {
-					next_->string_value.push(' ');
+					next_->string_value.append(' ');
 				}
 				if (c0_ == '\\') {
 					advance();
 					if (c0_ < 0 || !scan_string_escape()) return ILLEGAL;
 				} else if (is_line_terminator(c0_)) {
-					next_->string_space.push( c0_ );
+					next_->string_space.append( c0_ );
 					// Allow CR+LF newlines in multiline string literals.
 					if (is_carriage_return(c0_) && is_line_feed(c0_)) advance();
 					// Allow LF+CR newlines in multiline string literals.
 					if (is_line_feed(c0_) && is_carriage_return(c0_)) advance();
-					next_->string_value.push('\\');
-					next_->string_value.push('n');
+					next_->string_value.append('\\');
+					next_->string_value.append('n');
 					advance();
 				} else if (c0_ == '"') {
-					next_->string_value.push('\\'); // 转义
-					next_->string_value.push('"');
+					next_->string_value.append('\\'); // 转义
+					next_->string_value.append('"');
 					advance();
 				}
 				else if (c0_ == '`') {
@@ -1208,7 +1207,7 @@ namespace flare {
 				else if (c0_ == '<' || c0_ == '{') {
 					break;
 				} else {
-					next_->string_value.push(c0_);
+					next_->string_value.append(c0_);
 					advance();
 				}
 			} while(c0_ >= 0);
@@ -1220,8 +1219,8 @@ namespace flare {
 			advance();
 
 			if (!clean_comment_) {
-				next_->string_space.push('/');
-				next_->string_space.push('*');
+				next_->string_space.append('/');
+				next_->string_space.append('*');
 			}
 
 			while (c0_ >= 0) {
@@ -1233,17 +1232,17 @@ namespace flare {
 				if (ch == '*' && c0_ == '/') {
 					advance();
 					if (!clean_comment_) {
-						next_->string_space.push('*');
-						next_->string_space.push('/');
+						next_->string_space.append('*');
+						next_->string_space.append('/');
 					}
 					return WHITESPACE;
 				} else {
 					if (clean_comment_) {
 						if (ch == '\n')
-							next_->string_space.push(ch);
+							next_->string_space.append(ch);
 					}
 					else
-						next_->string_space.push(ch);
+						next_->string_space.append(ch);
 				}
 			}
 			// Unterminated multi-line comment.
@@ -1258,22 +1257,22 @@ namespace flare {
 			// separately by the lexical grammar and becomes part of the
 			// stream of input elements for the syntactic grammar (see
 			if (!clean_comment_) {
-				next_->string_space.push('/');
-				next_->string_space.push('/');
+				next_->string_space.append('/');
+				next_->string_space.append('/');
 			}
 			while (c0_ >= 0 && !is_line_terminator(c0_)) {
 				if (!clean_comment_)
-					next_->string_space.push(c0_);
+					next_->string_space.append(c0_);
 				advance();
 			}
 			return WHITESPACE;
 		}
 		
 		Token scan_string() {
-			byte quote = c0_;
-			next_->string_value = Ucs2String();
+			uint8_t quote = c0_;
+			next_->string_value = String16();
 			advance();  // consume quote
-			next_->string_value.push(quote);
+			next_->string_value.append(quote);
 			
 			while (c0_ != quote && c0_ >= 0 && !is_line_terminator(c0_)) {
 				int c = c0_;
@@ -1281,12 +1280,12 @@ namespace flare {
 				if (c == '\\') {
 					if (c0_ < 0 || !scan_string_escape()) return ILLEGAL;
 				} else {
-					next_->string_value.push(c);
+					next_->string_value.append(c);
 				}
 			}
 			if (c0_ != quote) return ILLEGAL;
 			
-			next_->string_value.push(quote);
+			next_->string_value.append(quote);
 			
 			advance();  // consume quote
 			return STRIFX_LITERAL;
@@ -1297,22 +1296,22 @@ namespace flare {
 			int c = c0_;
 			advance();
 			
-			next_->string_value.push('\\');
+			next_->string_value.append('\\');
 			// Skip escaped newlines.
 			if ( is_line_terminator(c) ) {
 				// Allow CR+LF newlines in multiline string literals.
 				if (is_carriage_return(c) && is_line_feed(c0_)) advance();
 				// Allow LF+CR newlines in multiline string literals.
 				if (is_line_feed(c) && is_carriage_return(c0_)) advance();
-				next_->string_value.push('\n');
+				next_->string_value.append('\n');
 				return true;
 			}
 			if (c == 'u') {
 				if (scan_hex_number(4) == -1) return false;
-				next_->string_value.push(&code_[pos_ - 5], 5);
+				next_->string_value.append(&code_[pos_ - 5], 5);
 				return true;
 			}
-			next_->string_value.push(c);
+			next_->string_value.append(c);
 			return true;
 		}
 		
@@ -1335,25 +1334,25 @@ namespace flare {
 		
 		Token scan_number(bool seen_period) {
 			Token tok = NUMBER_LITERAL;
-			next_->string_value = Ucs2String();
+			next_->string_value = String16();
 			
 			if (seen_period) { // 浮点
 				tok = scan_decimal_digit(true);
 			}
 			else if (c0_ == '0') {
 				advance();
-				next_->string_value = '0';
+				next_->string_value.assign('0');
 				
 				if (c0_ < 0) { // 结束,10进制 0
 					return tok;
 				}
 				switch (c0_) {
 					case 'b': case 'B': // 0b 2进制
-						next_->string_value.push(c0_);
+						next_->string_value.append(c0_);
 						advance();
 						if (is_binary_digit(c0_)) {
 							do {
-								next_->string_value.push(c0_);
+								next_->string_value.append(c0_);
 								advance();
 							} while(is_binary_digit(c0_));
 						} else {
@@ -1366,11 +1365,11 @@ namespace flare {
 						break;
 						
 					case 'x': case 'X': // 0x 16进制
-						next_->string_value.push(c0_);
+						next_->string_value.append(c0_);
 						advance();
 						if (is_hex_digit(c0_)) {
 							do {
-								next_->string_value.push(c0_);
+								next_->string_value.append(c0_);
 								advance();
 							} while(is_hex_digit(c0_));
 						} else {
@@ -1380,14 +1379,14 @@ namespace flare {
 						
 					case '.': // 10进制浮点数
 						back();
-						next_->string_value = Ucs2String();
+						next_->string_value = String16();
 						tok = scan_decimal_digit(false);
 						break;
 						
 					default:
 						if (is_octal_digit(c0_)) { // 0 8进制
 							do {
-								next_->string_value.push(c0_);
+								next_->string_value.append(c0_);
 								advance();
 							} while(is_octal_digit(c0_));
 						} // else 10进制 0
@@ -1409,23 +1408,23 @@ namespace flare {
 		Token scan_decimal_digit(bool seen_period) {
 			
 			if (seen_period) { // 直接为浮点数
-				next_->string_value.push('.');
+				next_->string_value.append('.');
 				do {
-					next_->string_value.push(c0_);
+					next_->string_value.append(c0_);
 					advance();
 				} while(is_decimal_digit(c0_));
 			}
 			else {
 				while (is_decimal_digit(c0_)) { // 整数
-					next_->string_value.push(c0_);
+					next_->string_value.append(c0_);
 					advance();
 				}
 				
 				if (c0_ == '.') { // 浮点数
-					next_->string_value.push(c0_);
+					next_->string_value.append(c0_);
 					advance();
 					while (is_decimal_digit(c0_)) {
-						next_->string_value.push(c0_);
+						next_->string_value.append(c0_);
 						advance();
 					}
 				}
@@ -1433,17 +1432,17 @@ namespace flare {
 			
 			// int i = 1.9e-2;  科学记数法
 			if (c0_ == 'e' || c0_ == 'E') {
-				next_->string_value.push(c0_);
+				next_->string_value.append(c0_);
 				advance();
 				
 				if (c0_ == '+' || c0_ == '-') {
-					next_->string_value.push(c0_);
+					next_->string_value.append(c0_);
 					advance();
 				}
 				
 				if (is_decimal_digit(c0_)) {
 					do {
-						next_->string_value.push(c0_);
+						next_->string_value.append(c0_);
 						advance();
 					}
 					while(is_decimal_digit(c0_));
@@ -1457,7 +1456,7 @@ namespace flare {
 		}
 		
 		bool skip_white_space(bool ignore_record_first_space = false) {
-			uint start_position = pos_;
+			uint32_t start_position = pos_;
 			bool first = true;
 			
 			while(true) {
@@ -1470,10 +1469,10 @@ namespace flare {
 					case 0x0D:  // \r
 						if (ignore_record_first_space) { // 忽略记录第一个空格
 							if (!(first && c0_ == 0x20)) {
-								next_->string_space.push(c0_);
+								next_->string_space.append(c0_);
 							}
 						} else {
-							next_->string_space.push(c0_);
+							next_->string_space.append(c0_);
 						}
 						first = false;
 						advance();
@@ -1498,7 +1497,7 @@ namespace flare {
 			}
 		}
 		
-		bool set_pos(uint pos) {
+		bool set_pos(uint32_t pos) {
 			ASSERT(pos >= 0);
 			
 			if ( pos < size_ ) {
@@ -1547,8 +1546,8 @@ namespace flare {
 			return c0_ == next ? advance(), then: else_;
 		}
 		
-		const uint16 *code_;
-		uint size_, pos_, line_;
+		const uint16_t *code_;
+		uint32_t size_, pos_, line_;
 		int c0_;
 		TokenDesc *current_, *next_;
 		Token prev_;
@@ -1561,7 +1560,7 @@ namespace flare {
 	class Parser: public Object {
 	public:
 		
-		Parser(cUcs2String& in, cString& path, bool is_jsx, bool clean_comment)
+		Parser(cString16& in, cString& path, bool is_jsx, bool clean_comment)
 			: _out(nullptr)
 			, _path(path)
 			, _level(0)
@@ -1583,9 +1582,9 @@ namespace flare {
 			Release(_scanner);
 		}
 		
-		Ucs2String transform() {
+		String16 transform() {
 			parse_document();
-			return _out->to_basic_string();
+			return *_out;
 		}
 		
 	private:
@@ -1612,21 +1611,21 @@ namespace flare {
 			// parse end
 			// class member data
 			for ( auto& i : _class_member_data_expression ) {
-				if ( i.value().expressions.length() ) {
+				if ( i.expressions.length() ) {
 					append(S.NEWLINE);   // \n
 					append(S.EXTEND);   // Object.assign
 					append(S.LPAREN);    // (
-					append(i.value().class_name);    // class_name
+					append(i.class_name);    // class_name
 					append(S.PERIOD);    // .
 					append(S.PROTOTYPE);  // prototype
 					append(S.COMMA);     // ,
 					append(S.LBRACE);    // {
 					append(S.NEWLINE);   // \n
-					for ( auto& j : i.value().expressions ) {
+					for ( auto& j : i.expressions ) {
 						append(S.INDENT);    // \t
-						append(j.key());    // identifier
+						append(j.key);    // identifier
 						append(S.COLON);     // :
-						append(j.value().to_basic_string());  // expression
+						append(j.value);  // expression
 						append(S.COMMA);     // ,
 						append(S.NEWLINE);   // \n
 					}
@@ -1637,7 +1636,7 @@ namespace flare {
 			}
 			
 			// export
-			for (uint i = 0; i < _exports.length(); i++) {
+			for (uint32_t i = 0; i < _exports.length(); i++) {
 				append(S.NEWLINE);
 				append(S.EXPORTS);    // exports.xxx=xxx;
 				append(S.PERIOD);     // .
@@ -1876,7 +1875,7 @@ namespace flare {
 
 		void parse_brace_expression(Token begin, Token end) { // 括号表达式
 			ASSERT( token() == begin );
-			uint level = _level;
+			uint32_t level = _level;
 			_level++;
 
 			while(true) {
@@ -1937,13 +1936,13 @@ namespace flare {
 				case XML_COMMENT:             // <!-- comment -->
 					if (_is_jsx && !_is_xml_attribute_expression) {              //
 						if ( _is_class_member_data_expression ) { // 结束原先的多行注释
-							_out->push(S.COMMENT_END); // */
+							_out->append(S.COMMENT_END); // */
 						}
 						append(S.XML_COMMENT);
 						append(_scanner->string_value());
 						append(S.XML_COMMENT_END);
 						if ( _is_class_member_data_expression ) { // 重新开始多行注释
-							_out->push(S.COMMENT); // /*
+							_out->append(S.COMMENT); // /*
 						}
 					} else {
 						UNEXPECTED_TOKEN_ERROR();
@@ -2143,25 +2142,25 @@ namespace flare {
 			}
 		}
 
-		Ucs2String to_event_js_code(cUcs2String& name) {
+		String16 to_event_js_code(cString16& name) {
 			//  get onchange() { return this.getNoticer('change') }
 			//  set onchange(func) { this.addDefaultListener('change', func) }
 			//  triggerchange(data, is_event) { return this.$trigger('change', data, is_event) }
 			//
-			static cUcs2String a1(String("get on"));
-			static cUcs2String a2(String("() { return this.getNoticer('"));
-			static cUcs2String a3(String("') }"));
-			static cUcs2String b1(String("set on"));
-			static cUcs2String b2(String("(func) { this.addDefaultListener('"));
-			static cUcs2String b3(String("', func) }"));
-			static cUcs2String c1(String("trigger"));
-			static cUcs2String c2(String("(ev,is_ev) { return this.$trigger('"));
-			static cUcs2String c3(String("',ev,is_ev) }"));
+			static cString16 a1 = String16::format("get on");
+			static cString16 a2 = String16::format("() { return this.getNoticer('");
+			static cString16 a3 = String16::format("') }");
+			static cString16 b1 = String16::format("set on");
+			static cString16 b2 = String16::format("(func) { this.addDefaultListener('");
+			static cString16 b3 = String16::format("', func) }");
+			static cString16 c1 = String16::format("trigger");
+			static cString16 c2 = String16::format("(ev,is_ev) { return this.$trigger('");
+			static cString16 c3 = String16::format("',ev,is_ev) }");
 			
-			Ucs2String rv;
-			rv.push(a1); rv.push(name); rv.push(a2); rv.push(name); rv.push(a3);
-			rv.push(b1); rv.push(name); rv.push(b2); rv.push(name); rv.push(b3);
-			rv.push(c1); rv.push(name); rv.push(c2); rv.push(name); rv.push(c3);
+			String16 rv;
+			rv.append(a1); rv.append(name); rv.append(a2); rv.append(name); rv.append(a3);
+			rv.append(b1); rv.append(name); rv.append(b2); rv.append(name); rv.append(b3);
+			rv.append(c1); rv.append(name); rv.append(c2); rv.append(name); rv.append(c3);
 			return rv;
 		}
 
@@ -2170,7 +2169,7 @@ namespace flare {
 		
 			fetch();
 		
-			Ucs2String class_name;
+			String16 class_name;
 			MemberDataExpression* member_data = nullptr;
 			
 			Token tok = next();
@@ -2180,8 +2179,8 @@ namespace flare {
 				class_name = _scanner->string_value();
 				
 				if ( _level == 0 ) {
-					uint len = _class_member_data_expression.push({ class_name });
-					member_data = &_class_member_data_expression[len - 1];
+					_class_member_data_expression.push({ class_name });
+					member_data = &_class_member_data_expression[_class_member_data_expression.length() - 1];
 				}
 				
 				tok = next();
@@ -2259,16 +2258,16 @@ namespace flare {
 							goto function;
 						} else if ( member_data && peek() == ASSIGN ) { // = class member data
 							append(S.COMMENT); // /*
-							Ucs2String identifier = _scanner->string_value();
+							String16 identifier = _scanner->string_value();
 							fetch(); // identifier
 							next(); // =
 							append(S.ASSIGN); // =
-							_out_class_member_data_expression.clear();
+							_out_class_member_data_expression = String16();
 							_is_class_member_data_expression = true;
 							parse_expression();
 							_is_class_member_data_expression = false;
 							CHECK_NEXT(SEMICOLON); // ;
-							member_data->expressions.set(identifier, move(_out_class_member_data_expression));
+							member_data->expressions.set(identifier, std::move(_out_class_member_data_expression));
 							append(S.COMMENT_END); // */
 						} else {
 							UNEXPECTED_TOKEN_ERROR();
@@ -2318,7 +2317,7 @@ namespace flare {
 					case EVENT: {
 						// Event declaration
 						CHECK_NEXT(IDENTIFIER); // event onevent
-						Ucs2String event = _scanner->string_value();
+						String16 event = _scanner->string_value();
 						if (event.length() > 2 &&
 								event[0] == 'o' &&
 								event[1] == 'n' && is_xml_element_start(event[2])) {
@@ -2405,7 +2404,7 @@ namespace flare {
 			}
 		}
 
-		void parse_import_block(Ucs2String* defaultId) {
+		void parse_import_block(String16* defaultId) {
 			// import { Application } from 'flare/app';
 			// import { Application as App } from 'flare/app';
 			// import app, { Application as App } from 'flare/app';
@@ -2450,7 +2449,7 @@ namespace flare {
 
 			if (is_import_declaration_identifier(tok)) { // identifier
 				append(S.CONST); // const
-				Ucs2String id = _scanner->string_value();
+				String16 id = _scanner->string_value();
 				tok = next();
 				
 				if (tok == FROM) { // import app from 'flare/app';
@@ -2508,7 +2507,7 @@ namespace flare {
 			}
 			else if (tok == STRIFX_LITERAL) { // flare private syntax
 
-				Ucs2String str = _scanner->string_value();
+				String16 str = _scanner->string_value();
 				if (peek() == AS) { // import 'test_gui.jsx' as gui;  ---->>>> import * as gui from 'test_gui.jsx';
 					append(S.CONST); // var
 					next(); // as
@@ -2526,8 +2525,8 @@ namespace flare {
 					}
 				} else { // import 'test_gui.jsx';   ---->>>>    import * as test_gui from 'test_gui.jsx';
 					// find identifier
-					Ucs2String path = str.substr(1, str.length() - 2).trim();
-					String basename = Path::basename(path);
+					String16 path = str.substr(1, str.length() - 2).trim();
+					String basename = Path::basename(path.to_string());
 					int i = basename.last_index_of('.');
 					if (i != -1) {
 						basename = basename.substr(0, i);
@@ -2549,7 +2548,7 @@ namespace flare {
 					if (!basename.is_empty()) {
 						append(S.CONST); // const
 						append(S.SPACE); //
-						append(Coder::decoding_to_uint16(Encoding::utf8, basename)); // identifier
+						append(Coder::decode_to_uint16(Encoding::utf8, basename)); // identifier
 						append(S.SPACE); //
 						append(S.ASSIGN); // =
 					}
@@ -2716,8 +2715,8 @@ namespace flare {
 		
 			// 转换xml为json对像: _VV(Tag,[attrs],[children])
 			
-			Ucs2String tag_name = _scanner->string_value();
-			int index = tag_name.index_of(':');
+			String16 tag_name = _scanner->string_value();
+			int index = tag_name.index_of(String16().assign(':'));
 
 			if (index != -1) {
 				error(
@@ -2731,7 +2730,7 @@ namespace flare {
 				append(S.COMMA);    // ,
 			}
 			
-			Map<Ucs2String, bool> attrs;
+			Dict<String16, bool> attrs;
 			bool start_parse_attrs = false;
 			Token token = next();
 			
@@ -2748,8 +2747,8 @@ namespace flare {
 				}
 				
 				// 添加属性
-				Ucs2StringBuilder* raw_out = _out;
-				Ucs2String attribute_name;
+				String16* raw_out = _out;
+				String16 attribute_name;
 				append(S.LBRACK); // [ // attribute start
 				append(S.LBRACK); // [ // attribute name start
 				
@@ -2757,7 +2756,7 @@ namespace flare {
 					append(S.QUOTES); // "
 					append(_scanner->string_value());
 					append(S.QUOTES); // "
-					attribute_name.push(_scanner->string_value());
+					attribute_name.append(_scanner->string_value());
 					token = next();
 					if (token != PERIOD) break;
 					if (!is_object_property_identifier(next())) {
@@ -2769,7 +2768,7 @@ namespace flare {
 				append(S.RBRACK); // ] // attribute name end
 				append(S.COMMA);  // ,
 				
-				if (attrs.has(attribute_name)) {
+				if (!attrs.find(attribute_name).is_null()) {
 					error(String("Xml Syntax error, attribute repeat: ") + attribute_name.to_string());
 				}
 				attrs.set(attribute_name, 1);
@@ -2814,28 +2813,28 @@ namespace flare {
 		}
 		
 		void complete_xml_content_string(
-			Ucs2StringBuilder& str, Ucs2StringBuilder& space, 
+			String16& str, String16& space,
 			bool& is_once_comma, bool before_comma, bool ignore_space) 
 		{
-			if (str.string_length()) {
-				Ucs2String s = str.to_basic_string();
-				if ( !ignore_space || !s.is_blank() ) {
+			if (str.length()) {
+				String16 s(std::move(str));
+				if ( !ignore_space || !s.trim().is_empty() ) {
 					add_xml_children_cut_comma(is_once_comma);
 					// _VVT("str")
 					append(S._VVT);   // _VVT
 					append(S.LPAREN); // (
 					append(S.QUOTES);   // "
-					append(move(s));
+					append(std::move(s));
 					append(S.QUOTES);   // "
 					append(S.RPAREN); // (
 				}
-				str.clear();
+				// str = String16();
 			}
 			if ( before_comma ) {
 				add_xml_children_cut_comma(is_once_comma);
 			}
-			if ( space.string_length() ) {
-				_out->push(move(space));
+			if ( space.length() ) {
+				_out->append(std::move(space));
 			}
 		}
 		
@@ -2847,7 +2846,7 @@ namespace flare {
 			}
 		}
 		
-		void parse_xml_element_context(cUcs2String& tag_name) {
+		void parse_xml_element_context(cString16& tag_name) {
 			ASSERT(_scanner->token() == GT);  // >
 			
 			// add chileren
@@ -2855,9 +2854,9 @@ namespace flare {
 			append(S.LBRACK);   // [
 			
 			Token token;// prev = ILLEGAL;
-			Ucs2StringBuilder str, scape;
+			String16 str, scape;
 			bool ignore_space = true;
-			uint pos = _scanner->location().end_pos;
+			uint32_t pos = _scanner->location().end_pos;
 			bool is_once_comma = true;
 			
 			while(true) {
@@ -2868,9 +2867,9 @@ namespace flare {
 				switch (token) {
 					case XML_COMMENT:    // <!-- comment -->
 						/* ignore comment */
-						scape.push(S.XML_COMMENT);
-						scape.push(_scanner->next_string_value());
-						scape.push(S.XML_COMMENT_END);
+						scape.append(S.XML_COMMENT);
+						scape.append(_scanner->next_string_value());
+						scape.append(S.XML_COMMENT_END);
 						break;
 						
 					case XML_ELEMENT_TAG: // <xml
@@ -2892,7 +2891,7 @@ namespace flare {
 						return;
 						
 					case LT: // <
-						str.push(_scanner->next_string_value());
+						str.append(_scanner->next_string_value());
 						break;
 
 					case COMMAND: // {command block}
@@ -2909,8 +2908,8 @@ namespace flare {
 						
 					case STRIFX_LITERAL:   // xml context text
 						if (!_scanner->next_string_space().is_empty())
-							scape.push(_scanner->next_string_space());
-						str.push(_scanner->next_string_value());
+							scape.append(_scanner->next_string_space());
+						str.append(_scanner->next_string_value());
 						break;
 						
 					default: // <= << <<=
@@ -2920,8 +2919,8 @@ namespace flare {
 			}
 		}
 		
-		Buffer to_utf8_string(cUcs2String s) {
-			return Coder::encoding(Encoding::utf8, s);
+		Buffer to_utf8_string(cString16 s) {
+			return Coder::encode(Encoding::utf8, s);
 		}
 		
 		inline void error() {
@@ -2956,9 +2955,9 @@ namespace flare {
 		void _collapse_scape_() {
 			if (!_scanner->string_space().is_empty()) {
 				if ( _is_class_member_data_expression ) {
-					_out_class_member_data_expression.push(_scanner->string_space());
+					_out_class_member_data_expression.append(_scanner->string_space());
 				}
-				_top_out.push(move(_scanner->string_space()));
+				_top_out.append(std::move(_scanner->string_space()));
 			}
 		}
 		
@@ -2967,47 +2966,38 @@ namespace flare {
 			append(_scanner->string_value());
 		}
 		
-		void append(cUcs2String& code) {
+		void append(cString16& code) {
 			if ( code.length() ) {
 				if ( _is_class_member_data_expression ) {
-					_out_class_member_data_expression.push(code);
+					_out_class_member_data_expression.append(code);
 				}
-				_out->push(code);
+				_out->append(code);
 			}
 		}
 		
-		void append(Ucs2String&& code) {
+		void append(String16&& code) {
 			if ( code.length() ) {
 				if ( _is_class_member_data_expression ) {
-					_out_class_member_data_expression.push(code);
+					_out_class_member_data_expression.append(code);
 				}
-				_out->push(move(code));
-			}
-		}
-		
-		void append(Ucs2StringBuilder&& code) {
-			if ( code.string_length() ) {
-				if ( _is_class_member_data_expression ) {
-					_out_class_member_data_expression.push(code);
-				}
-				_out->push(move(code));
+				_out->append(std::move(code));
 			}
 		}
 		
 		struct MemberDataExpression {
-			Ucs2String class_name;
-			Map<Ucs2String, Ucs2StringBuilder> expressions;
+			String16 class_name;
+			Dict<String16, String16> expressions;
 		};
 		
-		Scanner*          _scanner;
-		Ucs2StringBuilder* _out;
-		Ucs2StringBuilder _top_out;
-		Ucs2StringBuilder _out_class_member_data_expression;
-		cString&          _path;
-		Array<Ucs2String> _exports;
-		Ucs2String        _export_default;
+		Scanner*        _scanner;
+		String16*       _out;
+		String16        _top_out;
+		String16        _out_class_member_data_expression;
+		cString&        _path;
+		Array<String16> _exports;
+		String16        _export_default;
 		Array<MemberDataExpression> _class_member_data_expression;
-		uint _level;
+		uint32_t _level;
 		bool _is_jsx;
 		bool _is_class_member_data_expression;
 		bool _is_xml_attribute_expression;
@@ -3016,11 +3006,11 @@ namespace flare {
 		bool _clean_comment;
 	};
 
-	Ucs2String javascript_transform_x(cUcs2String& in, cString& path, bool clean_comment) throw(Error) {
+    String16 javascript_transform_x(cString16& in, cString& path, bool clean_comment) throw(Error) {
 		return Parser(in, path, true, clean_comment).transform();
 	}
 
-	Ucs2String javascript_transform(cUcs2String& in, cString& path, bool clean_comment) throw(Error) {
+    String16 javascript_transform(cString16& in, cString& path, bool clean_comment) throw(Error) {
 		return Parser(in, path, false, clean_comment).transform();
 	}
 

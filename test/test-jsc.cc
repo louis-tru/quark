@@ -32,8 +32,8 @@
 
 #include <JavaScriptCore/JavaScript.h>
 #include "flare/util/util.h"
-#include "flare/util/string-builder.h"
-#include "flare/util/buffer.h"
+//#include "flare/util/string-builder.h"
+#include "flare/util/array.h"
 #include "flare/util/loop.h"
 
 using namespace flare;
@@ -112,7 +112,7 @@ static JSValueRef ConstructorFunc(JSContextRef ctx,
 
 String to_string_utf8(JSContextRef ctx, JSValueRef val) {
 	JSCStringPtr str = JSValueToStringCopy(ctx, val, 0);
-	Buffer buff((uint)JSStringGetMaximumUTF8CStringSize(*str));
+	Buffer buff = Buffer::alloc((uint32_t)JSStringGetMaximumUTF8CStringSize(*str));
 	size_t size = JSStringGetUTF8CString(*str, *buff, buff.length());
 	buff.realloc(int(size) - 1);
 	return buff.collapse_string();
@@ -237,7 +237,7 @@ static void test_jsc_class(JSGlobalContextRef ctx, JSObjectRef global) {
 	JSObjectSetProperty(ctx, global, A_s, A, 0, 0);
 	JSObjectSetProperty(ctx, global, B_s, B, 0, 0);
 	
-	cchar* script =
+	cChar* script =
 		"function run(){\n"
 			"var e, i;\n"
 			"class C extends B { constructor() { super(); this.a = 100; } };\n"
@@ -386,11 +386,11 @@ static void test_jsc_buffer(JSGlobalContextRef ctx, JSObjectRef global) {
 JSValueRef PrintCallback(JSContextRef ctx, JSObjectRef function,
 												 JSObjectRef thisObject, size_t
 												 argumentCount, const JSValueRef arguments[], JSValueRef* exception) {
-	StringBuilder s;
+	String s;
 	for (int i = 0; i < argumentCount; i++) {
-		s.push(to_string_utf8(ctx, arguments[i]));
+		s.append(to_string_utf8(ctx, arguments[i]));
 	}
-	LOG(s.to_string());
+	LOG(s);
 	return nullptr;
 }
 

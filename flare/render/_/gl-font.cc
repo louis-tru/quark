@@ -30,7 +30,7 @@
 
 #include "./gl.h"
 #include "../font/_font.h"
-#include "../display-port.h"
+#include "../display.h"
 
 namespace flare {
 

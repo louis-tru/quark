@@ -36,8 +36,8 @@ namespace flare {
 	* @class AppleKeyboardAdapter
 	*/
 	class AppleKeyboardAdapter: public KeyboardAdapter {
-		public:
-			AppleKeyboardAdapter();
+	public:
+		AppleKeyboardAdapter();
 	};
 
 	AppleKeyboardAdapter::AppleKeyboardAdapter() {

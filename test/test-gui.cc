@@ -29,12 +29,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <flare/util/util.h>
-#include <flare/image.h>
-#include <flare/sprite.h>
-#include <flare/div.h>
+#include <flare/codec/codec.h>
+//#include <flare/sprite.h>
+//#include <flare/div.h>
 #include <flare/app.h>
-#include <flare/display-port.h>
-#include <flare/root.h>
+#include <flare/display.h>
+#include <flare/layout/root.h>
 #include <flare/util/fs.h>
 #include <flare/gl/gl.h>
 

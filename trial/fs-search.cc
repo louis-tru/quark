@@ -85,13 +85,13 @@ namespace flare {
 	}
 
 	String FileSearch::ZipInSearchPath::formatPath(cString& path1, cString& path2) {
-		return inl_format_part_path(String(path1).push('/').push(path2));
+		return inl_format_part_path(String(path1).append('/').append(path2));
 	}
 
 	String FileSearch::ZipInSearchPath::get_absolute_path(cString& path) {
 		String s = formatPath(m_path, path);
 		if (m_zip.exists(s)) {
-			return String::format("zip://%s@/%s", /*file://*/*m_zip_path.substr(7), *s);
+			return String::format("zip://%s@/%s", /*file:// */ *m_zip_path.substr(7), *s);
 		}
 		return String();
 	}
@@ -126,7 +126,7 @@ namespace flare {
 		cString& res = Path::resources();
 		
 		if (Path::is_local_zip(res)) { // zip pkg
-			int i = res.index_of('@/');
+			int i = res.index_of("@/");
 			if (i != -1) {
 				add_zip_search_path(/*zip://*/res.substring(6, i), res.substr(i + 2));
 			} else if (res[res.length() - 1] == '@') {
@@ -153,7 +153,7 @@ namespace flare {
 		auto it = m_search_paths.begin();
 		auto end = m_search_paths.end();
 		for (; it != end; it++) {
-			FileSearch::SearchPath* s = it.value();
+			FileSearch::SearchPath* s = *it;
 			if (!s->as_zip()) {
 				if (s->path() == str) {
 					FX_WARN("The repetitive path, \"%s\"", *path);
@@ -162,7 +162,7 @@ namespace flare {
 				}
 			}
 		}
-		m_search_paths.push(new FileSearch::SearchPath(str));
+		m_search_paths.push_back(new FileSearch::SearchPath(str));
 	}
 
 	void FileSearch::add_zip_search_path(cString& zip_path, cString& path) {
@@ -176,8 +176,8 @@ namespace flare {
 		auto it = m_search_paths.begin();
 		auto end = m_search_paths.end();
 		for (; it != end; it++) {
-			if (it.value()->as_zip()) {
-				FileSearch::ZipInSearchPath* s = it.value()->as_zip();
+			if ((*it)->as_zip()) {
+				FileSearch::ZipInSearchPath* s = (*it)->as_zip();
 				if (s->zip_path() == _zip_path && s->path() == _path) {
 					FX_WARN("The repetitive path, ZIP: %s, %s", *zip_path, *path);
 					// Fault tolerance,skip the same path
@@ -185,7 +185,7 @@ namespace flare {
 				}
 			}
 		}
-		m_search_paths.push(new FileSearch::ZipInSearchPath(_zip_path, _path));
+		m_search_paths.push_back(new FileSearch::ZipInSearchPath(_zip_path, _path));
 	}
 
 	/**
@@ -198,7 +198,7 @@ namespace flare {
 		auto end = m_search_paths.end();
 		Array<String> rest;
 		for (; it != end; it++) {
-			rest.push(it.value()->path());
+			rest.push((*it)->path());
 		}
 		return rest;
 	}
@@ -210,9 +210,9 @@ namespace flare {
 		auto it = m_search_paths.begin();
 		auto end = m_search_paths.end();
 		for ( ; it != end; it++) {
-			if (it.value()->path() == path) {
-				delete it.value();
-				m_search_paths.del(it);
+			if ((*it)->path() == path) {
+				delete (*it);
+				m_search_paths.erase(it);
 				return;
 			}
 		}
@@ -225,7 +225,7 @@ namespace flare {
 		auto it = m_search_paths.begin();
 		auto end = m_search_paths.end();
 		for (; it != end; it++) {
-			delete it.value();
+			delete it.ptr();
 		}
 		m_search_paths.clear();
 	}
@@ -238,7 +238,7 @@ namespace flare {
 		}
 		
 		if (Path::is_local_absolute(path)) {
-			return FileHelper::exists_sync(path) ? Path::format(path.c()) : String();
+			return FileHelper::exists_sync(path) ? Path::format(path.c_str()) : String();
 		}
 		
 		auto it = m_search_paths.begin();
@@ -254,7 +254,7 @@ namespace flare {
 				path_s = ls[1];
 				
 				for ( ; it != end; it++ ) {
-					auto zip = it.value()->as_zip();
+					auto zip = (*it)->as_zip();
 					if (zip && zip->zip_path() == zip_path) {
 						if (zip->exists_by_abs(path_s)) {
 							return path;
@@ -265,7 +265,7 @@ namespace flare {
 		}
 		else {
 			for ( ; it != end; it++ ) {
-				String abs_path = *it.value()->get_absolute_path(path);
+				String abs_path = (*it)->get_absolute_path(path);
 				if (String() != abs_path) {
 					return abs_path;
 				}
@@ -301,7 +301,7 @@ namespace flare {
 					path_s = ls[1];
 					
 					for ( ; it != end; it++ ) {
-						auto zip = it.value()->as_zip();
+						auto zip = (*it)->as_zip();
 						if (zip && zip->zip_path() == zip_path) {
 							return zip->read_by_in_path(path_s);
 						}
@@ -310,7 +310,7 @@ namespace flare {
 			}
 			else {
 				for ( ; it != end; it++ ) {
-					Buffer data = it.value()->read(path);
+					Buffer data = (*it)->read(path);
 					if (data.length()) {
 						return data;
 					}

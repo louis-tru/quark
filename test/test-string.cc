@@ -79,12 +79,12 @@ class Str {
 };
 
 void test (const Str& str) {
-	printf("str:%s,len:%d,add:%lu,test ok\n", str.c_str(), str.length(), str.c_str());
+	printf("str:%s, len:%d, add:%s, test ok\n", str.c_str(), str.length(), str.c_str());
 	LOG("");
 }
 
 void test2 (const string& str) {
-	printf("str:%s,len:%d,add:%lu,test ok\n", str.c_str(), str.length(), str.c_str());
+	printf("str:%s, len:%lu, add:%s, test ok\n", str.c_str(), str.length(), str.c_str());
 }
 
 // const static Str s = "op";
@@ -92,10 +92,10 @@ void test2 (const string& str) {
 void test_string (int argc, char **argv) {
 	
 	// utf8 / ucs2 / ucs4
-	Ucs2String ucs2 = Coder::decoding_to_uint16(Encoding::utf8, "楚学文"); // 解码
-	Ucs4String ucs4 = Coder::decoding_to_uint32(Encoding::utf8, "楚学文");
-	String utf8_1 = Coder::encoding(Encoding::utf8, ucs2); // 编码
-	String utf8_2 = Coder::encoding(Encoding::utf8, ucs4);
+	String16 ucs2 = Coder::decode_to_uint16(Encoding::utf8, "楚学文"); // 解码
+	String32 ucs4 = Coder::decode_to_uint32(Encoding::utf8, "楚学文");
+	String utf8_1 = Coder::encode(Encoding::utf8, ucs2); // 编码
+	String utf8_2 = Coder::encode(Encoding::utf8, ucs4);
 	
 	LOG(ucs2.hash_code() % 10);
 	LOG(ucs4.hash_code() % 10);
@@ -113,7 +113,7 @@ void test_string (int argc, char **argv) {
 	LOG(utf8_1);
 	LOG(utf8_2);
 	
-	LOG(__cplusplus);
+	LOG("%d", __cplusplus);
 	
 	const char* c = "op";
 	

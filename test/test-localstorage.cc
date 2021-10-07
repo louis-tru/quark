@@ -28,32 +28,32 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/util/localstorage.h"
+#include "flare/util/storage.h"
 
 using namespace flare;
 
 void test_localstorage(int argc, char **argv) {
 	
-	LOG(localstorage_get("test2"));
+	LOG(storage_get("test2"));
 	
-	localstorage_set("test", "flare.cool");
+	storage_set("test", "flare.cool");
 	
-	LOG(localstorage_get("test"));
+	LOG(storage_get("test"));
 	
-	localstorage_delete("test");
+	storage_delete("test");
 	
-	LOG(localstorage_get("test"));
+	LOG(storage_get("test"));
 	
-	localstorage_set("test", "flare.cool");
+	storage_set("test", "flare.cool");
 	
-	LOG(localstorage_get("test"));
+	LOG(storage_get("test"));
 	
-	localstorage_clear();
+	storage_clear();
 	
-	LOG(localstorage_get("test"));
+	LOG(storage_get("test"));
 	
-	localstorage_set("test2", "test2");
+	storage_set("test2", "test2");
 	
-	LOG(localstorage_get("test2"));
+	LOG(storage_get("test2"));
 	
 }

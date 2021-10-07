@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/sys.h"
+#include "flare/util/os.h"
 
 using namespace flare;
 

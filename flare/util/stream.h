@@ -45,7 +45,7 @@ namespace flare {
 	 * @class StreamResponse
 	 */
 	class FX_EXPORT StreamResponse: public Object {
-		public:
+	public:
 		inline StreamResponse(Buffer buffer, bool complete = 0
 											, uint32_t id = 0, uint64_t size = 0
 											, uint64_t total = 0, Stream* stream = nullptr)
@@ -61,7 +61,7 @@ namespace flare {
 		inline Stream* stream() const { return _stream; }
 		inline void pause() { if ( _stream ) _stream->pause(); }
 		inline void resume() { if ( _stream ) _stream->resume(); }
-		private:
+	private:
 		Buffer    _buffer;
 		bool      _complete;
 		int64_t   _size, _total;

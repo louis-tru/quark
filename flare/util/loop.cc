@@ -82,15 +82,7 @@ namespace flare {
 			stop_after_print_message();
 		}
 
-		void stop_after_print_message() {
-			ScopeLock lock(_mutex);
-			for (auto& i: _keeps) {
-				DLOG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
-			}
-			for (auto& i: _works) {
-				DLOG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
-			}
-		}
+		void stop_after_print_message();
 		
 		static void resolve_queue_before(uv_handle_t* handle) {
 			bool Continue;
@@ -331,18 +323,28 @@ namespace flare {
 		}
 	};
 
+	void  RunLoop::Inl::stop_after_print_message() {
+		ScopeLock lock(_mutex);
+		for (auto& i: _keeps) {
+			DLOG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
+		}
+		for (auto& i: _works) {
+			DLOG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
+		}
+	}
+	
 	/**
 	 * @constructor
 	 */
 	RunLoop::RunLoop(Thread* t)
-	: _independent_mutex(nullptr)
-	, _thread(t)
-	, _tid(t->id())
-	, _uv_loop(nullptr)
-	, _uv_async(nullptr)
-	, _uv_timer(nullptr)
-	, _timeout(0)
-	, _record_timeout(0)
+		: _independent_mutex(nullptr)
+		, _thread(t)
+		, _tid(t->id())
+		, _uv_loop(nullptr)
+		, _uv_async(nullptr)
+		, _uv_timer(nullptr)
+		, _timeout(0)
+		, _record_timeout(0)
 	{
 		ASSERT(!t->_loop);
 		// set run loop

@@ -186,8 +186,8 @@ namespace flare {
 		
 		// 创建一个新子工作线程.这个函数必须由main入口调用
 		Thread::spawn([argc, argv](Thread& t) {
-			ASSERT( __fx_default_gui_main );
 			auto main = __fx_gui_main ? __fx_gui_main : __fx_default_gui_main;
+			ASSERT( main, "No gui main");
 			__fx_default_gui_main = nullptr;
 			__fx_gui_main = nullptr;
 			int rc = main(argc, argv); // 运行这个自定gui入口函数

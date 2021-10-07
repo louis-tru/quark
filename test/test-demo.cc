@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare-js/flare.h"
+#include "flare/js/flare.h"
 
 using namespace flare;
 
@@ -69,15 +69,15 @@ void test_demo(int argc, char **argv) {
 	}
 #endif
 
-	char* examples = nullptr;
+	char* mod = nullptr;
 	for (int i = 0; i < argc; i++) {
 		if (argv[i][0] == 'h' && argv[i][1] == 't' && argv[i][2] == 't' && argv[i][3] == 'p') {
-			examples = argv[i];
+			mod = argv[i];
 			break;
 		}
 	}
-	if (examples) {
-		cmd += examples;
+	if (mod) {
+		cmd += mod;
 		cmd += ' ';
 	} else {
 #if USE_REMOTE

@@ -42,9 +42,9 @@ class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
 	
 	virtual ~AsyncFileRead() {
 		LOG("Delete");
-		FileHelper::read_file(Path::resources("res/bg.svg"), Cb([](CbD& evt) {
+		FileHelper::read_file(Path::resources("res/bg.svg"), Cb([](CbData& evt) {
 			if ( evt.error ) {
-				LOG("ERR, %s", evt.error->message().c());
+				LOG("ERR, %s", evt.error->message().c_str());
 			} else {
 				LOG( static_cast<Buffer*>(evt.data)->collapse_string() );
 			}
@@ -53,12 +53,12 @@ class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
 	}
 	
 	virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
-		LOG("Error, %s", error.message().c());
+		LOG("Error, %s", error.message().c_str());
 		delete this;
 	}
 	virtual void trigger_async_file_open(AsyncFile* file) {
 		LOG("Open, %s", *path());
-		read(Buffer(1024), 1024); // start read
+		read(Buffer::alloc(1024), 1024); // start read
 	}
 	virtual void trigger_async_file_close(AsyncFile* file) {
 		LOG("Close");
@@ -91,13 +91,13 @@ class AsyncFileWrite: public AsyncFile, public AsyncFile::Delegate {
 	}
 	
 	virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
-		LOG("Error, %s", error.message().c());
+		LOG("Error, %s", error.message().c_str());
 		RunLoop::current()->stop();
 		Release(this);
 	}
 	virtual void trigger_async_file_open(AsyncFile* file) {
 		LOG("Open, %s", *path());
-		write(String("ABCDEFG-").collapse_buffer()); // start read
+		write(String("ABCDEFG-").collapse()); // start read
 	}
 	virtual void trigger_async_file_close(AsyncFile* file) {
 		LOG("Close");

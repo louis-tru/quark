@@ -30,10 +30,10 @@
 
 #include "./event.h"
 #include "./_app.h"
-#include "./views2/root.h"
-#include "./views2/button.h"
-#include "./views2/panel.h"
-#include "./css/css.h"
+#include "./layout/root.h"
+//#include "./views2/button.h"
+//#include "./views2/panel.h"
+//#include "./css/css.h"
 #include <vector>
 
 namespace flare {

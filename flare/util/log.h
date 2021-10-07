@@ -65,6 +65,7 @@ namespace flare {
 		FX_EXPORT void log(double);
 		FX_EXPORT void log(int64_t);
 		FX_EXPORT void log(uint64_t);
+		FX_EXPORT void log(size_t);
 		FX_EXPORT void log(bool);
 		FX_EXPORT void log(cChar*, ...);
 		FX_EXPORT void log(cString&);

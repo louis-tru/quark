@@ -32,6 +32,7 @@
 #include <flare/util/http.h>
 #include <flare/util/string.h>
 #include <flare/util/fs.h>
+#include <flare/util/cb.h>
 
 using namespace flare;
 
@@ -48,11 +49,13 @@ void test_http(int argc, char **argv) {
 	
 	LOG(FileHelper::read_file_sync(Path::documents("baidu3.htm")));
 	
-	HttpHelper::get_stream(url, Cb([](CbD& d) {
+	typedef Callback<StreamResponse> SCb;
+	
+	HttpHelper::get_stream(url, SCb([](SCb::Data& d) {
 		if ( d.error ) {
 			LOG(d.error->message());
 		} else {
-			IOStreamData* data = static_cast<IOStreamData*>(d.data);
+			StreamResponse* data = d.data;
 			int len = data->buffer().length();
 			LOG(String(data->buffer().collapse(), len));
 			LOG("%llu/%llu, complete: %i", data->size(), data->total(), data->complete());

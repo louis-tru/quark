@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare-js/flare.h"
+#include "flare/js/flare.h"
 
 using namespace flare;
 

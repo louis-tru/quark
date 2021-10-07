@@ -31,7 +31,7 @@
 #include <flare/util/util.h>
 #include <flare/util/loop.h>
 #include <flare/util/array.h>
-#include <flare/sys.h>
+#include <flare/util/os.h>
 
 using namespace flare;
 
@@ -48,7 +48,7 @@ void test_operation(const char* name) {
     numbers[i] = i + 1.11101;
   }
   
-  uint64 s1 = sys::time_monotonic();
+  uint64_t s1 = os::time_monotonic();
   
   for ( int i = 0; i < 100000; i++ ) {
     T3 a = 0;
@@ -457,7 +457,7 @@ void test_operation(const char* name) {
     }
   }
   
-  uint64 s2 = sys::time_monotonic();
+  uint64_t s2 = os::time_monotonic();
   
   LOG("%s: %llu", name, s2 - s1);
 }
@@ -467,20 +467,20 @@ void test_number(int argc, char **argv) {
   double d = -500;
   
   char c = d;
-  byte b = d;
+  uint8_t b = d;
   
   LOG("%d", c);
   LOG("%d", *(char*)&b);
   
-  test_operation<int16, 0>("int16+");
+  test_operation<int16_t, 0>("int16+");
   test_operation<int, 0>("int+");
   test_operation<std::atomic_int, 0, int>("AtomicInt+");
-  test_operation<int64, 0>("int64+");
+  test_operation<int64_t, 0>("int64+");
   test_operation<float, 0>("float+");
   test_operation<double, 0>("double+");
-  test_operation<int16, 1>("int16*");
+  test_operation<int16_t, 1>("int16*");
   test_operation<int, 1>("int*");
-  test_operation<int64, 1>("int64*");
+  test_operation<int64_t, 1>("int64*");
   test_operation<float, 1>("float*");
   test_operation<double, 1>("double*");
 }

@@ -210,6 +210,14 @@ namespace flare {
 				default_console()->log( String::format("%llu", msg) );
 			#endif
 		}
+	
+		void log(size_t msg) {
+			#if FX_ARCH_64BIT
+				default_console()->log( String::format("%lu", msg) );
+			#else
+				default_console()->log( String::format("%llu", msg) );
+			#endif
+		}
 
 		void log(bool msg) {
 			default_console()->log( msg ? "true": "false" );

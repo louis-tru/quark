@@ -32,7 +32,7 @@
 
 using namespace flare;
 
-static void message_cb(CbD& ev, RunLoop* loop) {
+static void message_cb(CbData& ev, RunLoop* loop) {
 	static int i = 0;
 	LOG("message_cb, %d", i++);
 }
@@ -51,13 +51,13 @@ void test_loop(int argc, char **argv) {
 	
 	loop->run(10e6);
 	
-	int id = loop->work(Cb([&](CbD& e){
+	int id = loop->work(Cb([&](CbData& e){
 		for (int i = 0; i < 5; i++) {
 			Thread::sleep(1e6);
 			LOG("Exec work");
 			loop->post(Cb(message_cb, loop));
 		}
-	}), Cb([](CbD& e){
+	}), Cb([](CbData& e){
 		LOG("Done");
 	}));
 	

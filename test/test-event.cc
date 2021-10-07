@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/map.h>
+#include <flare/util/dict.h>
 #include <flare/util/array.h>
 #include <flare/util/list.h>
 #include <flare/util/string.h>
@@ -38,24 +38,24 @@ using namespace flare;
 
 void test_event(int argc, char **argv) {
 	
-	EventNoticer<Event<int>> ontest("test");
+	EventNoticer<Event<int>> onTest("Test");
 	
-	ontest.on([](Event<int>& evt) {
+	onTest.on([](Event<int>& evt) {
 		LOG("data:%d", evt.data());
 	});
 	
-	ontest.on([](Event<int>& evt) {
+	onTest.on([](Event<int>& evt) {
 		LOG("hh:%d", evt.data());
 	});
 	
 	LOG("done");
 	
-	const Map<String, String> map;
+	const Dict<String, String> map;
 	
 	map.begin();
 	map.end();
 	
-	ontest.trigger(100);
+	onTest.trigger(100);
 	
 	
 }

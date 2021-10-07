@@ -31,7 +31,7 @@
 #include <flare/util/array.h>
 #include <flare/util/list.h>
 #include <flare/util/string.h>
-#include <flare/util/map.h>
+#include <flare/util/dict.h>
 #include <map>
 
 using namespace flare;
@@ -50,13 +50,13 @@ void test_map(int argc, char **argv) {
 	
 	LOG(m[0]);
 	
-	LOG(m.size());
+	LOG("%d", m.size());
 	
 	auto begin = m.begin();
 	
-	LOG( sizeof(decltype(begin)) );
+	LOG("%d", sizeof(decltype(begin)) );
 	
-	LOG(begin->second);
+	LOG(begin->second.c_str());
 	
 	begin++;
 	
@@ -65,7 +65,7 @@ void test_map(int argc, char **argv) {
 	LOG(m[0]);
 	LOG(m[100]);
 	
-	Map<String, String> map;
+	Dict<String, String> map;
 	
 	map.find("AA");
 	
@@ -84,43 +84,43 @@ void test_map(int argc, char **argv) {
 	LOG(map["AA4"]);
 	LOG(map["AA7"]);
 	
-	for (uint i = 0; i < 10000; i++) {
+	for (uint32_t i = 0; i < 10000; i++) {
 		map.set(i, i);
 	}
 	
 	LOG(map.length());
 	
-	map.del("AA1");
-	map.mark("AAA7");
-	
+	map.erase(String("AA1"));
+	// map.mark("AAA7");
+
 	auto i = map.begin();
 	auto end = map.end();
 	
-	map.mark(i);
+	// map.mark(i);
 	
-	map.del(i);
+	map.erase(i);
 	
 	i = map.begin();
 	
 	int j = 0;
 	
 	for (; i != end; i++) {
-		LOG(i.value());
+		LOG(i->value);
 		LOG(j);
 		j++;
 	}
 	
-	Map<String, String> map2(move(map));
+	Dict<String, String> map2(std::move(map));
 	
 	for ( i = map.begin(); i != end; i++) {
-		LOG(i.value());
+		LOG(i->value);
 	}
 	
 	i = map2.begin();
 	end = map2.end();
 	
 	for ( ; i != end; i++) {
-		LOG(i.value());
+		LOG(i->value);
 	}
 	
 	map2 = map;

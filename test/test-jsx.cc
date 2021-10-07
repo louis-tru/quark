@@ -39,7 +39,7 @@ using namespace flare;
 
 #define error(err, ...) { FX_ERR(err, ##__VA_ARGS__); return 1; }
 
-bool transform_js(cString& src, Ucs2String in, Buffer& out, bool jsx, bool clean_comment) {
+bool transform_js(cString& src, String16 in, Buffer& out, bool jsx, bool clean_comment) {
 #if DEBUG_JSA
 	if ( jsx ) {
 		out = Codec::encoding(Encoding::utf8, javascript_transform_x(in, src, clean_comment));
@@ -49,9 +49,9 @@ bool transform_js(cString& src, Ucs2String in, Buffer& out, bool jsx, bool clean
 #else
 	try {
 		if ( jsx ) {
-			out = Codec::encoding(Encoding::utf8, javascript_transform_x(in, src, clean_comment));
+			out = Codec::encode(Encoding::utf8, javascript_transform_x(in, src, clean_comment));
 		} else {
-			out = Codec::encoding(Encoding::utf8, javascript_transform(in, src, clean_comment));
+			out = Codec::encode(Encoding::utf8, javascript_transform(in, src, clean_comment));
 		}
 	} catch(Error& err) {
 		error(err.message());
@@ -79,7 +79,7 @@ int test_jsx(int argc, char* argv[]) {
 	
 	String extname = Path::extname(src).lower_case();
 		
-	Ucs2String in;
+	String16 in;
 	Buffer out;
 	bool clean_comment = 0;
 
@@ -89,7 +89,7 @@ int test_jsx(int argc, char* argv[]) {
 		}
 	}
 	
-	in = Codec::decoding_to_uint16(Encoding::utf8, FileHelper::read_file_sync(src));
+	in = Codec::decode_to_uint16(Encoding::utf8, FileHelper::read_file_sync(src));
 	
 	int r = 0;
 		
@@ -102,7 +102,7 @@ int test_jsx(int argc, char* argv[]) {
 	}
 	
 	if ( r == 0 ) {
-		FileHelper::write_file_sync(target, move(out));
+		FileHelper::write_file_sync(target, std::move(out));
 	}
 
 	return r;

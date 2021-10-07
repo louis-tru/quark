@@ -54,11 +54,11 @@ void test_zlib (int argc, char **argv) {
 	
 	const char* hello = "g++ -pthread -rdynamic -m64 ";
 	size_t len = strlen(hello) + 1;
-	LOG(len);
+	LOG("%d", len);
 	LOG(hello);
 
 	{
-		byte* compr = (byte*)malloc(100);
+		uint8_t* compr = (uint8_t*)malloc(100);
 		size_t comprLen = 100;
 //    int err = compress(compr, &comprLen, (const byte*)hello, len);
 //    LOG("START, %s, %u, %d, END", (char*)compr, comprLen, err);

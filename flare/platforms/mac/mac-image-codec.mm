@@ -47,11 +47,11 @@ namespace flare {
 		NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
 																					length:data.length()
 																		freeWhenDone:NO];
-		UIImage* uiimg = [[UIImage alloc] initWithData:nsdata];
+		UIImage* img = [[UIImage alloc] initWithData:nsdata];
 		#if FX_OSX
-			CGImageRef image = [uiimg CGImageForProposedRect:nil context:nil hints:nil];
+			CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
 		#else 
-			CGImageRef image = [uiimg CGImage];
+			CGImageRef image = [img CGImage];
 		#endif 
 		
 		if (image) {
@@ -108,11 +108,11 @@ namespace flare {
 		NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
 																					length:data.length()
 																		freeWhenDone:NO];
-		UIImage* uiimg = [[UIImage alloc] initWithData:nsdata];
+		UIImage* img = [[UIImage alloc] initWithData:nsdata];
 		#if FX_OSX
-			CGImageRef image = [uiimg CGImageForProposedRect:nil context:nil hints:nil];
+			CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
 		#else 
-			CGImageRef image = [uiimg CGImage];
+			CGImageRef image = [img CGImage];
 		#endif 
 		
 		if (image) {

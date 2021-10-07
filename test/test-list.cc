@@ -32,6 +32,7 @@
 #include <flare/util/list.h>
 #include <flare/util/string.h>
 #include <map>
+#include <flare/util/log.h>
 
 using namespace flare;
 
@@ -45,13 +46,13 @@ void test_list(int argc, char **argv) {
 	
 	Array<String> ls = str.split(",");
 	
-	LOG(ls.length());
+	LOG("%d", ls.length());
 	
 	ls.push("ABCD");
 	ls.push("ABCD1");
 	ls.pop();
 	
-	LOG(ls.length());
+	LOG("%d", ls.length());
 	
 	LOG(ls[0]);
 	
@@ -60,10 +61,10 @@ void test_list(int argc, char **argv) {
 	String str2(str);
 	
 	LOG(str2.to_string());
-	LOG(str2.copy_buffer());
+	LOG(str2.copy().collapse());
 	
 	for (auto i = ls.begin(), end = ls.end(); i != end; i++) {
-		LOG(i.value());
+		LOG(*i);
 	}
 	
 	Array<int> ls2;

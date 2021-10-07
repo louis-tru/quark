@@ -223,7 +223,7 @@ add_library(flare-trial SHARED
 
 add_library(flare-test SHARED
 	../../../test/test.cc
-	../../../test/test-flare.cc
+	#../../../test/test-flare.cc
 	../../../test/test-fs.cc
 	../../../test/test-fs2.cc
 	../../../test/test-gui.cc

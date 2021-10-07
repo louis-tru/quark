@@ -83,8 +83,9 @@ namespace flare {
 	}
 
 	JNI::MethodInfo::MethodInfo(cChar* clazz, cChar* method, cChar* param_code, bool is_static)
-	: _clazz(NULL)
-	, _method(NULL) {
+		: _clazz(NULL)
+		, _method(NULL)
+	{
 		ScopeENV env;
 
 		if ( !env.is_null() ) {
@@ -98,8 +99,9 @@ namespace flare {
 	}
 
 	JNI::MethodInfo::MethodInfo(jclass clazz, cChar* method, cChar* param_code, bool is_static)
-	: _clazz(clazz)
-	, _method(NULL) {
+		: _clazz(clazz)
+		, _method(NULL)
+	{
 		ScopeENV env;
 
 		if ( !env.is_null() ) {

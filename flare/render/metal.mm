@@ -57,16 +57,16 @@ namespace flare {
 
 	MetalRender::MetalRender(Application* host, const DisplayParams& params)
 		: Render(host, params)
-        , _Device(nil), _Queue(nil)
-        , _layer(nil)
+		, _Device(nil), _Queue(nil)
+		, _layer(nil)
 		, _DrawableHandle(nil), _PipelineArchive(nil) {
 	}
 
-    MetalRender::~MetalRender() {
-        CFSafeRelease(_Device); _Device = nil;
-        CFSafeRelease(_Queue); _Queue = nil;
-        SkCFSafeRelease(_DrawableHandle); _DrawableHandle = nil;
-    }
+	MetalRender::~MetalRender() {
+		CFSafeRelease(_Device); _Device = nil;
+		CFSafeRelease(_Queue); _Queue = nil;
+		SkCFSafeRelease(_DrawableHandle); _DrawableHandle = nil;
+	}
 
 	void MetalRender::initialize() {
 	}
@@ -75,9 +75,8 @@ namespace flare {
 	}
 
 	void MetalRender::commit() {
-        id<CAMetalDrawable> currentDrawable = (__bridge id<CAMetalDrawable>)_DrawableHandle;
-
-        id<MTLCommandBuffer> commandBuffer([_Queue commandBuffer]);
+		id<CAMetalDrawable> currentDrawable = (__bridge id<CAMetalDrawable>)_DrawableHandle;
+		id<MTLCommandBuffer> commandBuffer([_Queue commandBuffer]);
 		commandBuffer.label = @"Present";
 
 		[commandBuffer presentDrawable:currentDrawable];
@@ -202,8 +201,8 @@ namespace flare {
 
 		GrMtlBackendContext backendContext = {};
 
-        backendContext.fDevice.retain((__bridge void*)_Device);
-        backendContext.fQueue.retain((__bridge void*)_Queue);
+		backendContext.fDevice.retain((__bridge void*)_Device);
+		backendContext.fQueue.retain((__bridge void*)_Queue);
 
 		if (@available(macOS 11.0, iOS 14.0, *)) {
 			backendContext.fBinaryArchive.retain((__bridge GrMTLHandle)_PipelineArchive);

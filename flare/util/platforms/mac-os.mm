@@ -49,7 +49,6 @@
 #import <mach/mach.h>
 
 namespace flare {
-
 	namespace os {
 
 		String brand() {
@@ -79,7 +78,7 @@ namespace flare {
 
 		#endif
 
-		void __get_languages__(String& langs, String& lang) {
+		void get_languages_(String& langs, String& lang) {
 			NSArray* languages = [NSLocale preferredLanguages];
 			for ( int i = 0; i < [languages count]; i++ ) {
 				NSString* str = [languages objectAtIndex:0];
@@ -254,5 +253,4 @@ namespace flare {
 		}
 
 	}
-
 }

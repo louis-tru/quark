@@ -29,27 +29,27 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "flare/app.h"
-#include "flare/sys.h"
+#include "flare/util/os.h"
 #include "flare/util/loop.h"
 #include "../deps/node/src/flare.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_demo
+#define TEST_FUNC_NAME test_uv
 #endif
 
 using namespace flare;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
-FX_GUI_MAIN() {
+FX_Main() {
 
 	// node::FlareEnvironment::test();
 
-	uint64 st = sys::time();
+	uint64_t st = os::time();
 	
 	TEST_FUNC_NAME(argc, argv);
 	
-	LOG("eclapsed time:%dms", (sys::time() - st) / 1000);
+	LOG("eclapsed time:%dms", (os::time() - st) / 1000);
 
 	return 0;
 }

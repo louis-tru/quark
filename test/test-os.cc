@@ -28,29 +28,26 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare-js/flare.h"
+#include "flare/util/os.h"
+#include "flare/util/string.h"
 
 using namespace flare;
 
-#define IP_REMOTE "127.0.0.1"
-#define USE_REMOTE 1
-#define USE_INSPECT 0
-#define USE_NODE 0
-
-void test_flare(int argc, char **argv) {
-	String cmd = "flare ";
-#if USE_NODE
-	cmd += " ";
-#else
-	cmd += "--no-node ";
-#endif
-#if USE_INSPECT
-	cmd += "--inspect-brk=0.0.0.0:9229 ";
-#endif
-#if USE_REMOTE
-	cmd += "http://" IP_REMOTE ":1026/test/test-flare";
-#else
-	cmd += "test-flare";
-#endif
-	js::Start(cmd);
+void test_os(int argc, char **argv) {
+	LOG(os::info());
+	LOG(os::version());
+	LOG(os::brand());
+	LOG(os::subsystem());
+	LOG(os::language());
+	LOG(os::is_wifi());
+	LOG(os::is_mobile());
+	LOG(os::network_status());
+	LOG(os::is_ac_power());
+	LOG(os::is_battery());
+	LOG(os::battery_level());
+	LOG(os::memory());
+	LOG(os::used_memory());
+	LOG(os::available_memory());
 }
+
+
