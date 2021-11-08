@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 bin=$1
 INSTALL_DIR=$2
 PRODUCT_PATH=$3
@@ -14,7 +16,7 @@ if [ ! -d $OBJS_DIR ] || [ ! -f $PRODUCT_PATH ]; then
 	rm -rf $INSTALL_DIR/*
 	mkdir -p $INSTALL_DIR
 	mkdir $OBJS_DIR
-	make install -j2 || exit 1
+	V=$V make install -j2 || exit 1
 
 	OBJS=`find libavutil libavformat libswresample libavcodec compat -name *.o|xargs`
 

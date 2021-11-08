@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 CWD=`pwd`
 PRODUCT_DIR="out/fproj/product"
 BUILD_ALL=$1

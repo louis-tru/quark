@@ -28,7 +28,7 @@ check_osx=\
 
 .PHONY: $(FORWARD) ios android linux osx \
 	product install install-fproj \
-	help web doc watch all all_on_linux all_on_osx sync skia skia_sync
+	help web doc watch all all_on_linux all_on_osx sync sync_skia
 
 .SECONDEXPANSION:
 
@@ -123,21 +123,13 @@ help:
 watch:
 	@./tools/sync_watch -h $(REMOTE_COMPILE_HOST)
 
+sync_skia:
+	@python deps/skia/tools/git-sync-deps
+
 sync: # init git submodule
 	@if [ ! -f test/android/app/app.iml ]; then \
 		cp test/android/app/.app.iml test/android/app/app.iml; \
 	fi
 	@git pull
 	@git submodule update --init --recursive
-	@if [ ! -d deps/skia/third_party/externals ]; then $(MAKE) skia_sync; fi
-
-skia_sync:
-	@python deps/skia/tools/git-sync-deps
-
-# https://skia.org/docs/user/build/
-#./bin/gn gen out/Release --args='target_os="ios" target_cpu="arm64" target_cxx="clang" 
-# target_cc="clang" target_link="clang" is_debug=false is_official_build=false is_component_build=false'
-skia:
-	python deps/skia/tools/git-sync-deps
-	cd deps/skia && ./bin/gn gen out/Release --args='target_os="ios" target_cpu="arm64" is_debug=false is_official_build=false is_component_build=false'
-	ninja -C deps/skia/out/Release
+	@if [ ! -d deps/skia/third_party/externals ]; then $(MAKE) sync_skia; fi

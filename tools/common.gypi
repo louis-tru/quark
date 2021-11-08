@@ -39,6 +39,7 @@
 		'without_visibility_hidden%': 0,
 		'without_embed_bitcode%': 0,
 		'cross_compiling%': 0,
+		'emulator%': 0,
 
 		############################# dependents set ##################
 		
@@ -299,7 +300,7 @@
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
 					'VALID_ARCHS': '<(arch_name)',
 					'conditions': [
-						['arch in "x86 x64"', { 'SDKROOT': 'iphonesimulator' }],
+						['arch in "x86 x64" or <(emulator)', { 'SDKROOT': 'iphonesimulator' }],
 						['project=="xcode"', {
 							# v8 setting
 							'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7]': [ '$(inherited)', 'USE_SIMULATOR', ],

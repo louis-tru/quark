@@ -23,9 +23,6 @@
 			'font/langou.ttf',
 			'font/iconfont.ttf',
 		],
-		'skia_build': '<(tools)/build_skia.sh',
-		'skia_source': '<(source)/deps/skia',
-		'skia_install_dir':  '<(output)/obj.target/skia',
 	},
 	'targets':[
 	{
@@ -340,29 +337,28 @@
 		'target_name': 'skia',
 		'type': 'none',
 		'direct_dependent_settings': {
-			'include_dirs': [ '<(skia_install_dir)', '<(skia_source)', ],
+			'include_dirs': [ '<(output)/obj.target/skia', '<(source)/deps/skia', ],
 		},
 		'sources': [
 		],
 		'actions': [{
 			'action_name': 'skia_compile',
 			'inputs': [
-				'../deps/skia/out/<(output_name)/args.gn',
+				'../out/<(output_name)/obj.target/skia/args.gn',
 			],
 			'outputs': [
 				'../out/<(output_name)/obj.target/skia/libskia.a',
 				'../out/<(output_name)/obj.target/skia/skia',
+				'../deps/skia',
 			],
 			'action': [
-				'<(skia_build)',
-				'<(skia_source)',
-				'<(skia_source)/out/<(output_name)',
-				'<(skia_install_dir)',
+				'<(tools)/build_skia.sh',
+				'<(output)/obj.target/skia',
 			],
 		}],
 		'link_settings': {
 			'libraries': [
-				'<(skia_install_dir)/libskia.a',
+				'<(output)/obj.target/skia/libskia.a',
 			]
 		},
 		'conditions': [

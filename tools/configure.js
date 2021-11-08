@@ -56,6 +56,7 @@ def_opts('arm-vfp', opts.arch == 'arm64' ? 'vfpv4':
 																'--arm-vfp=VAL  enable arm vfp options vfpv2/vfpv3/vfpv4/none [{0}]');
 def_opts('arm-fpu', opts.arm_neon ? 'neon': opts.arm_vfp, 
 																'--arm-fpu=VAL  enable arm fpu [{0}]');
+def_opts(['emulator', 'em'], 0, '--emulator,-em enable the emulator [{0}]');
 def_opts('clang', opts.os.match(/osx|ios|iwatch|tvos/) ? 1 : 0, 
 																'--clang        enable clang compiler [{0}]');
 def_opts('media', 'auto',       '--media        compile media [{0}]');
@@ -258,18 +259,20 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 
 		// -fembed-bitcode-marker
 		var f_embed_bitcode = opts.without_embed_bitcode ?  '' : '-fembed-bitcode';
-		var cc = `clang -miphoneos-version-min=${variables.version_min} `+
-						`-arch ${arch_name} ${f_embed_bitcode}`;
-		cmd += `--cc='${cc}' `;
+		var cc = `clang -arch ${arch_name} ${f_embed_bitcode} `;
 
-		if (arch == 'x86' || arch == 'x64') {
-			cmd += '--sysroot=$(xcrun --sdk iphonesimulator --show-sdk-path) ';
+		if (variables.emulator) {
+			cc += `-mios-simulator-version-min=${variables.version_min} `
 		} else {
-			if (arch == 'arm') {
-				var as = `${__dirname}/gas-preprocessor.pl -arch arm -as-type apple-clang -- ${cc}`;
-				cmd += `--as='${as}' `;
-			}
-			cmd += '--sysroot=$(xcrun --sdk iphoneos --show-sdk-path) ';
+			cc += `-miphoneos-version-min=${variables.version_min} `
+		}
+
+		cmd += `--cc='${cc}' `;
+		cmd += `--sysroot=${variables.build_sysroot} `;
+
+		if (arch == 'arm') {
+			var as = `${__dirname}/gas-preprocessor.pl -arch arm -as-type apple-clang -- ${cc}`;
+			cmd += `--as='${as}' `;
 		}
 	} 
 	else if (os == 'osx') {
@@ -337,12 +340,26 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 }
 
 function configure_skia(opts, variables) {
+	// https://skia.org/docs/user/build/
+	// python tools/git-sync-deps
+	// ./bin/gn gen out --ide=xcode --args='is_debug=false is_official_build=false is_component_build=false target_cpu="arm64" target_os="ios"'
+
+	// [279/1219] clang -MD -MF obj/src/gpu/gl/gpu.GrGLSemaphore.o.d -DNDEBUG 
+	// -DSK_ENABLE_SKSL -DSK_ASSUME_GL_ES=1 -DSK_ENABLE_API_AVAILABLE -DSK_GAMMA_APPLY_TO_A8 -DSKIA_IMPLEMENTATION=1 
+	// -DSK_GL -I../../../../deps/skia -Wno-attributes -fstrict-aliasing -fPIC -fvisibility=hidden 
+	// -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.5.sdk 
+	// -arch arm64 -arch arm64e -O3 -std=c++17 -fvisibility-inlines-hidden 
+	// -stdlib=libc++ -fno-aligned-allocation -fno-exceptions 
+	// -fno-rtti -c ../../../../deps/skia/src/gpu/gl/GrGLSemaphore.cpp -o obj/src/gpu/gl/gpu.GrGLSemaphore.o
+
+	// cflags_cc="-std=c++17"
+	
 	var os = opts.os;
 	var arch_name = variables.arch_name;
 	var source = __dirname + '/../deps/skia';
 
 	var args0 = `--sysroot="${variables.build_sysroot}" `;
-	var args = ` \
+	var args = `\
 		is_component_build=false \
 		target_cxx="${variables.cxx}" \
 		target_cc="${variables.cc}" \
@@ -360,12 +377,12 @@ function configure_skia(opts, variables) {
 		args += ` \
 			is_debug=false \
 			is_official_build=true \
-			skia_use_system_harfbuzz=false \
 			skia_use_system_libjpeg_turbo=false \
 			skia_use_system_libpng=false \
 			skia_use_system_libwebp=false \
 			skia_use_icu=false \
 		`;
+		//skia_use_system_harfbuzz=false \
 	}
 
 	if (os == 'android') {
@@ -393,12 +410,13 @@ function configure_skia(opts, variables) {
 	console.log(`export PATH=${__dirname}:${variables.build_bin}:$PATH`);
 
 	var cmd = `cd ${source} && \
-		./bin/gn gen out/${variables.output_name} ${args0} --args='${args}'`;
+		./bin/gn gen ${variables.output}/obj.target/skia ${args0} --args='${args}'`;
 	console.log(cmd);
 
 	var log = syscall(cmd.replace(/\t/gm, ' '));
 	console.error(log.stderr.join('\n'));
 	console.log(log.stdout.join('\n'));
+	// process.exit(0);
 }
 
 function bs(a) {
@@ -681,6 +699,7 @@ async function configure() {
 	/* 交叉编译时需要单独的工具集来生成v8-js快照,所以交叉编译暂时不使用v8-js快照*/
 	var v8_use_snapshot = !opts.without_snapshot && !cross_compiling && !modile;
 	var shared = opts.library == 'shared' ? 'shared': '';
+	var emulator = 0;
 
 	if ( os == 'ios' ) {
 		if ( opts.use_v8 == 'auto' ) { // ios默认使用 javascriptcore
@@ -734,6 +753,7 @@ async function configure() {
 			ld: 'g++',
 			ar: 'ar',
 			as: 'as',
+			emulator: emulator,
 			gcc_version: 0,
 			ranlib: 'ranlib',
 			strip: 'strip',
@@ -1019,7 +1039,9 @@ async function configure() {
 		}
 
 		if ( os == 'ios' ) {
-			if (arch == 'x86' || arch == 'x64') {
+			if (arch == 'x86' || arch == 'x64' || opts.emulator) {
+				variables.emulator = 1;
+				console.log('enable emulator');
 				variables.build_sysroot = syscall('xcrun --sdk iphonesimulator --show-sdk-path').first;
 			} else {
 				variables.build_sysroot = syscall('xcrun --sdk iphoneos --show-sdk-path').first;
@@ -1053,6 +1075,8 @@ async function configure() {
 
 	if (shared) 
 		output += '.' + shared;
+	if (variables.emulator)
+		output += '.emulator';
 	variables.output_name = output;
 	variables.output = path.resolve(`${__dirname}/../out/${output}`);
 	variables.suffix = suffix;

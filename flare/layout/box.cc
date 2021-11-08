@@ -600,12 +600,12 @@ namespace flare {
 		if (_fill) {
 			// TODO ...
 			// _fill->draw(canvas);
-            
-            SkFont font;
-            SkPaint paint;
-            
-            canvas->drawString("ABCD", 0, 0, font, paint);
-            
+			
+			SkFont font;
+			SkPaint paint;
+			
+			canvas->drawString("ABCD", 0, 0, font, paint);
+			
 			View::draw(canvas);
 		} else {
 			View::draw(canvas);

@@ -1,20 +1,31 @@
 #!/bin/sh
 
-skia_source=$1
-skia_out=$2
-skia_install_dir=$3
-# skia_product_path=$4
+set -e
 
-# python tools/git-sync-deps
-# ./bin/gn gen out --args='is_debug=false is_official_build=false is_component_build=false'
-ninja -v -C $skia_out
+cd $(dirname $0)/../deps/skia
 
-mkdir -p $skia_install_dir
+source=`pwd`
 
-cp -f $skia_out/libskia.a $skia_install_dir/
+if [ "$1" ]; then
+	output=$1
+else
+	output=out
+fi
 
-cd $skia_install_dir
+ninja=ninja
 
+if [ ! `which $ninja` ]; then
+	if [ `uname` == "Darwin" ] && [ -f /opt/homebrew/bin/ninja ]; then
+		ninja=/opt/homebrew/bin/ninja
+	fi
+fi
+
+cd $output
+
+if [ "$V" ]; then
+	$ninja -v
+else
+	$ninja
+fi
 rm -f skia
-
-ln -s $skia_source/include skia
+ln -s $source/include skia

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 out=$1
 embed_bitcode=$2
 use_v8_link=$3
