@@ -231,7 +231,7 @@ defined(__DragonFly__)
 # define FX_UNIX       1
 #endif
 
-#if defined(_WINDOWS)
+#if defined(_WINDOWS) || defined(_MSC_VER)
 # undef FX_WIN
 # define FX_WIN        1
 #endif

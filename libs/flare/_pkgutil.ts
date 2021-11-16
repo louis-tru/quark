@@ -80,7 +80,7 @@ if (!haveNode) {
 
 const win32 = {
 	fallbackPath: function(url: string) {
-		return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
+		return url.replace(/^file:\/\//i, '').replace(/^\/([a-z]:)?/i, '$1').replace(/\//g, '\\');
 	},
 	joinPath: function(args: any[]) {
 		for (var i = 0, ls = []; i < args.length; i++) {
