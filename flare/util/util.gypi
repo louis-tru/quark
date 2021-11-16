@@ -137,6 +137,7 @@
 				],
 				'link_settings': {
 					'libraries': [
+						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
 						'$(SDKROOT)/usr/lib/libz.tbd',
 					]
 				},

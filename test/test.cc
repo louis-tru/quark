@@ -34,14 +34,15 @@
 #include "../deps/node/src/flare.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_uv
+#define TEST_FUNC_NAME test_skia
 #endif
 
 using namespace flare;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
-FX_Main() {
+// FX_Main() {
+int main (int argc, char** argv) {
 
 	// node::FlareEnvironment::test();
 

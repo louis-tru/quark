@@ -529,8 +529,8 @@ namespace flare {
 		}
 		else if (len > MAX_SHORT_LEN) {
 			auto l = NewLong(len, 0, nullptr);
-			auto v = (char*)aalloc(nullptr, len + size_of, &l->capacity, 1);
-			::memcpy(v, _val.s.val, _val.s.length); // copy string
+			l->val = (char*)aalloc(nullptr, len + size_of, &l->capacity, 1);
+			::memcpy(l->val, _val.s.val, _val.s.length); // copy string
 			_val.l = l;
 			_val.s.length = -1; // mark long string
 		}

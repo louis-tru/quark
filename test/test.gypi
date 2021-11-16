@@ -10,14 +10,16 @@
 				'../out',
 			],
 			'dependencies': [
-				'flare',
-				'flare-media',
+				'flare-util',
+				'skia',
+				# 'flare',
+				# 'flare-media',
 				# 'flare-js',
 				# 'flare-node',
 				###########
 				'trial',
-				'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
-				'deps/freetype2/freetype2.gyp:ft2',
+				# 'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
+				# 'deps/freetype2/freetype2.gyp:ft2',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
@@ -48,7 +50,7 @@
 				'test-http3.cc',
 				'test-https.cc',
 				'test-thread.cc',
-				'test-ffmpeg.cc',
+				# 'test-ffmpeg.cc',
 				'test-number.cc',
 				'test-uv.cc',
 				'test-net.cc',
@@ -58,7 +60,7 @@
 				'test-http-cookie.cc',
 				'test-localstorage.cc',
 				'test-buffer.cc',
-				'test-jsc.cc',
+				# 'test-jsc.cc',
 				'test-loop.cc',
 				'test-os.cc',
 				'test-mutex.cc',
@@ -73,6 +75,7 @@
 				'test-linux-input.cc',
 				'test-linux-input-2.cc',
 				'test-jsx.cc',
+				'test-skia.cc',
 			],
 			'conditions': [
 				['os in "ios osx"', {
