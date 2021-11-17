@@ -127,7 +127,7 @@ namespace flare {
 	}
 
 	/**
-	 * @func focus
+	 * @func focus()
 	 */
 	bool View::focus() {
 		if ( is_focus() ) return true;
@@ -157,9 +157,9 @@ namespace flare {
 		);
 		return true;
 	}
-
+	
 	/**
-	 * @func blur
+	 * @func blur()
 	 */
 	bool View::blur() {
 		if ( is_focus() ) {
@@ -173,15 +173,15 @@ namespace flare {
 		}
 		return true;
 	}
-
+	
 	/**
-	 * @func is_focus
+	 * @func is_focus()
 	 */
 	bool View::is_focus() const {
 		auto app_ = _inl_app(app());
 		return app_ && this == app_->focus_view();
 	}
-
+	
 	void View::set_is_focus(bool value) {
 		if ( value ) {
 			focus();
@@ -191,7 +191,10 @@ namespace flare {
 	}
 
 	/**
-	 * @func can_become_focus() 可以成为焦点
+	 *
+	 * Can it be the focus
+	 * 
+	 * @func can_become_focus()
 	 */
 	bool View::can_become_focus() {
 		return false;

@@ -385,37 +385,6 @@ namespace flare {
 		_receive = val;
 	}
 
-	/**
-	 * @func focus()
-	 */
-	bool View::focus() {
-		return true; // TODO ...
-	}
-	
-	/**
-	 * @func blur()
-	 */
-	bool View::blur() {
-		return true; // TODO ...
-	}
-	
-	/**
-	 * @func is_focus()
-	 */
-	bool View::is_focus() const {
-		return true; // TODO ...
-	}
-	
-	/**
-	 *
-	 * Can it be the focus
-	 * 
-	 * @func can_become_focus()
-	 */
-	bool View::can_become_focus() {
-		return true; // TODO ...
-	}
-
 	// *******************************************************************
 
 	/**

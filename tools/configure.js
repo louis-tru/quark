@@ -1066,6 +1066,9 @@ async function configure() {
 		return;
 	}
 
+	if (variables.emulator) {
+		suffix += '.emulator';
+	}
 	if (opts.suffix) {
 		suffix = String(opts.suffix);
 	}
@@ -1073,10 +1076,8 @@ async function configure() {
 	var brand = variables.brand;
 	var output = `${os}${brand&&'-'+brand}.${suffix}.${configuration}`;
 
-	if (shared) 
+	if (shared)
 		output += '.' + shared;
-	if (variables.emulator)
-		output += '.emulator';
 	variables.output_name = output;
 	variables.output = path.resolve(`${__dirname}/../out/${output}`);
 	variables.suffix = suffix;

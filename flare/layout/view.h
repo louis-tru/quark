@@ -262,9 +262,20 @@ namespace flare {
 		bool blur();
 		
 		/**
+			*
+			* get is keyboard focus 
+			*
 			* @func is_focus()
 			*/
 		bool is_focus() const;
+
+		/**
+			*
+			* setting focus value
+			*
+			* @func set_is_focus(value)
+			*/
+		void set_is_focus(bool value);
 		
 		/**
 			*

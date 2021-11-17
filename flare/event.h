@@ -337,19 +337,19 @@ namespace flare {
 		EventDispatch(Application* app);
 		virtual ~EventDispatch();
 		// touch
-		void dispatch_touchstart(List<TouchPoint>&& touches);
-		void dispatch_touchmove(List<TouchPoint>&& touches);
-		void dispatch_touchend(List<TouchPoint>&& touches);
-		void dispatch_touchcancel(List<TouchPoint>&& touches);
+		void onTouchstart(List<TouchPoint>&& touches);
+		void onTouchmove(List<TouchPoint>&& touches);
+		void onTouchend(List<TouchPoint>&& touches);
+		void onTouchcancel(List<TouchPoint>&& touches);
 		// mouse
-		void dispatch_mousemove(float x, float y);
-		void dispatch_mousepress(KeyboardKeyName key, bool down);
+		void onMousemove(float x, float y);
+		void onMousepress(KeyboardKeyName key, bool down);
 		// ime
-		void dispatch_ime_delete(int count);
-		void dispatch_ime_insert(cString& text);
-		void dispatch_ime_marked(cString& text);
-		void dispatch_ime_unmark(cString& text);
-		void dispatch_ime_control(KeyboardKeyName name);
+		void onIme_delete(int count);
+		void onIme_insert(cString& text);
+		void onIme_marked(cString& text);
+		void onIme_unmark(cString& text);
+		void onIme_control(KeyboardKeyName name);
 
 		/**
 		* @func make_text_input
@@ -362,7 +362,7 @@ namespace flare {
 		inline KeyboardAdapter* keyboard_adapter() {
 			return _keyboard;
 		}
-			
+		
 	private:
 		class OriginTouche;
 		class MouseHandle;
