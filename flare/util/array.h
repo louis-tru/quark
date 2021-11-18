@@ -52,7 +52,7 @@ namespace flare {
 	 */
 	template<typename T, typename A>
 	class FX_EXPORT Array: public Object {
-		public:
+	 public:
 		typedef           T     Type;
 		// constructors
 		Array();
@@ -195,7 +195,7 @@ namespace flare {
 		 */
 		Array& reverse();
 
-		protected:
+	 protected:
 		// constructors
 		Array(uint32_t length, int32_t capacity, T* data); // greedy constructors
 		Array(uint32_t length, uint32_t capacity); // new array buffer from length
@@ -227,7 +227,7 @@ namespace flare {
 	 */
 	template<typename T, typename A>
 	class FX_EXPORT ArrayBuffer: public Array<T, A> {
-		public:
+	 public:
 		inline ArrayBuffer() {}
 		inline ArrayBuffer(Array<T, A>& arr): Array<T, A>(std::move(arr)) {}
 		inline ArrayBuffer(ArrayBuffer<T, A>& arr): Array<T, A>(std::move(arr)) {}
@@ -254,7 +254,7 @@ namespace flare {
 			Array<T, A>::operator=(std::move(arr)); return *this;
 		}
 		
-		protected:
+	 protected:
 		inline ArrayBuffer(uint32_t length, int32_t capacity, T* data)
 			: Array<T, A>(length, capacity, data) {}
 		inline ArrayBuffer(uint32_t length, uint32_t capacity)
@@ -268,7 +268,7 @@ namespace flare {
 	 */
 	template<typename T, typename A>
 	class FX_EXPORT ArrayWeak: public ArrayBuffer<T, A> {
-		public:
+	 public:
 		inline ArrayWeak()
 			: ArrayBuffer<T, A>(0, -1, nullptr) {}
 		inline ArrayWeak(const T* data, uint32_t length)

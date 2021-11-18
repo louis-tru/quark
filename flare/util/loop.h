@@ -76,7 +76,7 @@ namespace flare {
 		uint32_t post(Cb cb, uint64_t delay_us = 0);
 
 		class PostSyncData: public Object {
-			public:
+		 public:
 			virtual void complete() = 0;
 		};
 
@@ -172,7 +172,7 @@ namespace flare {
 		*/
 		static bool is_alive(ThreadID id);
 		
-		private:
+	 private:
 		/**
 		* @constructor 私有构造每个线程只能创建一个通过`current()`来获取当前实体
 		*/

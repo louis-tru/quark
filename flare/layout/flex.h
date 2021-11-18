@@ -40,7 +40,7 @@ namespace flare {
 		*/
 	class FX_EXPORT FlexLayout: public FlowLayout {
 		FX_Define_View(FlexLayout);
-	public:
+	 public:
 
 		FlexLayout();
 
@@ -54,7 +54,7 @@ namespace flare {
 		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
-	private:
+	 private:
 		bool _is_lock_child;
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

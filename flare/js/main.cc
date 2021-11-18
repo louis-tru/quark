@@ -33,7 +33,7 @@
 
 using namespace flare::js;
 
-FX_GUI_MAIN() {
+FX_UI_MAIN() {
 	return Start(argc, argv);
 }
 

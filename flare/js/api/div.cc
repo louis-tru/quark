@@ -57,7 +57,7 @@ class WrapDiv: public WrapViewBase {
 	}
 	
 	static void set_content_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(ContentAlign, value, "Div.contentAlign = %s");
 		JS_SELF(Div);
 		self->set_content_align(out);

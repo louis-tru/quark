@@ -38,7 +38,7 @@ namespace flare {
 
 	class FX_EXPORT SimpleHash: public Object {
 		uint64_t _hash;
-		public:
+	 public:
 		inline SimpleHash(): _hash(5381) {}
 		inline uint64_t hash_code() { return _hash; }
 		inline void clear() { _hash = 5381; }

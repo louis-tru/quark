@@ -59,7 +59,7 @@ namespace flare {
 		FX_EXPORT void log(uint8_t s);
 		FX_EXPORT void log(int16_t s);
 		FX_EXPORT void log(uint32_t s);
-		FX_EXPORT void log(int s);
+		FX_EXPORT void log(int32_t s);
 		FX_EXPORT void log(uint32_t s);
 		FX_EXPORT void log(float s);
 		FX_EXPORT void log(double);

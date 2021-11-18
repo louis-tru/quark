@@ -71,22 +71,24 @@ namespace flare {
 		typename Compare = Compare<Key>, typename A = MemoryAllocator
 	>
 	class FX_EXPORT Dict: public Object {
-		public:
+	 public:
 		struct Pair {
 			Key   key;
 			Value value;
 		};
+		
 		struct Node {
 			typedef Dict::Pair Data;
 			Node* prev() const { return _prev; }
 			Node* next() const { return _next; }
 			Data&       data() { return *reinterpret_cast<Data*>((&_conflict) + 1); }
 			const Data& data() const { return *reinterpret_cast<const Data*>((&_conflict) + 1); }
-			private:
+		 private:
 			friend class Dict;
 			uint64_t hash_code;
 			Node *_prev, *_next, *_conflict;
 		};
+
 		typedef ComplexIterator<const Node, Node> IteratorConst;
 		typedef ComplexIterator<      Node, Node> Iterator;
 
@@ -133,8 +135,7 @@ namespace flare {
 
 		uint32_t length() const;
 
-		private:
-
+	 private:
 		void init_();
 		void fill_(Node** indexed, Node* first, Node* last, uint32_t len, uint32_t capacity);
 		bool get_(const Key& key, Pair** data);

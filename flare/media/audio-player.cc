@@ -99,7 +99,7 @@ namespace flare {
 						if ( _audio_buffer.total ) {
 							if ( _waiting_buffer ) {
 								_keep->post(Cb([this](CbData& evt) {
-									trigger(GUI_EVENT_WAIT_BUFFER, Float(1.0F)); // trigger source WAIT event
+									trigger(UI_EVENT_WAIT_BUFFER, Float(1.0F)); // trigger source WAIT event
 								}));
 								_waiting_buffer = false;
 							}
@@ -108,7 +108,7 @@ namespace flare {
 							if ( status == MULTIMEDIA_SOURCE_STATUS_WAIT ) { // 源..等待数据
 								if ( _waiting_buffer == false ) {
 									_keep->post(Cb([this](CbData& evt) {
-										trigger(GUI_EVENT_WAIT_BUFFER, Float(0.0F)); // trigger source WAIT event
+										trigger(UI_EVENT_WAIT_BUFFER, Float(0.0F)); // trigger source WAIT event
 									}));
 									_waiting_buffer = true;
 								}
@@ -141,7 +141,7 @@ namespace flare {
 						if ( _status == PLAYER_STATUS_START ) {
 							_status = PLAYER_STATUS_PLAYING;
 							_keep->post(Cb([this](CbData& evt) {
-								trigger(GUI_EVENT_START_PLAY); // trigger start_play event
+								trigger(UI_EVENT_START_PLAY); // trigger start_play event
 							}));
 						}
 						_uninterrupted_play_start_systime = sys_time;
@@ -166,7 +166,7 @@ namespace flare {
 			goto loop;
 		}
 		
-		void trigger(const GUIEventName& type, const Object& data = Object()) {
+		void trigger(const UIEventName& type, const Object& data = Object()) {
 			Handle<Event<>> evt = New<Event<>>(data);
 			Notification::trigger(type, **evt);
 		}
@@ -196,7 +196,7 @@ namespace flare {
 				}
 				if ( is_event ) {
 					_keep->post(Cb([this](CbData& e){
-						Inl_AudioPlayer(this)->trigger(GUI_EVENT_STOP); // trigger stop event
+						Inl_AudioPlayer(this)->trigger(UI_EVENT_STOP); // trigger stop event
 					}));
 				}
 				lock.lock();
@@ -270,7 +270,7 @@ namespace flare {
 		ASSERT(_source == src);
 		
 		if (_audio) {
-			Inl_AudioPlayer(this)->trigger(GUI_EVENT_READY); // trigger event ready
+			Inl_AudioPlayer(this)->trigger(UI_EVENT_READY); // trigger event ready
 			if ( _status == PLAYER_STATUS_START ) {
 				Inl_AudioPlayer(this)->start_run();
 			}
@@ -306,7 +306,7 @@ namespace flare {
 					ScopeLock scope(_mutex);
 					_duration = _source->duration();
 				}
-				Inl_AudioPlayer(this)->trigger(GUI_EVENT_READY); // trigger event ready
+				Inl_AudioPlayer(this)->trigger(UI_EVENT_READY); // trigger event ready
 				
 				if ( _status == PLAYER_STATUS_START ) {
 					Inl_AudioPlayer(this)->start_run();
@@ -318,7 +318,7 @@ namespace flare {
 			} else {
 				Error e(ERR_AUDIO_NEW_CODEC_FAIL, "Unable to create video decoder");
 				FX_ERR("%s", *e.message());
-				Inl_AudioPlayer(this)->trigger(GUI_EVENT_ERROR, e); // trigger event error
+				Inl_AudioPlayer(this)->trigger(UI_EVENT_ERROR, e); // trigger event error
 				stop();
 			}
 		}));
@@ -330,17 +330,17 @@ namespace flare {
 															*/
 			if ( process < 1.0 ) {
 				// trigger event wait_buffer
-				Inl_AudioPlayer(this)->trigger(GUI_EVENT_WAIT_BUFFER, Float(process));
+				Inl_AudioPlayer(this)->trigger(UI_EVENT_WAIT_BUFFER, Float(process));
 			}
 		}
 	}
 
 	void AudioPlayer::multimedia_source_eof(MultimediaSource* so) {
-		Inl_AudioPlayer(this)->trigger(GUI_EVENT_SOURCE_END); // trigger event eof
+		Inl_AudioPlayer(this)->trigger(UI_EVENT_SOURCE_END); // trigger event eof
 	}
 
 	void AudioPlayer::multimedia_source_error(MultimediaSource* so, cError& err) {
-		Inl_AudioPlayer(this)->trigger(GUI_EVENT_ERROR, err); // trigger event error
+		Inl_AudioPlayer(this)->trigger(UI_EVENT_ERROR, err); // trigger event error
 		stop();
 	}
 
@@ -460,7 +460,7 @@ namespace flare {
 				_audio->flush();
 				_pcm->flush();
 				_keep->post(Cb([this](CbData& e){
-					Inl_AudioPlayer(this)->trigger(GUI_EVENT_SEEK, Uint64(_time)); // trigger seek event
+					Inl_AudioPlayer(this)->trigger(UI_EVENT_SEEK, Uint64(_time)); // trigger seek event
 				}));
 				return true;
 			}
@@ -477,7 +477,7 @@ namespace flare {
 			_status = PLAYER_STATUS_PAUSED;
 			_uninterrupted_play_start_systime = 0;
 			_keep->post(Cb([this](CbData& e){
-				Inl_AudioPlayer(this)->trigger(GUI_EVENT_PAUSE); // trigger pause event
+				Inl_AudioPlayer(this)->trigger(UI_EVENT_PAUSE); // trigger pause event
 			}));
 		}
 	}
@@ -491,7 +491,7 @@ namespace flare {
 			_status = PLAYER_STATUS_PLAYING;
 			_uninterrupted_play_start_systime = 0;
 			_keep->post(Cb([this](CbData& e){
-				Inl_AudioPlayer(this)->trigger(GUI_EVENT_RESUME); // trigger resume event
+				Inl_AudioPlayer(this)->trigger(UI_EVENT_RESUME); // trigger resume event
 			}));
 		}
 	}

@@ -89,7 +89,7 @@ namespace flare {
 	* @class Object
 	*/
 	class FX_EXPORT Object {
-	public:
+	 public:
 		typedef ObjectTraits Traits;
 		typedef Object IsObjectCheck;
 		virtual bool is_reference() const;
@@ -103,17 +103,17 @@ namespace flare {
 			void* (*alloc)(size_t size) = nullptr,
 			void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
 		);
-#if FX_MEMORY_TRACE_MARK
+		#if FX_MEMORY_TRACE_MARK
 			static std::vector<Object*> mark_objects();
 			static int mark_objects_count();
 			Object();
 			virtual ~Object();
-		private:
+		 private:
 			int initialize_mark_();
 			int mark_index_;
-#else
+		#else
 			virtual ~Object() = default;
-#endif
+		#endif
 	};
 
 	/**
@@ -121,7 +121,7 @@ namespace flare {
 	*/
 	class FX_EXPORT Reference: public Object {
 		typedef Reference IsObjectCheck;
-	public:
+	 public:
 		typedef ReferenceTraits Traits;
 		typedef Reference IsReferenceCheck;
 		inline Reference(): _ref_count(0) {}
@@ -132,7 +132,7 @@ namespace flare {
 		virtual void release();
 		virtual bool is_reference() const;
 		inline int ref_count() const { return _ref_count; }
-	protected:
+	 protected:
 		std::atomic_int _ref_count;
 	};
 
@@ -140,7 +140,7 @@ namespace flare {
 	* @class Protocol
 	*/
 	class FX_EXPORT Protocol {
-	public:
+	 public:
 		typedef ProtocolTraits Traits;
 		virtual Object* to_object() = 0;
 	};
@@ -149,7 +149,7 @@ namespace flare {
 	* @class ObjectTraits
 	*/
 	class FX_EXPORT ObjectTraits {
-	public:
+	 public:
 		inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
 		inline static void Release(Object* obj) { if (obj) obj->release(); }
 		static constexpr bool is_reference = false;
@@ -160,7 +160,7 @@ namespace flare {
 	* @class ReferenceTraits
 	*/
 	class FX_EXPORT ReferenceTraits: public ObjectTraits {
-	public:
+	 public:
 		static constexpr bool is_reference = true;
 	};
 
@@ -168,7 +168,7 @@ namespace flare {
 	* @class ProtocolTraits
 	*/
 	class FX_EXPORT ProtocolTraits {
-	public:
+	 public:
 		template<class T> inline static bool Retain(T* obj) {
 			return obj ? obj->to_object()->retain() : 0;
 		}
@@ -184,7 +184,7 @@ namespace flare {
 	* @class NonObjectTraits
 	*/
 	class FX_EXPORT NonObjectTraits {
-	public:
+	 public:
 		template<class T> inline static bool Retain(T* obj) {
 			/* Non referential pairs need not be Retain */ return 0;
 		}

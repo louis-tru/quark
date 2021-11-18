@@ -44,7 +44,7 @@ namespace flare {
 		F(FlowLayout) F(FlexLayout) F(FlexGrid) \
 
 	# define FX_Define_View(N) \
-	public: \
+	 public: \
 		virtual void accept(Visitor *visitor); \
 
 	# define FX_View_Class(N) class N;
@@ -54,13 +54,13 @@ namespace flare {
 	class Action;
 
 	/**
-		* The basic elements of GUI tree
+		* The basic elements of UI tree
 		*
 		* @class View
 		*/
 	class FX_EXPORT View: public Layout {
 		FX_HIDDEN_ALL_COPY(View);
-	public:
+	 public:
 
 		/**
 			* @constructors
@@ -166,7 +166,7 @@ namespace flare {
 			*/
 		virtual void remove_all_child();
 
-	protected:
+	 protected:
 		/**
 			*
 			* Setting parent parent view
@@ -175,12 +175,12 @@ namespace flare {
 			*/
 		virtual void set_parent(View* parent);
 
-	public:
+	 public:
 		/**
 			* @class Visitor
 			*/
 		class Visitor {
-			public:
+		 public:
 			# define FX_Visitor(N) virtual void visit##N(N *v);
 				FX_Views(FX_Visitor);
 			# undef  FX_Visitor
@@ -562,7 +562,7 @@ namespace flare {
 			float rotate; // z轴旋转角度值
 		};
 
-	private:
+	 private:
 		Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
 		// node tree:
 		View *_parent;

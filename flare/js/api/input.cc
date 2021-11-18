@@ -86,34 +86,34 @@ class WrapInput: public WrapViewBase {
 	}
 	
 	static void set_type(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(KeyboardType, value, "Input.type = %s");
 		JS_SELF(Input);
 		self->set_type(out);
 	}
 	
 	static void set_return_type(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(KeyboardReturnType, value, "Input.returnType = %s");
 		JS_SELF(Input);
 		self->set_return_type(out);
 	}
 	
 	static void set_placeholder(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Input);
 		self->set_placeholder( value->ToString16Value(worker) );
 	}
 	
 	static void set_placeholder_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Color, value, "Input.placeholderColor = %s");
 		JS_SELF(Input);
 		self->set_placeholder_color( out );
 	}
 	
 	static void set_security(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Input);
 		self->set_security( value->ToBooleanValue(worker) );
 	}
@@ -122,7 +122,7 @@ class WrapInput: public WrapViewBase {
 	 * @set text_margin {float}
 	 */
 	static void set_text_margin(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("* @set textMargin {float}");
 		}

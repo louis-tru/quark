@@ -655,7 +655,7 @@ namespace flare {
 		
 		// load level 0
 		_load_id = fs_reader()->read_file(_path, Cb([this](CbData& d) {
-			GUILock lock;
+			UILock lock;
 			_load_id = 0;
 			
 			if (d.error) {
@@ -768,7 +768,7 @@ namespace flare {
 		void texture_change_handle(Event<int, Texture>& evt) {
 			int status = *evt.data();
 			if (status & TEXTURE_CHANGE_COMPLETE) {
-				GUILock lock;
+				UILock lock;
 				_completes.set(evt.sender(), 1); // 完成后加入完成列表
 				auto sender = static_cast<FileTexture*>(evt.sender());
 				TexturePoolEventData data = { progress(), sender };

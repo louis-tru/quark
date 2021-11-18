@@ -51,7 +51,7 @@ class WrapBasicScroll {
 	 * @arg [curve] {Curve}
 	 */
 	static void scroll_to(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		int64_t duration = 0;
 		
 		if ( args.Length() == 0 ) {
@@ -84,26 +84,26 @@ class WrapBasicScroll {
 	}
 	
 	static void scroll(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		JS_RETURN( worker->values()->New(self->scroll()) );
 	}
 	
 	static void set_scroll(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Vec2, value, "BasicScroll.scroll = %s");
 		js_scroll_self();
 		self->set_scroll(out);
 	}
 	
 	static void scroll_x(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		JS_RETURN( self->scroll_x() );
 	}
 	
 	static void scroll_y(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		JS_RETURN( self->scroll_y() );
 	}
@@ -112,7 +112,7 @@ class WrapBasicScroll {
 	 * @set scroll_x {float} 
 	 */
 	static void set_scroll_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) JS_THROW_ERR("* @set scrollX {float} ");
 		js_scroll_self();
 		self->set_scroll_x(value->ToNumberValue(worker));
@@ -122,20 +122,20 @@ class WrapBasicScroll {
 	 * @set scroll_y {float} 
 	 */
 	static void set_scroll_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) JS_THROW_ERR("* @set scrollY {float} ");
 		js_scroll_self();
 		self->set_scroll_y(value->ToNumberValue(worker));
 	}
 	
 	static void scroll_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		JS_RETURN( self->scroll_width() );
 	}
 	
 	static void scroll_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		JS_RETURN( self->scroll_height() );
 	}
@@ -147,7 +147,7 @@ class WrapBasicScroll {
 	}
 	
 	static void set_scrollbar(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		self->set_scrollbar(value->ToBooleanValue(worker));
 	}
@@ -162,7 +162,7 @@ class WrapBasicScroll {
 	 * @set resistance {float} 
 	 */
 	static void set_resistance(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) JS_THROW_ERR("* @set resistance {float} ");
 		js_scroll_self();
 		self->set_resistance(value->ToNumberValue(worker));
@@ -175,7 +175,7 @@ class WrapBasicScroll {
 	}
 	
 	static void set_bounce(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		self->set_bounce(value->ToBooleanValue(worker));
 	}
@@ -187,7 +187,7 @@ class WrapBasicScroll {
 	}
 	
 	static void set_bounce_lock(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		self->set_bounce_lock(value->ToBooleanValue(worker));
 	}
@@ -199,7 +199,7 @@ class WrapBasicScroll {
 	}
 	
 	static void set_momentum(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		self->set_momentum(value->ToBooleanValue(worker));
 	}
@@ -211,7 +211,7 @@ class WrapBasicScroll {
 	}
 	
 	static void set_lock_direction(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		self->set_lock_direction(value->ToBooleanValue(worker));
 	}
@@ -232,7 +232,7 @@ class WrapBasicScroll {
 	 * @set catch_position_x {float} 
 	 */
 	static void set_catch_position_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) JS_THROW_ERR("* @set catchPositionX {float} ");
 		js_scroll_self();
 		self->set_catch_position_x(value->ToNumberValue(worker));
@@ -242,7 +242,7 @@ class WrapBasicScroll {
 	 * @set catch_position_y {float} 
 	 */
 	static void set_catch_position_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) JS_THROW_ERR("* @set catchPositionY {float} ");
 		js_scroll_self();
 		self->set_catch_position_y(value->ToNumberValue(worker));
@@ -255,20 +255,20 @@ class WrapBasicScroll {
 	}
 	
 	static void set_scrollbar_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Color, value, "BasicScroll.scrollbarColor = %s");
 		js_scroll_self();
 		self->set_scrollbar_color(out);
 	}
 	
 	static void h_scrollbar(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		JS_RETURN( self->h_scrollbar() );
 	}
 	
 	static void v_scrollbar(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		JS_RETURN( self->v_scrollbar() );
 	}
@@ -283,7 +283,7 @@ class WrapBasicScroll {
 	 * @set scrollbar_width {float} 
 	 */
 	static void set_scrollbar_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) JS_THROW_ERR("* @set scrollbarWidth {float} ");
 		js_scroll_self();
 		self->set_scrollbar_width( value->ToNumberValue(worker) );
@@ -299,7 +299,7 @@ class WrapBasicScroll {
 	 * @set scrollbar_margin {float} 
 	 */
 	static void set_scrollbar_margin(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) JS_THROW_ERR("* @set scrollbarMargin {float} ");
 		js_scroll_self();
 		self->set_scrollbar_margin( value->ToNumberValue(worker) );
@@ -315,7 +315,7 @@ class WrapBasicScroll {
 	 * @set default_scroll_duration {uint} ms
 	 */
 	static void set_default_scroll_duration(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) JS_THROW_ERR("* @set defaultScrollDuration {uint} ms");
 		js_scroll_self();
 		self->set_default_scroll_duration( FX_MAX(value->ToNumberValue(worker), 0) );
@@ -328,14 +328,14 @@ class WrapBasicScroll {
 	}
 	
 	static void set_default_scroll_curve(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Curve, value, "BasicScroll.defaultScrollCurve = %s");
 		js_scroll_self();
 		self->set_default_scroll_curve(out);
 	}
 	
 	static void terminate(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_scroll_self();
 		self->terminate();
 	}
@@ -416,7 +416,7 @@ class WrapScroll: public WrapViewBase {
 	 */
 	static void set_focus_margin_left(Local<JSString> name,
 																		 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( !value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -429,7 +429,7 @@ class WrapScroll: public WrapViewBase {
 	 */
 	static void set_focus_margin_right(Local<JSString> name,
 																			Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( !value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -442,7 +442,7 @@ class WrapScroll: public WrapViewBase {
 	 */
 	static void set_focus_margin_top(Local<JSString> name,
 																		Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( !value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -455,7 +455,7 @@ class WrapScroll: public WrapViewBase {
 	 */
 	static void set_focus_margin_bottom(Local<JSString> name,
 																			 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( !value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -468,7 +468,7 @@ class WrapScroll: public WrapViewBase {
 	 */
 	static void set_focus_align_x(Local<JSString> name,
 																 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Align, value, "BasicScroll.selectMotionAlignX = %s");
 		JS_SELF(Scroll);
 		self->set_focus_align_x(out);
@@ -476,7 +476,7 @@ class WrapScroll: public WrapViewBase {
 	
 	static void set_focus_align_y(Local<JSString> name,
 																 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Align, value, "BasicScroll.selectMotionAlignY = %s");
 		JS_SELF(Scroll);
 		self->set_focus_align_y(out);
@@ -490,7 +490,7 @@ class WrapScroll: public WrapViewBase {
 	
 	static void set_enable_focus_align(Local<JSString> name,
 																		 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Scroll);
 		self->set_enable_focus_align( value->ToBooleanValue(worker) );
 	}
@@ -502,7 +502,7 @@ class WrapScroll: public WrapViewBase {
 	}
 	
 	static void set_enable_fixed_scroll_size(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR(
 				"* @func BasicScroll.setFixedScrollSize(size: Vec2)\n"

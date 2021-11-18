@@ -63,19 +63,19 @@ class WrapLabel: public WrapViewBase {
 	}
 	
 	static void text_hori_bearing(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Label);
 		JS_RETURN( self->text_hori_bearing() );
 	}
 	
 	static void text_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Label);
 		JS_RETURN( self->text_height() );
 	}
 	
 	static void set_value(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Label);
 		String16 str = value->ToString16Value(worker);
 		self->set_value(str);
@@ -88,7 +88,7 @@ class WrapLabel: public WrapViewBase {
 	}
 	
 	static void set_text_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(TextAlign, value, "Label.textAlign = %s");
 		JS_SELF(Label);
 		self->set_text_align(out);

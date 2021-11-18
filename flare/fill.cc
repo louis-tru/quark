@@ -189,7 +189,7 @@ namespace flare {
 		#define _inl2(self) static_cast<FillImage::Inl*>(self)
 
 		void texture_change_handle(Event<int, Texture>& evt) { // 收到图像变化通知
-			GUILock lock;
+			UILock lock;
 			int status = *evt.data();
 			if (status & TEXTURE_CHANGE_OK) {
 				mark(View::M_BACKGROUND);

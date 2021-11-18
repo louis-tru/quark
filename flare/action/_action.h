@@ -45,7 +45,7 @@ namespace flare {
 
 	FX_DEFINE_INLINE_MEMBERS(View, ActionInl) {
 	public:
-		inline ReturnValue& trigger(const NameType& name, GUIEvent& evt) {
+		inline ReturnValue& trigger(const NameType& name, UIEvent& evt) {
 			return View::trigger(name, evt);
 		}
 	};

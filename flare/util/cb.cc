@@ -35,7 +35,7 @@
 namespace flare {
 
 	class DefaultCallbackCore: public CallbackCore<Object, Error> {
-		public:
+	 public:
 		virtual bool retain() { return 1; }
 		virtual void release() {}
 		virtual void call(CbData& event) const {}
@@ -64,7 +64,7 @@ namespace flare {
 	}
 
 	class WrapCallback: public CallbackCore<Object, Error> {
-		public:
+	 public:
 		inline WrapCallback(Cb cb, Error* err, Object* data)
 		: _cb(cb), _err(err), _data(data) {
 		}

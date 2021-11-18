@@ -102,7 +102,7 @@ class WrapDisplay: public WrapObject {
 	 *
 	 */
 	static void lock_size(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsNumber(worker) ) {
 			JS_THROW_ERR(
 				"* @func lockSize([width[,height]])"
@@ -124,7 +124,7 @@ class WrapDisplay: public WrapObject {
 	 * @arg cb {Function}
 	 */
 	static void next_frame(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if (args.Length() < 1 || !args[0]->IsFunction(worker)) {
 			JS_THROW_ERR(
 				"* @func nextFrame(cb)\n"
@@ -148,7 +148,7 @@ class WrapDisplay: public WrapObject {
 	 * @get width {float} 
 	 */
 	static void width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( self->size().width() );
 	}
@@ -157,7 +157,7 @@ class WrapDisplay: public WrapObject {
 	 * @get height {float} 
 	 */
 	static void height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( self->size().height() );
 	}
@@ -166,7 +166,7 @@ class WrapDisplay: public WrapObject {
 	 * @get phy_width {float} 
 	 */
 	static void phy_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( self->phy_size().width() );
 	}
@@ -175,7 +175,7 @@ class WrapDisplay: public WrapObject {
 	 * @get phy_height {float} 
 	 */
 	static void phy_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( self->phy_size().height() );
 	}
@@ -184,7 +184,7 @@ class WrapDisplay: public WrapObject {
 	 * @get best_scale {float} 
 	 */
 	static void best_scale(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( self->best_scale() );
 	}
@@ -193,7 +193,7 @@ class WrapDisplay: public WrapObject {
 	 * @get scale {float} 
 	 */
 	static void scale(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( self->scale() );
 	}
@@ -202,7 +202,7 @@ class WrapDisplay: public WrapObject {
 	 * @get scale_value {Vec2}
 	 */
 	static void scale_value(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( worker->values()->New(self->scale_value()) );
 	}
@@ -211,7 +211,7 @@ class WrapDisplay: public WrapObject {
 	 * @get root_matrix {Mat4} 
 	 */
 	static void root_matrix(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( worker->values()->New(self->root_matrix()) );
 	}
@@ -220,7 +220,7 @@ class WrapDisplay: public WrapObject {
 	 * @get atom_pixel {float} 
 	 */
 	static void atom_pixel(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( self->atom_pixel() );
 	}
@@ -229,7 +229,7 @@ class WrapDisplay: public WrapObject {
 	 * @func keep_screen(keep)
 	 */
 	static void keep_screen(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR(
 										"* @func keepScreen(keep)\n"
@@ -244,7 +244,7 @@ class WrapDisplay: public WrapObject {
 	 * @func status_bar_height()
 	 */
 	static void status_bar_height(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( self->status_bar_height() );
 	}
@@ -253,7 +253,7 @@ class WrapDisplay: public WrapObject {
 	 * @func set_visible_status_bar(visible)
 	 */
 	static void set_visible_status_bar(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR(
 										"* @func setVisibleStatusBar(visible)\n"
@@ -268,7 +268,7 @@ class WrapDisplay: public WrapObject {
 	 * @func set_status_bar_style(style)
 	 */
 	static void set_status_bar_style(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsUint32() ) {
 			JS_THROW_ERR(
 										"* @func setStatusBarStyle(style)\n"
@@ -283,7 +283,7 @@ class WrapDisplay: public WrapObject {
 	 * @func request_fullscreen(fullscreen)
 	 */
 	static void request_fullscreen(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR(
 										"* @func requestFullscreen(fullscreen)\n"
@@ -298,7 +298,7 @@ class WrapDisplay: public WrapObject {
 	 * @func orientation()
 	 */
 	static void orientation(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( self->orientation() );
 	}
@@ -307,7 +307,7 @@ class WrapDisplay: public WrapObject {
 	 * @func set_orientation(orientation)
 	 */
 	static void set_orientation(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsUint32(worker) ) {
 			JS_THROW_ERR(
 										"* @func setOrientation(orientation)\n"
@@ -322,7 +322,7 @@ class WrapDisplay: public WrapObject {
 	 * @func fsp()
 	 */
 	static void fsp(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Display);
 		JS_RETURN( self->fsp() );
 	}
@@ -331,7 +331,7 @@ class WrapDisplay: public WrapObject {
 	 * @func default_atom_pixel() {float} 
 	 */
 	static void default_atom_pixel(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_RETURN( Display::default_atom_pixel() );
 	}
 	
@@ -339,7 +339,7 @@ class WrapDisplay: public WrapObject {
 	 * @func default_status_bar_height() {float}
 	 */
 	static void default_status_bar_height(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_RETURN( Display::default_status_bar_height() );
 	}
 	

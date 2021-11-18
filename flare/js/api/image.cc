@@ -57,20 +57,20 @@ class WrapImage: public WrapViewBase {
 	}
 	
 	static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Image);
 		String src = value->ToStringValue(worker);
 		self->set_src(src);
 	}
 	
 	static void source_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Image);
 		JS_RETURN( self->source_width() );
 	}
 	
 	static void source_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Image);
 		JS_RETURN( self->source_height() );
 	}

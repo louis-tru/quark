@@ -266,7 +266,7 @@ class WrapBox: public WrapObject {
 	}
 
 	static void margin(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		auto arr = worker->NewArray();
 		arr->Set(worker, 0, worker->values()->New(self->margin_top()) );
@@ -277,7 +277,7 @@ class WrapBox: public WrapObject {
 	}
 
 	static void border(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		auto arr = worker->NewArray();
 		arr->Set(worker, 0, worker->values()->New(self->border_top()) );
@@ -288,7 +288,7 @@ class WrapBox: public WrapObject {
 	}
 
 	static void border_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		auto arr = worker->NewArray();
 		arr->Set(worker, 0, worker->New(self->border_top_width()) );
@@ -299,7 +299,7 @@ class WrapBox: public WrapObject {
 	}
 
 	static void border_color(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		auto arr = worker->NewArray();
 		arr->Set(worker, 0, worker->values()->New(self->border_top_color()) );
@@ -310,7 +310,7 @@ class WrapBox: public WrapObject {
 	}
 
 	static void border_radius(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		auto arr = worker->NewArray();
 		arr->Set(worker, 0, worker->New(self->border_radius_left_top()) );
@@ -324,7 +324,7 @@ class WrapBox: public WrapObject {
 	 * @get final_width {float}
 	 */
 	static void final_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		JS_RETURN( self->final_width() );
 	}
@@ -333,7 +333,7 @@ class WrapBox: public WrapObject {
 	 * @get final_height {float}
 	 */
 	static void final_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		JS_RETURN( self->final_height() );
 	}
@@ -342,7 +342,7 @@ class WrapBox: public WrapObject {
 	 * @get final_margin_left {float}
 	 */
 	static void final_margin_left(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		JS_RETURN( self->final_margin_left() );
 	}
@@ -351,7 +351,7 @@ class WrapBox: public WrapObject {
 	 * @get final_margin_top {float}
 	 */
 	static void final_margin_top(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		JS_RETURN( self->final_margin_top() );
 	}
@@ -360,7 +360,7 @@ class WrapBox: public WrapObject {
 	 * @get final_margin_right {float}
 	 */
 	static void final_margin_right(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		JS_RETURN( self->final_margin_right() );
 	}
@@ -369,7 +369,7 @@ class WrapBox: public WrapObject {
 	 * @get final_margin_bottom {float}
 	 */
 	static void final_margin_bottom(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); // GUILock lock;
+		JS_WORKER(args); // UILock lock;
 		JS_SELF(Box);
 		JS_RETURN( self->final_margin_bottom() );
 	}
@@ -378,7 +378,7 @@ class WrapBox: public WrapObject {
 	 * @set width {Value}
 	 */
 	static void set_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Value, value, "Box.width = %s");
 		JS_SELF(Box);
 		self->set_width(out);
@@ -388,7 +388,7 @@ class WrapBox: public WrapObject {
 	 * @set height {Value}
 	 */
 	static void set_height(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Value, value, "Box.height = %s");
 		JS_SELF(Box);
 		self->set_height(out);
@@ -398,7 +398,7 @@ class WrapBox: public WrapObject {
 	 * @set margin {Value}
 	 */
 	static void set_margin(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value2(Array<Value>, Values, value, "Box.margin = %s");
 		JS_SELF(Box);
 		switch(out.length()) {
@@ -433,7 +433,7 @@ class WrapBox: public WrapObject {
 	 * @set margin_left {Value}
 	 */
 	static void set_margin_left(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Value, value, "Box.marginLeft = %s");
 		JS_SELF(Box);
 		self->set_margin_left(out);
@@ -443,7 +443,7 @@ class WrapBox: public WrapObject {
 	 * @set margin_top {Value}
 	 */
 	static void set_margin_top(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Value, value, "Box.marginTop = %s");
 		JS_SELF(Box);
 		self->set_margin_top(out);
@@ -453,7 +453,7 @@ class WrapBox: public WrapObject {
 	 * @set margin_right {Value}
 	 */
 	static void set_margin_right(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Value, value, "Box.marginRight = %s");
 		JS_SELF(Box);
 		self->set_margin_right(out);
@@ -463,7 +463,7 @@ class WrapBox: public WrapObject {
 	 * @set margin_bottom {Value}
 	 */
 	static void set_margin_bottom(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Value, value, "Box.marginBottom = %s");
 		JS_SELF(Box);
 		self->set_margin_bottom(out);
@@ -473,7 +473,7 @@ class WrapBox: public WrapObject {
 	 * @set border {Border}
 	 */
 	static void set_border(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Border, value, "Box.border = %s");
 		JS_SELF(Box);
 		self->set_border(out);
@@ -483,7 +483,7 @@ class WrapBox: public WrapObject {
 	 * @set border_left {Border}
 	 */
 	static void set_border_left(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Border, value, "Box.borderLeft = %s");
 		JS_SELF(Box);
 		self->set_border_left(out);
@@ -493,7 +493,7 @@ class WrapBox: public WrapObject {
 	 * @set border_top {Border}
 	 */
 	static void set_border_top(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Border, value, "Box.borderTop = %s");
 		JS_SELF(Box);
 		self->set_border_top(out);
@@ -503,7 +503,7 @@ class WrapBox: public WrapObject {
 	 * @set border_right {Border}
 	 */
 	static void set_border_right(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Border, value, "Box.borderRight = %s");
 		JS_SELF(Box);
 		self->set_border_right(out);
@@ -513,7 +513,7 @@ class WrapBox: public WrapObject {
 	 * @set border_bottom {Border}
 	 */
 	static void set_border_bottom(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Border, value, "Box.borderBottom = %s");
 		JS_SELF(Box);
 		self->set_border_bottom(out);
@@ -523,7 +523,7 @@ class WrapBox: public WrapObject {
 	 * @set border_width {float}
 	 */
 	static void set_border_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
 			JS_THROW_ERR("* @set borderWidth {float}");
 		}
@@ -535,7 +535,7 @@ class WrapBox: public WrapObject {
 	 * @set border_left_width {float}
 	 */
 	static void set_border_left_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
 			JS_THROW_ERR("* @set borderLeftWidth {float}");
 		}
@@ -547,7 +547,7 @@ class WrapBox: public WrapObject {
 	 * @set border_top_width {float}
 	 */
 	static void set_border_top_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
 			JS_THROW_ERR("* @set borderTopWidth {float}");
 		}
@@ -559,7 +559,7 @@ class WrapBox: public WrapObject {
 	 * @set border_right_width {float}
 	 */
 	static void set_border_right_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
 			JS_THROW_ERR("* @set borderRightWidth {float}");
 		}
@@ -571,7 +571,7 @@ class WrapBox: public WrapObject {
 	 * @set border_bottom_width {float}
 	 */
 	static void set_border_bottom_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
 			JS_THROW_ERR("* @set borderBottomWidth {float}");
 		}
@@ -583,7 +583,7 @@ class WrapBox: public WrapObject {
 	 * @set border_color {Color}
 	 */
 	static void set_border_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Color, value, "Box.borderColor = %s");
 		JS_SELF(Box);
 		self->set_border_color(out);
@@ -593,7 +593,7 @@ class WrapBox: public WrapObject {
 	 * @set border_left_color {Color}
 	 */
 	static void set_border_left_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Color, value, "Box.borderLeftColor = %s");
 		JS_SELF(Box);
 		self->set_border_left_color(out);
@@ -603,7 +603,7 @@ class WrapBox: public WrapObject {
 	 * @set border_top_color {Color}
 	 */
 	static void set_border_top_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Color, value, "Box.borderTopColor = %s");
 		JS_SELF(Box);
 		self->set_border_top_color(out);
@@ -613,7 +613,7 @@ class WrapBox: public WrapObject {
 	 * @set border_right_color {Color}
 	 */
 	static void set_border_right_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Color, value, "Box.borderRightColor = %s");
 		JS_SELF(Box);
 		self->set_border_right_color(out);
@@ -623,7 +623,7 @@ class WrapBox: public WrapObject {
 	 * @set border_bottom_color {Color}
 	 */
 	static void set_border_bottom_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Color, value, "Box.borderBottomColor = %s");
 		JS_SELF(Box);
 		self->set_border_bottom_color(out);
@@ -633,7 +633,7 @@ class WrapBox: public WrapObject {
 	 * @set border_radius {float}
 	 */
 	static void set_border_radius(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) JS_THROW_ERR("* @set borderRadius {float}");
 		JS_SELF(Box);
 		self->set_border_radius( value->ToNumberValue(worker) );
@@ -643,7 +643,7 @@ class WrapBox: public WrapObject {
 	 * @set border_radius_left_top {float}
 	 */
 	static void set_border_radius_left_top(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) JS_THROW_ERR("* @set borderRadiusLeftTop {float}");
 		JS_SELF(Box);
 		self->set_border_radius_left_top( value->ToNumberValue(worker) );
@@ -653,7 +653,7 @@ class WrapBox: public WrapObject {
 	 * @set border_radius_right_top {float}
 	 */
 	static void set_border_radius_right_top(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) JS_THROW_ERR("* @set borderRadiusRightTop {float}");
 		JS_SELF(Box);
 		self->set_border_radius_right_top( value->ToNumberValue(worker) );
@@ -663,7 +663,7 @@ class WrapBox: public WrapObject {
 	 * @set border_radius_right_bottom {float}
 	 */
 	static void set_border_radius_right_bottom(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) JS_THROW_ERR("* @set borderRadiusRightBottom {float}");
 		JS_SELF(Box);
 		self->set_border_radius_right_bottom( value->ToNumberValue(worker) );
@@ -673,7 +673,7 @@ class WrapBox: public WrapObject {
 	 * @set border_radius_left_bottom {float}
 	 */
 	static void set_border_radius_left_bottom(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) JS_THROW_ERR("* @set borderRadiusLeftBottom {float}");
 		JS_SELF(Box);
 		self->set_border_radius_left_bottom( value->ToNumberValue(worker) );
@@ -683,7 +683,7 @@ class WrapBox: public WrapObject {
 	 * @set newline {bool}
 	 */
 	static void set_newline(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Box);
 		self->set_newline( value->ToBooleanValue(worker) );
 	}
@@ -692,7 +692,7 @@ class WrapBox: public WrapObject {
 	 * @set newline {bool}
 	 */
 	static void set_clip(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Box);
 		self->set_clip( value->ToBooleanValue(worker) );
 	}
@@ -710,7 +710,7 @@ class WrapBox: public WrapObject {
 	 * @set background_color {Color}
 	 */
 	static void set_background_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Color, value, "Box.backgroundColor = %s");
 		JS_SELF(Box);
 		self->set_background_color(out);
@@ -735,7 +735,7 @@ class WrapBox: public WrapObject {
 	 */
 	static void set_background(Local<JSString> name,
 														 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value2(BackgroundPtr, Background, value, "Box.background = %s");
 		JS_SELF(Box);
 		self->set_background(out);

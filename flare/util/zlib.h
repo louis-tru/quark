@@ -64,7 +64,7 @@ namespace flare {
 	*/
 	class FX_EXPORT GZip: public Object {
 		FX_HIDDEN_ALL_COPY(GZip);
-		public:
+	 public:
 
 		typedef ObjectTraits Traits;
 		
@@ -99,7 +99,7 @@ namespace flare {
 		virtual int read(void* buffer, int64_t size, int64_t offset = -1);
 		virtual int write(const void* buffer, int64_t size, int64_t offset = -1);
 		
-		private:
+	 private:
 		String _path;
 		void*  _gzfp;
 	};
@@ -111,7 +111,7 @@ namespace flare {
 	*/
 	class FX_EXPORT ZipReader: public Object {
 		FX_HIDDEN_ALL_COPY(ZipReader);
-		public:
+	 public:
 		
 		ZipReader(cString& path, cString& passwd = String());
 		
@@ -216,7 +216,7 @@ namespace flare {
 		*/
 		inline String passwd() const { return _passwd; }
 		
-		private:
+	 private:
 		String _path;   // Zip file path
 		String _compatible_path; // zip:///var/data/test.zip?
 		String _passwd;
@@ -255,7 +255,7 @@ namespace flare {
 	*/
 	class FX_EXPORT ZipWriter: public Object {
 		FX_HIDDEN_ALL_COPY(ZipWriter);
-		public:
+	 public:
 		/**
 		*
 		*
@@ -344,7 +344,7 @@ namespace flare {
 		*/
 		inline String passwd() const { return _passwd; }
 		
-		private:
+	 private:
 
 		bool close_current_file();
 		

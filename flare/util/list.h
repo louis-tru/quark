@@ -42,7 +42,7 @@ namespace flare {
 	*/
 	template<typename T, typename A = MemoryAllocator> 
 	class FX_EXPORT List: public Object {
-		public:
+	 public:
 		struct Node {
 			typedef T     Data;
 			Node* prev() const { return _prev; }
@@ -104,7 +104,7 @@ namespace flare {
 
 		uint32_t length() const;
 		
-		private:
+	 private:
 
 		void init_();
 		void fill_(Node* first, Node* last, uint32_t len);

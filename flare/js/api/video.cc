@@ -69,7 +69,7 @@ class WrapVideo: public WrapViewBase {
 	}
 	
 	static void set_auto_play(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Video);
 		self->set_auto_play( value->ToBooleanValue(worker) );
 	}
@@ -93,7 +93,7 @@ class WrapVideo: public WrapViewBase {
 	}
 	
 	static void set_mute(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Video);
 		self->set_mute( value->ToBooleanValue(worker) );
 	}
@@ -105,7 +105,7 @@ class WrapVideo: public WrapViewBase {
 	}
 	
 	static void set_volume(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( !value->IsNumber(worker) ) {
 			JS_THROW_ERR("* @set volume {uint} 0-100");
 		}
@@ -138,7 +138,7 @@ class WrapVideo: public WrapViewBase {
 	}
 	
 	static void select_audio_track(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if (args.Length() < 1 || ! args[0]->IsUint32(worker) ) {
 			JS_THROW_ERR(
 				"* @func selectAudioTrack(index)\n"
@@ -166,13 +166,13 @@ class WrapVideo: public WrapViewBase {
 	}
 	
 	static void start(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Video);
 		self->start();
 	}
 	
 	static void seek(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if (args.Length() < 1 || ! args[0]->IsNumber(worker) ) {
 			JS_THROW_ERR(
 				"* @func seek(time)\n"
@@ -185,19 +185,19 @@ class WrapVideo: public WrapViewBase {
 	}
 	
 	static void pause(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Video);
 		self->pause();
 	}
 	
 	static void resume(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Video);
 		self->resume();
 	}
 	
 	static void stop(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Video);
 		self->stop();
 	}
@@ -210,7 +210,7 @@ class WrapVideo: public WrapViewBase {
 	
 	static void set_disable_wait_buffer(Local<JSString> name,
 																			Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Video);
 		self->disable_wait_buffer( value->ToBooleanValue(worker) );
 	}

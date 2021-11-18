@@ -43,7 +43,7 @@ namespace flare {
 	*/
 	class FX_EXPORT ParallelWorking: public Object {
 		FX_HIDDEN_ALL_COPY(ParallelWorking);
-	public:
+	 public:
 		typedef Thread::Exec Exec;
 		ParallelWorking();
 		ParallelWorking(RunLoop* loop);
@@ -54,7 +54,7 @@ namespace flare {
 		uint32_t post(Cb cb); // post message to main thread
 		uint32_t post(Cb cb, uint64_t delay_us);
 		void cancel(uint32_t id = 0); // cancel message
-	private:
+	 private:
 		typedef Dict<ThreadID, int> Childs;
 		KeepLoop* _proxy;
 		Mutex _mutex2;
@@ -62,7 +62,7 @@ namespace flare {
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(RunLoop, Inl2) {
-	public:
+	 public:
 		inline void set_independent_mutex(RecursiveMutex* mutex) {
 			_independent_mutex = mutex;
 		}

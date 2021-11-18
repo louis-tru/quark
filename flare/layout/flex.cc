@@ -49,14 +49,14 @@ namespace flare {
 	float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out);
 
 	FX_DEFINE_INLINE_MEMBERS(FlowLayout, Inl) {
-	public:
+	 public:
 		#define _inl_flow(self) static_cast<FlowLayout::Inl*>(static_cast<FlowLayout*>(self))
 		void set_wrap(Wrap wrap);
 	};
 
 	// flex private members method
 	FX_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
-	public:
+	 public:
 		#define _inl(self) static_cast<FlexLayout::Inl*>(self)
 
 		// auto layout horizontal or vertical

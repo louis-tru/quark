@@ -74,7 +74,7 @@ class WrapStyleSheets: public WrapObject {
 	}
 	
 	static void create(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		
 		if ( args.Length() < 1 || !args[0]->IsObject(worker) || args[0]->IsNull(worker) ) {
 			JS_THROW_ERR("Bad argument.");

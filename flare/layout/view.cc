@@ -45,7 +45,7 @@ namespace flare {
 
 	// view private members method
 	FX_DEFINE_INLINE_MEMBERS(View, Inl) {
-		public:
+	 public:
 		#define _inl(self) static_cast<View::Inl*>(self)
 
 		/**

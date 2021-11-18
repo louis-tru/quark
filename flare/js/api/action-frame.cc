@@ -49,7 +49,7 @@ typedef KeyframeAction::Frame Frame;
 }
 #define def_set_property_from_type0(Name, Type, Parser, block)\
 static void set_##Name(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {\
-	JS_WORKER(args); GUILock lock;\
+	JS_WORKER(args); UILock lock;\
 	JS_SELF(Frame);\
 	if (self->host()) {\
 		js_parse_value2(Type, Parser, value, "Action."#Name" = %s");\
@@ -89,7 +89,7 @@ class WrapFrame: public WrapObject {
 	 * @arg [view] {View}
 	 */
 	static void fetch(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		View* view = nullptr;
 		if ( args.Length() > 0 && worker->hasInstance(args[0], View::VIEW) ) {
 			view = Wrap<View>::unpack(args[0].To<JSObject>())->self();
@@ -102,7 +102,7 @@ class WrapFrame: public WrapObject {
 	 * @func flush() flush frame restore default values
 	 */
 	static void flush(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Frame);
 		self->flush();
 	}
@@ -129,7 +129,7 @@ class WrapFrame: public WrapObject {
 	 * @set time {uint} ms
 	 */
 	static void set_time(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( !value->IsNumber(worker) ) {
 			JS_THROW_ERR(
 				"* @set time {uint} ms\n"

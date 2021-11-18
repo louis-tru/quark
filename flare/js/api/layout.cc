@@ -50,13 +50,13 @@ class WrapLayout: public WrapObject {
 	}
 	
 	static void client_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Layout);
 		JS_RETURN( self->client_width() );
 	}
 	
 	static void client_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Layout);
 		JS_RETURN( self->client_height() );
 	}

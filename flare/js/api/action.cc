@@ -53,7 +53,7 @@ class WrapAction: public WrapObject {
 	 * @func play()
 	 */
 	static void play(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		self->play();
 	}
@@ -62,7 +62,7 @@ class WrapAction: public WrapObject {
 	 * @func stop()
 	 */
 	static void stop(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		self->stop();
 	}
@@ -72,7 +72,7 @@ class WrapAction: public WrapObject {
 	 * @arg ms {int}
 	 */
 	static void seek(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsInt32(worker) ) {
 			JS_THROW_ERR(
 				"* @func seek(ms)\n"
@@ -88,7 +88,7 @@ class WrapAction: public WrapObject {
 	 * @arg ms {int}
 	 */
 	static void seek_play(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsInt32(worker) ) {
 			JS_THROW_ERR(
 				"* @func seekPlay(ms)\n"
@@ -104,7 +104,7 @@ class WrapAction: public WrapObject {
 	 * @arg ms {int}
 	 */
 	static void seek_stop(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsInt32(worker) ) {
 			JS_THROW_ERR(
 				"* @func seekStop(ms)\n"
@@ -119,7 +119,7 @@ class WrapAction: public WrapObject {
 	 * @func clear()
 	 */
 	static void clear(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		self->clear();
 	}
@@ -128,7 +128,7 @@ class WrapAction: public WrapObject {
 	 * @get loop {uint}
 	 */
 	static void loop(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		JS_RETURN( self->loop() );
 	}
@@ -137,7 +137,7 @@ class WrapAction: public WrapObject {
 	 * @get looped {uint}
 	 */
 	static void looped(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		JS_RETURN( self->looped() );
 	}
@@ -146,7 +146,7 @@ class WrapAction: public WrapObject {
 	 * @get delay {uint} ms
 	 */
 	static void delay(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		JS_RETURN( self->delay() / 1000 );
 	}
@@ -155,7 +155,7 @@ class WrapAction: public WrapObject {
 	 * @get delayed {int} ms
 	 */
 	static void delayed(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		JS_RETURN( self->delayed() / 1000 );
 	}
@@ -164,7 +164,7 @@ class WrapAction: public WrapObject {
 	 * @get speed {float} 0.1-10
 	 */
 	static void speed(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		JS_RETURN( self->speed() );
 	}
@@ -173,7 +173,7 @@ class WrapAction: public WrapObject {
 	 * @get playing {bool}
 	 */
 	static void playing(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		JS_RETURN( self->playing() );
 	}
@@ -182,7 +182,7 @@ class WrapAction: public WrapObject {
 	 * @get duration {uint} ms
 	 */
 	static void duration(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		JS_RETURN( self->duration() / 1000 );
 	}
@@ -191,7 +191,7 @@ class WrapAction: public WrapObject {
 	 * @get parent {Action}
 	 */
 	static void parent(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		Action* action = self->parent();
 		if ( action ) {
@@ -206,7 +206,7 @@ class WrapAction: public WrapObject {
 	 * @set playing {bool}
 	 */
 	static void set_playing(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Action);
 		self->playing( value->ToBooleanValue(worker) );
 	}
@@ -215,7 +215,7 @@ class WrapAction: public WrapObject {
 	 * @set loop {uint}
 	 */
 	static void set_loop(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( !value->IsUint32(worker) ) {
 			JS_THROW_ERR(
 				
@@ -231,7 +231,7 @@ class WrapAction: public WrapObject {
 	 * @set delay {uint} ms
 	 */
 	static void set_delay(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( !value->IsUint32(worker) ) {
 			JS_THROW_ERR(
 				"* @set delay {uint} ms\n"
@@ -245,7 +245,7 @@ class WrapAction: public WrapObject {
 	 * @set speed {float} 0.1-10
 	 */
 	static void set_speed(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR(
 				"* @set speed {float} 0.1-10\n"
@@ -295,7 +295,7 @@ class WrapGroupAction: public WrapObject {
 	 * @get length {uint}
 	 */
 	static void length(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(GroupAction);
 		JS_RETURN( self->length() );
 	}
@@ -305,7 +305,7 @@ class WrapGroupAction: public WrapObject {
 	 * @arg child {Action}
 	 */
 	static void append(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || !worker->hasInstance<Action>(args[0]) ) {
 			JS_THROW_ERR(
 				"* @func append(child)\n"
@@ -323,7 +323,7 @@ class WrapGroupAction: public WrapObject {
 	 * @arg child {Action}
 	 */
 	static void insert(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if (args.Length() < 2 || !args[0]->IsUint32(worker) || 
 				!worker->hasInstance<Action>(args[1]) ) {
 			JS_THROW_ERR(
@@ -342,7 +342,7 @@ class WrapGroupAction: public WrapObject {
 	 * @arg index {uint}
 	 */
 	static void remove_child(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsUint32(worker) ) {
 			JS_THROW_ERR(
 				"* @func removeChild(index)\n"
@@ -354,7 +354,7 @@ class WrapGroupAction: public WrapObject {
 	}
 	
 	static void children(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsUint32(worker) ) {
 			JS_THROW_ERR(
 				"* @func children(index)\n"
@@ -499,7 +499,7 @@ class WrapKeyframeAction: public WrapObject {
 	 * @ret {Frame}
 	 */
 	static void add(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		uint64_t time = 0;
 		
 		if ( args.Length() > 0 ) {

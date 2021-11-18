@@ -60,8 +60,8 @@ namespace flare {
 	class TexturePool;
 
 	/*
-	* 关于GUI中的事件:
-	* GUI中所有事件都在`main loop`触发，并且不锁定`GUILock`，
+	* 关于UI中的事件:
+	* UI中所有事件都在`main loop`触发，并且不锁定`UILock`，
 	* 所以添加事件监听器也必须在`main loop`。
 	*/
 
@@ -76,12 +76,12 @@ namespace flare {
 
 		/**
 		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
-		* 那么在主线程调用任何GUI-API函数必须加锁。
+		* 那么在主线程调用任何UI-API函数必须加锁。
 		*/
-		class FX_EXPORT GUILock {
+		class FX_EXPORT UILock {
 		public:
-			GUILock(Application* host = app());
-			~GUILock();
+			UILock(Application* host = app());
+			~UILock();
 			void lock();
 			void unlock();
 		private:
@@ -227,14 +227,14 @@ namespace flare {
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		
-		friend class GUILock;
+		friend class UILock;
 		friend Application* app();
 	};
 
 	inline Application* app() { return Application::_shared; }
 	inline Display* display() { return app()->display(); }
 
-	typedef Application::GUILock GUILock;
+	typedef Application::UILock UILock;
 
 }
 #endif

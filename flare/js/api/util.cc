@@ -207,7 +207,7 @@ class NativeUtil {
 	}
 
 	static void garbageCollection(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		worker->garbageCollection();
 		#if FX_MEMORY_TRACE_MARK
 			Array<Object*> objs = Object::mark_objects();

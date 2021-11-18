@@ -184,7 +184,7 @@ namespace flare {
 			if ( application->_host == nullptr ) { // start gui
 				/**************************************************/
 				/**************************************************/
-				/*************** Start GUI Application ************/
+				/*************** Start UI Application ************/
 				/**************************************************/
 				/**************************************************/
 				AppInl::runMain(0, nullptr); // run gui application
@@ -360,8 +360,8 @@ namespace flare {
 				int action = AMotionEvent_getAction(event);
 				int pointer_index = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 
-				List<GUITouch> touchs;
-				GUITouch touch;
+				List<UITouch> touchs;
+				UITouch touch;
 
 				switch (action & AMOTION_EVENT_ACTION_MASK) {
 					case AMOTION_EVENT_ACTION_DOWN:
@@ -390,7 +390,7 @@ namespace flare {
 			}
 		}
 
-		static bool getGuiTouch(AInputEvent* motion_event, int pointer_index, GUITouch* out) {
+		static bool getGuiTouch(AInputEvent* motion_event, int pointer_index, UITouch* out) {
 			Vec2 scale = application->_host->display_port()->scale();
 			float left = application->_rect.origin.x();
 			int id = AMotionEvent_getPointerId(motion_event, pointer_index);
@@ -412,9 +412,9 @@ namespace flare {
 			return x != h_x || y != h_y;
 		}
 
-		static List<GUITouch> toGuiTouchs(AInputEvent* motion_event, bool filter) {
-			List<GUITouch> rv;
-			GUITouch touch;
+		static List<UITouch> toGuiTouchs(AInputEvent* motion_event, bool filter) {
+			List<UITouch> rv;
+			UITouch touch;
 			int count = AMotionEvent_getPointerCount(motion_event);
 
 			for (int i = 0; i < count; i++) {

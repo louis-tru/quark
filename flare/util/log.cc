@@ -170,7 +170,7 @@ namespace flare {
 			default_console()->log( String::format("%u", msg) );
 		}
 
-		void log(int msg) {
+		void log(int32_t msg) {
 			default_console()->log( String::format("%d", msg) );
 		}
 		

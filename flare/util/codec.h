@@ -67,7 +67,7 @@ namespace flare {
 	* @class Codec
 	*/
 	class FX_EXPORT Codec {
-		public:
+	 public:
 		
 		/**
 		* @func parse_encoding

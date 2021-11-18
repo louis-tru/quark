@@ -46,7 +46,7 @@ namespace flare {
 	* @class JSON
 	*/
 	class FX_EXPORT JSON {
-		public:
+	 public:
 		typedef NonObjectTraits Traits;
 		struct Member;
 

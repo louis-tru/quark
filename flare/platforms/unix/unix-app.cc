@@ -312,7 +312,7 @@ namespace flare {
 			XIDeviceEvent* xev = (XIDeviceEvent*)cookie->data;
 			Vec2 scale = _host->display_port()->scale();
 
-			List<GUITouch> touchs = {
+			List<UITouch> touchs = {
 				{
 					uint(xev->detail + 20170820),
 					0, 0,
@@ -820,7 +820,7 @@ extern "C" FX_EXPORT int main(int argc, Char* argv[]) {
 
 	/**************************************************/
 	/**************************************************/
-	/************** Start GUI Application *************/
+	/************** Start UI Application *************/
 	/**************************************************/
 	/**************************************************/
 	AppInl::runMain(argc, argv);

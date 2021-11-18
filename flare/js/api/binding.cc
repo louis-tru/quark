@@ -68,7 +68,7 @@ class NativeFlare {
 		if (args.Length() < 1 || ! args[0]->IsFunction(worker)) {
 			JS_THROW_ERR("Bad argument");
 		}
-		GUILock lock;
+		UILock lock;
 		Local<JSValue> r = args[0].To<JSFunction>()->Call(worker);
 		if (!r.IsEmpty()) {
 			JS_RETURN(r);

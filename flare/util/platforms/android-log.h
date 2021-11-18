@@ -43,7 +43,7 @@ namespace flare {
 	* @class AndroidConsole # util log
 	*/
 	class FX_EXPORT AndroidConsole: public Console {
-	public:
+	 public:
 		virtual void log(cString& str);
 		virtual void warn(cString& str);
 		virtual void error(cString& str);

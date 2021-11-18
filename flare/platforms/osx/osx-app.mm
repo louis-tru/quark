@@ -549,7 +549,7 @@ void Display::set_orientation(Orientation orientation) {
 extern "C" FX_EXPORT int main(int argc, Char* argv[]) {
 	/**************************************************/
 	/**************************************************/
-	/*************** Start GUI Application ************/
+	/*************** Start UI Application ************/
 	/**************************************************/
 	/**************************************************/
 	AppInl::runMain(argc, argv);

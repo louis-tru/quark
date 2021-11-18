@@ -63,20 +63,20 @@ class WrapTextNode: public WrapViewBase {
 	}
 	
 	static void set_value(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(TextNode);
 		String16 str = value->ToString16Value(worker);
 		self->set_value(str);
 	}
 
 	static void text_hori_bearing(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(TextNode);
 		JS_RETURN( self->text_hori_bearing() );
 	}
 	
 	static void text_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(TextNode);
 		JS_RETURN( self->text_height() );
 	}

@@ -49,23 +49,24 @@
 
 namespace flare {
 
-	template<class SendData = Object, class Sender = Object, class ReturnValue = int> class Event;
+	template<class SendData = Object, class Sender = Object> class Event;
 	template<class Event = Event<>> class EventNoticer;
 
-	template<class T_SendData, class T_Sender, class T_ReturnValue>
+	template<class T_SendData, class T_Sender>
 	class FX_EXPORT Event: public Object {
 		FX_HIDDEN_ALL_COPY(Event);
-	public:
+	 public:
 		typedef T_SendData       SendData;
 		typedef T_Sender         Sender;
-		typedef T_ReturnValue    ReturnValue;
 		typedef const SendData   cSendData;
 		typedef EventNoticer<Event> Noticer;
 
-		Event(cSendData& data = SendData())
-			: return_value(), _noticer(nullptr), _data(&data) {}
-		Event(cSendData& data, ReturnValue&& r_value)
-			: return_value(std::move(r_value)), _noticer(nullptr), _data(&data) {}
+		Event(cSendData& data = SendData()): _noticer(nullptr), _data(&data) {}
+
+		inline Noticer* noticer() { return this->_noticer; }
+		inline String name() const { return this->_noticer->_name; }
+		inline Sender* sender() { return this->_noticer->_sender; }
+		inline cSendData* data() const { return _data; }
 
 		// "new" method alloc can call，Otherwise, fatal exception will be caused
 		virtual void release() {
@@ -73,13 +74,8 @@ namespace flare {
 			_data = nullptr;
 			Object::release();
 		}
-		inline Noticer* noticer() { return this->_noticer; }
-		inline String name() const { return this->_noticer->_name; }
-		inline Sender* sender() { return this->_noticer->_sender; }
-		inline cSendData* data() const { return _data; }
 
-		ReturnValue  return_value;
-	private:
+	 private:
 		Noticer*     _noticer;
 		cSendData*   _data;
 		
@@ -89,16 +85,15 @@ namespace flare {
 	template<class Event>
 	class FX_EXPORT EventNoticer: public Object {
 		FX_HIDDEN_ALL_COPY(EventNoticer);
-	public:
+	 public:
 		typedef Event EventType;
 		typedef typename Event::SendData        SendData;
 		typedef typename Event::cSendData       cSendData;
 		typedef typename Event::Sender          Sender;
-		typedef typename Event::ReturnValue     ReturnValue;
 		typedef std::function<void(Event&)>     ListenerFunc;
 
 		class Listener {
-		public:
+		 public:
 			inline Listener(EventNoticer* noticer) { _noticer = noticer; }
 			virtual ~Listener() {}
 			virtual void call(Event& evt) = 0;
@@ -106,13 +101,13 @@ namespace flare {
 			virtual bool is_on_static_listener() { return false; }
 			virtual bool is_on_shell_listener() { return false; }
 			virtual bool is_on_func_listener() { return false; }
-		protected:
+		 protected:
 			EventNoticer* _noticer;
 		};
 		
 		// On
 		template<class Scope> class OnListener: public Listener {
-		public:
+		 public:
 			typedef void (Scope::*ListenerFunc)(Event& evt);
 			inline OnListener(EventNoticer* noticer, ListenerFunc listener, Scope* scope)
 				: Listener(noticer), _scope(scope), _listener( listener ) {}
@@ -120,14 +115,14 @@ namespace flare {
 			virtual void call(Event& evt) { (_scope->*_listener)(evt); }
 			inline bool equals(ListenerFunc listener) { return _listener == listener; }
 			inline bool equals(Scope* scope) { return _scope == scope; }
-		protected:
+		 protected:
 			Scope*       _scope;
 			ListenerFunc _listener;
 		};
 
 		// ONCE
 		template<class Scope> class OnceListener: public OnListener<Scope> {
-		public:
+		 public:
 			typedef typename OnListener<Scope>::ListenerFunc ListenerFunc;
 			inline OnceListener(EventNoticer* noticer, ListenerFunc listener, Scope* scope)
 				: OnListener<Scope>(noticer, listener, scope) {}
@@ -139,7 +134,7 @@ namespace flare {
 		
 		// STATIC
 		template<class Data> class OnStaticListener: public Listener {
-		public:
+		 public:
 			typedef void (*ListenerFunc)(Event& evt, Data* data);
 			inline OnStaticListener(EventNoticer* noticer, ListenerFunc listener, Data* data)
 				: Listener(noticer), _listener(listener), _data(data) {}
@@ -147,14 +142,14 @@ namespace flare {
 			virtual void call(Event& evt) { _listener(evt, _data); }
 			inline bool equals(ListenerFunc listener) { return _listener == listener; }
 			inline bool equals(Data* data) { return _data == data; }
-		protected:
+		 protected:
 			ListenerFunc _listener;
 			Data*        _data;
 		};
 		
 		// Once STATIC
 		template<class Data> class OnceStaticListener: public OnStaticListener<Data> {
-		public:
+		 public:
 			typedef typename OnStaticListener<Data>::ListenerFunc ListenerFunc;
 			inline OnceStaticListener(EventNoticer* noticer, ListenerFunc listener, Data* data)
 				: OnStaticListener<Data>(noticer, listener, data) {}
@@ -166,20 +161,20 @@ namespace flare {
 		
 		// Function
 		class OnLambdaFunctionListener: public Listener {
-		public:
+		 public:
 			inline OnLambdaFunctionListener(EventNoticer* noticer, ListenerFunc&& listener, int id)
 				: Listener(noticer), _listener(std::move(listener)), _id(id) {}
 			virtual bool is_on_func_listener() { return true; }
 			virtual void call(Event& evt) { _listener(evt); }
 			inline bool equals(int id) { return id == _id; }
-		protected:
+		 protected:
 			ListenerFunc _listener;
 			int          _id;
 		};
 		
 		// Once Function
 		class OnceLambdaFunctionListener: public OnLambdaFunctionListener {
-		public:
+		 public:
 			inline OnceLambdaFunctionListener(EventNoticer* noticer, ListenerFunc&& listener, int id)
 			: OnLambdaFunctionListener(noticer, std::move(listener), id) {}
 			virtual void call(Event& evt) {
@@ -190,7 +185,7 @@ namespace flare {
 		
 		// SHELL
 		class OnShellListener: public Listener {
-		public:
+		 public:
 			inline OnShellListener(EventNoticer* noticer, EventNoticer* shell)
 				: Listener(noticer), _shell(shell) {}
 			virtual bool is_on_shell_listener() { return true; }
@@ -199,13 +194,13 @@ namespace flare {
 				this->_noticer->set_event2(evt);
 			}
 			inline bool equals(EventNoticer* shell) { return _shell == shell; }
-		protected:
+		 protected:
 			EventNoticer* _shell;
 		};
 		
 		// Once Shell
 		class OnceShellListener: public OnShellListener {
-		public:
+		 public:
 			inline OnceShellListener(EventNoticer* noticer, EventNoticer* shell)
 				: OnShellListener(noticer, shell) {}
 			virtual void action(Event& evt) {
@@ -408,23 +403,21 @@ namespace flare {
 			}
 		}
 		
-		ReturnValue trigger() {
+		void trigger() {
 			if (_listener) {
 				Event evt;
-				return std::move( trigger(evt) );
+				trigger(evt);
 			}
-			return std::move( ReturnValue() );
 		}
 		
-		ReturnValue trigger(cSendData& data) {
+		void trigger(cSendData& data) {
 			if (_listener) {
 				Event evt(data);
-				return std::move( trigger(evt) );
+				trigger(evt);
 			}
-			return std::move( ReturnValue() );
 		}
 		
-		ReturnValue& trigger(Event& evt) {
+		void trigger(Event& evt) {
 			if (_listener) {
 				set_event2(evt);
 				for (auto i = _listener->begin(); i != _listener->end(); ) {
@@ -442,10 +435,9 @@ namespace flare {
 					}
 				}
 			}
-			return evt.return_value;
 		}
 	
-	private:
+	 private:
 
 		inline void set_event2(Event& evt) {
 			evt._noticer = this;
@@ -503,7 +495,7 @@ namespace flare {
 			}
 		}
 
-	private:
+	 private:
 		typedef typename List<Listener*>::Iterator iterator;
 		struct LWrap {
 			Listener* listener;
@@ -514,7 +506,7 @@ namespace flare {
 		String        _name;
 		Sender*       _sender;
 		List<LWrap>*  _listener;
-		friend class  flare::Event<SendData, Sender, ReturnValue>;
+		friend class  flare::Event<SendData, Sender>;
 		friend class  OnShellListener;
 		friend class  OnceShellListener;
 	};
@@ -529,14 +521,13 @@ namespace flare {
 	>
 	class FX_EXPORT Notification: public Basic {
 		FX_HIDDEN_ALL_COPY(Notification);
-	public:
+	 public:
 		typedef Event EventType;
 		typedef Name  NameType;
 		typedef EventNoticer<Event>            Noticer;
 		typedef typename Event::SendData       SendData;
 		typedef typename Event::cSendData      cSendData;
 		typedef typename Event::Sender         Sender;
-		typedef typename Event::ReturnValue    ReturnValue;
 		typedef typename Noticer::ListenerFunc ListenerFunc;
 
 		inline Notification()
@@ -738,7 +729,7 @@ namespace flare {
 			}
 		}
 		
-	protected:
+	 protected:
 		
 		/**
 		* 卸载指定事件名称上的全部侦听函数
@@ -769,9 +760,9 @@ namespace flare {
 		* @arg name {const Key&}
 		* NOTE: 这个方法能创建默认事件数据
 		*/
-		inline ReturnValue trigger(const Name& name) {
+		inline void trigger(const Name& name) {
 			auto del = get_noticer(name);
-			return std::move( del ? del->trigger(): ReturnValue() );
+			if (del) del->trigger();
 		}
 		
 		/*
@@ -779,9 +770,9 @@ namespace flare {
 		* @arg name {const Key&}
 		* @arg evt {cSendData&}
 		*/
-		inline ReturnValue trigger(const Name& name, cSendData& data) {
+		inline void trigger(const Name& name, cSendData& data) {
 			auto del = get_noticer(name);
-			return std::move( del ? del->trigger(data): ReturnValue() );
+			if (del) del->trigger(data);
 		}
 		
 		/*
@@ -789,12 +780,12 @@ namespace flare {
 		* @arg name {const Key&}
 		* @arg evt {Event&}
 		*/
-		inline ReturnValue& trigger(const Name& name, Event& evt) {
+		inline void trigger(const Name& name, Event& evt) {
 			auto del = get_noticer(name);
-			return del ? del->trigger(evt): evt.return_value;
+			if (del) del->trigger(evt);
 		}
 	
-	private:
+	 private:
 
 		struct NoticerWrap {
 			inline NoticerWrap() { FX_UNREACHABLE(); }

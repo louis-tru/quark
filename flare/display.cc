@@ -181,8 +181,8 @@ namespace flare {
 				int64_t st = os::time();
 			#endif
 			/*
-			* swapBuffers()非常耗时,渲染线程长时间占用`GUILock`会柱塞主线程。
-			* 所以这里释放`GUILock`commit()主要是绘图相关的函数调用,
+			* swapBuffers()非常耗时,渲染线程长时间占用`UILock`会柱塞主线程。
+			* 所以这里释放`UILock`commit()主要是绘图相关的函数调用,
 			* 如果能够确保绘图函数的调用都在渲染线程,那就不会有安全问题。
 			*/
 			Inl2_RunLoop(_host->render_loop())->independent_mutex_unlock();

@@ -41,7 +41,7 @@ namespace flare {
 	/**
 	* @class AudioPlayer
 	*/
-	class FX_EXPORT AudioPlayer: public Notification<Event<>, GUIEventName>,
+	class FX_EXPORT AudioPlayer: public Notification<Event<>, UIEventName>,
 																public MultimediaSource::Delegate {
 		FX_HIDDEN_ALL_COPY(AudioPlayer);
 	public:

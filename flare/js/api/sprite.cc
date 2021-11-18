@@ -88,7 +88,7 @@ class WrapSprite: public WrapViewBase {
 	}
 	// set
 	static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Sprite);
 		self->set_src(value->ToStringValue(worker));
 	}
@@ -100,7 +100,7 @@ class WrapSprite: public WrapViewBase {
 	 * @set start_x {float}
 	 */
 	static void set_start_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
 			JS_THROW_ERR("* @set startX {float}");
 		}
@@ -112,7 +112,7 @@ class WrapSprite: public WrapViewBase {
 	 * @set start_y {float}
 	 */
 	static void set_start_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
 			JS_THROW_ERR("* @set startY {float}");
 		}
@@ -121,7 +121,7 @@ class WrapSprite: public WrapViewBase {
 	}
 
 	static void set_start(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Vec2, value, "Sprite.start = %s");
 		JS_SELF(Sprite);
 		self->start( out );
@@ -131,7 +131,7 @@ class WrapSprite: public WrapViewBase {
 	 * @set width {float}
 	 */
 	static void set_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
 			JS_THROW_ERR("* @set width {float}");
 		}
@@ -143,7 +143,7 @@ class WrapSprite: public WrapViewBase {
 	 * @set height {float}
 	 */
 	static void set_height(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
 			JS_THROW_ERR("* @set height {float}");
 		}
@@ -167,7 +167,7 @@ class WrapSprite: public WrapViewBase {
 	 * @set ratio_x {float}
 	 */
 	static void set_ratio_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("* @set ratioX {float}");
 		}
@@ -179,7 +179,7 @@ class WrapSprite: public WrapViewBase {
 	 * @set ratio_y {float}
 	 */
 	static void set_ratio_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("* @set ratioY {float}");
 		}
@@ -192,7 +192,7 @@ class WrapSprite: public WrapViewBase {
 		JS_RETURN( worker->values()->New(self->ratio()) );
 	}
 	static void set_ratio(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Vec2, value, "Sprite.ratio = %s");
 		JS_SELF(Sprite);
 		self->set_ratio( out );
@@ -203,7 +203,7 @@ class WrapSprite: public WrapViewBase {
 		JS_RETURN( worker->values()->New(self->repeat()) );
 	}
 	static void set_repeat(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Repeat, value, "Sprite.repeat = %s");
 		JS_SELF(Sprite);
 		self->set_repeat( out );

@@ -47,7 +47,7 @@ namespace flare {
 			return Traits::Retain(_data) ? _data : collapse();
 		}
 		
-		public:
+	 public:
 		typedef T Type;
 		typedef T2 Traits;
 		
@@ -98,7 +98,7 @@ namespace flare {
 			_data = nullptr;
 		}
 		
-		private:
+	 private:
 
 		T* _data;
 	};
@@ -107,12 +107,12 @@ namespace flare {
 	* @class ScopeClear
 	*/
 	class FX_EXPORT ScopeClear {
-		public:
+	 public:
 		typedef std::function<void()> Clear;
 		ScopeClear(Clear clear): _clear(clear) { }
 		~ScopeClear() { _clear(); }
 		inline void cancel() { _clear = [](){}; }
-		private:
+	 private:
 		Clear _clear;
 	};
 

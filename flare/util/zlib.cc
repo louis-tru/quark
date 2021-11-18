@@ -468,21 +468,21 @@ namespace flare {
 			zip_fileinfo zipfi;
 			
 			int i = zipOpenNewFileInZip3((zipFile*)_zipp,
-																	 path.c_str(),
-																	 &zipfi,
-																	 NULL,
-																	 0,
-																	 NULL,
-																	 0,
-																	 NULL,
-																	 Z_DEFLATED,
-																	 _level,
-																	 0,
-																	 -MAX_WBITS,
-																	 DEF_MEM_LEVEL,
-																	 Z_DEFAULT_STRATEGY,
-																	 _passwd == "" ? NULL: _passwd.c_str(),
-																	 0);
+																	path.c_str(),
+																	&zipfi,
+																	NULL,
+																	0,
+																	NULL,
+																	0,
+																	NULL,
+																	Z_DEFLATED,
+																	_level,
+																	0,
+																	-MAX_WBITS,
+																	DEF_MEM_LEVEL,
+																	Z_DEFAULT_STRATEGY,
+																	_passwd == "" ? NULL: _passwd.c_str(),
+																	0);
 			if ( i == ZIP_OK ) {
 				return true;
 			} else {

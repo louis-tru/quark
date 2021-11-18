@@ -94,10 +94,10 @@ namespace flare {
 		while ( i != end ) { // trigger event action_loop
 			View* v = *i;
 			if (v) {
-				auto evt = new GUIActionEvent(this, v, delay, 0, _loop);
+				auto evt = new UIActionEvent(this, v, delay, 0, _loop);
 				main_loop()->post(Cb([this, evt, v](CbData& e) {
-					Handle<GUIActionEvent> handle(evt);
-					ActionInl_View(v)->trigger(GUI_EVENT_ACTION_LOOP, *evt);
+					Handle<UIActionEvent> handle(evt);
+					ActionInl_View(v)->trigger(UI_EVENT_ACTION_LOOP, *evt);
 				}, v));
 				i++;
 			} else {
@@ -114,10 +114,10 @@ namespace flare {
 		while ( i != end ) { // trigger event action_keyframe
 			View* v = *i;
 			if (v) {
-				auto evt = new GUIActionEvent(this, v, delay, frame_index, _loop);
+				auto evt = new UIActionEvent(this, v, delay, frame_index, _loop);
 				main_loop()->post(Cb([this, evt, v](CbData& e) {
-					Handle<GUIActionEvent> handle(evt);
-					ActionInl_View(v)->trigger(GUI_EVENT_ACTION_KEYFRAME, *evt);
+					Handle<UIActionEvent> handle(evt);
+					ActionInl_View(v)->trigger(UI_EVENT_ACTION_KEYFRAME, *evt);
 				}, v));
 				i++;
 			} else {

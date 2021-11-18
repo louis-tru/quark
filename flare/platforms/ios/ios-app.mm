@@ -95,7 +95,7 @@ static NSString* G_AppDelegate_name = @"";
 		return YES;
 	}
 
-	- (List<TouchPoint>)toGUITouchs:(NSSet<UITouch*>*)touches {
+	- (List<TouchPoint>)toUITouchs:(NSSet<UITouch*>*)touches {
 		NSEnumerator* enumerator = [touches objectEnumerator];
 		List<TouchPoint> rv; // (uint(touches.count));
 		
@@ -124,20 +124,20 @@ static NSString* G_AppDelegate_name = @"";
 	}
 
 	- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
-		_app->dispatch()->dispatch_touchstart( [self toGUITouchs:touches] );
+		_app->dispatch()->dispatch_touchstart( [self toUITouchs:touches] );
 	}
 
 	- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
 		// FX_DEBUG("touchesMoved, count: %d", touches.count);
-		_app->dispatch()->dispatch_touchmove( [self toGUITouchs:touches] );
+		_app->dispatch()->dispatch_touchmove( [self toUITouchs:touches] );
 	}
 
 	- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event{
-		_app->dispatch()->dispatch_touchend( [self toGUITouchs:touches] );
+		_app->dispatch()->dispatch_touchend( [self toUITouchs:touches] );
 	}
 
 	- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
-		_app->dispatch()->dispatch_touchcancel( [self toGUITouchs:touches] );
+		_app->dispatch()->dispatch_touchcancel( [self toUITouchs:touches] );
 	}
 
 @end
@@ -613,7 +613,7 @@ void Display::set_orientation(Orientation orientation) {
 extern "C" FX_EXPORT int main(int argc, Char* argv[]) {
 	/**************************************************/
 	/**************************************************/
-	/*************** Start GUI Application ************/
+	/*************** Start UI Application ************/
 	/**************************************************/
 	/**************************************************/
 	AppInl::runMain(argc, argv);

@@ -88,7 +88,6 @@ namespace flare {
 	namespace os {
 
 		String name() {
-
 			#if  FX_IOS
 				static String _name("iOS");
 			#elif  FX_OSX

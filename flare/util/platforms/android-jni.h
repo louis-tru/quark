@@ -46,20 +46,20 @@ namespace flare {
 	* @class JNI
 	*/
 	class FX_EXPORT JNI {
-	public:
+	 public:
 
 		/**
 		* @class ScopeENV
 		*/
 		class FX_EXPORT ScopeENV {
 			FX_HIDDEN_ALL_COPY(ScopeENV);
-		public:
+		 public:
 			ScopeENV();
 			~ScopeENV();
 			inline bool is_null() const { return _env == NULL; }
 			inline JNIEnv* operator*() const { return _env; }
 			inline JNIEnv* operator->() const { return _env; }
-		private:
+		 private:
 			JNIEnv* _env;
 			bool    _is_attach;
 			// @end
@@ -69,12 +69,12 @@ namespace flare {
 		* @class MethodInfo
 		*/
 		class FX_EXPORT MethodInfo {
-		public:
+		 public:
 			MethodInfo(cChar* clazz, cChar* method, cChar* param_code, bool is_static = false);
 			MethodInfo(jclass clazz, cChar* method, cChar* param_code, bool is_static = false);
 			inline jclass clazz() const { return _clazz; }
 			inline jmethodID method() const { return _method; }
-		private:
+		 private:
 			jclass      _clazz;
 			jmethodID   _method;
 			// @end

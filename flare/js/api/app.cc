@@ -153,7 +153,7 @@ class WrapNativeApplication: public WrapObject {
 	 * @func clear() clear gui application resources
 	 */
 	static void clear(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		if ( args.Length() > 1 ) {
 			self->clear( args[0]->ToBooleanValue(worker) );
@@ -166,7 +166,7 @@ class WrapNativeApplication: public WrapObject {
 	 * @func open_url(url)
 	 */
 	static void open_url(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() == 0 ) {
 			JS_THROW_ERR("@func openUrl(url)");
 		}
@@ -178,7 +178,7 @@ class WrapNativeApplication: public WrapObject {
 	 * @func send_email(recipient,title,body[,cc[,bcc]])
 	 */
 	static void send_email(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 2 ) {
 			JS_THROW_ERR("@func sendEmail(recipient,title,body[,cc[,bcc])");
 		}
@@ -200,7 +200,7 @@ class WrapNativeApplication: public WrapObject {
 	}
 
 	static void set_max_texture_memory_limit(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() == 0 && !args[0]->IsNumber() ) {
 			JS_THROW_ERR("@func setMaxTextureMemoryLimit(limit)");
 		}
@@ -365,7 +365,7 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_background_color(Local<JSString> name,
 																								Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		js_parse_value(TextColor, value, "Application.defaultTextBackgroundColor = %s");
 		self->set_default_text_background_color(out);
@@ -376,7 +376,7 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_color(Local<JSString> name,
 																		 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		js_parse_value(TextColor, value, "Application.defaultTextColor = %s");
 		self->set_default_text_color(out);
@@ -387,7 +387,7 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_size(Local<JSString> name,
 																		Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		js_parse_value(TextSize, value, "Application.defaultTextSize = %s");
 		self->set_default_text_size(out);
@@ -398,7 +398,7 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_style(Local<JSString> name,
 																		 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		js_parse_value(TextStyle, value, "Application.defaultTextStyle = %s");
 		self->set_default_text_style(out);
@@ -409,7 +409,7 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_family(Local<JSString> name,
 																			Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		js_parse_value(TextFamily, value, "Application.defaultTextFamily = %s");
 		self->set_default_text_family(out);
@@ -420,7 +420,7 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_shadow(Local<JSString> name,
 																			Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		js_parse_value(TextShadow, value, "Application.defaultTextShadow = %s");
 		self->set_default_text_shadow(out);
@@ -431,7 +431,7 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_line_height(Local<JSString> name,
 																					 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		js_parse_value(TextLineHeight, value, "Application.defaultTextLineHeight = %s");
 		self->set_default_text_line_height(out);
@@ -442,7 +442,7 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_decoration(Local<JSString> name,
 																					Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		js_parse_value(TextDecoration, value, "Application.defaultTextDecoration = %s");
 		self->set_default_text_decoration(out);
@@ -453,7 +453,7 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_overflow(Local<JSString> name,
 																				Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		js_parse_value(TextOverflow, value, "Application.defaultTextOverflow = %s");
 		self->set_default_text_overflow(out);
@@ -464,7 +464,7 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_white_space(Local<JSString> name,
 																							Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
 		js_parse_value(TextWhiteSpace, value, "Application.defaultTextWhiteSpace = %s");
 		self->set_default_text_white_space(out);

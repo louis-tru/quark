@@ -39,18 +39,40 @@
 namespace flare {
 
 	#define FX_FUN(NAME, STR, CATEGORY, FLAG) \
-		const GUIEventName GUI_EVENT_##NAME(#STR, GUI_EVENT_CATEGORY_##CATEGORY, FLAG);
-	FX_GUI_EVENT_TABLE(FX_FUN)
+		const UIEventName UI_EVENT_##NAME(#STR, UI_EVENT_CATEGORY_##CATEGORY, FLAG);
+	FX_UI_EVENT_TABLE(FX_FUN)
 	#undef FX_FUN
 
-	const Dict<String, GUIEventName> GUI_EVENT_TABLE([]() -> Dict<String, GUIEventName> {
-		Dict<String, GUIEventName> r;
+	const Dict<String, UIEventName> UI_EVENT_TABLE([]() -> Dict<String, UIEventName> {
+		Dict<String, UIEventName> r;
 		#define FX_FUN(NAME, STR, CATEGORY, FLAG) \
-			r[GUI_EVENT_##NAME.to_string()] = GUI_EVENT_##NAME;
-		FX_GUI_EVENT_TABLE(FX_FUN)
+			r[UI_EVENT_##NAME.to_string()] = UI_EVENT_##NAME;
+		FX_UI_EVENT_TABLE(FX_FUN)
 		#undef FX_FUN
 		return r;
 	}());
+
+	void UIEvent::release() {
+		valid_ = false;
+		origin_ = nullptr;
+		Event<Object, View>::release();
+	}
+
+	void ActionEvent::release() {
+		action_ = nullptr;
+		UIEvent::release();
+	}
+
+	void KeyEvent::release() {
+		focus_move_ = nullptr;
+		UIEvent::release();
+	}
+
+	void FocusMoveEvent::release()  {
+			_old_focus = nullptr;
+			_new_focus = nullptr;
+			UIEvent::release();
+		}
 
 	static inline HighlightedStatus HOVER_or_NORMAL(View* view) {
 		return view->is_focus() ? HIGHLIGHTED_HOVER : HIGHLIGHTED_NORMAL;
@@ -66,11 +88,11 @@ namespace flare {
 		/**
 		 * @func trigger_highlightted
 		 */
-		ReturnValue& trigger_highlightted(GUIHighlightedEvent& evt) {
+		ReturnValue& trigger_highlightted(UIHighlightedEvent& evt) {
 			View* view = this;
 			if ( view ) {
 				if ( view->_receive ) {
-					view->Notification::trigger(GUI_EVENT_HIGHLIGHTED, evt);
+					view->Notification::trigger(UI_EVENT_HIGHLIGHTED, evt);
 					if ( evt.is_default() ) {
 						auto classs = view->classs();
 						if ( classs ) { // 切换样式表状态
@@ -85,7 +107,7 @@ namespace flare {
 		/**
 		 * @func bubble_trigger
 		 */
-		int& bubble_trigger(const NameType& name, GUIEvent& evt) {
+		int& bubble_trigger(const NameType& name, UIEvent& evt) {
 			View* view = this;
 			while( view ) {
 				if ( view->_receive ) {
@@ -103,7 +125,7 @@ namespace flare {
 	/**
 	 * @func trigger
 	 */
-	int& View::trigger(const NameType& name, GUIEvent& evt, bool need_send) {
+	int& View::trigger(const NameType& name, UIEvent& evt, bool need_send) {
 		if ( _receive || need_send ) {
 			return Notification::trigger(name, evt);
 		}
@@ -114,7 +136,7 @@ namespace flare {
 		if ( _receive || need_send ) {
 			auto del = get_noticer(name);
 			if ( del ) {
-				return del->trigger( **NewEvent<GUIEvent>(this) );
+				return del->trigger( **NewEvent<UIEvent>(this) );
 			}
 		}
 		return 0;
@@ -133,12 +155,12 @@ namespace flare {
 		if ( is_focus() ) return true;
 		
 		View* old = app()->focus_view();
-		Handle<GUIFocusMoveEvent> evt;
+		Handle<UIFocusMoveEvent> evt;
 		
 		Panel* panel = reinterpret_cast<Button*>(this)->panel();
 		if ( panel ) {
-			evt = NewEvent<GUIFocusMoveEvent>(panel, old, this);
-			panel->trigger(GUI_EVENT_FOCUS_MOVE, **evt );
+			evt = NewEvent<UIFocusMoveEvent>(panel, old, this);
+			panel->trigger(UI_EVENT_FOCUS_MOVE, **evt );
 		}
 		
 		if ( (*evt && !evt->is_default()) || !_inl_app(app())->set_focus_view(this) ) {
@@ -146,14 +168,14 @@ namespace flare {
 		}
 		
 		if ( old ) {
-			_inl_view(old)->bubble_trigger(GUI_EVENT_BLUR, **NewEvent<GUIEvent>(old));
+			_inl_view(old)->bubble_trigger(UI_EVENT_BLUR, **NewEvent<UIEvent>(old));
 			_inl_view(old)->trigger_highlightted(
-				**NewEvent<GUIHighlightedEvent>(old, HIGHLIGHTED_NORMAL)
+				**NewEvent<UIHighlightedEvent>(old, HIGHLIGHTED_NORMAL)
 			);
 		}
-		_inl_view(this)->bubble_trigger(GUI_EVENT_FOCUS, **NewEvent<GUIEvent>(this));
+		_inl_view(this)->bubble_trigger(UI_EVENT_FOCUS, **NewEvent<UIEvent>(this));
 		_inl_view(this)->trigger_highlightted(
-			 **NewEvent<GUIHighlightedEvent>(this, HIGHLIGHTED_HOVER)
+			 **NewEvent<UIHighlightedEvent>(this, HIGHLIGHTED_HOVER)
 		);
 		return true;
 	}
@@ -230,14 +252,14 @@ namespace flare {
 			if ( !_is_click_invalid )
 				_is_click_down = value;
 		}
-		inline Dict<uint32_t, GUITouch>& values() { return _touches; }
-		inline GUITouch& operator[](uint32_t id) { return _touches[id]; }
+		inline Dict<uint32_t, UITouch>& values() { return _touches; }
+		inline UITouch& operator[](uint32_t id) { return _touches[id]; }
 		inline uint32_t count() { return _touches.length(); }
 		inline bool has(uint32_t id) { return _touches.count(id); }
 		inline void del(uint32_t id) { _touches.erase(id); }
 	 private:
 		View* _view;
-		Dict<uint32_t, GUITouch> _touches;
+		Dict<uint32_t, UITouch> _touches;
 		Vec2  _start_position;
 		bool  _is_click_invalid;
 		bool  _is_click_down;
@@ -282,14 +304,14 @@ namespace flare {
 		
 		// -------------------------- touch --------------------------
 		
-		void touchstart_2(View* view, List<GUITouch>& in) {
+		void touchstart_2(View* view, List<UITouch>& in) {
 			if ( view->receive() && view->_draw_visible && in.length() ) {
-				Array<GUITouch> change_touches;
+				Array<UITouch> change_touches;
 				
 				for ( auto i = in.begin(), e = in.end(); i != e; ) {
 
 					if ( view->overlap_test(Vec2(i->x, i->y)) ) {
-						GUITouch& touch = *i;
+						UITouch& touch = *i;
 						touch.start_x = touch.x;
 						touch.start_y = touch.y;
 						touch.click_in = true;
@@ -308,12 +330,12 @@ namespace flare {
 				}
 				
 				if ( change_touches.length() ) { // notice
-					auto evt = NewEvent<GUITouchEvent>(view, change_touches);
-					_inl_view(view)->bubble_trigger(GUI_EVENT_TOUCH_START, **evt); // emit event
+					auto evt = NewEvent<UITouchEvent>(view, change_touches);
+					_inl_view(view)->bubble_trigger(UI_EVENT_TOUCH_START, **evt); // emit event
 					
 					if ( !_origin_touches[view]->is_click_down() ) { // trigger click down
 						_origin_touches[view]->set_click_down(true);
-						auto evt = NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_DOWN);
+						auto evt = NewEvent<UIHighlightedEvent>(view, HIGHLIGHTED_DOWN);
 						_inl_view(view)->trigger_highlightted(**evt); // emit event
 					}
 				}
@@ -323,13 +345,13 @@ namespace flare {
 		/**
 		 * @func touchstart
 		 */
-		void touchstart(View* view, List<GUITouch>& in) {
+		void touchstart(View* view, List<UITouch>& in) {
 			
 			if ( view->_visible && in.length() ) {
 				if ( view->_draw_visible || view->_need_draw ) {
 					
 					if ( view->_last && view->as_box() && static_cast<Box*>(view)->clip() ) {
-						List<GUITouch> in2;
+						List<UITouch> in2;
 						
 						for ( auto i = in.begin(), e = in.end(); i != e; ) {
 							if ( view->overlap_test(Vec2(i->x, i->y)) ) {
@@ -367,15 +389,15 @@ namespace flare {
 		/**
 		 * @func touch_move
 		 */
-		void touchmove(List<GUITouch>& in) {
+		void touchmove(List<UITouch>& in) {
 
-			Dict<View*, Array<GUITouch>> change_touches;
+			Dict<View*, Array<UITouch>> change_touches;
 			
 			for ( auto in_touch : in ) {
-				// GUITouch& in_touch = i;
+				// UITouch& in_touch = i;
 				for ( auto touches : _origin_touches ) {
 					if ( touches.value->has(in_touch.id) ) {
-						GUITouch& touch = (*touches.value)[in_touch.id];
+						UITouch& touch = (*touches.value)[in_touch.id];
 						touch.x = in_touch.x;
 						touch.y = in_touch.y;
 						touch.force = in_touch.force;
@@ -390,12 +412,12 @@ namespace flare {
 			
 			for ( auto i : change_touches ) {
 				
-				Array<GUITouch>& touchs = i.value;
+				Array<UITouch>& touchs = i.value;
 				View* view = touchs[0].view;
 				// emit event
 				_inl_view(view)->bubble_trigger(
-					 GUI_EVENT_TOUCH_MOVE,
-					 **NewEvent<GUITouchEvent>(view, i.value)
+					 UI_EVENT_TOUCH_MOVE,
+					 **NewEvent<UITouchEvent>(view, i.value)
 				);
 				
 				OriginTouche* origin_touche = _origin_touches[view];
@@ -410,7 +432,7 @@ namespace flare {
 					if ( d > 2 ) { // trigger invalid status
 						if ( origin_touche->is_click_down() ) { // trigger style up
 							// emit style status event
-							auto evt = NewEvent<GUIHighlightedEvent>(view, HOVER_or_NORMAL(view));
+							auto evt = NewEvent<UIHighlightedEvent>(view, HOVER_or_NORMAL(view));
 							_inl_view(view)->trigger_highlightted(**evt);
 						}
 						origin_touche->set_click_invalid();
@@ -427,7 +449,7 @@ namespace flare {
 							if ( trigger_event ) {
 								origin_touche->set_click_down(false); // set up status
 								// emit style status event
-								auto evt = NewEvent<GUIHighlightedEvent>(view, HOVER_or_NORMAL(view));
+								auto evt = NewEvent<UIHighlightedEvent>(view, HOVER_or_NORMAL(view));
 								_inl_view(view)->trigger_highlightted(**evt);
 							}
 						} else { // May trigger click down
@@ -436,7 +458,7 @@ namespace flare {
 								if ( item.click_in ) { // find range == true
 									origin_touche->set_click_down(true); // set down status
 									// emit style down event
-									auto evt = NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_DOWN);
+									auto evt = NewEvent<UIHighlightedEvent>(view, HIGHLIGHTED_DOWN);
 									_inl_view(view)->trigger_highlightted(**evt);
 									break;
 								}
@@ -450,14 +472,14 @@ namespace flare {
 		/**
 		 * @func touch_end
 		 */
-		void touchend(List<GUITouch>& in, const GUIEventName& type) {
-			Dict<View*, Array<GUITouch>> change_touches;
+		void touchend(List<UITouch>& in, const UIEventName& type) {
+			Dict<View*, Array<UITouch>> change_touches;
 			
 			for ( auto& i : in ) {
-				GUITouch& in_touch = i;
+				UITouch& in_touch = i;
 				for ( auto& item : _origin_touches ) {
 					if ( item.value->has(in_touch.id) ) {
-						GUITouch& touch = (*item.value)[in_touch.id];
+						UITouch& touch = (*item.value)[in_touch.id];
 						touch.x = in_touch.x;
 						touch.y = in_touch.y;
 						touch.force = in_touch.force;
@@ -469,9 +491,9 @@ namespace flare {
 			}
 			
 			for ( auto& i : change_touches ) { // views
-				Array<GUITouch>& touchs = i.value;
+				Array<UITouch>& touchs = i.value;
 				View* view = touchs[0].view;
-				_inl_view(view)->bubble_trigger(type, **NewEvent<GUITouchEvent>(view, touchs)); // emit touch end event
+				_inl_view(view)->bubble_trigger(type, **NewEvent<UITouchEvent>(view, touchs)); // emit touch end event
 				
 				OriginTouche* origin_touche = _origin_touches[view];
 				
@@ -481,13 +503,13 @@ namespace flare {
 							// find range == true
 							if ( item.click_in ) {
 								// emit style up event
-								auto evt = NewEvent<GUIHighlightedEvent>(view, HOVER_or_NORMAL(view));
+								auto evt = NewEvent<UIHighlightedEvent>(view, HOVER_or_NORMAL(view));
 								_inl_view(view)->trigger_highlightted(**evt);
 								
-								if ( type == GUI_EVENT_TOUCH_END && view->final_visible() ) {
-									auto evt = NewEvent<GUIClickEvent>(view, item.x, item.y,
-																											GUIClickEvent::TOUCH);
-									_inl_view(view)->bubble_trigger(GUI_EVENT_CLICK, **evt); // emit click event
+								if ( type == UI_EVENT_TOUCH_END && view->final_visible() ) {
+									auto evt = NewEvent<UIClickEvent>(view, item.x, item.y,
+																											UIClickEvent::TOUCH);
+									_inl_view(view)->bubble_trigger(UI_EVENT_CLICK, **evt); // emit click event
 								}
 								break;
 							}
@@ -502,33 +524,33 @@ namespace flare {
 		
 		//  dispatch touch event
 		
-		void dispatch_touchstart(Callback<List<GUITouch>>::Data& evt) {
-			GUILock lock;
+		void dispatch_touchstart(Callback<List<UITouch>>::Data& evt) {
+			UILock lock;
 			Root* r = app_->root();
 			if (r) {
 				touchstart(r, *evt.data);
 			}
 		}
 		
-		void dispatch_touchmove(Callback<List<GUITouch>>::Data& evt) {
-			GUILock lock;
+		void dispatch_touchmove(Callback<List<UITouch>>::Data& evt) {
+			UILock lock;
 			touchmove(*evt.data);
 		}
 		
-		void dispatch_touchend(Callback<List<GUITouch>>::Data& evt) {
-			GUILock lock;
-			touchend(*evt.data, GUI_EVENT_TOUCH_END);
+		void dispatch_touchend(Callback<List<UITouch>>::Data& evt) {
+			UILock lock;
+			touchend(*evt.data, UI_EVENT_TOUCH_END);
 		}
 		
-		void dispatch_touchcancel(Callback<List<GUITouch>>::Data& evt) {
-			GUILock lock;
-			touchend(*evt.data, GUI_EVENT_TOUCH_CANCEL);
+		void dispatch_touchcancel(Callback<List<UITouch>>::Data& evt) {
+			UILock lock;
+			touchend(*evt.data, UI_EVENT_TOUCH_CANCEL);
 		}
 
 		// -------------------------- mouse --------------------------
 
-		Handle<GUIMouseEvent> NewMouseEvent(View* view, float x, float y, uint32_t keycode = 0) {
-			return NewEvent<GUIMouseEvent>(view, x, y, keycode,
+		Handle<UIMouseEvent> NewMouseEvent(View* view, float x, float y, uint32_t keycode = 0) {
+			return NewEvent<UIMouseEvent>(view, x, y, keycode,
 				_keyboard->shift(),
 				_keyboard->ctrl(), _keyboard->alt(),
 				_keyboard->command(), _keyboard->caps_lock(), 0, 0, 0
@@ -590,7 +612,7 @@ namespace flare {
 				if ( d > 2 ) { // trigger invalid status
 					if (view == d_view) {
 						_inl_view(view)->trigger_highlightted( // emit style status event
-							**NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_HOVER));
+							**NewEvent<UIHighlightedEvent>(view, HIGHLIGHTED_HOVER));
 					}
 					_mouse_h->set_click_down_view(nullptr);
 				}
@@ -605,39 +627,39 @@ namespace flare {
 
 				if (old) {
 					auto evt = NewMouseEvent(old, x, y);
-					_inl_view(old)->bubble_trigger(GUI_EVENT_MOUSE_OUT, **evt);
+					_inl_view(old)->bubble_trigger(UI_EVENT_MOUSE_OUT, **evt);
 
 					if (evt->is_default()) {
 						evt->return_value = RETURN_VALUE_MASK_ALL;
 
 						if (!view || !test_view_level(old, view)) {
-							_inl_view(old)->bubble_trigger(GUI_EVENT_MOUSE_LEAVE, **evt);
+							_inl_view(old)->bubble_trigger(UI_EVENT_MOUSE_LEAVE, **evt);
 						}
 
 						_inl_view(old)->trigger_highlightted( // emit style status event
-							**NewEvent<GUIHighlightedEvent>(old, HIGHLIGHTED_NORMAL));
+							**NewEvent<UIHighlightedEvent>(old, HIGHLIGHTED_NORMAL));
 					}
 				}
 				if (view) {
 					auto evt = NewMouseEvent(view, x, y);
-					_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_OVER, **evt);
+					_inl_view(view)->bubble_trigger(UI_EVENT_MOUSE_OVER, **evt);
 
 					if (evt->is_default()) {
 						evt->return_value = RETURN_VALUE_MASK_ALL;
 						
 						if (!old || !test_view_level(view, old)) {
-							_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_ENTER, **evt);
+							_inl_view(view)->bubble_trigger(UI_EVENT_MOUSE_ENTER, **evt);
 						}
 
 						_inl_view(view)->trigger_highlightted( // emit style status event
-							**NewEvent<GUIHighlightedEvent>(view,
+							**NewEvent<UIHighlightedEvent>(view,
 								view == d_view ? HIGHLIGHTED_DOWN: HIGHLIGHTED_HOVER)
 						);
 					}
 				}
 			}
 			else if (view) {
-				_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_MOVE, **NewMouseEvent(view, x, y));
+				_inl_view(view)->bubble_trigger(UI_EVENT_MOUSE_MOVE, **NewMouseEvent(view, x, y));
 			}
 		}
 
@@ -657,24 +679,24 @@ namespace flare {
 
 			if (down) {
 				_mouse_h->set_click_down_view(*view);
-				_inl_view(*view)->bubble_trigger(GUI_EVENT_MOUSE_DOWN, **evt);
+				_inl_view(*view)->bubble_trigger(UI_EVENT_MOUSE_DOWN, **evt);
 			} else {
 				_mouse_h->set_click_down_view(nullptr);
-				_inl_view(*view)->bubble_trigger(GUI_EVENT_MOUSE_UP, **evt);
+				_inl_view(*view)->bubble_trigger(UI_EVENT_MOUSE_UP, **evt);
 			}
 
 			if (name != KEYCODE_MOUSE_LEFT || !evt->is_default()) return;
 
 			if (down) {
 				_inl_view(*view)->trigger_highlightted(
-					**NewEvent<GUIHighlightedEvent>(*view, HIGHLIGHTED_DOWN)); // emit style status event
+					**NewEvent<UIHighlightedEvent>(*view, HIGHLIGHTED_DOWN)); // emit style status event
 			} else {
 				_inl_view(*view)->trigger_highlightted(
-					**NewEvent<GUIHighlightedEvent>(*view, HIGHLIGHTED_HOVER)); // emit style status event
+					**NewEvent<UIHighlightedEvent>(*view, HIGHLIGHTED_HOVER)); // emit style status event
 
 				if (*view == *raw_down_view) {
-					_inl_view(*view)->bubble_trigger(GUI_EVENT_CLICK,
-						**NewEvent<GUIClickEvent>(*view, x, y, GUIClickEvent::MOUSE));
+					_inl_view(*view)->bubble_trigger(UI_EVENT_CLICK,
+						**NewEvent<UIClickEvent>(*view, x, y, UIClickEvent::MOUSE));
 				}
 			}
 		}
@@ -683,7 +705,7 @@ namespace flare {
 			if (down) {
 				auto view = _mouse_h->view();
 				if (view) {
-					_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_WHEEL, **NewMouseEvent(view, x, y, name));
+					_inl_view(view)->bubble_trigger(UI_EVENT_MOUSE_WHEEL, **NewMouseEvent(view, x, y, name));
 				}
 			}
 		}
@@ -719,7 +741,7 @@ namespace flare {
 					}
 				}
 				
-				auto evt = NewEvent<GUIKeyEvent>(view, name,
+				auto evt = NewEvent<UIKeyEvent>(view, name,
 					_keyboard->shift(),
 					_keyboard->ctrl(), _keyboard->alt(),
 					_keyboard->command(), _keyboard->caps_lock(),
@@ -728,12 +750,12 @@ namespace flare {
 				
 				evt->set_focus_move(focus_move);
 				
-				_inl_view(view)->bubble_trigger(GUI_EVENT_KEY_DOWN, **evt);
+				_inl_view(view)->bubble_trigger(UI_EVENT_KEY_DOWN, **evt);
 				
 				if ( evt->is_default() ) {
 					
 					if ( name == KEYCODE_ENTER ) {
-						_inl_view(view)->bubble_trigger(GUI_EVENT_KEY_ENTER, **evt);
+						_inl_view(view)->bubble_trigger(UI_EVENT_KEY_ENTER, **evt);
 					} else if ( name == KEYCODE_VOLUME_UP ) {
 						_inl_app(app_)->set_volume_up();
 					} else if ( name == KEYCODE_VOLUME_DOWN ) {
@@ -743,12 +765,12 @@ namespace flare {
 					int keypress_code = _keyboard->keypress();
 					if ( keypress_code ) { // keypress
 						evt->set_keycode( keypress_code );
-						_inl_view(view)->bubble_trigger(GUI_EVENT_KEY_PRESS, **evt);
+						_inl_view(view)->bubble_trigger(UI_EVENT_KEY_PRESS, **evt);
 					}
 
 					if ( name == KEYCODE_CENTER && _keyboard->repeat() == 0 ) {
 						// Rect rect = view->screen_rect();
-						auto evt = NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_DOWN);
+						auto evt = NewEvent<UIHighlightedEvent>(view, HIGHLIGHTED_DOWN);
 						_inl_view(view)->trigger_highlightted(**evt); // emit click status event
 					}
 					
@@ -768,22 +790,22 @@ namespace flare {
 
 			if ( view ) {
 				auto name = _keyboard->keyname();
-				auto evt = NewEvent<GUIKeyEvent>(view, name,
+				auto evt = NewEvent<UIKeyEvent>(view, name,
 					_keyboard->shift(),
 					_keyboard->ctrl(), _keyboard->alt(),
 					_keyboard->command(), _keyboard->caps_lock(),
 					_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 				);
 				
-				_inl_view(view)->bubble_trigger(GUI_EVENT_KEY_UP, **evt);
+				_inl_view(view)->bubble_trigger(UI_EVENT_KEY_UP, **evt);
 				
 				if ( evt->is_default() ) {
 					if ( name == KEYCODE_BACK ) {
 						Rect rect = view->screen_rect();
-						auto evt = NewEvent<GUIClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
+						auto evt = NewEvent<UIClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
 																								rect.origin.y() + rect.size.y() / 2,
-																								GUIClickEvent::KEYBOARD);
-						_inl_view(view)->bubble_trigger(GUI_EVENT_BACK, **evt); // emit back
+																								UIClickEvent::KEYBOARD);
+						_inl_view(view)->bubble_trigger(UI_EVENT_BACK, **evt); // emit back
 						
 						if ( evt->is_default() ) {
 							// pending gui application (挂起应用)
@@ -791,14 +813,14 @@ namespace flare {
 						}
 					}
 					else if ( name == KEYCODE_CENTER ) {
-						auto evt = NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_HOVER);
+						auto evt = NewEvent<UIHighlightedEvent>(view, HIGHLIGHTED_HOVER);
 						_inl_view(view)->trigger_highlightted(**evt); // emit style status event
 						
 						Rect rect = view->screen_rect();
-						auto evt2 = NewEvent<GUIClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
+						auto evt2 = NewEvent<UIClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
 																							 rect.origin.y() + rect.size.y() / 2,
-																							 GUIClickEvent::KEYBOARD);
-						_inl_view(view)->bubble_trigger(GUI_EVENT_CLICK, **evt2);
+																							 UIClickEvent::KEYBOARD);
+						_inl_view(view)->bubble_trigger(UI_EVENT_CLICK, **evt2);
 					} //
 				}
 			}
@@ -825,7 +847,7 @@ namespace flare {
 																 bool down, int repeat, int device, int source)
 	{
 		async_resolve(Cb([=](CbData& evt) {
-			GUILock lock;
+			UILock lock;
 			repeat_ = repeat; device_ = device;
 			source_ = source;
 			
@@ -844,29 +866,29 @@ namespace flare {
 		}), _loop);
 	}
 
-	void EventDispatch::dispatch_touchstart(List<GUITouch>&& list) {
-		async_resolve(Callback<List<GUITouch>>(
+	void EventDispatch::dispatch_touchstart(List<UITouch>&& list) {
+		async_resolve(Callback<List<UITouch>>(
 			&Inl::dispatch_touchstart, _inl_di(this)), std::move(list), _loop);
 	}
 
-	void EventDispatch::dispatch_touchmove(List<GUITouch>&& list) {
-		async_resolve(Callback<List<GUITouch>>(
+	void EventDispatch::dispatch_touchmove(List<UITouch>&& list) {
+		async_resolve(Callback<List<UITouch>>(
 			&Inl::dispatch_touchmove, _inl_di(this)), std::move(list), _loop);
 	}
 
-	void EventDispatch::dispatch_touchend(List<GUITouch>&& list) {
-		async_resolve(Callback<List<GUITouch>>(
+	void EventDispatch::dispatch_touchend(List<UITouch>&& list) {
+		async_resolve(Callback<List<UITouch>>(
 			&Inl::dispatch_touchend, _inl_di(this)), std::move(list), _loop);
 	}
 
-	void EventDispatch::dispatch_touchcancel(List<GUITouch>&& list) {
-		async_resolve(Callback<List<GUITouch>>(
+	void EventDispatch::dispatch_touchcancel(List<UITouch>&& list) {
+		async_resolve(Callback<List<UITouch>>(
 			&Inl::dispatch_touchcancel, _inl_di(this)), std::move(list), _loop);
 	}
 
 	void EventDispatch::dispatch_mousemove(float x, float y) {
 		async_resolve(Cb([=](CbData& evt) {
-			GUILock lock;
+			UILock lock;
 			Vec2 pos(x, y);
 			// set current mouse pos
 			_mouse_h->set_position(pos);
@@ -880,7 +902,7 @@ namespace flare {
 
 	void EventDispatch::dispatch_mousepress(KeyboardKeyName name, bool down) {
 		async_resolve(Cb([=](CbData& evt) {
-			GUILock lock;
+			UILock lock;
 			switch(name) {
 				case KEYCODE_MOUSE_LEFT:
 				case KEYCODE_MOUSE_CENTER:
@@ -902,7 +924,7 @@ namespace flare {
 
 	void EventDispatch::dispatch_ime_delete(int count) {
 		async_resolve(Cb([=](CbData& d) {
-			GUILock lock;
+			UILock lock;
 			if ( _text_input ) {
 				_text_input->input_delete(count);
 				bool can_backspace = _text_input->input_can_backspace();
@@ -914,7 +936,7 @@ namespace flare {
 
 	void EventDispatch::dispatch_ime_insert(cString& text) {
 		async_resolve(Cb([=](CbData& d) {
-			GUILock lock;
+			UILock lock;
 			if ( _text_input ) {
 				_text_input->input_insert(text);
 			}
@@ -923,7 +945,7 @@ namespace flare {
 
 	void EventDispatch::dispatch_ime_marked(cString& text) {
 		async_resolve(Cb([=](CbData& d) {
-			GUILock lock;
+			UILock lock;
 			if ( _text_input ) {
 				_text_input->input_marked(text);
 			}
@@ -932,7 +954,7 @@ namespace flare {
 
 	void EventDispatch::dispatch_ime_unmark(cString& text) {
 		async_resolve(Cb([=](CbData& d) {
-			GUILock lock;
+			UILock lock;
 			if ( _text_input ) {
 				_text_input->input_unmark(text);
 			}
@@ -941,7 +963,7 @@ namespace flare {
 
 	void EventDispatch::dispatch_ime_control(KeyboardKeyName name) {
 		async_resolve(Cb([=](CbData& d) {
-			GUILock lock;
+			UILock lock;
 			if ( _text_input ) {
 				_text_input->input_control(name);
 			}

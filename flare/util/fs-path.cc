@@ -192,7 +192,6 @@ namespace flare {
 	}
 
 	String Path::format(cString& path) {
-		
 		String s = path.copy();
 		
 		#if FX_WIN

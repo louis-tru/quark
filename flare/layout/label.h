@@ -40,9 +40,9 @@ namespace flare {
 		*/
 	class FX_EXPORT Label: public View {
 		FX_Define_View(Label);
-	public:
+	 public:
 		// TODO ...
-	private:
+	 private:
 		Color _text_background_color;
 		TextLineHeight _line_height;
 	};

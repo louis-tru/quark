@@ -41,7 +41,7 @@ namespace flare {
 		*/
 	class FX_EXPORT Box: public View {
 		FX_Define_View(Box);
-	public:
+	 public:
 
 		/**
 			* @constructors
@@ -112,7 +112,7 @@ namespace flare {
 		virtual bool solve_region_visible();
 		virtual void draw(SkCanvas* canvas);
 
-	protected:
+	 protected:
 		/**
 			* 
 			* is ready layout layout typesetting in the `layout_reverse() or layout_forward()` func
@@ -141,7 +141,7 @@ namespace flare {
 		void  mark_layout_size(uint32_t mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
-	private:
+	 private:
 		// box attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+content+padding）

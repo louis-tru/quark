@@ -37,127 +37,132 @@
 #include "./value.h"
 #include "./keyboard.h"
 
+
+// all ui events / NAME, STR_NAME, CATEGORY, FLAG
+#define FX_UI_EVENT_TABLE(F) \
+	/* can bubble event */ \
+	F(CLICK, Click, CLICK, UI_EVENT_FLAG_BUBBLE) \
+	F(BACK, Back, CLICK, UI_EVENT_FLAG_BUBBLE) \
+	F(KEY_DOWN, KeyDown, KEYBOARD, UI_EVENT_FLAG_BUBBLE) /* View */\
+	F(KEY_PRESS, KeyPress, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
+	F(KEY_UP, KeyUp, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
+	F(KEY_ENTER, KeyEnter, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
+	F(TOUCH_START, TouchStart, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+	F(TOUCH_MOVE, TouchMove, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+	F(TOUCH_END, TouchEnd, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+	F(TOUCH_CANCEL, TouchCancel, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+	F(MOUSE_OVER, MouseOver, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MOUSE_OUT, MouseOut, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MOUSE_LEAVE, MouseLeave, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MOUSE_ENTER, MouseEnter, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MOUSE_MOVE, MouseMove, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MOUSE_DOWN, MouseDown, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MOUSE_UP, MouseUp, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MOUSE_WHEEL, MouseWheel, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(FOCUS, Focus, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
+	F(BLUR, Blur, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
+	/* canno bubble event */ \
+	F(HIGHLIGHTED, Highlighted, HIGHLIGHTED, UI_EVENT_FLAG_NONE) /* normal / hover / down */ \
+	F(ACTION_KEYFRAME, ActionKeyframe, ACTION, UI_EVENT_FLAG_NONE) \
+	F(ACTION_LOOP, ActionLoop, ACTION, UI_EVENT_FLAG_NONE) \
+	F(FOCUS_MOVE, FocusMove, FOCUS_MOVE, UI_EVENT_FLAG_NONE) /*Panel*/ \
+	F(SCROLL, Scroll, DEFAULT, UI_EVENT_FLAG_NONE) /*BasicScroll*/\
+	F(CHANGE, Change, DEFAULT, UI_EVENT_FLAG_NONE) /*Input*/ \
+	F(LOAD, Load, DEFAULT, UI_EVENT_FLAG_NONE) /* Image */ \
+	F(ERROR, Error, ERROR, UI_EVENT_FLAG_PLAYER) \
+	F(READY, Ready, DEFAULT, UI_EVENT_FLAG_PLAYER) /* AutoPlayer / Video */ \
+	F(WAIT_BUFFER, WaitBuffer, FLOAT, UI_EVENT_FLAG_PLAYER) \
+	F(START_PLAY, StartPlay, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+	F(SOURCE_END, SourceEnd, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+	F(PAUSE, Pause, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+	F(RESUME, Resume, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+	F(STOP, Stop, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+	F(SEEK, Seek, UINT64, UI_EVENT_FLAG_PLAYER) \
+
+
+
 namespace flare {
 
-	// ----------- EVENT CATEGORY ----------- 
+	class Application;
+	class View;
+	class Action;
 
+	// event category
 	enum {
-		GUI_EVENT_CATEGORY_DEFAULT,
-		GUI_EVENT_CATEGORY_KEYBOARD,
-		GUI_EVENT_CATEGORY_CLICK,
-		GUI_EVENT_CATEGORY_HIGHLIGHTED,
-		GUI_EVENT_CATEGORY_TOUCH,
-		GUI_EVENT_CATEGORY_MOUSE,
-		GUI_EVENT_CATEGORY_ACTION,
-		GUI_EVENT_CATEGORY_FOCUS_MOVE,
-		GUI_EVENT_CATEGORY_ERROR,
-		GUI_EVENT_CATEGORY_FLOAT,
-		GUI_EVENT_CATEGORY_UINT64,
+		UI_EVENT_CATEGORY_DEFAULT,
+		UI_EVENT_CATEGORY_KEYBOARD,
+		UI_EVENT_CATEGORY_CLICK,
+		UI_EVENT_CATEGORY_HIGHLIGHTED,
+		UI_EVENT_CATEGORY_TOUCH,
+		UI_EVENT_CATEGORY_MOUSE,
+		UI_EVENT_CATEGORY_ACTION,
+		UI_EVENT_CATEGORY_FOCUS_MOVE,
+		UI_EVENT_CATEGORY_ERROR,
+		UI_EVENT_CATEGORY_FLOAT,
+		UI_EVENT_CATEGORY_UINT64,
 	};
 
+	// event flags
 	enum {
-		GUI_EVENT_FLAG_NONE = 0,
-		GUI_EVENT_FLAG_BUBBLE = (1 << 0),
-		GUI_EVENT_FLAG_PLAYER = (1 << 1),
+		UI_EVENT_FLAG_NONE = 0,
+		UI_EVENT_FLAG_BUBBLE = (1 << 0),
+		UI_EVENT_FLAG_PLAYER = (1 << 1),
 	};
 
-	// NAME, STR_NAME, CATEGORY, FLAG
-	#define FX_GUI_EVENT_TABLE(F) \
-		/* can bubble event */ \
-		F(CLICK, Click, CLICK, GUI_EVENT_FLAG_BUBBLE) \
-		F(BACK, Back, CLICK, GUI_EVENT_FLAG_BUBBLE) \
-		F(KEY_DOWN, KeyDown, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) /* View */\
-		F(KEY_PRESS, KeyPress, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
-		F(KEY_UP, KeyUp, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
-		F(KEY_ENTER, KeyEnter, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
-		F(TOUCH_START, TouchStart, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
-		F(TOUCH_MOVE, TouchMove, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
-		F(TOUCH_END, TouchEnd, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
-		F(TOUCH_CANCEL, TouchCancel, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
-		F(MOUSE_OVER, MouseOver, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
-		F(MOUSE_OUT, MouseOut, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
-		F(MOUSE_LEAVE, MouseLeave, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
-		F(MOUSE_ENTER, MouseEnter, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
-		F(MOUSE_MOVE, MouseMove, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
-		F(MOUSE_DOWN, MouseDown, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
-		F(MOUSE_UP, MouseUp, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
-		F(MOUSE_WHEEL, MouseWheel, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
-		F(FOCUS, Focus, DEFAULT, GUI_EVENT_FLAG_BUBBLE) \
-		F(BLUR, Blur, DEFAULT, GUI_EVENT_FLAG_BUBBLE) \
-		/* canno bubble event */ \
-		F(HIGHLIGHTED, Highlighted, HIGHLIGHTED, GUI_EVENT_FLAG_NONE) /* normal / hover / down */ \
-		F(ACTION_KEYFRAME, ActionKeyframe, ACTION, GUI_EVENT_FLAG_NONE) \
-		F(ACTION_LOOP, ActionLoop, ACTION, GUI_EVENT_FLAG_NONE) \
-		F(FOCUS_MOVE, FocusMove, FOCUS_MOVE, GUI_EVENT_FLAG_NONE) /*Panel*/ \
-		F(SCROLL, Scroll, DEFAULT, GUI_EVENT_FLAG_NONE) /*BasicScroll*/\
-		F(CHANGE, Change, DEFAULT, GUI_EVENT_FLAG_NONE) /*Input*/ \
-		F(LOAD, Load, DEFAULT, GUI_EVENT_FLAG_NONE) /* Image */ \
-		F(ERROR, Error, ERROR, GUI_EVENT_FLAG_PLAYER) \
-		F(READY, Ready, DEFAULT, GUI_EVENT_FLAG_PLAYER) /* AutoPlayer / Video */ \
-		F(WAIT_BUFFER, WaitBuffer, FLOAT, GUI_EVENT_FLAG_PLAYER) \
-		F(START_PLAY, StartPlay, DEFAULT, GUI_EVENT_FLAG_PLAYER) \
-		F(SOURCE_END, SourceEnd, DEFAULT, GUI_EVENT_FLAG_PLAYER) \
-		F(PAUSE, Pause, DEFAULT, GUI_EVENT_FLAG_PLAYER) \
-		F(RESUME, Resume, DEFAULT, GUI_EVENT_FLAG_PLAYER) \
-		F(STOP, Stop, DEFAULT, GUI_EVENT_FLAG_PLAYER) \
-		F(SEEK, Seek, UINT64, GUI_EVENT_FLAG_PLAYER) \
-
-	enum HighlightedStatus {
-		HIGHLIGHTED_NORMAL = 1,
-		HIGHLIGHTED_HOVER,
-		HIGHLIGHTED_DOWN,
-	};
-
+	// event returl value mask
 	enum ReturnValueMask {
 		RETURN_VALUE_MASK_DEFAULT = (1 << 0),
 		RETURN_VALUE_MASK_BUBBLE = (1 << 1),
 		RETURN_VALUE_MASK_ALL = (RETURN_VALUE_MASK_DEFAULT | RETURN_VALUE_MASK_BUBBLE),
 	};
 
-	class FX_EXPORT GUIEventName {
-	public:
-		inline GUIEventName() { FX_UNREACHABLE(); }
-		inline GUIEventName(cString& n, uint32_t category, int flag)
-			: name_(n), code_((uint32_t)n.hash_code()), category_(category), flag_(flag) { }
+	// event highlighed status
+	enum HighlightedStatus {
+		HIGHLIGHTED_NORMAL = 1,
+		HIGHLIGHTED_HOVER,
+		HIGHLIGHTED_DOWN,
+	};
+
+	// event name
+	class FX_EXPORT UIEventName {
+	 public:
+		inline UIEventName() { FX_UNREACHABLE(); }
+		inline UIEventName(cString& n, uint32_t category, int flag)
+			: name_(n), code_((uint32_t)n.hash_code()), category_(category), flag_(flag) {}
 		inline uint32_t hash_code() const { return code_; }
-		inline bool equals(const GUIEventName& o) const { return o.hash_code() == code_; }
+		inline bool equals(const UIEventName& o) const { return o.hash_code() == code_; }
 		inline String to_string() const { return name_; }
 		inline uint32_t category() const { return category_; }
 		inline int flag() const { return flag_; }
-		inline bool operator==(const GUIEventName& type) const { return type.code_ == code_; }
-		inline bool operator!=(const GUIEventName& type) const { return type.code_ != code_; }
-		inline bool operator>(const GUIEventName& type) const { return code_ > type.code_; }
-		inline bool operator<(const GUIEventName& type) const { return code_ < type.code_; }
-	private:
+		inline bool operator==(const UIEventName& type) const { return type.code_ == code_; }
+		inline bool operator!=(const UIEventName& type) const { return type.code_ != code_; }
+		inline bool operator>(const UIEventName& type) const { return code_ > type.code_; }
+		inline bool operator<(const UIEventName& type) const { return code_ < type.code_; }
+	 private:
 		String  name_;
-		uint32_t  code_, category_;
+		uint32_t code_, category_;
 		int  flag_;
 	};
 
-	FX_EXPORT extern const Dict<String, GUIEventName> GUI_EVENT_TABLE;
+	// event names string => UIEventName
+	FX_EXPORT extern const Dict<String, UIEventName> UIEventNames;
 
+	// define event names
 	#define FX_FUN(NAME, STR, CATEGORY, FLAG) \
-		FX_EXPORT extern const GUIEventName GUI_EVENT_##NAME;
-	FX_GUI_EVENT_TABLE(FX_FUN)
+		FX_EXPORT extern const UIEventName UI_EVENT_##NAME;
+	FX_UI_EVENT_TABLE(FX_FUN)
 	#undef FX_FUN
 
 	// -----------------------------------
 
-	class Application;
-	class View;
-	class Action;
-	class Activity;
-	class Button;
-
 	/**
-	* @func GUIEvent gui event
+	* @func UIEvent gui event
 	*/
-	class FX_EXPORT GUIEvent: public Event<Object, View> {
-	public:
-		inline GUIEvent(cSendData data): Event<Object, View>() { FX_UNREACHABLE(); }
-		inline GUIEvent(View* origin, cSendData data = SendData())
-			: Event(data), origin_(origin), time_(os::time()), valid_(true) {
-			return_value = RETURN_VALUE_MASK_ALL;
+	class FX_EXPORT UIEvent: public Event<Object, View> {
+	 public:
+		inline UIEvent(cSendData& data): Event<Object, View>() { FX_UNREACHABLE(); }
+		inline UIEvent(View* origin, cSendData& data = SendData())
+			: Event(data), return_value(RETURN_VALUE_MASK_ALL), origin_(origin), time_(os::time()), valid_(true) {
 		}
 		inline View* origin() const { return origin_; }
 		inline uint64_t timestamp() const { return time_; }
@@ -165,45 +170,43 @@ namespace flare {
 		inline void cancel_bubble() { return_value &= ~RETURN_VALUE_MASK_BUBBLE; }
 		inline bool is_default() const { return return_value & RETURN_VALUE_MASK_DEFAULT; }
 		inline bool is_bubble() const { return return_value & RETURN_VALUE_MASK_BUBBLE; }
-		virtual void release() {
-			valid_ = false;
-			origin_ = nullptr; Event<Object, View>::release();
-		}
-	protected:
-		View*   origin_;
-		uint64_t  time_;
-		bool    valid_;
+		virtual void release();
+		int return_value;
+	 protected:
+		View*    origin_;
+		uint64_t time_;
+		bool     valid_;
 	};
 
 	/**
 	* @class ActionEvent
 	*/
-	class FX_EXPORT ActionEvent: public GUIEvent {
-	public:
+	class FX_EXPORT ActionEvent: public UIEvent {
+	 public:
 		inline ActionEvent(Action* action, View* view, uint64_t delay, uint32_t frame, uint32_t loop)
-			: GUIEvent(view), action_(action), delay_(delay), frame_(frame), loop_(loop) { }
+			: UIEvent(view), action_(action), delay_(delay), frame_(frame), loop_(loop) {}
 		inline Action* action() const { return action_; }
 		inline uint64_t delay() const { return delay_; }
 		inline uint32_t frame() const { return frame_; }
 		inline uint32_t loop() const { return loop_; }
-		virtual void release() { action_ = nullptr; GUIEvent::release(); }
-	private:
+		virtual void release();
+	 private:
 		Action* action_;
 		uint64_t  delay_;
 		uint32_t  frame_, loop_;
 	};
 
 	/**
-	* @func GUIKeyEvent keyboard event
+	* @func KeyEvent keyboard event
 	*/
-	class FX_EXPORT KeyEvent: public GUIEvent {
-	public:
+	class FX_EXPORT KeyEvent: public UIEvent {
+	 public:
 		inline KeyEvent(View* origin, uint32_t keycode,
-											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-											uint32_t repeat, int device, int source)
-			: GUIEvent(origin), keycode_(keycode)
+										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
+										uint32_t repeat, int device, int source)
+			: UIEvent(origin), keycode_(keycode)
 			, device_(device), source_(source), repeat_(repeat), shift_(shift)
-			, ctrl_(ctrl), alt_(alt), command_(command), caps_lock_(caps_lock), focus_move_(nullptr) { }
+			, ctrl_(ctrl), alt_(alt), command_(command), caps_lock_(caps_lock), focus_move_(nullptr) {}
 		inline int  keycode() const { return keycode_; }
 		inline int  repeat() const { return repeat_; }
 		inline int  device() const { return device_; }
@@ -216,8 +219,8 @@ namespace flare {
 		inline void set_keycode(int value) { keycode_ = value; }
 		inline View* focus_move() const { return focus_move_; }
 		inline void set_focus_move(View* view) { if (valid_) focus_move_ = view; }
-		virtual void release() { focus_move_ = nullptr; GUIEvent::release(); }
-	private:
+		virtual void release();
+	 private:
 		int  keycode_;
 		int  device_, source_, repeat_;
 		bool shift_, ctrl_, alt_;
@@ -228,54 +231,54 @@ namespace flare {
 	/**
 	* @class ClickEvent click event
 	*/
-	class FX_EXPORT ClickEvent: public GUIEvent {
-	public:
+	class FX_EXPORT ClickEvent: public UIEvent {
+	 public:
 		enum Type { TOUCH = 1, KEYBOARD = 2, MOUSE = 3 };
 		inline ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1)
-			: GUIEvent(origin), x_(x), y_(y), count_(count), type_(type) { }
+			: UIEvent(origin), x_(x), y_(y), count_(count), type_(type) {}
 		inline float x() const { return x_; }
 		inline float y() const { return y_; }
 		inline uint32_t count() const { return count_; }
 		inline Type type() const { return type_; }
-	private:
+	 private:
 		float x_, y_;
 		uint32_t count_;
 		Type type_;
 	};
 
 	/**
-	* @class GUIMouseEvent mouse event
+	* @class UIMouseEvent mouse event
 	*/
 	class FX_EXPORT MouseEvent: public KeyEvent {
-	public:
+	 public:
 		inline MouseEvent(View* origin, float x, float y, uint32_t keycode,
-												bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-												uint32_t repeat = 0, int device = 0, int source = 0)
+											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
+											uint32_t repeat = 0, int device = 0, int source = 0)
 			: KeyEvent(origin, keycode, shift, ctrl, alt,
-				command, caps_lock, repeat, device, source), x_(x), y_(y) { }
+				command, caps_lock, repeat, device, source), x_(x), y_(y) {}
 		inline float x() const { return x_; }
 		inline float y() const { return y_; }
-	private:
+	 private:
 		float x_, y_;
 	};
 
 	/**
 	* @class HighlightedEvent status event
 	*/
-	class FX_EXPORT HighlightedEvent: public GUIEvent {
-	public:
+	class FX_EXPORT HighlightedEvent: public UIEvent {
+	 public:
 		inline HighlightedEvent(View* origin, HighlightedStatus status)
-			: GUIEvent(origin), _status(status) { }
+			: UIEvent(origin), _status(status) {}
 		inline HighlightedStatus status() const { return _status; }
-	private:
+	 private:
 		HighlightedStatus _status;
 	};
 
 	/**
 	* @class TouchEvent touch event
 	*/
-	class FX_EXPORT TouchEvent: public GUIEvent {
-	public:
+	class FX_EXPORT TouchEvent: public UIEvent {
+	 public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
 			float    start_x, start_y;
@@ -284,9 +287,9 @@ namespace flare {
 			View*    view;
 		};
 		inline TouchEvent(View* origin, Array<TouchPoint>& touches)
-			: GUIEvent(origin), _change_touches(touches) {}
+			: UIEvent(origin), _change_touches(touches) {}
 		inline Array<TouchPoint>& changed_touches() { return _change_touches; }
-	private:
+	 private:
 		Array<TouchPoint> _change_touches;
 	};
 
@@ -295,19 +298,16 @@ namespace flare {
 	/**
 	* @class FocusMoveEvent
 	*/
-	class FX_EXPORT FocusMoveEvent: public GUIEvent {
-	public:
+	class FX_EXPORT FocusMoveEvent: public UIEvent {
+	 public:
 		inline FocusMoveEvent(View* origin, View* old_focus, View* new_focus)
-			: GUIEvent(origin), _old_focus(old_focus), _new_focus(new_focus) {}
+			: UIEvent(origin), _old_focus(old_focus), _new_focus(new_focus) {}
 		inline View* old_focus() { return _old_focus; }
 		inline View* new_focus() { return _new_focus; }
 		inline View* focus() { return _old_focus; }
 		inline View* focus_move() { return _new_focus; }
-		virtual void release() {
-			_old_focus = nullptr;
-			_new_focus = nullptr; GUIEvent::release();
-		}
-	private:
+		virtual void release();
+	 private:
 		View* _old_focus;
 		View* _new_focus;
 	};
@@ -316,7 +316,7 @@ namespace flare {
 	* @class ITextInput
 	*/
 	class FX_EXPORT ITextInput: public Protocol {
-	public:
+	 public:
 		virtual void input_delete(int count) = 0;
 		virtual void input_insert(cString& text) = 0;
 		virtual void input_marked(cString& text) = 0;
@@ -333,7 +333,7 @@ namespace flare {
 	* @class EventDispatch
 	*/
 	class FX_EXPORT EventDispatch: public Object {
-	public:
+	 public:
 		EventDispatch(Application* app);
 		virtual ~EventDispatch();
 		// touch
@@ -363,7 +363,7 @@ namespace flare {
 			return _keyboard;
 		}
 		
-	private:
+	 private:
 		class OriginTouche;
 		class MouseHandle;
 		typedef Dict<View*, OriginTouche*> OriginTouches;

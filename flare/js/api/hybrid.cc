@@ -57,7 +57,7 @@ class WrapHybrid: public WrapViewBase {
 	}
 	
 	static void set_text_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(TextAlign, value, "Hybrid.textAlign = %s");
 		JS_SELF(Hybrid);
 		self->set_text_align(out);

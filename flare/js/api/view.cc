@@ -65,7 +65,7 @@ class WrapView: public WrapViewBase {
 	 * @arg child {View}
 	 */
 	static void prepend(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if (args.Length() < 1 || ! worker->hasInstance(args[0], View::VIEW)) {
 			JS_THROW_ERR(
 				"* @func prepend(child)\n"
@@ -83,7 +83,7 @@ class WrapView: public WrapViewBase {
 	 * @arg child {View}
 	 */
 	static void append(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if (args.Length() < 1 || ! worker->hasInstance(args[0], View::VIEW)) {
 			JS_THROW_ERR(
 				"* @func append(child)\n"
@@ -102,7 +102,7 @@ class WrapView: public WrapViewBase {
 	 * @ret {View}
 	 */
 	static void append_text(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR(
 				"* @func appendText(text)\n"
@@ -130,7 +130,7 @@ class WrapView: public WrapViewBase {
 	 * @arg prev {View}
 	 */
 	static void before(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if (args.Length() < 1 || ! worker->hasInstance(args[0], View::VIEW)) {
 			JS_THROW_ERR(
 				"* @func before(prev)\n"
@@ -148,7 +148,7 @@ class WrapView: public WrapViewBase {
 	 * @arg next {View}
 	 */
 	static void after(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if (args.Length() < 1 || !worker->hasView(args[0])) {
 			JS_THROW_ERR(
 				"* @func after(next)\n"
@@ -165,7 +165,7 @@ class WrapView: public WrapViewBase {
 	 * @func remove()
 	 */
 	static void remove(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		self->remove();
 	}
@@ -174,7 +174,7 @@ class WrapView: public WrapViewBase {
 	 * @func removeAllChild()
 	 */
 	static void remove_all_child(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		self->remove_all_child();
 	}
@@ -184,7 +184,7 @@ class WrapView: public WrapViewBase {
 	 * @ret {bool}
 	 */
 	static void focus(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		JS_RETURN( self->focus() );
 	}
@@ -194,7 +194,7 @@ class WrapView: public WrapViewBase {
 	 * @ret {bool}
 	 */
 	static void blur(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		JS_RETURN( self->blur() );
 	}
@@ -204,7 +204,7 @@ class WrapView: public WrapViewBase {
 	 * @ret {Vec2}
 	 */
 	static void layout_offset(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		Vec2 rev = self->layout_offset();
 		JS_RETURN( worker->values()->New(rev) );
@@ -216,7 +216,7 @@ class WrapView: public WrapViewBase {
 	 * @ret {Vec2}
 	 */
 	static void layout_offset_from(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		View* target = nullptr;
 		if ( args.Length() > 0 && worker->hasView(args[0]) ) {
 			target = Wrap<View>::unpack(args[0].To())->self();
@@ -246,7 +246,7 @@ class WrapView: public WrapViewBase {
 	 * @arg [action=null] {Action}
 	 */
 	static void set_action(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		Action* action = nullptr;
 		
 		if ( args.Length() > 0 ) {
@@ -272,7 +272,7 @@ class WrapView: public WrapViewBase {
 	 * @ret {Rect}
 	 */
 	static void screen_rect(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		JS_RETURN( worker->values()->New(self->screen_rect()) );
 	}
@@ -282,7 +282,7 @@ class WrapView: public WrapViewBase {
 	 * @ret {Mat}
 	 */
 	static void final_matrix(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		JS_RETURN( worker->values()->New(self->final_matrix()) );
 	}
@@ -292,7 +292,7 @@ class WrapView: public WrapViewBase {
 	 * @ret {float}
 	 */
 	static void final_opacity(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		JS_RETURN( self->final_opacity() );
 	}
@@ -302,7 +302,7 @@ class WrapView: public WrapViewBase {
 	 * @ret {Vec2}
 	 */
 	static void position(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		JS_RETURN( worker->values()->New(self->position()) );
 	}
@@ -313,7 +313,7 @@ class WrapView: public WrapViewBase {
 	 * @ret {bool}
 	 */
 	static void overlap_test(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR(
 				"* @func overlapTest(point)\n"
@@ -331,7 +331,7 @@ class WrapView: public WrapViewBase {
 	 * @arg name {String}
 	 */
 	static void add_class(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsString(worker) ) {
 			JS_THROW_ERR(
 				"* @func addClass(name)\n"
@@ -347,7 +347,7 @@ class WrapView: public WrapViewBase {
 	 * @arg name {String}
 	 */
 	static void remove_class(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || ! args[0]->IsString(worker) ) {
 			JS_THROW_ERR(
 				"* @func removeClass(name)\n"
@@ -363,7 +363,7 @@ class WrapView: public WrapViewBase {
 	 * @arg name {String}
 	 */
 	static void toggle_class(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( args.Length() < 1 || ! args[0]->IsString(worker) ) {
 			JS_THROW_ERR(
 				"* @func toggleClass(name)\n"
@@ -602,7 +602,7 @@ class WrapView: public WrapViewBase {
 	 * @get matrix {Mat}
 	 */
 	static void matrix(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		JS_RETURN( worker->values()->New(self->matrix()) );
 	}
@@ -675,7 +675,7 @@ class WrapView: public WrapViewBase {
 	 * @set x {float}
 	 */
 	static void set_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -687,7 +687,7 @@ class WrapView: public WrapViewBase {
 	 * @set y {float}
 	 */
 	static void set_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -699,7 +699,7 @@ class WrapView: public WrapViewBase {
 	 * @set scaleX {float}
 	 */
 	static void set_scale_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -711,7 +711,7 @@ class WrapView: public WrapViewBase {
 	 * @set scaleY {float}
 	 */
 	static void set_scale_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -723,7 +723,7 @@ class WrapView: public WrapViewBase {
 	 * @set rotateZ {float}
 	 */
 	static void set_rotate_z(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -735,7 +735,7 @@ class WrapView: public WrapViewBase {
 	 * @set skewX {float}
 	 */
 	static void set_skew_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -747,7 +747,7 @@ class WrapView: public WrapViewBase {
 	 * @set skewY {float}
 	 */
 	static void set_skew_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -759,7 +759,7 @@ class WrapView: public WrapViewBase {
 	 * @set opacity {float}
 	 */
 	static void set_opacity(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -771,7 +771,7 @@ class WrapView: public WrapViewBase {
 	 * @set translate {Vec2}
 	 */
 	static void set_translate(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Vec2, value, "View.translate = %s");
 		JS_SELF(View);
 		self->set_translate( out );
@@ -781,7 +781,7 @@ class WrapView: public WrapViewBase {
 	 * @set scale {Vec2}
 	 */
 	static void set_scale(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Vec2, value, "View.scale = %s");
 		JS_SELF(View);
 		self->set_scale( out );
@@ -791,7 +791,7 @@ class WrapView: public WrapViewBase {
 	 * @set skew {Vec2}
 	 */
 	static void set_skew(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Vec2, value, "View.skew = %s");
 		JS_SELF(View);
 		self->set_skew( out );
@@ -801,7 +801,7 @@ class WrapView: public WrapViewBase {
 	 * @set originX {float}
 	 */
 	static void set_origin_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -813,7 +813,7 @@ class WrapView: public WrapViewBase {
 	 * @set originY {float}
 	 */
 	static void set_origin_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -825,7 +825,7 @@ class WrapView: public WrapViewBase {
 	 * @set origin {Vec2}
 	 */
 	static void set_origin(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Vec2, value, "View.origin = %s");
 		JS_SELF(View);
 		self->set_origin( out );
@@ -835,7 +835,7 @@ class WrapView: public WrapViewBase {
 	 * @set visible {bool}
 	 */
 	static void set_visible(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		self->set_visible( value->ToBooleanValue(worker) );
 	}
@@ -844,7 +844,7 @@ class WrapView: public WrapViewBase {
 	 * @set needDraw {bool}
 	 */
 	static void set_need_draw(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		self->set_need_draw( value->ToBooleanValue(worker) );
 	}
@@ -853,7 +853,7 @@ class WrapView: public WrapViewBase {
 	 * @set receive {bool}
 	 */
 	static void set_receive(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		self->set_receive( value->ToBooleanValue(worker) );
 	}
@@ -862,7 +862,7 @@ class WrapView: public WrapViewBase {
 	 * @get isFocus {bool}
 	 */
 	static void set_is_focus(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(View);
 		self->set_is_focus( value->ToBooleanValue(worker) );
 	}
@@ -871,7 +871,7 @@ class WrapView: public WrapViewBase {
 	 * @set class {String}
 	 */
 	static void set_class(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( !value->IsString(worker) ) {
 			JS_THROW_ERR("Bad argument.");
 		}

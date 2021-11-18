@@ -46,7 +46,7 @@ namespace flare {
 	#endif
 
 	FX_DEFINE_INLINE_MEMBERS(FileStat, Inl) {
-		public:
+	 public:
 		void set__stat(uv_stat_t* stat) {
 			if ( !_stat ) {
 				_stat = malloc(sizeof(uv_stat_t));

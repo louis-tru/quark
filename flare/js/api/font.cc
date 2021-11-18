@@ -51,7 +51,7 @@ class WrapFontStatic {
 	 * @arg fonts {String|Array}
 	 */
 	static void set_default_fonts(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_CHECK_APP();
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR("Bad argument.");
@@ -135,7 +135,7 @@ class WrapFontStatic {
 	 * @ret {bool}
 	 */
 	static void register_font(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_CHECK_APP();
 		if ( args.Length() < 1 || !args[0]->IsBuffer() ) {
 			JS_THROW_ERR(
@@ -162,7 +162,7 @@ class WrapFontStatic {
 	 * @ret {bool}
 	 */
 	static void register_font_file(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_CHECK_APP();
 		if ( args.Length() < 1 || !args[0]->IsString(worker) ) {
 			JS_THROW_ERR(
@@ -187,7 +187,7 @@ class WrapFontStatic {
 	 * @arg alias {String}
 	 */
 	static void set_family_alias(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_CHECK_APP();
 		if ( args.Length() < 2 ) {
 			JS_THROW_ERR(

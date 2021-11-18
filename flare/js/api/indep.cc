@@ -61,20 +61,20 @@ class WrapIndep: public WrapViewBase {
 		JS_RETURN( worker->values()->New(self->align_y()) );
 	}
 	static void set_align_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Align, value, "Indep.alignX = %s");
 		JS_SELF(Indep);
 		self->set_align_x(out);
 	}
 	static void set_align_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value(Align, value, "Indep.alignY = %s");
 		JS_SELF(Indep);
 		self->set_align_y(out);
 	}
 	
 	static void align(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(Indep);
 		Local<JSArray> ret = worker->NewArray();
 		ret->Set(worker, 0, worker->values()->New(self->align_x()) );
@@ -83,7 +83,7 @@ class WrapIndep: public WrapViewBase {
 	}
 	
 	static void set_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value2(Array<Align>, Aligns, value, "Indep.align = %s");
 		JS_SELF(Indep);
 		self->set_align_x(out[0]);

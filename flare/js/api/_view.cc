@@ -46,13 +46,13 @@
 JS_BEGIN
 
 void WrapViewBase::destroy() {
-	GUILock lock;
+	UILock lock;
 	delete this;
 }
 
 template<class T, class Self>
 static void addEventListener_1(
-	Wrap<Self>* wrap, const GUIEventName& type, cString& func, int id, Cast* cast = nullptr) 
+	Wrap<Self>* wrap, const UIEventName& type, cString& func, int id, Cast* cast = nullptr) 
 {
 	auto f = [wrap, func, cast](typename Self::EventType& evt) {
 		auto worker = wrap->worker();
@@ -77,36 +77,36 @@ static void addEventListener_1(
 
 bool WrapViewBase::addEventListener(cString& name_s, cString& func, int id)
 {
-	auto i = GUI_EVENT_TABLE.find(name_s);
+	auto i = UI_EVENT_TABLE.find(name_s);
 	if ( i.is_null() ) {
 		return false;
 	}
-	GUIEventName name = i.value();
+	UIEventName name = i.value();
 	auto wrap = reinterpret_cast<Wrap<View>*>(this);
   
 	switch ( name.category() ) {
-		case GUI_EVENT_CATEGORY_CLICK:
-			addEventListener_1<GUIClickEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_KEYBOARD:
-			addEventListener_1<GUIKeyEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_MOUSE:
-		 addEventListener_1<GUIMouseEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_TOUCH:
-			addEventListener_1<GUITouchEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_HIGHLIGHTED:
-			addEventListener_1<GUIHighlightedEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_ACTION:
-			addEventListener_1<GUIActionEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_FOCUS_MOVE:
-			addEventListener_1<GUIFocusMoveEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_ERROR:
-			addEventListener_1<GUIEvent>(wrap, name, func, id, Cast::Entity<Error>()); break;
-		case GUI_EVENT_CATEGORY_FLOAT:
-			addEventListener_1<GUIEvent>(wrap, name, func, id, Cast::Entity<Float>()); break;
-		case GUI_EVENT_CATEGORY_UINT64:
-			addEventListener_1<GUIEvent>(wrap, name, func, id, Cast::Entity<Uint64>()); break;
-		case GUI_EVENT_CATEGORY_DEFAULT:
-			addEventListener_1<GUIEvent>(wrap, name, func, id); break;
+		case UI_EVENT_CATEGORY_CLICK:
+			addEventListener_1<UIClickEvent>(wrap, name, func, id); break;
+		case UI_EVENT_CATEGORY_KEYBOARD:
+			addEventListener_1<UIKeyEvent>(wrap, name, func, id); break;
+		case UI_EVENT_CATEGORY_MOUSE:
+		 addEventListener_1<UIMouseEvent>(wrap, name, func, id); break;
+		case UI_EVENT_CATEGORY_TOUCH:
+			addEventListener_1<UITouchEvent>(wrap, name, func, id); break;
+		case UI_EVENT_CATEGORY_HIGHLIGHTED:
+			addEventListener_1<UIHighlightedEvent>(wrap, name, func, id); break;
+		case UI_EVENT_CATEGORY_ACTION:
+			addEventListener_1<UIActionEvent>(wrap, name, func, id); break;
+		case UI_EVENT_CATEGORY_FOCUS_MOVE:
+			addEventListener_1<UIFocusMoveEvent>(wrap, name, func, id); break;
+		case UI_EVENT_CATEGORY_ERROR:
+			addEventListener_1<UIEvent>(wrap, name, func, id, Cast::Entity<Error>()); break;
+		case UI_EVENT_CATEGORY_FLOAT:
+			addEventListener_1<UIEvent>(wrap, name, func, id, Cast::Entity<Float>()); break;
+		case UI_EVENT_CATEGORY_UINT64:
+			addEventListener_1<UIEvent>(wrap, name, func, id, Cast::Entity<Uint64>()); break;
+		case UI_EVENT_CATEGORY_DEFAULT:
+			addEventListener_1<UIEvent>(wrap, name, func, id); break;
 		default:
 			return false;
 	}
@@ -114,7 +114,7 @@ bool WrapViewBase::addEventListener(cString& name_s, cString& func, int id)
 }
 
 bool WrapViewBase::removeEventListener(cString& name, int id) {
-	auto i = GUI_EVENT_TABLE.find(name);
+	auto i = UI_EVENT_TABLE.find(name);
 	if ( i.is_null() ) {
 		return false;
 	}

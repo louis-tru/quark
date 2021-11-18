@@ -45,7 +45,7 @@ namespace flare {
 		* @class Layout
 		*/
 	class Layout: public Reference {
-	public:
+	 public:
 
 		// Layout mark value
 		enum : uint32_t {
@@ -85,7 +85,7 @@ namespace flare {
 
 		/**
 			*
-			* 布局在GUI树中所处的深度，0表示还没有加入到GUI视图树中
+			* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
 			*
 			* @func layout_depth()
 			*/
@@ -237,7 +237,7 @@ namespace flare {
 			return _layout_mark;
 		}
 
-	protected:
+	 protected:
 		/**
 			* 
 			* set layout depth for the cureent view object
@@ -263,7 +263,7 @@ namespace flare {
 			_layout_mark &= (~mark);
 		}
 
-	private:
+	 private:
 		// layout:
 		/* 下一个预处理视图标记
 		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。

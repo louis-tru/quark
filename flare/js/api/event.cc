@@ -161,11 +161,11 @@ class WrapNativeEvent: public WrapObject {
 
 
 /**
- * @class WrapGUIEvent
+ * @class WrapUIEvent
  */
-class WrapGUIEvent: public WrapObject {
+class WrapUIEvent: public WrapObject {
 	public:
-	typedef GUIEvent Type;
+	typedef UIEvent Type;
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -234,7 +234,7 @@ class WrapGUIEvent: public WrapObject {
 	
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(GUIEvent, constructor, {
+		JS_DEFINE_CLASS(UIEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(origin, origin);
 			JS_SET_CLASS_ACCESSOR(timestamp, timestamp);
 			JS_SET_CLASS_METHOD(cancelDefault, cancel_default);
@@ -246,11 +246,11 @@ class WrapGUIEvent: public WrapObject {
 };
 
 /**
- * @class WrapGUIActionEvent
+ * @class WrapUIActionEvent
  */
-class WrapGUIActionEvent: public WrapObject {
+class WrapUIActionEvent: public WrapObject {
 	public:
-	typedef GUIActionEvent Type;
+	typedef UIActionEvent Type;
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -263,7 +263,7 @@ class WrapGUIActionEvent: public WrapObject {
 	 */
 	static void action(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIActionEvent);
+		JS_SELF(UIActionEvent);
 		if ( self->action() ) {
 			Wrap<Action>* wrap = Wrap<Action>::pack(self->action());
 			JS_RETURN( wrap->that() );
@@ -277,7 +277,7 @@ class WrapGUIActionEvent: public WrapObject {
 	 */
 	static void delay(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIActionEvent);
+		JS_SELF(UIActionEvent);
 		JS_RETURN( self->delay() / 1000 );
 	}
 	
@@ -286,7 +286,7 @@ class WrapGUIActionEvent: public WrapObject {
 	 */
 	static void frame(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIActionEvent);
+		JS_SELF(UIActionEvent);
 		JS_RETURN( self->frame() );
 	}
 	
@@ -295,26 +295,26 @@ class WrapGUIActionEvent: public WrapObject {
 	 */
 	static void loop(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIActionEvent);
+		JS_SELF(UIActionEvent);
 		JS_RETURN( self->loop() );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(GUIActionEvent, constructor, {
+		JS_DEFINE_CLASS(UIActionEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(action, action);
 			JS_SET_CLASS_ACCESSOR(delay, delay);
 			JS_SET_CLASS_ACCESSOR(frame, frame);
 			JS_SET_CLASS_ACCESSOR(loop, loop);
-		}, GUIEvent);
+		}, UIEvent);
 	}
 };
 
 /**
- * @class WrapGUIKeyEvent
+ * @class WrapUIKeyEvent
  */
-class WrapGUIKeyEvent: public WrapObject {
+class WrapUIKeyEvent: public WrapObject {
 	public:
-	typedef GUIKeyEvent Type;
+	typedef UIKeyEvent Type;
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -433,7 +433,7 @@ class WrapGUIKeyEvent: public WrapObject {
 	
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(GUIKeyEvent, constructor, {
+		JS_DEFINE_CLASS(UIKeyEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(keycode, keycode);
 			JS_SET_CLASS_ACCESSOR(repeat, repeat);
 			JS_SET_CLASS_ACCESSOR(shift, shift);
@@ -444,16 +444,16 @@ class WrapGUIKeyEvent: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(device, device);
 			JS_SET_CLASS_ACCESSOR(source, source);
 			JS_SET_CLASS_ACCESSOR(focusMove, focus_move, set_focus_move);
-		}, GUIEvent);
+		}, UIEvent);
 	}
 };
 
 /**
- * @class WrapGUIClickEvent
+ * @class WrapUIClickEvent
  */
-class WrapGUIClickEvent: public WrapObject {
+class WrapUIClickEvent: public WrapObject {
 	public:
-	typedef GUIClickEvent Type;
+	typedef UIClickEvent Type;
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -466,7 +466,7 @@ class WrapGUIClickEvent: public WrapObject {
 	 */
 	static void x(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIClickEvent);
+		JS_SELF(UIClickEvent);
 		JS_RETURN( self->x() );
 	}
 	
@@ -475,7 +475,7 @@ class WrapGUIClickEvent: public WrapObject {
 	 */
 	static void y(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIClickEvent);
+		JS_SELF(UIClickEvent);
 		JS_RETURN( self->y() );
 	}
 	
@@ -484,7 +484,7 @@ class WrapGUIClickEvent: public WrapObject {
 	 */
 	static void count(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIClickEvent);
+		JS_SELF(UIClickEvent);
 		JS_RETURN( self->count() );
 	}
 	
@@ -493,24 +493,24 @@ class WrapGUIClickEvent: public WrapObject {
 	 */
 	static void type(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIClickEvent);
+		JS_SELF(UIClickEvent);
 		JS_RETURN( int(self->type()) );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(GUIClickEvent, constructor, {
+		JS_DEFINE_CLASS(UIClickEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(x, x);
 			JS_SET_CLASS_ACCESSOR(y, y);
 			JS_SET_CLASS_ACCESSOR(type, type);
 			JS_SET_CLASS_ACCESSOR(count, count);
-		}, GUIEvent);
+		}, UIEvent);
 	}
 };
 
 /**
- * @class WrapGUIHighlightedEvent
+ * @class WrapUIHighlightedEvent
  */
-class WrapGUIHighlightedEvent: public WrapObject {
+class WrapUIHighlightedEvent: public WrapObject {
 	public:
 	
 	static void constructor(FunctionCall args) {
@@ -524,23 +524,23 @@ class WrapGUIHighlightedEvent: public WrapObject {
 	 */
 	static void status(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIHighlightedEvent);
+		JS_SELF(UIHighlightedEvent);
 		JS_RETURN( self->status() );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(GUIHighlightedEvent, constructor, {
+		JS_DEFINE_CLASS(UIHighlightedEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(status, status);
-		}, GUIEvent);
+		}, UIEvent);
 	}
 };
 
 /**
- * @class GUIMouseEvent
+ * @class UIMouseEvent
  */
-class WrapGUIMouseEvent: public WrapObject {
+class WrapUIMouseEvent: public WrapObject {
 	public:
-	typedef GUIMouseEvent Type;
+	typedef UIMouseEvent Type;
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -550,31 +550,31 @@ class WrapGUIMouseEvent: public WrapObject {
 	
 	static void x(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIMouseEvent);
+		JS_SELF(UIMouseEvent);
 		JS_RETURN( self->x() );
 	}
 	
 	static void y(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIMouseEvent);
+		JS_SELF(UIMouseEvent);
 		JS_RETURN( self->y() );
 	}
 	
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(GUIMouseEvent, constructor, {
+		JS_DEFINE_CLASS(UIMouseEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(x, x);
 			JS_SET_CLASS_ACCESSOR(y, y);
-		}, GUIKeyEvent);
+		}, UIKeyEvent);
 	}
 };
 
 /**
- * @class WrapGUITouchEvent
+ * @class WrapUITouchEvent
  */
-class WrapGUITouchEvent: public WrapObject {
+class WrapUITouchEvent: public WrapObject {
 	public:
-	typedef GUITouchEvent Type;
+	typedef UITouchEvent Type;
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -587,7 +587,7 @@ class WrapGUITouchEvent: public WrapObject {
 	 */
 	static void changedTouches(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_UNPACK(GUITouchEvent);
+		JS_UNPACK(UITouchEvent);
 		JS_HANDLE_SCOPE();
 		
 		Local<JSValue> r = wrap->get(worker->strs()->_change_touches());
@@ -626,18 +626,18 @@ class WrapGUITouchEvent: public WrapObject {
 	
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(GUITouchEvent, constructor, {
+		JS_DEFINE_CLASS(UITouchEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(changedTouches, changedTouches);
-		}, GUIEvent);
+		}, UIEvent);
 	}
 };
 
 /**
- * @class WrapGUISwitchEvent
+ * @class WrapUISwitchEvent
  */
-class WrapGUIFocusMoveEvent: public WrapObject {
+class WrapUIFocusMoveEvent: public WrapObject {
 	public:
-	typedef GUIFocusMoveEvent Type;
+	typedef UIFocusMoveEvent Type;
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -650,7 +650,7 @@ class WrapGUIFocusMoveEvent: public WrapObject {
 	 */
 	static void focus(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIFocusMoveEvent);
+		JS_SELF(UIFocusMoveEvent);
 		
 		if ( self->focus() ) {
 			JS_RETURN( Wrap<View>::pack(self->focus(), View::VIEW)->that() );
@@ -664,7 +664,7 @@ class WrapGUIFocusMoveEvent: public WrapObject {
 	 */
 	static void focusMove(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_SELF(GUIFocusMoveEvent);
+		JS_SELF(UIFocusMoveEvent);
 		
 		if ( self->focus_move() ) {
 			JS_RETURN( Wrap<View>::pack(self->focus_move(), View::VIEW)->that() );
@@ -675,10 +675,10 @@ class WrapGUIFocusMoveEvent: public WrapObject {
 	
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(GUIFocusMoveEvent, constructor, {
+		JS_DEFINE_CLASS(UIFocusMoveEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(focus, focus);
 			JS_SET_CLASS_ACCESSOR(focusMove, focusMove);
-		}, GUIEvent);
+		}, UIEvent);
 	}
 };
 
@@ -690,14 +690,14 @@ class BindingNativeEvent {
 															INL_native_js_code__event_,
 															INL_native_js_code__event_count_), "_event.js", exports);
 		WrapNativeEvent::binding(exports, worker);
-		WrapGUIEvent::binding(exports, worker);
-		WrapGUIActionEvent::binding(exports, worker);
-		WrapGUIKeyEvent::binding(exports, worker);
-		WrapGUIClickEvent::binding(exports, worker);
-		WrapGUIMouseEvent::binding(exports, worker);
-		WrapGUITouchEvent::binding(exports, worker);
-		WrapGUIFocusMoveEvent::binding(exports, worker);
-		WrapGUIHighlightedEvent::binding(exports, worker);
+		WrapUIEvent::binding(exports, worker);
+		WrapUIActionEvent::binding(exports, worker);
+		WrapUIKeyEvent::binding(exports, worker);
+		WrapUIClickEvent::binding(exports, worker);
+		WrapUIMouseEvent::binding(exports, worker);
+		WrapUITouchEvent::binding(exports, worker);
+		WrapUIFocusMoveEvent::binding(exports, worker);
+		WrapUIHighlightedEvent::binding(exports, worker);
 	}
 };
 

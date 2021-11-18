@@ -86,7 +86,7 @@ Local<JSValue> inl_track_to_jsvalue(const TrackInfo* track, Worker* worker) {
 }
 
 template<class T, class Self>
-static void addEventListener_1(Wrap<Self>* wrap, const GUIEventName& type, 
+static void addEventListener_1(Wrap<Self>* wrap, const UIEventName& type, 
 																 cString& func, int id, Cast* cast = nullptr) 
 {
 	auto f = [wrap, func, cast](typename Self::EventType& evt) {
@@ -126,22 +126,22 @@ class WrapAudioPlayer: public WrapObject {
 	 * @func overwrite
 	 */
 	virtual bool addEventListener(cString& name_s, cString& func, int id) {
-		auto i = GUI_EVENT_TABLE.find(name_s);
-		if ( i.is_null() || !(i.value().flag() & GUI_EVENT_FLAG_PLAYER) ) {
+		auto i = UI_EVENT_TABLE.find(name_s);
+		if ( i.is_null() || !(i.value().flag() & UI_EVENT_FLAG_PLAYER) ) {
 			return false;
 		}
 		
-		GUIEventName name = i.value();
+		UIEventName name = i.value();
 		auto wrap = reinterpret_cast<Wrap<AudioPlayer>*>(this);
 		
 		switch ( name.category() ) {
-			case GUI_EVENT_CATEGORY_ERROR:
+			case UI_EVENT_CATEGORY_ERROR:
 				addEventListener_1<Event<>>(wrap, name, func, id, Cast::Entity<Error>()); break;
-			case GUI_EVENT_CATEGORY_FLOAT:
+			case UI_EVENT_CATEGORY_FLOAT:
 				addEventListener_1<Event<>>(wrap, name, func, id, Cast::Entity<Float>()); break;
-			case GUI_EVENT_CATEGORY_UINT64:
+			case UI_EVENT_CATEGORY_UINT64:
 				addEventListener_1<Event<>>(wrap, name, func, id, Cast::Entity<Uint64>()); break;
-			case GUI_EVENT_CATEGORY_DEFAULT:
+			case UI_EVENT_CATEGORY_DEFAULT:
 				addEventListener_1<Event<>>(wrap, name, func, id); break;
 			default:
 				return false;
@@ -150,8 +150,8 @@ class WrapAudioPlayer: public WrapObject {
 	}
 	
 	virtual bool removeEventListener(cString& name, int id) {
-		auto i = GUI_EVENT_TABLE.find(name);
-		if ( i.is_null() || !(i.value().flag() & GUI_EVENT_FLAG_PLAYER) ) {
+		auto i = UI_EVENT_TABLE.find(name);
+		if ( i.is_null() || !(i.value().flag() & UI_EVENT_FLAG_PLAYER) ) {
 			return false;
 		}
 		auto wrap = reinterpret_cast<Wrap<AudioPlayer>*>(this);
@@ -192,7 +192,7 @@ class WrapAudioPlayer: public WrapObject {
 	 * @set auto_play {bool}
 	 */
 	static void set_auto_play(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(AudioPlayer);
 		self->set_auto_play( value->ToBooleanValue(worker) );
 	}
@@ -228,7 +228,7 @@ class WrapAudioPlayer: public WrapObject {
 	 * @set mute {bool}
 	 */
 	static void set_mute(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(AudioPlayer);
 		self->set_mute( value->ToBooleanValue(worker) );
 	}
@@ -246,7 +246,7 @@ class WrapAudioPlayer: public WrapObject {
 	 * @set volume {uint} 0-100
 	 */
 	static void set_volume(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if ( !value->IsNumber(worker) ) {
 			JS_THROW_ERR("* @set volume {uint} 0-100");
 		}
@@ -267,7 +267,7 @@ class WrapAudioPlayer: public WrapObject {
 	 * @set src {String}
 	 */
 	static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(AudioPlayer);
 		self->set_src( value->ToStringValue(worker) );
 	}
@@ -313,7 +313,7 @@ class WrapAudioPlayer: public WrapObject {
 	 * @arg index {uint} audio track index
 	 */
 	static void select_track(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if (args.Length() < 1 || ! args[0]->IsUint32(worker) ) {
 			JS_THROW_ERR(
 				"* @func selectTrack(index)\n"
@@ -343,7 +343,7 @@ class WrapAudioPlayer: public WrapObject {
 	 * @func start()
 	 */
 	static void start(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(AudioPlayer);
 		self->start();
 	}
@@ -354,7 +354,7 @@ class WrapAudioPlayer: public WrapObject {
 	 * @ret {bool} success
 	 */
 	static void seek(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		if (args.Length() < 1 || ! args[0]->IsNumber(worker) ) {
 			JS_THROW_ERR(
 				"* @func seek(time)\n"
@@ -370,7 +370,7 @@ class WrapAudioPlayer: public WrapObject {
 	 * @func pause()
 	 */
 	static void pause(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(AudioPlayer);
 		self->pause();
 	}
@@ -379,7 +379,7 @@ class WrapAudioPlayer: public WrapObject {
 	 * @func resume()
 	 */
 	static void resume(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(AudioPlayer);
 		self->resume();
 	}
@@ -407,7 +407,7 @@ class WrapAudioPlayer: public WrapObject {
 	 */
 	static void set_disable_wait_buffer(Local<JSString> name,
 																			Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(AudioPlayer);
 		self->disable_wait_buffer( value->ToBooleanValue(worker) );
 	}

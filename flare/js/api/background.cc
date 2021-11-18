@@ -66,7 +66,7 @@ class WrapBackground: public WrapObject {
 	 * @set next {Background}
 	 */
 	static void set_next(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		js_parse_value2(BackgroundPtr, Background, value, "Background.next = %s");
 		JS_SELF(Background);
 		self->set_next(out);
@@ -131,48 +131,48 @@ class WrapBackgroundImage: public WrapObject {
 		JS_RETURN_NULL();
 	}
 	static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(BackgroundImage);
 		self->set_src( value->ToStringValue(worker) );
 	}
 	// static void set_src_base64(Local<JSString> name, PropertySetCall args) {
 	static void set_src_base64(FunctionCall args) {
-		// JS_WORKER(args); GUILock lock;
+		// JS_WORKER(args); UILock lock;
 		// JS_SELF(BackgroundImage);
 		// self->set_src( value->ToStringValue(worker) );
 	}
 	static void set_repeat(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(BackgroundImage);
 		js_parse_value(Repeat, value, "BackgroundImage.repeat = %s");
 		self->set_repeat(out);
 	}
 	static void set_position_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(BackgroundImage);
 		js_parse_value(BackgroundPosition, value, "BackgroundImage.positionX = %s");
 		self->set_position_x(out);
 	}
 	static void set_position_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(BackgroundImage);
 		js_parse_value(BackgroundPosition, value, "BackgroundImage.positionY = %s");
 		self->set_position_y(out);
 	}
 	static void set_size_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(BackgroundImage);
 		js_parse_value(BackgroundSize, value, "BackgroundImage.sizeX = %s");
 		self->set_size_x(out);
 	}
 	static void set_size_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(BackgroundImage);
 		js_parse_value(BackgroundSize, value, "BackgroundImage.sizeY = %s");
 		self->set_size_y(out);
 	}
 	static void set_position(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(BackgroundImage);
 		js_parse_value2(BackgroundPositionCollection, BackgroundPositionCollection,
 										value, "BackgroundImage.position = %s");
@@ -180,7 +180,7 @@ class WrapBackgroundImage: public WrapObject {
 		self->set_position_y(out.y);
 	}
 	static void set_size(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
+		JS_WORKER(args); UILock lock;
 		JS_SELF(BackgroundImage);
 		js_parse_value2(BackgroundSizeCollection, BackgroundSizeCollection,
 										value, "BackgroundImage.size = %s");

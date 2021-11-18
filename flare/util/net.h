@@ -43,7 +43,7 @@ namespace flare {
 	*/
 	class FX_EXPORT Socket: public Object {
 		FX_HIDDEN_ALL_COPY(Socket);
-		public:
+	 public:
 		
 		class FX_EXPORT Delegate {
 			public:
@@ -102,10 +102,9 @@ namespace flare {
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 
-		protected:
-		
+	 protected:
 		Socket();
-		
+
 		Inl* _inl;
 	};
 
@@ -113,7 +112,7 @@ namespace flare {
 	* @class SSLSocket
 	*/
 	class FX_EXPORT SSLSocket: public Socket {
-		public:
+	 public:
 		
 		SSLSocket(cString& hostname, uint16_t  port, RunLoop* loop = RunLoop::current());
 		

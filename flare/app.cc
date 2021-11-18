@@ -69,22 +69,22 @@ namespace flare {
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
 
-	GUILock::GUILock(Application* host): _host(host), _lock(false) {
+	UILock::UILock(Application* host): _host(host), _lock(false) {
 		lock();
 	}
 
-	GUILock::~GUILock() {
+	UILock::~UILock() {
 		unlock();
 	}
 
-	void GUILock::lock() {
+	void UILock::lock() {
 		if (!_lock) {
 			_lock = true;
 			_host->_gui_lock_mutex.lock();
 		}
 	}
 
-	void GUILock::unlock() {
+	void UILock::unlock() {
 		if (_lock) {
 			_host->_gui_lock_mutex.unlock();
 			_lock = false;
@@ -94,7 +94,7 @@ namespace flare {
 	void AppInl::triggerLoad() {
 		if (!_is_load) {
 			_is_load = true;
-			_main_loop->post(Cb([&](CbData& d) { GUILock lock; FX_Trigger(Load); }));
+			_main_loop->post(Cb([&](CbData& d) { UILock lock; FX_Trigger(Load); }));
 		}
 	}
 
@@ -131,7 +131,7 @@ namespace flare {
 				DLOG("AppInl::onUnload()");
 				FX_Trigger(Unload);
 				if (_root) {
-					GUILock lock;
+					UILock lock;
 					_root->remove();
 				}
 				d.data->complete();
@@ -203,7 +203,7 @@ namespace flare {
 	}
 
 	void Application::run_loop() {
-		ASSERT(!_is_run, "GUI program has been running");
+		ASSERT(!_is_run, "UI program has been running");
 
 		_is_run = true;
 		_render_loop = RunLoop::current(); // 当前消息队列
@@ -280,7 +280,7 @@ namespace flare {
 	}
 
 	Application::~Application() {
-		GUILock lock;
+		UILock lock;
 		if (_root) {
 			_root->remove();
 			_root->release(); _root = nullptr;
@@ -311,7 +311,7 @@ namespace flare {
 	* @func initialize()
 	*/
 	void Application::initialize(cJSON& options) throw(Error) {
-		GUILock lock;
+		UILock lock;
 		FX_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
 		HttpHelper::initialize(); // 初始http
