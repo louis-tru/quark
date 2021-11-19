@@ -207,7 +207,7 @@ namespace flare {
 	* @class KeyboardAdapter
 	*/
 	class FX_EXPORT KeyboardAdapter: public Object {
-	public:
+	 public:
 
 		KeyboardAdapter();
 		
@@ -241,7 +241,7 @@ namespace flare {
 		void dispatch(uint32_t keycode, bool ascii, bool down,
 									int repeat = 0, int device = 0, int source = 0);
 		
-	protected:
+	 protected:
 		/**
 		* @func set_utils_keycodes
 		*/

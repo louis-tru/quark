@@ -30,7 +30,7 @@
 
 import {
 	HighlightedStatus,
-	Notification, EventNoticer, GUIEvent,
+	Notification, EventNoticer, UIEvent,
 	GUIHighlightedEvent, GUIKeyEvent,
 	GUIClickEvent, GUITouchEvent,
 	GUIMouseEvent, GUIActionEvent,
@@ -55,7 +55,7 @@ export interface DOM {
 /**
  * @class View
  */
-export declare class View extends Notification<GUIEvent> implements DOM {
+export declare class View extends Notification<UIEvent> implements DOM {
 	readonly onKeyDown: EventNoticer<GUIKeyEvent>;
 	readonly onKeyPress: EventNoticer<GUIKeyEvent>;
 	readonly onKeyUp: EventNoticer<GUIKeyEvent>;
@@ -74,8 +74,8 @@ export declare class View extends Notification<GUIEvent> implements DOM {
 	readonly onMouseDown: EventNoticer<GUIMouseEvent>;
 	readonly onMouseUp: EventNoticer<GUIMouseEvent>;
 	readonly onMouseWheel: EventNoticer<GUIMouseEvent>;
-	readonly onFocus: EventNoticer<GUIEvent>;
-	readonly onBlur: EventNoticer<GUIEvent>;
+	readonly onFocus: EventNoticer<UIEvent>;
+	readonly onBlur: EventNoticer<UIEvent>;
 	readonly onHighlighted: EventNoticer<GUIHighlightedEvent>;
 	readonly onActionKeyframe: EventNoticer<GUIActionEvent>;
 	readonly onActionLoop: EventNoticer<GUIActionEvent>;
@@ -254,15 +254,15 @@ export declare class Div extends Box {
 }
 
 export declare class Image extends Div {
-	readonly onLoad: EventNoticer<GUIEvent>;
-	readonly onError: EventNoticer<GUIEvent<Error>>;
+	readonly onLoad: EventNoticer<UIEvent>;
+	readonly onError: EventNoticer<UIEvent<Error>>;
 	src: string;
 	readonly sourceWidth: number;
 	readonly sourceHeight: number;
 }
 
 export declare class Panel extends Div {
-	readonly onFocusMove: EventNoticer<GUIEvent>;
+	readonly onFocusMove: EventNoticer<UIEvent>;
 	allowLeave: boolean;
 	allowEntry: boolean;
 	intervalTime: number;
@@ -272,7 +272,7 @@ export declare class Panel extends Div {
 }
 
 export interface IScroll {
-	readonly onScroll: EventNoticer<GUIEvent>;
+	readonly onScroll: EventNoticer<UIEvent>;
 	scrollTo(value: value.Vec2, duration?: number, curve?: value.Curve): void;
 	terminate(): void;
 	scroll: value.Vec2;
@@ -308,7 +308,7 @@ export declare class Scroll extends Panel implements IScroll {
 	readonly isFixedScrollSize: boolean;
 	setFixedScrollSize(size: value.Vec2): void;
 	// implements IScroll
-	readonly onScroll: EventNoticer<GUIEvent>;
+	readonly onScroll: EventNoticer<UIEvent>;
 	scrollTo(value: value.Vec2, duration?: number, curve?: value.Curve): void;
 	terminate(): void;
 	scroll: value.Vec2;
@@ -404,7 +404,7 @@ export declare class Text extends Hybrid {
 }
 
 export declare class Input extends Text {
-	readonly onChange: EventNoticer<GUIEvent>;
+	readonly onChange: EventNoticer<UIEvent>;
 	type: value.KeyboardType;
 	returnType: value.KeyboardReturnType;
 	placeholder: string;
@@ -415,7 +415,7 @@ export declare class Input extends Text {
 
 export declare class Textarea extends Input implements IScroll {
 	// implements IScroll
-	readonly onScroll: EventNoticer<GUIEvent>;
+	readonly onScroll: EventNoticer<UIEvent>;
 	scrollTo(value: value.Vec2, duration?: number, curve?: value.Curve): void;
 	terminate(): void;
 	scroll: value.Vec2;

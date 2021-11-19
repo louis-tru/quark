@@ -42,7 +42,7 @@
 namespace flare {
 
 	FX_DEFINE_INLINE_MEMBERS(Application, Inl) {
-	public:
+	 public:
 		#define _inl_app(self) static_cast<AppInl*>(self)
 
 		struct KeyboardOptions {

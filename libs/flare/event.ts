@@ -213,10 +213,9 @@ export enum KeyboardKeyName {
 	ZOOM_OUT =         334,     /* 缩小键 */
 }
 
-declare class NativeEvent<Data, Sender extends object> extends Event<Data, Sender> {}
+declare class NativeEvent<Sender, Data, Origin> extends Event<Sender, Data, Origin> {}
 
-export declare class GUIEvent<Data = void, Sender extends object = View> extends NativeEvent<Data, Sender> {
-	get origin(): View;
+export declare class UIEvent<Data = any> extends NativeEvent<View, Data, View> {
 	readonly timestamp: number;
 	readonly isDefault: boolean;
 	readonly isBubble: boolean;
@@ -224,14 +223,14 @@ export declare class GUIEvent<Data = void, Sender extends object = View> extends
 	cancelBubble(): void;
 }
 
-export declare class GUIActionEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
+export declare class ActionEvent<Data = any> extends UIEvent<Data> {
 	readonly action: Action;
 	readonly delay: number;
 	readonly frame: number;
 	readonly loop: number;
 }
 
-export declare class GUIKeyEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
+export declare class KeyEvent<Data = any> extends UIEvent<Data> {
 	readonly keycode: number;
 	readonly repeat: number;
 	readonly shift: boolean;
@@ -244,18 +243,18 @@ export declare class GUIKeyEvent<Data = void, Sender extends object = View> exte
 	focusMove: View | null;
 }
 
-export declare class GUIClickEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
+export declare class ClickEvent<Data = any> extends UIEvent<Data> {
 	readonly x: number;
 	readonly y: number;
 	readonly count: number;
 	readonly type: ClickType;
 }
 
-export declare class GUIHighlightedEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
+export declare class HighlightedEvent<Data = any> extends UIEvent<Data> {
 	readonly status: HighlightedStatus;
 }
 
-export declare class GUIMouseEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
+export declare class MouseEvent<Data = any> extends UIEvent<Data> {
 	readonly x: number;
 	readonly y: number;
 }
@@ -271,11 +270,11 @@ export interface TouchPoint {
 	readonly view: View;
 }
 
-export declare class GUITouchEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
+export declare class TouchEvent<Data = any> extends UIEvent<Data> {
 	readonly changedTouches: TouchPoint[];
 }
 
-export declare class GUIFocusMoveEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
+export declare class FocusMoveEvent<Data = any> extends UIEvent<Data> {
 	readonly focus: View | null;
 	readonly focusMove: View | null;
 }
@@ -286,7 +285,7 @@ const PREFIX = 'm_on';
 /**
  * @class NativeNotification
  */
-export class NativeNotification<E = Event<any>> extends Notification<E> {
+export class NativeNotification<E = Event> extends Notification<E> {
 
 	getNoticer(name: string) {
 		var noticer = (this as any)[PREFIX + name] as EventNoticer<E>;

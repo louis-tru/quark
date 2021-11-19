@@ -133,19 +133,15 @@ class WrapAudioPlayer: public WrapObject {
 		
 		UIEventName name = i.value();
 		auto wrap = reinterpret_cast<Wrap<AudioPlayer>*>(this);
-		
-		switch ( name.category() ) {
-			case UI_EVENT_CATEGORY_ERROR:
-				addEventListener_1<Event<>>(wrap, name, func, id, Cast::Entity<Error>()); break;
-			case UI_EVENT_CATEGORY_FLOAT:
-				addEventListener_1<Event<>>(wrap, name, func, id, Cast::Entity<Float>()); break;
-			case UI_EVENT_CATEGORY_UINT64:
-				addEventListener_1<Event<>>(wrap, name, func, id, Cast::Entity<Uint64>()); break;
-			case UI_EVENT_CATEGORY_DEFAULT:
-				addEventListener_1<Event<>>(wrap, name, func, id); break;
-			default:
-				return false;
+
+		switch ( UI_EVENT_FLAG_CAST & name.flag() ) {
+			case UI_EVENT_FLAG_ERROR: cast = Cast::Entity<Error>(); break;
+			case UI_EVENT_FLAG_FLOAT: cast = Cast::Entity<Float>(); break;
+			case UI_EVENT_FLAG_UINT64: cast = Cast::Entity<Uint64>(); break;
 		}
+
+		addEventListener_1<Event<>>(wrap, name, func, id, cast);
+
 		return true;
 	}
 	

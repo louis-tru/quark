@@ -155,7 +155,7 @@
 			# 'draw.cc',
 			'errno.h',
 			'event.h',
-			# 'event.cc',
+			'event.cc',
 			'keyboard.h',
 			'keyboard.cc',
 			# 'text-font.h',

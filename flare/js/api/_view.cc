@@ -77,38 +77,38 @@ static void addEventListener_1(
 
 bool WrapViewBase::addEventListener(cString& name_s, cString& func, int id)
 {
-	auto i = UI_EVENT_TABLE.find(name_s);
+	auto i = UIEventNames.find(name_s);
 	if ( i.is_null() ) {
 		return false;
 	}
+
 	UIEventName name = i.value();
 	auto wrap = reinterpret_cast<Wrap<View>*>(this);
-  
-	switch ( name.category() ) {
+	Cast* cast = nullptr;
+
+	switch ( UI_EVENT_FLAG_CAST & name.flag() ) {
+		case UI_EVENT_FLAG_ERROR: cast = Cast::Entity<Error>(); break;
+		case UI_EVENT_FLAG_FLOAT: cast = Cast::Entity<Float>(); break;
+		case UI_EVENT_FLAG_UINT64: cast = Cast::Entity<Uint64>(); break;
+	}
+
+	switch ( UI_EVENT_FLAG_CATEGORY & name.flag() ) {
 		case UI_EVENT_CATEGORY_CLICK:
-			addEventListener_1<UIClickEvent>(wrap, name, func, id); break;
+			addEventListener_1<ClickEvent>(wrap, name, func, id, cast); break;
 		case UI_EVENT_CATEGORY_KEYBOARD:
-			addEventListener_1<UIKeyEvent>(wrap, name, func, id); break;
+			addEventListener_1<KeyEvent>(wrap, name, func, id, cast); break;
 		case UI_EVENT_CATEGORY_MOUSE:
-		 addEventListener_1<UIMouseEvent>(wrap, name, func, id); break;
+		 addEventListener_1<MouseEvent>(wrap, name, func, id, cast); break;
 		case UI_EVENT_CATEGORY_TOUCH:
-			addEventListener_1<UITouchEvent>(wrap, name, func, id); break;
+			addEventListener_1<TouchEvent>(wrap, name, func, id, cast); break;
 		case UI_EVENT_CATEGORY_HIGHLIGHTED:
-			addEventListener_1<UIHighlightedEvent>(wrap, name, func, id); break;
+			addEventListener_1<HighlightedEvent>(wrap, name, func, id, cast); break;
 		case UI_EVENT_CATEGORY_ACTION:
-			addEventListener_1<UIActionEvent>(wrap, name, func, id); break;
+			addEventListener_1<ActionEvent>(wrap, name, func, id, cast); break;
 		case UI_EVENT_CATEGORY_FOCUS_MOVE:
-			addEventListener_1<UIFocusMoveEvent>(wrap, name, func, id); break;
-		case UI_EVENT_CATEGORY_ERROR:
-			addEventListener_1<UIEvent>(wrap, name, func, id, Cast::Entity<Error>()); break;
-		case UI_EVENT_CATEGORY_FLOAT:
-			addEventListener_1<UIEvent>(wrap, name, func, id, Cast::Entity<Float>()); break;
-		case UI_EVENT_CATEGORY_UINT64:
-			addEventListener_1<UIEvent>(wrap, name, func, id, Cast::Entity<Uint64>()); break;
-		case UI_EVENT_CATEGORY_DEFAULT:
-			addEventListener_1<UIEvent>(wrap, name, func, id); break;
+			addEventListener_1<FocusMoveEvent>(wrap, name, func, id, cast); break;
 		default:
-			return false;
+			addEventListener_1<UIEvent>(wrap, name, func, id, cast); break;
 	}
 	return true;
 }

@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "../_app.h"
 #include "./view.h"
 #include <math.h>
 
@@ -811,6 +812,44 @@ namespace flare {
 			max.x(), max.y(),
 			size.width(), size.height()
 		};
+	}
+
+	/**
+	 * @func set_is_focus(value)
+	 */
+	void View::set_is_focus(bool value) {
+		if ( value ) {
+			focus();
+		} else {
+			blur();
+		}
+	}
+
+	/**
+	 * @func is_focus()
+	 */
+	bool View::is_focus() const {
+		auto app_ = _inl_app(app());
+		return app_ && this == app_->focus_view();
+	}
+	
+	/**
+	 *
+	 * Can it be the focus
+	 * 
+	 * @func can_become_focus()
+	 */
+	bool View::can_become_focus() {
+		return false;
+	}
+
+	/**
+		* @overwrite
+		*/
+	void View::trigger_listener_change(const NameType& name, int count, int change) {
+		if ( change > 0 ) {
+			_receive = true; // bind event auto open option
+		}
 	}
 
 }

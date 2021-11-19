@@ -192,13 +192,15 @@ export class List<T> {
 /**
 	* @class Event
 	*/
-export class Event<Data, Sender extends object = object> {
+export class Event<Sender = any, Data = any, Origin = any> {
 	private _data: Data;
 	protected _noticer: any; //EventNoticer<Event<Data, Sender>> | null; // = null;
 	private _origin: any; // = null;
 
+	returnValue: number = 0;
+
 	get name() {
-		return (this._noticer as EventNoticer<Event<Data, Sender>>).name;
+		return (this._noticer as EventNoticer<Event<Sender, Data, Origin>>).name;
 	}
 
 	get data () {
@@ -206,30 +208,27 @@ export class Event<Data, Sender extends object = object> {
 	}
 
 	get sender(): Sender {
-		return (this._noticer as EventNoticer<Event<Data, Sender>>).sender as Sender;
+		return (this._noticer as EventNoticer<Event<Sender, Data, Origin>>).sender as Sender;
 	}
 
 	get origin () {
 		return this._origin;
 	}
 
-	set origin(value: any) {
-		this._origin = value;
-	}
-
 	get noticer () {
-		return this._noticer as EventNoticer<Event<Data, Sender>> | null;
+		return this._noticer as EventNoticer<Event<Sender, Data, Origin>> | null;
 	}
 
-	constructor(data: Data) {
+	constructor(data: Data, origin?: Origin) {
 		this._data = data;
+		this._origin = origin;
 	}
 }
 
 (Event as any).prototype._noticer = null;
 (Event as any).prototype._origin = null;
 
-type DefaultEvent = Event<any>;
+type DefaultEvent = Event;
 
 export interface Listen<Event = DefaultEvent, Scope extends object = object> {
 	(this: Scope, evt: Event): any;
@@ -271,7 +270,7 @@ function forwardNoticeNoticer<E>(forward_noticer: EventNoticer<E>, evt: E) {
 export class EventNoticer<E = DefaultEvent> {
 
 	private m_name: string;
-	private m_sender: object;
+	private m_sender: any;
 	private m_listens: List<ListenItem> | null = null;
 	private m_listens_map: Map<string, ListItem<ListenItem>> | null = null
 	private m_length: number = 0

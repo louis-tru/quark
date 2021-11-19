@@ -30,7 +30,7 @@
 
 import utils from './util';
 import event, {
-	EventNoticer, NativeNotification, Notification, Event, GUIEvent,
+	EventNoticer, NativeNotification, Notification, Event, UIEvent,
 } from './event';
 import { Image } from './_view';
 
@@ -132,14 +132,14 @@ declare class NativeAudioPlayer extends Notification<Event<any, AudioPlayer>> {
  * @class Video
  */
 export declare class Video extends Image {
-	readonly onWaitBuffer: EventNoticer<GUIEvent<number>>;
-	readonly onReady: EventNoticer<GUIEvent<void>>;
-	readonly onStartPlay: EventNoticer<GUIEvent<void>>;
-	readonly onSourceEnd: EventNoticer<GUIEvent<void>>;
-	readonly onPause: EventNoticer<GUIEvent<void>>;
-	readonly onResume: EventNoticer<GUIEvent<void>>;
-	readonly onStop: EventNoticer<GUIEvent<void>>;
-	readonly onSeek: EventNoticer<GUIEvent<number>>;
+	readonly onWaitBuffer: EventNoticer<UIEvent<number>>;
+	readonly onReady: EventNoticer<UIEvent<void>>;
+	readonly onStartPlay: EventNoticer<UIEvent<void>>;
+	readonly onSourceEnd: EventNoticer<UIEvent<void>>;
+	readonly onPause: EventNoticer<UIEvent<void>>;
+	readonly onResume: EventNoticer<UIEvent<void>>;
+	readonly onStop: EventNoticer<UIEvent<void>>;
+	readonly onSeek: EventNoticer<UIEvent<number>>;
 	readonly videoWidth: number;
 	readonly videoHeight: number;
 	videoTrack(): TrackInfo | null;

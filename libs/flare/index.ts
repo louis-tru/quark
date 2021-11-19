@@ -32,7 +32,7 @@ import utils from './util';
 import event, {
 	NativeNotification, EventNoticer, 
 	HighlightedStatus,
-	GUIEvent, GUIHighlightedEvent,
+	UIEvent, GUIHighlightedEvent,
 	GUIKeyEvent, GUIClickEvent,
 	GUITouchEvent, GUIMouseEvent, GUIActionEvent,
 } from './event';
@@ -74,8 +74,8 @@ class _View extends NativeNotification {
 	@event readonly onMouseDown: EventNoticer<GUIMouseEvent>;
 	@event readonly onMouseUp: EventNoticer<GUIMouseEvent>;
 	@event readonly onMouseWheel: EventNoticer<GUIMouseEvent>;
-	@event readonly onFocus: EventNoticer<GUIEvent>;
-	@event readonly onBlur: EventNoticer<GUIEvent>;
+	@event readonly onFocus: EventNoticer<UIEvent>;
+	@event readonly onBlur: EventNoticer<UIEvent>;
 	@event readonly onHighlighted: EventNoticer<GUIHighlightedEvent>;
 	@event readonly onActionKeyframe: EventNoticer<GUIActionEvent>;
 	@event readonly onActionLoop: EventNoticer<GUIActionEvent>;
@@ -154,24 +154,24 @@ class _View extends NativeNotification {
 }
 
 class _Panel {
-	@event readonly onFocusMove: EventNoticer<GUIEvent>;
+	@event readonly onFocusMove: EventNoticer<UIEvent>;
 }
 
 class _Scroll {
-	@event readonly onScroll: EventNoticer<GUIEvent>;
+	@event readonly onScroll: EventNoticer<UIEvent>;
 }
 
 class _Image {
-	@event readonly onLoad: EventNoticer<GUIEvent>;
-	@event readonly onError: EventNoticer<GUIEvent>;
+	@event readonly onLoad: EventNoticer<UIEvent>;
+	@event readonly onError: EventNoticer<UIEvent>;
 }
 
 class _Input {
-	@event readonly onChange: EventNoticer<GUIEvent>;
+	@event readonly onChange: EventNoticer<UIEvent>;
 }
 
 class _Textarea {
-	@event readonly onScroll: EventNoticer<GUIEvent>;
+	@event readonly onScroll: EventNoticer<UIEvent>;
 }
 
 class _Button {
@@ -179,7 +179,7 @@ class _Button {
 	private m_defaultStyle: boolean; // = true;
 
 	getNoticer(name: string) {
-		var noticer = (this as any)['m_on' + name] as EventNoticer<GUIEvent>;
+		var noticer = (this as any)['m_on' + name] as EventNoticer<UIEvent>;
 		if ( ! noticer ) {
 			if ( name == 'Click' ) {
 				View.prototype.getNoticer.call(this as unknown as View, 'Highlighted'); // bind highlighted

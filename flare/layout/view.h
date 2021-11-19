@@ -32,6 +32,7 @@
 #define __flare__layout__view__
 
 #include "./layout.h"
+#include "../event.h"
 
 class SkCanvas;
 
@@ -58,7 +59,7 @@ namespace flare {
 		*
 		* @class View
 		*/
-	class FX_EXPORT View: public Layout {
+	class FX_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
 		FX_HIDDEN_ALL_COPY(View);
 	 public:
 
@@ -284,6 +285,11 @@ namespace flare {
 			* @func can_become_focus()
 			*/
 		virtual bool can_become_focus();
+
+		/**
+		 * @overwrite
+		 */
+		virtual void trigger_listener_change(const NameType& name, int count, int change);
 
 		// *******************************************************************
 		/**
@@ -578,6 +584,7 @@ namespace flare {
 		bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
 
 		FX_DEFINE_INLINE_CLASS(Inl);
+		FX_DEFINE_INLINE_CLASS(InlEvent);
 	};
 
 }

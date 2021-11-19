@@ -49,35 +49,40 @@
 
 namespace flare {
 
-	template<class SendData = Object, class Sender = Object> class Event;
+	template<class Sender = Object, class SendData = Object, class Origin = Object, class RC = int> class Event;
 	template<class Event = Event<>> class EventNoticer;
 
-	template<class T_SendData, class T_Sender>
+	template<class T_Sender, class T_SendData, class T_Origin, class T_RC>
 	class FX_EXPORT Event: public Object {
 		FX_HIDDEN_ALL_COPY(Event);
 	 public:
 		typedef T_SendData       SendData;
 		typedef T_Sender         Sender;
+		typedef T_Origin         Origin;
+		typedef T_RC             ReturnValue;
 		typedef const SendData   cSendData;
 		typedef EventNoticer<Event> Noticer;
 
-		Event(cSendData& data = SendData()): _noticer(nullptr), _data(&data) {}
+		Event(cSendData& data = SendData(), Origin* origin = nullptr)
+			: _noticer(nullptr), _data(&data), _origin(origin), return_value(ReturnValue()) {}
 
-		inline Noticer* noticer() { return this->_noticer; }
+		inline Noticer* noticer() const { return this->_noticer; }
 		inline String name() const { return this->_noticer->_name; }
-		inline Sender* sender() { return this->_noticer->_sender; }
+		inline Sender* sender() const { return this->_noticer->_sender; }
 		inline cSendData* data() const { return _data; }
+		inline Origin* origin() const { return _origin; }
 
 		// "new" method alloc can call，Otherwise, fatal exception will be caused
 		virtual void release() {
-			_noticer = nullptr;
-			_data = nullptr;
+			_data = _origin = nullptr;
 			Object::release();
 		}
 
+		ReturnValue return_value;
 	 private:
 		Noticer*     _noticer;
 		cSendData*   _data;
+		Origin*      _origin;
 		
 		friend class EventNoticer<Event>;
 	};
@@ -90,6 +95,8 @@ namespace flare {
 		typedef typename Event::SendData        SendData;
 		typedef typename Event::cSendData       cSendData;
 		typedef typename Event::Sender          Sender;
+		typedef typename Event::Origin          Origin;
+		typedef typename Event::ReturnValue     ReturnValue;
 		typedef std::function<void(Event&)>     ListenerFunc;
 
 		class Listener {
@@ -416,9 +423,9 @@ namespace flare {
 				trigger(evt);
 			}
 		}
-		
+
 		void trigger(Event& evt) {
-			if (_listener) {
+			if (_listener && _listener.length()) {
 				set_event2(evt);
 				for (auto i = _listener->begin(); i != _listener->end(); ) {
 					auto j = i++;
@@ -434,6 +441,7 @@ namespace flare {
 						_listener->erase(j);
 					}
 				}
+				set_event2(nullptr);
 			}
 		}
 	
@@ -522,12 +530,9 @@ namespace flare {
 	class FX_EXPORT Notification: public Basic {
 		FX_HIDDEN_ALL_COPY(Notification);
 	 public:
-		typedef Event EventType;
-		typedef Name  NameType;
-		typedef EventNoticer<Event>            Noticer;
-		typedef typename Event::SendData       SendData;
-		typedef typename Event::cSendData      cSendData;
-		typedef typename Event::Sender         Sender;
+		typedef Event               EventType;
+		typedef Name                NameType;
+		typedef EventNoticer<Event> Noticer;
 		typedef typename Noticer::ListenerFunc ListenerFunc;
 
 		inline Notification()
@@ -770,7 +775,7 @@ namespace flare {
 		* @arg name {const Key&}
 		* @arg evt {cSendData&}
 		*/
-		inline void trigger(const Name& name, cSendData& data) {
+		inline void trigger(const Name& name, Event::cSendData& data) {
 			auto del = get_noticer(name);
 			if (del) del->trigger(data);
 		}
@@ -789,7 +794,7 @@ namespace flare {
 
 		struct NoticerWrap {
 			inline NoticerWrap() { FX_UNREACHABLE(); }
-			inline NoticerWrap(const Name& t, Sender* sender)
+			inline NoticerWrap(const Name& t, Event::Sender* sender)
 				: name(t), value(t.to_string(), sender) {}
 			Name    name;
 			Noticer value;
@@ -805,7 +810,7 @@ namespace flare {
 			if (it != _noticers->end()) {
 				return &it->value->value;
 			} else {
-				auto wrap = new NoticerWrap(name, static_cast<Sender*>(this));
+				auto wrap = new NoticerWrap(name, static_cast<Event::Sender*>(this));
 				_noticers->operator[](name) = wrap;
 				return &wrap->value;
 			}

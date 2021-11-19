@@ -32,53 +32,51 @@
 #define __flare__event__
 
 #include "./util/event.h"
-#include "./util/os.h"
 #include "./math.h"
 #include "./value.h"
-#include "./keyboard.h"
 
 
-// all ui events / NAME, STR_NAME, CATEGORY, FLAG
-#define FX_UI_EVENT_TABLE(F) \
+// all ui events / NAME, FLAG
+#define FX_UI_EVENTs(F) \
 	/* can bubble event */ \
-	F(CLICK, Click, CLICK, UI_EVENT_FLAG_BUBBLE) \
-	F(BACK, Back, CLICK, UI_EVENT_FLAG_BUBBLE) \
-	F(KEY_DOWN, KeyDown, KEYBOARD, UI_EVENT_FLAG_BUBBLE) /* View */\
-	F(KEY_PRESS, KeyPress, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
-	F(KEY_UP, KeyUp, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
-	F(KEY_ENTER, KeyEnter, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
-	F(TOUCH_START, TouchStart, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-	F(TOUCH_MOVE, TouchMove, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-	F(TOUCH_END, TouchEnd, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-	F(TOUCH_CANCEL, TouchCancel, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-	F(MOUSE_OVER, MouseOver, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MOUSE_OUT, MouseOut, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MOUSE_LEAVE, MouseLeave, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MOUSE_ENTER, MouseEnter, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MOUSE_MOVE, MouseMove, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MOUSE_DOWN, MouseDown, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MOUSE_UP, MouseUp, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MOUSE_WHEEL, MouseWheel, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(FOCUS, Focus, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
-	F(BLUR, Blur, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
+	F(Click, UI_EVENT_FLAG_CLICK | UI_EVENT_FLAG_BUBBLE) \
+	F(Back, UI_EVENT_FLAG_CLICK | UI_EVENT_FLAG_BUBBLE) \
+	F(KeyDown, UI_EVENT_FLAG_KEYBOARD | UI_EVENT_FLAG_BUBBLE) /* View */\
+	F(KeyPress, UI_EVENT_FLAG_KEYBOARD | UI_EVENT_FLAG_BUBBLE) \
+	F(KeyUp, UI_EVENT_FLAG_KEYBOARD | UI_EVENT_FLAG_BUBBLE) \
+	F(KeyEnter, UI_EVENT_FLAG_KEYBOARD | UI_EVENT_FLAG_BUBBLE) \
+	F(TouchStart, UI_EVENT_FLAG_TOUCH | UI_EVENT_FLAG_BUBBLE) \
+	F(TouchMove, UI_EVENT_FLAG_TOUCH | UI_EVENT_FLAG_BUBBLE) \
+	F(TouchEnd, UI_EVENT_FLAG_TOUCH | UI_EVENT_FLAG_BUBBLE) \
+	F(TouchCancel, UI_EVENT_FLAG_TOUCH | UI_EVENT_FLAG_BUBBLE) \
+	F(MouseOver, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
+	F(MouseOut, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
+	F(MouseLeave, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
+	F(MouseEnter, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
+	F(MouseMove, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
+	F(MouseDown, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
+	F(MouseUp, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
+	F(MouseWheel, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
+	F(Focus, UI_EVENT_FLAG_BUBBLE) \
+	F(Blur, UI_EVENT_FLAG_BUBBLE) \
 	/* canno bubble event */ \
-	F(HIGHLIGHTED, Highlighted, HIGHLIGHTED, UI_EVENT_FLAG_NONE) /* normal / hover / down */ \
-	F(ACTION_KEYFRAME, ActionKeyframe, ACTION, UI_EVENT_FLAG_NONE) \
-	F(ACTION_LOOP, ActionLoop, ACTION, UI_EVENT_FLAG_NONE) \
-	F(FOCUS_MOVE, FocusMove, FOCUS_MOVE, UI_EVENT_FLAG_NONE) /*Panel*/ \
-	F(SCROLL, Scroll, DEFAULT, UI_EVENT_FLAG_NONE) /*BasicScroll*/\
-	F(CHANGE, Change, DEFAULT, UI_EVENT_FLAG_NONE) /*Input*/ \
-	F(LOAD, Load, DEFAULT, UI_EVENT_FLAG_NONE) /* Image */ \
-	F(ERROR, Error, ERROR, UI_EVENT_FLAG_PLAYER) \
-	F(READY, Ready, DEFAULT, UI_EVENT_FLAG_PLAYER) /* AutoPlayer / Video */ \
-	F(WAIT_BUFFER, WaitBuffer, FLOAT, UI_EVENT_FLAG_PLAYER) \
-	F(START_PLAY, StartPlay, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-	F(SOURCE_END, SourceEnd, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-	F(PAUSE, Pause, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-	F(RESUME, Resume, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-	F(STOP, Stop, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-	F(SEEK, Seek, UINT64, UI_EVENT_FLAG_PLAYER) \
-
+	F(Highlighted, UI_EVENT_FLAG_HIGHLIGHTED) /* normal / hover / down */ \
+	F(ActionKeyframe, UI_EVENT_FLAG_ACTION) \
+	F(ActionLoop, UI_EVENT_FLAG_ACTION) \
+	F(FocusMove, UI_EVENT_FLAG_FOCUS_MOVE) /*Panel*/ \
+	F(Scroll, UI_EVENT_FLAG_NONE) /*BasicScroll*/\
+	F(Change, UI_EVENT_FLAG_NONE) /*Input*/ \
+	F(Load, UI_EVENT_FLAG_NONE) /* Image */ \
+	/* player */ \
+	F(Error, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_ERROR) \
+	F(Ready, UI_EVENT_FLAG_PLAYER) /* AutoPlayer / Video */ \
+	F(WaitBuffer, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_FLOAT) \
+	F(StartPlay, UI_EVENT_FLAG_PLAYER) \
+	F(SourceEnd, UI_EVENT_FLAG_PLAYER) \
+	F(Pause, UI_EVENT_FLAG_PLAYER) \
+	F(Resume, UI_EVENT_FLAG_PLAYER) \
+	F(Stop, UI_EVENT_FLAG_PLAYER) \
+	F(Seek, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_UINT64) \
 
 
 namespace flare {
@@ -86,27 +84,25 @@ namespace flare {
 	class Application;
 	class View;
 	class Action;
+	class KeyboardAdapter;
 
-	// event category
-	enum {
-		UI_EVENT_CATEGORY_DEFAULT,
-		UI_EVENT_CATEGORY_KEYBOARD,
-		UI_EVENT_CATEGORY_CLICK,
-		UI_EVENT_CATEGORY_HIGHLIGHTED,
-		UI_EVENT_CATEGORY_TOUCH,
-		UI_EVENT_CATEGORY_MOUSE,
-		UI_EVENT_CATEGORY_ACTION,
-		UI_EVENT_CATEGORY_FOCUS_MOVE,
-		UI_EVENT_CATEGORY_ERROR,
-		UI_EVENT_CATEGORY_FLOAT,
-		UI_EVENT_CATEGORY_UINT64,
-	};
-
-	// event flags
+	// event flags / category / cast
 	enum {
 		UI_EVENT_FLAG_NONE = 0,
-		UI_EVENT_FLAG_BUBBLE = (1 << 0),
-		UI_EVENT_FLAG_PLAYER = (1 << 1),
+		UI_EVENT_FLAG_CATEGORY = (255 << 0), // category flag
+		UI_EVENT_FLAG_CAST = (255 << 8), // Event::data(), cast flag
+		UI_EVENT_FLAG_KEYBOARD = (1 << 0),
+		UI_EVENT_FLAG_CLICK,
+		UI_EVENT_FLAG_HIGHLIGHTED,
+		UI_EVENT_FLAG_TOUCH,
+		UI_EVENT_FLAG_MOUSE,
+		UI_EVENT_FLAG_ACTION,
+		UI_EVENT_FLAG_FOCUS_MOVE,
+		UI_EVENT_FLAG_ERROR = (1 << 8),
+		UI_EVENT_FLAG_FLOAT,
+		UI_EVENT_FLAG_UINT64,
+		UI_EVENT_FLAG_BUBBLE = (1 << 16), // bubble, other flag
+		UI_EVENT_FLAG_PLAYER = (1 << 17), // player
 	};
 
 	// event returl value mask
@@ -127,12 +123,11 @@ namespace flare {
 	class FX_EXPORT UIEventName {
 	 public:
 		inline UIEventName() { FX_UNREACHABLE(); }
-		inline UIEventName(cString& n, uint32_t category, int flag)
-			: name_(n), code_((uint32_t)n.hash_code()), category_(category), flag_(flag) {}
+		inline UIEventName(cString& n, uint32_t flag)
+			: name_(n), code_((uint32_t)n.hash_code()), flag_(flag) {}
 		inline uint32_t hash_code() const { return code_; }
 		inline bool equals(const UIEventName& o) const { return o.hash_code() == code_; }
 		inline String to_string() const { return name_; }
-		inline uint32_t category() const { return category_; }
 		inline int flag() const { return flag_; }
 		inline bool operator==(const UIEventName& type) const { return type.code_ == code_; }
 		inline bool operator!=(const UIEventName& type) const { return type.code_ != code_; }
@@ -140,17 +135,16 @@ namespace flare {
 		inline bool operator<(const UIEventName& type) const { return code_ < type.code_; }
 	 private:
 		String  name_;
-		uint32_t code_, category_;
-		int  flag_;
+		uint32_t code_, flag_;
 	};
 
 	// event names string => UIEventName
 	FX_EXPORT extern const Dict<String, UIEventName> UIEventNames;
 
 	// define event names
-	#define FX_FUN(NAME, STR, CATEGORY, FLAG) \
-		FX_EXPORT extern const UIEventName UI_EVENT_##NAME;
-	FX_UI_EVENT_TABLE(FX_FUN)
+	#define FX_FUN(NAME, FLAG) \
+		FX_EXPORT extern const UIEventName UIEvent_##NAME;
+	FX_UI_EVENTs(FX_FUN)
 	#undef FX_FUN
 
 	// -----------------------------------
@@ -158,24 +152,17 @@ namespace flare {
 	/**
 	* @func UIEvent gui event
 	*/
-	class FX_EXPORT UIEvent: public Event<Object, View> {
+	class FX_EXPORT UIEvent: public Event<View, Object, View, int> {
 	 public:
-		inline UIEvent(cSendData& data): Event<Object, View>() { FX_UNREACHABLE(); }
-		inline UIEvent(View* origin, cSendData& data = SendData())
-			: Event(data), return_value(RETURN_VALUE_MASK_ALL), origin_(origin), time_(os::time()), valid_(true) {
-		}
-		inline View* origin() const { return origin_; }
+		// inline UIEvent(cSendData& data): Event<View, Object, View>() { FX_UNREACHABLE(); }
+		UIEvent(View* origin);
 		inline uint64_t timestamp() const { return time_; }
-		inline void cancel_default() { return_value &= ~RETURN_VALUE_MASK_DEFAULT; }
-		inline void cancel_bubble() { return_value &= ~RETURN_VALUE_MASK_BUBBLE; }
 		inline bool is_default() const { return return_value & RETURN_VALUE_MASK_DEFAULT; }
 		inline bool is_bubble() const { return return_value & RETURN_VALUE_MASK_BUBBLE; }
-		virtual void release();
-		int return_value;
-	 protected:
-		View*    origin_;
+		inline void cancel_default() { return_value &= ~RETURN_VALUE_MASK_DEFAULT; }
+		inline void cancel_bubble() { return_value &= ~RETURN_VALUE_MASK_BUBBLE; }
+	 private:
 		uint64_t time_;
-		bool     valid_;
 	};
 
 	/**
@@ -183,8 +170,8 @@ namespace flare {
 	*/
 	class FX_EXPORT ActionEvent: public UIEvent {
 	 public:
-		inline ActionEvent(Action* action, View* view, uint64_t delay, uint32_t frame, uint32_t loop)
-			: UIEvent(view), action_(action), delay_(delay), frame_(frame), loop_(loop) {}
+		inline ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop)
+			: UIEvent(origin), action_(action), delay_(delay), frame_(frame), loop_(loop) {}
 		inline Action* action() const { return action_; }
 		inline uint64_t delay() const { return delay_; }
 		inline uint32_t frame() const { return frame_; }
@@ -218,7 +205,7 @@ namespace flare {
 		inline bool caps_lock() const { return caps_lock_; }
 		inline void set_keycode(int value) { keycode_ = value; }
 		inline View* focus_move() const { return focus_move_; }
-		inline void set_focus_move(View* view) { if (valid_) focus_move_ = view; }
+		inline void set_focus_move(View* view) { if (origin()) focus_move_ = view; }
 		virtual void release();
 	 private:
 		int  keycode_;
@@ -336,15 +323,14 @@ namespace flare {
 	 public:
 		EventDispatch(Application* app);
 		virtual ~EventDispatch();
-		// touch
+
+		// handles
 		void onTouchstart(List<TouchPoint>&& touches);
 		void onTouchmove(List<TouchPoint>&& touches);
 		void onTouchend(List<TouchPoint>&& touches);
 		void onTouchcancel(List<TouchPoint>&& touches);
-		// mouse
 		void onMousemove(float x, float y);
 		void onMousepress(KeyboardKeyName key, bool down);
-		// ime
 		void onIme_delete(int count);
 		void onIme_insert(cString& text);
 		void onIme_marked(cString& text);
@@ -352,12 +338,12 @@ namespace flare {
 		void onIme_control(KeyboardKeyName name);
 
 		/**
-		* @func make_text_input
+		* @func make_text_input(input)
 		*/
 		void make_text_input(ITextInput* input);
 		
 		/**
-		*mapunc keyboard_adapter
+		* @func keyboard_adapter()
 		*/
 		inline KeyboardAdapter* keyboard_adapter() {
 			return _keyboard;
