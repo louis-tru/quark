@@ -162,8 +162,8 @@ namespace flare {
 		ArrayString trim_left() const;
 		ArrayString trim_right() const;
 		// substr
-		ArrayString substr(uint32_t start, uint32_t length = 0xFFFFFFFF) const;
-		ArrayString substring(uint32_t start, uint32_t end = 0xFFFFFFFF) const;
+		ArrayString substr(uint32_t start, uint32_t length = 0x7FFFFFFF) const;
+		ArrayString substring(uint32_t start, uint32_t end = 0x7FFFFFFF) const;
 		// upper, lower
 		ArrayString& upper_case(); // change current this string
 		ArrayString& lower_case(); // change current this string
@@ -454,8 +454,8 @@ namespace flare {
 	ArrayString<T, A>& ArrayString<T, A>::append(const T* s, uint32_t len) {
 		if (len > 0) {
 			uint32_t len_raw = length();
-			auto s = (T*)realloc(len_raw + len, &A::aalloc, &A::free, sizeof(T));
-			_Str::strcpy(s + len_raw, s, len);
+			auto str = (T*)realloc(len_raw + len, &A::aalloc, &A::free, sizeof(T));
+			_Str::strcpy(str + len_raw, s, len);
 		}
 		return *this;
 	}
@@ -509,7 +509,7 @@ namespace flare {
 		IteratorConst it[] = { begin(), end() };
 		return _Str::join([](void* data, String* out) -> bool {
 			 auto it = static_cast<IteratorConst*>(data);
-			 return it[0] == it[1] ? false: (*out = _Str::to_string(*(++(it[0])))), true;
+			 return it[0] == it[1] ? false: ((*out = _Str::to_string(*(++(it[0])))), true);
 		}, sp, it);
 	}
 
@@ -518,7 +518,7 @@ namespace flare {
 		IteratorConst it[] = { begin(), end() };
 		return _Str::join([](void* data, String* out) -> bool {
 			 auto it = static_cast<IteratorConst*>(data);
-			 return it[0] == it[1] ? false: (*out = _Str::to_string(*(++(it[0])))), true;
+			 return it[0] == it[1] ? false: ((*out = _Str::to_string(*(++(it[0])))), true);
 		}, sp, it);
 	}
 

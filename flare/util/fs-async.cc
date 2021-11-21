@@ -361,7 +361,7 @@ namespace flare {
 		void advance() {
 			if ( is_abort() ) return;
 			
-			if ( _last->index < int(_last->dirents.size()) ) {
+			if ( _last->index < int(_last->dirents.length()) ) {
 				_dirent = &_last->dirents[_last->index];
 				
 				if ( _internal ) { // 内部优先
@@ -392,9 +392,9 @@ namespace flare {
 					}
 				}
 			} else { // end
-				if ( _stack.size() > 1 ) {
+				if ( _stack.length() > 1 ) {
 					_stack.pop();
-					_last = &_stack[_stack.size() - 1];
+					_last = &_stack[_stack.length() - 1];
 					advance();
 				} else {
 					Handle<AsyncEach> handle(this); // retain scope
@@ -427,7 +427,7 @@ namespace flare {
 					async_reject(_end, Error(*evt.error));
 				} else {
 					_stack.push({ std::move(*evt.data), 0, 0 });
-					_last = &_stack[_stack.size() - 1];
+					_last = &_stack[_stack.length() - 1];
 					advance();
 				}
 			}
@@ -443,7 +443,7 @@ namespace flare {
 					Array<Dirent> dirents;
 					dirents.push(Dirent(Path::basename(_path), _path, stat->type()));
 					_stack.push( { std::move(dirents), 0, 0 } );
-					_last = &_stack[_stack.size() - 1];
+					_last = &_stack[_stack.length() - 1];
 					advance();
 				}
 			}

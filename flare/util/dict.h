@@ -109,6 +109,7 @@ namespace flare {
 		IteratorConst find(const Key& key) const;
 		Iterator find(const Key& key);
 
+		bool     has(const Key& key) const;
 		uint32_t count(const Key& key) const;
 
 		Array<Key>   keys() const;
@@ -221,12 +222,14 @@ namespace flare {
 
 	template<typename K, typename V, typename C, typename A>
 	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::find(const K& key) const {
-		auto hash = C::hash_code(key);
-		auto node = _indexed[hash % _capacity];
-		while (node) {
-			if (node->hash_code == hash)
-				return IteratorConst(node);
-			node = node->_conflict;
+		if (_length) {
+			auto hash = C::hash_code(key);
+			auto node = _indexed[hash % _capacity];
+			while (node) {
+				if (node->hash_code == hash)
+					return IteratorConst(node);
+				node = node->_conflict;
+			}
 		}
 		return IteratorConst(&_end);
 	}
@@ -237,8 +240,13 @@ namespace flare {
 	}
 
 	template<typename K, typename V, typename C, typename A>
+	bool Dict<K, V, C, A>::has(const K& key) const {
+		return find(key) != IteratorConst(&_end);
+	}
+
+	template<typename K, typename V, typename C, typename A>
 	uint32_t Dict<K, V, C, A>::count(const K& key) const {
-		return _indexed[C::hash_code(key) % _capacity] ? 1: 0;
+		return _length && _indexed[C::hash_code(key) % _capacity] ? 1/*TODO use 1*/: 0;
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -368,6 +376,7 @@ namespace flare {
 	void Dict<K, V, C, A>::clear() {
 		erase(IteratorConst(_end._next), IteratorConst(&_end));
 		A::free(_indexed);
+		_indexed = nullptr;
 		_capacity = 0;
 	}
 

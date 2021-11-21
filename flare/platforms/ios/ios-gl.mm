@@ -101,7 +101,7 @@ namespace flare {
 		CAEAGLLayer* _layer;
 	};
 
-	RenderApple* MakeMetalRender(Application* host, const GLRender::DisplayParams& parems) {
+	RenderApple* MakeGLRender(Application* host, const GLRender::DisplayParams& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
 			return new GLRenderIOS(host, ctx, parems);

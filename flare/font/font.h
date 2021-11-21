@@ -323,7 +323,7 @@ namespace flare {
 		/**
 		* @func count {uint}
 		*/
-		inline uint32_t count() const { return (uint32_t)_fonts.size(); }
+		inline uint32_t count() const { return (uint32_t)_fonts.length(); }
 		
 		/**
 		* @func style {TextStyleValue}
@@ -405,7 +405,7 @@ namespace flare {
 		/**
 		* @func num_fonts
 		*/
-		inline uint32_t num_fonts() const { return (uint32_t)_all_fonts.size(); }
+		inline uint32_t num_fonts() const { return (uint32_t)_all_fonts.length(); }
 		
 		private:
 		

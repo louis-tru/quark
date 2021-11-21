@@ -107,7 +107,7 @@ namespace flare {
 		String r(secure ? '1': '0');
 		r.append('.');
 		auto domains = domain.split('.');
-		for (int i = domains.size() - 1; i > -1; i--) {
+		for (int i = domains.length() - 1; i > -1; i--) {
 			if (!domains[i].is_empty()) {
 				r.append(domains[i]);
 				r.append('.');

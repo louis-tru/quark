@@ -221,6 +221,7 @@ namespace flare {
 		EventDispatch*       _dispatch;
 		ActionCenter*        _action_center;
 		RecursiveMutex       _gui_lock_mutex;
+		bool                 _use_gui_lock_mutex;
 		FontPool*           _font_pool;        /* 字体纹理池 */
 		TexturePool*        _tex_pool;         /* 文件纹理池 */
 		uint64_t      _max_texture_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.

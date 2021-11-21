@@ -1,6 +1,9 @@
 
 #include <stdio.h>
 #include <skia/core/SkICC.h>
+#include <flare/app.h>
+
+using namespace flare;
 
 // void draw(SkCanvas* canvas) {
 //     canvas->drawColor(SK_ColorWHITE);
@@ -43,7 +46,13 @@
   
 // }
 
-void test_skia(int argc, char **argv) {
-	//
+void onload_handle (Event<>& evt, void* user) {
 	printf("%s\n", "ok skia");
+}
+
+void test_skia(int argc, char **argv) {
+	Application app;
+	app.initialize();
+	app.FX_On(Load, onload_handle);
+	app.run_loop();
 }

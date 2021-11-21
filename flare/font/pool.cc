@@ -89,8 +89,8 @@ namespace flare {
 						_fonts.has(font_name) ? "+++++++++++": "");
 		*/
 		
-		for (int i = 1; _fonts.count(font_name_); i++ ) { // 重复的字体名称
-			font_name_ = font_name + "_" + i;
+		for (int i = 1; _fonts.has(font_name_); i++ ) { // 重复的字体名称
+			font_name_ = font_name + "_" + String(i);
 		}
 		
 		FontFamily* family = nullptr;
@@ -371,7 +371,7 @@ namespace flare {
 				// LOG("register_font ok,%d", i);
 			}
 
-			if ( _familys.count("langou") ) {
+			if ( _familys.has("langou") ) {
 				// LOG("_familys.has langou ok");
 				// 这个内置字体必须载入成功,否则退出程序
 				// 把载入的一个内置字体做为默认备用字体,当没有任何字体可用时候,使用这个内置字体
@@ -462,7 +462,7 @@ namespace flare {
 			for (auto i: *ls) {
 				auto j = _blend_fonts.find(i);
 				if (j != end) {
-					if ( ! has.count(j->value->name()) ) {
+					if ( ! has.has(j->value->name()) ) {
 						has[j->value->name()] = true;
 						_default_fonts.push(j->value);
 					}
@@ -474,7 +474,7 @@ namespace flare {
 		
 		va_end(arg);
 		
-		if ( !has.count(_spare_family->name()) ) {
+		if ( !has.has(_spare_family->name()) ) {
 			_default_fonts.push(_spare_family);
 		}
 	}
@@ -493,14 +493,14 @@ namespace flare {
 		for (uint32_t i = 0; i < fonts.length(); i++) {
 			auto j = _blend_fonts.find(fonts[i].trim());
 			if (j != end) {
-				if ( ! has.count(j->value->name()) ) {
+				if ( ! has.has(j->value->name()) ) {
 					has[j->value->name()] = true;
 					_default_fonts.push(j->value);
 				}
 			}
 		}
 		
-		if ( !has.count(_spare_family->name()) ) {
+		if ( !has.has(_spare_family->name()) ) {
 			_default_fonts.push(_spare_family);
 		}
 	}
@@ -603,7 +603,7 @@ namespace flare {
 	*/
 	bool FontPool::register_font_file(cString& path, cString& family_alias) {
 		
-		if (!_paths.count(path) ) { //
+		if (!_paths.has(path) ) { //
 			
 			Handle<SimpleFontFamily> sffd = Inl::inl_read_font_file(path, (FT_Library)_ft_lib);
 			
@@ -646,7 +646,7 @@ namespace flare {
 			
 			auto i = _blend_fonts.find(family);
 			
-			if (i != _blend_fonts.end() && !_blend_fonts.count(alias)) {
+			if (i != _blend_fonts.end() && !_blend_fonts.has(alias)) {
 				_blend_fonts[alias] = i->value; // 设置一个别名
 			}
 		}

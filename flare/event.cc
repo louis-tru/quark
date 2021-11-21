@@ -207,7 +207,7 @@ namespace flare {
 		inline Dict<uint32_t, TouchPoint>& values() { return _touches; }
 		inline TouchPoint& operator[](uint32_t id) { return _touches[id]; }
 		inline uint32_t count() { return _touches.length(); }
-		inline bool has(uint32_t id) { return _touches.count(id); }
+		inline bool has(uint32_t id) { return _touches.has(id); }
 		inline void del(uint32_t id) { _touches.erase(id); }
 	 private:
 		View* _view;
@@ -269,7 +269,7 @@ namespace flare {
 						touch.click_in = true;
 						touch.view = view;
 						
-						if ( !_origin_touches.count(view) ) {
+						if ( !_origin_touches.has(view) ) {
 							_origin_touches[view] = new OriginTouche(view);
 						}
 						(*_origin_touches[view])[touch.id] = touch;

@@ -92,7 +92,7 @@ namespace flare {
 		/**
 		* @fucn test 测试是否有字体或家族
 		*/
-		inline bool test(cString& font) { return _blend_fonts.count(font); }
+		inline bool test(cString& font) { return _blend_fonts.has(font); }
 		
 		/**
 		* @func get_font 通过名称获得一个字体对像

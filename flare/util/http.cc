@@ -279,7 +279,7 @@ namespace flare {
 				//g_debug("--http response parser on_headers_complete");
 				Connect* self = static_cast<Connect*>(parser->data);
 				Client* cli = self->_client;
-				if ( self->_header.count("content-length") ) {
+				if ( self->_header.has("content-length") ) {
 					cli->_download_total = self->_header["content-length"].to_number<int64_t>();
 				}
 				self->init_gzip_parser();
@@ -288,7 +288,7 @@ namespace flare {
 			}
 			
 			void init_gzip_parser() {
-				if ( !_header.count("content-encoding") ) {
+				if ( !_header.has("content-encoding") ) {
 					_z_strm.zalloc = Z_NULL;
 					_z_strm.zfree = Z_NULL;
 					_z_strm.opaque = Z_NULL;
@@ -370,12 +370,12 @@ namespace flare {
 				header["Accept-Encoding"] = "gzip, deflate";
 				header["Date"] = gmt_time_string(os::time_second());
 				
-				if ( !header.count("Cache-Control") )   header["Cache-Control"] = "max-age=0";
-				if ( !header.count("User-Agent") )      header["User-Agent"] = inl__get_http_user_agent();
-				if ( !header.count("Accept-Charset") )  header["Accept-Charset"] = "utf-8";
-				if ( !header.count("Accept") )          header["Accept"] = "*/*";
-				if ( !header.count("DNT") )             header["DNT"] = "1";
-				if ( !header.count("Accept-Language") ) header["Accept-Language"] = os::languages();
+				if ( !header.has("Cache-Control") )   header["Cache-Control"] = "max-age=0";
+				if ( !header.has("User-Agent") )      header["User-Agent"] = inl__get_http_user_agent();
+				if ( !header.has("Accept-Charset") )  header["Accept-Charset"] = "utf-8";
+				if ( !header.has("Accept") )          header["Accept"] = "*/*";
+				if ( !header.has("DNT") )             header["DNT"] = "1";
+				if ( !header.has("Accept-Language") ) header["Accept-Language"] = os::languages();
 				
 				if ( !_client->_username.is_empty() && !_client->_password.is_empty() ) {
 					String s = _client->_username + ':' + _client->_password;
@@ -1041,7 +1041,7 @@ namespace flare {
 					auto r_header = _client->response_header();
 					ASSERT(r_header.length());
 
-					if ( r_header.count("cache-control") ) {
+					if ( r_header.has("cache-control") ) {
 						String expires = convert_to_expires(r_header["cache-control"]);
 						// LOG("FileWriter -- %s", *expires);
 						if ( !expires.is_empty() ) {
@@ -1049,13 +1049,13 @@ namespace flare {
 						}
 					}
 
-					if ( r_header.count("expires") ) {
+					if ( r_header.has("expires") ) {
 						int64_t expires = parse_time(r_header["expires"]);
 						int64_t now = os::time();
 						if ( expires > now ) {
 							_file = new AsyncFile(path, loop);
 						}
-					} else if ( r_header.count("last-modified") || r_header.count("etag") ) {
+					} else if ( r_header.has("last-modified") || r_header.has("etag") ) {
 						_file = new AsyncFile(path, loop);
 					}
 				} else { // download save

@@ -386,7 +386,7 @@ namespace flare {
 			strs.push(tmp);
 		}
 
-		auto buff = Buffer::alloc(total);
+		auto buff = Buffer::alloc(total + 1);
 		for (int i = 0, offset = 0; i < strs.length(); i++) {
 			buff.write(strs[i].c_str(), offset, strs[i].length());
 			offset += strs[i].length();

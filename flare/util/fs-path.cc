@@ -164,7 +164,7 @@ namespace flare {
 		Array<String> ls = path.split("/");
 		Array<String> rev;
 		int up = 0;
-		for (int i = ls.size() - 1; i > -1; i--) {
+		for (int i = ls.length() - 1; i > -1; i--) {
 			cString& v = ls[i];
 			if (!v.is_empty() && v != ".") {
 				if (v[0] == '.' && v[1] == '.') { // set up ../
@@ -181,9 +181,9 @@ namespace flare {
 		
 		String s;
 		
-		if (rev.size()) {
+		if (rev.length()) {
 			// reverse
-			for (int i = rev.size() - 1; i > 0; i--) {
+			for (int i = rev.length() - 1; i > 0; i--) {
 				s.append(rev[i]).append('/');
 			}
 			s.append(rev[0]);
@@ -282,27 +282,31 @@ namespace flare {
 		return format(str);
 	}
 
-	String Path::fallback(cString& path) {
+	int fallback_indexOf(cString& path) {
 		#if FX_WIN
-			if ( is_local_zip(path) ) {
-				return path.substr(7);
+			if ( Path::is_local_zip(path) ) {
+				return 7;
 			}
-			else if ( is_local_file(path) ) {
-				return path.substr(8);
+			else if ( Path::is_local_file(path) ) {
+				return 8;
 			}
 		#else
-			if ( is_local_zip(path) ) {
-				return path.substr(6);
+			if ( Path::is_local_zip(path) ) {
+				return 6;
 			}
-			else if ( is_local_file(path) ) {
-				return path.substr(7);
+			else if ( Path::is_local_file(path) ) {
+				return 7;
 			}
 		#endif
-		return path;
+		return 0;
+	}
+
+	String Path::fallback(cString& path) {
+		return path.substr(fallback_indexOf(path));
 	}
 
 	cChar* Path::fallback_c(cString& path) {
-		return fallback(path).c_str();
+		return path.c_str() + fallback_indexOf(path);
 	}
 
 }

@@ -78,9 +78,11 @@ namespace flare {
 	}
 
 	void UILock::lock() {
-		if (!_lock) {
-			_lock = true;
-			_host->_gui_lock_mutex.lock();
+		if (_host->_use_gui_lock_mutex) {
+			if (!_lock) {
+				_lock = true;
+				_host->_gui_lock_mutex.lock();
+			}
 		}
 	}
 
@@ -208,8 +210,10 @@ namespace flare {
 		_is_run = true;
 		_render_loop = RunLoop::current(); // 当前消息队列
 		_render_keep = _render_loop->keep_alive("Application::run, render_loop"); // 保持
+		
+		_use_gui_lock_mutex = _render_loop != _main_loop;
 
-		if (_render_loop != _main_loop) {
+		if (_use_gui_lock_mutex) {
 			Inl2_RunLoop(_render_loop)->set_independent_mutex(&_gui_lock_mutex);
 			Thread::awaken(_main_loop->thread_id()); // main loop awaken
 		}
@@ -274,6 +278,7 @@ namespace flare {
 		, _dispatch(nullptr), _action_center(nullptr)
 		, _pre_render(nullptr)
 		, _max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
+		, _use_gui_lock_mutex(false)
 	{
 		_main_keep = _main_loop->keep_alive("Application::Application(), main_keep");
 		Thread::FX_On(ProcessSafeExit, on_process_safe_handle);
@@ -311,9 +316,9 @@ namespace flare {
 	* @func initialize()
 	*/
 	void Application::initialize(cJSON& options) throw(Error) {
-		UILock lock;
 		FX_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
+		UILock lock;
 		HttpHelper::initialize(); // 初始http
 		_pre_render = new PreRender(); FX_DEBUG("new PreRender ok");
 		_display = NewRetain<Display>(this); FX_DEBUG("NewRetain<Display> ok"); // strong ref

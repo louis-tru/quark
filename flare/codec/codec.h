@@ -122,7 +122,7 @@ namespace flare {
 		/**
 		* @func body_count
 		* */
-		inline uint32_t body_count() const { return _body.size(); }
+		inline uint32_t body_count() const { return _body.length(); }
 		
 		/**
 		* @func width 图像宽度

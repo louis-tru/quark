@@ -320,7 +320,7 @@ namespace flare {
 
 			FX_ASSERT_STRICT_RENDER_THREAD();
 
-			for (uint32_t i = 0; i < mipmap_data.size(); i++) {
+			for (uint32_t i = 0; i < mipmap_data.length(); i++) {
 				auto data = mipmap_data[i];
 				size += data.width() * data.height() * size_pixel;
 			}
@@ -441,7 +441,7 @@ namespace flare {
 				}
 			}
 
-			if (post_to_render_handles.size()) {
+			if (post_to_render_handles.length()) {
 				_host->render_loop()->post(Cb([post_to_render_handles](CbData& e) {
 					// TODO ...
 					// auto ctx = draw_ctx();
@@ -691,7 +691,7 @@ namespace flare {
 				
 				Cb complete([this, ctx](CbData& e) { // 完成
 					Handle<DecodeContext> handle(ctx);
-					if (!ctx->output.size()) {
+					if (!ctx->output.length()) {
 						LoaderTextureError("Error: Loader image file error, %s");
 						return;
 					}
