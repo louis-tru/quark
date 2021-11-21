@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,12 +29,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
-
 #ifndef __flare__gui_render_looper__
 #define __flare__gui_render_looper__
 
-#include "./_app.h"
+#include "./app.inl"
 
 namespace flare {
 

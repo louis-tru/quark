@@ -1,9 +1,10 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +15,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,38 +26,30 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#import <Metal/Metal.h>
-#import "./mac-render.h"
-#import "../../render/metal.h"
-#import "../../display.h"
 
-namespace flare {
+#import "flare/util/macros.h"
 
-	class MetalRenderMAC : public MetalRender, public RenderMAC {
-	public:
-		MetalRenderMAC(Application* host, const DisplayParams& params): MetalRender(host, params) {}
-		void setView(UIView* view) {
-			ASSERT(!_view);
-			_view = view;
-			_layer = (CAMetalLayer*)view.layer;
-			_host->display()->set_best_display_scale(UIScreen.mainScreen.scale);
-		}
-		Class layerClass() { return [CAMetalLayer class]; }
-		Render* render() { return this; }
-	private:
-		UIView* _view;
-	};
+#if FX_IOS || FX_OSX
 
-	RenderMAC* MakeMetalRender(Application* host, const Render::DisplayParams& parems) {
-#if GR_METAL_SDK_VERSION >= 230
-		if (@available(macOS 11.0, iOS 14.0, *)) {
-			return new MetalRenderMAC(host, parems);
-		}
+#import <flare/app.h>
+
+#if FX_OSX
+	#import <AppKit/AppKit.h>
+	#define UIResponder NSResponder
+	#define UIApplicationDelegate NSApplicationDelegate
+	#define UIWindow NSWindow
+#else
+	#import <UIKit/UIKit.h>
 #endif
-		return nullptr;
-	}
 
-}
+@interface ApplicationDelegate: UIResponder<UIApplicationDelegate>
+
+@property (assign, nonatomic, readonly) flare::Application* app;
+	+ (void)set_application_delegate:(NSString*)name;
+	- (UIWindow*)window;
+@end
+
+#endif

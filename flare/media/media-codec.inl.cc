@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_media-codec.h"
+#include "./media-codec.inl"
 #include "../util/loop.h"
 #include "../app.h"
 #include "../errno.h"

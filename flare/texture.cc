@@ -30,10 +30,11 @@
 
 #include "./app.h"
 #include "./texture.h"
-// #include "./draw.h"
 #include "./util/fs.h"
 #include "./util/array.h"
-#include "./display-port.h"
+#include "./display.h"
+#include <math.h>
+// #include "./render/render.h"
 
 namespace flare {
 
@@ -301,19 +302,19 @@ namespace flare {
 	inline static void set_texture_total_data_size(TexturePool* pool, int size);
 
 	inline static bool is_valid_texture(uint32_t handle) {
-		return handle && handle < Uint32::max;
+		return handle && handle < Uint32::limit_max;
 	}
 
 	FX_DEFINE_INLINE_MEMBERS(Texture, Inl) {
-		public:
+	 public:
 
 		/**
 		 * @func load_mipmap_data 通过像素数据载入mipmap纹理到GPU,如果成功返回true
 		 */
 		bool load_mipmap_data(const Array<PixelData>& mipmap_data) {
 			// TODO ...
-			auto ctx = nullptr;//draw_ctx();
-			if (!ctx) return false;
+			// Render* ctx = _host->render();
+			// if (!ctx) return;
 			uint32_t size = 0;
 			uint32_t size_pixel = PixelData::get_pixel_data_size(mipmap_data[0].format());
 
@@ -324,39 +325,39 @@ namespace flare {
 				size += data.width() * data.height() * size_pixel;
 			}
 			
-			if (ctx->adjust_texture_memory(size)) {
+			if (_host->adjust_texture_memory(size)) {
 				
-				uint32_t handle = ctx->set_texture(mipmap_data);
-				if (handle) {
-					if (_handle[0]) {
-						ctx->del_texture(_handle[0]);
-					}
-					cPixelData& pixel = mipmap_data[0];
-					_width  = pixel.width();
-					_height = pixel.height();
-					_format = pixel.format();
-					_handle[0] = handle;
-					_data_size[0] = size;
-					_use_count[0] = 1;
-					_repeat[0] = Repeat::NONE;
-					set_texture_total_data_size(tex_pool(), size);
+				// TODO ...
+				// uint32_t handle = ctx->set_texture(mipmap_data);
+				// if (handle) {
+				// 	if (_handle[0]) {
+				// 		ctx->del_texture(_handle[0]);
+				// 	}
+				// 	cPixelData& pixel = mipmap_data[0];
+				// 	_width  = pixel.width();
+				// 	_height = pixel.height();
+				// 	_format = pixel.format();
+				// 	_handle[0] = handle;
+				// 	_data_size[0] = size;
+				// 	_use_count[0] = 1;
+				// 	_repeat[0] = Repeat::NONE;
+				// 	set_texture_total_data_size(_host->tex_pool(), size);
 					
-					if (mipmap_data.size() > 1) {
-						_status |= TEXTURE_HARDWARE_MIPMAP;
-					} else {
-						_status &= ~TEXTURE_HARDWARE_MIPMAP;
-					}
-					return true;
-				}
+				// 	if (mipmap_data.size() > 1) {
+				// 		_status |= TEXTURE_HARDWARE_MIPMAP;
+				// 	} else {
+				// 		_status &= ~TEXTURE_HARDWARE_MIPMAP;
+				// 	}
+				// 	return true;
+				// }
 			}
 			return false;
 		}
 		
 		void generate_texture() {
 			// TODO ...
-			Render* ctx = nullptr;//draw_ctx();
-			if (!ctx) return;
-
+			// Render* ctx = _host->render();
+			// if (!ctx) return;
 			FX_ASSERT_STRICT_RENDER_THREAD();
 			
 			_status |= TEXTURE_LOADING;
@@ -379,22 +380,24 @@ namespace flare {
 							} else {
 								uint32_t size = width * height * 4;
 								if ((_status & mark) && prev_level_handle &&
-										ctx->adjust_texture_memory(size)) { // gen target level
-									handle = ctx->gen_texture(prev_level_handle, width, height);
-									if (handle) {
-										_handle[i] = handle;
-										_data_size[i] = size;
-										_repeat[i] = Repeat::NONE;
-										_use_count[i] = 1;
-										set_texture_total_data_size(ctx->tex_pool(), size);
-										prev_level_handle = handle;
-										status |= mark;
-									}
+										_host->adjust_texture_memory(size))
+								{ // gen target level
+									// TODO ...
+									// handle = ctx->gen_texture(prev_level_handle, width, height);
+									// if (handle) {
+									// 	_handle[i] = handle;
+									// 	_data_size[i] = size;
+									// 	_repeat[i] = Repeat::NONE;
+									// 	_use_count[i] = 1;
+									// 	set_texture_total_data_size(ctx->tex_pool(), size);
+									// 	prev_level_handle = handle;
+									// 	status |= mark;
+									// }
 								}
 							}
 						} else {
 							if (!handle)
-								_handle[i] = Uint32::max;
+								_handle[i] = Uint32::limit_max;
 						}
 						width /= 2; height /= 2;
 						mark <<= 1;
@@ -410,26 +413,27 @@ namespace flare {
 				_status |= TEXTURE_COMPLETE;
 			}
 			_status &= ~(TEXTURE_CHANGE_LEVEL_MASK | TEXTURE_LOADING); // delete mark
-			main_loop()->post(Cb([this, status](CbData& e) {
-				FX_Trigger(change, status);
+			_host->main_loop()->post(Cb([this, status](CbData& e) {
+				FX_Trigger(Change, status);
 			}, this));
 		}
 
 		void clear() {
-			auto ctx = draw_ctx();
-			bool post_to_render = ctx ? !ctx->host()->has_current_render_thread(): false;
+			// auto ctx = draw_ctx();
+			bool post_to_render = !_host->has_current_render_thread();
 			Array<uint32_t> post_to_render_handles;
 
 			for (int i = 0; i < 8; i++) {
 				if (is_valid_texture(_handle[i])) {
-					if (ctx) {
-						if (post_to_render) {
-							post_to_render_handles.push(_handle[i]);
-						} else {
-							ctx->del_texture(_handle[i]); // 从GPU中删除纹理数据
-						}
-						set_texture_total_data_size(tex_pool(), -_data_size[i]);
-					}
+					// TODO ...
+					// if (ctx) {
+					// if (post_to_render) {
+					// 	post_to_render_handles.push(_handle[i]);
+					// } else {
+					// 	ctx->del_texture(_handle[i]); // 从GPU中删除纹理数据
+					// }
+					// set_texture_total_data_size(tex_pool(), -_data_size[i]);
+					// }
 					_handle[i] = 0;
 					_data_size[i] = 0;
 					_use_count[i] = 0;
@@ -438,13 +442,14 @@ namespace flare {
 			}
 
 			if (post_to_render_handles.size()) {
-				ctx->host()->render_loop()->post(Cb([post_to_render_handles](CbData& e) {
-					auto ctx = draw_ctx();
-					if (ctx) {
-						for (int i = 0; i < post_to_render_handles.length(); i++) {
-							ctx->del_texture(post_to_render_handles[i]);
-						}
-					}
+				_host->render_loop()->post(Cb([post_to_render_handles](CbData& e) {
+					// TODO ...
+					// auto ctx = draw_ctx();
+					// if (ctx) {
+					// for (int i = 0; i < post_to_render_handles.length(); i++) {
+						// ctx->del_texture(post_to_render_handles[i]);
+					// }
+					// }
 				}));
 			}
 
@@ -486,12 +491,13 @@ namespace flare {
 	 */
 	Texture::Level Texture::get_texture_level_from_convex_quadrilateral(Vec2 vertex[4]) {
 		if (_width) {
-			auto dp = app()->display_port();
+			auto dp = _host->display();
 			if (!dp) {
 				return Texture::LEVEL_0;
 			}
-			float scale = dp->scale();
-			float diagonal = (vertex[0].distance(vertex[2]) + vertex[1].distance(vertex[3])) / 2 * scale;
+			Vec2 scale = dp->scale();
+			float scale_value = (scale.x() + scale.y()) / 2;
+			float diagonal = (vertex[0].distance(vertex[2]) + vertex[1].distance(vertex[3])) / 2 * scale_value;
 			return get_texture_level(floorf(_diagonal / FX_MAX(diagonal, 16)));
 		} else {
 			return Texture::LEVEL_0;
@@ -499,7 +505,8 @@ namespace flare {
 	}
 
 	Texture::Texture()
-	: FX_Init_Event(change)
+	: FX_Init_Event(Change)
+	, _host(app())
 	, _status(TEXTURE_NO_LOADED)
 	, _width(0)
 	, _height(0)
@@ -545,10 +552,11 @@ namespace flare {
 			}
 		}
 	 use:
+	 // TODO ..
 		if ( repeat == _repeat[level] ) {
-			draw_ctx()->use_texture(handle, slot);
+			// draw_ctx()->use_texture(handle, slot);
 		} else {
-			draw_ctx()->use_texture(handle, repeat, slot);
+			// draw_ctx()->use_texture(handle, repeat, slot);
 			_repeat[level] = repeat;
 		}
 		_use_count[level]++;
@@ -556,8 +564,10 @@ namespace flare {
 	}
 
 	bool TextureYUV::load_yuv(cPixelData& data) {
-		auto pool = tex_pool();
-		if (!pool) return false;
+		// TODO ...
+		// auto pool = tex_pool();
+		// if (!pool) return false;
+		auto pool = _host->tex_pool();
 		int old_size = _data_size[0] + _data_size[1];
 		set_texture_total_data_size(pool, -old_size);
 		int size = data.width() * data.height();
@@ -565,25 +575,26 @@ namespace flare {
 
 		FX_ASSERT_STRICT_RENDER_THREAD();
 
-		if (draw_ctx()->adjust_texture_memory(new_size)) {
-			if ( draw_ctx()->set_yuv_texture(this, data) ) {
-				_data_size[0] = size;
-				_data_size[1] = size / 2;
-				set_texture_total_data_size(pool, new_size);
+		if (_host->adjust_texture_memory(new_size)) {
+			// TODO ...
+			// if ( draw_ctx()->set_yuv_texture(this, data) ) {
+			// 	_data_size[0] = size;
+			// 	_data_size[1] = size / 2;
+			// 	set_texture_total_data_size(pool, new_size);
 				
-				if (_width != data.width() ||
-						_height != data.height() || _format != data.format()) {
-					_width = data.width();
-					_height = data.height();
-					_diagonal = Vec2(_width, _height).diagonal();
-					_format = data.format();
-					_status = TEXTURE_COMPLETE;
-					main_loop()->post(Cb([this](CbData& e) {
-						FX_Trigger(change, TEXTURE_CHANGE_RELOADED | TEXTURE_CHANGE_LEVEL_MASK);
-					}, this));
-				}
-				return true;
-			}
+			// 	if (_width != data.width() ||
+			// 			_height != data.height() || _format != data.format()) {
+			// 		_width = data.width();
+			// 		_height = data.height();
+			// 		_diagonal = Vec2(_width, _height).diagonal();
+			// 		_format = data.format();
+			// 		_status = TEXTURE_COMPLETE;
+			// 		main_loop()->post(Cb([this](CbData& e) {
+			// 			FX_Trigger(Change, TEXTURE_CHANGE_RELOADED | TEXTURE_CHANGE_LEVEL_MASK);
+			// 		}, this));
+			// 	}
+			// 	return true;
+			// }
 		}
 		set_texture_total_data_size(pool, old_size);
 		
@@ -635,8 +646,8 @@ namespace flare {
 		#define LoaderTextureError(err) { \
 			_status = TEXTURE_ERROR;  \
 			FX_ERR(err, *_path); \
-			main_loop()->post(Cb([this](CbData& e) { \
-				FX_Trigger(change, TEXTURE_CHANGE_ERROR); \
+			_host->main_loop()->post(Cb([this](CbData& e) { \
+				FX_Trigger(Change, TEXTURE_CHANGE_ERROR); \
 			}, this)); \
 		}
 		
@@ -728,13 +739,14 @@ namespace flare {
 					_load_id = 0;
 				}
 			}
-			auto ctx = draw_ctx();
+			auto ctx = _host->render();// draw_ctx();
 			for (int i = 0; i < LEVEL_NONE; i++) {
 				if (is_valid_texture(_handle[i])) {
-					if (ctx) {
-						ctx->del_texture(_handle[i]); // 从GPU中删除纹理数据
-						set_texture_total_data_size(tex_pool(), -_data_size[i]);
-					}
+					// TODO ...
+					// if (ctx) {
+					// 	ctx->del_texture(_handle[i]); // 从GPU中删除纹理数据
+					// 	set_texture_total_data_size(_host->tex_pool(), -_data_size[i]);
+					// }
 				}
 				_handle[i] = 0;
 				_repeat[i] = Repeat::NONE;
@@ -744,11 +756,12 @@ namespace flare {
 			_status &= ~(TEXTURE_CHANGE_LEVEL_MASK | TEXTURE_HARDWARE_MIPMAP); // delete mark
 		} else { // unload level
 			if (is_valid_texture(_handle[level])) {
-				auto ctx = draw_ctx();
-				if (ctx) {
-					ctx->del_texture(_handle[level]);
-					set_texture_total_data_size(tex_pool(), -_data_size[level]);
-				}
+				// TODO ...
+				// auto ctx = draw_ctx();
+				// if (ctx) {
+				// 	ctx->del_texture(_handle[level]);
+				// 	set_texture_total_data_size(_host->tex_pool(), -_data_size[level]);
+				// }
 				if (level == LEVEL_0)
 					_status &= ~TEXTURE_HARDWARE_MIPMAP;
 			}
@@ -765,14 +778,14 @@ namespace flare {
 		public:
 		#define _inl_pool(self) static_cast<TexturePool::Inl*>(self)
 		
-		void texture_change_handle(Event<int, Texture>& evt) {
+		void texture_change_handle(Event<Texture, int>& evt) {
 			int status = *evt.data();
 			if (status & TEXTURE_CHANGE_COMPLETE) {
 				UILock lock;
 				_completes.set(evt.sender(), 1); // 完成后加入完成列表
 				auto sender = static_cast<FileTexture*>(evt.sender());
 				TexturePoolEventData data = { progress(), sender };
-				FX_Trigger(change, data);
+				FX_Trigger(Change, data);
 			}
 		}
 		
@@ -793,9 +806,9 @@ namespace flare {
 		}
 		
 		void trigger_change() {
-			main_loop()->post(Cb([this](CbData& e) {
+			_host->main_loop()->post(Cb([this](CbData& e) {
 				TexturePoolEventData data = { progress(), nullptr };
-				FX_Trigger(change, data);
+				FX_Trigger(Change, data);
 			}));
 		}
 		
@@ -812,7 +825,7 @@ namespace flare {
 	}
 
 	TexturePool::TexturePool(Application* host)
-	: FX_Init_Event(change)
+	: FX_Init_Event(Change)
 	, _host(host)
 	, _total_data_size(0)
 	{
@@ -844,7 +857,7 @@ namespace flare {
 		FileTexture* texture = new FileTexture(pathname);
 		_inl_pool(this)->add_texture_for_pool(texture, pathname);
 		
-		texture->FX_On(change, &Inl::texture_change_handle, _inl_pool(this));
+		texture->FX_On(Change, &Inl::texture_change_handle, _inl_pool(this));
 		
 		return texture;
 	}
@@ -950,7 +963,6 @@ namespace flare {
 		}
 	}
 
-
 	// TODO ...
 
 	static Char empty_[4] = { 0, 0, 0, 0 };
@@ -960,13 +972,12 @@ namespace flare {
 	* @class TextureEmpty
 	*/
 	class TextureEmpty: public Texture {
-		public:
+	 public:
 		virtual void load() {
 			if (_status == TEXTURE_NO_LOADED) {
 				ASSERT(load_data(empty_pixel_data), "Load temp texture error");
 			}
 		}
 	};
-
 
 }

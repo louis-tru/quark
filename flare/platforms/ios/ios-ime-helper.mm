@@ -31,7 +31,7 @@
 #import "./ios-ime-helper.h"
 #import "../../util/util.h"
 #import "../../event.h"
-#import "../../_app.h"
+#import "../../app.inl"
 
 using namespace flare;
 
@@ -274,18 +274,18 @@ using namespace flare;
 			} else {
 				ASSERT( keycode == _keyboard_up_keycode );
 			}
-			_app->dispatch()->dispatch_ime_insert([text UTF8String]);
+			_app->dispatch()->onIme_insert([text UTF8String]);
 			_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 0, 0, -1, 0);
 			_keyboard_up_keycode = 0;
 		} else {
-			_app->dispatch()->dispatch_ime_insert([text UTF8String]);
+			_app->dispatch()->onIme_insert([text UTF8String]);
 		}
 	}
 
 	- (void)deleteBackward {
 		_keyboard_up_keycode = 0;
 		_app->dispatch()->keyboard_adapter()->dispatch(KEYCODE_BACK_SPACE, 1, 1, 0, -1, 0);
-		_app->dispatch()->dispatch_ime_delete(-1);
+		_app->dispatch()->onIme_delete(-1);
 		_app->dispatch()->keyboard_adapter()->dispatch(KEYCODE_BACK_SPACE, 1, 0, 0, -1, 0);
 	}
 
@@ -324,7 +324,7 @@ using namespace flare;
 		
 		if ( !_clearing ) {
 			_marked_text = markedText;
-			_app->dispatch()->dispatch_ime_marked([_marked_text UTF8String]);
+			_app->dispatch()->onIme_marked([_marked_text UTF8String]);
 			
 			if ( _keyboard_up_keycode ) {
 				_app->dispatch()->keyboard_adapter()->dispatch(_keyboard_up_keycode, 1, 0, 0, -1, 0);
@@ -335,7 +335,7 @@ using namespace flare;
 
 	- (void)unmarkText {
 		if ( !_clearing ) {
-			_app->dispatch()->dispatch_ime_unmark([_marked_text UTF8String]);
+			_app->dispatch()->onIme_unmark([_marked_text UTF8String]);
 		}
 		_marked_text = @"";
 	}

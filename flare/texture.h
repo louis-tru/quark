@@ -74,7 +74,7 @@ namespace flare {
 	*/
 	class FX_EXPORT Texture: public Reference {
 		FX_HIDDEN_ALL_COPY(Texture);
-	public:
+	 public:
 
 		typedef PixelData::Format PixelFormat;
 
@@ -91,9 +91,9 @@ namespace flare {
 		};
 
 		/**
-		* @event onchange 纹理变化事件,比如尺寸了生了变化
+		* @event onChange 纹理变化事件,比如尺寸了生了变化
 		*/
-		FX_Event(change, Event<int, Texture>);
+		FX_Event(Change, Event<Texture, int>);
 
 		/**
 		* @func create() 通过图像数据创建一个新的纹理对像,如果成功返回纹理对像
@@ -148,7 +148,7 @@ namespace flare {
 		inline int diagonal() const { return _diagonal; }
 		inline PixelFormat format() const { return _format; }
 
-	protected:
+	 protected:
 		/**
 		* @constructor
 		*/
@@ -159,7 +159,8 @@ namespace flare {
 		*/
 		bool load_data(cPixelData& data);
 
-		int   _status;
+		Application* _host;
+		int       _status;
 		uint32_t  _handle[8];
 		uint32_t  _data_size[8];
 		uint32_t  _use_count[8];
@@ -174,7 +175,7 @@ namespace flare {
 	};
 
 	class FX_EXPORT TextureYUV: public Texture {
-	public:
+	 public:
 		bool load_yuv(cPixelData& data);
 		virtual bool unload(Level level = LEVEL_NONE);
 	};
@@ -183,7 +184,7 @@ namespace flare {
 	* @class FileTexture
 	*/
 	class FX_EXPORT FileTexture: public Texture {
-	public:
+	 public:
 		typedef ImageCodec::ImageFormat ImageFormat;
 		
 		/**
@@ -205,7 +206,7 @@ namespace flare {
 			return _image_format;
 		}
 		
-	private:
+	 private:
 		FileTexture(cString& path);
 		
 		String        _path;
@@ -224,19 +225,19 @@ namespace flare {
 		FileTexture*  texture;
 	};
 
-	typedef Event<TexturePoolEventData, TexturePool> TexturePoolEvent;
+	typedef Event<TexturePool, TexturePoolEventData> TexturePoolEvent;
 
 	/**
 	* @class TexturePool 统一管理纹理数据的池
 	*/
 	class FX_EXPORT TexturePool: public Object {
 		FX_HIDDEN_ALL_COPY(TexturePool);
-	public:
+	 public:
 		
 		/**
 		* @event onchange 纹理载入变化事件
 		*/
-		FX_Event(change, TexturePoolEvent);
+		FX_Event(Change, TexturePoolEvent);
 		
 		/**
 		* @constructor
@@ -278,7 +279,7 @@ namespace flare {
 		 */
 		inline uint64_t total_data_size() const { return _total_data_size; }
 		
-	private:
+	 private:
 		Application* _host;
 		Dict<String, FileTexture*> _textures;
 		Dict<Texture*, bool> _completes;

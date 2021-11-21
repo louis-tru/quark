@@ -32,7 +32,7 @@
 
 #import <OpenGL/gl.h>
 #include "../../render/gl.h"
-#include "../mac/mac-render.h"
+#include "../apple/apple-render.h"
 #include "../../display.h"
 
 #define UIScreen NSScreen

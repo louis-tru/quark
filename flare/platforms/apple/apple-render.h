@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,7 +29,6 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
 
 #ifndef __flare__ios_render__
 #define __flare__ios_render__
@@ -38,17 +38,17 @@
 #if FX_IOS || FX_OSX
 
 #include "../../render/render.h"
-#include "./mac-app.h"
+#include "./apple-app.h"
 
 namespace flare {
 
-	class FX_EXPORT RenderMAC {
-	public:
+	class FX_EXPORT RenderApple {
+	 public:
 		virtual Render* render() = 0;
 		virtual void setView(UIView* view) = 0;
 		virtual Class layerClass() = 0;
 		bool resize(::CGRect rect);
-		static RenderMAC* create(Application* host, cJSON& options);
+		static RenderApple* create(Application* host, cJSON& options);
 	};
 
 }

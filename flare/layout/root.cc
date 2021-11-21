@@ -30,7 +30,7 @@
 
 #include "./root.h"
 #include "../fill.h"
-#include "../_app.h"
+#include "../app.inl"
 #include "../util/handle.h"
 #include "../display.h"
 
@@ -50,6 +50,10 @@ namespace flare {
 		*/
 	void Root::accept(Visitor *visitor) {
 		visitor->visitRoot(this);
+	}
+
+	void Root::mark_layout_size() {
+		mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
 	}
 
 	Root* Root::create() {

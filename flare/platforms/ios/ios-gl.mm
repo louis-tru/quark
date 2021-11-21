@@ -32,12 +32,12 @@
 #import <UIKit/UIKit.h>
 
 #include "../../render/gl.h"
-#include "../mac/mac-render.h"
+#include "../apple/apple-render.h"
 #include "../../display.h"
 
 namespace flare {
 
-	class GLRenderIOS: public GLRender, public RenderMAC {
+	class GLRenderIOS: public GLRender, public RenderApple {
 	public:
 		GLRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
 			: GLRender(host, params), _glctx(ctx)
@@ -101,7 +101,7 @@ namespace flare {
 		CAEAGLLayer* _layer;
 	};
 
-	RenderMAC* MakeMetalRender(Application* host, const GLRender::DisplayParams& parems) {
+	RenderApple* MakeMetalRender(Application* host, const GLRender::DisplayParams& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
 			return new GLRenderIOS(host, ctx, parems);

@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,7 +29,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
 
 #ifndef __flare__util__android_jni__
 #define __flare__util__android_jni__

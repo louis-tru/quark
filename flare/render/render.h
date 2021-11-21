@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,7 +29,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
 
 #ifndef __ftr__render_render__
 #define __ftr__render_render__

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,104 +25,38 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
-
-#ifndef __flare__app_1__
-#define __flare__app_1__
-
-#include "./app.h"
-
-/**
- * @ns flare
- */
+#import <Metal/Metal.h>
+#import "./apple-render.h"
+#import "../../render/metal.h"
+#import "../../display.h"
 
 namespace flare {
 
-	FX_DEFINE_INLINE_MEMBERS(Application, Inl) {
+	class MetalRenderApple : public MetalRender, public RenderApple {
 	 public:
-		#define _inl_app(self) static_cast<AppInl*>(self)
-
-		struct KeyboardOptions {
-			bool               is_clear;
-			KeyboardType       type;
-			KeyboardReturnType return_type;
-			Vec2               spot_location;
-		};
-
-		void triggerLoad();
-		void triggerRender();
-		void triggerPause();
-		void triggerResume();
-		void triggerBackground();
-		void triggerForeground();
-		void triggerMemorywarning();
-		void triggerUnload();
-		
-		/**
-		* @func set_volume_up()
-		*/
-		void set_volume_up();
-
-		/**
-		* @func set_volume_down()
-		*/
-		void set_volume_down();
-		
-		/**
-		* @func set_root
-		*/
-		void set_root(Root* value) throw(Error);
-		
-		/**
-		* @func runMain
-		*/
-		inline static void runMain(int argc, Char* argv[]) {
-			Application::runMain(argc, argv);
+		MetalRenderApple(Application* host, const DisplayParams& params): MetalRender(host, params) {}
+		void setView(UIView* view) {
+			ASSERT(!_view);
+			_view = view;
+			_layer = (CAMetalLayer*)view.layer;
+			_host->display()->set_best_display_scale(UIScreen.mainScreen.scale);
 		}
-		
-		/**
-		* @func set_focus_view
-		*/
-		bool set_focus_view(View* view);
-		
-		/**
-		* @func dispatch
-		* */
-		inline EventDispatch* dispatch() { return _dispatch; }
-		
-		/**
-		* @func ime_keyboard_open
-		*/
-		void ime_keyboard_open(KeyboardOptions options);
-		
-		/**
-		* @func ime_keyboard_can_backspace
-		*/
-		void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
-		
-		/**
-		* @func ime_keyboard_close
-		*/
-		void ime_keyboard_close();
-		
-		/**
-		* @func ime_keyboard_spot_location
-		*/
-		void ime_keyboard_spot_location(Vec2 location);
-
-		/**
-		* @func onExit(code)
-		*/
-		int onExit(int code);
+		Class layerClass() { return [CAMetalLayer class]; }
+		Render* render() { return this; }
+	 private:
+		UIView* _view;
 	};
 
-	typedef Application::Inl AppInl;
-
-	void safeExit(int rc);
+	RenderApple* MakeMetalRender(Application* host, const Render::DisplayParams& parems) {
+#if GR_METAL_SDK_VERSION >= 230
+		if (@available(macOS 11.0, iOS 14.0, *)) {
+			return new MetalRenderApple(host, parems);
+		}
+#endif
+		return nullptr;
+	}
 
 }
-
-#endif

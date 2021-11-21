@@ -49,10 +49,10 @@
 
 namespace flare {
 
-	template<class Sender = Object, class SendData = Object, class Origin = Object, class RC = int> class Event;
+	template<class Sender = Object, class SendData = Object, class Origin = Object, typename RC = int> class Event;
 	template<class Event = Event<>> class EventNoticer;
 
-	template<class T_Sender, class T_SendData, class T_Origin, class T_RC>
+	template<class T_Sender, class T_SendData, class T_Origin, typename T_RC>
 	class FX_EXPORT Event: public Object {
 		FX_HIDDEN_ALL_COPY(Event);
 	 public:
@@ -63,28 +63,26 @@ namespace flare {
 		typedef const SendData   cSendData;
 		typedef EventNoticer<Event> Noticer;
 
-		Event(cSendData& data = SendData(), Origin* origin = nullptr)
-			: _noticer(nullptr), _data(&data), _origin(origin), return_value(ReturnValue()) {}
+		Event(cSendData& data = SendData(), Origin* origin = nullptr, const ReturnValue& rc = ReturnValue())
+			: _noticer(nullptr), _data(&data), _origin(origin), return_value(rc) {}
 
 		inline Noticer* noticer() const { return this->_noticer; }
-		inline String name() const { return this->_noticer->_name; }
-		inline Sender* sender() const { return this->_noticer->_sender; }
+		inline String name() const { return this->_noticer->name(); }
+		inline Sender* sender() const { return this->_noticer->sender(); }
 		inline cSendData* data() const { return _data; }
 		inline Origin* origin() const { return _origin; }
 
 		// "new" method alloc can call，Otherwise, fatal exception will be caused
 		virtual void release() {
-			_data = _origin = nullptr;
-			Object::release();
+			_data = nullptr;
+			_origin = nullptr; _noticer = nullptr; Object::release();
 		}
-
-		ReturnValue return_value;
 	 private:
 		Noticer*     _noticer;
 		cSendData*   _data;
 		Origin*      _origin;
-		
-		friend class EventNoticer<Event>;
+	 public:
+		ReturnValue return_value;
 	};
 
 	template<class Event>
@@ -198,7 +196,7 @@ namespace flare {
 			virtual bool is_on_shell_listener() { return true; }
 			virtual void call(Event& evt) {
 				this->_shell->trigger(evt);
-				this->_noticer->set_event2(evt);
+				this->_noticer->set_event(evt);
 			}
 			inline bool equals(EventNoticer* shell) { return _shell == shell; }
 		 protected:
@@ -212,7 +210,7 @@ namespace flare {
 				: OnShellListener(noticer, shell) {}
 			virtual void action(Event& evt) {
 				this->_shell->trigger(evt);
-				this->_noticer->set_event2(evt);
+				this->_noticer->set_event(evt);
 				this->_noticer->off2(this);
 			}
 		};
@@ -425,8 +423,8 @@ namespace flare {
 		}
 
 		void trigger(Event& evt) {
-			if (_listener && _listener.length()) {
-				set_event2(evt);
+			if (_listener && _listener->length()) {
+				set_event(evt);
 				for (auto i = _listener->begin(); i != _listener->end(); ) {
 					auto j = i++;
 					Listener* listener = j->listener;
@@ -441,14 +439,15 @@ namespace flare {
 						_listener->erase(j);
 					}
 				}
-				set_event2(nullptr);
+				// set_event(evt, nullptr);
 			}
 		}
 	
 	 private:
 
-		inline void set_event2(Event& evt) {
-			evt._noticer = this;
+		inline void set_event(Event& evt) {
+			struct Ev: public Object { void *_noticer; };
+			reinterpret_cast<Ev*>(&evt)->_noticer = this;
 		}
 		
 		inline void get_listener() {
@@ -775,7 +774,7 @@ namespace flare {
 		* @arg name {const Key&}
 		* @arg evt {cSendData&}
 		*/
-		inline void trigger(const Name& name, Event::cSendData& data) {
+		inline void trigger(const Name& name, typename Noticer::cSendData& data) {
 			auto del = get_noticer(name);
 			if (del) del->trigger(data);
 		}
@@ -794,7 +793,7 @@ namespace flare {
 
 		struct NoticerWrap {
 			inline NoticerWrap() { FX_UNREACHABLE(); }
-			inline NoticerWrap(const Name& t, Event::Sender* sender)
+			inline NoticerWrap(const Name& t, typename Noticer::Sender* sender)
 				: name(t), value(t.to_string(), sender) {}
 			Name    name;
 			Noticer value;
@@ -810,7 +809,7 @@ namespace flare {
 			if (it != _noticers->end()) {
 				return &it->value->value;
 			} else {
-				auto wrap = new NoticerWrap(name, static_cast<Event::Sender*>(this));
+				auto wrap = new NoticerWrap(name, static_cast<typename Noticer::Sender*>(this));
 				_noticers->operator[](name) = wrap;
 				return &wrap->value;
 			}

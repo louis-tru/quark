@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "flare/media/_media-codec.h"
+#import "flare/media/media-codec.inl"
 #import <VideoToolbox/VideoToolbox.h>
 #import <AudioToolbox/AudioToolbox.h>
 
@@ -40,7 +40,7 @@ namespace flare {
 	* @class AppleVideoCodec
 	*/
 	class AppleVideoCodec: public MediaCodec {
-	public:
+	 public:
 		
 		struct OutputBufferInfo {
 			CVPixelBufferRef        buffer = nullptr;
@@ -441,7 +441,7 @@ namespace flare {
 		virtual void set_threads(uint32_t value) {}
 		virtual void set_background_run(bool value) {}
 		
-	private:
+	 private:
 		VTDecompressionSessionRef _session;
 		CMFormatDescriptionRef    _format_desc;
 		CMSampleBufferRef         _sample_data;

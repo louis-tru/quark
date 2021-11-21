@@ -35,11 +35,11 @@
 
 #include "../../render/gl.h"
 #include "../../display.h"
-#include "../mac/mac-render.h"
+#include "../apple/apple-render.h"
 
 namespace flare {
 
-	class RasterRenderIOS: public GLRender, public RenderMAC {
+	class RasterRenderIOS: public GLRender, public RenderApple {
 	public:
         RasterRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
 			: GLRender(host, params), _glctx(ctx)
@@ -108,7 +108,7 @@ namespace flare {
 		sk_sp<SkSurface> _RasterSurface;
 	};
 
-	RenderMAC* MakeRasterRender(Application* host, const Render::DisplayParams& parems) {
+	RenderApple* MakeRasterRender(Application* host, const Render::DisplayParams& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
 			return new RasterRenderIOS(host, ctx, parems);

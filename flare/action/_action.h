@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -27,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * ***** END LICENSE BLOCK ***** */
-
-// @private head
 
 #include "./action.h"
 #include "./group.h"

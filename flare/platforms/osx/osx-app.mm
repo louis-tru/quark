@@ -30,10 +30,10 @@
 
 #import <AppKit/AppKit.h>
 #import "../../util/loop.h"
-#import "../../_app.h"
+#import "../../app.inl"
 #import "../../display.h"
 #import "../../event.h"
-#import "../mac/mac-render.h"
+#import "../apple/apple-render.h"
 #import "./ios-ime-helper.h"
 
 using namespace flare;

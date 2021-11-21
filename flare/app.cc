@@ -34,7 +34,7 @@
 #include "./render/render.h"
 #include "./layout/root.h"
 #include "./display.h"
-#include "./_app.h"
+#include "./app.inl"
 // #include "./action/action.h"
 // #include "./css/css.h"
 #include "./font/pool.h"

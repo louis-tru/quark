@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,10 +29,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
-
-#ifndef __flare__media_codec_1__
-#define __flare__media_codec_1__
+#ifndef __flare__media_codec_inl__
+#define __flare__media_codec_inl__
 
 extern "C" {
 # include <libavutil/avutil.h>
@@ -51,7 +50,7 @@ namespace flare {
 	class SoftwareMediaCodec;
 
 	class MultimediaSource::Inl: public ParallelWorking {
-	public:
+	 public:
 		
 		Inl(MultimediaSource*, cString& uri, RunLoop* loop);
 		
@@ -118,7 +117,7 @@ namespace flare {
 		*/
 		AVStream* get_stream(const TrackInfo& track);
 		
-	private:
+	 private:
 		typedef Extractor::SampleData SampleData;
 		
 		void reset();

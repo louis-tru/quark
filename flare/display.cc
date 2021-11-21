@@ -28,29 +28,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./display-port.h"
+#include "./display.h"
 #include "./app.h"
-#include "./draw.h"
-#include "./_pre-render.h"
+#include "./pre-render.h"
 #include "./layout/root.h"
-#include "./action/action.h"
-#include "./util/_working.h"
 #include "./util/os.h"
+#include "./render/render.h"
+#include "./util/working.h"
+// #include "./action/action.h"
 
 namespace flare {
 
-	Vec2 Display::phy_size() const {
-		return Vec2(_surface_region.x - _surface_region.x2, _surface_region.y - _surface_region.y2);
-	}
-
 	FX_DEFINE_INLINE_MEMBERS(Display, Inl) {
-	public:
+	 public:
 		#define _inl(self) static_cast<Display::Inl*>(self)
 
 		void update_from_render_loop() {
 			ScopeLock lock(_Mutex);
 
-			float _phy_size = phy_size();
+			Vec2 _phy_size = phy_size();
 			float width = _phy_size.x();
 			float height = _phy_size.y();
 
@@ -79,7 +75,7 @@ namespace flare {
 			
 			_atom_pixel = 1.0f / scale;
 			
-			Rect region = _surface_region;
+			Region region = _surface_region;
 
 			Vec2 start = Vec2(-region.x / _scale.x(), -region.y / _scale.y());
 			Vec2 end = Vec2(region.width / _scale.x() + start.x(),
@@ -89,7 +85,7 @@ namespace flare {
 			// update root
 			Root* r = _host->root();
 			if (r) {
-				r->mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+				r->mark_layout_size();
 			}
 			
 			// set default draw region
@@ -100,10 +96,10 @@ namespace flare {
 			};
 			
 			_host->main_loop()->post(Cb([this](CbData& e){
-				FX_Trigger(change); // 通知事件
+				FX_Trigger(Change); // 通知事件
 			}));
 
-			_render->reload();
+			_host->render()->reload();
 		}
 		
 		/**
@@ -122,8 +118,12 @@ namespace flare {
 		}
 	};
 
+	Vec2 Display::phy_size() const {
+		return Vec2(_surface_region.x - _surface_region.x2, _surface_region.y - _surface_region.y2);
+	}
+
 	Display::Display(Application* host)
-		: FX_Init_Event(change), FX_Init_Event(orientation)
+		: FX_Init_Event(Change), FX_Init_Event(Orientation)
 		, _host(host)
 		, _lock_size()
 		, _size(), _scale(1, 1)
@@ -161,9 +161,9 @@ namespace flare {
 	void Display::render_frame(bool force) {// 必须要渲染循环中调用
 		Root* root = _host->root();
 		int64_t now_time = os::time_monotonic();
-		_host->action_center()->advance(now_time); // advance action
+		// _host->action_center()->advance(now_time); // advance action TODO ...
 		
-		if (root && (force || _host->_pre_render->solve(now_time))) {
+		if (root && (force || _host->pre_render()->solve(now_time))) {
 			if (now_time - _record_fsp_time >= 1e6) {
 				_fsp = _record_fsp;
 				_record_fsp = 0;
@@ -228,8 +228,8 @@ namespace flare {
 			re.y2 = y2;
 		}
 		
-		re.w = re.x2 - re.x;
-		re.h = re.y2 - re.y;
+		re.width = re.x2 - re.x;
+		re.height = re.y2 - re.y;
 		
 		_display_region.push_back(re);
 	}
@@ -243,8 +243,8 @@ namespace flare {
 		if (
 					_surface_region.x != region.x 
 			||	_surface_region.y != region.y
-			||	_surface_region.x1 != region.x1
-			||	_surface_region.y1 != region.y1
+			||	_surface_region.x2 != region.x2
+			||	_surface_region.y2 != region.y2
 			||	_surface_region.width != region.width
 			||	_surface_region.height != region.height
 		) {

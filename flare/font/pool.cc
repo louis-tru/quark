@@ -35,7 +35,7 @@
 #include "../texture.h"
 #include "../display.h"
 // #include "../draw.h"
-#include "../_app.h"
+#include "../app.inl"
 #include <native-font.h>
 #include <math.h>
 
@@ -356,7 +356,7 @@ namespace flare {
 		ASSERT(host);
 		ASSERT(_host->display());
 
-		_host->display()->FX_On(change, &Inl::display_port_change_handle, _inl_pool(this));
+		_host->display()->FX_On(Change, &Inl::display_port_change_handle, _inl_pool(this));
 		
 		FT_Init_FreeType((FT_Library*)&_ft_lib);
 			
@@ -428,7 +428,7 @@ namespace flare {
 		FT_Done_FreeType((FT_Library)_ft_lib); _ft_lib = nullptr;
 		
 		if ( _host->display() ) {
-      _host->display()->FX_Off(change, &Inl::display_port_change_handle, _inl_pool(this));
+      _host->display()->FX_Off(Change, &Inl::display_port_change_handle, _inl_pool(this));
 		}
 	}
 

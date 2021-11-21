@@ -29,15 +29,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./keyboard.h"
-#include "./_app.h"
+#include "./app.inl"
 
 namespace flare {
 
 	/**
 	* @constructor 
 	*/
-	KeyboardAdapter::KeyboardAdapter(): app_(app()) {
-		ASSERT(app_);
+	KeyboardAdapter::KeyboardAdapter(): _host(app()) {
+		ASSERT(_host);
 		
 		keyname_ = KEYCODE_UNKNOWN;
 		keypress_ = 0;

@@ -291,6 +291,11 @@ namespace flare {
 		 */
 		virtual void trigger_listener_change(const NameType& name, int count, int change);
 
+		/**
+		 * @func has_child(child)
+		 */
+		bool has_child(View* child);
+		
 		// *******************************************************************
 		/**
 			* Returns the objects that automatically adjust view properties

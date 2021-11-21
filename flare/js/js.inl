@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
 * Distributed under the BSD license:
 *
@@ -28,8 +29,8 @@
 *
 * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__js__js_1__
-#define __flare__js__js_1__
+#ifndef __flare__js__js_inl__
+#define __flare__js__js_inl__
 
 #include "./js.h"
 #include "./str.h"

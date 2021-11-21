@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./mac-render.h"
+#include "./apple-render.h"
 #include "../../display.h"
 
 namespace flare {
 
-	bool RenderMAC::resize(::CGRect rect) {
+	bool RenderApple::resize(::CGRect rect) {
 		float scale = UIScreen.mainScreen.scale;
 		float x = rect.size.width * scale;
 		float y = rect.size.height * scale;
@@ -43,12 +43,12 @@ namespace flare {
 		return false;
 	}
 
-	RenderMAC* MakeRasterRender(Application* host, const Render::DisplayParams& parems);
-	RenderMAC* MakeGLRender(Application* host, const Render::DisplayParams& parems);
-	RenderMAC* MakeMetalRender(Application* host, const Render::DisplayParams& parems);
+	RenderApple* MakeRasterRender(Application* host, const Render::DisplayParams& parems);
+	RenderApple* MakeGLRender(Application* host, const Render::DisplayParams& parems);
+	RenderApple* MakeMetalRender(Application* host, const Render::DisplayParams& parems);
 
-	RenderMAC* RenderMAC::create(Application* host, cJSON& options) {
-		RenderMAC* r = nullptr;
+	RenderApple* RenderApple::create(Application* host, cJSON& options) {
+		RenderApple* r = nullptr;
 
 		auto parems = Render::parseDisplayParams(options);
 

@@ -197,6 +197,7 @@ namespace flare {
 		F(KEYCODE_ZOOM_IN,          333)     /* 放大键 */ \
 		F(KEYCODE_ZOOM_OUT,         334)     /* 缩小键 */ \
 
+
 	enum KeyboardKeyName {
 		#define fx_def_enum_keyboard_key_name(Name, Code) Name = Code,
 		fx_each_keyboard_key_name_table(fx_def_enum_keyboard_key_name)
@@ -270,7 +271,7 @@ namespace flare {
 		Dict<int, AsciiKeyboardKeycode> _ascii_keycodes;
 		Dict<int, SymbolKeypressValue>  _symbol_keypress;
 		
-		Application* app_;
+		Application* _host;
 		KeyboardKeyName keyname_;
 		int   keypress_;
 		bool  shift_;

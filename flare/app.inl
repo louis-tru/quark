@@ -1,6 +1,4 @@
-
-
-
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -31,28 +29,99 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
+#ifndef __flare__app_inl__
+#define __flare__app_inl__
 
-#import "flare/util/macros.h"
+#include "./app.h"
 
-#if FX_IOS || FX_OSX
+/**
+ * @ns flare
+ */
 
-#import <flare/app.h>
+namespace flare {
 
-#if FX_OSX
-	#import <AppKit/AppKit.h>
-	#define UIResponder NSResponder
-	#define UIApplicationDelegate NSApplicationDelegate
-	#define UIWindow NSWindow
-#else
-	#import <UIKit/UIKit.h>
-#endif
+	FX_DEFINE_INLINE_MEMBERS(Application, Inl) {
+	 public:
+		#define _inl_app(self) static_cast<AppInl*>(self)
 
-@interface ApplicationDelegate: UIResponder<UIApplicationDelegate>
+		struct KeyboardOptions {
+			bool               is_clear;
+			KeyboardType       type;
+			KeyboardReturnType return_type;
+			Vec2               spot_location;
+		};
 
-@property (assign, nonatomic, readonly) flare::Application* app;
-	+ (void)set_application_delegate:(NSString*)name;
-	- (UIWindow*)window;
-@end
+		void triggerLoad();
+		void triggerRender();
+		void triggerPause();
+		void triggerResume();
+		void triggerBackground();
+		void triggerForeground();
+		void triggerMemorywarning();
+		void triggerUnload();
+		
+		/**
+		* @func set_volume_up()
+		*/
+		void set_volume_up();
+
+		/**
+		* @func set_volume_down()
+		*/
+		void set_volume_down();
+		
+		/**
+		* @func set_root
+		*/
+		void set_root(Root* value) throw(Error);
+		
+		/**
+		* @func runMain
+		*/
+		inline static void runMain(int argc, Char* argv[]) {
+			Application::runMain(argc, argv);
+		}
+		
+		/**
+		* @func set_focus_view
+		*/
+		bool set_focus_view(View* view);
+		
+		/**
+		* @func dispatch
+		* */
+		inline EventDispatch* dispatch() { return _dispatch; }
+		
+		/**
+		* @func ime_keyboard_open
+		*/
+		void ime_keyboard_open(KeyboardOptions options);
+		
+		/**
+		* @func ime_keyboard_can_backspace
+		*/
+		void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
+		
+		/**
+		* @func ime_keyboard_close
+		*/
+		void ime_keyboard_close();
+		
+		/**
+		* @func ime_keyboard_spot_location
+		*/
+		void ime_keyboard_spot_location(Vec2 location);
+
+		/**
+		* @func onExit(code)
+		*/
+		int onExit(int code);
+	};
+
+	typedef Application::Inl AppInl;
+
+	void safeExit(int rc);
+
+}
 
 #endif

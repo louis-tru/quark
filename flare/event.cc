@@ -29,10 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./event.h"
-#include "./_app.h"
+#include "./app.inl"
 #include "./layout/root.h"
 #include "./util/os.h"
 #include "./keyboard.h"
+#include <math.h>
 
 namespace flare {
 
@@ -189,7 +190,7 @@ namespace flare {
 			_view->release();
 		}
 		static Vec2 view_position(View* view) {
-			return Vec2(view->_matrix[2], view->_matrix[5]);
+			return Vec2(view->matrix()[2], view->matrix()[5]);
 		}
 		inline View* view() { return _view; }
 		inline Vec2 view_start_position() { return _start_position; }
@@ -256,7 +257,7 @@ namespace flare {
 		// -------------------------- touch --------------------------
 
 		void touchstart(View* view, List<TouchPoint>& in) {
-			if ( view->_receive && in.length() ) {
+			if ( view->receive() && in.length() ) {
 				Array<TouchPoint> change_touches;
 				
 				for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -295,10 +296,10 @@ namespace flare {
 
 		void onTouchstart(View* view, List<TouchPoint>& in) {
 			
-			if ( view->_visible && in.length() ) {
-				if ( view->_region_visible /*|| view->_need_draw*/ ) {
+			if ( view->visible() && in.length() ) {
+				if ( view->region_visible() /*|| view->_need_draw*/ ) {
 					
-					if ( view->_last /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {
+					if ( view->last() /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {
 						List<TouchPoint> in2;
 						
 						for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -310,10 +311,10 @@ namespace flare {
 							}
 						}
 						
-						View* v = view->_last;
+						View* v = view->last();
 						while( v && in2.length() ) {
 							onTouchstart(v, in2);
-							v = v->_prev;
+							v = v->prev();
 						}
 						
 						touchstart(view, in2);
@@ -322,10 +323,10 @@ namespace flare {
 							in.splice(in.end(), in2);
 						}
 					} else {
-						View* v = view->_last;
+						View* v = view->last();
 						while( v && in.length() ) {
 							onTouchstart(v, in);
-							v = v->_prev;
+							v = v->prev();
 						}
 						touchstart(view, in);
 					}
@@ -447,7 +448,7 @@ namespace flare {
 								auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
 								_inl_view(view)->trigger_highlightted(**evt);
 								
-								if ( type == UIEvent_TouchEnd && view->final_visible() ) {
+								if ( type == UIEvent_TouchEnd && view->layout_depth() ) {
 									auto evt = NewEvent<ClickEvent>(view, item.x, item.y, ClickEvent::TOUCH);
 									_inl_view(view)->bubble_trigger(UIEvent_Click, **evt); // emit click event
 								}
@@ -472,14 +473,10 @@ namespace flare {
 			);
 		}
 
-		inline static bool test_view_level(View* parent, View* subview) {
-			return parent->has_child(subview);
-		}
-
 		static View* find_receive_event_view_2(View* view, Vec2 pos) {
-			if ( view->_visible ) {
-				if ( view->_region_visible/* || view->_need_draw*/ ) {
-					View* v = view->_last;
+			if ( view->visible() ) {
+				if ( view->region_visible()/* || view->_need_draw*/ ) {
+					View* v = view->last();
 
 					if (v /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {
 						if (view->overlap_test(pos)) {
@@ -488,9 +485,9 @@ namespace flare {
 								if (r) {
 									return r;
 								}
-								v = v->_prev;
+								v = v->prev();
 							}
-							if (view->_receive) {
+							if (view->receive()) {
 								return view;
 							}
 						}
@@ -500,9 +497,9 @@ namespace flare {
 							if (r) {
 								return r;
 							}
-							v = v->_prev;
+							v = v->prev();
 						}
-						if (view->_receive && view->overlap_test(pos)) {
+						if (view->receive() && view->overlap_test(pos)) {
 							return view;
 						}
 					}
@@ -512,7 +509,7 @@ namespace flare {
 		}
 
 		inline View* find_receive_event_view(Vec2 pos) {
-			return app_->root() ? find_receive_event_view_2(app_->root(), pos) : nullptr;
+			return _host->root() ? find_receive_event_view_2(_host->root(), pos) : nullptr;
 		}
 
 		void onMousemove(View* view, Vec2 pos) {
@@ -547,7 +544,7 @@ namespace flare {
 					if (evt->is_default()) {
 						evt->return_value = RETURN_VALUE_MASK_ALL;
 
-						if (!view || !test_view_level(old, view)) {
+						if (!view || !old->has_child(view)) {
 							_inl_view(old)->bubble_trigger(UIEvent_MouseLeave, **evt);
 						}
 
@@ -562,7 +559,7 @@ namespace flare {
 					if (evt->is_default()) {
 						evt->return_value = RETURN_VALUE_MASK_ALL;
 						
-						if (!old || !test_view_level(view, old)) {
+						if (!old || !view->has_child(old)) {
 							_inl_view(view)->bubble_trigger(UIEvent_MouseEnter, **evt);
 						}
 
@@ -583,7 +580,7 @@ namespace flare {
 			Handle<View> view(find_receive_event_view(pos));
 
 			if (_mouse_h->view() != *view) {
-				mousemove(*view, pos);
+				onMousemove(*view, pos);
 			}
 
 			if (view.is_null()) return;
@@ -629,9 +626,9 @@ namespace flare {
 
 		void onKeyboard_down() {
 
-			View* view = app_->focus_view();
+			View* view = _host->focus_view();
 			if ( !view )
-				view = app_->root();
+				view = _host->root();
 
 			if ( view ) {
 				auto name = _keyboard->keyname();
@@ -672,9 +669,9 @@ namespace flare {
 					if ( name == KEYCODE_ENTER ) {
 						_inl_view(view)->bubble_trigger(UIEvent_KeyEnter, **evt);
 					} else if ( name == KEYCODE_VOLUME_UP ) {
-						_inl_app(app_)->set_volume_up();
+						_inl_app(_host)->set_volume_up();
 					} else if ( name == KEYCODE_VOLUME_DOWN ) {
-						_inl_app(app_)->set_volume_down();
+						_inl_app(_host)->set_volume_down();
 					}
 					
 					int keypress_code = _keyboard->keypress();
@@ -699,9 +696,9 @@ namespace flare {
 		
 		void onKeyboard_up() {
 
-			View* view = app_->focus_view();
+			View* view = _host->focus_view();
 			if ( !view )
-				view = app_->root();
+				view = _host->root();
 
 			if ( view ) {
 				auto name = _keyboard->keyname();
@@ -724,7 +721,7 @@ namespace flare {
 						
 						if ( evt->is_default() ) {
 							// pending gui application (挂起应用)
-							app_->pending();
+							_host->pending();
 						}
 					}
 					else if ( name == KEYCODE_CENTER ) {
@@ -743,7 +740,7 @@ namespace flare {
 		
 	};
 
-	EventDispatch::EventDispatch(Application* app): app_(app), _text_input(nullptr) {
+	EventDispatch::EventDispatch(Application* app): _host(app), _text_input(nullptr) {
 		_keyboard = KeyboardAdapter::create();
 		_mouse_h = new MouseHandle();
 	}
@@ -756,14 +753,14 @@ namespace flare {
 		delete _mouse_h;
 	}
 
-	#define _loop static_cast<PostMessage*>(app_->main_loop())
+	#define _loop static_cast<PostMessage*>(_host->main_loop())
 
 	typedef Callback<List<TouchPoint>> TouchCb;
 
 	void EventDispatch::onTouchstart(List<TouchPoint>&& list) {
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
-			Root* r = app_->root();
+			Root* r = _host->root();
 			if (r) {
 				_inl(this)->onTouchstart(r, *evt.data);
 			}
@@ -798,7 +795,7 @@ namespace flare {
 			// set current mouse pos
 			_mouse_h->set_position(pos);
 
-			if (app_->root()) {
+			if (_host->root()) {
 				Handle<View> v(_inl(this)->find_receive_event_view(pos));
 				_inl(this)->onMousemove(*v, pos);
 			}
@@ -838,9 +835,9 @@ namespace flare {
 			bool is_clear = transformation(keycode, unicode, down);
 			
 			if ( down ) {
-				_inl(_inl_app(app_)->dispatch())->onKeyboard_down();
+				_inl(_inl_app(_host)->dispatch())->onKeyboard_down();
 			} else {
-				_inl(_inl_app(app_)->dispatch())->onKeyboard_up();
+				_inl(_inl_app(_host)->dispatch())->onKeyboard_up();
 			}
 
 			if ( is_clear ) {
@@ -857,7 +854,7 @@ namespace flare {
 				_text_input->input_delete(count);
 				bool can_backspace = _text_input->input_can_backspace();
 				bool can_delete = _text_input->input_can_delete();
-				_inl_app(app_)->ime_keyboard_can_backspace(can_backspace, can_delete);
+				_inl_app(_host)->ime_keyboard_can_backspace(can_backspace, can_delete);
 			}
 		}), _loop);
 	}
@@ -904,17 +901,17 @@ namespace flare {
 			_text_input = input;
 			
 			if ( input ) {
-				_inl_app(app_)->ime_keyboard_open({
+				_inl_app(_host)->ime_keyboard_open({
 					true, input->input_keyboard_type(),
 					input->input_keyboard_return_type(),
 					input->input_spot_location(),
 				});
 			} else {
-				_inl_app(app_)->ime_keyboard_close();
+				_inl_app(_host)->ime_keyboard_close();
 			}
 		} else {
 			if ( input ) {
-				_inl_app(app_)->ime_keyboard_open({
+				_inl_app(_host)->ime_keyboard_open({
 					false, input->input_keyboard_type(),
 					input->input_keyboard_return_type(),
 					input->input_spot_location(),

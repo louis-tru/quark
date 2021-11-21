@@ -31,11 +31,13 @@
 #import <UIKit/UIKit.h>
 #import <MessageUI/MFMailComposeViewController.h>
 
+typedef UIEvent AppleUIEvent;
+
 #import "../../util/loop.h"
-#import "../../_app.h"
+#import "../../app.inl"
 #import "../../display.h"
 #import "../../event.h"
-#import "../mac/mac-render.h"
+#import "../apple/apple-render.h"
 #import "./ios-ime-helper.h"
 
 using namespace flare;
@@ -44,7 +46,7 @@ typedef Display::Orientation Orientation;
 typedef Display::StatusBarStyle StatusBarStyle;
 
 static ApplicationDelegate* G_AppDelegate = nil;
-static RenderMAC* G_render = nil;
+static RenderApple* G_render = nil;
 static NSString* G_AppDelegate_name = @"";
 
 /**
@@ -123,21 +125,21 @@ static NSString* G_AppDelegate_name = @"";
 		return rv;
 	}
 
-	- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
-		_app->dispatch()->dispatch_touchstart( [self toUITouchs:touches] );
+	- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
+		_app->dispatch()->onTouchstart( [self toUITouchs:touches] );
 	}
 
-	- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
+	- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
 		// FX_DEBUG("touchesMoved, count: %d", touches.count);
-		_app->dispatch()->dispatch_touchmove( [self toUITouchs:touches] );
+		_app->dispatch()->onTouchmove( [self toUITouchs:touches] );
 	}
 
-	- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event{
-		_app->dispatch()->dispatch_touchend( [self toUITouchs:touches] );
+	- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event{
+		_app->dispatch()->onTouchend( [self toUITouchs:touches] );
 	}
 
-	- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
-		_app->dispatch()->dispatch_touchcancel( [self toUITouchs:touches] );
+	- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
+		_app->dispatch()->onTouchcancel( [self toUITouchs:touches] );
 	}
 
 @end
@@ -193,7 +195,7 @@ static NSString* G_AppDelegate_name = @"";
 				if (ori != G_AppDelegate.current_orientation) {
 					G_AppDelegate.current_orientation = ori;
 					G_AppDelegate.app->main_loop()->post(Cb([](CbData& e) {
-						G_AppDelegate.app->display()->FX_Trigger(orientation);
+						G_AppDelegate.app->display()->FX_Trigger(Orientation);
 					}));
 				}
 			}));
@@ -371,7 +373,7 @@ static NSString* G_AppDelegate_name = @"";
 // ******************************* Application *******************************
 
 Render* Render::create(Application* host, cJSON& options) {
-	G_render = RenderMAC::create(host, options);
+	G_render = RenderApple::create(host, options);
 	return G_render->render();
 }
 
@@ -388,7 +390,7 @@ void Application::pending() {
 void Application::open_url(cString& url) {
 	NSURL* url2 = [NSURL URLWithString:[NSString stringWithUTF8String:*url]];
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[G_AppDelegate.host openURL:url2 options:@{ } completionHandler:nil];
+		[G_AppDelegate.host openURL:url2 options:@{} completionHandler:nil];
 	});
 }
 
@@ -539,7 +541,7 @@ void Display::set_visible_status_bar(bool visible) {
 				if ( !G_render->resize(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
 					_host->main_loop()->post(Cb([this](CbData& e) {
-						FX_Trigger(change);
+						FX_Trigger(Change);
 					}));
 				}
 			}), 16000); /* 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 */

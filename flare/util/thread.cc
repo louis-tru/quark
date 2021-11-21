@@ -174,7 +174,9 @@ namespace flare {
 				// 	keep = __Loop_main_loop_obj->keep_alive("Thread::Inl::exit()"); // keep main loop
 				// }
 				DLOG("Inl::exit(), 0");
-				rc = Thread::FX_Trigger(ProcessSafeExit, Event<>(Int32(rc), std::move(rc)));
+				Event<> ev(Int32(rc), nullptr, rc);
+				Thread::FX_Trigger(ProcessSafeExit, ev);
+				rc = ev.return_value;
 				DLOG("Inl::exit(), 1");
 
 				// Release(keep); keep = nullptr;

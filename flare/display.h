@@ -77,12 +77,12 @@ namespace flare {
 		/**
 		* @event onchange 显示端口变化事件
 		*/
-		FX_Event(change);
+		FX_Event(Change);
 
 		/**
 		* @event onorientation 屏幕方向发生改变触发
 		*/
-		FX_Event(orientation);
+		FX_Event(Orientation);
 		
 		/**
 		* @func size 当前视口尺寸

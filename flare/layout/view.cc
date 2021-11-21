@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../_app.h"
+#include "../app.inl"
 #include "./view.h"
 #include <math.h>
 
@@ -850,6 +850,22 @@ namespace flare {
 		if ( change > 0 ) {
 			_receive = true; // bind event auto open option
 		}
+	}
+
+	/**
+		* @func has_child(child)
+		*/
+	bool View::has_child(View *child) {
+		if ( child /*&& child->layout_depth() < layout_depth()*/ ) {
+			View *parent = child->_parent;
+			while (parent) {
+				if ( parent == this ) {
+					return true;
+				}
+				parent = parent->_parent;
+			}
+		}
+		return false;
 	}
 
 }

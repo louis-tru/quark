@@ -34,7 +34,7 @@
 #include "./util/event.h"
 #include "./math.h"
 #include "./value.h"
-
+#include "./keyboard.h"
 
 // all ui events / NAME, FLAG
 #define FX_UI_EVENTs(F) \
@@ -84,7 +84,6 @@ namespace flare {
 	class Application;
 	class View;
 	class Action;
-	class KeyboardAdapter;
 
 	// event flags / category / cast
 	enum {
