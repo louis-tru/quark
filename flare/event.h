@@ -39,44 +39,44 @@
 // all ui events / NAME, FLAG
 #define FX_UI_EVENTs(F) \
 	/* can bubble event */ \
-	F(Click, UI_EVENT_FLAG_CLICK | UI_EVENT_FLAG_BUBBLE) \
-	F(Back, UI_EVENT_FLAG_CLICK | UI_EVENT_FLAG_BUBBLE) \
-	F(KeyDown, UI_EVENT_FLAG_KEYBOARD | UI_EVENT_FLAG_BUBBLE) /* View */\
-	F(KeyPress, UI_EVENT_FLAG_KEYBOARD | UI_EVENT_FLAG_BUBBLE) \
-	F(KeyUp, UI_EVENT_FLAG_KEYBOARD | UI_EVENT_FLAG_BUBBLE) \
-	F(KeyEnter, UI_EVENT_FLAG_KEYBOARD | UI_EVENT_FLAG_BUBBLE) \
-	F(TouchStart, UI_EVENT_FLAG_TOUCH | UI_EVENT_FLAG_BUBBLE) \
-	F(TouchMove, UI_EVENT_FLAG_TOUCH | UI_EVENT_FLAG_BUBBLE) \
-	F(TouchEnd, UI_EVENT_FLAG_TOUCH | UI_EVENT_FLAG_BUBBLE) \
-	F(TouchCancel, UI_EVENT_FLAG_TOUCH | UI_EVENT_FLAG_BUBBLE) \
-	F(MouseOver, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
-	F(MouseOut, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
-	F(MouseLeave, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
-	F(MouseEnter, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
-	F(MouseMove, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
-	F(MouseDown, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
-	F(MouseUp, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
-	F(MouseWheel, UI_EVENT_FLAG_MOUSE | UI_EVENT_FLAG_BUBBLE) \
-	F(Focus, UI_EVENT_FLAG_BUBBLE) \
-	F(Blur, UI_EVENT_FLAG_BUBBLE) \
+	F(Click, CLICK, UI_EVENT_FLAG_BUBBLE) \
+	F(Back, CLICK, UI_EVENT_FLAG_BUBBLE) \
+	F(KeyDown, KEYBOARD, UI_EVENT_FLAG_BUBBLE) /* View */\
+	F(KeyPress, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
+	F(KeyUp, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
+	F(KeyEnter, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
+	F(TouchStart, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+	F(TouchMove, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+	F(TouchEnd, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+	F(TouchCancel, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+	F(MouseOver, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MouseOut, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MouseLeave, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MouseEnter, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MouseMove, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MouseDown, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MouseUp, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(MouseWheel, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+	F(Focus, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
+	F(Blur, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
 	/* canno bubble event */ \
-	F(Highlighted, UI_EVENT_FLAG_HIGHLIGHTED) /* normal / hover / down */ \
-	F(ActionKeyframe, UI_EVENT_FLAG_ACTION) \
-	F(ActionLoop, UI_EVENT_FLAG_ACTION) \
-	F(FocusMove, UI_EVENT_FLAG_FOCUS_MOVE) /*Panel*/ \
-	F(Scroll, UI_EVENT_FLAG_NONE) /*BasicScroll*/\
-	F(Change, UI_EVENT_FLAG_NONE) /*Input*/ \
-	F(Load, UI_EVENT_FLAG_NONE) /* Image */ \
+	F(Highlighted, HIGHLIGHTED, UI_EVENT_FLAG_NONE) /* normal / hover / down */ \
+	F(ActionKeyframe, ACTION, UI_EVENT_FLAG_NONE) \
+	F(ActionLoop, ACTION, UI_EVENT_FLAG_NONE) \
+	F(FocusMove, FOCUS_MOVE, UI_EVENT_FLAG_NONE) /*Panel*/ \
+	F(Scroll, DEFAULT, UI_EVENT_FLAG_NONE) /*BasicScroll*/\
+	F(Change, DEFAULT, UI_EVENT_FLAG_NONE) /*Input*/ \
+	F(Load, DEFAULT, UI_EVENT_FLAG_NONE) /* Image */ \
 	/* player */ \
-	F(Error, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_ERROR) \
-	F(Ready, UI_EVENT_FLAG_PLAYER) /* AutoPlayer / Video */ \
-	F(WaitBuffer, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_FLOAT) \
-	F(StartPlay, UI_EVENT_FLAG_PLAYER) \
-	F(SourceEnd, UI_EVENT_FLAG_PLAYER) \
-	F(Pause, UI_EVENT_FLAG_PLAYER) \
-	F(Resume, UI_EVENT_FLAG_PLAYER) \
-	F(Stop, UI_EVENT_FLAG_PLAYER) \
-	F(Seek, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_UINT64) \
+	F(Error, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_ERROR) \
+	F(Ready, DEFAULT, UI_EVENT_FLAG_PLAYER) /* AutoPlayer / Video */ \
+	F(WaitBuffer, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_FLOAT) \
+	F(StartPlay, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+	F(SourceEnd, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+	F(Pause, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+	F(Resume, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+	F(Stop, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+	F(Seek, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_UINT64) \
 
 
 namespace flare {
@@ -85,23 +85,27 @@ namespace flare {
 	class View;
 	class Action;
 
-	// event flags / category / cast
+	// event category
+	enum {
+		UI_EVENT_CATEGORY_DEFAULT = 0,
+		UI_EVENT_CATEGORY_KEYBOARD,
+		UI_EVENT_CATEGORY_CLICK,
+		UI_EVENT_CATEGORY_HIGHLIGHTED,
+		UI_EVENT_CATEGORY_TOUCH,
+		UI_EVENT_CATEGORY_MOUSE,
+		UI_EVENT_CATEGORY_ACTION,
+		UI_EVENT_CATEGORY_FOCUS_MOVE,
+	};
+
+	// event flags / cast
 	enum {
 		UI_EVENT_FLAG_NONE = 0,
-		UI_EVENT_FLAG_CATEGORY = (255 << 0), // category flag
-		UI_EVENT_FLAG_CAST = (255 << 8), // Event::data(), cast flag
-		UI_EVENT_FLAG_KEYBOARD = (1 << 0),
-		UI_EVENT_FLAG_CLICK,
-		UI_EVENT_FLAG_HIGHLIGHTED,
-		UI_EVENT_FLAG_TOUCH,
-		UI_EVENT_FLAG_MOUSE,
-		UI_EVENT_FLAG_ACTION,
-		UI_EVENT_FLAG_FOCUS_MOVE,
-		UI_EVENT_FLAG_ERROR = (1 << 8),
-		UI_EVENT_FLAG_FLOAT,
-		UI_EVENT_FLAG_UINT64,
-		UI_EVENT_FLAG_BUBBLE = (1 << 16), // bubble, other flag
-		UI_EVENT_FLAG_PLAYER = (1 << 17), // player
+		UI_EVENT_FLAG_ERROR,  // cast data
+		UI_EVENT_FLAG_FLOAT,  // cast Float
+		UI_EVENT_FLAG_UINT64, // cast Uint64
+		UI_EVENT_FLAG_CAST = (255), // Event::data(), cast flag
+		UI_EVENT_FLAG_BUBBLE = (1 << 8), // bubble, other flag
+		UI_EVENT_FLAG_PLAYER = (1 << 9), // player
 	};
 
 	// event returl value mask
@@ -121,27 +125,27 @@ namespace flare {
 	// event name
 	class FX_EXPORT UIEventName {
 	 public:
-		inline UIEventName() { FX_UNREACHABLE(); }
-		inline UIEventName(cString& n, uint32_t flag)
-			: name_(n), code_((uint32_t)n.hash_code()), flag_(flag) {}
+		inline UIEventName(cString& n, uint32_t category, uint32_t flag)
+			: name_(n), code_((uint32_t)n.hash_code()), category_(category), flag_(flag) {}
 		inline uint32_t hash_code() const { return code_; }
 		inline bool equals(const UIEventName& o) const { return o.hash_code() == code_; }
 		inline String to_string() const { return name_; }
-		inline int flag() const { return flag_; }
+		inline uint32_t category() const { return category_; }
+		inline uint32_t flag() const { return flag_; }
 		inline bool operator==(const UIEventName& type) const { return type.code_ == code_; }
 		inline bool operator!=(const UIEventName& type) const { return type.code_ != code_; }
 		inline bool operator>(const UIEventName& type) const { return code_ > type.code_; }
 		inline bool operator<(const UIEventName& type) const { return code_ < type.code_; }
 	 private:
 		String  name_;
-		uint32_t code_, flag_;
+		uint32_t code_, category_, flag_;
 	};
 
 	// event names string => UIEventName
 	FX_EXPORT extern const Dict<String, UIEventName> UIEventNames;
 
 	// define event names
-	#define FX_FUN(NAME, FLAG) \
+	#define FX_FUN(NAME, C, F) \
 		FX_EXPORT extern const UIEventName UIEvent_##NAME;
 	FX_UI_EVENTs(FX_FUN)
 	#undef FX_FUN

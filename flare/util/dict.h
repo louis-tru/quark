@@ -266,42 +266,66 @@ namespace flare {
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::get(const K& key) {
-		Pair* data;
-		if (get_(key, &data)) {
-			new(&data->key) K(key);
-			new(&data->value) V();
+		Pair* pair;
+		if (get_(key, &pair)) {
+			new(&pair->key) K(key);
+			new(&pair->value) V();
 		}
-		return data->value;
+		return pair->value;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::get(K&& key) {
-		Pair* data;
-		if (get_(key, &data)) {
-			new(&data->key) K(std::move(key));
-			new(&data->value) V();
+		Pair* pair;
+		if (get_(key, &pair)) {
+			new(&pair->key) K(std::move(key));
+			new(&pair->value) V();
 		}
-		return data->value;
+		return pair->value;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(const K& key, const V& value) {
-		return (get(key) = value);
+		Pair* pair;
+		if (get_(key, &pair)) {
+			new(&pair->key) K(key); new(&pair->value) V(value);
+		} else {
+			pair->value = value;
+		}
+		return pair->value;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(const K& key, V&& value) {
-		return (get(key) = std::move(value));
+		Pair* pair;
+		if (get_(key, &pair)) {
+			new(&pair->key) K(key); new(&pair->value) V(std::move(value));
+		} else {
+			pair->value = std::move(value);
+		}
+		return pair->value;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(K&& key, const V& value) {
-		return (get(std::move(key)) = value);
+		Pair* pair;
+		if (get_(key, &pair)) {
+			new(&pair->key) K(std::move(key)); new(&pair->value) V(value);
+		} else {
+			pair->value = value;
+		}
+		return pair->value;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(K&& key, V&& value) {
-		return (get(std::move(key)) = std::move(value));
+		Pair* pair;
+		if (get_(key, &pair)) {
+			new(&pair->key) K(std::move(key)); new(&pair->value) V(std::move(value));
+		} else {
+			pair->value = std::move(value);
+		}
+		return pair->value;
 	}
 
 	template<typename K, typename V, typename C, typename A>

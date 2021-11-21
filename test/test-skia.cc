@@ -45,5 +45,5 @@
 
 void test_skia(int argc, char **argv) {
 	//
-	printf("%s\n", "ok");
+	printf("%s\n", "ok skia");
 }

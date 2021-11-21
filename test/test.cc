@@ -41,9 +41,7 @@ using namespace flare;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
-// FX_Main() {
-int main (int argc, char** argv) {
-
+FX_Main() {
 	// node::FlareEnvironment::test();
 
 	uint64_t st = os::time();

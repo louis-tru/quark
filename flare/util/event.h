@@ -540,9 +540,6 @@ namespace flare {
 		
 		virtual ~Notification() {
 			if ( _noticers ) {
-				for (auto i : *_noticers) {
-					delete i.value;
-				}
 				delete _noticers;
 				_noticers = nullptr;
 			}
@@ -552,7 +549,7 @@ namespace flare {
 			if ( _noticers != nullptr ) {
 				auto it = _noticers->find(name);
 				if (it != _noticers->end()) {
-					return &it->value->value;
+					return &it->value;
 				}
 			}
 			return nullptr;
@@ -702,11 +699,9 @@ namespace flare {
 		*/
 		inline void remove_event_listener(int id) {
 			if (_noticers) {
-				auto end = _noticers->end();
-				for (auto i = _noticers->begin(); i != end; i++) {
-					NoticerWrap* item = &i.value();
-					item->value.off(id);
-					trigger_listener_change(item->name, item->value.count(), -1);
+				for ( auto& i : *_noticers ) {
+					i.value.off(id);
+					trigger_listener_change(i.key, i.value.count(), -1);
 				}
 			}
 		}
@@ -718,9 +713,8 @@ namespace flare {
 		inline void remove_event_listener(Scope* scope) {
 			if (_noticers) {
 				for ( auto& i : *_noticers ) {
-					NoticerWrap* inl = i.value();
-					inl->value.off(scope);
-					trigger_listener_change(inl->name, inl->value.count(), -1);
+					i.value.off(scope);
+					trigger_listener_change(i.ket, i.value.count(), -1);
 				}
 			}
 		}
@@ -752,9 +746,8 @@ namespace flare {
 		inline void remove_event_listener() {
 			if (_noticers) {
 				for ( auto i : *_noticers ) {
-					auto inl = i.value;
-					inl->value.off();
-					trigger_listener_change(inl->name, inl->value.count(), -1);
+					i.value.off();
+					trigger_listener_change(i.key, i.value.count(), -1);
 				}
 			}
 		}
@@ -791,27 +784,17 @@ namespace flare {
 	
 	 private:
 
-		struct NoticerWrap {
-			inline NoticerWrap() { FX_UNREACHABLE(); }
-			inline NoticerWrap(const Name& t, typename Noticer::Sender* sender)
-				: name(t), value(t.to_string(), sender) {}
-			Name    name;
-			Noticer value;
-		};
+		typedef Dict<Name, Noticer> Noticers;
 
-		typedef Dict<Name, NoticerWrap*> Noticers;
-		
-		Noticer* get_noticer2(const Name& name) {
+		Noticer& get_noticer2(const Name& name) {
 			if (_noticers == nullptr) {
 				_noticers = new Noticers();
 			}
 			auto it = _noticers->find(name);
 			if (it != _noticers->end()) {
-				return &it->value->value;
+				return &it->value;
 			} else {
-				auto wrap = new NoticerWrap(name, static_cast<typename Noticer::Sender*>(this));
-				_noticers->operator[](name) = wrap;
-				return &wrap->value;
+				return &_noticers->set(name, Noticer(name, static_cast<typename Noticer::Sender*>(this)));
 			}
 		}
 

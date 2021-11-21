@@ -505,13 +505,13 @@ namespace flare {
 	}
 
 	Texture::Texture()
-	: FX_Init_Event(Change)
-	, _host(app())
-	, _status(TEXTURE_NO_LOADED)
-	, _width(0)
-	, _height(0)
-	, _diagonal(0)
-	, _format(PixelData::INVALID)
+		: FX_Init_Event(Change)
+		, _host(app())
+		, _status(TEXTURE_NO_LOADED)
+		, _width(0)
+		, _height(0)
+		, _diagonal(0)
+		, _format(PixelData::INVALID)
 	{
 		memset(_handle, 0, sizeof(uint32_t) * 24 + sizeof(Repeat) * 8);
 	}
@@ -607,10 +607,10 @@ namespace flare {
 	}
 
 	FileTexture::FileTexture(cString& path)
-	: _path(fs_reader()->format(path))
-	, _load_id(0)
-	, _image_format(ImageCodec::get_image_format(_path))
-	, _pool(nullptr) {
+		: _path(fs_reader()->format(path))
+		, _load_id(0)
+		, _image_format(ImageCodec::get_image_format(_path))
+		, _pool(nullptr) {
 	}
 
 	FileTexture::~FileTexture() {
@@ -775,7 +775,7 @@ namespace flare {
 	}
 
 	FX_DEFINE_INLINE_MEMBERS(TexturePool, Inl) {
-		public:
+	 public:
 		#define _inl_pool(self) static_cast<TexturePool::Inl*>(self)
 		
 		void texture_change_handle(Event<Texture, int>& evt) {
@@ -825,9 +825,9 @@ namespace flare {
 	}
 
 	TexturePool::TexturePool(Application* host)
-	: FX_Init_Event(Change)
-	, _host(host)
-	, _total_data_size(0)
+		: FX_Init_Event(Change)
+		, _host(host)
+		, _total_data_size(0)
 	{
 		ASSERT(host); // "Did not find GLDraw"
 	}

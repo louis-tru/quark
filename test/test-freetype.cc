@@ -308,7 +308,7 @@ void draw_char() {
 
 void test_freetype(int argc, char **argv) {
 	
-	LOG(sys::info());
+	LOG(os::info());
 	
 	//  each_fonts();
 	

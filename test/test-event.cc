@@ -38,13 +38,13 @@ using namespace flare;
 
 void test_event(int argc, char **argv) {
 	
-	EventNoticer<Event<int>> onTest("Test");
+	EventNoticer<Event<void, int>> onTest("Test");
 	
-	onTest.on([](Event<int>& evt) {
+	onTest.on([](Event<void, int>& evt) {
 		LOG("data:%d", evt.data());
 	});
 	
-	onTest.on([](Event<int>& evt) {
+	onTest.on([](Event<void, int>& evt) {
 		LOG("hh:%d", evt.data());
 	});
 	

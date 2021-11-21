@@ -84,7 +84,6 @@
 			'layout/text.h',
 			'layout/text.cc',
 			'layout/video.h',
-			'layout/video.cc',
 			'layout/view.h',
 			'layout/view.cc',
 			'codec/codec.h',
@@ -360,6 +359,7 @@
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/CoreText.framework',
+						'$(SDKROOT)/System/Library/Frameworks/Metal.framework',
 					],
 				},
 			}],

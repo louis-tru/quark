@@ -92,7 +92,7 @@ bool WrapViewBase::addEventListener(cString& name_s, cString& func, int id)
 		case UI_EVENT_FLAG_UINT64: cast = Cast::Entity<Uint64>(); break;
 	}
 
-	switch ( UI_EVENT_FLAG_CATEGORY & name.flag() ) {
+	switch ( name.category() ) {
 		case UI_EVENT_CATEGORY_CLICK:
 			addEventListener_1<ClickEvent>(wrap, name, func, id, cast); break;
 		case UI_EVENT_CATEGORY_KEYBOARD:
@@ -107,7 +107,7 @@ bool WrapViewBase::addEventListener(cString& name_s, cString& func, int id)
 			addEventListener_1<ActionEvent>(wrap, name, func, id, cast); break;
 		case UI_EVENT_CATEGORY_FOCUS_MOVE:
 			addEventListener_1<FocusMoveEvent>(wrap, name, func, id, cast); break;
-		default:
+		default: // DEFAULT
 			addEventListener_1<UIEvent>(wrap, name, func, id, cast); break;
 	}
 	return true;

@@ -37,15 +37,15 @@
 
 namespace flare {
 
-	#define FX_FUN(NAME, FLAG) \
-		const UIEventName UIEvent_##NAME(#NAME, FLAG);
+	#define FX_FUN(NAME, C, FLAG) \
+		const UIEventName UIEvent_##NAME(#NAME, UI_EVENT_CATEGORY_##C, FLAG);
 	FX_UI_EVENTs(FX_FUN)
 	#undef FX_FUN
 
 	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
 		Dict<String, UIEventName> r;
-		#define FX_FUN(NAME, FLAG) \
-			r[UIEvent_##NAME.to_string()] = UIEvent_##NAME;
+		#define FX_FUN(NAME, C, F) \
+			r.set(UIEvent_##NAME.to_string(), UIEvent_##NAME);
 		FX_UI_EVENTs(FX_FUN)
 		#undef FX_FUN
 		return r;
