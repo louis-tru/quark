@@ -363,6 +363,8 @@ namespace flare {
 	void List<T, A>::fill_(Node* first, Node* last, uint32_t len) {
 		_end._prev = last;
 		_end._next = first;
+		first->_prev = &_end;
+		last->_next = &_end;
 		_length = len;
 	}
 

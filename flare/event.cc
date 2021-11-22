@@ -417,8 +417,7 @@ namespace flare {
 		void onTouchend(List<TouchPoint>& in, const UIEventName& type) {
 			Dict<View*, Array<TouchPoint>> change_touches;
 			
-			for ( auto& i : in ) {
-				TouchPoint& in_touch = i;
+			for ( auto& in_touch : in ) {
 				for ( auto& item : _origin_touches ) {
 					if ( item.value->has(in_touch.id) ) {
 						TouchPoint& touch = (*item.value)[in_touch.id];

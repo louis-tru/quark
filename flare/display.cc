@@ -119,7 +119,7 @@ namespace flare {
 	};
 
 	Vec2 Display::phy_size() const {
-		return Vec2(_surface_region.x - _surface_region.x2, _surface_region.y - _surface_region.y2);
+		return Vec2(_surface_region.x2 - _surface_region.x, _surface_region.y2 - _surface_region.y);
 	}
 
 	Display::Display(Application* host)
