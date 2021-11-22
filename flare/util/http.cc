@@ -782,7 +782,7 @@ namespace flare {
 															 req.port,
 															 req.uri_type == URI_HTTPS,
 															 req.client->loop());
-						conn->_id = _pool.insert(_pool.end(), conn);
+						conn->_id = _pool.push_back(conn);
 					}
 				}
 				return conn;

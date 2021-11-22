@@ -53,7 +53,7 @@ namespace flare {
 	template<typename T, typename A>
 	class FX_EXPORT Array: public Object {
 	 public:
-		typedef           T     Type;
+		typedef T     Type;
 		// constructors
 		Array();
 		Array(Array& arr);  // right value copy constructors

@@ -201,7 +201,7 @@ namespace flare {
 				_status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
 			auto i = _extractors.find(type);
 			
-			if ( !i.is_null() ) {
+			if ( i != _extractors.end() ) {
 				return i->value;
 			} else {
 				

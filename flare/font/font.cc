@@ -369,7 +369,8 @@ namespace flare {
 				for (int regioni = 0; regioni < 512; regioni++) {
 					GlyphContainer* con = _containers[regioni];
 					if ( con ) {
-						auto it = containers_sort.end();
+						auto end = containers_sort.end();
+						auto it = end;
 						uint64_t use_count = con->use_count;
 						
 						for ( auto j = containers_sort.begin(),
@@ -378,11 +379,7 @@ namespace flare {
 								it = j; break;
 							}
 						}
-						if ( it.is_null() ) {
-							containers_sort.push_back({ con, regioni, use_count });
-						} else {
-							containers_sort.insert(it, { con, regioni, use_count });
-						}
+						containers_sort.insert(it, { con, regioni, use_count });
 						total_data_size += con->data_size;
 						con->use_count /= 2;
 					} else { // 容器不存在,标志也不需要存在

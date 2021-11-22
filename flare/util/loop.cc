@@ -479,7 +479,7 @@ namespace flare {
 			int r = uv_queue_work(_uv_loop, &work->uv_req,
 														Work::uv_work_cb, Work::uv_after_work_cb);
 			ASSERT(!r);
-			work->it = _works.insert(_works.end(), work);
+			work->it = _works.push_back(work);
 		}));
 
 		return work->id;
@@ -552,7 +552,7 @@ namespace flare {
 	KeepLoop* RunLoop::keep_alive(cString& name, bool declear) {
 		ScopeLock lock(_mutex);
 		auto keep = new KeepLoop(name, declear);
-		keep->_id = _keeps.insert(_keeps.end(), keep);
+		keep->_id = _keeps.push_back(keep);
 		keep->_loop = this;
 		return keep;
 	}

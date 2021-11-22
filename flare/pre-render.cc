@@ -42,7 +42,7 @@ namespace flare {
 		*/
 		void add_task(Task* task) {
 			if ( task->get_task_id() == Task::ID() ) {
-				Task::ID id = _tasks.insert(_tasks.end(), task);
+				Task::ID id = _tasks.push_back(task);
 				task->set_task_id( id );
 			}
 		}

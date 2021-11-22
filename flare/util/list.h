@@ -77,8 +77,8 @@ namespace flare {
 		void pop_back();
 		void pop_front();
 		
-		Iterator insert(IteratorConst it, const T& item);
-		Iterator insert(IteratorConst it, T&& item);
+		Iterator insert(IteratorConst after, const T& item); // insert front
+		Iterator insert(IteratorConst after, T&& item); // insert front
 
 		Iterator erase(IteratorConst it);
 		void erase(IteratorConst first, IteratorConst end);
@@ -172,18 +172,18 @@ namespace flare {
 	List<T, A>& List<T, A>::operator=(List&& ls) {
 		clear();
 		splice(IteratorConst(_end._prev), ls,
-			IteratorConst(ls._end._next), IteratorConst(ls._end._prev));
+			IteratorConst(ls._end._next), IteratorConst(&ls._end));
 		return *this;
 	}
 
 	template<typename T, typename A>
 	typename List<T, A>::Iterator List<T, A>::push_back(const T& item) {
-		return insert(IteratorConst(_end._prev), item);
+		return insert(IteratorConst(&_end), item);
 	}
 
 	template<typename T, typename A>
 	typename List<T, A>::Iterator List<T, A>::push_back(T&& item) {
-		return insert(IteratorConst(_end._prev), std::move(item));
+		return insert(IteratorConst(&_end), std::move(item));
 	}
 
 	template<typename T, typename A>
@@ -199,7 +199,7 @@ namespace flare {
 	template<typename T, typename A>
 	void List<T, A>::splice(IteratorConst it, List& ls) {
 		splice(it, ls,
-			IteratorConst(ls._end._next), IteratorConst(ls._end._prev));
+			IteratorConst(ls._end._next), IteratorConst(&ls._end));
 	}
 
 	template<typename T, typename A>
@@ -235,10 +235,10 @@ namespace flare {
 	
 	template<typename T, typename A>
 	typename List<T, A>::Iterator
-	List<T, A>::insert(IteratorConst it, const T& item) {
+	List<T, A>::insert(IteratorConst after, const T& item) {
 		auto node = (Node*)A::alloc(sizeof(Node) + sizeof(T));
 		new(node + 1) T(item);
-		auto next = node_(it);
+		auto next = node_(after);
 		link_(next->_prev, node);
 		link_(node, next);
 		_length++;
@@ -247,10 +247,10 @@ namespace flare {
 
 	template<typename T, typename A>
 	typename List<T, A>::Iterator
-	List<T, A>::insert(IteratorConst it, T&& item) {
+	List<T, A>::insert(IteratorConst after, T&& item) {
 		auto node = (Node*)A::alloc(sizeof(Node) + sizeof(T));
 		new(node + 1) T(std::move(item));
-		auto next = node_(it);
+		auto next = node_(after);
 		link_(next->_prev, node);
 		link_(node, next);
 		_length++;

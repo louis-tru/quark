@@ -2768,7 +2768,7 @@ namespace flare {
 				append(S.RBRACK); // ] // attribute name end
 				append(S.COMMA);  // ,
 				
-				if (!attrs.find(attribute_name).is_null()) {
+				if (attrs.find(attribute_name) != attrs.end()) {
 					error(String("Xml Syntax error, attribute repeat: ") + attribute_name.to_string());
 				}
 				attrs.set(attribute_name, 1);

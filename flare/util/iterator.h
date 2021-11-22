@@ -50,10 +50,6 @@ namespace flare {
 		explicit SimpleIterator(Pointer ptr): _ptr(ptr) {}
 		SimpleIterator(const NonIteratorConst& it): _ptr(it._ptr) {}
 
-		bool is_null() const {
-			return !_ptr;
-		}
-
 		SimpleIterator& operator++() {    // ++i
 			++_ptr; return *this;
 		}
@@ -105,10 +101,6 @@ namespace flare {
 		ComplexIterator(const NonIteratorConst& it): _ptr(it._ptr) {}
 		
 		T* ptr() const { return _ptr; }
-		
-		bool is_null() const {
-			return !_ptr/* || this->_ptr->is_null()*/;
-		}
 
 		ComplexIterator& operator++() {    // ++i
 			_ptr = _ptr->next(); return *this;
@@ -136,7 +128,6 @@ namespace flare {
 			return !(_ptr == that._ptr);
 		}
 		
-		// TODO ...
 		Pointer   operator->() const { return &((T2*)_ptr)->data(); }
 		Reference operator*() const { return ((T2*)_ptr)->data(); }
 		

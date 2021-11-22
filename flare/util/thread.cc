@@ -212,7 +212,7 @@ namespace flare {
 		auto i = __Thread_threads->find(id);
 		if ( i != __Thread_threads->end() ) {
 			ListenSignal signal = { i->value };
-			auto it = threads_end_listens->insert(threads_end_listens->end(), &signal);//(&signal);
+			auto it = threads_end_listens->push_back(&signal);//(&signal);
 			{ //
 				Lock l(signal.mutex);
 				lock.unlock();

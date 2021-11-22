@@ -934,7 +934,7 @@ namespace flare {
 								}
 								j++;
 							}
-							texture_sort.insert(end, { tex, level, use_count });
+							texture_sort.push_back({ tex, level, use_count });
 							total_data_size += tex->_data_size[k];
 							tex->_use_count[k] /= 2;
 						}

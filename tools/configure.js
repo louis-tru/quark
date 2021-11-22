@@ -344,6 +344,20 @@ function configure_skia(opts, variables) {
 	// python tools/git-sync-deps
 	// ./bin/gn gen out --ide=xcode --args='is_debug=false is_official_build=false is_component_build=false target_cpu="arm64" target_os="ios"'
 
+	// ./bin/gn gen out --args='\
+	// is_component_build=false \
+	// skia_enable_skottie=false \
+	// target_cpu="x64" \
+	// target_os="ios" \
+	// target_cxx="clang -mios-simulator-version-min=10.0" \
+	// is_debug=false \
+	// is_official_build=true \
+	// skia_use_system_libjpeg_turbo=false \
+	// skia_use_system_libpng=false \
+	// skia_use_system_libwebp=false \
+	// skia_use_icu=false \
+	// xcode_sysroot="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.5.sdk" '
+
 	// [279/1219] clang -MD -MF obj/src/gpu/gl/gpu.GrGLSemaphore.o.d -DNDEBUG 
 	// -DSK_ENABLE_SKSL -DSK_ASSUME_GL_ES=1 -DSK_ENABLE_API_AVAILABLE -DSK_GAMMA_APPLY_TO_A8 -DSKIA_IMPLEMENTATION=1 
 	// -DSK_GL -I../../../../deps/skia -Wno-attributes -fstrict-aliasing -fPIC -fvisibility=hidden 
@@ -357,15 +371,14 @@ function configure_skia(opts, variables) {
 	var os = opts.os;
 	var arch_name = variables.arch_name;
 	var source = __dirname + '/../deps/skia';
+	var cc_flags = ``;
 
 	var args0 = `--sysroot="${variables.build_sysroot}" `;
 	var args = `\
 		is_component_build=false \
-		target_cxx="${variables.cxx}" \
-		target_cc="${variables.cc}" \
-		target_link="${variables.ld}" \
 		target_cpu="${arch_name}" \
 		skia_enable_skottie=false \
+		skia_use_gl=true \
 	`;
 
 	if (variables.debug) {
@@ -397,15 +410,29 @@ function configure_skia(opts, variables) {
 	} else if (os == 'ios') {
 		args += ` \
 			target_os="ios" \
+			skia_use_metal=true \
 			xcode_sysroot="${variables.build_sysroot}" \
 		`;
+		if (variables.emulator) {
+			cc_flags += `-mios-simulator-version-min=${variables.version_min} `
+		} else {
+			cc_flags += `-miphoneos-version-min=${variables.version_min} `
+		}
 	} else if (os == 'osx') {
 		variables.cc
 		args += ` \
 			target_os="darwin" \
+			skia_use_metal=true \
 			xcode_sysroot="${variables.build_sysroot}" \
 		`;
+		cc_flags += `-mmacosx-version-min=${variables.version_min}`;
 	}
+
+	args += `
+		target_cxx="${variables.cxx} ${cc_flags}" \
+		target_cc="${variables.cc} ${cc_flags}" \
+		target_link="${variables.ld} ${cc_flags}" \
+	`;
 
 	console.log(`export PATH=${__dirname}:${variables.build_bin}:$PATH`);
 
