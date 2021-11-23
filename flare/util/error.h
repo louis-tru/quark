@@ -42,7 +42,7 @@
 #define F_CHECK(cond, ...) if(!(cond)) throw flare::Error(__VA_ARGS__)
 
 #define F_IGNORE_ERR(block) try block catch (flare::Error& err) {    \
-	F_DEBUG(IGNORE_ERR, "%s,%s", "The exception is ignored", err.message().c_str());     \
+	F_DEBUG("%s,%s", "The exception is ignored", err.message().c_str());     \
 }((void)0)
 
 namespace flare {

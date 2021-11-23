@@ -193,10 +193,10 @@ export function CL() {
 
 export function CA(func) {
 	func().catch(function(err) {
-		F_LOG('Error:');
-		F_LOG(err.message);
+		LOG('Error:');
+		LOG(err.message);
 		if (err.stack) {
-			F_LOG(err.stack);
+			LOG(err.stack);
 		}
 	});
 }

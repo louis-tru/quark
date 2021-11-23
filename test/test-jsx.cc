@@ -37,7 +37,7 @@ using namespace flare;
 #define DEBUG_JSA 0
 #define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/flare_ace/ace/Makefile.dryice.js"
 
-#define error(err, ...) { F_ERR("JSX", err, ##__VA_ARGS__); return 1; }
+#define error(err, ...) { F_ERR(err, ##__VA_ARGS__); return 1; }
 
 bool transform_js(cString& src, String16 in, Buffer& out, bool jsx, bool clean_comment) {
 #if DEBUG_JSA

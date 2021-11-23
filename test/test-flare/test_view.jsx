@@ -69,7 +69,7 @@ new Application({ _multisample: 4 }).start(
 	</Root>
 ).onload = function() {
 
-	F_LOG('\nTest View:\n')
+	LOG('\nTest View:\n')
 
 	var v = new View();
 
@@ -165,7 +165,7 @@ new Application({ _multisample: 4 }).start(
 	P(v, 'class', 'test');
 	P(v, 'y', 140);
 
-	F_LOG('\nTest Box Div:\n')
+	LOG('\nTest Box Div:\n')
 
 	var d = new Div();
 
@@ -250,7 +250,7 @@ new Application({ _multisample: 4 }).start(
 	P(d, 'contentAlign')
 	P(d, 'contentAlign', 'right')
 
-	F_LOG('\nTEST Indep:\n')
+	LOG('\nTEST Indep:\n')
 	var indep = new Indep()
 	M(indep, 'appendTo', [this.root])
 	P(indep, 'alignX')
@@ -259,7 +259,7 @@ new Application({ _multisample: 4 }).start(
 	P(indep, 'alignY', 'center')
 	//P(indep, 'align', 'center')
 
-	F_LOG('\nTest Limit:\n');
+	LOG('\nTest Limit:\n');
 	var limit = new Limit();
 	M(limit, 'appendTo', [this.root])
 	P(limit, 'minWidth');
@@ -271,7 +271,7 @@ new Application({ _multisample: 4 }).start(
 	P(limit, 'maxWidth', 10);
 	P(limit, 'maxHeight', 10);
 
-	F_LOG('\nTEST LimitIndep:\n')
+	LOG('\nTEST LimitIndep:\n')
 	var li = new LimitIndep();
 	M(li, 'appendTo', [this.root])
 	P(li, 'minWidth');
@@ -283,7 +283,7 @@ new Application({ _multisample: 4 }).start(
 	P(li, 'maxWidth', 10);
 	P(li, 'maxHeight', 10);
 
-	F_LOG('\nTEST Image:\n')
+	LOG('\nTEST Image:\n')
 	var img = new Image();
 	M(img, 'appendTo', [this.root])
 	P(img, 'src');
@@ -296,7 +296,7 @@ new Application({ _multisample: 4 }).start(
 	P(img, 'backgroundImage', resolve('res/cc.jpg'));
 	P(img, 'height', 200)
 
-	F_LOG('\nTest Scroll:\n')
+	LOG('\nTest Scroll:\n')
 	var sc = new Scroll();
 	M(sc, 'appendTo', [this.root])
 	M(sc, 'scrollTo', [new Vec2(0,0)]);
@@ -356,7 +356,7 @@ new Application({ _multisample: 4 }).start(
 	P(sc, 'enableFixedScrollSize');
 	P(sc, 'enableFixedScrollSize', new Vec2());
 
-	F_LOG('\nTest Video:\n')
+	LOG('\nTest Video:\n')
 	var video = new Video();
 	P(Video, 'MEDIA_TYPE_AUDIO');
 	P(Video, 'MEDIA_TYPE_VIDEO')
@@ -401,7 +401,7 @@ new Application({ _multisample: 4 }).start(
 	M(video, 'resume');
 	M(video, 'stop');
 
-	F_LOG('\nTest Sprite:\n')
+	LOG('\nTest Sprite:\n')
 	var s = new Sprite()
 	M(s, 'appendTo', [this.root])
 	P(s, 'src');
@@ -427,7 +427,7 @@ new Application({ _multisample: 4 }).start(
 	P(s, 'repeat', 'repeat');
 	P(s, 'y', 160);
 
-	F_LOG('\nTEST Hybrid:\n')
+	LOG('\nTEST Hybrid:\n')
 	var h = new Hybrid();
 	M(h, 'appendTo', [this.root])
 	M(h, 'simpleLayoutWidth', ['ABCD']);
@@ -454,7 +454,7 @@ new Application({ _multisample: 4 }).start(
 	P(h, 'textAlign');
 	P(h, 'textAlign', 'right');
 
-	F_LOG('\nTEST TextNode:\n')
+	LOG('\nTEST TextNode:\n')
 	var t = new TextNode();
 	M(t, 'appendTo', [this.root])
 	P(t, 'value');
@@ -465,19 +465,19 @@ new Application({ _multisample: 4 }).start(
 	P(t, 'textColor', '#f00');
 	P(t, 'y', 100);
 
-	F_LOG('\nTest Span:\n')
+	LOG('\nTest Span:\n')
 	var s = new Span();
 	M(s, 'appendTo', [this.root])
 	P(s, 'innerText', 'TTTTTTTTTTTTTTTTTTTTT Span')
 	P(s, 'y', 120);
 
-	F_LOG('\nTest Label:\n')
+	LOG('\nTest Label:\n')
 	var l = new Span();
 	M(l, 'appendTo', [this.root])
 	P(l, 'innerText', 'TTTTTTTTTTTTTTTTTTTTT Label')
 	P(l, 'y', 80);
 
-	F_LOG('\nTest Panel:\n')
+	LOG('\nTest Panel:\n')
 	var p = new Panel();
 	M(p, 'appendTo', [this.root])
 	P(p, 'innerText', 'TTTTTTTTTTTTTTTTTTTTT Panel')
@@ -492,7 +492,7 @@ new Application({ _multisample: 4 }).start(
 	P(p, 'parentPanel');
 	P(p, 'backgroundColor', '#ccc')
 
-	F_LOG('\nTest Button:\n')
+	LOG('\nTest Button:\n')
 	var b = new Button();
 	M(b, 'appendTo', [this.root])
 	P(b, 'innerText', 'Button')
@@ -501,19 +501,19 @@ new Application({ _multisample: 4 }).start(
 	M(b, 'findNextButton', ['right']);
 	P(b, 'panel');
 
-	F_LOG('\nTest Text:\n')
+	LOG('\nTest Text:\n')
 	var t = new Text();
 	M(t, 'appendTo', [this.root])
 	P(t, 'value', 'Text')
 	P(t, 'backgroundColor', '#ddd')
 
-	F_LOG('\nTest Clip:\n')
+	LOG('\nTest Clip:\n')
 	var c = new Clip();
 	M(c, 'appendTo', [this.root])
 	P(c, 'innerText', 'Clip')
 	P(c, 'backgroundColor', '#ccc')
 
-	F_LOG('\nTest Input:\n')
+	LOG('\nTest Input:\n')
 	var i = new Input();
 	M(i, 'appendTo', [this.root])
 	P(i, 'margin', 2)
@@ -534,7 +534,7 @@ new Application({ _multisample: 4 }).start(
 	P(i, 'textMargin', 10);
 	P(i, 'y', -340)
 
-	F_LOG('\nTest Textarea:\n')
+	LOG('\nTest Textarea:\n')
 	var i = new Textarea();
 	M(i, 'appendTo', [this.root])
 	P(i, 'margin', 2)

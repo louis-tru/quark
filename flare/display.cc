@@ -150,7 +150,7 @@ namespace flare {
 				}));
 			}
 		} else {
-			F_WARN(DISPLAY, "Lock size value can not be less than zero\n");
+			F_WARN("Lock size value can not be less than zero\n");
 		}
 	}
 
@@ -191,9 +191,9 @@ namespace flare {
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t ts2 = (os::time() - st) / 1e3;
 				if (ts2 > 16) {
-					F_LOG(Display, "ts: %ld -------------- ", ts2);
+					F_LOG("ts: %ld -------------- ", ts2);
 				} else {
-					F_LOG(Display, "ts: %ld", ts2);
+					F_LOG("ts: %ld", ts2);
 				}
 			#endif
 		} else {

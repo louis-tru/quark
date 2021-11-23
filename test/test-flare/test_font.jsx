@@ -36,7 +36,7 @@ import 'flare/url';
 
 new Application().start(<Root/>).onLoad = function() {
 
-	F_LOG('\nTest Font:\n')
+	LOG('\nTest Font:\n')
 
 	M(f, 'setDefaultFonts', ['Helvetica, PingFang HK, Thonburi']);
 	M(f, 'setDefaultFonts', [['Helvetica', 'PingFang HK', 'Thonburi']]);

@@ -276,7 +276,7 @@ namespace flare {
 			CSSPseudoClass pseudo = CSS_PSEUDO_CLASS_NONE;
 			
 			if ( !verification_and_format(i.trim(), name, pseudo) ) {
-				F_ERR(CSS, "Invalid css name \"%s\"", *expression);
+				F_ERR("Invalid css name \"%s\"", *expression);
 				return nullptr;
 			}
 			
@@ -285,7 +285,7 @@ namespace flare {
 			ss = _inl_ss(ss)->find2(name, pseudo);
 			
 			if ( ! ss ) {
-				F_ERR(CSS, "Invalid css name \"%s\"", *expression);
+				F_ERR("Invalid css name \"%s\"", *expression);
 				return nullptr;
 			}
 		}

@@ -49,7 +49,7 @@ new Application().start(
 
 	var ctr = this.root.ctr;
 
-	F_LOG('\nTest Action:\n')
+	LOG('\nTest Action:\n')
 
 	P(action, 'LINEAR')
 	P(action, 'EASE')

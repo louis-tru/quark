@@ -379,6 +379,7 @@ function configure_skia(opts, variables) {
 		target_cpu="${arch_name}" \
 		skia_enable_skottie=false \
 		skia_use_gl=true \
+		skia_enable_flutter_defines=true \
 	`;
 
 	if (variables.debug) {

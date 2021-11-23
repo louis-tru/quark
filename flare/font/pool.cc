@@ -84,7 +84,7 @@ namespace flare {
 		String font_name_ = font_name;
 		
 		/*
-		F_DEBUG(FONT, "family_name:%s, font_name:%s, %s, ------%dkb%s", *family_name, *font_name, *path,
+		F_DEBUG("family_name:%s, font_name:%s, %s, ------%dkb%s", *family_name, *font_name, *path,
 						uint(FileHelper::stat_sync(path).size() / 1024),
 						_fonts.has(font_name) ? "+++++++++++": "");
 		*/
@@ -137,9 +137,9 @@ namespace flare {
 		FT_Error err = FT_New_Memory_Face((FT_Library)_ft_lib, data, font_data->length, 0, &face);
 		
 		if (err) {
-			F_ERR(FONT, "Unable to load font, Freetype2 error code: %d", err);
+			F_ERR("Unable to load font, Freetype2 error code: %d", err);
 		} else if (!face->family_name) {
-			F_ERR(FONT, "Unable to load font, not family name");
+			F_ERR("Unable to load font, not family name");
 		} else {
 			
 			FT_Long num_faces = face->num_faces;
@@ -182,7 +182,7 @@ namespace flare {
 				if (face_index < num_faces) {
 					err = FT_New_Memory_Face((FT_Library)_ft_lib, data, font_data->length, face_index, &face);
 					if (err) {
-						F_ERR(FONT, "Unable to load font, Freetype2 error code: %d", err);
+						F_ERR("Unable to load font, Freetype2 error code: %d", err);
 						return false;
 					}
 				} else {
@@ -275,9 +275,9 @@ namespace flare {
 		FT_Error err = FT_New_Face(lib, Path::fallback_c(path), 0, &face);
 		
 		if (err) {
-			F_WARN(FONT, "Unable to load font file \"%s\", Freetype2 error code: %d", *path, err);
+			F_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err);
 		} else if (!face->family_name) {
-			F_WARN(FONT, "Unable to load font file \"%s\", not family name", *path);
+			F_WARN("Unable to load font file \"%s\", not family name", *path);
 		} else {
 			
 			FT_Long num_faces = face->num_faces;
@@ -308,7 +308,7 @@ namespace flare {
 					int underline_thickness = face->underline_thickness;
 					String name = FT_Get_Postscript_Name(face);
 
-					F_DEBUG("Font", "------------inl_read_font_file, %s, %s", *name, face->style_name);
+					F_DEBUG("------------inl_read_font_file, %s, %s", *name, face->style_name);
 
 					sff->fonts.push({
 						name,
@@ -330,7 +330,7 @@ namespace flare {
 				if (face_index < num_faces) {
 					err = FT_New_Face(lib, Path::fallback_c(path), face_index, &face);
 					if (err) {
-						F_WARN(FONT, "Unable to load font file \"%s\", Freetype2 error code: %d", *path, err); break;
+						F_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err); break;
 					}
 				} else {
 					if (sff->fonts.length())
@@ -592,7 +592,7 @@ namespace flare {
 	* @arg [family_alias = String()] {cString&} # 给所属家族添加一个别名
 	*/
 	bool FontPool::register_font(Buffer buff, cString& family_alias) {
-		F_DEBUG("Font", "register_font,%d", buff.length());
+		F_DEBUG("register_font,%d", buff.length());
 		return _inl_pool(this)->register_font(new FontFromData::Data(buff), family_alias);
 	}
 

@@ -171,7 +171,7 @@ namespace flare {
 				;
 			}
 
-			F_DEBUG(APP, "XCreateWindow, x:%d, y:%d, w:%d, h:%d", _x, _y, _width, _height);
+			F_DEBUG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", _x, _y, _width, _height);
 
 			Window win = XCreateWindow(
 				_dpy, _root,
@@ -183,12 +183,12 @@ namespace flare {
 				CWBackPixel | CWEventMask | CWBorderPixel | CWColormap, &_xset
 			);
 
-			// F_DEBUG(APP, "_xset.background_pixel 3, %d", _xset.background_pixel);
+			// F_DEBUG("_xset.background_pixel 3, %d", _xset.background_pixel);
 
 			F_ASSERT(win, "Cannot create XWindow");
 
 			if (_multitouch_device) {
-				F_DEBUG(APP, "_multitouch_device");
+				F_DEBUG("_multitouch_device");
 
 				XIEventMask eventmask;
 				uint8_t mask[3] = { 0,0,0 };
@@ -242,46 +242,46 @@ namespace flare {
 						break;
 					case MapNotify:
 						if (_is_init) {
-							F_DEBUG(APP, "event, MapNotify, Window onForeground");
+							F_DEBUG("event, MapNotify, Window onForeground");
 							_host->triggerForeground();
 							_render_looper->start();
 						}
 						break;
 					case UnmapNotify:
-						F_DEBUG(APP, "event, UnmapNotify, Window onBackground");
+						F_DEBUG("event, UnmapNotify, Window onBackground");
 						_host->triggerBackground();
 						_render_looper->stop();
 						break;
 					case FocusIn:
-						F_DEBUG(APP, "event, FocusIn, Window onResume");
+						F_DEBUG("event, FocusIn, Window onResume");
 						_ime->focus_in();
 						_host->triggerResume();
 						break;
 					case FocusOut:
-						F_DEBUG(APP, "event, FocusOut, Window onPause");
+						F_DEBUG("event, FocusOut, Window onPause");
 						_ime->focus_out();
 						_host->triggerPause();
 						break;
 					case KeyPress:
-						F_DEBUG(APP, "event, KeyDown, keycode: %ld", event.xkey.keycode);
+						F_DEBUG("event, KeyDown, keycode: %ld", event.xkey.keycode);
 						_ime->key_press(&event.xkey);
 						_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 1);
 						break;
 					case KeyRelease:
-						F_DEBUG(APP, "event, KeyUp, keycode: %d", event.xkey.keycode);
+						F_DEBUG("event, KeyUp, keycode: %d", event.xkey.keycode);
 						_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 0);
 						break;
 					case ButtonPress:
-						F_DEBUG(APP, "event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
+						F_DEBUG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
 						_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), true);
 						break;
 					case ButtonRelease:
-						F_DEBUG(APP, "event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
+						F_DEBUG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
 						_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), false);
 						break;
 					case MotionNotify: {
 						Vec2 scale = _host->display_port()->scale();
-						F_DEBUG(APP, "event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
+						F_DEBUG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
 						_dispatch->dispatch_mousemove(event.xmotion.x / scale[0], event.xmotion.y / scale[1]);
 						break;
 					}
@@ -299,7 +299,7 @@ namespace flare {
 						}
 						break;
 					default:
-						F_DEBUG(APP, "event, %d", event.type);
+						F_DEBUG("event, %d", event.type);
 						break;
 				}
 			} while(!_exit);
@@ -326,17 +326,17 @@ namespace flare {
 
 			switch(cookie->evtype) {
 				case XI_TouchBegin:
-					F_DEBUG(APP, "event, XI_TouchBegin, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
+					F_DEBUG("event, XI_TouchBegin, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
 						xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
 					_dispatch->dispatch_touchstart( move(touchs) );
 					break;
 				case XI_TouchEnd:
-					F_DEBUG(APP, "event, XI_TouchEnd, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
+					F_DEBUG("event, XI_TouchEnd, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
 						xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
 					_dispatch->dispatch_touchend( move(touchs) );
 					break;
 				case XI_TouchUpdate:
-					F_DEBUG(APP, "event, XI_TouchUpdate, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
+					F_DEBUG("event, XI_TouchUpdate, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
 						xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
 					_dispatch->dispatch_touchmove( move(touchs) );
 					break;
@@ -344,7 +344,7 @@ namespace flare {
 		}
 
 		void handle_expose(XEvent& event) {
-			F_DEBUG(APP, "event, Expose");
+			F_DEBUG("event, Expose");
 			XWindowAttributes attrs;
 			XGetWindowAttributes(_dpy, _win, &attrs);
 
@@ -434,7 +434,7 @@ namespace flare {
 			if (o_x.is_uint()) _x = o_x.to_uint() * _xwin_scale; else _x = (_s_width - _width) / 2;
 			if (o_y.is_uint()) _y = o_y.to_uint() * _xwin_scale; else _y = (_s_height - _height) / 2;
 
-			// F_DEBUG(APP, "_xset.background_pixel 2, %d", _xset.background_pixel);
+			// F_DEBUG("_xset.background_pixel 2, %d", _xset.background_pixel);
 
 			if (is_enable_touch)
 				initialize_multitouch();
@@ -469,7 +469,7 @@ namespace flare {
 			if (!_multitouch_device)
 				return;
 
-			F_DEBUG(APP, "X11 Touch enable active for device «%s»", touchInfo->name);
+			F_DEBUG("X11 Touch enable active for device «%s»", touchInfo->name);
 
 			Atom enabledAtom = XInternAtom(_dpy, "Device Enabled", false);
 
@@ -549,7 +549,7 @@ namespace flare {
 			snd_mixer_load(_mixer);
 
 			/* 取得第一個 element，也就是 Master */
-			_element = snd_mixer_first_elem(_mixer); F_DEBUG(APP, "element,%p", _element);
+			_element = snd_mixer_first_elem(_mixer); F_DEBUG("element,%p", _element);
 
 			/* 設定音量的範圍 0 ~ 100 */
 			if (_element) {
@@ -580,14 +580,14 @@ namespace flare {
 			}
 			XDestroyWindow(_dpy, _win); _win = 0;
 			XCloseDisplay(_dpy); _dpy = nullptr; // disconnect x display
-			F_DEBUG(APP, "UnixApplication Exit");
+			F_DEBUG("UnixApplication Exit");
 		}
 
 		float get_monitor_dpi() {
 			Char* ms = XResourceManagerString(_dpy);
 			float dpi = 96.0;
 			if (ms) {
-				F_DEBUG(APP, "Entire DB:\n%s", ms);
+				F_DEBUG("Entire DB:\n%s", ms);
 				XrmDatabase db = XrmGetStringDatabase(ms);
 				XrmValue value;
 				Char* type = nullptr;
@@ -597,7 +597,7 @@ namespace flare {
 					}
 				}
 			}
-			F_DEBUG(APP, "DPI: %f", dpi);
+			F_DEBUG("DPI: %f", dpi);
 			return dpi;
 		}
 
@@ -701,7 +701,7 @@ namespace flare {
 	* @func initialize(options)
 	*/
 	void AppInl::initialize(cJSON& options) {
-		F_DEBUG(APP, "AppInl::initialize");
+		F_DEBUG("AppInl::initialize");
 		F_ASSERT(!gl_draw_context);
 		application->initialize(options);
 		gl_draw_context = GLDrawProxy::create(this, options);
@@ -754,7 +754,7 @@ namespace flare {
 	* @func default_atom_pixel
 	*/
 	float Display::default_atom_pixel() {
-		// F_LOG(application->xwin_scale());
+		// F_LOG());
 		return 1.0 / application->xwin_scale();
 	}
 

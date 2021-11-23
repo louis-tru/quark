@@ -312,7 +312,7 @@ class WorkerIMPL: public IMPL {
 	}
 	
 	void print_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-		F_ERR(V8, parse_exception_message(message, error) );
+		F_ERR(parse_exception_message(message, error) );
 	}
 
 	static void OnFatalError(cChar* location, cChar* message) {
@@ -1411,7 +1411,7 @@ int IMPL::start(int argc, Char** argv) {
 				GetProperty(*worker, "Module").To()->
 				GetProperty(*worker, "runMain").To<JSFunction>()->Call(*worker);
 			if (r.IsEmpty()) {
-				F_ERR(V8, "ERROR: Can't call runMain()");
+				F_ERR("ERROR: Can't call runMain()");
 				return ERR_RUN_MAIN_EXCEPTION;
 			}
 		}

@@ -48,7 +48,7 @@ ValueProgram::ValueProgram(Worker* worker,
 #define Ascii(s) worker->NewAscii(s)
 
 #define js_init_func(Name, Type) \
-	F_DEBUG(JS_VALUE, "init value %s", #Name);\
+	F_DEBUG("init value %s", #Name);\
 	_parse##Name       .Reset(worker, priv->Get(worker,Ascii("parse"#Name)).To<JSFunction>()); \
 	_##Name.Reset(worker, priv->Get(worker,Ascii("_"#Name)).To<JSFunction>());
 

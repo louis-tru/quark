@@ -212,7 +212,7 @@ class NativeUtil {
 		#if F_MEMORY_TRACE_MARK
 			Array<Object*> objs = Object::mark_objects();
 			Object** objs2 = &objs[0];
-			F_LOG(GC, "All unrelease heap objects count: %d", objs.size());
+			F_LOG("All unrelease heap objects count: %d", objs.size());
 		#endif
 	}
 	

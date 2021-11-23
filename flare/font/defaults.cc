@@ -96,9 +96,9 @@ namespace flare {
 
 						#if defined(DEBUG) && 0
 							auto att = first->FirstAttribute();
-							F_LOG(Font, "%s, Attributes:", first->Name());
+							F_LOG("%s, Attributes:", first->Name());
 							while ( att ) {
-								F_LOG(Font, "     %s:%s", att->Name(), att->Value());
+								F_LOG("     %s:%s", att->Name(), att->Value());
 								att = att->Next();
 							}
 						#endif

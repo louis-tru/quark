@@ -139,7 +139,7 @@ namespace flare {
 					o++;
 				}
 			}
-			F_DEBUG(MEDIA, "cmp: %d|%d|%d|%d|%d, cmp_s: %d, sample_size:%d|%d",
+			F_DEBUG("cmp: %d|%d|%d|%d|%d, cmp_s: %d, sample_size:%d|%d",
 							j[0], j[1], j[2], j[3], j[4], o, sample_size, sample_size2);
 
 			memcpy(out, *buf, sample_size2);
@@ -159,7 +159,7 @@ namespace flare {
 			if (!has_init) {
 				has_init = true;
 				if ( fx_jni_set_java_vm(JNI::jvm(), NULL) != 0 ) {
-					F_ERR(MEDIA, "x_jni_set_java_vm(), unsuccessful." );
+					F_ERR("x_jni_set_java_vm(), unsuccessful." );
 				}
 			}
 		#endif 
@@ -273,10 +273,10 @@ namespace flare {
 						uint64_t sample_time = _extractor->sample_time();
 
 						if ( sample_time == 0 ) {
-							F_DEBUG(MEDIA, "advance:0");
+							F_DEBUG("advance:0");
 						}
 						if (sample_flags) {
-							F_DEBUG(MEDIA, "%s", "eos flags");
+							F_DEBUG("%s", "eos flags");
 						}
 						if ( sample_size ) {
 							if ( type() == MEDIA_TYPE_VIDEO ) {
@@ -302,14 +302,14 @@ namespace flare {
 
 					if ( status >= 0 ) {
 						if (info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) {
-							F_DEBUG(MEDIA, "output EOS");
+							F_DEBUG("output EOS");
 							_eof_flags = true;
 							_delegate->media_decoder_eof(this, info.presentationTimeUs);
 						}
 						int64_t presentation = info.presentationTimeUs;
 
 						if ( presentation == 0 ) {
-							F_DEBUG(MEDIA, "output:0");
+							F_DEBUG("output:0");
 						}
 
 						size_t size;
@@ -351,15 +351,15 @@ namespace flare {
 							AMediaCodec_releaseOutputBuffer(_codec, status, true);
 						}
 					} else if ( status == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED ) {
-						F_DEBUG(MEDIA, "output buffers changed");
+						F_DEBUG("output buffers changed");
 					} else if ( status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED ) {
 						AMediaFormat* format = AMediaCodec_getOutputFormat(_codec);
-						F_DEBUG(MEDIA, "format changed to: %s", AMediaFormat_toString(format));
+						F_DEBUG("format changed to: %s", AMediaFormat_toString(format));
 						AMediaFormat_delete(format);
 					} else if ( status == AMEDIACODEC_INFO_TRY_AGAIN_LATER ) {
-						// F_DEBUG(MEDIA, "no output buffer right now");
+						// F_DEBUG("no output buffer right now");
 					} else {
-						F_DEBUG(MEDIA, "unexpected info code: %d", status);
+						F_DEBUG("unexpected info code: %d", status);
 					}
 				}
 				return OutputBuffer();
@@ -468,18 +468,18 @@ namespace flare {
 					// format = AMediaExtractor_getTrackFormat(_TEST_ex, 0);
 				}
 
-				F_DEBUG(MEDIA, "%s", AMediaFormat_toString(format));
+				F_DEBUG("%s", AMediaFormat_toString(format));
 				int result = AMediaCodec_configure(codec, format, nullptr, nullptr, 0);
 
 				if ( result == 0 && AMediaCodec_start(codec) == 0 ) {
 					rv = new AndroidHardwareMediaCodec(ex, codec, format);
 				} else {
-					F_ERR(MEDIA, "Unable to configure and run the decoder");
+					F_ERR("Unable to configure and run the decoder");
 					AMediaCodec_delete(codec);
 					AMediaFormat_delete(format);
 				}
 			} else {
-				F_ERR(MEDIA, "cannot create decoder");
+				F_ERR("cannot create decoder");
 			}
 		}
 		return rv;

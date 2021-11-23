@@ -46,16 +46,16 @@ void test_zlib (int argc, char **argv) {
 	map["c"] = 300;
 	map["d"] = 400;
 	
-	F_ECHO(map[a]);
-	F_ECHO(map[b]);
-	F_ECHO(map["c"]);
-	F_ECHO(map["d"]);
-	F_ECHO("");
+	F_LOG(map[a]);
+	F_LOG(map[b]);
+	F_LOG(map["c"]);
+	F_LOG(map["d"]);
+	F_LOG("");
 	
 	const char* hello = "g++ -pthread -rdynamic -m64 ";
 	size_t len = strlen(hello) + 1;
-	F_ECHO("%d", len);
-	F_ECHO(hello);
+	F_LOG("%d", len);
+	F_LOG(hello);
 
 	{
 		uint8_t* compr = (uint8_t*)malloc(100);
@@ -79,15 +79,15 @@ void test_zlib (int argc, char **argv) {
 		free(compr2);
 	}
 	
-	F_ECHO("K\n");
+	F_LOG("K\n");
 	
 	GZip gzip("/tmp/test.gz");
-	F_ECHO(gzip.open());
+	F_LOG(gzip.open());
 	
-	F_ECHO(gzip.write(hello, uint(len - 1)));
-	F_ECHO(gzip.write("hello", 5));
+	F_LOG(gzip.write(hello, uint(len - 1)));
+	F_LOG(gzip.write("hello", 5));
 	
-	F_ECHO("a\n");
+	F_LOG("a\n");
 	gzip.close();
 	F_LOG(gzip.open(FOPEN_R));
 	char str[100] = { 0 };
@@ -96,7 +96,7 @@ void test_zlib (int argc, char **argv) {
 	
 	gzip.close();
 	
-	F_ECHO("\nTEST zip\n");
+	F_LOG("\nTEST zip\n");
 	
 	{
 		ZipWriter writer("/tmp/test.zip");

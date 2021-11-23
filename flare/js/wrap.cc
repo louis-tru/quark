@@ -39,7 +39,7 @@ static int record_wrap_count = 0;
 static int record_strong_count = 0;
 
 # define print_wrap(s) \
-	F_LOG(JsWrap, "record_wrap_count: %d, strong: %d, %s", record_wrap_count, record_strong_count, s)
+	F_LOG("record_wrap_count: %d, strong: %d, %s", record_wrap_count, record_strong_count, s)
 #else
 # define print_wrap(s)
 #endif

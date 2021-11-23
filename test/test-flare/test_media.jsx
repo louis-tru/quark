@@ -34,7 +34,7 @@ import 'flare/media';
 
 new Application().start(<Root/>).onLoad = function() {
 
-	F_LOG('\nTest Audio:\n')
+	LOG('\nTest Audio:\n')
 
 	P(media, 'MEDIA_TYPE_AUDIO');
 	P(media, 'MEDIA_TYPE_VIDEO');

@@ -72,7 +72,7 @@ namespace flare {
 		bool write_audio_pcm(uint64_t st) {
 			bool r = _pcm->write(WeakBuffer((Char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
 			if ( !r ) {
-				F_DEBUG(AUDIO, "Discard, audio PCM frame, %lld", _audio_buffer.time);
+				F_DEBUG("Discard, audio PCM frame, %lld", _audio_buffer.time);
 			} else {
 				_prev_presentation_time = st;
 			}
@@ -318,7 +318,7 @@ namespace flare {
 				}
 			} else {
 				Error e(ERR_AUDIO_NEW_CODEC_FAIL, "Unable to create video decoder");
-				F_ERR(AUDIO, "%s", *e.message());
+				F_ERR("%s", *e.message());
 				Inl_AudioPlayer(this)->trigger(UIEvent_Error, e); // trigger event error
 				stop();
 			}

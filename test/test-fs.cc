@@ -84,7 +84,7 @@ void test_fs(int argc, char **argv) {
 	F_LOG("dd.txt,abs,%s", search->get_absolute_path("dd.txt").c_str());
 	
 	// The normal need to release the memory
-	F_LOG(""aa.txt,data,%s", search->read("aa.txt").val());
+	F_LOG("aa.txt,data,%s", search->read("aa.txt").val());
 	F_LOG("bb.txt,data,%s", search->read("bb.txt").val());
 	F_LOG("cc.txt,data,%s", search->read("cc.txt").val());
 	F_LOG("dd.txt,data,%s", search->read("dd.txt").val());

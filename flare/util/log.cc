@@ -68,28 +68,16 @@ namespace flare {
 
 	static Console* _default_console = nullptr;
 
-	void Console::log(cString& str, cChar* tag, bool feed) {
-		if (tag) {
-			printf(feed ? "%s %s\n": "%s %s", tag, str.c_str());
-		} else {
-			printf(feed ? "%s\n": "%s", str.c_str());
-		}
+	void Console::log(cString& str, cChar* feed) {
+		printf("%s%s", str.c_str(), feed ? feed: "");
 	}
 
-	void Console::warn(cString& str, cChar* tag, bool feed) {
-		if (tag) {
-			printf(feed ? "%s %s\n": "%s %s", tag, str.c_str());
-		} else {
-			printf(feed ? "%s\n": "%s", str.c_str());
-		}
+	void Console::warn(cString& str, cChar* feed) {
+		printf("%s%s", str.c_str(), feed ? feed: "");
 	}
 
-	void Console::error(cString& str, cChar* tag, bool feed) {
-		if (tag) {
-			fprintf(f_stderr, feed ? "%s %s\n": "%s %s", tag, str.c_str());
-		} else {
-			fprintf(f_stderr, feed ? "%s\n": "%s", str.c_str());
-		}
+	void Console::error(cString& str, cChar* feed) {
+		fprintf(f_stderr, "%s%s", str.c_str(), feed ? feed: "");
 	}
 
 	void Console::clear() {
@@ -113,39 +101,39 @@ namespace flare {
 
 	namespace console {
 
-		void echo(int8_t msg) {
+		void log(int8_t msg) {
 			Console::instance()->log( String::format("%u\n", msg) );
 		}
 		
-		void echo(uint8_t msg) {
+		void log(uint8_t msg) {
 			Console::instance()->log( String::format("%u\n", msg) );
 		}
 
-		void echo(int16_t msg) {
+		void log(int16_t msg) {
 			Console::instance()->log( String::format("%d\n", msg) );
 		}
 
-		void echo(uint16_t  msg) {
+		void log(uint16_t  msg) {
 			Console::instance()->log( String::format("%u\n", msg) );
 		}
 
-		void echo(int32_t msg) {
+		void log(int32_t msg) {
 			Console::instance()->log( String::format("%d\n", msg) );
 		}
 		
-		void echo(uint32_t msg) {
+		void log(uint32_t msg) {
 			Console::instance()->log( String::format("%u\n", msg) );
 		}
 
-		void echo(float msg) {
+		void log(float msg) {
 			Console::instance()->log( String::format("%f\n", msg) );
 		}
 
-		void echo(double msg) {
+		void log(double msg) {
 			Console::instance()->log( String::format("%lf\n", msg) );
 		}
 
-		void echo(int64_t msg) {
+		void log(int64_t msg) {
 			#if F_ARCH_64BIT
 				Console::instance()->log( String::format("%ld\n", msg) );
 			#else
@@ -153,7 +141,7 @@ namespace flare {
 			#endif
 		}
 
-		void echo(uint64_t msg) {
+		void log(uint64_t msg) {
 			#if F_ARCH_64BIT
 				Console::instance()->log( String::format("%lu\n", msg) );
 			#else
@@ -161,7 +149,7 @@ namespace flare {
 			#endif
 		}
 
-		void echo(size_t msg) {
+		void log(size_t msg) {
 			#if F_ARCH_64BIT
 				Console::instance()->log( String::format("%lu\n", msg) );
 			#else
@@ -169,41 +157,36 @@ namespace flare {
 			#endif
 		}
 
-		void echo(bool msg) {
+		void log(bool msg) {
 			Console::instance()->log( msg ? "true\n": "false\n" );
 		}
 
-		void echo(cChar* format, ...) {
-			F_STRING_FORMAT(format, str);
-			Console::instance()->log(str, nullptr, true);
+		void log(cString& msg) {
+			Console::instance()->log(msg, "\n");
+		}
+		
+		void log(cString16& msg) {
+			Console::instance()->log(Coder::encode(Encoding::utf8, msg), "\n");
 		}
 
-		void echo(cString& msg) {
-			Console::instance()->log(msg, nullptr, true);
-		}
-		
-		void echo(cString16& msg) {
-			Console::instance()->log(Coder::encode(Encoding::utf8, msg), nullptr, true);
-		}
-
-		void log(cChar* tag, cChar* format, ...) {
+		void log(cChar* format, ...) {
 			F_STRING_FORMAT(format, str);
-			Console::instance()->log(str, tag, true);
+			Console::instance()->log(str, "\n");
 		}
 		
-		void warn(cChar* tag, cChar* format, ...) {
+		void warn(cChar* format, ...) {
 			F_STRING_FORMAT(format, str);
-			Console::instance()->warn(str, tag, true);
+			Console::instance()->warn(str, "\n");
 		}
 		
-		void error(cChar* tag, cChar* format, ...) {
+		void error(cChar* format, ...) {
 			F_STRING_FORMAT(format, str);
-			Console::instance()->error(str, tag, true);
+			Console::instance()->error(str, "\n");
 		}
 		
-		void error(cChar* tag, const Error& err) {
-			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), err.message().c_str());
-			Console::instance()->error(str, tag, true);
+		void error(const Error& err) {
+			auto str = String::format("Error: %d \n message:\n\t%s\n", err.code(), err.message().c_str());
+			Console::instance()->error(str);
 		}
 
 	}
@@ -264,7 +247,7 @@ namespace flare {
 		if (msg) {
 			F_STRING_FORMAT(msg, str);
 			Console::instance()->error("\n\n\n");
-			Console::instance()->error(str, nullptr, true);
+			Console::instance()->error(str, "\n");
 		}
 		report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
 		dump_backtrace();

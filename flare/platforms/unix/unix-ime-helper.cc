@@ -49,22 +49,22 @@ namespace flare {
 
 			Char *locale = setlocale(LC_CTYPE, "");
 			if (locale == NULL) {
-				F_ERR(IME, "Can't set locale");
+				F_ERR("Can't set locale");
 				return nullptr;
 			}
-			F_DEBUG(IME, "locale: %s", locale);
+			F_DEBUG("locale: %s", locale);
 
 			if (!XSupportsLocale()) {
-				F_ERR(IME, "X does not support locale");
+				F_ERR("X does not support locale");
 				return nullptr;
 			}
 
 			Char *modifiers = XSetLocaleModifiers("");
 			if (modifiers == NULL) {
-				F_ERR(IME, "Can't set locale modifiers");
+				F_ERR("Can't set locale modifiers");
 				return nullptr;
 			}
-			F_DEBUG(IME, "modifiers: %s", modifiers);
+			F_DEBUG("modifiers: %s", modifiers);
 
 			return new Inl(app, dpy, win, inputStyle);
 		}
@@ -99,7 +99,7 @@ namespace flare {
 		}
 
 		void open() {
-			F_DEBUG(IME, "IME open");
+			F_DEBUG("IME open");
 			if (!_has_open) {
 				_has_open = true;
 				registerInstantiateCallback();
@@ -107,14 +107,14 @@ namespace flare {
 		}
 
 		void close() {
-			F_DEBUG(IME, "IME close");
+			F_DEBUG("IME close");
 			_has_open = false;
 			destroyIC();
 			closeIM();
 		}
 
 		void clear() {
-			F_DEBUG(IME, "IME clear");
+			F_DEBUG("IME clear");
 			if (_has_open && _ic) {
 				if (!_preedit_string.is_empty()) {
 					_preedit_string = String();
@@ -139,7 +139,7 @@ namespace flare {
 		}
 
 		void set_spot_location(Vec2 location) {
-			F_DEBUG(IME, "set_spot_location, x=%f,y=%f", location[0], location[1]);
+			F_DEBUG("set_spot_location, x=%f,y=%f", location[0], location[1]);
 			if (location[0] != 0 || location[1] != 0) {
 				Vec2 scale = _app->display_port()->scale_value();
 				_spot_location = {
@@ -165,7 +165,7 @@ namespace flare {
 				Xutf8LookupString(_ic, event, buf, 256, &keysym, &status);
 			}
 
-			F_DEBUG(IME, "onKeyPress %lu\n", keysym);
+			F_DEBUG("onKeyPress %lu\n", keysym);
 
 			if (status == XLookupChars || 
 				status == XLookupKeySym || status == XLookupBoth) {
@@ -238,7 +238,7 @@ namespace flare {
 		{
 			if (client_data == NULL)
 				return;
-			F_DEBUG(IME, "XIM is available now");
+			F_DEBUG("XIM is available now");
 			auto self = reinterpret_cast<Inl*>(client_data);
 			self->openIM();
 		}
@@ -246,7 +246,7 @@ namespace flare {
 		// IM destroy callbacks
 		static void IMDestroyCallback(XIM im, XPointer client_data, XPointer data)
 		{
-			F_DEBUG(IME, "xim is destroyed");
+			F_DEBUG("xim is destroyed");
 
 			if (client_data == NULL)
 				return;
@@ -263,12 +263,12 @@ namespace flare {
 		// on the spot callbacks
 		static void preeditStartCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			F_DEBUG(IME, "preedit start");
+			F_DEBUG("preedit start");
 		}
 
 		static void preeditDoneCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			F_DEBUG(IME, "preedit done");
+			F_DEBUG("preedit done");
 
 			if (user_data == NULL)
 				return;
@@ -323,30 +323,30 @@ namespace flare {
 				case XIMDontChange:
 					break;
 				default:
-					F_DEBUG(IME, "preedit caret: %d", caret_data->direction);
+					F_DEBUG("preedit caret: %d", caret_data->direction);
 					break;
 			}
 		}
 
 		static void statusStartCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			F_DEBUG(IME, "status start");
+			F_DEBUG("status start");
 		}
 
 		static void statusDoneCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			F_DEBUG(IME, "status done");
+			F_DEBUG("status done");
 		}
 
 		static void statusDrawCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			F_DEBUG(IME, "status draw");
+			F_DEBUG("status draw");
 		}
 
 		// string conversion callback
 		static void stringConversionCallback(XIM xim, XPointer client_data, XPointer data)
 		{
-			F_DEBUG(IME, "string conversion");
+			F_DEBUG("string conversion");
 		}
 
 		// for XIM interaction
@@ -356,11 +356,11 @@ namespace flare {
 
 			_im = XOpenIM(_display, NULL, NULL, NULL);
 			if (_im  == NULL) {
-				F_DEBUG(IME, "Can't open XIM");
+				F_DEBUG("Can't open XIM");
 				return;
 			}
 
-			F_DEBUG(IME, "XIM is opened");
+			F_DEBUG("XIM is opened");
 			XUnregisterIMInstantiateCallback(_display, NULL, NULL, NULL,
 							IMInstantiateCallback, (XPointer)this);
 
@@ -379,7 +379,7 @@ namespace flare {
 			
 			if (ic_values != NULL) {
 				for (int i = 0; i < ic_values->count_values; i++) {
-					F_DEBUG(IME, "%s", ic_values->supported_values[i]);
+					F_DEBUG("%s", ic_values->supported_values[i]);
 					if (strcmp(ic_values->supported_values[i],
 								XNStringConversionCallback) == 0) {
 						useStringConversion = true;
@@ -399,7 +399,7 @@ namespace flare {
 			XCloseIM(_im);
 			_im = NULL;
 
-			F_DEBUG(IME, "XIM is closed");
+			F_DEBUG("XIM is closed");
 		}
 
 		void createIC(bool useStringConversion)
@@ -475,9 +475,9 @@ namespace flare {
 					strconv.client_data = (XPointer)this;
 					XSetICValues(_ic, XNStringConversionCallback, &strconv, NULL);
 				}
-				F_DEBUG(IME, "XIC is created");
+				F_DEBUG("XIC is created");
 			} else {
-				F_DEBUG(IME, "cannot create XIC");
+				F_DEBUG("cannot create XIC");
 			}
 		}
 
@@ -495,7 +495,7 @@ namespace flare {
 
 			XDestroyIC(_ic);
 			_ic = NULL;
-			F_DEBUG(IME, "XIC is destroyed");
+			F_DEBUG("XIC is destroyed");
 		}
 
 		static String wChar_t_to_string(const wChar_t *str)
@@ -520,13 +520,13 @@ namespace flare {
 
 		void insert(cChar* str)
 		{
-			F_DEBUG(IME, "insert, %s", str);
+			F_DEBUG("insert, %s", str);
 			_app->dispatch()->dispatch_ime_insert(str);
 		}
 
 		void setPreeditString(cChar* str, int pos, int length)
 		{
-			F_DEBUG(IME, "setPreeditString, %s, %d, %d", str, pos, length);
+			F_DEBUG("setPreeditString, %s, %d, %d", str, pos, length);
 			if (str == NULL) {
 				_app->dispatch()->dispatch_ime_unmark(String());
 				_preedit_string = String();

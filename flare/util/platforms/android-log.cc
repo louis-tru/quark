@@ -34,16 +34,16 @@
 
 namespace flare {
 
-	void AndroidConsole::log(cString& str, cChar* tag, bool feed) {
-		__android_log_print(ANDROID_LOG_INFO, tag ? tag: "", feed ? "%s %s\n": "%s %s", str.c_str());
+	void AndroidConsole::log(cString& str, cChar* feed) {
+		__android_log_print(ANDROID_LOG_INFO, "LOG ", "%s%s", str.c_str(), feed ? feed: "");
 	}
 
-	void AndroidConsole::warn(cString& str, cChar* tag, bool feed) {
-		__android_log_print(ANDROID_LOG_WARN, tag ? tag: "", feed ? "%s %s\n": "%s %s", str.c_str());
+	void AndroidConsole::warn(cString& str, cChar* feed) {
+		__android_log_print(ANDROID_LOG_WARN, "WARN", "%s%s", str.c_str(), feed ? feed: "");
 	}
 
-	void AndroidConsole::error(cString& str, cChar* tag, bool feed) {
-		__android_log_print(ANDROID_LOG_WARN, tag ? tag: "", feed ? "%s %s\n": "%s %s", str.c_str());
+	void AndroidConsole::error(cString& str, cChar* feed) {
+		__android_log_print(ANDROID_LOG_ERROR, "ERR ", "%s%s", str.c_str(), feed ? feed: "");
 	}
 
 }

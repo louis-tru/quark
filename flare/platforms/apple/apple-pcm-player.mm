@@ -144,7 +144,7 @@ namespace flare {
 							return;
 						}
 					} else {
-						F_ERR("PCM", "self->_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
+						F_ERR("self->_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
 					}
 				}
 				

@@ -49,11 +49,11 @@ namespace flare {
 
 		void run(int64_t timeout) {
 			if (is_exited()) {
-				F_DEBUG(LOOP, "cannot run RunLoop, is_process_exit != 0");
+				F_DEBUG("cannot run RunLoop, is_process_exit != 0");
 				return;
 			}
 			if (_thread->is_abort()) {
-				F_DEBUG(LOOP, "cannot run RunLoop, _thread->is_abort() == true");
+				F_DEBUG("cannot run RunLoop, _thread->is_abort() == true");
 				return;
 			}
 			uv_async_t uv_async;
@@ -207,7 +207,7 @@ namespace flare {
 		 */
 		uint32_t post(Cb exec, uint32_t group, uint64_t delay_us) {
 			if (_thread->is_abort()) {
-				F_DEBUG(LOOP, "RunLoop::post, _thread->is_abort() == true");
+				F_DEBUG("RunLoop::post, _thread->is_abort() == true");
 				return 0;
 			}
 			ScopeLock lock(_mutex);
@@ -326,10 +326,10 @@ namespace flare {
 	void  RunLoop::Inl::stop_after_print_message() {
 		ScopeLock lock(_mutex);
 		for (auto& i: _keeps) {
-			F_DEBUG(LOOP, "Print: RunLoop keep not release \"%s\"", i->_name.c_str());
+			F_DEBUG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
 		}
 		for (auto& i: _works) {
-			F_DEBUG(LOOP, "Print: RunLoop work not complete: \"%s\"", i->name.c_str());
+			F_DEBUG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
 		}
 	}
 	
@@ -367,11 +367,11 @@ namespace flare {
 		{
 			ScopeLock lock(_mutex);
 			for (auto& i: _keeps) {
-				F_WARN(LOOP, "RunLoop keep not release \"%s\"", i->_name.c_str());
+				F_WARN("RunLoop keep not release \"%s\"", i->_name.c_str());
 				i->_loop = nullptr;
 			}
 			for (auto& i: _works) {
-				F_WARN(LOOP, "RunLoop work not complete: \"%s\"", i->name.c_str());
+				F_WARN("RunLoop work not complete: \"%s\"", i->name.c_str());
 				delete i;
 			}
 		}
@@ -463,7 +463,7 @@ namespace flare {
 	 */
 	uint32_t RunLoop::work(Cb cb, Cb done, cString& name) {
 		if (_thread->is_abort()) {
-			F_DEBUG(LOOP, "RunLoop::work, _thread->is_abort() == true");
+			F_DEBUG("RunLoop::work, _thread->is_abort() == true");
 			return 0;
 		}
 
@@ -605,7 +605,7 @@ namespace flare {
 	bool RunLoop::is_alive(ThreadID id) {
 		ScopeLock scope(*__Thread_threads_mutex);
 		auto loop = loop_2(id);
-		F_DEBUG(LOOP, "RunLoop::is_alive, %p, %p", loop, id);
+		F_DEBUG("RunLoop::is_alive, %p, %p", loop, id);
 		if (loop) {
 			return loop->is_alive();
 		}
@@ -634,7 +634,7 @@ namespace flare {
 				_inl(_loop)->activate_loop(); // 激活循环状态,不再等待
 			}
 		} else {
-			F_DEBUG(LOOP, "Keep already invalid \"%s\", RunLoop already stop and release", *_name);
+			F_DEBUG("Keep already invalid \"%s\", RunLoop already stop and release", *_name);
 		}
 	}
 

@@ -75,7 +75,7 @@ namespace flare {
 		}
 
 		static void initialize() {
-			F_DEBUG(THREAD, "thread_init_once");
+			F_DEBUG("thread_init_once");
 			atexit(Thread::Inl::before_exit);
 			__Thread_threads = new Dict<ID, Thread*>();
 			__Thread_threads_mutex = new Mutex();
@@ -105,14 +105,14 @@ namespace flare {
 			}
 			{
 				ScopeLock scope(*__Thread_threads_mutex);
-				F_DEBUG(THREAD, "Thread end ..., %s", *thread->name());
+				F_DEBUG("Thread end ..., %s", *thread->name());
 				for (auto& i : *threads_end_listens) {
 					if (i->thread == thread) {
 						ScopeLock scope(i->mutex);
 						i->cond.notify_one();
 					}
 				}
-				F_DEBUG(THREAD, "Thread end  ok, %s", *thread->name());
+				F_DEBUG("Thread end  ok, %s", *thread->name());
 				__Thread_threads->erase(thread->id());
 			}
 		}
@@ -150,16 +150,16 @@ namespace flare {
 				Array<ID> threads_id;
 				{
 					ScopeLock scope(*__Thread_threads_mutex);
-					F_DEBUG(THREAD, "threads count, %d", __Thread_threads->length());
+					F_DEBUG("threads count, %d", __Thread_threads->length());
 					for ( auto& i : *__Thread_threads ) {
-						F_DEBUG(THREAD, "atexit_exec,name, %p, %s", i.value->id(), *i.value->name());
+						F_DEBUG("atexit_exec,name, %p, %s", i.value->id(), *i.value->name());
 						_inl_t(i.value)->awaken(true); // awaken sleep status and abort
 						threads_id.push(i.value->id());
 					}
 				}
 				for ( auto& i: threads_id ) {
 					// 在这里等待这个线程的结束,这个时间默认为1秒钟
-					F_DEBUG(THREAD, "atexit_exec,join, %p", i);
+					F_DEBUG("atexit_exec,join, %p", i);
 					join(i, F_ATEXIT_WAIT_TIMEOUT); // wait 1s
 				}
 			}
@@ -173,20 +173,20 @@ namespace flare {
 				// if (__Loop_main_loop_obj && __Loop_main_loop_obj->runing()) {
 				// 	keep = __Loop_main_loop_obj->keep_alive("Thread::Inl::exit()"); // keep main loop
 				// }
-				F_DEBUG(THREAD, "Inl::exit(), 0");
+				F_DEBUG("Inl::exit(), 0");
 				Event<> ev(Int32(rc), nullptr, rc);
 				Thread::F_Trigger(ProcessSafeExit, ev);
 				rc = ev.return_value;
-				F_DEBUG(THREAD, "Inl::exit(), 1");
+				F_DEBUG("Inl::exit(), 1");
 
 				// Release(keep); keep = nullptr;
 				before_exit();
 
-				F_DEBUG(THREAD, "Inl::reallyExit()");
+				F_DEBUG("Inl::reallyExit()");
 				if (forceExit)
 					::exit(rc); // foece reallyExit
 			} else {
-				F_DEBUG(THREAD, "The program has exited");
+				F_DEBUG("The program has exited");
 			}
 		}
 
@@ -205,7 +205,7 @@ namespace flare {
 
 	void Thread::join(ID id, int64_t timeoutUs) {
 		if (id == current_id()) {
-			F_DEBUG(THREAD, "Thread::join(), cannot join self");
+			F_DEBUG("Thread::join(), cannot join self");
 			return;
 		}
 		Lock lock(*__Thread_threads_mutex);
@@ -217,13 +217,13 @@ namespace flare {
 				Lock l(signal.mutex);
 				lock.unlock();
 				String name = i->value->name();
-				F_DEBUG(THREAD, "Thread::join, ..., %p, %s", id, *name);
+				F_DEBUG("Thread::join, ..., %p, %s", id, *name);
 				if (timeoutUs > 0) {
 					signal.cond.wait_for(l, std::chrono::microseconds(timeoutUs)); // wait
 				} else {
 					signal.cond.wait(l); // permanent wait
 				}
-				F_DEBUG(THREAD, "Thread::join, end, %p, %s", id, *name);
+				F_DEBUG("Thread::join, end, %p, %s", id, *name);
 			}
 			lock.lock();
 			threads_end_listens->erase(it);
@@ -248,10 +248,10 @@ namespace flare {
 					cur->_cond.wait_for(lock, std::chrono::microseconds(timeoutUs));
 				}
 			} else {
-				F_WARN(THREAD, "Thread aborted, cannot sleep");
+				F_WARN("Thread aborted, cannot sleep");
 			}
 		} else {
-			F_WARN(THREAD, "Cannot find current flare::Thread handle, use std::this_thread::sleep_for()");
+			F_WARN("Cannot find current flare::Thread handle, use std::this_thread::sleep_for()");
 			if (timeoutUs > 0) {
 				std::this_thread::sleep_for(std::chrono::microseconds(timeoutUs));
 			}

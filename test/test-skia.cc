@@ -54,5 +54,5 @@ void test_skia(int argc, char **argv) {
 	Application app;
 	app.initialize();
 	app.F_On(Load, onload_handle);
-	app.run_loop();
+//	app.run_loop();
 }

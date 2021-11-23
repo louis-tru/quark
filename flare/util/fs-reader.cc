@@ -387,7 +387,7 @@ namespace flare {
 		try {
 			return _core->readdir_sync(path);
 		} catch(Error& err) {
-			F_ERR(FS, err);
+			F_ERR(err);
 		}
 		return Array<Dirent>();
 	}

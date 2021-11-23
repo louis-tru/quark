@@ -382,7 +382,7 @@ namespace flare {
 					dataOffset += dataSize;
 					
 					if (dataOffset > dataLen) {
-						F_LOG(Codec, "TexurePVR: Invalid lenght");
+						F_LOG("TexurePVR: Invalid lenght");
 						return rest;
 					}
 					width = F_MAX(width >> 1, 1);
@@ -390,7 +390,7 @@ namespace flare {
 				}
 			}
 			else {
-				F_LOG(Codec, "TexurePVR: Invalid lenght");
+				F_LOG("TexurePVR: Invalid lenght");
 			}
 			
 			return rest;
@@ -404,7 +404,7 @@ namespace flare {
 		else if (_inl_pvr(this)->is_pvr_v3(data)) {
 			return _inl_pvr(this)->_decode_pvr_v3(data);
 		}
-		F_ERR(CODEC, "TexurePVR: Invalid data");
+		F_ERR("TexurePVR: Invalid data");
 		return Array<PixelData>();
 	}
 
@@ -440,7 +440,7 @@ namespace flare {
 				return PixelData(Buffer(), header->width, header->height, pixelFormat, isPremultipliedAlpha);
 			}
 		}
-		F_LOG(Codec, "TexurePVR: Invalid data");
+		F_LOG("TexurePVR: Invalid data");
 		return PixelData();
 	}
 

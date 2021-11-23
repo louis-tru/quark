@@ -130,7 +130,7 @@ static NSString* G_AppDelegate_name = @"";
 	}
 
 	- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		// F_DEBUG(APP, "touchesMoved, count: %d", touches.count);
+		// F_DEBUG("touchesMoved, count: %d", touches.count);
 		_app->dispatch()->onTouchmove( [self toUITouchs:touches] );
 	}
 
@@ -230,7 +230,7 @@ static NSString* G_AppDelegate_name = @"";
 			self.render_task_count++;
 			_app->render_loop()->post(_render_exec);
 		} else {
-			F_DEBUG(APP, "miss frame");
+			F_DEBUG("miss frame");
 		}
 	}
 

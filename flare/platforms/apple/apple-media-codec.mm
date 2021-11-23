@@ -335,7 +335,7 @@ namespace flare {
 					
 					if ( status == noErr ) {
 						if ( _extractor->eof_flags() ) {
-							F_DEBUG(MEDIA, "%s", "eos flags");
+							F_DEBUG("%s", "eos flags");
 						}
 						_extractor->deplete_sample();
 						return true;

@@ -37,7 +37,7 @@ import 'flare/app';
 new Application().start(<Root/>).onLoad = function() {
 	const a = this;
 
-	F_LOG('\nTest Application:\n')
+	LOG('\nTest Application:\n')
 
 	P(app, 'current')
 	P(app, 'root')

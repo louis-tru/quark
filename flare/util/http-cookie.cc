@@ -187,7 +187,7 @@ namespace flare {
 						return json[2].to_string();
 					}
 				} catch(cError& err) {
-					F_ERR(COOKIE, err);
+					F_ERR(err);
 				}
 			}
 		}
@@ -364,7 +364,7 @@ namespace flare {
 							(*m)[String(s, key->length - (s - key->value))] = json[2].to_string();
 						}
 					} catch(cError& err) {
-						F_ERR(COOKIE, err);
+						F_ERR(err);
 					}
 				}, &_tmp);
 			}

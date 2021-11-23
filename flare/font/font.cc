@@ -49,7 +49,7 @@ namespace flare {
 			install();
 			
 			if ( !_ft_face ) {
-				F_ERR(FONT, "Unable to install font");
+				F_ERR("Unable to install font");
 				return false;
 			}
 			
@@ -276,12 +276,12 @@ namespace flare {
 				
 				FT_Error error = FT_Set_Char_Size( (FT_Face)_ft_face, 0, 64 * 64, 72, 72);
 				if (error) {
-					F_WARN(FONT, "%s", "parse font glyph vbo data error"); goto cf_none;
+					F_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
 				}
 				
 				error = FT_Load_Glyph( (FT_Face)_ft_face, glyph_index, FT_LOAD_NO_HINTING);
 				if (error) {
-					F_WARN(FONT, "%s", "parse font glyph vbo data error"); goto cf_none;
+					F_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
 				}
 			
 				FT_GlyphSlot ft_glyph = (FT_GlyphSlot)_ft_glyph;

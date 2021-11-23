@@ -221,7 +221,7 @@ namespace flare {
 		virtual ~EventNoticer() {
 			if (_listener) {
 				off();
-				delete _listener;
+				Release(_listener);
 			}
 		}
 		

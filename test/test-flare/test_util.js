@@ -5,7 +5,7 @@ import 'flare/http'
 
 async function test() {
 
-	F_LOG('\nTest Util:\n')
+	LOG('\nTest Util:\n')
 
 	P(util, 'dev')
 	M(util, 'hashCode', ['ABCDEFG'])

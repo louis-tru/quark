@@ -109,7 +109,7 @@ namespace flare {
 	void BoxFill::set_next(BoxFill* value) {
 		if (value != _next) {
 			if (_inl(this)->check_loop_reference(value)) {
-				F_ERR(FILL, "Box background loop reference error");
+				F_ERR("Box background loop reference error");
 			} else {
 				_inl(this)->set_next(value);
 			}
@@ -123,7 +123,7 @@ namespace flare {
 			return left;
 		} else {
 			if (left && right && _inl(left)->check_loop_reference(right->_next)) {
-				F_ERR(FILL, "Box background loop reference error");
+				F_ERR("Box background loop reference error");
 				return left;
 			} else {
 				return Inl::assign(left, right);

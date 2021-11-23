@@ -320,13 +320,13 @@ namespace flare {
 		_shared = this;
 		UILock lock;
 		HttpHelper::initialize(); // 初始http
-		_pre_render = new PreRender(); F_DEBUG("APP", "new PreRender ok");
-		_display = NewRetain<Display>(this); F_DEBUG("APP", "NewRetain<Display> ok"); // strong ref
-		_render = Render::create(this, options); F_DEBUG("APP", "Render::create() ok");
+		_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
+		_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
+		_render = Render::create(this, options); F_DEBUG("Render::create() ok");
 		_font_pool = new FontPool(this);
 		_tex_pool = new TexturePool(this);
-		_dispatch = new EventDispatch(this); F_DEBUG("APP", "new EventDispatch ok");
-		// _action_center = new ActionCenter(); F_DEBUG("APP", "new ActionCenter ok");
+		_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
+		// _action_center = new ActionCenter(); F_DEBUG("new ActionCenter ok");
 	}
 
 	/**
@@ -380,7 +380,7 @@ namespace flare {
 			i++;
 		} while(i < 3);
 		
-		F_WARN(APP, "Adjust texture memory fail");
+		F_WARN("Adjust texture memory fail");
 		
 		return false;
 	}
