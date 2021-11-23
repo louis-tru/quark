@@ -412,7 +412,7 @@ namespace flare {
 						}
 					}
 					
-					F_DEBUG("FONT", "Font memory clear, %ld", del_data_size);
+					F_DEBUG("Font memory clear, %ld", del_data_size);
 				}
 				// not full clear end
 			}

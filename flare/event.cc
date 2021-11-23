@@ -895,7 +895,7 @@ namespace flare {
 	}
 
 	void EventDispatch::make_text_input(ITextInput* input) {
-		F_DEBUG("UIEvent", "make_text_input");
+		F_DEBUG("make_text_input");
 		if ( input != _text_input ) {
 			_text_input = input;
 			

@@ -54,7 +54,7 @@ namespace flare {
 		_child_style_sheets.clear();
 		_is_support_pseudo = false;
 		
-		F_DEBUG("CLS", "StyleSheetsClass apply, query group count: %d, style sheets count: %d, '%s'",
+		F_DEBUG("StyleSheetsClass apply, query group count: %d, style sheets count: %d, '%s'",
 						_query_group.length(), scope->style_sheets().length(), _classs.join(' ').c_str());
 		
 		if ( _query_group.length() ) {

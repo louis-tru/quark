@@ -954,7 +954,7 @@ namespace flare {
 						break;
 					}
 				}
-				F_DEBUG("TEXTURE", "Texture memory clear, %ld", del_data_size);
+				F_DEBUG("Texture memory clear, %ld", del_data_size);
 			}
 		}
 		

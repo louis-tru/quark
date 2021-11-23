@@ -506,7 +506,7 @@ namespace flare {
 				SampleData& d1 = ex->_sample_data_cache[(i1 + len) % len];
 				data.time = d1.time + d1.time - d0.time;
 				data.d_time =  d1.d_time + d1.d_time - d0.d_time;
-				F_DEBUG("MEDIA", "extractor_push(), time == 0, Correction time: %llu", data.time);
+				F_DEBUG("extractor_push(), time == 0, Correction time: %llu", data.time);
 			}
 			
 			if ( ex->type() == MEDIA_TYPE_VIDEO ) { // VIDEO

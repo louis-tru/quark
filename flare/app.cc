@@ -130,7 +130,7 @@ namespace flare {
 			_is_load = false;
 			typedef Callback<RunLoop::PostSyncData> Cb;
 			_main_loop->post_sync(Cb([&](Cb::Data& d) {
-				F_DEBUG("AppInl", "onUnload()");
+				F_DEBUG("onUnload()");
 				F_Trigger(Unload);
 				if (_root) {
 					UILock lock;
@@ -193,7 +193,7 @@ namespace flare {
 			__fx_default_gui_main = nullptr;
 			__fx_gui_main = nullptr;
 			int rc = main(argc, argv); // 运行这个自定gui入口函数
-			F_DEBUG("App", "Application::start Exit");
+			F_DEBUG("Application::start Exit");
 			flare::exit(rc); // if sub thread end then exit
 			return rc;
 		}, "runMain");
@@ -233,9 +233,9 @@ namespace flare {
 		F_ASSERT(RunLoop::is_main_loop()); // main loop call
 
 		Thread::spawn([this](Thread& t) {
-			F_DEBUG("App", "run render loop ...");
+			F_DEBUG("run render loop ...");
 			run_loop();
-			F_DEBUG("App", "run render loop end");
+			F_DEBUG("run render loop end");
 			return 0;
 		}, "render_loop");
 
@@ -256,7 +256,7 @@ namespace flare {
 			Release(_render_keep); _render_keep = nullptr; // stop render loop
 			Release(_main_keep); _main_keep = nullptr; // stop main loop
 			Thread::abort(render_loop_id);
-			F_DEBUG("App", "Application onExit");
+			F_DEBUG("Application onExit");
 		}
 		return code;
 	}

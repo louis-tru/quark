@@ -52,7 +52,7 @@ namespace flare {
 			// 60fsp
 			data->host->render_loop()->post(data->cb, 1000.0 / 60.0 * 1000);
 			data->host->triggerRender();
-			// F_DEBUG("Looper", "onRender");
+			// F_DEBUG("onRender");
 		} else {
 			Release(data);
 		}

@@ -177,7 +177,7 @@ namespace flare {
 				item["family"].to_string(), // family
 			};
 			
-			F_DEBUG("Font", "family:%s, %s", *item["family"].to_string(), *item["path"].to_string());
+			F_DEBUG("family:%s, %s", *item["family"].to_string(), *item["path"].to_string());
 			
 			for ( int j = 0, o = fonts.length(); j < o; j++ ) {
 				JSON& font = fonts[j];
