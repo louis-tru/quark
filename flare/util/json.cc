@@ -424,7 +424,7 @@ namespace flare {
 		}
 		else {
 			//  F_ASSERT(0, "This method is only applicable to \"Object\" type of JOSN");
-			F_WARN("JSON", "%s", "This method is only applicable to \"Object\" type of JOSN");
+			F_WARN(JSON, "%s", "This method is only applicable to \"Object\" type of JOSN");
 		}
 		return o;
 	}

@@ -43,7 +43,7 @@ namespace flare {
 		auto wrap = _style_sheets_map[root_styles()] = { root_styles(), 1 };
 		_style_sheets.push_back({ &wrap, 1 });
 		push_all_scope(this, scope);
-		F_DEBUG("use StyleSheetsScope");
+		F_DEBUG("CSS", "use StyleSheetsScope");
 	}
 
 	void StyleSheetsScope::push_scope(View* scope) {

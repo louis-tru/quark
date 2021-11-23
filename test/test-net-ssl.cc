@@ -55,26 +55,26 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 	}
 	
 	virtual void trigger_socket_open(Socket* stream) {
-		LOG("Open Socket");
+		F_LOG("Open Socket");
 		send_http();
 	}
 	virtual void trigger_socket_close(Socket* stream) {
-		LOG("Close Socket");
+		F_LOG("Close Socket");
 		Release(this);
 		//RunLoop::current()->stop();
 	}
 	virtual void trigger_socket_error(Socket* stream, cError& error) {
-		LOG("Error, %d, %s", error.code(), error.message().c_str());
+		F_LOG("Error, %d, %s", error.code(), error.message().c_str());
 	}
 	virtual void trigger_socket_data(Socket* stream, Buffer& buffer) {
 		//LOG( String(buffer.value(), buffer.length()) );
-		LOG("DATA.., %d", buffer.length());
+		F_LOG("DATA.., %d", buffer.length());
 	}
 	virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) {
-		LOG("Write, OK");
+		F_LOG("Write, OK");
 	}
 	virtual void trigger_socket_timeout(Socket* socket) {
-		LOG("Timeout Socket");
+		F_LOG("Timeout Socket");
 		close();
 	}
 };

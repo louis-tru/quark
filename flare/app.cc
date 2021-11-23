@@ -130,7 +130,7 @@ namespace flare {
 			_is_load = false;
 			typedef Callback<RunLoop::PostSyncData> Cb;
 			_main_loop->post_sync(Cb([&](Cb::Data& d) {
-				DLOG("AppInl", "onUnload()");
+				F_DEBUG("AppInl", "onUnload()");
 				F_Trigger(Unload);
 				if (_root) {
 					UILock lock;
@@ -193,7 +193,7 @@ namespace flare {
 			__fx_default_gui_main = nullptr;
 			__fx_gui_main = nullptr;
 			int rc = main(argc, argv); // 运行这个自定gui入口函数
-			DLOG("App", "Application::start Exit");
+			F_DEBUG("App", "Application::start Exit");
 			flare::exit(rc); // if sub thread end then exit
 			return rc;
 		}, "runMain");
@@ -233,9 +233,9 @@ namespace flare {
 		F_ASSERT(RunLoop::is_main_loop()); // main loop call
 
 		Thread::spawn([this](Thread& t) {
-			DLOG("App", "run render loop ...");
+			F_DEBUG("App", "run render loop ...");
 			run_loop();
-			DLOG("App", "run render loop end");
+			F_DEBUG("App", "run render loop end");
 			return 0;
 		}, "render_loop");
 
@@ -256,7 +256,7 @@ namespace flare {
 			Release(_render_keep); _render_keep = nullptr; // stop render loop
 			Release(_main_keep); _main_keep = nullptr; // stop main loop
 			Thread::abort(render_loop_id);
-			DLOG("App", "Application onExit");
+			F_DEBUG("App", "Application onExit");
 		}
 		return code;
 	}
@@ -320,13 +320,13 @@ namespace flare {
 		_shared = this;
 		UILock lock;
 		HttpHelper::initialize(); // 初始http
-		_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
-		_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
-		_render = Render::create(this, options); F_DEBUG("Render::create() ok");
+		_pre_render = new PreRender(); F_DEBUG("APP", "new PreRender ok");
+		_display = NewRetain<Display>(this); F_DEBUG("APP", "NewRetain<Display> ok"); // strong ref
+		_render = Render::create(this, options); F_DEBUG("APP", "Render::create() ok");
 		_font_pool = new FontPool(this);
 		_tex_pool = new TexturePool(this);
-		_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
-		// _action_center = new ActionCenter(); F_DEBUG("new ActionCenter ok");
+		_dispatch = new EventDispatch(this); F_DEBUG("APP", "new EventDispatch ok");
+		// _action_center = new ActionCenter(); F_DEBUG("APP", "new ActionCenter ok");
 	}
 
 	/**
@@ -380,7 +380,7 @@ namespace flare {
 			i++;
 		} while(i < 3);
 		
-		F_WARN("APP", "Adjust texture memory fail");
+		F_WARN(APP, "Adjust texture memory fail");
 		
 		return false;
 	}

@@ -213,7 +213,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 		self.render_task_count++;
 		_app->render_loop()->post(_render_exec);
 	} else {
-		 F_DEBUG("miss frame");
+		 F_DEBUG(APP, "miss frame");
 	}
 }
 
@@ -226,7 +226,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 	_app->render_loop()->post(Cb([self, rect](CbData& d) {
 		gl_draw_context->refresh_surface_size(rect);
 	}));
-	F_LOG("APP", "refresh_surface_size, %f, %f", rect.size.width, rect.size.height);
+	F_LOG(APP, "refresh_surface_size, %f, %f", rect.size.width, rect.size.height);
 }
 
 - (void)refresh_surface_size {
@@ -241,7 +241,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 	if (_loaded && !_is_background) {
 		[self pause];
 		_is_background = YES;
-		F_DEBUG("APP", "onBackground");
+		F_DEBUG(APP, "onBackground");
 		_inl_app(_app)->triggerBackground();
 	}
 }
@@ -249,7 +249,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 - (void)foreground {
 	if (_loaded && _is_background) {
 		_is_background = NO;
-		F_DEBUG("onForeground");
+		F_DEBUG(APP, "onForeground");
 		_inl_app(_app)->triggerForeground();
 		[self resume];
 	}
@@ -257,7 +257,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 
 - (void)pause {
 	if (_loaded && !_is_pause) {
-		F_DEBUG("onPause");
+		F_DEBUG(APP, "onPause");
 		_is_pause = YES;
 		_inl_app(_app)->triggerPause();
 	}
@@ -265,7 +265,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 
 - (void)resume {
 	if (_loaded && _is_pause) {
-		F_DEBUG("onResume");
+		F_DEBUG(APP, "onResume");
 		_is_pause = NO;
 		_inl_app(_app)->triggerResume();
 		[self refresh_surface_size];
@@ -371,20 +371,20 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 }
 
 - (void)applicationDidHide:(NSNotification*)notification {
-	DLOG("APP", "applicationDidHide, onBackground");
+	F_DEBUG(APP, "applicationDidHide, onBackground");
 }
 
 - (void)applicationWillUnhide:(NSNotification*)notification {
-	DLOG("APP", "applicationWillUnhide, onForeground");
+	F_DEBUG(APP, "applicationWillUnhide, onForeground");
 }
 
 - (void)applicationWillTerminate:(NSNotification*)notification {
-	DLOG("APP", "applicationWillTerminate");
+	F_DEBUG(APP, "applicationWillTerminate");
 	_inl_app(_app)->triggerUnload();
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
-	DLOG("APP", "exit application");
+	F_DEBUG(APP, "exit application");
 	return YES;
 }
 

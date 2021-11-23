@@ -335,7 +335,7 @@ namespace flare {
 				if ( self->_z_gzip ) {
 					int r = self->gzip_inflate(at, uint32_t(length), buff);
 					if (r < 0) {
-						F_ERR("HTTP", "un gzip err, %d", r);
+						F_ERR(HTTP, "un gzip err, %d", r);
 					}
 				} else {
 					buff = WeakBuffer(at, uint32_t(length)).copy();
@@ -407,7 +407,7 @@ namespace flare {
 					
 					if ( _client->_post_data.length() ) { // ignore form data
 						if ( _client->_post_form_data.length() ) {
-							F_WARN("HTTP", "Ignore form data");
+							F_WARN(HTTP, "Ignore form data");
 						}
 						_client->_upload_total = _client->_post_data.length();
 						header["Content-Length"] = _client->_upload_total;

@@ -82,12 +82,12 @@ namespace flare {
 		
 		GLint major, minor;
 		NSOpenGLGetVersion(&major, &minor);
-		F_LOG("GL", "NSOpenGLGetVersion: %d, %d", major, minor);
+		F_LOG(GL, "NSOpenGLGetVersion: %d, %d", major, minor);
 		
 		const GLubyte * name = glGetString(GL_VENDOR);
 		const GLubyte * biaoshifu = glGetString(GL_RENDERER);
 		const GLubyte * OpenGLVersion = glGetString(GL_VERSION);
-		F_LOG("GL", "%s, %s, %s", name, biaoshifu, OpenGLVersion);
+		F_LOG(GL, "%s, %s, %s", name, biaoshifu, OpenGLVersion);
 		
 		_surface_view = view;
 		_context = ctx;

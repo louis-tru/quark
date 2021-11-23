@@ -86,7 +86,7 @@ namespace flare {
 			memory_info_t r = {0,0,0};
 
 			String s = FileHelper::read_file_sync("/proc/meminfo", 127).collapse_string();
-			DLOG("OS", "/proc/meminfo, %s", *s);
+			F_DEBUG(OS, "/proc/meminfo, %s", *s);
 
 			if (!s.is_empty()) {
 				int i, j;
@@ -97,7 +97,7 @@ namespace flare {
 				if (j == -1) return r;
 
 				r.MemTotal = s.substring(i + 9, j).trim().to_uint64_t() * 1024;
-				DLOG("OS", "MemTotal, %lu", r.MemTotal);
+				F_DEBUG(OS, "MemTotal, %lu", r.MemTotal);
 
 				i = s.index_of("MemFree:", j);
 				if (i == -1) return r;
@@ -105,7 +105,7 @@ namespace flare {
 				if (j == -1) return r;
 
 				r.MemFree = s.substring(i + 8, j).trim().to_uint64_t() * 1024;
-				DLOG("OS", "MemFree, %lu", r.MemFree);
+				F_DEBUG(OS, "MemFree, %lu", r.MemFree);
 
 				i = s.index_of("MemAvailable:", j);
 				if (i == -1) return r;
@@ -113,7 +113,7 @@ namespace flare {
 				if (j == -1) return r;
 
 				r.MemAvailable = s.substring(i + 13, j).trim().to_uint64_t() * 1024;
-				DLOG("OS", "MemAvailable, %lu", r.MemAvailable);
+				F_DEBUG(OS, "MemAvailable, %lu", r.MemAvailable);
 			}
 			return r;
 		}

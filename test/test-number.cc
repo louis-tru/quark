@@ -459,7 +459,7 @@ void test_operation(const char* name) {
   
   uint64_t s2 = os::time_monotonic();
   
-  LOG("%s: %llu", name, s2 - s1);
+  F_LOG("%s: %llu", name, s2 - s1);
 }
 
 void test_number(int argc, char **argv) {
@@ -469,8 +469,8 @@ void test_number(int argc, char **argv) {
   char c = d;
   uint8_t b = d;
   
-  LOG("%d", c);
-  LOG("%d", *(char*)&b);
+	F_LOG("%d", c);
+	F_LOG("%d", *(char*)&b);
   
   test_operation<int16_t, 0>("int16+");
   test_operation<int, 0>("int+");

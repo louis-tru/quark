@@ -505,7 +505,7 @@ namespace flare {
 		static void set_ssl_cacert(cString& ca_content) {
 			
 			if (ca_content.is_empty()) {
-				F_ERR("SSL", "%s", "set_ssl_cacert() fail, ca_content is empty string"); return;
+				F_ERR(SSL, "%s", "set_ssl_cacert() fail, ca_content is empty string"); return;
 			}
 
 			if ( !ssl_x509_store ) {
@@ -519,8 +519,8 @@ namespace flare {
 
 			int r = X509_STORE_load_locations(ssl_x509_store, ca, nullptr);
 			if (!r) {
-				F_ERR("SSL", "%s", "set_ssl_cacert() fail"); return;
-				// F_DEBUG("ssl load x509 store, %s"r);
+				F_ERR(SSL, "%s", "set_ssl_cacert() fail"); return;
+				// F_DEBUG(NET, "ssl load x509 store, %s"r);
 			}
 
 			if ( ssl_v23_client_ctx ) {

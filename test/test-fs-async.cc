@@ -41,36 +41,36 @@ class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
 	}
 	
 	virtual ~AsyncFileRead() {
-		LOG("Delete");
+		F_LOG("Delete");
 		FileHelper::read_file(Path::resources("res/bg.svg"), Cb([](CbData& evt) {
 			if ( evt.error ) {
-				LOG("ERR, %s", evt.error->message().c_str());
+				F_LOG("ERR, %s", evt.error->message().c_str());
 			} else {
-				LOG( static_cast<Buffer*>(evt.data)->collapse_string() );
+				F_LOG( static_cast<Buffer*>(evt.data)->collapse_string() );
 			}
 			RunLoop::current()->stop();
 		}));
 	}
 	
 	virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
-		LOG("Error, %s", error.message().c_str());
+		F_LOG("Error, %s", error.message().c_str());
 		delete this;
 	}
 	virtual void trigger_async_file_open(AsyncFile* file) {
-		LOG("Open, %s", *path());
+		F_LOG("Open, %s", *path());
 		read(Buffer::alloc(1024), 1024); // start read
 	}
 	virtual void trigger_async_file_close(AsyncFile* file) {
-		LOG("Close");
+		F_LOG("Close");
 		Release(this);
 	}
 	virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {
 		if ( buffer.length() ) {
-			LOG( buffer.collapse_string() );
+			F_LOG( buffer.collapse_string() );
 			read(buffer, 1024); // read
 		} else {
 			// read end
-			LOG("Read END");
+			F_LOG("Read END");
 			close();
 		}
 	}
@@ -87,24 +87,24 @@ class AsyncFileWrite: public AsyncFile, public AsyncFile::Delegate {
 	}
 	
 	virtual ~AsyncFileWrite() {
-		LOG("Delete WriteFileAsync");
+		F_LOG("Delete WriteFileAsync");
 	}
 	
 	virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
-		LOG("Error, %s", error.message().c_str());
+		F_LOG("Error, %s", error.message().c_str());
 		RunLoop::current()->stop();
 		Release(this);
 	}
 	virtual void trigger_async_file_open(AsyncFile* file) {
-		LOG("Open, %s", *path());
+		F_LOG("Open, %s", *path());
 		write(String("ABCDEFG-").collapse()); // start read
 	}
 	virtual void trigger_async_file_close(AsyncFile* file) {
-		LOG("Close");
+		F_LOG("Close");
 		Release(this);
 	}
 	virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
-		LOG("Write ok");
+		F_LOG("Write ok");
 		(new AsyncFileRead(path()))->open();
 		close();
 	}

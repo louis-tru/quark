@@ -42,12 +42,12 @@ void test_template() {
 	D d;
 	
 	int i = has_object_type<D>::type;
-	LOG(i);
+	F_LOG(i);
 	
-	LOG(_Str::to_string(&a));
-	LOG(_Str::to_string(s));
-	LOG(_Str::to_string(c));
-	LOG(_Str::to_string(d));
+	F_LOG(_Str::to_string(&a));
+	F_LOG(_Str::to_string(s));
+	F_LOG(_Str::to_string(c));
+	F_LOG(_Str::to_string(d));
 
 }
 

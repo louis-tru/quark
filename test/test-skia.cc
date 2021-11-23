@@ -53,6 +53,6 @@ void onload_handle (Event<>& evt, void* user) {
 void test_skia(int argc, char **argv) {
 	Application app;
 	app.initialize();
-	app.FX_On(Load, onload_handle);
+	app.F_On(Load, onload_handle);
 	app.run_loop();
 }

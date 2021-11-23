@@ -74,7 +74,7 @@ namespace flare {
 	* @destructor
 	*/
 	Root::~Root() {
-		F_DEBUG("destructor root");
+		F_DEBUG(ROOT, "destructor root");
 	}
 
 	void Root::set_visible(bool val) {

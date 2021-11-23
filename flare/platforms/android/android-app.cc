@@ -245,19 +245,19 @@ namespace flare {
 		}
 
 		static void onWindowFocusChanged(ANativeActivity* activity, int hasFocus) {
-			F_DEBUG("onWindowFocusChanged");
+			F_DEBUG(APP, "onWindowFocusChanged");
 			application->start_render_task();
 		}
 
 		static void onNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window) {
-			F_DEBUG("onNativeWindowRedrawNeeded");
+			F_DEBUG(APP, "onNativeWindowRedrawNeeded");
 			application->start_render_task();
 		}
 
 		// ----------------------------------------------------------------------
 		
 		static void onLowMemory(ANativeActivity* activity) {
-			F_DEBUG("onLowMemory");
+			F_DEBUG(APP, "onLowMemory");
 			application->_host->triggerMemorywarning();
 		}
 
@@ -276,11 +276,11 @@ namespace flare {
 		}
 		
 		static void onConfigurationChanged(ANativeActivity* activity) {
-			F_DEBUG("onConfigurationChanged");
+			F_DEBUG(APP, "onConfigurationChanged");
 		}
 		
 		static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
-			F_DEBUG("onNativeWindowResized");
+			F_DEBUG(APP, "onNativeWindowResized");
 		}
 
 		// --------------------------- Dispatch event ---------------------------
@@ -312,7 +312,7 @@ namespace flare {
 					dispatchEvent(event);
 					AInputQueue_finishEvent(queue, event, fd);
 				} else {
-					F_DEBUG("AInputQueue_preDispatchEvent(queue, event) != 0");
+					F_DEBUG(APP, "AInputQueue_preDispatchEvent(queue, event) != 0");
 				}
 			}
 			return 1;
@@ -331,7 +331,7 @@ namespace flare {
 				int repeat = AKeyEvent_getRepeatCount(event);
 				int action = AKeyEvent_getAction(event);
 
-				F_DEBUG("code:%d, repeat:%d, action:%d, "
+				F_DEBUG(APP, "code:%d, repeat:%d, action:%d, "
 												"flags:%d, scancode:%d, metastate:%d, downtime:%ld, time:%ld",
 								code, repeat, action,
 								AKeyEvent_getFlags(event),
@@ -351,7 +351,7 @@ namespace flare {
 							dispatch->keyboard_adapter()->dispatch(code, 0, 0, repeat, device, source);
 						break;
 					case AKEY_EVENT_ACTION_MULTIPLE:
-						F_DEBUG("AKEY_EVENT_ACTION_MULTIPLE");
+						F_DEBUG(APP, "AKEY_EVENT_ACTION_MULTIPLE");
 						break;
 				}
 			}
@@ -379,7 +379,7 @@ namespace flare {
 					case AMOTION_EVENT_ACTION_MOVE:
 						touchs = toGuiTouchs(event, true);
 						if ( touchs.length() ) {
-							// F_DEBUG("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
+							// F_DEBUG(APP, "AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
 							dispatch->dispatch_touchmove( std::move(touchs) );
 						}
 						break;

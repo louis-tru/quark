@@ -237,7 +237,7 @@ namespace flare {
 				_inl_tga(this)->_parse_gray_rle(in_, out_, bytes, pixex_size, alpha);
 				break;
 			default:
-				F_LOG("Codec", "Parse tga image error, data type code undefined");
+				F_LOG(CODEC, "Parse tga image error, data type code undefined");
 				return Array<PixelData>();
 		}
 		
@@ -324,7 +324,7 @@ namespace flare {
 			}
 			return ret_data;
 		}
-		F_LOG("CODEC", "Pixel data: Invalid data, required for RGBA 8888 format");
+		F_LOG(CODEC, "Pixel data: Invalid data, required for RGBA 8888 format");
 		return Buffer();
 	}
 

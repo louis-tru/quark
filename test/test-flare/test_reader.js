@@ -13,7 +13,7 @@ async function async_test() {
 	M(fs, 'mkdirSyncP', [DIR]);
 	M(fs, 'writeFileSync', [FILE, 'ABCDEFG']);
 	
-	LOG('\nreader:\n');
+	F_LOG('\nreader:\n');
 
 	await AM(reader, 'readStream', [FILE, d=>d.complete]);
 	await AM(reader, 'readFile', [FILE, b=>1]);
@@ -29,8 +29,8 @@ async function async_test() {
 }
 
 async_test().catch(function(err) {
-	LOG('Error:', err.message);
-	LOG(err.stack);
+	F_LOG('Error:', err.message);
+	F_LOG(err.stack);
 });
 
 ajs_set_method(abort, abort);

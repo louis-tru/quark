@@ -48,19 +48,19 @@ class Str {
 		_length = str._length;
 		_value = (char*)malloc(_length + 1);
 		memcpy(_value, str._value, _length + 1);
-		LOG("%s\n", "copy constructor");
+		F_LOG("%s\n", "copy constructor");
 	}
 	Str (Str&& str) {
 		_length = str._length;
 		_value = str._value;
 		str._value = NULL;
-		LOG("%s\n", "move constructor");
+		F_LOG("%s\n", "move constructor");
 	}
 	Str (const char* str) {
 		_length = strlen(str);
 		_value = (char*)malloc(_length + 1);
 		memcpy(_value, str, _length + 1);
-		LOG("%s\n", "new constructor");
+		F_LOG("%s\n", "new constructor");
 	}
 	
 	~ Str () {
@@ -80,7 +80,7 @@ class Str {
 
 void test (const Str& str) {
 	printf("str:%s, len:%d, add:%s, test ok\n", str.c_str(), str.length(), str.c_str());
-	LOG("");
+	F_LOG("");
 }
 
 void test2 (const string& str) {
@@ -97,27 +97,27 @@ void test_string (int argc, char **argv) {
 	String utf8_1 = Coder::encode(Encoding::utf8, ucs2); // 编码
 	String utf8_2 = Coder::encode(Encoding::utf8, ucs4);
 	
-	LOG(ucs2.hash_code() % 10);
-	LOG(ucs4.hash_code() % 10);
-	LOG(utf8_1.hash_code() % 10);
-	LOG(utf8_2.hash_code() % 10);
+	F_LOG(ucs2.hash_code() % 10);
+	F_LOG(ucs4.hash_code() % 10);
+	F_LOG(utf8_1.hash_code() % 10);
+	F_LOG(utf8_2.hash_code() % 10);
 	
-	LOG(ucs2[0]);
-	LOG(ucs2[1]);
-	LOG(ucs2[2]);
-	LOG(ucs2[3]);
-	LOG(ucs4[0]);
-	LOG(ucs4[1]);
-	LOG(ucs4[2]);
-	LOG(ucs4[3]);
-	LOG(utf8_1);
-	LOG(utf8_2);
+	F_LOG(ucs2[0]);
+	F_LOG(ucs2[1]);
+	F_LOG(ucs2[2]);
+	F_LOG(ucs2[3]);
+	F_LOG(ucs4[0]);
+	F_LOG(ucs4[1]);
+	F_LOG(ucs4[2]);
+	F_LOG(ucs4[3]);
+	F_LOG(utf8_1);
+	F_LOG(utf8_2);
 	
-	LOG("%d", __cplusplus);
+	F_LOG("%d", __cplusplus);
 	
 	const char* c = "op";
 	
-	LOG(c);
+	F_LOG(c);
 	
 	// Str s = "op";
 	
@@ -129,7 +129,7 @@ void test_string (int argc, char **argv) {
 	
 	const char* str = "ABCD";
 	
-	LOG(str);
+	F_LOG(str);
 	
 	string str0 = str;
 	
@@ -141,17 +141,17 @@ void test_string (int argc, char **argv) {
 	
 	string str3(str0.c_str());
 	
-	LOG("%u,%u\n", str0.c_str(), str3.c_str());
+	F_LOG("%u,%u\n", str0.c_str(), str3.c_str());
 	
-	LOG("capacity:%d,%d\n", str0.capacity(), str3.capacity());
+	F_LOG("capacity:%d,%d\n", str0.capacity(), str3.capacity());
 	
 	const_cast<char*>(str0.c_str())[0] = 'K';
 	
 	str0 = "ABCD-KKKKK";
 	
-	LOG("%u,%u\n", str0.c_str(), str3.c_str());
+	F_LOG("%u,%u\n", str0.c_str(), str3.c_str());
 	
-	LOG("capacity:%d,%d\n", str0.capacity(), str3.capacity());
+	F_LOG("capacity:%d,%d\n", str0.capacity(), str3.capacity());
 	
-	LOG("%s,%s\n", str0.c_str(), str3.c_str());
+	F_LOG("%s,%s\n", str0.c_str(), str3.c_str());
 }

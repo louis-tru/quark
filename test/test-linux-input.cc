@@ -89,7 +89,7 @@ int test_linux_input2()
 		{ 
 			ret	= read( fd, &event, sizeof(struct input_event) );
 			time	= event.time;
-			LOG( "timeS=%d,timeUS=%d,type=%d,code=%d,value=%d\n", 
+			F_LOG( "timeS=%d,timeUS=%d,type=%d,code=%d,value=%d\n", 
 				time.tv_sec, time.tv_usec, event.type, event.code, event.value );
 		}
 	}
@@ -134,21 +134,21 @@ int test_linux_input__(int argc, char **argv)
 
 	//得到X轴的abs信息
 	ioctl(fd, EVIOCGABS(ABS_X), &absI);
-	LOG("x abs lastest value=%d\n", absI.value);
-	LOG("x abs min=%d\n", absI.minimum);
-	LOG("x abs max=%d\n", absI.maximum);
+	F_LOG("x abs lastest value=%d\n", absI.value);
+	F_LOG("x abs min=%d\n", absI.minimum);
+	F_LOG("x abs max=%d\n", absI.maximum);
 
 	//得到y轴的abs信息
 	ioctl(fd,EVIOCGABS(ABS_Y), &absI);
-	LOG("y abs lastest value=%d\n", absI.value);
-	LOG("y abs min=%d\n", absI.minimum);
-	LOG("y abs max=%d\n", absI.maximum);
+	F_LOG("y abs lastest value=%d\n", absI.value);
+	F_LOG("y abs min=%d\n", absI.minimum);
+	F_LOG("y abs max=%d\n", absI.maximum);
 
 	//得到按压轴的abs信息
 	ioctl(fd,EVIOCGABS(ABS_PRESSURE), &absI);
-	LOG("pressure abs lastest value=%d\n", absI.value);
-	LOG("pressure abs min=%d\n", absI.minimum);
-	LOG("pressure abs max=%d\n", absI.maximum);
+	F_LOG("pressure abs lastest value=%d\n", absI.value);
+	F_LOG("pressure abs min=%d\n", absI.minimum);
+	F_LOG("pressure abs max=%d\n", absI.maximum);
 
 	close(fd);
 

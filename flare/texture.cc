@@ -645,7 +645,7 @@ namespace flare {
 		
 		#define LoaderTextureError(err) { \
 			_status = TEXTURE_ERROR;  \
-			F_ERR("TEXTURE", err, *_path); \
+			F_ERR(TEXTURE, err, *_path); \
 			_host->main_loop()->post(Cb([this](CbData& e) { \
 				F_Trigger(Change, TEXTURE_CHANGE_ERROR); \
 			}, this)); \
@@ -682,7 +682,7 @@ namespace flare {
 				auto app = Application::shared();
 				if (!app) {
 					_status &= ~TEXTURE_LOADING;
-					F_WARN("TEXTURE", "Unable to load the texture %s, need to initialize first Application", *_path);
+					F_WARN(TEXTURE, "Unable to load the texture %s, need to initialize first Application", *_path);
 					return;
 				}
 				
@@ -954,7 +954,7 @@ namespace flare {
 						break;
 					}
 				}
-				F_DEBUG("Texture memory clear, %ld", del_data_size);
+				F_DEBUG("TEXTURE", "Texture memory clear, %ld", del_data_size);
 			}
 		}
 		

@@ -52,7 +52,7 @@ void test_sizeof(int argc, char **argv) {
 
 	F_ASSERT(!of);
 	
-	LOG("TestSizeOf: %d", sizeof(TestSizeOf));
+	F_LOG("TestSizeOf: %d", sizeof(TestSizeOf));
 }
 
 

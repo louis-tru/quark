@@ -254,7 +254,7 @@ namespace flare {
 				result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
 				F_ASSERT(SL_RESULT_SUCCESS == result);
 
-				F_DEBUG("createAudioPlayer finish");
+				F_DEBUG(PCM, "createAudioPlayer finish");
 
 				return true;
 			}

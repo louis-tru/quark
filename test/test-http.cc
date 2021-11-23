@@ -37,7 +37,7 @@
 using namespace flare;
 
 void test_http(int argc, char **argv) {
-	LOG(HttpHelper::get_sync("http://www.163.com/"));
+	F_LOG(HttpHelper::get_sync("http://www.163.com/"));
 	
 	String m3u8 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
 	"14461-ai-de-zhui-zong-01-ji_201608180551/14461-ai-de-zhui-zong-01-ji.m3u8";
@@ -47,18 +47,18 @@ void test_http(int argc, char **argv) {
 	
 	HttpHelper::download_sync("https://www.baidu.com/", Path::documents("baidu3.htm"));
 	
-	LOG(FileHelper::read_file_sync(Path::documents("baidu3.htm")));
+	F_LOG(FileHelper::read_file_sync(Path::documents("baidu3.htm")));
 	
 	typedef Callback<StreamResponse> SCb;
 	
 	HttpHelper::get_stream(url, SCb([](SCb::Data& d) {
 		if ( d.error ) {
-			LOG(d.error->message());
+			F_LOG(d.error->message());
 		} else {
 			StreamResponse* data = d.data;
 			int len = data->buffer().length();
-			LOG(String(data->buffer().collapse(), len));
-			LOG("%llu/%llu, complete: %i", data->size(), data->total(), data->complete());
+			F_LOG(String(data->buffer().collapse(), len));
+			F_LOG("%llu/%llu, complete: %i", data->size(), data->total(), data->complete());
 			
 			FileHelper::abort(data->id());
 		}
@@ -66,5 +66,5 @@ void test_http(int argc, char **argv) {
 	
 	RunLoop::current()->run();
 	
-	LOG("END");
+	F_LOG("END");
 }

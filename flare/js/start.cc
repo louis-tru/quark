@@ -95,7 +95,7 @@ static void on_process_safe_handle(Event<>& e, Object* data) {
 		typedef Callback<RunLoop::PostSyncData> Cb;
 		RunLoop::main_loop()->post_sync(Cb([&](Cb::Data& e) {
 			auto worker = Worker::worker();
-			DLOG("Start", "on_process_safe_handle");
+			F_DEBUG("Start", "on_process_safe_handle");
 			if (worker) {
 				rc = IMPL::inl(worker)->TriggerExit(rc);
 			}
@@ -145,13 +145,13 @@ int Start(const Array<String>& argv_in) {
 				// try loading nxnode
 				void* handle = dlopen("libflare-node.so", RTLD_LAZY | RTLD_GLOBAL);
 				if (!handle) {
-					F_WARN("START", "No node library loaded, %s", dlerror());
+					F_WARN(START, "No node library loaded, %s", dlerror());
 					goto no_node_start;
 				} else {
 					rc = node::node_api->start(argc, argv_c);
 				}
 			#else
-				F_WARN("START", "No node library loaded");
+				F_WARN(START, "No node library loaded");
 				goto no_node_start;
 			#endif
 		}

@@ -172,7 +172,7 @@ namespace flare {
 
 	int File::open(int flag) {
 		if ( _fd ) { // 文件已经打开
-			F_WARN("FILE", "file already open" );
+			F_WARN(FILE, "file already open" );
 			return 0;
 		}
 		uv_fs_t req;

@@ -24,28 +24,28 @@ var save = url.documents('baidu.html');
 var cl = new http.HttpClientRequest();
 
 cl.onError = function(ev) {
-	LOG('http onerror:', ev.data.message) 
+	F_LOG('http onerror:', ev.data.message) 
 	P(this, 'readyState')
 	P(this, 'statusCode') 
 }
 cl.onWrite = function(ev) {
-	LOG('http onwrite:') 
+	F_LOG('http onwrite:') 
 	P(this, 'uploadTotal')
 	P(this, 'uploadSize')
 }
 cl.onHeader = function(ev) { 
-	LOG('http onheader:') 
+	F_LOG('http onheader:') 
 	M(this, 'getResponseHeader', ['expires']);
 	M(this, 'getAllResponseHeaders');
 }
 cl.onData = function(ev){ 
 	//LOG('http ondata:', ev.data.toString());
-	LOG('http ondata:', ev.data.length);
+	F_LOG('http ondata:', ev.data.length);
 	P(this, 'downloadSize')
 	P(this, 'downloadTotal')
 }
 cl.onEnd = function(ev){ 
-	LOG('http onend:') 
+	F_LOG('http onend:') 
 	M(this, 'pause');
 	M(this, 'resume');
 	M(this, 'abort');
@@ -58,13 +58,13 @@ cl.onEnd = function(ev){
 	P(this, 'url')
 }
 cl.onReadystateChange = function(ev){ 
-	LOG('http onReadystateChange:', this.readyState, this.statusCode) 
+	F_LOG('http onReadystateChange:', this.readyState, this.statusCode) 
 }
 cl.onTimeout = function(ev){ 
-	LOG('http ontimeout:')
+	F_LOG('http ontimeout:')
 };
 cl.onAbort = function(ev){ 
-	LOG('http onabort:') 
+	F_LOG('http onabort:') 
 };
 
 M(cl, 'setMethod', [http.HTTP_METHOD_GET]);
@@ -100,8 +100,8 @@ function test_2() {
 	var file = url.documents('test_upload.txt');
 	var file2 = url.documents('test_upload2.txt');
 
-	LOG('\nTest Upload File:')
-	LOG('Test disable_cookie:\n')
+	F_LOG('\nTest Upload File:')
+	F_LOG('Test disable_cookie:\n')
 
 	M(fs, 'writeFileSync', [file, 'ABCDEFG'])
 	M(fs, 'writeFileSync', [file2, '你好吗？升级不安全请求'])
@@ -122,7 +122,7 @@ function test_2() {
 }
 
 function test_3() {
-	LOG('\nTest disable_cache:\n')
+	F_LOG('\nTest disable_cache:\n')
 
 	M(cl, 'disableCookie', [false])
 	M(cl, 'disableSendCookie', [false])
@@ -134,7 +134,7 @@ function test_3() {
 }
 
 function test_4() {
-	LOG('\nTest disable_ssl_verify:\n')
+	F_LOG('\nTest disable_ssl_verify:\n')
 
 	M(cl, 'setUrl', ['https://kyfw.12306.cn/otn/regist/init']) // 12306的证书一直都是失效的
 	M(cl, 'disableSslVerify', [true]);
@@ -148,7 +148,7 @@ function test_5() {
 }
 
 async function async_test_helper() {
-	LOG('\nTest HttpHelper:\n')
+	F_LOG('\nTest HttpHelper:\n')
 
 	M(http, 'abort', [http.get('https://www.baidu.com/',()=>{ LOG('** abort read_stream url fail **') })]);
 	await AM(http, 'request', [{ 

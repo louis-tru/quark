@@ -84,7 +84,7 @@ namespace flare {
 				snd_pcm_close(_pcm); _pcm = NULL;
 			}
 
-			DLOG("PCM", "~UnixPCMPlayer");
+			F_DEBUG(PCM, "~UnixPCMPlayer");
 		}
 
 		bool initialize(uint32_t channel_count, uint32_t sample_rate) {
@@ -142,9 +142,9 @@ namespace flare {
 			frames = buffer.length() / (16 / 8 * _channel_count);
 			r = snd_pcm_writei(_pcm, *buffer, frames);
 			if (r < 0) {
-				DLOG("PCM", "snd_pcm_writei err,%d", r);
+				F_DEBUG(PCM, "snd_pcm_writei err,%d", r);
 				r = snd_pcm_recover(_pcm, r, 0);
-				DLOG("PCM", "snd_pcm_recover ok,%d", r);
+				F_DEBUG(PCM, "snd_pcm_recover ok,%d", r);
 				return 0;
 			}
 			return true;

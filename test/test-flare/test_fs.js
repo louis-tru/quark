@@ -18,7 +18,7 @@ function stat(path) {
 }
 
 async function async_test() {
-	LOG('\nFileHelper:\n');
+	F_LOG('\nFileHelper:\n');
 
 	fs.removeSyncR(DIR);
 	fs.removeSyncR(DIR2);

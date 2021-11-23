@@ -44,7 +44,7 @@ new Application().start(
 
 async function test() {
 
-	LOG('\nTest Display Port:\n')
+	F_LOG('\nTest Display Port:\n')
 
 	const cur = dp.current;
 

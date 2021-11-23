@@ -251,7 +251,7 @@ namespace flare {
 				F_ASSERT(_writeing_count == 0);
 				F_ASSERT(_read_end);
 				if ( !is_abort() ) { // copy complete
-					//F_DEBUG("-----copy_complete------");
+					//F_DEBUG(FS, "-----copy_complete------");
 					Handle<Task> handle(this);
 					abort();
 					async_callback(_end);

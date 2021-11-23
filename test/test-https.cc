@@ -40,7 +40,7 @@ void test_https(int argc, char **argv) {
 	
 	Buffer buffer = HttpHelper::get_sync("https://fanyi.baidu.com/");
 	
-	LOG(std::move(buffer));
+	F_LOG(std::move(buffer));
 	
-	LOG("END");
+	F_LOG("END");
 }

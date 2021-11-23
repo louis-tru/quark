@@ -99,7 +99,7 @@ namespace flare {
 		F_ASSERT(!error);
 		
 		if ( error ) {
-			F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
+			F_WARN(GL_FONT, "%s", "parse font glyph vbo data error"); return false;
 		}
 		
 		error = FT_Load_Glyph((FT_Face)font->_ft_face, glyph->glyph_index(),
@@ -107,7 +107,7 @@ namespace flare {
 		F_ASSERT( ! error );
 		
 		if ( error ) {
-			F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
+			F_WARN(GL_FONT, "%s", "parse font glyph vbo data error"); return false;
 		}
 		
 		// 字的轮廓信息完全存储在outline中，下面的代码就是分解高阶曲线
@@ -131,7 +131,7 @@ namespace flare {
 		
 		error = FT_Outline_Decompose(&((FT_GlyphSlot)font->_ft_glyph)->outline, &funcs, &data);
 		if ( error ) {
-			F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
+			F_WARN(GL_FONT, "%s", "parse font glyph vbo data error"); return false;
 		}
 		
 		tessAddContour(tess, 2, *data.vertex, sizeof(Vec2), data.length);
@@ -185,18 +185,18 @@ namespace flare {
 		
 		FT_Error error = FT_Set_Char_Size((FT_Face)font->_ft_face, 0, font_size * 64, 72, 72);
 		if (error) {
-			F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
+			F_WARN(GL_FONT, "%s", "parse font glyph vbo data error"); return false;
 		}
 		
 		error = FT_Load_Glyph((FT_Face)font->_ft_face, glyph->glyph_index(), FT_LOAD_DEFAULT);
 		if (error) {
-			F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
+			F_WARN(GL_FONT, "%s", "parse font glyph vbo data error"); return false;
 		}
 		
 		if ( ((FT_GlyphSlot)font->_ft_glyph)->format != FT_GLYPH_FORMAT_BITMAP ) {
 			error = FT_Render_Glyph((FT_GlyphSlot)font->_ft_glyph, FT_RENDER_MODE_NORMAL);
 			if (error) {
-				F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
+				F_WARN(GL_FONT, "%s", "parse font glyph vbo data error"); return false;
 			}
 		}
 		
@@ -233,7 +233,7 @@ namespace flare {
 			};
 			
 			//uint16_t unicode = glyph->unicode();
-			//F_DEBUG("%s, level:%d, width:%d, height:%d, top:%d, left:%d",
+			//F_DEBUG(GL, "%s, level:%d, width:%d, height:%d, top:%d, left:%d",
 			//        &unicode, level, bit.width, bit.rows, (int)slot->bitmap_top, (int)slot->bitmap_left);
 			
 			_inl_font(font)->mark_new_data_size(glyph, bit.width * bit.rows);

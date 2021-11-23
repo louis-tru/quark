@@ -7,21 +7,21 @@ LOG('\nTest event:\n')
 var ontest = new EventNoticer('test', this)
 
 M(ontest, 'on', [function(ev) {
-	LOG("handle on")
-	LOG('name', ev.name)
-	LOG('data', ev.data)
+	F_LOG("handle on")
+	F_LOG('name', ev.name)
+	F_LOG('data', ev.data)
 }])
 
 M(ontest, 'once', [function(ev) {
-	LOG("handle once")
+	F_LOG("handle once")
 }])
 
 M(ontest, '$on', [function(that, ev) {
-	LOG("handle $on")
+	F_LOG("handle $on")
 }])
 
 M(ontest, '$once', [function(that, ev) {
-	LOG("handle $once")
+	F_LOG("handle $once")
 	ev.returnValue = 1
 }])
 
@@ -32,11 +32,11 @@ M(ontest, 'trigger', [10])
 P(ontest, 'length')
 
 var id = M(ontest, 'on', [function(ev) {
-	LOG("---------------0")
+	F_LOG("---------------0")
 }])
 
 function handle1(ev) {
-	LOG("---------------1", this.t)
+	F_LOG("---------------1", this.t)
 }
 
 var scope = { t: 1 }
@@ -81,16 +81,16 @@ class Test extends Notification {
 var test = new Test();
 
 test.ontest = function(ev) {
-	LOG('onTest', ev.data)
+	F_LOG('onTest', ev.data)
 	ev.returnValue = 200;
 }
 
 test.ontest2 = function(ev) {
-	LOG('onTest2')
+	F_LOG('onTest2')
 }
 
 test.ontest.on(function(ev) {
-	LOG('onTest.on()')
+	F_LOG('onTest.on()')
 })
 
 M(test, 'triggerTest', [100])

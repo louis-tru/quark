@@ -77,10 +77,10 @@ namespace flare {
 
 	void GLRender::initialize() {
 		String info = (const char*)glGetString(GL_EXTENSIONS);
-		F_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
-		F_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
-		F_DEBUG("OGL Info: %s", glGetString(GL_VERSION));
-		F_DEBUG("OGL Info: %s", *info);
+		F_DEBUG(GL, "OGL Info: %s", glGetString(GL_VENDOR));
+		F_DEBUG(GL, "OGL Info: %s", glGetString(GL_RENDERER));
+		F_DEBUG(GL, "OGL Info: %s", glGetString(GL_VERSION));
+		F_DEBUG(GL, "OGL Info: %s", *info);
 		_is_support_multisampled = info.index_of("multisample") != -1;
 
 		F_ASSERT(!_frame_buffer);
@@ -217,7 +217,7 @@ namespace flare {
 				_DisplayParams.fMSAASampleCount /= 2;
 				reload();
 			} else {
-				F_ERR("GL", "failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
+				F_ERR(GL, "failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 			}
 			return;
 		}
@@ -225,7 +225,7 @@ namespace flare {
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-		F_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+		F_DEBUG(GL, "GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 
 		// glClearStencil(0);
 		// glClearColor(0, 0, 0, 255);

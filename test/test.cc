@@ -41,14 +41,14 @@ using namespace flare;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
-FX_Main() {
+F_Main() {
 	// node::FlareEnvironment::test();
 
 	uint64_t st = os::time();
 	
 	TEST_FUNC_NAME(argc, argv);
 	
-	LOG("eclapsed time:%dms", (os::time() - st) / 1000);
+	F_LOG("MAIN", "eclapsed time:%dms", (os::time() - st) / 1000);
 
 	return 0;
 }

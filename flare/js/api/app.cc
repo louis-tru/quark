@@ -115,7 +115,7 @@ class WrapNativeApplication: public WrapObject {
 		worker()->garbageCollection(); // 清理内存
 		#if F_MEMORY_TRACE_MARK
 			uint32_t count = Object::mark_objects_count();
-			F_LOG("App", "All unrelease heap objects count: %d", count);
+			F_LOG(App, "All unrelease heap objects count: %d", count);
 		#endif
 	}
 

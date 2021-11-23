@@ -50,12 +50,12 @@ namespace flare {
 		uv_lib_t lib;
 		int err = uv_dlopen("libflare-media.so", &lib);
 		if (err != 0) {
-			F_WARN("MEDIA", "No flare-media library loaded, %s", uv_dlerror(&lib));
+			F_WARN(MEDIA, "No flare-media library loaded, %s", uv_dlerror(&lib));
 		} else {
 			if (is_loaded_lib()) {
 				return 1;
 			}
-			F_WARN("MEDIA", "No flare-media library loaded");
+			F_WARN(MEDIA, "No flare-media library loaded");
 		}
 
 		return 0;

@@ -59,7 +59,7 @@
 
 #define JS_REG_MODULE(name, cls) \
 	F_INIT_BLOCK(JS_REG_MODULE_##name) { \
-		F_DEBUG("%s", "JS_REG_MODULE "#name""); \
+		F_DEBUG("JS_MODULE", "%s", "JS_REG_MODULE "#name""); \
 		flare::js::Worker::registerModule(#name, cls::binding, __FILE__); \
 	}
 

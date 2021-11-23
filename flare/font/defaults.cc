@@ -96,9 +96,9 @@ namespace flare {
 
 						#if defined(DEBUG) && 0
 							auto att = first->FirstAttribute();
-							F_LOG("Font", "%s, Attributes:", first->Name());
+							F_LOG(Font, "%s, Attributes:", first->Name());
 							while ( att ) {
-								F_LOG("Font", "     %s:%s", att->Name(), att->Value());
+								F_LOG(Font, "     %s:%s", att->Name(), att->Value());
 								att = att->Next();
 							}
 						#endif
@@ -177,7 +177,7 @@ namespace flare {
 				item["family"].to_string(), // family
 			};
 			
-			DLOG("Font", "family:%s, %s", *item["family"].to_string(), *item["path"].to_string());
+			F_DEBUG("Font", "family:%s, %s", *item["family"].to_string(), *item["path"].to_string());
 			
 			for ( int j = 0, o = fonts.length(); j < o; j++ ) {
 				JSON& font = fonts[j];

@@ -41,14 +41,14 @@ void test_event(int argc, char **argv) {
 	EventNoticer<Event<void, int>> onTest("Test");
 	
 	onTest.on([](Event<void, int>& evt) {
-		LOG("data:%d", evt.data());
+		F_LOG("data:%d", evt.data());
 	});
 	
 	onTest.on([](Event<void, int>& evt) {
-		LOG("hh:%d", evt.data());
+		F_LOG("hh:%d", evt.data());
 	});
 	
-	LOG("done");
+	F_LOG("done");
 	
 	const Dict<String, String> map;
 	

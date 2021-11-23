@@ -44,12 +44,9 @@ namespace flare {
 	*/
 	class F_EXPORT AndroidConsole: public Console {
 	 public:
-		virtual void log(cString& str, cChar* tag);
-		virtual void warn(cString& str, cChar* tag);
-		virtual void error(cString& str, cChar* tag);
-		virtual void print(cString& str);
-		virtual void print_err(cString& str);
-		virtual void clear();
+		virtual void log(cString& log, Char* tag, bool feed);
+		virtual void warn(cString& log, cChar* tag, bool feed);
+		virtual void error(cString& log, cChar* tag, bool feed);
 	};
 }
 #endif

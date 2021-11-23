@@ -34,20 +34,20 @@
 using namespace flare;
 
 void test_os(int argc, char **argv) {
-	LOG(os::info());
-	LOG(os::version());
-	LOG(os::brand());
-	LOG(os::subsystem());
-	LOG(os::language());
-	LOG(os::is_wifi());
-	LOG(os::is_mobile());
-	LOG(os::network_status());
-	LOG(os::is_ac_power());
-	LOG(os::is_battery());
-	LOG(os::battery_level());
-	LOG(os::memory());
-	LOG(os::used_memory());
-	LOG(os::available_memory());
+	F_LOG(os::info());
+	F_LOG(os::version());
+	F_LOG(os::brand());
+	F_LOG(os::subsystem());
+	F_LOG(os::language());
+	F_LOG(os::is_wifi());
+	F_LOG(os::is_mobile());
+	F_LOG(os::network_status());
+	F_LOG(os::is_ac_power());
+	F_LOG(os::is_battery());
+	F_LOG(os::battery_level());
+	F_LOG(os::memory());
+	F_LOG(os::used_memory());
+	F_LOG(os::available_memory());
 }
 
 

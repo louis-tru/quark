@@ -52,8 +52,8 @@
 # define IMMEDIATE_CRASH() ((void(*)())0)()
 #endif
 
-#ifndef fx_stderr
-# define fx_stderr stdout
+#ifndef f_stderr
+# define f_stderr stdout
 #endif
 
 #define F_STRING_FORMAT(format, str) \
@@ -64,26 +64,38 @@
 
 namespace flare {
 
-	void Console::log(cString& str, cChar* tag) {
-		printf("%s %s\n", tag ? tag: "LOG ", str.c_str());
-	}
-	void Console::warn(cString& str, cChar* tag) {
-		printf("%s %s\n", tag ? tag: "WARN", str.c_str());
-	}
-	void Console::error(cString& str, cChar* tag) {
-		fprintf(fx_stderr, "%s %s\n", tag ? tag: "ERR ", str.c_str());
-	}
-	void Console::print(cString& str) {
-		printf("%s", str.c_str());
-	}
-	void Console::print_err(cString& str) {
-		fprintf(fx_stderr, "%s", str.c_str());
-	}
-	void Console::clear() {
-		// noop
+	String string_format(cChar* f, va_list arg);
+
+	static Console* _default_console = nullptr;
+
+	void Console::log(cString& str, cChar* tag, bool feed) {
+		if (tag) {
+			printf(feed ? "%s %s\n": "%s %s", tag, str.c_str());
+		} else {
+			printf(feed ? "%s\n": "%s", str.c_str());
+		}
 	}
 
-	Console* _default_console = nullptr;
+	void Console::warn(cString& str, cChar* tag, bool feed) {
+		if (tag) {
+			printf(feed ? "%s %s\n": "%s %s", tag, str.c_str());
+		} else {
+			printf(feed ? "%s\n": "%s", str.c_str());
+		}
+	}
+
+	void Console::error(cString& str, cChar* tag, bool feed) {
+		if (tag) {
+			fprintf(f_stderr, feed ? "%s %s\n": "%s %s", tag, str.c_str());
+		} else {
+			fprintf(f_stderr, feed ? "%s\n": "%s", str.c_str());
+		}
+	}
+
+	void Console::clear() {
+		fflush(stdout);
+		fflush(f_stderr);
+	}
 
 	void Console::set_as_default() {
 		if (_default_console != this) {
@@ -92,210 +104,171 @@ namespace flare {
 		}
 	}
 
-	static Console* default_console() {
+	Console* Console::instance() {
 		if (!_default_console) {
 			New<Console>()->set_as_default();
 		}
 		return _default_console;
 	}
 
-	String string_format(cChar* f, va_list arg);
-
 	namespace console {
+
+		void echo(int8_t msg) {
+			Console::instance()->log( String::format("%u\n", msg) );
+		}
 		
-		void report_error(cChar* format, ...) {
+		void echo(uint8_t msg) {
+			Console::instance()->log( String::format("%u\n", msg) );
+		}
+
+		void echo(int16_t msg) {
+			Console::instance()->log( String::format("%d\n", msg) );
+		}
+
+		void echo(uint16_t  msg) {
+			Console::instance()->log( String::format("%u\n", msg) );
+		}
+
+		void echo(int32_t msg) {
+			Console::instance()->log( String::format("%d\n", msg) );
+		}
+		
+		void echo(uint32_t msg) {
+			Console::instance()->log( String::format("%u\n", msg) );
+		}
+
+		void echo(float msg) {
+			Console::instance()->log( String::format("%f\n", msg) );
+		}
+
+		void echo(double msg) {
+			Console::instance()->log( String::format("%lf\n", msg) );
+		}
+
+		void echo(int64_t msg) {
+			#if F_ARCH_64BIT
+				Console::instance()->log( String::format("%ld\n", msg) );
+			#else
+				Console::instance()->log( String::format("%lld\n", msg) );
+			#endif
+		}
+
+		void echo(uint64_t msg) {
+			#if F_ARCH_64BIT
+				Console::instance()->log( String::format("%lu\n", msg) );
+			#else
+				Console::instance()->log( String::format("%llu\n", msg) );
+			#endif
+		}
+
+		void echo(size_t msg) {
+			#if F_ARCH_64BIT
+				Console::instance()->log( String::format("%lu\n", msg) );
+			#else
+				Console::instance()->log( String::format("%llu\n", msg) );
+			#endif
+		}
+
+		void echo(bool msg) {
+			Console::instance()->log( msg ? "true\n": "false\n" );
+		}
+
+		void echo(cChar* format, ...) {
 			F_STRING_FORMAT(format, str);
-			printf("%s", str.c_str());
+			Console::instance()->log(str, nullptr, true);
+		}
+
+		void echo(cString& msg) {
+			Console::instance()->log(msg, nullptr, true);
 		}
 		
-		// Attempts to dump a backtrace (if supported).
-		void dump_backtrace() {
-			#if F_VLIBC_GLIBC || F_BSD
-				void* trace[100];
-				int size = backtrace(trace, 100);
-				report_error("\n==== C stack trace ===============================\n\n");
-				if (size == 0) {
-					report_error("(empty)\n");
-				} else {
-					for (int i = 1; i < size; ++i) {
-						report_error("%2d: ", i);
-						Dl_info info;
-						Char* demangled = NULL;
-						if (!dladdr(trace[i], &info) || !info.dli_sname) {
-							report_error("%p\n", trace[i]);
-						} else if ((demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, 0))) {
-							report_error("%s\n", demangled);
-							free(demangled);
-						} else {
-							report_error("%s\n", info.dli_sname);
-						}
-					}
-				}
-			#elif F_QNX
-				Char out[1024];
-				bt_accessor_t acc;
-				bt_memmap_t memmap;
-				bt_init_accessor(&acc, BT_SELF);
-				bt_load_memmap(&acc, &memmap);
-				bt_sprn_memmap(&memmap, out, sizeof(out));
-				error(out);
-				bt_addr_t trace[100];
-				int size = bt_get_backtrace(&acc, trace, 100);
-				report_error("\n==== C stack trace ===============================\n\n");
-				if (size == 0) {
-					report_error("(empty)\n");
-				} else {
-					bt_sprnf_addrs(&memmap, trace, size, const_cast<Char*>("%a\n"),
-												out, sizeof(out), NULL);
-					report_error(out);
-				}
-				bt_unload_memmap(&memmap);
-				bt_release_accessor(&acc);
-			#endif  // F_VLIBC_GLIBC || F_BSD
-		}
-		
-		void log(Char msg) {
-			default_console()->log( String::format("%u", msg) );
-		}
-		
-		void log(uint8_t msg) {
-			default_console()->log( String::format("%u", msg) );
+		void echo(cString16& msg) {
+			Console::instance()->log(Coder::encode(Encoding::utf8, msg), nullptr, true);
 		}
 
-		void log(int16_t msg) {
-			default_console()->log( String::format("%d", msg) );
-		}
-
-		void log(uint16_t  msg) {
-			default_console()->log( String::format("%u", msg) );
-		}
-
-		void log(int32_t msg) {
-			default_console()->log( String::format("%d", msg) );
-		}
-		
-		void log(uint32_t msg) {
-			default_console()->log( String::format("%u", msg) );
-		}
-
-		void log(float msg) {
-			default_console()->log( String::format("%f", msg) );
-		}
-
-		void log(double msg) {
-			default_console()->log( String::format("%lf", msg) );
-		}
-
-		void log(int64_t msg) {
-			#if F_ARCH_64BIT
-				default_console()->log( String::format("%ld", msg) );
-			#else
-				default_console()->log( String::format("%lld", msg) );
-			#endif
-		}
-		
-		// #if F_ARCH_32BIT
-		// 	void log(long msg) {
-		// 		default_console()->log( String::format("%ld", msg) );
-		// 	}
-		// 	void log(unsigned long msg) {
-		// 		default_console()->log( String::format("%lu", msg) );
-		// 	}
-		// #endif
-
-		void log(uint64_t msg) {
-			#if F_ARCH_64BIT
-				default_console()->log( String::format("%lu", msg) );
-			#else
-				default_console()->log( String::format("%llu", msg) );
-			#endif
-		}
-	
-		void log(size_t msg) {
-			#if F_ARCH_64BIT
-				default_console()->log( String::format("%lu", msg) );
-			#else
-				default_console()->log( String::format("%llu", msg) );
-			#endif
-		}
-
-		void log(bool msg) {
-			default_console()->log( msg ? "true": "false" );
-		}
-		
 		void log(cChar* tag, cChar* format, ...) {
 			F_STRING_FORMAT(format, str);
-			default_console()->log(str, tag);
+			Console::instance()->log(str, tag, true);
 		}
 		
-		void log(cString& msg) {
-			default_console()->log(msg);
-		}
-		
-		void log(cString16& msg) {
-			default_console()->log(Coder::encode(Encoding::utf8, msg));
-		}
-
 		void warn(cChar* tag, cChar* format, ...) {
 			F_STRING_FORMAT(format, str);
-			default_console()->warn(str, tag);
-		}
-		
-		void warn(cString& str) {
-			default_console()->warn(str);
+			Console::instance()->warn(str, tag, true);
 		}
 		
 		void error(cChar* tag, cChar* format, ...) {
 			F_STRING_FORMAT(format, str);
-			default_console()->error(str, tag);
+			Console::instance()->error(str, tag, true);
 		}
 		
 		void error(cChar* tag, const Error& err) {
 			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), err.message().c_str());
-			default_console()->error(str, tag);
+			Console::instance()->error(str, tag, true);
 		}
 
-		void error(cString& str) {
-			default_console()->error(str);
-		}
+	}
 
-		void print(cChar* format, ...) {
-			F_STRING_FORMAT(format, str);
-			default_console()->print(str);
-		}
+	static void report_error(cChar* format, ...) {
+		F_STRING_FORMAT(format, str);
+		printf("%s", str.c_str());
+	}
 
-		void print(cString& str) {
-			default_console()->print(str);
-		}
-		
-		void print_err(cChar* format, ...) {
-			F_STRING_FORMAT(format, str);
-			default_console()->print_err(str);
-		}
-		
-		void print_err(cString& str) {
-			default_console()->print_err(str);
-		}
-		
-		void clear() {
-			default_console()->clear();
-		}
-		
-	} // end namescape console {
-
+	// Attempts to dump a backtrace (if supported).
+	static void dump_backtrace() {
+		#if F_VLIBC_GLIBC || F_BSD
+			void* trace[100];
+			int size = backtrace(trace, 100);
+			report_error("\n==== C stack trace ===============================\n\n");
+			if (size == 0) {
+				report_error("(empty)\n");
+			} else {
+				for (int i = 1; i < size; ++i) {
+					report_error("%2d: ", i);
+					Dl_info info;
+					Char* demangled = NULL;
+					if (!dladdr(trace[i], &info) || !info.dli_sname) {
+						report_error("%p\n", trace[i]);
+					} else if ((demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, 0))) {
+						report_error("%s\n", demangled);
+						free(demangled);
+					} else {
+						report_error("%s\n", info.dli_sname);
+					}
+				}
+			}
+		#elif F_QNX
+			Char out[1024];
+			bt_accessor_t acc;
+			bt_memmap_t memmap;
+			bt_init_accessor(&acc, BT_SELF);
+			bt_load_memmap(&acc, &memmap);
+			bt_sprn_memmap(&memmap, out, sizeof(out));
+			error(out);
+			bt_addr_t trace[100];
+			int size = bt_get_backtrace(&acc, trace, 100);
+			report_error("\n==== C stack trace ===============================\n\n");
+			if (size == 0) {
+				report_error("(empty)\n");
+			} else {
+				bt_sprnf_addrs(&memmap, trace, size, const_cast<Char*>("%a\n"),
+											out, sizeof(out), NULL);
+				report_error(out);
+			}
+			bt_unload_memmap(&memmap);
+			bt_release_accessor(&acc);
+		#endif  // F_VLIBC_GLIBC || F_BSD
+	}
 
 	void fatal(cChar* file, uint32_t line, cChar* func, cChar* msg, ...) {
-		fflush(stdout);
-		fflush(fx_stderr);
+		Console::instance()->clear();
 		if (msg) {
 			F_STRING_FORMAT(msg, str);
-			default_console()->print_err("\n\n\n");
-			default_console()->error(str);
+			Console::instance()->error("\n\n\n");
+			Console::instance()->error(str, nullptr, true);
 		}
-		console::report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
-		console::dump_backtrace();
-		fflush(stdout);
-		fflush(fx_stderr);
+		report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
+		dump_backtrace();
+		Console::instance()->clear();
 		IMMEDIATE_CRASH();
 	}
 

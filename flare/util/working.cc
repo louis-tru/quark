@@ -81,7 +81,7 @@ namespace flare {
 			for (auto& i : childs) {
 				Thread::join(i.key);
 			}
-			DLOG("WORKING", "ParallelWorking::abort_child() ok, count: %d", childs.length());
+			F_DEBUG(WORKING, "ParallelWorking::abort_child() ok, count: %d", childs.length());
 		} else {
 			{
 				ScopeLock scope(_mutex2);
@@ -90,7 +90,7 @@ namespace flare {
 			}
 			Thread::abort(id);
 			Thread::join(id);
-			DLOG("WORKING", "ParallelWorking::abort_child(id) ok");
+			F_DEBUG(WORKING, "ParallelWorking::abort_child(id) ok");
 		}
 	}
 

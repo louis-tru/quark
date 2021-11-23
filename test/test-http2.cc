@@ -42,36 +42,36 @@ class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
 	}
 	
 	virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
-		LOG("trigger_http_error, %s", *error.message());
+		F_LOG("trigger_http_error, %s", *error.message());
 	}
 	virtual void trigger_http_write(HttpClientRequest* req) {
-		LOG("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		F_LOG("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
 	}
 	virtual void trigger_http_header(HttpClientRequest* req) {
-		LOG("Header: %d", status_code());
+		F_LOG("Header: %d", status_code());
 		for ( auto& i : get_all_response_headers() ) {
-			LOG("  %s: %s", i.key.c_str(), i.value.c_str());
+			F_LOG("  %s: %s", i.key.c_str(), i.value.c_str());
 		}
-		LOG("");
+		F_LOG("");
 	}
 	virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
-		LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
-		LOG( String(buffer.val(), buffer.length()) );
+		F_LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		F_LOG( String(buffer.val(), buffer.length()) );
 	}
 	virtual void trigger_http_end(HttpClientRequest* req) {
-		LOG("http_end, status: %d, %s", status_code(), url().c_str());
+		F_LOG("http_end, status: %d, %s", status_code(), url().c_str());
 		// LOG( FileHelper::read_file_sync(Path::documents("http.cc")) );
 		release();
 		//RunLoop::current()->stop();
 	}
 	virtual void trigger_http_readystate_change(HttpClientRequest* req) {
-		LOG( "http_readystate_change, %d", ready_state() );
+		F_LOG("http_readystate_change, %d", ready_state() );
 	}
 	virtual void trigger_http_timeout(HttpClientRequest* req) {
-		LOG( "trigger_http_timeout" );
+		F_LOG("trigger_http_timeout" );
 	}
 	virtual void trigger_http_abort(HttpClientRequest* req) {
-		LOG( "trigger_http_abort" );
+		F_LOG("trigger_http_abort" );
 	}
 	
 	int count;

@@ -65,7 +65,7 @@ static void addEventListener_1(
 			ev->setPrivateData(cast); // set data cast func
 		Local<JSValue> args[2] = { ev->that(), worker->New(true) };
 		
-		DLOG("JsView", "addEventListener_1, %s, EventType: %s", *func, *evt.name());
+		F_DEBUG(JsView, "addEventListener_1, %s, EventType: %s", *func, *evt.name());
 
 		// call js trigger func
 		Local<JSValue> r = wrap->call( worker->New(func,1), 2, args );
@@ -119,7 +119,7 @@ bool WrapViewBase::removeEventListener(cString& name, int id) {
 		return false;
 	}
 	
-	DLOG("JsView", "removeEventListener, name:%s, id:%d", *name, id);
+	F_DEBUG(JsView, "removeEventListener, name:%s, id:%d", *name, id);
 	
 	auto wrap = reinterpret_cast<Wrap<View>*>(this);
 	wrap->self()->remove_event_listener(i.value(), id); // off event listener

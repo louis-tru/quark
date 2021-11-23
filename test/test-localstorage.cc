@@ -34,26 +34,26 @@ using namespace flare;
 
 void test_localstorage(int argc, char **argv) {
 	
-	LOG(storage_get("test2"));
+	F_LOG(storage_get("test2"));
 	
 	storage_set("test", "flare.cool");
 	
-	LOG(storage_get("test"));
+	F_LOG(storage_get("test"));
 	
 	storage_delete("test");
 	
-	LOG(storage_get("test"));
+	F_LOG(storage_get("test"));
 	
 	storage_set("test", "flare.cool");
 	
-	LOG(storage_get("test"));
+	F_LOG(storage_get("test"));
 	
 	storage_clear();
 	
-	LOG(storage_get("test"));
+	F_LOG(storage_get("test"));
 	
 	storage_set("test2", "test2");
 	
-	LOG(storage_get("test2"));
+	F_LOG(storage_get("test2"));
 	
 }

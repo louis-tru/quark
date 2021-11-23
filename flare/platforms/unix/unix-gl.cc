@@ -59,7 +59,7 @@ namespace flare {
 			#else
 				display = eglGetDisplay(__get_x11_display());
 			#endif
-			F_DEBUG("eglGetDisplay, %p", display);
+			F_DEBUG(GL, "eglGetDisplay, %p", display);
 			F_ASSERT(display != EGL_NO_DISPLAY);
 			EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
 			F_ASSERT(displayState, "Cannot initialize EGL");
@@ -112,7 +112,7 @@ namespace flare {
 			}
 		}
 
-		F_DEBUG("numConfigs,%d", numConfigs);
+		F_DEBUG(GL, "numConfigs,%d", numConfigs);
 
 		// then we create array large enough to store all configs
 		Array<EGLConfig> supportedConfigs(numConfigs);
@@ -143,7 +143,7 @@ namespace flare {
 				&& (multisample <= 1 || sa >= multisample)
 			;
 			if ( hasMatch ) {
-				F_DEBUG("hasMatch,%d", configIndex);
+				F_DEBUG(GL, "hasMatch,%d", configIndex);
 				config = supportedConfigs[configIndex];
 				break;
 			}
@@ -331,7 +331,7 @@ namespace flare {
 		EGLSurface surface = eglCreateWindowSurface(_display, _config, window, nullptr);
 
 		if ( !surface ) {
-			F_ERR("GL", "Unable to create a drawing surface");
+			F_ERR(GL, "Unable to create a drawing surface");
 			return false;
 		}
 
@@ -339,7 +339,7 @@ namespace flare {
 
 		#define CHECK(ok) \
 			if ( !(ok) ) { \
-				F_ERR("GL", "Unable to make egl current"); \
+				F_ERR(GL, "Unable to make egl current"); \
 				eglDestroySurface(_display, surface); \
 				return false; \
 			}
@@ -450,13 +450,13 @@ namespace flare {
 
 		// Test the framebuffer for completeness.
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			F_ERR("GL", "failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
+			F_ERR(GL, "failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 		}
 
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-		DLOG("GL", "GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+		F_DEBUG(GL, "GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 	}
 
 	void GLDrawProxy::begin_render() {

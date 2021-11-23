@@ -370,7 +370,7 @@ int test_ffmpeg (int argc, char **argv)
 		ret = av_read_frame(fmt_ctx, &pkt);
 		if (ret < 0) break;
 		AVPacket orig_pkt = pkt;
-		LOG("----------------------------------------------------stream_index:%d", pkt.stream_index);
+		F_LOG("FF", "----------------------------------------------------stream_index:%d", pkt.stream_index);
 		do {
 			ret = decode_packet(&got_frame, 0);
 			if (ret < 0)

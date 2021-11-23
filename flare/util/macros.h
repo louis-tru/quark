@@ -304,9 +304,10 @@ defined(__DragonFly__)
 		return reinterpret_cast<cls::Inl*>(self); \
 	} class cls::Inl: public cls
 
-#define F_LOG(tag, msg, ...)      flare::console::log(tag, msg, ##__VA_ARGS__)
-#define F_WARN(tag, msg, ...)     flare::console::warn(tag, msg, ##__VA_ARGS__)
-#define F_ERR(tag, msg, ...)      flare::console::error(tag, msg, ##__VA_ARGS__)
+#define F_ECHO(msg, ...)     flare::console::echo(msg, ##__VA_ARGS__)
+#define F_LOG(tag, msg, ...) flare::console::log(#tag, msg, ##__VA_ARGS__)
+#define F_WARN(tag, msg, ...)flare::console::warn(#tag, msg, ##__VA_ARGS__)
+#define F_ERR(tag, msg, ...) flare::console::error(#tag, msg, ##__VA_ARGS__)
 #define F_FATAL(...)         flare::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #define F_UNIMPLEMENTED()    F_FATAL("Unimplemented code")
 #define F_UNREACHABLE()      F_FATAL("Unreachable code")
@@ -316,10 +317,8 @@ defined(__DragonFly__)
 #if DEBUG || F_MORE_LOG
 # define F_DEBUG F_LOG
 #else
-# define F_DEBUG(msg, ...) ((void)0)
+# define F_DEBUG(tag, msg, ...) ((void)0)
 #endif
-
-#define DLOG F_DEBUG
 
 // ------------------------------------------------------------------
 

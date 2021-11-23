@@ -347,7 +347,7 @@ namespace flare {
 				if ( fmt_ctx ) {
 					avformat_close_input(&fmt_ctx);
 				}
-				F_DEBUG("free ffmpeg AVFormatContext");
+				F_DEBUG(MEDIA, "free ffmpeg AVFormatContext");
 			});
 			
 			int r;
@@ -506,7 +506,7 @@ namespace flare {
 				SampleData& d1 = ex->_sample_data_cache[(i1 + len) % len];
 				data.time = d1.time + d1.time - d0.time;
 				data.d_time =  d1.d_time + d1.d_time - d0.d_time;
-				F_DEBUG("extractor_push(), time == 0, Correction time: %llu", data.time);
+				F_DEBUG("MEDIA", "extractor_push(), time == 0, Correction time: %llu", data.time);
 			}
 			
 			if ( ex->type() == MEDIA_TYPE_VIDEO ) { // VIDEO
@@ -658,12 +658,12 @@ namespace flare {
 			sleep = 0;
 
 			if (t.is_abort()) {
-				F_DEBUG("read_frame() abort break;"); break;
+				F_DEBUG(MEDIA, "read_frame() abort break;"); break;
 			}
 
 			if ( ok < 0 ) { // err or end
 				if ( AVERROR_EOF == ok ) {
-					F_DEBUG("read_frame() eof break;");
+					F_DEBUG(MEDIA, "read_frame() eof break;");
 					
 					post(Cb([this](CbData& d) {
 						ScopeLock scope(mutex());
@@ -672,12 +672,12 @@ namespace flare {
 					}));
 					
 				} else {
-					F_DEBUG("read_frame() error break;");
+					F_DEBUG(MEDIA, "read_frame() error break;");
 					
 					Char err_desc[AV_ERROR_MAX_STRING_SIZE] = {0};
 					av_make_error_string(err_desc, AV_ERROR_MAX_STRING_SIZE, ok);
 					
-					F_ERR("MEDIA", "%s", err_desc);
+					F_ERR(MEDIA, "%s", err_desc);
 					
 					Error err(ERR_MEDIA_NETWORK_ERROR,
 										"Read source error `%s`, `%s`", err_desc, *uri);
@@ -726,7 +726,7 @@ namespace flare {
 	* @func trigger_error
 	* */
 	void Inl::trigger_error(cError& e) {
-		F_DEBUG("Err, %s", *e.message());
+		F_DEBUG(MEDIA, "Err, %s", e);
 		post(Cb([e, this](CbData& d) {
 			{ ScopeLock scope(mutex());
 				_status = MULTIMEDIA_SOURCE_STATUS_FAULT;
@@ -747,7 +747,7 @@ namespace flare {
 				}
 				_status = MULTIMEDIA_SOURCE_STATUS_WAIT;
 			}
-			F_DEBUG("extractor_advance(), WAIT, 0");
+			F_DEBUG(MEDIA, "extractor_advance(), WAIT, 0");
 			_delegate->multimedia_source_wait_buffer(_host, 0);
 		}));
 	}
@@ -761,7 +761,7 @@ namespace flare {
 				if ( _status != MULTIMEDIA_SOURCE_STATUS_WAIT ) return;
 				_status = MULTIMEDIA_SOURCE_STATUS_READY;
 			}
-			F_DEBUG("extractor_advance(), WAIT, 1");
+			F_DEBUG(MEDIA, "extractor_advance(), WAIT, 1");
 			_delegate->multimedia_source_wait_buffer(_host, 1);
 		}));
 	}

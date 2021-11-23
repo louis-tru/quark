@@ -80,12 +80,12 @@ void ffmpeg_fmt_to_alsa_fmt(AVCodecContext *pCodecCtx, snd_pcm_t *pcm, snd_pcm_h
 			snd_pcm_hw_params_set_format(pcm, params, SND_PCM_FORMAT_S8);
 			break;
 		case AV_SAMPLE_FMT_S16: //signed 16 bits
-			LOG("AV_SAMPLE_FMT_S16");
+			F_LOG("AV_SAMPLE_FMT_S16");
 			//SND_PCM_FORMAT_S16 is ok, not care SND_PCM_FORMAT_S16_LE or SND_PCM_FORMAT_S16_BE
 			snd_pcm_hw_params_set_format(pcm, params, SND_PCM_FORMAT_S16); //SND_PCM_FORMAT_S16_LE
 			break;
 		case AV_SAMPLE_FMT_S16P: //signed 16 bits, planar
-			LOG("AV_SAMPLE_FMT_S16P");
+			F_LOG("AV_SAMPLE_FMT_S16P");
 			//SND_PCM_FORMAT_S16 is ok, not care SND_PCM_FORMAT_S16_LE or SND_PCM_FORMAT_S16_BE
 			snd_pcm_hw_params_set_format(pcm, params, SND_PCM_FORMAT_S16);
 			break;
@@ -107,7 +107,7 @@ int init_ffmpeg_alsa(AudioState* is, char* filepath)
 	is->sndindex = -1;
 
 	if (NULL == filepath) {
-		LOG("input file is NULL");
+		F_LOG("input file is NULL");
 		return -1;
 	}
 
@@ -132,14 +132,14 @@ int init_ffmpeg_alsa(AudioState* is, char* filepath)
 	is->sndindex = av_find_best_stream(
 		is->pFormatCtx, AVMEDIA_TYPE_AUDIO,is->sndindex, is->videoindex, NULL, 0);
 
-	LOG("videoindex=%d, sndindex=%d", is->videoindex, is->sndindex);
+	F_LOG("videoindex=%d, sndindex=%d", is->videoindex, is->sndindex);
 
 	if (is->sndindex != -1) {
 		is->sndCodecCtx = is->pFormatCtx->streams[is->sndindex]->codec;
 		is->sndCodec = avcodec_find_decoder(is->sndCodecCtx->codec_id);
 
 		if (is->sndCodec == NULL) {
-			LOG("Codec not found");
+			F_LOG("Codec not found");
 			return -1;
 		}
 		if (avcodec_open2(is->sndCodecCtx, is->sndCodec, NULL) < 0) {
@@ -152,7 +152,7 @@ int init_ffmpeg_alsa(AudioState* is, char* filepath)
 		ffmpeg_fmt_to_alsa_fmt(is->sndCodecCtx, is->pcm, params);
 		snd_pcm_hw_params_set_channels(is->pcm, params, is->sndCodecCtx->channels);
 		val = is->sndCodecCtx->sample_rate;
-		LOG("is->sndCodecCtx->sample_rate=%d", is->sndCodecCtx->sample_rate);
+		F_LOG("is->sndCodecCtx->sample_rate=%d", is->sndCodecCtx->sample_rate);
 		snd_pcm_hw_params_set_rate_near(is->pcm, params, &val, &dir);
 		snd_pcm_hw_params(is->pcm, params);
 	}
@@ -174,7 +174,7 @@ int test_alsa_ff(int argc, char **argv)
 
 	if ( (ret=init_ffmpeg_alsa(is, argv[1])) != 0 )
 	{
-		LOG("init_ffmpeg error");
+		F_LOG("init_ffmpeg error");
 		return -1;
 	}
 
@@ -185,7 +185,7 @@ int test_alsa_ff(int argc, char **argv)
 		}
 		// decode data is store in frame
 		if ((ret=avcodec_decode_audio4(is->sndCodecCtx, frame, &got_frame, packet)) < 0) {
-			LOG("file eof");
+			F_LOG("file eof");
 			break;
 		}
 		if (got_frame <= 0) { /* No data yet, get more frames */
@@ -197,10 +197,10 @@ int test_alsa_ff(int argc, char **argv)
 				swr_free(&is->swr_ctx);
 			}
 
-			LOG("AV_CH_LAYOUT_STEREO=%d, AV_SAMPLE_FMT_S16=%d, freq=44100", 
+			F_LOG("AV_CH_LAYOUT_STEREO=%d, AV_SAMPLE_FMT_S16=%d, freq=44100", 
 				AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16);
 
-			LOG("frame: channnels=%d, default_layout=%d, format=%d, sample_rate=%d", 
+			F_LOG("frame: channnels=%d, default_layout=%d, format=%d, sample_rate=%d", 
 				frame->channels,
 				av_get_default_channel_layout(frame->channels), 
 				frame->format, 
@@ -216,7 +216,7 @@ int test_alsa_ff(int argc, char **argv)
 			);
 
 			if(is->swr_ctx == NULL) {
-				LOG("swr_ctx == NULL");
+				F_LOG("swr_ctx == NULL");
 			}
 			swr_init(is->swr_ctx);
 		}

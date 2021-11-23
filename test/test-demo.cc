@@ -98,7 +98,7 @@ void test_demo(int argc, char **argv) {
 		}
 	}
 
-	LOG(cmd);
+	F_LOG(cmd);
 
 	js::Start(cmd);
 }
@@ -109,7 +109,7 @@ extern "C" {
 #include <flare/util/android-jni.h>
 	JNIEXPORT extern void
 	Java_org_flare_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		LOG("Java_org_flare_examples_MainActivity_test");
+		F_LOG("Java_org_flare_examples_MainActivity_test");
 	}
 #endif
 }
