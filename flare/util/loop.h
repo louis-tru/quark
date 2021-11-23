@@ -48,7 +48,7 @@ namespace flare {
 	/**
 	* @class PostMessage
 	*/
-	class FX_EXPORT PostMessage {
+	class F_EXPORT PostMessage {
 	 public:
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) = 0;
 	};
@@ -56,8 +56,8 @@ namespace flare {
 	/**
 	* @class RunLoop
 	*/
-	class FX_EXPORT RunLoop: public Object, public PostMessage {
-		FX_HIDDEN_ALL_COPY(RunLoop);
+	class F_EXPORT RunLoop: public Object, public PostMessage {
+		F_HIDDEN_ALL_COPY(RunLoop);
 	 public:
 		
 		/**
@@ -182,8 +182,8 @@ namespace flare {
 		*/
 		virtual ~RunLoop();
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
-		FX_DEFINE_INLINE_CLASS(Inl2);
+		F_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl2);
 		friend class KeepLoop;
 		struct Queue {
 			uint32_t id, group;
@@ -208,10 +208,10 @@ namespace flare {
 	* 这个对像能保持RunLoop的循环不自动终止,除非调用`RunLoop::stop()`
 	* @class KeepLoop
 	*/
-	class FX_EXPORT KeepLoop: public Object, public PostMessage {
-		FX_HIDDEN_ALL_COPY(KeepLoop);
+	class F_EXPORT KeepLoop: public Object, public PostMessage {
+		F_HIDDEN_ALL_COPY(KeepLoop);
 	 public:
-		FX_DEFAULT_ALLOCATOR();
+		F_DEFAULT_ALLOCATOR();
 		/**
 		* @destructor `destructor_clear=true`时会取消通过它`post`的所有消息
 		*/

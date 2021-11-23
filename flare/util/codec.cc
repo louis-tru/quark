@@ -324,19 +324,19 @@ namespace flare {
 					return encode_to_utf8((const uint8_t*)source, len);
 				}
 				case Encoding::utf16: { // 暂时使用ucs2,ucs2不能包括所有字符编码
-					//FX_WARN("%s", "From ascii to ucs2 would be a waste of memory space.");
+					//F_WARN("CODEC", "%s", "From ascii to ucs2 would be a waste of memory space.");
 					return encode_to_ucs2(source, len);
 				}
 				case Encoding::ucs2: {  // 最小2字节编码
-					//FX_WARN("%s", "From ascii to ucs2 would be a waste of memory space.");
+					//F_WARN("CODEC", "%s", "From ascii to ucs2 would be a waste of memory space.");
 					return encode_to_ucs2(source, len);
 				}
 				case Encoding::utf32:
 				case Encoding::ucs4: {  // 最小4字节编码
-					//FX_WARN("%s", "From ascii to ucs4 would be a waste of memory space.");
+					//F_WARN("CODEC", "%s", "From ascii to ucs4 would be a waste of memory space.");
 					return encode_to_ucs4(source, len);
 				}
-				default: FX_ERR("%s", "Unknown encode."); break;
+				default: F_ERR("CODEC", "%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
@@ -346,11 +346,11 @@ namespace flare {
 			
 			switch (target_en) {
 				case Encoding::binary: {
-					//FX_WARN("%s", "Conversion from ucs2 to Binary will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from ucs2 to Binary will lose data.");
 					return encode_to_binary(source, len);
 				}
 				case Encoding::ascii: {  // 会丢失编码
-					//FX_WARN("%s", "Conversion from ucs2 to ASCII will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from ucs2 to ASCII will lose data.");
 					return encode_to_ascii(source, len);
 				}
 				case Encoding::base64: {
@@ -363,19 +363,19 @@ namespace flare {
 					return encode_to_utf8(source, len);
 				}
 				case Encoding::utf16: { // 暂时使用ucs2,ucs2不能包括所有字符编码
-					//FX_WARN("%s", "No need to convert form ucs2 to ucs2.");
+					//F_WARN("CODEC", "%s", "No need to convert form ucs2 to ucs2.");
 					return encode_to_ucs2(source, len);
 				}
 				case Encoding::ucs2: { // 最小2字节编码
-					//FX_WARN("%s", "No need to convert form ucs2 to ucs2.");
+					//F_WARN("CODEC", "%s", "No need to convert form ucs2 to ucs2.");
 					return encode_to_ucs2(source, len);
 				}
 				case Encoding::utf32:
 				case Encoding::ucs4: { // 最小4字节编码
-					//FX_WARN("%s", "From ucs2 to ucs4 would be a waste of memory space.");
+					//F_WARN("CODEC", "%s", "From ucs2 to ucs4 would be a waste of memory space.");
 					return encode_to_ucs4(source, len);
 				}
-				default: FX_ERR("%s", "Unknown encode."); break;
+				default: F_ERR("CODEC", "%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
@@ -385,11 +385,11 @@ namespace flare {
 			
 			switch (target_en) {
 				case Encoding::binary: {
-					//FX_WARN("%s", "Conversion from ucs4 to Binary will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from ucs4 to Binary will lose data.");
 					return encode_to_binary(source, len);
 				}
 				case Encoding::ascii: {  // 会丢失编码
-					//FX_WARN("%s", "Conversion from ucs4 to ASCII will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from ucs4 to ASCII will lose data.");
 					return encode_to_ascii(source, len);
 				}
 				case Encoding::base64: {
@@ -402,19 +402,19 @@ namespace flare {
 					return encode_to_utf8(source, len);
 				}
 				case Encoding::utf16: {    // 暂时使用ucs2,ucs2不能包括所有字符编码
-					//FX_WARN("%s", "Conversion from ucs4 to ucs2 will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from ucs4 to ucs2 will lose data.");
 					return encode_to_ucs2(source, len);
 				}
 				case Encoding::ucs2: {
-					//FX_WARN("%s", "Conversion from ucs4 to ucs2 will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from ucs4 to ucs2 will lose data.");
 					return encode_to_ucs2(source, len);
 				}
 				case Encoding::utf32:
 				case Encoding::ucs4: {
-					//FX_WARN("%s", "No need to convert form ucs4 to ucs4.");
+					//F_WARN("CODEC", "%s", "No need to convert form ucs4 to ucs4.");
 					return encode_to_ucs4(source, len);
 				}
-				default: FX_ERR("%s", "Unknown encode."); break;
+				default: F_ERR("CODEC", "%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
@@ -759,23 +759,23 @@ namespace flare {
 					return decode_from_hex<char>(source, len);
 				}
 				case Encoding::utf8: { // 会丢失ascii外的编码
-					//FX_WARN("%s", "Conversion from utf8 to ascii will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from utf8 to ascii will lose data.");
 					return decode_from_utf8<char>(source, len);
 				}
 				case Encoding::utf16: { // 暂时使用ucs2
-					//FX_WARN("%s", "Conversion from utf16 to ascii will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from utf16 to ascii will lose data.");
 					return decode_from_ucs2<char>(source, len);
 				}
 				case Encoding::ucs2: { // 会丢失ascii外的编码
-					//FX_WARN("%s", "Conversion from ucs2 to ascii will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from ucs2 to ascii will lose data.");
 					return decode_from_ucs2<char>(source, len);
 				}
 				case Encoding::utf32:
 				case Encoding::ucs4: { // 会丢失ascii外的编码
-					//FX_WARN("%s", "Conversion from ucs4 to ascii will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from ucs4 to ascii will lose data.");
 					return decode_from_ucs4<char>(source, len);
 				}
-				default: FX_ERR("%s", "Unknown encode."); break;
+				default: F_ERR("CODEC", "%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
@@ -795,23 +795,23 @@ namespace flare {
 					return decode_from_hex<uint16_t>(source, len);
 				}
 				case Encoding::utf8: { // 会丢失ucs2外的编码
-					// FX_WARN("%s", "Conversion from utf8 to ucs2 will lose data.");
+					// F_WARN("CODEC", "%s", "Conversion from utf8 to ucs2 will lose data.");
 					return decode_from_utf8<uint16_t>(source, len);
 				}
 				case Encoding::utf16: { // 暂时使用ucs2
-					//FX_WARN("%s", "Conversion from utf16 to ucs2 will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from utf16 to ucs2 will lose data.");
 					return decode_from_ucs2<uint16_t>(source, len);
 				}
 				case Encoding::ucs2: { //
-					//FX_WARN("%s", "No need to convert form ucs2 to ucs2.");
+					//F_WARN("CODEC", "%s", "No need to convert form ucs2 to ucs2.");
 					return decode_from_ucs2<uint16_t>(source, len);
 				}
 				case Encoding::utf32:
 				case Encoding::ucs4: { // 会丢失ucs2外的编码
-					//FX_WARN("%s", "Conversion from ucs4 to ucs2 will lose data.");
+					//F_WARN("CODEC", "%s", "Conversion from ucs4 to ucs2 will lose data.");
 					return decode_from_ucs4<uint16_t>(source, len);
 				}
-				default: FX_ERR("%s", "Unknown encode."); break;
+				default: F_ERR("CODEC", "%s", "Unknown encode."); break;
 			}
 			return ArrayBuffer<uint16_t>();
 		}
@@ -839,11 +839,11 @@ namespace flare {
 				}
 				case Encoding::utf32:
 				case Encoding::ucs4: {
-					//FX_WARN("%s", "No need to convert form ucs4 to ucs4.");
+					//F_WARN("CODEC", "%s", "No need to convert form ucs4 to ucs4.");
 					return decode_from_ucs4<uint32_t>(source, len);
 					break;
 				}
-				default: FX_ERR("%s", "Unknown encode."); break;
+				default: F_ERR("CODEC", "%s", "Unknown encode."); break;
 			}
 			return ArrayBuffer<uint32_t>();
 		}

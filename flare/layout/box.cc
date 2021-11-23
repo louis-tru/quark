@@ -587,8 +587,8 @@ namespace flare {
 		Region dre = app()->display()->display_region();
 		Region re = screen_region_from_convex_quadrilateral(vertex);
 		
-		if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) <= re.height + dre.height &&
-				FX_MAX( dre.x2, re.x2 ) - FX_MIN( dre.x, re.x ) <= re.width + dre.width
+		if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) <= re.height + dre.height &&
+				F_MAX( dre.x2, re.x2 ) - F_MIN( dre.x, re.x ) <= re.width + dre.width
 		) {
 			visible = true;
 		}

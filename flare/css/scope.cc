@@ -43,11 +43,11 @@ namespace flare {
 		auto wrap = _style_sheets_map[root_styles()] = { root_styles(), 1 };
 		_style_sheets.push_back({ &wrap, 1 });
 		push_all_scope(this, scope);
-		FX_DEBUG("use StyleSheetsScope");
+		F_DEBUG("use StyleSheetsScope");
 	}
 
 	void StyleSheetsScope::push_scope(View* scope) {
-		ASSERT(scope);
+		F_ASSERT(scope);
 		StyleSheetsClass* classs = scope->classs();
 		if ( classs && classs->has_child() ) {
 			for ( auto& i : classs->child_style_sheets() ) {
@@ -71,9 +71,9 @@ namespace flare {
 			if ( classs && classs->has_child() ) {
 				int count = classs->child_style_sheets().length();
 				for ( int i = 0; i < count; i++ ) {
-					ASSERT( _style_sheets.length() > 1 );
+					F_ASSERT( _style_sheets.length() > 1 );
 					Scope scope = _style_sheets.back();
-					ASSERT( scope.wrap->ref == scope.ref );
+					F_ASSERT( scope.wrap->ref == scope.ref );
 					if ( scope.ref == 1 ) {
 						_style_sheets_map.erase(scope.wrap->sheets);
 					} else {

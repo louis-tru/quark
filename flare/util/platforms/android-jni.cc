@@ -62,12 +62,12 @@ namespace flare {
 	*/
 
 	JNI::ScopeENV::ScopeENV(): _env(NULL), _is_attach(false) {
-		ASSERT( javavm );
+		F_ASSERT( javavm );
 		
 		if (  javavm->GetEnv((void**)&_env, JNI_VERSION_1_6) != JNI_OK ) {
 			jint result;
 			result = javavm->AttachCurrentThread(&_env, NULL);
-			ASSERT( result == JNI_OK );
+			F_ASSERT( result == JNI_OK );
 			_is_attach = true;
 		}
 	}
@@ -154,7 +154,7 @@ namespace flare {
 
 extern "C" 
 {
-	FX_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+	F_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 		javavm = vm;
 		flare::Android::initialize();
 		(new flare::AndroidConsole())->set_as_default();

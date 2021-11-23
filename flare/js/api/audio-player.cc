@@ -106,9 +106,9 @@ static void addEventListener_1(Wrap<Self>* wrap, const UIEventName& type,
 		
 		// test:
 		//if (r->IsNumber(worker)) {
-		//  LOG("--------------number,%s", *r->ToStringValue(wrap->worker()));
+		//  F_LOG("--------------number,%s", *r->ToStringValue(wrap->worker()));
 		//} else {
-		//  LOG("--------------string,%s", *r->ToStringValue(wrap->worker()));
+		//  F_LOG("--------------string,%s", *r->ToStringValue(wrap->worker()));
 		//}
 	};
 	

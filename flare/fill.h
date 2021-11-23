@@ -50,7 +50,7 @@ namespace flare {
 	/**
 	* @class BoxFill
 	*/
-	class FX_EXPORT BoxFill: public Reference {
+	class F_EXPORT BoxFill: public Reference {
 	public:
 		
 		enum Type {
@@ -140,13 +140,13 @@ namespace flare {
 		Fill        _next;
 		Box*        _host;
 		HolderMode  _holder_mode;
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
 	 * @class FillColor
 	 */
-	class FX_EXPORT FillColor: public BoxFill {
+	class F_EXPORT FillColor: public BoxFill {
 	public:
 		// TODO ...
 		protected:
@@ -156,7 +156,7 @@ namespace flare {
 	/**
 	* @class FillImage
 	*/
-	class FX_EXPORT FillImage: public BoxFill {
+	class F_EXPORT FillImage: public BoxFill {
 	public:
 		FillImage();
 		virtual ~FillImage();
@@ -189,13 +189,13 @@ namespace flare {
 		FillPosition _position_x, _position_y;
 		FillSize _size_x, _size_y;
 		int _attributes_flags;
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
 	* @class FillGradient
 	*/
-	class FX_EXPORT FillGradient: public BoxFill {
+	class F_EXPORT FillGradient: public BoxFill {
 	public:
 		FillGradient();
 		virtual Type type() const { return M_GRADIENT; }
@@ -207,7 +207,7 @@ namespace flare {
 	/**
 	 * @class FillShadow
 	 */
-	class FX_EXPORT FillShadow: public BoxFill {
+	class F_EXPORT FillShadow: public BoxFill {
 	public:
 		// TODO ...
 		protected:
@@ -217,7 +217,7 @@ namespace flare {
 	/**
 	 * @class FillBorder
 	 */
-	class FX_EXPORT FillBorder: public BoxFill {
+	class F_EXPORT FillBorder: public BoxFill {
 	public:
 		// TODO ...
 	protected:
@@ -229,7 +229,7 @@ namespace flare {
 	/**
 	 * @class FillBorderRadius
 	 */
-	class FX_EXPORT FillBorderRadius: public BoxFill {
+	class F_EXPORT FillBorderRadius: public BoxFill {
 	public:
 		// TODO ...
 	protected:

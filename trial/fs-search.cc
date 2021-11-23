@@ -115,7 +115,7 @@ namespace flare {
 	: SearchPath(path)
 	, m_zip_path(zip_path)
 	, m_zip (zip_path) {
-		ASSERT( m_zip.open(), "Cannot open zip file, `%s`", *zip_path );
+		F_ASSERT( m_zip.open(), "Cannot open zip file, `%s`", *zip_path );
 	}
 
 	FileSearch::ZipInSearchPath::~ZipInSearchPath() {
@@ -132,13 +132,13 @@ namespace flare {
 			} else if (res[res.length() - 1] == '@') {
 				add_zip_search_path(res.substr(0, res.length() - 1), String());
 			} else {
-				FX_WARN("Invalid path, %s", *res);
+				F_WARN("SEARCH", "Invalid path, %s", *res);
 			}
 		} else {
 			if (FileHelper::exists_sync(res)) {
 				add_search_path(res);
 			} else {
-				FX_WARN("Resource directory does not exists, %s", *res);
+				F_WARN("SEARCH", "Resource directory does not exists, %s", *res);
 			}
 		}
 	}
@@ -156,7 +156,7 @@ namespace flare {
 			FileSearch::SearchPath* s = *it;
 			if (!s->as_zip()) {
 				if (s->path() == str) {
-					FX_WARN("The repetitive path, \"%s\"", *path);
+					F_WARN("SEARCH", "The repetitive path, \"%s\"", *path);
 					// Fault tolerance, skip the same path
 					return;
 				}
@@ -168,7 +168,7 @@ namespace flare {
 	void FileSearch::add_zip_search_path(cString& zip_path, cString& path) {
 		String _zip_path = Path::format("%s", *zip_path);
 		String _path = path;
-		#if FX_WIN
+		#if F_WIN
 			_path = path.replace_all('\\', '/');
 		#endif
 		_path = inl_format_part_path(path);
@@ -179,7 +179,7 @@ namespace flare {
 			if ((*it)->as_zip()) {
 				FileSearch::ZipInSearchPath* s = (*it)->as_zip();
 				if (s->zip_path() == _zip_path && s->path() == _path) {
-					FX_WARN("The repetitive path, ZIP: %s, %s", *zip_path, *path);
+					F_WARN("SEARCH", "The repetitive path, ZIP: %s, %s", *zip_path, *path);
 					// Fault tolerance,skip the same path
 					return;
 				}
@@ -233,7 +233,7 @@ namespace flare {
 	String FileSearch::get_absolute_path(cString& path) const {
 		
 		if (path.is_empty()) {
-			FX_WARN("Search path cannot be a empty and null");
+			F_WARN("SEARCH", "Search path cannot be a empty and null");
 			return String();
 		}
 		

@@ -48,7 +48,7 @@ namespace flare {
 	/**
 	* @class FontFamilysID
 	*/
-	class FX_EXPORT FontFamilysID {
+	class F_EXPORT FontFamilysID {
 	public:
 		inline const Array<String>& names() const { return _names; }
 		inline cString& name() const { return _name; }
@@ -61,14 +61,14 @@ namespace flare {
 		String              _name;
 		uint32_t            _code;
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		friend class FontPool;
 	};
 
 	/**
 	* @class BaseFont
 	*/
-	class FX_EXPORT BaseFont: public Object {
+	class F_EXPORT BaseFont: public Object {
 	public:
 		virtual cString& name() const = 0;
 		virtual Font* font(TextStyleValue style = TextStyleValue::NORMAL, TextWeightValue weight = TextWeightValue::REGULAR) = 0;
@@ -78,8 +78,8 @@ namespace flare {
 	* @class Font 矢量字体
 	* 暂时只支持unicode编码中第0平面最常用的编码(0x0000-0xFFFF)
 	*/
-	class FX_EXPORT Font: public BaseFont {
-		FX_HIDDEN_ALL_COPY(Font);
+	class F_EXPORT Font: public BaseFont {
+		F_HIDDEN_ALL_COPY(Font);
 	protected:
 
 		inline Font() {}
@@ -190,7 +190,7 @@ namespace flare {
 		void*         _ft_lib;       /* FT_Library */
 		void*         _ft_face;      /* FT_Face */
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		
 		friend class FontGlyph;
 		friend class FontGlyphTable;
@@ -201,7 +201,7 @@ namespace flare {
 	/**
 	* @class FontGlyph # 字体中一个文字的字型轮廓
 	*/
-	class FX_EXPORT FontGlyph {
+	class F_EXPORT FontGlyph {
 	public:
 		
 		/**
@@ -278,7 +278,7 @@ namespace flare {
 		* @func has_tex_level
 		*/
 		inline bool has_texure_level(TexureLevel level) {
-			ASSERT(level < LEVEL_NONE);
+			F_ASSERT(level < LEVEL_NONE);
 			return _textures[level];
 		}
 		
@@ -310,7 +310,7 @@ namespace flare {
 	/**
 	* @class FontGlyphTable
 	*/
-	class FX_EXPORT FontGlyphTable: public Object {
+	class F_EXPORT FontGlyphTable: public Object {
 		public:
 		
 		virtual ~FontGlyphTable();
@@ -374,7 +374,7 @@ namespace flare {
 		TextWeightValue _weight;
 		int _height, _ascender, _descender;
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		
 		friend class FontPool;
 	};
@@ -382,8 +382,8 @@ namespace flare {
 	/**
 	* @class FontFamily 字体家族
 	*/
-	class FX_EXPORT FontFamily: public BaseFont {
-		FX_HIDDEN_ALL_COPY(FontFamily);
+	class F_EXPORT FontFamily: public BaseFont {
+		F_HIDDEN_ALL_COPY(FontFamily);
 		public:
 		
 		/**
@@ -415,7 +415,7 @@ namespace flare {
 		Font*         _fonts[19];
 		Array<Font*>  _all_fonts;
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		friend class FontPool;
 	};
 

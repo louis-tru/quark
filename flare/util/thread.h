@@ -47,15 +47,15 @@ namespace flare {
 	typedef std::unique_lock<Mutex> Lock;
 	typedef std::condition_variable Condition;
 
-	template<> FX_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
+	template<> F_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
 
 	class RunLoop;
 
 	/**
 	* @class Thread
 	*/
-	class FX_EXPORT Thread {
-		FX_HIDDEN_ALL_COPY(Thread);
+	class F_EXPORT Thread {
+		F_HIDDEN_ALL_COPY(Thread);
 	 public:
 		typedef ThreadID ID;
 		typedef NonObjectTraits Traits;
@@ -75,7 +75,7 @@ namespace flare {
 	 private:
 		Thread();
 		~Thread();
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		bool  _abort;
 		Mutex _mutex;
 		Condition _cond;

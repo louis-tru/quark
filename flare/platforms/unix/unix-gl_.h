@@ -33,7 +33,7 @@
 
 #include "flare/util/macros.h"
 
-#if FX_UNIX || FX_ANDROID
+#if F_UNIX || F_ANDROID
 
 #include "flare/render/gl.h"
 #include <EGL/egl.h>

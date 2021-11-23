@@ -207,7 +207,7 @@ namespace flare {
 	/**
 	* @class KeyboardAdapter
 	*/
-	class FX_EXPORT KeyboardAdapter: public Object {
+	class F_EXPORT KeyboardAdapter: public Object {
 	 public:
 
 		KeyboardAdapter();

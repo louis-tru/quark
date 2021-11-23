@@ -41,11 +41,11 @@ namespace flare {
 	/**
 	* @calss Socket
 	*/
-	class FX_EXPORT Socket: public Object {
-		FX_HIDDEN_ALL_COPY(Socket);
+	class F_EXPORT Socket: public Object {
+		F_HIDDEN_ALL_COPY(Socket);
 	 public:
 		
-		class FX_EXPORT Delegate {
+		class F_EXPORT Delegate {
 			public:
 			virtual void trigger_socket_open(Socket* socket) = 0;
 			virtual void trigger_socket_close(Socket* socket) = 0;
@@ -100,7 +100,7 @@ namespace flare {
 		virtual void resume();
 		virtual void write(Buffer buffer, int mark = 0);
 
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 
 	 protected:
 		Socket();
@@ -111,7 +111,7 @@ namespace flare {
 	/**
 	* @class SSLSocket
 	*/
-	class FX_EXPORT SSLSocket: public Socket {
+	class F_EXPORT SSLSocket: public Socket {
 	 public:
 		
 		SSLSocket(cString& hostname, uint16_t  port, RunLoop* loop = RunLoop::current());

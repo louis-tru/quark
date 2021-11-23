@@ -35,16 +35,16 @@
 #include <atomic>
 #include <unistd.h>
 
-#if FX_UNIX
+#if F_UNIX
 # include <sys/utsname.h>
 # include <unistd.h>
 #endif
 
-#if FX_ANDROID
+#if F_ANDROID
 # include "../../android.h"
 #endif
 
-#if FX_APPLE
+#if F_APPLE
 # include <mach/mach_time.h>
 # include <mach/mach.h>
 # include <mach/clock.h>
@@ -88,15 +88,15 @@ namespace flare {
 	namespace os {
 
 		String name() {
-			#if  FX_IOS
+			#if  F_IOS
 				static String _name("iOS");
-			#elif  FX_OSX
+			#elif  F_OSX
 				static String _name("MacOSX");
-			#elif  FX_ANDROID
+			#elif  F_ANDROID
 				static String _name("Android");
-			#elif  FX_WIN
+			#elif  F_WIN
 				static String _name("Windows");
-			#elif  FX_LINUX
+			#elif  F_LINUX
 				static String _name("Linux");
 			#else
 				# error no support
@@ -104,7 +104,7 @@ namespace flare {
 			return _name;
 		}
 
-		#if FX_UNIX
+		#if F_UNIX
 			static String* info_str = nullptr;
 
 			String info() {
@@ -152,7 +152,7 @@ namespace flare {
 				String lang;
 			};
 
-		#if FX_APPLE
+		#if F_APPLE
 			void get_languages_(String& langs, String& lang);
 		#endif
 
@@ -160,13 +160,13 @@ namespace flare {
 		static language_t* get_languages() {
 			if (!langs_) {
 				langs_ = new language_t();
-			#if FX_IOS
+			#if F_IOS
 				langs_ = new language_t();
 				get_languages_(langs_->langs, langs_->lang);
-			#elif FX_ANDROID
+			#elif F_ANDROID
 				langs_->langs = Android::language();
 				langs_->lang = langs_->langs;
-			#elif FX_LINUX
+			#elif F_LINUX
 				cChar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
 				if ( lang ) {
 					langs_->langs = String(lang).split('.')[0];
@@ -197,7 +197,7 @@ namespace flare {
 			return network_status() >= 3;
 		}
 
-		#if FX_LINUX || FX_ANDROID
+		#if F_LINUX || F_ANDROID
 
 			static std::atomic_int priv_cpu_total_count(0);
 			static std::atomic_int priv_cpu_usage_count(0);

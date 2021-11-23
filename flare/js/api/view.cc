@@ -910,7 +910,7 @@ class WrapView: public WrapViewBase {
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 	//  #define SET_FIELD(enum, class, name) JS_SET_PROPERTY(enum, View::enum);
-	// 	FX_EACH_VIEWS(SET_FIELD)
+	// 	F_EACH_VIEWS(SET_FIELD)
 	//  #undef SET_FIELD
 
 		JS_DEFINE_CLASS(View, constructor, {

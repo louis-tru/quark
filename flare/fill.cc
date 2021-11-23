@@ -34,7 +34,7 @@
 
 namespace flare {
 
-	FX_DEFINE_INLINE_MEMBERS(BoxFill, Inl) {
+	F_DEFINE_INLINE_MEMBERS(BoxFill, Inl) {
 	public:
 		#define _inl(self) static_cast<BoxFill::Inl*>(static_cast<BoxFill*>(self))
 		
@@ -68,7 +68,7 @@ namespace flare {
 								left->release();
 							}
 							bool ok = new_left->retain();
-							ASSERT(ok);
+							F_ASSERT(ok);
 						}
 						return new_left;
 					}
@@ -109,7 +109,7 @@ namespace flare {
 	void BoxFill::set_next(BoxFill* value) {
 		if (value != _next) {
 			if (_inl(this)->check_loop_reference(value)) {
-				FX_ERR("Box background loop reference error");
+				F_ERR("FILL", "Box background loop reference error");
 			} else {
 				_inl(this)->set_next(value);
 			}
@@ -123,7 +123,7 @@ namespace flare {
 			return left;
 		} else {
 			if (left && right && _inl(left)->check_loop_reference(right->_next)) {
-				FX_ERR("Box background loop reference error");
+				F_ERR("FILL", "Box background loop reference error");
 				return left;
 			} else {
 				return Inl::assign(left, right);
@@ -184,7 +184,7 @@ namespace flare {
 		BI_flag_size_y = (1 << 6),
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(FillImage, Inl) {
+	F_DEFINE_INLINE_MEMBERS(FillImage, Inl) {
 		public:
 		#define _inl2(self) static_cast<FillImage::Inl*>(self)
 
@@ -200,7 +200,7 @@ namespace flare {
 			auto pool = tex_pool();
 			if (pool) {
 				if (_has_base64_src) {
-					FX_UNIMPLEMENTED(); // TODO ...
+					F_UNIMPLEMENTED(); // TODO ...
 				} else {
 					set_texture(pool->get_texture(_src));
 				}
@@ -241,7 +241,7 @@ namespace flare {
 
 	FillImage::~FillImage() {
 		if (_texture) {
-			_texture->FX_Off(change, &Inl::texture_change_handle, _inl2(this));
+			_texture->F_Off(change, &Inl::texture_change_handle, _inl2(this));
 			_texture->release(); // 释放纹理
 		}
 	}
@@ -279,13 +279,13 @@ namespace flare {
 	void FillImage::set_texture(Texture* value) {
 		if (value != _texture) {
 			if (_texture) {
-				_texture->FX_Off(change, &Inl::texture_change_handle, _inl2(this));
+				_texture->F_Off(change, &Inl::texture_change_handle, _inl2(this));
 				_texture->release(); // 释放
 			}
 			_texture = value;
 			if (value) {
 				_texture->retain(); // 保持
-				_texture->FX_On(change, &Inl::texture_change_handle, _inl2(this));
+				_texture->F_On(change, &Inl::texture_change_handle, _inl2(this));
 			}
 			mark(View::M_BACKGROUND);
 			_attributes_flags |= BI_flag_texture;
@@ -433,8 +433,8 @@ namespace flare {
 		float tex_screen_width = final_size_x * box_screen_scale_width;
 		float tex_screen_height = final_size_y * box_screen_scale_height;
 		
-		float ratio = (tex->width() / FX_MAX(tex_screen_width, 16) +
-									tex->height() / FX_MAX(tex_screen_height, 16)) / 2 / dpscale;
+		float ratio = (tex->width() / F_MAX(tex_screen_width, 16) +
+									tex->height() / F_MAX(tex_screen_height, 16)) / 2 / dpscale;
 		
 		level = tex->get_texture_level(floorf(ratio));
 		

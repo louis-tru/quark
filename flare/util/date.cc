@@ -96,7 +96,7 @@ namespace flare {
 	#define ISDIGIT(x)  (isdigit((int)  ((unsigned char)x)))
 	#define ISALNUM(x)  (isalnum((int)  ((unsigned char)x)))
 
-	#if FX_WIN
+	#if F_WIN
 	# define ERRNO         ((int)GetLastError())
 	# define SET_ERRNO(x)  (SetLastError((DWORD)(x)))
 	#else
@@ -105,7 +105,7 @@ namespace flare {
 	#endif
 
 	/* The size of `time_t', as computed by sizeof. */
-	#if FX_ARCH_64BIT
+	#if F_ARCH_64BIT
 	# define SIZEOF_TIME_T 8
 	#else
 	# define SIZEOF_TIME_T 4

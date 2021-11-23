@@ -32,11 +32,11 @@
 
 #import "flare/util/macros.h"
 
-#if FX_IOS || FX_OSX
+#if F_IOS || F_OSX
 
 #import <flare/app.h>
 
-#if FX_OSX
+#if F_OSX
 	#import <AppKit/AppKit.h>
 	#define UIResponder NSResponder
 	#define UIApplicationDelegate NSApplicationDelegate

@@ -48,8 +48,8 @@ namespace flare {
 	/**
 	* @class Render
 	*/
-	class FX_EXPORT Render: public Object {
-		FX_HIDDEN_ALL_COPY(Render);
+	class F_EXPORT Render: public Object {
+		F_HIDDEN_ALL_COPY(Render);
 	public:
 
 		struct DisplayParams {

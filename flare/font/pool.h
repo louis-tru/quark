@@ -45,8 +45,8 @@ namespace flare {
 	/**
 	* @class FontPool 加载与管理所有字体、字型、字型表, 并在系统内存不足时能自动清理使用频率不高的字型数据
 	*/
-	class FX_EXPORT FontPool: public Object {
-		FX_HIDDEN_ALL_COPY(FontPool);
+	class F_EXPORT FontPool: public Object {
+		F_HIDDEN_ALL_COPY(FontPool);
 	public:
 		
 		FontPool(Application* host);
@@ -169,7 +169,7 @@ namespace flare {
 		*/
 		static FFID get_font_familys_id(cString fonts);
 		
-		struct FX_EXPORT SimpleFont {
+		struct F_EXPORT SimpleFont {
 			String  name;
 			TextStyleValue style;
 			uint32_t    num_glyphs;
@@ -181,7 +181,7 @@ namespace flare {
 			int     underline_thickness;
 		};
 		
-		struct FX_EXPORT SimpleFontFamily {
+		struct F_EXPORT SimpleFontFamily {
 			typedef NonObjectTraits Traits;
 			String path;
 			String family;
@@ -213,7 +213,7 @@ namespace flare {
 		float                 _max_glyph_texture_size; /* 纹理绘制的最大限制,超过这个size使用顶点进行绘制 */
 		float                 _display_port_scale;
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		
 		friend class Font;
 		friend class FontGlyphTable;

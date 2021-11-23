@@ -46,15 +46,15 @@
 #include "./string.h"
 
 namespace flare {
-	FX_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
-	FX_EXPORT int fix_random(uint32_t a, ...);
-	FX_EXPORT uint64_t getId();
-	FX_EXPORT uint32_t getId32();
-	FX_EXPORT int64_t  parse_time(cString& str);
-	FX_EXPORT String gmt_time_string(int64_t second);
-	FX_EXPORT String platform();
-	FX_EXPORT String version();
-	FX_EXPORT void exit(int rc); // call sys exit
-	FX_EXPORT bool is_exited();
+	F_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
+	F_EXPORT int fix_random(uint32_t a, ...);
+	F_EXPORT uint64_t getId();
+	F_EXPORT uint32_t getId32();
+	F_EXPORT int64_t  parse_time(cString& str);
+	F_EXPORT String gmt_time_string(int64_t second);
+	F_EXPORT String platform();
+	F_EXPORT String version();
+	F_EXPORT void exit(int rc); // call sys exit
+	F_EXPORT bool is_exited();
 }
 #endif

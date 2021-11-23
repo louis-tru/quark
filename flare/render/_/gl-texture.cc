@@ -97,7 +97,7 @@ namespace flare {
 			return false;
 		}
 		
-		GLint format = get_gl_texture_pixel_format(pixel_format); ASSERT(format);
+		GLint format = get_gl_texture_pixel_format(pixel_format); F_ASSERT(format);
 		
 		// 启用各向异性
 		#if defined(GL_EXT_texture_filter_anisotropic) && GL_EXT_texture_filter_anisotropic == 1
@@ -230,7 +230,7 @@ namespace flare {
 
 	bool GLDraw::set_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) {
 		PixelFormat format = data.format();
-		ASSERT(format == PixelData::YUV420P || format == PixelData::YUV420SP ||
+		F_ASSERT(format == PixelData::YUV420P || format == PixelData::YUV420SP ||
 						format == PixelData::YUV411P || format == PixelData::YUV411SP);
 		
 		if ( format != PixelData::YUV420P && format != PixelData::YUV420SP ) {
@@ -251,7 +251,7 @@ namespace flare {
 			glGenTextures(1, &tex_uv);
 		}
 		
-		#if FX_OSX
+		#if F_OSX
 		#define GL_LUMINANCE GL_RED
 		#define GL_LUMINANCE_ALPHA GL_RED
 		#endif

@@ -54,7 +54,7 @@ namespace flare {
 		_child_style_sheets.clear();
 		_is_support_pseudo = false;
 		
-		FX_DEBUG("StyleSheetsClass apply, query group count: %d, style sheets count: %d, '%s'",
+		F_DEBUG("StyleSheetsClass apply, query group count: %d, style sheets count: %d, '%s'",
 						_query_group.length(), scope->style_sheets().length(), _classs.join(' ').c_str());
 		
 		if ( _query_group.length() ) {
@@ -139,7 +139,7 @@ namespace flare {
 	, _is_support_pseudo(false)
 	, _once_apply(true)
 	, _multiple_status(CSS_PSEUDO_CLASS_NORMAL) {
-		ASSERT(host);
+		F_ASSERT(host);
 	}
 
 	/**
@@ -249,7 +249,7 @@ namespace flare {
 	}
 
 	void StyleSheetsClass::apply(StyleSheetsScope* scope, bool* effect_child) {
-		ASSERT(effect_child);
+		F_ASSERT(effect_child);
 		_inl_cvc(this)->apply(scope, effect_child, 1);
 	}
 }

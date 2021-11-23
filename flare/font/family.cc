@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_font.h"
+#include "./font.inl"
 
 namespace flare {
 

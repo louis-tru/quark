@@ -38,7 +38,7 @@ namespace flare {
 	/**
 	* @class GroupAction
 	*/
-	class FX_EXPORT GroupAction: public Action {
+	class F_EXPORT GroupAction: public Action {
 	public:
 		/**
 		* @func operator[]
@@ -95,13 +95,13 @@ namespace flare {
 		
 		friend class Action;
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
 	* @class SpawnAction
 	*/
-	class FX_EXPORT SpawnAction: public GroupAction {
+	class F_EXPORT SpawnAction: public GroupAction {
 	public:
 		/**
 		* @func spawn
@@ -128,7 +128,7 @@ namespace flare {
 	/**
 	* @class SequenceAction
 	*/
-	class FX_EXPORT SequenceAction: public GroupAction {
+	class F_EXPORT SequenceAction: public GroupAction {
 	public:
 		/**
 		* @func seq

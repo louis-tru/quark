@@ -45,7 +45,7 @@ namespace flare {
 	// --------------- L a y o u t  V i e w ---------------
 
 	// view private members method
-	FX_DEFINE_INLINE_MEMBERS(View, Inl) {
+	F_DEFINE_INLINE_MEMBERS(View, Inl) {
 	 public:
 		#define _inl(self) static_cast<View::Inl*>(self)
 
@@ -165,7 +165,7 @@ namespace flare {
 	}
 
 	View::~View() {
-		ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
+		F_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		blur();
 		set_action(nullptr); // del action
 		_inl(this)->remove_all_child_(); // 删除子视图

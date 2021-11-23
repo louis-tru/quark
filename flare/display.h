@@ -46,8 +46,8 @@ namespace flare {
 	* 提供的一些对显示与屏幕的常用方法属性与事件
 	* @class Display
 	*/
-	class FX_EXPORT Display: public Reference {
-		FX_HIDDEN_ALL_COPY(Display);
+	class F_EXPORT Display: public Reference {
+		F_HIDDEN_ALL_COPY(Display);
 	public:
 
 		enum Orientation {
@@ -77,12 +77,12 @@ namespace flare {
 		/**
 		* @event onchange 显示端口变化事件
 		*/
-		FX_Event(Change);
+		F_Event(Change);
 
 		/**
 		* @event onorientation 屏幕方向发生改变触发
 		*/
-		FX_Event(Orientation);
+		F_Event(Orientation);
 		
 		/**
 		* @func size 当前视口尺寸
@@ -131,7 +131,7 @@ namespace flare {
 		* @func pop_display_region
 		*/
 		inline void pop_display_region() {
-			ASSERT( _display_region.length() > 1 );
+			F_ASSERT( _display_region.length() > 1 );
 			_display_region.pop_back();
 		}
 		
@@ -224,7 +224,7 @@ namespace flare {
 		Region            _surface_region;  /* 选择绘图表面有区域 */
 		Mutex             _Mutex;
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

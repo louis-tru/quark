@@ -43,7 +43,7 @@ namespace flare {
 	*
 	* @class ZLib
 	*/
-	class FX_EXPORT ZLib {
+	class F_EXPORT ZLib {
 		public:
 		
 		/**
@@ -62,8 +62,8 @@ namespace flare {
 	*
 	* @class GZip
 	*/
-	class FX_EXPORT GZip: public Object {
-		FX_HIDDEN_ALL_COPY(GZip);
+	class F_EXPORT GZip: public Object {
+		F_HIDDEN_ALL_COPY(GZip);
 	 public:
 
 		typedef ObjectTraits Traits;
@@ -109,8 +109,8 @@ namespace flare {
 	*
 	* @class ZipReader
 	*/
-	class FX_EXPORT ZipReader: public Object {
-		FX_HIDDEN_ALL_COPY(ZipReader);
+	class F_EXPORT ZipReader: public Object {
+		F_HIDDEN_ALL_COPY(ZipReader);
 	 public:
 		
 		ZipReader(cString& path, cString& passwd = String());
@@ -243,7 +243,7 @@ namespace flare {
 		Info      _file_info;
 		DirInfo   _dir_info;
 	
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
@@ -253,8 +253,8 @@ namespace flare {
 	*
 	* @class ZipWriter
 	*/
-	class FX_EXPORT ZipWriter: public Object {
-		FX_HIDDEN_ALL_COPY(ZipWriter);
+	class F_EXPORT ZipWriter: public Object {
+		F_HIDDEN_ALL_COPY(ZipWriter);
 	 public:
 		/**
 		*

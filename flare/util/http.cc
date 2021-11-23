@@ -125,10 +125,10 @@ namespace flare {
 		}
 		
 		virtual ~Inl() {
-			ASSERT(!_sending);
-			ASSERT(!_connect);
-			ASSERT(!_cache_reader);
-			ASSERT(!_file_writer);
+			F_ASSERT(!_sending);
+			F_ASSERT(!_connect);
+			F_ASSERT(!_cache_reader);
+			F_ASSERT(!_file_writer);
 			Release(_keep); _keep = nullptr;
 		}
 		
@@ -147,7 +147,7 @@ namespace flare {
 			}
 			~Sending() { Release(_host); }
 			void release() {
-				ASSERT(_host);
+				F_ASSERT(_host);
 				_host->_sending = nullptr;
 				delete this;
 			}
@@ -191,7 +191,7 @@ namespace flare {
 					_socket = new Socket(hostname, port, loop);
 				}
 				
-				ASSERT(_socket);
+				F_ASSERT(_socket);
 				_socket->set_delegate(this);
 				
 				_parser.data = this;
@@ -206,7 +206,7 @@ namespace flare {
 			}
 			
 			~Connect() {
-				ASSERT( _id == ConnectID() );
+				F_ASSERT( _id == ConnectID() );
 				Release(_socket);     _socket = nullptr;
 				Release(_upload_file);_upload_file = nullptr;
 			}
@@ -214,8 +214,8 @@ namespace flare {
 			inline RunLoop* loop() { return _loop; }
 			
 			void bind_client_and_send(Client* client) {
-				ASSERT(client);
-				ASSERT(!_client);
+				F_ASSERT(client);
+				F_ASSERT(!_client);
 				
 				_client = client;
 				_socket->set_timeout(_client->_timeout); // set timeout
@@ -245,8 +245,8 @@ namespace flare {
 				if (status_code == 200) {
 					self->_client->_write_cache_flag = 2; // set write cache flag
 				}
-				ASSERT(status_code == parser->status_code);
-				// LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
+				F_ASSERT(status_code == parser->status_code);
+				// F_LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
 				self->_client->_status_code = status_code;
 				self->_client->_http_response_version =
 					String(parser->http_major) + '.' + parser->http_minor;
@@ -335,7 +335,7 @@ namespace flare {
 				if ( self->_z_gzip ) {
 					int r = self->gzip_inflate(at, uint32_t(length), buff);
 					if (r < 0) {
-						FX_ERR("un gzip err, %d", r);
+						F_ERR("HTTP", "un gzip err, %d", r);
 					}
 				} else {
 					buff = WeakBuffer(at, uint32_t(length)).copy();
@@ -407,7 +407,7 @@ namespace flare {
 					
 					if ( _client->_post_data.length() ) { // ignore form data
 						if ( _client->_post_form_data.length() ) {
-							FX_WARN("Ignore form data");
+							F_WARN("HTTP", "Ignore form data");
 						}
 						_client->_upload_total = _client->_post_data.length();
 						header["Content-Length"] = _client->_upload_total;
@@ -570,28 +570,28 @@ namespace flare {
 			}
 			
 			virtual void trigger_async_file_open(AsyncFile* file) {
-				ASSERT( _is_multipart_form_data );
+				F_ASSERT( _is_multipart_form_data );
 				send_multipart_form_data();
 			}
 			
 			virtual void trigger_async_file_close(AsyncFile* file) {
-				ASSERT( _is_multipart_form_data );
+				F_ASSERT( _is_multipart_form_data );
 				Error err(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown");
 				_client->report_error_and_abort(err);
 			}
 			
 			virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
-				ASSERT( _is_multipart_form_data );
+				F_ASSERT( _is_multipart_form_data );
 				_client->report_error_and_abort(error);
 			}
 			
 			virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {
-				ASSERT( _is_multipart_form_data );
+				F_ASSERT( _is_multipart_form_data );
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
 				} else {
-					ASSERT(_multipart_form_data.length());
-					ASSERT(_upload_file);
+					F_ASSERT(_multipart_form_data.length());
+					F_ASSERT(_upload_file);
 					_socket->write(string_header_end.copy().collapse()); // \r\n
 					_upload_file->release(); // release file
 					_upload_file = nullptr;
@@ -605,10 +605,10 @@ namespace flare {
 			virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) { }
 			
 			void send_multipart_form_data() {
-				ASSERT( _multipart_form_buffer.length() == BUFFER_SIZE );
+				F_ASSERT( _multipart_form_buffer.length() == BUFFER_SIZE );
 				
 				if ( _upload_file ) { // upload file
-					ASSERT( _upload_file->is_open() );
+					F_ASSERT( _upload_file->is_open() );
 					_upload_file->read(_multipart_form_buffer);
 				}
 				else if ( _multipart_form_data.length() ) {
@@ -702,10 +702,10 @@ namespace flare {
 			}
 			
 			void get_connect(Client* client, Cb cb) {
-				ASSERT(client);
-				ASSERT(!client->_uri.is_null());
-				ASSERT(!client->_uri.hostname().is_empty());
-				ASSERT(client->_uri.type() == URI_HTTP || client->_uri.type() == URI_HTTPS);
+				F_ASSERT(client);
+				F_ASSERT(!client->_uri.is_null());
+				F_ASSERT(!client->_uri.hostname().is_empty());
+				F_ASSERT(client->_uri.type() == URI_HTTP || client->_uri.type() == URI_HTTPS);
 				
 				uint16_t  port = client->_uri.port();
 				if (!port) {
@@ -763,7 +763,7 @@ namespace flare {
 					}
 				}
 				
-				ASSERT(connect_count <= MAX_CONNECT_COUNT);
+				F_ASSERT(connect_count <= MAX_CONNECT_COUNT);
 				
 				if (!conn) {
 					if (connect_count == MAX_CONNECT_COUNT) {
@@ -801,7 +801,7 @@ namespace flare {
 					connect->release();
 				} else {
 					if ( connect->_use ) {
-						ASSERT( connect->_id != ConnectID() );
+						F_ASSERT( connect->_id != ConnectID() );
 						connect->_use = false;
 						connect->_client = nullptr;
 						connect->socket()->set_timeout(0);
@@ -849,7 +849,7 @@ namespace flare {
 			, _read_count(0)
 			, _client(client)
 			, _parse_header(true), _offset(0), _size(size) {
-				ASSERT(!_client->_cache_reader);
+				F_ASSERT(!_client->_cache_reader);
 				_client->_cache_reader = this;
 				set_delegate(this);
 				open();
@@ -910,11 +910,11 @@ namespace flare {
 									int64_t expires = parse_time(_header["expires"]);
 									if ( expires > os::time() ) {
 										_client->trigger_http_readystate_change(HTTP_READY_STATE_RESPONSE);
-										_client->_download_total = FX_MAX(_size - _offset, 0);
+										_client->_download_total = F_MAX(_size - _offset, 0);
 										_client->trigger_http_header(200, std::move(_header), true);
 										read_advance();
 									} else {
-										// LOG("Read -- %ld, %ld, %s", expires, sys::time(), *_header.get("expires"));
+										// F_LOG("Read -- %ld, %ld, %s", expires, sys::time(), *_header.get("expires"));
 										if (parse_time(_header["last-modified"]) > 0 ||
 												!_header["etag"].is_empty()
 										) {
@@ -928,7 +928,7 @@ namespace flare {
 								} else {
 									int k = str.index_of(s2, i);
 									if ( k != -1 && k - i > 1 && j - k > 2 ) {
-										// LOG("  %s:-> %s", str.substring(i, k).lower_case().c(), str.substring(k + 2, j).c());
+										// F_LOG("  %s:-> %s", str.substring(i, k).lower_case().c(), str.substring(k + 2, j).c());
 										_header[str.substring(i, k).lower_case()] = str.substring(k + 2, j);
 									}
 								}
@@ -952,7 +952,7 @@ namespace flare {
 				} else {
 					// read cache
 					_read_count--;
-					ASSERT(_read_count == 0);
+					F_ASSERT(_read_count == 0);
 					
 					if ( buffer.length() ) {
 						_offset += buffer.length();
@@ -1032,18 +1032,18 @@ namespace flare {
 				// flag = 1 only write header
 				// flag = 2 write header and body
 
-				ASSERT(!_client->_file_writer);
+				F_ASSERT(!_client->_file_writer);
 				_client->_file_writer = this;
 
-				// LOG("FileWriter _write_flag -- %i, %s", _write_flag, *path);
+				// F_LOG("FileWriter _write_flag -- %i, %s", _write_flag, *path);
 				
 				if ( _write_flag ) { // verification cache is valid
 					auto r_header = _client->response_header();
-					ASSERT(r_header.length());
+					F_ASSERT(r_header.length());
 
 					if ( r_header.has("cache-control") ) {
 						String expires = convert_to_expires(r_header["cache-control"]);
-						// LOG("FileWriter -- %s", *expires);
+						// F_LOG("FileWriter -- %s", *expires);
 						if ( !expires.is_empty() ) {
 							r_header["expires"] = expires;
 						}
@@ -1131,7 +1131,7 @@ namespace flare {
 				} else {
 					_client->trigger_http_data2(buffer);
 					_write_count--;
-					ASSERT(_write_count >= 0);
+					F_ASSERT(_write_count >= 0);
 				 advance:
 					if ( _write_count == 0 ) {
 						if ( _completed_end ) { // http已经结束
@@ -1186,7 +1186,7 @@ namespace flare {
 		}
 		
 		void read_advance() {
-			Reader* r = reader(); ASSERT(r);
+			Reader* r = reader(); F_ASSERT(r);
 			if ( _pause ) {
 				r->read_pause();
 			} else {
@@ -1195,7 +1195,7 @@ namespace flare {
 		}
 
 		void read_pause() {
-			Reader* r = reader(); ASSERT(r);
+			Reader* r = reader(); F_ASSERT(r);
 			r->read_pause();
 		}
 		
@@ -1265,8 +1265,8 @@ namespace flare {
 		void http_response_complete(bool fromCache) {
 
 			if (!fromCache) {
-				ASSERT(_pool_ptr);
-				ASSERT(_connect);
+				F_ASSERT(_pool_ptr);
+				F_ASSERT(_connect);
 				_pool_ptr->release(_connect, false);
 				_connect = nullptr;
 
@@ -1286,7 +1286,7 @@ namespace flare {
 						_cache_reader->read_advance();
 						return;
 					} else {
-						FX_ERR("http response status code error, %d", _status_code);
+						F_ERR("HTTP", "http response status code error, %d", _status_code);
 					}
 				}
 			}
@@ -1313,15 +1313,15 @@ namespace flare {
 		}
 
 		void send_http() {
-			ASSERT(_sending);
-			ASSERT(!_connect);
-			ASSERT(_pool_ptr);
+			F_ASSERT(_sending);
+			F_ASSERT(!_connect);
+			F_ASSERT(_pool_ptr);
 			_pool_ptr->get_connect(this, Cb([this](CbData& evt) {
 				if ( _wait_connect_id ) {
 					if ( evt.error ) {
 						report_error_and_abort(*evt.error);
 					} else {
-						ASSERT( !_connect );
+						F_ASSERT( !_connect );
 						_connect = static_cast<Connect*>(evt.data);
 						_connect->bind_client_and_send(this);
 					}
@@ -1351,7 +1351,7 @@ namespace flare {
 			if ( _sending && !_sending->_ending ) {
 				_sending->_ending = true;
 				
-				ASSERT(_pool_ptr);
+				F_ASSERT(_pool_ptr);
 				
 				Release(_cache_reader); _cache_reader = nullptr;
 				Release(_file_writer);  _file_writer = nullptr;
@@ -1366,7 +1366,7 @@ namespace flare {
 					if (state == _ready_state)
 						_ready_state = HTTP_READY_STATE_INITIAL;
 				} else {
-					ASSERT(_sending);
+					F_ASSERT(_sending);
 					_ready_state = HTTP_READY_STATE_COMPLETED;
 					_delegate->trigger_http_readystate_change(_host);
 					_sending->release();
@@ -1381,9 +1381,9 @@ namespace flare {
 		// public api
 		
 		void send(Buffer data) throw(Error) {
-			FX_CHECK(!_sending, ERR_REPEAT_CALL, "Sending repeat call");
-			FX_CHECK( !_uri.is_null(), ERR_INVALID_FILE_PATH, "Invalid path" );
-			FX_CHECK(_uri.type() == URI_HTTP ||
+			F_CHECK(!_sending, ERR_REPEAT_CALL, "Sending repeat call");
+			F_CHECK( !_uri.is_null(), ERR_INVALID_FILE_PATH, "Invalid path" );
+			F_CHECK(_uri.type() == URI_HTTP ||
 							_uri.type() == URI_HTTPS, ERR_INVALID_FILE_PATH, "Invalid path `%s`", *_uri.href());
 			_post_data = data;
 			
@@ -1421,7 +1421,7 @@ namespace flare {
 		}
 		
 		void check_is_can_modify() throw(Error) {
-			FX_CHECK(!_sending, ERR_SENDIFX_CANNOT_MODIFY,
+			F_CHECK(!_sending, ERR_SENDIF_CANNOT_MODIFY,
 								"Http request sending cannot modify property");
 		}
 		
@@ -1487,7 +1487,7 @@ namespace flare {
 	}
 
 	HttpClientRequest::~HttpClientRequest() {
-		ASSERT(_inl->_keep->host() == RunLoop::current());
+		F_ASSERT(_inl->_keep->host() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		_inl->abort();
 		_inl->release();
@@ -1564,7 +1564,7 @@ namespace flare {
 
 	void HttpClientRequest::set_form(cString& form_name, cString& value) throw(Error) {
 		_inl->check_is_can_modify();
-		FX_CHECK( value.length() <= BUFFER_SIZE,
+		F_CHECK( value.length() <= BUFFER_SIZE,
 							ERR_HTTP_FORM_SIZE_LIMIT, "Http form field size limit <= %d", BUFFER_SIZE);
 		_inl->_post_form_data[form_name] = {
 			FORM_TYPE_TEXT, value, inl__uri_encode(form_name)

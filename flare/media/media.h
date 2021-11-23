@@ -33,10 +33,10 @@
 
 #include "../util/string.h"
 
-#ifndef FX_NO_MEDIA_DYNAMIC_LIB
-# define FX_MEDIA_DYNAMIC virtual
+#ifndef F_NO_MEDIA_DYNAMIC_LIB
+# define F_MEDIA_DYNAMIC virtual
 #else
-# define FX_MEDIA_DYNAMIC
+# define F_MEDIA_DYNAMIC
 #endif
 
 namespace flare {
@@ -53,9 +53,9 @@ namespace flare {
 		const uint64_t tid;
 	} module_info_t;
 
-	FX_EXPORT extern int initialize_media();
-	FX_EXPORT extern module_info_t* module_audio_player;
-	FX_EXPORT extern module_info_t* module_video;
+	F_EXPORT extern int initialize_media();
+	F_EXPORT extern module_info_t* module_audio_player;
+	F_EXPORT extern module_info_t* module_video;
 
 }
 #endif

@@ -38,14 +38,14 @@ namespace flare {
 	/**
 		* @class Flex
 		*/
-	class FX_EXPORT FlexLayout: public FlowLayout {
-		FX_Define_View(FlexLayout);
+	class F_EXPORT FlexLayout: public FlowLayout {
+		F_Define_View(FlexLayout);
 	 public:
 
 		FlexLayout();
 
 		// define props
-		FX_Define_Prop(ItemsAlign, items_align); // items_align 主轴的对齐方式
+		F_DEFINE_PROP(ItemsAlign, items_align); // items_align 主轴的对齐方式
 
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark);
@@ -56,7 +56,7 @@ namespace flare {
 		// --------------- m e m b e r . f i e l d ---------------
 	 private:
 		bool _is_lock_child;
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./gl.h"
-#include "../font/_font.h"
+#include "../font/font.inl"
 #include "../display.h"
 
 namespace flare {
@@ -57,20 +57,20 @@ namespace flare {
 		// 			TESSindex idx = stack[--nstack];
 		// 			const TESSindex* poly = &elems[idx * poly_size * 2];
 		// 			const TESSindex* nei = &poly[poly_size];
-		// 			LOG("--begin:%d", idx);
+		// 			F_LOG("--begin:%d", idx);
 		// 			for (int i = 0; i < poly_size; i++) {
 		// 				TESSindex vidx = poly[i], eidx = nei[i];
 		// 				if (vidx == TESS_UNDEF) break;
-		// 				LOG("i:%d,poly:%d", i, poly[i]);
+		// 				F_LOG("i:%d,poly:%d", i, poly[i]);
 		// 				if (eidx != TESS_UNDEF && !visited[eidx]) {
-		// 					LOG("i:%d,nei:%d--", i, eidx);
+		// 					F_LOG("i:%d,nei:%d--", i, eidx);
 		// 					stack[nstack++] = eidx;
 		// 					visited[eidx] = 1;
 		// 				}
 		// 			}
 		// 		}
 		// 		count++;
-		// 		LOG("------------------------------count:%d", count);
+		// 		F_LOG("------------------------------count:%d", count);
 		// 	} else {
 		// 		start_poly++;
 		// 	}
@@ -96,18 +96,18 @@ namespace flare {
 		
 		// TODO parse vbo data
 		FT_Error error = FT_Set_Char_Size((FT_Face)font->_ft_face, 0, 64 * 64, 72, 72);
-		ASSERT(!error);
+		F_ASSERT(!error);
 		
 		if ( error ) {
-			FX_WARN("%s", "parse font glyph vbo data error"); return false;
+			F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
 		}
 		
 		error = FT_Load_Glyph((FT_Face)font->_ft_face, glyph->glyph_index(),
 													FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
-		ASSERT( ! error );
+		F_ASSERT( ! error );
 		
 		if ( error ) {
-			FX_WARN("%s", "parse font glyph vbo data error"); return false;
+			F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
 		}
 		
 		// 字的轮廓信息完全存储在outline中，下面的代码就是分解高阶曲线
@@ -131,7 +131,7 @@ namespace flare {
 		
 		error = FT_Outline_Decompose(&((FT_GlyphSlot)font->_ft_glyph)->outline, &funcs, &data);
 		if ( error ) {
-			FX_WARN("%s", "parse font glyph vbo data error"); return false;
+			F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
 		}
 		
 		tessAddContour(tess, 2, *data.vertex, sizeof(Vec2), data.length);
@@ -158,9 +158,9 @@ namespace flare {
 			}
 		}
 		
-		//  LOG("vertex_length:%d", data.total);
-		//  LOG("tess vertex_length:%d, element_count:%d", tessGetVertexCount(*tess), nelems);
-		//  LOG("tess total vertex length:%d", vertex_count);
+		//  F_LOG("vertex_length:%d", data.total);
+		//  F_LOG("tess vertex_length:%d, element_count:%d", tessGetVertexCount(*tess), nelems);
+		//  F_LOG("tess total vertex length:%d", vertex_count);
 		
 		glGenBuffers(1, &glyph->_vertex_value);
 		glBindBuffer(GL_ARRAY_BUFFER, glyph->_vertex_value);
@@ -185,18 +185,18 @@ namespace flare {
 		
 		FT_Error error = FT_Set_Char_Size((FT_Face)font->_ft_face, 0, font_size * 64, 72, 72);
 		if (error) {
-			FX_WARN("%s", "parse font glyph vbo data error"); return false;
+			F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
 		}
 		
 		error = FT_Load_Glyph((FT_Face)font->_ft_face, glyph->glyph_index(), FT_LOAD_DEFAULT);
 		if (error) {
-			FX_WARN("%s", "parse font glyph vbo data error"); return false;
+			F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
 		}
 		
 		if ( ((FT_GlyphSlot)font->_ft_glyph)->format != FT_GLYPH_FORMAT_BITMAP ) {
 			error = FT_Render_Glyph((FT_GlyphSlot)font->_ft_glyph, FT_RENDER_MODE_NORMAL);
 			if (error) {
-				FX_WARN("%s", "parse font glyph vbo data error"); return false;
+				F_WARN("GL_FONT", "%s", "parse font glyph vbo data error"); return false;
 			}
 		}
 		
@@ -233,7 +233,7 @@ namespace flare {
 			};
 			
 			//uint16_t unicode = glyph->unicode();
-			//FX_DEBUG("%s, level:%d, width:%d, height:%d, top:%d, left:%d",
+			//F_DEBUG("%s, level:%d, width:%d, height:%d, top:%d, left:%d",
 			//        &unicode, level, bit.width, bit.rows, (int)slot->bitmap_top, (int)slot->bitmap_left);
 			
 			_inl_font(font)->mark_new_data_size(glyph, bit.width * bit.rows);

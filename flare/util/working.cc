@@ -38,7 +38,7 @@ namespace flare {
 	ParallelWorking::ParallelWorking(): ParallelWorking(RunLoop::current()) {}
 
 	ParallelWorking::ParallelWorking(RunLoop* loop) : _proxy(nullptr) {
-		ASSERT(loop, "Can not find current thread run loop.");
+		F_ASSERT(loop, "Can not find current thread run loop.");
 		_proxy = loop->keep_alive("ParallelWorking()");
 	}
 
@@ -81,16 +81,16 @@ namespace flare {
 			for (auto& i : childs) {
 				Thread::join(i.key);
 			}
-			DLOG("ParallelWorking::abort_child() ok, count: %d", childs.length());
+			DLOG("WORKING", "ParallelWorking::abort_child() ok, count: %d", childs.length());
 		} else {
 			{
 				ScopeLock scope(_mutex2);
-				ASSERT(_childs.find(id) != _childs.end(),
+				F_ASSERT(_childs.find(id) != _childs.end(),
 					"Only subthreads belonging to \"ParallelWorking\" can be aborted");
 			}
 			Thread::abort(id);
 			Thread::join(id);
-			DLOG("ParallelWorking::abort_child(id) ok");
+			DLOG("WORKING", "ParallelWorking::abort_child(id) ok");
 		}
 	}
 
@@ -104,7 +104,7 @@ namespace flare {
 				Thread::awaken(i.key);
 			}
 		} else {
-			ASSERT(_childs.find(id) != _childs.end(),
+			F_ASSERT(_childs.find(id) != _childs.end(),
 				"Only subthreads belonging to \"ParallelWorking\" can be awaken");
 			Thread::awaken(id);
 		}

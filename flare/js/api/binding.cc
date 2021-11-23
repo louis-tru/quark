@@ -76,28 +76,28 @@ class NativeFlare {
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->bindingModule("_value");	FX_DEBUG("binding flare_value ok");
-		worker->bindingModule("_event");	FX_DEBUG("binding flare_event ok");
-		binding_app(exports, worker); 			FX_DEBUG("binding app ok");
-		binding_view(exports, worker); 			FX_DEBUG("binding view ok");
-		binding_sprite(exports, worker); 		FX_DEBUG("binding sprite ok");
-		binding_layout(exports, worker); 		FX_DEBUG("binding layout ok");
-		binding_box(exports, worker); 			FX_DEBUG("binding box ok");
-		binding_div(exports, worker); 			FX_DEBUG("binding div ok");
-		binding_panel(exports, worker); 		FX_DEBUG("binding panel ok");
-		binding_hybrid(exports, worker); 		FX_DEBUG("binding hybrid ok");
-		binding_span(exports, worker); 			FX_DEBUG("binding span ok");
-		binding_text_node(exports, worker); FX_DEBUG("binding text_node ok");
-		binding_image(exports, worker); 		FX_DEBUG("binding image ok");
-		binding_indep_div(exports, worker); FX_DEBUG("binding indep_div ok");
-		binding_root(exports, worker); 			FX_DEBUG("binding root ok");
-		binding_label(exports, worker); 		FX_DEBUG("binding label ok");
-		binding_limit(exports, worker); 		FX_DEBUG("binding limit ok");
-		binding_scroll(exports, worker); 		FX_DEBUG("binding scroll ok");
-		binding_text(exports, worker); 			FX_DEBUG("binding text ok");
-		binding_button(exports, worker); 		FX_DEBUG("binding button ok");
-		binding_input(exports, worker); 		FX_DEBUG("binding input ok");
-		JS_SET_METHOD(lock, lock); 					FX_DEBUG("binding lock ok");
+		worker->bindingModule("_value");	F_DEBUG("binding flare_value ok");
+		worker->bindingModule("_event");	F_DEBUG("binding flare_event ok");
+		binding_app(exports, worker); 			F_DEBUG("binding app ok");
+		binding_view(exports, worker); 			F_DEBUG("binding view ok");
+		binding_sprite(exports, worker); 		F_DEBUG("binding sprite ok");
+		binding_layout(exports, worker); 		F_DEBUG("binding layout ok");
+		binding_box(exports, worker); 			F_DEBUG("binding box ok");
+		binding_div(exports, worker); 			F_DEBUG("binding div ok");
+		binding_panel(exports, worker); 		F_DEBUG("binding panel ok");
+		binding_hybrid(exports, worker); 		F_DEBUG("binding hybrid ok");
+		binding_span(exports, worker); 			F_DEBUG("binding span ok");
+		binding_text_node(exports, worker); F_DEBUG("binding text_node ok");
+		binding_image(exports, worker); 		F_DEBUG("binding image ok");
+		binding_indep_div(exports, worker); F_DEBUG("binding indep_div ok");
+		binding_root(exports, worker); 			F_DEBUG("binding root ok");
+		binding_label(exports, worker); 		F_DEBUG("binding label ok");
+		binding_limit(exports, worker); 		F_DEBUG("binding limit ok");
+		binding_scroll(exports, worker); 		F_DEBUG("binding scroll ok");
+		binding_text(exports, worker); 			F_DEBUG("binding text ok");
+		binding_button(exports, worker); 		F_DEBUG("binding button ok");
+		binding_input(exports, worker); 		F_DEBUG("binding input ok");
+		JS_SET_METHOD(lock, lock); 					F_DEBUG("binding lock ok");
 	}
 };
 

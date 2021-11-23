@@ -43,7 +43,7 @@ namespace flare {
 
 	AsyncIOTask::AsyncIOTask(RunLoop* loop)
 	: _id(getId32()), _abort(false), _loop(loop) {
-		FX_CHECK(_loop);
+		F_CHECK(_loop);
 		ScopeLock scope(tasks->mutex);
 		tasks->values[_id] = this;
 	}

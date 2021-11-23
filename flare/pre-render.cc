@@ -34,7 +34,7 @@
 
 namespace flare {
 
-	FX_DEFINE_INLINE_MEMBERS(PreRender, Inl) {
+	F_DEFINE_INLINE_MEMBERS(PreRender, Inl) {
 		public:
 
 		/**
@@ -89,7 +89,7 @@ namespace flare {
 						}
 					}
 				}
-				ASSERT(_mark_total >= 0);
+				F_ASSERT(_mark_total >= 0);
 			} while (_mark_total);
 
 			for (auto levelMarks: _marks) {
@@ -169,7 +169,7 @@ namespace flare {
 	}
 
 	void PreRender::mark(Layout *layout, uint32_t depth) {
-		ASSERT(depth);
+		F_ASSERT(depth);
 		_marks.extend(depth + 1);
 		auto arr = _marks[depth];
 		layout->_mark_index = arr.length();
@@ -178,7 +178,7 @@ namespace flare {
 	}
 
 	void PreRender::mark_recursive(Layout *layout, uint32_t depth) {
-		ASSERT(depth);
+		F_ASSERT(depth);
 		_mark_recursives.extend(depth + 1);
 		auto arr = _mark_recursives[depth];
 		layout->_recursive_mark_index = arr.length();
@@ -187,7 +187,7 @@ namespace flare {
 	}
 
 	void PreRender::delete_mark(Layout *layout, uint32_t depth) {
-		ASSERT(depth);
+		F_ASSERT(depth);
 		auto arr = _marks[depth];
 		auto last = arr[arr.length() - 1];
 		if (last != layout) {
@@ -200,7 +200,7 @@ namespace flare {
 	}
 
 	void PreRender::delete_mark_recursive(Layout *layout, uint32_t depth) {
-		ASSERT(depth);
+		F_ASSERT(depth);
 		auto arr = _mark_recursives[depth];
 		auto last = arr[arr.length() - 1];
 		if (last != layout) {

@@ -46,7 +46,7 @@ namespace flare {
 		visitor->visitFlowLayout(this);
 	}
 
-	FX_DEFINE_INLINE_MEMBERS(FlowLayout, Inl) {
+	F_DEFINE_INLINE_MEMBERS(FlowLayout, Inl) {
 	 public:
 		#define _inl(self) static_cast<FlowLayout::Inl*>(self)
 
@@ -119,7 +119,7 @@ namespace flare {
 				auto size = v->layout_size().layout_size;
 				if (cur_size.wrap_y) {
 					auto cross = is_horizontal ? size.y(): size.x();
-					max_cross = FX_MAX(max_cross, cross);
+					max_cross = F_MAX(max_cross, cross);
 				}
 				switch (v->layout_align()) {
 					default:
@@ -202,13 +202,13 @@ namespace flare {
 					if (is_reverse)
 						_start.reverse();
 					lines.push({ _total_main, _max_cross, std::move(_start) });
-					max_main = FX_MAX(max_main, _total_main);
+					max_main = F_MAX(max_main, _total_main);
 					total_cross += _max_cross;
 					_total_main = is_horizontal ? size.x(): size.y();
 					_max_cross = is_horizontal ? size.y(): size.x();
 				} else {
 					_total_main = main;
-					_max_cross = FX_MAX(_max_cross, size.y());
+					_max_cross = F_MAX(_max_cross, size.y());
 				}
 				switch (v->layout_align()) {
 					default:
@@ -225,7 +225,7 @@ namespace flare {
 				if (is_reverse)
 					_start.reverse();
 				lines.push({ _total_main, _max_cross, std::move(_start) });
-				max_main = FX_MAX(max_main, _total_main);
+				max_main = F_MAX(max_main, _total_main);
 				total_cross += _max_cross;
 			}
 

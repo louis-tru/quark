@@ -35,18 +35,18 @@
 
 #include "../log.h"
 
-#if FX_ANDROID
+#if F_ANDROID
 
 namespace flare {
 
 	/**
 	* @class AndroidConsole # util log
 	*/
-	class FX_EXPORT AndroidConsole: public Console {
+	class F_EXPORT AndroidConsole: public Console {
 	 public:
-		virtual void log(cString& str);
-		virtual void warn(cString& str);
-		virtual void error(cString& str);
+		virtual void log(cString& str, cChar* tag);
+		virtual void warn(cString& str, cChar* tag);
+		virtual void error(cString& str, cChar* tag);
 		virtual void print(cString& str);
 		virtual void print_err(cString& str);
 		virtual void clear();

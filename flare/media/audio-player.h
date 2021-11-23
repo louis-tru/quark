@@ -41,9 +41,9 @@ namespace flare {
 	/**
 	* @class AudioPlayer
 	*/
-	class FX_EXPORT AudioPlayer: public Notification<Event<>, UIEventName>,
+	class F_EXPORT AudioPlayer: public Notification<Event<>, UIEventName>,
 																public MultimediaSource::Delegate {
-		FX_HIDDEN_ALL_COPY(AudioPlayer);
+		F_HIDDEN_ALL_COPY(AudioPlayer);
 	public:
 
 		typedef MultimediaSource::TrackInfo TrackInfo;
@@ -67,12 +67,12 @@ namespace flare {
 		/**
 		* @func src get src
 		*/
-		FX_MEDIA_DYNAMIC String src();
+		F_MEDIA_DYNAMIC String src();
 		
 		/**
 		* @func set_src set src
 		*/
-		FX_MEDIA_DYNAMIC void set_src(cString& value);
+		F_MEDIA_DYNAMIC void set_src(cString& value);
 
 		/**
 		* @func auto_play
@@ -82,17 +82,17 @@ namespace flare {
 		/**
 		* @func set_auto_play setting auto play
 		*/
-		FX_MEDIA_DYNAMIC void set_auto_play(bool value);
+		F_MEDIA_DYNAMIC void set_auto_play(bool value);
 
 		/**
 		* @func source_status
 		* */
-		FX_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
+		F_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
 
 		/**
 		* @func status getting play status
 		*/
-		FX_MEDIA_DYNAMIC PlayerStatus status();
+		F_MEDIA_DYNAMIC PlayerStatus status();
 
 		/**
 		* @func mute getting mute status
@@ -102,7 +102,7 @@ namespace flare {
 		/**
 		* @func set_mute setting mute status
 		* */
-		FX_MEDIA_DYNAMIC void set_mute(bool value);
+		F_MEDIA_DYNAMIC void set_mute(bool value);
 
 		/**
 		* @func volume
@@ -112,72 +112,72 @@ namespace flare {
 		/**
 		* @func set_volume
 		*/
-		FX_MEDIA_DYNAMIC void set_volume(uint32_t value);
+		F_MEDIA_DYNAMIC void set_volume(uint32_t value);
 
 		/**
 		* @func time
 		* */
-		FX_MEDIA_DYNAMIC uint64_t time();
+		F_MEDIA_DYNAMIC uint64_t time();
 
 		/**
 		* @func duration
 		* */
-		FX_MEDIA_DYNAMIC uint64_t duration();
+		F_MEDIA_DYNAMIC uint64_t duration();
 
 		/**
 		* @func audio_track_count
 		*/
-		FX_MEDIA_DYNAMIC uint32_t track_count();
+		F_MEDIA_DYNAMIC uint32_t track_count();
 
 		/**
 		* @func audio_track
 		*/
-		FX_MEDIA_DYNAMIC uint32_t track_index();
+		F_MEDIA_DYNAMIC uint32_t track_index();
 
 		/**
 		* @func audio_track
 		*/
-		FX_MEDIA_DYNAMIC const TrackInfo* track();
+		F_MEDIA_DYNAMIC const TrackInfo* track();
 
 		/**
 		* @func audio_track
 		*/
-		FX_MEDIA_DYNAMIC const TrackInfo* track(uint32_t index);
+		F_MEDIA_DYNAMIC const TrackInfo* track(uint32_t index);
 
 		/**
 		* @func select_audio_track
 		* */
-		FX_MEDIA_DYNAMIC void select_track(uint32_t index);
+		F_MEDIA_DYNAMIC void select_track(uint32_t index);
 
 		/**
 		* @func start play
 		*/
-		FX_MEDIA_DYNAMIC void start();
+		F_MEDIA_DYNAMIC void start();
 
 		/**
 		* @func seek to target time
 		*/
-		FX_MEDIA_DYNAMIC bool seek(uint64_t timeUs);
+		F_MEDIA_DYNAMIC bool seek(uint64_t timeUs);
 
 		/**
 		* @func pause play
 		* */
-		FX_MEDIA_DYNAMIC void pause();
+		F_MEDIA_DYNAMIC void pause();
 
 		/**
 		* @func resume play
 		* */
-		FX_MEDIA_DYNAMIC void resume();
+		F_MEDIA_DYNAMIC void resume();
 
 		/**
 		* @func stop play
 		* */
-		FX_MEDIA_DYNAMIC void stop();
+		F_MEDIA_DYNAMIC void stop();
 
 		/**
 		* @func disable_wait_buffer
 		*/
-		FX_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
+		F_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
 
 		/**
 		* @func disable_wait_buffer
@@ -203,7 +203,7 @@ namespace flare {
 		bool    _disable_wait_buffer;
 		bool    _waiting_buffer;
 
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

@@ -35,8 +35,8 @@
 
 namespace flare {
 
-	class FX_EXPORT Video: public Image {
-		FX_Define_View(Video);
+	class F_EXPORT Video: public Image {
+		F_Define_View(Video);
 	 public:
 		// TODO ...
 	 private:

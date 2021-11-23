@@ -78,7 +78,7 @@ namespace flare {
 		, _current_orientation(Orientation::ORIENTATION_INVALID)
 		, _is_init_ok(false)
 		{
-			ASSERT(!application); application = this;
+			F_ASSERT(!application); application = this;
 			_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 		}
 
@@ -113,7 +113,7 @@ namespace flare {
 		}
 
 		static void onDestroy(ANativeActivity* activity) {
-			ASSERT(application->_activity);
+			F_ASSERT(application->_activity);
 
 			activity->callbacks->onDestroy                  = nullptr;
 			activity->callbacks->onStart                    = nullptr;
@@ -150,7 +150,7 @@ namespace flare {
 					// ScopeLock scope(application->_mutex);
 					if ( window == application->_window ) {
 						ok = gl_draw_context->create_surface(window);
-						ASSERT(ok);
+						F_ASSERT(ok);
 					}
 				}
 				if ( ok ) {
@@ -193,9 +193,9 @@ namespace flare {
 				application->_dispatch = application->_host->dispatch();
 				application->_render_looper = new RenderLooper(application->_host);
 
-				ASSERT(application->_activity);
-				ASSERT(application->_host);
-				ASSERT(application->_host->render_loop());
+				F_ASSERT(application->_activity);
+				F_ASSERT(application->_host);
+				F_ASSERT(application->_host->render_loop());
 			}
 			application->_host->triggerForeground();
 			application->stop_render_task();
@@ -230,7 +230,7 @@ namespace flare {
 
 				if ( targger_orientation ) { // 触发方向变化事件
 					application->_host->main_loop()->post(Cb([](CbData& e) {
-						application->_host->display()->FX_Trigger(orientation);
+						application->_host->display()->F_Trigger(orientation);
 					}));
 				}
 				ev.data->complete();
@@ -245,19 +245,19 @@ namespace flare {
 		}
 
 		static void onWindowFocusChanged(ANativeActivity* activity, int hasFocus) {
-			FX_DEBUG("onWindowFocusChanged");
+			F_DEBUG("onWindowFocusChanged");
 			application->start_render_task();
 		}
 
 		static void onNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window) {
-			FX_DEBUG("onNativeWindowRedrawNeeded");
+			F_DEBUG("onNativeWindowRedrawNeeded");
 			application->start_render_task();
 		}
 
 		// ----------------------------------------------------------------------
 		
 		static void onLowMemory(ANativeActivity* activity) {
-			FX_DEBUG("onLowMemory");
+			F_DEBUG("onLowMemory");
 			application->_host->triggerMemorywarning();
 		}
 
@@ -276,11 +276,11 @@ namespace flare {
 		}
 		
 		static void onConfigurationChanged(ANativeActivity* activity) {
-			FX_DEBUG("onConfigurationChanged");
+			F_DEBUG("onConfigurationChanged");
 		}
 		
 		static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
-			FX_DEBUG("onNativeWindowResized");
+			F_DEBUG("onNativeWindowResized");
 		}
 
 		// --------------------------- Dispatch event ---------------------------
@@ -312,7 +312,7 @@ namespace flare {
 					dispatchEvent(event);
 					AInputQueue_finishEvent(queue, event, fd);
 				} else {
-					FX_DEBUG("AInputQueue_preDispatchEvent(queue, event) != 0");
+					F_DEBUG("AInputQueue_preDispatchEvent(queue, event) != 0");
 				}
 			}
 			return 1;
@@ -331,7 +331,7 @@ namespace flare {
 				int repeat = AKeyEvent_getRepeatCount(event);
 				int action = AKeyEvent_getAction(event);
 
-				FX_DEBUG("code:%d, repeat:%d, action:%d, "
+				F_DEBUG("code:%d, repeat:%d, action:%d, "
 												"flags:%d, scancode:%d, metastate:%d, downtime:%ld, time:%ld",
 								code, repeat, action,
 								AKeyEvent_getFlags(event),
@@ -351,7 +351,7 @@ namespace flare {
 							dispatch->keyboard_adapter()->dispatch(code, 0, 0, repeat, device, source);
 						break;
 					case AKEY_EVENT_ACTION_MULTIPLE:
-						FX_DEBUG("AKEY_EVENT_ACTION_MULTIPLE");
+						F_DEBUG("AKEY_EVENT_ACTION_MULTIPLE");
 						break;
 				}
 			}
@@ -379,7 +379,7 @@ namespace flare {
 					case AMOTION_EVENT_ACTION_MOVE:
 						touchs = toGuiTouchs(event, true);
 						if ( touchs.length() ) {
-							// FX_DEBUG("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
+							// F_DEBUG("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
 							dispatch->dispatch_touchmove( std::move(touchs) );
 						}
 						break;
@@ -476,7 +476,7 @@ namespace flare {
 	}
 
 	void AppInl::initialize(cJSON& options) {
-		ASSERT(!gl_draw_context);
+		F_ASSERT(!gl_draw_context);
 		gl_draw_context = GLDrawProxy::create(this, options);
 		_draw_ctx = gl_draw_context->host();
 	}
@@ -599,35 +599,35 @@ namespace flare {
 
 	extern "C" {
 
-		FX_EXPORT void Java_org_flare_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
+		F_EXPORT void Java_org_flare_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
 			_inl_app(app())->dispatch()->dispatch_ime_delete(count);
 		}
 
-		FX_EXPORT void Java_org_flare_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
+		F_EXPORT void Java_org_flare_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
 			_inl_app(app())->dispatch()->dispatch_ime_insert(JNI::jstring_to_string(text));
 		}
 
-		FX_EXPORT void Java_org_flare_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
+		F_EXPORT void Java_org_flare_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
 			_inl_app(app())->dispatch()->dispatch_ime_marked(JNI::jstring_to_string(text));
 		}
 
-		FX_EXPORT void Java_org_flare_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
+		F_EXPORT void Java_org_flare_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
 			_inl_app(app())->dispatch()->dispatch_ime_unmark(JNI::jstring_to_string(text));
 		}
 		
-		FX_EXPORT void Java_org_flare_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
+		F_EXPORT void Java_org_flare_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
 			jint keycode, jboolean ascii, jboolean down, jint repeat, jint device, jint source) {
 			_inl_app(app())->dispatch()->keyboard_adapter()->
 				dispatch(keycode, ascii, down, repeat, device, source);
 		}
 
-		FX_EXPORT void Java_org_flare_FlareActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
+		F_EXPORT void Java_org_flare_FlareActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
 			application->host()->main_loop()->post(Cb([](CbData& ev){
-				application->host()->display_port()->FX_Trigger(change);
+				application->host()->display_port()->F_Trigger(change);
 			}));
 		}
 
-		FX_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
+		F_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
 																						void* savedState, size_t savedStateSize)
 		{
 			AndroidApplication::onCreate(activity, savedState, savedStateSize);

@@ -71,7 +71,7 @@ class WrapBasicScroll {
 		
 		if ( args.Length() > 1 && args[1]->IsNumber(worker) ) {
 			duration = args[1]->ToNumberValue(worker) / 1000;
-			duration = FX_MAX(duration, 0);
+			duration = F_MAX(duration, 0);
 		}
 		
 		if ( args.Length() > 2 ) {
@@ -318,7 +318,7 @@ class WrapBasicScroll {
 		JS_WORKER(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) JS_THROW_ERR("* @set defaultScrollDuration {uint} ms");
 		js_scroll_self();
-		self->set_default_scroll_duration( FX_MAX(value->ToNumberValue(worker), 0) );
+		self->set_default_scroll_duration( F_MAX(value->ToNumberValue(worker), 0) );
 	}
 	
 	static void default_scroll_curve(Local<JSString> name, PropertyCall args) {

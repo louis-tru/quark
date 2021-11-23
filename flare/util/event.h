@@ -37,15 +37,15 @@
 #include "./dict.h"
 #include <functional>
 
-#define FX_Event(name, ...) \
+#define F_Event(name, ...) \
 	public: inline flare::EventNoticer<__VA_ARGS__>& on##name () { return _on##name; } \
 	private:flare::EventNoticer<__VA_ARGS__> _on##name; public:
 
-#define FX_Init_Event(name)   _on##name(#name, this)
-#define FX_On(name, ...)      on##name().on( __VA_ARGS__ )
-#define FX_Once(name, ...)    on##name().once( __VA_ARGS__ )
-#define FX_Off(name, ...)     on##name().off( __VA_ARGS__ )
-#define FX_Trigger(name, ...) on##name().trigger( __VA_ARGS__ )
+#define F_Init_Event(name)   _on##name(#name, this)
+#define F_On(name, ...)      on##name().on( __VA_ARGS__ )
+#define F_Once(name, ...)    on##name().once( __VA_ARGS__ )
+#define F_Off(name, ...)     on##name().off( __VA_ARGS__ )
+#define F_Trigger(name, ...) on##name().trigger( __VA_ARGS__ )
 
 namespace flare {
 
@@ -53,8 +53,8 @@ namespace flare {
 	template<class Event = Event<>> class EventNoticer;
 
 	template<class T_Sender, class T_SendData, class T_Origin, typename T_RC>
-	class FX_EXPORT Event: public Object {
-		FX_HIDDEN_ALL_COPY(Event);
+	class F_EXPORT Event: public Object {
+		F_HIDDEN_ALL_COPY(Event);
 	 public:
 		typedef T_SendData       SendData;
 		typedef T_Sender         Sender;
@@ -86,8 +86,8 @@ namespace flare {
 	};
 
 	template<class Event>
-	class FX_EXPORT EventNoticer: public Object {
-		FX_HIDDEN_ALL_COPY(EventNoticer);
+	class F_EXPORT EventNoticer: public Object {
+		F_HIDDEN_ALL_COPY(EventNoticer);
 	 public:
 		typedef Event EventType;
 		typedef typename Event::SendData        SendData;
@@ -451,7 +451,7 @@ namespace flare {
 		}
 		
 		inline void get_listener() {
-			ASSERT(!_name.is_empty());
+			F_ASSERT(!_name.is_empty());
 			if (_listener == nullptr) {
 				_listener = new List<LWrap>();
 			}
@@ -471,7 +471,7 @@ namespace flare {
 			typedef OnListener<Scope> OnListener2;
 			for ( auto i : *_listener ) {
 				if ( i.value() && i->is_on_listener() ) {
-					FX_CHECK( !(static_cast<OnListener2*>(i.value())->equals( listener ) &&
+					F_CHECK( !(static_cast<OnListener2*>(i.value())->equals( listener ) &&
 											static_cast<OnListener2*>(i.value())->equals( scope )),
 											ERR_DUPLICATE_LISTENER,
 											"Noticers have been added over the letter");
@@ -484,7 +484,7 @@ namespace flare {
 			typedef OnStaticListener<Data> OnStaticListener2;
 			for ( auto i : *_listener ) {
 				if ( i.value() && i->is_on_static_listener() ) {
-					FX_CHECK( !(static_cast<OnStaticListener2*>(i.value())->equals( listener ) &&
+					F_CHECK( !(static_cast<OnStaticListener2*>(i.value())->equals( listener ) &&
 											static_cast<OnStaticListener2*>(i.value())->equals( data )),
 											ERR_DUPLICATE_LISTENER,
 											"Noticers have been added over the letter");
@@ -495,7 +495,7 @@ namespace flare {
 		void assert_shell(EventNoticer* shell) throw(Error) {
 			for ( auto i : *_listener ) {
 				if ( i.value() && i->is_on_shell_listener() ) {
-					FX_CHECK( !static_cast<OnShellListener*>(i.value())->equals( shell ),
+					F_CHECK( !static_cast<OnShellListener*>(i.value())->equals( shell ),
 										ERR_DUPLICATE_LISTENER,
 										"Noticers have been added over the letter");
 				}
@@ -526,8 +526,8 @@ namespace flare {
 		class Name  = String,
 		class Basic = Object
 	>
-	class FX_EXPORT Notification: public Basic {
-		FX_HIDDEN_ALL_COPY(Notification);
+	class F_EXPORT Notification: public Basic {
+		F_HIDDEN_ALL_COPY(Notification);
 	 public:
 		typedef Event               EventType;
 		typedef Name                NameType;

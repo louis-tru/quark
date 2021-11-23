@@ -42,9 +42,9 @@ namespace flare {
 	/**
 	* @class TextRows
 	*/
-	class FX_EXPORT TextRows {
+	class F_EXPORT TextRows {
 	public:
-		struct FX_EXPORT Row {
+		struct F_EXPORT Row {
 			Vec2 offset_start;
 			Vec2 offset_end;
 			float baseline;

@@ -50,7 +50,7 @@ void test_sizeof(int argc, char **argv) {
 	
 	TestSizeOfPtr of = TestSizeOfPtr();
 
-	ASSERT(!of);
+	F_ASSERT(!of);
 	
 	LOG("TestSizeOf: %d", sizeof(TestSizeOf));
 }

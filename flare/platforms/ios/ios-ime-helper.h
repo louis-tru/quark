@@ -32,7 +32,7 @@
 
 #include "flare/util/macros.h"
 
-#if FX_IOS
+#if F_IOS
 
 #import <UIKit/UIKit.h>
 #import "flare/app.h"

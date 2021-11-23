@@ -38,8 +38,8 @@ namespace flare {
 	/**
 		* @class Flow
 		*/
-	class FX_EXPORT FlowLayout: public Box {
-		FX_Define_View(FlowLayout);
+	class F_EXPORT FlowLayout: public Box {
+		F_Define_View(FlowLayout);
 	 public:
 
 		/**
@@ -48,10 +48,10 @@ namespace flare {
 		FlowLayout();
 
 		// define props
-		FX_Define_Prop(Direction, direction); // direction 排版方向
-		FX_Define_Prop(CrossAlign, cross_align); // cross_align 交叉轴的对齐方式
-		FX_Define_Prop(Wrap, wrap); // wrap 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
-		FX_Define_Prop(WrapAlign, wrap_align); // wrap_align 多根交叉轴的对齐方式,如果项目只有一根交叉轴,该属性不起作用
+		F_DEFINE_PROP(Direction, direction); // direction 排版方向
+		F_DEFINE_PROP(CrossAlign, cross_align); // cross_align 交叉轴的对齐方式
+		F_DEFINE_PROP(Wrap, wrap); // wrap 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
+		F_DEFINE_PROP(WrapAlign, wrap_align); // wrap_align 多根交叉轴的对齐方式,如果项目只有一根交叉轴,该属性不起作用
 
 		// --------------- o v e r w r i t e ---------------
 		// @overwrite
@@ -60,7 +60,7 @@ namespace flare {
 		// --------------- m e m b e r . f i e l d ---------------
 	 private:
 		friend class Flex;
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

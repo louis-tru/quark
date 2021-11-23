@@ -35,7 +35,7 @@
 
 #include "../macros.h"
 
-#if FX_ANDROID
+#if F_ANDROID
 
 #include "../object.h"
 #include <jni.h>
@@ -45,14 +45,14 @@ namespace flare {
 	/**
 	* @class JNI
 	*/
-	class FX_EXPORT JNI {
+	class F_EXPORT JNI {
 	 public:
 
 		/**
 		* @class ScopeENV
 		*/
-		class FX_EXPORT ScopeENV {
-			FX_HIDDEN_ALL_COPY(ScopeENV);
+		class F_EXPORT ScopeENV {
+			F_HIDDEN_ALL_COPY(ScopeENV);
 		 public:
 			ScopeENV();
 			~ScopeENV();
@@ -68,7 +68,7 @@ namespace flare {
 		/**
 		* @class MethodInfo
 		*/
-		class FX_EXPORT MethodInfo {
+		class F_EXPORT MethodInfo {
 		 public:
 			MethodInfo(cChar* clazz, cChar* method, cChar* param_code, bool is_static = false);
 			MethodInfo(jclass clazz, cChar* method, cChar* param_code, bool is_static = false);

@@ -35,18 +35,18 @@
 #include <algorithm>
 
 #if defined(__GLIBC__) || defined(__GNU_LIBRARY__)
-# define FX_VLIBC_GLIBC 1
+# define F_VLIBC_GLIBC 1
 #endif
 
-#if FX_VLIBC_GLIBC || FX_BSD
+#if F_VLIBC_GLIBC || F_BSD
 # include <cxxabi.h>
 # include <dlfcn.h>
 # include <execinfo.h>
-#elif FX_QNX
+#elif F_QNX
 # include <backtrace.h>
-#endif  // FX_VLIBC_GLIBC || FX_BSD
+#endif  // F_VLIBC_GLIBC || F_BSD
 
-#if FX_GNUC && !FX_ANDROID
+#if F_GNUC && !F_ANDROID
 # define IMMEDIATE_CRASH() __builtin_trap()
 #else
 # define IMMEDIATE_CRASH() ((void(*)())0)()
@@ -56,7 +56,7 @@
 # define fx_stderr stdout
 #endif
 
-#define FX_STRING_FORMAT(format, str) \
+#define F_STRING_FORMAT(format, str) \
 	va_list __arg; \
 	va_start(__arg, format); \
 	String str = string_format(format, __arg); \
@@ -64,14 +64,14 @@
 
 namespace flare {
 
-	void Console::log(cString& str) {
-		printf("%s\n", str.c_str());
+	void Console::log(cString& str, cChar* tag) {
+		printf("%s %s\n", tag ? tag: "LOG ", str.c_str());
 	}
-	void Console::warn(cString& str) {
-		printf("Warning: %s\n", str.c_str());
+	void Console::warn(cString& str, cChar* tag) {
+		printf("%s %s\n", tag ? tag: "WARN", str.c_str());
 	}
-	void Console::error(cString& str) {
-		fprintf(fx_stderr, "%s\n", str.c_str());
+	void Console::error(cString& str, cChar* tag) {
+		fprintf(fx_stderr, "%s %s\n", tag ? tag: "ERR ", str.c_str());
 	}
 	void Console::print(cString& str) {
 		printf("%s", str.c_str());
@@ -104,13 +104,13 @@ namespace flare {
 	namespace console {
 		
 		void report_error(cChar* format, ...) {
-			FX_STRING_FORMAT(format, str);
+			F_STRING_FORMAT(format, str);
 			printf("%s", str.c_str());
 		}
 		
 		// Attempts to dump a backtrace (if supported).
 		void dump_backtrace() {
-			#if FX_VLIBC_GLIBC || FX_BSD
+			#if F_VLIBC_GLIBC || F_BSD
 				void* trace[100];
 				int size = backtrace(trace, 100);
 				report_error("\n==== C stack trace ===============================\n\n");
@@ -131,7 +131,7 @@ namespace flare {
 						}
 					}
 				}
-			#elif FX_QNX
+			#elif F_QNX
 				Char out[1024];
 				bt_accessor_t acc;
 				bt_memmap_t memmap;
@@ -151,7 +151,7 @@ namespace flare {
 				}
 				bt_unload_memmap(&memmap);
 				bt_release_accessor(&acc);
-			#endif  // FX_VLIBC_GLIBC || FX_BSD
+			#endif  // F_VLIBC_GLIBC || F_BSD
 		}
 		
 		void log(Char msg) {
@@ -187,14 +187,14 @@ namespace flare {
 		}
 
 		void log(int64_t msg) {
-			#if FX_ARCH_64BIT
+			#if F_ARCH_64BIT
 				default_console()->log( String::format("%ld", msg) );
 			#else
 				default_console()->log( String::format("%lld", msg) );
 			#endif
 		}
 		
-		// #if FX_ARCH_32BIT
+		// #if F_ARCH_32BIT
 		// 	void log(long msg) {
 		// 		default_console()->log( String::format("%ld", msg) );
 		// 	}
@@ -204,7 +204,7 @@ namespace flare {
 		// #endif
 
 		void log(uint64_t msg) {
-			#if FX_ARCH_64BIT
+			#if F_ARCH_64BIT
 				default_console()->log( String::format("%lu", msg) );
 			#else
 				default_console()->log( String::format("%llu", msg) );
@@ -212,7 +212,7 @@ namespace flare {
 		}
 	
 		void log(size_t msg) {
-			#if FX_ARCH_64BIT
+			#if F_ARCH_64BIT
 				default_console()->log( String::format("%lu", msg) );
 			#else
 				default_console()->log( String::format("%llu", msg) );
@@ -223,9 +223,9 @@ namespace flare {
 			default_console()->log( msg ? "true": "false" );
 		}
 		
-		void log(cChar* format, ...) {
-      FX_STRING_FORMAT(format, str);
-			default_console()->log(str);
+		void log(cChar* tag, cChar* format, ...) {
+			F_STRING_FORMAT(format, str);
+			default_console()->log(str, tag);
 		}
 		
 		void log(cString& msg) {
@@ -236,8 +236,31 @@ namespace flare {
 			default_console()->log(Coder::encode(Encoding::utf8, msg));
 		}
 
+		void warn(cChar* tag, cChar* format, ...) {
+			F_STRING_FORMAT(format, str);
+			default_console()->warn(str, tag);
+		}
+		
+		void warn(cString& str) {
+			default_console()->warn(str);
+		}
+		
+		void error(cChar* tag, cChar* format, ...) {
+			F_STRING_FORMAT(format, str);
+			default_console()->error(str, tag);
+		}
+		
+		void error(cChar* tag, const Error& err) {
+			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), err.message().c_str());
+			default_console()->error(str, tag);
+		}
+
+		void error(cString& str) {
+			default_console()->error(str);
+		}
+
 		void print(cChar* format, ...) {
-			FX_STRING_FORMAT(format, str);
+			F_STRING_FORMAT(format, str);
 			default_console()->print(str);
 		}
 
@@ -246,7 +269,7 @@ namespace flare {
 		}
 		
 		void print_err(cChar* format, ...) {
-			FX_STRING_FORMAT(format, str);
+			F_STRING_FORMAT(format, str);
 			default_console()->print_err(str);
 		}
 		
@@ -254,35 +277,6 @@ namespace flare {
 			default_console()->print_err(str);
 		}
 		
-		void warn(cChar* format, ...) {
-			FX_STRING_FORMAT(format, str);
-			default_console()->warn(str);
-		}
-		
-		void warn(cString& str) {
-			default_console()->warn(str);
-		}
-		
-		void error(cChar* format, ...) {
-			FX_STRING_FORMAT(format, str);
-			default_console()->error(str);
-		}
-		
-		void error(cString& str) {
-			default_console()->error(str);
-		}
-
-		void error(const Error& err) {
-			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), err.message().c_str());
-			default_console()->error(str);
-		}
-		
-		void tag(cChar* tag, cChar* format, ...) {
-			FX_STRING_FORMAT(format, str);
-			default_console()->print(String::format("%s ", tag));
-			default_console()->log(str);
-		}
-
 		void clear() {
 			default_console()->clear();
 		}
@@ -294,7 +288,7 @@ namespace flare {
 		fflush(stdout);
 		fflush(fx_stderr);
 		if (msg) {
-			FX_STRING_FORMAT(msg, str);
+			F_STRING_FORMAT(msg, str);
 			default_console()->print_err("\n\n\n");
 			default_console()->error(str);
 		}

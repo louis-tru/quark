@@ -90,13 +90,13 @@ namespace flare {
 	}
 
 	String platform() {
-		#if  FX_IOS || FX_OSX
+		#if  F_IOS || F_OSX
 			static String _name("darwin");
-		#elif FX_LINUX
+		#elif F_LINUX
 			static String _name("linux");
-		#elif  FX_ANDROID
+		#elif  F_ANDROID
       static String _name("android");
-		#elif  FX_WIN
+		#elif  F_WIN
 			static String _name("win32");
 		#else
 			# error no support

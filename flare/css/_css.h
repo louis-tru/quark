@@ -56,7 +56,7 @@ namespace flare {
 		inline void set_value(T value) { _value = value; }
 		
 		inline void assignment(View* view, PropertyName name) {
-			ASSERT(view);
+			F_ASSERT(view);
 			PropertysAccessor::Accessor accessor =
 			PropertysAccessor::shared()->accessor(view->view_type(), name);
 			if (accessor.set_accessor) {
@@ -77,11 +77,11 @@ namespace flare {
 			CSSProperty<T>::assignment(view, Name);
 		}
 		virtual void assignment(Frame* frame) {
-			FX_UNREACHABLE();
+			F_UNREACHABLE();
 		}
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(StyleSheets, Inl) {
+	F_DEFINE_INLINE_MEMBERS(StyleSheets, Inl) {
 		public:
 		#define _inl_ss(self) static_cast<StyleSheets::Inl*>(self)
 
@@ -115,7 +115,7 @@ namespace flare {
 		KeyframeAction* assignment(View* view, KeyframeAction* action, bool ignore_action);
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(RootStyleSheets, Inl) {
+	F_DEFINE_INLINE_MEMBERS(RootStyleSheets, Inl) {
 		public:
 		#define _inl_r(self) static_cast<RootStyleSheets::Inl*>(self)
 		static Array<String>& sort( Array<String>& arr, uint32_t len );
@@ -132,7 +132,7 @@ namespace flare {
 		Array<uint32_t> get_css_query_grpup(Array<String>& classs);
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(StyleSheetsClass, Inl) {
+	F_DEFINE_INLINE_MEMBERS(StyleSheetsClass, Inl) {
 		public:
 		#define _inl_cvc(self) static_cast<StyleSheetsClass::Inl*>(self)
 		void update_classs(Array<String>&& classs);

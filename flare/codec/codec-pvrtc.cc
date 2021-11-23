@@ -239,9 +239,9 @@ namespace flare {
 			uint64_t uiDataSize = 0;
 			
 			//Get the dimensions of the specified MIP Map level.
-			uint32_t uiWidth = FX_MAX(1, header.width >> iMipLevel);
-			uint32_t uiHeight = FX_MAX(1, header.height >> iMipLevel);
-			uint32_t uiDepth = FX_MAX(1, header.depth >> iMipLevel);
+			uint32_t uiWidth = F_MAX(1, header.width >> iMipLevel);
+			uint32_t uiHeight = F_MAX(1, header.height >> iMipLevel);
+			uint32_t uiDepth = F_MAX(1, header.depth >> iMipLevel);
 			
 			//If pixel format is compressed, the dimensions need to be padded.
 			if (PixelFormatPartHigh == 0) {
@@ -338,8 +338,8 @@ namespace flare {
 					
 					dataOffset += data_size;
 					
-					width = FX_MAX(width >> 1, 1);
-					height = FX_MAX(height >> 1, 1);
+					width = F_MAX(width >> 1, 1);
+					height = F_MAX(height >> 1, 1);
 				}
 			}
 			return rest;
@@ -382,15 +382,15 @@ namespace flare {
 					dataOffset += dataSize;
 					
 					if (dataOffset > dataLen) {
-						LOG("TexurePVR: Invalid lenght");
+						F_LOG("Codec", "TexurePVR: Invalid lenght");
 						return rest;
 					}
-					width = FX_MAX(width >> 1, 1);
-					height = FX_MAX(height >> 1, 1);
+					width = F_MAX(width >> 1, 1);
+					height = F_MAX(height >> 1, 1);
 				}
 			}
 			else {
-				LOG("TexurePVR: Invalid lenght");
+				F_LOG("Codec", "TexurePVR: Invalid lenght");
 			}
 			
 			return rest;
@@ -404,7 +404,7 @@ namespace flare {
 		else if (_inl_pvr(this)->is_pvr_v3(data)) {
 			return _inl_pvr(this)->_decode_pvr_v3(data);
 		}
-		FX_ERR("TexurePVR: Invalid data");
+		F_ERR("CODEC", "TexurePVR: Invalid data");
 		return Array<PixelData>();
 	}
 
@@ -440,12 +440,12 @@ namespace flare {
 				return PixelData(Buffer(), header->width, header->height, pixelFormat, isPremultipliedAlpha);
 			}
 		}
-		LOG("TexurePVR: Invalid data");
+		F_LOG("Codec", "TexurePVR: Invalid data");
 		return PixelData();
 	}
 
 	Buffer PVRTCImageCodec::encode(cPixelData& data) {
-		FX_UNIMPLEMENTED();
+		F_UNIMPLEMENTED();
 		return Buffer();
 	}
 

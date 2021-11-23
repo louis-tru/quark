@@ -43,13 +43,13 @@ namespace flare {
 	/**
 	* @class TextFont
 	*/
-	class FX_EXPORT TextFont: public Protocol {
+	class F_EXPORT TextFont: public Protocol {
 	public:
 		typedef FontGlyph::TexureLevel TexureLevel;
 		
 		TextFont();
 		
-		struct FX_EXPORT Cell {
+		struct F_EXPORT Cell {
 			uint32_t    line_num;       // 行号
 			float       baseline;       // 基线
 			float       offset_start;   // 偏移开始
@@ -59,7 +59,7 @@ namespace flare {
 			bool    reverse;        // 反向排列
 		};
 		
-		struct FX_EXPORT Data {
+		struct F_EXPORT Data {
 			Data();
 			Array<Cell> cells;
 			String16  string;
@@ -156,7 +156,7 @@ namespace flare {
 	/**
 	* @class TextLayout
 	*/
-	class FX_EXPORT TextLayout: public TextFont {
+	class F_EXPORT TextLayout: public TextFont {
 	public:
 		TextLayout();
 		
@@ -166,7 +166,7 @@ namespace flare {
 		void set_text_overflow(TextOverflow value);
 		void set_text_white_space(TextWhiteSpace value);
 		
-		struct FX_EXPORT Options {
+		struct F_EXPORT Options {
 			struct SpaceWrap {
 				bool  auto_wrap;        // 使用自动wrap(自动换行)
 				bool  merge_space;      // 合并空白序列
@@ -225,7 +225,7 @@ namespace flare {
 		TextOverflow    _text_overflow;     // 文本溢出
 		TextWhiteSpace  _text_white_space;  // 空白处理
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

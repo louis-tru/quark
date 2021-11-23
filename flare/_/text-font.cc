@@ -33,7 +33,7 @@
 #include "./display-port.h"
 #include "./views2/layout.h"
 #include "./_text-rows.h"
-#include "./font/_font.h"
+#include "./font/font.inl"
 #include "./util/codec.h"
 
 namespace flare {
@@ -89,7 +89,7 @@ namespace flare {
 	 * @set font_size {TextSize}
 	 */
 	void TextFont::set_text_size(TextSize value) {
-		value.value = FX_MAX(value.value, 0);
+		value.value = F_MAX(value.value, 0);
 		equal(_text_size) {
 			_text_size = value;
 			mark_text(View::M_LAYOUT |
@@ -127,7 +127,7 @@ namespace flare {
 	 * @set text_shadow {TextShadow}
 	 */
 	void TextFont::set_text_shadow(TextShadow value) {
-		value.value.size = FX_MAX(value.value.size, 0);
+		value.value.size = F_MAX(value.value.size, 0);
 		equal(_text_shadow) {
 			_text_shadow = value;
 			mark_text(View::M_LAYOUT | View::M_TEXT_FONT);
@@ -138,7 +138,7 @@ namespace flare {
 	 * @set text_line_height {TextLineHeight}
 	 */
 	void TextFont::set_text_line_height(TextLineHeight value) {
-		value.value.height = FX_MAX(value.value.height, 0);
+		value.value.height = F_MAX(value.value.height, 0);
 		equal(_text_line_height) {
 			_text_line_height = value;
 			mark_text(View::M_LAYOUT | View::M_CONTENT_OFFSET | View::M_TEXT_FONT);
@@ -162,11 +162,11 @@ namespace flare {
 																														TextLineHeightValue text_line_height) {
 		
 		//if ( _text_family.name() == "icon" && _text_line_height.value.height == 48 ) {
-		//  LOG("icon");
+		//  F_LOG("icon");
 		//}
 		
 		FontGlyphTable* table = font_pool()->get_table(_text_family.value, _text_style.value);
-		ASSERT(table);
+		F_ASSERT(table);
 		
 		/* FontGlyph中获得的数据是 26.6 frac. 64pt 值, 所以这里需要除以这个比例 */
 		float ratio = 4096.0 / _text_size.value; /* 64.0 * 64.0 = 4096.0 */
@@ -181,7 +181,7 @@ namespace flare {
 		float descender, ascender;
 		
 		descender = max_descender + (line_height - max_height) / 2.0;
-		descender = FX_MAX(descender, 0);
+		descender = F_MAX(descender, 0);
 		ascender = line_height - descender;
 		
 		data.text_ascender = ascender;
@@ -236,7 +236,7 @@ namespace flare {
 			v = v->parent();
 		} while(v && ok < 3);
 		
-		FontGlyphTable* table = font_pool()->get_table(family.value, style.value); ASSERT(table);
+		FontGlyphTable* table = font_pool()->get_table(family.value, style.value); F_ASSERT(table);
 		
 		float rv = 0;
 		float ratio = 4096.0 / size.value;
@@ -264,8 +264,8 @@ namespace flare {
 		Region dre = app()->display_port()->draw_region();
 		Region re = View::screen_region_from_convex_quadrilateral(vertex);
 		
-		if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) <= re.h + dre.h &&
-				FX_MAX( dre.x2, re.x2 ) - FX_MIN( dre.x, re.x ) <= re.w + dre.w
+		if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) <= re.h + dre.h &&
+				F_MAX( dre.x2, re.x2 ) - F_MIN( dre.x, re.x ) <= re.w + dre.w
 		) {
 			has_visible_draw_range = true;
 		} else {
@@ -295,7 +295,7 @@ namespace flare {
 		Vec2  vertex2[4];
 		float y, y2;
 		
-		y2 = v->origin_y() - FX_MAX(0, data.text_height - data.text_hori_bearing) + in_offset_y;
+		y2 = v->origin_y() - F_MAX(0, data.text_height - data.text_hori_bearing) + in_offset_y;
 		
 		y = data.cells[0].baseline - y2 - data.text_height;
 		
@@ -321,8 +321,8 @@ namespace flare {
 				C = v->_final_matrix * Vec2(end_x, y);
 				re = View::screen_region_from_convex_quadrilateral(vertex2);
 				
-				if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) < re.h + dre.h &&
-						FX_MAX( dre.x2, re.x2 ) - FX_MIN( dre.x, re.x ) < re.w + dre.w
+				if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) < re.h + dre.h &&
+						F_MAX( dre.x2, re.x2 ) - F_MIN( dre.x, re.x ) < re.w + dre.w
 				) {
 					if ( !is_cell_draw_begin ) {
 						is_cell_draw_begin = 1;
@@ -365,7 +365,7 @@ namespace flare {
 
 	// ----------------------------------- TextLayout -----------------------------------
 
-	FX_INLINE bool has_space_Char(uint16_t unicode, bool space, bool line_feed) {
+	F_INLINE bool has_space_Char(uint16_t unicode, bool space, bool line_feed) {
 		switch(unicode) {
 			case 0x0A: // \n
 				return line_feed;
@@ -379,7 +379,7 @@ namespace flare {
 		return false;
 	}
 
-	FX_INLINE bool has_english_Char(uint16_t unicode) {
+	F_INLINE bool has_english_Char(uint16_t unicode) {
 		switch(unicode) {
 			case 48: case 49: case 50: case 51: case 52:
 			case 53: case 54: case 55: case 56: case 57: // 0-9
@@ -468,7 +468,7 @@ namespace flare {
 		/**
 		 * @func new_row
 		 */
-		FX_INLINE void new_row(TextRows* rows, Cell& cell, Data& data, uint32_t begin) {
+		F_INLINE void new_row(TextRows* rows, Cell& cell, Data& data, uint32_t begin) {
 			
 			/* 结束上一行 */
 			if ( cell.chars.size() ) {
@@ -488,7 +488,7 @@ namespace flare {
 		/**
 		 * @func read_word
 		 */
-		FX_INLINE bool read_word(Word* word, float offset_start,
+		F_INLINE bool read_word(Word* word, float offset_start,
 														 FontGlyphTable* table, float ratio,
 														 Options::SpaceWrap opts, cString16& string, uint32_t begin, uint32_t end) {
 			if ( begin < end ) {

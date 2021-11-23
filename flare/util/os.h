@@ -38,28 +38,28 @@ namespace flare {
 	namespace os {
 
 		// util
-		FX_EXPORT String name();
-		FX_EXPORT String version();
-		FX_EXPORT String brand();
-		FX_EXPORT String subsystem();
-		FX_EXPORT String info();
-		FX_EXPORT String languages();
-		FX_EXPORT String language();
-		FX_EXPORT int64_t time();
-		FX_EXPORT int64_t time_second();
-		FX_EXPORT int64_t time_monotonic();
+		F_EXPORT String name();
+		F_EXPORT String version();
+		F_EXPORT String brand();
+		F_EXPORT String subsystem();
+		F_EXPORT String info();
+		F_EXPORT String languages();
+		F_EXPORT String language();
+		F_EXPORT int64_t time();
+		F_EXPORT int64_t time_second();
+		F_EXPORT int64_t time_monotonic();
 
 		// advanced
-		FX_EXPORT bool  is_wifi();
-		FX_EXPORT bool  is_mobile();
-		FX_EXPORT int   network_status();
-		FX_EXPORT bool  is_ac_power();
-		FX_EXPORT bool  is_battery();
-		FX_EXPORT float battery_level();
-		FX_EXPORT uint64_t memory();
-		FX_EXPORT uint64_t used_memory();
-		FX_EXPORT uint64_t available_memory();
-		FX_EXPORT float cpu_usage();
+		F_EXPORT bool  is_wifi();
+		F_EXPORT bool  is_mobile();
+		F_EXPORT int   network_status();
+		F_EXPORT bool  is_ac_power();
+		F_EXPORT bool  is_battery();
+		F_EXPORT float battery_level();
+		F_EXPORT uint64_t memory();
+		F_EXPORT uint64_t used_memory();
+		F_EXPORT uint64_t available_memory();
+		F_EXPORT float cpu_usage();
 
 	}
 }

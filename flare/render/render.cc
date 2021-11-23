@@ -39,7 +39,7 @@ namespace flare {
 
 	static inline uint32_t massSample(uint32_t n) {
 		n = integerExp(n);
-		return FX_MIN(n, 8);
+		return F_MIN(n, 8);
 	}
 
 	Render::Render(Application* host, const DisplayParams& params)

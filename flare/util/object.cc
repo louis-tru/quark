@@ -48,12 +48,12 @@ namespace flare {
 
 	void* MemoryAllocator::aalloc(void* val, uint32_t size, uint32_t* size_out, uint32_t size_of) {
 		if ( size ) {
-			size = FX_MAX(FX_MIN_CAPACITY, size);
+			size = F_MAX(F_MIN_CAPACITY, size);
 			if ( size > *size_out || size < *size_out / 4.0 ) {
 				size = powf(2, ceil(log2(size)));
 				*size_out = size;
 				val = val ? ::realloc(val, size_of * size) : ::malloc(size_of * size);
-				FX_ASSERT(val);
+				F_ASSERT(val);
 			}
 		} else {
 			*size_out = 0;
@@ -78,7 +78,7 @@ namespace flare {
 	static void  (*object_allocator_release)(Object* obj) = &default_object_release;
 	static void  (*object_allocator_retain)(Object* obj) = &default_object_retain;
 
-	#if FX_MEMORY_TRACE_MARK
+	#if F_MEMORY_TRACE_MARK
 
 		static int active_mark_objects_count_ = 0;
 		static Mutex mark_objects_mutex;
@@ -103,7 +103,7 @@ namespace flare {
 			if ( mark_index_ > -1 ) {
 				ScopeLock scope(mark_objects_mutex);
 				mark_objects_[mark_index_] = nullptr;
-				ASSERT(active_mark_objects_count_);
+				F_ASSERT(active_mark_objects_count_);
 				active_mark_objects_count_--;
 			}
 		}
@@ -122,7 +122,7 @@ namespace flare {
 				}
 			}
 			
-			ASSERT( new_mark_objects.length() == active_mark_objects_count_ );
+			F_ASSERT( new_mark_objects.length() == active_mark_objects_count_ );
 			
 			mark_objects_ = std::move(new_mark_objects);
 			return rv;
@@ -147,7 +147,7 @@ namespace flare {
 	}
 
 	void* Object::operator new(std::size_t size) {
-		#if FX_MEMORY_TRACE_MARK
+		#if F_MEMORY_TRACE_MARK
 			void* p = object_allocator.alloc(size);
 			((Object*)p)->mark_index_ = 123456;
 			return p;
@@ -162,7 +162,7 @@ namespace flare {
 	}
 
 	void Object::operator delete(void* p) {
-		FX_UNREACHABLE();
+		F_UNREACHABLE();
 	}
 
 	void Object::set_object_allocator(
@@ -196,11 +196,11 @@ namespace flare {
 	}
 
 	Reference::~Reference() {
-		ASSERT( _ref_count <= 0 );
+		F_ASSERT( _ref_count <= 0 );
 	}
 
 	bool Reference::retain() {
-		ASSERT(_ref_count >= 0);
+		F_ASSERT(_ref_count >= 0);
 		if ( _ref_count++ == 0 ) {
 			object_allocator_retain(this);
 		}
@@ -208,7 +208,7 @@ namespace flare {
 	}
 
 	void Reference::release() {
-		ASSERT(_ref_count >= 0);
+		F_ASSERT(_ref_count >= 0);
 		if ( --_ref_count <= 0 ) { // 当引用记数小宇等于0释放
 			object_allocator_release(this);
 		}

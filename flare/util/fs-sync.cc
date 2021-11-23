@@ -32,7 +32,7 @@
 #include "./fs.h"
 #include <uv.h>
 
-#if FX_WIN
+#if F_WIN
 #include <io.h>
 #include <direct.h>
 #else

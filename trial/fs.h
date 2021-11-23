@@ -42,8 +42,8 @@ namespace flare {
 	/**
 	* @class FileSearch # Resources files search
 	*/
-	class FX_EXPORT FileSearch: public Object {
-		FX_HIDDEN_ALL_COPY(FileSearch);
+	class F_EXPORT FileSearch: public Object {
+		F_HIDDEN_ALL_COPY(FileSearch);
 		public:
 		
 		FileSearch();

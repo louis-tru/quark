@@ -38,8 +38,8 @@ namespace flare {
 	/**
 		* @class Label
 		*/
-	class FX_EXPORT Label: public View {
-		FX_Define_View(Label);
+	class F_EXPORT Label: public View {
+		F_Define_View(Label);
 	 public:
 		// TODO ...
 	 private:

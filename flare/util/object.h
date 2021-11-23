@@ -34,23 +34,23 @@
 #include "./macros.h"
 #include <atomic>
 
-#ifndef FX_MEMORY_TRACE_MARK
-# define FX_MEMORY_TRACE_MARK 0
+#ifndef F_MEMORY_TRACE_MARK
+# define F_MEMORY_TRACE_MARK 0
 #endif
 
-#if FX_MEMORY_TRACE_MARK
+#if F_MEMORY_TRACE_MARK
 # include <vector>
 #endif
 
 namespace flare {
 
-#define FX_DEFAULT_ALLOCATOR() \
+#define F_DEFAULT_ALLOCATOR() \
 	static void* operator new(std::size_t size) { return ::operator new(size); } \
 	static void  operator delete(void* p) { ::operator delete(p); } \
 	virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this; }
 
-#ifndef FX_MIN_CAPACITY
-# define FX_MIN_CAPACITY (8)
+#ifndef F_MIN_CAPACITY
+# define F_MIN_CAPACITY (8)
 #endif
 
 	// -------------------------------------------------------
@@ -88,7 +88,7 @@ namespace flare {
 	/**
 	* @class Object
 	*/
-	class FX_EXPORT Object {
+	class F_EXPORT Object {
 	 public:
 		typedef ObjectTraits Traits;
 		typedef Object IsObjectCheck;
@@ -103,7 +103,7 @@ namespace flare {
 			void* (*alloc)(size_t size) = nullptr,
 			void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
 		);
-		#if FX_MEMORY_TRACE_MARK
+		#if F_MEMORY_TRACE_MARK
 			static std::vector<Object*> mark_objects();
 			static int mark_objects_count();
 			Object();
@@ -119,7 +119,7 @@ namespace flare {
 	/**
 	* @class Reference
 	*/
-	class FX_EXPORT Reference: public Object {
+	class F_EXPORT Reference: public Object {
 		typedef Reference IsObjectCheck;
 	 public:
 		typedef ReferenceTraits Traits;
@@ -139,7 +139,7 @@ namespace flare {
 	/**
 	* @class Protocol
 	*/
-	class FX_EXPORT Protocol {
+	class F_EXPORT Protocol {
 	 public:
 		typedef ProtocolTraits Traits;
 		virtual Object* to_object() = 0;
@@ -148,7 +148,7 @@ namespace flare {
 	/**
 	* @class ObjectTraits
 	*/
-	class FX_EXPORT ObjectTraits {
+	class F_EXPORT ObjectTraits {
 	 public:
 		inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
 		inline static void Release(Object* obj) { if (obj) obj->release(); }
@@ -159,7 +159,7 @@ namespace flare {
 	/**
 	* @class ReferenceTraits
 	*/
-	class FX_EXPORT ReferenceTraits: public ObjectTraits {
+	class F_EXPORT ReferenceTraits: public ObjectTraits {
 	 public:
 		static constexpr bool is_reference = true;
 	};
@@ -167,7 +167,7 @@ namespace flare {
 	/**
 	* @class ProtocolTraits
 	*/
-	class FX_EXPORT ProtocolTraits {
+	class F_EXPORT ProtocolTraits {
 	 public:
 		template<class T> inline static bool Retain(T* obj) {
 			return obj ? obj->to_object()->retain() : 0;
@@ -183,7 +183,7 @@ namespace flare {
 	/**
 	* @class NonObjectTraits
 	*/
-	class FX_EXPORT NonObjectTraits {
+	class F_EXPORT NonObjectTraits {
 	 public:
 		template<class T> inline static bool Retain(T* obj) {
 			/* Non referential pairs need not be Retain */ return 0;
@@ -192,10 +192,10 @@ namespace flare {
 		static constexpr bool is_reference = false;
 	};
 
-	FX_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+	F_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
-	FX_EXPORT bool Retain(Object* obj);
-	FX_EXPORT void Release(Object* obj);
+	F_EXPORT bool Retain(Object* obj);
+	F_EXPORT void Release(Object* obj);
 
 	template<class T, typename... Args>
 	inline T* New(Args... args) {

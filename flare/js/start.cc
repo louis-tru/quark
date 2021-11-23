@@ -31,7 +31,7 @@
 #include "./js.h"
 #include "../app.h"
 
-#if FX_UNIX
+#if F_UNIX
 # include <dlfcn.h>
 #endif
 
@@ -52,7 +52,7 @@ int __fx_flare_have_debug = 0;
 static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Char*>& flare_argv) {
 	static String argv_str;
 
-	ASSERT(argv_in.length(), "Bad start argument");
+	F_ASSERT(argv_in.length(), "Bad start argument");
 	__fx_flare_have_node = 1;
 	__fx_flare_have_debug = 0;
 	argv_str = argv_in[0];
@@ -95,7 +95,7 @@ static void on_process_safe_handle(Event<>& e, Object* data) {
 		typedef Callback<RunLoop::PostSyncData> Cb;
 		RunLoop::main_loop()->post_sync(Cb([&](Cb::Data& e) {
 			auto worker = Worker::worker();
-			DLOG("on_process_safe_handle");
+			DLOG("Start", "on_process_safe_handle");
 			if (worker) {
 				rc = IMPL::inl(worker)->TriggerExit(rc);
 			}
@@ -122,12 +122,12 @@ int Start(const Array<String>& argv_in) {
 		Object::set_object_allocator(
 			&object_allocator_alloc, &object_allocator_release, &object_allocator_retain);
 	}
-	ASSERT(!__fx_flare_argv);
+	F_ASSERT(!__fx_flare_argv);
 
 	Array<Char*> argv, flare_argv;
 	parseArgv(argv_in, argv, flare_argv);
 
-	Thread::FX_On(ProcessSafeExit, on_process_safe_handle);
+	Thread::F_On(ProcessSafeExit, on_process_safe_handle);
 
 	__fx_flare_argv = &flare_argv;
 	int rc = 0;
@@ -135,23 +135,23 @@ int Start(const Array<String>& argv_in) {
 	Char** argv_c = const_cast<Char**>(&argv[0]);
 
 	// Mark the current main thread and check current thread
-	ASSERT(RunLoop::main_loop() == RunLoop::current());
+	F_ASSERT(RunLoop::main_loop() == RunLoop::current());
 
 	if (__fx_flare_have_node ) {
 		if (node::node_api) {
 			rc = node::node_api->start(argc, argv_c);
 		} else {
-			#if FX_LINUX
+			#if F_LINUX
 				// try loading nxnode
 				void* handle = dlopen("libflare-node.so", RTLD_LAZY | RTLD_GLOBAL);
 				if (!handle) {
-					FX_WARN("No node library loaded, %s", dlerror());
+					F_WARN("START", "No node library loaded, %s", dlerror());
 					goto no_node_start;
 				} else {
 					rc = node::node_api->start(argc, argv_c);
 				}
 			#else
-				FX_WARN("No node library loaded");
+				F_WARN("START", "No node library loaded");
 				goto no_node_start;
 			#endif
 		}
@@ -161,7 +161,7 @@ int Start(const Array<String>& argv_in) {
 		rc = IMPL::start(argc, argv_c);
 	}
 	__fx_flare_argv = nullptr;
-	Thread::FX_Off(ProcessSafeExit, on_process_safe_handle);
+	Thread::F_Off(ProcessSafeExit, on_process_safe_handle);
 
 	return rc;
 }
@@ -180,7 +180,7 @@ int Start(int argc, Char** argv) {
 int __default_main(int argc, Char** argv) {
 	String cmd;
 
-	#if FX_ANDROID
+	#if F_ANDROID
 		cmd = Android::start_cmd();
 		if ( cmd.is_empty() )
 	#endif 
@@ -205,6 +205,6 @@ int __default_main(int argc, Char** argv) {
 	}
 }
 
-FX_INIT_BLOCK(__default_main) {
+F_INIT_BLOCK(__default_main) {
 	__fx_default_gui_main = __default_main;
 }

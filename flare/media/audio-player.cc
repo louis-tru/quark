@@ -65,14 +65,14 @@ namespace flare {
 	/**
 	* @class Video::Inl
 	*/
-	FX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
+	F_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 		public:
 		
 		// set pcm ..
 		bool write_audio_pcm(uint64_t st) {
 			bool r = _pcm->write(WeakBuffer((Char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
 			if ( !r ) {
-				FX_DEBUG("Discard, audio PCM frame, %lld", _audio_buffer.time);
+				F_DEBUG("Discard, audio PCM frame, %lld", _audio_buffer.time);
 			} else {
 				_prev_presentation_time = st;
 			}
@@ -240,9 +240,9 @@ namespace flare {
 		void start_run() {
 			Lock lock(_mutex);
 			
-			ASSERT( _source && _audio && _pcm );
-			ASSERT( _source->is_active() );
-			ASSERT( _status == PLAYER_STATUS_START );
+			F_ASSERT( _source && _audio && _pcm );
+			F_ASSERT( _source->is_active() );
+			F_ASSERT( _status == PLAYER_STATUS_START );
 			
 			_waiting_buffer = false;
 			
@@ -268,7 +268,7 @@ namespace flare {
 	};
 
 	void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
-		ASSERT(_source == src);
+		F_ASSERT(_source == src);
 		
 		if (_audio) {
 			Inl_AudioPlayer(this)->trigger(UIEvent_Ready); // trigger event ready
@@ -318,7 +318,7 @@ namespace flare {
 				}
 			} else {
 				Error e(ERR_AUDIO_NEW_CODEC_FAIL, "Unable to create video decoder");
-				FX_ERR("%s", *e.message());
+				F_ERR("AUDIO", "%s", *e.message());
 				Inl_AudioPlayer(this)->trigger(UIEvent_Error, e); // trigger event error
 				stop();
 			}
@@ -383,7 +383,7 @@ namespace flare {
 			Inl_AudioPlayer(this)->stop_and_release(lock, true);
 		}
 		auto loop = RunLoop::main_loop();
-		ASSERT(loop, "Cannot find main run loop");
+		F_ASSERT(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
 		_keep = loop->keep_alive("AudioPlayer::set_src");
 		_source->set_delegate(this);
@@ -453,7 +453,7 @@ namespace flare {
 	bool AudioPlayer::seek(uint64_t timeUs) {
 		ScopeLock scope(_mutex);
 		if ( Inl_AudioPlayer(this)->is_active() && timeUs < _duration ) {
-			ASSERT(_source);
+			F_ASSERT(_source);
 			if ( _source->seek(timeUs) ) {
 				_uninterrupted_play_start_systime = 0;
 				_time = timeUs;
@@ -515,7 +515,7 @@ namespace flare {
 	*/
 	void AudioPlayer::set_volume(uint32_t value) {
 		ScopeLock scope(_mutex);
-		value = FX_MIN(value, 100);
+		value = F_MIN(value, 100);
 		_volume = value;
 		if ( _pcm ) {
 			_pcm->set_volume(value);

@@ -42,7 +42,7 @@ namespace flare {
 		GLRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
 			: GLRender(host, params), _glctx(ctx)
 		{
-			ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
+			F_ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
 			initialize();
 		}
@@ -52,7 +52,7 @@ namespace flare {
 		}
 
 		void setView(UIView* view) {
-			ASSERT(!_view);
+			F_ASSERT(!_view);
 			_view = view;
 			_layer = (CAEAGLLayer*)view.layer;
 			_layer.drawableProperties = @{

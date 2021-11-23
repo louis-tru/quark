@@ -58,8 +58,8 @@
 #define JS_TRY_CATCH(block, Error) try block catch(const Error& e) { JS_THROW_ERR(e); }
 
 #define JS_REG_MODULE(name, cls) \
-	FX_INIT_BLOCK(JS_REG_MODULE_##name) { \
-		FX_DEBUG("%s", "JS_REG_MODULE "#name""); \
+	F_INIT_BLOCK(JS_REG_MODULE_##name) { \
+		F_DEBUG("%s", "JS_REG_MODULE "#name""); \
 		flare::js::Worker::registerModule(#name, cls::binding, __FILE__); \
 	}
 
@@ -140,28 +140,28 @@ class JSFunction;
 class JSArrayBuffer;
 class JSClass;
 
-class FX_EXPORT NoCopy {
+class F_EXPORT NoCopy {
 public:
-	FX_INLINE NoCopy() {}
-	FX_HIDDEN_ALL_COPY(NoCopy);
-	FX_HIDDEN_HEAP_ALLOC();
+	F_INLINE NoCopy() {}
+	F_HIDDEN_ALL_COPY(NoCopy);
+	F_HIDDEN_HEAP_ALLOC();
 };
 
 template<class T>
-class FX_EXPORT Maybe {
+class F_EXPORT Maybe {
 public:
 	Maybe() : val_ok_(false) {}
 	explicit Maybe(const T& t) : val_ok_(true), val_(t) {}
 	explicit Maybe(T&& t) : val_ok_(true), val_(move(t)) {}
-	FX_INLINE bool Ok() const { return val_ok_; }
-	FX_INLINE bool To(T& out) {
+	F_INLINE bool Ok() const { return val_ok_; }
+	F_INLINE bool To(T& out) {
 		if ( val_ok_ ) {
 			out = move(val_);
 			return true;
 		}
 		return false;
 	}
-	FX_INLINE T FromMaybe(const T& default_value) {
+	F_INLINE T FromMaybe(const T& default_value) {
 		return val_ok_ ? move(val_) : default_value;
 	}
 private:
@@ -170,23 +170,23 @@ private:
 };
 
 template <class T>
-class FX_EXPORT MaybeLocal {
+class F_EXPORT MaybeLocal {
 public:
-	FX_INLINE MaybeLocal() : val_(nullptr) {}
+	F_INLINE MaybeLocal() : val_(nullptr) {}
 	template <class S>
-	FX_INLINE MaybeLocal(Local<S> that)
+	F_INLINE MaybeLocal(Local<S> that)
 	: val_(reinterpret_cast<T*>(*that)) {
 		JS_TYPE_CHECK(T, S);
 	}
-	FX_INLINE bool IsEmpty() const { return val_ == nullptr; }
+	F_INLINE bool IsEmpty() const { return val_ == nullptr; }
 	template <class S>
-	FX_INLINE bool ToLocal(Local<S>* out) const {
+	F_INLINE bool ToLocal(Local<S>* out) const {
 		out->val_ = IsEmpty() ? nullptr : this->val_;
 		return !IsEmpty();
 	}
-	FX_INLINE Local<T> ToLocalChecked();
+	F_INLINE Local<T> ToLocalChecked();
 	template <class S>
-	FX_INLINE Local<S> FromMaybe(Local<S> default_value) const {
+	F_INLINE Local<S> FromMaybe(Local<S> default_value) const {
 		return IsEmpty() ? default_value : Local<S>(val_);
 	}
 private:
@@ -194,22 +194,22 @@ private:
 };
 
 template<class T>
-class FX_EXPORT Local {
+class F_EXPORT Local {
 public:
-	FX_INLINE Local() : val_(0) {}
+	F_INLINE Local() : val_(0) {}
 	template <class S>
-	FX_INLINE Local(Local<S> that)
+	F_INLINE Local(Local<S> that)
 	: val_(reinterpret_cast<T*>(*that)) {
 		JS_TYPE_CHECK(T, S);
 	}
-	FX_INLINE bool IsEmpty() const { return val_ == 0; }
-	FX_INLINE void Clear() { val_ = 0; }
-	FX_INLINE T* operator->() const { return val_; }
-	FX_INLINE T* operator*() const { return val_; }
-	template <class S> FX_INLINE static Local<T> Cast(Local<S> that) {
+	F_INLINE bool IsEmpty() const { return val_ == 0; }
+	F_INLINE void Clear() { val_ = 0; }
+	F_INLINE T* operator->() const { return val_; }
+	F_INLINE T* operator*() const { return val_; }
+	template <class S> F_INLINE static Local<T> Cast(Local<S> that) {
 		return Local<T>( static_cast<T*>(*that) );
 	}
-	template <class S = JSObject> FX_INLINE Local<S> To() const {
+	template <class S = JSObject> F_INLINE Local<S> To() const {
 		// unsafe conversion 
 		return Local<S>::Cast(*this);
 	}
@@ -219,97 +219,97 @@ private:
 	friend class JSString;
 	friend class JSClass;
 	friend class Worker;
-	explicit FX_INLINE Local(T* that) : val_(that) { }
+	explicit F_INLINE Local(T* that) : val_(that) { }
 	T* val_;
 };
 
 template<class T>
-class FX_EXPORT PersistentBase: public NoCopy {
+class F_EXPORT PersistentBase: public NoCopy {
 public:
 	typedef void (*WeakCallback)(void* ptr);
-	FX_INLINE void Reset() {
+	F_INLINE void Reset() {
 		JS_TYPE_CHECK(JSValue, T);
 		reinterpret_cast<PersistentBase<JSValue>*>(this)->Reset();
 	}
 	template <class S>
-	FX_INLINE void Reset(Worker* worker, const Local<S>& other) {
+	F_INLINE void Reset(Worker* worker, const Local<S>& other) {
 		JS_TYPE_CHECK(T, S);
 		JS_TYPE_CHECK(JSValue, T);
 		reinterpret_cast<PersistentBase<JSValue>*>(this)->
 		Reset(worker, *reinterpret_cast<const Local<JSValue>*>(&other));
 	}
 	template <class S>
-	FX_INLINE void Reset(Worker* worker, const PersistentBase<S>& other) {
+	F_INLINE void Reset(Worker* worker, const PersistentBase<S>& other) {
 		JS_TYPE_CHECK(T, S);
 		reinterpret_cast<PersistentBase<JSValue>*>(this)->Reset(worker, other.local());
 	}
-	FX_INLINE bool IsEmpty() const { return val_ == 0; }
-	FX_INLINE Local<T> local() const {
+	F_INLINE bool IsEmpty() const { return val_ == 0; }
+	F_INLINE Local<T> local() const {
 		return *reinterpret_cast<Local<T>*>(const_cast<PersistentBase*>(this));
 	}
-	FX_INLINE Worker* worker() const { return worker_; }
+	F_INLINE Worker* worker() const { return worker_; }
 private:
 	friend class WrapObject;
 	friend class Worker;
 	template<class F1, class F2> friend class Persistent;
-	FX_INLINE PersistentBase(): val_(0), worker_(0) { }
-	FX_INLINE void Empty() { val_ = 0; }
+	F_INLINE PersistentBase(): val_(0), worker_(0) { }
+	F_INLINE void Empty() { val_ = 0; }
 	template<class S> void Copy(const PersistentBase<S>& that);
 	T* val_;
 	Worker* worker_;
 };
 
 template<class T> class
-FX_EXPORT NonCopyablePersistentTraits {
+F_EXPORT NonCopyablePersistentTraits {
 public:
 	static constexpr bool kResetInDestructor = true;
-	FX_INLINE static void CopyCheck() { Uncompilable<Object>(); }
+	F_INLINE static void CopyCheck() { Uncompilable<Object>(); }
 	template<class O> static void Uncompilable() {
 		JS_TYPE_CHECK(O, JSValue);
 	}
 };
 
 template<class T> class
-FX_EXPORT CopyablePersistentTraits {
+F_EXPORT CopyablePersistentTraits {
 public:
 	typedef Persistent<T, CopyablePersistentTraits<T>> Handle;
 	static constexpr bool kResetInDestructor = true;
-	static FX_INLINE void CopyCheck() { }
+	static F_INLINE void CopyCheck() { }
 };
 
 template<class T, class M>
-class FX_EXPORT Persistent: public PersistentBase<T> {
+class F_EXPORT Persistent: public PersistentBase<T> {
 public:
-	FX_INLINE Persistent() { }
+	F_INLINE Persistent() { }
 	
 	~Persistent() { if(M::kResetInDestructor) this->Reset(); }
 	
 	template <class S>
-	FX_INLINE Persistent(Worker* worker, Local<S> that) {
+	F_INLINE Persistent(Worker* worker, Local<S> that) {
 		this->Reset(worker, that);
 	}
 	
 	template <class S, class M2>
-	FX_INLINE Persistent(Worker* worker, const Persistent<S, M2>& that) {
+	F_INLINE Persistent(Worker* worker, const Persistent<S, M2>& that) {
 		this->Reset(worker, that);
 	}
 	
-	FX_INLINE Persistent(const Persistent& that) {
+	F_INLINE Persistent(const Persistent& that) {
 		Copy(that);
 	}
 	
 	template<class S, class M2>
-	FX_INLINE Persistent(const Persistent<S, M2>& that) {
+	F_INLINE Persistent(const Persistent<S, M2>& that) {
 		Copy(that);
 	}
 	
-	FX_INLINE Persistent& operator=(const Persistent& that) {
+	F_INLINE Persistent& operator=(const Persistent& that) {
 		Copy(that);
 		return *this;
 	}
 	
 	template <class S, class M2>
-	FX_INLINE Persistent& operator=(const Persistent<S, M2>& that) {
+	F_INLINE Persistent& operator=(const Persistent<S, M2>& that) {
 		Copy(that);
 		return *this;
 	}
@@ -317,7 +317,7 @@ public:
 private:
 	template<class F1, class F2> friend class Persistent;
 	template<class S>
-	FX_INLINE void Copy(const PersistentBase<S>& that) {
+	F_INLINE void Copy(const PersistentBase<S>& that) {
 		M::CopyCheck();
 		JS_TYPE_CHECK(T, S);
 		JS_TYPE_CHECK(JSValue, T);
@@ -328,7 +328,7 @@ private:
 	}
 };
 
-class FX_EXPORT ReturnValue {
+class F_EXPORT ReturnValue {
 public:
 	template <class S>
 	inline void Set(Local<S> value) {
@@ -347,7 +347,7 @@ private:
 	void* val_;
 };
 
-class FX_EXPORT FunctionCallbackInfo: public NoCopy {
+class F_EXPORT FunctionCallbackInfo: public NoCopy {
 public:
 	Worker* worker() const;
 	int Length() const;
@@ -357,14 +357,14 @@ public:
 	ReturnValue GetReturnValue() const;
 };
 
-class FX_EXPORT PropertyCallbackInfo: public NoCopy {
+class F_EXPORT PropertyCallbackInfo: public NoCopy {
 public:
 	Worker* worker() const;
 	Local<JSObject> This() const;
 	ReturnValue GetReturnValue() const;
 };
 
-class FX_EXPORT PropertySetCallbackInfo: public NoCopy {
+class F_EXPORT PropertySetCallbackInfo: public NoCopy {
 	public:
 	Worker* worker() const;
 	Local<JSObject> This() const;
@@ -379,7 +379,7 @@ typedef void (*AccessorSetterCallback)(Local<JSString> name, Local<JSValue> valu
 typedef void (*IndexedPropertyGetterCallback)(uint32_t index, PropertyCall info);
 typedef void (*IndexedPropertySetterCallback)(uint32_t index, Local<JSValue> value, PropertyCall info);
 
-class FX_EXPORT HandleScope: public NoCopy {
+class F_EXPORT HandleScope: public NoCopy {
 public:
 	explicit HandleScope(Worker* worker);
 	~HandleScope();
@@ -387,7 +387,7 @@ private:
 	void* val_[3];
 };
 
-class FX_EXPORT CallbackScope: public NoCopy {
+class F_EXPORT CallbackScope: public NoCopy {
 public:
 	explicit CallbackScope(Worker* worker);
 	~CallbackScope();
@@ -395,7 +395,7 @@ private:
 	void* val_;
 };
 
-class FX_EXPORT JSValue: public NoCopy {
+class F_EXPORT JSValue: public NoCopy {
 public:
 	bool IsUndefined() const;
 	bool IsNull() const;
@@ -451,7 +451,7 @@ public:
 	WeakBuffer AsBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
 };
 
-class FX_EXPORT JSString: public JSValue {
+class F_EXPORT JSString: public JSValue {
 public:
 	int Length(Worker* worker) const;
 	String Value(Worker* worker, bool ascii = false) const;
@@ -459,7 +459,7 @@ public:
 	static Local<JSString> Empty(Worker* worker);
 };
 
-class FX_EXPORT JSObject: public JSValue {
+class F_EXPORT JSObject: public JSValue {
 public:
 	Local<JSValue> Get(Worker* worker, Local<JSValue> key);
 	Local<JSValue> Get(Worker* worker, uint32_t index);
@@ -482,7 +482,7 @@ public:
 									 AccessorGetterCallback get, AccessorSetterCallback set = nullptr);
 };
 
-class FX_EXPORT JSArray: public JSObject {
+class F_EXPORT JSArray: public JSObject {
 public:
 	int Length(Worker* worker) const;
 	Maybe<Array<String>> ToStringArrayMaybe(Worker* worker);
@@ -490,37 +490,37 @@ public:
 	Maybe<Buffer> ToBufferMaybe(Worker* worker);
 };
 
-class FX_EXPORT JSDate: public JSObject {
+class F_EXPORT JSDate: public JSObject {
 public:
 	double ValueOf(Worker* worker) const;
 };
 
-class FX_EXPORT JSNumber: public JSValue {
+class F_EXPORT JSNumber: public JSValue {
 public:
 	double Value(Worker* worker) const;
 };
 
-class FX_EXPORT JSInt32: public JSNumber {
+class F_EXPORT JSInt32: public JSNumber {
 public:
 	int Value(Worker* worker) const;
 };
 
-class FX_EXPORT JSInteger: public JSNumber {
+class F_EXPORT JSInteger: public JSNumber {
 public:
 	int64_t Value(Worker* worker) const;
 };
 
-class FX_EXPORT JSUint32: public JSNumber {
+class F_EXPORT JSUint32: public JSNumber {
 public:
 	uint32_t Value(Worker* worker) const;
 };
 
-class FX_EXPORT JSBoolean: public JSValue {
+class F_EXPORT JSBoolean: public JSValue {
 public:
 	bool Value(Worker* worker) const;
 };
 
-class FX_EXPORT JSFunction: public JSObject {
+class F_EXPORT JSFunction: public JSObject {
 public:
 	Local<JSValue> Call(Worker* worker, int argc = 0,
 											Local<JSValue> argv[] = nullptr,
@@ -530,14 +530,14 @@ public:
 															Local<JSValue> argv[] = nullptr);
 };
 
-class FX_EXPORT JSArrayBuffer: public JSObject {
+class F_EXPORT JSArrayBuffer: public JSObject {
 public:
 	int ByteLength(Worker* worker) const;
 	Char* Data(Worker* worker);
 	WeakBuffer weakBuffer(Worker* worker);
 };
 
-class FX_EXPORT JSTypedArray: public JSObject {
+class F_EXPORT JSTypedArray: public JSObject {
 public:
 	Local<JSArrayBuffer> Buffer(Worker* worker);
 	WeakBuffer weakBuffer(Worker* worker);
@@ -545,17 +545,17 @@ public:
 	int ByteOffset(Worker* worker);
 };
 
-class FX_EXPORT JSUint8Array: public JSTypedArray {
+class F_EXPORT JSUint8Array: public JSTypedArray {
 };
 
-class FX_EXPORT JSSet: public JSObject {
+class F_EXPORT JSSet: public JSObject {
 public:
 	MaybeLocal<JSSet> Add(Worker* worker, Local<JSValue> key);
 	Maybe<bool> Has(Worker* worker, Local<JSValue> key);
 	Maybe<bool> Delete(Worker* worker, Local<JSValue> key);
 };
 
-class FX_EXPORT JSClass: public NoCopy {
+class F_EXPORT JSClass: public NoCopy {
 public:
 	uint64_t ID() const;
 	bool HasInstance(Worker* worker, Local<JSValue> val);
@@ -577,7 +577,7 @@ public:
 	int InstanceInternalFieldCount();
 };
 
-class FX_EXPORT TryCatch: public NoCopy {
+class F_EXPORT TryCatch: public NoCopy {
 public:
 	TryCatch();
 	~TryCatch();
@@ -590,8 +590,8 @@ public:
 /**
  * @class Worker
  */
-class FX_EXPORT Worker: public Object {
-	FX_HIDDEN_ALL_COPY(Worker);
+class F_EXPORT Worker: public Object {
+	F_HIDDEN_ALL_COPY(Worker);
 public:
 	typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
 	typedef void (*WrapAttachCallback)(WrapObject* wrap);
@@ -668,10 +668,10 @@ public:
 	inline Local<JSNumber>  New(const Uint64& v) { return New(v.value); }
 	
 	template <class T>
-	FX_INLINE Local<T> New(Local<T> val) { return val; }
+	F_INLINE Local<T> New(Local<T> val) { return val; }
 	
 	template <class T>
-	FX_INLINE Local<T> New(const PersistentBase<T>& value) {
+	F_INLINE Local<T> New(const PersistentBase<T>& value) {
 		auto r = New(*reinterpret_cast<const PersistentBase<JSValue>*>(&value));
 		auto r_ = reinterpret_cast<Local<T>*>(&r);
 		return *r_;
@@ -831,7 +831,7 @@ private:
 
 	friend class NativeValue;
 	friend class WorkerIMPL;
-	FX_DEFINE_INLINE_CLASS(IMPL);
+	F_DEFINE_INLINE_CLASS(IMPL);
 	IMPL* _inl;
 
 	Worker(IMPL* inl);
@@ -840,8 +840,8 @@ private:
 /**
  * @class WrapObject
  */
-class FX_EXPORT WrapObject {
-	FX_HIDDEN_ALL_COPY(WrapObject);
+class F_EXPORT WrapObject {
+	F_HIDDEN_ALL_COPY(WrapObject);
 protected:
 	
 	inline WrapObject() {}
@@ -932,12 +932,12 @@ public:
 
 protected:
 	Persistent<JSObject> handle_;
-	FX_DEFINE_INLINE_CLASS(Inl);
+	F_DEFINE_INLINE_CLASS(Inl);
 	friend class Allocator;
 };
 
 template<class T = Object>
-class FX_EXPORT Wrap: public WrapObject {
+class F_EXPORT Wrap: public WrapObject {
 	Wrap() = delete;
 public:
 	inline static Wrap<T>* unpack(Local<JSObject> value) {
@@ -948,9 +948,9 @@ public:
 	}
 };
 
-FX_EXPORT int Start(cString& cmd);
-FX_EXPORT int Start(const Array<String>& argv);
-FX_EXPORT int Start(int argc, Char** argv);
+F_EXPORT int Start(cString& cmd);
+F_EXPORT int Start(const Array<String>& argv);
+F_EXPORT int Start(int argc, Char** argv);
 
 // **********************************************************************
 
@@ -960,19 +960,19 @@ typedef CopyablePersistentTraits<JSObject>::Handle CopyablePersistentObject;
 typedef CopyablePersistentTraits<JSValue>::Handle CopyablePersistentValue;
 
 template <>
-FX_EXPORT void PersistentBase<JSValue>::Reset();
+F_EXPORT void PersistentBase<JSValue>::Reset();
 template <>
-FX_EXPORT void PersistentBase<JSClass>::Reset();
+F_EXPORT void PersistentBase<JSClass>::Reset();
 template <> template <>
-FX_EXPORT void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other);
+F_EXPORT void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other);
 template <> template <>
-FX_EXPORT void PersistentBase<JSClass>::Reset(Worker* worker, const Local<JSClass>& other);
+F_EXPORT void PersistentBase<JSClass>::Reset(Worker* worker, const Local<JSClass>& other);
 template<> template<>
-FX_EXPORT void PersistentBase<JSValue>::Copy(const PersistentBase<JSValue>& that);
+F_EXPORT void PersistentBase<JSValue>::Copy(const PersistentBase<JSValue>& that);
 template<> template<>
-FX_EXPORT void CopyablePersistentClass::Copy(const PersistentBase<JSClass>& that);
+F_EXPORT void CopyablePersistentClass::Copy(const PersistentBase<JSClass>& that);
 
-template<> FX_EXPORT void ReturnValue::Set<JSValue>(Local<JSValue> value);
+template<> F_EXPORT void ReturnValue::Set<JSValue>(Local<JSValue> value);
 
 template<class T>
 bool JSObject::SetProperty(Worker* worker, cString& name, T value) {
@@ -986,11 +986,11 @@ template<class T>
 bool JSClass::SetStaticProperty(Worker* worker, cString& name, T value) {
 	return SetStaticProperty<Local<JSValue>>(worker, name, worker->New(value));
 }
-template<> FX_EXPORT bool JSClass::SetMemberProperty<Local<JSValue>>
+template<> F_EXPORT bool JSClass::SetMemberProperty<Local<JSValue>>
 (
  Worker* worker, cString& name, Local<JSValue> value
  );
-template<> FX_EXPORT bool JSClass::SetStaticProperty<Local<JSValue>>
+template<> F_EXPORT bool JSClass::SetStaticProperty<Local<JSValue>>
 (
  Worker* worker, cString& name, Local<JSValue> value
  );
@@ -999,7 +999,7 @@ Local<T> MaybeLocal<T>::ToLocalChecked() {
 	reinterpret_cast<MaybeLocal<JSValue>*>(this)->ToLocalChecked();
 	return Local<T>(val_);
 }
-template <> FX_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked();
+template <> F_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked();
 
 }}
 #endif

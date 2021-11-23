@@ -84,7 +84,7 @@ namespace flare {
 				snd_pcm_close(_pcm); _pcm = NULL;
 			}
 
-			DLOG("~UnixPCMPlayer");
+			DLOG("PCM", "~UnixPCMPlayer");
 		}
 
 		bool initialize(uint32_t channel_count, uint32_t sample_rate) {
@@ -142,9 +142,9 @@ namespace flare {
 			frames = buffer.length() / (16 / 8 * _channel_count);
 			r = snd_pcm_writei(_pcm, *buffer, frames);
 			if (r < 0) {
-				DLOG("snd_pcm_writei err,%d", r);
+				DLOG("PCM", "snd_pcm_writei err,%d", r);
 				r = snd_pcm_recover(_pcm, r, 0);
-				DLOG("snd_pcm_recover ok,%d", r);
+				DLOG("PCM", "snd_pcm_recover ok,%d", r);
 				return 0;
 			}
 			return true;
@@ -176,7 +176,7 @@ namespace flare {
 
 		virtual bool set_volume(uint32_t value) {
 			float fvalue = value / 100.0;
-			fvalue = FX_MIN(1.0, fvalue);
+			fvalue = F_MIN(1.0, fvalue);
 			if (fvalue != _volume || _mute) {
 				if (!set_volume2(fvalue)) {
 					return false;

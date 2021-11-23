@@ -35,7 +35,7 @@
 
 namespace flare {
 
-	template <typename T> class FX_EXPORT Number: public Object {
+	template <typename T> class F_EXPORT Number: public Object {
 	 public:
 		inline Number(T v): value(v) { }
 		inline T operator*() { return value; }

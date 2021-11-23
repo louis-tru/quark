@@ -51,17 +51,17 @@ namespace flare {
 		}
 	};
 	
-	template<> FX_EXPORT uint64_t Compare<char>::hash_code(const char& key);
-	template<> FX_EXPORT uint64_t Compare<uint8_t>::hash_code(const uint8_t& key);
-	template<> FX_EXPORT uint64_t Compare<int16_t>::hash_code(const int16_t& key);
-	template<> FX_EXPORT uint64_t Compare<uint16_t>::hash_code(const uint16_t& key);
-	template<> FX_EXPORT uint64_t Compare<int32_t>::hash_code(const int32_t& key);
-	template<> FX_EXPORT uint64_t Compare<uint32_t>::hash_code(const uint32_t& key);
-	template<> FX_EXPORT uint64_t Compare<int64_t>::hash_code(const int64_t& key);
-	template<> FX_EXPORT uint64_t Compare<uint64_t>::hash_code(const uint64_t& key);
-	template<> FX_EXPORT uint64_t Compare<float>::hash_code(const float& key);
-	template<> FX_EXPORT uint64_t Compare<double>::hash_code(const double& key);
-	template<> FX_EXPORT uint64_t Compare<bool>::hash_code(const bool& key);
+	template<> F_EXPORT uint64_t Compare<char>::hash_code(const char& key);
+	template<> F_EXPORT uint64_t Compare<uint8_t>::hash_code(const uint8_t& key);
+	template<> F_EXPORT uint64_t Compare<int16_t>::hash_code(const int16_t& key);
+	template<> F_EXPORT uint64_t Compare<uint16_t>::hash_code(const uint16_t& key);
+	template<> F_EXPORT uint64_t Compare<int32_t>::hash_code(const int32_t& key);
+	template<> F_EXPORT uint64_t Compare<uint32_t>::hash_code(const uint32_t& key);
+	template<> F_EXPORT uint64_t Compare<int64_t>::hash_code(const int64_t& key);
+	template<> F_EXPORT uint64_t Compare<uint64_t>::hash_code(const uint64_t& key);
+	template<> F_EXPORT uint64_t Compare<float>::hash_code(const float& key);
+	template<> F_EXPORT uint64_t Compare<double>::hash_code(const double& key);
+	template<> F_EXPORT uint64_t Compare<bool>::hash_code(const bool& key);
 
 	/**
 	 * @class Dict hash table
@@ -70,7 +70,7 @@ namespace flare {
 		typename Key, typename Value, 
 		typename Compare = Compare<Key>, typename A = MemoryAllocator
 	>
-	class FX_EXPORT Dict: public Object {
+	class F_EXPORT Dict: public Object {
 	 public:
 		struct Pair {
 			Key   key;
@@ -268,7 +268,7 @@ namespace flare {
 	template<typename K, typename V, typename C, typename A>
 	const V& Dict<K, V, C, A>::get(const K& key) const {
 		auto it = find(key);
-		FX_CHECK(it != IteratorConst(&_end), "Could not find dict key");
+		F_CHECK(it != IteratorConst(&_end), "Could not find dict key");
 		return it->value;
 	}
 
@@ -344,7 +344,7 @@ namespace flare {
 
 	template<typename K, typename V, typename C, typename A>
 	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::erase(IteratorConst it) {
-		ASSERT(_length);
+		F_ASSERT(_length);
 		auto node = node_(it);
 		if (node != &_end) {
 			auto next = link_(node->_prev, node->_next);
@@ -467,7 +467,7 @@ namespace flare {
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::optimize_() {
 		auto scale = float(_length) / float(_capacity);
-		if (scale > 0.7 || (scale < 0.2 && _capacity > FX_MIN_CAPACITY)) {
+		if (scale > 0.7 || (scale < 0.2 && _capacity > F_MIN_CAPACITY)) {
 			_indexed = (Node**)A::aalloc(_indexed, uint32_t(_length / 0.7) , &_capacity, sizeof(Node*));
 			::memset(_indexed, 0, sizeof(Node*) * _capacity);
 			auto node = _end._next;

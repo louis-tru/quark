@@ -40,7 +40,7 @@ namespace flare {
 			_inl_frame(this)->set_property_value<ENUM>(value); \
 		}
 
-	FX_EACH_PROPERTY_TABLE(fx_def_property)
+	F_EACH_PROPERTY_TABLE(fx_def_property)
 	#undef fx_def_accessor
 
 	/**
@@ -51,7 +51,7 @@ namespace flare {
 			uint32_t next = _index + 1;
 			if ( next < _host->length() ) {
 				uint64_t max_time = _host->frame(next)->time();
-				_time = FX_MIN(value, max_time);
+				_time = F_MIN(value, max_time);
 			} else { // no next
 				_time = value;
 			}
@@ -176,7 +176,7 @@ namespace flare {
 	}
 
 	void KeyframeAction::seek_before(int64_t time, Action* child) {
-		FX_UNIMPLEMENTED();
+		F_UNIMPLEMENTED();
 	}
 
 	void KeyframeAction::seek_time(uint64_t time, Action* root) {
@@ -204,7 +204,7 @@ namespace flare {
 			}
 			
 			_frame = frame->index();
-			_time = FX_MIN(int64_t(time), _full_duration - _delay);
+			_time = F_MIN(int64_t(time), _full_duration - _delay);
 			
 			uint32_t f1 = _frame;
 			uint32_t f2 = f1 + 1;

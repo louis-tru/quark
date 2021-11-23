@@ -48,14 +48,14 @@ namespace flare {
 
 	float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out);
 
-	FX_DEFINE_INLINE_MEMBERS(FlowLayout, Inl) {
+	F_DEFINE_INLINE_MEMBERS(FlowLayout, Inl) {
 	 public:
 		#define _inl_flow(self) static_cast<FlowLayout::Inl*>(static_cast<FlowLayout*>(self))
 		void set_wrap(Wrap wrap);
 	};
 
 	// flex private members method
-	FX_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
+	F_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
 	 public:
 		#define _inl(self) static_cast<FlexLayout::Inl*>(self)
 
@@ -73,7 +73,7 @@ namespace flare {
 				while (v) {
 					auto size = v->layout_size().layout_size;
 					auto cross = is_horizontal ? size.y(): size.x();
-					max_cross = FX_MAX(max_cross, cross);
+					max_cross = F_MAX(max_cross, cross);
 					v = v->next();
 				}
 			} else {
@@ -127,7 +127,7 @@ namespace flare {
 			auto v = is_reverse ? last(): first();
 			while (v) {
 				auto size = v->layout_raw_size(cur_size).layout_size;
-				max_cross = FX_MAX(max_cross, size.y()); // solve content height
+				max_cross = F_MAX(max_cross, size.y()); // solve content height
 				total_main += size.x();
 				weight_total += v->layout_weight();
 				items.push({size, v});
@@ -141,7 +141,7 @@ namespace flare {
 
 			if (weight_total) {
 				total_main = 0;
-				float min_weight_total = FX_MIN(weight_total, 1);
+				float min_weight_total = F_MIN(weight_total, 1);
 				for (auto i: items) {
 					auto size = i.s;
 					auto v = i.v;
@@ -228,13 +228,13 @@ namespace flare {
 					if (is_reverse)
 						_items.reverse();
 					lines.push({ _total_main, _max_cross, std::move(_items) });
-					max_main = FX_MAX(max_main, _total_main);
+					max_main = F_MAX(max_main, _total_main);
 					total_cross += _max_cross;
 					_total_main = is_horizontal ? size.x(): size.y();
 					_max_cross = is_horizontal ? size.y(): size.x();
 				} else {
 					_total_main = main;
-					_max_cross = FX_MAX(_max_cross, size.y());
+					_max_cross = F_MAX(_max_cross, size.y());
 				}
 				_items.push({ size, v });
 				v = v->next();
@@ -244,7 +244,7 @@ namespace flare {
 				if (is_reverse)
 					_items.reverse();
 				lines.push({ _total_main, _max_cross, std::move(_items) });
-				max_main = FX_MAX(max_main, _total_main);
+				max_main = F_MAX(max_main, _total_main);
 				total_cross += _max_cross;
 			}
 

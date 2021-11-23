@@ -42,7 +42,7 @@ namespace flare {
 	};
 
 	static void jpeg_error_output(j_common_ptr cinfo) {
-		FX_ERR("%s", "Invalid JPEG file structure: missing SOS marker");
+		F_ERR("CODEC", "%s", "Invalid JPEG file structure: missing SOS marker");
 		JPEGClientData* data = (JPEGClientData*)cinfo->client_data;
 		longjmp(data->jmpbuf, 1);
 	}

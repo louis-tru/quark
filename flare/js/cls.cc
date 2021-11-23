@@ -56,7 +56,7 @@ Local<JSClass> JSClassStore::get_class(uint64_t id) {
 
 uint64_t JSClassStore::set_class(uint64_t id, Local<JSClass> cls,
 														 WrapAttachCallback attach_callback) throw(Error) {
-	FX_CHECK( ! values_.has(id), "Set native Constructors ID repeat");
+	F_CHECK( ! values_.has(id), "Set native Constructors ID repeat");
 	Desc* desc = new Desc();
 	desc_.push(desc);
 	desc->jsclass.Reset(worker_, cls);
@@ -66,8 +66,8 @@ uint64_t JSClassStore::set_class(uint64_t id, Local<JSClass> cls,
 }
 
 uint64_t JSClassStore::set_class_alias(uint64_t id, uint64_t alias) throw(Error) {
-	FX_CHECK( values_.has(id), "No Constructors ID");
-	FX_CHECK( !values_.has(alias), "Set native Constructors ID repeat");
+	F_CHECK( values_.has(id), "No Constructors ID");
+	F_CHECK( !values_.has(alias), "Set native Constructors ID repeat");
 	values_.set(alias, values_.get(id));
 	return alias;
 }
@@ -100,13 +100,13 @@ void JSClassStore::reset_constructor(uint64_t id) {
 
 WrapObject* JSClassStore::attach(uint64_t id, Object* object) {
 	WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
-	ASSERT( !wrap->worker() );
+	F_ASSERT( !wrap->worker() );
 	
 	auto it = values_.find(id);
 	if ( !it.is_null() ) {
 		it.value()->attach_callback(wrap);
 		
-		ASSERT( !current_attach_object_ );
+		F_ASSERT( !current_attach_object_ );
 		
 		Local<JSFunction> func = it.value()->function.local();
 		if ( func.IsEmpty() ) {

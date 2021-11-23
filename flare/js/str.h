@@ -61,7 +61,7 @@ JS_BEGIN
 /**
  * @class CommonStrings
  */
-class FX_EXPORT CommonStrings: public Object {
+class F_EXPORT CommonStrings: public Object {
 	public:
 	CommonStrings(Worker* worker);
 	#define js_def_persistent_string(name) \

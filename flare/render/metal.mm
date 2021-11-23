@@ -162,7 +162,7 @@ namespace flare {
 			}
 		}
 
-		ASSERT(_layer);
+		F_ASSERT(_layer);
 
 		auto region = _host->display()->surface_region();
 		auto rect = CGRectMake(0, 0, region.width, region.height);
@@ -210,7 +210,7 @@ namespace flare {
 
 		_Context = GrDirectContext::MakeMetal(backendContext, _DisplayParams.fGrContextOptions);
 
-		ASSERT(_Context);
+		F_ASSERT(_Context);
 	}
 
 	void MetalRender::activate(bool isActive) {

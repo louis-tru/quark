@@ -81,7 +81,7 @@ namespace flare {
 	/**
 	* @class URI
 	*/
-	class FX_EXPORT URI {
+	class F_EXPORT URI {
 	 public:
 		URI();
 		URI(cString& src);
@@ -113,8 +113,8 @@ namespace flare {
 	/**
 	* @class HttpClientRequest
 	*/
-	class FX_EXPORT HttpClientRequest: public Object, public Stream {
-		FX_HIDDEN_ALL_COPY(HttpClientRequest);
+	class F_EXPORT HttpClientRequest: public Object, public Stream {
+		F_HIDDEN_ALL_COPY(HttpClientRequest);
 	 public:
 		class Delegate {
 			public:
@@ -182,14 +182,14 @@ namespace flare {
 	
 	 private:
 
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		Inl* _inl;
 	};
 
 	/**
 	* @class HttpError
 	*/
-	class FX_EXPORT HttpError: public Error {
+	class F_EXPORT HttpError: public Error {
 	 public:
 		inline HttpError(int rc, cString& msg, uint32_t status, cString& url)
 		: Error(rc, msg), _status(status), _url(url) {}
@@ -204,7 +204,7 @@ namespace flare {
 	/**
 	* @class HttpHelper
 	*/
-	class FX_EXPORT HttpHelper {
+	class F_EXPORT HttpHelper {
 	 public:
 		typedef Dict<String, String> Map;
 		struct RequestOptions {

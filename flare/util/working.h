@@ -41,8 +41,8 @@ namespace flare {
 	/**
 	* @class ParallelWorking
 	*/
-	class FX_EXPORT ParallelWorking: public Object {
-		FX_HIDDEN_ALL_COPY(ParallelWorking);
+	class F_EXPORT ParallelWorking: public Object {
+		F_HIDDEN_ALL_COPY(ParallelWorking);
 	 public:
 		typedef Thread::Exec Exec;
 		ParallelWorking();
@@ -61,7 +61,7 @@ namespace flare {
 		Childs _childs;
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(RunLoop, Inl2) {
+	F_DEFINE_INLINE_MEMBERS(RunLoop, Inl2) {
 	 public:
 		inline void set_independent_mutex(RecursiveMutex* mutex) {
 			_independent_mutex = mutex;

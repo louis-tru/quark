@@ -38,7 +38,7 @@ namespace flare {
 
 	class View;
 
-	#define FX_EACH_PROPERTY_TABLE(F) \
+	#define F_EACH_PROPERTY_TABLE(F) \
 		F(PROPERTY_X, float, x) /*view*/ \
 		F(PROPERTY_Y, float, y) \
 		F(PROPERTY_SCALE_X, float, scale_x) \
@@ -101,7 +101,7 @@ namespace flare {
 	 */
 	enum PropertyName: uint32_t {
 		#define fx_def_enum(ENUM, TYPE, NAME) ENUM,
-		FX_EACH_PROPERTY_TABLE(fx_def_enum)
+		F_EACH_PROPERTY_TABLE(fx_def_enum)
 		#undef fx_def_enum
 	};
 
@@ -110,13 +110,13 @@ namespace flare {
 	/**
 	 * @class PropertysAccessor
 	 */
-	class FX_EXPORT PropertysAccessor: public Object {
+	class F_EXPORT PropertysAccessor: public Object {
 	public:
 		
 		typedef void (View::*Func)();
 		typedef int ViewType;
 		
-		struct FX_EXPORT Accessor {
+		struct F_EXPORT Accessor {
 			inline Accessor(): get_accessor(nullptr), set_accessor(nullptr) { }
 			
 			template<typename T, typename T2>

@@ -65,7 +65,7 @@ namespace flare {
 		_code = e._code;
 		_message = e._message;
 		
-		FX_CHECK(0);
+		F_CHECK(0);
 		
 		return *this;
 	}

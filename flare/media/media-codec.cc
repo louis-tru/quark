@@ -119,7 +119,7 @@ namespace flare {
 	* */
 	uint32_t Extractor::deplete_sample(Char* out, uint32_t size) {
 		if ( _sample_data.size ) {
-			size = FX_MIN(_sample_data.size, size);
+			size = F_MIN(_sample_data.size, size);
 			memcpy(out, _sample_data.data, size);
 			_sample_data.data += size;
 			_sample_data.size -= size;
@@ -142,7 +142,7 @@ namespace flare {
 	* @func deplete_sample
 	* */
 	uint32_t Extractor::deplete_sample(uint32_t size) {
-		size = FX_MIN(size, _sample_data.size);
+		size = F_MIN(size, _sample_data.size);
 		_sample_data.size -= size;
 		_sample_data.data += size;
 		return size;
@@ -175,7 +175,7 @@ namespace flare {
 	* @func set_delegate
 	*/
 	void MediaCodec::set_delegate(Delegate* delegate) {
-		ASSERT(delegate);
+		F_ASSERT(delegate);
 		_delegate = delegate;
 	}
 

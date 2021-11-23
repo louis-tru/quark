@@ -43,26 +43,26 @@ namespace flare {
 
 	// --------------------- ThreadRunLoop ---------------------
 
-	FX_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
+	F_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
 		#define _inl(self) static_cast<RunLoop::Inl*>(self)
 	 public:
 
 		void run(int64_t timeout) {
 			if (is_exited()) {
-				DLOG("cannot run RunLoop, is_process_exit != 0");
+				DLOG("LOOP", "cannot run RunLoop, is_process_exit != 0");
 				return;
 			}
 			if (_thread->is_abort()) {
-				DLOG("cannot run RunLoop, _thread->is_abort() == true");
+				DLOG("LOOP", "cannot run RunLoop, _thread->is_abort() == true");
 				return;
 			}
 			uv_async_t uv_async;
 			uv_timer_t uv_timer;
 			{ //
 				ScopeLock lock(_mutex);
-				ASSERT(Thread::current_id() == _tid, "Must run on the target thread");
-				ASSERT(!_uv_async);
-				_timeout = FX_MAX(timeout, 0);
+				F_ASSERT(Thread::current_id() == _tid, "Must run on the target thread");
+				F_ASSERT(!_uv_async);
+				_timeout = F_MAX(timeout, 0);
 				_record_timeout = 0;
 				_uv_async = &uv_async; uv_async.data = this;
 				_uv_timer = &uv_timer; uv_timer.data = this;
@@ -207,7 +207,7 @@ namespace flare {
 		 */
 		uint32_t post(Cb exec, uint32_t group, uint64_t delay_us) {
 			if (_thread->is_abort()) {
-				DLOG("RunLoop::post, _thread->is_abort() == true");
+				DLOG("LOOP", "RunLoop::post, _thread->is_abort() == true");
 				return 0;
 			}
 			ScopeLock lock(_mutex);
@@ -223,7 +223,7 @@ namespace flare {
 		}
 
 		void post_sync(Callback<RunLoop::PostSyncData> cb, uint32_t group, uint64_t delay_us) {
-			ASSERT(!_thread->is_abort(), "RunLoop::post_sync, _thread->is_abort() == true");
+			F_ASSERT(!_thread->is_abort(), "RunLoop::post_sync, _thread->is_abort() == true");
 
 			struct Data: public RunLoop::PostSyncData {
 				virtual void complete() {
@@ -326,10 +326,10 @@ namespace flare {
 	void  RunLoop::Inl::stop_after_print_message() {
 		ScopeLock lock(_mutex);
 		for (auto& i: _keeps) {
-			DLOG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
+			DLOG("LOOP", "Print: RunLoop keep not release \"%s\"", i->_name.c_str());
 		}
 		for (auto& i: _works) {
-			DLOG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
+			DLOG("LOOP", "Print: RunLoop work not complete: \"%s\"", i->name.c_str());
 		}
 	}
 	
@@ -346,7 +346,7 @@ namespace flare {
 		, _timeout(0)
 		, _record_timeout(0)
 	{
-		ASSERT(!t->_loop);
+		F_ASSERT(!t->_loop);
 		// set run loop
 		t->_loop = this;
 		_uv_loop = uv_loop_new();
@@ -357,7 +357,7 @@ namespace flare {
 	 */
 	RunLoop::~RunLoop() {
 		ScopeLock lock(*__Thread_threads_mutex);
-		ASSERT(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
+		F_ASSERT(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 		
 		if (__Loop_main_loop_obj == this) {
 			__Loop_main_loop_obj = nullptr;
@@ -367,11 +367,11 @@ namespace flare {
 		{
 			ScopeLock lock(_mutex);
 			for (auto& i: _keeps) {
-				FX_WARN("RunLoop keep not release \"%s\"", i->_name.c_str());
+				F_WARN("LOOP", "RunLoop keep not release \"%s\"", i->_name.c_str());
 				i->_loop = nullptr;
 			}
 			for (auto& i: _works) {
-				FX_WARN("RunLoop work not complete: \"%s\"", i->name.c_str());
+				F_WARN("LOOP", "RunLoop work not complete: \"%s\"", i->name.c_str());
 				delete i;
 			}
 		}
@@ -381,8 +381,8 @@ namespace flare {
 		}
 
 		// delete run loop
-		ASSERT(_thread->_loop);
-		ASSERT(_thread->_loop == this);
+		F_ASSERT(_thread->_loop);
+		F_ASSERT(_thread->_loop == this);
 		_thread->_loop = nullptr;
 	}
 
@@ -391,7 +391,7 @@ namespace flare {
 	 */
 	RunLoop* RunLoop::current() {
 		auto t = Thread::current();
-		ASSERT(t, "Can't get thread specific data");
+		F_ASSERT(t, "Can't get thread specific data");
 		auto loop = t->loop();
 		if (!loop) {
 			ScopeLock scope(*__Thread_threads_mutex);
@@ -413,7 +413,7 @@ namespace flare {
 		// TODO: 小心线程安全,最好先确保已调用过`current()`
 		if (!__Loop_main_loop_obj) {
 			current();
-			ASSERT(__Loop_main_loop_obj);
+			F_ASSERT(__Loop_main_loop_obj);
 		}
 		return __Loop_main_loop_obj;
 	}
@@ -463,7 +463,7 @@ namespace flare {
 	 */
 	uint32_t RunLoop::work(Cb cb, Cb done, cString& name) {
 		if (_thread->is_abort()) {
-			DLOG("RunLoop::work, _thread->is_abort() == true");
+			DLOG("LOOP", "RunLoop::work, _thread->is_abort() == true");
 			return 0;
 		}
 
@@ -478,7 +478,7 @@ namespace flare {
 		post(Cb([work, this](CbData& ev) {
 			int r = uv_queue_work(_uv_loop, &work->uv_req,
 														Work::uv_work_cb, Work::uv_after_work_cb);
-			ASSERT(!r);
+			F_ASSERT(!r);
 			work->it = _works.push_back(work);
 		}));
 
@@ -494,7 +494,7 @@ namespace flare {
 			for (auto& i : _works) {
 				if (i->id == id) {
 					int r = uv_cancel((uv_req_t*)&i->uv_req);
-					ASSERT(!r);
+					F_ASSERT(!r);
 					break;
 				}
 			}
@@ -584,7 +584,7 @@ namespace flare {
 		if ( loop ) {
 			loop->post(cb);
 		} else { // 没有消息队列 post to io loop
-			FX_THROW(ERR_NOT_RUN_LOOP, "Unable to obtain thread io run loop");
+			F_THROW(ERR_NOT_RUN_LOOP, "Unable to obtain thread io run loop");
 		}
 	}
 
@@ -605,7 +605,7 @@ namespace flare {
 	bool RunLoop::is_alive(ThreadID id) {
 		ScopeLock scope(*__Thread_threads_mutex);
 		auto loop = loop_2(id);
-		DLOG("RunLoop::is_alive, %p, %p", loop, id);
+		DLOG("LOOP", "RunLoop::is_alive, %p, %p", loop, id);
 		if (loop) {
 			return loop->is_alive();
 		}
@@ -626,7 +626,7 @@ namespace flare {
 			if ( _declear ) {
 				_inl(_loop)->cancel_group_non_lock(_group);
 			}
-			ASSERT(_loop->_keeps.length());
+			F_ASSERT(_loop->_keeps.length());
 
 			_loop->_keeps.erase(_id); // 减少一个引用计数
 
@@ -634,7 +634,7 @@ namespace flare {
 				_inl(_loop)->activate_loop(); // 激活循环状态,不再等待
 			}
 		} else {
-			DLOG("Keep already invalid \"%s\", RunLoop already stop and release", *_name);
+			DLOG("LOOP", "Keep already invalid \"%s\", RunLoop already stop and release", *_name);
 		}
 	}
 

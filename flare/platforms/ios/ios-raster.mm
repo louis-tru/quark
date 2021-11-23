@@ -44,7 +44,7 @@ namespace flare {
         RasterRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
 			: GLRender(host, params), _glctx(ctx)
 		{
-			ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
+			F_ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
 			initialize();
 		}

@@ -37,13 +37,13 @@
 #include "./util/json.h"
 #include "./value.h"
 
-#define FX_Main() \
-	int __fx_main__(int, Char**); \
-	FX_INIT_BLOCK(__fx_main__) { flare::Application::setMain(&__fx_main__); } \
-	int __fx_main__(int argc, Char** argv)
+#define F_Main() \
+	int __f_main__(int, Char**); \
+	F_INIT_BLOCK(__f_main__) { flare::Application::setMain(&__f_main__); } \
+	int __f_main__(int argc, Char** argv)
 
-#define FX_ASSERT_STRICT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
-#define FX_ASSERT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
+#define F_ASSERT_STRICT_RENDER_THREAD() F_ASSERT(app()->has_current_render_thread())
+#define F_ASSERT_RENDER_THREAD() F_ASSERT(app()->has_current_render_thread())
 
 namespace flare {
 
@@ -70,15 +70,15 @@ namespace flare {
 	/**
 	* @class Application
 	*/
-	class FX_EXPORT Application: public Object {
-		FX_HIDDEN_ALL_COPY(Application);
+	class F_EXPORT Application: public Object {
+		F_HIDDEN_ALL_COPY(Application);
 	public:
 
 		/**
 		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
 		* 那么在主线程调用任何UI-API函数必须加锁。
 		*/
-		class FX_EXPORT UILock {
+		class F_EXPORT UILock {
 		public:
 			UILock(Application* host = app());
 			~UILock();
@@ -89,13 +89,13 @@ namespace flare {
 			bool _lock;
 		};
 
-		FX_Event(Load);
-		FX_Event(Unload);
-		FX_Event(Background);
-		FX_Event(Foreground);
-		FX_Event(Pause);
-		FX_Event(Resume);
-		FX_Event(Memorywarning);
+		F_Event(Load);
+		F_Event(Unload);
+		F_Event(Background);
+		F_Event(Foreground);
+		F_Event(Pause);
+		F_Event(Resume);
+		F_Event(Memorywarning);
 
 		Application();
 		
@@ -226,7 +226,7 @@ namespace flare {
 		TexturePool*        _tex_pool;         /* 文件纹理池 */
 		uint64_t      _max_texture_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		
 		friend class UILock;
 		friend Application* app();

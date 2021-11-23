@@ -37,7 +37,7 @@ namespace flare {
 	* @constructor 
 	*/
 	KeyboardAdapter::KeyboardAdapter(): _host(app()) {
-		ASSERT(_host);
+		F_ASSERT(_host);
 		
 		keyname_ = KEYCODE_UNKNOWN;
 		keypress_ = 0;

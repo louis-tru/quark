@@ -33,7 +33,7 @@
 #include "flare/display-port.h"
 #include "linux-gl-1.h"
 #include "native-glsl.h"
-#if FX_ANDROID
+#if F_ANDROID
 # include "android/android.h"
 #include <android/native_window.h>
 #endif
@@ -46,7 +46,7 @@
 
 namespace flare {
 
-	#if !FX_ANDROID
+	#if !F_ANDROID
 		extern Vec2 __get_window_size();
 		extern Display* __get_x11_display();
 	#endif
@@ -54,15 +54,15 @@ namespace flare {
 	static EGLDisplay egl_display() {
 		static EGLDisplay display = EGL_NO_DISPLAY;
 		if ( display == EGL_NO_DISPLAY ) { // get display and init it
-			#if FX_ANDROID
+			#if F_ANDROID
 				display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 			#else
 				display = eglGetDisplay(__get_x11_display());
 			#endif
-			FX_DEBUG("eglGetDisplay, %p", display);
-			ASSERT(display != EGL_NO_DISPLAY);
+			F_DEBUG("eglGetDisplay, %p", display);
+			F_ASSERT(display != EGL_NO_DISPLAY);
 			EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
-			ASSERT(displayState, "Cannot initialize EGL");
+			F_ASSERT(displayState, "Cannot initialize EGL");
 		}
 		return display;
 	}
@@ -76,7 +76,7 @@ namespace flare {
 
 		cJSON& msample = options["multisample"];
 		if (msample.is_uint()) 
-			multisample = FX_MAX(msample.to_uint(), 0);
+			multisample = F_MAX(msample.to_uint(), 0);
 
 		// choose configuration
 		EGLint attribs[] = {
@@ -108,11 +108,11 @@ namespace flare {
 			eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
 			
 			if (numConfigs == 0) {
-				FX_FATAL("We can't have EGLConfig array with zero size!");
+				F_FATAL("We can't have EGLConfig array with zero size!");
 			}
 		}
 
-		FX_DEBUG("numConfigs,%d", numConfigs);
+		F_DEBUG("numConfigs,%d", numConfigs);
 
 		// then we create array large enough to store all configs
 		Array<EGLConfig> supportedConfigs(numConfigs);
@@ -120,10 +120,10 @@ namespace flare {
 		// and load them
 		chooseConfigState = eglChooseConfig(display, attribs, 
 																				*supportedConfigs, numConfigs, &numConfigs);
-		ASSERT(chooseConfigState);
+		F_ASSERT(chooseConfigState);
 
 		if ( numConfigs == 0 ) {
-			FX_FATAL("Value of `numConfigs` must be positive");
+			F_FATAL("Value of `numConfigs` must be positive");
 		}
 
 		EGLint configIndex = 0;
@@ -143,7 +143,7 @@ namespace flare {
 				&& (multisample <= 1 || sa >= multisample)
 			;
 			if ( hasMatch ) {
-				FX_DEBUG("hasMatch,%d", configIndex);
+				F_DEBUG("hasMatch,%d", configIndex);
 				config = supportedConfigs[configIndex];
 				break;
 			}
@@ -222,7 +222,7 @@ namespace flare {
 		} else {
 			ctx_attrs[1] = 2; // opengl es 2
 			ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
-			ASSERT(ctx);
+			F_ASSERT(ctx);
 
 			rv = (new MyGLDraw<GLDraw>(host, display, config, ctx,
 																multisample_ok,
@@ -309,7 +309,7 @@ namespace flare {
 
 	void GLDrawProxy::initialize() {
 		_host->initialize();
-		#if FX_ANDROID
+		#if F_ANDROID
 			_host->set_best_display_scale(Android::get_display_scale());
 		#else 
 			_host->set_best_display_scale(1.0 / Display::default_atom_pixel());
@@ -318,7 +318,7 @@ namespace flare {
 	}
 
 	static Vec2 get_window_size(EGLNativeWindowType win) {
-		#if FX_ANDROID
+		#if F_ANDROID
 			return Vec2(ANativeWindow_getWidth(win), ANativeWindow_getHeight(win));
 		#else 
 			return __get_window_size();
@@ -326,12 +326,12 @@ namespace flare {
 	}
 
 	bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
-		ASSERT(!_window);
-		ASSERT(!_surface);
+		F_ASSERT(!_window);
+		F_ASSERT(!_surface);
 		EGLSurface surface = eglCreateWindowSurface(_display, _config, window, nullptr);
 
 		if ( !surface ) {
-			FX_ERR("Unable to create a drawing surface");
+			F_ERR("GL", "Unable to create a drawing surface");
 			return false;
 		}
 
@@ -339,14 +339,14 @@ namespace flare {
 
 		#define CHECK(ok) \
 			if ( !(ok) ) { \
-				FX_ERR("Unable to make egl current"); \
+				F_ERR("GL", "Unable to make egl current"); \
 				eglDestroySurface(_display, surface); \
 				return false; \
 			}
 
 		// _host->host()->main_loop()->post_sync(Cb([&ok, this, surface](Se &ev) {
 		// 	ok = eglMakeCurrent(_display, surface, surface, _context);
-		// 	ASSERT(ok);
+		// 	F_ASSERT(ok);
 		// }));
 		// CHECK(ok);
 		
@@ -361,7 +361,7 @@ namespace flare {
 
 	void GLDrawProxy::destroy_surface(EGLNativeWindowType window) {
 		if ( _window ) {
-			ASSERT(window == _window);
+			F_ASSERT(window == _window);
 			if (_surface) {
 				eglDestroySurface(_display, _surface);
 			}
@@ -405,7 +405,7 @@ namespace flare {
 
 	void GLDrawProxy::refresh_virtual_keyboard_rect() {
 		// draw android virtual keyboard rect
-		#if FX_ANDROID
+		#if F_ANDROID
 			_virtual_keys_rect = Rect();
 
 			Vec2 scale = _host->display()->scale();
@@ -450,13 +450,13 @@ namespace flare {
 
 		// Test the framebuffer for completeness.
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			FX_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
+			F_ERR("GL", "failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 		}
 
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-		FX_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+		DLOG("GL", "GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 	}
 
 	void GLDrawProxy::begin_render() {

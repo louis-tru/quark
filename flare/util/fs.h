@@ -83,8 +83,8 @@ namespace flare {
 	/**
 	* @class File
 	*/
-	class FX_EXPORT File: public Object {
-		FX_HIDDEN_ALL_COPY(File);
+	class F_EXPORT File: public Object {
+		F_HIDDEN_ALL_COPY(File);
 	 public:
 		typedef ObjectTraits Traits;
 		inline  File(cString& path): _path(path), _fd(0) {}
@@ -103,11 +103,11 @@ namespace flare {
 	/**
 * @class AsyncFile
 */
-	class FX_EXPORT AsyncFile: public Object {
-		FX_HIDDEN_ALL_COPY(AsyncFile);
+	class F_EXPORT AsyncFile: public Object {
+		F_HIDDEN_ALL_COPY(AsyncFile);
 	 public:
 		typedef ObjectTraits Traits;
-		class FX_EXPORT Delegate {
+		class F_EXPORT Delegate {
 		 public:
 			virtual void trigger_async_file_open(AsyncFile* file) = 0;
 			virtual void trigger_async_file_close(AsyncFile* file) = 0;
@@ -125,11 +125,11 @@ namespace flare {
 		void read(Buffer buffer, int64_t offset = -1, int mark = 0);
 		void write(Buffer buffer, int64_t offset = -1, int mark = 0);
 	 private:
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		Inl* _inl;
 	};
 
-	class FX_EXPORT Dirent: public Object {
+	class F_EXPORT Dirent: public Object {
 	 public:
 		inline Dirent() {}
 		inline Dirent(cString& n, cString& p, FileType t)
@@ -143,8 +143,8 @@ namespace flare {
 	/**
 	* @class FileStat
 	*/
-	class FX_EXPORT FileStat: public Object {
-		FX_HIDDEN_ALL_COPY(FileStat);
+	class F_EXPORT FileStat: public Object {
+		F_HIDDEN_ALL_COPY(FileStat);
 	 public:
 		FileStat();
 		FileStat(cString& path);
@@ -174,14 +174,14 @@ namespace flare {
 		uint64_t ctime() const;
 		uint64_t birthtime() const;
 	 private:
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		void* _stat;
 	};
 
 	/**
 	* @class FileHelper
 	*/
-	class FX_EXPORT FileHelper {
+	class F_EXPORT FileHelper {
 	 public:
 		static const uint32_t default_mode;
 		
@@ -274,7 +274,7 @@ namespace flare {
 	* @class Path
 	* @static
 	*/
-	class FX_EXPORT Path {
+	class F_EXPORT Path {
 	 public:
 		/**
 		* @func extname {String} # Get the path basename
@@ -378,8 +378,8 @@ namespace flare {
 	/**
 	* @class FileReader
 	*/
-	class FX_EXPORT FileReader: public Object {
-		FX_HIDDEN_ALL_COPY(FileReader);
+	class F_EXPORT FileReader: public Object {
+		F_HIDDEN_ALL_COPY(FileReader);
 	 public:
 		FileReader();
 		FileReader(FileReader&& reader);

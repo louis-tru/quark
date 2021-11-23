@@ -43,7 +43,7 @@ namespace flare {
 		, _layout_mark(M_NONE)
 		, _depth(0)
 	{
-		ASSERT(app());
+		F_ASSERT(app());
 	}
 
 	/**
@@ -190,7 +190,7 @@ namespace flare {
 		if (_depth != newDepth) {
 			auto oldDepth = _depth;
 			_depth = newDepth;
-			// ASSERT(app());
+			// F_ASSERT(app());
 			auto pre = app()->pre_render();
 			if (_mark_index >= 0) {
 				pre->delete_mark(this, oldDepth);

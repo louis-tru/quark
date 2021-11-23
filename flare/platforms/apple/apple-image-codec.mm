@@ -33,7 +33,7 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <GLKit/GLKit.h>
 
-#if FX_OSX
+#if F_OSX
 # import <AppKit/AppKit.h>
 # define UIImage NSImage
 #else
@@ -48,7 +48,7 @@ namespace flare {
 																					length:data.length()
 																		freeWhenDone:NO];
 		UIImage* img = [[UIImage alloc] initWithData:nsdata];
-		#if FX_OSX
+		#if F_OSX
 			CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
 		#else 
 			CGImageRef image = [img CGImage];
@@ -109,7 +109,7 @@ namespace flare {
 																					length:data.length()
 																		freeWhenDone:NO];
 		UIImage* img = [[UIImage alloc] initWithData:nsdata];
-		#if FX_OSX
+		#if F_OSX
 			CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
 		#else 
 			CGImageRef image = [img CGImage];
@@ -144,7 +144,7 @@ namespace flare {
 	}
 
 	Buffer JPEGImageCodec::encode(cPixelData& data) {
-		FX_UNIMPLEMENTED();
+		F_UNIMPLEMENTED();
 		return Buffer();
 	}
 
@@ -158,7 +158,7 @@ namespace flare {
 	}
 
 	Buffer GIFImageCodec::encode(cPixelData& data) {
-		FX_UNIMPLEMENTED();
+		F_UNIMPLEMENTED();
 		return Buffer();
 	}
 
@@ -172,7 +172,7 @@ namespace flare {
 	}
 
 	Buffer PNGImageCodec::encode(cPixelData& data) {
-		FX_UNIMPLEMENTED();
+		F_UNIMPLEMENTED();
 		return Buffer();
 	}
 
@@ -186,7 +186,7 @@ namespace flare {
 	}
 
 	Buffer WEBPImageCodec::encode(cPixelData& data) {
-		FX_UNIMPLEMENTED();
+		F_UNIMPLEMENTED();
 		return Buffer();
 	}
 

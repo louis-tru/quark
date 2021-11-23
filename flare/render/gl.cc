@@ -38,17 +38,17 @@
 #include "./gl.h"
 #include "../display.h"
 
-#if FX_IOS
+#if F_IOS
 # include <OpenGLES/ES3/gl.h>
 # include <OpenGLES/ES3/glext.h>
-#elif FX_ANDROID
+#elif F_ANDROID
 # define GL_GLEXT_PROTOTYPES
 # include <GLES3/gl3.h>
 # include <GLES3/gl3ext.h>
-#elif FX_OSX
+#elif F_OSX
 # include <OpenGL/gl3.h>
 # include <OpenGL/gl3ext.h>
-#elif FX_LINUX
+#elif F_LINUX
 # define GL_GLEXT_PROTOTYPES
 # include <GLES3/gl3.h>
 # include <GLES3/gl3ext.h>
@@ -77,13 +77,13 @@ namespace flare {
 
 	void GLRender::initialize() {
 		String info = (const char*)glGetString(GL_EXTENSIONS);
-		FX_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
-		FX_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
-		FX_DEBUG("OGL Info: %s", glGetString(GL_VERSION));
-		FX_DEBUG("OGL Info: %s", *info);
+		F_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
+		F_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
+		F_DEBUG("OGL Info: %s", glGetString(GL_VERSION));
+		F_DEBUG("OGL Info: %s", *info);
 		_is_support_multisampled = info.index_of("multisample") != -1;
 
-		ASSERT(!_frame_buffer);
+		F_ASSERT(!_frame_buffer);
 
 		// initializ_gl_buffers
 
@@ -217,7 +217,7 @@ namespace flare {
 				_DisplayParams.fMSAASampleCount /= 2;
 				reload();
 			} else {
-				FX_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
+				F_ERR("GL", "failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 			}
 			return;
 		}
@@ -225,7 +225,7 @@ namespace flare {
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-		FX_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+		F_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 
 		// glClearStencil(0);
 		// glClearColor(0, 0, 0, 255);
@@ -251,7 +251,7 @@ namespace flare {
 
 		_Context = GrDirectContext::MakeGL(_BackendContext, _DisplayParams.fGrContextOptions);
 
-		ASSERT(_Context);
+		F_ASSERT(_Context);
 	}
 
 }   // namespace flare

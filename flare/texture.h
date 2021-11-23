@@ -72,8 +72,8 @@ namespace flare {
 	/**
 	* @class Texture
 	*/
-	class FX_EXPORT Texture: public Reference {
-		FX_HIDDEN_ALL_COPY(Texture);
+	class F_EXPORT Texture: public Reference {
+		F_HIDDEN_ALL_COPY(Texture);
 	 public:
 
 		typedef PixelData::Format PixelFormat;
@@ -93,7 +93,7 @@ namespace flare {
 		/**
 		* @event onChange 纹理变化事件,比如尺寸了生了变化
 		*/
-		FX_Event(Change, Event<Texture, int>);
+		F_Event(Change, Event<Texture, int>);
 
 		/**
 		* @func create() 通过图像数据创建一个新的纹理对像,如果成功返回纹理对像
@@ -171,10 +171,10 @@ namespace flare {
 		PixelFormat _format;
 
 		// friend class GLDraw;
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
-	class FX_EXPORT TextureYUV: public Texture {
+	class F_EXPORT TextureYUV: public Texture {
 	 public:
 		bool load_yuv(cPixelData& data);
 		virtual bool unload(Level level = LEVEL_NONE);
@@ -183,7 +183,7 @@ namespace flare {
 	/**
 	* @class FileTexture
 	*/
-	class FX_EXPORT FileTexture: public Texture {
+	class F_EXPORT FileTexture: public Texture {
 	 public:
 		typedef ImageCodec::ImageFormat ImageFormat;
 		
@@ -230,14 +230,14 @@ namespace flare {
 	/**
 	* @class TexturePool 统一管理纹理数据的池
 	*/
-	class FX_EXPORT TexturePool: public Object {
-		FX_HIDDEN_ALL_COPY(TexturePool);
+	class F_EXPORT TexturePool: public Object {
+		F_HIDDEN_ALL_COPY(TexturePool);
 	 public:
 		
 		/**
 		* @event onchange 纹理载入变化事件
 		*/
-		FX_Event(Change, TexturePoolEvent);
+		F_Event(Change, TexturePoolEvent);
 		
 		/**
 		* @constructor
@@ -285,7 +285,7 @@ namespace flare {
 		Dict<Texture*, bool> _completes;
 		uint64_t _total_data_size; /* 纹池当前数据总量 */
 		
-		FX_DEFINE_INLINE_CLASS(Inl)
+		F_DEFINE_INLINE_CLASS(Inl)
 		
 		friend class Render;
 	};

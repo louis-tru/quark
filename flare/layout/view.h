@@ -38,19 +38,19 @@ class SkCanvas;
 
 namespace flare {
 
-	# define FX_Views(F) \
+	# define F_Views(F) \
 		F(View) F(Box) \
 		F(Image) F(Video) F(Scroll) \
 		F(Input) F(Text) F(Label) F(Root) \
 		F(FlowLayout) F(FlexLayout) F(FlexGrid) \
 
-	# define FX_Define_View(N) \
+	# define F_Define_View(N) \
 	 public: \
 		virtual void accept(Visitor *visitor); \
 
-	# define FX_View_Class(N) class N;
-		FX_Views(FX_View_Class);
-	# undef  FX_View_Class
+	# define F_View_Class(N) class N;
+		F_Views(F_View_Class);
+	# undef  F_View_Class
 
 	class Action;
 
@@ -59,8 +59,8 @@ namespace flare {
 		*
 		* @class View
 		*/
-	class FX_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
-		FX_HIDDEN_ALL_COPY(View);
+	class F_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
+		F_HIDDEN_ALL_COPY(View);
 	 public:
 
 		/**
@@ -182,9 +182,9 @@ namespace flare {
 			*/
 		class Visitor {
 		 public:
-			# define FX_Visitor(N) virtual void visit##N(N *v);
-				FX_Views(FX_Visitor);
-			# undef  FX_Visitor
+			# define F_Visitor(N) virtual void visit##N(N *v);
+				F_Views(F_Visitor);
+			# undef  F_Visitor
 		};
 
 		/**
@@ -588,8 +588,8 @@ namespace flare {
 		bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
 
-		FX_DEFINE_INLINE_CLASS(Inl);
-		FX_DEFINE_INLINE_CLASS(InlEvent);
+		F_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(InlEvent);
 	};
 
 }

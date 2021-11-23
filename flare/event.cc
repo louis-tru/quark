@@ -37,17 +37,17 @@
 
 namespace flare {
 
-	#define FX_FUN(NAME, C, FLAG) \
+	#define F_FUN(NAME, C, FLAG) \
 		const UIEventName UIEvent_##NAME(#NAME, UI_EVENT_CATEGORY_##C, FLAG);
-	FX_UI_EVENTs(FX_FUN)
-	#undef FX_FUN
+	F_UI_Events(F_FUN)
+	#undef F_FUN
 
 	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
 		Dict<String, UIEventName> r;
-		#define FX_FUN(NAME, C, F) \
+		#define F_FUN(NAME, C, F) \
 			r.set(UIEvent_##NAME.to_string(), UIEvent_##NAME);
-		FX_UI_EVENTs(FX_FUN)
-		#undef FX_FUN
+		F_UI_Events(F_FUN)
+		#undef F_FUN
 		return r;
 	}());
 
@@ -79,7 +79,7 @@ namespace flare {
 	template<class T, typename... Args>
 	inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
 
-	FX_DEFINE_INLINE_MEMBERS(View, InlEvent) {
+	F_DEFINE_INLINE_MEMBERS(View, InlEvent) {
 	 public:
 		#define _inl_view(self) static_cast<View::InlEvent*>(static_cast<View*>(self))
 
@@ -178,7 +178,7 @@ namespace flare {
 	 */
 	class EventDispatch::OriginTouche {
 	 public:
-		OriginTouche() { FX_UNREACHABLE(); }
+		OriginTouche() { F_UNREACHABLE(); }
 		OriginTouche(View* view)
 			: _view(view)
 			, _start_position(view_position(view))
@@ -250,7 +250,7 @@ namespace flare {
 	/**
 	 * @class EventDispatch::Inl
 	 */
-	FX_DEFINE_INLINE_MEMBERS(EventDispatch, Inl) {
+	F_DEFINE_INLINE_MEMBERS(EventDispatch, Inl) {
 	 public:
 		#define _inl(self) static_cast<EventDispatch::Inl*>(self)
 		
@@ -895,7 +895,7 @@ namespace flare {
 	}
 
 	void EventDispatch::make_text_input(ITextInput* input) {
-		DLOG("make_text_input");
+		DLOG("UIEvent", "make_text_input");
 		if ( input != _text_input ) {
 			_text_input = input;
 			

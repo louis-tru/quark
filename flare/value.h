@@ -38,7 +38,7 @@ namespace flare {
 
 	namespace value {
 
-		#define FX_Enum_Value(F) \
+		#define F_Enum_Value(F) \
 			\
 			F(NONE,               none) \
 			F(DEFAULT,            default) \
@@ -152,9 +152,9 @@ namespace flare {
 			F(CONTINUE,           continue) \
 
 		enum Enum {
-			# define FX_Enum_F(NAME, NAME2) NAME,
-				FX_Enum_Value(FX_Enum_F)
-			# undef FX_Enum_F
+			# define F_Enum_F(NAME, NAME2) NAME,
+				F_Enum_Value(F_Enum_F)
+			# undef F_Enum_F
 		};
 	}
 

@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_font.h"
+#include "./font.inl"
 
 namespace flare {
 
@@ -87,7 +87,7 @@ namespace flare {
 				}
 			}
 		} else {
-			ASSERT(_ffid->name() == "icon");
+			F_ASSERT(_ffid->name() == "icon");
 		}
 		
 		// 查找最大高度与行高度
@@ -97,14 +97,14 @@ namespace flare {
 		
 		for ( uint32_t i = 0; i < _fonts.length(); i++ ) {
 			Font* font = _fonts[i];
-			_height = FX_MAX(_height, font->height());
-			_ascender = FX_MAX(_ascender, font->ascender());
-			_descender = FX_MAX(_descender, font->descender());
+			_height = F_MAX(_height, font->height());
+			_ascender = F_MAX(_ascender, font->ascender());
+			_descender = F_MAX(_descender, font->descender());
 		}
 	}
 	
 	void FontGlyphTable::Inl::set_glyph(uint32_t region, uint32_t index, FontGlyph* glyph) {
-		ASSERT( glyph );
+		F_ASSERT( glyph );
 		if ( !_blocks[region] ) {
 			GlyphsBlock* block = new GlyphsBlock();
 			memset(block, 0, sizeof(GlyphsBlock));
@@ -179,7 +179,7 @@ namespace flare {
 	* @func use_texture_glyph 使用纹理字型
 	*/
 	FontGlyph* FontGlyphTable::use_texture_glyph(uint16_t unicode, FGTexureLevel level) {
-		ASSERT(level < FontGlyph::LEVEL_NONE);
+		F_ASSERT(level < FontGlyph::LEVEL_NONE);
 		
 		FontGlyph* glyph = _inl_table(this)->get_glyph(unicode);
 		

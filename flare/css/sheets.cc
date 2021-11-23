@@ -109,7 +109,7 @@ namespace flare {
 	}
 	
 	KeyframeAction* StyleSheets::Inl::assignment(View* view, KeyframeAction* action, bool ignore_action) {
-		ASSERT(view);
+		F_ASSERT(view);
 		
 		if ( ! ignore_action && _time ) { // 创建动作
 			
@@ -148,7 +148,7 @@ namespace flare {
 		, _pseudo( parent ? parent->_pseudo : CSS_PSEUDO_CLASS_NONE )
 	{
 		if ( pseudo ) { // pseudo cls
-			ASSERT( !_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
+			F_ASSERT( !_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
 			_pseudo = pseudo;
 		}
 	}
@@ -171,7 +171,7 @@ namespace flare {
 		void StyleSheets::set_##NAME(TYPE value) { \
 		_inl_ss(this)->set_property_value<ENUM>(value); \
 		}
-	FX_EACH_PROPERTY_TABLE(fx_def_property)
+	F_EACH_PROPERTY_TABLE(fx_def_property)
 	#undef fx_def_accessor
 
 	template <> BackgroundPtr StyleSheets::Inl::
@@ -204,7 +204,7 @@ namespace flare {
 	* @func assignment
 	*/
 	void StyleSheets::assignment(View* view) {
-		ASSERT(view);
+		F_ASSERT(view);
 		for ( auto i : _property ) {
 			i.value->assignment(view);
 		}
@@ -214,7 +214,7 @@ namespace flare {
 	* @func assignment
 	*/
 	void StyleSheets::assignment(Frame* frame) {
-		ASSERT(frame);
+		F_ASSERT(frame);
 		for ( auto i : _property ) {
 			i.value->assignment(frame);
 		}
@@ -276,20 +276,20 @@ namespace flare {
 			CSSPseudoClass pseudo = CSS_PSEUDO_CLASS_NONE;
 			
 			if ( !verification_and_format(i.trim(), name, pseudo) ) {
-				FX_ERR("Invalid css name \"%s\"", *expression);
+				F_ERR("CSS", "Invalid css name \"%s\"", *expression);
 				return nullptr;
 			}
 			
-			ASSERT( !name.value().is_empty() );
+			F_ASSERT( !name.value().is_empty() );
 			
 			ss = _inl_ss(ss)->find2(name, pseudo);
 			
 			if ( ! ss ) {
-				FX_ERR("Invalid css name \"%s\"", *expression);
+				F_ERR("CSS", "Invalid css name \"%s\"", *expression);
 				return nullptr;
 			}
 		}
-		ASSERT( ss != this );
+		F_ASSERT( ss != this );
 		
 		return ss;
 	}

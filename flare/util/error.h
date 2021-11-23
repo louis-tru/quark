@@ -34,15 +34,15 @@
 #include "./string.h"
 #include "./errno.h"
 
-#if !FX_EXCEPTIONS_SUPPORT
+#if !F_EXCEPTIONS_SUPPORT
 	#error Exceptions must be turned on
 #endif
 
-#define FX_THROW(code, ...) throw flare::Error(code, __VA_ARGS__)
-#define FX_CHECK(cond, ...) if(!(cond)) throw flare::Error(__VA_ARGS__)
+#define F_THROW(code, ...) throw flare::Error(code, __VA_ARGS__)
+#define F_CHECK(cond, ...) if(!(cond)) throw flare::Error(__VA_ARGS__)
 
-#define FX_IGNORE_ERR(block) try block catch (flare::Error& err) {    \
-	FX_DEBUG("%s,%s", "The exception is ignored", err.message().c_str());     \
+#define F_IGNORE_ERR(block) try block catch (flare::Error& err) {    \
+	F_DEBUG("%s,%s", "The exception is ignored", err.message().c_str());     \
 }((void)0)
 
 namespace flare {
@@ -50,7 +50,7 @@ namespace flare {
 	/**
 	* @class Error
 	*/
-	class FX_EXPORT Error: public Object {
+	class F_EXPORT Error: public Object {
 	 public:
 		Error(const Error& err);
 		Error(cChar* msg, ...);

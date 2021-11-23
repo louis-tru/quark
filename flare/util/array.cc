@@ -54,13 +54,13 @@ namespace flare {
 		}
 	}
 
-	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, A, APPEND_ZERO) \
+	#define F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, A, APPEND_ZERO) \
 		\
 		template<> void Array<T, A>::extend(uint32_t length, uint32_t capacity) \
 		{ \
 			if (length > _length) {  \
 				_length = length; \
-				realloc_(FX_MAX(_length + APPEND_ZERO, capacity)); \
+				realloc_(F_MAX(_length + APPEND_ZERO, capacity)); \
 				if (APPEND_ZERO) _val[_length] = 0; \
 			}\
 		}\
@@ -87,7 +87,7 @@ namespace flare {
 		template<> uint32_t Array<T, A>::write(const T* src, int to, uint32_t size) { \
 			if (size) { \
 				if ( to == -1 ) to = _length; \
-				_length = FX_MAX(to + size, _length); \
+				_length = F_MAX(to + size, _length); \
 				realloc_(_length + APPEND_ZERO); \
 				memcpy((void*)(_val + to), src, size * sizeof(T) ); \
 				if (APPEND_ZERO) _val[_length] = 0; \
@@ -96,7 +96,7 @@ namespace flare {
 		} \
 		\
 		template<> Array<T, A>& Array<T, A>::pop(uint32_t count) { \
-			uint32_t j = uint32_t(FX_MAX(_length - count, 0)); \
+			uint32_t j = uint32_t(F_MAX(_length - count, 0)); \
 			if (_length > j) {  \
 				_length = j;  \
 				realloc_(_length + APPEND_ZERO); \
@@ -118,7 +118,7 @@ namespace flare {
 		} \
 		\
 		template<> void Array<T, A>::realloc(uint32_t capacity) { \
-			FX_ASSERT(!is_weak(), "the weak holder cannot be changed"); \
+			F_ASSERT(!is_weak(), "the weak holder cannot be changed"); \
 			if (capacity < _length) { /* clear Partial data */ \
 				_length = capacity;\
 			} \
@@ -128,7 +128,7 @@ namespace flare {
 		\
 		template<> ArrayBuffer<T, A> \
 		Array<T, A>::copy(uint32_t start, uint32_t end) const { \
-			end = FX_MIN(end, _length); \
+			end = F_MIN(end, _length); \
 			if (start < end) { \
 				ArrayBuffer<T, A> arr(end - start, end - start + APPEND_ZERO); \
 				memcpy((void*)arr.val(), _val + start, arr.length() * sizeof(T)); \
@@ -138,17 +138,17 @@ namespace flare {
 			return ArrayBuffer<T, A>();\
 		} \
 
-	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(T) \
-		FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, MemoryAllocator, 1)
+	#define F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(T) \
+		F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, MemoryAllocator, 1)
 	
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(char);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(unsigned char);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int16_t);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint16_t);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int32_t);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint32_t);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int64_t);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint64_t);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(float);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(double);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(char);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(unsigned char);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int16_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint16_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int32_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint32_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int64_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint64_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(float);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(double);
 }

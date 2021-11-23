@@ -35,7 +35,7 @@
 
 namespace flare {
 
-	class FX_EXPORT Stream {
+	class F_EXPORT Stream {
 	 public:
 		virtual void pause() = 0;
 		virtual void resume() = 0;
@@ -44,7 +44,7 @@ namespace flare {
 	 /**
 	 * @class StreamResponse
 	 */
-	class FX_EXPORT StreamResponse: public Object {
+	class F_EXPORT StreamResponse: public Object {
 	 public:
 		inline StreamResponse(Buffer buffer, bool complete = 0
 											, uint32_t id = 0, uint64_t size = 0

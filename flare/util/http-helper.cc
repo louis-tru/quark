@@ -136,7 +136,7 @@ namespace flare {
 			}
 			
 			virtual void trigger_http_abort(HttpClientRequest* req) {
-				FX_DEBUG("request async abort");
+				F_DEBUG("request async abort");
 			}
 			
 			virtual void trigger_http_write(HttpClientRequest* req) {}
@@ -218,7 +218,7 @@ namespace flare {
 											String::format("cannot send sync http request, %s"
 																		, options.url.c_str()), 0, options.url);
 		}
-		FX_DEBUG("request_sync %s", options.url.c_str());
+		F_DEBUG("request_sync %s", options.url.c_str());
 		typedef Callback<RunLoop::PostSyncData> Cb_;
 		bool ok = false;
 		HttpError err = Error();
@@ -399,7 +399,7 @@ namespace flare {
 			FileHelper::mkdir_p_sync(path);
 			http_cache_path = path;
 		} catch(cError& err) {
-			FX_ERR(err.to_string());
+			F_ERR("HTTP", err);
 		}
 	}
 

@@ -48,7 +48,7 @@ ValueProgram::ValueProgram(Worker* worker,
 #define Ascii(s) worker->NewAscii(s)
 
 #define js_init_func(Name, Type) \
-	FX_DEBUG("init value %s", #Name);\
+	F_DEBUG("init value %s", #Name);\
 	_parse##Name       .Reset(worker, priv->Get(worker,Ascii("parse"#Name)).To<JSFunction>()); \
 	_##Name.Reset(worker, priv->Get(worker,Ascii("_"#Name)).To<JSFunction>());
 
@@ -238,7 +238,7 @@ Local<JSValue> ValueProgram::New(const BackgroundSize& value) {
 }
 
 Local<JSValue> ValueProgram::New(const BackgroundPtr& value) {
-	FX_UNIMPLEMENTED();
+	F_UNIMPLEMENTED();
 	return Local<JSValue>();
 }
 
@@ -856,7 +856,7 @@ class NativeValue {
 				if ( try_catch.HasCaught() ) {
 					worker->reportException(&try_catch);
 				}
-				FX_FATAL("Could not initialize native/_value.js");
+				F_FATAL("Could not initialize native/_value.js");
 			}
 		}
 		worker->_inl->_values = new ValueProgram(worker, exports, _prve);

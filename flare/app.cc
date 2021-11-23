@@ -43,8 +43,8 @@
 #include "./layout/text.h"
 #include "./event.h"
 
-FX_EXPORT int (*__fx_default_gui_main)(int, char**) = nullptr;
-FX_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
+F_EXPORT int (*__fx_default_gui_main)(int, char**) = nullptr;
+F_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
 
 namespace flare {
 
@@ -96,7 +96,7 @@ namespace flare {
 	void AppInl::triggerLoad() {
 		if (!_is_load) {
 			_is_load = true;
-			_main_loop->post(Cb([&](CbData& d) { UILock lock; FX_Trigger(Load); }));
+			_main_loop->post(Cb([&](CbData& d) { UILock lock; F_Trigger(Load); }));
 		}
 	}
 
@@ -105,24 +105,24 @@ namespace flare {
 	}
 
 	void AppInl::triggerPause() {
-		_main_loop->post(Cb([&](CbData& d) { FX_Trigger(Pause); }));
+		_main_loop->post(Cb([&](CbData& d) { F_Trigger(Pause); }));
 	}
 
 	void AppInl::triggerResume() {
-		_main_loop->post(Cb([&](CbData& d) { FX_Trigger(Resume); }));
+		_main_loop->post(Cb([&](CbData& d) { F_Trigger(Resume); }));
 	}
 
 	void AppInl::triggerBackground() {
-		_main_loop->post(Cb([&](CbData& d) { FX_Trigger(Background); }));
+		_main_loop->post(Cb([&](CbData& d) { F_Trigger(Background); }));
 	}
 
 	void AppInl::triggerForeground() {
-		_main_loop->post(Cb([&](CbData& d) { FX_Trigger(Foreground); }));
+		_main_loop->post(Cb([&](CbData& d) { F_Trigger(Foreground); }));
 	}
 
 	void AppInl::triggerMemorywarning() {
 		clear();
-		_main_loop->post(Cb([&](CbData&){ FX_Trigger(Memorywarning); }));
+		_main_loop->post(Cb([&](CbData&){ F_Trigger(Memorywarning); }));
 	}
 
 	void AppInl::triggerUnload() {
@@ -130,8 +130,8 @@ namespace flare {
 			_is_load = false;
 			typedef Callback<RunLoop::PostSyncData> Cb;
 			_main_loop->post_sync(Cb([&](Cb::Data& d) {
-				DLOG("AppInl::onUnload()");
-				FX_Trigger(Unload);
+				DLOG("AppInl", "onUnload()");
+				F_Trigger(Unload);
 				if (_root) {
 					UILock lock;
 					_root->remove();
@@ -145,7 +145,7 @@ namespace flare {
 	* @func set_root
 	*/
 	void AppInl::set_root(Root* value) throw(Error) {
-		FX_CHECK(!_root, "Root view already exists");
+		F_CHECK(!_root, "Root view already exists");
 		_root = value;
 		_root->retain();   // strong ref
 		set_focus_view(value);
@@ -175,7 +175,7 @@ namespace flare {
 	* @func setMain()
 	*/
 	void Application::setMain(int (*main)(int, char**)) {
-		ASSERT( !__fx_gui_main );
+		F_ASSERT( !__fx_gui_main );
 		__fx_gui_main = main;
 	}
 
@@ -184,16 +184,16 @@ namespace flare {
 	*/
 	void Application::runMain(int argc, Char* argv[]) {
 		static int _is_initialize = 0;
-		ASSERT(!_is_initialize++, "Cannot multiple calls.");
+		F_ASSERT(!_is_initialize++, "Cannot multiple calls.");
 		
 		// 创建一个新子工作线程.这个函数必须由main入口调用
 		Thread::spawn([argc, argv](Thread& t) {
 			auto main = __fx_gui_main ? __fx_gui_main : __fx_default_gui_main;
-			ASSERT( main, "No gui main");
+			F_ASSERT( main, "No gui main");
 			__fx_default_gui_main = nullptr;
 			__fx_gui_main = nullptr;
 			int rc = main(argc, argv); // 运行这个自定gui入口函数
-			DLOG("Application::start Exit");
+			DLOG("App", "Application::start Exit");
 			flare::exit(rc); // if sub thread end then exit
 			return rc;
 		}, "runMain");
@@ -205,7 +205,7 @@ namespace flare {
 	}
 
 	void Application::run_loop() {
-		ASSERT(!_is_run, "UI program has been running");
+		F_ASSERT(!_is_run, "UI program has been running");
 
 		_is_run = true;
 		_render_loop = RunLoop::current(); // 当前消息队列
@@ -219,7 +219,7 @@ namespace flare {
 		}
 		__run_main_wait->awaken(); // 外部线程继续运行
 
-		ASSERT(!_render_loop->runing());
+		F_ASSERT(!_render_loop->runing());
 
 		_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
 
@@ -230,12 +230,12 @@ namespace flare {
 	}
 
 	void Application::run_loop_on_new_thread() {
-		ASSERT(RunLoop::is_main_loop()); // main loop call
+		F_ASSERT(RunLoop::is_main_loop()); // main loop call
 
 		Thread::spawn([this](Thread& t) {
-			DLOG("run render loop ...");
+			DLOG("App", "run render loop ...");
 			run_loop();
-			DLOG("run render loop end");
+			DLOG("App", "run render loop end");
 			return 0;
 		}, "render_loop");
 
@@ -256,19 +256,19 @@ namespace flare {
 			Release(_render_keep); _render_keep = nullptr; // stop render loop
 			Release(_main_keep); _main_keep = nullptr; // stop main loop
 			Thread::abort(render_loop_id);
-			DLOG("Application onExit");
+			DLOG("App", "Application onExit");
 		}
 		return code;
 	}
 
 	Application::Application()
-		: FX_Init_Event(Load)
-		, FX_Init_Event(Unload)
-		, FX_Init_Event(Background)
-		, FX_Init_Event(Foreground)
-		, FX_Init_Event(Pause)
-		, FX_Init_Event(Resume)
-		, FX_Init_Event(Memorywarning)
+		: F_Init_Event(Load)
+		, F_Init_Event(Unload)
+		, F_Init_Event(Background)
+		, F_Init_Event(Foreground)
+		, F_Init_Event(Pause)
+		, F_Init_Event(Resume)
+		, F_Init_Event(Memorywarning)
 		, _is_run(false), _is_load(false)
 		, _render_loop(nullptr), _main_loop(RunLoop::main_loop())
 		, _render_keep(nullptr), _main_keep(nullptr)
@@ -281,7 +281,7 @@ namespace flare {
 		, _use_gui_lock_mutex(false)
 	{
 		_main_keep = _main_loop->keep_alive("Application::Application(), main_keep");
-		Thread::FX_On(ProcessSafeExit, on_process_safe_handle);
+		Thread::F_On(ProcessSafeExit, on_process_safe_handle);
 	}
 
 	Application::~Application() {
@@ -309,24 +309,24 @@ namespace flare {
 		_main_loop = nullptr;
 		_shared = nullptr;
 
-		Thread::FX_Off(ProcessSafeExit, on_process_safe_handle);
+		Thread::F_Off(ProcessSafeExit, on_process_safe_handle);
 	}
 
 	/**
 	* @func initialize()
 	*/
 	void Application::initialize(cJSON& options) throw(Error) {
-		FX_CHECK(!_shared, "At the same time can only run a Application entity");
+		F_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
 		UILock lock;
 		HttpHelper::initialize(); // 初始http
-		_pre_render = new PreRender(); FX_DEBUG("new PreRender ok");
-		_display = NewRetain<Display>(this); FX_DEBUG("NewRetain<Display> ok"); // strong ref
-		_render = Render::create(this, options); FX_DEBUG("Render::create() ok");
+		_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
+		_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
+		_render = Render::create(this, options); F_DEBUG("Render::create() ok");
 		_font_pool = new FontPool(this);
 		_tex_pool = new TexturePool(this);
-		_dispatch = new EventDispatch(this); FX_DEBUG("new EventDispatch ok");
-		// _action_center = new ActionCenter(); FX_DEBUG("new ActionCenter ok");
+		_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
+		// _action_center = new ActionCenter(); F_DEBUG("new ActionCenter ok");
 	}
 
 	/**
@@ -357,7 +357,7 @@ namespace flare {
 	* @func set_max_texture_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
 	*/
 	void Application::set_max_texture_memory_limit(uint64_t limit) {
-		_max_texture_memory_limit = FX_MAX(limit, 64 * 1024 * 1024);
+		_max_texture_memory_limit = F_MAX(limit, 64 * 1024 * 1024);
 	}
 	
 	/**
@@ -380,7 +380,7 @@ namespace flare {
 			i++;
 		} while(i < 3);
 		
-		FX_WARN("Adjust texture memory fail");
+		F_WARN("APP", "Adjust texture memory fail");
 		
 		return false;
 	}

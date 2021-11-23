@@ -42,14 +42,14 @@ namespace flare {
 	typedef KeyframeAction::Frame Frame;
 	typedef KeyframeAction::Property Property;
 
-	FX_DEFINE_INLINE_MEMBERS(View, ActionInl) {
+	F_DEFINE_INLINE_MEMBERS(View, ActionInl) {
 	public:
 		inline ReturnValue& trigger(const NameType& name, UIEvent& evt) {
 			return View::trigger(name, evt);
 		}
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(Action, Inl) {
+	F_DEFINE_INLINE_MEMBERS(Action, Inl) {
 	public:
 		#define _inl_action(self) static_cast<Action::Inl*>(static_cast<Action*>(self))
 		void set_parent(Action* parent) throw(Error);
@@ -65,14 +65,14 @@ namespace flare {
 		void del_view(View* view);
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(ActionCenter, Inl) {
+	F_DEFINE_INLINE_MEMBERS(ActionCenter, Inl) {
 	public:
 		#define _inl_action_center(self) static_cast<ActionCenter::Inl*>(self)
 		void add(Action* action);
 		void del(Action* action);
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(GroupAction, Inl) {
+	F_DEFINE_INLINE_MEMBERS(GroupAction, Inl) {
 	public:
 		#define _inl_group_action(self) \
 			static_cast<GroupAction::Inl*>(static_cast<GroupAction*>(self))
@@ -81,7 +81,7 @@ namespace flare {
 		void update_spawn_action_duration();
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(KeyframeAction, Inl) {
+	F_DEFINE_INLINE_MEMBERS(KeyframeAction, Inl) {
 	public:
 		#define _inl_key_action(self) static_cast<KeyframeAction::Inl*>(self)
 		void transition(uint32_t f1, uint32_t f2, float x, float y, Action* root);
@@ -187,7 +187,7 @@ namespace flare {
 		}
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(Frame, Inl) {
+	F_DEFINE_INLINE_MEMBERS(Frame, Inl) {
 	public:
 		#define _inl_frame(self) static_cast<KeyframeAction::Frame::Inl*>(self)
 

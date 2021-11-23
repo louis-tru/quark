@@ -58,23 +58,23 @@ namespace flare {
 
 			// create engine
 			result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL); 
-			ASSERT(SL_RESULT_SUCCESS == result);
+			F_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// realize the engine
 			result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
-			ASSERT(SL_RESULT_SUCCESS == result);
+			F_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// get the engine interface, which is needed in order to create other objects
 			result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
-			ASSERT(SL_RESULT_SUCCESS == result);
+			F_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// create output mix,
 			result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 0, 0, 0);
-			ASSERT(SL_RESULT_SUCCESS == result);
+			F_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// realize the output mix
 			result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
-			ASSERT(SL_RESULT_SUCCESS == result);
+			F_ASSERT(SL_RESULT_SUCCESS == result);
 		}
 
 		~AudioEngine() {
@@ -224,37 +224,37 @@ namespace flare {
 				result = (*engine->engineEngine)->CreateAudioPlayer(engine->engineEngine,
 																														&bqPlayerObject,
 																														&audioSrc, &audioSnk, 3, ids, req);
-				ASSERT(SL_RESULT_SUCCESS == result);
+				F_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// realize the player
 				result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
-				ASSERT(SL_RESULT_SUCCESS == result);
+				F_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// get the play interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
-				ASSERT(SL_RESULT_SUCCESS == result);
+				F_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// get the buffer queue interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
-				ASSERT(SL_RESULT_SUCCESS == result);
+				F_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// get the effect send interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_EFFECTSEND, &bqPlayerEffectSend);
-				ASSERT(SL_RESULT_SUCCESS == result);
+				F_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// get the volume interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
-				ASSERT(SL_RESULT_SUCCESS == result);
+				F_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// get max volume level
 				result = (*bqPlayerVolume)->GetMaxVolumeLevel(bqPlayerVolume, &_max_volume_level);
-				ASSERT(SL_RESULT_SUCCESS == result);
+				F_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// set playing status
 				result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
-				ASSERT(SL_RESULT_SUCCESS == result);
+				F_ASSERT(SL_RESULT_SUCCESS == result);
 
-				FX_DEBUG("createAudioPlayer finish");
+				F_DEBUG("createAudioPlayer finish");
 
 				return true;
 			}
@@ -286,7 +286,7 @@ namespace flare {
 				ScopeLock scope(_lock);
 				// clear buffer
 				result = (*bqPlayerBufferQueue)->Clear(bqPlayerBufferQueue);
-				ASSERT(SL_RESULT_SUCCESS == result);
+				F_ASSERT(SL_RESULT_SUCCESS == result);
 			}
 
 			/**
@@ -321,7 +321,7 @@ namespace flare {
 				JNI::ScopeENV env;
 				JNI::MethodInfo m("android/media/AudioTrack", "getMinBufferSize", "(III)I", true);
 				int r = env->CallStaticIntMethod(m.clazz(), m.method(), _sample_rate,
-																				get_channel_mask(_channel_count), 2/*ENCODIFX_PCM_16BIT*/);
+																				get_channel_mask(_channel_count), 2/*ENCODIF_PCM_16BIT*/);
 				return r;
 			}
 

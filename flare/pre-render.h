@@ -46,15 +46,15 @@ namespace flare {
 	/**
 	* @class PreRender 预渲染
 	*/
-	class FX_EXPORT PreRender: public Object {
-		FX_HIDDEN_ALL_COPY(PreRender);
+	class F_EXPORT PreRender: public Object {
+		F_HIDDEN_ALL_COPY(PreRender);
 	 public:
 
 		PreRender();
 
 		virtual ~PreRender();
 
-		class FX_EXPORT Task {
+		class F_EXPORT Task {
 		 public:
 			typedef List<Task*>::Iterator ID;
 			inline Task(): _timeout(0) {}
@@ -92,7 +92,7 @@ namespace flare {
 		Array<Array<Layout*>> _marks; // 被标记的视图
 		Array<Array<Layout*>> _mark_recursives;
 
-		FX_DEFINE_INLINE_CLASS(Inl)
+		F_DEFINE_INLINE_CLASS(Inl)
 	};
 
 }

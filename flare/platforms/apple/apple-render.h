@@ -35,14 +35,14 @@
 
 #include "../../util/macros.h"
 
-#if FX_IOS || FX_OSX
+#if F_IOS || F_OSX
 
 #include "../../render/render.h"
 #include "./apple-app.h"
 
 namespace flare {
 
-	class FX_EXPORT RenderApple {
+	class F_EXPORT RenderApple {
 	 public:
 		virtual Render* render() = 0;
 		virtual void setView(UIView* view) = 0;

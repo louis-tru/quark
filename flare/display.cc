@@ -39,7 +39,7 @@
 
 namespace flare {
 
-	FX_DEFINE_INLINE_MEMBERS(Display, Inl) {
+	F_DEFINE_INLINE_MEMBERS(Display, Inl) {
 	 public:
 		#define _inl(self) static_cast<Display::Inl*>(self)
 
@@ -96,7 +96,7 @@ namespace flare {
 			};
 			
 			_host->main_loop()->post(Cb([this](CbData& e){
-				FX_Trigger(Change); // 通知事件
+				F_Trigger(Change); // 通知事件
 			}));
 
 			_host->render()->reload();
@@ -123,7 +123,7 @@ namespace flare {
 	}
 
 	Display::Display(Application* host)
-		: FX_Init_Event(Change), FX_Init_Event(Orientation)
+		: F_Init_Event(Change), F_Init_Event(Orientation)
 		, _host(host)
 		, _lock_size()
 		, _size(), _scale(1, 1)
@@ -144,13 +144,13 @@ namespace flare {
 			ScopeLock lock(_Mutex);
 			if (_lock_size.width() != width || _lock_size.height() != height) {
 				_lock_size = { width, height };
-				ASSERT(_host->render_loop());
+				F_ASSERT(_host->render_loop());
 				_host->render_loop()->post(Cb([this](CbData& e) {
 					_inl(this)->update_from_render_loop();
 				}));
 			}
 		} else {
-			FX_WARN("Lock size value can not be less than zero\n");
+			F_WARN("DISPLAY", "Lock size value can not be less than zero\n");
 		}
 	}
 
@@ -191,9 +191,9 @@ namespace flare {
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t ts2 = (os::time() - st) / 1e3;
 				if (ts2 > 16) {
-					LOG("ts: %ld -------------- ", ts2);
+					F_LOG("Display", "ts: %ld -------------- ", ts2);
 				} else {
-					LOG("ts: %ld", ts2);
+					F_LOG("Display", "ts: %ld", ts2);
 				}
 			#endif
 		} else {
@@ -239,7 +239,7 @@ namespace flare {
 	}
 
 	bool Display::set_surface_region(Region region) {
-		ASSERT(_host->has_current_render_thread());
+		F_ASSERT(_host->has_current_render_thread());
 		if (
 					_surface_region.x != region.x 
 			||	_surface_region.y != region.y

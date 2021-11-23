@@ -72,7 +72,7 @@ namespace flare {
 		int64_t new_duration = 0;
 		
 		for ( auto& i : _actions ) {
-			new_duration = FX_MAX(i->_full_duration, new_duration);
+			new_duration = F_MAX(i->_full_duration, new_duration);
 		}
 		new_duration += _delay;
 		
@@ -106,7 +106,7 @@ namespace flare {
 	 * @func append
 	 */
 	void GroupAction::append(Action* action) throw(Error) {
-		ASSERT(action);
+		F_ASSERT(action);
 		_inl_action(action)->set_parent(this);
 		_actions.push_back(action);
 		_actions_index.clear();
@@ -116,7 +116,7 @@ namespace flare {
 	* @func insert
 	*/
 	void GroupAction::insert(uint32_t index, Action* action) throw(Error) {
-		ASSERT(action);
+		F_ASSERT(action);
 		
 		if (index < _actions_index.length()) {
 			_actions.insert(_actions_index[index], action);
@@ -328,7 +328,7 @@ namespace flare {
 		
 		for ( auto& i : _actions ) {
 			uint64_t time = i->advance(time_span, restart, root);
-			surplus_time = FX_MIN(surplus_time, time);
+			surplus_time = F_MIN(surplus_time, time);
 		}
 		
 		if ( surplus_time ) {

@@ -32,7 +32,7 @@
 #include "./fs.h"
 #include "./http.h"
 
-#if FX_WIN
+#if F_WIN
 	#include <io.h>
 	#include <direct.h>
 #else
@@ -217,11 +217,11 @@ namespace flare {
 						_buffer[i] = buffer;
 					}
 				}
-				ASSERT(buffer.length() == 0);
+				F_ASSERT(buffer.length() == 0);
 			}
 			
 			void read_next() {
-				ASSERT(!_read_end);
+				F_ASSERT(!_read_end);
 				Buffer buff = alloc_buffer();
 				if ( buff.length() ) {
 					_reading_count++;
@@ -247,11 +247,11 @@ namespace flare {
 			}
 			
 			void copy_complete() {
-				ASSERT(_reading_count == 0);
-				ASSERT(_writeing_count == 0);
-				ASSERT(_read_end);
+				F_ASSERT(_reading_count == 0);
+				F_ASSERT(_writeing_count == 0);
+				F_ASSERT(_read_end);
 				if ( !is_abort() ) { // copy complete
-					//FX_DEBUG("-----copy_complete------");
+					//F_DEBUG("-----copy_complete------");
 					Handle<Task> handle(this);
 					abort();
 					async_callback(_end);
@@ -259,16 +259,16 @@ namespace flare {
 			}
 			
 			virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {
-				ASSERT( file == _source_file );
-				ASSERT( _reading_count > 0 );
+				F_ASSERT( file == _source_file );
+				F_ASSERT( _reading_count > 0 );
 				_reading_count--;
 				if ( buffer.length() ) {
 					_writeing_count++;
 					_target_file->write(buffer, buffer.length());
 					read_next();
 				} else {
-					ASSERT(_reading_count == 0);
-					ASSERT(!_read_end);
+					F_ASSERT(_reading_count == 0);
+					F_ASSERT(!_read_end);
 					_read_end = true;
 					if ( _writeing_count == 0 ) {
 						copy_complete();
@@ -277,8 +277,8 @@ namespace flare {
 			}
 			
 			virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
-				ASSERT( file == _target_file );
-				ASSERT( _writeing_count > 0 );
+				F_ASSERT( file == _target_file );
+				F_ASSERT( _writeing_count > 0 );
 				_writeing_count--;
 				release_buffer(buffer);
 				if ( _read_end ) {
@@ -794,7 +794,7 @@ namespace flare {
 				Task* ctx = req->ctx();
 				
 				ctx->_read_count--;
-				ASSERT(ctx->_read_count == 0);
+				F_ASSERT(ctx->_read_count == 0);
 				
 				if ( uv_req->result < 0 ) { // error
 					ctx->abort();
@@ -844,7 +844,7 @@ namespace flare {
 					req->ctx()->_total = uv_req->statbuf.st_size;
 					if ( req->ctx()->_offset > 0 ) {
 						req->ctx()->_total -= req->ctx()->_offset;
-						req->ctx()->_total = FX_MAX(req->ctx()->_total, 0);
+						req->ctx()->_total = F_MAX(req->ctx()->_total, 0);
 					}
 					req->ctx()->read_advance(req);
 				} else { // err

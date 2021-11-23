@@ -80,7 +80,7 @@ namespace flare {
 		inline Vec(float f): MTVec<float, LEN>(f) {}
 	};
 
-	class FX_EXPORT Vec2: public Vec<2> {
+	class F_EXPORT Vec2: public Vec<2> {
 	public:
 		inline Vec2(): Vec2(0) { }
 		inline Vec2(float a, float b) {
@@ -120,7 +120,7 @@ namespace flare {
 		float diagonal() const;
 	};
 
-	class FX_EXPORT Vec3: public Vec<3> {
+	class F_EXPORT Vec3: public Vec<3> {
 	public:
 		inline Vec3(): Vec3(0) { }
 		inline Vec3(float a, float b, float c) {
@@ -152,7 +152,7 @@ namespace flare {
 		inline bool operator!=(const Vec3& b) const { return !operator==(b); }
 	};
 
-	class FX_EXPORT Vec4: public Vec<4> {
+	class F_EXPORT Vec4: public Vec<4> {
 	public:
 		inline Vec4(): Vec4(0) { }
 		inline Vec4(float a, float b, float c, float d) {
@@ -199,7 +199,7 @@ namespace flare {
 	/**
 	* @class FloatColor
 	*/
-	class FX_EXPORT FloatColor: public MTColor<float> {
+	class F_EXPORT FloatColor: public MTColor<float> {
 	public:
 		inline FloatColor(): MTColor<float>(0, 0, 0, 1) { }
 		inline FloatColor(float r, float g, float b): MTColor<float>(r, g, b, 1) { }
@@ -211,7 +211,7 @@ namespace flare {
 	/**
 	* @class Color
 	*/
-	class FX_EXPORT Color: public MTColor<uint8_t> {
+	class F_EXPORT Color: public MTColor<uint8_t> {
 	public:
 		Color(uint32_t color);
 		inline Color(): MTColor<uint8_t>(0, 0, 0, 255) { }
@@ -227,7 +227,7 @@ namespace flare {
 	/**
 	* @class Mat
 	*/
-	class FX_EXPORT Mat: public Vec<6> {
+	class F_EXPORT Mat: public Vec<6> {
 	public:
 		inline Mat(): Mat(1) { }
 		Mat(float value);
@@ -314,7 +314,7 @@ namespace flare {
 	/**
 	* @class Mat4
 	*/
-	class FX_EXPORT Mat4: public Vec<16> {
+	class F_EXPORT Mat4: public Vec<16> {
 	public:
 		inline Mat4(): Mat4(1) {}
 		Mat4(float value);

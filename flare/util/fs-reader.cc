@@ -124,7 +124,7 @@ namespace flare {
 			reader = new ZipReader(path);
 			if ( !reader->open() ) {
 				Release(reader);
-				FX_THROW(ERR_FILE_NOT_EXISTS, "Cannot open zip file, `%s`", *path);
+				F_THROW(ERR_FILE_NOT_EXISTS, "Cannot open zip file, `%s`", *path);
 			}
 			zips_[path] = reader;
 			return reader;
@@ -214,13 +214,13 @@ namespace flare {
 			switch ( protocol(path) ) {
 				default:
 				case FILE:
-					FX_CHECK(FileHelper::exists_sync(path),
+					F_CHECK(FileHelper::exists_sync(path),
 										ERR_FILE_NOT_EXISTS, "Unable to read file contents, \"%s\"", *path);
 					rv = FileHelper::read_file_sync(path);
 					break;
 				case ZIP: {
 					String zip = zip_path(path);
-					FX_CHECK(!zip.is_empty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
+					F_CHECK(!zip.is_empty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
 					
 					ScopeLock lock(zip_mutex_);
 					
@@ -230,14 +230,14 @@ namespace flare {
 					if ( read->jump(inl_path) ) {
 						rv = read->read();
 					} else {
-						FX_THROW(ERR_ZIP_IN_FILE_NOT_EXISTS,
+						F_THROW(ERR_ZIP_IN_FILE_NOT_EXISTS,
 							"Zip package internal file does not exist, %s", *path);
 					}
 					break;
 				}
 				case FTP:
 				case FTPS:
-					FX_THROW(ERR_NOT_SUPPORTED_FILE_PROTOCOL, "This file protocol is not supported");
+					F_THROW(ERR_NOT_SUPPORTED_FILE_PROTOCOL, "This file protocol is not supported");
 					break;
 				case HTTP:
 				case HTTPS: rv = HttpHelper::get_sync(path); break;
@@ -261,7 +261,7 @@ namespace flare {
 				case ZIP: {
 					String zip = zip_path(path);
 					if ( !zip.is_empty() ) {
-						FX_IGNORE_ERR({
+						F_IGNORE_ERR({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
 							String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
@@ -286,7 +286,7 @@ namespace flare {
 				case ZIP: {
 					String zip = zip_path(path);
 					if ( !zip.is_empty() ) {
-						FX_IGNORE_ERR({
+						F_IGNORE_ERR({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
 							String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
@@ -387,7 +387,7 @@ namespace flare {
 		try {
 			return _core->readdir_sync(path);
 		} catch(Error& err) {
-			FX_ERR(err);
+			F_ERR("FS", err);
 		}
 		return Array<Dirent>();
 	}

@@ -39,9 +39,9 @@ namespace flare {
 	/**
 	* @class Handle
 	*/
-	template<class T, class T2 = typename T::Traits> class FX_EXPORT Handle {
+	template<class T, class T2 = typename T::Traits> class F_EXPORT Handle {
 		//! Copy constructor is not permitted.
-		FX_HIDDEN_ALL_COPY(Handle);
+		F_HIDDEN_ALL_COPY(Handle);
 		
 		inline T* move() {
 			return Traits::Retain(_data) ? _data : collapse();
@@ -106,7 +106,7 @@ namespace flare {
 	/**
 	* @class ScopeClear
 	*/
-	class FX_EXPORT ScopeClear {
+	class F_EXPORT ScopeClear {
 	 public:
 		typedef std::function<void()> Clear;
 		ScopeClear(Clear clear): _clear(clear) { }

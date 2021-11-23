@@ -305,7 +305,7 @@ namespace flare {
 		return handle && handle < Uint32::limit_max;
 	}
 
-	FX_DEFINE_INLINE_MEMBERS(Texture, Inl) {
+	F_DEFINE_INLINE_MEMBERS(Texture, Inl) {
 	 public:
 
 		/**
@@ -318,7 +318,7 @@ namespace flare {
 			uint32_t size = 0;
 			uint32_t size_pixel = PixelData::get_pixel_data_size(mipmap_data[0].format());
 
-			FX_ASSERT_STRICT_RENDER_THREAD();
+			F_ASSERT_STRICT_RENDER_THREAD();
 
 			for (uint32_t i = 0; i < mipmap_data.length(); i++) {
 				auto data = mipmap_data[i];
@@ -358,7 +358,7 @@ namespace flare {
 			// TODO ...
 			// Render* ctx = _host->render();
 			// if (!ctx) return;
-			FX_ASSERT_STRICT_RENDER_THREAD();
+			F_ASSERT_STRICT_RENDER_THREAD();
 			
 			_status |= TEXTURE_LOADING;
 			int status = TEXTURE_NO_LOADED;
@@ -414,7 +414,7 @@ namespace flare {
 			}
 			_status &= ~(TEXTURE_CHANGE_LEVEL_MASK | TEXTURE_LOADING); // delete mark
 			_host->main_loop()->post(Cb([this, status](CbData& e) {
-				FX_Trigger(Change, status);
+				F_Trigger(Change, status);
 			}, this));
 		}
 
@@ -498,14 +498,14 @@ namespace flare {
 			Vec2 scale = dp->scale();
 			float scale_value = (scale.x() + scale.y()) / 2;
 			float diagonal = (vertex[0].distance(vertex[2]) + vertex[1].distance(vertex[3])) / 2 * scale_value;
-			return get_texture_level(floorf(_diagonal / FX_MAX(diagonal, 16)));
+			return get_texture_level(floorf(_diagonal / F_MAX(diagonal, 16)));
 		} else {
 			return Texture::LEVEL_0;
 		}
 	}
 
 	Texture::Texture()
-		: FX_Init_Event(Change)
+		: F_Init_Event(Change)
 		, _host(app())
 		, _status(TEXTURE_NO_LOADED)
 		, _width(0)
@@ -573,7 +573,7 @@ namespace flare {
 		int size = data.width() * data.height();
 		int new_size = size + size / 2;
 
-		FX_ASSERT_STRICT_RENDER_THREAD();
+		F_ASSERT_STRICT_RENDER_THREAD();
 
 		if (_host->adjust_texture_memory(new_size)) {
 			// TODO ...
@@ -590,7 +590,7 @@ namespace flare {
 			// 		_format = data.format();
 			// 		_status = TEXTURE_COMPLETE;
 			// 		main_loop()->post(Cb([this](CbData& e) {
-			// 			FX_Trigger(Change, TEXTURE_CHANGE_RELOADED | TEXTURE_CHANGE_LEVEL_MASK);
+			// 			F_Trigger(Change, TEXTURE_CHANGE_RELOADED | TEXTURE_CHANGE_LEVEL_MASK);
 			// 		}, this));
 			// 	}
 			// 	return true;
@@ -614,8 +614,8 @@ namespace flare {
 	}
 
 	FileTexture::~FileTexture() {
-		ASSERT(_pool == nullptr);
-		ASSERT(_load_id == 0);
+		F_ASSERT(_pool == nullptr);
+		F_ASSERT(_load_id == 0);
 	}
 
 	String FileTexture::id() const {
@@ -645,9 +645,9 @@ namespace flare {
 		
 		#define LoaderTextureError(err) { \
 			_status = TEXTURE_ERROR;  \
-			FX_ERR(err, *_path); \
+			F_ERR("TEXTURE", err, *_path); \
 			_host->main_loop()->post(Cb([this](CbData& e) { \
-				FX_Trigger(Change, TEXTURE_CHANGE_ERROR); \
+				F_Trigger(Change, TEXTURE_CHANGE_ERROR); \
 			}, this)); \
 		}
 		
@@ -682,7 +682,7 @@ namespace flare {
 				auto app = Application::shared();
 				if (!app) {
 					_status &= ~TEXTURE_LOADING;
-					FX_WARN("Unable to load the texture %s, need to initialize first Application", *_path);
+					F_WARN("TEXTURE", "Unable to load the texture %s, need to initialize first Application", *_path);
 					return;
 				}
 				
@@ -729,7 +729,7 @@ namespace flare {
 	}
 
 	bool FileTexture::unload(Level level) {
-		FX_ASSERT_STRICT_RENDER_THREAD();
+		F_ASSERT_STRICT_RENDER_THREAD();
 
 		if (level == LEVEL_NONE) { // unload all
 			if (_status & TEXTURE_LOADING) {
@@ -774,7 +774,7 @@ namespace flare {
 		return true;
 	}
 
-	FX_DEFINE_INLINE_MEMBERS(TexturePool, Inl) {
+	F_DEFINE_INLINE_MEMBERS(TexturePool, Inl) {
 	 public:
 		#define _inl_pool(self) static_cast<TexturePool::Inl*>(self)
 		
@@ -785,21 +785,21 @@ namespace flare {
 				_completes.set(evt.sender(), 1); // 完成后加入完成列表
 				auto sender = static_cast<FileTexture*>(evt.sender());
 				TexturePoolEventData data = { progress(), sender };
-				FX_Trigger(Change, data);
+				F_Trigger(Change, data);
 			}
 		}
 		
 		void add_texture_for_pool(FileTexture* tex, cString& name) {
-			ASSERT(!tex->_pool);
-			ASSERT(!_textures[name]);
+			F_ASSERT(!tex->_pool);
+			F_ASSERT(!_textures[name]);
 			_textures[name] = tex;
 			tex->retain();
 			tex->_pool = this;
 		}
 		
 		void del_texture_for_pool(FileTexture* tex) {
-			ASSERT(tex->_pool == this);
-			ASSERT(tex->ref_count() > 0);
+			F_ASSERT(tex->_pool == this);
+			F_ASSERT(tex->ref_count() > 0);
 			tex->_pool = nullptr;
 			_completes.erase(tex);
 			tex->release();
@@ -808,35 +808,35 @@ namespace flare {
 		void trigger_change() {
 			_host->main_loop()->post(Cb([this](CbData& e) {
 				TexturePoolEventData data = { progress(), nullptr };
-				FX_Trigger(Change, data);
+				F_Trigger(Change, data);
 			}));
 		}
 		
 		void set_texture_total_data_size(int size) {
 			_total_data_size += size;
-			// FX_DEBUG("texture_total_data_size: %d", _total_data_size);
-			ASSERT(_total_data_size >= 0);
+			// F_DEBUG("texture_total_data_size: %d", _total_data_size);
+			F_ASSERT(_total_data_size >= 0);
 		}
 	};
 
 	static void set_texture_total_data_size(TexturePool* pool, int size) {
-		ASSERT(pool);
+		F_ASSERT(pool);
 		_inl_pool(pool)->set_texture_total_data_size(size);
 	}
 
 	TexturePool::TexturePool(Application* host)
-		: FX_Init_Event(Change)
+		: F_Init_Event(Change)
 		, _host(host)
 		, _total_data_size(0)
 	{
-		ASSERT(host); // "Did not find GLDraw"
+		F_ASSERT(host); // "Did not find GLDraw"
 	}
 
 	TexturePool::~TexturePool() {
 		for ( auto& i : _textures ) {
 			auto tex = i.value;
 			tex->_pool = nullptr;
-			ASSERT( tex->ref_count() > 0 );
+			F_ASSERT( tex->ref_count() > 0 );
 			// if ( tex->ref_count() == 1 ) {
 			tex->unload();
 			Release(tex);
@@ -857,7 +857,7 @@ namespace flare {
 		FileTexture* texture = new FileTexture(pathname);
 		_inl_pool(this)->add_texture_for_pool(texture, pathname);
 		
-		texture->FX_On(Change, &Inl::texture_change_handle, _inl_pool(this));
+		texture->F_On(Change, &Inl::texture_change_handle, _inl_pool(this));
 		
 		return texture;
 	}
@@ -883,7 +883,7 @@ namespace flare {
 	}
 
 	void TexturePool::clear(bool full) {
-		FX_ASSERT_STRICT_RENDER_THREAD();
+		F_ASSERT_STRICT_RENDER_THREAD();
 
 		bool del_mark = false;
 		auto it = _textures.begin(), end = _textures.end();
@@ -892,7 +892,7 @@ namespace flare {
 			while ( it != end ) {
 				FileTexture* texture = it->value;
 				texture->unload();
-				ASSERT(texture->ref_count() > 0);
+				F_ASSERT(texture->ref_count() > 0);
 				if ( texture->ref_count() == 1 ) { // 不需要使用的纹理可以删除
 					_inl_pool(this)->del_texture_for_pool(texture);
 					it->value = nullptr;
@@ -914,7 +914,7 @@ namespace flare {
 			// 先按使用使用次数排序纹理对像
 			while ( it != end ) {
 				FileTexture* tex = it->value;
-				ASSERT( tex->ref_count() > 0 );
+				F_ASSERT( tex->ref_count() > 0 );
 				
 				if ( tex->ref_count() == 1 ) { // 不需要使用的纹理可以删除
 					tex->unload();
@@ -954,7 +954,7 @@ namespace flare {
 						break;
 					}
 				}
-				FX_DEBUG("Texture memory clear, %ld", del_data_size);
+				F_DEBUG("Texture memory clear, %ld", del_data_size);
 			}
 		}
 		
@@ -975,7 +975,7 @@ namespace flare {
 	 public:
 		virtual void load() {
 			if (_status == TEXTURE_NO_LOADED) {
-				ASSERT(load_data(empty_pixel_data), "Load temp texture error");
+				F_ASSERT(load_data(empty_pixel_data), "Load temp texture error");
 			}
 		}
 	};

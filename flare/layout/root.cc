@@ -58,7 +58,7 @@ namespace flare {
 
 	Root* Root::create() {
 		auto app = flare::app();
-		FX_CHECK(app, "Before you create a root, you need to create a Application");
+		F_CHECK(app, "Before you create a root, you need to create a Application");
 		Handle<Root> r = new Root();
 		r->set_layout_depth(1);
 		r->set_receive(1);
@@ -74,7 +74,7 @@ namespace flare {
 	* @destructor
 	*/
 	Root::~Root() {
-		FX_DEBUG("destructor root");
+		F_DEBUG("destructor root");
 	}
 
 	void Root::set_visible(bool val) {
@@ -113,7 +113,7 @@ namespace flare {
 	}
 
 	void Root::set_parent(View* parent) {
-		FX_UNREACHABLE();
+		F_UNREACHABLE();
 	}
 
 	void Root::draw(SkCanvas* canvas) {

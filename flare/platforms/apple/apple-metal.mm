@@ -39,7 +39,7 @@ namespace flare {
 	 public:
 		MetalRenderApple(Application* host, const DisplayParams& params): MetalRender(host, params) {}
 		void setView(UIView* view) {
-			ASSERT(!_view);
+			F_ASSERT(!_view);
 			_view = view;
 			_layer = (CAMetalLayer*)view.layer;
 			_host->display()->set_best_display_scale(UIScreen.mainScreen.scale);

@@ -130,7 +130,7 @@ static NSString* G_AppDelegate_name = @"";
 	}
 
 	- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		// FX_DEBUG("touchesMoved, count: %d", touches.count);
+		// F_DEBUG("touchesMoved, count: %d", touches.count);
 		_app->dispatch()->onTouchmove( [self toUITouchs:touches] );
 	}
 
@@ -195,7 +195,7 @@ static NSString* G_AppDelegate_name = @"";
 				if (ori != G_AppDelegate.current_orientation) {
 					G_AppDelegate.current_orientation = ori;
 					G_AppDelegate.app->main_loop()->post(Cb([](CbData& e) {
-						G_AppDelegate.app->display()->FX_Trigger(Orientation);
+						G_AppDelegate.app->display()->F_Trigger(Orientation);
 					}));
 				}
 			}));
@@ -230,7 +230,7 @@ static NSString* G_AppDelegate_name = @"";
 			self.render_task_count++;
 			_app->render_loop()->post(_render_exec);
 		} else {
-			FX_DEBUG("miss frame");
+			F_DEBUG("miss frame");
 		}
 	}
 
@@ -261,14 +261,14 @@ static NSString* G_AppDelegate_name = @"";
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		ASSERT(!G_AppDelegate); 
+		F_ASSERT(!G_AppDelegate); 
 		G_AppDelegate = self;
 		
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];
 		
 		_app = Inl_Application(Application::shared()); 
-		ASSERT(self.app);
+		F_ASSERT(self.app);
 		_window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 		_is_background = NO;
 		_render_exec = Cb(render_exec_func);
@@ -506,7 +506,7 @@ void Display::keep_screen(bool keep) {
  */
 float Display::status_bar_height() {
 	::CGRect rect = G_AppDelegate.host.statusBarFrame;
-	return FX_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale[1];
+	return F_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale[1];
 }
 
 /**
@@ -541,7 +541,7 @@ void Display::set_visible_status_bar(bool visible) {
 				if ( !G_render->resize(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
 					_host->main_loop()->post(Cb([this](CbData& e) {
-						FX_Trigger(Change);
+						F_Trigger(Change);
 					}));
 				}
 			}), 16000); /* 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 */
@@ -612,7 +612,7 @@ void Display::set_orientation(Orientation orientation) {
 	}
 }
 
-extern "C" FX_EXPORT int main(int argc, Char* argv[]) {
+extern "C" F_EXPORT int main(int argc, Char* argv[]) {
 	/**************************************************/
 	/**************************************************/
 	/*************** Start UI Application ************/

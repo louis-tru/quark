@@ -50,7 +50,7 @@ namespace flare {
 	/**
 	* @class Action
 	*/
-	class FX_EXPORT Action: public Reference {
+	class F_EXPORT Action: public Reference {
 	public:
 		Action();
 		
@@ -143,7 +143,7 @@ namespace flare {
 		* @func speed set
 		*/
 		inline void speed(float value) {
-			_speed = FX_MIN(10, FX_MAX(value, 0.1));
+			_speed = F_MIN(10, F_MAX(value, 0.1));
 		}
 		
 		/**
@@ -214,7 +214,7 @@ namespace flare {
 		
 		ActionCenterId _action_center_id;
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 		
 		friend class ActionCenter;
 		friend class GroupAction;
@@ -226,7 +226,7 @@ namespace flare {
 	/**
 	* @class ActionCenter
 	*/
-	class FX_EXPORT ActionCenter: public Object {
+	class F_EXPORT ActionCenter: public Object {
 		public:
 		
 		ActionCenter();
@@ -252,7 +252,7 @@ namespace flare {
 		uint64_t _prev_sys_time;
 		Actions  _actions;
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

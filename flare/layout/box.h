@@ -39,8 +39,8 @@ namespace flare {
 	/**
 		* @class Box
 		*/
-	class FX_EXPORT Box: public View {
-		FX_Define_View(Box);
+	class F_EXPORT Box: public View {
+		F_Define_View(Box);
 	 public:
 
 		/**
@@ -54,19 +54,19 @@ namespace flare {
 		virtual ~Box();
 
 		// define props
-		FX_Define_Prop(SizeValue, width); // size width
-		FX_Define_Prop(SizeValue, height); // size height
-		FX_Define_Prop(SizeValue, limit_width); // limit max size
-		FX_Define_Prop(SizeValue, limit_height);
-		FX_Define_Prop(float, margin_top); // margin
-		FX_Define_Prop(float, margin_right);
-		FX_Define_Prop(float, margin_bottom);
-		FX_Define_Prop(float, margin_left);
-		FX_Define_Prop(float, padding_top); // padding
-		FX_Define_Prop(float, padding_right);
-		FX_Define_Prop(float, padding_bottom);
-		FX_Define_Prop(float, padding_left);
-		FX_Define_Prop(Fill, fill); // color|shadow|image|gradient|border|border-radius
+		F_DEFINE_PROP(SizeValue, width); // size width
+		F_DEFINE_PROP(SizeValue, height); // size height
+		F_DEFINE_PROP(SizeValue, limit_width); // limit max size
+		F_DEFINE_PROP(SizeValue, limit_height);
+		F_DEFINE_PROP(float, margin_top); // margin
+		F_DEFINE_PROP(float, margin_right);
+		F_DEFINE_PROP(float, margin_bottom);
+		F_DEFINE_PROP(float, margin_left);
+		F_DEFINE_PROP(float, padding_top); // padding
+		F_DEFINE_PROP(float, padding_right);
+		F_DEFINE_PROP(float, padding_bottom);
+		F_DEFINE_PROP(float, padding_left);
+		F_DEFINE_PROP(Fill, fill); // color|shadow|image|gradient|border|border-radius
 
 		/**
 			*
@@ -150,7 +150,7 @@ namespace flare {
 		Vec2  _layout_content_size; // width,height / size
 		bool  _wrap_x, _wrap_y; // layout content size wrap
 
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

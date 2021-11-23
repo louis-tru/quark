@@ -37,11 +37,11 @@ namespace flare {
 	void Action::Inl::set_parent(Action* parent) throw(Error) {
 		
 		if ( _parent || _views.length() ) {
-			FX_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
+			F_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
 		}
 		
 		if (_action_center_id != ActionCenterId()) {
-			FX_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
+			F_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
 		}
 		
 		retain(); // retain
@@ -148,12 +148,12 @@ namespace flare {
 	void Action::Inl::add_view(View* view) throw(Error) {
 		
 		if ( _parent ) {
-			FX_THROW(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
+			F_THROW(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
 		}
 		View* first = first_view();
 		if ( first ) {
 			if ( first->view_type() != view->view_type() ) {
-				FX_THROW(ERR_ACTION_ILLEGAL_VIEW_TYPE,
+				F_THROW(ERR_ACTION_ILLEGAL_VIEW_TYPE,
 					"Action can only be bound to the same type of view !");
 			}
 		} else {
@@ -210,7 +210,7 @@ namespace flare {
 	* @destructor
 	*/
 	Action::~Action() {
-		ASSERT( _action_center_id == ActionCenterId() );
+		F_ASSERT( _action_center_id == ActionCenterId() );
 	}
 
 	/**
@@ -280,8 +280,8 @@ namespace flare {
 	*/
 	void Action::seek(int64_t time) {
 		time += _delay;
-		time = FX_MIN(time, _full_duration);
-		time = FX_MAX(time, 0);
+		time = F_MIN(time, _full_duration);
+		time = F_MAX(time, 0);
 		if (_parent) {
 			_parent->seek_before(time, this);
 		} else {

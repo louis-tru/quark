@@ -181,8 +181,8 @@ static CVReturn display_link_callback(CVDisplayLinkRef displayLink,
 	cJSON& o_b = options["background"];
 	cJSON& o_t = options["title"];
 	
-	if (o_w.is_uint()) _width = FX_MAX(1, o_w.to_uint());
-	if (o_h.is_uint()) _height = FX_MAX(1, o_h.to_uint());
+	if (o_w.is_uint()) _width = F_MAX(1, o_w.to_uint());
+	if (o_h.is_uint()) _height = F_MAX(1, o_h.to_uint());
 	if (o_x.is_uint()) _x = o_x.to_uint();
 	if (o_y.is_uint()) _y = o_y.to_uint();
 	if (o_t.is_string()) _title = o_t.to_string();
@@ -213,7 +213,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 		self.render_task_count++;
 		_app->render_loop()->post(_render_exec);
 	} else {
-		 FX_DEBUG("miss frame");
+		 F_DEBUG("miss frame");
 	}
 }
 
@@ -226,7 +226,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 	_app->render_loop()->post(Cb([self, rect](CbData& d) {
 		gl_draw_context->refresh_surface_size(rect);
 	}));
-	LOG("refresh_surface_size, %f, %f", rect.size.width, rect.size.height);
+	F_LOG("APP", "refresh_surface_size, %f, %f", rect.size.width, rect.size.height);
 }
 
 - (void)refresh_surface_size {
@@ -241,7 +241,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 	if (_loaded && !_is_background) {
 		[self pause];
 		_is_background = YES;
-		FX_DEBUG("onBackground");
+		F_DEBUG("APP", "onBackground");
 		_inl_app(_app)->triggerBackground();
 	}
 }
@@ -249,7 +249,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 - (void)foreground {
 	if (_loaded && _is_background) {
 		_is_background = NO;
-		FX_DEBUG("onForeground");
+		F_DEBUG("onForeground");
 		_inl_app(_app)->triggerForeground();
 		[self resume];
 	}
@@ -257,7 +257,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 
 - (void)pause {
 	if (_loaded && !_is_pause) {
-		FX_DEBUG("onPause");
+		F_DEBUG("onPause");
 		_is_pause = YES;
 		_inl_app(_app)->triggerPause();
 	}
@@ -265,7 +265,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 
 - (void)resume {
 	if (_loaded && _is_pause) {
-		FX_DEBUG("onResume");
+		F_DEBUG("onResume");
 		_is_pause = NO;
 		_inl_app(_app)->triggerResume();
 		[self refresh_surface_size];
@@ -292,10 +292,10 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 
 - (void)applicationDidFinishLaunching:(NSNotification*) notification {
 	UIApplication* app = UIApplication.sharedApplication;
-	ASSERT(!app_delegate);
+	F_ASSERT(!app_delegate);
 	app_delegate = self;
 	_app = Inl_Application(Application::shared());
-	ASSERT(_app);
+	F_ASSERT(_app);
 	
 	UIScreen* screen = UIScreen.mainScreen;
 	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
@@ -371,20 +371,20 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 }
 
 - (void)applicationDidHide:(NSNotification*)notification {
-	LOG("applicationDidHide, onBackground");
+	DLOG("APP", "applicationDidHide, onBackground");
 }
 
 - (void)applicationWillUnhide:(NSNotification*)notification {
-	LOG("applicationWillUnhide, onForeground");
+	DLOG("APP", "applicationWillUnhide, onForeground");
 }
 
 - (void)applicationWillTerminate:(NSNotification*)notification {
-	FX_DEBUG("applicationWillTerminate");
+	DLOG("APP", "applicationWillTerminate");
 	_inl_app(_app)->triggerUnload();
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
-	FX_DEBUG("exit application");
+	DLOG("APP", "exit application");
 	return YES;
 }
 
@@ -440,9 +440,9 @@ void Application::send_email(cString& recipient,
  * @func initialize(options)
  */
 void AppInl::initialize(cJSON& options) {
-	ASSERT(!app_options);
+	F_ASSERT(!app_options);
 	app_options = [[ApplicationOptions alloc] init:options];
-	ASSERT(!gl_draw_context);
+	F_ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	_draw_ctx = gl_draw_context->host();
 }
@@ -546,7 +546,7 @@ Orientation Display::orientation() {
 void Display::set_orientation(Orientation orientation) {
 }
 
-extern "C" FX_EXPORT int main(int argc, Char* argv[]) {
+extern "C" F_EXPORT int main(int argc, Char* argv[]) {
 	/**************************************************/
 	/**************************************************/
 	/*************** Start UI Application ************/

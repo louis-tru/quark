@@ -135,7 +135,7 @@ namespace flare {
 
 	// Override
 	int GZip::open(int flag) {
-		ASSERT(!_gzfp);
+		F_ASSERT(!_gzfp);
 		if (_gzfp) // 已经打开了
 			return 0;
 		_gzfp = gzopen(Path::fallback_c(_path), inl__file_flag_str(flag));
@@ -172,7 +172,7 @@ namespace flare {
 		return gzwrite((gzFile)_gzfp, buffer, uint32_t(size));
 	}
 
-	FX_DEFINE_INLINE_MEMBERS(ZipReader, Inl) {
+	F_DEFINE_INLINE_MEMBERS(ZipReader, Inl) {
 		public:
 		#define _inl_reader(self) static_cast<ZipReader::Inl*>(self)
 		
@@ -261,19 +261,19 @@ namespace flare {
 	bool ZipReader::open() {
 		
 		if ( _unzp ) {
-			FX_ERR("First close the open file");
+			F_ERR("ZLIB", "First close the open file");
 			return false;
 		}
 		
 		unzFile unzp = unzOpen(Path::fallback_c(_path));
 		if ( !unzp ) {
-			FX_ERR("Cannot open file ZipReader, %s", _path.c_str());
+			F_ERR("ZLIB", "Cannot open file ZipReader, %s", _path.c_str());
 			return false;
 		}
 		
 		ScopeClear clear([&]() {
 			if ( unzClose((unzFile) unzp) != UNZ_OK ) {
-				FX_ERR("Cannot close file ZipReader, %s", _path.c_str());
+				F_ERR("ZLIB", "Cannot close file ZipReader, %s", _path.c_str());
 			}
 		});
 		
@@ -286,12 +286,12 @@ namespace flare {
 		do {
 			code = unzGetFilePos(unzp, &pos);
 			if ( code ) {
-				FX_ERR("Open current file pos info error"); return false;
+				F_ERR("ZLIB", "Open current file pos info error"); return false;
 			}
 			_unz_file_pos _pos = { pos.pos_in_zip_directory, pos.num_of_file };
 			code = unzGetCurrentFileInfo(unzp, &unzfi, name, 256, NULL, 0, NULL, 0);
 			if ( code ) {
-				FX_ERR("Get current file info error"); return false;
+				F_ERR("ZLIB", "Get current file info error"); return false;
 			}
 			String pathname = name;
 			uint32_t compressed_size = (uint32_t)unzfi.compressed_size;
@@ -315,13 +315,13 @@ namespace flare {
 	bool ZipReader::close() {
 		if ( _unzp ) {
 			if ( !_inl_reader(this)->_close_current_file() ) {
-				FX_ERR("Cannot close file reader internal documents, %s, %s",
+				F_ERR("ZLIB", "Cannot close file reader internal documents, %s, %s",
 							 _path.c_str(), _cur_it->value.pathname.c_str());
 			}
 			if ( unzClose((unzFile)_unzp) == UNZ_OK ) {
 				_unzp = nullptr;
 			} else {
-				FX_ERR("Cannot close file ZipReader, %s", _path.c_str());
+				F_ERR("ZLIB", "Cannot close file ZipReader, %s", _path.c_str());
 			}
 			_file_info.clear();
 			_dir_info.clear();
@@ -434,7 +434,7 @@ namespace flare {
 	bool ZipWriter::open(OpenMode mode) {
 		
 		if ( _zipp ) {
-			FX_ERR("First close the open file");
+			F_ERR("ZLIB", "First close the open file");
 			return false;
 		}
 		
@@ -442,7 +442,7 @@ namespace flare {
 		_zipp = zipOpen(Path::fallback(_path).c_str(), _open_mode);
 		
 		if ( !_zipp ) {
-			FX_ERR("Cannot open file ZipWriter, %s", _path.c_str());
+			F_ERR("ZLIB", "Cannot open file ZipWriter, %s", _path.c_str());
 			return false;
 		}
 		return true;
@@ -457,7 +457,7 @@ namespace flare {
 			if ( zipClose((zipFile*)_zipp, NULL) == ZIP_OK ) {
 				_zipp = nullptr;
 			} else {
-				FX_ERR("Cannot close zip ZipWriter, %s", _path.c_str());
+				F_ERR("ZLIB", "Cannot close zip ZipWriter, %s", _path.c_str());
 			}
 		}
 		return !_zipp;
@@ -486,7 +486,7 @@ namespace flare {
 			if ( i == ZIP_OK ) {
 				return true;
 			} else {
-				FX_ERR("add zip file error, `%s, %s`", _path.c_str(), path.c_str());
+				F_ERR("ZLIB", "add zip file error, `%s, %s`", _path.c_str(), path.c_str());
 			}
 		}
 		return false;
@@ -500,7 +500,7 @@ namespace flare {
 		if ( ! _new_name.is_empty() ) { // 当前有打开的新文件
 			int code = zipCloseFileInZip((zipFile*)_zipp);
 			if ( code != ZIP_OK ) {
-				FX_ERR("Cannot close file writer internal documents, %s, %s", _path.c_str(), _new_name.c_str());
+				F_ERR("ZLIB", "Cannot close file writer internal documents, %s, %s", _path.c_str(), _new_name.c_str());
 				return false;
 			}
 			_new_name = String();

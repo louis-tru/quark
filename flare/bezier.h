@@ -39,7 +39,7 @@ namespace flare {
 	/**
 	* @class QuadraticBezier # 二次贝塞尔曲线
 	*/
-	class FX_EXPORT QuadraticBezier {
+	class F_EXPORT QuadraticBezier {
 	public:
 
 		/**
@@ -77,7 +77,7 @@ namespace flare {
 	/**
 	* @class CubicBezier # 三次贝塞尔曲线
 	*/
-	class FX_EXPORT CubicBezier {
+	class F_EXPORT CubicBezier {
 	public:
 
 		/**
@@ -126,7 +126,7 @@ namespace flare {
 	* @class FixedCubicBezier
 	* @bases CubicBezier
 	*/
-	class FX_EXPORT FixedCubicBezier: public CubicBezier {
+	class F_EXPORT FixedCubicBezier: public CubicBezier {
 	public:
 		
 		/**
@@ -184,17 +184,17 @@ namespace flare {
 		Vec2 _p1;
 		Vec2 _p2;
 		
-		FX_DEFINE_INLINE_CLASS(Inl);
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	typedef FixedCubicBezier Curve;
 	typedef const Curve cCurve;
 
-	FX_EXPORT extern const FixedCubicBezier LINEAR;
-	FX_EXPORT extern const FixedCubicBezier EASE;
-	FX_EXPORT extern const FixedCubicBezier EASE_IN;
-	FX_EXPORT extern const FixedCubicBezier EASE_OUT;
-	FX_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
+	F_EXPORT extern const FixedCubicBezier LINEAR;
+	F_EXPORT extern const FixedCubicBezier EASE;
+	F_EXPORT extern const FixedCubicBezier EASE_IN;
+	F_EXPORT extern const FixedCubicBezier EASE_OUT;
+	F_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
 
 }
 #endif

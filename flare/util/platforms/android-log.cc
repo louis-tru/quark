@@ -34,20 +34,20 @@
 
 namespace flare {
 
-	void AndroidConsole::log(cString& str) {
-		__android_log_print(ANDROID_LOG_INFO, "LOG", "%s\n", *str);
+	void AndroidConsole::log(cString& str, cChar* tag) {
+		__android_log_print(ANDROID_LOG_INFO, tag ? tag: "LOG ", "%s\n", *str);
 	}
-	void AndroidConsole::warn(cString& str) {
-		__android_log_print(ANDROID_LOG_WARN, "FX_WARN", "%s\n", *str);
+	void AndroidConsole::warn(cString& str, cChar* tag) {
+		__android_log_print(ANDROID_LOG_WARN, tag ? tag: "WARN", "%s\n", *str);
 	}
-	void AndroidConsole::error(cString& str) {
-		__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s\n", *str);
+	void AndroidConsole::error(cString& str, cChar* tag) {
+		__android_log_print(ANDROID_LOG_ERROR, tag ? tag: "ERR ", "%s\n", *str);
 	}
 	void AndroidConsole::print(cString& str) {
-		__android_log_print(ANDROID_LOG_INFO, "LOG", "%s", *str);
+		__android_log_print(ANDROID_LOG_INFO, "", "%s", *str);
 	}
 	void AndroidConsole::print_err(cString& str) {
-		__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s", *str);
+		__android_log_print(ANDROID_LOG_ERROR, "", "%s", *str);
 	}
 	void AndroidConsole::clear() {
 		// noop

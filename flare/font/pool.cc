@@ -30,7 +30,7 @@
 
 #include "../util/os.h"
 #include "../util/array.h"
-#include "./_font.h"
+#include "./font.inl"
 #include "../bezier.h"
 #include "../texture.h"
 #include "../display.h"
@@ -39,8 +39,8 @@
 #include <native-font.h>
 #include <math.h>
 
-#ifndef FX_SUPPORT_MAX_TEXTURE_FONT_SIZE
-#define FX_SUPPORT_MAX_TEXTURE_FONT_SIZE 512
+#ifndef F_SUPPORT_MAX_TEXTURE_FONT_SIZE
+#define F_SUPPORT_MAX_TEXTURE_FONT_SIZE 512
 #endif
 
 namespace flare {
@@ -84,7 +84,7 @@ namespace flare {
 		String font_name_ = font_name;
 		
 		/*
-		FX_DEBUG("family_name:%s, font_name:%s, %s, ------%dkb%s", *family_name, *font_name, *path,
+		F_DEBUG("family_name:%s, font_name:%s, %s, ------%dkb%s", *family_name, *font_name, *path,
 						uint(FileHelper::stat_sync(path).size() / 1024),
 						_fonts.has(font_name) ? "+++++++++++": "");
 		*/
@@ -137,9 +137,9 @@ namespace flare {
 		FT_Error err = FT_New_Memory_Face((FT_Library)_ft_lib, data, font_data->length, 0, &face);
 		
 		if (err) {
-			FX_ERR("Unable to load font, Freetype2 error code: %d", err);
+			F_ERR("FONT", "Unable to load font, Freetype2 error code: %d", err);
 		} else if (!face->family_name) {
-			FX_ERR("Unable to load font, not family name");
+			F_ERR("FONT", "Unable to load font, not family name");
 		} else {
 			
 			FT_Long num_faces = face->num_faces;
@@ -182,7 +182,7 @@ namespace flare {
 				if (face_index < num_faces) {
 					err = FT_New_Memory_Face((FT_Library)_ft_lib, data, font_data->length, face_index, &face);
 					if (err) {
-						FX_ERR("Unable to load font, Freetype2 error code: %d", err);
+						F_ERR("FONT", "Unable to load font, Freetype2 error code: %d", err);
 						return false;
 					}
 				} else {
@@ -202,7 +202,7 @@ namespace flare {
 	void FontPool::Inl::display_port_change_handle(Event<>& evt) {
 
 		Vec2 scale_value = _host->display()->scale();
-		float scale = FX_MAX(scale_value[0], scale_value[1]);
+		float scale = F_MAX(scale_value[0], scale_value[1]);
 		
 		if ( scale != _display_port_scale ) {
 			
@@ -221,8 +221,8 @@ namespace flare {
 			uint32_t font_size = sqrtf(size.width() * size.height()) / 10;
 			
 			// 最大纹理字体不能超过上下文支持的大小
-			if (font_size >= FX_SUPPORT_MAX_TEXTURE_FONT_SIZE) {
-				_max_glyph_texture_size = FX_SUPPORT_MAX_TEXTURE_FONT_SIZE;
+			if (font_size >= F_SUPPORT_MAX_TEXTURE_FONT_SIZE) {
+				_max_glyph_texture_size = F_SUPPORT_MAX_TEXTURE_FONT_SIZE;
 			} else {
 				_max_glyph_texture_size = font_glyph_texture_levels_idx[font_size].max_font_size;
 			}
@@ -275,9 +275,9 @@ namespace flare {
 		FT_Error err = FT_New_Face(lib, Path::fallback_c(path), 0, &face);
 		
 		if (err) {
-			FX_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err);
+			F_WARN("FONT", "Unable to load font file \"%s\", Freetype2 error code: %d", *path, err);
 		} else if (!face->family_name) {
-			FX_WARN("Unable to load font file \"%s\", not family name", *path);
+			F_WARN("FONT", "Unable to load font file \"%s\", not family name", *path);
 		} else {
 			
 			FT_Long num_faces = face->num_faces;
@@ -308,7 +308,7 @@ namespace flare {
 					int underline_thickness = face->underline_thickness;
 					String name = FT_Get_Postscript_Name(face);
 
-					DLOG("------------inl_read_font_file, %s, %s", *name, face->style_name);
+					DLOG("Font", "------------inl_read_font_file, %s, %s", *name, face->style_name);
 
 					sff->fonts.push({
 						name,
@@ -330,7 +330,7 @@ namespace flare {
 				if (face_index < num_faces) {
 					err = FT_New_Face(lib, Path::fallback_c(path), face_index, &face);
 					if (err) {
-						FX_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err); break;
+						F_WARN("FONT", "Unable to load font file \"%s\", Freetype2 error code: %d", *path, err); break;
 					}
 				} else {
 					if (sff->fonts.length())
@@ -353,10 +353,10 @@ namespace flare {
 		, _max_glyph_texture_size(0)
 		, _display_port_scale(0)
 	{
-		ASSERT(host);
-		ASSERT(_host->display());
+		F_ASSERT(host);
+		F_ASSERT(_host->display());
 
-		_host->display()->FX_On(Change, &Inl::display_port_change_handle, _inl_pool(this));
+		_host->display()->F_On(Change, &Inl::display_port_change_handle, _inl_pool(this));
 		
 		FT_Init_FreeType((FT_Library*)&_ft_lib);
 			
@@ -366,18 +366,18 @@ namespace flare {
 			for (uint32_t i = 0 ; i < count; i++) {
 				WeakBuffer data((cChar*)native_fonts_[i].data, native_fonts_[i].count);
 				auto font_data = new FontFromData::Data(data);
-				// LOG("register_font,%d", i);
+				// F_LOG("register_font,%d", i);
 				_inl_pool(this)->register_font(font_data, i == 1 ? "icon" : String());
-				// LOG("register_font ok,%d", i);
+				// F_LOG("register_font ok,%d", i);
 			}
 
 			if ( _familys.has("langou") ) {
-				// LOG("_familys.has langou ok");
+				// F_LOG("_familys.has langou ok");
 				// 这个内置字体必须载入成功,否则退出程序
 				// 把载入的一个内置字体做为默认备用字体,当没有任何字体可用时候,使用这个内置字体
 				_spare_family = _familys["langou"];
 			} else {
-				FX_FATAL("Unable to initialize flare font");
+				F_FATAL("Unable to initialize flare font");
 			}
 		}
 		
@@ -428,7 +428,7 @@ namespace flare {
 		FT_Done_FreeType((FT_Library)_ft_lib); _ft_lib = nullptr;
 		
 		if ( _host->display() ) {
-      _host->display()->FX_Off(Change, &Inl::display_port_change_handle, _inl_pool(this));
+      _host->display()->F_Off(Change, &Inl::display_port_change_handle, _inl_pool(this));
 		}
 	}
 
@@ -561,7 +561,7 @@ namespace flare {
 	* @arg [style = fs_regular] {Font::TextStyle} # 使用的字体家族才生效
 	*/
 	FontGlyphTable* FontPool::get_table(FFID ffid, TextStyleValue style) {
-		ASSERT(ffid);
+		F_ASSERT(ffid);
 		
 		uint32_t code = ffid->code() + (uint32_t)style;
 		
@@ -592,7 +592,7 @@ namespace flare {
 	* @arg [family_alias = String()] {cString&} # 给所属家族添加一个别名
 	*/
 	bool FontPool::register_font(Buffer buff, cString& family_alias) {
-		DLOG("register_font,%d", buff.length());
+		DLOG("Font", "register_font,%d", buff.length());
 		return _inl_pool(this)->register_font(new FontFromData::Data(buff), family_alias);
 	}
 
@@ -696,7 +696,7 @@ namespace flare {
 	* @func get_glyph_texture_level # 根据字体尺寸获取纹理等级
 	*/
 	float FontPool::get_glyph_texture_size(FGTexureLevel leval) {
-		ASSERT( leval < FontGlyph::LEVEL_NONE );
+		F_ASSERT( leval < FontGlyph::LEVEL_NONE );
 		
 		const float glyph_texture_levels_size[13] = {
 			10, 12, 14, 16, 18, 20, 25, 32, 64, 128, 256, 512, 0

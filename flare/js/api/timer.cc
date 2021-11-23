@@ -100,7 +100,7 @@ class Timer: public Reference {
 	}
 	
 	void loop(int loop) {
-		_loop = FX_MAX(-1, loop);
+		_loop = F_MAX(-1, loop);
 	}
 	
 	void run(uint64_t timeout, int loop = 1) {
@@ -176,7 +176,7 @@ class WrapTimer: public WrapObject {
 		if (args.Length() == 0 || ! args[0]->IsNumber(worker)) {
 			JS_THROW_ERR("Bad argument");
 		}
-		uint64_t timeout = FX_MAX(0, args[0]->ToNumberValue(worker));
+		uint64_t timeout = F_MAX(0, args[0]->ToNumberValue(worker));
 		int loop = 1;
 		if (args.Length() > 1 && args[1]->IsInt32(worker)) {
 			loop = args[1]->ToInt32Value(worker);
@@ -200,7 +200,7 @@ class WrapTimer: public WrapObject {
 		}
 		uint64_t timeout = 0;
 		if (args.Length() > 1 && args[1]->IsNumber(worker)) {
-			timeout = FX_MAX(0, args[1]->ToNumberValue(worker));
+			timeout = F_MAX(0, args[1]->ToNumberValue(worker));
 		}
 		
 		Local<JSValue> cb = args[0];

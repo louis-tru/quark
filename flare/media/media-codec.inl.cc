@@ -180,7 +180,7 @@ namespace flare {
 					fmt_ctx->streams[*program->stream_index + j]->discard = AVDISCARD_ALL;
 				}
 			}
-			AVProgram* program = fmt_ctx->programs[ FX_MIN(index, fmt_ctx->nb_programs - 1) ];
+			AVProgram* program = fmt_ctx->programs[ F_MIN(index, fmt_ctx->nb_programs - 1) ];
 			for (uint32_t j = 0; j < program->nb_stream_indexes; j++) {
 				fmt_ctx->streams[*program->stream_index + j]->discard = AVDISCARD_NONE;
 			}
@@ -347,7 +347,7 @@ namespace flare {
 				if ( fmt_ctx ) {
 					avformat_close_input(&fmt_ctx);
 				}
-				FX_DEBUG("free ffmpeg AVFormatContext");
+				F_DEBUG("free ffmpeg AVFormatContext");
 			});
 			
 			int r;
@@ -456,7 +456,7 @@ namespace flare {
 				AVRational& rat = stream->avg_frame_rate.den ?
 													stream->avg_frame_rate : stream->r_frame_rate;
 				int len = rat.num * CACHE_DATA_TIME_SECOND / rat.den;
-				ex->_sample_data_cache = Array<SampleData>(FX_MAX(len, 32));
+				ex->_sample_data_cache = Array<SampleData>(F_MAX(len, 32));
 			}
 		} else { // AUDIO
 			int len = ex->_sample_data_cache.length();
@@ -474,7 +474,7 @@ namespace flare {
 				} else {
 					len = 256;
 				}
-				ex->_sample_data_cache = Array<SampleData>(FX_MIN(FX_MAX(len, 32), 1024));
+				ex->_sample_data_cache = Array<SampleData>(F_MIN(F_MAX(len, 32), 1024));
 				ex->_sample_data_cache[0] = std::move(data);
 			}
 		}
@@ -506,7 +506,7 @@ namespace flare {
 				SampleData& d1 = ex->_sample_data_cache[(i1 + len) % len];
 				data.time = d1.time + d1.time - d0.time;
 				data.d_time =  d1.d_time + d1.d_time - d0.d_time;
-				FX_DEBUG("extractor_push(), time == 0, Correction time: %llu", data.time);
+				F_DEBUG("extractor_push(), time == 0, Correction time: %llu", data.time);
 			}
 			
 			if ( ex->type() == MEDIA_TYPE_VIDEO ) { // VIDEO
@@ -606,14 +606,14 @@ namespace flare {
 				ex->_sample_data_cache[ex->_sample_index_cache] = std::move(data);
 				ex->_sample_index_cache = (ex->_sample_index_cache + 1) % ex->_sample_data_cache.length();
 				ex->_sample_count_cache--;
-				// FX_DEBUG("extractor_advance(), _sample_count_cache:%d", ex->_sample_count_cache);
+				// F_DEBUG("extractor_advance(), _sample_count_cache:%d", ex->_sample_count_cache);
 				if (ex->_sample_count_cache == 0 && _read_eof) {
 					ex->_eof_flags = 1;
 				}
 			}
 
 		} else { // no data
-			// FX_DEBUG("extractor_advance(), no data ");
+			// F_DEBUG("extractor_advance(), no data ");
 			
 			if ( _read_eof ) { // eos
 				trigger_eof();
@@ -658,12 +658,12 @@ namespace flare {
 			sleep = 0;
 
 			if (t.is_abort()) {
-				FX_DEBUG("read_frame() abort break;"); break;
+				F_DEBUG("read_frame() abort break;"); break;
 			}
 
 			if ( ok < 0 ) { // err or end
 				if ( AVERROR_EOF == ok ) {
-					FX_DEBUG("read_frame() eof break;");
+					F_DEBUG("read_frame() eof break;");
 					
 					post(Cb([this](CbData& d) {
 						ScopeLock scope(mutex());
@@ -672,12 +672,12 @@ namespace flare {
 					}));
 					
 				} else {
-					FX_DEBUG("read_frame() error break;");
+					F_DEBUG("read_frame() error break;");
 					
 					Char err_desc[AV_ERROR_MAX_STRING_SIZE] = {0};
 					av_make_error_string(err_desc, AV_ERROR_MAX_STRING_SIZE, ok);
 					
-					FX_ERR("%s", err_desc);
+					F_ERR("MEDIA", "%s", err_desc);
 					
 					Error err(ERR_MEDIA_NETWORK_ERROR,
 										"Read source error `%s`, `%s`", err_desc, *uri);
@@ -726,7 +726,7 @@ namespace flare {
 	* @func trigger_error
 	* */
 	void Inl::trigger_error(cError& e) {
-		FX_DEBUG("Err, %s", *e.message());
+		F_DEBUG("Err, %s", *e.message());
 		post(Cb([e, this](CbData& d) {
 			{ ScopeLock scope(mutex());
 				_status = MULTIMEDIA_SOURCE_STATUS_FAULT;
@@ -747,7 +747,7 @@ namespace flare {
 				}
 				_status = MULTIMEDIA_SOURCE_STATUS_WAIT;
 			}
-			FX_DEBUG("extractor_advance(), WAIT, 0");
+			F_DEBUG("extractor_advance(), WAIT, 0");
 			_delegate->multimedia_source_wait_buffer(_host, 0);
 		}));
 	}
@@ -761,7 +761,7 @@ namespace flare {
 				if ( _status != MULTIMEDIA_SOURCE_STATUS_WAIT ) return;
 				_status = MULTIMEDIA_SOURCE_STATUS_READY;
 			}
-			FX_DEBUG("extractor_advance(), WAIT, 1");
+			F_DEBUG("extractor_advance(), WAIT, 1");
 			_delegate->multimedia_source_wait_buffer(_host, 1);
 		}));
 	}

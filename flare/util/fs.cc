@@ -35,7 +35,7 @@
 
 namespace flare {
 
-	#if FX_WIN
+	#if F_WIN
 		const uint32_t FileHelper::default_mode(0);
 	#else
 		const uint32_t FileHelper::default_mode([]() {
@@ -45,7 +45,7 @@ namespace flare {
 		}());
 	#endif
 
-	FX_DEFINE_INLINE_MEMBERS(FileStat, Inl) {
+	F_DEFINE_INLINE_MEMBERS(FileStat, Inl) {
 	 public:
 		void set__stat(uv_stat_t* stat) {
 			if ( !_stat ) {
@@ -132,7 +132,7 @@ namespace flare {
 	 * @func get C file flga
 	 */
 	int inl__file_flag_mask(int flag) {
-		#if FX_POSIX || FX_UNIX
+		#if F_POSIX || F_UNIX
 			return flag;
 		#else
 			int r_flag = flag & ~(O_ACCMODE | O_WRONLY | O_RDWR |
@@ -172,7 +172,7 @@ namespace flare {
 
 	int File::open(int flag) {
 		if ( _fd ) { // 文件已经打开
-			FX_WARN( "file already open" );
+			F_WARN("FILE", "file already open" );
 			return 0;
 		}
 		uv_fs_t req;
@@ -247,14 +247,14 @@ namespace flare {
 		, _delegate(nullptr)
 		, _host(host)
 		{
-			ASSERT(_keep);
+			F_ASSERT(_keep);
 		}
 		
 		virtual ~Inl() {
 			if ( _fd ) {
 				uv_fs_t req;
 				int res = uv_fs_close(_keep->host()->uv_loop(), &req, _fd, nullptr); // sync
-				ASSERT( res == 0 );
+				F_ASSERT( res == 0 );
 			}
 			Release(_keep); _keep = nullptr;
 			clear_writeing();
@@ -328,7 +328,7 @@ namespace flare {
 				uv_buf_t buf;
 				buf.base = req->data().buffer.val();
 				buf.len = req->data().buffer.length();
-				// LOG("write_first-- %ld", req->data().offset);
+				// F_LOG("write_first-- %ld", req->data().offset);
 				uv_fs_write(uv_loop(), req->req(), _fd, &buf, 1, req->data().offset, &Inl::fs_write_cb);
 			}
 		}
@@ -349,7 +349,7 @@ namespace flare {
 			uv_fs_req_cleanup(uv_req);
 			FileReq* req = FileReq::cast(uv_req);
 			Handle<FileReq> handle(req);
-			ASSERT( req->ctx()->_opening );
+			F_ASSERT( req->ctx()->_opening );
 			req->ctx()->_opening = false;
 			if ( uv_req->result > 0 ) {
 				if ( req->ctx()->_fd ) {
@@ -405,7 +405,7 @@ namespace flare {
 			auto self = req->ctx();
 			uv_fs_req_cleanup(uv_req);
 			
-			ASSERT(self->_writeing.front() == req);
+			F_ASSERT(self->_writeing.front() == req);
 			self->_writeing.pop_front();
 			self->continue_write();
 
@@ -433,7 +433,7 @@ namespace flare {
 	{}
 
 	AsyncFile::~AsyncFile() {
-		ASSERT(_inl->loop() == RunLoop::current());
+		F_ASSERT(_inl->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
 			_inl->close();

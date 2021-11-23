@@ -52,7 +52,7 @@ namespace flare {
 
 	ActionCenter::ActionCenter()
 	: _prev_sys_time(0) {
-		ASSERT(!action_center_shared); action_center_shared = this;
+		F_ASSERT(!action_center_shared); action_center_shared = this;
 	}
 
 	ActionCenter::~ActionCenter() {
@@ -67,7 +67,7 @@ namespace flare {
 		static int len = 0;
 		if (len != _actions.length()) {
 			len = _actions.length();
-			LOG("ActionCenter::advance,length, %d", len);
+			F_LOG("ActionCenter::advance,length, %d", len);
 		}*/
 		
 		if ( _actions.length() ) { // run task

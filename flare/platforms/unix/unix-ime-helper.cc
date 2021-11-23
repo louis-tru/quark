@@ -49,22 +49,22 @@ namespace flare {
 
 			Char *locale = setlocale(LC_CTYPE, "");
 			if (locale == NULL) {
-				FX_ERR("Can't set locale");
+				F_ERR("IME", "Can't set locale");
 				return nullptr;
 			}
-			DLOG("locale: %s", locale);
+			DLOG("IME", "locale: %s", locale);
 
 			if (!XSupportsLocale()) {
-				FX_ERR("X does not support locale");
+				F_ERR("IME", "X does not support locale");
 				return nullptr;
 			}
 
 			Char *modifiers = XSetLocaleModifiers("");
 			if (modifiers == NULL) {
-				FX_ERR("Can't set locale modifiers");
+				F_ERR("IME", "Can't set locale modifiers");
 				return nullptr;
 			}
-			DLOG("modifiers: %s", modifiers);
+			DLOG("IME", "modifiers: %s", modifiers);
 
 			return new Inl(app, dpy, win, inputStyle);
 		}
@@ -87,7 +87,7 @@ namespace flare {
 			_fontset = XCreateFontSet(_display, "*,*", 
 				&missing_list, &missing_count, &default_string);
 			if (_fontset == NULL) {
-				FX_ERR("Can't create font set: %s", "*,*");
+				F_ERR("Can't create font set: %s", "*,*");
 			}
 		}
 
@@ -99,7 +99,7 @@ namespace flare {
 		}
 
 		void open() {
-			DLOG("IME open");
+			DLOG("IME", "IME open");
 			if (!_has_open) {
 				_has_open = true;
 				registerInstantiateCallback();
@@ -107,14 +107,14 @@ namespace flare {
 		}
 
 		void close() {
-			DLOG("IME close");
+			DLOG("IME", "IME close");
 			_has_open = false;
 			destroyIC();
 			closeIM();
 		}
 
 		void clear() {
-			DLOG("IME clear");
+			DLOG("IME", "IME clear");
 			if (_has_open && _ic) {
 				if (!_preedit_string.is_empty()) {
 					_preedit_string = String();
@@ -139,7 +139,7 @@ namespace flare {
 		}
 
 		void set_spot_location(Vec2 location) {
-			DLOG("set_spot_location, x=%f,y=%f", location[0], location[1]);
+			DLOG("IME", "set_spot_location, x=%f,y=%f", location[0], location[1]);
 			if (location[0] != 0 || location[1] != 0) {
 				Vec2 scale = _app->display_port()->scale_value();
 				_spot_location = {
@@ -165,7 +165,7 @@ namespace flare {
 				Xutf8LookupString(_ic, event, buf, 256, &keysym, &status);
 			}
 
-			DLOG("onKeyPress %lu\n", keysym);
+			DLOG("IME", "onKeyPress %lu\n", keysym);
 
 			if (status == XLookupChars || 
 				status == XLookupKeySym || status == XLookupBoth) {
@@ -238,7 +238,7 @@ namespace flare {
 		{
 			if (client_data == NULL)
 				return;
-			DLOG("XIM is available now");
+			DLOG("IME", "XIM is available now");
 			auto self = reinterpret_cast<Inl*>(client_data);
 			self->openIM();
 		}
@@ -246,7 +246,7 @@ namespace flare {
 		// IM destroy callbacks
 		static void IMDestroyCallback(XIM im, XPointer client_data, XPointer data)
 		{
-			DLOG("xim is destroyed");
+			DLOG("IME", "xim is destroyed");
 
 			if (client_data == NULL)
 				return;
@@ -263,12 +263,12 @@ namespace flare {
 		// on the spot callbacks
 		static void preeditStartCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			DLOG("preedit start");
+			DLOG("IME", "preedit start");
 		}
 
 		static void preeditDoneCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			DLOG("preedit done");
+			DLOG("IME", "preedit done");
 
 			if (user_data == NULL)
 				return;
@@ -323,44 +323,44 @@ namespace flare {
 				case XIMDontChange:
 					break;
 				default:
-					DLOG("preedit caret: %d", caret_data->direction);
+					DLOG("IME", "preedit caret: %d", caret_data->direction);
 					break;
 			}
 		}
 
 		static void statusStartCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			DLOG("status start");
+			DLOG("IME", "status start");
 		}
 
 		static void statusDoneCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			DLOG("status done");
+			DLOG("IME", "status done");
 		}
 
 		static void statusDrawCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			DLOG("status draw");
+			DLOG("IME", "status draw");
 		}
 
 		// string conversion callback
 		static void stringConversionCallback(XIM xim, XPointer client_data, XPointer data)
 		{
-			DLOG("string conversion");
+			DLOG("IME", "string conversion");
 		}
 
 		// for XIM interaction
 		void openIM()
 		{
-			ASSERT(!_im);
+			F_ASSERT(!_im);
 
 			_im = XOpenIM(_display, NULL, NULL, NULL);
 			if (_im  == NULL) {
-				DLOG("Can't open XIM");
+				DLOG("IME", "Can't open XIM");
 				return;
 			}
 
-			DLOG("XIM is opened");
+			DLOG("IME", "XIM is opened");
 			XUnregisterIMInstantiateCallback(_display, NULL, NULL, NULL,
 							IMInstantiateCallback, (XPointer)this);
 
@@ -379,7 +379,7 @@ namespace flare {
 			
 			if (ic_values != NULL) {
 				for (int i = 0; i < ic_values->count_values; i++) {
-					DLOG("%s", ic_values->supported_values[i]);
+					DLOG("IME", "%s", ic_values->supported_values[i]);
 					if (strcmp(ic_values->supported_values[i],
 								XNStringConversionCallback) == 0) {
 						useStringConversion = true;
@@ -399,7 +399,7 @@ namespace flare {
 			XCloseIM(_im);
 			_im = NULL;
 
-			DLOG("XIM is closed");
+			DLOG("IME", "XIM is closed");
 		}
 
 		void createIC(bool useStringConversion)
@@ -407,7 +407,7 @@ namespace flare {
 			if (_im == NULL)
 				return;
 			
-			ASSERT(!_ic);
+			F_ASSERT(!_ic);
 
 			if ((_input_style & XIMPreeditPosition) && _fontset) {
 				XRectangle area = { 0,0,1,1 };
@@ -475,9 +475,9 @@ namespace flare {
 					strconv.client_data = (XPointer)this;
 					XSetICValues(_ic, XNStringConversionCallback, &strconv, NULL);
 				}
-				DLOG("XIC is created");
+				DLOG("IME", "XIC is created");
 			} else {
-				DLOG("cannot create XIC");
+				DLOG("IME", "cannot create XIC");
 			}
 		}
 
@@ -495,7 +495,7 @@ namespace flare {
 
 			XDestroyIC(_ic);
 			_ic = NULL;
-			DLOG("XIC is destroyed");
+			DLOG("IME", "XIC is destroyed");
 		}
 
 		static String wChar_t_to_string(const wChar_t *str)
@@ -520,13 +520,13 @@ namespace flare {
 
 		void insert(cChar* str)
 		{
-			DLOG("insert, %s", str);
+			DLOG("IME", "insert, %s", str);
 			_app->dispatch()->dispatch_ime_insert(str);
 		}
 
 		void setPreeditString(cChar* str, int pos, int length)
 		{
-			DLOG("setPreeditString, %s, %d, %d", str, pos, length);
+			DLOG("IME", "setPreeditString, %s, %d, %d", str, pos, length);
 			if (str == NULL) {
 				_app->dispatch()->dispatch_ime_unmark(String());
 				_preedit_string = String();

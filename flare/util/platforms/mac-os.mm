@@ -32,7 +32,7 @@
 #import "../string.h"
 #import "../handle.h"
 #import <Foundation/Foundation.h>
-#if FX_IOS
+#if F_IOS
 # import <UIKit/UIKit.h>
 #else
 # import <AppKit/AppKit.h>
@@ -55,7 +55,7 @@ namespace flare {
 			return "Apple";
 		}
 
-		#if FX_IOS
+		#if F_IOS
 
 			String version() {
 				return [[[UIDevice currentDevice] systemVersion] UTF8String];
@@ -100,7 +100,7 @@ namespace flare {
 			return code;
 		}
 
-		#if FX_IOS
+		#if F_IOS
 
 			bool is_ac_power() {
 				[UIDevice currentDevice].batteryMonitoringEnabled = YES;

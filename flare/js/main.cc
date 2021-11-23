@@ -33,11 +33,11 @@
 
 using namespace flare::js;
 
-FX_UI_MAIN() {
+F_UI_MAIN() {
 	return Start(argc, argv);
 }
 
-#if FX_ANDROID
+#if F_ANDROID
 class App: public flare::Application {
 	public: static void run(int argc, Char *argv[]) {
 		runMain(argc, argv);

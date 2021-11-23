@@ -35,8 +35,8 @@
 
 namespace flare {
 
-	class FX_EXPORT Text: public Box {
-		FX_Define_View(Text);
+	class F_EXPORT Text: public Box {
+		F_Define_View(Text);
 	 public:
 		// TODO ...
 	 private:
@@ -47,17 +47,17 @@ namespace flare {
 	 public:
 		DefaultTextSettings();
 		// define props
-		FX_Define_Prop(TextColor, text_background_color);
-		FX_Define_Prop(TextColor, text_color);
-		FX_Define_Prop(TextSize, text_size);
-		FX_Define_Prop(TextWeight, text_weight);
-		FX_Define_Prop(TextStyle, text_style);
-		FX_Define_Prop(TextFamily, text_family);
-		FX_Define_Prop(TextShadow, text_shadow);
-		FX_Define_Prop(TextLineHeight, text_line_height);
-		FX_Define_Prop(TextDecoration, text_decoration);
-		FX_Define_Prop(TextOverflow, text_overflow);
-		FX_Define_Prop(TextWhiteSpace, text_white_space);
+		F_DEFINE_PROP(TextColor, text_background_color);
+		F_DEFINE_PROP(TextColor, text_color);
+		F_DEFINE_PROP(TextSize, text_size);
+		F_DEFINE_PROP(TextWeight, text_weight);
+		F_DEFINE_PROP(TextStyle, text_style);
+		F_DEFINE_PROP(TextFamily, text_family);
+		F_DEFINE_PROP(TextShadow, text_shadow);
+		F_DEFINE_PROP(TextLineHeight, text_line_height);
+		F_DEFINE_PROP(TextDecoration, text_decoration);
+		F_DEFINE_PROP(TextOverflow, text_overflow);
+		F_DEFINE_PROP(TextWhiteSpace, text_white_space);
 	};
 
 }

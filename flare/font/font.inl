@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__font_1__
-#define __flare__font_1__
+#ifndef __flare__font_inl__
+#define __flare__font_inl__
 
 #include "../util/fs.h"
 #include "./font.h"
@@ -110,7 +110,7 @@ namespace flare {
 	/**
 	 * @class Font::Inl
 	 */
-	FX_DEFINE_INLINE_MEMBERS(Font, Inl) {
+	F_DEFINE_INLINE_MEMBERS(Font, Inl) {
 	public:
 		#define _inl_font(self) static_cast<Font::Inl*>(self)
 		
@@ -221,13 +221,13 @@ namespace flare {
 		
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(FontFamilysID, Inl) {
+	F_DEFINE_INLINE_MEMBERS(FontFamilysID, Inl) {
 	public:
 		#define _inl_ff_id(self) static_cast<FontFamilysID::Inl*>(self)
 		void initialize(const Array<String>& names);
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(FontGlyphTable, Inl) {
+	F_DEFINE_INLINE_MEMBERS(FontGlyphTable, Inl) {
 	public:
 		#define _inl_table(self) static_cast<FontGlyphTable::Inl*>(self)
 		void clear_table();
@@ -238,14 +238,14 @@ namespace flare {
 		FontGlyph* find_glyph(uint16_t unicode, FGTexureLevel level, bool vector);
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(FontFamily, Inl) {
+	F_DEFINE_INLINE_MEMBERS(FontFamily, Inl) {
 	public:
 		#define _inl_family(self) static_cast<FontFamily::Inl*>(self)
 		int get_font_style_index(TextStyleValue style);
 		void add_font(Font* font);
 	};
 
-	FX_DEFINE_INLINE_MEMBERS(FontPool, Inl) {
+	F_DEFINE_INLINE_MEMBERS(FontPool, Inl) {
 	public:
 		#define _inl_pool(self) static_cast<FontPool::Inl*>(self)
 		void initialize_default_fonts();

@@ -41,46 +41,45 @@ namespace flare {
 	/**
 	* @class Console # util log
 	*/
-	class FX_EXPORT Console {
+	class F_EXPORT Console {
 		public:
 		// typedef NonObjectTraits Traits;
 		virtual ~Console() = default;
-		virtual void log(cString& str);
-		virtual void warn(cString& str);
-		virtual void error(cString& str);
-		virtual void print(cString& str);
-		virtual void print_err(cString& str);
+		virtual void log(cString& log, cChar* tag = nullptr);
+		virtual void warn(cString& log, cChar* tag = nullptr);
+		virtual void error(cString& log, cChar* tag = nullptr);
+		virtual void print(cString& log);
+		virtual void print_err(cString& log);
 		virtual void clear();
 		void set_as_default();
 	};
 
 	namespace console {
-		FX_EXPORT void log(Char s);
-		FX_EXPORT void log(uint8_t s);
-		FX_EXPORT void log(int16_t s);
-		FX_EXPORT void log(uint32_t s);
-		FX_EXPORT void log(int32_t s);
-		FX_EXPORT void log(uint32_t s);
-		FX_EXPORT void log(float s);
-		FX_EXPORT void log(double);
-		FX_EXPORT void log(int64_t);
-		FX_EXPORT void log(uint64_t);
-		FX_EXPORT void log(size_t);
-		FX_EXPORT void log(bool);
-		FX_EXPORT void log(cChar*, ...);
-		FX_EXPORT void log(cString&);
-		FX_EXPORT void log(cString16&);
-		FX_EXPORT void warn(cChar*, ...);
-		FX_EXPORT void warn(cString&);
-		FX_EXPORT void error(cChar*, ...);
-		FX_EXPORT void error(cString&);
-		FX_EXPORT void error(const Error&);
-		FX_EXPORT void tag(cChar*, cChar*, ...);
-		FX_EXPORT void print(cChar*, ...);
-		FX_EXPORT void print(cString&);
-		FX_EXPORT void print_err(cChar*, ...);
-		FX_EXPORT void print_err(cString&);
-		FX_EXPORT void clear();
+		F_EXPORT void log(Char s);
+		F_EXPORT void log(uint8_t s);
+		F_EXPORT void log(int16_t s);
+		F_EXPORT void log(uint32_t s);
+		F_EXPORT void log(int32_t s);
+		F_EXPORT void log(uint32_t s);
+		F_EXPORT void log(float s);
+		F_EXPORT void log(double);
+		F_EXPORT void log(int64_t);
+		F_EXPORT void log(uint64_t);
+		F_EXPORT void log(size_t);
+		F_EXPORT void log(bool);
+		F_EXPORT void log(cChar* tag, cChar*, ...);
+		F_EXPORT void log(cString&);
+		F_EXPORT void log(cString16&);
+		F_EXPORT void warn(cChar* tag, cChar*, ...);
+		F_EXPORT void warn(cString&);
+		F_EXPORT void error(cChar* tag, cChar*, ...);
+		F_EXPORT void error(cChar*, const Error&);
+		F_EXPORT void error(cString&);
+		F_EXPORT void print(cChar*, ...);
+		F_EXPORT void print(cString&);
+		F_EXPORT void print_err(cChar*, ...);
+		F_EXPORT void print_err(cString&);
+		F_EXPORT void clear();
 	}
 
 }

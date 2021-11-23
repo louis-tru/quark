@@ -89,12 +89,12 @@ namespace flare {
 	/**
 	* @class MultimediaSource
 	*/
-	class FX_EXPORT MultimediaSource: public Object {
-		FX_HIDDEN_ALL_COPY(MultimediaSource);
-		FX_DEFINE_INLINE_CLASS(Inl);
+	class F_EXPORT MultimediaSource: public Object {
+		F_HIDDEN_ALL_COPY(MultimediaSource);
+		F_DEFINE_INLINE_CLASS(Inl);
 	public:
 		
-		struct FX_EXPORT TrackInfo {
+		struct F_EXPORT TrackInfo {
 			TrackInfo();
 			TrackInfo(const TrackInfo&);
 			uint32_t    track;            /* 轨道在源中的索引 */
@@ -116,7 +116,7 @@ namespace flare {
 			Buffer      extradata;        /* extradata */
 		};
 		
-		struct FX_EXPORT BitRateInfo {  /* 码率 */
+		struct F_EXPORT BitRateInfo {  /* 码率 */
 			int         bandwidth;
 			uint32_t    width;
 			uint32_t    height;
@@ -124,7 +124,7 @@ namespace flare {
 			Array<TrackInfo>  tracks;
 		};
 		
-		class FX_EXPORT Delegate {
+		class F_EXPORT Delegate {
 		public:
 			virtual void multimedia_source_ready(MultimediaSource* source) = 0;
 			virtual void multimedia_source_wait_buffer(MultimediaSource* source, float process) = 0;
@@ -135,8 +135,8 @@ namespace flare {
 		/**
 		* @class Extractor
 		*/
-		class FX_EXPORT Extractor: public Object {
-			FX_HIDDEN_ALL_COPY(Extractor);
+		class F_EXPORT Extractor: public Object {
+			F_HIDDEN_ALL_COPY(Extractor);
 		public:
 			
 			/**
@@ -361,12 +361,12 @@ namespace flare {
 	/**
 	* @class MediaCodec
 	*/
-	class FX_EXPORT MediaCodec: public Object {
-		FX_HIDDEN_ALL_COPY(MediaCodec);
+	class F_EXPORT MediaCodec: public Object {
+		F_HIDDEN_ALL_COPY(MediaCodec);
 	public:
 		typedef MultimediaSource::Extractor Extractor;
 		
-		struct FX_EXPORT OutputBuffer {
+		struct F_EXPORT OutputBuffer {
 			OutputBuffer();
 			OutputBuffer(const OutputBuffer& buffer);
 			uint8_t*   data[8];      /* 数据Buffer */
@@ -376,7 +376,7 @@ namespace flare {
 			int     index;        /* 数据Buffer在解码器中的索引 */
 		};
 		
-		class FX_EXPORT Delegate {
+		class F_EXPORT Delegate {
 		public:
 			virtual void media_decoder_eof(MediaCodec* de, uint64_t timeUs) { }
 			virtual void media_decoder_error(MediaCodec* de, cError& err) { }

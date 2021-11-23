@@ -54,7 +54,7 @@ namespace flare {
 			, _is_open(false)
 			, _output_occupy(false)
 		{
-			_frame = av_frame_alloc(); ASSERT(_frame);
+			_frame = av_frame_alloc(); F_ASSERT(_frame);
 			
 			if (type() == MEDIA_TYPE_VIDEO) {
 				_color_format = VIDEO_COLOR_FORMAT_YUV420P;
@@ -101,10 +101,10 @@ namespace flare {
 				AVStream* stream = _extractor->host()->get_stream(_extractor->track());
 				if ( !stream ) {
 					stream = _extractor->host()->get_stream(_extractor->track());
-					ASSERT( stream );
+					F_ASSERT( stream );
 				}
 				
-				const AVCodec* codec = get_avcodec(); ASSERT(codec);
+				const AVCodec* codec = get_avcodec(); F_ASSERT(codec);
 				
 				if ( _threads > 1 ) { // set threads
 					if ((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
@@ -337,7 +337,7 @@ namespace flare {
 		* */
 		virtual void set_frame_size(uint32_t size) {
 			if ( type() == MEDIA_TYPE_AUDIO ) {
-				_audio_frame_size = FX_MAX(512, size);
+				_audio_frame_size = F_MAX(512, size);
 				if (_audio_frame_size * 2 > _audio_buffer.length()) {
 					_audio_buffer = Buffer::alloc(_audio_frame_size * 2);
 					_audio_buffer_size = 0;
@@ -356,7 +356,7 @@ namespace flare {
 		virtual void set_threads(uint32_t value) {
 			ScopeLock scope(_mutex);
 			if ( !_is_open ) {
-				_threads = FX_MAX(1, FX_MIN(8, value));
+				_threads = F_MAX(1, F_MIN(8, value));
 			}
 		}
 		

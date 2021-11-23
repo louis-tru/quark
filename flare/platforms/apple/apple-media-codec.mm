@@ -187,8 +187,8 @@ namespace flare {
 			OSStatus status;
 			const TrackInfo& track = _extractor->track();
 			
-			ASSERT(track.width);
-			ASSERT(track.height);
+			F_ASSERT(track.width);
+			F_ASSERT(track.height);
 			
 			CFDictionaryRef attrs = (__bridge CFDictionaryRef)
 			[NSDictionary dictionaryWithObjectsAndKeys:
@@ -196,7 +196,7 @@ namespace flare {
 				kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange], (id)kCVPixelBufferPixelFormatTypeKey,
 				[NSNumber numberWithUnsignedInt:track.width], (id)kCVPixelBufferWidthKey,
 				[NSNumber numberWithUnsignedInt:track.height], (id)kCVPixelBufferHeightKey,
-				#if FX_IOS
+				#if F_IOS
 					[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLESCompatibilityKey,
 				#else
 					[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLCompatibilityKey,
@@ -210,7 +210,7 @@ namespace flare {
 			};
 			status = VTDecompressionSessionCreate(NULL, _format_desc, NULL, attrs, &cb, &_session);
 			
-			ASSERT(status >= 0);
+			F_ASSERT(status >= 0);
 			
 			CFRetain(_session);
 			
@@ -335,7 +335,7 @@ namespace flare {
 					
 					if ( status == noErr ) {
 						if ( _extractor->eof_flags() ) {
-							FX_DEBUG("%s", "eos flags");
+							F_DEBUG("%s", "eos flags");
 						}
 						_extractor->deplete_sample();
 						return true;

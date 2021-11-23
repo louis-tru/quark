@@ -41,7 +41,7 @@ namespace flare {
 	* @class List Double linked list
 	*/
 	template<typename T, typename A = MemoryAllocator> 
-	class FX_EXPORT List: public Object {
+	class F_EXPORT List: public Object {
 	 public:
 		struct Node {
 			typedef T     Data;
@@ -260,7 +260,7 @@ namespace flare {
 	template<typename T, typename A>
 	typename List<T, A>::Iterator
 	List<T, A>::erase(IteratorConst it) {
-		ASSERT(_length);
+		F_ASSERT(_length);
 		auto node = node_(it);
 		if (node != &_end) {
 			auto next = link_(node->_prev, node->_next);

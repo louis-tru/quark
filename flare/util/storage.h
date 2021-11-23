@@ -36,10 +36,10 @@
 #include "./util.h"
 
 namespace flare {
-	FX_EXPORT String  storage_get(cString& name);
-	FX_EXPORT void    storage_set(cString& name, cString& value);
-	FX_EXPORT void    storage_delete(cString& name);
-	FX_EXPORT void    storage_clear();
-	FX_EXPORT void    storage_transaction(Cb cb);
+	F_EXPORT String  storage_get(cString& name);
+	F_EXPORT void    storage_set(cString& name, cString& value);
+	F_EXPORT void    storage_delete(cString& name);
+	F_EXPORT void    storage_clear();
+	F_EXPORT void    storage_transaction(Cb cb);
 }
 #endif

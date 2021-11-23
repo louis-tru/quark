@@ -70,7 +70,7 @@ namespace flare {
 		}
 
 		r = MakeRasterRender(host, parems);
-		ASSERT(r);
+		F_ASSERT(r);
 
 		return r;
 	}

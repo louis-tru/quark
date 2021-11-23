@@ -30,7 +30,7 @@
 
 #include "../version.h"
 #include "../util/json.h"
-#include "./_font.h"
+#include "./font.inl"
 #include "../util/os.h"
 #include <tinyxml2.h>
 
@@ -40,11 +40,11 @@ namespace flare {
 
 	#define fx_font_family_list ".font_family_list"
 
-	#if FX_IOS || FX_OSX
+	#if F_IOS || F_OSX
 		static String system_fonts_dir = "/System/Library/Fonts";
-	#elif FX_ANDROID
+	#elif F_ANDROID
 		static String system_fonts_dir = "/system/fonts";
-	#elif FX_LINUX
+	#elif F_LINUX
 		static String system_fonts_dir = "/usr/share/fonts";
 	#endif
 	typedef Array<FontPool::SimpleFontFamily> SimpleFontList;
@@ -56,7 +56,7 @@ namespace flare {
 	* @func find_font_family_by_path(path)
 	*/
 	static String find_font_family_by_path(cString& path) {
-		ASSERT(system_font_family_list);
+		F_ASSERT(system_font_family_list);
 		for ( auto i : *system_font_family_list ) {
 			if (i.path == path) {
 				return i.family;
@@ -69,11 +69,11 @@ namespace flare {
 	* @func parse_system_font_family_name()
 	*/
 	static void parse_system_font_family_name() {
-		ASSERT(system_font_family_list);
+		F_ASSERT(system_font_family_list);
 
 		XMLDocument* config = nullptr;
 
-		#if FX_ANDROID
+		#if F_ANDROID
 			config = new XMLDocument();
 
 			if (config->LoadFile("/system/etc/fonts.xml") == XML_NO_ERROR) {
@@ -96,9 +96,9 @@ namespace flare {
 
 						#if defined(DEBUG) && 0
 							auto att = first->FirstAttribute();
-							LOG("%s, Attributes:", first->Name());
+							F_LOG("Font", "%s, Attributes:", first->Name());
 							while ( att ) {
-								LOG("     %s:%s", att->Name(), att->Value());
+								F_LOG("Font", "     %s:%s", att->Name(), att->Value());
 								att = att->Next();
 							}
 						#endif
@@ -119,8 +119,8 @@ namespace flare {
 					first = first->NextSiblingElement();
 				}
 			}
-		#elif FX_LINUX 
-		#endif // FX_ANDROID End
+		#elif F_LINUX 
+		#endif // F_ANDROID End
 
 		delete config;
 	}
@@ -177,7 +177,7 @@ namespace flare {
 				item["family"].to_string(), // family
 			};
 			
-			DLOG("family:%s, %s", *item["family"].to_string(), *item["path"].to_string());
+			DLOG("Font", "family:%s, %s", *item["family"].to_string(), *item["path"].to_string());
 			
 			for ( int j = 0, o = fonts.length(); j < o; j++ ) {
 				JSON& font = fonts[j];
@@ -193,7 +193,7 @@ namespace flare {
 					font[8].to_int(),     // underline_thickness
 				});
 				
-				// LOG("       %s", *JSON::stringify(font));
+				// F_LOG("       %s", *JSON::stringify(font));
 			}
 			system_font_family_list->push( std::move(sffd) );
 		}
@@ -216,7 +216,7 @@ namespace flare {
 			second.push(system_second_font_family_name);
 		}
 			
-		#if FX_IOS || FX_OSX
+		#if F_IOS || F_OSX
 			first.push("Helvetica Neue");
 			first.push("Helvetica");
 			first.push("Thonburi");
@@ -224,7 +224,7 @@ namespace flare {
 			second.push("HeitiFallback");
 			second.push("Heiti TC");
 			second.push(".HeitiFallback");
-		#elif FX_ANDROID
+		#elif F_ANDROID
 			first.push("Roboto");
 			first.push("Droid Sans");
 			first.push("Droid Sans Mono");
@@ -232,7 +232,7 @@ namespace flare {
 			second.push("Noto Sans CJK JP");
 			second.push("Noto Sans SC");
 			third.push("Droid Sans Fallback");
-		#elif FX_LINUX
+		#elif F_LINUX
 			first.push("Roboto");
 			first.push("DejaVu Sans");
 			first.push("DejaVu Sans Mono");

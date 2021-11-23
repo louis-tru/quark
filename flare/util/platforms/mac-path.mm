@@ -30,7 +30,7 @@
 
 #include "../fs.h"
 #include <Foundation/Foundation.h>
-#if FX_IOS
+#if F_IOS
 # import <UIKit/UIKit.h>
 #else
 # import <AppKit/AppKit.h>

@@ -45,7 +45,7 @@ namespace flare {
 	typedef const  ArrayString<uint16_t> cString16;
 	typedef const  ArrayString<uint32_t> cString32;
 	
-	class FX_EXPORT ArrayStringBase: public Object {
+	class F_EXPORT ArrayStringBase: public Object {
 	 public:
 		typedef void* (*AAlloc)(void* val, uint32_t, uint32_t*, uint32_t size_of);
 		typedef void  (*Free)(void* ptr);
@@ -82,7 +82,7 @@ namespace flare {
 	};
 
 	template<typename T, typename A>
-	class FX_EXPORT ArrayString: public ArrayStringBase {
+	class F_EXPORT ArrayString: public ArrayStringBase {
 	 public:
 		// constructors
 		ArrayString(); // empty string constructors
@@ -192,7 +192,7 @@ namespace flare {
 
 namespace flare {
 
-	class FX_EXPORT _Str {
+	class F_EXPORT _Str {
 	 public:
 		// static methods
 		typedef char T;
