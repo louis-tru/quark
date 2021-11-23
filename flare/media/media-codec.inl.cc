@@ -726,7 +726,7 @@ namespace flare {
 	* @func trigger_error
 	* */
 	void Inl::trigger_error(cError& e) {
-		F_DEBUG(MEDIA, "Err, %s", e);
+		F_ERR(MEDIA, e);
 		post(Cb([e, this](CbData& d) {
 			{ ScopeLock scope(mutex());
 				_status = MULTIMEDIA_SOURCE_STATUS_FAULT;
