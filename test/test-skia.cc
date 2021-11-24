@@ -66,12 +66,10 @@ void draw(SkCanvas* canvas) {
 	canvas->drawArc(SkRect::MakeXYWH(80, 60, 100, 160), 0, 180, 0, paint);
 }
 
-void onload_handle (Event<>& evt, Application* app) {
+void onload_handle(Event<>& evt, Application* app) {
 	// auto root = Root::create();
 	// printf("%s, %p\n", "ok skia", app);
-	
 	auto render = app->render();
-	
 	auto canvas = render->canvas();
 	
 	//glClearColor(1, 1, 1, 1);
