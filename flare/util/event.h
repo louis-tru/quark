@@ -296,9 +296,9 @@ namespace flare {
 		void off( void (Scope::*listener)(Event&) ) {
 			if (_listener) {
 				typedef OnListener<Scope> OnListener2;
-				for ( auto i : *_listener ) {
-					if ( i.value() && i->is_on_listener() &&
-							static_cast<OnListener2*>(i.value())->equals( listener ) ) {
+				for ( auto& i : *_listener ) {
+					if ( i.value && i->is_on_listener() &&
+							static_cast<OnListener2*>(i.value)->equals( listener ) ) {
 						i.del();
 					}
 				}
@@ -309,10 +309,10 @@ namespace flare {
 		void off( void (Scope::*listener)(Event&), Scope* scope) {
 			if (_listener) {
 				typedef OnListener<Scope> OnListener2;
-				for ( auto i : *_listener ) {
-					if( i.value() && i->is_on_listener() &&
-							static_cast<OnListener2*>(i.value())->equals(listener) &&
-							static_cast<OnListener2*>(i.value())->equals( scope ) ) {
+				for ( auto& i : *_listener ) {
+					if( i.value && i->is_on_listener() &&
+							static_cast<OnListener2*>(i.value)->equals(listener) &&
+							static_cast<OnListener2*>(i.value)->equals( scope ) ) {
 						i.del();
 						break;
 					}
@@ -324,9 +324,9 @@ namespace flare {
 		void off( void (*listener)(Event&, Data*) ) {
 			if (_listener) {
 				typedef OnStaticListener<Data> OnListener2;
-				for ( auto i : *_listener ) {
-					if ( i.value() && i->is_on_static_listener() &&
-							static_cast<OnListener2*>(i.value())->equals(listener) ) {
+				for ( auto& i : *_listener ) {
+					if ( i.value && i->is_on_static_listener() &&
+							static_cast<OnListener2*>(i.value)->equals(listener) ) {
 						i.del();
 						break;
 					}
@@ -338,10 +338,10 @@ namespace flare {
 		void off( void (*listener)(Event&, Data*), Data* data) {
 			if (_listener) {
 				typedef OnStaticListener<Data> OnListener2;
-				for ( auto i : *_listener ) {
-					if ( i.value() && i->is_on_static_listener() &&
-							static_cast<OnListener2*>(i.value())->equals(listener) &&
-							static_cast<OnListener2*>(i.value())->equals(data) ) {
+				for ( auto& i : *_listener ) {
+					if ( i.value && i->is_on_static_listener() &&
+							static_cast<OnListener2*>(i.value)->equals(listener) &&
+							static_cast<OnListener2*>(i.value)->equals(data) ) {
 						i.del();
 						break;
 					}
@@ -351,9 +351,9 @@ namespace flare {
 		
 		void off(int id) {
 			if (_listener) {
-				for ( auto i : *_listener ) {
-					if ( i.value() && i->is_on_func_listener() &&
-								static_cast<OnLambdaFunctionListener*>(i.value())->equals(id)
+				for ( auto& i : *_listener ) {
+					if ( i.value && i->is_on_func_listener() &&
+								static_cast<OnLambdaFunctionListener*>(i.value)->equals(id)
 						)
 					{//
 						i.del();
@@ -367,8 +367,8 @@ namespace flare {
 			if (_listener) {
 				typedef OnListener<Scope> OnListener2;
 				typedef OnStaticListener<Scope> OnListener3;
-				for ( auto i : *_listener ) {
-					if ( i.value() &&
+				for ( auto& i : *_listener ) {
+					if ( i.value &&
 							(
 								(
 									i->is_on_listener() &&
@@ -376,7 +376,7 @@ namespace flare {
 								) ||
 								(
 									i->is_on_static_listener() &&
-									static_cast<OnListener3*>(i.value())->equals(scope)
+									static_cast<OnListener3*>(i.value)->equals(scope)
 								)
 							)
 						)
@@ -389,8 +389,8 @@ namespace flare {
 		
 		void off(EventNoticer* shell) {
 			if (_listener) {
-				for ( auto i : *_listener ) {
-					if ( i.value() && i->is_on_shell_listener() &&
+				for ( auto& i : *_listener ) {
+					if ( i.value && i->is_on_shell_listener() &&
 							static_cast<OnShellListener*>(i)->equals( shell ) )
 					{ //
 						i.del();
@@ -402,7 +402,7 @@ namespace flare {
 
 		void off() {
 			if (_listener) {
-				for ( auto i : *_listener ) {
+				for ( auto& i : *_listener ) {
 					i.del();
 				}
 			}
@@ -427,7 +427,7 @@ namespace flare {
 				set_event(evt);
 				for (auto i = _listener->begin(); i != _listener->end(); ) {
 					auto j = i++;
-					Listener* listener = j->listener;
+					auto listener = j->value;
 					if ( listener ) {
 						// TODO:
 						// listener->mListener 如果为空指针或者野指针,会导致程序崩溃。。
@@ -459,8 +459,8 @@ namespace flare {
 		
 		void off2(Listener* listener) {
 			for ( auto& i : *_listener ) {
-				if ( i.value().value() == listener ) {
-					i.value().del();
+				if ( i.value == listener ) {
+					i.del();
 					break;
 				}
 			}
@@ -469,10 +469,10 @@ namespace flare {
 		template<class Scope>
 		void assert2(void (Scope::*listener)(Event&), Scope* scope) throw(Error) {
 			typedef OnListener<Scope> OnListener2;
-			for ( auto i : *_listener ) {
-				if ( i.value() && i->is_on_listener() ) {
-					F_CHECK( !(static_cast<OnListener2*>(i.value())->equals( listener ) &&
-											static_cast<OnListener2*>(i.value())->equals( scope )),
+			for ( auto& i : *_listener ) {
+				if ( i.value && i->is_on_listener() ) {
+					F_CHECK( !(static_cast<OnListener2*>(i.value)->equals( listener ) &&
+											static_cast<OnListener2*>(i.value)->equals( scope )),
 											ERR_DUPLICATE_LISTENER,
 											"Noticers have been added over the letter");
 				}
@@ -482,10 +482,10 @@ namespace flare {
 		template<class Data>
 		void assert_static(void (*listener)(Event&, Data*), Data* data) throw(Error) {
 			typedef OnStaticListener<Data> OnStaticListener2;
-			for ( auto i : *_listener ) {
-				if ( i.value() && i->is_on_static_listener() ) {
-					F_CHECK( !(static_cast<OnStaticListener2*>(i.value())->equals( listener ) &&
-											static_cast<OnStaticListener2*>(i.value())->equals( data )),
+			for ( auto& i : *_listener ) {
+				if ( i.value && i->is_on_static_listener() ) {
+					F_CHECK( !(static_cast<OnStaticListener2*>(i.value)->equals( listener ) &&
+											static_cast<OnStaticListener2*>(i.value)->equals( data )),
 											ERR_DUPLICATE_LISTENER,
 											"Noticers have been added over the letter");
 				}
@@ -493,9 +493,9 @@ namespace flare {
 		}
 		
 		void assert_shell(EventNoticer* shell) throw(Error) {
-			for ( auto i : *_listener ) {
-				if ( i.value() && i->is_on_shell_listener() ) {
-					F_CHECK( !static_cast<OnShellListener*>(i.value())->equals( shell ),
+			for ( auto& i : *_listener ) {
+				if ( i.value && i->is_on_shell_listener() ) {
+					F_CHECK( !static_cast<OnShellListener*>(i.value)->equals( shell ),
 										ERR_DUPLICATE_LISTENER,
 										"Noticers have been added over the letter");
 				}
@@ -505,10 +505,9 @@ namespace flare {
 	 private:
 		typedef typename List<Listener*>::Iterator iterator;
 		struct LWrap {
-			Listener* listener;
-			Listener* operator->() { return listener; }
-			Listener* value() { return listener; }
-			void del() { delete listener; listener = nullptr; }
+			Listener* value;
+			Listener* operator->() { return value; }
+			void del() { delete value; value = nullptr; }
 		};
 		String        _name;
 		Sender*       _sender;

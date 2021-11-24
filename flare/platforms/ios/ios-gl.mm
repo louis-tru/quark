@@ -34,24 +34,23 @@
 #include "../../render/gl.h"
 #include "../apple/apple-render.h"
 #include "../../display.h"
+#include "../../app.inl"
 
 namespace flare {
 
 	class GLRenderIOS: public GLRender, public RenderApple {
-	public:
+	 public:
 		GLRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
-			: GLRender(host, params), _glctx(ctx)
+			: GLRender(host, params), _ctx(ctx)
 		{
-			F_ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
-			ctx.multiThreaded = NO;
-			initialize();
+			_is_support_multisampled = true;
 		}
 
 		~GLRenderIOS() {
 			[EAGLContext setCurrentContext:nullptr];
 		}
 
-		void setView(UIView* view) {
+		void setView(UIView* view) override {
 			F_ASSERT(!_view);
 			_view = view;
 			_layer = (CAEAGLLayer*)view.layer;
@@ -59,21 +58,26 @@ namespace flare {
 				kEAGLDrawablePropertyRetainedBacking : @NO,
 				kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
 			};
-			// _layer.opaque = YES;
-			// _layer.frame = frameRect;
-			// _layer.contentsGravity = kCAGravityTopLeft;
-			_host->display()->set_best_display_scale(UIScreen.mainScreen.scale);
+			_layer.opaque = YES;
+			//_layer.frame = frameRect;
+			//_layer.contentsGravity = kCAGravityTopLeft;
 		}
 
-		Class layerClass() { return [CAEAGLLayer class]; }
-
-		Render* render() { return this; }
-
-		void glRenderbufferStorageMain() {
-			[_glctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
+		Class layerClass() override {
+			return [CAEAGLLayer class];
 		}
 
-		void commit() {
+		Render* render() override {
+			return this;
+		}
+
+		void glRenderbufferStorageMain() override {
+			[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
+		}
+		
+		void commit() override {
+			_Surface->flushAndSubmit(); // commit sk
+
 			if (gpuMSAASample()) {
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
@@ -88,15 +92,20 @@ namespace flare {
 				GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 				glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
 			}
-
+			
 			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 			// you present its contents by making it the current renderbuffer
 			// and calling the presentRenderbuffer: method on your rendering context.
-			[_glctx presentRenderbuffer:GL_FRAMEBUFFER];
+			[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
+
+			if ( gpuMSAASample() ) {
+				glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
+				glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer);
+			}
 		}
 
-	private:
-		EAGLContext* _glctx;
+	 private:
+		EAGLContext* _ctx;
 		UIView* _view;
 		CAEAGLLayer* _layer;
 	};
@@ -104,6 +113,8 @@ namespace flare {
 	RenderApple* MakeGLRender(Application* host, const GLRender::DisplayParams& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
+			F_ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
+			ctx.multiThreaded = NO;
 			return new GLRenderIOS(host, ctx, parems);
 		} else {
 			return nullptr;

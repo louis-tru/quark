@@ -40,13 +40,10 @@
 namespace flare {
 
 	class RasterRenderIOS: public GLRender, public RenderApple {
-	public:
-        RasterRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
-			: GLRender(host, params), _glctx(ctx)
+	 public:
+		RasterRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
+			: GLRender(host, params), _ctx(ctx)
 		{
-			F_ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
-			ctx.multiThreaded = NO;
-			initialize();
 		}
 
 		~RasterRenderIOS() {
@@ -61,7 +58,6 @@ namespace flare {
 				kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
 			};
 			_layer.opaque = YES;
-			_host->display()->set_best_display_scale(UIScreen.mainScreen.scale);
 		}
 
 		Render* render() override { return this; }
@@ -70,39 +66,43 @@ namespace flare {
 
 		bool isGpu() override { return false; }
 
-		sk_sp<SkSurface> getSurface() override { return _RasterSurface; }
+		SkSurface* getSurface() override { return _RasterSurface.get(); }
 
 		void glRenderbufferStorageMain() override {
-			[_glctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
+			[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
 		}
 
 		void reload() override {
 			GLRender::reload();
 			// make the offscreen image
+			auto scale = _host->display()->scale();
 			auto region = _host->display()->surface_region();
-			SkImageInfo info = SkImageInfo::Make(region.width, region.height, _DisplayParams.fColorType,
-												kPremul_SkAlphaType, _DisplayParams.fColorSpace);
+			SkImageInfo info = SkImageInfo::Make(region.width, region.height,
+																					 _DisplayParams.fColorType, kPremul_SkAlphaType,
+																					 _DisplayParams.fColorSpace);
 			_RasterSurface = SkSurface::MakeRaster(info);
+			_RasterSurface->getCanvas()->scale(scale.x(), scale.y());
 		}
 
 		void commit() override {
 			// We made/have an off-screen surface. Get the contents as an SkImage:
 			sk_sp<SkImage> snapshot = _RasterSurface->makeImageSnapshot();
-			sk_sp<SkSurface> gpuSurface = GLRender::getSurface();
+			SkSurface* gpuSurface = GLRender::getSurface();
 			SkCanvas* gpuCanvas = gpuSurface->getCanvas();
 			gpuCanvas->drawImage(snapshot, 0, 0);
 			gpuCanvas->flush();
 
 			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-            glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
+			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
+
 			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 			// you present its contents by making it the current renderbuffer
 			// and calling the presentRenderbuffer: method on your rendering context.
-			[_glctx presentRenderbuffer:GL_FRAMEBUFFER];
+			[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
 		}
 
 	private:
-		EAGLContext* _glctx;
+		EAGLContext* _ctx;
 		UIView* _view;
 		CAEAGLLayer* _layer;
 		sk_sp<SkSurface> _RasterSurface;
@@ -111,6 +111,8 @@ namespace flare {
 	RenderApple* MakeRasterRender(Application* host, const Render::DisplayParams& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
+			F_ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
+			ctx.multiThreaded = NO;
 			return new RasterRenderIOS(host, ctx, parems);
 		} else {
 			return nullptr;

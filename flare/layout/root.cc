@@ -118,6 +118,7 @@ namespace flare {
 
 	void Root::draw(SkCanvas* canvas) {
 		if (visible() && region_visible()) {
+			// canvas->drawColor(SK_ColorWHITE);
 			Box::draw(canvas);
 		}
 	}

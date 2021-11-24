@@ -78,17 +78,17 @@ namespace flare {
 	}
 
 	void UILock::lock() {
-		if (_host->_use_gui_lock_mutex) {
+		if (_host->_gui_lock_mutex) {
 			if (!_lock) {
 				_lock = true;
-				_host->_gui_lock_mutex.lock();
+				_host->_gui_lock_mutex->lock();
 			}
 		}
 	}
 
 	void UILock::unlock() {
 		if (_lock) {
-			_host->_gui_lock_mutex.unlock();
+			_host->_gui_lock_mutex->unlock();
 			_lock = false;
 		}
 	}
@@ -101,7 +101,9 @@ namespace flare {
 	}
 
 	void AppInl::triggerRender() {
-		_display->render_frame();
+		if (_is_load) {
+			_display->render_frame();
+		}
 	}
 
 	void AppInl::triggerPause() {
@@ -211,10 +213,9 @@ namespace flare {
 		_render_loop = RunLoop::current(); // 当前消息队列
 		_render_keep = _render_loop->keep_alive("Application::run, render_loop"); // 保持
 		
-		_use_gui_lock_mutex = _render_loop != _main_loop;
-
-		if (_use_gui_lock_mutex) {
-			Inl2_RunLoop(_render_loop)->set_independent_mutex(&_gui_lock_mutex);
+		if (_render_loop != _main_loop) { // independent render loop
+			_gui_lock_mutex = new RecursiveMutex();
+			Inl2_RunLoop(_render_loop)->set_independent_mutex(_gui_lock_mutex);
 			Thread::awaken(_main_loop->thread_id()); // main loop awaken
 		}
 		__run_main_wait->awaken(); // 外部线程继续运行
@@ -270,16 +271,20 @@ namespace flare {
 		, F_Init_Event(Resume)
 		, F_Init_Event(Memorywarning)
 		, _is_run(false), _is_load(false)
-		, _render_loop(nullptr), _main_loop(RunLoop::main_loop())
+		, _render_loop(nullptr), _main_loop(nullptr)
 		, _render_keep(nullptr), _main_keep(nullptr)
 		, _render(nullptr), _display(nullptr)
 		, _root(nullptr), _focus_view(nullptr)
-		, _default_text_settings(new DefaultTextSettings())
+		, _default_text_settings(nullptr)
 		, _dispatch(nullptr), _action_center(nullptr)
 		, _pre_render(nullptr)
 		, _max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
-		, _use_gui_lock_mutex(false)
+		, _gui_lock_mutex(nullptr)
 	{
+		F_CHECK(!_shared, "At the same time can only run a Application entity");
+		_shared = this;
+		_main_loop = RunLoop::main_loop();
+		_default_text_settings = new DefaultTextSettings();
 		_main_keep = _main_loop->keep_alive("Application::Application(), main_keep");
 		Thread::F_On(ProcessSafeExit, on_process_safe_handle);
 	}
@@ -316,8 +321,6 @@ namespace flare {
 	* @func initialize()
 	*/
 	void Application::initialize(cJSON& options) throw(Error) {
-		F_CHECK(!_shared, "At the same time can only run a Application entity");
-		_shared = this;
 		UILock lock;
 		HttpHelper::initialize(); // 初始http
 		_pre_render = new PreRender(); F_DEBUG("new PreRender ok");

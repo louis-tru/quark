@@ -72,19 +72,19 @@ namespace flare {
 	*/
 	class F_EXPORT Application: public Object {
 		F_HIDDEN_ALL_COPY(Application);
-	public:
+	 public:
 
 		/**
 		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
 		* 那么在主线程调用任何UI-API函数必须加锁。
 		*/
 		class F_EXPORT UILock {
-		public:
+		 public:
 			UILock(Application* host = app());
 			~UILock();
 			void lock();
 			void unlock();
-		private:
+		 private:
 			Application* _host;
 			bool _lock;
 		};
@@ -200,14 +200,14 @@ namespace flare {
 		*/
 		static inline Application* shared() { return _shared; }
 
-	protected:
+	 protected:
 		
 		/**
 		* @func runMain(argc, argv) create sub gui thread, call by system, First thread call
 		*/
 		static void runMain(int argc, Char* argv[]);
 
-	private:
+	 private:
 		static Application* _shared;   // 当前应用程序
 		bool  _is_run, _is_load;
 		RunLoop  *_render_loop, *_main_loop;
@@ -220,10 +220,9 @@ namespace flare {
 		DefaultTextSettings* _default_text_settings;
 		EventDispatch*       _dispatch;
 		ActionCenter*        _action_center;
-		RecursiveMutex       _gui_lock_mutex;
-		bool                 _use_gui_lock_mutex;
-		FontPool*           _font_pool;        /* 字体纹理池 */
-		TexturePool*        _tex_pool;         /* 文件纹理池 */
+		RecursiveMutex*      _gui_lock_mutex;
+		FontPool*            _font_pool;        /* 字体纹理池 */
+		TexturePool*         _tex_pool;         /* 文件纹理池 */
 		uint64_t      _max_texture_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
 		
 		F_DEFINE_INLINE_CLASS(Inl);

@@ -173,7 +173,6 @@ namespace flare {
 
 			auto render = _host->render();
 			
-			render->start();
 			root->draw(render->canvas()); // 开始绘图
 			_inl(this)->solve_next_frame();
 			

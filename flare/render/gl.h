@@ -41,23 +41,20 @@
 namespace flare {
 
 	class GLRender: public Render {
-	public:
+	 public:
 		virtual ~GLRender();
-		virtual void initialize() override;
 		virtual void reload() override;
-		virtual void start() override;
-		virtual void commit() override;
-		virtual sk_sp<SkSurface> getSurface() override;
+		virtual SkSurface* getSurface() override;
 		virtual bool isGpu() override { return true; }
 		virtual void glRenderbufferStorageMain();
 		int gpuMSAASample();
 
-	protected:
+	 protected:
 		GLRender(Application* host, const DisplayParams& params);
+		void initialize();
 
 		sk_sp<const GrGLInterface> _BackendContext;
 		sk_sp<SkSurface> _Surface;
-		uint32_t  _frame_buffer_cur;
 		uint32_t  _render_buffer;
 		uint32_t  _frame_buffer;
 		uint32_t  _msaa_render_buffer;

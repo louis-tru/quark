@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./media-codec.inl"
+#include "./media-codec_inl.h"
 
 namespace flare {
 

@@ -42,17 +42,15 @@
 namespace flare {
 
 	class MetalRender: public Render {
-	public:
+	 public:
 		virtual ~MetalRender();
-		virtual void initialize() override;
 		virtual void reload() override;
-		virtual void start() override;
 		virtual void commit() override;
-		virtual sk_sp<SkSurface> getSurface() override;
+		virtual SkSurface* getSurface() override;
 		virtual bool isGpu() override { return true; }
 		virtual void activate(bool isActive) override;
 
-	protected:
+	 protected:
 		static NSURL* CacheURL();
 		MetalRender(Application* host, const DisplayParams& params);
 

@@ -34,6 +34,44 @@
 #define __ftr__render_render__
 
 #include "../app.h"
+
+#define SK_GL 1
+
+#if F_IOS || F_OSX
+# define SK_METAL 1
+#elif F_ANDROID
+# define SK_VULKAN 1
+#elif F_WIN
+# define SK_DIRECT3D 1
+#endif
+
+// -DSK_HAS_ANDROID_CODEC 
+// -DSK_ENABLE_DUMP_GPU 
+// -DSK_DISABLE_AAA 
+// -DSK_PARAGRAPH_LIBTXT_SPACES_RESOLUTION 
+// -DSK_LEGACY_INNER_JOINS 
+// -DSK_DISABLE_LEGACY_SHADERCONTEXT 
+// -DSK_DISABLE_LOWP_RASTER_PIPELINE 
+// -DSK_FORCE_RASTER_PIPELINE_BLITTER 
+// -DSK_DISABLE_EFFECT_DESERIALIZATION 
+// -DSK_ENABLE_SKSL 
+// -DSK_ASSUME_GL_ES=1 
+// -DSK_ENABLE_API_AVAILABLE 
+// -DSK_GAMMA_APPLY_TO_A8 
+// -DSKIA_IMPLEMENTATION=1 
+// -DSK_GL 
+// -DSK_METAL 
+// -DSK_SUPPORT_PDF 
+// -DSK_CODEC_DECODES_JPEG 
+// -DSK_ENCODE_JPEG 
+// -DSK_USE_LIBGIFCODEC 
+// -DSK_CODEC_DECODES_PNG 
+// -DSK_ENCODE_PNG 
+// -DSK_CODEC_DECODES_RAW 
+// -DSK_CODEC_DECODES_WEBP 
+// -DSK_ENCODE_WEBP 
+// -DSK_XML 
+
 #include "skia/core/SkRefCnt.h"
 #include "skia/core/SkSurfaceProps.h"
 #include "skia/core/SkImageInfo.h"
@@ -50,10 +88,10 @@ namespace flare {
 	*/
 	class F_EXPORT Render: public Object {
 		F_HIDDEN_ALL_COPY(Render);
-	public:
+	 public:
 
 		struct DisplayParams {
-			SkColorType         fColorType;
+			SkColorType         fColorType = kRGBA_8888_SkColorType;
 			sk_sp<SkColorSpace> fColorSpace;
 			int                 fMSAASampleCount;
 			GrContextOptions    fGrContextOptions;
@@ -73,15 +111,13 @@ namespace flare {
 		/**
 		 * @func getSurface()
 		 */
-		virtual sk_sp<SkSurface> getSurface() = 0;
+		virtual SkSurface* getSurface() = 0;
 
 		/**
-		 * @func initialize()
+		 * @func reload()
 		 */
-		virtual void initialize() = 0;
-		virtual void start() = 0;
-		virtual void commit() = 0;
 		virtual void reload() = 0;
+		virtual void commit() = 0;
 		virtual void activate(bool isActive);
 		virtual bool isGpu() { return false; }
 		virtual void setDisplayParams(const DisplayParams& params);
@@ -99,7 +135,7 @@ namespace flare {
 
 		static DisplayParams parseDisplayParams(cJSON& options);
 
-	protected:
+	 protected:
 		Render(Application* host, const DisplayParams& params);
 
 		Application*  _host;

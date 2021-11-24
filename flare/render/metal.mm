@@ -28,7 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#define SK_METAL
+#include "./metal.h"
+#include "../display.h"
 
 #include "skia/core/SkCanvas.h"
 #include "skia/core/SkSurface.h"
@@ -36,9 +37,6 @@
 #include "skia/gpu/GrDirectContext.h"
 #include "skia/gpu/mtl/GrMtlBackendContext.h"
 #include "skia/gpu/mtl/GrMtlTypes.h"
-
-#include "./metal.h"
-#include "../display.h"
 
 template <typename T> static inline T CFSafeRetain(T obj) {
     if (obj) {
@@ -68,12 +66,6 @@ namespace flare {
 		SkCFSafeRelease(_DrawableHandle); _DrawableHandle = nil;
 	}
 
-	void MetalRender::initialize() {
-	}
-
-	void MetalRender::start() {
-	}
-
 	void MetalRender::commit() {
 		id<CAMetalDrawable> currentDrawable = (__bridge id<CAMetalDrawable>)_DrawableHandle;
 		id<MTLCommandBuffer> commandBuffer([_Queue commandBuffer]);
@@ -86,7 +78,7 @@ namespace flare {
 		_Surface.reset();
 	}
 
-	sk_sp<SkSurface> MetalRender::getSurface() {
+	SkSurface* MetalRender::getSurface() {
 		if (!_Surface) {
 			if (_Context) {
 				if (_DisplayParams.fDelayDrawableAcquisition) {
@@ -98,24 +90,19 @@ namespace flare {
 																&_DisplayParams.fSurfaceProps,
 																&_DrawableHandle);
 				} else {
-					id<CAMetalDrawable> currentDrawable = [_layer nextDrawable];
-                    id<MTLTexture> mttex = currentDrawable.texture;
+					id<CAMetalDrawable> currentDrawable = nil;//[_layer nextDrawable];
+					id<MTLTexture> mttex = currentDrawable.texture;
 
 					GrMtlTextureInfo fbInfo;
-                    fbInfo.fTexture.retain((__bridge void*)mttex);
+					fbInfo.fTexture.retain((__bridge void*)mttex);
 
-					auto size = _host->display()->size();
-					float width = size.x();
-					float height = size.y();
-
-					GrBackendRenderTarget backendRT(width,
-													height,
-													_SampleCount,
-													fbInfo);
+					auto region = _host->display()->surface_region();
+					
+					GrBackendRenderTarget backendRT(region.width, region.height, _SampleCount, fbInfo);
 
 					_Surface = SkSurface::MakeFromBackendRenderTarget(_Context.get(), backendRT,
 																	kTopLeft_GrSurfaceOrigin,
-																	kBGRA_8888_SkColorType,
+																	_DisplayParams.fColorType,
 																	_DisplayParams.fColorSpace,
 																	&_DisplayParams.fSurfaceProps);
 
@@ -124,7 +111,7 @@ namespace flare {
 			}
 		}
 
-		return _Surface;
+		return _Surface.get();
 	}
 
 	void MetalRender::reload() {
@@ -167,7 +154,7 @@ namespace flare {
 		auto region = _host->display()->surface_region();
 		auto rect = CGRectMake(0, 0, region.width, region.height);
 
-        _layer.device = _Device;
+		_layer.device = _Device;
 		_layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
 		_layer.drawableSize = rect.size;
 		// _layer.frame = rect;

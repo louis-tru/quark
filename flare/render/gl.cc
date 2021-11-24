@@ -28,15 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#define SK_GL
+#include "./gl.h"
+#include "../display.h"
 
 #include "skia/core/SkCanvas.h"
 #include "skia/core/SkSurface.h"
 #include "skia/gpu/GrBackendSurface.h"
 #include "skia/gpu/GrDirectContext.h"
-
-#include "./gl.h"
-#include "../display.h"
 
 #if F_IOS
 # include <OpenGLES/ES3/gl.h>
@@ -65,28 +63,16 @@ namespace flare {
 	GLRender::GLRender(Application* host, const DisplayParams& params)
 		: Render(host, params)
 		, _BackendContext(nullptr)
-		, _Surface(nullptr), _frame_buffer(0) {
-	}
+		, _Surface(nullptr), _frame_buffer(0), _is_support_multisampled(false)
+	{
+		String extensions = (const char*)glGetString(GL_EXTENSIONS);
+		String version = (const char*)glGetString(GL_VERSION);
 
-	GLRender::~GLRender() {
-		glDeleteRenderbuffers(1, &_render_buffer);
-		glDeleteFramebuffers(1, &_frame_buffer);
-		glDeleteFramebuffers(1, &_msaa_render_buffer);
-		glDeleteRenderbuffers(1, &_msaa_frame_buffer);
-	}
-
-	void GLRender::initialize() {
-		String info = (const char*)glGetString(GL_EXTENSIONS);
 		F_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
 		F_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
-		F_DEBUG("OGL Info: %s", glGetString(GL_VERSION));
-		F_DEBUG("OGL Info: %s", *info);
-		_is_support_multisampled = info.index_of("multisample") != -1;
-
-		F_ASSERT(!_frame_buffer);
-
-		// initializ_gl_buffers
-
+		F_DEBUG("OGL Info: %s", *version);
+		F_DEBUG("OGL Info: %s", *extensions);
+		
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(1, &_frame_buffer);
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
@@ -122,6 +108,13 @@ namespace flare {
 		}
 	}
 
+	GLRender::~GLRender() {
+		glDeleteRenderbuffers(1, &_render_buffer);
+		glDeleteFramebuffers(1, &_frame_buffer);
+		glDeleteFramebuffers(1, &_msaa_render_buffer);
+		glDeleteRenderbuffers(1, &_msaa_frame_buffer);
+	}
+
 	int GLRender::gpuMSAASample() {
 		if ( _DisplayParams.fMSAASampleCount > 1 && _is_support_multisampled && isGpu()) {
 			return _DisplayParams.fMSAASampleCount;
@@ -129,56 +122,31 @@ namespace flare {
 		return 0;
 	}
 
-	void GLRender::start() {
-		if ( gpuMSAASample() ) {
-			_frame_buffer_cur = _msaa_frame_buffer;
-			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
-			glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer);
-		} else {
-			_frame_buffer_cur = _frame_buffer;
-			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
-		}
-	}
-
-	void GLRender::commit() {
-		if ( gpuMSAASample() ) {
-			auto region = _host->display()->surface_region();
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
-			glBlitFramebuffer(0, 0, region.width, region.height,
-												0, 0, region.width, region.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
-		}
-	}
-
-	sk_sp<SkSurface> GLRender::getSurface() {
+	SkSurface* GLRender::getSurface() {
 		if (!_Surface) {
 			if (_Context) {
-				GrGLint buffer;
-                // GR_GL_CALL(_BackendContext.get(), GetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer));
-                 _BackendContext.get()->fFunctions.fGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
-                
 				GrGLFramebufferInfo fbInfo;
-				fbInfo.fFBOID = buffer;
+				fbInfo.fFBOID = gpuMSAASample() ? _msaa_frame_buffer : _frame_buffer;
 				fbInfo.fFormat = GL_RGBA8;
 
-				auto size = _host->display()->size();
-				float width = size.x();
-				float height = size.y();
+				auto region = _host->display()->surface_region();
 
-				GrBackendRenderTarget backendRT(width, height, _SampleCount, _StencilBits, fbInfo);
+				GrBackendRenderTarget backendRT(region.width, region.height, _SampleCount, _StencilBits, fbInfo);
 
 				_Surface = SkSurface::MakeFromBackendRenderTarget(_Context.get(), backendRT,
 																kBottomLeft_GrSurfaceOrigin,
-																kRGBA_8888_SkColorType,
+																_DisplayParams.fColorType,
 																_DisplayParams.fColorSpace,
 																&_DisplayParams.fSurfaceProps);
+				
+				if (isGpu()) {
+					Vec2 scale = _host->display()->scale();
+					_Surface->getCanvas()->scale(scale.x(), scale.y());
+				}
 			}
 		}
 
-		return _Surface;
+		return _Surface.get();
 	}
 
 	void GLRender::glRenderbufferStorageMain() {
@@ -227,10 +195,8 @@ namespace flare {
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		F_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 
-		// glClearStencil(0);
-		// glClearColor(0, 0, 0, 255);
-		// glStencilMask(0xffffffff);
-		// glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		glClearStencil(0);
+		glStencilMask(0xffffffff);
 
 		// ----- reload Sk -----
 		if (_Context) {
