@@ -5,25 +5,6 @@
 #include <flare/layout/root.h>
 #include <flare/render/render.h>
 
-#if F_IOS
-# include <OpenGLES/ES3/gl.h>
-# include <OpenGLES/ES3/glext.h>
-#elif F_ANDROID
-# define GL_GLEXT_PROTOTYPES
-# include <GLES3/gl3.h>
-# include <GLES3/gl3ext.h>
-#elif F_OSX
-# include <OpenGL/gl3.h>
-# include <OpenGL/gl3ext.h>
-#elif F_LINUX
-# define GL_GLEXT_PROTOTYPES
-# include <GLES3/gl3.h>
-# include <GLES3/gl3ext.h>
-#else
-# error "The operating system does not support"
-#endif
-
-
 using namespace flare;
 
 void draw(SkCanvas* canvas) {
