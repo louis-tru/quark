@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <android/api-level.h>
-#include "../../../android/android.h"
 #include "./android-jni.h"
 #include "./android-log.h"
 #include "./string.h"
@@ -156,8 +155,6 @@ extern "C"
 {
 	F_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 		javavm = vm;
-		flare::Android::initialize();
-		(new flare::AndroidConsole())->set_as_default();
 		return JNI_VERSION_1_6;
 	}
 }

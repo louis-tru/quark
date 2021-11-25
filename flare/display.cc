@@ -32,7 +32,6 @@
 #include "./app.h"
 #include "./pre-render.h"
 #include "./layout/root.h"
-#include "./util/os.h"
 #include "./render/render.h"
 #include "./util/working.h"
 // #include "./action/action.h"
@@ -160,7 +159,7 @@ namespace flare {
 
 	void Display::render_frame(bool force) {// 必须要渲染循环中调用
 		Root* root = _host->root();
-		int64_t now_time = os::time_monotonic();
+		int64_t now_time = time_monotonic();
 		// _host->action_center()->advance(now_time); // advance action TODO ...
 		
 		if (root && (force || _host->pre_render()->solve(now_time))) {
@@ -177,7 +176,7 @@ namespace flare {
 			_inl(this)->solve_next_frame();
 			
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
-				int64_t st = os::time();
+				int64_t st = time_micro();
 			#endif
 			/*
 			* swapBuffers()非常耗时,渲染线程长时间占用`UILock`会柱塞主线程。
@@ -188,7 +187,7 @@ namespace flare {
 			render->commit();
 			Inl2_RunLoop(_host->render_loop())->independent_mutex_lock();
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
-				int64_t ts2 = (os::time() - st) / 1e3;
+				int64_t ts2 = (time_micro() - st) / 1e3;
 				if (ts2 > 16) {
 					F_LOG("ts: %ld -------------- ", ts2);
 				} else {

@@ -28,28 +28,23 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "android.h"
-#include "flare/util/_android-jni.h"
+#include <flare/os/android/api.h>
+#include <flare/util/platforms/android-jni.h>
 
 namespace flare {
 
 	typedef JNI::MethodInfo MethodInfo;
 	typedef JNI::ScopeENV   ScopeENV;
 
-	class API {
-		public:
-		API() {
+	class Api_INL {
+	 public:
+		Api_INL() {
 			ScopeENV env;
-			clazz_              = JNI::find_clazz("org/flare/Android");
+			clazz_              = JNI::find_clazz("org/flare/API");
 			//clazz_build_        = JNI::find_clazz("android.os.Build");
-			// utils
 			version_            = JNI::find_static_method(clazz_, "version", "()Ljava/lang/String;");
 			brand_              = JNI::find_static_method(clazz_, "brand", "()Ljava/lang/String;");
 			subsystem_          = JNI::find_static_method(clazz_, "subsystem", "()Ljava/lang/String;");
-			package_code_path_  = JNI::find_static_method(clazz_, "package_code_path", "()Ljava/lang/String;");
-			cache_dir_path_     = JNI::find_static_method(clazz_, "cache_dir_path", "()Ljava/lang/String;");
-			files_dir_path_     = JNI::find_static_method(clazz_, "files_dir_path", "()Ljava/lang/String;");
-			// flare
 			ime_keyboard_open_  = JNI::find_static_method(clazz_, "ime_keyboard_open", "(ZII)V");
 			ime_keyboard_can_backspace_ = JNI::find_static_method(clazz_, "ime_keyboard_can_backspace", "(ZZ)V");
 			ime_keyboard_close_ = JNI::find_static_method(clazz_, "ime_keyboard_close", "()V");
@@ -82,7 +77,7 @@ namespace flare {
 			//clazz_build_ = (jclass)env->NewGlobalRef(clazz_build_);
 		}
 
-		~API() {
+		~Api_INL() {
 			ScopeENV env;
 			env->DeleteGlobalRef(clazz_);
 			// env->DeleteGlobalRef(clazz_build_);
@@ -107,9 +102,6 @@ namespace flare {
 		jmethodID open_url_;
 		jmethodID send_email_;
 		jmethodID start_cmd_;
-		jmethodID package_code_path_;
-		jmethodID files_dir_path_;
-		jmethodID cache_dir_path_;
 		jmethodID version_;
 		jmethodID brand_;
 		jmethodID subsystem_;
@@ -123,81 +115,82 @@ namespace flare {
 		jmethodID used_memory_;
 	};
 
-	#define clazz_ _core->clazz_
+	static Api_INL* __api = nullptr;
 
-	static API* _core = nullptr;
+	Api_INL* _api() {
+		if ( !__api )
+			__api = new Api_INL();
+		return __api;
+	}
 
-	void Android::initialize() {
-		if ( !_core ) {
-			_core = new API();
-		}
-	}
-	// ------------------------------- gui -------------------------------
-	void Android::ime_keyboard_open(bool clear, int type, int return_type) {
+	#define api _api()
+	#define clazz_ _api()->clazz_
+
+	void API::ime_keyboard_open(bool clear, int type, int return_type) {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->ime_keyboard_open_, clear, type, return_type);
+		env->CallStaticVoidMethod(clazz_, api->ime_keyboard_open_, clear, type, return_type);
 	}
-	void Android::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
+	void API::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->ime_keyboard_can_backspace_, can_backspace, can_delete);
+		env->CallStaticVoidMethod(clazz_, api->ime_keyboard_can_backspace_, can_backspace, can_delete);
 	}
-	void Android::ime_keyboard_close() {
+	void API::ime_keyboard_close() {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->ime_keyboard_close_);
+		env->CallStaticVoidMethod(clazz_, api->ime_keyboard_close_);
 	}
-	void Android::keep_screen(bool value) {
+	void API::keep_screen(bool value) {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->keep_screen_, value);
+		env->CallStaticVoidMethod(clazz_, api->keep_screen_, value);
 	}
-	int Android::get_status_bar_height() {
+	int API::get_status_bar_height() {
 		ScopeENV env;
-		return env->CallStaticIntMethod(clazz_, _core->get_status_bar_height_);
+		return env->CallStaticIntMethod(clazz_, api->get_status_bar_height_);
 	}
-	void Android::set_visible_status_bar(bool visible) {
+	void API::set_visible_status_bar(bool visible) {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->set_visible_status_bar_, visible);
+		env->CallStaticVoidMethod(clazz_, api->set_visible_status_bar_, visible);
 	}
-	void Android::set_status_bar_style(int style) {
+	void API::set_status_bar_style(int style) {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->set_status_bar_style_, style);
+		env->CallStaticVoidMethod(clazz_, api->set_status_bar_style_, style);
 	}
-	void Android::request_fullscreen(bool fullscreen) {
+	void API::request_fullscreen(bool fullscreen) {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->request_fullscreen_, fullscreen);
+		env->CallStaticVoidMethod(clazz_, api->request_fullscreen_, fullscreen);
 	}
-	int Android::get_orientation() {
+	int API::get_orientation() {
 		ScopeENV env;
-		return env->CallStaticIntMethod(clazz_, _core->get_orientation_);
+		return env->CallStaticIntMethod(clazz_, api->get_orientation_);
 	}
-	void Android::set_orientation(int orientation) {
+	void API::set_orientation(int orientation) {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->set_orientation_, orientation);
+		env->CallStaticVoidMethod(clazz_, api->set_orientation_, orientation);
 	}
-	float Android::get_display_scale() {
+	float API::get_display_scale() {
 		ScopeENV env;
-		return env->CallStaticFloatMethod(clazz_, _core->get_display_scale_);
+		return env->CallStaticFloatMethod(clazz_, api->get_display_scale_);
 	}
-	bool Android::is_screen_on() {
+	bool API::is_screen_on() {
 		ScopeENV env;
-		return env->CallStaticBooleanMethod(clazz_, _core->is_screen_on_);
+		return env->CallStaticBooleanMethod(clazz_, api->is_screen_on_);
 	}
-	void Android::set_volume_up() {
+	void API::set_volume_up() {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->set_volume_up_);
+		env->CallStaticVoidMethod(clazz_, api->set_volume_up_);
 	}
-	void Android::set_volume_down() {
+	void API::set_volume_down() {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->set_volume_down_);
+		env->CallStaticVoidMethod(clazz_, api->set_volume_down_);
 	}
-	void Android::open_url(cString& url) {
+	void API::open_url(cString& url) {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->open_url_, env->NewStringUTF(*url));
+		env->CallStaticVoidMethod(clazz_, api->open_url_, env->NewStringUTF(*url));
 	}
-	void Android::send_email(cString& recipient,
+	void API::send_email(cString& recipient,
 													cString& subject,
 													cString& cc, cString& bcc, cString& body) {
 		ScopeENV env;
-		env->CallStaticVoidMethod(clazz_, _core->send_email_,
+		env->CallStaticVoidMethod(clazz_, api->send_email_,
 															env->NewStringUTF(*recipient),
 															env->NewStringUTF(*subject),
 															env->NewStringUTF(*cc),
@@ -205,73 +198,58 @@ namespace flare {
 															env->NewStringUTF(*body)
 		);
 	}
-	// ------------------------------- util -------------------------------
-	String Android::start_cmd() {
+
+	String API::start_cmd() {
 		ScopeENV env;
-		jobject obj = env->CallStaticObjectMethod(clazz_, _core->start_cmd_);
+		jobject obj = env->CallStaticObjectMethod(clazz_, api->start_cmd_);
 		return JNI::jstring_to_string((jstring)obj, *env);
 	}
-	String Android::package_code_path() {
+	String API::version() {
 		ScopeENV env;
-		jobject obj = env->CallStaticObjectMethod(clazz_, _core->package_code_path_);
+		jobject obj = env->CallStaticObjectMethod(clazz_, api->version_);
 		return JNI::jstring_to_string((jstring)obj, *env);
 	}
-	String Android::files_dir_path() {
+	String API::brand() {
 		ScopeENV env;
-		jobject obj = env->CallStaticObjectMethod(clazz_, _core->files_dir_path_);
+		jobject obj = env->CallStaticObjectMethod(clazz_, api->brand_);
 		return JNI::jstring_to_string((jstring)obj, *env);
 	}
-	String Android::cache_dir_path() {
+	String API::subsystem() {
 		ScopeENV env;
-		jobject obj = env->CallStaticObjectMethod(clazz_, _core->cache_dir_path_);
+		jobject obj = env->CallStaticObjectMethod(clazz_, api->subsystem_);
 		return JNI::jstring_to_string((jstring)obj, *env);
 	}
-	String Android::version() {
+	int API::network_status() {
 		ScopeENV env;
-		jobject obj = env->CallStaticObjectMethod(clazz_, _core->version_);
-		return JNI::jstring_to_string((jstring)obj, *env);
+		return env->CallStaticIntMethod(clazz_, api->network_status_);
 	}
-	String Android::brand() {
+	bool API::is_ac_power() {
 		ScopeENV env;
-		jobject obj = env->CallStaticObjectMethod(clazz_, _core->brand_);
-		return JNI::jstring_to_string((jstring)obj, *env);
+		return env->CallStaticBooleanMethod(clazz_, api->is_ac_power_);
 	}
-	String Android::subsystem() {
+	bool API::is_battery() {
 		ScopeENV env;
-		jobject obj = env->CallStaticObjectMethod(clazz_, _core->subsystem_);
-		return JNI::jstring_to_string((jstring)obj, *env);
+		return env->CallStaticBooleanMethod(clazz_, api->is_battery_);
 	}
-	int Android::network_status() {
+	float API::battery_level() {
 		ScopeENV env;
-		return env->CallStaticIntMethod(clazz_, _core->network_status_);
+		return env->CallStaticFloatMethod(clazz_, api->battery_level_);
 	}
-	bool Android::is_ac_power() {
+	String API::language() {
 		ScopeENV env;
-		return env->CallStaticBooleanMethod(clazz_, _core->is_ac_power_);
+		return JNI::jstring_to_string((jstring)env->CallStaticObjectMethod(clazz_, api->language_), *env);
 	}
-	bool Android::is_battery() {
+	uint64 API::available_memory() {
 		ScopeENV env;
-		return env->CallStaticBooleanMethod(clazz_, _core->is_battery_);
+		return env->CallStaticLongMethod(clazz_, api->available_memory_);
 	}
-	float Android::battery_level() {
+	uint64 API::memory() {
 		ScopeENV env;
-		return env->CallStaticFloatMethod(clazz_, _core->battery_level_);
+		return env->CallStaticLongMethod(clazz_, api->memory_);
 	}
-	String Android::language() {
+	uint64 API::used_memory() {
 		ScopeENV env;
-		return JNI::jstring_to_string((jstring)env->CallStaticObjectMethod(clazz_, _core->language_), *env);
-	}
-	uint64 Android::available_memory() {
-		ScopeENV env;
-		return env->CallStaticLongMethod(clazz_, _core->available_memory_);
-	}
-	uint64 Android::memory() {
-		ScopeENV env;
-		return env->CallStaticLongMethod(clazz_, _core->memory_);
-	}
-	uint64 Android::used_memory() {
-		ScopeENV env;
-		return env->CallStaticLongMethod(clazz_, _core->used_memory_);
+		return env->CallStaticLongMethod(clazz_, api->used_memory_);
 	}
 
 }

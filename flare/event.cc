@@ -31,7 +31,6 @@
 #include "./event.h"
 #include "./app.inl"
 #include "./layout/root.h"
-#include "./util/os.h"
 #include "./keyboard.h"
 #include <math.h>
 
@@ -52,7 +51,7 @@ namespace flare {
 	}());
 
 	UIEvent::UIEvent(View* origin)
-		: Event(SendData(), origin), time_(os::time()) {
+		: Event(SendData(), origin), time_(time_micro()) {
 		return_value = RETURN_VALUE_MASK_ALL;
 	}
 

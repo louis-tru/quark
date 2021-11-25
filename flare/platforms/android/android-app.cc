@@ -34,7 +34,7 @@
 #include "flare/display-port.h"
 #include "flare/util/android-jni.h"
 #include "linux-gl-1.h"
-#include "android/android.h"
+#include <flare/os/android/api.h>
 #include <android/native_activity.h>
 #include <android/native_window.h>
 
@@ -53,7 +53,7 @@ namespace flare {
 		typedef NonObjectTraits Traits;
 
 		inline void start_render_task() {
-			if ( Android::is_screen_on() ) {
+			if ( API::is_screen_on() ) {
 				_render_looper->start();
 			}
 		}
@@ -212,7 +212,7 @@ namespace flare {
 			};
 
 			// 屏幕旋转都会触发这个事件，所以不做更多的监听工作
-			Orientation orientation = (Orientation)Android::get_orientation();
+			Orientation orientation = (Orientation)API::get_orientation();
 			int targger_orientation = (orientation != application->_current_orientation);
 			if ( targger_orientation ) { // 屏幕方向改变
 				application->_current_orientation = orientation;
@@ -463,7 +463,7 @@ namespace flare {
 	* @func open_url()
 	*/
 	void Application::open_url(cString& url) {
-		Android::open_url(url);
+		API::open_url(url);
 	}
 
 	/**
@@ -472,7 +472,7 @@ namespace flare {
 	void Application::send_email(cString& recipient,
 																	cString& subject,
 																	cString& cc, cString& bcc, cString& body) {
-		Android::send_email(recipient, subject, cc, bcc, body);
+		API::send_email(recipient, subject, cc, bcc, body);
 	}
 
 	void AppInl::initialize(cJSON& options) {
@@ -485,21 +485,21 @@ namespace flare {
 	* @func ime_keyboard_open
 	*/
 	void AppInl::ime_keyboard_open(KeyboardOptions options) {
-		Android::ime_keyboard_open(options.is_clear, int(options.type), int(options.return_type));
+		API::ime_keyboard_open(options.is_clear, int(options.type), int(options.return_type));
 	}
 
 	/**
 	* @func ime_keyboard_can_backspace
 	*/
 	void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
-		Android::ime_keyboard_can_backspace(can_backspace, can_delete);
+		API::ime_keyboard_can_backspace(can_backspace, can_delete);
 	}
 
 	/**
 	* @func ime_keyboard_close
 	*/
 	void AppInl::ime_keyboard_close() {
-		Android::ime_keyboard_close();
+		API::ime_keyboard_close();
 	}
 
 	/**
@@ -513,21 +513,21 @@ namespace flare {
 	* @func set_volume_up()
 	*/
 	void AppInl::set_volume_up() {
-		Android::set_volume_up();
+		API::set_volume_up();
 	}
 
 	/**
 	* @func set_volume_down()
 	*/
 	void AppInl::set_volume_down() {
-		Android::set_volume_down();
+		API::set_volume_down();
 	}
 
 	/**
 	* @func default_atom_pixel
 	*/
 	float Display::default_atom_pixel() {
-		float v = Android::get_display_scale();
+		float v = API::get_display_scale();
 		return 1.0f / v;
 	}
 
@@ -535,14 +535,14 @@ namespace flare {
 	* @func keep_screen(keep)
 	*/
 	void Display::keep_screen(bool keep) {
-		Android::keep_screen(keep);
+		API::keep_screen(keep);
 	}
 
 	/**
 	* @func status_bar_height()
 	*/
 	float Display::status_bar_height() {
-		return Android::get_status_bar_height() / _scale_value[1];
+		return API::get_status_bar_height() / _scale_value[1];
 	}
 
 	/**
@@ -560,21 +560,21 @@ namespace flare {
 	* @func set_visible_status_bar(visible)
 	*/
 	void Display::set_visible_status_bar(bool visible) {
-		Android::set_visible_status_bar(visible);
+		API::set_visible_status_bar(visible);
 	}
 
 	/**
 	* @func set_status_bar_text_color(color)
 	*/
 	void Display::set_status_bar_style(StatusBarStyle style) {
-		Android::set_status_bar_style(style);
+		API::set_status_bar_style(style);
 	}
 
 	/**
 	* @func request_fullscreen(fullscreen)
 	*/
 	void Display::request_fullscreen(bool fullscreen) {
-		Android::request_fullscreen(fullscreen);
+		API::request_fullscreen(fullscreen);
 	}
 
 	/**
@@ -583,7 +583,7 @@ namespace flare {
 	Orientation Display::orientation() {
 		Orientation r = application->orientation();
 		if ( r == ORIENTATION_INVALID )
-			r = (Orientation)Android::get_orientation();
+			r = (Orientation)API::get_orientation();
 		if ( r >= ORIENTATION_INVALID && r <= ORIENTATION_REVERSE_LANDSCAPE ) {
 			return r;
 		}
@@ -594,7 +594,7 @@ namespace flare {
 	* @func set_orientation(orientation)
 	*/
 	void Display::set_orientation(Orientation orientation) {
-		Android::set_orientation(int(orientation));
+		API::set_orientation(int(orientation));
 	}
 
 	extern "C" {

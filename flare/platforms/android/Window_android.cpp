@@ -20,22 +20,22 @@ Window* Window::CreateNativeWindow(void* platformData) {
     return window;
 }
 
-bool Window_android::init(SkiaAndroidApp* skiaAndroidApp) {
+bool Window_API::init(SkiaAndroidApp* skiaAndroidApp) {
     SkASSERT(skiaAndroidApp);
     fSkiaAndroidApp = skiaAndroidApp;
     fSkiaAndroidApp->fWindow = this;
     return true;
 }
 
-void Window_android::setTitle(const char* title) {
+void Window_API::setTitle(const char* title) {
     fSkiaAndroidApp->setTitle(title);
 }
 
-void Window_android::setUIState(const char* state) {
+void Window_API::setUIState(const char* state) {
     fSkiaAndroidApp->setUIState(state);
 }
 
-bool Window_android::attach(BackendType attachType) {
+bool Window_API::attach(BackendType attachType) {
     fBackendType = attachType;
 
     // We delay the creation of fWindowContext until Android informs us that
@@ -44,7 +44,7 @@ bool Window_android::attach(BackendType attachType) {
     return true;
 }
 
-void Window_android::initDisplay(ANativeWindow* window) {
+void Window_API::initDisplay(ANativeWindow* window) {
     SkASSERT(window);
     switch (fBackendType) {
 #ifdef SK_GL
@@ -70,15 +70,15 @@ void Window_android::initDisplay(ANativeWindow* window) {
     this->onBackendCreated();
 }
 
-void Window_android::onDisplayDestroyed() {
+void Window_API::onDisplayDestroyed() {
     detach();
 }
 
-void Window_android::onInval() {
+void Window_API::onInval() {
     fSkiaAndroidApp->postMessage(Message(kContentInvalidated));
 }
 
-void Window_android::paintIfNeeded() {
+void Window_API::paintIfNeeded() {
     if (fWindowContext) { // Check if initDisplay has already been called
         onPaint();
     } else {

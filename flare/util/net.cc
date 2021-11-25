@@ -46,15 +46,15 @@ namespace flare {
 	static SSL_CTX* ssl_v23_client_ctx = nullptr;
 
 	struct SocketWriteReqData {
-		Buffer raw_buffer;
-		int    mark;
+		Buffer  raw_buffer;
+		int32_t mark;
 	};
 	struct SSLSocketWriteReqData {
-		Buffer raw_buffer;
-		int    mark;
+		Buffer     raw_buffer;
+		int32_t    mark;
 		uint32_t   buffers_count;
-		int    error;
-		Buffer buffers[2];
+		int32_t    error;
+		Buffer     buffers[2];
 	};
 	typedef UVRequestWrap<uv_connect_t, Socket::Inl> SocketConReq;
 	typedef UVRequestWrap<uv_shutdown_t, Socket::Inl> SocketShutdownReq;
@@ -75,20 +75,20 @@ namespace flare {
 		virtual void trigger_socket_timeout(Socket* socket) {}
 
 		Inl(Socket* host, RunLoop* loop) 
-		: _host(host)
-		, _delegate(this)
-		, _keep(loop->keep_alive("Socket::Inl", false))
-		, _uv_handle(nullptr)
-		, _is_open(false)
-		, _is_opening(false)
-		, _is_pause(false)
-		, _enable_keep_alive(false)
-		, _no_delay(false)
-		, _keep_idle(7200)
-		, _port(0)
-		, _uv_tcp(nullptr)
-		, _uv_timer(nullptr)
-		, _timeout(0)
+			: _host(host)
+			, _delegate(this)
+			, _keep(loop->keep_alive("Socket::Inl", false))
+			, _uv_handle(nullptr)
+			, _is_open(false)
+			, _is_opening(false)
+			, _is_pause(false)
+			, _enable_keep_alive(false)
+			, _no_delay(false)
+			, _keep_idle(7200)
+			, _port(0)
+			, _uv_tcp(nullptr)
+			, _uv_timer(nullptr)
+			, _timeout(0)
 		{ //
 			F_ASSERT(_keep);
 		}
@@ -100,7 +100,7 @@ namespace flare {
 		}
 		
 		class UVHandle {
-		public:
+		 public:
 			typedef NonObjectTraits Traits;
 			inline UVHandle(Inl* host, uv_loop_t* loop): host(host) {
 				host->retain();
@@ -475,6 +475,7 @@ namespace flare {
 			}
 		}
 		
+	 public:
 		// ----------------------------------------------------------------------
 		Socket*     _host;
 		Delegate*   _delegate;

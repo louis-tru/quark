@@ -149,7 +149,6 @@ namespace flare {
 		void clear_form_data() throw(Error);
 		String get_response_header(cString& name);
 		const Dict<String, String>& get_all_response_headers() const;
-					Dict<String, String>& get_all_response_headers();
 		int64_t upload_total() const;
 		int64_t upload_size() const;
 		int64_t download_total() const;

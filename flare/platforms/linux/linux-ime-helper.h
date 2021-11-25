@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,42 +25,36 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__utils__os__
-#define __flare__utils__os__
-
-#include "./util.h"
-#include "./object.h"
+#include "flare/app.inl"
+#include "flare/event.h"
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
 namespace flare {
-	namespace os {
 
-		// util
-		F_EXPORT String name();
-		F_EXPORT String version();
-		F_EXPORT String brand();
-		F_EXPORT String subsystem();
-		F_EXPORT String info();
-		F_EXPORT String languages();
-		F_EXPORT String language();
-		F_EXPORT int64_t time();
-		F_EXPORT int64_t time_second();
-		F_EXPORT int64_t time_monotonic();
+	typedef AppInl::KeyboardOptions KeyboardOptions;
 
-		// advanced
-		F_EXPORT bool  is_wifi();
-		F_EXPORT bool  is_mobile();
-		F_EXPORT int   network_status();
-		F_EXPORT bool  is_ac_power();
-		F_EXPORT bool  is_battery();
-		F_EXPORT float battery_level();
-		F_EXPORT uint64_t memory();
-		F_EXPORT uint64_t used_memory();
-		F_EXPORT uint64_t available_memory();
-		F_EXPORT float cpu_usage();
+	class LINUXIMEHelper {
+		public:
+		LINUXIMEHelper(AppInl* app, Display* dpy, 
+									Window win, int inputStyle = XIMPreeditPosition);
+		~LINUXIMEHelper();
+		void open(KeyboardOptions options);
+		void close();
+		void clear();
+		void set_keyboard_can_backspace(bool can_backspace, bool can_delete);
+		void set_keyboard_type(KeyboardType type);
+		void set_keyboard_return_type(KeyboardReturnType type);
+		void set_spot_location(Vec2 location);
+		void key_press(XKeyPressedEvent *event);
+		void focus_in();
+		void focus_out();
+		private:
+		class Inl;
+		Inl* _inl;
+	};
 
-	}
 }
-#endif

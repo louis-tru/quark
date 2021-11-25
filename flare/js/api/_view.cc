@@ -34,7 +34,7 @@
 #include "./_view.h"
 #include "../../util/http.h"
 #include "./_event.h"
-#include "../../../android/android.h"
+#include <flare/os/android/api.h>
 #include <native-inl-js.h>
 #include <deps/node/src/flare.h>
 #include <uv.h>

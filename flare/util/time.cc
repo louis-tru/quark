@@ -85,8 +85,8 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <errno.h>
-#include <flare/util/util.h>
 #include <string>
+#include "./util.h"
 
 namespace flare {
 
@@ -650,7 +650,7 @@ namespace flare {
 			int tm_isdst;           //夏令时标志
 		};*/
 		
-    String r = String::format("%s, %d%d %s %d %d%d:%d%d:%d%d GMT"
+		String r = String::format("%s, %d%d %s %d %d%d:%d%d:%d%d GMT"
 		 , wkday2[tm.tm_wday]
 		 , tm.tm_mday / 10, tm.tm_mday % 10
 		 , month[tm.tm_mon]
@@ -658,9 +658,9 @@ namespace flare {
 		 , tm.tm_hour / 10, tm.tm_hour % 10
 		 , tm.tm_min / 10, tm.tm_min % 10
 		 , tm.tm_sec / 10, tm.tm_sec % 10
-    );
-    
-    return r;
+		);
+		
+		return r;
 	}
 
 }

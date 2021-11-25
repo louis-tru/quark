@@ -52,6 +52,9 @@ namespace flare {
 	F_EXPORT uint32_t getId32();
 	F_EXPORT int64_t  parse_time(cString& str);
 	F_EXPORT String gmt_time_string(int64_t second);
+	F_EXPORT int64_t time_micro();
+	F_EXPORT int64_t time_second();
+	F_EXPORT int64_t time_monotonic();
 	F_EXPORT String platform();
 	F_EXPORT String version();
 	F_EXPORT void exit(int rc); // call sys exit

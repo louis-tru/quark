@@ -52,6 +52,10 @@
 # define IMMEDIATE_CRASH() ((void(*)())0)()
 #endif
 
+#if F_ANDROID
+#include <android/log.h>
+#endif
+
 #ifndef f_stderr
 # define f_stderr stdout
 #endif
@@ -69,15 +73,27 @@ namespace flare {
 	static Console* _default_console = nullptr;
 
 	void Console::log(cString& str, cChar* feed) {
-		printf("%s%s", str.c_str(), feed ? feed: "");
+		#if F_ANDROID
+			__android_log_print(ANDROID_LOG_INFO, "LOG ", "%s%s", str.c_str(), feed ? feed: "");
+		#else
+			printf("%s%s", str.c_str(), feed ? feed: "");
+		#endif
 	}
 
 	void Console::warn(cString& str, cChar* feed) {
-		printf("%s%s", str.c_str(), feed ? feed: "");
+		#if F_ANDROID
+			__android_log_print(ANDROID_LOG_WARN, "WARN", "%s%s", str.c_str(), feed ? feed: "");
+		#else
+			printf("%s%s", str.c_str(), feed ? feed: "");
+		#endif
 	}
 
 	void Console::error(cString& str, cChar* feed) {
-		fprintf(f_stderr, "%s%s", str.c_str(), feed ? feed: "");
+		#if F_ANDROID
+			__android_log_print(ANDROID_LOG_ERROR, "ERR ", "%s%s", str.c_str(), feed ? feed: "");
+		#else
+			fprintf(f_stderr, "%s%s", str.c_str(), feed ? feed: "");
+		#endif
 	}
 
 	void Console::clear() {

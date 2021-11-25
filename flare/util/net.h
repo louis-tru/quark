@@ -46,7 +46,7 @@ namespace flare {
 	 public:
 		
 		class F_EXPORT Delegate {
-			public:
+		 public:
 			virtual void trigger_socket_open(Socket* socket) = 0;
 			virtual void trigger_socket_close(Socket* socket) = 0;
 			virtual void trigger_socket_error(Socket* socket, cError& error) = 0;

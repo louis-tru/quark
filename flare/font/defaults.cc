@@ -31,7 +31,7 @@
 #include "../version.h"
 #include "../util/json.h"
 #include "./font.inl"
-#include "../util/os.h"
+#include "../os/os.h"
 #include <tinyxml2.h>
 
 namespace flare {

@@ -50,7 +50,6 @@ import android.widget.EditText;
 import java.util.Date;
 
 public class IMEHelper extends EditText {
-
 	private boolean _has_open = false;
 	private long _action_time = 0;
 	private InputMethodManager _imm = null;

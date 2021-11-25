@@ -181,7 +181,7 @@ int __default_main(int argc, Char** argv) {
 	String cmd;
 
 	#if F_ANDROID
-		cmd = Android::start_cmd();
+		cmd = API::start_cmd();
 		if ( cmd.is_empty() )
 	#endif 
 	{

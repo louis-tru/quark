@@ -45,13 +45,13 @@ import java.util.Locale;
 import android.app.ActivityManager;
 import android.util.Log;
 
-public class Android {
-
+public class API {
 	private static String TAG = "Flare";
-	private static FlareActivity activity = null;
+	private static Activity activity = null;
 	private static int battery_status = BatteryManager.BATTERY_STATUS_UNKNOWN;
 	private static boolean is_ac_power_connected = false;
-	private static FlareActivity.PrivateAPI api = null;
+	private static Activity.PrivateAPI api = null;
+	private static native void setPaths(String package, String files_dir, String cache_dir);
 
 	private static BroadcastReceiver receiver = new BroadcastReceiver() {
 		@Override
@@ -69,22 +69,35 @@ public class Android {
 		}
 	};
 
-	public static void initialize(FlareActivity act, FlareActivity.PrivateAPI api) {
+	public static void initialize(Activity act, Activity.PrivateAPI api) {
 		if ( !act.equals(activity) ) {
 			activity = act;
-			Android.api = api;
+			API.api = api;
 			activity.registerReceiver(receiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 			activity.registerReceiver(receiver, new IntentFilter(Intent.ACTION_POWER_CONNECTED));
 			activity.registerReceiver(receiver, new IntentFilter(Intent.ACTION_POWER_DISCONNECTED));
+			setPaths(package_code_path(), files_dir_path(), cache_dir_path());
 		}
 	}
 
-	public static void uninitialize(FlareActivity act) {
+	public static void uninitialize(Activity act) {
 		if ( act.equals(activity) ) {
 			activity.unregisterReceiver(receiver);
 			activity = null;
 			api = null;
 		}
+	}
+
+	private static String package_code_path() {//
+		return activity.getPackageCodePath();
+	}
+
+	private static String files_dir_path() {//
+		return activity.getFilesDir().getPath();
+	}
+
+	private static String cache_dir_path() {//
+		return activity.getCacheDir().getPath();
 	}
 
 	// -------------------- gui --------------------
@@ -203,18 +216,6 @@ public class Android {
 		return activity.startCommand();
 	}
 	
-	private static String package_code_path() {
-		return activity.getPackageCodePath();
-	}
-
-	private static String files_dir_path() {
-		return activity.getFilesDir().getPath();
-	}
-
-	private static String cache_dir_path() {
-		return activity.getCacheDir().getPath();
-	}
-
 	private static String version() {
 		return Build.VERSION.RELEASE;
 	}

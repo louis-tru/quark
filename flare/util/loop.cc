@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./loop.h"
-#include "./os.h"
 #include "./list"
 #include "./dict.h"
 #include <uv.h>
@@ -125,7 +124,7 @@ namespace flare {
 						_record_timeout = 0; // 取消超时记录
 					} else { // 已没有活着的其它uv请求
 						if (_record_timeout) { // 如果已开始记录继续等待
-							int64_t timeout = (os::time_monotonic() - _record_timeout - _timeout) / 1000;
+							int64_t timeout = (time_monotonic() - _record_timeout - _timeout) / 1000;
 							if (timeout >= 0) { // 已经超时
 								close_uv_async();
 							} else { // 继续等待超时
@@ -134,7 +133,7 @@ namespace flare {
 						} else {
 							int64_t timeout = _timeout / 1000;
 							if (timeout > 0) { // 需要等待超时
-								_record_timeout = os::time_monotonic(); // 开始记录超时
+								_record_timeout = time_monotonic(); // 开始记录超时
 								uv_timer_req(timeout);
 							} else {
 								close_uv_async();
@@ -156,7 +155,7 @@ namespace flare {
 		}
 		
 		void resolve_queue(List<Queue>& queue) {
-			int64_t now = os::time_monotonic();
+			int64_t now = time_monotonic();
 			for (auto i = queue.begin(), e = queue.end(); i != e; ) {
 				auto t = i++;
 				if (now >= t->time) { //
@@ -188,7 +187,7 @@ namespace flare {
 				if (_queue.length() == 0) {
 					return resolve_queue_after(-1);
 				}
-				int64_t now = os::time_monotonic();
+				int64_t now = time_monotonic();
 				int64_t duration = Int64::limit_max;
 				for ( auto& i : _queue ) {
 					int64_t du = i.time - now;
@@ -213,7 +212,7 @@ namespace flare {
 			ScopeLock lock(_mutex);
 			uint32_t id = getId32();
 			if (delay_us) {
-				int64_t time = os::time_monotonic() + delay_us;
+				int64_t time = time_monotonic() + delay_us;
 				_queue.push_back({ id, group, time, exec });
 			} else {
 				_queue.push_back({ id, group, 0, exec });

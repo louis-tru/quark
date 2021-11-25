@@ -32,22 +32,14 @@
 #include "./http.h"
 #include "./fs.h"
 #include "./uv.h"
-#include "./os.h"
 
 namespace flare {
 
 	typedef Dict<String, String> Map;
 
 	static String http_cache_path = String();
-	static String http_user_agent = "Mozilla/5.0 flare/util/" FLARE_VERSION " (KHTML, like Gecko)";
-
-	String inl__get_http_user_agent() {
-		return http_user_agent;
-	}
-
-	String inl__get_http_cache_path() {
-		return http_cache_path;
-	}
+	static String http_user_agent = "Mozilla/5.0 flare " FLARE_VERSION " (KHTML, like Gecko)";
+	// "Mozilla/5.0 (%s/%s) flare " FLARE_VERSION " (KHTML, like Gecko)";
 
 	typedef HttpHelper::RequestOptions RequestOptions;
 	typedef HttpHelper::ResponseData ResponseData;
@@ -359,18 +351,6 @@ namespace flare {
 	}
 
 	/**
-	* @func initialize
-	*/
-	void HttpHelper::initialize() {
-		static int http_initialized = 0;
-		if ( ! http_initialized++ ) {
-			http_user_agent = String::format("Mozilla/5.0 (%s/%s) flare/util/"
-					FLARE_VERSION " (KHTML, like Gecko)", os::name().c_str(), os::version().c_str());
-			set_cache_path(Path::temp("http_cache"));
-		}
-	}
-
-	/**
 	* @func user_agent
 	*/
 	String HttpHelper::user_agent() {
@@ -388,6 +368,9 @@ namespace flare {
 	* @func cache_path
 	*/
 	String HttpHelper::cache_path() {
+		if (http_cache_path.is_empty()) {
+			set_cache_path(Path::temp("http_cache"));
+		}
 		return http_cache_path;
 	}
 

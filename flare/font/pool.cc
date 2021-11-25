@@ -28,13 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../util/os.h"
+#include "../os/os.h"
 #include "../util/array.h"
 #include "./font.inl"
 #include "../bezier.h"
 #include "../texture.h"
 #include "../display.h"
-// #include "../draw.h"
 #include "../app.inl"
 #include <native-font.h>
 #include <math.h>

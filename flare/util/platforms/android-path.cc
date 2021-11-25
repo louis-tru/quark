@@ -31,9 +31,10 @@
 #include <unistd.h>
 #include "../fs.h"
 #include "../android-jni.h"
-#include "../../../android/android.h"
 
 namespace flare {
+
+	static String package_code_path, files_dir_path, cache_dir_path;
 
 	String Path::executable() {
 		static cString path([]() -> String { 
@@ -45,7 +46,7 @@ namespace flare {
 	}
 
 	String Path::documents(cString& child) {
-		static String path(Path::format("%s", *Android::files_dir_path()));
+		static String path(Path::format("%s", *files_dir_path));
 		if ( child.is_empty() ) {
 			return path;
 		}
@@ -53,7 +54,7 @@ namespace flare {
 	}
 
 	String Path::temp(cString& child) {
-		static String path(Path::format("%s", *Android::cache_dir_path()));
+		static String path(Path::format("%s", *cache_dir_path));
 		if ( child.is_empty() ) {
 			return path;
 		}
@@ -64,11 +65,20 @@ namespace flare {
 	* Get the resoures dir
 	*/
 	String Path::resources(cString& child) {
-		static String path(Path::format("zip://%s@/assets", *Android::package_code_path()));
+		static String path(Path::format("zip://%s@/assets", *package_code_path));
 		if ( child.is_empty() ) {
 			return path;
 		}
 		return Path::format("%s/%s", *path, *child);
+	}
+
+	extern "C" {
+
+		F_EXPORT void Java_org_flare_Android_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
+			package_code_path = JNI::jstring_to_string(package);
+			files_dir_path = JNI::jstring_to_string(files_dir);
+			cache_dir_path = JNI::jstring_to_string(cache_dir);
+		}
 	}
 
 }

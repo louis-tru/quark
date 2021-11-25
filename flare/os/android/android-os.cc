@@ -28,33 +28,51 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/app-1.h"
-#include "flare/event.h"
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
+#include "../os.h"
+#include <flare/os/android/api.h>
 
 namespace flare {
+	namespace os {
 
-	typedef AppInl::KeyboardOptions KeyboardOptions;
+		String version() {
+			return API::version();
+		}
 
-	class LINUXIMEHelper {
-		public:
-		LINUXIMEHelper(AppInl* app, Display* dpy, 
-									Window win, int inputStyle = XIMPreeditPosition);
-		~LINUXIMEHelper();
-		void open(KeyboardOptions options);
-		void close();
-		void clear();
-		void set_keyboard_can_backspace(bool can_backspace, bool can_delete);
-		void set_keyboard_type(KeyboardType type);
-		void set_keyboard_return_type(KeyboardReturnType type);
-		void set_spot_location(Vec2 location);
-		void key_press(XKeyPressedEvent *event);
-		void focus_in();
-		void focus_out();
-		private:
-		class Inl;
-		Inl* _inl;
-	};
+		String brand() {
+			return API::brand();
+		}
 
+		String subsystem() {
+			return API::subsystem();
+		}
+
+		int network_status() {
+			return API::network_status();
+		}
+
+		bool is_ac_power() {
+			return API::is_ac_power();
+		}
+
+		bool is_battery() {
+			return API::is_battery();
+		}
+
+		float battery_level() {
+			return API::battery_level();
+		}
+
+		uint64_t memory() {
+			return API::memory();
+		}
+
+		uint64_t used_memory() {
+			return API::used_memory();
+		}
+
+		uint64_t available_memory() {
+			return API::available_memory();
+		}
+
+	}
 }

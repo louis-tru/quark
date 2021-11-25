@@ -36,7 +36,7 @@ private:
     using INHERITED = RasterWindowContext;
 };
 
-RasterWindowContext_android::RasterWindowContext_android(ANativeWindow* window,
+RasterWindowContext_API::RasterWindowContext_android(ANativeWindow* window,
                                                          const DisplayParams& params)
     : INHERITED(params) {
     fNativeWindow = window;
@@ -45,7 +45,7 @@ RasterWindowContext_android::RasterWindowContext_android(ANativeWindow* window,
     this->setBuffersGeometry();
 }
 
-void RasterWindowContext_android::setBuffersGeometry() {
+void RasterWindowContext_API::setBuffersGeometry() {
     int32_t format = 0;
     switch(fDisplayParams.fColorType) {
         case kRGBA_8888_SkColorType:
@@ -60,18 +60,18 @@ void RasterWindowContext_android::setBuffersGeometry() {
     ANativeWindow_setBuffersGeometry(fNativeWindow, fWidth, fHeight, format);
 }
 
-void RasterWindowContext_android::setDisplayParams(const DisplayParams& params) {
+void RasterWindowContext_API::setDisplayParams(const DisplayParams& params) {
     fDisplayParams = params;
     this->setBuffersGeometry();
 }
 
-void RasterWindowContext_android::resize(int w, int h) {
+void RasterWindowContext_API::resize(int w, int h) {
     fWidth = w;
     fHeight = h;
     this->setBuffersGeometry();
 }
 
-sk_sp<SkSurface> RasterWindowContext_android::getBackbufferSurface() {
+sk_sp<SkSurface> RasterWindowContext_API::getBackbufferSurface() {
     if (nullptr == fBackbufferSurface) {
         ANativeWindow_lock(fNativeWindow, &fBuffer, &fBounds);
         const int bytePerPixel = fBuffer.format == WINDOW_FORMAT_RGB_565 ? 2 : 4;
@@ -86,7 +86,7 @@ sk_sp<SkSurface> RasterWindowContext_android::getBackbufferSurface() {
 }
 
 
-void RasterWindowContext_android::swapBuffers() {
+void RasterWindowContext_API::swapBuffers() {
     ANativeWindow_unlockAndPost(fNativeWindow);
     fBackbufferSurface.reset(nullptr);
 }

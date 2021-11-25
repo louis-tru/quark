@@ -32,6 +32,51 @@
 #include "../version.h"
 #include <vector>
 
+#if F_UNIX
+# include <sys/utsname.h>
+# include <unistd.h>
+#endif
+
+#if F_APPLE
+# include <mach/mach_time.h>
+# include <mach/mach.h>
+# include <mach/clock.h>
+
+# define clock_gettime clock_gettime2
+
+static clock_serv_t get_clock_port(clock_id_t clock_id) {
+	clock_serv_t clock_r;
+	host_get_clock_service(mach_host_self(), clock_id, &clock_r);
+	return clock_r;
+}
+
+static clock_serv_t clock_realtime = get_clock_port(CALENDAR_CLOCK);
+static mach_port_t clock_monotonic = get_clock_port(SYSTEM_CLOCK);
+
+int clock_gettime2(clockid_t id, struct timespec *tspec) {
+	mach_timespec_t mts;
+	int retval = 0;
+	if (id == CLOCK_MONOTONIC) {
+		retval = clock_get_time(clock_monotonic, &mts);
+		if (retval != 0) {
+			return retval;
+		}
+	} else if (id == CLOCK_REALTIME) {
+		retval = clock_get_time(clock_realtime, &mts);
+		if (retval != 0) {
+			return retval;
+		}
+	} else {
+		/* only CLOCK_MONOTOIC and CLOCK_REALTIME clocks supported */
+		return -1;
+	}
+	tspec->tv_sec = mts.tv_sec;
+	tspec->tv_nsec = mts.tv_nsec;
+	return 0;
+}
+
+#endif
+
 namespace flare {
 
 	int random(uint32_t start, uint32_t end) {
@@ -90,18 +135,40 @@ namespace flare {
 	}
 
 	String platform() {
-		#if  F_IOS || F_OSX
-			static String _name("darwin");
-		#elif F_LINUX
-			static String _name("linux");
+		#if  F_IOS
+			static String _name("darwin/iOS");
+		#elif  F_OSX
+			static String _name("darwin/MacOSX");
+			// static String _name("darwin/tvOS");
+			// static String _name("darwin/iWatch");
 		#elif  F_ANDROID
-      static String _name("android");
+			static String _name("android/Android");
 		#elif  F_WIN
-			static String _name("win32");
+			static String _name("win32/Windows");
+		#elif  F_LINUX
+			static String _name("linux/Linux");
 		#else
 			# error no support
 		#endif
 		return _name;
+	}
+
+	int64_t time_second() {
+		return ::time(nullptr);
+	}
+
+	int64_t time_micro() {
+		timespec now;
+		clock_gettime(CLOCK_REALTIME, &now);
+		int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
+		return r;
+	}
+
+	int64_t time_monotonic() {
+		timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
+		return r;
 	}
 
 }

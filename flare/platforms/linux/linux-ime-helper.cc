@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "linux-ime-helper-1.h"
+#include "linux-ime-helper.h"
 #include "flare/util/cb.h"
 #include "flare/keyboard.h"
-#include "flare/display-port.h"
+#include "flare/display.h"
 #include <X11/keysym.h>
 #include <locale.h>
 

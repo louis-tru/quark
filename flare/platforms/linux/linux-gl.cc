@@ -29,13 +29,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "flare/util/util.h"
-#include "flare/app-1.h"
-#include "flare/display-port.h"
-#include "linux-gl-1.h"
+#include "flare/app.inl"
+#include "flare/display.h"
+#include "linux-gl.h"
 #include "native-glsl.h"
 #if F_ANDROID
-# include "android/android.h"
-#include <android/native_window.h>
+# include <flare/os/android/api.h>
+# include <android/native_window.h>
 #endif
 
 #ifndef fx_use_depth_test
@@ -310,7 +310,7 @@ namespace flare {
 	void GLDrawProxy::initialize() {
 		_host->initialize();
 		#if F_ANDROID
-			_host->set_best_display_scale(Android::get_display_scale());
+			_host->set_best_display_scale(API::get_display_scale());
 		#else 
 			_host->set_best_display_scale(1.0 / Display::default_atom_pixel());
 		#endif 

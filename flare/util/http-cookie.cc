@@ -31,7 +31,6 @@
 #include "./http.h"
 #include "./fs.h"
 #include "./json.h"
-#include "./os.h"
 #include <bplus.h>
 #include <vector>
 
@@ -94,7 +93,7 @@ namespace flare {
 			if ( r == BP_OK ) {
 				bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
 				if (_has_initialize++ == 0) {
-					_http_cookie_date = os::time_monotonic();
+					_http_cookie_date = time_monotonic();
 					atexit(http_cookie_close);
 				}
 			} else {
@@ -183,7 +182,7 @@ namespace flare {
 					int64_t expires = json[0].to_int64();
 					int64_t date = json[1].to_int64();
 
-					if ((expires == -1 && date == _http_cookie_date) || expires > os::time()) {
+					if ((expires == -1 && date == _http_cookie_date) || expires > time_micro()) {
 						return json[2].to_string();
 					}
 				} catch(cError& err) {
@@ -263,7 +262,7 @@ namespace flare {
 			
 			it = options.find(MAX_AGE);
 			if ( it != end ) {
-				expires = it->value.to_number<int64_t>() * 1e6 + os::time();
+				expires = it->value.to_number<int64_t>() * 1e6 + time_micro();
 			} else {
 				it = options.find(EXPIRES);
 				if ( it != end ) {
@@ -359,7 +358,7 @@ namespace flare {
 						int64_t expires = json[0].to_int64();
 						int64_t date = json[1].to_int64();
 
-						if ((expires == -1 && date == _http_cookie_date) || expires > os::time()) {
+						if ((expires == -1 && date == _http_cookie_date) || expires > time_micro()) {
 							Char* s = strchr(key->value, '@') + 1;
 							(*m)[String(s, key->length - (s - key->value))] = json[2].to_string();
 						}

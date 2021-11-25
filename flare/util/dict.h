@@ -34,6 +34,7 @@
 #include "./util.h"
 #include "./iterator.h"
 #include "./array.h"
+#include "./error.h"
 #include <initializer_list>
 
 namespace flare {
@@ -115,7 +116,7 @@ namespace flare {
 		Array<Key>   keys() const;
 		Array<Value> values() const;
 
-		const Value& get(const Key& key) const;
+		const Value& get(const Key& key) const throw(Error);
 		Value&       get(const Key& key);
 		Value&       get(Key&& key);
 
@@ -266,9 +267,9 @@ namespace flare {
 	}
 	
 	template<typename K, typename V, typename C, typename A>
-	const V& Dict<K, V, C, A>::get(const K& key) const {
+	const V& Dict<K, V, C, A>::get(const K& key) const throw(Error) {
 		auto it = find(key);
-		F_CHECK(it != IteratorConst(&_end), "Could not find dict key");
+		F_CHECK(it != IteratorConst(&_end), "Could not find key for dict");
 		return it->value;
 	}
 

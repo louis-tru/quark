@@ -35,18 +35,18 @@
 
 namespace flare {
 
-class MetalRenderApple : public MetalRender, public RenderApple {
+	class MetalRenderApple : public MetalRender, public RenderApple {
 	 public:
 		MetalRenderApple(Application* host, const DisplayParams& params): MetalRender(host, params) {}
 		void setView(UIView* view) {
+			
 			F_ASSERT(!_view);
 			_view = view;
 			_layer = view.layer;
 			_layer.opaque = YES;
 		}
 		Class layerClass() {
-			// return [CALayer class];
-			[CAMetalLayer class];
+			return [CAMetalLayer class];
 		}
 		Render* render() { return this; }
 	 private:
@@ -54,12 +54,7 @@ class MetalRenderApple : public MetalRender, public RenderApple {
 	};
 
 	RenderApple* MakeMetalRender(Application* host, const Render::DisplayParams& parems) {
-#if GR_METAL_SDK_VERSION >= 230
-		//		if (@available(macOS 11.0, iOS 14.0, *)) {
-			return new MetalRenderApple(host, parems);
-		//		}
-#endif
-		return nullptr;
+		return new MetalRenderApple(host, parems);
 	}
 
 }

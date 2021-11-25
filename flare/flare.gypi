@@ -128,6 +128,8 @@
 			'texture.h',
 			'texture.cc',
 			'value.h',
+			'os/os.h',
+			'os/os.cc',
 			#
 			# '_property.h',
 			# '_property.cc',
@@ -160,13 +162,16 @@
 		'conditions': [
 			['os=="android"', {
 				'sources': [
-					'platforms/linux-gl.h',
-					'platforms/linux-gl.cc',
-					'platforms/android-app.cc',
-					'platforms/android-keyboard.cc',
-					# '../android/org/flare/FlareActivity.java',
-					# '../android/org/flare/Android.java',
-					# '../android/org/flare/IMEHelper.java',
+					'platforms/unix/unix-gl.h',
+					'platforms/unix/unix-gl.cc',
+					'platforms/android/android-app.cc',
+					'platforms/android/android-keyboard.cc',
+					# 'os/android/org/flare/Activity.java',
+					# 'os/android/org/flare/API.java',
+					# 'os/android/org/flare/IMEHelper.java',
+					'os/android/api.h',
+					'os/android/api.cc',
+					'os/android/android-os.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -196,6 +201,9 @@
 				},
 			}],
 			['OS=="mac"', {
+				'dependencies': [
+					'deps/reachability/reachability.gyp:reachability',
+				],
 				'sources':[
 					'platforms/apple/apple-app.h',
 					'platforms/apple/apple-image-codec.mm',
@@ -203,6 +211,7 @@
 					'platforms/apple/apple-metal.mm',
 					'platforms/apple/apple-render.mm',
 					'platforms/apple/apple-render.h',
+					'os/apple/apple-os.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -243,12 +252,13 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'platforms/_linux-gl.h',
-					'platforms/linux-gl.cc',
-					'platforms/linux-app.cc',
-					'platforms/linux-keyboard.cc',
-					'platforms/_linux-ime-helper.h',
-					'platforms/linux-ime-helper.cc',
+					'platforms/linux/linux-gl.h',
+					'platforms/linux/linux-gl.cc',
+					'platforms/linux/linux-app.cc',
+					'platforms/linux/linux-keyboard.cc',
+					'platforms/linux/linux-ime-helper.h',
+					'platforms/linux/linux-ime-helper.cc',
+					'os/linux/linux-is.mm',
 				],
 				'link_settings': {
 					'libraries': [

@@ -127,7 +127,7 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 		_handler = new Handler(Looper.getMainLooper());
 		pm = (PowerManager)getSystemService(POWER_SERVICE);
 		am = (AudioManager) getSystemService(AUDIO_SERVICE);
-		Android.initialize(this, new PrivateAPI(this));
+		API.initialize(this, new PrivateAPI(this));
 		set_system_ui_flags();
 		getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(this);
 		setRequestedOrientation(screen_orientation);
@@ -136,7 +136,7 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 
 	@Override
 	protected void onDestroy() {
-		Android.uninitialize(this);
+		API.uninitialize(this);
 		super.onDestroy();
 	}
 

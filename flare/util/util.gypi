@@ -52,7 +52,6 @@
 			'macros.h',
 			'numbers.h',
 			'object.h',
-			'os.h',
 			'util.h',
 			'zlib.h',
 			'iterator.h',
@@ -80,12 +79,11 @@
 			'string.cc',
 			'cb.cc',
 			'codec.cc',
-			'date.cc',
+			'time.cc',
 			'error.cc',
 			'json.cc',
 			'storage.cc',
 			'object.cc',
-			'os.cc',
 			'util.cc',
 			'zlib.cc',
 			'numbers.cc',
@@ -98,14 +96,9 @@
 					'defines!': [ '_FILE_OFFSET_BITS=64' ],
 				}]],
 				'sources':[
-					'../../android/android.h',
-					'../../android/android.cc',
 					'platforms/android-jni.h',
-					'platforms/android-log.h',
 					'platforms/android-jni.cc',
-					'platforms/android-log.cc',
 					'platforms/android-path.cc',
-					'platforms/android-os.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -118,8 +111,7 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'platforms/unix-path.cc',
-					'platforms/unix-os.cc',
+					'platforms/linux-path.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -128,12 +120,8 @@
 				},
 			}],
 			['OS=="mac"', {
-				'dependencies': [
-					'deps/reachability/reachability.gyp:reachability',
-				],
 				'sources': [
-					'platforms/mac-path.mm',
-					'platforms/mac-os.mm',
+					'platforms/apple-path.mm',
 				],
 				'link_settings': {
 					'libraries': [

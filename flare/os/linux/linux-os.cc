@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../os.h"
-#include "../string.h"
-#include "../array.h"
-#include "../fs.h"
-#include "../array.h"
+#include <flare/util/string.h>
+#include <flare/util/array.h>
+#include <flare/util/fs.h>
+#include <flare/util/array.h>
 #include <unistd.h>
 
 namespace flare {

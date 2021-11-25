@@ -29,14 +29,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "flare/util/loop.h"
-#include "flare/app-1.h"
+#include "flare/app.inl"
 #include "flare/event.h"
-#include "flare/display-port.h"
+#include "flare/display.h"
 #include "flare/util/loop.h"
 #include "flare/util/http.h"
-#include "flare/sys.h"
-#include "linux-gl-1.h"
-#include "linux-ime-helper-1.h"
+#include "linux-gl.h"
+#include "linux-ime-helper.h"
 #include <X11/Xlib.h>
 #include <X11/Xresource.h>
 #include <X11/extensions/XInput.h>

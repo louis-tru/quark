@@ -31,7 +31,6 @@
 #include "./http.h"
 #include "./net.h"
 #include "./fs.h"
-#include "./os.h"
 #include "./codec.h"
 #include "./errno.h"
 #include "../version.h"
@@ -44,9 +43,7 @@ namespace flare {
 
 	typedef HttpClientRequest::Delegate HttpDelegate;
 
-	extern String inl__get_http_user_agent();
-	extern String inl__get_http_cache_path();
-	extern String inl__uri_encode(cString& url, bool component = false, bool secondary = false);
+	String inl__uri_encode(cString& url, bool component = false, bool secondary = false);
 
 	static cString string_method[5] = { "GET", "POST", "HEAD", "DELETE", "PUT" };
 	static cString string_colon(": ");
@@ -97,32 +94,30 @@ namespace flare {
 		virtual void trigger_http_abort(HttpClientRequest* req) {}
 		
 		Inl(HttpClientRequest* host, RunLoop* loop)
-		: _host(host)
-		, _keep(loop->keep_alive("HttpClientRequest::Inl", false))
-		, _delegate(this)
-		, _upload_total(0)
-		, _upload_size(0)
-		, _download_total(0)
-		, _download_size(0)
-		, _ready_state(HTTP_READY_STATE_INITIAL)
-		, _status_code(0)
-		, _method(HTTP_METHOD_GET)
-		, _connect(nullptr)
-		, _cache_reader(nullptr)
-		, _file_writer(nullptr)
-		, _disable_cache(false)
-		, _disable_cookie(false)
-		, _disable_send_cookie(false)
-		, _disable_ssl_verify(false)
-		//, _disable_ssl_verify_host(0)
-		, _keep_alive(true)
-		, _sending(nullptr)
-		, _timeout(0), _pause(false)
-		, _url_no_cache_arg(false), _wait_connect_id(0)
-		, _write_cache_flag(0)
-		{
-			HttpHelper::initialize();
-		}
+			: _host(host)
+			, _keep(loop->keep_alive("HttpClientRequest::Inl", false))
+			, _delegate(this)
+			, _upload_total(0)
+			, _upload_size(0)
+			, _download_total(0)
+			, _download_size(0)
+			, _ready_state(HTTP_READY_STATE_INITIAL)
+			, _status_code(0)
+			, _method(HTTP_METHOD_GET)
+			, _connect(nullptr)
+			, _cache_reader(nullptr)
+			, _file_writer(nullptr)
+			, _disable_cache(false)
+			, _disable_cookie(false)
+			, _disable_send_cookie(false)
+			, _disable_ssl_verify(false)
+			//, _disable_ssl_verify_host(0)
+			, _keep_alive(true)
+			, _sending(nullptr)
+			, _timeout(0), _pause(false)
+			, _url_no_cache_arg(false), _wait_connect_id(0)
+			, _write_cache_flag(0)
+		{}
 		
 		virtual ~Inl() {
 			F_ASSERT(!_sending);
@@ -145,7 +140,9 @@ namespace flare {
 			Sending(Inl* host): _host(host), _ending(false) {
 				Retain(host);
 			}
-			~Sending() { Release(_host); }
+			~Sending() {
+				Release(_host);
+			}
 			void release() {
 				F_ASSERT(_host);
 				_host->_sending = nullptr;
@@ -171,19 +168,21 @@ namespace flare {
 		 * @class HttpClientRequest::Inl::Connect
 		 */
 		class Connect: public Object
-		, public Socket::Delegate
-		, public Reader, public AsyncFile::Delegate {
+			, public Socket::Delegate
+			, public Reader, public AsyncFile::Delegate
+		{
 		 public:
 
 			Connect(cString& hostname, uint16_t  port, bool ssl, RunLoop* loop)
-			: _ssl(ssl)
-			, _use(false)
-			, _is_multipart_form_data(false)
-			, _send_data(false)
-			, _socket(nullptr)
-			, _client(nullptr)
-			, _upload_file(nullptr)
-			, _z_gzip(0), _loop(loop) { //
+				: _ssl(ssl)
+				, _use(false)
+				, _is_multipart_form_data(false)
+				, _send_data(false)
+				, _socket(nullptr)
+				, _client(nullptr)
+				, _upload_file(nullptr)
+				, _z_gzip(0), _loop(loop)
+			{ //
 
 				if ( _ssl ) {
 					_socket = new SSLSocket(hostname, port, loop);
@@ -368,14 +367,14 @@ namespace flare {
 				header["Host"] = _client->_uri.host();
 				header["Connection"] = _client->_keep_alive ? "keep-alive" : "close";
 				header["Accept-Encoding"] = "gzip, deflate";
-				header["Date"] = gmt_time_string(os::time_second());
+				header["Date"] = gmt_time_string(time_second());
 				
 				if ( !header.has("Cache-Control") )   header["Cache-Control"] = "max-age=0";
-				if ( !header.has("User-Agent") )      header["User-Agent"] = inl__get_http_user_agent();
+				if ( !header.has("User-Agent") )      header["User-Agent"] = HttpHelper::user_agent();
 				if ( !header.has("Accept-Charset") )  header["Accept-Charset"] = "utf-8";
 				if ( !header.has("Accept") )          header["Accept"] = "*/*";
 				if ( !header.has("DNT") )             header["DNT"] = "1";
-				if ( !header.has("Accept-Language") ) header["Accept-Language"] = os::languages();
+				// if ( !header.has("Accept-Language") ) header["Accept-Language"] = languages();
 				
 				if ( !_client->_username.is_empty() && !_client->_password.is_empty() ) {
 					String s = _client->_username + ':' + _client->_password;
@@ -845,10 +844,11 @@ namespace flare {
 		{
 		 public:
 			FileCacheReader(Client* client, int64_t size, RunLoop* loop)
-			: AsyncFile(client->_cache_path, loop)
-			, _read_count(0)
-			, _client(client)
-			, _parse_header(true), _offset(0), _size(size) {
+				: AsyncFile(client->_cache_path, loop)
+				, _read_count(0)
+				, _client(client)
+				, _parse_header(true), _offset(0), _size(size)
+			{
 				F_ASSERT(!_client->_cache_reader);
 				_client->_cache_reader = this;
 				set_delegate(this);
@@ -908,7 +908,7 @@ namespace flare {
 									_offset += (j + 2);
 
 									int64_t expires = parse_time(_header["expires"]);
-									if ( expires > os::time() ) {
+									if ( expires > time_micro() ) {
 										_client->trigger_http_readystate_change(HTTP_READY_STATE_RESPONSE);
 										_client->_download_total = F_MAX(_size - _offset, 0);
 										_client->trigger_http_header(200, std::move(_header), true);
@@ -1009,7 +1009,7 @@ namespace flare {
 					
 					int64_t num = max_age.trim().to_number<int64_t>();
 					if ( num > 0 ) {
-						return gmt_time_string( os::time_second() + num );
+						return gmt_time_string( time_second() + num );
 					}
 				}
 			}
@@ -1022,11 +1022,12 @@ namespace flare {
 		class FileWriter: public Object, public AsyncFile::Delegate {
 		 public:
 			FileWriter(Client* client, cString& path, int flag, RunLoop* loop)
-			: _client(client)
-			, _file(nullptr)
-			, _write_flag(flag)
-			, _write_count(0)
-			, _ready(0), _completed_end(0) {
+				: _client(client)
+				, _file(nullptr)
+				, _write_flag(flag)
+				, _write_count(0)
+				, _ready(0), _completed_end(0)
+			{
 				// flag:
 				// flag = 0 only write body
 				// flag = 1 only write header
@@ -1051,7 +1052,7 @@ namespace flare {
 
 					if ( r_header.has("expires") ) {
 						int64_t expires = parse_time(r_header["expires"]);
-						int64_t now = os::time();
+						int64_t now = time_micro();
 						if ( expires > now ) {
 							_file = new AsyncFile(path, loop);
 						}
@@ -1214,10 +1215,7 @@ namespace flare {
 			_delegate->trigger_http_write(_host);
 		}
 		
-		void trigger_http_header(
-			uint32_t status_code,
-			Map&& header, bool fromCache)
-		{
+		void trigger_http_header(uint32_t status_code, Map&& header, bool fromCache) {
 			_status_code = status_code;
 			_response_header = std::move(header);
 			_delegate->trigger_http_header(_host);
@@ -1390,7 +1388,7 @@ namespace flare {
 			_sending = new Sending(this);
 			_pause = false;
 			_url_no_cache_arg = false;
-			_cache_path = inl__get_http_cache_path() + '/' +
+			_cache_path = HttpHelper::cache_path() + '/' +
 				hash_code(_uri.href().c_str(), _uri.href().length());
 			
 			int i = _uri.search().index_of("__no_cache");
@@ -1440,7 +1438,7 @@ namespace flare {
 		}
 			
 		// -----------------------------------attrs------------------------------------------
-		
+	 public:
 		HttpClientRequest* _host;
 		KeepLoop*  _keep;
 		HttpDelegate* _delegate;
@@ -1598,9 +1596,9 @@ namespace flare {
 		return _inl->_response_header;
 	}
 
-	Map& HttpClientRequest::get_all_response_headers() {
-		return _inl->_response_header;
-	}
+	// Map& HttpClientRequest::get_all_response_headers() {
+	// 	return _inl->_response_header;
+	// }
 
 	int64_t HttpClientRequest::upload_total() const {
 		return _inl->_upload_total;

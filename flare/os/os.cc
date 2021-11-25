@@ -29,86 +29,27 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./os.h"
-#include "./fs.h"
-#include "./dict.h"
+#include <flare/util/fs.h>
+#include <flare/util/dict.h>
 #include <string.h>
 #include <atomic>
 #include <unistd.h>
 
 #if F_UNIX
 # include <sys/utsname.h>
-# include <unistd.h>
 #endif
 
 #if F_ANDROID
-# include "../../android.h"
-#endif
-
-#if F_APPLE
-# include <mach/mach_time.h>
-# include <mach/mach.h>
-# include <mach/clock.h>
-
-# define clock_gettime clock_gettime2
-
-static clock_serv_t get_clock_port(clock_id_t clock_id) {
-	clock_serv_t clock_r;
-	host_get_clock_service(mach_host_self(), clock_id, &clock_r);
-	return clock_r;
-}
-
-static clock_serv_t clock_realtime = get_clock_port(CALENDAR_CLOCK);
-static mach_port_t clock_monotonic = get_clock_port(SYSTEM_CLOCK);
-
-int clock_gettime2(clockid_t id, struct timespec *tspec) {
-	mach_timespec_t mts;
-	int retval = 0;
-	if (id == CLOCK_MONOTONIC) {
-		retval = clock_get_time(clock_monotonic, &mts);
-		if (retval != 0) {
-			return retval;
-		}
-	} else if (id == CLOCK_REALTIME) {
-		retval = clock_get_time(clock_realtime, &mts);
-		if (retval != 0) {
-			return retval;
-		}
-	} else {
-		/* only CLOCK_MONOTOIC and CLOCK_REALTIME clocks supported */
-		return -1;
-	}
-	tspec->tv_sec = mts.tv_sec;
-	tspec->tv_nsec = mts.tv_nsec;
-	return 0;
-}
-
+# include "./android/api.h"
 #endif
 
 namespace flare {
 	namespace os {
 
-		String name() {
-			#if  F_IOS
-				static String _name("iOS");
-			#elif  F_OSX
-				static String _name("MacOSX");
-			#elif  F_ANDROID
-				static String _name("Android");
-			#elif  F_WIN
-				static String _name("Windows");
-			#elif  F_LINUX
-				static String _name("Linux");
-			#else
-				# error no support
-			#endif
-			return _name;
-		}
-
 		#if F_UNIX
 			static String* info_str = nullptr;
 
 			String info() {
-				
 				if (!info_str) {
 					info_str = new String();
 					static struct utsname uts;
@@ -129,28 +70,10 @@ namespace flare {
 			}
 		#endif
 
-			int64_t time_second() {
-				return ::time(nullptr);
-			}
-
-			int64_t time() {
-				timespec now;
-				clock_gettime(CLOCK_REALTIME, &now);
-				int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
-				return r;
-			}
-
-			int64_t time_monotonic() {
-				timespec now;
-				clock_gettime(CLOCK_MONOTONIC, &now);
-				int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
-				return r;
-			}
-
-			struct language_t {
-				String langs;
-				String lang;
-			};
+		struct language_t {
+			String langs;
+			String lang;
+		};
 
 		#if F_APPLE
 			void get_languages_(String& langs, String& lang);
@@ -164,7 +87,7 @@ namespace flare {
 				langs_ = new language_t();
 				get_languages_(langs_->langs, langs_->lang);
 			#elif F_ANDROID
-				langs_->langs = Android::language();
+				langs_->langs = API::language();
 				langs_->lang = langs_->langs;
 			#elif F_LINUX
 				cChar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
@@ -186,8 +109,6 @@ namespace flare {
 		String language() {
 			return get_languages()->lang;
 		}
-
-		// advanced
 
 		bool is_wifi() {
 			return network_status() == 2;

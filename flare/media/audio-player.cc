@@ -32,7 +32,6 @@
 #include "../app.h"
 #include "../errno.h"
 #include "../util/fs.h"
-#include "../util/os.h"
 
 namespace flare {
 
@@ -84,7 +83,7 @@ namespace flare {
 			float compensate = _pcm->compensate();
 			loop:
 			
-			uint64_t sys_time = os::time_monotonic();
+			uint64_t sys_time = time_monotonic();
 			
 			{ //
 				ScopeLock scope(_mutex);
@@ -159,7 +158,7 @@ namespace flare {
 			}
 			
 			int frame_interval = 1000.0 / 120.0 * 1000; // 120fsp
-			int64_t sleep_st = frame_interval - os::time_monotonic() + sys_time;
+			int64_t sleep_st = frame_interval - time_monotonic() + sys_time;
 			if ( sleep_st > 0 ) {
 				Thread::sleep(sleep_st);
 			}

@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "../os.h"
-#import "../string.h"
-#import "../handle.h"
+#import <flare/util/string.h>
+#import <flare/util/handle.h>
 #import <Foundation/Foundation.h>
 #if F_IOS
 # import <UIKit/UIKit.h>

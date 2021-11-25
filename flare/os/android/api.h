@@ -1,9 +1,10 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +15,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,25 +26,57 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <android/log.h>
-#include "./android-log.h"
-#include "./string.h"
+#ifndef __flare__os__android__api__
+#define __flare__os__android__api__
+
+#include "flare/util/util.h"
+
+#if FX_ANDROID
+
+#include "flare/util/string.h"
 
 namespace flare {
 
-	void AndroidConsole::log(cString& str, cChar* feed) {
-		__android_log_print(ANDROID_LOG_INFO, "LOG ", "%s%s", str.c_str(), feed ? feed: "");
-	}
-
-	void AndroidConsole::warn(cString& str, cChar* feed) {
-		__android_log_print(ANDROID_LOG_WARN, "WARN", "%s%s", str.c_str(), feed ? feed: "");
-	}
-
-	void AndroidConsole::error(cString& str, cChar* feed) {
-		__android_log_print(ANDROID_LOG_ERROR, "ERR ", "%s%s", str.c_str(), feed ? feed: "");
-	}
+	/**
+	* @class API
+	*/
+	class API {
+	 public:
+		static void ime_keyboard_open(bool clear, int type, int return_type);
+		static void ime_keyboard_can_backspace(bool can_backspace, bool can_delete);
+		static void ime_keyboard_close();
+		static void keep_screen(bool value);
+		static int  get_status_bar_height();
+		static void set_visible_status_bar(bool visible);
+		static void set_status_bar_style(int style);
+		static void request_fullscreen(bool fullscreen);
+		static int  get_orientation();
+		static void set_orientation(int orientation);
+		static float get_display_scale();
+		static bool is_screen_on();
+		static void set_volume_up();
+		static void set_volume_down();
+		static void open_url(cString& url);
+		static void send_email(cString& recipient,
+													cString& subject, cString& cc, cString& bcc, cString& body);
+		static String start_cmd();
+		static String version();
+		static String brand();
+		static String subsystem();
+		static int    network_status();
+		static bool   is_ac_power();
+		static bool   is_battery();
+		static float  battery_level();
+		static String language();
+		static uint64 available_memory();
+		static uint64 memory();
+		static uint64 used_memory();
+	};
 
 }
+
+#endif
+#endif

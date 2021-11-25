@@ -202,7 +202,7 @@ namespace flare {
 		return 1;
 	}
 
-	extern String inl__uri_encode(cString& url, bool component, bool secondary) {
+	String inl__uri_encode(cString& url, bool component, bool secondary) {
 		
 		uint8_t ch = 0;
 		int len = url.length();

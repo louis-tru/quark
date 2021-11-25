@@ -40,7 +40,7 @@ private:
     using INHERITED = GLWindowContext;
 };
 
-GLWindowContext_android::GLWindowContext_android(ANativeWindow* window,
+GLWindowContext_API::GLWindowContext_android(ANativeWindow* window,
                                                  const DisplayParams& params)
     : INHERITED(params)
     , fDisplay(EGL_NO_DISPLAY)
@@ -53,11 +53,11 @@ GLWindowContext_android::GLWindowContext_android(ANativeWindow* window,
     this->initializeContext();
 }
 
-GLWindowContext_android::~GLWindowContext_android() {
+GLWindowContext_API::~GLWindowContext_android() {
     this->destroyContext();
 }
 
-sk_sp<const GrGLInterface> GLWindowContext_android::onInitializeContext() {
+sk_sp<const GrGLInterface> GLWindowContext_API::onInitializeContext() {
     fWidth = ANativeWindow_getWidth(fNativeWindow);
     fHeight = ANativeWindow_getHeight(fNativeWindow);
 
@@ -122,7 +122,7 @@ sk_sp<const GrGLInterface> GLWindowContext_android::onInitializeContext() {
     return GrGLMakeNativeInterface();
 }
 
-void GLWindowContext_android::onDestroyContext() {
+void GLWindowContext_API::onDestroyContext() {
     if (!fDisplay || !fEGLContext || !fSurfaceAndroid) {
         return;
     }
@@ -133,7 +133,7 @@ void GLWindowContext_android::onDestroyContext() {
     fSurfaceAndroid = EGL_NO_SURFACE;
 }
 
-void GLWindowContext_android::onSwapBuffers() {
+void GLWindowContext_API::onSwapBuffers() {
     if (fDisplay && fEGLContext && fSurfaceAndroid) {
         eglSwapBuffers(fDisplay, fSurfaceAndroid);
     }

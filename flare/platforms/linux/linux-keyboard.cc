@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "flare/keyboard.h"
-#include "flare/util/map.h"
+#include "flare/util/dict.h"
 
 namespace flare {
 

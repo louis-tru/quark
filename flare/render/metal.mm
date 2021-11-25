@@ -38,17 +38,22 @@
 #include "skia/gpu/mtl/GrMtlBackendContext.h"
 #include "skia/gpu/mtl/GrMtlTypes.h"
 
+#include "skia/private/GrMtlTypesPriv.h"
+
+#import <MetalKit/MTKView.h>
+#import <GLKit/GLKView.h>
+
 template <typename T> static inline T CFSafeRetain(T obj) {
-    if (obj) {
-        CFRetain((__bridge void*)obj);
-    }
-    return obj;
+	if (obj) {
+		CFRetain((__bridge void*)obj);
+	}
+	return obj;
 }
 
 template <typename T> static inline void CFSafeRelease(T obj) {
-    if (obj) {
-        CFRelease((__bridge void*)obj);
-    }
+	if (obj) {
+		CFRelease((__bridge void*)obj);
+	}
 }
 
 namespace flare {
@@ -90,7 +95,9 @@ namespace flare {
 																&_DisplayParams.fSurfaceProps,
 																&_DrawableHandle);
 				} else {
-					id<CAMetalDrawable> currentDrawable = nil;//[_layer nextDrawable];
+					CALayer* lay = _layer;
+					
+					id<CAMetalDrawable> currentDrawable = [_layer nextDrawable];
 					id<MTLTexture> mttex = currentDrawable.texture;
 
 					GrMtlTextureInfo fbInfo;
@@ -121,11 +128,12 @@ namespace flare {
 			_Context.reset();
 		}
 
-	#if GR_METAL_SDK_VERSION >= 230
-		if (@available(macOS 11.0, iOS 14.0, *)) {
-			[_PipelineArchive release];
+#if GR_METAL_SDK_VERSION >= 230
+		if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
+			// 'release' is unavailable: not available in automatic reference counting mode
+			// [_PipelineArchive release];
 		}
-	#endif
+#endif
 		if (_DrawableHandle) {
 			CFRelease(_DrawableHandle); _DrawableHandle = nil;
 		}
@@ -133,18 +141,14 @@ namespace flare {
 
 		// -------------------------------
 		if (!_Device) {
-            _Device = CFSafeRetain(MTLCreateSystemDefaultDevice());
-            _Queue = CFSafeRetain([_Device newCommandQueue]);
+			_Device = CFSafeRetain(MTLCreateSystemDefaultDevice());
+      _Queue = CFSafeRetain([_Device newCommandQueue]);
 		}
 
 		if (_DisplayParams.fMSAASampleCount > 1) {
-			if (@available(macOS 10.11, iOS 9.0, *)) {
-                if (![_Device supportsTextureSampleCount:_DisplayParams.fMSAASampleCount]) {
-					_DisplayParams.fMSAASampleCount /= 2;
-					reload();
-					return;
-				}
-			} else {
+			if (![_Device supportsTextureSampleCount:_DisplayParams.fMSAASampleCount]) {
+				_DisplayParams.fMSAASampleCount /= 2;
+				reload();
 				return;
 			}
 		}
@@ -157,15 +161,15 @@ namespace flare {
 		_layer.device = _Device;
 		_layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
 		_layer.drawableSize = rect.size;
-		// _layer.frame = rect;
+		_layer.opaque = YES;
 		// _layer.displaySyncEnabled = _DisplayParams.fDisableVsync ? NO : YES;
-		// _layer.contentsGravity = kCAGravityTopLeft;
 
 		_SampleCount = _DisplayParams.fMSAASampleCount;
 		_StencilBits = 8;
 
+#if GR_METAL_SDK_VERSION >= 230
 		if (_DisplayParams.fEnableBinaryArchive) {
-			if (@available(macOS 11.0, iOS 14.0, *)) {
+			if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
 				auto desc = [MTLBinaryArchiveDescriptor new];
 				desc.url = CacheURL(); // try to load
 				NSError* error;
@@ -181,19 +185,22 @@ namespace flare {
 				}
 			}
 		} else {
-			if (@available(macOS 11.0, iOS 14.0, *)) {
+			if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
 				_PipelineArchive = nil;
 			}
 		}
+#endif
 
 		GrMtlBackendContext backendContext = {};
 
 		backendContext.fDevice.retain((__bridge void*)_Device);
 		backendContext.fQueue.retain((__bridge void*)_Queue);
 
-		if (@available(macOS 11.0, iOS 14.0, *)) {
+#if GR_METAL_SDK_VERSION >= 230
+		if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
 			backendContext.fBinaryArchive.retain((__bridge GrMTLHandle)_PipelineArchive);
 		}
+#endif
 
 		_Context = GrDirectContext::MakeMetal(backendContext, _DisplayParams.fGrContextOptions);
 
@@ -203,8 +210,8 @@ namespace flare {
 	void MetalRender::activate(bool isActive) {
 		// serialize pipeline archive
 		if (!isActive) {
-	#if GR_METAL_SDK_VERSION >= 230
-			if (@available(macOS 11.0, iOS 14.0, *)) {
+#if GR_METAL_SDK_VERSION >= 230
+			if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
 				if (_PipelineArchive) {
 					NSError* error;
 					[_PipelineArchive serializeToURL:CacheURL() error:&error];
@@ -214,7 +221,7 @@ namespace flare {
 					}
 				}
 			}
-	#endif
+#endif
 		}
 	}
 

@@ -30,7 +30,6 @@
 
 #include <stdlib.h>
 #include <unistd.h>
-// #include <linux/limits.h>
 #include <sys/utsname.h>
 #include "../fs.h"
 
