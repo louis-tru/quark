@@ -238,7 +238,6 @@ namespace flare {
 		static Buffer get_sync(cString& url, bool no_cache = false) throw(HttpError);
 		static Buffer post_sync(cString& url, Buffer data) throw(HttpError);
 		static void abort(uint32_t id);
-		static void initialize();
 		static String user_agent();
 		static void set_user_agent(cString& user_agent);
 		static String cache_path();

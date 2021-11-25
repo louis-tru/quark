@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "flare/app.h"
-#include "flare/util/os.h"
+#include "flare/os/os.h"
 #include "flare/util/loop.h"
 #include "../deps/node/src/flare.h"
 
@@ -44,11 +44,11 @@ void TEST_FUNC_NAME(int argc, char** argv);
 F_Main() {
 	// node::FlareEnvironment::test();
 
-	uint64_t st = os::time();
+	uint64_t st = time_micro();
 	
 	TEST_FUNC_NAME(argc, argv);
 	
-	F_LOG("MAIN", "eclapsed time:%dms", (os::time() - st) / 1000);
+	F_LOG("MAIN", "eclapsed time:%dms", (time_micro() - st) / 1000);
 
 	return 0;
 }

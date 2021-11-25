@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "flare/util/http.h"
-#include "flare/util/os.h"
+#include "flare/os/os.h"
 
 using namespace flare;
 
@@ -99,7 +99,7 @@ void test_http_cookie(int argc, char **argv) {
 	
 	F_LOG(HttpHelper::get_cookie("flare.cool", "test"));
 	
-	HttpHelper::set_cookie("flare.cool", "test", "END test cookie", os::time() + 6e7); // 60s expires
+	HttpHelper::set_cookie("flare.cool", "test", "END test cookie", time_micro() + 6e7); // 60s expires
 	
 	F_LOG(HttpHelper::get_cookie("flare.cool", "test"));
 	

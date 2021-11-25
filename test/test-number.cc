@@ -31,7 +31,7 @@
 #include <flare/util/util.h>
 #include <flare/util/loop.h>
 #include <flare/util/array.h>
-#include <flare/util/os.h>
+#include <flare/os/os.h>
 
 using namespace flare;
 
@@ -48,7 +48,7 @@ void test_operation(const char* name) {
     numbers[i] = i + 1.11101;
   }
   
-  uint64_t s1 = os::time_monotonic();
+  uint64_t s1 = time_monotonic();
   
   for ( int i = 0; i < 100000; i++ ) {
     T3 a = 0;
@@ -457,7 +457,7 @@ void test_operation(const char* name) {
     }
   }
   
-  uint64_t s2 = os::time_monotonic();
+  uint64_t s2 = time_monotonic();
   
   F_LOG("%s: %llu", name, s2 - s1);
 }

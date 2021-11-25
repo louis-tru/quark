@@ -322,7 +322,6 @@ namespace flare {
 	*/
 	void Application::initialize(cJSON& options) throw(Error) {
 		UILock lock;
-		HttpHelper::initialize(); // 初始http
 		_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
 		_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
 		_render = Render::create(this, options); F_DEBUG("Render::create() ok");
