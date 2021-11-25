@@ -31,11 +31,17 @@
 #ifndef __flare__util__loop__
 #define __flare__util__loop__
 
+#include <functional>
+#include <thread>
+#include <mutex>
+#include <atomic>
+#include <condition_variable>
+
 #include "./util.h"
 #include "./cb.h"
-#include "./thread.h"
 #include "./list.h"
-#include <functional>
+#include "./string.h"
+#include "./event.h"
 
 typedef struct uv_loop_s uv_loop_t;
 typedef struct uv_async_s uv_async_t;
@@ -43,7 +49,50 @@ typedef struct uv_timer_s uv_timer_t;
 
 namespace flare {
 
+	class RunLoop;
 	class KeepLoop;
+
+	typedef std::thread::id         ThreadID;
+	typedef std::mutex              Mutex;
+	typedef std::recursive_mutex    RecursiveMutex;
+	typedef std::lock_guard<Mutex>  ScopeLock;
+	typedef std::unique_lock<Mutex> Lock;
+	typedef std::condition_variable Condition;
+
+	template<> F_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
+
+	/**
+	 * @class Thread
+	 */
+	class F_EXPORT Thread {
+		F_HIDDEN_ALL_COPY(Thread);
+	 public:
+		typedef ThreadID ID;
+		typedef NonObjectTraits Traits;
+		typedef std::function<int(Thread&)> Exec;
+		inline bool is_abort() const { return _abort; }
+		inline ID id() const { return _id; }
+		inline RunLoop* loop() const { return _loop; }
+		static ID fork(Exec exec, cString& name = String());
+		static ID current_id();
+		static Thread* current();
+		static void sleep_(uint64_t timeoutUs = 0); // 休眠当前线程不能被唤醒
+		static void pause(uint64_t timeoutUs = 0 /*小于1永久等待*/); // 暂停当前运行可以被`resume()`唤醒
+		static void resume(ID id, bool abort = false); // 恢复线程运行
+		static void wait_end(ID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
+	 private:
+		Thread() = default;
+		~Thread() = default;
+		F_DEFINE_INLINE_CLASS(Inl);
+		bool  _abort;
+		Mutex _mutex;
+		Condition _cond;
+		ID      _id;
+		RunLoop* _loop;
+		friend class RunLoop;
+	};
+
+	F_EXPORT EventNoticer<>& onProcessSafeExit();
 
 	/**
 	* @class PostMessage
@@ -122,9 +171,9 @@ namespace flare {
 		* 保持run状态并返回一个代理对像,只要不删除`KeepLoop`或调用`stop()`消息队列会一直保持run状态
 		* @func keep_alive(declear)
 		* @arg name {cString&} 名称
-		* @arg [declear=true] {bool} KeepLoop 释放时是否清理由keekloop发起并未完成的`post`消息
+		* @arg [clean=true] {bool} KeepLoop 释放时是否清理由keekloop发起并未完成的`post`消息
 		*/
-		KeepLoop* keep_alive(cString& name, bool declear = true);
+		KeepLoop* keep_alive(cString& name = String(), bool clean = true);
 
 		/**
 		* @func uv_loop()
@@ -140,11 +189,6 @@ namespace flare {
 		* @func current() 获取当前线程消息队列
 		*/
 		static RunLoop* current();
-		
-		/**
-		* @func keep_alive_current(declear) 保持当前循环活跃并返回`KeepLoop`实体
-		*/
-		static KeepLoop* keep_alive_current(cString& name, bool declear = true);
 		
 		/**
 		* @func next_tick
@@ -176,7 +220,7 @@ namespace flare {
 		/**
 		* @constructor 私有构造每个线程只能创建一个通过`current()`来获取当前实体
 		*/
-		RunLoop(Thread* t);
+		RunLoop(Thread* t, uv_loop_t* uv);
 		/**
 		* @destructor
 		*/
@@ -242,7 +286,7 @@ namespace flare {
 		/**
 		* @constructor `declear=true`时表示析构时会进行清理
 		*/
-		KeepLoop(cString& name, bool destructor_clear);
+		KeepLoop(cString& name, bool destructor_clean);
 		RunLoop*  _loop;
 		uint32_t  _group;
 		Iterator  _id;

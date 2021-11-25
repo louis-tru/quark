@@ -100,8 +100,6 @@ public class API {
 		return activity.getCacheDir().getPath();
 	}
 
-	// -------------------- gui --------------------
-
 	private static void ime_keyboard_open(final boolean clear, final int type, final int return_type) {
 		activity.post(new Runnable() {
 			public void run() { api.ime_keyboard_open(clear, type, return_type); }
@@ -209,8 +207,6 @@ public class API {
 			}
 		});
 	}
-
-	// -------------------- util --------------------
 
 	private static String start_cmd() {
 		return activity.startCommand();

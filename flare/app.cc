@@ -243,11 +243,9 @@ namespace flare {
 		Thread::sleep(); // main loop sleep, await run loop ok
 	}
 
-	static void on_process_safe_handle(Event<>& e, Object* data) {
+	static void on_process_safe_handle(Event<>& e, Application* app) {
 		int rc = static_cast<const Int32*>(e.data())->value;
-		if (app()) {
-			e.return_value = _inl_app(app())->onExit(rc);
-		}
+		_inl_app(app)->onExit(rc);
 	}
 
 	int AppInl::onExit(int code) {
@@ -256,10 +254,9 @@ namespace flare {
 			auto render_loop_id = _render_loop->thread_id();
 			Release(_render_keep); _render_keep = nullptr; // stop render loop
 			Release(_main_keep); _main_keep = nullptr; // stop main loop
-			Thread::abort(render_loop_id);
+			Thread::resume(render_loop_id, true);
 			F_DEBUG("Application onExit");
 		}
-		return code;
 	}
 
 	Application::Application()
@@ -286,7 +283,7 @@ namespace flare {
 		_main_loop = RunLoop::main_loop();
 		_default_text_settings = new DefaultTextSettings();
 		_main_keep = _main_loop->keep_alive("Application::Application(), main_keep");
-		Thread::F_On(ProcessSafeExit, on_process_safe_handle);
+		F_On(ProcessSafeExit, on_process_safe_handle, this);
 	}
 
 	Application::~Application() {
@@ -314,7 +311,7 @@ namespace flare {
 		_main_loop = nullptr;
 		_shared = nullptr;
 
-		Thread::F_Off(ProcessSafeExit, on_process_safe_handle);
+		F_Off(ProcessSafeExit, on_process_safe_handle);
 	}
 
 	/**

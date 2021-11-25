@@ -36,7 +36,7 @@
 #include "./math.h"
 #include "./value.h"
 #include "./util/cb.h"
-#include "./util/thread.h"
+#include "./util/loop.h"
 
 namespace flare {
 

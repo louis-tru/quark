@@ -32,15 +32,263 @@
 #include "./list"
 #include "./dict.h"
 #include <uv.h>
+#include <pthread.h>
+
+#ifndef F_ATEXIT_WAIT_TIMEOUT
+# define F_ATEXIT_WAIT_TIMEOUT 1e6
+#endif
 
 namespace flare {
 
-	static ThreadID __Loop_main_loop_id;
-	static RunLoop* __Loop_main_loop_obj = nullptr;
-	extern Mutex* __Thread_threads_mutex;
-	extern Dict<ThreadID, Thread*>* __Thread_threads;
+	// ---------------------------------------------------------
 
-	// --------------------- ThreadRunLoop ---------------------
+	template<> uint64_t Compare<ThreadID>::hash_code(const ThreadID& key) {
+		return *reinterpret_cast<const uint32_t*>(&key);
+	}
+
+	struct ListenSignal {
+		Thread* thread;
+		Mutex mutex;
+		Condition cond;
+	};
+
+	static ThreadID __loop_main_loop_id;
+	static RunLoop* __loop_main_loop_obj = nullptr;
+	static Mutex* __thread_threads_mutex = nullptr;
+	static Dict<ThreadID, Thread*>* __thread_threads = nullptr;
+	static List<ListenSignal*>* __threads_end_listens = nullptr;
+	static pthread_key_t __specific_key;
+	static int __is_process_exit = 0;
+	static EventNoticer<>* __on_process_safe_exit = nullptr;
+
+	F_DEFINE_INLINE_MEMBERS(Thread, Inl) {
+	 public:
+		#define _inl_t(self) static_cast<Thread::Inl*>(self)
+
+		static void destructor(void* ptr) {
+			auto thread = reinterpret_cast<Thread::Inl*>(ptr);
+			if (__is_process_exit == 0) { // no process exit
+				Release(thread->_loop);
+			}
+			delete thread;
+		}
+
+		static void initialize() {
+			F_DEBUG("thread_init_once");
+			atexit(Thread::Inl::before_exit);
+			__thread_threads = new Dict<ID, Thread*>();
+			__thread_threads_mutex = new Mutex();
+			__threads_end_listens = new List<ListenSignal*>();
+			__on_process_safe_exit = new EventNoticer<>("ProcessSafeExit", nullptr);
+			int err = pthread_key_create(&__specific_key, destructor);
+			F_ASSERT(err == 0);
+		}
+
+		static void set_thread_specific_data(Thread* thread) {
+			F_ASSERT(!pthread_getspecific(__specific_key));
+			pthread_setspecific(__specific_key, thread);
+		}
+
+		static inline Thread* get_thread_specific_data() {
+			return reinterpret_cast<Thread*>(pthread_getspecific(__specific_key));
+		}
+
+		static void run(Exec exec, Thread* thread) {
+			#if F_ANDROID
+				JNI::ScopeENV scope;
+			#endif
+			set_thread_specific_data(thread);
+			if ( !thread->_abort ) {
+				int rc = exec(*thread);
+				thread->_abort = true;
+			}
+			{
+				ScopeLock scope(*__thread_threads_mutex);
+				F_DEBUG("Thread end ..., %s", *thread->name());
+				for (auto& i : *__threads_end_listens) {
+					if (i->thread == thread) {
+						ScopeLock scope(i->mutex);
+						i->cond.notify_one();
+					}
+				}
+				F_DEBUG("Thread end  ok, %s", *thread->name());
+				__thread_threads->erase(thread->id());
+			}
+		}
+
+		static ID fork(Exec exec, cString& name) {
+			if ( __is_process_exit ) {
+				return ID();
+			} else {
+				ScopeLock scope(*__thread_threads_mutex);
+				Thread* thread = new Thread();
+				std::thread t(run, exec, thread);
+				thread->_id = t.get_id();
+				thread->_abort = false;
+				thread->_loop = nullptr;
+				(*__thread_threads)[thread->_id] = thread;
+				t.detach();
+				return thread->_id;
+			}
+		}
+
+		void resume(bool abort = 0) {
+			ScopeLock scope(_mutex);
+			if (abort) {
+				if (_loop)
+					_loop->stop();
+				_abort = true;
+			}
+			_cond.notify_one(); // resume sleep status
+		}
+
+		static void before_exit() {
+			if (!__is_process_exit++) { // exit
+				Array<ID> threads_id;
+				{
+					ScopeLock scope(*__thread_threads_mutex);
+					F_DEBUG("threads count, %d", __thread_threads->length());
+					for ( auto& i : *__thread_threads ) {
+						F_DEBUG("atexit_exec,name, %p, %s", i.value->id(), *i.value->name());
+						_inl_t(i.value)->resume(true); // resume sleep status and abort
+						threads_id.push(i.value->id());
+					}
+				}
+				for ( auto& i: threads_id ) {
+					// 在这里等待这个线程的结束,这个时间默认为1秒钟
+					F_DEBUG("atexit_exec,join, %p", i);
+					join(i, F_ATEXIT_WAIT_TIMEOUT); // wait 1s
+				}
+			}
+		}
+
+		static void safe_exit(int rc, bool forceExit = false) {
+			static int is_exited = 0;
+			if (!is_exited++ && !__is_process_exit) {
+
+				// KeepLoop* keep = nullptr;
+				// if (__loop_main_loop_obj && __loop_main_loop_obj->runing()) {
+				// 	keep = __loop_main_loop_obj->keep_alive("Thread::Inl::exit()"); // keep main loop
+				// }
+				F_DEBUG("Inl::exit(), 0");
+				Event<> ev(Int32(rc), nullptr, rc);
+				F_Trigger(ProcessSafeExit, ev);
+				rc = ev.return_value;
+				F_DEBUG("Inl::exit(), 1");
+
+				// Release(keep); keep = nullptr;
+				before_exit();
+
+				F_DEBUG("Inl::reallyExit()");
+				if (forceExit)
+					::exit(rc); // foece reallyExit
+			} else {
+				F_DEBUG("The program has exited");
+			}
+		}
+
+	};
+
+	ThreadID Thread::fork(Exec exec, cString& name) {
+		return Inl::fork(exec, name);
+	}
+
+	Thread::sleep_(uint64_t timeoutUs) {
+		std::this_thread::sleep_for(std::chrono::microseconds(timeoutUs));
+	}
+
+	/**
+	 * @func pause
+	 */
+	void Thread::pause(uint64_t timeoutUs) {
+		auto cur = current();
+		F_ASSERT(cur, "Cannot find current flare::Thread handle, use Thread::sleep()");
+
+		Lock lock(cur->_mutex);
+		if ( !cur->_abort ) {
+			if (timeoutUs) {
+				cur->_cond.wait_for(lock, std::chrono::microseconds(timeoutUs));
+			} else {
+				cur->_cond.wait(lock); // wait
+			}
+		} else {
+			F_WARN("Thread aborted, cannot wait");
+		}
+	}
+
+	/**
+	 * @func resume
+	 */
+	void Thread::resume(ID id, bool abort) {
+		ScopeLock lock(*__thread_threads_mutex);
+		auto i = __thread_threads->find(id);
+		if ( i != __thread_threads->end() ) {
+			_inl_t(i->value)->resume(abort); // resume sleep status
+		}
+	}
+
+	void Thread::wait_end(ID id, uint64_t timeoutUs) {
+		if (id == current_id()) {
+			F_DEBUG("Thread::wait_end(), cannot wait_end self thread");
+			return;
+		}
+		Lock lock(*__thread_threads_mutex);
+		auto i = __thread_threads->find(id);
+		if ( i != __thread_threads->end() ) {
+			ListenSignal signal = { i->value };
+			auto it = __threads_end_listens->push_back(&signal);//(&signal);
+			{ //
+				Lock l(signal.mutex);
+				lock.unlock();
+				String name = i->value->name();
+				F_DEBUG("Thread::wait_end, ..., %p, %s", id, *name);
+				if (timeoutUs) {
+					signal.cond.wait_for(l, std::chrono::microseconds(timeoutUs)); // wait
+				} else {
+					signal.cond.wait(l); // permanent wait
+				}
+				F_DEBUG("Thread::wait_end, end, %p, %s", id, *name);
+			}
+			lock.lock();
+			__threads_end_listens->erase(it);
+		}
+	}
+
+	/**
+	 * @func current_id
+	 */
+	ThreadID Thread::current_id() {
+		return std::this_thread::get_id();
+	}
+
+	/**
+	 * @func current
+	 */
+	Thread* Thread::current() {
+		return Inl::get_thread_specific_data();
+	}
+
+	F_EXPORT void safe_exit(int rc) {
+		Thread::Inl::safe_exit(rc);
+	}
+
+	void exit(int rc) {
+		Thread::Inl::safe_exit(rc, true);
+	}
+
+	bool is_exited() {
+		return __is_process_exit;
+	}
+
+	EventNoticer<>& onProcessSafeExit() {
+		return *__on_process_safe_exit;
+	}
+
+	F_INIT_BLOCK(thread_init_once) {
+		Thread::Inl::initialize();
+	}
+
+	// --------------------- RunLoop ---------------------
 
 	F_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
 		#define _inl(self) static_cast<RunLoop::Inl*>(self)
@@ -48,7 +296,7 @@ namespace flare {
 
 		void run(int64_t timeout) {
 			if (is_exited()) {
-				F_DEBUG("cannot run RunLoop, is_process_exit != 0");
+				F_DEBUG("cannot run RunLoop, __is_process_exit != 0");
 				return;
 			}
 			if (_thread->is_abort()) {
@@ -335,11 +583,11 @@ namespace flare {
 	/**
 	 * @constructor
 	 */
-	RunLoop::RunLoop(Thread* t)
+	RunLoop::RunLoop(Thread* t, uv_loop_t* uv)
 		: _independent_mutex(nullptr)
 		, _thread(t)
 		, _tid(t->id())
-		, _uv_loop(nullptr)
+		, _uv_loop(uv)
 		, _uv_async(nullptr)
 		, _uv_timer(nullptr)
 		, _timeout(0)
@@ -348,21 +596,15 @@ namespace flare {
 		F_ASSERT(!t->_loop);
 		// set run loop
 		t->_loop = this;
-		_uv_loop = uv_loop_new();
 	}
 
 	/**
 	 * @destructor
 	 */
 	RunLoop::~RunLoop() {
-		ScopeLock lock(*__Thread_threads_mutex);
+		ScopeLock lock(*__thread_threads_mutex);
 		F_ASSERT(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 		
-		if (__Loop_main_loop_obj == this) {
-			__Loop_main_loop_obj = nullptr;
-			__Loop_main_loop_id = ThreadID();
-		}
-
 		{
 			ScopeLock lock(_mutex);
 			for (auto& i: _keeps) {
@@ -373,6 +615,11 @@ namespace flare {
 				F_WARN("RunLoop work not complete: \"%s\"", i->name.c_str());
 				delete i;
 			}
+		}
+
+		if (__loop_main_loop_obj == this) {
+			__loop_main_loop_obj = nullptr;
+			__loop_main_loop_id = ThreadID();
 		}
 
 		if (_uv_loop != uv_default_loop()) {
@@ -393,13 +640,13 @@ namespace flare {
 		F_ASSERT(t, "Can't get thread specific data");
 		auto loop = t->loop();
 		if (!loop) {
-			ScopeLock scope(*__Thread_threads_mutex);
-			loop = new RunLoop(t);
-			if (!__Loop_main_loop_obj) {
-				__Loop_main_loop_obj = loop;
-				__Loop_main_loop_id = t->id();
-				uv_loop_delete(loop->_uv_loop);
-				loop->_uv_loop = uv_default_loop();
+			ScopeLock scope(*__thread_threads_mutex);
+			if (__loop_main_loop_obj) {
+				loop = new RunLoop(t, uv_loop_new());
+			} else { // this is main loop
+				loop = new RunLoop(t, uv_default_loop());
+				__loop_main_loop_obj = loop;
+				__loop_main_loop_id = t->id();
 			}
 		}
 		return loop;
@@ -410,18 +657,18 @@ namespace flare {
 	 */
 	RunLoop* RunLoop::main_loop() {
 		// TODO: 小心线程安全,最好先确保已调用过`current()`
-		if (!__Loop_main_loop_obj) {
+		if (!__loop_main_loop_obj) {
 			current();
-			F_ASSERT(__Loop_main_loop_obj);
+			F_ASSERT(__loop_main_loop_obj);
 		}
-		return __Loop_main_loop_obj;
+		return __loop_main_loop_obj;
 	}
 
 	/**
 	 * @func is_main_loop 当前线程是为主循环
 	 */
 	bool RunLoop::is_main_loop() {
-		return __Loop_main_loop_id == Thread::current_id();
+		return __loop_main_loop_id == Thread::current_id();
 	}
 
 	/**
@@ -548,31 +795,20 @@ namespace flare {
 	 * 保持活动状态,并返回一个代理,只要不删除返回的代理对像,消息队列会一直保持活跃状态
 	 * @func keep_alive
 	 */
-	KeepLoop* RunLoop::keep_alive(cString& name, bool declear) {
+	KeepLoop* RunLoop::keep_alive(cString& name, bool clean) {
 		ScopeLock lock(_mutex);
-		auto keep = new KeepLoop(name, declear);
+		auto keep = new KeepLoop(name, clean);
 		keep->_id = _keeps.push_back(keep);
 		keep->_loop = this;
 		return keep;
 	}
 
 	static RunLoop* loop_2(ThreadID id) {
-		auto i = __Thread_threads->find(id);
-		if (i == __Thread_threads->end()) {
+		auto i = __thread_threads->find(id);
+		if (i == __thread_threads->end()) {
 			return nullptr;
 		}
 		return i->value->loop();
-	}
-
-	/**
-	 * @func keep_alive_current 保持当前循环活跃并返回代理
-	 */
-	KeepLoop* RunLoop::keep_alive_current(cString& name, bool declear) {
-		RunLoop* loop = current();
-		if ( loop ) {
-			return loop->keep_alive(name, declear);
-		}
-		return nullptr;
 	}
 
 	/**
@@ -591,7 +827,7 @@ namespace flare {
 	 * @func stop() 停止循环
 	 */
 	void RunLoop::stop(ThreadID id) {
-		ScopeLock scope(*__Thread_threads_mutex);
+		ScopeLock scope(*__thread_threads_mutex);
 		auto loop = loop_2(id);
 		if (loop) {
 			loop->stop();
@@ -602,7 +838,7 @@ namespace flare {
 	 * @func is_alive()
 	 */
 	bool RunLoop::is_alive(ThreadID id) {
-		ScopeLock scope(*__Thread_threads_mutex);
+		ScopeLock scope(*__thread_threads_mutex);
 		auto loop = loop_2(id);
 		F_DEBUG("RunLoop::is_alive, %p, %p", loop, id);
 		if (loop) {
@@ -613,16 +849,16 @@ namespace flare {
 
 	// ************** KeepLoop **************
 
-	KeepLoop::KeepLoop(cString& name, bool destructor_clear)
-	: _group(getId32()), _name(name), _declear(destructor_clear) {
+	KeepLoop::KeepLoop(cString& name, bool clean)
+		: _group(getId32()), _name(name), _de_clean(clean) {
 	}
 
 	KeepLoop::~KeepLoop() {
-		ScopeLock lock(*__Thread_threads_mutex);
+		ScopeLock lock(*__thread_threads_mutex);
 
 		if (_loop) {
 			ScopeLock lock(_loop->_mutex);
-			if ( _declear ) {
+			if ( _de_clean ) {
 				_inl(_loop)->cancel_group_non_lock(_group);
 			}
 			F_ASSERT(_loop->_keeps.length());

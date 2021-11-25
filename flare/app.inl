@@ -115,7 +115,7 @@ namespace flare {
 		/**
 		* @func onExit(code)
 		*/
-		int onExit(int code);
+		void onExit(int code);
 	};
 
 	typedef Application::Inl AppInl;
