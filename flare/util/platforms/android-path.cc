@@ -74,7 +74,7 @@ namespace flare {
 
 	extern "C" {
 
-		F_EXPORT void Java_org_flare_Android_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
+		F_EXPORT void Java_org_flare_API_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
 			package_code_path = JNI::jstring_to_string(package);
 			files_dir_path = JNI::jstring_to_string(files_dir);
 			cache_dir_path = JNI::jstring_to_string(cache_dir);
