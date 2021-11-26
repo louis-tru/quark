@@ -105,19 +105,14 @@ namespace flare {
 		virtual ~Application();
 
 		/**
-		* @func initialize()
+		* @func run(opts)
 		*/
-		void initialize(cJSON& options = JSON::object()) throw(Error);
+		void run(cJSON& opts = JSON::object()) throw(Error);
 
 		/**
-		* @func run_loop 运行gui消息循环
+		* @func run_loop 运行消息循环
 		*/
-		void run_loop();
-
-		/**
-		* @func run_loop_on_new_thread 在新的线程运行gui消息循环
-		*/
-		void run_loop_on_new_thread();
+		void run_loop(cJSON& opts = JSON::object()) throw(Error);
 
 		/**
 		* @func pending() 挂起应用进程
@@ -143,11 +138,6 @@ namespace flare {
 		inline Render* render() { return _render; }
 		inline FontPool* font_pool() { return _font_pool; }
 		inline TexturePool* tex_pool() { return _tex_pool; }
-
-		/**
-		* @func has_current_render_thread()
-		*/
-		bool has_current_render_thread() const;
 
 		/**
 		* @func clear 清理垃圾回收内存资源, full=true 清理全部资源
@@ -209,9 +199,9 @@ namespace flare {
 
 	 private:
 		static Application* _shared;   // 当前应用程序
-		bool  _is_run, _is_load;
-		RunLoop  *_render_loop, *_main_loop;
-		KeepLoop *_render_keep, *_main_keep;
+		bool                 _is_load;
+		RunLoop*             _main_loop;
+		KeepLoop*            _main_keep;
 		Display*             _display;     // 显示端口
 		PreRender*           _pre_render;
 		Render*              _render;
@@ -220,10 +210,10 @@ namespace flare {
 		DefaultTextSettings* _default_text_settings;
 		EventDispatch*       _dispatch;
 		ActionCenter*        _action_center;
-		RecursiveMutex*      _gui_lock_mutex;
+		RecursiveMutex       _render_mutex;
 		FontPool*            _font_pool;        /* 字体纹理池 */
 		TexturePool*         _tex_pool;         /* 文件纹理池 */
-		uint64_t      _max_texture_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
+		uint64_t _max_texture_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
 		
 		F_DEFINE_INLINE_CLASS(Inl);
 		

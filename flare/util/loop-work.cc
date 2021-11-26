@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,37 +28,81 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
-#ifndef __flare__util___working__
-#define __flare__util___working__
-
-#include "./loop.h"
-#include "./dict.h"
+#include "flare/util/loop.h"
 
 namespace flare {
 
 	/**
-	* @class ParallelWorking
+	* @class WorkLoop
 	*/
-	class F_EXPORT ParallelWorking: public Object {
-		F_HIDDEN_ALL_COPY(ParallelWorking);
+	class WorkLoop {
 	 public:
-		typedef Thread::Exec Exec;
-		ParallelWorking();
-		ParallelWorking(RunLoop* loop);
-		virtual ~ParallelWorking();
-		ThreadID spawn_child(Exec exec, cString& name);
-		void awaken_child(ThreadID id = ThreadID());  // default awaken all child
-		void abort_child(ThreadID id = ThreadID());   // default abort all child
-		uint32_t post(Cb cb); // post message to main thread
-		uint32_t post(Cb cb, uint64_t delay_us);
-		void cancel(uint32_t id = 0); // cancel message
+		inline WorkLoop(): _loop(nullptr) {}
+
+		inline bool has_current_thread() {
+			return Thread::current_id() == _thread_id;
+		}
+
+		bool is_continue(Thread& t) {
+			ScopeLock scope(_mutex);
+
+			if (!t.is_abort()) {
+				/* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
+				* 200毫秒后没有向队列发送新消息结束线程
+				* * *
+				* 这里休眠200毫秒给外部线程足够时间往队列发送消息
+				*/
+				// Thread::sleep(2e5);
+				if ( m_loop->is_alive() && !t.is_abort() ) {
+					return true; // 继续运行
+				}
+			}
+			_loop = nullptr;
+			_id = ThreadID();
+			return false;
+		}
+		
+		RunLoop* loop() {
+			Lock lock(_mutex);
+
+			if (is_exited()) {
+				return nullptr;
+			}
+			if (_loop) {
+				return _loop;
+			}
+			
+			_id = Thread::fork([this](Thread& t) {
+				_mutex.lock();
+				_loop = RunLoop::current();
+				_cond.notify_all();
+				_mutex.unlock();
+				do {
+					_loop->run(2e7); // 20秒后没有新消息结束线程
+				} while(is_continue(t));
+				return 0;
+			}, "private_loop");
+
+			_cond.wait(lock); // wait
+
+			return _loop;
+		}
+
 	 private:
-		typedef Dict<ThreadID, int> Childs;
-		KeepLoop* _proxy;
-		Mutex _mutex2;
-		Childs _childs;
+		ThreadID _id;
+		RunLoop* _loop;
+		Mutex _mutex;
+		Condition _cond;
 	};
 
+	static PrivateLoop* _work_loop = new PrivateLoop();
+
+	RunLoop* work_loop() {
+		return _work_loop->loop();
+	}
+
+	bool has_work_loop_thread() {
+		return _work_loop->has_current_thread();
+	}
+
 }
-#endif

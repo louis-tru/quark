@@ -238,7 +238,6 @@ namespace flare {
 		List<Queue>     _queue;
 		List<Work*>     _works;
 		List<KeepLoop*> _keeps;
-		RecursiveMutex* _independent_mutex;
 		Mutex       _mutex;
 		Thread*     _thread;
 		ThreadID    _tid;

@@ -601,7 +601,7 @@ namespace flare {
 				}
 			}
 			
-			virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) { }
+			virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {}
 			
 			void send_multipart_form_data() {
 				F_ASSERT( _multipart_form_buffer.length() == BUFFER_SIZE );

@@ -33,7 +33,6 @@
 #include "./pre-render.h"
 #include "./layout/root.h"
 #include "./render/render.h"
-#include "./util/working.h"
 // #include "./action/action.h"
 
 namespace flare {
@@ -183,9 +182,9 @@ namespace flare {
 			* 所以这里释放`UILock`commit()主要是绘图相关的函数调用,
 			* 如果能够确保绘图函数的调用都在渲染线程,那就不会有安全问题。
 			*/
-			Inl2_RunLoop(_host->render_loop())->independent_mutex_unlock();
+			// Inl2_RunLoop(_host->render_loop())->independent_mutex_unlock();
 			render->commit();
-			Inl2_RunLoop(_host->render_loop())->independent_mutex_lock();
+			// Inl2_RunLoop(_host->render_loop())->independent_mutex_lock();
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t ts2 = (time_micro() - st) / 1e3;
 				if (ts2 > 16) {

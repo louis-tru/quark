@@ -294,56 +294,19 @@ namespace flare {
 		#define _inl(self) static_cast<RunLoop::Inl*>(self)
 	 public:
 
-		void run(int64_t timeout) {
-			if (is_exited()) {
-				F_DEBUG("cannot run RunLoop, __is_process_exit != 0");
-				return;
-			}
-			if (_thread->is_abort()) {
-				F_DEBUG("cannot run RunLoop, _thread->is_abort() == true");
-				return;
-			}
-			uv_async_t uv_async;
-			uv_timer_t uv_timer;
-			{ //
-				ScopeLock lock(_mutex);
-				F_ASSERT(Thread::current_id() == _tid, "Must run on the target thread");
-				F_ASSERT(!_uv_async);
-				_timeout = F_MAX(timeout, 0);
-				_record_timeout = 0;
-				_uv_async = &uv_async; uv_async.data = this;
-				_uv_timer = &uv_timer; uv_timer.data = this;
-				uv_async_init(_uv_loop, _uv_async, (uv_async_cb)(resolve_queue_before));
-				uv_timer_init(_uv_loop, _uv_timer);
-				activate_loop();
-			}
-			uv_run(_uv_loop, UV_RUN_DEFAULT); // run uv loop
-			close_uv_async();
-			{ // loop end
-				ScopeLock lock(_mutex);
-				_uv_async = nullptr;
-				_uv_timer = nullptr;
-				_timeout = 0;
-				_record_timeout = 0;
-			}
-			stop_after_print_message();
-		}
-
 		void stop_after_print_message();
 		
 		static void resolve_queue_before(uv_handle_t* handle) {
-			bool Continue;
-			do {
-				Continue = ((Inl*)handle->data)->resolve_queue();
-			} while (Continue);
+			auto self = (Inl*)handle->data;
+			do {} while( self->resolve_queue() );
 		}
 		
 		bool is_alive() {
 			// _uv_async 外是否还有活着的`handle`与请求
 			uv_loop_t* loop = _uv_loop;
-			//		return _uv_loop->active_handles > 1 ||
-			//					 QUEUE_EMPTY(&(loop)->active_reqs) == 0 ||
-			//					 loop->closing_handles != NULL;
+			//return _uv_loop->active_handles > 1 ||
+			//			 QUEUE_EMPTY(&(loop)->active_reqs) == 0 ||
+			//			 loop->closing_handles != NULL;
 			return uv_loop_alive(_uv_loop);
 		}
 		
@@ -364,7 +327,7 @@ namespace flare {
 			if (_uv_loop->stop_flag != 0) { // 循环停止标志
 				close_uv_async();
 			}
-			else if (timeout_ms == -1) { //
+			else if (timeout_ms == -1) { // -1 end loop, 没有更多需要处理的工作
 				if (_keeps.length() == 0 && _works.length() == 0) {
 					// RunLoop 已经没有需要处理的消息
 					if (is_alive()) { // 如果uv还有其它活着,那么间隔一秒测试一次
@@ -775,7 +738,43 @@ namespace flare {
 	 * @func run() 运行消息循环
 	 */
 	void RunLoop::run(uint64_t timeout) {
-		_inl(this)->run(timeout);
+		if (is_exited()) {
+			F_DEBUG("cannot run RunLoop, __is_process_exit != 0");
+			return;
+		}
+		if (_thread->is_abort()) {
+			F_DEBUG("cannot run RunLoop, _thread->is_abort() == true");
+			return;
+		}
+
+		uv_async_t uv_async;
+		uv_timer_t uv_timer;
+
+		{ //
+			ScopeLock lock(_mutex);
+			F_ASSERT(Thread::current_id() == _tid, "Must run on the target thread");
+			F_ASSERT(!_uv_async);
+			_timeout = F_MAX(timeout, 0);
+			_record_timeout = 0;
+			_uv_async = &uv_async; uv_async.data = this;
+			_uv_timer = &uv_timer; uv_timer.data = this;
+			uv_async_init(_uv_loop, _uv_async, (uv_async_cb)(resolve_queue_before));
+			uv_timer_init(_uv_loop, _uv_timer);
+			_inl(this)->activate_loop();
+		}
+
+		uv_run(_uv_loop, UV_RUN_DEFAULT); // run uv loop
+		_inl(this)->close_uv_async();
+
+		{ // loop end
+			ScopeLock lock(_mutex);
+			_uv_async = nullptr;
+			_uv_timer = nullptr;
+			_timeout = 0;
+			_record_timeout = 0;
+		}
+		
+		_inl(this)->stop_after_print_message();
 	}
 
 	/**

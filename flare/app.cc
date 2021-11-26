@@ -43,8 +43,8 @@
 #include "./layout/text.h"
 #include "./event.h"
 
-F_EXPORT int (*__fx_default_gui_main)(int, char**) = nullptr;
-F_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
+F_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
+F_EXPORT int (*__f_gui_main)(int, char**) = nullptr;
 
 namespace flare {
 
@@ -78,17 +78,15 @@ namespace flare {
 	}
 
 	void UILock::lock() {
-		if (_host->_gui_lock_mutex) {
-			if (!_lock) {
-				_lock = true;
-				_host->_gui_lock_mutex->lock();
-			}
+		if (!_lock) {
+			_lock = true;
+			_host->_render_mutex.lock();
 		}
 	}
 
 	void UILock::unlock() {
 		if (_lock) {
-			_host->_gui_lock_mutex->unlock();
+			_host->_render_mutex.unlock();
 			_lock = false;
 		}
 	}
@@ -177,8 +175,8 @@ namespace flare {
 	* @func setMain()
 	*/
 	void Application::setMain(int (*main)(int, char**)) {
-		F_ASSERT( !__fx_gui_main );
-		__fx_gui_main = main;
+		F_ASSERT( !__f_gui_main );
+		__f_gui_main = main;
 	}
 
 	/**
@@ -190,10 +188,10 @@ namespace flare {
 		
 		// 创建一个新子工作线程.这个函数必须由main入口调用
 		Thread::spawn([argc, argv](Thread& t) {
-			auto main = __fx_gui_main ? __fx_gui_main : __fx_default_gui_main;
+			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
 			F_ASSERT( main, "No gui main");
-			__fx_default_gui_main = nullptr;
-			__fx_gui_main = nullptr;
+			__f_default_gui_main = nullptr;
+			__f_gui_main = nullptr;
 			int rc = main(argc, argv); // 运行这个自定gui入口函数
 			F_DEBUG("Application::start Exit");
 			flare::exit(rc); // if sub thread end then exit
@@ -204,43 +202,6 @@ namespace flare {
 		while (!_shared || !_shared->_is_run) {
 			__run_main_wait->wait();
 		}
-	}
-
-	void Application::run_loop() {
-		F_ASSERT(!_is_run, "UI program has been running");
-
-		_is_run = true;
-		_render_loop = RunLoop::current(); // 当前消息队列
-		_render_keep = _render_loop->keep_alive("Application::run, render_loop"); // 保持
-		
-		if (_render_loop != _main_loop) { // independent render loop
-			_gui_lock_mutex = new RecursiveMutex();
-			Inl2_RunLoop(_render_loop)->set_independent_mutex(_gui_lock_mutex);
-			Thread::awaken(_main_loop->thread_id()); // main loop awaken
-		}
-		__run_main_wait->awaken(); // 外部线程继续运行
-
-		F_ASSERT(!_render_loop->runing());
-
-		_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
-
-		Release(_render_keep); _render_keep = nullptr;
-
-		_render_loop = nullptr;
-		_is_run = false;
-	}
-
-	void Application::run_loop_on_new_thread() {
-		F_ASSERT(RunLoop::is_main_loop()); // main loop call
-
-		Thread::spawn([this](Thread& t) {
-			F_DEBUG("run render loop ...");
-			run_loop();
-			F_DEBUG("run render loop end");
-			return 0;
-		}, "render_loop");
-
-		Thread::sleep(); // main loop sleep, await run loop ok
 	}
 
 	static void on_process_safe_handle(Event<>& e, Application* app) {
@@ -268,21 +229,18 @@ namespace flare {
 		, F_Init_Event(Resume)
 		, F_Init_Event(Memorywarning)
 		, _is_run(false), _is_load(false)
-		, _render_loop(nullptr), _main_loop(nullptr)
-		, _render_keep(nullptr), _main_keep(nullptr)
+		, _main_loop(nullptr), _main_keep(nullptr)
 		, _render(nullptr), _display(nullptr)
 		, _root(nullptr), _focus_view(nullptr)
 		, _default_text_settings(nullptr)
 		, _dispatch(nullptr), _action_center(nullptr)
 		, _pre_render(nullptr)
 		, _max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
-		, _gui_lock_mutex(nullptr)
 	{
 		F_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
 		_main_loop = RunLoop::main_loop();
 		_default_text_settings = new DefaultTextSettings();
-		_main_keep = _main_loop->keep_alive("Application::Application(), main_keep");
 		F_On(ProcessSafeExit, on_process_safe_handle, this);
 	}
 
@@ -299,15 +257,13 @@ namespace flare {
 		Release(_default_text_settings); _default_text_settings = nullptr;
 		Release(_dispatch);      _dispatch = nullptr;
 		// Release(_action_center); _action_center = nullptr;
-		Release(_display);       _display = nullptr;
-		Release(_pre_render);    _pre_render = nullptr;
+		Release(_display);     _display = nullptr;
+		Release(_pre_render);  _pre_render = nullptr;
 		Release(_render);      _render = nullptr;
-		Release(_render_keep);   _render_keep = nullptr;
-		Release(_main_keep);     _main_keep = nullptr;
+		Release(_main_keep);   _main_keep = nullptr;
 		Release(_font_pool); _font_pool = nullptr;
 		Release(_tex_pool); _tex_pool = nullptr;
 
-		_render_loop = nullptr;
 		_main_loop = nullptr;
 		_shared = nullptr;
 
@@ -315,24 +271,25 @@ namespace flare {
 	}
 
 	/**
-	* @func initialize()
+	* @func run()
 	*/
-	void Application::initialize(cJSON& options) throw(Error) {
+	void Application::run(cJSON& opts) throw(Error) {
+		if (!_main_keep) return;
 		UILock lock;
+		_main_keep = _main_loop->keep_alive("Application::Application(), main_keep");
 		_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
 		_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
-		_render = Render::create(this, options); F_DEBUG("Render::create() ok");
+		_render = Render::create(this, opts); F_DEBUG("Render::create() ok");
 		_font_pool = new FontPool(this);
 		_tex_pool = new TexturePool(this);
 		_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
 		// _action_center = new ActionCenter(); F_DEBUG("new ActionCenter ok");
+		__run_main_wait->awaken(); // 外部线程继续运行
 	}
 
-	/**
-	* @func has_current_render_thread()
-	*/
-	bool Application::has_current_render_thread() const {
-		return _render_loop && _render_loop->thread_id() == Thread::current_id();
+	void Application::run_loop(cJSON& opts) throw(Error) {
+		ASSERT(_main_loop->thread_id()); // main loop call
+		_main_loop->run();
 	}
 
 	/**
