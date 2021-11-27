@@ -70,44 +70,35 @@ namespace flare {
 			}
 		#endif
 
-		struct language_t {
-			String langs;
-			String lang;
-		};
-
 		#if F_APPLE
-			void get_languages_(String& langs, String& lang);
+			void get_languages_apple(Array<String>& langs);
 		#endif
 
+		struct language_t {
+			Array<String> langs;
+		};
 		static language_t* langs_ = nullptr;
 		static language_t* get_languages() {
 			if (!langs_) {
-				langs_ = new language_t();
+				langs_ = new language_t;
 			#if F_IOS
-				langs_ = new language_t();
-				get_languages_(langs_->langs, langs_->lang);
+				get_languages_apple(langs_->langs);
 			#elif F_ANDROID
-				langs_->langs = API::language();
-				langs_->lang = langs_->langs;
+				langs_->langs.push(API::language());
 			#elif F_LINUX
 				cChar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
 				if ( lang ) {
-					langs_->langs = String(lang).split('.')[0];
+					langs_->langs.push(String(lang).split('.')[0]);
 				} else {
-					langs_->langs = "en_US";
+					langs_->langs.push("en_US");
 				}
-				langs_->lang = langs_->langs;
 			#endif
 			}
 			return langs_;
 		}
 
-		String languages() {
+		const Array<String>& languages() {
 			return get_languages()->langs;
-		}
-
-		String language() {
-			return get_languages()->lang;
 		}
 
 		bool is_wifi() {

@@ -36,7 +36,6 @@
 using namespace flare;
 
 void test_https(int argc, char **argv) {
-	HttpHelper::initialize();
 	
 	Buffer buffer = HttpHelper::get_sync("https://fanyi.baidu.com/");
 	

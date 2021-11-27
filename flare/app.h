@@ -42,9 +42,6 @@
 	F_INIT_BLOCK(__f_main__) { flare::Application::setMain(&__f_main__); } \
 	int __f_main__(int argc, Char** argv)
 
-#define F_ASSERT_STRICT_RENDER_THREAD() F_ASSERT(app()->has_current_render_thread())
-#define F_ASSERT_RENDER_THREAD() F_ASSERT(app()->has_current_render_thread())
-
 namespace flare {
 
 	class Application;
@@ -97,27 +94,17 @@ namespace flare {
 		F_Event(Resume);
 		F_Event(Memorywarning);
 
-		Application();
-		
+		Application(JSON opts = JSON::object());
+
 		/**
 		* @destructor
 		*/
 		virtual ~Application();
 
 		/**
-		* @func initialize()
+		* @func run()
 		*/
-		void initialize(cJSON& options = JSON::object()) throw(Error);
-
-		/**
-		* @func run_loop 运行gui消息循环
-		*/
-		void run_loop();
-
-		/**
-		* @func run_loop_on_new_thread 在新的线程运行gui消息循环
-		*/
-		void run_loop_on_new_thread();
+		void run(bool is_loop = false) throw(Error);
 
 		/**
 		* @func pending() 挂起应用进程
@@ -136,18 +123,12 @@ namespace flare {
 		inline Display* display() { return _display; }
 		inline Root* root() { return _root; }
 		inline View* focus_view() { return _focus_view; }
-		inline RunLoop* render_loop() { return _render_loop; }
-		inline RunLoop* main_loop() { return _main_loop; }
+		inline RunLoop* loop() { return _loop; }
 		inline ActionCenter* action_center() { return _action_center; }
 		inline PreRender* pre_render() { return _pre_render; }
 		inline Render* render() { return _render; }
 		inline FontPool* font_pool() { return _font_pool; }
 		inline TexturePool* tex_pool() { return _tex_pool; }
-
-		/**
-		* @func has_current_render_thread()
-		*/
-		bool has_current_render_thread() const;
 
 		/**
 		* @func clear 清理垃圾回收内存资源, full=true 清理全部资源
@@ -208,10 +189,11 @@ namespace flare {
 		static void runMain(int argc, Char* argv[]);
 
 	 private:
-		static Application* _shared;   // 当前应用程序
-		bool  _is_run, _is_load;
-		RunLoop  *_render_loop, *_main_loop;
-		KeepLoop *_render_keep, *_main_keep;
+		static Application*  _shared;   // 当前应用程序
+		bool                 _is_load;
+		JSON                 _opts;
+		RunLoop*             _loop;
+		KeepLoop*            _keep;
 		Display*             _display;     // 显示端口
 		PreRender*           _pre_render;
 		Render*              _render;
@@ -220,10 +202,10 @@ namespace flare {
 		DefaultTextSettings* _default_text_settings;
 		EventDispatch*       _dispatch;
 		ActionCenter*        _action_center;
-		RecursiveMutex*      _gui_lock_mutex;
+		RecursiveMutex       _render_mutex;
 		FontPool*            _font_pool;        /* 字体纹理池 */
 		TexturePool*         _tex_pool;         /* 文件纹理池 */
-		uint64_t      _max_texture_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
+		uint64_t _max_texture_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
 		
 		F_DEFINE_INLINE_CLASS(Inl);
 		
@@ -232,7 +214,6 @@ namespace flare {
 	};
 
 	inline Application* app() { return Application::_shared; }
-	inline Display* display() { return app()->display(); }
 
 	typedef Application::UILock UILock;
 

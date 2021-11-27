@@ -61,22 +61,8 @@ namespace flare {
 		Childs _childs;
 	};
 
-	F_DEFINE_INLINE_MEMBERS(RunLoop, Inl2) {
-	 public:
-		inline void set_independent_mutex(RecursiveMutex* mutex) {
-			_independent_mutex = mutex;
-		}
-		inline void independent_mutex_lock() {
-			if (_independent_mutex) {
-				_independent_mutex->lock();
-			}
-		}
-		inline void independent_mutex_unlock() {
-			if (_independent_mutex) {
-				_independent_mutex->unlock();
-			}
-		}
-	};
+	F_EXPORT RunLoop* temp_work_loop();
+	F_EXPORT bool has_temp_work_thread();
 
 }
 #endif

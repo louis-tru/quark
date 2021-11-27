@@ -50,8 +50,11 @@ namespace flare {
 			[EAGLContext setCurrentContext:nullptr];
 		}
 
+		// @thread render
 		void setView(UIView* view) override {
 			F_ASSERT(!_view);
+			[EAGLContext setCurrentContext:_ctx];
+			F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 			_view = view;
 			_layer = (CAEAGLLayer*)view.layer;
 			_layer.drawableProperties = @{
@@ -113,7 +116,8 @@ namespace flare {
 	RenderApple* MakeGLRender(Application* host, const GLRender::DisplayParams& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
-			F_ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
+			[EAGLContext setCurrentContext:ctx];
+			F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
 			return new GLRenderIOS(host, ctx, parems);
 		} else {

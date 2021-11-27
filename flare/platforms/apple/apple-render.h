@@ -44,6 +44,9 @@ namespace flare {
 
 	class F_EXPORT RenderApple {
 	 public:
+		/**
+		 * @thread render
+		 */
 		virtual Render* render() = 0;
 		virtual void setView(UIView* view) = 0;
 		virtual Class layerClass() = 0;

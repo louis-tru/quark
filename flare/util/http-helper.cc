@@ -32,6 +32,7 @@
 #include "./http.h"
 #include "./fs.h"
 #include "./uv.h"
+#include "./working.h"
 
 namespace flare {
 
@@ -260,6 +261,71 @@ namespace flare {
 		options.post_data = data;
 		return http_request(options, cb, 0, false);
 	}
+
+	Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
+		if (has_temp_work_thread()) {
+			throw HttpError(ERR_CANNOT_RUN_SYNC_IO,
+											String::format("cannot send sync http request, %s"
+																		, options.url.c_str()), 0, options.url);
+		}
+		F_DEBUG("request_sync %s", options.url.c_str());
+		typedef Callback<RunLoop::PostSyncData> Cb_;
+		bool ok = false;
+		HttpError err = Error();
+		ResponseData data;
+
+		temp_work_loop()->post_sync(Cb_([&](Cb_::Data& d) {
+			auto dd = d.data;
+			try {
+				request(options, HCb([&,dd](HCb::Data& ev) {
+					if (ev.error) {
+						*const_cast<HttpError*>(&err) = std::move(*static_cast<const HttpError*>(ev.error));
+					} else {
+						*const_cast<ResponseData*>(&data) = std::move(*ev.data);
+						*const_cast<bool*>(&ok) = true;
+					}
+					dd->complete();
+				}));
+			} catch(const HttpError& e) {
+				*const_cast<HttpError*>(&err) = e;
+				dd->complete();
+			}
+		}));
+
+		if (ok) {
+			return data.data;
+		} else {
+			throw err;
+		}
+	}
+
+	void   HttpHelper::download_sync(cString& url, cString& save) throw(HttpError) {
+		RequestOptions options = default_request_options(url);
+		options.save = save;
+		request_sync(options);
+	}
+
+	Buffer HttpHelper::upload_sync(cString& url, cString& file) throw(HttpError) {
+		RequestOptions options = default_request_options(url);
+		options.upload = file;
+		options.method = HTTP_METHOD_POST;
+		options.disable_cache = true;
+		return request_sync(options);
+	}
+
+	Buffer HttpHelper::get_sync(cString& url, bool no_cache) throw(HttpError) {
+		RequestOptions options = default_request_options(url);
+		options.disable_cache = no_cache;
+		return request_sync(options);
+	}
+
+	Buffer HttpHelper::post_sync(cString& url, Buffer data) throw(HttpError) {
+		RequestOptions options = default_request_options(url);
+		options.method = HTTP_METHOD_POST;
+		options.post_data = data;
+		return request_sync(options);
+	}
+
 
 	/**
 	* @func abort

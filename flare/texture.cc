@@ -33,6 +33,7 @@
 #include "./util/fs.h"
 #include "./util/array.h"
 #include "./display.h"
+#include "./render/render.h"
 #include <math.h>
 // #include "./render/render.h"
 
@@ -318,7 +319,7 @@ namespace flare {
 			uint32_t size = 0;
 			uint32_t size_pixel = PixelData::get_pixel_data_size(mipmap_data[0].format());
 
-			F_ASSERT_STRICT_RENDER_THREAD();
+			// F_ASSERT_STRICT_RENDER_THREAD();
 
 			for (uint32_t i = 0; i < mipmap_data.length(); i++) {
 				auto data = mipmap_data[i];
@@ -358,7 +359,7 @@ namespace flare {
 			// TODO ...
 			// Render* ctx = _host->render();
 			// if (!ctx) return;
-			F_ASSERT_STRICT_RENDER_THREAD();
+			// F_ASSERT_STRICT_RENDER_THREAD();
 			
 			_status |= TEXTURE_LOADING;
 			int status = TEXTURE_NO_LOADED;
@@ -413,14 +414,14 @@ namespace flare {
 				_status |= TEXTURE_COMPLETE;
 			}
 			_status &= ~(TEXTURE_CHANGE_LEVEL_MASK | TEXTURE_LOADING); // delete mark
-			_host->main_loop()->post(Cb([this, status](CbData& e) {
+			_host->loop()->post(Cb([this, status](CbData& e) {
 				F_Trigger(Change, status);
 			}, this));
 		}
 
 		void clear() {
 			// auto ctx = draw_ctx();
-			bool post_to_render = !_host->has_current_render_thread();
+			// bool post_to_render = !_host->has_current_render_thread();
 			Array<uint32_t> post_to_render_handles;
 
 			for (int i = 0; i < 8; i++) {
@@ -442,7 +443,7 @@ namespace flare {
 			}
 
 			if (post_to_render_handles.length()) {
-				_host->render_loop()->post(Cb([post_to_render_handles](CbData& e) {
+				_host->render()->post_message(Cb([post_to_render_handles](CbData& e) {
 					// TODO ...
 					// auto ctx = draw_ctx();
 					// if (ctx) {
@@ -573,7 +574,7 @@ namespace flare {
 		int size = data.width() * data.height();
 		int new_size = size + size / 2;
 
-		F_ASSERT_STRICT_RENDER_THREAD();
+		// F_ASSERT_STRICT_RENDER_THREAD();
 
 		if (_host->adjust_texture_memory(new_size)) {
 			// TODO ...
@@ -589,7 +590,7 @@ namespace flare {
 			// 		_diagonal = Vec2(_width, _height).diagonal();
 			// 		_format = data.format();
 			// 		_status = TEXTURE_COMPLETE;
-			// 		main_loop()->post(Cb([this](CbData& e) {
+			// 		loop()->post(Cb([this](CbData& e) {
 			// 			F_Trigger(Change, TEXTURE_CHANGE_RELOADED | TEXTURE_CHANGE_LEVEL_MASK);
 			// 		}, this));
 			// 	}
@@ -646,7 +647,7 @@ namespace flare {
 		#define LoaderTextureError(err) { \
 			_status = TEXTURE_ERROR;  \
 			F_ERR(err, *_path); \
-			_host->main_loop()->post(Cb([this](CbData& e) { \
+			_host->loop()->post(Cb([this](CbData& e) { \
 				F_Trigger(Change, TEXTURE_CHANGE_ERROR); \
 			}, this)); \
 		}
@@ -711,10 +712,10 @@ namespace flare {
 				});
 				
 				if (_status & TEXTURE_CHANGE_LEVEL_0) {
-					// 解码需要时间,发送到工作线程执行解码操作
-					app->render_loop()->work(Cb([this, ctx, parser](CbData& e) {
-						ctx->output = parser->decode(ctx->input);
-					}, this), complete);
+					// TODO 解码需要时间,发送到工作线程执行解码操作 ...
+					// app->render_loop()->work(Cb([this, ctx, parser](CbData& e) {
+					// 	ctx->output = parser->decode(ctx->input);
+					// }, this), complete);
 				} else {
 					PixelData pd = parser->decode_header(ctx->input);
 					if (pd.width()) {
@@ -729,7 +730,7 @@ namespace flare {
 	}
 
 	bool FileTexture::unload(Level level) {
-		F_ASSERT_STRICT_RENDER_THREAD();
+		// F_ASSERT_STRICT_RENDER_THREAD();
 
 		if (level == LEVEL_NONE) { // unload all
 			if (_status & TEXTURE_LOADING) {
@@ -806,7 +807,7 @@ namespace flare {
 		}
 		
 		void trigger_change() {
-			_host->main_loop()->post(Cb([this](CbData& e) {
+			_host->loop()->post(Cb([this](CbData& e) {
 				TexturePoolEventData data = { progress(), nullptr };
 				F_Trigger(Change, data);
 			}));
@@ -883,7 +884,7 @@ namespace flare {
 	}
 
 	void TexturePool::clear(bool full) {
-		F_ASSERT_STRICT_RENDER_THREAD();
+		// F_ASSERT_STRICT_RENDER_THREAD();
 
 		bool del_mark = false;
 		auto it = _textures.begin(), end = _textures.end();

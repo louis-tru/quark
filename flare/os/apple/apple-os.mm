@@ -78,16 +78,11 @@ namespace flare {
 
 		#endif
 
-		void get_languages_(String& langs, String& lang) {
+		void get_languages_apple(Array<String>& langs) {
 			NSArray* languages = [NSLocale preferredLanguages];
 			for ( int i = 0; i < [languages count]; i++ ) {
 				NSString* str = [languages objectAtIndex:0];
-				if (i == 0) {
-					lang = [str UTF8String];
-				} else {
-					langs += ',';
-				}
-				langs += [str UTF8String];
+				langs.push([str UTF8String]);
 			}
 		}
 

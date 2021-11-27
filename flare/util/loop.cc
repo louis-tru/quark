@@ -52,11 +52,11 @@ namespace flare {
 		Condition cond;
 	};
 
-	static ThreadID __loop_main_loop_id;
-	static RunLoop* __loop_main_loop_obj = nullptr;
-	static Mutex* __thread_threads_mutex = nullptr;
-	static Dict<ThreadID, Thread*>* __thread_threads = nullptr;
-	static List<ListenSignal*>* __threads_end_listens = nullptr;
+	static ThreadID __first_loop_id;
+	static RunLoop* __first_loop = nullptr;
+	static Mutex* __threads_mutex = nullptr;
+	static Dict<ThreadID, Thread*>* __threads = nullptr;
+	static List<ListenSignal*>* __wait_end_listens = nullptr;
 	static pthread_key_t __specific_key;
 	static int __is_process_exit = 0;
 	static EventNoticer<>* __on_process_safe_exit = nullptr;
@@ -76,9 +76,9 @@ namespace flare {
 		static void initialize() {
 			F_DEBUG("thread_init_once");
 			atexit(Thread::Inl::before_exit);
-			__thread_threads = new Dict<ID, Thread*>();
-			__thread_threads_mutex = new Mutex();
-			__threads_end_listens = new List<ListenSignal*>();
+			__threads = new Dict<ID, Thread*>();
+			__threads_mutex = new Mutex();
+			__wait_end_listens = new List<ListenSignal*>();
 			__on_process_safe_exit = new EventNoticer<>("ProcessSafeExit", nullptr);
 			int err = pthread_key_create(&__specific_key, destructor);
 			F_ASSERT(err == 0);
@@ -103,16 +103,16 @@ namespace flare {
 				thread->_abort = true;
 			}
 			{
-				ScopeLock scope(*__thread_threads_mutex);
+				ScopeLock scope(*__threads_mutex);
 				F_DEBUG("Thread end ..., %s", *thread->name());
-				for (auto& i : *__threads_end_listens) {
+				for (auto& i : *__wait_end_listens) {
 					if (i->thread == thread) {
 						ScopeLock scope(i->mutex);
 						i->cond.notify_one();
 					}
 				}
 				F_DEBUG("Thread end  ok, %s", *thread->name());
-				__thread_threads->erase(thread->id());
+				__threads->erase(thread->id());
 			}
 		}
 
@@ -120,13 +120,14 @@ namespace flare {
 			if ( __is_process_exit ) {
 				return ID();
 			} else {
-				ScopeLock scope(*__thread_threads_mutex);
+				ScopeLock scope(*__threads_mutex);
 				Thread* thread = new Thread();
 				std::thread t(run, exec, thread);
 				thread->_id = t.get_id();
 				thread->_abort = false;
 				thread->_loop = nullptr;
-				(*__thread_threads)[thread->_id] = thread;
+				thread->_name = name;
+				__threads->set(thread->_id, thread);
 				t.detach();
 				return thread->_id;
 			}
@@ -146,9 +147,9 @@ namespace flare {
 			if (!__is_process_exit++) { // exit
 				Array<ID> threads_id;
 				{
-					ScopeLock scope(*__thread_threads_mutex);
-					F_DEBUG("threads count, %d", __thread_threads->length());
-					for ( auto& i : *__thread_threads ) {
+					ScopeLock scope(*__threads_mutex);
+					F_DEBUG("threads count, %d", __threads->length());
+					for ( auto& i : *__threads ) {
 						F_DEBUG("atexit_exec,name, %p, %s", i.value->id(), *i.value->name());
 						_inl_t(i.value)->resume(true); // resume sleep status and abort
 						threads_id.push(i.value->id());
@@ -167,8 +168,8 @@ namespace flare {
 			if (!is_exited++ && !__is_process_exit) {
 
 				// KeepLoop* keep = nullptr;
-				// if (__loop_main_loop_obj && __loop_main_loop_obj->runing()) {
-				// 	keep = __loop_main_loop_obj->keep_alive("Thread::Inl::exit()"); // keep main loop
+				// if (__first_loop && __first_loop->runing()) {
+				// 	keep = __first_loop->keep_alive("Thread::Inl::exit()"); // keep main loop
 				// }
 				F_DEBUG("Inl::exit(), 0");
 				Event<> ev(Int32(rc), nullptr, rc);
@@ -193,7 +194,7 @@ namespace flare {
 		return Inl::fork(exec, name);
 	}
 
-	Thread::sleep_(uint64_t timeoutUs) {
+	void Thread::sleep(uint64_t timeoutUs) {
 		std::this_thread::sleep_for(std::chrono::microseconds(timeoutUs));
 	}
 
@@ -219,28 +220,36 @@ namespace flare {
 	/**
 	 * @func resume
 	 */
-	void Thread::resume(ID id, bool abort) {
-		ScopeLock lock(*__thread_threads_mutex);
-		auto i = __thread_threads->find(id);
-		if ( i != __thread_threads->end() ) {
-			_inl_t(i->value)->resume(abort); // resume sleep status
+	void Thread::resume(ID id) {
+		ScopeLock lock(*__threads_mutex);
+		auto i = __threads->find(id);
+		if ( i != __threads->end() ) {
+			_inl_t(i->value)->resume(false); // resume sleep status
 		}
 	}
 
-	void Thread::wait_end(ID id, uint64_t timeoutUs) {
+	void Thread::abort(ID id) {
+		ScopeLock lock(*__threads_mutex);
+		auto i = __threads->find(id);
+		if ( i != __threads->end() ) {
+			_inl_t(i->value)->resume(true); // resume sleep status
+		}
+	}
+
+	void Thread::join(ID id, uint64_t timeoutUs) {
 		if (id == current_id()) {
-			F_DEBUG("Thread::wait_end(), cannot wait_end self thread");
+			F_DEBUG("Thread::join(), cannot wait_end self thread");
 			return;
 		}
-		Lock lock(*__thread_threads_mutex);
-		auto i = __thread_threads->find(id);
-		if ( i != __thread_threads->end() ) {
+		Lock lock(*__threads_mutex);
+		auto i = __threads->find(id);
+		if ( i != __threads->end() ) {
 			ListenSignal signal = { i->value };
-			auto it = __threads_end_listens->push_back(&signal);//(&signal);
+			auto it = __wait_end_listens->push_back(&signal);
 			{ //
 				Lock l(signal.mutex);
 				lock.unlock();
-				String name = i->value->name();
+				String name = i->value->_name;
 				F_DEBUG("Thread::wait_end, ..., %p, %s", id, *name);
 				if (timeoutUs) {
 					signal.cond.wait_for(l, std::chrono::microseconds(timeoutUs)); // wait
@@ -250,7 +259,7 @@ namespace flare {
 				F_DEBUG("Thread::wait_end, end, %p, %s", id, *name);
 			}
 			lock.lock();
-			__threads_end_listens->erase(it);
+			__wait_end_listens->erase(it);
 		}
 	}
 
@@ -294,6 +303,8 @@ namespace flare {
 		#define _inl(self) static_cast<RunLoop::Inl*>(self)
 	 public:
 
+		void stop_after_print_message();
+		
 		void run(int64_t timeout) {
 			if (is_exited()) {
 				F_DEBUG("cannot run RunLoop, __is_process_exit != 0");
@@ -307,20 +318,20 @@ namespace flare {
 			uv_timer_t uv_timer;
 			{ //
 				ScopeLock lock(_mutex);
+				F_ASSERT(!_uv_async, "It is running and cannot be called repeatedly");
 				F_ASSERT(Thread::current_id() == _tid, "Must run on the target thread");
-				F_ASSERT(!_uv_async);
 				_timeout = F_MAX(timeout, 0);
 				_record_timeout = 0;
 				_uv_async = &uv_async; uv_async.data = this;
 				_uv_timer = &uv_timer; uv_timer.data = this;
 				uv_async_init(_uv_loop, _uv_async, (uv_async_cb)(resolve_queue_before));
 				uv_timer_init(_uv_loop, _uv_timer);
-				activate_loop();
+				activate();
 			}
 			uv_run(_uv_loop, UV_RUN_DEFAULT); // run uv loop
-			close_uv_async();
 			{ // loop end
 				ScopeLock lock(_mutex);
+				close_uv_req_handles();
 				_uv_async = nullptr;
 				_uv_timer = nullptr;
 				_timeout = 0;
@@ -329,25 +340,15 @@ namespace flare {
 			stop_after_print_message();
 		}
 
-		void stop_after_print_message();
-		
-		static void resolve_queue_before(uv_handle_t* handle) {
-			bool Continue;
-			do {
-				Continue = ((Inl*)handle->data)->resolve_queue();
-			} while (Continue);
-		}
-		
 		bool is_alive() {
 			// _uv_async 外是否还有活着的`handle`与请求
-			uv_loop_t* loop = _uv_loop;
-			//		return _uv_loop->active_handles > 1 ||
-			//					 QUEUE_EMPTY(&(loop)->active_reqs) == 0 ||
-			//					 loop->closing_handles != NULL;
+			// return _uv_loop->active_handles > 1 ||
+			// 				QUEUE_EMPTY(&(_uv_loop)->active_reqs) == 0 ||
+			// 				_uv_loop->closing_handles != NULL;
 			return uv_loop_alive(_uv_loop);
 		}
 		
-		void close_uv_async() {
+		void close_uv_req_handles() {
 			if (!uv_is_closing((uv_handle_t*)_uv_async))
 				uv_close((uv_handle_t*)_uv_async, nullptr); // close async
 			uv_timer_stop(_uv_timer);
@@ -355,14 +356,17 @@ namespace flare {
 				uv_close((uv_handle_t*)_uv_timer, nullptr);
 		}
 		
+		static void resolve_queue_before(uv_handle_t* handle) {
+			((Inl*)handle->data)->resolve_queue();
+		}
+		
 		inline void uv_timer_req(int64_t timeout_ms) {
 			uv_timer_start(_uv_timer, (uv_timer_cb)resolve_queue_before, timeout_ms, 0);
 		}
 		
-		bool resolve_queue_after(int64_t timeout_ms) {
-			bool Continue = 0;
+		void resolve_queue_after(int64_t timeout_ms) {
 			if (_uv_loop->stop_flag != 0) { // 循环停止标志
-				close_uv_async();
+				close_uv_req_handles();
 			}
 			else if (timeout_ms == -1) { //
 				if (_keeps.length() == 0 && _works.length() == 0) {
@@ -374,7 +378,7 @@ namespace flare {
 						if (_record_timeout) { // 如果已开始记录继续等待
 							int64_t timeout = (time_monotonic() - _record_timeout - _timeout) / 1000;
 							if (timeout >= 0) { // 已经超时
-								close_uv_async();
+								close_uv_req_handles();
 							} else { // 继续等待超时
 								uv_timer_req(-timeout);
 							}
@@ -384,7 +388,7 @@ namespace flare {
 								_record_timeout = time_monotonic(); // 开始记录超时
 								uv_timer_req(timeout);
 							} else {
-								close_uv_async();
+								close_uv_req_handles();
 							}
 						}
 					}
@@ -395,45 +399,27 @@ namespace flare {
 				} else { // == 0
 					/* Do a cheap read first. */
 					uv_async_send(_uv_async);
-					// Continue = 1; // continue
 				}
 				_record_timeout = 0; // 取消超时记录
 			}
-			return Continue;
 		}
 		
-		void resolve_queue(List<Queue>& queue) {
-			int64_t now = time_monotonic();
-			for (auto i = queue.begin(), e = queue.end(); i != e; ) {
-				auto t = i++;
-				if (now >= t->time) { //
-					t->resolve->resolve(this);
-					queue.erase(t);
-				}
-			}
-		}
-		
-		bool resolve_queue() {
+		void resolve_queue() {
 			List<Queue> queue;
 			{ ScopeLock lock(_mutex);
 				if (_queue.length()) {
 					queue = std::move(_queue);
 				} else {
-					return resolve_queue_after(-1);
+					resolve_queue_after(-1);
 				}
 			}
 			if (queue.length()) {
-				if (_independent_mutex) {
-					std::lock_guard<RecursiveMutex> lock(*_independent_mutex);
-					resolve_queue(queue);
-				} else {
-					resolve_queue(queue);
-				}
+				exec_queue(queue);
 			}
 			{ ScopeLock lock(_mutex);
 				_queue.splice(_queue.begin(), queue);
 				if (_queue.length() == 0) {
-					return resolve_queue_after(-1);
+					resolve_queue_after(-1);
 				}
 				int64_t now = time_monotonic();
 				int64_t duration = Int64::limit_max;
@@ -445,7 +431,18 @@ namespace flare {
 						duration = du;
 					}
 				}
-				return resolve_queue_after(duration / 1e3);
+				resolve_queue_after(duration / 1e3);
+			}
+		}
+
+		void exec_queue(List<Queue>& queue) {
+			int64_t now = time_monotonic();
+			for (auto i = queue.begin(), e = queue.end(); i != e; ) {
+				auto t = i++;
+				if (now >= t->time) { //
+					t->resolve->resolve(this);
+					queue.erase(t);
+				}
 			}
 		}
 		
@@ -465,7 +462,7 @@ namespace flare {
 			} else {
 				_queue.push_back({ id, group, 0, exec });
 			}
-			activate_loop(); // 通知继续
+			activate(); // 通知继续
 			return id;
 		}
 
@@ -503,7 +500,7 @@ namespace flare {
 						cb->resolve(datap);
 					})
 				});
-				activate_loop(); // 通知继续
+				activate(); // 通知继续
 			}
 
 			while(!data.ok) {
@@ -524,10 +521,10 @@ namespace flare {
 					_queue.erase(j);
 				}
 			}
-			activate_loop(); // 通知继续
+			activate(); // 通知继续
 		}
 		
-		inline void activate_loop() {
+		inline void activate() {
 			if (_uv_async)
 				uv_async_send(_uv_async);
 		}
@@ -554,19 +551,14 @@ namespace flare {
 		}
 		static void uv_after_work_cb(uv_work_t* req, int status) {
 			Handle<Work> self = (Work*)req->data;
-			if (self->host->_independent_mutex) {
-				std::lock_guard<RecursiveMutex> lock(*self->host->_independent_mutex);
-				self->done_work(status);
-			} else {
-				self->done_work(status);
-			}
+			self->done_work(status);
 		}
 		void done_work(int status) {
 			_inl(host)->delete_work(it);
 			if (UV_ECANCELED != status) { // cancel
 				done->resolve(host);
 			}
-			_inl(host)->activate_loop();
+			_inl(host)->activate();
 		}
 	};
 
@@ -584,8 +576,7 @@ namespace flare {
 	 * @constructor
 	 */
 	RunLoop::RunLoop(Thread* t, uv_loop_t* uv)
-		: _independent_mutex(nullptr)
-		, _thread(t)
+		: _thread(t)
 		, _tid(t->id())
 		, _uv_loop(uv)
 		, _uv_async(nullptr)
@@ -602,7 +593,7 @@ namespace flare {
 	 * @destructor
 	 */
 	RunLoop::~RunLoop() {
-		ScopeLock lock(*__thread_threads_mutex);
+		ScopeLock lock(*__threads_mutex);
 		F_ASSERT(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 		
 		{
@@ -617,9 +608,9 @@ namespace flare {
 			}
 		}
 
-		if (__loop_main_loop_obj == this) {
-			__loop_main_loop_obj = nullptr;
-			__loop_main_loop_id = ThreadID();
+		if (__first_loop == this) {
+			__first_loop = nullptr;
+			__first_loop_id = ThreadID();
 		}
 
 		if (_uv_loop != uv_default_loop()) {
@@ -640,35 +631,35 @@ namespace flare {
 		F_ASSERT(t, "Can't get thread specific data");
 		auto loop = t->loop();
 		if (!loop) {
-			ScopeLock scope(*__thread_threads_mutex);
-			if (__loop_main_loop_obj) {
+			ScopeLock scope(*__threads_mutex);
+			if (__first_loop) {
 				loop = new RunLoop(t, uv_loop_new());
 			} else { // this is main loop
 				loop = new RunLoop(t, uv_default_loop());
-				__loop_main_loop_obj = loop;
-				__loop_main_loop_id = t->id();
+				__first_loop = loop;
+				__first_loop_id = loop->_tid;
 			}
 		}
 		return loop;
 	}
 
 	/**
-	 * @func main_loop();
+	 * @func first();
 	 */
-	RunLoop* RunLoop::main_loop() {
+	RunLoop* RunLoop::first() {
 		// TODO: 小心线程安全,最好先确保已调用过`current()`
-		if (!__loop_main_loop_obj) {
+		if (!__first_loop) {
 			current();
-			F_ASSERT(__loop_main_loop_obj);
+			F_ASSERT(__first_loop);
 		}
-		return __loop_main_loop_obj;
+		return __first_loop;
 	}
 
 	/**
-	 * @func is_main_loop 当前线程是为主循环
+	 * @func is_first_loop 当前线程是否为第一循环
 	 */
-	bool RunLoop::is_main_loop() {
-		return __loop_main_loop_id == Thread::current_id();
+	bool RunLoop::is_first() {
+		return __first_loop_id == Thread::current_id();
 	}
 
 	/**
@@ -768,7 +759,7 @@ namespace flare {
 				break;
 			}
 		}
-		_inl(this)->activate_loop();
+		_inl(this)->activate();
 	}
 
 	/**
@@ -803,50 +794,6 @@ namespace flare {
 		return keep;
 	}
 
-	static RunLoop* loop_2(ThreadID id) {
-		auto i = __thread_threads->find(id);
-		if (i == __thread_threads->end()) {
-			return nullptr;
-		}
-		return i->value->loop();
-	}
-
-	/**
-	 * @func next_tick
-	 */
-	void RunLoop::next_tick(Cb cb) throw(Error) {
-		RunLoop* loop = RunLoop::current();
-		if ( loop ) {
-			loop->post(cb);
-		} else { // 没有消息队列 post to io loop
-			F_THROW(ERR_NOT_RUN_LOOP, "Unable to obtain thread io run loop");
-		}
-	}
-
-	/**
-	 * @func stop() 停止循环
-	 */
-	void RunLoop::stop(ThreadID id) {
-		ScopeLock scope(*__thread_threads_mutex);
-		auto loop = loop_2(id);
-		if (loop) {
-			loop->stop();
-		}
-	}
-
-	/**
-	 * @func is_alive()
-	 */
-	bool RunLoop::is_alive(ThreadID id) {
-		ScopeLock scope(*__thread_threads_mutex);
-		auto loop = loop_2(id);
-		F_DEBUG("RunLoop::is_alive, %p, %p", loop, id);
-		if (loop) {
-			return loop->is_alive();
-		}
-		return false;
-	}
-
 	// ************** KeepLoop **************
 
 	KeepLoop::KeepLoop(cString& name, bool clean)
@@ -854,7 +801,7 @@ namespace flare {
 	}
 
 	KeepLoop::~KeepLoop() {
-		ScopeLock lock(*__thread_threads_mutex);
+		ScopeLock lock(*__threads_mutex);
 
 		if (_loop) {
 			ScopeLock lock(_loop->_mutex);
@@ -866,7 +813,7 @@ namespace flare {
 			_loop->_keeps.erase(_id); // 减少一个引用计数
 
 			if (_loop->_keeps.length() == 0 && !_loop->_uv_loop->stop_flag) { // 可以结束了
-				_inl(_loop)->activate_loop(); // 激活循环状态,不再等待
+				_inl(_loop)->activate(); // 激活循环状态,不再等待
 			}
 		} else {
 			F_DEBUG("Keep already invalid \"%s\", RunLoop already stop and release", *_name);

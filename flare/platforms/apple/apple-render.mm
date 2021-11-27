@@ -37,10 +37,16 @@ namespace flare {
 		float scale = UIScreen.mainScreen.scale;
 		float x = rect.size.width * scale;
 		float y = rect.size.height * scale;
-		if ( x != 0 && y != 0 ) {
-			return render()->host()->display()->set_surface_region({ 0,0,x,y,x,y });
-		}
-		return false;
+		return render()->host()->display()->set_surface_region({ 0,0,x,y,x,y });
+	}
+
+	uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
+		auto core = cb.Handle::collapse();
+		dispatch_async(dispatch_get_main_queue(), ^{
+			Cb cb(core);
+			cb->resolve();
+		});
+		return 0;
 	}
 
 	RenderApple* MakeRasterRender(Application* host, const Render::DisplayParams& parems);
@@ -49,15 +55,13 @@ namespace flare {
 
 	RenderApple* RenderApple::create(Application* host, cJSON& options) {
 		RenderApple* r = nullptr;
-
 		auto parems = Render::parseDisplayParams(options);
-
 		bool gpu = true;
 		bool metal = true;
 
 		if (gpu) {
 			if (metal) {
-				r = MakeMetalRender(host, parems);
+				//r = MakeMetalRender(host, parems);
 			}
 			if (r) {
 				return r;

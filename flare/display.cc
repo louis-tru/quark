@@ -42,8 +42,10 @@ namespace flare {
 	 public:
 		#define _inl(self) static_cast<Display::Inl*>(self)
 
-		void update_from_render_loop() {
-			ScopeLock lock(_Mutex);
+		/**
+		 * @thread render
+		 */
+		void update_state() { // Called in render loop
 
 			Vec2 _phy_size = phy_size();
 			float width = _phy_size.x();
@@ -94,7 +96,7 @@ namespace flare {
 				_size.x(), _size.y(),
 			};
 			
-			_host->main_loop()->post(Cb([this](CbData& e){
+			_host->loop()->post(Cb([this](CbData& e){
 				F_Trigger(Change); // 通知事件
 			}));
 
@@ -105,9 +107,10 @@ namespace flare {
 		* @func solve_next_frame()
 		*/
 		void solve_next_frame() {
+			ScopeLock lock(_Mutex);
 			if (_next_frame.length()) {
 				List<Cb>* cb = new List<Cb>(std::move(_next_frame));
-				_host->main_loop()->post(Cb([cb](CbData& e) {
+				_host->loop()->post(Cb([cb](CbData& e) {
 					Handle<List<Cb>> handle(cb);
 					for ( auto& i : *cb ) {
 						i->resolve();
@@ -143,9 +146,9 @@ namespace flare {
 			ScopeLock lock(_Mutex);
 			if (_lock_size.width() != width || _lock_size.height() != height) {
 				_lock_size = { width, height };
-				F_ASSERT(_host->render_loop());
-				_host->render_loop()->post(Cb([this](CbData& e) {
-					_inl(this)->update_from_render_loop();
+				_host->render()->post_message(Cb([this](CbData& e) {
+					ScopeLock lock(_Mutex);
+					_inl(this)->update_state();
 				}));
 			}
 		} else {
@@ -158,6 +161,7 @@ namespace flare {
 	#endif
 
 	void Display::render_frame(bool force) {// 必须要渲染循环中调用
+		UILock lock(_host); // ui main local
 		Root* root = _host->root();
 		int64_t now_time = time_monotonic();
 		// _host->action_center()->advance(now_time); // advance action TODO ...
@@ -183,9 +187,8 @@ namespace flare {
 			* 所以这里释放`UILock`commit()主要是绘图相关的函数调用,
 			* 如果能够确保绘图函数的调用都在渲染线程,那就不会有安全问题。
 			*/
-			Inl2_RunLoop(_host->render_loop())->independent_mutex_unlock();
+			lock.unlock(); //
 			render->commit();
-			Inl2_RunLoop(_host->render_loop())->independent_mutex_lock();
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t ts2 = (time_micro() - st) / 1e3;
 				if (ts2 > 16) {
@@ -232,23 +235,36 @@ namespace flare {
 		_display_region.push_back(re);
 	}
 
+	void Display::pop_display_region() {
+		F_ASSERT( _display_region.length() > 1 );
+		_display_region.pop_back();
+	}
+
 	void Display::next_frame(cCb& cb) {
+		ScopeLock lock(_Mutex);
 		_next_frame.push_back(cb);
 	}
 
+	void Display::set_best_display_scale(float value) {
+		ScopeLock lock(_Mutex);
+		_best_display_scale = value;
+	}
+
 	bool Display::set_surface_region(Region region) {
-		F_ASSERT(_host->has_current_render_thread());
-		if (
-					_surface_region.x != region.x 
-			||	_surface_region.y != region.y
-			||	_surface_region.x2 != region.x2
-			||	_surface_region.y2 != region.y2
-			||	_surface_region.width != region.width
-			||	_surface_region.height != region.height
-		) {
-			_surface_region = region;
-			_inl(this)->update_from_render_loop();
-			return true;
+		ScopeLock lock(_Mutex);
+		if (region.width != 0 && region.height != 0) {
+			if (
+						_surface_region.x != region.x 
+				||	_surface_region.y != region.y
+				||	_surface_region.x2 != region.x2
+				||	_surface_region.y2 != region.y2
+				||	_surface_region.width != region.width
+				||	_surface_region.height != region.height
+			) {
+				_surface_region = region;
+				_inl(this)->update_state();
+				return true;
+			}
 		}
 		return false;
 	}
