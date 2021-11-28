@@ -194,15 +194,15 @@ namespace flare {
 		static RunLoop* current();
 		
 		/**
-		* Be careful with thread safety. It's best to ensure that `current()` has been invoked first.
-		* @func first_loop()
+		* @func is_current() 是否为当前`loop`
 		*/
-		static RunLoop* first();
+		static bool is_current(RunLoop* loop);
 		
 		/**
-		* @func is_first_loop() 当前线程是第一循环
+		* Be careful with thread safety. It's best to ensure that `current()` has been invoked first.
+		* @func first()
 		*/
-		static bool is_first();
+		static RunLoop* first();
 
 	 private:
 		/**

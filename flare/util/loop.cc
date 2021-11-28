@@ -52,7 +52,6 @@ namespace flare {
 		Condition cond;
 	};
 
-	static ThreadID __first_loop_id;
 	static RunLoop* __first_loop = nullptr;
 	static Mutex* __threads_mutex = nullptr;
 	static Dict<ThreadID, Thread*>* __threads = nullptr;
@@ -610,7 +609,6 @@ namespace flare {
 
 		if (__first_loop == this) {
 			__first_loop = nullptr;
-			__first_loop_id = ThreadID();
 		}
 
 		if (_uv_loop != uv_default_loop()) {
@@ -628,7 +626,10 @@ namespace flare {
 	 */
 	RunLoop* RunLoop::current() {
 		auto t = Thread::current();
-		F_ASSERT(t, "Can't get thread specific data");
+		if (!t) {
+			F_WARN(t, "Can't get thread specific data");
+			return nullptr;
+		}
 		auto loop = t->loop();
 		if (!loop) {
 			ScopeLock scope(*__threads_mutex);
@@ -637,10 +638,16 @@ namespace flare {
 			} else { // this is main loop
 				loop = new RunLoop(t, uv_default_loop());
 				__first_loop = loop;
-				__first_loop_id = loop->_tid;
 			}
 		}
 		return loop;
+	}
+
+	/**
+	 * @func is_current 当前线程是否为第一循环
+	 */
+	bool RunLoop::is_current(RunLoop* loop) {
+		return loop && loop->_tid == Thread::current_id();
 	}
 
 	/**
@@ -650,16 +657,9 @@ namespace flare {
 		// TODO: 小心线程安全,最好先确保已调用过`current()`
 		if (!__first_loop) {
 			current();
-			F_ASSERT(__first_loop);
+			F_ASSERT(__first_loop); // asset
 		}
 		return __first_loop;
-	}
-
-	/**
-	 * @func is_first_loop 当前线程是否为第一循环
-	 */
-	bool RunLoop::is_first() {
-		return __first_loop_id == Thread::current_id();
 	}
 
 	/**
