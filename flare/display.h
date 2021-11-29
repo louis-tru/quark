@@ -235,7 +235,6 @@ namespace flare {
 		uint32_t          _fsp, _record_fsp;
 		int64_t           _record_fsp_time;
 		Region            _surface_region;  /* 选择绘图表面有区域 */
-		Mutex             _Mutex;
 		
 		F_DEFINE_INLINE_CLASS(Inl);
 	};

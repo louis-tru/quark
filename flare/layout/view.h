@@ -152,6 +152,13 @@ namespace flare {
 		virtual void append(View* child);
 
 		/**
+		 * Append subview to parent
+		 *
+		 * @func append_to(parent)
+		 */
+		View* append_to(View* parent);
+
+		/**
 			*
 			* Remove and destroy self
 			* 

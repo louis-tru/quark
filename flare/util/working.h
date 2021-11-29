@@ -44,11 +44,11 @@ namespace flare {
 	class F_EXPORT ParallelWorking: public Object {
 		F_HIDDEN_ALL_COPY(ParallelWorking);
 	 public:
-		typedef Thread::Exec Exec;
+		typedef Thread::Func Func;
 		ParallelWorking();
 		ParallelWorking(RunLoop* loop);
 		virtual ~ParallelWorking();
-		ThreadID spawn_child(Exec exec, cString& name);
+		ThreadID spawn_child(Func func, cString& name);
 		void awaken_child(ThreadID id = ThreadID());  // default awaken all child
 		void abort_child(ThreadID id = ThreadID());   // default abort all child
 		uint32_t post(Cb cb); // post message to main thread

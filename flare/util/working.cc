@@ -53,14 +53,19 @@ namespace flare {
 	/**
 	* @func run
 	*/
-	ThreadID ParallelWorking::spawn_child(Exec exec, cString& name) {
+	ThreadID ParallelWorking::spawn_child(Func func, cString& name) {
 		ScopeLock scope(_mutex2);
-		auto id = Thread::fork([this, exec](Thread& t) {
-			int rc = exec(t);
-			ScopeLock scope(_mutex2);
-			_childs.erase(t.id());
-			return rc;
-		}, name);
+		struct Tmp {
+			typedef NonObjectTraits Traits;
+			ParallelWorking* self;
+			Func func;
+		};
+		auto id = Thread::create([](Thread& t, void* arg) {
+			Handle<Tmp> tmp = (Tmp*)arg;
+			tmp->func(t);
+			ScopeLock scope(tmp->self->_mutex2);
+			tmp->self->_childs.erase(t.id());
+		}, new Tmp, name);
 		_childs[id] = 1;
 		return id;
 	}
@@ -79,7 +84,7 @@ namespace flare {
 				Thread::abort(i.key);
 			}
 			for (auto& i : childs) {
-				Thread::join(i.key);
+				Thread::wait(i.key);
 			}
 			F_DEBUG("ParallelWorking::abort_child() ok, count: %d", childs.length());
 		} else {
@@ -89,7 +94,7 @@ namespace flare {
 					"Only subthreads belonging to \"ParallelWorking\" can be aborted");
 			}
 			Thread::abort(id);
-			Thread::join(id);
+			Thread::wait(id);
 			F_DEBUG("ParallelWorking::abort_child(id) ok");
 		}
 	}
@@ -172,17 +177,17 @@ namespace flare {
 			if (_loop)
 				return _loop;
 			
-			Thread::fork([this](Thread& t) {
-				_mutex.lock();
-				_thread_id = t.id();
-				_loop = RunLoop::current();
-				_cond.notify_all(); // call wait ok
-				_mutex.unlock();
+			Thread::create([](Thread& t, void* arg) {
+				auto self = (TempWorkLoop*)arg;
+				self->_mutex.lock();
+				self->_thread_id = t.id();
+				self->_loop = RunLoop::current();
+				self->_cond.notify_all(); // call wait ok
+				self->_mutex.unlock();
 				do {
-					_loop->run(2e7); // 20秒后没有新消息结束线程
-				} while(is_continue(t));
-				return 0;
-			}, "work_loop");
+					self->_loop->run(2e7); // 20秒后没有新消息结束线程
+				} while(self->is_continue(t));
+			}, this, "work_loop");
 			
 			_cond.wait(lock); // call wait
 

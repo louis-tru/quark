@@ -211,9 +211,13 @@ namespace flare {
 		
 		friend class UILock;
 		friend Application* app();
+		friend Display* display();
+		friend PreRender* pre_render();
 	};
 
 	inline Application* app() { return Application::_shared; }
+	inline Display* display() { return Application::_shared->_display; }
+	inline PreRender* pre_render() { return Application::_shared->_pre_render; }
 
 	typedef Application::UILock UILock;
 

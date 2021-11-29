@@ -254,11 +254,11 @@ namespace flare {
 				_pcm->set_volume(_volume);
 				_pcm->set_mute(_mute);
 				
-				Thread::fork([this](Thread& t) {
-					ScopeLock scope(_audio_loop_mutex);
-					Inl_AudioPlayer(this)->play_audio();
-					return 0;
-				}, "audio");
+				Thread::create([](Thread& t, void* arg) {
+					auto self = (Inl*)arg;
+					ScopeLock scope(self->_audio_loop_mutex);
+					self->play_audio();
+				}, this, "audio");
 			} else {
 				stop_2(lock, true);
 			}

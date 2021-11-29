@@ -160,15 +160,15 @@ namespace flare {
 
 	template<typename Type, Type TypeInit, typename Value = float>
 	struct TemplateValue {
-		Value value;
-		Type type;
+		Value value = Value();
+		Type type = TypeInit;
+		// @members method
 		inline bool operator==(const TemplateValue& val) const {
 			return val.type == type && val.value == value;
 		}
 		inline bool operator!=(const TemplateValue& val) const {
-			return !operator==(val);
+			return val.type != type || val.value != value;
 		}
-		inline TemplateValue(Value v = Value(), Type t = TypeInit): value(v), type(t) {}
 	};
 
 	// rect
@@ -185,6 +185,7 @@ namespace flare {
 	struct Shadow {
 		float offset_x, offset_y, size;
 		Color color;
+		// @members method
 		inline bool operator==(const Shadow& val) const {
 			return (
 				val.offset_x == offset_x && val.offset_y == offset_y && 

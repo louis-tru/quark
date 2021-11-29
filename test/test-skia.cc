@@ -4,6 +4,7 @@
 #include <flare/app.h>
 #include <flare/layout/root.h>
 #include <flare/render/render.h>
+#include <flare/layout/flex.h>
 
 using namespace flare;
 
@@ -48,9 +49,18 @@ void draw_skia(SkCanvas* canvas) {
 }
 
 void onload_handle(Event<>& evt, Application* app) {
-	Root::create();
-	draw_skia(app->render()->canvas());
-	app->render()->commit();
+	//draw_skia(app->render()->canvas());
+	//app->render()->commit();
+	
+	auto r = Root::create();
+	auto flex = New<FlexLayout>()->append_to(r);
+	auto flow = New<FlowLayout>()->append_to(r);
+
+	New<Box>()->append_to(flex);
+	New<Box>()->append_to(flex);
+	New<Box>()->append_to(flow);
+	New<Box>()->append_to(flow);
+	
 	F_LOG("%s, %p\n", "ok skia", app);
 }
 

@@ -125,10 +125,10 @@ namespace flare {
 						}
 						
 						if ( _background_run ) { // background_run
-							_background_run_id = Thread::fork([this](Thread& t) {
-								background_run(t);
-								return 0;
-							}, "x_decoder_background_run_thread");
+							_background_run_id = Thread::create([](Thread& t, void* arg) {
+								auto self = (SoftwareMediaCodec*)arg;
+								self->background_run(t);
+							}, this, "x_decoder_background_run_thread");
 						}
 					}
 				}
@@ -149,7 +149,7 @@ namespace flare {
 				if ( _background_run ) {
 					lock.unlock();
 					Thread::abort(_background_run_id);
-					Thread::join(_background_run_id);
+					Thread::wait(_background_run_id);
 					lock.lock();
 				}
 				if ( avcodec_close(_codec_ctx) >= 0 ) {

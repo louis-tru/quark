@@ -47,12 +47,7 @@ namespace flare {
 	}
 
 	float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out);
-
-	F_DEFINE_INLINE_MEMBERS(FlowLayout, Inl) {
-	 public:
-		#define _inl_flow(self) static_cast<FlowLayout::Inl*>(static_cast<FlowLayout*>(self))
-		void set_wrap(Wrap wrap);
-	};
+	void  __Flow_set_wrap(FlowLayout* self, Wrap wrap);
 
 	// flex private members method
 	F_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
@@ -267,7 +262,7 @@ namespace flare {
 				}
 			}
 
-			for (auto i: lines) {
+			for (auto& i: lines) {
 				float cross = i.max_cross + cross_overflow_item;
 				float overflow = main_size - i.total_main;
 				float space = 0;
@@ -347,7 +342,7 @@ namespace flare {
 		: _items_align(ItemsAlign::START)
 		, _is_lock_child(false)
 	{
-		_inl_flow(this)->set_wrap(Wrap::NO_WRAP);
+		__Flow_set_wrap(this, Wrap::NO_WRAP);
 	}
 
 	/**

@@ -248,7 +248,7 @@ namespace flare {
 				}
 			}
 
-			for (auto i: lines) {
+			for (auto& i: lines) {
 				float cross = i.max_cross + cross_overflow_item;
 				float overflow = main_size - i.total_main;
 				float offset = 0;
@@ -293,6 +293,10 @@ namespace flare {
 
 	float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out) {
 		return FlowLayout::Inl::parseAlignSpace(align, is_reverse, overflow, count, space_out);
+	}
+
+	void __Flow_set_wrap(FlowLayout* self, Wrap wrap) {
+		_inl(self)->set_wrap(wrap);
 	}
 
 	/**

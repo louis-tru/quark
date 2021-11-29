@@ -495,7 +495,7 @@ namespace flare {
 	template<typename T, typename A>
 	std::vector<T> Array<T, A>::vector() const {
 		std::vector<T> r;
-		for (auto i: *this)
+		for (auto& i: *this)
 			r.push_back(i);
 		return std::move(r);
 	}

@@ -127,7 +127,7 @@ int Start(const Array<String>& argv_in) {
 	Array<Char*> argv, flare_argv;
 	parseArgv(argv_in, argv, flare_argv);
 
-	Thread::F_On(ProcessSafeExit, on_process_safe_handle);
+	Thread::F_On(SafeExit, on_process_safe_handle);
 
 	__fx_flare_argv = &flare_argv;
 	int rc = 0;
@@ -161,7 +161,7 @@ int Start(const Array<String>& argv_in) {
 		rc = IMPL::start(argc, argv_c);
 	}
 	__fx_flare_argv = nullptr;
-	Thread::F_Off(ProcessSafeExit, on_process_safe_handle);
+	Thread::F_Off(SafeExit, on_process_safe_handle);
 
 	return rc;
 }

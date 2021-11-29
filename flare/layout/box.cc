@@ -141,7 +141,7 @@ namespace flare {
 		* @constructors
 		*/
 	Box::Box()
-		: _limit_width(0, SizeType::NONE), _limit_height(0, SizeType::NONE)
+		: _limit_width{0, SizeType::NONE}, _limit_height{0, SizeType::NONE}
 		, _margin_top(0), _margin_right(0)
 		, _margin_bottom(0), _margin_left(0)
 		, _padding_top(0), _padding_right(0)
@@ -584,7 +584,7 @@ namespace flare {
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 		* 这种模糊测试在大多数时候都是正确有效的。
 		*/
-		Region dre = app()->display()->display_region();
+		Region dre = display()->display_region();
 		Region re = screen_region_from_convex_quadrilateral(vertex);
 		
 		if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) <= re.height + dre.height &&

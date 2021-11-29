@@ -129,7 +129,7 @@ namespace flare {
 	List<T, A>::List(const List& list)
 	{
 		init_();
-		for (auto i: list) {
+		for (auto& i: list) {
 			push_back(i);
 		}
 	}
@@ -162,7 +162,7 @@ namespace flare {
 	template<typename T, typename A>
 	List<T, A>& List<T, A>::operator=(const List& ls) { // copy
 		clear();
-		for (auto i: ls) {
+		for (auto& i: ls) {
 			push_back(i);
 		}
 		return *this;

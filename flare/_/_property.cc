@@ -157,7 +157,7 @@ namespace flare {
 		set_func(font, TextFont, PROPERTY_TEXT_LINE_HEIGHT, text_line_height);
 		set_func(font, TextFont, PROPERTY_TEXT_DECORATION, text_decoration);
 		
-		for (auto i : font) { // extend
+		for (auto& i : font) { // extend
 			_property_func_table[View::LABEL].set(i.key, i.value); // label
 		}
 		
@@ -165,7 +165,7 @@ namespace flare {
 		set_func(font, TextLayout, PROPERTY_TEXT_OVERFLOW, text_overflow);
 		set_func(font, TextLayout, PROPERTY_TEXT_WHITE_SPACE, text_white_space);
 		
-		for (auto i : font) { // extend
+		for (auto& i : font) { // extend
 			_property_func_table[View::HYBRID].set(i.key, i.value);  // hybrid
 			_property_func_table[View::SPAN].set(i.key, i.value);  // span
 		}

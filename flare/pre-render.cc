@@ -35,7 +35,8 @@
 namespace flare {
 
 	F_DEFINE_INLINE_MEMBERS(PreRender, Inl) {
-		public:
+		#define _inl(self) static_cast<PreRender::Inl*>(self)
+	 public:
 
 		/**
 		* @func add_task
@@ -61,8 +62,8 @@ namespace flare {
 		void solve_mark() {
 			do {
 				{ // forward iteration
-					for (auto levelMarks: _marks) {
-						for (auto layout: levelMarks) {
+					for (auto& levelMarks: _marks) {
+						for (auto& layout: levelMarks) {
 							if (layout) {
 								if ( !layout->layout_forward(layout->layout_mark()) ) {
 									// simple delete mark
@@ -76,8 +77,8 @@ namespace flare {
 				}
 				if (_mark_total > 0) { // reverse iteration
 					for (int i = _marks.length() - 1; i >= 0; i--) {
-						auto levelMarks = _marks[i];
-						for (auto layout: levelMarks) {
+						auto& levelMarks = _marks[i];
+						for (auto& layout: levelMarks) {
 							if (layout) {
 								if ( !layout->layout_reverse(layout->layout_mark()) ) {
 									// simple delete mark recursive
@@ -92,15 +93,15 @@ namespace flare {
 				F_ASSERT(_mark_total >= 0);
 			} while (_mark_total);
 
-			for (auto levelMarks: _marks) {
+			for (auto& levelMarks: _marks) {
 				levelMarks.clear();
 			}
 			_is_render = true;
 		}
 
 		void solve_mark_recursive() {
-			for (auto levelMarks: _mark_recursives) {
-				for (auto layout: levelMarks) {
+			for (auto& levelMarks: _mark_recursives) {
+				for (auto& layout: levelMarks) {
 					layout->layout_recursive(layout->layout_mark());
 					layout->_recursive_mark_index = -1;
 				}
@@ -153,11 +154,11 @@ namespace flare {
 		}
 
 		if (_mark_total) { // solve marks
-			Inl_PreRender(this)->solve_mark();
+			_inl(this)->solve_mark();
 		}
 
 		if (_mark_recursive_total) { // solve mark recursive
-			Inl_PreRender(this)->solve_mark_recursive();
+			_inl(this)->solve_mark_recursive();
 		}
 
 		if (_is_render) {
@@ -218,13 +219,13 @@ namespace flare {
 
 	void PreRender::Task::register_task() {
 		if ( app() ) {
-			Inl_PreRender(app()->pre_render())->add_task(this);
+			_inl(app()->pre_render())->add_task(this);
 		}
 	}
 
 	void PreRender::Task::unregister_task() {
 		if ( app() ) {
-			Inl_PreRender(app()->pre_render())->del_task(this);
+			_inl(app()->pre_render())->del_task(this);
 		}
 	}
 

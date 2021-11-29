@@ -45,6 +45,7 @@ namespace flare {
 		 * @thread render
 		 */
 		void update_state() { // Called in render loop
+			UILock lock(_host);
 
 			Vec2 _phy_size = phy_size();
 			float width = _phy_size.x();
@@ -94,6 +95,8 @@ namespace flare {
 				_size.x(), _size.y(),
 				_size.x(), _size.y(),
 			};
+
+			lock.unlock();
 			
 			_host->loop()->post(Cb([this](CbData& e){
 				F_Trigger(Change); // 通知事件
@@ -106,7 +109,6 @@ namespace flare {
 		* @func solve_next_frame()
 		*/
 		void solve_next_frame() {
-			ScopeLock lock(_Mutex);
 			if (_next_frame.length()) {
 				List<Cb>* cb = new List<Cb>(std::move(_next_frame));
 				_host->loop()->post(Cb([cb](CbData& e) {
@@ -142,11 +144,10 @@ namespace flare {
 
 	void Display::lock_size(float width, float height) {
 		if (width >= 0.0 && height >= 0.0) {
-			ScopeLock lock(_Mutex);
+			UILock lock(_host);
 			if (_lock_size.width() != width || _lock_size.height() != height) {
 				_lock_size = { width, height };
 				_host->render()->post_message(Cb([this](CbData& e) {
-					ScopeLock lock(_Mutex);
 					_inl(this)->update_state();
 				}));
 			}
@@ -240,18 +241,19 @@ namespace flare {
 	}
 
 	void Display::next_frame(cCb& cb) {
-		ScopeLock lock(_Mutex);
+		UILock lock(_host);
 		_next_frame.push_back(cb);
 	}
 
 	void Display::set_best_display_scale(float value) {
-		ScopeLock lock(_Mutex);
+		UILock lock(_host);
 		_best_display_scale = value;
 	}
 
 	bool Display::set_surface_region(Region region) {
-		ScopeLock lock(_Mutex);
+		bool ok = false;
 		if (region.width != 0 && region.height != 0) {
+			UILock lock(_host);
 			if (
 						_surface_region.x != region.x 
 				||	_surface_region.y != region.y
@@ -261,11 +263,12 @@ namespace flare {
 				||	_surface_region.height != region.height
 			) {
 				_surface_region = region;
-				_inl(this)->update_state();
-				return true;
+				ok = true;
 			}
 		}
-		return false;
+		if (ok) {
+			_inl(this)->update_state();
+		}
 	}
 
 }

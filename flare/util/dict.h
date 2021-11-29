@@ -176,7 +176,7 @@ namespace flare {
 	Dict<K, V, C, A>::Dict(std::initializer_list<Pair>&& list) {
 		init_();
 		if (list.size()) {
-			for (auto i: list)
+			for (auto& i: list)
 				set(std::move(i.key), std::move(i.value));
 		}
 	}
@@ -190,7 +190,7 @@ namespace flare {
 	Dict<K, V, C, A>& Dict<K, V, C, A>::operator=(const Dict& dict) {
 		clear();
 		if (dict._length) {
-			for (auto i: dict)
+			for (auto& i: dict)
 				set(i.key, i.value);
 		}
 		return *this;
@@ -253,7 +253,7 @@ namespace flare {
 	template<typename K, typename V, typename C, typename A>
 	Array<K> Dict<K, V, C, A>::keys() const {
 		Array<K> ls;
-		for (auto i: *this)
+		for (auto& i: *this)
 			ls.push(i.key);
 		return std::move(ls);
 	}
@@ -261,7 +261,7 @@ namespace flare {
 	template<typename K, typename V, typename C, typename A>
 	Array<V> Dict<K, V, C, A>::values() const {
 		Array<K> ls;
-		for (auto i: *this)
+		for (auto& i: *this)
 			ls.push(i.value);
 		return std::move(ls);
 	}

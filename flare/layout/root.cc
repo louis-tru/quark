@@ -62,8 +62,9 @@ namespace flare {
 		Handle<Root> r = new Root();
 		r->set_layout_depth(1);
 		r->set_receive(1);
-		r->set_width(SizeValue(0, SizeType::MATCH));
-		r->set_height(SizeValue(0, SizeType::MATCH));
+		r->set_width({0, SizeType::MATCH});
+		r->set_height({0, SizeType::MATCH});
+		r->mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
 		// set_fill(new FillColor(255, 255, 255)); // // 默认白色背景
 		r->mark_recursive(M_TRANSFORM);
 		_inl_app(app)->set_root(*r);
@@ -85,7 +86,7 @@ namespace flare {
 
 	bool Root::layout_forward(uint32_t mark) {
 		if (mark & (M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT)) {
-			Size size = { Vec2(), app()->display()->size(), false, false };
+			Size size = { Vec2(), display()->size(), false, false };
 			auto x = solve_layout_content_width(size.content_size.x(), &size.wrap_x);
 			auto y = solve_layout_content_height(size.content_size.y(), &size.wrap_y);
 			Vec2 mp(

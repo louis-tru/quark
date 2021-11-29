@@ -94,15 +94,15 @@ namespace flare {
 	typedef void (*CbFunc) (CbData&, AppInl*);
 
 	void AppInl::triggerLoad() {
-		if (!_is_load && _keep) {
-			_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) {
-				UILock lock(app);
-				if (!app->_is_load) {
-					app->_is_load = true;
-					app->F_Trigger(Load);
-				}
-			}, this));
-		}
+		if (_is_load || !_keep)
+			return;
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) {
+			UILock lock(app);
+			if (!app->_is_load) {
+				app->_is_load = true;
+				app->F_Trigger(Load);
+			}
+		}, this));
 	}
 
 	void AppInl::triggerPause() {
@@ -197,14 +197,14 @@ namespace flare {
 		, _root(nullptr), _focus_view(nullptr)
 		, _default_text_settings(nullptr)
 		, _dispatch(nullptr), _action_center(nullptr)
-		, _pre_render(nullptr)
+		, _pre_render(nullptr), _font_pool(nullptr), _tex_pool(nullptr)
 		, _max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
 	{
 		F_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
 		_default_text_settings = new DefaultTextSettings();
 
-		F_On(ProcessSafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
+		F_On(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
 	}
 
 	Application::~Application() {
@@ -227,7 +227,7 @@ namespace flare {
 		Release(_font_pool);   _font_pool = nullptr;
 		Release(_tex_pool);    _tex_pool = nullptr;
 
-		F_Off(ProcessSafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
+		F_Off(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
 
 		_shared = nullptr;
 	}
@@ -241,8 +241,8 @@ namespace flare {
 			_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
 			_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
 			_render = Render::create(this, _opts); F_DEBUG("Render::create() ok");
-			_font_pool = new FontPool(this);
-			_tex_pool = new TexturePool(this);
+			//_font_pool = new FontPool(this);
+			//_tex_pool = new TexturePool(this);
 			_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
 			// _action_center = new ActionCenter(); F_DEBUG("new ActionCenter ok");
 			_loop = RunLoop::current();
@@ -270,17 +270,19 @@ namespace flare {
 		static int _is_init = 0;
 		F_ASSERT(!_is_init++, "Cannot multiple calls.");
 		
+		struct Tmp { int argc; Char** argv; } arg = { argc, argv };
+		
 		// 创建一个新子工作线程.这个函数必须由main入口调用
-		Thread::fork([argc, argv](Thread& t) {
+		Thread::create([](Thread& t, void* arg) {
+			auto tmp = (Tmp*)arg;
 			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
 			F_ASSERT( main, "No gui main");
 			__f_default_gui_main = nullptr;
 			__f_gui_main = nullptr;
-			int rc = main(argc, argv); // 运行这个自定gui入口函数
-			F_DEBUG("Application::start Exit");
+			int rc = main(tmp->argc, tmp->argv); // 运行这个自定gui入口函数
+			F_DEBUG("Application::runMain() Exit");
 			flare::exit(rc); // if sub thread end then exit
-			return rc;
-		}, "runMain");
+		}, &arg, "runMain");
 
 		// 在调用Application::run()之前一直阻塞这个主线程
 		while (!_shared || !_shared->_keep) {

@@ -57,7 +57,7 @@ namespace flare {
 	F_EXPORT int64_t time_monotonic();
 	F_EXPORT String platform();
 	F_EXPORT String version();
-	F_EXPORT void exit(int rc); // call sys exit
+	F_EXPORT void exit(int rc, bool force = 0); // call sys exit
 	F_EXPORT bool is_exited();
 }
 #endif

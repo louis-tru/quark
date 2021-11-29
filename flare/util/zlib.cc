@@ -334,6 +334,7 @@ namespace flare {
 			return true;
 		if (_dir_info.find(path) != _dir_info.end())
 			return true;
+		return false;
 	}
 
 	bool ZipReader::is_file(cString& path) const {

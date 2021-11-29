@@ -272,6 +272,11 @@ namespace flare {
 		}
 	}
 
+	View* View::append_to(View* parent) {
+		parent->append(this);
+		return this;
+	}
+
 	/**
 		*
 		* Remove and destroy self

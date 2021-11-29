@@ -384,7 +384,7 @@ namespace flare {
 			// 载入系统字体
 			const Array<SimpleFontFamily>& arr = system_font_family();
 			
-			for (auto sffd : arr) {
+			for (auto& sffd : arr) {
 				
 				for (uint32_t i = 0; i < sffd.fonts.length(); i++) {
 					const SimpleFont& sfd = sffd.fonts[i];
@@ -520,7 +520,7 @@ namespace flare {
 	*/
 	Array<String> FontPool::family_names() const {
 		Array<String> names;
-		for (auto i: _familys) {
+		for (auto& i: _familys) {
 			names.push(i.key);
 		}
 		return names;

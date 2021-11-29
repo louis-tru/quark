@@ -67,35 +67,39 @@ namespace flare {
 	class F_EXPORT Thread {
 		F_HIDDEN_ALL_COPY(Thread);
 	 public:
-		typedef ThreadID ID;
+		// @members
 		typedef NonObjectTraits Traits;
-		typedef std::function<int(Thread&)> Exec;
+		typedef void (*Exec)(Thread& t, void* arg);
+		typedef std::function<void(Thread&)> Func;
 		inline bool is_abort() const { return _abort; }
-		inline ID id() const { return _id; }
+		inline ThreadID id() const { return _id; }
 		inline RunLoop* loop() const { return _loop; }
-		inline String name() const { return _name; }
-		static ID fork(Exec exec, cString& name = String());
-		static ID current_id();
+		inline String tag() const { return _tag; }
+		// @static
+		static ThreadID create(Exec exec, void* arg = nullptr, cString& tag = String());
+		static ThreadID create(Func func, cString& tag = String());
+		static ThreadID current_id();
 		static Thread* current();
 		static void sleep(uint64_t timeoutUs = 0); // 休眠当前线程不能被唤醒
 		static void pause(uint64_t timeoutUs = 0 /*小于1永久等待*/); // 暂停当前运行可以被`resume()`唤醒
-		static void resume(ID id); // 恢复线程运行
-		static void abort(ID id); // 中止运行信号
-		static void join(ID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
+		static void resume(ThreadID id); // 恢复线程运行
+		static void abort(ThreadID id); // 中止运行信号
+		static void wait(ThreadID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
 	 private:
-		Thread() = default;
+		Thread(Exec exec, cString& tag);
 		~Thread() = default;
 		F_DEFINE_INLINE_CLASS(Inl);
-		ID          _id;
+		ThreadID    _id;
 		RunLoop*    _loop;
-		String      _name;
+		String      _tag;
 		bool        _abort;
 		Mutex       _mutex;
 		Condition   _cond;
+		Exec        _exec;
 		friend class RunLoop;
 	};
 
-	F_EXPORT EventNoticer<>& onProcessSafeExit();
+	F_EXPORT EventNoticer<>& onSafeExit();
 
 	/**
 	* @class PostMessage

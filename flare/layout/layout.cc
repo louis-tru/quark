@@ -191,7 +191,7 @@ namespace flare {
 			auto oldDepth = _depth;
 			_depth = newDepth;
 			// F_ASSERT(app());
-			auto pre = app()->pre_render();
+			auto pre = pre_render();
 			if (_mark_index >= 0) {
 				pre->delete_mark(this, oldDepth);
 				if (newDepth) {
@@ -215,7 +215,7 @@ namespace flare {
 		if (_mark_index < 0) {
 			auto depth = layout_depth();
 			if (depth) {
-				app()->pre_render()->mark(this, depth); // push to pre render
+				pre_render()->mark(this, depth); // push to pre render
 			}
 		}
 	}
@@ -225,7 +225,7 @@ namespace flare {
 		if (_recursive_mark_index < 0) {
 			auto depth = layout_depth();
 			if (depth) {
-				app()->pre_render()->mark_recursive(this, depth); // push to pre render
+				pre_render()->mark_recursive(this, depth); // push to pre render
 			}
 		}
 	}
