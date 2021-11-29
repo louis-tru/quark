@@ -91,54 +91,65 @@ namespace flare {
 		}
 	}
 
-	void AppInl::triggerLoad() {
-		if (!_is_load) {
-			_is_load = true;
-			_main_loop->post(Cb([&](CbData& d) { UILock lock; F_Trigger(Load); }));
-		}
-	}
+	typedef void (*CbFunc) (CbData&, AppInl*);
 
-	void AppInl::triggerRender() {
-		if (_is_load) {
-			_display->render_frame();
+	void AppInl::triggerLoad() {
+		if (!_is_load && _keep) {
+			_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) {
+				UILock lock(app);
+				if (!app->_is_load) {
+					app->_is_load = true;
+					app->F_Trigger(Load);
+				}
+			}, this));
 		}
 	}
 
 	void AppInl::triggerPause() {
-		_main_loop->post(Cb([&](CbData& d) { F_Trigger(Pause); }));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->F_Trigger(Pause); }, this));
 	}
 
 	void AppInl::triggerResume() {
-		_main_loop->post(Cb([&](CbData& d) { F_Trigger(Resume); }));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->F_Trigger(Resume); }, this));
 	}
 
 	void AppInl::triggerBackground() {
-		_main_loop->post(Cb([&](CbData& d) { F_Trigger(Background); }));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->F_Trigger(Background); }, this));
 	}
 
 	void AppInl::triggerForeground() {
-		_main_loop->post(Cb([&](CbData& d) { F_Trigger(Foreground); }));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->F_Trigger(Foreground); }, this));
 	}
 
 	void AppInl::triggerMemorywarning() {
 		clear();
-		_main_loop->post(Cb([&](CbData&){ F_Trigger(Memorywarning); }));
+		_loop->post(Cb((CbFunc)[](CbData&, AppInl* app){ app->F_Trigger(Memorywarning); }, this));
 	}
 
 	void AppInl::triggerUnload() {
-		if (_is_load) {
-			_is_load = false;
-			typedef Callback<RunLoop::PostSyncData> Cb;
-			_main_loop->post_sync(Cb([&](Cb::Data& d) {
+		if (!_keep) return;
+		typedef Callback<RunLoop::PostSyncData> Cb;
+
+		_loop->post_sync(Cb([&](Cb::Data& d) {
+			if (_is_load) {
+				_is_load = false;
 				F_DEBUG("onUnload()");
 				F_Trigger(Unload);
-				if (_root) {
-					UILock lock;
-					_root->remove();
-				}
-				d.data->complete();
-			}));
-		}
+			}
+			if (_keep) {
+				Thread::abort(_loop->thread_id());
+				Release(_keep); // stop loop
+				_keep = nullptr;
+				_loop = nullptr;
+			}
+			d.data->complete();
+		}));
+	}
+
+	void AppInl::on_process_exit_handle(Event<>& e) {
+		// int rc = static_cast<const Int32*>(e.data())->value;
+		triggerUnload();
+		F_DEBUG("Application onExit");
 	}
 
 	/**
@@ -170,57 +181,8 @@ namespace flare {
 		}
 		return true;
 	}
-
-	/**
-	* @func setMain()
-	*/
-	void Application::setMain(int (*main)(int, char**)) {
-		F_ASSERT( !__f_gui_main );
-		__f_gui_main = main;
-	}
-
-	/**
-	* @func runMain()
-	*/
-	void Application::runMain(int argc, Char* argv[]) {
-		static int _is_initialize = 0;
-		F_ASSERT(!_is_initialize++, "Cannot multiple calls.");
-		
-		// 创建一个新子工作线程.这个函数必须由main入口调用
-		Thread::spawn([argc, argv](Thread& t) {
-			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
-			F_ASSERT( main, "No gui main");
-			__f_default_gui_main = nullptr;
-			__f_gui_main = nullptr;
-			int rc = main(argc, argv); // 运行这个自定gui入口函数
-			F_DEBUG("Application::start Exit");
-			flare::exit(rc); // if sub thread end then exit
-			return rc;
-		}, "runMain");
-
-		// 在调用Application::run()之前一直阻塞这个主线程
-		while (!_shared || !_shared->_is_run) {
-			__run_main_wait->wait();
-		}
-	}
-
-	static void on_process_safe_handle(Event<>& e, Application* app) {
-		int rc = static_cast<const Int32*>(e.data())->value;
-		_inl_app(app)->onExit(rc);
-	}
-
-	int AppInl::onExit(int code) {
-		if (_render_keep) {
-			onUnload();
-			auto render_loop_id = _render_loop->thread_id();
-			Release(_render_keep); _render_keep = nullptr; // stop render loop
-			Release(_main_keep); _main_keep = nullptr; // stop main loop
-			Thread::resume(render_loop_id, true);
-			F_DEBUG("Application onExit");
-		}
-	}
-
-	Application::Application()
+	
+	Application::Application(JSON opts)
 		: F_Init_Event(Load)
 		, F_Init_Event(Unload)
 		, F_Init_Event(Background)
@@ -228,8 +190,9 @@ namespace flare {
 		, F_Init_Event(Pause)
 		, F_Init_Event(Resume)
 		, F_Init_Event(Memorywarning)
-		, _is_run(false), _is_load(false)
-		, _main_loop(nullptr), _main_keep(nullptr)
+		, _is_load(false)
+		, _opts(opts)
+		, _loop(nullptr), _keep(nullptr)
 		, _render(nullptr), _display(nullptr)
 		, _root(nullptr), _focus_view(nullptr)
 		, _default_text_settings(nullptr)
@@ -239,13 +202,13 @@ namespace flare {
 	{
 		F_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
-		_main_loop = RunLoop::main_loop();
 		_default_text_settings = new DefaultTextSettings();
-		F_On(ProcessSafeExit, on_process_safe_handle, this);
+
+		F_On(ProcessSafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
 	}
 
 	Application::~Application() {
-		UILock lock;
+		UILock lock(this);
 		if (_root) {
 			_root->remove();
 			_root->release(); _root = nullptr;
@@ -260,46 +223,80 @@ namespace flare {
 		Release(_display);     _display = nullptr;
 		Release(_pre_render);  _pre_render = nullptr;
 		Release(_render);      _render = nullptr;
-		Release(_main_keep);   _main_keep = nullptr;
-		Release(_font_pool); _font_pool = nullptr;
-		Release(_tex_pool); _tex_pool = nullptr;
+		Release(_keep);        _keep = nullptr; _loop = nullptr;
+		Release(_font_pool);   _font_pool = nullptr;
+		Release(_tex_pool);    _tex_pool = nullptr;
 
-		_main_loop = nullptr;
+		F_Off(ProcessSafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
+
 		_shared = nullptr;
-
-		F_Off(ProcessSafeExit, on_process_safe_handle);
 	}
 
 	/**
-	* @func run()
+	* @func run() init and run
 	*/
-	void Application::run(cJSON& opts) throw(Error) {
-		if (!_main_keep) return;
-		UILock lock;
-		_main_keep = _main_loop->keep_alive("Application::Application(), main_keep");
-		_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
-		_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
-		_render = Render::create(this, opts); F_DEBUG("Render::create() ok");
-		_font_pool = new FontPool(this);
-		_tex_pool = new TexturePool(this);
-		_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
-		// _action_center = new ActionCenter(); F_DEBUG("new ActionCenter ok");
-		__run_main_wait->awaken(); // 外部线程继续运行
+	void Application::run(bool is_loop) throw(Error) {
+		UILock lock(this);
+		if (!_keep) { // init
+			_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
+			_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
+			_render = Render::create(this, _opts); F_DEBUG("Render::create() ok");
+			_font_pool = new FontPool(this);
+			_tex_pool = new TexturePool(this);
+			_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
+			// _action_center = new ActionCenter(); F_DEBUG("new ActionCenter ok");
+			_loop = RunLoop::current();
+			_keep = _loop->keep_alive("Application::run(), keep"); // 保持运行
+			__run_main_wait->awaken(); // 外部线程继续运行
+		}
+		if (is_loop) { // run loop
+			lock.unlock();
+			_loop->run(); // run message loop
+		}
 	}
 
-	void Application::run_loop(cJSON& opts) throw(Error) {
-		ASSERT(_main_loop->thread_id()); // main loop call
-		_main_loop->run();
+	/**
+	* @func setMain()
+	*/
+	void Application::setMain(int (*main)(int, char**)) {
+		F_ASSERT( !__f_gui_main );
+		__f_gui_main = main;
+	}
+
+	/**
+	* @func runMain()
+	*/
+	void Application::runMain(int argc, Char* argv[]) {
+		static int _is_init = 0;
+		F_ASSERT(!_is_init++, "Cannot multiple calls.");
+		
+		// 创建一个新子工作线程.这个函数必须由main入口调用
+		Thread::fork([argc, argv](Thread& t) {
+			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
+			F_ASSERT( main, "No gui main");
+			__f_default_gui_main = nullptr;
+			__f_gui_main = nullptr;
+			int rc = main(argc, argv); // 运行这个自定gui入口函数
+			F_DEBUG("Application::start Exit");
+			flare::exit(rc); // if sub thread end then exit
+			return rc;
+		}, "runMain");
+
+		// 在调用Application::run()之前一直阻塞这个主线程
+		while (!_shared || !_shared->_keep) {
+			__run_main_wait->wait();
+		}
 	}
 
 	/**
 	* @func clear([full]) 清理不需要使用的资源
 	*/
 	void Application::clear(bool full) {
-		_render_loop->post(Cb([&, full](CbData& e){
-			_tex_pool->clear(full);
-			_font_pool->clear(full);
-		}));
+		// TODO ...
+		// _render_loop->post(Cb([&, full](CbData& e){
+		// 	_tex_pool->clear(full);
+		// 	_font_pool->clear(full);
+		// }));
 	}
 
 	/**

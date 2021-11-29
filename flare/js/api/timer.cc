@@ -74,21 +74,19 @@ class Timer: public Reference {
 	}
 	
 	Timer(RunLoop* loop, Cb cb)
-	: _timer_id(0)
-	, _timeout(0)
-	, _loop(1)
-	, _run_loop(loop)
-	, _cb(cb) {
-		
+		: _timer_id(0)
+		, _timeout(0)
+		, _loop(1)
+		, _run_loop(loop)
+		, _cb(cb) {
 	}
 	
 	Timer(RunLoop* loop, CallbackPtr cb)
-	: _timer_id(0)
-	, _timeout(0)
-	, _loop(1)
-	, _run_loop(loop)
-	, _cb_ptr(cb) {
-		
+		: _timer_id(0)
+		, _timeout(0)
+		, _loop(1)
+		, _run_loop(loop)
+		, _cb_ptr(cb){
 	}
 	
 	virtual ~Timer() {

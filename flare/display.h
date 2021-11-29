@@ -75,11 +75,13 @@ namespace flare {
 		virtual ~Display();
 		
 		/**
+		* @thread main
 		* @event onchange 显示端口变化事件
 		*/
 		F_Event(Change);
 
 		/**
+		* @thread main
 		* @event onorientation 屏幕方向发生改变触发
 		*/
 		F_Event(Orientation);
@@ -111,30 +113,34 @@ namespace flare {
 		void lock_size(float width = 0, float height = 0);
 		
 		/**
+		 * @func phy_size()
+		 */
+		Vec2 phy_size() const;
+
+		/**
 		* @func root_matrix
 		*/
 		inline const Mat4& root_matrix() const { return _root_matrix; }
 		
 		/**
-		* @func draw_region
-		*/
-		inline Region display_region() const {
-			return _display_region.back();
-		}
-
-		/**
+		* @thread rebder
 		* @func push_display_region
 		*/
 		void push_display_region(Region value);
 		
 		/**
+		* @thread rebder
 		* @func pop_display_region
 		*/
-		inline void pop_display_region() {
-			F_ASSERT( _display_region.length() > 1 );
-			_display_region.pop_back();
-		}
+		void pop_display_region();
 		
+		/**
+		* @func display_region
+		*/
+		inline Region display_region() const {
+			return _display_region.back();
+		}
+
 		/**
 		* @func atom_pixel
 		*/
@@ -189,16 +195,23 @@ namespace flare {
 		 * @func best_display_scale()
 		 */
 		inline float best_display_scale() const { return _best_display_scale; }
-		inline void set_best_display_scale(float value) { _best_display_scale = value; }
 		inline Region surface_region() const { return _surface_region; }
-		bool set_surface_region(Region surface_region); // call from render loop
-		void render_frame(bool force = false); // call from render loop
 
 		/**
-		 * @func phy_size()
+		 * @thread render
 		 */
-		Vec2 phy_size() const;
+		void set_best_display_scale(float value);
 
+		/**
+		 * @thread render
+		 */
+		bool set_surface_region(Region surface_region); // call from render loop
+
+		/**
+		 * @thread render
+		 */
+		void render_frame(bool force = false); // call from render loop
+		
 		/**
 		* @func default_atom_pixel
 		*/

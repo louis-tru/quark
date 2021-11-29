@@ -7,7 +7,7 @@
 
 using namespace flare;
 
-void draw(SkCanvas* canvas) {
+void draw_skia(SkCanvas* canvas) {
 	canvas->clear(SK_ColorWHITE);
 
 	SkPaint paint;
@@ -48,22 +48,14 @@ void draw(SkCanvas* canvas) {
 }
 
 void onload_handle(Event<>& evt, Application* app) {
-	// auto root = Root::create();
-	// printf("%s, %p\n", "ok skia", app);
-	auto render = app->render();
-	auto canvas = render->canvas();
-	
-	//glClearColor(1, 1, 1, 1);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	
-	draw(canvas);
-	
-	render->commit();
+	Root::create();
+	draw_skia(app->render()->canvas());
+	app->render()->commit();
+	F_LOG("%s, %p\n", "ok skia", app);
 }
 
 void test_skia(int argc, char **argv) {
 	Application app;
-	app.initialize();
 	app.F_On(Load, onload_handle, &app);
-	app.run_loop();
+	app.run(true);
 }

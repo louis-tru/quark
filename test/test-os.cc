@@ -38,7 +38,7 @@ void test_os(int argc, char **argv) {
 	F_LOG(os::version());
 	F_LOG(os::brand());
 	F_LOG(os::subsystem());
-	F_LOG(os::language());
+	F_LOG(os::languages().join(','));
 	F_LOG(os::is_wifi());
 	F_LOG(os::is_mobile());
 	F_LOG(os::network_status());

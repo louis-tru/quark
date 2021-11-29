@@ -73,22 +73,25 @@ namespace flare {
 		inline bool is_abort() const { return _abort; }
 		inline ID id() const { return _id; }
 		inline RunLoop* loop() const { return _loop; }
+		inline String name() const { return _name; }
 		static ID fork(Exec exec, cString& name = String());
 		static ID current_id();
 		static Thread* current();
-		static void sleep_(uint64_t timeoutUs = 0); // 休眠当前线程不能被唤醒
+		static void sleep(uint64_t timeoutUs = 0); // 休眠当前线程不能被唤醒
 		static void pause(uint64_t timeoutUs = 0 /*小于1永久等待*/); // 暂停当前运行可以被`resume()`唤醒
-		static void resume(ID id, bool abort = false); // 恢复线程运行
-		static void wait_end(ID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
+		static void resume(ID id); // 恢复线程运行
+		static void abort(ID id); // 中止运行信号
+		static void join(ID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
 	 private:
 		Thread() = default;
 		~Thread() = default;
 		F_DEFINE_INLINE_CLASS(Inl);
-		bool  _abort;
-		Mutex _mutex;
-		Condition _cond;
-		ID      _id;
-		RunLoop* _loop;
+		ID          _id;
+		RunLoop*    _loop;
+		String      _name;
+		bool        _abort;
+		Mutex       _mutex;
+		Condition   _cond;
 		friend class RunLoop;
 	};
 
@@ -191,31 +194,16 @@ namespace flare {
 		static RunLoop* current();
 		
 		/**
-		* @func next_tick
+		* @func is_current() 是否为当前`loop`
 		*/
-		static void next_tick(Cb cb) throw(Error);
+		static bool is_current(RunLoop* loop);
 		
 		/**
 		* Be careful with thread safety. It's best to ensure that `current()` has been invoked first.
-		* @func main_loop()
+		* @func first()
 		*/
-		static RunLoop* main_loop();
-		
-		/**
-		* @func is_main_loop() 当前线程是为主循环
-		*/
-		static bool is_main_loop();
+		static RunLoop* first();
 
-		/**
-		* @func stop() 停止循环
-		*/
-		static void stop(ThreadID id);
-
-		/**
-		* @func is_alive()
-		*/
-		static bool is_alive(ThreadID id);
-		
 	 private:
 		/**
 		* @constructor 私有构造每个线程只能创建一个通过`current()`来获取当前实体
@@ -290,7 +278,7 @@ namespace flare {
 		uint32_t  _group;
 		Iterator  _id;
 		String    _name;
-		bool      _declear;
+		bool      _de_clean;
 		friend class RunLoop;
 	};
 

@@ -114,8 +114,6 @@
 			'app.inl',
 			'pre-render.h',
 			'pre-render.cc',
-			'render-looper.h',
-			'render-looper.cc',
 			'app.h',
 			'app.cc',
 			'display.h',

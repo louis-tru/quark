@@ -232,6 +232,11 @@ namespace flare {
 		static uint32_t get(cString& url, Cb cb = 0, bool no_cache = false) throw(HttpError);
 		static uint32_t get_stream(cString& url, Callback<StreamResponse> cb = 0, bool no_cache = false) throw(HttpError);
 		static uint32_t post(cString& url, Buffer data, Cb cb = 0) throw(HttpError);
+		static Buffer request_sync(RequestOptions& options) throw(HttpError);
+		static void   download_sync(cString& url, cString& save) throw(HttpError);
+		static Buffer upload_sync(cString& url, cString& file) throw(HttpError);
+		static Buffer get_sync(cString& url, bool no_cache = false) throw(HttpError);
+		static Buffer post_sync(cString& url, Buffer data) throw(HttpError);
 		static void abort(uint32_t id);
 		static String user_agent();
 		static void set_user_agent(cString& user_agent);

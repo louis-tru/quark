@@ -86,7 +86,7 @@ namespace flare {
 	/**
 	* @class Render
 	*/
-	class F_EXPORT Render: public Object {
+	class F_EXPORT Render: public Object, public PostMessage {
 		F_HIDDEN_ALL_COPY(Render);
 	 public:
 
@@ -127,6 +127,11 @@ namespace flare {
 		inline Application* host() { return _host; }
 		inline int sampleCount() const { return _SampleCount; }
 		inline int stencilBits() const { return _StencilBits; }
+
+		/**
+		 * @override
+		 */
+		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
 
 		/**
 		 * @func create(host, options)

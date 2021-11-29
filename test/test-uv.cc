@@ -122,7 +122,7 @@ void test_uv_async_check_idle() {
 	uv_check_start(&uv_check_handle, test_uv_check_cb);
 	uv_async_init(uv_loop, &uv_async_handle, test_uv_async_cb);
 	
-	Thread::spawn([](Thread& t) {
+	Thread::fork([](Thread& t) {
 		F_LOG("Send message:");
 		for ( int i = 0; i < 5; i++ ) {
 			Thread::sleep(1e6);

@@ -38,16 +38,18 @@ namespace flare {
 	class MetalRenderApple : public MetalRender, public RenderApple {
 	 public:
 		MetalRenderApple(Application* host, const DisplayParams& params): MetalRender(host, params) {}
+
 		void setView(UIView* view) {
-			
 			F_ASSERT(!_view);
 			_view = view;
 			_layer = view.layer;
 			_layer.opaque = YES;
 		}
+
 		Class layerClass() {
 			return [CAMetalLayer class];
 		}
+
 		Render* render() { return this; }
 	 private:
 		UIView* _view;

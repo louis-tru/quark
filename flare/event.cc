@@ -751,7 +751,7 @@ namespace flare {
 		delete _mouse_h;
 	}
 
-	#define _loop static_cast<PostMessage*>(_host->main_loop())
+	#define _loop static_cast<PostMessage*>(_host->loop())
 
 	typedef Callback<List<TouchPoint>> TouchCb;
 

@@ -42,9 +42,6 @@
 	F_INIT_BLOCK(__f_main__) { flare::Application::setMain(&__f_main__); } \
 	int __f_main__(int argc, Char** argv)
 
-#define F_ASSERT_STRICT_RENDER_THREAD() F_ASSERT(app()->has_current_render_thread())
-#define F_ASSERT_RENDER_THREAD() F_ASSERT(app()->has_current_render_thread())
-
 namespace flare {
 
 	class Application;
@@ -97,22 +94,17 @@ namespace flare {
 		F_Event(Resume);
 		F_Event(Memorywarning);
 
-		Application();
-		
+		Application(JSON opts = JSON::object());
+
 		/**
 		* @destructor
 		*/
 		virtual ~Application();
 
 		/**
-		* @func run(opts)
+		* @func run()
 		*/
-		void run(cJSON& opts = JSON::object()) throw(Error);
-
-		/**
-		* @func run_loop 运行消息循环
-		*/
-		void run_loop(cJSON& opts = JSON::object()) throw(Error);
+		void run(bool is_loop = false) throw(Error);
 
 		/**
 		* @func pending() 挂起应用进程
@@ -131,8 +123,7 @@ namespace flare {
 		inline Display* display() { return _display; }
 		inline Root* root() { return _root; }
 		inline View* focus_view() { return _focus_view; }
-		inline RunLoop* render_loop() { return _render_loop; }
-		inline RunLoop* main_loop() { return _main_loop; }
+		inline RunLoop* loop() { return _loop; }
 		inline ActionCenter* action_center() { return _action_center; }
 		inline PreRender* pre_render() { return _pre_render; }
 		inline Render* render() { return _render; }
@@ -198,10 +189,11 @@ namespace flare {
 		static void runMain(int argc, Char* argv[]);
 
 	 private:
-		static Application* _shared;   // 当前应用程序
+		static Application*  _shared;   // 当前应用程序
 		bool                 _is_load;
-		RunLoop*             _main_loop;
-		KeepLoop*            _main_keep;
+		JSON                 _opts;
+		RunLoop*             _loop;
+		KeepLoop*            _keep;
 		Display*             _display;     // 显示端口
 		PreRender*           _pre_render;
 		Render*              _render;
@@ -222,7 +214,6 @@ namespace flare {
 	};
 
 	inline Application* app() { return Application::_shared; }
-	inline Display* display() { return app()->display(); }
 
 	typedef Application::UILock UILock;
 

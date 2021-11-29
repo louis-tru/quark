@@ -32,7 +32,7 @@
 #define __flare__os__os__
 
 #include <flare/util/util.h>
-#include <flare/util/object.h>
+#include <flare/util/array.h>
 
 namespace flare {
 	namespace os {
@@ -40,8 +40,7 @@ namespace flare {
 		F_EXPORT String brand();
 		F_EXPORT String subsystem();
 		F_EXPORT String info();
-		F_EXPORT String languages();
-		F_EXPORT String language();
+		F_EXPORT const Array<String>& languages();
 		F_EXPORT bool  is_wifi();
 		F_EXPORT bool  is_mobile();
 		F_EXPORT int   network_status();

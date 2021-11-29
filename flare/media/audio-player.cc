@@ -254,7 +254,7 @@ namespace flare {
 				_pcm->set_volume(_volume);
 				_pcm->set_mute(_mute);
 				
-				Thread::spawn([this](Thread& t) {
+				Thread::fork([this](Thread& t) {
 					ScopeLock scope(_audio_loop_mutex);
 					Inl_AudioPlayer(this)->play_audio();
 					return 0;
@@ -381,7 +381,7 @@ namespace flare {
 			}
 			Inl_AudioPlayer(this)->stop_and_release(lock, true);
 		}
-		auto loop = RunLoop::main_loop();
+		auto loop = app()->loop();
 		F_ASSERT(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
 		_keep = loop->keep_alive("AudioPlayer::set_src");

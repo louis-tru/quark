@@ -125,7 +125,7 @@ namespace flare {
 						}
 						
 						if ( _background_run ) { // background_run
-							_background_run_id = Thread::spawn([this](Thread& t) {
+							_background_run_id = Thread::fork([this](Thread& t) {
 								background_run(t);
 								return 0;
 							}, "x_decoder_background_run_thread");

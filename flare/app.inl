@@ -52,7 +52,6 @@ namespace flare {
 		};
 
 		void triggerLoad();
-		void triggerRender();
 		void triggerPause();
 		void triggerResume();
 		void triggerBackground();
@@ -115,7 +114,7 @@ namespace flare {
 		/**
 		* @func onExit(code)
 		*/
-		void onExit(int code);
+		void on_process_exit_handle(Event<>& e);
 	};
 
 	typedef Application::Inl AppInl;
