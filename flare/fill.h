@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__core__fill__
-#define __flare__core__fill__
+#ifndef __flare__fill__
+#define __flare__fill__
 
 #include "./layout/view.h"
 
