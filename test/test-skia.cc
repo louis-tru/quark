@@ -5,6 +5,7 @@
 #include <flare/layout/root.h>
 #include <flare/render/render.h>
 #include <flare/layout/flex.h>
+#include <flare/fill.h>
 
 using namespace flare;
 
@@ -60,7 +61,9 @@ void onload_handle(Event<>& evt, Application* app) {
 	New<Box>()->append_to(flex);
 	New<Box>()->append_to(flow);
 	New<Box>()->append_to(flow);
-	
+
+	r->set_fill( new FillColor(Color(255,0,0,255)) );
+
 	F_LOG("%s, %p\n", "ok skia", app);
 }
 

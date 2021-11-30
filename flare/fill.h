@@ -31,12 +31,14 @@
 #ifndef __flare__fill__
 #define __flare__fill__
 
-#include "./layout/view.h"
+#include "./value.h"
+
+class SkCanvas;
 
 namespace flare {
 
 	class Box;
-	class BoxFill;
+	class FillBox;
 	class FillColor;
 	class FillImage;
 	class FillGradient;
@@ -45,13 +47,13 @@ namespace flare {
 	class FillBorderRadius; // left-top,right-top,right-bottom,left-bottom
 	class Texture;
 
-	typedef BoxFill* Fill;
+	typedef FillBox* Fill;
 
 	/**
-	* @class BoxFill
+	* @class FillBox, Single linked list struct
 	*/
-	class F_EXPORT BoxFill: public Reference {
-	public:
+	class F_EXPORT FillBox: public Reference {
+	 public:
 		
 		enum Type {
 			M_INVALID,
@@ -59,30 +61,32 @@ namespace flare {
 			M_IMAGE,
 			M_GRADIENT,
 			M_SHADOW,
+			M_BORDER,
+			M_BORDER_RADIUS,
 		};
 
 		enum HolderMode {
 			M_INDEPENDENT,
-			M_MULTIPLE,
+			M_SHARED,
 			M_DISABLE,
 		};
 		
-		BoxFill();
+		FillBox();
 		
 		/**
 		* @destructor
 		*/
-		virtual ~BoxFill();
+		virtual ~FillBox();
 		
 		/**
 		* @func next()
 		*/
-		inline BoxFill* next() { return _next; }
+		inline Fill next() { return _next; }
 		
 		/**
 		* @func set_next(value)
 		*/
-		void set_next(BoxFill* value);
+		void set_next(Fill value);
 		
 		/**
 		* @func type()
@@ -90,20 +94,10 @@ namespace flare {
 		virtual Type type() const { return M_INVALID; }
 		
 		/**
-		* @func as_image()
-		*/
-		virtual FillImage* as_image() { return nullptr; }
-		
-		/**
-		* @func as_gradient()
-		*/
-		virtual FillGradient* as_gradient() { return nullptr; }
-		
-		/**
-		* @func assign(left, right)
+		* @func hold(left, right)
 		* @ret return left value
 		*/
-		static BoxFill* assign(BoxFill* left, BoxFill* right);
+		static Fill assign(Fill left, Fill right);
 		
 		/**
 		* @func allow_multi_holder()
@@ -113,81 +107,74 @@ namespace flare {
 		/**
 		* @func set_holder_mode(value)
 		*/
-		void set_holder_mode(HolderMode mode);
+		Fill set_holder_mode(HolderMode mode);
 		
 		/**
-		* @overwrite
-		*/
-		virtual bool retain();
-		virtual void release();
-		
-	protected:
-		/**
-		* @func mark_value()
-		*/
-		void mark(uint32_t mark_value);
-		
-		/**
-		* @func set_host(host)
-		*/
-		void set_host(Box* host);
-		
+		 * @override
+		 */
+		virtual bool retain() override;
+
 		/**
 		* @func copy(to)
 		*/
 		virtual Fill copy(Fill to) = 0;
+
+		/**
+		 * 
+		 * draw fill background
+		 *
+		 * @func draw(host, canvas)
+		 */
+		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius = nullptr) = 0;
 		
+	 protected:
+		/**
+		* @func mark()
+		*/
+		void mark();
+
 		Fill        _next;
-		Box*        _host;
 		HolderMode  _holder_mode;
+
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
 	 * @class FillColor
 	 */
-	class F_EXPORT FillColor: public BoxFill {
-	public:
-		// TODO ...
-		protected:
-		virtual Fill copy(Fill to);
+	class F_EXPORT FillColor: public FillBox {
+	 public:
+		FillColor(Color color = Color(0,0,0,0));
+		F_DEFINE_PROP(Color, color);
+		virtual Fill copy(Fill to) override;
+		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+		// @consts
+		static Fill WHITE;
+		static Fill BLACK;
+		static Fill BLUE;
 	};
 
 	/**
 	* @class FillImage
 	*/
-	class F_EXPORT FillImage: public BoxFill {
-	public:
+	class F_EXPORT FillImage: public FillBox {
+	 public:
 		FillImage();
 		virtual ~FillImage();
-		virtual Type type() const { return M_IMAGE; }
-		virtual FillImage* as_image() { return this; }
-		inline Texture* texture() { return _texture; }
-		inline Repeat repeat() const { return _repeat; }
-		inline FillPosition position_x() const { return _position_x; }
-		inline FillPosition position_y() const { return _position_y; }
-		inline FillSize size_x() const { return _size_x; }
-		inline FillSize size_y() const { return _size_y; }
-		inline bool has_base64() const { return _has_base64_src; }
-		String src() const;
-		void set_src(cString& value);
+		virtual Type type() const override { return M_IMAGE; }
+		F_DEFINE_PROP(String, src);
+		F_DEFINE_PROP(Texture*, texture);
+		F_DEFINE_PROP(Repeat, repeat);
+		F_DEFINE_PROP(FillPosition, position_x);
+		F_DEFINE_PROP(FillPosition, position_y);
+		F_DEFINE_PROP(FillSize, size_x);
+		F_DEFINE_PROP(FillSize, size_y);
+		F_DEFINE_PROP_READ(bool, has_base64);
 		void set_src_base64(cString& data);
-		void set_texture(Texture* value);
-		void set_repeat(Repeat value);
-		void set_position_x(FillPosition value);
-		void set_position_y(FillPosition value);
-		void set_size_x(FillSize value);
-		void set_size_y(FillSize value);
-		bool get_background_image_data(Box* host, Vec2& size_out, Vec2& position_out, int& level_out);
-	protected:
-		virtual BoxFill* copy(BoxFill* to);
-	private:
-		String    _src;
-		bool      _has_base64_src;
-		Texture*  _texture;
-		Repeat    _repeat;
-		FillPosition _position_x, _position_y;
-		FillSize _size_x, _size_y;
+		bool get_image_data(Box* host, Vec2& size_out, Vec2& position_out, int& level_out);
+		virtual Fill copy(Fill to) override;
+		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+	 private:
 		int _attributes_flags;
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
@@ -195,45 +182,65 @@ namespace flare {
 	/**
 	* @class FillGradient
 	*/
-	class F_EXPORT FillGradient: public BoxFill {
-	public:
+	class F_EXPORT FillGradient: public FillBox {
+	 public:
 		FillGradient();
-		virtual Type type() const { return M_GRADIENT; }
-		virtual FillGradient* as_gradient() { return nullptr; }
-		protected:
-		virtual Fill copy(Fill to);
+		virtual Type type() const override { return M_GRADIENT; }
+		virtual Fill copy(Fill to) override;
+		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+	 private:
 	};
 
 	/**
 	 * @class FillShadow
 	 */
-	class F_EXPORT FillShadow: public BoxFill {
-	public:
-		// TODO ...
-		protected:
-		virtual Fill copy(Fill to);
+	class F_EXPORT FillShadow: public FillBox {
+	 public:
+		virtual Fill copy(Fill to) override;
+		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+	 private:
 	};
 
 	/**
 	 * @class FillBorder
 	 */
-	class F_EXPORT FillBorder: public BoxFill {
-	public:
-		// TODO ...
-	protected:
-		virtual Fill copy(Fill to);
-		float _width;
-		Color _color;
+	class F_EXPORT FillBorder: public FillBox {
+	 public:
+		enum Style {
+			dashed,
+			dotted,
+			Double,
+			groove,
+			hidden,
+			inherit,
+			initial,
+			inset,
+			outset,
+			none,
+			revert,
+			ridge,
+			solid,
+			unset,
+		};
+		virtual Fill copy(Fill to) override;
+		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+	 protected:
+		Color _color[4];
+		float _width[4];
+		Style _style[4];
 	};
 
 	/**
 	 * @class FillBorderRadius
 	 */
-	class F_EXPORT FillBorderRadius: public BoxFill {
-	public:
-		// TODO ...
-	protected:
-		virtual Fill copy(Fill to);
+	class F_EXPORT FillBorderRadius: public FillBox {
+	 public:
+		F_DEFINE_PROP(float, left_top);
+		F_DEFINE_PROP(float, right_top);
+		F_DEFINE_PROP(float, right_bottom);
+		F_DEFINE_PROP(float, left_bottom);
+		virtual Fill copy(Fill to) override;
+		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
 	};
 
 }

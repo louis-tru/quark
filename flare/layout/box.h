@@ -56,8 +56,8 @@ namespace flare {
 		// define props
 		F_DEFINE_PROP(SizeValue, width); // size width
 		F_DEFINE_PROP(SizeValue, height); // size height
-		F_DEFINE_PROP(SizeValue, limit_width); // limit max size
-		F_DEFINE_PROP(SizeValue, limit_height);
+		F_DEFINE_PROP(SizeValue, width_limit); // limit max size
+		F_DEFINE_PROP(SizeValue, height_limit);
 		F_DEFINE_PROP(float, margin_top); // margin
 		F_DEFINE_PROP(float, margin_right);
 		F_DEFINE_PROP(float, margin_bottom);
@@ -66,7 +66,7 @@ namespace flare {
 		F_DEFINE_PROP(float, padding_right);
 		F_DEFINE_PROP(float, padding_bottom);
 		F_DEFINE_PROP(float, padding_left);
-		F_DEFINE_PROP(Fill, fill); // color|shadow|image|gradient|border|border-radius
+		F_DEFINE_PROP(Fill,  fill); // color|shadow|image|gradient|border|border-radius
 
 		/**
 			*

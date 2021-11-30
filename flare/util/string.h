@@ -56,7 +56,7 @@ namespace flare {
 			char*    val;
 			std::atomic_int ref;
 		};
-		union Val {
+		union Value {
 			struct ShortStr s;
 			struct LongStr* l; // share long string core
 		};
@@ -77,7 +77,7 @@ namespace flare {
 		static LongStr* NewLong(uint32_t length, uint32_t capacity, char* val);
 		static void Release(LongStr* l, Free free);
 		static void Retain (LongStr* l);
-		Val    _val;
+		Value  _val;
 		template<typename T, typename A> friend class ArrayString;
 	};
 
@@ -181,8 +181,7 @@ namespace flare {
 		template<typename T2> T2   to_number()        const;
 		template<typename T2> bool to_number(T2* out) const;
 	 private:
-		template<typename T2>
-		void number_(T2 i);
+		template<typename T2> void number_(T2 i);
 		T* val();
 	};
 

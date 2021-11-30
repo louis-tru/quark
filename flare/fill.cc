@@ -28,30 +28,34 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "./app.h"
 #include "./fill.h"
 #include "./texture.h"
 #include "./display.h"
+#include "./pre-render.h"
+#include "./layout/box.h"
+#include "skia/core/SkCanvas.h"
 
 namespace flare {
 
-	F_DEFINE_INLINE_MEMBERS(BoxFill, Inl) {
-	public:
-		#define _inl(self) static_cast<BoxFill::Inl*>(static_cast<BoxFill*>(self))
+	F_DEFINE_INLINE_MEMBERS(FillBox, Inl) {
+		#define _inl(self) static_cast<FillBox::Inl*>(static_cast<Fill>(self))
+	 public:
 		
-		bool check_loop_reference(BoxFill* value) {
+		bool check_loop_reference(Fill value) {
 			if (value) {
-				auto bg = value;
+				auto v = value;
 				do {
-					if (bg == this) {
+					if (v == this) {
 						return true;
 					}
-					bg = bg->_next;
-				} while (bg);
+					v = v->_next;
+				} while (v);
 			}
 			return false;
 		}
 		
-		static BoxFill* assign(BoxFill* left, BoxFill* right) {
+		static Fill assign(Fill left, Fill right) {
 			if (right) {
 				if (left == right) {
 					return left;
@@ -81,32 +85,30 @@ namespace flare {
 			}
 		}
 		
-		void set_next(BoxFill* value) {
+		void set_next(Fill value) {
 			_next = assign(_next, value);
 			if (_next) {
-				_next->set_host(_host);
 				_next->set_holder_mode(_holder_mode);
 			}
-			mark(View::M_BACKGROUND);
+			mark();
 		}
 
 	};
 
-	BoxFill::BoxFill()
+	FillBox::FillBox()
 		: _next(nullptr)
-		, _host(nullptr)
 		, _holder_mode(M_INDEPENDENT)
 	{
 	}
 
-	BoxFill::~BoxFill() {
+	FillBox::~FillBox() {
 		if (_next) {
 			_next->release();
 			_next = nullptr;
 		}
 	}
 
-	void BoxFill::set_next(BoxFill* value) {
+	void FillBox::set_next(Fill value) {
 		if (value != _next) {
 			if (_inl(this)->check_loop_reference(value)) {
 				F_ERR("Box background loop reference error");
@@ -114,11 +116,11 @@ namespace flare {
 				_inl(this)->set_next(value);
 			}
 		} else {
-			mark(View::M_BACKGROUND);
+			mark();
 		}
 	}
 
-	BoxFill* BoxFill::assign(BoxFill* left, BoxFill* right) {
+	Fill FillBox::assign(Fill left, Fill right) {
 		if (left == right) {
 			return left;
 		} else {
@@ -131,7 +133,7 @@ namespace flare {
 		}
 	}
 
-	bool BoxFill::retain() {
+	bool FillBox::retain() {
 		if (_holder_mode == M_DISABLE) {
 			return false;
 		} else if (_holder_mode == M_INDEPENDENT) {
@@ -142,37 +144,65 @@ namespace flare {
 		return Reference::retain();
 	}
 
-	void BoxFill::release() {
-		set_host(nullptr);
-		Reference::release();
-	}
-
-	void BoxFill::set_host(Box* host) {
-		if (_host != host) {
-			_host = host;
-			if (_next) {
-				_next->set_host(host);
-			}
-		}
-	}
-
 	/**
 	* @func set_holder_mode(mode)
 	*/
-	void BoxFill::set_holder_mode(HolderMode mode) {
+	Fill FillBox::set_holder_mode(HolderMode mode) {
 		if (_holder_mode != mode) {
 			_holder_mode = mode;
 			if (_next) {
 				_next->set_holder_mode(mode);
 			}
 		}
+		return this;
 	}
 
-	void BoxFill::mark(uint32_t mark_value) {
-		if (_host) {
-			_host->mark(mark_value);
+	void FillBox::mark() {
+		auto app_ = app();
+		// F_ASSERT(app_, "Application needs to be initialized first");
+		if (app_) {
+			app_->pre_render()->mark_none();
 		}
 	}
+
+	FillColor::FillColor(Color color): _color(color) {
+	}
+
+	void FillColor::set_color(Color value) {
+		if (_color != value) {
+			_color = value;
+			mark();
+		}
+	}
+
+	Fill FillColor::copy(Fill to) {
+		auto target = (to && to->type() == M_COLOR) ?
+			static_cast<FillColor*>(to) : new FillColor();
+		target->_color = _color;
+		_inl(target)->set_next(_next);
+		return target;
+	}
+
+	void FillColor::draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) {
+		if (_color.a()) {
+			SkPaint paint;
+			// paint.setStyle(SkPaint::kFill_Style);
+			// paint.setAntiAlias(true);
+			// paint.setStrokeWidth(4);
+			paint.setColor(0xff4285F4);
+			SkRect rect = SkRect::MakeXYWH(10, 80, 100, 160);
+			
+			canvas->setMatrix(SkMatrix());
+
+			canvas->drawRect(rect, paint);
+		}
+		if (_next)
+			_next->draw(host, canvas, radius);
+	}
+
+	Fill FillColor::WHITE( NewRetain<FillColor>(Color(255,255,255,255))->set_holder_mode(M_SHARED) );
+	Fill FillColor::BLACK( NewRetain<FillColor>(Color(0,0,0,255))->set_holder_mode(M_SHARED) );
+	Fill FillColor::BLUE( NewRetain<FillColor>(Color(0,1,0,255))->set_holder_mode(M_SHARED) );
 
 	enum {
 		BI_flag_src = (1 << 0),
@@ -185,41 +215,42 @@ namespace flare {
 	};
 
 	F_DEFINE_INLINE_MEMBERS(FillImage, Inl) {
-		public:
+	 public:
 		#define _inl2(self) static_cast<FillImage::Inl*>(self)
 
-		void texture_change_handle(Event<int, Texture>& evt) { // 收到图像变化通知
-			UILock lock;
+		void texture_change_handle(Event<Texture, int>& evt) { // 收到图像变化通知
+			/*UILock lock;
 			int status = *evt.data();
 			if (status & TEXTURE_CHANGE_OK) {
 				mark(View::M_BACKGROUND);
-			}
+			}*/
 		}
 		
 		void reset_texture() {
-			auto pool = tex_pool();
+			/*auto pool = tex_pool();
 			if (pool) {
-				if (_has_base64_src) {
+				if (_has_base64) {
 					F_UNIMPLEMENTED(); // TODO ...
 				} else {
 					set_texture(pool->get_texture(_src));
 				}
-			}
+			}*/
 		}
 		
-	//  Texture* get_texture() {
-	//    if (!_texture) {
-	//      if (!_src.is_empty()) {
-	//        reset_texture();
-	//      }
-	//    }
-	//    return _texture;
-	//  }
-		
+		Texture* get_texture() {
+			// TODO ...
+			// if (!_texture) {
+			// 	if (!_src.is_empty()) {
+			// 		reset_texture();
+			// 	}
+			// }
+			// return _texture;
+		}
+
 		void set_source(cString& src, bool has_base64) {
 			if (has_base64 || src != _src) {
 				_src = src;
-				_has_base64_src = has_base64;
+				_has_base64 = has_base64;
 				if ( src.is_empty() ) {
 					set_texture(nullptr);
 				} else {
@@ -235,24 +266,26 @@ namespace flare {
 		: _src()
 		, _texture(nullptr)
 		, _repeat(Repeat::REPEAT)
+		, _has_base64(false)
 		, _attributes_flags(0)
 	{
 	}
 
 	FillImage::~FillImage() {
 		if (_texture) {
-			_texture->F_Off(change, &Inl::texture_change_handle, _inl2(this));
+			/*_texture->F_Off(change, &Inl::texture_change_handle, _inl2(this));
 			_texture->release(); // 释放纹理
+			 */
 		}
 	}
 
-	BoxFill* FillImage::copy(BoxFill* to) {
+	Fill FillImage::copy(Fill to) {
 		FillImage* target = (to && to->type() == M_IMAGE) ?
 				static_cast<FillImage*>(to) : new FillImage();
 		target->_attributes_flags |= _attributes_flags;
 		if (_attributes_flags & BI_flag_src) {
 			target->_src = _src;
-			target->_has_base64_src = _has_base64_src;
+			target->_has_base64 = _has_base64;
 		}
 		if (_attributes_flags & BI_flag_repeat) target->_repeat = _repeat;
 		if (_attributes_flags & BI_flag_position_x) target->_position_x = _position_x;
@@ -264,38 +297,39 @@ namespace flare {
 		return target;
 	}
 
-	String FillImage::src() const {
-		return _src;
-	}
-
-	void FillImage::set_src(cString& value) {
-		_inl2(this)->set_source(value, false);
+	void FillImage::set_src(String value) {
+		// TODO ...
+		// _inl2(this)->set_source(value, false);
 	}
 
 	void FillImage::set_src_base64(cString& value) {
-		_inl2(this)->set_source(value, true);
+		// TODO ...
+		// _inl2(this)->set_source(value, true);
 	}
 
 	void FillImage::set_texture(Texture* value) {
-		if (value != _texture) {
-			if (_texture) {
-				_texture->F_Off(change, &Inl::texture_change_handle, _inl2(this));
-				_texture->release(); // 释放
-			}
-			_texture = value;
-			if (value) {
-				_texture->retain(); // 保持
-				_texture->F_On(change, &Inl::texture_change_handle, _inl2(this));
-			}
-			mark(View::M_BACKGROUND);
-			_attributes_flags |= BI_flag_texture;
-		}
+		// TODO ...
+		// if (value != _texture) {
+		// 	if (_texture) {/*
+		// 		_texture->F_Off(change, &Inl::texture_change_handle, _inl2(this));
+		// 		_texture->release(); // 释放
+		// 									*/
+		// 	}
+		// 	_texture = value;
+		// 	if (value) {
+		// 		_texture->retain(); // 保持
+		// 		/*
+		// 		_texture->F_On(change, &Inl::texture_change_handle, _inl2(this));*/
+		// 	}
+		// 	mark();
+		// 	_attributes_flags |= BI_flag_texture;
+		// }
 	}
 
 	void FillImage::set_repeat(Repeat value) {
 		if (_repeat != value) {
 			_repeat = value;
-			mark(View::M_BACKGROUND);
+			mark();
 			_attributes_flags |= BI_flag_repeat;
 		}
 	}
@@ -303,7 +337,7 @@ namespace flare {
 	void FillImage::set_position_x(FillPosition value) {
 		if (value != _position_x) {
 			_position_x = value;
-			mark(View::M_BACKGROUND);
+			mark();
 			_attributes_flags |= BI_flag_position_x;
 		}
 	}
@@ -311,7 +345,7 @@ namespace flare {
 	void FillImage::set_position_y(FillPosition value) {
 		if (value != _position_y) {
 			_position_y = value;
-			mark(View::M_BACKGROUND);
+			mark();
 			_attributes_flags |= BI_flag_position_y;
 		}
 	}
@@ -319,7 +353,7 @@ namespace flare {
 	void FillImage::set_size_x(FillSize value) {
 		if (value != _size_x) {
 			_size_x = value;
-			mark(View::M_BACKGROUND);
+			mark();
 			_attributes_flags |= BI_flag_size_x;
 		}
 	}
@@ -327,116 +361,115 @@ namespace flare {
 	void FillImage::set_size_y(FillSize value) {
 		if (value != _size_y) {
 			_size_y = value;
-			mark(View::M_BACKGROUND);
+			mark();
 			_attributes_flags |= BI_flag_size_y;
 		}
 	}
 
-	bool FillImage::get_fill_image_data(Box* v,
-																									Vec2& final_size,
-																									Vec2& final_position, int& level) {
-		bool ok = false;
-		auto tex = _texture;
-		if (!tex) {
-			return ok;
-		}
-		if (!tex->is_available()) {
-			tex->load(); return ok;
-		}
+	bool FillImage::get_image_data(Box* v, Vec2& final_size, Vec2& final_position, int& level) {
+		// TODO ...
+		// bool ok = false;
+		// auto tex = _texture;
+		// if (!tex) {
+		// 	return ok;
+		// }
+		// if (!tex->is_available()) {
+		// 	tex->load(); return ok;
+		// }
 		
-		float tex_width = tex->width();
-		float tex_height = tex->height();
-		auto sx = _size_x, sy = _size_y;
-		auto px = _position_x, py = _position_y;
+		// float tex_width = tex->width();
+		// float tex_height = tex->height();
+		// auto sx = _size_x, sy = _size_y;
+		// auto px = _position_x, py = _position_y;
 		
-		float final_size_x, final_size_y, final_position_x, final_position_y;
+		// float final_size_x, final_size_y, final_position_x, final_position_y;
 		
-		if (sx.type == FillSizeType::AUTO) {
-			switch (sy.type) {
-				case FillSizeType::AUTO:
-					final_size_x = tex_width;
-					final_size_y = tex_height;
-					break;
-				case FillSizeType::PIXEL:
-					final_size_y = sy.value;
-					final_size_x = tex_width * final_size_y / tex_height;
-					break;
-				default: // case FillSizeType::PERCENT:
-					final_size_y = sy.value * v->_final_height;
-					final_size_x = tex_width * final_size_y / tex_height;
-					break;
-			}
-		} else {
-			if (sx.type == FillSizeType::PIXEL) {
-				final_size_x = sx.value;
-			} else {
-				final_size_x = sx.value * v->_final_width;
-			}
-			switch (sy.type) {
-				case FillSizeType::AUTO:
-					final_size_y = tex_height * final_size_x / tex_width;
-					break;
-				case FillSizeType::PIXEL:
-					final_size_y = sy.value;
-					break;
-				default:// case FillSizeType::PERCENT:
-					final_size_y = sy.value * v->_final_height;
-					break;
-			}
-		}
+		// if (sx.type == FillSizeType::AUTO) {
+		// 	switch (sy.type) {
+		// 		case FillSizeType::AUTO:
+		// 			final_size_x = tex_width;
+		// 			final_size_y = tex_height;
+		// 			break;
+		// 		case FillSizeType::PIXEL:
+		// 			final_size_y = sy.value;
+		// 			final_size_x = tex_width * final_size_y / tex_height;
+		// 			break;
+		// 		default: // case FillSizeType::PERCENT:
+		// 			final_size_y = sy.value * v->_final_height;
+		// 			final_size_x = tex_width * final_size_y / tex_height;
+		// 			break;
+		// 	}
+		// } else {
+		// 	if (sx.type == FillSizeType::PIXEL) {
+		// 		final_size_x = sx.value;
+		// 	} else {
+		// 		final_size_x = sx.value * v->_final_width;
+		// 	}
+		// 	switch (sy.type) {
+		// 		case FillSizeType::AUTO:
+		// 			final_size_y = tex_height * final_size_x / tex_width;
+		// 			break;
+		// 		case FillSizeType::PIXEL:
+		// 			final_size_y = sy.value;
+		// 			break;
+		// 		default:// case FillSizeType::PERCENT:
+		// 			final_size_y = sy.value * v->_final_height;
+		// 			break;
+		// 	}
+		// }
 		
-		switch (px.type) {
-			case FillPositionType::PIXEL:     /* 像素值  px */
-				final_position_x = px.value;
-				break;
-			case FillPositionType::PERCENT:   /* 百分比  % */
-				final_position_x = px.value * v->_final_width;
-				break;
-			case FillPositionType::RIGHT:     /* 居右  % */
-				final_position_x = v->_final_width - final_size_x;
-				break;
-			case FillPositionType::CENTER:    /* 居中 */
-				final_position_x = (v->_final_width - final_size_x) / 2;
-				break;
-			default:
-				final_position_x = 0; break;
-		}
+		// switch (px.type) {
+		// 	case FillPositionType::PIXEL:     /* 像素值  px */
+		// 		final_position_x = px.value;
+		// 		break;
+		// 	case FillPositionType::PERCENT:   /* 百分比  % */
+		// 		final_position_x = px.value * v->_final_width;
+		// 		break;
+		// 	case FillPositionType::RIGHT:     /* 居右  % */
+		// 		final_position_x = v->_final_width - final_size_x;
+		// 		break;
+		// 	case FillPositionType::CENTER:    /* 居中 */
+		// 		final_position_x = (v->_final_width - final_size_x) / 2;
+		// 		break;
+		// 	default:
+		// 		final_position_x = 0; break;
+		// }
 		
-		switch (py.type) {
-			case FillPositionType::PIXEL:     /* 像素值  px */
-				final_position_y = py.value;
-				break;
-			case FillPositionType::PERCENT:   /* 百分比  % */
-				final_position_y = py.value * v->_final_height;
-				break;
-			case FillPositionType::BOTTOM:     /* 居下  % */
-				final_position_y = v->_final_height - final_size_y;
-				break;
-			case FillPositionType::CENTER:    /* 居中 */
-				final_position_y = (v->_final_height - final_size_y) / 2;
-				break;
-			default:
-				final_position_y = 0; break;
-		}
+		// switch (py.type) {
+		// 	case FillPositionType::PIXEL:     /* 像素值  px */
+		// 		final_position_y = py.value;
+		// 		break;
+		// 	case FillPositionType::PERCENT:   /* 百分比  % */
+		// 		final_position_y = py.value * v->_final_height;
+		// 		break;
+		// 	case FillPositionType::BOTTOM:     /* 居下  % */
+		// 		final_position_y = v->_final_height - final_size_y;
+		// 		break;
+		// 	case FillPositionType::CENTER:    /* 居中 */
+		// 		final_position_y = (v->_final_height - final_size_y) / 2;
+		// 		break;
+		// 	default:
+		// 		final_position_y = 0; break;
+		// }
 		
-		final_size = Vec2(final_size_x, final_size_y);
-		final_position = Vec2(final_position_x, final_position_y);
+		// final_size = Vec2(final_size_x, final_size_y);
+		// final_position = Vec2(final_position_x, final_position_y);
 		
-		// Computing texture level
-		float dpscale = app()->display_port()->scale();
-		// screen size
-		auto vertex = v->_final_vertex;
-		float box_screen_scale_width = sqrt(pow(vertex[0][0] - vertex[1][0], 2) +
-																				pow(vertex[0][1] - vertex[1][1], 2)) / v->_final_width;
-		float box_screen_scale_height = sqrt(pow(vertex[0][0] - vertex[3][0], 2) +
-																				pow(vertex[0][1] - vertex[3][1], 2)) / v->_final_height;
-		float tex_screen_width = final_size_x * box_screen_scale_width;
-		float tex_screen_height = final_size_y * box_screen_scale_height;
+		// // Computing texture level
+		// float dpscale = app()->display_port()->scale();
+		// // screen size
+		// auto vertex = v->_final_vertex;
+		// float box_screen_scale_width = sqrt(pow(vertex[0][0] - vertex[1][0], 2) +
+		// 																		pow(vertex[0][1] - vertex[1][1], 2)) / v->_final_width;
+		// float box_screen_scale_height = sqrt(pow(vertex[0][0] - vertex[3][0], 2) +
+		// 																		pow(vertex[0][1] - vertex[3][1], 2)) / v->_final_height;
+		// float tex_screen_width = final_size_x * box_screen_scale_width;
+		// float tex_screen_height = final_size_y * box_screen_scale_height;
 		
-		float ratio = (tex->width() / F_MAX(tex_screen_width, 16) +
-									tex->height() / F_MAX(tex_screen_height, 16)) / 2 / dpscale;
+		// float ratio = (tex->width() / F_MAX(tex_screen_width, 16) +
+		// 							tex->height() / F_MAX(tex_screen_height, 16)) / 2 / dpscale;
 		
-		level = tex->get_texture_level(floorf(ratio));
+		// level = tex->get_texture_level(floorf(ratio));
 		
 		return true;
 	}
@@ -445,12 +478,17 @@ namespace flare {
 	{
 	}
 
-	BoxFill* FillGradient::copy(BoxFill* to) {
+	Fill FillGradient::copy(Fill to) {
 		FillGradient* target = (to && to->type() == M_GRADIENT) ?
 			static_cast<FillGradient*>(to) : new FillGradient();
 		// TODO ..
 		_inl(target)->set_next(_next);
 		return target;
+	}
+
+	void FillBorderRadius::draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) {
+		if (_next)
+			_next->draw(host, canvas, this);
 	}
 
 }

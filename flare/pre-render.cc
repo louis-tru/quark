@@ -213,6 +213,10 @@ namespace flare {
 		_is_render = true;
 	}
 
+	void PreRender::mark_none() {
+		_is_render = true;
+	}
+
 	PreRender::Task::~Task() {
 		unregister_task();
 	}

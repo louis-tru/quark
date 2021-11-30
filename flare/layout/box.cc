@@ -141,7 +141,7 @@ namespace flare {
 		* @constructors
 		*/
 	Box::Box()
-		: _limit_width{0, SizeType::NONE}, _limit_height{0, SizeType::NONE}
+		: _width_limit{0, SizeType::NONE}, _height_limit{0, SizeType::NONE}
 		, _margin_top(0), _margin_right(0)
 		, _margin_bottom(0), _margin_left(0)
 		, _padding_top(0), _padding_right(0)
@@ -188,11 +188,11 @@ namespace flare {
 		*
 		* 设置最大宽度限制
 		*
-		* @func set_limit_width(limit_width)
+		* @func set_width_limit(width_limit)
 		*/
-	void Box::set_limit_width(SizeValue val) {
-		if (_limit_width != val) {
-			_limit_width = val;
+	void Box::set_width_limit(SizeValue val) {
+		if (_width_limit != val) {
+			_width_limit = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
 		}
 	}
@@ -201,11 +201,11 @@ namespace flare {
 		*
 		* 设置最大高度限制
 		*
-		* @func set_limit_height(limit_height)
+		* @func set_height_limit(height_limit)
 		*/
-	void Box::set_limit_height(SizeValue val) {
-		if (_limit_height != val) {
-			_limit_height = val;
+	void Box::set_height_limit(SizeValue val) {
+		if (_height_limit != val) {
+			_height_limit = val;
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
 		}
 	}
@@ -274,8 +274,7 @@ namespace flare {
 	
 	void Box::set_fill(Fill val) {
 		if (_fill != val) {
-			// TODO ...
-			_fill = val; // ?
+			_fill = FillBox::assign(_fill, val);
 			mark(M_NONE);
 		}
 	}
@@ -598,14 +597,10 @@ namespace flare {
 
 	void Box::draw(SkCanvas* canvas) {
 		if (_fill) {
-			// TODO ...
-			// _fill->draw(canvas);
-			
-			SkFont font;
-			SkPaint paint;
-			
-			canvas->drawString("ABCD", 0, 0, font, paint);
-			
+			_fill->draw(this, canvas);
+			// SkFont font;
+			// SkPaint paint;
+			// canvas->drawString("ABCD", 0, 0, font, paint);
 			View::draw(canvas);
 		} else {
 			View::draw(canvas);

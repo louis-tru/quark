@@ -438,7 +438,8 @@ function configure_skia(opts, variables) {
 	console.log(`export PATH=${__dirname}:${variables.build_bin}:$PATH`);
 
 	var cmd = `cd ${source} && \
-		./bin/gn gen ${variables.output}/obj.target/skia ${args0} --args='${args}'`;
+		./bin/gn gen --ide=xcode ${variables.output}/obj.target/skia ${args0} --args='${args}' && \
+		./bin/gn gen ${variables.output}/obj.target/skia ${args0} --args='${args}' `;
 	console.log(cmd);
 
 	var log = syscall(cmd.replace(/\t/gm, ' '));

@@ -133,8 +133,8 @@
 			# '_property.cc',
 			# '_text-rows.cc',
 			# '_text-rows.h',
-			# 'fill.h',
-			# 'fill.cc',
+			'fill.h',
+			'fill.cc',
 			# 'text-font.h',
 			# 'text-font.cc',
 			#

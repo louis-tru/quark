@@ -84,6 +84,7 @@ namespace flare {
 		void mark_recursive(Layout *layout, uint32_t depth);
 		void delete_mark(Layout *layout, uint32_t depth);
 		void delete_mark_recursive(Layout *layout, uint32_t depth);
+		void mark_none();
 
 	 private:
 		bool _is_render;
