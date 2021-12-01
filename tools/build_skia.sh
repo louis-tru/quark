@@ -45,6 +45,6 @@ fi
 # -Os -fno-math-errno -fno-signed-zeros -mstack-alignment=16 -Qunused-arguments -Werror=implicit-function-declaration -Werror=missing-prototypes 
 # -Werror=return-type  -MMD -MF libavformat/metadata.d -MT libavformat/metadata.o -c -o libavformat/metadata.o libavformat/metadata.c
 
-rm -f skia
-ln -s $source/include skia
+# rm -f skia
+# ln -s $source/include skia
 

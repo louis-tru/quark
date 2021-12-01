@@ -358,16 +358,6 @@ function configure_skia(opts, variables) {
 	// skia_use_icu=false \
 	// xcode_sysroot="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.5.sdk" '
 
-	// [279/1219] clang -MD -MF obj/src/gpu/gl/gpu.GrGLSemaphore.o.d -DNDEBUG 
-	// -DSK_ENABLE_SKSL -DSK_ASSUME_GL_ES=1 -DSK_ENABLE_API_AVAILABLE -DSK_GAMMA_APPLY_TO_A8 -DSKIA_IMPLEMENTATION=1 
-	// -DSK_GL -I../../../../deps/skia -Wno-attributes -fstrict-aliasing -fPIC -fvisibility=hidden 
-	// -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.5.sdk 
-	// -arch arm64 -arch arm64e -O3 -std=c++17 -fvisibility-inlines-hidden 
-	// -stdlib=libc++ -fno-aligned-allocation -fno-exceptions 
-	// -fno-rtti -c ../../../../deps/skia/src/gpu/gl/GrGLSemaphore.cpp -o obj/src/gpu/gl/gpu.GrGLSemaphore.o
-
-	// cflags_cc="-std=c++17"
-	
 	var os = opts.os;
 	var arch_name = variables.arch_name;
 	var source = __dirname + '/../deps/skia';
@@ -438,7 +428,7 @@ function configure_skia(opts, variables) {
 	console.log(`export PATH=${__dirname}:${variables.build_bin}:$PATH`);
 
 	var cmd = `cd ${source} && \
-		./bin/gn gen --ide=xcode ${variables.output}/obj.target/skia ${args0} --args='${args}' && \
+		./bin/gn gen --ide=xcode out ${args0} --args='${args}' && \
 		./bin/gn gen ${variables.output}/obj.target/skia ${args0} --args='${args}' `;
 	console.log(cmd);
 
@@ -446,6 +436,13 @@ function configure_skia(opts, variables) {
 	console.error(log.stderr.join('\n'));
 	console.log(log.stdout.join('\n'));
 	// process.exit(0);
+
+	if (!fs.existsSync(`${variables.output}/obj.target/skia/skia`)) {
+		fs.rm_r_sync(`${variables.output}/obj.target/skia/skia`);
+		fs.symlinkSync(path.resolve(`${source}/include`), `${variables.output}/obj.target/skia/skia`);
+	}
+
+	require('./skia_gyp').gen_gyp();
 }
 
 function bs(a) {

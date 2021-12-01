@@ -185,16 +185,11 @@ namespace flare {
 
 	void FillColor::draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) {
 		if (_color.a()) {
-			SkPaint paint;
-			// paint.setStyle(SkPaint::kFill_Style);
-			// paint.setAntiAlias(true);
-			// paint.setStrokeWidth(4);
-			paint.setColor(0xff4285F4);
-			SkRect rect = SkRect::MakeXYWH(10, 80, 100, 160);
-			
-			canvas->setMatrix(SkMatrix());
+ 			SkPaint paint;
+			paint.setColor(_color.to_uint32_argb());
+			auto size = host->layout_size().content_size;
 
-			canvas->drawRect(rect, paint);
+			canvas->drawRect({0, 0, size[0], size[1]}, paint);
 		}
 		if (_next)
 			_next->draw(host, canvas, radius);

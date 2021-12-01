@@ -72,11 +72,11 @@
 // -DSK_ENCODE_WEBP 
 // -DSK_XML 
 
+#include "flare/render/canvas.h"
 #include "skia/core/SkRefCnt.h"
 #include "skia/core/SkSurfaceProps.h"
 #include "skia/core/SkImageInfo.h"
 #include "skia/core/SkSurface.h"
-#include "skia/core/SkCanvas.h"
 #include "skia/gpu/GrTypes.h"
 #include "skia/gpu/GrDirectContext.h"
 #include "skia/gpu/GrContextOptions.h"
@@ -106,7 +106,7 @@ namespace flare {
 		/**
 		 * @func canvas()
 		 */
-		SkCanvas* canvas();
+		SkCanvasLink* canvas();
 
 		/**
 		 * @func getSurface()

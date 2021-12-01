@@ -34,9 +34,11 @@
 #include "./layout.h"
 #include "../event.h"
 
-class SkCanvas;
+class SkCanvasLink;
 
 namespace flare {
+
+	typedef SkCanvasLink Canvas;
 
 	# define F_Views(F) \
 		F(View) F(Box) \
@@ -205,7 +207,7 @@ namespace flare {
 		/**
 		 * @func draw(canvas)
 		 */
-		virtual void draw(SkCanvas* canvas);
+		virtual void draw(Canvas* canvas);
 
 		/**
 			*

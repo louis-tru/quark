@@ -41,7 +41,7 @@
 namespace flare {
 
 	template <typename T, int LEN> class MTVec {
-	public:
+	 public:
 		inline MTVec() { }
 		inline MTVec(T value) {
 			for (int i = 0; i < LEN; i++) {
@@ -52,12 +52,12 @@ namespace flare {
 		inline T& operator[](int index) { return _value[index]; }
 		inline const T* value() const { return _value; }
 		inline T* value() { return _value; }
-	protected:
+	 protected:
 		T _value[LEN];
 	};
 
 	template <typename T> class MTColor: public MTVec<T, 4> {
-	public:
+	 public:
 		inline MTColor(T r, T g, T b, T a){
 			this->_value[0] = r;
 			this->_value[1] = g;
@@ -75,13 +75,13 @@ namespace flare {
 	};
 
 	template <int LEN> class Vec: public MTVec<float, LEN> {
-	public:
-		inline Vec() { }
+	 public:
+		inline Vec() {}
 		inline Vec(float f): MTVec<float, LEN>(f) {}
 	};
 
 	class F_EXPORT Vec2: public Vec<2> {
-	public:
+	 public:
 		inline Vec2(): Vec2(0) { }
 		inline Vec2(float a, float b) {
 			_value[0] = a;
@@ -121,7 +121,7 @@ namespace flare {
 	};
 
 	class F_EXPORT Vec3: public Vec<3> {
-	public:
+	 public:
 		inline Vec3(): Vec3(0) { }
 		inline Vec3(float a, float b, float c) {
 			_value[0] = a;
@@ -153,7 +153,7 @@ namespace flare {
 	};
 
 	class F_EXPORT Vec4: public Vec<4> {
-	public:
+	 public:
 		inline Vec4(): Vec4(0) { }
 		inline Vec4(float a, float b, float c, float d) {
 			_value[0] = a;
@@ -200,7 +200,7 @@ namespace flare {
 	* @class FloatColor
 	*/
 	class F_EXPORT FloatColor: public MTColor<float> {
-	public:
+	 public:
 		inline FloatColor(): MTColor<float>(0, 0, 0, 1) { }
 		inline FloatColor(float r, float g, float b): MTColor<float>(r, g, b, 1) { }
 		inline FloatColor(float r, float g, float b, float a): MTColor<float>(r, g, b, a) { }
@@ -212,7 +212,7 @@ namespace flare {
 	* @class Color
 	*/
 	class F_EXPORT Color: public MTColor<uint8_t> {
-	public:
+	 public:
 		Color(uint32_t color);
 		inline Color(): MTColor<uint8_t>(0, 0, 0, 255) { }
 		inline Color(uint8_t r, uint8_t g, uint8_t b): MTColor<uint8_t>(r, g, b, 255) { }
@@ -222,13 +222,16 @@ namespace flare {
 		inline FloatColor to_float_color() const {
 			return FloatColor(r() / 255.0f, g() / 255.0f, b() / 255.0f, a() / 255.0f);
 		}
+		uint32_t to_uint32_argb() const {
+			return a() << 24 | r() << 16 | g() << 8 | b();
+		}
 	};
 
 	/**
 	* @class Mat
 	*/
 	class F_EXPORT Mat: public Vec<6> {
-	public:
+	 public:
 		inline Mat(): Mat(1) { }
 		Mat(float value);
 		Mat(float m0, float m1, float m2, float m3, float m4, float m5);
@@ -315,7 +318,7 @@ namespace flare {
 	* @class Mat4
 	*/
 	class F_EXPORT Mat4: public Vec<16> {
-	public:
+	 public:
 		inline Mat4(): Mat4(1) {}
 		Mat4(float value);
 		Mat4(float m0, float m1, float m2, float m3,

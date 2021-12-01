@@ -370,7 +370,7 @@ namespace flare {
 	/**
 		* @func draw(canvas)
 		*/
-	void View::draw(SkCanvas* canvas) {
+	void View::draw(Canvas* canvas) {
 		// visit child
 		auto v = _first;
 		while(v) {
@@ -698,6 +698,7 @@ namespace flare {
 	}
 
 	Vec2 View::layout_offset_inside() {
+		// inside scroll 
 		return _transform_origin;
 	}
 

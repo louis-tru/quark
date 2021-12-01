@@ -117,7 +117,7 @@ namespace flare {
 		F_UNREACHABLE();
 	}
 
-	void Root::draw(SkCanvas* canvas) {
+	void Root::draw(Canvas* canvas) {
 		if (visible() && region_visible()) {
 			// canvas->drawColor(SK_ColorWHITE);
 			Box::draw(canvas);

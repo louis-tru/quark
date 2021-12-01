@@ -61,8 +61,8 @@ void onload_handle(Event<>& evt, Application* app) {
 	New<Box>()->append_to(flex);
 	New<Box>()->append_to(flow);
 	New<Box>()->append_to(flow);
-
-	r->set_fill( new FillColor(Color(255,0,0,255)) );
+	
+	r->set_fill( new FillColor(Color(0x42,0x85,0xF4,255)) );
 
 	F_LOG("%s, %p\n", "ok skia", app);
 }

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,58 +25,57 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./apple-render.h"
-#include "../../display.h"
+#include "./canvas.h"
+#include "../display.h"
+#include "../app.h"
 
-namespace flare {
+using namespace flare;
 
-	bool RenderApple::resize(::CGRect rect) {
-		float scale = UIScreen.mainScreen.scale;
-		float x = rect.size.width * scale;
-		float y = rect.size.height * scale;
-		return render()->host()->display()->set_surface_region({ 0,0,x,y,x,y });
+struct Layer;
+struct BackImage;
+
+class SkCanvas::MCRec {
+public:
+	std::unique_ptr<Layer> fLayer;
+	SkBaseDevice* fDevice;
+	std::unique_ptr<BackImage> fBackImage;
+	SkM44 fMatrix;
+	int fDeferredSaveCount;
+};
+
+class SkMatrixProvider {
+protected:
+	virtual ~SkMatrixProvider() = default;
+	SkM44    fLocalToDevice;
+	SkMatrix fLocalToDevice33;
+};
+
+class SkBaseDevice: public SkRefCnt, public SkMatrixProvider {
+public:
+	void setLocalToDevice(const SkM44& localToDevice) {
+		fLocalToDevice = localToDevice;
+		fLocalToDevice33 = fLocalToDevice.asM33();
 	}
+private:
+	SkMarkerStack* fMarkerStack = nullptr;
+	const SkImageInfo    fInfo;
+	const SkSurfaceProps fSurfaceProps;
+	SkM44 fDeviceToGlobal;
+	SkM44 fGlobalToDevice;
+};
 
-	uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
-		auto core = cb.Handle::collapse();
-		dispatch_async(dispatch_get_main_queue(), ^{
-			Cb cb(core);
-			cb->resolve();
-		});
-		return 0;
-	}
-
-	RenderApple* MakeRasterRender(Application* host, const Render::DisplayParams& parems);
-	RenderApple* MakeGLRender(Application* host, const Render::DisplayParams& parems);
-	RenderApple* MakeMetalRender(Application* host, const Render::DisplayParams& parems);
-
-	RenderApple* RenderApple::create(Application* host, cJSON& options) {
-		RenderApple* r = nullptr;
-		auto parems = Render::parseDisplayParams(options);
-		bool gpu = true;
-		bool metal = true;
-
-		if (gpu) {
-			if (metal) {
-				//r = MakeMetalRender(host, parems);
-			}
-			if (r) {
-				return r;
-			}
-			//r = MakeGLRender(host, parems);
-		}
-
-		if (r) {
-			return r;
-		}
-
-		r = MakeRasterRender(host, parems);
-		F_ASSERT(r);
-
-		return r;
-	}
-
-}  // namespace flare
+void SkCanvasLink::setMatrix(const Mat& mat) {
+	this->checkForDeferredSave();
+	Vec2 scale = display()->scale();
+	SkM44 m4(mat[0]*scale[0], mat[3]*scale[0], 0,0,
+					mat[1]*scale[1], mat[4]*scale[1], 0,0,
+					mat[2],                   mat[5], 1,0,
+					0,                             0, 0,1);
+	// ignore skcanvas fGlobalToDevice and fMatrix
+	// fMCRec->fMatrix = m4;
+	fMCRec->fDevice->setLocalToDevice(m4);
+	// didSetM44(m4); ignore
+}

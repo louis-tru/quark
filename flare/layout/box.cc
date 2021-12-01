@@ -31,8 +31,7 @@
 #include "./box.h"
 #include "../app.h"
 #include "../display.h"
-#include "skia/core/SkCanvas.h"
-#include "skia/core/SkFont.h"
+#include "../render/canvas.h"
 
 namespace flare {
 
@@ -595,12 +594,10 @@ namespace flare {
 		return visible;
 	}
 
-	void Box::draw(SkCanvas* canvas) {
+	void Box::draw(Canvas* canvas) {
 		if (_fill) {
+			canvas->setMatrix(matrix());
 			_fill->draw(this, canvas);
-			// SkFont font;
-			// SkPaint paint;
-			// canvas->drawString("ABCD", 0, 0, font, paint);
 			View::draw(canvas);
 		} else {
 			View::draw(canvas);

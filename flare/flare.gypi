@@ -37,10 +37,10 @@
 		],
 		'dependencies': [
 			'flare-util',
+			'skia',
 			'deps/tess2/tess2.gyp:tess2', 
 			'deps/freetype2/freetype2.gyp:ft2',
 			'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
-			'skia',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '..' ],
@@ -105,6 +105,8 @@
 			'render/gl.cc',
 			'render/metal.h',
 			'render/metal.mm',
+			'render/canvas.h',
+			'render/canvas.cc',
 			'math.h',
 			'math.cc',
 			'bezier.h',
@@ -158,6 +160,11 @@
 			#
 		],
 		'conditions': [
+			['OS=="mac" and project=="xcode"', {
+				'dependencies': [ 'out/skia.gyp:skia_gyp' ], # debug in xcode
+			}, {
+				'dependencies': [ 'skia' ],
+			}],
 			['os=="android"', {
 				'sources': [
 					'platforms/unix/unix-gl.h',
@@ -337,32 +344,39 @@
 	{
 		'target_name': 'skia',
 		'type': 'none',
-		'direct_dependent_settings': {
-			'include_dirs': [ '<(output)/obj.target/skia', '<(source)/deps/skia', ],
-		},
-		'sources': [
-		],
-		'actions': [{
-			'action_name': 'skia_compile',
-			'inputs': [
-				'../out/<(output_name)/obj.target/skia/args.gn',
-			],
-			'outputs': [
-				'../out/<(output_name)/obj.target/skia/libskia.a',
-				'../out/<(output_name)/obj.target/skia/skia',
-				'../deps/skia',
-			],
-			'action': [
-				'<(tools)/build_skia.sh',
-				'<(output)/obj.target/skia',
-			],
-		}],
-		'link_settings': {
-			'libraries': [
-				'<(output)/obj.target/skia/libskia.a',
+		"direct_dependent_settings": {
+			"include_dirs": [
+				"<(output)/obj.target/skia",
+				"<(source)/deps/skia"
 			]
 		},
+		'sources': [],
 		'conditions': [
+			['OS=="mac" and project=="xcode"', { # use skia_gyp
+				'dependencies': [ 'out/skia.gyp:skia_gyp' ], # debug in xcode
+			}, { # use ninja build
+				'actions': [{
+					'action_name': 'skia_compile',
+					'inputs': [
+						'../out/<(output_name)/obj.target/skia/args.gn',
+					],
+					'outputs': [
+						'../out/<(output_name)/obj.target/skia/libskia.a',
+						'../out/<(output_name)/obj.target/skia/skia',
+						'../deps/skia',
+					],
+					'action': [
+						'<(tools)/build_skia.sh',
+						'<(output)/obj.target/skia',
+					],
+				}],
+				'link_settings': {
+					'libraries': [
+						'<(output)/obj.target/skia/libskia.a',
+					]
+				},
+			}],
+			# common
 			['os in "ios osx"', {
 				'link_settings': {
 					'libraries': [

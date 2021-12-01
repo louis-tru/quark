@@ -45,7 +45,7 @@ namespace flare {
 		virtual void set_visible(bool val);
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
-		virtual void draw(SkCanvas* canvas);
+		virtual void draw(Canvas* canvas);
 	 protected:
 		virtual void set_parent(View* parent);
 	};
