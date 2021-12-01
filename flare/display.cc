@@ -86,7 +86,7 @@ namespace flare {
 			// update root
 			Root* r = _host->root();
 			if (r) {
-				r->mark_layout_size();
+				r->mark_layout_change();
 			}
 			
 			// set default draw region
@@ -160,13 +160,13 @@ namespace flare {
 	# define PRINT_RENDER_FRAME_TIME 0
 	#endif
 
-	void Display::render_frame(bool force) {// 必须要渲染循环中调用
+	void Display::render(bool need) {// 必须要渲染循环中调用
 		UILock lock(_host); // ui main local
 		Root* root = _host->root();
 		int64_t now_time = time_monotonic();
 		// _host->action_center()->advance(now_time); // advance action TODO ...
 		
-		if (root && (force || _host->pre_render()->solve(now_time))) {
+		if (root && (_host->pre_render()->solve(now_time) || need)) {
 			if (now_time - _record_fsp_time >= 1e6) {
 				_fsp = _record_fsp;
 				_record_fsp = 0;

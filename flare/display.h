@@ -210,7 +210,7 @@ namespace flare {
 		/**
 		 * @thread render
 		 */
-		void render_frame(bool force = false); // call from render loop
+		void render(bool need = false/*force render*/); // call from render loop
 		
 		/**
 		* @func default_atom_pixel

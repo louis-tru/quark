@@ -138,11 +138,6 @@ namespace flare {
 																_DisplayParams.fColorType,
 																_DisplayParams.fColorSpace,
 																&_DisplayParams.fSurfaceProps);
-				
-				if (isGpu()) {
-					Vec2 scale = _host->display()->scale();
-					_Surface->getCanvas()->scale(scale.x(), scale.y());
-				}
 			}
 		}
 

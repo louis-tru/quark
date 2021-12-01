@@ -29,8 +29,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-class SkCanvasLink;
-
 #include "../math.h"
 #include "skia/core/SkCanvas.h"
 

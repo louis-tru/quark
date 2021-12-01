@@ -52,8 +52,9 @@ namespace flare {
 		visitor->visitRoot(this);
 	}
 
-	void Root::mark_layout_size() {
+	void Root::mark_layout_change() {
 		mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+		set_scale(app()->display()->scale());
 	}
 
 	Root* Root::create() {
@@ -64,6 +65,7 @@ namespace flare {
 		r->set_receive(1);
 		r->set_width({0, SizeType::MATCH});
 		r->set_height({0, SizeType::MATCH});
+		r->set_scale(app->display()->scale());
 		r->mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
 		// set_fill(new FillColor(255, 255, 255)); // // 默认白色背景
 		r->mark_recursive(M_TRANSFORM);

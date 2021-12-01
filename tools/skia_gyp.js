@@ -68,6 +68,7 @@ function gen_gyp() {
 				"D_ARITH_CODING_SUPPORTED",
 				"SK_SHAPER_CORETEXT_AVAILABLE",
 				'qDNGDebug=0',
+				'NEON_INTRINSICS',
 			],
 			'dependencies': [],
 			'include_dirs': [
@@ -81,6 +82,7 @@ function gen_gyp() {
 				"../deps/skia/third_party/externals/dng_sdk/source",
 				"../deps/skia/third_party/externals/piex",
 				"../deps/skia/include/third_party/skcms",
+				"../deps/skia/third_party/externals/libjpeg-turbo/simd/arm",
 			],
 			'direct_dependent_settings': {
 				'include_dirs': [

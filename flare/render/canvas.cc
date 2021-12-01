@@ -28,6 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#define AutoUpdateQRBounds AutoUpdateQRBounds; friend class SkCanvasLink
+
+#include "skia/core/SkCanvas.h"
+
 #include "./canvas.h"
 #include "../display.h"
 #include "../app.h"
@@ -68,14 +72,16 @@ private:
 };
 
 void SkCanvasLink::setMatrix(const Mat& mat) {
-	this->checkForDeferredSave();
-	Vec2 scale = display()->scale();
-	SkM44 m4(mat[0]*scale[0], mat[3]*scale[0], 0,0,
-					mat[1]*scale[1], mat[4]*scale[1], 0,0,
-					mat[2],                   mat[5], 1,0,
-					0,                             0, 0,1);
-	// ignore skcanvas fGlobalToDevice and fMatrix
-	// fMCRec->fMatrix = m4;
-	fMCRec->fDevice->setLocalToDevice(m4);
-	// didSetM44(m4); ignore
+	SkM44 m4(mat[0], mat[1], 0,mat[3],
+					 mat[3], mat[4], 0,mat[5],
+					 0,           0, 1,0,
+					 0,           0, 0,1);
+	if (fMCRec->fDeferredSaveCount > 0) {
+		SkCanvas::setMatrix(m4);
+	} else {
+		// ignore skcanvas fGlobalToDevice and fMatrix
+		// fMCRec->fMatrix = m4;
+		fMCRec->fDevice->setLocalToDevice(m4);
+		// didSetM44(m4); ignore
+	}
 }

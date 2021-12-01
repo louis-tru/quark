@@ -218,7 +218,7 @@ static NSString* g_appDelegate_name = @"";
 
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
 		if (g_appDelegate.app->is_loaded()) {
-			g_appDelegate.app->display()->render_frame();
+			g_appDelegate.app->display()->render();
 		}
 	}
 

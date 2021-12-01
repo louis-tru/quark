@@ -54,8 +54,8 @@ void onload_handle(Event<>& evt, Application* app) {
 	//app->render()->commit();
 	
 	auto r = Root::create();
-	auto flex = New<FlexLayout>()->append_to(r);
-	auto flow = New<FlowLayout>()->append_to(r);
+	auto flex = (FlexLayout*)New<FlexLayout>()->append_to(r);
+	auto flow = (FlowLayout*)New<FlowLayout>()->append_to(r);
 
 	New<Box>()->append_to(flex);
 	New<Box>()->append_to(flex);
@@ -63,7 +63,16 @@ void onload_handle(Event<>& evt, Application* app) {
 	New<Box>()->append_to(flow);
 	
 	r->set_fill( new FillColor(Color(0x42,0x85,0xF4,255)) );
-
+	//
+	flex->set_width({ 0, SizeType::MATCH });
+	flex->set_height({ 200, SizeType::PIXEL });
+	flex->set_fill(new FillColor(Color(255,0,0,255)));
+	//
+	flow->set_width({ 0, SizeType::MATCH });
+	flow->set_height({ 200, SizeType::PIXEL });
+	flow->set_fill(new FillColor(Color(0,255,0,255)));
+	flow->set_layout_align(Align::CENTER_BOTTOM);
+	
 	F_LOG("%s, %p\n", "ok skia", app);
 }
 

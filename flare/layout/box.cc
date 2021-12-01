@@ -572,36 +572,35 @@ namespace flare {
 	}
 
 	bool Box::solve_region_visible() {
-		bool visible = false;
+		// bool visible = false;
 
-		Vec2 vertex[4];
+		// Vec2 vertex[4];
 
-		solve_rect_vertex(vertex);
+		// solve_rect_vertex(vertex);
 
-		/*
-		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
-		* 这种模糊测试在大多数时候都是正确有效的。
-		*/
-		Region dre = display()->display_region();
-		Region re = screen_region_from_convex_quadrilateral(vertex);
+		// /*
+		// * 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
+		// * 这种模糊测试在大多数时候都是正确有效的。
+		// */
+		// Region dre = display()->display_region();
+		// Region re = screen_region_from_convex_quadrilateral(vertex);
 		
-		if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) <= re.height + dre.height &&
-				F_MAX( dre.x2, re.x2 ) - F_MIN( dre.x, re.x ) <= re.width + dre.width
-		) {
-			visible = true;
-		}
+		// if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) <= re.height + dre.height &&
+		// 		F_MAX( dre.x2, re.x2 ) - F_MIN( dre.x, re.x ) <= re.width + dre.width
+		// ) {
+		// 	visible = true;
+		// }
 
-		return visible;
+		// return visible;
+		return true;
 	}
 
 	void Box::draw(Canvas* canvas) {
 		if (_fill) {
 			canvas->setMatrix(matrix());
 			_fill->draw(this, canvas);
-			View::draw(canvas);
-		} else {
-			View::draw(canvas);
 		}
+		View::draw(canvas);
 	}
 
 }

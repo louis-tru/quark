@@ -78,22 +78,19 @@ namespace flare {
 		void reload() override {
 			GLRender::reload();
 			// make the offscreen image
-			auto scale = _host->display()->scale();
 			auto region = _host->display()->surface_region();
 			SkImageInfo info = SkImageInfo::Make(region.width, region.height,
 																					 _DisplayParams.fColorType, kPremul_SkAlphaType,
 																					 _DisplayParams.fColorSpace);
 			_RasterSurface = SkSurface::MakeRaster(info);
-			_RasterSurface->getCanvas()->scale(scale.x(), scale.y());
 		}
 
 		void commit() override {
 			// We made/have an off-screen surface. Get the contents as an SkImage:
 			sk_sp<SkImage> snapshot = _RasterSurface->makeImageSnapshot();
 			SkSurface* gpuSurface = GLRender::getSurface();
-			SkCanvas* gpuCanvas = gpuSurface->getCanvas();
-			gpuCanvas->drawImage(snapshot, 0, 0);
-			gpuCanvas->flush();
+			gpuSurface->getCanvas()->drawImage(snapshot, 0, 0);
+			gpuSurface->flushAndSubmit();
 
 			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
