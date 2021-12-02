@@ -183,16 +183,16 @@ namespace flare {
 		return target;
 	}
 
-	void FillColor::draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) {
+	void FillColor::draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) {
 		if (_color.a()) {
  			SkPaint paint;
-			paint.setColor(_color.to_uint32_argb());
-			auto size = host->layout_size().content_size;
-
-			canvas->drawRect({0, 0, size[0], size[1]}, paint);
+			paint.setColor(_color.to_uint32_argb_opacity(opacity));
+			auto origin = host->transform_origin();
+			auto size = host->client_size();
+			canvas->drawRect({origin[0], origin[1], size[0], size[1]}, paint);
 		}
 		if (_next)
-			_next->draw(host, canvas, radius);
+			_next->draw(host, canvas, opacity, radius);
 	}
 
 	Fill FillColor::WHITE( NewRetain<FillColor>(Color(255,255,255,255))->set_holder_mode(M_SHARED) );
@@ -481,9 +481,9 @@ namespace flare {
 		return target;
 	}
 
-	void FillBorderRadius::draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) {
+	void FillBorderRadius::draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) {
 		if (_next)
-			_next->draw(host, canvas, this);
+			_next->draw(host, canvas, opacity, this);
 	}
 
 }

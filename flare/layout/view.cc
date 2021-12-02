@@ -157,7 +157,7 @@ namespace flare {
 		: _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
-		, _transform(nullptr), _opacity(1.0)
+		, _transform(nullptr), _opacity(255)
 		, _visible(true)
 		, _region_visible(false)
 		, _receive(false)
@@ -370,12 +370,14 @@ namespace flare {
 	/**
 		* @func draw(canvas)
 		*/
-	void View::draw(Canvas* canvas) {
+	void View::draw(Canvas* canvas, uint8_t opacity) {
 		// visit child
 		auto v = _first;
 		while(v) {
-			if (v->visible() && v->region_visible()) {
-				v->draw(canvas);
+			if (v->_visible && v->_region_visible) {
+				uint8_t op = (opacity * v->_opacity) >> 8;
+				if (op)
+					v->draw(canvas, op);
 			}
 			v = v->_next;
 		}
@@ -579,7 +581,7 @@ namespace flare {
 		*
 		* @func set_opacity(val)
 		*/
-	void View::set_opacity(float val) {
+	void View::set_opacity(uint8_t val) {
 		if (_opacity != val) {
 			_opacity = val;
 			mark(M_NONE); // mark none
@@ -587,16 +589,6 @@ namespace flare {
 	}
 
 	// *******************************************************************
-
-	/**
-		* 
-		* compute the transform origin value
-		* 
-		* @func solve_transform_origin()
-		*/
-	Vec2 View::solve_transform_origin() {
-		return Vec2();
-	}
 
 	/**
 		* 
@@ -610,13 +602,12 @@ namespace flare {
 		Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
 		if (_transform) {
 			return Mat(
-				layout_offset() + _transform_origin + _transform->translate - in, // translate
+				layout_offset() + _transform->translate - in, // translate
 				_transform->scale,
-				-_transform->rotate,
-				_transform->skew
+				-_transform->rotate, _transform->skew
 			);
 		} else {
-			Vec2 translate = layout_offset() + _transform_origin - in;
+			Vec2 translate = layout_offset() - in;
 			return Mat(
 				1, 0, translate.x(),
 				0, 1, translate.y()
@@ -648,58 +639,28 @@ namespace flare {
 	void View::layout_recursive(uint32_t mark) {
 		if (!layout_depth()) return;
 
-		if (mark & M_TRANSFORM_ORIGIN) {
-			unmark(M_TRANSFORM_ORIGIN); // unmark
-			// mark |= M_TRANSFORM;
-			// mark &= ~M_TRANSFORM_ORIGIN;
-			Vec2 origin = solve_transform_origin();
-			if (origin != _transform_origin) {
-				_transform_origin = origin;
-				goto transform;
-			}
-		}
-
 		if (mark & M_TRANSFORM) { // update transform matrix
-			transform:
-
+			unmark(M_TRANSFORM | M_LAYOUT_SHAPE); // unmark
 			if (_parent) {
 				_parent->matrix().multiplication(layout_matrix(), _matrix);
 			} else {
 				_matrix = layout_matrix();
 			}
-
-			unmark(M_TRANSFORM | M_LAYOUT_SHAPE); // unmark
-
+			goto region_visible;
+		}
+		else if (mark & M_LAYOUT_SHAPE) {
+			unmark(M_LAYOUT_SHAPE); // unmark
+			region_visible:
 			_region_visible = solve_region_visible();
 
 			if (_region_visible) {
 				View *v = _first;
 				while (v) {
-					v->layout_recursive(M_TRANSFORM | v->layout_mark());
+					v->layout_recursive(mark | v->layout_mark());
 					v = v->_next;
 				}
 			}
-		} else if (mark & M_LAYOUT_SHAPE) {
-			unmark(M_LAYOUT_SHAPE); // unmark
-
-			bool visible = solve_region_visible();
-			if (visible != _region_visible) {
-				_region_visible = visible;
-
-				if (visible) {
-					View *v = _first;
-					while (v) {
-						v->layout_recursive(M_LAYOUT_SHAPE | v->layout_mark());
-						v = v->_next;
-					}
-				}
-			}
 		}
-	}
-
-	Vec2 View::layout_offset_inside() {
-		// inside scroll 
-		return _transform_origin;
 	}
 
 	void View::layout_typesetting_change(Layout* child, TypesettingChangeMark _mark) {

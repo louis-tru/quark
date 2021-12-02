@@ -214,16 +214,19 @@ namespace flare {
 	class F_EXPORT Color: public MTColor<uint8_t> {
 	 public:
 		Color(uint32_t color);
-		inline Color(): MTColor<uint8_t>(0, 0, 0, 255) { }
-		inline Color(uint8_t r, uint8_t g, uint8_t b): MTColor<uint8_t>(r, g, b, 255) { }
-		inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): MTColor<uint8_t>(r, g, b, a) { }
+		inline Color(): MTColor<uint8_t>(0, 0, 0, 255) {}
+		inline Color(uint8_t r, uint8_t g, uint8_t b): MTColor<uint8_t>(r, g, b, 255) {}
+		inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): MTColor<uint8_t>(r, g, b, a) {}
 		bool operator==(Color color) const;
 		inline bool operator!=(Color color) const { return ! operator==(color); }
 		inline FloatColor to_float_color() const {
 			return FloatColor(r() / 255.0f, g() / 255.0f, b() / 255.0f, a() / 255.0f);
 		}
-		uint32_t to_uint32_argb() const {
+		uint32_t to_uint32_argb(uint8_t opacity) const {
 			return a() << 24 | r() << 16 | g() << 8 | b();
+		}
+		uint32_t to_uint32_argb_opacity(uint8_t opacity) const {
+			return (a() * opacity) << 16 | r() << 16 | g() << 8 | b();
 		}
 	};
 

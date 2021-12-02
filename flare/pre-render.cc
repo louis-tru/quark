@@ -156,7 +156,6 @@ namespace flare {
 		if (_mark_total) { // solve marks
 			_inl(this)->solve_mark();
 		}
-
 		if (_mark_recursive_total) { // solve mark recursive
 			_inl(this)->solve_mark_recursive();
 		}

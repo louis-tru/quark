@@ -358,7 +358,6 @@ namespace flare {
 		}
 	}
 
-
 	bool FlexLayout::layout_forward(uint32_t mark) {
 		auto layout_content_size_change_mark = solve_layout_size(mark);
 
@@ -410,6 +409,7 @@ namespace flare {
 			}
 
 			unmark(M_LAYOUT_TYPESETTING);
+			// TODO check transform_origin change ...
 		}
 		return false;
 	}
@@ -504,6 +504,7 @@ namespace flare {
 				}
 			}
 			unmark(M_LAYOUT_TYPESETTING);
+			// TODO check transform_origin change ...
 		}
 		return false;
 	}

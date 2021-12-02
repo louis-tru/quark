@@ -6,6 +6,7 @@
 #include <flare/render/render.h>
 #include <flare/layout/flex.h>
 #include <flare/fill.h>
+#include <flare/display.h>
 
 using namespace flare;
 
@@ -53,6 +54,8 @@ void onload_handle(Event<>& evt, Application* app) {
 	//draw_skia(app->render()->canvas());
 	//app->render()->commit();
 	
+	app->display()->set_status_bar_style(Display::STATUS_BAR_STYLE_BLACK);
+	
 	auto r = Root::create();
 	auto flex = (FlexLayout*)New<FlexLayout>()->append_to(r);
 	auto flow = (FlowLayout*)New<FlowLayout>()->append_to(r);
@@ -62,18 +65,41 @@ void onload_handle(Event<>& evt, Application* app) {
 	New<Box>()->append_to(flow);
 	New<Box>()->append_to(flow);
 	
-	r->set_fill( new FillColor(Color(0x42,0x85,0xF4,255)) );
+	//r->set_fill( new FillColor(Color(0x42,0x85,0xF4,255)) );
 	//
 	flex->set_width({ 0, SizeType::MATCH });
 	flex->set_height({ 200, SizeType::PIXEL });
 	flex->set_fill(new FillColor(Color(255,0,0,255)));
+	flex->set_margin_left(10);
+	flex->set_margin_top(20);
+	flex->set_margin_right(10);
+	flex->set_margin_bottom(20);
+	flex->set_padding_left(20);
+	flex->set_padding_top(20);
+	flex->set_padding_right(20);
+	flex->set_padding_bottom(20);
 	//
-	flow->set_width({ 0, SizeType::MATCH });
-	flow->set_height({ 200, SizeType::PIXEL });
+	flow->set_width({ 50, SizeType::PIXEL });
+	flow->set_height({ 50, SizeType::PIXEL });
 	flow->set_fill(new FillColor(Color(0,255,0,255)));
 	flow->set_layout_align(Align::CENTER_BOTTOM);
+	flow->set_margin_left(10);
+	flow->set_margin_top(10);
+	flow->set_margin_right(10);
+	flow->set_margin_bottom(10);
+	flow->set_padding_left(50);
 	
-	F_LOG("%s, %p\n", "ok skia", app);
+	F_DEBUG("%s, %p\n", "ok skia", app);
+	
+	F_DEBUG("Object size %d", sizeof(Object));
+	F_DEBUG("Reference size %d", sizeof(Reference));
+	F_DEBUG("Layout size %d", sizeof(Layout));
+	F_DEBUG("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Layout>));
+	F_DEBUG("View size %d", sizeof(View));
+	F_DEBUG("Box size %d", sizeof(Box));
+	F_DEBUG("FlowLayout size %d", sizeof(FlowLayout));
+	F_DEBUG("FlexLayout size %d", sizeof(FlexLayout));
+	F_DEBUG("Root size %d", sizeof(Root));
 }
 
 void test_skia(int argc, char **argv) {

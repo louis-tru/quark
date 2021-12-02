@@ -118,11 +118,6 @@ namespace flare {
 		Vec2 phy_size() const;
 
 		/**
-		* @func root_matrix
-		*/
-		inline const Mat4& root_matrix() const { return _root_matrix; }
-		
-		/**
 		* @thread rebder
 		* @func push_display_region
 		*/
@@ -227,7 +222,6 @@ namespace flare {
 		Vec2              _lock_size;  // 锁定视口的尺寸
 		Vec2              _size;       // 当前视口尺寸
 		Vec2              _scale;   // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
-		Mat4              _root_matrix;
 		float             _atom_pixel;
 		float             _best_display_scale;
 		List<Region>      _display_region;

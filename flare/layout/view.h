@@ -205,9 +205,9 @@ namespace flare {
 		virtual void accept(Visitor *visitor);
 
 		/**
-		 * @func draw(canvas)
+		 * @func draw(canvas, opacity)
 		 */
-		virtual void draw(Canvas* canvas);
+		virtual void draw(Canvas* canvas, uint8_t opacity);
 
 		/**
 			*
@@ -412,7 +412,7 @@ namespace flare {
 			*
 			* @func opacity()
 			*/
-		inline float opacity() const {
+		inline uint8_t opacity() const {
 			return _opacity;
 		}
 
@@ -497,36 +497,19 @@ namespace flare {
 			*
 			* @func set_opacity(val)
 			*/
-		void set_opacity(float val);
+		void set_opacity(uint8_t val);
 
 		// *******************************************************************
 
 		/**
 			* 
-			* Calculate the transform origin value
-			* 
-			* @func solve_transform_origin()
-			*/
-		virtual Vec2 solve_transform_origin();
-
-		/**
-			* 
 			* Returns layout transformation matrix of the object view
 			* 
-			* Mat(layout_offset + transform_origin + translate - parent->layout_offset_inside, scale, rotate, skew)
+			* Mat(layout_offset + transform_origin? + translate - parent->layout_offset_inside, scale, rotate, skew)
 			* 
 			* @func layout_matrix()
 			*/
-		Mat layout_matrix();
-
-		/**
-			* Start the matrix transformation from this origin point
-			*
-			* @func transform_origin()
-			*/
-		inline Vec2 transform_origin() const {
-			return _transform_origin;
-		}
+		virtual Mat layout_matrix();
 
 		/**
 			* 
@@ -571,7 +554,6 @@ namespace flare {
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
 		virtual void layout_recursive(uint32_t mark);
-		virtual Vec2 layout_offset_inside();
 		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark = T_NONE);
 
 		// *******************************************************************
@@ -589,13 +571,14 @@ namespace flare {
 		View *_prev, *_next;
 		View *_first, *_last;
 		Transform *_transform; // 矩阵变换
-		Vec2  _transform_origin; // origin 最终以该点 位移,缩放,旋转,歪
-		float _opacity; // 可影响子视图的透明度值
+		uint8_t _opacity; // 可影响子视图的透明度值
 		Mat   _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 		// layout visible:
 		bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
 		bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
+
+		friend class Box;
 
 		F_DEFINE_INLINE_CLASS(Inl);
 		F_DEFINE_INLINE_CLASS(InlEvent);

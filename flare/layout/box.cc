@@ -39,7 +39,7 @@ namespace flare {
 		visitView(v);
 	}
 
-	float Box::solve_layout_content_width(float parent_c_szie, bool *is_wrap_in_out) {
+	float Box::solve_layout_content_width(float parent_layout_content_size, bool *is_wrap_in_out) {
 		float result;
 
 		switch (_width.type) {
@@ -57,7 +57,7 @@ namespace flare {
 					result = 0; // invalid wrap width
 				} else { // use wrap
 					result = Number<float>::max(
-						parent_c_szie - _margin_left - _margin_right - _padding_left - _padding_right, 0
+						parent_layout_content_size - _margin_left - _margin_right - _padding_left - _padding_right, 0
 					);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
@@ -66,7 +66,7 @@ namespace flare {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
-					result = Number<float>::max(parent_c_szie * _width.value, 0);
+					result = Number<float>::max(parent_layout_content_size * _width.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -74,7 +74,7 @@ namespace flare {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
-					result = Number<float>::max(parent_c_szie - _width.value, 0);
+					result = Number<float>::max(parent_layout_content_size - _width.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -82,7 +82,7 @@ namespace flare {
 		return result;
 	}
 
-	float Box::solve_layout_content_height(float parent_c_szie, bool *is_wrap_in_out) {
+	float Box::solve_layout_content_height(float parent_layout_content_size, bool *is_wrap_in_out) {
 		float result;
 
 		switch (_height.type) {
@@ -100,7 +100,7 @@ namespace flare {
 					result = 0; // invalid wrap height
 				} else { // use wrap
 					result = Number<float>::max(
-						parent_c_szie - _margin_top - _margin_bottom - _padding_top - _padding_bottom, 0
+						parent_layout_content_size - _margin_top - _margin_bottom - _padding_top - _padding_bottom, 0
 					);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
@@ -109,7 +109,7 @@ namespace flare {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
-					result = Number<float>::max(parent_c_szie * _height.value, 0);
+					result = Number<float>::max(parent_layout_content_size * _height.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -117,7 +117,7 @@ namespace flare {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
-					result = Number<float>::max(parent_c_szie - _height.value, 0);
+					result = Number<float>::max(parent_layout_content_size - _height.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -213,21 +213,7 @@ namespace flare {
 		if (_margin_top != val) {
 			_margin_top = val;
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
-			mark_recursive(M_TRANSFORM_ORIGIN);
-		}
-	}
-
-	void Box::set_margin_right(float val) {
-		if (_margin_right != val) {
-			_margin_right = val;
-			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
-		}
-	}
-
-	void Box::set_margin_bottom(float val) {
-		if (_margin_bottom != val) {
-			_margin_bottom = val;
-			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+			mark_recursive(M_TRANSFORM);
 		}
 	}
 
@@ -235,7 +221,7 @@ namespace flare {
 		if (_margin_left != val) {
 			_margin_left = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
-			mark_recursive(M_TRANSFORM_ORIGIN); // 必然影响origin变化，因为margin是transform origin的一部分
+			mark_recursive(M_TRANSFORM);
 		}
 	}
 
@@ -243,23 +229,9 @@ namespace flare {
 		if (_padding_top != val) {
 			_padding_top = val;
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
-			mark_recursive(M_TRANSFORM/* | M_TRANSFORM_ORIGIN*/); // 影响子布局偏移、影响尺寸变化进而影响origin
-		}
-	}
-
-	void Box::set_padding_right(float val) {
-		if (_padding_right != val) {
-			_padding_right = val;
-			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
-			// mark_recursive(M_TRANSFORM_ORIGIN);
-		}
-	}
-
-	void Box::set_padding_bottom(float val) {
-		if (_padding_bottom != val) {
-			_padding_bottom = val;
-			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
-			// mark_recursive(M_TRANSFORM_ORIGIN);
+			// 没有直接的影响到`transform`但可能导致`layout_size`变化导致
+			// `transform_origin`百分比属性变化,间接影响`transform`变化, 但可以肯定这个会影响子布局偏移
+			// mark_recursive(M_TRANSFORM); 
 		}
 	}
 
@@ -267,10 +239,43 @@ namespace flare {
 		if (_padding_left != val) {
 			_padding_left = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
-			mark_recursive(M_TRANSFORM); // 几乎可以肯定会影响子布局偏移
+			//mark_recursive(M_TRANSFORM); // @`set_padding_top(val)`
 		}
 	}
-	
+
+	// --
+	void Box::set_margin_right(float val) {
+		if (_margin_right != val) {
+			_margin_right = val;
+			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
+			//mark_recursive(M_TRANSFORM); // @`set_padding_top(val)`
+		}
+	}
+
+	void Box::set_margin_bottom(float val) {
+		if (_margin_bottom != val) {
+			_margin_bottom = val;
+			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+			//mark_recursive(M_TRANSFORM); // @`set_padding_top(val)`
+		}
+	}
+
+	void Box::set_padding_right(float val) {
+		if (_padding_right != val) {
+			_padding_right = val;
+			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
+			//mark_recursive(M_TRANSFORM); // @`set_padding_top(val)`
+		}
+	}
+
+	void Box::set_padding_bottom(float val) {
+		if (_padding_bottom != val) {
+			_padding_bottom = val;
+			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+			//mark_recursive(M_TRANSFORM); // @`set_padding_top(val)`
+		}
+	}
+
 	void Box::set_fill(Fill val) {
 		if (_fill != val) {
 			_fill = FillBox::assign(_fill, val);
@@ -305,7 +310,8 @@ namespace flare {
 					// mark(M_LAYOUT_TYPESETTING);
 					layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
 				}
-				_layout_size.x(_margin_left + _margin_right + val + _padding_left + _padding_right);
+				_client_size.x(_padding_left + _padding_right + val);
+				_layout_size.x(_margin_left + _margin_right + _client_size.x());
 			} // else The layout is locked and does not need to be updated
 			parent()->layout_typesetting_change(this);
 			unmark(M_LAYOUT_SIZE_WIDTH);
@@ -321,7 +327,8 @@ namespace flare {
 					_wrap_y = size.wrap_y;
 					layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 				}
-				_layout_size.y(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
+				_client_size.y(_padding_top + _padding_bottom + val);
+				_layout_size.y(_margin_top + _margin_bottom + _client_size.y());
 			} // else The layout is locked and does not need to be updated
 			parent()->layout_typesetting_change(this);
 			unmark(M_LAYOUT_SIZE_HEIGHT);
@@ -341,6 +348,7 @@ namespace flare {
 			}
 			mark(M_LAYOUT_TYPESETTING); // rearrange
 			mark_recursive(M_LAYOUT_SHAPE);
+			// TODO check transform_origin change ...
 		}
 
 		return (layout_mark() & M_LAYOUT_TYPESETTING);
@@ -389,6 +397,30 @@ namespace flare {
 		return _layout_align;
 	}
 
+	Mat Box::layout_matrix() {
+		Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
+		if (_transform) {
+			return Mat(
+				layout_offset() + Vec2(_margin_left, _margin_top) +
+								 _transform_origin + _transform->translate - in, // translate
+				_transform->scale,
+				-_transform->rotate,
+				_transform->skew
+			);
+		} else {
+			Vec2 translate = layout_offset() +
+			Vec2(_margin_left, _margin_top) + _transform_origin - in;
+			return Mat(
+				1, 0, translate.x(),
+				0, 1, translate.y()
+			);
+		}
+	}
+
+	Vec2 Box::layout_offset_inside() {
+		return Vec2(_margin_left, _margin_top) + _transform_origin;
+	}
+
 	/**
 		*
 		* 设置布局对齐方式
@@ -419,22 +451,22 @@ namespace flare {
 		}
 	}
 
-	Vec2 Box::solve_transform_origin() {
-		// TODO compute transform origin ...
-		return Vec2(_margin_left, _margin_top);
-	}
-
 	Vec2 Box::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
 		uint32_t layout_content_size_change_mark = M_NONE;
 		auto layout_content_size = _layout_content_size;
 
-		auto mp_x = _margin_left + _margin_right + _padding_left + _padding_right;
-		auto mp_y = _margin_top + _margin_bottom + _padding_top + _padding_bottom;
+		auto m_x = _margin_left + _margin_right;
+		auto m_y = _margin_top + _margin_bottom;
+		auto p_x = _padding_left + _padding_right;
+		auto p_y = _padding_left + _padding_right;
+		auto mp_x = m_x + p_x;
+		auto mp_y = m_y + p_y;
 
 		_layout_content_size = Vec2(
 			layout_size.x() > mp_x ? layout_size.x() - mp_x: 0,
 			layout_size.y() > mp_y ? layout_size.y() - mp_y: 0
 		);
+		_client_size = Vec2(p_x + _layout_content_size.x(), p_y + _layout_content_size.y());
 		_layout_size = Vec2(mp_x + _layout_content_size.x(), mp_y + _layout_content_size.y());
 
 		if (layout_content_size.x() != _layout_content_size.x() || _wrap_x != is_wrap[0]) {
@@ -469,10 +501,8 @@ namespace flare {
 		*/
 	void Box::set_layout_size(Vec2 layout_content_size) {
 		_layout_content_size = layout_content_size;
-		_layout_size = Vec2(
-			_margin_left + _margin_right + layout_content_size.x() + _padding_left + _padding_right,
-			_margin_top + _margin_bottom + layout_content_size.y() + _padding_top + _padding_bottom
-		);
+		_client_size = Vec2(layout_content_size.x() + _padding_left + _padding_right, layout_content_size.y() + _padding_top + _padding_bottom);
+		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(), _margin_top + _margin_bottom + _client_size.y());
 	}
 
 	void Box::set_layout_offset(Vec2 val) {
@@ -558,12 +588,11 @@ namespace flare {
 		* @func solve_rect_vertex(vertex)
 		*/
 	void Box::solve_rect_vertex(Vec2 vertex[4]) {
-		auto final_matrix = matrix();
-		auto origin = transform_origin();
-		Vec2 start(_margin_left - origin.x(), _margin_top - origin.y());
+		auto& final_matrix = matrix();
+		Vec2 start(-_transform_origin.x(), -_transform_origin.y());
 		Vec2 end(
-			_layout_content_size.x() + _padding_left + _padding_right + start.x(),
-			_layout_content_size.y() + _padding_top + _padding_bottom + start.y()
+			_client_size.x() + start.x(),
+			_client_size.y() + start.y()
 		);
 		vertex[0] = final_matrix * start;
 		vertex[1] = final_matrix * Vec2(end.x(), start.y());
@@ -572,37 +601,31 @@ namespace flare {
 	}
 
 	bool Box::solve_region_visible() {
-		// bool visible = false;
+		Vec2 vertex[4];
+		solve_rect_vertex(vertex);
 
-		// Vec2 vertex[4];
-
-		// solve_rect_vertex(vertex);
-
-		// /*
-		// * 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
-		// * 这种模糊测试在大多数时候都是正确有效的。
-		// */
-		// Region dre = display()->display_region();
-		// Region re = screen_region_from_convex_quadrilateral(vertex);
+		/*
+		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
+		* 这种模糊测试在大多数时候都是正确有效的。
+		*/
+		Region dre = display()->display_region();
+		Region re = screen_region_from_convex_quadrilateral(vertex);
 		
-		// if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) <= re.height + dre.height &&
-		// 		F_MAX( dre.x2, re.x2 ) - F_MIN( dre.x, re.x ) <= re.width + dre.width
-		// ) {
-		// 	visible = true;
-		// }
+		if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) <= re.height + dre.height &&
+				F_MAX( dre.x2, re.x2 ) - F_MIN( dre.x, re.x ) <= re.width + dre.width
+		) {
+			return true;
+		}
 
-		// return visible;
-		return true;
+		return false;
 	}
 
-	void Box::draw(Canvas* canvas) {
+	void Box::draw(Canvas* canvas, uint8_t opacity) {
 		if (_fill) {
 			canvas->setMatrix(matrix());
-			_fill->draw(this, canvas);
+			_fill->draw(this, canvas, opacity);
 		}
-		View::draw(canvas);
+		View::draw(canvas, opacity);
 	}
 
 }
-
-// *******************************************************************

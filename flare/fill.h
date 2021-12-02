@@ -125,7 +125,7 @@ namespace flare {
 		 *
 		 * @func draw(host, canvas)
 		 */
-		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius = nullptr) = 0;
+		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius = nullptr) = 0;
 		
 	 protected:
 		/**
@@ -147,7 +147,7 @@ namespace flare {
 		FillColor(Color color = Color(0,0,0,0));
 		F_DEFINE_PROP(Color, color);
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 		// @consts
 		static Fill WHITE;
 		static Fill BLACK;
@@ -173,7 +173,7 @@ namespace flare {
 		void set_src_base64(cString& data);
 		bool get_image_data(Box* host, Vec2& size_out, Vec2& position_out, int& level_out);
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 	 private:
 		int _attributes_flags;
 		F_DEFINE_INLINE_CLASS(Inl);
@@ -187,7 +187,7 @@ namespace flare {
 		FillGradient();
 		virtual Type type() const override { return M_GRADIENT; }
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 	 private:
 	};
 
@@ -197,7 +197,7 @@ namespace flare {
 	class F_EXPORT FillShadow: public FillBox {
 	 public:
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 	 private:
 	};
 
@@ -223,7 +223,7 @@ namespace flare {
 			unset,
 		};
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 	 protected:
 		Color _color[4];
 		float _width[4];
@@ -240,7 +240,7 @@ namespace flare {
 		F_DEFINE_PROP(float, right_bottom);
 		F_DEFINE_PROP(float, left_bottom);
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 	};
 
 }

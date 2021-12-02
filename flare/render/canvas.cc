@@ -72,7 +72,7 @@ private:
 };
 
 void SkCanvasLink::setMatrix(const Mat& mat) {
-	SkM44 m4(mat[0], mat[1], 0,mat[3],
+	SkM44 m4(mat[0], mat[1], 0,mat[2],
 					 mat[3], mat[4], 0,mat[5],
 					 0,           0, 1,0,
 					 0,           0, 0,1);

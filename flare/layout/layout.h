@@ -51,13 +51,12 @@ namespace flare {
 		enum : uint32_t {
 			M_NONE                    = (0),      /* 没有任何标记 */
 			M_TRANSFORM               = (1 << 0), /* 矩阵变换 recursive mark */
-			M_TRANSFORM_ORIGIN        = (1 << 1), /* 矩阵变换 origin mark */
-			M_LAYOUT_SIZE_WIDTH       = (1 << 2), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
-			M_LAYOUT_SIZE_HEIGHT      = (1 << 3),
-			M_LAYOUT_TYPESETTING      = (1 << 4), /* 布局内容偏移, 需要重新对子布局排版 */
-			M_LAYOUT_SHAPE            = (1 << 5), /* 形状变化 */
+			M_LAYOUT_SIZE_WIDTH       = (1 << 1), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
+			M_LAYOUT_SIZE_HEIGHT      = (1 << 2),
+			M_LAYOUT_TYPESETTING      = (1 << 3), /* 布局内容偏移, 需要重新对子布局排版 */
+			M_LAYOUT_SHAPE            = (1 << 4), /* 形状变化 */
 			//**
-			M_RECURSIVE               = (M_TRANSFORM | M_TRANSFORM_ORIGIN | M_LAYOUT_SHAPE), /* 需要被递归的标记 */
+			M_RECURSIVE               = (M_TRANSFORM | M_LAYOUT_SHAPE), /* 需要被递归的标记 */
 		};
 
 		// TypesettingChangeMark

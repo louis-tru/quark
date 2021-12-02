@@ -66,6 +66,9 @@ namespace flare {
 		F_DEFINE_PROP(float, padding_right);
 		F_DEFINE_PROP(float, padding_bottom);
 		F_DEFINE_PROP(float, padding_left);
+		F_DEFINE_PROP_READ(Vec2, transform_origin); // Start the matrix transformation from this origin point
+		F_DEFINE_PROP_READ(Vec2, layout_content_size); // width,height / size
+		F_DEFINE_PROP_READ(Vec2, client_size); // content + padding
 		F_DEFINE_PROP(Fill,  fill); // color|shadow|image|gradient|border|border-radius
 
 		/**
@@ -104,13 +107,14 @@ namespace flare {
 		*/
 		virtual float layout_weight();
 		virtual Align layout_align();
+		virtual Mat  layout_matrix();
+		virtual Vec2 layout_offset_inside();
 		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]);
-		virtual Vec2 solve_transform_origin();
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
 		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 		virtual bool solve_region_visible();
-		virtual void draw(Canvas* canvas);
+		virtual void draw(Canvas* canvas, uint8_t opacity);
 
 	 protected:
 		/**
@@ -147,7 +151,6 @@ namespace flare {
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+content+padding）
 		float _layout_weight; // layout weight
 		Align _layout_align; // layout align
-		Vec2  _layout_content_size; // width,height / size
 		bool  _wrap_x, _wrap_y; // layout content size wrap
 
 		F_DEFINE_INLINE_CLASS(Inl);

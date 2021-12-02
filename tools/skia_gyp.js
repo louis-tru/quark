@@ -23,7 +23,7 @@ function gen_gyp() {
 		var basename = path.basename(name);
 		var extname = path.extname(name);
 		if (skip.indexOf(basename) == -1) {
-			if (['.cc', '.c', '.h', '.hpp', '.hxx', '.cpp', '.cxx', '.mm', '.m'].indexOf(extname) != -1) {
+			if (['.cc', '.c', '.h', '.hpp', '.hxx', '.cpp', '.cxx', '.mm', '.m', '.asm'].indexOf(extname) != -1) {
 				sources.push(`../deps/skia/${name}`);
 			}
 		}

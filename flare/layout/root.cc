@@ -53,8 +53,10 @@ namespace flare {
 	}
 
 	void Root::mark_layout_change() {
+		auto region = app()->display()->surface_region();
 		mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
 		set_scale(app()->display()->scale());
+		set_translate(Vec2(region.x, region.y));
 	}
 
 	Root* Root::create() {
@@ -65,9 +67,14 @@ namespace flare {
 		r->set_receive(1);
 		r->set_width({0, SizeType::MATCH});
 		r->set_height({0, SizeType::MATCH});
+		
+		auto region = app->display()->surface_region();
+
 		r->set_scale(app->display()->scale());
+		r->set_translate(Vec2(region.x, region.y));
+
 		r->mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
-		// set_fill(new FillColor(255, 255, 255)); // // 默认白色背景
+		r->set_fill(new FillColor(Color(255, 255, 255, 255))); // 默认白色背景
 		r->mark_recursive(M_TRANSFORM);
 		_inl_app(app)->set_root(*r);
 		return r.collapse();
@@ -119,10 +126,18 @@ namespace flare {
 		F_UNREACHABLE();
 	}
 
-	void Root::draw(Canvas* canvas) {
+	void Root::draw(Canvas* canvas, uint8_t opacity) {
 		if (visible() && region_visible()) {
-			// canvas->drawColor(SK_ColorWHITE);
-			Box::draw(canvas);
+			uint8_t op = this->opacity();
+			if (op) {
+				// canvas->drawColor(SK_ColorWHITE); // TODO ...
+				auto f = fill();
+				if (f) {
+					//canvas->setMatrix(matrix());
+					//_fill->draw(this, canvas);
+				}
+				Box::draw(canvas, this->opacity());
+			}
 		}
 	}
 

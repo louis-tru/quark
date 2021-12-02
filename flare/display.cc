@@ -76,13 +76,6 @@ namespace flare {
 			
 			_atom_pixel = 1.0f / scale;
 			
-			Region region = _surface_region;
-
-			Vec2 start = Vec2(-region.x / _scale.x(), -region.y / _scale.y());
-			Vec2 end = Vec2(region.width / _scale.x() + start.x(),
-											region.height / _scale.y() + start.y());
-			_root_matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f); // 计算2D视图变换矩阵
-
 			// update root
 			Root* r = _host->root();
 			if (r) {
@@ -92,8 +85,8 @@ namespace flare {
 			// set default draw region
 			_display_region.front() = {
 				0, 0,
-				_size.x(), _size.y(),
-				_size.x(), _size.y(),
+				_size.x() * _scale.x(), _size.y() * _scale.y(),
+				_size.x() * _scale.x(), _size.y() * _scale.y(),
 			};
 
 			lock.unlock();
@@ -130,7 +123,6 @@ namespace flare {
 		, _host(host)
 		, _lock_size()
 		, _size(), _scale(1, 1)
-		, _root_matrix()
 		, _atom_pixel(1)
 		, _fsp(0)
 		, _record_fsp(0)
@@ -176,7 +168,7 @@ namespace flare {
 
 			auto render = _host->render();
 			
-			root->draw(render->canvas()); // 开始绘图
+			root->draw(render->canvas(), 1); // 开始绘图
 			_inl(this)->solve_next_frame();
 			
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
@@ -229,6 +221,11 @@ namespace flare {
 			re.y2 = y2;
 		}
 		
+		re.x *= _scale.x();
+		re.x2 *= _scale.x();
+		re.y *= _scale.y();
+		re.y2 *= _scale.y();
+
 		re.width = re.x2 - re.x;
 		re.height = re.y2 - re.y;
 		
@@ -254,8 +251,7 @@ namespace flare {
 		bool ok = false;
 		if (region.width != 0 && region.height != 0) {
 			UILock lock(_host);
-			if (
-						_surface_region.x != region.x 
+			if (  _surface_region.x != region.x
 				||	_surface_region.y != region.y
 				||	_surface_region.x2 != region.x2
 				||	_surface_region.y2 != region.y2
@@ -269,6 +265,7 @@ namespace flare {
 		if (ok) {
 			_inl(this)->update_state();
 		}
+		return ok;
 	}
 
 }
