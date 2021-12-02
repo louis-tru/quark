@@ -33,6 +33,7 @@
 #include "../app.inl"
 #include "../util/handle.h"
 #include "../display.h"
+#include "../render/canvas.h"
 
 namespace flare {
 
@@ -129,15 +130,28 @@ namespace flare {
 	void Root::draw(Canvas* canvas, uint8_t opacity) {
 		if (visible() && region_visible()) {
 			uint8_t op = this->opacity();
-			if (op) {
-				// canvas->drawColor(SK_ColorWHITE); // TODO ...
-				auto f = fill();
-				if (f) {
-					//canvas->setMatrix(matrix());
-					//_fill->draw(this, canvas);
+			if (!op) return;
+
+			auto f = fill();
+			if (f) {
+				canvas->setMatrix(matrix());
+				if (f->type() == FillBox::M_COLOR) {
+					auto color = static_cast<FillColor*>(f)->color();
+					if (color.a()) {
+						canvas->drawColor(color.to_uint32_xrgb());
+					} else {
+						canvas->drawColor(SK_ColorBLACK);
+					}
+					if (f->next()) {
+						f->next()->draw(this, canvas, 1);
+					}
+				} else {
+					f->draw(this, canvas, 1);
 				}
-				Box::draw(canvas, this->opacity());
+			} else {
+				canvas->drawColor(SK_ColorBLACK);
 			}
+			View::draw(canvas, this->opacity());
 		}
 	}
 

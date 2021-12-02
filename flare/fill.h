@@ -91,7 +91,7 @@ namespace flare {
 		/**
 		* @func type()
 		*/
-		virtual Type type() const { return M_INVALID; }
+		virtual Type type() const;
 		
 		/**
 		* @func hold(left, right)
@@ -144,8 +144,9 @@ namespace flare {
 	 */
 	class F_EXPORT FillColor: public FillBox {
 	 public:
-		FillColor(Color color = Color(0,0,0,0));
+		FillColor(Color color = Color());
 		F_DEFINE_PROP(Color, color);
+		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
 		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 		// @consts
@@ -161,7 +162,7 @@ namespace flare {
 	 public:
 		FillImage();
 		virtual ~FillImage();
-		virtual Type type() const override { return M_IMAGE; }
+		virtual Type type() const override;
 		F_DEFINE_PROP(String, src);
 		F_DEFINE_PROP(Texture*, texture);
 		F_DEFINE_PROP(Repeat, repeat);
@@ -185,7 +186,7 @@ namespace flare {
 	class F_EXPORT FillGradient: public FillBox {
 	 public:
 		FillGradient();
-		virtual Type type() const override { return M_GRADIENT; }
+		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
 		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 	 private:
@@ -196,6 +197,7 @@ namespace flare {
 	 */
 	class F_EXPORT FillShadow: public FillBox {
 	 public:
+		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
 		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 	 private:
@@ -222,6 +224,7 @@ namespace flare {
 			solid,
 			unset,
 		};
+		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
 		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 	 protected:
@@ -239,6 +242,7 @@ namespace flare {
 		F_DEFINE_PROP(float, right_top);
 		F_DEFINE_PROP(float, right_bottom);
 		F_DEFINE_PROP(float, left_bottom);
+		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
 		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
 	};

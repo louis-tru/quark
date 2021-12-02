@@ -165,6 +165,14 @@ namespace flare {
 		}
 	}
 
+	FillBox::Type FillBox::type() const { return M_INVALID; }
+	FillBox::Type FillColor::type() const { return M_COLOR; }
+	FillBox::Type FillImage::type() const { return M_IMAGE; }
+	FillBox::Type FillGradient::type() const { return M_GRADIENT; }
+	FillBox::Type FillShadow::type() const { return M_SHADOW; }
+	FillBox::Type FillBorder::type() const { return M_BORDER; }
+	FillBox::Type FillBorderRadius::type() const { return M_BORDER_RADIUS; }
+
 	FillColor::FillColor(Color color): _color(color) {
 	}
 
