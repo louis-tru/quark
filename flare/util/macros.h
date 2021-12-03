@@ -386,7 +386,7 @@ defined(__DragonFly__)
 
 #define F_DEFINE_PROP(type, name) \
 	F_DEFINE_PROP_READ(type, name) \
-	public: void set_##name (type val); \
+	void set_##name (type val); \
 
 // Helper macros end
 // -----------------------------------------------------------------------------

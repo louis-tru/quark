@@ -41,10 +41,6 @@ namespace flare {
 	class F_EXPORT FlowLayout: public Box {
 		F_Define_View(FlowLayout);
 	 public:
-
-		/**
-			* @constructors
-			*/
 		FlowLayout();
 
 		// define props

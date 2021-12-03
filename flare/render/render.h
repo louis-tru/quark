@@ -33,7 +33,8 @@
 #ifndef __ftr__render_render__
 #define __ftr__render_render__
 
-#include "../app.h"
+#include "../util/loop.h"
+#include "../util/json.h"
 
 #define SK_GL 1
 
@@ -45,34 +46,8 @@
 # define SK_DIRECT3D 1
 #endif
 
-// -DSK_HAS_ANDROID_CODEC 
-// -DSK_ENABLE_DUMP_GPU 
-// -DSK_DISABLE_AAA 
-// -DSK_PARAGRAPH_LIBTXT_SPACES_RESOLUTION 
-// -DSK_LEGACY_INNER_JOINS 
-// -DSK_DISABLE_LEGACY_SHADERCONTEXT 
-// -DSK_DISABLE_LOWP_RASTER_PIPELINE 
-// -DSK_FORCE_RASTER_PIPELINE_BLITTER 
-// -DSK_DISABLE_EFFECT_DESERIALIZATION 
-// -DSK_ENABLE_SKSL 
-// -DSK_ASSUME_GL_ES=1 
-// -DSK_ENABLE_API_AVAILABLE 
-// -DSK_GAMMA_APPLY_TO_A8 
-// -DSKIA_IMPLEMENTATION=1 
-// -DSK_GL 
-// -DSK_METAL 
-// -DSK_SUPPORT_PDF 
-// -DSK_CODEC_DECODES_JPEG 
-// -DSK_ENCODE_JPEG 
-// -DSK_USE_LIBGIFCODEC 
-// -DSK_CODEC_DECODES_PNG 
-// -DSK_ENCODE_PNG 
-// -DSK_CODEC_DECODES_RAW 
-// -DSK_CODEC_DECODES_WEBP 
-// -DSK_ENCODE_WEBP 
-// -DSK_XML 
-
-#include "flare/render/canvas.h"
+#include "../math.h"
+#include "skia/core/SkCanvas.h"
 #include "skia/core/SkRefCnt.h"
 #include "skia/core/SkSurfaceProps.h"
 #include "skia/core/SkImageInfo.h"
@@ -82,6 +57,13 @@
 #include "skia/gpu/GrContextOptions.h"
 
 namespace flare {
+
+	class Application;
+
+	class Canvas: public SkCanvas {
+	 public:
+		void setMatrix(const flare::Mat& mat);
+	};
 
 	/**
 	* @class Render
@@ -106,7 +88,7 @@ namespace flare {
 		/**
 		 * @func canvas()
 		 */
-		SkCanvasLink* canvas();
+		Canvas* canvas();
 
 		/**
 		 * @func getSurface()
@@ -149,8 +131,6 @@ namespace flare {
 		DisplayParams     _DisplayParams;
 		int _SampleCount, _StencilBits;
 	};
-
-	inline Render* render() { return app()->render(); }
 
 }
 

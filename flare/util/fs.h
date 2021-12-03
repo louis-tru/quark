@@ -131,10 +131,7 @@ namespace flare {
 
 	class F_EXPORT Dirent: public Object {
 	 public:
-		inline Dirent() {}
-		inline Dirent(cString& n, cString& p, FileType t)
-			: name(n.copy()), pathname(p.copy()), type(t) {
-		}
+		Dirent(cString& n, cString& p, FileType t);
 		String name;
 		String pathname;
 		FileType type;
@@ -174,8 +171,8 @@ namespace flare {
 		uint64_t ctime() const;
 		uint64_t birthtime() const;
 	 private:
-		F_DEFINE_INLINE_CLASS(Inl);
 		void* _stat;
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
@@ -395,7 +392,7 @@ namespace flare {
 		virtual bool is_absolute(cString& path);
 		virtual String format(cString& path);
 		virtual void clear();
-		static void set_shared_instance(FileReader* reader);
+		static void set_shared(FileReader* reader);
 		static FileReader* shared();
 	 private:
 		class Core;

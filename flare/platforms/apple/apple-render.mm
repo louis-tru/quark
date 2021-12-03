@@ -66,7 +66,7 @@ namespace flare {
 			if (r) {
 				return r;
 			}
-			//r = MakeGLRender(host, parems);
+			r = MakeGLRender(host, parems);
 		}
 
 		if (r) {

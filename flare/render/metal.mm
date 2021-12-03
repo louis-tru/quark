@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "../app.h"
 #include "./metal.h"
 #include "../display.h"
 

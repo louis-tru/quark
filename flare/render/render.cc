@@ -54,8 +54,8 @@ namespace flare {
 	Render::~Render() {
 	}
 
-	SkCanvasLink* Render::canvas() {
-		return static_cast<SkCanvasLink*>(getSurface()->getCanvas());
+	Canvas* Render::canvas() {
+		return static_cast<Canvas*>(getSurface()->getCanvas());
 	}
 
 	void Render::activate(bool isActive) {}

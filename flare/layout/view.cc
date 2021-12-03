@@ -159,7 +159,7 @@ namespace flare {
 		, _first(nullptr), _last(nullptr)
 		, _transform(nullptr), _opacity(255)
 		, _visible(true)
-		, _region_visible(false)
+		, _visible_region(false)
 		, _receive(false)
 	{
 	}
@@ -374,8 +374,8 @@ namespace flare {
 		// visit child
 		auto v = _first;
 		while(v) {
-			if (v->_visible && v->_region_visible) {
-				uint8_t op = (opacity * v->_opacity) >> 8;
+			if (v->_visible & v->_visible_region) {
+				uint8_t op = (uint16_t(opacity) * v->_opacity) >> 8;
 				if (op)
 					v->draw(canvas, op);
 			}
@@ -646,14 +646,14 @@ namespace flare {
 			} else {
 				_matrix = layout_matrix();
 			}
-			goto region_visible;
+			goto visible_region;
 		}
 		else if (mark & M_LAYOUT_SHAPE) {
 			unmark(M_LAYOUT_SHAPE); // unmark
-			region_visible:
-			_region_visible = solve_region_visible();
+			visible_region:
+			_visible_region = solve_visible_region();
 
-			if (_region_visible) {
+			if (_visible_region) {
 				View *v = _first;
 				while (v) {
 					v->layout_recursive(mark | v->layout_mark());
@@ -669,7 +669,7 @@ namespace flare {
 		}
 	}
 
-	bool View::solve_region_visible() {
+	bool View::solve_visible_region() {
 		return true;
 	}
 
@@ -823,7 +823,7 @@ namespace flare {
 		* @func has_child(child)
 		*/
 	bool View::has_child(View *child) {
-		if ( child /*&& child->layout_depth() < layout_depth()*/ ) {
+		if ( child ) {
 			View *parent = child->_parent;
 			while (parent) {
 				if ( parent == this ) {
@@ -836,5 +836,3 @@ namespace flare {
 	}
 
 }
-
-// *******************************************************************

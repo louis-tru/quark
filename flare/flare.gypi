@@ -105,7 +105,6 @@
 			'render/gl.cc',
 			'render/metal.h',
 			'render/metal.mm',
-			'render/canvas.h',
 			'render/canvas.cc',
 			'math.h',
 			'math.cc',

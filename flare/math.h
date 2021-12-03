@@ -225,7 +225,7 @@ namespace flare {
 		uint32_t to_uint32_argb(uint8_t opacity) const {
 			return a() << 24 | r() << 16 | g() << 8 | b();
 		}
-		uint32_t to_uint32_xrgb() const {
+		uint32_t to_uint32_1rgb() const {
 			return 255 << 24 | r() << 16 | g() << 8 | b();
 		}
 		uint32_t to_uint32_argb_opacity(uint8_t opacity) const {

@@ -42,16 +42,7 @@ namespace flare {
 	class F_EXPORT Box: public View {
 		F_Define_View(Box);
 	 public:
-
-		/**
-			* @constructors
-			*/
 		Box();
-
-		/**
-			* @destructor
-			*/
-		virtual ~Box();
 
 		// define props
 		F_DEFINE_PROP(SizeValue, width); // size width
@@ -113,7 +104,7 @@ namespace flare {
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
 		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
-		virtual bool solve_region_visible();
+		virtual bool solve_visible_region();
 		virtual void draw(Canvas* canvas, uint8_t opacity);
 
 	 protected:
@@ -138,8 +129,8 @@ namespace flare {
 		/**
 			* @func layout_wrap_x()
 			*/
-		inline bool layout_wrap_x() const { return _wrap_x; }
-		inline bool layout_wrap_y() const { return _wrap_y; }
+		bool layout_wrap_x() const { return _wrap_x; }
+		bool layout_wrap_y() const { return _wrap_y; }
 		float solve_layout_content_width(float parent_content_szie, bool *is_wrap_in_out);
 		float solve_layout_content_height(float parent_content_szie, bool *is_wrap_in_out);
 		void  mark_layout_size(uint32_t mark);

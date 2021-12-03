@@ -34,11 +34,9 @@
 #include "./layout.h"
 #include "../event.h"
 
-class SkCanvasLink;
-
 namespace flare {
 
-	typedef SkCanvasLink Canvas;
+	class Canvas;
 
 	# define F_Views(F) \
 		F(View) F(Box) \
@@ -65,61 +63,15 @@ namespace flare {
 		F_HIDDEN_ALL_COPY(View);
 	 public:
 
-		/**
-			* @constructors
-			*/
+		class Visitor {
+		 public:
+			# define F_Visitor(N) virtual void visit##N(N *v);
+				F_Views(F_Visitor);
+			# undef  F_Visitor
+		};
+
 		View();
-
-		/**
-			* @destructor
-			*/
 		virtual ~View();
-
-		// *******************************************************************
-		/**
-			* parent view
-			*
-			* @func parent()
-			*/
-		inline View* parent() {
-			return _parent;
-		}
-
-		/**
-			* first subview
-			*
-			* @func first()
-			*/
-		inline View* first() {
-			return _first;
-		}
-
-		/**
-			* last subview
-			*
-			* @func last()
-			*/
-		inline View* last() {
-			return _last;
-		}
-
-		/**
-			* Previous sibling view
-			*
-			* @func prev()
-			*/
-		inline View* prev() {
-			return _prev;
-		}
-
-		/**
-			* Next sibling view
-			*
-			* @func nect()
-			*/
-		inline View* next() {
-			return _next;
-		}
 
 		/**
 			*
@@ -176,26 +128,6 @@ namespace flare {
 			*/
 		virtual void remove_all_child();
 
-	 protected:
-		/**
-			*
-			* Setting parent parent view
-			*
-			* @func set_parent(parent)
-			*/
-		virtual void set_parent(View* parent);
-
-	 public:
-		/**
-			* @class Visitor
-			*/
-		class Visitor {
-		 public:
-			# define F_Visitor(N) virtual void visit##N(N *v);
-				F_Views(F_Visitor);
-			# undef  F_Visitor
-		};
-
 		/**
 			*
 			* Accepting visitors
@@ -208,36 +140,6 @@ namespace flare {
 		 * @func draw(canvas, opacity)
 		 */
 		virtual void draw(Canvas* canvas, uint8_t opacity);
-
-		/**
-			*
-			* Does the view need to receive or handle event throws from the system
-			*
-			* @func receive()
-			*/
-		inline bool receive() const {
-			return _receive;
-		}
-
-		/**
-			*
-			* Returns visibility for the view
-			*
-			* @func visible()
-			*/
-		inline bool visible() const {
-			return _visible;
-		}
-
-		/**
-		* 
-		* Returns region visibility for the view
-		* 
-		* @func region_visible
-		*/
-		inline bool region_visible() const {
-			return _region_visible;
-		}
 		
 		/**
 			* 
@@ -305,16 +207,6 @@ namespace flare {
 		 */
 		bool has_child(View* child);
 		
-		// *******************************************************************
-		/**
-			* Returns the objects that automatically adjust view properties
-			*
-			* @func action()
-			*/
-		inline Action* action() {
-			return _action;
-		}
-
 		/**
 			* Set the `action` properties of the view object
 			*
@@ -356,7 +248,7 @@ namespace flare {
 			*
 			* @func x()
 			*/
-		float x() const;
+		inline float x() const { return translate().x(); }
 
 		/**
 			* 
@@ -364,7 +256,7 @@ namespace flare {
 			*
 			* @func y()
 			*/
-		float y() const;
+		inline float y() const { return translate().y(); }
 
 		/**
 			* 
@@ -372,9 +264,7 @@ namespace flare {
 			*
 			* @func scale_x()
 			*/
-		inline float scale_x() const {
-			return scale().x();
-		}
+		inline float scale_x() const { return scale().x(); }
 
 		/**
 			* 
@@ -382,9 +272,7 @@ namespace flare {
 			*
 			* @func scale_y()
 			*/
-		inline float scale_y() const {
-			return scale().y();
-		}
+		inline float scale_y() const { return scale().y(); }
 
 		/**
 			* 
@@ -392,9 +280,7 @@ namespace flare {
 			*
 			* @func skew_x()
 			*/
-		inline float skew_x() const {
-			return skew().x();
-		}
+		inline float skew_x() const { return skew().x(); }
 
 		/**
 			* 
@@ -402,19 +288,7 @@ namespace flare {
 			*
 			* @func skew_y()
 			*/
-		inline float skew_y() const {
-			return skew().y();
-		}
-
-		/**
-			*
-			* Returns the can affect the transparency of subviews
-			*
-			* @func opacity()
-			*/
-		inline uint8_t opacity() const {
-			return _opacity;
-		}
+		inline float skew_y() const { return skew().y(); }
 
 		/**
 			* Set the matrix `translate` properties of the view object
@@ -493,15 +367,6 @@ namespace flare {
 		void set_skew_y(float val);
 
 		/**
-			* Set the `opacity` properties the view object
-			*
-			* @func set_opacity(val)
-			*/
-		void set_opacity(uint8_t val);
-
-		// *******************************************************************
-
-		/**
 			* 
 			* Returns layout transformation matrix of the object view
 			* 
@@ -524,9 +389,9 @@ namespace flare {
 		}
 
 		/**
-			* @func solve_region_visible()
+			* @func solve_visible_region()
 			*/
-		virtual bool solve_region_visible();
+		virtual bool solve_visible_region();
 
 		/**
 		* @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
@@ -556,27 +421,41 @@ namespace flare {
 		virtual void layout_recursive(uint32_t mark);
 		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark = T_NONE);
 
+		/**
+			*
+			* Setting parent parent view
+			*
+			* @func set_parent(parent)
+			*/
+	 protected:
+		virtual void set_parent(View* parent);
+
 		// *******************************************************************
 
-		// transform
+		// the objects that automatically adjust view properties
+		F_DEFINE_PROP_READ(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
+		F_DEFINE_PROP_READ(View*, parent);
+		F_DEFINE_PROP_READ(View*, prev);
+		F_DEFINE_PROP_READ(View*, next);
+		F_DEFINE_PROP_READ(View*, first);
+		F_DEFINE_PROP_READ(View*, last);
+
+	 private:
 		struct Transform {
 			Vec2 translate, scale, skew; // 平移向量, 缩放向量, 倾斜向量
 			float rotate; // z轴旋转角度值
 		};
-
-	 private:
-		Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
-		// node tree:
-		View *_parent;
-		View *_prev, *_next;
-		View *_first, *_last;
 		Transform *_transform; // 矩阵变换
-		uint8_t _opacity; // 可影响子视图的透明度值
-		Mat   _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
-		// layout visible:
-		bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
-		bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
-		bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
+		Mat        _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
+		// can affect the transparency of subviews
+		F_DEFINE_PROP(uint8_t, opacity); // 可影响子视图的透明度值
+		// 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
+		// @prop Does the view need to receive or handle event throws from the system
+		F_DEFINE_PROP_READ(bool, receive);
+		// 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
+		F_DEFINE_PROP_READ(bool, visible);
+		// 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
+		F_DEFINE_PROP_READ(bool, visible_region);
 
 		friend class Box;
 

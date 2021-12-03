@@ -31,7 +31,7 @@
 #include "./box.h"
 #include "../app.h"
 #include "../display.h"
-#include "../render/canvas.h"
+#include "../render/render.h"
 
 namespace flare {
 
@@ -151,12 +151,6 @@ namespace flare {
 	{
 	}
 
-	/**
-		* @destructor
-		*/
-	Box::~Box() {
-	}
-	
 	/**
 		*
 		* 设置宽度
@@ -588,19 +582,16 @@ namespace flare {
 		* @func solve_rect_vertex(vertex)
 		*/
 	void Box::solve_rect_vertex(Vec2 vertex[4]) {
-		auto& final_matrix = matrix();
+		auto& mat = matrix();
 		Vec2 start(-_transform_origin.x(), -_transform_origin.y());
-		Vec2 end(
-			_client_size.x() + start.x(),
-			_client_size.y() + start.y()
-		);
-		vertex[0] = final_matrix * start;
-		vertex[1] = final_matrix * Vec2(end.x(), start.y());
-		vertex[2] = final_matrix * end;
-		vertex[3] = final_matrix * Vec2(start.x(), end.y());
+		Vec2 end(_client_size.x() + start.x(), _client_size.y() + start.y());
+		vertex[0] = mat * start;
+		vertex[1] = mat * Vec2(end.x(), start.y());
+		vertex[2] = mat * end;
+		vertex[3] = mat * Vec2(start.x(), end.y());
 	}
 
-	bool Box::solve_region_visible() {
+	bool Box::solve_visible_region() {
 		Vec2 vertex[4];
 		solve_rect_vertex(vertex);
 

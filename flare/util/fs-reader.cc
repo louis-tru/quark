@@ -131,8 +131,8 @@ namespace flare {
 		}
 
 		void read_from_zip(RunLoop* loop, cString& zip, cString& path, bool stream, Cb cb) {
-			Buffer buffer;
 			ScopeLock lock(zip_mutex_);
+			Buffer buffer;
 			try {
 				ZipReader* read = get_zip_reader(zip);
 				String inl_path = inl_format_part_path(path.substr(zip.length() + SEPARATOR.length()));
@@ -261,7 +261,7 @@ namespace flare {
 				case ZIP: {
 					String zip = zip_path(path);
 					if ( !zip.is_empty() ) {
-						F_IGNORE_ERR({
+						F_ERROR_IGNORE({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
 							String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
@@ -286,7 +286,7 @@ namespace flare {
 				case ZIP: {
 					String zip = zip_path(path);
 					if ( !zip.is_empty() ) {
-						F_IGNORE_ERR({
+						F_ERROR_IGNORE({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
 							String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
@@ -365,24 +365,31 @@ namespace flare {
 	uint32_t FileReader::read_file(cString& path, Cb cb) {
 		return _core->read(path, cb, false);
 	}
+	
 	uint32_t FileReader::read_stream(cString& path, Callback<StreamResponse> cb) {
 		return _core->read(path, *(Cb*)&cb, true);
 	}
+
 	Buffer FileReader::read_file_sync(cString& path) throw(Error) {
 		return _core->read_sync(path);
 	}
+
 	void FileReader::abort(uint32_t id) {
 		_core->abort(id);
 	}
+
 	bool FileReader::exists_sync(cString& path) {
 		return _core->exists_sync(path, 1, 1);
 	}
+	
 	bool FileReader::is_file_sync(cString& path) {
 		return _core->exists_sync(path, 1, 0);
 	}
+
 	bool FileReader::is_directory_sync(cString& path) {
 		return _core->exists_sync(path, 0, 1);
 	}
+	
 	Array<Dirent> FileReader::readdir_sync(cString& path) {
 		try {
 			return _core->readdir_sync(path);
@@ -391,30 +398,33 @@ namespace flare {
 		}
 		return Array<Dirent>();
 	}
+
 	String FileReader::format(cString& path) {
 		return _core->format(path);
 	}
+
 	bool FileReader::is_absolute(cString& path) {
 		return _core->is_absolute(path);
 	}
+
 	void FileReader::clear() {
 		return _core->clear();
 	}
 
-	static FileReader* shared_instance = nullptr;
+	static FileReader* __shared_instance = nullptr;
 
-	void FileReader::set_shared_instance(FileReader* reader) {
-		if (shared_instance != reader) {
-			Release(shared_instance);
-			shared_instance = reader;
+	void FileReader::set_shared(FileReader* reader) {
+		if (__shared_instance != reader) {
+			Release(__shared_instance);
+			__shared_instance = reader;
 		}
 	}
 
 	FileReader* FileReader::shared() {
-		if ( !shared_instance ) {
-			shared_instance = new FileReader();
+		if ( !__shared_instance ) {
+			__shared_instance = new FileReader();
 		}
-		return shared_instance;
+		return __shared_instance;
 	}
 
 }

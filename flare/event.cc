@@ -296,7 +296,7 @@ namespace flare {
 		void onTouchstart(View* view, List<TouchPoint>& in) {
 			
 			if ( view->visible() && in.length() ) {
-				if ( view->region_visible() /*|| view->_need_draw*/ ) {
+				if ( view->visible_region() /*|| view->_need_draw*/ ) {
 					
 					if ( view->last() /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {
 						List<TouchPoint> in2;
@@ -473,7 +473,7 @@ namespace flare {
 
 		static View* find_receive_event_view_2(View* view, Vec2 pos) {
 			if ( view->visible() ) {
-				if ( view->region_visible()/* || view->_need_draw*/ ) {
+				if ( view->visible_region()/* || view->_need_draw*/ ) {
 					View* v = view->last();
 
 					if (v /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {

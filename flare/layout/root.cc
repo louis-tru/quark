@@ -33,7 +33,7 @@
 #include "../app.inl"
 #include "../util/handle.h"
 #include "../display.h"
-#include "../render/canvas.h"
+#include "../render/render.h"
 
 namespace flare {
 
@@ -128,7 +128,7 @@ namespace flare {
 	}
 
 	void Root::draw(Canvas* canvas, uint8_t opacity) {
-		if (visible() && region_visible()) {
+		if (visible() && visible_region()) {
 			uint8_t op = this->opacity();
 			if (!op) return;
 
@@ -138,7 +138,7 @@ namespace flare {
 				if (f->type() == FillBox::M_COLOR) {
 					auto color = static_cast<FillColor*>(f)->color();
 					if (color.a()) {
-						canvas->drawColor(color.to_uint32_xrgb());
+						canvas->drawColor(color.to_uint32_1rgb());
 					} else {
 						canvas->drawColor(SK_ColorBLACK);
 					}

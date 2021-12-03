@@ -218,6 +218,7 @@ namespace flare {
 	inline Application* app() { return Application::_shared; }
 	inline Display* display() { return Application::_shared->_display; }
 	inline PreRender* pre_render() { return Application::_shared->_pre_render; }
+	inline Render* render() { return app()->render(); }
 
 	typedef Application::UILock UILock;
 

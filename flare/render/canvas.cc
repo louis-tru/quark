@@ -28,11 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#define AutoUpdateQRBounds AutoUpdateQRBounds; friend class SkCanvasLink
+namespace flare {
+	class Canvas;
+}
+
+#define AutoUpdateQRBounds AutoUpdateQRBounds; friend class flare::Canvas
 
 #include "skia/core/SkCanvas.h"
 
-#include "./canvas.h"
+#include "./render.h"
 #include "../display.h"
 #include "../app.h"
 
@@ -71,17 +75,20 @@ private:
 	SkM44 fGlobalToDevice;
 };
 
-void SkCanvasLink::setMatrix(const Mat& mat) {
-	SkM44 m4(mat[0], mat[1], 0,mat[2],
-					 mat[3], mat[4], 0,mat[5],
-					 0,           0, 1,0,
-					 0,           0, 0,1);
-	if (fMCRec->fDeferredSaveCount > 0) {
-		SkCanvas::setMatrix(m4);
-	} else {
-		// ignore skcanvas fGlobalToDevice and fMatrix
-		// fMCRec->fMatrix = m4;
-		fMCRec->fDevice->setLocalToDevice(m4);
-		// didSetM44(m4); ignore
+namespace flare {
+
+	void Canvas::setMatrix(const Mat& mat) {
+		SkM44 m4(mat[0], mat[1], 0,mat[2],
+						 mat[3], mat[4], 0,mat[5],
+						 0,           0, 1,0,
+						 0,           0, 0,1);
+		if (fMCRec->fDeferredSaveCount > 0) {
+			SkCanvas::setMatrix(m4);
+		} else {
+			// ignore skcanvas fGlobalToDevice and fMatrix
+			// fMCRec->fMatrix = m4;
+			fMCRec->fDevice->setLocalToDevice(m4);
+			// didSetM44(m4); ignore
+		}
 	}
 }

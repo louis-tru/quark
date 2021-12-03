@@ -59,8 +59,10 @@ namespace flare {
 		Inl_FileStat(stat)->set__stat(uv_stat);
 	}
 
-	FileStat::FileStat(): _stat(nullptr) { }
-	FileStat::FileStat(cString& path): FileStat(FileHelper::stat_sync(path)) { }
+	Dirent::Dirent(cString& n, cString& p, FileType t): name(n), pathname(p), type(t) {}
+
+	FileStat::FileStat(): _stat(nullptr) {}
+	FileStat::FileStat(cString& path): FileStat(FileHelper::stat_sync(path)) {}
 	FileStat::FileStat(FileStat&& stat): _stat(stat._stat) {
 		stat._stat = nullptr;
 	}

@@ -69,23 +69,29 @@ namespace flare {
 
 		bool isGpu() override { return false; }
 
-		SkSurface* getSurface() override { return _RasterSurface.get(); }
+		SkSurface* getSurface() override {
+			if (!_RasterSurface) {
+				// make the offscreen image
+				auto region = _host->display()->surface_region();
+				SkImageInfo info = SkImageInfo::Make(region.width, region.height,
+																						 _DisplayParams.fColorType, kPremul_SkAlphaType,
+																						 _DisplayParams.fColorSpace);
+				_RasterSurface = SkSurface::MakeRaster(info);
+			}
+			return _RasterSurface.get();
+		}
 
 		void glRenderbufferStorageMain() override {
 			[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
 		}
 
 		void reload() override {
+			_RasterSurface.reset();
 			GLRender::reload();
-			// make the offscreen image
-			auto region = _host->display()->surface_region();
-			SkImageInfo info = SkImageInfo::Make(region.width, region.height,
-																					 _DisplayParams.fColorType, kPremul_SkAlphaType,
-																					 _DisplayParams.fColorSpace);
-			_RasterSurface = SkSurface::MakeRaster(info);
 		}
 
 		void commit() override {
+			if (!_RasterSurface) return;
 			// We made/have an off-screen surface. Get the contents as an SkImage:
 			sk_sp<SkImage> snapshot = _RasterSurface->makeImageSnapshot();
 			SkSurface* gpuSurface = GLRender::getSurface();

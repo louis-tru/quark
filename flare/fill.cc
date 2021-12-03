@@ -477,6 +477,11 @@ namespace flare {
 		return true;
 	}
 
+	void FillImage::draw(Box *host, SkCanvas *canvas, uint8_t opacity, FillBorderRadius *radius) {
+		// TODO ...
+		canvas->drawImage(nullptr, 0, 0);
+	}
+
 	FillGradient::FillGradient()
 	{
 	}

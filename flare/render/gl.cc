@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "../app.h"
 #include "./gl.h"
 #include "../display.h"
 
@@ -194,25 +195,19 @@ namespace flare {
 		glStencilMask(0xffffffff);
 
 		// ----- reload Sk -----
-		if (_Context) {
-			// in case we have outstanding refs to this (lua?)
-			_Context->abandonContext();
-			_Context.reset();
+		_Surface.reset(); // clear surface
+		if (!_Context) {
+			_BackendContext.reset(nullptr);
+			_BackendContext = GrGLMakeNativeInterface();
+			_StencilBits = 8;
+			_SampleCount = 1;
+
+			if ( gpuMSAASample() ) {
+				_SampleCount = _DisplayParams.fMSAASampleCount;
+			}
+			_Context = GrDirectContext::MakeGL(_BackendContext, _DisplayParams.fGrContextOptions);
+			F_ASSERT(_Context);
 		}
-		_Surface.reset(nullptr);
-		_BackendContext.reset(nullptr);
-
-		_BackendContext = GrGLMakeNativeInterface();
-		_StencilBits = 8;
-		_SampleCount = 1;
-
-		if ( gpuMSAASample() ) {
-			_SampleCount = _DisplayParams.fMSAASampleCount;
-		}
-
-		_Context = GrDirectContext::MakeGL(_BackendContext, _DisplayParams.fGrContextOptions);
-
-		F_ASSERT(_Context);
 	}
 
 }   // namespace flare
