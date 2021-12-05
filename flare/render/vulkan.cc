@@ -52,7 +52,7 @@
 
 namespace flare {
 
-	VulkanRender::VulkanRender(Application* host, const DisplayParams& params,
+	VulkanRender::VulkanRender(Application* host, const Options& params,
 											CreateVkSurfaceFn createVkSurface,
 											CanPresentFn canPresent,
 											PFN_vkGetInstanceProcAddr instProc,
@@ -141,7 +141,7 @@ namespace flare {
 		GET_DEV_PROC(QueuePresentKHR);
 		GET_DEV_PROC(GetDeviceQueue);
 
-		fContext = GrDirectContext::MakeVulkan(backendContext, fDisplayParams.fGrContextOptions);
+		fContext = GrDirectContext::MakeVulkan(backendContext, fOptions.fGrContextOptions);
 
 		fSurface = fCreateVkSurfaceFn(fInstance);
 		if (VK_NULL_HANDLE == fSurface) {
@@ -159,7 +159,7 @@ namespace flare {
 			return;
 		}
 
-		if (!this->createSwapchain(-1, -1, fDisplayParams)) {
+		if (!this->createSwapchain(-1, -1, fOptions)) {
 			this->destroyContext();
 			sk_gpu_test::FreeVulkanFeaturesStructs(&features);
 			return;
@@ -171,7 +171,7 @@ namespace flare {
 	}
 
 	bool VulkanRender::createSwapchain(int width, int height,
-												const DisplayParams& params) {
+												const Options& params) {
 		// check for capabilities
 		VkSurfaceCapabilitiesKHR caps;
 		VkResult res = fGetPhysicalDeviceSurfaceCapabilitiesKHR(fPhysicalDevice, fSurface, &caps);
@@ -267,7 +267,7 @@ namespace flare {
 				break;
 			}
 		}
-		fDisplayParams = params;
+		fOptions = params;
 		fSampleCount = std::max(1, params.fMSAASampleCount);
 		fStencilBits = 8;
 
@@ -388,16 +388,16 @@ namespace flare {
 				GrBackendTexture backendTexture(fWidth, fHeight, info);
 				fSurfaces[i] = SkSurface::MakeFromBackendTexture(
 						fContext.get(), backendTexture, kTopLeft_GrSurfaceOrigin,
-						fDisplayParams.fMSAASampleCount,
-						colorType, fDisplayParams.fColorSpace, &fDisplayParams.fSurfaceProps);
+						fOptions.fMSAASampleCount,
+						colorType, fOptions.fColorSpace, &fOptions.fSurfaceProps);
 			} else {
-				if (fDisplayParams.fMSAASampleCount > 1) {
+				if (fOptions.fMSAASampleCount > 1) {
 					return false;
 				}
 				GrBackendRenderTarget backendRT(fWidth, fHeight, fSampleCount, info);
 				fSurfaces[i] = SkSurface::MakeFromBackendRenderTarget(
 						fContext.get(), backendRT, kTopLeft_GrSurfaceOrigin, colorType,
-						fDisplayParams.fColorSpace, &fDisplayParams.fSurfaceProps);
+						fOptions.fColorSpace, &fOptions.fSurfaceProps);
 
 			}
 			if (!fSurfaces[i]) {
@@ -534,7 +534,7 @@ namespace flare {
 		}
 		if (VK_ERROR_OUT_OF_DATE_KHR == res) {
 			// tear swapchain down and try again
-			if (!this->createSwapchain(-1, -1, fDisplayParams)) {
+			if (!this->createSwapchain(-1, -1, fOptions)) {
 				GR_VK_CALL(fInterface, DestroySemaphore(fDevice, semaphore, nullptr));
 				return nullptr;
 			}
@@ -594,12 +594,12 @@ namespace flare {
 
 	void VulkanRender::resize() override {
 		auto size = _host->display()->size();
-		createSwapchain(size.x(), size.y(), fDisplayParams);
+		createSwapchain(size.x(), size.y(), fOptions);
 	}
 
-	void VulkanRender::setDisplayParams(const DisplayParams& params) {
+	void VulkanRender::setOptions(const Options& params) {
 		destroyContext();
-		fDisplayParams = params;
+		fOptions = params;
 		initializeContext();
 	}
 

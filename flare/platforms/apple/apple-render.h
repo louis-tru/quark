@@ -51,7 +51,7 @@ namespace flare {
 		virtual void setView(UIView* view) = 0;
 		virtual Class layerClass() = 0;
 		bool resize(::CGRect rect);
-		static RenderApple* create(Application* host, cJSON& options);
+		static RenderApple* create(Application* host, const Render::Options& opts);
 	};
 
 }

@@ -43,7 +43,7 @@ namespace flare {
 	* @class PixelData
 	*/
 	class F_EXPORT PixelData: public Object {
-	public:
+	 public:
 		enum Format: uint64_t {
 			PVRTCI_2BPP_RGB = 0,
 			PVRTCI_2BPP_RGBA,
@@ -154,7 +154,7 @@ namespace flare {
 		*/
 		static uint32_t get_pixel_data_size(Format format);
 		
-	private:
+	 private:
 		Buffer      _data;
 		int _width, _height;
 		Array<WeakBuffer> _body;

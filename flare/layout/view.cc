@@ -370,14 +370,14 @@ namespace flare {
 	/**
 		* @func draw(canvas)
 		*/
-	void View::draw(Canvas* canvas, uint8_t opacity) {
+	void View::draw(Canvas* canvas, uint8_t alpha) {
 		// visit child
 		auto v = _first;
 		while(v) {
 			if (v->_visible & v->_visible_region) {
-				uint8_t op = (uint16_t(opacity) * v->_opacity) >> 8;
-				if (op)
-					v->draw(canvas, op);
+				uint8_t a = (uint16_t(alpha) * v->_opacity) >> 8;
+				if (a)
+					v->draw(canvas, a);
 			}
 			v = v->_next;
 		}

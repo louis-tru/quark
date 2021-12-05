@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,35 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
-#ifndef __flare__render__gl__
-#define __flare__render__gl__
-
-#include "./render.h"
-#include "skia/gpu/gl/GrGLInterface.h"
-#include "skia/core/SkRefCnt.h"
-#include "skia/core/SkSurface.h"
+#include "./image-src.h"
 
 namespace flare {
-
-	class GLRender: public Render {
-	 public:
-		virtual ~GLRender();
-		virtual SkSurface* surface() override;
-		virtual void reload() override;
-		virtual bool is_gpu() override { return true; }
-		virtual void gl_renderbuffer_storage();
-		int msaa_sample();
-	 protected:
-		GLRender(Application* host, const Options& opts);
-
-		sk_sp<const GrGLInterface> _interface;
-		sk_sp<SkSurface> _surface;
-		uint32_t  _render_buffer, _frame_buffer;
-		uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
-		bool _is_support_multisampled;
-	};
-
-}   // namespace flare
-
-#endif
+	// TODO ...
+}

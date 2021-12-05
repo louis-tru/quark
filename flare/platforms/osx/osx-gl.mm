@@ -92,7 +92,7 @@ namespace flare {
 		_surface_view = view;
 		_context = ctx;
 		_host->initialize();
-		_host->set_best_display_scale(UIScreen.mainScreen.backingScaleFactor);
+		_host->set_default_scale(UIScreen.mainScreen.backingScaleFactor);
 	}
 
 	void GLDrawProxy::begin_render() {

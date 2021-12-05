@@ -105,7 +105,7 @@ namespace flare {
 		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
 		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 		virtual bool solve_visible_region();
-		virtual void draw(Canvas* canvas, uint8_t opacity);
+		virtual void draw(Canvas* canvas, uint8_t alpha);
 
 	 protected:
 		/**

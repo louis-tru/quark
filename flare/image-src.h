@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,35 +28,26 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __flare__image_src__
+#define __flare__image_src__
 
-#ifndef __flare__render__gl__
-#define __flare__render__gl__
-
-#include "./render.h"
-#include "skia/gpu/gl/GrGLInterface.h"
-#include "skia/core/SkRefCnt.h"
-#include "skia/core/SkSurface.h"
+#include "./util/util.h"
 
 namespace flare {
 
-	class GLRender: public Render {
+	class F_EXPORT ImageSrc: public Reference {
+		F_HIDDEN_ALL_COPY(ImageSrc);
 	 public:
-		virtual ~GLRender();
-		virtual SkSurface* surface() override;
-		virtual void reload() override;
-		virtual bool is_gpu() override { return true; }
-		virtual void gl_renderbuffer_storage();
-		int msaa_sample();
-	 protected:
-		GLRender(Application* host, const Options& opts);
+		bool markAsTexture(); // mark as gpu texture
 
-		sk_sp<const GrGLInterface> _interface;
-		sk_sp<SkSurface> _surface;
-		uint32_t  _render_buffer, _frame_buffer;
-		uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
-		bool _is_support_multisampled;
+	 private:
+		// TODO ...
 	};
 
-}   // namespace flare
-
+	class F_EXPORT ImagePool: public Object {
+		F_HIDDEN_ALL_COPY(ImagePool);
+	 public:
+	 private:
+	};
+}
 #endif

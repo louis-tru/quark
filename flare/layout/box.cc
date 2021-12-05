@@ -611,12 +611,12 @@ namespace flare {
 		return false;
 	}
 
-	void Box::draw(Canvas* canvas, uint8_t opacity) {
+	void Box::draw(Canvas* canvas, uint8_t alpha) {
 		if (_fill) {
 			canvas->setMatrix(matrix());
-			_fill->draw(this, canvas, opacity);
+			_fill->draw(this, canvas, alpha);
 		}
-		View::draw(canvas, opacity);
+		View::draw(canvas, alpha);
 	}
 
 }

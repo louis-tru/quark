@@ -56,14 +56,14 @@ namespace flare {
 
 		void resize() override;
 
-		void setDisplayParams(const DisplayParams& params) override;
+		void setOptions(const Options& params) override;
 
 		/** Platform specific function that creates a VkSurfaceKHR for a window */
 		using CreateVkSurfaceFn = std::function<VkSurfaceKHR(VkInstance)>;
 		/** Platform specific function that determines whether presentation will succeed. */
 		using CanPresentFn = sk_gpu_test::CanPresentFn;
 
-		VulkanRender(Application* host, const DisplayParams&, CreateVkSurfaceFn, CanPresentFn,
+		VulkanRender(Application* host, const Options&, CreateVkSurfaceFn, CanPresentFn,
 							PFN_vkGetInstanceProcAddr, PFN_vkGetDeviceProcAddr);
 
 		bool isGpuContext() override { return true; }
@@ -78,7 +78,7 @@ namespace flare {
 		};
 
 		BackbufferInfo* getAvailableBackbuffer();
-		bool createSwapchain(int width, int height, const DisplayParams& params);
+		bool createSwapchain(int width, int height, const Options& params);
 		bool createBuffers(VkFormat format, VkImageUsageFlags, SkColorType colorType, VkSharingMode);
 		void destroyBuffers();
 

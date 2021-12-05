@@ -30,34 +30,21 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __flare__render__gl__
-#define __flare__render__gl__
+#ifndef __ftr__render_sk__
+#define __ftr__render_sk__
 
 #include "./render.h"
-#include "skia/gpu/gl/GrGLInterface.h"
-#include "skia/core/SkRefCnt.h"
-#include "skia/core/SkSurface.h"
 
 namespace flare {
 
-	class GLRender: public Render {
+	class F_EXPORT SkRender: public Render {
 	 public:
-		virtual ~GLRender();
-		virtual SkSurface* surface() override;
-		virtual void reload() override;
-		virtual bool is_gpu() override { return true; }
-		virtual void gl_renderbuffer_storage();
-		int msaa_sample();
+		virtual Canvas* canvas() override;
+		virtual SkSurface* surface() = 0;
 	 protected:
-		GLRender(Application* host, const Options& opts);
-
-		sk_sp<const GrGLInterface> _interface;
-		sk_sp<SkSurface> _surface;
-		uint32_t  _render_buffer, _frame_buffer;
-		uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
-		bool _is_support_multisampled;
+		SkRender(Application* host, const Options& opts);
+		sk_sp<GrDirectContext> _direct;
 	};
-
-}   // namespace flare
+}
 
 #endif

@@ -46,20 +46,20 @@ namespace flare {
 		virtual ~MetalRender();
 		virtual void reload() override;
 		virtual void commit() override;
-		virtual SkSurface* getSurface() override;
-		virtual bool isGpu() override { return true; }
+		virtual SkSurface* surface() override;
+		virtual bool is_gpu() override { return true; }
 		virtual void activate(bool isActive) override;
 
 	 protected:
 		static NSURL* CacheURL();
-		MetalRender(Application* host, const DisplayParams& params);
+		MetalRender(Application* host, const Options& params);
 
-		id<MTLDevice>       _Device; // sk_cfp<id<MTLDevice>>
-		id<MTLCommandQueue> _Queue; // sk_cfp<id<MTLCommandQueue>>
+		id<MTLDevice>       _device; // sk_cfp<id<MTLDevice>>
+		id<MTLCommandQueue> _queue; // sk_cfp<id<MTLCommandQueue>>
 		CAMetalLayer*    _layer;
-		GrMTLHandle      _DrawableHandle;
-		sk_sp<SkSurface> _Surface;
-		id               _PipelineArchive; // id<MTLBinaryArchive>
+		GrMTLHandle      _drawableHandle;
+		sk_sp<SkSurface> _surface;
+		id               _pipelineArchive; // id<MTLBinaryArchive>
 	};
 
 }   // namespace flare

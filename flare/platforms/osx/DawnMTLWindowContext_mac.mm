@@ -42,12 +42,12 @@ DawnSwapChainImplementation CreateSwapChainImplementation(T* swapChain) {
 
 class DawnMTLWindowContext : public DawnWindowContext {
 public:
-    DawnMTLWindowContext(const MacWindowInfo& info, const DisplayParams& params);
+    DawnMTLWindowContext(const MacWindowInfo& info, const Options& params);
     ~DawnMTLWindowContext() override;
     wgpu::Device onInitializeContext() override;
     void onDestroyContext() override;
     DawnSwapChainImplementation createSwapChainImplementation(int width, int height,
-                                                              const DisplayParams& params) override;
+                                                              const Options& params) override;
     void onSwapBuffers() override;
 private:
     NSView*              fMainView;
@@ -102,7 +102,7 @@ private:
     id<CAMetalDrawable>  fCurrentDrawable = nil;
 };
 
-DawnMTLWindowContext::DawnMTLWindowContext(const MacWindowInfo& info, const DisplayParams& params)
+DawnMTLWindowContext::DawnMTLWindowContext(const MacWindowInfo& info, const Options& params)
     : DawnWindowContext(params, wgpu::TextureFormat::BGRA8Unorm)
     , fMainView(info.fMainView) {
     CGSize size = fMainView.bounds.size;
@@ -114,7 +114,7 @@ DawnMTLWindowContext::~DawnMTLWindowContext() {
 }
 
 DawnSwapChainImplementation DawnMTLWindowContext::createSwapChainImplementation(
-        int width, int height, const DisplayParams& params) {
+        int width, int height, const Options& params) {
     return SwapChainImplMTL::Create(fMTLDevice, fLayer);
 }
 
@@ -152,7 +152,7 @@ void DawnMTLWindowContext::onSwapBuffers() {
 namespace window_context_factory {
 
 std::unique_ptr<WindowContext> MakeDawnMTLForMac(const MacWindowInfo& winInfo,
-                                                 const DisplayParams& params) {
+                                                 const Options& params) {
     std::unique_ptr<WindowContext> ctx(new DawnMTLWindowContext(winInfo, params));
     if (!ctx->isValid()) {
         return nullptr;

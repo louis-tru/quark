@@ -33,8 +33,6 @@
 
 #include "./value.h"
 
-class SkCanvas;
-
 namespace flare {
 
 	class Box;
@@ -46,6 +44,7 @@ namespace flare {
 	class FillBorder; // top,right,bottom,left
 	class FillBorderRadius; // left-top,right-top,right-bottom,left-bottom
 	class Texture;
+	class Canvas;
 
 	typedef FillBox* Fill;
 
@@ -71,6 +70,9 @@ namespace flare {
 			M_DISABLE,
 		};
 		
+		/**
+		 * @constructor
+		 */
 		FillBox();
 		
 		/**
@@ -86,7 +88,7 @@ namespace flare {
 		/**
 		* @func set_next(value)
 		*/
-		void set_next(Fill value);
+		Fill set_next(Fill value);
 		
 		/**
 		* @func type()
@@ -125,7 +127,7 @@ namespace flare {
 		 *
 		 * @func draw(host, canvas)
 		 */
-		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius = nullptr) = 0;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius = nullptr) = 0;
 		
 	 protected:
 		/**
@@ -148,7 +150,7 @@ namespace flare {
 		F_DEFINE_PROP(Color, color);
 		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
 		// @consts
 		static Fill WHITE;
 		static Fill BLACK;
@@ -160,7 +162,7 @@ namespace flare {
 	*/
 	class F_EXPORT FillImage: public FillBox {
 	 public:
-		FillImage();
+		FillImage(cString& src = String());
 		virtual ~FillImage();
 		virtual Type type() const override;
 		F_DEFINE_PROP(String, src);
@@ -174,7 +176,7 @@ namespace flare {
 		void set_src_base64(cString& data);
 		bool get_image_data(Box* host, Vec2& size_out, Vec2& position_out, int& level_out);
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
 	 private:
 		int _attributes_flags;
 		F_DEFINE_INLINE_CLASS(Inl);
@@ -188,7 +190,7 @@ namespace flare {
 		FillGradient();
 		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
 	 private:
 	};
 
@@ -199,7 +201,7 @@ namespace flare {
 	 public:
 		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
 	 private:
 	};
 
@@ -226,7 +228,7 @@ namespace flare {
 		};
 		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
 	 protected:
 		Color _color[4];
 		float _width[4];
@@ -244,7 +246,7 @@ namespace flare {
 		F_DEFINE_PROP(float, left_bottom);
 		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
 	};
 
 }

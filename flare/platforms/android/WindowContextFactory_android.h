@@ -16,15 +16,15 @@
 namespace sk_app {
 
 class WindowContext;
-struct DisplayParams;
+struct Options;
 
 namespace window_context_factory {
 
-std::unique_ptr<WindowContext> MakeVulkanForAndroid(ANativeWindow*, const DisplayParams&);
+std::unique_ptr<WindowContext> MakeVulkanForAndroid(ANativeWindow*, const Options&);
 
-std::unique_ptr<WindowContext> MakeGLForAndroid(ANativeWindow*, const DisplayParams&);
+std::unique_ptr<WindowContext> MakeGLForAndroid(ANativeWindow*, const Options&);
 
-std::unique_ptr<WindowContext> MakeRasterForAndroid(ANativeWindow*, const DisplayParams&);
+std::unique_ptr<WindowContext> MakeRasterForAndroid(ANativeWindow*, const Options&);
 
 }  // namespace window_context_factory
 

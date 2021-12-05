@@ -61,10 +61,10 @@
 
 namespace flare {
 
-	GLRender::GLRender(Application* host, const DisplayParams& params)
+	GLRender::GLRender(Application* host, const Options& params)
 		: Render(host, params)
-		, _BackendContext(nullptr)
-		, _Surface(nullptr), _frame_buffer(0), _is_support_multisampled(false)
+		, _interface(nullptr)
+		, _frame_buffer(0), _is_support_multisampled(false)
 	{
 		String extensions = (const char*)glGetString(GL_EXTENSIONS);
 		String version = (const char*)glGetString(GL_VERSION);
@@ -83,7 +83,7 @@ namespace flare {
 		glGenRenderbuffers(1, &_msaa_render_buffer);
 
 		// initializ gl status
-		if (isGpu()) {
+		if (is_gpu()) {
 			/*
 			* @开启颜色混合
 			*
@@ -116,58 +116,34 @@ namespace flare {
 		glDeleteRenderbuffers(1, &_msaa_frame_buffer);
 	}
 
-	int GLRender::gpuMSAASample() {
-		if ( _DisplayParams.fMSAASampleCount > 1 && _is_support_multisampled && isGpu()) {
-			return _DisplayParams.fMSAASampleCount;
+	int GLRender::msaa_sample() {
+		if ( _opts.msaaSampleCount > 1 && _is_support_multisampled && is_gpu()) {
+			return _opts.msaaSampleCount;
 		}
 		return 0;
 	}
 
-	SkSurface* GLRender::getSurface() {
-		if (!_Surface) {
-			if (_Context) {
-				GrGLFramebufferInfo fbInfo;
-				fbInfo.fFBOID = gpuMSAASample() ? _msaa_frame_buffer : _frame_buffer;
-				fbInfo.fFormat = GL_RGBA8;
+	SkSurface* GLRender::surface() {
+		if (!_direct) return nullptr;
+		if (_surface) return _surface.get();
 
-				auto region = _host->display()->surface_region();
-
-				GrBackendRenderTarget backendRT(region.width, region.height, _SampleCount, _StencilBits, fbInfo);
-
-				_Surface = SkSurface::MakeFromBackendRenderTarget(_Context.get(), backendRT,
-																kBottomLeft_GrSurfaceOrigin,
-																_DisplayParams.fColorType,
-																_DisplayParams.fColorSpace,
-																&_DisplayParams.fSurfaceProps);
-			}
-		}
-
-		return _Surface.get();
-	}
-
-	void GLRender::glRenderbufferStorageMain() {
-		auto region = _host->display()->surface_region();
-		::glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, region.width, region.height);
-	}
-
-	void GLRender::reload() {
 		auto region = _host->display()->surface_region();
 
 		if (region.width == 0 || region.height == 0)
-			return;
+			return nullptr;
 
 		int width = region.width;
 		int height = region.height;
-		auto MSAA = _DisplayParams.fMSAASampleCount;
+		auto MSAA = _opts.msaaSampleCount;
 
 		glViewport(0, 0, width, height);
 
 		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-		glRenderbufferStorageMain();
+		gl_renderbuffer_storage();
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 
-		if ( gpuMSAASample() ) { // 启用多重采样
+		if ( msaa_sample() ) { // 启用多重采样
 			glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render buffer
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
 			glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAA, GL_RGBA8, width, height);
@@ -177,13 +153,13 @@ namespace flare {
 
 		// Test the framebuffer for completeness.
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			if ( gpuMSAASample() ) {
-				_DisplayParams.fMSAASampleCount /= 2;
-				reload();
+			if ( msaa_sample() ) {
+				_opts.msaaSampleCount /= 2;
+				return surface();
 			} else {
 				F_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 			}
-			return;
+			return nullptr;
 		}
 		
 		// Retrieve the height and width of the color renderbuffer.
@@ -193,21 +169,40 @@ namespace flare {
 
 		glClearStencil(0);
 		glStencilMask(0xffffffff);
+		
+		GrGLFramebufferInfo fbInfo;
+		fbInfo.fFBOID = msaa_sample() ? _msaa_frame_buffer : _frame_buffer;
+		fbInfo.fFormat = GL_RGBA8;
 
-		// ----- reload Sk -----
-		_Surface.reset(); // clear surface
-		if (!_Context) {
-			_BackendContext.reset(nullptr);
-			_BackendContext = GrGLMakeNativeInterface();
-			_StencilBits = 8;
-			_SampleCount = 1;
+		GrBackendRenderTarget backendRT(region.width, region.height, _sample_count, _stencil_bits, fbInfo);
+		
+		SkSurfaceProps props(SkSurfaceProps::Flags(_opts.surfaceFlags), SkPixelGeometry(_opts.surfacePixelGeometry));
 
-			if ( gpuMSAASample() ) {
-				_SampleCount = _DisplayParams.fMSAASampleCount;
-			}
-			_Context = GrDirectContext::MakeGL(_BackendContext, _DisplayParams.fGrContextOptions);
-			F_ASSERT(_Context);
+		_surface = SkSurface::MakeFromBackendRenderTarget(_direct.get(), backendRT,
+																											kBottomLeft_GrSurfaceOrigin,
+																											SkColorType(_opts.colorType), nullptr, &props);
+		return _surface.get();
+	}
+
+	void GLRender::gl_renderbuffer_storage() {
+		auto region = _host->display()->surface_region();
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, region.width, region.height);
+	}
+
+	void GLRender::reload() {
+		_surface.reset(); // clear surface
+		if (_direct) return;
+
+		_interface.reset(nullptr);
+		_interface = GrGLMakeNativeInterface();
+		_stencil_bits = 8;
+		_sample_count = 1;
+
+		if ( msaa_sample() ) {
+			_sample_count = _opts.msaaSampleCount;
 		}
+		_direct = GrDirectContext::MakeGL(_interface, {/*_opts.grContextOptions*/});
+		F_ASSERT(_direct);
 	}
 
 }   // namespace flare

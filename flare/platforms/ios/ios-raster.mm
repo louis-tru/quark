@@ -41,7 +41,7 @@ namespace flare {
 
 	class RasterRenderIOS: public GLRender, public RenderApple {
 	 public:
-		RasterRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
+		RasterRenderIOS(Application* host, EAGLContext* ctx, const Options& params)
 			: GLRender(host, params), _ctx(ctx)
 		{
 		}
@@ -67,34 +67,13 @@ namespace flare {
 
 		Class layerClass() override { return [CAEAGLLayer class]; }
 
-		bool isGpu() override { return false; }
-
-		SkSurface* getSurface() override {
-			if (!_RasterSurface) {
-				// make the offscreen image
-				auto region = _host->display()->surface_region();
-				SkImageInfo info = SkImageInfo::Make(region.width, region.height,
-																						 _DisplayParams.fColorType, kPremul_SkAlphaType,
-																						 _DisplayParams.fColorSpace);
-				_RasterSurface = SkSurface::MakeRaster(info);
-			}
-			return _RasterSurface.get();
-		}
-
-		void glRenderbufferStorageMain() override {
-			[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
-		}
-
-		void reload() override {
-			_RasterSurface.reset();
-			GLRender::reload();
-		}
+		bool is_gpu() override { return false; }
 
 		void commit() override {
 			if (!_RasterSurface) return;
 			// We made/have an off-screen surface. Get the contents as an SkImage:
 			sk_sp<SkImage> snapshot = _RasterSurface->makeImageSnapshot();
-			SkSurface* gpuSurface = GLRender::getSurface();
+			SkSurface* gpuSurface = GLRender::surface();
 			gpuSurface->getCanvas()->drawImage(snapshot, 0, 0);
 			gpuSurface->flushAndSubmit();
 
@@ -107,6 +86,26 @@ namespace flare {
 			[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
 		}
 
+		SkSurface* surface() override {
+			if (!_RasterSurface) {
+				// make the offscreen image
+				auto region = _host->display()->surface_region();
+				auto info = SkImageInfo::Make(region.width, region.height,
+																			SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
+				_RasterSurface = SkSurface::MakeRaster(info);
+			}
+			return _RasterSurface.get();
+		}
+
+		void gl_renderbuffer_storage() override {
+			[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
+		}
+
+		void reload() override {
+			_RasterSurface.reset();
+			GLRender::reload();
+		}
+
 	private:
 		EAGLContext* _ctx;
 		UIView* _view;
@@ -114,7 +113,7 @@ namespace flare {
 		sk_sp<SkSurface> _RasterSurface;
 	};
 
-	RenderApple* MakeRasterRender(Application* host, const Render::DisplayParams& parems) {
+	RenderApple* MakeRasterRender(Application* host, const Render::Options& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
 			[EAGLContext setCurrentContext:ctx];

@@ -240,7 +240,7 @@ namespace flare {
 		if (!_keep) { // init
 			_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
 			_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
-			_render = Render::create(this, _opts); F_DEBUG("Render::create() ok");
+			_render = Render::create(this, Render::parseOptions(_opts)); F_DEBUG("Render::create() ok");
 			//_font_pool = new FontPool(this);
 			//_tex_pool = new TexturePool(this);
 			_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");

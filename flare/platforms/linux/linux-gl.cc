@@ -310,9 +310,9 @@ namespace flare {
 	void GLDrawProxy::initialize() {
 		_host->initialize();
 		#if F_ANDROID
-			_host->set_best_display_scale(API::get_display_scale());
+			_host->set_default_scale(API::get_display_scale());
 		#else 
-			_host->set_best_display_scale(1.0 / Display::default_atom_pixel());
+			_host->set_default_scale(1.0 / Display::default_atom_pixel());
 		#endif 
 		refresh_surface_size(nullptr);
 	}

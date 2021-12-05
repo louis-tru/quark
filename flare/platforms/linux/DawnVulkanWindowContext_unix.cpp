@@ -16,19 +16,19 @@
 #include <X11/Xlib-xcb.h>
 
 using sk_app::window_context_factory::XlibWindowInfo;
-using sk_app::DisplayParams;
+using sk_app::Options;
 using sk_app::DawnWindowContext;
 
 namespace sk_app {
 
 class DawnVulkanWindowContext_xlib : public DawnWindowContext {
 public:
-    DawnVulkanWindowContext_xlib(const XlibWindowInfo&, const DisplayParams&);
+    DawnVulkanWindowContext_xlib(const XlibWindowInfo&, const Options&);
     ~DawnVulkanWindowContext_xlib() override {}
     wgpu::Device onInitializeContext() override;
     void onDestroyContext() override {}
     DawnSwapChainImplementation createSwapChainImplementation(
-            int width, int height, const DisplayParams& params) override;
+            int width, int height, const Options& params) override;
     void onSwapBuffers() override {}
 
 private:
@@ -40,7 +40,7 @@ private:
 };
 
 DawnVulkanWindowContext_xlib::DawnVulkanWindowContext_xlib(const XlibWindowInfo& winInfo,
-                                                           const DisplayParams& params)
+                                                           const Options& params)
         : INHERITED(params, wgpu::TextureFormat::BGRA8Unorm)
         , fDisplay(winInfo.fDisplay)
         , fWindow(winInfo.fWindow) {
@@ -53,7 +53,7 @@ DawnVulkanWindowContext_xlib::DawnVulkanWindowContext_xlib(const XlibWindowInfo&
 }
 
 DawnSwapChainImplementation DawnVulkanWindowContext_xlib::createSwapChainImplementation(
-        int width, int height, const DisplayParams& params) {
+        int width, int height, const Options& params) {
     return dawn_native::vulkan::CreateNativeSwapChainImpl(fDevice.Get(), fVkSurface);
 }
 
@@ -94,7 +94,7 @@ wgpu::Device DawnVulkanWindowContext_xlib::onInitializeContext() {
 namespace window_context_factory {
 
 std::unique_ptr<WindowContext> MakeDawnVulkanForXlib(const XlibWindowInfo& winInfo,
-                                                     const DisplayParams& params) {
+                                                     const Options& params) {
     std::unique_ptr<WindowContext> ctx(new DawnVulkanWindowContext_xlib(winInfo, params));
     if (!ctx->isValid()) {
         return nullptr;

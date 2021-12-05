@@ -137,9 +137,9 @@ namespace flare {
 		virtual void accept(Visitor *visitor);
 
 		/**
-		 * @func draw(canvas, opacity)
+		 * @func draw(canvas, alpha)
 		 */
-		virtual void draw(Canvas* canvas, uint8_t opacity);
+		virtual void draw(Canvas* canvas, uint8_t alpha);
 		
 		/**
 			* 

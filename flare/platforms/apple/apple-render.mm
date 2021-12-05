@@ -49,31 +49,28 @@ namespace flare {
 		return 0;
 	}
 
-	RenderApple* MakeRasterRender(Application* host, const Render::DisplayParams& parems);
-	RenderApple* MakeGLRender(Application* host, const Render::DisplayParams& parems);
-	RenderApple* MakeMetalRender(Application* host, const Render::DisplayParams& parems);
+	RenderApple* MakeRasterRender(Application* host, const Render::Options& parems);
+	RenderApple* MakeGLRender(Application* host, const Render::Options& parems);
+	RenderApple* MakeMetalRender(Application* host, const Render::Options& parems);
 
-	RenderApple* RenderApple::create(Application* host, cJSON& options) {
+	RenderApple* RenderApple::create(Application* host, const Render::Options& opts) {
 		RenderApple* r = nullptr;
-		auto parems = Render::parseDisplayParams(options);
-		bool gpu = true;
-		bool metal = true;
 
-		if (gpu) {
-			if (metal) {
+		if (opts.enableGpu) {
+			if (opts.enableMetal) {
 				//r = MakeMetalRender(host, parems);
 			}
 			if (r) {
 				return r;
 			}
-			r = MakeGLRender(host, parems);
+			r = MakeGLRender(host, opts);
 		}
 
 		if (r) {
 			return r;
 		}
 
-		r = MakeRasterRender(host, parems);
+		r = MakeRasterRender(host, opts);
 		F_ASSERT(r);
 
 		return r;

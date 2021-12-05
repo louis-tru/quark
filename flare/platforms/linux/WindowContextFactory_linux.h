@@ -23,7 +23,7 @@ typedef Window XWindow;
 namespace sk_app {
 
 class WindowContext;
-struct DisplayParams;
+struct Options;
 
 namespace window_context_factory {
 
@@ -36,15 +36,15 @@ struct XlibWindowInfo {
     int          fHeight;
 };
 
-std::unique_ptr<WindowContext> MakeVulkanForXlib(const XlibWindowInfo&, const DisplayParams&);
+std::unique_ptr<WindowContext> MakeVulkanForXlib(const XlibWindowInfo&, const Options&);
 
-std::unique_ptr<WindowContext> MakeGLForXlib(const XlibWindowInfo&, const DisplayParams&);
+std::unique_ptr<WindowContext> MakeGLForXlib(const XlibWindowInfo&, const Options&);
 
 #ifdef SK_DAWN
-std::unique_ptr<WindowContext> MakeDawnVulkanForXlib(const XlibWindowInfo&, const DisplayParams&);
+std::unique_ptr<WindowContext> MakeDawnVulkanForXlib(const XlibWindowInfo&, const Options&);
 #endif
 
-std::unique_ptr<WindowContext> MakeRasterForXlib(const XlibWindowInfo&, const DisplayParams&);
+std::unique_ptr<WindowContext> MakeRasterForXlib(const XlibWindowInfo&, const Options&);
 
 }  // namespace window_context_factory
 

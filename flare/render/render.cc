@@ -42,33 +42,25 @@ namespace flare {
 		return F_MIN(n, 8);
 	}
 
-	Render::Render(Application* host, const DisplayParams& params)
+	Render::Render(Application* host, const Options& params)
 		: _host(host)
-		, _DisplayParams(params)
-		, _SampleCount(1)
-		, _StencilBits(0)
+		, _opts(params)
+		, _sample_count(1), _stencil_bits(0)
 	{
-		_DisplayParams.fMSAASampleCount = massSample(_DisplayParams.fMSAASampleCount);
+		_opts.msaaSampleCount = massSample(_opts.msaaSampleCount);
 	}
 
-	Render::~Render() {
-	}
+	Render::~Render() {}
 
 	Canvas* Render::canvas() {
-		return static_cast<Canvas*>(getSurface()->getCanvas());
+		return static_cast<Canvas*>(surface()->getCanvas());
 	}
 
 	void Render::activate(bool isActive) {}
 
-	void Render::setDisplayParams(const DisplayParams& params) {
-		_DisplayParams = params;
-		_DisplayParams.fMSAASampleCount = massSample(_DisplayParams.fMSAASampleCount);
-		reload();
-	}
-
-	Render::DisplayParams Render::parseDisplayParams(cJSON& options) {
+	Render::Options Render::parseOptions(cJSON& options) {
 		// parse options to render params
-		return DisplayParams();
+		return Options();
 	}
 
 }

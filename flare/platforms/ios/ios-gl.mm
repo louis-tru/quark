@@ -40,7 +40,7 @@ namespace flare {
 
 	class GLRenderIOS: public GLRender, public RenderApple {
 	 public:
-		GLRenderIOS(Application* host, EAGLContext* ctx, const DisplayParams& params)
+		GLRenderIOS(Application* host, EAGLContext* ctx, const Options& params)
 			: GLRender(host, params), _ctx(ctx)
 		{
 			_is_support_multisampled = true;
@@ -74,14 +74,14 @@ namespace flare {
 			return this;
 		}
 
-		void glRenderbufferStorageMain() override {
+		void gl_renderbuffer_storage() override {
 			[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
 		}
 		
 		void commit() override {
-			_Surface->flushAndSubmit(); // commit sk
+			_surface->flushAndSubmit(); // commit sk
 
-			if (gpuMSAASample()) {
+			if (msaa_sample()) {
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
 				GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
@@ -101,7 +101,7 @@ namespace flare {
 			// and calling the presentRenderbuffer: method on your rendering context.
 			[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
 
-			if ( gpuMSAASample() ) {
+			if ( msaa_sample() ) {
 				glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
 				glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer);
 			}
@@ -113,7 +113,7 @@ namespace flare {
 		CAEAGLLayer* _layer;
 	};
 
-	RenderApple* MakeGLRender(Application* host, const GLRender::DisplayParams& parems) {
+	RenderApple* MakeGLRender(Application* host, const GLRender::Options& parems) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
 			[EAGLContext setCurrentContext:ctx];

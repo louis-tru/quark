@@ -13,7 +13,7 @@
 #include <OpenGL/gl.h>
 #include <Cocoa/Cocoa.h>
 
-using sk_app::DisplayParams;
+using sk_app::Options;
 using sk_app::window_context_factory::MacWindowInfo;
 using sk_app::GLWindowContext;
 
@@ -21,7 +21,7 @@ namespace {
 
 class GLWindowContext_mac : public GLWindowContext {
 public:
-    GLWindowContext_mac(const MacWindowInfo&, const DisplayParams&);
+    GLWindowContext_mac(const MacWindowInfo&, const Options&);
 
     ~GLWindowContext_mac() override;
 
@@ -42,7 +42,7 @@ private:
     using INHERITED = GLWindowContext;
 };
 
-GLWindowContext_mac::GLWindowContext_mac(const MacWindowInfo& info, const DisplayParams& params)
+GLWindowContext_mac::GLWindowContext_mac(const MacWindowInfo& info, const Options& params)
     : INHERITED(params)
     , fMainView(info.fMainView)
     , fGLContext(nil) {
@@ -85,12 +85,12 @@ sk_sp<const GrGLInterface> GLWindowContext_mac::onInitializeContext() {
         attributes[numAttributes++] = 0;
         attributes[numAttributes++] = NSOpenGLPFAStencilSize;
         attributes[numAttributes++] = 8;
-        if (fDisplayParams.fMSAASampleCount > 1) {
+        if (fOptions.fMSAASampleCount > 1) {
             attributes[numAttributes++] = NSOpenGLPFAMultisample;
             attributes[numAttributes++] = NSOpenGLPFASampleBuffers;
             attributes[numAttributes++] = 1;
             attributes[numAttributes++] = NSOpenGLPFASamples;
-            attributes[numAttributes++] = fDisplayParams.fMSAASampleCount;
+            attributes[numAttributes++] = fOptions.fMSAASampleCount;
         } else {
             attributes[numAttributes++] = NSOpenGLPFASampleBuffers;
             attributes[numAttributes++] = 0;
@@ -115,7 +115,7 @@ sk_sp<const GrGLInterface> GLWindowContext_mac::onInitializeContext() {
         [fGLContext setView:fMainView];
     }
 
-    GLint swapInterval = fDisplayParams.fDisableVsync ? 0 : 1;
+    GLint swapInterval = fOptions.fDisableVsync ? 0 : 1;
     [fGLContext setValues:&swapInterval forParameter:NSOpenGLCPSwapInterval];
 
     // make context current
@@ -144,7 +144,7 @@ sk_sp<const GrGLInterface> GLWindowContext_mac::onInitializeContext() {
 
 void GLWindowContext_mac::onDestroyContext() {
     // We only need to tear down the GLContext if we've changed the sample count.
-    if (fGLContext && fSampleCount != fDisplayParams.fMSAASampleCount) {
+    if (fGLContext && fSampleCount != fOptions.fMSAASampleCount) {
         teardownContext();
     }
 }
@@ -167,7 +167,7 @@ namespace sk_app {
 namespace window_context_factory {
 
 std::unique_ptr<WindowContext> MakeGLForMac(const MacWindowInfo& info,
-                                            const DisplayParams& params) {
+                                            const Options& params) {
     std::unique_ptr<WindowContext> ctx(new GLWindowContext_mac(info, params));
     if (!ctx->isValid()) {
         return nullptr;

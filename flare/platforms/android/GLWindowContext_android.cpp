@@ -13,13 +13,13 @@
 #include "tools/sk_app/android/WindowContextFactory_android.h"
 
 using sk_app::GLWindowContext;
-using sk_app::DisplayParams;
+using sk_app::Options;
 
 namespace {
 class GLWindowContext_android : public GLWindowContext {
 public:
 
-    GLWindowContext_android(ANativeWindow*, const DisplayParams&);
+    GLWindowContext_android(ANativeWindow*, const Options&);
 
     ~GLWindowContext_android() override;
 
@@ -34,14 +34,14 @@ private:
     EGLContext fEGLContext;
     EGLSurface fSurfaceAndroid;
 
-    // For setDisplayParams and resize which call onInitializeContext with null platformData
+    // For setOptions and resize which call onInitializeContext with null platformData
     ANativeWindow* fNativeWindow = nullptr;
 
     using INHERITED = GLWindowContext;
 };
 
 GLWindowContext_API::GLWindowContext_android(ANativeWindow* window,
-                                                 const DisplayParams& params)
+                                                 const Options& params)
     : INHERITED(params)
     , fDisplay(EGL_NO_DISPLAY)
     , fEGLContext(EGL_NO_CONTEXT)
@@ -70,7 +70,7 @@ sk_sp<const GrGLInterface> GLWindowContext_API::onInitializeContext() {
     SkAssertResult(eglBindAPI(EGL_OPENGL_ES_API));
 
     EGLint numConfigs = 0;
-    EGLint eglSampleCnt = fDisplayParams.fMSAASampleCount > 1 ? fDisplayParams.fMSAASampleCount > 1
+    EGLint eglSampleCnt = fOptions.fMSAASampleCount > 1 ? fOptions.fMSAASampleCount > 1
                                                               : 0;
     const EGLint configAttribs[] = {
         EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
@@ -117,7 +117,7 @@ sk_sp<const GrGLInterface> GLWindowContext_API::onInitializeContext() {
     eglGetConfigAttrib(fDisplay, surfaceConfig, EGL_SAMPLES, &fSampleCount);
     fSampleCount = std::max(fSampleCount, 1);
 
-    eglSwapInterval(fDisplay, fDisplayParams.fDisableVsync ? 0 : 1);
+    eglSwapInterval(fDisplay, fOptions.fDisableVsync ? 0 : 1);
 
     return GrGLMakeNativeInterface();
 }
@@ -145,7 +145,7 @@ namespace sk_app {
 namespace window_context_factory {
 
 std::unique_ptr<WindowContext> MakeGLForAndroid(ANativeWindow* window,
-                                                const DisplayParams& params) {
+                                                const Options& params) {
     std::unique_ptr<WindowContext> ctx(new GLWindowContext_android(window, params));
     if (!ctx->isValid()) {
         return nullptr;

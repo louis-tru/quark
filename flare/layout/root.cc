@@ -81,6 +81,8 @@ namespace flare {
 		return r.collapse();
 	}
 
+	Root::Root(){}
+
 	/**
 	* @destructor
 	*/
@@ -127,10 +129,10 @@ namespace flare {
 		F_UNREACHABLE();
 	}
 
-	void Root::draw(Canvas* canvas, uint8_t opacity) {
+	void Root::draw(Canvas* canvas, uint8_t alpha) {
 		if (visible() && visible_region()) {
-			uint8_t op = this->opacity();
-			if (!op) return;
+			uint8_t alpha = this->opacity();
+			if (!alpha) return;
 
 			auto f = fill();
 			if (f) {
@@ -138,15 +140,15 @@ namespace flare {
 				if (f->type() == FillBox::M_COLOR) {
 					auto color = static_cast<FillColor*>(f)->color();
 					if (color.a()) {
-						canvas->drawColor(color.to_uint32_1rgb());
+						canvas->drawColor(color.to_uint32_xrgb());
 					} else {
 						canvas->drawColor(SK_ColorBLACK);
 					}
 					if (f->next()) {
-						f->next()->draw(this, canvas, 1);
+						f->next()->draw(this, canvas, alpha);
 					}
 				} else {
-					f->draw(this, canvas, 1);
+					f->draw(this, canvas, alpha);
 				}
 			} else {
 				canvas->drawColor(SK_ColorBLACK);

@@ -48,13 +48,8 @@
 
 #include "../math.h"
 #include "skia/core/SkCanvas.h"
-#include "skia/core/SkRefCnt.h"
-#include "skia/core/SkSurfaceProps.h"
-#include "skia/core/SkImageInfo.h"
 #include "skia/core/SkSurface.h"
-#include "skia/gpu/GrTypes.h"
 #include "skia/gpu/GrDirectContext.h"
-#include "skia/gpu/GrContextOptions.h"
 
 namespace flare {
 
@@ -72,64 +67,75 @@ namespace flare {
 		F_HIDDEN_ALL_COPY(Render);
 	 public:
 
-		struct DisplayParams {
-			SkColorType         fColorType = kRGBA_8888_SkColorType;
-			sk_sp<SkColorSpace> fColorSpace;
-			int                 fMSAASampleCount;
-			GrContextOptions    fGrContextOptions;
-			SkSurfaceProps      fSurfaceProps;
-			bool                fDisableVsync;
-			bool                fDelayDrawableAcquisition;
-			bool                fEnableBinaryArchive;
+		/** \enum SkImageInfo::SkColorType
+			 Describes how pixel bits encode color. A pixel may be an alpha mask, a grayscale, RGB, or ARGB.
+
+			 kN32_SkColorType selects the native 32-bit ARGB format for the current configuration. This can
+			 lead to inconsistent results across platforms, so use with caution.
+		*/
+		enum ColorType : int {
+			kUnknown_ColorType,      //!< uninitialized
+			kAlpha_8_ColorType,      //!< pixel with alpha in 8-bit byte
+			kRGB_565_ColorType,      //!< pixel with 5 bits red, 6 bits green, 5 bits blue, in 16-bit word
+			kARGB_4444_ColorType,    //!< pixel with 4 bits for alpha, red, green, blue; in 16-bit word
+			kRGBA_8888_ColorType,    //!< pixel with 8 bits for red, green, blue, alpha; in 32-bit word
+			kRGB_888x_ColorType,     //!< pixel with 8 bits each for red, green, blue; in 32-bit word
+			kBGRA_8888_ColorType,    //!< pixel with 8 bits for blue, green, red, alpha; in 32-bit word
 		};
+
+		/**
+		*  Description of how the LCD strips are arranged for each pixel. If this is unknown, or the
+		*  pixels are meant to be "portable" and/or transformed before showing (e.g. rotated, scaled)
+		*  then use kUnknown_SkPixelGeometry.
+		*/
+		enum PixelGeometry {
+			kUnknown_PixelGeometry,
+			kRGB_H_PixelGeometry,
+			kBGR_H_PixelGeometry,
+			kRGB_V_PixelGeometry,
+			kBGR_V_PixelGeometry,
+		};
+
+		enum Flags {
+			kUseDeviceIndependentFonts_Flag = 1 << 0,
+			// Use internal MSAA to render to non-MSAA GPU surfaces.
+			kDynamicMSAA_Flag               = 1 << 1
+		};
+
+		struct Options {
+			ColorType           colorType = kRGBA_8888_ColorType;
+			PixelGeometry       surfacePixelGeometry = kUnknown_PixelGeometry;
+			uint32_t            surfaceFlags = 0;
+			int                 msaaSampleCount = 0;
+			bool                disableVsync;
+			bool                delayDrawableAcquisition;
+			bool                enableBinaryArchive;
+			bool                enableGpu;
+			bool                enableMetal;
+		};
+
+		static Options parseOptions(cJSON& opts);
+
+		static Render* create(Application* host, const Options& opts);
 
 		virtual ~Render();
 
-		/**
-		 * @func canvas()
-		 */
-		Canvas* canvas();
-
-		/**
-		 * @func getSurface()
-		 */
-		virtual SkSurface* getSurface() = 0;
-
-		/**
-		 * @func reload()
-		 */
+		virtual Canvas* canvas();
+		virtual SkSurface* surface() = 0;
 		virtual void reload() = 0;
 		virtual void commit() = 0;
 		virtual void activate(bool isActive);
-		virtual bool isGpu() { return false; }
-		virtual void setDisplayParams(const DisplayParams& params);
-
-		inline const DisplayParams& displayParams() { return _DisplayParams; }
-		inline GrDirectContext* directContext() { return _Context.get(); }
+		virtual bool is_gpu() { return false; }
 		inline Application* host() { return _host; }
-		inline int sampleCount() const { return _SampleCount; }
-		inline int stencilBits() const { return _StencilBits; }
-
-		/**
-		 * @override
-		 */
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
 
-		/**
-		 * @func create(host, options)
-		 */
-		static Render* create(Application* host, cJSON& options);
-
-		static DisplayParams parseDisplayParams(cJSON& options);
-
 	 protected:
-		Render(Application* host, const DisplayParams& params);
+		Render(Application* host, const Options& params);
 
 		Application*  _host;
-
-		sk_sp<GrDirectContext> _Context;
-		DisplayParams     _DisplayParams;
-		int _SampleCount, _StencilBits;
+		Options       _opts;
+		sk_sp<GrDirectContext> _direct;
+		int _sample_count, _stencil_bits;
 	};
 
 }

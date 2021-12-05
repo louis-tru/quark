@@ -7,6 +7,7 @@
 #include <flare/layout/flex.h>
 #include <flare/fill.h>
 #include <flare/display.h>
+#include <flare/util/fs.h>
 
 using namespace flare;
 
@@ -65,11 +66,11 @@ void onload_handle(Event<>& evt, Application* app) {
 	New<Box>()->append_to(flow);
 	New<Box>()->append_to(flow);
 	
-	//r->set_fill( new FillColor(Color(0x42,0x85,0xF4,255)) );
 	//
 	flex->set_width({ 0, SizeType::MATCH });
 	flex->set_height({ 200, SizeType::PIXEL });
-	flex->set_fill(new FillColor(Color(255,0,0,255)));
+	flex->set_fill(New<FillColor>(Color(255,0,0,255))->set_next(
+								 New<FillImage>(Path::resources("bench/img2/99.jpeg"))));
 	flex->set_margin_left(10);
 	flex->set_margin_top(20);
 	flex->set_margin_right(10);

@@ -13,7 +13,7 @@
 #include <GL/gl.h>
 
 using sk_app::window_context_factory::XlibWindowInfo;
-using sk_app::DisplayParams;
+using sk_app::Options;
 using sk_app::GLWindowContext;
 
 namespace {
@@ -26,7 +26,7 @@ static int ctxErrorHandler(Display *dpy, XErrorEvent *ev) {
 
 class GLWindowContext_xlib : public GLWindowContext {
 public:
-    GLWindowContext_xlib(const XlibWindowInfo&, const DisplayParams&);
+    GLWindowContext_xlib(const XlibWindowInfo&, const Options&);
     ~GLWindowContext_xlib() override;
 
     void onSwapBuffers() override;
@@ -37,7 +37,7 @@ protected:
     sk_sp<const GrGLInterface> onInitializeContext() override;
 
 private:
-    GLWindowContext_xlib(void*, const DisplayParams&);
+    GLWindowContext_xlib(void*, const Options&);
 
     Display*     fDisplay;
     XWindow      fWindow;
@@ -48,7 +48,7 @@ private:
     using INHERITED = GLWindowContext;
 };
 
-GLWindowContext_xlib::GLWindowContext_xlib(const XlibWindowInfo& winInfo, const DisplayParams& params)
+GLWindowContext_xlib::GLWindowContext_xlib(const XlibWindowInfo& winInfo, const Options& params)
         : INHERITED(params)
         , fDisplay(winInfo.fDisplay)
         , fWindow(winInfo.fWindow)
@@ -133,7 +133,7 @@ sk_sp<const GrGLInterface> GLWindowContext_xlib::onInitializeContext() {
             PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT =
                     (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddressARB(
                             (const GLubyte*)"glXSwapIntervalEXT");
-            glXSwapIntervalEXT(fDisplay, fWindow, fDisplayParams.fDisableVsync ? 0 : 1);
+            glXSwapIntervalEXT(fDisplay, fWindow, fOptions.fDisableVsync ? 0 : 1);
         }
     }
 
@@ -182,7 +182,7 @@ namespace sk_app {
 namespace window_context_factory {
 
 std::unique_ptr<WindowContext> MakeGLForXlib(const XlibWindowInfo& winInfo,
-                                             const DisplayParams& params) {
+                                             const Options& params) {
     std::unique_ptr<WindowContext> ctx(new GLWindowContext_xlib(winInfo, params));
     if (!ctx->isValid()) {
         return nullptr;

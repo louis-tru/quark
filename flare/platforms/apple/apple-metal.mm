@@ -37,7 +37,7 @@ namespace flare {
 
 	class MetalRenderApple : public MetalRender, public RenderApple {
 	 public:
-		MetalRenderApple(Application* host, const DisplayParams& params): MetalRender(host, params) {}
+		MetalRenderApple(Application* host, const Options& params): MetalRender(host, params) {}
 
 		void setView(UIView* view) {
 			F_ASSERT(!_view);
@@ -55,7 +55,7 @@ namespace flare {
 		UIView* _view;
 	};
 
-	RenderApple* MakeMetalRender(Application* host, const Render::DisplayParams& parems) {
+	RenderApple* MakeMetalRender(Application* host, const Render::Options& parems) {
 		return new MetalRenderApple(host, parems);
 	}
 

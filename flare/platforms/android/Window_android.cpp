@@ -51,19 +51,19 @@ void Window_API::initDisplay(ANativeWindow* window) {
         case kNativeGL_BackendType:
         default:
             fWindowContext =
-                    window_context_factory::MakeGLForAndroid(window, fRequestedDisplayParams);
+                    window_context_factory::MakeGLForAndroid(window, fRequestedOptions);
             break;
 #else
         default:
 #endif
         case kRaster_BackendType:
             fWindowContext =
-                    window_context_factory::MakeRasterForAndroid(window, fRequestedDisplayParams);
+                    window_context_factory::MakeRasterForAndroid(window, fRequestedOptions);
             break;
 #ifdef SK_VULKAN
         case kVulkan_BackendType:
             fWindowContext =
-                    window_context_factory::MakeVulkanForAndroid(window, fRequestedDisplayParams);
+                    window_context_factory::MakeVulkanForAndroid(window, fRequestedOptions);
             break;
 #endif
     }

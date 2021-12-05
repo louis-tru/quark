@@ -79,7 +79,7 @@ public:
         }
     }
 
-    void setRequestedDisplayParams(const DisplayParams&, bool allowReattach) override;
+    void setRequestedOptions(const Options&, bool allowReattach) override;
 
 private:
     void closeWindow();

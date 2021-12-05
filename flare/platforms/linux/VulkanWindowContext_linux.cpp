@@ -23,7 +23,7 @@ namespace sk_app {
 namespace window_context_factory {
 
 std::unique_ptr<WindowContext> MakeVulkanForXlib(const XlibWindowInfo& info,
-                                                 const DisplayParams& displayParams) {
+                                                 const Options& displayParams) {
     PFN_vkGetInstanceProcAddr instProc;
     PFN_vkGetDeviceProcAddr devProc;
     if (!sk_gpu_test::LoadVkLibraryAndGetProcAddrFuncs(&instProc, &devProc)) {

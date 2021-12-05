@@ -53,8 +53,8 @@ namespace flare {
 
 			if (_lock_size.x() == 0 && _lock_size.y() == 0) { // 使用系统默认的最合适的尺寸
 				_size = {
-					width / _best_display_scale,
-					height / _best_display_scale,
+					width / _default_scale,
+					height / _default_scale,
 				};
 			}
 			else if (_lock_size.x() != 0 && _lock_size.y() != 0) { // 尺寸全部锁定
@@ -125,8 +125,8 @@ namespace flare {
 		, _size(), _scale(1, 1)
 		, _atom_pixel(1)
 		, _fsp(0)
-		, _record_fsp(0)
-		, _record_fsp_time(0), _surface_region()
+		, _next_fsp(0)
+		, _next_fsp_time(0), _surface_region()
 	{
 		_display_region.push_back({ 0,0,0,0,0,0 });
 	}
@@ -159,12 +159,12 @@ namespace flare {
 		// _host->action_center()->advance(now_time); // advance action TODO ...
 		
 		if (root && (_host->pre_render()->solve(now_time) || need)) {
-			if (now_time - _record_fsp_time >= 1e6) {
-				_fsp = _record_fsp;
-				_record_fsp = 0;
-				_record_fsp_time = now_time;
+			if (now_time - _next_fsp_time >= 1e6) { // 1s
+				_fsp = _next_fsp;
+				_next_fsp = 0;
+				_next_fsp_time = now_time;
 			}
-			_record_fsp++;
+			_next_fsp++;
 
 			auto render = _host->render();
 			
@@ -242,9 +242,9 @@ namespace flare {
 		_next_frame.push_back(cb);
 	}
 
-	void Display::set_best_display_scale(float value) {
+	void Display::set_default_scale(float value) {
 		UILock lock(_host);
-		_best_display_scale = value;
+		_default_scale = value;
 	}
 
 	bool Display::set_surface_region(Region region) {

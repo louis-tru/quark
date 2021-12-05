@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/os/android/api.h>
+#include <flare/os/android/android-api.h>
 #include <flare/util/platforms/android-jni.h>
 
 namespace flare {

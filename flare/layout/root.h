@@ -45,8 +45,9 @@ namespace flare {
 		virtual void set_visible(bool val);
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
-		virtual void draw(Canvas* canvas, uint8_t opacity);
-	 protected:
+		virtual void draw(Canvas* canvas, uint8_t alpha);
+	 private:
+		Root();
 		virtual void set_parent(View* parent);
 	};
 

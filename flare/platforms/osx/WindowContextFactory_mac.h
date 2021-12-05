@@ -17,7 +17,7 @@
 
 namespace sk_app {
 
-struct DisplayParams;
+struct Options;
 
 static inline CGFloat GetBackingScaleFactor(NSView* view) {
     #ifdef SK_BUILD_FOR_IOS
@@ -36,23 +36,23 @@ struct MacWindowInfo {
 };
 
 #ifdef SK_VULKAN
-inline std::unique_ptr<WindowContext> MakeVulkanForMac(const MacWindowInfo&, const DisplayParams&) {
+inline std::unique_ptr<WindowContext> MakeVulkanForMac(const MacWindowInfo&, const Options&) {
     // No Vulkan support on Mac.
     return nullptr;
 }
 #endif
 
 #ifdef SK_GL
-std::unique_ptr<WindowContext> MakeRasterForMac(const MacWindowInfo&, const DisplayParams&);
-std::unique_ptr<WindowContext> MakeGLForMac(const MacWindowInfo&, const DisplayParams&);
+std::unique_ptr<WindowContext> MakeRasterForMac(const MacWindowInfo&, const Options&);
+std::unique_ptr<WindowContext> MakeGLForMac(const MacWindowInfo&, const Options&);
 #endif
 
 #ifdef SK_DAWN
-std::unique_ptr<WindowContext> MakeDawnMTLForMac(const MacWindowInfo&, const DisplayParams&);
+std::unique_ptr<WindowContext> MakeDawnMTLForMac(const MacWindowInfo&, const Options&);
 #endif
 
 #ifdef SK_METAL
-std::unique_ptr<WindowContext> MakeMetalForMac(const MacWindowInfo&, const DisplayParams&);
+std::unique_ptr<WindowContext> MakeMetalForMac(const MacWindowInfo&, const Options&);
 #endif
 
 }  // namespace window_context_factory

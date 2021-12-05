@@ -187,8 +187,8 @@ static NSString* g_appDelegate_name = @"";
 				withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 	{
 		[coordinator animateAlongsideTransition:^(id context) {
-			Orientation ori = g_appDelegate.app->display()->orientation();
 			g_render->resize(g_appDelegate.view.frame);
+			Orientation ori = g_appDelegate.app->display()->orientation();
 			if (ori != g_appDelegate.current_orientation) {
 				g_appDelegate.current_orientation = ori;
 				g_appDelegate.app->loop()->post(Cb([](CbData& e) {
@@ -299,7 +299,7 @@ static NSString* g_appDelegate_name = @"";
 		
 		[self add_system_notification];
 
-		_app->display()->set_best_display_scale(UIScreen.mainScreen.scale);
+		_app->display()->set_default_scale(UIScreen.mainScreen.scale);
 
 		g_render->setView(self.view);
 		g_render->resize(self.view.frame);
@@ -355,8 +355,8 @@ static NSString* g_appDelegate_name = @"";
 
 // ******************************* Application *******************************
 
-Render* Render::create(Application* host, cJSON& options) {
-	g_render = RenderApple::create(host, options);
+Render* Render::create(Application* host, const Options& opts) {
+	g_render = RenderApple::create(host, opts);
 	return g_render->render();
 }
 

@@ -99,15 +99,15 @@ namespace flare {
 		/**
 		* @func lock_size()
 		*
-		* width与height都设置为0时自动设置一个最舒适的默认显示尺寸
+		* width与height都设置为0时自动设置系统默认显示尺寸
 		*
 		* 设置锁定视口为一个固定的逻辑尺寸,这个值改变时会触发change事件
 		*
 		* 如果width设置为零表示不锁定宽度,系统会自动根据height值设置一个同等比例的宽度
-		* 如果设置为非零表示锁定宽度,不管display_port_size怎么变化对于编程者来说,这个值永远保持不变
+		* 如果设置为非零表示锁定宽度,不管display_size怎么变化对于编程者来说,这个值永远保持不变
 		*
 		* 如果height设置为零表示不锁定,系统会自动根据width值设置一个同等比例的高度
-		* 如果设置为非零表示锁定高度,不管display_port_size怎么变化对于编程者来说,这个值永远保持不变
+		* 如果设置为非零表示锁定高度,不管display_size怎么变化对于编程者来说,这个值永远保持不变
 		*
 		*/
 		void lock_size(float width = 0, float height = 0);
@@ -187,15 +187,15 @@ namespace flare {
 		inline uint32_t fsp() const { return _fsp; }
 
 		/**
-		 * @func best_display_scale()
+		 * @func default_scale()
 		 */
-		inline float best_display_scale() const { return _best_display_scale; }
+		inline float default_scale() const { return _default_scale; }
 		inline Region surface_region() const { return _surface_region; }
 
 		/**
 		 * @thread render
 		 */
-		void set_best_display_scale(float value);
+		void set_default_scale(float value);
 
 		/**
 		 * @thread render
@@ -223,11 +223,11 @@ namespace flare {
 		Vec2              _size;       // 当前视口尺寸
 		Vec2              _scale;   // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
 		float             _atom_pixel;
-		float             _best_display_scale;
+		float             _default_scale;
 		List<Region>      _display_region;
 		List<Cb>          _next_frame;
-		uint32_t          _fsp, _record_fsp;
-		int64_t           _record_fsp_time;
+		uint32_t          _fsp, _next_fsp;
+		int64_t           _next_fsp_time;
 		Region            _surface_region;  /* 选择绘图表面有区域 */
 		
 		F_DEFINE_INLINE_CLASS(Inl);

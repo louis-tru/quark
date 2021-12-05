@@ -34,7 +34,9 @@
 #include "./display.h"
 #include "./pre-render.h"
 #include "./layout/box.h"
-#include "skia/core/SkCanvas.h"
+#include "./render/render.h"
+#include "./util/fs.h"
+#include "skia/core/SkImage.h"
 
 namespace flare {
 
@@ -108,7 +110,7 @@ namespace flare {
 		}
 	}
 
-	void FillBox::set_next(Fill value) {
+	Fill FillBox::set_next(Fill value) {
 		if (value != _next) {
 			if (_inl(this)->check_loop_reference(value)) {
 				F_ERR("Box background loop reference error");
@@ -118,6 +120,7 @@ namespace flare {
 		} else {
 			mark();
 		}
+		return this;
 	}
 
 	Fill FillBox::assign(Fill left, Fill right) {
@@ -191,18 +194,6 @@ namespace flare {
 		return target;
 	}
 
-	void FillColor::draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) {
-		if (_color.a()) {
- 			SkPaint paint;
-			paint.setColor(_color.to_uint32_argb_opacity(opacity));
-			auto origin = host->transform_origin();
-			auto size = host->client_size();
-			canvas->drawRect({origin[0], origin[1], size[0], size[1]}, paint);
-		}
-		if (_next)
-			_next->draw(host, canvas, opacity, radius);
-	}
-
 	Fill FillColor::WHITE( NewRetain<FillColor>(Color(255,255,255,255))->set_holder_mode(M_SHARED) );
 	Fill FillColor::BLACK( NewRetain<FillColor>(Color(0,0,0,255))->set_holder_mode(M_SHARED) );
 	Fill FillColor::BLUE( NewRetain<FillColor>(Color(0,1,0,255))->set_holder_mode(M_SHARED) );
@@ -265,8 +256,8 @@ namespace flare {
 		
 	};
 
-	FillImage::FillImage()
-		: _src()
+	FillImage::FillImage(cString& src)
+		: _src(src)
 		, _texture(nullptr)
 		, _repeat(Repeat::REPEAT)
 		, _has_base64(false)
@@ -477,11 +468,6 @@ namespace flare {
 		return true;
 	}
 
-	void FillImage::draw(Box *host, SkCanvas *canvas, uint8_t opacity, FillBorderRadius *radius) {
-		// TODO ...
-		canvas->drawImage(nullptr, 0, 0);
-	}
-
 	FillGradient::FillGradient()
 	{
 	}
@@ -494,9 +480,46 @@ namespace flare {
 		return target;
 	}
 
-	void FillBorderRadius::draw(Box* host, SkCanvas* canvas, uint8_t opacity, FillBorderRadius* radius) {
+	// ------------------------------ draw ------------------------------
+
+	static SkRect MakeSkRectFrom(Box *host) {
+		auto o = host->transform_origin();
+		auto s = host->client_size();
+		return {o[0], o[1], s[0], s[1]};
+	}
+
+	void FillColor::draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) {
+		if (_color.a()) {
+ 			SkPaint paint;
+			paint.setColor(_color.to_uint32_argb_from(alpha));
+			if (radius) {
+				// TODO ...
+			} else {
+				canvas->drawRect(MakeSkRectFrom(host), paint);
+			}
+		}
 		if (_next)
-			_next->draw(host, canvas, opacity, this);
+			_next->draw(host, canvas, alpha, radius);
+	}
+
+	void FillImage::draw(Box *host, Canvas *canvas, uint8_t alpha, FillBorderRadius *radius) {
+		auto buf = fs_reader()->read_file_sync(_src);
+		auto len = buf.length();
+		auto image = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.collapse(), len, [](const void* ptr, void* context) {
+			::free((void*)ptr);
+		}, nullptr));
+		if (radius) {
+			// TODO ...
+		} else {
+			canvas->drawImageRect(image, MakeSkRectFrom(host), {});
+		}
+		if (_next)
+			_next->draw(host, canvas, alpha, radius);
+	}
+
+	void FillBorderRadius::draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) {
+		if (_next)
+			_next->draw(host, canvas, alpha, this);
 	}
 
 }

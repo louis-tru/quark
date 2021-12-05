@@ -12,19 +12,19 @@
 #include "tools/sk_app/android/WindowContextFactory_android.h"
 
 using sk_app::RasterWindowContext;
-using sk_app::DisplayParams;
+using sk_app::Options;
 
 namespace {
 class RasterWindowContext_android : public RasterWindowContext {
 public:
-    RasterWindowContext_android(ANativeWindow*, const DisplayParams& params);
+    RasterWindowContext_android(ANativeWindow*, const Options& params);
 
     sk_sp<SkSurface> getBackbufferSurface() override;
     void swapBuffers() override;
 
     bool isValid() override { return SkToBool(fNativeWindow); }
     void resize(int w, int h) override;
-    void setDisplayParams(const DisplayParams& params) override;
+    void setOptions(const Options& params) override;
 
 private:
     void setBuffersGeometry();
@@ -37,7 +37,7 @@ private:
 };
 
 RasterWindowContext_API::RasterWindowContext_android(ANativeWindow* window,
-                                                         const DisplayParams& params)
+                                                         const Options& params)
     : INHERITED(params) {
     fNativeWindow = window;
     fWidth = ANativeWindow_getWidth(fNativeWindow);
@@ -47,7 +47,7 @@ RasterWindowContext_API::RasterWindowContext_android(ANativeWindow* window,
 
 void RasterWindowContext_API::setBuffersGeometry() {
     int32_t format = 0;
-    switch(fDisplayParams.fColorType) {
+    switch(fOptions.fColorType) {
         case kRGBA_8888_SkColorType:
             format = WINDOW_FORMAT_RGBA_8888;
             break;
@@ -60,8 +60,8 @@ void RasterWindowContext_API::setBuffersGeometry() {
     ANativeWindow_setBuffersGeometry(fNativeWindow, fWidth, fHeight, format);
 }
 
-void RasterWindowContext_API::setDisplayParams(const DisplayParams& params) {
-    fDisplayParams = params;
+void RasterWindowContext_API::setOptions(const Options& params) {
+    fOptions = params;
     this->setBuffersGeometry();
 }
 
@@ -76,9 +76,9 @@ sk_sp<SkSurface> RasterWindowContext_API::getBackbufferSurface() {
         ANativeWindow_lock(fNativeWindow, &fBuffer, &fBounds);
         const int bytePerPixel = fBuffer.format == WINDOW_FORMAT_RGB_565 ? 2 : 4;
         SkImageInfo info = SkImageInfo::Make(fWidth, fHeight,
-                                             fDisplayParams.fColorType,
+                                             fOptions.fColorType,
                                              kPremul_SkAlphaType,
-                                             fDisplayParams.fColorSpace);
+                                             fOptions.fColorSpace);
         fBackbufferSurface = SkSurface::MakeRasterDirect(
                 info, fBuffer.bits, fBuffer.stride * bytePerPixel, nullptr);
     }
@@ -96,7 +96,7 @@ namespace sk_app {
 namespace window_context_factory {
 
 std::unique_ptr<WindowContext> MakeRasterForAndroid(ANativeWindow* window,
-                                                    const DisplayParams& params) {
+                                                    const Options& params) {
     std::unique_ptr<WindowContext> ctx(new RasterWindowContext_android(window, params));
     if (!ctx->isValid()) {
         return nullptr;

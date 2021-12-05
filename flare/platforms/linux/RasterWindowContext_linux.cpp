@@ -10,19 +10,19 @@
 #include "tools/sk_app/unix/WindowContextFactory_unix.h"
 
 using sk_app::RasterWindowContext;
-using sk_app::DisplayParams;
+using sk_app::Options;
 
 namespace {
 
 class RasterWindowContext_xlib : public RasterWindowContext {
 public:
-    RasterWindowContext_xlib(Display*, XWindow, int width, int height, const DisplayParams&);
+    RasterWindowContext_xlib(Display*, XWindow, int width, int height, const Options&);
 
     sk_sp<SkSurface> getBackbufferSurface() override;
     void swapBuffers() override;
     bool isValid() override { return SkToBool(fWindow); }
     void resize(int  w, int h) override;
-    void setDisplayParams(const DisplayParams& params) override;
+    void setOptions(const Options& params) override;
 
 protected:
     sk_sp<SkSurface> fBackbufferSurface;
@@ -34,7 +34,7 @@ protected:
 };
 
 RasterWindowContext_xlib::RasterWindowContext_xlib(Display* display, XWindow window, int width,
-                                                   int height, const DisplayParams& params)
+                                                   int height, const Options& params)
         : INHERITED(params)
         , fDisplay(display)
         , fWindow(window) {
@@ -44,17 +44,17 @@ RasterWindowContext_xlib::RasterWindowContext_xlib(Display* display, XWindow win
     fHeight = height;
 }
 
-void RasterWindowContext_xlib::setDisplayParams(const DisplayParams& params) {
-    fDisplayParams = params;
+void RasterWindowContext_xlib::setOptions(const Options& params) {
+    fOptions = params;
     XWindowAttributes attrs;
     XGetWindowAttributes(fDisplay, fWindow, &attrs);
     this->resize(attrs.width, attrs.height);
 }
 
 void RasterWindowContext_xlib::resize(int  w, int h) {
-    SkImageInfo info = SkImageInfo::Make(w, h, fDisplayParams.fColorType, kPremul_SkAlphaType,
-                                         fDisplayParams.fColorSpace);
-    fBackbufferSurface = SkSurface::MakeRaster(info, &fDisplayParams.fSurfaceProps);
+    SkImageInfo info = SkImageInfo::Make(w, h, fOptions.fColorType, kPremul_SkAlphaType,
+                                         fOptions.fColorSpace);
+    fBackbufferSurface = SkSurface::MakeRaster(info, &fOptions.fSurfaceProps);
 
 }
 
@@ -91,7 +91,7 @@ namespace sk_app {
 namespace window_context_factory {
 
 std::unique_ptr<WindowContext> MakeRasterForXlib(const XlibWindowInfo& info,
-                                                 const DisplayParams& params) {
+                                                 const Options& params) {
     std::unique_ptr<WindowContext> ctx(new RasterWindowContext_xlib(
             info.fDisplay, info.fWindow, info.fWidth, info.fHeight, params));
     if (!ctx->isValid()) {

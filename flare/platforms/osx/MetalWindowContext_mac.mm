@@ -11,7 +11,7 @@
 #import <Cocoa/Cocoa.h>
 #import <QuartzCore/CAConstraintLayoutManager.h>
 
-using sk_app::DisplayParams;
+using sk_app::Options;
 using sk_app::window_context_factory::MacWindowInfo;
 using sk_app::MetalWindowContext;
 
@@ -19,7 +19,7 @@ namespace {
 
 class MetalWindowContext_mac : public MetalWindowContext {
 public:
-    MetalWindowContext_mac(const MacWindowInfo&, const DisplayParams&);
+    MetalWindowContext_mac(const MacWindowInfo&, const Options&);
 
     ~MetalWindowContext_mac() override;
 
@@ -35,7 +35,7 @@ private:
 };
 
 MetalWindowContext_mac::MetalWindowContext_mac(const MacWindowInfo& info,
-                                               const DisplayParams& params)
+                                               const Options& params)
     : INHERITED(params)
     , fMainView(info.fMainView) {
 
@@ -58,7 +58,7 @@ bool MetalWindowContext_mac::onInitializeContext() {
     // resize ignores the passed values and uses the fMainView directly.
     this->resize(0, 0);
 
-    BOOL useVsync = fDisplayParams.fDisableVsync ? NO : YES;
+    BOOL useVsync = fOptions.fDisableVsync ? NO : YES;
     fMetalLayer.displaySyncEnabled = useVsync;  // TODO: need solution for 10.12 or lower
     fMetalLayer.layoutManager = [CAConstraintLayoutManager layoutManager];
     fMetalLayer.autoresizingMask = kCALayerHeightSizable | kCALayerWidthSizable;
@@ -97,7 +97,7 @@ namespace sk_app {
 namespace window_context_factory {
 
 std::unique_ptr<WindowContext> MakeMetalForMac(const MacWindowInfo& info,
-                                               const DisplayParams& params) {
+                                               const Options& params) {
     std::unique_ptr<WindowContext> ctx(new MetalWindowContext_mac(info, params));
     if (!ctx->isValid()) {
         return nullptr;
