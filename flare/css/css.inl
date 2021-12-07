@@ -30,8 +30,8 @@
 
 #include "./css.h"
 
-#ifndef __flare__css__1__
-#define __flare__css__1__
+#ifndef __flare__css_inl__
+#define __flare__css_inl__
 
 namespace flare {
 

@@ -29,10 +29,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__action___property__
-#define __flare__action___property__
+#ifndef __flare__action__action_prop__
+#define __flare__action__action_prop__
 
-#include "./_action.h"
+#include "./action_prop.h"
 
 namespace flare {
 

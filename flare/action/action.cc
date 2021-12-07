@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_action.h"
+#include "./action.inl"
 #include "../app.h"
 #include "../errno.h"
 

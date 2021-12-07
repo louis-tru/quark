@@ -33,7 +33,7 @@
 
 #include "../util/util.h"
 #include "../util/string.h"
-#include "../_property.h"
+#include "../property.h"
 #include "../value.h"
 #include "../action/action.h"
 #include "../action/keyframe.h"

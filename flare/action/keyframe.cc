@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_property.h"
+#include "./action_prop.h"
 
 namespace flare {
 

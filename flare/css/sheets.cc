@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_css.h"
+#include "./css.inl"
 #include "../layout/view.h"
 
 namespace flare {

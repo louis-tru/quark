@@ -32,10 +32,10 @@
 #include "./action.h"
 #include "./group.h"
 #include "./keyframe.h"
-#include "../views2/view.h"
+#include "../layout/view.h"
 
-#ifndef __flare__action__1__
-#define __flare__action__1__
+#ifndef __flare__action_action__inl__
+#define __flare__action_action__inl__
 
 namespace flare {
 

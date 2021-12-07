@@ -34,8 +34,8 @@
 #include "../value.h"
 #include "../bezier.h"
 #include "../event.h"
-#include "../_property.h"
-#include "../background.h"
+#include "../property.h"
+#include "../fill.h"
 #include "../util/list.h"
 
 namespace flare {
