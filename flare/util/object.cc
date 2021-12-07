@@ -148,7 +148,7 @@ namespace flare {
 
 	void* Object::operator new(std::size_t size) {
 		#if F_MEMORY_TRACE_MARK
-			void* p = object_allocator.alloc(size);
+			void* p = object_allocator_alloc(size);
 			((Object*)p)->mark_index_ = 123456;
 			return p;
 		#else
