@@ -39,7 +39,7 @@ namespace flare {
 		* @class Label
 		*/
 	class F_EXPORT Label: public View {
-		F_Define_View(Label);
+		F_DEFINE_VIEW(Label);
 	 public:
 		// TODO ...
 	 private:

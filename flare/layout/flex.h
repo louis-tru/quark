@@ -39,7 +39,7 @@ namespace flare {
 		* @class Flex
 		*/
 	class F_EXPORT FlexLayout: public FlowLayout {
-		F_Define_View(FlexLayout);
+		F_DEFINE_VIEW(FlexLayout);
 	 public:
 
 		FlexLayout();

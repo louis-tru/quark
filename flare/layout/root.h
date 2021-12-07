@@ -36,7 +36,7 @@
 namespace flare {
 
 	class F_EXPORT Root: public Box {
-		F_Define_View(Root);
+		F_DEFINE_VIEW(Root);
 	 public:
 		void mark_layout_change();
 		static Root* create();

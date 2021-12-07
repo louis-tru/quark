@@ -61,15 +61,15 @@
 			'uv.cc',
 			'working.cc',
 			'array.cc',
-			'fs-async.cc',
-			'fs-path.cc',
-			'fs-reader.cc',
-			'fs-sync.cc',
+			'fs_async.cc',
+			'fs_path.cc',
+			'fs_reader.cc',
+			'fs_sync.cc',
 			'fs.cc',
 			'stream.h',
-			'http-cookie.cc',
-			'http-helper.cc',
-			'http-uri.cc',
+			'http_cookie.cc',
+			'http_helper.cc',
+			'http_uri.cc',
 			'http.cc',
 			'net.cc',
 			'loop.cc',
@@ -93,9 +93,9 @@
 					'defines!': [ '_FILE_OFFSET_BITS=64' ],
 				}]],
 				'sources':[
-					'platforms/android-jni.h',
-					'platforms/android-jni.cc',
-					'platforms/android-path.cc',
+					'platforms/android_jni.h',
+					'platforms/android_jni.cc',
+					'platforms/android_path.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -108,7 +108,7 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'platforms/linux-path.cc',
+					'platforms/linux_path.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -118,7 +118,7 @@
 			}],
 			['OS=="mac"', {
 				'sources': [
-					'platforms/apple-path.mm',
+					'platforms/apple_path.mm',
 				],
 				'link_settings': {
 					'libraries': [

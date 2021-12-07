@@ -32,7 +32,7 @@
 #include "./fill.h"
 #include "./texture.h"
 #include "./display.h"
-#include "./pre-render.h"
+#include "./pre_render.h"
 #include "./layout/box.h"
 #include "./render/render.h"
 #include "./util/fs.h"

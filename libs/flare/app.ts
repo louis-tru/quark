@@ -31,7 +31,7 @@
 ///<reference path="_ext.ts"/>
 
 import utils from './util';
-import {Display} from './display_port';
+import {Display} from './display';
 import { Root, View } from './_view';
 import * as value from './value';
 import event, {EventNoticer, Notification, NativeNotification, Event} from './event';

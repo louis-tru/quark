@@ -166,7 +166,7 @@ namespace flare {
 	* @class ImageCodec
 	*/
 	class F_EXPORT ImageCodec: public Object {
-	public:
+	 public:
 		enum ImageFormat {
 			Unknown = 0,
 			TGA,
@@ -214,7 +214,7 @@ namespace flare {
 	* @class TGAImageCodec
 	*/
 	class F_EXPORT TGAImageCodec: public ImageCodec {
-	public:
+	 public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);
@@ -225,7 +225,7 @@ namespace flare {
 	* @class JPEGImageCodec
 	*/
 	class F_EXPORT JPEGImageCodec: public ImageCodec {
-	public:
+	 public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);
@@ -235,7 +235,7 @@ namespace flare {
 	* @class GIFImageCodec
 	*/
 	class F_EXPORT GIFImageCodec: public ImageCodec {
-	public:
+	 public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);
@@ -245,7 +245,7 @@ namespace flare {
 	* @class PNGImageParser
 	*/
 	class F_EXPORT PNGImageCodec: public ImageCodec {
-	public:
+	 public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);
@@ -255,7 +255,7 @@ namespace flare {
 	* @class WEBPImageCodec
 	*/
 	class F_EXPORT WEBPImageCodec: public ImageCodec {
-	public:
+	 public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);
@@ -270,7 +270,7 @@ namespace flare {
 	* @class PVRTImageParser
 	*/
 	class F_EXPORT PVRTCImageCodec: public ImageCodec {
-	public:
+	 public:
 		virtual Array<PixelData> decode(cBuffer& data);
 		virtual PixelData decode_header(cBuffer& data);
 		virtual Buffer encode(cPixelData& data);

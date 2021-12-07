@@ -30,7 +30,7 @@
 
 #include "../_js.h"
 #include "../../app.h"
-#include "../../views2/view.h"
+#include "../../layout/view.h"
 #include "./_view.h"
 #include "../../util/http.h"
 #include "./_event.h"

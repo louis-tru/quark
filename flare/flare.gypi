@@ -88,8 +88,8 @@
 			'layout/view.cc',
 			'codec/codec.h',
 			'codec/codec.cc',
-			'codec/codec-tga.cc',
-			'codec/codec-pvrtc.cc',
+			'codec/codec_tga.cc',
+			'codec/codec_pvrtc.cc',
 			'font/_font.h',
 			'font/font.h',
 			'font/pool.h',
@@ -105,7 +105,6 @@
 			'render/gl.cc',
 			'render/metal.h',
 			'render/metal.mm',
-			'render/canvas.cc',
 			'math.h',
 			'math.cc',
 			'bezier.h',
@@ -113,8 +112,8 @@
 			'media/media.h',
 			'media/media.cc',
 			'app.inl',
-			'pre-render.h',
-			'pre-render.cc',
+			'pre_render.h',
+			'pre_render.cc',
 			'app.h',
 			'app.cc',
 			'display.h',
@@ -124,16 +123,16 @@
 			'event.cc',
 			'keyboard.h',
 			'keyboard.cc',
-			'image-src.h',
-			'image-src.cc',
+			'image_source.h',
+			'image_source.cc',
 			'value.h',
 			'os/os.h',
 			'os/os.cc',
 			#
-			# '_property.h',
-			# '_property.cc',
-			# '_text-rows.cc',
-			# '_text-rows.h',
+			# 'property.h',
+			# 'property.cc',
+			# 'text-rows.cc',
+			# 'text-rows.h',
 			'fill.h',
 			'fill.cc',
 			# 'text-font.h',
@@ -166,16 +165,16 @@
 			}],
 			['os=="android"', {
 				'sources': [
-					'platforms/unix/unix-gl.h',
-					'platforms/unix/unix-gl.cc',
-					'platforms/android/android-app.cc',
-					'platforms/android/android-keyboard.cc',
+					'platforms/unix/unix_gl.h',
+					'platforms/unix/unix_gl.cc',
+					'platforms/android/android_app.cc',
+					'platforms/android/android_keyboard.cc',
 					# 'os/android/org/flare/Activity.java',
 					# 'os/android/org/flare/API.java',
 					# 'os/android/org/flare/IMEHelper.java',
-					'os/android/android-api.h',
-					'os/android/android-api.cc',
-					'os/android/android-os.cc',
+					'os/android/android_api.h',
+					'os/android/android_api.cc',
+					'os/android/android_os.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -193,10 +192,10 @@
 					'deps/libwebp/libwebp.gyp:libwebp',
 				],
 				'sources': [
-					'codec/codec-gif.cc',
-					'codec/codec-jpeg.cc',
-					'codec/codec-png.cc',
-					'codec/codec-webp.cc',
+					'codec/codec_gif.cc',
+					'codec/codec_jpeg.cc',
+					'codec/codec_png.cc',
+					'codec/codec_webp.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -209,13 +208,13 @@
 					'deps/reachability/reachability.gyp:reachability',
 				],
 				'sources':[
-					'platforms/apple/apple-app.h',
-					'platforms/apple/apple-image-codec.mm',
-					'platforms/apple/apple-keyboard.mm',
-					'platforms/apple/apple-metal.mm',
-					'platforms/apple/apple-render.mm',
-					'platforms/apple/apple-render.h',
-					'os/apple/apple-os.mm',
+					'platforms/apple/apple_app.h',
+					'platforms/apple/apple_image_codec.mm',
+					'platforms/apple/apple_keyboard.mm',
+					'platforms/apple/apple_metal.mm',
+					'platforms/apple/apple_render.mm',
+					'platforms/apple/apple_render.h',
+					'os/apple/apple_os.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -227,11 +226,11 @@
 			}],
 			['os=="ios"', {
 				'sources':[
-					'platforms/ios/ios-app.mm',
-					'platforms/ios/ios-gl.mm',
-					'platforms/ios/ios-ime-helper.h',
-					'platforms/ios/ios-ime-helper.mm',
-					'platforms/ios/ios-raster.mm',
+					'platforms/ios/ios_app.mm',
+					'platforms/ios/ios_gl.mm',
+					'platforms/ios/ios_ime_helper.h',
+					'platforms/ios/ios_ime_helper.mm',
+					'platforms/ios/ios_raster.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -256,13 +255,13 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'platforms/linux/linux-gl.h',
-					'platforms/linux/linux-gl.cc',
-					'platforms/linux/linux-app.cc',
-					'platforms/linux/linux-keyboard.cc',
-					'platforms/linux/linux-ime-helper.h',
-					'platforms/linux/linux-ime-helper.cc',
-					'os/linux/linux-is.mm',
+					'platforms/linux/linux_gl.h',
+					'platforms/linux/linux_gl.cc',
+					'platforms/linux/linux_app.cc',
+					'platforms/linux/linux_keyboard.cc',
+					'platforms/linux/linux_ime_helper.h',
+					'platforms/linux/linux_ime_helper.cc',
+					'os/linux/linux_os.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -302,22 +301,22 @@
 		],
 		'sources': [
 			'media/pcm.h',
-			'media/audio-player.h',
-			'media/audio-player.cc',
-			'media/media-codec.h',
-			'media/media-codec.cc',
-			'media/media-codec_inl.h',
-			'media/media-codec_inl.cc',
-			'media/media-codec-software.cc',
-			'media/media-init.cc',
+			'media/audio_player.h',
+			'media/audio_player.cc',
+			'media/media_codec.h',
+			'media/media_codec.cc',
+			'media/media_codec_inl.h',
+			'media/media_codec_inl.cc',
+			'media/media_codec_software.cc',
+			'media/media_init.cc',
 			'layout/video.cc',
 		],
 		'conditions': [
 			['os=="android"', {
 				'sources': [
-					'platforms/android-media-codec.cc',
-					'platforms/android-pcm-player.cc',
-					'platforms/android-pcm-audio-track.cc',
+					'platforms/android_media_codec.cc',
+					'platforms/android_pcm_player.cc',
+					'platforms/android_pcm_audio_track.cc',
 				],
 				'link_settings': {
 					'libraries': [ '-lOpenSLES', '-lmediandk' ],
@@ -325,14 +324,14 @@
 			}],
 			['OS=="mac"', {
 				'sources':[
-					'platforms/apple/apple-media-codec.mm',
-					'platforms/apple/apple-pcm-player.mm',
+					'platforms/apple/apple_media_codec.mm',
+					'platforms/apple/apple_pcm_player.mm',
 				],
 			}],
 			['os=="linux"', {
 				'sources': [
-					'platforms/linux-media-codec.cc',
-					'platforms/linux-pcm-player.cc',
+					'platforms/linux_media_codec.cc',
+					'platforms/linux_pcm_player.cc',
 				],
 				'link_settings': { 
 					'libraries': [ '-lasound' ],

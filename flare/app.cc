@@ -39,7 +39,7 @@
 // #include "./css/css.h"
 #include "./font/pool.h"
 #include "./texture.h"
-#include "./pre-render.h"
+#include "./pre_render.h"
 #include "./layout/text.h"
 #include "./event.h"
 

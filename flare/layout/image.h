@@ -36,11 +36,10 @@
 namespace flare {
 
 	class F_EXPORT Image: public Box {
-		F_Define_View(Image);
+		F_DEFINE_VIEW(Image);
 	 public:
-		// TODO ...
+		F_DEFINE_PROP(String, src);
 	 private:
-		// TODO ...
 	};
 
 }

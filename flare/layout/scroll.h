@@ -36,7 +36,7 @@
 namespace flare {
 
 	class F_EXPORT Scroll: public FlowLayout {
-		F_Define_View(Scroll);
+		F_DEFINE_VIEW(Scroll);
 	 public:
 		// TODO ...
 	 private:

@@ -36,7 +36,7 @@
 namespace flare {
 
 	class F_EXPORT Input: public Box {
-		F_Define_View(Input);
+		F_DEFINE_VIEW(Input);
 	 public:
 		// TODO ...
 	 private:

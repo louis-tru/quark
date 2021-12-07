@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../app.h"
-#include "./gl.h"
-#include "../display.h"
+#include "flare/app.h"
+#include "flare/render/gl.h"
+#include "flare/display.h"
 
 #include "skia/core/SkCanvas.h"
 #include "skia/core/SkSurface.h"
@@ -53,10 +53,6 @@
 # include <GLES3/gl3ext.h>
 #else
 # error "The operating system does not support"
-#endif
-
-#ifndef fx_use_depth_test
-#define fx_use_depth_test 0
 #endif
 
 namespace flare {
@@ -117,8 +113,8 @@ namespace flare {
 	}
 
 	int GLRender::msaa_sample() {
-		if ( _opts.msaaSampleCount > 1 && _is_support_multisampled && is_gpu()) {
-			return _opts.msaaSampleCount;
+		if ( _opts.MSAASampleCount > 1 && _is_support_multisampled && is_gpu()) {
+			return _opts.MSAASampleCount;
 		}
 		return 0;
 	}
@@ -134,7 +130,7 @@ namespace flare {
 
 		int width = region.width;
 		int height = region.height;
-		auto MSAA = _opts.msaaSampleCount;
+		auto MSAA = _opts.MSAASampleCount;
 
 		glViewport(0, 0, width, height);
 
@@ -154,7 +150,7 @@ namespace flare {
 		// Test the framebuffer for completeness.
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
 			if ( msaa_sample() ) {
-				_opts.msaaSampleCount /= 2;
+				_opts.MSAASampleCount /= 2;
 				return surface();
 			} else {
 				F_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
@@ -176,11 +172,13 @@ namespace flare {
 
 		GrBackendRenderTarget backendRT(region.width, region.height, _sample_count, _stencil_bits, fbInfo);
 		
-		SkSurfaceProps props(SkSurfaceProps::Flags(_opts.surfaceFlags), SkPixelGeometry(_opts.surfacePixelGeometry));
+		SkSurfaceProps props(SkSurfaceProps::Flags(_opts.flags), kUnknown_SkPixelGeometry);
 
-		_surface = SkSurface::MakeFromBackendRenderTarget(_direct.get(), backendRT,
-																											kBottomLeft_GrSurfaceOrigin,
-																											SkColorType(_opts.colorType), nullptr, &props);
+		_surface = SkSurface::MakeFromBackendRenderTarget(
+															_direct.get(), backendRT,
+															kBottomLeft_GrSurfaceOrigin,
+															SkColorType(_opts.colorType),
+															/*_opts.colorSpace*/nullptr, &props);
 		return _surface.get();
 	}
 
@@ -199,7 +197,7 @@ namespace flare {
 		_sample_count = 1;
 
 		if ( msaa_sample() ) {
-			_sample_count = _opts.msaaSampleCount;
+			_sample_count = _opts.MSAASampleCount;
 		}
 		_direct = GrDirectContext::MakeGL(_interface, {/*_opts.grContextOptions*/});
 		F_ASSERT(_direct);

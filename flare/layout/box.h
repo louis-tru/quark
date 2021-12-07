@@ -40,7 +40,7 @@ namespace flare {
 		* @class Box
 		*/
 	class F_EXPORT Box: public View {
-		F_Define_View(Box);
+		F_DEFINE_VIEW(Box);
 	 public:
 		Box();
 

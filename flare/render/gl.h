@@ -35,8 +35,6 @@
 
 #include "./render.h"
 #include "skia/gpu/gl/GrGLInterface.h"
-#include "skia/core/SkRefCnt.h"
-#include "skia/core/SkSurface.h"
 
 namespace flare {
 

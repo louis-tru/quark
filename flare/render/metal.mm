@@ -93,31 +93,27 @@ namespace flare {
 
 		_layer.drawableSize = rect.size;
 		
-		SkSurfaceProps props(SkSurfaceProps::Flags(_opts.surfaceFlags), SkPixelGeometry(_opts.surfacePixelGeometry));
+		SkSurfaceProps props(SkSurfaceProps::Flags(_opts.flags), kUnknown_SkPixelGeometry);
+		
 		if (_opts.delayDrawableAcquisition) {
 			_surface = SkSurface::MakeFromCAMetalLayer(_direct.get(),
 														(__bridge GrMTLHandle)_layer,
 														kTopLeft_GrSurfaceOrigin, _sample_count,
-														kBGRA_8888_SkColorType,
-														nullptr,
+														kBGRA_8888_SkColorType, /*_opts.colorSpace*/nullptr,
 														&props, &_drawableHandle);
 		} else {
-			CALayer* lay = _layer;
-			
 			id<CAMetalDrawable> currentDrawable = [_layer nextDrawable];
 			id<MTLTexture> mttex = currentDrawable.texture;
 
 			GrMtlTextureInfo fbInfo;
 			fbInfo.fTexture.retain((__bridge void*)mttex);
-
-			auto region = _host->display()->surface_region();
 			
 			GrBackendRenderTarget backendRT(region.width, region.height, _sample_count, fbInfo);
 
-			_surface = SkSurface::MakeFromBackendRenderTarget(_direct.get(), backendRT,
+			_surface = SkSurface::MakeFromBackendRenderTarget(
+															_direct.get(), backendRT,
 															kTopLeft_GrSurfaceOrigin,
-															SkColorType(_opts.colorType),
-															nullptr, &props);
+															SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
 
 			_drawableHandle = CFRetain((GrMTLHandle) currentDrawable);
 		}
@@ -136,7 +132,7 @@ namespace flare {
 
 		_device = CFSafeRetain(MTLCreateSystemDefaultDevice());
 		_queue = CFSafeRetain([_device newCommandQueue]);
-		_sample_count = F_MAX(1, _opts.msaaSampleCount);
+		_sample_count = F_MAX(1, _opts.MSAASampleCount);
 		_stencil_bits = 8;
 
 		if (_sample_count > 1) {
@@ -162,9 +158,9 @@ namespace flare {
 		if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
 			if (_pipelineArchive) {
 				// 'release' is unavailable: not available in automatic reference counting mode
-				// [_PipelineArchive release];
+				// [_pipelineArchive release];
 			}
-			if (_sample_count > 1) {
+			if (_opts.enableBinaryArchive) {
 					auto desc = [MTLBinaryArchiveDescriptor new];
 					desc.url = CacheURL(); // try to load
 					NSError* error;
@@ -174,8 +170,7 @@ namespace flare {
 						NSError* error;
 						_pipelineArchive = [_device newBinaryArchiveWithDescriptor:desc error:&error];
 						if (!_pipelineArchive) {
-							SkDebugf("Error creating MTLBinaryArchive:\n%s\n",
-									error.debugDescription.UTF8String);
+							SkDebugf("Error creating MTLBinaryArchive:\n%s\n", error.debugDescription.UTF8String);
 						}
 					}
 			} else {

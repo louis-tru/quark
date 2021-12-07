@@ -39,7 +39,7 @@ namespace flare {
 		* @class Flow
 		*/
 	class F_EXPORT FlowLayout: public Box {
-		F_Define_View(FlowLayout);
+		F_DEFINE_VIEW(FlowLayout);
 	 public:
 		FlowLayout();
 

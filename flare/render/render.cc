@@ -28,10 +28,69 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./render.h"
+namespace flare {
+	class Canvas;
+}
+
+#define AutoUpdateQRBounds AutoUpdateQRBounds; friend class flare::Canvas
+
+#include <skia/core/SkCanvas.h>
 #include <math.h>
+#include "../display.h"
+#include "../app.h"
+#include "./render.h"
+
+using namespace flare;
+
+struct Layer;
+struct BackImage;
+
+class SkCanvas::MCRec {
+public:
+	std::unique_ptr<Layer> fLayer;
+	SkBaseDevice* fDevice;
+	std::unique_ptr<BackImage> fBackImage;
+	SkM44 fMatrix;
+	int fDeferredSaveCount;
+};
+
+class SkMatrixProvider {
+protected:
+	virtual ~SkMatrixProvider() = default;
+	SkM44    fLocalToDevice;
+	SkMatrix fLocalToDevice33;
+};
+
+class SkBaseDevice: public SkRefCnt, public SkMatrixProvider {
+public:
+	void setLocalToDevice(const SkM44& localToDevice) {
+		fLocalToDevice = localToDevice;
+		fLocalToDevice33 = fLocalToDevice.asM33();
+	}
+private:
+	SkMarkerStack* fMarkerStack = nullptr;
+	const SkImageInfo    fInfo;
+	const SkSurfaceProps fSurfaceProps;
+	SkM44 fDeviceToGlobal;
+	SkM44 fGlobalToDevice;
+};
 
 namespace flare {
+
+	void Canvas::setMatrix(const Mat& mat) {
+		SkM44 m4(mat[0], mat[1], 0,mat[2],
+						 mat[3], mat[4], 0,mat[5],
+						 0,           0, 1,0,
+						 0,           0, 0,1);
+		if (fMCRec->fDeferredSaveCount > 0) {
+			SkCanvas::setMatrix(m4);
+		} else {
+			// ignore skcanvas fGlobalToDevice and fMatrix
+			// fMCRec->fMatrix = m4;
+			fMCRec->fDevice->setLocalToDevice(m4);
+			// didSetM44(m4); ignore
+		}
+	}
 
 	static inline uint32_t integerExp(uint32_t n) {
 		return (uint32_t) powf(2, floor(log2(n)));
@@ -47,7 +106,7 @@ namespace flare {
 		, _opts(params)
 		, _sample_count(1), _stencil_bits(0)
 	{
-		_opts.msaaSampleCount = massSample(_opts.msaaSampleCount);
+		_opts.MSAASampleCount = massSample(_opts.MSAASampleCount);
 	}
 
 	Render::~Render() {}

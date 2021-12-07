@@ -32,7 +32,7 @@
 #include "../util/array.h"
 #include "./font.inl"
 #include "../bezier.h"
-#include "../texture.h"
+//#include "../image_source.h"
 #include "../display.h"
 #include "../app.inl"
 #include <native-font.h>

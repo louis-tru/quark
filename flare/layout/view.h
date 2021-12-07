@@ -38,18 +38,18 @@ namespace flare {
 
 	class Canvas;
 
-	# define F_Views(F) \
+	# define F_VIEWS(F) \
 		F(View) F(Box) \
 		F(Image) F(Video) F(Scroll) \
 		F(Input) F(Text) F(Label) F(Root) \
 		F(FlowLayout) F(FlexLayout) F(FlexGrid) \
 
-	# define F_Define_View(N) \
+	# define F_DEFINE_VIEW(N) \
 	 public: \
 		virtual void accept(Visitor *visitor); \
 
 	# define F_View_Class(N) class N;
-		F_Views(F_View_Class);
+		F_VIEWS(F_View_Class);
 	# undef  F_View_Class
 
 	class Action;
@@ -66,11 +66,12 @@ namespace flare {
 		class Visitor {
 		 public:
 			# define F_Visitor(N) virtual void visit##N(N *v);
-				F_Views(F_Visitor);
+				F_VIEWS(F_Visitor);
 			# undef  F_Visitor
 		};
 
 		View();
+
 		virtual ~View();
 
 		/**

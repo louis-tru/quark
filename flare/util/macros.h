@@ -349,7 +349,7 @@ defined(__DragonFly__)
 
 #if F_MSC
 	#pragma section(".CRT$XCU", read)
-	#define F_INIT_BLOCK(fn)	\
+	# define F_INIT_BLOCK(fn)	\
 	extern void __cdecl fn(void);	\
 	__declspec(dllexport, allocate(".CRT$XCU"))	\
 	void (__cdecl*fn##_)(void) = fn;	\
