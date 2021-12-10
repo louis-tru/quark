@@ -32,6 +32,7 @@
 #define __flare__image_source__
 
 #include "./util/util.h"
+#include "./util/string.h"
 
 namespace flare {
 
@@ -39,8 +40,10 @@ namespace flare {
 		F_HIDDEN_ALL_COPY(ImageSource);
 	 public:
 		bool markAsTexture(); // mark as gpu texture
-		// new ImageSource('http://flare.cool/res/test.jpeg')
-		// <Image src={ImageSourcePool.shared().get('http://flare.cool/res/test.jpeg')} />
+		virtual String id() const;
+		virtual void load();
+		// ImageSourcePool.shared().get('http://flare.cool/res/test.jpeg')
+		// <Image src={new ImageSource('http://flare.cool/res/test.jpeg')} />
 		// <Image
 		//   src='http://flare.cool/res/test.jpeg'
 		//   width={100} 

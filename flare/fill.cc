@@ -503,15 +503,17 @@ namespace flare {
 	}
 
 	void FillImage::draw(Box *host, Canvas *canvas, uint8_t alpha, FillBorderRadius *radius) {
-		auto buf = fs_reader()->read_file_sync(_src);
-		auto len = buf.length();
-		auto image = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.collapse(), len, [](const void* ptr, void* context) {
-			::free((void*)ptr);
-		}, nullptr));
+		if (!_image) {
+			auto buf = fs_reader()->read_file_sync(_src);
+			auto len = buf.length();
+			_image = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.collapse(), len, [](const void* ptr, void* context) {
+				::free((void*)ptr);
+			}, nullptr));
+		}
 		if (radius) {
 			// TODO ...
 		} else {
-			canvas->drawImageRect(image, MakeSkRectFrom(host), {});
+			canvas->drawImageRect(_image, MakeSkRectFrom(host), {});
 		}
 		if (_next)
 			_next->draw(host, canvas, alpha, radius);

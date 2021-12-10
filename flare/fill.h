@@ -32,6 +32,7 @@
 #define __flare__fill__
 
 #include "./value.h"
+#include "skia/core/SkImage.h"
 
 namespace flare {
 
@@ -137,6 +138,7 @@ namespace flare {
 
 		Fill        _next;
 		HolderMode  _holder_mode;
+		
 
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
@@ -179,6 +181,7 @@ namespace flare {
 		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
 	 private:
 		int _attributes_flags;
+		sk_sp<SkImage> _image;
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
 

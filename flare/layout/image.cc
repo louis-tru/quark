@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./image.h"
+#include "./img.h"
 
 namespace flare {
 

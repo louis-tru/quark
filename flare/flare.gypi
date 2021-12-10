@@ -295,6 +295,7 @@
 		'type': 'static_library', #<(output_type)
 		'dependencies': [
 			'flare',
+			'skia',
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 		],
 		'sources': [
