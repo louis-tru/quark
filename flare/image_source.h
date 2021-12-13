@@ -42,7 +42,7 @@ namespace flare {
 		bool markAsTexture(); // mark as gpu texture
 		virtual String id() const;
 		virtual void load();
-		// ImageSourcePool.shared().get('http://flare.cool/res/test.jpeg')
+		// app.imagePool.get('http://flare.cool/res/test.jpeg')
 		// <Image src={new ImageSource('http://flare.cool/res/test.jpeg')} />
 		// <Image
 		//   src='http://flare.cool/res/test.jpeg'
@@ -53,8 +53,8 @@ namespace flare {
 	 private:
 	};
 
-	class F_EXPORT ImageSourcePool: public Object {
-		F_HIDDEN_ALL_COPY(ImageSourcePool);
+	class F_EXPORT ImagePool: public Object {
+		F_HIDDEN_ALL_COPY(ImagePool);
 	 public:
 	 private:
 	};
