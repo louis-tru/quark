@@ -51,10 +51,10 @@ namespace flare {
 	class View;
 	class Root;
 	class EventDispatch;
-	class ActionCenter;
+	class ActionDirect;
 	class DefaultTextSettings;
 	class FontPool;
-	class TexturePool;
+	class ImagePool;
 
 	/*
 	* 关于UI中的事件:
@@ -124,11 +124,11 @@ namespace flare {
 		inline Root* root() { return _root; }
 		inline View* focus_view() { return _focus_view; }
 		inline RunLoop* loop() { return _loop; }
-		inline ActionCenter* action_center() { return _action_center; }
+		inline ActionDirect* action_direct() { return _action_direct; }
 		inline PreRender* pre_render() { return _pre_render; }
 		inline Render* render() { return _render; }
 		inline FontPool* font_pool() { return _font_pool; }
-		inline TexturePool* tex_pool() { return _tex_pool; }
+		inline ImagePool* img_pool() { return _img_pool; }
 
 		/**
 		* @func clear 清理垃圾回收内存资源, full=true 清理全部资源
@@ -201,10 +201,10 @@ namespace flare {
 		View*                _focus_view;       // 焦点视图
 		DefaultTextSettings* _default_text_settings;
 		EventDispatch*       _dispatch;
-		ActionCenter*        _action_center;
+		ActionDirect*        _action_direct;
 		RecursiveMutex       _render_mutex;
 		FontPool*            _font_pool;        /* 字体纹理池 */
-		TexturePool*         _tex_pool;         /* 文件纹理池 */
+		ImagePool*           _img_pool;         /* 图像池 */
 		uint64_t _max_texture_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
 		
 		F_DEFINE_INLINE_CLASS(Inl);

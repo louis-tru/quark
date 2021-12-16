@@ -86,10 +86,6 @@
 			'layout/video.h',
 			'layout/view.h',
 			'layout/view.cc',
-			'codec/codec.h',
-			'codec/codec.cc',
-			'codec/codec_tga.cc',
-			'codec/codec_pvrtc.cc',
 			'font/_font.h',
 			'font/font.h',
 			'font/pool.h',
@@ -190,10 +186,7 @@
 					'deps/libwebp/libwebp.gyp:libwebp',
 				],
 				'sources': [
-					'codec/codec_gif.cc',
-					'codec/codec_jpeg.cc',
-					'codec/codec_png.cc',
-					'codec/codec_webp.cc',
+					# files
 				],
 				'link_settings': {
 					'libraries': [
@@ -207,7 +200,6 @@
 				],
 				'sources':[
 					'platforms/apple/apple_app.h',
-					'platforms/apple/apple_image_codec.mm',
 					'platforms/apple/apple_keyboard.mm',
 					'platforms/apple/apple_metal.mm',
 					'platforms/apple/apple_render.mm',

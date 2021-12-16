@@ -36,6 +36,7 @@
 #include "../util/loop.h"
 #include "../util/json.h"
 #include "../math.h"
+#include "../image_source.h"
 
 #define SK_GL 1
 
@@ -67,23 +68,6 @@ namespace flare {
 		F_HIDDEN_ALL_COPY(Render);
 	 public:
 
-		/** @enum ColorType
-			 Describes how pixel bits encode color. A pixel may be an alpha mask, a grayscale, RGB, or ARGB.
-		*/
-		enum ColorType : int {
-			kAlpha_8_ColorType = 1,  //!< pixel with alpha in 8-bit byte
-			kRGB_565_ColorType,      //!< pixel with 5 bits red, 6 bits green, 5 bits blue, in 16-bit word
-			kARGB_4444_ColorType,    //!< pixel with 4 bits for alpha, red, green, blue; in 16-bit word
-			kRGBA_8888_ColorType,    //!< pixel with 8 bits for red, green, blue, alpha; in 32-bit word
-			kRGB_888x_ColorType,     //!< pixel with 8 bits each for red, green, blue; in 32-bit word
-			kBGRA_8888_ColorType,    //!< pixel with 8 bits for blue, green, red, alpha; in 32-bit word
-			kRGBA_1010102_ColorType, //!< 10 bits for red, green, blue; 2 bits for alpha; in 32-bit word
-			kBGRA_1010102_ColorType, //!< 10 bits for blue, green, red; 2 bits for alpha; in 32-bit word
-			kRGB_101010x_ColorType,  //!< pixel with 10 bits each for red, green, blue; in 32-bit word
-			kBGR_101010x_ColorType,  //!< pixel with 10 bits each for blue, green, red; in 32-bit word
-			kGray_8_ColorType,       //!< pixel with grayscale level in 8-bit byte
-		};
-
 		enum Flags {
 			kUseDeviceIndependentFonts_Flag = 1 << 0,
 			// Use internal MSAA to render to non-MSAA GPU surfaces.
@@ -91,14 +75,14 @@ namespace flare {
 		};
 
 		struct Options {
-			ColorType           colorType = kRGBA_8888_ColorType;
-			uint32_t            flags = 0;
-			int                 MSAASampleCount;
-			bool                disableVsync;
-			bool                delayDrawableAcquisition;
-			bool                enableBinaryArchive;
-			bool                enableGpu;
-			bool                enableMetal;
+			ColorType     colorType = kRGBA_8888_ColorType;
+			uint32_t      flags = 0;
+			int           MSAASampleCount;
+			bool          disableVsync;
+			bool          delayDrawableAcquisition;
+			bool          enableBinaryArchive;
+			bool          enableGpu;
+			bool          enableMetal;
 		};
 
 		static Options parseOptions(cJSON& opts);

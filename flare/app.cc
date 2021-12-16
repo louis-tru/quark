@@ -38,7 +38,7 @@
 // #include "./action/action.h"
 // #include "./css/css.h"
 #include "./font/pool.h"
-#include "./texture.h"
+#include "./image_source.h"
 #include "./pre_render.h"
 #include "./layout/text.h"
 #include "./event.h"
@@ -196,8 +196,8 @@ namespace flare {
 		, _render(nullptr), _display(nullptr)
 		, _root(nullptr), _focus_view(nullptr)
 		, _default_text_settings(nullptr)
-		, _dispatch(nullptr), _action_center(nullptr)
-		, _pre_render(nullptr), _font_pool(nullptr), _tex_pool(nullptr)
+		, _dispatch(nullptr), _action_direct(nullptr)
+		, _pre_render(nullptr), _font_pool(nullptr), _img_pool(nullptr)
 		, _max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
 	{
 		F_CHECK(!_shared, "At the same time can only run a Application entity");
@@ -219,13 +219,13 @@ namespace flare {
 		}
 		Release(_default_text_settings); _default_text_settings = nullptr;
 		Release(_dispatch);      _dispatch = nullptr;
-		// Release(_action_center); _action_center = nullptr;
+		// Release(_action_direct); _action_direct = nullptr;
 		Release(_display);     _display = nullptr;
 		Release(_pre_render);  _pre_render = nullptr;
 		Release(_render);      _render = nullptr;
 		Release(_keep);        _keep = nullptr; _loop = nullptr;
 		Release(_font_pool);   _font_pool = nullptr;
-		Release(_tex_pool);    _tex_pool = nullptr;
+		Release(_img_pool);    _img_pool = nullptr;
 
 		F_Off(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
 
@@ -244,7 +244,7 @@ namespace flare {
 			//_font_pool = new FontPool(this);
 			//_tex_pool = new TexturePool(this);
 			_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
-			// _action_center = new ActionCenter(); F_DEBUG("new ActionCenter ok");
+			// _action_direct = new ActionDirect(); F_DEBUG("new ActionDirect ok");
 			_loop = RunLoop::current();
 			_keep = _loop->keep_alive("Application::run(), keep"); // 保持运行
 			__run_main_wait->awaken(); // 外部线程继续运行
