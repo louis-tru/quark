@@ -35,7 +35,6 @@
 #include "../util/string.h"
 #include "../util/array.h"
 #include "../util/http.h"
-#include "../codec/codec.h"
 #include "./media.h"
 
 typedef struct AVStream AVStream;
@@ -79,11 +78,11 @@ namespace flare {
 	};
 
 	enum VideoColorFormat {
-		VIDEO_COLOR_FORMAT_YUV420P = PixelData::YUV420P,
-		VIDEO_COLOR_FORMAT_YUV420SP = PixelData::YUV420SP,
-		VIDEO_COLOR_FORMAT_YUV411P = PixelData::YUV411P,
-		VIDEO_COLOR_FORMAT_YUV411SP = PixelData::YUV411SP,
-		VIDEO_COLOR_FORMAT_INVALID = PixelData::INVALID,
+		VIDEO_COLOR_FORMAT_INVALID = 0,
+		VIDEO_COLOR_FORMAT_YUV420P,
+		VIDEO_COLOR_FORMAT_YUV420SP,
+		VIDEO_COLOR_FORMAT_YUV411P,
+		VIDEO_COLOR_FORMAT_YUV411SP,
 	};
 
 	/**
@@ -92,7 +91,7 @@ namespace flare {
 	class F_EXPORT MultimediaSource: public Object {
 		F_HIDDEN_ALL_COPY(MultimediaSource);
 		F_DEFINE_INLINE_CLASS(Inl);
-	public:
+	 public:
 		
 		struct F_EXPORT TrackInfo {
 			TrackInfo();
@@ -352,7 +351,7 @@ namespace flare {
 		*/
 		AVStream* get_stream(const TrackInfo& track);
 		
-	private:
+	 private:
 		friend class Extractor;
 		friend class MediaCodec;
 		Inl*         _inl;
@@ -363,7 +362,7 @@ namespace flare {
 	*/
 	class F_EXPORT MediaCodec: public Object {
 		F_HIDDEN_ALL_COPY(MediaCodec);
-	public:
+	 public:
 		typedef MultimediaSource::Extractor Extractor;
 		
 		struct F_EXPORT OutputBuffer {
@@ -497,7 +496,7 @@ namespace flare {
 		* */
 		static MediaCodec* software(MediaType type, MultimediaSource* source);
 		
-	protected:
+	 protected:
 		MediaCodec(Extractor* extractor);
 		
 		Extractor*  _extractor;

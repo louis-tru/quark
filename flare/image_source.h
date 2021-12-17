@@ -33,8 +33,8 @@
 
 #include "./util/util.h"
 #include "./util/string.h"
-#include "../util/array.h"
-#include "../util/dict.h"
+#include "./util/array.h"
+#include "./util/event.h"
 
 namespace flare {
 
@@ -46,18 +46,18 @@ namespace flare {
 			Describes how pixel bits encode color. A pixel may be an alpha mask, a grayscale, RGB, or ARGB.
 	*/
 	enum ColorType: int {
-		kInvalid_ColorType = 0,
-		kAlpha_8_ColorType = 1,  //!< pixel with alpha in 8-bit byte
-		kRGB_565_ColorType,      //!< pixel with 5 bits red, 6 bits green, 5 bits blue, in 16-bit word
-		kARGB_4444_ColorType,    //!< pixel with 4 bits for alpha, red, green, blue; in 16-bit word
-		kRGBA_8888_ColorType,    //!< pixel with 8 bits for red, green, blue, alpha; in 32-bit word
-		kRGB_888x_ColorType,     //!< pixel with 8 bits each for red, green, blue; in 32-bit word
-		kBGRA_8888_ColorType,    //!< pixel with 8 bits for blue, green, red, alpha; in 32-bit word
-		kRGBA_1010102_ColorType, //!< 10 bits for red, green, blue; 2 bits for alpha; in 32-bit word
-		kBGRA_1010102_ColorType, //!< 10 bits for blue, green, red; 2 bits for alpha; in 32-bit word
-		kRGB_101010x_ColorType,  //!< pixel with 10 bits each for red, green, blue; in 32-bit word
-		kBGR_101010x_ColorType,  //!< pixel with 10 bits each for blue, green, red; in 32-bit word
-		kGray_8_ColorType,       //!< pixel with grayscale level in 8-bit byte
+		COLOR_TYPE_INVALID = 0,
+		COLOR_TYPE_ALPHA_8,      //!< pixel with alpha in 8-bit byte
+		COLOR_TYPE_RGB_565,      //!< pixel with 5 bits red, 6 bits green, 5 bits blue, in 16-bit word
+		COLOR_TYPE_ARGB_4444,    //!< pixel with 4 bits for alpha, red, green, blue; in 16-bit word
+		COLOR_TYPE_RGBA_8888,    //!< pixel with 8 bits for red, green, blue, alpha; in 32-bit word
+		COLOR_TYPE_RGB_888X,     //!< pixel with 8 bits each for red, green, blue; in 32-bit word
+		COLOR_TYPE_BGRA_8888,    //!< pixel with 8 bits for blue, green, red, alpha; in 32-bit word
+		COLOR_TYPE_RGBA_1010102, //!< 10 bits for red, green, blue; 2 bits for alpha; in 32-bit word
+		COLOR_TYPE_BGRA_1010102, //!< 10 bits for blue, green, red; 2 bits for alpha; in 32-bit word
+		COLOR_TYPE_RGB_101010X,  //!< pixel with 10 bits each for red, green, blue; in 32-bit word
+		COLOR_TYPE_BGR_101010X,  //!< pixel with 10 bits each for blue, green, red; in 32-bit word
+		COLOR_TYPE_GRAY_8,       //!< pixel with grayscale level in 8-bit byte
 	};
 	
 	/**
@@ -173,26 +173,16 @@ namespace flare {
 		bool load();
 
 		/**
-		 * @func load_sync() sync load image source
-		 */
-		bool load_sync();
-
-		/**
-		 * @func ready() async ready
+		 * @func ready() ready decode
 		 */
 		bool ready();
 
 		/**
-		 * @func ready_sync() sync ready
-		 */
-		bool ready_sync();
-
-		/**
-		 * @func unload() delete load and ready
+		 * @func unload() delete load and decode ready
 		 */
 		void unload();
 
-		inline String id() const { return _id }
+		inline String id() const { return _id; }
 		inline State state() const { return _state; }
 		inline bool is_ready() const { return _state & STATE_DECODE_COMPLETE; }
 
@@ -211,7 +201,16 @@ namespace flare {
 	class F_EXPORT ImagePool: public Object {
 		F_HIDDEN_ALL_COPY(ImagePool);
 	 public:
+
+		uint64_t total_data_size() const { return _total_data_size; };
+
+		/**
+			* @func clear
+			*/
+		void clear(bool full = false);
+		
 	 private:
+		uint64_t _total_data_size; /* 当前数据占刚在总容量 */
 	};
 
 }

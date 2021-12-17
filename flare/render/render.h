@@ -75,7 +75,7 @@ namespace flare {
 		};
 
 		struct Options {
-			ColorType     colorType = kRGBA_8888_ColorType;
+			ColorType     colorType = COLOR_TYPE_RGBA_8888;
 			uint32_t      flags = 0;
 			int           MSAASampleCount;
 			bool          disableVsync;

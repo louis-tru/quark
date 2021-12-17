@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__layout__img__
-#define __flare__layout__img__
+#ifndef __flare__layout__image__
+#define __flare__layout__image__
 
 #include "./box.h"
 
 namespace flare {
 
-	class F_EXPORT Img: public Box {
-		F_DEFINE_VIEW(Img);
+	class F_EXPORT Image: public Box {
+		F_DEFINE_VIEW(Image);
 	 public:
 		F_DEFINE_PROP(String, src);
 	 private:

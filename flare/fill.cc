@@ -30,7 +30,7 @@
 
 #include "./app.h"
 #include "./fill.h"
-#include "./texture.h"
+#include "./image_source.h"
 #include "./display.h"
 #include "./pre_render.h"
 #include "./layout/box.h"

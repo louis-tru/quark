@@ -319,7 +319,7 @@ namespace flare {
 	* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
 	*/
 	uint64_t Application::used_texture_memory() const {
-		return _tex_pool->total_data_size() + _font_pool->total_data_size();
+		return _img_pool->total_data_size() + _font_pool->total_data_size();
 	}
 
 	/**

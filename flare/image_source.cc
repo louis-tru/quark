@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./image_source.h"
-#include "ftr/util/fs.h"
+#include "./util/fs.h"
 
 namespace flare {
 
@@ -37,23 +37,24 @@ namespace flare {
 	* @func pixel_bit_size
 	*/
 	uint32_t PixelData::pixel_bit_size(ColorType type) {
-	switch ( type ) {
-		default:
-		case kInvalid_ColorType: return 0;
-		case kAlpha_8_ColorType: return 8;      //!< pixel with alpha in 8-bit byte
-		case kRGB_565_ColorType: return 16;      //!< pixel with 5 bits red, 6 bits green, 5 bits blue, in 16-bit word
-		case kARGB_4444_ColorType: return 16;    //!< pixel with 4 bits for alpha, red, green, blue; in 16-bit word
-		case kRGBA_8888_ColorType: return 32;    //!< pixel with 8 bits for red, green, blue, alpha; in 32-bit word
-		case kRGB_888x_ColorType: return 32;     //!< pixel with 8 bits each for red, green, blue; in 32-bit word
-		case kBGRA_8888_ColorType: return 32;    //!< pixel with 8 bits for blue, green, red, alpha; in 32-bit word
-		case kRGBA_1010102_ColorType: return 10; //!< 10 bits for red, green, blue; 2 bits for alpha; in 32-bit word
-		case kBGRA_1010102_ColorType: return 10; //!< 10 bits for blue, green, red; 2 bits for alpha; in 32-bit word
-		case kRGB_101010x_ColorType: return 10;  //!< pixel with 10 bits each for red, green, blue; in 32-bit word
-		case kBGR_101010x_ColorType: return 10;  //!< pixel with 10 bits each for blue, green, red; in 32-bit word
-		case kGray_8_ColorType: return 8;       //!< pixel with grayscale level in 8-bit byte
+		switch ( type ) {
+			default:
+			case COLOR_TYPE_INVALID: return 0;
+			case COLOR_TYPE_ALPHA_8: return 8;      //!< pixel with alpha in 8-bit byte
+			case COLOR_TYPE_RGB_565: return 16;      //!< pixel with 5 bits red, 6 bits green, 5 bits blue, in 16-bit word
+			case COLOR_TYPE_ARGB_4444: return 16;    //!< pixel with 4 bits for alpha, red, green, blue; in 16-bit word
+			case COLOR_TYPE_RGBA_8888: return 32;    //!< pixel with 8 bits for red, green, blue, alpha; in 32-bit word
+			case COLOR_TYPE_RGB_888X: return 32;     //!< pixel with 8 bits each for red, green, blue; in 32-bit word
+			case COLOR_TYPE_BGRA_8888: return 32;    //!< pixel with 8 bits for blue, green, red, alpha; in 32-bit word
+			case COLOR_TYPE_RGBA_1010102: return 10; //!< 10 bits for red, green, blue; 2 bits for alpha; in 32-bit word
+			case COLOR_TYPE_BGRA_1010102: return 10; //!< 10 bits for blue, green, red; 2 bits for alpha; in 32-bit word
+			case COLOR_TYPE_RGB_101010X: return 10;  //!< pixel with 10 bits each for red, green, blue; in 32-bit word
+			case COLOR_TYPE_BGR_101010X: return 10;  //!< pixel with 10 bits each for blue, green, red; in 32-bit word
+			case COLOR_TYPE_GRAY_8: return 8;       //!< pixel with grayscale level in 8-bit byte
+		}
 	}
 
-	PixelData PixelData::decode(Buffer data) {
+	PixelData PixelData::decode(Buffer raw) {
 		// TODO ...
 		return PixelData();
 	}
@@ -63,7 +64,7 @@ namespace flare {
 		, _width(0)
 		, _height(0)
 		, _body()
-		, _type(kInvalid_ColorType) {
+		, _type(COLOR_TYPE_INVALID) {
 	}
 
 	PixelData::PixelData(cPixelData& body)
@@ -118,7 +119,7 @@ namespace flare {
 	
 	ImageSource::ImageSource(cString& uri)
 		: F_Init_Event(State)
-		, _id(f_reader()->format(uri))
+		, _id(fs_reader()->format(uri))
 		, _state(STATE_NONE)
 		, _inl(nullptr)
 	{
@@ -152,14 +153,9 @@ namespace flare {
 		* @func load() async load image source
 		*/
 	bool ImageSource::load() {
-		// TODO ...
-		return false;
-	}
-
-	/**
-		* @func load_sync() sync load image source
-		*/
-	bool ImageSource::load_sync() {
+		if (_state & STATE_LOAD_COMPLETE) {
+			return true;
+		}
 		// TODO ...
 		return false;
 	}
@@ -168,14 +164,9 @@ namespace flare {
 		* @func ready() async ready
 		*/
 	bool ImageSource::ready() {
-		// TODO ...
-		return false;
-	}
-
-	/**
-		* @func ready_sync() sync ready
-		*/
-	bool ImageSource::ready_sync() {
+		if (is_ready()) {
+			return true;
+		}
 		// TODO ...
 		return false;
 	}
@@ -199,4 +190,10 @@ namespace flare {
 		// TODO ...
 	}
 
+
+	void ImagePool::clear(bool full) {
+		// TODO ..
+	}
+
 }
+
