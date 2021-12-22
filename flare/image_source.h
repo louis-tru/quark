@@ -69,7 +69,7 @@ namespace flare {
 		/**
 		* @func pixel_bit_size()
 		*/
-		static uint32_t pixel_bit_size(ColorType type);
+		static uint32_t bytes_per_pixel(ColorType type);
 
 		/**
 		 *
@@ -77,7 +77,7 @@ namespace flare {
 		 *
 		 * @func decode()
 		 */
-		static PixelData decode(Buffer raw);
+		static PixelData decode(cBuffer& raw);
 
 		PixelData();
 		PixelData(cPixelData& data);
@@ -97,26 +97,13 @@ namespace flare {
 		* */
 		inline uint32_t body_count() const { return _body.length(); }
 		
-		/**
-		* @func width 图像宽度
-		*/
-		inline int width() const { return _width; }
-		
-		/**
-		* @func height 图像高度
-		*/
-		inline int height() const { return _height; }
-		
-		/**
-		* @func format 图像像素的排列格式
-		*/
-		inline ColorType type() const { return _type; }
+		F_DEFINE_PROP_READ(int, width); // width 图像宽度
+		F_DEFINE_PROP_READ(int, height); // height 图像高度
+		F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
 		
 	 private:
 		Buffer      _data;
-		int _width, _height;
 		Array<WeakBuffer> _body;
-		ColorType _type;
 	};
 
 	/**
@@ -126,7 +113,7 @@ namespace flare {
 		F_HIDDEN_ALL_COPY(ImageSource);
 	 public:
 
-		enum State {
+		enum State: int {
 			STATE_NONE = 0,
 			STATE_LOADING = (1 << 0),
 			STATE_LOAD_ERROR = (1 << 1),
@@ -135,12 +122,20 @@ namespace flare {
 			STATE_DECODE_ERROR = (1 << 4),
 			STATE_DECODE_COMPLETE = (1 << 5),
 		};
-
+		
 		/**
 		 * @event onState
 		 */
 		F_Event(State, Event<ImageSource, State>);
+		
+		// Defines props
+		F_DEFINE_PROP_READ(String, id);
+		F_DEFINE_PROP_READ(State, state);
+		F_DEFINE_PROP_READ(int, width);
+		F_DEFINE_PROP_READ(int, height);
+		F_DEFINE_PROP_READ(ColorType, type);
 
+		// @constructor
 		// <FlowLayout>
 		// 	<Image src={app.imagePool.get('http://flare.cool/res/test.jpeg')} />
 		// 	<Image src={new ImageSource('http://flare.cool/res/test2.jpeg')} />
@@ -160,14 +155,6 @@ namespace flare {
 		virtual ~ImageSource();
 
 		/**
-		 * 
-		 * mark as gpu texture
-		 *
-		 * @func mark_as_texture()
-		 */
-		bool mark_as_texture();
-
-		/**
 		 * @func load() async load image source
 		 */
 		bool load();
@@ -181,20 +168,25 @@ namespace flare {
 		 * @func unload() delete load and decode ready
 		 */
 		void unload();
+		
+		/**
+		 *
+		 * mark as gpu texture
+		 *
+		 * @func mark_as_texture()
+		 */
+		bool mark_as_texture();
 
-		inline String id() const { return _id; }
-		inline State state() const { return _state; }
+		/**
+		 * @func is_ready() is ready draw image
+		 */
 		inline bool is_ready() const { return _state & STATE_DECODE_COMPLETE; }
 
-		ColorType type() const;
-
-		int width() const;
-		int height() const;
-
 	 private:
-		String _id;
-		State _state;
-		PixelData _pixel;
+		void _Decode();
+		PixelData _memPixel;
+		Buffer   _loaded;
+		uint32_t _load_id;
 		void *_inl;
 	};
 
@@ -202,7 +194,7 @@ namespace flare {
 		F_HIDDEN_ALL_COPY(ImagePool);
 	 public:
 
-		uint64_t total_data_size() const { return _total_data_size; };
+		uint64_t total_data_size() const { return _total_data_size; }
 
 		/**
 			* @func clear

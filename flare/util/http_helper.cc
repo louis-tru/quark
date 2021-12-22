@@ -263,7 +263,7 @@ namespace flare {
 	}
 
 	Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
-		if (has_temp_work_thread()) {
+		if (has_backend_thread()) {
 			throw HttpError(ERR_CANNOT_RUN_SYNC_IO,
 											String::format("cannot send sync http request, %s"
 																		, options.url.c_str()), 0, options.url);
@@ -274,7 +274,7 @@ namespace flare {
 		HttpError err = Error();
 		ResponseData data;
 
-		temp_work_loop()->post_sync(Cb_([&](Cb_::Data& d) {
+		backend_loop()->post_sync(Cb_([&](Cb_::Data& d) {
 			auto dd = d.data;
 			try {
 				request(options, HCb([&,dd](HCb::Data& ev) {

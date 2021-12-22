@@ -142,11 +142,11 @@ namespace flare {
 
 
 	/**
-	 * @class TempWorkLoop
+	 * @class BackendLoop
 	 */
-	class TempWorkLoop {
+	class BackendLoop {
 	 public:
-		inline TempWorkLoop(): _loop(nullptr) {}
+		inline BackendLoop(): _loop(nullptr) {}
 		
 		inline bool has_current_thread() {
 			return Thread::current_id() == _thread_id;
@@ -178,7 +178,7 @@ namespace flare {
 				return _loop;
 			
 			Thread::create([](Thread& t, void* arg) {
-				auto self = (TempWorkLoop*)arg;
+				auto self = (BackendLoop*)arg;
 				self->_mutex.lock();
 				self->_thread_id = t.id();
 				self->_loop = RunLoop::current();
@@ -201,14 +201,14 @@ namespace flare {
 		Condition _cond;
 	};
 
-	static TempWorkLoop* _temp_work_loop = new TempWorkLoop();
+	static BackendLoop* _backend_loop = new BackendLoop();
 
-	RunLoop* temp_work_loop() {
-		return _temp_work_loop->loop();
+	RunLoop* backend_loop() {
+		return _backend_loop->loop();
 	}
 
-	bool has_temp_work_thread() {
-		return _temp_work_loop->has_current_thread();
+	bool has_backend_thread() {
+		return _backend_loop->has_current_thread();
 	}
 
 }

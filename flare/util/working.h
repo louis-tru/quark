@@ -61,8 +61,8 @@ namespace flare {
 		Childs _childs;
 	};
 
-	F_EXPORT RunLoop* temp_work_loop();
-	F_EXPORT bool has_temp_work_thread();
+	F_EXPORT RunLoop* backend_loop();
+	F_EXPORT bool has_backend_thread();
 
 }
 #endif

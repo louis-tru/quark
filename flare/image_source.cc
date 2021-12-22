@@ -30,32 +30,27 @@
 
 #include "./image_source.h"
 #include "./util/fs.h"
+#include "skia/core/SkImage.h"
 
 namespace flare {
+
+	// -------------------- P i x e l D a t a --------------------
 
 	/**
 	* @func pixel_bit_size
 	*/
-	uint32_t PixelData::pixel_bit_size(ColorType type) {
-		switch ( type ) {
-			default:
-			case COLOR_TYPE_INVALID: return 0;
-			case COLOR_TYPE_ALPHA_8: return 8;      //!< pixel with alpha in 8-bit byte
-			case COLOR_TYPE_RGB_565: return 16;      //!< pixel with 5 bits red, 6 bits green, 5 bits blue, in 16-bit word
-			case COLOR_TYPE_ARGB_4444: return 16;    //!< pixel with 4 bits for alpha, red, green, blue; in 16-bit word
-			case COLOR_TYPE_RGBA_8888: return 32;    //!< pixel with 8 bits for red, green, blue, alpha; in 32-bit word
-			case COLOR_TYPE_RGB_888X: return 32;     //!< pixel with 8 bits each for red, green, blue; in 32-bit word
-			case COLOR_TYPE_BGRA_8888: return 32;    //!< pixel with 8 bits for blue, green, red, alpha; in 32-bit word
-			case COLOR_TYPE_RGBA_1010102: return 10; //!< 10 bits for red, green, blue; 2 bits for alpha; in 32-bit word
-			case COLOR_TYPE_BGRA_1010102: return 10; //!< 10 bits for blue, green, red; 2 bits for alpha; in 32-bit word
-			case COLOR_TYPE_RGB_101010X: return 10;  //!< pixel with 10 bits each for red, green, blue; in 32-bit word
-			case COLOR_TYPE_BGR_101010X: return 10;  //!< pixel with 10 bits each for blue, green, red; in 32-bit word
-			case COLOR_TYPE_GRAY_8: return 8;       //!< pixel with grayscale level in 8-bit byte
-		}
+	uint32_t PixelData::bytes_per_pixel(ColorType type) {
+		return SkColorTypeBytesPerPixel(SkColorType(type));
 	}
 
-	PixelData PixelData::decode(Buffer raw) {
-		// TODO ...
+	PixelData PixelData::decode(cBuffer& buf) {
+		auto img = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.val(), buf.length(), nullptr, nullptr));
+		SkImageInfo info = img->imageInfo();
+		auto rowBytes = info.minRowBytes();
+		auto body = Buffer::alloc((uint32_t)rowBytes * info.height());
+		if (img->readPixels(nullptr, info, body.val(), rowBytes, 0, 0)) {
+			return PixelData(std::move(body), info.width(), info.height(), ColorType(info.colorType()));
+		}
 		return PixelData();
 	}
 
@@ -116,11 +111,16 @@ namespace flare {
 		, _body(body)
 		, _type(type) {
 	}
-	
+
+	// -------------------- I m a g e S o u r c e --------------------
+
+	#define sk_I(img) static_cast<SkImage*>(img)
+
 	ImageSource::ImageSource(cString& uri)
 		: F_Init_Event(State)
 		, _id(fs_reader()->format(uri))
 		, _state(STATE_NONE)
+		, _load_id(0)
 		, _inl(nullptr)
 	{
 	}
@@ -128,14 +128,144 @@ namespace flare {
 	ImageSource::ImageSource(PixelData pixel)
 		: F_Init_Event(State)
 		, _state(STATE_NONE)
-		, _pixel(pixel)
+		, _width(pixel.width())
+		, _height(pixel.height())
+		, _type(pixel.type())
+		, _memPixel(std::move(pixel))
+		, _load_id(0)
 		, _inl(nullptr)
 	{
-		_id = String("image_").append(getId());
+		SkImageInfo info = SkImageInfo::Make(_memPixel.width(),
+																				 _memPixel.height(), SkColorType(_memPixel.type()), kOpaque_SkAlphaType);
+		SkPixmap skpixel(info, _memPixel.body().val(), _memPixel.width() * PixelData::bytes_per_pixel(_memPixel.type()));
+		auto img = SkImage::MakeFromRaster(skpixel, nullptr, nullptr);
+		img->ref();
+		_inl = img.get();
+		_id = String("mem://").append(sk_I(_inl)->uniqueID());
+		_state = State(STATE_LOAD_COMPLETE | STATE_DECODEING);
 	}
 
 	ImageSource::~ImageSource() {
-		// TODO ...
+		if (_inl) {
+			sk_I(_inl)->unref();
+			_inl = nullptr;
+			_state = STATE_NONE;
+		}
+		unload();
+	}
+
+	void ImageSource::_Decode() {
+		F_ASSERT(_state & STATE_LOAD_COMPLETE);
+		F_ASSERT(!_inl);
+		// decode image
+		
+		struct Ctx {
+			Handle<ImageSource> src;
+			sk_sp<SkImage> img;
+		};
+		auto ctx = new Ctx({ this, sk_sp<SkImage>(sk_I(_inl)) });
+		
+		RunLoop::first()->work(Cb([this,ctx](CbData& e){
+			char tmp[16];
+			SkImageInfo info = SkImageInfo::Make(1, 1, ctx->img->colorType(), ctx->img->alphaType());
+			if (!ctx->img->readPixels(nullptr, info, tmp, SkColorTypeBytesPerPixel(ctx->img->colorType()), 0, 0)) {
+				ctx->img.reset(); // fail decode
+			}
+		}), Cb([this,ctx](CbData& e){
+			if (_state & STATE_DECODEING) {
+				if (ctx->img) { // decode image complete
+					_state = State((_state | STATE_DECODE_COMPLETE) & ~STATE_DECODEING);
+				} else { // decode fail
+					_state = State((_state | STATE_DECODE_ERROR)    & ~STATE_DECODEING);
+				}
+				F_Trigger(State, _state);
+			}
+			delete ctx;
+		}));
+	}
+
+	/**
+		* @func load() async load image source
+		*/
+	bool ImageSource::load() {
+		if (_state & STATE_LOAD_COMPLETE) {
+			return true;
+		}
+		if (_state & STATE_LOADING) {
+			return false;
+		}
+		_state = State(_state | STATE_LOADING);
+		
+		RunLoop::first()->post(Cb([this](CbData& e){
+			F_Trigger(State, _state); // trigger
+			_load_id = fs_reader()->read_file(_id, Cb([this](CbData& e){ // read data
+				if (!(_state & STATE_LOADING)) {
+					_state = State((_state | STATE_LOAD_COMPLETE) & ~STATE_LOADING);
+					_loaded = *static_cast<Buffer*>(e.data);
+
+					auto img = SkImage::MakeFromEncoded(SkData::MakeWithProc(_loaded.val(), _loaded.length(), nullptr, nullptr));
+					auto info = img->imageInfo();
+					img->ref();
+
+					_inl = img.get();
+					_width = info.width();
+					_height = info.height();
+					_type = ColorType(info.colorType());
+					
+					F_Trigger(State, _state);
+
+					if (_state & STATE_DECODEING) { // decode
+						_Decode();
+					}
+				}
+			}, this));
+		}, this));
+		return false;
+	}
+
+	/**
+		* @func ready() async ready
+		*/
+	bool ImageSource::ready() {
+		if (is_ready()) {
+			return true;
+		}
+		if (_state & STATE_DECODEING) {
+			return false;
+		}
+		_state = State(_state | STATE_DECODEING);
+		
+		if (_state & STATE_LOAD_COMPLETE) {
+			RunLoop::first()->post(Cb([this](CbData& e){
+				F_Trigger(State, _state);
+				_Decode();
+			}, this));
+		} else { // load and decode
+			load();
+		}
+		return false;
+	}
+
+	/**
+		* @func unload() delete load and ready
+		*/
+	void ImageSource::unload() {
+		if (_inl) {
+			if (_memPixel.body().is_null()) { // no mem pixel
+				sk_I(_inl)->unref();
+				_inl = nullptr;
+				_state = State( _state & ~(STATE_LOADING | STATE_LOAD_COMPLETE | STATE_DECODEING | STATE_DECODE_COMPLETE) );
+				_loaded.clear(); // clear raw data
+				if (_load_id) { // cancel load and ready
+					fs_reader()->abort(_load_id);
+					_load_id = 0;
+				}
+				// trigger event
+				RunLoop::first()->post(Cb([this](CbData& e){
+					F_Trigger(State, _state);
+				}, this));
+			}
+		}
 	}
 
 	/**
@@ -149,47 +279,7 @@ namespace flare {
 		return false;
 	}
 
-	/**
-		* @func load() async load image source
-		*/
-	bool ImageSource::load() {
-		if (_state & STATE_LOAD_COMPLETE) {
-			return true;
-		}
-		// TODO ...
-		return false;
-	}
-
-	/**
-		* @func ready() async ready
-		*/
-	bool ImageSource::ready() {
-		if (is_ready()) {
-			return true;
-		}
-		// TODO ...
-		return false;
-	}
-
-	/**
-		* @func unload() delete load and ready
-		*/
-	void ImageSource::unload() {
-		// TODO ...
-	}
-
-	ColorType ImageSource::type() const {
-		// TODO ...
-	}
-
-	int ImageSource::width() const {
-		// TODO ...
-	}
-
-	int ImageSource::height() const {
-		// TODO ...
-	}
-
+	// -------------------- I m a g e P o o l --------------------
 
 	void ImagePool::clear(bool full) {
 		// TODO ..

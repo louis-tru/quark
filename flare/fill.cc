@@ -506,10 +506,14 @@ namespace flare {
 		if (!_image) {
 			auto buf = fs_reader()->read_file_sync(_src);
 			auto len = buf.length();
+			auto pixel = PixelData::decode(buf);
+			F_LOG("%d,%d", pixel.width(), pixel.height());
+			
 			_image = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.collapse(), len, [](const void* ptr, void* context) {
 				::free((void*)ptr);
 			}, nullptr));
 		}
+
 		if (radius) {
 			// TODO ...
 		} else {
