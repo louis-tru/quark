@@ -116,6 +116,17 @@ namespace flare {
 
 	#define sk_I(img) static_cast<SkImage*>(img)
 
+	F_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
+	 public:
+		static SkImage* CastSk(ImageSource* img) {
+			return sk_I(img->_inl);
+		}
+	};
+
+	SkImage* CastSkImage(ImageSource* img) {
+		return ImageSource::Inl::CastSk(img);
+	}
+
 	ImageSource::ImageSource(cString& uri)
 		: F_Init_Event(State)
 		, _id(fs_reader()->format(uri))

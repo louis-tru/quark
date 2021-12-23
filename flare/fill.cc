@@ -198,125 +198,70 @@ namespace flare {
 	Fill FillColor::BLACK( NewRetain<FillColor>(Color(0,0,0,255))->set_holder_mode(M_SHARED) );
 	Fill FillColor::BLUE( NewRetain<FillColor>(Color(0,1,0,255))->set_holder_mode(M_SHARED) );
 
-	enum {
-		BI_flag_src = (1 << 0),
-		BI_flag_texture = (1 << 1),
-		BI_flag_repeat = (1 << 2),
-		BI_flag_position_x = (1 << 3),
-		BI_flag_position_y = (1 << 4),
-		BI_flag_size_x = (1 << 5),
-		BI_flag_size_y = (1 << 6),
-	};
-
 	F_DEFINE_INLINE_MEMBERS(FillImage, Inl) {
 	 public:
-		#define _inl2(self) static_cast<FillImage::Inl*>(self)
+		#define _inl_img(self) static_cast<FillImage::Inl*>(self)
 
-		void texture_change_handle(Event<Texture, int>& evt) { // 收到图像变化通知
-			/*UILock lock;
-			int status = *evt.data();
-			if (status & TEXTURE_CHANGE_OK) {
-				mark(View::M_BACKGROUND);
-			}*/
-		}
-		
-		void reset_texture() {
-			/*auto pool = tex_pool();
-			if (pool) {
-				if (_has_base64) {
-					F_UNIMPLEMENTED(); // TODO ...
-				} else {
-					set_texture(pool->get_texture(_src));
-				}
-			}*/
-		}
-		
-		Texture* get_texture() {
-			// TODO ...
-			// if (!_texture) {
-			// 	if (!_src.is_empty()) {
-			// 		reset_texture();
-			// 	}
-			// }
-			// return _texture;
-		}
-
-		void set_source(cString& src, bool has_base64) {
-			if (src != _src) {
-				_src = src;
-				if ( src.is_empty() ) {
-					set_texture(nullptr);
-				} else {
-					reset_texture();
-				}
-				_attributes_flags |= BI_flag_src;
+		void source_change_handle(Event<ImageSource, ImageSource::State>& evt) { // 收到图像变化通知
+			if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
+				mark();
 			}
 		}
-		
 	};
 
+
 	FillImage::FillImage(cString& src)
-		: _src(src)
-		, _texture(nullptr)
-		, _repeat(Repeat::REPEAT)
-		, _attributes_flags(0)
+		: _repeat(Repeat::REPEAT)
 	{
+		if (!src.is_empty()) {
+			set_src(src);
+		}
 	}
 
 	FillImage::~FillImage() {
-		if (_texture) {
-			/*_texture->F_Off(change, &Inl::texture_change_handle, _inl2(this));
-			_texture->release(); // 释放纹理
-			 */
+		if (_source) {
+			_source->F_Off(State, &Inl::source_change_handle, _inl_img(this));
 		}
 	}
 
 	Fill FillImage::copy(Fill to) {
 		FillImage* target = (to && to->type() == M_IMAGE) ?
 				static_cast<FillImage*>(to) : new FillImage();
-		target->_attributes_flags |= _attributes_flags;
-		if (_attributes_flags & BI_flag_src) {
-			target->_src = _src;
-		}
-		if (_attributes_flags & BI_flag_repeat) target->_repeat = _repeat;
-		if (_attributes_flags & BI_flag_position_x) target->_position_x = _position_x;
-		if (_attributes_flags & BI_flag_position_y) target->_position_y = _position_y;
-		if (_attributes_flags & BI_flag_size_x) target->_size_x = _size_x;
-		if (_attributes_flags & BI_flag_size_y) target->_size_y = _size_y;
-		if (_attributes_flags & BI_flag_texture) target->set_texture(_texture);
+		target->_repeat = _repeat;
+		target->_position_x = _position_x;
+		target->_position_y = _position_y;
+		target->_size_x = _size_x;
+		target->_size_y = _size_y;
+		target->_source = _source;
 		_inl(target)->set_next(_next);
 		return target;
 	}
 
-	void FillImage::set_src(String value) {
-		// TODO ...
-		// _inl2(this)->set_source(value, false);
+	String FillImage::src() const {
+		return _source ? _source->id(): String();
 	}
 
-	void FillImage::set_texture(Texture* value) {
-		// TODO ...
-		// if (value != _texture) {
-		// 	if (_texture) {/*
-		// 		_texture->F_Off(change, &Inl::texture_change_handle, _inl2(this));
-		// 		_texture->release(); // 释放
-		// 									*/
-		// 	}
-		// 	_texture = value;
-		// 	if (value) {
-		// 		_texture->retain(); // 保持
-		// 		/*
-		// 		_texture->F_On(change, &Inl::texture_change_handle, _inl2(this));*/
-		// 	}
-		// 	mark();
-		// 	_attributes_flags |= BI_flag_texture;
-		// }
+	void FillImage::set_src(cString& value) {
+		auto source = new ImageSource(value); // TODO ...
+		set_source(source);
+	}
+
+	void FillImage::set_source(ImageSource* source) {
+		if (_source.value() != source) {
+			if (_source) {
+				_source->F_Off(State, &Inl::source_change_handle, _inl_img(this));
+			}
+			if (source) {
+				source->F_On(State, &Inl::source_change_handle, _inl_img(this));
+			}
+			_source = Handle<ImageSource>(source);
+		}
 	}
 
 	void FillImage::set_repeat(Repeat value) {
 		if (_repeat != value) {
 			_repeat = value;
 			mark();
-			_attributes_flags |= BI_flag_repeat;
 		}
 	}
 
@@ -324,7 +269,6 @@ namespace flare {
 		if (value != _position_x) {
 			_position_x = value;
 			mark();
-			_attributes_flags |= BI_flag_position_x;
 		}
 	}
 
@@ -332,7 +276,6 @@ namespace flare {
 		if (value != _position_y) {
 			_position_y = value;
 			mark();
-			_attributes_flags |= BI_flag_position_y;
 		}
 	}
 
@@ -340,7 +283,6 @@ namespace flare {
 		if (value != _size_x) {
 			_size_x = value;
 			mark();
-			_attributes_flags |= BI_flag_size_x;
 		}
 	}
 
@@ -348,7 +290,6 @@ namespace flare {
 		if (value != _size_y) {
 			_size_y = value;
 			mark();
-			_attributes_flags |= BI_flag_size_y;
 		}
 	}
 
@@ -386,22 +327,16 @@ namespace flare {
 			_next->draw(host, canvas, alpha, radius);
 	}
 
-	void FillImage::draw(Box *host, Canvas *canvas, uint8_t alpha, FillBorderRadius *radius) {
-		if (_source) {
-//			auto buf = fs_reader()->read_file_sync(_src);
-//			auto len = buf.length();
-//			auto pixel = PixelData::decode(buf);
-//			F_LOG("%d,%d", pixel.width(), pixel.height());
-//
-//			_image = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.collapse(), len, [](const void* ptr, void* context) {
-//				::free((void*)ptr);
-//			}, nullptr));
-		}
+	SkImage* CastSkImage(ImageSource* img);
 
-		if (radius) {
-			// TODO ...
-		} else {
-			//canvas->drawImageRect(_image, MakeSkRectFrom(host), {});
+	void FillImage::draw(Box *host, Canvas *canvas, uint8_t alpha, FillBorderRadius *radius) {
+		if (_source && _source->ready()) {
+			if (radius) {
+				// TODO ...
+			} else {
+				auto skimg = CastSkImage(_source.value());
+				canvas->drawImageRect(skimg, MakeSkRectFrom(host), {});
+			}
 		}
 		if (_next)
 			_next->draw(host, canvas, alpha, radius);

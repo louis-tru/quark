@@ -167,18 +167,21 @@ namespace flare {
 		FillImage(cString& src = String());
 		virtual ~FillImage();
 		virtual Type type() const override;
-		F_DEFINE_PROP(String, src);
-		F_DEFINE_PROP(ImageSource*, source);
+
 		F_DEFINE_PROP(Repeat, repeat);
 		F_DEFINE_PROP(FillPosition, position_x);
 		F_DEFINE_PROP(FillPosition, position_y);
 		F_DEFINE_PROP(FillSize, size_x);
 		F_DEFINE_PROP(FillSize, size_y);
+		ImageSource* source() { return _source.value(); }
+		String src() const;
+		void set_source(ImageSource* source);
+		void set_src(cString& src);
+
 		virtual Fill copy(Fill to) override;
 		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
 	 private:
-		int _attributes_flags;
-		//Handle<ImageSource> _source;
+		Handle<ImageSource> _source;
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
 

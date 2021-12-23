@@ -188,6 +188,7 @@ namespace flare {
 		Buffer   _loaded;
 		uint32_t _load_id;
 		void *_inl;
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	class F_EXPORT ImagePool: public Object {
