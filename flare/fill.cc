@@ -242,9 +242,8 @@ namespace flare {
 		}
 
 		void set_source(cString& src, bool has_base64) {
-			if (has_base64 || src != _src) {
+			if (src != _src) {
 				_src = src;
-				_has_base64 = has_base64;
 				if ( src.is_empty() ) {
 					set_texture(nullptr);
 				} else {
@@ -260,7 +259,6 @@ namespace flare {
 		: _src(src)
 		, _texture(nullptr)
 		, _repeat(Repeat::REPEAT)
-		, _has_base64(false)
 		, _attributes_flags(0)
 	{
 	}
@@ -279,7 +277,6 @@ namespace flare {
 		target->_attributes_flags |= _attributes_flags;
 		if (_attributes_flags & BI_flag_src) {
 			target->_src = _src;
-			target->_has_base64 = _has_base64;
 		}
 		if (_attributes_flags & BI_flag_repeat) target->_repeat = _repeat;
 		if (_attributes_flags & BI_flag_position_x) target->_position_x = _position_x;
@@ -294,11 +291,6 @@ namespace flare {
 	void FillImage::set_src(String value) {
 		// TODO ...
 		// _inl2(this)->set_source(value, false);
-	}
-
-	void FillImage::set_src_base64(cString& value) {
-		// TODO ...
-		// _inl2(this)->set_source(value, true);
 	}
 
 	void FillImage::set_texture(Texture* value) {
@@ -360,114 +352,6 @@ namespace flare {
 		}
 	}
 
-	bool FillImage::get_image_data(Box* v, Vec2& final_size, Vec2& final_position, int& level) {
-		// TODO ...
-		// bool ok = false;
-		// auto tex = _texture;
-		// if (!tex) {
-		// 	return ok;
-		// }
-		// if (!tex->is_available()) {
-		// 	tex->load(); return ok;
-		// }
-		
-		// float tex_width = tex->width();
-		// float tex_height = tex->height();
-		// auto sx = _size_x, sy = _size_y;
-		// auto px = _position_x, py = _position_y;
-		
-		// float final_size_x, final_size_y, final_position_x, final_position_y;
-		
-		// if (sx.type == FillSizeType::AUTO) {
-		// 	switch (sy.type) {
-		// 		case FillSizeType::AUTO:
-		// 			final_size_x = tex_width;
-		// 			final_size_y = tex_height;
-		// 			break;
-		// 		case FillSizeType::PIXEL:
-		// 			final_size_y = sy.value;
-		// 			final_size_x = tex_width * final_size_y / tex_height;
-		// 			break;
-		// 		default: // case FillSizeType::PERCENT:
-		// 			final_size_y = sy.value * v->_final_height;
-		// 			final_size_x = tex_width * final_size_y / tex_height;
-		// 			break;
-		// 	}
-		// } else {
-		// 	if (sx.type == FillSizeType::PIXEL) {
-		// 		final_size_x = sx.value;
-		// 	} else {
-		// 		final_size_x = sx.value * v->_final_width;
-		// 	}
-		// 	switch (sy.type) {
-		// 		case FillSizeType::AUTO:
-		// 			final_size_y = tex_height * final_size_x / tex_width;
-		// 			break;
-		// 		case FillSizeType::PIXEL:
-		// 			final_size_y = sy.value;
-		// 			break;
-		// 		default:// case FillSizeType::PERCENT:
-		// 			final_size_y = sy.value * v->_final_height;
-		// 			break;
-		// 	}
-		// }
-		
-		// switch (px.type) {
-		// 	case FillPositionType::PIXEL:     /* 像素值  px */
-		// 		final_position_x = px.value;
-		// 		break;
-		// 	case FillPositionType::PERCENT:   /* 百分比  % */
-		// 		final_position_x = px.value * v->_final_width;
-		// 		break;
-		// 	case FillPositionType::RIGHT:     /* 居右  % */
-		// 		final_position_x = v->_final_width - final_size_x;
-		// 		break;
-		// 	case FillPositionType::CENTER:    /* 居中 */
-		// 		final_position_x = (v->_final_width - final_size_x) / 2;
-		// 		break;
-		// 	default:
-		// 		final_position_x = 0; break;
-		// }
-		
-		// switch (py.type) {
-		// 	case FillPositionType::PIXEL:     /* 像素值  px */
-		// 		final_position_y = py.value;
-		// 		break;
-		// 	case FillPositionType::PERCENT:   /* 百分比  % */
-		// 		final_position_y = py.value * v->_final_height;
-		// 		break;
-		// 	case FillPositionType::BOTTOM:     /* 居下  % */
-		// 		final_position_y = v->_final_height - final_size_y;
-		// 		break;
-		// 	case FillPositionType::CENTER:    /* 居中 */
-		// 		final_position_y = (v->_final_height - final_size_y) / 2;
-		// 		break;
-		// 	default:
-		// 		final_position_y = 0; break;
-		// }
-		
-		// final_size = Vec2(final_size_x, final_size_y);
-		// final_position = Vec2(final_position_x, final_position_y);
-		
-		// // Computing texture level
-		// float dpscale = app()->display_port()->scale();
-		// // screen size
-		// auto vertex = v->_final_vertex;
-		// float box_screen_scale_width = sqrt(pow(vertex[0][0] - vertex[1][0], 2) +
-		// 																		pow(vertex[0][1] - vertex[1][1], 2)) / v->_final_width;
-		// float box_screen_scale_height = sqrt(pow(vertex[0][0] - vertex[3][0], 2) +
-		// 																		pow(vertex[0][1] - vertex[3][1], 2)) / v->_final_height;
-		// float tex_screen_width = final_size_x * box_screen_scale_width;
-		// float tex_screen_height = final_size_y * box_screen_scale_height;
-		
-		// float ratio = (tex->width() / F_MAX(tex_screen_width, 16) +
-		// 							tex->height() / F_MAX(tex_screen_height, 16)) / 2 / dpscale;
-		
-		// level = tex->get_texture_level(floorf(ratio));
-		
-		return true;
-	}
-
 	FillGradient::FillGradient()
 	{
 	}
@@ -503,21 +387,21 @@ namespace flare {
 	}
 
 	void FillImage::draw(Box *host, Canvas *canvas, uint8_t alpha, FillBorderRadius *radius) {
-		if (!_image) {
-			auto buf = fs_reader()->read_file_sync(_src);
-			auto len = buf.length();
-			auto pixel = PixelData::decode(buf);
-			F_LOG("%d,%d", pixel.width(), pixel.height());
-			
-			_image = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.collapse(), len, [](const void* ptr, void* context) {
-				::free((void*)ptr);
-			}, nullptr));
+		if (_source) {
+//			auto buf = fs_reader()->read_file_sync(_src);
+//			auto len = buf.length();
+//			auto pixel = PixelData::decode(buf);
+//			F_LOG("%d,%d", pixel.width(), pixel.height());
+//
+//			_image = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.collapse(), len, [](const void* ptr, void* context) {
+//				::free((void*)ptr);
+//			}, nullptr));
 		}
 
 		if (radius) {
 			// TODO ...
 		} else {
-			canvas->drawImageRect(_image, MakeSkRectFrom(host), {});
+			//canvas->drawImageRect(_image, MakeSkRectFrom(host), {});
 		}
 		if (_next)
 			_next->draw(host, canvas, alpha, radius);

@@ -70,6 +70,7 @@ namespace flare {
 			return *this;
 		}
 		
+		inline operator bool() const { return _data != nullptr; }
 		inline T* operator->() { return _data; }
 		inline T* operator*() { return _data; }
 		inline T* value() { return _data; }

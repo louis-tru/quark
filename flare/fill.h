@@ -32,7 +32,8 @@
 #define __flare__fill__
 
 #include "./value.h"
-#include "skia/core/SkImage.h"
+#include "./image_source.h"
+#include "./util/handle.h"
 
 namespace flare {
 
@@ -44,7 +45,6 @@ namespace flare {
 	class FillShadow;
 	class FillBorder; // top,right,bottom,left
 	class FillBorderRadius; // left-top,right-top,right-bottom,left-bottom
-	class Texture;
 	class Canvas;
 
 	typedef FillBox* Fill;
@@ -168,20 +168,17 @@ namespace flare {
 		virtual ~FillImage();
 		virtual Type type() const override;
 		F_DEFINE_PROP(String, src);
-		F_DEFINE_PROP(Texture*, texture);
+		F_DEFINE_PROP(ImageSource*, source);
 		F_DEFINE_PROP(Repeat, repeat);
 		F_DEFINE_PROP(FillPosition, position_x);
 		F_DEFINE_PROP(FillPosition, position_y);
 		F_DEFINE_PROP(FillSize, size_x);
 		F_DEFINE_PROP(FillSize, size_y);
-		F_DEFINE_PROP_READ(bool, has_base64);
-		void set_src_base64(cString& data);
-		bool get_image_data(Box* host, Vec2& size_out, Vec2& position_out, int& level_out);
 		virtual Fill copy(Fill to) override;
 		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
 	 private:
 		int _attributes_flags;
-		sk_sp<SkImage> _image;
+		//Handle<ImageSource> _source;
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
