@@ -84,9 +84,9 @@ function set_url_args(path: string, arg?: string) {
 
 function readText(path: string) {
 	return new Promise<string>(function(resolve, reject) {
-		if ('ext://' == path.substr(0, 6)) {
+		if ('ext://' == path.substring(0, 6)) {
 			try {
-				var r = _util.__extendModuleContent(path.substr(6));
+				var r = _util.__extendModuleContent(path.substring(6));
 				assert(r, `Cannot find module ${path}`);
 				return resolve(r);
 			} catch(err) {
@@ -99,8 +99,8 @@ function readText(path: string) {
 }
 
 function readTextSync(path: string): string {
-	if ('ext://' == path.substr(0, 6)) {
-		var r = _util.__extendModuleContent(path.substr(6));
+	if ('ext://' == path.substring(0, 6)) {
+		var r = _util.__extendModuleContent(path.substring(6));
 		assert(r, `Cannot find module ${path}`);
 		return r;
 	} else {
@@ -119,7 +119,7 @@ function throwErr(err: any, cb?: Cb) {
 function _parseJSON(source: string, filename: string) {
 	try {
 		return JSON.parse(stripBOM(source));
-	} catch (err) {
+	} catch (err: any) {
 		err.message = filename + ': ' + err.message;
 		throw err;
 	}
@@ -229,7 +229,7 @@ class ModulePath {
 			} else { // has package link
 				var link = readLocalPackageLinkSync(dirent.pathname);
 				if (link) {
-					this._packagesPath.set(dirent.name.substr(0, dirent.name.length - 5), link);
+					this._packagesPath.set(dirent.name.substring(0, dirent.name.length - 5), link);
 				}
 			}
 		}
@@ -644,7 +644,7 @@ export class Module implements NodeModule {
 		var parent = new Module('internal/preload');
 		try {
 			parent.paths = Module._nodeModulePaths(_path.cwd());
-		} catch (e) {
+		} catch (e: any) {
 			if (e.code !== 'ENOENT') {
 				throw e;
 			}
@@ -746,11 +746,11 @@ function getOrigin(from: string) {
 		if (index == -1) {
 			return from;
 		} else {
-			return from.substr(0, index);
+			return from.substring(0, index);
 		}
 	} else if (isLocalZip(from)) {
 		// zip:///home/xxx/test.apk@/assets/bb.jpg
-		origin = from.substr(0, from.indexOf('@/') + 1);
+		origin = from.substring(0, from.indexOf('@/') + 1);
 		if (!origin) {
 			if (from[from.length - 1] == '@') {
 				return from;
@@ -773,7 +773,7 @@ function levelPaths(from: string, begin?: string): string[] {
 	if (!prefix) // invalid origin
 		return [];
 
-	from = from.substr(prefix.length);
+	from = from.substring(prefix.length);
 
 	// Return early not only to avoid unnecessary work, but to *avoid* returning
 	// an array of two items for a root: [ '//node_modules', '/node_modules' ]
@@ -811,8 +811,8 @@ function slicePackageName(request: string) {
 	var relativePath = '';
 	var index = request.indexOf('/');
 	if (index != -1) {
-		pkgName = request.substr(0, index);
-		relativePath = request.substr(index + 1);
+		pkgName = request.substring(0, index);
+		relativePath = request.substring(index + 1);
 	}
 	return {pkgName,relativePath};
 }
@@ -835,8 +835,8 @@ function lookupFromAbsolute(request: string, lazy?: boolean): LookupResult | nul
 	if (cached)
 		return cached;
 
-	if (request.substr(0, 4) == 'ext:') {
-		var {pkgName,relativePath} = slicePackageName(request.substr(6));
+	if (request.substring(0, 4) == 'ext:') {
+		var {pkgName,relativePath} = slicePackageName(request.substring(6));
 		return lookupFromExtend(pkgName, relativePath);
 	}
 
@@ -867,10 +867,10 @@ function lookupFromAbsolute(request: string, lazy?: boolean): LookupResult | nul
 					}
 				}
 			} else { // network
-				var searchPath = pkgPath.substr(0, pkgPath.lastIndexOf('/'));
+				var searchPath = pkgPath.substring(0, pkgPath.lastIndexOf('/'));
 				var modulePath = modulePathCache.get(searchPath);
 				if (modulePath) {
-					var pkgName = pkgPath.substr(searchPath.length + 1);
+					var pkgName = pkgPath.substring(searchPath.length + 1);
 					if (modulePath.hasPackage(pkgName)) {
 						pkg = modulePath.createPackage(pkgName);
 					}
@@ -879,12 +879,12 @@ function lookupFromAbsolute(request: string, lazy?: boolean): LookupResult | nul
 		}
 
 		if (pkg) {
-			var relativePath = request.substr(pkgPath.length + 1);
+			var relativePath = request.substring(pkgPath.length + 1);
 			if (!is_local && !lazy) { // network
 				// TODO network, if relativePath = 'node_modules/pkgName/xxx.js' then ?
 				var index = relativePath.indexOf('node_modules');
 				if (index != -1) {
-					var searchPath = pkg.path + '/' + relativePath.substr(0, index + 12);
+					var searchPath = pkg.path + '/' + relativePath.substring(0, index + 12);
 					var modulePath = modulePathCache.get(searchPath);
 					if (!modulePath) {
 						modulePath = new ModulePath(searchPath);
@@ -1189,7 +1189,7 @@ class PackageIMPL {
 	
 		if (_fs.existsSync(pathname)) { // 文件存在,无需下载
 			// 设置一个本地zip文件读取协议路径,使用这种路径可直接读取zip内部文件
-			self.pkg_path = `zip:///${pathname.substr(8)}@`;  // file:///
+			self.pkg_path = `zip:///${pathname.substring(8)}@`;  // file:///
 			self._installComplete(self.pkg_path, cb);
 		} else { // downloading ...
 			var url = set_url_args(`${self.path}/${self.name}.pkg`, hash);
@@ -1215,7 +1215,7 @@ class PackageIMPL {
 					}
 				} else {
 					_fs.renameSync(save, pathname);
-					self.pkg_path = `zip:///${pathname.substr(8)}@`; // file:///
+					self.pkg_path = `zip:///${pathname.substring(8)}@`; // file:///
 					self._installComplete(self.pkg_path, cb);
 				}
 			};
@@ -1225,7 +1225,7 @@ class PackageIMPL {
 			} else {
 				try {
 					_http.requestSync({ url, save });
-				} catch(err) {
+				} catch(err: any) {
 					ok(err); return;
 				}
 				ok();
@@ -1266,7 +1266,7 @@ class PackageIMPL {
 			self._installComplete(path, cb);
 		}
 		else if (isFileSync(`${path}/${self.name}.pkg`)) { // 本地包中存在.pkg文件
-			self.pkg_path = `zip:///${path.substr(8)}/${self.name}.pkg@`;  // file:///
+			self.pkg_path = `zip:///${path.substring(8)}/${self.name}.pkg@`;  // file:///
 			self._installComplete(self.pkg_path, cb);
 		}
 		else { // 无.pkg包
@@ -1349,12 +1349,12 @@ class PackageExtend extends PackageIMPL {
 		for ( var [, v] of Object.entries<ExtendModule>(_util.__extendModule) ) {
 			var i = v.filename.indexOf('/');
 			if (i > 0) { // 没有目录的扩展包被忽略  flare/value
-				var mname = v.filename.substr(0, i);
+				var mname = v.filename.substring(0, i);
 				var m = tmps[mname];
 				if (!m) {
 					tmps[mname] = m = [];
 				}
-				m.push(v.filename.substr(i + 1));
+				m.push(v.filename.substring(i + 1));
 			}
 		}
 

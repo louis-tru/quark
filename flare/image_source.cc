@@ -174,9 +174,10 @@ namespace flare {
 		
 		struct Ctx {
 			Handle<ImageSource> src;
-			SkImage* img;
+			sk_sp<SkImage> img;
 		};
-		auto ctx = new Ctx({ this, sk_I(_inl) });
+		auto ctx = new Ctx({ this, sk_sp<SkImage>(sk_I(_inl)) });
+		ctx->img->ref();
 		
 		RunLoop::first()->work(Cb([this,ctx](CbData& e){
 			char tmp[16];

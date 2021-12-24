@@ -142,7 +142,7 @@ namespace flare {
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+content+padding）
 		float _layout_weight; // layout weight
 		Align _layout_align; // layout align
-		bool  _wrap_x, _wrap_y; // layout content size wrap
+		bool  _wrap_x, _wrap_y, _is_radius; // layout content size wrap
 
 		F_DEFINE_INLINE_CLASS(Inl);
 	};

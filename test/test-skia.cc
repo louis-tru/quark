@@ -70,7 +70,7 @@ void onload_handle(Event<>& evt, Application* app) {
 	flex->set_width({ 0, SizeType::MATCH });
 	flex->set_height({ 200, SizeType::PIXEL });
 	flex->set_fill(New<FillColor>(Color(255,0,0,255))->set_next(
-								 New<FillImage>(Path::resources("bench/img2/99.jpeg"))));
+								 New<FillImage>(Path::resources("bench/img2/21.jpeg"))));
 	flex->set_margin_left(10);
 	flex->set_margin_top(20);
 	flex->set_margin_right(10);
@@ -82,7 +82,7 @@ void onload_handle(Event<>& evt, Application* app) {
 	//
 	flow->set_width({ 50, SizeType::PIXEL });
 	flow->set_height({ 50, SizeType::PIXEL });
-	flow->set_fill(new FillColor(Color(0,255,0,255)));
+	flow->set_fill(New<FillImage>(Path::resources("bench/img2/99.jpeg")));
 	flow->set_layout_align(Align::CENTER_BOTTOM);
 	flow->set_margin_left(10);
 	flow->set_margin_top(10);
