@@ -47,7 +47,7 @@ export default ()=>(
 
 		<Scroll width="full" height="full" bounceLock={0}>
 
-			<Text class="category_title" value="GUI." />
+			<Text class="category_title" value="." />
 			<Clip class="category">
 				<Navbutton next={components} id="btn0">Components</Navbutton>
 				<Navbutton next={media}>Multi-Media</Navbutton>

@@ -33,7 +33,7 @@ import {
 	ViewController, Button, Hybrid,
 	Text, Indep, default as flare, _CVD
 } from 'flare';
-import {GUIClickEvent} from 'flare/event';
+import {ClickEvent} from 'flare/event';
 
 const px = flare.atomPixel;
 const resolve = require.resolve;
@@ -121,7 +121,7 @@ export class NavButton extends ViewController {
 		);
 	}
 
-	private _handle_click = (evt: GUIClickEvent)=>{
+	private _handle_click = (evt: ClickEvent)=>{
 		if (!this.next) return;
 		var next = this.next();
 		if ( ViewController.typeOf(next, Mynavpage) ) {

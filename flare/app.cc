@@ -39,6 +39,7 @@
 // #include "./css/css.h"
 #include "./font/pool.h"
 #include "./image_source.h"
+#include "./image_source.h"
 #include "./pre_render.h"
 #include "./layout/text.h"
 #include "./event.h"
@@ -198,13 +199,20 @@ namespace flare {
 		, _default_text_settings(nullptr)
 		, _dispatch(nullptr), _action_direct(nullptr)
 		, _pre_render(nullptr), _font_pool(nullptr), _img_pool(nullptr)
-		, _max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
+		, _max_image_memory_limit(512 * 1024 * 1024) // init 512MB
 	{
 		F_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
-		_default_text_settings = new DefaultTextSettings();
 
 		F_On(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
+		// init
+		_default_text_settings = new DefaultTextSettings();
+		_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
+		_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
+		//_font_pool = new FontPool(this);
+		_img_pool = new ImagePool(this);
+		_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
+		// _action_direct = new ActionDirect(); F_DEBUG("new ActionDirect ok");
 	}
 
 	Application::~Application() {
@@ -238,13 +246,7 @@ namespace flare {
 	void Application::run(bool is_loop) throw(Error) {
 		UILock lock(this);
 		if (!_keep) { // init
-			_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
-			_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
 			_render = Render::create(this, Render::parseOptions(_opts)); F_DEBUG("Render::create() ok");
-			//_font_pool = new FontPool(this);
-			//_tex_pool = new TexturePool(this);
-			_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
-			// _action_direct = new ActionDirect(); F_DEBUG("new ActionDirect ok");
 			_loop = RunLoop::current();
 			_keep = _loop->keep_alive("Application::run(), keep"); // 保持运行
 			__run_main_wait->awaken(); // 外部线程继续运行
@@ -294,48 +296,47 @@ namespace flare {
 	* @func clear([full]) 清理不需要使用的资源
 	*/
 	void Application::clear(bool full) {
-		// TODO ...
-		// _render_loop->post(Cb([&, full](CbData& e){
-		// 	_tex_pool->clear(full);
-		// 	_font_pool->clear(full);
-		// }));
+		_render->post_message(Cb([this, full](CbData& e){
+			_img_pool->clear(full);
+			_font_pool->clear(full);
+		}));
 	}
 
 	/**
-	* @func max_texture_memory_limit()
+	* @func max_image_memory_limit()
 	*/
-	uint64_t Application::max_texture_memory_limit() const {
-		return _max_texture_memory_limit;
+	uint64_t Application::max_image_memory_limit() const {
+		return _max_image_memory_limit;
 	}
 	
 	/**
-	* @func set_max_texture_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
+	* @func set_max_image_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
 	*/
-	void Application::set_max_texture_memory_limit(uint64_t limit) {
-		_max_texture_memory_limit = F_MAX(limit, 64 * 1024 * 1024);
+	void Application::set_max_image_memory_limit(uint64_t limit) {
+		_max_image_memory_limit = F_MAX(limit, 64 * 1024 * 1024);
 	}
 	
 	/**
 	* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
 	*/
-	uint64_t Application::used_texture_memory() const {
+	uint64_t Application::used_image_memory() const {
 		return _img_pool->total_data_size() + _font_pool->total_data_size();
 	}
 
 	/**
-	* @func adjust_texture_memory()
+	* @func adjust_image_memory()
 	*/
-	bool Application::adjust_texture_memory(uint64_t will_alloc_size) {
+	bool Application::adjust_image_memory(uint64_t will_alloc_size) {
 		int i = 0;
 		do {
-			if (will_alloc_size + used_texture_memory() <= _max_texture_memory_limit) {
+			if (will_alloc_size + used_image_memory() <= _max_image_memory_limit) {
 				return true;
 			}
 			clear();
 			i++;
 		} while(i < 3);
 		
-		F_WARN("Adjust texture memory fail");
+		F_WARN("Adjust image memory fail");
 		
 		return false;
 	}

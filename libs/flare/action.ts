@@ -33,7 +33,7 @@ import { Propery } from './css';
 import * as value from './value';
 import { View } from './_view';
 import { Action, ActionIn, KeyframeOptions } from './_action';
-import { GUIActionEvent } from './event';
+import { ActionEvent } from './event';
 
 const _action = __require__('_action');
 
@@ -210,10 +210,10 @@ export function create(In: ActionIn, parent?: GroupAction) {
 	* @arg [cb]     {Function}
 	* @ret {KeyframeAction}
 	*/
-export declare function transition(view: View, style: KeyframeOptions, cb?: (e: GUIActionEvent)=>void): KeyframeAction;
-export declare function transition(view: View, style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void): KeyframeAction;
+export declare function transition(view: View, style: KeyframeOptions, cb?: (e: ActionEvent)=>void): KeyframeAction;
+export declare function transition(view: View, style: KeyframeOptions, delay?: number, cb?: (e: ActionEvent)=>void): KeyframeAction;
 
-exports.transition = function(view: View, style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void) {
+exports.transition = function(view: View, style: KeyframeOptions, delay?: number, cb?: (e: ActionEvent)=>void) {
 	var action = new _action.KeyframeAction() as KeyframeAction;
 	if ( typeof delay == 'function' ) {
 		cb = delay;

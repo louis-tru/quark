@@ -242,8 +242,7 @@ namespace flare {
 	}
 
 	void FillImage::set_src(cString& value) {
-		auto source = new ImageSource(value); // TODO ...
-		set_source(source);
+		set_source(app() ? app()->img_pool()->get(value): new ImageSource(value));
 	}
 
 	void FillImage::set_source(ImageSource* source) {
@@ -307,6 +306,8 @@ namespace flare {
 
 	// ------------------------------ draw ------------------------------
 
+	SkImage* CastSkImage(ImageSource* img);
+
 	static SkRect MakeSkRectFrom(Box *host) {
 		auto o = host->transform_origin();
 		auto s = host->client_size();
@@ -326,8 +327,6 @@ namespace flare {
 		if (_next)
 			_next->draw(host, canvas, alpha, radius);
 	}
-
-	SkImage* CastSkImage(ImageSource* img);
 
 	void FillImage::draw(Box *host, Canvas *canvas, uint8_t alpha, FillBorderRadius *radius) {
 		if (_source && _source->ready()) {

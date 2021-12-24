@@ -33,16 +33,16 @@ import util from 'flare/util';
 import * as http from 'flare/http';
 import { alert } from 'flare/dialog';
 import { Mynavpage } from './public';
-import { GUIClickEvent, GUIKeyEvent } from 'flare/event';
+import { ClickEvent, KeyEvent } from 'flare/event';
 import * as buffer from 'flare/buffer';
 
 const resolve = require.resolve;
 
-function url(evt: GUIClickEvent) {
+function url(evt: ClickEvent) {
 	return evt.sender.ownerAs().find<Input>('input').value;
 }
 
-function Get(evt: GUIClickEvent) {
+function Get(evt: ClickEvent) {
 	http.get(url(evt)).then(function({ data }) {
 		var content = buffer.convertString(data, 'utf8');
 		alert(content.substr(0, 200).trim() + '...');
@@ -51,7 +51,7 @@ function Get(evt: GUIClickEvent) {
 	});
 }
 
-function Post(evt: GUIClickEvent) {
+function Post(evt: ClickEvent) {
 	http.post(url(evt), 'post data').then(function({ data }) {
 		alert(buffer.convertString(data, 'utf8').substr(0, 200).trim() + '...');
 	}).catch(function(err) {
@@ -59,7 +59,7 @@ function Post(evt: GUIClickEvent) {
 	});
 }
 
-function GetSync(evt: GUIClickEvent) {
+function GetSync(evt: ClickEvent) {
 	try {
 		alert(buffer.convertString(http.getSync(url(evt)), 'utf8').substr(0, 200).trim() + '...');
 	} catch (err) {
@@ -67,7 +67,7 @@ function GetSync(evt: GUIClickEvent) {
 	}
 }
 
-function PostSync(evt: GUIClickEvent) {
+function PostSync(evt: ClickEvent) {
 	try {
 		alert(buffer.convertString(http.postSync(url(evt), 'post data'), 'utf8').substr(0, 200).trim() + '...');
 	} catch (err) {
@@ -75,7 +75,7 @@ function PostSync(evt: GUIClickEvent) {
 	}
 }
 
-function keyenter(evt: GUIKeyEvent) {
+function keyenter(evt: KeyEvent) {
 	evt.sender.blur();
 }
 

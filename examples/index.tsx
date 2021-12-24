@@ -29,19 +29,29 @@
  * ***** END LICENSE BLOCK ***** */
 
 import util from 'flare/util';
-import * as sys from 'flare/sys';
 import * as reader from 'flare/reader';
 import * as font from 'flare/font';
+import { Application } from 'flare/app';
+
+var app = new Application({
+	multisample: 4,
+	width: 420,
+	height: 800,
+	fullScreen: !!util.options.full_screen,
+	enableTouch: true,
+	background: 0xffffff,
+	title: 'Flare Examples',
+});
+
 import {
-	Application, Root, Scroll,
-	Div, Hybrid, Clip, Text, Button, TextNode as T, default as flare, _CVD
+	Root, Scroll, Div, Hybrid, Clip, Text, Button, TextNode as T, default as flare, _CVD
 } from 'flare';
 import { NavPageCollection, Toolbar } from 'flare/nav';
 import { Navbutton, Mynavpage, Page } from './public';
 import examples from './examples';
 import about_vx from './about';
 import review_vx from './review';
-import {GUIClickEvent} from 'flare/event';
+import {ClickEvent} from 'flare/event';
 
 const resolve = require.resolve;
 const px = flare.atomPixel;
@@ -101,7 +111,7 @@ flare.css({
 	
 })
 
-function review_code(evt: GUIClickEvent) {
+function review_code(evt: ClickEvent) {
 	evt.sender.ownerAs<Page>().collection.push(review_vx(), true);
 }
 
@@ -112,7 +122,7 @@ const documents = 'http://flare.cool/';
 
 // registerFont
 
-function handle_go_to(evt: GUIClickEvent) {
+function handle_go_to(evt: ClickEvent) {
 	var url = (evt.sender as any).url;
 	if ( url ) {
 		flare.app.openUrl(url);
@@ -176,15 +186,12 @@ const bug_feedback_vx = ()=>(
 	</Mynavpage>
 )
 
-var app = new Application({
-	multisample: 4,
-	width: 420,
-	height: 800,
-	fullScreen: !!util.options.full_screen,
-	enableTouch: true,
-	background: 0xffffff,
-	title: 'Flare Examples',
-}).start(
+// register font icomoon-ultimate
+font.registerFont( reader.readFileSync(resolve('./icomoon.ttf')) );
+
+// console.log(app.displayPort.phyWidth)
+
+app.start(
 	<Root>
 
 		<NavPageCollection id="npc" defaultToolbar={<DefaultToolbar />}>
@@ -225,11 +232,6 @@ var app = new Application({
 		</NavPageCollection>
 	</Root>
 )
-
-// register font icomoon-ultimate
-font.registerFont( reader.readFileSync(resolve('./icomoon.ttf')) );
-
-// console.log(app.displayPort.phyWidth)
 
 var lock = Number(util.options.lock);
 if (lock) {

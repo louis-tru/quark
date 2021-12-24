@@ -32,17 +32,17 @@ import { Div, Button, Input, _CVD } from 'flare';
 import * as storage from 'flare/storage';
 import { alert } from 'flare/dialog';
 import { Mynavpage } from './public';
-import {GUIKeyEvent,GUIClickEvent} from 'flare/event';
+import {KeyEvent,ClickEvent} from 'flare/event';
 
 var resolve = require.resolve;
 
 const key = 'test';
 
-function keyenter(evt: GUIKeyEvent) {
+function keyenter(evt: KeyEvent) {
 	evt.sender.blur();
 }
 
-function Get(evt: GUIClickEvent) {
+function Get(evt: ClickEvent) {
 	var val = storage.get(key);
 	if ( val ) {
 		alert(storage.get(key));
@@ -51,17 +51,17 @@ function Get(evt: GUIClickEvent) {
 	}
 }
 
-function Set(evt: GUIClickEvent) {
+function Set(evt: ClickEvent) {
 	storage.set(key, evt.sender.ownerAs().find<Input>('input').value);
 	alert('Save local data OK.');
 }
 
-function Del(evt: GUIClickEvent) {
+function Del(evt: ClickEvent) {
 	storage.del(key);
 	alert('Delete local data OK.');
 }
 
-function Clear(evt: GUIClickEvent) {
+function Clear(evt: ClickEvent) {
 	storage.clear();
 	alert('Delete All local data OK.');
 }

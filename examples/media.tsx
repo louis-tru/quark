@@ -31,7 +31,7 @@
 import { Div, Button, _CVD } from 'flare';
 import { AudioPlayer, Video } from 'flare/media';
 import { Mynavpage } from './public';
-import { GUIClickEvent } from 'flare/event';
+import { ClickEvent } from 'flare/event';
 
 // const src_720 = 'http://flare.cool/media/2017-09-11_15_41_19.mp4';
 const src_720 = 'http://flare.cool/media/piper720p.mp4';
@@ -41,14 +41,14 @@ const resolve = require.resolve;
 
 var audio_player: AudioPlayer | null = null;
 
-function PlayVideo(evt: GUIClickEvent) {
+function PlayVideo(evt: ClickEvent) {
 	StopAudio(evt);
 	var v = evt.sender.ownerAs().find<Video>('video');
 	v.src = src_720;
 	v.start();
 }
 
-function PlayAudio(evt: GUIClickEvent) {
+function PlayAudio(evt: ClickEvent) {
 	StopVideo(evt);
 	if ( !audio_player ) {
 		audio_player = new AudioPlayer();
@@ -57,23 +57,23 @@ function PlayAudio(evt: GUIClickEvent) {
 	audio_player.start();
 }
 
-function StopVideo(evt: GUIClickEvent) {
+function StopVideo(evt: ClickEvent) {
 	evt.sender.ownerAs().find<Video>('video').stop();
 }
 
-function StopAudio(evt: GUIClickEvent) {
+function StopAudio(evt: ClickEvent) {
 	if ( audio_player ) {
 		audio_player.stop();
 		audio_player = null;
 	}
 }
 
-function Stop(evt: GUIClickEvent) {
+function Stop(evt: ClickEvent) {
 	StopVideo(evt);
 	StopAudio(evt);
 }
 
-function Seek(evt: GUIClickEvent) {
+function Seek(evt: ClickEvent) {
 	if ( audio_player ) {
 		audio_player.seek(10000); // 10s
 	} else {

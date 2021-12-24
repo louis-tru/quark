@@ -31,9 +31,9 @@
 import {
 	HighlightedStatus,
 	Notification, EventNoticer, UIEvent,
-	GUIHighlightedEvent, GUIKeyEvent,
-	GUIClickEvent, GUITouchEvent,
-	GUIMouseEvent, GUIActionEvent,
+	HighlightedEvent, KeyEvent,
+	ClickEvent, TouchEvent,
+	MouseEvent, ActionEvent,
 } from './event';
 import * as value from './value';
 import ViewController from './ctr';
@@ -56,29 +56,29 @@ export interface DOM {
  * @class View
  */
 export declare class View extends Notification<UIEvent> implements DOM {
-	readonly onKeyDown: EventNoticer<GUIKeyEvent>;
-	readonly onKeyPress: EventNoticer<GUIKeyEvent>;
-	readonly onKeyUp: EventNoticer<GUIKeyEvent>;
-	readonly onKeyEnter: EventNoticer<GUIKeyEvent>;
-	readonly onBack: EventNoticer<GUIClickEvent>;
-	readonly onClick: EventNoticer<GUIClickEvent>;
-	readonly onTouchStart: EventNoticer<GUITouchEvent>;
-	readonly onTouchMove: EventNoticer<GUITouchEvent>;
-	readonly onTouchEnd: EventNoticer<GUITouchEvent>;
-	readonly onTouchCancel: EventNoticer<GUITouchEvent>;
-	readonly onMouseOver: EventNoticer<GUIMouseEvent>;
-	readonly onMouseOut: EventNoticer<GUIMouseEvent>;
-	readonly onMouseLeave: EventNoticer<GUIMouseEvent>;
-	readonly onMouseEnter: EventNoticer<GUIMouseEvent>;
-	readonly onMouseMove: EventNoticer<GUIMouseEvent>;
-	readonly onMouseDown: EventNoticer<GUIMouseEvent>;
-	readonly onMouseUp: EventNoticer<GUIMouseEvent>;
-	readonly onMouseWheel: EventNoticer<GUIMouseEvent>;
+	readonly onKeyDown: EventNoticer<KeyEvent>;
+	readonly onKeyPress: EventNoticer<KeyEvent>;
+	readonly onKeyUp: EventNoticer<KeyEvent>;
+	readonly onKeyEnter: EventNoticer<KeyEvent>;
+	readonly onBack: EventNoticer<ClickEvent>;
+	readonly onClick: EventNoticer<ClickEvent>;
+	readonly onTouchStart: EventNoticer<TouchEvent>;
+	readonly onTouchMove: EventNoticer<TouchEvent>;
+	readonly onTouchEnd: EventNoticer<TouchEvent>;
+	readonly onTouchCancel: EventNoticer<TouchEvent>;
+	readonly onMouseOver: EventNoticer<MouseEvent>;
+	readonly onMouseOut: EventNoticer<MouseEvent>;
+	readonly onMouseLeave: EventNoticer<MouseEvent>;
+	readonly onMouseEnter: EventNoticer<MouseEvent>;
+	readonly onMouseMove: EventNoticer<MouseEvent>;
+	readonly onMouseDown: EventNoticer<MouseEvent>;
+	readonly onMouseUp: EventNoticer<MouseEvent>;
+	readonly onMouseWheel: EventNoticer<MouseEvent>;
 	readonly onFocus: EventNoticer<UIEvent>;
 	readonly onBlur: EventNoticer<UIEvent>;
-	readonly onHighlighted: EventNoticer<GUIHighlightedEvent>;
-	readonly onActionKeyframe: EventNoticer<GUIActionEvent>;
-	readonly onActionLoop: EventNoticer<GUIActionEvent>;
+	readonly onHighlighted: EventNoticer<HighlightedEvent>;
+	readonly onActionKeyframe: EventNoticer<ActionEvent>;
+	readonly onActionLoop: EventNoticer<ActionEvent>;
 	prepend(view: View): void;
 	append(view: View): void;
 	appendText(str: string): void;
@@ -143,8 +143,8 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	hashCode(): number;
 	appendTo(parentView: View): this;
 	afterTo(prevView: View): this;
-	transition(style: KeyframeOptions, cb?: (e: GUIActionEvent)=>void): Action;
-	transition(style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void): Action;
+	transition(style: KeyframeOptions, cb?: (e: ActionEvent)=>void): Action;
+	transition(style: KeyframeOptions, delay?: number, cb?: (e: ActionEvent)=>void): Action;
 	show(): void;
 	hide(): void;
 	static readonly isViewController: boolean;
@@ -445,7 +445,7 @@ export declare class Button extends Hybrid {
 	panel(): Panel | null;
 	defaultStyle: boolean;
 	setHighlighted(status: HighlightedStatus): void;
-	triggerHighlighted(evt: GUIHighlightedEvent): number;
+	triggerHighlighted(evt: HighlightedEvent): number;
 }
 
 export declare class Root extends Panel {}

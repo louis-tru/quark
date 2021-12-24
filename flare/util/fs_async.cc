@@ -918,9 +918,10 @@ namespace flare {
 				if ( uv_req->result < 0 ) { // error
 					async_err_callback(req->cb(), uv_req, *req->data().path);
 				} else {
+					char* buf = req->data().buff.collapse();
+					buf[(uint32_t)uv_req->result] = '\0';
+					req->data().buff = Buffer::from(buf, (uint32_t)uv_req->result);
 					Buffer& buff = req->data().buff;
-					buff[(uint32_t)uv_req->result] = '\0';
-					buff.realloc((uint32_t)uv_req->result);
 					async_resolve<Object>(req->cb(), buff);
 				}
 				uv_fs_close(req->uv_loop(), uv_req, req->data().fd, &fs_close_cb); // close

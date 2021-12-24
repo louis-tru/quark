@@ -33,7 +33,7 @@ import * as fs from 'flare/fs';
 import path from 'flare/path';
 import { alert } from 'flare/dialog';
 import { Mynavpage } from './public';
-import { GUIClickEvent, GUIKeyEvent } from 'flare/event';
+import { ClickEvent, KeyEvent } from 'flare/event';
 import * as buffer from 'flare/buffer';
 
 var resolve = require.resolve;
@@ -42,7 +42,7 @@ const filename = path.documents('test.txt');
 
 fs.mkdirpSync(path.dirname(filename));
 
-function WriteFile(evt: GUIClickEvent) {
+function WriteFile(evt: ClickEvent) {
 	console.log('------------', filename);
 	fs.writeFile(filename, evt.sender.ownerAs().find<Input>('input').value).then(function() {
 		alert('Write file OK.');
@@ -51,7 +51,7 @@ function WriteFile(evt: GUIClickEvent) {
 	});
 }
 
-function WriteFileSync(evt: GUIClickEvent) {
+function WriteFileSync(evt: ClickEvent) {
 	try {
 		var txt = evt.sender.ownerAs().find<Input>('input').value;
 		var r = fs.writeFileSync(filename, txt);
@@ -62,7 +62,7 @@ function WriteFileSync(evt: GUIClickEvent) {
 	}
 }
 
-function ReadFile(evt: GUIClickEvent) {
+function ReadFile(evt: ClickEvent) {
 	console.log('------------', filename);
 	fs.readFile(filename).then(function(buf) {
 		alert(buffer.convertString(buf, 'utf8'));
@@ -71,7 +71,7 @@ function ReadFile(evt: GUIClickEvent) {
 	});
 }
 
-function ReadFileSync(evt: GUIClickEvent) {
+function ReadFileSync(evt: ClickEvent) {
 	console.log('------------', filename);
 	try {
 		var s = fs.readFileSync(filename, 'utf8');
@@ -81,7 +81,7 @@ function ReadFileSync(evt: GUIClickEvent) {
 	}
 }
 
-function Remove(evt: GUIClickEvent) {
+function Remove(evt: ClickEvent) {
 	try {
 		var a = fs.removerSync(filename);
 		alert('Remove file OK. ' + a);
@@ -90,7 +90,7 @@ function Remove(evt: GUIClickEvent) {
 	}
 }
 
-function keyenter(evt: GUIKeyEvent) {
+function keyenter(evt: KeyEvent) {
 	evt.sender.blur();
 }
 

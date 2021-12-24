@@ -32,9 +32,9 @@ import utils from './util';
 import event, {
 	NativeNotification, EventNoticer, 
 	HighlightedStatus,
-	UIEvent, GUIHighlightedEvent,
-	GUIKeyEvent, GUIClickEvent,
-	GUITouchEvent, GUIMouseEvent, GUIActionEvent,
+	UIEvent, HighlightedEvent,
+	KeyEvent, ClickEvent,
+	TouchEvent, MouseEvent, ActionEvent,
 } from './event';
 import {View} from './_view';
 import {ViewController,_CVD} from './ctr';
@@ -56,29 +56,29 @@ class _View extends NativeNotification {
 
 	get __meta__() { return this }
 
-	@event readonly onKeyDown: EventNoticer<GUIKeyEvent>;
-	@event readonly onKeyPress: EventNoticer<GUIKeyEvent>;
-	@event readonly onKeyUp: EventNoticer<GUIKeyEvent>;
-	@event readonly onKeyEnter: EventNoticer<GUIKeyEvent>;
-	@event readonly onBack: EventNoticer<GUIClickEvent>;
-	@event readonly onClick: EventNoticer<GUIClickEvent>;
-	@event readonly onTouchStart: EventNoticer<GUITouchEvent>;
-	@event readonly onTouchMove: EventNoticer<GUITouchEvent>;
-	@event readonly onTouchEnd: EventNoticer<GUITouchEvent>;
-	@event readonly onTouchCancel: EventNoticer<GUITouchEvent>;
-	@event readonly onMouseOver: EventNoticer<GUIMouseEvent>;
-	@event readonly onMouseOut: EventNoticer<GUIMouseEvent>;
-	@event readonly onMouseLeave: EventNoticer<GUIMouseEvent>;
-	@event readonly onMouseEnter: EventNoticer<GUIMouseEvent>;
-	@event readonly onMouseMove: EventNoticer<GUIMouseEvent>;
-	@event readonly onMouseDown: EventNoticer<GUIMouseEvent>;
-	@event readonly onMouseUp: EventNoticer<GUIMouseEvent>;
-	@event readonly onMouseWheel: EventNoticer<GUIMouseEvent>;
+	@event readonly onKeyDown: EventNoticer<KeyEvent>;
+	@event readonly onKeyPress: EventNoticer<KeyEvent>;
+	@event readonly onKeyUp: EventNoticer<KeyEvent>;
+	@event readonly onKeyEnter: EventNoticer<KeyEvent>;
+	@event readonly onBack: EventNoticer<ClickEvent>;
+	@event readonly onClick: EventNoticer<ClickEvent>;
+	@event readonly onTouchStart: EventNoticer<TouchEvent>;
+	@event readonly onTouchMove: EventNoticer<TouchEvent>;
+	@event readonly onTouchEnd: EventNoticer<TouchEvent>;
+	@event readonly onTouchCancel: EventNoticer<TouchEvent>;
+	@event readonly onMouseOver: EventNoticer<MouseEvent>;
+	@event readonly onMouseOut: EventNoticer<MouseEvent>;
+	@event readonly onMouseLeave: EventNoticer<MouseEvent>;
+	@event readonly onMouseEnter: EventNoticer<MouseEvent>;
+	@event readonly onMouseMove: EventNoticer<MouseEvent>;
+	@event readonly onMouseDown: EventNoticer<MouseEvent>;
+	@event readonly onMouseUp: EventNoticer<MouseEvent>;
+	@event readonly onMouseWheel: EventNoticer<MouseEvent>;
 	@event readonly onFocus: EventNoticer<UIEvent>;
 	@event readonly onBlur: EventNoticer<UIEvent>;
-	@event readonly onHighlighted: EventNoticer<GUIHighlightedEvent>;
-	@event readonly onActionKeyframe: EventNoticer<GUIActionEvent>;
-	@event readonly onActionLoop: EventNoticer<GUIActionEvent>;
+	@event readonly onHighlighted: EventNoticer<HighlightedEvent>;
+	@event readonly onActionKeyframe: EventNoticer<ActionEvent>;
+	@event readonly onActionLoop: EventNoticer<ActionEvent>;
 
 	get id() {
 		return this.m_id;
@@ -137,7 +137,7 @@ class _View extends NativeNotification {
 		Object.assign(this, value)
 	}
 
-	transition(style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void) { // transition animate
+	transition(style: KeyframeOptions, delay?: number, cb?: (e: ActionEvent)=>void) { // transition animate
 		return action.transition(this as unknown as View, style, delay, cb);
 	}
 
@@ -209,7 +209,7 @@ class _Button {
 		}
 	}
 
-	triggerHighlighted(evt: GUIHighlightedEvent) {
+	triggerHighlighted(evt: HighlightedEvent) {
 		this.setHighlighted(evt.status);
 		return (this as unknown as View).triggerWithEvent('Highlighted', evt);
 	}

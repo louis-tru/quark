@@ -136,24 +136,24 @@ namespace flare {
 		void clear(bool full = false);
 
 		/**
-		* @func max_texture_memory_limit()
+		* @func max_image_memory_limit()
 		*/
-		uint64_t max_texture_memory_limit() const;
+		uint64_t max_image_memory_limit() const;
 		
 		/**
-		* @func set_max_texture_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
+		* @func set_max_image_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
 		*/
-		void set_max_texture_memory_limit(uint64_t limit);
+		void set_max_image_memory_limit(uint64_t limit);
 		
 		/**
 		* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
 		*/
-		uint64_t used_texture_memory() const;
+		uint64_t used_image_memory() const;
 
 		/**
-		* @func adjust_texture_memory()
+		* @func adjust_image_memory()
 		*/
-		bool adjust_texture_memory(uint64_t will_alloc_size);
+		bool adjust_image_memory(uint64_t will_alloc_size);
 
 		/**
 		* @func open_url()
@@ -205,7 +205,7 @@ namespace flare {
 		RecursiveMutex       _render_mutex;
 		FontPool*            _font_pool;        /* 字体纹理池 */
 		ImagePool*           _img_pool;         /* 图像池 */
-		uint64_t _max_texture_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
+		uint64_t _max_image_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
 		
 		F_DEFINE_INLINE_CLASS(Inl);
 		

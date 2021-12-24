@@ -31,18 +31,18 @@
 import {
 	Hybrid, Text, Button, Image, Indep, Clip, _CVD, Div, Label
 } from 'flare';
-import { HighlightedStatus, GUIHighlightedEvent, GUIClickEvent } from 'flare/event';
+import { HighlightedStatus, HighlightedEvent, ClickEvent } from 'flare/event';
 import { Navbar, Toolbar, NavPage } from 'flare/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 
 var resolve = require.resolve;
 
-function view_code(evt: GUIClickEvent) {
+function view_code(evt: ClickEvent) {
 	(evt.sender.owner as NavPage).collection.push(review_vx(), true);
 }
 
-function highlighted(evt: GUIHighlightedEvent) {
+function highlighted(evt: HighlightedEvent) {
 	var owner = evt.sender.ownerAs();
 	var img1 = owner.find('img1');
 	var img2 = owner.find('img2');

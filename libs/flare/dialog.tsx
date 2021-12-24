@@ -33,7 +33,7 @@ import flare, {
 	Indep, Hybrid, Clip, Input, Span, LimitIndep, Button, View, _CVD,
 } from './index';
 import { Navigation } from './nav';
-import { event, EventNoticer, Event, GUIClickEvent } from './event';
+import { event, EventNoticer, Event, ClickEvent } from './event';
 import { prop } from './ctr';
 import * as value from './value';
 
@@ -267,7 +267,7 @@ export class Dialog extends Navigation {
 		this.trigger('Action', index);
 	}
 
-	protected _handleClick(evt: GUIClickEvent) {
+	protected _handleClick(evt: ClickEvent) {
 		this.triggerAction((evt.sender as any).index);
 		this._actionClose();
 	}

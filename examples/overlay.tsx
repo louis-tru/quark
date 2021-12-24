@@ -31,11 +31,11 @@
 import { Div, Button, Indep, default as flare, _CVD } from 'flare';
 import { Navbutton, Mynavpage } from './public';
 import { Overlay } from 'flare/overlay';
-import { GUIClickEvent } from 'flare/event';
+import { ClickEvent } from 'flare/event';
 
 const resolve = require.resolve;
 
-function show_overlay(evt: GUIClickEvent) {
+function show_overlay(evt: ClickEvent) {
 	flare.render<Overlay>(
 		<Overlay>
 			<Div>
@@ -48,7 +48,7 @@ function show_overlay(evt: GUIClickEvent) {
 	).showOverlayFromView(evt.sender);
 }
 
-function show_overlay2(evt: GUIClickEvent) {
+function show_overlay2(evt: ClickEvent) {
 	var com = flare.render<Overlay>(
 		<Overlay>
 			<Div>
@@ -62,7 +62,7 @@ function show_overlay2(evt: GUIClickEvent) {
 	com.showOverlayFromView(evt.sender);
 }
 
-function show_overlay3(evt: GUIClickEvent) {
+function show_overlay3(evt: ClickEvent) {
 	var com = flare.render<Overlay>(
 		<Overlay>
 			<Div>

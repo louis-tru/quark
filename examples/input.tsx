@@ -30,15 +30,15 @@
 
 import { Div, Button, Text, Input, Textarea, default as flare, _CVD, View } from 'flare';
 import { Mynavpage } from './public';
-import { GUIClickEvent } from 'flare/event';
+import { ClickEvent } from 'flare/event';
 
 const resolve = require.resolve;
 
-function start_input(evt: GUIClickEvent) {
+function start_input(evt: ClickEvent) {
 	evt.sender.ownerAs().find('input1').focus();
 }
 
-function end_input(evt: GUIClickEvent) {
+function end_input(evt: ClickEvent) {
 	(flare.app.focusView as View).blur();
 }
 

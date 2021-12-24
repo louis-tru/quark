@@ -34,27 +34,27 @@ import {
 import { Mynavpage, Page } from './public';
 import { Navbar, Toolbar } from 'flare/nav';
 import review_vx from './review';
-import { GUIClickEvent } from 'flare/event';
+import { ClickEvent } from 'flare/event';
 
 const resolve = require.resolve;
 
-function hide_show_navbar(evt: GUIClickEvent) {
+function hide_show_navbar(evt: ClickEvent) {
 	var navbar = evt.sender.ownerAs<Page>().navbar;
 	var hidden = !navbar.hidden
 	navbar.setHidden(hidden, true);
 	(evt.sender.prev as Div).transition({ height: hidden ? 20 : 0, time: 400 });
 }
 
-function hide_show_toolbar(evt: GUIClickEvent) {
+function hide_show_toolbar(evt: ClickEvent) {
 	var toolbar = evt.sender.ownerAs<Page>().toolbar;
 	toolbar.setHidden(!toolbar.hidden, true);
 }
 
-function nav_pop(evt: GUIClickEvent) {
+function nav_pop(evt: ClickEvent) {
 	evt.sender.ownerAs<Page>().collection.pop(true);
 }
 
-function view_code(evt: GUIClickEvent) {
+function view_code(evt: ClickEvent) {
 	evt.sender.ownerAs<Page>().collection.push(review_vx(), true);
 }
 

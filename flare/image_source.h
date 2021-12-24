@@ -35,6 +35,7 @@
 #include "./util/string.h"
 #include "./util/array.h"
 #include "./util/event.h"
+#include "./util/loop.h"
 
 namespace flare {
 
@@ -182,11 +183,16 @@ namespace flare {
 		 */
 		inline bool is_ready() const { return _state & STATE_DECODE_COMPLETE; }
 
+		/**
+		 * @func size() Use memory size
+		 */
+		inline uint32_t size() const { return _size; };
+
 	 private:
 		void _Decode();
 		PixelData _memPixel;
 		Buffer   _loaded;
-		uint32_t _load_id;
+		uint32_t _load_id, _size, _used;
 		void *_inl;
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
@@ -194,16 +200,47 @@ namespace flare {
 	class F_EXPORT ImagePool: public Object {
 		F_HIDDEN_ALL_COPY(ImagePool);
 	 public:
+		
+		/**
+		 * @constructor
+		 */
+		ImagePool(Application* host);
+		
+		/**
+		 * @destructor
+		 */
+		virtual ~ImagePool();
 
+		/**
+		 * @func total_data_size() returns the data memory size total
+		 */
 		uint64_t total_data_size() const { return _total_data_size; }
 
 		/**
-			* @func clear
+		 * @func get(uri) get image source by uri
+		 */
+		ImageSource* get(cString& uri);
+
+		/**
+		 * @func remove(id) remove image source member
+		 */
+		void remove(cString& uri);
+
+		/**
+			* @func clear(full?: bool) clear memory
 			*/
 		void clear(bool full = false);
 		
 	 private:
-		uint64_t _total_data_size; /* 当前数据占刚在总容量 */
+		struct Member {
+			uint32_t size;
+			Handle<ImageSource> source;
+		};
+		Dict<uint64_t, Member> _sources;
+		uint64_t _total_data_size; /* 当前数据占用memory总容量 */
+		Mutex _Mutex;
+		Application* _host;
+		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }
