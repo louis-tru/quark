@@ -184,12 +184,12 @@ void each_glyph() {
 	uint32_t unicode = 0;
 	uint32_t count = 0;
 	
-	F_LOG("%s", Codec::encode(Encoding::utf8, String16((uint16_t*)&unicode, 1)).val() );
+	F_LOG("%s", Codec::encode(Encoding::utf8, String2((uint16_t*)&unicode, 1)).val() );
 	
 	do {
 		unicode = FT_Get_Next_Char(face, unicode, &glyph_index);
 		
-		Buffer data = Codec::encode(Encoding::utf8, String16((uint16_t*)&unicode, 1));
+		Buffer data = Codec::encode(Encoding::utf8, String2((uint16_t*)&unicode, 1));
 		
 		F_LOG("unicode:%d, glyph_index:%d, char:%s", unicode, glyph_index, *data);
 		count++;

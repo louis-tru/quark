@@ -67,7 +67,7 @@ namespace flare {
 		F_EXPORT void log(size_t);
 		F_EXPORT void log(bool);
 		F_EXPORT void log(cString&);
-		F_EXPORT void log(cString16&);
+		F_EXPORT void log(cString2&);
 		F_EXPORT void log(cChar*, ...);
 		F_EXPORT void warn(cChar*, ...);
 		F_EXPORT void error(cChar*, ...);

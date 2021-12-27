@@ -133,7 +133,7 @@ namespace flare {
 		F(ARROW, "=>") \
 
 	struct static_str_list_t {
-#define F(N,V) String16 N = String16::format("%s", V);
+#define F(N,V) String2 N = String2::format("%s", V);
         DEF_STATIC_STR_LIST(F)
 #undef F
 	} static *static_str_list = nullptr;
@@ -528,8 +528,8 @@ namespace flare {
 			next_ = cur;
 			next_->location.beg_pos = pos_;
 			next_->location.line = line_;
-			next_->string_space = String16();
-			next_->string_value = String16();
+			next_->string_space = String2();
+			next_->string_value = String2();
 			next_->before_line_feed = false;
 			
 			if ((uint32_t)c0_ <= 0x7f) {
@@ -552,7 +552,7 @@ namespace flare {
 			
 			next_->location.beg_pos = pos_;
 			next_->location.line = line_;
-			next_->string_value = next_->string_space = String16();
+			next_->string_value = next_->string_space = String2();
 			
 			Token token = ILLEGAL;
 			
@@ -580,7 +580,7 @@ namespace flare {
 			Token token = REGEXP_LITERAL;
 			next_->location.beg_pos = pos_;
 			next_->location.line = line_;
-			next_->string_value = next_->string_space = String16();
+			next_->string_value = next_->string_space = String2();
 			
 			F_ASSERT(c0_ == '/');
 			
@@ -682,15 +682,15 @@ namespace flare {
 		
 		inline Token        token()             { return current_->token; }
 		inline Location     location()          { return current_->location; }
-		inline String16&  string_space()      { return current_->string_space; }
-		inline String16&  string_value()      { return current_->string_value; }
+		inline String2&  string_space()      { return current_->string_space; }
+		inline String2&  string_value()      { return current_->string_value; }
 		inline bool         has_scape_before()  { return current_->before_scape; }
 		inline bool         before_line_feed()  { return current_->before_line_feed; }
 		inline Token        prev()              { return prev_; }
 		inline Token        peek()              { return next_->token; }
 		inline Location     next_location()     { return next_->location; }
-		inline String16&  next_string_space() { return next_->string_space; }
-		inline String16&  next_string_value() { return next_->string_value; }
+		inline String2&  next_string_space() { return next_->string_space; }
+		inline String2&  next_string_value() { return next_->string_value; }
 		inline bool         next_before_line_feed() { return next_->before_line_feed; }
 		inline bool         has_scape_before_next() { return next_->before_scape; }
 		
@@ -699,8 +699,8 @@ namespace flare {
 		struct TokenDesc {
 			Token token;
 			Location location;
-			String16 string_space;
-			String16 string_value;
+			String2 string_space;
+			String2 string_value;
 			bool before_line_feed;
 			bool before_scape;
 		};
@@ -708,8 +708,8 @@ namespace flare {
 		void scan() { // scan javascript code
 			
 			Token token;
-			next_->string_value = String16();
-			next_->string_space = String16();
+			next_->string_value = String2();
+			next_->string_space = String2();
 			next_->before_line_feed = false;
 			next_->before_scape = false;
 			
@@ -1270,7 +1270,7 @@ namespace flare {
 		
 		Token scan_string() {
 			uint8_t quote = c0_;
-			next_->string_value = String16();
+			next_->string_value = String2();
 			advance();  // consume quote
 			next_->string_value.append(quote);
 			
@@ -1334,7 +1334,7 @@ namespace flare {
 		
 		Token scan_number(bool seen_period) {
 			Token tok = NUMBER_LITERAL;
-			next_->string_value = String16();
+			next_->string_value = String2();
 			
 			if (seen_period) { // 浮点
 				tok = scan_decimal_digit(true);
@@ -1379,7 +1379,7 @@ namespace flare {
 						
 					case '.': // 10进制浮点数
 						back();
-						next_->string_value = String16();
+						next_->string_value = String2();
 						tok = scan_decimal_digit(false);
 						break;
 						
@@ -1560,7 +1560,7 @@ namespace flare {
 	class Parser: public Object {
 	public:
 		
-		Parser(cString16& in, cString& path, bool is_jsx, bool clean_comment)
+		Parser(cString2& in, cString& path, bool is_jsx, bool clean_comment)
 			: _out(nullptr)
 			, _path(path)
 			, _level(0)
@@ -1582,7 +1582,7 @@ namespace flare {
 			Release(_scanner);
 		}
 		
-		String16 transform() {
+		String2 transform() {
 			parse_document();
 			return *_out;
 		}
@@ -2142,22 +2142,22 @@ namespace flare {
 			}
 		}
 
-		String16 to_event_js_code(cString16& name) {
+		String2 to_event_js_code(cString2& name) {
 			//  get onchange() { return this.getNoticer('change') }
 			//  set onchange(func) { this.addDefaultListener('change', func) }
 			//  triggerchange(data, is_event) { return this.$trigger('change', data, is_event) }
 			//
-			static cString16 a1 = String16::format("get on");
-			static cString16 a2 = String16::format("() { return this.getNoticer('");
-			static cString16 a3 = String16::format("') }");
-			static cString16 b1 = String16::format("set on");
-			static cString16 b2 = String16::format("(func) { this.addDefaultListener('");
-			static cString16 b3 = String16::format("', func) }");
-			static cString16 c1 = String16::format("trigger");
-			static cString16 c2 = String16::format("(ev,is_ev) { return this.$trigger('");
-			static cString16 c3 = String16::format("',ev,is_ev) }");
+			static cString2 a1 = String2::format("get on");
+			static cString2 a2 = String2::format("() { return this.getNoticer('");
+			static cString2 a3 = String2::format("') }");
+			static cString2 b1 = String2::format("set on");
+			static cString2 b2 = String2::format("(func) { this.addDefaultListener('");
+			static cString2 b3 = String2::format("', func) }");
+			static cString2 c1 = String2::format("trigger");
+			static cString2 c2 = String2::format("(ev,is_ev) { return this.$trigger('");
+			static cString2 c3 = String2::format("',ev,is_ev) }");
 			
-			String16 rv;
+			String2 rv;
 			rv.append(a1); rv.append(name); rv.append(a2); rv.append(name); rv.append(a3);
 			rv.append(b1); rv.append(name); rv.append(b2); rv.append(name); rv.append(b3);
 			rv.append(c1); rv.append(name); rv.append(c2); rv.append(name); rv.append(c3);
@@ -2169,7 +2169,7 @@ namespace flare {
 		
 			fetch();
 		
-			String16 class_name;
+			String2 class_name;
 			MemberDataExpression* member_data = nullptr;
 			
 			Token tok = next();
@@ -2258,11 +2258,11 @@ namespace flare {
 							goto function;
 						} else if ( member_data && peek() == ASSIGN ) { // = class member data
 							append(S.COMMENT); // /*
-							String16 identifier = _scanner->string_value();
+							String2 identifier = _scanner->string_value();
 							fetch(); // identifier
 							next(); // =
 							append(S.ASSIGN); // =
-							_out_class_member_data_expression = String16();
+							_out_class_member_data_expression = String2();
 							_is_class_member_data_expression = true;
 							parse_expression();
 							_is_class_member_data_expression = false;
@@ -2317,7 +2317,7 @@ namespace flare {
 					case EVENT: {
 						// Event declaration
 						CHECK_NEXT(IDENTIFIER); // event onevent
-						String16 event = _scanner->string_value();
+						String2 event = _scanner->string_value();
 						if (event.length() > 2 &&
 								event[0] == 'o' &&
 								event[1] == 'n' && is_xml_element_start(event[2])) {
@@ -2404,7 +2404,7 @@ namespace flare {
 			}
 		}
 
-		void parse_import_block(String16* defaultId) {
+		void parse_import_block(String2* defaultId) {
 			// import { Application } from 'flare/app';
 			// import { Application as App } from 'flare/app';
 			// import app, { Application as App } from 'flare/app';
@@ -2449,7 +2449,7 @@ namespace flare {
 
 			if (is_import_declaration_identifier(tok)) { // identifier
 				append(S.CONST); // const
-				String16 id = _scanner->string_value();
+				String2 id = _scanner->string_value();
 				tok = next();
 				
 				if (tok == FROM) { // import app from 'flare/app';
@@ -2507,7 +2507,7 @@ namespace flare {
 			}
 			else if (tok == STRIFX_LITERAL) { // flare private syntax
 
-				String16 str = _scanner->string_value();
+				String2 str = _scanner->string_value();
 				if (peek() == AS) { // import 'test_gui.jsx' as gui;  ---->>>> import * as gui from 'test_gui.jsx';
 					append(S.CONST); // var
 					next(); // as
@@ -2525,7 +2525,7 @@ namespace flare {
 					}
 				} else { // import 'test_gui.jsx';   ---->>>>    import * as test_gui from 'test_gui.jsx';
 					// find identifier
-					String16 path = str.substr(1, str.length() - 2).trim();
+					String2 path = str.substr(1, str.length() - 2).trim();
 					String basename = Path::basename(path.to_string());
 					int i = basename.last_index_of('.');
 					if (i != -1) {
@@ -2715,8 +2715,8 @@ namespace flare {
 		
 			// 转换xml为json对像: _VV(Tag,[attrs],[children])
 			
-			String16 tag_name = _scanner->string_value();
-			int index = tag_name.index_of(String16().assign(':'));
+			String2 tag_name = _scanner->string_value();
+			int index = tag_name.index_of(String2().assign(':'));
 
 			if (index != -1) {
 				error(
@@ -2730,7 +2730,7 @@ namespace flare {
 				append(S.COMMA);    // ,
 			}
 			
-			Dict<String16, bool> attrs;
+			Dict<String2, bool> attrs;
 			bool start_parse_attrs = false;
 			Token token = next();
 			
@@ -2747,8 +2747,8 @@ namespace flare {
 				}
 				
 				// 添加属性
-				String16* raw_out = _out;
-				String16 attribute_name;
+				String2* raw_out = _out;
+				String2 attribute_name;
 				append(S.LBRACK); // [ // attribute start
 				append(S.LBRACK); // [ // attribute name start
 				
@@ -2813,11 +2813,11 @@ namespace flare {
 		}
 		
 		void complete_xml_content_string(
-			String16& str, String16& space,
+			String2& str, String2& space,
 			bool& is_once_comma, bool before_comma, bool ignore_space) 
 		{
 			if (str.length()) {
-				String16 s(std::move(str));
+				String2 s(std::move(str));
 				if ( !ignore_space || !s.trim().is_empty() ) {
 					add_xml_children_cut_comma(is_once_comma);
 					// _VVT("str")
@@ -2828,7 +2828,7 @@ namespace flare {
 					append(S.QUOTES);   // "
 					append(S.RPAREN); // (
 				}
-				// str = String16();
+				// str = String2();
 			}
 			if ( before_comma ) {
 				add_xml_children_cut_comma(is_once_comma);
@@ -2846,7 +2846,7 @@ namespace flare {
 			}
 		}
 		
-		void parse_xml_element_context(cString16& tag_name) {
+		void parse_xml_element_context(cString2& tag_name) {
 			F_ASSERT(_scanner->token() == GT);  // >
 			
 			// add chileren
@@ -2854,7 +2854,7 @@ namespace flare {
 			append(S.LBRACK);   // [
 			
 			Token token;// prev = ILLEGAL;
-			String16 str, scape;
+			String2 str, scape;
 			bool ignore_space = true;
 			uint32_t pos = _scanner->location().end_pos;
 			bool is_once_comma = true;
@@ -2919,7 +2919,7 @@ namespace flare {
 			}
 		}
 		
-		Buffer to_utf8_string(cString16 s) {
+		Buffer to_utf8_string(cString2 s) {
 			return Coder::encode(Encoding::utf8, s);
 		}
 		
@@ -2966,7 +2966,7 @@ namespace flare {
 			append(_scanner->string_value());
 		}
 		
-		void append(cString16& code) {
+		void append(cString2& code) {
 			if ( code.length() ) {
 				if ( _is_class_member_data_expression ) {
 					_out_class_member_data_expression.append(code);
@@ -2975,7 +2975,7 @@ namespace flare {
 			}
 		}
 		
-		void append(String16&& code) {
+		void append(String2&& code) {
 			if ( code.length() ) {
 				if ( _is_class_member_data_expression ) {
 					_out_class_member_data_expression.append(code);
@@ -2985,17 +2985,17 @@ namespace flare {
 		}
 		
 		struct MemberDataExpression {
-			String16 class_name;
-			Dict<String16, String16> expressions;
+			String2 class_name;
+			Dict<String2, String2> expressions;
 		};
 		
 		Scanner*        _scanner;
-		String16*       _out;
-		String16        _top_out;
-		String16        _out_class_member_data_expression;
+		String2*       _out;
+		String2        _top_out;
+		String2        _out_class_member_data_expression;
 		cString&        _path;
-		Array<String16> _exports;
-		String16        _export_default;
+		Array<String2> _exports;
+		String2        _export_default;
 		Array<MemberDataExpression> _class_member_data_expression;
 		uint32_t _level;
 		bool _is_jsx;
@@ -3006,11 +3006,11 @@ namespace flare {
 		bool _clean_comment;
 	};
 
-    String16 javascript_transform_x(cString16& in, cString& path, bool clean_comment) throw(Error) {
+    String2 javascript_transform_x(cString2& in, cString& path, bool clean_comment) throw(Error) {
 		return Parser(in, path, true, clean_comment).transform();
 	}
 
-    String16 javascript_transform(cString16& in, cString& path, bool clean_comment) throw(Error) {
+    String2 javascript_transform(cString2& in, cString& path, bool clean_comment) throw(Error) {
 		return Parser(in, path, false, clean_comment).transform();
 	}
 

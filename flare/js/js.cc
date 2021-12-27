@@ -54,7 +54,7 @@ Buffer JSValue::ToBuffer(Worker* worker, Encoding en) const {
 			return ToStringValue(worker).collapse_buffer();
 		case Encoding::ucs2:
 		case Encoding::utf16: {
-			String16 str = ToString16Value(worker);
+			String2 str = ToString2Value(worker);
 			uint32_t len = str.length() * 2;
 			return Buffer((Char*)str.collapse(), len);
 		}

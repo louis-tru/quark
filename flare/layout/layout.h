@@ -162,8 +162,8 @@ namespace flare {
 		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
 
 		/**
-			* 锁定布局的尺寸
-			* 调用后自身的尺寸属性应该失效直到被解除
+			* 锁定布局的尺寸。在特定的布局类型中自身无法直接确定其自身尺寸，一般由父布局调用如：flex布局类型
+			*
 			* 这个方法应该在`layout_forward()`正向迭代中由父布局调用,因为尺寸的调整一般在正向迭代中
 			* 
 			* 返回锁定后的最终尺寸，调用后视返回后的尺寸为最终尺寸

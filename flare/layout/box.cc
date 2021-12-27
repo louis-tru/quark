@@ -445,6 +445,15 @@ namespace flare {
 		}
 	}
 
+	/**
+		* 锁定布局的尺寸。在特定的布局类型中自身受父布局约束无法直接简单确定其自身尺寸，一般由父布局调用如：flex布局类型
+		*
+		* 这个方法应该在`layout_forward()`正向迭代中由父布局调用,因为尺寸的调整一般在正向迭代中
+		* 
+		* 返回锁定后的最终尺寸，调用后视返回后的尺寸为最终尺寸
+		* 
+		* @func layout_lock(layout_size, is_wrap)
+		*/
 	Vec2 Box::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
 		uint32_t layout_content_size_change_mark = M_NONE;
 		auto layout_content_size = _layout_content_size;

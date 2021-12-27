@@ -34,7 +34,7 @@
 #include "flare/util/error.h"
 
 namespace flare {
-	F_EXPORT String16 javascript_transform_x(cString16& in, cString& path, bool clean_comment) throw(Error);
-	F_EXPORT String16 javascript_transform(cString16& in, cString& path, bool clean_comment) throw(Error);
+	F_EXPORT String2 javascript_transform_x(cString2& in, cString& path, bool clean_comment) throw(Error);
+	F_EXPORT String2 javascript_transform(cString2& in, cString& path, bool clean_comment) throw(Error);
 }
 #endif

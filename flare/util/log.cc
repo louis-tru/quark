@@ -181,7 +181,7 @@ namespace flare {
 			Console::instance()->log(msg, "\n");
 		}
 		
-		void log(cString16& msg) {
+		void log(cString2& msg) {
 			Console::instance()->log(Coder::encode(Encoding::utf8, msg), "\n");
 		}
 

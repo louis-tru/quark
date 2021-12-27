@@ -202,14 +202,14 @@ namespace flare {
 	 * @func simple_layout_width
 	 */
 	float TextFont::simple_layout_width(cString& text) {
-		String16 str = Codec::decode_to_uint16(Encoding::utf8, text).collapse_string();
+		String2 str = Codec::decode_to_uint16(Encoding::utf8, text).collapse_string();
 		return simple_layout_width(str);
 	}
 
 	/**
 	 * @func simple_layout_width
 	 */
-	float TextFont::simple_layout_width(cString16& text) {
+	float TextFont::simple_layout_width(cString2& text) {
 		View* v = view();
 		
 		TextFamily family = { TextValueType::INHERIT, app()->default_text_family().value };
@@ -490,7 +490,7 @@ namespace flare {
 		 */
 		F_INLINE bool read_word(Word* word, float offset_start,
 														 FontGlyphTable* table, float ratio,
-														 Options::SpaceWrap opts, cString16& string, uint32_t begin, uint32_t end) {
+														 Options::SpaceWrap opts, cString2& string, uint32_t begin, uint32_t end) {
 			if ( begin < end ) {
 				
 				const uint16_t* chars = string.c_str();
@@ -597,7 +597,7 @@ namespace flare {
 		 */
 		template<bool clip, int ellipsis, bool auto_wrap>
 		void set_text_layout_offset(TextRows* rows, Vec2 limit, Options opts,
-																Data& data, cString16& string,
+																Data& data, cString2& string,
 																uint32_t begin, uint32_t end, bool ignore_empty_cell) {
 			// 在这里进行文本排版布局
 			FontGlyphTable* table = get_font_glyph_table_and_height(data, opts.text_line_height);
@@ -746,7 +746,7 @@ namespace flare {
 	 * @func set_text_layout_offset
 	 */
 	void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
-																					Data& data, cString16& string,
+																					Data& data, cString2& string,
 																					uint32_t begin, uint32_t end,
 																					Options* options, bool ignore_empty_cell) {
 		
@@ -804,7 +804,7 @@ namespace flare {
 
 	void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
 																					Data& data, uint16_t security, uint32_t count, Options* opts) {
-		String16 string;
+		String2 string;
 		for ( uint32_t i = 0; i < count; i++ ) {
 			string.append(&security, 1);
 		}

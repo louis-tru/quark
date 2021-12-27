@@ -77,7 +77,7 @@ class WrapLabel: public WrapViewBase {
 	static void set_value(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); UILock lock;
 		JS_SELF(Label);
-		String16 str = value->ToString16Value(worker);
+		String2 str = value->ToString2Value(worker);
 		self->set_value(str);
 	}
 	

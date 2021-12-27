@@ -62,7 +62,7 @@ namespace flare {
 		struct F_EXPORT Data {
 			Data();
 			Array<Cell> cells;
-			String16  string;
+			String2  string;
 			TexureLevel texture_level;        // 文本的纹理等级
 			float       texture_scale;        // 文本的纹理对应等级与实际文本的缩放比
 			float       text_ascender;        // 基线距离行顶
@@ -120,7 +120,7 @@ namespace flare {
 		/**
 		* @func simple_layout_width
 		*/
-		float simple_layout_width(cString16& text);
+		float simple_layout_width(cString2& text);
 		
 	protected:
 		/**
@@ -192,7 +192,7 @@ namespace flare {
 		* @func set_text_layout_offset
 		*/
 		void set_text_layout_offset(TextRows* rows, Vec2 limit,
-																Data& data, cString16& string,
+																Data& data, cString2& string,
 																uint32_t begin, uint32_t end,
 																Options* opts = nullptr, bool ignore_empty_cell = true);
 		

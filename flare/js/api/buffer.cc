@@ -139,7 +139,7 @@ class NativeBuffer {
 				JS_RETURN( worker->New(buff.collapse_string(), true) );
 				break;
 			} default: { // 解码to ucs2
-				String16 str( Coder::decoding_to_uint16(encoding, data + start, end - start) );
+				String2 str( Coder::decoding_to_uint16(encoding, data + start, end - start) );
 				JS_RETURN( worker->New(str) );
 				break;
 			}

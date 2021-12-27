@@ -32,14 +32,16 @@
 #define __flare__layout__image__
 
 #include "./box.h"
+#include "../image_source.h"
 
 namespace flare {
 
 	class F_EXPORT Image: public Box {
 		F_DEFINE_VIEW(Image);
 	 public:
-		F_DEFINE_PROP(String, src);
+		// F_DEFINE_PROP(String, src);
 	 private:
+		Handle<ImageSource> _source;
 	};
 
 }

@@ -39,11 +39,11 @@
 namespace flare {
 
 	typedef        char                  Char;
-	typedef        ArrayString<uint16_t> String16;
-	typedef        ArrayString<uint32_t> String32;
+	typedef        ArrayString<uint16_t> String2;
+	typedef        ArrayString<uint32_t> String4;
 	typedef const  char                  cChar;
-	typedef const  ArrayString<uint16_t> cString16;
-	typedef const  ArrayString<uint32_t> cString32;
+	typedef const  ArrayString<uint16_t> cString2;
+	typedef const  ArrayString<uint32_t> cString4;
 	
 	class F_EXPORT ArrayStringBase: public Object {
 	 public:

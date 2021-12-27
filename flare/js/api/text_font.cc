@@ -154,7 +154,7 @@ class WrapTextFont {
 		if ( args.Length() < 1 ) JS_THROW_ERR("Bad argument.");
 		JS_SELF(View);
 		TextFont* text = self->as_text_font();
-		float width = text->simple_layout_width( args[0]->ToString16Value(worker) );
+		float width = text->simple_layout_width( args[0]->ToString2Value(worker) );
 		JS_RETURN ( width );
 	}
 

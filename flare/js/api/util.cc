@@ -89,7 +89,7 @@ class WrapSimpleHash: public WrapObject {
 		JS_SELF(SimpleHash);
 		
 		if ( args[0]->IsString(worker) ) { // 字符串
-			String16 str = args[0]->ToString16Value(worker);
+			String2 str = args[0]->ToString2Value(worker);
 			self->update(*str, str.length());
 		}
 		else { // Buffer
@@ -131,7 +131,7 @@ class NativeUtil {
 	static SimpleHash get_hash_code(FunctionCall args) {
 		JS_WORKER(args);
 		SimpleHash hash;
-		String16 str = args[0]->ToString16Value(worker);
+		String2 str = args[0]->ToString2Value(worker);
 		hash.update(*str, str.length());
 		return hash;
 	}

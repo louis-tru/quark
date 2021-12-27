@@ -438,7 +438,7 @@ public:
 	Local<JSObject> ToObject(Worker* worker) const;
 	Local<JSBoolean> ToBoolean(Worker* worker) const;
 	String ToStringValue(Worker* worker, bool ascii = false) const;
-	String16 ToString16Value(Worker* worker) const;
+	String2 ToString2Value(Worker* worker) const;
 	bool ToBooleanValue(Worker* worker) const;
 	double ToNumberValue(Worker* worker) const;
 	int ToInt32Value(Worker* worker) const;
@@ -455,7 +455,7 @@ class F_EXPORT JSString: public JSValue {
 public:
 	int Length(Worker* worker) const;
 	String Value(Worker* worker, bool ascii = false) const;
-	String16 Ucs2Value(Worker* worker) const;
+	String2 Ucs2Value(Worker* worker) const;
 	static Local<JSString> Empty(Worker* worker);
 };
 
@@ -640,7 +640,7 @@ public:
 	Local<JSNumber> New(uint64_t data);
 	Local<JSString> New(cChar* data, int len = -1);
 	Local<JSString> New(cString& data, bool is_ascii = false);
-	Local<JSString> New(cString16& data);
+	Local<JSString> New(cString2& data);
 	Local<JSObject> New(cError& data);
 	Local<JSObject> New(const HttpError& err);
 	Local<JSArray>  New(const Array<String>& data);

@@ -39,7 +39,7 @@ using namespace flare;
 
 #define error(err, ...) { F_ERR(err, ##__VA_ARGS__); return 1; }
 
-bool transform_js(cString& src, String16 in, Buffer& out, bool jsx, bool clean_comment) {
+bool transform_js(cString& src, String2 in, Buffer& out, bool jsx, bool clean_comment) {
 #if DEBUG_JSA
 	if ( jsx ) {
 		out = Codec::encoding(Encoding::utf8, javascript_transform_x(in, src, clean_comment));
@@ -79,7 +79,7 @@ int test_jsx(int argc, char* argv[]) {
 	
 	String extname = Path::extname(src).lower_case();
 		
-	String16 in;
+	String2 in;
 	Buffer out;
 	bool clean_comment = 0;
 

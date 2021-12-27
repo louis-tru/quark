@@ -102,7 +102,7 @@ class WrapInput: public WrapViewBase {
 	static void set_placeholder(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); UILock lock;
 		JS_SELF(Input);
-		self->set_placeholder( value->ToString16Value(worker) );
+		self->set_placeholder( value->ToString2Value(worker) );
 	}
 	
 	static void set_placeholder_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
