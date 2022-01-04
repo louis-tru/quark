@@ -48,7 +48,7 @@ namespace flare {
 	*/
 	class F_EXPORT Display: public Reference {
 		F_HIDDEN_ALL_COPY(Display);
-	public:
+	 public:
 
 		enum Orientation {
 			ORIENTATION_INVALID = -1,
@@ -217,7 +217,10 @@ namespace flare {
 		*/
 		static float default_status_bar_height();
 
-	private:
+	 private:
+		void update_state();
+		void solve_next_frame();
+		// member data
 		Application*      _host;
 		Vec2              _lock_size;  // 锁定视口的尺寸
 		Vec2              _size;       // 当前视口尺寸
@@ -229,8 +232,6 @@ namespace flare {
 		uint32_t          _fsp, _next_fsp;
 		int64_t           _next_fsp_time;
 		Region            _surface_region;  /* 选择绘图表面有区域 */
-		
-		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

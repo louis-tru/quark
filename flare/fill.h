@@ -135,12 +135,12 @@ namespace flare {
 		* @func mark()
 		*/
 		void mark();
+		static Fill _Assign(Fill left, Fill right);
+		bool check_loop_reference(Fill value);
+		void _Set_next(Fill value);
 
 		Fill        _next;
 		HolderMode  _holder_mode;
-		
-
-		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
@@ -175,7 +175,7 @@ namespace flare {
 		F_DEFINE_PROP(FillSize, size_y);
 
 		String src() const;
-		inline ImageSource* source() { return _source.value(); }
+		ImageSource* source() { return _source.value(); }
 		void set_src(cString& src);
 		void set_source(ImageSource* source);
 

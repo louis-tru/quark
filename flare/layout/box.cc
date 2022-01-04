@@ -520,45 +520,45 @@ namespace flare {
 
 		switch(_layout_align) {
 			default:
-			case Align::LEFT_TOP:
+			case Align::LEFT_TOP: // left top
 				offset = origin;
 				break;
-			case Align::CENTER_TOP:
+			case Align::CENTER_TOP: // center top
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()) / 2.0,
 					origin.y());
 				break;
-			case Align::RIGHT_TOP:
+			case Align::RIGHT_TOP: // right top
 				offset = Vec2(
 					origin.x() + size.x() - _layout_size.x(),
 					origin.y());
 				break;
-			case Align::LEFT_CENTER:
+			case Align::LEFT_CENTER: // left center
 				offset = Vec2(
 					origin.x(),
 					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
-			case Align::CENTER_CENTER:
+			case Align::CENTER_CENTER: // center center
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()) / 2.0,
 					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
-			case Align::RIGHT_CENTER:
+			case Align::RIGHT_CENTER: // right center
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()),
 					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
-			case Align::LEFT_BOTTOM:
+			case Align::LEFT_BOTTOM: // left bottom
 				offset = Vec2(
 					origin.x(),
 					origin.y() + (size.y() - _layout_size.y()));
 				break;
-			case Align::CENTER_BOTTOM:
+			case Align::CENTER_BOTTOM: // center bottom
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()) / 2.0,
 					origin.y() + (size.y() - _layout_size.y()));
 				break;
-			case Align::RIGHT_BOTTOM:
+			case Align::RIGHT_BOTTOM: // right bottom
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()),
 					origin.y() + (size.y() - _layout_size.y()));

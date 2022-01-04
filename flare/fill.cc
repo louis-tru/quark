@@ -40,62 +40,56 @@
 
 namespace flare {
 
-	F_DEFINE_INLINE_MEMBERS(FillBox, Inl) {
-		#define _inl(self) static_cast<FillBox::Inl*>(static_cast<Fill>(self))
-	 public:
-		
-		bool check_loop_reference(Fill value) {
-			if (value) {
-				auto v = value;
-				do {
-					if (v == this) {
-						return true;
-					}
-					v = v->_next;
-				} while (v);
-			}
-			return false;
+	bool FillBox::check_loop_reference(Fill value) {
+		if (value) {
+			auto v = value;
+			do {
+				if (v == this) {
+					return true;
+				}
+				v = v->_next;
+			} while (v);
 		}
-		
-		static Fill assign(Fill left, Fill right) {
-			if (right) {
-				if (left == right) {
-					return left;
-				} else {
-					if (right->retain()) {
+		return false;
+	}
+	
+	Fill FillBox::_Assign(Fill left, Fill right) {
+		if (right) {
+			if (left == right) {
+				return left;
+			} else {
+				if (right->retain()) {
+					if (left) {
+						left->release();
+					}
+					return right;
+				} else { // copy
+					auto new_left = right->copy(left);
+					if (new_left != left) {
 						if (left) {
 							left->release();
 						}
-						return right;
-					} else { // copy
-						auto new_left = right->copy(left);
-						if (new_left != left) {
-							if (left) {
-								left->release();
-							}
-							bool ok = new_left->retain();
-							F_ASSERT(ok);
-						}
-						return new_left;
+						bool ok = new_left->retain();
+						F_ASSERT(ok);
 					}
+					return new_left;
 				}
-			} else {
-				if (left) {
-					left->release();
-				}
-				return nullptr;
 			}
-		}
-		
-		void set_next(Fill value) {
-			_next = assign(_next, value);
-			if (_next) {
-				_next->set_holder_mode(_holder_mode);
+		} else {
+			if (left) {
+				left->release();
 			}
-			mark();
+			return nullptr;
 		}
-
-	};
+	}
+	
+	void FillBox:_Set_next(Fill value) {
+		_next = assign(_next, value);
+		if (_next) {
+			_next->set_holder_mode(_holder_mode);
+		}
+		mark();
+	}
 
 	FillBox::FillBox()
 		: _next(nullptr)
@@ -112,10 +106,10 @@ namespace flare {
 
 	Fill FillBox::set_next(Fill value) {
 		if (value != _next) {
-			if (_inl(this)->check_loop_reference(value)) {
+			if (check_loop_reference(value)) {
 				F_ERR("Box background loop reference error");
 			} else {
-				_inl(this)->set_next(value);
+				_Set_next(value);
 			}
 		} else {
 			mark();
@@ -127,11 +121,11 @@ namespace flare {
 		if (left == right) {
 			return left;
 		} else {
-			if (left && right && _inl(left)->check_loop_reference(right->_next)) {
+			if (left && right && check_loop_reference(right->_next)) {
 				F_ERR("Box background loop reference error");
 				return left;
 			} else {
-				return Inl::assign(left, right);
+				return _Assign(left, right);
 			}
 		}
 	}
@@ -190,7 +184,7 @@ namespace flare {
 		auto target = (to && to->type() == M_COLOR) ?
 			static_cast<FillColor*>(to) : new FillColor();
 		target->_color = _color;
-		_inl(target)->set_next(_next);
+		_Set_next(_next);
 		return target;
 	}
 
@@ -208,7 +202,6 @@ namespace flare {
 			}
 		}
 	};
-
 
 	FillImage::FillImage(cString& src)
 		: _repeat(Repeat::REPEAT)
@@ -233,7 +226,7 @@ namespace flare {
 		target->_size_x = _size_x;
 		target->_size_y = _size_y;
 		target->_source = _source;
-		_inl(target)->set_next(_next);
+		_Set_next(_next);
 		return target;
 	}
 
@@ -300,7 +293,7 @@ namespace flare {
 		FillGradient* target = (to && to->type() == M_GRADIENT) ?
 			static_cast<FillGradient*>(to) : new FillGradient();
 		// TODO ..
-		_inl(target)->set_next(_next);
+		_Set_next(_next);
 		return target;
 	}
 

@@ -37,82 +37,77 @@
 
 namespace flare {
 
-	F_DEFINE_INLINE_MEMBERS(Display, Inl) {
-	 public:
-		#define _inl(self) static_cast<Display::Inl*>(self)
+	/**
+		* @thread render
+		*/
+	void Display::update_state() { // Called in render loop
+		UILock lock(_host);
 
-		/**
-		 * @thread render
-		 */
-		void update_state() { // Called in render loop
-			UILock lock(_host);
+		Vec2 _phy_size = phy_size();
+		float width = _phy_size.x();
+		float height = _phy_size.y();
 
-			Vec2 _phy_size = phy_size();
-			float width = _phy_size.x();
-			float height = _phy_size.y();
-
-			if (_lock_size.x() == 0 && _lock_size.y() == 0) { // 使用系统默认的最合适的尺寸
-				_size = {
-					width / _default_scale,
-					height / _default_scale,
-				};
-			}
-			else if (_lock_size.x() != 0 && _lock_size.y() != 0) { // 尺寸全部锁定
-				_size = _lock_size;
-			}
-			else if (_lock_size.x() != 0) { // 只锁定宽度
-				_size.y(_lock_size.x());
-				_size.y(_size.x() / width * height);
-			}
-			else { // _lock_height == 0 // 只锁定高度
-				_size.y(_lock_size.y());
-				_size.x(_size.y() / height * width);
-			}
-			
-			_scale.x(width / _size.x());
-			_scale.y(height / _size.y());
-
-			float scale = (_scale.x() + _scale.y()) / 2;
-			
-			_atom_pixel = 1.0f / scale;
-			
-			// update root
-			Root* r = _host->root();
-			if (r) {
-				r->mark_layout_change();
-			}
-			
-			// set default draw region
-			_display_region.front() = {
-				0, 0,
-				_size.x() * _scale.x(), _size.y() * _scale.y(),
-				_size.x() * _scale.x(), _size.y() * _scale.y(),
+		if (_lock_size.x() == 0 && _lock_size.y() == 0) { // 使用系统默认的最合适的尺寸
+			_size = {
+				width / _default_scale,
+				height / _default_scale,
 			};
-
-			lock.unlock();
-			
-			_host->loop()->post(Cb([this](CbData& e){
-				F_Trigger(Change); // 通知事件
-			}));
-
-			_host->render()->reload();
+		}
+		else if (_lock_size.x() != 0 && _lock_size.y() != 0) { // 尺寸全部锁定
+			_size = _lock_size;
+		}
+		else if (_lock_size.x() != 0) { // 只锁定宽度
+			_size.y(_lock_size.x());
+			_size.y(_size.x() / width * height);
+		}
+		else { // _lock_height == 0 // 只锁定高度
+			_size.y(_lock_size.y());
+			_size.x(_size.y() / height * width);
 		}
 		
-		/**
-		* @func solve_next_frame()
-		*/
-		void solve_next_frame() {
-			if (_next_frame.length()) {
-				List<Cb>* cb = new List<Cb>(std::move(_next_frame));
-				_host->loop()->post(Cb([cb](CbData& e) {
-					Handle<List<Cb>> handle(cb);
-					for ( auto& i : *cb ) {
-						i->resolve();
-					}
-				}));
-			}
+		_scale.x(width / _size.x());
+		_scale.y(height / _size.y());
+
+		float scale = (_scale.x() + _scale.y()) / 2;
+		
+		_atom_pixel = 1.0f / scale;
+		
+		// update root
+		Root* r = _host->root();
+		if (r) {
+			r->mark_layout_change();
 		}
-	};
+		
+		// set default draw region
+		_display_region.front() = {
+			0, 0,
+			_size.x() * _scale.x(), _size.y() * _scale.y(),
+			_size.x() * _scale.x(), _size.y() * _scale.y(),
+		};
+
+		lock.unlock();
+		
+		_host->loop()->post(Cb([this](CbData& e){
+			F_Trigger(Change); // 通知事件
+		}));
+
+		_host->render()->reload();
+	}
+	
+	/**
+	* @func solve_next_frame()
+	*/
+	void Display::solve_next_frame() {
+		if (_next_frame.length()) {
+			List<Cb>* cb = new List<Cb>(std::move(_next_frame));
+			_host->loop()->post(Cb([cb](CbData& e) {
+				Handle<List<Cb>> handle(cb);
+				for ( auto& i : *cb ) {
+					i->resolve();
+				}
+			}));
+		}
+	}
 
 	Vec2 Display::phy_size() const {
 		return Vec2(_surface_region.x2 - _surface_region.x, _surface_region.y2 - _surface_region.y);
@@ -140,7 +135,7 @@ namespace flare {
 			if (_lock_size.width() != width || _lock_size.height() != height) {
 				_lock_size = { width, height };
 				_host->render()->post_message(Cb([this](CbData& e) {
-					_inl(this)->update_state();
+					update_state();
 				}));
 			}
 		} else {
@@ -156,7 +151,7 @@ namespace flare {
 		UILock lock(_host); // ui main local
 		Root* root = _host->root();
 		int64_t now_time = time_monotonic();
-		// _host->action_center()->advance(now_time); // advance action TODO ...
+		// _host->action_direct()->advance(now_time); // advance action TODO ...
 		
 		if (root && (_host->pre_render()->solve(now_time) || need)) {
 			if (now_time - _next_fsp_time >= 1e6) { // 1s
@@ -169,7 +164,7 @@ namespace flare {
 			auto render = _host->render();
 			
 			root->draw(render->canvas(), 1); // 开始绘图
-			_inl(this)->solve_next_frame();
+			solve_next_frame();
 			
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t st = time_micro();
@@ -190,7 +185,7 @@ namespace flare {
 				}
 			#endif
 		} else {
-			_inl(this)->solve_next_frame();
+			solve_next_frame();
 		}
 	}
 
@@ -263,7 +258,7 @@ namespace flare {
 			}
 		}
 		if (ok) {
-			_inl(this)->update_state();
+			update_state();
 		}
 		return ok;
 	}
