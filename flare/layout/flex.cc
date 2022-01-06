@@ -306,15 +306,15 @@ namespace flare {
 			bool is_lock_child = false;
 
 			if (parent()->is_layout_lock_child()) {
-				if (wrap() == Wrap::NO_WRAP) {
+				if (wrap() == Wrap::NO_WRAP) { // no Line feed
 					is_lock_child = true;
 				}
 			} else if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) {
-				if (!layout_wrap_x() && wrap() == Wrap::NO_WRAP) {
+				if (!layout_wrap_x() && wrap() == Wrap::NO_WRAP) { // no Line feed
 					is_lock_child = true;
 				}
 			} else {
-				if (!layout_wrap_y() && wrap() == Wrap::NO_WRAP) {
+				if (!layout_wrap_y() && wrap() == Wrap::NO_WRAP) { // no Line feed
 					is_lock_child = true;
 				}
 			}

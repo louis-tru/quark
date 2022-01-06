@@ -111,7 +111,7 @@ namespace flare {
 			// init CMFormatDescriptionRef
 			Buffer psp, pps;
 			
-			if ( MediaCodec::parse_avc_psp_pps(track.extradata, psp, pps) ) {
+			if ( MediaCodec::parse_avc_psp_pps(WeakBuffer(track.extradata), psp, pps) ) {
 				uint8_t*  param[2] = { (uint8_t*)(*psp + 4), (uint8_t*)(*pps + 4) };
 				size_t size[2]  = { psp.length() - 4, pps.length() - 4 };
 				status = CMVideoFormatDescriptionCreateFromH264ParameterSets(NULL, 2,

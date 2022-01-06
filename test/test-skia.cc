@@ -5,6 +5,7 @@
 #include <flare/layout/root.h>
 #include <flare/render/render.h>
 #include <flare/layout/flex.h>
+#include <flare/layout/image.h>
 #include <flare/fill.h>
 #include <flare/display.h>
 #include <flare/util/fs.h>
@@ -60,6 +61,7 @@ void onload_handle(Event<>& evt, Application* app) {
 	auto r = Root::create();
 	auto flex = (FlexLayout*)New<FlexLayout>()->append_to(r);
 	auto flow = (FlowLayout*)New<FlowLayout>()->append_to(r);
+	auto img  = (Image*)New<Image>()->append_to(r);
 
 	New<Box>()->append_to(flex);
 	New<Box>()->append_to(flex);
@@ -82,13 +84,23 @@ void onload_handle(Event<>& evt, Application* app) {
 	//
 	flow->set_width({ 50, SizeType::PIXEL });
 	flow->set_height({ 50, SizeType::PIXEL });
-	flow->set_fill(New<FillImage>(Path::resources("bench/img2/99.jpeg")));
-	flow->set_layout_align(Align::CENTER_BOTTOM);
+	flow->set_fill(New<FillImage>(Path::resources("bench/img2/99.jpeg"))->set_next(New<FillColor>(Color(255,0,0,255))));
+	flow->set_layout_align(Align::LEFT_BOTTOM);
 	flow->set_margin_left(10);
 	flow->set_margin_top(10);
 	flow->set_margin_right(10);
 	flow->set_margin_bottom(10);
-	flow->set_padding_left(50);
+	// flow->set_padding_left(50);
+	//
+	img->set_height({ 50, SizeType::PIXEL });
+	img->set_layout_align(Align::RIGHT_BOTTOM);
+	img->set_src(Path::resources("bench/img2/99.jpeg"));
+	img->set_fill(New<FillColor>(Color(255,0,0,255)));
+	img->set_margin_left(10);
+	img->set_margin_top(10);
+	img->set_margin_right(10);
+	img->set_margin_bottom(10);
+	// img->set_padding_left(50);
 	
 	F_DEBUG("%s, %p\n", "ok skia", app);
 	

@@ -254,6 +254,11 @@ namespace flare {
 			* @func mark_recursive(mark)
 			*/
 		void mark_recursive(uint32_t mark);
+		
+		/**
+			* @func mark_none()
+			*/
+		void mark_none();
 
 		/**
 			* @func unmark(mark)

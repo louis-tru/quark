@@ -230,6 +230,12 @@ namespace flare {
 		}
 	}
 
+	void Layout::mark_none() {
+		if (layout_depth()) {
+			pre_render()->mark_none(); // push to pre render
+		}
+	}
+
 }
 
 // *******************************************************************

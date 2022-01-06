@@ -28,7 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "./app.h"
 #include "./image_source.h"
+#include "./pre_render.h"
 #include "./util/fs.h"
 #include "skia/core/SkImage.h"
 
@@ -129,7 +131,7 @@ namespace flare {
 
 	ImageSource::ImageSource(cString& uri)
 		: F_Init_Event(State)
-		, _id(fs_reader()->format(uri))
+		, _uri(fs_reader()->format(uri))
 		, _state(STATE_NONE)
 		, _load_id(0), _size(0), _used(0)
 		, _inl(nullptr)
@@ -152,7 +154,7 @@ namespace flare {
 		auto img = SkImage::MakeFromRaster(skpixel, nullptr, nullptr);
 		img->ref();
 		_inl = img.get();
-		_id = String("mem://").append(sk_I(_inl)->uniqueID());
+		_uri = String("mem://").append(sk_I(_inl)->uniqueID());
 		_state = State(STATE_LOAD_COMPLETE | STATE_DECODEING);
 		_size = _memPixel.body().length() + PixelData::bytes_per_pixel(_type) * _width * _height;
 	}
@@ -213,7 +215,7 @@ namespace flare {
 		
 		RunLoop::first()->post(Cb([this](CbData& e){
 			F_Trigger(State, _state); // trigger
-			_load_id = fs_reader()->read_file(_id, Cb([this](CbData& e){ // read data
+			_load_id = fs_reader()->read_file(_uri, Cb([this](CbData& e){ // read data
 				if (_state & STATE_LOADING) {
 					_state = State((_state | STATE_LOAD_COMPLETE) & ~STATE_LOADING);
 					_loaded = *static_cast<Buffer*>(e.data);
@@ -298,6 +300,52 @@ namespace flare {
 		return false;
 	}
 
+	// -------------------- S o u r c e H o l d --------------------
+
+	SourceHold::~SourceHold() {
+		if (_source) {
+			_source->F_Off(State, &SourceHold::handleSourceState, this);
+		}
+	}
+
+	String SourceHold::src() const {
+		return _source ? _source->uri(): String();
+	}
+
+	ImageSource* SourceHold::source() {
+		return _source.value();
+	}
+
+	void SourceHold::set_src(cString& value) {
+		set_source(app() ? app()->img_pool()->get(value): new ImageSource(value));
+	}
+
+	void SourceHold::set_source(ImageSource* source) {
+		if (_source.value() != source) {
+			if (_source) {
+				_source->F_Off(State, &SourceHold::handleSourceState, this);
+			}
+			if (source) {
+				source->F_On(State, &SourceHold::handleSourceState, this);
+			}
+			_source = Handle<ImageSource>(source);
+		}
+	}
+
+	void SourceHold::handleSourceState(Event<ImageSource, ImageSource::State>& evt) { // 收到图像变化通知
+		onSourceState(evt);
+	}
+
+	void SourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
+		if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
+			auto app_ = app();
+			// F_ASSERT(app_, "Application needs to be initialized first");
+			if (app_) {
+				app_->pre_render()->mark_none();
+			}
+		}
+	}
+
 	// -------------------- I m a g e P o o l --------------------
 
 	F_DEFINE_INLINE_MEMBERS(ImagePool, Inl) {
@@ -306,7 +354,7 @@ namespace flare {
 
 		void source_state_handle(Event<ImageSource, ImageSource::State>& evt) {
 			ScopeLock locl(_Mutex);
-			auto id = evt.sender()->id().hash_code();
+			auto id = evt.sender()->uri().hash_code();
 			auto it = _sources.find(id);
 			if (it != _sources.end()) {
 				int ch = int(evt.sender()->size()) - int(it->value.size);

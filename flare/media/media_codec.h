@@ -93,9 +93,7 @@ namespace flare {
 		F_DEFINE_INLINE_CLASS(Inl);
 	 public:
 		
-		struct F_EXPORT TrackInfo {
-			TrackInfo();
-			TrackInfo(const TrackInfo&);
+		struct TrackInfo {
 			uint32_t    track;            /* 轨道在源中的索引 */
 			MediaType   type;             /* type */
 			String      mime;             /* mime类型 */
@@ -112,10 +110,10 @@ namespace flare {
 			uint32_t    channel_count;    /* 声音声道数量 */
 			uint64_t    channel_layout;   /* channel_layout */
 			uint32_t    frame_interval;   /* 图像帧时间间隔 */
-			Buffer      extradata;        /* extradata */
+			Array<char> extradata;        /* extradata */
 		};
 		
-		struct F_EXPORT BitRateInfo {  /* 码率 */
+		struct BitRateInfo {  /* 码率 */
 			int         bandwidth;
 			uint32_t    width;
 			uint32_t    height;
@@ -123,8 +121,8 @@ namespace flare {
 			Array<TrackInfo>  tracks;
 		};
 		
-		class F_EXPORT Delegate {
-		public:
+		class Delegate {
+		 public:
 			virtual void multimedia_source_ready(MultimediaSource* source) = 0;
 			virtual void multimedia_source_wait_buffer(MultimediaSource* source, float process) = 0;
 			virtual void multimedia_source_eof(MultimediaSource* source) = 0;
@@ -136,7 +134,7 @@ namespace flare {
 		*/
 		class F_EXPORT Extractor: public Object {
 			F_HIDDEN_ALL_COPY(Extractor);
-		public:
+		 public:
 			
 			/**
 			* @func track_count
@@ -247,7 +245,7 @@ namespace flare {
 			* */
 			inline bool is_disable() const { return _disable; }
 			
-		private:
+		 private:
 			Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& tracks);
 
 			struct SampleData {
@@ -365,20 +363,18 @@ namespace flare {
 	 public:
 		typedef MultimediaSource::Extractor Extractor;
 		
-		struct F_EXPORT OutputBuffer {
-			OutputBuffer();
-			OutputBuffer(const OutputBuffer& buffer);
-			uint8_t*   data[8];      /* 数据Buffer */
-			uint32_t    linesize[8];  /* 数据大小 */
-			uint32_t    total;        /* 数据总大小 */
-			uint64_t  time;         /* 演示时间 */
-			int     index;        /* 数据Buffer在解码器中的索引 */
+		struct OutputBuffer {
+			uint8_t*  data[8] = {0};      /* 数据Buffer */
+			uint32_t  linesize[8] = {0};  /* 数据大小 */
+			uint32_t  total = 0;        /* 数据总大小 */
+			uint64_t  time = 0;         /* 演示时间 */
+			int       index = 0;        /* 数据Buffer在解码器中的索引 */
 		};
 		
 		class F_EXPORT Delegate {
-		public:
-			virtual void media_decoder_eof(MediaCodec* de, uint64_t timeUs) { }
-			virtual void media_decoder_error(MediaCodec* de, cError& err) { }
+		 public:
+			virtual void media_decoder_eof(MediaCodec* de, uint64_t timeUs) {}
+			virtual void media_decoder_error(MediaCodec* de, cError& err) {}
 		};
 		
 		/**

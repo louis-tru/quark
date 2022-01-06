@@ -46,7 +46,7 @@ namespace flare {
 
 	# define F_DEFINE_VIEW(N) \
 	 public: \
-		virtual void accept(Visitor *visitor); \
+		virtual void accept(Visitor *visitor) override; \
 
 	# define F_View_Class(N) class N;
 		F_VIEWS(F_View_Class);
@@ -424,7 +424,7 @@ namespace flare {
 		// *******************************************************************
 
 		// the objects that automatically adjust view properties
-		F_DEFINE_READ(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
+		F_DEFINE_PROP(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
 		F_DEFINE_PROP_READ(View*, parent);
 		F_DEFINE_PROP_READ(View*, prev);
 		F_DEFINE_PROP_READ(View*, next);
@@ -441,7 +441,7 @@ namespace flare {
 		F_DEFINE_PROP(uint8_t, opacity); // 可影响子视图的透明度值
 		// 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
 		// @prop Does the view need to receive or handle event throws from the system
-		F_DEFINE_READ(bool, receive);
+		F_DEFINE_PROP(bool, receive);
 		// 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
 		F_DEFINE_PROP_READ(bool, visible);
 		// 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕

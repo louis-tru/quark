@@ -36,12 +36,14 @@
 
 namespace flare {
 
-	class F_EXPORT Image: public Box {
+	class F_EXPORT Image: public Box, public SourceHold {
 		F_DEFINE_VIEW(Image);
 	 public:
-		// F_DEFINE_PROP(String, src);
-	 private:
-		Handle<ImageSource> _source;
+		virtual void draw(Canvas* canvas, uint8_t alpha) override;
+	 protected:
+		virtual float solve_layout_content_width(Size &parent_layout_size) override;
+		virtual float solve_layout_content_height(Size &parent_layout_size) override;
+		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
 	};
 
 }

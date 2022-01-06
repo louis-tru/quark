@@ -130,7 +130,7 @@ namespace flare {
 		F_Event(State, Event<ImageSource, State>);
 		
 		// Defines props
-		F_DEFINE_PROP_READ(String, id);
+		F_DEFINE_PROP_READ(String, uri);
 		F_DEFINE_PROP_READ(State, state);
 		F_DEFINE_PROP_READ(int, width);
 		F_DEFINE_PROP_READ(int, height);
@@ -195,6 +195,22 @@ namespace flare {
 		uint32_t _load_id, _size, _used;
 		void *_inl;
 		F_DEFINE_INLINE_CLASS(Inl);
+	};
+
+	/**
+	* @class SourceHold
+	*/
+	class F_EXPORT SourceHold {
+	 public:
+		~SourceHold();
+		void   set_src(cString& src);
+		void   set_source(ImageSource* source);
+		String src() const;
+		ImageSource* source();
+	 private:
+		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
+		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);
+		Handle<ImageSource> _source;
 	};
 
 	class F_EXPORT ImagePool: public Object {

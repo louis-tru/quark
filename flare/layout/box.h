@@ -57,10 +57,19 @@ namespace flare {
 		F_DEFINE_PROP(float, padding_right);
 		F_DEFINE_PROP(float, padding_bottom);
 		F_DEFINE_PROP(float, padding_left);
+		F_DEFINE_PROP(float, border_radius_left_top); // border_radius
+		F_DEFINE_PROP(float, border_radius_right_top);
+		F_DEFINE_PROP(float, border_radius_right_bottom);
+		F_DEFINE_PROP(float, border_radius_left_bottom);
 		F_DEFINE_PROP_READ(Vec2, transform_origin); // Start the matrix transformation from this origin point
 		F_DEFINE_PROP_READ(Vec2, layout_content_size); // width,height / size
 		F_DEFINE_PROP_READ(Vec2, client_size); // content + padding
 		F_DEFINE_PROP(Fill,  fill); // color|shadow|image|gradient|border|border-radius
+
+		/**
+		 * @func Returns the is use border radius
+		 */
+		inline bool is_radius() const { return _is_radius; }
 
 		/**
 			*
@@ -131,8 +140,11 @@ namespace flare {
 			*/
 		bool layout_wrap_x() const { return _wrap_x; }
 		bool layout_wrap_y() const { return _wrap_y; }
-		float solve_layout_content_width(float parent_content_szie, bool *is_wrap_in_out);
-		float solve_layout_content_height(float parent_content_szie, bool *is_wrap_in_out);
+
+		// @func solve_layout_content_width
+		virtual float solve_layout_content_width(Size &parent_layout_size);
+		virtual float solve_layout_content_height(Size &parent_layout_size);
+
 		void  mark_layout_size(uint32_t mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
@@ -143,6 +155,8 @@ namespace flare {
 		float _layout_weight; // layout weight
 		Align _layout_align; // layout align
 		bool  _wrap_x, _wrap_y, _is_radius; // layout content size wrap
+
+		friend class Image;
 
 		F_DEFINE_INLINE_CLASS(Inl);
 	};

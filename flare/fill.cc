@@ -35,7 +35,6 @@
 #include "./pre_render.h"
 #include "./layout/box.h"
 #include "./render/render.h"
-#include "./util/fs.h"
 #include "skia/core/SkImage.h"
 
 namespace flare {
@@ -83,7 +82,7 @@ namespace flare {
 		}
 	}
 	
-	void FillBox:_Set_next(Fill value) {
+	void FillBox::_Set_next(Fill value) {
 		_next = assign(_next, value);
 		if (_next) {
 			_next->set_holder_mode(_holder_mode);
@@ -121,7 +120,7 @@ namespace flare {
 		if (left == right) {
 			return left;
 		} else {
-			if (left && right && check_loop_reference(right->_next)) {
+			if (left && right && left->check_loop_reference(right->_next)) {
 				F_ERR("Box background loop reference error");
 				return left;
 			} else {
@@ -168,7 +167,6 @@ namespace flare {
 	FillBox::Type FillGradient::type() const { return M_GRADIENT; }
 	FillBox::Type FillShadow::type() const { return M_SHADOW; }
 	FillBox::Type FillBorder::type() const { return M_BORDER; }
-	FillBox::Type FillBorderRadius::type() const { return M_BORDER_RADIUS; }
 
 	FillColor::FillColor(Color color): _color(color) {
 	}
@@ -192,28 +190,11 @@ namespace flare {
 	Fill FillColor::BLACK( NewRetain<FillColor>(Color(0,0,0,255))->set_holder_mode(M_SHARED) );
 	Fill FillColor::BLUE( NewRetain<FillColor>(Color(0,1,0,255))->set_holder_mode(M_SHARED) );
 
-	F_DEFINE_INLINE_MEMBERS(FillImage, Inl) {
-	 public:
-		#define _inl_img(self) static_cast<FillImage::Inl*>(self)
-
-		void source_change_handle(Event<ImageSource, ImageSource::State>& evt) { // 收到图像变化通知
-			if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
-				mark();
-			}
-		}
-	};
-
 	FillImage::FillImage(cString& src)
 		: _repeat(Repeat::REPEAT)
 	{
 		if (!src.is_empty()) {
 			set_src(src);
-		}
-	}
-
-	FillImage::~FillImage() {
-		if (_source) {
-			_source->F_Off(State, &Inl::source_change_handle, _inl_img(this));
 		}
 	}
 
@@ -225,29 +206,9 @@ namespace flare {
 		target->_position_y = _position_y;
 		target->_size_x = _size_x;
 		target->_size_y = _size_y;
-		target->_source = _source;
+		target->set_source(source());
 		_Set_next(_next);
 		return target;
-	}
-
-	String FillImage::src() const {
-		return _source ? _source->id(): String();
-	}
-
-	void FillImage::set_src(cString& value) {
-		set_source(app() ? app()->img_pool()->get(value): new ImageSource(value));
-	}
-
-	void FillImage::set_source(ImageSource* source) {
-		if (_source.value() != source) {
-			if (_source) {
-				_source->F_Off(State, &Inl::source_change_handle, _inl_img(this));
-			}
-			if (source) {
-				source->F_On(State, &Inl::source_change_handle, _inl_img(this));
-			}
-			_source = Handle<ImageSource>(source);
-		}
 	}
 
 	void FillImage::set_repeat(Repeat value) {
@@ -301,42 +262,39 @@ namespace flare {
 
 	SkImage* CastSkImage(ImageSource* img);
 
-	static SkRect MakeSkRectFrom(Box *host) {
-		auto o = host->transform_origin();
-		auto s = host->client_size();
-		return {o[0], o[1], s[0], s[1]};
+	SkRect makeSkRectFrom(Box *host) {
+		auto b = host->transform_origin(); // begin
+		auto e = host->client_size() - b; // end
+		return {-b.x(), -b.y(), e.x(), e.y()};
 	}
 
-	void FillColor::draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) {
-		if (_color.a()) {
- 			SkPaint paint;
+	void FillColor::draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) {
+		if (full && _color.a()) {
+			SkPaint paint;
 			paint.setColor(_color.to_uint32_argb_from(alpha));
-			if (radius) {
+			if (host->is_radius()) {
 				// TODO ...
 			} else {
-				canvas->drawRect(MakeSkRectFrom(host), paint);
+				canvas->drawRect(makeSkRectFrom(host), paint);
 			}
 		}
 		if (_next)
-			_next->draw(host, canvas, alpha, radius);
+			_next->draw(host, canvas, alpha, full);
 	}
 
-	void FillImage::draw(Box *host, Canvas *canvas, uint8_t alpha, FillBorderRadius *radius) {
-		if (_source && _source->ready()) {
-			if (radius) {
-				// TODO ...
-			} else {
-				auto skimg = CastSkImage(_source.value());
-				canvas->drawImageRect(skimg, MakeSkRectFrom(host), {});
+	void FillImage::draw(Box *host, Canvas *canvas, uint8_t alpha, bool full) {
+		if (full) {
+			auto src = source();
+			if (src && src->ready()) {
+				if (host->is_radius()) {
+					// TODO ...
+				} else {
+					canvas->drawImageRect(CastSkImage(src), makeSkRectFrom(host), {});
+				}
 			}
 		}
 		if (_next)
-			_next->draw(host, canvas, alpha, radius);
-	}
-
-	void FillBorderRadius::draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) {
-		if (_next)
-			_next->draw(host, canvas, alpha, this);
+			_next->draw(host, canvas, alpha, full);
 	}
 
 }

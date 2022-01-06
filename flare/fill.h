@@ -44,7 +44,6 @@ namespace flare {
 	class FillGradient;
 	class FillShadow;
 	class FillBorder; // top,right,bottom,left
-	class FillBorderRadius; // left-top,right-top,right-bottom,left-bottom
 	class Canvas;
 
 	typedef FillBox* Fill;
@@ -62,7 +61,6 @@ namespace flare {
 			M_GRADIENT,
 			M_SHADOW,
 			M_BORDER,
-			M_BORDER_RADIUS,
 		};
 
 		enum HolderMode {
@@ -128,7 +126,7 @@ namespace flare {
 		 *
 		 * @func draw(host, canvas)
 		 */
-		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius = nullptr) = 0;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) = 0;
 		
 	 protected:
 		/**
@@ -152,7 +150,7 @@ namespace flare {
 		F_DEFINE_PROP(Color, color);
 		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) override;
 		// @consts
 		static Fill WHITE;
 		static Fill BLACK;
@@ -162,10 +160,9 @@ namespace flare {
 	/**
 	* @class FillImage
 	*/
-	class F_EXPORT FillImage: public FillBox {
+	class F_EXPORT FillImage: public FillBox, public SourceHold {
 	 public:
 		FillImage(cString& src = String());
-		virtual ~FillImage();
 		virtual Type type() const override;
 
 		F_DEFINE_PROP(Repeat, repeat);
@@ -174,16 +171,8 @@ namespace flare {
 		F_DEFINE_PROP(FillSize, size_x);
 		F_DEFINE_PROP(FillSize, size_y);
 
-		String src() const;
-		ImageSource* source() { return _source.value(); }
-		void set_src(cString& src);
-		void set_source(ImageSource* source);
-
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
-	 private:
-		Handle<ImageSource> _source;
-		F_DEFINE_INLINE_CLASS(Inl);
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) override;
 	};
 
 	/**
@@ -194,7 +183,7 @@ namespace flare {
 		FillGradient();
 		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) override;
 	 private:
 	};
 
@@ -205,7 +194,7 @@ namespace flare {
 	 public:
 		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) override;
 	 private:
 	};
 
@@ -232,25 +221,11 @@ namespace flare {
 		};
 		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
+		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) override;
 	 protected:
 		Color _color[4];
 		float _width[4];
 		Style _style[4];
-	};
-
-	/**
-	 * @class FillBorderRadius
-	 */
-	class F_EXPORT FillBorderRadius: public FillBox {
-	 public:
-		F_DEFINE_PROP(float, left_top);
-		F_DEFINE_PROP(float, right_top);
-		F_DEFINE_PROP(float, right_bottom);
-		F_DEFINE_PROP(float, left_bottom);
-		virtual Type type() const override;
-		virtual Fill copy(Fill to) override;
-		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, FillBorderRadius* radius) override;
 	};
 
 }

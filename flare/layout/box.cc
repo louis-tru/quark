@@ -39,7 +39,9 @@ namespace flare {
 		visitView(v);
 	}
 
-	float Box::solve_layout_content_width(float parent_layout_content_size, bool *is_wrap_in_out) {
+	float Box::solve_layout_content_width(Size &parent_layout_size) {
+		float ps = parent_layout_size.content_size.x();
+		bool* is_wrap_in_out = &parent_layout_size.wrap_x;
 		float result;
 
 		switch (_width.type) {
@@ -57,7 +59,7 @@ namespace flare {
 					result = 0; // invalid wrap width
 				} else { // use wrap
 					result = Number<float>::max(
-						parent_layout_content_size - _margin_left - _margin_right - _padding_left - _padding_right, 0
+						ps - _margin_left - _margin_right - _padding_left - _padding_right, 0
 					);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
@@ -66,7 +68,7 @@ namespace flare {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
-					result = Number<float>::max(parent_layout_content_size * _width.value, 0);
+					result = Number<float>::max(ps * _width.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -74,7 +76,7 @@ namespace flare {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
-					result = Number<float>::max(parent_layout_content_size - _width.value, 0);
+					result = Number<float>::max(ps - _width.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -82,7 +84,9 @@ namespace flare {
 		return result;
 	}
 
-	float Box::solve_layout_content_height(float parent_layout_content_size, bool *is_wrap_in_out) {
+	float Box::solve_layout_content_height(Size &parent_layout_size) {
+		float ps = parent_layout_size.content_size.y();
+		bool* is_wrap_in_out = &parent_layout_size.wrap_y;
 		float result;
 
 		switch (_height.type) {
@@ -100,7 +104,7 @@ namespace flare {
 					result = 0; // invalid wrap height
 				} else { // use wrap
 					result = Number<float>::max(
-						parent_layout_content_size - _margin_top - _margin_bottom - _padding_top - _padding_bottom, 0
+						ps - _margin_top - _margin_bottom - _padding_top - _padding_bottom, 0
 					);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
@@ -109,7 +113,7 @@ namespace flare {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
-					result = Number<float>::max(parent_layout_content_size * _height.value, 0);
+					result = Number<float>::max(ps * _height.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -117,7 +121,7 @@ namespace flare {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
-					result = Number<float>::max(parent_layout_content_size - _height.value, 0);
+					result = Number<float>::max(ps - _height.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -147,7 +151,7 @@ namespace flare {
 		, _padding_bottom(0), _padding_left(0)
 		, _fill(nullptr)
 		, _layout_weight(0), _layout_align(Align::AUTO)
-		, _wrap_x(true), _wrap_y(true)
+		, _wrap_x(true), _wrap_y(true), _is_radius(false)
 	{
 	}
 
@@ -270,10 +274,54 @@ namespace flare {
 		}
 	}
 
+	// -- border radius
+
+	void Box::set_border_radius_left_top(float val) {
+		if (_border_radius_left_top != val) {
+			_border_radius_left_top = val;
+			_is_radius = 
+				*reinterpret_cast<uint64_t*>(&_border_radius_left_top) | 
+				*reinterpret_cast<uint64_t*>(&_border_radius_right_bottom);
+			mark_none();
+		}
+	}
+
+	void Box::set_border_radius_right_top(float val) {
+		if (_border_radius_right_top != val) {
+			_border_radius_right_top = val;
+			_is_radius = 
+				*reinterpret_cast<uint64_t*>(&_border_radius_left_top) | 
+				*reinterpret_cast<uint64_t*>(&_border_radius_right_bottom);
+			mark_none();
+		}
+	}
+
+	void Box::set_border_radius_right_bottom(float val) {
+		if (_border_radius_right_bottom != val) {
+			_border_radius_right_bottom = val;
+			_is_radius = 
+				*reinterpret_cast<uint64_t*>(&_border_radius_left_top) | 
+				*reinterpret_cast<uint64_t*>(&_border_radius_right_bottom);
+			mark_none();
+		}
+	}
+
+	void Box::set_border_radius_left_bottom(float val) {
+		if (_border_radius_left_bottom != val) {
+			_border_radius_left_bottom = val;
+			_is_radius = 
+				*reinterpret_cast<uint64_t*>(&_border_radius_left_top) | 
+				*reinterpret_cast<uint64_t*>(&_border_radius_right_bottom);
+			mark_none();
+		}
+	}
+
+	// -- fill
+
 	void Box::set_fill(Fill val) {
 		if (_fill != val) {
 			_fill = FillBox::assign(_fill, val);
-			mark(M_NONE);
+			mark_none();
 		}
 	}
 
@@ -296,7 +344,7 @@ namespace flare {
 		if (mark & M_LAYOUT_SIZE_WIDTH) {
 			if (!parent()->is_layout_lock_child()) {
 				auto size = parent()->layout_size();
-				auto val = solve_layout_content_width(size.content_size.x(), &size.wrap_x);
+				auto val = solve_layout_content_width(size);
 
 				if (val != _layout_content_size.width() || _wrap_x != size.wrap_x) {
 					_layout_content_size.width(val);
@@ -314,7 +362,7 @@ namespace flare {
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
 			if (!parent()->is_layout_lock_child()) {
 				auto size = parent()->layout_size();
-				auto val = solve_layout_content_height(size.content_size.y(), &size.wrap_y);
+				auto val = solve_layout_content_height(size);
 
 				if (val != _layout_content_size.height() || _wrap_y != size.wrap_y) {
 					_layout_content_size.height(val);
@@ -376,8 +424,8 @@ namespace flare {
 	}
 
 	Layout::Size Box::layout_raw_size(Size size) {
-		size.content_size.x(solve_layout_content_width(size.content_size.x(), &size.wrap_x));
-		size.content_size.x(solve_layout_content_height(size.content_size.y(), &size.wrap_y));
+		size.content_size.x(solve_layout_content_width(size));
+		size.content_size.x(solve_layout_content_height(size));
 		size.layout_size.x(_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right);
 		size.layout_size.y(_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom);
 		return size;
@@ -623,7 +671,7 @@ namespace flare {
 	void Box::draw(Canvas* canvas, uint8_t alpha) {
 		if (_fill) {
 			canvas->setMatrix(matrix());
-			_fill->draw(this, canvas, alpha);
+			_fill->draw(this, canvas, alpha, true);
 		}
 		View::draw(canvas, alpha);
 	}

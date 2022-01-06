@@ -34,30 +34,6 @@ namespace flare {
 
 	static MediaCodec::Delegate default_media_decoder_delegate;
 
-	MultimediaSource::TrackInfo::TrackInfo(const TrackInfo& info)
-		: track(info.track) 
-		, type(info.type)
-		, mime(info.mime)
-		, codec_id(info.codec_id)
-		, codec_tag(info.codec_tag)
-		, format(info.format)
-		, profile(info.profile)
-		, level(info.level)
-		, width(info.width)
-		, height(info.height)
-		, language(info.language)
-		, bitrate(info.bitrate)
-		, sample_rate(info.sample_rate)
-		, channel_count(info.channel_count)
-		, channel_layout(info.channel_layout)
-		, frame_interval(info.frame_interval)
-		, extradata(info.extradata.copy())
-	{
-	}
-
-	MultimediaSource::TrackInfo::TrackInfo() {
-	}
-
 	// ------------------- MultimediaSource ------------------
 
 	MultimediaSource::MultimediaSource(cString& uri, RunLoop* loop): _inl(nullptr) {
@@ -299,14 +275,6 @@ namespace flare {
 			rv = software(type, source);
 		}
 		return rv;
-	}
-
-	MediaCodec::OutputBuffer::OutputBuffer() {
-		memset(this, 0, sizeof(OutputBuffer));
-	}
-
-	MediaCodec::OutputBuffer::OutputBuffer(const OutputBuffer& buffer) {
-		memcpy(this, &buffer, sizeof(OutputBuffer));
 	}
 
 }
