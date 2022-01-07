@@ -32,7 +32,7 @@
 #define __flare__fill__
 
 #include "./value.h"
-#include "./image_source.h"
+#include "./source.h"
 #include "./util/handle.h"
 
 namespace flare {
@@ -133,9 +133,10 @@ namespace flare {
 		* @func mark()
 		*/
 		void mark();
-		static Fill _Assign(Fill left, Fill right);
+
 		bool check_loop_reference(Fill value);
 		void _Set_next(Fill value);
+		static Fill _Assign(Fill left, Fill right);
 
 		Fill        _next;
 		HolderMode  _holder_mode;
@@ -163,16 +164,17 @@ namespace flare {
 	class F_EXPORT FillImage: public FillBox, public SourceHold {
 	 public:
 		FillImage(cString& src = String());
-		virtual Type type() const override;
-
 		F_DEFINE_PROP(Repeat, repeat);
 		F_DEFINE_PROP(FillPosition, position_x);
 		F_DEFINE_PROP(FillPosition, position_y);
 		F_DEFINE_PROP(FillSize, size_x);
 		F_DEFINE_PROP(FillSize, size_y);
-
+		virtual Type type() const override;
 		virtual Fill copy(Fill to) override;
 		virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) override;
+	 private:
+		bool  solve_size(FillSize size, float host, float& out);
+		float solve_position(FillPosition pos, float host, float size);
 	};
 
 	/**

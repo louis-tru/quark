@@ -91,12 +91,14 @@ namespace flare {
 
 			auto b = Vec2(_padding_left - _transform_origin.x(), _padding_top - _transform_origin.y());
 			auto e = layout_content_size() + b;
+			auto img = CastSkImage(src);
 			SkRect rect = {b.x(), b.y(), e.x(), e.y()};
+			SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
 
 			if (is_radius()) {
 				// TODO ...
 			} else {
-				canvas->drawImageRect(CastSkImage(src), rect, {});
+				canvas->drawImageRect(img, rect, opts);
 			}
 			if (_fill) {
 				_fill->draw(this, canvas, alpha, false);

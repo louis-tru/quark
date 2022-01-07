@@ -213,12 +213,10 @@ namespace flare {
 	*/
 	enum class FillPositionType: uint8_t {
 		PIXEL = value::PIXEL,     /* 像素值  px */
-		RATIO = value::RATIO,   /* 百分比  % */
-		LEFT = value::LEFT,      /* 居左 */
-		RIGHT = value::RIGHT,     /* 居右  % */
-		CENTER = value::CENTER,    /* 居中 */
-		TOP = value::TOP,       /* 居上 */
-		BOTTOM = value::BOTTOM,    /* 居下 */
+		RATIO = value::RATIO,     /* 百分比  % */
+		START = value::START,      /* 开始 start */
+		END    = value::END,       /* 结束 end */
+		CENTER = value::CENTER,    /* 居中 center */
 	};
 	
 	/**

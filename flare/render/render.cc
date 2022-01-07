@@ -111,6 +111,10 @@ namespace flare {
 
 	Render::~Render() {}
 
+	GrDirectContext* Render::direct() {
+		return _direct.get();
+	}
+
 	Canvas* Render::canvas() {
 		return static_cast<Canvas*>(surface()->getCanvas());
 	}

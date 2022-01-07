@@ -32,7 +32,7 @@
 #define __flare__layout__image__
 
 #include "./box.h"
-#include "../image_source.h"
+#include "../source.h"
 
 namespace flare {
 

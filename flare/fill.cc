@@ -30,7 +30,7 @@
 
 #include "./app.h"
 #include "./fill.h"
-#include "./image_source.h"
+#include "./source.h"
 #include "./display.h"
 #include "./pre_render.h"
 #include "./layout/box.h"
@@ -168,8 +168,9 @@ namespace flare {
 	FillBox::Type FillShadow::type() const { return M_SHADOW; }
 	FillBox::Type FillBorder::type() const { return M_BORDER; }
 
-	FillColor::FillColor(Color color): _color(color) {
-	}
+	// ------------------------------ F i l l C o l o r ------------------------------
+
+	FillColor::FillColor(Color color): _color(color) {}
 
 	void FillColor::set_color(Color value) {
 		if (_color != value) {
@@ -190,8 +191,10 @@ namespace flare {
 	Fill FillColor::BLACK( NewRetain<FillColor>(Color(0,0,0,255))->set_holder_mode(M_SHARED) );
 	Fill FillColor::BLUE( NewRetain<FillColor>(Color(0,1,0,255))->set_holder_mode(M_SHARED) );
 
+	// ------------------------------ F i l l I m a g e ------------------------------
+
 	FillImage::FillImage(cString& src)
-		: _repeat(Repeat::REPEAT)
+		: _repeat(Repeat::NONE)
 	{
 		if (!src.is_empty()) {
 			set_src(src);
@@ -258,14 +261,14 @@ namespace flare {
 		return target;
 	}
 
-	// ------------------------------ draw ------------------------------
+	// ------------------------------ d r a w ------------------------------
 
 	SkImage* CastSkImage(ImageSource* img);
 
-	SkRect makeSkRectFrom(Box *host) {
-		auto b = host->transform_origin(); // begin
-		auto e = host->client_size() - b; // end
-		return {-b.x(), -b.y(), e.x(), e.y()};
+	SkRect MakeSkRectFrom(Box *host) {
+		auto begin = host->transform_origin(); // begin
+		auto end = host->client_size() - begin; // end
+		return {-begin.x(), -begin.y(), end.x(), end.y()};
 	}
 
 	void FillColor::draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) {
@@ -275,24 +278,100 @@ namespace flare {
 			if (host->is_radius()) {
 				// TODO ...
 			} else {
-				canvas->drawRect(makeSkRectFrom(host), paint);
+				canvas->drawRect(MakeSkRectFrom(host), paint);
 			}
 		}
 		if (_next)
 			_next->draw(host, canvas, alpha, full);
 	}
 
+	bool FillImage::solve_size(FillSize size, float host, float& out) {
+		switch (size.type) {
+			default: return false; // AUTO
+			case FillSizeType::PIXEL: out = size.value; break;
+			case FillSizeType::RATIO: out = size.value * host; break;
+		}
+		return true;
+	}
+
+	float FillImage::solve_position(FillPosition pos, float host, float size) {
+		float out = 0;
+		switch (pos.type) {
+			default: break;
+			//case FillPositionType::START: out = 0; break;
+			case FillPositionType::PIXEL: out = pos.value; break;
+			case FillPositionType::RATIO: out = pos.value * host; break;
+			case FillPositionType::END: out = host - size; break;
+			case FillPositionType::CENTER: out = (host - size) / 2; break;
+		}
+		return out;
+	}
+
 	void FillImage::draw(Box *host, Canvas *canvas, uint8_t alpha, bool full) {
-		if (full) {
+		if (0 && full && source() && source()->ready()) {
 			auto src = source();
-			if (src && src->ready()) {
-				if (host->is_radius()) {
-					// TODO ...
-				} else {
-					canvas->drawImageRect(CastSkImage(src), makeSkRectFrom(host), {});
+			auto img = CastSkImage(src);
+			SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
+
+			auto ori = host->transform_origin(); // begin
+			auto cli = host->client_size();
+			auto src_w = src->width(), src_h = src->height();
+			auto cli_x = cli.x(), cli_y = cli.y();
+			float w, h, x, y;
+			
+			if (solve_size(_size_x, cli_x, w)) { // ok x
+				if (!solve_size(_size_y, cli_y, h)) { // auto y
+					h = w / src_w * src_h;
+				}
+			} else if (solve_size(_size_y, cli_y, h)) { // auto x, ok y
+				w = h / src_h * src_w;
+			} else { // auto x,y
+				w = src_w;
+				h = src_h;
+			}
+			
+			auto min = [] (float a, float b) { return a < b ? a: b; };
+			auto max = [] (float a, float b) { return a > b ? a: b; };
+			auto scale_x = w / src_w;
+			auto scale_y = h / src_h;
+			
+			x = solve_position(_position_x, cli_x, w) - ori.x();
+			y = solve_position(_position_y, cli_y, h) - ori.y();
+			
+			cli_x -= ori.x();
+			cli_y -= ori.y();
+
+			if (_repeat == Repeat::NONE) {
+				
+				if (x < cli_x) {
+					if (y < cli_y) {
+						auto __x = max(x, -ori.x()), __y = max(y, -ori.y());
+						auto __x2 = min(x + w, cli_x), __y2 = min(y + h, cli_y);
+						// auto src_x = __x < 0
+						canvas->drawImageRect(img, { 0, 0, w, h}, {__x,__y,__x2,__y2}, opts, nullptr, Canvas::kFast_SrcRectConstraint);
+					}
+				}
+				
+			} else {
+				bool repeat_x = _repeat == Repeat::REPEAT || _repeat == Repeat::REPEAT_X;
+				bool repeat_y = _repeat == Repeat::REPEAT || _repeat == Repeat::REPEAT_Y;
+				
+				for (auto _x = x; _x < cli_x; _x += w) {
+					for (auto _y = y; _y < cli_y; _y += h) {
+						auto __x = max(_x, -ori.x()), __y = max(_y, -ori.y());
+						auto __x2 = min(_x + w, cli_x), __y2 = min(_y + h, cli_y);
+
+						canvas->drawImageRect(img, {__x,__y,__x2,__y2}, opts);
+
+						if (!repeat_y) break;
+					}
+					if (!repeat_x) break;
 				}
 			}
+
+			// canvas->drawImageRect(img, rect, opts);
 		}
+
 		if (_next)
 			_next->draw(host, canvas, alpha, full);
 	}

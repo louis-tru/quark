@@ -12,6 +12,11 @@
 
 using namespace flare;
 
+namespace flare {
+	SkImage* CastSkImage(ImageSource* img);
+	SkRect MakeSkRectFrom(Box *host);
+}
+
 void draw_skia(SkCanvas* canvas) {
 	canvas->clear(SK_ColorWHITE);
 
@@ -52,6 +57,66 @@ void draw_skia(SkCanvas* canvas) {
 	canvas->drawArc(SkRect::MakeXYWH(80, 60, 100, 160), 0, 180, 0, paint);
 }
 
+class FillImageTest: public FillImage {
+	public:
+	FillImageTest(cString& src): FillImage(src) {}
+	virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) override {
+		if (full) {
+			auto src = source();
+			if (src && src->ready()) {
+				auto img = CastSkImage(src);
+				auto rect = MakeSkRectFrom(host);
+				SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
+
+				// canvas->drawImageRect(img, rect, opts);
+
+				auto img2 = img->makeTextureImage(render()->direct(), GrMipmapped::kYes);
+
+				canvas->drawImageRect(img, {0, 0, 1920 * 2, 1080 * 2}, SkRect::MakeXYWH(0, 0, 145, 110),
+															SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone),
+															nullptr, Canvas::kFast_SrcRectConstraint);
+				
+				
+				
+				canvas->drawImageRect(img, SkRect::MakeXYWH(150, 230, 145, 110),
+															SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest));
+				canvas->drawImageRect(img2, SkRect::MakeXYWH(0, 345, 145, 110),
+															SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone));
+				canvas->drawImageRect(img2, SkRect::MakeXYWH(150, 345, 145, 110),
+															SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear));
+			}
+		}
+		if (_next)
+			_next->draw(host, canvas, alpha, full);
+	}
+};
+
+class ImageTest: public Image {
+	public:
+	virtual void draw(Canvas* canvas, uint8_t alpha) override {
+		auto src = source();
+		if (src && src->ready()) {
+			canvas->setMatrix(matrix());
+
+			auto b = Vec2(padding_left(), padding_top()) - transform_origin(); // begin
+			auto e = client_size() - b; // end
+			
+			auto img = CastSkImage(src);
+			SkRect rect = {b.x(), b.y(), e.x(), e.y()};
+			SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
+
+			canvas->drawImageRect(img, rect, opts);
+
+			if (fill()) {
+				fill()->draw(this, canvas, alpha, false);
+			}
+			View::draw(canvas, alpha);
+		} else {
+			Box::draw(canvas, alpha);
+		}
+	}
+};
+
 void onload_handle(Event<>& evt, Application* app) {
 	//draw_skia(app->render()->canvas());
 	//app->render()->commit();
@@ -61,7 +126,7 @@ void onload_handle(Event<>& evt, Application* app) {
 	auto r = Root::create();
 	auto flex = (FlexLayout*)New<FlexLayout>()->append_to(r);
 	auto flow = (FlowLayout*)New<FlowLayout>()->append_to(r);
-	auto img  = (Image*)New<Image>()->append_to(r);
+	auto img  = (Image*)New<ImageTest>()->append_to(r);
 
 	New<Box>()->append_to(flex);
 	New<Box>()->append_to(flex);
@@ -70,9 +135,11 @@ void onload_handle(Event<>& evt, Application* app) {
 	
 	//
 	flex->set_width({ 0, SizeType::MATCH });
-	flex->set_height({ 200, SizeType::PIXEL });
+	flex->set_height({ 180, SizeType::PIXEL });
 	flex->set_fill(New<FillColor>(Color(255,0,0,255))->set_next(
-								 New<FillImage>(Path::resources("bench/img2/21.jpeg"))));
+								 New<FillImage>(Path::resources("bench/img/21.jpeg"))->set_next(
+								 New<FillImageTest>(Path::resources("bench/img/99.jpeg"))
+	)));
 	flex->set_margin_left(10);
 	flex->set_margin_top(20);
 	flex->set_margin_right(10);
@@ -84,7 +151,7 @@ void onload_handle(Event<>& evt, Application* app) {
 	//
 	flow->set_width({ 50, SizeType::PIXEL });
 	flow->set_height({ 50, SizeType::PIXEL });
-	flow->set_fill(New<FillImage>(Path::resources("bench/img2/99.jpeg"))->set_next(New<FillColor>(Color(255,0,0,255))));
+	flow->set_fill(New<FillImage>(Path::resources("bench/img2/21.jpeg"))->set_next(New<FillColor>(Color(255,0,0,255))));
 	flow->set_layout_align(Align::LEFT_BOTTOM);
 	flow->set_margin_left(10);
 	flow->set_margin_top(10);
@@ -94,7 +161,7 @@ void onload_handle(Event<>& evt, Application* app) {
 	//
 	img->set_height({ 50, SizeType::PIXEL });
 	img->set_layout_align(Align::RIGHT_BOTTOM);
-	img->set_src(Path::resources("bench/img2/99.jpeg"));
+	img->set_src(Path::resources("bench/img2/21.jpeg"));
 	img->set_fill(New<FillColor>(Color(255,0,0,255)));
 	img->set_margin_left(10);
 	img->set_margin_top(10);

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__image_source__
-#define __flare__image_source__
+#ifndef __flare__source__
+#define __flare__source__
 
 #include "./util/util.h"
 #include "./util/string.h"

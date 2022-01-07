@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./app.h"
-#include "./image_source.h"
+#include "./source.h"
 #include "./pre_render.h"
 #include "./util/fs.h"
 #include "skia/core/SkImage.h"

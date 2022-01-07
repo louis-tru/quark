@@ -36,7 +36,7 @@
 #include "../util/loop.h"
 #include "../util/json.h"
 #include "../math.h"
-#include "../image_source.h"
+#include "../source.h"
 
 #define SK_GL 1
 
@@ -92,6 +92,8 @@ namespace flare {
 		virtual ~Render();
 
 		Canvas* canvas();
+		GrDirectContext* direct();
+
 		virtual SkSurface* surface() = 0;
 		virtual void reload() = 0;
 		virtual void commit() = 0;
