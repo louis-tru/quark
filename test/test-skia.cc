@@ -32,17 +32,17 @@ void draw_skia(SkCanvas* canvas) {
 
 	// ------------------------- drawRRect -------------------------
 	SkRRect rrect;// = SKRRect::MakeRect(rect);
-	SkVector radii[4] = {{10,20}/*left-top*/,{20,20},{20,20},{20,20}};
+	SkVector radii[4] = {{80,80},{80,80},{80,80},{20,20}/*left-bottom*/};
 	rrect.setRectRadii(rect, radii);
 	paint.setColor(0xFFFF0000);
-	paint.setStyle(SkPaint::kStroke_Style);
-	paint.setStrokeWidth(18);
+	// paint.setStyle(SkPaint::kStroke_Style);
+	paint.setStrokeWidth(20);
 	canvas->drawRRect(rrect, paint);
 
 	// ------------------------- drawDRRect -------------------------
 	SkRRect rrect0, rrect1;
-	SkVector radii0[4] = {{10,20},{10,20},{10,20},{10,20}};
-	SkVector radii1[4] = {{10,20},{10,20},{10,20},{10,20}};
+	SkVector radii0[4] = {{50,50},{50,50},{50,50},{50,50}};
+	SkVector radii1[4] = {{40,40},{40,40},{40,40},{40,40}};
 	rrect0.setRectRadii(SkRect::MakeXYWH(450, 10, 240, 260), radii0);
 	rrect1.setRectRadii(SkRect::MakeXYWH(460, 20, 220, 240), radii1);
 	paint.setColor(0xff0000ff);
@@ -52,13 +52,14 @@ void draw_skia(SkCanvas* canvas) {
 	canvas->drawDRRect(rrect0, rrect1, paint);
 
 	// ------------------------- drawCircle -------------------------
-	paint.setColor(0xff00ff00);
-	canvas->drawCircle(180, 440, 30, paint);
+	paint.setColor(0xff0000ff);
+	canvas->drawCircle(180, 440, 80, paint);
 
 	// ------------------------- drawArc -------------------------
-	paint.setColor(0xffffff00);
+	paint.setColor(0xff000000);
 	paint.setStyle(SkPaint::kStroke_Style);
-	canvas->drawArc(SkRect::MakeXYWH(480, 360, 100, 160), 0, 180, 0, paint);
+	canvas->drawArc(SkRect::MakeXYWH(480, 360, 160, 200), 0, 220, true, paint);
+	
 }
 
 class FillImageTest: public FillImage {
