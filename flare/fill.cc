@@ -194,7 +194,7 @@ namespace flare {
 	// ------------------------------ F i l l I m a g e ------------------------------
 
 	FillImage::FillImage(cString& src)
-		: _repeat(Repeat::NONE)
+		: _repeat(Repeat::REPEAT)
 	{
 		if (!src.is_empty()) {
 			set_src(src);
@@ -308,7 +308,7 @@ namespace flare {
 	}
 
 	void FillImage::draw(Box *host, Canvas *canvas, uint8_t alpha, bool full) {
-		if (0 && full && source() && source()->ready()) {
+		if (full && source() && source()->ready()) {
 			auto src = source();
 			auto img = CastSkImage(src);
 			SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
@@ -316,60 +316,78 @@ namespace flare {
 			auto ori = host->transform_origin(); // begin
 			auto cli = host->client_size();
 			auto src_w = src->width(), src_h = src->height();
-			auto cli_x = cli.x(), cli_y = cli.y();
+
 			float w, h, x, y;
+			float sx, sx1, sy, sy1;
+			float dx = 0, dx1;
+			float dy = 0, dy1;
+			float dw = cli.x(), dh = cli.y();
+			float dxm = dw, dym = dh;
 			
-			if (solve_size(_size_x, cli_x, w)) { // ok x
-				if (!solve_size(_size_y, cli_y, h)) { // auto y
+			if (solve_size(_size_x, dw, w)) { // ok x
+				if (!solve_size(_size_y, dh, h)) { // auto y
 					h = w / src_w * src_h;
 				}
-			} else if (solve_size(_size_y, cli_y, h)) { // auto x, ok y
+			} else if (solve_size(_size_y, dh, h)) { // auto x, ok y
 				w = h / src_h * src_w;
 			} else { // auto x,y
-				w = src_w;
-				h = src_h;
+				w = src_w / display()->atom_pixel();
+				h = src_h / display()->atom_pixel();
 			}
 			
+			auto scale_x = src_w / w;
+			auto scale_y = src_h / h;
 			auto min = [] (float a, float b) { return a < b ? a: b; };
 			auto max = [] (float a, float b) { return a > b ? a: b; };
-			auto scale_x = w / src_w;
-			auto scale_y = h / src_h;
 			
-			x = solve_position(_position_x, cli_x, w) - ori.x();
-			y = solve_position(_position_y, cli_y, h) - ori.y();
-			
-			cli_x -= ori.x();
-			cli_y -= ori.y();
+			x = solve_position(_position_x, dw, w);
+			y = solve_position(_position_y, dh, h);
 
 			if (_repeat == Repeat::NONE) {
-				
-				if (x < cli_x) {
-					if (y < cli_y) {
-						auto __x = max(x, -ori.x()), __y = max(y, -ori.y());
-						auto __x2 = min(x + w, cli_x), __y2 = min(y + h, cli_y);
-						// auto src_x = __x < 0
-						canvas->drawImageRect(img, { 0, 0, w, h}, {__x,__y,__x2,__y2}, opts, nullptr, Canvas::kFast_SrcRectConstraint);
-					}
+				dx = max(x, 0);                 dy = max(y, 0);
+				dxm = min(x + w, dw);           dym = min(y + h, dh);
+				if (dx < dxm && dy < dym) {
+					sx = dx - x;                  sy = dy - y;
+					dx1 = min(w - sx + dx, dxm);  dy1 = min(h - sy + dy, dym);
+					sx1 = dx1 - dx + sx;          sy1 = dy1 - dy + sy;
+					SkRect src{sx*scale_x,sy*scale_y,sx1*scale_x,sy1*scale_y};
+					SkRect dest{dx-ori.x(),dy-ori.y(),dx1-ori.x(),dy1-ori.y()};
+					canvas->drawImageRect(img, src, dest, opts, nullptr, Canvas::kFast_SrcRectConstraint);
+				}
+			} else {
+				if (_repeat == Repeat::REPEAT || _repeat == Repeat::REPEAT_X) { // repeat x
+					x = fmod(fmod(x, w) - w, w);
+				} else {
+					dx = max(x, 0);
+					dxm = min(x + w, dw);
+				}
+				if (_repeat == Repeat::REPEAT || _repeat == Repeat::REPEAT_Y) { // repeat y
+					y = fmod(fmod(y, h) - h, h);
+				} else {
+					dy = max(y, 0);
+					dym = min(y + h, dh);
 				}
 				
-			} else {
-				bool repeat_x = _repeat == Repeat::REPEAT || _repeat == Repeat::REPEAT_X;
-				bool repeat_y = _repeat == Repeat::REPEAT || _repeat == Repeat::REPEAT_Y;
-				
-				for (auto _x = x; _x < cli_x; _x += w) {
-					for (auto _y = y; _y < cli_y; _y += h) {
-						auto __x = max(_x, -ori.x()), __y = max(_y, -ori.y());
-						auto __x2 = min(_x + w, cli_x), __y2 = min(_y + h, cli_y);
-
-						canvas->drawImageRect(img, {__x,__y,__x2,__y2}, opts);
-
-						if (!repeat_y) break;
-					}
-					if (!repeat_x) break;
+				if (dx < dxm && dy < dym) {
+					float dy_ = dy;
+					do {
+						sx = fmod(dx - x, w);
+						dx1 = min(w - sx + dx, dxm);
+						sx1 = dx1 - dx + sx;
+						do {
+							sy = fmod(dy - y, h);
+							dy1 = min(h - sy + dy, dym);
+							sy1 = dy1 - dy + sy;
+							SkRect src{sx*scale_x,sy*scale_y,sx1*scale_x,sy1*scale_y};
+							SkRect dest{dx-ori.x(),dy-ori.y(),dx1-ori.x(),dy1-ori.y()};
+							canvas->drawImageRect(img, src, dest, opts, nullptr, Canvas::kFast_SrcRectConstraint);
+							dy = dy1;
+						} while (dy < dym);
+						dx = dx1;
+						dy = dy_;
+					} while (dx < dxm);
 				}
 			}
-
-			// canvas->drawImageRect(img, rect, opts);
 		}
 
 		if (_next)

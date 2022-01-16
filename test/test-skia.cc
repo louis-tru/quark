@@ -24,37 +24,41 @@ void draw_skia(SkCanvas* canvas) {
 	paint.setStyle(SkPaint::kFill_Style);
 	paint.setAntiAlias(true);
 	paint.setStrokeWidth(4);
-	paint.setColor(0xff4285F4);
+	paint.setColor(0xFFFF0000);
 
-	SkRect rect = SkRect::MakeXYWH(10, 80, 100, 160);
-	//canvas->drawRect(rect, paint);
+	// ------------------------- drawRect -------------------------
+	SkRect rect = SkRect::MakeXYWH(10, 10, 300, 300);
+	// canvas->drawRect(rect, paint);
 
+	// ------------------------- drawRRect -------------------------
 	SkRRect rrect;// = SKRRect::MakeRect(rect);
-	SkVector radii[4] = {{10,20},{10,20},{10,20},{10,20}};
+	SkVector radii[4] = {{10,20}/*left-top*/,{20,20},{20,20},{20,20}};
 	rrect.setRectRadii(rect, radii);
-	paint.setColor(0xffDB4437);
-	//paint.setStyle(SkPaint::kStroke_Style);
-	//paint.setStrokeWidth(5);
+	paint.setColor(0xFFFF0000);
+	paint.setStyle(SkPaint::kStroke_Style);
+	paint.setStrokeWidth(18);
 	canvas->drawRRect(rrect, paint);
 
+	// ------------------------- drawDRRect -------------------------
 	SkRRect rrect0, rrect1;
 	SkVector radii0[4] = {{10,20},{10,20},{10,20},{10,20}};
 	SkVector radii1[4] = {{10,20},{10,20},{10,20},{10,20}};
-	rrect0.setRectRadii(SkRect::MakeXYWH(50, 60, 100, 160), radii0);
-	rrect1.setRectRadii(SkRect::MakeXYWH(60, 70, 80, 140), radii1);
+	rrect0.setRectRadii(SkRect::MakeXYWH(450, 10, 240, 260), radii0);
+	rrect1.setRectRadii(SkRect::MakeXYWH(460, 20, 220, 240), radii1);
 	paint.setColor(0xff0000ff);
+	paint.setStyle(SkPaint::kFill_Style);
 	//paint.setStyle(SkPaint::kStroke_Style);
 	//paint.setStrokeWidth(1);
 	canvas->drawDRRect(rrect0, rrect1, paint);
 
-	// drawCircle
+	// ------------------------- drawCircle -------------------------
 	paint.setColor(0xff00ff00);
-	canvas->drawCircle(180, 40, 30, paint);
+	canvas->drawCircle(180, 440, 30, paint);
 
-	// drawArc
+	// ------------------------- drawArc -------------------------
 	paint.setColor(0xffffff00);
 	paint.setStyle(SkPaint::kStroke_Style);
-	canvas->drawArc(SkRect::MakeXYWH(80, 60, 100, 160), 0, 180, 0, paint);
+	canvas->drawArc(SkRect::MakeXYWH(480, 360, 100, 160), 0, 180, 0, paint);
 }
 
 class FillImageTest: public FillImage {
@@ -72,12 +76,8 @@ class FillImageTest: public FillImage {
 
 				auto img2 = img->makeTextureImage(render()->direct(), GrMipmapped::kYes);
 
-				canvas->drawImageRect(img, {0, 0, 1920 * 2, 1080 * 2}, SkRect::MakeXYWH(0, 0, 145, 110),
-															SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone),
-															nullptr, Canvas::kFast_SrcRectConstraint);
-				
-				
-				
+				canvas->drawImageRect(img, SkRect::MakeXYWH(0, 230, 145, 110),
+															SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone));
 				canvas->drawImageRect(img, SkRect::MakeXYWH(150, 230, 145, 110),
 															SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest));
 				canvas->drawImageRect(img2, SkRect::MakeXYWH(0, 345, 145, 110),
@@ -117,9 +117,7 @@ class ImageTest: public Image {
 	}
 };
 
-void onload_handle(Event<>& evt, Application* app) {
-	//draw_skia(app->render()->canvas());
-	//app->render()->commit();
+void layout(Application* app) {
 	
 	app->display()->set_status_bar_style(Display::STATUS_BAR_STYLE_BLACK);
 	
@@ -132,12 +130,20 @@ void onload_handle(Event<>& evt, Application* app) {
 	New<Box>()->append_to(flex);
 	New<Box>()->append_to(flow);
 	New<Box>()->append_to(flow);
-	
+
 	//
 	flex->set_width({ 0, SizeType::MATCH });
 	flex->set_height({ 180, SizeType::PIXEL });
-	flex->set_fill(New<FillColor>(Color(255,0,0,255))->set_next(
-								 New<FillImage>(Path::resources("bench/img/21.jpeg"))->set_next(
+	
+	auto fill = New<FillImage>(Path::resources("bench/img/21.jpeg"));
+	
+	fill->set_position_x({0, FillPositionType::CENTER});
+	fill->set_position_y({0, FillPositionType::CENTER});
+	fill->set_size_x({200, FillSizeType::PIXEL});
+	//fill->set_size_y({100, FillSizeType::PIXEL});
+	//fill->set_repeat(Repeat::REPEAT_Y);
+
+	flex->set_fill(New<FillColor>(Color(255,0,0,255))->set_next(fill->set_next(
 								 New<FillImageTest>(Path::resources("bench/img/99.jpeg"))
 	)));
 	flex->set_margin_left(10);
@@ -151,7 +157,7 @@ void onload_handle(Event<>& evt, Application* app) {
 	//
 	flow->set_width({ 50, SizeType::PIXEL });
 	flow->set_height({ 50, SizeType::PIXEL });
-	flow->set_fill(New<FillImage>(Path::resources("bench/img2/21.jpeg"))->set_next(New<FillColor>(Color(255,0,0,255))));
+	flow->set_fill(New<FillColor>(Color(255,0,0,255)));
 	flow->set_layout_align(Align::LEFT_BOTTOM);
 	flow->set_margin_left(10);
 	flow->set_margin_top(10);
@@ -180,6 +186,16 @@ void onload_handle(Event<>& evt, Application* app) {
 	F_DEBUG("FlowLayout size %d", sizeof(FlowLayout));
 	F_DEBUG("FlexLayout size %d", sizeof(FlexLayout));
 	F_DEBUG("Root size %d", sizeof(Root));
+}
+
+void onload_handle(Event<>& evt, Application* app) {
+	
+	app->render()->post_message(Cb([app](CbData&data){
+		draw_skia(app->render()->canvas());
+		app->render()->commit();
+	}));
+
+	//layout(app);
 }
 
 void test_skia(int argc, char **argv) {
