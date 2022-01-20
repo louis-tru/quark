@@ -96,25 +96,25 @@ namespace flare {
 		/**
 			* @overwrite
 			*/
-		virtual bool layout_forward(uint32_t mark);
-		virtual bool layout_reverse(uint32_t mark);
-		virtual Vec2 layout_offset();
-		virtual Size layout_size();
-		virtual Size layout_raw_size(Size parent_content_size);
+		virtual bool layout_forward(uint32_t mark) override;
+		virtual bool layout_reverse(uint32_t mark) override;
+		virtual Vec2 layout_offset() override;
+		virtual Size layout_size() override;
+		virtual Size layout_raw_size(Size parent_content_size) override;
 		/*
 		* 这里定义项目的放大与缩小比例，默认为0，即如果存在剩余空间，不放大也不缩小 
 		* 在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
 		*/
-		virtual float layout_weight();
-		virtual Align layout_align();
-		virtual Mat  layout_matrix();
-		virtual Vec2 layout_offset_inside();
-		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]);
-		virtual void set_layout_offset(Vec2 val);
-		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
-		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
-		virtual bool solve_visible_region();
-		virtual void draw(Canvas* canvas, uint8_t alpha);
+		virtual float layout_weight() override;
+		virtual Align layout_align() override;
+		virtual Mat  layout_matrix() override;
+		virtual Vec2 layout_offset_inside() override;
+		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]) override;
+		virtual void set_layout_offset(Vec2 val) override;
+		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size) override;
+		virtual void layout_content_size_change(Layout* parent, uint32_t mark) override;
+		virtual bool solve_visible_region() override;
+		virtual void draw(Canvas* canvas, uint8_t alpha) override;
 
 	 protected:
 		/**

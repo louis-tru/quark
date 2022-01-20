@@ -51,7 +51,7 @@ namespace flare {
 
 		// --------------- o v e r w r i t e ---------------
 		// @overwrite
-		virtual bool layout_reverse(uint32_t mark);
+		virtual bool layout_reverse(uint32_t mark) override;
 
 		// --------------- m e m b e r . f i e l d ---------------
 	 private:

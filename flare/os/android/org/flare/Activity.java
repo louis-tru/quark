@@ -200,7 +200,7 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 			}
 		}
 
-		public int  get_status_bar_height() {
+		public int get_status_bar_height() {
 			int result = 0;
 			if ( visible_status_bar && !is_fullscreen ) {
 				int resourceId = host.getResources().getIdentifier("status_bar_height", "dimen", "android");

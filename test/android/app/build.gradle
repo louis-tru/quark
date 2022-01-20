@@ -44,7 +44,7 @@ android {
 		main {
 			java.srcDirs = [
 				 'src/main/java',
-				'../../../android',
+				'../../../flare/os',
 			]
 			jniLibs.srcDirs = [
 				'src/main/jniLibs',

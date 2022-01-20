@@ -48,10 +48,10 @@ namespace flare {
 		F_DEFINE_PROP(ItemsAlign, items_align); // items_align 主轴的对齐方式
 
 		// @overwrite
-		virtual bool layout_forward(uint32_t mark);
-		virtual bool layout_reverse(uint32_t mark);
-		virtual bool is_layout_lock_child();
-		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark);
+		virtual bool layout_forward(uint32_t mark) override;
+		virtual bool layout_reverse(uint32_t mark) override;
+		virtual bool is_layout_lock_child() override;
+		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark) override;
 
 		// --------------- m e m b e r . f i e l d ---------------
 	 private:

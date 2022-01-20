@@ -42,13 +42,13 @@ namespace flare {
 		static Root* create();
 		virtual ~Root();
 		// @overwrite
-		virtual void set_visible(bool val);
-		virtual bool layout_forward(uint32_t mark);
-		virtual bool layout_reverse(uint32_t mark);
-		virtual void draw(Canvas* canvas, uint8_t alpha);
+		virtual void set_visible(bool val) override;
+		virtual bool layout_forward(uint32_t mark) override;
+		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void draw(Canvas* canvas, uint8_t alpha) override;
 	 private:
 		Root();
-		virtual void set_parent(View* parent);
+		virtual void set_parent(View* parent) override;
 	};
 
 }
