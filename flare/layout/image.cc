@@ -89,10 +89,10 @@ namespace flare {
 		if (src && src->ready()) {
 			canvas->setMatrix(matrix());
 
-			auto b = Vec2(_padding_left - _transform_origin.x(), _padding_top - _transform_origin.y());
-			auto e = layout_content_size() + b;
+			auto begin = Vec2(_padding_left - _transform_origin.x(), _padding_top - _transform_origin.y());
+			auto end = layout_content_size() + begin;
 			auto img = CastSkImage(src);
-			SkRect rect = {b.x(), b.y(), e.x(), e.y()};
+			SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
 			SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
 
 			if (is_radius()) {

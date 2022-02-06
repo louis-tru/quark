@@ -99,11 +99,11 @@ class ImageTest: public Image {
 		if (src && src->ready()) {
 			canvas->setMatrix(matrix());
 
-			auto b = Vec2(padding_left(), padding_top()) - transform_origin(); // begin
-			auto e = client_size() - b; // end
+			auto begin = Vec2(padding_left(), padding_top()) - transform_origin(); // begin
+			auto end = client_size() - begin; // end
 			
 			auto img = CastSkImage(src);
-			SkRect rect = {b.x(), b.y(), e.x(), e.y()};
+			SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
 			SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
 
 			canvas->drawImageRect(img, rect, opts);
@@ -191,12 +191,13 @@ void layout(Application* app) {
 
 void onload_handle(Event<>& evt, Application* app) {
 	
+	layout(app);
+
 	app->render()->post_message(Cb([app](CbData&data){
 		draw_skia(app->render()->canvas());
 		app->render()->commit();
 	}));
 
-	//layout(app);
 }
 
 void test_skia(int argc, char **argv) {

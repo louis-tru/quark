@@ -56,7 +56,7 @@ namespace flare {
 	RenderApple* RenderApple::create(Application* host, const Render::Options& opts) {
 		RenderApple* r = nullptr;
 
-		if (opts.enableGpu) {
+		if (0/*opts.enableGpu*/) {
 			if (opts.enableMetal) {
 				//r = MakeMetalRender(host, parems);
 			}

@@ -637,12 +637,16 @@ async function install_depe(opts, variables) {
 		pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ],
 		deps: { autoconf },
 	};
+	var cmake = {
+		pkgCmds: [ `./configure`, `make -j2`, `*make -j1 install` ],
+	};
 	var yasm = {
 		pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
 		deps: { autoconf, automake },
 	};
 	var ninja = {
 		pkgCmds: [ 'cmake .', 'make -j2', '*make install' ],
+		deps: { cmake },
 	};
 
 	dpkg.ninja = ninja;
