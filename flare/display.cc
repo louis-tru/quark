@@ -40,7 +40,7 @@ namespace flare {
 	/**
 		* @thread render
 		*/
-	void Display::update_state() { // Called in render loop
+	void Display::updateState() { // Called in render loop
 		UILock lock(_host);
 
 		Vec2 _phy_size = phy_size();
@@ -135,7 +135,7 @@ namespace flare {
 			if (_lock_size.width() != width || _lock_size.height() != height) {
 				_lock_size = { width, height };
 				_host->render()->post_message(Cb([this](CbData& e) {
-					update_state();
+					updateState();
 				}));
 			}
 		} else {
@@ -258,7 +258,7 @@ namespace flare {
 			}
 		}
 		if (ok) {
-			update_state();
+			updateState();
 		}
 		return ok;
 	}

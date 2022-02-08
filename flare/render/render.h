@@ -51,14 +51,15 @@
 #include <skia/core/SkCanvas.h>
 #include <skia/core/SkSurface.h>
 #include <skia/gpu/GrDirectContext.h>
+#include <skia/gpu/gl/GrGLInterface.h> // gl
 
 namespace flare {
 
 	class Application;
 
 	class Canvas: public SkCanvas {
-	 public:
-		void setMatrix(const flare::Mat& mat);
+		public:
+			void setMatrix(const flare::Mat& mat);
 	};
 
 	/**
@@ -66,49 +67,76 @@ namespace flare {
 	*/
 	class F_EXPORT Render: public Object, public PostMessage {
 		F_HIDDEN_ALL_COPY(Render);
-	 public:
+		public:
+			enum Flags {
+				kUseDeviceIndependentFonts_Flag = 1 << 0,
+				// Use internal MSAA to render to non-MSAA GPU surfaces.
+				kDynamicMSAA_Flag               = 1 << 1
+			};
 
-		enum Flags {
-			kUseDeviceIndependentFonts_Flag = 1 << 0,
-			// Use internal MSAA to render to non-MSAA GPU surfaces.
-			kDynamicMSAA_Flag               = 1 << 1
-		};
+			struct Options {
+				ColorType     colorType = COLOR_TYPE_RGBA_8888;
+				uint32_t      flags = 0;
+				int           MSAASampleCount;
+				bool          disableVsync;
+				bool          delayDrawableAcquisition;
+				bool          enableBinaryArchive;
+				bool          enableGpu;
+				bool          enableMetal;
+			};
 
-		struct Options {
-			ColorType     colorType = COLOR_TYPE_RGBA_8888;
-			uint32_t      flags = 0;
-			int           MSAASampleCount;
-			bool          disableVsync;
-			bool          delayDrawableAcquisition;
-			bool          enableBinaryArchive;
-			bool          enableGpu;
-			bool          enableMetal;
-		};
+			static Options parseOptions(cJSON& opts);
 
-		static Options parseOptions(cJSON& opts);
+			static Render* Make(Application* host, const Options& opts);
 
-		static Render* create(Application* host, const Options& opts);
+			virtual ~Render();
 
-		virtual ~Render();
+			Canvas* canvas();
+			GrDirectContext* direct();
 
-		Canvas* canvas();
-		GrDirectContext* direct();
+			virtual SkSurface* surface() = 0;
+			virtual void reload() = 0;
+			virtual void commit() = 0;
+			virtual void activate(bool isActive);
+			virtual bool is_gpu() { return true; }
+			inline Application* host() { return _host; }
+			virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
 
-		virtual SkSurface* surface() = 0;
-		virtual void reload() = 0;
-		virtual void commit() = 0;
-		virtual void activate(bool isActive);
-		virtual bool is_gpu() { return false; }
-		inline Application* host() { return _host; }
-		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
+		protected:
+			Render(Application* host, const Options& params);
+			Application*  _host;
+			Options       _opts;
+			sk_sp<GrDirectContext> _direct;
+			int _sample_count, _stencil_bits;
+	};
 
-	 protected:
-		Render(Application* host, const Options& params);
+	class GLRender: public Render {
+		public:
+			virtual ~GLRender();
+			virtual SkSurface* surface() override;
+			virtual void reload() override;
+			int msaa_sample();
+			virtual void commit() override;
+		protected:
+			virtual void glRenderbufferStorage();
+			virtual void eglSwapBuffers() = 0;
+			GLRender(Application* host, const Options& opts);
+			sk_sp<const GrGLInterface> _interface;
+			sk_sp<SkSurface> _surface;
+			uint32_t  _render_buffer, _frame_buffer;
+			uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
+			bool _is_support_multisampled;
+	};
 
-		Application*  _host;
-		Options       _opts;
-		sk_sp<GrDirectContext> _direct;
-		int _sample_count, _stencil_bits;
+	class RasterRender: public GLRender {
+		public:
+			virtual bool is_gpu() override { return false; }
+			virtual void commit() override;
+			virtual SkSurface* surface() override;
+			virtual void reload() override;
+		protected:
+			RasterRender(Application* host, const Options& opts);
+			sk_sp<SkSurface> _RasterSurface;
 	};
 
 }

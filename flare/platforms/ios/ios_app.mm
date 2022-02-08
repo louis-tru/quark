@@ -355,8 +355,8 @@ static NSString* g_appDelegate_name = @"";
 
 // ******************************* Application *******************************
 
-Render* Render::create(Application* host, const Options& opts) {
-	g_render = RenderApple::create(host, opts);
+Render* Render::Make(Application* host, const Options& opts) {
+	g_render = RenderApple::Make(host, opts);
 	return g_render->render();
 }
 

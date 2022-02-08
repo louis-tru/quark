@@ -30,6 +30,7 @@
 
 #include "./apple_render.h"
 #include "../../display.h"
+#include <OpenGLES/ES3/gl.h>
 
 namespace flare {
 
@@ -49,28 +50,95 @@ namespace flare {
 		return 0;
 	}
 
-	RenderApple* MakeRasterRender(Application* host, const Render::Options& parems);
-	RenderApple* MakeGLRender(Application* host, const Render::Options& parems);
-	RenderApple* MakeMetalRender(Application* host, const Render::Options& parems);
+	class AppleGLRender_IMPL: public RenderApple {
+		public:
 
-	RenderApple* RenderApple::create(Application* host, const Render::Options& opts) {
+			AppleGLRender_IMPL(EAGLContext* ctx): _ctx(ctx) {
+				F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
+				ctx.multiThreaded = NO;
+			}
+
+			~AppleGLRender_IMPL() {
+				[EAGLContext setCurrentContext:nullptr];
+			}
+
+			void setView(UIView* view) override {
+				F_ASSERT(!_view);
+				[EAGLContext setCurrentContext:_ctx];
+				F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
+				_view = view;
+				_layer = (CAEAGLLayer*)view.layer;
+				_layer.drawableProperties = @{
+					kEAGLDrawablePropertyRetainedBacking : @NO,
+					kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
+				};
+				_layer.opaque = YES;
+				//_layer.frame = frameRect;
+				//_layer.contentsGravity = kCAGravityTopLeft;
+			}
+
+			Class layerClass() override { return [CAEAGLLayer class]; }
+
+			void glRenderbufferStorage() {
+				BOOL ok = [_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
+				F_ASSERT(ok);
+			}
+
+			void eglSwapBuffers() {
+				// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
+				// you present its contents by making it the current renderbuffer
+				// and calling the presentRenderbuffer: method on your rendering context.
+				[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
+			}
+			
+		private:
+			EAGLContext* _ctx;
+			CAEAGLLayer* _layer;
+			UIView* _view;
+	};
+
+	class AppleGLRender: public GLRender, public AppleGLRender_IMPL {
+		public:
+			AppleGLRender(Application* host, const Options& params, EAGLContext* ctx)
+				: GLRender(host, params), AppleGLRender_IMPL(ctx)
+			{
+				_is_support_multisampled = true;
+			}
+			Render* render() override { return this; }
+			void glRenderbufferStorage() override { AppleGLRender_IMPL::glRenderbufferStorage(); }
+			void eglSwapBuffers() override { AppleGLRender_IMPL::eglSwapBuffers(); }
+	};
+
+	class AppleRasterRender: public RasterRender, public AppleGLRender_IMPL {
+		public:
+			AppleRasterRender(Application* host, const Options& params, EAGLContext* ctx)
+				: RasterRender(host, params), AppleGLRender_IMPL(ctx)
+			{}
+			Render* render() override { return this; }
+			void glRenderbufferStorage() override { AppleGLRender_IMPL::glRenderbufferStorage(); }
+			void eglSwapBuffers() override { AppleGLRender_IMPL::eglSwapBuffers(); }
+	};
+
+	template<class IMPL>
+	RenderApple* MakeRenderApple(Application* host, const Render::Options& parems) {
+		EAGLContext* ctx = [EAGLContext alloc];
+		if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
+			[EAGLContext setCurrentContext:ctx];
+			return new IMPL(host, parems, ctx);
+		}
+		return nullptr;
+	}
+
+	RenderApple* RenderApple::Make(Application* host, const Render::Options& opts) {
 		RenderApple* r = nullptr;
 
 		if (0/*opts.enableGpu*/) {
-			if (opts.enableMetal) {
-				//r = MakeMetalRender(host, parems);
-			}
-			if (r) {
-				return r;
-			}
-			r = MakeGLRender(host, opts);
+			r = MakeRenderApple<AppleGLRender>(host, opts);
 		}
-
 		if (r) {
 			return r;
 		}
-
-		r = MakeRasterRender(host, opts);
+		r = MakeRenderApple<AppleRasterRender>(host, opts);
 		F_ASSERT(r);
 
 		return r;

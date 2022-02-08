@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,35 +29,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import <Metal/Metal.h>
-#import "./apple_render.h"
-#import "../../render/metal.h"
-#import "../../display.h"
+#ifndef __flare__render__canvas__
+#define __flare__render__canvas__
+
+#include "../util/util.h"
 
 namespace flare {
 
-	class MetalRenderApple : public MetalRender, public RenderApple {
-	 public:
-		MetalRenderApple(Application* host, const Options& params): MetalRender(host, params) {}
-
-		void setView(UIView* view) {
-			F_ASSERT(!_view);
-			_view = view;
-			_layer = view.layer;
-			_layer.opaque = YES;
-		}
-
-		Class layerClass() {
-			return [CAMetalLayer class];
-		}
-
-		Render* render() { return this; }
-	 private:
-		UIView* _view;
+	class Canvas: public Object {
+		F_HIDDEN_ALL_COPY(Canvas);
+		public:
+			Canvas();
 	};
-
-	RenderApple* MakeMetalRender(Application* host, const Render::Options& parems) {
-		return new MetalRenderApple(host, parems);
-	}
-
 }
+
+#endif

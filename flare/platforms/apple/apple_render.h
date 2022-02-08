@@ -43,15 +43,15 @@
 namespace flare {
 
 	class F_EXPORT RenderApple {
-	 public:
-		/**
-		 * @thread render
-		 */
-		virtual Render* render() = 0;
-		virtual void setView(UIView* view) = 0;
-		virtual Class layerClass() = 0;
-		bool resize(::CGRect rect);
-		static RenderApple* create(Application* host, const Render::Options& opts);
+		public:
+			/**
+			 * @thread render
+			 */
+			virtual void setView(UIView* view) = 0;
+			virtual Class layerClass() = 0;
+			virtual Render* render() = 0;
+			bool resize(::CGRect rect);
+			static RenderApple* Make(Application* host, const Render::Options& opts);
 	};
 
 }

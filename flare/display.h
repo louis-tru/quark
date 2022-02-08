@@ -48,190 +48,190 @@ namespace flare {
 	*/
 	class F_EXPORT Display: public Reference {
 		F_HIDDEN_ALL_COPY(Display);
-	 public:
+		public:
 
-		enum Orientation {
-			ORIENTATION_INVALID = -1,
-			ORIENTATION_PORTRAIT = 0,
-			ORIENTATION_LANDSCAPE,
-			ORIENTATION_REVERSE_PORTRAIT,
-			ORIENTATION_REVERSE_LANDSCAPE,
-			ORIENTATION_USER,
-			ORIENTATION_USER_PORTRAIT,
-			ORIENTATION_USER_LANDSCAPE,
-			ORIENTATION_USER_LOCKED,
-		};
-		
-		enum StatusBarStyle {
-			STATUS_BAR_STYLE_WHITE = 0,
-			STATUS_BAR_STYLE_BLACK,
-		};
-		
-		Display(Application* host);
-		
-		/**
-		* @destructor
-		*/
-		virtual ~Display();
-		
-		/**
-		* @thread main
-		* @event onchange 显示端口变化事件
-		*/
-		F_Event(Change);
+			enum Orientation {
+				ORIENTATION_INVALID = -1,
+				ORIENTATION_PORTRAIT = 0,
+				ORIENTATION_LANDSCAPE,
+				ORIENTATION_REVERSE_PORTRAIT,
+				ORIENTATION_REVERSE_LANDSCAPE,
+				ORIENTATION_USER,
+				ORIENTATION_USER_PORTRAIT,
+				ORIENTATION_USER_LANDSCAPE,
+				ORIENTATION_USER_LOCKED,
+			};
+			
+			enum StatusBarStyle {
+				STATUS_BAR_STYLE_WHITE = 0,
+				STATUS_BAR_STYLE_BLACK,
+			};
+			
+			Display(Application* host);
+			
+			/**
+			* @destructor
+			*/
+			virtual ~Display();
+			
+			/**
+			* @thread main
+			* @event onchange 显示端口变化事件
+			*/
+			F_Event(Change);
 
-		/**
-		* @thread main
-		* @event onorientation 屏幕方向发生改变触发
-		*/
-		F_Event(Orientation);
-		
-		/**
-		* @func size 当前视口尺寸
-		*/
-		inline Vec2 size() const { return _size; }
-		
-		/**
-		* @func scale_value
-		*/
-		inline Vec2 scale() const { return _scale; }
-		
-		/**
-		* @func lock_size()
-		*
-		* width与height都设置为0时自动设置系统默认显示尺寸
-		*
-		* 设置锁定视口为一个固定的逻辑尺寸,这个值改变时会触发change事件
-		*
-		* 如果width设置为零表示不锁定宽度,系统会自动根据height值设置一个同等比例的宽度
-		* 如果设置为非零表示锁定宽度,不管display_size怎么变化对于编程者来说,这个值永远保持不变
-		*
-		* 如果height设置为零表示不锁定,系统会自动根据width值设置一个同等比例的高度
-		* 如果设置为非零表示锁定高度,不管display_size怎么变化对于编程者来说,这个值永远保持不变
-		*
-		*/
-		void lock_size(float width = 0, float height = 0);
-		
-		/**
-		 * @func phy_size()
-		 */
-		Vec2 phy_size() const;
+			/**
+			* @thread main
+			* @event onorientation 屏幕方向发生改变触发
+			*/
+			F_Event(Orientation);
+			
+			/**
+			* @func size 当前视口尺寸
+			*/
+			inline Vec2 size() const { return _size; }
+			
+			/**
+			* @func scale_value
+			*/
+			inline Vec2 scale() const { return _scale; }
+			
+			/**
+			* @func lock_size()
+			*
+			* width与height都设置为0时自动设置系统默认显示尺寸
+			*
+			* 设置锁定视口为一个固定的逻辑尺寸,这个值改变时会触发change事件
+			*
+			* 如果width设置为零表示不锁定宽度,系统会自动根据height值设置一个同等比例的宽度
+			* 如果设置为非零表示锁定宽度,不管display_size怎么变化对于编程者来说,这个值永远保持不变
+			*
+			* 如果height设置为零表示不锁定,系统会自动根据width值设置一个同等比例的高度
+			* 如果设置为非零表示锁定高度,不管display_size怎么变化对于编程者来说,这个值永远保持不变
+			*
+			*/
+			void lock_size(float width = 0, float height = 0);
+			
+			/**
+			 * @func phy_size()
+			 */
+			Vec2 phy_size() const;
 
-		/**
-		* @thread rebder
-		* @func push_display_region
-		*/
-		void push_display_region(Region value);
-		
-		/**
-		* @thread rebder
-		* @func pop_display_region
-		*/
-		void pop_display_region();
-		
-		/**
-		* @func display_region
-		*/
-		inline Region display_region() const {
-			return _display_region.back();
-		}
+			/**
+			* @thread rebder
+			* @func push_display_region
+			*/
+			void push_display_region(Region value);
+			
+			/**
+			* @thread rebder
+			* @func pop_display_region
+			*/
+			void pop_display_region();
+			
+			/**
+			* @func display_region
+			*/
+			inline Region display_region() const {
+				return _display_region.back();
+			}
 
-		/**
-		* @func atom_pixel
-		*/
-		inline float atom_pixel() const { return _atom_pixel; }
-		
-		/**
-		* @func next_frame() 只能在主gui线程调用
-		*/
-		void next_frame(cCb& cb);
+			/**
+			* @func atom_pixel
+			*/
+			inline float atom_pixel() const { return _atom_pixel; }
+			
+			/**
+			* @func next_frame() 只能在主gui线程调用
+			*/
+			void next_frame(cCb& cb);
 
-		/**
-		* @func keep_screen(keep)
-		*/
-		void keep_screen(bool keep);
+			/**
+			* @func keep_screen(keep)
+			*/
+			void keep_screen(bool keep);
 
-		/**
-		* @func status_bar_height()
-		*/
-		float status_bar_height();
+			/**
+			* @func status_bar_height()
+			*/
+			float status_bar_height();
 
-		/**
-		* @func set_visible_status_bar(visible)
-		*/
-		void set_visible_status_bar(bool visible);
+			/**
+			* @func set_visible_status_bar(visible)
+			*/
+			void set_visible_status_bar(bool visible);
 
-		/**
-		* @func set_status_bar_style(style)
-		*/
-		void set_status_bar_style(StatusBarStyle style);
+			/**
+			* @func set_status_bar_style(style)
+			*/
+			void set_status_bar_style(StatusBarStyle style);
 
-		/**
-		* @func request_fullscreen(fullscreen)
-		*/
-		void request_fullscreen(bool fullscreen);
+			/**
+			* @func request_fullscreen(fullscreen)
+			*/
+			void request_fullscreen(bool fullscreen);
 
-		/**
-		* @func orientation()
-		*/
-		Orientation orientation();
-		
-		/**
-		* @func set_orientation(orientation)
-		*/
-		void set_orientation(Orientation orientation);
-		
-		/**
-		* @func fsp()
-		*/
-		inline uint32_t fsp() const { return _fsp; }
+			/**
+			* @func orientation()
+			*/
+			Orientation orientation();
+			
+			/**
+			* @func set_orientation(orientation)
+			*/
+			void set_orientation(Orientation orientation);
+			
+			/**
+			* @func fsp()
+			*/
+			inline uint32_t fsp() const { return _fsp; }
 
-		/**
-		 * @func default_scale()
-		 */
-		inline float default_scale() const { return _default_scale; }
-		inline Region surface_region() const { return _surface_region; }
+			/**
+			 * @func default_scale()
+			 */
+			inline float default_scale() const { return _default_scale; }
+			inline Region surface_region() const { return _surface_region; }
 
-		/**
-		 * @thread render
-		 */
-		void set_default_scale(float value);
+			/**
+			 * @thread render
+			 */
+			void set_default_scale(float value);
 
-		/**
-		 * @thread render
-		 */
-		bool set_surface_region(Region surface_region); // call from render loop
+			/**
+			 * @thread render
+			 */
+			bool set_surface_region(Region surface_region); // call from render loop
 
-		/**
-		 * @thread render
-		 */
-		void render(bool need = false/*force render*/); // call from render loop
-		
-		/**
-		* @func default_atom_pixel
-		*/
-		static float default_atom_pixel();
+			/**
+			 * @thread render
+			 */
+			void render(bool need = false/*force render*/); // call from render loop
+			
+			/**
+			* @func default_atom_pixel
+			*/
+			static float default_atom_pixel();
 
-		/**
-		* @func default_status_bar_height
-		*/
-		static float default_status_bar_height();
+			/**
+			* @func default_status_bar_height
+			*/
+			static float default_status_bar_height();
 
-	 private:
-		void update_state();
-		void solve_next_frame();
-		// member data
-		Application*      _host;
-		Vec2              _lock_size;  // 锁定视口的尺寸
-		Vec2              _size;       // 当前视口尺寸
-		Vec2              _scale;   // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
-		float             _atom_pixel;
-		float             _default_scale;
-		List<Region>      _display_region;
-		List<Cb>          _next_frame;
-		uint32_t          _fsp, _next_fsp;
-		int64_t           _next_fsp_time;
-		Region            _surface_region;  /* 选择绘图表面有区域 */
+		private:
+			void updateState();
+			void solve_next_frame();
+			// member data
+			Application*      _host;
+			Vec2              _lock_size;  // 锁定视口的尺寸
+			Vec2              _size;       // 当前视口尺寸
+			Vec2              _scale;   // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
+			float             _atom_pixel;
+			float             _default_scale;
+			List<Region>      _display_region;
+			List<Cb>          _next_frame;
+			uint32_t          _fsp, _next_fsp;
+			int64_t           _next_fsp_time;
+			Region            _surface_region;  /* 选择绘图表面有区域 */
 	};
 
 }

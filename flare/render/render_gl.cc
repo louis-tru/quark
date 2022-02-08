@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "flare/app.h"
-#include "flare/render/gl.h"
+#include "flare/render/render.h"
 #include "flare/display.h"
 
 #include "skia/core/SkCanvas.h"
@@ -136,7 +136,7 @@ namespace flare {
 
 		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-		gl_renderbuffer_storage();
+		glRenderbufferStorage();
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 
 		if ( msaa_sample() ) { // 启用多重采样
@@ -182,9 +182,9 @@ namespace flare {
 		return _surface.get();
 	}
 
-	void GLRender::gl_renderbuffer_storage() {
+	void GLRender::glRenderbufferStorage() {
 		auto region = _host->display()->surface_region();
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, region.width, region.height);
+		::glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, region.width, region.height);
 	}
 
 	void GLRender::reload() {
@@ -201,6 +201,65 @@ namespace flare {
 		}
 		_direct = GrDirectContext::MakeGL(_interface, {/*_opts.grContextOptions*/});
 		F_ASSERT(_direct);
+	}
+
+	void GLRender::commit() {
+		_surface->flushAndSubmit(); // commit sk
+
+		if (msaa_sample()) {
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
+			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
+			auto region = _host->display()->surface_region();
+			glBlitFramebuffer(0, 0, region.width, region.height,
+												0, 0, region.width, region.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
+			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+			glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
+		} else {
+			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
+			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
+		}
+
+		eglSwapBuffers();
+
+		if ( msaa_sample() ) {
+			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
+			glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer);
+		}
+	}
+
+	RasterRender::RasterRender(Application* host, const Options& opts): GLRender(host, opts) {
+	}
+
+	void RasterRender::commit() {
+		if (!_RasterSurface) return;
+		// We made/have an off-screen surface. Get the contents as an SkImage:
+		sk_sp<SkImage> snapshot = _RasterSurface->makeImageSnapshot();
+		SkSurface* gpuSurface = GLRender::surface();
+		gpuSurface->getCanvas()->drawImage(snapshot, 0, 0);
+		gpuSurface->flushAndSubmit();
+
+		GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
+		glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
+
+		eglSwapBuffers();
+	}
+
+	SkSurface* RasterRender::surface() {
+		if (!_RasterSurface) {
+			// make the offscreen image
+			auto region = _host->display()->surface_region();
+			auto info = SkImageInfo::Make(region.width, region.height,
+																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
+			_RasterSurface = SkSurface::MakeRaster(info);
+		}
+		return _RasterSurface.get();
+	}
+
+	void RasterRender::reload() {
+		_RasterSurface.reset();
+		GLRender::reload();
 	}
 
 }   // namespace flare

@@ -97,10 +97,7 @@
 			'font/pool.cc',
 			'render/render.h',
 			'render/render.cc',
-			'render/gl.h',
-			'render/gl.cc',
-			'render/metal.h',
-			'render/metal.mm',
+			'render/render_gl.cc',
 			'math.h',
 			'math.cc',
 			'bezier.h',
@@ -201,7 +198,6 @@
 				'sources':[
 					'platforms/apple/apple_app.h',
 					'platforms/apple/apple_keyboard.mm',
-					'platforms/apple/apple_metal.mm',
 					'platforms/apple/apple_render.mm',
 					'platforms/apple/apple_render.h',
 					'os/apple/apple_os.mm',
@@ -217,10 +213,8 @@
 			['os=="ios"', {
 				'sources':[
 					'platforms/ios/ios_app.mm',
-					'platforms/ios/ios_gl.mm',
 					'platforms/ios/ios_ime_helper.h',
 					'platforms/ios/ios_ime_helper.mm',
-					'platforms/ios/ios_raster.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -370,7 +364,7 @@
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/CoreText.framework',
-						'$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+						# '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
 					],
 				},
 			}],

@@ -246,7 +246,7 @@ namespace flare {
 	void Application::run(bool is_loop) throw(Error) {
 		UILock lock(this);
 		if (!_keep) { // init
-			_render = Render::create(this, Render::parseOptions(_opts)); F_DEBUG("Render::create() ok");
+			_render = Render::Make(this, Render::parseOptions(_opts)); F_DEBUG("Render::Make() ok");
 			_loop = RunLoop::current();
 			_keep = _loop->keep_alive("Application::run(), keep"); // 保持运行
 			__run_main_wait->awaken(); // 外部线程继续运行

@@ -194,7 +194,7 @@ namespace flare {
 		JSON                 _opts;
 		RunLoop*             _loop;
 		KeepLoop*            _keep;
-		Display*             _display;     // 显示端口
+		Display*             _display;     // 当前显示端口
 		PreRender*           _pre_render;
 		Render*              _render;
 		Root*                _root;             // 根视图
