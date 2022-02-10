@@ -33,14 +33,15 @@
 #ifndef __flare__render__metal__
 #define __flare__render__metal__
 
-#include <QuartzCore/CAMetalLayer.h>
-#include <Metal/Metal.h>
 #include "./render.h"
 #include "skia/gpu/mtl/GrMtlTypes.h"
+#include <QuartzCore/CAMetalLayer.h>
+#include <Metal/Metal.h>
+#include <MetalKit/MTKView.h>
 
 namespace flare {
 
-	class API_AVAILABLE(ios(13.0)) MetalRender: public Render {
+	class MetalRender: public Render {
 		public:
 			virtual ~MetalRender();
 			virtual SkSurface* surface() override;
@@ -50,17 +51,15 @@ namespace flare {
 			virtual void activate(bool isActive) override;
 
 		protected:
-			static NSURL* CacheURL();
 			MetalRender(Application* host, const Options& opts);
 			sk_sp<SkSurface>    _surface;
-			id<MTLDevice>       _device; // sk_cfp<id<MTLDevice>>
 			id<MTLCommandQueue> _queue; // sk_cfp<id<MTLCommandQueue>>
-			CAMetalLayer*    _layer;
+			MTKView*         _view;
 			GrMTLHandle      _drawable;
 			id               _pipelineArchive; // id<MTLBinaryArchive>
 	};
 
-	class API_AVAILABLE(ios(13.0)) RasterMetalRender: public MetalRender {
+	class RasterMetalRender: public MetalRender {
 		public:
 			virtual SkSurface* surface() override;
 			virtual bool is_gpu() override { return false; }

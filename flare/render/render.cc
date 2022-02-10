@@ -129,7 +129,6 @@ namespace flare {
 			.stencilBits = 8,
 			.enableGpu = true,
 			//.disableMetal = true,
-			//.delayDrawableAcquisition = true,
 		};
 	}
 

@@ -32,7 +32,11 @@
 #include "../../display.h"
 #include "../../render/metal.h"
 #include <OpenGLES/ES3/gl.h>
-#include <Metal/Metal.h>
+
+@interface GLView: UIView @end
+@implementation GLView
++ (Class)layerClass { return CAEAGLLayer.class; }
+@end
 
 namespace flare {
 
@@ -55,20 +59,16 @@ namespace flare {
 	// ------------------- Metal ------------------
 
 	template<class BASE>
-	class API_AVAILABLE(ios(13.0)) AppleMetalRender: public BASE, public RenderApple {
+	class AppleMetalRender: public BASE, public RenderApple {
 		public:
 			AppleMetalRender(Application* host, const Render::Options& opts): BASE(host, opts)
 			{}
-			void setView(UIView* view) {
-				F_ASSERT(!_view);
-				_view = view;
-				this->_layer = (CAMetalLayer*)view.layer;
-				this->_layer.opaque = YES;
+			UIView* init(CGRect rect) override {
+				this->_view = [[MTKView alloc] initWithFrame:rect device:MTLCreateSystemDefaultDevice()];
+				this->_view.layer.opaque = YES;
+				return this->_view;
 			}
-			Render* render() { return this; }
-			Class layerClass() { return [CAMetalLayer class]; }
-		private:
-			UIView* _view;
+			Render* render() override { return this; }
 	};
 
 	// ------------------- OpenGL ------------------
@@ -84,22 +84,19 @@ namespace flare {
 				[EAGLContext setCurrentContext:nullptr];
 			}
 
-			void setView(UIView* view) override {
-				F_ASSERT(!_view);
+			UIView* init(CGRect rect) override {
 				[EAGLContext setCurrentContext:_ctx];
 				F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
-				_view = view;
-				_layer = (CAEAGLLayer*)view.layer;
+				_view = [[GLView alloc] initWithFrame:rect];
+				_layer = (CAEAGLLayer*)_view.layer;
 				_layer.drawableProperties = @{
 					kEAGLDrawablePropertyRetainedBacking : @NO,
 					kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
 				};
 				_layer.opaque = YES;
-				//_layer.frame = frameRect;
 				//_layer.contentsGravity = kCAGravityTopLeft;
+				return _view;
 			}
-
-			Class layerClass() override { return [CAEAGLLayer class]; }
 
 			void renderbufferStorage(uint32_t target) {
 				BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer];
@@ -116,7 +113,7 @@ namespace flare {
 		private:
 			EAGLContext* _ctx;
 			CAEAGLLayer* _layer;
-			UIView* _view;
+			GLView* _view;
 	};
 
 	template<class BASE>

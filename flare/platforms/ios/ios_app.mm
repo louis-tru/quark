@@ -30,6 +30,7 @@
 
 #import <UIKit/UIKit.h>
 #import <MessageUI/MFMailComposeViewController.h>
+#include <MetalKit/MTKView.h>
 
 typedef UIEvent AppleUIEvent;
 
@@ -45,32 +46,21 @@ using namespace flare;
 typedef Display::Orientation Orientation;
 typedef Display::StatusBarStyle StatusBarStyle;
 
-static ApplicationDelegate* g_appDelegate = nil;
-static RenderApple* g_render = nil;
-static NSString* g_appDelegate_name = @"";
+static ApplicationDelegate* GlobAppDelegate = nil;
+static RenderApple* GlobRender = nil;
+static NSString* appDelegateName = @"";
 
-/**
- * @interface MainView
- */
-@interface MainView: UIView;
-	@property (assign, nonatomic) AppInl* app;
-@end
 
-/**
- * @interface RootViewController
- */
 @interface RootViewController: UIViewController;
+	@property (weak, nonatomic) ApplicationDelegate* appSelf;
 @end
 
-/**
- * @interface ApplicationDelegate
- */
 @interface ApplicationDelegate()<MFMailComposeViewControllerDelegate>
 	{
 		UIWindow* _window;
 		BOOL _is_background;
 	}
-	@property (strong, nonatomic) MainView* view;
+	@property (strong, nonatomic) UIView* view;
 	@property (strong, nonatomic) IOSIMEHelprt* ime;
 	@property (strong, nonatomic) CADisplayLink* display_link;
 	@property (strong, nonatomic) UIApplication* host;
@@ -82,67 +72,6 @@ static NSString* g_appDelegate_name = @"";
 	@property (assign, atomic) NSInteger render_task_count;
 @end
 
-@implementation MainView
-
-	+ (Class)layerClass {
-		return g_render->layerClass();
-	}
-
-	- (BOOL)isMultipleTouchEnabled {
-		return YES;
-	}
-
-	- (BOOL)isUserInteractionEnabled {
-		return YES;
-	}
-
-	- (List<TouchPoint>)toUITouchs:(NSSet<UITouch*>*)touches {
-		NSEnumerator* enumerator = [touches objectEnumerator];
-		List<TouchPoint> rv; // (uint(touches.count));
-		
-		Vec2 size = _app->display()->size();
-		
-		float scale_x = size.width() / g_appDelegate.view.frame.size.width;
-		float scale_y = size.height() / g_appDelegate.view.frame.size.height;
-		
-		for (UITouch* touch in enumerator) {
-			CGPoint point = [touch locationInView:touch.view];
-			CGFloat force = touch.force;
-			// CGFloat angle = touch.altitudeAngle;
-			// CGFloat max_force = touch.maximumPossibleForce;
-			rv.push_back({
-				uint32_t((size_t)touch % Uint32::limit_max),
-				0, 0,
-				float(point.x * scale_x),
-				float(point.y * scale_y),
-				float(force),
-				false,
-				nullptr,
-			});
-		}
-		
-		return rv;
-	}
-
-	- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		_app->dispatch()->onTouchstart( [self toUITouchs:touches] );
-	}
-
-	- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		// F_DEBUG("touchesMoved, count: %d", touches.count);
-		_app->dispatch()->onTouchmove( [self toUITouchs:touches] );
-	}
-
-	- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event{
-		_app->dispatch()->onTouchend( [self toUITouchs:touches] );
-	}
-
-	- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		_app->dispatch()->onTouchcancel( [self toUITouchs:touches] );
-	}
-
-@end
-
 @implementation RootViewController
 
 	- (BOOL)shouldAutorotate {
@@ -150,7 +79,7 @@ static NSString* g_appDelegate_name = @"";
 	}
 
 	- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-		switch ( g_appDelegate.setting_orientation ) {
+		switch ( GlobAppDelegate.setting_orientation ) {
 			case Orientation::ORIENTATION_PORTRAIT:
 				return UIInterfaceOrientationMaskPortrait;
 			case Orientation::ORIENTATION_LANDSCAPE:
@@ -166,7 +95,7 @@ static NSString* g_appDelegate_name = @"";
 			case Orientation::ORIENTATION_USER_LANDSCAPE:
 				return UIInterfaceOrientationMaskLandscape;
 			case Orientation::ORIENTATION_USER_LOCKED:
-				switch(g_appDelegate.current_orientation  ) {
+				switch(GlobAppDelegate.current_orientation  ) {
 					default:
 					case Orientation::ORIENTATION_INVALID:
 						return UIInterfaceOrientationMaskAll;
@@ -184,15 +113,15 @@ static NSString* g_appDelegate_name = @"";
 	}
 
 	- (void)viewWillTransitionToSize:(CGSize)size
-				withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
+				 withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 	{
 		[coordinator animateAlongsideTransition:^(id context) {
-			g_render->resize(g_appDelegate.view.frame);
-			Orientation ori = g_appDelegate.app->display()->orientation();
-			if (ori != g_appDelegate.current_orientation) {
-				g_appDelegate.current_orientation = ori;
-				g_appDelegate.app->loop()->post(Cb([](CbData& e) {
-					g_appDelegate.app->display()->F_Trigger(Orientation);
+			GlobRender->resize(GlobAppDelegate.view.frame);
+			Orientation ori = self.appSelf.app->display()->orientation();
+			if (ori != GlobAppDelegate.current_orientation) {
+				GlobAppDelegate.current_orientation = ori;
+				GlobAppDelegate.app->loop()->post(Cb([](CbData& e) {
+					GlobAppDelegate.app->display()->F_Trigger(Orientation);
 				}));
 			}
 		} completion:nil];
@@ -200,7 +129,7 @@ static NSString* g_appDelegate_name = @"";
 	}
 
 	- (UIStatusBarStyle)preferredStatusBarStyle {
-		return g_appDelegate.status_bar_style;
+		return self.appSelf.status_bar_style;
 	}
 
 	- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
@@ -209,7 +138,51 @@ static NSString* g_appDelegate_name = @"";
 	}
 
 	- (BOOL)prefersStatusBarHidden {
-		return !g_appDelegate.visible_status_bar;
+		return !GlobAppDelegate.visible_status_bar;
+	}
+
+	-(List<TouchPoint>)toUITouchs:(NSSet<UITouch*>*)touches {
+		NSEnumerator* enumerator = [touches objectEnumerator];
+		List<TouchPoint> rv; // (uint(touches.count));
+		
+		Vec2 size = self.appSelf.app->display()->size();
+		
+		float scale_x = size.width() / GlobAppDelegate.view.frame.size.width;
+		float scale_y = size.height() / GlobAppDelegate.view.frame.size.height;
+		
+		for (UITouch* touch in enumerator) {
+			CGPoint point = [touch locationInView:touch.view];
+			CGFloat force = touch.force;
+			// CGFloat angle = touch.altitudeAngle;
+			// CGFloat max_force = touch.maximumPossibleForce;
+			rv.push_back({
+				uint32_t((size_t)touch % Uint32::limit_max),
+				0, 0,
+				float(point.x * scale_x),
+				float(point.y * scale_y),
+				float(force),
+				false,
+				nullptr,
+			});
+		}
+		return rv;
+	}
+
+	-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
+		_inl_app(self.appSelf.app)->dispatch()->onTouchstart( [self toUITouchs:touches] );
+	}
+
+	-(void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
+		// F_DEBUG("touchesMoved, count: %d", touches.count);
+		_inl_app(self.appSelf.app)->dispatch()->onTouchmove( [self toUITouchs:touches] );
+	}
+
+	-(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event{
+		_inl_app(self.appSelf.app)->dispatch()->onTouchend( [self toUITouchs:touches] );
+	}
+
+	-(void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
+		_inl_app(self.appSelf.app)->dispatch()->onTouchcancel( [self toUITouchs:touches] );
 	}
 
 @end
@@ -217,8 +190,8 @@ static NSString* g_appDelegate_name = @"";
 @implementation ApplicationDelegate
 
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
-		if (g_appDelegate.app->is_loaded()) {
-			g_appDelegate.app->display()->render();
+		if (GlobAppDelegate.app->is_loaded()) {
+			GlobAppDelegate.app->display()->render();
 		}
 	}
 
@@ -238,16 +211,16 @@ static NSString* g_appDelegate_name = @"";
 	}
 
 	- (void)resize {
-		g_render->resize(g_appDelegate.view.frame);
+		GlobRender->resize(GlobAppDelegate.view.frame);
 	}
 
 	+ (void)set_application_delegate:(NSString*)name {
-		g_appDelegate_name = name;
+		appDelegateName = name;
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		F_ASSERT(!g_appDelegate);
-		g_appDelegate = self;
+		F_ASSERT(!GlobAppDelegate);
+		GlobAppDelegate = self;
 		
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];
@@ -264,6 +237,7 @@ static NSString* g_appDelegate_name = @"";
 		self.status_bar_style = UIStatusBarStyleLightContent;
 		self.render_task_count = 0;
 		self.root_ctr = [[RootViewController alloc] init];
+		self.root_ctr.appSelf = self;
 		self.display_link = [CADisplayLink displayLinkWithTarget:self
 																										selector:@selector(display_link_callback:)];
 		self.window.backgroundColor = [UIColor blackColor];
@@ -271,28 +245,31 @@ static NSString* g_appDelegate_name = @"";
 		
 		[self.window makeKeyAndVisible];
 		
-		UIView* root_view = self.window.rootViewController.view;
-		self.view = [[MainView alloc] initWithFrame:[root_view bounds]];
+		UIView* rootView = self.window.rootViewController.view;
+		
+		self.view = GlobRender->init(rootView.bounds);
 		self.view.contentScaleFactor = UIScreen.mainScreen.scale;
 		self.view.translatesAutoresizingMaskIntoConstraints = NO;
-		self.view.app = _inl_app(self.app);
+		self.view.multipleTouchEnabled = YES;
+		self.view.userInteractionEnabled = YES;
+
 		self.ime = [[IOSIMEHelprt alloc] initWithApplication:self.app];
-		
-		[root_view addSubview:self.view];
-		[root_view addSubview:self.ime];
-		[root_view addConstraint:[NSLayoutConstraint
+
+		[rootView addSubview:self.view];
+		[rootView addSubview:self.ime];
+		[rootView addConstraint:[NSLayoutConstraint
 												constraintWithItem:self.view
 												attribute:NSLayoutAttributeWidth
 												relatedBy:NSLayoutRelationEqual
-												toItem:root_view
+												toItem:rootView
 												attribute:NSLayoutAttributeWidth
 												multiplier:1
 												constant:0]];
-		[root_view addConstraint:[NSLayoutConstraint
+		[rootView addConstraint:[NSLayoutConstraint
 												constraintWithItem:self.view
 												attribute:NSLayoutAttributeHeight
 												relatedBy:NSLayoutRelationEqual
-												toItem:root_view
+												toItem:rootView
 												attribute:NSLayoutAttributeHeight
 												multiplier:1
 												constant:0]];
@@ -301,8 +278,7 @@ static NSString* g_appDelegate_name = @"";
 
 		_app->display()->set_default_scale(UIScreen.mainScreen.scale);
 
-		g_render->setView(self.view);
-		g_render->resize(self.view.frame);
+		GlobRender->resize(self.view.frame);
 
 		_inl_app(_app)->triggerLoad();
 
@@ -312,7 +288,7 @@ static NSString* g_appDelegate_name = @"";
 	}
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(::CGRect)frame {
-		if ( g_appDelegate && !_is_background ) {
+		if ( GlobAppDelegate && !_is_background ) {
 			[self resize];
 		}
 	}
@@ -356,8 +332,8 @@ static NSString* g_appDelegate_name = @"";
 // ******************************* Application *******************************
 
 Render* Render::Make(Application* host, const Options& opts) {
-	g_render = RenderApple::Make(host, opts);
-	return g_render->render();
+	GlobRender = RenderApple::Make(host, opts);
+	return GlobRender->render();
 }
 
 /**
@@ -373,7 +349,7 @@ void Application::pending() {
 void Application::open_url(cString& url) {
 	NSURL* url2 = [NSURL URLWithString:[NSString stringWithUTF8String:*url]];
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[g_appDelegate.host openURL:url2 options:@{} completionHandler:nil];
+		[GlobAppDelegate.host openURL:url2 options:@{} completionHandler:nil];
 	});
 }
 
@@ -404,8 +380,8 @@ void Application::send_email(cString& recipient,
 		[mail setCcRecipients:cc_];
 		[mail setBccRecipients:bcc_];
 		[mail setMessageBody:body_ isHTML:NO];
-		mail.mailComposeDelegate = g_appDelegate;
-			[g_appDelegate.root_ctr presentViewController:mail animated:YES completion:nil];
+		mail.mailComposeDelegate = GlobAppDelegate;
+			[GlobAppDelegate.root_ctr presentViewController:mail animated:YES completion:nil];
 	});
 }
 
@@ -414,12 +390,12 @@ void Application::send_email(cString& recipient,
  */
 void AppInl::ime_keyboard_open(KeyboardOptions options) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[g_appDelegate.ime set_keyboard_type:options.type];
-		[g_appDelegate.ime set_keyboard_return_type:options.return_type];
+		[GlobAppDelegate.ime set_keyboard_type:options.type];
+		[GlobAppDelegate.ime set_keyboard_return_type:options.return_type];
 		if ( options.is_clear ) {
-			[g_appDelegate.ime clear];
+			[GlobAppDelegate.ime clear];
 		}
-		[g_appDelegate.ime open];
+		[GlobAppDelegate.ime open];
 	});
 }
 
@@ -428,7 +404,7 @@ void AppInl::ime_keyboard_open(KeyboardOptions options) {
  */
 void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[g_appDelegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
+		[GlobAppDelegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
 	});
 }
 
@@ -437,7 +413,7 @@ void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
  */
 void AppInl::ime_keyboard_close() {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[g_appDelegate.ime close];
+		[GlobAppDelegate.ime close];
 	});
 }
 
@@ -477,9 +453,9 @@ float Display::default_atom_pixel() {
 void Display::keep_screen(bool keep) {
 	dispatch_async(dispatch_get_main_queue(), ^{
 		if ( keep ) {
-			g_appDelegate.host.idleTimerDisabled = YES;
+			GlobAppDelegate.host.idleTimerDisabled = YES;
 		} else {
-			g_appDelegate.host.idleTimerDisabled = NO;
+			GlobAppDelegate.host.idleTimerDisabled = NO;
 		}
 	});
 }
@@ -488,7 +464,7 @@ void Display::keep_screen(bool keep) {
  * @func status_bar_height()
  */
 float Display::status_bar_height() {
-	::CGRect rect = g_appDelegate.host.statusBarFrame;
+	::CGRect rect = GlobAppDelegate.host.statusBarFrame;
 	return F_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale[1];
 }
 
@@ -496,8 +472,8 @@ float Display::status_bar_height() {
  * @func default_status_bar_height
  */
 float Display::default_status_bar_height() {
-	if (g_appDelegate && g_appDelegate.app) {
-		return g_appDelegate.app->display()->status_bar_height();
+	if (GlobAppDelegate && GlobAppDelegate.app) {
+		return GlobAppDelegate.app->display()->status_bar_height();
 	} else {
 		return 20;
 	}
@@ -507,19 +483,19 @@ float Display::default_status_bar_height() {
  * @func set_visible_status_bar(visible)
  */
 void Display::set_visible_status_bar(bool visible) {
-	if ( visible == g_appDelegate.visible_status_bar ) return;
-	g_appDelegate.visible_status_bar = visible;
+	if ( visible == GlobAppDelegate.visible_status_bar ) return;
+	GlobAppDelegate.visible_status_bar = visible;
 
 	dispatch_async(dispatch_get_main_queue(), ^{
 		//if ( visible ) {
-		//  [g_appDelegate.host setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
+		//  [GlobAppDelegate.host setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
 		//} else {
-		//  [g_appDelegate.host setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
+		//  [GlobAppDelegate.host setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
 		//}
-		[g_appDelegate refresh_status];
+		[GlobAppDelegate refresh_status];
 
 		// TODO 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 ?		
-		g_render->resize(g_appDelegate.view.frame);
+		GlobRender->resize(GlobAppDelegate.view.frame);
 
 		// TODO 绘图表面尺寸没有改变? 表示只是单纯状态栏改变? 这个改变也当成change通知给用户
 		_host->loop()->post(Cb([this](CbData& e) {
@@ -538,10 +514,10 @@ void Display::set_status_bar_style(StatusBarStyle style) {
 	} else {
 		style_2 = UIStatusBarStyleDefault;
 	}
-	if ( g_appDelegate.status_bar_style != style_2 ) {
-		g_appDelegate.status_bar_style = style_2;
+	if ( GlobAppDelegate.status_bar_style != style_2 ) {
+		GlobAppDelegate.status_bar_style = style_2;
 		dispatch_async(dispatch_get_main_queue(), ^{
-			[g_appDelegate refresh_status];
+			[GlobAppDelegate refresh_status];
 		});
 	}
 }
@@ -558,7 +534,7 @@ void Display::request_fullscreen(bool fullscreen) {
  */
 Orientation Display::orientation() {
 	Orientation r = ORIENTATION_INVALID;
-	switch ( g_appDelegate.host.statusBarOrientation ) {
+	switch ( GlobAppDelegate.host.statusBarOrientation ) {
 		case UIInterfaceOrientationPortrait:
 			r = ORIENTATION_PORTRAIT;
 			break;
@@ -582,10 +558,10 @@ Orientation Display::orientation() {
  * @func set_orientation(orientation)
  */
 void Display::set_orientation(Orientation orientation) {
-	if ( g_appDelegate.setting_orientation != orientation ) {
-		g_appDelegate.setting_orientation = orientation;
+	if ( GlobAppDelegate.setting_orientation != orientation ) {
+		GlobAppDelegate.setting_orientation = orientation;
 		dispatch_async(dispatch_get_main_queue(), ^{
-			[g_appDelegate refresh_status];
+			[GlobAppDelegate refresh_status];
 		});
 	}
 }
@@ -600,10 +576,10 @@ extern "C" F_EXPORT int main(int argc, Char* argv[]) {
 	
 	if ( app() ) {
 		@autoreleasepool {
-			if ( [g_appDelegate_name isEqual:@""] ) {
+			if ( [appDelegateName isEqual:@""] ) {
 				UIApplicationMain(argc, argv, nil, NSStringFromClass(ApplicationDelegate.class));
 			} else {
-				UIApplicationMain(argc, argv, nil, g_appDelegate_name);
+				UIApplicationMain(argc, argv, nil, appDelegateName);
 			}
 		}
 	}

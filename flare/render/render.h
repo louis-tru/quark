@@ -73,8 +73,6 @@ namespace flare {
 				ColorType colorType;
 				Flags     flags;
 				int  msaaSampleCnt, stencilBits;
-				bool disableVsync;
-				bool delayDrawableAcquisition;
 				bool enableBinaryArchive;
 				bool enableGpu, disableMetal, disableVulkan;
 			};

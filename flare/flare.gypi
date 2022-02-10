@@ -212,6 +212,8 @@
 						# '$(SDKROOT)/usr/lib/libz.tbd',
 						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
 						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
+						'$(SDKROOT)/System/Library/Frameworks/MetalKit.framework',
+						
 					]
 				},
 			}],
@@ -369,7 +371,7 @@
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/CoreText.framework',
-						# '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+						'$(SDKROOT)/System/Library/Frameworks/Metal.framework',
 					],
 				},
 			}],
