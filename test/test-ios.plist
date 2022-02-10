@@ -28,5 +28,9 @@
 	<string>Storyboard</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array/>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>metal</string>
+	</array>
 </dict>
 </plist>

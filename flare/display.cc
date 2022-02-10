@@ -175,7 +175,7 @@ namespace flare {
 			* 如果能够确保绘图函数的调用都在渲染线程,那就不会有安全问题。
 			*/
 			lock.unlock(); //
-			render->commit();
+			render->submit();
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t ts2 = (time_micro() - st) / 1e3;
 				if (ts2 > 16) {

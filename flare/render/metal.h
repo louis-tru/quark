@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,12 +29,48 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./canvas.h"
+
+#ifndef __flare__render__metal__
+#define __flare__render__metal__
+
+#include <QuartzCore/CAMetalLayer.h>
+#include <Metal/Metal.h>
+#include "./render.h"
+#include "skia/gpu/mtl/GrMtlTypes.h"
 
 namespace flare {
 
-	Canvas::Canvas() {
+	class API_AVAILABLE(ios(13.0)) MetalRender: public Render {
+		public:
+			virtual ~MetalRender();
+			virtual SkSurface* surface() override;
+			virtual bool is_gpu() override { return true; }
+			virtual void reload() override;
+			virtual void submit() override;
+			virtual void activate(bool isActive) override;
 
-	}
+		protected:
+			static NSURL* CacheURL();
+			MetalRender(Application* host, const Options& opts);
+			sk_sp<SkSurface>    _surface;
+			id<MTLDevice>       _device; // sk_cfp<id<MTLDevice>>
+			id<MTLCommandQueue> _queue; // sk_cfp<id<MTLCommandQueue>>
+			CAMetalLayer*    _layer;
+			GrMTLHandle      _drawable;
+			id               _pipelineArchive; // id<MTLBinaryArchive>
+	};
 
-}
+	class API_AVAILABLE(ios(13.0)) RasterMetalRender: public MetalRender {
+		public:
+			virtual SkSurface* surface() override;
+			virtual bool is_gpu() override { return false; }
+			virtual void reload() override;
+			virtual void submit() override;
+		protected:
+			RasterMetalRender(Application* host, const Options& opts);
+			sk_sp<SkSurface> _rasterSurface;
+	};
+
+}   // namespace flare
+
+#endif

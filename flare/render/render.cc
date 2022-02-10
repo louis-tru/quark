@@ -46,33 +46,33 @@ struct Layer;
 struct BackImage;
 
 class SkCanvas::MCRec {
-public:
-	std::unique_ptr<Layer> fLayer;
-	SkBaseDevice* fDevice;
-	std::unique_ptr<BackImage> fBackImage;
-	SkM44 fMatrix;
-	int fDeferredSaveCount;
+	public:
+		std::unique_ptr<Layer> fLayer;
+		SkBaseDevice* fDevice;
+		std::unique_ptr<BackImage> fBackImage;
+		SkM44 fMatrix;
+		int fDeferredSaveCount;
 };
 
 class SkMatrixProvider {
-protected:
-	virtual ~SkMatrixProvider() = default;
-	SkM44    fLocalToDevice;
-	SkMatrix fLocalToDevice33;
+	protected:
+		virtual ~SkMatrixProvider() = default;
+		SkM44    fLocalToDevice;
+		SkMatrix fLocalToDevice33;
 };
 
 class SkBaseDevice: public SkRefCnt, public SkMatrixProvider {
-public:
-	void setLocalToDevice(const SkM44& localToDevice) {
-		fLocalToDevice = localToDevice;
-		fLocalToDevice33 = fLocalToDevice.asM33();
-	}
-private:
-	SkMarkerStack* fMarkerStack = nullptr;
-	const SkImageInfo    fInfo;
-	const SkSurfaceProps fSurfaceProps;
-	SkM44 fDeviceToGlobal;
-	SkM44 fGlobalToDevice;
+	public:
+		void setLocalToDevice(const SkM44& localToDevice) {
+			fLocalToDevice = localToDevice;
+			fLocalToDevice33 = fLocalToDevice.asM33();
+		}
+	private:
+		SkMarkerStack* fMarkerStack = nullptr;
+		const SkImageInfo    fInfo;
+		const SkSurfaceProps fSurfaceProps;
+		SkM44 fDeviceToGlobal;
+		SkM44 fGlobalToDevice;
 };
 
 namespace flare {
@@ -101,12 +101,12 @@ namespace flare {
 		return F_MIN(n, 8);
 	}
 
-	Render::Render(Application* host, const Options& params)
+	Render::Render(Application* host, const Options& opts)
 		: _host(host)
-		, _opts(params)
-		, _sample_count(1), _stencil_bits(0)
+		, _opts(opts)
 	{
-		_opts.MSAASampleCount = massSample(_opts.MSAASampleCount);
+		_opts.colorType = _opts.colorType ? _opts.colorType: COLOR_TYPE_RGBA_8888;
+		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
 	}
 
 	Render::~Render() {}
@@ -123,7 +123,14 @@ namespace flare {
 
 	Render::Options Render::parseOptions(cJSON& options) {
 		// parse options to render params
-		return Options();
+		// return Options();
+		return {
+			.msaaSampleCnt = 4,
+			.stencilBits = 8,
+			.enableGpu = true,
+			//.disableMetal = true,
+			//.delayDrawableAcquisition = true,
+		};
 	}
 
 }

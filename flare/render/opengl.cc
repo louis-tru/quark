@@ -57,9 +57,19 @@
 
 namespace flare {
 
-	GLRender::GLRender(Application* host, const Options& params)
+	static uint32_t glPixelInternalFormat(ColorType type) {
+		switch (type) {
+			default: return 0;
+			case COLOR_TYPE_RGB_565: return GL_RGB565;
+			case COLOR_TYPE_RGBA_8888: return GL_RGBA8;
+			case COLOR_TYPE_RGB_888X: return GL_RGBA8;
+			case COLOR_TYPE_RGBA_1010102: return GL_RGB10_A2;
+			case COLOR_TYPE_RGB_101010X: return GL_RGB10_A2;
+		}
+	}
+
+	OpenGLRender::OpenGLRender(Application* host, const Options& params)
 		: Render(host, params)
-		, _interface(nullptr)
 		, _frame_buffer(0), _is_support_multisampled(false)
 	{
 		String extensions = (const char*)glGetString(GL_EXTENSIONS);
@@ -70,6 +80,22 @@ namespace flare {
 		F_DEBUG("OGL Info: %s", *version);
 		F_DEBUG("OGL Info: %s", *extensions);
 		
+		if (!_is_support_multisampled) {
+			for (auto s : {"OpenGL ES ", "OpenGL "}) {
+				int idx = version.index_of(s);
+				if (idx != -1) {
+					int num = version.substr(idx + 10, 1).to_number<int>();
+					if (num > 2) {
+						_is_support_multisampled = true;
+					} else {
+						_is_support_multisampled = extensions.index_of( "multisample" ) != -1;
+					}
+					if (_is_support_multisampled)
+						break;
+				}
+			}
+		}
+
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(1, &_frame_buffer);
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
@@ -78,80 +104,50 @@ namespace flare {
 		glGenFramebuffers(1, &_msaa_frame_buffer);
 		glGenRenderbuffers(1, &_msaa_render_buffer);
 
-		// initializ gl status
-		if (is_gpu()) {
-			/*
-			* @开启颜色混合
-			*
-			* 如果设置了glBlendFunc(GL_ONE, GL_ZERO);
-			* 则表示完全使用源颜色，完全不使用目标颜色，因此画面效果和不使用混合的时候一致（当然效率可能会低一点点）。
-			* 如果没有设置源因子和目标因子，则默认情况就是这样的设置。
-			*
-			* 如果设置了glBlendFunc(GL_ZERO, GL_ONE);
-			* 则表示完全不使用源颜色，因此无论你想画什么，最后都不会被画上去了。
-			*（但这并不是说这样设置就没有用，有些时候可能有特殊用途）
-			*
-			* 如果设置了glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			* 则表示源颜色乘以自身的alpha 值，目标颜色乘以1.0减去源颜色的alpha值，这样一来，源颜色的alpha值越大，
-			* 则产生的新颜色中源颜色所占比例就越大，而目标颜色所占比例则减 小。这种情况下，我们可以简单的将源颜色的alpha值
-			* 理解为“不透明度”。这也是混合时最常用的方式。
-			*
-			* 如果设置了glBlendFunc(GL_ONE, GL_ONE);
-			* 则表示完全使用源颜色和目标颜色，最终的颜色实际上就是两种颜色的简单相加。
-			* 例如红色(1, 0, 0)和绿色(0, 1, 0)相加得到(1, 1, 0)，结果为黄色。
-			*/
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		}
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	GLRender::~GLRender() {
+	OpenGLRender::~OpenGLRender() {
 		glDeleteRenderbuffers(1, &_render_buffer);
 		glDeleteFramebuffers(1, &_frame_buffer);
 		glDeleteFramebuffers(1, &_msaa_render_buffer);
 		glDeleteRenderbuffers(1, &_msaa_frame_buffer);
 	}
 
-	int GLRender::msaa_sample() {
-		if ( _opts.MSAASampleCount > 1 && _is_support_multisampled && is_gpu()) {
-			return _opts.MSAASampleCount;
-		}
-		return 0;
-	}
-
-	SkSurface* GLRender::surface() {
-		if (!_direct) return nullptr;
-		if (_surface) return _surface.get();
+	SkSurface* OpenGLRender::surface() {
+		if (!_direct)
+			return nullptr;
+		if (_surface)
+			return _surface.get();
 
 		auto region = _host->display()->surface_region();
 
-		if (region.width == 0 || region.height == 0)
-			return nullptr;
-
 		int width = region.width;
 		int height = region.height;
-		auto MSAA = _opts.MSAASampleCount;
+		int MSAA = _opts.msaaSampleCnt;
+
+		F_ASSERT(width && height);
 
 		glViewport(0, 0, width, height);
 
 		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-		glRenderbufferStorage();
+		renderbufferStorage(GL_RENDERBUFFER);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 
-		if ( msaa_sample() ) { // 启用多重采样
+		if ( MSAA > 1 ) { // 启用多重采样
 			glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render buffer
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAA, GL_RGBA8, width, height);
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAA, glPixelInternalFormat(_opts.colorType), width, height);
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaa_render_buffer);
 		}
-		// glBindRenderbuffer(GL_RENDERBUFFER, _frame_buffer);
 
 		// Test the framebuffer for completeness.
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			if ( msaa_sample() ) {
-				_opts.MSAASampleCount /= 2;
-				return surface();
+			if ( MSAA > 1 ) {
+				_opts.msaaSampleCnt /= 2;
+				return OpenGLRender::surface();
 			} else {
 				F_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 			}
@@ -165,54 +161,48 @@ namespace flare {
 
 		glClearStencil(0);
 		glStencilMask(0xffffffff);
-		
-		GrGLFramebufferInfo fbInfo;
-		fbInfo.fFBOID = msaa_sample() ? _msaa_frame_buffer : _frame_buffer;
-		fbInfo.fFormat = GL_RGBA8;
 
-		GrBackendRenderTarget backendRT(region.width, region.height, _sample_count, _stencil_bits, fbInfo);
-		
-		SkSurfaceProps props(SkSurfaceProps::Flags(_opts.flags), kUnknown_SkPixelGeometry);
+		GrGLFramebufferInfo fbInfo = {
+			_opts.msaaSampleCnt > 1 ? _msaa_frame_buffer : _frame_buffer,
+			glPixelInternalFormat(_opts.colorType),
+		};
+
+		GrBackendRenderTarget backendRT(region.width, region.height, _opts.msaaSampleCnt, _opts.stencilBits, fbInfo);
+		SkSurfaceProps props(_opts.flags, kUnknown_SkPixelGeometry);
 
 		_surface = SkSurface::MakeFromBackendRenderTarget(
 															_direct.get(), backendRT,
 															kBottomLeft_GrSurfaceOrigin,
-															SkColorType(_opts.colorType),
-															/*_opts.colorSpace*/nullptr, &props);
+															SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
 		return _surface.get();
 	}
 
-	void GLRender::glRenderbufferStorage() {
+	void OpenGLRender::renderbufferStorage(uint32_t target) {
 		auto region = _host->display()->surface_region();
-		::glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, region.width, region.height);
+		::glRenderbufferStorage(target, glPixelInternalFormat(_opts.colorType), region.width, region.height);
 	}
 
-	void GLRender::reload() {
-		_surface.reset(); // clear surface
-		if (_direct) return;
-
-		_interface.reset(nullptr);
-		_interface = GrGLMakeNativeInterface();
-		_stencil_bits = 8;
-		_sample_count = 1;
-
-		if ( msaa_sample() ) {
-			_sample_count = _opts.MSAASampleCount;
+	void OpenGLRender::reload() {
+		if (!_direct) {
+			if (!_is_support_multisampled) {
+				_opts.msaaSampleCnt = 0;
+			}
+			_direct = GrDirectContext::MakeGL(GrGLMakeNativeInterface(), {/*_opts.grContextOptions*/});
+			F_ASSERT(_direct);
 		}
-		_direct = GrDirectContext::MakeGL(_interface, {/*_opts.grContextOptions*/});
-		F_ASSERT(_direct);
+		_surface.reset(); // clear surface
 	}
 
-	void GLRender::commit() {
+	void OpenGLRender::submit() {
 		_surface->flushAndSubmit(); // commit sk
 
-		if (msaa_sample()) {
+		if (_opts.msaaSampleCnt > 1) {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
-			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 			auto region = _host->display()->surface_region();
 			glBlitFramebuffer(0, 0, region.width, region.height,
 												0, 0, region.width, region.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
 			glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
@@ -221,45 +211,69 @@ namespace flare {
 			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
 		}
 
-		eglSwapBuffers();
+		swapBuffers();
 
-		if ( msaa_sample() ) {
+		if ( _opts.msaaSampleCnt > 1 ) {
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
 			glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer);
 		}
 	}
 
-	RasterRender::RasterRender(Application* host, const Options& opts): GLRender(host, opts) {
+	RasterOpenGLRender::RasterOpenGLRender(Application* host, const Options& opts): OpenGLRender(host, opts) {
+		glDisable(GL_BLEND); // disable color blend
 	}
 
-	void RasterRender::commit() {
-		if (!_RasterSurface) return;
-		// We made/have an off-screen surface. Get the contents as an SkImage:
-		sk_sp<SkImage> snapshot = _RasterSurface->makeImageSnapshot();
-		SkSurface* gpuSurface = GLRender::surface();
-		gpuSurface->getCanvas()->drawImage(snapshot, 0, 0);
-		gpuSurface->flushAndSubmit();
-
-		GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-		glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
-
-		eglSwapBuffers();
-	}
-
-	SkSurface* RasterRender::surface() {
-		if (!_RasterSurface) {
+	SkSurface* RasterOpenGLRender::surface() {
+		if (!_rasterSurface) {
 			// make the offscreen image
 			auto region = _host->display()->surface_region();
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
-			_RasterSurface = SkSurface::MakeRaster(info);
+			_rasterSurface = SkSurface::MakeRaster(info);
 		}
-		return _RasterSurface.get();
+		return _rasterSurface.get();
+	}
+
+	void RasterOpenGLRender::reload() {
+		_opts.stencilBits = 0;
+		_opts.msaaSampleCnt = 0;
+		OpenGLRender::reload();
+		_rasterSurface.reset();
+	}
+
+	void RasterOpenGLRender::submit() {
+		// draw to gl canvas
+		_rasterSurface->draw(OpenGLRender::surface()->getCanvas(), 0, 0);
+		OpenGLRender::submit();
+	}
+
+	// ------------------------------- R a s t e r . R e n d e r ---------------------------------------
+
+	RasterRender::RasterRender(Application* host, const Options& opts): Render(host, opts) {}
+
+	SkSurface* RasterRender::surface() {
+		if (!_rasterSurface) {
+			// make the offscreen image
+			auto region = _host->display()->surface_region();
+			auto info = SkImageInfo::Make(region.width, region.height,
+																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
+			_rasterSurface = SkSurface::MakeRaster(info);
+		}
+		return _rasterSurface.get();
 	}
 
 	void RasterRender::reload() {
-		_RasterSurface.reset();
-		GLRender::reload();
+		_opts.stencilBits = 0;
+		_opts.msaaSampleCnt = 0;
+		_rasterSurface.reset();
+	}
+
+	void RasterRender::submit() {
+		surface()->flushAndSubmit();
+		SkPixmap pixmap;
+		if (surface()->peekPixels(&pixmap)) {
+			onSubmit(&pixmap);
+		}
 	}
 
 }   // namespace flare

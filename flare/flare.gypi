@@ -97,7 +97,8 @@
 			'font/pool.cc',
 			'render/render.h',
 			'render/render.cc',
-			'render/render_gl.cc',
+			'render/render.cc',
+			'render/opengl.cc',
 			'math.h',
 			'math.cc',
 			'bezier.h',
@@ -166,6 +167,8 @@
 					'os/android/android_api.h',
 					'os/android/android_api.cc',
 					'os/android/android_os.cc',
+					'render/vulkan.h',
+					'render/vulkan.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -200,6 +203,8 @@
 					'platforms/apple/apple_keyboard.mm',
 					'platforms/apple/apple_render.mm',
 					'platforms/apple/apple_render.h',
+					'render/metal.h',
+					'render/metal.mm',
 					'os/apple/apple_os.mm',
 				],
 				'link_settings': {

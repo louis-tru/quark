@@ -195,7 +195,7 @@ void onload_handle(Event<>& evt, Application* app) {
 
 	app->render()->post_message(Cb([app](CbData&data){
 		draw_skia(app->render()->canvas());
-		app->render()->commit();
+		app->render()->submit();
 	}));
 
 }
