@@ -38,6 +38,17 @@
 + (Class)layerClass { return CAEAGLLayer.class; }
 @end
 
+@interface MTView: UIView @end
+@implementation MTView
++ (Class)layerClass {
+	if (@available(iOS 13.0, *)) {
+		return CAMetalLayer.class;
+	} else {
+		return nil;
+	}
+}
+@end
+
 namespace flare {
 
 	bool RenderApple::resize(::CGRect rect) {
@@ -64,9 +75,10 @@ namespace flare {
 			AppleMetalRender(Application* host, const Render::Options& opts): BASE(host, opts)
 			{}
 			UIView* init(CGRect rect) override {
-				this->_view = [[MTKView alloc] initWithFrame:rect device:MTLCreateSystemDefaultDevice()];
-				this->_view.layer.opaque = YES;
-				return this->_view;
+				MTKView* view = this->_view = [[MTKView alloc] initWithFrame:rect device:nil];
+				//UIView* view = [[MTKView alloc] initWithFrame:rect];
+				view.layer.opaque = YES;
+				return view;
 			}
 			Render* render() override { return this; }
 	};
@@ -99,8 +111,7 @@ namespace flare {
 			}
 
 			void renderbufferStorage(uint32_t target) {
-				BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer];
-				F_ASSERT(ok);
+				BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; F_ASSERT(ok);
 			}
 
 			void swapBuffers() {

@@ -60,12 +60,13 @@ namespace flare {
 
 	MetalRender::MetalRender(Application* host, const Options& opts)
 		: Render(host, opts)
-		, _queue(nil)
-		, _view(nil)
+		, _queue(nil), _device(nil)
+		, _view(nil), _layer(nil)
 		, _drawable(nil), _pipelineArchive(nil) {
 	}
 
 	MetalRender::~MetalRender() {
+		CFSafeRelease(_device); _device = nil;
 		CFSafeRelease(_queue); _queue = nil;
 		SkCFSafeRelease(_drawable); _drawable = nil;
 	}
@@ -87,7 +88,7 @@ namespace flare {
 
 		//id<MTLTexture> mttex = ((__bridge id<CAMetalDrawable>)_drawable).texture;
 		//F_DEBUG("sampleCount, %d, %d", mttex.sampleCount, _opts.msaaSampleCnt);
-		
+
 		_surface->flushAndSubmit(); // commit sk
 
 		[cmd presentDrawable:(__bridge id<CAMetalDrawable>)_drawable];
@@ -103,21 +104,29 @@ namespace flare {
 			return _surface.get();
 		if (!_direct)
 			return nullptr;
+
+		id<CAMetalDrawable> drawable;
 		
-		auto region = _host->display()->surface_region();
+		if (@available(iOS 13.0, *)) {
+			drawable = ((CAMetalLayer*)_view.layer).nextDrawable;
+		} else {
+			drawable = _view.currentDrawable;
+		}
 
-		id<CAMetalDrawable> drawable = _view.currentDrawable;
-		id<MTLTexture> texture = drawable.texture;
-
+		id<MTLTexture> tex = drawable.texture;
+		
 		GrMtlTextureInfo fbInfo;
-		fbInfo.fTexture.retain((__bridge void*)texture);
+		fbInfo.fTexture.retain((__bridge void*)tex);
+		
+		//auto region = _host->display()->surface_region();
+		//F_DEBUG("width, %f==%d", region.width, tex.width);
+		//F_DEBUG("height, %f==%d", region.height, tex.height);
+		//tex.sampleCount = _opts.msaaSampleCnt;
+		//F_DEBUG("%d, %d", tex.sampleCount, _opts.msaaSampleCnt);
 
-		GrBackendRenderTarget backendRT(region.width, region.height, _opts.msaaSampleCnt, fbInfo);
+		GrBackendRenderTarget backendRT((int)tex.width, (int)tex.height, _opts.msaaSampleCnt, fbInfo);
 		SkSurfaceProps props(_opts.flags, kUnknown_SkPixelGeometry);
 		
-		//texture.sampleCount = _opts.msaaSampleCnt;
-		//F_DEBUG("%d, %d", texture.sampleCount, _opts.msaaSampleCnt);
-
 		_surface = SkSurface::MakeFromBackendRenderTarget(_direct.get(), backendRT,
 														kTopLeft_GrSurfaceOrigin,
 														kBGRA_8888_SkColorType, nullptr, &props);
@@ -139,18 +148,32 @@ namespace flare {
 		auto region = _host->display()->surface_region();
 
 		if (!_direct) {
+			_device = CFSafeRetain(MTLCreateSystemDefaultDevice());
+			_queue = CFSafeRetain([_device newCommandQueue]);
+
 			if (_opts.msaaSampleCnt > 1) {
-				while (![_view.device supportsTextureSampleCount:_opts.msaaSampleCnt])
+				while (![_device supportsTextureSampleCount:_opts.msaaSampleCnt])
 					_opts.msaaSampleCnt /= 2;
 			}
-
-			_queue = CFSafeRetain([_view.device newCommandQueue]);
-			_view.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
-			_view.sampleCount = _opts.msaaSampleCnt;
-			//_layer.displaySyncEnabled = _opts.disableVsync ? NO : YES;
+			
+			if (_view) {
+				_view.device = _device;
+				_view.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
+				_view.sampleCount = _opts.msaaSampleCnt;
+			}
+			
+			if (@available(iOS 13.0, *)) {
+				if (_view) {
+					_layer = (CAMetalLayer*)_view.layer;
+				} else {
+					_layer.device = _device;
+					_layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+					//_layer.displaySyncEnabled = _opts.disableVsync ? NO : YES;
+				}
+			}
 			
 			GrMtlBackendContext backendContext = {};
-			backendContext.fDevice.retain((__bridge void*)_view.device);
+			backendContext.fDevice.retain((__bridge void*)_device);
 			backendContext.fQueue.retain((__bridge void*)_queue);
 			
 			#if GR_METAL_SDK_VERSION >= 230
@@ -163,11 +186,11 @@ namespace flare {
 						auto desc = [MTLBinaryArchiveDescriptor new];
 						desc.url = CacheURL(); // try to load
 						NSError* error;
-						_pipelineArchive = [_view.device newBinaryArchiveWithDescriptor:desc error:&error];
+						_pipelineArchive = [_device newBinaryArchiveWithDescriptor:desc error:&error];
 						if (!_pipelineArchive) {
 							desc.url = nil; // create new
 							NSError* error;
-							_pipelineArchive = [_view.device newBinaryArchiveWithDescriptor:desc error:&error];
+							_pipelineArchive = [_device newBinaryArchiveWithDescriptor:desc error:&error];
 							if (!_pipelineArchive) {
 								F_DEBUG("Error creating MTLBinaryArchive:\n%s", error.debugDescription.UTF8String);
 							}
@@ -176,7 +199,7 @@ namespace flare {
 				} else {
 					_pipelineArchive = nil;
 				}
-				//backendContext.fBinaryArchive.retain((__bridge GrMTLHandle)_pipelineArchive);
+				backendContext.fBinaryArchive.retain((__bridge GrMTLHandle)_pipelineArchive);
 			}
 			#endif
 
@@ -187,8 +210,16 @@ namespace flare {
 		// clean surface
 		SkCFSafeRelease(_drawable); _drawable = nil;
 		_surface.reset();
+		
+		if (_view) {
+			_view.drawableSize = CGRectMake(0, 0, region.width, region.height).size;
+		}
 
-		_view.drawableSize = CGRectMake(0, 0, region.width, region.height).size;
+		if (@available(iOS 13.0, *)) {
+			if (_layer) {
+				_layer.drawableSize = CGRectMake(0, 0, region.width, region.height).size;
+			}
+		}
 	}
 
 	void MetalRender::activate(bool isActive) {
@@ -237,6 +268,5 @@ namespace flare {
 		_rasterSurface->draw(MetalRender::surface()->getCanvas(), 0, 0);
 		MetalRender::submit();
 	}
-
 
 }   //namespace flare

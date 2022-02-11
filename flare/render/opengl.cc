@@ -247,33 +247,4 @@ namespace flare {
 		OpenGLRender::submit();
 	}
 
-	// ------------------------------- R a s t e r . R e n d e r ---------------------------------------
-
-	RasterRender::RasterRender(Application* host, const Options& opts): Render(host, opts) {}
-
-	SkSurface* RasterRender::surface() {
-		if (!_rasterSurface) {
-			// make the offscreen image
-			auto region = _host->display()->surface_region();
-			auto info = SkImageInfo::Make(region.width, region.height,
-																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
-			_rasterSurface = SkSurface::MakeRaster(info);
-		}
-		return _rasterSurface.get();
-	}
-
-	void RasterRender::reload() {
-		_opts.stencilBits = 0;
-		_opts.msaaSampleCnt = 0;
-		_rasterSurface.reset();
-	}
-
-	void RasterRender::submit() {
-		surface()->flushAndSubmit();
-		SkPixmap pixmap;
-		if (surface()->peekPixels(&pixmap)) {
-			onSubmit(&pixmap);
-		}
-	}
-
 }   // namespace flare
