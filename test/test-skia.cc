@@ -9,6 +9,10 @@
 #include <flare/fill.h>
 #include <flare/display.h>
 #include <flare/util/fs.h>
+#include <vector>
+#include <skia/core/SkFont.h>
+#include <skia/core/SkMaskFilter.h>
+#include <skia/effects/SkDashPathEffect.h>
 
 using namespace flare;
 
@@ -19,7 +23,15 @@ namespace flare {
 
 void draw_skia(SkCanvas* canvas) {
 	canvas->clear(SK_ColorWHITE);
-
+	
+	std::vector<int32_t> test(100);
+	
+	auto a = SkColorGetA(0x00);
+	
+	SkBitmap bitmap;
+	bitmap.allocN32Pixels(100, 100);
+	SkCanvas offscreen(bitmap);
+	
 	SkPaint paint;
 	paint.setStyle(SkPaint::kFill_Style);
 	paint.setAntiAlias(true);
@@ -62,6 +74,131 @@ void draw_skia(SkCanvas* canvas) {
 	
 }
 
+void testBlur(SkCanvas* canvas) {
+	SkAutoCanvasRestore res(canvas, true);
+	canvas->translate(300, 700);
+	//canvas->scale(2, 2);
+	SkPaint paint;
+	paint.setColor(SK_ColorBLUE);
+	paint.setMaskFilter(SkMaskFilter::MakeBlur(kSolid_SkBlurStyle, 20));
+	canvas->drawRect(SkRect::MakeXYWH(40, 40, 175, 175), paint);
+}
+
+void testBorder(SkCanvas* canvas) {
+	SkAutoCanvasRestore res(canvas, true);
+	canvas->translate(500, 700);
+	canvas->scale(2, 2);
+	SkPaint paint;
+	paint.setAntiAlias(true);
+	paint.setStyle(SkPaint::kStroke_Style);
+	paint.setStrokeWidth(4);
+	paint.setColor(SK_ColorRED);
+	SkRect oval = { 4, 4, 60, 60};
+	float intervals[] = { 5, 5 };
+	paint.setPathEffect(SkDashPathEffect::Make(intervals, 2, 2.5f));
+	for (auto degrees : { 270, 360, 540, 720 } ) {
+		canvas->drawArc(oval, 0, degrees, false, paint);
+		canvas->translate(64, 0);
+	}
+}
+
+void testNotifyPixelsChanged(SkCanvas* canvas) {
+	SkAutoCanvasRestore res(canvas, true);
+
+	canvas->translate(300, 550);
+	
+//	SkRSXform xforms;
+
+	SkBitmap bitmap;
+	bitmap.setInfo(SkImageInfo::Make(1, 1, kRGBA_8888_SkColorType, kOpaque_SkAlphaType));
+	bitmap.allocPixels();
+	bitmap.eraseColor(SK_ColorRED);
+
+	canvas->scale(64, 64);
+	canvas->drawImage(bitmap.asImage(), 0, 0);
+
+	*(SkPMColor*) bitmap.getPixels() = SkPreMultiplyColor(SK_ColorBLUE);
+	canvas->drawImage(bitmap.asImage(), 2, 0);
+
+	bitmap.notifyPixelsChanged(); // 好像并没有什么用处,既然都使用了引用内存,只要修改像素内容所有引用些对像都会受影响
+	
+	//bitmap.setIsVolatile(true);
+
+	*(SkPMColor*) bitmap.getPixels() = (SK_ColorGREEN);
+
+	canvas->drawImage(bitmap.asImage(), 4, 0);
+}
+
+void testExtractAlphaBlur(SkCanvas* canvas) {
+	auto radiusToSigma = [](SkScalar radius) -> SkScalar {
+		static const SkScalar kBLUR_SIGMA_SCALE = 0.57735f;
+		return radius > 0 ? kBLUR_SIGMA_SCALE * radius + 0.5f : 0.0f;
+	};
+
+	SkBitmap alpha, bitmap;
+	bitmap.allocN32Pixels(100, 100);
+	SkCanvas offscreen(bitmap);
+	//offscreen.clear(0);
+
+	SkPaint paint;
+	paint.setAntiAlias(true);
+	paint.setColor(SK_ColorBLUE);
+	paint.setStyle(SkPaint::kStroke_Style);
+	paint.setStrokeWidth(20);
+	offscreen.drawCircle(50, 50, 39, paint);
+	//offscreen.flush();
+
+	paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, radiusToSigma(10))); // software blur filter
+	SkIPoint offset;
+
+	bitmap.extractAlpha(&alpha, &paint, &offset);
+	paint.setColor(SK_ColorRED);
+
+	paint.setMaskFilter(nullptr);
+
+	SkAutoCanvasRestore res(canvas, true);
+
+	canvas->translate(300, 300);
+	canvas->scale(2, 2);
+
+	canvas->drawImage(bitmap.asImage(), 50, 0, SkSamplingOptions(), &paint);
+	canvas->drawImage(alpha.asImage(), 100 + offset.fX, 0, SkSamplingOptions(), &paint);
+}
+
+void test(SkCanvas* canvas) {
+	SkBitmap bitmap;
+	bitmap.setInfo(SkImageInfo::MakeN32(16, 16, kPremul_SkAlphaType));
+	SkDebugf("pixel address = %p\n", bitmap.getPixels());
+	SkBitmap::HeapAllocator stdalloc;
+	if (!stdalloc.allocPixelRef(&bitmap)) {
+			SkDebugf("pixel allocation failed\n");
+	} else {
+			SkDebugf("pixel address = %p\n", bitmap.getPixels());
+	}
+	
+	//kNoPremul_SkAlphaType
+	
+	SkPaint paint;
+	paint.setAntiAlias(true);
+	paint.setColor(SK_ColorGREEN);
+	SkFont font(nullptr, 128);
+	for (SkScalar sx : { -1, 1 } ) {
+			for (SkScalar sy : { -1, 1 } ) {
+					SkAutoCanvasRestore autoRestore(canvas, true);
+					SkMatrix m = SkMatrix::MakeAll(sx, 1, 300,    0, sy, 300,   0, 0, 1);
+					canvas->concat(m);
+					canvas->drawString("R", 0, 0, font, paint);
+			}
+	}
+	
+	uint8_t set1[5] = { 0xCA, 0xDA, 0xCA, 0xC9, 0xA3 };
+	uint8_t set2[5] = { 0xAC, 0xA8, 0x89, 0x47, 0x87 };
+	SkBitmap bitmap2;
+	// not hold data for installPixels
+	bitmap2.installPixels(SkImageInfo::Make(5, 1, kGray_8_SkColorType, kOpaque_SkAlphaType), set1, 5);
+
+}
+
 class FillImageTest: public FillImage {
 	public:
 	FillImageTest(cString& src): FillImage(src) {}
@@ -86,6 +223,13 @@ class FillImageTest: public FillImage {
 				canvas->drawImageRect(img2, SkRect::MakeXYWH(150, 345, 145, 110),
 															SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear));
 			}
+			
+			test(canvas);
+			testExtractAlphaBlur(canvas);
+			testNotifyPixelsChanged(canvas);
+			testBorder(canvas);
+			testBlur(canvas);
+
 		}
 		if (_next)
 			_next->draw(host, canvas, alpha, full);
