@@ -76,6 +76,7 @@
 				'test-linux-input-2.cc',
 				'test-jsx.cc',
 				'test-skia.cc',
+				'test-layout.cc',
 			],
 			'conditions': [
 				['os in "ios osx"', {

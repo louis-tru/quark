@@ -127,7 +127,7 @@ namespace flare {
 		return {
 			.msaaSampleCnt = 4,
 			.stencilBits = 8,
-			.enableGpu = true,
+			//.enableGpu = true,
 			//.disableMetal = true,
 		};
 	}

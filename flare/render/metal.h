@@ -53,7 +53,7 @@ namespace flare {
 		protected:
 			MetalRender(Application* host, const Options& opts);
 			sk_sp<SkSurface>    _surface;
-			id<MTLDevice> 			_device;
+			id<MTLDevice>       _device;
 			id<MTLCommandQueue> _queue; // sk_cfp<id<MTLCommandQueue>>
 			MTKView*          _view;
 			CAMetalLayer*     _layer;
