@@ -13,6 +13,8 @@
 #include <skia/core/SkFont.h>
 #include <skia/core/SkMaskFilter.h>
 #include <skia/effects/SkDashPathEffect.h>
+#include <skia/core/SkBitmap.h>
+#include <skia/core/SkPath.h>
 
 using namespace flare;
 
@@ -24,10 +26,6 @@ namespace flare {
 void draw_skia(SkCanvas* canvas) {
 	canvas->clear(SK_ColorWHITE);
 	
-	std::vector<int32_t> test(100);
-	
-	auto a = SkColorGetA(0x00);
-	
 	SkBitmap bitmap;
 	bitmap.allocN32Pixels(100, 100);
 	SkCanvas offscreen(bitmap);
@@ -38,6 +36,31 @@ void draw_skia(SkCanvas* canvas) {
 	paint.setStrokeWidth(4);
 	paint.setColor(0xFFFF0000);
 
+	
+	// ------------------------- drawCircle -------------------------
+	SkBitmap bitmapCircle;
+	bitmapCircle.allocPixels(SkImageInfo::MakeN32(160, 160, kPremul_SkAlphaType));
+	//bitmapCircle.eraseColor(SK_ColorBLUE);
+	SkCanvas offcanvas(bitmapCircle);
+	//offcanvas.clear(0xff00ff00);
+	paint.setColor(0xffff0000);
+	SkPath oval = SkPath::Oval(SkRect::MakeWH(160, 160), SkPathDirection::kCW);
+	
+	Array<uint8_t> verbs(oval.countVerbs());
+	oval.getVerbs(&verbs[0], verbs.length());
+	
+	F_DEBUG("");
+	for (int i = 0; i < oval.countPoints(); i++) {
+		F_DEBUG("Point: %f, %f", oval.getPoint(i).fX, oval.getPoint(i).fY);
+	}
+	for (int i = 0; i < oval.countVerbs(); i++) {
+		F_DEBUG("Verb: %d", verbs[i]);
+	}
+	F_DEBUG("");
+	
+	offcanvas.drawPath(oval, paint);
+	canvas->drawImage(bitmapCircle.asImage(), 490, 60);
+	
 	// ------------------------- drawRect -------------------------
 	SkRect rect = SkRect::MakeXYWH(10, 10, 300, 300);
 	// canvas->drawRect(rect, paint);
@@ -49,7 +72,7 @@ void draw_skia(SkCanvas* canvas) {
 	paint.setColor(0xFFFF0000);
 	// paint.setStyle(SkPaint::kStroke_Style);
 	paint.setStrokeWidth(20);
-	canvas->drawRRect(rrect, paint);
+	//canvas->drawRRect(rrect, paint);
 
 	// ------------------------- drawDRRect -------------------------
 	SkRRect rrect0, rrect1;
@@ -62,10 +85,6 @@ void draw_skia(SkCanvas* canvas) {
 	//paint.setStyle(SkPaint::kStroke_Style);
 	//paint.setStrokeWidth(1);
 	canvas->drawDRRect(rrect0, rrect1, paint);
-
-	// ------------------------- drawCircle -------------------------
-	paint.setColor(0xff0000ff);
-	canvas->drawCircle(180, 440, 80, paint);
 
 	// ------------------------- drawArc -------------------------
 	paint.setColor(0xff000000);
@@ -106,8 +125,6 @@ void testNotifyPixelsChanged(SkCanvas* canvas) {
 	SkAutoCanvasRestore res(canvas, true);
 
 	canvas->translate(300, 550);
-	
-//	SkRSXform xforms;
 
 	SkBitmap bitmap;
 	bitmap.setInfo(SkImageInfo::Make(1, 1, kRGBA_8888_SkColorType, kOpaque_SkAlphaType));
@@ -175,8 +192,6 @@ void testBitmap(SkCanvas* canvas) {
 	} else {
 			SkDebugf("pixel address = %p\n", bitmap.getPixels());
 	}
-	
-	//kNoPremul_SkAlphaType
 	
 	SkPaint paint;
 	paint.setAntiAlias(true);

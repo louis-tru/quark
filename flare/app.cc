@@ -52,16 +52,24 @@ namespace flare {
 	typedef Application::Inl AppInl;
 
 	struct RunMainWait {
-		void wait() {
+		bool wait() {
+			if (_exit) return false;
 			Lock lock(_thread_mutex);
 			_thread_cond.wait(lock);
+			return !_exit;
 		}
 		void awaken() {
 			ScopeLock scope(_thread_mutex);
 			_thread_cond.notify_all();
 		}
+		void exit(int rc) {
+			_exit = true;
+			awaken();
+			flare::exit(rc); // if sub thread end then exit
+		}
 		Mutex _thread_mutex;
 		Condition _thread_cond;
+		bool _exit;
 	};
 
 	// thread helper
@@ -272,23 +280,25 @@ namespace flare {
 		static int _is_init = 0;
 		F_ASSERT(!_is_init++, "Cannot multiple calls.");
 		
-		struct Tmp { int argc; Char** argv; } arg = { argc, argv };
+		struct Args { int argc; Char** argv; } arg = { argc, argv };
 		
 		// 创建一个新子工作线程.这个函数必须由main入口调用
 		Thread::create([](Thread& t, void* arg) {
-			auto tmp = (Tmp*)arg;
+			auto args = (Args*)arg;
 			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
 			F_ASSERT( main, "No gui main");
 			__f_default_gui_main = nullptr;
 			__f_gui_main = nullptr;
-			int rc = main(tmp->argc, tmp->argv); // 运行这个自定gui入口函数
+			int rc = main(args->argc, args->argv); // 运行这个自定gui入口函数
 			F_DEBUG("Application::runMain() Exit");
-			flare::exit(rc); // if sub thread end then exit
+			__run_main_wait->exit(rc);
 		}, &arg, "runMain");
 
 		// 在调用Application::run()之前一直阻塞这个主线程
 		while (!_shared || !_shared->_keep) {
-			__run_main_wait->wait();
+			if (!__run_main_wait->wait()) {
+				break;
+			}
 		}
 	}
 

@@ -2,8 +2,8 @@
 HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE           ?= node
 ANDROID_JAR     = out/android.classs.flare.jar
-FPROJ            = ./libs/fproj
-FPROJ_OUT        = out/fproj
+FPROJ           = ./libs/fproj
+FPROJ_OUT       = out/fproj
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
 ifneq ($(USER),root)
