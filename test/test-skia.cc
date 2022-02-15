@@ -32,19 +32,19 @@ void draw_skia(SkCanvas* canvas) {
 	
 	SkPaint paint;
 	paint.setStyle(SkPaint::kFill_Style);
-	paint.setAntiAlias(true);
+	//paint.setAntiAlias(true);
 	paint.setStrokeWidth(4);
 	paint.setColor(0xFFFF0000);
 
 	
 	// ------------------------- drawCircle -------------------------
 	SkBitmap bitmapCircle;
-	bitmapCircle.allocPixels(SkImageInfo::MakeN32(160, 160, kPremul_SkAlphaType));
+	bitmapCircle.allocPixels(SkImageInfo::MakeN32(320, 320, kPremul_SkAlphaType));
 	//bitmapCircle.eraseColor(SK_ColorBLUE);
 	SkCanvas offcanvas(bitmapCircle);
 	//offcanvas.clear(0xff00ff00);
 	paint.setColor(0xffff0000);
-	SkPath oval = SkPath::Oval(SkRect::MakeWH(160, 160), SkPathDirection::kCW);
+	SkPath oval = SkPath::Oval(SkRect::MakeWH(320, 320), SkPathDirection::kCCW);
 	
 	Array<uint8_t> verbs(oval.countVerbs());
 	oval.getVerbs(&verbs[0], verbs.length());
@@ -59,7 +59,9 @@ void draw_skia(SkCanvas* canvas) {
 	F_DEBUG("");
 	
 	offcanvas.drawPath(oval, paint);
-	canvas->drawImage(bitmapCircle.asImage(), 490, 60);
+	canvas->drawImage(bitmapCircle.asImage(), 600, 30);
+	
+	return;
 	
 	// ------------------------- drawRect -------------------------
 	SkRect rect = SkRect::MakeXYWH(10, 10, 300, 300);
@@ -218,11 +220,11 @@ void testSkia(Application* app) {
 	app->render()->post_message(Cb([app](CbData&data){
 		auto canvas = app->render()->canvas();
 		draw_skia(canvas);
-		testBitmap(canvas);
-		testExtractAlphaBlur(canvas);
-		testNotifyPixelsChanged(canvas);
-		testBorder(canvas);
-		testBlur(canvas);
+		//testBitmap(canvas);
+		//testExtractAlphaBlur(canvas);
+		//testNotifyPixelsChanged(canvas);
+		//testBorder(canvas);
+		//testBlur(canvas);
 		app->render()->submit();
 	}));
 }
