@@ -125,9 +125,9 @@ namespace flare {
 		// parse options to render params
 		// return Options();
 		return {
-			.msaaSampleCnt = 4,
+			//.msaaSampleCnt = 4,
 			.stencilBits = 8,
-			//.enableGpu = true,
+			.enableGpu = true,
 			//.disableMetal = true,
 		};
 	}

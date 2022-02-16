@@ -137,13 +137,6 @@ namespace flare {
 		return _surface.get();
 	}
 
-	NSURL* CacheURL() {
-		 NSArray *paths = [[NSFileManager defaultManager] URLsForDirectory:NSCachesDirectory
-																														 inDomains:NSUserDomainMask];
-		 NSURL* cachePath = [paths objectAtIndex:0];
-		 return [cachePath URLByAppendingPathComponent:@"binaryArchive.metallib"];
-	 }
-
 	void MetalRender::reload() {
 		auto region = _host->display()->surface_region();
 
@@ -159,7 +152,7 @@ namespace flare {
 			if (_view) {
 				_view.device = _device;
 				_view.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
-				_view.sampleCount = _opts.msaaSampleCnt;
+				// _view.sampleCount = _opts.msaaSampleCnt;
 			}
 			
 			if (@available(iOS 13.0, *)) {
@@ -175,33 +168,6 @@ namespace flare {
 			GrMtlBackendContext backendContext = {};
 			backendContext.fDevice.retain((__bridge void*)_device);
 			backendContext.fQueue.retain((__bridge void*)_queue);
-			
-			#if GR_METAL_SDK_VERSION >= 230
-			if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
-				if (_pipelineArchive) {
-					// 'release' is unavailable: not available in automatic reference counting mode
-					// [_pipelineArchive release];
-				}
-				if (_opts.msaaSampleCnt > 1) {
-						auto desc = [MTLBinaryArchiveDescriptor new];
-						desc.url = CacheURL(); // try to load
-						NSError* error;
-						_pipelineArchive = [_device newBinaryArchiveWithDescriptor:desc error:&error];
-						if (!_pipelineArchive) {
-							desc.url = nil; // create new
-							NSError* error;
-							_pipelineArchive = [_device newBinaryArchiveWithDescriptor:desc error:&error];
-							if (!_pipelineArchive) {
-								F_DEBUG("Error creating MTLBinaryArchive:\n%s", error.debugDescription.UTF8String);
-							}
-						}
-					
-				} else {
-					_pipelineArchive = nil;
-				}
-				//backendContext.fBinaryArchive.retain((__bridge GrMTLHandle)_pipelineArchive);
-			}
-			#endif
 
 			_direct = GrDirectContext::MakeMetal(backendContext, {/*_opts.grContextOptions*/});
 			F_ASSERT(_direct);
@@ -224,20 +190,6 @@ namespace flare {
 
 	void MetalRender::activate(bool isActive) {
 		// serialize pipeline archive
-		#if GR_METAL_SDK_VERSION >= 230
-		if (!isActive) {
-			if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
-				if (_pipelineArchive) {
-					NSError* error;
-					[_pipelineArchive serializeToURL:CacheURL() error:&error];
-					if (error) {
-						SkDebugf("Error storing MTLBinaryArchive:\n%s\n",
-								error.debugDescription.UTF8String);
-					}
-				}
-			}
-		}
-		#endif
 	}
 
 	// ----------------------------- R a s t e r . M e t a l . R e n d e r -----------------------------

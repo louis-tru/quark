@@ -161,11 +161,7 @@ namespace flare {
 	* 通过x值迭代逼近查找t值
 	*/
 	float FixedCubicBezier::solve_curve_x(float x, float epsilon) const {
-		float t0;
-		float t1;
-		float t2;
-		float x2;
-		float d2;
+		float t0,t1,t2,x2,d2;
 		int i;
 		// First try a few iterations of Newton's method -- normally very fast.
 		for (t2 = x, i = 0; i < 8; i++) {

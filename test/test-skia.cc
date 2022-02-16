@@ -32,7 +32,7 @@ void draw_skia(SkCanvas* canvas) {
 	
 	SkPaint paint;
 	paint.setStyle(SkPaint::kFill_Style);
-	//paint.setAntiAlias(true);
+	paint.setAntiAlias(true);
 	paint.setStrokeWidth(4);
 	paint.setColor(0xFFFF0000);
 
@@ -58,8 +58,16 @@ void draw_skia(SkCanvas* canvas) {
 	}
 	F_DEBUG("");
 	
+	canvas->drawPath(oval, paint);
+	paint.setAntiAlias(false);
+	canvas->save();
+	canvas->translate(350, 0);
+	canvas->drawPath(oval, paint);
+	canvas->restore();
+	
+	// offcanvas
 	offcanvas.drawPath(oval, paint);
-	canvas->drawImage(bitmapCircle.asImage(), 600, 30);
+	canvas->drawImage(bitmapCircle.asImage(), 600, 0);
 	
 	return;
 	
