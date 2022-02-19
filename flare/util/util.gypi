@@ -7,7 +7,7 @@
 		'type': 'static_library',
 		'dependencies': [
 			'minizip',
-			'deps/bplus/bplus.gyp:bplus',
+			'deps/btree/btree.gyp:btree',
 			'deps/libuv/libuv.gyp:libuv',
 			'deps/node/deps/openssl/openssl.gyp:openssl',
 			'deps/node/deps/http_parser/http_parser.gyp:http_parser',
@@ -19,7 +19,7 @@
 		'include_dirs': [
 			'../..',
 			'../../deps/rapidjson/include',
-			'../../deps/bplus/include',
+			'../../deps/btree/include',
 			'../../deps/node/deps/zlib',
 			'../../deps/node/deps/zlib/contrib/minizip',
 		],

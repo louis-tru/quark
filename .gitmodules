@@ -13,9 +13,9 @@
 [submodule "deps/node"]
 	path = deps/node
 	url = https://github.com/louis-tru/node.git
-[submodule "deps/bplus"]
-	path = deps/bplus
-	url = https://github.com/louis-tru/bplus.git
+[submodule "deps/btree"]
+	path = deps/btree
+	url = https://github.com/louis-tru/btree.git
 [submodule "deps/libuv"]
 	path = deps/libuv
 	url = https://github.com/louis-tru/libuv.git

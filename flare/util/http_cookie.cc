@@ -31,7 +31,7 @@
 #include "./http.h"
 #include "./fs.h"
 #include "./json.h"
-#include <bplus.h>
+#include <btree.h>
 #include <vector>
 
 namespace flare {
