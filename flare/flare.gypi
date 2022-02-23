@@ -234,7 +234,6 @@
 			['os=="osx"', {
 				'sources': [
 					'platforms/osx/osx-app.mm',
-					'platforms/osx/osx-gl.mm',
 				],
 				'link_settings': {
 					'libraries': [

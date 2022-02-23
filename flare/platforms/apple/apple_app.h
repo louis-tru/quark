@@ -46,8 +46,7 @@
 #endif
 
 @interface ApplicationDelegate: UIResponder<UIApplicationDelegate>
-
-@property (assign, nonatomic, readonly) flare::Application* app;
+	@property (assign, nonatomic, readonly) flare::Application* app;
 	+ (void)set_application_delegate:(NSString*)name;
 	- (UIWindow*)window;
 @end

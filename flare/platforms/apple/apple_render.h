@@ -49,7 +49,7 @@ namespace flare {
 			 */
 			virtual UIView* init(CGRect rect) = 0;
 			virtual Render* render() = 0;
-			bool resize(::CGRect rect);
+			bool resize(CGRect rect);
 			static RenderApple* Make(Application* host, const Render::Options& opts);
 	};
 
