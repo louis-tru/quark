@@ -370,6 +370,7 @@ function configure_skia(opts, variables) {
 		skia_enable_skottie=false \
 		skia_use_gl=true \
 		skia_enable_flutter_defines=true \
+		skia_use_fonthost_mac=true \
 	`;
 
 	if (variables.debug) {
@@ -385,6 +386,7 @@ function configure_skia(opts, variables) {
 			skia_use_system_libpng=false \
 			skia_use_system_libwebp=false \
 			skia_use_icu=false \
+			skia_use_system_expat=false \
 		`;
 		//skia_use_system_harfbuzz=false \
 	}
@@ -442,7 +444,7 @@ function configure_skia(opts, variables) {
 		fs.symlinkSync(path.resolve(`${source}/include`), `${variables.output}/obj.target/skia/skia`);
 	}
 
-	require('./skia_gyp').gen_gyp();
+	require('./skia_gyp').gen_gyp(os);
 }
 
 function bs(a) {
@@ -795,7 +797,7 @@ async function configure() {
 			llvm_version: 0,
 			// depes config
 			openssl_fips: '',
-			openssl_no_asm: bi(os.match(/^(ios|android)$/)),
+			openssl_no_asm: bi(os.match(/^(ios|android)$/) || arch.match(/arm/)),
 			node_enable: 0,
 			node_byteorder: 'little',
 			node_use_openssl: bs(!opts.without_ssl),
@@ -1079,7 +1081,7 @@ async function configure() {
 			variables.version_min = '10.0';
 		} else { // osx
 			variables.build_sysroot = `${XCODEDIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk`;
-			variables.version_min = '10.8';
+			variables.version_min = '10.15';
 		}
 		
 		variables.cc = 'clang';

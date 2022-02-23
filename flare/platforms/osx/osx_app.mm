@@ -30,14 +30,15 @@
 
 #import <AppKit/AppKit.h>
 
-typedef UIEvent AppleUIEvent;
+// typedef UIEvent AppleUIEvent;
 
 #import "../../util/loop.h"
 #import "../../app.inl"
 #import "../../display.h"
 #import "../../event.h"
 #import "../apple/apple_render.h"
-#import "./ios_ime_helper.h"
+
+#import <MacTypes.h>
 
 using namespace flare;
 
@@ -50,14 +51,6 @@ typedef Display::StatusBarStyle StatusBarStyle;
 static ApplicationDelegate* appDelegate = nil;
 static RenderApple* renderApple = nil;
 static NSString* appDelegateName = @"";
-static ApplicationOptions* appOptions = nil;
-
-#define UIApplication NSApplication
-#define UIView NSView
-#define UIColor NSColor
-#define UIScreen NSScreen
-
-typedef CGRect Rect;
 
 /**
  * @interface ApplicationOptions
@@ -91,13 +84,13 @@ typedef CGRect Rect;
 		cJSON& o_b = options["background"];
 		cJSON& o_t = options["title"];
 		
-		if (o_w.is_uint()) _width = F_MAX(1, o_w.to_uint());
-		if (o_h.is_uint()) _height = F_MAX(1, o_h.to_uint());
-		if (o_x.is_uint()) _x = o_x.to_uint();
-		if (o_y.is_uint()) _y = o_y.to_uint();
+		if (o_w.is_uint32()) _width = F_MAX(1, o_w.to_uint32());
+		if (o_h.is_uint32()) _height = F_MAX(1, o_h.to_uint32());
+		if (o_x.is_uint32()) _x = o_x.to_uint32();
+		if (o_y.is_uint32()) _y = o_y.to_uint32();
 		if (o_t.is_string()) _title = o_t.to_string();
-		if (o_b.is_uint()) {
-			FloatColor color = Color(o_b.to_uint() << 8).to_float_color();
+		if (o_b.is_uint32()) {
+			FloatColor color = Color(o_b.to_uint32() << 8).to_float_color();
 			_background_color = [UIColor colorWithSRGBRed:color.r()
 																							green:color.g()
 																							blue:color.b()
@@ -206,7 +199,7 @@ typedef CGRect Rect;
 		F_ASSERT(!appDelegate);
 		appDelegate = self;
 		F_ASSERT(Application::shared());
-		self.app = Application::shared(); 
+		_app = Application::shared();
 
 		// UIApplication* host = UIApplication.sharedApplication;
 
@@ -216,9 +209,11 @@ typedef CGRect Rect;
 			NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
 		CGRect frame = screen.frame;
 		
+		ApplicationOptions* appOptions = [[ApplicationOptions alloc] init:_app->options()];
+		
 		float scale = screen.backingScaleFactor;
-		float width = appOptions.width > 0 ? appOptions.width: frame.size.width;
-		float height = appOptions.height > 0 ? appOptions.height: frame.size.height;
+		float width = appOptions.width > 0 ? appOptions.width: frame.size.width / 2;
+		float height = appOptions.height > 0 ? appOptions.height: frame.size.height / 2;
 		float x = appOptions.x > 0 ? appOptions.x: (frame.size.width - width) / 2.0;
 		float y = appOptions.y > 0 ? appOptions.y: (frame.size.height - height) / 2.0;
 		
@@ -244,10 +239,10 @@ typedef CGRect Rect;
 
 		self.view = renderApple->init(rootView.bounds);
 		//[self.view scaleUnitSquareToSize:NSMakeSize(scale, scale)];
-		// self.view.layer.contentsScale = scale;
-		self.view.contentScaleFactor = scale;
+		self.view.layer.contentsScale = scale;
+		//self.view.contentScaleFactor = scale;
 		//self.view.translatesAutoresizingMaskIntoConstraints = NO;
-		self.view.wantsBestResolutionOpenGLSurface = YES;
+		//self.view.wantsBestResolutionOpenGLSurface = YES;
 
 		//self.ime = [[OsxIMEHelprt alloc] initWithApplication:self.app];
 
@@ -257,7 +252,7 @@ typedef CGRect Rect;
 														constraintWithItem:self.view
 														attribute:NSLayoutAttributeWidth
 														relatedBy:NSLayoutRelationEqual
-														toItem:view
+														toItem:self.view
 														attribute:NSLayoutAttributeWidth
 														multiplier:1
 														constant:0]];
@@ -265,12 +260,12 @@ typedef CGRect Rect;
 														constraintWithItem:self.view
 														attribute:NSLayoutAttributeHeight
 														relatedBy:NSLayoutRelationEqual
-														toItem:view
+														toItem:self.view
 														attribute:NSLayoutAttributeHeight
 														multiplier:1
 														constant:0]];
 		
-		_app->display()->set_default_scale(UIScreen.mainScreen.scale);
+		_app->display()->set_default_scale(UIScreen.mainScreen.backingScaleFactor);
 
 		renderApple->resize(self.view.frame);
 
@@ -335,7 +330,6 @@ typedef CGRect Rect;
 // ***************** A p p l i c a t i o n *****************
 
 Render* Render::Make(Application* host, const Options& opts) {
-	appOptions = [[ApplicationOptions alloc] init:options];
 	renderApple = RenderApple::Make(host, opts);
 	return renderApple->render();
 }

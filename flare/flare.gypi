@@ -233,7 +233,7 @@
 			}],
 			['os=="osx"', {
 				'sources': [
-					'platforms/osx/osx-app.mm',
+					'platforms/osx/osx_app.mm',
 				],
 				'link_settings': {
 					'libraries': [

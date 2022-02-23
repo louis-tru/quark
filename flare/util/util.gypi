@@ -120,12 +120,13 @@
 				'sources': [
 					'platforms/apple_path.mm',
 				],
-				'link_settings': {
-					'libraries': [
-						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'$(SDKROOT)/usr/lib/libz.tbd',
-					]
-				},
+				'link_settings': {'libraries': [ '$(SDKROOT)/usr/lib/libz.tbd' ]},
+			}],
+			['os=="ios"', {
+				'link_settings': {'libraries': [ '$(SDKROOT)/System/Library/Frameworks/UIKit.framework' ]},
+			}],
+			['os=="osx"', {
+				'link_settings': { 'libraries': [ '$(SDKROOT)/System/Library/Frameworks/AppKit.framework' ]},
 			}],
 		],
 	}, 

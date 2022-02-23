@@ -407,7 +407,7 @@ namespace flare {
 		}
 	}
 
-	void clear_cookie() {
+	void HttpHelper::clear_cookie() {
 		if ( !_db ) {
 			if (FileHelper::is_file_sync(get_db_filename())) {
 				FileHelper::unlink_sync(get_db_filename());

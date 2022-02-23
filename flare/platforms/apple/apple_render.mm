@@ -31,28 +31,47 @@
 #include "./apple_render.h"
 #include "../../display.h"
 #include "../../render/metal.h"
+
+#if F_IOS
 #include <OpenGLES/ES3/gl.h>
+#else
+#include <OpenGL/gl3.h>
+#endif
 
+# include <OpenGL/gl3.h>
+# include <OpenGL/gl3ext.h>
+
+#if F_IOS
+@interface MTView: UIView @end
 @interface GLView: UIView @end
-@implementation GLView
-+ (Class)layerClass { return CAEAGLLayer.class; }
-@end
 
+@implementation GLView
+	+ (Class)layerClass { return CAEAGLLayer.class; }
+@end
+@implementation MTView
++ (Class)layerClass {
+	if (@available(iOS 13.0, *))
+		return CAMetalLayer.class;
+	return nil;
+}
+@end
+#else
 @interface MTView: UIView @end
 @implementation MTView
 + (Class)layerClass {
-	if (@available(iOS 13.0, *)) {
-		return CAMetalLayer.class;
-	} else {
-		return nil;
-	}
+	return CAMetalLayer.class;
 }
 @end
+#endif
 
 namespace flare {
 
-	bool RenderApple::resize(::CGRect rect) {
+	bool RenderApple::resize(CGRect rect) {
+#if F_IOS
 		float scale = UIScreen.mainScreen.scale;
+#else
+		float scale = UIScreen.mainScreen.backingScaleFactor;
+#endif
 		float x = rect.size.width * scale;
 		float y = rect.size.height * scale;
 		return render()->host()->display()->set_surface_region({ 0,0,x,y,x,y });
@@ -84,9 +103,11 @@ namespace flare {
 	};
 
 	// ------------------- OpenGL ------------------
+	
+#if F_IOS
 
 	class AppleGLRender: public RenderApple {
-		public:
+		public: 
 
 			AppleGLRender(EAGLContext* ctx): _ctx(ctx) {
 				F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
@@ -149,28 +170,34 @@ namespace flare {
 		}
 		return nullptr;
 	}
+	
+#endif
 
 	RenderApple* RenderApple::Make(Application* host, const Render::Options& opts) {
 		RenderApple* r = nullptr;
 
 		if (opts.enableGpu) {
-			if (@available(iOS 13.0, *)) {
+			if (@available(macOS 10.11, iOS 13.0, *)) {
 				if (!opts.disableMetal)
 					r = new AppleMetalRender<MetalRender>(host, opts);
 			}
+#if F_IOS
 			if (!r) {
 				r = MakeAppleGLRender<OpenGLRender>(host, opts);
 			}
+#endif
 		}
 
 		if (!r) {
-			if (@available(iOS 13.0, *)) {
+			if (@available(macOS 10.11, iOS 13.0, *)) {
 				if (!opts.disableMetal)
 					r = new AppleMetalRender<RasterMetalRender>(host, opts);
 			}
+#if F_IOS
 			if (!r) {
 				r = MakeAppleGLRender<RasterOpenGLRender>(host, opts);
 			}
+#endif
 		}
 
 		F_ASSERT(r);

@@ -41,7 +41,6 @@
 #include "skia/private/GrMtlTypesPriv.h"
 
 #import <MetalKit/MTKView.h>
-#import <GLKit/GLKView.h>
 
 template <typename T> static inline T CFSafeRetain(T obj) {
 	if (obj) {

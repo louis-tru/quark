@@ -117,6 +117,11 @@ namespace flare {
 		inline bool is_loaded() const { return _is_load; }
 
 		/**
+		 * @func options application options
+		 */
+		inline cJSON& options() const { return _opts; }
+
+		/**
 			* @func default_text_settings()
 			*/
 		inline DefaultTextSettings* default_text_settings() { return _default_text_settings; }

@@ -2,7 +2,7 @@
 var fs = require('fs');
 var path = require('path');
 
-function gen_gyp() {
+function gen_gyp(os) {
 
 	var reg = /path = "?([^"\s;]+)"?/img;
 
@@ -69,6 +69,10 @@ function gen_gyp() {
 				"SK_SHAPER_CORETEXT_AVAILABLE",
 				'qDNGDebug=0',
 				'NEON_INTRINSICS',
+				'HAVE_MEMMOVE',
+				'XML_DEV_URANDOM',
+				'XML_STATIC',
+				os == 'ios' ? 'SK_BUILD_FOR_IOS': os == 'osx' ? 'SK_BUILD_FOR_MAC': '',
 			],
 			'dependencies': [],
 			'include_dirs': [
@@ -83,6 +87,9 @@ function gen_gyp() {
 				"../deps/skia/third_party/externals/piex",
 				"../deps/skia/include/third_party/skcms",
 				"../deps/skia/third_party/externals/libjpeg-turbo/simd/arm",
+				"../deps/skia/third_party/expat/include/expat_config",
+				"../deps/skia/third_party/expat/include/expat_config",
+				"../deps/skia/third_party/externals/expat/expat/lib",
 			],
 			'direct_dependent_settings': {
 				'include_dirs': [

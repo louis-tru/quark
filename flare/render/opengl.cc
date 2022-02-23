@@ -203,12 +203,16 @@ namespace flare {
 			glBlitFramebuffer(0, 0, region.width, region.height,
 												0, 0, region.width, region.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
+		#if !F_OSX
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
+		#endif
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
 			glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 		} else {
 			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
+		#if !F_OSX
 			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
+		#endif
 		}
 
 		swapBuffers();

@@ -394,4 +394,17 @@ namespace flare {
 			_next->draw(host, canvas, alpha, full);
 	}
 
+	void FillGradient::draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) {
+	}
+	Fill FillShadow::copy(Fill to) {
+		return nullptr;
+	}
+	void FillShadow::draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) {
+	}
+	Fill FillBorder::copy(Fill to) {
+		return nullptr;
+	}
+	void FillBorder::draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) {
+	}
+
 }

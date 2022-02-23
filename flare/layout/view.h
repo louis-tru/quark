@@ -42,7 +42,7 @@ namespace flare {
 		F(View) F(Box) \
 		F(Image) F(Video) F(Scroll) \
 		F(Input) F(Text) F(Label) F(Root) \
-		F(FlowLayout) F(FlexLayout) F(FlexGrid) \
+		F(FlowLayout) F(FlexLayout)
 
 	# define F_DEFINE_VIEW(N) \
 	 public: \

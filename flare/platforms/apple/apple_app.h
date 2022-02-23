@@ -41,6 +41,12 @@
 	#define UIResponder NSResponder
 	#define UIApplicationDelegate NSApplicationDelegate
 	#define UIWindow NSWindow
+	#define UIKit NSView
+	#define UIView NSView
+	#define CGRect NSRect
+	#define UIApplication NSApplication
+	#define UIColor NSColor
+	#define UIScreen NSScreen
 #else
 	#import <UIKit/UIKit.h>
 #endif
