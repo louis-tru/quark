@@ -82,7 +82,7 @@ namespace flare {
 	};
 
 	template<typename T, typename A>
-	class F_EXPORT ArrayString: public ArrayStringBase {
+	class ArrayString: public ArrayStringBase {
 	 public:
 		// constructors
 		ArrayString(); // empty string constructors
@@ -493,7 +493,7 @@ namespace flare {
 		return _Str::to_string(c_str(), length(), sizeof(T));
 	}
 	
-	template <>
+	template <> F_EXPORT
 	String ArrayString<>::to_string() const;
 
 	template <typename T, typename A>

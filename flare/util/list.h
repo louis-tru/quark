@@ -41,7 +41,7 @@ namespace flare {
 	* @class List Double linked list
 	*/
 	template<typename T, typename A = MemoryAllocator> 
-	class F_EXPORT List: public Object {
+	class List: public Object {
 	 public:
 		struct Node {
 			typedef T     Data;

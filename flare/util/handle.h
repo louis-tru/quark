@@ -39,7 +39,7 @@ namespace flare {
 	/**
 	* @class Handle
 	*/
-	template<class T, class T2 = typename T::Traits> class F_EXPORT Handle {
+	template<class T, class T2 = typename T::Traits> class Handle {
 		//! Copy constructor is not permitted.
 		F_HIDDEN_ALL_COPY(Handle);
 		
@@ -105,9 +105,14 @@ namespace flare {
 	};
 
 	/**
+	 * Shared pointer
+	 */
+	template <class T, class T2 = typename T::Traits> using Sp = Handle<T, T2>;
+
+	/**
 	* @class ScopeClear
 	*/
-	class F_EXPORT ScopeClear {
+	class ScopeClear {
 	 public:
 		typedef std::function<void()> Clear;
 		ScopeClear(Clear clear): _clear(clear) { }

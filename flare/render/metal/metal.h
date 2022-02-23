@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,46 +29,49 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__util__stream__
-#define __flare__util__stream__
 
-#include "./array.h"
+#ifndef __flare__render__metal__
+#define __flare__render__metal__
+
+#include "../render.h"
+#include "skia/gpu/mtl/GrMtlTypes.h"
+#include <QuartzCore/CAMetalLayer.h>
+#include <Metal/Metal.h>
+#include <MetalKit/MTKView.h>
 
 namespace flare {
 
-	class Stream {
-	 public:
-		virtual void pause() = 0;
-		virtual void resume() = 0;
-	 };
+	class MetalRender: public Render {
+		public:
+			virtual ~MetalRender();
+			virtual SkSurface* surface() override;
+			virtual bool is_gpu() override { return true; }
+			virtual void reload() override;
+			virtual void submit() override;
+			virtual void activate(bool isActive) override;
 
-	 /**
-	 * @class StreamResponse
-	 */
-	class StreamResponse: public Object {
-	 public:
-		inline StreamResponse(Buffer buffer, bool complete = 0
-											, uint32_t id = 0, uint64_t size = 0
-											, uint64_t total = 0, Stream* stream = nullptr)
-		: _buffer(buffer), _complete(complete)
-		, _size(size), _total(total), _id(id), _stream(stream) {
-		}
-		inline bool complete() const { return _complete; }
-		inline int64_t size() const { return _size; }
-		inline int64_t total() const { return _total; }
-		inline Buffer& buffer() { return _buffer; }
-		inline cBuffer& buffer() const { return _buffer; }
-		inline uint32_t id() const { return _id; }
-		inline Stream* stream() const { return _stream; }
-		inline void pause() { if ( _stream ) _stream->pause(); }
-		inline void resume() { if ( _stream ) _stream->resume(); }
-	 private:
-		Buffer    _buffer;
-		bool      _complete;
-		int64_t   _size, _total;
-		uint32_t  _id;
-		Stream*   _stream;
+		protected:
+			MetalRender(Application* host, const Options& opts);
+			sk_sp<SkSurface>    _surface;
+			id<MTLDevice>       _device;
+			id<MTLCommandQueue> _queue; // sk_cfp<id<MTLCommandQueue>>
+			MTKView*          _view;
+			CAMetalLayer*     _layer;
+			GrMTLHandle      _drawable;
+			id               _pipelineArchive; // id<MTLBinaryArchive>
 	};
 
-}
+	class RasterMetalRender: public MetalRender {
+		public:
+			virtual SkSurface* surface() override;
+			virtual bool is_gpu() override { return false; }
+			virtual void reload() override;
+			virtual void submit() override;
+		protected:
+			RasterMetalRender(Application* host, const Options& opts);
+			sk_sp<SkSurface> _rasterSurface;
+	};
+
+}   // namespace flare
+
 #endif

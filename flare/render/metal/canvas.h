@@ -28,46 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__util__stream__
-#define __flare__util__stream__
+#ifndef __flare__render__metal__canvas__
+#define __flare__render__metal__canvas__
 
-#include "./array.h"
+#include "../canvas.h"
 
 namespace flare {
 
-	class Stream {
-	 public:
-		virtual void pause() = 0;
-		virtual void resume() = 0;
-	 };
-
-	 /**
-	 * @class StreamResponse
-	 */
-	class StreamResponse: public Object {
-	 public:
-		inline StreamResponse(Buffer buffer, bool complete = 0
-											, uint32_t id = 0, uint64_t size = 0
-											, uint64_t total = 0, Stream* stream = nullptr)
-		: _buffer(buffer), _complete(complete)
-		, _size(size), _total(total), _id(id), _stream(stream) {
-		}
-		inline bool complete() const { return _complete; }
-		inline int64_t size() const { return _size; }
-		inline int64_t total() const { return _total; }
-		inline Buffer& buffer() { return _buffer; }
-		inline cBuffer& buffer() const { return _buffer; }
-		inline uint32_t id() const { return _id; }
-		inline Stream* stream() const { return _stream; }
-		inline void pause() { if ( _stream ) _stream->pause(); }
-		inline void resume() { if ( _stream ) _stream->resume(); }
-	 private:
-		Buffer    _buffer;
-		bool      _complete;
-		int64_t   _size, _total;
-		uint32_t  _id;
-		Stream*   _stream;
+	class F_EXPORT MetalCanvas: public Canvas {
+		public:
+		private:
 	};
-
 }
+
 #endif

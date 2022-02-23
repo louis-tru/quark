@@ -28,46 +28,81 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__util__stream__
-#define __flare__util__stream__
+#ifndef __flare__render__pixel__
+#define __flare__render__pixel__
 
-#include "./array.h"
+#include "../util/util.h"
+#include "../util/string.h"
+#include "../util/array.h"
 
 namespace flare {
 
-	class Stream {
-	 public:
-		virtual void pause() = 0;
-		virtual void resume() = 0;
-	 };
+	class         Pixel;
+	typedef const Pixel cPixel;
 
-	 /**
-	 * @class StreamResponse
+	/**
+	 * @enum ColorType
 	 */
-	class StreamResponse: public Object {
-	 public:
-		inline StreamResponse(Buffer buffer, bool complete = 0
-											, uint32_t id = 0, uint64_t size = 0
-											, uint64_t total = 0, Stream* stream = nullptr)
-		: _buffer(buffer), _complete(complete)
-		, _size(size), _total(total), _id(id), _stream(stream) {
-		}
-		inline bool complete() const { return _complete; }
-		inline int64_t size() const { return _size; }
-		inline int64_t total() const { return _total; }
-		inline Buffer& buffer() { return _buffer; }
-		inline cBuffer& buffer() const { return _buffer; }
-		inline uint32_t id() const { return _id; }
-		inline Stream* stream() const { return _stream; }
-		inline void pause() { if ( _stream ) _stream->pause(); }
-		inline void resume() { if ( _stream ) _stream->resume(); }
-	 private:
-		Buffer    _buffer;
-		bool      _complete;
-		int64_t   _size, _total;
-		uint32_t  _id;
-		Stream*   _stream;
+	enum ColorType: int {
+		COLOR_TYPE_INVALID = 0,
+		COLOR_TYPE_ALPHA_8,
+		COLOR_TYPE_RGB_565,
+		COLOR_TYPE_ARGB_4444,
+		COLOR_TYPE_RGBA_8888,
+		COLOR_TYPE_RGB_888X,
+		COLOR_TYPE_BGRA_8888,
+		COLOR_TYPE_RGBA_1010102,
+		COLOR_TYPE_BGRA_1010102,
+		COLOR_TYPE_RGB_101010X,
+		COLOR_TYPE_BGR_101010X,
+		COLOR_TYPE_GRAY_8,
 	};
 
+	/**
+	* @class Pixel
+	*/
+	class F_EXPORT Pixel: public Object {
+	 public:
+
+		/**
+		* @func pixel_bit_size()
+		*/
+		static uint32_t bytes_per_pixel(ColorType type);
+
+		/**
+		 *
+		 * decode jpg/png/gif... image format data
+		 *
+		 * @func decode()
+		 */
+		static Pixel decode(cBuffer& raw);
+
+		Pixel();
+		Pixel(cPixel& data);
+		Pixel(Pixel&& data);
+		Pixel(ColorType type);
+		Pixel(Buffer body, int width, int height, ColorType type);
+		Pixel(WeakBuffer body, int width, int height, ColorType type);
+		Pixel(const Array<WeakBuffer>& body, int width, int height, ColorType type);
+		
+		/**
+		* @func body 图像数据主体
+		*/
+		inline cWeakBuffer& body(uint32_t index = 0) const { return _body[index]; }
+		
+		/**
+		* @func body_count
+		*/
+		inline uint32_t body_count() const { return _body.length(); }
+		
+		F_DEFINE_PROP_READ(int, width); // width 图像宽度
+		F_DEFINE_PROP_READ(int, height); // height 图像高度
+		F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
+		
+	 private:
+		Buffer      _data;
+		Array<WeakBuffer> _body;
+	};
 }
+
 #endif

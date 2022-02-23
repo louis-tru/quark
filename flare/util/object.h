@@ -139,7 +139,7 @@ namespace flare {
 	/**
 	* @class Protocol
 	*/
-	class F_EXPORT Protocol {
+	class Protocol {
 	 public:
 		typedef ProtocolTraits Traits;
 		virtual Object* to_object() = 0;
@@ -148,7 +148,7 @@ namespace flare {
 	/**
 	* @class ObjectTraits
 	*/
-	class F_EXPORT ObjectTraits {
+	class ObjectTraits {
 	 public:
 		inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
 		inline static void Release(Object* obj) { if (obj) obj->release(); }
@@ -159,7 +159,7 @@ namespace flare {
 	/**
 	* @class ReferenceTraits
 	*/
-	class F_EXPORT ReferenceTraits: public ObjectTraits {
+	class ReferenceTraits: public ObjectTraits {
 	 public:
 		static constexpr bool is_reference = true;
 	};
@@ -167,7 +167,7 @@ namespace flare {
 	/**
 	* @class ProtocolTraits
 	*/
-	class F_EXPORT ProtocolTraits {
+	class ProtocolTraits {
 	 public:
 		template<class T> inline static bool Retain(T* obj) {
 			return obj ? obj->to_object()->retain() : 0;
@@ -183,7 +183,7 @@ namespace flare {
 	/**
 	* @class NonObjectTraits
 	*/
-	class F_EXPORT NonObjectTraits {
+	class NonObjectTraits {
 	 public:
 		template<class T> inline static bool Retain(T* obj) {
 			/* Non referential pairs need not be Retain */ return 0;

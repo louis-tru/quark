@@ -41,14 +41,14 @@ namespace flare {
 	class PostMessage;
 
 	template<class D, class E = Error>
-	struct F_EXPORT CallbackData {
+	struct CallbackData {
 		E* error;
 		D* data;
 		int rc;
 	};
 
 	template<class D, class E = Error>
-	class F_EXPORT CallbackCore: public Reference {
+	class CallbackCore: public Reference {
 		F_HIDDEN_ALL_COPY(CallbackCore);
 	 public:
 		inline CallbackCore() {}
@@ -76,7 +76,7 @@ namespace flare {
 	};
 
 	template<class T, class D, class E>
-	class F_EXPORT LambdaCallback: public CallbackCoreIMPL<T, D, E> {
+	class LambdaCallback: public CallbackCoreIMPL<T, D, E> {
 	 public:
 		typedef std::function<void(CallbackData<D, E>& evt)> Func;
 		inline LambdaCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
@@ -86,7 +86,7 @@ namespace flare {
 	};
 
 	template<class T, class D, class E>
-	class F_EXPORT StaticCallback: public CallbackCoreIMPL<T, D, E> {
+	class StaticCallback: public CallbackCoreIMPL<T, D, E> {
 	 public:
 		typedef void (*Func)(CallbackData<D, E>& evt, T* ctx);
 		inline StaticCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
@@ -96,7 +96,7 @@ namespace flare {
 	};
 
 	template<class T, class D, class E>
-	class F_EXPORT MemberCallback: public CallbackCoreIMPL<T, D, E> {
+	class MemberCallback: public CallbackCoreIMPL<T, D, E> {
 	 public:
 		typedef void (T::*Func)(CallbackData<D, E>& evt);
 		inline MemberCallback(Func func, T* ctx): CallbackCoreIMPL<T, D, E>(ctx), _func(func) { }
@@ -106,7 +106,7 @@ namespace flare {
 	};
 
 	template<class D = Object, class E = Error>
-	class F_EXPORT Callback: public Handle<CallbackCore<D, E>> {
+	class Callback: public Handle<CallbackCore<D, E>> {
 	 public:
 		typedef CallbackCore<D, E> Core;
 		typedef CallbackData<D, E> Data;
@@ -152,7 +152,7 @@ namespace flare {
 	F_EXPORT void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop);
 
 	template<class D, class E>
-	F_EXPORT void async_callback(Callback<D, E> cb, E* e = nullptr, D* d = nullptr, PostMessage* loop = nullptr) {
+	void async_callback(Callback<D, E> cb, E* e = nullptr, D* d = nullptr, PostMessage* loop = nullptr) {
 		if ( loop ) {
 			_async_callback_and_dealloc(*reinterpret_cast<Cb*>(&cb),
 				(Error*)(e ? new E(std::move(*e)): nullptr),
@@ -164,17 +164,17 @@ namespace flare {
 	}
 
 	template<class D, class E, class D2>
-	F_EXPORT inline void async_resolve(Callback<D, E> cb, D2&& data, PostMessage* loop = nullptr) {
+	inline void async_resolve(Callback<D, E> cb, D2&& data, PostMessage* loop = nullptr) {
 		async_callback(cb, (E*)nullptr, static_cast<D*>(&data), loop);
 	}
 
 	template<class D, class E>
-	F_EXPORT inline void async_resolve(Callback<D, E> cb, PostMessage* loop = nullptr) {
+	inline void async_resolve(Callback<D, E> cb, PostMessage* loop = nullptr) {
 		async_callback(cb, (E*)nullptr, (D*)nullptr, loop);
 	}
 
 	template<class D, class E, class E2>
-	F_EXPORT inline void async_reject(Callback<D, E> cb, E2&& err, PostMessage* loop = nullptr) {
+	inline void async_reject(Callback<D, E> cb, E2&& err, PostMessage* loop = nullptr) {
 		async_callback(cb, static_cast<E*>(&err), (D*)nullptr, loop);
 	}
 

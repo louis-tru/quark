@@ -41,7 +41,7 @@ namespace flare {
 	/**
 	* @class ParallelWorking
 	*/
-	class F_EXPORT ParallelWorking: public Object {
+	class ParallelWorking: public Object {
 		F_HIDDEN_ALL_COPY(ParallelWorking);
 	 public:
 		typedef Thread::Func Func;

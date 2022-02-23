@@ -71,7 +71,7 @@ namespace flare {
 		typename Key, typename Value, 
 		typename Compare = Compare<Key>, typename A = MemoryAllocator
 	>
-	class F_EXPORT Dict: public Object {
+	class Dict: public Object {
 	 public:
 		struct Pair {
 			Key   key;

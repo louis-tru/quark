@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./app.h"
+#include "../app.h"
 #include "./source.h"
-#include "./pre_render.h"
-#include "./util/fs.h"
+#include "../pre_render.h"
+#include "../util/fs.h"
 #include "skia/core/SkImage.h"
 
 namespace flare {
@@ -41,22 +41,22 @@ namespace flare {
 	/**
 	* @func pixel_bit_size
 	*/
-	uint32_t PixelData::bytes_per_pixel(ColorType type) {
+	uint32_t Pixel::bytes_per_pixel(ColorType type) {
 		return SkColorTypeBytesPerPixel(SkColorType(type));
 	}
 
-	PixelData PixelData::decode(cBuffer& buf) {
+	Pixel Pixel::decode(cBuffer& buf) {
 		auto img = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.val(), buf.length(), nullptr, nullptr));
 		SkImageInfo info = img->imageInfo();
 		auto rowBytes = info.minRowBytes();
 		auto body = Buffer::alloc((uint32_t)rowBytes * info.height());
 		if (img->readPixels(nullptr, info, body.val(), rowBytes, 0, 0)) {
-			return PixelData(std::move(body), info.width(), info.height(), ColorType(info.colorType()));
+			return Pixel(std::move(body), info.width(), info.height(), ColorType(info.colorType()));
 		}
-		return PixelData();
+		return Pixel();
 	}
 
-	PixelData::PixelData()
+	Pixel::Pixel()
 		: _data()
 		, _width(0)
 		, _height(0)
@@ -64,7 +64,7 @@ namespace flare {
 		, _type(COLOR_TYPE_INVALID) {
 	}
 
-	PixelData::PixelData(cPixelData& body)
+	Pixel::Pixel(cPixel& body)
 		: _data()
 		, _width(body._width)
 		, _height(body._height)
@@ -72,7 +72,7 @@ namespace flare {
 		, _type(body._type) {
 	}
 
-	PixelData::PixelData(PixelData&& body)
+	Pixel::Pixel(Pixel&& body)
 		: _data(body._data)
 		, _width(body._width)
 		, _height(body._height)
@@ -80,7 +80,7 @@ namespace flare {
 		, _type(body._type) {
 	}
 
-	PixelData::PixelData(ColorType type)
+	Pixel::Pixel(ColorType type)
 		: _data()
 		, _width(0)
 		, _height(0)
@@ -88,7 +88,7 @@ namespace flare {
 		, _type(type) {
 	}
 
-	PixelData::PixelData(Buffer body, int width, int height, ColorType type)
+	Pixel::Pixel(Buffer body, int width, int height, ColorType type)
 		: _data(body)
 		, _width(width)
 		, _height(height)
@@ -97,7 +97,7 @@ namespace flare {
 		_body.push(WeakBuffer(*_data, _data.length()));
 	}
 
-	PixelData::PixelData(WeakBuffer body, int width, int height, ColorType type)
+	Pixel::Pixel(WeakBuffer body, int width, int height, ColorType type)
 		: _data()
 		, _width(width)
 		, _height(height)
@@ -106,7 +106,7 @@ namespace flare {
 		_body.push(body);
 	}
 
-	PixelData::PixelData(const Array<WeakBuffer>& body, int width, int height, ColorType type)
+	Pixel::Pixel(const Array<WeakBuffer>& body, int width, int height, ColorType type)
 		: _data()
 		, _width(width)
 		, _height(height)
@@ -138,7 +138,7 @@ namespace flare {
 	{
 	}
 
-	ImageSource::ImageSource(PixelData pixel)
+	ImageSource::ImageSource(Pixel pixel)
 		: F_Init_Event(State)
 		, _state(STATE_NONE)
 		, _width(pixel.width())
@@ -150,13 +150,13 @@ namespace flare {
 	{
 		SkImageInfo info = SkImageInfo::Make(_memPixel.width(),
 																				 _memPixel.height(), SkColorType(_memPixel.type()), kOpaque_SkAlphaType);
-		SkPixmap skpixel(info, _memPixel.body().val(), _memPixel.width() * PixelData::bytes_per_pixel(_memPixel.type()));
+		SkPixmap skpixel(info, _memPixel.body().val(), _memPixel.width() * Pixel::bytes_per_pixel(_memPixel.type()));
 		auto img = SkImage::MakeFromRaster(skpixel, nullptr, nullptr);
 		img->ref();
 		_inl = img.get();
 		_uri = String("mem://").append(sk_I(_inl)->uniqueID());
 		_state = State(STATE_LOAD_COMPLETE | STATE_DECODEING);
-		_size = _memPixel.body().length() + PixelData::bytes_per_pixel(_type) * _width * _height;
+		_size = _memPixel.body().length() + Pixel::bytes_per_pixel(_type) * _width * _height;
 	}
 
 	ImageSource::~ImageSource() {
@@ -190,7 +190,7 @@ namespace flare {
 		}), Cb([this,ctx](CbData& e){
 			if (_state & STATE_DECODEING) {
 				if (ctx->img) { // decode image complete
-					_size += PixelData::bytes_per_pixel(_type) * _width * _height;
+					_size += Pixel::bytes_per_pixel(_type) * _width * _height;
 					_state = State((_state | STATE_DECODE_COMPLETE) & ~STATE_DECODEING);
 				} else { // decode fail
 					_state = State((_state | STATE_DECODE_ERROR)    & ~STATE_DECODEING);

@@ -172,16 +172,6 @@ namespace flare {
 	};
 
 	// rect
-	struct Rect {
-		Vec2 origin, size;
-	};
-
-	// react region
-	struct Region {
-		float x, y, x2, y2, width, height;
-	};
-
-	// rect
 	struct Shadow {
 		float offset_x, offset_y, size;
 		Color color;

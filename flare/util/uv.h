@@ -71,7 +71,7 @@ namespace flare {
 	/**
 	 * @class AsyncIOTask
 	 */
-	class F_EXPORT AsyncIOTask: public Reference {
+	class AsyncIOTask: public Reference {
 		F_HIDDEN_ALL_COPY(AsyncIOTask);
 	 public:
 		AsyncIOTask(RunLoop* loop = RunLoop::current());

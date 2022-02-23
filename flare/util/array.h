@@ -51,7 +51,7 @@ namespace flare {
 	 * @class Array
 	 */
 	template<typename T, typename A>
-	class F_EXPORT Array: public Object {
+	class Array: public Object {
 	 public:
 		typedef T     Type;
 		// constructors
@@ -556,18 +556,18 @@ namespace flare {
 		_val = (T*)A::aalloc(_val, capacity, (uint32_t*)&_capacity, sizeof(T));
 	}
 
-	template<>
+	template<> F_EXPORT
 	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len);
 
 	#define F_DEF_ARRAY_SPECIAL(T, A) \
-		template<> void              Array<T, A>::extend(uint32_t length, uint32_t capacity); \
-		template<> std::vector<T>    Array<T, A>::vector() const; \
-		template<> Array<T, A>&      Array<T, A>::concat_(T* src, uint32_t src_length); \
-		template<> uint32_t          Array<T, A>::write(const T* src, int to, uint32_t size); \
-		template<> Array<T, A>&      Array<T, A>::pop(uint32_t count); \
-		template<> void              Array<T, A>::clear(); \
-		template<> void              Array<T, A>::realloc(uint32_t capacity); \
-		template<> ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const \
+		template<> F_EXPORT void              Array<T, A>::extend(uint32_t length, uint32_t capacity); \
+		template<> F_EXPORT std::vector<T>    Array<T, A>::vector() const; \
+		template<> F_EXPORT Array<T, A>&      Array<T, A>::concat_(T* src, uint32_t src_length); \
+		template<> F_EXPORT uint32_t          Array<T, A>::write(const T* src, int to, uint32_t size); \
+		template<> F_EXPORT Array<T, A>&      Array<T, A>::pop(uint32_t count); \
+		template<> F_EXPORT void              Array<T, A>::clear(); \
+		template<> F_EXPORT void              Array<T, A>::realloc(uint32_t capacity); \
+		template<> F_EXPORT ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const \
 
 	#define F_DEF_ARRAY_SPECIAL_ALL(T) \
 		F_DEF_ARRAY_SPECIAL(T, MemoryAllocator)

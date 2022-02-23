@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../app.h"
 #include "./metal.h"
-#include "../display.h"
+#include "../../app.h"
+#include "../../display.h"
 
 #include "skia/core/SkCanvas.h"
 #include "skia/core/SkSurface.h"

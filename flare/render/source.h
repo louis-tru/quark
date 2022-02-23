@@ -28,89 +28,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__source__
-#define __flare__source__
+#ifndef __flare__render__source__
+#define __flare__render__source__
 
-#include "./util/util.h"
-#include "./util/string.h"
-#include "./util/array.h"
-#include "./util/event.h"
-#include "./util/loop.h"
+#include "../util/util.h"
+#include "../util/string.h"
+#include "../util/array.h"
+#include "../util/event.h"
+#include "../util/loop.h"
+#include "./pixel.h"
 
 namespace flare {
 
-	class         Application;
-	class         PixelData;
-	typedef const PixelData cPixelData;
-
-	/**
-	 * @enum ColorType
-	 */
-	enum ColorType: int {
-		COLOR_TYPE_INVALID = 0,
-		COLOR_TYPE_ALPHA_8,
-		COLOR_TYPE_RGB_565,
-		COLOR_TYPE_ARGB_4444,
-		COLOR_TYPE_RGBA_8888,
-		COLOR_TYPE_RGB_888X,
-		COLOR_TYPE_BGRA_8888,
-		COLOR_TYPE_RGBA_1010102,
-		COLOR_TYPE_BGRA_1010102,
-		COLOR_TYPE_RGB_101010X,
-		COLOR_TYPE_BGR_101010X,
-		COLOR_TYPE_GRAY_8,
-	};
-
-	/**
-	* @class PixelData
-	*/
-	class F_EXPORT PixelData: public Object {
-	 public:
-
-		/**
-		* @func pixel_bit_size()
-		*/
-		static uint32_t bytes_per_pixel(ColorType type);
-
-		/**
-		 *
-		 * decode jpg/png/gif... image format data
-		 *
-		 * @func decode()
-		 */
-		static PixelData decode(cBuffer& raw);
-
-		PixelData();
-		PixelData(cPixelData& data);
-		PixelData(PixelData&& data);
-		PixelData(ColorType type);
-		PixelData(Buffer body, int width, int height, ColorType type);
-		PixelData(WeakBuffer body, int width, int height, ColorType type);
-		PixelData(const Array<WeakBuffer>& body, int width, int height, ColorType type);
-		
-		/**
-		* @func body 图像数据主体
-		*/
-		inline cWeakBuffer& body(uint32_t index = 0) const { return _body[index]; }
-		
-		/**
-		* @func body_count
-		* */
-		inline uint32_t body_count() const { return _body.length(); }
-		
-		F_DEFINE_PROP_READ(int, width); // width 图像宽度
-		F_DEFINE_PROP_READ(int, height); // height 图像高度
-		F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
-		
-	 private:
-		Buffer      _data;
-		Array<WeakBuffer> _body;
-	};
+	class Application;
 
 	/**
 	* @class ImageSource
 	*/
-	class F_EXPORT ImageSource: public Reference {
+	class F_EXPORT ImageTex: public Reference {
 		F_HIDDEN_ALL_COPY(ImageSource);
 		public:
 
@@ -148,7 +83,7 @@ namespace flare {
 			// 	/>
 			// </FlowLayout>
 			ImageSource(cString& uri);
-			ImageSource(PixelData pixel);
+			ImageSource(Pixel pixel);
 
 			/**
 				* @destructor
@@ -190,7 +125,7 @@ namespace flare {
 
 		private:
 			void _Decode();
-			PixelData _memPixel;
+			Pixel _memPixel;
 			Buffer   _loaded;
 			uint32_t _load_id, _size, _used;
 			void *_inl;
@@ -213,6 +148,9 @@ namespace flare {
 			Handle<ImageSource> _source;
 	};
 
+	/**
+	* @class ImagePool
+	*/
 	class F_EXPORT ImagePool: public Object {
 		F_HIDDEN_ALL_COPY(ImagePool);
 		public:

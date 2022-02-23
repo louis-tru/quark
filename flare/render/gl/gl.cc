@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "flare/app.h"
-#include "flare/render/opengl.h"
+#include "flare/render/gl/gl.h"
 #include "flare/display.h"
 
 #include "skia/core/SkCanvas.h"
@@ -68,7 +68,7 @@ namespace flare {
 		}
 	}
 
-	OpenGLRender::OpenGLRender(Application* host, const Options& params)
+	GLRender::GLRender(Application* host, const Options& params)
 		: Render(host, params)
 		, _frame_buffer(0), _is_support_multisampled(false)
 	{
@@ -108,14 +108,14 @@ namespace flare {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	OpenGLRender::~OpenGLRender() {
+	GLRender::~GLRender() {
 		glDeleteRenderbuffers(1, &_render_buffer);
 		glDeleteFramebuffers(1, &_frame_buffer);
 		glDeleteFramebuffers(1, &_msaa_render_buffer);
 		glDeleteRenderbuffers(1, &_msaa_frame_buffer);
 	}
 
-	SkSurface* OpenGLRender::surface() {
+	SkSurface* GLRender::surface() {
 		if (!_direct)
 			return nullptr;
 		if (_surface)
@@ -147,7 +147,7 @@ namespace flare {
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
 			if ( MSAA > 1 ) {
 				_opts.msaaSampleCnt /= 2;
-				return OpenGLRender::surface();
+				return GLRender::surface();
 			} else {
 				F_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 			}
@@ -177,12 +177,12 @@ namespace flare {
 		return _surface.get();
 	}
 
-	void OpenGLRender::renderbufferStorage(uint32_t target) {
+	void GLRender::renderbufferStorage(uint32_t target) {
 		auto region = _host->display()->surface_region();
 		::glRenderbufferStorage(target, glPixelInternalFormat(_opts.colorType), region.width, region.height);
 	}
 
-	void OpenGLRender::reload() {
+	void GLRender::reload() {
 		if (!_direct) {
 			if (!_is_support_multisampled) {
 				_opts.msaaSampleCnt = 0;
@@ -193,7 +193,7 @@ namespace flare {
 		_surface.reset(); // clear surface
 	}
 
-	void OpenGLRender::submit() {
+	void GLRender::submit() {
 		_surface->flushAndSubmit(); // commit sk
 
 		if (_opts.msaaSampleCnt > 1) {
@@ -223,11 +223,11 @@ namespace flare {
 		}
 	}
 
-	RasterOpenGLRender::RasterOpenGLRender(Application* host, const Options& opts): OpenGLRender(host, opts) {
+	RasterGLRender::RasterGLRender(Application* host, const Options& opts): GLRender(host, opts) {
 		glDisable(GL_BLEND); // disable color blend
 	}
 
-	SkSurface* RasterOpenGLRender::surface() {
+	SkSurface* RasterGLRender::surface() {
 		if (!_rasterSurface) {
 			// make the offscreen image
 			auto region = _host->display()->surface_region();
@@ -238,17 +238,17 @@ namespace flare {
 		return _rasterSurface.get();
 	}
 
-	void RasterOpenGLRender::reload() {
+	void RasterGLRender::reload() {
 		_opts.stencilBits = 0;
 		_opts.msaaSampleCnt = 0;
-		OpenGLRender::reload();
+		GLRender::reload();
 		_rasterSurface.reset();
 	}
 
-	void RasterOpenGLRender::submit() {
+	void RasterGLRender::submit() {
 		// draw to gl canvas
-		_rasterSurface->draw(OpenGLRender::surface()->getCanvas(), 0, 0);
-		OpenGLRender::submit();
+		_rasterSurface->draw(GLRender::surface()->getCanvas(), 0, 0);
+		GLRender::submit();
 	}
 
 }   // namespace flare

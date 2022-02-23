@@ -98,6 +98,9 @@ namespace flare {
 			sk_sp<GrDirectContext> _direct;
 	};
 
+	/**
+	 * @class RasterRender
+	*/
 	class RasterRender: public Render {
 		public:
 			virtual SkSurface* surface() override;

@@ -39,168 +39,168 @@
 
 namespace flare {
 
-	template <typename T, int LEN> class MTVec {
-	 public:
-		inline MTVec() { }
+	template <typename T, int LEN> struct MTVec {
+		public:
+		T val[LEN];
+		inline MTVec() {}
 		inline MTVec(T value) {
-			for (int i = 0; i < LEN; i++) {
-				_value[i] = value;
-			}
+			for (int i = 0; i < LEN; i++)
+				val[i] = value;
 		}
-		inline T operator[](int index) const { return _value[index]; }
-		inline T& operator[](int index) { return _value[index]; }
-		inline const T* value() const { return _value; }
-		inline T* value() { return _value; }
-	 protected:
-		T _value[LEN];
+		inline T operator[](int index) const { return val[index]; }
+		inline T& operator[](int index) { return val[index]; }
 	};
 
-	template <typename T> class MTColor: public MTVec<T, 4> {
-	 public:
-		inline MTColor(T r, T g, T b, T a){
-			this->_value[0] = r;
-			this->_value[1] = g;
-			this->_value[2] = b;
-			this->_value[3] = a;
+	template <typename T> struct MTColor: public MTVec<T, 4> {
+		inline MTColor(T r, T g, T b, T a) {
+			this->val[0] = r;
+			this->val[1] = g;
+			this->val[2] = b;
+			this->val[3] = a;
 		}
-		inline T r() const { return this->_value[0]; }
-		inline T g() const { return this->_value[1]; }
-		inline T b() const { return this->_value[2]; }
-		inline T a() const { return this->_value[3]; }
-		inline void r(T value) { this->_value[0] = value; }
-		inline void g(T value) { this->_value[1] = value; }
-		inline void b(T value) { this->_value[2] = value; }
-		inline void a(T value) { this->_value[3] = value; }
+		inline T r() const { return this->val[0]; }
+		inline T g() const { return this->val[1]; }
+		inline T b() const { return this->val[2]; }
+		inline T a() const { return this->val[3]; }
+		inline void r(T value) { this->val[0] = value; }
+		inline void g(T value) { this->val[1] = value; }
+		inline void b(T value) { this->val[2] = value; }
+		inline void a(T value) { this->val[3] = value; }
 	};
 
-	template <int LEN> class Vec: public MTVec<float, LEN> {
-	 public:
+	template <int LEN> struct Vec: public MTVec<float, LEN> {
 		inline Vec() {}
 		inline Vec(float f): MTVec<float, LEN>(f) {}
 	};
 
-	class F_EXPORT Vec2: public Vec<2> {
-	 public:
-		inline Vec2(): Vec2(0) { }
+	struct F_EXPORT Vec2: public Vec<2> {
+		inline Vec2(): Vec2(0) {}
 		inline Vec2(float a, float b) {
-			_value[0] = a;
-			_value[1] = b;
+			val[0] = a;
+			val[1] = b;
 		}
 		inline Vec2(float f) {
-			_value[0] = f;
-			_value[1] = f;
+			val[0] = f;
+			val[1] = f;
 		}
-		inline float x() const { return _value[0]; }
-		inline float y() const { return _value[1]; }
-		inline void x(float value) { _value[0] = value; }
-		inline void y(float value) { _value[1] = value; }
-		inline float width() const { return _value[0]; }
-		inline float height() const { return _value[1]; }
-		inline void width(float value) { _value[0] = value; }
-		inline void height(float value) { _value[1] = value; }
+		inline float x() const { return val[0]; }
+		inline float y() const { return val[1]; }
+		inline void x(float value) { val[0] = value; }
+		inline void y(float value) { val[1] = value; }
+		inline float width() const { return val[0]; }
+		inline float height() const { return val[1]; }
+		inline void width(float value) { val[0] = value; }
+		inline void height(float value) { val[1] = value; }
 		inline bool operator==(const Vec2& b) const {
-			return _value[0] == b._value[0] && _value[1] == b._value[1];
+			return val[0] == b.val[0] && val[1] == b.val[1];
 		}
 		inline Vec2 operator-(const Vec2& b) const {
-			return Vec2(_value[0] - b[0], _value[1] - b[1]);
+			return Vec2(val[0] - b[0], val[1] - b[1]);
 		}
 		inline Vec2 operator+(const Vec2& b) const {
-			return Vec2(_value[0] + b[0], _value[1] + b[1]);
+			return Vec2(val[0] + b[0], val[1] + b[1]);
 		}
 		inline Vec2& operator-=(const Vec2& b) {
-			_value[0] -= b[0]; _value[1] -= b[1]; return *this;
+			val[0] -= b[0]; val[1] -= b[1]; return *this;
 		}
 		inline Vec2& operator+=(const Vec2& b) {
-			_value[0] += b[0]; _value[1] += b[1]; return *this;
+			val[0] += b[0]; val[1] += b[1]; return *this;
 		}
-		inline bool is_zero() const { return _value[0] == 0 || _value[1] == 0; }
+		inline bool is_zero() const { return val[0] == 0 || val[1] == 0; }
 		inline bool operator!=(const Vec2& b) const { return !operator==(b); }
 		float distance(Vec2 point) const;
 		float diagonal() const;
 	};
 
-	class F_EXPORT Vec3: public Vec<3> {
-	 public:
-		inline Vec3(): Vec3(0) { }
+	struct F_EXPORT Vec3: public Vec<3> {
+		inline Vec3(): Vec3(0) {}
 		inline Vec3(float a, float b, float c) {
-			_value[0] = a;
-			_value[1] = b;
-			_value[2] = c;
+			val[0] = a;
+			val[1] = b;
+			val[2] = c;
 		}
 		inline Vec3(float f) {
-			_value[0] = f;
-			_value[1] = f;
-			_value[2] = f;
+			val[0] = f;
+			val[1] = f;
+			val[2] = f;
 		}
-		inline float x() const { return _value[0]; }
-		inline float y() const { return _value[1]; }
-		inline float z() const { return _value[2]; }
-		inline void x(float value) { _value[0] = value; }
-		inline void y(float value) { _value[1] = value; }
-		inline void z(float value) { _value[2] = value; }
-		inline float width() const { return _value[0]; }
-		inline float height() const { return _value[1]; }
-		inline float depth() const { return _value[2]; }
-		inline void width(float value) { _value[0] = value; }
-		inline void height(float value) { _value[1] = value; }
-		inline void depth(float value) { _value[2] = value; }
+		inline float x() const { return val[0]; }
+		inline float y() const { return val[1]; }
+		inline float z() const { return val[2]; }
+		inline void x(float value) { val[0] = value; }
+		inline void y(float value) { val[1] = value; }
+		inline void z(float value) { val[2] = value; }
+		inline float width() const { return val[0]; }
+		inline float height() const { return val[1]; }
+		inline float depth() const { return val[2]; }
+		inline void width(float value) { val[0] = value; }
+		inline void height(float value) { val[1] = value; }
+		inline void depth(float value) { val[2] = value; }
 		inline bool operator==(const Vec3& b) const {
-			return _value[0] == b._value[0] &&
-						_value[1] == b._value[1] && _value[2] == b._value[2];
+			return val[0] == b.val[0] &&
+						val[1] == b.val[1] && val[2] == b.val[2];
 		}
 		inline bool operator!=(const Vec3& b) const { return !operator==(b); }
 	};
 
-	class F_EXPORT Vec4: public Vec<4> {
-	 public:
-		inline Vec4(): Vec4(0) { }
+	struct F_EXPORT Vec4: public Vec<4> {
+		inline Vec4(): Vec4(0) {}
 		inline Vec4(float a, float b, float c, float d) {
-			_value[0] = a;
-			_value[1] = b;
-			_value[2] = c;
-			_value[3] = d;
+			val[0] = a;
+			val[1] = b;
+			val[2] = c;
+			val[3] = d;
 		}
 		inline Vec4(float f) {
-			_value[0] = f;
-			_value[1] = f;
-			_value[2] = f;
-			_value[3] = f;
+			val[0] = f;
+			val[1] = f;
+			val[2] = f;
+			val[3] = f;
 		}
-		inline float x() const { return _value[0]; }
-		inline float y() const { return _value[1]; }
-		inline float z() const { return _value[2]; }
-		inline float w() const { return _value[3]; }
-		inline void x(float value) { _value[0] = value; }
-		inline void y(float value) { _value[1] = value; }
-		inline void z(float value) { _value[2] = value; }
-		inline void w(float value) { _value[3] = value; }
-		inline float top() const { return _value[0]; }
-		inline float right() const { return _value[1]; }
-		inline float bottom() const { return _value[2]; }
-		inline float left() const { return _value[3]; }
-		inline void top(float value) { _value[0] = value; }
-		inline void right(float value) { _value[1] = value; }
-		inline void bottom(float value) { _value[2] = value; }
-		inline void left(float value) { _value[3] = value; }
-		inline float width() const { return _value[0]; }
-		inline float height() const { return _value[1]; }
-		inline float depth() const { return _value[2]; }
-		inline void width(float value) { _value[0] = value; }
-		inline void height(float value) { _value[1] = value; }
-		inline void depth(float value) { _value[2] = value; }
+		inline float x() const { return val[0]; }
+		inline float y() const { return val[1]; }
+		inline float z() const { return val[2]; }
+		inline float w() const { return val[3]; }
+		inline void x(float value) { val[0] = value; }
+		inline void y(float value) { val[1] = value; }
+		inline void z(float value) { val[2] = value; }
+		inline void w(float value) { val[3] = value; }
+		inline float top() const { return val[0]; }
+		inline float right() const { return val[1]; }
+		inline float bottom() const { return val[2]; }
+		inline float left() const { return val[3]; }
+		inline void top(float value) { val[0] = value; }
+		inline void right(float value) { val[1] = value; }
+		inline void bottom(float value) { val[2] = value; }
+		inline void left(float value) { val[3] = value; }
+		inline float width() const { return val[0]; }
+		inline float height() const { return val[1]; }
+		inline float depth() const { return val[2]; }
+		inline void width(float value) { val[0] = value; }
+		inline void height(float value) { val[1] = value; }
+		inline void depth(float value) { val[2] = value; }
 		inline bool operator==(const Vec4& b) const {
-			return  _value[0] == b._value[0] && _value[1] == b._value[1] &&
-							_value[2] == b._value[2] && _value[3] == b._value[3];
+			return  val[0] == b.val[0] && val[1] == b.val[1] &&
+							val[2] == b.val[2] && val[3] == b.val[3];
 		}
 		inline bool operator!=(const Vec4& b) const { return !operator==(b); }
+	};
+
+	// rect
+	struct Rect {
+		Vec2 origin, size;
+	};
+
+	// react region
+	struct Region {
+		float x, y, x2, y2, width, height;
 	};
 
 	/**
 	* @class FloatColor
 	*/
-	class F_EXPORT FloatColor: public MTColor<float> {
-	 public:
-		inline FloatColor(): MTColor<float>(0, 0, 0, 1) { }
+	struct F_EXPORT FloatColor: public MTColor<float> {
+		inline FloatColor(): MTColor<float>(0, 0, 0, 1) {}
 		inline FloatColor(float r, float g, float b): MTColor<float>(r, g, b, 1) { }
 		inline FloatColor(float r, float g, float b, float a): MTColor<float>(r, g, b, a) { }
 		bool operator==(const FloatColor& color) const;
@@ -210,8 +210,7 @@ namespace flare {
 	/**
 	* @class Color
 	*/
-	class F_EXPORT Color: public MTColor<uint8_t> {
-	 public:
+	struct F_EXPORT Color: public MTColor<uint8_t> {
 		Color(uint32_t color);
 		inline Color(): MTColor<uint8_t>(0, 0, 0, 255) {}
 		inline Color(uint8_t r, uint8_t g, uint8_t b): MTColor<uint8_t>(r, g, b, 255) {}
@@ -235,25 +234,24 @@ namespace flare {
 	/**
 	* @class Mat
 	*/
-	class F_EXPORT Mat: public Vec<6> {
-	 public:
+	struct F_EXPORT Mat: public Vec<6> {
 		inline Mat(): Mat(1) { }
 		Mat(float value);
 		Mat(float m0, float m1, float m2, float m3, float m4, float m5);
 		Mat(const float* values, int length = 6);
 		Mat(Vec2 translate, Vec2 scale, float rotate_z, Vec2 skew);
-		inline float m0() const { return _value[0]; }
-		inline float m1() const { return _value[1]; }
-		inline float m2() const { return _value[2]; }
-		inline float m3() const { return _value[3]; }
-		inline float m4() const { return _value[4]; }
-		inline float m5() const { return _value[5]; }
-		inline void m0(float value) { _value[0] = value; }
-		inline void m1(float value) { _value[1] = value; }
-		inline void m2(float value) { _value[2] = value; }
-		inline void m3(float value) { _value[3] = value; }
-		inline void m4(float value) { _value[4] = value; }
-		inline void m5(float value) { _value[5] = value; }
+		inline float m0() const { return val[0]; }
+		inline float m1() const { return val[1]; }
+		inline float m2() const { return val[2]; }
+		inline float m3() const { return val[3]; }
+		inline float m4() const { return val[4]; }
+		inline float m5() const { return val[5]; }
+		inline void m0(float value) { val[0] = value; }
+		inline void m1(float value) { val[1] = value; }
+		inline void m2(float value) { val[2] = value; }
+		inline void m3(float value) { val[3] = value; }
+		inline void m4(float value) { val[4] = value; }
+		inline void m5(float value) { val[5] = value; }
 		
 		/**
 		* @func translate 平移
@@ -322,8 +320,7 @@ namespace flare {
 	/**
 	* @class Mat4
 	*/
-	class F_EXPORT Mat4: public Vec<16> {
-	 public:
+	struct F_EXPORT Mat4: public Vec<16> {
 		inline Mat4(): Mat4(1) {}
 		Mat4(float value);
 		Mat4(float m0, float m1, float m2, float m3,
@@ -332,38 +329,38 @@ namespace flare {
 				float m12, float m13, float m14, float m15);
 		Mat4(const float* values, int length = 16);
 		Mat4(Mat mat);
-		inline float m0() const { return _value[0]; }
-		inline float m1() const { return _value[1]; }
-		inline float m2() const { return _value[2]; }
-		inline float m3() const { return _value[3]; }
-		inline float m4() const { return _value[4]; }
-		inline float m5() const { return _value[5]; }
-		inline float m6() const { return _value[6]; }
-		inline float m7() const { return _value[7]; }
-		inline float m8() const { return _value[8]; }
-		inline float m9() const { return _value[9]; }
-		inline float m10() const { return _value[10]; }
-		inline float m11() const { return _value[11]; }
-		inline float m12() const { return _value[12]; }
-		inline float m13() const { return _value[13]; }
-		inline float m14() const { return _value[14]; }
-		inline float m15() const { return _value[15]; }
-		inline void m0(float value) { _value[0] = value; }
-		inline void m1(float value) { _value[1] = value; }
-		inline void m2(float value) { _value[2] = value; }
-		inline void m3(float value) { _value[3] = value; }
-		inline void m4(float value) { _value[4] = value; }
-		inline void m5(float value) { _value[5] = value; }
-		inline void m6(float value) { _value[6] = value; }
-		inline void m7(float value) { _value[7] = value; }
-		inline void m8(float value) { _value[8] = value; }
-		inline void m9(float value) { _value[9] = value; }
-		inline void m10(float value) { _value[10] = value; }
-		inline void m11(float value) { _value[11] = value; }
-		inline void m12(float value) { _value[12] = value; }
-		inline void m13(float value) { _value[13] = value; }
-		inline void m14(float value) { _value[14] = value; }
-		inline void m15(float value) { _value[15] = value; }
+		inline float m0() const { return val[0]; }
+		inline float m1() const { return val[1]; }
+		inline float m2() const { return val[2]; }
+		inline float m3() const { return val[3]; }
+		inline float m4() const { return val[4]; }
+		inline float m5() const { return val[5]; }
+		inline float m6() const { return val[6]; }
+		inline float m7() const { return val[7]; }
+		inline float m8() const { return val[8]; }
+		inline float m9() const { return val[9]; }
+		inline float m10() const { return val[10]; }
+		inline float m11() const { return val[11]; }
+		inline float m12() const { return val[12]; }
+		inline float m13() const { return val[13]; }
+		inline float m14() const { return val[14]; }
+		inline float m15() const { return val[15]; }
+		inline void m0(float value) { val[0] = value; }
+		inline void m1(float value) { val[1] = value; }
+		inline void m2(float value) { val[2] = value; }
+		inline void m3(float value) { val[3] = value; }
+		inline void m4(float value) { val[4] = value; }
+		inline void m5(float value) { val[5] = value; }
+		inline void m6(float value) { val[6] = value; }
+		inline void m7(float value) { val[7] = value; }
+		inline void m8(float value) { val[8] = value; }
+		inline void m9(float value) { val[9] = value; }
+		inline void m10(float value) { val[10] = value; }
+		inline void m11(float value) { val[11] = value; }
+		inline void m12(float value) { val[12] = value; }
+		inline void m13(float value) { val[13] = value; }
+		inline void m14(float value) { val[14] = value; }
+		inline void m15(float value) { val[15] = value; }
 		
 		/**
 		* @func translate 平移

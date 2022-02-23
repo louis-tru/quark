@@ -30,8 +30,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __ftr__render_scan__
-#define __ftr__render_scan__
+#ifndef __ftr__render__scan__
+#define __ftr__render__scan__
 
 
 

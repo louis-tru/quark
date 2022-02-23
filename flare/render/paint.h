@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,39 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__render_opengl__
-#define __ftr__render_opengl__
+#ifndef __flare__render__paint__
+#define __flare__render__paint__
 
-#include "./render.h"
+#include "./util/util.h"
 
 namespace flare {
 
-	class OpenGLRender: public Render {
+	class F_EXPORT Paint: public Object {
 		public:
-			virtual ~OpenGLRender();
-			virtual SkSurface* surface() override;
-			virtual bool is_gpu() override { return true; }
-			virtual void reload() override;
-			virtual void submit() override;
-		protected:
-			virtual void renderbufferStorage(uint32_t target);
-			virtual void swapBuffers() = 0;
-			OpenGLRender(Application* host, const Options& opts);
-			sk_sp<SkSurface> _surface;
-			uint32_t  _render_buffer, _frame_buffer;
-			uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
-			bool _is_support_multisampled;
+		private:
 	};
-
-	class RasterOpenGLRender: public OpenGLRender {
-		public:
-			virtual SkSurface* surface() override;
-			virtual bool is_gpu() override { return false; }
-			virtual void reload() override;
-			virtual void submit() override;
-		protected:
-			RasterOpenGLRender(Application* host, const Options& opts);
-			sk_sp<SkSurface> _rasterSurface;
-	};
-
 }
+
+#endif

@@ -35,7 +35,6 @@ void draw_skia(SkCanvas* canvas) {
 	paint.setAntiAlias(true);
 	paint.setStrokeWidth(4);
 	paint.setColor(0xFFFF0000);
-
 	
 	// ------------------------- drawCircle -------------------------
 	SkBitmap bitmapCircle;

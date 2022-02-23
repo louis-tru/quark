@@ -53,7 +53,7 @@ namespace flare {
 	template<class Event = Event<>> class EventNoticer;
 
 	template<class T_Sender, class T_SendData, class T_Origin, typename T_RC>
-	class F_EXPORT Event: public Object {
+	class Event: public Object {
 		F_HIDDEN_ALL_COPY(Event);
 	 public:
 		typedef T_SendData       SendData;
@@ -86,7 +86,7 @@ namespace flare {
 	};
 
 	template<class Event>
-	class F_EXPORT EventNoticer: public Object {
+	class EventNoticer: public Object {
 		F_HIDDEN_ALL_COPY(EventNoticer);
 	 public:
 		typedef Event EventType;
@@ -525,7 +525,7 @@ namespace flare {
 		class Name  = String,
 		class Basic = Object
 	>
-	class F_EXPORT Notification: public Basic {
+	class Notification: public Basic {
 		F_HIDDEN_ALL_COPY(Notification);
 	 public:
 		typedef Event               EventType;
