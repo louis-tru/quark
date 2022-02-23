@@ -54,6 +54,22 @@ static NSString* appDelegateName = @"";
 	@property (weak, nonatomic) ApplicationDelegate* appSelf;
 @end
 
+@interface ApplicationDelegate()<MFMailComposeViewControllerDelegate>
+	{
+		UIWindow* _window;
+		BOOL _is_background;
+	}
+	@property (strong, nonatomic) UIView* view;
+	@property (strong, nonatomic) IOSIMEHelprt* ime;
+	@property (strong, nonatomic) CADisplayLink* display_link;
+	@property (strong, nonatomic) UIApplication* host;
+	@property (strong, nonatomic) RootViewController* root_ctr;
+	@property (assign, nonatomic) Orientation setting_orientation;
+	@property (assign, nonatomic) Orientation current_orientation;
+	@property (assign, nonatomic) bool visible_status_bar;
+	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
+@end
+
 @implementation RootViewController
 
 	- (BOOL)shouldAutorotate {
@@ -169,22 +185,6 @@ static NSString* appDelegateName = @"";
 
 @end
 
-@interface ApplicationDelegate()<MFMailComposeViewControllerDelegate>
-	{
-		UIWindow* _window;
-		BOOL _is_background;
-	}
-	@property (strong, nonatomic) UIView* view;
-	@property (strong, nonatomic) IOSIMEHelprt* ime;
-	@property (strong, nonatomic) CADisplayLink* display_link;
-	@property (strong, nonatomic) UIApplication* host;
-	@property (strong, nonatomic) RootViewController* root_ctr;
-	@property (assign, nonatomic) Orientation setting_orientation;
-	@property (assign, nonatomic) Orientation current_orientation;
-	@property (assign, nonatomic) bool visible_status_bar;
-	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
-@end
-
 @implementation ApplicationDelegate
 
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
@@ -216,7 +216,7 @@ static NSString* appDelegateName = @"";
 		F_ASSERT(!appDelegate);
 		appDelegate = self;
 		F_ASSERT(Application::shared());
-		self.app = Application::shared(); 
+		_app = Application::shared(); 
 
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];

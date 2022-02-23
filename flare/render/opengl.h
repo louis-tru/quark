@@ -29,87 +29,39 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __ftr__render_opengl__
+#define __ftr__render_opengl__
 
-#ifndef __ftr__render_render__
-#define __ftr__render_render__
-
-#include "../util/loop.h"
-#include "../util/json.h"
-#include "../math.h"
-#include "../source.h"
-
-#define SK_GL 1
-
-#if F_IOS || F_OSX
-# define SK_METAL 1
-#elif F_ANDROID
-# define SK_VULKAN 1
-#elif F_WIN
-# define SK_DIRECT3D 1
-#endif
-
-#include <skia/core/SkCanvas.h>
-#include <skia/core/SkSurface.h>
-#include <skia/gpu/GrDirectContext.h>
-#include <skia/gpu/gl/GrGLInterface.h> // gl
+#include "./render.h"
 
 namespace flare {
 
-	class Application;
-
-	class Canvas: public SkCanvas {
+	class OpenGLRender: public Render {
 		public:
-			void setMatrix(const flare::Mat& mat);
-	};
-
-	/**
-	* @class Render
-	*/
-	class F_EXPORT Render: public Object, public PostMessage {
-		F_HIDDEN_ALL_COPY(Render);
-		public:
-			typedef SkSurfaceProps::Flags Flags;
-			struct Options {
-				ColorType colorType;
-				Flags     flags;
-				int  msaaSampleCnt, stencilBits;
-				bool enableBinaryArchive;
-				bool enableGpu, disableMetal, disableVulkan;
-			};
-			static Options parseOptions(cJSON& opts);
-			static Render* Make(Application* host, const Options& opts);
-
-			Canvas* canvas();
-			GrDirectContext* direct();
-
-			virtual ~Render();
-			virtual SkSurface* surface() = 0;
-			virtual bool is_gpu() = 0;
-			virtual void reload() = 0;
-			virtual void submit() = 0;
-			virtual void activate(bool isActive);
-			inline Application* host() { return _host; }
-			virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
-
+			virtual ~OpenGLRender();
+			virtual SkSurface* surface() override;
+			virtual bool is_gpu() override { return true; }
+			virtual void reload() override;
+			virtual void submit() override;
 		protected:
-			Render(Application* host, const Options& params);
-			Application*  _host;
-			Options       _opts;
-			sk_sp<GrDirectContext> _direct;
+			virtual void renderbufferStorage(uint32_t target);
+			virtual void swapBuffers() = 0;
+			OpenGLRender(Application* host, const Options& opts);
+			sk_sp<SkSurface> _surface;
+			uint32_t  _render_buffer, _frame_buffer;
+			uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
+			bool _is_support_multisampled;
 	};
 
-	class RasterRender: public Render {
+	class RasterOpenGLRender: public OpenGLRender {
 		public:
 			virtual SkSurface* surface() override;
 			virtual bool is_gpu() override { return false; }
 			virtual void reload() override;
 			virtual void submit() override;
 		protected:
-			virtual void onSubmit(SkPixmap* pixmap) = 0;
-			RasterRender(Application* host, const Options& opts);
+			RasterOpenGLRender(Application* host, const Options& opts);
 			sk_sp<SkSurface> _rasterSurface;
 	};
 
 }
-
-#endif

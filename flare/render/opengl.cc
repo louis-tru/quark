@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "flare/app.h"
-#include "flare/render/render.h"
+#include "flare/render/opengl.h"
 #include "flare/display.h"
 
 #include "skia/core/SkCanvas.h"

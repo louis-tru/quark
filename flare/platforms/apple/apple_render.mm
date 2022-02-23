@@ -30,6 +30,7 @@
 
 #include "./apple_render.h"
 #include "../../display.h"
+#include "../../render/opengl.h"
 #include "../../render/metal.h"
 
 #if F_IOS
@@ -37,9 +38,6 @@
 #else
 #include <OpenGL/gl3.h>
 #endif
-
-# include <OpenGL/gl3.h>
-# include <OpenGL/gl3ext.h>
 
 #if F_IOS
 @interface MTView: UIView @end
