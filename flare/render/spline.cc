@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,19 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
-#ifndef __ftr__render__scan__
-#define __ftr__render__scan__
-
-#include "../util/util.h"
+#include "./path.h"
 
 namespace flare {
-	
-	class F_EXPORT ScanLine: public Object {
-		F_HIDDEN_ALL_COPY(ScanLine);
-		public:
-		private:
-	};
-}
 
-#endif
+	
+
+}

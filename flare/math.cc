@@ -64,25 +64,25 @@ namespace flare {
 	}
 
 	Mat::Mat(float value) {
-		_value[0] = value;
-		_value[1] = 0;
-		_value[2] = 0;
-		_value[3] = 0;
-		_value[4] = value;
-		_value[5] = 0;
+		val[0] = value;
+		val[1] = 0;
+		val[2] = 0;
+		val[3] = 0;
+		val[4] = value;
+		val[5] = 0;
 	}
 
 	Mat::Mat(float m0, float m1, float m2, float m3, float m4, float m5) {
-		_value[0] = m0;
-		_value[1] = m1;
-		_value[2] = m2;
-		_value[3] = m3;
-		_value[4] = m4;
-		_value[5] = m5;
+		val[0] = m0;
+		val[1] = m1;
+		val[2] = m2;
+		val[3] = m3;
+		val[4] = m4;
+		val[5] = m5;
 	}
 
 	Mat::Mat(const float* values, int length) {
-		memcpy(_value, values, sizeof(float) * length);
+		memcpy(val, values, sizeof(float) * length);
 	}
 
 	Mat::Mat(Vec2 translate, Vec2 scale, float rotate_z, Vec2 skew) {
@@ -90,20 +90,20 @@ namespace flare {
 			rotate_z  *= T_PI_RATIO_180; // 
 			float cz  = cosf(rotate_z);
 			float sz  = sinf(rotate_z);
-			_value[0] = cz * scale[0];
-			_value[1] = sz * scale[1];
-			_value[3] = -sz * scale[0];
-			_value[4] = cz * scale[1];
+			val[0] = cz * scale[0];
+			val[1] = sz * scale[1];
+			val[3] = -sz * scale[0];
+			val[4] = cz * scale[1];
 		}
 		else {
-			_value[0] = scale[0];
-			_value[1] = 0;
-			_value[3] = 0;
-			_value[4] = scale[1];
+			val[0] = scale[0];
+			val[1] = 0;
+			val[3] = 0;
+			val[4] = scale[1];
 		}
 
-		_value[2] = translate[0];
-		_value[5] = translate[1];
+		val[2] = translate[0];
+		val[5] = translate[1];
 
 		if (skew[0] != 0.0f || skew[1] != 0.0f) {
 			Mat::skew(skew[0], skew[1]);
@@ -116,8 +116,8 @@ namespace flare {
 		[ d, e, f ] * [ 0, 1, y ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-		_value[2] += _value[0] * x + _value[1] * y;
-		_value[5] += _value[3] * x + _value[4] * y;
+		val[2] += val[0] * x + val[1] * y;
+		val[5] += val[3] * x + val[4] * y;
 	}
 
 	void Mat::translate_x(float x) {
@@ -126,8 +126,8 @@ namespace flare {
 		[ e, f, g ] * [ 0, 1, 0 ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-		_value[2] += _value[0] * x;
-		_value[5] += _value[3] * x;
+		val[2] += val[0] * x;
+		val[5] += val[3] * x;
 	}
 
 	void Mat::translate_y(float y) {
@@ -136,8 +136,8 @@ namespace flare {
 		[ e, f, g ] * [ 0, 1, y ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-		_value[2] += _value[1] * y;
-		_value[5] += _value[4] * y;
+		val[2] += val[1] * y;
+		val[5] += val[4] * y;
 	}
 
 	void Mat::scale(float x, float y) {
@@ -146,10 +146,10 @@ namespace flare {
 		[ d, e, f ] * [ 0, y, 0 ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-		_value[0] *= x;
-		_value[3] *= x;
-		_value[1] *= y;
-		_value[4] *= y;
+		val[0] *= x;
+		val[3] *= x;
+		val[1] *= y;
+		val[4] *= y;
 	}
 
 	void Mat::scale_x(float x) {
@@ -158,8 +158,8 @@ namespace flare {
 		[ d, e, f ] * [ 0, 1, 0 ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-		_value[0] *= x;
-		_value[3] *= x;
+		val[0] *= x;
+		val[3] *= x;
 	}
 
 	void Mat::scale_y(float y) {
@@ -168,8 +168,8 @@ namespace flare {
 		[ d, e, f ] * [ 0, y, 0 ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-		_value[1] *= y;
-		_value[4] *= y;
+		val[1] *= y;
+		val[4] *= y;
 	}
 
 	void Mat::rotatea(float z) {
@@ -180,12 +180,12 @@ namespace flare {
 		*/
 		float cz  = cosf(z);
 		float sz  = sinf(z);
-		float a   = _value[0] * cz - _value[1] * sz;
-		float d   = _value[3] * cz - _value[4] * sz;
-		_value[1] = _value[0] * sz + _value[1] * cz;
-		_value[4] = _value[3] * sz + _value[4] * cz;
-		_value[0] = a;
-		_value[3] = d;
+		float a   = val[0] * cz - val[1] * sz;
+		float d   = val[3] * cz - val[4] * sz;
+		val[1] = val[0] * sz + val[1] * cz;
+		val[4] = val[3] * sz + val[4] * cz;
+		val[0] = a;
+		val[3] = d;
 	}
 
 	void Mat::skewa(float x, float y){
@@ -196,12 +196,12 @@ namespace flare {
 		*/
 		float tx  = tanf(x);
 		float ty  = tanf(y);
-		float a   = _value[0] + _value[1] * ty;
-		float d   = _value[3] + _value[4] * ty;
-		_value[1] += _value[0] * tx;
-		_value[4] += _value[3] * tx;
-		_value[0] = a;
-		_value[3] = d;
+		float a   = val[0] + val[1] * ty;
+		float d   = val[3] + val[4] * ty;
+		val[1] += val[0] * tx;
+		val[4] += val[3] * tx;
+		val[0] = a;
+		val[3] = d;
 	}
 
 	void Mat::skewa_x(float x){
@@ -211,8 +211,8 @@ namespace flare {
 		| 0, 0, 1 |   |  0,  0,       1 |
 		*/
 		float tx = tanf(x);
-		_value[1] += _value[0] * tx;
-		_value[4] += _value[3] * tx;
+		val[1] += val[0] * tx;
+		val[4] += val[3] * tx;
 	}
 
 	void Mat::skewa_y(float y){
@@ -222,8 +222,8 @@ namespace flare {
 		| 0, 0, 1 |   |  0,       0,  1 |
 		*/
 		float ty = tanf(y);
-		_value[0] += _value[1] * ty;
-		_value[3] += _value[4] * ty;
+		val[0] += val[1] * ty;
+		val[3] += val[4] * ty;
 	}
 
 	Mat Mat::operator*(const Mat& b) const {
@@ -233,7 +233,7 @@ namespace flare {
 	}
 
 	Mat& Mat::operator*=(const Mat& b) {
-		memcpy(_value, operator*(b)._value, sizeof(float) * 6);
+		memcpy(val, operator*(b).val, sizeof(float) * 6);
 		return *this;
 	}
 
@@ -243,8 +243,8 @@ namespace flare {
 		[ d, e, f ] * [ b ]
 		[ 0, 0, 1 ]   [ 1 ]
 		*/
-		const float* _a = _value;
-		const float* _b = b.value();
+		const float* _a = val;
+		const float* _b = b.val;
 		return Vec2(
 			_a[0] * _b[0] + _a[1] * _b[1] + _a[2],
 			_a[3] * _b[0] + _a[4] * _b[1] + _a[5]
@@ -263,9 +263,9 @@ namespace flare {
 		[ 0,  0,  1  ]   [ 0,  0,  1  ]
 		*/
 		// 矩阵
-		float* _v = output._value;
-		const float* _a = _value;
-		const float* _b = b._value;
+		float* _v = output.val;
+		const float* _a = val;
+		const float* _b = b.val;
 		_v[0] = _a[0] * _b[0] + _a[1] * _b[3];
 		_v[3] = _a[3] * _b[0] + _a[4] * _b[3];
 		_v[1] = _a[0] * _b[1] + _a[1] * _b[4];
@@ -275,52 +275,52 @@ namespace flare {
 	}
 
 	Mat4::Mat4(float value) {
-		memset(this->_value, 0, sizeof(float) * 16);
-		_value[0] = value;
-		_value[5] = value;
-		_value[10] = value;
-		_value[15] = value;
+		memset(this->val, 0, sizeof(float) * 16);
+		val[0] = value;
+		val[5] = value;
+		val[10] = value;
+		val[15] = value;
 	}
 
 	Mat4::Mat4(float m0, float m1, float m2, float m3,
 						float m4, float m5, float m6, float m7,
 						float m8, float m9, float m10, float m11,
 						float m12, float m13, float m14, float m15) {
-		_value[0] = m0;
-		_value[1] = m1;
-		_value[2] = m2;
-		_value[3] = m3;
+		val[0] = m0;
+		val[1] = m1;
+		val[2] = m2;
+		val[3] = m3;
 		//
-		_value[4] = m4;
-		_value[5] = m5;
-		_value[6] = m6;
-		_value[7] = m7;
+		val[4] = m4;
+		val[5] = m5;
+		val[6] = m6;
+		val[7] = m7;
 		//
-		_value[8] = m8;
-		_value[9] = m9;
-		_value[10] = m10;
-		_value[11] = m11;
+		val[8] = m8;
+		val[9] = m9;
+		val[10] = m10;
+		val[11] = m11;
 		//
-		_value[12] = m12;
-		_value[13] = m13;
-		_value[14] = m14;
-		_value[15] = m15;
+		val[12] = m12;
+		val[13] = m13;
+		val[14] = m14;
+		val[15] = m15;
 	}
 
 	Mat4::Mat4(const float* values, int length) {
-		memcpy(_value, values, sizeof(float) * length);
+		memcpy(val, values, sizeof(float) * length);
 	}
 
 	Mat4::Mat4(Mat mat) {
-		memset(this->_value, 0, sizeof(float) * 16);
-		_value[0] = mat[0];
-		_value[1] = mat[1];
-		_value[3] = mat[2];
-		_value[4] = mat[3];
-		_value[5] = mat[4];
-		_value[7] = mat[5];
-		_value[10] = 1;
-		_value[15] = 1;
+		memset(this->val, 0, sizeof(float) * 16);
+		val[0] = mat[0];
+		val[1] = mat[1];
+		val[3] = mat[2];
+		val[4] = mat[3];
+		val[5] = mat[4];
+		val[7] = mat[5];
+		val[10] = 1;
+		val[15] = 1;
 	}
 
 	void Mat4::translate(float x, float y, float z) {
@@ -330,9 +330,9 @@ namespace flare {
 		[ i, j, k, l ] * [ 0, 0, 1, z ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, 1 ]
 		*/
-		_value[3] += _value[0] * x + _value[1] * y + _value[2] * z;
-		_value[7] += _value[4] * x + _value[5] * y + _value[6] * z;
-		_value[11] += _value[8] * x + _value[9] * y + _value[10] * z;
+		val[3] += val[0] * x + val[1] * y + val[2] * z;
+		val[7] += val[4] * x + val[5] * y + val[6] * z;
+		val[11] += val[8] * x + val[9] * y + val[10] * z;
 	}
 
 	void Mat4::translate_x(float x) {
@@ -342,9 +342,9 @@ namespace flare {
 		[ i, j, k, l ] * [ 0, 0, 1, 0 ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, 1 ]
 		*/
-		_value[3] += _value[0] * x;
-		_value[7] += _value[4] * x;
-		_value[11] += _value[8] * x;
+		val[3] += val[0] * x;
+		val[7] += val[4] * x;
+		val[11] += val[8] * x;
 	}
 
 	void Mat4::translate_y(float y) {
@@ -354,9 +354,9 @@ namespace flare {
 		[ i, j, k, l ] * [ 0, 0, 1, 0 ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, 1 ]
 		*/
-		_value[3] += _value[1] * y;
-		_value[7] += _value[5] * y;
-		_value[11] += _value[9] * y;
+		val[3] += val[1] * y;
+		val[7] += val[5] * y;
+		val[11] += val[9] * y;
 	}
 
 	void Mat4::translate_z(float z) {
@@ -366,9 +366,9 @@ namespace flare {
 		[ i, j, k, l ] * [ 0, 0, 1, z ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, 1 ]
 		*/
-		_value[3] += _value[2] * z;
-		_value[7] += _value[6] * z;
-		_value[11] += _value[10] * z;
+		val[3] += val[2] * z;
+		val[7] += val[6] * z;
+		val[11] += val[10] * z;
 	}
 
 	void Mat4::scale(float x, float y, float z) {
@@ -378,15 +378,15 @@ namespace flare {
 		[ i, j, k, l ] * [ 0, 0, z, 0 ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, 1 ]
 		*/
-		_value[0] *= x;
-		_value[4] *= x;
-		_value[8] *= x;
-		_value[1] *= y;
-		_value[5] *= y;
-		_value[9] *= y;
-		_value[2] *= z;
-		_value[6] *= z;
-		_value[10] *= z;
+		val[0] *= x;
+		val[4] *= x;
+		val[8] *= x;
+		val[1] *= y;
+		val[5] *= y;
+		val[9] *= y;
+		val[2] *= z;
+		val[6] *= z;
+		val[10] *= z;
 	}
 
 	void Mat4::scale_x(float x) {
@@ -396,9 +396,9 @@ namespace flare {
 		[ i, j, k, l ] * [ 0, 0, 1, 0 ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, 1 ]
 		*/
-		_value[0] *= x;
-		_value[4] *= x;
-		_value[8] *= x;
+		val[0] *= x;
+		val[4] *= x;
+		val[8] *= x;
 	}
 
 	void Mat4::scale_y(float y) {
@@ -408,9 +408,9 @@ namespace flare {
 		[ i, j, k, l ] * [ 0, 0, 1, 0 ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, 1 ]
 		*/
-		_value[1] *= y;
-		_value[5] *= y;
-		_value[9] *= y;
+		val[1] *= y;
+		val[5] *= y;
+		val[9] *= y;
 	}
 
 	void Mat4::scale_z(float z) {
@@ -420,9 +420,9 @@ namespace flare {
 		[ i, j, k, m ] * [ 0, 0, z, 0 ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, 1 ]
 		*/
-		_value[2] *= z;
-		_value[6] *= z;
-		_value[10] *= z;
+		val[2] *= z;
+		val[6] *= z;
+		val[10] *= z;
 	}
 
 	void Mat4::rotatea(float x, float y, float z) {
@@ -463,27 +463,27 @@ namespace flare {
 		float m6 = cy * cz * sx + sy * sz;
 		float m10 = cx * cy;
 		
-		float a = _value[0] * m0 + _value[1] * m4 + _value[2] * m8;
-		float e = _value[4] * m0 + _value[5] * m4 + _value[6] * m8;
-		float i = _value[8] * m0 + _value[9] * m4 + _value[10] * m8;
+		float a = val[0] * m0 + val[1] * m4 + val[2] * m8;
+		float e = val[4] * m0 + val[5] * m4 + val[6] * m8;
+		float i = val[8] * m0 + val[9] * m4 + val[10] * m8;
 
-		float b = _value[0] * m1 + _value[1] * m5 + _value[2] * m9;
-		float f = _value[4] * m1 + _value[5] * m5 + _value[6] * m9;
-		float j = _value[8] * m1 + _value[9] * m5 + _value[10] * m9;
+		float b = val[0] * m1 + val[1] * m5 + val[2] * m9;
+		float f = val[4] * m1 + val[5] * m5 + val[6] * m9;
+		float j = val[8] * m1 + val[9] * m5 + val[10] * m9;
 
-		float c = _value[0] * m2 + _value[1] * m6 + _value[2] * m10;
-		float g = _value[4] * m2 + _value[5] * m6 + _value[6] * m10;
-		float k = _value[8] * m2 + _value[9] * m6 + _value[10] * m10;
+		float c = val[0] * m2 + val[1] * m6 + val[2] * m10;
+		float g = val[4] * m2 + val[5] * m6 + val[6] * m10;
+		float k = val[8] * m2 + val[9] * m6 + val[10] * m10;
 		
-		_value[0] = a;
-		_value[4] = e;
-		_value[8] = i;
-		_value[1] = b;
-		_value[5] = f;
-		_value[9] = j;
-		_value[2] = c;
-		_value[6] = g;
-		_value[10] = k;
+		val[0] = a;
+		val[4] = e;
+		val[8] = i;
+		val[1] = b;
+		val[5] = f;
+		val[9] = j;
+		val[2] = c;
+		val[6] = g;
+		val[10] = k;
 	}
 
 	void Mat4::rotatea_x(float x) {
@@ -497,17 +497,17 @@ namespace flare {
 		float cx = cosf(x);
 		float sx = sinf(x);
 		// 
-		float b = _value[1] * cx - _value[2] * sx;
-		float f = _value[5] * cx - _value[6] * sx;
-		float j = _value[9] * cx - _value[10] * sx;
+		float b = val[1] * cx - val[2] * sx;
+		float f = val[5] * cx - val[6] * sx;
+		float j = val[9] * cx - val[10] * sx;
 		// 
-		_value[2] = _value[1] * sx + _value[2] * cx;
-		_value[6] = _value[5] * sx + _value[6] * cx;
-		_value[10] = _value[9] * sx + _value[10] * cx;
+		val[2] = val[1] * sx + val[2] * cx;
+		val[6] = val[5] * sx + val[6] * cx;
+		val[10] = val[9] * sx + val[10] * cx;
 		// 
-		_value[1] = b;
-		_value[5] = f;
-		_value[9] = j;
+		val[1] = b;
+		val[5] = f;
+		val[9] = j;
 	}
 
 	void Mat4::rotatea_y(float y) {
@@ -520,17 +520,17 @@ namespace flare {
 		float cy = cosf(y);
 		float sy = sinf(y);
 		// 
-		float a = _value[0] * cy + _value[2] * sy;
-		float e = _value[4] * cy + _value[6] * sy;
-		float i = _value[8] * cy + _value[10] * sy;
+		float a = val[0] * cy + val[2] * sy;
+		float e = val[4] * cy + val[6] * sy;
+		float i = val[8] * cy + val[10] * sy;
 		// 
-		_value[2] = -_value[0] * sy + _value[2] * cy;
-		_value[6] = -_value[4] * sy + _value[6] * cy;
-		_value[10] = -_value[8] * sy + _value[10] * cy;
+		val[2] = -val[0] * sy + val[2] * cy;
+		val[6] = -val[4] * sy + val[6] * cy;
+		val[10] = -val[8] * sy + val[10] * cy;
 		// 
-		_value[0] = a;
-		_value[4] = e;
-		_value[8] = i;
+		val[0] = a;
+		val[4] = e;
+		val[8] = i;
 	}
 
 	void Mat4::rotatea_z(float z) {
@@ -543,17 +543,17 @@ namespace flare {
 		float cz = cosf(z);
 		float sz = sinf(z);
 		// 
-		float a = _value[0] * cz - _value[1] * sz;
-		float e = _value[4] * cz - _value[5] * sz;
-		float i = _value[8] * cz - _value[9] * sz;
+		float a = val[0] * cz - val[1] * sz;
+		float e = val[4] * cz - val[5] * sz;
+		float i = val[8] * cz - val[9] * sz;
 		// 
-		_value[1] = _value[0] * sz + _value[1] * cz;
-		_value[5] = _value[4] * sz + _value[5] * cz;
-		_value[9] = _value[8] * sz + _value[9] * cz;
+		val[1] = val[0] * sz + val[1] * cz;
+		val[5] = val[4] * sz + val[5] * cz;
+		val[9] = val[8] * sz + val[9] * cz;
 		// 
-		_value[0] = a;
-		_value[4] = e;
-		_value[8] = i;
+		val[0] = a;
+		val[4] = e;
+		val[8] = i;
 	}
 
 	void Mat4::skewa(float x, float y, float z) {
@@ -569,27 +569,27 @@ namespace flare {
 		| 0, 0, 0, 1 |   |  0,       0,        0,       1 |
 		*/
 		
-		float a = _value[0] + _value[1] * ty + _value[2] * tz;
-		float e = _value[4] + _value[5] * ty + _value[6] * tz;
-		float i = _value[8] + _value[9] * ty + _value[10] * tz;
+		float a = val[0] + val[1] * ty + val[2] * tz;
+		float e = val[4] + val[5] * ty + val[6] * tz;
+		float i = val[8] + val[9] * ty + val[10] * tz;
 
-		float b = _value[0] * tx + _value[1] + _value[2] * tz;
-		float f = _value[4] * tx + _value[5] + _value[6] * tz;
-		float j = _value[8] * tx + _value[9] + _value[10] * tz;
+		float b = val[0] * tx + val[1] + val[2] * tz;
+		float f = val[4] * tx + val[5] + val[6] * tz;
+		float j = val[8] * tx + val[9] + val[10] * tz;
 
-		float c = _value[0] * tx + _value[1] * ty + _value[2];
-		float g = _value[4] * tx + _value[5] * ty + _value[6];
-		float k = _value[8] * tx + _value[9] * ty + _value[10];
+		float c = val[0] * tx + val[1] * ty + val[2];
+		float g = val[4] * tx + val[5] * ty + val[6];
+		float k = val[8] * tx + val[9] * ty + val[10];
 		
-		_value[0] = a;
-		_value[4] = e;
-		_value[8] = i;
-		_value[1] = b;
-		_value[5] = f;
-		_value[9] = j;
-		_value[2] = c;
-		_value[6] = g;
-		_value[10] = k;
+		val[0] = a;
+		val[4] = e;
+		val[8] = i;
+		val[1] = b;
+		val[5] = f;
+		val[9] = j;
+		val[2] = c;
+		val[6] = g;
+		val[10] = k;
 	}
 
 	void Mat4::skewa_x(float x) {
@@ -603,13 +603,13 @@ namespace flare {
 		
 		float tx = tanf(x);
 		
-		_value[1] += _value[0] * tx;
-		_value[5] += _value[4] * tx;
-		_value[9] += _value[8] * tx;
+		val[1] += val[0] * tx;
+		val[5] += val[4] * tx;
+		val[9] += val[8] * tx;
 		
-		_value[2] += _value[0] * tx;
-		_value[6] += _value[4] * tx;
-		_value[10] += _value[8] * tx;
+		val[2] += val[0] * tx;
+		val[6] += val[4] * tx;
+		val[10] += val[8] * tx;
 	}
 
 	void Mat4::skewa_y(float y) {
@@ -622,13 +622,13 @@ namespace flare {
 		
 		float ty = tanf(y);
 		
-		_value[0] += _value[1] * ty;
-		_value[4] += _value[5] * ty;
-		_value[8] += _value[9] * ty;
+		val[0] += val[1] * ty;
+		val[4] += val[5] * ty;
+		val[8] += val[9] * ty;
 		
-		_value[2] += _value[1] * ty;
-		_value[6] += _value[5] * ty;
-		_value[10] += _value[9] * ty;
+		val[2] += val[1] * ty;
+		val[6] += val[5] * ty;
+		val[10] += val[9] * ty;
 	}
 
 	void Mat4::skewa_z(float z) {
@@ -641,13 +641,13 @@ namespace flare {
 		
 		float tz = tanf(z);
 		
-		_value[0] += _value[2] * tz;
-		_value[4] += _value[6] * tz;
-		_value[8] += _value[10] * tz;
+		val[0] += val[2] * tz;
+		val[4] += val[6] * tz;
+		val[8] += val[10] * tz;
 		
-		_value[1] += _value[2] * tz;
-		_value[5] += _value[6] * tz;
-		_value[9] += _value[10] * tz;
+		val[1] += val[2] * tz;
+		val[5] += val[6] * tz;
+		val[9] += val[10] * tz;
 	}
 
 	Mat4 Mat4::operator*(const Mat4& b) const {
@@ -657,7 +657,7 @@ namespace flare {
 	}
 
 	Mat4& Mat4::operator*=(const Mat4& b) {
-		memcpy(_value, operator*(b)._value, sizeof(float) * 16);
+		memcpy(val, operator*(b).val, sizeof(float) * 16);
 		return *this;
 	}
 
@@ -668,8 +668,8 @@ namespace flare {
 		[ i, j, k, l ] * [ c ]
 		[ 0, 0, 0, 1 ]   [ 1 ]
 		*/
-		const float* _a = _value;
-		const float* _b = b.value();
+		const float* _a = val;
+		const float* _b = b.val;
 		return Vec4(
 			_a[0] * _b[0] + _a[1] * _b[1] + _a[2] * _b[2] + _a[3] * _b[3],
 			_a[4] * _b[0] + _a[5] * _b[1] + _a[6] * _b[2] + _a[7] * _b[3],
@@ -690,9 +690,9 @@ namespace flare {
 		[ i1, j1, k1, l1 ] * [ i2, j2, k2, l2 ]
 		[ m1, n1, o1, p1 ]   [ m2, n2, o2, p2 ]
 		*/
-		float* _v = output._value;
-		const float* _a = _value;
-		const float* _b = b._value;
+		float* _v = output.val;
+		const float* _a = val;
+		const float* _b = b.val;
 		// 
 		_v[0] = _a[0] * _b[0] + _a[1] * _b[4] + _a[2] * _b[8] + _a[3] * _b[12];
 		_v[4] = _a[4] * _b[0] + _a[5] * _b[4] + _a[6] * _b[8] + _a[7] * _b[12];
@@ -723,34 +723,34 @@ namespace flare {
 		[ m,n,o,p ]
 		*/
 		float
-		tmp = _value[1];
-		_value[1] = _value[4];
-		_value[4] = tmp;
+		tmp = val[1];
+		val[1] = val[4];
+		val[4] = tmp;
 		// 
-		tmp = _value[2];
-		_value[2] = _value[8];
-		_value[8] = tmp;
+		tmp = val[2];
+		val[2] = val[8];
+		val[8] = tmp;
 		// 
-		tmp = _value[3];
-		_value[3] = _value[12];
-		_value[12] = tmp;
+		tmp = val[3];
+		val[3] = val[12];
+		val[12] = tmp;
 		// 
-		tmp = _value[6];
-		_value[6] = _value[9];
-		_value[9] = tmp;
+		tmp = val[6];
+		val[6] = val[9];
+		val[9] = tmp;
 		// 
-		tmp = _value[7];
-		_value[7] = _value[13];
-		_value[13] = tmp;
+		tmp = val[7];
+		val[7] = val[13];
+		val[13] = tmp;
 		// 
-		tmp = _value[11];
-		_value[11] = _value[14];
-		_value[14] = tmp;
+		tmp = val[11];
+		val[11] = val[14];
+		val[14] = tmp;
 	}
 
 	Mat4 Mat4::frustum(float left, float right, float top, float bottom, float near, float far) {
 		Mat4 matrix;
-		float* _matrix = matrix._value;
+		float* _matrix = matrix.val;
 		
 		_matrix[0]  = (2.0f * near) / (right - left);
 		_matrix[1]  = 0.0;
@@ -777,7 +777,7 @@ namespace flare {
 
 	Mat4 Mat4::ortho(float left, float right, float top, float bottom, float near, float far) {
 		Mat4 matrix;
-		float* _matrix = matrix._value;
+		float* _matrix = matrix.val;
 		
 		_matrix[0]  = 2.0f / (right - left);
 		_matrix[1]  = 0.0;

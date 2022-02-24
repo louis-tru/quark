@@ -32,7 +32,7 @@
 #define __flare__fill__
 
 #include "./value.h"
-#include "./source.h"
+#include "./render/source.h"
 #include "./util/handle.h"
 
 namespace flare {

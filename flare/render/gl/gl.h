@@ -65,3 +65,5 @@ namespace flare {
 	};
 
 }
+
+#endif

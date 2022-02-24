@@ -30,8 +30,8 @@
 
 #include "./apple_render.h"
 #include "../../display.h"
-#include "../../render/opengl.h"
-#include "../../render/metal.h"
+#include "../../render/gl/gl.h"
+#include "../../render/metal/metal.h"
 
 #if F_IOS
 #include <OpenGLES/ES3/gl.h>
@@ -181,7 +181,7 @@ namespace flare {
 			}
 #if F_IOS
 			if (!r) {
-				r = MakeAppleGLRender<OpenGLRender>(host, opts);
+				r = MakeAppleGLRender<GLRender>(host, opts);
 			}
 #endif
 		}
@@ -193,7 +193,7 @@ namespace flare {
 			}
 #if F_IOS
 			if (!r) {
-				r = MakeAppleGLRender<RasterOpenGLRender>(host, opts);
+				r = MakeAppleGLRender<RasterGLRender>(host, opts);
 			}
 #endif
 		}

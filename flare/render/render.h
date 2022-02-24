@@ -36,7 +36,7 @@
 #include "../util/loop.h"
 #include "../util/json.h"
 #include "../math.h"
-#include "../source.h"
+#include "./source.h"
 
 #define SK_GL 1
 

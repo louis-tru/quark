@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./pixel.h"
+#include "skia/core/SkImage.h"
 
 namespace flare {
 

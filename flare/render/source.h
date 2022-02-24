@@ -45,7 +45,7 @@ namespace flare {
 	/**
 	* @class ImageSource
 	*/
-	class F_EXPORT ImageTex: public Reference {
+	class F_EXPORT ImageSource: public Reference {
 		F_HIDDEN_ALL_COPY(ImageSource);
 		public:
 

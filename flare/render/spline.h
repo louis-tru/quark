@@ -28,20 +28,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__render__path__
-#define __flare__render__path__
+#ifndef __flare__render__spline__
+#define __flare__render__spline__
 
-#include "../util/util.h"
-#include "../util/value.h"
+#include "../value.h"
+#include "../util/array.h"
 
 namespace flare {
 
-	class F_EXPORT PathLine: public Object {
+	// edge
+
+	class F_EXPORT PathLine: public Array<Vec2> {
 		public:
+			PathLine(const Vec2* pts, uint32_t len);
+			inline const Vec2* pts() const { return _val; }
+	};
+
+	class F_EXPORT Spline: public PathLine {
+		public:
+			PathLine toPathLine() const;
 		private:
-			const Vec2*   _pts;
-			const uint8_t* _verbs;
-			const uint8_t* _verbStop;
+			Array<uint8_t> _verbs;
 	};
 }
 
