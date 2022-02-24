@@ -19,3 +19,4 @@ bench/**.js
 *.pyc
 libs/ftrp
 libs/ftr
+deps/bplus
