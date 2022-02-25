@@ -142,9 +142,9 @@ namespace flare {
 					auto v = i.v;
 					// 在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
 					if (is_horizontal) {
-						size.x( size.x() + overflow * (v->layout_weight() / weight_total) * min_weight_total );
+						size.set_x( size.x() + overflow * (v->layout_weight() / weight_total) * min_weight_total );
 					} else {
-						size.y( size.y() + overflow * (v->layout_weight() / weight_total) * min_weight_total );
+						size.set_y( size.y() + overflow * (v->layout_weight() / weight_total) * min_weight_total );
 					}
 					size = v->layout_lock(size, wrap_const);
 					total_main += (is_horizontal ? size.x(): size.y());

@@ -34,7 +34,7 @@
 #include "../util/util.h"
 #include "../math.h"
 #include "../value.h"
-#include "./pixel.h"
+#include "./source.h"
 
 namespace flare {
 

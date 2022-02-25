@@ -28,10 +28,28 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+
+#ifndef __ftr__render__scaner__
+#define __ftr__render__scaner__
+
+#include "../util/util.h"
 #include "./path.h"
+#include "../value.h"
 
 namespace flare {
 
-	
-
+	class F_EXPORT XLineScaner: public Object {
+		F_HIDDEN_ALL_COPY(XLineScaner);
+		public:
+			struct ScanLine {
+				int32_t left, right, y;
+			};
+			XLineScaner(const PathLine& path, Rect clip, float scale);
+			bool scanNext(ScanLine* line);
+		private:
+			Array<Vec2i> _edge;
+			Vec2i  _clipOrigin, _clipEnd;
+	};
 }
+
+#endif

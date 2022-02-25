@@ -217,7 +217,7 @@ namespace flare {
 			// }));
 			
 			Vec2 size = _host->display()->size();
-			uint32_t font_size = sqrtf(size.width() * size.height()) / 10;
+			uint32_t font_size = sqrtf(size.x() * size.y()) / 10;
 			
 			// 最大纹理字体不能超过上下文支持的大小
 			if (font_size >= F_SUPPORT_MAX_TEXTURE_FONT_SIZE) {

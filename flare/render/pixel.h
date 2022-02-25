@@ -44,18 +44,18 @@ namespace flare {
 	 * @enum ColorType
 	 */
 	enum ColorType: int {
-		COLOR_TYPE_INVALID = 0,
-		COLOR_TYPE_ALPHA_8,
-		COLOR_TYPE_RGB_565,
-		COLOR_TYPE_ARGB_4444,
-		COLOR_TYPE_RGBA_8888,
-		COLOR_TYPE_RGB_888X,
-		COLOR_TYPE_BGRA_8888,
-		COLOR_TYPE_RGBA_1010102,
-		COLOR_TYPE_BGRA_1010102,
-		COLOR_TYPE_RGB_101010X,
-		COLOR_TYPE_BGR_101010X,
-		COLOR_TYPE_GRAY_8,
+		kColor_Type_Invalid = 0,
+		kColor_Type_Alpha_8,
+		kColor_Type_RGB_565,
+		kColor_Type_ARGB_4444,
+		kColor_Type_RGBA_8888,
+		kColor_Type_RGB_888X,
+		kColor_Type_BGRA_8888,
+		kColor_Type_RGBA_1010102,
+		kColor_Type_BGRA_1010102,
+		kColor_Type_RGB_101010X,
+		kColor_Type_BGR_101010X,
+		kColor_Type_Gray_8,
 	};
 
 	/**

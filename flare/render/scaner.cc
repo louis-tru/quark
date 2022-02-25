@@ -28,28 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__render__spline__
-#define __flare__render__spline__
-
-#include "../value.h"
-#include "../util/array.h"
+#include "./scaner.h"
 
 namespace flare {
 
-	// edge
+	XLineScaner::XLineScaner(const PathLine& path, Rect clip, float scale) {
 
-	class F_EXPORT PathLine: public Array<Vec2> {
-		public:
-			PathLine(const Vec2* pts, uint32_t len);
-			inline const Vec2* pts() const { return _val; }
-	};
+	}
 
-	class F_EXPORT Spline: public PathLine {
-		public:
-			PathLine toPathLine() const;
-		private:
-			Array<uint8_t> _verbs;
-	};
+	bool XLineScaner::scanNext(ScanLine* line, bool antiAlias) {
+
+		return true;
+	}
+
 }
-
-#endif

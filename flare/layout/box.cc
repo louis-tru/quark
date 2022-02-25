@@ -346,14 +346,14 @@ namespace flare {
 				auto size = parent()->layout_size();
 				auto val = solve_layout_content_width(size);
 
-				if (val != _layout_content_size.width() || _wrap_x != size.wrap_x) {
-					_layout_content_size.width(val);
+				if (val != _layout_content_size.x() || _wrap_x != size.wrap_x) {
+					_layout_content_size.set_x(val);
 					_wrap_x = size.wrap_x;
 					// mark(M_LAYOUT_TYPESETTING);
 					layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
 				}
-				_client_size.x(_padding_left + _padding_right + val);
-				_layout_size.x(_margin_left + _margin_right + _client_size.x());
+				_client_size.set_x(_padding_left + _padding_right + val);
+				_layout_size.set_x(_margin_left + _margin_right + _client_size.x());
 			} // else The layout is locked and does not need to be updated
 			parent()->layout_typesetting_change(this);
 			unmark(M_LAYOUT_SIZE_WIDTH);
@@ -364,13 +364,13 @@ namespace flare {
 				auto size = parent()->layout_size();
 				auto val = solve_layout_content_height(size);
 
-				if (val != _layout_content_size.height() || _wrap_y != size.wrap_y) {
-					_layout_content_size.height(val);
+				if (val != _layout_content_size.y() || _wrap_y != size.wrap_y) {
+					_layout_content_size.set_y(val);
 					_wrap_y = size.wrap_y;
 					layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 				}
-				_client_size.y(_padding_top + _padding_bottom + val);
-				_layout_size.y(_margin_top + _margin_bottom + _client_size.y());
+				_client_size.set_y(_padding_top + _padding_bottom + val);
+				_layout_size.set_y(_margin_top + _margin_bottom + _client_size.y());
 			} // else The layout is locked and does not need to be updated
 			parent()->layout_typesetting_change(this);
 			unmark(M_LAYOUT_SIZE_HEIGHT);
@@ -424,10 +424,10 @@ namespace flare {
 	}
 
 	Layout::Size Box::layout_raw_size(Size size) {
-		size.content_size.x(solve_layout_content_width(size));
-		size.content_size.x(solve_layout_content_height(size));
-		size.layout_size.x(_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right);
-		size.layout_size.y(_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom);
+		size.content_size.set_x(solve_layout_content_width(size));
+		size.content_size.set_x(solve_layout_content_height(size));
+		size.layout_size.set_x(_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right);
+		size.layout_size.set_y(_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom);
 		return size;
 	}
 

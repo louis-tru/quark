@@ -112,11 +112,11 @@ namespace flare {
 	/**
 	* @class ScopeClear
 	*/
-	class ScopeClear {
+	class ClearScope {
 	 public:
 		typedef std::function<void()> Clear;
-		ScopeClear(Clear clear): _clear(clear) { }
-		~ScopeClear() { _clear(); }
+		ClearScope(Clear clear): _clear(clear) { }
+		~ClearScope() { _clear(); }
 		inline void cancel() { _clear = [](){}; }
 	 private:
 		Clear _clear;

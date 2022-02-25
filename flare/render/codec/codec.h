@@ -35,140 +35,13 @@
 #include "ftr/util/array.h"
 #include "ftr/util/buffer.h"
 
+#include "../pixel.h"
+
 /**
  * @ns ftr
  */
 
 FX_NS(ftr)
-
-class PixelData;
-typedef const PixelData cPixelData;
-
-/**
- * @class PixelData
- */
-class FX_EXPORT PixelData: public Object {
- public:
-
-	enum Format: uint64 {
-		PVRTCI_2BPP_RGB = 0,
-		PVRTCI_2BPP_RGBA,
-		PVRTCI_4BPP_RGB,
-		PVRTCI_4BPP_RGBA,
-		PVRTCII_2BPP,
-		PVRTCII_4BPP,
-		ETC1,
-		DXT1,
-		DXT2,
-		DXT3,
-		DXT4,
-		DXT5,
-		
-		//These formats are identical to some DXT formats.
-		BC1 = DXT1,
-		BC2 = DXT3,
-		BC3 = DXT5,
-		
-		//These are currently unsupported:
-		BC4,
-		BC5,
-		BC6,
-		BC7,
-		
-		//These are supported
-		UYVY,
-		YUY2,
-		YUV420P,
-		YUV420SP,
-		YUV411P,
-		YUV411SP,
-		BW1BPP,
-		SharedExponentR9G9B9E5,
-		RGBG8888,
-		GRGB8888,
-		ETC2_RGB,
-		ETC2_RGBA,
-		ETC2_RGB_A1,
-		EAC_R11,
-		EAC_RG11,
-		
-		//Invalid value
-		NumCompressedPFs,
-		
-		//
-		RGBA8888            = 100001,
-		RGBX8888            = 100002,
-		RGB888              = 100003,
-		RGB565              = 100004,
-		RGBA5551            = 100005,
-		RGBA4444            = 100006,
-		RGBX4444            = 100007,
-		ALPHA8              = 100008,
-		LUMINANCE8          = 100009,
-		LUMINANCE_ALPHA88   = 100010,
-		INVALID             = 200000
-	};
-	
-	PixelData();
-	PixelData(cPixelData& data);
-	PixelData(PixelData&& data);
-	PixelData(Format format);
-	PixelData(Buffer body, int width, int height,
-						Format format, bool is_premultiplied_alpha = false);
-	PixelData(WeakBuffer body, int width, int height,
-						Format format, bool is_premultiplied_alpha = false);
-	PixelData(const Array<WeakBuffer>& body, int width, int height,
-						Format format, bool is_premultiplied_alpha = false);
-	
-	/**
-	 * @func body 图像数据主体
-	 */
-	inline cWeakBuffer& body(uint index = 0) const { return m_body[index]; }
-	
-	/**
-	 * @func body_count
-	 * */
-	inline uint body_count() const { return m_body.length(); }
-	
-	/**
-	 * @func width 图像宽度
-	 */
-	inline int width() const { return m_width; };
-	
-	/**
-	 * @func height 图像高度
-	 */
-	inline int height() const { return m_height; };
-	
-	/**
-	 * @func format 图像像素的排列格式
-	 */
-	inline Format format() const { return m_format; };
-	
-	/**
-	 * @func is_premultiplied_alpha 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
-	 */
-	inline bool is_premultiplied_alpha() const { return m_is_premultiplied_alpha; };
-	
-	/**
-	 * @func is_compressd_format
-	 */
-	static bool is_compressd_format(Format format);
-	
-	/**
-	 * @func get_pixel_data_size
-	 */
-	static uint get_pixel_data_size(Format format);
-	
- private:
-	
-	Buffer              m_data;
-	int                 m_width;
-	int                 m_height;
-	Array<WeakBuffer>   m_body;
-	Format              m_format;
-	bool                m_is_premultiplied_alpha;
-};
 
 /**
  * @class ImageCodec
@@ -190,9 +63,9 @@ class FX_EXPORT ImageCodec: public Object {
 	 * 解码图像为GPU可读取的格式如:RGBA8888/RGBA4444/ETC1/ETC2_RGB/ETC2_RGBA...,并返回mipmap列表
 	 * @func decode
 	 * @arg data {cBuffer&}
-	 * @ret {Array<PixelData>}
+	 * @ret {Array<Pixel>}
 	 */
-	virtual Array<PixelData> decode(cBuffer& data) = 0;
+	virtual Array<Pixel> decode(cBuffer& data) = 0;
 	
 	/**
 	 * @func decode_header
@@ -200,12 +73,12 @@ class FX_EXPORT ImageCodec: public Object {
 	 * 如果当前只需要知道图像的附加信息可调用该函数,
 	 * 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
 	 */
-	virtual PixelData decode_header(cBuffer& data) = 0;
+	virtual Pixel decode_header(cBuffer& data) = 0;
 	
 	/**
 	 * @func encode 编码图像数据
 	 */
-	virtual Buffer encode(cPixelData& data) = 0;
+	virtual Buffer encode(cPixel& data) = 0;
 	
 	/**
 	 * @func get_image_format 通过路径获取图片类型
@@ -224,9 +97,9 @@ class FX_EXPORT ImageCodec: public Object {
  */
 class FX_EXPORT TGAImageCodec: public ImageCodec {
  public:
-	virtual Array<PixelData> decode(cBuffer& data);
-	virtual PixelData decode_header(cBuffer& data);
-	virtual Buffer encode(cPixelData& data);
+	virtual Array<Pixel> decode(cBuffer& data);
+	virtual Pixel decode_header(cBuffer& data);
+	virtual Buffer encode(cPixel& data);
 	friend class _Inl; class _Inl;
 };
 
@@ -235,9 +108,9 @@ class FX_EXPORT TGAImageCodec: public ImageCodec {
  */
 class FX_EXPORT JPEGImageCodec: public ImageCodec {
  public:
-	virtual Array<PixelData> decode(cBuffer& data);
-	virtual PixelData decode_header(cBuffer& data);
-	virtual Buffer encode(cPixelData& data);
+	virtual Array<Pixel> decode(cBuffer& data);
+	virtual Pixel decode_header(cBuffer& data);
+	virtual Buffer encode(cPixel& data);
 };
 
 /**
@@ -245,9 +118,9 @@ class FX_EXPORT JPEGImageCodec: public ImageCodec {
  */
 class FX_EXPORT GIFImageCodec: public ImageCodec {
  public:
-	virtual Array<PixelData> decode(cBuffer& data);
-	virtual PixelData decode_header(cBuffer& data);
-	virtual Buffer encode(cPixelData& data);
+	virtual Array<Pixel> decode(cBuffer& data);
+	virtual Pixel decode_header(cBuffer& data);
+	virtual Buffer encode(cPixel& data);
 };
 
 /**
@@ -255,9 +128,9 @@ class FX_EXPORT GIFImageCodec: public ImageCodec {
  */
 class FX_EXPORT PNGImageCodec: public ImageCodec {
  public:
-	virtual Array<PixelData> decode(cBuffer& data);
-	virtual PixelData decode_header(cBuffer& data);
-	virtual Buffer encode(cPixelData& data);
+	virtual Array<Pixel> decode(cBuffer& data);
+	virtual Pixel decode_header(cBuffer& data);
+	virtual Buffer encode(cPixel& data);
 };
 
 /**
@@ -265,9 +138,9 @@ class FX_EXPORT PNGImageCodec: public ImageCodec {
  */
 class FX_EXPORT WEBPImageCodec: public ImageCodec {
  public:
-	virtual Array<PixelData> decode(cBuffer& data);
-	virtual PixelData decode_header(cBuffer& data);
-	virtual Buffer encode(cPixelData& data);
+	virtual Array<Pixel> decode(cBuffer& data);
+	virtual Pixel decode_header(cBuffer& data);
+	virtual Buffer encode(cPixel& data);
 };
 
 /**
@@ -280,9 +153,9 @@ class FX_EXPORT WEBPImageCodec: public ImageCodec {
  */
 class FX_EXPORT PVRTCImageCodec: public ImageCodec {
  public:
-	virtual Array<PixelData> decode(cBuffer& data);
-	virtual PixelData decode_header(cBuffer& data);
-	virtual Buffer encode(cPixelData& data);
+	virtual Array<Pixel> decode(cBuffer& data);
+	virtual Pixel decode_header(cBuffer& data);
+	virtual Buffer encode(cPixel& data);
 	FX_DEFINE_INLINE_CLASS(_Inl);
 };
 

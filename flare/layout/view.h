@@ -240,7 +240,7 @@ namespace flare {
 			*
 			* @func x()
 			*/
-		inline float x() const { return translate().x(); }
+		inline float x() const { return translate()[0]; }
 
 		/**
 			* 
@@ -248,7 +248,7 @@ namespace flare {
 			*
 			* @func y()
 			*/
-		inline float y() const { return translate().y(); }
+		inline float y() const { return translate()[1]; }
 
 		/**
 			* 
@@ -256,7 +256,7 @@ namespace flare {
 			*
 			* @func scale_x()
 			*/
-		inline float scale_x() const { return scale().x(); }
+		inline float scale_x() const { return scale()[0]; }
 
 		/**
 			* 
@@ -264,7 +264,7 @@ namespace flare {
 			*
 			* @func scale_y()
 			*/
-		inline float scale_y() const { return scale().y(); }
+		inline float scale_y() const { return scale()[1]; }
 
 		/**
 			* 
@@ -272,7 +272,7 @@ namespace flare {
 			*
 			* @func skew_x()
 			*/
-		inline float skew_x() const { return skew().x(); }
+		inline float skew_x() const { return skew()[0]; }
 
 		/**
 			* 
@@ -280,7 +280,7 @@ namespace flare {
 			*
 			* @func skew_y()
 			*/
-		inline float skew_y() const { return skew().y(); }
+		inline float skew_y() const { return skew()[1]; }
 
 		/**
 			* Set the matrix `translate` properties of the view object

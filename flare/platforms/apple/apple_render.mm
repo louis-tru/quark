@@ -72,7 +72,7 @@ namespace flare {
 #endif
 		float x = rect.size.width * scale;
 		float y = rect.size.height * scale;
-		return render()->host()->display()->set_surface_region({ 0,0,x,y,x,y });
+		return render()->host()->display()->set_display_region({ 0,0,x,y,x,y });
 	}
 
 	uint32_t Render::post_message(Cb cb, uint64_t delay_us) {

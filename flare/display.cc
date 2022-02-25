@@ -57,16 +57,16 @@ namespace flare {
 			_size = _lock_size;
 		}
 		else if (_lock_size.x() != 0) { // 只锁定宽度
-			_size.y(_lock_size.x());
-			_size.y(_size.x() / width * height);
+			_size.set_y(_lock_size.x());
+			_size.set_y(_size.x() / width * height);
 		}
 		else { // _lock_height == 0 // 只锁定高度
-			_size.y(_lock_size.y());
-			_size.x(_size.y() / height * width);
+			_size.set_y(_lock_size.y());
+			_size.set_x(_size.y() / height * width);
 		}
 		
-		_scale.x(width / _size.x());
-		_scale.y(height / _size.y());
+		_scale.set_x(width / _size.x());
+		_scale.set_y(height / _size.y());
 
 		float scale = (_scale.x() + _scale.y()) / 2;
 		
@@ -110,7 +110,7 @@ namespace flare {
 	}
 
 	Vec2 Display::phy_size() const {
-		return Vec2(_surface_region.x2 - _surface_region.x, _surface_region.y2 - _surface_region.y);
+		return Vec2(_display_region.x2 - _display_region.x, _display_region.y2 - _display_region.y);
 	}
 
 	Display::Display(Application* host)
@@ -121,7 +121,7 @@ namespace flare {
 		, _atom_pixel(1)
 		, _fsp(0)
 		, _next_fsp(0)
-		, _next_fsp_time(0), _surface_region()
+		, _next_fsp_time(0), _display_region()
 	{
 		_display_region.push_back({ 0,0,0,0,0,0 });
 	}
@@ -132,7 +132,7 @@ namespace flare {
 	void Display::lock_size(float width, float height) {
 		if (width >= 0.0 && height >= 0.0) {
 			UILock lock(_host);
-			if (_lock_size.width() != width || _lock_size.height() != height) {
+			if (_lock_size.x() != width || _lock_size.y() != height) {
 				_lock_size = { width, height };
 				_host->render()->post_message(Cb([this](CbData& e) {
 					updateState();
@@ -189,48 +189,48 @@ namespace flare {
 		}
 	}
 
-	void Display::push_display_region(Region re) {
-		// 计算一个交集区域
-		Region dre = _display_region.back();
+	// void Display::push_display_region(Region re) {
+	// 	// 计算一个交集区域
+	// 	Region dre = _display_region.back();
 		
-		float x, x2, y, y2;
+	// 	float x, x2, y, y2;
 		
-		y = dre.y2 > re.y2 ? re.y2 : dre.y2; // 选择一个小的
-		y2 = dre.y > re.y ? dre.y : re.y; // 选择一个大的
-		x = dre.x2 > re.x2 ? re.x2 : dre.x2; // 选择一个小的
-		x2 = dre.x > re.x ? dre.x : re.x; // 选择一个大的
+	// 	y = dre.y2 > re.y2 ? re.y2 : dre.y2; // 选择一个小的
+	// 	y2 = dre.y > re.y ? dre.y : re.y; // 选择一个大的
+	// 	x = dre.x2 > re.x2 ? re.x2 : dre.x2; // 选择一个小的
+	// 	x2 = dre.x > re.x ? dre.x : re.x; // 选择一个大的
 		
-		if ( x > x2 ) {
-			re.x = x2;
-			re.x2 = x;
-		} else {
-			re.x = x;
-			re.x2 = x2;
-		}
+	// 	if ( x > x2 ) {
+	// 		re.x = x2;
+	// 		re.x2 = x;
+	// 	} else {
+	// 		re.x = x;
+	// 		re.x2 = x2;
+	// 	}
 		
-		if ( y > y2 ) {
-			re.y = y2;
-			re.y2 = y;
-		} else {
-			re.y = y;
-			re.y2 = y2;
-		}
+	// 	if ( y > y2 ) {
+	// 		re.y = y2;
+	// 		re.y2 = y;
+	// 	} else {
+	// 		re.y = y;
+	// 		re.y2 = y2;
+	// 	}
 		
-		re.x *= _scale.x();
-		re.x2 *= _scale.x();
-		re.y *= _scale.y();
-		re.y2 *= _scale.y();
+	// 	re.x *= _scale.x();
+	// 	re.x2 *= _scale.x();
+	// 	re.y *= _scale.y();
+	// 	re.y2 *= _scale.y();
 
-		re.width = re.x2 - re.x;
-		re.height = re.y2 - re.y;
+	// 	re.width = re.x2 - re.x;
+	// 	re.height = re.y2 - re.y;
 		
-		_display_region.push_back(re);
-	}
+	// 	_display_region.push_back(re);
+	// }
 
-	void Display::pop_display_region() {
-		F_ASSERT( _display_region.length() > 1 );
-		_display_region.pop_back();
-	}
+	// void Display::pop_display_region() {
+	// 	F_ASSERT( _display_region.length() > 1 );
+	// 	_display_region.pop_back();
+	// }
 
 	void Display::next_frame(cCb& cb) {
 		UILock lock(_host);
@@ -242,18 +242,18 @@ namespace flare {
 		_default_scale = value;
 	}
 
-	bool Display::set_surface_region(Region region) {
+	bool Display::set_display_region(DisplayRegion region) {
 		bool ok = false;
 		if (region.width != 0 && region.height != 0) {
 			UILock lock(_host);
-			if (  _surface_region.x != region.x
-				||	_surface_region.y != region.y
-				||	_surface_region.x2 != region.x2
-				||	_surface_region.y2 != region.y2
-				||	_surface_region.width != region.width
-				||	_surface_region.height != region.height
+			if (  _display_region.x != region.x
+				||	_display_region.y != region.y
+				||	_display_region.x2 != region.x2
+				||	_display_region.y2 != region.y2
+				||	_display_region.width != region.width
+				||	_display_region.height != region.height
 			) {
-				_surface_region = region;
+				_display_region = region;
 				ok = true;
 			}
 		}

@@ -378,18 +378,18 @@ namespace flare {
 			auto region = _host->display()->surface_region(); // 使用上次的区域，如果这是有效的
 
 			if (region.x2 == 0 || region.y2 == 0) { // 区域无效
-				_host->display()->set_surface_region({ 
+				_host->display()->set_display_region({ 
 					0, 0, _raw_surface_size.x(), _raw_surface_size.y(),
 					_raw_surface_size.x(), _raw_surface_size.y(),
 				});
 			} else {
-				_host->display()->set_surface_region({
+				_host->display()->set_display_region({
 					region.x, region.y, region.x2, region.y2,
 					_raw_surface_size.x(), _raw_surface_size.y(),
 				});
 			}
 		} else {
-			_host->display()->set_surface_region({
+			_host->display()->set_display_region({
 				rect->origin.x(), rect->origin.y(),
 				rect->origin.x() + rect->size.x(), rect->origin.y() + rect->size.y(),
 				_raw_surface_size.x(), _raw_surface_size.y(),

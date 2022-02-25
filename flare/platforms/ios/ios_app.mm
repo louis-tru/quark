@@ -145,8 +145,8 @@ static NSString* appDelegateName = @"";
 		
 		Vec2 size = self.appSelf.app->display()->size();
 		
-		float scale_x = size.width() / appDelegate.view.frame.size.width;
-		float scale_y = size.height() / appDelegate.view.frame.size.height;
+		float scale_x = size.x() / appDelegate.view.frame.size.width;
+		float scale_y = size.y() / appDelegate.view.frame.size.height;
 		
 		for (UITouch* touch in enumerator) {
 			CGPoint point = [touch locationInView:touch.view];

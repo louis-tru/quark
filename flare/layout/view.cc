@@ -506,7 +506,7 @@ namespace flare {
 		*/
 	void View::set_x(float val) {
 		if (translate().x() != val) {
-			_inl(this)->transform()->translate.x(val);
+			_inl(this)->transform()->translate.set_x(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -519,7 +519,7 @@ namespace flare {
 		*/
 	void View::set_y(float val) {
 		if (translate().y() != val) {
-			_inl(this)->transform()->translate.y(val);
+			_inl(this)->transform()->translate.set_y(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -532,7 +532,7 @@ namespace flare {
 		*/
 	void View::set_scale_x(float val) {
 		if (scale().x() != val) {
-			_inl(this)->transform()->scale.x(val);
+			_inl(this)->transform()->scale.set_x(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -545,7 +545,7 @@ namespace flare {
 		*/
 	void View::set_scale_y(float val) {
 		if (scale().y() != val) {
-			_inl(this)->transform()->scale.y(val);
+			_inl(this)->transform()->scale.set_y(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -558,7 +558,7 @@ namespace flare {
 		*/
 	void View::set_skew_x(float val) {
 		if (skew().x() != val) {
-			_inl(this)->transform()->skew.x(val);
+			_inl(this)->transform()->skew.set_x(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -571,7 +571,7 @@ namespace flare {
 		*/
 	void View::set_skew_y(float val) {
 		if (skew().y() != val) {
-			_inl(this)->transform()->skew.y(val);
+			_inl(this)->transform()->skew.set_y(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -745,26 +745,26 @@ namespace flare {
 		
 		if (w1 > w2) {
 			if ( A.x() > C.x() ) {
-				max.x( A.x() ); min.x( C.x() );
+				max.set_x( A.x() ); min.set_x( C.x() );
 			} else {
-				max.x( C.x() ); min.x( A.x() );
+				max.set_x( C.x() ); min.set_x( A.x() );
 			}
 			if ( B.y() > D.y() ) {
-				max.y( B.y() ); min.y( D.y() );
+				max.set_y( B.y() ); min.set_y( D.y() );
 			} else {
-				max.y( D.y() ); min.y( B.y() );
+				max.set_y( D.y() ); min.set_y( B.y() );
 			}
 			size = Vec2(w1, max.y() - min.y());
 		} else {
 			if ( B.x() > D.x() ) {
-				max.x( B.x() ); min.x( D.x() );
+				max.set_x( B.x() ); min.set_x( D.x() );
 			} else {
-				max.x( D.x() ); min.x( B.x() );
+				max.set_x( D.x() ); min.set_x( B.x() );
 			}
 			if ( A.y() > C.y() ) {
-				max.y( A.y() ); min.y( C.y() );
+				max.set_y( A.y() ); min.set_y( C.y() );
 			} else {
-				max.y( C.y() ); min.y( A.y() );
+				max.set_y( C.y() ); min.set_y( A.y() );
 			}
 			size = Vec2(w2, max.y() - min.y());
 		}
@@ -777,7 +777,7 @@ namespace flare {
 		return {
 			min.x(), min.y(),
 			max.x(), max.y(),
-			size.width(), size.height()
+			size.x(), size.y()
 		};
 	}
 

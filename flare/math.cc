@@ -34,12 +34,14 @@
 
 namespace flare {
 
-	float Vec2::distance(Vec2 point) const {
-		return sqrtf( powf(x() - point.x(), 2) + powf(y() - point.y(), 2) );
+	template<>
+	float MVec2<float>::distance(MVec2<float> point) const {
+		return sqrtf( powf(val[0] - point[0], 2) + powf(val[1] - point[1], 2) );
 	}
 
-	float Vec2::diagonal() const {
-		return sqrtf( powf(width(), 2) + powf(height(), 2) );
+	template<>
+	float MVec2<float>::diagonal() const {
+		return sqrtf( powf(val[0], 2) + powf(val[1], 2) );
 	}
 
 	bool FloatColor::operator==(const FloatColor& color) const {
@@ -51,7 +53,7 @@ namespace flare {
 	}
 
 	Color::Color(uint32_t color)
-	: MTColor<uint8_t>(getPartColor(color, 24),
+	: MColor<uint8_t>(getPartColor(color, 24),
 									getPartColor(color, 16),
 									getPartColor(color, 8),
 									getPartColor(color, 0))
