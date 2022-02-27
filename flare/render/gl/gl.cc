@@ -60,11 +60,11 @@ namespace flare {
 	static uint32_t glPixelInternalFormat(ColorType type) {
 		switch (type) {
 			default: return 0;
-			case COLOR_TYPE_RGB_565: return GL_RGB565;
-			case COLOR_TYPE_RGBA_8888: return GL_RGBA8;
-			case COLOR_TYPE_RGB_888X: return GL_RGBA8;
-			case COLOR_TYPE_RGBA_1010102: return GL_RGB10_A2;
-			case COLOR_TYPE_RGB_101010X: return GL_RGB10_A2;
+			case kColor_Type_RGB_565: return GL_RGB565;
+			case kColor_Type_RGBA_8888: return GL_RGBA8;
+			case kColor_Type_RGB_888X: return GL_RGBA8;
+			case kColor_Type_RGBA_1010102: return GL_RGB10_A2;
+			case kColor_Type_RGB_101010X: return GL_RGB10_A2;
 		}
 	}
 
@@ -121,7 +121,7 @@ namespace flare {
 		if (_surface)
 			return _surface.get();
 
-		auto region = _host->display()->surface_region();
+		auto region = _host->display()->display_region();
 
 		int width = region.width;
 		int height = region.height;
@@ -178,7 +178,7 @@ namespace flare {
 	}
 
 	void GLRender::renderbufferStorage(uint32_t target) {
-		auto region = _host->display()->surface_region();
+		auto region = _host->display()->display_region();
 		::glRenderbufferStorage(target, glPixelInternalFormat(_opts.colorType), region.width, region.height);
 	}
 
@@ -199,7 +199,7 @@ namespace flare {
 		if (_opts.msaaSampleCnt > 1) {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
-			auto region = _host->display()->surface_region();
+			auto region = _host->display()->display_region();
 			glBlitFramebuffer(0, 0, region.width, region.height,
 												0, 0, region.width, region.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
@@ -230,7 +230,7 @@ namespace flare {
 	SkSurface* RasterGLRender::surface() {
 		if (!_rasterSurface) {
 			// make the offscreen image
-			auto region = _host->display()->surface_region();
+			auto region = _host->display()->display_region();
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 			_rasterSurface = SkSurface::MakeRaster(info);

@@ -268,7 +268,7 @@ namespace flare {
 		FT_Library ft_lib;
 		FT_Init_FreeType( &ft_lib );
 		
-		ScopeClear clear([&ft_lib]() { FT_Done_FreeType(ft_lib); });
+		ClearScope clear([&ft_lib]() { FT_Done_FreeType(ft_lib); });
 		
 		JSON font_familys = JSON::array();
 		

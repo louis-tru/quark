@@ -51,7 +51,7 @@ namespace flare {
 		public:
 
 			struct DisplayRegion {
-				uint32_t x, y, x2, y2, width, height;
+				float x, y, x2, y2, width, height;
 			};
 
 			enum Orientation {
@@ -123,22 +123,22 @@ namespace flare {
 
 			/**
 			* @thread rebder
-			* @func push_display_region
+			* @func push_clip_region
 			*/
-			//void push_display_region(Region value);
+			void push_clip_region(Region value);
 			
 			/**
 			* @thread rebder
-			* @func pop_display_region
+			* @func pop_clip_region()
 			*/
-			//void pop_display_region();
+			void pop_clip_region();
 			
 			/**
 			* @func display_region
 			*/
-			// inline Region display_region() const {
-			// 	return _display_region.back();
-			// }
+			inline DisplayRegion clip_region() const {
+				return _clip_region.back();
+			}
 
 			/**
 			* @func atom_pixel
@@ -194,7 +194,7 @@ namespace flare {
 			 * @func default_scale()
 			 */
 			inline float default_scale() const { return _default_scale; }
-			inline Region display_region() const { return _display_region; }
+			inline DisplayRegion display_region() const { return _display_region; }
 
 			/**
 			 * @thread render
@@ -204,7 +204,7 @@ namespace flare {
 			/**
 			 * @thread render
 			 */
-			bool set_display_region(Region display_region); // call from render loop
+			bool set_display_region(DisplayRegion display_region); // call from render loop
 
 			/**
 			 * @thread render
@@ -231,12 +231,14 @@ namespace flare {
 			Vec2              _scale;   // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
 			float             _atom_pixel;
 			float             _default_scale;
-			// List<Region>      _display_region;
 			List<Cb>          _next_frame;
 			uint32_t          _fsp, _next_fsp;
 			int64_t           _next_fsp_time;
+			Array<DisplayRegion> _clip_region;
 			DisplayRegion     _display_region;  /* 选择绘图表面有区域 */
 	};
+
+	typedef Display::DisplayRegion DisplayRegion;
 
 }
 #endif

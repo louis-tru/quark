@@ -54,7 +54,7 @@ namespace flare {
 	}
 
 	void Root::mark_layout_change() {
-		auto region = app()->display()->surface_region();
+		auto region = app()->display()->display_region();
 		mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
 		set_scale(app()->display()->scale());
 		set_translate(Vec2(region.x, region.y));
@@ -69,7 +69,7 @@ namespace flare {
 		r->set_width({0, SizeType::MATCH});
 		r->set_height({0, SizeType::MATCH});
 		
-		auto region = app->display()->surface_region();
+		auto region = app->display()->display_region();
 
 		r->set_scale(app->display()->scale());
 		r->set_translate(Vec2(region.x, region.y));

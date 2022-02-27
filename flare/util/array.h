@@ -114,6 +114,11 @@ namespace flare {
 		Array& push(const T& item);
 		Array& pop (uint32_t count = 1);
 
+		const T& front() const { return _val[0]; }
+		const T& back() const { return _val[_length - 1]; }
+		T&       front() { return _val[0]; }
+		T&       back() { return _val[_length - 1]; }
+
 		/**
 		* @func write()
 		* @arg src 

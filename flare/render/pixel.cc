@@ -58,7 +58,7 @@ namespace flare {
 		, _width(0)
 		, _height(0)
 		, _body()
-		, _type(COLOR_TYPE_INVALID) {
+		, _type(kColor_Type_Invalid) {
 	}
 
 	Pixel::Pixel(cPixel& body)

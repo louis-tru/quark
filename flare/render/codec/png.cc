@@ -70,16 +70,16 @@ Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
 	int color_type;
 	png_uint_32 r = png_get_IHDR(png, info, &w, &h, &bit_depth, &color_type, NULL, NULL, NULL);
 	
-	// PNG_COLOR_TYPE_GRAY          // 灰度图像,1,2,4,8或16 (1/2/4/8/16)
-	// PNG_COLOR_TYPE_PALETTE       // 索引彩色图像,1,2,4或8 (4/8/16/32)
-	// PNG_COLOR_TYPE_RGB           // 真彩色图像,8或16 (24/48)
-	// PNG_COLOR_TYPE_RGB_ALPHA     // 带α通道数据的真彩色图像,8或16 (32/64)
-	// PNG_COLOR_TYPE_GRAY_ALPHA    // 带α通道数据的灰度图像,8或16 (16/32)
+	// PNG_kColor_Type_GRAY          // 灰度图像,1,2,4,8或16 (1/2/4/8/16)
+	// PNG_kColor_Type_PALETTE       // 索引彩色图像,1,2,4或8 (4/8/16/32)
+	// PNG_kColor_Type_RGB           // 真彩色图像,8或16 (24/48)
+	// PNG_kColor_Type_RGB_ALPHA     // 带α通道数据的真彩色图像,8或16 (32/64)
+	// PNG_kColor_Type_GRAY_ALPHA    // 带α通道数据的灰度图像,8或16 (16/32)
 	
 	if ( bit_depth == 16 ) {
 		png_set_strip_16(png);
 	}
-	if (color_type == PNG_COLOR_TYPE_PALETTE) {
+	if (color_type == PNG_kColor_Type_PALETTE) {
 		png_set_expand(png);
 	}
 	if ( bit_depth < 8 ) {
@@ -145,7 +145,7 @@ PixelData PNGImageCodec::decode_header(cBuffer& data) {
 	if ( bit_depth == 16 ) {
 		png_set_strip_16(png);
 	}
-	if (color_type == PNG_COLOR_TYPE_PALETTE) {
+	if (color_type == PNG_kColor_Type_PALETTE) {
 		png_set_expand(png);
 	}
 	if ( bit_depth < 8 ) {

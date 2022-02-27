@@ -137,7 +137,7 @@ namespace flare {
 	}
 
 	void MetalRender::reload() {
-		auto region = _host->display()->surface_region();
+		auto region = _host->display()->display_region();
 
 		if (!_direct) {
 			_device = CFSafeRetain(MTLCreateSystemDefaultDevice());
@@ -199,7 +199,7 @@ namespace flare {
 
 	SkSurface* RasterMetalRender::surface() {
 		if (!_rasterSurface) {
-			auto region = _host->display()->surface_region();
+			auto region = _host->display()->display_region();
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 			_rasterSurface = SkSurface::MakeRaster(info);

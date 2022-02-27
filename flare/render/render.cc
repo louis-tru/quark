@@ -105,7 +105,7 @@ namespace flare {
 		: _host(host)
 		, _opts(opts)
 	{
-		_opts.colorType = _opts.colorType ? _opts.colorType: COLOR_TYPE_RGBA_8888;
+		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_BGRA_8888;
 		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
 	}
 
@@ -139,7 +139,7 @@ namespace flare {
 	SkSurface* RasterRender::surface() {
 		if (!_rasterSurface) {
 			// make the offscreen image
-			auto region = _host->display()->surface_region();
+			auto region = _host->display()->display_region();
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 			_rasterSurface = SkSurface::MakeRaster(info);

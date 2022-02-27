@@ -343,7 +343,7 @@ namespace flare {
 			
 			AVFormatContext* fmt_ctx = nullptr;
 			
-			ScopeClear clear([&fmt_ctx, this]() {
+			ClearScope clear([&fmt_ctx, this]() {
 				if ( fmt_ctx ) {
 					avformat_close_input(&fmt_ctx);
 				}

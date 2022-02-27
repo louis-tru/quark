@@ -748,7 +748,7 @@ namespace flare {
 		FT_Library lib;
 		FT_Init_FreeType(&lib);
 		
-		ScopeClear clear([&lib]() {
+		ClearScope clear([&lib]() {
 			FT_Done_FreeType(lib);
 		});
 		return Inl::inl_read_font_file(path, lib);

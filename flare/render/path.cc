@@ -84,45 +84,32 @@ namespace flare {
 
 	PathLine::PathLine() {}
 
-	void PathLine::add_move(Vec2 to) {
+	void PathLine::move_to(Vec2 to) {
 		_pts.push(to);
 		_verbs.push(kVerb_Move);
 	}
 
-	void PathLine::add_line(Vec2 to) {
+	void PathLine::line_to(Vec2 to) {
 		// _pts.push(to);
 		_pts.write(p1.val, -1, 2);
 		_verbs.push(kVerb_Line);
 	}
 
-	void PathLine::add_quad(Vec2 p1, Vec2 p2, Vec2 p3) {
-		// _pts.push(p1);
-		// _pts.push(p2);
-		// _pts.push(p3);
-		// _pts.push(_pts[_pts.length() - 4]); // close
-		_pts.write(p1.val, -1, 6);
-		_pts.write(_pts.val()[_pts.length() - 8], -1, 2); // close
-		_verbs.push(kVerb_Quad);
-	}
-
-	void PathLine::add_conic(Vec2 p1, Vec2 to) {
-		//_pts.push(p1);
-		//_pts.push(to);
-		// _pts.write(p1.val, -1, 4);
-		// _verbs.push(kVerb_Conic);
-	}
-
-	void PathLine::add_quadratic(Vec2 control, Vec2 to) {
+	void PathLine::quad_to(Vec2 control, Vec2 to) {
 		_pts.write(control.val, -1, 4);
 		_verbs.push(kVerb_Quadratic);
 	}
 
-	void PathLine::add_cubic(Vec2 control1, Vec2 control2, Vec2 to) {
+	void PathLine::cubic_to(Vec2 control1, Vec2 control2, Vec2 to) {
 		//_pts.push(control1[0]); _pts.push(control1[1]);
 		//_pts.push(control2[0]); _pts.push(control2[1]);
 		//_pts.push(to[0]); _pts.push(to[1]);
 		_pts.write(control1.val, -1, 6);
 		_verbs.push((uint8_t)kVerb_Cubic);
+	}
+
+	void PathLine::close_to() {
+		_verbs.push((uint8_t)kVerb_Close);
 	}
 
 	Array<Vec2> PathLine::to_polygon(int polySize) const {
@@ -180,6 +167,7 @@ namespace flare {
 					break;
 				}
 				default: // close
+					// TODO ...
 					break;
 			}
 		}

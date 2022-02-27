@@ -726,7 +726,7 @@ namespace flare {
 	*/
 	Rect View::screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]) {
 		Region re = screen_region_from_convex_quadrilateral(quadrilateral_vertex);
-		return { Vec2(re.x, re.y), Vec2(re.width, re.height) };
+		return { re.origin, re.end - re.origin };
 	}
 
 	/**
@@ -754,7 +754,7 @@ namespace flare {
 			} else {
 				max.set_y( D.y() ); min.set_y( B.y() );
 			}
-			size = Vec2(w1, max.y() - min.y());
+			//size = Vec2(w1, max.y() - min.y());
 		} else {
 			if ( B.x() > D.x() ) {
 				max.set_x( B.x() ); min.set_x( D.x() );
@@ -766,7 +766,7 @@ namespace flare {
 			} else {
 				max.set_y( C.y() ); min.set_y( A.y() );
 			}
-			size = Vec2(w2, max.y() - min.y());
+			//size = Vec2(w2, max.y() - min.y());
 		}
 		
 		#undef A
@@ -775,9 +775,7 @@ namespace flare {
 		#undef D
 			
 		return {
-			min.x(), min.y(),
-			max.x(), max.y(),
-			size.x(), size.y()
+			min, max
 		};
 	}
 

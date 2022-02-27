@@ -79,10 +79,10 @@ namespace flare {
 		}
 		
 		// set default draw region
-		_display_region.front() = {
+		_clip_region.front() = {
 			0, 0,
-			_size.x() * _scale.x(), _size.y() * _scale.y(),
-			_size.x() * _scale.x(), _size.y() * _scale.y(),
+			_size.x(), _size.y(),
+			_size.x(), _size.y(),
 		};
 
 		lock.unlock();
@@ -123,7 +123,7 @@ namespace flare {
 		, _next_fsp(0)
 		, _next_fsp_time(0), _display_region()
 	{
-		_display_region.push_back({ 0,0,0,0,0,0 });
+		_clip_region.push({ 0,0,0,0,0,0 });
 	}
 
 	Display::~Display() {
@@ -189,48 +189,50 @@ namespace flare {
 		}
 	}
 
-	// void Display::push_display_region(Region re) {
-	// 	// 计算一个交集区域
-	// 	Region dre = _display_region.back();
+	 void Display::push_clip_region(Region clip) {
+		DisplayRegion re = { clip.origin.x(), clip.origin.y(), clip.end.x(), clip.end.y(), 0,0 };
+	 	DisplayRegion dre = _clip_region.back();
+		 
+		// 计算一个交集区域
 		
-	// 	float x, x2, y, y2;
+	 	float x, x2, y, y2;
 		
-	// 	y = dre.y2 > re.y2 ? re.y2 : dre.y2; // 选择一个小的
-	// 	y2 = dre.y > re.y ? dre.y : re.y; // 选择一个大的
-	// 	x = dre.x2 > re.x2 ? re.x2 : dre.x2; // 选择一个小的
-	// 	x2 = dre.x > re.x ? dre.x : re.x; // 选择一个大的
+	 	y = dre.y2 > re.y2 ? re.y2 : dre.y2; // 选择一个小的
+	 	y2 = dre.y > re.y ? dre.y : re.y; // 选择一个大的
+	 	x = dre.x2 > re.x2 ? re.x2 : dre.x2; // 选择一个小的
+	 	x2 = dre.x > re.x ? dre.x : re.x; // 选择一个大的
 		
-	// 	if ( x > x2 ) {
-	// 		re.x = x2;
-	// 		re.x2 = x;
-	// 	} else {
-	// 		re.x = x;
-	// 		re.x2 = x2;
-	// 	}
+	 	if ( x > x2 ) {
+	 		re.x = x2;
+	 		re.x2 = x;
+	 	} else {
+	 		re.x = x;
+	 		re.x2 = x2;
+	 	}
 		
-	// 	if ( y > y2 ) {
-	// 		re.y = y2;
-	// 		re.y2 = y;
-	// 	} else {
-	// 		re.y = y;
-	// 		re.y2 = y2;
-	// 	}
+	 	if ( y > y2 ) {
+	 		re.y = y2;
+	 		re.y2 = y;
+	 	} else {
+	 		re.y = y;
+	 		re.y2 = y2;
+	 	}
 		
-	// 	re.x *= _scale.x();
-	// 	re.x2 *= _scale.x();
-	// 	re.y *= _scale.y();
-	// 	re.y2 *= _scale.y();
+	 	//re.x *= _scale.x();
+	 	//re.x2 *= _scale.x();
+	 	//re.y *= _scale.y();
+	 	//re.y2 *= _scale.y();
 
-	// 	re.width = re.x2 - re.x;
-	// 	re.height = re.y2 - re.y;
+	 	re.width = re.x2 - re.x;
+	 	re.height = re.y2 - re.y;
 		
-	// 	_display_region.push_back(re);
-	// }
+		 _clip_region.push(re);
+	}
 
-	// void Display::pop_display_region() {
-	// 	F_ASSERT( _display_region.length() > 1 );
-	// 	_display_region.pop_back();
-	// }
+	void Display::pop_clip_region() {
+		F_ASSERT( _clip_region.length() > 1 );
+		_clip_region.pop();
+	}
 
 	void Display::next_frame(cCb& cb) {
 		UILock lock(_host);

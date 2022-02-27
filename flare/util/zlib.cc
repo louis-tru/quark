@@ -271,7 +271,7 @@ namespace flare {
 			return false;
 		}
 		
-		ScopeClear clear([&]() {
+		ClearScope clear([&]() {
 			if ( unzClose((unzFile) unzp) != UNZ_OK ) {
 				F_ERR("Cannot close file ZipReader, %s", _path.c_str());
 			}

@@ -656,11 +656,11 @@ namespace flare {
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 		* 这种模糊测试在大多数时候都是正确有效的。
 		*/
-		Region dre = display()->display_region();
+		DisplayRegion clip = display()->clip_region();
 		Region re = screen_region_from_convex_quadrilateral(vertex);
 		
-		if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) <= re.height + dre.height &&
-				F_MAX( dre.x2, re.x2 ) - F_MIN( dre.x, re.x ) <= re.width + dre.width
+		if (F_MAX( clip.y2, re.end.y() ) - F_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
+				F_MAX( clip.x2, re.end.x() ) - F_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width
 		) {
 			return true;
 		}
