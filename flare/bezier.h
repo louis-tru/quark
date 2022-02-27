@@ -37,7 +37,9 @@
 namespace flare {
 
 	/**
-	* @class QuadraticBezier # 二次贝塞尔曲线
+	* @class QuadraticBezier 二次贝塞尔曲线
+	*
+	* B(t) = P_0(1-t)^2 + 2tP_1(1-t) + P_2t^2, t<-|0,1|
 	*/
 	class F_EXPORT QuadraticBezier {
 	public:
@@ -75,7 +77,9 @@ namespace flare {
 	};
 
 	/**
-	* @class CubicBezier # 三次贝塞尔曲线
+	* @class CubicBezier 三次贝塞尔曲线
+	*
+	* B(t) = P_0(1-t)^3 + 3P_1t(i-t)^2 + 3P_2t^2(1-t) + P_3t3, t<-|0,1|
 	*/
 	class F_EXPORT CubicBezier {
 	public:
