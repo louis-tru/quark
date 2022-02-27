@@ -33,11 +33,26 @@
 namespace flare {
 
 	XLineScaner::XLineScaner(const PathLine& path, Rect clip, float scale) {
+		if (scale != 1.0) {
+			_edge = PathLine(path).scale(Vec2(scale)).to_edge_line_i();
+		} else {
+			_edge = path.to_edge_line_i();
+		}
 
+		// clip paths
+		if (clip.size.x() > 0 && clip.size.y() > 0) {
+			if (scale != 1.0) {
+				clip.origin *= Vec2(scale);
+				clip.size *= Vec2(scale);
+			}
+			Vec2i clipOrigin = Vec2i(clip.origin.x(), clip.origin.y());
+			Vec2i clipEnd = _clipOrigin + Vec2i(clip.size.x(), clip.size.y());
+			// ..
+		}
 	}
 
-	bool XLineScaner::scanNext(ScanLine* line, bool antiAlias) {
-
+	bool XLineScaner::scan(ScanLine* line) {
+		// TODO ...
 		return true;
 	}
 

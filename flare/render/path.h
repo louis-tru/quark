@@ -32,34 +32,56 @@
 #define __flare__render__path__
 
 #include "../value.h"
+#include "../bezier.h"
 #include "../util/array.h"
 
 namespace flare {
 
-	class F_EXPORT PathLine: public Array<Vec2> {
+	class F_EXPORT PathLine: public Object {
 		public:
 			enum PathVerb: uint8_t {
-				kVerb_Move = 0, // start
+				kVerb_Move = 0, // move
 				kVerb_Line,  // straight line
-				kVerb_Quad,  // quadrilateral
-				kVerb_Conic, // quadratic bezier
-				kVerb_Cubic, // three times bezier
+				kVerb_Quad,  // quadratic bezier
+				// kVerb_Conic, // conic curve
+				kVerb_Cubic, // Cubic bezier
 				kVerb_Close, // close
 			};
-			static PathLine Oval(Rect r, Vec2 offset);
-			static PathLine Rect(Rect r, Vec2 offset);
-			static PathLine Circle(float r, Vec2 offset);
-			PathLine(const Vec2 pts[], uint32_t len, const PathVerb verbs[], uint32_t verbsLen);
-			inline const Vec2* pts() const { return _val; }
-			inline Array<PathVerb>& verbs_arr() { return _verbs; }
-			inline const PathVerb* verbs() const { return *_verbs; }
+			static PathLine Oval(Rect rect);
+			static PathLine Rect(Rect rect);
+			static PathLine Circle(Vec2 center, float radius);
+			PathLine(Vec2 move);
+			PathLine(Vec2* pts, int len, PathVerb* verbs, int verbsLen);
+			// add path points
+			void add_move(Vec2 to);
+			void add_line(Vec2 to);
+			void add_quad(Vec2 p1, Vec2 p2, Vec2 p3);
+			void add_conic(Vec2 control, Vec2 to);
+			void add_quadratic(Vec2 control, Vec2 to);
+			void add_cubic(Vec2 control1, Vec2 control2, Vec2 to);
+			// point ptr
+			inline const Vec2* pts() const { return (Vec2*)*_pts; }
+			inline const PathVerb* verbs() const { return (PathVerb*)*_verbs; }
+			inline const uint32_t pts_len() const { return _pts.length() >> 1; }
 			inline const uint32_t verbs_len() const { return _verbs.length(); }
+			// convert func
+			Array<Vec2>  to_polygon(int polySize = 3) const;
 			Array<Vec2>  to_edge_line() const;
-			Array<Vec2i> to_edge_line_i(float scale) const;
-			Array<Vec2>  to_polygon(int polySize) const;
-			Array<Vec2i> to_polygon_i(int polySize, float scale) const;
+			Array<Vec2i> to_edge_line_i() const;
+			// matrix transfrom
+			void transfrom(const Mat& matrix);
+			// scale transfrom
+			void scale(Vec2 scale);
+			// reduce path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
+			PathLine reduce() const;
+			PathLine clip(const PathLine& path) const;
+			// estimate sample rate
+			static int get_quadratic_bezier_sample(const QuadraticBezier& curve) const;
+			static int get_cubic_bezier_sample(const CubicBezier& curve) const;
 		private:
-			Array<PathVerb> _verbs;
+			PathLine();
+			Array<float> _pts;
+			Array<uint8_t> _verbs;
 	};
 }
 

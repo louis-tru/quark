@@ -44,11 +44,10 @@ namespace flare {
 			struct ScanLine {
 				int32_t left, right, y;
 			};
-			XLineScaner(const PathLine& path, Rect clip, float scale);
-			bool scanNext(ScanLine* line);
+			XLineScaner(const PathLine& path, Rect clip, float scale = 1.0);
+			bool scan(ScanLine* line);
 		private:
 			Array<Vec2i> _edge;
-			Vec2i  _clipOrigin, _clipEnd;
 	};
 }
 

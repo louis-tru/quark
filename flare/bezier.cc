@@ -63,13 +63,13 @@ namespace flare {
 	void QuadraticBezier::sample_curve_points(uint32_t sample_count, float* out) const {
 		float dt = 1.0 / ( sample_count - 1 );
 		for( uint32_t i = 0; i < sample_count; i++) {
-			float t = i * dt;
-			float t2 = 1 - t;
-			float t3 = t2 * t2;
-			float t4 = 2 * t * t2;
-			float t5 = t * t;
-			out[i * 2]      = t3 * p0x + t4 * p1x + t5 * p2x;
-			out[i * 2 + 1]  = t3 * p0y + t4 * p1y + t5 * p2y;
+			float t  = i * dt; float t2 = 1.0 - t;
+			float t3 = t2 * t2;    // t'^2
+			float t4 = t * t2 * 2; // 2tt'
+			float t5 = t * t;      // t^2
+			out[0]  = t3 * p0x + t4 * p1x + t5 * p2x;
+			out[1]  = t3 * p0y + t4 * p1y + t5 * p2y;
+			out += 2;
 		}
 	}
 
@@ -98,8 +98,10 @@ namespace flare {
 	void CubicBezier::sample_curve_points(uint32_t sample_count, float* out) const {
 		float dt = 1.0 / ( sample_count - 1 );
 		for( uint32_t i = 0; i < sample_count; i++) {
-			out[i * 2] = sample_curve_x(i * dt);
-			out[i * 2 + 1] = sample_curve_y(i * dt);
+			float t = i * dt;
+			out[0] = sample_curve_x(t);
+			out[1] = sample_curve_y(t);
+			out += 2;
 		}
 	}
 

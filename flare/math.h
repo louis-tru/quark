@@ -66,11 +66,23 @@ namespace flare {
 		inline MVec2<T> operator+(const MVec2& b) const {
 			return MVec2<T>(this->val[0] + b[0], this->val[1] + b[1]);
 		}
+		inline MVec2<T> operator*(const MVec2& b) const {
+			return MVec2<T>(this->val[0] * b[0], this->val[1] * b[1]);
+		}
+		inline MVec2<T> operator/(const MVec2& b) const {
+			return MVec2<T>(this->val[0] / b[0], this->val[1] / b[1]);
+		}
 		inline MVec2<T>& operator-=(const MVec2& b) {
 			this->val[0] -= b[0]; this->val[1] -= b[1]; return *this;
 		}
 		inline MVec2<T>& operator+=(const MVec2& b) {
 			this->val[0] += b[0]; this->val[1] += b[1]; return *this;
+		}
+		inline MVec2<T>& operator*=(const MVec2& b) {
+			this->val[0] *= b[0]; this->val[1] *= b[1]; return *this;
+		}
+		inline MVec2<T>& operator+=(const MVec2& b) {
+			this->val[0] /= b[0]; this->val[1] /= b[1]; return *this;
 		}
 		inline bool is_zero() const { return this->val[0] == 0 || this->val[1] == 0; }
 
