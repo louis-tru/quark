@@ -37,7 +37,7 @@
 namespace flare {
 
 	// Bezier curve formula of order N
-	// B(t) = E(i=0,n) P_i(1-t)^(n-i)t^i
+	// B(t) = E(i=0,n) P_i(1-t)^(n-i)t^i, t<-|0,1|
 
 	/**
 	* @class QuadraticBezier 二次贝塞尔曲线
