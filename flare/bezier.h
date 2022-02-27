@@ -165,22 +165,22 @@ namespace flare {
 		}
 		
 		/**
-		* @func solve_curve_x # Given an x value, find a parametric value it came from.
+		* @func solve_t Given an x value, find a parametric value it came from.
 		*/
-		float solve_curve_x(float x, float epsilon) const;
+		float solve_t(float x, float epsilon) const;
 		
 		/**
 		* @func solve
 		*/
-		inline float solve(float x, float epsilon) const {
-			return (this->*_solve)(x, epsilon);
+		inline float solve_y(float x, float epsilon) const {
+			return (this->*_solve_y)(x, epsilon);
 		}
 		
 	private:
 		
 		typedef float (FixedCubicBezier::*Solve)(float x, float epsilon) const;
 		
-		Solve _solve;
+		Solve _solve_y;
 		Vec2 _p1;
 		Vec2 _p2;
 		
