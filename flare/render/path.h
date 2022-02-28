@@ -70,8 +70,8 @@ namespace flare {
 			void transfrom(const Mat& matrix);
 			// scale transfrom
 			void scale(Vec2 scale);
-			// reduce path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
-			PathLine reduce() const;
+			// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
+			PathLine normalized() const; // normal
 			PathLine clip(const PathLine& path) const;
 			// estimate sample rate
 			static int get_quadratic_bezier_sample(const QuadraticBezier& curve) const;

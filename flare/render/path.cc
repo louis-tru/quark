@@ -271,7 +271,7 @@ namespace flare {
 		}
 	}
 
-	PathLine PathLine::reduce() const {
+	PathLine PathLine::normalized() const {
 		//F_ASSERT(_verbs.length());
 
 		const Vec2* pts = ((const Vec2*)*_pts);
