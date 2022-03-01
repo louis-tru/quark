@@ -46,8 +46,9 @@ namespace flare {
 				clip.size *= Vec2(scale);
 			}
 			Vec2i clipOrigin = Vec2i(clip.origin.x(), clip.origin.y());
-			Vec2i clipEnd = _clipOrigin + Vec2i(clip.size.x(), clip.size.y());
+			Vec2i clipEnd = clipOrigin + Vec2i(clip.size.x(), clip.size.y());
 			// ..
+
 		}
 	}
 
