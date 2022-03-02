@@ -33,8 +33,8 @@
 #define __ftr__render__scaner__
 
 #include "../util/util.h"
-#include "./path.h"
 #include "../value.h"
+#include "./path.h"
 
 namespace flare {
 
@@ -47,7 +47,14 @@ namespace flare {
 			XLineScaner(const PathLine& path, Rect clip, float scale = 1.0);
 			bool scan(ScanLine* line);
 		private:
-			Array<Vec2i> _edge;
+			struct Edge {
+				int32_t min_y, max_y;
+				int32_t x, incr_x;
+				Edge* next;
+			};
+			Array<Edge>  _edges;
+			Array<Edge*> _newEdges;
+			Edge* _activeEdges;
 	};
 }
 

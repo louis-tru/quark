@@ -32,11 +32,12 @@
 
 namespace flare {
 
-	XLineScaner::XLineScaner(const PathLine& path, Rect clip, float scale) {
+	XLineScaner::XLineScaner(const PathLine& path, Rect clip, float scale): _activeEdges(nullptr) {
+		Array<Vec2i> edges;
 		if (scale != 1.0) {
-			_edge = PathLine(path).scale(Vec2(scale)).to_edge_line_i();
+			edges = PathLine(path).scale(Vec2(scale)).to_edge_line_i();
 		} else {
-			_edge = path.to_edge_line_i();
+			edges = path.to_edge_line_i();
 		}
 
 		// clip paths
@@ -47,8 +48,15 @@ namespace flare {
 			}
 			Vec2i clipOrigin = Vec2i(clip.origin.x(), clip.origin.y());
 			Vec2i clipEnd = clipOrigin + Vec2i(clip.size.x(), clip.size.y());
-			// ..
+			// TODO ..
+		}
 
+		
+		for (auto edge: edges) {
+			
+			_edges.push({
+
+			});
 		}
 	}
 
