@@ -65,7 +65,6 @@ namespace flare {
 			// convert func
 			Array<Vec2>  to_polygon(int polySize = 3) const;
 			Array<Vec2>  to_edge_line() const;
-			Array<Vec2i> to_edge_line_i() const;
 			// matrix transfrom
 			void transfrom(const Mat& matrix);
 			// scale transfrom

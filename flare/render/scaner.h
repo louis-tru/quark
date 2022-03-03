@@ -49,7 +49,8 @@ namespace flare {
 		private:
 			struct Edge {
 				int32_t min_y, max_y;
-				int32_t x, incr_x;
+				int32_t x, incr, incr_cur;
+				int32_t incr_step;
 				Edge* next;
 			};
 			Array<Edge>  _edges;

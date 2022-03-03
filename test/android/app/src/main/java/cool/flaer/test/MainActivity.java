@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
 	protected String startCommand() {
 		//return "flare --inspect-brk=0.0.0.0:9229 http://192.168.0.11:1026/examples";
 		//return "flare --inspect-brk=0.0.0.0:9229 examples";
-		return "flare --no-node examples";
+		return "flare examples";
 		//return "flare examples";
 	}
 

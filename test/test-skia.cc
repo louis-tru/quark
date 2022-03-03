@@ -65,6 +65,7 @@ void draw_skia(SkCanvas* canvas) {
 	canvas->restore();
 	
 	// offcanvas
+	paint.setAntiAlias(false);
 	offcanvas.drawPath(oval, paint);
 	canvas->drawImage(bitmapCircle.asImage(), 600, 0);
 	

@@ -35,430 +35,198 @@
 
 using namespace flare;
 
-template<class T>
-void test_operation_add(const char* name) {
+#define Operation_DEF(name, symbol, T) {\
+	T a(random(0, 99999999)); \
+	T b(random(0, 99999999));\
+	T c(random(0, 99999999));\
+	T d(random(0, 99999999));\
+	T e(random(0, 99999999));\
+	T f(random(0, 99999999));\
+	T g(random(0, 99999999));\
+	T h(random(0, 99999999));\
+	T i(random(0, 99999999));\
+	T j(random(0, 99999999));\
+	uint64_t s1 = time_monotonic(); \
+	for ( int o = 0; o < 100000; o++ ) { \
+		T k = 0; \
+		k symbol##= a; \
+		k symbol##= b; \
+		k symbol##= c; \
+		k symbol##= d; \
+		k symbol##= e; \
+		k symbol##= f; \
+		k symbol##= g; \
+		k symbol##= h; \
+		k symbol##= i; \
+		k symbol##= j; \
+		k symbol##= a; \
+		k symbol##= b; \
+		k symbol##= c; \
+		k symbol##= d; \
+		k symbol##= e; \
+		k symbol##= f; \
+		k symbol##= g; \
+		k symbol##= h; \
+		k symbol##= i; \
+		k symbol##= j; \
+		k symbol##= a; \
+		k symbol##= b; \
+		k symbol##= c; \
+		k symbol##= d; \
+		k symbol##= e; \
+		k symbol##= f; \
+		k symbol##= g; \
+		k symbol##= h; \
+		k symbol##= i; \
+		k symbol##= j; \
+		k symbol##= a; \
+		k symbol##= b; \
+		k symbol##= c; \
+		k symbol##= d; \
+		k symbol##= e; \
+		k symbol##= f; \
+		k symbol##= g; \
+		k symbol##= h; \
+		k symbol##= i; \
+		k symbol##= j; \
+		k symbol##= a; \
+		k symbol##= b; \
+		k symbol##= c; \
+		k symbol##= d; \
+		k symbol##= e; \
+		k symbol##= f; \
+		k symbol##= g; \
+		k symbol##= h; \
+		k symbol##= i; \
+		k symbol##= j; \
+	} \
+	uint64_t s2 = time_monotonic(); \
+	F_LOG("%s: %llu", name #symbol, s2 - s1 - s0); \
 }
 
-template<class T, int T2, class T3 = T>
-void test_operation(const char* name) {
-
-	T numbers[10];
-	for ( int i = 0; i < 10; i++) {
-		numbers[i] = i + 1.11101;
-	}
+uint64_t test_operation_assign() {
+	int a(random(0, 99999999));
+	int b(random(0, 99999999));
+	int c(random(0, 99999999));
+	int d(random(0, 99999999));
+	int e(random(0, 99999999));
+	int f(random(0, 99999999));
+	int g(random(0, 99999999));
+	int h(random(0, 99999999));
+	int i(random(0, 99999999));
+	int j(random(0, 99999999));
 
 	uint64_t s1 = time_monotonic();
 
-	for ( int i = 0; i < 100000; i++ ) {
-		T3 a = 0;
-		if (T2 == 0) {
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-			a += numbers[0];
-			a += numbers[1];
-			a += numbers[2];
-			a += numbers[3];
-			a += numbers[4];
-			a += numbers[5];
-			a += numbers[6];
-			a += numbers[7];
-			a += numbers[8];
-			a += numbers[9];
-		} else if ( T2 == 1) {
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-			a *= numbers[0];
-			a *= numbers[1];
-			a *= numbers[2];
-			a *= numbers[3];
-			a *= numbers[4];
-			a *= numbers[5];
-			a *= numbers[6];
-			a *= numbers[7];
-			a *= numbers[8];
-			a *= numbers[9];
-		}
+	for ( int o = 0; o < 100000; o++ ) {
+		int k = 0;
+		k = a;
+		b = k;
+		c = b;
+		d = c;
+		c = e;
+		f = e;
+		g = f;
+		f = h;
+		i = f;
+		j = k;
+		k = a;
+		b = k;
+		c = b;
+		d = c;
+		c = e;
+		f = e;
+		g = f;
+		f = h;
+		i = f;
+		j = k;
+		k = a;
+		b = k;
+		c = b;
+		d = c;
+		c = e;
+		f = e;
+		g = f;
+		f = h;
+		i = f;
+		j = k;
+		k = a;
+		b = k;
+		c = b;
+		d = c;
+		c = e;
+		f = e;
+		g = f;
+		f = h;
+		i = f;
+		j = k;
+		k = a;
+		b = k;
+		c = b;
+		d = c;
+		c = e;
+		f = e;
+		g = f;
+		f = h;
+		i = f;
+		j = k;
+		k = a;
+		b = k;
+		c = b;
+		d = c;
+		c = e;
+		f = e;
+		g = f;
+		f = h;
+		i = f;
+		j = k;
+		k = a;
+		b = k;
+		c = b;
+		d = c;
+		c = e;
+		f = e;
+		g = f;
+		f = h;
+		i = f;
+		j = k;
+		k = a;
+		b = k;
+		c = b;
+		d = c;
+		c = e;
+		f = e;
+		g = f;
+		f = h;
+		i = f;
+		j = k;
+		k = a;
+		b = k;
+		c = b;
+		d = c;
+		c = e;
+		f = e;
+		g = f;
+		f = h;
+		i = f;
+		j = k;
+		k = a;
+		b = k;
+		c = b;
+		d = c;
+		c = e;
+		f = e;
+		g = f;
+		f = h;
+		i = f;
+		j = k;
 	}
 
 	uint64_t s2 = time_monotonic();
 
-	F_LOG("%s: %llu", name, s2 - s1);
+	F_LOG("assign: %lld, %d", s2 - s1, j);
+
+	return s2 - s1;
 }
 
 void test_number(int argc, char **argv) {
@@ -470,15 +238,30 @@ void test_number(int argc, char **argv) {
 	F_LOG("%d", c);
 	F_LOG("%d", *(char*)&b);
 
-	test_operation<int16_t, 0>("int16+");
-	test_operation<int, 0>("int+");
-	test_operation<std::atomic_int, 0, int>("AtomicInt+");
-	test_operation<int64_t, 0>("int64+");
-	test_operation<float, 0>("float+");
-	test_operation<double, 0>("double+");
-	test_operation<int16_t, 1>("int16*");
-	test_operation<int, 1>("int*");
-	test_operation<int64_t, 1>("int64*");
-	test_operation<float, 1>("float*");
-	test_operation<double, 1>("double*");
+	uint64_t s0 = test_operation_assign();
+
+	Operation_DEF("int16", +, int16_t);
+	Operation_DEF("int32", +, int32_t);
+	Operation_DEF("int64", +, int64_t);
+	Operation_DEF("float", +, float);
+	Operation_DEF("double", +, double);
+	// Operation_DEF("AtomicInt", +, std::atomic_int);
+
+	Operation_DEF("int16", *, int16_t);
+	Operation_DEF("int32", *, int32_t);
+	Operation_DEF("int64", *, int64_t);
+	Operation_DEF("float", *, float);
+	Operation_DEF("double", *, double);
+
+	Operation_DEF("int16", /, int16_t);
+	Operation_DEF("int32", /, int32_t);
+	Operation_DEF("int64", /, int64_t);
+	Operation_DEF("float", /, float);
+	Operation_DEF("double", /, double);
+
+	Operation_DEF("int16", %, int16_t);
+	Operation_DEF("int32", %, int32_t);
+	Operation_DEF("int64", %, int64_t);
+	// Operation_DEF("float", /, float);
+	// Operation_DEF("double", /, double);
 }

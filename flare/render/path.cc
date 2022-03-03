@@ -245,13 +245,6 @@ namespace flare {
 		return edges;
 	}
 
-	Array<Vec2i> PathLine::to_edge_line_i() const {
-		Array<Vec2i> edges;
-		for (auto it: to_edge_line())
-			edges.push(Vec2i(int(it[0]), int(it[1])));
-		return edges;
-	}
-
 	void PathLine::transfrom(const Mat& matrix) {
 		float* pts = *_pts;
 		float* e = pts + _pts.length();
