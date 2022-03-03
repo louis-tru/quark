@@ -41,21 +41,18 @@ namespace flare {
 	class F_EXPORT XLineScaner: public Object {
 		F_HIDDEN_ALL_COPY(XLineScaner);
 		public:
-			struct ScanLine {
-				int32_t left, right, y;
-			};
 			XLineScaner(const PathLine& path, Rect clip, float scale = 1.0);
-			bool scan(ScanLine* line);
+			void scan(void(*cb)(int32_t left, int32_t right, int32_t y));
 		private:
 			struct Edge {
 				int32_t min_y, max_y;
-				int32_t x, incr, incr_cur;
-				int32_t incr_step;
+				int32_t x, incr_x;
 				Edge* next;
 			};
 			Array<Edge>  _edges;
 			Array<Edge*> _newEdges;
-			Edge* _activeEdges;
+			Edge _activeEdges;
+			int32_t _start_y, _end_y;
 	};
 }
 
