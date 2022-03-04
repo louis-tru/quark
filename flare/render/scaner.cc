@@ -33,8 +33,7 @@
 namespace flare {
 
 	XLineScaner::XLineScaner(const PathLine& path, Rect clip, float scale)
-		: _activeEdges(nullptr),
-		, _activeEdges{0,0,0,0,0},
+		: _activeEdges{0, 0, Float::limit_min, 0, 0},
 		_start_y(Int32::limit_max), _end_y(Int32::limit_min)
 	{
 		scale *= 65536;
@@ -78,20 +77,12 @@ namespace flare {
 			int y = e.min_y - _start_y;
 			_newEdges.extend(y + 1);
 
-			Edge* edge = _newEdges[y];
 			Edge* prev = nullptr;
+			Edge* edge = _newEdges[y];
 
 			// sort new edges
 			do {
-				if (!edge) {
-					if (prev) {
-						prev->next = &newEdge;
-					} else {
-						_newEdges[y] = &newEdge;
-					}
-					break;
-				}
-				if (newEdge.x <= edge.x) {
+				if ( !edge || newEdge.x < edge->x || (newEdge.x == edge->x && newEdge.incr_x < edge->incr_x) ) {
 					if (prev) {
 						prev->next = &newEdge;
 					} else {
@@ -111,17 +102,52 @@ namespace flare {
 		int y = _start_y;
 		int e = _end_y + 1;
 
+		auto getLeft = [](Edge* prev, Edge* left, int32_t y) {
+			if (prev->x == left->x) {
+				if ((prev->max_y > y && y > left->min_y) || (prev->min_y < y && y < left->max_y)) { // 1 points
+					return left->next;
+				} // else 0、2 points
+			}
+			return left;
+		};
+
 		while (y < e) {
 			Edge *newEdge = _newEdges[i];
-			Edge *edge = &_activeEdges;
-			Edge *left, *right;
+			Edge *prev, *left, *right;
 
 			if (newEdge) {
-				F_DEBUG("%d", newEdge->x);
 				// check new edges
+				prev = &_activeEdges;
+				left = prev->next; // edge
+				// F_DEBUG("%d", newEdge->x);
+
+				if (!left) {
+					prev->next = newEdge; // end
+				} else {
+					do { // sort
+						start:
+						if (newEdge->x < left->x || (newEdge.x == left->x && newEdge.incr_x < left->incr_x)) {
+							Edge* tmp = newEdge->next;
+							prev->next = newEdge;
+							newEdge->next = left;
+							newEdge = tmp;
+						} else {
+							prev = left;
+							left = left->next;
+							if (left) {
+								goto start;
+							} else {
+								prev->next = newEdge; // end
+								break;
+							}
+						}
+					} while(newEdge);
+				}
 			}
 
-			while ((left = edge->next) && (right = left->next)) {
+			prev = right = &_activeEdges;
+
+			while ((left = getLeft(right, prev->next, y)) && (right = left->next)) {
 
 				cb(left->x >> 16, right->x >> 16, y);
 
@@ -130,18 +156,18 @@ namespace flare {
 					left->x += left->incr_x;
 					if (y < right->max_y) {
 						right->x += right->incr_x;
-						edge = right;
-					} else {
+						prev = right;
+					} else { // delete righ
 						left->next = right->next;
-						edge = left;
+						prev = left;
 					}
 				} else if (y < right->max_y) {
 					right->x += right->incr_x;
-					edge->next = right;
-					edge = right;
+					prev->next = right;
+					prev = right;
 				} else {
-					edge->next = right->next;
-					edge = edge->next;
+					prev->next = right->next;
+					prev = prev->next;
 				}
 			}
 
