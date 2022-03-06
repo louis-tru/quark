@@ -73,9 +73,11 @@ namespace flare {
 			PathLine normalized() const; // normal
 			PathLine clip(const PathLine& path) const;
 			// estimate sample rate
-			static int get_quadratic_bezier_sample(const QuadraticBezier& curve) const;
-			static int get_cubic_bezier_sample(const CubicBezier& curve) const;
+			static int get_quadratic_bezier_sample(const QuadraticBezier& curve);
+			static int get_cubic_bezier_sample(const CubicBezier& curve);
 		private:
+			void quad_to2(float *p);
+			void cubic_to2(float *p);
 			PathLine();
 			Array<float> _pts;
 			Array<uint8_t> _verbs;

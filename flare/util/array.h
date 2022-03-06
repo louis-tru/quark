@@ -564,7 +564,7 @@ namespace flare {
 	template<> F_EXPORT
 	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len);
 
-	#define F_DEF_ARRAY_SPECIAL(T, A) \
+	#define F_DEF_ARRAY_SPECIAL_(T, A) \
 		template<> F_EXPORT void              Array<T, A>::extend(uint32_t length, uint32_t capacity); \
 		template<> F_EXPORT std::vector<T>    Array<T, A>::vector() const; \
 		template<> F_EXPORT Array<T, A>&      Array<T, A>::concat_(T* src, uint32_t src_length); \
@@ -574,22 +574,22 @@ namespace flare {
 		template<> F_EXPORT void              Array<T, A>::realloc(uint32_t capacity); \
 		template<> F_EXPORT ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const \
 
-	#define F_DEF_ARRAY_SPECIAL_ALL(T) \
-		F_DEF_ARRAY_SPECIAL(T, MemoryAllocator)
+	#define F_DEF_ARRAY_SPECIAL(T) \
+		F_DEF_ARRAY_SPECIAL_(T, MemoryAllocator)
 
-	F_DEF_ARRAY_SPECIAL_ALL(char);
-	F_DEF_ARRAY_SPECIAL_ALL(unsigned char);
-	F_DEF_ARRAY_SPECIAL_ALL(int16_t);
-	F_DEF_ARRAY_SPECIAL_ALL(uint16_t);
-	F_DEF_ARRAY_SPECIAL_ALL(int32_t);
-	F_DEF_ARRAY_SPECIAL_ALL(uint32_t);
-	F_DEF_ARRAY_SPECIAL_ALL(int64_t);
-	F_DEF_ARRAY_SPECIAL_ALL(uint64_t);
-	F_DEF_ARRAY_SPECIAL_ALL(float);
-	F_DEF_ARRAY_SPECIAL_ALL(double);
+	F_DEF_ARRAY_SPECIAL(char);
+	F_DEF_ARRAY_SPECIAL(unsigned char);
+	F_DEF_ARRAY_SPECIAL(int16_t);
+	F_DEF_ARRAY_SPECIAL(uint16_t);
+	F_DEF_ARRAY_SPECIAL(int32_t);
+	F_DEF_ARRAY_SPECIAL(uint32_t);
+	F_DEF_ARRAY_SPECIAL(int64_t);
+	F_DEF_ARRAY_SPECIAL(uint64_t);
+	F_DEF_ARRAY_SPECIAL(float);
+	F_DEF_ARRAY_SPECIAL(double);
 
-	#undef F_DEF_ARRAY_SPECIAL
-	#undef F_DEF_ARRAY_SPECIAL_ALL
+	//#undef F_DEF_ARRAY_SPECIAL
+	//#undef F_DEF_ARRAY_SPECIAL_
 }
 
 #endif

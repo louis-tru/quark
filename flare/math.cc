@@ -32,7 +32,13 @@
 #include <math.h>
 #include "./math.h"
 
+#define F_ARRAY_NO_IMPL 1
+
+#include "./util/array.cc"
+
 namespace flare {
+
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Vec2);
 
 	template<>
 	float MVec2<float>::distance(MVec2<float> point) const {

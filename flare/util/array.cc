@@ -35,26 +35,7 @@
 
 namespace flare {
 
-	template<>
-	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {
-		if (len > 1) {
-			char* _src = (char*)src;
-			void* tmp = malloc(size);
-			uint32_t len2 = floor(len / 2);
-			uint32_t i = 0;
-			while (i < len2) {
-				char* src = _src + (i * size);
-				char* dest = _src + ((len - i - 1) * size);
-				memcpy(tmp, src, size);
-				memcpy(src, dest, size);
-				memcpy(dest, tmp, size);
-				i++;
-			}
-			free(tmp);
-		}
-	}
-
-	#define F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, A, APPEND_ZERO) \
+	#define F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, A, APPEND_ZERO) \
 		\
 		template<> void Array<T, A>::extend(uint32_t length, uint32_t capacity) \
 		{ \
@@ -138,17 +119,39 @@ namespace flare {
 			return ArrayBuffer<T, A>();\
 		} \
 
-	#define F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(T) \
-		F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, MemoryAllocator, 1)
+	#define F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T) \
+		F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, MemoryAllocator, 1)
 	
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(char);
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(unsigned char);
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int16_t);
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint16_t);
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int32_t);
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint32_t);
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int64_t);
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint64_t);
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(float);
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(double);
+
+#ifndef F_ARRAY_NO_IMPL
+	template<>
+	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {
+		if (len > 1) {
+			char* _src = (char*)src;
+			void* tmp = malloc(size);
+			uint32_t len2 = floor(len / 2);
+			uint32_t i = 0;
+			while (i < len2) {
+				char* src = _src + (i * size);
+				char* dest = _src + ((len - i - 1) * size);
+				memcpy(tmp, src, size);
+				memcpy(src, dest, size);
+				memcpy(dest, tmp, size);
+				i++;
+			}
+			free(tmp);
+		}
+	}
+	
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(unsigned char);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int32_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint32_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64_t);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float);
+	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double);
+#endif
 }

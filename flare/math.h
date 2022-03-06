@@ -32,6 +32,7 @@
 #define __flare__math__math__
 
 #include "./util/util.h"
+#include "./util/array.h"
 
 #define T_PI 3.1415926535898f                   // PI
 #define T_PI_RATIO_180  0.017453292519943f      // PI / 180
@@ -437,6 +438,8 @@ namespace flare {
 		*/
 		static Mat4 ortho(float left, float right, float top, float bottom, float near, float far);
 	};
+	
+	F_DEF_ARRAY_SPECIAL(Vec2);
 
 }
 #endif

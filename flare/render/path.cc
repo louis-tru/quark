@@ -31,11 +31,11 @@
 #include "tesselator.h"
 #include "./path.h"
 #include "../util/handle.h"
-#include "../util/bezier.h"
+#include "../bezier.h"
 
 namespace flare {
 
-	PathLine PathLine::Oval(Rect r) {
+	PathLine PathLine::Oval(struct Rect r) {
 		float w = r.size.x(), h = r.size.y();
 		float x = r.origin.x(), y = r.origin.x();
 		float x2 = x + w / 2, y2 = y + h / 2;
@@ -43,16 +43,16 @@ namespace flare {
 		float cx = w / 2 * 0.552284749831f, cy = h / 2 * 0.552284749831f;
 
 		PathLine path(Vec2(x2, y)); // move
-		path.cubic_to(Vec2(x2 + cx, y), Vec2(x3, y2 - cy), Vec2(x3, y2)); // top,right
-		path.cubic_to(Vec2(x3, y2 + cy), Vec2(x2 + cx, y3), Vec2(x2, y3)); // right,bottom
-		path.cubic_to(Vec2(x2 - cx, y3), Vec2(x, y2 + cy), Vec2(x, y2)); // bottom,left
-		path.cubic_to(Vec2(x, y2 - cy), Vec2(x2 - cx, y), Vec2(x2, y)); // left,top
+		float a[] = {x2 + cx, y, x3, y2 - cy, x3, y2}; path.cubic_to2(a); // top,right
+		float b[] = {x3, y2 + cy, x2 + cx, y3, x2, y3}; path.cubic_to2(b); // right,bottom
+		float c[] = {x2 - cx, y3, x, y2 + cy, x, y2}; path.cubic_to2(c); // bottom,left
+		float d[] = {x, y2 - cy, x2 - cx, y, x2, y}; path.cubic_to2(d); // left,top
 		// path.close_to();
 
 		return path;
 	}
 
-	PathLine PathLine::Rect(Rect r) {
+	PathLine PathLine::Rect(struct Rect r) {
 		PathLine path(r.origin);
 		float x2 = r.origin.x() + r.size.x();
 		float y2 = r.origin.y() + r.size.y();
@@ -68,7 +68,7 @@ namespace flare {
 	}
 
 	PathLine::PathLine(Vec2 move) {
-		add_move(move);
+		move_to(move);
 	}
 
 	PathLine::PathLine(Vec2* pts, int len, PathVerb* verbs, int verbsLen) {
@@ -80,18 +80,20 @@ namespace flare {
 	PathLine::PathLine() {}
 
 	void PathLine::move_to(Vec2 to) {
-		_pts.push(to);
+		// _pts.push(to.x()); _pts.push(to.y());
+		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Move);
 	}
 
 	void PathLine::line_to(Vec2 to) {
 		// _pts.push(to);
-		_pts.write(p1.val, -1, 2);
+		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Line);
 	}
 
 	void PathLine::quad_to(Vec2 control, Vec2 to) {
-		_pts.write(control.val, -1, 4);
+		_pts.write(control.val, -1, 2);
+		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Quad);
 	}
 
@@ -100,11 +102,23 @@ namespace flare {
 		//_pts.push(control2[0]); _pts.push(control2[1]);
 		//_pts.push(to[0]); _pts.push(to[1]);
 		_pts.write(control1.val, -1, 6);
-		_verbs.push((uint8_t)kVerb_Cubic);
+		_pts.write(control2.val, -1, 2);
+		_pts.write(to.val, -1, 2);
+		_verbs.push(kVerb_Cubic);
+	}
+
+	void PathLine::quad_to2(float *p) {
+	_pts.write(p, -1, 4);
+	_verbs.push(kVerb_Quad);
+	}
+
+	void PathLine::cubic_to2(float *p) {
+		_pts.write(p, -1, 6);
+		_verbs.push(kVerb_Cubic);
 	}
 
 	void PathLine::close_to() {
-		_verbs.push((uint8_t)kVerb_Close);
+		_verbs.push(kVerb_Close);
 	}
 
 	Array<Vec2> PathLine::to_polygon(int polySize) const {
@@ -137,7 +151,8 @@ namespace flare {
 					break;
 				case kVerb_Quad: { // quadratic
 					// F_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
-					QuadraticBezier bezier(tmpV.back(), *pts++, *pts++);
+					QuadraticBezier bezier(tmpV.back(), pts[0], pts[1]);
+					pts+=2;
 					int sample = PathLine::get_quadratic_bezier_sample(bezier);
 					tmpV.extend(tmpV.length() + sample - 1);
 					bezier.sample_curve_points(sample, (float*)&tmpV[tmpV.length() - sample]);
@@ -147,7 +162,8 @@ namespace flare {
 				case kVerb_Cubic: {// cubic
 					//  F_DEBUG("cubic_to:%f,%f|%f,%f|%f,%f",
 					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
-					CubicBezier bezier(tmpV.back(), *pts++, *pts++, *pts++);
+					CubicBezier bezier(tmpV.back(), pts[0], pts[1], pts[2]);
+					pts+=3;
 					int sample = PathLine::get_cubic_bezier_sample(bezier);
 					tmpV.extend(tmpV.length() + sample - 1);
 					bezier.sample_curve_points(sample, (float*)&tmpV[tmpV.length() - sample]);
@@ -209,26 +225,26 @@ namespace flare {
 					break;
 				case kVerb_Quad: { // Quadratic
 					//  F_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
-					QuadraticBezier bezier(isZeor ? (pts++, Vec2()): *pts++, *pts++, *pts++);
+					QuadraticBezier bezier(isZeor ? Vec2(): pts[0], pts[1], pts[2]); pts+=2;
 					int sample = PathLine::get_quadratic_bezier_sample(bezier);
 					auto points = bezier.sample_curve_points(sample);
 					for (int i = 0; i < sample - 1; i++) {
 						edges.push(points[i]); edges.push(points[i + 1]); // add edge line
-						len+=2;
 					}
+					len += (sample * 2 - 2);
 					isZeor = false;
 					break;
 				}
 				case kVerb_Cubic: { // cubic
 					//  F_DEBUG("cubic_to:%f,%f|%f,%f|%f,%f",
 					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
-					CubicBezier bezier(isZeor ? (pts++, Vec2()): *pts++, *pts++, *pts++, *pts++);
+					CubicBezier bezier(isZeor ? Vec2(): pts[0], pts[1], pts[2], pts[3]); pts+=3;
 					int sample = PathLine::get_cubic_bezier_sample(bezier);
 					auto points = bezier.sample_curve_points(sample);
 					for (int i = 0; i < sample - 1; i++) {
 						edges.push(points[i]); edges.push(points[i + 1]); // add edge line
-						len+=2;
 					}
+					len += (sample * 2 - 2);
 					isZeor = false;
 					break;
 				}
@@ -280,13 +296,14 @@ namespace flare {
 				case kVerb_Line:
 					if (isZeor)
 						line.move_to(Vec2()); // add zeor
-					line.add_line(*pts++);
+					line.line_to(*pts++);
 					isZeor = false;
 					break;
 				case kVerb_Quad: { // quadratic
 					if (isZeor)
 						line.move_to(Vec2());
-					QuadraticBezier bezier(line.back(), *pts++, *pts++);
+					QuadraticBezier bezier(line._pts.back(), pts[0], pts[1]);
+					pts+=2;
 					int sample = PathLine::get_quadratic_bezier_sample(bezier) - 1;
 					line._pts.extend(line._pts.length() + sample * 2);
 					bezier.sample_curve_points(sample, &line._pts[line._pts.length() - sample * 2 - 2]);
@@ -298,7 +315,8 @@ namespace flare {
 				case kVerb_Cubic: { // cubic
 					if (isZeor)
 						line.move_to(Vec2());
-					CubicBezier bezier(line.back(), *pts++, *pts++, *pts++);
+					CubicBezier bezier(line._pts.back(), pts[0], pts[1], pts[2]);
+					pts+=3;
 					int sample = PathLine::get_cubic_bezier_sample(bezier) - 1;
 					line._pts.extend(line._pts.length() + sample * 2);
 					bezier.sample_curve_points(sample, &line._pts[line._pts.length() - sample * 2 - 2]);
@@ -322,14 +340,14 @@ namespace flare {
 		return PathLine();
 	}
 
-	int PathLine::get_quadratic_bezier_sample(const QuadraticBezier& curve) const {
+	int PathLine::get_quadratic_bezier_sample(const QuadraticBezier& curve) {
 		// TODO ...
-		return 10;
+		return 16;
 	}
 
-	int PathLine::get_cubic_bezier_sample(const CubicBezier& curve) const {
+	int PathLine::get_cubic_bezier_sample(const CubicBezier& curve) {
 		// TODO ...
-		return 10;
+		return 20;
 	}
 
 }

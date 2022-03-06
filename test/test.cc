@@ -34,7 +34,7 @@
 #include "../deps/node/src/flare.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_skia
+#define TEST_FUNC_NAME test_scaner
 #endif
 
 using namespace flare;
