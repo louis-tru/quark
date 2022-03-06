@@ -37,7 +37,7 @@ namespace flare {
 
 	PathLine PathLine::Oval(struct Rect r) {
 		float w = r.size.x(), h = r.size.y();
-		float x = r.origin.x(), y = r.origin.x();
+		float x = r.origin.x(), y = r.origin.y();
 		float x2 = x + w / 2, y2 = y + h / 2;
 		float x3 = x + w, y3 = y + h;
 		float cx = w / 2 * 0.552284749831f, cy = h / 2 * 0.552284749831f;

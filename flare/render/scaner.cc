@@ -62,6 +62,7 @@ namespace flare {
 		for (int i = 0; i < edges.length(); i+=2) {
 			Vec2i p1 = edges[i], p2 = edges[i + 1];
 			int y1 = p1.y() >> 16, y2 = p2.y() >> 16;
+			//int y1 = roundf(p1.y() / 65536.0f), y2 = roundf(p2.y() / 65536.0f);
 			int d = p1.y() - p2.y();
 			if (y1 > y2) {
 				int64_t incr = (int64_t(p1.x() - p2.x()) << 16) / (d);
@@ -198,7 +199,11 @@ namespace flare {
 			Edge *left = _activeEdges.next; F_ASSERT(left, "left Edge cannot be empty");
 			Edge *right = left->next;       F_ASSERT(right, "right Edge cannot be empty");
 
-			cb(left->x, right->x, y, ctx);
+			//if (left->x > right->x) {
+			//	cb(right->x, left->x, y, ctx);
+			//} else {
+				cb(left->x, right->x, y, ctx);
+			//}
 
 			// check delete active edges
 			if (y < left->max_y) {

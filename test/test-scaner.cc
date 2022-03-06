@@ -27,13 +27,13 @@ void testRenderScaner(SkCanvas* canvas) {
 	SkCanvas offcanvas(bitmapCircle);
 	//offcanvas.clear(0xff00ff00);
 
-	SkPath oval = SkPath::Oval(SkRect::MakeWH(320, 320), SkPathDirection::kCCW);
+	SkPath oval = SkPath::Oval(SkRect::MakeXYWH(.5, .9, 320, 320), SkPathDirection::kCCW);
 	Array<uint8_t> verbs(oval.countVerbs());
 	oval.getVerbs(&verbs[0], verbs.length());
 	
 	auto pixmap = bitmapCircle.pixmap();
 	
-	PathLine oval2 = PathLine::Oval({ Vec2(10.7,20.5), Vec2(320, 320) });
+	PathLine oval2 = PathLine::Oval({ Vec2(.5,.9), Vec2(320, 320) });
 	XLineScaner scaner(oval2, {}, 1, true);
 	
 	scaner.scan([](int left, int right, int y, void* ctx) {
