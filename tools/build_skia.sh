@@ -12,20 +12,22 @@ else
 	output=out
 fi
 
-ninja=ninja
+if [ "$NINJA" == "" ]; then
+	NINJA=ninja
+fi
 
-if [ ! `which $ninja` ]; then
+if [ ! `which $NINJA` ]; then
 	if [ `uname` == "Darwin" ] && [ -f /opt/homebrew/bin/ninja ]; then
-		ninja=/opt/homebrew/bin/ninja
+		NINJA=/opt/homebrew/bin/ninja
 	fi
 fi
 
 cd $output
 
 if [ "$V" ]; then
-	$ninja -v
+	$NINJA -v
 else
-	$ninja
+	$NINJA
 fi
 
 # clang -MD -MF obj/src/gpu/gpu.GrBackendSemaphore.o.d -DNDEBUG -DSK_ENABLE_SKSL -mios-simulator-version-min=10.0 \

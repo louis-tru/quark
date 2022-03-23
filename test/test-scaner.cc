@@ -1,6 +1,5 @@
 
 #include <stdio.h>
-#include <skia/core/SkICC.h>
 #include <flare/app.h>
 #include <flare/layout/root.h>
 #include <flare/render/render.h>
@@ -10,6 +9,7 @@
 #include <flare/display.h>
 #include <flare/util/fs.h>
 #include <vector>
+#include <skia/core/SkImage.h>
 #include <skia/core/SkFont.h>
 #include <skia/core/SkMaskFilter.h>
 #include <skia/effects/SkDashPathEffect.h>

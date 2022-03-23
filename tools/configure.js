@@ -344,19 +344,30 @@ function configure_skia(opts, variables) {
 	// python tools/git-sync-deps
 	// ./bin/gn gen out --ide=xcode --args='is_debug=false is_official_build=false is_component_build=false target_cpu="arm64" target_os="ios"'
 
-	// ./bin/gn gen out --args='\
-	// is_component_build=false \
-	// skia_enable_skottie=false \
-	// target_cpu="x64" \
-	// target_os="ios" \
-	// target_cxx="clang -mios-simulator-version-min=10.0" \
-	// is_debug=false \
-	// is_official_build=true \
-	// skia_use_system_libjpeg_turbo=false \
-	// skia_use_system_libpng=false \
-	// skia_use_system_libwebp=false \
-	// skia_use_icu=false \
-	// xcode_sysroot="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.5.sdk" '
+	/*
+	./bin/gn gen out
+	--sysroot="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator15.4.sdk"  \
+	--args='\
+		is_component_build=false   
+		target_cpu="arm64"   
+		skia_enable_skottie=false   
+		skia_use_gl=true   
+		skia_enable_flutter_defines=true   
+		skia_use_fonthost_mac=true      
+		is_debug=false    
+		is_official_build=true    
+		skia_use_system_libjpeg_turbo=false    
+		skia_use_system_libpng=false    
+		skia_use_system_libwebp=false    
+		skia_use_icu=false    
+		skia_use_system_expat=false       
+		target_os="ios"    
+		skia_use_metal=true    
+		xcode_sysroot="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator15.4.sdk"   
+		target_cxx="clang -mios-simulator-version-min=10.0 "   
+		target_cc="clang -mios-simulator-version-min=10.0 "   
+		target_link="clang++ -mios-simulator-version-min=10.0 "  '
+	*/
 
 	var os = opts.os;
 	var arch_name = variables.arch_name;
@@ -372,6 +383,8 @@ function configure_skia(opts, variables) {
 		skia_enable_flutter_defines=true \
 		skia_use_fonthost_mac=true \
 	`;
+
+	// args0 += `--target_cpu="x86_64" `
 
 	if (variables.debug) {
 		args += ` \
@@ -412,7 +425,7 @@ function configure_skia(opts, variables) {
 			cc_flags += `-miphoneos-version-min=${variables.version_min} `
 		}
 	} else if (os == 'osx') {
-		variables.cc
+		// variables.cc
 		args += ` \
 			target_os="darwin" \
 			skia_use_metal=true \
@@ -430,11 +443,14 @@ function configure_skia(opts, variables) {
 	console.log(`export PATH=${__dirname}:${variables.build_bin}:$PATH`);
 
 	var cmd = `cd ${source} && \
-		./bin/gn gen --ide=xcode out ${args0} --args='${args}' && \
-		./bin/gn gen ${variables.output}/obj.target/skia ${args0} --args='${args}' `;
-	console.log(cmd);
+		./bin/gn gen                                 out ${args0} --args='${args}' --ide=xcode && \
+		./bin/gn gen ${variables.output}/obj.target/skia ${args0} --args='${args}' --ide=json && \
+		./bin/gn gen ${variables.output}/obj.target/skia ${args0} --args='${args}' \
+	`;
+	cmd = cmd.replace(/\t/gm, ' ');
 
-	var log = syscall(cmd.replace(/\t/gm, ' '));
+	console.log(cmd);
+	var log = syscall(cmd);
 	console.error(log.stderr.join('\n'));
 	console.log(log.stdout.join('\n'));
 	// process.exit(0);
