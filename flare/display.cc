@@ -162,7 +162,9 @@ namespace flare {
 			_next_fsp++;
 
 			auto render = _host->render();
-			
+
+			render->begin(); // ready render
+
 			root->draw(render->canvas(), 1); // 开始绘图
 			solve_next_frame();
 			
@@ -175,7 +177,9 @@ namespace flare {
 			* 如果能够确保绘图函数的调用都在渲染线程,那就不会有安全问题。
 			*/
 			lock.unlock(); //
-			render->submit();
+
+			render->submit(); // commit render cmd
+
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t ts2 = (time_micro() - st) / 1e3;
 				if (ts2 > 16) {

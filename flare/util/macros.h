@@ -141,9 +141,7 @@
 # error Host architecture was not detected as supported by flare
 #endif
 
-#if defined(__ARM_ARCH_7A__) || \
-defined(__ARM_ARCH_7R__) || \
-defined(__ARM_ARCH_7__)
+#if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7__)
 # undef F_ARCH_ARMV7
 # define F_ARCH_ARMV7  1
 #endif
@@ -155,10 +153,7 @@ defined(__ARM_ARCH_7__)
 # define F_UNIX       1
 #endif
 
-#if defined(__OpenBSD__) || \
-defined(__NetBSD__)   || \
-defined(__FreeBSD__)  || \
-defined(__DragonFly__)
+#if defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
 # undef F_POSIX
 # define F_POSIX      1
 # undef F_BSD
@@ -245,40 +240,6 @@ defined(__DragonFly__)
 
 // ----------------------------- Compiling environment end -----------------------------
 
-// This macro allows to test for the version of the GNU C++ compiler.
-// Note that this also applies to compilers that masquerade as GCC,
-// for example clang and the Intel C++ compiler for Linux.
-// Use like:
-//  #if V8_GNUC_PREREQ(4, 3, 1)
-//   ...
-//  #endif
-#if defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
-# define F_GNUC_PREREQ(major, minor, patchlevel) \
-((__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= \
-((major) * 10000 + (minor) * 100 + (patchlevel)))
-#elif defined(__GNUC__) && defined(__GNUC_MINOR__)
-# define F_GNUC_PREREQ(major, minor, patchlevel) \
-((__GNUC__ * 10000 + __GNUC_MINOR__ * 100) >= \
-((major) * 10000 + (minor) * 100 + (patchlevel)))
-#else
-# define F_GNUC_PREREQ(major, minor, patchlevel) 0
-#endif
-
-#if F_CLANG
-# define F_HAS_ATTRIBUTE_ALWAYS_INLINE (__has_attribute(always_inline))
-# define F_HAS_ATTRIBUTE_VISIBILITY (__has_attribute(visibility))
-#elif F_GNUC
-// always_inline is available in gcc 4.0 but not very reliable until 4.4.
-// Works around "sorry, unimplemented: inlining failed" build errors with
-// older compilers.
-# define F_HAS_ATTRIBUTE_ALWAYS_INLINE (F_GNUC_PREREQ(4, 4, 0))
-# define F_HAS_ATTRIBUTE_VISIBILITY (F_GNUC_PREREQ(4, 3, 0))
-#elif F_MSC
-# define F_HAS_FORCE_INLINE 1
-#endif
-
-// ------------------------------------------------------------------
-
 #ifndef F_MORE_LOG
 # define F_MORE_LOG 0
 #endif
@@ -317,6 +278,40 @@ defined(__DragonFly__)
 # define F_DEBUG F_LOG
 #else
 # define F_DEBUG(msg, ...) ((void)0)
+#endif
+
+#define F_NAMESPACE(NAME) namespace NAME {
+#define F_NAMESPACE_START F_NAMESPACE(flare)
+#define F_NAMESPACE_END }
+
+// ------------------------------------------------------------------
+
+// This macro allows to test for the version of the GNU C++ compiler.
+// Note that this also applies to compilers that masquerade as GCC,
+// for example clang and the Intel C++ compiler for Linux.
+#if defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
+# define F_GNUC_PREREQ(major, minor, patchlevel) \
+	((__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= \
+	((major) * 10000 + (minor) * 100 + (patchlevel)))
+#elif defined(__GNUC__) && defined(__GNUC_MINOR__)
+# define F_GNUC_PREREQ(major, minor, patchlevel) \
+	((__GNUC__ * 10000 + __GNUC_MINOR__ * 100) >= \
+	((major) * 10000 + (minor) * 100 + (patchlevel)))
+#else
+# define F_GNUC_PREREQ(major, minor, patchlevel) 0
+#endif
+
+#if F_CLANG
+# define F_HAS_ATTRIBUTE_ALWAYS_INLINE (__has_attribute(always_inline))
+# define F_HAS_ATTRIBUTE_VISIBILITY (__has_attribute(visibility))
+#elif F_GNUC
+// always_inline is available in gcc 4.0 but not very reliable until 4.4.
+// Works around "sorry, unimplemented: inlining failed" build errors with
+// older compilers.
+# define F_HAS_ATTRIBUTE_ALWAYS_INLINE (F_GNUC_PREREQ(4, 4, 0))
+# define F_HAS_ATTRIBUTE_VISIBILITY (F_GNUC_PREREQ(4, 3, 0))
+#elif F_MSC
+# define F_HAS_FORCE_INLINE 1
 #endif
 
 // ------------------------------------------------------------------

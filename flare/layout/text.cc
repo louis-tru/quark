@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text.h"
-#include "../font/pool.h"
+#include "../render/font/pool.h"
 
 namespace flare {
 

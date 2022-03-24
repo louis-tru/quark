@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,17 +29,69 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__render__gl__canvas__
-#define __flare__render__gl__canvas__
 
-#include "../canvas.h"
+#ifndef __ftr__render_skia_render__
+#define __ftr__render_skia_render__
 
-namespace flare {
+#ifdef __OBJC__
+#include "../metal.h"
+#endif
 
-	class F_EXPORT GLCanvas: public Canvas {
-		public:
-		private:
-	};
-}
+#include "../gl.h"
 
+#define SK_GL 1
+
+#if F_IOS || F_OSX
+# define SK_METAL 1
+#elif F_ANDROID
+# define SK_VULKAN 1
+#elif F_WIN
+# define SK_DIRECT3D 1
+#endif
+
+#include "skia/core/SkCanvas.h"
+#include "skia/core/SkSurface.h"
+#include "skia/gpu/GrBackendSurface.h"
+#include "skia/gpu/GrDirectContext.h"
+
+F_NAMESPACE_START
+
+/**
+* @class SkiaGLRender
+*/
+class SkiaGLRender: public GLRender {
+public:
+	virtual Canvas* canvas() override;
+protected:
+	virtual void onReload() override;
+	virtual void onSubmit() override;
+	SkiaGLRender(Application* host, const Options& opts, bool raster);
+	sk_sp<GrDirectContext> _direct;
+	sk_sp<SkSurface> _surface;
+	sk_sp<SkSurface> _rasterSurface;
+	bool _raster; // software raster
+};
+
+#ifdef __OBJC__
+
+/**
+* @class SkiaMetalRender
+*/
+class SkiaMetalRender: public MetalRender {
+public:
+	virtual Canvas* canvas() override;
+protected:
+	virtual void onReload() override;
+	virtual void onBegin() override;
+	virtual void onSubmit() override;
+	SkiaMetalRender(Application* host, const Options& opts, bool raster);
+	sk_sp<GrDirectContext> _direct;
+	sk_sp<SkSurface> _surface;
+	sk_sp<SkSurface> _rasterSurface;
+	bool _raster; // software raster
+};
+
+#endif
+
+F_NAMESPACE_END
 #endif

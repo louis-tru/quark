@@ -28,21 +28,21 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/image-codec.h"
+#include "./codec.h"
 #include <setjmp.h>
 
 extern "C" {
-#include <jpeglib.h>
+# include <jpeglib.h>
 }
 
-FX_NS(ftr)
+F_NAMESPACE_START
 
 struct JPEGClientData {
 	jmp_buf jmpbuf;
 };
 
 static void jpeg_error_output(j_common_ptr cinfo) {
-	FX_ERR("%s", "Invalid JPEG file structure: missing SOS marker");
+	F_ERR("%s", "Invalid JPEG file structure: missing SOS marker");
 	JPEGClientData* data = (JPEGClientData*)cinfo->client_data;
 	longjmp(data->jmpbuf, 1);
 }
@@ -67,16 +67,16 @@ Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
 	
 	jpeg_read_header(&jpeg, TRUE);
 
-	uint w = jpeg.image_width;
-	uint h = jpeg.image_height;
+	uint32_t w = jpeg.image_width;
+	uint32_t h = jpeg.image_height;
 	int num = jpeg.num_components;
 	JSAMPROW row;
 
 	jpeg_start_decompress(&jpeg);
 
 	if (num == 1) {
-		uint rowbytes = w * num;
-		uint count = h * rowbytes;
+		uint32_t rowbytes = w * num;
+		uint32_t count = h * rowbytes;
 		Buffer buff(count);
 
 		while(jpeg.output_scanline < jpeg.output_height) {
@@ -87,8 +87,8 @@ Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
 		rv.push( PixelData(buff, w, h, PixelData::LUMINANCE8, false) );
 
 	} else if (num == 3) {
-		uint rowbytes = w * 4;
-		uint count = h * rowbytes;
+		uint32_t rowbytes = w * 4;
+		uint32_t count = h * rowbytes;
 		Buffer buff(count);
 
 		JSAMPARRAY rows = (*jpeg.mem->alloc_sarray)((j_common_ptr) &jpeg, JPOOL_IMAGE, w * num, 1);
@@ -99,7 +99,7 @@ Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
 
 			JSAMPROW row2 = rows[0];
 
-			for (uint column = 0; column < w; column++) {
+			for (uint32_t column = 0; column < w; column++) {
 				*((int*)row) = *((int*)row2);
 				row[3] = 255;
 				row += 4; row2 += 3;
@@ -136,8 +136,8 @@ PixelData JPEGImageCodec::decode_header(cBuffer& data) {
 	
 	jpeg_read_header(&jpeg, TRUE);
 	
-	uint w = jpeg.image_width;
-	uint h = jpeg.image_height;
+	uint32_t w = jpeg.image_width;
+	uint32_t h = jpeg.image_height;
 	int num = jpeg.num_components;
 
 	return PixelData(Buffer(), w, h,
@@ -149,4 +149,4 @@ Buffer JPEGImageCodec::encode(const PixelData& pixel_data) {
 	return Buffer();
 }
 
-FX_END
+F_NAMESPACE_END

@@ -28,137 +28,38 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-namespace flare {
-	class Canvas;
-}
-
-#define AutoUpdateQRBounds AutoUpdateQRBounds; friend class flare::Canvas
-
-#include <skia/core/SkCanvas.h>
-#include <math.h>
-#include "../display.h"
-#include "../app.h"
 #include "./render.h"
 
-using namespace flare;
+F_NAMESPACE_START
 
-struct Layer;
-struct BackImage;
-
-class SkCanvas::MCRec {
-	public:
-		std::unique_ptr<Layer> fLayer;
-		SkBaseDevice* fDevice;
-		std::unique_ptr<BackImage> fBackImage;
-		SkM44 fMatrix;
-		int fDeferredSaveCount;
-};
-
-class SkMatrixProvider {
-	protected:
-		virtual ~SkMatrixProvider() = default;
-		SkM44    fLocalToDevice;
-		SkMatrix fLocalToDevice33;
-};
-
-class SkBaseDevice: public SkRefCnt, public SkMatrixProvider {
-	public:
-		void setLocalToDevice(const SkM44& localToDevice) {
-			fLocalToDevice = localToDevice;
-			fLocalToDevice33 = fLocalToDevice.asM33();
-		}
-	private:
-		SkMarkerStack* fMarkerStack = nullptr;
-		const SkImageInfo    fInfo;
-		const SkSurfaceProps fSurfaceProps;
-		SkM44 fDeviceToGlobal;
-		SkM44 fGlobalToDevice;
-};
-
-namespace flare {
-
-	void Canvas::setMatrix(const Mat& mat) {
-		SkM44 m4(mat[0], mat[1], 0,mat[2],
-						 mat[3], mat[4], 0,mat[5],
-						 0,           0, 1,0,
-						 0,           0, 0,1);
-		if (fMCRec->fDeferredSaveCount > 0) {
-			SkCanvas::setMatrix(m4);
-		} else {
-			// ignore skcanvas fGlobalToDevice and fMatrix
-			// fMCRec->fMatrix = m4;
-			fMCRec->fDevice->setLocalToDevice(m4);
-			// didSetM44(m4); ignore
-		}
-	}
-
-	static inline uint32_t integerExp(uint32_t n) {
-		return (uint32_t) powf(2, floor(log2(n)));
-	}
-
-	static inline uint32_t massSample(uint32_t n) {
-		n = integerExp(n);
-		return F_MIN(n, 8);
-	}
-
-	Render::Render(Application* host, const Options& opts)
-		: _host(host)
-		, _opts(opts)
-	{
-		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_BGRA_8888;
-		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
-	}
-
-	Render::~Render() {}
-
-	GrDirectContext* Render::direct() {
-		return _direct.get();
-	}
-
-	Canvas* Render::canvas() {
-		return static_cast<Canvas*>(surface()->getCanvas());
-	}
-
-	void Render::activate(bool isActive) {}
-
-	Render::Options Render::parseOptions(cJSON& options) {
-		// parse options to render params
-		// return Options();
-		return {
-			//.msaaSampleCnt = 4,
-			.stencilBits = 8,
-			.enableGpu = true,
-			//.disableMetal = true,
-		};
-	}
-
-	// ------------------------------- R a s t e r . R e n d e r ---------------------------------------
-
-	RasterRender::RasterRender(Application* host, const Options& opts): Render(host, opts) {}
-
-	SkSurface* RasterRender::surface() {
-		if (!_rasterSurface) {
-			// make the offscreen image
-			auto region = _host->display()->display_region();
-			auto info = SkImageInfo::Make(region.width, region.height,
-																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
-			_rasterSurface = SkSurface::MakeRaster(info);
-		}
-		return _rasterSurface.get();
-	}
-
-	void RasterRender::reload() {
-		_opts.stencilBits = 0;
-		_opts.msaaSampleCnt = 0;
-		_rasterSurface.reset();
-	}
-
-	void RasterRender::submit() {
-		surface()->flushAndSubmit();
-		SkPixmap pixmap;
-		if (surface()->peekPixels(&pixmap)) {
-			onSubmit(&pixmap);
-		}
-	}
-
+static inline uint32_t integerExp(uint32_t n) {
+	return (uint32_t) powf(2, floor(log2(n)));
 }
+
+static inline uint32_t massSample(uint32_t n) {
+	n = integerExp(n);
+	return F_MIN(n, 8);
+}
+
+Render::Render(Application* host, const Options& opts)
+	: _host(host)
+	, _opts(opts)
+{
+	_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
+	_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
+}
+
+Render::~Render() {}
+
+void Render::activate(bool isActive) {}
+
+Render::Options Render::parseOptions(cJSON& options) {
+	// parse options to render params
+	// return Options();
+	return {
+		//.msaaSampleCnt = 4,
+		.stencilBits = 8,
+	};
+}
+
+F_NAMESPACE_END

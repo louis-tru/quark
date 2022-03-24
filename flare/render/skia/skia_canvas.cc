@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,50 +28,70 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+namespace flare {
+	class Canvas;
+}
 
-#ifndef __ftr__render_render__
-#define __ftr__render_render__
+#define AutoUpdateQRBounds AutoUpdateQRBounds; friend class flare::Canvas
+#include <math.h>
+#include <skia/core/SkCanvas.h>
+#include "../../display.h"
+#include "../../app.h"
+#include "../render.h"
 
-#include "../util/loop.h"
-#include "../util/json.h"
-#include "../math.h"
-#include "./source.h"
-#include "./canvas.h"
+using namespace flare;
+
+struct Layer;
+struct BackImage;
+
+class SkCanvas::MCRec {
+public:
+	std::unique_ptr<Layer> fLayer;
+	SkBaseDevice* fDevice;
+	std::unique_ptr<BackImage> fBackImage;
+	SkM44 fMatrix;
+	int fDeferredSaveCount;
+};
+
+class SkMatrixProvider {
+protected:
+	virtual ~SkMatrixProvider() = default;
+	SkM44    fLocalToDevice;
+	SkMatrix fLocalToDevice33;
+};
+
+class SkBaseDevice: public SkRefCnt, public SkMatrixProvider {
+public:
+	void setLocalToDevice(const SkM44& localToDevice) {
+		fLocalToDevice = localToDevice;
+		fLocalToDevice33 = fLocalToDevice.asM33();
+	}
+private:
+	SkMarkerStack* fMarkerStack = nullptr;
+	const SkImageInfo    fInfo;
+	const SkSurfaceProps fSurfaceProps;
+	SkM44 fDeviceToGlobal;
+	SkM44 fGlobalToDevice;
+};
+
+#include "./skia_canvas.h"
 
 F_NAMESPACE_START
 
-class Application;
-class Canvas;
+void Canvas::setMatrix(const Mat& mat) {
+	SkM44 m4(mat[0], mat[1], 0,mat[2],
+						mat[3], mat[4], 0,mat[5],
+						0,           0, 1,0,
+						0,           0, 0,1);
+	if (fMCRec->fDeferredSaveCount > 0) {
+		SkCanvas::setMatrix(m4);
+	} else {
+		// ignore skcanvas fGlobalToDevice and fMatrix
+		// fMCRec->fMatrix = m4;
+		fMCRec->fDevice->setLocalToDevice(m4);
+		// didSetM44(m4); ignore
+	}
+}
 
-/**
-* @class Render
-*/
-class F_EXPORT Render: public Object, public PostMessage {
-	F_HIDDEN_ALL_COPY(Render);
-public:
-	struct Options {
-		ColorType colorType;
-		int  msaaSampleCnt; // gpu msaa
-		int  stencilBits;   // gpu stencil
-		// bool enableGpu, disableMetal, disableVulkan;
-	};
-	static Options parseOptions(cJSON& opts);
-	static Render* Make(Application* host, const Options& opts);
-
-	virtual ~Render();
-	virtual Canvas* canvas() = 0;
-	virtual void reload() = 0;
-	virtual void begin() = 0;
-	virtual void submit() = 0;
-	virtual void activate(bool isActive);
-	inline Application* host() { return _host; }
-	virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
-
-protected:
-	Render(Application* host, const Options& params);
-	Application*  _host;
-	Options       _opts;
-};
 
 F_NAMESPACE_END
-#endif

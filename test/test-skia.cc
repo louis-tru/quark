@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include <skia/core/SkICC.h>
+#include <skia/core/SkImage.h>
 #include <flare/app.h>
 #include <flare/layout/root.h>
 #include <flare/render/render.h>
@@ -57,6 +57,7 @@ void draw_skia(SkCanvas* canvas) {
 	}
 	F_DEBUG("");
 	
+	canvas->translate(10, 10);
 	canvas->drawPath(oval, paint);
 	paint.setAntiAlias(false);
 	canvas->save();

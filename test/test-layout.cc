@@ -1,6 +1,7 @@
 
 #include <stdio.h>
-#include <skia/core/SkICC.h>
+#include <skia/core/SkImage.h>
+#include <skia/core/SkSurface.h>
 #include <flare/app.h>
 #include <flare/layout/root.h>
 #include <flare/render/render.h>
@@ -34,7 +35,9 @@ class FillImageTest: public FillImage {
 
 				// canvas->drawImageRect(img, rect, opts);
 
-				auto img2 = img->makeTextureImage(render()->direct(), GrMipmapped::kYes);
+				auto img2 = img;//img->makeTextureImage(render()->direct(), GrMipmapped::kYes);
+				
+				// canvas->getSurface()->dirtyGenerationID()
 
 				canvas->drawImageRect(img, SkRect::MakeXYWH(0, 230, 145, 110),
 															SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone));

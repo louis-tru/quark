@@ -28,22 +28,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/image-codec.h"
-#include "ftr/util/string.h"
+#include "./codec.h"
+#include "flare/util/string.h"
 
-FX_NS(ftr)
-
-ImageCodec* tga_image_codec = nullptr;
-ImageCodec* jpeg_image_codec = nullptr;
-ImageCodec* gif_image_codec = nullptr;
-ImageCodec* png_image_codec = nullptr;
-ImageCodec* webp_image_codec = nullptr;
-ImageCodec* pvrtc_image_codec = nullptr;
+F_NAMESPACE_START
 
 /**
- * @func get_image_format 通过路径获取图片类型
+ * @func image_format 通过路径获取图片类型
  */
-ImageCodec::ImageFormat ImageCodec::get_image_format(cString& path) {
+ImageCodec::ImageFormat ImageCodec::image_format(cString& path) {
 	
 	String str = path.to_lower_case();
 	int len = str.length();
@@ -73,35 +66,23 @@ ImageCodec::ImageFormat ImageCodec::get_image_format(cString& path) {
 	return Unknown;
 }
 
-ImageCodec* ImageCodec::shared(ImageFormat format) {
+ImageCodec* ImageCodec::Make(ImageFormat format) {
 	switch (format) {
 		case TGA:
-			if (!tga_image_codec)
-				tga_image_codec = new TGAImageCodec();
-			return tga_image_codec;
+				return new TGAImageCodec();
 		case JPEG:
-			if (!jpeg_image_codec)
-				jpeg_image_codec = new JPEGImageCodec();
-			return jpeg_image_codec;
+			return new JPEGImageCodec();
 		case GIF:
-			if (!gif_image_codec)
-				gif_image_codec = new GIFImageCodec();
-			return gif_image_codec;
+			return new GIFImageCodec();
 		case PNG:
-			if (!png_image_codec)
-				png_image_codec = new PNGImageCodec();
-			return png_image_codec;
+			return new PNGImageCodec();
 		case WEBP:
-			if (!webp_image_codec)
-				webp_image_codec = new WEBPImageCodec();
-			return webp_image_codec;
+			return new WEBPImageCodec();
 		case PVRTC:
-			if (!pvrtc_image_codec)
-				pvrtc_image_codec = new PVRTCImageCodec();
-			return pvrtc_image_codec;
+			return new PVRTCImageCodec();
 		default:
 			return nullptr;
 	}
 }
 
-FX_END
+F_NAMESPACE_END

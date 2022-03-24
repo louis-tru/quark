@@ -31,7 +31,7 @@
 #ifndef __flare__font__font__
 #define __flare__font__font__
 
-#include "../value.h"
+#include "../../value.h"
 
 namespace flare {
 

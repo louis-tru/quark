@@ -41,7 +41,7 @@ namespace flare {
 		*/
 	class F_EXPORT Box: public View {
 		F_DEFINE_VIEW(Box);
-	 public:
+	public:
 		Box();
 
 		// define props
@@ -116,7 +116,7 @@ namespace flare {
 		virtual bool solve_visible_region() override;
 		virtual void draw(Canvas* canvas, uint8_t alpha) override;
 
-	 protected:
+	protected:
 		/**
 			* 
 			* is ready layout layout typesetting in the `layout_reverse() or layout_forward()` func
@@ -148,7 +148,7 @@ namespace flare {
 		void  mark_layout_size(uint32_t mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
-	 private:
+	private:
 		bool  _wrap_x, _wrap_y, _is_radius; // layout content size wrap
 		// box attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）

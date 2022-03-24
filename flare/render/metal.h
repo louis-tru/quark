@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,17 +29,37 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__render__metal__canvas__
-#define __flare__render__metal__canvas__
 
-#include "../canvas.h"
+#ifndef __flare__render__metal__
+#define __flare__render__metal__
 
-namespace flare {
+#include "./render.h"
 
-	class F_EXPORT MetalCanvas: public Canvas {
-		public:
-		private:
-	};
-}
+#include <QuartzCore/CAMetalLayer.h>
+#include <Metal/Metal.h>
+#include <MetalKit/MTKView.h>
 
+F_NAMESPACE_START
+
+class MetalRender: public Render {
+public:
+	virtual ~MetalRender();
+	virtual void reload() override;
+	virtual void begin() override;
+	virtual void submit() override;
+	virtual void activate(bool isActive) override;
+protected:
+	virtual void onReload() = 0;
+	virtual void onBegin() = 0;
+	virtual void onSubmit() = 0;
+	MetalRender(Application* host, const Options& opts);
+	MTKView*            _view;
+	CAMetalLayer*       _layer;
+	id<MTLDevice>       _device;
+	id<MTLCommandQueue> _queue; // sk_cfp<id<MTLCommandQueue>>
+	id<CAMetalDrawable> _drawable;
+	id               _pipelineArchive; // id<MTLBinaryArchive>
+};
+
+F_NAMESPACE_END
 #endif

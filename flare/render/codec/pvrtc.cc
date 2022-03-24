@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/image-codec.h"
+#include "./codec.h"
 
-FX_NS(ftr)
+F_NAMESPACE_START
 
-static const uint PVR2TEXTURE_FLAG_TYPE_MASK = 0xff;
-static const uint64 PVR3TEXTURE_PFHIGH_MASK = 0xffffffff00000000ULL;
+static const uint32_t PVR2TEXTURE_FLAG_TYPE_MASK = 0xff;
+static const uint64_t PVR3TEXTURE_PFHIGH_MASK = 0xffffffff00000000ULL;
 
 enum {
 	PVR2TexturePixelFormat_PVRTC2BPP_RGBA = 24,
@@ -49,34 +49,34 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	public:
 #pragma pack(push,4)
 	typedef struct {
-		uint headerLength;
-		uint height;
-		uint width;
-		uint numMipmaps;
-		uint flags;
-		uint dataLength;
-		uint bpp;
-		uint bitmaskRed;
-		uint bitmaskGreen;
-		uint bitmaskBlue;
-		uint bitmaskAlpha;
-		uint pvrTag;
-		uint numSurfs;
+		uint32_t headerLength;
+		uint32_t height;
+		uint32_t width;
+		uint32_t numMipmaps;
+		uint32_t flags;
+		uint32_t dataLength;
+		uint32_t bpp;
+		uint32_t bitmaskRed;
+		uint32_t bitmaskGreen;
+		uint32_t bitmaskBlue;
+		uint32_t bitmaskAlpha;
+		uint32_t pvrTag;
+		uint32_t numSurfs;
 	} PVRv2TexHeader;
 	
 	struct PVRv3TexHeader {
-		uint version;
-		uint flags;
-		uint64 pixelFormat;
-		uint colorSpace;
-		uint channelType;
-		uint height;
-		uint width;
-		uint depth;
-		uint numberOfSurfaces;
-		uint numberOfFaces;
-		uint numberOfMipmaps;
-		uint metadataLength;
+		uint32_t version;
+		uint32_t flags;
+		uint64_t pixelFormat;
+		uint32_t colorSpace;
+		uint32_t channelType;
+		uint32_t height;
+		uint32_t width;
+		uint32_t depth;
+		uint32_t numberOfSurfaces;
+		uint32_t numberOfFaces;
+		uint32_t numberOfMipmaps;
+		uint32_t metadataLength;
 	};
 #pragma pack(pop)
 	
@@ -88,7 +88,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	 @Modified		minZ			Returns the minimum depth.
 	 @Description	Gets the minimum dimensions (x,y,z) for a given pixel format.
 	 *************************************************************************/
-	void m_get_format_min_dims (uint64 pixelFormat,
+	void m_get_format_min_dims (uint64_t pixelFormat,
 															uint& minX, uint& minY, uint& minZ) {
 		switch (pixelFormat) {
 			case PixelData::DXT1:
@@ -158,7 +158,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	 @Description	Returns the number of bits per pixel in a PVR Pixel Format
 	 identifier.
 	 *************************************************************************/
-	uint m_get_bits_per_pixel(uint64 pixel_format) {
+	uint32_t m_get_bits_per_pixel(uint64_t pixel_format) {
 		
 		if((pixel_format & PVR3TEXTURE_PFHIGH_MASK) != 0){
 			byte* PixelFormatChar = (byte*)&pixel_format;
@@ -220,15 +220,15 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	 surfaces or a single surface, all faces or a single face and
 	 all MIP-Maps or a single specified MIP level.
 	 *************************************************************************/
-	uint m_get_texture_data_size (PVRv3TexHeader& header,
+	uint32_t m_get_texture_data_size (PVRv3TexHeader& header,
 																int iMipLevel, bool bAllSurfaces = false,
 																bool bAllFaces = false) {
 		//The smallest divisible sizes for a pixel format
-		uint uiSmallestWidth  = 1;
-		uint uiSmallestHeight = 1;
-		uint uiSmallestDepth  = 1;
+		uint32_t uiSmallestWidth  = 1;
+		uint32_t uiSmallestHeight = 1;
+		uint32_t uiSmallestDepth  = 1;
 		
-		uint64 PixelFormatPartHigh = header.pixelFormat & PVR3TEXTURE_PFHIGH_MASK;
+		uint64_t PixelFormatPartHigh = header.pixelFormat & PVR3TEXTURE_PFHIGH_MASK;
 		
 		//If the pixel format is compressed, get the pixel format's minimum dimensions.
 		if (PixelFormatPartHigh == 0) {
@@ -236,12 +236,12 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		}
 		
 		//Needs to be 64-bit integer to support 16kx16k and higher sizes.
-		uint64 uiDataSize = 0;
+		uint64_t uiDataSize = 0;
 		
 		//Get the dimensions of the specified MIP Map level.
-		uint uiWidth = FX_MAX(1, header.width >> iMipLevel);
-		uint uiHeight = FX_MAX(1, header.height >> iMipLevel);
-		uint uiDepth = FX_MAX(1, header.depth >> iMipLevel);
+		uint32_t uiWidth = F_MAX(1, header.width >> iMipLevel);
+		uint32_t uiHeight = F_MAX(1, header.height >> iMipLevel);
+		uint32_t uiDepth = F_MAX(1, header.depth >> iMipLevel);
 		
 		//If pixel format is compressed, the dimensions need to be padded.
 		if (PixelFormatPartHigh == 0) {
@@ -254,8 +254,8 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		uiDataSize = m_get_bits_per_pixel(header.pixelFormat) * uiWidth * uiHeight * uiDepth;
 		
 		//The number of faces/surfaces to register the size of.
-		uint numfaces = bAllFaces ? header.numberOfFaces : 1;
-		uint numsurfs = bAllSurfaces ? header.numberOfSurfaces : 1;
+		uint32_t numfaces = bAllFaces ? header.numberOfFaces : 1;
+		uint32_t numsurfs = bAllSurfaces ? header.numberOfSurfaces : 1;
 		
 		//Multiply the data size by number of faces and surfaces specified, and return.
 		return (uint)(uiDataSize / 8) * numsurfs * numfaces;
@@ -264,7 +264,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	bool m_is_pvr_v2 (cBuffer& data) {
 		const char PVRv2TexIdentifier[4] = { 'P', 'V', 'R', '!' };
 		PVRv2TexHeader* header = (PVRv2TexHeader*)*data;
-		uint pvrTag = header->pvrTag;
+		uint32_t pvrTag = header->pvrTag;
 		if (PVRv2TexIdentifier[0] != char((pvrTag >>  0) & 0xff) ||
 				PVRv2TexIdentifier[1] != char((pvrTag >>  8) & 0xff) ||
 				PVRv2TexIdentifier[2] != char((pvrTag >> 16) & 0xff) ||
@@ -290,8 +290,8 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		
 		PVRv2TexHeader* header = (PVRv2TexHeader*)*data;
 		
-		uint flags = header->flags;
-		uint formatFlags = flags & PVR2TEXTURE_FLAG_TYPE_MASK;
+		uint32_t flags = header->flags;
+		uint32_t formatFlags = flags & PVR2TEXTURE_FLAG_TYPE_MASK;
 		
 		if (formatFlags == PVR2TexturePixelFormat_PVRTC2BPP_RGBA ||
 				formatFlags == PVR2TexturePixelFormat_PVRTC4BPP_RGBA) {
@@ -301,12 +301,12 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 				PixelData::PVRTCI_2BPP_RGBA : 
 				PixelData::PVRTCI_4BPP_RGBA;
 			
-			uint widthBlocks = 0;
-			uint heightBlocks = 0;
-			uint width = header->width;
-			uint height = header->height;
-			uint dataLength = header->dataLength;
-			uint dataOffset = 0;
+			uint32_t widthBlocks = 0;
+			uint32_t heightBlocks = 0;
+			uint32_t width = header->width;
+			uint32_t height = header->height;
+			uint32_t dataLength = header->dataLength;
+			uint32_t dataOffset = 0;
 			byte* bytes = ((byte*)*data) + sizeof(PVRv2TexHeader);
 			
 			// Calculate the data size for each texture level and respect the minimum number of blocks
@@ -329,7 +329,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 					heightBlocks = 2;
 				}
 				
-				uint data_size = widthBlocks * heightBlocks * 8;
+				uint32_t data_size = widthBlocks * heightBlocks * 8;
 				
 				char* _data = new char[data_size];
 				memcpy(_data, bytes + dataOffset, data_size);
@@ -338,8 +338,8 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 				
 				dataOffset += data_size;
 				
-				width = FX_MAX(width >> 1, 1);
-				height = FX_MAX(height >> 1, 1);
+				width = F_MAX(width >> 1, 1);
+				height = F_MAX(height >> 1, 1);
 			}
 		}
 		return rest;
@@ -355,24 +355,24 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		
 		if (pixelFormat < PixelData::RGBA8888) {
 			
-			uint width = header->width;
-			uint height = header->height;
-			uint dataOffset = 0;
+			uint32_t width = header->width;
+			uint32_t height = header->height;
+			uint32_t dataOffset = 0;
 			
 			// flags
-			uint flags = header->flags;
+			uint32_t flags = header->flags;
 			
 			// PVRv3 specifies premultiply alpha in a flag -- should always respect this in PVRv3 files
 			bool isPremultipliedAlpha = flags & PVR3TextureFlag_PremultipliedAlpha;
 			
-			uint dataLen = data.length() - (sizeof(PVRv3TexHeader) + header->metadataLength);
+			uint32_t dataLen = data.length() - (sizeof(PVRv3TexHeader) + header->metadataLength);
 			byte* bytes = ((byte*)*data) + sizeof(PVRv3TexHeader) + header->metadataLength;
 			
-			uint numberOfMipmaps = header->numberOfMipmaps;
+			uint32_t numberOfMipmaps = header->numberOfMipmaps;
 			
-			for (uint i = 0; i < numberOfMipmaps; i++) {
+			for (uint32_t i = 0; i < numberOfMipmaps; i++) {
 				
-				uint dataSize = m_get_texture_data_size(*header, i);
+				uint32_t dataSize = m_get_texture_data_size(*header, i);
 				char* new_data = new char[dataSize];
 				
 				memcpy(new_data, bytes + dataOffset, dataSize);
@@ -385,8 +385,8 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 					LOG("TexurePVR: Invalid lenght");
 					return rest;
 				}
-				width = FX_MAX(width >> 1, 1);
-				height = FX_MAX(height >> 1, 1);
+				width = F_MAX(width >> 1, 1);
+				height = F_MAX(height >> 1, 1);
 			}
 		}
 		else {
@@ -404,7 +404,7 @@ Array<PixelData> PVRTCImageCodec::decode(cBuffer& data) {
 	else if (_inl_pvr(this)->m_is_pvr_v3(data)) {
 		return _inl_pvr(this)->m_decode_pvr_v3(data);
 	}
-	FX_ERR("TexurePVR: Invalid data");
+	F_ERR("TexurePVR: Invalid data");
 	return Array<PixelData>();
 }
 
@@ -413,8 +413,8 @@ PixelData PVRTCImageCodec::decode_header(cBuffer& data) {
 	if (_inl_pvr(this)->m_is_pvr_v2(data)) {
 		
 		_Inl::PVRv2TexHeader* header = (_Inl::PVRv2TexHeader*)*data;
-		uint flags = header->flags;
-		uint formatFlags = (flags & PVR2TEXTURE_FLAG_TYPE_MASK);
+		uint32_t flags = header->flags;
+		uint32_t formatFlags = (flags & PVR2TEXTURE_FLAG_TYPE_MASK);
 		
 		if (formatFlags == PVR2TexturePixelFormat_PVRTC2BPP_RGBA ||
 				formatFlags == PVR2TexturePixelFormat_PVRTC4BPP_RGBA) {
@@ -431,7 +431,7 @@ PixelData PVRTCImageCodec::decode_header(cBuffer& data) {
 		_Inl::PVRv3TexHeader *header = (_Inl::PVRv3TexHeader*)*data;
 		
 		// flags
-		uint flags = header->flags;
+		uint32_t flags = header->flags;
 		
 		// PVRv3 specifies premultiply alpha in a flag -- should always respect this in PVRv3 files
 		bool isPremultipliedAlpha = flags & PVR3TextureFlag_PremultipliedAlpha;
@@ -448,8 +448,8 @@ PixelData PVRTCImageCodec::decode_header(cBuffer& data) {
 }
 
 Buffer PVRTCImageCodec::encode(cPixelData& data) {
-	FX_UNIMPLEMENTED();
+	F_UNIMPLEMENTED();
 	return Buffer();
 }
 
-FX_END
+F_NAMESPACE_END

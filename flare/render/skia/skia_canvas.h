@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,41 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__render__gl__gl__
-#define __ftr__render__gl__gl__
+#ifndef __flare__render__skia__skia_canvas__
+#define __flare__render__skia__skia_canvas__
 
-#include "../render.h"
+#include "../canvas.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	class GLRender: public Render {
-		public:
-			virtual ~GLRender();
-			virtual SkSurface* surface() override;
-			virtual bool is_gpu() override { return true; }
-			virtual void reload() override;
-			virtual void submit() override;
-		protected:
-			virtual void renderbufferStorage(uint32_t target);
-			virtual void swapBuffers() = 0;
-			GLRender(Application* host, const Options& opts);
-			sk_sp<SkSurface> _surface;
-			uint32_t  _render_buffer, _frame_buffer;
-			uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
-			bool _is_support_multisampled;
-	};
 
-	class RasterGLRender: public GLRender {
-		public:
-			virtual SkSurface* surface() override;
-			virtual bool is_gpu() override { return false; }
-			virtual void reload() override;
-			virtual void submit() override;
-		protected:
-			RasterGLRender(Application* host, const Options& opts);
-			sk_sp<SkSurface> _rasterSurface;
-	};
 
-}
-
+F_NAMESPACE_END
 #endif

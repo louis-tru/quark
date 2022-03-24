@@ -28,14 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/image-codec.h"
+#include "./codec.h"
 #include <png.h>
 
-FX_NS(ftr)
+F_NAMESPACE_START
 
 struct PngDataSource {
 	cBuffer* buff;
-	uint index;
+	uint32_t index;
 };
 
 static void png_rw_fn(png_structp png, png_bytep bytep, png_size_t size) {
@@ -107,7 +107,7 @@ Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
 	Buffer buff((uint)(h * rowbytes));
 	Array<png_bytep> row_pointers((uint)h);
 	
-	for (uint i = 0; i < h; i++) {
+	for (uint32_t i = 0; i < h; i++) {
 		row_pointers[i] = (byte*)buff.value() + rowbytes * i;
 	}
 	png_read_image(png, &row_pointers[0]);
@@ -176,4 +176,4 @@ Buffer PNGImageCodec::encode(const PixelData& pixel_data) {
 	return Buffer();
 }
 
-FX_END
+F_NAMESPACE_END

@@ -31,16 +31,16 @@
 #ifndef __flare__font_inl__
 #define __flare__font_inl__
 
-#include "../util/fs.h"
+#include "../../util/fs.h"
 #include "./font.h"
-#include "../bezier.h"
+#include "../../bezier.h"
 // #include "../draw.h"
 #include "./pool.h"
 #include <ft2build.h>
 #include <freetype/freetype.h>
 #include <freetype/ftoutln.h>
 #include <tesselator.h>
-#include "../util/dict.h"
+#include "../../util/dict.h"
 
 namespace flare {
 

@@ -28,26 +28,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__image_codec__
-#define __ftr__image_codec__
+#ifndef __flare__render__codec__codec__
+#define __flare__render__codec__codec__
 
-#include "ftr/util/handle.h"
-#include "ftr/util/array.h"
-#include "ftr/util/buffer.h"
+#include "flare/util/handle.h"
+#include "flare/util/array.h"
 
 #include "../pixel.h"
 
-/**
- * @ns ftr
- */
-
-FX_NS(ftr)
+F_NAMESPACE_START
 
 /**
  * @class ImageCodec
  */
-class FX_EXPORT ImageCodec: public Object {
- public:
+class F_EXPORT ImageCodec: public Object {
+public:
 	
 	enum ImageFormat {
 		Unknown = 0,
@@ -60,6 +55,24 @@ class FX_EXPORT ImageCodec: public Object {
 	};
 	
 	/**
+	 * @func image_format 通过路径获取图片类型
+	 */
+	static ImageFormat image_format(cString& path);
+	
+	/**
+	 * @func create # 通过格式创建图像解析器
+	 */
+	static ImageCodec* Make(ImageFormat format);
+
+	/**
+	 * @func test
+	 * 只解码头信息,返回除主体数据以外的描述数据 width、height、format、
+	 * 如果当前只需要知道图像的附加信息可调用该函数,
+	 * 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
+	 */
+	virtual bool test(cBuffer& data, Pixel* out) = 0;
+
+	/**
 	 * 解码图像为GPU可读取的格式如:RGBA8888/RGBA4444/ETC1/ETC2_RGB/ETC2_RGBA...,并返回mipmap列表
 	 * @func decode
 	 * @arg data {cBuffer&}
@@ -68,37 +81,19 @@ class FX_EXPORT ImageCodec: public Object {
 	virtual Array<Pixel> decode(cBuffer& data) = 0;
 	
 	/**
-	 * @func decode_header
-	 * 只解码头信息,返回除主体数据以外的描述数据 width、height、format、
-	 * 如果当前只需要知道图像的附加信息可调用该函数,
-	 * 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
-	 */
-	virtual Pixel decode_header(cBuffer& data) = 0;
-	
-	/**
 	 * @func encode 编码图像数据
 	 */
 	virtual Buffer encode(cPixel& data) = 0;
-	
-	/**
-	 * @func get_image_format 通过路径获取图片类型
-	 */
-	static ImageFormat get_image_format(cString& path);
-	
-	/**
-	 * @func create # 通过格式创建图像解析器
-	 */
-	static ImageCodec* shared(ImageFormat format);
-	
+
 };
 
 /**
  * @class TGAImageCodec
  */
-class FX_EXPORT TGAImageCodec: public ImageCodec {
- public:
+class F_EXPORT TGAImageCodec: public ImageCodec {
+public:
+	virtual bool test(cBuffer& data, Pixel* out);
 	virtual Array<Pixel> decode(cBuffer& data);
-	virtual Pixel decode_header(cBuffer& data);
 	virtual Buffer encode(cPixel& data);
 	friend class _Inl; class _Inl;
 };
@@ -106,40 +101,40 @@ class FX_EXPORT TGAImageCodec: public ImageCodec {
 /**
  * @class JPEGImageCodec
  */
-class FX_EXPORT JPEGImageCodec: public ImageCodec {
- public:
+class F_EXPORT JPEGImageCodec: public ImageCodec {
+public:
+	virtual bool test(cBuffer& data, Pixel* out);
 	virtual Array<Pixel> decode(cBuffer& data);
-	virtual Pixel decode_header(cBuffer& data);
 	virtual Buffer encode(cPixel& data);
 };
 
 /**
  * @class GIFImageCodec
  */
-class FX_EXPORT GIFImageCodec: public ImageCodec {
- public:
+class F_EXPORT GIFImageCodec: public ImageCodec {
+public:
+	virtual bool test(cBuffer& data, Pixel* out);
 	virtual Array<Pixel> decode(cBuffer& data);
-	virtual Pixel decode_header(cBuffer& data);
 	virtual Buffer encode(cPixel& data);
 };
 
 /**
  * @class PNGImageParser
  */
-class FX_EXPORT PNGImageCodec: public ImageCodec {
- public:
+class F_EXPORT PNGImageCodec: public ImageCodec {
+public:
+	virtual bool test(cBuffer& data, Pixel* out);
 	virtual Array<Pixel> decode(cBuffer& data);
-	virtual Pixel decode_header(cBuffer& data);
 	virtual Buffer encode(cPixel& data);
 };
 
 /**
  * @class WEBPImageCodec
  */
-class FX_EXPORT WEBPImageCodec: public ImageCodec {
- public:
+class F_EXPORT WEBPImageCodec: public ImageCodec {
+public:
+	virtual bool test(cBuffer& data, Pixel* out);
 	virtual Array<Pixel> decode(cBuffer& data);
-	virtual Pixel decode_header(cBuffer& data);
 	virtual Buffer encode(cPixel& data);
 };
 
@@ -151,13 +146,13 @@ class FX_EXPORT WEBPImageCodec: public ImageCodec {
  * BC4/BC5/UYVY/YUY2/RGBG8888/GRGB8888/BW1BPP...
  * @class PVRTImageParser
  */
-class FX_EXPORT PVRTCImageCodec: public ImageCodec {
- public:
+class F_EXPORT PVRTCImageCodec: public ImageCodec {
+public:
+	virtual bool test(cBuffer& data, Pixel* out);
 	virtual Array<Pixel> decode(cBuffer& data);
-	virtual Pixel decode_header(cBuffer& data);
 	virtual Buffer encode(cPixel& data);
-	FX_DEFINE_INLINE_CLASS(_Inl);
+	F_DEFINE_INLINE_CLASS(_Inl);
 };
 
-FX_END
+F_NAMESPACE_END
 #endif

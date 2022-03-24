@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <flare/app.h>
 #include <flare/layout/root.h>
+#include <flare/render/skia/skia_canvas.h>
 #include <flare/render/render.h>
 #include <flare/layout/flex.h>
 #include <flare/layout/image.h>

@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../version.h"
-#include "../util/json.h"
+#include "../../version.h"
+#include "../../util/json.h"
 #include "./font.inl"
-#include "../os/os.h"
+#include "../../os/os.h"
 #include <tinyxml2.h>
 
 namespace flare {

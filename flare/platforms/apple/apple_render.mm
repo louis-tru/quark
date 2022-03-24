@@ -30,176 +30,179 @@
 
 #include "./apple_render.h"
 #include "../../display.h"
-#include "../../render/gl/gl.h"
-#include "../../render/metal/metal.h"
+#include "../../render/skia/skia_render.h"
 
-#if F_IOS
-#include <OpenGLES/ES3/gl.h>
-#else
-#include <OpenGL/gl3.h>
-#endif
-
-#if F_IOS
-@interface MTView: UIView @end
 @interface GLView: UIView @end
-
-@implementation GLView
-	+ (Class)layerClass { return CAEAGLLayer.class; }
-@end
-@implementation MTView
-+ (Class)layerClass {
-	if (@available(iOS 13.0, *))
-		return CAMetalLayer.class;
-	return nil;
-}
-@end
-#else
 @interface MTView: UIView @end
+
 @implementation MTView
-+ (Class)layerClass {
-	return CAMetalLayer.class;
-}
+	+ (Class)layerClass {
+		if (@available(iOS 13.0, *))
+			return CAMetalLayer.class;
+		return nil;
+	}
 @end
-#endif
 
-namespace flare {
-
-	bool RenderApple::resize(CGRect rect) {
 #if F_IOS
-		float scale = UIScreen.mainScreen.scale;
+@implementation GLView
+	+ (Class)layerClass {
+		return CAEAGLLayer.class;
+	}
+@end
+#else // #if F_IOS else osx
+@implementation GLView
+	+ (Class)layerClass {
+		return CAEAGLLayer.class;
+	}
+@end
+#endif // #if F_IOS
+
+
+// namespace start
+
+F_NAMESPACE_START
+
+bool RenderApple::resize(CGRect rect) {
+#if F_IOS
+	float scale = UIScreen.mainScreen.scale;
 #else
-		float scale = UIScreen.mainScreen.backingScaleFactor;
+	float scale = UIScreen.mainScreen.backingScaleFactor;
 #endif
-		float x = rect.size.width * scale;
-		float y = rect.size.height * scale;
-		return render()->host()->display()->set_display_region({ 0,0,x,y,x,y });
+	float x = rect.size.width * scale;
+	float y = rect.size.height * scale;
+	return render()->host()->display()->set_display_region({ 0,0,x,y,x,y });
+}
+
+uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
+	auto core = cb.Handle::collapse();
+	dispatch_async(dispatch_get_main_queue(), ^{
+		Cb cb(core);
+		cb->resolve();
+	});
+	return 0;
+}
+
+// ------------------- Metal ------------------
+
+template<class RenderIMPL>
+class AppleMetalRender: public RenderIMPL, public RenderApple {
+public:
+	AppleMetalRender(Application* host, const Render::Options& opts, bool raster): RenderIMPL(host, opts, raster)
+	{}
+	UIView* init(CGRect rect) override {
+		MTKView* view = this->_view = [[MTKView alloc] initWithFrame:rect device:nil];
+		//UIView* view = [[MTKView alloc] initWithFrame:rect];
+		view.layer.opaque = YES;
+		return view;
 	}
+	Render* render() override { return this; }
+};
 
-	uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
-		auto core = cb.Handle::collapse();
-		dispatch_async(dispatch_get_main_queue(), ^{
-			Cb cb(core);
-			cb->resolve();
-		});
-		return 0;
-	}
+// ------------------- OpenGL ------------------
 
-	// ------------------- Metal ------------------
-
-	template<class BASE>
-	class AppleMetalRender: public BASE, public RenderApple {
-		public:
-			AppleMetalRender(Application* host, const Render::Options& opts): BASE(host, opts)
-			{}
-			UIView* init(CGRect rect) override {
-				MTKView* view = this->_view = [[MTKView alloc] initWithFrame:rect device:nil];
-				//UIView* view = [[MTKView alloc] initWithFrame:rect];
-				view.layer.opaque = YES;
-				return view;
-			}
-			Render* render() override { return this; }
-	};
-
-	// ------------------- OpenGL ------------------
-	
 #if F_IOS
 
-	class AppleGLRender: public RenderApple {
-		public: 
+class AppleGLRenderBase: public RenderApple {
+public: 
+	AppleGLRenderBase(EAGLContext* ctx): _ctx(ctx) {
+		F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
+		ctx.multiThreaded = NO;
+	}
+	~AppleGLRenderBase() {
+		[EAGLContext setCurrentContext:nullptr];
+	}
 
-			AppleGLRender(EAGLContext* ctx): _ctx(ctx) {
-				F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
-				ctx.multiThreaded = NO;
-			}
-			~AppleGLRender() {
-				[EAGLContext setCurrentContext:nullptr];
-			}
+	UIView* init(CGRect rect) override {
+		[EAGLContext setCurrentContext:_ctx];
+		F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
+		_view = [[GLView alloc] initWithFrame:rect];
+		_layer = (CAEAGLLayer*)_view.layer;
+		_layer.drawableProperties = @{
+			kEAGLDrawablePropertyRetainedBacking : @NO,
+			kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
+		};
+		_layer.opaque = YES;
+		//_layer.contentsGravity = kCAGravityTopLeft;
+		return _view;
+	}
 
-			UIView* init(CGRect rect) override {
-				[EAGLContext setCurrentContext:_ctx];
-				F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
-				_view = [[GLView alloc] initWithFrame:rect];
-				_layer = (CAEAGLLayer*)_view.layer;
-				_layer.drawableProperties = @{
-					kEAGLDrawablePropertyRetainedBacking : @NO,
-					kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
-				};
-				_layer.opaque = YES;
-				//_layer.contentsGravity = kCAGravityTopLeft;
-				return _view;
-			}
+	void renderbufferStorage(uint32_t target) {
+		BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; F_ASSERT(ok);
+	}
 
-			void renderbufferStorage(uint32_t target) {
-				BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; F_ASSERT(ok);
-			}
+	void swapBuffers() {
+		// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
+		// you present its contents by making it the current renderbuffer
+		// and calling the presentRenderbuffer: method on your rendering context.
+		[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
+	}
+	
+private:
+	EAGLContext* _ctx;
+	CAEAGLLayer* _layer;
+	GLView* _view;
+};
 
-			void swapBuffers() {
-				// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
-				// you present its contents by making it the current renderbuffer
-				// and calling the presentRenderbuffer: method on your rendering context.
-				[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
-			}
-			
-		private:
-			EAGLContext* _ctx;
-			CAEAGLLayer* _layer;
-			GLView* _view;
-	};
+template<class RenderIMPL>
+class AppleGLRender: public RenderIMPL, public AppleGLRenderBase {
+public:
+	AppleGLRender(Application* host, const Render::Options& params, EAGLContext* ctx, bool raster)
+		: RenderIMPL(host, params, raster), AppleGLRenderBase(ctx)
+	{
+		//_is_support_multisampled = true;
+	}
+	Render* render() override { return this; }
+	void onRenderbufferStorage(uint32_t target) override { renderbufferStorage(target); }
+	void onSwapBuffers() override { swapBuffers(); }
 
-	template<class BASE>
-	class AppleGLRender_IMPL: public BASE, public AppleGLRender {
-		public:
-			AppleGLRender_IMPL(Application* host, const Render::Options& params, EAGLContext* ctx)
-				: BASE(host, params), AppleGLRender(ctx)
-			{
-				//_is_support_multisampled = true;
-			}
-			Render* render() override { return this; }
-			void renderbufferStorage(uint32_t target) override { AppleGLRender::renderbufferStorage(target); }
-			void swapBuffers() override { AppleGLRender::swapBuffers(); }
-	};
-
-	template<class BASE>
-	RenderApple* MakeAppleGLRender(Application* host, const Render::Options& parems) {
+	static AppleGLRender* New(Application* host, const Render::Options& parems, bool raster) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
 			[EAGLContext setCurrentContext:ctx];
-			return new AppleGLRender_IMPL<BASE>(host, parems, ctx);
+			return new AppleGLRender<RenderIMPL>(host, parems, ctx, raster);
 		}
 		return nullptr;
 	}
-	
+};
+
 #endif
 
-	RenderApple* RenderApple::Make(Application* host, const Render::Options& opts) {
-		RenderApple* r = nullptr;
-
-		if (opts.enableGpu) {
-			if (@available(macOS 10.11, iOS 13.0, *)) {
-				if (!opts.disableMetal)
-					r = new AppleMetalRender<MetalRender>(host, opts);
-			}
-#if F_IOS
-			if (!r) {
-				r = MakeAppleGLRender<GLRender>(host, opts);
-			}
+#ifndef F_ENABLE_GPU
+# define F_ENABLE_GPU 1
 #endif
+#ifndef F_ENABLE_METAL
+# define F_ENABLE_METAL 1
+#endif
+
+RenderApple* RenderApple::Make(Application* host, const Render::Options& opts) {
+	RenderApple* r = nullptr;
+
+	if (F_ENABLE_GPU) {
+		if (@available(macOS 10.11, iOS 13.0, *)) {
+			if (F_ENABLE_METAL)
+				r = new AppleMetalRender<SkiaMetalRender>(host, opts, false);
 		}
-
+#if F_IOS
 		if (!r) {
-			if (@available(macOS 10.11, iOS 13.0, *)) {
-				if (!opts.disableMetal)
-					r = new AppleMetalRender<RasterMetalRender>(host, opts);
-			}
-#if F_IOS
-			if (!r) {
-				r = MakeAppleGLRender<RasterGLRender>(host, opts);
-			}
-#endif
+			r = AppleGLRender<SkiaGLRender>::New(host, opts, false);
 		}
-
-		F_ASSERT(r);
-		return r;
+#endif
 	}
 
-}  // namespace flare
+	if (!r) {
+		if (@available(macOS 10.11, iOS 13.0, *)) {
+			if (F_ENABLE_METAL)
+				r = new AppleMetalRender<SkiaMetalRender>(host, opts, true);
+		}
+#if F_IOS
+		if (!r) {
+			r = AppleGLRender<SkiaGLRender>::New(host, opts, true);
+		}
+#endif
+	}
+
+	F_ASSERT(r);
+	return r;
+}
+
+F_NAMESPACE_END

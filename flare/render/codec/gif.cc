@@ -28,14 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/image-codec.h"
+#include "./codec.h"
 #include <gif_lib.h>
 
-FX_NS(ftr)
+F_NAMESPACE_START
 
 struct GifSource {
 	cBuffer* buff;
-	uint index;
+	uint32_t index;
 };
 
 int GifInputFunc(GifFileType * gif, GifByteType* data, int size) {
@@ -61,9 +61,9 @@ Array<PixelData> GIFImageCodec::decode(cBuffer& data) {
 		return rv;
 	}
 	
-	uint width = gif->SWidth;
-	uint height = gif->SHeight;
-	uint row_size = width * 2;
+	uint32_t width = gif->SWidth;
+	uint32_t height = gif->SHeight;
+	uint32_t row_size = width * 2;
 	Buffer buff(row_size * height); // RGBA5551
 	memset(*buff, 0, buff.length());
 	
@@ -112,8 +112,8 @@ PixelData GIFImageCodec::decode_header(cBuffer& data) {
 	
 	if ( ! gif ) { return PixelData(); }
 	
-	uint w = gif->SWidth;
-	uint h = gif->SHeight;
+	uint32_t w = gif->SWidth;
+	uint32_t h = gif->SHeight;
 	DGifCloseFile(gif, NULL);
 	
 	return PixelData( Buffer(), w, h, PixelData::RGBA5551, false );
@@ -123,4 +123,4 @@ Buffer GIFImageCodec::encode(const PixelData& pixel_data) {
 	return Buffer();
 }
 
-FX_END
+F_NAMESPACE_END

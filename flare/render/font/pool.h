@@ -32,8 +32,8 @@
 #define __flare__font__pool__
 
 #include "./font.h"
-#include "../util/dict.h"
-#include "../util/handle.h"
+#include "../../util/dict.h"
+#include "../../util/handle.h"
 
 namespace flare {
 

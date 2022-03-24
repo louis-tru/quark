@@ -29,49 +29,47 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __ftr__render__gl__gl__
+#define __ftr__render__gl__gl__
 
-#ifndef __flare__render__metal__
-#define __flare__render__metal__
+#include "./render.h"
 
-#include "../render.h"
-#include "skia/gpu/mtl/GrMtlTypes.h"
-#include <QuartzCore/CAMetalLayer.h>
-#include <Metal/Metal.h>
-#include <MetalKit/MTKView.h>
+#if F_IOS
+# include <OpenGLES/ES3/gl.h>
+# include <OpenGLES/ES3/glext.h>
+#elif F_ANDROID
+# define GL_GLEXT_PROTOTYPES
+# include <GLES3/gl3.h>
+# include <GLES3/gl3ext.h>
+#elif F_OSX
+# include <OpenGL/gl3.h>
+# include <OpenGL/gl3ext.h>
+#elif F_LINUX
+# define GL_GLEXT_PROTOTYPES
+# include <GLES3/gl3.h>
+# include <GLES3/gl3ext.h>
+#else
+# error "The operating system does not support"
+#endif
 
-namespace flare {
+F_NAMESPACE_START
 
-	class MetalRender: public Render {
-		public:
-			virtual ~MetalRender();
-			virtual SkSurface* surface() override;
-			virtual bool is_gpu() override { return true; }
-			virtual void reload() override;
-			virtual void submit() override;
-			virtual void activate(bool isActive) override;
+class GLRender: public Render {
+public:
+	virtual ~GLRender();
+	virtual void reload() override;
+	virtual void begin() override;
+	virtual void submit() override;
+protected:
+	virtual void onRenderbufferStorage(uint32_t target);
+	virtual void onSwapBuffers() = 0;
+	virtual void onReload() = 0;
+	virtual void onSubmit() = 0;
+	GLRender(Application* host, const Options& opts);
+	uint32_t  _render_buffer, _frame_buffer;
+	uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
+	bool _is_support_multisampled;
+};
 
-		protected:
-			MetalRender(Application* host, const Options& opts);
-			sk_sp<SkSurface>    _surface;
-			id<MTLDevice>       _device;
-			id<MTLCommandQueue> _queue; // sk_cfp<id<MTLCommandQueue>>
-			MTKView*          _view;
-			CAMetalLayer*     _layer;
-			GrMTLHandle      _drawable;
-			id               _pipelineArchive; // id<MTLBinaryArchive>
-	};
-
-	class RasterMetalRender: public MetalRender {
-		public:
-			virtual SkSurface* surface() override;
-			virtual bool is_gpu() override { return false; }
-			virtual void reload() override;
-			virtual void submit() override;
-		protected:
-			RasterMetalRender(Application* host, const Options& opts);
-			sk_sp<SkSurface> _rasterSurface;
-	};
-
-}   // namespace flare
-
+F_NAMESPACE_END
 #endif

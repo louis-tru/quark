@@ -30,6 +30,6 @@
 
 #include "./canvas.h"
 
-namespace flare {
-	// TODO
-}
+F_NAMESPACE_START
+
+F_NAMESPACE_END

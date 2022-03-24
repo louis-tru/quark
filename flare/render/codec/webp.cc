@@ -28,31 +28,34 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/image-codec.h"
+#include "./codec.h"
 #include <webp/decode.h>
 
-FX_NS(ftr)
+F_NAMESPACE_START
 
-Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
-	Array<PixelData> rv;
+bool WEBPImageCodec::test(cBuffer& data, Pixel* out) {
+	int width = 0, height = 0;
+	int ok = WebPGetInfo((uint8_t*)data.val(), data.length(), &width, &height);
+	if ( ok == VP8_STATUS_OK ) {
+		*out = Pixel( Buffer(), width, height, kColor_Type_RGBA_8888, false);
+		return true;
+	}
+	return false;
+}
+
+Array<Pixel> WEBPImageCodec::decode(cBuffer& data) {
+	Array<Pixel> rv;
 	int width, height;
-	byte* buff = WebPDecodeRGBA((byte*)data.value(), data.length(), &width, &height);
+	uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.val(), data.length(), &width, &height);
 	if (buff) {
-		Buffer bf((char*)buff, width * height * 4);
-		rv.push( PixelData( bf, width, height, PixelData::RGBA8888, false) );
+		Buffer bf = Buffer::from((char*)buff, width * height * 4);
+		rv.push( Pixel( bf, width, height, kColor_Type_RGBA_8888, false) );
 	}
 	return rv;
 }
 
-PixelData WEBPImageCodec::decode_header (cBuffer& data) {
-	int width = 0, height = 0;
-	int ok = WebPGetInfo((byte*)data.value(), data.length(), &width, &height);
-	//if ( ok == VP8_STATUS_OK ) {
-	return PixelData( Buffer(), width, height, PixelData::RGBA8888, false);
-}
-
-Buffer WEBPImageCodec::encode (const PixelData& pixel_data) {
+Buffer WEBPImageCodec::encode(const Pixel& pixel_data) {
 	return Buffer();
 }
 
-FX_END
+F_NAMESPACE_END

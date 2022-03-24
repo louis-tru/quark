@@ -37,7 +37,7 @@
 #include "./app.inl"
 // #include "./action/action.h"
 // #include "./css/css.h"
-#include "./font/pool.h"
+#include "./render/font/pool.h"
 #include "./render/source.h"
 #include "./pre_render.h"
 #include "./layout/text.h"
