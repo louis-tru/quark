@@ -37,8 +37,10 @@
 
 F_NAMESPACE_START
 
+class         PixelInfo;
 class         Pixel;
 typedef const Pixel cPixel;
+typedef const PixelInfo cPixelInfo;
 
 /**
  * @enum ColorType
@@ -61,11 +63,21 @@ enum ColorType: int {
 	kColor_Type_Luminance_Alpha_88,
 };
 
+class F_EXPORT PixelInfo: public Object {
+public:
+	PixelInfo();
+	PixelInfo(int width, int height, ColorType type, bool is_premul_alpha = false);
+	F_DEFINE_PROP_READ(int, width); // width 图像宽度
+	F_DEFINE_PROP_READ(int, height); // height 图像高度
+	F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
+	F_DEFINE_PROP_READ(bool, is_premul_alpha); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
+};
+
 /**
 * @class Pixel
 */
-class F_EXPORT Pixel: public Object {
-	public:
+class F_EXPORT Pixel: public PixelInfo {
+public:
 
 	/**
 	* @func pixel_bit_size()
@@ -83,9 +95,8 @@ class F_EXPORT Pixel: public Object {
 	Pixel();
 	Pixel(cPixel& data);
 	Pixel(Pixel&& data);
-	Pixel(ColorType type, bool is_premul_alpha = false);
-	Pixel(Buffer body, int width, int height, ColorType type, bool is_premul_alpha = false);
-	Pixel(WeakBuffer body, int width, int height, ColorType type, bool is_premul_alpha = false);
+	Pixel(cPixelInfo& info, Buffer body);
+	Pixel(cPixelInfo& info, cWeakBuffer& body);
 
 	/**
 	* @func body 图像数据主体
@@ -97,18 +108,11 @@ class F_EXPORT Pixel: public Object {
 	* @func ptr() 图像数据主体指针
 	*/
 	inline const void* ptr() const { return _body.val(); }
-
-	F_DEFINE_PROP_READ(int, width); // width 图像宽度
-	F_DEFINE_PROP_READ(int, height); // height 图像高度
-	F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
-	F_DEFINE_PROP_READ(bool, is_premul_alpha); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
 	
-	private:
+private:
 	Buffer     _data; // hold data
 	WeakBuffer _body;
 };
-
-typedef Pixel RasterSurface;
 
 F_NAMESPACE_END
 #endif

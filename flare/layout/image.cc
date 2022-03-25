@@ -32,87 +32,87 @@
 #include "../render/render.h"
 #include "skia/core/SkImage.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	void View::Visitor::visitImage(Image *v) {
-		visitBox(v);
-	}
-
-	/**
-		*
-		* Accepting visitors
-		* 
-		* @func accept(visitor)
-		*/
-	void Image::accept(Visitor *visitor) {
-		visitor->visitImage(this);
-	}
-
-	float Image::solve_layout_content_width(Size &parent_layout_size) {
-		auto result = Box::solve_layout_content_width(parent_layout_size);
-		auto src = source();
-
-		if (parent_layout_size.wrap_x && src && src->type()) { // wrap x
-			auto v = Box::solve_layout_content_height(parent_layout_size);
-			if (parent_layout_size.wrap_y) { // wrap y
-				result = src->width();
-			} else {
-				result = v / src->height() * src->width();
-			}
-		}
-		parent_layout_size.wrap_x = false;
-
-		return result;
-	}
-
-	float Image::solve_layout_content_height(Size &parent_layout_size) {
-		auto result = Box::solve_layout_content_height(parent_layout_size);
-		auto src = source();
-
-		if (parent_layout_size.wrap_y && src && src->type()) { // wrap y
-			auto v = Box::solve_layout_content_width(parent_layout_size);
-			if (parent_layout_size.wrap_x) { // wrap x
-				result = src->height();
-			} else {
-				result = v / src->width() * src->height();
-			}
-		}
-		parent_layout_size.wrap_y = false;
-
-		return result;
-	}
-
-	SkImage* CastSkImage(ImageSource* img);
-
-	void Image::draw(Canvas* canvas, uint8_t alpha) {
-		auto src = source();
-		if (src && src->ready()) {
-			canvas->setMatrix(matrix());
-
-			auto begin = Vec2(_padding_left - _transform_origin.x(), _padding_top - _transform_origin.y());
-			auto end = layout_content_size() + begin;
-			auto img = CastSkImage(src);
-			SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
-			SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
-
-			if (is_radius()) {
-				// TODO ...
-			} else {
-				canvas->drawImageRect(img, rect, opts);
-			}
-			if (_fill) {
-				_fill->draw(this, canvas, alpha, false);
-			}
-			View::draw(canvas, alpha);
-		} else {
-			Box::draw(canvas, alpha);
-		}
-	}
-
-	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (*evt.data() & (ImageSource::STATE_DECODE_COMPLETE | ImageSource::STATE_LOADING)) {
-			mark_layout_size(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
-		}
-	}
-
+void View::Visitor::visitImage(Image *v) {
+	visitBox(v);
 }
+
+/**
+	*
+	* Accepting visitors
+	* 
+	* @func accept(visitor)
+	*/
+void Image::accept(Visitor *visitor) {
+	visitor->visitImage(this);
+}
+
+float Image::solve_layout_content_width(Size &parent_layout_size) {
+	auto result = Box::solve_layout_content_width(parent_layout_size);
+	auto src = source();
+
+	if (parent_layout_size.wrap_x && src && src->type()) { // wrap x
+		auto v = Box::solve_layout_content_height(parent_layout_size);
+		if (parent_layout_size.wrap_y) { // wrap y
+			result = src->width();
+		} else {
+			result = v / src->height() * src->width();
+		}
+	}
+	parent_layout_size.wrap_x = false;
+
+	return result;
+}
+
+float Image::solve_layout_content_height(Size &parent_layout_size) {
+	auto result = Box::solve_layout_content_height(parent_layout_size);
+	auto src = source();
+
+	if (parent_layout_size.wrap_y && src && src->type()) { // wrap y
+		auto v = Box::solve_layout_content_width(parent_layout_size);
+		if (parent_layout_size.wrap_x) { // wrap x
+			result = src->height();
+		} else {
+			result = v / src->width() * src->height();
+		}
+	}
+	parent_layout_size.wrap_y = false;
+
+	return result;
+}
+
+SkImage* CastSkImage(ImageSource* img);
+
+void Image::draw(Canvas* canvas, uint8_t alpha) {
+	auto src = source();
+	if (src && src->ready()) {
+		canvas->setMatrix(matrix());
+
+		auto begin = Vec2(_padding_left - _transform_origin.x(), _padding_top - _transform_origin.y());
+		auto end = layout_content_size() + begin;
+		auto img = CastSkImage(src);
+		SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
+		SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
+
+		if (is_radius()) {
+			// TODO ...
+		} else {
+			canvas->drawImageRect(img, rect, opts);
+		}
+		if (_fill) {
+			_fill->draw(this, canvas, alpha, false);
+		}
+		View::draw(canvas, alpha);
+	} else {
+		Box::draw(canvas, alpha);
+	}
+}
+
+void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
+	if (*evt.data() & (ImageSource::STATE_DECODE_COMPLETE | ImageSource::STATE_LOADING)) {
+		mark_layout_size(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
+	}
+}
+
+F_NAMESPACE_END

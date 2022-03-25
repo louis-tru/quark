@@ -35,6 +35,7 @@
 #include "../math.h"
 #include "../value.h"
 #include "./source.h"
+#include "./pixel.h"
 
 // -------------------------  TEST -------------------------
 #define F_TEST_CANVAS 1
@@ -50,80 +51,72 @@
 
 #include <skia/core/SkCanvas.h>
 
-F_NAMESPACE_START
+// F_NAMESPACE_START
 // TEST
-class Canvas: public SkCanvas {
-public:
-	void setMatrix(const flare::Mat& mat);
-};
-F_NAMESPACE_END
+// class Canvas: public SkCanvas {
+// public:
+// 	void setMatrix(const flare::Mat& mat);
+// };
+// F_NAMESPACE_END
 #endif
 // --------------------------------------------------
 
 
 F_NAMESPACE_START
 
-/*
+
 class F_EXPORT Canvas: public Object {
 	F_HIDDEN_ALL_COPY(Canvas);
 public:
-	// struct Options {
-	// 	ColorType colorType;
-	// 	uint32_t  width;
-	// 	uint32_t  height;
-	// 	// gpu opts:
-	// 	int   msaaSampleCount;
-	// 	bool  enableDepthTest;
-	// 	bool  enableStencilTest;
-	// 	bool  ebableColorBlend;
-	// 	bool  alwaysOpenTest;
-	// };
-	// Canvas(Render* host);
 	Canvas();
 	virtual ~Canvas();
-	// virtual bool settings(Options opts);
-	// inline Render* host() { return _host; }
-	// inline const Options& options() const { return _opts; }
-	// virtual void begin() = 0;
-	// virtual void submit() = 0;
-	virtual Sp<ImageSource> makeImageSnapshot() = 0;
-	// bool readPixels(const SkImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes, int srcX, int srcY);
-	// bool writePixels(const SkImageInfo& info, const void* pixels, size_t rowBytes, int x, int y);
-	// int save();
-	// void restore();
-	// int getSaveCount() const;
-	// void restoreToCount(int saveCount);
-	virtual void setMatrix(const Mat& mat) = 0;
-	// void clipRect(const SkRect& rect, SkClipOp op, bool doAntiAlias);
-	// void clipRRect(const SkRRect& rrect, SkClipOp op, bool doAntiAlias);
-	// void clipPath(const SkPath& path, SkClipOp op, bool doAntiAlias);
+	PixelInfo info() const;
+	// Sp<ImageSource> makeImageSnapshot() = 0;
+	bool readPixels(cPixelInfo& dstInfo, void* dstPixels, size_t dstRowBytes, int srcX, int srcY);
+	bool writePixels(cPixelInfo& info, const void* pixels, size_t rowBytes, int x, int y);
+	int  save();
+	void restore();
+	int  getSaveCount() const;
+	void restoreToCount(int saveCount);
+	void setMatrix(const Mat& mat);
+	void translate(float dx, float dy);
+	void scale(float dx, float dy);
+	void skew(float dx, float dy);
+	void rotate(float degrees);
+	void clipRect(const SkRect& rect, SkClipOp op, bool doAntiAlias);
+	void clipRRect(const SkRRect& rrect, SkClipOp op, bool doAntiAlias);
+	void clipPath(const SkPath& path, SkClipOp op, bool doAntiAlias);
 	// void clipShader(sk_sp<SkShader>, SkClipOp = SkClipOp::kIntersect);
-	// void clipRegion(const SkRegion& deviceRgn, SkClipOp op = SkClipOp::kIntersect);
+	void clipRegion(const SkRegion& deviceRgn, SkClipOp op = SkClipOp::kIntersect);
 	// bool quickReject(const SkRect& rect) const;
 	// bool quickReject(const SkPath& path) const;
 	// SkRect getLocalClipBounds() const;
-	// void drawColor(const SkColor4f& color, SkBlendMode mode = SkBlendMode::kSrcOver);
-	virtual void clear(Color color) = 0;
-	// void drawPaint(const SkPaint& paint);
-	// void drawPoints(PointMode mode, size_t count, const Vec2 pts[], const SkPaint& paint);
-	// void drawPoint(float x, float y, const SkPaint& paint);
-	// void drawLine(float x0, float y0, float x1, float y1, const SkPaint& paint);
-	// void drawRect(const Rect& rect, const SkPaint& paint);
-	// void drawRegion(const SkRegion& region, const SkPaint& paint);
-	// void drawOval(const Rect& oval, const SkPaint& paint);
-	// void drawRRect(const SkRRect& rrect, const SkPaint& paint);
-	// void drawDRRect(const SkRRect& outer, const SkRRect& inner, const SkPaint& paint);
-	// void drawCircle(Vec2 center, float radius, const SkPaint& paint);
-	// void drawArc(const Rect& oval, float startAngle, float sweepAngle, bool useCenter, const SkPaint& paint);
-	// void drawRoundRect(const SkRect& rect, SkScalar rx, SkScalar ry, const SkPaint& paint);
-	// void drawPath(const SkPath& path, const SkPaint& paint);
-	virtual void drawImage(ImageSource* source, float x, float y) = 0;
+	void drawColor(const Color4f& color, SkBlendMode mode = SkBlendMode::kSrcOver);
+	void clear(Color color);
+	void clear(const Color4f& color);
+	// draw path
+	void drawPaint(const SkPaint& paint);
+	void drawPoints(PointMode mode, size_t count, const Vec2 pts[], const SkPaint& paint);
+	void drawPoint(float x, float y, const SkPaint& paint);
+	void drawLine(float x0, float y0, float x1, float y1, const SkPaint& paint);
+	void drawRect(const Rect& rect, const SkPaint& paint);
+	void drawRegion(const SkRegion& region, const SkPaint& paint);
+	void drawOval(const Rect& oval, const SkPaint& paint);
+	void drawRRect(const SkRRect& rrect, const SkPaint& paint);
+	void drawDRRect(const SkRRect& outer, const SkRRect& inner, const SkPaint& paint);
+	void drawCircle(Vec2 center, float radius, const SkPaint& paint);
+	void drawArc(const Rect& oval, float startAngle, float sweepAngle, bool useCenter, const SkPaint& paint);
+	void drawRoundRect(const SkRect& rect, SkScalar rx, SkScalar ry, const SkPaint& paint);
+	void drawPath(const SkPath& path, const SkPaint& paint);
+	// draw image
+	void drawImage(ImageSource* source, float x, float y);
 	//virtual void drawImageRect(ImageSource* image, const Rect& src, const Rect& dst,
 	//	const SkSamplingOptions& sampling, const SkPaint* paint, SrcRectConstraint constraint) = 0;
 	// void drawImageNine(const SkImage* image, const SkIRect& center, const SkRect& dst, 
 	//	SkFilterMode filter, const SkPaint* paint = nullptr);
 	// void drawImageLattice(ImageSource* image, const Lattice& lattice, const SkRect& dst,
 	// 	SkFilterMode filter, const SkPaint* paint = nullptr);
+	// draw text
 	// void drawSimpleText(const char* text, size_t byteLength, SkTextEncoding encoding,
 	// 							SkScalar x, SkScalar y, const SkFont& font, const SkPaint& paint);
 	// void drawGlyphs(int count, const SkGlyphID glyphs[], const SkPoint positions[],
@@ -140,9 +133,8 @@ public:
 	// void drawDrawable(SkDrawable* drawable, const SkMatrix* matrix = nullptr);
 	// void drawAnnotation(const SkRect& rect, const char key[], SkData* value);
 private:
-	// Render* _host;
-	// Options _opts;
-};*/
+	void* _impl;
+};
 
 F_NAMESPACE_END
 #endif

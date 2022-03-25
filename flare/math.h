@@ -186,14 +186,14 @@ namespace flare {
 	};
 
 	/**
-	* @class FloatColor
+	* @class Color4f
 	*/
-	struct F_EXPORT FloatColor: public MColor<float> {
-		inline FloatColor(): MColor<float>(0, 0, 0, 1) {}
-		inline FloatColor(float r, float g, float b): MColor<float>(r, g, b, 1) { }
-		inline FloatColor(float r, float g, float b, float a): MColor<float>(r, g, b, a) { }
-		bool operator==(const FloatColor& color) const;
-		inline bool operator!=(const FloatColor& color) const { return ! operator==(color); }
+	struct F_EXPORT Color4f: public MColor<float> {
+		inline Color4f(): MColor<float>(0, 0, 0, 1) {}
+		inline Color4f(float r, float g, float b): MColor<float>(r, g, b, 1) { }
+		inline Color4f(float r, float g, float b, float a): MColor<float>(r, g, b, a) { }
+		bool operator==(const Color4f& color) const;
+		inline bool operator!=(const Color4f& color) const { return ! operator==(color); }
 	};
 
 	/**
@@ -206,8 +206,8 @@ namespace flare {
 		inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): MColor<uint8_t>(r, g, b, a) {}
 		bool operator==(Color color) const;
 		inline bool operator!=(Color color) const { return ! operator==(color); }
-		inline FloatColor to_float_color() const {
-			return FloatColor(r() / 255.0f, g() / 255.0f, b() / 255.0f, a() / 255.0f);
+		inline Color4f to_Color4f() const {
+			return Color4f(r() / 255.0f, g() / 255.0f, b() / 255.0f, a() / 255.0f);
 		}
 		uint32_t to_uint32_argb(uint8_t opacity) const {
 			return a() << 24 | r() << 16 | g() << 8 | b();

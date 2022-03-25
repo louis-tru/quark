@@ -33,12 +33,12 @@
 
 #include "./util/util.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	class F_EXPORT Paint: public Object {
-		public:
-		private:
-	};
-}
+class F_EXPORT Paint: public Object {
+	public:
+	private:
+};
 
+F_NAMESPACE_END
 #endif

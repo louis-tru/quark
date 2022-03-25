@@ -33,6 +33,12 @@
 
 F_NAMESPACE_START
 
+PixelInfo::PixelInfo(): _width(0), _height(0), _type(kColor_Type_Invalid), _is_premul_alpha(0) {
+}
+PixelInfo::PixelInfo(int width, int height, ColorType type, bool is_premul_alpha)
+	: _width(width), _height(height), _type(type), _is_premul_alpha(is_premul_alpha) {
+}
+
 // -------------------- P i x e l --------------------
 
 /**
@@ -65,57 +71,39 @@ Pixel Pixel::decode(cBuffer& buf) {
 	auto rowBytes = info.minRowBytes();
 	auto body = Buffer::alloc((uint32_t)rowBytes * info.height());
 	if (img->readPixels(nullptr, info, body.val(), rowBytes, 0, 0)) {
-		return Pixel(std::move(body), info.width(), info.height(), ColorType(info.colorType()));
+		PixelInfo info2(info.width(), info.height(),
+										ColorType(info.colorType()),
+										info.alphaType() == kPremul_SkAlphaType);
+		return Pixel(info2, std::move(body));
 	}
 	return Pixel();
 }
 
 Pixel::Pixel()
 	: _data()
-	, _width(0)
-	, _height(0)
-	, _body()
-	, _type(kColor_Type_Invalid), _is_premul_alpha(false) {
+	, _body() {
 }
 
-Pixel::Pixel(cPixel& pixel)
-	: _data()
-	, _width(pixel._width)
-	, _height(pixel._height)
-	, _body(pixel._body)
-	, _type(pixel._type), _is_premul_alpha(pixel._is_premul_alpha) {
+Pixel::Pixel(cPixel& pixel): PixelInfo(pixel)
+	, _data()
+	, _body(pixel._body) {
 }
 
-Pixel::Pixel(Pixel&& pixel)
-	: _data(pixel._data)
-	, _width(pixel._width)
-	, _height(pixel._height)
-	, _body(std::move(pixel._body))
-	, _type(pixel._type), _is_premul_alpha(pixel._is_premul_alpha) {
+Pixel::Pixel(Pixel&& pixel): PixelInfo(pixel)
+	, _data(pixel._data)
+	, _body(std::move(pixel._body)) {
 }
 
-Pixel::Pixel(ColorType type, bool is_premul_alpha)
-	: _data()
-	, _width(0)
-	, _height(0)
-	, _body()
-	, _type(type), _is_premul_alpha(is_premul_alpha) {
+Pixel::Pixel(const PixelInfo& info, Buffer body)
+	: PixelInfo(info)
+	, _data(body)
+	, _body(*body, _data.length()) {
 }
 
-Pixel::Pixel(Buffer body, int width, int height, ColorType type, bool is_premul_alpha)
-	: _data(body)
-	, _width(width)
-	, _height(height)
-	, _body(*body, _data.length())
-	, _type(type), _is_premul_alpha(is_premul_alpha) {
-}
-
-Pixel::Pixel(WeakBuffer body, int width, int height, ColorType type, bool is_premul_alpha)
-	: _data()
-	, _width(width)
-	, _height(height)
-	, _body(body)
-	, _type(type), _is_premul_alpha(is_premul_alpha) {
+Pixel::Pixel(const PixelInfo& info, cWeakBuffer& body)
+	: PixelInfo(info)
+	, _data()
+	, _body(body) {
 }
 
 F_NAMESPACE_END
