@@ -32,10 +32,6 @@
 
 namespace flare {
 
-	void View::Visitor::visitScroll(Scroll *v) {
-		visitFlowLayout(v);
-	}
-
 	/**
 		*
 		* Accepting visitors

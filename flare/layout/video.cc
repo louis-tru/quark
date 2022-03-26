@@ -30,20 +30,6 @@
 
 #include "./video.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	void View::Visitor::visitVideo(Video *v) {
-		visitImage(v);
-	}
-
-	/**
-		*
-		* Accepting visitors
-		* 
-		* @func accept(visitor)
-		*/
-	void Video::accept(Visitor *visitor) {
-		visitor->visitVideo(this);
-	}
-
-}
+F_NAMESPACE_END

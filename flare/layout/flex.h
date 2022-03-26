@@ -33,32 +33,31 @@
 
 #include "./flow.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	/**
-		* @class Flex
-		*/
-	class F_EXPORT FlexLayout: public FlowLayout {
-		F_DEFINE_VIEW(FlexLayout);
-	 public:
+/**
+	* @class Flex
+	*/
+class F_EXPORT FlexLayout: public FlowLayout {
+	F_Define_View(FlexLayout);
+public:
 
-		FlexLayout();
+	FlexLayout();
 
-		// define props
-		F_DEFINE_PROP(ItemsAlign, items_align); // items_align 主轴的对齐方式
+	// define props
+	F_DEFINE_PROP(ItemsAlign, items_align); // items_align 主轴的对齐方式
 
-		// @overwrite
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
-		virtual bool is_layout_lock_child() override;
-		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark) override;
+	// @overwrite
+	virtual bool layout_forward(uint32_t mark) override;
+	virtual bool layout_reverse(uint32_t mark) override;
+	virtual bool is_layout_lock_child() override;
+	virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark) override;
 
-		// --------------- m e m b e r . f i e l d ---------------
-	 private:
-		bool _is_lock_child;
-		F_DEFINE_INLINE_CLASS(Inl);
-	};
+	// --------------- m e m b e r . f i e l d ---------------
+private:
+	bool _is_lock_child;
+	F_DEFINE_INLINE_CLASS(Inl);
+};
 
-}
-
+F_NAMESPACE_END
 #endif

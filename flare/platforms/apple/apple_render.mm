@@ -32,9 +32,7 @@
 #include "../../display.h"
 #include "../../render/skia/skia_render.h"
 
-@interface GLView: UIView @end
 @interface MTView: UIView @end
-
 @implementation MTView
 	+ (Class)layerClass {
 		if (@available(iOS 13.0, *))
@@ -43,19 +41,22 @@
 	}
 @end
 
-#if F_IOS
+#if F_ENABLE_GL
+@interface GLView: UIView @end
+# if F_IOS
 @implementation GLView
 	+ (Class)layerClass {
 		return CAEAGLLayer.class;
 	}
 @end
-#else // #if F_IOS else osx
+# else // #if F_IOS else osx
 @implementation GLView
 	+ (Class)layerClass {
 		return CAEAGLLayer.class;
 	}
 @end
-#endif // #if F_IOS
+# endif // #if F_IOS
+#endif
 
 
 // namespace start
@@ -100,7 +101,7 @@ public:
 
 // ------------------- OpenGL ------------------
 
-#if F_IOS
+#if F_ENABLE_GL
 
 class AppleGLRenderBase: public RenderApple {
 public: 
@@ -182,7 +183,7 @@ RenderApple* RenderApple::Make(Application* host, const Render::Options& opts) {
 			if (F_ENABLE_METAL)
 				r = new AppleMetalRender<SkiaMetalRender>(host, opts, false);
 		}
-#if F_IOS
+#if F_ENABLE_GL
 		if (!r) {
 			r = AppleGLRender<SkiaGLRender>::New(host, opts, false);
 		}
@@ -194,7 +195,7 @@ RenderApple* RenderApple::Make(Application* host, const Render::Options& opts) {
 			if (F_ENABLE_METAL)
 				r = new AppleMetalRender<SkiaMetalRender>(host, opts, true);
 		}
-#if F_IOS
+#if F_ENABLE_GL
 		if (!r) {
 			r = AppleGLRender<SkiaGLRender>::New(host, opts, true);
 		}

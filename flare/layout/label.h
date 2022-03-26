@@ -33,20 +33,19 @@
 
 #include "./view.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	/**
-		* @class Label
-		*/
-	class F_EXPORT Label: public View {
-		F_DEFINE_VIEW(Label);
-	 public:
-		// TODO ...
-	 private:
-		Color _text_background_color;
-		TextLineHeight _line_height;
-	};
+/**
+	* @class Label
+	*/
+class F_EXPORT Label: public View {
+	F_Define_View(Label);
+public:
+// TODO ...
+private:
+	Color _text_background_color;
+	TextLineHeight _line_height;
+};
 
-}
-
+F_NAMESPACE_END
 #endif

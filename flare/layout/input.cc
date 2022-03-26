@@ -30,20 +30,6 @@
 
 #include "./input.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	void View::Visitor::visitInput(Input *v) {
-		visitBox(v);
-	}
-
-	/**
-		*
-		* Accepting visitors
-		* 
-		* @func accept(visitor)
-		*/
-	void Input::accept(Visitor *visitor) {
-		visitor->visitInput(this);
-	}
-
-}
+F_NAMESPACE_END

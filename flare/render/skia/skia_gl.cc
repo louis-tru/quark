@@ -32,32 +32,32 @@
 #include "../../display.h"
 #include "./skia_render.h"
 
-#include "skia/gpu/mtl/GrMtlBackendContext.h"
-// #include "skia/gpu/mtl/GrMtlTypes.h" //
-// #include "skia/private/GrMtlTypesPriv.h"
+#include "skia/gpu/gl/GrGLInterface.h"
+#include "skia/core/SkImageInfo.h"
 
-#if F_APPLE
+#if !F_APPLE || F_ENABLE_GL
+
 F_NAMESPACE_START
 
-ViewVisitor* SkiaMetalRender::visitor() {
+uint32_t glPixelInternalFormat(ColorType type);
+
+// --------------- S k i a . G L . R e n d e r ---------------
+
+ViewVisitor* SkiaGLRender::visitor() {
 	return this;
 }
 
-void SkiaMetalRender::onReload() {
+void SkiaGLRender::onReload() {
 	if (!_direct) {
-		GrMtlBackendContext backendContext = {};
-		backendContext.fDevice.retain((__bridge void*)_device);
-		backendContext.fQueue.retain((__bridge void*)_queue);
-
-		_direct = GrDirectContext::MakeMetal(backendContext, {/*_opts.grContextOptions*/});
+		_direct = GrDirectContext::MakeGL(GrGLMakeNativeInterface(), {/*_opts.grContextOptions*/});
 		F_ASSERT(_direct);
 	}
-
 	_surface.reset(); // clear curr surface
 	_rasterSurface.reset();
 
 	auto region = _host->display()->display_region();
 	if (_raster) {
+		glDisable(GL_BLEND); // disable color blend
 		_opts.stencilBits = 0;
 		_opts.msaaSampleCnt = 0;
 		auto info = SkImageInfo::Make(region.width, region.height,
@@ -65,46 +65,36 @@ void SkiaMetalRender::onReload() {
 		_rasterSurface = SkSurface::MakeRaster(info);
 		F_ASSERT(_rasterSurface);
 	}
-}
 
-void SkiaMetalRender::onBegin() {
-	id<MTLTexture> tex = _drawable.texture;
-	
-	GrMtlTextureInfo fbInfo;
-	fbInfo.fTexture.retain((__bridge void*)tex);
-	
-	//auto region = _host->display()->surface_region();
-	//F_DEBUG("width, %f==%d", region.width, tex.width);
-	//F_DEBUG("height, %f==%d", region.height, tex.height);
-	//tex.sampleCount = _opts.msaaSampleCnt;
-	//F_DEBUG("%d, %d", tex.sampleCount, _opts.msaaSampleCnt);
+	GrGLFramebufferInfo fbInfo = {
+		_opts.msaaSampleCnt > 1 ? _msaa_frame_buffer : _frame_buffer,
+		glPixelInternalFormat(_opts.colorType),
+	};
 
-	GrBackendRenderTarget backendRT((int)tex.width, (int)tex.height, _opts.msaaSampleCnt, fbInfo);
+	GrBackendRenderTarget backendRT(region.width, region.height, _opts.msaaSampleCnt, _opts.stencilBits, fbInfo);
 	SkSurfaceProps props(0, kUnknown_SkPixelGeometry);
 
-	_surface = SkSurface::MakeFromBackendRenderTarget(_direct.get(), backendRT,
-													kTopLeft_GrSurfaceOrigin,
-													kBGRA_8888_SkColorType, nullptr, &props);
+	_surface = SkSurface::MakeFromBackendRenderTarget(
+														_direct.get(), backendRT,
+														kBottomLeft_GrSurfaceOrigin,
+														SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
 	F_ASSERT(_surface);
-
 	if (_raster) {
-		_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
+		return static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
 	} else {
-		_canvas = static_cast<SkiaCanvas*>(_surface->getCanvas());
+		return static_cast<SkiaCanvas*>(_surface->getCanvas());
 	}
 }
 
-void SkiaMetalRender::onSubmit() {
+void SkiaGLRender::onSubmit() {
 	if (_raster)
 		_rasterSurface->draw(_surface->getCanvas(), 0, 0);
 	_surface->flushAndSubmit(); // commit sk
-	_surface.reset();
 }
 
-SkiaMetalRender::SkiaMetalRender(Application* host, const Options& opts, bool raster)
-: MetalRender(host, opts), _raster(raster) {
+SkiaGLRender::SkiaGLRender(Application* host, const Options& opts, bool raster)
+: GLRender(host, opts), _raster(raster) {
 }
-
 
 F_NAMESPACE_END
 #endif

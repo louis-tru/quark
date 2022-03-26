@@ -33,24 +33,21 @@
 
 #include "./box.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	class F_EXPORT Root: public Box {
-		F_DEFINE_VIEW(Root);
-	 public:
-		void mark_layout_change();
-		static Root* create();
-		virtual ~Root();
-		// @overwrite
-		virtual void set_visible(bool val) override;
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
-		virtual void draw(Canvas* canvas, uint8_t alpha) override;
-	 private:
-		Root();
-		virtual void set_parent(View* parent) override;
-	};
+class F_EXPORT Root: public Box {
+	F_Define_View(Root);
+public:
+	void mark_layout_change();
+	static Root* create();
+	virtual ~Root();
+	virtual void set_visible(bool val) override;
+	virtual bool layout_forward(uint32_t mark) override;
+	virtual bool layout_reverse(uint32_t mark) override;
+private:
+	Root();
+	virtual void set_parent(View* parent) override;
+};
 
-}
-
+F_NAMESPACE_END
 #endif

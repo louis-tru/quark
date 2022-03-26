@@ -32,11 +32,30 @@
 #ifndef __flare__render__skia__skia_canvas__
 #define __flare__render__skia__skia_canvas__
 
-#include "../canvas.h"
+#if !F_APPLE || F_ENABLE_GL
+# define SK_GL 1
+#endif
+
+#if F_APPLE
+# define SK_METAL 1
+#elif F_ANDROID
+# define SK_VULKAN 1
+#elif F_WIN
+# define SK_DIRECT3D 1
+#endif
+
+#include "../../math.h"
+#include "../../value.h"
+#include "../source.h"
+#include "../pixel.h"
+#include <skia/core/SkCanvas.h>
 
 F_NAMESPACE_START
 
-
+class SkiaCanvas: public SkCanvas {
+public:
+	void setMatrix(Mat& mat);
+};
 
 F_NAMESPACE_END
 #endif

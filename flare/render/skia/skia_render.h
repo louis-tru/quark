@@ -33,23 +33,17 @@
 #ifndef __ftr__render_skia_render__
 #define __ftr__render_skia_render__
 
-#ifdef __OBJC__
+#include "../../util/macros.h"
+
+#if F_APPLE
 #include "../metal.h"
 #endif
 
+#if !F_APPLE || F_ENABLE_GL
 #include "../gl.h"
-
-#define SK_GL 1
-
-#if F_IOS || F_OSX
-# define SK_METAL 1
-#elif F_ANDROID
-# define SK_VULKAN 1
-#elif F_WIN
-# define SK_DIRECT3D 1
 #endif
 
-#include "skia/core/SkCanvas.h"
+#include "./skia_canvas.h"
 #include "skia/core/SkSurface.h"
 #include "skia/gpu/GrBackendSurface.h"
 #include "skia/gpu/GrDirectContext.h"
@@ -57,40 +51,56 @@
 F_NAMESPACE_START
 
 /**
+* @class SkiaRender
+*/
+class SkiaRender: public View::Visitor {
+public:
+	virtual void solveView(View* box);
+	virtual void solveBox(Box* box);
+	virtual void solveImage(Image* image);
+	virtual void solveVideo(Video* video);
+	virtual void solveScroll(Scroll* scroll);
+	virtual void solveInput(Input* input);
+	virtual void solveText(Text* text);
+	virtual void solveLabel(Label* label);
+	virtual void solveRoot(Root* root);
+	virtual void solveFlowLayout(FlowLayout* flow);
+	virtual void solveFlexLayout(FlexLayout* flex);
+protected:
+	sk_sp<GrDirectContext> _direct;
+	sk_sp<SkSurface> _surface;
+	sk_sp<SkSurface> _rasterSurface;
+	SkiaCanvas*      _canvas;
+	bool _raster; // software raster
+};
+
+#if !F_APPLE || F_ENABLE_GL
+/**
 * @class SkiaGLRender
 */
-class SkiaGLRender: public GLRender {
+class SkiaGLRender: public GLRender, public SkiaRender {
 public:
-	virtual Canvas* canvas() override;
+	virtual ViewVisitor* visitor() override;
 protected:
 	virtual void onReload() override;
 	virtual void onSubmit() override;
 	SkiaGLRender(Application* host, const Options& opts, bool raster);
-	sk_sp<GrDirectContext> _direct;
-	sk_sp<SkSurface> _surface;
-	sk_sp<SkSurface> _rasterSurface;
-	bool _raster; // software raster
 };
+#endif
 
-#ifdef __OBJC__
-
+#ifdef F_APPLE
 /**
 * @class SkiaMetalRender
 */
-class SkiaMetalRender: public MetalRender {
+class SkiaMetalRender: public MetalRender, public SkiaRender {
 public:
-	virtual Canvas* canvas() override;
+	virtual ViewVisitor* visitor() override;
 protected:
 	virtual void onReload() override;
 	virtual void onBegin() override;
 	virtual void onSubmit() override;
 	SkiaMetalRender(Application* host, const Options& opts, bool raster);
-	sk_sp<GrDirectContext> _direct;
-	sk_sp<SkSurface> _surface;
-	sk_sp<SkSurface> _rasterSurface;
-	bool _raster; // software raster
 };
-
 #endif
 
 F_NAMESPACE_END

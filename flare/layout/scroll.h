@@ -33,16 +33,15 @@
 
 #include "./flow.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	class F_EXPORT Scroll: public FlowLayout {
-		F_DEFINE_VIEW(Scroll);
-	 public:
-		// TODO ...
-	 private:
-		// TODO ...
-	};
+class F_EXPORT Scroll: public FlowLayout {
+	F_Define_View(Scroll);
+public:
+// TODO ...
+private:
+// TODO ...
+};
 
-}
-
+F_NAMESPACE_END
 #endif

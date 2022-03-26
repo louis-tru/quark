@@ -30,20 +30,7 @@
 
 #include "./label.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	void View::Visitor::visitLabel(Label *v) {
-		visitView(v);
-	}
 
-	/**
-		*
-		* Accepting visitors
-		* 
-		* @func accept(visitor)
-		*/
-	void Label::accept(Visitor *visitor) {
-		visitor->visitLabel(this);
-	}
-
-}
+F_NAMESPACE_END

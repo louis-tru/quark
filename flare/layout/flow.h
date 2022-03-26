@@ -33,32 +33,31 @@
 
 #include "./box.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	/**
-		* @class Flow
-		*/
-	class F_EXPORT FlowLayout: public Box {
-		F_DEFINE_VIEW(FlowLayout);
-	 public:
-		FlowLayout();
+/**
+	* @class Flow
+	*/
+class F_EXPORT FlowLayout: public Box {
+	F_Define_View(FlowLayout);
+public:
+	FlowLayout();
 
-		// define props
-		F_DEFINE_PROP(Direction, direction); // direction 排版方向
-		F_DEFINE_PROP(CrossAlign, cross_align); // cross_align 交叉轴的对齐方式
-		F_DEFINE_PROP(Wrap, wrap); // wrap 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
-		F_DEFINE_PROP(WrapAlign, wrap_align); // wrap_align 多根交叉轴的对齐方式,如果项目只有一根交叉轴,该属性不起作用
+	// define props
+	F_DEFINE_PROP(Direction, direction); // direction 排版方向
+	F_DEFINE_PROP(CrossAlign, cross_align); // cross_align 交叉轴的对齐方式
+	F_DEFINE_PROP(Wrap, wrap); // wrap 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
+	F_DEFINE_PROP(WrapAlign, wrap_align); // wrap_align 多根交叉轴的对齐方式,如果项目只有一根交叉轴,该属性不起作用
 
-		// --------------- o v e r w r i t e ---------------
-		// @overwrite
-		virtual bool layout_reverse(uint32_t mark) override;
+	// --------------- o v e r w r i t e ---------------
+	// @overwrite
+	virtual bool layout_reverse(uint32_t mark) override;
 
-		// --------------- m e m b e r . f i e l d ---------------
-	 private:
-		friend class Flex;
-		F_DEFINE_INLINE_CLASS(Inl);
-	};
+	// --------------- m e m b e r . f i e l d ---------------
+private:
+	friend class Flex;
+	F_DEFINE_INLINE_CLASS(Inl);
+};
 
-}
-
+F_NAMESPACE_END
 #endif

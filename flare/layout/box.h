@@ -40,7 +40,7 @@ F_NAMESPACE_START
 	* @class Box
 	*/
 class F_EXPORT Box: public View {
-	F_DEFINE_VIEW(Box);
+	F_Define_View(Box);
 public:
 	Box();
 
@@ -114,7 +114,6 @@ public:
 	virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size) override;
 	virtual void layout_content_size_change(Layout* parent, uint32_t mark) override;
 	virtual bool solve_visible_region() override;
-	virtual void draw(Canvas* canvas, uint8_t alpha) override;
 
 protected:
 	/**

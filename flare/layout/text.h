@@ -33,33 +33,32 @@
 
 #include "./box.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	class F_EXPORT Text: public Box {
-		F_DEFINE_VIEW(Text);
-	 public:
-		// TODO ...
-	 private:
-		// TODO ...
-	};
+class F_EXPORT Text: public Box {
+	F_Define_View(Text);
+public:
+// TODO ...
+private:
+// TODO ...
+};
 
-	class DefaultTextSettings: public Object {
-	 public:
-		DefaultTextSettings();
-		// define props
-		F_DEFINE_PROP(TextColor, text_background_color);
-		F_DEFINE_PROP(TextColor, text_color);
-		F_DEFINE_PROP(TextSize, text_size);
-		F_DEFINE_PROP(TextWeight, text_weight);
-		F_DEFINE_PROP(TextStyle, text_style);
-		F_DEFINE_PROP(TextFamily, text_family);
-		F_DEFINE_PROP(TextShadow, text_shadow);
-		F_DEFINE_PROP(TextLineHeight, text_line_height);
-		F_DEFINE_PROP(TextDecoration, text_decoration);
-		F_DEFINE_PROP(TextOverflow, text_overflow);
-		F_DEFINE_PROP(TextWhiteSpace, text_white_space);
-	};
+class DefaultTextSettings: public Object {
+public:
+	DefaultTextSettings();
+	// define props
+	F_DEFINE_PROP(TextColor, text_background_color);
+	F_DEFINE_PROP(TextColor, text_color);
+	F_DEFINE_PROP(TextSize, text_size);
+	F_DEFINE_PROP(TextWeight, text_weight);
+	F_DEFINE_PROP(TextStyle, text_style);
+	F_DEFINE_PROP(TextFamily, text_family);
+	F_DEFINE_PROP(TextShadow, text_shadow);
+	F_DEFINE_PROP(TextLineHeight, text_line_height);
+	F_DEFINE_PROP(TextDecoration, text_decoration);
+	F_DEFINE_PROP(TextOverflow, text_overflow);
+	F_DEFINE_PROP(TextWhiteSpace, text_white_space);
+};
 
-}
-
+F_NAMESPACE_END
 #endif

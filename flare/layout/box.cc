@@ -35,10 +35,6 @@
 
 F_NAMESPACE_START
 
-void View::Visitor::visitBox(Box *v) {
-	visitView(v);
-}
-
 float Box::solve_layout_content_width(Size &parent_layout_size) {
 	float ps = parent_layout_size.content_size.x();
 	bool* is_wrap_in_out = &parent_layout_size.wrap_x;
@@ -667,14 +663,5 @@ bool Box::solve_visible_region() {
 
 	return false;
 }
-
-void Box::draw(Canvas* canvas, uint8_t alpha) {
-	if (_fill) {
-		canvas->setMatrix(matrix());
-		_fill->draw(this, canvas, alpha, true);
-	}
-	View::draw(canvas, alpha);
-}
-
 
 F_NAMESPACE_END

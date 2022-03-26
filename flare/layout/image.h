@@ -34,18 +34,15 @@
 #include "./box.h"
 #include "../render/source.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	class F_EXPORT Image: public Box, public SourceHold {
-		F_DEFINE_VIEW(Image);
-	 public:
-		virtual void draw(Canvas* canvas, uint8_t alpha) override;
-	 protected:
-		virtual float solve_layout_content_width(Size &parent_layout_size) override;
-		virtual float solve_layout_content_height(Size &parent_layout_size) override;
-		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
-	};
+class F_EXPORT Image: public Box, public SourceHold {
+	F_Define_View(Image);
+protected:
+	virtual float solve_layout_content_width(Size &parent_layout_size) override;
+	virtual float solve_layout_content_height(Size &parent_layout_size) override;
+	virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
+};
 
-}
-
+F_NAMESPACE_END
 #endif

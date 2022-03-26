@@ -28,67 +28,88 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../../app.h"
-#include "../../display.h"
 #include "./skia_render.h"
-
-#include "skia/gpu/gl/GrGLInterface.h"
-#include "skia/core/SkImageInfo.h"
 
 F_NAMESPACE_START
 
-uint32_t glPixelInternalFormat(ColorType type);
+// --------------- S k i a . R e n d e r ---------------
 
-Canvas* SkiaGLRender::canvas() {
-	if (_raster) {
-		return static_cast<Canvas*>(_rasterSurface->getCanvas());
+void SkiaRender::solveView(View* view) {
+	// visit child
+	auto v = view->first();
+	while(v) {
+		if (v->_visible & v->_visible_region) {
+			uint8_t a = (uint16_t(alpha) * v->_opacity) >> 8;
+			if (a)
+				v->accept(this);
+				// v->accept(canvas, a);
+		}
+		v = v->next();
+	}
+}
+
+void SkiaRender::solveBox(Box* box/*Canvas* canvas, uint8_t alpha*/) {
+	if (_fill) {
+		canvas->setMatrix(matrix());
+		//_fill->draw(box, canvas, alpha, true);
+	}
+	SkiaRender::solveView(box/*canvas, alpha*/);
+}
+
+SkImage* CastSkImage(ImageSource* img);
+
+void SkiaRender::solveImage(Image* img/*, uint8_t alpha*/) {
+	auto src = source();
+	if (src && src->ready()) {
+		canvas->setMatrix(matrix());
+
+		auto begin = Vec2(_padding_left - _transform_origin.x(), _padding_top - _transform_origin.y());
+		auto end = layout_content_size() + begin;
+		auto img = CastSkImage(src);
+		SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
+		SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
+
+		if (is_radius()) {
+			// TODO ...
+		} else {
+			canvas->drawImageRect(img, rect, opts);
+		}
+		if (_fill) {
+			_fill->draw(this, canvas, alpha, false);
+		}
+		View::draw(canvas, alpha);
 	} else {
-		return static_cast<Canvas*>(_surface->getCanvas());
+		Box::draw(canvas, alpha);
 	}
 }
 
-void SkiaGLRender::onReload() {
-	if (!_direct) {
-		_direct = GrDirectContext::MakeGL(GrGLMakeNativeInterface(), {/*_opts.grContextOptions*/});
-		F_ASSERT(_direct);
+void SkiaRender::solveRoot(Root* root/*, uint8_t alpha*/) {
+	if (visible() && visible_region()) {
+		uint8_t alpha = this->opacity();
+		if (!alpha) return;
+
+		auto f = fill();
+		if (f) {
+			canvas->setMatrix(matrix());
+			if (f->type() == FillBox::M_COLOR) {
+				auto color = static_cast<FillColor*>(f)->color();
+				if (color.a()) {
+					canvas->drawColor(color.to_uint32_xrgb());
+				} else {
+					canvas->drawColor(SK_ColorBLACK);
+				}
+				if (f->next()) {
+					f->next()->draw(this, canvas, alpha, true);
+				}
+			} else {
+				f->draw(this, canvas, alpha, true);
+			}
+		} else {
+			canvas->drawColor(SK_ColorBLACK);
+		}
+		View::draw(canvas, this->opacity());
 	}
-	_surface.reset(); // clear curr surface
-	_rasterSurface.reset();
-
-	auto region = _host->display()->display_region();
-	if (_raster) {
-		glDisable(GL_BLEND); // disable color blend
-		_opts.stencilBits = 0;
-		_opts.msaaSampleCnt = 0;
-		auto info = SkImageInfo::Make(region.width, region.height,
-																	SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
-		_rasterSurface = SkSurface::MakeRaster(info);
-		F_ASSERT(_rasterSurface);
-	}
-
-	GrGLFramebufferInfo fbInfo = {
-		_opts.msaaSampleCnt > 1 ? _msaa_frame_buffer : _frame_buffer,
-		glPixelInternalFormat(_opts.colorType),
-	};
-
-	GrBackendRenderTarget backendRT(region.width, region.height, _opts.msaaSampleCnt, _opts.stencilBits, fbInfo);
-	SkSurfaceProps props(0, kUnknown_SkPixelGeometry);
-
-	_surface = SkSurface::MakeFromBackendRenderTarget(
-														_direct.get(), backendRT,
-														kBottomLeft_GrSurfaceOrigin,
-														SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
-	F_ASSERT(_surface);
 }
 
-void SkiaGLRender::onSubmit() {
-	if (_raster)
-		_rasterSurface->draw(_surface->getCanvas(), 0, 0);
-	_surface->flushAndSubmit(); // commit sk
-}
-
-SkiaGLRender::SkiaGLRender(Application* host, const Options& opts, bool raster)
-: GLRender(host, opts), _raster(raster) {
-}
 
 F_NAMESPACE_END

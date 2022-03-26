@@ -164,10 +164,9 @@ namespace flare {
 			auto render = _host->render();
 
 			render->begin(); // ready render
-
-			root->draw(render->canvas(), 1); // 开始绘图
+			root->accept(render->visitor()); // 开始绘图
 			solve_next_frame();
-			
+
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t st = time_micro();
 			#endif

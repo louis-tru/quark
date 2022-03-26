@@ -35,7 +35,7 @@
 
 #include "../../util/macros.h"
 
-#if F_IOS || F_OSX
+#if F_APPLE
 
 #include "../../render/render.h"
 #include "./apple_app.h"

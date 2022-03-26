@@ -39,20 +39,6 @@ namespace flare {
 
 	void __View_SetVisible(View* self, bool val, uint32_t layout_depth);
 
-	void View::Visitor::visitRoot(Root *v) {
-		visitBox(v);
-	}
-
-	/**
-		*
-		* Accepting visitors
-		* 
-		* @func accept(visitor)
-		*/
-	void Root::accept(Visitor *visitor) {
-		visitor->visitRoot(this);
-	}
-
 	void Root::mark_layout_change() {
 		auto region = app()->display()->display_region();
 		mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
@@ -127,34 +113,6 @@ namespace flare {
 
 	void Root::set_parent(View* parent) {
 		F_UNREACHABLE();
-	}
-
-	void Root::draw(Canvas* canvas, uint8_t alpha) {
-		if (visible() && visible_region()) {
-			uint8_t alpha = this->opacity();
-			if (!alpha) return;
-
-			auto f = fill();
-			if (f) {
-				canvas->setMatrix(matrix());
-				if (f->type() == FillBox::M_COLOR) {
-					auto color = static_cast<FillColor*>(f)->color();
-					if (color.a()) {
-						canvas->drawColor(color.to_uint32_xrgb());
-					} else {
-						canvas->drawColor(SK_ColorBLACK);
-					}
-					if (f->next()) {
-						f->next()->draw(this, canvas, alpha, true);
-					}
-				} else {
-					f->draw(this, canvas, alpha, true);
-				}
-			} else {
-				canvas->drawColor(SK_ColorBLACK);
-			}
-			View::draw(canvas, this->opacity());
-		}
 	}
 
 }

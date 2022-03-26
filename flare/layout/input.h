@@ -33,16 +33,15 @@
 
 #include "./box.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	class F_EXPORT Input: public Box {
-		F_DEFINE_VIEW(Input);
-	 public:
-		// TODO ...
-	 private:
-		// TODO ...
-	};
+class F_EXPORT Input: public Box {
+	F_Define_View(Input);
+public:
+// TODO ...
+private:
+// TODO ...
+};
 
-}
-
+F_NAMESPACE_END
 #endif

@@ -37,12 +37,11 @@
 #include "../util/json.h"
 #include "../math.h"
 #include "./source.h"
-#include "./canvas.h"
+#include "../layout/view.h"
 
 F_NAMESPACE_START
 
 class Application;
-class Canvas;
 
 /**
 * @class Render
@@ -60,12 +59,12 @@ public:
 	static Render* Make(Application* host, const Options& opts);
 
 	virtual ~Render();
-	virtual Canvas* canvas() = 0;
 	virtual void reload() = 0;
 	virtual void begin() = 0;
 	virtual void submit() = 0;
 	virtual void activate(bool isActive);
-	inline Application* host() { return _host; }
+	virtual ViewVisitor* visitor() = 0;
+	inline  Application* host() { return _host; }
 	virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
 
 protected:
