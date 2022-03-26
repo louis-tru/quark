@@ -53,7 +53,7 @@ F_NAMESPACE_START
 /**
 * @class SkiaRender
 */
-class SkiaRender: public View::Visitor {
+class SkiaRender: public ViewVisitor {
 public:
 	virtual void solveView(View* box);
 	virtual void solveBox(Box* box);
