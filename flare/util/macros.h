@@ -375,6 +375,13 @@
 	private: static void* operator new(size_t size) = delete; \
 	private: static void operator delete(void*, size_t) = delete
 
+#define F_DEFINE_ACCESSOR_READ(type, name) \
+	public: type name () const;
+
+#define F_DEFINE_ACCESSOR(type, name) \
+	F_DEFINE_ACCESSOR_READ(type, name) \
+	void set_##name (type val); \
+
 #define F_DEFINE_PROP_READ(type, name) \
 	private: type _##name; \
 	public: inline type name () const { return _##name; } \

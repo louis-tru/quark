@@ -43,11 +43,10 @@ F_NAMESPACE_START
 
 #define F_Define_View(N) \
 public: \
-	friend class SkiaRender; \
-	virtual void accept(ViewVisitor *visitor) override { visitor->solve##N(this); } \
+	virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
 
 #define F_View(N) class N;
-#define F_Visitor(N) virtual void solve##N(N *v) = 0;
+#define F_Visitor(N) virtual void visit##N(N *v) = 0;
 
 F_View_List(F_View);
 class ViewVisitor {
@@ -57,7 +56,7 @@ public:
 #undef F_View
 };
 
-class SkiaRender;
+class Render;
 class Action;
 
 /**
@@ -142,6 +141,11 @@ public:
 		*/
 	virtual void accept(ViewVisitor *visitor);
 
+	/**
+	 * @func draw(canvas, alpha)
+	 */
+	// virtual void draw(Render* render);
+	
 	/**
 		* 
 		* Setting the visibility properties the view object

@@ -32,7 +32,7 @@
 #define __flare__layout__box__
 
 #include "./view.h"
-#include "../fill.h"
+#include "../paint.h"
 
 F_NAMESPACE_START
 
@@ -43,12 +43,13 @@ class F_EXPORT Box: public View {
 	F_Define_View(Box);
 public:
 	Box();
+	virtual ~Box();
 
 	// define props
-	F_DEFINE_PROP(SizeValue, width); // size width
-	F_DEFINE_PROP(SizeValue, height); // size height
-	F_DEFINE_PROP(SizeValue, width_limit); // limit max size
-	F_DEFINE_PROP(SizeValue, height_limit);
+	F_DEFINE_PROP(BoxSize, width); // size width
+	F_DEFINE_PROP(BoxSize, height); // size height
+	F_DEFINE_PROP(BoxSize, width_limit); // limit max size
+	F_DEFINE_PROP(BoxSize, height_limit);
 	F_DEFINE_PROP(float, margin_top); // margin
 	F_DEFINE_PROP(float, margin_right);
 	F_DEFINE_PROP(float, margin_bottom);
@@ -57,14 +58,27 @@ public:
 	F_DEFINE_PROP(float, padding_right);
 	F_DEFINE_PROP(float, padding_bottom);
 	F_DEFINE_PROP(float, padding_left);
-	F_DEFINE_PROP(float, border_radius_left_top); // border_radius
-	F_DEFINE_PROP(float, border_radius_right_top);
-	F_DEFINE_PROP(float, border_radius_right_bottom);
-	F_DEFINE_PROP(float, border_radius_left_bottom);
+	F_DEFINE_PROP(float, radius_left_top); // border_radius
+	F_DEFINE_PROP(float, radius_right_top);
+	F_DEFINE_PROP(float, radius_right_bottom);
+	F_DEFINE_PROP(float, radius_left_bottom);
+	F_DEFINE_ACCESSOR(Color, border_color_top); // border_color
+	F_DEFINE_ACCESSOR(Color, border_color_right);
+	F_DEFINE_ACCESSOR(Color, border_color_bottom);
+	F_DEFINE_ACCESSOR(Color, border_color_left);
+	F_DEFINE_ACCESSOR(float, border_width_top); // border_widrh
+	F_DEFINE_ACCESSOR(float, border_width_right);
+	F_DEFINE_ACCESSOR(float, border_width_bottom);
+	F_DEFINE_ACCESSOR(float, border_width_left);
+	F_DEFINE_ACCESSOR(BorderStyle, border_style_top); // border_style
+	F_DEFINE_ACCESSOR(BorderStyle, border_style_right);
+	F_DEFINE_ACCESSOR(BorderStyle, border_style_bottom);
+	F_DEFINE_ACCESSOR(BorderStyle, border_style_left);
+	F_DEFINE_PROP(Color, paint_color);
+	F_DEFINE_PROP(Paint, paint); // image|gradient|shadow
 	F_DEFINE_PROP_READ(Vec2, transform_origin); // Start the matrix transformation from this origin point
 	F_DEFINE_PROP_READ(Vec2, layout_content_size); // width,height / size
 	F_DEFINE_PROP_READ(Vec2, client_size); // content + padding
-	F_DEFINE_PROP(Fill,  fill); // color|shadow|image|gradient|border|border-radius
 
 	/**
 	 * @func Returns the is use border radius
@@ -114,6 +128,7 @@ public:
 	virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size) override;
 	virtual void layout_content_size_change(Layout* parent, uint32_t mark) override;
 	virtual bool solve_visible_region() override;
+	//virtual void draw(Canvas* canvas) override;
 
 protected:
 	/**
@@ -148,6 +163,21 @@ protected:
 
 	// --------------- m e m b e r . f i e l d ---------------
 private:
+	struct Border {
+		Color color_top; // border_color
+		Color color_right;
+		Color color_bottom;
+		Color color_left;
+		float width_top; // border_widrh
+		float width_right;
+		float width_bottom;
+		float width_left;
+		BorderStyle style_top; // border_style
+		BorderStyle style_right;
+		BorderStyle style_bottom;
+		BorderStyle style_left;
+	};
+	Border* _border;
 	bool  _wrap_x, _wrap_y, _is_radius; // layout content size wrap
 	// box attrs
 	Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）

@@ -34,6 +34,17 @@
 #include "../render/render.h"
 
 F_NAMESPACE_START
+// view private members method
+F_DEFINE_INLINE_MEMBERS(Box, Inl) {
+public:
+	#define _inl(self) static_cast<Box::Inl*>(self)
+	void border() {
+		if (!_border) {
+			_border = (Border*)::malloc(sizeof(Border));
+			::memset(_border, 0, sizeof(Border));
+		}
+	}
+};
 
 float Box::solve_layout_content_width(Size &parent_layout_size) {
 	float ps = parent_layout_size.content_size.x();
@@ -140,15 +151,22 @@ void Box::mark_layout_size(uint32_t mark_) {
 	* @constructors
 	*/
 Box::Box()
-	: _width_limit{0, SizeType::NONE}, _height_limit{0, SizeType::NONE}
+	: _width_limit{0, BoxSizeType::NONE}, _height_limit{0, BoxSizeType::NONE}
 	, _margin_top(0), _margin_right(0)
 	, _margin_bottom(0), _margin_left(0)
 	, _padding_top(0), _padding_right(0)
 	, _padding_bottom(0), _padding_left(0)
-	, _fill(nullptr)
+	, _paint_color(Color::from(0))
+	, _paint(nullptr)
 	, _layout_weight(0), _layout_align(Align::AUTO)
+	, _border(nullptr)
 	, _wrap_x(true), _wrap_y(true), _is_radius(false)
 {
+}
+
+Box::~Box() {
+	Release(_paint); _paint = nullptr;
+	::free(_border); _border = nullptr;
 }
 
 /**
@@ -272,63 +290,199 @@ void Box::set_padding_bottom(float val) {
 
 // -- border radius
 
-void Box::set_border_radius_left_top(float val) {
-	if (_border_radius_left_top != val) {
-		_border_radius_left_top = val;
+void Box::set_radius_left_top(float val) {
+	if (val >= 0.0 && _radius_left_top != val) {
+		_radius_left_top = val;
 		_is_radius = 
-			*reinterpret_cast<uint64_t*>(&_border_radius_left_top) | 
-			*reinterpret_cast<uint64_t*>(&_border_radius_right_bottom);
+			*reinterpret_cast<uint64_t*>(&_radius_left_top) | 
+			*reinterpret_cast<uint64_t*>(&_radius_right_bottom);
 		mark_none();
 	}
 }
 
-void Box::set_border_radius_right_top(float val) {
-	if (_border_radius_right_top != val) {
-		_border_radius_right_top = val;
+void Box::set_radius_right_top(float val) {
+	if (val >= 0.0 && _radius_right_top != val) {
+		_radius_right_top = val;
 		_is_radius = 
-			*reinterpret_cast<uint64_t*>(&_border_radius_left_top) | 
-			*reinterpret_cast<uint64_t*>(&_border_radius_right_bottom);
+			*reinterpret_cast<uint64_t*>(&_radius_left_top) | 
+			*reinterpret_cast<uint64_t*>(&_radius_right_bottom);
 		mark_none();
 	}
 }
 
-void Box::set_border_radius_right_bottom(float val) {
-	if (_border_radius_right_bottom != val) {
-		_border_radius_right_bottom = val;
+void Box::set_radius_right_bottom(float val) {
+	if (val >= 0.0 && _radius_right_bottom != val) {
+		_radius_right_bottom = val;
 		_is_radius = 
-			*reinterpret_cast<uint64_t*>(&_border_radius_left_top) | 
-			*reinterpret_cast<uint64_t*>(&_border_radius_right_bottom);
+			*reinterpret_cast<uint64_t*>(&_radius_left_top) | 
+			*reinterpret_cast<uint64_t*>(&_radius_right_bottom);
 		mark_none();
 	}
 }
 
-void Box::set_border_radius_left_bottom(float val) {
-	if (_border_radius_left_bottom != val) {
-		_border_radius_left_bottom = val;
+void Box::set_radius_left_bottom(float val) {
+	if (val >= 0.0 && _radius_left_bottom != val) {
+		_radius_left_bottom = val;
 		_is_radius = 
-			*reinterpret_cast<uint64_t*>(&_border_radius_left_top) | 
-			*reinterpret_cast<uint64_t*>(&_border_radius_right_bottom);
+			*reinterpret_cast<uint64_t*>(&_radius_left_top) | 
+			*reinterpret_cast<uint64_t*>(&_radius_right_bottom);
 		mark_none();
 	}
 }
 
-// -- fill
+Color Box::border_color_top() const {
+	return _border ? _border->color_top: Color::from(0);
 
-void Box::set_fill(Fill val) {
-	if (_fill != val) {
-		_fill = FillBox::assign(_fill, val);
+Color Box::border_color_right() const {
+	return _border ? _border->color_right: Color::from(0);
+}
+
+Color Box::border_color_bottom() const {
+	return _border ? _border->color_bottom: Color::from(0);
+}
+
+Color Box::border_color_left() const {
+	return _border ? _border->color_left: Color::from(0);
+}
+
+float border_width_top() const {
+	return _border ? _border->width_top: 0;
+} // border_widrh
+
+float border_width_right() const {
+	return _border ? _border->width_right: 0;
+}
+
+float border_width_bottom() const {
+	return _border ? _border->width_bottom: 0;
+}
+
+float border_width_left() const {
+	return _border ? _border->width_left: 0;
+}
+
+BorderStyle border_style_top() const {
+	return _border ? _border->style_top: BorderStyle::SOLID;
+} // border_style
+
+BorderStyle border_style_right() const {
+	return _border ? _border->style_right: BorderStyle::SOLID;
+}
+
+BorderStyle border_style_bottom() const {
+	return _border ? _border->style_bottom: BorderStyle::SOLID;
+}
+
+BorderStyle border_style_left() const {
+	return _border ? _border->style_left: BorderStyle::SOLID;
+}
+
+// set border
+
+void Box::set_border_color_top(Color val) {
+	_inl(this)->border();
+	if (_border->color_top != val) {
+		_border->color_top = val;
 		mark_none();
 	}
 }
 
-/**
-	*
-	* Accepting visitors
-	* 
-	* @func accept(visitor)
-	*/
-void Box::accept(Visitor *visitor) {
-	visitor->visitBox(this);
+void Box::set_border_color_right(Color val) {
+	_inl(this)->border();
+	if (_border->color_right != val) {
+		_border->color_right = val;
+		mark_none();
+	}
+}
+
+void Box::set_border_color_bottom(Color val) {
+	_inl(this)->border();
+	if (_border->color_bottom != val) {
+		_border->color_bottom = val;
+		mark_none();
+	}
+}
+
+void Box::set_border_color_left(Color val) {
+	_inl(this)->border();
+	if (_border->color_top != val) {
+		_border->color_top = val;
+		mark_none();
+	}
+}
+
+void Box::set_border_width_top(float val) {
+	_inl(this)->border();
+	if (_border->width_top != val) {
+		_border->width_top = val;
+		mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+	}
+} // border_widrh
+
+void Box::set_border_width_right(float val) {
+	_inl(this)->border();
+	if (_border->width_right != val) {
+		_border->width_right = val;
+		mark_layout_size(M_LAYOUT_SIZE_WIDTH);
+	}
+}
+
+void Box::set_border_width_bottom(float val) {
+	_inl(this)->border();
+	if (_border->width_bottom != val) {
+		_border->width_bottom = val;
+		mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+	}
+}
+
+void Box::set_border_width_left(float val) {
+	_inl(this)->border();
+	if (_border->width_left != val) {
+		_border->width_left = val;
+		mark_layout_size(M_LAYOUT_SIZE_WIDTH);
+	}
+}
+
+void Box::set_border_style_top(BorderStyle val) {
+	_inl(this)->border();
+	if (_border->style_top != val) {
+		_border->style_top = val;
+		mark_none();
+	}
+} // border_style
+
+void Box::set_border_style_right(BorderStyle val) {
+	_inl(this)->border();
+	if (_border->style_right != val) {
+		_border->style_right = val;
+		mark_none();
+	}
+}
+
+void Box::set_border_style_bottom(BorderStyle val) {
+	_inl(this)->border();
+	if (_border->style_bottom != val) {
+		_border->style_bottom = val;
+		mark_none();
+	}
+}
+
+void Box::set_border_style_left(BorderStyle val) {
+	_inl(this)->border();
+	if (_border->style_left != val) {
+		_border->style_left = val;
+		mark_none();
+	}
+}
+
+
+// -- paint
+
+void Box::set_paint(Paint val) {
+	if (_paint != val) {
+		_paint = PaintBase::assign(_paint, val);
+		mark_none();
+	}
 }
 
 /**

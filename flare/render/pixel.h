@@ -45,8 +45,8 @@ typedef const PixelInfo cPixelInfo;
 /**
  * @enum ColorType
  */
-enum ColorType: int {
-	kColor_Type_Invalid = 0,
+enum ColorType {
+	kColor_Type_Invalid,
 	kColor_Type_Alpha_8,
 	kColor_Type_RGB_565,
 	kColor_Type_ARGB_4444,
@@ -63,14 +63,21 @@ enum ColorType: int {
 	kColor_Type_Luminance_Alpha_88,
 };
 
+enum AlphaType {
+	kSkAlphaType_Unknown,
+	kAlphaType_Opaque,   //!< pixel is opaque
+	kAlphaType_Premul,   //!< pixel components are premultiplied by alpha
+	kAlphaType_Unpremul, //!< pixel components are independent of alpha
+};
+
 class F_EXPORT PixelInfo: public Object {
 public:
 	PixelInfo();
-	PixelInfo(int width, int height, ColorType type, bool is_premul_alpha = false);
+	PixelInfo(int width, int height, ColorType type, bool alphaType = kSkAlphaType_Unknown);
 	F_DEFINE_PROP_READ(int, width); // width 图像宽度
 	F_DEFINE_PROP_READ(int, height); // height 图像高度
 	F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
-	F_DEFINE_PROP_READ(bool, is_premul_alpha); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
+	F_DEFINE_PROP_READ(AlphaType, alphaType); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
 };
 
 /**

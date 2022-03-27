@@ -55,22 +55,35 @@ F_NAMESPACE_START
 */
 class SkiaRender: public ViewVisitor {
 public:
-	virtual void solveView(View* box);
-	virtual void solveBox(Box* box);
-	virtual void solveImage(Image* image);
-	virtual void solveVideo(Video* video);
-	virtual void solveScroll(Scroll* scroll);
-	virtual void solveInput(Input* input);
-	virtual void solveText(Text* text);
-	virtual void solveLabel(Label* label);
-	virtual void solveRoot(Root* root);
-	virtual void solveFlowLayout(FlowLayout* flow);
-	virtual void solveFlexLayout(FlexLayout* flex);
+	SkiaRender();
+	virtual void visitView(View* box);
+	virtual void visitBox(Box* box);
+	virtual void visitImage(Image* image);
+	virtual void visitVideo(Video* video);
+	virtual void visitScroll(Scroll* scroll);
+	virtual void visitInput(Input* input);
+	virtual void visitText(Text* text);
+	virtual void visitLabel(Label* label);
+	virtual void visitRoot(Root* root);
+	virtual void visitFlowLayout(FlowLayout* flow);
+	virtual void visitFlexLayout(FlexLayout* flex);
+private:
+	void paintColor(PaintColor* fill);
+	void paintImage(PaintImage* fill);
+	void paintGradient(PaintGradient* fill);
+	void paintShadow(PaintShadow* fill);
 protected:
 	sk_sp<GrDirectContext> _direct;
 	sk_sp<SkSurface> _surface;
 	sk_sp<SkSurface> _rasterSurface;
 	SkiaCanvas*      _canvas;
+	union {
+		uint32_t  _alpha32;
+		struct {
+			uint8_t val; // Little Endian
+			uint8_t __[3];
+		} alpha;
+	};
 	bool _raster; // software raster
 };
 

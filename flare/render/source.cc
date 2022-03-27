@@ -41,7 +41,7 @@ F_NAMESPACE_START
 #define sk_I(img) static_cast<SkImage*>(img)
 
 F_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
-	public:
+public:
 	static SkImage* CastSk(ImageSource* img) {
 		return sk_I(img->_inl);
 	}
@@ -70,8 +70,8 @@ ImageSource::ImageSource(Pixel pixel)
 	, _load_id(0), _size(0), _used(0)
 	, _inl(nullptr)
 {
-	SkImageInfo info = SkImageInfo::Make(_memPixel.width(),
-																				_memPixel.height(), SkColorType(_memPixel.type()), kOpaque_SkAlphaType);
+	SkImageInfo info = SkImageInfo::Make(_memPixel.width(), _memPixel.height(), 
+		SkColorType(_memPixel.type()), SkAlphaType(_memPixel.alphaType()));
 	SkPixmap skpixel(info, _memPixel.body().val(), _memPixel.width() * Pixel::bytes_per_pixel(_memPixel.type()));
 	auto img = SkImage::MakeFromRaster(skpixel, nullptr, nullptr);
 	img->ref();

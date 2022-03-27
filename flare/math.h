@@ -169,6 +169,7 @@ namespace flare {
 	};
 
 	template <typename T> struct MColor: public MVec<T, 4> {
+		inline MColor(){}
 		inline MColor(T r, T g, T b, T a) {
 			this->val[0] = r;
 			this->val[1] = g;
@@ -200,7 +201,7 @@ namespace flare {
 	* @class Color
 	*/
 	struct F_EXPORT Color: public MColor<uint8_t> {
-		Color(uint32_t color);
+		Color(uint32_t rgba);
 		inline Color(): MColor<uint8_t>(0, 0, 0, 255) {}
 		inline Color(uint8_t r, uint8_t g, uint8_t b): MColor<uint8_t>(r, g, b, 255) {}
 		inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): MColor<uint8_t>(r, g, b, a) {}
@@ -218,6 +219,7 @@ namespace flare {
 		uint32_t to_uint32_argb_from(uint8_t alpha) const {
 			return (a() * alpha) << 16 | r() << 16 | g() << 8 | b();
 		}
+		inline static Color from(uint32_t color) { return *((Color*)&color); }
 	};
 
 	/**

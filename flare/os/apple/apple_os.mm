@@ -55,28 +55,28 @@ namespace flare {
 			return "Apple";
 		}
 
-		#if F_IOS
+#if F_IOS
 
-			String version() {
-				return UIDevice.currentDevice.systemVersion.UTF8String;
-			}
+		String version() {
+			return UIDevice.currentDevice.systemVersion.UTF8String;
+		}
 
-			String subsystem() {
-				return UIDevice.currentDevice.model.UTF8String;
-			}
+		String subsystem() {
+			return UIDevice.currentDevice.model.UTF8String;
+		}
 
-		#else
+#else
 
-			String version() {
-				return String();
-			}
+		String version() {
+			return String();
+		}
 
-			String subsystem() {
-				static String name("MacOSX");
-				return name;
-			}
+		String subsystem() {
+			static String name("MacOSX");
+			return name;
+		}
 
-		#endif
+#endif
 
 		void get_languages_apple(Array<String>& langs) {
 			NSArray* languages = [NSLocale preferredLanguages];
@@ -95,97 +95,97 @@ namespace flare {
 			return code;
 		}
 
-		#if F_IOS
+#if F_IOS
 
-			bool is_ac_power() {
-				[UIDevice currentDevice].batteryMonitoringEnabled = YES;
-				UIDeviceBatteryState state = [UIDevice currentDevice].batteryState;
-				if ( state == UIDeviceBatteryStateFull ||
-						state == UIDeviceBatteryStateCharging ) { // 充电状态
-					return 1;
-				}
-				return 0;
-			}
-
-			bool is_battery() {
+		bool is_ac_power() {
+			[UIDevice currentDevice].batteryMonitoringEnabled = YES;
+			UIDeviceBatteryState state = [UIDevice currentDevice].batteryState;
+			if ( state == UIDeviceBatteryStateFull ||
+					state == UIDeviceBatteryStateCharging ) { // 充电状态
 				return 1;
 			}
+			return 0;
+		}
 
-			float battery_level() {
-				[UIDevice currentDevice].batteryMonitoringEnabled = YES;
-				return [UIDevice currentDevice].batteryLevel;
-			}
+		bool is_battery() {
+			return 1;
+		}
 
-		#else
+		float battery_level() {
+			[UIDevice currentDevice].batteryMonitoringEnabled = YES;
+			return [UIDevice currentDevice].batteryLevel;
+		}
 
-			bool is_ac_power() {
-				CFTypeRef blob = IOPSCopyPowerSourcesInfo();
-				CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
-				ScopeClear clear([=](){ CFRelease(blob); CFRelease(sources); });
-				
-				int numOfSources = CFArrayGetCount(sources);
-				//Calculating the remaining energy
-				for (int i = 0 ; i < numOfSources ; i++) {
-					CFDictionaryRef pSource =
-						IOPSGetPowerSourceDescription(blob, CFArrayGetValueAtIndex(sources, i));
-					if (!pSource) {
-						NSLog(@"Error in IOPSGetPowerSourceDescription");
-						return 0;
-					}
-					const void *psValue;
-					Char buf[32] = {0};
-					psValue = CFDictionaryGetValue(pSource, CFSTR(kIOPSPowerSourceStateKey));
-					CFStringGetCString((CFStringRef)psValue, buf, 31, kCFStringEncodingUTF8);
-					return strcmp("AC Power", buf) == 0;
+#else
+
+		bool is_ac_power() {
+			CFTypeRef blob = IOPSCopyPowerSourcesInfo();
+			CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
+			ScopeClear clear([=](){ CFRelease(blob); CFRelease(sources); });
+			
+			int numOfSources = CFArrayGetCount(sources);
+			//Calculating the remaining energy
+			for (int i = 0 ; i < numOfSources ; i++) {
+				CFDictionaryRef pSource =
+					IOPSGetPowerSourceDescription(blob, CFArrayGetValueAtIndex(sources, i));
+				if (!pSource) {
+					NSLog(@"Error in IOPSGetPowerSourceDescription");
+					return 0;
 				}
-				return 1;
+				const void *psValue;
+				Char buf[32] = {0};
+				psValue = CFDictionaryGetValue(pSource, CFSTR(kIOPSPowerSourceStateKey));
+				CFStringGetCString((CFStringRef)psValue, buf, 31, kCFStringEncodingUTF8);
+				return strcmp("AC Power", buf) == 0;
 			}
+			return 1;
+		}
 
-			bool is_battery() {
-				CFTypeRef blob = IOPSCopyPowerSourcesInfo();
-				CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
-				int numOfSources = CFArrayGetCount(sources);
-				CFRelease(blob);
-				CFRelease(sources);
-				return numOfSources;
-			}
+		bool is_battery() {
+			CFTypeRef blob = IOPSCopyPowerSourcesInfo();
+			CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
+			int numOfSources = CFArrayGetCount(sources);
+			CFRelease(blob);
+			CFRelease(sources);
+			return numOfSources;
+		}
 
-			float battery_level() {
-				//Returns a blob of Power Source information in an opaque CFTypeRef.
-				CFTypeRef blob = IOPSCopyPowerSourcesInfo();
-				//Returns a CFArray of Power Source handles, each of type CFTypeRef.
-				CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
-				//Returns the number of values currently in an array.
-				ScopeClear clear([=](){ CFRelease(blob); CFRelease(sources); });
-				
-				int numOfSources = CFArrayGetCount(sources);
-				//Calculating the remaining energy
-				for (int i = 0 ; i < numOfSources ; i++) {
-					//Returns a CFDictionary with readable information about the specific power source.
-					CFDictionaryRef pSource =
-						IOPSGetPowerSourceDescription(blob, CFArrayGetValueAtIndex(sources, i));
-					if (!pSource) {
-						NSLog(@"Error in IOPSGetPowerSourceDescription");
-						return -1.0f;
-					}
-					const void *psValue;
-					int curCapacity = 0, maxCapacity = 0;
-					#if DEBUG
-						Char buf[32] = {0};
-						psValue = (CFStringRef)CFDictionaryGetValue(pSource, CFSTR(kIOPSNameKey));
-						CFStringGetCString((CFStringRef)psValue, buf, 31, kCFStringEncodingUTF8);
-						NSLog(@"kIOPSNameKey, %s", buf);
-					#endif
-					psValue = CFDictionaryGetValue(pSource, CFSTR(kIOPSCurrentCapacityKey));
-					CFNumberGetValue((CFNumberRef)psValue, kCFNumberSInt32Type, &curCapacity);
-					psValue = CFDictionaryGetValue(pSource, CFSTR(kIOPSMaxCapacityKey));
-					CFNumberGetValue((CFNumberRef)psValue, kCFNumberSInt32Type, &maxCapacity);
-					return (float)curCapacity / (float)maxCapacity;
+		float battery_level() {
+			//Returns a blob of Power Source information in an opaque CFTypeRef.
+			CFTypeRef blob = IOPSCopyPowerSourcesInfo();
+			//Returns a CFArray of Power Source handles, each of type CFTypeRef.
+			CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
+			//Returns the number of values currently in an array.
+			ScopeClear clear([=](){ CFRelease(blob); CFRelease(sources); });
+			
+			int numOfSources = CFArrayGetCount(sources);
+			//Calculating the remaining energy
+			for (int i = 0 ; i < numOfSources ; i++) {
+				//Returns a CFDictionary with readable information about the specific power source.
+				CFDictionaryRef pSource =
+					IOPSGetPowerSourceDescription(blob, CFArrayGetValueAtIndex(sources, i));
+				if (!pSource) {
+					NSLog(@"Error in IOPSGetPowerSourceDescription");
+					return -1.0f;
 				}
-				return -1.0f;
+				const void *psValue;
+				int curCapacity = 0, maxCapacity = 0;
+#if DEBUG
+				Char buf[32] = {0};
+				psValue = (CFStringRef)CFDictionaryGetValue(pSource, CFSTR(kIOPSNameKey));
+				CFStringGetCString((CFStringRef)psValue, buf, 31, kCFStringEncodingUTF8);
+				NSLog(@"kIOPSNameKey, %s", buf);
+#endif
+				psValue = CFDictionaryGetValue(pSource, CFSTR(kIOPSCurrentCapacityKey));
+				CFNumberGetValue((CFNumberRef)psValue, kCFNumberSInt32Type, &curCapacity);
+				psValue = CFDictionaryGetValue(pSource, CFSTR(kIOPSMaxCapacityKey));
+				CFNumberGetValue((CFNumberRef)psValue, kCFNumberSInt32Type, &maxCapacity);
+				return (float)curCapacity / (float)maxCapacity;
 			}
+			return -1.0f;
+		}
 
-		#endif
+#endif
 
 		uint64_t memory() {
 			return [NSProcessInfo processInfo].physicalMemory;

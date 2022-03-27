@@ -58,11 +58,11 @@ namespace flare {
 		return (color >> offset) & 0xff;
 	}
 
-	Color::Color(uint32_t color)
-	: MColor<uint8_t>(getPartColor(color, 24),
-									getPartColor(color, 16),
-									getPartColor(color, 8),
-									getPartColor(color, 0))
+	Color::Color(uint32_t rgba)
+	: MColor<uint8_t>(getPartColor(rgba, 24),
+									getPartColor(rgba, 16),
+									getPartColor(rgba, 8),
+									getPartColor(rgba, 0))
 	{
 		
 	}

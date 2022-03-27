@@ -360,6 +360,22 @@ void View::accept(Visitor *visitor) {
 }
 
 /**
+	* @func draw(canvas)
+	*/
+// void View::draw(Render* render) {
+// 	// visit child
+// 	auto v = _first;
+// 	while(v) {
+// 		if (v->_visible & v->_visible_region) {
+// 			uint8_t a = (uint16_t(alpha) * v->_opacity) >> 8;
+// 			if (a)
+// 				v->draw(render);
+// 		}
+// 		v = v->_next;
+// 	}
+// }
+
+/**
 	* 
 	* Sets whether the view needs to receive or handle event throws from the system
 	*

@@ -34,7 +34,7 @@
 
 #include "flare/util/util.h"
 
-#if FX_ANDROID
+#if F_ANDROID
 
 #include "flare/util/string.h"
 
