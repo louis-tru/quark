@@ -177,6 +177,7 @@ private:
 		BorderStyle style_bottom;
 		BorderStyle style_left;
 	};
+	void alloc_border();
 	Border* _border;
 	bool  _wrap_x, _wrap_y, _is_radius; // layout content size wrap
 	// box attrs
@@ -186,8 +187,6 @@ private:
 	Align _layout_align; // layout align
 
 	friend class Image;
-
-	F_DEFINE_INLINE_CLASS(Inl);
 };
 
 

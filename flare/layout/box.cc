@@ -34,17 +34,7 @@
 #include "../render/render.h"
 
 F_NAMESPACE_START
-// view private members method
-F_DEFINE_INLINE_MEMBERS(Box, Inl) {
-public:
-	#define _inl(self) static_cast<Box::Inl*>(self)
-	void border() {
-		if (!_border) {
-			_border = (Border*)::malloc(sizeof(Border));
-			::memset(_border, 0, sizeof(Border));
-		}
-	}
-};
+
 
 float Box::solve_layout_content_width(Size &parent_layout_size) {
 	float ps = parent_layout_size.content_size.x();
@@ -379,8 +369,15 @@ BorderStyle border_style_left() const {
 
 // set border
 
+void Box::alloc_border() {
+	if (!_border) {
+		_border = (Border*)::malloc(sizeof(Border));
+		::memset(_border, 0, sizeof(Border));
+	}
+}
+
 void Box::set_border_color_top(Color val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->color_top != val) {
 		_border->color_top = val;
 		mark_none();
@@ -388,7 +385,7 @@ void Box::set_border_color_top(Color val) {
 }
 
 void Box::set_border_color_right(Color val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->color_right != val) {
 		_border->color_right = val;
 		mark_none();
@@ -396,7 +393,7 @@ void Box::set_border_color_right(Color val) {
 }
 
 void Box::set_border_color_bottom(Color val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->color_bottom != val) {
 		_border->color_bottom = val;
 		mark_none();
@@ -404,7 +401,7 @@ void Box::set_border_color_bottom(Color val) {
 }
 
 void Box::set_border_color_left(Color val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->color_top != val) {
 		_border->color_top = val;
 		mark_none();
@@ -412,7 +409,7 @@ void Box::set_border_color_left(Color val) {
 }
 
 void Box::set_border_width_top(float val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->width_top != val) {
 		_border->width_top = val;
 		mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
@@ -420,7 +417,7 @@ void Box::set_border_width_top(float val) {
 } // border_widrh
 
 void Box::set_border_width_right(float val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->width_right != val) {
 		_border->width_right = val;
 		mark_layout_size(M_LAYOUT_SIZE_WIDTH);
@@ -428,7 +425,7 @@ void Box::set_border_width_right(float val) {
 }
 
 void Box::set_border_width_bottom(float val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->width_bottom != val) {
 		_border->width_bottom = val;
 		mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
@@ -436,7 +433,7 @@ void Box::set_border_width_bottom(float val) {
 }
 
 void Box::set_border_width_left(float val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->width_left != val) {
 		_border->width_left = val;
 		mark_layout_size(M_LAYOUT_SIZE_WIDTH);
@@ -444,7 +441,7 @@ void Box::set_border_width_left(float val) {
 }
 
 void Box::set_border_style_top(BorderStyle val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->style_top != val) {
 		_border->style_top = val;
 		mark_none();
@@ -452,7 +449,7 @@ void Box::set_border_style_top(BorderStyle val) {
 } // border_style
 
 void Box::set_border_style_right(BorderStyle val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->style_right != val) {
 		_border->style_right = val;
 		mark_none();
@@ -460,7 +457,7 @@ void Box::set_border_style_right(BorderStyle val) {
 }
 
 void Box::set_border_style_bottom(BorderStyle val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->style_bottom != val) {
 		_border->style_bottom = val;
 		mark_none();
@@ -468,7 +465,7 @@ void Box::set_border_style_bottom(BorderStyle val) {
 }
 
 void Box::set_border_style_left(BorderStyle val) {
-	_inl(this)->border();
+	alloc_border();
 	if (_border->style_left != val) {
 		_border->style_left = val;
 		mark_none();
