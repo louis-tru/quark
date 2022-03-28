@@ -33,10 +33,10 @@
 
 F_NAMESPACE_START
 
-PixelInfo::PixelInfo(): _width(0), _height(0), _type(kColor_Type_Invalid), _is_premul_alpha(0) {
+PixelInfo::PixelInfo(): _width(0), _height(0), _type(kColor_Type_Invalid), _alphaType(kSkAlphaType_Unknown) {
 }
-PixelInfo::PixelInfo(int width, int height, ColorType type, bool is_premul_alpha)
-	: _width(width), _height(height), _type(type), _is_premul_alpha(is_premul_alpha) {
+PixelInfo::PixelInfo(int width, int height, ColorType type, AlphaType alphaType)
+	: _width(width), _height(height), _type(type), _alphaType(alphaType) {
 }
 
 // -------------------- P i x e l --------------------
@@ -73,7 +73,7 @@ Pixel Pixel::decode(cBuffer& buf) {
 	if (img->readPixels(nullptr, info, body.val(), rowBytes, 0, 0)) {
 		PixelInfo info2(info.width(), info.height(),
 										ColorType(info.colorType()),
-										info.alphaType() == kPremul_SkAlphaType);
+										AlphaType(info.alphaType()));
 		return Pixel(info2, std::move(body));
 	}
 	return Pixel();

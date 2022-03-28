@@ -28,14 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./app.h"
 #include "./paint.h"
-#include "./display.h"
 #include "./pre_render.h"
 #include "./layout/box.h"
 #include "./render/source.h"
 #include "./render/render.h"
-#include "skia/core/SkImage.h"
 
 F_NAMESPACE_START
 
@@ -162,15 +159,11 @@ void PaintBase::mark() {
 }
 
 PaintBase::Type PaintBase::type() const { return M_INVALID; }
-PaintBase::Type PaintColor::type() const { return M_COLOR; }
 PaintBase::Type PaintImage::type() const { return M_IMAGE; }
 PaintBase::Type PaintGradient::type() const { return M_GRADIENT; }
 PaintBase::Type PaintShadow::type() const { return M_SHADOW; }
-PaintBase::Type PaintBorder::type() const { return M_BORDER; }
 
 // ------------------------------ F i l l C o l o r ------------------------------
-
-PaintColor::PaintColor(Color color): _color(color) {}
 
 void PaintColor::set_color(Color value) {
 	if (_color != value) {
@@ -187,11 +180,7 @@ Paint PaintColor::copy(Paint to) {
 	return target;
 }
 
-Paint PaintColor::WHITE( NewRetain<PaintColor>(Color(255,255,255,255))->set_holder_mode(M_SHARED) );
-Paint PaintColor::BLACK( NewRetain<PaintColor>(Color(0,0,0,255))->set_holder_mode(M_SHARED) );
-Paint PaintColor::BLUE( NewRetain<PaintColor>(Color(0,1,0,255))->set_holder_mode(M_SHARED) );
-
-// ------------------------------ F i l l I m a g e ------------------------------
+// ------------------------------ P a i n t . I m a g e ------------------------------
 
 PaintImage::PaintImage(cString& src)
 	: _repeat(Repeat::REPEAT)
@@ -265,10 +254,6 @@ Paint PaintShadow::copy(Paint to) {
 	return nullptr;
 }
 
-Paint PaintBorder::copy(Paint to) {
-	return nullptr;
-}
-
 bool PaintImage::solve_size(FillSize size, float host, float& out) {
 	switch (size.type) {
 		default: return false; // AUTO
@@ -289,6 +274,9 @@ float PaintImage::solve_position(FillPosition pos, float host, float size) {
 		case FillPositionType::CENTER: out = (host - size) / 2; break;
 	}
 	return out;
+}
+
+PaintShadow::PaintShadow(Shadow value): _shadow(value) {
 }
 
 F_NAMESPACE_END

@@ -73,7 +73,7 @@ enum AlphaType {
 class F_EXPORT PixelInfo: public Object {
 public:
 	PixelInfo();
-	PixelInfo(int width, int height, ColorType type, bool alphaType = kSkAlphaType_Unknown);
+	PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kSkAlphaType_Unknown);
 	F_DEFINE_PROP_READ(int, width); // width 图像宽度
 	F_DEFINE_PROP_READ(int, height); // height 图像高度
 	F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式

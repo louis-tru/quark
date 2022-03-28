@@ -49,7 +49,7 @@ struct TemplateValue {
 	}
 };
 
-// rect
+// shadow
 struct Shadow {
 	float offset_x, offset_y, size;
 	Color color;
@@ -57,7 +57,8 @@ struct Shadow {
 	inline bool operator==(const Shadow& val) const {
 		return (
 			val.offset_x == offset_x && val.offset_y == offset_y && 
-			val.size == size && val.color == color);
+			val.size     == size     && val.color    == color
+		);
 	}
 	inline bool operator!=(const Shadow& val) const {
 		return ! operator==(val);

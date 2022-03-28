@@ -68,10 +68,11 @@ public:
 	virtual void visitFlowLayout(FlowLayout* flow);
 	virtual void visitFlexLayout(FlexLayout* flex);
 private:
-	void paintColor(PaintColor* fill);
-	void paintImage(PaintImage* fill);
-	void paintGradient(PaintGradient* fill);
-	void paintShadow(PaintShadow* fill);
+	typedef void (*DrawFn)(SkiaRender* render, Box* v);
+	void solveBox(Box* v, DrawFn fn);
+	void solvePaintImage(Box *host, PaintImage* paint);
+	void solvePaintGradient(Box *host, PaintGradient* paint);
+	void solvePaintShadow(Box *host, PaintShadow* paint);
 protected:
 	sk_sp<GrDirectContext> _direct;
 	sk_sp<SkSurface> _surface;

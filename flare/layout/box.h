@@ -128,7 +128,6 @@ public:
 	virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size) override;
 	virtual void layout_content_size_change(Layout* parent, uint32_t mark) override;
 	virtual bool solve_visible_region() override;
-	//virtual void draw(Canvas* canvas) override;
 
 protected:
 	/**
@@ -164,22 +163,13 @@ protected:
 	// --------------- m e m b e r . f i e l d ---------------
 private:
 	struct Border {
-		Color color_top; // border_color
-		Color color_right;
-		Color color_bottom;
-		Color color_left;
-		float width_top; // border_widrh
-		float width_right;
-		float width_bottom;
-		float width_left;
-		BorderStyle style_top; // border_style
-		BorderStyle style_right;
-		BorderStyle style_bottom;
-		BorderStyle style_left;
+		Color color_top, color_right, color_bottom, color_left; // border_color
+		float width_top, width_right, width_bottom, width_left; // border_widrh
+		BorderStyle style_top, style_right, style_bottom, style_left; // border_style
 	};
 	void alloc_border();
 	Border* _border;
-	bool  _wrap_x, _wrap_y, _is_radius; // layout content size wrap
+	bool  _wrap_x, _wrap_y, _is_radius, _clip; // layout content size wrap
 	// box attrs
 	Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 	Vec2  _layout_size; // 在布局中所占用的尺寸（margin+content+padding）

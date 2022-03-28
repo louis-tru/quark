@@ -210,7 +210,7 @@ namespace flare {
 		inline Color4f to_Color4f() const {
 			return Color4f(r() / 255.0f, g() / 255.0f, b() / 255.0f, a() / 255.0f);
 		}
-		uint32_t to_uint32_argb(uint8_t opacity) const {
+		uint32_t to_uint32_argb() const {
 			return a() << 24 | r() << 16 | g() << 8 | b();
 		}
 		uint32_t to_uint32_xrgb() const {

@@ -38,11 +38,9 @@
 F_NAMESPACE_START
 
 class PaintBase;
-class PaintColor;
 class PaintImage;
 class PaintGradient;
 class PaintShadow;
-class PaintBorder; // top,right,bottom,left
 
 typedef PaintBase* Paint;
 
@@ -116,14 +114,6 @@ public:
 	*/
 	virtual Paint copy(Paint to) = 0;
 
-	/**
-	 * 
-	 * draw Paint background
-	 *
-	 * @func draw(host, canvas)
-	 */
-	// virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) = 0;
-	
 protected:
 	/**
 	* @func mark()
@@ -149,12 +139,10 @@ public:
 	F_DEFINE_PROP(FillPosition, position_y);
 	F_DEFINE_PROP(FillSize, size_x);
 	F_DEFINE_PROP(FillSize, size_y);
-	virtual Type type() const override;
+	virtual Type  type() const override;
 	virtual Paint copy(Paint to) override;
-	// virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) override;
-private:
-	bool  solve_size(FillSize size, float host, float& out);
-	float solve_position(FillPosition pos, float host, float size);
+	static bool  compute_size(FillSize size, float host, float& out);
+	static float compute_position(FillPosition pos, float host, float size);
 };
 
 /**
@@ -162,11 +150,8 @@ private:
 */
 class F_EXPORT PaintGradient: public PaintBase {
 public:
-	PaintGradient();
-	virtual Type type() const override;
+	virtual Type  type() const override;
 	virtual Paint copy(Paint to) override;
-	// virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) override;
-private:
 };
 
 /**
@@ -174,10 +159,10 @@ private:
  */
 class F_EXPORT PaintShadow: public PaintBase {
 public:
-	virtual Type type() const override;
+	PaintShadow(Shadow value); // = { 0, 0, 0, Color::from(0) }
+	F_DEFINE_PROP(Shadow, value);
+	virtual Type  type() const override;
 	virtual Paint copy(Paint to) override;
-	// virtual void draw(Box* host, Canvas* canvas, uint8_t alpha, bool full) override;
-private:
 };
 
 

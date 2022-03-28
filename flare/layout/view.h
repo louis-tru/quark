@@ -36,8 +36,8 @@
 
 F_NAMESPACE_START
 
-#define F_View_List(F) \
-	F(View) F(Box) \
+#define F_Each_View(F) \
+	F(View)  F(Box) \
 	F(Image) F(Video) F(Scroll) \
 	F(Input) F(Text) F(Label) F(Root) F(FlowLayout) F(FlexLayout)
 
@@ -46,14 +46,14 @@ public: \
 	virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
 
 #define F_View(N) class N;
-#define F_Visitor(N) virtual void visit##N(N *v) = 0;
+	F_Each_View(F_View);
+#undef F_View
 
-F_View_List(F_View);
 class ViewVisitor {
 public:
-	F_View_List(F_Visitor);
+#define F_Visitor(N) virtual void visit##N(N *v) = 0;
+	F_Each_View(F_Visitor);
 #undef F_Visitor
-#undef F_View
 };
 
 class Render;
