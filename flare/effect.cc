@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./paint.h"
+#include "./effect.h"
 #include "./pre_render.h"
 #include "./layout/box.h"
 #include "./render/source.h"
@@ -36,7 +36,7 @@
 
 F_NAMESPACE_START
 
-bool PaintBase::check_loop_reference(Paint value) {
+bool Effect::check_loop_reference(Effect* value) {
 	if (value) {
 		auto v = value;
 		do {
@@ -49,7 +49,7 @@ bool PaintBase::check_loop_reference(Paint value) {
 	return false;
 }
 
-Paint PaintBase::_Assign(Paint left, Paint right) {
+Effect* Effect::_Assign(Effect* left, Effect* right) {
 	if (right) {
 		if (left == right) {
 			return left;
@@ -79,7 +79,7 @@ Paint PaintBase::_Assign(Paint left, Paint right) {
 	}
 }
 
-void PaintBase::_Set_next(Paint value) {
+void Effect::_set_next(Effect* value) {
 	_next = assign(_next, value);
 	if (_next) {
 		_next->set_holder_mode(_holder_mode);
@@ -87,25 +87,25 @@ void PaintBase::_Set_next(Paint value) {
 	mark();
 }
 
-PaintBase::PaintBase()
+Effect::Effect()
 	: _next(nullptr)
 	, _holder_mode(M_INDEPENDENT)
 {
 }
 
-PaintBase::~PaintBase() {
+Effect::~Effect() {
 	if (_next) {
 		_next->release();
 		_next = nullptr;
 	}
 }
 
-Paint PaintBase::set_next(Paint value) {
+Effect* Effect::set_next(Effect* value) {
 	if (value != _next) {
 		if (check_loop_reference(value)) {
 			F_ERR("Box background loop reference error");
 		} else {
-			_Set_next(value);
+			_set_next(value);
 		}
 	} else {
 		mark();
@@ -113,7 +113,7 @@ Paint PaintBase::set_next(Paint value) {
 	return this;
 }
 
-Paint PaintBase::assign(Paint left, Paint right) {
+Effect* Effect::assign(Effect* left, Effect* right) {
 	if (left == right) {
 		return left;
 	} else {
@@ -126,7 +126,7 @@ Paint PaintBase::assign(Paint left, Paint right) {
 	}
 }
 
-bool PaintBase::retain() {
+bool Effect::retain() {
 	if (_holder_mode == M_DISABLE) {
 		return false;
 	} else if (_holder_mode == M_INDEPENDENT) {
@@ -140,7 +140,7 @@ bool PaintBase::retain() {
 /**
 * @func set_holder_mode(mode)
 */
-Paint PaintBase::set_holder_mode(HolderMode mode) {
+Effect* Effect::set_holder_mode(HolderMode mode) {
 	if (_holder_mode != mode) {
 		_holder_mode = mode;
 		if (_next) {
@@ -150,7 +150,7 @@ Paint PaintBase::set_holder_mode(HolderMode mode) {
 	return this;
 }
 
-void PaintBase::mark() {
+void Effect::mark() {
 	auto app_ = app();
 	// F_ASSERT(app_, "Application needs to be initialized first");
 	if (app_) {
@@ -158,31 +158,44 @@ void PaintBase::mark() {
 	}
 }
 
-PaintBase::Type PaintBase::type() const { return M_INVALID; }
-PaintBase::Type PaintImage::type() const { return M_IMAGE; }
-PaintBase::Type PaintGradient::type() const { return M_GRADIENT; }
-PaintBase::Type PaintShadow::type() const { return M_SHADOW; }
+Effect::Type BoxShadow::type() const { return M_SHADOW; }
+Effect::Type FillColor::type() const { return M_COLOR; }
+Effect::Type FillGradient::type() const { return M_IMAGE; }
+Effect::Type FillImage::type() const { return M_GRADIENT; }
 
-// ------------------------------ F i l l C o l o r ------------------------------
+// ------------------------------ B o x . S h a d o w ------------------------------
 
-void PaintColor::set_color(Color value) {
-	if (_color != value) {
-		_color = value;
-		mark();
-	}
-}
+BoxShadow::BoxShadow() {}
 
-Paint PaintColor::copy(Paint to) {
-	auto target = (to && to->type() == M_COLOR) ?
-		static_cast<PaintColor*>(to) : new PaintColor();
-	target->_color = _color;
-	_Set_next(_next);
+BoxShadow::BoxShadow(Shadow value): _value(value) {}
+
+Effect* BoxShadow::copy(Effect* to) {
+	BoxShadow* target = (to && to->type() == M_COLOR) ?
+		static_cast<BoxShadow*>(to): new BoxShadow();
+	target->_value = _value;
+	_set_next(_next);
 	return target;
 }
 
-// ------------------------------ P a i n t . I m a g e ------------------------------
+// ------------------------------ B o x . C o l o r ------------------------------
 
-PaintImage::PaintImage(cString& src)
+FillColor::FillColor() {}
+
+FillColor::FillColor(Color value): _value(value) {}
+
+Effect* FillColor::copy(Effect* to) {
+	FillColor* target = (to && to->type() == M_COLOR) ?
+		static_cast<FillColor*>(to): new FillColor();
+	target->_value = _value;
+	_set_next(_next);
+	return target;
+}
+
+// ------------------------------ F i l l . I m a g e ------------------------------
+
+FillImage::FillImage(): _repeat(Repeat::REPEAT) {}
+
+FillImage::FillImage(cString& src)
 	: _repeat(Repeat::REPEAT)
 {
 	if (!src.is_empty()) {
@@ -190,71 +203,55 @@ PaintImage::PaintImage(cString& src)
 	}
 }
 
-Paint PaintImage::copy(Paint to) {
-	PaintImage* target = (to && to->type() == M_IMAGE) ?
-			static_cast<PaintImage*>(to) : new PaintImage();
+Effect* FillImage::copy(Effect* to) {
+	FillImage* target = (to && to->type() == M_IMAGE) ?
+			static_cast<FillImage*>(to) : new FillImage();
 	target->_repeat = _repeat;
 	target->_position_x = _position_x;
 	target->_position_y = _position_y;
 	target->_size_x = _size_x;
 	target->_size_y = _size_y;
 	target->set_source(source());
-	_Set_next(_next);
+	_set_next(_next);
 	return target;
 }
 
-void PaintImage::set_repeat(Repeat value) {
+void FillImage::set_repeat(Repeat value) {
 	if (_repeat != value) {
 		_repeat = value;
 		mark();
 	}
 }
 
-void PaintImage::set_position_x(PaintPosition value) {
+void FillImage::set_position_x(FillPosition value) {
 	if (value != _position_x) {
 		_position_x = value;
 		mark();
 	}
 }
 
-void PaintImage::set_position_y(PaintPosition value) {
+void FillImage::set_position_y(FillPosition value) {
 	if (value != _position_y) {
 		_position_y = value;
 		mark();
 	}
 }
 
-void PaintImage::set_size_x(PaintSize value) {
+void FillImage::set_size_x(FillSize value) {
 	if (value != _size_x) {
 		_size_x = value;
 		mark();
 	}
 }
 
-void PaintImage::set_size_y(PaintSize value) {
+void FillImage::set_size_y(FillSize value) {
 	if (value != _size_y) {
 		_size_y = value;
 		mark();
 	}
 }
 
-PaintGradient::PaintGradient()
-{
-}
-
-Paint PaintGradient::copy(Paint to) {
-	PaintGradient* target = (to && to->type() == M_GRADIENT) ?
-		static_cast<PaintGradient*>(to) : new PaintGradient();
-	// TODO ..
-	_Set_next(_next);
-	return target;
-}
-
-Paint PaintShadow::copy(Paint to) {
-	return nullptr;
-}
-
-bool PaintImage::solve_size(FillSize size, float host, float& out) {
+bool FillImage::solve_size(FillSize size, float host, float& out) {
 	switch (size.type) {
 		default: return false; // AUTO
 		case FillSizeType::PIXEL: out = size.value; break;
@@ -263,7 +260,7 @@ bool PaintImage::solve_size(FillSize size, float host, float& out) {
 	return true;
 }
 
-float PaintImage::solve_position(FillPosition pos, float host, float size) {
+float FillImage::solve_position(FillPosition pos, float host, float size) {
 	float out = 0;
 	switch (pos.type) {
 		default: break;
@@ -276,7 +273,17 @@ float PaintImage::solve_position(FillPosition pos, float host, float size) {
 	return out;
 }
 
-PaintShadow::PaintShadow(Shadow value): _shadow(value) {
+// ------------------------------ F i l l . G r a d i e n t ------------------------------
+
+FillGradient::FillGradient()
+{}
+
+Effect* FillGradient::copy(Effect* to) {
+	FillGradient* target = (to && to->type() == M_GRADIENT) ?
+		static_cast<FillGradient*>(to) : new FillGradient();
+	// TODO ..
+	_set_next(_next);
+	return target;
 }
 
 F_NAMESPACE_END

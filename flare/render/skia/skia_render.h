@@ -69,21 +69,23 @@ public:
 	virtual void visitFlexLayout(FlexLayout* flex);
 private:
 	typedef void (*DrawFn)(SkiaRender* render, Box* v);
-	void solveBox(Box* v, DrawFn fn);
-	void solvePaintImage(Box *host, PaintImage* paint);
-	void solvePaintGradient(Box *host, PaintGradient* paint);
-	void solvePaintShadow(Box *host, PaintShadow* paint);
+	void clipRect(Box* box, SkClipOp op, bool doAntiAlias);
+	void solveBox(Box* box, DrawFn fillFn);
+	void solveEffect(Box *box, Effect* effect);
+	void solveFillImage(Box *box, PaintImage* fill);
+	void solveFillGradient(Box *box, PaintGradient* fill);
 protected:
 	sk_sp<GrDirectContext> _direct;
 	sk_sp<SkSurface> _surface;
 	sk_sp<SkSurface> _rasterSurface;
 	SkiaCanvas*      _canvas;
+	SkRect          _rect;
 	union {
 		uint32_t  _alpha32;
 		struct {
 			uint8_t val; // Little Endian
 			uint8_t __[3];
-		} alpha;
+		} _alpha;
 	};
 	bool _raster; // software raster
 };

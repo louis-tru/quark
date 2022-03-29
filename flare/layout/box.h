@@ -32,7 +32,7 @@
 #define __flare__layout__box__
 
 #include "./view.h"
-#include "../paint.h"
+#include "../effect.h"
 
 F_NAMESPACE_START
 
@@ -74,8 +74,8 @@ public:
 	F_DEFINE_ACCESSOR(BorderStyle, border_style_right);
 	F_DEFINE_ACCESSOR(BorderStyle, border_style_bottom);
 	F_DEFINE_ACCESSOR(BorderStyle, border_style_left);
-	F_DEFINE_PROP(Color, paint_color);
-	F_DEFINE_PROP(Paint, paint); // image|gradient|shadow
+	F_DEFINE_PROP(Fill*, fill); // fill, color|image|gradient
+	F_DEFINE_PROP(Effect*, effect); // effect, shadow
 	F_DEFINE_PROP_READ(Vec2, transform_origin); // Start the matrix transformation from this origin point
 	F_DEFINE_PROP_READ(Vec2, layout_content_size); // width,height / size
 	F_DEFINE_PROP_READ(Vec2, client_size); // content + padding

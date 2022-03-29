@@ -39,10 +39,16 @@ F_NAMESPACE_START
 
 SkImage* CastSkImage(ImageSource* v);
 
-SkiaRender::SkiaRender(): _canvas(nullptr), _alpha32(255) {
+SkRect MakeSkRectFrom(Box *host) {
+	auto begin = host->transform_origin(); // begin
+	auto end = host->client_size() - begin; // end
+	return {-begin.x(), -begin.y(), end.x(), end.y()};
 }
 
-void SkiaRender::solveView(View* view) {
+SkiaRender::SkiaRender(): _canvas(nullptr), _alpha32(255), {
+}
+
+void SkiaRender::visitView(View* view) {
 	// visit child
 	auto v = view->_first;
 	if (v) {
@@ -60,74 +66,198 @@ void SkiaRender::solveView(View* view) {
 	}
 }
 
-void SkiaRender::solveBox(Box* v, DrawFn fn) {
-	
-	_canvas->setMatrix(v->matrix());
-	if (fn) {
-		fn(this, v);
-	} else {
-
-	}
-	if (v->_paint) {
-		
-		//_fill->draw(box, canvas, true);
-	}
-	SkiaRender::solveView(v);
+void SkiaRender::visitBox(Box* box) {
+	solveBox(box, nullptr);
 }
 
-void SkiaRender::solveImage(Image* v) {
-	auto src = v->source();
-	solveBox(v, src && src->ready() ? [](SkiaRender* render, Box* box) {
+void SkiaRender::visitImage(Image* box) {
+	auto src = box->source();
+	solveBox(v, src || src->ready() ? [](SkiaRender* render, Box* box) {
 		Image* v = static_cast<Image*>(box);
 		auto begin = Vec2(v->_padding_left - v->_transform_origin.x(), v->_padding_top - v->_transform_origin.y());
 		auto end = v->layout_content_size() + begin;
-		auto img = CastSkImage(src);
+		auto img = CastSkImage(v);
 		SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
 		SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
-		//if (!v->is_radius())
 		render->_canvas->drawImageRect(img, rect, opts);
 	}: nullptr);
 }
 
-void SkiaRender::solveRoot(Root* v) {
+void SkiaRender::visitVideo(Video* video) {
+	solveBox(v, [](SkiaRender* render, Box* box) {
+		// TODO ...
+	});
+}
+
+void SkiaRender::visitScroll(Scroll* scroll) {
+	solveBox(box, nullptr);
+}
+
+void SkiaRender::visitInput(Input* input) {
+	solveBox(box, [](SkiaRender* render, Box* box) {
+		// TODO ...
+	});
+}
+
+void SkiaRender::visitText(Text* text) {
+	solveBox(box, [](SkiaRender* render, Box* box) {
+		// TODO ...
+	});
+}
+
+void SkiaRender::visitLabel(Label* label) {
+	// TODO ...
+}
+
+void SkiaRender::visitRoot(Root* box) {
 	if (v->visible() && v->visible_region() && v->opacity()) {
-		solveBox(v, src && src->ready() ? [](SkiaRender* render, Box* box) {
-			render->_canvas->clear(box->paint_color()->to_uint32_xrgb());
+
+		solveBox(v, [](SkiaRender* render, Box* box) {
+			FillColor* color = nullptr;
+
+			// find final color
+			auto fill = box->_fill;
+			while(fill) {
+				if (fill->type() == Effect::M_COLOR) {
+					color = static_cast<FillColor*>(fill);
+				}
+				fill = fill->next();
+			}
+
+			if (color) {
+				render->_canvas->clear(color->value()->to_uint32_xrgb());
+				fill = color->next();
+			} else {
+				_canvas->clear(SK_ColorBLACK);
+				fill = box->_fill;
+			}
+
+			while(fill) {
+				switch (fill->type()) {
+					case Effect::M_IMAGE:
+						solveFillImage(box, static_cast<FillImage*>(fill)); break;
+					case Effect::M_GRADIENT:
+						solveFillGradient(box, static_cast<FillGradient*>(fill)); break;
+				}
+				fill = fill->next();
+			}
 		});
 	} else {
 		_canvas->clear(SK_ColorBLACK);
 	}
 }
 
-// --------------- P a i n t . D r a w ---------------
-
-SkRect MakeSkRectFrom(Box *host) {
-	auto begin = host->transform_origin(); // begin
-	auto end = host->client_size() - begin; // end
-	return {-begin.x(), -begin.y(), end.x(), end.y()};
+void SkiaRender::visitFlowLayout(FlowLayout* flow) {
+	solveBox(box, nullptr);
 }
 
-void SkiaRender::solvePaintColor(Box *host, bool onlyLocal) {
-	if (onlyLocal && _paint_color.a()) {
-		SkPaint paint;
-		paint.setColor(_paint_color.to_uint32_argb_from(alpha.val));
-		if (host->is_radius()) {
-			// TODO ...
-		} else {
-			canvas->drawRect(MakeSkRectFrom(host), paint);
-		}
+void SkiaRender::visitFlexLayout(FlexLayout* flex) {
+	solveBox(box, nullptr);
+}
+
+void SkiaRender::clipRect(Box* box, SkClipOp op, bool doAntiAlias) {
+	if (box->_is_radius) {
+		SkRRect rrect;
+		SkVector radii[4] = {
+			{box->_radius_left_top, box->_radius_left_top},
+			{box->_radius_right_top, box->_radius_right_top},
+			{box->_radius_right_bottom, box->_radius_right_bottom},
+			{box->_radius_left_bottom, box->_radius_left_bottom},/*left-bottom*/
+		};
+		rrect.setRectRadii(_rect, radii);
+		_canvas->clipRRect(rrect, op, doAntiAlias); // SkClipOp::kIntersect
+	} else {
+		_canvas->clipRect(rect, op, doAntiAlias); // SkClipOp::kIntersect
 	}
 }
 
-void SkiaRender::solvePaintImage(Box *host, PaintImage* paint) {
-	auto src = source();
+void SkiaRender::solveBox(Box* box, DrawFn fillFn) {
+
+	_canvas->setMatrix(b->matrix());
+
+	_rect = MakeSkRectFrom(box);
+
+	auto fill = box->_fill;
+
+	// step 1: if exist radius or overflow clip and exist draw task then clip rect
+	bool is_clip = false;
+	if (
+		(box->_is_radius && (fill || fillFn)) ||
+		(box->_clip      && (box->_first))
+	) {
+		_canvas->save();
+		clipRect(box, _rect, SkClipOp::kIntersect, true); // exec reverse clip
+		is_clip = true;
+	}
+
+	// step 2: if exist fillFn then exec fillFn else exec draw color and image and gradient background ...
+	if (fillFn) {
+		fillFn(this, box);
+	} else {
+		while(fill) {
+			switch(fill->type()) {
+				case Effect::M_COLOR: {
+					auto color = static_cast<FillColor*>(fill);
+					if (color->value.a()) {
+						SkPaint paint;
+						paint.setColor(color->value.to_uint32_argb_from(_alpha.val));
+						_canvas->drawRect(_rect, paint);
+					}
+					break;
+				}
+				case Effect::M_IMAGE:
+					solveFillImage(box, static_cast<FillImage*>(fill)); break;
+				case Effect::M_GRADIENT:
+					solveFillGradient(box, static_cast<FillGradient*>(fill)); break;
+			}
+			fill = fill->next();
+		}
+	}
+
+	// step 3: exec child draw task
+	SkiaRender::visitView(box);
+
+	// step 4: if exist clip then cancel clip rect
+	if (is_clip) {
+		_canvas->restore(); // cancel clip
+	}
+
+	// step 5: if exist shadow then reverse clip rect and draw effect
+	if (box->_effect)
+		solveEffect(box, box->_effect);
+}
+
+void SkiaRender::solveEffect(Box* box, Effect* effect) {
+	int clip = 0; // 1 kDifference, 2 kIntersect
+	do {
+		switch (effect->type()) {
+			case Effect::M_SHADOW:
+			if (clip != 1) {
+				if (clip)
+					_canvas->restore(); // cancel reverse clip
+				clip = 1;
+				_canvas->save();
+				clipRect(box, _rect, SkClipOp::kDifference, true); // exec reverse clip
+				// TODO ... draw shadow
+				break;
+			}
+		}
+		effect = effect->next();
+	} while(effect);
+
+	if (clip)
+		_canvas->restore(); // cancel reverse clip
+}
+
+void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
+	auto src = fill->source();
 	if (!src || !src->ready()) return;
 
 	auto img = CastSkImage(src);
 	SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
 
-	auto ori = host->transform_origin(); // begin
-	auto cli = host->client_size();
+	auto ori = box->transform_origin(); // begin
+	auto cli = box->client_size();
 	auto src_w = src->width(), src_h = src->height();
 
 	float w, h, x, y;
@@ -137,11 +267,11 @@ void SkiaRender::solvePaintImage(Box *host, PaintImage* paint) {
 	float dw = cli.x(), dh = cli.y();
 	float dxm = dw, dym = dh;
 	
-	if (PaintImage::solve_size(paint->size_x(), dw, w)) { // ok x
-		if (!PaintImage::solve_size(paint->size_y(), dh, h)) { // auto y
+	if (PaintImage::solve_size(fill->size_x(), dw, w)) { // ok x
+		if (!PaintImage::solve_size(fill->size_y(), dh, h)) { // auto y
 			h = w / src_w * src_h;
 		}
-	} else if (PaintImage::solve_size(paint->size_y(), dh, h)) { // auto x, ok y
+	} else if (PaintImage::solve_size(fill->size_y(), dh, h)) { // auto x, ok y
 		w = h / src_h * src_w;
 	} else { // auto x,y
 		w = src_w / display()->atom_pixel();
@@ -153,10 +283,10 @@ void SkiaRender::solvePaintImage(Box *host, PaintImage* paint) {
 	auto min = [] (float a, float b) { return a < b ? a: b; };
 	auto max = [] (float a, float b) { return a > b ? a: b; };
 
-	x = PaintImage::solve_position(paint->position_x(), dw, w);
-	y = PaintImage::solve_position(paint->position_y(), dh, h);
+	x = PaintImage::solve_position(fill->position_x(), dw, w);
+	y = PaintImage::solve_position(fill->position_y(), dh, h);
 
-	auto _repeat = paint->repeat();
+	auto _repeat = fill->repeat();
 
 	if (_repeat == Repeat::NONE) {
 		dx = max(x, 0);                 dy = max(y, 0);
@@ -205,11 +335,7 @@ void SkiaRender::solvePaintImage(Box *host, PaintImage* paint) {
 	}
 }
 
-void SkiaRender::solvePaintGradient(Box* host, PaintGradient* paint) {
-	// TODO ...
-}
-
-void SkiaRender::solvePaintShadow(Box* host, PaintShadow* paint) {
+void SkiaRender::solveFillGradient(Box* box, PaintGradient* gradient) {
 	// TODO ...
 }
 

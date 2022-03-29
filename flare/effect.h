@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__paint__
-#define __flare__paint__
+#ifndef __flare__effect__
+#define __flare__effect__
 
 #include "./value.h"
 #include "./render/source.h"
@@ -37,24 +37,19 @@
 
 F_NAMESPACE_START
 
-class PaintBase;
-class PaintImage;
-class PaintGradient;
-class PaintShadow;
-
-typedef PaintBase* Paint;
-
 /**
-* @class PaintBase, Single linked list struct
+* @class Effect, Single linked list struct
 */
-class F_EXPORT PaintBase: public Reference {
+class F_EXPORT Effect: public Reference {
 public:
 	
 	enum Type {
 		M_INVALID,
+		M_COLOR,
 		M_IMAGE,
 		M_GRADIENT,
 		M_SHADOW,
+		M_BLUR,
 	};
 
 	enum HolderMode {
@@ -62,48 +57,38 @@ public:
 		M_SHARED,
 		M_DISABLE,
 	};
-	
+
 	/**
 	 * @constructor
 	 */
-	PaintBase();
+	Effect();
 	
 	/**
 	* @destructor
 	*/
-	virtual ~PaintBase();
-	
-	/**
-	* @func next()
-	*/
-	inline Paint next() { return _next; }
-	
-	/**
-	* @func set_next(value)
-	*/
-	Paint set_next(Paint value);
-	
+	virtual ~Effect();
+
 	/**
 	* @func type()
 	*/
-	virtual Type type() const;
-	
+	virtual Type type() const = 0;
+
 	/**
 	* @func hold(left, right)
 	* @ret return left value
 	*/
-	static Paint assign(Paint left, Paint right);
-	
+	static Effect* assign(Effect* left, Effect* right);
+
 	/**
 	* @func allow_multi_holder()
 	*/
 	inline HolderMode holder_mode() const { return _holder_mode; }
-	
+
 	/**
 	* @func set_holder_mode(value)
 	*/
-	Paint set_holder_mode(HolderMode mode);
-	
+	Effect* set_holder_mode(HolderMode mode);
+
 	/**
 	 * @override
 	 */
@@ -112,57 +97,90 @@ public:
 	/**
 	* @func copy(to)
 	*/
-	virtual Paint copy(Paint to) = 0;
+	virtual Effect* copy(Effect* to) = 0;
+
+	/**
+	* @func set_next(value)
+	*/
+	Effect* set_next(Effect* value);
+
+	/**
+	* @func next()
+	*/
+	inline Effect* next() { return _next; }
 
 protected:
 	/**
 	* @func mark()
 	*/
 	void mark();
+	bool check_loop_reference(Effect* value);
+	void _set_next(Effect* value);
+	static Effect* _Assign(Effect* left, Effect* right);
 
-	bool check_loop_reference(Paint value);
-	void _Set_next(Paint value);
-	static Paint _Assign(Paint left, Paint right);
-
-	Paint        _next;
+	Effect*     _next;
 	HolderMode  _holder_mode;
 };
 
 /**
-* @class PaintImage
-*/
-class F_EXPORT PaintImage: public PaintBase, public SourceHold {
+ * @class BoxShadow
+ */
+class F_EXPORT BoxShadow: public Effect {
 public:
-	PaintImage(cString& src = String());
+	BoxShadow();
+	BoxShadow(Shadow value);
+	F_DEFINE_PROP(Shadow, value);
+	virtual Type    type() const override;
+	virtual Effect* copy(Effect* to) override;
+};
+
+/**
+* @class Fill
+*/
+class F_EXPORT Fill: public Effect {
+public:
+	inline Fill* set_next(Fill* value) { Effect::set_next(value); return this; }
+	inline Fill* next() { return static_cast<Fill*>(_next); }
+};
+
+/**
+* @class FillColor
+*/
+class F_EXPORT FillColor: public Fill {
+public:
+	FillColor();
+	FillColor(Color color);
+	F_DEFINE_PROP(Color, value);
+	virtual Type    type() const override;
+	virtual Effect* copy(Effect* to) override;
+};
+
+/**
+* @class FillImage
+*/
+class F_EXPORT FillImage: public Fill, public SourceHold {
+public:
+	FillImage();
+	FillImage(cString& src = String());
 	F_DEFINE_PROP(Repeat, repeat);
 	F_DEFINE_PROP(FillPosition, position_x);
 	F_DEFINE_PROP(FillPosition, position_y);
 	F_DEFINE_PROP(FillSize, size_x);
 	F_DEFINE_PROP(FillSize, size_y);
-	virtual Type  type() const override;
-	virtual Paint copy(Paint to) override;
+	virtual Type    type() const override;
+	virtual Effect* copy(Effect* to) override;
 	static bool  compute_size(FillSize size, float host, float& out);
 	static float compute_position(FillPosition pos, float host, float size);
 };
 
 /**
-* @class PaintGradient
+* @class FillGradient
 */
-class F_EXPORT PaintGradient: public PaintBase {
+class F_EXPORT FillGradient: public Fill {
 public:
-	virtual Type  type() const override;
-	virtual Paint copy(Paint to) override;
-};
-
-/**
- * @class PaintShadow
- */
-class F_EXPORT PaintShadow: public PaintBase {
-public:
-	PaintShadow(Shadow value); // = { 0, 0, 0, Color::from(0) }
-	F_DEFINE_PROP(Shadow, value);
-	virtual Type  type() const override;
-	virtual Paint copy(Paint to) override;
+	FillGradient();
+	virtual Type    type() const override;
+	virtual Effect* copy(Effect* to) override;
 };
 
 

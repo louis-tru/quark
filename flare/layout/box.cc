@@ -127,10 +127,10 @@ float Box::solve_layout_content_height(Size &parent_layout_size) {
 }
 
 void Box::mark_layout_size(uint32_t mark_) {
-	auto _parent = parent();
-	if (_parent) {
-		if (_parent->is_layout_lock_child()) {
-			_parent->layout_typesetting_change(this);
+	auto paren = parent();
+	if (paren) {
+		if (paren->is_layout_lock_child()) {
+			paren->layout_typesetting_change(this);
 		} else {
 			mark(mark_);
 		}
@@ -146,8 +146,9 @@ Box::Box()
 	, _margin_bottom(0), _margin_left(0)
 	, _padding_top(0), _padding_right(0)
 	, _padding_bottom(0), _padding_left(0)
-	, _paint_color(Color::from(0))
-	, _paint(nullptr)
+	, _fill_color(Color::from(0))
+	, _fill(nullptr)
+	, _effect(nullptr)
 	, _layout_weight(0), _layout_align(Align::AUTO)
 	, _border(nullptr)
 	, _wrap_x(true), _wrap_y(true), _is_radius(false)
@@ -475,9 +476,16 @@ void Box::set_border_style_left(BorderStyle val) {
 
 // -- paint
 
-void Box::set_paint(Paint val) {
-	if (_paint != val) {
-		_paint = PaintBase::assign(_paint, val);
+void Box::set_fill(Fill* val) {
+	if (_fill != val) {
+		_fill = Effect::assign(_fill, val);
+		mark_none();
+	}
+}
+
+void Box::set_effect(Effect* val) {
+	if (_effect != val) {
+		_effect = Effect::assign(_effect, val);
 		mark_none();
 	}
 }
