@@ -106,10 +106,10 @@ void layout(Application* app) {
 	fill->set_size_x({200, FillSizeType::PIXEL});
 	//fill->set_size_y({100, FillSizeType::PIXEL});
 	//fill->set_repeat(Repeat::REPEAT_Y);
+	fill->set_next(New<FillImageTest>(Path::resources("bench/img/99.jpeg")));
 
-	flex->set_fill(New<FillColor>(Color(255,0,0,255))->set_next(fill->set_next(
-								 New<FillImageTest>(Path::resources("bench/img/99.jpeg"))
-	)));
+	flex->set_fill_color(Color(255,0,0,255));
+	flex->set_fill(fill);
 	flex->set_margin_left(10);
 	flex->set_margin_top(20);
 	flex->set_margin_right(10);
@@ -121,7 +121,7 @@ void layout(Application* app) {
 	//
 	flow->set_width({ 50, SizeType::PIXEL });
 	flow->set_height({ 50, SizeType::PIXEL });
-	flow->set_fill(New<FillColor>(Color(255,0,0,255)));
+	flow->set_fill_color(Color(255,0,0,255));
 	flow->set_layout_align(Align::LEFT_BOTTOM);
 	flow->set_margin_left(10);
 	flow->set_margin_top(10);
@@ -132,7 +132,7 @@ void layout(Application* app) {
 	img->set_height({ 50, SizeType::PIXEL });
 	img->set_layout_align(Align::RIGHT_BOTTOM);
 	img->set_src(Path::resources("bench/img2/21.jpeg"));
-	img->set_fill(New<FillColor>(Color(255,0,0,255)));
+	img->set_fill(New<FillColor>(255,0,0,255));
 	img->set_margin_left(10);
 	img->set_margin_top(10);
 	img->set_margin_right(10);

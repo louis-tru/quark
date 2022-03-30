@@ -166,8 +166,8 @@ Effect::Type FillImage::type() const { return M_GRADIENT; }
 // ------------------------------ B o x . S h a d o w ------------------------------
 
 BoxShadow::BoxShadow() {}
-
 BoxShadow::BoxShadow(Shadow value): _value(value) {}
+BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
 
 Effect* BoxShadow::copy(Effect* to) {
 	BoxShadow* target = (to && to->type() == M_COLOR) ?
@@ -180,8 +180,8 @@ Effect* BoxShadow::copy(Effect* to) {
 // ------------------------------ B o x . C o l o r ------------------------------
 
 FillColor::FillColor() {}
-
 FillColor::FillColor(Color value): _value(value) {}
+FillColor::FillColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a): _value(r,g,b,a) {}
 
 Effect* FillColor::copy(Effect* to) {
 	FillColor* target = (to && to->type() == M_COLOR) ?
@@ -194,9 +194,8 @@ Effect* FillColor::copy(Effect* to) {
 // ------------------------------ F i l l . I m a g e ------------------------------
 
 FillImage::FillImage(): _repeat(Repeat::REPEAT) {}
-
 FillImage::FillImage(cString& src)
-	: _repeat(Repeat::REPEAT)
+: _repeat(Repeat::REPEAT)
 {
 	if (!src.is_empty()) {
 		set_src(src);

@@ -33,130 +33,130 @@
 
 #include "./action.h"
 
-namespace flare {
+F_NAMESPACE_START
 
+/**
+* @class GroupAction
+*/
+class F_EXPORT GroupAction: public Action {
+public:
 	/**
-	* @class GroupAction
+	* @func operator[]
 	*/
-	class F_EXPORT GroupAction: public Action {
-	public:
-		/**
-		* @func operator[]
-		*/
-		Action* operator[](uint32_t index);
-		
-		/**
-		* @func length
-		*/
-		inline uint32_t length() const { return _actions.length(); }
-		
-		/**
-		* @func append
-		*/
-		virtual void append(Action* action) throw(Error);
-		
-		/**
-		* @func insert
-		*/
-		virtual void insert(uint32_t index, Action* action) throw(Error);
-		
-		/**
-		* @func remove_child
-		*/
-		virtual void remove_child(uint32_t index);
-		
-		/**
-		* @overwrite
-		*/
-		virtual void clear();
-
-		/**
-		* @
-		*/
-		virtual GroupAction* as_group() {
-			return this;
-		}
-		
-	protected:
-		/**
-		* @destructor
-		*/
-		virtual ~GroupAction();
-		
-		/**
-		* @overwrite
-		*/
-		virtual void bind_view(View* view);
-		
-		typedef List<Action*>::Iterator Iterator;
-		
-		List<Action*>  _actions;
-		Array<Iterator>     _actions_index;
-		
-		friend class Action;
-		
-		F_DEFINE_INLINE_CLASS(Inl);
-	};
-
-	/**
-	* @class SpawnAction
-	*/
-	class F_EXPORT SpawnAction: public GroupAction {
-	public:
-		/**
-		* @func spawn
-		*/
-		inline Action* spawn(uint32_t index) { return (*this)[index]; }
-		
-		/**
-		* @overwrite
-		*/
-		virtual SpawnAction* as_spawn() { return this; }
-		virtual void append(Action* action) throw(Error);
-		virtual void insert(uint32_t index, Action* action) throw(Error);
-		virtual void remove_child(uint32_t index);
-
-	private:
-		/**
-		* @overwrite
-		*/
-		virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
-		virtual void seek_time(uint64_t time, Action* root);
-		virtual void seek_before(int64_t time, Action* child);
-	};
-
-	/**
-	* @class SequenceAction
-	*/
-	class F_EXPORT SequenceAction: public GroupAction {
-	public:
-		/**
-		* @func seq
-		*/
-		inline Action* seq(uint32_t index) { return (*this)[index]; }
-		
-		/**
-		* @overwrite
-		*/
-		virtual SequenceAction* as_sequence() { return this; }
-		virtual void append(Action* action) throw(Error);
-		virtual void insert(uint32_t index, Action* action) throw(Error);
-		virtual void remove_child(uint32_t index);
-		virtual void clear();
-		
-	private:
-		/**
-		* @overwrite
-		*/
-		virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
-		virtual void seek_time(uint64_t time, Action* root);
-		virtual void seek_before(int64_t time, Action* child);
-		
-		Iterator _action;
-		
-		friend class GroupAction::Inl;
+	Action* operator[](uint32_t index);
 	
-	};
+	/**
+	* @func length
+	*/
+	inline uint32_t length() const { return _actions.length(); }
+	
+	/**
+	* @func append
+	*/
+	virtual void append(Action* action) throw(Error);
+	
+	/**
+	* @func insert
+	*/
+	virtual void insert(uint32_t index, Action* action) throw(Error);
+	
+	/**
+	* @func remove_child
+	*/
+	virtual void remove_child(uint32_t index);
+	
+	/**
+	* @overwrite
+	*/
+	virtual void clear();
 
-}
+	/**
+	* @
+	*/
+	virtual GroupAction* as_group() {
+		return this;
+	}
+	
+protected:
+	/**
+	* @destructor
+	*/
+	virtual ~GroupAction();
+	
+	/**
+	* @overwrite
+	*/
+	virtual void bind_view(View* view);
+	
+	typedef List<Action*>::Iterator Iterator;
+	
+	List<Action*>  _actions;
+	Array<Iterator>     _actions_index;
+	
+	friend class Action;
+	
+	F_DEFINE_INLINE_CLASS(Inl);
+};
+
+/**
+* @class SpawnAction
+*/
+class F_EXPORT SpawnAction: public GroupAction {
+public:
+	/**
+	* @func spawn
+	*/
+	inline Action* spawn(uint32_t index) { return (*this)[index]; }
+	
+	/**
+	* @overwrite
+	*/
+	virtual SpawnAction* as_spawn() { return this; }
+	virtual void append(Action* action) throw(Error);
+	virtual void insert(uint32_t index, Action* action) throw(Error);
+	virtual void remove_child(uint32_t index);
+
+private:
+	/**
+	* @overwrite
+	*/
+	virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
+	virtual void seek_time(uint64_t time, Action* root);
+	virtual void seek_before(int64_t time, Action* child);
+};
+
+/**
+* @class SequenceAction
+*/
+class F_EXPORT SequenceAction: public GroupAction {
+public:
+	/**
+	* @func seq
+	*/
+	inline Action* seq(uint32_t index) { return (*this)[index]; }
+	
+	/**
+	* @overwrite
+	*/
+	virtual SequenceAction* as_sequence() { return this; }
+	virtual void append(Action* action) throw(Error);
+	virtual void insert(uint32_t index, Action* action) throw(Error);
+	virtual void remove_child(uint32_t index);
+	virtual void clear();
+	
+private:
+	/**
+	* @overwrite
+	*/
+	virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
+	virtual void seek_time(uint64_t time, Action* root);
+	virtual void seek_before(int64_t time, Action* child);
+	
+	Iterator _action;
+	
+	friend class GroupAction::Inl;
+
+};
+
+F_NAMESPACE_END
 #endif

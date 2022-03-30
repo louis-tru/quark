@@ -66,7 +66,12 @@ const toolbar_vx = ()=>(
 
 var vx = ()=>(
 	<Div>
-		<Div background="color(#f00), url(https://aaa.bbb.com/test.jpeg)">
+		<Div
+			fillColor="#f00"
+			fill="url(https://aaa.bbb.com/test.jpeg), linear(90deg, black, transparent), linear(360deg, black, transparent)"
+			effect="shadow(0,0,0,#f00)"
+			border="solid 1 #f00"
+		>
 			<Image src="https://aaa.bbb.com/test.jpeg" />
 			<Indep>
 				<Button>Button</Button>

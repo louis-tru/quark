@@ -56,7 +56,7 @@ F_NAMESPACE_START
 class SkiaRender: public ViewVisitor {
 public:
 	SkiaRender();
-	virtual void visitView(View* box);
+	virtual void visitView(View* v);
 	virtual void visitBox(Box* box);
 	virtual void visitImage(Image* image);
 	virtual void visitVideo(Video* video);
@@ -71,9 +71,11 @@ private:
 	typedef void (*DrawFn)(SkiaRender* render, Box* v);
 	void clipRect(Box* box, SkClipOp op, bool doAntiAlias);
 	void solveBox(Box* box, DrawFn fillFn);
-	void solveEffect(Box *box, Effect* effect);
-	void solveFillImage(Box *box, PaintImage* fill);
-	void solveFillGradient(Box *box, PaintGradient* fill);
+	void solveFill(Box* box, Fill* fill, Color fill_color);
+	void solveFillImage(Box* box, FillImage* fill);
+	void solveFillGradient(Box* box, FillGradient* fill);
+	void solveEffect(Box* box, Effect* effect);
+	SkRect MakeSkRectFrom(Box *host);
 protected:
 	sk_sp<GrDirectContext> _direct;
 	sk_sp<SkSurface> _surface;

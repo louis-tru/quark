@@ -34,107 +34,106 @@
 
 #include "./action_prop.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	// set_property
-	template<> void Property2<TextColor>::set_property(List<View*>& views);
-	template<> void Property2<TextSize>::set_property(List<View*>& views);
-	template<> void Property2<TextStyle>::set_property(List<View*>& views);
-	template<> void Property2<TextFamily>::set_property(List<View*>& views);
-	template<> void Property2<TextLineHeight>::set_property(List<View*>& views);
-	template<> void Property2<TextShadow>::set_property(List<View*>& views);
-	template<> void Property2<TextDecoration>::set_property(List<View*>& views);
-	template<> void Property2<TextOverflow>::set_property(List<View*>& views);
-	template<> void Property2<TextWhiteSpace>::set_property(List<View*>& views);
+// set_property
+template<> void Property2<TextColor>::set_property(List<View*>& views);
+template<> void Property2<TextSize>::set_property(List<View*>& views);
+template<> void Property2<TextStyle>::set_property(List<View*>& views);
+template<> void Property2<TextFamily>::set_property(List<View*>& views);
+template<> void Property2<TextLineHeight>::set_property(List<View*>& views);
+template<> void Property2<TextShadow>::set_property(List<View*>& views);
+template<> void Property2<TextDecoration>::set_property(List<View*>& views);
+template<> void Property2<TextOverflow>::set_property(List<View*>& views);
+template<> void Property2<TextWhiteSpace>::set_property(List<View*>& views);
 
-	// get_property
-	template<> TextColor Property2<TextColor>::get_property(View* view);
-	template<> TextSize Property2<TextSize>::get_property(View* view);
-	template<> TextStyle Property2<TextStyle>::get_property(View* view);
-	template<> TextFamily Property2<TextFamily>::get_property(View* view);
-	template<> TextLineHeight Property2<TextLineHeight>::get_property(View* view);
-	template<> TextShadow Property2<TextShadow>::get_property(View* view);
-	template<> TextDecoration Property2<TextDecoration>::get_property(View* view);
-	template<> TextOverflow Property2<TextOverflow>::get_property(View* view);
-	template<> TextWhiteSpace Property2<TextWhiteSpace>::get_property(View* view);
+// get_property
+template<> TextColor Property2<TextColor>::get_property(View* view);
+template<> TextSize Property2<TextSize>::get_property(View* view);
+template<> TextStyle Property2<TextStyle>::get_property(View* view);
+template<> TextFamily Property2<TextFamily>::get_property(View* view);
+template<> TextLineHeight Property2<TextLineHeight>::get_property(View* view);
+template<> TextShadow Property2<TextShadow>::get_property(View* view);
+template<> TextDecoration Property2<TextDecoration>::get_property(View* view);
+template<> TextOverflow Property2<TextOverflow>::get_property(View* view);
+template<> TextWhiteSpace Property2<TextWhiteSpace>::get_property(View* view);
 
-	// transition
+// transition
 
-	template<>
-	void Property2<bool>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<Vec2>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<Color>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<TextAlign>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<Align>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<ContentAlign>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<Repeat>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<Border>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<Shadow>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<Value>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<TextColor>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<TextSize>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<TextStyle>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<TextFamily>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<TextLineHeight>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<TextShadow>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<TextDecoration>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<TextOverflow>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<TextWhiteSpace>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
-	template<>
-	void Property2<String>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<bool>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<Vec2>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<Color>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<TextAlign>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<Align>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<ContentAlign>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<Repeat>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<Border>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<Shadow>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<Value>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<TextColor>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<TextSize>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<TextStyle>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<TextFamily>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<TextLineHeight>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<TextShadow>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<TextDecoration>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<TextOverflow>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<TextWhiteSpace>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+template<>
+void Property2<String>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
 
-	//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
-	template<>
-	Property2<BackgroundPtr>::~Property2();
+template<>
+Property2<BackgroundPtr>::~Property2();
 
-	template<>
-	void Property2<BackgroundPtr>::transition(uint32_t f1, Action* root);
+template<>
+void Property2<BackgroundPtr>::transition(uint32_t f1, Action* root);
 
-	template<>
-	void Property2<BackgroundPtr>::transition(uint32_t f1, uint32_t f2, float x, float y, Action* root);
+template<>
+void Property2<BackgroundPtr>::transition(uint32_t f1, uint32_t f2, float x, float y, Action* root);
 
-	template<>
-	void Property2<BackgroundPtr>::fetch(uint32_t frame, View* view);
+template<>
+void Property2<BackgroundPtr>::fetch(uint32_t frame, View* view);
 
-	template<>
-	void Property2<BackgroundPtr>::default_value(uint32_t frame);
+template<>
+void Property2<BackgroundPtr>::default_value(uint32_t frame);
 
-	template<>
-	void Property2<BackgroundPtr>::frame(uint32_t index, BackgroundPtr value);
+template<>
+void Property2<BackgroundPtr>::frame(uint32_t index, BackgroundPtr value);
 
-	//-----------------------------------Property3--------------------------------------------
+//-----------------------------------Property3--------------------------------------------
 
-	template<> void Property3<float, PROPERTY_X>::bind_view(int type);
-	template<> void Property3<float, PROPERTY_Y>::bind_view(int type);
-	template<> void Property3<float, PROPERTY_SCALE_X>::bind_view(int type);
-	template<> void Property3<float, PROPERTY_SCALE_Y>::bind_view(int type);
-	template<> void Property3<float, PROPERTY_SKEW_X>::bind_view(int type);
-	template<> void Property3<float, PROPERTY_SKEW_Y>::bind_view(int type);
-	template<> void Property3<float, PROPERTY_ORIGIN_X>::bind_view(int type);
-	template<> void Property3<float, PROPERTY_ORIGIN_Y>::bind_view(int type);
-	template<> void Property3<float, PROPERTY_ROTATE_Z>::bind_view(int type);
-	template<> void Property3<float, PROPERTY_OPACITY>::bind_view(int type);
-	template<> void Property3<bool, PROPERTY_VISIBLE>::bind_view(int type);
+template<> void Property3<float, PROPERTY_X>::bind_view(int type);
+template<> void Property3<float, PROPERTY_Y>::bind_view(int type);
+template<> void Property3<float, PROPERTY_SCALE_X>::bind_view(int type);
+template<> void Property3<float, PROPERTY_SCALE_Y>::bind_view(int type);
+template<> void Property3<float, PROPERTY_SKEW_X>::bind_view(int type);
+template<> void Property3<float, PROPERTY_SKEW_Y>::bind_view(int type);
+template<> void Property3<float, PROPERTY_ORIGIN_X>::bind_view(int type);
+template<> void Property3<float, PROPERTY_ORIGIN_Y>::bind_view(int type);
+template<> void Property3<float, PROPERTY_ROTATE_Z>::bind_view(int type);
+template<> void Property3<float, PROPERTY_OPACITY>::bind_view(int type);
+template<> void Property3<bool, PROPERTY_VISIBLE>::bind_view(int type);
 
-}
-
+F_NAMESPACE_END
 #endif

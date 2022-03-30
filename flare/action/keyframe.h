@@ -34,186 +34,186 @@
 #include "./action.h"
 #include "../util/dict.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	/**
-	* @class KeyframeAction
-	*/
-	class F_EXPORT KeyframeAction: public Action {
+/**
+* @class KeyframeAction
+*/
+class F_EXPORT KeyframeAction: public Action {
+public:
+	
+	class F_EXPORT Property {
 	public:
-		
-		class F_EXPORT Property {
-		public:
-			virtual ~Property() { }
-			virtual void bind_view(int view_type) = 0;
-			virtual void transition(uint32_t frame1, Action* root) = 0;
-			virtual void transition(uint32_t frame1, uint32_t frame2, float x, float t, Action* root) = 0;
-			virtual void add_frame() = 0;
-			virtual void fetch(uint32_t frame, View* view) = 0;
-			virtual void default_value(uint32_t frame) = 0;
-		};
-		
-		class F_EXPORT Frame: public Object {
-			F_HIDDEN_ALL_COPY(Frame);
-		public:
-			inline Frame(KeyframeAction* host, uint32_t index, const FixedCubicBezier& curve)
-			: _host(host) , _index(index) , _curve(curve), _time(0) {}
-			
-			/**
-			* @func index
-			*/
-			inline uint32_t index() const { return _index; }
-			
-			/**
-			* @func time get
-			*/
-			inline uint64_t time() const { return _time; }
-			
-			/**
-			* @func time set
-			*/
-			void set_time(uint64_t value);
-			
-			/*
-			* @func host
-			*/
-			inline KeyframeAction* host() { return _host; }
-			
-			/**
-			* @func curve get
-			*/
-			inline FixedCubicBezier& curve() { return _curve; }
-			
-			/**
-			* @func curve get
-			*/
-			inline const FixedCubicBezier& curve() const { return _curve; }
-			
-			/**
-			* @func curve set
-			*/
-			inline void set_curve(const FixedCubicBezier& value) { _curve = value; }
-			
-			/**
-			* @func fetch property value
-			*/
-			void fetch(View* view = nullptr);
-			
-			/**
-			* @func flush recovery default property value
-			*/
-			void flush();
-			
-			#define fx_def_property(ENUM, TYPE, NAME) \
-				void set_##NAME(TYPE value); TYPE NAME();
-			F_EACH_PROPERTY_TABLE(fx_def_property)
-			#undef fx_def_property
-		
-		private:
-			KeyframeAction*   _host;
-			uint32_t          _index;
-			FixedCubicBezier  _curve;
-			uint64_t          _time;
-			
-			F_DEFINE_INLINE_CLASS(Inl);
-			friend class KeyframeAction;
-		};
-		
-		/**
-		* @constructor
-		*/
-		inline KeyframeAction(): _frame(-1), _time(0), _bind_view_type(0) {}
-		
-		/**
-		* @destructor
-		*/
-		virtual ~KeyframeAction();
-		
-		/**
-		* @overwrite
-		*/
-		virtual KeyframeAction* as_keyframe() { return this; }
-		
-		/**
-		* @func has_property
-		*/
-		bool has_property(PropertyName name);
-		
-		/**
-		* @func match_property
-		*/
-		bool match_property(PropertyName name);
-		
-		/**
-		* @func first
-		*/
-		inline Frame* first() { return _frames[0]; }
-		
-		/**
-		* @func last
-		*/
-		inline Frame* last() { return _frames[_frames.size() - 1]; }
-		
-		/**
-		* @func frame
-		*/
-		inline Frame* frame(uint32_t index) { return _frames[index]; }
-		
-		/**
-		* @func operator[]
-		*/
-		inline Frame* operator[](uint32_t index) { return _frames[index]; }
-		
-		/**
-		* @func length
-		*/
-		inline uint32_t length() const { return (uint32_t)_frames.size(); }
-		
-		/**
-		* @func position get play frame position
-		*/
-		inline int position() const { return _frame; }
-		
-		/**
-		* @func time get play time position
-		*/
-		inline int64_t time() const { return _time; }
-		
-		/**
-		* @func add new frame
-		*/
-		Frame* add(uint64_t time, const FixedCubicBezier& curve = EASE);
-		
-		/**
-		* @func clear all frame and property
-		*/
-		virtual void clear();
-		
-		/**
-		* @func is_bind_view
-		*/
-		inline bool is_bind_view() { return _bind_view_type; }
-			
-	private:
-		/**
-		* @overwrite
-		*/
-		virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
-		virtual void seek_time(uint64_t time, Action* root);
-		virtual void seek_before(int64_t time, Action* child);
-		virtual void bind_view(View* view);
-		
-		typedef Dict<PropertyName, Property*> Propertys;
-		
-		int           _bind_view_type;
-		int           _frame;
-		int64_t       _time;
-		Array<Frame*> _frames;
-		
-		Propertys     _property;
-
-		F_DEFINE_INLINE_CLASS(Inl);
+		virtual ~Property() { }
+		virtual void bind_view(int view_type) = 0;
+		virtual void transition(uint32_t frame1, Action* root) = 0;
+		virtual void transition(uint32_t frame1, uint32_t frame2, float x, float t, Action* root) = 0;
+		virtual void add_frame() = 0;
+		virtual void fetch(uint32_t frame, View* view) = 0;
+		virtual void default_value(uint32_t frame) = 0;
 	};
+	
+	class F_EXPORT Frame: public Object {
+		F_HIDDEN_ALL_COPY(Frame);
+	public:
+		inline Frame(KeyframeAction* host, uint32_t index, const FixedCubicBezier& curve)
+		: _host(host) , _index(index) , _curve(curve), _time(0) {}
+		
+		/**
+		* @func index
+		*/
+		inline uint32_t index() const { return _index; }
+		
+		/**
+		* @func time get
+		*/
+		inline uint64_t time() const { return _time; }
+		
+		/**
+		* @func time set
+		*/
+		void set_time(uint64_t value);
+		
+		/*
+		* @func host
+		*/
+		inline KeyframeAction* host() { return _host; }
+		
+		/**
+		* @func curve get
+		*/
+		inline FixedCubicBezier& curve() { return _curve; }
+		
+		/**
+		* @func curve get
+		*/
+		inline const FixedCubicBezier& curve() const { return _curve; }
+		
+		/**
+		* @func curve set
+		*/
+		inline void set_curve(const FixedCubicBezier& value) { _curve = value; }
+		
+		/**
+		* @func fetch property value
+		*/
+		void fetch(View* view = nullptr);
+		
+		/**
+		* @func flush recovery default property value
+		*/
+		void flush();
+		
+		#define fx_def_property(ENUM, TYPE, NAME) \
+			void set_##NAME(TYPE value); TYPE NAME();
+		F_EACH_PROPERTY_TABLE(fx_def_property)
+		#undef fx_def_property
+	
+	private:
+		KeyframeAction*   _host;
+		uint32_t          _index;
+		FixedCubicBezier  _curve;
+		uint64_t          _time;
+		
+		F_DEFINE_INLINE_CLASS(Inl);
+		friend class KeyframeAction;
+	};
+	
+	/**
+	* @constructor
+	*/
+	inline KeyframeAction(): _frame(-1), _time(0), _bind_view_type(0) {}
+	
+	/**
+	* @destructor
+	*/
+	virtual ~KeyframeAction();
+	
+	/**
+	* @overwrite
+	*/
+	virtual KeyframeAction* as_keyframe() { return this; }
+	
+	/**
+	* @func has_property
+	*/
+	bool has_property(PropertyName name);
+	
+	/**
+	* @func match_property
+	*/
+	bool match_property(PropertyName name);
+	
+	/**
+	* @func first
+	*/
+	inline Frame* first() { return _frames[0]; }
+	
+	/**
+	* @func last
+	*/
+	inline Frame* last() { return _frames[_frames.size() - 1]; }
+	
+	/**
+	* @func frame
+	*/
+	inline Frame* frame(uint32_t index) { return _frames[index]; }
+	
+	/**
+	* @func operator[]
+	*/
+	inline Frame* operator[](uint32_t index) { return _frames[index]; }
+	
+	/**
+	* @func length
+	*/
+	inline uint32_t length() const { return (uint32_t)_frames.size(); }
+	
+	/**
+	* @func position get play frame position
+	*/
+	inline int position() const { return _frame; }
+	
+	/**
+	* @func time get play time position
+	*/
+	inline int64_t time() const { return _time; }
+	
+	/**
+	* @func add new frame
+	*/
+	Frame* add(uint64_t time, const FixedCubicBezier& curve = EASE);
+	
+	/**
+	* @func clear all frame and property
+	*/
+	virtual void clear();
+	
+	/**
+	* @func is_bind_view
+	*/
+	inline bool is_bind_view() { return _bind_view_type; }
+		
+private:
+	/**
+	* @overwrite
+	*/
+	virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
+	virtual void seek_time(uint64_t time, Action* root);
+	virtual void seek_before(int64_t time, Action* child);
+	virtual void bind_view(View* view);
+	
+	typedef Dict<PropertyName, Property*> Propertys;
+	
+	int           _bind_view_type;
+	int           _frame;
+	int64_t       _time;
+	Array<Frame*> _frames;
+	
+	Propertys     _property;
 
-}
+	F_DEFINE_INLINE_CLASS(Inl);
+};
+
+F_NAMESPACE_END
 #endif

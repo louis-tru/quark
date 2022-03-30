@@ -66,7 +66,7 @@ public:
 	F_DEFINE_ACCESSOR(Color, border_color_right);
 	F_DEFINE_ACCESSOR(Color, border_color_bottom);
 	F_DEFINE_ACCESSOR(Color, border_color_left);
-	F_DEFINE_ACCESSOR(float, border_width_top); // border_widrh
+	F_DEFINE_ACCESSOR(float, border_width_top); // border_width
 	F_DEFINE_ACCESSOR(float, border_width_right);
 	F_DEFINE_ACCESSOR(float, border_width_bottom);
 	F_DEFINE_ACCESSOR(float, border_width_left);
@@ -74,7 +74,8 @@ public:
 	F_DEFINE_ACCESSOR(BorderStyle, border_style_right);
 	F_DEFINE_ACCESSOR(BorderStyle, border_style_bottom);
 	F_DEFINE_ACCESSOR(BorderStyle, border_style_left);
-	F_DEFINE_PROP(Fill*, fill); // fill, color|image|gradient
+	F_DEFINE_PROP(Color, fill_color); // fill color
+	F_DEFINE_PROP(Fill*, fill); // fill, image|gradient
 	F_DEFINE_PROP(Effect*, effect); // effect, shadow
 	F_DEFINE_PROP_READ(Vec2, transform_origin); // Start the matrix transformation from this origin point
 	F_DEFINE_PROP_READ(Vec2, layout_content_size); // width,height / size

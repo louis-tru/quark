@@ -129,6 +129,7 @@ class F_EXPORT BoxShadow: public Effect {
 public:
 	BoxShadow();
 	BoxShadow(Shadow value);
+	BoxShadow(float x, float y, float s, Color color);
 	F_DEFINE_PROP(Shadow, value);
 	virtual Type    type() const override;
 	virtual Effect* copy(Effect* to) override;
@@ -150,6 +151,7 @@ class F_EXPORT FillColor: public Fill {
 public:
 	FillColor();
 	FillColor(Color color);
+	FillColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 	F_DEFINE_PROP(Color, value);
 	virtual Type    type() const override;
 	virtual Effect* copy(Effect* to) override;
@@ -161,7 +163,7 @@ public:
 class F_EXPORT FillImage: public Fill, public SourceHold {
 public:
 	FillImage();
-	FillImage(cString& src = String());
+	FillImage(cString& src);
 	F_DEFINE_PROP(Repeat, repeat);
 	F_DEFINE_PROP(FillPosition, position_x);
 	F_DEFINE_PROP(FillPosition, position_y);

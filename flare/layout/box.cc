@@ -156,7 +156,7 @@ Box::Box()
 }
 
 Box::~Box() {
-	Release(_paint); _paint = nullptr;
+	Release(_fill); _fill = nullptr;
 	::free(_border); _border = nullptr;
 }
 

@@ -55,7 +55,7 @@ function highlighted(evt: HighlightedEvent) {
 }
 
 const toolbar_vx = ()=>(
-	<Toolbar backgroundColor="#333">
+	<Toolbar fillColor="#333">
 		<Hybrid textAlign="center" width="full" height="full">
 			<Button onClick={view_code}>
 				<Text class="toolbar_btn" textColor="#fff" value={"\ue9ab"} />
@@ -66,7 +66,7 @@ const toolbar_vx = ()=>(
 
 export default ()=>(
 	<Mynavpage 
-		navbar={<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff" />}
+		navbar={<Navbar fillColor="#333" backTextColor="#fff" titleTextColor="#fff" />}
 		toolbar={toolbar_vx()}
 		backgroundColor="#333"
 		title="Action" source={resolve(__filename)}>

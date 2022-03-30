@@ -32,277 +32,277 @@
 #include "../app.h"
 #include "../errno.h"
 
-namespace flare {
+F_NAMESPACE_START
 
-	void Action::Inl::set_parent(Action* parent) throw(Error) {
-		
-		if ( _parent || _views.length() ) {
-			F_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
-		}
-		
-		if (_action_center_id != ActionCenterId()) {
-			F_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
-		}
-		
-		retain(); // retain
-		
-		// bind view
-		_parent = parent;
-		while ( parent->_parent ) {
-			parent = parent->_parent;
-		}
-		
-		View* first = first_view();
-		
-		if ( first ) {
-			bind_view( first );
-		}
+void Action::Inl::set_parent(Action* parent) throw(Error) {
+	
+	if ( _parent || _views.length() ) {
+		F_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
 	}
 	
-	View* Action::Inl::first_view() {
-		for ( auto& i : _views ) {
-			if (i) {
-				return i;
-			}
-		}
-		return nullptr;
+	if (_action_center_id != ActionCenterId()) {
+		F_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
 	}
 	
-	void Action::Inl::clear_parent() {
-		_parent = nullptr;
-		release();
+	retain(); // retain
+	
+	// bind view
+	_parent = parent;
+	while ( parent->_parent ) {
+		parent = parent->_parent;
 	}
 	
-	View* Action::Inl::view() {
-		Action* action = this;
-		while ( action->_parent ) {
-			action = action->_parent;
-		}
-		return first_view();
-	}
+	View* first = first_view();
 	
-	List<View*>& Action::Inl::views() {
-		return _views;
+	if ( first ) {
+		bind_view( first );
 	}
-	
-	bool Action::Inl::is_playing() {
-		return _action_center_id != ActionCenterId();
-	}
-	
-	void Action::Inl::trigger_action_loop(uint64_t delay, Action* root) {
-		auto i = _views.begin(), end = _views.end();
-		while ( i != end ) { // trigger event action_loop
-			View* v = *i;
-			if (v) {
-				auto evt = new UIActionEvent(this, v, delay, 0, _loop);
-				main_loop()->post(Cb([this, evt, v](CbData& e) {
-					Handle<UIActionEvent> handle(evt);
-					ActionInl_View(v)->trigger(UI_EVENT_ACTION_LOOP, *evt);
-				}, v));
-				i++;
-			} else {
-				_views.erase(i++);
-			}
+}
+
+View* Action::Inl::first_view() {
+	for ( auto& i : _views ) {
+		if (i) {
+			return i;
 		}
 	}
-	
-	void Action::Inl::trigger_action_key_frame(
-		uint64_t delay, uint32_t frame_index, Action* root
-	)
-	{
-		auto i = _views.begin(), end = _views.end();
-		while ( i != end ) { // trigger event action_keyframe
-			View* v = *i;
-			if (v) {
-				auto evt = new UIActionEvent(this, v, delay, frame_index, _loop);
-				main_loop()->post(Cb([this, evt, v](CbData& e) {
-					Handle<UIActionEvent> handle(evt);
-					ActionInl_View(v)->trigger(UI_EVENT_ACTION_KEYFRAME, *evt);
-				}, v));
-				i++;
-			} else {
-				_views.erase(i++);
-			}
-		}
+	return nullptr;
+}
+
+void Action::Inl::clear_parent() {
+	_parent = nullptr;
+	release();
+}
+
+View* Action::Inl::view() {
+	Action* action = this;
+	while ( action->_parent ) {
+		action = action->_parent;
 	}
-	
-	void Action::Inl::update_duration(int64_t difference) {
-		
-		Action* action = this;
-		while (1) {
-			action->_full_duration += difference;
-			action = _parent;
-			
-			if ( action ) {
-				auto act = action->as_spawn();
-				if ( act ) {
-					update_spawn_action_duration(act);
-					break;
-				}
-			} else {
-				break;
-			}
-		}
-	}
-	
-	void Action::Inl::add_view(View* view) throw(Error) {
-		
-		if ( _parent ) {
-			F_THROW(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
-		}
-		View* first = first_view();
-		if ( first ) {
-			if ( first->view_type() != view->view_type() ) {
-				F_THROW(ERR_ACTION_ILLEGAL_VIEW_TYPE,
-					"Action can only be bound to the same type of view !");
-			}
+	return first_view();
+}
+
+List<View*>& Action::Inl::views() {
+	return _views;
+}
+
+bool Action::Inl::is_playing() {
+	return _action_center_id != ActionCenterId();
+}
+
+void Action::Inl::trigger_action_loop(uint64_t delay, Action* root) {
+	auto i = _views.begin(), end = _views.end();
+	while ( i != end ) { // trigger event action_loop
+		View* v = *i;
+		if (v) {
+			auto evt = new UIActionEvent(this, v, delay, 0, _loop);
+			main_loop()->post(Cb([this, evt, v](CbData& e) {
+				Handle<UIActionEvent> handle(evt);
+				ActionInl_View(v)->trigger(UI_EVENT_ACTION_LOOP, *evt);
+			}, v));
+			i++;
 		} else {
-			bind_view(view);
-		}
-		_views.push_back({view});
-	}
-	
-	void Action::Inl::del_view(View* view) {
-		auto len = _views.length();
-		for ( auto& i : _views ) {
-			if ( i == view ) {
-				i = nullptr;
-				len--;
-				break;
-			}
-		}
-		if ( len == 0 ) {
-			stop(); // stop action
+			_views.erase(i++);
 		}
 	}
+}
 
-	/**
-	* @func action
-	*/
-	void View::action(Action* action) throw(Error) {
+void Action::Inl::trigger_action_key_frame(
+	uint64_t delay, uint32_t frame_index, Action* root
+)
+{
+	auto i = _views.begin(), end = _views.end();
+	while ( i != end ) { // trigger event action_keyframe
+		View* v = *i;
+		if (v) {
+			auto evt = new UIActionEvent(this, v, delay, frame_index, _loop);
+			main_loop()->post(Cb([this, evt, v](CbData& e) {
+				Handle<UIActionEvent> handle(evt);
+				ActionInl_View(v)->trigger(UI_EVENT_ACTION_KEYFRAME, *evt);
+			}, v));
+			i++;
+		} else {
+			_views.erase(i++);
+		}
+	}
+}
+
+void Action::Inl::update_duration(int64_t difference) {
+	
+	Action* action = this;
+	while (1) {
+		action->_full_duration += difference;
+		action = _parent;
+		
 		if ( action ) {
-			if ( _action ) {
-				_inl_action(_action)->del_view(this);
-				_action->release();
+			auto act = action->as_spawn();
+			if ( act ) {
+				update_spawn_action_duration(act);
+				break;
 			}
-			_inl_action(action)->add_view(this);
-			_action = action;
-			action->retain();
 		} else {
-			if ( _action ) {
-				_inl_action(_action)->del_view(this);
-				_action->release();
-				_action = nullptr;
-			}
+			break;
 		}
 	}
+}
 
-	Action::Action()
-		: _parent(nullptr)
-		, _loop(0)
-		, _loopd(0)
-		, _full_duration(0)
-		, _delay(0)
-		, _delayd(-1), _speed(1)
-	{}
-
-	/**
-	* @destructor
-	*/
-	Action::~Action() {
-		F_ASSERT( _action_center_id == ActionCenterId() );
+void Action::Inl::add_view(View* view) throw(Error) {
+	
+	if ( _parent ) {
+		F_THROW(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
 	}
-
-	/**
-	* @overwrite
-	*/
-	void Action::release() {
-		if (ref_count() == 1) {
-			clear();
+	View* first = first_view();
+	if ( first ) {
+		if ( first->view_type() != view->view_type() ) {
+			F_THROW(ERR_ACTION_ILLEGAL_VIEW_TYPE,
+				"Action can only be bound to the same type of view !");
 		}
-		Reference::release();
+	} else {
+		bind_view(view);
 	}
+	_views.push_back({view});
+}
 
-	/**
-	* @func delay
-	*/
-	void Action::delay(uint64_t value) {
-		int64_t du = value - _delay;
-		if ( du ) {
-			_delay = value;
-			_inl_action(this)->update_duration(du);
+void Action::Inl::del_view(View* view) {
+	auto len = _views.length();
+	for ( auto& i : _views ) {
+		if ( i == view ) {
+			i = nullptr;
+			len--;
+			break;
 		}
 	}
-
-	/**
-	* @func playing
-	*/
-	bool Action::playing() const {
-		return _parent ? _parent->playing() : _action_center_id != ActionCenterId();
+	if ( len == 0 ) {
+		stop(); // stop action
 	}
+}
 
-	/**
-	* @func play
-	*/
-	void Action::play() {
-		if ( _parent ) {
-			_parent->play();
-		} else {
-			// if (_views.length()) // cancel limit
-			_inl_action_center(ActionCenter::shared())->add(this);
+/**
+* @func action
+*/
+void View::action(Action* action) throw(Error) {
+	if ( action ) {
+		if ( _action ) {
+			_inl_action(_action)->del_view(this);
+			_action->release();
+		}
+		_inl_action(action)->add_view(this);
+		_action = action;
+		action->retain();
+	} else {
+		if ( _action ) {
+			_inl_action(_action)->del_view(this);
+			_action->release();
+			_action = nullptr;
 		}
 	}
+}
 
-	/**
-	* @func stop
-	*/
-	void Action::stop() {
-		if ( _parent ) {
-			_parent->stop();
-		} else {
-			_inl_action_center(ActionCenter::shared())->del(this);
-		}
+Action::Action()
+	: _parent(nullptr)
+	, _loop(0)
+	, _loopd(0)
+	, _full_duration(0)
+	, _delay(0)
+	, _delayd(-1), _speed(1)
+{}
+
+/**
+* @destructor
+*/
+Action::~Action() {
+	F_ASSERT( _action_center_id == ActionCenterId() );
+}
+
+/**
+* @overwrite
+*/
+void Action::release() {
+	if (ref_count() == 1) {
+		clear();
 	}
+	Reference::release();
+}
 
-	/**
-	* @func playing
-	*/
-	void Action::playing(bool value) {
-		if ( value ) {
-			play();
-		} else {
-			stop();
-		}
+/**
+* @func delay
+*/
+void Action::delay(uint64_t value) {
+	int64_t du = value - _delay;
+	if ( du ) {
+		_delay = value;
+		_inl_action(this)->update_duration(du);
 	}
+}
 
-	/**
-	* @func seek
-	*/
-	void Action::seek(int64_t time) {
-		time += _delay;
-		time = F_MIN(time, _full_duration);
-		time = F_MAX(time, 0);
-		if (_parent) {
-			_parent->seek_before(time, this);
-		} else {
-			seek_time(time, this);
-		}
+/**
+* @func playing
+*/
+bool Action::playing() const {
+	return _parent ? _parent->playing() : _action_center_id != ActionCenterId();
+}
+
+/**
+* @func play
+*/
+void Action::play() {
+	if ( _parent ) {
+		_parent->play();
+	} else {
+		// if (_views.length()) // cancel limit
+		_inl_action_center(ActionCenter::shared())->add(this);
 	}
+}
 
-	/**
-	* @func seek_play
-	*/
-	void Action::seek_play(int64_t time) {
-		seek(time);
+/**
+* @func stop
+*/
+void Action::stop() {
+	if ( _parent ) {
+		_parent->stop();
+	} else {
+		_inl_action_center(ActionCenter::shared())->del(this);
+	}
+}
+
+/**
+* @func playing
+*/
+void Action::playing(bool value) {
+	if ( value ) {
 		play();
-	}
-
-	/**
-	* @func seek_stop
-	*/
-	void Action::seek_stop(int64_t time) {
-		seek(time);
+	} else {
 		stop();
 	}
-
 }
+
+/**
+* @func seek
+*/
+void Action::seek(int64_t time) {
+	time += _delay;
+	time = F_MIN(time, _full_duration);
+	time = F_MAX(time, 0);
+	if (_parent) {
+		_parent->seek_before(time, this);
+	} else {
+		seek_time(time, this);
+	}
+}
+
+/**
+* @func seek_play
+*/
+void Action::seek_play(int64_t time) {
+	seek(time);
+	play();
+}
+
+/**
+* @func seek_stop
+*/
+void Action::seek_stop(int64_t time) {
+	seek(time);
+	stop();
+}
+
+F_NAMESPACE_END
