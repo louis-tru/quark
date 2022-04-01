@@ -17,7 +17,7 @@ if   [ ! -d libs/somes ] \
 	|| [ ! -d deps/v8-link ] \
 	|| [ ! -d deps/ffmpeg ] \
 	|| [ ! -d deps/node ] \
-	|| [ ! -d deps/bplus ] \
+	|| [ ! -d deps/btree ] \
 ; then
 	git submodule update --init --recursive
 fi

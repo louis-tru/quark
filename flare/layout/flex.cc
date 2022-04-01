@@ -32,16 +32,6 @@
 
 F_NAMESPACE_START
 
-/**
-	*
-	* Accepting visitors
-	* 
-	* @func accept(visitor)
-	*/
-void FlexLayout::accept(Visitor *visitor) {
-	visitor->visitFlexLayout(this);
-}
-
 float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out);
 void  __Flow_set_wrap(FlowLayout* self, Wrap wrap);
 

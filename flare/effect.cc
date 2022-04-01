@@ -28,6 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "./app.h"
 #include "./effect.h"
 #include "./pre_render.h"
 #include "./layout/box.h"
@@ -159,9 +160,8 @@ void Effect::mark() {
 }
 
 Effect::Type BoxShadow::type() const { return M_SHADOW; }
-Effect::Type FillColor::type() const { return M_COLOR; }
-Effect::Type FillGradient::type() const { return M_IMAGE; }
-Effect::Type FillImage::type() const { return M_GRADIENT; }
+Effect::Type FillImage::type() const { return M_IMAGE; }
+Effect::Type FillGradient::type() const { return M_GRADIENT; }
 
 // ------------------------------ B o x . S h a d o w ------------------------------
 
@@ -170,22 +170,8 @@ BoxShadow::BoxShadow(Shadow value): _value(value) {}
 BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
 
 Effect* BoxShadow::copy(Effect* to) {
-	BoxShadow* target = (to && to->type() == M_COLOR) ?
+	BoxShadow* target = (to && to->type() == M_SHADOW) ?
 		static_cast<BoxShadow*>(to): new BoxShadow();
-	target->_value = _value;
-	_set_next(_next);
-	return target;
-}
-
-// ------------------------------ B o x . C o l o r ------------------------------
-
-FillColor::FillColor() {}
-FillColor::FillColor(Color value): _value(value) {}
-FillColor::FillColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a): _value(r,g,b,a) {}
-
-Effect* FillColor::copy(Effect* to) {
-	FillColor* target = (to && to->type() == M_COLOR) ?
-		static_cast<FillColor*>(to): new FillColor();
 	target->_value = _value;
 	_set_next(_next);
 	return target;
@@ -250,7 +236,7 @@ void FillImage::set_size_y(FillSize value) {
 	}
 }
 
-bool FillImage::solve_size(FillSize size, float host, float& out) {
+bool FillImage::compute_size(FillSize size, float host, float& out) {
 	switch (size.type) {
 		default: return false; // AUTO
 		case FillSizeType::PIXEL: out = size.value; break;
@@ -259,7 +245,7 @@ bool FillImage::solve_size(FillSize size, float host, float& out) {
 	return true;
 }
 
-float FillImage::solve_position(FillPosition pos, float host, float size) {
+float FillImage::compute_position(FillPosition pos, float host, float size) {
 	float out = 0;
 	switch (pos.type) {
 		default: break;

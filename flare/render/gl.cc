@@ -54,6 +54,7 @@ GLRender::GLRender(Application* host, const Options& opts)
 		case kColor_Type_BGRA_8888: _opts.colorType = kColor_Type_RGBA_8888; break;
 		case kColor_Type_BGRA_1010102: _opts.colorType = kColor_Type_RGBA_1010102; break;
 		case kColor_Type_BGR_101010X: _opts.colorType = kColor_Type_RGB_101010X; break;
+		default: break;
 	}
 
 	String extensions = (const char*)glGetString(GL_EXTENSIONS);
@@ -157,7 +158,8 @@ void GLRender::reload() {
 }
 
 void GLRender::begin() {
-	// ..
+	//glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+	//glBindRenderbuffer(GL_RENDERBUFFER, _frame_buffer);
 }
 
 void GLRender::submit() {

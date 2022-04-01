@@ -2,7 +2,7 @@
 var fs = require('fs');
 var path = require('path');
 
-function gen_gyp(os) {
+function gen_gyp(os, opts, variables) {
 
 	var reg = /path = "?([^"\s;]+)"?/img;
 
@@ -47,10 +47,9 @@ function gen_gyp(os) {
 				'SK_DISABLE_LEGACY_SHADERCONTEXT',
 				'SK_DISABLE_LOWP_RASTER_PIPELINE',
 				'SK_FORCE_RASTER_PIPELINE_BLITTER',
-				'SK_GL',
+				...(variables.use_gl ? ['SK_GL', 'SK_ASSUME_GL_ES=1']: []),
 				'SK_DISABLE_EFFECT_DESERIALIZATION',
 				'SK_ENABLE_SKSL',
-				'SK_ASSUME_GL_ES=1',
 				'SK_ENABLE_API_AVAILABLE',
 				'SK_GAMMA_APPLY_TO_A8',
 				'SKIA_IMPLEMENTATION=1',
@@ -114,9 +113,13 @@ function gen_gyp(os) {
 					'defines': ['SK_VULKAN'],
 				}],
 			],
-			sources,
+			sources: (variables.use_gl ? sources: sources.filter(e=>e.indexOf('gpu/gl/') == -1)),
 		}]
 	};
+
+	// console.log('------------------------------', variables.use_gl, sources.filter(e=>e.indexOf('gpu/gl/')!=-1));
+
+	// "../deps/skia/src/gpu/gl/GrGLAttachment.h",
 
 	fs.writeFileSync(`${__dirname}/../out/skia.gyp`, JSON.stringify(gypi, null, 2));
 

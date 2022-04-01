@@ -99,12 +99,19 @@ void SkiaMetalRender::onSubmit() {
 		_rasterSurface->draw(_surface->getCanvas(), 0, 0);
 	_surface->flushAndSubmit(); // commit sk
 	_surface.reset();
+	_canvas = nullptr;
 }
 
 SkiaMetalRender::SkiaMetalRender(Application* host, const Options& opts, bool raster)
-: MetalRender(host, opts), _raster(raster) {
+: MetalRender(host, opts) {
+	_raster = raster;
 }
 
+SkiaCanvas* SkiaMetalRender::getCanvas() {
+	if (!_canvas)
+		begin();
+	return _canvas;
+}
 
 F_NAMESPACE_END
 #endif

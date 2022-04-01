@@ -53,24 +53,17 @@ namespace flare {
 				height / _default_scale,
 			};
 		}
-		else if (_lock_size.x() != 0 && _lock_size.y() != 0) { // 尺寸全部锁定
-			_size = _lock_size;
-		}
-		else if (_lock_size.x() != 0) { // 只锁定宽度
+		else if (_lock_size.x() != 0) { // 锁定宽度
 			_size.set_y(_lock_size.x());
 			_size.set_y(_size.x() / width * height);
 		}
-		else { // _lock_height == 0 // 只锁定高度
+		else { // _lock_height == 0 // 锁定高度
 			_size.set_y(_lock_size.y());
 			_size.set_x(_size.y() / height * width);
 		}
-		
-		_scale.set_x(width / _size.x());
-		_scale.set_y(height / _size.y());
 
-		float scale = (_scale.x() + _scale.y()) / 2;
-		
-		_atom_pixel = 1.0f / scale;
+		_scale = (width + height) / (_size.x() + _size.y());
+		_atom_pixel = 1.0f / _scale;
 		
 		// update root
 		Root* r = _host->root();
@@ -117,7 +110,7 @@ namespace flare {
 		: F_Init_Event(Change), F_Init_Event(Orientation)
 		, _host(host)
 		, _lock_size()
-		, _size(), _scale(1, 1)
+		, _size(), _scale(1)
 		, _atom_pixel(1)
 		, _fsp(0)
 		, _next_fsp(0)
@@ -129,7 +122,7 @@ namespace flare {
 	Display::~Display() {
 	}
 
-	void Display::lock_size(float width, float height) {
+	void Display::set_size(float width, float height) {
 		if (width >= 0.0 && height >= 0.0) {
 			UILock lock(_host);
 			if (_lock_size.x() != width || _lock_size.y() != height) {

@@ -75,11 +75,15 @@
 				'test-linux-input.cc',
 				'test-linux-input-2.cc',
 				'test-jsx.cc',
-				'test-skia.cc',
-				'test-scaner.cc',
-				'test-layout.cc',
 			],
 			'conditions': [
+				['use_skia==1', {
+					'sources': [
+						'test-skia.cc',
+						'test-scaner.cc',
+						'test-layout.cc',
+					],
+				}],
 				['os in "ios osx"', {
 					'sources': [
 						'test-<(os).plist',

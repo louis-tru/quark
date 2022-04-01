@@ -35,7 +35,7 @@
 
 #include "../../util/macros.h"
 
-#if F_APPLE
+#ifdef __OBJC__
 #include "../metal.h"
 #endif
 
@@ -43,6 +43,8 @@
 #include "../gl.h"
 #endif
 
+#include "../render.h"
+#include "../../effect.h"
 #include "./skia_canvas.h"
 #include "skia/core/SkSurface.h"
 #include "skia/gpu/GrBackendSurface.h"
@@ -56,6 +58,7 @@ F_NAMESPACE_START
 class SkiaRender: public ViewVisitor {
 public:
 	SkiaRender();
+	virtual int  flags();
 	virtual void visitView(View* v);
 	virtual void visitBox(Box* box);
 	virtual void visitImage(Image* image);
@@ -67,14 +70,13 @@ public:
 	virtual void visitRoot(Root* root);
 	virtual void visitFlowLayout(FlowLayout* flow);
 	virtual void visitFlexLayout(FlexLayout* flex);
-private:
-	typedef void (*DrawFn)(SkiaRender* render, Box* v);
+	virtual SkiaCanvas* getCanvas();
 	void clipRect(Box* box, SkClipOp op, bool doAntiAlias);
-	void solveBox(Box* box, DrawFn fillFn);
+	void solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v));
+	void solveEffect(Box* box, Effect* effect);
 	void solveFill(Box* box, Fill* fill, Color fill_color);
 	void solveFillImage(Box* box, FillImage* fill);
 	void solveFillGradient(Box* box, FillGradient* fill);
-	void solveEffect(Box* box, Effect* effect);
 	SkRect MakeSkRectFrom(Box *host);
 protected:
 	sk_sp<GrDirectContext> _direct;
@@ -106,13 +108,14 @@ protected:
 };
 #endif
 
-#ifdef F_APPLE
+#ifdef __OBJC__
 /**
 * @class SkiaMetalRender
 */
 class SkiaMetalRender: public MetalRender, public SkiaRender {
 public:
 	virtual ViewVisitor* visitor() override;
+	virtual SkiaCanvas* getCanvas() override;
 protected:
 	virtual void onReload() override;
 	virtual void onBegin() override;

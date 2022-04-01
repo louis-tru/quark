@@ -32,16 +32,6 @@
 
 F_NAMESPACE_START
 
-/**
-	*
-	* Accepting visitors
-	* 
-	* @func accept(visitor)
-	*/
-void FlowLayout::accept(Visitor *visitor) {
-	visitor->visitFlowLayout(this);
-}
-
 F_DEFINE_INLINE_MEMBERS(FlowLayout, Inl) {
 public:
 	#define _inl(self) static_cast<FlowLayout::Inl*>(self)

@@ -3,10 +3,11 @@
 #include <flare/app.h>
 #include <flare/layout/root.h>
 #include <flare/render/skia/skia_canvas.h>
+#include <flare/render/skia/skia_render.h>
 #include <flare/render/render.h>
 #include <flare/layout/flex.h>
 #include <flare/layout/image.h>
-#include <flare/fill.h>
+#include <flare/effect.h>
 #include <flare/display.h>
 #include <flare/util/fs.h>
 #include <vector>
@@ -65,8 +66,9 @@ void testRenderScaner(SkCanvas* canvas) {
 }
 
 void testScaner(Application* app) {
-	app->render()->post_message(Cb([app](CbData&data){
-		auto canvas = app->render()->canvas();
+	app->render()->post_message(Cb([app](CbData&data) {
+		auto render = static_cast<SkiaRender*>(app->render()->visitor());
+		auto canvas = render->getCanvas();
 		canvas->clear(SK_ColorWHITE);
 		testRenderScaner(canvas);
 		app->render()->submit();

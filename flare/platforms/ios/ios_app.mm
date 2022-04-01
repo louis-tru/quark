@@ -456,7 +456,7 @@ void Display::keep_screen(bool keep) {
  */
 float Display::status_bar_height() {
 	CGRect rect = appDelegate.host.statusBarFrame;
-	return F_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale[1];
+	return F_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale;
 }
 
 /**

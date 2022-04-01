@@ -37,15 +37,28 @@
 
 F_NAMESPACE_START
 
+#define F_Each_Effect(F) \
+	F(Effect)  F(BoxShadow) \
+	F(FillColor) F(FillImage) F(FillGradient) \
+
+#define F_Define_Effect(N) \
+public: \
+	friend class SkiaRender; \
+	virtual void accept(EffectVisitor *visitor) { visitor->visit##N(this); } \
+
+F_Define_Visitor(Effect, F_Each_Effect);
+
+class SkiaRender;
+
 /**
 * @class Effect, Single linked list struct
 */
 class F_EXPORT Effect: public Reference {
+	F_HIDDEN_ALL_COPY(Effect);
 public:
-	
+
 	enum Type {
 		M_INVALID,
-		M_COLOR,
 		M_IMAGE,
 		M_GRADIENT,
 		M_SHADOW,
@@ -142,19 +155,6 @@ class F_EXPORT Fill: public Effect {
 public:
 	inline Fill* set_next(Fill* value) { Effect::set_next(value); return this; }
 	inline Fill* next() { return static_cast<Fill*>(_next); }
-};
-
-/**
-* @class FillColor
-*/
-class F_EXPORT FillColor: public Fill {
-public:
-	FillColor();
-	FillColor(Color color);
-	FillColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-	F_DEFINE_PROP(Color, value);
-	virtual Type    type() const override;
-	virtual Effect* copy(Effect* to) override;
 };
 
 /**

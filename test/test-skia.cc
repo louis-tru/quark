@@ -1,12 +1,14 @@
 
 #include <stdio.h>
+#include <skia/core/SkCanvas.h>
 #include <skia/core/SkImage.h>
 #include <flare/app.h>
 #include <flare/layout/root.h>
 #include <flare/render/render.h>
 #include <flare/layout/flex.h>
 #include <flare/layout/image.h>
-#include <flare/fill.h>
+#include <flare/effect.h>
+#include <flare/render/skia/skia_render.h>
 #include <flare/display.h>
 #include <flare/util/fs.h>
 #include <vector>
@@ -32,7 +34,7 @@ void draw_skia(SkCanvas* canvas) {
 	
 	SkPaint paint;
 	paint.setStyle(SkPaint::kFill_Style);
-	paint.setAntiAlias(true);
+	paint.setAntiAlias(false);
 	paint.setStrokeWidth(4);
 	paint.setColor(0xFFFF0000);
 	
@@ -43,7 +45,7 @@ void draw_skia(SkCanvas* canvas) {
 	SkCanvas offcanvas(bitmapCircle);
 	//offcanvas.clear(0xff00ff00);
 	paint.setColor(0xffff0000);
-	SkPath oval = SkPath::Oval(SkRect::MakeWH(320, 320), SkPathDirection::kCCW);
+	SkPath oval = SkPath::Oval(SkRect::MakeWH(320, 320)/*, SkPathDirection::kCCW*/);
 	
 	Array<uint8_t> verbs(oval.countVerbs());
 	oval.getVerbs(&verbs[0], verbs.length());
@@ -57,20 +59,22 @@ void draw_skia(SkCanvas* canvas) {
 	}
 	F_DEBUG("");
 	
+	// drawPath
 	canvas->translate(10, 10);
-	canvas->drawPath(oval, paint);
-	paint.setAntiAlias(false);
+	canvas->drawPath(oval, paint); // drawPath
+	//canvas->drawCircle(160, 160, 160, paint);
 	canvas->save();
-	canvas->translate(350, 0);
-	canvas->drawPath(oval, paint);
-	canvas->restore();
-	
-	// offcanvas
+	paint.setColor(0xff0000ff);
 	paint.setAntiAlias(false);
+	canvas->translate(350, 0);
+	//	canvas->drawPath(oval, paint); // drawPath
+	canvas->restore();
+	// offcanvas
+	paint.setAntiAlias(true);
 	offcanvas.drawPath(oval, paint);
-	canvas->drawImage(bitmapCircle.asImage(), 800, 30.2);
+	canvas->drawImage(bitmapCircle.asImage(), 750, 30.2);
 	
-	return;
+	//return;
 	
 	// ------------------------- drawRect -------------------------
 	SkRect rect = SkRect::MakeXYWH(10, 10, 300, 300);
@@ -226,8 +230,9 @@ void testBitmap(SkCanvas* canvas) {
 }
 
 void testSkia(Application* app) {
-	app->render()->post_message(Cb([app](CbData&data){
-		auto canvas = app->render()->canvas();
+	app->render()->post_message(Cb([app](CbData&data) {
+		auto render = static_cast<SkiaRender*>(app->render()->visitor());
+		auto canvas = render->getCanvas();
 		draw_skia(canvas);
 		//testBitmap(canvas);
 		//testExtractAlphaBlur(canvas);

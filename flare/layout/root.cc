@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./root.h"
-#include "../fill.h"
+#include "../effect.h"
 #include "../app.inl"
 #include "../util/handle.h"
 #include "../display.h"
@@ -41,9 +41,9 @@ namespace flare {
 
 	void Root::mark_layout_change() {
 		auto region = app()->display()->display_region();
+		float scale = app()->display()->scale();
 		mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
-		set_scale(app()->display()->scale());
-		set_translate(Vec2(region.x, region.y));
+		set_translate(Vec2(region.x / scale, region.y / scale));
 	}
 
 	Root* Root::create() {
@@ -52,16 +52,16 @@ namespace flare {
 		Handle<Root> r = new Root();
 		r->set_layout_depth(1);
 		r->set_receive(1);
-		r->set_width({0, SizeType::MATCH});
-		r->set_height({0, SizeType::MATCH});
+		r->set_width({0, BoxSizeType::MATCH});
+		r->set_height({0, BoxSizeType::MATCH});
 		
 		auto region = app->display()->display_region();
+		float scale = app->display()->scale();
 
-		r->set_scale(app->display()->scale());
-		r->set_translate(Vec2(region.x, region.y));
+		r->set_translate(Vec2(region.x / scale, region.y / scale));
 
 		r->mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
-		r->set_fill(new FillColor(Color(255, 255, 255, 255))); // 默认白色背景
+		r->set_fill_color(Color(255, 255, 255, 255)); // 默认白色背景
 		r->mark_recursive(M_TRANSFORM);
 		_inl_app(app)->set_root(*r);
 		return r.collapse();

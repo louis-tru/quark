@@ -427,7 +427,7 @@ namespace flare {
 		FT_Done_FreeType((FT_Library)_ft_lib); _ft_lib = nullptr;
 		
 		if ( _host->display() ) {
-      _host->display()->F_Off(Change, &Inl::display_port_change_handle, _inl_pool(this));
+			_host->display()->F_Off(Change, &Inl::display_port_change_handle, _inl_pool(this));
 		}
 	}
 

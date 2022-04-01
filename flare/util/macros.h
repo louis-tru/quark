@@ -390,6 +390,16 @@
 	F_DEFINE_PROP_READ(type, name) \
 	void set_##name (type val); \
 
+#define F_Define_Class(Name) class Name;
+#define F_Define_Visitor_Visit(N) virtual void visit##N(N *v) = 0;
+#define F_Define_Visitor(Name, Each) \
+	Each(F_Define_Class); \
+	class Name##Visitor { \
+	public: \
+		virtual int flags() = 0; \
+		Each(F_Define_Visitor_Visit); \
+}
+
 // Helper macros end
 // -----------------------------------------------------------------------------
 

@@ -32,14 +32,4 @@
 
 namespace flare {
 
-	/**
-		*
-		* Accepting visitors
-		* 
-		* @func accept(visitor)
-		*/
-	void Scroll::accept(Visitor *visitor) {
-		visitor->visitScroll(this);
-	}
-
 }

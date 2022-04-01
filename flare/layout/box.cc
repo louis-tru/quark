@@ -43,15 +43,15 @@ float Box::solve_layout_content_width(Size &parent_layout_size) {
 
 	switch (_width.type) {
 		default: // NONE /* none default wrap content */
-		case SizeType::WRAP: /* 包裹内容 wrap content */
+		case BoxSizeType::WRAP: /* 包裹内容 wrap content */
 			*is_wrap_in_out = true;
 			result = 0; // invalid wrap width
 			break;
-		case SizeType::PIXEL: /* 明确值 value px */
+		case BoxSizeType::PIXEL: /* 明确值 value px */
 			*is_wrap_in_out = false;
 			result = _width.value;
 			break;
-		case SizeType::MATCH: /* 匹配父视图 match parent */
+		case BoxSizeType::MATCH: /* 匹配父视图 match parent */
 			if (*is_wrap_in_out) {
 				result = 0; // invalid wrap width
 			} else { // use wrap
@@ -61,7 +61,7 @@ float Box::solve_layout_content_width(Size &parent_layout_size) {
 			}
 			// *is_wrap_in_out = *is_wrap_in_out;
 			break;
-		case SizeType::RATIO: /* 百分比 value % */
+		case BoxSizeType::RATIO: /* 百分比 value % */
 			if (*is_wrap_in_out) {
 				result = 0; // invalid wrap width
 			} else { // use wrap
@@ -69,7 +69,7 @@ float Box::solve_layout_content_width(Size &parent_layout_size) {
 			}
 			// *is_wrap_in_out = *is_wrap_in_out;
 			break;
-		case SizeType::MINUS: /* 减法(parent-value) value ! */
+		case BoxSizeType::MINUS: /* 减法(parent-value) value ! */
 			if (*is_wrap_in_out) {
 				result = 0; // invalid wrap width
 			} else { // use wrap
@@ -88,15 +88,15 @@ float Box::solve_layout_content_height(Size &parent_layout_size) {
 
 	switch (_height.type) {
 		default: // NONE /* none default wrap content */
-		case SizeType::WRAP: /* 包裹内容 wrap content */
+		case BoxSizeType::WRAP: /* 包裹内容 wrap content */
 			*is_wrap_in_out = true;
 			result = 0; // invalid wrap height
 			break;
-		case SizeType::PIXEL: /* 明确值 value px */
+		case BoxSizeType::PIXEL: /* 明确值 value px */
 			*is_wrap_in_out = false;
 			result = _height.value;
 			break;
-		case SizeType::MATCH: /* 匹配父视图 match parent */
+		case BoxSizeType::MATCH: /* 匹配父视图 match parent */
 			if (*is_wrap_in_out) {
 				result = 0; // invalid wrap height
 			} else { // use wrap
@@ -106,7 +106,7 @@ float Box::solve_layout_content_height(Size &parent_layout_size) {
 			}
 			// *is_wrap_in_out = *is_wrap_in_out;
 			break;
-		case SizeType::RATIO: /* 百分比 value % */
+		case BoxSizeType::RATIO: /* 百分比 value % */
 			if (*is_wrap_in_out) {
 				result = 0; // invalid wrap height
 			} else { // use wrap
@@ -114,7 +114,7 @@ float Box::solve_layout_content_height(Size &parent_layout_size) {
 			}
 			// *is_wrap_in_out = *is_wrap_in_out;
 			break;
-		case SizeType::MINUS: /* 减法(parent-value) value ! */
+		case BoxSizeType::MINUS: /* 减法(parent-value) value ! */
 			if (*is_wrap_in_out) {
 				result = 0; // invalid wrap height
 			} else { // use wrap
@@ -166,7 +166,7 @@ Box::~Box() {
 	*
 	* @func set_width(width)
 	*/
-void Box::set_width(SizeValue val) {
+void Box::set_width(BoxSize val) {
 	if (_width != val) {
 		_width = val;
 		mark_layout_size(M_LAYOUT_SIZE_WIDTH);
@@ -179,7 +179,7 @@ void Box::set_width(SizeValue val) {
 	*
 	* @func set_height(height)
 	*/
-void Box::set_height(SizeValue val) {
+void Box::set_height(BoxSize val) {
 	if (_height != val) {
 		_height = val;
 		mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
@@ -192,7 +192,7 @@ void Box::set_height(SizeValue val) {
 	*
 	* @func set_width_limit(width_limit)
 	*/
-void Box::set_width_limit(SizeValue val) {
+void Box::set_width_limit(BoxSize val) {
 	if (_width_limit != val) {
 		_width_limit = val;
 		mark_layout_size(M_LAYOUT_SIZE_WIDTH);
@@ -205,7 +205,7 @@ void Box::set_width_limit(SizeValue val) {
 	*
 	* @func set_height_limit(height_limit)
 	*/
-void Box::set_height_limit(SizeValue val) {
+void Box::set_height_limit(BoxSize val) {
 	if (_height_limit != val) {
 		_height_limit = val;
 		mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
@@ -323,6 +323,7 @@ void Box::set_radius_left_bottom(float val) {
 
 Color Box::border_color_top() const {
 	return _border ? _border->color_top: Color::from(0);
+}
 
 Color Box::border_color_right() const {
 	return _border ? _border->color_right: Color::from(0);
@@ -336,35 +337,35 @@ Color Box::border_color_left() const {
 	return _border ? _border->color_left: Color::from(0);
 }
 
-float border_width_top() const {
+float Box::border_width_top() const {
 	return _border ? _border->width_top: 0;
 } // border_widrh
 
-float border_width_right() const {
+float Box::border_width_right() const {
 	return _border ? _border->width_right: 0;
 }
 
-float border_width_bottom() const {
+float Box::border_width_bottom() const {
 	return _border ? _border->width_bottom: 0;
 }
 
-float border_width_left() const {
+float Box::border_width_left() const {
 	return _border ? _border->width_left: 0;
 }
 
-BorderStyle border_style_top() const {
+BorderStyle Box::border_style_top() const {
 	return _border ? _border->style_top: BorderStyle::SOLID;
 } // border_style
 
-BorderStyle border_style_right() const {
+BorderStyle Box::border_style_right() const {
 	return _border ? _border->style_right: BorderStyle::SOLID;
 }
 
-BorderStyle border_style_bottom() const {
+BorderStyle Box::border_style_bottom() const {
 	return _border ? _border->style_bottom: BorderStyle::SOLID;
 }
 
-BorderStyle border_style_left() const {
+BorderStyle Box::border_style_left() const {
 	return _border ? _border->style_left: BorderStyle::SOLID;
 }
 
@@ -476,9 +477,16 @@ void Box::set_border_style_left(BorderStyle val) {
 
 // -- paint
 
+void Box::set_fill_color(Color color) {
+	if (_fill_color != color) {
+		_fill_color = color;
+		mark_none();
+	}
+}
+
 void Box::set_fill(Fill* val) {
 	if (_fill != val) {
-		_fill = Effect::assign(_fill, val);
+		_fill = static_cast<Fill*>(Effect::assign(_fill, val));
 		mark_none();
 	}
 }

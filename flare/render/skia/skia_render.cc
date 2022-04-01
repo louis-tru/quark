@@ -32,6 +32,15 @@
 #include "../../display.h"
 #include "./skia_render.h"
 #include "skia/core/SkImage.h"
+// views
+#include "../../layout/box.h"
+#include "../../layout/image.h"
+#include "../../layout/video.h"
+#include "../../layout/scroll.h"
+#include "../../layout/input.h"
+#include "../../layout/text.h"
+#include "../../layout/root.h"
+#include "../../layout/flex.h"
 
 F_NAMESPACE_START
 
@@ -45,14 +54,23 @@ SkRect SkiaRender::MakeSkRectFrom(Box *host) {
 	return {-begin.x(), -begin.y(), end.x(), end.y()};
 }
 
-SkiaRender::SkiaRender(): _canvas(nullptr), _alpha32(255), {
+SkiaCanvas* SkiaRender::getCanvas() {
+	return _canvas;
+}
+
+SkiaRender::SkiaRender(): _canvas(nullptr), _alpha32(255) {
+}
+
+int SkiaRender::flags() {
+	return 0;
 }
 
 void SkiaRender::visitView(View* view) {
 	// visit child
 	auto v = view->_first;
 	if (v) {
-		uint32_t alpha = _alpha32;
+		uint32_t alphaCur = _alpha32;
+		uint32_t alpha = alphaCur + 1;
 		do {
 			if (v->_visible & v->_visible_region) {
 				if (v->_opacity) {
@@ -62,7 +80,7 @@ void SkiaRender::visitView(View* view) {
 			}
 			v = v->_next;
 		} while(v);
-		_alpha32 = alpha;
+		_alpha32 = alphaCur;
 	}
 }
 
@@ -72,11 +90,11 @@ void SkiaRender::visitBox(Box* box) {
 
 void SkiaRender::visitImage(Image* box) {
 	auto src = box->source();
-	solveBox(v, src || src->ready() ? [](SkiaRender* render, Box* box) {
+	solveBox(box, src && src->ready() ? [](SkiaRender* render, Box* box) {
 		Image* v = static_cast<Image*>(box);
 		auto begin = Vec2(v->_padding_left - v->_transform_origin.x(), v->_padding_top - v->_transform_origin.y());
 		auto end = v->layout_content_size() + begin;
-		auto img = CastSkImage(v);
+		auto img = CastSkImage(v->source());
 		SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
 		SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
 		render->_canvas->drawImageRect(img, rect, opts);
@@ -84,23 +102,23 @@ void SkiaRender::visitImage(Image* box) {
 }
 
 void SkiaRender::visitVideo(Video* video) {
-	solveBox(v, [](SkiaRender* render, Box* box) {
+	solveBox(video, [](SkiaRender* render, Box* box) {
 		// TODO ...
 	});
 }
 
 void SkiaRender::visitScroll(Scroll* scroll) {
-	solveBox(box, nullptr);
+	solveBox(scroll, nullptr);
 }
 
 void SkiaRender::visitInput(Input* input) {
-	solveBox(box, [](SkiaRender* render, Box* box) {
+	solveBox(input, [](SkiaRender* render, Box* box) {
 		// TODO ...
 	});
 }
 
 void SkiaRender::visitText(Text* text) {
-	solveBox(box, [](SkiaRender* render, Box* box) {
+	solveBox(text, [](SkiaRender* render, Box* box) {
 		// TODO ...
 	});
 }
@@ -109,12 +127,11 @@ void SkiaRender::visitLabel(Label* label) {
 	// TODO ...
 }
 
-void SkiaRender::visitRoot(Root* box) {
+void SkiaRender::visitRoot(Root* v) {
 	if (v->visible() && v->visible_region() && v->opacity()) {
-
 		solveBox(v, [](SkiaRender* render, Box* box) {
 			render->_canvas->clear(box->_fill_color.to_uint32_xrgb());
-			render->solveFill(box, render->_fill, Color::from(0));
+			render->solveFill(box, box->_fill, Color::from(0));
 		});
 	} else {
 		_canvas->clear(SK_ColorBLACK);
@@ -122,11 +139,11 @@ void SkiaRender::visitRoot(Root* box) {
 }
 
 void SkiaRender::visitFlowLayout(FlowLayout* flow) {
-	solveBox(box, nullptr);
+	solveBox(flow, nullptr);
 }
 
 void SkiaRender::visitFlexLayout(FlexLayout* flex) {
-	solveBox(box, nullptr);
+	solveBox(flex, nullptr);
 }
 
 void SkiaRender::clipRect(Box* box, SkClipOp op, bool doAntiAlias) {
@@ -141,13 +158,13 @@ void SkiaRender::clipRect(Box* box, SkClipOp op, bool doAntiAlias) {
 		rrect.setRectRadii(_rect, radii);
 		_canvas->clipRRect(rrect, op, doAntiAlias); // SkClipOp::kIntersect
 	} else {
-		_canvas->clipRect(rect, op, doAntiAlias); // SkClipOp::kIntersect
+		_canvas->clipRect(_rect, op, doAntiAlias); // SkClipOp::kIntersect
 	}
 }
 
-void SkiaRender::solveBox(Box* box, DrawFn fillFn) {
+void SkiaRender::solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v)) {
 
-	_canvas->setMatrix(b->matrix());
+	_canvas->setMatrix(box->matrix());
 
 	_rect = MakeSkRectFrom(box);
 
@@ -158,7 +175,7 @@ void SkiaRender::solveBox(Box* box, DrawFn fillFn) {
 		(box->_clip      && (box->_first))
 	) {
 		_canvas->save();
-		clipRect(box, _rect, SkClipOp::kIntersect, true); // exec reverse clip
+		clipRect(box, SkClipOp::kIntersect, true); // exec reverse clip
 		is_clip = true;
 	}
 
@@ -182,6 +199,29 @@ void SkiaRender::solveBox(Box* box, DrawFn fillFn) {
 		solveEffect(box, box->_effect);
 }
 
+void SkiaRender::solveEffect(Box* box, Effect* effect) {
+	int clip = 0; // 1 kDifference, 2 kIntersect
+	do {
+		switch (effect->type()) {
+			case Effect::M_SHADOW:
+				if (clip != 1) {
+					if (clip)
+						_canvas->restore(); // cancel reverse clip
+					clip = 1;
+					_canvas->save();
+					clipRect(box, SkClipOp::kDifference, true); // exec reverse clip
+					// TODO ... draw shadow
+					break;
+				}
+			default: break;
+		}
+		effect = effect->next();
+	} while(effect);
+
+	if (clip)
+		_canvas->restore(); // cancel reverse clip
+}
+
 void SkiaRender::solveFill(Box* box, Fill* fill, Color color) {
 
 	if (color.a()) {
@@ -196,6 +236,7 @@ void SkiaRender::solveFill(Box* box, Fill* fill, Color color) {
 				solveFillImage(box, static_cast<FillImage*>(fill)); break;
 			case Effect::M_GRADIENT:
 				solveFillGradient(box, static_cast<FillGradient*>(fill)); break;
+			default: break;
 		}
 		fill = fill->next();
 	}
@@ -219,11 +260,11 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 	float dw = cli.x(), dh = cli.y();
 	float dxm = dw, dym = dh;
 	
-	if (FillImage::solve_size(fill->size_x(), dw, w)) { // ok x
-		if (!FillImage::solve_size(fill->size_y(), dh, h)) { // auto y
+	if (FillImage::compute_size(fill->size_x(), dw, w)) { // ok x
+		if (!FillImage::compute_size(fill->size_y(), dh, h)) { // auto y
 			h = w / src_w * src_h;
 		}
-	} else if (FillImage::solve_size(fill->size_y(), dh, h)) { // auto x, ok y
+	} else if (FillImage::compute_size(fill->size_y(), dh, h)) { // auto x, ok y
 		w = h / src_h * src_w;
 	} else { // auto x,y
 		w = src_w / display()->atom_pixel();
@@ -235,8 +276,8 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 	auto min = [] (float a, float b) { return a < b ? a: b; };
 	auto max = [] (float a, float b) { return a > b ? a: b; };
 
-	x = FillImage::solve_position(fill->position_x(), dw, w);
-	y = FillImage::solve_position(fill->position_y(), dh, h);
+	x = FillImage::compute_position(fill->position_x(), dw, w);
+	y = FillImage::compute_position(fill->position_y(), dh, h);
 
 	auto _repeat = fill->repeat();
 
@@ -249,7 +290,7 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 			sx1 = dx1 - dx + sx;          sy1 = dy1 - dy + sy;
 			SkRect src{sx*scale_x,sy*scale_y,sx1*scale_x,sy1*scale_y};
 			SkRect dest{dx-ori.x(),dy-ori.y(),dx1-ori.x(),dy1-ori.y()};
-			canvas->drawImageRect(img, src, dest, opts, nullptr, Canvas::kFast_SrcRectConstraint);
+			_canvas->drawImageRect(img, src, dest, opts, nullptr, SkCanvas::kFast_SrcRectConstraint);
 		}
 	} else {
 		if (_repeat == Repeat::REPEAT || _repeat == Repeat::REPEAT_X) { // repeat x
@@ -277,7 +318,7 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 					sy1 = dy1 - dy + sy;
 					SkRect src{sx*scale_x,sy*scale_y,sx1*scale_x,sy1*scale_y};
 					SkRect dest{dx-ori.x(),dy-ori.y(),dx1-ori.x(),dy1-ori.y()};
-					canvas->drawImageRect(img, src, dest, opts, nullptr, Canvas::kFast_SrcRectConstraint);
+					_canvas->drawImageRect(img, src, dest, opts, nullptr, SkCanvas::kFast_SrcRectConstraint);
 					dy = dy1;
 				} while (dy < dym);
 				dx = dx1;
@@ -287,30 +328,8 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 	}
 }
 
-void SkiaRender::solveFillGradient(Box* box, PaintGradient* gradient) {
+void SkiaRender::solveFillGradient(Box* box, FillGradient* gradient) {
 	// TODO ...
-}
-
-void SkiaRender::solveEffect(Box* box, Effect* effect) {
-	int clip = 0; // 1 kDifference, 2 kIntersect
-	do {
-		switch (effect->type()) {
-			case Effect::M_SHADOW:
-			if (clip != 1) {
-				if (clip)
-					_canvas->restore(); // cancel reverse clip
-				clip = 1;
-				_canvas->save();
-				clipRect(box, _rect, SkClipOp::kDifference, true); // exec reverse clip
-				// TODO ... draw shadow
-				break;
-			}
-		}
-		effect = effect->next();
-	} while(effect);
-
-	if (clip)
-		_canvas->restore(); // cancel reverse clip
 }
 
 F_NAMESPACE_END

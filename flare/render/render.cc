@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./render.h"
+#include <math.h>
 
 F_NAMESPACE_START
 

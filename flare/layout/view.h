@@ -43,21 +43,13 @@ F_NAMESPACE_START
 
 #define F_Define_View(N) \
 public: \
-	virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
+	friend class SkiaRender; \
+	virtual void accept(ViewVisitor *visitor) { visitor->visit##N(this); } \
 
-#define F_View(N) class N;
-	F_Each_View(F_View);
-#undef F_View
-
-class ViewVisitor {
-public:
-#define F_Visitor(N) virtual void visit##N(N *v) = 0;
-	F_Each_View(F_Visitor);
-#undef F_Visitor
-};
-
-class Render;
 class Action;
+class SkiaRender;
+
+F_Define_Visitor(View, F_Each_View);
 
 /**
 	* The basic elements of UI tree
@@ -66,6 +58,7 @@ class Action;
 	*/
 class F_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
 	F_HIDDEN_ALL_COPY(View);
+	F_Define_View(View);
 public:
 
 	/**
@@ -133,19 +126,6 @@ public:
 		*/
 	virtual void remove_all_child();
 
-	/**
-		*
-		* Accepting visitors
-		* 
-		* @func accept(visitor)
-		*/
-	virtual void accept(ViewVisitor *visitor);
-
-	/**
-	 * @func draw(canvas, alpha)
-	 */
-	// virtual void draw(Render* render);
-	
 	/**
 		* 
 		* Setting the visibility properties the view object
@@ -448,7 +428,6 @@ private:
 	F_DEFINE_PROP_READ(bool, visible_region);
 
 	friend class Box;
-	friend class SkiaRender;
 
 	F_DEFINE_INLINE_CLASS(Inl);
 	F_DEFINE_INLINE_CLASS(InlEvent);

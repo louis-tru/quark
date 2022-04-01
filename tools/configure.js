@@ -57,7 +57,7 @@ def_opts('arm-vfp', opts.arch == 'arm64' ? 'vfpv4':
 def_opts('arm-fpu', opts.arm_neon ? 'neon': opts.arm_vfp, 
 																'--arm-fpu=VAL  enable arm fpu [{0}]');
 def_opts(['emulator', 'em'], 0, '--emulator,-em enable the emulator [{0}]');
-def_opts('clang', opts.os.match(/osx|ios|iwatch|tvos/) ? 1 : 0, 
+def_opts('clang', isMac() ? 1 : 0, 
 																'--clang        enable clang compiler [{0}]');
 def_opts('media', 'auto',       '--media        compile media [{0}]');
 def_opts(['ndk-path','ndk'], process.env.ANDROID_NDK || '', 
@@ -77,6 +77,13 @@ def_opts('without-embed-bitcode', 1,
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
 def_opts('without-node', 0,     '--without-node disable node [{0}]');
 def_opts('more-log',     0,     '--more-log print more log message [{0}]');
+def_opts(['use-gl', 'gl'], isMac() ? 0 : 1,
+																'--enable-gl,-gl use opengl backend [{0}]');
+def_opts(['use-skia', 'skia'],1,'--use-skia,-skia use skia or fastuidraw backend [{0}]');
+
+function isMac() {
+	return get_OS(opts.os) == 'mac';
+}
 
 function arm() {
 	return opts.arch.match(/^arm/) ? 1 : 0;
@@ -379,10 +386,13 @@ function configure_skia(opts, variables) {
 		is_component_build=false \
 		target_cpu="${arch_name}" \
 		skia_enable_skottie=false \
-		skia_use_gl=true \
 		skia_enable_flutter_defines=true \
 		skia_use_fonthost_mac=true \
 	`;
+
+	if (variables.use_gl) {
+		args += `skia_use_gl=true `
+	}
 
 	// args0 += `--target_cpu="x86_64" `
 
@@ -460,7 +470,7 @@ function configure_skia(opts, variables) {
 		fs.symlinkSync(path.resolve(`${source}/include`), `${variables.output}/obj.target/skia/skia`);
 	}
 
-	require('./skia_gyp').gen_gyp(os);
+	require('./skia_gyp').gen_gyp(os, opts, variables);
 }
 
 function bs(a) {
@@ -792,6 +802,8 @@ async function configure() {
 			cross_prefix: '',
 			use_system_zlib: bi(os.match(/^(android|linux|ios|osx)$/)),
 			media: opts.media,
+			use_gl: opts.use_gl ? 1: 0,
+			use_skia: opts.use_skia ? 1: 0,
 			version_min: '',
 			source: path.resolve(__dirname, '..'),
 			output_name: '',
@@ -1186,7 +1198,8 @@ async function configure() {
 	}
 
 	// configure skia
-	configure_skia(opts, variables, configuration, opts.clang);
+	if (opts.use_skia)
+		configure_skia(opts, variables, configuration, opts.clang);
 
 	// ------------------ output config.mk, config.gypi ------------------ 
 	

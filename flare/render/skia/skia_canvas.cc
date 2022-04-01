@@ -29,15 +29,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 namespace flare {
-	class Canvas;
+	class SkiaCanvas;
 }
 
-#define AutoUpdateQRBounds AutoUpdateQRBounds; friend class flare::Canvas
-#include <math.h>
-#include <skia/core/SkCanvas.h>
+#define AutoUpdateQRBounds AutoUpdateQRBounds; friend class flare::SkiaCanvas
+
+#include "./skia_canvas.h"
 #include "../../display.h"
 #include "../../app.h"
 #include "../render.h"
+#include <math.h>
 
 using namespace flare;
 
@@ -62,8 +63,11 @@ protected:
 
 class SkBaseDevice: public SkRefCnt, public SkMatrixProvider {
 public:
-	void setLocalToDevice(const SkM44& localToDevice) {
-		fLocalToDevice = localToDevice;
+	void setLocalToDevice(const SkM44& ctm) {
+		fLocalToDevice = ctm;
+		// fLocalToDevice.normalizePerspective();
+		// Map from the global CTM state to this device's coordinate system.
+		// fLocalToDevice.postConcat(fGlobalToDevice);
 		fLocalToDevice33 = fLocalToDevice.asM33();
 	}
 private:
@@ -78,11 +82,12 @@ private:
 
 F_NAMESPACE_START
 
-void Canvas::setMatrix(const Mat& mat) {
+void SkiaCanvas::setMatrix(const Mat& mat) {
 	SkM44 m4(mat[0], mat[1], 0,mat[2],
 						mat[3], mat[4], 0,mat[5],
 						0,           0, 1,0,
-						0,           0, 0,1);
+					  0,           0, 0,app()->display()->atom_pixel());
+	
 	if (fMCRec->fDeferredSaveCount > 0) {
 		SkCanvas::setMatrix(m4);
 	} else {

@@ -350,16 +350,6 @@ void View::set_visible(bool val) {
 }
 
 /**
-	*
-	* Accepting visitors
-	* 
-	* @func accept(visitor)
-	*/
-void View::accept(Visitor *visitor) {
-	visitor->visitView(this);
-}
-
-/**
 	* 
 	* Sets whether the view needs to receive or handle event throws from the system
 	*

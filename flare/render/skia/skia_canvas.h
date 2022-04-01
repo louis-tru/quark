@@ -54,7 +54,7 @@ F_NAMESPACE_START
 
 class SkiaCanvas: public SkCanvas {
 public:
-	void setMatrix(Mat& mat);
+	void setMatrix(const Mat& mat);
 };
 
 F_NAMESPACE_END

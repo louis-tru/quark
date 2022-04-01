@@ -1,27 +1,7 @@
 {
 	'variables': {
-		'gui_glsl_files': [
-			'render/glsl/_version.glsl',
-			'render/glsl/_util.glsl',
-			'render/glsl/_box.glsl',
-			'render/glsl/_box-radius.glsl',
-			'render/glsl/sprite.glsl',
-			'render/glsl/box-image.glsl',
-			'render/glsl/box-yuv420p-image.glsl',
-			'render/glsl/box-yuv420sp-image.glsl',
-			'render/glsl/box-border.glsl',
-			'render/glsl/box-border-radius.glsl',
-			'render/glsl/box-background-image.glsl',
-			'render/glsl/box-color.glsl',
-			'render/glsl/box-shadow.glsl',
-			'render/glsl/text-box-color.glsl',
-			'render/glsl/text-texture.glsl',
-			'render/glsl/text-vertex.glsl',
-			'render/glsl/gen-texture.glsl',
-		],
 		'gui_default_font_files': [
 			'render/font/langou.ttf',
-			'render/font/iconfont.ttf',
 		],
 	},
 	'targets':[
@@ -37,7 +17,6 @@
 		],
 		'dependencies': [
 			'flare-util',
-			'skia',
 			'deps/tess2/tess2.gyp:tess2', 
 			'deps/freetype2/freetype2.gyp:ft2',
 			'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
@@ -97,14 +76,6 @@
 			'render/font/pool.cc',
 			'render/render.h',
 			'render/render.cc',
-			'render/canvas.h',
-			'render/canvas.cc',
-			'render/gl.h',
-			'render/gl.cc',
-			'render/skia/skia_canvas.h',
-			'render/skia/skia_canvas.cc',
-			'render/skia/skia_render.h',
-			'render/skia/skia_render.cc',
 			'render/pixel.h',
 			'render/pixel.cc',
 			'render/source.h',
@@ -134,8 +105,8 @@
 			'value.h',
 			'os/os.h',
 			'os/os.cc',
-			'fill.h',
-			'fill.cc',
+			'effect.h',
+			'effect.cc',
 			#
 			# 'property.h',
 			# 'property.cc',
@@ -160,12 +131,43 @@
 			# 'css/scope.cc',
 			# 'css/sheets.cc',
 			#
+			# 'render/codec/codec.h',
+			# 'render/codec/codec.cc',
+			# 'render/codec/pvrtc.cc',
+			# 'render/codec/tga.cc',
+			#
 		],
 		'conditions': [
-			['OS=="mac" and project=="xcode"', {
-				'dependencies': [ 'out/skia.gyp:skia_gyp' ], # debug in xcode
-			}, {
-				'dependencies': [ 'skia' ],
+			['use_gl==1 or use_skia==0', { # use opengl
+				'defines': [ 'F_ENABLE_GL=1' ],
+				'sources': [
+					'render/gl.h',
+					'render/gl.cc',
+				],
+			}],
+			['use_skia==1', { # use skia
+				'defines': [ 'F_ENABLE_SKIA=1' ],
+				'sources': [
+					'render/skia/skia_canvas.h',
+					'render/skia/skia_canvas.cc',
+					'render/skia/skia_render.h',
+					'render/skia/skia_render.cc',
+				],
+				'conditions': [
+					['OS=="mac" and project=="xcode"', {
+						'dependencies': [ 'out/skia.gyp:skia_gyp' ], # debug in xcode
+					}, {
+						'dependencies': [ 'skia' ],
+					}],
+					['use_gl==1', {
+						'sources': [
+							'render/skia/skia_gl.cc',
+						],
+					}],
+				],
+			}],
+			['use_skia==0', { # use fastuidraw
+				'defines': [ 'F_ENABLE_FASTUIDRAW=1' ],
 			}],
 			['os=="android"', {
 				'sources': [
@@ -192,19 +194,17 @@
 			}],
 			['OS!="mac"', {
 				'dependencies': [
-					'deps/libgif/libgif.gyp:libgif', 
-					'deps/libjpeg/libjpeg.gyp:libjpeg', 
-					'deps/libpng/libpng.gyp:libpng',
-					'deps/libwebp/libwebp.gyp:libwebp',
+					# 'deps/libgif/libgif.gyp:libgif', 
+					# 'deps/libjpeg/libjpeg.gyp:libjpeg', 
+					# 'deps/libpng/libpng.gyp:libpng',
+					# 'deps/libwebp/libwebp.gyp:libwebp',
 				],
 				'sources': [
-					# files
+					# 'render/codec/gif.cc',
+					# 'render/codec/jpeg.cc',
+					# 'render/codec/png.cc',
+					# 'render/codec/webp.cc',
 				],
-				'link_settings': {
-					'libraries': [
-						# '-lz',
-					]
-				},
 			}],
 			['OS=="mac"', {
 				'dependencies': [

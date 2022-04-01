@@ -80,9 +80,9 @@ void SkiaGLRender::onReload() {
 														SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
 	F_ASSERT(_surface);
 	if (_raster) {
-		return static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
+		_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
 	} else {
-		return static_cast<SkiaCanvas*>(_surface->getCanvas());
+		_canvas = static_cast<SkiaCanvas*>(_surface->getCanvas());
 	}
 }
 
@@ -93,7 +93,8 @@ void SkiaGLRender::onSubmit() {
 }
 
 SkiaGLRender::SkiaGLRender(Application* host, const Options& opts, bool raster)
-: GLRender(host, opts), _raster(raster) {
+: GLRender(host, opts) {
+	_raster = raster;
 }
 
 F_NAMESPACE_END

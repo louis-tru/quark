@@ -13,6 +13,8 @@
 		'debug%': 0,
 		'project%': 'make',
 		'media%': 1,
+		'use_gl%': 1,
+		'use_skia%': 1,
 		'std_cpp%': 'c++14',
 		'gcc_version%': 0,
 		'llvm_version%': 0,
