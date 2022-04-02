@@ -162,13 +162,21 @@ public:
 */
 class F_EXPORT FillImage: public Fill, public SourceHold {
 public:
+	struct Init {
+		String src;
+		FillSize size_x;
+		FillSize size_y;
+		FillPosition position_x;
+		FillPosition position_y;
+		Repeat repeat;
+	};
 	FillImage();
-	FillImage(cString& src);
-	F_DEFINE_PROP(Repeat, repeat);
-	F_DEFINE_PROP(FillPosition, position_x);
-	F_DEFINE_PROP(FillPosition, position_y);
+	FillImage(cString& src, Init init = {});
 	F_DEFINE_PROP(FillSize, size_x);
 	F_DEFINE_PROP(FillSize, size_y);
+	F_DEFINE_PROP(FillPosition, position_x);
+	F_DEFINE_PROP(FillPosition, position_y);
+	F_DEFINE_PROP(Repeat, repeat);
 	virtual Type    type() const override;
 	virtual Effect* copy(Effect* to) override;
 	static bool  compute_size(FillSize size, float host, float& out);

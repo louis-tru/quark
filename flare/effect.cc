@@ -179,9 +179,13 @@ Effect* BoxShadow::copy(Effect* to) {
 
 // ------------------------------ F i l l . I m a g e ------------------------------
 
-FillImage::FillImage(): _repeat(Repeat::REPEAT) {}
-FillImage::FillImage(cString& src)
-: _repeat(Repeat::REPEAT)
+FillImage::FillImage(): _repeat(Repeat::NONE) {}
+FillImage::FillImage(cString& src, Init init)
+	: _size_x(init.size_x)
+	, _size_y(init.size_y)
+	, _position_x(init.position_x)
+	, _position_y(init.position_y)
+	, _repeat(init.repeat)
 {
 	if (!src.is_empty()) {
 		set_src(src);

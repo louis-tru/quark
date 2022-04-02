@@ -744,16 +744,19 @@ void Box::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
 				origin.x() + size.x() - _layout_size.x(),
 				origin.y());
 			break;
+		case Align::START:
 		case Align::LEFT_CENTER: // left center
 			offset = Vec2(
 				origin.x(),
 				origin.y() + (size.y() - _layout_size.y()) / 2.0);
 			break;
+		case Align::CENTER:
 		case Align::CENTER_CENTER: // center center
 			offset = Vec2(
 				origin.x() + (size.x() - _layout_size.x()) / 2.0,
 				origin.y() + (size.y() - _layout_size.y()) / 2.0);
 			break;
+		case Align::END:
 		case Align::RIGHT_CENTER: // right center
 			offset = Vec2(
 				origin.x() + (size.x() - _layout_size.x()),

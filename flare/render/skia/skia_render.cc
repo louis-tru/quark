@@ -97,6 +97,8 @@ void SkiaRender::visitImage(Image* box) {
 		auto img = CastSkImage(v->source());
 		SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
 		SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
+		SkPaint paint;
+		paint.setAlpha(_alpha.val);
 		render->_canvas->drawImageRect(img, rect, opts);
 	}: nullptr);
 }

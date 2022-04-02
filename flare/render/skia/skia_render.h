@@ -77,7 +77,7 @@ public:
 	void solveFill(Box* box, Fill* fill, Color fill_color);
 	void solveFillImage(Box* box, FillImage* fill);
 	void solveFillGradient(Box* box, FillGradient* fill);
-	SkRect MakeSkRectFrom(Box *host);
+	static SkRect MakeSkRectFrom(Box *host);
 protected:
 	sk_sp<GrDirectContext> _direct;
 	sk_sp<SkSurface> _surface;
