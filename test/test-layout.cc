@@ -36,7 +36,9 @@ public:
 			auto img = CastSkImage(v->source());
 			auto canvas = render->getCanvas();
 			auto rect = render->MakeSkRectFrom(box);
-			canvas->drawImageRect(img, rect, SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest));
+			SkPaint paint;
+			paint.setAlpha(200);
+			canvas->drawImageRect(img, rect, SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest), &paint);
 
 			auto img2 = img;//img->makeTextureImage(render()->direct(), GrMipmapped::kYes);
 			/*
