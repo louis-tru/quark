@@ -71,7 +71,7 @@ public:
 	virtual void visitFlowLayout(FlowLayout* flow);
 	virtual void visitFlexLayout(FlexLayout* flex);
 	virtual SkiaCanvas* getCanvas();
-	void clipRect(Box* box, SkClipOp op, bool doAntiAlias);
+	void clipRect(Box* box, SkClipOp op, bool AA);
 	void solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v));
 	void solveEffect(Box* box, Effect* effect);
 	void solveFill(Box* box, Fill* fill, Color fill_color);
@@ -84,13 +84,7 @@ protected:
 	sk_sp<SkSurface> _rasterSurface;
 	SkiaCanvas*      _canvas;
 	SkRect          _rect;
-	union {
-		uint32_t  _alpha32;
-		struct {
-			uint8_t val; // Little Endian
-			uint8_t __[3];
-		} _alpha;
-	};
+	float           _alpha;
 	bool _raster; // software raster
 };
 

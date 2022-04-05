@@ -42,7 +42,7 @@
 # include <vector>
 #endif
 
-namespace flare {
+F_NAMESPACE_START
 
 #define F_DEFAULT_ALLOCATOR() \
 	static void* operator new(std::size_t size) { return ::operator new(size); } \
@@ -53,159 +53,159 @@ namespace flare {
 # define F_MIN_CAPACITY (8)
 #endif
 
-	// -------------------------------------------------------
+// -------------------------------------------------------
 
-	class ObjectTraits;
-	class ReferenceTraits;
-	class ProtocolTraits;
-	
-	struct MemoryAllocator {
-		static void* alloc(uint32_t size);
-		static void  free(void* ptr);
-		static void* realloc(void* ptr, uint32_t size);
-		// auto alloc Memory
-		static void* aalloc(void* ptr, uint32_t size, uint32_t* size_out, uint32_t size_of);
-	};
-	
-	template<typename T = char, typename A = MemoryAllocator> class ArrayString;
-	
-	typedef       ArrayString<char, MemoryAllocator> String;
-	typedef const ArrayString<char, MemoryAllocator> cString;
-	
-	template<typename T>
-	struct has_object_type {
-		typedef char Non[1];
-		typedef char Obj[2];
-		typedef char Ref[3];
-		template<typename C> static Obj& test(typename C::IsObjectCheck*);
-		template<typename C> static Ref& test(typename C::IsReferenceCheck*);
-		template<typename> static Non& test(...);
-		static const int type = sizeof(test<T>(0)) / sizeof(char) - 1;
-		static const bool isObj = sizeof(test<T>(0)) / sizeof(char) > 1;
-		static const bool isRef = sizeof(test<T>(0)) / sizeof(char) == 3;
-	};
-	
-	/**
-	* @class Object
-	*/
-	class F_EXPORT Object {
-	 public:
-		typedef ObjectTraits Traits;
-		typedef Object IsObjectCheck;
-		virtual bool is_reference() const;
-		virtual bool retain();
-		virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
-		virtual ArrayString<char, MemoryAllocator> to_string() const;
-		static void* operator new(std::size_t size);
-		static void* operator new(std::size_t size, void* p);
-		static void  operator delete(void* p);
-		static void set_object_allocator(
-			void* (*alloc)(size_t size) = nullptr,
-			void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
-		);
-		#if F_MEMORY_TRACE_MARK
-			static std::vector<Object*> mark_objects();
-			static int mark_objects_count();
-			Object();
-			virtual ~Object();
-		 private:
-			int initialize_mark_();
-			int mark_index_;
-		#else
-			virtual ~Object() = default;
-		#endif
-	};
+class ObjectTraits;
+class ReferenceTraits;
+class ProtocolTraits;
 
-	/**
-	* @class Reference
-	*/
-	class F_EXPORT Reference: public Object {
-		typedef Reference IsObjectCheck;
-	 public:
-		typedef ReferenceTraits Traits;
-		typedef Reference IsReferenceCheck;
-		inline Reference(): _ref_count(0) {}
-		inline Reference(const Reference& ref): _ref_count(0) {}
-		inline Reference& operator=(const Reference& ref) { return *this; }
-		virtual ~Reference();
-		virtual bool retain();
-		virtual void release();
-		virtual bool is_reference() const;
-		inline int ref_count() const { return _ref_count; }
-	 protected:
-		std::atomic_int _ref_count;
-	};
+struct MemoryAllocator {
+	static void* alloc(uint32_t size);
+	static void  free(void* ptr);
+	static void* realloc(void* ptr, uint32_t size);
+	// auto alloc Memory
+	static void* aalloc(void* ptr, uint32_t size, uint32_t* size_out, uint32_t size_of);
+};
 
-	/**
-	* @class Protocol
-	*/
-	class Protocol {
-	 public:
-		typedef ProtocolTraits Traits;
-		virtual Object* to_object() = 0;
-	};
+template<typename T = char, typename A = MemoryAllocator> class ArrayString;
 
-	/**
-	* @class ObjectTraits
-	*/
-	class ObjectTraits {
-	 public:
-		inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
-		inline static void Release(Object* obj) { if (obj) obj->release(); }
-		static constexpr bool is_reference = false;
-		static constexpr bool is_object = true;
-	};
+typedef       ArrayString<char, MemoryAllocator> String;
+typedef const ArrayString<char, MemoryAllocator> cString;
 
-	/**
-	* @class ReferenceTraits
-	*/
-	class ReferenceTraits: public ObjectTraits {
-	 public:
-		static constexpr bool is_reference = true;
-	};
+template<typename T>
+struct has_object_type {
+	typedef char Non[1];
+	typedef char Obj[2];
+	typedef char Ref[3];
+	template<typename C> static Obj& test(typename C::IsObjectCheck*);
+	template<typename C> static Ref& test(typename C::IsReferenceCheck*);
+	template<typename> static Non& test(...);
+	static const int type = sizeof(test<T>(0)) / sizeof(char) - 1;
+	static const bool isObj = sizeof(test<T>(0)) / sizeof(char) > 1;
+	static const bool isRef = sizeof(test<T>(0)) / sizeof(char) == 3;
+};
 
-	/**
-	* @class ProtocolTraits
-	*/
-	class ProtocolTraits {
-	 public:
-		template<class T> inline static bool Retain(T* obj) {
-			return obj ? obj->to_object()->retain() : 0;
-		}
-		template<class T> inline static void Release(T* obj) {
-			if (obj) obj->to_object()->release();
-		}
-		static constexpr bool is_reference = false;
-	};
+/**
+* @class Object
+*/
+class F_EXPORT Object {
+public:
+	typedef ObjectTraits Traits;
+	typedef Object IsObjectCheck;
+	virtual bool is_reference() const;
+	virtual bool retain();
+	virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
+	virtual ArrayString<char, MemoryAllocator> to_string() const;
+	static void* operator new(std::size_t size);
+	static void* operator new(std::size_t size, void* p);
+	static void  operator delete(void* p);
+	static void set_object_allocator(
+		void* (*alloc)(size_t size) = nullptr,
+		void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
+	);
+#if F_MEMORY_TRACE_MARK
+	static std::vector<Object*> mark_objects();
+	static int mark_objects_count();
+	Object();
+	virtual ~Object();
+private:
+	int initialize_mark_();
+	int mark_index_;
+#else
+	virtual ~Object() = default;
+#endif
+};
 
-	typedef ProtocolTraits InterfaceTraits;
+/**
+* @class Reference
+*/
+class F_EXPORT Reference: public Object {
+	typedef Reference IsObjectCheck;
+public:
+	typedef ReferenceTraits Traits;
+	typedef Reference IsReferenceCheck;
+	inline Reference(): _ref_count(0) {}
+	inline Reference(const Reference& ref): _ref_count(0) {}
+	inline Reference& operator=(const Reference& ref) { return *this; }
+	virtual ~Reference();
+	virtual bool retain();
+	virtual void release();
+	virtual bool is_reference() const;
+	inline int ref_count() const { return _ref_count; }
+protected:
+	std::atomic_int _ref_count;
+};
 
-	/**
-	* @class NonObjectTraits
-	*/
-	class NonObjectTraits {
-	 public:
-		template<class T> inline static bool Retain(T* obj) {
-			/* Non referential pairs need not be Retain */ return 0;
-		}
-		template<class T> inline static void Release(T* obj) { delete obj; }
-		static constexpr bool is_reference = false;
-	};
+/**
+* @class Protocol
+*/
+class Protocol {
+public:
+	typedef ProtocolTraits Traits;
+	virtual Object* to_object() = 0;
+};
 
-	F_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+/**
+* @class ObjectTraits
+*/
+class ObjectTraits {
+public:
+	inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
+	inline static void Release(Object* obj) { if (obj) obj->release(); }
+	static constexpr bool is_reference = false;
+	static constexpr bool is_object = true;
+};
 
-	F_EXPORT bool Retain(Object* obj);
-	F_EXPORT void Release(Object* obj);
+/**
+* @class ReferenceTraits
+*/
+class ReferenceTraits: public ObjectTraits {
+public:
+	static constexpr bool is_reference = true;
+};
 
-	template<class T, typename... Args>
-	inline T* New(Args... args) {
-		return new T(args...);
+/**
+* @class ProtocolTraits
+*/
+class ProtocolTraits {
+public:
+	template<class T> inline static bool Retain(T* obj) {
+		return obj ? obj->to_object()->retain() : 0;
 	}
-
-	template<class T, typename... Args>
-	inline T* NewRetain(Args... args) {
-		T* r = new T(args...); return r->retain(), r;
+	template<class T> inline static void Release(T* obj) {
+		if (obj) obj->to_object()->release();
 	}
+	static constexpr bool is_reference = false;
+};
 
+typedef ProtocolTraits InterfaceTraits;
+
+/**
+* @class NonObjectTraits
+*/
+class NonObjectTraits {
+public:
+	template<class T> inline static bool Retain(T* obj) {
+		/* Non referential pairs need not be Retain */ return 0;
+	}
+	template<class T> inline static void Release(T* obj) { delete obj; }
+	static constexpr bool is_reference = false;
+};
+
+F_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+
+F_EXPORT bool Retain(Object* obj);
+F_EXPORT void Release(Object* obj);
+
+template<class T, typename... Args>
+inline T* New(Args... args) {
+	return new T(args...);
 }
+
+template<class T, typename... Args>
+inline T* NewRetain(Args... args) {
+	T* r = new T(args...); return r->retain(), r;
+}
+
+F_NAMESPACE_END
 #endif

@@ -149,7 +149,7 @@ View::View()
 	: _action(nullptr), _parent(nullptr)
 	, _prev(nullptr), _next(nullptr)
 	, _first(nullptr), _last(nullptr)
-	, _transform(nullptr), _opacity(255)
+	, _transform(nullptr), _opacity(1.0)
 	, _visible(true)
 	, _visible_region(false)
 	, _receive(false)
@@ -547,9 +547,9 @@ void View::set_skew_y(float val) {
 	*
 	* @func set_opacity(val)
 	*/
-void View::set_opacity(uint8_t val) {
+void View::set_opacity(float val) {
 	if (_opacity != val) {
-		_opacity = val;
+		_opacity = F_MAX(0, F_MIN(val, 1));
 		mark(M_NONE); // mark none
 	}
 }

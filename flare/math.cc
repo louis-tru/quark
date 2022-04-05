@@ -58,11 +58,11 @@ static inline uint8_t getPartColor(int color, int offset) {
 	return (color >> offset) & 0xff;
 }
 
-Color::Color(uint32_t rgba)
-: MColor<uint8_t>(getPartColor(rgba, 24),
-								getPartColor(rgba, 16),
-								getPartColor(rgba, 8),
-								getPartColor(rgba, 0))
+Color::Color(uint32_t argb)
+: MColor<uint8_t>(getPartColor(argb, 16),
+								getPartColor(argb, 8),
+								getPartColor(argb, 0),
+								getPartColor(argb, 24))
 {
 	
 }

@@ -141,23 +141,33 @@ void Box::mark_layout_size(uint32_t mark_) {
 	* @constructors
 	*/
 Box::Box()
-	: _width_limit{0, BoxSizeType::NONE}, _height_limit{0, BoxSizeType::NONE}
+	: _layout_wrap_x(true), _layout_wrap_y(true), _is_radius(false), _is_clip(false)
+	, _width_limit{0, BoxSizeType::NONE}, _height_limit{0, BoxSizeType::NONE}
 	, _margin_top(0), _margin_right(0)
 	, _margin_bottom(0), _margin_left(0)
 	, _padding_top(0), _padding_right(0)
 	, _padding_bottom(0), _padding_left(0)
+	, _radius_left_top(0), _radius_right_top(0)
+	, _radius_right_bottom(0), _radius_left_bottom(0)
 	, _fill_color(Color::from(0))
 	, _fill(nullptr)
 	, _effect(nullptr)
 	, _layout_weight(0), _layout_align(Align::AUTO)
 	, _border(nullptr)
-	, _wrap_x(true), _wrap_y(true), _is_radius(false)
 {
 }
 
 Box::~Box() {
 	Release(_fill); _fill = nullptr;
 	::free(_border); _border = nullptr;
+}
+
+// is clip box display range
+void Box::set_is_clip(bool val) {
+	if (_is_clip != val) {
+		_is_clip = val;
+		mark_none();
+	}
 }
 
 /**
@@ -509,9 +519,9 @@ uint32_t Box::solve_layout_size(uint32_t mark) {
 			auto size = parent()->layout_size();
 			auto val = solve_layout_content_width(size);
 
-			if (val != _layout_content_size.x() || _wrap_x != size.wrap_x) {
+			if (val != _layout_content_size.x() || _layout_wrap_x != size.wrap_x) {
 				_layout_content_size.set_x(val);
-				_wrap_x = size.wrap_x;
+				_layout_wrap_x = size.wrap_x;
 				// mark(M_LAYOUT_TYPESETTING);
 				layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
 			}
@@ -527,9 +537,9 @@ uint32_t Box::solve_layout_size(uint32_t mark) {
 			auto size = parent()->layout_size();
 			auto val = solve_layout_content_height(size);
 
-			if (val != _layout_content_size.y() || _wrap_y != size.wrap_y) {
+			if (val != _layout_content_size.y() || _layout_wrap_y != size.wrap_y) {
 				_layout_content_size.set_y(val);
-				_wrap_y = size.wrap_y;
+				_layout_wrap_y = size.wrap_y;
 				layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 			}
 			_client_size.set_y(_padding_top + _padding_bottom + val);
@@ -582,7 +592,7 @@ Vec2 Box::layout_offset() {
 
 Layout::Size Box::layout_size() {
 	return {
-		_layout_size, _layout_content_size, _wrap_x, _wrap_y
+		_layout_size, _layout_content_size, _layout_wrap_x, _layout_wrap_y
 	};
 }
 
@@ -683,15 +693,15 @@ Vec2 Box::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
 	_client_size = Vec2(p_x + _layout_content_size.x(), p_y + _layout_content_size.y());
 	_layout_size = Vec2(mp_x + _layout_content_size.x(), mp_y + _layout_content_size.y());
 
-	if (layout_content_size.x() != _layout_content_size.x() || _wrap_x != is_wrap[0]) {
+	if (layout_content_size.x() != _layout_content_size.x() || _layout_wrap_x != is_wrap[0]) {
 		layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
 	}
-	if (layout_content_size.y() != _layout_content_size.y() || _wrap_y != is_wrap[1]) {
+	if (layout_content_size.y() != _layout_content_size.y() || _layout_wrap_y != is_wrap[1]) {
 		layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 	}
 
-	_wrap_x = is_wrap[0];
-	_wrap_y = is_wrap[1];
+	_layout_wrap_x = is_wrap[0];
+	_layout_wrap_y = is_wrap[1];
 
 	if (layout_content_size_change_mark)  {
 		if (!is_layout_lock_child()) {

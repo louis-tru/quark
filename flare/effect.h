@@ -34,21 +34,9 @@
 #include "./value.h"
 #include "./render/source.h"
 #include "./util/handle.h"
+#include "./util/array.h"
 
 F_NAMESPACE_START
-
-#define F_Each_Effect(F) \
-	F(Effect)  F(BoxShadow) \
-	F(FillColor) F(FillImage) F(FillGradient) \
-
-#define F_Define_Effect(N) \
-public: \
-	friend class SkiaRender; \
-	virtual void accept(EffectVisitor *visitor) { visitor->visit##N(this); } \
-
-F_Define_Visitor(Effect, F_Each_Effect);
-
-class SkiaRender;
 
 /**
 * @class Effect, Single linked list struct
@@ -60,7 +48,8 @@ public:
 	enum Type {
 		M_INVALID,
 		M_IMAGE,
-		M_GRADIENT,
+		M_GRADIENT_Linear,
+		M_GRADIENT_Radial,
 		M_SHADOW,
 		M_BLUR,
 	};
@@ -87,6 +76,11 @@ public:
 	virtual Type type() const = 0;
 
 	/**
+	* @func copy(to)
+	*/
+	virtual Effect* copy(Effect* to) = 0;
+
+	/**
 	* @func hold(left, right)
 	* @ret return left value
 	*/
@@ -106,11 +100,6 @@ public:
 	 * @override
 	 */
 	virtual bool retain() override;
-
-	/**
-	* @func copy(to)
-	*/
-	virtual Effect* copy(Effect* to) = 0;
 
 	/**
 	* @func set_next(value)
@@ -183,16 +172,45 @@ public:
 	static float compute_position(FillPosition pos, float host, float size);
 };
 
-/**
-* @class FillGradient
-*/
-class F_EXPORT FillGradient: public Fill {
+class FillGradient: public Fill {
 public:
-	FillGradient();
+	FillGradient(const Array<float>& pos, const Array<Color>& colors);
+	virtual ~FillGradient();
+	inline uint32_t count() const { return _pos.length(); }
+	inline const Array<float>& positions() const { return _pos; }
+	inline const Array<Color>& colors() const { return *reinterpret_cast<const Array<Color>*>(&_colors); }
+	inline const Array<uint32_t>& colors_argb_uint32_t() const { return _colors; }
+	void set_positions(const Array<float>& pos);
+	void set_colors(const Array<Color>& colors);
+private:
+	Array<float> _pos;
+	Array<uint32_t> _colors;
+	void* _inl;
+};
+
+/**
+* @class FillGradientLinear
+*/
+class F_EXPORT FillGradientLinear: public FillGradient {
+public:
+	FillGradientLinear(Vec2 start, Vec2 end, const Array<float>& pos, const Array<Color>& colors);
+	F_DEFINE_PROP(Vec2, start);
+	F_DEFINE_PROP(Vec2, end);
 	virtual Type    type() const override;
 	virtual Effect* copy(Effect* to) override;
 };
 
+/**
+* @class FillGradientRadial
+*/
+class F_EXPORT FillGradientRadial: public FillGradient {
+public:
+	FillGradientRadial(Vec2 center, float radius, const Array<float>& pos, const Array<Color>& colors);
+	F_DEFINE_PROP(Vec2, center);
+	F_DEFINE_PROP(float, radius);
+	virtual Type    type() const override;
+	virtual Effect* copy(Effect* to) override;
+};
 
 F_NAMESPACE_END
 #endif

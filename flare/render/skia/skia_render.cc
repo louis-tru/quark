@@ -31,7 +31,9 @@
 #include "../../app.h"
 #include "../../display.h"
 #include "./skia_render.h"
-#include "skia/core/SkImage.h"
+#include <skia/core/SkImage.h>
+#include <skia/effects/SkGradientShader.h>
+#include <skia/core/SkBlendMode.h>
 // views
 #include "../../layout/box.h"
 #include "../../layout/image.h"
@@ -58,7 +60,7 @@ SkiaCanvas* SkiaRender::getCanvas() {
 	return _canvas;
 }
 
-SkiaRender::SkiaRender(): _canvas(nullptr), _alpha32(255) {
+SkiaRender::SkiaRender(): _canvas(nullptr), _alpha(1) {
 }
 
 int SkiaRender::flags() {
@@ -69,18 +71,17 @@ void SkiaRender::visitView(View* view) {
 	// visit child
 	auto v = view->_first;
 	if (v) {
-		uint32_t alphaCur = _alpha32;
-		uint32_t alpha = alphaCur + 1;
+		float alphaCur = _alpha;
 		do {
 			if (v->_visible & v->_visible_region) {
-				if (v->_opacity) {
-					_alpha32 = (alpha * v->_opacity) >> 8;
+				if (v->_opacity > 0) {
+					_alpha = alphaCur * v->_opacity;
 					v->accept(this);
 				}
 			}
 			v = v->_next;
 		} while(v);
-		_alpha32 = alphaCur;
+		_alpha = alphaCur;
 	}
 }
 
@@ -98,7 +99,7 @@ void SkiaRender::visitImage(Image* box) {
 		SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
 		SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
 		SkPaint paint;
-		paint.setAlpha(render->_alpha.val);
+		paint.setAlphaf(render->_alpha);
 		render->_canvas->drawImageRect(img, rect, opts, &paint);
 	}: nullptr);
 }
@@ -148,7 +149,7 @@ void SkiaRender::visitFlexLayout(FlexLayout* flex) {
 	solveBox(flex, nullptr);
 }
 
-void SkiaRender::clipRect(Box* box, SkClipOp op, bool doAntiAlias) {
+void SkiaRender::clipRect(Box* box, SkClipOp op, bool AA) {
 	if (box->_is_radius) {
 		SkRRect rrect;
 		SkVector radii[4] = {
@@ -158,9 +159,9 @@ void SkiaRender::clipRect(Box* box, SkClipOp op, bool doAntiAlias) {
 			{box->_radius_left_bottom, box->_radius_left_bottom},/*left-bottom*/
 		};
 		rrect.setRectRadii(_rect, radii);
-		_canvas->clipRRect(rrect, op, doAntiAlias); // SkClipOp::kIntersect
+		_canvas->clipRRect(rrect, op, AA); // SkClipOp::kIntersect
 	} else {
-		_canvas->clipRect(_rect, op, doAntiAlias); // SkClipOp::kIntersect
+		_canvas->clipRect(_rect, op, AA); // SkClipOp::kIntersect
 	}
 }
 
@@ -174,7 +175,7 @@ void SkiaRender::solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v)) 
 	bool is_clip = false;
 	if (
 		(box->_is_radius && (box->_fill_color.a() || box->_fill || fillFn)) ||
-		(box->_clip      && (box->_first))
+		(box->_is_clip   && (box->_first))
 	) {
 		_canvas->save();
 		clipRect(box, SkClipOp::kIntersect, true); // exec reverse clip
@@ -228,7 +229,9 @@ void SkiaRender::solveFill(Box* box, Fill* fill, Color color) {
 
 	if (color.a()) {
 		SkPaint paint;
-		paint.setColor(color.to_uint32_argb_from(_alpha.val));
+		auto c4f = SkColor4f::FromColor(color.to_uint32_argb());
+		c4f.fA *= _alpha;
+		paint.setColor4f(c4f);
 		_canvas->drawRect(_rect, paint);
 	}
 
@@ -236,7 +239,9 @@ void SkiaRender::solveFill(Box* box, Fill* fill, Color color) {
 		switch(fill->type()) {
 			case Effect::M_IMAGE:
 				solveFillImage(box, static_cast<FillImage*>(fill)); break;
-			case Effect::M_GRADIENT:
+			case Effect::M_GRADIENT_Linear:
+				break;
+			case Effect::M_GRADIENT_Radial:
 				solveFillGradient(box, static_cast<FillGradient*>(fill)); break;
 			default: break;
 		}
@@ -282,6 +287,8 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 	y = FillImage::compute_position(fill->position_y(), dh, h);
 
 	auto _repeat = fill->repeat();
+	SkPaint paint;
+	paint.setAlphaf(_alpha);
 
 	if (_repeat == Repeat::NONE) {
 		dx = max(x, 0);                 dy = max(y, 0);
@@ -292,7 +299,7 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 			sx1 = dx1 - dx + sx;          sy1 = dy1 - dy + sy;
 			SkRect src{sx*scale_x,sy*scale_y,sx1*scale_x,sy1*scale_y};
 			SkRect dest{dx-ori.x(),dy-ori.y(),dx1-ori.x(),dy1-ori.y()};
-			_canvas->drawImageRect(img, src, dest, opts, nullptr, SkCanvas::kFast_SrcRectConstraint);
+			_canvas->drawImageRect(img, src, dest, opts, &paint, SkCanvas::kFast_SrcRectConstraint);
 		}
 	} else {
 		if (_repeat == Repeat::REPEAT || _repeat == Repeat::REPEAT_X) { // repeat x
@@ -320,7 +327,7 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 					sy1 = dy1 - dy + sy;
 					SkRect src{sx*scale_x,sy*scale_y,sx1*scale_x,sy1*scale_y};
 					SkRect dest{dx-ori.x(),dy-ori.y(),dx1-ori.x(),dy1-ori.y()};
-					_canvas->drawImageRect(img, src, dest, opts, nullptr, SkCanvas::kFast_SrcRectConstraint);
+					_canvas->drawImageRect(img, src, dest, opts, &paint, SkCanvas::kFast_SrcRectConstraint);
 					dy = dy1;
 				} while (dy < dym);
 				dx = dx1;
@@ -331,7 +338,15 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 }
 
 void SkiaRender::solveFillGradient(Box* box, FillGradient* gradient) {
-	// TODO ...
+	SkPoint pts[2] = { SkPoint::Make(0, 0), SkPoint::Make(100, 100) };
+	SkColor colors[3] = { SK_ColorRED, SK_ColorBLUE, SK_ColorYELLOW };
+	SkScalar pos[3] = { 0.0, 0.5, 1.0 };
+	SkTileMode mode = SkTileMode::kClamp;
+	auto shader = SkGradientShader::MakeLinear(pts, colors, pos, 3, mode, 0, nullptr);
+	
+	SkPoint center = SkPoint::Make(100, 100);
+	double r = 4.0;
+	shader = SkGradientShader::MakeRadial(center, r, colors, pos, 3, mode, 0, nullptr);
 }
 
 F_NAMESPACE_END

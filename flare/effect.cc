@@ -161,7 +161,8 @@ void Effect::mark() {
 
 Effect::Type BoxShadow::type() const { return M_SHADOW; }
 Effect::Type FillImage::type() const { return M_IMAGE; }
-Effect::Type FillGradient::type() const { return M_GRADIENT; }
+Effect::Type FillGradientLinear::type() const { return M_GRADIENT_Linear; }
+Effect::Type FillGradientRadial::type() const { return M_GRADIENT_Radial; }
 
 // ------------------------------ B o x . S h a d o w ------------------------------
 
@@ -170,10 +171,10 @@ BoxShadow::BoxShadow(Shadow value): _value(value) {}
 BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
 
 Effect* BoxShadow::copy(Effect* to) {
-	BoxShadow* target = (to && to->type() == M_SHADOW) ?
+	auto target = (to && to->type() == M_SHADOW) ?
 		static_cast<BoxShadow*>(to): new BoxShadow();
 	target->_value = _value;
-	_set_next(_next);
+	target->_set_next(_next);
 	return target;
 }
 
@@ -193,7 +194,7 @@ FillImage::FillImage(cString& src, Init init)
 }
 
 Effect* FillImage::copy(Effect* to) {
-	FillImage* target = (to && to->type() == M_IMAGE) ?
+	auto target = (to && to->type() == M_IMAGE) ?
 			static_cast<FillImage*>(to) : new FillImage();
 	target->_repeat = _repeat;
 	target->_position_x = _position_x;
@@ -201,7 +202,7 @@ Effect* FillImage::copy(Effect* to) {
 	target->_size_x = _size_x;
 	target->_size_y = _size_y;
 	target->set_source(source());
-	_set_next(_next);
+	target->_set_next(_next);
 	return target;
 }
 
@@ -264,14 +265,75 @@ float FillImage::compute_position(FillPosition pos, float host, float size) {
 
 // ------------------------------ F i l l . G r a d i e n t ------------------------------
 
-FillGradient::FillGradient()
+FillGradient::FillGradient(const Array<float>& pos, const Array<Color>& colors)
+	: _pos(pos)
+	, _colors(*reinterpret_cast<const Array<uint32_t>*>(&colors))
+{
+}
+
+void FillGradient::set_positions(const Array<float>& pos) {
+	_pos = pos;
+	mark();
+}
+
+void FillGradient::set_colors(const Array<Color>& colors) {
+	_colors = *reinterpret_cast<const Array<uint32_t>*>(&colors);
+	mark();
+}
+
+FillGradientLinear::FillGradientLinear(Vec2 start, Vec2 end, const Array<float>& pos, const Array<Color>& colors)
+	: FillGradient(pos, colors)
+	, _start(start), _end(end)
 {}
 
-Effect* FillGradient::copy(Effect* to) {
-	FillGradient* target = (to && to->type() == M_GRADIENT) ?
-		static_cast<FillGradient*>(to) : new FillGradient();
-	// TODO ..
-	_set_next(_next);
+FillGradientRadial::FillGradientRadial(Vec2 center, float radius, const Array<float>& pos, const Array<Color>& colors)
+	: FillGradient(pos, colors)
+	, _center(center), _radius(radius)
+{}
+
+void FillGradientLinear::set_start(Vec2 val) {
+	if (val != _start) {
+		_start = val;
+		mark();
+	}
+}
+
+void FillGradientLinear::set_end(Vec2 val) {
+	if (val != _end) {
+		_end = val;
+		mark();
+	}
+}
+
+void FillGradientRadial::set_center(Vec2 val) {
+	if (val != _center) {
+		_center = val;
+		mark();
+	}
+}
+
+void FillGradientRadial::set_radius(float val) {
+	if (val != _radius) {
+		_radius = val;
+		mark();
+	}
+}
+
+Effect* FillGradientLinear::copy(Effect* to) {
+	auto target = (to && to->type() == M_GRADIENT_Linear) ?
+		static_cast<FillGradientLinear*>(to) : new FillGradientLinear(
+			_start, _end, positions(), colors()
+		);
+	target->_set_next(_next);
+	return target;
+}
+
+Effect* FillGradientRadial::copy(Effect* to) {
+	auto target = (to && to->type() == M_GRADIENT_Radial) ?
+		static_cast<FillGradientRadial*>(to) : new FillGradientRadial(
+			_center, _radius, positions(), colors()
+		);
+	target->_set_next(_next);
 	return target;
 }
 

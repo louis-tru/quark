@@ -44,48 +44,7 @@ class F_EXPORT Box: public View {
 public:
 	Box();
 	virtual ~Box();
-
-	// define props
-	F_DEFINE_PROP(BoxSize, width); // size width
-	F_DEFINE_PROP(BoxSize, height); // size height
-	F_DEFINE_PROP(BoxSize, width_limit); // limit max size
-	F_DEFINE_PROP(BoxSize, height_limit);
-	F_DEFINE_PROP(float, margin_top); // margin
-	F_DEFINE_PROP(float, margin_right);
-	F_DEFINE_PROP(float, margin_bottom);
-	F_DEFINE_PROP(float, margin_left);
-	F_DEFINE_PROP(float, padding_top); // padding
-	F_DEFINE_PROP(float, padding_right);
-	F_DEFINE_PROP(float, padding_bottom);
-	F_DEFINE_PROP(float, padding_left);
-	F_DEFINE_PROP(float, radius_left_top); // border_radius
-	F_DEFINE_PROP(float, radius_right_top);
-	F_DEFINE_PROP(float, radius_right_bottom);
-	F_DEFINE_PROP(float, radius_left_bottom);
-	F_DEFINE_ACCESSOR(Color, border_color_top); // border_color
-	F_DEFINE_ACCESSOR(Color, border_color_right);
-	F_DEFINE_ACCESSOR(Color, border_color_bottom);
-	F_DEFINE_ACCESSOR(Color, border_color_left);
-	F_DEFINE_ACCESSOR(float, border_width_top); // border_width
-	F_DEFINE_ACCESSOR(float, border_width_right);
-	F_DEFINE_ACCESSOR(float, border_width_bottom);
-	F_DEFINE_ACCESSOR(float, border_width_left);
-	F_DEFINE_ACCESSOR(BorderStyle, border_style_top); // border_style
-	F_DEFINE_ACCESSOR(BorderStyle, border_style_right);
-	F_DEFINE_ACCESSOR(BorderStyle, border_style_bottom);
-	F_DEFINE_ACCESSOR(BorderStyle, border_style_left);
-	F_DEFINE_PROP(Color, fill_color); // fill color
-	F_DEFINE_PROP(Fill*, fill); // fill, image|gradient
-	F_DEFINE_PROP(Effect*, effect); // effect, shadow
-	F_DEFINE_PROP_READ(Vec2, transform_origin); // Start the matrix transformation from this origin point
-	F_DEFINE_PROP_READ(Vec2, layout_content_size); // width,height / size
-	F_DEFINE_PROP_READ(Vec2, client_size); // content + padding
-
-	/**
-	 * @func Returns the is use border radius
-	 */
-	inline bool is_radius() const { return _is_radius; }
-
+	
 	/**
 		*
 		* 设置布局对齐方式
@@ -149,12 +108,6 @@ protected:
 		*/
 	void set_layout_size(Vec2 layout_content_size);
 
-	/**
-		* @func layout_wrap_x()
-		*/
-	bool layout_wrap_x() const { return _wrap_x; }
-	bool layout_wrap_y() const { return _wrap_y; }
-
 	// @func solve_layout_content_width
 	virtual float solve_layout_content_width(Size &parent_layout_size);
 	virtual float solve_layout_content_height(Size &parent_layout_size);
@@ -162,15 +115,57 @@ protected:
 	void  mark_layout_size(uint32_t mark);
 
 	// --------------- m e m b e r . f i e l d ---------------
+
+	// define props
+	F_DEFINE_PROP_READ(bool, layout_wrap_x); // Returns the is use border radius
+protected:
+	F_DEFINE_PROP_READ(bool, layout_wrap_y); // Returns the is use border radius
+public:
+	F_DEFINE_PROP(bool, is_clip); // is clip box display range
+	F_DEFINE_PROP_READ(bool, is_radius); // Returns the is use border radius
+	F_DEFINE_PROP(BoxSize, width); // size width
+	F_DEFINE_PROP(BoxSize, height); // size height
+	F_DEFINE_PROP(BoxSize, width_limit); // limit max size
+	F_DEFINE_PROP(BoxSize, height_limit);
+	F_DEFINE_PROP(float, margin_top); // margin
+	F_DEFINE_PROP(float, margin_right);
+	F_DEFINE_PROP(float, margin_bottom);
+	F_DEFINE_PROP(float, margin_left);
+	F_DEFINE_PROP(float, padding_top); // padding
+	F_DEFINE_PROP(float, padding_right);
+	F_DEFINE_PROP(float, padding_bottom);
+	F_DEFINE_PROP(float, padding_left);
+	F_DEFINE_PROP(float, radius_left_top); // border_radius
+	F_DEFINE_PROP(float, radius_right_top);
+	F_DEFINE_PROP(float, radius_right_bottom);
+	F_DEFINE_PROP(float, radius_left_bottom);
+	F_DEFINE_ACCESSOR(Color, border_color_top); // border_color
+	F_DEFINE_ACCESSOR(Color, border_color_right);
+	F_DEFINE_ACCESSOR(Color, border_color_bottom);
+	F_DEFINE_ACCESSOR(Color, border_color_left);
+	F_DEFINE_ACCESSOR(float, border_width_top); // border_width
+	F_DEFINE_ACCESSOR(float, border_width_right);
+	F_DEFINE_ACCESSOR(float, border_width_bottom);
+	F_DEFINE_ACCESSOR(float, border_width_left);
+	F_DEFINE_ACCESSOR(BorderStyle, border_style_top); // border_style
+	F_DEFINE_ACCESSOR(BorderStyle, border_style_right);
+	F_DEFINE_ACCESSOR(BorderStyle, border_style_bottom);
+	F_DEFINE_ACCESSOR(BorderStyle, border_style_left);
+	F_DEFINE_PROP(Color, fill_color); // fill color
+	F_DEFINE_PROP(Fill*, fill); // fill, image|gradient
+	F_DEFINE_PROP(Effect*, effect); // effect, shadow
+	F_DEFINE_PROP_READ(Vec2, transform_origin); // Start the matrix transformation from this origin point
+	F_DEFINE_PROP_READ(Vec2, layout_content_size); // width,height / size
+	F_DEFINE_PROP_READ(Vec2, client_size); // content + padding
+
 private:
+	void alloc_border();
 	struct Border {
 		Color color_top, color_right, color_bottom, color_left; // border_color
 		float width_top, width_right, width_bottom, width_left; // border_widrh
 		BorderStyle style_top, style_right, style_bottom, style_left; // border_style
 	};
-	void alloc_border();
 	Border* _border;
-	bool  _wrap_x, _wrap_y, _is_radius, _clip; // layout content size wrap
 	// box attrs
 	Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 	Vec2  _layout_size; // 在布局中所占用的尺寸（margin+content+padding）

@@ -70,7 +70,7 @@ void layout(Application* app) {
 		.size_x={200, FillSizeType::PIXEL}, //.size_y={100, FillSizeType::PIXEL},
 		.position_x={0, FillPositionType::CENTER},
 		.position_y={0, FillPositionType::CENTER},
-		.repeat=Repeat::REPEAT_Y,
+		.repeat=Repeat::REPEAT,
 	}));
 	flex->set_width({ 0, BoxSizeType::MATCH });
 	flex->set_height({ 180, BoxSizeType::PIXEL });
@@ -82,6 +82,11 @@ void layout(Application* app) {
 	flex->set_padding_top(20);
 	flex->set_padding_right(20);
 	flex->set_padding_bottom(20);
+	flex->set_radius_left_top(40);
+	flex->set_radius_right_top(10);
+	flex->set_radius_right_bottom(40);
+	flex->set_radius_left_bottom(10);
+	flex->set_opacity(0.5);
 	//
 	flow->set_width({ 50, BoxSizeType::PIXEL });
 	flow->set_height({ 50, BoxSizeType::PIXEL });
@@ -103,7 +108,7 @@ void layout(Application* app) {
 	img->set_margin_bottom(10);
 	img->set_padding_left(50);
 	//
-	img2->set_src(Path::resources("bench/img/99.jpeg"));
+	//img2->set_src(Path::resources("bench/img/99.jpeg"));
 	img2->set_width({0, BoxSizeType::MATCH });
 	img2->set_layout_align(Align::CENTER);
 	

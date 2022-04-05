@@ -402,14 +402,6 @@ protected:
 
 	// *******************************************************************
 
-	// the objects that automatically adjust view properties
-	F_DEFINE_PROP(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
-	F_DEFINE_PROP_READ(View*, parent);
-	F_DEFINE_PROP_READ(View*, prev);
-	F_DEFINE_PROP_READ(View*, next);
-	F_DEFINE_PROP_READ(View*, first);
-	F_DEFINE_PROP_READ(View*, last);
-
 private:
 	struct Transform {
 		Vec2 translate, scale, skew; // 平移向量, 缩放向量, 倾斜向量
@@ -417,8 +409,17 @@ private:
 	};
 	Transform *_transform; // 矩阵变换
 	Mat        _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
+public:
+
+	// the objects that automatically adjust view properties
+	F_DEFINE_PROP(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
+	F_DEFINE_PROP_READ(View*, parent);
+	F_DEFINE_PROP_READ(View*, prev);
+	F_DEFINE_PROP_READ(View*, next);
+	F_DEFINE_PROP_READ(View*, first);
+	F_DEFINE_PROP_READ(View*, last);
 	// can affect the transparency of subviews
-	F_DEFINE_PROP(uint8_t, opacity); // 可影响子视图的透明度值
+	F_DEFINE_PROP(float, opacity); // 可影响子视图的透明度值
 	// 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
 	// @prop Does the view need to receive or handle event throws from the system
 	F_DEFINE_PROP(bool, receive);
