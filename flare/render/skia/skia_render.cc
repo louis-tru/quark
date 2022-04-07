@@ -215,10 +215,11 @@ void SkiaRender::solveEffect(Box* box, Effect* effect) {
 					_canvas->save();
 					clipRect(box, SkClipOp::kDifference, true); // exec reverse clip
 				}
-				SkPaint paint = _paint;
+				SkPaint paint;// = _paint;
 				auto shadow = static_cast<BoxShadow*>(effect)->value();
-				shadow.color.a(shadow.color.a() * _alpha);
-				paint.setColor(shadow.color.to_uint32_argb());
+				auto c4f = SkColor4f::FromColor(shadow.color.to_uint32_argb());
+				c4f.fA *= _alpha;
+				paint.setColor4f(c4f);
 				paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, shadow.size));
 				_canvas->save();
 				_canvas->translate(shadow.offset_x, shadow.offset_y);
@@ -230,7 +231,11 @@ void SkiaRender::solveEffect(Box* box, Effect* effect) {
 				_canvas->restore();
 				break;
 			}
-			default: break;
+			case Effect::M_BLUR:
+				// TODO ...
+				break;
+			default:
+				break;
 		}
 		effect = effect->next();
 	} while(effect);
@@ -350,10 +355,19 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 }
 
 void SkiaRender::solveFillGradientLinear(Box* box, FillGradientLinear* gradient) {
-	const SkColor *colors = reinterpret_cast<const SkColor*>(gradient->colors().val());
-	const SkScalar *pos = reinterpret_cast<const SkScalar*>(gradient->positions().val());
+	const SkColor *colors = gradient->colors_argb_uint32_t().val();
+	const SkScalar *pos = gradient->positions().val();
 	float R = gradient->_radian;
-
+	/*
+	 a = w/2
+	 b = h/2
+	 c = √(a^2+b^2)
+	 θA=atan(a/b)
+	 θA'=θA-θR
+	 d=cosθA' * c
+	 p0x = cosθR * d
+	 p0y = sinθR * d
+	 */
 	float w = _rect.fRight - _rect.fLeft;
 	float h = _rect.fBottom - _rect.fTop;
 	float a = h / 2;
@@ -369,17 +383,7 @@ void SkiaRender::solveFillGradientLinear(Box* box, FillGradientLinear* gradient)
 	
 	float centerX = _rect.fLeft + b;
 	float centerY = _rect.fTop + a;
-	
-	/*
-	 a = w/2
-	 b = h/2
-	 c = √(a^2+b^2)
-	 θA=atan(a/b)
-	 θA'=θA-θR
-	 d=cosθA' * c
-	 p0x = cosθR * d
-	 p0y = sinθR * d
-	 */
+
 	SkPoint pts[2] = {
 		SkPoint::Make(p0x + centerX, p0y + centerY),
 		SkPoint::Make(p1x + centerX, p1y + centerY),
@@ -392,8 +396,8 @@ void SkiaRender::solveFillGradientLinear(Box* box, FillGradientLinear* gradient)
 }
 
 void SkiaRender::solveFillGradientRadial(Box* box, FillGradientRadial* gradient) {
-	const SkColor *colors = reinterpret_cast<const SkColor*>(gradient->colors().val());
-	const SkScalar *pos = reinterpret_cast<const SkScalar*>(gradient->positions().val());
+	const SkColor *colors = gradient->colors_argb_uint32_t().val();
+	const SkScalar *pos = gradient->positions().val();
 	SkTileMode mode = SkTileMode::kClamp;
 	float centerX = (_rect.fLeft + _rect.fRight) / 2;
 	SkPoint center = SkPoint::Make(centerX, centerX);

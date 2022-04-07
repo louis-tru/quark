@@ -207,7 +207,7 @@ struct F_EXPORT Color: public MColor<uint8_t> {
 	inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): MColor<uint8_t>(r, g, b, a) {}
 	bool operator==(Color color) const;
 	inline bool operator!=(Color color) const { return ! operator==(color); }
-	inline Color4f to_Color4f() const {
+	inline Color4f to_color4f() const {
 		return Color4f(r() * (1 / 255.0f), g() * (1 / 255.0f), b() * (1 / 255.0f), a() * (1 / 255.0f));
 	}
 	inline uint32_t to_uint32_argb() const { // small end data

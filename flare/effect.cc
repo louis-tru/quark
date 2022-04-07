@@ -38,7 +38,7 @@
 
 F_NAMESPACE_START
 
-bool Effect::check_loop_reference(Effect* value) {
+bool Copying::check_loop_reference(Copying* value) {
 	if (value) {
 		auto v = value;
 		do {
@@ -51,7 +51,7 @@ bool Effect::check_loop_reference(Effect* value) {
 	return false;
 }
 
-Effect* Effect::_Assign(Effect* left, Effect* right) {
+Copying* Copying::assign2(Copying* left, Copying* right) {
 	if (right) {
 		if (left == right) {
 			return left;
@@ -81,41 +81,40 @@ Effect* Effect::_Assign(Effect* left, Effect* right) {
 	}
 }
 
-void Effect::_set_next(Effect* value) {
-	_next = assign(_next, value);
-	if (_next) {
-		_next->set_holder_mode(_holder_mode);
-	}
-	mark();
-}
-
-Effect::Effect()
+Copying::Copying()
 	: _next(nullptr)
 	, _holder_mode(M_INDEPENDENT)
 {
 }
 
-Effect::~Effect() {
+Copying::~Copying() {
 	if (_next) {
 		_next->release();
 		_next = nullptr;
 	}
 }
 
-Effect* Effect::set_next(Effect* value) {
+void Copying::set_next2(Copying* value) {
+	_next = assign(_next, value);
+	if (_next) {
+		_next->set_holder_mode(_holder_mode);
+	}
+	onChange();
+}
+
+void Copying::set_next(Copying* value) {
 	if (value != _next) {
 		if (check_loop_reference(value)) {
 			F_ERR("Box background loop reference error");
 		} else {
-			_set_next(value);
+			set_next2(value);
 		}
 	} else {
-		mark();
+		onChange();
 	}
-	return this;
 }
 
-Effect* Effect::assign(Effect* left, Effect* right) {
+Copying* Copying::assign(Copying* left, Copying* right) {
 	if (left == right) {
 		return left;
 	} else {
@@ -123,12 +122,12 @@ Effect* Effect::assign(Effect* left, Effect* right) {
 			F_ERR("Box background loop reference error");
 			return left;
 		} else {
-			return _Assign(left, right);
+			return assign2(left, right);
 		}
 	}
 }
 
-bool Effect::retain() {
+bool Copying::retain() {
 	if (_holder_mode == M_DISABLE) {
 		return false;
 	} else if (_holder_mode == M_INDEPENDENT) {
@@ -139,20 +138,16 @@ bool Effect::retain() {
 	return Reference::retain();
 }
 
-/**
-* @func set_holder_mode(mode)
-*/
-Effect* Effect::set_holder_mode(HolderMode mode) {
+void Copying::set_holder_mode(HolderMode mode) {
 	if (_holder_mode != mode) {
 		_holder_mode = mode;
 		if (_next) {
 			_next->set_holder_mode(mode);
 		}
 	}
-	return this;
 }
 
-void Effect::mark() {
+void Copying::onChange() {
 	auto app_ = app();
 	// F_ASSERT(app_, "Application needs to be initialized first");
 	if (app_) {
@@ -160,24 +155,10 @@ void Effect::mark() {
 	}
 }
 
-Effect::Type BoxShadow::type() const { return M_SHADOW; }
-Effect::Type FillImage::type() const { return M_IMAGE; }
-Effect::Type FillGradientLinear::type() const { return M_GRADIENT_Linear; }
-Effect::Type FillGradientRadial::type() const { return M_GRADIENT_Radial; }
-
-// ------------------------------ B o x . S h a d o w ------------------------------
-
-BoxShadow::BoxShadow() {}
-BoxShadow::BoxShadow(Shadow value): _value(value) {}
-BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
-
-Effect* BoxShadow::copy(Effect* to) {
-	auto target = (to && to->type() == M_SHADOW) ?
-		static_cast<BoxShadow*>(to): new BoxShadow();
-	target->_value = _value;
-	target->_set_next(_next);
-	return target;
-}
+Copying::Type FillImage::type() const { return M_IMAGE; }
+Copying::Type FillGradientLinear::type() const { return M_GRADIENT_Linear; }
+Copying::Type FillGradientRadial::type() const { return M_GRADIENT_Radial; }
+Copying::Type BoxShadow::type() const { return M_SHADOW; }
 
 // ------------------------------ F i l l . I m a g e ------------------------------
 
@@ -194,51 +175,51 @@ FillImage::FillImage(cString& src, Init init)
 	}
 }
 
-Effect* FillImage::copy(Effect* to) {
+Copying* FillImage::copy(Copying* to) {
 	auto target = (to && to->type() == M_IMAGE) ?
 			static_cast<FillImage*>(to) : new FillImage();
+	target->set_next2(next());
 	target->_repeat = _repeat;
 	target->_position_x = _position_x;
 	target->_position_y = _position_y;
 	target->_size_x = _size_x;
 	target->_size_y = _size_y;
 	target->set_source(source());
-	target->_set_next(_next);
 	return target;
 }
 
 void FillImage::set_repeat(Repeat value) {
 	if (_repeat != value) {
 		_repeat = value;
-		mark();
+		onChange();
 	}
 }
 
 void FillImage::set_position_x(FillPosition value) {
 	if (value != _position_x) {
 		_position_x = value;
-		mark();
+		onChange();
 	}
 }
 
 void FillImage::set_position_y(FillPosition value) {
 	if (value != _position_y) {
 		_position_y = value;
-		mark();
+		onChange();
 	}
 }
 
 void FillImage::set_size_x(FillSize value) {
 	if (value != _size_x) {
 		_size_x = value;
-		mark();
+		onChange();
 	}
 }
 
 void FillImage::set_size_y(FillSize value) {
 	if (value != _size_y) {
 		_size_y = value;
-		mark();
+		onChange();
 	}
 }
 
@@ -277,12 +258,12 @@ FillGradient::~FillGradient() {}
 
 void FillGradient::set_positions(const Array<float>& pos) {
 	_pos = pos;
-	mark();
+	onChange();
 }
 
 void FillGradient::set_colors(const Array<Color>& colors) {
 	_colors = *reinterpret_cast<const Array<uint32_t>*>(&colors);
-	mark();
+	onChange();
 }
 
 FillGradientLinear::FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors)
@@ -305,27 +286,41 @@ void FillGradientLinear::set_angle(float val) {
 	if (val != _angle) {
 		_angle = val;
 		setRadian();
-		mark();
+		onChange();
 	}
 }
 
-Effect* FillGradientLinear::copy(Effect* to) {
+Copying* FillGradientLinear::copy(Copying* to) {
 	auto target = (to && to->type() == M_GRADIENT_Linear) ?
 		static_cast<FillGradientLinear*>(to) : new FillGradientLinear(
 			_angle, positions(), colors()
 		);
+	target->set_next2(next());
 	target->_radian = _radian;
 	target->_quadrant = _quadrant;
-	target->_set_next(_next);
 	return target;
 }
 
-Effect* FillGradientRadial::copy(Effect* to) {
+Copying* FillGradientRadial::copy(Copying* to) {
 	auto target = (to && to->type() == M_GRADIENT_Radial) ?
 		static_cast<FillGradientRadial*>(to) : new FillGradientRadial(
 			positions(), colors()
 		);
-	target->_set_next(_next);
+	target->set_next2(next());
+	return target;
+}
+
+// ------------------------------ B o x . S h a d o w ------------------------------
+
+BoxShadow::BoxShadow() {}
+BoxShadow::BoxShadow(Shadow value): _value(value) {}
+BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
+
+Copying* BoxShadow::copy(Copying* to) {
+	auto target = (to && to->type() == M_SHADOW) ?
+		static_cast<BoxShadow*>(to): new BoxShadow();
+	target->set_next2(next());
+	target->_value = _value;
 	return target;
 }
 

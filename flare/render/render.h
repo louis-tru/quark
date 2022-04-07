@@ -53,7 +53,6 @@ public:
 		ColorType colorType;
 		int  msaaSampleCnt; // gpu msaa
 		int  stencilBits;   // gpu stencil
-		// bool enableGpu, disableMetal, disableVulkan;
 	};
 	static Options parseOptions(cJSON& opts);
 	static Render* Make(Application* host, const Options& opts);

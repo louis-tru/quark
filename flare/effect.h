@@ -41,12 +41,11 @@ F_NAMESPACE_START
 class SkiaRender;
 
 /**
-* @class Effect, Single linked list struct
+* @class Copying, Single linked list struct
 */
-class F_EXPORT Effect: public Reference {
-	F_HIDDEN_ALL_COPY(Effect);
+class F_EXPORT Copying: public Reference {
+	F_HIDDEN_ALL_COPY(Copying);
 public:
-
 	enum Type {
 		M_INVALID,
 		M_IMAGE,
@@ -55,102 +54,38 @@ public:
 		M_SHADOW,
 		M_BLUR,
 	};
-
 	enum HolderMode {
 		M_INDEPENDENT,
 		M_SHARED,
 		M_DISABLE,
 	};
-
-	/**
-	 * @constructor
-	 */
-	Effect();
-	
-	/**
-	* @destructor
-	*/
-	virtual ~Effect();
-
-	/**
-	* @func type()
-	*/
+	Copying();
+	virtual ~Copying();
 	virtual Type type() const = 0;
-
-	/**
-	* @func copy(to)
-	*/
-	virtual Effect* copy(Effect* to) = 0;
-
-	/**
-	* @func hold(left, right)
-	* @ret return left value
-	*/
-	static Effect* assign(Effect* left, Effect* right);
-
-	/**
-	* @func allow_multi_holder()
-	*/
-	inline HolderMode holder_mode() const { return _holder_mode; }
-
-	/**
-	* @func set_holder_mode(value)
-	*/
-	Effect* set_holder_mode(HolderMode mode);
-
-	/**
-	 * @override
-	 */
+	virtual Copying* copy(Copying* to) = 0;
 	virtual bool retain() override;
-
-	/**
-	* @func set_next(value)
-	*/
-	Effect* set_next(Effect* value);
-
-	/**
-	* @func next()
-	*/
-	inline Effect* next() { return _next; }
-
+	static Copying* assign(Copying* left, Copying* right);
+	F_DEFINE_PROP(HolderMode, holder_mode); // holder mode
 protected:
-	/**
-	* @func mark()
-	*/
-	void mark();
-	bool check_loop_reference(Effect* value);
-	void _set_next(Effect* value);
-	static Effect* _Assign(Effect* left, Effect* right);
-
-	Effect*     _next;
-	HolderMode  _holder_mode;
+	static Copying* assign2(Copying* left, Copying* right);
+	void onChange();
+	bool check_loop_reference(Copying* value);
+	void set_next2(Copying* value);
+	F_DEFINE_PROP(Copying*, next);
 };
 
-/**
- * @class BoxShadow
- */
-class F_EXPORT BoxShadow: public Effect {
+class Effect: public Copying {
 public:
-	BoxShadow();
-	BoxShadow(Shadow value);
-	BoxShadow(float x, float y, float s, Color color);
-	F_DEFINE_PROP(Shadow, value);
-	virtual Type    type() const override;
-	virtual Effect* copy(Effect* to) override;
+	inline Effect* next() { return static_cast<Effect*>(Copying::next()); }
+	inline Effect* set_next(Effect* value) { Copying::set_next(value); return this; }
 };
 
-/**
-* @class Fill
-*/
-class F_EXPORT Fill: public Effect {
+class Fill: public Copying {
 public:
-	inline Fill* set_next(Fill* value) { Effect::set_next(value); return this; }
-	inline Fill* next() { return static_cast<Fill*>(_next); }
+	inline Fill* next() { return static_cast<Fill*>(Copying::next()); }
+	inline Fill* set_next(Fill* value) { Copying::set_next(value); return this; }
 };
 
-/**
-* @class FillImage
-*/
 class F_EXPORT FillImage: public Fill, public SourceHold {
 public:
 	struct Init {
@@ -168,8 +103,8 @@ public:
 	F_DEFINE_PROP(FillPosition, position_x);
 	F_DEFINE_PROP(FillPosition, position_y);
 	F_DEFINE_PROP(Repeat, repeat);
-	virtual Type    type() const override;
-	virtual Effect* copy(Effect* to) override;
+	virtual Type     type() const override;
+	virtual Copying* copy(Copying* to) override;
 	static bool  compute_size(FillSize size, float host, float& out);
 	static float compute_position(FillPosition pos, float host, float size);
 };
@@ -190,15 +125,12 @@ private:
 	uint32_t _count;
 };
 
-/**
-* @class FillGradientLinear
-*/
 class F_EXPORT FillGradientLinear: public FillGradient {
 public:
 	FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors);
 	F_DEFINE_PROP(float, angle);
-	virtual Type    type() const override;
-	virtual Effect* copy(Effect* to) override;
+	virtual Type     type() const override;
+	virtual Copying* copy(Copying* to) override;
 private:
 	void setRadian();
 	float _radian;
@@ -206,14 +138,21 @@ private:
 	friend class SkiaRender;
 };
 
-/**
-* @class FillGradientRadial
-*/
 class F_EXPORT FillGradientRadial: public FillGradient {
 public:
 	FillGradientRadial(const Array<float>& pos, const Array<Color>& colors);
-	virtual Type    type() const override;
-	virtual Effect* copy(Effect* to) override;
+	virtual Type     type() const override;
+	virtual Copying* copy(Copying* to) override;
+};
+
+class F_EXPORT BoxShadow: public Effect {
+public:
+	BoxShadow();
+	BoxShadow(Shadow value);
+	BoxShadow(float x, float y, float s, Color color);
+	F_DEFINE_PROP(Shadow, value);
+	virtual Type     type() const override;
+	virtual Copying* copy(Copying* to) override;
 };
 
 F_NAMESPACE_END

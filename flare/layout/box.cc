@@ -496,14 +496,14 @@ void Box::set_fill_color(Color color) {
 
 void Box::set_fill(Fill* val) {
 	if (_fill != val) {
-		_fill = static_cast<Fill*>(Effect::assign(_fill, val));
+		_fill = static_cast<Fill*>(Copying::assign(_fill, val));
 		mark_none();
 	}
 }
 
 void Box::set_effect(Effect* val) {
 	if (_effect != val) {
-		_effect = Effect::assign(_effect, val);
+		_effect = static_cast<Effect*>(Copying::assign(_effect, val));
 		mark_none();
 	}
 }
