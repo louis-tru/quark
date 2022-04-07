@@ -112,9 +112,11 @@ void testBlur(SkCanvas* canvas) {
 	SkAutoCanvasRestore res(canvas, true);
 	canvas->translate(300, 700);
 	//canvas->scale(2, 2);
+	canvas->clipRect(SkRect::MakeXYWH(40, 40, 175, 175), SkClipOp::kDifference, true);
 	SkPaint paint;
 	paint.setColor(SK_ColorBLUE);
-	paint.setMaskFilter(SkMaskFilter::MakeBlur(kSolid_SkBlurStyle, 20));
+	paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, 20));
+	canvas->translate(10, 10);
 	canvas->drawRect(SkRect::MakeXYWH(40, 40, 175, 175), paint);
 }
 
@@ -238,7 +240,7 @@ void testSkia(Application* app) {
 		//testExtractAlphaBlur(canvas);
 		//testNotifyPixelsChanged(canvas);
 		//testBorder(canvas);
-		//testBlur(canvas);
+		testBlur(canvas);
 		app->render()->submit();
 	}));
 }

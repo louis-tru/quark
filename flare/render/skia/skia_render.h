@@ -76,7 +76,8 @@ public:
 	void solveEffect(Box* box, Effect* effect);
 	void solveFill(Box* box, Fill* fill, Color fill_color);
 	void solveFillImage(Box* box, FillImage* fill);
-	void solveFillGradient(Box* box, FillGradient* fill);
+	void solveFillGradientLinear(Box* box, FillGradientLinear* fill);
+	void solveFillGradientRadial(Box* box, FillGradientRadial* fill);
 	static SkRect MakeSkRectFrom(Box *host);
 protected:
 	sk_sp<GrDirectContext> _direct;
@@ -84,7 +85,9 @@ protected:
 	sk_sp<SkSurface> _rasterSurface;
 	SkiaCanvas*      _canvas;
 	SkRect          _rect;
+	SkRRect 				_rrect;
 	float           _alpha;
+	SkPaint         _paint;
 	bool _raster; // software raster
 };
 

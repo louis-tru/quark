@@ -725,8 +725,10 @@ Vec2 Box::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
 	*/
 void Box::set_layout_size(Vec2 layout_content_size) {
 	_layout_content_size = layout_content_size;
-	_client_size = Vec2(layout_content_size.x() + _padding_left + _padding_right, layout_content_size.y() + _padding_top + _padding_bottom);
-	_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(), _margin_top + _margin_bottom + _client_size.y());
+	_client_size = Vec2(layout_content_size.x() + _padding_left + _padding_right,
+											layout_content_size.y() + _padding_top + _padding_bottom);
+	_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
+											_margin_top + _margin_bottom + _client_size.y());
 }
 
 void Box::set_layout_offset(Vec2 val) {

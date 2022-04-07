@@ -34,6 +34,7 @@
 #include "./layout/box.h"
 #include "./render/source.h"
 #include "./render/render.h"
+#include <math.h>
 
 F_NAMESPACE_START
 
@@ -268,8 +269,11 @@ float FillImage::compute_position(FillPosition pos, float host, float size) {
 FillGradient::FillGradient(const Array<float>& pos, const Array<Color>& colors)
 	: _pos(pos)
 	, _colors(*reinterpret_cast<const Array<uint32_t>*>(&colors))
+	, _count(F_MIN(pos.length(), colors.length()))
 {
 }
+
+FillGradient::~FillGradient() {}
 
 void FillGradient::set_positions(const Array<float>& pos) {
 	_pos = pos;
@@ -281,40 +285,26 @@ void FillGradient::set_colors(const Array<Color>& colors) {
 	mark();
 }
 
-FillGradientLinear::FillGradientLinear(Vec2 start, Vec2 end, const Array<float>& pos, const Array<Color>& colors)
+FillGradientLinear::FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors)
 	: FillGradient(pos, colors)
-	, _start(start), _end(end)
+	, _angle(angle)
+{
+	setRadian();
+}
+
+FillGradientRadial::FillGradientRadial(const Array<float>& pos, const Array<Color>& colors)
+	: FillGradient(pos, colors)
 {}
 
-FillGradientRadial::FillGradientRadial(Vec2 center, float radius, const Array<float>& pos, const Array<Color>& colors)
-	: FillGradient(pos, colors)
-	, _center(center), _radius(radius)
-{}
-
-void FillGradientLinear::set_start(Vec2 val) {
-	if (val != _start) {
-		_start = val;
-		mark();
-	}
+void FillGradientLinear::setRadian() {
+	_radian = _angle * T_PI_RATIO_180 + T_PI / 2;
+	_quadrant = fmodf(_radian, T_PI) > (T_PI / 2) ? 1/*left*/: 0/*right*/;
 }
 
-void FillGradientLinear::set_end(Vec2 val) {
-	if (val != _end) {
-		_end = val;
-		mark();
-	}
-}
-
-void FillGradientRadial::set_center(Vec2 val) {
-	if (val != _center) {
-		_center = val;
-		mark();
-	}
-}
-
-void FillGradientRadial::set_radius(float val) {
-	if (val != _radius) {
-		_radius = val;
+void FillGradientLinear::set_angle(float val) {
+	if (val != _angle) {
+		_angle = val;
+		setRadian();
 		mark();
 	}
 }
@@ -322,8 +312,10 @@ void FillGradientRadial::set_radius(float val) {
 Effect* FillGradientLinear::copy(Effect* to) {
 	auto target = (to && to->type() == M_GRADIENT_Linear) ?
 		static_cast<FillGradientLinear*>(to) : new FillGradientLinear(
-			_start, _end, positions(), colors()
+			_angle, positions(), colors()
 		);
+	target->_radian = _radian;
+	target->_quadrant = _quadrant;
 	target->_set_next(_next);
 	return target;
 }
@@ -331,7 +323,7 @@ Effect* FillGradientLinear::copy(Effect* to) {
 Effect* FillGradientRadial::copy(Effect* to) {
 	auto target = (to && to->type() == M_GRADIENT_Radial) ?
 		static_cast<FillGradientRadial*>(to) : new FillGradientRadial(
-			_center, _radius, positions(), colors()
+			positions(), colors()
 		);
 	target->_set_next(_next);
 	return target;

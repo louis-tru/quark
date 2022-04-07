@@ -38,6 +38,8 @@
 
 F_NAMESPACE_START
 
+class SkiaRender;
+
 /**
 * @class Effect, Single linked list struct
 */
@@ -176,7 +178,7 @@ class FillGradient: public Fill {
 public:
 	FillGradient(const Array<float>& pos, const Array<Color>& colors);
 	virtual ~FillGradient();
-	inline uint32_t count() const { return _pos.length(); }
+	inline uint32_t count() const { return _count; }
 	inline const Array<float>& positions() const { return _pos; }
 	inline const Array<Color>& colors() const { return *reinterpret_cast<const Array<Color>*>(&_colors); }
 	inline const Array<uint32_t>& colors_argb_uint32_t() const { return _colors; }
@@ -185,7 +187,7 @@ public:
 private:
 	Array<float> _pos;
 	Array<uint32_t> _colors;
-	void* _inl;
+	uint32_t _count;
 };
 
 /**
@@ -193,11 +195,15 @@ private:
 */
 class F_EXPORT FillGradientLinear: public FillGradient {
 public:
-	FillGradientLinear(Vec2 start, Vec2 end, const Array<float>& pos, const Array<Color>& colors);
-	F_DEFINE_PROP(Vec2, start);
-	F_DEFINE_PROP(Vec2, end);
+	FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors);
+	F_DEFINE_PROP(float, angle);
 	virtual Type    type() const override;
 	virtual Effect* copy(Effect* to) override;
+private:
+	void setRadian();
+	float _radian;
+	uint8_t _quadrant;
+	friend class SkiaRender;
 };
 
 /**
@@ -205,9 +211,7 @@ public:
 */
 class F_EXPORT FillGradientRadial: public FillGradient {
 public:
-	FillGradientRadial(Vec2 center, float radius, const Array<float>& pos, const Array<Color>& colors);
-	F_DEFINE_PROP(Vec2, center);
-	F_DEFINE_PROP(float, radius);
+	FillGradientRadial(const Array<float>& pos, const Array<Color>& colors);
 	virtual Type    type() const override;
 	virtual Effect* copy(Effect* to) override;
 };
