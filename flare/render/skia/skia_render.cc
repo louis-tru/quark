@@ -307,7 +307,7 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 
 	auto _repeat = fill->repeat();
 
-	if (_repeat == Repeat::NONE) {
+	if (_repeat == Repeat::NO_REPEAT) {
 		dx = max(x, 0);                 dy = max(y, 0);
 		dxm = min(x + w, dw);           dym = min(y + h, dh);
 		if (dx < dxm && dy < dym) {

@@ -68,10 +68,10 @@ struct Shadow {
 // ---------------- F i l l ----------------
 
 enum class Repeat: uint8_t {
-	NONE,
 	REPEAT,
 	REPEAT_X,
 	REPEAT_Y,
+	NO_REPEAT,
 	//MIRRORED_REPEAT,
 	//MIRRORED_REPEAT_X,
 	//MIRRORED_REPEAT_Y,

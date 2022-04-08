@@ -41,7 +41,7 @@
 
 F_NAMESPACE_START
 
-class MetalRender: public Render {
+class API_AVAILABLE(ios(13.0)) API_AVAILABLE(ios(13.0)) API_AVAILABLE(ios(13.0)) MetalRender: public Render {
 public:
 	virtual ~MetalRender();
 	virtual void reload() override;

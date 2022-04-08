@@ -152,6 +152,7 @@
 					'render/skia/skia_canvas.cc',
 					'render/skia/skia_render.h',
 					'render/skia/skia_render.cc',
+					'render/skia/skia_source.cc',
 				],
 				'conditions': [
 					['OS=="mac" and project=="xcode"', {

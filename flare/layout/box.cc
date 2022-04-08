@@ -576,6 +576,7 @@ bool Box::layout_reverse(uint32_t mark) {
 		}
 		auto v = first();
 		Vec2 origin(_margin_left + _padding_left, _margin_top + _padding_top);
+		
 		Vec2 size = _layout_content_size;
 		while (v) {
 			v->set_layout_offset_lazy(origin, size); // lazy layout

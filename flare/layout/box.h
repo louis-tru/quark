@@ -156,7 +156,7 @@ public:
 	F_DEFINE_PROP(Effect*, effect); // effect, shadow
 	F_DEFINE_PROP_READ(Vec2, transform_origin); // Start the matrix transformation from this origin point
 	F_DEFINE_PROP_READ(Vec2, layout_content_size); // width,height / size
-	F_DEFINE_PROP_READ(Vec2, client_size); // content + padding
+	F_DEFINE_PROP_READ(Vec2, client_size); // border + padding + content
 
 private:
 	void alloc_border();
@@ -168,7 +168,7 @@ private:
 	Border* _border;
 	// box attrs
 	Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
-	Vec2  _layout_size; // 在布局中所占用的尺寸（margin+content+padding）
+	Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
 	float _layout_weight; // layout weight
 	Align _layout_align; // layout align
 

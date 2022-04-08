@@ -162,7 +162,7 @@ Copying::Type BoxShadow::type() const { return M_SHADOW; }
 
 // ------------------------------ F i l l . I m a g e ------------------------------
 
-FillImage::FillImage(): _repeat(Repeat::NONE) {}
+FillImage::FillImage(): _repeat(Repeat::REPEAT) {}
 FillImage::FillImage(cString& src, Init init)
 	: _size_x(init.size_x)
 	, _size_y(init.size_y)

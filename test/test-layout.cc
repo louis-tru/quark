@@ -67,14 +67,13 @@ void layout(Application* app) {
 
 	//flex->set_fill_color(Color(255,0,0,255));
 	flex->set_fill(New<FillImage>(Path::resources("bench/img/21.jpeg"), FillImage::Init{
-		.size_x={200, FillSizeType::PIXEL}, //.size_y={100, FillSizeType::PIXEL},
+		.size_x={100, FillSizeType::PIXEL},
 		.position_x={0, FillPositionType::CENTER},
 		.position_y={0, FillPositionType::CENTER},
-		.repeat=Repeat::REPEAT,
 	}));
 	//flex->set_fill(new FillGradientRadial({ 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) }));
 	//flex->set_fill(new FillGradientLinear(800, { 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) }));
-	flex->set_effect(New<BoxShadow>(10, 10, 5, Color(0,0,0,255))->set_next(New<BoxShadow>(-10, -20, 5, Color(255,0,0,255))));
+	flex->set_effect(New<BoxShadow>(10, 10, 5, Color(0,0,0,255))->set_next(New<BoxShadow>(-10, -10, 5, Color(255,0,0,255))));
 	flex->set_width({ 0, BoxSizeType::MATCH });
 	flex->set_height({ 180, BoxSizeType::PIXEL });
 	flex->set_margin_left(10);
@@ -90,7 +89,7 @@ void layout(Application* app) {
 	flex->set_radius_right_bottom(40);
 	flex->set_radius_left_bottom(10);
 	//flex->set_opacity(0.8);
-	flex->set_rotate(10);
+	//flex->set_rotate(10);
 	//flex->set_skew(Vec2(0,1));
 	//flex->set_translate(Vec2(100, 0));
 	//
