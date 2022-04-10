@@ -250,7 +250,7 @@
 #endif
 
 #ifndef F_STRICT_ASSERT
-# define  F_STRICT_ASSERT 1
+# define  F_STRICT_ASSERT 0
 #endif
 
 #if DEBUG || F_STRICT_ASSERT

@@ -133,7 +133,7 @@ void SkiaRender::visitLabel(Label* label) {
 }
 
 void SkiaRender::visitRoot(Root* v) {
-	if (v->visible() && v->visible_region() && v->opacity()) {
+	if (v->_visible && v->_visible_region && v->_opacity > 0) {
 		solveBox(v, [](SkiaRender* render, Box* box) {
 			render->_canvas->clear(box->_fill_color.to_uint32_xrgb());
 			render->solveFill(box, box->_fill, Color::from(0));
@@ -256,13 +256,12 @@ void SkiaRender::solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v)) 
 }
 
 void SkiaRender::solveBorder(Box* box) {
-	auto border = box->_border;
-	
+	/*auto border = box->_border;
+
 	SkColor top = border->color_top.to_uint32_argb();
 	SkColor right = border->color_right.to_uint32_argb();
 	SkColor bottom = border->color_bottom.to_uint32_argb();
 	SkColor left = border->color_left.to_uint32_argb();
-	
 	if (
 		(top == right || border->width_top == 0) &&
 		(right == bottom || border->width_right == 0) &&
@@ -288,7 +287,8 @@ void SkiaRender::solveBorder(Box* box) {
 		_paint.setColor4f(c4f);
 		_canvas->drawPath(path, _paint);
 	}
-	else if (box->_is_radius) { // multi bolor color
+	else*/
+	if (box->_is_radius) { // multi bolor color
 		solveBorderRadius(box);
 	} else {
 		solveBorderNoRadius(box);
