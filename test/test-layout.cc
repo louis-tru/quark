@@ -25,6 +25,14 @@ namespace flare {
 
 class ImageTest: public Image {
 public:
+
+	static SkRect MakeSkRectFrom(Box *host) {
+		auto begin = host->transform_origin(); // begin
+		auto end = host->client_size() - begin; // end
+		SkRect _rect_inside = {-begin.x(), -begin.y(), end.x(), end.y()};
+		return _rect_inside;
+	}
+
 	virtual void accept(ViewVisitor *visitor) override {
 		if (visitor->flags() != 0) {
 			return visitor->visitImage(this);
@@ -35,7 +43,7 @@ public:
 			Image* v = static_cast<Image*>(box);
 			auto img = CastSkImage(v->source());
 			auto canvas = render->getCanvas();
-			auto rect = render->MakeSkRectFrom(box);
+			auto rect = MakeSkRectFrom(box);
 			SkPaint paint;
 			paint.setAlpha(200);
 			canvas->drawImageRect(img, rect, SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest), &paint);
@@ -55,10 +63,17 @@ public:
 	}
 };
 
-void layout(Application* app) {
-	
+void ani(FlexLayout* flex, Application* app) {
+	auto fill = static_cast<FillGradientLinear*>(flex->fill());
+	fill->set_angle(fill->angle() + 0.5);
+	app->display()->next_frame(Cb([flex,app](CbData& d){
+		ani(flex, app);
+	}));
+}
+
+void layout(Event<>& evt, Application* app) {
 	app->display()->set_status_bar_style(Display::STATUS_BAR_STYLE_BLACK);
-	
+
 	auto r = Root::create();
 	auto flex = (FlexLayout*)New<FlexLayout>()->append_to(r);
 	auto flow = (FlowLayout*)New<FlowLayout>()->append_to(r);
@@ -66,18 +81,19 @@ void layout(Application* app) {
 	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
 
 	//flex->set_fill_color(Color(255,0,0,255));
-	flex->set_fill(New<FillImage>(Path::resources("bench/img/21.jpeg"), FillImage::Init{
-		.size_x={100, FillSizeType::PIXEL},
-		.position_x={0, FillPositionType::CENTER},
-		.position_y={0, FillPositionType::CENTER},
-	}));
-	//flex->set_fill(new FillGradientRadial({ 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) }));
-	//flex->set_fill(new FillGradientLinear(800, { 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) }));
-	flex->set_effect(New<BoxShadow>(10, 10, 5, Color(0,0,0,255))->set_next(New<BoxShadow>(-10, -10, 5, Color(255,0,0,255))));
+	//flex->set_fill(New<FillImage>(Path::resources("bench/img/21.jpeg"), FillImage::Init{
+	//	.size_x={100, FillSizeType::PIXEL},
+	// 	.position_x={0, FillPositionType::CENTER},
+	// 	.position_y={0, FillPositionType::CENTER},
+	//}));
+	//flex->set_fill(new FillGradientRadial({ 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 0, 255, 255), Color(0, 255, 255, 255) }));
+	flex->set_fill(new FillGradientLinear(0, { 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) }));
+	flex->set_effect(New<BoxShadow>(10, 10, 5, Color(0,0,0,255)));
+	//flex->set_effect(New<BoxShadow>(10, 10, 5, Color(255,0,0,255)))
 	flex->set_width({ 0, BoxSizeType::MATCH });
 	flex->set_height({ 180, BoxSizeType::PIXEL });
 	flex->set_margin_left(10);
-	flex->set_margin_top(20);
+	flex->set_margin_top(10);
 	flex->set_margin_right(10);
 	flex->set_margin_bottom(20);
 	flex->set_padding_left(20);
@@ -85,10 +101,18 @@ void layout(Application* app) {
 	flex->set_padding_right(20);
 	flex->set_padding_bottom(20);
 	flex->set_radius_left_top(40);
-	flex->set_radius_right_top(10);
+	flex->set_radius_right_top(20);
 	flex->set_radius_right_bottom(40);
-	flex->set_radius_left_bottom(10);
-	//flex->set_opacity(0.8);
+	flex->set_radius_left_bottom(40);
+	flex->set_border_width_top(10);
+	flex->set_border_width_right(20);
+	flex->set_border_width_bottom(10);
+	flex->set_border_width_left(20);
+	flex->set_border_color_top(Color(0,0,255,255));
+	flex->set_border_color_right(Color(0,0,255,255));
+	flex->set_border_color_bottom(Color(0,0,255,255));
+	flex->set_border_color_left(Color(0,0,255,255));
+	//flex->set_opacity(0.5);
 	//flex->set_rotate(10);
 	//flex->set_skew(Vec2(0,1));
 	//flex->set_translate(Vec2(100, 0));
@@ -127,10 +151,12 @@ void layout(Application* app) {
 	F_DEBUG("FlowLayout size %d", sizeof(FlowLayout));
 	F_DEBUG("FlexLayout size %d", sizeof(FlexLayout));
 	F_DEBUG("Root size %d", sizeof(Root));
+	
+	ani(flex, app);
 }
 
 void test_layout(int argc, char **argv) {
 	Application app;
-	layout(&app);
+	app.F_On(Load, layout, &app);
 	app.run(true);
 }

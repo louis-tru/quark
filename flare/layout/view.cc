@@ -38,91 +38,8 @@ F_NAMESPACE_START
 
 // view private members method
 F_DEFINE_INLINE_MEMBERS(View, Inl) {
-	public:
+public:
 	#define _inl(self) static_cast<View::Inl*>(self)
-
-	/**
-	* @func remove_all_child_()
-	*/
-	void remove_all_child_() {
-		while (_first) {
-			_first->remove();
-		}
-	}
-	
-	/**
-	* @func clear() Cleaning up associated view information
-	*/
-	void clear() {
-		if (_parent) {
-			/* 当前为第一个子视图 */
-			if (_parent->_first == this) {
-				_parent->_first = _next;
-			} else {
-				_prev->_next = _next;
-			}
-			/* 当前为最后一个子视图 */
-			if (_parent->_last == this) {
-				_parent->_last = _prev;
-			} else {
-				_next->_prev = _prev;
-			}
-		}
-	}
-
-	/**
-	* @func set_depth(depth) clear depth
-	*/
-	void clear_depth() {
-		if ( layout_depth() ) {
-			set_layout_depth(0);
-			blur();
-			
-			View *v = _first;
-			while ( v ) {
-				_inl(v)->clear_depth();
-				v = v->_next;
-			}
-		}
-	}
-
-	/**
-	* @func set_depth(depth) settings depth
-	*/
-	void set_depth(uint32_t depth) {
-		if (_visible) {
-			if ( layout_depth() != depth ) {
-				set_layout_depth(depth++);
-
-				if ( layout_mark() ) // remark
-					mark(M_NONE);
-				mark_recursive(M_TRANSFORM);
-
-				View *v = _first;
-				while ( v ) {
-					_inl(v)->set_depth(depth);
-					v = v->_next;
-				}
-			}
-		} else {
-			clear_depth();
-		}
-	}
-
-	/**
-		* 
-		* get transform pointer
-		* 
-		* @func transform()
-		*/
-	Transform* transform() {
-		if (!_transform) {
-			_transform = new Transform();
-			_transform->scale = Vec2(1);
-			_transform->rotate = 0;
-		}
-		return _transform;
-	}
 
 	static void set_visible_static(View::Inl* self, bool val, uint32_t layout_depth) {
 		self->_visible = val;
@@ -133,16 +50,91 @@ F_DEFINE_INLINE_MEMBERS(View, Inl) {
 			self->mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT); // reset layout size
 		}
 		if (layout_depth) {
-			self->set_depth(layout_depth);
+			self->set_layout_depth_(layout_depth);
 		} else {
-			self->clear_depth();
+			self->clear_layout_depth();
 		}
 	}
-
 };
 
 void __View_SetVisible(View* self, bool val, uint32_t layout_depth) {
 	View::Inl::set_visible_static(_inl(self), val, layout_depth);
+}
+
+/**
+* @func remove_all_child_()
+*/
+void View::remove_all_child_() {
+	while (_first) {
+		_first->remove();
+	}
+}
+
+/**
+* @func clear() Cleaning up associated view information
+*/
+void View::clear() {
+	if (_parent) {
+		/* 当前为第一个子视图 */
+		if (_parent->_first == this) {
+			_parent->_first = _next;
+		} else {
+			_prev->_next = _next;
+		}
+		/* 当前为最后一个子视图 */
+		if (_parent->_last == this) {
+			_parent->_last = _prev;
+		} else {
+			_next->_prev = _prev;
+		}
+	}
+}
+
+void View::clear_layout_depth() {
+	if ( layout_depth() ) {
+		set_layout_depth(0);
+		blur();
+		View *v = _first;
+		while ( v ) {
+			v->clear_layout_depth();
+			v = v->_next;
+		}
+	}
+}
+
+void View::set_layout_depth_(uint32_t depth) {
+	if (_visible) {
+		if ( layout_depth() != depth ) {
+			set_layout_depth(depth++);
+
+			if ( layout_mark() ) // remark
+				mark(M_NONE);
+			mark_recursive(M_TRANSFORM);
+
+			View *v = _first;
+			while ( v ) {
+				v->set_layout_depth_(depth);
+				v = v->_next;
+			}
+		}
+	} else {
+		clear_layout_depth();
+	}
+}
+
+/**
+	* 
+	* get transform single entity pointer
+	* 
+	* @func transform()
+	*/
+View::Transform* View::get_transform_entity() {
+	if (!_transform) {
+		_transform = new Transform();
+		_transform->scale = Vec2(1);
+		_transform->rotate = 0;
+	}
+	return _transform;
 }
 
 View::View()
@@ -160,7 +152,7 @@ View::~View() {
 	F_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 	blur();
 	set_action(nullptr); // del action
-	_inl(this)->remove_all_child_(); // 删除子视图
+	remove_all_child_(); // 删除子视图
 	delete _transform; _transform = nullptr;
 }
 
@@ -174,7 +166,7 @@ void View::before(View* view) {
 	if (_parent) {
 		if (view == this) return;
 		if (view->_parent == _parent) {
-			_inl(view)->clear();  // 清除关联
+			view->clear();  // 清除关联
 		} else {
 			view->set_parent(_parent);
 		}
@@ -199,7 +191,7 @@ void View::after(View* view) {
 	if (_parent) {
 		if (view == this) return;
 		if (view->_parent == _parent) {
-			_inl(view)->clear(); // 清除关联
+			view->clear(); // 清除关联
 		} else {
 			view->set_parent(_parent);
 		}
@@ -222,7 +214,7 @@ void View::after(View* view) {
 	*/
 void View::prepend(View* child) {
 	if (this == child->_parent) {
-		_inl(child)->clear();
+		child->clear();
 	} else {
 		child->set_parent(this);
 	}
@@ -247,7 +239,7 @@ void View::prepend(View* child) {
 	*/
 void View::append(View* child) {
 	if (this == child->_parent) {
-		_inl(child)->clear();
+		child->clear();
 	} else {
 		child->set_parent(this);
 	}
@@ -279,8 +271,8 @@ void View::remove() {
 	if (_parent) {
 		blur(); // 辞去焦点
 		set_action(nullptr); // del action
-		_inl(this)->remove_all_child_(); // 删除子视图
-		_inl(this)->clear();
+		remove_all_child_(); // 删除子视图
+		clear();
 		// remove_event_listener(); // TODO
 		set_layout_depth(0);
 		_parent = _prev = _next = nullptr;
@@ -289,7 +281,7 @@ void View::remove() {
 	else {
 		// remove_event_listener();
 		set_action(nullptr); // del action
-		_inl(this)->remove_all_child_(); // 删除子视图
+		remove_all_child_(); // 删除子视图
 	}
 }
 
@@ -300,7 +292,7 @@ void View::remove() {
 	* @func remove_all_child()
 	*/
 void View::remove_all_child() {
-	_inl(this)->remove_all_child_();
+	remove_all_child_();
 }
 
 /**
@@ -312,7 +304,7 @@ void View::remove_all_child() {
 void View::set_parent(View* parent) {
 	// clear parent
 	if (parent != _parent) {
-		_inl(this)->clear();
+		clear();
 		
 		if ( _parent ) {
 			_parent->layout_typesetting_change(this); // notice parent layout
@@ -323,11 +315,11 @@ void View::set_parent(View* parent) {
 		_parent->layout_typesetting_change(this); // notice parent layout
 		mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT); // mark layout size, reset layout size
 
-		auto depth = parent->layout_depth();
+		uint32_t depth = parent->layout_depth();
 		if (depth) {
-			_inl(this)->set_depth(depth + 1);
+			set_layout_depth_(depth + 1);
 		} else {
-			_inl(this)->clear_depth();
+			clear_layout_depth();
 		}
 	}
 }
@@ -341,7 +333,7 @@ void View::set_parent(View* parent) {
 void View::set_visible(bool val) {
 	if (_visible != val) {
 		if (_parent) {
-			auto depth = _parent->layout_depth();
+			uint32_t depth = _parent->layout_depth();
 			View::Inl::set_visible_static(_inl(this), val, depth ? depth + 1: 0);
 		} else {
 			View::Inl::set_visible_static(_inl(this), val, 0);
@@ -423,7 +415,7 @@ float View::rotate() const {
 	*/
 void View::set_translate(Vec2 val) {
 	if (translate() != val) {
-		_inl(this)->transform()->translate = val;
+		get_transform_entity()->translate = val;
 		mark_recursive(M_TRANSFORM); // mark transform
 	}
 }
@@ -435,7 +427,7 @@ void View::set_translate(Vec2 val) {
 	*/
 void View::set_scale(Vec2 val) {
 	if (scale() != val) {
-		_inl(this)->transform()->scale = val;
+		get_transform_entity()->scale = val;
 		mark_recursive(M_TRANSFORM); // mark transform
 	}
 }
@@ -447,7 +439,7 @@ void View::set_scale(Vec2 val) {
 	*/
 void View::set_skew(Vec2 val) {
 	if (skew() != val) {
-		_inl(this)->transform()->skew = val;
+		get_transform_entity()->skew = val;
 		mark_recursive(M_TRANSFORM); // mark transform
 	}
 }
@@ -459,7 +451,7 @@ void View::set_skew(Vec2 val) {
 	*/
 void View::set_rotate(float val) {
 	if (rotate() != val) {
-		_inl(this)->transform()->rotate = val;
+		get_transform_entity()->rotate = val;
 		mark_recursive(M_TRANSFORM); // mark transform
 	}
 }
@@ -472,7 +464,7 @@ void View::set_rotate(float val) {
 	*/
 void View::set_x(float val) {
 	if (translate().x() != val) {
-		_inl(this)->transform()->translate.set_x(val);
+		get_transform_entity()->translate.set_x(val);
 		mark_recursive(M_TRANSFORM); // mark transform
 	}
 }
@@ -485,7 +477,7 @@ void View::set_x(float val) {
 	*/
 void View::set_y(float val) {
 	if (translate().y() != val) {
-		_inl(this)->transform()->translate.set_y(val);
+		get_transform_entity()->translate.set_y(val);
 		mark_recursive(M_TRANSFORM); // mark transform
 	}
 }
@@ -498,7 +490,7 @@ void View::set_y(float val) {
 	*/
 void View::set_scale_x(float val) {
 	if (scale().x() != val) {
-		_inl(this)->transform()->scale.set_x(val);
+		get_transform_entity()->scale.set_x(val);
 		mark_recursive(M_TRANSFORM); // mark transform
 	}
 }
@@ -511,7 +503,7 @@ void View::set_scale_x(float val) {
 	*/
 void View::set_scale_y(float val) {
 	if (scale().y() != val) {
-		_inl(this)->transform()->scale.set_y(val);
+		get_transform_entity()->scale.set_y(val);
 		mark_recursive(M_TRANSFORM); // mark transform
 	}
 }
@@ -524,7 +516,7 @@ void View::set_scale_y(float val) {
 	*/
 void View::set_skew_x(float val) {
 	if (skew().x() != val) {
-		_inl(this)->transform()->skew.set_x(val);
+		get_transform_entity()->skew.set_x(val);
 		mark_recursive(M_TRANSFORM); // mark transform
 	}
 }
@@ -537,7 +529,7 @@ void View::set_skew_x(float val) {
 	*/
 void View::set_skew_y(float val) {
 	if (skew().y() != val) {
-		_inl(this)->transform()->skew.set_y(val);
+		get_transform_entity()->skew.set_y(val);
 		mark_recursive(M_TRANSFORM); // mark transform
 	}
 }

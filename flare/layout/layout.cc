@@ -41,7 +41,7 @@ Layout::Layout()
 	: _mark_index(-1)
 	, _recursive_mark_index(-1)
 	, _layout_mark(M_NONE)
-	, _depth(0)
+	, _layout_depth(0)
 {
 	F_ASSERT(app());
 }
@@ -187,9 +187,9 @@ void Layout::layout_content_size_change(Layout* parent, uint32_t mark) {
 	* @func set_layout_depth(newDepth)
 	*/
 void Layout::set_layout_depth(uint32_t newDepth) {
-	if (_depth != newDepth) {
-		auto oldDepth = _depth;
-		_depth = newDepth;
+	if (_layout_depth != newDepth) {
+		auto oldDepth = _layout_depth;
+		_layout_depth = newDepth;
 		// F_ASSERT(app());
 		auto pre = pre_render();
 		if (_mark_index >= 0) {

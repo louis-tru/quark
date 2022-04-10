@@ -278,8 +278,9 @@ FillGradientRadial::FillGradientRadial(const Array<float>& pos, const Array<Colo
 {}
 
 void FillGradientLinear::setRadian() {
-	_radian = _angle * T_PI_RATIO_180 + T_PI / 2;
-	_quadrant = fmodf(_radian, T_PI) > (T_PI / 2) ? 1/*left*/: 0/*right*/;
+	float angle = _angle + 90;
+	_radian = angle * F_PI_RATIO_180;
+	_quadrant = int(angle * 0.0111111111111111111) % 4;
 }
 
 void FillGradientLinear::set_angle(float val) {

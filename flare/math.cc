@@ -95,7 +95,7 @@ Mat::Mat(const float* values, int length) {
 
 Mat::Mat(Vec2 translate, Vec2 scale, float rotate_z, Vec2 skew) {
 	if (rotate_z) {
-		rotate_z  *= T_PI_RATIO_180; //
+		rotate_z  *= F_PI_RATIO_180; //
 		float cz  = cosf(rotate_z);
 		float sz  = sinf(rotate_z);
 		val[0] = cz * scale[0];

@@ -34,9 +34,10 @@
 #include "./util/util.h"
 #include "./util/array.h"
 
-#define T_PI 3.1415926535898f                   // PI
-#define T_PI_RATIO_180  0.017453292519943f      // PI / 180
-#define T_180_RATIO_PI 57.29577951308232f       // 180 / PI
+#define F_PI 3.1415926535898f                   // PI
+#define F_PI2 1.5707963267949f                  // PI / 2
+#define F_PI_RATIO_180  0.017453292519943f      // PI / 180
+#define F_180_RATIO_PI 57.29577951308232f       // 180 / PI
 
 F_NAMESPACE_START
 
@@ -261,7 +262,7 @@ struct F_EXPORT Mat: public MVec<float, 6> {
 	* @func rotate 通过角度旋转
 	*/
 	inline void rotate(float z) {
-		rotatea(z * T_PI_RATIO_180);
+		rotatea(z * F_PI_RATIO_180);
 	}
 	
 	/**
@@ -273,10 +274,10 @@ struct F_EXPORT Mat: public MVec<float, 6> {
 	* @func skew 通过角度歪斜变形
 	*/
 	void skew(float x, float y) {
-		skewa(x * T_PI_RATIO_180, y * T_PI_RATIO_180);
+		skewa(x * F_PI_RATIO_180, y * F_PI_RATIO_180);
 	}
-	void skew_x(float x) { skewa_x(x * T_PI_RATIO_180); }
-	void skew_y(float y) { skewa_y(y * T_PI_RATIO_180); }
+	void skew_x(float x) { skewa_x(x * F_PI_RATIO_180); }
+	void skew_y(float y) { skewa_y(y * F_PI_RATIO_180); }
 	
 	/**
 	* @func skewa 通过弧度歪斜变形
@@ -372,11 +373,11 @@ struct F_EXPORT Mat4: public MVec<float, 16> {
 	* @func rotate 通过角度旋转
 	*/
 	inline void rotate(float x, float y, float z) {
-		rotatea(x * T_PI_RATIO_180, y * T_PI_RATIO_180, z * T_PI_RATIO_180);
+		rotatea(x * F_PI_RATIO_180, y * F_PI_RATIO_180, z * F_PI_RATIO_180);
 	}
-	inline void rotate_x(float x) { rotatea_x(x * T_PI_RATIO_180); }
-	inline void rotate_y(float y) { rotatea_y(y * T_PI_RATIO_180); }
-	inline void rotate_z(float z) { rotatea_z(z * T_PI_RATIO_180); }
+	inline void rotate_x(float x) { rotatea_x(x * F_PI_RATIO_180); }
+	inline void rotate_y(float y) { rotatea_y(y * F_PI_RATIO_180); }
+	inline void rotate_z(float z) { rotatea_z(z * F_PI_RATIO_180); }
 	
 	/**
 	* @func rotatea 通过弧度旋转
@@ -390,11 +391,11 @@ struct F_EXPORT Mat4: public MVec<float, 16> {
 	* @func skew 通过角度歪斜变形
 	*/
 	void skew(float x, float y, float z) {
-		skewa(x * T_PI_RATIO_180, y * T_PI_RATIO_180, z * T_PI_RATIO_180);
+		skewa(x * F_PI_RATIO_180, y * F_PI_RATIO_180, z * F_PI_RATIO_180);
 	}
-	void skew_x(float x) { skewa_x(x * T_PI_RATIO_180); }
-	void skew_y(float y) { skewa_y(y * T_PI_RATIO_180); }
-	void skew_z(float z) { skewa_z(z * T_PI_RATIO_180); }
+	void skew_x(float x) { skewa_x(x * F_PI_RATIO_180); }
+	void skew_y(float y) { skewa_y(y * F_PI_RATIO_180); }
+	void skew_z(float z) { skewa_z(z * F_PI_RATIO_180); }
 	
 	/**
 	* @func skewa 通过弧度歪斜变形

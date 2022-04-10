@@ -37,17 +37,21 @@ void  __Flow_set_wrap(FlowLayout* self, Wrap wrap);
 
 // flex private members method
 F_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
-	public:
+public:
 	#define _inl(self) static_cast<FlexLayout::Inl*>(self)
 
 	// auto layout horizontal or vertical
-	template<bool is_horizontal>
-	void layout_typesetting_from_auto(Size cur_size, bool is_reverse) {
+	void layout_typesetting_from_auto(bool is_horizontal, Size cur_size, bool is_reverse) {
 		// get layouts raw size total
 		float offset = 0, max_cross = 0;
 		Vec2 cur = cur_size.content_size;
 
 		Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
+
+		if (_border) {
+			origin.val[0] += _border->width_left + _border->width_right;
+			origin.val[1] += _border->width_top + _border->width_bottom;
+		}
 
 		if (cur_size.wrap_y) { // wrap y
 			auto v = first();
@@ -93,8 +97,7 @@ F_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
 	}
 
 	// flex horizontal or vertical
-	template<bool is_horizontal>
-	void layout_typesetting_from_flex(Size cur_size, bool is_reverse) { // flex
+	void layout_typesetting_from_flex(bool is_horizontal, Size cur_size, bool is_reverse) { // flex
 		struct Item { Vec2 s; View* v; };
 		float total_main = 0, max_cross = 0;
 		Array<Item> items;
@@ -104,6 +107,11 @@ F_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
 		float cross_size_old = is_horizontal ? cur.y(): cur.x();
 
 		Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
+
+		if (_border) {
+			origin.val[0] += _border->width_left + _border->width_right;
+			origin.val[1] += _border->width_top + _border->width_bottom;
+		}
 
 		auto v = is_reverse ? last(): first();
 		while (v) {
@@ -177,8 +185,7 @@ F_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
 	}
 
 	// wrap content horizontal or vertical
-	template<bool is_horizontal>
-	void layout_typesetting_from_wrap(Size cur_size, bool is_reverse) { // wrap Line feed
+	void layout_typesetting_from_wrap(bool is_horizontal, Size cur_size, bool is_reverse) { // wrap Line feed
 		struct Line {
 			struct Item {
 				Vec2 s; View* v;
@@ -197,6 +204,11 @@ F_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
 		bool wrap_reverse = wrap() == Wrap::WRAP_REVERSE;
 
 		Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
+
+		if (_border) {
+			origin.val[0] += _border->width_left + _border->width_right;
+			origin.val[1] += _border->width_top + _border->width_bottom;
+		}
 
 		Array<typename Line::Item> _items;
 		float _total_main = 0, _max_cross = 0;
@@ -368,7 +380,7 @@ bool FlexLayout::layout_forward(uint32_t mark) {
 					|                             |
 					|-----------------------------|
 				*/
-				_inl(this)->layout_typesetting_from_flex<true>(layout_size(), direction() == Direction::ROW_REVERSE); // flex horizontal
+				_inl(this)->layout_typesetting_from_flex(true, layout_size(), direction() == Direction::ROW_REVERSE); // flex horizontal
 			} else {
 				/*
 					|---------------------------|
@@ -388,7 +400,7 @@ bool FlexLayout::layout_forward(uint32_t mark) {
 					|            ---            |
 					|---------------------------|
 				*/
-				_inl(this)->layout_typesetting_from_flex<false>(layout_size(), direction() == Direction::COLUMN_REVERSE); // flex vertical
+				_inl(this)->layout_typesetting_from_flex(false, layout_size(), direction() == Direction::COLUMN_REVERSE); // flex vertical
 			}
 		} else {
 			return true; // layout_reverse() 必需在反向迭代中处理
@@ -417,7 +429,7 @@ bool FlexLayout::layout_reverse(uint32_t mark) {
 						|                             |
 						|-------------....------------|
 					*/
-					_inl(this)->layout_typesetting_from_auto<true>(layout_size(), direction() == Direction::ROW_REVERSE);
+					_inl(this)->layout_typesetting_from_auto(true, layout_size(), direction() == Direction::ROW_REVERSE);
 				} else { // flex
 					return true; // layout_forward() 必需在正向迭代中处理
 				}
@@ -440,7 +452,7 @@ bool FlexLayout::layout_reverse(uint32_t mark) {
 						|   --- --- ---         ---   |
 						|-----------------------------|
 					*/
-				_inl(this)->layout_typesetting_from_wrap<true>(layout_size(), direction() == Direction::ROW_REVERSE);
+				_inl(this)->layout_typesetting_from_wrap(true, layout_size(), direction() == Direction::ROW_REVERSE);
 			}
 		} else {
 			if (wrap() == Wrap::NO_WRAP) {
@@ -463,7 +475,7 @@ bool FlexLayout::layout_reverse(uint32_t mark) {
 						|    ---    |
 						|-----------|
 					*/
-					_inl(this)->layout_typesetting_from_auto<false>(layout_size(), direction() == Direction::COLUMN_REVERSE);
+					_inl(this)->layout_typesetting_from_auto(false, layout_size(), direction() == Direction::COLUMN_REVERSE);
 				} else {
 					return true; // layout_forward()
 				}
@@ -486,7 +498,7 @@ bool FlexLayout::layout_reverse(uint32_t mark) {
 					|   --- --- ---         ---   |
 					|-----------------------------|
 				*/
-				_inl(this)->layout_typesetting_from_wrap<false>(layout_size(), direction() == Direction::COLUMN_REVERSE);
+				_inl(this)->layout_typesetting_from_wrap(false, layout_size(), direction() == Direction::COLUMN_REVERSE);
 			}
 		}
 		unmark(M_LAYOUT_TYPESETTING);

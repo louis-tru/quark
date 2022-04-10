@@ -158,7 +158,7 @@ public:
 	F_DEFINE_PROP_READ(Vec2, layout_content_size); // width,height / size
 	F_DEFINE_PROP_READ(Vec2, client_size); // border + padding + content
 
-private:
+protected:
 	void alloc_border();
 	struct Border {
 		Color color_top, color_right, color_bottom, color_left; // border_color
@@ -171,8 +171,6 @@ private:
 	Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
 	float _layout_weight; // layout weight
 	Align _layout_align; // layout align
-
-	friend class Image;
 };
 
 

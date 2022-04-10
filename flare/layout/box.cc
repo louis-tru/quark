@@ -55,9 +55,10 @@ float Box::solve_layout_content_width(Size &parent_layout_size) {
 			if (*is_wrap_in_out) {
 				result = 0; // invalid wrap width
 			} else { // use wrap
-				result = Number<float>::max(
-					ps - _margin_left - _margin_right - _padding_left - _padding_right, 0
-				);
+				result = ps - _margin_left - _margin_right - _padding_left - _padding_right;
+				if (_border)
+					result -= (_border->width_left + _border->width_right);
+				result = Number<float>::max(result, 0);
 			}
 			// *is_wrap_in_out = *is_wrap_in_out;
 			break;
@@ -100,9 +101,10 @@ float Box::solve_layout_content_height(Size &parent_layout_size) {
 			if (*is_wrap_in_out) {
 				result = 0; // invalid wrap height
 			} else { // use wrap
-				result = Number<float>::max(
-					ps - _margin_top - _margin_bottom - _padding_top - _padding_bottom, 0
-				);
+				result = ps - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
+				if (_border)
+					result -= (_border->width_left + _border->width_right);
+				result = Number<float>::max(result, 0);
 			}
 			// *is_wrap_in_out = *is_wrap_in_out;
 			break;
@@ -414,14 +416,15 @@ void Box::set_border_color_bottom(Color val) {
 
 void Box::set_border_color_left(Color val) {
 	alloc_border();
-	if (_border->color_top != val) {
-		_border->color_top = val;
+	if (_border->color_left != val) {
+		_border->color_left = val;
 		mark_none();
 	}
 }
 
 void Box::set_border_width_top(float val) {
 	alloc_border();
+	val = F_MAX(0, val);
 	if (_border->width_top != val) {
 		_border->width_top = val;
 		mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
@@ -430,6 +433,7 @@ void Box::set_border_width_top(float val) {
 
 void Box::set_border_width_right(float val) {
 	alloc_border();
+	val = F_MAX(0, val);
 	if (_border->width_right != val) {
 		_border->width_right = val;
 		mark_layout_size(M_LAYOUT_SIZE_WIDTH);
@@ -438,6 +442,7 @@ void Box::set_border_width_right(float val) {
 
 void Box::set_border_width_bottom(float val) {
 	alloc_border();
+	val = F_MAX(0, val);
 	if (_border->width_bottom != val) {
 		_border->width_bottom = val;
 		mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
@@ -446,6 +451,7 @@ void Box::set_border_width_bottom(float val) {
 
 void Box::set_border_width_left(float val) {
 	alloc_border();
+	val = F_MAX(0, val);
 	if (_border->width_left != val) {
 		_border->width_left = val;
 		mark_layout_size(M_LAYOUT_SIZE_WIDTH);
@@ -483,9 +489,6 @@ void Box::set_border_style_left(BorderStyle val) {
 		mark_none();
 	}
 }
-
-
-// -- paint
 
 void Box::set_fill_color(Color color) {
 	if (_fill_color != color) {
@@ -526,6 +529,8 @@ uint32_t Box::solve_layout_size(uint32_t mark) {
 				layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
 			}
 			_client_size.set_x(_padding_left + _padding_right + val);
+			if (_border)
+				_client_size.val[0] += _border->width_left + _border->width_right;
 			_layout_size.set_x(_margin_left + _margin_right + _client_size.x());
 		} // else The layout is locked and does not need to be updated
 		parent()->layout_typesetting_change(this);
@@ -543,6 +548,8 @@ uint32_t Box::solve_layout_size(uint32_t mark) {
 				layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 			}
 			_client_size.set_y(_padding_top + _padding_bottom + val);
+			if (_border)
+				_client_size.val[1] += _border->width_top + _border->width_bottom;
 			_layout_size.set_y(_margin_top + _margin_bottom + _client_size.y());
 		} // else The layout is locked and does not need to be updated
 		parent()->layout_typesetting_change(this);
@@ -575,12 +582,17 @@ bool Box::layout_reverse(uint32_t mark) {
 			return true; // continue iteration
 		}
 		auto v = first();
-		Vec2 origin(_margin_left + _padding_left, _margin_top + _padding_top);
-		
-		Vec2 size = _layout_content_size;
-		while (v) {
-			v->set_layout_offset_lazy(origin, size); // lazy layout
-			v = v->next();
+		if (v) {
+			Vec2 origin(_margin_left + _padding_left, _margin_top + _padding_top);
+			Vec2 size = _layout_content_size;
+			if (_border) {
+				origin.val[0] += _border->width_left + _border->width_right;
+				origin.val[1] += _border->width_top + _border->width_bottom;
+			}
+			do {
+				v->set_layout_offset_lazy(origin, size); // lazy layout
+				v = v->next();
+			} while(v);
 		}
 		unmark(M_LAYOUT_TYPESETTING);
 	}
@@ -600,8 +612,12 @@ Layout::Size Box::layout_size() {
 Layout::Size Box::layout_raw_size(Size size) {
 	size.content_size.set_x(solve_layout_content_width(size));
 	size.content_size.set_x(solve_layout_content_height(size));
-	size.layout_size.set_x(_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right);
-	size.layout_size.set_y(_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom);
+	size.layout_size.set_x(_margin_left + _padding_left + size.content_size.x() + _padding_left + _margin_right);
+	size.layout_size.set_y(_margin_top + _padding_top + size.content_size.y() + _padding_bottom + _margin_bottom);
+	if (_border) {
+		size.layout_size.val[0] += _border->width_left + _border->width_right;
+		size.layout_size.val[1] += _border->width_top + _border->width_bottom;
+	}
 	return size;
 }
 
@@ -614,7 +630,7 @@ Align Box::layout_align() {
 }
 
 Mat Box::layout_matrix() {
-	Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
+	Vec2 in = parent() ? parent()->layout_offset_inside(): Vec2();
 	if (_transform) {
 		return Mat(
 			layout_offset() + Vec2(_margin_left, _margin_top) +
@@ -625,7 +641,7 @@ Mat Box::layout_matrix() {
 		);
 	} else {
 		Vec2 translate = layout_offset() +
-		Vec2(_margin_left, _margin_top) + _transform_origin - in;
+			Vec2(_margin_left, _margin_top) + _transform_origin - in;
 		return Mat(
 			1, 0, translate.x(),
 			0, 1, translate.y()
@@ -680,19 +696,21 @@ Vec2 Box::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
 	uint32_t layout_content_size_change_mark = M_NONE;
 	auto layout_content_size = _layout_content_size;
 
-	auto m_x = _margin_left + _margin_right;
-	auto m_y = _margin_top + _margin_bottom;
-	auto p_x = _padding_left + _padding_right;
-	auto p_y = _padding_left + _padding_right;
-	auto mp_x = m_x + p_x;
-	auto mp_y = m_y + p_y;
+	auto bp_x = _padding_left + _padding_right;
+	auto bp_y = _padding_left + _padding_right;
+	if (_border) {
+		bp_x += _border->width_left + _border->width_right;
+		bp_y += _border->width_top + _border->width_bottom;
+	}
+	auto mbp_x = _margin_left + _margin_right + bp_x;
+	auto mbp_y = _margin_top + _margin_bottom + bp_y;
 
 	_layout_content_size = Vec2(
-		layout_size.x() > mp_x ? layout_size.x() - mp_x: 0,
-		layout_size.y() > mp_y ? layout_size.y() - mp_y: 0
+		layout_size.x() > mbp_x ? layout_size.x() - mbp_x: 0,
+		layout_size.y() > mbp_y ? layout_size.y() - mbp_y: 0
 	);
-	_client_size = Vec2(p_x + _layout_content_size.x(), p_y + _layout_content_size.y());
-	_layout_size = Vec2(mp_x + _layout_content_size.x(), mp_y + _layout_content_size.y());
+	_client_size = Vec2(bp_x + _layout_content_size.x(), bp_y + _layout_content_size.y());
+	_layout_size = Vec2(mbp_x + _layout_content_size.x(), mbp_y + _layout_content_size.y());
 
 	if (layout_content_size.x() != _layout_content_size.x() || _layout_wrap_x != is_wrap[0]) {
 		layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
@@ -728,6 +746,10 @@ void Box::set_layout_size(Vec2 layout_content_size) {
 	_layout_content_size = layout_content_size;
 	_client_size = Vec2(layout_content_size.x() + _padding_left + _padding_right,
 											layout_content_size.y() + _padding_top + _padding_bottom);
+	if (_border) {
+		_client_size.val[0] += _border->width_left + _border->width_right;
+		_client_size.val[1] += _border->width_top + _border->width_bottom;
+	}
 	_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
 											_margin_top + _margin_bottom + _client_size.y());
 }

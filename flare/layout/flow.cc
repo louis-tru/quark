@@ -90,8 +90,7 @@ public:
 	}
 
 	// auto layout horizontal or vertical
-	template<bool is_horizontal>
-	void layout_typesetting_from_auto(Size cur_size, bool is_reverse) {
+	void layout_typesetting_from_auto(bool is_horizontal, Size cur_size, bool is_reverse) {
 		// get layouts raw size total
 		float offset = 0, max_cross = 0;
 		Vec2 cur = cur_size.content_size;
@@ -99,6 +98,11 @@ public:
 		Array<Item> start, center, end;
 
 		Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
+
+		if (_border) {
+			origin.val[0] += _border->width_left + _border->width_right;
+			origin.val[1] += _border->width_top + _border->width_bottom;
+		}
 
 		auto v = first();
 		while (v) {
@@ -154,8 +158,7 @@ public:
 		}
 	}
 
-	template<bool is_horizontal>
-	void layout_typesetting_from_wrap(Size cur_size, bool is_reverse) {
+	void layout_typesetting_from_wrap(bool is_horizontal, Size cur_size, bool is_reverse) {
 		struct Line {
 			struct Item {
 				Vec2 s; View* v; bool space;
@@ -174,6 +177,11 @@ public:
 		bool wrap_reverse = _wrap == Wrap::WRAP_REVERSE;
 
 		Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
+
+		if (_border) {
+			origin.val[0] += _border->width_left + _border->width_right;
+			origin.val[1] += _border->width_top + _border->width_bottom;
+		}
 
 		Array<typename Line::Item> _start, _center, _end;
 		float _total_main = 0, _max_cross = 0;
@@ -357,15 +365,15 @@ bool FlowLayout::layout_reverse(uint32_t mark) {
 		}
 		if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) {
 			if (_wrap == Wrap::NO_WRAP) { // no wrap
-				_inl(this)->layout_typesetting_from_auto<true>(layout_size(), _direction == Direction::ROW_REVERSE);
+				_inl(this)->layout_typesetting_from_auto(true, layout_size(), _direction == Direction::ROW_REVERSE);
 			} else {
-				_inl(this)->layout_typesetting_from_wrap<true>(layout_size(), _direction == Direction::ROW_REVERSE);
+				_inl(this)->layout_typesetting_from_wrap(true, layout_size(), _direction == Direction::ROW_REVERSE);
 			}
 		} else {
 			if (_wrap == Wrap::NO_WRAP) { // no wrap
-				_inl(this)->layout_typesetting_from_auto<false>(layout_size(), _direction == Direction::COLUMN_REVERSE);
+				_inl(this)->layout_typesetting_from_auto(false, layout_size(), _direction == Direction::COLUMN_REVERSE);
 			} else {
-				_inl(this)->layout_typesetting_from_wrap<false>(layout_size(), _direction == Direction::COLUMN_REVERSE);
+				_inl(this)->layout_typesetting_from_wrap(false, layout_size(), _direction == Direction::COLUMN_REVERSE);
 			}
 		}
 

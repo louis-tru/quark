@@ -391,6 +391,17 @@ public:
 	virtual void layout_recursive(uint32_t mark);
 	virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark = T_NONE);
 
+private:
+	struct Transform {
+		Vec2 translate, scale, skew; // 平移向量, 缩放向量, 倾斜向量
+		float rotate; // z轴旋转角度值
+	};
+	void remove_all_child_(); // remove all child views
+	void clear(); // Cleaning up associated view information
+	void clear_layout_depth(); //  clear layout depth
+	void set_layout_depth_(uint32_t depth); // settings depth
+	Transform* get_transform_entity();
+
 	/**
 		*
 		* Setting parent parent view
@@ -402,11 +413,6 @@ protected:
 
 	// *******************************************************************
 
-private:
-	struct Transform {
-		Vec2 translate, scale, skew; // 平移向量, 缩放向量, 倾斜向量
-		float rotate; // z轴旋转角度值
-	};
 	Transform *_transform; // 矩阵变换
 	Mat        _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 public:
@@ -427,8 +433,6 @@ public:
 	F_DEFINE_PROP_READ(bool, visible);
 	// 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 	F_DEFINE_PROP_READ(bool, visible_region);
-
-	friend class Box;
 
 	F_DEFINE_INLINE_CLASS(Inl);
 	F_DEFINE_INLINE_CLASS(InlEvent);

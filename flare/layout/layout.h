@@ -84,16 +84,6 @@ public:
 
 	/**
 		*
-		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
-		*
-		* @func layout_depth()
-		*/
-	inline uint32_t layout_depth() const {
-		return _depth;
-	}
-
-	/**
-		*
 		* 布局权重（比如在flex布局中代表布局的尺寸）
 		*
 		* @func layout_weight()
@@ -229,13 +219,6 @@ public:
 		*/
 	virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 
-	/**
-		* @func layout_mark()
-		*/
-	inline uint32_t layout_mark() const {
-		return _layout_mark;
-	}
-
 protected:
 	/**
 		* 
@@ -268,7 +251,6 @@ protected:
 	}
 
 private:
-	// layout:
 	/* 下一个预处理视图标记
 	*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
 	*  同一时间不会所有视图都会发生改变,如果视图树很庞大的时候,
@@ -277,12 +259,23 @@ private:
 	*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
 	*/
 	int32_t _mark_index, _recursive_mark_index;
-	/* 这些标记后的视图会在开始帧绘制前进行更新.
+
+public:
+	/* 
+	* @field layout_mark
+	*
+	* 这些标记后的视图会在开始帧绘制前进行更新.
 	*  需要这些标记的原因主要是为了最大程度的节省性能开销,因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
 	*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到需要帧渲染时统一进行更新.
 	*/
-	uint32_t _layout_mark; /* 标记 */
-	uint32_t _depth; // 这个值受`View::_visible`影响, View::_visible=false时_depth=0
+	F_DEFINE_PROP_READ(uint32_t, layout_mark);
+	/*
+	* @field layout_mark
+	*
+	* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
+	* 这个值受`View::_visible`影响, View::_visible=false时_depth=0
+	*/
+	F_DEFINE_PROP_READ(uint32_t, layout_depth);
 	
 	friend class PreRender;
 };

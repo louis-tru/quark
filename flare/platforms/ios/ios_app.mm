@@ -228,7 +228,7 @@ static NSString* appDelegateName = @"";
 		self.setting_orientation = Orientation::ORIENTATION_USER;
 		self.current_orientation = Orientation::ORIENTATION_INVALID;
 		self.visible_status_bar = YES;
-		self.status_bar_style = UIStatusBarStyleLightContent;
+		self.status_bar_style = UIStatusBarStyleDefault;
 		self.root_ctr = [[RootViewController alloc] init];
 		self.root_ctr.appSelf = self;
 		self.display_link = [CADisplayLink displayLinkWithTarget:self
@@ -503,9 +503,13 @@ void Display::set_status_bar_style(StatusBarStyle style) {
 	if ( style == STATUS_BAR_STYLE_WHITE ) {
 		style_2 = UIStatusBarStyleLightContent;
 	} else {
-		style_2 = UIStatusBarStyleDefault;
+		if (@available(iOS 13.0, *)) {
+			style_2 = UIStatusBarStyleDarkContent;
+		} else {
+			style_2 = UIStatusBarStyleDefault;
+		}
 	}
-	if ( appDelegate.status_bar_style != style_2 ) {
+	if ( appDelegate && appDelegate.status_bar_style != style_2 ) {
 		appDelegate.status_bar_style = style_2;
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[appDelegate refresh_status];

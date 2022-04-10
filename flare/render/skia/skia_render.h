@@ -71,21 +71,28 @@ public:
 	virtual void visitFlowLayout(FlowLayout* flow);
 	virtual void visitFlexLayout(FlexLayout* flex);
 	virtual SkiaCanvas* getCanvas();
-	void clipRect(Box* box, SkClipOp op, bool AA);
 	void solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v));
+private:
+	void clipRect(Box* box, SkClipOp op, bool AA);
+	void clipRectInside(Box* box, SkClipOp op, bool AA);
 	void solveEffect(Box* box, Effect* effect);
 	void solveFill(Box* box, Fill* fill, Color fill_color);
 	void solveFillImage(Box* box, FillImage* fill);
 	void solveFillGradientLinear(Box* box, FillGradientLinear* fill);
 	void solveFillGradientRadial(Box* box, FillGradientRadial* fill);
-	static SkRect MakeSkRectFrom(Box *host);
+	void solveBorder(Box* box);
+	void solveBorderRadius(Box* box);
+	void solveBorderNoRadius(Box* box);
+	void MakeSkRectFrom(Box *box);
+	void MakeRRectInside(Box *box, SkRRect* rrect);
+	void MakeRRectOuter(Box *box, SkRRect* rrect);
 protected:
 	sk_sp<GrDirectContext> _direct;
 	sk_sp<SkSurface> _surface;
 	sk_sp<SkSurface> _rasterSurface;
 	SkiaCanvas*      _canvas;
-	SkRect          _rect;
-	SkRRect 				_rrect;
+	SkRect          _rect_inside, _rect;
+	SkRRect         _rrect_inside, _rrect;
 	float           _alpha;
 	SkPaint         _paint;
 	bool _raster; // software raster
