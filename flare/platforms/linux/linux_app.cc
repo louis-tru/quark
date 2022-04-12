@@ -90,7 +90,7 @@ namespace flare {
 		, _mixer(nullptr)
 		, _multitouch_device(nullptr)
 		, _element(nullptr)
-		, _is_fullscreen(0)
+		, _JSONfullscreen(0)
 		{
 			F_ASSERT(!application); application = this;
 		}

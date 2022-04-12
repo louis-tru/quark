@@ -188,8 +188,9 @@ static NSString* appDelegateName = @"";
 @implementation ApplicationDelegate
 
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
-		if (self.app->is_loaded()) {
-			self.app->display()->render();
+		auto _ = self.app;
+		if (_->is_loaded()) {
+			_->display()->render();
 		}
 	}
 

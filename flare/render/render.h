@@ -54,7 +54,7 @@ public:
 		int  msaaSampleCnt; // gpu msaa
 		int  stencilBits;   // gpu stencil
 	};
-	static Options parseOptions(cJSON& opts);
+	static Options parseOptions(cJSON& json);
 	static Render* Make(Application* host, const Options& opts);
 
 	virtual ~Render();
@@ -67,7 +67,7 @@ public:
 	virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
 
 protected:
-	Render(Application* host, const Options& params);
+	Render(Application* host, const Options& opts);
 	Application*  _host;
 	Options       _opts;
 };

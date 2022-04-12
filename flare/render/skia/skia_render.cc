@@ -45,6 +45,10 @@
 #include "../../layout/root.h"
 #include "../../layout/flex.h"
 
+#define F_ENABLE_DRAW 1
+#define F_ENABLE_CLIP 1
+#define F_USE_PATH_DRAW 0
+
 F_NAMESPACE_START
 
 // --------------- S k i a . R e n d e r ---------------
@@ -57,6 +61,7 @@ SkiaCanvas* SkiaRender::getCanvas() {
 
 SkiaRender::SkiaRender(): _canvas(nullptr), _alpha(1) {
 	_paint.setAntiAlias(true);
+	_rrect_path.setIsVolatile(true);
 }
 
 int SkiaRender::flags() {
@@ -102,7 +107,7 @@ void SkiaRender::visitImage(Image* box) {
 		auto img = CastSkImage(v->source());
 		SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
 		SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
-		render->_canvas->drawImageRect(img, rect, opts, &render->_paint);
+		if (F_ENABLE_DRAW) render->_canvas->drawImageRect(img, rect, opts, &render->_paint);
 	}: nullptr);
 }
 
@@ -135,11 +140,12 @@ void SkiaRender::visitLabel(Label* label) {
 void SkiaRender::visitRoot(Root* v) {
 	if (v->_visible && v->_visible_region && v->_opacity > 0) {
 		solveBox(v, [](SkiaRender* render, Box* box) {
-			render->_canvas->clear(box->_fill_color.to_uint32_xrgb());
+			if (F_ENABLE_DRAW)
+				render->_canvas->clear(box->_fill_color.to_uint32_xrgb());
 			render->solveFill(box, box->_fill, Color::from(0));
 		});
 	} else {
-		_canvas->clear(SK_ColorBLACK);
+		if (F_ENABLE_DRAW) _canvas->clear(SK_ColorBLACK);
 	}
 }
 
@@ -194,21 +200,106 @@ void SkiaRender::MakeRRectOuter(Box *box, SkRRect *rrect) {
 	rrect->setRectRadii(_rect, radii);
 }
 
+void SkiaRender::MakeRPathInside(Box *box, SkPath* path) {
+	auto border = box->_border;
+
+	float rA = box->_radius_left_top; // border radius
+	float rB = box->_radius_right_top;
+	float rC = box->_radius_right_bottom;
+	float rD = box->_radius_left_bottom;
+
+	float rAA = rA + rA;
+	float rBB = rB + rB;
+	float rCC = rC + rC;
+	float rDD = rD + rD;
+
+	SkRect rectA{ _rect.fLeft, _rect.fTop, _rect.fLeft + rAA, _rect.fTop + rAA };
+	SkRect rectB{ _rect.fRight - rBB, _rect.fTop, _rect.fRight, _rect.fTop + rBB };
+	SkRect rectC{ _rect.fRight - rCC, _rect.fBottom - rCC, _rect.fRight, _rect.fBottom };
+	SkRect rectD{ _rect.fLeft, _rect.fBottom - rDD, _rect.fLeft + rDD, _rect.fBottom };
+
+	if (border) {
+		float A = border->width_top; // border
+		float B = border->width_right;
+		float C = border->width_bottom;
+		float D = border->width_left;
+		SkRect rectAI{ _rect_inside.fLeft, _rect_inside.fTop, rectA.fRight - D, rectA.fBottom - C};
+		SkRect rectBI{rectB.fLeft + B,_rect_inside.fTop,_rect_inside.fRight,rectB.fBottom - A};
+		SkRect rectCI{rectC.fLeft + B,rectC.fTop - C,_rect_inside.fRight,_rect_inside.fBottom};
+		SkRect rectDI{_rect_inside.fLeft,rectD.fTop + C,rectD.fRight - D,_rect_inside.fBottom};
+		
+		path->arcTo(rectAI, 180, 90, false);
+		path->arcTo(rectBI, 270, 90, false);
+		path->arcTo(rectCI, 0, 90, false);
+		path->arcTo(rectDI, 90, 90, false);
+	} else {
+		path->arcTo(rectA, 180, 90, false);
+		path->arcTo(rectB, 270, 90, false);
+		path->arcTo(rectC, 0, 90, false);
+		path->arcTo(rectD, 90, 90, false);
+	}
+	path->close();
+}
+
+void SkiaRender::MakeRPathOuter(Box *box, SkPath* path) {
+	auto border = box->_border;
+
+	float rA = box->_radius_left_top; // border radius
+	float rB = box->_radius_right_top;
+	float rC = box->_radius_right_bottom;
+	float rD = box->_radius_left_bottom;
+	float rAA = rA + rA;
+	float rBB = rB + rB;
+	float rCC = rC + rC;
+	float rDD = rD + rD;
+
+	SkRect rectA{ _rect.fLeft, _rect.fTop, _rect.fLeft + rAA, _rect.fTop + rAA };
+	SkRect rectB{ _rect.fRight - rBB, _rect.fTop, _rect.fRight, _rect.fTop + rBB };
+	SkRect rectC{ _rect.fRight - rCC, _rect.fBottom - rCC, _rect.fRight, _rect.fBottom };
+	SkRect rectD{ _rect.fLeft, _rect.fBottom - rDD, _rect.fLeft + rDD, _rect.fBottom };
+
+	path->arcTo(rectA, 180, 90, false);
+	path->arcTo(rectB, 270, 90, false);
+	path->arcTo(rectC, 0, 90, false);
+	path->arcTo(rectD, 90, 90, false);
+	path->close();
+}
+
 void SkiaRender::clipRectInside(Box* box, SkClipOp op, bool AA) {
 	if (box->_is_radius) {
 		MakeRRectInside(box, &_rrect_inside);
-		_canvas->clipRRect(_rrect_inside, op, AA); // SkClipOp::kIntersect
+		if (F_ENABLE_CLIP) _canvas->clipRRect(_rrect_inside, op, AA); // SkClipOp::kIntersect
 	} else {
-		_canvas->clipRect(_rect_inside, op, AA); // SkClipOp::kIntersect
+		if (F_ENABLE_CLIP) _canvas->clipRect(_rect_inside, op, AA); // SkClipOp::kIntersect
 	}
 }
 
 void SkiaRender::clipRect(Box* box, SkClipOp op, bool AA) {
 	if (box->_is_radius) {
 		MakeRRectOuter(box, &_rrect);
-		_canvas->clipRRect(_rrect, op, AA); // SkClipOp::kIntersect
+		if (F_ENABLE_CLIP) _canvas->clipRRect(_rrect, op, AA); // SkClipOp::kIntersect
 	} else {
-		_canvas->clipRect(_rect, op, AA); // SkClipOp::kIntersect
+		if (F_ENABLE_CLIP) _canvas->clipRect(_rect, op, AA); // SkClipOp::kIntersect
+	}
+}
+
+void SkiaRender::clipPathInside(Box* box, SkClipOp op, bool AA) {
+	if (box->_is_radius) {
+		SkPath path;
+		MakeRPathInside(box, &path);
+		if (F_ENABLE_CLIP) _canvas->clipPath(path, op, AA); // SkClipOp::kIntersect
+	} else {
+		if (F_ENABLE_CLIP) _canvas->clipRect(_rect_inside, op, AA); // SkClipOp::kIntersect
+	}
+}
+
+void SkiaRender::clipPath(Box* box, SkClipOp op, bool AA) {
+	if (box->_is_radius) {
+		_rrect_path.reset();
+		MakeRPathOuter(box, &_rrect_path);
+		if (F_ENABLE_CLIP) _canvas->clipPath(_rrect_path, op, AA); // SkClipOp::kIntersect
+	} else {
+		if (F_ENABLE_CLIP) _canvas->clipRect(_rect, op, AA); // SkClipOp::kIntersect
 	}
 }
 
@@ -225,7 +316,10 @@ void SkiaRender::solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v)) 
 		(box->_is_clip   && (box->_first))
 	) {
 		_canvas->save();
-		clipRectInside(box, SkClipOp::kIntersect, true); // exec reverse clip
+		if (F_USE_PATH_DRAW)
+			clipPathInside(box, SkClipOp::kIntersect, true);
+		else
+			clipRectInside(box, SkClipOp::kIntersect, true); // exec reverse clip
 		clip = 2;
 	}
 
@@ -256,7 +350,7 @@ void SkiaRender::solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v)) 
 }
 
 void SkiaRender::solveBorder(Box* box) {
-	/*auto border = box->_border;
+	auto border = box->_border;
 
 	SkColor top = border->color_top.to_uint32_argb();
 	SkColor right = border->color_right.to_uint32_argb();
@@ -270,14 +364,15 @@ void SkiaRender::solveBorder(Box* box) {
 		if (!border->color_top.a())
 			return;
 		SkPath path;
-		//path.setIsVolatile(true);
 		path.setFillType(SkPathFillType::kEvenOdd);
 		if (box->_is_radius) {
-			SkRRect outer, inner;
-			MakeRRectOuter(box, &outer);
-			MakeRRectInside(box, &inner);
-			path.addRRect(outer);
-			path.addRRect(inner);
+			if (F_USE_PATH_DRAW) {
+				MakeRPathOuter(box, &path); MakeRPathInside(box, &path);
+			} else {
+				SkRRect outer, inner;
+				MakeRRectOuter(box, &outer); path.addRRect(outer);
+				MakeRRectInside(box, &inner); path.addRRect(inner);
+			}
 		} else {
 			path.addRect(_rect);
 			path.addRect(_rect_inside);
@@ -285,9 +380,9 @@ void SkiaRender::solveBorder(Box* box) {
 		auto c4f = SkColor4f::FromColor(top);
 		c4f.fA *= _alpha;
 		_paint.setColor4f(c4f);
-		_canvas->drawPath(path, _paint);
+		if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 	}
-	else*/
+	else
 	if (box->_is_radius) { // multi bolor color
 		solveBorderRadius(box);
 	} else {
@@ -341,7 +436,7 @@ void SkiaRender::solveBorderRadius(Box* box) {
 		auto c4f = SkColor4f::FromColor(border->color_top.to_uint32_argb());
 		c4f.fA *= _alpha;
 		_paint.setColor4f(c4f);
-		_canvas->drawPath(path, _paint);
+		if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 	}
 	if (border->width_right > 0.0 && border->color_right.a()) {
 		SkPath path;
@@ -361,7 +456,7 @@ void SkiaRender::solveBorderRadius(Box* box) {
 		auto c4f = SkColor4f::FromColor(border->color_right.to_uint32_argb());
 		c4f.fA *= _alpha;
 		_paint.setColor4f(c4f);
-		_canvas->drawPath(path, _paint);
+		if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 	}
 	if (border->width_bottom > 0.0 && border->color_bottom.a()) {
 		SkPath path;
@@ -381,7 +476,7 @@ void SkiaRender::solveBorderRadius(Box* box) {
 		auto c4f = SkColor4f::FromColor(border->color_bottom.to_uint32_argb());
 		c4f.fA *= _alpha;
 		_paint.setColor4f(c4f);
-		_canvas->drawPath(path, _paint);
+		if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 	}
 	if (border->width_left > 0.0 && border->color_left.a()) {
 		SkPath path;
@@ -401,7 +496,7 @@ void SkiaRender::solveBorderRadius(Box* box) {
 		auto c4f = SkColor4f::FromColor(border->color_left.to_uint32_argb());
 		c4f.fA *= _alpha;
 		_paint.setColor4f(c4f);
-		_canvas->drawPath(path, _paint);
+		if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 	}
 }
 
@@ -418,7 +513,7 @@ void SkiaRender::solveBorderNoRadius(Box* box) {
 		auto c4f = SkColor4f::FromColor(border->color_top.to_uint32_argb());
 		c4f.fA *= _alpha;
 		_paint.setColor4f(c4f);
-		_canvas->drawPath(path, _paint);
+		if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 	}
 	if (border->width_right > 0.0 && border->color_right.a()) {
 		SkPath path;
@@ -430,7 +525,7 @@ void SkiaRender::solveBorderNoRadius(Box* box) {
 		auto c4f = SkColor4f::FromColor(border->color_right.to_uint32_argb());
 		c4f.fA *= _alpha;
 		_paint.setColor4f(c4f);
-		_canvas->drawPath(path, _paint);
+		if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 	}
 	if (border->width_bottom > 0.0 && border->color_bottom.a()) {
 		SkPath path;
@@ -442,7 +537,7 @@ void SkiaRender::solveBorderNoRadius(Box* box) {
 		auto c4f = SkColor4f::FromColor(border->color_bottom.to_uint32_argb());
 		c4f.fA *= _alpha;
 		_paint.setColor4f(c4f);
-		_canvas->drawPath(path, _paint);
+		if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 	}
 	if (border->width_left > 0.0 && border->color_left.a()) {
 		SkPath path;
@@ -454,7 +549,7 @@ void SkiaRender::solveBorderNoRadius(Box* box) {
 		auto c4f = SkColor4f::FromColor(border->color_left.to_uint32_argb());
 		c4f.fA *= _alpha;
 		_paint.setColor4f(c4f);
-		_canvas->drawPath(path, _paint);
+		if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 	}
 }
 
@@ -467,7 +562,10 @@ void SkiaRender::solveEffect(Box* box, Effect* effect) {
 					if (clip)
 						_canvas->restore(); // cancel reverse clip
 					_canvas->save();
-					clipRect(box, SkClipOp::kDifference, true); // exec reverse clip
+					if (F_USE_PATH_DRAW) {
+						if (F_ENABLE_CLIP) clipPath(box, SkClipOp::kDifference, true);
+					} else
+						if (F_ENABLE_CLIP) clipRect(box, SkClipOp::kDifference, true); // exec reverse clip
 					clip = 1;
 				}
 				SkPaint paint;// = _paint;
@@ -479,9 +577,12 @@ void SkiaRender::solveEffect(Box* box, Effect* effect) {
 				_canvas->save();
 				_canvas->translate(shadow.offset_x, shadow.offset_y);
 				if (box->_is_radius) {
-					_canvas->drawRRect(_rrect, paint);
+					if (F_USE_PATH_DRAW) {
+						if (F_ENABLE_DRAW) _canvas->drawPath(_rrect_path, paint);
+					} else
+						if (F_ENABLE_DRAW) _canvas->drawRRect(_rrect, paint);
 				} else {
-					_canvas->drawRect(_rect, paint);
+					if (F_ENABLE_DRAW) _canvas->drawRect(_rect, paint);
 				}
 				_canvas->restore();
 				break;
@@ -506,7 +607,7 @@ void SkiaRender::solveFill(Box* box, Fill* fill, Color color) {
 		auto c4f = SkColor4f::FromColor(color.to_uint32_argb());
 		c4f.fA *= _alpha;
 		paint.setColor4f(c4f);
-		_canvas->drawRect(_rect_inside, paint);
+		if (F_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
 	}
 
 	while(fill) {
@@ -571,7 +672,7 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 			sx1 = dx1 - dx + sx;          sy1 = dy1 - dy + sy;
 			SkRect src{sx*scale_x,sy*scale_y,sx1*scale_x,sy1*scale_y};
 			SkRect dest{dx+ori.x(),dy+ori.y(),dx1+ori.x(),dy1+ori.y()};
-			_canvas->drawImageRect(img, src, dest, opts, &_paint, SkCanvas::kFast_SrcRectConstraint);
+			if (F_ENABLE_DRAW) _canvas->drawImageRect(img, src, dest, opts, &_paint, SkCanvas::kFast_SrcRectConstraint);
 		}
 	} else {
 		if (_repeat == Repeat::REPEAT || _repeat == Repeat::REPEAT_X) { // repeat x
@@ -599,7 +700,7 @@ void SkiaRender::solveFillImage(Box *box, FillImage* fill) {
 					sy1 = dy1 - dy + sy;
 					SkRect src{sx*scale_x,sy*scale_y,sx1*scale_x,sy1*scale_y};
 					SkRect dest{dx+ori.x(),dy+ori.y(),dx1+ori.x(),dy1+ori.y()};
-					_canvas->drawImageRect(img, src, dest, opts, &_paint, SkCanvas::kFast_SrcRectConstraint);
+					if (F_ENABLE_DRAW) _canvas->drawImageRect(img, src, dest, opts, &_paint, SkCanvas::kFast_SrcRectConstraint);
 					dy = dy1;
 				} while (dy < dym);
 				dx = dx1;
@@ -655,7 +756,7 @@ void SkiaRender::solveFillGradientLinear(Box* box, FillGradientLinear* gradient)
 		(pts, colors, pos, gradient->count(), SkTileMode::kDecal, 0, nullptr);
 	SkPaint paint = _paint;
 	paint.setShader(shader);
-	_canvas->drawRect(_rect_inside, paint);
+	if (F_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
 }
 
 void SkiaRender::solveFillGradientRadial(Box* box, FillGradientRadial* gradient) {
@@ -671,7 +772,7 @@ void SkiaRender::solveFillGradientRadial(Box* box, FillGradientRadial* gradient)
 		(center, r / 2, colors, pos, gradient->count(), SkTileMode::kClamp, 0, &mat);
 	SkPaint paint = _paint;
 	paint.setShader(shader);
-	_canvas->drawRect(_rect_inside, paint);
+	if (F_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
 }
 
 F_NAMESPACE_END

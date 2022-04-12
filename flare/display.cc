@@ -214,11 +214,6 @@ namespace flare {
 	 		re.y2 = y2;
 	 	}
 		
-	 	//re.x *= _scale.x();
-	 	//re.x2 *= _scale.x();
-	 	//re.y *= _scale.y();
-	 	//re.y2 *= _scale.y();
-
 	 	re.width = re.x2 - re.x;
 	 	re.height = re.y2 - re.y;
 		

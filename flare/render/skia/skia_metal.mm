@@ -64,6 +64,7 @@ void SkiaMetalRender::onReload() {
 																	SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 		_rasterSurface = SkSurface::MakeRaster(info);
 		F_ASSERT(_rasterSurface);
+		//_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
 	}
 }
 

@@ -60,16 +60,12 @@ public:
 														SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear));
 			*/
 		}: nullptr);
+		
+		auto r = app()->root();
+		auto fill = static_cast<FillGradientLinear*>(static_cast<Box*>(r->first())->fill());
+		fill->set_angle(fill->angle() + 2);
 	}
 };
-
-void ani(FlexLayout* flex, Application* app) {
-	auto fill = static_cast<FillGradientLinear*>(flex->fill());
-	fill->set_angle(fill->angle() + 0.5);
-	app->display()->next_frame(Cb([flex,app](CbData& d){
-		ani(flex, app);
-	}));
-}
 
 void layout(Event<>& evt, Application* app) {
 	app->display()->set_status_bar_style(Display::STATUS_BAR_STYLE_BLACK);
@@ -80,7 +76,7 @@ void layout(Event<>& evt, Application* app) {
 	auto img  = (Image*)     New<Image>     ()->append_to(r);
 	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
 
-	//flex->set_fill_color(Color(255,0,0,255));
+	flex->set_fill_color(Color(255,0,0,255));
 	//flex->set_fill(New<FillImage>(Path::resources("bench/img/21.jpeg"), FillImage::Init{
 	//	.size_x={100, FillSizeType::PIXEL},
 	// 	.position_x={0, FillPositionType::CENTER},
@@ -151,8 +147,6 @@ void layout(Event<>& evt, Application* app) {
 	F_DEBUG("FlowLayout size %d", sizeof(FlowLayout));
 	F_DEBUG("FlexLayout size %d", sizeof(FlexLayout));
 	F_DEBUG("Root size %d", sizeof(Root));
-	
-	ani(flex, app);
 }
 
 void test_layout(int argc, char **argv) {

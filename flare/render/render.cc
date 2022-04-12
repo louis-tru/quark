@@ -54,12 +54,13 @@ Render::~Render() {}
 
 void Render::activate(bool isActive) {}
 
-Render::Options Render::parseOptions(cJSON& options) {
-	// parse options to render params
-	// return Options();
+Render::Options Render::parseOptions(cJSON& json) {
+	auto& msaa = json["msaaSampleCnt"];
+	auto& stencil = json["stencilBits"];
 	return {
-		//.msaaSampleCnt = 4,
-		.stencilBits = 8,
+		.msaaSampleCnt = msaa.is_uint32() ? msaa.to_int(): 0,
+		.stencilBits = stencil.is_uint32() ?
+			(int)integerExp(F_MIN(F_MAX(stencil.to_int(), 8), 16)): 8,
 	};
 }
 
