@@ -99,7 +99,7 @@ protected:
 	SkiaCanvas*      _canvas;
 	SkRect          _rect_inside, _rect;
 	SkRRect         _rrect_inside, _rrect;
-	SkPath 					_rrect_path;
+	SkPath          _rrect_path;
 	float           _alpha;
 	SkPaint         _paint;
 	bool _raster; // software raster
