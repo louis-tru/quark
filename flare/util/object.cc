@@ -78,7 +78,7 @@ namespace flare {
 	static void  (*object_allocator_release)(Object* obj) = &default_object_release;
 	static void  (*object_allocator_retain)(Object* obj) = &default_object_retain;
 
-	#if F_MEMORY_TRACE_MARK
+#if F_MEMORY_TRACE_MARK
 
 		static int active_mark_objects_count_ = 0;
 		static Mutex mark_objects_mutex;
@@ -132,7 +132,7 @@ namespace flare {
 			return active_mark_objects_count_;
 		}
 
-	#endif
+#endif
 
 	bool Object::is_reference() const {
 		return false;
@@ -147,13 +147,13 @@ namespace flare {
 	}
 
 	void* Object::operator new(std::size_t size) {
-		#if F_MEMORY_TRACE_MARK
+#if F_MEMORY_TRACE_MARK
 			void* p = object_allocator_alloc(size);
 			((Object*)p)->mark_index_ = 123456;
 			return p;
-		#else
+#else
 			return object_allocator_alloc(size);
-		#endif
+#endif
 	}
 
 	void* Object::operator new(std::size_t size, void* p) {

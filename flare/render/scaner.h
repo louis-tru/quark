@@ -36,31 +36,31 @@
 #include "../value.h"
 #include "./path.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-class F_EXPORT XLineScaner: public Object {
-	F_HIDDEN_ALL_COPY(XLineScaner);
-public:
-	typedef void (*ScanCb)(int32_t left, int32_t right, int32_t y, void* ctx);
-	XLineScaner(const PathLine& path, Rect clip, float scale = 1.0, bool is_convex_polygon = false);
-	void scan(ScanCb cb, void* ctx);
-private:
-	void scan_polygon(ScanCb cb, void* ctx);
-	void scan_convex_polygon(ScanCb cb, void* ctx);
-	void check_new_edges(int y);
-	void clip(Array<Vec2i>& edges, Rect clip);
-	struct Edge {
-		int32_t min_y, max_y;
-		int32_t x, incr_x;
-		Edge* next;
+	class F_EXPORT XLineScaner: public Object {
+		F_HIDDEN_ALL_COPY(XLineScaner);
+	public:
+		typedef void (*ScanCb)(int32_t left, int32_t right, int32_t y, void* ctx);
+		XLineScaner(const PathLine& path, Rect clip, float scale = 1.0, bool is_convex_polygon = false);
+		void scan(ScanCb cb, void* ctx);
+	private:
+		void scan_polygon(ScanCb cb, void* ctx);
+		void scan_convex_polygon(ScanCb cb, void* ctx);
+		void check_new_edges(int y);
+		void clip(Array<Vec2i>& edges, Rect clip);
+		struct Edge {
+			int32_t min_y, max_y;
+			int32_t x, incr_x;
+			Edge* next;
+		};
+		Array<Edge>  _edges;
+		Array<Edge*> _newEdges;
+		Edge* _firstLineEdges;
+		Edge _activeEdges;
+		int32_t _start_y, _end_y;
+		bool _is_convex_polygon;
 	};
-	Array<Edge>  _edges;
-	Array<Edge*> _newEdges;
-	Edge* _firstLineEdges;
-	Edge _activeEdges;
-	int32_t _start_y, _end_y;
-	bool _is_convex_polygon;
-};
 
-F_NAMESPACE_END
+}
 #endif

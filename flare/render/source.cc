@@ -34,152 +34,152 @@
 #include "../util/fs.h"
 
 
-F_NAMESPACE_START
+namespace flare {
 
-// -------------------- I m a g e . S o u r c e --------------------
+	// -------------------- I m a g e . S o u r c e --------------------
 
-ImageSource::ImageSource(cString& uri)
-	: F_Init_Event(State)
-	, _uri(fs_reader()->format(uri))
-	, _state(STATE_NONE)
-	, _load_id(0), _size(0), _used(0)
-	, _inl(nullptr)
-{
-}
-
-/**
-	* @func ready() async ready
-	*/
-bool ImageSource::ready() {
-	_used++;
-	if (is_ready()) {
-		return true;
+	ImageSource::ImageSource(cString& uri)
+		: F_Init_Event(State)
+		, _uri(fs_reader()->format(uri))
+		, _state(STATE_NONE)
+		, _load_id(0), _size(0), _used(0)
+		, _inl(nullptr)
+	{
 	}
-	if (_state & STATE_DECODEING) {
+
+	/**
+		* @func ready() async ready
+		*/
+	bool ImageSource::ready() {
+		_used++;
+		if (is_ready()) {
+			return true;
+		}
+		if (_state & STATE_DECODEING) {
+			return false;
+		}
+		_state = State(_state | STATE_DECODEING);
+		
+		if (_state & STATE_LOAD_COMPLETE) {
+			RunLoop::first()->post(Cb([this](CbData& e){
+				F_Trigger(State, _state);
+				_Decode();
+			}, this));
+		} else { // load and decode
+			load();
+		}
 		return false;
 	}
-	_state = State(_state | STATE_DECODEING);
-	
-	if (_state & STATE_LOAD_COMPLETE) {
-		RunLoop::first()->post(Cb([this](CbData& e){
-			F_Trigger(State, _state);
-			_Decode();
-		}, this));
-	} else { // load and decode
-		load();
-	}
-	return false;
-}
 
-// -------------------- S o u r c e H o l d --------------------
+	// -------------------- S o u r c e H o l d --------------------
 
-SourceHold::~SourceHold() {
-	if (_source) {
-		_source->F_Off(State, &SourceHold::handleSourceState, this);
-	}
-}
-
-String SourceHold::src() const {
-	return _source ? _source->uri(): String();
-}
-
-ImageSource* SourceHold::source() {
-	return _source.value();
-}
-
-void SourceHold::set_src(cString& value) {
-	set_source(app() ? app()->img_pool()->get(value): new ImageSource(value));
-}
-
-void SourceHold::set_source(ImageSource* source) {
-	if (_source.value() != source) {
+	SourceHold::~SourceHold() {
 		if (_source) {
 			_source->F_Off(State, &SourceHold::handleSourceState, this);
 		}
-		if (source) {
-			source->F_On(State, &SourceHold::handleSourceState, this);
-		}
-		_source = Handle<ImageSource>(source);
 	}
-}
 
-void SourceHold::handleSourceState(Event<ImageSource, ImageSource::State>& evt) { // 收到图像变化通知
-	onSourceState(evt);
-}
+	String SourceHold::src() const {
+		return _source ? _source->uri(): String();
+	}
 
-void SourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-	if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
-		auto _ = app();
-		// F_ASSERT(_, "Application needs to be initialized first");
-		if (_) {
-			_->pre_render()->mark_none();
+	ImageSource* SourceHold::source() {
+		return _source.value();
+	}
+
+	void SourceHold::set_src(cString& value) {
+		set_source(app() ? app()->img_pool()->get(value): new ImageSource(value));
+	}
+
+	void SourceHold::set_source(ImageSource* source) {
+		if (_source.value() != source) {
+			if (_source) {
+				_source->F_Off(State, &SourceHold::handleSourceState, this);
+			}
+			if (source) {
+				source->F_On(State, &SourceHold::handleSourceState, this);
+			}
+			_source = Handle<ImageSource>(source);
 		}
 	}
-}
 
-// -------------------- I m a g e P o o l --------------------
+	void SourceHold::handleSourceState(Event<ImageSource, ImageSource::State>& evt) { // 收到图像变化通知
+		onSourceState(evt);
+	}
 
-F_DEFINE_INLINE_MEMBERS(ImagePool, Inl) {
-public:
-	#define _inl_pool(self) static_cast<ImagePool::Inl*>(self)
-
-	void source_state_handle(Event<ImageSource, ImageSource::State>& evt) {
-		ScopeLock locl(_Mutex);
-		auto id = evt.sender()->uri().hash_code();
-		auto it = _sources.find(id);
-		if (it != _sources.end()) {
-			int ch = int(evt.sender()->size()) - int(it->value.size);
-			if (ch != 0) {
-				_total_data_size += ch; // change
-				it->value.size = evt.sender()->size();
+	void SourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
+		if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
+			auto _ = app();
+			// F_ASSERT(_, "Application needs to be initialized first");
+			if (_) {
+				_->pre_render()->mark_none();
 			}
 		}
 	}
-	
-};
 
-ImagePool::ImagePool(Application* host): _host(host) {
-}
+	// -------------------- I m a g e P o o l --------------------
 
-ImagePool::~ImagePool() {
-	for (auto& it: _sources) {
-		it.value.source->F_Off(State, &Inl::source_state_handle, _inl_pool(this));
+	F_DEFINE_INLINE_MEMBERS(ImagePool, Inl) {
+	public:
+		#define _inl_pool(self) static_cast<ImagePool::Inl*>(self)
+
+		void source_state_handle(Event<ImageSource, ImageSource::State>& evt) {
+			ScopeLock locl(_Mutex);
+			auto id = evt.sender()->uri().hash_code();
+			auto it = _sources.find(id);
+			if (it != _sources.end()) {
+				int ch = int(evt.sender()->size()) - int(it->value.size);
+				if (ch != 0) {
+					_total_data_size += ch; // change
+					it->value.size = evt.sender()->size();
+				}
+			}
+		}
+		
+	};
+
+	ImagePool::ImagePool(Application* host): _host(host) {
 	}
-}
 
-ImageSource* ImagePool::get(cString& uri) {
-	ScopeLock local(_Mutex);
-	String _uri = fs_reader()->format(uri);
-	uint64_t id = _uri.hash_code();
-
-	// 通过路径查找
-	auto it = _sources.find(id);
-	if ( it != _sources.end() ) {
-		return it->value.source.value();
+	ImagePool::~ImagePool() {
+		for (auto& it: _sources) {
+			it.value.source->F_Off(State, &Inl::source_state_handle, _inl_pool(this));
+		}
 	}
 
-	ImageSource* source = new ImageSource(_uri);
-	source->F_On(State, &Inl::source_state_handle, _inl_pool(this));
-	_sources.set(id, { source->size(), source });
-	_total_data_size += source->size();
+	ImageSource* ImagePool::get(cString& uri) {
+		ScopeLock local(_Mutex);
+		String _uri = fs_reader()->format(uri);
+		uint64_t id = _uri.hash_code();
 
-	return source;
-}
+		// 通过路径查找
+		auto it = _sources.find(id);
+		if ( it != _sources.end() ) {
+			return it->value.source.value();
+		}
 
-void ImagePool::remove(cString& uri) {
-	ScopeLock local(_Mutex);
-	String _uri = fs_reader()->format(uri);
-	auto it = _sources.find(_uri.hash_code());
-	if (it != _sources.end()) {
-		it->value.source->F_Off(State, &Inl::source_state_handle, _inl_pool(this));
-		_sources.erase(it);
-		_total_data_size -= it->value.size;
+		ImageSource* source = new ImageSource(_uri);
+		source->F_On(State, &Inl::source_state_handle, _inl_pool(this));
+		_sources.set(id, { source->size(), source });
+		_total_data_size += source->size();
+
+		return source;
 	}
-}
 
-void ImagePool::clear(bool full) {
-	ScopeLock local(_Mutex);
-	// TODO ..
-}
+	void ImagePool::remove(cString& uri) {
+		ScopeLock local(_Mutex);
+		String _uri = fs_reader()->format(uri);
+		auto it = _sources.find(_uri.hash_code());
+		if (it != _sources.end()) {
+			it->value.source->F_Off(State, &Inl::source_state_handle, _inl_pool(this));
+			_sources.erase(it);
+			_total_data_size -= it->value.size;
+		}
+	}
 
-F_NAMESPACE_END
+	void ImagePool::clear(bool full) {
+		ScopeLock local(_Mutex);
+		// TODO ..
+	}
+
+}

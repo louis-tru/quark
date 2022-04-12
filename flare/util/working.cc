@@ -145,7 +145,7 @@ namespace flare {
 	 * @class BackendLoop
 	 */
 	class BackendLoop {
-	 public:
+	public:
 		inline BackendLoop(): _loop(nullptr) {}
 		
 		inline bool has_current_thread() {
@@ -194,7 +194,7 @@ namespace flare {
 			return _loop;
 		}
 		
-	 private:
+	private:
 		ThreadID _thread_id;
 		RunLoop* _loop;
 		Mutex _mutex;

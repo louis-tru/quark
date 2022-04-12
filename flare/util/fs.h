@@ -85,7 +85,7 @@ namespace flare {
 	*/
 	class F_EXPORT File: public Object {
 		F_HIDDEN_ALL_COPY(File);
-	 public:
+	public:
 		typedef ObjectTraits Traits;
 		inline  File(cString& path): _path(path), _fd(0) {}
 		virtual ~File();
@@ -95,7 +95,7 @@ namespace flare {
 		virtual int close();
 		virtual int read(void* buffer, int64_t size, int64_t offset = -1);
 		virtual int write(const void* buffer, int64_t size, int64_t offset = -1);
-	 private:
+	private:
 		String _path;
 		int    _fd;
 	};
@@ -105,10 +105,10 @@ namespace flare {
 */
 	class F_EXPORT AsyncFile: public Object {
 		F_HIDDEN_ALL_COPY(AsyncFile);
-	 public:
+	public:
 		typedef ObjectTraits Traits;
 		class F_EXPORT Delegate {
-		 public:
+		public:
 			virtual void trigger_async_file_open(AsyncFile* file) = 0;
 			virtual void trigger_async_file_close(AsyncFile* file) = 0;
 			virtual void trigger_async_file_error(AsyncFile* file, const Error& error) = 0;
@@ -124,13 +124,13 @@ namespace flare {
 		void close();
 		void read(Buffer buffer, int64_t offset = -1, int mark = 0);
 		void write(Buffer buffer, int64_t offset = -1, int mark = 0);
-	 private:
+	private:
 		F_DEFINE_INLINE_CLASS(Inl);
 		Inl* _inl;
 	};
 
 	class F_EXPORT Dirent: public Object {
-	 public:
+	public:
 		Dirent(cString& n, cString& p, FileType t);
 		String name;
 		String pathname;
@@ -142,7 +142,7 @@ namespace flare {
 	*/
 	class F_EXPORT FileStat: public Object {
 		F_HIDDEN_ALL_COPY(FileStat);
-	 public:
+	public:
 		FileStat();
 		FileStat(cString& path);
 		FileStat(FileStat&& stat);
@@ -170,7 +170,7 @@ namespace flare {
 		uint64_t mtime() const;
 		uint64_t ctime() const;
 		uint64_t birthtime() const;
-	 private:
+	private:
 		void* _stat;
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
@@ -179,7 +179,7 @@ namespace flare {
 	* @class FileHelper
 	*/
 	class F_EXPORT FileHelper {
-	 public:
+	public:
 		static const uint32_t default_mode;
 		
 		/**
@@ -272,7 +272,7 @@ namespace flare {
 	* @static
 	*/
 	class F_EXPORT Path {
-	 public:
+	public:
 		/**
 		* @func extname {String} # Get the path basename
 		* @ret {String}
@@ -377,7 +377,7 @@ namespace flare {
 	*/
 	class F_EXPORT FileReader: public Object {
 		F_HIDDEN_ALL_COPY(FileReader);
-	 public:
+	public:
 		FileReader();
 		FileReader(FileReader&& reader);
 		virtual ~FileReader();
@@ -394,7 +394,7 @@ namespace flare {
 		virtual void clear();
 		static void set_shared(FileReader* reader);
 		static FileReader* shared();
-	 private:
+	private:
 		class Core;
 		Core* _core;
 	};

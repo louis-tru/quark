@@ -35,7 +35,7 @@
 namespace flare {
 
 	class DefaultCallbackCore: public CallbackCore<Object, Error> {
-	 public:
+	public:
 		virtual bool retain() { return 1; }
 		virtual void release() {}
 		virtual void call(CbData& event) const {}
@@ -54,8 +54,7 @@ namespace flare {
 		return default_callback_;
 	}
 
-	template<>
-	void* Callback<Object>::DefaultCore() {
+	template<> void* Callback<Object>::DefaultCore() {
 		if ( !default_callback ) {
 			ScopeLock scope(mutex);
 			default_callback_ = NewRetain<DefaultCallbackCore>();
@@ -64,7 +63,7 @@ namespace flare {
 	}
 
 	class WrapCallback: public CallbackCore<Object, Error> {
-	 public:
+	public:
 		inline WrapCallback(Cb cb, Error* err, Object* data)
 		: _cb(cb), _err(err), _data(data) {
 		}
@@ -77,7 +76,7 @@ namespace flare {
 			evt.data = _data;
 			_cb->call(evt);
 		}
-		private:
+	private:
 		Cb        _cb;
 		Error*    _err;
 		Object*   _data;

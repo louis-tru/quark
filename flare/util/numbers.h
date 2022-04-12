@@ -36,7 +36,7 @@
 namespace flare {
 
 	template <typename T> class Number: public Object {
-	 public:
+	public:
 		inline Number(T v): value(v) { }
 		inline T operator*() { return value; }
 		inline Number& operator++() { value++; return *this; } // ++i
@@ -61,8 +61,8 @@ namespace flare {
 		}
 	};
 
-	#define define_number(N, T) \
-		typedef Number<T> N; template<> F_EXPORT const T N::limit_min; template<> const T N::limit_max
+#define define_number(N, T) \
+	typedef Number<T> N; template<> F_EXPORT const T N::limit_min; template<> const T N::limit_max
 
 	define_number(Int8, int8_t); define_number(Uint8 , uint8_t);
 	define_number(Int16, int16_t); define_number(Uint16, uint16_t);
@@ -71,6 +71,7 @@ namespace flare {
 	define_number(Float, float); define_number(Double, double);
 	define_number(Bool, bool);
 
-	#undef define_number
+#undef define_number
+
 }
 #endif

@@ -280,10 +280,6 @@
 # define F_DEBUG(msg, ...) ((void)0)
 #endif
 
-#define F_NAMESPACE(NAME) namespace NAME {
-#define F_NAMESPACE_START F_NAMESPACE(flare)
-#define F_NAMESPACE_END }
-
 // ------------------------------------------------------------------
 
 // This macro allows to test for the version of the GNU C++ compiler.

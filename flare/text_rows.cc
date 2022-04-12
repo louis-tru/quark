@@ -32,70 +32,70 @@
 
 namespace flare {
 
-TextRows::TextRows() {
-	reset();
-}
+	TextRows::TextRows() {
+		reset();
+	}
 
-void TextRows::push_row(float ascender, float descender) {
-	
-	float line_height = ascender + descender;
-	
-	if (_last->offset_start.y() == _last->offset_end.y()) { // 只有第一行才会这样
-		_last->offset_end.y(_last->offset_start.y() + line_height);
-		_last->baseline = ascender;
-		_last->ascender = ascender;
-		_last->descender = descender;
+	void TextRows::push_row(float ascender, float descender) {
+		
+		float line_height = ascender + descender;
+		
+		if (_last->offset_start.y() == _last->offset_end.y()) { // 只有第一行才会这样
+			_last->offset_end.y(_last->offset_start.y() + line_height);
+			_last->baseline = ascender;
+			_last->ascender = ascender;
+			_last->descender = descender;
+		}
+		
+		set_width( _last->offset_end.x() );
+		
+		_last_num++;
+		
+		_values.push({
+			Vec2(0, _last->offset_end.y()),
+			Vec2(0, _last->offset_end.y() + line_height),
+			_last->offset_end.y() + ascender,
+			ascender,
+			descender,
+			_last_num
+		});
+		
+		_last = &_values[_last_num];
 	}
-	
-	set_width( _last->offset_end.x() );
-	
-	_last_num++;
-	
-	_values.push({
-		Vec2(0, _last->offset_end.y()),
-		Vec2(0, _last->offset_end.y() + line_height),
-		_last->offset_end.y() + ascender,
-		ascender,
-		descender,
-		_last_num
-	});
-	
-	_last = &_values[_last_num];
-}
 
-void TextRows::update_row(float asc, float desc) {
-	
-	bool change = false;
-	
-	if (asc > _last->ascender) {
-		_last->ascender = asc;
-		change = true;
+	void TextRows::update_row(float asc, float desc) {
+		
+		bool change = false;
+		
+		if (asc > _last->ascender) {
+			_last->ascender = asc;
+			change = true;
+		}
+		
+		if (desc > _last->descender) {
+			_last->descender = desc;
+			change = true;
+		}
+		
+		if ( change ) {
+			_last->baseline = _last->offset_start.y() + _last->ascender;
+			_last->offset_end.y(_last->baseline + _last->descender);
+		}
 	}
-	
-	if (desc > _last->descender) {
-		_last->descender = desc;
-		change = true;
-	}
-	
-	if ( change ) {
-		_last->baseline = _last->offset_start.y() + _last->ascender;
-		_last->offset_end.y(_last->baseline + _last->descender);
-	}
-}
 
-void TextRows::reset() {
-	_values.clear();
-	_values.push({ Vec2(), Vec2(), 0, 0, 0, 0 });
-	_last_num = 0;
-	_last = &_values[0];
-	_max_width = 0;
-	_is_clip = false;
-}
-
-void TextRows::set_width(float value) {
-	if ( value > _max_width ) {
-		_max_width = value;
+	void TextRows::reset() {
+		_values.clear();
+		_values.push({ Vec2(), Vec2(), 0, 0, 0, 0 });
+		_last_num = 0;
+		_last = &_values[0];
+		_max_width = 0;
+		_is_clip = false;
 	}
-}
+
+	void TextRows::set_width(float value) {
+		if ( value > _max_width ) {
+			_max_width = value;
+		}
+	}
 
 }

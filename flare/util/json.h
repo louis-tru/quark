@@ -46,7 +46,7 @@ namespace flare {
 	* @class JSON
 	*/
 	class F_EXPORT JSON {
-	 public:
+	public:
 		typedef NonObjectTraits Traits;
 		struct Member;
 
@@ -212,11 +212,10 @@ namespace flare {
 		*/
 		static JSON null();
 		
-		private:
+	private:
 
 		//! Copy constructor is not permitted.
 		JSON(cJSON& json);
-
 		
 		// 12 bytes in 32-bit mode, 16 bytes in 64-bit mode
 		union Data {

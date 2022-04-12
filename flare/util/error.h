@@ -51,7 +51,7 @@ namespace flare {
 	* @class Error
 	*/
 	class F_EXPORT Error: public Object {
-	 public:
+	public:
 		Error(const Error& err);
 		Error(cChar* msg, ...);
 		Error(int code, cChar* msg, ...);
@@ -60,7 +60,7 @@ namespace flare {
 		Error& operator=(const Error& e);
 		String message() const throw();
 		int    code() const throw();
-	 private:
+	private:
 		int     _code;
 		String _message;
 	};

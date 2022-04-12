@@ -82,7 +82,7 @@ namespace flare {
 	 * @class HttpClientRequest::Inl
 	 */
 	class HttpClientRequest::Inl: public Reference, public Delegate {
-	 public:
+	public:
 		typedef HttpClientRequest::Inl Client;
 		virtual void trigger_http_error(HttpClientRequest* req, cError& error) {}
 		virtual void trigger_http_write(HttpClientRequest* req) {}
@@ -135,7 +135,7 @@ namespace flare {
 		}
 		
 		class Sending {
-		 public:
+		public:
 			typedef NonObjectTraits Traits;
 			Sending(Inl* host): _host(host), _ending(false) {
 				Retain(host);
@@ -153,7 +153,7 @@ namespace flare {
 		};
 		
 		class Reader {
-		 public:
+		public:
 			virtual void read_advance() = 0;
 			virtual void read_pause() = 0;
 			virtual bool is_cache() = 0;
@@ -171,7 +171,7 @@ namespace flare {
 			, public Socket::Delegate
 			, public Reader, public AsyncFile::Delegate
 		{
-		 public:
+		public:
 
 			Connect(cString& hostname, uint16_t  port, bool ssl, RunLoop* loop)
 				: _ssl(ssl)
@@ -647,7 +647,7 @@ namespace flare {
 				return false;
 			}
 			
-		 private:
+		private:
 			friend class ConnectPool;
 			
 			bool  _ssl;
@@ -673,7 +673,7 @@ namespace flare {
 		 * @class HttpClientRequest::Inl::ConnectPool
 		 */
 		class ConnectPool {
-		 public:
+		public:
 			
 			struct connect_req {
 				Client* client;
@@ -830,7 +830,7 @@ namespace flare {
 				}
 			}
 			
-		 private:
+		private:
 			Mutex _mutex;
 			List<Connect*>  _pool;
 			List<connect_req> _connect_req;
@@ -842,7 +842,7 @@ namespace flare {
 		class FileCacheReader: public AsyncFile,
 			public AsyncFile::Delegate, public Reader
 		{
-		 public:
+		public:
 			FileCacheReader(Client* client, int64_t size, RunLoop* loop)
 				: AsyncFile(client->_cache_path, loop)
 				, _read_count(0)
@@ -985,7 +985,7 @@ namespace flare {
 				return true;
 			}
 
-		 private:
+		private:
 			int _read_count;
 			Client* _client;
 			Map _header;
@@ -1020,7 +1020,7 @@ namespace flare {
 		 * @class HttpClientRequest::Inl::FileWriter
 		 */
 		class FileWriter: public Object, public AsyncFile::Delegate {
-		 public:
+		public:
 			FileWriter(Client* client, cString& path, int flag, RunLoop* loop)
 				: _client(client)
 				, _file(nullptr)
@@ -1172,7 +1172,7 @@ namespace flare {
 				_completed_end = true;
 			}
 			
-		 private:
+		private:
 			Client* _client;
 			Buffer  _buffer;
 			AsyncFile*  _file;
@@ -1180,7 +1180,7 @@ namespace flare {
 			bool	_ready, _completed_end;
 		};
 		
-	 private:
+	private:
 		
 		Reader* reader() {
 			return _connect ? (Reader*)_connect: (Reader*)_cache_reader;
@@ -1375,7 +1375,7 @@ namespace flare {
 			}
 		}
 		
-	 public:
+	public:
 		// public api
 		
 		void send(Buffer data) throw(Error) {
@@ -1438,7 +1438,7 @@ namespace flare {
 		}
 			
 		// -----------------------------------attrs------------------------------------------
-	 public:
+	public:
 		HttpClientRequest* _host;
 		KeepLoop*  _keep;
 		HttpDelegate* _delegate;

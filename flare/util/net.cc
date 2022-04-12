@@ -65,7 +65,7 @@ namespace flare {
 	* @class Socket::Inl
 	*/
 	class Socket::Inl: public Reference, public Socket::Delegate {
-	 public:
+	public:
 		typedef ReferenceTraits Traits;
 		virtual void trigger_socket_open(Socket* stream) {}
 		virtual void trigger_socket_close(Socket* stream) {}
@@ -100,7 +100,7 @@ namespace flare {
 		}
 		
 		class UVHandle {
-		 public:
+		public:
 			typedef NonObjectTraits Traits;
 			inline UVHandle(Inl* host, uv_loop_t* loop): host(host) {
 				host->retain();
@@ -475,7 +475,7 @@ namespace flare {
 			}
 		}
 		
-	 public:
+	public:
 		// ----------------------------------------------------------------------
 		Socket*     _host;
 		Delegate*   _delegate;
@@ -501,7 +501,7 @@ namespace flare {
 	* @class SSL_INL
 	*/
 	class SSL_INL: public Socket::Inl {
-	 public:
+	public:
 		
 		static void set_ssl_cacert(cString& ca_content) {
 			
@@ -887,7 +887,7 @@ namespace flare {
 			}
 		}
 		
-	 private:
+	private:
 		
 		SSL*    _ssl;
 		cChar*  _bio_read_source_buffer;

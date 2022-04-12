@@ -82,7 +82,7 @@ namespace flare {
 	* @class URI
 	*/
 	class F_EXPORT URI {
-	 public:
+	public:
 		URI();
 		URI(cString& src);
 		inline bool operator==(const URI& uri) const { return _href == uri.href(); }
@@ -102,7 +102,7 @@ namespace flare {
 		inline String search() const { return _search; }
 		static String encode(cString& url);
 		static String decode(cString& url);
-	 private:
+	private:
 		URIType _uritype;
 		uint16_t  _port;
 		String _href, _host, _hostname;
@@ -115,7 +115,7 @@ namespace flare {
 	*/
 	class F_EXPORT HttpClientRequest: public Object, public Stream {
 		F_HIDDEN_ALL_COPY(HttpClientRequest);
-	 public:
+	public:
 		class Delegate {
 			public:
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) = 0;
@@ -179,7 +179,7 @@ namespace flare {
 		*/
 		void abort();
 	
-	 private:
+	private:
 
 		F_DEFINE_INLINE_CLASS(Inl);
 		Inl* _inl;
@@ -189,13 +189,13 @@ namespace flare {
 	* @class HttpError
 	*/
 	class F_EXPORT HttpError: public Error {
-	 public:
+	public:
 		inline HttpError(int rc, cString& msg, uint32_t status, cString& url)
 		: Error(rc, msg), _status(status), _url(url) {}
 		inline HttpError(const Error& err): Error(err), _status(0), _url() {}
 		inline uint32_t status() const { return _status; }
 		inline String url() const { return _url; }
-	 private:
+	private:
 		uint32_t _status;
 		String   _url;
 	};
@@ -204,7 +204,7 @@ namespace flare {
 	* @class HttpHelper
 	*/
 	class F_EXPORT HttpHelper {
-	 public:
+	public:
 		typedef Dict<String, String> Map;
 		struct RequestOptions {
 			String     url;

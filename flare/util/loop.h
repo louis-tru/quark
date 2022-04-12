@@ -66,7 +66,7 @@ namespace flare {
 	 */
 	class F_EXPORT Thread {
 		F_HIDDEN_ALL_COPY(Thread);
-	 public:
+	public:
 		// @members
 		typedef NonObjectTraits Traits;
 		typedef void (*Exec)(Thread& t, void* arg);
@@ -85,7 +85,7 @@ namespace flare {
 		static void resume(ThreadID id); // 恢复线程运行
 		static void abort(ThreadID id); // 中止运行信号
 		static void wait(ThreadID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
-	 private:
+	private:
 		Thread(Exec exec, cString& tag);
 		~Thread() = default;
 		F_DEFINE_INLINE_CLASS(Inl);
@@ -105,7 +105,7 @@ namespace flare {
 	* @class PostMessage
 	*/
 	class F_EXPORT PostMessage {
-	 public:
+	public:
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) = 0;
 	};
 
@@ -114,7 +114,7 @@ namespace flare {
 	*/
 	class F_EXPORT RunLoop: public Object, public PostMessage {
 		F_HIDDEN_ALL_COPY(RunLoop);
-	 public:
+	public:
 		
 		/**
 		* @func runing()
@@ -131,8 +131,11 @@ namespace flare {
 		*/
 		uint32_t post(Cb cb, uint64_t delay_us = 0);
 
+		/**
+		 * @class PostSyncData
+		*/
 		class PostSyncData: public Object {
-		 public:
+		public:
 			virtual void complete() = 0;
 		};
 
@@ -208,7 +211,7 @@ namespace flare {
 		*/
 		static RunLoop* first();
 
-	 private:
+	private:
 		/**
 		* @constructor 私有构造每个线程只能创建一个通过`current()`来获取当前实体
 		*/
@@ -220,6 +223,7 @@ namespace flare {
 		
 		F_DEFINE_INLINE_CLASS(Inl);
 		F_DEFINE_INLINE_CLASS(Inl2);
+
 		friend class KeepLoop;
 		struct Queue {
 			uint32_t id, group;
@@ -245,7 +249,7 @@ namespace flare {
 	*/
 	class F_EXPORT KeepLoop: public Object, public PostMessage {
 		F_HIDDEN_ALL_COPY(KeepLoop);
-	 public:
+	public:
 		F_DEFAULT_ALLOCATOR();
 		/**
 		* @destructor `destructor_clear=true`时会取消通过它`post`的所有消息
@@ -272,7 +276,7 @@ namespace flare {
 		*/
 		inline RunLoop* host() { return _loop; }
 
-	 private:
+	private:
 		typedef List<KeepLoop*>::Iterator Iterator;
 		/**
 		* @constructor `declear=true`时表示析构时会进行清理

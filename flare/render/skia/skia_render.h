@@ -50,90 +50,90 @@
 #include "skia/gpu/GrBackendSurface.h"
 #include "skia/gpu/GrDirectContext.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-/**
-* @class SkiaRender
-*/
-class SkiaRender: public ViewVisitor {
-public:
-	SkiaRender();
-	virtual int  flags();
-	virtual void visitView(View* v);
-	virtual void visitBox(Box* box);
-	virtual void visitImage(Image* image);
-	virtual void visitVideo(Video* video);
-	virtual void visitScroll(Scroll* scroll);
-	virtual void visitInput(Input* input);
-	virtual void visitText(Text* text);
-	virtual void visitLabel(Label* label);
-	virtual void visitRoot(Root* root);
-	virtual void visitFlowLayout(FlowLayout* flow);
-	virtual void visitFlexLayout(FlexLayout* flex);
-	virtual SkiaCanvas* getCanvas();
-	void solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v));
-private:
-	// make
-	void MakeSkRectFrom(Box *box);
-	void MakeRRectInside(Box *box, SkRRect* rrect);
-	void MakeRRectOuter(Box *box, SkRRect* rrect);
-	void MakeRPathInside(Box *box, SkPath* rrect);
-	void MakeRPathOuter(Box *box, SkPath* rrect);
-	// clip
-	void clipRect(Box* box, SkClipOp op, bool AA);
-	void clipRectInside(Box* box, SkClipOp op, bool AA);
-	void clipPathInside(Box* box, SkClipOp op, bool AA);
-	void clipPath(Box* box, SkClipOp op, bool AA);
-	// solve
-	void solveEffect(Box* box, Effect* effect);
-	void solveFill(Box* box, Fill* fill, Color fill_color);
-	void solveFillImage(Box* box, FillImage* fill);
-	void solveFillGradientLinear(Box* box, FillGradientLinear* fill);
-	void solveFillGradientRadial(Box* box, FillGradientRadial* fill);
-	void solveBorder(Box* box);
-	void solveBorderRadius(Box* box);
-	void solveBorderNoRadius(Box* box);
-protected:
-	sk_sp<GrDirectContext> _direct;
-	sk_sp<SkSurface> _surface, _rasterSurface;
-	SkiaCanvas*      _canvas;
-	SkRect          _rect_inside, _rect;
-	SkRRect         _rrect_inside, _rrect;
-	SkPath          _rrect_path;
-	float           _alpha;
-	SkPaint         _paint;
-	bool _raster; // software raster
-};
+	/**
+	* @class SkiaRender
+	*/
+	class SkiaRender: public ViewVisitor {
+	public:
+		SkiaRender();
+		virtual int  flags();
+		virtual void visitView(View* v);
+		virtual void visitBox(Box* box);
+		virtual void visitImage(Image* image);
+		virtual void visitVideo(Video* video);
+		virtual void visitScroll(Scroll* scroll);
+		virtual void visitInput(Input* input);
+		virtual void visitText(Text* text);
+		virtual void visitLabel(Label* label);
+		virtual void visitRoot(Root* root);
+		virtual void visitFlowLayout(FlowLayout* flow);
+		virtual void visitFlexLayout(FlexLayout* flex);
+		virtual SkiaCanvas* getCanvas();
+		void solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v));
+	private:
+		// make
+		void MakeSkRectFrom(Box *box);
+		void MakeRRectInside(Box *box, SkRRect* rrect);
+		void MakeRRectOuter(Box *box, SkRRect* rrect);
+		void MakeRPathInside(Box *box, SkPath* rrect);
+		void MakeRPathOuter(Box *box, SkPath* rrect);
+		// clip
+		void clipRect(Box* box, SkClipOp op, bool AA);
+		void clipRectInside(Box* box, SkClipOp op, bool AA);
+		void clipPathInside(Box* box, SkClipOp op, bool AA);
+		void clipPath(Box* box, SkClipOp op, bool AA);
+		// solve
+		void solveEffect(Box* box, Effect* effect);
+		void solveFill(Box* box, Fill* fill, Color fill_color);
+		void solveFillImage(Box* box, FillImage* fill);
+		void solveFillGradientLinear(Box* box, FillGradientLinear* fill);
+		void solveFillGradientRadial(Box* box, FillGradientRadial* fill);
+		void solveBorder(Box* box);
+		void solveBorderRadius(Box* box);
+		void solveBorderNoRadius(Box* box);
+	protected:
+		sk_sp<GrDirectContext> _direct;
+		sk_sp<SkSurface> _surface, _rasterSurface;
+		SkiaCanvas*      _canvas;
+		SkRect          _rect_inside, _rect;
+		SkRRect         _rrect_inside, _rrect;
+		SkPath          _rrect_path;
+		float           _alpha;
+		SkPaint         _paint;
+		bool _raster; // software raster
+	};
 
 #if !F_APPLE || F_ENABLE_GL
-/**
-* @class SkiaGLRender
-*/
-class SkiaGLRender: public GLRender, public SkiaRender {
-public:
-	virtual ViewVisitor* visitor() override;
-protected:
-	virtual void onReload() override;
-	virtual void onSubmit() override;
-	SkiaGLRender(Application* host, const Options& opts, bool raster);
-};
+	/**
+	* @class SkiaGLRender
+	*/
+	class SkiaGLRender: public GLRender, public SkiaRender {
+	public:
+		virtual ViewVisitor* visitor() override;
+	protected:
+		virtual void onReload() override;
+		virtual void onSubmit() override;
+		SkiaGLRender(Application* host, const Options& opts, bool raster);
+	};
 #endif
 
 #ifdef __OBJC__
-/**
-* @class SkiaMetalRender
-*/
-class SkiaMetalRender: public MetalRender, public SkiaRender {
-public:
-	virtual ViewVisitor* visitor() override;
-	virtual SkiaCanvas* getCanvas() override;
-protected:
-	virtual void onReload() override;
-	virtual void onBegin() override;
-	virtual void onSubmit() override;
-	SkiaMetalRender(Application* host, const Options& opts, bool raster);
-};
+	/**
+	* @class SkiaMetalRender
+	*/
+	class SkiaMetalRender: public MetalRender, public SkiaRender {
+	public:
+		virtual ViewVisitor* visitor() override;
+		virtual SkiaCanvas* getCanvas() override;
+	protected:
+		virtual void onReload() override;
+		virtual void onBegin() override;
+		virtual void onSubmit() override;
+		SkiaMetalRender(Application* host, const Options& opts, bool raster);
+	};
 #endif
 
-F_NAMESPACE_END
+}
 #endif

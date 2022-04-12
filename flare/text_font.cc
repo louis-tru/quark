@@ -48,22 +48,21 @@ namespace flare {
 		, text_hori_bearing(0)
 		, text_height(0)
 		, cell_draw_begin(0), cell_draw_end(0)
-	{
-	}
+	{}
 
 	/**
 	 * @constructor
 	 */
 	TextFont::TextFont()
-	: _text_background_color({ TextValueType::INHERIT })
-	, _text_color({ TextValueType::INHERIT })
-	, _text_size({ TextValueType::INHERIT })
-	, _text_style({ TextValueType::INHERIT })
-	, _text_family(TextValueType::INHERIT)
-	, _text_line_height({ TextValueType::INHERIT })
-	, _text_shadow({ TextValueType::INHERIT })
-	, _text_decoration({ TextValueType::INHERIT })
-	{ }
+		: _text_background_color({ TextValueType::INHERIT })
+		, _text_color({ TextValueType::INHERIT })
+		, _text_size({ TextValueType::INHERIT })
+		, _text_style({ TextValueType::INHERIT })
+		, _text_family(TextValueType::INHERIT)
+		, _text_line_height({ TextValueType::INHERIT })
+		, _text_shadow({ TextValueType::INHERIT })
+		, _text_decoration({ TextValueType::INHERIT })
+	{}
 
 	/**
 	 * @set text_background_color {TextColor}

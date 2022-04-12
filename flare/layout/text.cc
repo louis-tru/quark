@@ -31,72 +31,72 @@
 #include "./text.h"
 #include "../render/font/pool.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-DefaultTextSettings::DefaultTextSettings()
-	: _text_background_color{Color(0, 0, 0, 0), TextValueType::VALUE}
-	, _text_color{Color(0, 0, 0), TextValueType::VALUE}
-	, _text_size{16, TextValueType::VALUE}
-	, _text_weight{TextWeightValue::REGULAR, TextValueType::VALUE}
-	, _text_style{TextStyleValue::NORMAL, TextValueType::VALUE}
-	, _text_family{FontPool::get_font_familys_id(String()), TextValueType::VALUE}
-	, _text_shadow{{ 0, 0, 0, Color(0, 0, 0) }, TextValueType::VALUE}
-	, _text_line_height{0, TextValueType::VALUE}
-	, _text_decoration{TextDecorationValue::NONE, TextValueType::VALUE}
-	, _text_overflow{TextOverflowValue::NORMAL, TextValueType::VALUE}
-	, _text_white_space{TextWhiteSpaceValue::NORMAL, TextValueType::VALUE}
-{
-}
+	DefaultTextSettings::DefaultTextSettings()
+		: _text_background_color{Color(0, 0, 0, 0), TextValueType::VALUE}
+		, _text_color{Color(0, 0, 0), TextValueType::VALUE}
+		, _text_size{16, TextValueType::VALUE}
+		, _text_weight{TextWeightValue::REGULAR, TextValueType::VALUE}
+		, _text_style{TextStyleValue::NORMAL, TextValueType::VALUE}
+		, _text_family{FontPool::get_font_familys_id(String()), TextValueType::VALUE}
+		, _text_shadow{{ 0, 0, 0, Color(0, 0, 0) }, TextValueType::VALUE}
+		, _text_line_height{0, TextValueType::VALUE}
+		, _text_decoration{TextDecorationValue::NONE, TextValueType::VALUE}
+		, _text_overflow{TextOverflowValue::NORMAL, TextValueType::VALUE}
+		, _text_white_space{TextWhiteSpaceValue::NORMAL, TextValueType::VALUE}
+	{
+	}
 
-void DefaultTextSettings::set_text_background_color(TextColor value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_text_background_color = value;
+	void DefaultTextSettings::set_text_background_color(TextColor value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_background_color = value;
+		}
 	}
-}
-void DefaultTextSettings::set_text_color(TextColor value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_text_color = value;
+	void DefaultTextSettings::set_text_color(TextColor value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_color = value;
+		}
 	}
-}
-void DefaultTextSettings::set_text_size(TextSize value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_text_size = value;
+	void DefaultTextSettings::set_text_size(TextSize value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_size = value;
+		}
 	}
-}
-void DefaultTextSettings::set_text_style(TextStyle value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_text_style = value;
+	void DefaultTextSettings::set_text_style(TextStyle value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_style = value;
+		}
 	}
-}
-void DefaultTextSettings::set_text_family(TextFamily value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_text_family = value;
+	void DefaultTextSettings::set_text_family(TextFamily value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_family = value;
+		}
 	}
-}
-void DefaultTextSettings::set_text_shadow(TextShadow value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_text_shadow = value;
+	void DefaultTextSettings::set_text_shadow(TextShadow value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_shadow = value;
+		}
 	}
-}
-void DefaultTextSettings::set_text_line_height(TextLineHeight value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_text_line_height = value;
+	void DefaultTextSettings::set_text_line_height(TextLineHeight value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_line_height = value;
+		}
 	}
-}
-void DefaultTextSettings::set_text_decoration(TextDecoration value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_text_decoration = value;
+	void DefaultTextSettings::set_text_decoration(TextDecoration value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_decoration = value;
+		}
 	}
-}
-void DefaultTextSettings::set_text_overflow(TextOverflow value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_text_overflow = value;
+	void DefaultTextSettings::set_text_overflow(TextOverflow value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_overflow = value;
+		}
 	}
-}
-void DefaultTextSettings::set_text_white_space(TextWhiteSpace value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_text_white_space = value;
+	void DefaultTextSettings::set_text_white_space(TextWhiteSpace value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_white_space = value;
+		}
 	}
-}
 
-F_NAMESPACE_END
+}

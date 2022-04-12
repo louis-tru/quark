@@ -39,38 +39,38 @@
 #include "./source.h"
 #include "../layout/view.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-class Application;
+	class Application;
 
-/**
-* @class Render
-*/
-class F_EXPORT Render: public Object, public PostMessage {
-	F_HIDDEN_ALL_COPY(Render);
-public:
-	struct Options {
-		ColorType colorType;
-		int  msaaSampleCnt; // gpu msaa
-		int  stencilBits;   // gpu stencil
+	/**
+	* @class Render
+	*/
+	class F_EXPORT Render: public Object, public PostMessage {
+		F_HIDDEN_ALL_COPY(Render);
+	public:
+		struct Options {
+			ColorType colorType;
+			int  msaaSampleCnt; // gpu msaa
+			int  stencilBits;   // gpu stencil
+		};
+		static Options parseOptions(cJSON& json);
+		static Render* Make(Application* host, const Options& opts);
+
+		virtual ~Render();
+		virtual void reload() = 0;
+		virtual void begin() = 0;
+		virtual void submit() = 0;
+		virtual void activate(bool isActive);
+		virtual ViewVisitor* visitor() = 0;
+		inline  Application* host() { return _host; }
+		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
+
+	protected:
+		Render(Application* host, const Options& opts);
+		Application*  _host;
+		Options       _opts;
 	};
-	static Options parseOptions(cJSON& json);
-	static Render* Make(Application* host, const Options& opts);
 
-	virtual ~Render();
-	virtual void reload() = 0;
-	virtual void begin() = 0;
-	virtual void submit() = 0;
-	virtual void activate(bool isActive);
-	virtual ViewVisitor* visitor() = 0;
-	inline  Application* host() { return _host; }
-	virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
-
-protected:
-	Render(Application* host, const Options& opts);
-	Application*  _host;
-	Options       _opts;
-};
-
-F_NAMESPACE_END
+}
 #endif

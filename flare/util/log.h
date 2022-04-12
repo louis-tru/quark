@@ -42,7 +42,7 @@ namespace flare {
 	* @class Console # util log
 	*/
 	class F_EXPORT Console {
-	 public:
+	public:
 		typedef NonObjectTraits Traits;
 		virtual ~Console() = default;
 		virtual void log(cString& log, cChar* feed = nullptr);

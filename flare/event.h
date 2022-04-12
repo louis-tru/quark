@@ -124,7 +124,7 @@ namespace flare {
 
 	// event name
 	class F_EXPORT UIEventName {
-	 public:
+	public:
 		inline UIEventName(cString& n, uint32_t category, uint32_t flag)
 			: name_(n), code_((uint32_t)n.hash_code()), category_(category), flag_(flag) {}
 		inline uint32_t hash_code() const { return code_; }
@@ -136,7 +136,7 @@ namespace flare {
 		inline bool operator!=(const UIEventName& type) const { return type.code_ != code_; }
 		inline bool operator>(const UIEventName& type) const { return code_ > type.code_; }
 		inline bool operator<(const UIEventName& type) const { return code_ < type.code_; }
-	 private:
+	private:
 		String  name_;
 		uint32_t code_, category_, flag_;
 	};
@@ -145,10 +145,10 @@ namespace flare {
 	F_EXPORT extern const Dict<String, UIEventName> UIEventNames;
 
 	// define event names
-	#define F_FUN(NAME, C, F) \
-		F_EXPORT extern const UIEventName UIEvent_##NAME;
+#define F_FUN(NAME, C, F) \
+	F_EXPORT extern const UIEventName UIEvent_##NAME;
 	F_UI_Events(F_FUN)
-	#undef F_FUN
+#undef F_FUN
 
 	// -----------------------------------
 
@@ -156,7 +156,7 @@ namespace flare {
 	* @func UIEvent gui event
 	*/
 	class F_EXPORT UIEvent: public Event<View, Object, View, int> {
-	 public:
+	public:
 		// inline UIEvent(cSendData& data): Event<View, Object, View>() { F_UNREACHABLE(); }
 		UIEvent(View* origin);
 		inline uint64_t timestamp() const { return time_; }
@@ -164,7 +164,7 @@ namespace flare {
 		inline bool is_bubble() const { return return_value & RETURN_VALUE_MASK_BUBBLE; }
 		inline void cancel_default() { return_value &= ~RETURN_VALUE_MASK_DEFAULT; }
 		inline void cancel_bubble() { return_value &= ~RETURN_VALUE_MASK_BUBBLE; }
-	 private:
+	private:
 		uint64_t time_;
 	};
 
@@ -172,7 +172,7 @@ namespace flare {
 	* @class ActionEvent
 	*/
 	class F_EXPORT ActionEvent: public UIEvent {
-	 public:
+	public:
 		inline ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop)
 			: UIEvent(origin), action_(action), delay_(delay), frame_(frame), loop_(loop) {}
 		inline Action* action() const { return action_; }
@@ -180,7 +180,7 @@ namespace flare {
 		inline uint32_t frame() const { return frame_; }
 		inline uint32_t loop() const { return loop_; }
 		virtual void release();
-	 private:
+	private:
 		Action* action_;
 		uint64_t  delay_;
 		uint32_t  frame_, loop_;
@@ -190,7 +190,7 @@ namespace flare {
 	* @func KeyEvent keyboard event
 	*/
 	class F_EXPORT KeyEvent: public UIEvent {
-	 public:
+	public:
 		inline KeyEvent(View* origin, uint32_t keycode,
 										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 										uint32_t repeat, int device, int source)
@@ -210,7 +210,7 @@ namespace flare {
 		inline View* focus_move() const { return focus_move_; }
 		inline void set_focus_move(View* view) { if (origin()) focus_move_ = view; }
 		virtual void release();
-	 private:
+	private:
 		int  keycode_;
 		int  device_, source_, repeat_;
 		bool shift_, ctrl_, alt_;
@@ -222,7 +222,7 @@ namespace flare {
 	* @class ClickEvent click event
 	*/
 	class F_EXPORT ClickEvent: public UIEvent {
-	 public:
+	public:
 		enum Type { TOUCH = 1, KEYBOARD = 2, MOUSE = 3 };
 		inline ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1)
 			: UIEvent(origin), x_(x), y_(y), count_(count), type_(type) {}
@@ -230,7 +230,7 @@ namespace flare {
 		inline float y() const { return y_; }
 		inline uint32_t count() const { return count_; }
 		inline Type type() const { return type_; }
-	 private:
+	private:
 		float x_, y_;
 		uint32_t count_;
 		Type type_;
@@ -240,7 +240,7 @@ namespace flare {
 	* @class UIMouseEvent mouse event
 	*/
 	class F_EXPORT MouseEvent: public KeyEvent {
-	 public:
+	public:
 		inline MouseEvent(View* origin, float x, float y, uint32_t keycode,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat = 0, int device = 0, int source = 0)
@@ -248,7 +248,7 @@ namespace flare {
 				command, caps_lock, repeat, device, source), x_(x), y_(y) {}
 		inline float x() const { return x_; }
 		inline float y() const { return y_; }
-	 private:
+	private:
 		float x_, y_;
 	};
 
@@ -256,11 +256,11 @@ namespace flare {
 	* @class HighlightedEvent status event
 	*/
 	class F_EXPORT HighlightedEvent: public UIEvent {
-	 public:
+	public:
 		inline HighlightedEvent(View* origin, HighlightedStatus status)
 			: UIEvent(origin), _status(status) {}
 		inline HighlightedStatus status() const { return _status; }
-	 private:
+	private:
 		HighlightedStatus _status;
 	};
 
@@ -268,7 +268,7 @@ namespace flare {
 	* @class TouchEvent touch event
 	*/
 	class F_EXPORT TouchEvent: public UIEvent {
-	 public:
+	public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
 			float    start_x, start_y;
@@ -279,7 +279,7 @@ namespace flare {
 		inline TouchEvent(View* origin, Array<TouchPoint>& touches)
 			: UIEvent(origin), _change_touches(touches) {}
 		inline Array<TouchPoint>& changed_touches() { return _change_touches; }
-	 private:
+	private:
 		Array<TouchPoint> _change_touches;
 	};
 
@@ -289,7 +289,7 @@ namespace flare {
 	* @class FocusMoveEvent
 	*/
 	class F_EXPORT FocusMoveEvent: public UIEvent {
-	 public:
+	public:
 		inline FocusMoveEvent(View* origin, View* old_focus, View* new_focus)
 			: UIEvent(origin), _old_focus(old_focus), _new_focus(new_focus) {}
 		inline View* old_focus() { return _old_focus; }
@@ -297,7 +297,7 @@ namespace flare {
 		inline View* focus() { return _old_focus; }
 		inline View* focus_move() { return _new_focus; }
 		virtual void release();
-	 private:
+	private:
 		View* _old_focus;
 		View* _new_focus;
 	};
@@ -306,7 +306,7 @@ namespace flare {
 	* @class ITextInput
 	*/
 	class F_EXPORT ITextInput: public Protocol {
-	 public:
+	public:
 		virtual void input_delete(int count) = 0;
 		virtual void input_insert(cString& text) = 0;
 		virtual void input_marked(cString& text) = 0;
@@ -323,7 +323,7 @@ namespace flare {
 	* @class EventDispatch
 	*/
 	class F_EXPORT EventDispatch: public Object {
-	 public:
+	public:
 		EventDispatch(Application* app);
 		virtual ~EventDispatch();
 
@@ -352,7 +352,7 @@ namespace flare {
 			return _keyboard;
 		}
 		
-	 private:
+	private:
 		class OriginTouche;
 		class MouseHandle;
 		typedef Dict<View*, OriginTouche*> OriginTouches;

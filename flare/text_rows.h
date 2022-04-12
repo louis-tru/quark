@@ -54,7 +54,6 @@ namespace flare {
 		};
 
 		TextRows();
-		
 		inline Row* last() { return _last; }
 		inline uint32_t count() const { return (uint32_t)_values.size(); }
 		inline uint32_t last_num() const { return _last_num; }
@@ -73,7 +72,7 @@ namespace flare {
 	private:
 		Array<Row>  _values;
 		Row*        _last;       // 最后行
-		uint32_t        _last_num;   // 最后行号
+		uint32_t    _last_num;   // 最后行号
 		float       _max_width;  // 最大宽度
 		bool        _is_clip;    // 修剪结束
 	};

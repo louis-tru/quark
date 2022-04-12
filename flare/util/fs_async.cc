@@ -53,7 +53,7 @@ namespace flare {
 
 	template<class uv_req, class Data = Object, class CbData = Object>
 	class AsyncReqNonCtx: public UVRequestWrap<uv_req, Object, Data, CbData> {
-	 public:
+	public:
 		AsyncReqNonCtx(Callback<CbData> cb, RunLoop* loop = LOOP, Data data = Data())
 		: UVRequestWrap<uv_req, Object, Data, CbData>(nullptr, cb, std::move(data))
 		, _loop(loop)
@@ -67,7 +67,7 @@ namespace flare {
 		inline uv_loop_t* uv_loop() {
 			return _loop->uv_loop();
 		}
-	 private:
+	private:
 		RunLoop* _loop;
 	};
 
@@ -173,7 +173,7 @@ namespace flare {
 	static AsyncIOTask* cp2(cString& source, cString& target, Cb cb, RunLoop* loop) {
 		
 		class Task: public AsyncIOTask, AsyncFile::Delegate {
-		 public:
+		public:
 			
 			Task(cString& source, cString& target, Cb cb, RunLoop* loop)
 			: AsyncIOTask(loop)
@@ -346,7 +346,7 @@ namespace flare {
 	* @class AsyncEach
 	*/
 	class AsyncEach: public AsyncIOTask {
-	 public:
+	public:
 		
 		AsyncEach(cString& path, Cb cb, Cb end, bool internal = false)
 		: _path(Path::format(path))
@@ -414,7 +414,7 @@ namespace flare {
 			return id();
 		}
 		
-	 private: 
+	private:
 		
 		inline void into(cString& path) {
 			ls2(path, Callback<Array<Dirent>>(&AsyncEach::into_cb, this), nullptr);
@@ -455,7 +455,7 @@ namespace flare {
 			int mask;
 		};
 		
-	 private:
+	private:
 		
 		String _path;
 		Cb _cb, _end;

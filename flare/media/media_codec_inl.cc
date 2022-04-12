@@ -39,7 +39,7 @@ namespace flare {
 	#define CACHE_DATA_TIME_SECOND 10
 
 	class DefaultMultimediaSourceDelegate: public MultimediaSource::Delegate {
-		public:
+	public:
 		virtual void multimedia_source_ready(MultimediaSource* source) {}
 		virtual void multimedia_source_wait_buffer(MultimediaSource* source, float process) {}
 		virtual void multimedia_source_eof(MultimediaSource* source) {}
@@ -314,7 +314,7 @@ namespace flare {
 		return info;
 	}
 
-	#define ABORT() { if (!t.is_abort()) trigger_error(e); return 0; }
+#define ABORT() { if (!t.is_abort()) trigger_error(e); return 0; }
 
 	/**
 	* @func start

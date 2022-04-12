@@ -33,13 +33,13 @@
 
 #include "./image.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-class F_EXPORT Video: public Image {
-	F_Define_View(Video);
-public:
-private:
-};
+	class F_EXPORT Video: public Image {
+		F_Define_View(Video);
+	public:
+	private:
+	};
 
-F_NAMESPACE_END
+}
 #endif

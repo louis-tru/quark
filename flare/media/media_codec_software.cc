@@ -36,7 +36,7 @@ namespace flare {
 	* @class SoftwareMediaCodec
 	*/
 	class SoftwareMediaCodec: public MediaCodec {
-		public:
+	public:
 		
 		/**
 		* @constructor
@@ -398,7 +398,7 @@ namespace flare {
 			return nullptr;
 		}
 		
-		private:
+	private:
 		AVCodecContext* _codec_ctx;
 		AVFrame*        _frame;
 		Buffer          _audio_buffer;

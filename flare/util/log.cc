@@ -73,27 +73,27 @@ namespace flare {
 	static Console* _default_console = nullptr;
 
 	void Console::log(cString& str, cChar* feed) {
-		#if F_ANDROID
+#if F_ANDROID
 			__android_log_print(ANDROID_LOG_INFO, "LOG ", "%s%s", str.c_str(), feed ? feed: "");
-		#else
+#else
 			printf("%s%s", str.c_str(), feed ? feed: "");
-		#endif
+#endif
 	}
 
 	void Console::warn(cString& str, cChar* feed) {
-		#if F_ANDROID
+#if F_ANDROID
 			__android_log_print(ANDROID_LOG_WARN, "WARN", "%s%s", str.c_str(), feed ? feed: "");
-		#else
+#else
 			printf("%s%s", str.c_str(), feed ? feed: "");
-		#endif
+#endif
 	}
 
 	void Console::error(cString& str, cChar* feed) {
-		#if F_ANDROID
+#if F_ANDROID
 			__android_log_print(ANDROID_LOG_ERROR, "ERR ", "%s%s", str.c_str(), feed ? feed: "");
-		#else
+#else
 			fprintf(f_stderr, "%s%s", str.c_str(), feed ? feed: "");
-		#endif
+#endif
 	}
 
 	void Console::clear() {
@@ -158,19 +158,19 @@ namespace flare {
 		}
 
 		void log(uint64_t msg) {
-			#if F_ARCH_64BIT
+#if F_ARCH_64BIT
 				Console::instance()->log( String::format("%lu\n", msg) );
-			#else
+#else
 				Console::instance()->log( String::format("%llu\n", msg) );
-			#endif
+#endif
 		}
 
 		void log(size_t msg) {
-			#if F_ARCH_64BIT
+#if F_ARCH_64BIT
 				Console::instance()->log( String::format("%lu\n", msg) );
-			#else
+#else
 				Console::instance()->log( String::format("%llu\n", msg) );
-			#endif
+#endif
 		}
 
 		void log(bool msg) {
@@ -214,7 +214,7 @@ namespace flare {
 
 	// Attempts to dump a backtrace (if supported).
 	static void dump_backtrace() {
-		#if F_VLIBC_GLIBC || F_BSD
+#if F_VLIBC_GLIBC || F_BSD
 			void* trace[100];
 			int size = backtrace(trace, 100);
 			report_error("\n==== C stack trace ===============================\n\n");
@@ -235,7 +235,7 @@ namespace flare {
 					}
 				}
 			}
-		#elif F_QNX
+#elif F_QNX
 			Char out[1024];
 			bt_accessor_t acc;
 			bt_memmap_t memmap;
@@ -255,7 +255,7 @@ namespace flare {
 			}
 			bt_unload_memmap(&memmap);
 			bt_release_accessor(&acc);
-		#endif  // F_VLIBC_GLIBC || F_BSD
+#endif  // F_VLIBC_GLIBC || F_BSD
 	}
 
 	void fatal(cChar* file, uint32_t line, cChar* func, cChar* msg, ...) {

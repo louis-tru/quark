@@ -37,82 +37,82 @@
 // #include "skia/private/GrMtlTypesPriv.h"
 
 #if F_APPLE
-F_NAMESPACE_START
+namespace flare {
 
-ViewVisitor* SkiaMetalRender::visitor() {
-	return this;
-}
-
-void SkiaMetalRender::onReload() {
-	if (!_direct) {
-		GrMtlBackendContext backendContext = {};
-		backendContext.fDevice.retain((__bridge void*)_device);
-		backendContext.fQueue.retain((__bridge void*)_queue);
-
-		_direct = GrDirectContext::MakeMetal(backendContext, {/*_opts.grContextOptions*/});
-		F_ASSERT(_direct);
+	ViewVisitor* SkiaMetalRender::visitor() {
+		return this;
 	}
 
-	_surface.reset(); // clear curr surface
-	_rasterSurface.reset();
+	void SkiaMetalRender::onReload() {
+		if (!_direct) {
+			GrMtlBackendContext backendContext = {};
+			backendContext.fDevice.retain((__bridge void*)_device);
+			backendContext.fQueue.retain((__bridge void*)_queue);
 
-	auto region = _host->display()->display_region();
-	if (_raster) {
-		_opts.stencilBits = 0;
-		_opts.msaaSampleCnt = 0;
-		auto info = SkImageInfo::Make(region.width, region.height,
-																	SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
-		_rasterSurface = SkSurface::MakeRaster(info);
-		F_ASSERT(_rasterSurface);
-		//_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
+			_direct = GrDirectContext::MakeMetal(backendContext, {/*_opts.grContextOptions*/});
+			F_ASSERT(_direct);
+		}
+
+		_surface.reset(); // clear curr surface
+		_rasterSurface.reset();
+
+		auto region = _host->display()->display_region();
+		if (_raster) {
+			_opts.stencilBits = 0;
+			_opts.msaaSampleCnt = 0;
+			auto info = SkImageInfo::Make(region.width, region.height,
+																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
+			_rasterSurface = SkSurface::MakeRaster(info);
+			F_ASSERT(_rasterSurface);
+			//_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
+		}
 	}
-}
 
-void SkiaMetalRender::onBegin() {
-	id<MTLTexture> tex = _drawable.texture;
-	
-	GrMtlTextureInfo fbInfo;
-	fbInfo.fTexture.retain((__bridge void*)tex);
-	
-	//auto region = _host->display()->surface_region();
-	//F_DEBUG("width, %f==%d", region.width, tex.width);
-	//F_DEBUG("height, %f==%d", region.height, tex.height);
-	//tex.sampleCount = _opts.msaaSampleCnt;
-	//F_DEBUG("%d, %d", tex.sampleCount, _opts.msaaSampleCnt);
+	void SkiaMetalRender::onBegin() {
+		id<MTLTexture> tex = _drawable.texture;
+		
+		GrMtlTextureInfo fbInfo;
+		fbInfo.fTexture.retain((__bridge void*)tex);
+		
+		//auto region = _host->display()->surface_region();
+		//F_DEBUG("width, %f==%d", region.width, tex.width);
+		//F_DEBUG("height, %f==%d", region.height, tex.height);
+		//tex.sampleCount = _opts.msaaSampleCnt;
+		//F_DEBUG("%d, %d", tex.sampleCount, _opts.msaaSampleCnt);
 
-	GrBackendRenderTarget backendRT((int)tex.width, (int)tex.height, _opts.msaaSampleCnt, fbInfo);
-	SkSurfaceProps props(0, kUnknown_SkPixelGeometry);
+		GrBackendRenderTarget backendRT((int)tex.width, (int)tex.height, _opts.msaaSampleCnt, fbInfo);
+		SkSurfaceProps props(0, kUnknown_SkPixelGeometry);
 
-	_surface = SkSurface::MakeFromBackendRenderTarget(_direct.get(), backendRT,
-													kTopLeft_GrSurfaceOrigin,
-													kBGRA_8888_SkColorType, nullptr, &props);
-	F_ASSERT(_surface);
+		_surface = SkSurface::MakeFromBackendRenderTarget(_direct.get(), backendRT,
+														kTopLeft_GrSurfaceOrigin,
+														kBGRA_8888_SkColorType, nullptr, &props);
+		F_ASSERT(_surface);
 
-	if (_raster) {
-		_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
-	} else {
-		_canvas = static_cast<SkiaCanvas*>(_surface->getCanvas());
+		if (_raster) {
+			_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
+		} else {
+			_canvas = static_cast<SkiaCanvas*>(_surface->getCanvas());
+		}
 	}
-}
 
-void SkiaMetalRender::onSubmit() {
-	if (_raster)
-		_rasterSurface->draw(_surface->getCanvas(), 0, 0);
-	_surface->flushAndSubmit(); // commit sk
-	_surface.reset();
-	_canvas = nullptr;
-}
+	void SkiaMetalRender::onSubmit() {
+		if (_raster)
+			_rasterSurface->draw(_surface->getCanvas(), 0, 0);
+		_surface->flushAndSubmit(); // commit sk
+		_surface.reset();
+		_canvas = nullptr;
+	}
 
-SkiaMetalRender::SkiaMetalRender(Application* host, const Options& opts, bool raster)
-: MetalRender(host, opts) {
-	_raster = raster;
-}
+	SkiaMetalRender::SkiaMetalRender(Application* host, const Options& opts, bool raster)
+	: MetalRender(host, opts) {
+		_raster = raster;
+	}
 
-SkiaCanvas* SkiaMetalRender::getCanvas() {
-	if (!_canvas)
-		begin();
-	return _canvas;
-}
+	SkiaCanvas* SkiaMetalRender::getCanvas() {
+		if (!_canvas)
+			begin();
+		return _canvas;
+	}
 
-F_NAMESPACE_END
+}
 #endif

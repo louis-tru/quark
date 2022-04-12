@@ -55,7 +55,7 @@ namespace flare {
 	template<class T_Sender, class T_SendData, class T_Origin, typename T_RC>
 	class Event: public Object {
 		F_HIDDEN_ALL_COPY(Event);
-	 public:
+	public:
 		typedef T_SendData       SendData;
 		typedef T_Sender         Sender;
 		typedef T_Origin         Origin;
@@ -77,18 +77,18 @@ namespace flare {
 			_data = nullptr;
 			_origin = nullptr; _noticer = nullptr; Object::release();
 		}
-	 private:
+	private:
 		Noticer*     _noticer;
 		cSendData*   _data;
 		Origin*      _origin;
-	 public:
+	public:
 		ReturnValue return_value;
 	};
 
 	template<class Event>
 	class EventNoticer: public Object {
 		F_HIDDEN_ALL_COPY(EventNoticer);
-	 public:
+	public:
 		typedef Event EventType;
 		typedef typename Event::SendData        SendData;
 		typedef typename Event::cSendData       cSendData;
@@ -98,7 +98,7 @@ namespace flare {
 		typedef std::function<void(Event&)>     ListenerFunc;
 
 		class Listener {
-		 public:
+		public:
 			inline Listener(EventNoticer* noticer) { _noticer = noticer; }
 			virtual ~Listener() {}
 			virtual void call(Event& evt) = 0;
@@ -106,13 +106,13 @@ namespace flare {
 			virtual bool is_on_static_listener() { return false; }
 			virtual bool is_on_shell_listener() { return false; }
 			virtual bool is_on_func_listener() { return false; }
-		 protected:
+			protected:
 			EventNoticer* _noticer;
 		};
 		
 		// On
 		template<class Scope> class OnListener: public Listener {
-		 public:
+		public:
 			typedef void (Scope::*ListenerFunc)(Event& evt);
 			inline OnListener(EventNoticer* noticer, ListenerFunc listener, Scope* scope)
 				: Listener(noticer), _scope(scope), _listener( listener ) {}
@@ -120,14 +120,14 @@ namespace flare {
 			virtual void call(Event& evt) { (_scope->*_listener)(evt); }
 			inline bool equals(ListenerFunc listener) { return _listener == listener; }
 			inline bool equals(Scope* scope) { return _scope == scope; }
-		 protected:
+		protected:
 			Scope*       _scope;
 			ListenerFunc _listener;
 		};
 
 		// ONCE
 		template<class Scope> class OnceListener: public OnListener<Scope> {
-		 public:
+		public:
 			typedef typename OnListener<Scope>::ListenerFunc ListenerFunc;
 			inline OnceListener(EventNoticer* noticer, ListenerFunc listener, Scope* scope)
 				: OnListener<Scope>(noticer, listener, scope) {}
@@ -139,7 +139,7 @@ namespace flare {
 		
 		// STATIC
 		template<class Data> class OnStaticListener: public Listener {
-		 public:
+		public:
 			typedef void (*ListenerFunc)(Event& evt, Data* data);
 			inline OnStaticListener(EventNoticer* noticer, ListenerFunc listener, Data* data)
 				: Listener(noticer), _listener(listener), _data(data) {}
@@ -147,14 +147,14 @@ namespace flare {
 			virtual void call(Event& evt) { _listener(evt, _data); }
 			inline bool equals(ListenerFunc listener) { return _listener == listener; }
 			inline bool equals(Data* data) { return _data == data; }
-		 protected:
+		protected:
 			ListenerFunc _listener;
 			Data*        _data;
 		};
 		
 		// Once STATIC
 		template<class Data> class OnceStaticListener: public OnStaticListener<Data> {
-		 public:
+		public:
 			typedef typename OnStaticListener<Data>::ListenerFunc ListenerFunc;
 			inline OnceStaticListener(EventNoticer* noticer, ListenerFunc listener, Data* data)
 				: OnStaticListener<Data>(noticer, listener, data) {}
@@ -166,20 +166,20 @@ namespace flare {
 		
 		// Function
 		class OnLambdaFunctionListener: public Listener {
-		 public:
+		public:
 			inline OnLambdaFunctionListener(EventNoticer* noticer, ListenerFunc&& listener, int id)
 				: Listener(noticer), _listener(std::move(listener)), _id(id) {}
 			virtual bool is_on_func_listener() { return true; }
 			virtual void call(Event& evt) { _listener(evt); }
 			inline bool equals(int id) { return id == _id; }
-		 protected:
+			protected:
 			ListenerFunc _listener;
 			int          _id;
 		};
 		
 		// Once Function
 		class OnceLambdaFunctionListener: public OnLambdaFunctionListener {
-		 public:
+		public:
 			inline OnceLambdaFunctionListener(EventNoticer* noticer, ListenerFunc&& listener, int id)
 			: OnLambdaFunctionListener(noticer, std::move(listener), id) {}
 			virtual void call(Event& evt) {
@@ -190,7 +190,7 @@ namespace flare {
 		
 		// SHELL
 		class OnShellListener: public Listener {
-		 public:
+		public:
 			inline OnShellListener(EventNoticer* noticer, EventNoticer* shell)
 				: Listener(noticer), _shell(shell) {}
 			virtual bool is_on_shell_listener() { return true; }
@@ -199,13 +199,13 @@ namespace flare {
 				this->_noticer->set_event(evt);
 			}
 			inline bool equals(EventNoticer* shell) { return _shell == shell; }
-		 protected:
+			protected:
 			EventNoticer* _shell;
 		};
 		
 		// Once Shell
 		class OnceShellListener: public OnShellListener {
-		 public:
+		public:
 			inline OnceShellListener(EventNoticer* noticer, EventNoticer* shell)
 				: OnShellListener(noticer, shell) {}
 			virtual void action(Event& evt) {
@@ -442,8 +442,8 @@ namespace flare {
 				// set_event(evt, nullptr);
 			}
 		}
-	
-	 private:
+
+	private:
 
 		inline void set_event(Event& evt) {
 			struct Ev: public Object { void *_noticer; };
@@ -502,16 +502,19 @@ namespace flare {
 			}
 		}
 
-	 private:
+	private:
 		typedef typename List<Listener*>::Iterator iterator;
+
 		struct LWrap {
 			Listener* value;
 			Listener* operator->() { return value; }
 			void del() { delete value; value = nullptr; }
 		};
+
 		String        _name;
 		Sender*       _sender;
 		List<LWrap>*  _listener;
+
 		friend class  flare::Event<SendData, Sender>;
 		friend class  OnShellListener;
 		friend class  OnceShellListener;
@@ -527,7 +530,7 @@ namespace flare {
 	>
 	class Notification: public Basic {
 		F_HIDDEN_ALL_COPY(Notification);
-	 public:
+	public:
 		typedef Event               EventType;
 		typedef Name                NameType;
 		typedef EventNoticer<Event> Noticer;
@@ -726,7 +729,7 @@ namespace flare {
 			}
 		}
 		
-	 protected:
+	protected:
 		
 		/**
 		* 卸载指定事件名称上的全部侦听函数
@@ -780,8 +783,8 @@ namespace flare {
 			auto del = get_noticer(name);
 			if (del) del->trigger(evt);
 		}
-	
-	 private:
+
+	private:
 
 		typedef Dict<Name, Noticer> Noticers;
 

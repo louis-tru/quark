@@ -30,7 +30,7 @@
 
 #include "./label.h"
 
-F_NAMESPACE_START
+namespace flare {
 
 
-F_NAMESPACE_END
+}

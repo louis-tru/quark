@@ -35,18 +35,18 @@
 
 namespace flare {
 
-	#if F_WIN
+#if F_WIN
 		const uint32_t FileHelper::default_mode(0);
-	#else
+#else
 		const uint32_t FileHelper::default_mode([]() {
 			uint32_t mask = umask(0);
 			umask(mask);
 			return 0777 & ~mask;
 		}());
-	#endif
+#endif
 
 	F_DEFINE_INLINE_MEMBERS(FileStat, Inl) {
-	 public:
+	public:
 		void set__stat(uv_stat_t* stat) {
 			if ( !_stat ) {
 				_stat = malloc(sizeof(uv_stat_t));
@@ -134,9 +134,9 @@ namespace flare {
 	 * @func get C file flga
 	 */
 	int inl__file_flag_mask(int flag) {
-		#if F_POSIX || F_UNIX
+#if F_POSIX || F_UNIX
 			return flag;
-		#else
+#else
 			int r_flag = flag & ~(O_ACCMODE | O_WRONLY | O_RDWR |
 				O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC | O_APPEND | O_NONBLOCK);
 			if (FOPEN_ACCMODE & flag) r_flag =| O_ACCMODE;
@@ -149,7 +149,7 @@ namespace flare {
 			if (FOPEN_APPEND & flag) r_flag =| O_APPEND;
 			if (FOPEN_NONBLOCK & flag) r_flag =| O_NONBLOCK;
 			return r_flag;
-		#endif
+#endif
 	}
 
 	cChar* inl__file_flag_str(int flag) {
@@ -225,7 +225,7 @@ namespace flare {
 	typedef UVRequestWrap<uv_fs_t, AsyncFile::Inl, FileStreamData> FileStreamReq;
 
 	class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
-	 public:
+	public:
 		typedef AsyncFile::Delegate Delegate;
 		virtual void trigger_async_file_open(AsyncFile* file) { }
 		virtual void trigger_async_file_close(AsyncFile* file) { }
@@ -313,7 +313,7 @@ namespace flare {
 
 		inline RunLoop* loop() { return _keep->host(); }
 
-	 private:
+	private:
 		inline uv_loop_t* uv_loop() { return loop()->uv_loop(); }
 		inline static RunLoop* loop(uv_fs_t* req) { return FileReq::cast(req)->ctx()->loop(); }
 			
@@ -420,7 +420,7 @@ namespace flare {
 			}
 		}
 
-	 private:
+	private:
 		String      _path;
 		int         _fd;
 		bool        _opening;

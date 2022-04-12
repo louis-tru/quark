@@ -39,154 +39,154 @@
 # import <UIKit/UIKit.h>
 #endif
 
-F_NAMESPACE_START
+namespace flare {
 
-static PixelData image_decode(cBuffer& data) {
+	static PixelData image_decode(cBuffer& data) {
 
-	NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
-																				length:data.length()
-																	freeWhenDone:NO];
-	UIImage* img = [[UIImage alloc] initWithData:nsdata];
-#if F_OSX
-	CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
-#else 
-	CGImageRef image = [img CGImage];
-#endif
+		NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
+																					length:data.length()
+																		freeWhenDone:NO];
+		UIImage* img = [[UIImage alloc] initWithData:nsdata];
+	#if F_OSX
+		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
+	#else 
+		CGImageRef image = [img CGImage];
+	#endif
 
-	if (image) {
-		CGColorSpaceRef color_space = CGImageGetColorSpace(image);
-		if (color_space) {
-			
+		if (image) {
+			CGColorSpaceRef color_space = CGImageGetColorSpace(image);
+			if (color_space) {
+				
+				int width = (int)CGImageGetWidth(image);
+				int height = (int)CGImageGetHeight(image);
+				int pixel_size = width * height * 4;
+				
+				CGImageAlphaInfo info;
+				PixelData::Format format;
+				bool alpha = true;
+				
+				switch (CGImageGetAlphaInfo(image)) {
+					case kCGImageAlphaPremultipliedLast:
+					case kCGImageAlphaPremultipliedFirst:
+					case kCGImageAlphaLast:
+					case kCGImageAlphaFirst:
+						format = PixelData::RGBA8888;
+						break;
+					default:
+						format = PixelData::RGBX8888;
+						alpha = false;
+						break;
+				}
+				
+				bool isPremultipliedAlpha;
+				
+				if (alpha) {
+					info = kCGImageAlphaPremultipliedLast;
+					isPremultipliedAlpha = true;
+				} else {
+					info = kCGImageAlphaNoneSkipLast;
+					isPremultipliedAlpha = false;
+				}
+				
+				Buffer pixel_data(pixel_size);
+				color_space = CGColorSpaceCreateDeviceRGB();
+				CGContextRef context =
+				CGBitmapContextCreate(*pixel_data, width, height, 8,
+															width * 4, color_space, info | kCGBitmapByteOrder32Big);
+				CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
+				CGContextRelease(context);
+				CFRelease(color_space);
+				return PixelData(pixel_data, width, height, PixelData::RGBA8888, isPremultipliedAlpha);
+			}
+		}
+		return PixelData();
+	}
+
+	static PixelData image_decode_header(cBuffer& data) {
+		
+		NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
+																					length:data.length()
+																		freeWhenDone:NO];
+		UIImage* img = [[UIImage alloc] initWithData:nsdata];
+	#if F_OSX
+		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
+	#else
+		CGImageRef image = [img CGImage];
+	#endif
+		
+		if (image) {
 			int width = (int)CGImageGetWidth(image);
 			int height = (int)CGImageGetHeight(image);
-			int pixel_size = width * height * 4;
-			
-			CGImageAlphaInfo info;
+			CGImageAlphaInfo alpha = CGImageGetAlphaInfo(image);
 			PixelData::Format format;
-			bool alpha = true;
 			
-			switch (CGImageGetAlphaInfo(image)) {
-				case kCGImageAlphaPremultipliedLast:
-				case kCGImageAlphaPremultipliedFirst:
-				case kCGImageAlphaLast:
-				case kCGImageAlphaFirst:
-					format = PixelData::RGBA8888;
-					break;
-				default:
-					format = PixelData::RGBX8888;
-					alpha = false;
-					break;
-			}
-			
-			bool isPremultipliedAlpha;
-			
-			if (alpha) {
-				info = kCGImageAlphaPremultipliedLast;
-				isPremultipliedAlpha = true;
+			if (alpha == kCGImageAlphaPremultipliedLast ||
+					alpha == kCGImageAlphaPremultipliedFirst ||
+					alpha == kCGImageAlphaLast ||
+					alpha == kCGImageAlphaFirst) {
+				format = PixelData::RGBA8888;
 			} else {
-				info = kCGImageAlphaNoneSkipLast;
-				isPremultipliedAlpha = false;
+				format = PixelData::RGBX8888;
 			}
-			
-			Buffer pixel_data(pixel_size);
-			color_space = CGColorSpaceCreateDeviceRGB();
-			CGContextRef context =
-			CGBitmapContextCreate(*pixel_data, width, height, 8,
-														width * 4, color_space, info | kCGBitmapByteOrder32Big);
-			CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
-			CGContextRelease(context);
-			CFRelease(color_space);
-			return PixelData(pixel_data, width, height, PixelData::RGBA8888, isPremultipliedAlpha);
+			return PixelData(Buffer(), width, height, format, false);
 		}
+		return PixelData();
 	}
-	return PixelData();
-}
 
-static PixelData image_decode_header(cBuffer& data) {
-	
-	NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
-																				length:data.length()
-																	freeWhenDone:NO];
-	UIImage* img = [[UIImage alloc] initWithData:nsdata];
-#if F_OSX
-	CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
-#else
-	CGImageRef image = [img CGImage];
-#endif
-	
-	if (image) {
-		int width = (int)CGImageGetWidth(image);
-		int height = (int)CGImageGetHeight(image);
-		CGImageAlphaInfo alpha = CGImageGetAlphaInfo(image);
-		PixelData::Format format;
-		
-		if (alpha == kCGImageAlphaPremultipliedLast ||
-				alpha == kCGImageAlphaPremultipliedFirst ||
-				alpha == kCGImageAlphaLast ||
-				alpha == kCGImageAlphaFirst) {
-			format = PixelData::RGBA8888;
-		} else {
-			format = PixelData::RGBX8888;
-		}
-		return PixelData(Buffer(), width, height, format, false);
+	Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
+		Array<PixelData> rv; rv.push(image_decode(data));
+		return rv;
 	}
-	return PixelData();
-}
 
-Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
-	Array<PixelData> rv; rv.push(image_decode(data));
-	return rv;
-}
+	PixelData JPEGImageCodec::decode_header(cBuffer& data) {
+		return image_decode_header(data);
+	}
 
-PixelData JPEGImageCodec::decode_header(cBuffer& data) {
-	return image_decode_header(data);
-}
+	Buffer JPEGImageCodec::encode(cPixelData& data) {
+		FX_UNIMPLEMENTED();
+		return Buffer();
+	}
 
-Buffer JPEGImageCodec::encode(cPixelData& data) {
-	FX_UNIMPLEMENTED();
-	return Buffer();
-}
+	Array<PixelData> GIFImageCodec::decode(cBuffer& data) {
+		Array<PixelData> rv; rv.push(image_decode(data));
+		return rv;
+	}
 
-Array<PixelData> GIFImageCodec::decode(cBuffer& data) {
-	Array<PixelData> rv; rv.push(image_decode(data));
-	return rv;
-}
+	PixelData GIFImageCodec::decode_header(cBuffer& data) {
+		return image_decode_header(data);
+	}
 
-PixelData GIFImageCodec::decode_header(cBuffer& data) {
-	return image_decode_header(data);
-}
+	Buffer GIFImageCodec::encode(cPixelData& data) {
+		FX_UNIMPLEMENTED();
+		return Buffer();
+	}
 
-Buffer GIFImageCodec::encode(cPixelData& data) {
-	FX_UNIMPLEMENTED();
-	return Buffer();
-}
+	Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
+		Array<PixelData> rv; rv.push(image_decode(data));
+		return rv;
+	}
 
-Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
-	Array<PixelData> rv; rv.push(image_decode(data));
-	return rv;
-}
+	PixelData PNGImageCodec::decode_header(cBuffer& data) {
+		return image_decode_header(data);
+	}
 
-PixelData PNGImageCodec::decode_header(cBuffer& data) {
-	return image_decode_header(data);
-}
+	Buffer PNGImageCodec::encode(cPixelData& data) {
+		FX_UNIMPLEMENTED();
+		return Buffer();
+	}
 
-Buffer PNGImageCodec::encode(cPixelData& data) {
-	FX_UNIMPLEMENTED();
-	return Buffer();
-}
+	Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
+		Array<PixelData> rv; rv.push(image_decode(data));
+		return rv;
+	}
 
-Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
-	Array<PixelData> rv; rv.push(image_decode(data));
-	return rv;
-}
+	PixelData WEBPImageCodec::decode_header(cBuffer& data) {
+		return image_decode_header(data);
+	}
 
-PixelData WEBPImageCodec::decode_header(cBuffer& data) {
-	return image_decode_header(data);
-}
+	Buffer WEBPImageCodec::encode(cPixelData& data) {
+		FX_UNIMPLEMENTED();
+		return Buffer();
+	}
 
-Buffer WEBPImageCodec::encode(cPixelData& data) {
-	FX_UNIMPLEMENTED();
-	return Buffer();
 }
-
-F_NAMESPACE_END

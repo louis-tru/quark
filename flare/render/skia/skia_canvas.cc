@@ -80,21 +80,20 @@ private:
 
 #include "./skia_canvas.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-void SkiaCanvas::setMatrix(const Mat& mat) {
-	SkM44 m4(mat[0],  mat[1], 0, mat[2],
-						mat[3], mat[4], 0, mat[5],
-						0,           0, 1, 0,
-					  0,           0, 0, display()->atom_pixel());
-	//SkCanvas::setMatrix(m4);
-	if (fMCRec->fDeferredSaveCount > 0) {
-		doSave();
+	void SkiaCanvas::setMatrix(const Mat& mat) {
+		SkM44 m4(mat[0],  mat[1], 0, mat[2],
+							mat[3], mat[4], 0, mat[5],
+							0,           0, 1, 0,
+							0,           0, 0, display()->atom_pixel());
+		//SkCanvas::setMatrix(m4);
+		if (fMCRec->fDeferredSaveCount > 0) {
+			doSave();
+		}
+		fMCRec->fMatrix = m4;
+		fMCRec->fDevice->setLocalToDevice(m4);
+		// didSetM44(m4); ignore
 	}
-	fMCRec->fMatrix = m4;
-	fMCRec->fDevice->setLocalToDevice(m4);
-	// didSetM44(m4); ignore
+
 }
-
-
-F_NAMESPACE_END

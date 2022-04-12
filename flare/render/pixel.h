@@ -35,91 +35,91 @@
 #include "../util/string.h"
 #include "../util/array.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-class         PixelInfo;
-class         Pixel;
-typedef const Pixel cPixel;
-typedef const PixelInfo cPixelInfo;
-
-/**
- * @enum ColorType
- */
-enum ColorType {
-	kColor_Type_Invalid,
-	kColor_Type_Alpha_8,
-	kColor_Type_RGB_565,
-	kColor_Type_ARGB_4444,
-	kColor_Type_RGBA_8888,
-	kColor_Type_RGB_888X,
-	kColor_Type_BGRA_8888,
-	kColor_Type_RGBA_1010102,
-	kColor_Type_BGRA_1010102,
-	kColor_Type_RGB_101010X,
-	kColor_Type_BGR_101010X,
-	kColor_Type_Gray_8,
-	kColor_Type_RGB_888,
-	kColor_Type_RGBA_5551,
-	kColor_Type_Luminance_Alpha_88,
-};
-
-enum AlphaType {
-	kSkAlphaType_Unknown,
-	kAlphaType_Opaque,   //!< pixel is opaque
-	kAlphaType_Premul,   //!< pixel components are premultiplied by alpha
-	kAlphaType_Unpremul, //!< pixel components are independent of alpha
-};
-
-class F_EXPORT PixelInfo: public Object {
-public:
-	PixelInfo();
-	PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kSkAlphaType_Unknown);
-	F_DEFINE_PROP_READ(int, width); // width 图像宽度
-	F_DEFINE_PROP_READ(int, height); // height 图像高度
-	F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
-	F_DEFINE_PROP_READ(AlphaType, alphaType); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
-};
-
-/**
-* @class Pixel
-*/
-class F_EXPORT Pixel: public PixelInfo {
-public:
+	class         PixelInfo;
+	class         Pixel;
+	typedef const Pixel cPixel;
+	typedef const PixelInfo cPixelInfo;
 
 	/**
-	* @func pixel_bit_size()
-	*/
-	static uint32_t bytes_per_pixel(ColorType type);
-
-	/**
-	 *
-	 * decode jpg/png/gif... image format data
-	 *
-	 * @func decode()
+	 * @enum ColorType
 	 */
-	static Pixel decode(cBuffer& raw);
+	enum ColorType {
+		kColor_Type_Invalid,
+		kColor_Type_Alpha_8,
+		kColor_Type_RGB_565,
+		kColor_Type_ARGB_4444,
+		kColor_Type_RGBA_8888,
+		kColor_Type_RGB_888X,
+		kColor_Type_BGRA_8888,
+		kColor_Type_RGBA_1010102,
+		kColor_Type_BGRA_1010102,
+		kColor_Type_RGB_101010X,
+		kColor_Type_BGR_101010X,
+		kColor_Type_Gray_8,
+		kColor_Type_RGB_888,
+		kColor_Type_RGBA_5551,
+		kColor_Type_Luminance_Alpha_88,
+	};
 
-	Pixel();
-	Pixel(cPixel& data);
-	Pixel(Pixel&& data);
-	Pixel(cPixelInfo& info, Buffer body);
-	Pixel(cPixelInfo& info, cWeakBuffer& body);
+	enum AlphaType {
+		kSkAlphaType_Unknown,
+		kAlphaType_Opaque,   //!< pixel is opaque
+		kAlphaType_Premul,   //!< pixel components are premultiplied by alpha
+		kAlphaType_Unpremul, //!< pixel components are independent of alpha
+	};
+
+	class F_EXPORT PixelInfo: public Object {
+	public:
+		PixelInfo();
+		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kSkAlphaType_Unknown);
+		F_DEFINE_PROP_READ(int, width); // width 图像宽度
+		F_DEFINE_PROP_READ(int, height); // height 图像高度
+		F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
+		F_DEFINE_PROP_READ(AlphaType, alphaType); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
+	};
 
 	/**
-	* @func body 图像数据主体
+	* @class Pixel
 	*/
-	inline  WeakBuffer& body() { return _body; }
-	inline cWeakBuffer& body() const { return _body; }
+	class F_EXPORT Pixel: public PixelInfo {
+	public:
 
-	/**
-	* @func ptr() 图像数据主体指针
-	*/
-	inline const void* ptr() const { return _body.val(); }
-	
-private:
-	Buffer     _data; // hold data
-	WeakBuffer _body;
-};
+		/**
+		* @func pixel_bit_size()
+		*/
+		static uint32_t bytes_per_pixel(ColorType type);
 
-F_NAMESPACE_END
+		/**
+		 *
+		 * decode jpg/png/gif... image format data
+		 *
+		 * @func decode()
+		 */
+		static Pixel decode(cBuffer& raw);
+
+		Pixel();
+		Pixel(cPixel& data);
+		Pixel(Pixel&& data);
+		Pixel(cPixelInfo& info, Buffer body);
+		Pixel(cPixelInfo& info, cWeakBuffer& body);
+
+		/**
+		* @func body 图像数据主体
+		*/
+		inline  WeakBuffer& body() { return _body; }
+		inline cWeakBuffer& body() const { return _body; }
+
+		/**
+		* @func ptr() 图像数据主体指针
+		*/
+		inline const void* ptr() const { return _body.val(); }
+		
+	private:
+		Buffer     _data; // hold data
+		WeakBuffer _body;
+	};
+
+}
 #endif

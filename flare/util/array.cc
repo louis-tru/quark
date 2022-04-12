@@ -107,8 +107,7 @@ namespace flare {
 			if (APPEND_ZERO) _val[_length] = 0; \
 		} \
 		\
-		template<> ArrayBuffer<T, A> \
-		Array<T, A>::copy(uint32_t start, uint32_t end) const { \
+		template<> ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const { \
 			end = F_MIN(end, _length); \
 			if (start < end) { \
 				ArrayBuffer<T, A> arr(end - start, end - start + APPEND_ZERO); \
@@ -124,8 +123,7 @@ namespace flare {
 	
 
 #ifndef F_ARRAY_NO_IMPL
-	template<>
-	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {
+	template<> void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {
 		if (len > 1) {
 			char* _src = (char*)src;
 			void* tmp = malloc(size);
@@ -154,4 +152,5 @@ namespace flare {
 	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float);
 	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double);
 #endif
+
 }

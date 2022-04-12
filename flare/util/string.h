@@ -46,7 +46,7 @@ namespace flare {
 	typedef const  ArrayString<uint32_t> cString4;
 	
 	class F_EXPORT ArrayStringBase: public Object {
-	 public:
+	public:
 		typedef void* (*AAlloc)(void* val, uint32_t, uint32_t*, uint32_t size_of);
 		typedef void  (*Free)(void* ptr);
 		static constexpr char MAX_SHORT_LEN = 32;
@@ -61,7 +61,7 @@ namespace flare {
 			struct LongStr* l; // share long string core
 		};
 		uint32_t size() const;
-	 protected:
+	protected:
 		ArrayStringBase();
 		ArrayStringBase(const ArrayStringBase& str);
 		ArrayStringBase(uint32_t len, AAlloc alloc, uint8_t size_of);
@@ -83,7 +83,7 @@ namespace flare {
 
 	template<typename T, typename A>
 	class ArrayString: public ArrayStringBase {
-	 public:
+	public:
 		// constructors
 		ArrayString(); // empty string constructors
 		ArrayString(const ArrayString& s); // copy constructors
@@ -180,7 +180,7 @@ namespace flare {
 		// to number
 		template<typename T2> T2   to_number()        const;
 		template<typename T2> bool to_number(T2* out) const;
-	 private:
+	private:
 		template<typename T2> void number_(T2 i);
 		T* val();
 	};
@@ -192,7 +192,7 @@ namespace flare {
 namespace flare {
 
 	class F_EXPORT _Str {
-	 public:
+	public:
 		// static methods
 		typedef char T;
 		typedef void* (*Alloc)(uint32_t);

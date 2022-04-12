@@ -36,7 +36,7 @@ namespace flare {
 	template <typename T, typename T2>
 	class SimpleIterator {
 		template<typename, typename> friend class SimpleIterator;
-	 public:
+	public:
 		//! Constant iterator type
 		typedef SimpleIterator<const T2, T2> IteratorConst;
 		//! Non-constant iterator type
@@ -79,14 +79,14 @@ namespace flare {
 		Pointer   operator->() const { return _ptr; }
 		Reference operator*() const { return *_ptr; }
 		//
-	 protected:
+	protected:
 		Pointer _ptr; //!< raw pointer
 	};
 
 	template <typename T, typename T2>
 	class ComplexIterator {
 		template<typename, typename> friend class ComplexIterator;
-	 public:
+	public:
 		//! Constant iterator type
 		typedef ComplexIterator<const T2, T2> IteratorConst;
 		//! Non-constant iterator type
@@ -131,7 +131,7 @@ namespace flare {
 		Pointer   operator->() const { return &((T2*)_ptr)->data(); }
 		Reference operator*() const { return ((T2*)_ptr)->data(); }
 		
-	 private:
+	private:
 		T* _ptr; //!< raw pointer
 	};
 

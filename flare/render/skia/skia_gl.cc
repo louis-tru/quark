@@ -37,65 +37,65 @@
 
 #if !F_APPLE || F_ENABLE_GL
 
-F_NAMESPACE_START
+namespace flare {
 
-uint32_t glPixelInternalFormat(ColorType type);
+	uint32_t glPixelInternalFormat(ColorType type);
 
-// --------------- S k i a . G L . R e n d e r ---------------
+	// --------------- S k i a . G L . R e n d e r ---------------
 
-ViewVisitor* SkiaGLRender::visitor() {
-	return this;
-}
-
-void SkiaGLRender::onReload() {
-	if (!_direct) {
-		_direct = GrDirectContext::MakeGL(GrGLMakeNativeInterface(), {/*_opts.grContextOptions*/});
-		F_ASSERT(_direct);
-	}
-	_surface.reset(); // clear curr surface
-	_rasterSurface.reset();
-
-	auto region = _host->display()->display_region();
-	if (_raster) {
-		glDisable(GL_BLEND); // disable color blend
-		_opts.stencilBits = 0;
-		_opts.msaaSampleCnt = 0;
-		auto info = SkImageInfo::Make(region.width, region.height,
-																	SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
-		_rasterSurface = SkSurface::MakeRaster(info);
-		F_ASSERT(_rasterSurface);
+	ViewVisitor* SkiaGLRender::visitor() {
+		return this;
 	}
 
-	GrGLFramebufferInfo fbInfo = {
-		_opts.msaaSampleCnt > 1 ? _msaa_frame_buffer : _frame_buffer,
-		glPixelInternalFormat(_opts.colorType),
-	};
+	void SkiaGLRender::onReload() {
+		if (!_direct) {
+			_direct = GrDirectContext::MakeGL(GrGLMakeNativeInterface(), {/*_opts.grContextOptions*/});
+			F_ASSERT(_direct);
+		}
+		_surface.reset(); // clear curr surface
+		_rasterSurface.reset();
 
-	GrBackendRenderTarget backendRT(region.width, region.height, _opts.msaaSampleCnt, _opts.stencilBits, fbInfo);
-	SkSurfaceProps props(0, kUnknown_SkPixelGeometry);
+		auto region = _host->display()->display_region();
+		if (_raster) {
+			glDisable(GL_BLEND); // disable color blend
+			_opts.stencilBits = 0;
+			_opts.msaaSampleCnt = 0;
+			auto info = SkImageInfo::Make(region.width, region.height,
+																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
+			_rasterSurface = SkSurface::MakeRaster(info);
+			F_ASSERT(_rasterSurface);
+		}
 
-	_surface = SkSurface::MakeFromBackendRenderTarget(
-														_direct.get(), backendRT,
-														kBottomLeft_GrSurfaceOrigin,
-														SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
-	F_ASSERT(_surface);
-	if (_raster) {
-		_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
-	} else {
-		_canvas = static_cast<SkiaCanvas*>(_surface->getCanvas());
+		GrGLFramebufferInfo fbInfo = {
+			_opts.msaaSampleCnt > 1 ? _msaa_frame_buffer : _frame_buffer,
+			glPixelInternalFormat(_opts.colorType),
+		};
+
+		GrBackendRenderTarget backendRT(region.width, region.height, _opts.msaaSampleCnt, _opts.stencilBits, fbInfo);
+		SkSurfaceProps props(0, kUnknown_SkPixelGeometry);
+
+		_surface = SkSurface::MakeFromBackendRenderTarget(
+															_direct.get(), backendRT,
+															kBottomLeft_GrSurfaceOrigin,
+															SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
+		F_ASSERT(_surface);
+		if (_raster) {
+			_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
+		} else {
+			_canvas = static_cast<SkiaCanvas*>(_surface->getCanvas());
+		}
 	}
-}
 
-void SkiaGLRender::onSubmit() {
-	if (_raster)
-		_rasterSurface->draw(_surface->getCanvas(), 0, 0);
-	_surface->flushAndSubmit(); // commit sk
-}
+	void SkiaGLRender::onSubmit() {
+		if (_raster)
+			_rasterSurface->draw(_surface->getCanvas(), 0, 0);
+		_surface->flushAndSubmit(); // commit sk
+	}
 
-SkiaGLRender::SkiaGLRender(Application* host, const Options& opts, bool raster)
-: GLRender(host, opts) {
-	_raster = raster;
-}
+	SkiaGLRender::SkiaGLRender(Application* host, const Options& opts, bool raster)
+		: GLRender(host, opts) {
+		_raster = raster;
+	}
 
-F_NAMESPACE_END
+}
 #endif

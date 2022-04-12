@@ -37,8 +37,8 @@ namespace flare {
 	String string_format(cChar* f, va_list arg);
 
 	Error::Error(const Error& e)
-	 : _code(e.code())
-	 , _message(e._message) {
+		: _code(e.code())
+		, _message(e._message) {
 		 // std::exception _ex;
 	}
 	
@@ -57,8 +57,8 @@ namespace flare {
 	}
 
 	Error::Error(int code, cString& msg)
-	 : _code(code)
-	 , _message(msg) {
+		: _code(code)
+		, _message(msg) {
 	}
 
 	Error& Error::operator=(const Error& e) {

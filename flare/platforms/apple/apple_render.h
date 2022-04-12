@@ -40,19 +40,19 @@
 #include "../../render/render.h"
 #include "./apple_app.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-class F_EXPORT RenderApple {
-public:
-	/**
-	 * @thread render
-	 */
-	virtual UIView* init(CGRect rect) = 0;
-	virtual Render* render() = 0;
-	bool resize(CGRect rect);
-	static RenderApple* Make(Application* host, const Render::Options& opts);
-};
+	class F_EXPORT RenderApple {
+	public:
+		/**
+		 * @thread render
+		 */
+		virtual UIView* init(CGRect rect) = 0;
+		virtual Render* render() = 0;
+		bool resize(CGRect rect);
+		static RenderApple* Make(Application* host, const Render::Options& opts);
+	};
 
-F_NAMESPACE_END
+}
 #endif
 #endif

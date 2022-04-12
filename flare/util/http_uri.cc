@@ -145,7 +145,7 @@ namespace flare {
 		}
 	}
 
-	#define IN_RANGE(a,b,c) (a >= b && a <= c)
+#define IN_RANGE(a,b,c) (a >= b && a <= c)
 
 	static inline int needs_encoding(Char ch, Char next
 																	 , bool component, bool secondary)
@@ -261,7 +261,7 @@ namespace flare {
 		// alloc
 		dec = (Char *) malloc(len + 1);
 		
-	 #define push(c) (dec[size++] = c)
+#define push(c) (dec[size++] = c)
 		
 		// decode
 		while (len--) {
@@ -280,7 +280,7 @@ namespace flare {
 		
 		dec[size] = '\0';
 		
-	 #undef push
+#undef push
 		
 		return Buffer::from(dec, uint32_t(size));
 	}

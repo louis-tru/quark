@@ -44,7 +44,7 @@ namespace flare {
 	* @class API
 	*/
 	class API {
-	 public:
+	public:
 		static void ime_keyboard_open(bool clear, int type, int return_type);
 		static void ime_keyboard_can_backspace(bool can_backspace, bool can_delete);
 		static void ime_keyboard_close();

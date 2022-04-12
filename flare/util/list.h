@@ -42,7 +42,7 @@ namespace flare {
 	*/
 	template<typename T, typename A = MemoryAllocator> 
 	class List: public Object {
-	 public:
+	public:
 		struct Node {
 			typedef T     Data;
 			Node* prev() const { return _prev; }
@@ -104,8 +104,7 @@ namespace flare {
 
 		uint32_t length() const;
 		
-	 private:
-
+	private:
 		void init_();
 		void fill_(Node* first, Node* last, uint32_t len);
 		void erase_(Node* node);
@@ -113,7 +112,6 @@ namespace flare {
 		Node* node_(IteratorConst it);
 
 		struct Sham { T _item; }; // Used to call data destructors
-
 		Node _end; // { _prev = last, _next = first }
 		uint32_t _length;
 	};

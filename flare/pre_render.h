@@ -48,14 +48,14 @@ namespace flare {
 	*/
 	class F_EXPORT PreRender: public Object {
 		F_HIDDEN_ALL_COPY(PreRender);
-	 public:
+	public:
 
 		PreRender();
 
 		virtual ~PreRender();
 
 		class F_EXPORT Task {
-		 public:
+		public:
 			typedef List<Task*>::Iterator ID;
 			inline Task(): _timeout(0) {}
 			virtual ~Task();
@@ -67,7 +67,7 @@ namespace flare {
 			inline void set_task_id(ID id) { _task_id = id; }
 			inline int64_t get_task_timeout() const { return _timeout; }
 			inline void set_task_timeout(int64_t timeout_us) { _timeout = timeout_us; }
-		 private:
+		private:
 			ID      _task_id;
 			int64_t _timeout;
 		};
@@ -86,11 +86,12 @@ namespace flare {
 		void delete_mark_recursive(Layout *layout, uint32_t depth);
 		void mark_none();
 
-	 private:
+	private:
 		void add_task(Task* task);
 		void del_task(Task* task);
 		void solve_mark();
 		void solve_mark_recursive();
+
 		// member data
 		bool _is_render;
 		int32_t _mark_total, _mark_recursive_total;

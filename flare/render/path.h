@@ -35,53 +35,53 @@
 #include "../bezier.h"
 #include "../util/array.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-class F_EXPORT PathLine: public Object {
-public:
-	enum PathVerb: uint8_t {
-		kVerb_Move = 0, // move
-		kVerb_Line,  // straight line
-		kVerb_Quad,  // quadratic bezier
-		kVerb_Cubic, // Cubic bezier
-		kVerb_Close, // close
+	class F_EXPORT PathLine: public Object {
+	public:
+		enum PathVerb: uint8_t {
+			kVerb_Move = 0, // move
+			kVerb_Line,  // straight line
+			kVerb_Quad,  // quadratic bezier
+			kVerb_Cubic, // Cubic bezier
+			kVerb_Close, // close
+		};
+		static PathLine Oval(Rect rect);
+		static PathLine Rect(Rect rect);
+		static PathLine Circle(Vec2 center, float radius);
+		PathLine(Vec2 move);
+		PathLine(Vec2* pts, int len, PathVerb* verbs, int verbsLen);
+		// add path points
+		void move_to(Vec2 to);
+		void line_to(Vec2 to);
+		void quad_to(Vec2 control, Vec2 to);
+		void cubic_to(Vec2 control1, Vec2 control2, Vec2 to);
+		void close_to(); // close line
+		// point ptr
+		inline const Vec2* pts() const { return (Vec2*)*_pts; }
+		inline const PathVerb* verbs() const { return (PathVerb*)*_verbs; }
+		inline const uint32_t pts_len() const { return _pts.length() >> 1; }
+		inline const uint32_t verbs_len() const { return _verbs.length(); }
+		// convert func
+		Array<Vec2>  to_polygon(int polySize = 3) const;
+		Array<Vec2>  to_edge_line() const;
+		// matrix transfrom
+		void transfrom(const Mat& matrix);
+		// scale transfrom
+		void scale(Vec2 scale);
+		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
+		PathLine normalized() const; // normal
+		PathLine clip(const PathLine& path) const;
+		// estimate sample rate
+		static int get_quadratic_bezier_sample(const QuadraticBezier& curve);
+		static int get_cubic_bezier_sample(const CubicBezier& curve);
+	private:
+		void quad_to2(float *p);
+		void cubic_to2(float *p);
+		PathLine();
+		Array<float> _pts;
+		Array<uint8_t> _verbs;
 	};
-	static PathLine Oval(Rect rect);
-	static PathLine Rect(Rect rect);
-	static PathLine Circle(Vec2 center, float radius);
-	PathLine(Vec2 move);
-	PathLine(Vec2* pts, int len, PathVerb* verbs, int verbsLen);
-	// add path points
-	void move_to(Vec2 to);
-	void line_to(Vec2 to);
-	void quad_to(Vec2 control, Vec2 to);
-	void cubic_to(Vec2 control1, Vec2 control2, Vec2 to);
-	void close_to(); // close line
-	// point ptr
-	inline const Vec2* pts() const { return (Vec2*)*_pts; }
-	inline const PathVerb* verbs() const { return (PathVerb*)*_verbs; }
-	inline const uint32_t pts_len() const { return _pts.length() >> 1; }
-	inline const uint32_t verbs_len() const { return _verbs.length(); }
-	// convert func
-	Array<Vec2>  to_polygon(int polySize = 3) const;
-	Array<Vec2>  to_edge_line() const;
-	// matrix transfrom
-	void transfrom(const Mat& matrix);
-	// scale transfrom
-	void scale(Vec2 scale);
-	// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
-	PathLine normalized() const; // normal
-	PathLine clip(const PathLine& path) const;
-	// estimate sample rate
-	static int get_quadratic_bezier_sample(const QuadraticBezier& curve);
-	static int get_cubic_bezier_sample(const CubicBezier& curve);
-private:
-	void quad_to2(float *p);
-	void cubic_to2(float *p);
-	PathLine();
-	Array<float> _pts;
-	Array<uint8_t> _verbs;
-};
 
-F_NAMESPACE_END
+}
 #endif

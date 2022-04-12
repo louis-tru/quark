@@ -31,37 +31,37 @@
 #include "./render.h"
 #include <math.h>
 
-F_NAMESPACE_START
+namespace flare {
 
-static inline uint32_t integerExp(uint32_t n) {
-	return (uint32_t) powf(2, floor(log2(n)));
+	static inline uint32_t integerExp(uint32_t n) {
+		return (uint32_t) powf(2, floor(log2(n)));
+	}
+
+	static inline uint32_t massSample(uint32_t n) {
+		n = integerExp(n);
+		return F_MIN(n, 8);
+	}
+
+	Render::Render(Application* host, const Options& opts)
+		: _host(host)
+		, _opts(opts)
+	{
+		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
+		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
+	}
+
+	Render::~Render() {}
+
+	void Render::activate(bool isActive) {}
+
+	Render::Options Render::parseOptions(cJSON& json) {
+		auto& msaa = json["msaaSampleCnt"];
+		auto& stencil = json["stencilBits"];
+		return {
+			.msaaSampleCnt = msaa.is_uint32() ? msaa.to_int(): 0,
+			.stencilBits = stencil.is_uint32() ?
+				(int)integerExp(F_MIN(F_MAX(stencil.to_int(), 8), 16)): 8,
+		};
+	}
+
 }
-
-static inline uint32_t massSample(uint32_t n) {
-	n = integerExp(n);
-	return F_MIN(n, 8);
-}
-
-Render::Render(Application* host, const Options& opts)
-	: _host(host)
-	, _opts(opts)
-{
-	_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
-	_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
-}
-
-Render::~Render() {}
-
-void Render::activate(bool isActive) {}
-
-Render::Options Render::parseOptions(cJSON& json) {
-	auto& msaa = json["msaaSampleCnt"];
-	auto& stencil = json["stencilBits"];
-	return {
-		.msaaSampleCnt = msaa.is_uint32() ? msaa.to_int(): 0,
-		.stencilBits = stencil.is_uint32() ?
-			(int)integerExp(F_MIN(F_MAX(stencil.to_int(), 8), 16)): 8,
-	};
-}
-
-F_NAMESPACE_END

@@ -46,9 +46,9 @@ namespace flare {
 
 	static String split_path(cString& path, bool basename) {
 		String s = path;
-		#if F_WIN
+#if F_WIN
 			s = s.replace_all('\\', '/');
-		#endif
+#endif
 		int start = path.length();
 		if (path[start - 1] == '/') {
 			s = s.substr(0, start - 1);
@@ -89,41 +89,41 @@ namespace flare {
 	}
 
 	String Path::cwd() {
-		#if F_WIN
+#if F_WIN
 			Char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/', '/' };
 			_getcwd(cwd + 8, 1024);
 			String str = String(cwd).replace_all('\\', '/');
 			if (str.length() == 10)
 				str.push('/'); //
 			return str;
-		#else
+#else
 			Char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/' };
 			getcwd(cwd + 7, 1024);
 			return cwd;
-		#endif
+#endif
 	}
 
 	bool Path::chdir(cString& path) {
 		String str = format("%s", path.c_str());
-		#if F_WIN
+#if F_WIN
 			return _chdir(str.substr(8).c_str()) == 0;
-		#else
+#else
 			return ::chdir(str.substr(7).c_str()) == 0;
-		#endif
+#endif
 	}
 
 	static cString Chars("ABCDEFGHIJKMLNOPQRSTUVWXYZabcdefghijkmlnopqrstuvwxyz");
 
 	bool Path::is_local_absolute(cString& path) {
-		#if F_WIN
+#if F_WIN
 			if (Chars.index_of(s[0]) != -1 && path[1] == ':') {
 				return true;
 			}
-		#else
+#else
 			if (path[0] == '/') {
 				return true;
 			}
-		#endif
+#endif
 		else if ( is_local_zip(path) || is_local_file( path ) ) {
 			return true;
 		}
@@ -194,7 +194,7 @@ namespace flare {
 	String Path::format(cString& path) {
 		String s = path.copy();
 		
-		#if F_WIN
+#if F_WIN
 			// TODO wondows ...
 			s = path.replace_all('\\', '/');
 			
@@ -252,7 +252,7 @@ namespace flare {
 					s = cwd().substr(11).push('/').push(s);
 				}
 			}
-		#else
+#else
 			String prefix = "file:///";
 			if (s[0] == '/') { // absolute path
 				//
@@ -267,7 +267,7 @@ namespace flare {
 					s = cwd().substr(8).append('/').append(s);
 				}
 			}
-		#endif
+#endif
 		
 		s = inl_format_part_path(s);
 		
@@ -283,21 +283,21 @@ namespace flare {
 	}
 
 	int fallback_indexOf(cString& path) {
-		#if F_WIN
+#if F_WIN
 			if ( Path::is_local_zip(path) ) {
 				return 7;
 			}
 			else if ( Path::is_local_file(path) ) {
 				return 8;
 			}
-		#else
+#else
 			if ( Path::is_local_zip(path) ) {
 				return 6;
 			}
 			else if ( Path::is_local_file(path) ) {
 				return 7;
 			}
-		#endif
+#endif
 		return 0;
 	}
 

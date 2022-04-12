@@ -69,19 +69,19 @@ namespace flare {
 	*/
 	class F_EXPORT Application: public Object {
 		F_HIDDEN_ALL_COPY(Application);
-	 public:
+	public:
 
 		/**
 		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
 		* 那么在主线程调用任何UI-API函数必须加锁。
 		*/
 		class F_EXPORT UILock {
-		 public:
+			public:
 			UILock(Application* host = app());
 			~UILock();
 			void lock();
 			void unlock();
-		 private:
+			private:
 			Application* _host;
 			bool _lock;
 		};
@@ -186,14 +186,13 @@ namespace flare {
 		*/
 		static inline Application* shared() { return _shared; }
 
-	 protected:
-		
+	protected:
 		/**
 		* @func runMain(argc, argv) create sub gui thread, call by system, First thread call
 		*/
 		static void runMain(int argc, Char* argv[]);
 
-	 private:
+	private:
 		static Application*  _shared;   // 当前应用程序
 		bool                 _is_load;
 		JSON                 _opts;

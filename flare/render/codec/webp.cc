@@ -31,31 +31,31 @@
 #include "./codec.h"
 #include <webp/decode.h>
 
-F_NAMESPACE_START
+namespace flare {
 
-bool WEBPImageCodec::test(cBuffer& data, Pixel* out) {
-	int width = 0, height = 0;
-	int ok = WebPGetInfo((uint8_t*)data.val(), data.length(), &width, &height);
-	if ( ok == VP8_STATUS_OK ) {
-		*out = Pixel( Buffer(), width, height, kColor_Type_RGBA_8888, false);
-		return true;
+	bool WEBPImageCodec::test(cBuffer& data, Pixel* out) {
+		int width = 0, height = 0;
+		int ok = WebPGetInfo((uint8_t*)data.val(), data.length(), &width, &height);
+		if ( ok == VP8_STATUS_OK ) {
+			*out = Pixel( Buffer(), width, height, kColor_Type_RGBA_8888, false);
+			return true;
+		}
+		return false;
 	}
-	return false;
-}
 
-Array<Pixel> WEBPImageCodec::decode(cBuffer& data) {
-	Array<Pixel> rv;
-	int width, height;
-	uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.val(), data.length(), &width, &height);
-	if (buff) {
-		Buffer bf = Buffer::from((char*)buff, width * height * 4);
-		rv.push( Pixel( bf, width, height, kColor_Type_RGBA_8888, false) );
+	Array<Pixel> WEBPImageCodec::decode(cBuffer& data) {
+		Array<Pixel> rv;
+		int width, height;
+		uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.val(), data.length(), &width, &height);
+		if (buff) {
+			Buffer bf = Buffer::from((char*)buff, width * height * 4);
+			rv.push( Pixel( bf, width, height, kColor_Type_RGBA_8888, false) );
+		}
+		return rv;
 	}
-	return rv;
-}
 
-Buffer WEBPImageCodec::encode(const Pixel& pixel_data) {
-	return Buffer();
-}
+	Buffer WEBPImageCodec::encode(const Pixel& pixel_data) {
+		return Buffer();
+	}
 
-F_NAMESPACE_END
+}

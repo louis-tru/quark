@@ -46,14 +46,14 @@ namespace flare {
 	* @class JNI
 	*/
 	class F_EXPORT JNI {
-	 public:
+	public:
 
 		/**
 		* @class ScopeENV
 		*/
 		class F_EXPORT ScopeENV {
 			F_HIDDEN_ALL_COPY(ScopeENV);
-		 public:
+		public:
 			ScopeENV();
 			~ScopeENV();
 			inline bool is_null() const { return _env == NULL; }
@@ -69,12 +69,12 @@ namespace flare {
 		* @class MethodInfo
 		*/
 		class F_EXPORT MethodInfo {
-		 public:
+		public:
 			MethodInfo(cChar* clazz, cChar* method, cChar* param_code, bool is_static = false);
 			MethodInfo(jclass clazz, cChar* method, cChar* param_code, bool is_static = false);
 			inline jclass clazz() const { return _clazz; }
 			inline jmethodID method() const { return _method; }
-		 private:
+		private:
 			jclass      _clazz;
 			jmethodID   _method;
 			// @end

@@ -40,7 +40,9 @@ namespace flare {
 
 	class PostMessage;
 
-	template<class D, class E = Error>
+	template<
+		class D, class E = Error
+	>
 	struct CallbackData {
 		E* error;
 		D* data;
@@ -50,7 +52,7 @@ namespace flare {
 	template<class D, class E = Error>
 	class CallbackCore: public Reference {
 		F_HIDDEN_ALL_COPY(CallbackCore);
-	 public:
+	public:
 		inline CallbackCore() {}
 		virtual void call(CallbackData<D, E>& evt) const = 0;
 		inline  int call(E* e, D* d) const { CallbackData<D, E> evt = { e,d,0 }; call(evt); return evt.rc; }
@@ -60,7 +62,7 @@ namespace flare {
 
 	template<class T, class D, class E>
 	class CallbackCoreIMPL: public CallbackCore<D, E> {
-	 public:
+	public:
 		inline CallbackCoreIMPL(T* ctx): _ctx(ctx) {
 			if ( T::Traits::is_reference ) {
 				T::Traits::Retain(_ctx);
@@ -71,43 +73,43 @@ namespace flare {
 				T::Traits::Release(_ctx);
 			}
 		}
-	 protected:
+	protected:
 		T* _ctx;
 	};
 
 	template<class T, class D, class E>
 	class LambdaCallback: public CallbackCoreIMPL<T, D, E> {
-	 public:
+	public:
 		typedef std::function<void(CallbackData<D, E>& evt)> Func;
 		inline LambdaCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
 		virtual void call(CallbackData<D, E>& evt) const { _func(evt); }
-	 private:
+	private:
 		Func _func;
 	};
 
 	template<class T, class D, class E>
 	class StaticCallback: public CallbackCoreIMPL<T, D, E> {
-	 public:
+	public:
 		typedef void (*Func)(CallbackData<D, E>& evt, T* ctx);
 		inline StaticCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
 		virtual void call(CallbackData<D, E>& evt) const { _func(evt, this->_ctx); }
-	 private:
+	private:
 		Func  _func;
 	};
 
 	template<class T, class D, class E>
 	class MemberCallback: public CallbackCoreIMPL<T, D, E> {
-	 public:
+	public:
 		typedef void (T::*Func)(CallbackData<D, E>& evt);
 		inline MemberCallback(Func func, T* ctx): CallbackCoreIMPL<T, D, E>(ctx), _func(func) { }
 		virtual void call(CallbackData<D, E>& evt) const { (this->_ctx->*_func)(evt); }
-	 private:
+	private:
 		Func  _func;
 	};
 
 	template<class D = Object, class E = Error>
 	class Callback: public Handle<CallbackCore<D, E>> {
-	 public:
+	public:
 		typedef CallbackCore<D, E> Core;
 		typedef CallbackData<D, E> Data;
 		enum { kNoop = 0 };
@@ -138,7 +140,7 @@ namespace flare {
 			return *this;
 		}
 		inline Core* collapse() { return nullptr; }
-	 private:
+	private:
 		static void* DefaultCore();
 		template<class D2, class E2> friend class Callback;
 	};

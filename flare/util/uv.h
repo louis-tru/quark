@@ -45,7 +45,7 @@ namespace flare {
 	 */
 	template<class uv_req, class Context, class Data = Object, class CbData = Object>
 	class UVRequestWrap: public Object {
-	 public:
+	public:
 		inline UVRequestWrap(Context* ctx, Callback<CbData> cb = 0, Data data = Data())
 		: _ctx(ctx), _cb(cb), _data(std::move(data)) {
 			_req.data = this;
@@ -61,7 +61,7 @@ namespace flare {
 		inline Callback<CbData>& cb() { return _cb; }
 		inline uv_req* req() { return &_req; }
 		inline Data& data() { return _data; }
-	 private:
+	private:
 		uv_req    _req;
 		Context*  _ctx;
 		Callback<CbData> _cb;
@@ -73,7 +73,7 @@ namespace flare {
 	 */
 	class AsyncIOTask: public Reference {
 		F_HIDDEN_ALL_COPY(AsyncIOTask);
-	 public:
+	public:
 		AsyncIOTask(RunLoop* loop = RunLoop::current());
 		virtual ~AsyncIOTask();
 		static void safe_abort(uint32_t id);
@@ -81,7 +81,7 @@ namespace flare {
 		inline uint32_t id() const { return _id; }
 		inline RunLoop* loop() { return _loop; }
 		virtual void abort();
-		private:
+	private:
 		uint32_t _id;
 		bool _abort;
 		RunLoop* _loop;

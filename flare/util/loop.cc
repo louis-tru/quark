@@ -65,7 +65,7 @@ namespace flare {
 	}
 
 	F_DEFINE_INLINE_MEMBERS(Thread, Inl) {
-	 public:
+	public:
 		#define _inl_t(self) static_cast<Thread::Inl*>(self)
 
 		static void destructor(void* ptr) {
@@ -131,9 +131,9 @@ namespace flare {
 		uv_thread_t tid;
 		uv_thread_create(&tid, [](void* arg) {
 			auto thread = (Thread*)arg;
-			#if F_ANDROID
+#if F_ANDROID
 				JNI::ScopeENV scope;
-			#endif
+#endif
 			Inl::set_thread_specific_data(thread);
 			if ( !thread->_abort ) {
 				thread->_exec(*thread, arg);
@@ -290,7 +290,7 @@ namespace flare {
 
 	F_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
 		#define _inl(self) static_cast<RunLoop::Inl*>(self)
-	 public:
+	public:
 
 		void stop_after_print_message();
 		

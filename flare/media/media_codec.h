@@ -91,7 +91,7 @@ namespace flare {
 	class F_EXPORT MultimediaSource: public Object {
 		F_HIDDEN_ALL_COPY(MultimediaSource);
 		F_DEFINE_INLINE_CLASS(Inl);
-	 public:
+	public:
 		
 		struct TrackInfo {
 			uint32_t    track;            /* 轨道在源中的索引 */
@@ -122,7 +122,7 @@ namespace flare {
 		};
 		
 		class Delegate {
-		 public:
+		public:
 			virtual void multimedia_source_ready(MultimediaSource* source) = 0;
 			virtual void multimedia_source_wait_buffer(MultimediaSource* source, float process) = 0;
 			virtual void multimedia_source_eof(MultimediaSource* source) = 0;
@@ -134,7 +134,7 @@ namespace flare {
 		*/
 		class F_EXPORT Extractor: public Object {
 			F_HIDDEN_ALL_COPY(Extractor);
-		 public:
+		public:
 			
 			/**
 			* @func track_count
@@ -245,7 +245,7 @@ namespace flare {
 			* */
 			inline bool is_disable() const { return _disable; }
 			
-		 private:
+		private:
 			Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& tracks);
 
 			struct SampleData {
@@ -349,7 +349,7 @@ namespace flare {
 		*/
 		AVStream* get_stream(const TrackInfo& track);
 		
-	 private:
+	private:
 		friend class Extractor;
 		friend class MediaCodec;
 		Inl*         _inl;
@@ -360,7 +360,7 @@ namespace flare {
 	*/
 	class F_EXPORT MediaCodec: public Object {
 		F_HIDDEN_ALL_COPY(MediaCodec);
-	 public:
+	public:
 		typedef MultimediaSource::Extractor Extractor;
 		
 		struct OutputBuffer {
@@ -492,7 +492,7 @@ namespace flare {
 		* */
 		static MediaCodec* software(MediaType type, MultimediaSource* source);
 		
-	 protected:
+	protected:
 		MediaCodec(Extractor* extractor);
 		
 		Extractor*  _extractor;

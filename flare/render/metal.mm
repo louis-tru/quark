@@ -45,113 +45,113 @@ template <typename T> static inline void CFSafeRelease(T obj) {
 	}
 }
 
-F_NAMESPACE_START
+namespace flare {
 
-MetalRender::MetalRender(Application* host, const Options& opts)
-	: Render(host, opts)
-	, _queue(nil), _device(nil)
-	, _view(nil), _layer(nil)
-	, _drawable(nil), _pipelineArchive(nil) {
-	_opts.colorType = kColor_Type_BGRA_8888; // metal mode can only use BGR
-}
+	MetalRender::MetalRender(Application* host, const Options& opts)
+		: Render(host, opts)
+		, _queue(nil), _device(nil)
+		, _view(nil), _layer(nil)
+		, _drawable(nil), _pipelineArchive(nil) {
+		_opts.colorType = kColor_Type_BGRA_8888; // metal mode can only use BGR
+	}
 
-MetalRender::~MetalRender() {
-	CFSafeRelease(_device); _device = nil;
-	CFSafeRelease(_queue); _queue = nil;
-	CFSafeRelease(_drawable); _drawable = nil;
-}
+	MetalRender::~MetalRender() {
+		CFSafeRelease(_device); _device = nil;
+		CFSafeRelease(_queue); _queue = nil;
+		CFSafeRelease(_drawable); _drawable = nil;
+	}
 
-static void test(id<CAMetalDrawable> drawable, id<MTLCommandBuffer> cmd) {
-	MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-	passDescriptor.colorAttachments[0].texture = drawable.texture;
-	passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.5, 0, 1, 0.5);
-	passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
-	passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+	static void test(id<CAMetalDrawable> drawable, id<MTLCommandBuffer> cmd) {
+		MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+		passDescriptor.colorAttachments[0].texture = drawable.texture;
+		passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.5, 0, 1, 0.5);
+		passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+		passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
 
-	id<MTLRenderCommandEncoder> commandEncoder = [cmd renderCommandEncoderWithDescriptor:passDescriptor];
-	[commandEncoder endEncoding];
-}
+		id<MTLRenderCommandEncoder> commandEncoder = [cmd renderCommandEncoderWithDescriptor:passDescriptor];
+		[commandEncoder endEncoding];
+	}
 
-void MetalRender::reload() {
-	if (!_device) {
-		_device = CFSafeRetain(MTLCreateSystemDefaultDevice());
-		_queue = CFSafeRetain([_device newCommandQueue]);
-		F_ASSERT(_device);
+	void MetalRender::reload() {
+		if (!_device) {
+			_device = CFSafeRetain(MTLCreateSystemDefaultDevice());
+			_queue = CFSafeRetain([_device newCommandQueue]);
+			F_ASSERT(_device);
 
-		if (_opts.msaaSampleCnt > 1) {
-			while (![_device supportsTextureSampleCount:_opts.msaaSampleCnt])
-				_opts.msaaSampleCnt /= 2;
+			if (_opts.msaaSampleCnt > 1) {
+				while (![_device supportsTextureSampleCount:_opts.msaaSampleCnt])
+					_opts.msaaSampleCnt /= 2;
+			}
+			
+			if (_view) {
+				_view.device = _device;
+				_view.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
+				// _view.sampleCount = _opts.msaaSampleCnt;
+			}
+
+			if (@available(iOS 13.0, *)) {
+				if (_view) {
+					_layer = (CAMetalLayer*)_view.layer;
+				} else {
+					_layer.device = _device;
+					_layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+					//_layer.displaySyncEnabled = _opts.disableVsync ? NO : YES;
+				}
+			}
 		}
+
+		auto region = _host->display()->display_region();
+
+		// clean surface
+		CFSafeRelease(_drawable); _drawable = nil;
 		
 		if (_view) {
-			_view.device = _device;
-			_view.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
-			// _view.sampleCount = _opts.msaaSampleCnt;
+			_view.drawableSize = CGRectMake(0, 0, region.width, region.height).size;
 		}
 
 		if (@available(iOS 13.0, *)) {
-			if (_view) {
-				_layer = (CAMetalLayer*)_view.layer;
-			} else {
-				_layer.device = _device;
-				_layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-				//_layer.displaySyncEnabled = _opts.disableVsync ? NO : YES;
+			if (_layer) {
+				_layer.drawableSize = CGRectMake(0, 0, region.width, region.height).size;
 			}
 		}
+
+		onReload();
 	}
 
-	auto region = _host->display()->display_region();
+	void MetalRender::begin() {
+		F_ASSERT(!_drawable);
+		id<CAMetalDrawable> drawable;
 
-	// clean surface
-	CFSafeRelease(_drawable); _drawable = nil;
-	
-	if (_view) {
-		_view.drawableSize = CGRectMake(0, 0, region.width, region.height).size;
-	}
-
-	if (@available(iOS 13.0, *)) {
-		if (_layer) {
-			_layer.drawableSize = CGRectMake(0, 0, region.width, region.height).size;
+		if (@available(iOS 13.0, *)) {
+			drawable = ((CAMetalLayer*)_view.layer).nextDrawable;
+		} else {
+			drawable = _view.currentDrawable;
 		}
+
+		_drawable = CFSafeRetain(drawable);
+		// F_DEBUG("CFGetRetainCount, %d", CFGetRetainCount(_drawableHandle));
+
+		onBegin();
 	}
 
-	onReload();
-}
+	void MetalRender::submit() {
+		onSubmit();
 
-void MetalRender::begin() {
-	F_ASSERT(!_drawable);
-	id<CAMetalDrawable> drawable;
+		id<MTLCommandBuffer> cmd = _queue.commandBuffer;
+		//test(_drawable, cmd);
 
-	if (@available(iOS 13.0, *)) {
-		drawable = ((CAMetalLayer*)_view.layer).nextDrawable;
-	} else {
-		drawable = _view.currentDrawable;
+		//id<MTLTexture> mttex = ((__bridge id<CAMetalDrawable>)_drawable).texture;
+		//F_DEBUG("sampleCount, %d, %d", mttex.sampleCount, _opts.msaaSampleCnt);
+
+		[cmd presentDrawable:_drawable];
+		[cmd commit];
+
+		// ARC is off in sk_app, so we need to release the CF ref manually
+		CFSafeRelease(_drawable); _drawable = nil;
 	}
 
-	_drawable = CFSafeRetain(drawable);
-	// F_DEBUG("CFGetRetainCount, %d", CFGetRetainCount(_drawableHandle));
+	void MetalRender::activate(bool isActive) {
+		// serialize pipeline archive
+	}
 
-	onBegin();
 }
-
-void MetalRender::submit() {
-	onSubmit();
-
-	id<MTLCommandBuffer> cmd = _queue.commandBuffer;
-	//test(_drawable, cmd);
-
-	//id<MTLTexture> mttex = ((__bridge id<CAMetalDrawable>)_drawable).texture;
-	//F_DEBUG("sampleCount, %d, %d", mttex.sampleCount, _opts.msaaSampleCnt);
-
-	[cmd presentDrawable:_drawable];
-	[cmd commit];
-
-	// ARC is off in sk_app, so we need to release the CF ref manually
-	CFSafeRelease(_drawable); _drawable = nil;
-}
-
-void MetalRender::activate(bool isActive) {
-	// serialize pipeline archive
-}
-
-F_NAMESPACE_END

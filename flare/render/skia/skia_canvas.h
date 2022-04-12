@@ -50,12 +50,12 @@
 #include "../pixel.h"
 #include <skia/core/SkCanvas.h>
 
-F_NAMESPACE_START
+namespace flare {
 
-class SkiaCanvas: public SkCanvas {
-public:
-	void setMatrix(const Mat& mat);
-};
+	class SkiaCanvas: public SkCanvas {
+	public:
+		void setMatrix(const Mat& mat);
+	};
 
-F_NAMESPACE_END
+}
 #endif

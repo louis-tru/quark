@@ -45,8 +45,7 @@ namespace flare {
 	typedef HttpHelper::ResponseData ResponseData;
 
 	class FileReader::Core {
-	 public:
-
+	public:
 		enum Protocol {
 			FILE = 0,
 			ZIP,
@@ -346,7 +345,7 @@ namespace flare {
 			zips_.clear();
 		}
 		
-	 private:
+	private:
 		Mutex zip_mutex_;
 		Dict<String, ZipReader*> zips_;
 	};

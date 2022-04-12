@@ -43,10 +43,13 @@ namespace flare {
 	*/
 	class F_EXPORT Socket: public Object {
 		F_HIDDEN_ALL_COPY(Socket);
-	 public:
+	public:
 		
+		/**
+		 * @class Delegate
+		*/
 		class F_EXPORT Delegate {
-		 public:
+		public:
 			virtual void trigger_socket_open(Socket* socket) = 0;
 			virtual void trigger_socket_close(Socket* socket) = 0;
 			virtual void trigger_socket_error(Socket* socket, cError& error) = 0;
@@ -56,21 +59,17 @@ namespace flare {
 		};
 		
 		Socket(cString& hostname, uint16_t  port, RunLoop* loop = RunLoop::current());
-		
-		/**
-		* @destructor
-		*/
 		virtual ~Socket();
 		
 		/**
-		* @func open
+		* @func try open content
 		*/
-		void open();
-		
-		String  hostname() const;
-		uint16_t   port() const;
-		String  ip() const;
-		bool    ipv6() const;
+		void      open();
+
+		String    hostname() const;
+		uint16_t  port() const;
+		String    ip() const;
+		bool      ipv6() const;
 		
 		/**
 		* @func set_keep_alive 如果在指定的时间(微秒)内没有任何数据交互,则进行探测
@@ -102,7 +101,7 @@ namespace flare {
 
 		F_DEFINE_INLINE_CLASS(Inl);
 
-	 protected:
+	protected:
 		Socket();
 
 		Inl* _inl;
@@ -112,7 +111,7 @@ namespace flare {
 	* @class SSLSocket
 	*/
 	class F_EXPORT SSLSocket: public Socket {
-	 public:
+	public:
 		
 		SSLSocket(cString& hostname, uint16_t  port, RunLoop* loop = RunLoop::current());
 		

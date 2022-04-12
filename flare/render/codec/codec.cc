@@ -31,58 +31,58 @@
 #include "./codec.h"
 #include "flare/util/string.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-/**
- * @func image_format 通过路径获取图片类型
- */
-ImageCodec::ImageFormat ImageCodec::image_format(cString& path) {
-	
-	String str = path.to_lower_case();
-	int len = str.length();
-	
-	if (str.last_index_of(".pvr") != -1) {
-		return PVRTC;
+	/**
+	 * @func image_format 通过路径获取图片类型
+	 */
+	ImageCodec::ImageFormat ImageCodec::image_format(cString& path) {
+		
+		String str = path.to_lower_case();
+		int len = str.length();
+		
+		if (str.last_index_of(".pvr") != -1) {
+			return PVRTC;
+		}
+		else if (str.last_index_of(".tga") != -1) {
+			return TGA;
+		}
+		// JPF、JPX、J2C、JP2、J2K、JPC、LWF
+		else if ( str.last_index_of(".jpg") != -1 ||
+							str.last_index_of(".jpf") != -1 ||
+							str.last_index_of(".jpeg") != -1
+		) {
+			return JPEG;
+		}
+		else if (str.last_index_of(".gif") != -1) {
+			return GIF;
+		}
+		else if (str.last_index_of(".png") != -1) {
+			return PNG;
+		}
+		else if (str.last_index_of(".webp") != -1) {
+			return WEBP;
+		}
+		return Unknown;
 	}
-	else if (str.last_index_of(".tga") != -1) {
-		return TGA;
+
+	ImageCodec* ImageCodec::Make(ImageFormat format) {
+		switch (format) {
+			case TGA:
+					return new TGAImageCodec();
+			case JPEG:
+				return new JPEGImageCodec();
+			case GIF:
+				return new GIFImageCodec();
+			case PNG:
+				return new PNGImageCodec();
+			case WEBP:
+				return new WEBPImageCodec();
+			case PVRTC:
+				return new PVRTCImageCodec();
+			default:
+				return nullptr;
+		}
 	}
-	// JPF、JPX、J2C、JP2、J2K、JPC、LWF
-	else if ( str.last_index_of(".jpg") != -1 ||
-						str.last_index_of(".jpf") != -1 ||
-						str.last_index_of(".jpeg") != -1
-	) {
-		return JPEG;
-	}
-	else if (str.last_index_of(".gif") != -1) {
-		return GIF;
-	}
-	else if (str.last_index_of(".png") != -1) {
-		return PNG;
-	}
-	else if (str.last_index_of(".webp") != -1) {
-		return WEBP;
-	}
-	return Unknown;
+
 }
-
-ImageCodec* ImageCodec::Make(ImageFormat format) {
-	switch (format) {
-		case TGA:
-				return new TGAImageCodec();
-		case JPEG:
-			return new JPEGImageCodec();
-		case GIF:
-			return new GIFImageCodec();
-		case PNG:
-			return new PNGImageCodec();
-		case WEBP:
-			return new WEBPImageCodec();
-		case PVRTC:
-			return new PVRTCImageCodec();
-		default:
-			return nullptr;
-	}
-}
-
-F_NAMESPACE_END

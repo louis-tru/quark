@@ -275,11 +275,11 @@ namespace flare {
 		return _Str::format_n(o, len_o, "%u", i);
 	}
 	int32_t _Str::format_n(char* o, uint32_t len_o, int64_t i) {
-		#if F_ARCH_64BIT
+#if F_ARCH_64BIT
 			return _Str::format_n(o, len_o, "%ld", i);
-		#else
+#else
 			return _Str::format_n(o, len_o, "%lld", i);
-		#endif
+#endif
 	}
 	int32_t _Str::format_n(char* o, uint32_t len_o, uint64_t i) {
 		#if F_ARCH_64BIT

@@ -38,8 +38,8 @@
 
 namespace flare {
 
-	#define set_func(view, cls, Name, func) \
-		view.set(Name, Accessor(&cls::func, &cls::set_##func))
+#define set_func(view, cls, Name, func) \
+	view.set(Name, Accessor(&cls::func, &cls::set_##func))
 
 	static PropertysAccessor* fx_accessor_shared = nullptr;
 

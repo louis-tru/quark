@@ -50,7 +50,7 @@ namespace flare {
 	static uint32_t http_request(RequestOptions& options, HCb cb, SCb scb, bool stream) throw(HttpError) {
 		
 		class Task: public AsyncIOTask, public HttpClientRequest::Delegate, public Stream {
-		 public:
+		public:
 			HCb cb;
 			SCb scb;
 			bool stream, full_data;

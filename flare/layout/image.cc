@@ -32,46 +32,46 @@
 #include "../render/render.h"
 #include "skia/core/SkImage.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-float Image::solve_layout_content_width(Size &parent_layout_size) {
-	auto result = Box::solve_layout_content_width(parent_layout_size);
-	auto src = source();
+	float Image::solve_layout_content_width(Size &parent_layout_size) {
+		auto result = Box::solve_layout_content_width(parent_layout_size);
+		auto src = source();
 
-	if (parent_layout_size.wrap_x && src && src->type()) { // wrap x
-		auto v = Box::solve_layout_content_height(parent_layout_size);
-		if (parent_layout_size.wrap_y) { // wrap y
-			result = src->width();
-		} else {
-			result = v / src->height() * src->width();
+		if (parent_layout_size.wrap_x && src && src->type()) { // wrap x
+			auto v = Box::solve_layout_content_height(parent_layout_size);
+			if (parent_layout_size.wrap_y) { // wrap y
+				result = src->width();
+			} else {
+				result = v / src->height() * src->width();
+			}
+		}
+		parent_layout_size.wrap_x = false;
+
+		return result;
+	}
+
+	float Image::solve_layout_content_height(Size &parent_layout_size) {
+		auto result = Box::solve_layout_content_height(parent_layout_size);
+		auto src = source();
+
+		if (parent_layout_size.wrap_y && src && src->type()) { // wrap y
+			auto v = Box::solve_layout_content_width(parent_layout_size);
+			if (parent_layout_size.wrap_x) { // wrap x
+				result = src->height();
+			} else {
+				result = v / src->width() * src->height();
+			}
+		}
+		parent_layout_size.wrap_y = false;
+
+		return result;
+	}
+
+	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
+		if (*evt.data() & (ImageSource::STATE_DECODE_COMPLETE | ImageSource::STATE_LOADING)) {
+			mark_layout_size(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
 		}
 	}
-	parent_layout_size.wrap_x = false;
 
-	return result;
 }
-
-float Image::solve_layout_content_height(Size &parent_layout_size) {
-	auto result = Box::solve_layout_content_height(parent_layout_size);
-	auto src = source();
-
-	if (parent_layout_size.wrap_y && src && src->type()) { // wrap y
-		auto v = Box::solve_layout_content_width(parent_layout_size);
-		if (parent_layout_size.wrap_x) { // wrap x
-			result = src->height();
-		} else {
-			result = v / src->width() * src->height();
-		}
-	}
-	parent_layout_size.wrap_y = false;
-
-	return result;
-}
-
-void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-	if (*evt.data() & (ImageSource::STATE_DECODE_COMPLETE | ImageSource::STATE_LOADING)) {
-		mark_layout_size(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
-	}
-}
-
-F_NAMESPACE_END

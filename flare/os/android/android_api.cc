@@ -37,7 +37,7 @@ namespace flare {
 	typedef JNI::ScopeENV   ScopeENV;
 
 	class Api_INL {
-	 public:
+	public:
 		Api_INL() {
 			ScopeENV env;
 			clazz_              = JNI::find_clazz("org/flare/API");

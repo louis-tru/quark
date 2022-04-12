@@ -31,79 +31,79 @@
 #include "./pixel.h"
 #include "skia/core/SkImage.h"
 
-F_NAMESPACE_START
+namespace flare {
 
-PixelInfo::PixelInfo(): _width(0), _height(0), _type(kColor_Type_Invalid), _alphaType(kSkAlphaType_Unknown) {
-}
-PixelInfo::PixelInfo(int width, int height, ColorType type, AlphaType alphaType)
-	: _width(width), _height(height), _type(type), _alphaType(alphaType) {
-}
-
-// -------------------- P i x e l --------------------
-
-/**
-* @func pixel_bit_size
-*/
-uint32_t Pixel::bytes_per_pixel(ColorType type) {
-	switch (type) {
-		kColor_Type_Invalid:
-		default: return 0;
-		case kColor_Type_Alpha_8: return 1;
-		case kColor_Type_RGB_565: return 2;
-		case kColor_Type_ARGB_4444: return 2;
-		case kColor_Type_RGBA_8888: return 4;
-		case kColor_Type_RGB_888X: return 4;
-		case kColor_Type_BGRA_8888: return 4;
-		case kColor_Type_RGBA_1010102: return 4;
-		case kColor_Type_BGRA_1010102: return 4;
-		case kColor_Type_RGB_101010X: return 4;
-		case kColor_Type_BGR_101010X: return 4;
-		case kColor_Type_Gray_8: return 1;
-		case kColor_Type_RGB_888: return 3;
-		case kColor_Type_RGBA_5551: return 2;
-		case kColor_Type_Luminance_Alpha_88: return 2;
+	PixelInfo::PixelInfo(): _width(0), _height(0), _type(kColor_Type_Invalid), _alphaType(kSkAlphaType_Unknown) {
 	}
-}
-
-Pixel Pixel::decode(cBuffer& buf) {
-	auto img = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.val(), buf.length(), nullptr, nullptr));
-	SkImageInfo info = img->imageInfo();
-	auto rowBytes = info.minRowBytes();
-	auto body = Buffer::alloc((uint32_t)rowBytes * info.height());
-	if (img->readPixels(nullptr, info, body.val(), rowBytes, 0, 0)) {
-		PixelInfo info2(info.width(), info.height(),
-										ColorType(info.colorType()),
-										AlphaType(info.alphaType()));
-		return Pixel(info2, std::move(body));
+	PixelInfo::PixelInfo(int width, int height, ColorType type, AlphaType alphaType)
+		: _width(width), _height(height), _type(type), _alphaType(alphaType) {
 	}
-	return Pixel();
-}
 
-Pixel::Pixel()
-	: _data()
-	, _body() {
-}
+	// -------------------- P i x e l --------------------
 
-Pixel::Pixel(cPixel& pixel): PixelInfo(pixel)
-	, _data()
-	, _body(pixel._body) {
-}
+	/**
+	* @func pixel_bit_size
+	*/
+	uint32_t Pixel::bytes_per_pixel(ColorType type) {
+		switch (type) {
+			kColor_Type_Invalid:
+			default: return 0;
+			case kColor_Type_Alpha_8: return 1;
+			case kColor_Type_RGB_565: return 2;
+			case kColor_Type_ARGB_4444: return 2;
+			case kColor_Type_RGBA_8888: return 4;
+			case kColor_Type_RGB_888X: return 4;
+			case kColor_Type_BGRA_8888: return 4;
+			case kColor_Type_RGBA_1010102: return 4;
+			case kColor_Type_BGRA_1010102: return 4;
+			case kColor_Type_RGB_101010X: return 4;
+			case kColor_Type_BGR_101010X: return 4;
+			case kColor_Type_Gray_8: return 1;
+			case kColor_Type_RGB_888: return 3;
+			case kColor_Type_RGBA_5551: return 2;
+			case kColor_Type_Luminance_Alpha_88: return 2;
+		}
+	}
 
-Pixel::Pixel(Pixel&& pixel): PixelInfo(pixel)
-	, _data(pixel._data)
-	, _body(std::move(pixel._body)) {
-}
+	Pixel Pixel::decode(cBuffer& buf) {
+		auto img = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.val(), buf.length(), nullptr, nullptr));
+		SkImageInfo info = img->imageInfo();
+		auto rowBytes = info.minRowBytes();
+		auto body = Buffer::alloc((uint32_t)rowBytes * info.height());
+		if (img->readPixels(nullptr, info, body.val(), rowBytes, 0, 0)) {
+			PixelInfo info2(info.width(), info.height(),
+											ColorType(info.colorType()),
+											AlphaType(info.alphaType()));
+			return Pixel(info2, std::move(body));
+		}
+		return Pixel();
+	}
 
-Pixel::Pixel(const PixelInfo& info, Buffer body)
-	: PixelInfo(info)
-	, _data(body)
-	, _body(*body, _data.length()) {
-}
+	Pixel::Pixel()
+		: _data()
+		, _body() {
+	}
 
-Pixel::Pixel(const PixelInfo& info, cWeakBuffer& body)
-	: PixelInfo(info)
-	, _data()
-	, _body(body) {
-}
+	Pixel::Pixel(cPixel& pixel): PixelInfo(pixel)
+		, _data()
+		, _body(pixel._body) {
+	}
 
-F_NAMESPACE_END
+	Pixel::Pixel(Pixel&& pixel): PixelInfo(pixel)
+		, _data(pixel._data)
+		, _body(std::move(pixel._body)) {
+	}
+
+	Pixel::Pixel(const PixelInfo& info, Buffer body)
+		: PixelInfo(info)
+		, _data(body)
+		, _body(*body, _data.length()) {
+	}
+
+	Pixel::Pixel(const PixelInfo& info, cWeakBuffer& body)
+		: PixelInfo(info)
+		, _data()
+		, _body(body) {
+	}
+
+}
