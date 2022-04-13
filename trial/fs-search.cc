@@ -40,22 +40,22 @@ namespace flare {
 	String inl_format_part_path(cString& path);
 
 	class FileSearch::SearchPath {
-		public:
+	public:
 		virtual ZipInSearchPath* as_zip() { return NULL; }
 		virtual String get_absolute_path(cString& path);
 		virtual Buffer read(cString& path);
 		inline String path() { return m_path; }
-		protected:
+	protected:
 		String m_path;
 		friend class ZipInSearchPath;
-		private:
+	private:
 		SearchPath(cString& path): m_path(path) { }
 		virtual ~SearchPath() { }
 		friend class FileSearch;
 	};
 
 	class FileSearch::ZipInSearchPath: public FileSearch::SearchPath {
-		public:
+	public:
 		ZipInSearchPath* as_zip() { return this; }
 		String get_absolute_path(cString& path);
 		Buffer read(cString& path);
@@ -63,7 +63,7 @@ namespace flare {
 		bool exists_by_abs(cString& path);
 		inline String zip_path() { return m_zip_path; }
 		static String formatPath(cString& path1, cString& path2);
-		private:
+	private:
 		ZipInSearchPath(cString& zip_path, cString& path);
 		~ZipInSearchPath();
 		String m_zip_path;
@@ -112,9 +112,9 @@ namespace flare {
 	}
 
 	FileSearch::ZipInSearchPath::ZipInSearchPath(cString& zip_path, cString& path)
-	: SearchPath(path)
-	, m_zip_path(zip_path)
-	, m_zip (zip_path) {
+		: SearchPath(path)
+		, m_zip_path(zip_path)
+		, m_zip (zip_path) {
 		F_ASSERT( m_zip.open(), "Cannot open zip file, `%s`", *zip_path );
 	}
 
@@ -168,9 +168,9 @@ namespace flare {
 	void FileSearch::add_zip_search_path(cString& zip_path, cString& path) {
 		String _zip_path = Path::format("%s", *zip_path);
 		String _path = path;
-		#if F_WIN
+#if F_WIN
 			_path = path.replace_all('\\', '/');
-		#endif
+#endif
 		_path = inl_format_part_path(path);
 		
 		auto it = m_search_paths.begin();

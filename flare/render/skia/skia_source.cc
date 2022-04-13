@@ -35,7 +35,7 @@
 
 namespace flare {
 
-#define sk_I(img) static_cast<SkImage*>(img)
+	#define sk_I(img) static_cast<SkImage*>(img)
 
 	F_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
 	public:

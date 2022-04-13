@@ -44,7 +44,7 @@ namespace flare {
 	*/
 	class F_EXPORT FileSearch: public Object {
 		F_HIDDEN_ALL_COPY(FileSearch);
-		public:
+	public:
 		
 		FileSearch();
 		
@@ -102,7 +102,7 @@ namespace flare {
 		*/
 		static FileSearch* shared();
 		
-		private:
+	private:
 		class SearchPath;
 		class ZipInSearchPath;
 		List<SearchPath*> m_search_paths; // Search path list

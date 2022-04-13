@@ -3006,11 +3006,11 @@ namespace flare {
 		bool _clean_comment;
 	};
 
-    String2 javascript_transform_x(cString2& in, cString& path, bool clean_comment) throw(Error) {
+	String2 javascript_transform_x(cString2& in, cString& path, bool clean_comment) throw(Error) {
 		return Parser(in, path, true, clean_comment).transform();
 	}
 
-    String2 javascript_transform(cString2& in, cString& path, bool clean_comment) throw(Error) {
+	String2 javascript_transform(cString2& in, cString& path, bool clean_comment) throw(Error) {
 		return Parser(in, path, false, clean_comment).transform();
 	}
 
