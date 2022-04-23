@@ -360,7 +360,7 @@ namespace flare {
 		auto layout_content_size_change_mark = solve_layout_size(mark);
 
 		if (layout_content_size_change_mark) {
-			mark_recursive(M_LAYOUT_SHAPE);
+			mark_recursive(M_RECURSIVE_VISIBLE_REGION);
 		}
 
 		if (mark & (M_LAYOUT_TYPESETTING | M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT)) {

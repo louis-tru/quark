@@ -228,7 +228,7 @@
 		if (_margin_top != val) {
 			_margin_top = val;
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
-			mark_recursive(M_TRANSFORM);
+			mark_recursive(M_RECURSIVE_TRANSFORM);
 		}
 	}
 
@@ -236,7 +236,7 @@
 		if (_margin_left != val) {
 			_margin_left = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
-			mark_recursive(M_TRANSFORM);
+			mark_recursive(M_RECURSIVE_TRANSFORM);
 		}
 	}
 
@@ -246,7 +246,7 @@
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
 			// 没有直接的影响到`transform`但可能导致`layout_size`变化导致
 			// `transform_origin`百分比属性变化,间接影响`transform`变化, 但可以肯定这个会影响子布局偏移
-			// mark_recursive(M_TRANSFORM); 
+			// mark_recursive(M_RECURSIVE_TRANSFORM); 
 		}
 	}
 
@@ -254,7 +254,7 @@
 		if (_padding_left != val) {
 			_padding_left = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
-			//mark_recursive(M_TRANSFORM); // @`set_padding_top(val)`
+			//mark_recursive(M_RECURSIVE_TRANSFORM); // @`set_padding_top(val)`
 		}
 	}
 
@@ -263,7 +263,7 @@
 		if (_margin_right != val) {
 			_margin_right = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
-			//mark_recursive(M_TRANSFORM); // @`set_padding_top(val)`
+			//mark_recursive(M_RECURSIVE_TRANSFORM); // @`set_padding_top(val)`
 		}
 	}
 
@@ -271,7 +271,7 @@
 		if (_margin_bottom != val) {
 			_margin_bottom = val;
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
-			//mark_recursive(M_TRANSFORM); // @`set_padding_top(val)`
+			//mark_recursive(M_RECURSIVE_TRANSFORM); // @`set_padding_top(val)`
 		}
 	}
 
@@ -279,7 +279,7 @@
 		if (_padding_right != val) {
 			_padding_right = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
-			//mark_recursive(M_TRANSFORM); // @`set_padding_top(val)`
+			//mark_recursive(M_RECURSIVE_TRANSFORM); // @`set_padding_top(val)`
 		}
 	}
 
@@ -287,7 +287,7 @@
 		if (_padding_bottom != val) {
 			_padding_bottom = val;
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
-			//mark_recursive(M_TRANSFORM); // @`set_padding_top(val)`
+			//mark_recursive(M_RECURSIVE_TRANSFORM); // @`set_padding_top(val)`
 		}
 	}
 
@@ -569,7 +569,7 @@
 				v = v->next();
 			}
 			mark(M_LAYOUT_TYPESETTING); // rearrange
-			mark_recursive(M_LAYOUT_SHAPE);
+			mark_recursive(M_RECURSIVE_VISIBLE_REGION);
 			// TODO check transform_origin change ...
 		}
 
@@ -586,8 +586,8 @@
 				Vec2 origin(_margin_left + _padding_left, _margin_top + _padding_top);
 				Vec2 size = _layout_content_size;
 				if (_border) {
-					origin.val[0] += _border->width_left + _border->width_right;
-					origin.val[1] += _border->width_top + _border->width_bottom;
+					origin.val[0] += _border->width_left;// + _border->width_right;
+					origin.val[1] += _border->width_top;// + _border->width_bottom;
 				}
 				do {
 					v->set_layout_offset_lazy(origin, size); // lazy layout
@@ -731,7 +731,7 @@
 				}
 			}
 			mark(M_LAYOUT_TYPESETTING); // rearrange
-			mark_recursive(M_LAYOUT_SHAPE);
+			mark_recursive(M_RECURSIVE_VISIBLE_REGION);
 		}
 
 		unmark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
@@ -757,7 +757,7 @@
 	void Box::set_layout_offset(Vec2 val) {
 		if (val != _layout_offset) {
 			_layout_offset = val;
-			mark_recursive(M_TRANSFORM); // mark recursive transform
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark recursive transform
 		}
 	}
 

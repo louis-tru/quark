@@ -41,6 +41,7 @@
 
 namespace flare {
 
+	class Application;
 	class Layout;
 
 	/**
@@ -50,8 +51,7 @@ namespace flare {
 		F_HIDDEN_ALL_COPY(PreRender);
 	public:
 
-		PreRender();
-
+		PreRender(Application* host);
 		virtual ~PreRender();
 
 		class F_EXPORT Task {
@@ -71,6 +71,8 @@ namespace flare {
 			ID      _task_id;
 			int64_t _timeout;
 		};
+
+		F_DEFINE_PROP_READ(Application*, host);
 
 		/**
 			* @func solve 解决预先渲染问题,如果需要更新视图返回true
@@ -93,11 +95,11 @@ namespace flare {
 		void solve_mark_recursive();
 
 		// member data
-		bool _is_render;
 		int32_t _mark_total, _mark_recursive_total;
 		List<Task*>  _tasks;
 		Array<Array<Layout*>> _marks; // 被标记的视图
 		Array<Array<Layout*>> _mark_recursives;
+		bool _is_render;
 	};
 
 }

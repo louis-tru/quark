@@ -34,16 +34,20 @@
 
 namespace flare {
 
+	Layout::Layout(): Layout(flare::pre_render()) {
+	}
+
 	/**
 		* @constructors
 		*/
-	Layout::Layout()
-		: _mark_index(-1)
+	Layout::Layout(PreRender* pre)
+		: _pre_render(pre)
+		, _mark_index(-1)
 		, _recursive_mark_index(-1)
 		, _layout_mark(M_NONE)
 		, _layout_depth(0)
 	{
-		F_ASSERT(app());
+		F_ASSERT(pre);
 	}
 
 	/**
@@ -191,17 +195,16 @@ namespace flare {
 			auto oldDepth = _layout_depth;
 			_layout_depth = newDepth;
 			// F_ASSERT(app());
-			auto pre = pre_render();
 			if (_mark_index >= 0) {
-				pre->delete_mark(this, oldDepth);
+				_pre_render->delete_mark(this, oldDepth);
 				if (newDepth) {
-					pre->mark(this, newDepth);
+					_pre_render->mark(this, newDepth);
 				}
 			}
 			if (_recursive_mark_index >= 0) {
-				pre->delete_mark_recursive(this, oldDepth);
+				_pre_render->delete_mark_recursive(this, oldDepth);
 				if (newDepth) {
-					pre->mark_recursive(this, newDepth);
+					_pre_render->mark_recursive(this, newDepth);
 				}
 			}
 		}
@@ -215,7 +218,7 @@ namespace flare {
 		if (_mark_index < 0) {
 			auto depth = layout_depth();
 			if (depth) {
-				pre_render()->mark(this, depth); // push to pre render
+				_pre_render->mark(this, depth); // push to pre render
 			}
 		}
 	}
@@ -225,14 +228,14 @@ namespace flare {
 		if (_recursive_mark_index < 0) {
 			auto depth = layout_depth();
 			if (depth) {
-				pre_render()->mark_recursive(this, depth); // push to pre render
+				_pre_render->mark_recursive(this, depth); // push to pre render
 			}
 		}
 	}
 
 	void Layout::mark_none() {
 		if (layout_depth()) {
-			pre_render()->mark_none(); // push to pre render
+			_pre_render->mark_none(); // push to pre render
 		}
 	}
 

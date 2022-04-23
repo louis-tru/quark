@@ -35,16 +35,30 @@
 
 namespace flare {
 
-	/**
-		* @class Label
-		*/
-	class F_EXPORT Label: public View {
+	class F_EXPORT TextBasic {
+	public:
+		TextBasic();
+		F_DEFINE_PROP(TextColor, text_background_color);
+		F_DEFINE_PROP(TextColor, text_color);
+		F_DEFINE_PROP(TextSize, text_size);
+		F_DEFINE_PROP(TextWeight, text_weight);
+		F_DEFINE_PROP(TextStyle, text_style);
+		F_DEFINE_PROP(TextFamily, text_family);
+		F_DEFINE_PROP(TextShadow, text_shadow);
+		F_DEFINE_PROP(TextLineHeight, text_line_height);
+		F_DEFINE_PROP(TextDecoration, text_decoration);
+		F_DEFINE_PROP(TextOverflow, text_overflow);
+		F_DEFINE_PROP(TextWhiteSpace, text_white_space);
+	protected:
+		virtual void onTextChange(uint32_t mark);
+	};
+
+	class F_EXPORT Label: public View, public TextBasic {
 		F_Define_View(Label);
 	public:
-	// TODO ...
-	private:
-		Color _text_background_color;
-		TextLineHeight _line_height;
+		F_DEFINE_PROP(String, text_value);
+	protected:
+		virtual void onTextChange(uint32_t mark) override;
 	};
 
 }

@@ -109,7 +109,7 @@ namespace flare {
 
 				if ( layout_mark() ) // remark
 					mark(M_NONE);
-				mark_recursive(M_TRANSFORM);
+				mark_recursive(M_RECURSIVE_TRANSFORM);
 
 				View *v = _first;
 				while ( v ) {
@@ -128,7 +128,7 @@ namespace flare {
 		* 
 		* @func transform()
 		*/
-	View::Transform* View::get_transform_entity() {
+	View::Transform* View::get_transform_instance() {
 		if (!_transform) {
 			_transform = new Transform();
 			_transform->scale = Vec2(1);
@@ -415,8 +415,8 @@ namespace flare {
 		*/
 	void View::set_translate(Vec2 val) {
 		if (translate() != val) {
-			get_transform_entity()->translate = val;
-			mark_recursive(M_TRANSFORM); // mark transform
+			get_transform_instance()->translate = val;
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark transform
 		}
 	}
 
@@ -427,8 +427,8 @@ namespace flare {
 		*/
 	void View::set_scale(Vec2 val) {
 		if (scale() != val) {
-			get_transform_entity()->scale = val;
-			mark_recursive(M_TRANSFORM); // mark transform
+			get_transform_instance()->scale = val;
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark transform
 		}
 	}
 
@@ -439,8 +439,8 @@ namespace flare {
 		*/
 	void View::set_skew(Vec2 val) {
 		if (skew() != val) {
-			get_transform_entity()->skew = val;
-			mark_recursive(M_TRANSFORM); // mark transform
+			get_transform_instance()->skew = val;
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark transform
 		}
 	}
 
@@ -451,8 +451,8 @@ namespace flare {
 		*/
 	void View::set_rotate(float val) {
 		if (rotate() != val) {
-			get_transform_entity()->rotate = val;
-			mark_recursive(M_TRANSFORM); // mark transform
+			get_transform_instance()->rotate = val;
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark transform
 		}
 	}
 
@@ -464,8 +464,8 @@ namespace flare {
 		*/
 	void View::set_x(float val) {
 		if (translate().x() != val) {
-			get_transform_entity()->translate.set_x(val);
-			mark_recursive(M_TRANSFORM); // mark transform
+			get_transform_instance()->translate.set_x(val);
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark transform
 		}
 	}
 
@@ -477,8 +477,8 @@ namespace flare {
 		*/
 	void View::set_y(float val) {
 		if (translate().y() != val) {
-			get_transform_entity()->translate.set_y(val);
-			mark_recursive(M_TRANSFORM); // mark transform
+			get_transform_instance()->translate.set_y(val);
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark transform
 		}
 	}
 
@@ -490,8 +490,8 @@ namespace flare {
 		*/
 	void View::set_scale_x(float val) {
 		if (scale().x() != val) {
-			get_transform_entity()->scale.set_x(val);
-			mark_recursive(M_TRANSFORM); // mark transform
+			get_transform_instance()->scale.set_x(val);
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark transform
 		}
 	}
 
@@ -503,8 +503,8 @@ namespace flare {
 		*/
 	void View::set_scale_y(float val) {
 		if (scale().y() != val) {
-			get_transform_entity()->scale.set_y(val);
-			mark_recursive(M_TRANSFORM); // mark transform
+			get_transform_instance()->scale.set_y(val);
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark transform
 		}
 	}
 
@@ -516,8 +516,8 @@ namespace flare {
 		*/
 	void View::set_skew_x(float val) {
 		if (skew().x() != val) {
-			get_transform_entity()->skew.set_x(val);
-			mark_recursive(M_TRANSFORM); // mark transform
+			get_transform_instance()->skew.set_x(val);
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark transform
 		}
 	}
 
@@ -529,8 +529,8 @@ namespace flare {
 		*/
 	void View::set_skew_y(float val) {
 		if (skew().y() != val) {
-			get_transform_entity()->skew.set_y(val);
-			mark_recursive(M_TRANSFORM); // mark transform
+			get_transform_instance()->skew.set_y(val);
+			mark_recursive(M_RECURSIVE_TRANSFORM); // mark transform
 		}
 	}
 
@@ -597,8 +597,8 @@ namespace flare {
 	void View::layout_recursive(uint32_t mark) {
 		if (!layout_depth()) return;
 
-		if (mark & M_TRANSFORM) { // update transform matrix
-			unmark(M_TRANSFORM | M_LAYOUT_SHAPE); // unmark
+		if (mark & M_RECURSIVE_TRANSFORM) { // update transform matrix
+			unmark(M_RECURSIVE_TRANSFORM | M_RECURSIVE_VISIBLE_REGION); // unmark
 			if (_parent) {
 				_parent->matrix().multiplication(layout_matrix(), _matrix);
 			} else {
@@ -606,11 +606,11 @@ namespace flare {
 			}
 			goto visible_region;
 		}
-		else if (mark & M_LAYOUT_SHAPE) {
-			unmark(M_LAYOUT_SHAPE); // unmark
+
+		if (mark & M_RECURSIVE_VISIBLE_REGION) {
+			unmark(M_RECURSIVE_VISIBLE_REGION); // unmark
 			visible_region:
 			_visible_region = solve_visible_region();
-
 			if (_visible_region) {
 				View *v = _first;
 				while (v) {
@@ -637,6 +637,11 @@ namespace flare {
 	bool View::overlap_test(Vec2 point) {
 		return false;
 	}
+	
+	void View::accept(ViewVisitor *visitor) {
+		visitor->visitView(this);
+	}
+
 
 	/**
 	* @func overlap_test_from_convex_quadrilateral

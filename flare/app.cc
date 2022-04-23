@@ -40,7 +40,7 @@
 #include "./render/font/pool.h"
 #include "./render/source.h"
 #include "./pre_render.h"
-#include "./layout/text.h"
+#include "./layout/label.h"
 #include "./event.h"
 
 F_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
@@ -213,8 +213,8 @@ namespace flare {
 
 		F_On(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
 		// init
-		_default_text_settings = new DefaultTextSettings();
-		_pre_render = new PreRender(); F_DEBUG("new PreRender ok");
+		_default_text_settings = new TextBasic();
+		_pre_render = new PreRender(this); F_DEBUG("new PreRender ok");
 		_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
 		//_font_pool = new FontPool(this);
 		_img_pool = new ImagePool(this);
@@ -232,7 +232,7 @@ namespace flare {
 			_focus_view->release();
 			_focus_view = nullptr;
 		}
-		Release(_default_text_settings); _default_text_settings = nullptr;
+		delete _default_text_settings; _default_text_settings = nullptr;
 		Release(_dispatch);      _dispatch = nullptr;
 		// Release(_action_direct); _action_direct = nullptr;
 		Release(_display);     _display = nullptr;

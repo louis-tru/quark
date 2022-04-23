@@ -62,7 +62,7 @@ namespace flare {
 
 		r->mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
 		r->set_fill_color(Color(255, 255, 255, 255)); // 默认白色背景
-		r->mark_recursive(M_TRANSFORM);
+		r->mark_recursive(M_RECURSIVE_TRANSFORM);
 		_inl_app(app)->set_root(*r);
 		return r.collapse();
 	}

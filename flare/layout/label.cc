@@ -29,8 +29,102 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./label.h"
+#include "../render/font/pool.h"
 
 namespace flare {
 
+	TextBasic::TextBasic()
+		: _text_background_color{Color(0, 0, 0, 0), TextValueType::VALUE}
+		, _text_color{Color(0, 0, 0), TextValueType::VALUE}
+		, _text_size{16, TextValueType::VALUE}
+		, _text_weight{TextWeightValue::REGULAR, TextValueType::VALUE}
+		, _text_style{TextStyleValue::NORMAL, TextValueType::VALUE}
+		, _text_family{FontPool::get_font_familys_id(String()), TextValueType::VALUE}
+		, _text_shadow{{ 0, 0, 0, Color(0, 0, 0) }, TextValueType::VALUE}
+		, _text_line_height{0, TextValueType::VALUE}
+		, _text_decoration{TextDecorationValue::NONE, TextValueType::VALUE}
+		, _text_overflow{TextOverflowValue::NORMAL, TextValueType::VALUE}
+		, _text_white_space{TextWhiteSpaceValue::NORMAL, TextValueType::VALUE}
+	{
+	}
 
+	void TextBasic::onTextChange(uint32_t mark) {
+		// noop
+	}
+
+	void TextBasic::set_text_background_color(TextColor value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_background_color = value;
+			onTextChange(Layout::M_NONE);
+		}
+	}
+	void TextBasic::set_text_color(TextColor value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_color = value;
+			onTextChange(Layout::M_NONE);
+		}
+	}
+	void TextBasic::set_text_size(TextSize value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_size = value;
+			onTextChange(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+		}
+	}
+	void TextBasic::set_text_style(TextStyle value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_style = value;
+			onTextChange(Layout::M_NONE);
+		}
+	}
+	void TextBasic::set_text_family(TextFamily value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_family = value;
+			onTextChange(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+		}
+	}
+	void TextBasic::set_text_shadow(TextShadow value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_shadow = value;
+			onTextChange(Layout::M_NONE);
+		}
+	}
+	void TextBasic::set_text_line_height(TextLineHeight value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_line_height = value;
+			onTextChange(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+		}
+	}
+	void TextBasic::set_text_decoration(TextDecoration value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_decoration = value;
+			onTextChange(Layout::M_NONE);
+		}
+	}
+	void TextBasic::set_text_overflow(TextOverflow value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_overflow = value;
+			onTextChange(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+		}
+	}
+	void TextBasic::set_text_white_space(TextWhiteSpace value) {
+		if ( value.type == TextValueType::VALUE ) {
+			_text_white_space = value;
+			onTextChange(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+		}
+	}
+
+	void Label::set_text_value(String val) {
+		if (_text_value != val) {
+			_text_value = std::move(val);
+			mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
+		}
+	}
+
+	void Label::onTextChange(uint32_t mark_) {
+		if (mark_) {
+			mark(mark_);
+		} else {
+			mark_none();
+		}
+	}
 }

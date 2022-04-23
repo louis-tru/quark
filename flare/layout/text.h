@@ -32,32 +32,15 @@
 #define __flare__layout__text__
 
 #include "./box.h"
+#include "./label.h"
 
 namespace flare {
 
-	class F_EXPORT Text: public Box {
+	class F_EXPORT Text: public Box, public TextBasic {
 		F_Define_View(Text);
 	public:
-	// TODO ...
-	private:
-	// TODO ...
-	};
-
-	class DefaultTextSettings: public Object {
-	public:
-		DefaultTextSettings();
-		// define props
-		F_DEFINE_PROP(TextColor, text_background_color);
-		F_DEFINE_PROP(TextColor, text_color);
-		F_DEFINE_PROP(TextSize, text_size);
-		F_DEFINE_PROP(TextWeight, text_weight);
-		F_DEFINE_PROP(TextStyle, text_style);
-		F_DEFINE_PROP(TextFamily, text_family);
-		F_DEFINE_PROP(TextShadow, text_shadow);
-		F_DEFINE_PROP(TextLineHeight, text_line_height);
-		F_DEFINE_PROP(TextDecoration, text_decoration);
-		F_DEFINE_PROP(TextOverflow, text_overflow);
-		F_DEFINE_PROP(TextWhiteSpace, text_white_space);
+	protected:
+		virtual void onTextChange(uint32_t mark) override;
 	};
 
 }

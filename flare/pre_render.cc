@@ -110,12 +110,13 @@ namespace flare {
 	/**
 	* @constructor
 	*/
-	PreRender::PreRender()
-		: _is_render(false)
+	PreRender::PreRender(Application* host)
+		: _host(host)
 		, _mark_total(0)
 		, _mark_recursive_total(0)
 		, _marks(0)
 		, _mark_recursives(0)
+		, _is_render(false)
 	{
 	}
 

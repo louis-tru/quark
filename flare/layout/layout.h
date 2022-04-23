@@ -49,14 +49,13 @@ namespace flare {
 
 		// Layout mark value
 		enum : uint32_t {
-			M_NONE                    = (0),      /* 没有任何标记 */
-			M_TRANSFORM               = (1 << 0), /* 矩阵变换 recursive mark */
-			M_LAYOUT_SIZE_WIDTH       = (1 << 1), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
-			M_LAYOUT_SIZE_HEIGHT      = (1 << 2),
-			M_LAYOUT_TYPESETTING      = (1 << 3), /* 布局内容偏移, 需要重新对子布局排版 */
-			M_LAYOUT_SHAPE            = (1 << 4), /* 形状变化 */
-			//**
-			M_RECURSIVE               = (M_TRANSFORM | M_LAYOUT_SHAPE), /* 需要被递归的标记 */
+			M_NONE                     = (0),      /* 没有任何标记 */
+			M_LAYOUT_SIZE_WIDTH        = (1 << 0), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
+			M_LAYOUT_SIZE_HEIGHT       = (1 << 1),
+			M_LAYOUT_TYPESETTING       = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
+			// RECURSIVE MARKS
+			M_RECURSIVE_TRANSFORM      = (1 << 3), /* 矩阵变换 recursive mark */
+			M_RECURSIVE_VISIBLE_REGION = (1 << 4), /* 可见范围 */
 		};
 
 		// TypesettingChangeMark
@@ -76,6 +75,7 @@ namespace flare {
 			* @constructors
 			*/
 		Layout();
+		Layout(PreRender* pre);
 
 		/**
 			* @destructor
@@ -202,6 +202,14 @@ namespace flare {
 		virtual void layout_recursive(uint32_t mark) = 0;
 
 		/**
+		 * 
+		 * solve text layout
+		 * 
+		 * @func layout_text()
+		 */
+		virtual void layout_text() = 0;
+
+		/**
 			* 
 			* This method of the parent view is called when the layout content of the child view changes
 			*
@@ -276,6 +284,11 @@ namespace flare {
 		* 这个值受`View::_visible`影响, View::_visible=false时_depth=0
 		*/
 		F_DEFINE_PROP_READ(uint32_t, layout_depth);
+
+		/*
+		* @field pre_render
+		*/
+		F_DEFINE_PROP_READ(PreRender*, pre_render);
 		
 		friend class PreRender;
 	};

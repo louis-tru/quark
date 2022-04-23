@@ -32,15 +32,16 @@
 #define __flare__layout__input__
 
 #include "./box.h"
+#include "./label.h"
 
 namespace flare {
 
-	class F_EXPORT Input: public Box {
+	class F_EXPORT Input: public Box, public TextBasic {
 		F_Define_View(Input);
 	public:
-	// TODO ...
-	private:
-	// TODO ...
+		F_DEFINE_PROP(String, text_value);
+	protected:
+		virtual void onTextChange(uint32_t mark) override;
 	};
 
 }
