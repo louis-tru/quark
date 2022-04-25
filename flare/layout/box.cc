@@ -678,7 +678,7 @@
 		if (_layout_weight != weight) {
 			_layout_weight = weight;
 			if (parent()) {
-				parent()->layout_typesetting_change(this, T_CHILD_WEIGHT);
+				parent()->layout_typesetting_change(this, T_CHILD_LAYOUT_WEIGHT);
 			}
 		}
 	}

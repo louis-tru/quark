@@ -41,11 +41,11 @@ namespace flare {
 		* @constructors
 		*/
 	Layout::Layout(PreRender* pre)
-		: _pre_render(pre)
-		, _mark_index(-1)
+		: _mark_index(-1)
 		, _recursive_mark_index(-1)
 		, _layout_mark(M_NONE)
 		, _layout_depth(0)
+		, _pre_render(pre)
 	{
 		F_ASSERT(pre);
 	}
@@ -165,26 +165,6 @@ namespace flare {
 		*/
 	bool Layout::is_layout_lock_child() {
 		return false;
-	}
-
-	/**
-		*
-		* This method of the parent view is called when the layout content of the child view changes
-		* 
-		* @func layout_typesetting_change(child, mark)
-		*/
-	void Layout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
-		// noop
-	}
-
-	/**
-		* 
-		* This method of the child view is called when the layout size of the parent view changes
-		* 
-		* @func layout_content_size_change(parent, mark)
-		*/
-	void Layout::layout_content_size_change(Layout* parent, uint32_t mark) {
-		// noop
 	}
 
 	/**

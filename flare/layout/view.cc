@@ -30,6 +30,7 @@
 
 #include "../app.inl"
 #include "./view.h"
+#include "../text_rows.h"
 #include <math.h>
 
 namespace flare {
@@ -581,7 +582,7 @@ namespace flare {
 
 	bool View::layout_reverse(uint32_t mark) {
 
-		if (mark & (M_LAYOUT_TYPESETTING)) {
+		if (mark & M_LAYOUT_TYPESETTING) {
 			auto v = _first;
 			Vec2 origin, size;
 			while (v) {
@@ -621,9 +622,19 @@ namespace flare {
 		}
 	}
 
-	void View::layout_typesetting_change(Layout* child, TypesettingChangeMark _mark) {
-		if (!_mark) {
-			mark(M_LAYOUT_TYPESETTING);
+	void View::layout_text(TextRows *rows) {
+		// noop
+	}
+
+	void View::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
+		if (mark & T_TYPESETTING_CHANGE) {
+			this->mark(M_LAYOUT_TYPESETTING);
+		}
+		if (mark & T_CHILD_LAYOUT_TEXT) {
+			if (child) {
+				TextRows rows;
+				static_cast<View*>(child)->layout_text(&rows);
+			}
 		}
 	}
 

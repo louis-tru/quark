@@ -390,10 +390,11 @@ namespace flare {
 		/**
 			* @overwrite
 			*/
-		virtual bool layout_forward(uint32_t mark);
-		virtual bool layout_reverse(uint32_t mark);
-		virtual void layout_recursive(uint32_t mark);
-		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark = T_NONE);
+		virtual bool layout_forward(uint32_t mark) overflow;
+		virtual bool layout_reverse(uint32_t mark) overflow;
+		virtual void layout_recursive(uint32_t mark) overflow;
+		virtual void layout_text(TextRows *rows) overflow;
+		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark = T_TYPESETTING_CHANGE) overflow;
 
 	protected:
 		/**

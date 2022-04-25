@@ -57,6 +57,11 @@ namespace flare {
 		F_Define_View(Label);
 	public:
 		F_DEFINE_PROP(String, text_value);
+		virtual bool layout_forward(uint32_t mark) override;
+		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void layout_text(TextRows *rows) override;
+		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size) override;
+		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark) overflow;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
 	};

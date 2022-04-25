@@ -113,6 +113,8 @@ namespace flare {
 		}
 	}
 
+	// ---------------- L a b e l ----------------
+
 	void Label::set_text_value(String val) {
 		if (_text_value != val) {
 			_text_value = std::move(val);
@@ -120,11 +122,34 @@ namespace flare {
 		}
 	}
 
-	void Label::onTextChange(uint32_t mark_) {
-		if (mark_) {
-			mark(mark_);
-		} else {
-			mark_none();
+	void Label::onTextChange(uint32_t mark) {
+		mark ? this->mark(mark): mark_none();
+	}
+
+	bool Label::layout_forward(uint32_t mark) {
+		if (mark & (M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT | M_LAYOUT_TYPESETTING)) {
+			parent()->layout_typesetting_change(this, T_CHILD_LAYOUT_TEXT);
+		}
+		return true;
+	}
+
+	bool Label::layout_reverse(uint32_t mark) {
+		return true;
+	}
+
+	void Label::layout_text(TextRows *rows) {
+		// TODO ...
+		// unmark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
+	}
+
+	void Label::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
+		set_layout_offset(Vec2());
+	}
+
+	void Label::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
+		if (mark & T_CHILD_LAYOUT_TEXT) {
+			parent()->layout_typesetting_change(this, T_CHILD_LAYOUT_TEXT); // pass up
 		}
 	}
+
 }

@@ -32,7 +32,18 @@
 
 namespace flare {
 
-	void Text::onTextChange(uint32_t mark) {
+	void Text::set_text_align(TextAlign value) {
+		if(_text_align == value) {
+			_text_align = value;
+			mark(M_LAYOUT_TYPESETTING);
+		}
+	}
+
+	void Text::layout_text(TextRows *rows) {
 		// TODO ...
+	}
+
+	void Text::onTextChange(uint32_t mark) {
+		mark ? this->mark(mark): mark_none();
 	}
 }

@@ -37,6 +37,7 @@
 namespace flare {
 
 	class PreRender;
+	class TextRows;
 
 	/**
 		*
@@ -53,15 +54,17 @@ namespace flare {
 			M_LAYOUT_SIZE_WIDTH        = (1 << 0), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
 			M_LAYOUT_SIZE_HEIGHT       = (1 << 1),
 			M_LAYOUT_TYPESETTING       = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
+			M_LAYOUT_TEXT              = (1 << 3), /* 文本布局改变 */
 			// RECURSIVE MARKS
-			M_RECURSIVE_TRANSFORM      = (1 << 3), /* 矩阵变换 recursive mark */
-			M_RECURSIVE_VISIBLE_REGION = (1 << 4), /* 可见范围 */
+			M_RECURSIVE_TRANSFORM      = (1 << 31), /* 矩阵变换 recursive mark */
+			M_RECURSIVE_VISIBLE_REGION = (1 << 30), /* 可见范围 */
 		};
 
 		// TypesettingChangeMark
 		enum TypesettingChangeMark : uint32_t {
-			T_NONE         = (0),
-			T_CHILD_WEIGHT = (1 << 0),
+			T_TYPESETTING_CHANGE  = (1 << 0),
+			T_CHILD_LAYOUT_WEIGHT = (1 << 1),
+			T_CHILD_LAYOUT_TEXT   = (1 << 2),
 		};
 
 		// layout size
@@ -163,6 +166,9 @@ namespace flare {
 		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]);
 
 		/**
+			*
+			* whether the child layout has been locked
+			*
 			* @func is_layout_lock_child()
 			*/
 		virtual bool is_layout_lock_child();
@@ -205,9 +211,9 @@ namespace flare {
 		 * 
 		 * solve text layout
 		 * 
-		 * @func layout_text()
+		 * @func layout_text(rows)
 		 */
-		virtual void layout_text() = 0;
+		virtual void layout_text(TextRows *rows) = 0;
 
 		/**
 			* 
@@ -217,7 +223,7 @@ namespace flare {
 			*
 			* @func layout_typesetting_change(child, mark)
 			*/
-		virtual void layout_typesetting_change(Layout* child = nullptr, TypesettingChangeMark mark = T_NONE);
+		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark) = 0;
 
 		/**
 			* 
@@ -225,7 +231,7 @@ namespace flare {
 			* 
 			* @func layout_content_size_change(parent, mark)
 			*/
-		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
+		virtual void layout_content_size_change(Layout* parent, uint32_t mark) = 0;
 
 	protected:
 		/**

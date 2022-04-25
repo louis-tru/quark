@@ -511,8 +511,8 @@ namespace flare {
 		return _is_lock_child;
 	}
 
-	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark _mark) {
-		mark(M_LAYOUT_TYPESETTING);
+	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
+		View::layout_typesetting_change(child, mark | T_TYPESETTING_CHANGE);
 	}
 
 }

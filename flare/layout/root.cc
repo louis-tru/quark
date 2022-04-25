@@ -100,11 +100,17 @@ namespace flare {
 	bool Root::layout_reverse(uint32_t mark) {
 		if (mark & (M_LAYOUT_TYPESETTING)) {
 			auto v = first();
-			Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
-			Vec2 size = layout_size().content_size;
-			while (v) {
-				v->set_layout_offset_lazy(origin, size); // lazy layout
-				v = v->next();
+			if (v) {
+				Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
+				Vec2 size = layout_size().content_size;
+				if (_border) {
+					origin.val[0] += _border->width_left;
+					origin.val[1] += _border->width_top;
+				}
+				while (v) {
+					v->set_layout_offset_lazy(origin, size); // lazy layout
+					v = v->next();
+				}
 			}
 			unmark(M_LAYOUT_TYPESETTING);
 		}

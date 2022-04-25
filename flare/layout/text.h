@@ -39,6 +39,8 @@ namespace flare {
 	class F_EXPORT Text: public Box, public TextBasic {
 		F_Define_View(Text);
 	public:
+		F_DEFINE_PROP(TextAlign text_align);
+		virtual void layout_text(TextRows *rows) override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
 	};

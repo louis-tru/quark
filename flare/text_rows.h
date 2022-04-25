@@ -33,49 +33,28 @@
 
 #include "./layout/layout.h"
 
-/**
- * @ns flare
- */
-
 namespace flare {
 
-	/**
-	* @class TextRows
-	*/
 	class F_EXPORT TextRows {
 	public:
-		struct F_EXPORT Row {
-			Vec2 offset_start;
-			Vec2 offset_end;
-			float baseline;
-			float ascender;
-			float descender;
-			uint32_t  row_num;
+		struct Row {
+			Vec2 offset_start, offset_end;
+			float baseline, ascender, descender;
+			uint32_t  row;
 		};
-
 		TextRows();
-		inline Row* last() { return _last; }
-		inline uint32_t count() const { return (uint32_t)_values.size(); }
-		inline uint32_t last_num() const { return _last_num; }
-		inline bool clip() const { return _is_clip; }
-		inline void mark_clip() { _is_clip = true; }
-		inline float max_width() const { return _max_width; }
+		void clear();
+		void push(float ascender, float descender);
+		void update(float ascender, float descender);
+		inline uint32_t length() const { return _rows.length(); }
 		inline float max_height() const { return _last->offset_end.y(); }
-		inline const Array<Row>& rows() const { return _values; }
-		inline Row& operator[](uint32_t index) { return _values[index]; }
-		
-		void push_row(float ascender, float descender);
-		void update_row(float ascender, float descender);
-		void reset();
-		void set_width(float value);
-
+		inline Row& operator[](uint32_t index) { return _rows[index]; }
+		// defines props
+		F_DEFINE_PROP_READ(Row*, last);
+		F_DEFINE_PROP(float, max_width);
+		F_DEFINE_PROP(bool, is_clip);
 	private:
-		Array<Row>  _values;
-		Row*        _last;       // 最后行
-		uint32_t    _last_num;   // 最后行号
-		float       _max_width;  // 最大宽度
-		bool        _is_clip;    // 修剪结束
+		Array<Row>  _rows;
 	};
-
 }
 #endif
