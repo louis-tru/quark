@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./flex.h"
+#include "../text_rows.h"
 
 namespace flare {
 
@@ -92,7 +93,7 @@ namespace flare {
 
 			if (cur != new_size) {
 				set_layout_size(new_size);
-				parent()->layout_typesetting_change(this);
+				parent()->onChildLayoutChange(this, kChild_Layout_Size);
 			}
 		}
 
@@ -180,7 +181,7 @@ namespace flare {
 				} else {
 					set_layout_size(Vec2(cross_size, main_size));
 				}
-				parent()->layout_typesetting_change(this);
+				parent()->onChildLayoutChange(this, kChild_Layout_Size);
 			}
 		}
 
@@ -294,7 +295,7 @@ namespace flare {
 
 			if (new_size != cur) {
 				set_layout_size(new_size);
-				parent()->layout_typesetting_change(this);
+				parent()->onChildLayoutChange(this, kChild_Layout_Size);
 			}
 		}
 
@@ -319,13 +320,13 @@ namespace flare {
 
 			if (is_lock_child != _is_lock_child) {
 				_is_lock_child = is_lock_child;
-				layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT;
+				layout_content_size_change_mark = kLayout_Size_Width | kLayout_Size_Height;
 			}
 
 			if (!is_lock_child && layout_content_size_change_mark) {
 				auto v = first();
 				while (v) {
-					v->layout_content_size_change(this, layout_content_size_change_mark);
+					v->onParentLayoutContentSizeChange(this, layout_content_size_change_mark);
 					v = v->next();
 				}
 			}
@@ -352,7 +353,7 @@ namespace flare {
 	void FlexLayout::set_items_align(ItemsAlign align) {
 		if (align != _items_align) {
 			_items_align = align;
-			mark(M_LAYOUT_TYPESETTING);
+			mark(kLayout_Typesetting);
 		}
 	}
 
@@ -360,10 +361,10 @@ namespace flare {
 		auto layout_content_size_change_mark = solve_layout_size(mark);
 
 		if (layout_content_size_change_mark) {
-			mark_recursive(M_RECURSIVE_VISIBLE_REGION);
+			mark_recursive(kRecursive_Visible_Region);
 		}
 
-		if (mark & (M_LAYOUT_TYPESETTING | M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT)) {
+		if (mark & (kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height)) {
 			_inl(this)->update_IsLockChild(layout_content_size_change_mark);
 
 			if (!is_ready_layout_typesetting()) {
@@ -406,14 +407,14 @@ namespace flare {
 				return true; // layout_reverse() 必需在反向迭代中处理
 			}
 
-			unmark(M_LAYOUT_TYPESETTING);
+			unmark(kLayout_Typesetting);
 			// TODO check transform_origin change ...
 		}
 		return false;
 	}
 
 	bool FlexLayout::layout_reverse(uint32_t mark) {
-		if(mark & M_LAYOUT_TYPESETTING) {
+		if(mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) {
 				return true; // continue iteration
 			}
@@ -501,7 +502,7 @@ namespace flare {
 					_inl(this)->layout_typesetting_from_wrap(false, layout_size(), direction() == Direction::COLUMN_REVERSE);
 				}
 			}
-			unmark(M_LAYOUT_TYPESETTING);
+			unmark(kLayout_Typesetting);
 			// TODO check transform_origin change ...
 		}
 		return false;
@@ -511,8 +512,13 @@ namespace flare {
 		return _is_lock_child;
 	}
 
-	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
-		View::layout_typesetting_change(child, mark | T_TYPESETTING_CHANGE);
+	void FlexLayout::onChildLayoutChange(Layout* child, uint32_t value) {
+		if (value & (kChild_Layout_Size | kChild_Layout_Align | kChild_Layout_Visible | kChild_Layout_Weigh)) {
+			mark(kLayout_Typesetting);
+		} else if (value & kChild_Layout_Text) {
+			TextRows rows;
+			static_cast<View*>(child)->layout_text(&rows);
+		}
 	}
 
 }

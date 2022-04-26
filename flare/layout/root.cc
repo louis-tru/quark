@@ -42,7 +42,7 @@ namespace flare {
 	void Root::mark_layout_change() {
 		auto region = app()->display()->display_region();
 		float scale = app()->display()->scale();
-		mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		set_translate(Vec2(region.x / scale, region.y / scale));
 	}
 
@@ -60,9 +60,9 @@ namespace flare {
 
 		r->set_translate(Vec2(region.x / scale, region.y / scale));
 
-		r->mark(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+		r->mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		r->set_fill_color(Color(255, 255, 255, 255)); // 默认白色背景
-		r->mark_recursive(M_RECURSIVE_TRANSFORM);
+		r->mark_recursive(kRecursive_Transform);
 		_inl_app(app)->set_root(*r);
 		return r.collapse();
 	}
@@ -83,7 +83,7 @@ namespace flare {
 	}
 
 	bool Root::layout_forward(uint32_t mark) {
-		if (mark & (M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT)) {
+		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
 			Size size = { Vec2(), display()->size(), false, false };
 			auto x = solve_layout_content_width(size);
 			auto y = solve_layout_content_height(size);
@@ -92,13 +92,13 @@ namespace flare {
 				margin_top() + margin_bottom() + padding_top() + padding_bottom()
 			);
 			layout_lock(Vec2(x, y) + mp, &size.wrap_x);
-			unmark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
+			unmark(kLayout_Size_Width | kLayout_Size_Height);
 		}
-		return (layout_mark() & M_LAYOUT_TYPESETTING);
+		return (layout_mark() & kLayout_Typesetting);
 	}
 
 	bool Root::layout_reverse(uint32_t mark) {
-		if (mark & (M_LAYOUT_TYPESETTING)) {
+		if (mark & (kLayout_Typesetting)) {
 			auto v = first();
 			if (v) {
 				Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
@@ -112,7 +112,7 @@ namespace flare {
 					v = v->next();
 				}
 			}
-			unmark(M_LAYOUT_TYPESETTING);
+			unmark(kLayout_Typesetting);
 		}
 		return false; // stop iteration
 	}

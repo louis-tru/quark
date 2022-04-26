@@ -55,61 +55,61 @@ namespace flare {
 	void TextBasic::set_text_background_color(TextColor value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_background_color = value;
-			onTextChange(Layout::M_NONE);
+			onTextChange(Layout::kLayout_None);
 		}
 	}
 	void TextBasic::set_text_color(TextColor value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_color = value;
-			onTextChange(Layout::M_NONE);
+			onTextChange(Layout::kLayout_None);
 		}
 	}
 	void TextBasic::set_text_size(TextSize value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_size = value;
-			onTextChange(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
 	void TextBasic::set_text_style(TextStyle value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_style = value;
-			onTextChange(Layout::M_NONE);
+			onTextChange(Layout::kLayout_None);
 		}
 	}
 	void TextBasic::set_text_family(TextFamily value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_family = value;
-			onTextChange(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
 	void TextBasic::set_text_shadow(TextShadow value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_shadow = value;
-			onTextChange(Layout::M_NONE);
+			onTextChange(Layout::kLayout_None);
 		}
 	}
 	void TextBasic::set_text_line_height(TextLineHeight value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_line_height = value;
-			onTextChange(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
 	void TextBasic::set_text_decoration(TextDecoration value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_decoration = value;
-			onTextChange(Layout::M_NONE);
+			onTextChange(Layout::kLayout_None);
 		}
 	}
 	void TextBasic::set_text_overflow(TextOverflow value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_overflow = value;
-			onTextChange(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
 	void TextBasic::set_text_white_space(TextWhiteSpace value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_white_space = value;
-			onTextChange(Layout::M_LAYOUT_SIZE_WIDTH | Layout::M_LAYOUT_SIZE_HEIGHT);
+			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
 
@@ -118,17 +118,17 @@ namespace flare {
 	void Label::set_text_value(String val) {
 		if (_text_value != val) {
 			_text_value = std::move(val);
-			mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
+			mark(kLayout_Size_Width | kLayout_Size_Height);
 		}
 	}
 
-	void Label::onTextChange(uint32_t mark) {
-		mark ? this->mark(mark): mark_none();
+	void Label::onTextChange(uint32_t value) {
+		value ? mark(value): mark_none();
 	}
 
 	bool Label::layout_forward(uint32_t mark) {
-		if (mark & (M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT | M_LAYOUT_TYPESETTING)) {
-			parent()->layout_typesetting_change(this, T_CHILD_LAYOUT_TEXT);
+		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
+			parent()->onChildLayoutChange(this, kChild_Layout_Text);
 		}
 		return true;
 	}
@@ -139,17 +139,21 @@ namespace flare {
 
 	void Label::layout_text(TextRows *rows) {
 		// TODO ...
-		// unmark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
+		// unmark(kLayout_Size_Width | kLayout_Size_Height);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
-		set_layout_offset(Vec2());
+		//set_layout_offset(Vec2());
 	}
 
-	void Label::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
-		if (mark & T_CHILD_LAYOUT_TEXT) {
-			parent()->layout_typesetting_change(this, T_CHILD_LAYOUT_TEXT); // pass up
+	void Label::onChildLayoutChange(Layout* child, uint32_t value) {
+		if (value & kChild_Layout_Text) {
+			parent()->onChildLayoutChange(this, kChild_Layout_Text); // pass up
 		}
+	}
+
+	void Label::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {
+		mark(value);
 	}
 
 }

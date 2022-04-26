@@ -33,7 +33,7 @@
 
 namespace flare {
 
-	PixelInfo::PixelInfo(): _width(0), _height(0), _type(kColor_Type_Invalid), _alphaType(kSkAlphaType_Unknown) {
+	PixelInfo::PixelInfo(): _width(0), _height(0), _type(kColor_Type_Invalid), _alphaType(kAlphaType_Unknown) {
 	}
 	PixelInfo::PixelInfo(int width, int height, ColorType type, AlphaType alphaType)
 		: _width(width), _height(height), _type(type), _alphaType(alphaType) {

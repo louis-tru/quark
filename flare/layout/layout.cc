@@ -43,7 +43,7 @@ namespace flare {
 	Layout::Layout(PreRender* pre)
 		: _mark_index(-1)
 		, _recursive_mark_index(-1)
-		, _layout_mark(M_NONE)
+		, _layout_mark(kLayout_None)
 		, _layout_depth(0)
 		, _pre_render(pre)
 	{

@@ -70,7 +70,7 @@ namespace flare {
 
 	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & (ImageSource::STATE_DECODE_COMPLETE | ImageSource::STATE_LOADING)) {
-			mark_layout_size(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
+			mark_layout_size(kLayout_Size_Width | kLayout_Size_Height);
 		}
 	}
 

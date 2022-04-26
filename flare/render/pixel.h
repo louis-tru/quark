@@ -64,7 +64,7 @@ namespace flare {
 	};
 
 	enum AlphaType {
-		kSkAlphaType_Unknown,
+		kAlphaType_Unknown,
 		kAlphaType_Opaque,   //!< pixel is opaque
 		kAlphaType_Premul,   //!< pixel components are premultiplied by alpha
 		kAlphaType_Unpremul, //!< pixel components are independent of alpha
@@ -73,7 +73,7 @@ namespace flare {
 	class F_EXPORT PixelInfo: public Object {
 	public:
 		PixelInfo();
-		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kSkAlphaType_Unknown);
+		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
 		F_DEFINE_PROP_READ(int, width); // width 图像宽度
 		F_DEFINE_PROP_READ(int, height); // height 图像高度
 		F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式

@@ -48,23 +48,25 @@ namespace flare {
 	class Layout: public Reference {
 	public:
 
-		// Layout mark value
-		enum : uint32_t {
-			M_NONE                     = (0),      /* 没有任何标记 */
-			M_LAYOUT_SIZE_WIDTH        = (1 << 0), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
-			M_LAYOUT_SIZE_HEIGHT       = (1 << 1),
-			M_LAYOUT_TYPESETTING       = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
-			M_LAYOUT_TEXT              = (1 << 3), /* 文本布局改变 */
+		// Layout mark key values
+		enum LayoutMark: uint32_t {
+			kLayout_None              = (0),      /* 没有任何标记 */
+			kLayout_Size_Width        = (1 << 0), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
+			kLayout_Size_Height       = (1 << 1),
+			kLayout_Typesetting       = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
+			kLayout_Text              = (1 << 3), /* 文本布局改变 */
 			// RECURSIVE MARKS
-			M_RECURSIVE_TRANSFORM      = (1 << 31), /* 矩阵变换 recursive mark */
-			M_RECURSIVE_VISIBLE_REGION = (1 << 30), /* 可见范围 */
+			kRecursive_Transform      = (1 << 30), /* 矩阵变换 recursive mark */
+			kRecursive_Visible_Region = (1U << 31), /* 可见范围 */
 		};
 
-		// TypesettingChangeMark
-		enum TypesettingChangeMark : uint32_t {
-			T_TYPESETTING_CHANGE  = (1 << 0),
-			T_CHILD_LAYOUT_WEIGHT = (1 << 1),
-			T_CHILD_LAYOUT_TEXT   = (1 << 2),
+		// child layout change mark key values
+		enum ChildLayoutChangeMark : uint32_t {
+			kChild_Layout_Size     = (1 << 0),
+			kChild_Layout_Visible  = (1 << 1),
+			kChild_Layout_Align    = (1 << 2),
+			kChild_Layout_Weigh    = (1 << 3),
+			kChild_Layout_Text     = (1 << 4),
 		};
 
 		// layout size
@@ -139,6 +141,14 @@ namespace flare {
 		virtual Vec2 layout_offset_inside();
 
 		/**
+			*
+			* whether the child layout has been locked
+			*
+			* @func is_layout_lock_child()
+			*/
+		virtual bool is_layout_lock_child();
+
+		/**
 			* 
 			* Setting the layout offset of the view object in the parent view
 			*
@@ -167,14 +177,6 @@ namespace flare {
 
 		/**
 			*
-			* whether the child layout has been locked
-			*
-			* @func is_layout_lock_child()
-			*/
-		virtual bool is_layout_lock_child();
-
-		/**
-			*
 			* (计算布局自身的尺寸)
 			*
 			* 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
@@ -184,7 +186,7 @@ namespace flare {
 			* 
 			* @func layout_forward(mark)
 			*/
-		virtual bool layout_forward(uint32_t mark) = 0;
+		virtual bool layout_forward(uint32_t/*LayoutMark*/ mark) = 0;
 
 		/**
 			* 
@@ -197,7 +199,7 @@ namespace flare {
 			* 
 			* @func layout_reverse(mark)
 			*/
-		virtual bool layout_reverse(uint32_t mark) = 0;
+		virtual bool layout_reverse(uint32_t/*LayoutMark*/ mark) = 0;
 
 		/**
 			*
@@ -205,7 +207,7 @@ namespace flare {
 			* 
 			* @func layout_recursive(mark)
 			*/
-		virtual void layout_recursive(uint32_t mark) = 0;
+		virtual void layout_recursive(uint32_t/*LayoutMark*/ mark) = 0;
 
 		/**
 		 * 
@@ -221,17 +223,17 @@ namespace flare {
 			*
 			* This is not necessarily called by the child layout
 			*
-			* @func layout_typesetting_change(child, mark)
+			* @func onChildLayoutChange(child, mark)
 			*/
-		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark) = 0;
+		virtual void onChildLayoutChange(Layout* child, uint32_t/*ChildLayoutChangeMark*/ mark) = 0;
 
 		/**
 			* 
 			* This method of the child view is called when the layout size of the parent view changes
 			* 
-			* @func layout_content_size_change(parent, mark)
+			* @func onParentLayoutContentSizeChange(parent, mark)
 			*/
-		virtual void layout_content_size_change(Layout* parent, uint32_t mark) = 0;
+		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t/*LayoutMark*/ mark) = 0;
 
 	protected:
 		/**
@@ -260,7 +262,7 @@ namespace flare {
 		/**
 			* @func unmark(mark)
 			*/
-		inline void unmark(uint32_t mark = (~M_NONE/*default unmark all*/)) {
+		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {
 			_layout_mark &= (~mark);
 		}
 

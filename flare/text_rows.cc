@@ -49,7 +49,7 @@ namespace flare {
 		float line_height = ascender + descender;
 		
 		if (_last->offset_start.y() == _last->offset_end.y()) { // 只有第一行才会这样
-			_last->offset_end.y(_last->offset_start.y() + line_height);
+			_last->offset_end.set_y(_last->offset_start.y() + line_height);
 			_last->baseline = ascender;
 			_last->ascender = ascender;
 			_last->descender = descender;
@@ -83,7 +83,7 @@ namespace flare {
 		}
 		if ( change ) {
 			_last->baseline = _last->offset_start.y() + _last->ascender;
-			_last->offset_end.y(_last->baseline + _last->descender);
+			_last->offset_end.set_y(_last->baseline + _last->descender);
 		}
 	}
 

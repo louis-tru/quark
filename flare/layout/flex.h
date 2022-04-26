@@ -51,7 +51,7 @@ namespace flare {
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual bool is_layout_lock_child() override;
-		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark) override;
+		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
 
 		// --------------- m e m b e r . f i e l d ---------------
 	private:

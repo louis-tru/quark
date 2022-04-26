@@ -110,8 +110,8 @@
 			#
 			# 'property.h',
 			# 'property.cc',
-			# 'text_rows.cc',
-			# 'text_rows.h',
+			'text_rows.cc',
+			'text_rows.h',
 			# 'text_font.h',
 			# 'text_font.cc',
 			# 'action/action.inl',

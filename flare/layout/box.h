@@ -86,7 +86,7 @@ namespace flare {
 		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size) override;
-		virtual void layout_content_size_change(Layout* parent, uint32_t mark) override;
+		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 
 	protected:

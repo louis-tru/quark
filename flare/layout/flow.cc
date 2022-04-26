@@ -154,7 +154,7 @@ namespace flare {
 
 			if (cur != new_size) {
 				set_layout_size(new_size);
-				parent()->layout_typesetting_change(this);
+				parent()->onChildLayoutChange(this, kChild_Layout_Size);
 			}
 		}
 
@@ -279,7 +279,7 @@ namespace flare {
 
 			if (new_size != cur) {
 				set_layout_size(new_size);
-				parent()->layout_typesetting_change(this);
+				parent()->onChildLayoutChange(this, kChild_Layout_Size);
 			}
 		}
 
@@ -313,7 +313,7 @@ namespace flare {
 	void FlowLayout::set_direction(Direction val) {
 		if (val != _direction) {
 			_direction = val;
-			mark(M_LAYOUT_TYPESETTING); // 排版参数改变,后续需对子布局重新排版
+			mark(kLayout_Typesetting); // 排版参数改变,后续需对子布局重新排版
 		}
 	}
 
@@ -326,7 +326,7 @@ namespace flare {
 	void FlowLayout::set_cross_align(CrossAlign align) {
 		if (align != _cross_align) {
 			_cross_align = align;
-			mark(M_LAYOUT_TYPESETTING);
+			mark(kLayout_Typesetting);
 		}
 	}
 
@@ -339,7 +339,7 @@ namespace flare {
 	void FlowLayout::set_wrap(Wrap wrap) {
 		if (wrap != _wrap) {
 			_wrap = wrap;
-			mark(M_LAYOUT_TYPESETTING);
+			mark(kLayout_Typesetting);
 		}
 	}
 
@@ -352,14 +352,14 @@ namespace flare {
 	void FlowLayout::set_wrap_align(WrapAlign align) {
 		if (align != _wrap_align) {
 			_wrap_align = align;
-			mark(M_LAYOUT_TYPESETTING);
+			mark(kLayout_Typesetting);
 		}
 	}
 
 	// --------------- o v e r w r i t e ---------------
 
 	bool FlowLayout::layout_reverse(uint32_t mark) {
-		if (mark & (M_LAYOUT_TYPESETTING)) {
+		if (mark & (kLayout_Typesetting)) {
 			if (!is_ready_layout_typesetting()) {
 				return true; // continue iteration
 			}
@@ -377,7 +377,7 @@ namespace flare {
 				}
 			}
 
-			unmark(M_LAYOUT_TYPESETTING);
+			unmark(kLayout_Typesetting);
 		}
 		return false;
 	}

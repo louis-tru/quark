@@ -35,7 +35,7 @@ namespace flare {
 	void Text::set_text_align(TextAlign value) {
 		if(_text_align == value) {
 			_text_align = value;
-			mark(M_LAYOUT_TYPESETTING);
+			mark(kLayout_Typesetting);
 		}
 	}
 
