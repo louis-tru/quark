@@ -127,14 +127,14 @@ namespace flare {
 	}
 
 	bool Label::layout_forward(uint32_t mark) {
-		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
-			parent()->onChildLayoutChange(this, kChild_Layout_Text);
-		}
 		return true;
 	}
 
 	bool Label::layout_reverse(uint32_t mark) {
-		return true;
+		if (mark & (kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting)) {
+			parent()->onChildLayoutChange(this, kChild_Layout_Text);
+		}
+		return false;
 	}
 
 	void Label::layout_text(TextRows *rows) {
@@ -143,12 +143,12 @@ namespace flare {
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
-		//set_layout_offset(Vec2());
+		// set_layout_offset(Vec2());
 	}
 
 	void Label::onChildLayoutChange(Layout* child, uint32_t value) {
-		if (value & kChild_Layout_Text) {
-			parent()->onChildLayoutChange(this, kChild_Layout_Text); // pass up
+		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
+			make(kLayout_Typesetting);
 		}
 	}
 
