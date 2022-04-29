@@ -582,7 +582,6 @@ namespace flare {
 	}
 
 	bool View::layout_reverse(uint32_t mark) {
-
 		if (mark & kLayout_Typesetting) {
 			auto v = _first;
 			Vec2 origin, size;
@@ -592,7 +591,6 @@ namespace flare {
 			}
 			unmark(kLayout_Typesetting);
 		}
-
 		return false;
 	}
 
@@ -632,7 +630,7 @@ namespace flare {
 			mark(kLayout_Typesetting);
 		} else if (value & kChild_Layout_Text) {
 			TextRows rows;
-			static_cast<View*>(child)->layout_text(&rows);
+			child->layout_text(&rows);
 		}
 	}
 

@@ -40,7 +40,7 @@ namespace flare {
 			_wrap = wrap;
 		}
 
-		static float parseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out) {
+		static float parse_align_space(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out) {
 			float offset_x = 0, space = 0;
 
 			switch (align) {
@@ -94,6 +94,7 @@ namespace flare {
 			// get layouts raw size total
 			float offset = 0, max_cross = 0;
 			Vec2 cur = cur_size.content_size;
+
 			struct Item { Vec2 s; View* v; };
 			Array<Item> start, center, end;
 
@@ -107,9 +108,12 @@ namespace flare {
 			auto v = first();
 			while (v) {
 				auto size = v->layout_size().layout_size;
-				if (cur_size.wrap_y) {
-					auto cross = is_horizontal ? size.y(): size.x();
-					max_cross = F_MAX(max_cross, cross);
+				if (is_horizontal) { // horizontal
+					if (cur_size.wrap_y)
+						max_cross = F_MAX(max_cross, size.y());
+				} else { // vertical
+					if (cur_size.wrap_x)
+						max_cross = F_MAX(max_cross, size.x());
 				}
 				switch (v->layout_align()) {
 					default:
@@ -120,11 +124,16 @@ namespace flare {
 				v = v->next();
 			}
 
-			if (!cur_size.wrap_y) { // no wrap y
-				max_cross = is_horizontal ? cur.y(): cur.x();
+			if (is_horizontal) { // horizontal
+				if (!cur_size.wrap_y) // no wrap size
+					max_cross = cur.y();
+			} else { // vertical
+				if (!cur_size.wrap_x) // no wrap size
+					max_cross = cur.x();
 			}
 
 			start.concat(std::move(center)).concat(std::move(end));
+
 			if (is_reverse) {
 				start.reverse();
 			}
@@ -192,7 +201,7 @@ namespace flare {
 				auto main = _total_main + (is_horizontal ? size.x(): size.y());
 				if (main > main_size) { // Line feed
 					_start.push({0,0}).concat(std::move(_center))
-										.push({0,0}).concat(std::move(_end));
+								.push({0,0}).concat(std::move(_end));
 					if (is_reverse)
 						_start.reverse();
 					lines.push({ _total_main, _max_cross, std::move(_start) });
@@ -215,7 +224,7 @@ namespace flare {
 
 			if (_start.length()+_center.length()+_end.length()) {
 				_start.push({0,0}).concat(std::move(_center))
-									.push({0,0}).concat(std::move(_end));
+							.push({0,0}).concat(std::move(_end));
 				if (is_reverse)
 					_start.reverse();
 				lines.push({ _total_main, _max_cross, std::move(_start) });
@@ -227,7 +236,8 @@ namespace flare {
 				lines.reverse();
 			}
 
-			if (is_wrap_main) main_size = max_main;
+			if (is_wrap_main)
+				main_size = max_main;
 			float cross_size = is_wrap_cross ? total_cross: (is_horizontal ? cur.y(): cur.y());
 			float cross_overflow = cross_size - total_cross;
 			float cross_overflow_item = 0;
@@ -237,7 +247,7 @@ namespace flare {
 				if (WrapAlign::STRETCH == _wrap_align) {
 					cross_overflow_item = lines.length() ? cross_overflow / lines.length() : 0;
 				} else {
-					cross_offset = parseAlignSpace(
+					cross_offset = parse_align_space(
 						_wrap_align, wrap_reverse, cross_overflow, lines.length(), &cross_space);
 				}
 			}
@@ -285,8 +295,8 @@ namespace flare {
 
 	};
 
-	float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out) {
-		return FlowLayout::Inl::parseAlignSpace(align, is_reverse, overflow, count, space_out);
+	float __Flow_parse_align_space(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out) {
+		return FlowLayout::Inl::parse_align_space(align, is_reverse, overflow, count, space_out);
 	}
 
 	void __Flow_set_wrap(FlowLayout* self, Wrap wrap) {
@@ -359,20 +369,28 @@ namespace flare {
 	// --------------- o v e r w r i t e ---------------
 
 	bool FlowLayout::layout_reverse(uint32_t mark) {
-		if (mark & (kLayout_Typesetting)) {
-			if (!is_ready_layout_typesetting()) {
-				return true; // continue iteration
-			}
-			if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) {
-				if (_wrap == Wrap::NO_WRAP) { // no wrap
+		if (mark & kLayout_Typesetting) {
+			if (!is_ready_layout_typesetting()) return true; // continue iteration
+
+			if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) { // ROW
+				if (_wrap == Wrap::NO_WRAP) { // no wrap, single-line
+					/*
+						|-----------------------------|
+						|         wrap=NO_WRAP        |
+						|   ___ ___ ___         ___   |
+						|  | L | L | L | ----> | L |  |
+						|   --- --- ---         ---   |
+						|                             |
+						|-----------------------------|
+					*/
 					_inl(this)->layout_typesetting_from_auto(true, layout_size(), _direction == Direction::ROW_REVERSE);
-				} else {
+				} else { // wrap, multi-line
 					_inl(this)->layout_typesetting_from_wrap(true, layout_size(), _direction == Direction::ROW_REVERSE);
 				}
-			} else {
-				if (_wrap == Wrap::NO_WRAP) { // no wrap
+			} else { // COLUMN
+				if (_wrap == Wrap::NO_WRAP) { // no wrap, single-line
 					_inl(this)->layout_typesetting_from_auto(false, layout_size(), _direction == Direction::COLUMN_REVERSE);
-				} else {
+				} else { // wrap, multi-line
 					_inl(this)->layout_typesetting_from_wrap(false, layout_size(), _direction == Direction::COLUMN_REVERSE);
 				}
 			}

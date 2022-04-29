@@ -72,6 +72,7 @@ namespace flare {
 			*/
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void layout_text(TextRows *rows) override;
 		virtual Vec2 layout_offset() override;
 		virtual Size layout_size() override;
 		virtual Size layout_raw_size(Size parent_content_size) override;

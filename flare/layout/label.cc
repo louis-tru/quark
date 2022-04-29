@@ -127,7 +127,7 @@ namespace flare {
 	}
 
 	bool Label::layout_forward(uint32_t mark) {
-		return true;
+		return true; // continue iteration
 	}
 
 	bool Label::layout_reverse(uint32_t mark) {
@@ -139,11 +139,14 @@ namespace flare {
 
 	void Label::layout_text(TextRows *rows) {
 		// TODO ...
+		// TextAlign align = TextAlign::LEFT;
+		// left / center / right / LEFT_REVERSE / CENTER_REVERSE / RIGHT_REVERSE
 		// unmark(kLayout_Size_Width | kLayout_Size_Height);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
-		// set_layout_offset(Vec2());
+		TextRows rows; // use left-top align
+		layout_text(&rows);
 	}
 
 	void Label::onChildLayoutChange(Layout* child, uint32_t value) {

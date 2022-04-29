@@ -39,11 +39,31 @@ namespace flare {
 		}
 	}
 
-	void Text::layout_text(TextRows *rows) {
-		// TODO ...
+	bool Text::layout_reverse(uint32_t mark) {
+		if (mark & kLayout_Typesetting) {
+			if (!is_ready_layout_typesetting()) return true; // continue iteration
+
+			auto v = first();
+			if (v) {
+				TextRows rows; // text_align
+				do {
+					v->layout_text(&rows);
+					v = v->next();
+				} while(v);
+			}
+			unmark(kLayout_Typesetting);
+		}
+		return false;
 	}
 
-	void Text::onTextChange(uint32_t mark) {
-		mark ? this->mark(mark): mark_none();
+	void Text::onChildLayoutChange(Layout* child, uint32_t value) {
+		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
+			mark(kLayout_Typesetting);
+		}
 	}
+
+	void Text::onTextChange(uint32_t value) {
+		value ? mark(value): mark_none();
+	}
+
 }

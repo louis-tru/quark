@@ -40,7 +40,8 @@ namespace flare {
 		F_Define_View(Text);
 	public:
 		F_DEFINE_PROP(TextAlign, text_align);
-		virtual void layout_text(TextRows *rows) override;
+		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void onChildLayoutChange(Layout* child, uint32_t value) override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
 	};

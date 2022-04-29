@@ -33,7 +33,7 @@
 
 namespace flare {
 
-	float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out);
+	float __Flow_parse_align_space(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out);
 	void  __Flow_set_wrap(FlowLayout* self, Wrap wrap);
 
 	// flex private members method
@@ -148,7 +148,7 @@ namespace flare {
 			}
 
 			float space = 0;
-			float offset = __Flow_ParseAlignSpace((WrapAlign)_items_align, is_reverse, overflow, items.length(), &space);
+			float offset = __Flow_parse_align_space((WrapAlign)_items_align, is_reverse, overflow, items.length(), &space);
 
 			for (auto i: items) {
 				auto size = i.s;
@@ -256,7 +256,7 @@ namespace flare {
 				if (WrapAlign::STRETCH == wrap_align()) {
 					cross_overflow_item = lines.length() ? cross_overflow / lines.length() : 0;
 				} else {
-					cross_offset = __Flow_ParseAlignSpace(
+					cross_offset = __Flow_parse_align_space(
 						wrap_align(), wrap_reverse, cross_overflow, lines.length(), &cross_space);
 				}
 			}
@@ -265,7 +265,7 @@ namespace flare {
 				float cross = i.max_cross + cross_overflow_item;
 				float overflow = main_size - i.total_main;
 				float space = 0;
-				float offset = __Flow_ParseAlignSpace((WrapAlign)_items_align, is_reverse, overflow, i.items.length(), &space);
+				float offset = __Flow_parse_align_space((WrapAlign)_items_align, is_reverse, overflow, i.items.length(), &space);
 
 				for (auto j: i.items) {
 					auto s = j.s;
@@ -367,44 +367,44 @@ namespace flare {
 		if (mark & (kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height)) {
 			_inl(this)->update_IsLockChild(layout_content_size_change_mark);
 
-			if (!is_ready_layout_typesetting()) {
-				return true;
-			}
-			if (_is_lock_child) { // flex
-				if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) {
-					/*
-						|-----------------------------|
-						|  width=PIXEL,wrap=NO_WRAP   |
-						|   ___ ___ ___         ___   |
-						|  | L | L | L | ----> | L |  |
-						|   --- --- ---         ---   |
-						|                             |
-						|-----------------------------|
-					*/
-					_inl(this)->layout_typesetting_from_flex(true, layout_size(), direction() == Direction::ROW_REVERSE); // flex horizontal
-				} else {
-					/*
-						|---------------------------|
-						| height=PIXEL,wrap=NO_WRAP |
-						|            ___            |
-						|           | L |           |
-						|            ---            |
-						|           | L |           |
-						|            ---            |
-						|           | L |           |
-						|            ---            |
-						|             |             |
-						|             |             |
-						|             v             |
-						|            ___            |
-						|           | L |           |
-						|            ---            |
-						|---------------------------|
-					*/
-					_inl(this)->layout_typesetting_from_flex(false, layout_size(), direction() == Direction::COLUMN_REVERSE); // flex vertical
-				}
-			} else {
-				return true; // layout_reverse() 必需在反向迭代中处理
+			// if no lock child layout then must be processed in reverse iteration, layout_reverse()
+			if (!_is_lock_child) return true; // no lock child
+
+			// not ready continue iteration
+			if (!is_ready_layout_typesetting()) return true;
+
+			// flex
+			if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) { // ROW
+				/*
+					|-----------------------------|
+					|  width=PIXEL,wrap=NO_WRAP   |
+					|   ___ ___ ___         ___   |
+					|  | L | L | L | ----> | L |  |
+					|   --- --- ---         ---   |
+					|                             |
+					|-----------------------------|
+				*/
+				_inl(this)->layout_typesetting_from_flex(true, layout_size(), direction() == Direction::ROW_REVERSE); // flex horizontal
+			} else { // COLUMN
+				/*
+					|---------------------------|
+					| height=PIXEL,wrap=NO_WRAP |
+					|            ___            |
+					|           | L |           |
+					|            ---            |
+					|           | L |           |
+					|            ---            |
+					|           | L |           |
+					|            ---            |
+					|             |             |
+					|             |             |
+					|             v             |
+					|            ___            |
+					|           | L |           |
+					|            ---            |
+					|---------------------------|
+				*/
+				_inl(this)->layout_typesetting_from_flex(false, layout_size(), direction() == Direction::COLUMN_REVERSE); // flex vertical
 			}
 
 			unmark(kLayout_Typesetting);
@@ -414,11 +414,10 @@ namespace flare {
 	}
 
 	bool FlexLayout::layout_reverse(uint32_t mark) {
-		if(mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) {
-				return true; // continue iteration
-			}
-			if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) {
+		if (mark & kLayout_Typesetting) {
+			if (!is_ready_layout_typesetting()) return true; // continue iteration
+
+			if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) { // ROW
 				if (wrap() == Wrap::NO_WRAP) {
 					if (layout_wrap_x()) { // auto horizontal layout
 						/*
@@ -449,13 +448,13 @@ namespace flare {
 							|              |              |
 							|              v              |
 							|   ___ ___ ___         ___   |
-							|  | L | L | L | <---> | L |  |
+							|  | L | L | L |  ---> | L |  |
 							|   --- --- ---         ---   |
 							|-----------------------------|
 						*/
 					_inl(this)->layout_typesetting_from_wrap(true, layout_size(), direction() == Direction::ROW_REVERSE);
 				}
-			} else {
+			} else { // COLUMN
 				if (wrap() == Wrap::NO_WRAP) {
 					if (layout_wrap_y()) { // auto vertical layout
 						/*

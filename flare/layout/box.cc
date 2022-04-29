@@ -578,16 +578,15 @@
 
 	bool Box::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) {
-				return true; // continue iteration
-			}
+			if (!is_ready_layout_typesetting()) return true; // continue iteration
+
 			auto v = first();
 			if (v) {
 				Vec2 origin(_margin_left + _padding_left, _margin_top + _padding_top);
 				Vec2 size = _layout_content_size;
 				if (_border) {
-					origin.val[0] += _border->width_left;// + _border->width_right;
-					origin.val[1] += _border->width_top;// + _border->width_bottom;
+					origin.val[0] += _border->width_left;
+					origin.val[1] += _border->width_top;
 				}
 				do {
 					v->set_layout_offset_lazy(origin, size); // lazy layout
@@ -597,6 +596,10 @@
 			unmark(kLayout_Typesetting);
 		}
 		return false; // stop iteration
+	}
+
+	void Box::layout_text(TextRows *rows) {
+		// TODO ...
 	}
 
 	Vec2 Box::layout_offset() {
@@ -813,6 +816,7 @@
 					origin.y() + (size.y() - _layout_size.y()));
 				break;
 		}
+
 		set_layout_offset(offset);
 	}
 
