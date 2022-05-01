@@ -31,31 +31,31 @@
 #ifndef __flare__layout__flex__
 #define __flare__layout__flex__
 
-#include "./flow.h"
+#include "./box.h"
 
 namespace flare {
 
-	/**
-		* @class Flex
-		*/
-	class F_EXPORT FlexLayout: public FlowLayout {
+	class F_EXPORT FlexLayout: public Box {
 		F_Define_View(FlexLayout);
 	public:
-
 		FlexLayout();
-
 		// define props
-		F_DEFINE_PROP(ItemsAlign, items_align); // items_align 主轴的对齐方式
-
+		F_DEFINE_PROP(Direction, direction); // typesetting direction
+		F_DEFINE_PROP(ItemsAlign, items_align); // alignment mode of the main axis
+		F_DEFINE_PROP(CrossAlign, cross_align); // alignment mode of the cross axis
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
-		virtual bool is_layout_lock_child() override;
+		virtual Vec2 layout_lock(Vec2 layout_size) override;
+		virtual bool is_lock_child_layout_size() override;
 		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
-
-		// --------------- m e m b e r . f i e l d ---------------
 	private:
+		template<bool is_horizontal> void layout_typesetting_auto(bool is_reverse);
+		template<bool is_horizontal> void layout_typesetting_flex(bool is_reverse);
+		void layout_typesetting_auto_impl(bool is_horizontal, bool is_reverse);
+		bool update_IsLockChild();
 		bool _is_lock_child;
+		friend class FlowLayout;
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
 

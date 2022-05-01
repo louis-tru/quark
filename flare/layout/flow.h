@@ -31,31 +31,25 @@
 #ifndef __flare__layout__flow__
 #define __flare__layout__flow__
 
-#include "./box.h"
+#include "./flex.h"
 
 namespace flare {
 
-	/**
-		* @class Flow
-		*/
-	class F_EXPORT FlowLayout: public Box {
+	class F_EXPORT FlowLayout: public FlexLayout {
 		F_Define_View(FlowLayout);
 	public:
 		FlowLayout();
-
 		// define props
-		F_DEFINE_PROP(Direction, direction); // direction 排版方向
-		F_DEFINE_PROP(CrossAlign, cross_align); // cross_align 交叉轴的对齐方式
-		F_DEFINE_PROP(Wrap, wrap); // wrap 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
-		F_DEFINE_PROP(WrapAlign, wrap_align); // wrap_align 多根交叉轴的对齐方式,如果项目只有一根交叉轴,该属性不起作用
-
-		// --------------- o v e r w r i t e ---------------
+		F_DEFINE_PROP(Wrap, wrap); // 主轴溢出后换行，开启后当主轴溢出时分裂成多根交叉轴
+		F_DEFINE_PROP(WrapAlign, wrap_align); // 多根交叉轴的对齐方式,如果只有一根交叉轴该属性不起作用
 		// @overwrite
+		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
-
-		// --------------- m e m b e r . f i e l d ---------------
+		virtual Vec2 layout_lock(Vec2 layout_size) override;
+		virtual bool is_lock_child_layout_size() override;
+		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
 	private:
-		friend class Flex;
+		template<bool is_horizontal> void layout_typesetting_wrap(bool is_reverse);
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
 

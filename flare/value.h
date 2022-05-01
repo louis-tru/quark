@@ -155,13 +155,11 @@ namespace flare {
 
 	// layout align
 	enum class Align: uint8_t {
-		// flow/flex
 		AUTO,
 		START,
 		CENTER,
 		END,
-		// default
-		LEFT_TOP,
+		LEFT_TOP = START,
 		CENTER_TOP,
 		RIGHT_TOP,
 		LEFT_CENTER,

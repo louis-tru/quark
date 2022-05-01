@@ -65,7 +65,7 @@ namespace flare {
 			kChild_Layout_Size     = (1 << 0),
 			kChild_Layout_Visible  = (1 << 1),
 			kChild_Layout_Align    = (1 << 2),
-			kChild_Layout_Weigh    = (1 << 3),
+			kChild_Layout_Weight    = (1 << 3),
 			kChild_Layout_Text     = (1 << 4),
 		};
 
@@ -76,15 +76,9 @@ namespace flare {
 			bool wrap_x, wrap_y;
 		};
 
-		/**
-			* @constructors
-			*/
 		Layout();
 		Layout(PreRender* pre);
 
-		/**
-			* @destructor
-			*/
 		virtual ~Layout();
 
 		/**
@@ -144,9 +138,9 @@ namespace flare {
 			*
 			* whether the child layout has been locked
 			*
-			* @func is_layout_lock_child()
+			* @func is_lock_child_layout_size()
 			*/
-		virtual bool is_layout_lock_child();
+		virtual bool is_lock_child_layout_size();
 
 		/**
 			* 
@@ -171,9 +165,9 @@ namespace flare {
 			* 
 			* 返回锁定后的最终尺寸，调用后视返回后的尺寸为最终尺寸
 			* 
-			* @func layout_lock(layout_size, is_wrap)
+			* @func layout_lock(layout_size)
 			*/
-		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]);
+		virtual Vec2 layout_lock(Vec2 layout_size);
 
 		/**
 			*

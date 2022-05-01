@@ -39,7 +39,7 @@ namespace flare {
 	#define F_Each_View(F) \
 		F(View)  F(Box) \
 		F(Image) F(Video) F(Scroll) \
-		F(Input) F(Text) F(Label) F(Root) F(FlowLayout) F(FlexLayout)
+		F(Input) F(Text) F(Label) F(Root) F(FlexLayout) F(FlowLayout)
 
 	#define F_Define_View(N) \
 	public: \
@@ -60,14 +60,8 @@ namespace flare {
 		F_HIDDEN_ALL_COPY(View);
 	public:
 
-		/**
-		 * @constructor
-		 */
 		View();
 
-		/**
-		 * @destructor
-		 */
 		virtual ~View();
 
 		/**

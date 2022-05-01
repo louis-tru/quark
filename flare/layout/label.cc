@@ -58,54 +58,63 @@ namespace flare {
 			onTextChange(Layout::kLayout_None);
 		}
 	}
+
 	void TextBasic::set_text_color(TextColor value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_color = value;
 			onTextChange(Layout::kLayout_None);
 		}
 	}
+
 	void TextBasic::set_text_size(TextSize value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_size = value;
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
+
 	void TextBasic::set_text_style(TextStyle value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_style = value;
 			onTextChange(Layout::kLayout_None);
 		}
 	}
+
 	void TextBasic::set_text_family(TextFamily value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_family = value;
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
+
 	void TextBasic::set_text_shadow(TextShadow value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_shadow = value;
 			onTextChange(Layout::kLayout_None);
 		}
 	}
+
 	void TextBasic::set_text_line_height(TextLineHeight value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_line_height = value;
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
+
 	void TextBasic::set_text_decoration(TextDecoration value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_decoration = value;
 			onTextChange(Layout::kLayout_None);
 		}
 	}
+
 	void TextBasic::set_text_overflow(TextOverflow value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_overflow = value;
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
+
 	void TextBasic::set_text_white_space(TextWhiteSpace value) {
 		if ( value.type == TextValueType::VALUE ) {
 			_text_white_space = value;
@@ -132,6 +141,7 @@ namespace flare {
 
 	bool Label::layout_reverse(uint32_t mark) {
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting)) {
+			// clear layout text
 			parent()->onChildLayoutChange(this, kChild_Layout_Text);
 		}
 		return false;
@@ -147,12 +157,6 @@ namespace flare {
 	void Label::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
 		TextRows rows; // use left-top align
 		layout_text(&rows);
-	}
-
-	void Label::onChildLayoutChange(Layout* child, uint32_t value) {
-		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
-			make(kLayout_Typesetting);
-		}
 	}
 
 	void Label::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {

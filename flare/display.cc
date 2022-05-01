@@ -64,13 +64,13 @@ namespace flare {
 
 		_scale = (width + height) / (_size.x() + _size.y());
 		_atom_pixel = 1.0f / _scale;
-		
+
 		// update root
 		Root* r = _host->root();
 		if (r) {
-			r->mark_layout_change();
+			r->onDisplayChange();
 		}
-		
+
 		// set default draw region
 		_clip_region.front() = {
 			0, 0,

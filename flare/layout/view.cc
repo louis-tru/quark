@@ -58,7 +58,7 @@ namespace flare {
 		}
 	};
 
-	void __View_SetVisible(View* self, bool val, uint32_t layout_depth) {
+	void __View_set_visible(View* self, bool val, uint32_t layout_depth) {
 		View::Inl::set_visible_static(_inl(self), val, layout_depth);
 	}
 
@@ -626,11 +626,8 @@ namespace flare {
 	}
 
 	void View::onChildLayoutChange(Layout* child, uint32_t value) {
-		if (value & (kChild_Layout_Size | kChild_Layout_Align | kChild_Layout_Visible)) {
+		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
 			mark(kLayout_Typesetting);
-		} else if (value & kChild_Layout_Text) {
-			TextRows rows;
-			child->layout_text(&rows);
 		}
 	}
 

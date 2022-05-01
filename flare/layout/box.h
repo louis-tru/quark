@@ -67,9 +67,6 @@ namespace flare {
 		void solve_rect_vertex(Vec2 vertex[4]);
 
 		// --------------- o v e r w r i t e ---------------
-		/**
-			* @overwrite
-			*/
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextRows *rows) override;
@@ -84,7 +81,7 @@ namespace flare {
 		virtual Align layout_align() override;
 		virtual Mat  layout_matrix() override;
 		virtual Vec2 layout_offset_inside() override;
-		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]) override;
+		virtual Vec2 layout_lock(Vec2 layout_size) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
@@ -100,14 +97,19 @@ namespace flare {
 		bool is_ready_layout_typesetting();
 
 		/**
-			* @func solve_layout_size(mark)
+			* @func solve_layout_size_forward(mark)
 			*/
-		uint32_t solve_layout_size(uint32_t mark);
+		uint32_t solve_layout_size_forward(uint32_t mark);
 
 		/**
-			* @func set_layout_size(layout_content_size)
+			* @func set_layout_size(layout_size, is_wrap, is_lock_child)
 			*/
-		void set_layout_size(Vec2 layout_content_size);
+		void set_layout_size(Vec2 layout_size, bool is_wrap[2], bool is_lock_child = false);
+
+		/**
+			* @func set_layout_content_size(layout_content_size)
+			*/
+		void set_layout_content_size(Vec2 layout_content_size);
 
 		// @func solve_layout_content_width
 		virtual float solve_layout_content_width(Size &parent_layout_size);

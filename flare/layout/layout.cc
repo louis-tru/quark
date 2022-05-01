@@ -153,17 +153,17 @@ namespace flare {
 		* 
 		* 返回锁定后的最终尺寸，调用后视返回后的尺寸为最终尺寸
 		* 
-		* @func layout_lock(layout_size, is_wrap)
+		* @func layout_lock(layout_size)
 		*/
-	Vec2 Layout::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
+	Vec2 Layout::layout_lock(Vec2 layout_size) {
 		// noop
 		return Vec2();
 	}
 
 	/**
-		* @func is_layout_lock_child()
+		* @func is_lock_child_layout_size()
 		*/
-	bool Layout::is_layout_lock_child() {
+	bool Layout::is_lock_child_layout_size() {
 		return false;
 	}
 
@@ -174,7 +174,6 @@ namespace flare {
 		if (_layout_depth != newDepth) {
 			auto oldDepth = _layout_depth;
 			_layout_depth = newDepth;
-			// F_ASSERT(app());
 			if (_mark_index >= 0) {
 				_pre_render->delete_mark(this, oldDepth);
 				if (newDepth) {

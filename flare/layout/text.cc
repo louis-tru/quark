@@ -56,12 +56,6 @@ namespace flare {
 		return false;
 	}
 
-	void Text::onChildLayoutChange(Layout* child, uint32_t value) {
-		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
-			mark(kLayout_Typesetting);
-		}
-	}
-
 	void Text::onTextChange(uint32_t value) {
 		value ? mark(value): mark_none();
 	}

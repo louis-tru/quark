@@ -33,8 +33,7 @@
 #include "../display.h"
 #include "../render/render.h"
 
-	namespace flare {
-
+namespace flare {
 
 	float Box::solve_layout_content_width(Size &parent_layout_size) {
 		float ps = parent_layout_size.content_size.x();
@@ -128,13 +127,13 @@
 		return result;
 	}
 
-	void Box::mark_layout_size(uint32_t mark_) {
-		auto paren = parent();
-		if (paren) {
-			if (paren->is_layout_lock_child()) {
-				paren->onChildLayoutChange(this, kChild_Layout_Size);
+	void Box::mark_layout_size(uint32_t _mark) {
+		auto Parent = parent();
+		if (Parent) {
+			if (Parent->is_lock_child_layout_size()) {
+				Parent->onChildLayoutChange(this, kChild_Layout_Size);
 			} else {
-				mark(mark_);
+				mark(_mark);
 			}
 		}
 	}
@@ -512,55 +511,56 @@
 	}
 
 	/**
-		* @func solve_layout_size()
+		* @func solve_layout_size_forward()
 		*/
-	uint32_t Box::solve_layout_size(uint32_t mark) {
+	uint32_t Box::solve_layout_size_forward(uint32_t mark) {
 		uint32_t layout_content_size_change_mark = kLayout_None;
 
-		if (mark & kLayout_Size_Width) {
-			if (!parent()->is_layout_lock_child()) {
-				auto size = parent()->layout_size();
-				auto val = solve_layout_content_width(size);
+		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
+			auto Parent = parent();
 
-				if (val != _layout_content_size.x() || _layout_wrap_x != size.wrap_x) {
-					_layout_content_size.set_x(val);
-					_layout_wrap_x = size.wrap_x;
-					// mark(kLayout_Typesetting);
-					layout_content_size_change_mark = kLayout_Size_Width;
+			if (!Parent->is_lock_child_layout_size()) {
+				auto size = Parent->layout_size();
+
+				if (mark & kLayout_Size_Width) {
+					auto val = solve_layout_content_width(size);
+					if (val != _layout_content_size.x() || _layout_wrap_x != size.wrap_x) {
+						_layout_content_size.set_x(val);
+						_layout_wrap_x = size.wrap_x;
+						// mark(kLayout_Typesetting);
+						layout_content_size_change_mark = kLayout_Size_Width;
+					}
+					_client_size.set_x(_padding_left + _padding_right + val);
+					if (_border)
+						_client_size.val[0] += _border->width_left + _border->width_right;
+					_layout_size.set_x(_margin_left + _margin_right + _client_size.x());
 				}
-				_client_size.set_x(_padding_left + _padding_right + val);
-				if (_border)
-					_client_size.val[0] += _border->width_left + _border->width_right;
-				_layout_size.set_x(_margin_left + _margin_right + _client_size.x());
-			} // else The layout is locked and does not need to be updated
-			parent()->onChildLayoutChange(this, kChild_Layout_Size);
-			unmark(kLayout_Size_Width);
-		}
 
-		if (mark & kLayout_Size_Height) {
-			if (!parent()->is_layout_lock_child()) {
-				auto size = parent()->layout_size();
-				auto val = solve_layout_content_height(size);
-
-				if (val != _layout_content_size.y() || _layout_wrap_y != size.wrap_y) {
-					_layout_content_size.set_y(val);
-					_layout_wrap_y = size.wrap_y;
-					layout_content_size_change_mark |= kLayout_Size_Height;
+				if (mark & kLayout_Size_Height) {
+					auto val = solve_layout_content_height(size);
+					if (val != _layout_content_size.y() || _layout_wrap_y != size.wrap_y) {
+						_layout_content_size.set_y(val);
+						_layout_wrap_y = size.wrap_y;
+						// mark(kLayout_Typesetting);
+						layout_content_size_change_mark |= kLayout_Size_Height;
+					}
+					_client_size.set_y(_padding_top + _padding_bottom + val);
+					if (_border)
+						_client_size.val[1] += _border->width_top + _border->width_bottom;
+					_layout_size.set_y(_margin_top + _margin_bottom + _client_size.y());
 				}
-				_client_size.set_y(_padding_top + _padding_bottom + val);
-				if (_border)
-					_client_size.val[1] += _border->width_top + _border->width_bottom;
-				_layout_size.set_y(_margin_top + _margin_bottom + _client_size.y());
+
 			} // else The layout is locked and does not need to be updated
-			parent()->onChildLayoutChange(this, kChild_Layout_Size);
-			unmark(kLayout_Size_Height);
+
+			Parent->onChildLayoutChange(this, kChild_Layout_Size); // notice parent
+			unmark(kLayout_Size_Width | kLayout_Size_Height);
 		}
 
 		return layout_content_size_change_mark;
 	}
 
 	bool Box::layout_forward(uint32_t _mark) {
-		uint32_t layout_content_size_change_mark = solve_layout_size(_mark);
+		uint32_t layout_content_size_change_mark = solve_layout_size_forward(_mark);
 
 		if (layout_content_size_change_mark) {
 			auto v = first();
@@ -588,7 +588,7 @@
 					origin.val[0] += _border->width_left;
 					origin.val[1] += _border->width_top;
 				}
-				do {
+				do { // lazy layout
 					v->set_layout_offset_lazy(origin, size); // lazy layout
 					v = v->next();
 				} while(v);
@@ -600,6 +600,77 @@
 
 	void Box::layout_text(TextRows *rows) {
 		// TODO ...
+	}
+
+	Vec2 Box::layout_lock(Vec2 layout_size) {
+		bool wrap[2] = { false, false };
+		set_layout_size(layout_size, wrap, false);
+		return _layout_size;
+	}
+
+	/**
+		* @func set_layout_size(layout_size, is_wrap)
+		*/
+	void Box::set_layout_size(Vec2 layout_size, bool is_wrap[2], bool is_lock_child) {
+		uint32_t layout_content_size_change_mark = kLayout_None;
+		auto layout_content_size_old = _layout_content_size;
+
+		auto bp_x = _padding_left + _padding_right;
+		auto bp_y = _padding_left + _padding_right;
+		if (_border) {
+			bp_x += _border->width_left + _border->width_right;
+			bp_y += _border->width_top + _border->width_bottom;
+		}
+		auto mbp_x = _margin_left + _margin_right + bp_x;
+		auto mbp_y = _margin_top + _margin_bottom + bp_y;
+
+		_layout_content_size = Vec2(
+			layout_size.x() > mbp_x ? layout_size.x() - mbp_x: 0,
+			layout_size.y() > mbp_y ? layout_size.y() - mbp_y: 0
+		);
+		_client_size = Vec2(bp_x + _layout_content_size.x(), bp_y + _layout_content_size.y());
+		_layout_size = Vec2(mbp_x + _layout_content_size.x(), mbp_y + _layout_content_size.y());
+
+		if (layout_content_size_old.x() != _layout_content_size.x() || _layout_wrap_x != is_wrap[0]) {
+			layout_content_size_change_mark = kLayout_Size_Width;
+		}
+		if (layout_content_size_old.y() != _layout_content_size.y() || _layout_wrap_y != is_wrap[1]) {
+			layout_content_size_change_mark |= kLayout_Size_Height;
+		}
+
+		_layout_wrap_x = is_wrap[0];
+		_layout_wrap_y = is_wrap[1];
+
+		if (layout_content_size_change_mark) {
+			if (!is_lock_child) { // if no lock child then
+				auto v = first();
+				while (v) {
+					v->onParentLayoutContentSizeChange(this, layout_content_size_change_mark);
+					v = v->next();
+				}
+			}
+			mark(kLayout_Typesetting); // rearrange
+			mark_recursive(kRecursive_Visible_Region);
+			// TODO check transform_origin change ...
+		}
+
+		unmark(kLayout_Size_Width | kLayout_Size_Height);
+	}
+
+	/**
+		* @func set_layout_content_size(layout_content_size)
+		*/
+	void Box::set_layout_content_size(Vec2 layout_content_size) {
+		_layout_content_size = layout_content_size;
+		_client_size = Vec2(layout_content_size.x() + _padding_left + _padding_right,
+												layout_content_size.y() + _padding_top + _padding_bottom);
+		if (_border) {
+			_client_size.val[0] += _border->width_left + _border->width_right;
+			_client_size.val[1] += _border->width_top + _border->width_bottom;
+		}
+		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
+												_margin_top + _margin_bottom + _client_size.y());
+		// TODO check transform_origin change ...
 	}
 
 	Vec2 Box::layout_offset() {
@@ -681,80 +752,9 @@
 		if (_layout_weight != weight) {
 			_layout_weight = weight;
 			if (parent()) {
-				parent()->onChildLayoutChange(this, kChild_Layout_Weigh);
+				parent()->onChildLayoutChange(this, kChild_Layout_Weight);
 			}
 		}
-	}
-
-	/**
-		* 锁定布局的尺寸。在特定的布局类型中自身受父布局约束无法直接简单确定其自身尺寸，一般由父布局调用如：flex布局类型
-		*
-		* 这个方法应该在`layout_forward()`正向迭代中由父布局调用,因为尺寸的调整一般在正向迭代中
-		* 
-		* 返回锁定后的最终尺寸，调用后视返回后的尺寸为最终尺寸
-		* 
-		* @func layout_lock(layout_size, is_wrap)
-		*/
-	Vec2 Box::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
-		uint32_t layout_content_size_change_mark = kLayout_None;
-		auto layout_content_size = _layout_content_size;
-
-		auto bp_x = _padding_left + _padding_right;
-		auto bp_y = _padding_left + _padding_right;
-		if (_border) {
-			bp_x += _border->width_left + _border->width_right;
-			bp_y += _border->width_top + _border->width_bottom;
-		}
-		auto mbp_x = _margin_left + _margin_right + bp_x;
-		auto mbp_y = _margin_top + _margin_bottom + bp_y;
-
-		_layout_content_size = Vec2(
-			layout_size.x() > mbp_x ? layout_size.x() - mbp_x: 0,
-			layout_size.y() > mbp_y ? layout_size.y() - mbp_y: 0
-		);
-		_client_size = Vec2(bp_x + _layout_content_size.x(), bp_y + _layout_content_size.y());
-		_layout_size = Vec2(mbp_x + _layout_content_size.x(), mbp_y + _layout_content_size.y());
-
-		if (layout_content_size.x() != _layout_content_size.x() || _layout_wrap_x != is_wrap[0]) {
-			layout_content_size_change_mark = kLayout_Size_Width;
-		}
-		if (layout_content_size.y() != _layout_content_size.y() || _layout_wrap_y != is_wrap[1]) {
-			layout_content_size_change_mark |= kLayout_Size_Height;
-		}
-
-		_layout_wrap_x = is_wrap[0];
-		_layout_wrap_y = is_wrap[1];
-
-		if (layout_content_size_change_mark)  {
-			if (!is_layout_lock_child()) {
-				auto v = first();
-				while (v) {
-					v->onParentLayoutContentSizeChange(this, layout_content_size_change_mark);
-					v = v->next();
-				}
-			}
-			mark(kLayout_Typesetting); // rearrange
-			mark_recursive(kRecursive_Visible_Region);
-		}
-
-		unmark(kLayout_Size_Width | kLayout_Size_Height);
-
-		return _layout_size;
-	}
-
-	/**
-		* @func set_layout_size(layout_content_size)
-		*/
-	void Box::set_layout_size(Vec2 layout_content_size) {
-		_layout_content_size = layout_content_size;
-		_client_size = Vec2(layout_content_size.x() + _padding_left + _padding_right,
-												layout_content_size.y() + _padding_top + _padding_bottom);
-		if (_border) {
-			_client_size.val[0] += _border->width_left + _border->width_right;
-			_client_size.val[1] += _border->width_top + _border->width_bottom;
-		}
-		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
-												_margin_top + _margin_bottom + _client_size.y());
 	}
 
 	void Box::set_layout_offset(Vec2 val) {
@@ -782,19 +782,16 @@
 					origin.x() + size.x() - _layout_size.x(),
 					origin.y());
 				break;
-			case Align::START:
 			case Align::LEFT_CENTER: // left center
 				offset = Vec2(
 					origin.x(),
 					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
-			case Align::CENTER:
 			case Align::CENTER_CENTER: // center center
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()) / 2.0,
 					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
-			case Align::END:
 			case Align::RIGHT_CENTER: // right center
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()),
@@ -831,7 +828,7 @@
 		* @func is_ready_layout_typesetting()
 		*/
 	bool Box::is_ready_layout_typesetting() {
-		if (parent()->is_layout_lock_child()) { // layout size locked by parent layout
+		if (parent()->is_lock_child_layout_size()) { // layout size locked by parent layout
 			if (parent()->layout_mark() & kLayout_Typesetting) {
 				// The parent layout needs to be readjusted
 				return false;

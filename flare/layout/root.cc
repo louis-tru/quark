@@ -34,17 +34,11 @@
 #include "../util/handle.h"
 #include "../display.h"
 #include "../render/render.h"
+#include "../render/pre_render.h"
 
 namespace flare {
 
-	void __View_SetVisible(View* self, bool val, uint32_t layout_depth);
-
-	void Root::mark_layout_change() {
-		auto region = app()->display()->display_region();
-		float scale = app()->display()->scale();
-		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
-		set_translate(Vec2(region.x / scale, region.y / scale));
-	}
+	void __View_set_visible(View* self, bool val, uint32_t layout_depth);
 
 	Root* Root::create() {
 		auto app = flare::app();
@@ -67,38 +61,37 @@ namespace flare {
 		return r.collapse();
 	}
 
-	Root::Root(){}
-
-	/**
-	* @destructor
-	*/
-	Root::~Root() {
-		F_DEBUG("destructor root");
+	void Root::onDisplayChange() {
+		auto display = pre_render()->host()->display();
+		auto region = display->display_region();
+		float scale = display->scale();
+		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+		set_translate(Vec2(region.x / scale, region.y / scale));
 	}
 
 	void Root::set_visible(bool val) {
 		if (visible() != val) {
-			__View_SetVisible(this, val, val ? 1: 0);
+			__View_set_visible(this, val, val ? 1: 0);
 		}
 	}
 
-	bool Root::layout_forward(uint32_t mark) {
-		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
-			Size size = { Vec2(), display()->size(), false, false };
-			auto x = solve_layout_content_width(size);
-			auto y = solve_layout_content_height(size);
-			Vec2 mp(
-				margin_left() + margin_right() + padding_left() + padding_right(), 
-				margin_top() + margin_bottom() + padding_top() + padding_bottom()
-			);
-			layout_lock(Vec2(x, y) + mp, &size.wrap_x);
-			unmark(kLayout_Size_Width | kLayout_Size_Height);
+	bool Root::layout_forward(uint32_t _mark) {
+		if (_mark & (kLayout_Size_Width | kLayout_Size_Height)) {
+			Size size{ Vec2(), display()->size(), false, false };
+			Vec2 xy(solve_layout_content_width(size), solve_layout_content_height(size));
+
+			xy += Vec2(margin_left() + margin_right(), margin_top() + margin_bottom());
+			xy += Vec2(padding_left() + padding_right(), padding_top() + padding_bottom());
+			if (_border)
+				xy += Vec2(_border->width_left + _border->width_right, _border->width_top + _border->width_bottom);
+
+			set_layout_size(xy, &size.wrap_x, false);
 		}
 		return (layout_mark() & kLayout_Typesetting);
 	}
 
 	bool Root::layout_reverse(uint32_t mark) {
-		if (mark & (kLayout_Typesetting)) {
+		if (mark & kLayout_Typesetting) {
 			auto v = first();
 			if (v) {
 				Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
