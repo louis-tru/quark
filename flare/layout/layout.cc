@@ -140,9 +140,9 @@ namespace flare {
 		* 
 		* Setting layout offset values lazily mode for the view object
 		*
-		* @func set_layout_offset_lazy(origin, size)
+		* @func set_layout_offset_lazy(size)
 		*/
-	void Layout::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
+	void Layout::set_layout_offset_lazy(Vec2 size) {
 		// noop
 	}
 
@@ -195,9 +195,8 @@ namespace flare {
 	void Layout::mark(uint32_t mark) {
 		_layout_mark |= mark;
 		if (_mark_index < 0) {
-			auto depth = layout_depth();
-			if (depth) {
-				_pre_render->mark(this, depth); // push to pre render
+			if (_layout_depth) {
+				_pre_render->mark(this, _layout_depth); // push to pre render
 			}
 		}
 	}
@@ -205,15 +204,14 @@ namespace flare {
 	void Layout::mark_recursive(uint32_t mark) {
 		_layout_mark |= mark;
 		if (_recursive_mark_index < 0) {
-			auto depth = layout_depth();
-			if (depth) {
-				_pre_render->mark_recursive(this, depth); // push to pre render
+			if (_layout_depth) {
+				_pre_render->mark_recursive(this, _layout_depth); // push to pre render
 			}
 		}
 	}
 
 	void Layout::mark_none() {
-		if (layout_depth()) {
+		if (_layout_depth) {
 			_pre_render->mark_none(); // push to pre render
 		}
 	}

@@ -518,14 +518,15 @@ namespace flare {
 
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
 			auto Parent = parent();
+			uint32_t child_layout_change_mark = 0;
 
 			if (!Parent->is_lock_child_layout_size()) {
 				auto size = Parent->layout_size();
 
 				if (mark & kLayout_Size_Width) {
 					auto val = solve_layout_content_width(size);
-					if (val != _layout_content_size.x() || _layout_wrap_x != size.wrap_x) {
-						_layout_content_size.set_x(val);
+					if (val != _content_size.x() || _layout_wrap_x != size.wrap_x) {
+						_content_size.set_x(val);
 						_layout_wrap_x = size.wrap_x;
 						// mark(kLayout_Typesetting);
 						layout_content_size_change_mark = kLayout_Size_Width;
@@ -533,13 +534,18 @@ namespace flare {
 					_client_size.set_x(_padding_left + _padding_right + val);
 					if (_border)
 						_client_size.val[0] += _border->width_left + _border->width_right;
-					_layout_size.set_x(_margin_left + _margin_right + _client_size.x());
+
+					float x = _margin_left + _margin_right + _client_size.x();
+					if (_layout_size.x() != x) {
+						_layout_size.set_x(x);
+						child_layout_change_mark = kChild_Layout_Size;
+					}
 				}
 
 				if (mark & kLayout_Size_Height) {
 					auto val = solve_layout_content_height(size);
-					if (val != _layout_content_size.y() || _layout_wrap_y != size.wrap_y) {
-						_layout_content_size.set_y(val);
+					if (val != _content_size.y() || _layout_wrap_y != size.wrap_y) {
+						_content_size.set_y(val);
 						_layout_wrap_y = size.wrap_y;
 						// mark(kLayout_Typesetting);
 						layout_content_size_change_mark |= kLayout_Size_Height;
@@ -547,12 +553,17 @@ namespace flare {
 					_client_size.set_y(_padding_top + _padding_bottom + val);
 					if (_border)
 						_client_size.val[1] += _border->width_top + _border->width_bottom;
-					_layout_size.set_y(_margin_top + _margin_bottom + _client_size.y());
+
+					float y = _margin_top + _margin_bottom + _client_size.y();
+					if (_layout_size.y() != y) {
+						_layout_size.set_y(y);
+						child_layout_change_mark = kChild_Layout_Size;
+					}
 				}
 
 			} // else The layout is locked and does not need to be updated
 
-			Parent->onChildLayoutChange(this, kChild_Layout_Size); // notice parent
+			Parent->onChildLayoutChange(this, child_layout_change_mark); // notice parent
 			unmark(kLayout_Size_Width | kLayout_Size_Height);
 		}
 
@@ -570,10 +581,9 @@ namespace flare {
 			}
 			mark(kLayout_Typesetting); // rearrange
 			mark_recursive(kRecursive_Visible_Region);
-			// TODO check transform_origin change ...
 		}
 
-		return (layout_mark() & kLayout_Typesetting);
+		return (_mark & kLayout_Typesetting);
 	}
 
 	bool Box::layout_reverse(uint32_t mark) {
@@ -582,18 +592,14 @@ namespace flare {
 
 			auto v = first();
 			if (v) {
-				Vec2 origin(_margin_left + _padding_left, _margin_top + _padding_top);
-				Vec2 size = _layout_content_size;
-				if (_border) {
-					origin.val[0] += _border->width_left;
-					origin.val[1] += _border->width_top;
-				}
 				do { // lazy layout
-					v->set_layout_offset_lazy(origin, size); // lazy layout
+					v->set_layout_offset_lazy(_content_size); // lazy layout
 					v = v->next();
 				} while(v);
 			}
 			unmark(kLayout_Typesetting);
+
+			// TODO check transform_origin change ...
 		}
 		return false; // stop iteration
 	}
@@ -613,7 +619,7 @@ namespace flare {
 		*/
 	void Box::set_layout_size(Vec2 layout_size, bool is_wrap[2], bool is_lock_child) {
 		uint32_t layout_content_size_change_mark = kLayout_None;
-		auto layout_content_size_old = _layout_content_size;
+		auto content_size_old = _content_size;
 
 		auto bp_x = _padding_left + _padding_right;
 		auto bp_y = _padding_left + _padding_right;
@@ -624,17 +630,17 @@ namespace flare {
 		auto mbp_x = _margin_left + _margin_right + bp_x;
 		auto mbp_y = _margin_top + _margin_bottom + bp_y;
 
-		_layout_content_size = Vec2(
+		_content_size = Vec2(
 			layout_size.x() > mbp_x ? layout_size.x() - mbp_x: 0,
 			layout_size.y() > mbp_y ? layout_size.y() - mbp_y: 0
 		);
-		_client_size = Vec2(bp_x + _layout_content_size.x(), bp_y + _layout_content_size.y());
-		_layout_size = Vec2(mbp_x + _layout_content_size.x(), mbp_y + _layout_content_size.y());
+		_client_size = Vec2(bp_x + _content_size.x(), bp_y + _content_size.y());
+		_layout_size = Vec2(mbp_x + _content_size.x(), mbp_y + _content_size.y());
 
-		if (layout_content_size_old.x() != _layout_content_size.x() || _layout_wrap_x != is_wrap[0]) {
+		if (content_size_old.x() != _content_size.x() || _layout_wrap_x != is_wrap[0]) {
 			layout_content_size_change_mark = kLayout_Size_Width;
 		}
-		if (layout_content_size_old.y() != _layout_content_size.y() || _layout_wrap_y != is_wrap[1]) {
+		if (content_size_old.y() != _content_size.y() || _layout_wrap_y != is_wrap[1]) {
 			layout_content_size_change_mark |= kLayout_Size_Height;
 		}
 
@@ -658,12 +664,12 @@ namespace flare {
 	}
 
 	/**
-		* @func set_layout_content_size(layout_content_size)
+		* @func set_content_size(content_size)
 		*/
-	void Box::set_layout_content_size(Vec2 layout_content_size) {
-		_layout_content_size = layout_content_size;
-		_client_size = Vec2(layout_content_size.x() + _padding_left + _padding_right,
-												layout_content_size.y() + _padding_top + _padding_bottom);
+	void Box::set_content_size(Vec2 content_size) {
+		_content_size = content_size;
+		_client_size = Vec2(content_size.x() + _padding_left + _padding_right,
+												content_size.y() + _padding_top + _padding_bottom);
 		if (_border) {
 			_client_size.val[0] += _border->width_left + _border->width_right;
 			_client_size.val[1] += _border->width_top + _border->width_bottom;
@@ -679,14 +685,14 @@ namespace flare {
 
 	Layout::Size Box::layout_size() {
 		return {
-			_layout_size, _layout_content_size, _layout_wrap_x, _layout_wrap_y
+			_layout_size, _content_size, _layout_wrap_x, _layout_wrap_y
 		};
 	}
 
 	Layout::Size Box::layout_raw_size(Size size) {
 		size.content_size.set_x(solve_layout_content_width(size));
 		size.content_size.set_x(solve_layout_content_height(size));
-		size.layout_size.set_x(_margin_left + _padding_left + size.content_size.x() + _padding_left + _margin_right);
+		size.layout_size.set_x(_margin_left + _padding_left + size.content_size.x() + _padding_right + _margin_right);
 		size.layout_size.set_y(_margin_top + _padding_top + size.content_size.y() + _padding_bottom + _margin_bottom);
 		if (_border) {
 			size.layout_size.val[0] += _border->width_left + _border->width_right;
@@ -704,18 +710,17 @@ namespace flare {
 	}
 
 	Mat Box::layout_matrix() {
-		Vec2 in = parent() ? parent()->layout_offset_inside(): Vec2();
 		if (_transform) {
 			return Mat(
 				layout_offset() + Vec2(_margin_left, _margin_top) +
-									_transform_origin + _transform->translate - in, // translate
+									_transform->translate + _transform_origin + parent()->layout_offset_inside(), // translate
 				_transform->scale,
 				-_transform->rotate,
 				_transform->skew
 			);
 		} else {
 			Vec2 translate = layout_offset() +
-				Vec2(_margin_left, _margin_top) + _transform_origin - in;
+				Vec2(_margin_left, _margin_top) + _transform_origin + parent()->layout_offset_inside();
 			return Mat(
 				1, 0, translate.x(),
 				0, 1, translate.y()
@@ -724,7 +729,13 @@ namespace flare {
 	}
 
 	Vec2 Box::layout_offset_inside() {
-		return Vec2(_margin_left, _margin_top) + _transform_origin;
+		// return Vec2(-_margin_left, -_margin_top) - _transform_origin;
+		Vec2 offset(_padding_left - _transform_origin.val[0], _padding_top - _transform_origin.val[1]);
+		if (_border) {
+			offset.val[0] += _border->width_left;
+			offset.val[1] += _border->width_top;
+		}
+		return offset;
 	}
 
 	/**
@@ -758,59 +769,48 @@ namespace flare {
 	}
 
 	void Box::set_layout_offset(Vec2 val) {
-		if (val != _layout_offset) {
-			_layout_offset = val;
-			mark_recursive(kRecursive_Transform); // mark recursive transform
-		}
+		_layout_offset = val;
+		mark_recursive(kRecursive_Transform); // mark recursive transform
 	}
 
-	void Box::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
+	void Box::set_layout_offset_lazy(Vec2 size) {
 		Vec2 offset;
 
 		switch(_layout_align) {
 			default:
 			case Align::LEFT_TOP: // left top
-				offset = origin;
 				break;
 			case Align::CENTER_TOP: // center top
-				offset = Vec2(
-					origin.x() + (size.x() - _layout_size.x()) / 2.0,
-					origin.y());
+				offset = Vec2((size.x() - _layout_size.x()) / 2.0, 0);
 				break;
 			case Align::RIGHT_TOP: // right top
-				offset = Vec2(
-					origin.x() + size.x() - _layout_size.x(),
-					origin.y());
+				offset = Vec2(size.x() - _layout_size.x(), 0);
 				break;
 			case Align::LEFT_CENTER: // left center
-				offset = Vec2(
-					origin.x(),
-					origin.y() + (size.y() - _layout_size.y()) / 2.0);
+				offset = Vec2(0, (size.y() - _layout_size.y()) / 2.0);
 				break;
 			case Align::CENTER_CENTER: // center center
 				offset = Vec2(
-					origin.x() + (size.x() - _layout_size.x()) / 2.0,
-					origin.y() + (size.y() - _layout_size.y()) / 2.0);
+					(size.x() - _layout_size.x()) / 2.0,
+					(size.y() - _layout_size.y()) / 2.0);
 				break;
 			case Align::RIGHT_CENTER: // right center
 				offset = Vec2(
-					origin.x() + (size.x() - _layout_size.x()),
-					origin.y() + (size.y() - _layout_size.y()) / 2.0);
+					(size.x() - _layout_size.x()),
+					(size.y() - _layout_size.y()) / 2.0);
 				break;
 			case Align::LEFT_BOTTOM: // left bottom
-				offset = Vec2(
-					origin.x(),
-					origin.y() + (size.y() - _layout_size.y()));
+				offset = Vec2(0, (size.y() - _layout_size.y()));
 				break;
 			case Align::CENTER_BOTTOM: // center bottom
 				offset = Vec2(
-					origin.x() + (size.x() - _layout_size.x()) / 2.0,
-					origin.y() + (size.y() - _layout_size.y()));
+					(size.x() - _layout_size.x()) / 2.0,
+					(size.y() - _layout_size.y()));
 				break;
 			case Align::RIGHT_BOTTOM: // right bottom
 				offset = Vec2(
-					origin.x() + (size.x() - _layout_size.x()),
-					origin.y() + (size.y() - _layout_size.y()));
+					(size.x() - _layout_size.x()),
+					(size.y() - _layout_size.y()));
 				break;
 		}
 

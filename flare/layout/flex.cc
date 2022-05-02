@@ -89,13 +89,6 @@ namespace flare {
 		Vec2 cur = cur_size.content_size;
 		float offset = 0, max_cross = 0;
 
-		Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
-
-		if (_border) {
-			origin.val[0] += _border->width_left + _border->width_right;
-			origin.val[1] += _border->width_top + _border->width_bottom;
-		}
-
 		if (is_horizontal ? cur_size.wrap_y: cur_size.wrap_x) { // wrap y or x
 			auto v = first();
 			while (v) {
@@ -113,7 +106,7 @@ namespace flare {
 			auto size = v->layout_size().layout_size;
 			auto align = v->layout_align();
 			float offset_cross = 0;
-			switch (align == Align::AUTO ? _cross_align: CrossAlign(align - 1)) {
+			switch (align == Align::AUTO ? _cross_align: CrossAlign(int(align) - 1)) {
 				default:
 				case CrossAlign::START: break; // 与交叉轴内的起点对齐
 				case CrossAlign::CENTER: // 与交叉轴内的中点对齐
@@ -122,10 +115,10 @@ namespace flare {
 					offset_cross = max_cross - (is_horizontal ? size.y(): size.x()); break;
 			}
 			if (is_horizontal) {
-				v->set_layout_offset(Vec2(offset, offset_cross) + origin);
+				v->set_layout_offset(Vec2(offset, offset_cross));
 				offset += size.x();
 			} else {
-				v->set_layout_offset(Vec2(offset_cross, offset) + origin);
+				v->set_layout_offset(Vec2(offset_cross, offset));
 				offset += size.y();
 			}
 			v = is_reverse ? v->prev() : v->next();
@@ -134,7 +127,7 @@ namespace flare {
 		Vec2 new_size = is_horizontal ? Vec2(offset, max_cross): Vec2(max_cross, offset);
 
 		if (cur != new_size) {
-			set_layout_content_size(new_size);
+			set_content_size(new_size);
 			parent()->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 	}
@@ -150,13 +143,6 @@ namespace flare {
 		Vec2 cur = cur_size.content_size;
 		float main_size = is_horizontal ? cur.x(): cur.y();
 		float cross_size_old = is_horizontal ? cur.y(): cur.x();
-
-		Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
-
-		if (_border) {
-			origin.val[0] += _border->width_left + _border->width_right;
-			origin.val[1] += _border->width_top + _border->width_bottom;
-		}
 
 		auto v = is_reverse ? last(): first();
 		while (v) {
@@ -199,7 +185,7 @@ namespace flare {
 			auto v = i.v;
 			auto align = v->layout_align();
 			float offset_cross = 0;
-			switch (align == Align::AUTO ? _cross_align: CrossAlign(align - 1)) {
+			switch (align == Align::AUTO ? _cross_align: CrossAlign(int(align) - 1)) {
 				default:
 				case CrossAlign::START: break; // 与交叉轴内的起点对齐
 				case CrossAlign::CENTER: // 与交叉轴内的中点对齐
@@ -211,16 +197,16 @@ namespace flare {
 				size = v->layout_lock(size);
 			}
 			if (is_horizontal) {
-				v->set_layout_offset(Vec2(offset, offset_cross) + origin);
+				v->set_layout_offset(Vec2(offset, offset_cross));
 				offset += (size.x() + space);
 			} else {
-				v->set_layout_offset(Vec2(offset_cross, offset) + origin);
+				v->set_layout_offset(Vec2(offset_cross, offset));
 				offset += (size.y() + space);
 			}
 		}
 
 		if (cross_size != cross_size_old) {
-			set_layout_content_size(is_horizontal ? Vec2(main_size, cross_size): Vec2(cross_size, main_size));
+			set_content_size(is_horizontal ? Vec2(main_size, cross_size): Vec2(cross_size, main_size));
 			parent()->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 	}
@@ -267,7 +253,7 @@ namespace flare {
 
 		if (parent()->is_lock_child_layout_size()) { // parent lock
 			is_lock_child = true;
-		} else if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) {
+		} else if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) {
 			if (!layout_wrap_x()) is_lock_child = true; // Explicit size x, no Line feed
 		} else {
 			if (!layout_wrap_y()) is_lock_child = true; // Explicit size y, no Line feed
@@ -312,7 +298,7 @@ namespace flare {
 			}
 
 			// flex lock child
-			if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) { // ROW horizontal flex layout
+			if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) { // ROW horizontal flex layout
 				/*
 					|-------------------------------|
 					| width=Explicit                |
@@ -322,7 +308,7 @@ namespace flare {
 					|                               |
 					|-------------------------------|
 				*/
-				layout_typesetting_flex<true>(direction() == Direction::ROW_REVERSE); // flex horizontal
+				layout_typesetting_flex<true>(_direction == Direction::ROW_REVERSE); // flex horizontal
 			} else { // COLUMN vertical flex layout
 				/*
 					|--------------------------------|
@@ -342,7 +328,7 @@ namespace flare {
 					|              ---               |
 					|--------------------------------|
 				*/
-				layout_typesetting_flex<false>(direction() == Direction::COLUMN_REVERSE); // flex vertical
+				layout_typesetting_flex<false>(_direction == Direction::COLUMN_REVERSE); // flex vertical
 			}
 
 			unmark(kLayout_Typesetting);
@@ -355,7 +341,7 @@ namespace flare {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return true; // continue iteration
 
-			if (direction() == Direction::ROW || direction() == Direction::ROW_REVERSE) { // ROW
+			if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) { // ROW
 				if (!layout_wrap_x()) // no wrap, flex layout must be handled in forward iteration
 					return true; // layout_forward()
 				/*
@@ -368,7 +354,7 @@ namespace flare {
 					|-------------....------------|
 				*/
 				// auto horizontal layout
-				layout_typesetting_auto<true>(direction() == Direction::ROW_REVERSE);
+				layout_typesetting_auto<true>(_direction == Direction::ROW_REVERSE);
 			} else { // COLUMN
 				if (layout_wrap_y()) // no wrap, flex layout must be handled in forward iteration
 					return true; // layout_forward()
@@ -391,10 +377,11 @@ namespace flare {
 					|-----------|
 				*/
 				// auto vertical layout
-				layout_typesetting_auto<false>(direction() == Direction::COLUMN_REVERSE);
+				layout_typesetting_auto<false>(_direction == Direction::COLUMN_REVERSE);
 			}
 
 			unmark(kLayout_Typesetting);
+
 			// TODO check transform_origin change ...
 		}
 		return false;
@@ -411,10 +398,10 @@ namespace flare {
 	}
 
 	void FlexLayout::onChildLayoutChange(Layout* child, uint32_t value) {
-		if (value & (kChild_Layout_Size | kChild_Layout_Align | kChild_Layout_Visible | kChild_Layout_Weight)) {
+		if (value & (kChild_Layout_Size | kChild_Layout_Align | 
+								kChild_Layout_Visible | kChild_Layout_Weight | kChild_Layout_Text)) {
 			mark(kLayout_Typesetting);
 		}
-		// ignore kChild_Layout_Text
 	}
 
 }

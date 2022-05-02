@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./label.h"
+#include "../text_rows.h"
 #include "../render/font/pool.h"
 
 namespace flare {
@@ -141,8 +142,8 @@ namespace flare {
 
 	bool Label::layout_reverse(uint32_t mark) {
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting)) {
-			// clear layout text
 			parent()->onChildLayoutChange(this, kChild_Layout_Text);
+			unmark(kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting);
 		}
 		return false;
 	}
@@ -151,16 +152,28 @@ namespace flare {
 		// TODO ...
 		// TextAlign align = TextAlign::LEFT;
 		// left / center / right / LEFT_REVERSE / CENTER_REVERSE / RIGHT_REVERSE
-		// unmark(kLayout_Size_Width | kLayout_Size_Height);
 	}
 
-	void Label::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
-		TextRows rows; // use left-top align
+	void Label::set_layout_offset(Vec2 val) {
+		auto size = parent()->layout_size();
+		TextRows rows(size.content_size, false, false, TextAlign::LEFT); // use left align
 		layout_text(&rows);
+		mark_recursive(kRecursive_Transform);
+	}
+
+	void Label::set_layout_offset_lazy(Vec2 size) {
+		TextRows rows(size, false, false, TextAlign::LEFT); // use left align
+		layout_text(&rows);
+		mark_recursive(kRecursive_Transform);
 	}
 
 	void Label::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {
 		mark(value);
+	}
+
+	bool Label::solve_visible_region() {
+		// TODO ...
+		return true;
 	}
 
 }

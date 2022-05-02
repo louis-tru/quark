@@ -40,21 +40,25 @@ namespace flare {
 		struct Row {
 			Vec2 offset_start, offset_end;
 			float baseline, ascender, descender;
-			uint32_t  row;
+			uint32_t row;
 		};
-		TextRows();
-		void clear();
+		TextRows(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align);
 		void push(float ascender, float descender);
 		void update(float ascender, float descender);
 		inline uint32_t length() const { return _rows.length(); }
 		inline float max_height() const { return _last->offset_end.y(); }
-		inline Row& operator[](uint32_t index) { return _rows[index]; }
+		inline Row& operator[](uint32_t idx) { return _rows[idx]; }
 		// defines props
+		F_DEFINE_PROP(bool, is_clip);
+		F_DEFINE_PROP_READ(bool, wrap_x);
+		F_DEFINE_PROP_READ(bool, wrap_y);
+		F_DEFINE_PROP_READ(Vec2, size);
+		F_DEFINE_PROP_READ(TextAlign, text_align);
 		F_DEFINE_PROP_READ(Row*, last);
 		F_DEFINE_PROP(float, max_width);
-		F_DEFINE_PROP(bool, is_clip);
 	private:
-		Array<Row>  _rows;
+		void clear();
+		Array<Row>   _rows;
 	};
 }
 #endif

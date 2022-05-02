@@ -554,20 +554,19 @@ namespace flare {
 		* 
 		* Returns layout transformation matrix of the object view
 		* 
-		* Mat(layout_offset + transform_origin + translate - parent->layout_offset_inside, scale, rotate, skew)
+		* Mat(layout_offset + transform_origin + translate + parent->layout_offset_inside, scale, rotate, skew)
 		* 
 		* @func layout_matrix()
 		*/
 	Mat View::layout_matrix() {
-		Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
 		if (_transform) {
 			return Mat(
-				layout_offset() + _transform->translate - in, // translate
+				layout_offset() + _transform->translate + _parent->layout_offset_inside(), // translate
 				_transform->scale,
 				-_transform->rotate, _transform->skew
 			);
 		} else {
-			Vec2 translate = layout_offset() - in;
+			Vec2 translate = layout_offset() + _parent->layout_offset_inside();
 			return Mat(
 				1, 0, translate.x(),
 				0, 1, translate.y()
@@ -584,9 +583,8 @@ namespace flare {
 	bool View::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			auto v = _first;
-			Vec2 origin, size;
 			while (v) {
-				v->set_layout_offset_lazy(origin, size); // lazy layout
+				v->set_layout_offset_lazy(Vec2()); // lazy layout
 				v = v->next();
 			}
 			unmark(kLayout_Typesetting);
@@ -599,11 +597,7 @@ namespace flare {
 
 		if (mark & kRecursive_Transform) { // update transform matrix
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
-			if (_parent) {
-				_parent->matrix().multiplication(layout_matrix(), _matrix);
-			} else {
-				_matrix = layout_matrix();
-			}
+			_parent->matrix().multiplication(layout_matrix(), _matrix);
 			goto visible_region;
 		}
 

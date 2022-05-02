@@ -38,11 +38,13 @@ namespace flare {
 	class F_EXPORT Root: public Box {
 		F_Define_View(Root);
 	public:
-		static Root* create();
+		static Root* create() throw(Error);
 		void onDisplayChange();
 		virtual void set_visible(bool val) override;
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
+		virtual Mat  layout_matrix() override;
+		virtual void layout_recursive(uint32_t value) override;
 		virtual void set_parent(View* parent) override;
 	};
 

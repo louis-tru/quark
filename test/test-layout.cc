@@ -7,7 +7,7 @@
 #include <flare/layout/root.h>
 #include <flare/render/render.h>
 #include <flare/render/skia/skia_render.h>
-#include <flare/layout/flex.h>
+#include <flare/layout/flow.h>
 #include <flare/layout/image.h>
 #include <flare/effect.h>
 #include <flare/display.h>

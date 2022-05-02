@@ -333,7 +333,7 @@ namespace flare {
 			* 
 			* Returns layout transformation matrix of the object view
 			* 
-			* Mat(layout_offset + transform_origin? + translate - parent->layout_offset_inside, scale, rotate, skew)
+			* Mat(layout_offset + transform_origin? + translate + parent->layout_offset_inside, scale, rotate, skew)
 			* 
 			* @func layout_matrix()
 			*/

@@ -32,7 +32,7 @@
 
 namespace flare {
 
-	float parse_align_space(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out);
+	float parse_align_space(ItemsAlign align,  bool is_reverse, float overflow, int count, float *space_out);
 
 	// content wrap typesetting of horizontal or vertical
 	template<bool is_horizontal>
@@ -54,13 +54,6 @@ namespace flare {
 		float max_main = 0;
 		float total_cross = 0;
 		bool wrap_reverse = _wrap == Wrap::WRAP_REVERSE;
-
-		Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
-
-		if (_border) {
-			origin.val[0] += _border->width_left + _border->width_right;
-			origin.val[1] += _border->width_top + _border->width_bottom;
-		}
 
 		Array<typename Line::Item> _items;
 		float _total_main = 0, _max_cross = 0;
@@ -124,7 +117,7 @@ namespace flare {
 				auto v = j.v;
 				auto align = v->layout_align();
 				float cross_offset_item = cross_offset;
-				switch (align == Align::AUTO ? _cross_align: CrossAlign(align - 1)) {
+				switch (align == Align::AUTO ? _cross_align: CrossAlign(int(align) - 1)) {
 					default:
 					case CrossAlign::START: break; // 与交叉轴内的起点对齐
 					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
@@ -133,10 +126,10 @@ namespace flare {
 						cross_offset_item += (cross - (is_horizontal ? s.y(): s.x())); break;
 				}
 				if (is_horizontal) {
-					v->set_layout_offset(Vec2(offset, cross_offset_item) + origin);
+					v->set_layout_offset(Vec2(offset, cross_offset_item));
 					offset += (s.x() + space);
 				} else {
-					v->set_layout_offset(Vec2(cross_offset_item, offset) + origin);
+					v->set_layout_offset(Vec2(cross_offset_item, offset));
 					offset += (s.y() + space);
 				}
 			}
@@ -146,7 +139,7 @@ namespace flare {
 		Vec2 new_size = is_horizontal ? Vec2(main_size, cross_size): Vec2(cross_size, main_size);
 
 		if (new_size != cur) {
-			set_layout_content_size(new_size);
+			set_content_size(new_size);
 			parent()->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 	}
@@ -265,7 +258,7 @@ namespace flare {
 	}
 
 	Vec2 FlowLayout::layout_lock(Vec2 layout_size) {
-		return Box::set_layout_size(layout_size);
+		return Box::layout_lock(layout_size);
 	}
 
 	bool FlowLayout::is_lock_child_layout_size() {
@@ -273,10 +266,7 @@ namespace flare {
 	}
 
 	void FlowLayout::onChildLayoutChange(Layout* child, uint32_t value) {
-		if (value & (kChild_Layout_Size | kChild_Layout_Align | kChild_Layout_Visible)) {
-			mark(kLayout_Typesetting);
-		}
-		// ignore kChild_Layout_Text and kChild_Layout_Weight
+		Box::onChildLayoutChange(child, value);
 	}
 
 // *******************************************************************

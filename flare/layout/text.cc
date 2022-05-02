@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text.h"
+#include "../text_rows.h"
 
 namespace flare {
 
@@ -45,13 +46,16 @@ namespace flare {
 
 			auto v = first();
 			if (v) {
-				TextRows rows; // text_align
+				TextRows rows(content_size(), layout_wrap_x(), layout_wrap_y(), _text_align);
 				do {
 					v->layout_text(&rows);
 					v = v->next();
 				} while(v);
 			}
 			unmark(kLayout_Typesetting);
+			mark_recursive(kRecursive_Transform);
+
+			// TODO check transform_origin change ...
 		}
 		return false;
 	}

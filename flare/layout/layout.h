@@ -107,7 +107,7 @@ namespace flare {
 
 		/**
 			*
-			* Returns the layout size of view object (if is box view the: size=margin+padding+content)
+			* Returns the layout size of view object (if is box view the: size=margin+border+padding+content)
 			*
 			* Returns the layout content size of object view, 
 			* Returns false to indicate that the size is unknown,
@@ -154,9 +154,9 @@ namespace flare {
 			* 
 			* Setting layout offset values lazily mode for the view object
 			*
-			* @func set_layout_offset_lazy(origin, size)
+			* @func set_layout_offset_lazy(size)
 			*/
-		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
+		virtual void set_layout_offset_lazy(Vec2 size);
 
 		/**
 			* 锁定布局的尺寸。在特定的布局类型中自身无法直接确定其自身尺寸，一般由父布局调用如：flex布局类型
@@ -175,7 +175,7 @@ namespace flare {
 			*
 			* 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
 			* 
-			* 这个方法被调用时父视图尺寸一定是有效的，在调用`layout_content_size`时有两种情况，
+			* 这个方法被调用时父视图尺寸一定是有效的，在调用`content_size`时有两种情况，
 			* 返回`false`表示父视图尺寸是wrap的，返回`true`时表示父视图有明确的尺寸
 			* 
 			* @func layout_forward(mark)

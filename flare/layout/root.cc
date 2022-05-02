@@ -34,13 +34,13 @@
 #include "../util/handle.h"
 #include "../display.h"
 #include "../render/render.h"
-#include "../render/pre_render.h"
+#include "../pre_render.h"
 
 namespace flare {
 
 	void __View_set_visible(View* self, bool val, uint32_t layout_depth);
 
-	Root* Root::create() {
+	Root* Root::create() throw(Error) {
 		auto app = flare::app();
 		F_CHECK(app, "Before you create a root, you need to create a Application");
 		Handle<Root> r = new Root();
@@ -77,7 +77,8 @@ namespace flare {
 
 	bool Root::layout_forward(uint32_t _mark) {
 		if (_mark & (kLayout_Size_Width | kLayout_Size_Height)) {
-			Size size{ Vec2(), display()->size(), false, false };
+			auto display = pre_render()->host()->display();
+			Size size{ Vec2(), display->size(), false, false };
 			Vec2 xy(solve_layout_content_width(size), solve_layout_content_height(size));
 
 			xy += Vec2(margin_left() + margin_right(), margin_top() + margin_bottom());
@@ -87,27 +88,49 @@ namespace flare {
 
 			set_layout_size(xy, &size.wrap_x, false);
 		}
-		return (layout_mark() & kLayout_Typesetting);
+		return (_mark & kLayout_Typesetting);
 	}
 
 	bool Root::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
+			Vec2 size = content_size();
 			auto v = first();
-			if (v) {
-				Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
-				Vec2 size = layout_size().content_size;
-				if (_border) {
-					origin.val[0] += _border->width_left;
-					origin.val[1] += _border->width_top;
-				}
-				while (v) {
-					v->set_layout_offset_lazy(origin, size); // lazy layout
-					v = v->next();
-				}
+			while (v) {
+				v->set_layout_offset_lazy(size); // lazy layout
+				v = v->next();
 			}
 			unmark(kLayout_Typesetting);
 		}
 		return false; // stop iteration
+	}
+
+	Mat Root::layout_matrix() {
+		if (_transform) {
+			return Mat(
+				layout_offset() + Vec2(margin_left(), margin_top()) +
+									transform_origin() + _transform->translate, // translate
+				_transform->scale,
+				-_transform->rotate,
+				_transform->skew
+			);
+		} else {
+			Vec2 translate = layout_offset() + Vec2(margin_left(), margin_top()) + transform_origin();
+			return Mat(
+				1, 0, translate.x(),
+				0, 1, translate.y()
+			);
+		}
+	}
+
+	void Root::layout_recursive(uint32_t value) {
+		if (!layout_depth()) return;
+
+		if (value & kRecursive_Transform) { // update transform matrix
+			unmark(kRecursive_Transform);
+			value = (value & ~kRecursive_Transform) | kRecursive_Visible_Region;
+			_matrix = layout_matrix();
+		}
+		Box::layout_recursive(value);
 	}
 
 	void Root::set_parent(View* parent) {

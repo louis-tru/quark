@@ -103,7 +103,7 @@ namespace flare {
 				begin.val[0] += box->_border->width_left;
 				begin.val[1] += box->_border->width_top;
 			}
-			auto end = v->layout_content_size() + begin;
+			auto end = v->content_size() + begin;
 			auto img = CastSkImage(v->source());
 			SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
 			SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);

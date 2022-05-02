@@ -32,7 +32,10 @@
 
 namespace flare {
 
-	TextRows::TextRows() {
+	TextRows::TextRows(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align)
+		: _is_clip(false)
+		, _wrap_x(wrap_x), _wrap_y(wrap_y), _size(size), _text_align(text_align)
+	{
 		clear();
 	}
 
@@ -57,7 +60,7 @@ namespace flare {
 
 		set_max_width( _last->offset_end.x() );
 
-		auto row_num = _rows.length();
+		uint32_t row_num = _rows.length();
 
 		_rows.push({
 			Vec2(0, _last->offset_end.y()),

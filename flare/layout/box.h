@@ -83,7 +83,7 @@ namespace flare {
 		virtual Vec2 layout_offset_inside() override;
 		virtual Vec2 layout_lock(Vec2 layout_size) override;
 		virtual void set_layout_offset(Vec2 val) override;
-		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size) override;
+		virtual void set_layout_offset_lazy(Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 
@@ -107,9 +107,9 @@ namespace flare {
 		void set_layout_size(Vec2 layout_size, bool is_wrap[2], bool is_lock_child = false);
 
 		/**
-			* @func set_layout_content_size(layout_content_size)
+			* @func set_content_size(content_size)
 			*/
-		void set_layout_content_size(Vec2 layout_content_size);
+		void set_content_size(Vec2 content_size);
 
 		// @func solve_layout_content_width
 		virtual float solve_layout_content_width(Size &parent_layout_size);
@@ -158,7 +158,7 @@ namespace flare {
 		F_DEFINE_PROP(Fill*, fill); // fill, image|gradient
 		F_DEFINE_PROP(Effect*, effect); // effect, shadow
 		F_DEFINE_PROP_READ(Vec2, transform_origin); // Start the matrix transformation from this origin point
-		F_DEFINE_PROP_READ(Vec2, layout_content_size); // width,height / size
+		F_DEFINE_PROP_READ(Vec2, content_size); // width,height / size
 		F_DEFINE_PROP_READ(Vec2, client_size); // border + padding + content
 
 	protected:
