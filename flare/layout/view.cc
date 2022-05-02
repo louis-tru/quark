@@ -592,6 +592,20 @@ namespace flare {
 		return false;
 	}
 
+	void View::layout_text(TextRows *rows) {
+		// NOOP
+	}
+
+	void View::onChildLayoutChange(Layout* child, uint32_t value) {
+		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
+			mark(kLayout_Typesetting);
+		}
+	}
+
+	void View::onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) {
+		// NOOP
+	}
+
 	void View::solve_recursive_marks(uint32_t mark) {
 
 		if (mark & kRecursive_Transform) { // update transform matrix
@@ -608,21 +622,15 @@ namespace flare {
 			unmark(kRecursive_Visible_Region); // unmark
 			visible_region:
 			_visible_region = solve_visible_region();
+			/*
+			if (_visible_region) {
+				View *v = _first;
+				while (v) {
+					v->layout_recursive(mark | v->layout_mark());
+					v = v->_next;
+				}
+			}*/
 		}
-	}
-
-	void View::layout_text(TextRows *rows) {
-		// NOOP
-	}
-
-	void View::onChildLayoutChange(Layout* child, uint32_t value) {
-		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
-			mark(kLayout_Typesetting);
-		}
-	}
-
-	void View::onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) {
-		// NOOP
 	}
 
 	bool View::solve_visible_region() {
