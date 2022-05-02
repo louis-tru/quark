@@ -59,7 +59,7 @@ namespace flare {
 		return _canvas;
 	}
 
-	SkiaRender::SkiaRender(): _canvas(nullptr), _alpha(1) {
+	SkiaRender::SkiaRender(): _canvas(nullptr), _alpha(1), _mark_recursive(0) {
 		_paint.setAntiAlias(true);
 		_rrect_path.setIsVolatile(true);
 	}
@@ -72,18 +72,24 @@ namespace flare {
 		// visit child
 		auto v = view->_first;
 		if (v) {
-			float alphaCur = _alpha;
+			float alphaCurr = _alpha;
+			uint32_t markCurr = _mark_recursive;
 			do {
-				if (v->_visible & v->_visible_region) {
-					if (v->_opacity > 0) {
-						_alpha = alphaCur * v->_opacity;
+				if (v->_visible) {
+					_mark_recursive = markCurr | v->layout_mark();
+					if (_mark_recursive) {
+						v->solve_recursive_marks(_mark_recursive);
+					}
+					if (v->_visible_region && v->_opacity > 0) {
+						_alpha = alphaCurr * v->_opacity;
 						_paint.setAlphaf(_alpha);
 						v->accept(this);
 					}
 				}
 				v = v->_next;
 			} while(v);
-			_alpha = alphaCur;
+			_alpha = alphaCurr;
+			_mark_recursive = markCurr;
 		}
 	}
 
@@ -138,14 +144,21 @@ namespace flare {
 	}
 
 	void SkiaRender::visitRoot(Root* v) {
-		if (v->_visible && v->_visible_region && v->_opacity > 0) {
-			solveBox(v, [](SkiaRender* render, Box* box) {
-				if (F_ENABLE_DRAW)
-					render->_canvas->clear(box->_fill_color.to_uint32_xrgb());
-				render->solveFill(box, box->_fill, Color::from(0));
-			});
-		} else {
-			if (F_ENABLE_DRAW) _canvas->clear(SK_ColorBLACK);
+		if (v->_visible) {
+			_mark_recursive = v->layout_mark();
+			if (_mark_recursive) {
+				v->solve_recursive_marks(_mark_recursive);
+			}
+
+			if (v->_visible_region && v->_opacity > 0) {
+				solveBox(v, [](SkiaRender* render, Box* box) {
+					if (F_ENABLE_DRAW)
+						render->_canvas->clear(box->_fill_color.to_uint32_xrgb());
+					render->solveFill(box, box->_fill, Color::from(0));
+				});
+			} else {
+				if (F_ENABLE_DRAW) _canvas->clear(SK_ColorBLACK);
+			}
 		}
 	}
 

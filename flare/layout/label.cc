@@ -158,13 +158,13 @@ namespace flare {
 		auto size = parent()->layout_size();
 		TextRows rows(size.content_size, false, false, TextAlign::LEFT); // use left align
 		layout_text(&rows);
-		mark_recursive(kRecursive_Transform);
+		mark_none(kRecursive_Transform);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 size) {
 		TextRows rows(size, false, false, TextAlign::LEFT); // use left align
 		layout_text(&rows);
-		mark_recursive(kRecursive_Transform);
+		mark_none(kRecursive_Transform);
 	}
 
 	void Label::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {

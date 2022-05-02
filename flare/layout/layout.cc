@@ -42,7 +42,6 @@ namespace flare {
 		*/
 	Layout::Layout(PreRender* pre)
 		: _mark_index(-1)
-		, _recursive_mark_index(-1)
 		, _layout_mark(kLayout_None)
 		, _layout_depth(0)
 		, _pre_render(pre)
@@ -180,12 +179,6 @@ namespace flare {
 					_pre_render->mark(this, newDepth);
 				}
 			}
-			if (_recursive_mark_index >= 0) {
-				_pre_render->delete_mark_recursive(this, oldDepth);
-				if (newDepth) {
-					_pre_render->mark_recursive(this, newDepth);
-				}
-			}
 		}
 	}
 
@@ -201,16 +194,8 @@ namespace flare {
 		}
 	}
 
-	void Layout::mark_recursive(uint32_t mark) {
+	void Layout::mark_none(uint32_t mark) {
 		_layout_mark |= mark;
-		if (_recursive_mark_index < 0) {
-			if (_layout_depth) {
-				_pre_render->mark_recursive(this, _layout_depth); // push to pre render
-			}
-		}
-	}
-
-	void Layout::mark_none() {
 		if (_layout_depth) {
 			_pre_render->mark_none(); // push to pre render
 		}

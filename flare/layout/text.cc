@@ -53,7 +53,7 @@ namespace flare {
 				} while(v);
 			}
 			unmark(kLayout_Typesetting);
-			mark_recursive(kRecursive_Transform);
+			mark_none(kRecursive_Transform);
 
 			// TODO check transform_origin change ...
 		}

@@ -37,104 +37,110 @@ namespace flare {
 	// content wrap typesetting of horizontal or vertical
 	template<bool is_horizontal>
 	void FlowLayout::layout_typesetting_wrap(bool is_reverse) { // wrap Line feed
-		struct Line {
-			struct Item {
-				Vec2 s; View* v;
-			};
-			float total_main;
-			float max_cross;
-			Array<Item> items;
-		};
+
 		Size cur_size = layout_size();
 		Vec2 cur = cur_size.content_size;
-		Array<Line> lines;
 		bool is_wrap_main = is_horizontal ? cur_size.wrap_x: cur_size.wrap_y;
 		bool is_wrap_cross = is_horizontal ? cur_size.wrap_y: cur_size.wrap_x;
 		float main_size = is_wrap_main ? 0 : (is_horizontal ? cur.x(): cur.y());
-		float max_main = 0;
-		float total_cross = 0;
-		bool wrap_reverse = _wrap == Wrap::WRAP_REVERSE;
+		float cross_size = is_wrap_cross ? 0: (is_horizontal ? cur.y(): cur.y());
 
-		Array<typename Line::Item> _items;
-		float _total_main = 0, _max_cross = 0;
+		if (first()) {
+			float max_main = 0;
+			float total_cross = 0;
+			bool wrap_reverse = _wrap == Wrap::WRAP_REVERSE;
 
-		auto v = first();
-		while (v) {
-			auto size = v->layout_size().layout_size;
-			auto main = _total_main + (is_horizontal ? size.x(): size.y());
-			if (main > main_size) { // Line feed
+			struct Line {
+				struct Item {
+					Vec2 s; View* v;
+				};
+				float total_main;
+				float max_cross;
+				Array<Item> items;
+			};
+			Array<Line> lines;
+			Array<typename Line::Item> _items;
+			float _total_main = 0, _max_cross = 0;
+
+			auto v = first();
+			do {
+				auto size = v->layout_size().layout_size;
+				auto main = _total_main + (is_horizontal ? size.x(): size.y());
+				if (main > main_size) { // Line feed
+					if (is_reverse)
+						_items.reverse();
+					lines.push({ _total_main, _max_cross, std::move(_items) });
+					max_main = F_MAX(max_main, _total_main);
+					total_cross += _max_cross;
+					_total_main = is_horizontal ? size.x(): size.y();
+					_max_cross = is_horizontal ? size.y(): size.x();
+				} else {
+					_total_main = main;
+					_max_cross = F_MAX(_max_cross, size.y());
+				}
+				_items.push({ size, v });
+				v = v->next();
+			} while(v);
+
+			if (_items.length()) {
 				if (is_reverse)
 					_items.reverse();
 				lines.push({ _total_main, _max_cross, std::move(_items) });
 				max_main = F_MAX(max_main, _total_main);
 				total_cross += _max_cross;
-				_total_main = is_horizontal ? size.x(): size.y();
-				_max_cross = is_horizontal ? size.y(): size.x();
-			} else {
-				_total_main = main;
-				_max_cross = F_MAX(_max_cross, size.y());
 			}
-			_items.push({ size, v });
-			v = v->next();
-		}
 
-		if (_items.length()) {
-			if (is_reverse)
-				_items.reverse();
-			lines.push({ _total_main, _max_cross, std::move(_items) });
-			max_main = F_MAX(max_main, _total_main);
-			total_cross += _max_cross;
-		}
-
-		if (wrap_reverse) {
-			lines.reverse();
-		}
-
-		if (is_wrap_main)
-			main_size = max_main;
-		float cross_size = is_wrap_cross ? total_cross: (is_horizontal ? cur.y(): cur.y());
-		float cross_overflow = cross_size - total_cross;
-		float cross_overflow_item = 0;
-		float cross_space = 0, cross_offset = 0;
-
-		if (!is_wrap_cross) {
-			if (WrapAlign::STRETCH == _wrap_align) {
-				cross_overflow_item = lines.length() ? cross_overflow / lines.length() : 0;
-			} else {
-				cross_offset = parse_align_space(
-					ItemsAlign(_wrap_align), wrap_reverse, cross_overflow, lines.length(), &cross_space);
+			if (wrap_reverse) {
+				lines.reverse();
 			}
-		}
 
-		for (auto& i: lines) {
-			float cross = i.max_cross + cross_overflow_item;
-			float overflow = main_size - i.total_main;
-			float space = 0;
-			float offset = parse_align_space(_items_align, is_reverse, overflow, i.items.length(), &space);
+			if (is_wrap_main)
+				main_size = max_main;
+			if (is_wrap_cross)
+				cross_size = total_cross;
+			float cross_overflow = cross_size - total_cross;
+			float cross_overflow_item = 0;
+			float cross_space = 0, cross_offset = 0;
 
-			for (auto j: i.items) {
-				auto s = j.s;
-				auto v = j.v;
-				auto align = v->layout_align();
-				float cross_offset_item = cross_offset;
-				switch (align == Align::AUTO ? _cross_align: CrossAlign(int(align) - 1)) {
-					default:
-					case CrossAlign::START: break; // 与交叉轴内的起点对齐
-					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-						cross_offset_item += ((cross - (is_horizontal ? s.y(): s.x())) / 2.0); break;
-					case CrossAlign::END: // 与交叉轴内的终点对齐
-						cross_offset_item += (cross - (is_horizontal ? s.y(): s.x())); break;
-				}
-				if (is_horizontal) {
-					v->set_layout_offset(Vec2(offset, cross_offset_item));
-					offset += (s.x() + space);
+			if (!is_wrap_cross) {
+				if (WrapAlign::STRETCH == _wrap_align) {
+					cross_overflow_item = lines.length() ? cross_overflow / lines.length() : 0;
 				} else {
-					v->set_layout_offset(Vec2(cross_offset_item, offset));
-					offset += (s.y() + space);
+					cross_offset = parse_align_space(
+						ItemsAlign(_wrap_align), wrap_reverse, cross_overflow, lines.length(), &cross_space);
 				}
 			}
-			cross_offset += (cross + cross_space);
-		}
+
+			for (auto& i: lines) {
+				float cross = i.max_cross + cross_overflow_item;
+				float overflow = main_size - i.total_main;
+				float space = 0;
+				float offset = parse_align_space(_items_align, is_reverse, overflow, i.items.length(), &space);
+
+				for (auto j: i.items) {
+					auto s = j.s;
+					auto v = j.v;
+					auto align = v->layout_align();
+					float cross_offset_item = cross_offset;
+					switch (align == Align::AUTO ? _cross_align: CrossAlign(int(align) - 1)) {
+						default:
+						case CrossAlign::START: break; // 与交叉轴内的起点对齐
+						case CrossAlign::CENTER: // 与交叉轴内的中点对齐
+							cross_offset_item += ((cross - (is_horizontal ? s.y(): s.x())) / 2.0); break;
+						case CrossAlign::END: // 与交叉轴内的终点对齐
+							cross_offset_item += (cross - (is_horizontal ? s.y(): s.x())); break;
+					}
+					if (is_horizontal) {
+						v->set_layout_offset(Vec2(offset, cross_offset_item));
+						offset += (s.x() + space);
+					} else {
+						v->set_layout_offset(Vec2(cross_offset_item, offset));
+						offset += (s.y() + space);
+					}
+				}
+				cross_offset += (cross + cross_space);
+			}
+		} // end if (first())
 
 		Vec2 new_size = is_horizontal ? Vec2(main_size, cross_size): Vec2(cross_size, main_size);
 

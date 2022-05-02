@@ -56,7 +56,7 @@ namespace flare {
 
 		r->mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		r->set_fill_color(Color(255, 255, 255, 255)); // 默认白色背景
-		r->mark_recursive(kRecursive_Transform);
+		r->mark_none(kRecursive_Transform);
 		_inl_app(app)->set_root(*r);
 		return r.collapse();
 	}
@@ -120,17 +120,6 @@ namespace flare {
 				0, 1, translate.y()
 			);
 		}
-	}
-
-	void Root::layout_recursive(uint32_t value) {
-		if (!layout_depth()) return;
-
-		if (value & kRecursive_Transform) { // update transform matrix
-			unmark(kRecursive_Transform);
-			value = (value & ~kRecursive_Transform) | kRecursive_Visible_Region;
-			_matrix = layout_matrix();
-		}
-		Box::layout_recursive(value);
 	}
 
 	void Root::set_parent(View* parent) {

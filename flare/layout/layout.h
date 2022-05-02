@@ -196,14 +196,6 @@ namespace flare {
 		virtual bool layout_reverse(uint32_t/*LayoutMark*/ mark) = 0;
 
 		/**
-			*
-			* 从外向内正向迭代布局
-			* 
-			* @func layout_recursive(mark)
-			*/
-		virtual void layout_recursive(uint32_t/*LayoutMark*/ mark) = 0;
-
-		/**
 		 * 
 		 * solve text layout
 		 * 
@@ -244,14 +236,9 @@ namespace flare {
 		void mark(uint32_t mark);
 
 		/**
-			* @func mark_recursive(mark)
+			* @func mark_none(mark)
 			*/
-		void mark_recursive(uint32_t mark);
-		
-		/**
-			* @func mark_none()
-			*/
-		void mark_none();
+		void mark_none(uint32_t mark = kLayout_None);
 
 		/**
 			* @func unmark(mark)
@@ -268,7 +255,7 @@ namespace flare {
 		*  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
 		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
 		*/
-		int32_t _mark_index, _recursive_mark_index;
+		int32_t _mark_index;
 
 	public:
 		/* 

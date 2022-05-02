@@ -101,6 +101,7 @@ namespace flare {
 		SkRRect         _rrect_inside, _rrect;
 		SkPath          _rrect_path;
 		float           _alpha;
+		uint32_t        _mark_recursive;
 		SkPaint         _paint;
 		bool _raster; // software raster
 	};

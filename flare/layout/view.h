@@ -352,6 +352,11 @@ namespace flare {
 		}
 
 		/**
+		 * @func solve_recursive_marks(mark)
+		*/
+		void solve_recursive_marks(uint32_t mark);
+
+		/**
 			* @func solve_visible_region()
 			*/
 		virtual bool solve_visible_region();
@@ -386,7 +391,6 @@ namespace flare {
 			*/
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
-		virtual void layout_recursive(uint32_t mark) override;
 		virtual void layout_text(TextRows *rows) override;
 		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;

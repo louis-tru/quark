@@ -44,7 +44,6 @@ namespace flare {
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual Mat  layout_matrix() override;
-		virtual void layout_recursive(uint32_t value) override;
 		virtual void set_parent(View* parent) override;
 	};
 

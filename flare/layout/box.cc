@@ -227,7 +227,7 @@ namespace flare {
 		if (_margin_top != val) {
 			_margin_top = val;
 			mark_layout_size(kLayout_Size_Height);
-			mark_recursive(kRecursive_Transform);
+			mark_none(kRecursive_Transform);
 		}
 	}
 
@@ -235,7 +235,7 @@ namespace flare {
 		if (_margin_left != val) {
 			_margin_left = val;
 			mark_layout_size(kLayout_Size_Width);
-			mark_recursive(kRecursive_Transform);
+			mark_none(kRecursive_Transform);
 		}
 	}
 
@@ -245,7 +245,7 @@ namespace flare {
 			mark_layout_size(kLayout_Size_Height);
 			// 没有直接的影响到`transform`但可能导致`layout_size`变化导致
 			// `transform_origin`百分比属性变化,间接影响`transform`变化, 但可以肯定这个会影响子布局偏移
-			// mark_recursive(kRecursive_Transform); 
+			// mark_none(kRecursive_Transform); 
 		}
 	}
 
@@ -253,7 +253,7 @@ namespace flare {
 		if (_padding_left != val) {
 			_padding_left = val;
 			mark_layout_size(kLayout_Size_Width);
-			//mark_recursive(kRecursive_Transform); // @`set_padding_top(val)`
+			//mark_none(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
 
@@ -262,7 +262,7 @@ namespace flare {
 		if (_margin_right != val) {
 			_margin_right = val;
 			mark_layout_size(kLayout_Size_Width);
-			//mark_recursive(kRecursive_Transform); // @`set_padding_top(val)`
+			//mark_none(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
 
@@ -270,7 +270,7 @@ namespace flare {
 		if (_margin_bottom != val) {
 			_margin_bottom = val;
 			mark_layout_size(kLayout_Size_Height);
-			//mark_recursive(kRecursive_Transform); // @`set_padding_top(val)`
+			//mark_none(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
 
@@ -278,7 +278,7 @@ namespace flare {
 		if (_padding_right != val) {
 			_padding_right = val;
 			mark_layout_size(kLayout_Size_Width);
-			//mark_recursive(kRecursive_Transform); // @`set_padding_top(val)`
+			//mark_none(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
 
@@ -286,7 +286,7 @@ namespace flare {
 		if (_padding_bottom != val) {
 			_padding_bottom = val;
 			mark_layout_size(kLayout_Size_Height);
-			//mark_recursive(kRecursive_Transform); // @`set_padding_top(val)`
+			//mark_none(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
 
@@ -580,10 +580,10 @@ namespace flare {
 				v = v->next();
 			}
 			mark(kLayout_Typesetting); // rearrange
-			mark_recursive(kRecursive_Visible_Region);
+			mark_none(kRecursive_Visible_Region);
 		}
 
-		return (_mark & kLayout_Typesetting);
+		return (layout_mark() & kLayout_Typesetting);
 	}
 
 	bool Box::layout_reverse(uint32_t mark) {
@@ -656,7 +656,7 @@ namespace flare {
 				}
 			}
 			mark(kLayout_Typesetting); // rearrange
-			mark_recursive(kRecursive_Visible_Region);
+			mark_none(kRecursive_Visible_Region);
 			// TODO check transform_origin change ...
 		}
 
@@ -770,7 +770,7 @@ namespace flare {
 
 	void Box::set_layout_offset(Vec2 val) {
 		_layout_offset = val;
-		mark_recursive(kRecursive_Transform); // mark recursive transform
+		mark_none(kRecursive_Transform); // mark recursive transform
 	}
 
 	void Box::set_layout_offset_lazy(Vec2 size) {

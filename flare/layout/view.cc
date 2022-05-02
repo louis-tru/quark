@@ -111,7 +111,7 @@ namespace flare {
 				if ( layout_mark() ) { // remark
 					mark(kLayout_None);
 				}
-				mark_recursive(kRecursive_Transform);
+				mark_none(kRecursive_Transform);
 
 				View *v = _first;
 				while ( v ) {
@@ -418,7 +418,7 @@ namespace flare {
 	void View::set_translate(Vec2 val) {
 		if (translate() != val) {
 			get_transform_instance()->translate = val;
-			mark_recursive(kRecursive_Transform); // mark transform
+			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -430,7 +430,7 @@ namespace flare {
 	void View::set_scale(Vec2 val) {
 		if (scale() != val) {
 			get_transform_instance()->scale = val;
-			mark_recursive(kRecursive_Transform); // mark transform
+			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -442,7 +442,7 @@ namespace flare {
 	void View::set_skew(Vec2 val) {
 		if (skew() != val) {
 			get_transform_instance()->skew = val;
-			mark_recursive(kRecursive_Transform); // mark transform
+			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -454,7 +454,7 @@ namespace flare {
 	void View::set_rotate(float val) {
 		if (rotate() != val) {
 			get_transform_instance()->rotate = val;
-			mark_recursive(kRecursive_Transform); // mark transform
+			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -467,7 +467,7 @@ namespace flare {
 	void View::set_x(float val) {
 		if (translate().x() != val) {
 			get_transform_instance()->translate.set_x(val);
-			mark_recursive(kRecursive_Transform); // mark transform
+			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -480,7 +480,7 @@ namespace flare {
 	void View::set_y(float val) {
 		if (translate().y() != val) {
 			get_transform_instance()->translate.set_y(val);
-			mark_recursive(kRecursive_Transform); // mark transform
+			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -493,7 +493,7 @@ namespace flare {
 	void View::set_scale_x(float val) {
 		if (scale().x() != val) {
 			get_transform_instance()->scale.set_x(val);
-			mark_recursive(kRecursive_Transform); // mark transform
+			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -506,7 +506,7 @@ namespace flare {
 	void View::set_scale_y(float val) {
 		if (scale().y() != val) {
 			get_transform_instance()->scale.set_y(val);
-			mark_recursive(kRecursive_Transform); // mark transform
+			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -519,7 +519,7 @@ namespace flare {
 	void View::set_skew_x(float val) {
 		if (skew().x() != val) {
 			get_transform_instance()->skew.set_x(val);
-			mark_recursive(kRecursive_Transform); // mark transform
+			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -532,7 +532,7 @@ namespace flare {
 	void View::set_skew_y(float val) {
 		if (skew().y() != val) {
 			get_transform_instance()->skew.set_y(val);
-			mark_recursive(kRecursive_Transform); // mark transform
+			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -587,17 +587,20 @@ namespace flare {
 				v->set_layout_offset_lazy(Vec2()); // lazy layout
 				v = v->next();
 			}
-			unmark(kLayout_Typesetting);
+			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height | kLayout_Text);
 		}
 		return false;
 	}
 
-	void View::layout_recursive(uint32_t mark) {
-		if (!layout_depth()) return;
+	void View::solve_recursive_marks(uint32_t mark) {
 
 		if (mark & kRecursive_Transform) { // update transform matrix
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
-			_parent->matrix().multiplication(layout_matrix(), _matrix);
+			if (_parent) {
+				_parent->matrix().multiplication(layout_matrix(), _matrix);
+			} else {
+				_matrix = layout_matrix();
+			}
 			goto visible_region;
 		}
 
@@ -605,13 +608,6 @@ namespace flare {
 			unmark(kRecursive_Visible_Region); // unmark
 			visible_region:
 			_visible_region = solve_visible_region();
-			if (_visible_region) {
-				View *v = _first;
-				while (v) {
-					v->layout_recursive(uint32_t(mark | v->layout_mark()));
-					v = v->_next;
-				}
-			}
 		}
 	}
 

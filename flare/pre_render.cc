@@ -95,27 +95,13 @@ namespace flare {
 		_is_render = true;
 	}
 
-	void PreRender::solve_mark_recursive() {
-		for (auto& levelMarks: _mark_recursives) {
-			for (auto& layout: levelMarks) {
-				layout->layout_recursive(layout->layout_mark());
-				layout->_recursive_mark_index = -1;
-			}
-			levelMarks.clear(); // clear level marks
-		}
-		_mark_recursive_total = 0;
-		_is_render = true;
-	}
-
 	/**
 	* @constructor
 	*/
 	PreRender::PreRender(Application* host)
 		: _host(host)
 		, _mark_total(0)
-		, _mark_recursive_total(0)
 		, _marks(0)
-		, _mark_recursives(0)
 		, _is_render(false)
 	{
 	}
@@ -151,9 +137,6 @@ namespace flare {
 		if (_mark_total) { // solve marks
 			solve_mark();
 		}
-		if (_mark_recursive_total) { // solve mark recursive
-			solve_mark_recursive();
-		}
 
 		if (_is_render) {
 			_is_render = false;
@@ -172,15 +155,6 @@ namespace flare {
 		_mark_total++;
 	}
 
-	void PreRender::mark_recursive(Layout *layout, uint32_t depth) {
-		F_ASSERT(depth);
-		_mark_recursives.extend(depth + 1);
-		auto& arr = _mark_recursives[depth];
-		layout->_recursive_mark_index = arr.length();
-		arr.push(layout);
-		_mark_recursive_total++;
-	}
-
 	void PreRender::delete_mark(Layout *layout, uint32_t depth) {
 		F_ASSERT(depth);
 		auto& arr = _marks[depth];
@@ -191,19 +165,6 @@ namespace flare {
 		arr.pop();
 		layout->_mark_index = -1;
 		_mark_total--;
-		_is_render = true;
-	}
-
-	void PreRender::delete_mark_recursive(Layout *layout, uint32_t depth) {
-		F_ASSERT(depth);
-		auto& arr = _mark_recursives[depth];
-		auto last = arr[arr.length() - 1];
-		if (last != layout) {
-			arr[layout->_recursive_mark_index] = last;
-		}
-		arr.pop();
-		layout->_recursive_mark_index = -1;
-		_mark_recursive_total--;
 		_is_render = true;
 	}
 
