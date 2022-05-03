@@ -36,32 +36,32 @@ namespace flare {
 
 	static String documents_path, temp_path, resources_path, executable_path;
 
-	String Path::executable() {
+	String fs_executable() {
 		return executable_path;
 	}
 
-	String Path::documents(cString& child) {
+	String fs_documents(cString& child) {
 		if ( child.is_empty() ) {
 			return documents_path;
 		}
-		return Path::format("%s/%s", *documents_path, *child);
+		return fs_format("%s/%s", *documents_path, *child);
 	}
 
-	String Path::temp(cString& child) {
+	String fs_temp(cString& child) {
 		if ( child.is_empty() ) {
 			return temp_path;
 		}
-		return Path::format("%s/%s", *temp_path, *child);
+		return fs_format("%s/%s", *temp_path, *child);
 	}
 
 	/**
 	* Get the resoures dir
 	*/
-	String Path::resources(cString& child) {
+	String fs_resources(cString& child) {
 		if ( child.is_empty() ) {
 			return resources_path;
 		}
-		return Path::format("%s/%s", *resources_path, *child);
+		return fs_format("%s/%s", *resources_path, *child);
 	}
 
 	extern "C" {
@@ -69,11 +69,11 @@ namespace flare {
 		F_EXPORT void Java_org_flare_API_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
 			documents_path = JNI::jstring_to_string(files_dir);
 			temp_path = JNI::jstring_to_string(cache_dir);
-			resources_path = Path::format("zip://%s@/assets", JNI::jstring_to_string(package));
+			resources_path = fs_format("zip://%s@/assets", JNI::jstring_to_string(package));
 			
 			Char dir[PATH_MAX] = { 0 };
 			readlink("/proc/self/exe", dir, PATH_MAX);
-			executable_path = Path::format("%s", dir);
+			executable_path = fs_format("%s", dir);
 		}
 	}
 

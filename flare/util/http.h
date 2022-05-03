@@ -78,6 +78,30 @@ namespace flare {
 		HTTP_READY_STATE_COMPLETED = 4       //（完成） 响应完成,请求结束
 	};
 
+	struct ResponseData;
+	typedef Callback<ResponseData> HttpCb;
+	typedef Dict<String, String> DictSS;
+
+	struct RequestOptions {
+		String     url;
+		HttpMethod method;
+		DictSS     headers;    /* setting custom request headers */
+		Buffer     post_data;  /* Non post requests ignore this option */
+		String     save;       /* save body content to local disk */
+		String     upload;     /* upload loacl file */
+		uint64_t   timeout;    /* request timeout time, default no timeout "0" */
+		bool       disable_ssl_verify;
+		bool       disable_cache;
+		bool       disable_cookie;
+	};
+
+	struct ResponseData {
+		Buffer  data;
+		String  http_version;
+		int     status_code;
+		DictSS  response_headers;
+	};
+
 	/**
 	* @class URI
 	*/
@@ -117,7 +141,7 @@ namespace flare {
 		F_HIDDEN_ALL_COPY(HttpClientRequest);
 	public:
 		class Delegate {
-			public:
+		public:
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) = 0;
 			virtual void trigger_http_write(HttpClientRequest* req) = 0;
 			virtual void trigger_http_header(HttpClientRequest* req) = 0;
@@ -148,7 +172,7 @@ namespace flare {
 		void clear_request_header() throw(Error);
 		void clear_form_data() throw(Error);
 		String get_response_header(cString& name);
-		const Dict<String, String>& get_all_response_headers() const;
+		const DictSS& get_all_response_headers() const;
 		int64_t upload_total() const;
 		int64_t upload_size() const;
 		int64_t download_total() const;
@@ -190,70 +214,40 @@ namespace flare {
 	*/
 	class F_EXPORT HttpError: public Error {
 	public:
-		inline HttpError(int rc, cString& msg, uint32_t status, cString& url)
-		: Error(rc, msg), _status(status), _url(url) {}
-		inline HttpError(const Error& err): Error(err), _status(0), _url() {}
-		inline uint32_t status() const { return _status; }
-		inline String url() const { return _url; }
-	private:
-		uint32_t _status;
-		String   _url;
+		HttpError(int rc, cString& msg, uint32_t status, cString& url);
+		HttpError(const Error& err);
+		F_DEFINE_PROP_READ(uint32_t, status);
+		F_DEFINE_PROP_READ(String, url);
 	};
 
-	/**
-	* @class HttpHelper
-	*/
-	class F_EXPORT HttpHelper {
-	public:
-		typedef Dict<String, String> Map;
-		struct RequestOptions {
-			String     url;
-			HttpMethod method;
-			Map        headers;    /* setting custom request headers */
-			Buffer     post_data;  /* Non post requests ignore this option */
-			String     save;       /* save body content to local disk */
-			String     upload;     /* upload loacl file */
-			uint64_t   timeout;    /* request timeout time, default no timeout "0" */
-			bool       disable_ssl_verify;
-			bool       disable_cache;
-			bool       disable_cookie;
-		};
-		struct ResponseData {
-			Buffer  data;
-			String  http_version;
-			int     status_code;
-			Map     response_headers;
-		};
-		typedef Callback<ResponseData> Cb;
-		static uint32_t request(RequestOptions& options, Cb cb = 0) throw(HttpError);
-		static uint32_t request_stream(RequestOptions& options, Callback<StreamResponse> cb = 0) throw(HttpError);
-		static uint32_t download(cString& url, cString& save, Cb cb = 0) throw(HttpError);
-		static uint32_t upload(cString& url, cString& file, Cb cb = 0) throw(HttpError);
-		static uint32_t get(cString& url, Cb cb = 0, bool no_cache = false) throw(HttpError);
-		static uint32_t get_stream(cString& url, Callback<StreamResponse> cb = 0, bool no_cache = false) throw(HttpError);
-		static uint32_t post(cString& url, Buffer data, Cb cb = 0) throw(HttpError);
-		static Buffer request_sync(RequestOptions& options) throw(HttpError);
-		static void   download_sync(cString& url, cString& save) throw(HttpError);
-		static Buffer upload_sync(cString& url, cString& file) throw(HttpError);
-		static Buffer get_sync(cString& url, bool no_cache = false) throw(HttpError);
-		static Buffer post_sync(cString& url, Buffer data) throw(HttpError);
-		static void abort(uint32_t id);
-		static String user_agent();
-		static void set_user_agent(cString& user_agent);
-		static String cache_path();
-		static void set_cache_path(cString& path);
-		static void clear_cache();
-		// http cookie
-		static String get_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
-		static String get_all_cookie_string(cString& domain, cString& path = String(), bool ssl = 0);
-		static Map get_all_cookie(cString& domain, cString& path = String(), bool ssl = 0);
-		static void set_cookie_with_expression(cString& domain, cString& expression);
-		static void set_cookie(cString& domain, cString& name, cString& value, 
-													int64_t expires = -1, cString& path = String(), bool ssl = 0);
-		static void delete_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
-		static void delete_all_cookie(cString& domain, bool ssl = 0);
-		static void clear_cookie();
-	};
+	F_EXPORT uint32_t http_request(RequestOptions& options, HttpCb cb = 0) throw(HttpError);
+	F_EXPORT uint32_t http_request_stream(RequestOptions& options, Callback<StreamResponse> cb = 0) throw(HttpError);
+	F_EXPORT uint32_t http_download(cString& url, cString& save, HttpCb cb = 0) throw(HttpError);
+	F_EXPORT uint32_t http_upload(cString& url, cString& file, HttpCb cb = 0) throw(HttpError);
+	F_EXPORT uint32_t http_get(cString& url, HttpCb cb = 0, bool no_cache = false) throw(HttpError);
+	F_EXPORT uint32_t http_get_stream(cString& url, Callback<StreamResponse> cb = 0, bool no_cache = false) throw(HttpError);
+	F_EXPORT uint32_t http_post(cString& url, Buffer data, HttpCb cb = 0) throw(HttpError);
+	F_EXPORT Buffer http_request_sync(RequestOptions& options) throw(HttpError);
+	F_EXPORT void   http_download_sync(cString& url, cString& save) throw(HttpError);
+	F_EXPORT Buffer http_upload_sync(cString& url, cString& file) throw(HttpError);
+	F_EXPORT Buffer http_get_sync(cString& url, bool no_cache = false) throw(HttpError);
+	F_EXPORT Buffer http_post_sync(cString& url, Buffer data) throw(HttpError);
+	F_EXPORT void   http_abort(uint32_t id);
+	F_EXPORT String http_user_agent();
+	F_EXPORT void   http_set_user_agent(cString& user_agent);
+	F_EXPORT String http_cache_path();
+	F_EXPORT void   http_set_cache_path(cString& path);
+	F_EXPORT void   http_clear_cache();
+	// http cookie
+	F_EXPORT String http_get_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
+	F_EXPORT String http_get_all_cookie_string(cString& domain, cString& path = String(), bool ssl = 0);
+	F_EXPORT DictSS http_get_all_cookie(cString& domain, cString& path = String(), bool ssl = 0);
+	F_EXPORT void http_set_cookie_with_expression(cString& domain, cString& expression);
+	F_EXPORT void http_set_cookie(cString& domain, cString& name, cString& value, 
+																int64_t expires = -1, cString& path = String(), bool ssl = 0);
+	F_EXPORT void http_delete_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
+	F_EXPORT void http_delete_all_cookie(cString& domain, bool ssl = 0);
+	F_EXPORT void http_clear_cookie();
 
 }
 #endif

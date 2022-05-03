@@ -169,7 +169,7 @@ namespace flare {
 		 */
 		class Connect: public Object
 			, public Socket::Delegate
-			, public Reader, public AsyncFile::Delegate
+			, public Reader, public File::Delegate
 		{
 		public:
 
@@ -265,7 +265,7 @@ namespace flare {
 				
 				if ( !self->_client->_disable_cookie ) {
 					if ( self->_header_field == "set-cookie" ) {
-						HttpHelper::set_cookie_with_expression(self->_client->_uri.domain(), value);
+						http_set_cookie_with_expression(self->_client->_uri.domain(), value);
 					}
 				}
 				
@@ -370,7 +370,7 @@ namespace flare {
 				header["Date"] = gmt_time_string(time_second());
 				
 				if ( !header.has("Cache-Control") )   header["Cache-Control"] = "max-age=0";
-				if ( !header.has("User-Agent") )      header["User-Agent"] = HttpHelper::user_agent();
+				if ( !header.has("User-Agent") )      header["User-Agent"] = http_user_agent();
 				if ( !header.has("Accept-Charset") )  header["Accept-Charset"] = "utf-8";
 				if ( !header.has("Accept") )          header["Accept"] = "*/*";
 				if ( !header.has("DNT") )             header["DNT"] = "1";
@@ -383,7 +383,7 @@ namespace flare {
 				
 				if ( !_client->_disable_cookie && !_client->_disable_send_cookie ) { // send cookies
 					
-					String cookies = HttpHelper::get_all_cookie_string(_client->_uri.domain(),
+					String cookies = http_get_all_cookie_string(_client->_uri.domain(),
 																														_client->_uri.pathname(),
 																														_client->_uri.type() == URI_HTTPS);
 					if ( !cookies.is_empty() ) {
@@ -428,9 +428,9 @@ namespace flare {
 								MultipartFormValue _form = { form.type, form.data };
 								
 								if ( i.value.type == FORM_TYPE_FILE ) {
-									FileStat stat = FileHelper::stat_sync(i.value.data);
+									FileStat stat = fs_stat_sync(i.value.data);
 									if ( stat.is_valid() && stat.is_file() ) {
-										String basename = inl__uri_encode(Path::basename(form.data));
+										String basename = inl__uri_encode(fs_basename(form.data));
 										_form.headers =
 										String::format("Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\n"
 																	 "Content-Type: application/octet-stream\r\n\r\n",
@@ -568,23 +568,23 @@ namespace flare {
 				}
 			}
 			
-			virtual void trigger_async_file_open(AsyncFile* file) {
+			virtual void trigger_file_open(File* file) {
 				F_ASSERT( _is_multipart_form_data );
 				send_multipart_form_data();
 			}
 			
-			virtual void trigger_async_file_close(AsyncFile* file) {
+			virtual void trigger_file_close(File* file) {
 				F_ASSERT( _is_multipart_form_data );
 				Error err(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown");
 				_client->report_error_and_abort(err);
 			}
 			
-			virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
+			virtual void trigger_file_error(File* file, cError& error) {
 				F_ASSERT( _is_multipart_form_data );
 				_client->report_error_and_abort(error);
 			}
 			
-			virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {
+			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
 				F_ASSERT( _is_multipart_form_data );
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
@@ -601,7 +601,7 @@ namespace flare {
 				}
 			}
 			
-			virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {}
+			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {}
 			
 			void send_multipart_form_data() {
 				F_ASSERT( _multipart_form_buffer.length() == BUFFER_SIZE );
@@ -616,7 +616,7 @@ namespace flare {
 					_socket->write(form.headers.collapse());
 					
 					if ( form.type == FORM_TYPE_FILE ) {
-						_upload_file = new AsyncFile(form.data, _loop);
+						_upload_file = new File(form.data, _loop);
 						_upload_file->set_delegate(this);
 						_upload_file->open();
 					} else {
@@ -657,7 +657,7 @@ namespace flare {
 			Socket*     _socket;
 			Client*     _client;
 			ConnectID   _id;
-			AsyncFile*  _upload_file;
+			File*  _upload_file;
 			http_parser _parser;
 			http_parser_settings _settings;
 			List<MultipartFormValue> _multipart_form_data;
@@ -839,12 +839,12 @@ namespace flare {
 		/**
 		 * @class HttpClientRequest::Inl::FileCacheReader
 		 */
-		class FileCacheReader: public AsyncFile,
-			public AsyncFile::Delegate, public Reader
+		class FileCacheReader: public File,
+			public File::Delegate, public Reader
 		{
 		public:
 			FileCacheReader(Client* client, int64_t size, RunLoop* loop)
-				: AsyncFile(client->_cache_path, loop)
+				: File(client->_cache_path, loop)
 				, _read_count(0)
 				, _client(client)
 				, _parse_header(true), _offset(0), _size(size)
@@ -866,11 +866,11 @@ namespace flare {
 				release();
 			}
 			
-			virtual void trigger_async_file_open(AsyncFile* file) {
+			virtual void trigger_file_open(File* file) {
 				read(Buffer::alloc(512));
 			}
 
-			virtual void trigger_async_file_close(AsyncFile* file) {
+			virtual void trigger_file_close(File* file) {
 				if ( _parse_header ) { // unexpected shutdown
 					continue_send_and_release();
 				} else {
@@ -879,7 +879,7 @@ namespace flare {
 				}
 			}
 
-			virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
+			virtual void trigger_file_error(File* file, cError& error) {
 				if ( _parse_header ) {
 					continue_send_and_release();
 				} else {
@@ -888,7 +888,7 @@ namespace flare {
 				}
 			}
 
-			virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {
+			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
 				if ( _parse_header ) { // parse cache header
 					if ( buffer.length() ) {
 						
@@ -964,7 +964,7 @@ namespace flare {
 				}
 			}
 			
-			virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {}
+			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {}
 			
 			Map& header() {
 				return _header;
@@ -1019,7 +1019,7 @@ namespace flare {
 		/**
 		 * @class HttpClientRequest::Inl::FileWriter
 		 */
-		class FileWriter: public Object, public AsyncFile::Delegate {
+		class FileWriter: public Object, public File::Delegate {
 		public:
 			FileWriter(Client* client, cString& path, int flag, RunLoop* loop)
 				: _client(client)
@@ -1054,13 +1054,13 @@ namespace flare {
 						int64_t expires = parse_time(r_header["expires"]);
 						int64_t now = time_micro();
 						if ( expires > now ) {
-							_file = new AsyncFile(path, loop);
+							_file = new File(path, loop);
 						}
 					} else if ( r_header.has("last-modified") || r_header.has("etag") ) {
-						_file = new AsyncFile(path, loop);
+						_file = new File(path, loop);
 					}
 				} else { // download save
-					_file = new AsyncFile(path, loop);
+					_file = new File(path, loop);
 				}
 				
 				if ( _file ) {
@@ -1078,7 +1078,7 @@ namespace flare {
 				_client->_file_writer = nullptr;
 			}
 			
-			virtual void trigger_async_file_open(AsyncFile* file) {
+			virtual void trigger_file_open(File* file) {
 				if ( _write_flag ) { // write header
 					String header;
 					auto& r_header = _client->response_header();
@@ -1109,16 +1109,16 @@ namespace flare {
 				}
 			}
 			
-			virtual void trigger_async_file_close(AsyncFile* file) {
+			virtual void trigger_file_close(File* file) {
 				// throw error to http client host
 				_client->report_error_and_abort(Error(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown"));
 			}
 			
-			virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
+			virtual void trigger_file_error(File* file, cError& error) {
 				_client->report_error_and_abort(error);
 			}
 			
-			virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
+			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
 				if ( mark ) {
 					if ( mark == 2 ) {
 						_ready = true;
@@ -1144,7 +1144,7 @@ namespace flare {
 				}
 			}
 			
-			virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) { }
+			virtual void trigger_file_read(File* file, Buffer buffer, int mark) { }
 			
 			bool is_write_complete() const {
 				return _write_count == 0 && _buffer.length() == 0;
@@ -1175,7 +1175,7 @@ namespace flare {
 		private:
 			Client* _client;
 			Buffer  _buffer;
-			AsyncFile*  _file;
+			File*  _file;
 			int	_write_flag, _write_count;
 			bool	_ready, _completed_end;
 		};
@@ -1388,7 +1388,7 @@ namespace flare {
 			_sending = new Sending(this);
 			_pause = false;
 			_url_no_cache_arg = false;
-			_cache_path = HttpHelper::cache_path() + '/' +
+			_cache_path = http_cache_path() + '/' +
 				hash_code(_uri.href().c_str(), _uri.href().length());
 			
 			int i = _uri.search().index_of("__no_cache");
@@ -1408,7 +1408,7 @@ namespace flare {
 			if ( is_disable_cache() ) { // check cache
 				send_http();
 			} else {
-				FileHelper::stat(_cache_path, Cb(&Inl::cache_file_stat_cb, this));
+				fs_stat(_cache_path, Cb(&Inl::cache_file_stat_cb, this));
 			}
 		}
 		

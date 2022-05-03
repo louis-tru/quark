@@ -41,7 +41,7 @@ namespace flare {
 	static int64_t _has_initialize = 0;
 
 	static String get_db_filename() {
-		return Path::temp(".storage.bp");
+		return fs_temp(".storage.bp");
 	}
 
 	static void storage_close() {
@@ -52,7 +52,7 @@ namespace flare {
 
 	static void storage_open() {
 		if ( _storage_db == nullptr ) {
-			int r = bp_open(&_db, Path::fallback_c(get_db_filename()));
+			int r = bp_open(&_db, fs_fallback_c(get_db_filename()));
 			if ( r == BP_OK ) {
 				if (_has_initialize++ == 0)
 					atexit(storage_close);
@@ -95,12 +95,12 @@ namespace flare {
 	void storage_clear() {
 		if ( !_db ) {
 			auto f = get_db_filename();
-			if (FileHelper::is_file_sync(f)) {
-				FileHelper::unlink_sync(f);
+			if (fs_is_file_sync(f)) {
+				fs_unlink_sync(f);
 			}
 		} else {
 			storage_close();
-			FileHelper::unlink_sync(get_db_filename());
+			fs_unlink_sync(get_db_filename());
 		}
 	}
 

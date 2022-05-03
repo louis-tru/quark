@@ -271,7 +271,7 @@ namespace flare {
 	
 	Handle<FontPool::SimpleFontFamily> FontPool::Inl::inl_read_font_file(cString& path, FT_Library lib) {
 		FT_Face face;
-		FT_Error err = FT_New_Face(lib, Path::fallback_c(path), 0, &face);
+		FT_Error err = FT_New_Face(lib, fs_fallback_c(path), 0, &face);
 		
 		if (err) {
 			F_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err);
@@ -327,7 +327,7 @@ namespace flare {
 				FT_Done_Face(face);
 				
 				if (face_index < num_faces) {
-					err = FT_New_Face(lib, Path::fallback_c(path), face_index, &face);
+					err = FT_New_Face(lib, fs_fallback_c(path), face_index, &face);
 					if (err) {
 						F_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err); break;
 					}

@@ -35,50 +35,50 @@
 
 namespace flare {
 
-	String Path::executable() {
+	String fs_executable() {
 		static cString path([]() -> String { 
 			Char dir[PATH_MAX] = { 0 };
 			int n = readlink("/proc/self/exe", dir, PATH_MAX);
-			return Path::format("%s", dir);
+			return fs_format("%s", dir);
 		}());
 		return path;
 	}
 
-	String Path::documents(cString& child) {
+	String fs_documents(cString& child) {
 		static String documentsPath([]() -> String { 
-			String s = Path::format("%s/%s", getenv("HOME"), "Documents");
-			FileHelper::mkdir_p_sync(s);
+			String s = fs_format("%s/%s", getenv("HOME"), "Documents");
+			fs_mkdir_p_sync(s);
 			return s;
 		}());
 		if ( child.is_empty() ) {
 			return documentsPath;
 		}
-		return Path::format("%s/%s", *documentsPath, *child);
+		return fs_format("%s/%s", *documentsPath, *child);
 	}
 
-	String Path::temp(cString& child) {
+	String fs_temp(cString& child) {
 		static String tempPath([]() -> String {
-			String s = Path::format("%s/%s", getenv("HOME"), ".cache");
-			FileHelper::mkdir_p_sync(s);
+			String s = fs_format("%s/%s", getenv("HOME"), ".cache");
+			fs_mkdir_p_sync(s);
 			return s;
 		}());
 		if (child.is_empty()) {
 			return tempPath;
 		}
-		return Path::format("%s/%s", *tempPath, *child);
+		return fs_format("%s/%s", *tempPath, *child);
 	}
 
 	/**
 	* Get the resoures dir
 	*/
-	String Path::resources(cString& child) {
+	String fs_resources(cString& child) {
 		static String resourcesPath([]() -> String {
-			return Path::dirname(executable());
+			return fs_dirname(executable());
 		}());
 		if (child.is_empty()) {
 			return resourcesPath;
 		}
-		return Path::format("%s/%s", *resourcesPath, *child);
+		return fs_format("%s/%s", *resourcesPath, *child);
 	}
 
 }

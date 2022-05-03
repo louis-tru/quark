@@ -109,14 +109,14 @@ namespace flare {
 	/**
 	 * @func compress
 	 */
-	Buffer ZLib::compress(WeakBuffer buff, int level) {
+	Buffer zlib_compress(WeakBuffer buff, int level) {
 		return _compress(buff.val(), (uint32_t)buff.length(), level);
 	}
 
 	/**
 	 * @func uncompress
 	 */
-	Buffer ZLib::uncompress(WeakBuffer buff) {
+	Buffer zlib_uncompress(WeakBuffer buff) {
 		return _uncompress(buff.val(), (uint32_t)buff.length());
 	}
 
@@ -138,7 +138,7 @@ namespace flare {
 		F_ASSERT(!_gzfp);
 		if (_gzfp) // 已经打开了
 			return 0;
-		_gzfp = gzopen(Path::fallback_c(_path), inl__file_flag_str(flag));
+		_gzfp = gzopen(fs_fallback_c(_path), inl__file_flag_str(flag));
 		if (_gzfp) {
 			return 0;
 		}
@@ -217,7 +217,7 @@ namespace flare {
 		
 		void add_dir_info_item(cString& pathname, FileType type) {
 			
-			String dirname = Path::dirname(pathname);
+			String dirname = fs_dirname(pathname);
 			String compatible_path = _compatible_path + "/" + pathname;
 			
 			if ( dirname.is_empty() ) {
@@ -230,9 +230,9 @@ namespace flare {
 
 				if ( it == _dir_info.end() ) {
 					add_dir_info_item(dirname, FTYPE_DIR);
-					_dir_info[dirname].push(Dirent(basename, compatible_path, type));
+					_dir_info[dirname].push(Dirent{basename, compatible_path, type});
 				} else {
-					it->value.push(Dirent(basename, compatible_path, type));
+					it->value.push(Dirent{basename, compatible_path, type});
 				}
 			}
 		}
@@ -240,13 +240,13 @@ namespace flare {
 	};
 
 	ZipReader::ZipReader(cString& path, cString& passwd)
-		: _path(Path::format(path)), _passwd(passwd.copy())
+		: _path(fs_format(path)), _passwd(passwd.copy())
 		, _unzp(nullptr)
 		, _is_open(false)
 	{
-		if ( Path::is_local_zip(_path) ) { // zip:///
+		if ( fs_is_local_zip(_path) ) { // zip:///
 			_compatible_path = _path + "?";
-		} else if ( Path::is_local_file(_path) ) { // file:///
+		} else if ( fs_is_local_file(_path) ) { // file:///
 			_compatible_path = String::format("zip:///%s?", _path.substr(8).c_str());
 		}
 	}
@@ -265,7 +265,7 @@ namespace flare {
 			return false;
 		}
 		
-		unzFile unzp = unzOpen(Path::fallback_c(_path));
+		unzFile unzp = unzOpen(fs_fallback_c(_path));
 		if ( !unzp ) {
 			F_ERR("Cannot open file ZipReader, %s", _path.c_str());
 			return false;
@@ -419,7 +419,7 @@ namespace flare {
 	// ZipWriter
 
 	ZipWriter::ZipWriter(cString& path, cString& passwd)
-		: _path(Path::format(path))
+		: _path(fs_format(path))
 		, _passwd(passwd.copy())
 		, _open_mode(OPEN_MODE_CREATE)
 		, _level(-1)
@@ -440,7 +440,7 @@ namespace flare {
 		}
 		
 		_open_mode = mode;
-		_zipp = zipOpen(Path::fallback(_path).c_str(), _open_mode);
+		_zipp = zipOpen(fs_fallback(_path).c_str(), _open_mode);
 		
 		if ( !_zipp ) {
 			F_ERR("Cannot open file ZipWriter, %s", _path.c_str());

@@ -35,72 +35,72 @@ using namespace flare;
 
 void test_http_cookie(int argc, char **argv) {
 	
-	F_LOG(HttpHelper::get_cookie("flare.cool", "test"));
+	F_LOG(http_get_cookie("flare.cool", "test"));
 	
-	HttpHelper::set_cookie("flare.cool", "test", "flare.cool");
+	http_set_cookie("flare.cool", "test", "flare.cool");
 	
-	F_LOG("A, %s", *HttpHelper::get_cookie("flare.cool", "test"));
+	F_LOG("A, %s", *http_get_cookie("flare.cool", "test"));
 	
-	F_LOG("B, %s", *HttpHelper::get_cookie("www.flare.cool", "test"));
+	F_LOG("B, %s", *http_get_cookie("www.flare.cool", "test"));
 
-	HttpHelper::set_cookie("www.flare.cool", "test", "$");
+	http_set_cookie("www.flare.cool", "test", "$");
 
-	F_LOG("B2, %s", *HttpHelper::get_cookie("www.flare.cool", "test"));
+	F_LOG("B2, %s", *http_get_cookie("www.flare.cool", "test"));
 
-	HttpHelper::set_cookie("flare.cool", "test2", "*");
+	http_set_cookie("flare.cool", "test2", "*");
 	
-	F_LOG("D, %s", *HttpHelper::get_cookie("flare.cool", "test2"));
+	F_LOG("D, %s", *http_get_cookie("flare.cool", "test2"));
 	
-	F_LOG("E, %s", *HttpHelper::get_cookie("www.flare.cool", "test2"));
+	F_LOG("E, %s", *http_get_cookie("www.flare.cool", "test2"));
 	
-	HttpHelper::set_cookie("flare.cool", "test2", "-----------------------------", -1, "/AA");
+	http_set_cookie("flare.cool", "test2", "-----------------------------", -1, "/AA");
 	
-	F_LOG("F, %s", *HttpHelper::get_cookie("flare.cool", "test2"));
+	F_LOG("F, %s", *http_get_cookie("flare.cool", "test2"));
 	
-	F_LOG("H, %s", *HttpHelper::get_cookie("flare.cool", "test2", "/AA"));
+	F_LOG("H, %s", *http_get_cookie("flare.cool", "test2", "/AA"));
 	
-	F_LOG(HttpHelper::get_all_cookie_string("www.flare.cool", "/AA"));
+	F_LOG(http_get_all_cookie_string("www.flare.cool", "/AA"));
 	
-	HttpHelper::set_cookie_with_expression("flare.cool", "test3=HHHH--l; path=/AA; max-age=60");
+	http_set_cookie_with_expression("flare.cool", "test3=HHHH--l; path=/AA; max-age=60");
 	
-	F_LOG(HttpHelper::get_cookie("flare.cool", "test3"));
+	F_LOG(http_get_cookie("flare.cool", "test3"));
 	
-	F_LOG(HttpHelper::get_cookie("flare.cool", "test3", "/AA"));
+	F_LOG(http_get_cookie("flare.cool", "test3", "/AA"));
 	
-	F_LOG("http_cookie_get_all_string 1, %s", *HttpHelper::get_all_cookie_string("www.flare.cool", "/AA"));
-	F_LOG("http_cookie_get_all_string 2, %s", *HttpHelper::get_all_cookie_string("flare.cool", "/AA"));
+	F_LOG("http_cookie_get_all_string 1, %s", *http_get_all_cookie_string("www.flare.cool", "/AA"));
+	F_LOG("http_cookie_get_all_string 2, %s", *http_get_all_cookie_string("flare.cool", "/AA"));
 	
 	// test delete
 	
-	HttpHelper::delete_cookie("flare.cool", "test");
+	http_delete_cookie("flare.cool", "test");
 	
-	F_LOG(HttpHelper::get_cookie("flare.cool", "test"));
+	F_LOG(http_get_cookie("flare.cool", "test"));
 	
-	HttpHelper::set_cookie("flare.cool", "test", "flare.cool2");
-	HttpHelper::set_cookie("flare.cool", "test9", "flare.cool3");
-	HttpHelper::set_cookie("flare.cool", "test8", "flare.cool4");
-	HttpHelper::set_cookie("www.flare.cool", "test7", "flare.cool5");
+	http_set_cookie("flare.cool", "test", "flare.cool2");
+	http_set_cookie("flare.cool", "test9", "flare.cool3");
+	http_set_cookie("flare.cool", "test8", "flare.cool4");
+	http_set_cookie("www.flare.cool", "test7", "flare.cool5");
 	
-	F_LOG("E, %s", *HttpHelper::get_cookie("flare.cool", "test"));
+	F_LOG("E, %s", *http_get_cookie("flare.cool", "test"));
 
-	HttpHelper::set_cookie("flare.orh", "test--------A", "flare.cool%", -1, "KKK/MMM");
+	http_set_cookie("flare.orh", "test--------A", "flare.cool%", -1, "KKK/MMM");
 
-	F_LOG("http_cookie_get_all_string 3, %s", *HttpHelper::get_all_cookie_string("flare.cool"));
+	F_LOG("http_cookie_get_all_string 3, %s", *http_get_all_cookie_string("flare.cool"));
 	
-	HttpHelper::delete_all_cookie("flare.cool");
+	http_delete_all_cookie("flare.cool");
 	
-	F_LOG(HttpHelper::get_cookie("flare.cool", "test"));
+	F_LOG(http_get_cookie("flare.cool", "test"));
 	
-	HttpHelper::set_cookie("flare.cool", "test", "flare.cool");
+	http_set_cookie("flare.cool", "test", "flare.cool");
 	
-	F_LOG("F, %s", *HttpHelper::get_cookie("flare.cool", "test--------A", "KKK/MMM", 1));
+	F_LOG("F, %s", *http_get_cookie("flare.cool", "test--------A", "KKK/MMM", 1));
 	
-	HttpHelper::clear_cookie();
+	http_clear_cookie();
 	
-	F_LOG(HttpHelper::get_cookie("flare.cool", "test"));
+	F_LOG(http_get_cookie("flare.cool", "test"));
 	
-	HttpHelper::set_cookie("flare.cool", "test", "END test cookie", time_micro() + 6e7); // 60s expires
+	http_set_cookie("flare.cool", "test", "END test cookie", time_micro() + 6e7); // 60s expires
 	
-	F_LOG(HttpHelper::get_cookie("flare.cool", "test"));
+	F_LOG(http_get_cookie("flare.cool", "test"));
 	
 }

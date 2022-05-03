@@ -47,7 +47,7 @@ void onload_handle (Event<>& evt, void* user) {
 	
 	r->set_background_color(Color(255, 255, 255));
 	
-	Sprite* sp0 = Sprite::create(Path::resources("res/bb.pvr"), {512, 512});
+	Sprite* sp0 = Sprite::create(fs_resources("res/bb.pvr"), {512, 512});
 	sp0->set_translate(Vec2(100, 500));
 	sp0->set_rotate_z(10);
 	sp0->set_scale(Vec2(0.5, 0.5));
@@ -69,7 +69,7 @@ void onload_handle (Event<>& evt, void* user) {
 	div->set_border_bottom_color(Color(255, 0, 255));
 	r->append(div);
 	
-	Sprite* sp1 = Sprite::create(Path::resources("res/bb.pvr"), {512, 512});
+	Sprite* sp1 = Sprite::create(fs_resources("res/bb.pvr"), {512, 512});
 	sp1->set_scale(Vec2(0.5, 0.5));
 	div->append(sp1);
 	
@@ -82,7 +82,7 @@ void onload_handle (Event<>& evt, void* user) {
 	div2->set_height(100);
 	r->append(div2);
 	
-	Sprite* sp = Sprite::create(Path::resources("res/cc.pvr"), {1024, 1024});
+	Sprite* sp = Sprite::create(fs_resources("res/cc.pvr"), {1024, 1024});
 	//  sp->translate(-450, -450);
 	sp->set_scale(0.3);
 	//  sp->origin(500, 500);
@@ -91,7 +91,7 @@ void onload_handle (Event<>& evt, void* user) {
 	
 	// Image
 	
-	Image* img = Image::create(Path::resources("res/cc.pvr"));
+	Image* img = Image::create(fs_resources("res/cc.pvr"));
 	img->set_width(320);
 	//  img->height(250);
 	img->set_opacity(0.9);

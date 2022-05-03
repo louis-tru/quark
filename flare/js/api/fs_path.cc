@@ -49,7 +49,7 @@ class NativePath {
 	 */
 	static void executable(FunctionCall args) {
 		JS_WORKER(args);
-		JS_RETURN( Path::executable() );
+		JS_RETURN( fs_executable() );
 	}
 	
 	/**
@@ -60,9 +60,9 @@ class NativePath {
 	static void documents(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( Path::documents() );
+			JS_RETURN( fs_documents() );
 		}
-		JS_RETURN( Path::documents( args[0]->ToStringValue(worker)) );
+		JS_RETURN( fs_documents( args[0]->ToStringValue(worker)) );
 	}
 	
 	/**
@@ -73,9 +73,9 @@ class NativePath {
 	static void temp(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( Path::temp() );
+			JS_RETURN( fs_temp() );
 		}
-		JS_RETURN( Path::temp( args[0]->ToStringValue(worker)) );
+		JS_RETURN( fs_temp( args[0]->ToStringValue(worker)) );
 	}
 	
 	/**
@@ -86,9 +86,9 @@ class NativePath {
 	static void resources(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( Path::resources() );
+			JS_RETURN( fs_resources() );
 		}
-		JS_RETURN( Path::resources( args[0]->ToStringValue(worker)) );
+		JS_RETURN( fs_resources( args[0]->ToStringValue(worker)) );
 	}
 
 	/**
@@ -97,7 +97,7 @@ class NativePath {
 	 */
 	static void cwd(FunctionCall args) {
 		JS_WORKER(args);
-		JS_RETURN( Path::cwd() );
+		JS_RETURN( fs_cwd() );
 	}
 	
 	/**
@@ -110,28 +110,28 @@ class NativePath {
 		if (args.Length() == 0 || !args[0]->IsString(worker)) {
 			JS_RETURN( false );
 		}
-		JS_RETURN( Path::chdir(args[0]->ToStringValue(worker)) );
+		JS_RETURN( fs_chdir(args[0]->ToStringValue(worker)) );
 	}
 
 	static void extname(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() == 0 || !args[0]->IsString(worker))
 			JS_THROW_ERR( "Bad argument." );
-		JS_RETURN( Path::extname( args[0]->ToStringValue(worker)) );
+		JS_RETURN( fs_extname( args[0]->ToStringValue(worker)) );
 	}
 
 	static void dirname(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() == 0 || !args[0]->IsString(worker))
 			JS_THROW_ERR( "Bad argument." );
-		JS_RETURN( Path::dirname( args[0]->ToStringValue(worker)) );
+		JS_RETURN( fs_dirname( args[0]->ToStringValue(worker)) );
 	}
 
 	static void basename(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() == 0 || !args[0]->IsString(worker))
 			JS_THROW_ERR( "Bad argument." );
-		JS_RETURN( Path::basename( args[0]->ToStringValue(worker)) );
+		JS_RETURN( fs_basename( args[0]->ToStringValue(worker)) );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {

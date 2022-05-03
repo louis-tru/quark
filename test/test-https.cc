@@ -37,7 +37,7 @@ using namespace flare;
 
 void test_https(int argc, char **argv) {
 	
-	Buffer buffer = HttpHelper::get_sync("https://fanyi.baidu.com/");
+	Buffer buffer = http_get_sync("https://fanyi.baidu.com/");
 	
 	F_LOG(std::move(buffer));
 	

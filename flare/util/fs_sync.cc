@@ -61,7 +61,7 @@ namespace flare {
 				}
 			}
 			if ( dirent.type == FTYPE_DIR ) { // 目录
-				auto ls = FileHelper::readdir_sync(dirent.pathname);
+				auto ls = fs_readdir_sync(dirent.pathname);
 				if ( !each_sync(ls, cb, internal) ) { // 停止遍历
 					return false;
 				}
@@ -82,7 +82,7 @@ namespace flare {
 	{
 		FileStat stat;
 		try {
-			stat = FileHelper::stat_sync(path);
+			stat = fs_stat_sync(path);
 		} catch(cError& err) {
 			if (skip_empty_path) {
 				return false;
@@ -94,27 +94,27 @@ namespace flare {
 			return false;
 		}
 		Array<Dirent> ls = {
-			Dirent(Path::basename(path), Path::format("%s", *path), stat.type())
+			Dirent{fs_basename(path), fs_format("%s", *path), stat.type()}
 		};
 
 		return flare::each_sync(ls, cb, internal);
 	}
 
-	bool FileHelper::each_sync(cString& path, Cb cb, bool internal) throw(Error) {
+	bool fs_each_sync(cString& path, Cb cb, bool internal) throw(Error) {
 		return flare::each_sync_1(path, cb, internal, false);
 	}
 
-	void FileHelper::chmod_sync(cString& path, uint32_t mode) throw(Error) {
+	void fs_chmod_sync(cString& path, uint32_t mode) throw(Error) {
 		uv_fs_t req;
-		int r = uv_fs_chmod(uv_default_loop(), &req, Path::fallback_c(path), mode, nullptr);
+		int r = uv_fs_chmod(uv_default_loop(), &req, fs_fallback_c(path), mode, nullptr);
 		if (r != 0) {
 			uv_error(r, *path);
 		}
 	}
 
-	void FileHelper::chown_sync(cString& path, uint32_t owner, uint32_t group) throw(Error) {
+	void fs_chown_sync(cString& path, uint32_t owner, uint32_t group) throw(Error) {
 		uv_fs_t req;
-		int r = uv_fs_chown(uv_default_loop(), &req, Path::fallback_c(path), owner, group, nullptr);
+		int r = uv_fs_chown(uv_default_loop(), &req, fs_fallback_c(path), owner, group, nullptr);
 		if (r != 0) {
 			uv_error(r, *path);
 		}
@@ -122,60 +122,60 @@ namespace flare {
 
 	static bool default_stop_signal = false;
 
-	void FileHelper::mkdir_sync(cString& path, uint32_t mode) throw(Error) {
+	void fs_mkdir_sync(cString& path, uint32_t mode) throw(Error) {
 		uv_fs_t req;
-		int r = uv_fs_mkdir(uv_default_loop(), &req, Path::fallback_c(path), mode, nullptr);
+		int r = uv_fs_mkdir(uv_default_loop(), &req, fs_fallback_c(path), mode, nullptr);
 		if (r != 0) {
 			uv_error(r, *path);
 		}
 	}
 
-	void FileHelper::rename_sync(cString& name, cString& new_name) throw(Error) {
+	void fs_rename_sync(cString& name, cString& new_name) throw(Error) {
 		uv_fs_t req;
 		int r = uv_fs_rename(uv_default_loop(), &req,
-												Path::fallback_c(name), Path::fallback_c(new_name), nullptr);
+												fs_fallback_c(name), fs_fallback_c(new_name), nullptr);
 		if (r != 0) {
 			uv_error(r, *String::format("rename %s to %s", *name, *new_name));
 		}
 	}
 
-	void FileHelper::link_sync(cString& path, cString& newPath) throw(Error) {
+	void fs_link_sync(cString& path, cString& newPath) throw(Error) {
 		uv_fs_t req;
 		int r = uv_fs_link(
 			uv_default_loop(), &req,
-			Path::fallback_c(path),
-			Path::fallback_c(newPath), nullptr
+			fs_fallback_c(path),
+			fs_fallback_c(newPath), nullptr
 		);
 		if (r != 0) {
 			uv_error(r, *String::format("link %s to %s", *path, *newPath));
 		}
 	}
 
-	void FileHelper::unlink_sync(cString& path) throw(Error) {
+	void fs_unlink_sync(cString& path) throw(Error) {
 		uv_fs_t req;
-		int r = uv_fs_unlink(uv_default_loop(), &req, Path::fallback_c(path), nullptr);
+		int r = uv_fs_unlink(uv_default_loop(), &req, fs_fallback_c(path), nullptr);
 		if ( r != 0 ) {
 			uv_error(r, *path);
 		}
 	}
 
-	void FileHelper::rmdir_sync(cString& path) throw(Error) {
+	void fs_rmdir_sync(cString& path) throw(Error) {
 		uv_fs_t req;
-		int r = uv_fs_rmdir(uv_default_loop(), &req, Path::fallback_c(path), nullptr);
+		int r = uv_fs_rmdir(uv_default_loop(), &req, fs_fallback_c(path), nullptr);
 		if ( r != 0 ) {
 			uv_error(r, *path);
 		}
 	}
 
-	Array<Dirent> FileHelper::readdir_sync(cString& path) throw(Error) {
+	Array<Dirent> fs_readdir_sync(cString& path) throw(Error) {
 		Array<Dirent> ls;
 		uv_fs_t req;
-		String p = Path::format("%s", *path) + '/';
-		int r = uv_fs_scandir(uv_default_loop(), &req, Path::fallback_c(path), 1, nullptr);
+		String p = fs_format("%s", *path) + '/';
+		int r = uv_fs_scandir(uv_default_loop(), &req, fs_fallback_c(path), 1, nullptr);
 		if ( r > 0 ) {
 			uv_dirent_t ent;
 			while ( uv_fs_scandir_next(&req, &ent) == 0 ) {
-				ls.push( Dirent(ent.name, p + ent.name, FileType(ent.type)) );
+				ls.push( Dirent{ent.name, p + ent.name, FileType(ent.type)} );
 			}
 		} else if ( r < 0) {
 			uv_error(r, *path);
@@ -184,10 +184,10 @@ namespace flare {
 		return ls;
 	}
 
-	FileStat FileHelper::stat_sync(cString& path) throw(Error) {
+	FileStat fs_stat_sync(cString& path) throw(Error) {
 		FileStat stat;
 		uv_fs_t req;
-		int r = uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr);
+		int r = uv_fs_stat(uv_default_loop(), &req, fs_fallback_c(path), nullptr);
 		if (r == 0) {
 			inl__set_file_stat(&stat, &req.statbuf);
 		} else {
@@ -196,46 +196,46 @@ namespace flare {
 		return stat;
 	}
 
-	bool FileHelper::exists_sync(cString& path) {
+	bool fs_exists_sync(cString& path) {
 		uv_fs_t req;
-		return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), F_OK, nullptr) == 0;
+		return uv_fs_access(uv_default_loop(), &req, fs_fallback_c(path), F_OK, nullptr) == 0;
 	}
 
-	bool FileHelper::is_file_sync(cString& path) {
+	bool fs_is_file_sync(cString& path) {
 		uv_fs_t req;
-		if (uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0) {
+		if (uv_fs_stat(uv_default_loop(), &req, fs_fallback_c(path), nullptr) == 0) {
 			return !S_ISDIR(req.statbuf.st_mode);
 		}
 		return false;
 	}
 
-	bool FileHelper::is_directory_sync(cString& path) {
+	bool fs_is_directory_sync(cString& path) {
 		uv_fs_t req;
-		if (uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0) {
+		if (uv_fs_stat(uv_default_loop(), &req, fs_fallback_c(path), nullptr) == 0) {
 			return S_ISDIR(req.statbuf.st_mode);
 		}
 		return false;
 	}
 
-	bool FileHelper::readable_sync(cString& path) {
+	bool fs_readable_sync(cString& path) {
 		uv_fs_t req;
-		return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), W_OK, nullptr) == 0;
+		return uv_fs_access(uv_default_loop(), &req, fs_fallback_c(path), W_OK, nullptr) == 0;
 	}
 
-	bool FileHelper::writable_sync(cString& path) {
+	bool fs_writable_sync(cString& path) {
 		uv_fs_t req;
-		return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), W_OK, nullptr) == 0;
+		return uv_fs_access(uv_default_loop(), &req, fs_fallback_c(path), W_OK, nullptr) == 0;
 	}
 
-	bool FileHelper::executable_sync(cString& path) {
+	bool fs_executable_sync(cString& path) {
 		uv_fs_t req;
-		int r = uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), X_OK, nullptr);
+		int r = uv_fs_access(uv_default_loop(), &req, fs_fallback_c(path), X_OK, nullptr);
 		return (r == 0);
 	}
 
-	void FileHelper::mkdir_p_sync(cString& path, uint32_t mode) throw(Error) {
+	void fs_mkdir_p_sync(cString& path, uint32_t mode) throw(Error) {
 		
-		cChar* path2 = Path::fallback_c(path);
+		cChar* path2 = fs_fallback_c(path);
 		
 		uv_fs_t req;
 		
@@ -299,7 +299,7 @@ namespace flare {
 		}
 	}
 
-	bool FileHelper::chmod_r_sync(cString& path, uint32_t mode, bool* stop_signal) throw(Error) {
+	bool fs_chmod_r_sync(cString& path, uint32_t mode, bool* stop_signal) throw(Error) {
 		
 		if ( stop_signal == nullptr ) {
 			stop_signal = &default_stop_signal;
@@ -313,7 +313,7 @@ namespace flare {
 			} else {
 				Dirent* dirent = static_cast<Dirent*>(d.data);
 				int r = uv_fs_chmod(uv_default_loop(), &req,
-														Path::fallback_c(dirent->pathname), mode, nullptr);
+														fs_fallback_c(dirent->pathname), mode, nullptr);
 				if (r != 0) {
 					uv_error(r, *dirent->pathname);
 				}
@@ -322,7 +322,7 @@ namespace flare {
 		}));
 	}
 
-	bool FileHelper::chown_r_sync(cString& path, uint32_t owner, uint32_t group, bool* stop_signal) throw(Error) 
+	bool fs_chown_r_sync(cString& path, uint32_t owner, uint32_t group, bool* stop_signal) throw(Error) 
 	{
 		if (stop_signal == nullptr) {
 			stop_signal = &default_stop_signal;
@@ -335,7 +335,7 @@ namespace flare {
 			} else {
 				Dirent* dirent = static_cast<Dirent*>(d.data);
 				int r = uv_fs_chown(uv_default_loop(), &req,
-														Path::fallback_c(dirent->pathname), owner, group, nullptr);
+														fs_fallback_c(dirent->pathname), owner, group, nullptr);
 				if (r != 0) {
 					uv_error(r, *dirent->pathname);
 				}
@@ -344,7 +344,7 @@ namespace flare {
 		}));
 	}
 
-	bool FileHelper::remove_r_sync(cString& path, bool* stop_signal) throw(Error) {
+	bool fs_remove_r_sync(cString& path, bool* stop_signal) throw(Error) {
 		
 		if ( stop_signal == nullptr ) {
 			stop_signal = &default_stop_signal;
@@ -356,7 +356,7 @@ namespace flare {
 				d.rc = 0;
 			} else {
 				Dirent* dirent = static_cast<Dirent*>(d.data);
-				cChar* p = Path::fallback_c(dirent->pathname);
+				cChar* p = fs_fallback_c(dirent->pathname);
 				int r;
 				if ( dirent->type == FTYPE_DIR ) {
 					r = uv_fs_rmdir(uv_default_loop(), &req, p, nullptr);
@@ -407,13 +407,13 @@ namespace flare {
 		return true;
 	}
 
-	bool FileHelper::copy_sync(cString& source, cString& target, bool* stop_signal) throw(Error) {
+	bool fs_copy_sync(cString& source, cString& target, bool* stop_signal) throw(Error) {
 		return cp_sync2(source, target, stop_signal ? stop_signal : &default_stop_signal);
 	}
 
-	bool FileHelper::copy_r_sync(cString& source, cString& target, bool* stop_signal) throw(Error) {
+	bool fs_copy_r_sync(cString& source, cString& target, bool* stop_signal) throw(Error) {
 		
-		if ( !is_directory_sync(Path::dirname(target)) ) { // 没有父目录,无法复制
+		if ( !is_directory_sync(fs_dirname(target)) ) { // 没有父目录,无法复制
 			return false;
 		}
 		
@@ -421,8 +421,8 @@ namespace flare {
 			stop_signal = &default_stop_signal;
 		}
 		
-		uint32_t s_len = Path::format("%s", *source).length();
-		String path = Path::format("%s", *target);
+		uint32_t s_len = fs_format("%s", *source).length();
+		String path = fs_format("%s", *target);
 		
 		return each_sync(source, Cb([&](CbData& d) {
 			
@@ -449,7 +449,7 @@ namespace flare {
 
 	// read file
 
-	Buffer FileHelper::read_file_sync(cString& path, int64_t size) throw(Error) {
+	Buffer fs_read_file_sync(cString& path, int64_t size) throw(Error) {
 
 		int64_t offset = -1;
 
@@ -495,11 +495,11 @@ namespace flare {
 
 	// write file
 
-	int FileHelper::write_file_sync(cString& path, cString& str) throw(Error) {
+	int fs_write_file_sync(cString& path, cString& str) throw(Error) {
 		return write_file_sync(path, *str, str.length() );
 	}
 	
-	int FileHelper::write_file_sync(cString& path, const void* buffer, int64_t size) throw(Error) {
+	int fs_write_file_sync(cString& path, const void* buffer, int64_t size) throw(Error) {
 		uv_fs_t req;
 		int fp = open_sync(path, O_WRONLY | O_CREAT | O_TRUNC);
 		uv_buf_t buf;
@@ -511,10 +511,10 @@ namespace flare {
 	}
 
 	// open/close file fd
-	int FileHelper::open_sync(cString& path, int flag) throw(Error) {
+	int fs_open_sync(cString& path, int flag) throw(Error) {
 		uv_fs_t req;
 		int fp = uv_fs_open(uv_default_loop(), &req,
-												Path::fallback_c(path),
+												fs_fallback_c(path),
 												inl__file_flag_mask(flag), default_mode, nullptr);
 		if ( fp < 0 ) {
 			uv_error(fp, *path);
@@ -522,7 +522,7 @@ namespace flare {
 		return fp;
 	}
 
-	void FileHelper::close_sync(int fd) throw(Error) {
+	void fs_close_sync(int fd) throw(Error) {
 		uv_fs_t req;
 		int r = uv_fs_close(uv_default_loop(), &req, fd, nullptr);
 		if (r != 0) {
@@ -531,7 +531,7 @@ namespace flare {
 	}
 
 	// read with fd
-	int FileHelper::read_sync(int fd, void* buffer, int64_t size, int64_t offset) throw(Error) {
+	int fs_read_sync(int fd, void* buffer, int64_t size, int64_t offset) throw(Error) {
 		uv_fs_t req;
 		uv_buf_t buf;
 		buf.base = (Char*)buffer;
@@ -543,7 +543,7 @@ namespace flare {
 		return r;
 	}
 
-	int FileHelper::write_sync(int fd, const void* buffer, int64_t size, int64_t offset) throw(Error) {
+	int fs_write_sync(int fd, const void* buffer, int64_t size, int64_t offset) throw(Error) {
 		uv_fs_t req;
 		uv_buf_t buf;
 		buf.base = (Char*)buffer;

@@ -38,33 +38,33 @@
 
 namespace flare {
 
-	String Path::executable() {
+	String fs_executable() {
 		static cString path( format([[[NSBundle mainBundle] executablePath] UTF8String]) );
 		return path;
 	}
 
-	String Path::documents(cString& child) {
+	String fs_documents(cString& child) {
 		static String path(
-			Path::format([NSSearchPathForDirectoriesInDomains(
+			fs_format([NSSearchPathForDirectoriesInDomains(
 				NSDocumentDirectory,
 				NSUserDomainMask,
 				YES
 			) objectAtIndex:0].UTF8String)
 		);
-		return child.is_empty() ? path: Path::format("%s/%s", path.c_str(), child.c_str());
+		return child.is_empty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());
 	}
 
-	String Path::temp(cString& child) {
-		static cString path( Path::format("%s", [NSTemporaryDirectory() UTF8String]) );
-		return child.is_empty() ? path: Path::format("%s/%s", path.c_str(), child.c_str());;
+	String fs_temp(cString& child) {
+		static cString path( fs_format("%s", [NSTemporaryDirectory() UTF8String]) );
+		return child.is_empty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());;
 	}
 
 	/**
 	 * Get the resoures dir
 	 */
-	String Path::resources(cString& child) {
-		static cString path( Path::format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
-		return child.is_empty()? path: Path::format("%s/%s", path.c_str(), child.c_str());
+	String fs_resources(cString& child) {
+		static cString path( fs_format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
+		return child.is_empty()? path: fs_format("%s/%s", path.c_str(), child.c_str());
 	}
 
 }

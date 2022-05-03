@@ -513,10 +513,10 @@ namespace flare {
 				ssl_x509_store = X509_STORE_new();
 			}
 			
-			String ssl_cacert_file_path = Path::temp(".cacert.pem");
-			FileHelper::write_file_sync(ssl_cacert_file_path, ca_content);
+			String ssl_cacert_file_path = fs_temp(".cacert.pem");
+			fs_write_file_sync(ssl_cacert_file_path, ca_content);
 			
-			cChar* ca = Path::fallback_c(ssl_cacert_file_path);
+			cChar* ca = fs_fallback_c(ssl_cacert_file_path);
 
 			int r = X509_STORE_load_locations(ssl_x509_store, ca, nullptr);
 			if (!r) {
@@ -531,7 +531,7 @@ namespace flare {
 		
 		static void set_ssl_cacert_file(cString& path) {
 			try {
-				set_ssl_cacert(FileHelper::read_file_sync(path));
+				set_ssl_cacert(fs_read_file_sync(path));
 			} catch(cError& err) {
 				F_ERR("SSL", "set_ssl_cacert() fail, %s", err.message().c_str());
 			}
@@ -551,7 +551,7 @@ namespace flare {
 						ssl_x509_store = new_root_cert_store();
 						SSL_CTX_set_cert_store(ssl_v23_client_ctx, ssl_x509_store);
 					} else {
-						set_ssl_cacert_file(Path::resources("cacert.pem"));
+						set_ssl_cacert_file(fs_resources("cacert.pem"));
 					}
 				}
 			}

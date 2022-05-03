@@ -42,9 +42,15 @@ namespace flare {
 	static String http_user_agent = "Mozilla/5.0 flare " FLARE_VERSION " (KHTML, like Gecko)";
 	// "Mozilla/5.0 (%s/%s) flare " FLARE_VERSION " (KHTML, like Gecko)";
 
-	typedef HttpHelper::RequestOptions RequestOptions;
-	typedef HttpHelper::ResponseData ResponseData;
-	typedef HttpHelper::Cb HCb;
+	HttpError::HttpError(int rc, cString& msg, uint32_t status, cString& url)
+		: Error(rc, msg), _status(status), _url(url)
+	{}
+	HttpError::HttpError(const Error& err): Error(err), _status(0), _url()
+	{}
+
+	typedef http_RequestOptions RequestOptions;
+	typedef http_ResponseData ResponseData;
+	typedef http_Cb HCb;
 	typedef Callback<StreamResponse> SCb;
 
 	static uint32_t http_request(RequestOptions& options, HCb cb, SCb scb, bool stream) throw(HttpError) {
@@ -191,11 +197,11 @@ namespace flare {
 	/**
 	* @func request
 	*/
-	uint32_t HttpHelper::request(RequestOptions& options, Cb cb) throw(HttpError) {
+	uint32_t http_request(RequestOptions& options, HttpCb cb) throw(HttpError) {
 		return http_request(options, cb, 0, false);
 	}
 
-	uint32_t HttpHelper::request_stream(RequestOptions& options, Callback<StreamResponse> cb) throw(HttpError) {
+	uint32_t http_request_stream(RequestOptions& options, Callback<StreamResponse> cb) throw(HttpError) {
 		return http_request(options, 0, cb, true);
 	}
 
@@ -217,7 +223,7 @@ namespace flare {
 	/**
 	* @func download
 	*/
-	uint32_t HttpHelper::download(cString& url, cString& save, Cb cb) throw(HttpError) {
+	uint32_t http_download(cString& url, cString& save, HttpCb cb) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.save = save;
 		return http_request(options, cb, 0, false);
@@ -226,7 +232,7 @@ namespace flare {
 	/**
 	* @func upload
 	*/
-	uint32_t HttpHelper::upload(cString& url, cString& file, Cb cb) throw(HttpError) {
+	uint32_t http_upload(cString& url, cString& file, HttpCb cb) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.upload = file;
 		options.method = HTTP_METHOD_POST;
@@ -237,7 +243,7 @@ namespace flare {
 	/**
 	* @func get
 	*/
-	uint32_t HttpHelper::get(cString& url, Cb cb, bool no_cache) throw(HttpError) {
+	uint32_t http_get(cString& url, HttpCb cb, bool no_cache) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.disable_cache = no_cache;
 		return http_request(options, cb, 0, false);
@@ -246,7 +252,7 @@ namespace flare {
 	/**
 	* @func get_stream
 	*/
-	uint32_t HttpHelper::get_stream(cString& url, SCb cb, bool no_cache) throw(HttpError) {
+	uint32_t http_get_stream(cString& url, SCb cb, bool no_cache) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.disable_cache = no_cache;
 		return http_request(options, 0, cb, true);
@@ -255,26 +261,26 @@ namespace flare {
 	/**
 	* @func post
 	*/
-	uint32_t HttpHelper::post(cString& url, Buffer data, Cb cb) throw(HttpError) {
+	uint32_t http_post(cString& url, Buffer data, HttpCb cb) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.method = HTTP_METHOD_POST;
 		options.post_data = data;
 		return http_request(options, cb, 0, false);
 	}
 
-	Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
+	Buffer http_request_sync(RequestOptions& options) throw(HttpError) {
 		if (has_backend_thread()) {
 			throw HttpError(ERR_CANNOT_RUN_SYNC_IO,
 											String::format("cannot send sync http request, %s"
 																		, options.url.c_str()), 0, options.url);
 		}
 		F_DEBUG("request_sync %s", options.url.c_str());
-		typedef Callback<RunLoop::PostSyncData> Cb_;
+		typedef Callback<RunLoop::PostSyncData> Cb2;
 		bool ok = false;
 		HttpError err = Error();
 		ResponseData data;
 
-		backend_loop()->post_sync(Cb_([&](Cb_::Data& d) {
+		backend_loop()->post_sync(Cb2([&](Cb2::Data& d) {
 			auto dd = d.data;
 			try {
 				request(options, HCb([&,dd](HCb::Data& ev) {
@@ -299,13 +305,13 @@ namespace flare {
 		}
 	}
 
-	void   HttpHelper::download_sync(cString& url, cString& save) throw(HttpError) {
+	void   http_download_sync(cString& url, cString& save) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.save = save;
 		request_sync(options);
 	}
 
-	Buffer HttpHelper::upload_sync(cString& url, cString& file) throw(HttpError) {
+	Buffer http_upload_sync(cString& url, cString& file) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.upload = file;
 		options.method = HTTP_METHOD_POST;
@@ -313,13 +319,13 @@ namespace flare {
 		return request_sync(options);
 	}
 
-	Buffer HttpHelper::get_sync(cString& url, bool no_cache) throw(HttpError) {
+	Buffer http_get_sync(cString& url, bool no_cache) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.disable_cache = no_cache;
 		return request_sync(options);
 	}
 
-	Buffer HttpHelper::post_sync(cString& url, Buffer data) throw(HttpError) {
+	Buffer http_post_sync(cString& url, Buffer data) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.method = HTTP_METHOD_POST;
 		options.post_data = data;
@@ -330,30 +336,30 @@ namespace flare {
 	/**
 	* @func abort
 	*/
-	void HttpHelper::abort(uint32_t id) {
+	void http_abort(uint32_t id) {
 		AsyncIOTask::safe_abort(id);
 	}
 
 	/**
 	* @func user_agent
 	*/
-	String HttpHelper::user_agent() {
+	String http_user_agent() {
 		return http_user_agent;
 	}
 
 	/**
 	* @func set_user_agent
 	*/
-	void HttpHelper::set_user_agent(cString& user_agent) {
+	void http_set_user_agent(cString& user_agent) {
 		http_user_agent = user_agent;
 	}
 
 	/**
 	* @func cache_path
 	*/
-	String HttpHelper::cache_path() {
+	String http_cache_path() {
 		if (http_cache_path.is_empty()) {
-			set_cache_path(Path::temp("http_cache"));
+			set_cache_path(fs_temp("http_cache"));
 		}
 		return http_cache_path;
 	}
@@ -361,9 +367,9 @@ namespace flare {
 	/**
 	* @func set_cache_path 设置缓存文件路径
 	*/
-	void HttpHelper::set_cache_path(cString& path) {
+	void http_set_cache_path(cString& path) {
 		try {
-			FileHelper::mkdir_p_sync(path);
+			fs_mkdir_p_sync(path);
 			http_cache_path = path;
 		} catch(cError& err) {
 			F_ERR(err);
@@ -373,10 +379,10 @@ namespace flare {
 	/**
 	* @func clean_cache 清理web缓存
 	*/
-	void HttpHelper::clear_cache() {
+	void http_clear_cache() {
 		// delete cache files
 		if ( ! http_cache_path.is_empty() ) {
-			FileHelper::remove_r_sync(http_cache_path);
+			fs_remove_r_sync(http_cache_path);
 			set_cache_path(http_cache_path);
 		}
 	}

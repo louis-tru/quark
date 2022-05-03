@@ -113,7 +113,7 @@ namespace flare {
 
 		static void _TEST_init_AMediaExtractor(cString& path, uint32_t select_track) {
 			if (_TEST_ex == NULL) {
-				int fd = ::open(Path::fallback_c(path), 0);
+				int fd = ::open(fs_fallback_c(path), 0);
 				if ( fd <= 0 ) {
 					return;
 				}

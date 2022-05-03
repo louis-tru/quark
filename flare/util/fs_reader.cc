@@ -42,7 +42,7 @@ namespace flare {
 
 	static const String SEPARATOR("@/", 2);
 
-	typedef HttpHelper::ResponseData ResponseData;
+	typedef http_ResponseData ResponseData;
 
 	class FileReader::Core {
 	public:
@@ -64,10 +64,10 @@ namespace flare {
 		}
 
 		Protocol protocol(cString& path) {
-			if ( Path::is_local_file( path ) ) {
+			if ( fs_is_local_file( path ) ) {
 				return FILE;
 			}
-			if ( Path::is_local_zip( path ) ) {
+			if ( fs_is_local_zip( path ) ) {
 				return ZIP;
 			}
 			if ((path[0] == 'h' || path[0] == 'H') &&
@@ -163,9 +163,9 @@ namespace flare {
 				default:
 				case FILE:
 					if ( stream ) {
-						id = FileHelper::read_stream(path, *(Callback<StreamResponse>*)(&cb));
+						id = fs_read_stream(path, *(Callback<StreamResponse>*)(&cb));
 					} else {
-						FileHelper::read_file(path, cb);
+						fs_read_file(path, cb);
 					}
 					break;
 				case ZIP: {
@@ -188,9 +188,9 @@ namespace flare {
 				case HTTPS:
 					try {
 						if ( stream ) {
-							id = HttpHelper::get_stream(path, *(Callback<StreamResponse>*)(&cb));
+							id = http_get_stream(path, *(Callback<StreamResponse>*)(&cb));
 						} else {
-							id = HttpHelper::get(path, HttpHelper::Cb([cb](HttpHelper::Cb::Data& e) {
+							id = http_get(path, http_Cb([cb](http_Cb::Data& e) {
 								ResponseData* data = static_cast<ResponseData*>(e.data);
 								if (e.error) {
 									cb->reject(e.error);
@@ -213,9 +213,9 @@ namespace flare {
 			switch ( protocol(path) ) {
 				default:
 				case FILE:
-					F_CHECK(FileHelper::exists_sync(path),
+					F_CHECK(fs_exists_sync(path),
 										ERR_FILE_NOT_EXISTS, "Unable to read file contents, \"%s\"", *path);
-					rv = FileHelper::read_file_sync(path);
+					rv = fs_read_file_sync(path);
 					break;
 				case ZIP: {
 					String zip = zip_path(path);
@@ -239,7 +239,7 @@ namespace flare {
 					F_THROW(ERR_NOT_SUPPORTED_FILE_PROTOCOL, "This file protocol is not supported");
 					break;
 				case HTTP:
-				case HTTPS: rv = HttpHelper::get_sync(path); break;
+				case HTTPS: rv = http_get_sync(path); break;
 			}
 			return rv;
 		}
@@ -252,9 +252,9 @@ namespace flare {
 			switch ( protocol(path) ) {
 				default:
 				case FILE:
-					if ( file && FileHelper::is_file_sync(path) )
+					if ( file && fs_is_file_sync(path) )
 						return true;
-					if ( dir  && FileHelper::is_directory_sync(path) )
+					if ( dir  && fs_is_directory_sync(path) )
 						return true;
 					return false;
 				case ZIP: {
@@ -281,7 +281,7 @@ namespace flare {
 			switch ( protocol(path) ) {
 				default:
 				case FILE:
-					rv = FileHelper::readdir_sync(path);
+					rv = fs_readdir_sync(path);
 				case ZIP: {
 					String zip = zip_path(path);
 					if ( !zip.is_empty() ) {
@@ -303,7 +303,7 @@ namespace flare {
 			switch ( protocol(path) ) {
 				default:
 				case ZIP:
-				case FILE: return Path::format("%s", *path);
+				case FILE: return fs_format("%s", *path);
 				case HTTP: index = path.index_of('/', 8); break;
 				case HTTPS:index = path.index_of('/', 9); break;
 				case FTP:  index = path.index_of('/', 7); break;
@@ -322,7 +322,7 @@ namespace flare {
 		
 		bool is_absolute(cString& path) {
 			
-			if ( Path::is_local_absolute(path) ) {
+			if ( fs_is_local_absolute(path) ) {
 				return true;
 			} else {
 				switch ( protocol(path) ) {
@@ -424,6 +424,10 @@ namespace flare {
 			__shared_instance = new FileReader();
 		}
 		return __shared_instance;
+	}
+
+	FileReader* fs_reader() {
+		return FileReader::shared();
 	}
 
 }

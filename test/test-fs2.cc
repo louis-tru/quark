@@ -68,7 +68,7 @@ class TestAsyncFile: public AsyncFile, public AsyncFile::Delegate {
 		F_LOG("Write ok, %d", i);
 
 		if (i == 0) {
-			String s = fs_reader()->read_file_sync(Path::documents("test_fs2.txt"));
+			String s = fs_reader()->read_file_sync(fs_documents("test_fs2.txt"));
 			F_LOG("Write count, %d", s.length());
 			close();
 		}
@@ -84,9 +84,9 @@ void test_fs2(int argc, char **argv) {
 
 	F_LOG("START");
 	
-	write_str = fs_reader()->read_file_sync(Path::resources("flare/ctr.js"));
+	write_str = fs_reader()->read_file_sync(fs_resources("flare/ctr.js"));
 
-	TestAsyncFile* file = new TestAsyncFile(Path::documents("test_fs2.txt"));
+	TestAsyncFile* file = new TestAsyncFile(fs_documents("test_fs2.txt"));
 
 	file->open(FileOpenFlag::FOPEN_W);
 

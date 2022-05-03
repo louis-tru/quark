@@ -100,7 +100,7 @@ namespace flare {
 	void FontFromFile::install() {
 		F_ASSERT(!_ft_face);
 		FT_New_Face((FT_Library)_ft_lib,
-								Path::fallback_c(_font_path),
+								fs_fallback_c(_font_path),
 								_face_index, (FT_Face*)&_ft_face);
 	}
 

@@ -80,43 +80,41 @@ namespace flare {
 		FTYPE_BLOCK
 	};
 
-	/**
-	* @class File
-	*/
-	class F_EXPORT File: public Object {
-		F_HIDDEN_ALL_COPY(File);
+	struct Dirent {
+		String name;
+		String pathname;
+		FileType type;
+	};
+
+	class F_EXPORT FileSync: public Object {
+		F_HIDDEN_ALL_COPY(FileSync);
 	public:
-		typedef ObjectTraits Traits;
-		inline  File(cString& path): _path(path), _fd(0) {}
-		virtual ~File();
-		inline  String path() const { return _path; }
-		virtual bool is_open();
-		virtual int open(int flag = FOPEN_R);
-		virtual int close();
-		virtual int read(void* buffer, int64_t size, int64_t offset = -1);
-		virtual int write(const void* buffer, int64_t size, int64_t offset = -1);
+		FileSync(cString& path): _path(path), _fd(0) {}
+		virtual ~FileSync();
+		bool is_open();
+		int open(int flag = FOPEN_R);
+		int close();
+		int read(void* buffer, int64_t size, int64_t offset = -1);
+		int write(const void* buffer, int64_t size, int64_t offset = -1);
+		// props
+		F_DEFINE_PROP_READ(String, path);
 	private:
-		String _path;
 		int    _fd;
 	};
 
-	/**
-* @class AsyncFile
-*/
-	class F_EXPORT AsyncFile: public Object {
-		F_HIDDEN_ALL_COPY(AsyncFile);
+	class F_EXPORT File: public Object {
+		F_HIDDEN_ALL_COPY(File);
 	public:
-		typedef ObjectTraits Traits;
 		class F_EXPORT Delegate {
 		public:
-			virtual void trigger_async_file_open(AsyncFile* file) = 0;
-			virtual void trigger_async_file_close(AsyncFile* file) = 0;
-			virtual void trigger_async_file_error(AsyncFile* file, const Error& error) = 0;
-			virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) = 0;
-			virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) = 0;
+			virtual void trigger_file_open(File* file) = 0;
+			virtual void trigger_file_close(File* file) = 0;
+			virtual void trigger_file_error(File* file, const Error& error) = 0;
+			virtual void trigger_file_read(File* file, Buffer buffer, int mark) = 0;
+			virtual void trigger_file_write(File* file, Buffer buffer, int mark) = 0;
 		};
-		AsyncFile(cString& path, RunLoop* loop = RunLoop::current());
-		virtual ~AsyncFile();
+		File(cString& path, RunLoop* loop = RunLoop::current());
+		virtual ~File();
 		String path() const;
 		void set_delegate(Delegate* delegate);
 		bool is_open();
@@ -129,17 +127,6 @@ namespace flare {
 		Inl* _inl;
 	};
 
-	class F_EXPORT Dirent: public Object {
-	public:
-		Dirent(cString& n, cString& p, FileType t);
-		String name;
-		String pathname;
-		FileType type;
-	};
-
-	/**
-	* @class FileStat
-	*/
 	class F_EXPORT FileStat: public Object {
 		F_HIDDEN_ALL_COPY(FileStat);
 	public:
@@ -175,206 +162,6 @@ namespace flare {
 		F_DEFINE_INLINE_CLASS(Inl);
 	};
 
-	/**
-	* @class FileHelper
-	*/
-	class F_EXPORT FileHelper {
-	public:
-		static const uint32_t default_mode;
-		
-		/**
-		* @func each_sync 递归遍历子文件与子目录, 遍历回调回返0停止遍历
-		*/
-		static bool each_sync(cString& path, Cb cb, bool internal = false) throw(Error);
-		
-		// sync
-		/**
-		* @func chmod_sync
-		*/
-		static void chmod_sync(cString& path, uint32_t mode = default_mode) throw(Error);
-		
-		/**
-		* @func chmod_r_sync  # 递归设置
-		* # 多线程中,设置stop_signal值为true来终止操作
-		*/
-		static void chown_sync(cString& path, uint32_t owner, uint32_t group) throw(Error);
-		static void mkdir_sync(cString& path, uint32_t mode = default_mode) throw(Error);
-		static void rename_sync(cString& name, cString& new_name) throw(Error);
-		static void link_sync(cString& path, cString& newPath) throw(Error);
-		static void unlink_sync(cString& path) throw(Error);
-		static void rmdir_sync(cString& path) throw(Error);
-		static Array<Dirent> readdir_sync(cString& path) throw(Error);
-		static FileStat stat_sync(cString& path) throw(Error);
-		static bool exists_sync(cString& path);
-		static bool is_file_sync(cString& path);
-		static bool is_directory_sync(cString& path);
-		static bool readable_sync(cString& path);
-		static bool writable_sync(cString& path);
-		static bool executable_sync(cString& path);
-		// recursion
-		static bool chmod_r_sync(cString& path, uint32_t mode = default_mode, bool* stop_signal = nullptr) throw(Error);
-		static bool chown_r_sync(cString& path, uint32_t owner, uint32_t group, bool* stop_signal = nullptr) throw(Error);
-		static void mkdir_p_sync(cString& path, uint32_t mode = default_mode) throw(Error);
-		static bool remove_r_sync(cString& path, bool* stop_signal = nullptr) throw(Error);
-		static bool copy_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
-		static bool copy_r_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
-		// async
-		static void chmod(cString& path, uint32_t mode = default_mode, Cb cb = 0);
-		static void chown(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
-		static void mkdir(cString& path, uint32_t mode = default_mode, Cb cb = 0);
-		static void rename(cString& name, cString& new_name, Cb cb = 0);
-		static void link(cString& path, cString& newPath, Cb cb = 0);
-		static void unlink(cString& path, Cb cb = 0);
-		static void rmdir(cString& path, Cb cb = 0);
-		static void readdir(cString& path, Callback<Array<Dirent>> cb = 0);
-		static void stat(cString& path, Cb cb = 0);
-		static void exists(cString& path, Cb cb = 0);
-		static void is_file(cString& path, Cb cb = 0);
-		static void is_directory(cString& path, Cb cb = 0);
-		static void readable(cString& path, Cb cb = 0);
-		static void writable(cString& path, Cb cb = 0);
-		static void executable(cString& path, Cb cb = 0);
-		// recursion
-		static void mkdir_p(cString& path, uint32_t mode = default_mode, Cb cb = 0);
-		static uint32_t chmod_r(cString& path, uint32_t mode = default_mode, Cb cb = 0);
-		static uint32_t chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
-		static uint32_t remove_r(cString& path, Cb cb = 0);
-		static uint32_t copy(cString& source, cString& target, Cb cb = 0);
-		static uint32_t copy_r(cString& source, cString& target, Cb cb = 0);
-		static void abort(uint32_t id);
-		// read stream
-		static uint32_t read_stream(cString& path, Callback<StreamResponse> cb = 0);
-		// read file
-		static Buffer read_file_sync(cString& path, int64_t size = -1) throw(Error);
-		static void read_file(cString& path, Cb cb = 0, int64_t size = -1);
-		// write file
-		static int  write_file_sync(cString& path, cString& str) throw(Error);
-		static int  write_file_sync(cString& path, const void* data, int64_t size) throw(Error);
-		static void write_file(cString& path, cString& str, Cb cb = 0);
-		static void write_file(cString& path, Buffer buffer, Cb cb = 0);
-		// open file fd
-		static int  open_sync(cString& path, int flag = FOPEN_R) throw(Error);
-		static void open(cString& path, int flag = FOPEN_R, Cb cb = 0);
-		static void open(cString& path, Cb cb = 0);
-		static void close_sync(int fd) throw(Error);
-		static void close(int fd, Cb cb = 0);
-		// read with fd
-		static int  read_sync(int fd, void* data, int64_t size, int64_t offset = -1) throw(Error);
-		static int  write_sync(int fd, const void* data, int64_t size, int64_t offset = -1) throw(Error);
-		static void read(int fd, Buffer buffer, Cb cb);
-		static void read(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
-		static void write(int fd, Buffer buffer, Cb cb);
-		static void write(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
-	};
-
-	/**
-	* @class Path
-	* @static
-	*/
-	class F_EXPORT Path {
-	public:
-		/**
-		* @func extname {String} # Get the path basename
-		* @ret {String}
-		*/
-		static String basename(cString& path);
-		
-		/**
-		* @func extname {String} # Get the path dirname
-		* @arg path {cString&}
-		* @ret {String}
-		*/
-		static String dirname(cString& path);
-		
-		/**
-		* @func extname # Get the path extname
-		* @arg path {cString&}
-		* @ret {String}
-		*/
-		static String extname(cString& path);
-		
-		/**
-		* @func executable_path # Get the executable path
-		* @ret {cString&}
-		*/
-		static String executable();
-		
-		/**
-		* @func documents_dir # Get the documents dir.
-		* @ret {cString&} # The path that can be write/read a file in
-		*/
-		static String documents(cString& child = String());
-		
-		/**
-		* @func temp_dir # Get the temp dir.
-		* @ret {cString&} # The path that can be write/read a file in
-		*/
-		static String temp(cString& child = String());
-		
-		/**
-		* @func resources_dir # Get the resoures dir
-		* @ret {cString&}
-		*/
-		static String resources(cString& child = String());
-		
-		/**
-		* @func is_absolute # Is absolute path
-		* @ret {bool}
-		*/
-		static bool is_local_absolute(cString& path);
-		
-		/**
-		* @func is_local_zip
-		*/
-		static bool is_local_zip(cString& path);
-		
-		/**
-		* @func is_local_file
-		*/
-		static bool is_local_file(cString& path);
-		
-		/**
-		* @func format
-		* @arg format {cChar*}
-		* @arg [...] {cChar*}
-		* @ret {String}
-		*/
-		static String format(cChar* path, ...);
-		
-		/**
-		* @func format
-		*/
-		static String format(cString& path);
-		
-		/**
-		* @func fallback
-		*/
-		static String fallback(cString& path);
-	
-		/**
-		* @func fallback_c
-		*/
-		static cChar* fallback_c(cString& path);
-		
-		/**
-		* @func cwd # Getting current working directory
-		* @ret {String}
-		* @static
-		*/
-		static String cwd();
-		
-		/**
-		* @func chdir # Setting current working directory
-		* @arg path {cString&}
-		* @ret {bool}
-		* @static
-		*/
-		static bool chdir(cString& path);
-	};
-
-	/**
-	* @class FileReader
-	*/
 	class F_EXPORT FileReader: public Object {
 		F_HIDDEN_ALL_COPY(FileReader);
 	public:
@@ -399,9 +186,197 @@ namespace flare {
 		Core* _core;
 	};
 
-	inline FileReader* fs_reader() {
-		return FileReader::shared();
-	}
+	/**
+	 * @func fs_reader() get shared reader
+	*/
+	F_EXPORT FileReader* fs_reader();
+
+	/**
+	 * @field fs_default_mode
+	*/
+	F_EXPORT extern const uint32_t fs_default_mode;
+
+	/**
+	* @func each_sync 递归遍历子文件与子目录, 遍历回调回返0停止遍历
+	*/
+	F_EXPORT bool fs_each_sync(cString& path, Cb cb, bool internal = false) throw(Error);
+	
+	// sync
+	/**
+	* @func chmod_sync
+	*/
+	F_EXPORT void fs_chmod_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
+	
+	/**
+	* @func chmod_r_sync  # 递归设置
+	* # 多线程中,设置stop_signal值为true来终止操作
+	*/
+	F_EXPORT void fs_chown_sync(cString& path, uint32_t owner, uint32_t group) throw(Error);
+	F_EXPORT void fs_mkdir_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
+	F_EXPORT void fs_rename_sync(cString& name, cString& new_name) throw(Error);
+	F_EXPORT void fs_link_sync(cString& path, cString& newPath) throw(Error);
+	F_EXPORT void fs_unlink_sync(cString& path) throw(Error);
+	F_EXPORT void fs_rmdir_sync(cString& path) throw(Error);
+	F_EXPORT Array<Dirent> fs_readdir_sync(cString& path) throw(Error);
+	F_EXPORT FileStat fs_stat_sync(cString& path) throw(Error);
+	F_EXPORT bool fs_exists_sync(cString& path);
+	F_EXPORT bool fs_is_file_sync(cString& path);
+	F_EXPORT bool fs_is_directory_sync(cString& path);
+	F_EXPORT bool fs_readable_sync(cString& path);
+	F_EXPORT bool fs_writable_sync(cString& path);
+	F_EXPORT bool fs_executable_sync(cString& path);
+	// recursion
+	F_EXPORT bool fs_chmod_r_sync(cString& path, uint32_t mode = fs_default_mode, bool* stop_signal = nullptr) throw(Error);
+	F_EXPORT bool fs_chown_r_sync(cString& path, uint32_t owner, uint32_t group, bool* stop_signal = nullptr) throw(Error);
+	F_EXPORT void fs_mkdir_p_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
+	F_EXPORT bool fs_remove_r_sync(cString& path, bool* stop_signal = nullptr) throw(Error);
+	F_EXPORT bool fs_copy_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
+	F_EXPORT bool fs_copy_r_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
+	// async
+	F_EXPORT void fs_chmod(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	F_EXPORT void fs_chown(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
+	F_EXPORT void fs_mkdir(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	F_EXPORT void fs_rename(cString& name, cString& new_name, Cb cb = 0);
+	F_EXPORT void fs_link(cString& path, cString& newPath, Cb cb = 0);
+	F_EXPORT void fs_unlink(cString& path, Cb cb = 0);
+	F_EXPORT void fs_rmdir(cString& path, Cb cb = 0);
+	F_EXPORT void fs_readdir(cString& path, Callback<Array<Dirent>> cb = 0);
+	F_EXPORT void fs_stat(cString& path, Cb cb = 0);
+	F_EXPORT void fs_exists(cString& path, Cb cb = 0);
+	F_EXPORT void fs_is_file(cString& path, Cb cb = 0);
+	F_EXPORT void fs_is_directory(cString& path, Cb cb = 0);
+	F_EXPORT void fs_readable(cString& path, Cb cb = 0);
+	F_EXPORT void fs_writable(cString& path, Cb cb = 0);
+	F_EXPORT void fs_executable(cString& path, Cb cb = 0);
+	// recursion
+	F_EXPORT void fs_mkdir_p(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	F_EXPORT uint32_t fs_chmod_r(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	F_EXPORT uint32_t fs_chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
+	F_EXPORT uint32_t fs_remove_r(cString& path, Cb cb = 0);
+	F_EXPORT uint32_t fs_copy(cString& source, cString& target, Cb cb = 0);
+	F_EXPORT uint32_t fs_copy_r(cString& source, cString& target, Cb cb = 0);
+	F_EXPORT void fs_abort(uint32_t id);
+		// read stream
+	F_EXPORT uint32_t fs_read_stream(cString& path, Callback<StreamResponse> cb = 0);
+		// read file
+	F_EXPORT Buffer fs_read_file_sync(cString& path, int64_t size = -1) throw(Error);
+	F_EXPORT void fs_read_file(cString& path, Cb cb = 0, int64_t size = -1);
+		// write file
+	F_EXPORT int fs_write_file_sync(cString& path, cString& str) throw(Error);
+	F_EXPORT int fs_write_file_sync(cString& path, const void* data, int64_t size) throw(Error);
+	F_EXPORT void fs_write_file(cString& path, cString& str, Cb cb = 0);
+	F_EXPORT void fs_write_file(cString& path, Buffer buffer, Cb cb = 0);
+		// open file fd
+	F_EXPORT int fs_open_sync(cString& path, int flag = FOPEN_R) throw(Error);
+	F_EXPORT void fs_open(cString& path, int flag = FOPEN_R, Cb cb = 0);
+	F_EXPORT void fs_open(cString& path, Cb cb = 0);
+	F_EXPORT void fs_close_sync(int fd) throw(Error);
+	F_EXPORT void fs_close(int fd, Cb cb = 0);
+		// read with fd
+	F_EXPORT int fs_read_sync(int fd, void* data, int64_t size, int64_t offset = -1) throw(Error);
+	F_EXPORT int fs_write_sync(int fd, const void* data, int64_t size, int64_t offset = -1) throw(Error);
+	F_EXPORT void fs_read(int fd, Buffer buffer, Cb cb);
+	F_EXPORT void fs_read(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
+	F_EXPORT void fs_write(int fd, Buffer buffer, Cb cb);
+	F_EXPORT void fs_write(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
+
+	/**
+	* @func extname {String} # Get the path basename
+	* @ret {String}
+	*/
+	F_EXPORT String fs_basename(cString& path);
+	
+	/**
+	* @func extname {String} # Get the path dirname
+	* @arg path {cString&}
+	* @ret {String}
+	*/
+	F_EXPORT String fs_dirname(cString& path);
+	
+	/**
+	* @func extname # Get the path extname
+	* @arg path {cString&}
+	* @ret {String}
+	*/
+	F_EXPORT String fs_extname(cString& path);
+	
+	/**
+	* @func executable_path # Get the executable path
+	* @ret {cString&}
+	*/
+	F_EXPORT String fs_executable();
+	
+	/**
+	* @func documents_dir # Get the documents dir.
+	* @ret {cString&} # The path that can be write/read a file in
+	*/
+	F_EXPORT String fs_documents(cString& child = String());
+	
+	/**
+	* @func temp_dir # Get the temp dir.
+	* @ret {cString&} # The path that can be write/read a file in
+	*/
+	F_EXPORT String fs_temp(cString& child = String());
+	
+	/**
+	* @func resources_dir # Get the resoures dir
+	* @ret {cString&}
+	*/
+	F_EXPORT String fs_resources(cString& child = String());
+	
+	/**
+	* @func is_absolute # Is absolute path
+	* @ret {bool}
+	*/
+	F_EXPORT bool fs_is_local_absolute(cString& path);
+	
+	/**
+	* @func is_local_zip
+	*/
+	F_EXPORT bool fs_is_local_zip(cString& path);
+	
+	/**
+	* @func is_local_file
+	*/
+	F_EXPORT bool fs_is_local_file(cString& path);
+	
+	/**
+	* @func format
+	* @arg format {cChar*}
+	* @arg [...] {cChar*}
+	* @ret {String}
+	*/
+	F_EXPORT String fs_format(cChar* path, ...);
+	
+	/**
+	* @func format
+	*/
+	F_EXPORT String fs_format(cString& path);
+	
+	/**
+	* @func fallback
+	*/
+	F_EXPORT String fs_fallback(cString& path);
+
+	/**
+	* @func fallback_c
+	*/
+	F_EXPORT cChar* fs_fallback_c(cString& path);
+	
+	/**
+	* @func cwd # Getting current working directory
+	* @ret {String}
+	* @static
+	*/
+	F_EXPORT String fs_cwd();
+	
+	/**
+	* @func chdir # Setting current working directory
+	* @arg path {cString&}
+	* @ret {bool}
+	* @static
+	*/
+	F_EXPORT bool fs_chdir(cString& path);
 
 }
 #endif

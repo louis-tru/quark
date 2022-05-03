@@ -109,10 +109,10 @@ namespace flare {
 		Handle<FileLsReq> handle(FileLsReq::cast(req));
 		Array<Dirent> ls;
 		if ( req->result ) {
-			String p =  handle->data() + '/'; // Path::format("%s", *handle->data()) + '/';
+			String p =  handle->data() + '/'; // fs_format("%s", *handle->data()) + '/';
 			uv_dirent_t ent;
 			while ( uv_fs_scandir_next(req, &ent) == 0 ) {
-				ls.push( Dirent(ent.name, p + ent.name, FileType(ent.type)) );
+				ls.push( Dirent{ent.name, p + ent.name, FileType(ent.type)} );
 			}
 		}
 		uv_fs_req_cleanup(req);
@@ -154,31 +154,31 @@ namespace flare {
 	static void exists2(cString& path, Cb cb, RunLoop* loop) {
 		uv_fs_access(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								Path::fallback_c(path), F_OK, &uv_fs_access_cb);
+								fs_fallback_c(path), F_OK, &uv_fs_access_cb);
 	}
 
 	static void ls2(cString& path, Callback<Array<Dirent>> cb, RunLoop* loop) {
 		uv_fs_scandir(loop->uv_loop(),
-									New<FileLsReq>(cb, loop, path)->req(), Path::fallback_c(path), 1, &ls_cb);
+									New<FileLsReq>(cb, loop, path)->req(), fs_fallback_c(path), 1, &ls_cb);
 	}
 
 	void file_helper_stat2(cString& path, Cb cb, RunLoop* loop) {
-		uv_fs_stat(loop->uv_loop(), New<FileReq>(cb, loop)->req(), Path::fallback_c(path), &stat_cb);
+		uv_fs_stat(loop->uv_loop(), New<FileReq>(cb, loop)->req(), fs_fallback_c(path), &stat_cb);
 	}
 
 	static void is_dir2(cString& path, Cb cb, RunLoop* loop) {
-		uv_fs_stat(loop->uv_loop(), New<FileReq>(cb, loop)->req(), Path::fallback_c(path), &is_dir_cb);
+		uv_fs_stat(loop->uv_loop(), New<FileReq>(cb, loop)->req(), fs_fallback_c(path), &is_dir_cb);
 	}
 
 	static AsyncIOTask* cp2(cString& source, cString& target, Cb cb, RunLoop* loop) {
 		
-		class Task: public AsyncIOTask, AsyncFile::Delegate {
+		class Task: public AsyncIOTask, File::Delegate {
 		public:
 			
 			Task(cString& source, cString& target, Cb cb, RunLoop* loop)
 			: AsyncIOTask(loop)
-			, _source_file(new AsyncFile(source, loop))
-			, _target_file(new AsyncFile(target, loop))
+			, _source_file(new File(source, loop))
+			, _target_file(new File(target, loop))
 			, _end(cb)
 			, _reading_count(0), _writeing_count(0), _read_end(false)
 			{//
@@ -234,13 +234,13 @@ namespace flare {
 				AsyncIOTask::abort();
 			}
 			
-			virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
+			virtual void trigger_file_error(File* file, cError& error) {
 				Handle<Task> handle(this); //
 				abort();
 				async_reject(_end, Error(error));
 			}
 			
-			virtual void trigger_async_file_open(AsyncFile* file) {
+			virtual void trigger_file_open(File* file) {
 				if ( _source_file->is_open() && _target_file->is_open() ) {
 					read_next();
 				}
@@ -258,7 +258,7 @@ namespace flare {
 				}
 			}
 			
-			virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {
+			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
 				F_ASSERT( file == _source_file );
 				F_ASSERT( _reading_count > 0 );
 				_reading_count--;
@@ -276,7 +276,7 @@ namespace flare {
 				}
 			}
 			
-			virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
+			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
 				F_ASSERT( file == _target_file );
 				F_ASSERT( _writeing_count > 0 );
 				_writeing_count--;
@@ -292,10 +292,10 @@ namespace flare {
 				}
 			}
 			
-			virtual void trigger_async_file_close(AsyncFile* file) { }
+			virtual void trigger_file_close(File* file) { }
 			
-			AsyncFile* _source_file;
-			AsyncFile* _target_file;
+			File* _source_file;
+			File* _target_file;
 			Cb         _end;
 			Buffer     _buffer[2];
 			int        _reading_count;
@@ -309,37 +309,37 @@ namespace flare {
 	static void mkdir2(cString& path, uint32_t mode, Cb cb, RunLoop* loop) {
 		uv_fs_mkdir(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								Path::fallback_c(path), mode, &uv_fs_async_cb);
+								fs_fallback_c(path), mode, &uv_fs_async_cb);
 	}
 
 	static void chmod2(cString& path, uint32_t mode, Cb cb, RunLoop* loop) {
 		uv_fs_chmod(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								Path::fallback_c(path), mode, &uv_fs_async_cb);
+								fs_fallback_c(path), mode, &uv_fs_async_cb);
 	}
 
 	static void chown2(cString& path, uint32_t owner, uint32_t group, Cb cb, RunLoop* loop) {
 		uv_fs_chown(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								Path::fallback_c(path), owner, group, &uv_fs_async_cb);
+								fs_fallback_c(path), owner, group, &uv_fs_async_cb);
 	}
 
 	static void link2(cString& path, cString& newPath, Cb cb, RunLoop* loop) {
 		uv_fs_link(loop->uv_loop(),
 							New<FileReq>(cb, loop)->req(),
-							Path::fallback_c(path), Path::fallback_c(newPath), &uv_fs_async_cb);
+							fs_fallback_c(path), fs_fallback_c(newPath), &uv_fs_async_cb);
 	}
 
 	static void unlink2(cString& path, Cb cb, RunLoop* loop) {
 		uv_fs_unlink(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								Path::fallback_c(path), &uv_fs_async_cb);
+								fs_fallback_c(path), &uv_fs_async_cb);
 	}
 
 	static void rmdir2(cString& path, Cb cb, RunLoop* loop) {
 		uv_fs_rmdir(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								Path::fallback_c(path), &uv_fs_async_cb);
+								fs_fallback_c(path), &uv_fs_async_cb);
 	}
 
 	/**
@@ -349,7 +349,7 @@ namespace flare {
 	public:
 		
 		AsyncEach(cString& path, Cb cb, Cb end, bool internal = false)
-		: _path(Path::format(path))
+		: _path(fs_format(path))
 		, _cb(cb)
 		, _end(end)
 		, _dirent(nullptr)
@@ -441,7 +441,7 @@ namespace flare {
 				} else {
 					FileStat* stat = static_cast<FileStat*>(evt.data);
 					Array<Dirent> dirents;
-					dirents.push(Dirent(Path::basename(_path), _path, stat->type()));
+					dirents.push(Dirent{fs_basename(_path), _path, stat->type()});
 					_stack.push( { std::move(dirents), 0, 0 } );
 					_last = &_stack[_stack.length() - 1];
 					advance();
@@ -466,15 +466,15 @@ namespace flare {
 		bool _start;
 	};
 
-	void FileHelper::abort(uint32_t id) {
+	void fs_abort(uint32_t id) {
 		AsyncIOTask::safe_abort(id);
 	}
 
-	void FileHelper::chmod(cString& path, uint32_t mode, Cb cb) {
+	void fs_chmod(cString& path, uint32_t mode, Cb cb) {
 		chmod2(path, mode, cb, LOOP);
 	}
 
-	uint32_t FileHelper::chmod_r(cString& path, uint32_t mode, Cb cb) {
+	uint32_t fs_chmod_r(cString& path, uint32_t mode, Cb cb) {
 		auto each = NewRetain<AsyncEach>(path, Cb([mode, cb](CbData& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain(); // chmod2 回调前都保持each不被释放
@@ -496,11 +496,11 @@ namespace flare {
 		return each->start();
 	}
 
-	void FileHelper::chown(cString& path, uint32_t owner, uint32_t group, Cb cb) {
+	void fs_chown(cString& path, uint32_t owner, uint32_t group, Cb cb) {
 		chown2(path, owner, group, cb, LOOP);
 	}
 
-	uint32_t FileHelper::chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb) {
+	uint32_t fs_chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb) {
 		auto each = NewRetain<AsyncEach>(path, Cb([owner, group, cb](CbData& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain();
@@ -519,11 +519,11 @@ namespace flare {
 		return each->start();
 	}
 
-	void FileHelper::mkdir(cString& path, uint32_t mode, Cb cb) {
+	void fs_mkdir(cString& path, uint32_t mode, Cb cb) {
 		mkdir2(path, mode, cb, LOOP);
 	}
 
-	void FileHelper::mkdir_p(cString& path, uint32_t mode, Cb cb) {
+	void fs_mkdir_p(cString& path, uint32_t mode, Cb cb) {
 		exists2(path, Cb([=](CbData& evt) {
 			if ( static_cast<Bool*>(evt.data)->value ) { // ok
 				async_callback(cb);
@@ -539,27 +539,27 @@ namespace flare {
 		}), LOOP);
 	}
 
-	void FileHelper::rename(cString& name, cString& new_name, Cb cb) {
+	void fs_rename(cString& name, cString& new_name, Cb cb) {
 		LOOP2;
 		uv_fs_rename(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								Path::fallback_c(name),
-								Path::fallback_c(new_name), &uv_fs_async_cb);
+								fs_fallback_c(name),
+								fs_fallback_c(new_name), &uv_fs_async_cb);
 	}
 
-	void FileHelper::link(cString& path, cString& newPath, Cb cb) {
+	void fs_link(cString& path, cString& newPath, Cb cb) {
 		link2(path, newPath, cb, LOOP);
 	}
 
-	void FileHelper::unlink(cString& path, Cb cb) {
+	void fs_unlink(cString& path, Cb cb) {
 		unlink2(path, cb, LOOP);
 	}
 
-	void FileHelper::rmdir(cString& path, Cb cb) {
+	void fs_rmdir(cString& path, Cb cb) {
 		rmdir2(path, cb, LOOP);
 	}
 
-	uint32_t FileHelper::remove_r(cString& path, Cb cb) {
+	uint32_t fs_remove_r(cString& path, Cb cb) {
 		auto each = NewRetain<AsyncEach>(path, Cb([cb](CbData& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain();
@@ -585,22 +585,22 @@ namespace flare {
 		return each->start();
 	}
 
-	uint32_t FileHelper::copy(cString& source, cString& target, Cb cb) {
+	uint32_t fs_copy(cString& source, cString& target, Cb cb) {
 		return cp2(source, target, cb, LOOP)->id();
 	}
 
-	uint32_t FileHelper::copy_r(cString& source, cString& target, Cb cb) {
+	uint32_t fs_copy_r(cString& source, cString& target, Cb cb) {
 		
 		class Task: public AsyncEach {
 		 public:
 			Task(cString& source, cString& target, Cb cb)
 			: AsyncEach(source, Cb(&each_cb, (Object*)this/*这里避免循环引用使用Object*/), cb, false)
 			, _end(cb)
-			, _s_len(Path::format("%s", *source).length())
-			, _path(Path::format("%s", *target))
+			, _s_len(fs_format("%s", *source).length())
+			, _path(fs_format("%s", *target))
 			, _copy_task(nullptr)
 			{ //
-				is_dir2(Path::dirname(target), Cb([this](CbData& ev) {
+				is_dir2(fs_dirname(target), Cb([this](CbData& ev) {
 					if ( is_abort() ) return;
 					if ( static_cast<Bool*>(ev.data)->value ) {
 						start();
@@ -685,51 +685,51 @@ namespace flare {
 		return NewRetain<Task>(source, target, cb)->id();
 	}
 
-	void FileHelper::readdir(cString& path, Callback<Array<Dirent>> cb) {
+	void fs_readdir(cString& path, Callback<Array<Dirent>> cb) {
 		ls2(path, cb, LOOP);
 	}
 
-	void FileHelper::stat(cString& path, Cb cb) {
+	void fs_stat(cString& path, Cb cb) {
 		file_helper_stat2(path, cb, LOOP);
 	}
 
-	void FileHelper::exists(cString& path, Cb cb) {
+	void fs_exists(cString& path, Cb cb) {
 		exists2(path, cb, LOOP);
 	}
 
-	void FileHelper::is_file(cString& path, Cb cb) {
+	void fs_is_file(cString& path, Cb cb) {
 		LOOP2;
 		uv_fs_stat(loop->uv_loop(),
 							New<FileReq>(cb, loop)->req(),
-							Path::fallback_c(path),
+							fs_fallback_c(path),
 							&is_file_cb);
 	}
 
-	void FileHelper::is_directory(cString& path, Cb cb) {
+	void fs_is_directory(cString& path, Cb cb) {
 		is_dir2(path, cb, LOOP);
 	}
 
-	void FileHelper::readable(cString& path, Cb cb) {
+	void fs_readable(cString& path, Cb cb) {
 		LOOP2;
 		uv_fs_access(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								Path::fallback_c(path),
+								fs_fallback_c(path),
 								R_OK, &uv_fs_access_cb);
 	}
 
-	void FileHelper::writable(cString& path, Cb cb) {
+	void fs_writable(cString& path, Cb cb) {
 		LOOP2;
 		uv_fs_access(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								Path::fallback_c(path),
+								fs_fallback_c(path),
 								W_OK, &uv_fs_access_cb);
 	}
 
-	void FileHelper::executable(cString& path, Cb cb) {
+	void fs_executable(cString& path, Cb cb) {
 		LOOP2;
 		uv_fs_access(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								Path::fallback_c(path),
+								fs_fallback_c(path),
 								X_OK, &uv_fs_access_cb);
 	}
 
@@ -737,7 +737,7 @@ namespace flare {
 
 	// read stream
 
-	uint32_t FileHelper::read_stream(cString& path, Callback<StreamResponse> cb) {
+	uint32_t fs_read_stream(cString& path, Callback<StreamResponse> cb) {
 		class Task;
 		typedef UVRequestWrap<uv_fs_t, Task, Object, StreamResponse> FileReq;
 		
@@ -869,7 +869,7 @@ namespace flare {
 			
 			static void start(FileReq* req) {
 				uv_fs_open(req->ctx()->uv_loop(), req->req(),
-									Path::fallback_c(req->ctx()->_path), O_RDONLY, 0, &fs_open_cb);
+									fs_fallback_c(req->ctx()->_path), O_RDONLY, 0, &fs_open_cb);
 			}
 			
 		};
@@ -884,7 +884,7 @@ namespace flare {
 
 	// read file
 
-	void FileHelper::read_file(cString& path, Cb cb, int64_t size) {
+	void fs_read_file(cString& path, Cb cb, int64_t size) {
 		int64_t offset = -1;
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
@@ -961,7 +961,7 @@ namespace flare {
 			
 			static void start(FileReq* req) {
 				uv_fs_open(req->uv_loop(), req->req(),
-					Path::fallback(req->data().path).c_str(), O_RDONLY, 0, &fs_open_cb);
+					fs_fallback(req->data().path).c_str(), O_RDONLY, 0, &fs_open_cb);
 			}
 			
 		};
@@ -971,7 +971,7 @@ namespace flare {
 
 	// write file
 
-	void FileHelper::write_file(cString& path, Buffer buffer, Cb cb) {
+	void fs_write_file(cString& path, Buffer buffer, Cb cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 		
@@ -1016,7 +1016,7 @@ namespace flare {
 			
 			static void start(FileReq* req) {
 				uv_fs_open(req->uv_loop(), req->req(),
-									Path::fallback(req->data().path).c_str(),
+									fs_fallback(req->data().path).c_str(),
 									O_WRONLY | O_CREAT | O_TRUNC, default_mode, &fs_open_cb);
 			}
 			
@@ -1026,12 +1026,12 @@ namespace flare {
 		Data::start(new FileReq(cb, LOOP, Data({ path, size, buffer })));
 	}
 
-	void FileHelper::write_file(cString& path, cString& str, Cb cb) {
+	void fs_write_file(cString& path, cString& str, Cb cb) {
 		write_file(path, str.copy(), cb);
 	}
 
 	// open/close file fd
-	void FileHelper::open(cString& path, int flag, Cb cb) {
+	void fs_open(cString& path, int flag, Cb cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 		
@@ -1055,7 +1055,7 @@ namespace flare {
 				Data& data = req->data();
 				uv_fs_open(req->uv_loop(),
 									req->req(),
-									Path::fallback(data.path).c_str(),
+									fs_fallback(data.path).c_str(),
 									inl__file_flag_mask(data.flag),
 									default_mode,
 									&fs_open_cb);
@@ -1065,11 +1065,11 @@ namespace flare {
 		Data::start(new FileReq(cb, LOOP, { path, flag }));
 	}
 
-	void FileHelper::open(cString& path, Cb cb) {
+	void fs_open(cString& path, Cb cb) {
 		open(path, FOPEN_R, cb);
 	}
 
-	void FileHelper::close(int fd, Cb cb) {
+	void fs_close(int fd, Cb cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 		
@@ -1096,11 +1096,11 @@ namespace flare {
 	}
 
 	// read with fd
-	void FileHelper::read(int fd, Buffer buffer, Cb cb) {
+	void fs_read(int fd, Buffer buffer, Cb cb) {
 		read(fd, buffer, -1, cb);
 	}
 
-	void FileHelper::read(int fd, Buffer buffer, int64_t offset, Cb cb) {
+	void fs_read(int fd, Buffer buffer, int64_t offset, Cb cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 		
@@ -1137,11 +1137,11 @@ namespace flare {
 		Data::start(new FileReq(cb, LOOP, { fd, offset, buffer }));
 	}
 
-	void FileHelper::write(int fd, Buffer buffer, Cb cb) {
+	void fs_write(int fd, Buffer buffer, Cb cb) {
 		write(fd, buffer, -1, cb);
 	}
 
-	void FileHelper::write(int fd, Buffer buffer, int64_t offset, Cb cb) {
+	void fs_write(int fd, Buffer buffer, int64_t offset, Cb cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 		

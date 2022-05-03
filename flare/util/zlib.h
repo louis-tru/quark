@@ -38,24 +38,14 @@
 namespace flare {
 
 	/**
-	*
-	* 基本压缩解压数据API
-	*
-	* @class ZLib
+	* @func compress
 	*/
-	class F_EXPORT ZLib {
-	public:
-		
-		/**
-		* @func compress
-		*/
-		static Buffer compress(WeakBuffer buff, int level = -1);
-		
-		/**
-		* @func uncompress
-		*/
-		static Buffer uncompress(WeakBuffer buff);
-	};
+	F_EXPORT Buffer zlib_compress(WeakBuffer buff, int level = -1);
+	
+	/**
+	* @func uncompress
+	*/
+	F_EXPORT Buffer zlib_uncompress(WeakBuffer buff);
 
 	/**
 	* 提供单个gzip压缩文件的读取与写入
@@ -65,42 +55,20 @@ namespace flare {
 	class F_EXPORT GZip: public Object {
 		F_HIDDEN_ALL_COPY(GZip);
 	public:
-
-		typedef ObjectTraits Traits;
-		
 		GZip(cString& path): _path(path), _gzfp(nullptr) { }
-		
-		/**
-		* @destructor
-		*/
 		virtual ~GZip();
-		
-		/**
-		* @ret {String}
-		*/
-		inline String path() const { return _path; }
-		
-		/**
-		* @override
-		*/
-		virtual bool is_open();
-		
 		/**
 		* can't read and write at the same time
 		* BOTH and BOTH_NEW and BOTH_END_NEW cannot use
-		* @override
 		*/
-		virtual int open(int flag = FOPEN_R);
-		
-		/**
-		* @override
-		*/
-		virtual int close();
-		virtual int read(void* buffer, int64_t size, int64_t offset = -1);
-		virtual int write(const void* buffer, int64_t size, int64_t offset = -1);
-		
+		int open(int flag = FOPEN_R);
+		int close();
+		bool is_open();
+		int read(void* buffer, int64_t size, int64_t offset = -1);
+		int write(const void* buffer, int64_t size, int64_t offset = -1);
+		// define props
+		F_DEFINE_PROP_READ(String, path);
 	private:
-		String _path;
 		void*  _gzfp;
 	};
 

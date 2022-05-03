@@ -77,7 +77,7 @@ void layout(Event<>& evt, Application* app) {
 	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
 
 	flex->set_fill_color(Color(255,0,0,255));
-	//flex->set_fill(New<FillImage>(Path::resources("bench/img/21.jpeg"), FillImage::Init{
+	//flex->set_fill(New<FillImage>(fs_resources("bench/img/21.jpeg"), FillImage::Init{
 	//	.size_x={100, FillSizeType::PIXEL},
 	// 	.position_x={0, FillPositionType::CENTER},
 	// 	.position_y={0, FillPositionType::CENTER},
@@ -125,7 +125,7 @@ void layout(Event<>& evt, Application* app) {
 	//
 	img->set_height({ 50, BoxSizeType::PIXEL });
 	img->set_layout_align(Align::RIGHT_BOTTOM);
-	img->set_src(Path::resources("bench/img2/21.jpeg"));
+	img->set_src(fs_resources("bench/img2/21.jpeg"));
 	img->set_fill_color(Color(255,0,0,255));
 	img->set_margin_left(10);
 	img->set_margin_top(10);
@@ -133,7 +133,7 @@ void layout(Event<>& evt, Application* app) {
 	img->set_margin_bottom(10);
 	img->set_padding_left(50);
 	//
-	//img2->set_src(Path::resources("bench/img/99.jpeg"));
+	//img2->set_src(fs_resources("bench/img/99.jpeg"));
 	img2->set_width({0, BoxSizeType::MATCH });
 	img2->set_layout_align(Align::CENTER);
 	

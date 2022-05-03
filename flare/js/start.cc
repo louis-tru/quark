@@ -118,7 +118,7 @@ int Start(cString& cmd) {
 int Start(const Array<String>& argv_in) {
 	static int is_start_initializ = 0;
 	if ( is_start_initializ++ == 0 ) {
-		HttpHelper::initialize();
+		http_initialize();
 		Object::set_object_allocator(
 			&object_allocator_alloc, &object_allocator_release, &object_allocator_retain);
 	}
@@ -186,7 +186,7 @@ int __default_main(int argc, Char** argv) {
 	#endif 
 	{
 		FileReader* reader = FileReader::shared();
-		String index = Path::resources("index");
+		String index = fs_resources("index");
 		Array<String> ls = String(reader->read_file_sync( index )).split('\n');
 	
 		for ( int i = 0; i < ls.length(); i++ ) {

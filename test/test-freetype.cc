@@ -72,10 +72,10 @@ void each_fonts () {
 	
 	int count = 0;
 	
-	//  String path0 = Path::format("%s/res/SF-UI", *Path::resources_dir());
+	//  String path0 = fs_format("%s/res/SF-UI", *fs_resources_dir());
 	String path0 = "/System/Library/Fonts";
 	
-	FileHelper::each_sync(path0, Cb([&](CbData& d) {
+	fs_each_sync(path0, Cb([&](CbData& d) {
 		
 		Dirent* ent = static_cast<Dirent*>(d.data);
 		

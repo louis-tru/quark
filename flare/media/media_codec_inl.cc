@@ -337,7 +337,7 @@ namespace flare {
 			return;
 		}
 		
-		String uri = Path::fallback_c(_uri.href());
+		String uri = fs_fallback_c(_uri.href());
 
 		spawn_child([this, uri](Thread& t) {
 			

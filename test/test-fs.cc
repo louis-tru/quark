@@ -40,30 +40,30 @@ void test_fs(int argc, char **argv) {
 	
 	F_LOG(test_str.last_index_of("G", 1));
 	
-	F_LOG(Path::executable());
+	F_LOG(fs_executable());
 	
-	F_LOG(Path::cwd());
+	F_LOG(fs_cwd());
 	
-	if(Path::chdir("/home/louis/www/jsxdev/bin/") == 0){
+	if(fs_chdir("/home/louis/www/jsxdev/bin/") == 0){
 		F_LOG("修改工作路径成功");
 	}
 	
-	F_LOG(Path::cwd());
+	F_LOG(fs_cwd());
 	
 	String str = "/tmp/kkl/";
 	
 	F_LOG(str.length() - str.last_index_of('/') == 1);
 	
-	F_LOG(Path::documents());
+	F_LOG(fs_documents());
 	
-	Path::chdir(Path::executable()); // 应该不能成功
+	fs_chdir(fs_executable()); // 应该不能成功
 	
-	F_LOG(Path::cwd()); // echo "/"
+	F_LOG(fs_cwd()); // echo "/"
 	
 	// ios 测试成功
 	F_LOG("\nTEST FileSearch");
-	Path::chdir( Path::dirname(Path::executable()) );
-	F_LOG("设置工作目录,%s", *Path::cwd());
+	fs_chdir( fs_dirname(fs_executable()) );
+	F_LOG("设置工作目录,%s", *fs_cwd());
 	
 	FileSearch* search = FileSearch::shared();
 	search->add_search_path("res/test");

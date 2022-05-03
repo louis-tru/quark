@@ -85,7 +85,7 @@ namespace flare {
 					cChar* path = first->GetText();
 					if ( path ) {
 						system_first_font_family_name = 
-							find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
+							find_font_family_by_path(fs_format("%s/%s", *system_fonts_dir, path));
 					}
 				}
 				// set second
@@ -110,7 +110,7 @@ namespace flare {
 								cChar* path = first->GetText();
 								if ( path ) {
 									system_second_font_family_name = 
-										find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
+										find_font_family_by_path(fs_format("%s/%s", *system_fonts_dir, path));
 								}
 							}
 							break;
@@ -130,7 +130,7 @@ namespace flare {
 	*/
 	static bool get_system_font_family_cache() {
 		
-		String path = Path::temp(fx_font_family_list);
+		String path = fs_temp(fx_font_family_list);
 		
 		if ( !FileHelper::exists_sync(path) ) { // 这个文件不存在
 			return false;
@@ -317,7 +317,7 @@ namespace flare {
 		json["font_familys"] = font_familys;
 		String json_str = JSON::stringify( json );
 		String data = String::format( "%s\n%s", *hash(json_str), *json_str );
-		FileHelper::write_file_sync(Path::temp(fx_font_family_list), data); // 写入文件
+		FileHelper::write_file_sync(fs_temp(fx_font_family_list), data); // 写入文件
 		
 		return *system_font_family_list;
 	}

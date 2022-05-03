@@ -680,7 +680,7 @@ class WrapNativeHttpClientRequest: public WrapObject {
  */
 class NativeHttp {
 	public:
-	typedef HttpHelper::RequestOptions RequestOptions;
+	typedef http_RequestOptions RequestOptions;
 
 	static bool get_options(Worker* worker, Local<JSValue> arg, RequestOptions& opt) {
 		JS_HANDLE_SCOPE();
@@ -776,9 +776,9 @@ class NativeHttp {
 
 		JS_TRY_CATCH({
 			if ( stream ) {
-				rev = HttpHelper::request_stream(opt, cb);
+				rev = http_request_stream(opt, cb);
 			} else {
-				rev = HttpHelper::request(opt, cb);
+				rev = http_request(opt, cb);
 			}
 		}, HttpError);
 		
@@ -835,7 +835,7 @@ class NativeHttp {
 			return;
 		
 		JS_TRY_CATCH({
-			JS_RETURN( HttpHelper::request_sync(opt) );
+			JS_RETURN( http_request_sync(opt) );
 		}, HttpError);
 	}
 
@@ -851,7 +851,7 @@ class NativeHttp {
 				"* @arg id {uint} abort id\n"
 			);
 		}
-		HttpHelper::abort( args[0]->ToUint32Value(worker) );
+		http_abort( args[0]->ToUint32Value(worker) );
 	}
 
 	/**
@@ -860,7 +860,7 @@ class NativeHttp {
 	 */
 	static void user_agent(FunctionCall args) {
 		JS_WORKER(args);
-		JS_RETURN( HttpHelper::user_agent() );
+		JS_RETURN( http_user_agent() );
 	}
 
 	/**
@@ -872,7 +872,7 @@ class NativeHttp {
 		if (args.Length() == 0 || ! args[0]->IsString(worker)) {
 			JS_THROW_ERR("Bad argument");
 		}
-		HttpHelper::set_user_agent( args[0]->ToStringValue(worker) );
+		http_set_user_agent( args[0]->ToStringValue(worker) );
 	}
 
 	/**
@@ -881,7 +881,7 @@ class NativeHttp {
 	 */
 	static void cache_path(FunctionCall args) {
 		JS_WORKER(args);
-		JS_RETURN( HttpHelper::cache_path() );
+		JS_RETURN( http_cache_path() );
 	}
 
 	/**
@@ -896,21 +896,21 @@ class NativeHttp {
 				"* @arg path {String}\n"
 			);
 		}
-		HttpHelper::set_cache_path( args[0]->ToStringValue(worker) );
+		http_set_cache_path( args[0]->ToStringValue(worker) );
 	}
 
 	/**
 	 * @func clear_cache()
 	 */
 	static void clear_cache(FunctionCall args) {
-		HttpHelper::clear_cache();
+		http_clear_cache();
 	}
 
 	/**
 	 * @func clear_cookie()
 	 */
 	static void clear_cookie(FunctionCall args) {
-		HttpHelper::clear_cookie();
+		http_clear_cookie();
 	}
 
 	// /**
@@ -919,7 +919,7 @@ class NativeHttp {
 	//  */
 	// static void ssl_cacert_file(FunctionCall args) {
 	// 	JS_WORKER(args);
-	// 	JS_RETURN( HttpHelper::ssl_cacert_file() );
+	// 	JS_RETURN( http_ssl_cacert_file() );
 	// }
 	// 
 	//  /**
@@ -934,7 +934,7 @@ class NativeHttp {
 	//        "* @arg path {String}\n"
 	//      );
 	//    }
-	//    HttpHelper::set_ssl_cacert_file( args[0]->ToStringValue(worker) );
+	//    http_set_ssl_cacert_file( args[0]->ToStringValue(worker) );
 	//  }
 	//
 	//  /**
@@ -949,7 +949,7 @@ class NativeHttp {
 	//        "* @arg path {String}\n"
 	//      );
 	//    }
-	//    HttpHelper::set_ssl_client_key_file( args[0]->ToStringValue(worker) );
+	//    http_set_ssl_client_key_file( args[0]->ToStringValue(worker) );
 	//  }
 	//
 	//  /**
@@ -964,7 +964,7 @@ class NativeHttp {
 	//        "* @arg password {String}\n"
 	//      );
 	//    }
-	//    HttpHelper::set_ssl_client_keypasswd( args[0]->ToStringValue(worker) );
+	//    http_set_ssl_client_keypasswd( args[0]->ToStringValue(worker) );
 	//  }
 
 	static void binding(Local<JSObject> exports, Worker* worker) {

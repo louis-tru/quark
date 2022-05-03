@@ -36,13 +36,13 @@
 namespace flare {
 
 #if F_WIN
-		const uint32_t FileHelper::default_mode(0);
+	const uint32_t fs_default_mode = 0;
 #else
-		const uint32_t FileHelper::default_mode([]() {
-			uint32_t mask = umask(0);
-			umask(mask);
-			return 0777 & ~mask;
-		}());
+	const uint32_t fs_default_mode([]() {
+		uint32_t mask = umask(0);
+		umask(mask);
+		return 0777 & ~mask;
+	}());
 #endif
 
 	F_DEFINE_INLINE_MEMBERS(FileStat, Inl) {
@@ -59,10 +59,8 @@ namespace flare {
 		Inl_FileStat(stat)->set__stat(uv_stat);
 	}
 
-	Dirent::Dirent(cString& n, cString& p, FileType t): name(n), pathname(p), type(t) {}
-
 	FileStat::FileStat(): _stat(nullptr) {}
-	FileStat::FileStat(cString& path): FileStat(FileHelper::stat_sync(path)) {}
+	FileStat::FileStat(cString& path): FileStat(fs_stat_sync(path)) {}
 	FileStat::FileStat(FileStat&& stat): _stat(stat._stat) {
 		stat._stat = nullptr;
 	}
@@ -164,30 +162,32 @@ namespace flare {
 		}
 	}
 
-	File::~File() {
+	FileSync::FileSync(cString& path): _path(path), _fd(0) {}
+
+	FileSync::~FileSync() {
 		close();
 	}
 
-	bool File::is_open() {
+	bool FileSync::is_open() {
 		return _fd;
 	}
 
-	int File::open(int flag) {
+	int FileSync::open(int flag) {
 		if ( _fd ) { // 文件已经打开
 			F_WARN("file already open" );
 			return 0;
 		}
 		uv_fs_t req;
 		_fd = uv_fs_open(uv_default_loop(), &req,
-											Path::fallback_c(_path),
-											inl__file_flag_mask(flag), FileHelper::default_mode, nullptr);
+											fs_fallback_c(_path),
+											inl__file_flag_mask(flag), fs_default_mode, nullptr);
 		if ( _fd > 0 ) {
 			return 0;
 		}
 		return _fd;
 	}
 
-	int File::close() {
+	int FileSync::close() {
 		if ( !_fd ) return 0;
 		uv_fs_t req;
 		int r = uv_fs_close(uv_default_loop(), &req, _fd, nullptr);
@@ -197,7 +197,7 @@ namespace flare {
 		return r;
 	}
 
-	int File::read(void* buffer, int64_t size, int64_t offset) {
+	int FileSync::read(void* buffer, int64_t size, int64_t offset) {
 		uv_fs_t req;
 		uv_buf_t buf;
 		buf.base = (Char*)buffer;
@@ -205,7 +205,7 @@ namespace flare {
 		return uv_fs_read(uv_default_loop(), &req, _fd, &buf, 1, offset, nullptr);
 	}
 
-	int File::write(const void* buffer, int64_t size, int64_t offset) {
+	int FileSync::write(const void* buffer, int64_t size, int64_t offset) {
 		uv_fs_t req;
 		uv_buf_t buf;
 		buf.base = (Char*)buffer;
@@ -221,17 +221,17 @@ namespace flare {
 		int mark;
 	};
 
-	typedef UVRequestWrap<uv_fs_t, AsyncFile::Inl> FileReq;
-	typedef UVRequestWrap<uv_fs_t, AsyncFile::Inl, FileStreamData> FileStreamReq;
+	typedef UVRequestWrap<uv_fs_t, File::Inl> FileReq;
+	typedef UVRequestWrap<uv_fs_t, File::Inl, FileStreamData> FileStreamReq;
 
-	class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
+	class File::Inl: public Reference, public File::Delegate {
 	public:
-		typedef AsyncFile::Delegate Delegate;
-		virtual void trigger_async_file_open(AsyncFile* file) { }
-		virtual void trigger_async_file_close(AsyncFile* file) { }
-		virtual void trigger_async_file_error(AsyncFile* file, const Error& error) { }
-		virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) { }
-		virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) { }
+		typedef File::Delegate Delegate;
+		virtual void trigger_file_open(File* file) { }
+		virtual void trigger_file_close(File* file) { }
+		virtual void trigger_file_error(File* file, const Error& error) { }
+		virtual void trigger_file_read(File* file, Buffer buffer, int mark) { }
+		virtual void trigger_file_write(File* file, Buffer buffer, int mark) { }
 
 		void set_delegate(Delegate* delegate) {
 			if ( delegate ) {
@@ -241,11 +241,11 @@ namespace flare {
 			}
 		}
 		
-		Inl(AsyncFile* host, cString& path, RunLoop* loop)
+		Inl(File* host, cString& path, RunLoop* loop)
 		: _path(path)
 		, _fd(0)
 		, _opening(false)
-		, _keep(loop->keep_alive("AsyncFile::Inl", false))
+		, _keep(loop->keep_alive("File::Inl", false))
 		, _delegate(nullptr)
 		, _host(host)
 		{
@@ -279,8 +279,8 @@ namespace flare {
 			_opening = true;
 			auto req = new FileReq(this);
 			uv_fs_open(uv_loop(), req->req(),
-								 Path::fallback_c(_path),
-								 inl__file_flag_mask(flag), FileHelper::default_mode, &Inl::fs_open_cb);
+								 fs_fallback_c(_path),
+								 inl__file_flag_mask(flag), fs_default_mode, &Inl::fs_open_cb);
 		}
 		
 		void close() {
@@ -288,7 +288,7 @@ namespace flare {
 				int fp = _fd;
 				_fd = 0;
 				auto req = new FileReq(this);
-				uv_fs_close(uv_loop(), req->req(), fp, &AsyncFile::Inl::fs_close_cb);
+				uv_fs_close(uv_loop(), req->req(), fp, &File::Inl::fs_close_cb);
 			}
 			else {
 				Error e(ERR_FILE_NOT_OPEN, "File not open");
@@ -336,14 +336,14 @@ namespace flare {
 		}
 			
 		void fs_error_cb(CbData& evt) {
-			_delegate->trigger_async_file_error(_host, *evt.error);
+			_delegate->trigger_file_error(_host, *evt.error);
 		}
 		
 		static inline Delegate* del(Object* ctx) {
 			return static_cast<FileReq*>(ctx)->ctx()->_delegate;
 		}
 		
-		static inline AsyncFile* host(Object* ctx) {
+		static inline File* host(Object* ctx) {
 			return static_cast<FileReq*>(ctx)->ctx()->_host;
 		}
 
@@ -358,15 +358,15 @@ namespace flare {
 					uv_fs_t close_req;
 					uv_fs_close(uv_req->loop, &close_req, (uv_file)uv_req->result, nullptr); // sync
 					Error err(ERR_FILE_ALREADY_OPEN, "file already open");
-					del(req)->trigger_async_file_error(host(req), err);
+					del(req)->trigger_file_error(host(req), err);
 				} else {
 					req->ctx()->_fd = (int)uv_req->result;
-					del(req)->trigger_async_file_open(host(req));
+					del(req)->trigger_file_open(host(req));
 				}
 			} else {
 				Error err((int)uv_req->result, "%s, %s",
 									uv_err_name((int)uv_req->result), uv_strerror((int)uv_req->result));
-				del(req)->trigger_async_file_error(host(req), err);
+				del(req)->trigger_file_error(host(req), err);
 			}
 		}
 		
@@ -376,11 +376,11 @@ namespace flare {
 			Handle<FileReq> handle(req);
 			if ( uv_req->result == 0 ) { // ok
 				// ctx->ctx()->_fd = 0;
-				del(req)->trigger_async_file_close(host(req));
+				del(req)->trigger_file_close(host(req));
 			} else {
 				Error err((int)uv_req->result, "%s, %s",
 									uv_err_name((int)uv_req->result), uv_strerror((int)uv_req->result));
-				del(req)->trigger_async_file_error(host(req), err);
+				del(req)->trigger_file_error(host(req), err);
 			}
 			req->ctx()->clear_writeing();
 		}
@@ -392,10 +392,10 @@ namespace flare {
 			if ( uv_req->result < 0 ) {
 				Error err((int)uv_req->result, "%s, %s",
 									uv_err_name((int)uv_req->result), uv_strerror((int)uv_req->result));
-				del(req)->trigger_async_file_error(host(req), err);
+				del(req)->trigger_file_error(host(req), err);
 			} else {
 				req->data().buffer.realloc((uint32_t)uv_req->result);
-				del(req)->trigger_async_file_read(host(req),
+				del(req)->trigger_file_read(host(req),
 																					req->data().buffer,
 																					req->data().mark );
 			}
@@ -414,9 +414,9 @@ namespace flare {
 			if ( uv_req->result < 0 ) {
 				Error err((int)uv_req->result, "%s, %s",
 									uv_err_name((int)uv_req->result), uv_strerror((int)uv_req->result));
-				del(req)->trigger_async_file_error(host(req), err);
+				del(req)->trigger_file_error(host(req), err);
 			} else {
-				del(req)->trigger_async_file_write(host(req), req->data().buffer, req->data().mark);
+				del(req)->trigger_file_write(host(req), req->data().buffer, req->data().mark);
 			}
 		}
 
@@ -426,15 +426,15 @@ namespace flare {
 		bool        _opening;
 		KeepLoop*   _keep;
 		Delegate*   _delegate;
-		AsyncFile*  _host;
+		File*  _host;
 		List<FileStreamReq*> _writeing;
 	};
 
-	AsyncFile::AsyncFile(cString& path, RunLoop* loop)
-	: _inl(NewRetain<AsyncFile::Inl>(this, path, loop))
+	File::File(cString& path, RunLoop* loop)
+	: _inl(NewRetain<File::Inl>(this, path, loop))
 	{}
 
-	AsyncFile::~AsyncFile() {
+	File::~File() {
 		F_ASSERT(_inl->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
@@ -443,29 +443,29 @@ namespace flare {
 		_inl = nullptr;
 	}
 
-	String AsyncFile::path() const { return _inl->path(); }
+	String File::path() const { return _inl->path(); }
 
-	void AsyncFile::set_delegate(Delegate* delegate) {
+	void File::set_delegate(Delegate* delegate) {
 		_inl->set_delegate(delegate);
 	}
 
-	bool AsyncFile::is_open() {
+	bool File::is_open() {
 		return _inl->is_open();
 	}
 
-	void AsyncFile::open(int flag) {
+	void File::open(int flag) {
 		_inl->open(flag);
 	}
 
-	void AsyncFile::close() {
+	void File::close() {
 		_inl->close();
 	}
 
-	void AsyncFile::read(Buffer buffer, int64_t offset, int mark) {
+	void File::read(Buffer buffer, int64_t offset, int mark) {
 		_inl->read(buffer, offset, mark);
 	}
 
-	void AsyncFile::write(Buffer buffer, int64_t offset, int mark) {
+	void File::write(Buffer buffer, int64_t offset, int mark) {
 		_inl->write(buffer, offset, mark);
 	}
 

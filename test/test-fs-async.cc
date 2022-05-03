@@ -42,7 +42,7 @@ class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
 	
 	virtual ~AsyncFileRead() {
 		F_LOG("Delete");
-		FileHelper::read_file(Path::resources("res/bg.svg"), Cb([](CbData& evt) {
+		fs_read_file(fs_resources("res/bg.svg"), Cb([](CbData& evt) {
 			if ( evt.error ) {
 				F_LOG("ERR, %s", evt.error->message().c_str());
 			} else {
@@ -113,6 +113,6 @@ class AsyncFileWrite: public AsyncFile, public AsyncFile::Delegate {
 };
 
 void test_file_async(int argc, char **argv) {
-	New<AsyncFileWrite>(Path::documents("test2.txt"))->open(FOPEN_A);
+	New<AsyncFileWrite>(fs_documents("test2.txt"))->open(FOPEN_A);
 	RunLoop::current()->run();
 }

@@ -58,9 +58,10 @@ namespace flare {
 			virtual void trigger_socket_timeout(Socket* socket) = 0;
 		};
 		
-		Socket(cString& hostname, uint16_t  port, RunLoop* loop = RunLoop::current());
+		Socket(cString& hostname, uint16_t port, RunLoop* loop = RunLoop::current());
+
 		virtual ~Socket();
-		
+
 		/**
 		* @func try open content
 		*/
@@ -91,19 +92,18 @@ namespace flare {
 		/**
 		* @func set_delegate()
 		*/
-		virtual void set_delegate(Delegate* delegate);
-		virtual void close();
-		virtual bool is_open();
-		virtual bool is_pause();
-		virtual void pause();
-		virtual void resume();
-		virtual void write(Buffer buffer, int mark = 0);
+		void set_delegate(Delegate* delegate);
+		
+		void close();
+		bool is_open();
+		bool is_pause();
+		void pause();
+		void resume();
+		void write(Buffer buffer, int mark = 0);
 
 		F_DEFINE_INLINE_CLASS(Inl);
-
 	protected:
 		Socket();
-
 		Inl* _inl;
 	};
 
@@ -113,7 +113,7 @@ namespace flare {
 	class F_EXPORT SSLSocket: public Socket {
 	public:
 		
-		SSLSocket(cString& hostname, uint16_t  port, RunLoop* loop = RunLoop::current());
+		SSLSocket(cString& hostname, uint16_t port, RunLoop* loop = RunLoop::current());
 		
 		/**
 		* @func disable_ssl_verify

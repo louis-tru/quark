@@ -45,7 +45,7 @@ void draw_skia(SkCanvas* canvas) {
 	SkCanvas offcanvas(bitmapCircle);
 	//offcanvas.clear(0xff00ff00);
 	paint.setColor(0xffff0000);
-	SkPath oval = SkPath::Oval(SkRect::MakeWH(320, 320)/*, SkPathDirection::kCCW*/);
+	SkPath oval = Skfs_Oval(SkRect::MakeWH(320, 320)/*, SkPathDirection::kCCW*/);
 	
 	Array<uint8_t> verbs(oval.countVerbs());
 	oval.getVerbs(&verbs[0], verbs.length());

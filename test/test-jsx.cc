@@ -73,11 +73,11 @@ int test_jsx(int argc, char* argv[]) {
 	String target = argv[2];
 #endif
 	
-	if ( ! FileHelper::exists_sync(src) ) {
+	if ( ! fs_exists_sync(src) ) {
 		error("Bad argument. cannot find %s", *src);
 	}
 	
-	String extname = Path::extname(src).lower_case();
+	String extname = fs_extname(src).lower_case();
 		
 	String2 in;
 	Buffer out;
@@ -89,7 +89,7 @@ int test_jsx(int argc, char* argv[]) {
 		}
 	}
 	
-	in = Codec::decode_to_uint16(Encoding::utf8, FileHelper::read_file_sync(src));
+	in = Codec::decode_to_uint16(Encoding::utf8, fs_read_file_sync(src));
 	
 	int r = 0;
 		
@@ -102,7 +102,7 @@ int test_jsx(int argc, char* argv[]) {
 	}
 	
 	if ( r == 0 ) {
-		FileHelper::write_file_sync(target, std::move(out));
+		fs_write_file_sync(target, std::move(out));
 	}
 
 	return r;

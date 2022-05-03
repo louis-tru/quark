@@ -71,15 +71,15 @@ namespace flare {
 		}
 	}
 
-	String Path::basename(cString& path) {
+	String fs_basename(cString& path) {
 		return split_path(path, true);
 	}
 
-	String Path::dirname(cString& path) {
+	String fs_dirname(cString& path) {
 		return split_path(path, false);
 	}
 
-	String Path::extname(cString& path) {
+	String fs_extname(cString& path) {
 		String s = split_path(path, true);
 		int index = s.last_index_of(".");
 		if (index != -1) {
@@ -88,7 +88,7 @@ namespace flare {
 		return String();
 	}
 
-	String Path::cwd() {
+	String fs_cwd() {
 #if F_WIN
 			Char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/', '/' };
 			_getcwd(cwd + 8, 1024);
@@ -103,7 +103,7 @@ namespace flare {
 #endif
 	}
 
-	bool Path::chdir(cString& path) {
+	bool fs_chdir(cString& path) {
 		String str = format("%s", path.c_str());
 #if F_WIN
 			return _chdir(str.substr(8).c_str()) == 0;
@@ -114,7 +114,7 @@ namespace flare {
 
 	static cString Chars("ABCDEFGHIJKMLNOPQRSTUVWXYZabcdefghijkmlnopqrstuvwxyz");
 
-	bool Path::is_local_absolute(cString& path) {
+	bool fs_is_local_absolute(cString& path) {
 #if F_WIN
 			if (Chars.index_of(s[0]) != -1 && path[1] == ':') {
 				return true;
@@ -130,7 +130,7 @@ namespace flare {
 		return false;
 	}
 
-	bool Path::is_local_zip(cString& path) {
+	bool fs_is_local_zip(cString& path) {
 		if (
 				(path[0] == 'z' || path[0] == 'Z') &&
 				(path[1] == 'i' || path[1] == 'I') &&
@@ -144,7 +144,7 @@ namespace flare {
 		return false;
 	}
 
-	bool Path::is_local_file(cString& path) {
+	bool fs_is_local_file(cString& path) {
 		if (
 				(path[0] == 'f' || path[0] == 'F') &&
 				(path[1] == 'i' || path[1] == 'I') &&
@@ -191,7 +191,7 @@ namespace flare {
 		return s;
 	}
 
-	String Path::format(cString& path) {
+	String fs_format(cString& path) {
 		String s = path.copy();
 		
 #if F_WIN
@@ -274,7 +274,7 @@ namespace flare {
 		return prefix.append( s );
 	}
 
-	String Path::format(cChar* path, ...) {
+	String fs_format(cChar* path, ...) {
 		va_list arg;
 		va_start(arg, path);
 		String str = string_format(path, arg);
@@ -284,28 +284,28 @@ namespace flare {
 
 	int fallback_indexOf(cString& path) {
 #if F_WIN
-			if ( Path::is_local_zip(path) ) {
+			if ( fs_is_local_zip(path) ) {
 				return 7;
 			}
-			else if ( Path::is_local_file(path) ) {
+			else if ( fs_is_local_file(path) ) {
 				return 8;
 			}
 #else
-			if ( Path::is_local_zip(path) ) {
+			if ( fs_is_local_zip(path) ) {
 				return 6;
 			}
-			else if ( Path::is_local_file(path) ) {
+			else if ( fs_is_local_file(path) ) {
 				return 7;
 			}
 #endif
 		return 0;
 	}
 
-	String Path::fallback(cString& path) {
+	String fs_fallback(cString& path) {
 		return path.substr(fallback_indexOf(path));
 	}
 
-	cChar* Path::fallback_c(cString& path) {
+	cChar* fs_fallback_c(cString& path) {
 		return path.c_str() + fallback_indexOf(path);
 	}
 

@@ -58,9 +58,9 @@ static X509_STORE* root_cert_store = nullptr;
 static void init_root_cert() {
 	root_cert_store = X509_STORE_new();
 	
-	String cacert = Path::resources("cacert.pem");
+	String cacert = fs_resources("cacert.pem");
 	
-	X509_STORE_load_locations(root_cert_store, Path::fallback_c(cacert), nullptr);
+	X509_STORE_load_locations(root_cert_store, fs_fallback_c(cacert), nullptr);
 	
 }
 

@@ -154,7 +154,7 @@ Cb get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
 				f->Call(worker, 1, &arg);
 			} else {
-				HttpHelper::ResponseData* data = static_cast<HttpHelper::ResponseData*>(d.data);
+				http_ResponseData* data = static_cast<http_ResponseData*>(d.data);
 				Local<JSObject> arg = worker->NewObject();
 				arg->Set(worker, worker->strs()->data(), worker->New(data->data) );
 				arg->Set(worker, worker->strs()->httpVersion(), worker->New(data->http_version) );

@@ -52,7 +52,7 @@ namespace flare {
 	typedef Dict<String, String> Map;
 
 	static String get_db_filename() {
-		return Path::temp(".cookie.dp");
+		return fs_temp(".cookie.dp");
 	}
 
 	static void http_cookie_close() {
@@ -89,7 +89,7 @@ namespace flare {
 
 	static void http_cookie_open() {
 		if ( _db == nullptr ) {
-			int r = bp_open(&_db, Path::fallback_c(get_db_filename()));
+			int r = bp_open(&_db, fs_fallback_c(get_db_filename()));
 			if ( r == BP_OK ) {
 				bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
 				if (_has_initialize++ == 0) {
@@ -168,7 +168,26 @@ namespace flare {
 		return r;
 	}
 
-	String HttpHelper::get_cookie(cString& domain, cString& name, cString& path, bool secure) {
+	static void http_cookie_set2(String& _key, cString& value, int64_t expires)
+	{
+		int r;
+
+		JSON json = JSON::array();
+		json[0] = expires;
+		json[1] = _http_cookie_date;
+		json[2] = value;
+
+		String _val = JSON::stringify(json);
+		// F_LOG("---- %s, %d", *_val, _val.length());
+
+		bp_key_t key = { _key.length(), (Char*)*_key };
+		bp_value_t val = { _val.length(), (Char*)*_val };
+
+		r = bp_set(_db, &key, &val);
+		assert_r(r);
+	}
+
+	String http_get_cookie(cString& domain, cString& name, cString& path, bool secure) {
 		http_cookie_open();
 
 		if ( _db ) {
@@ -193,26 +212,7 @@ namespace flare {
 		return String();
 	}
 
-	static void http_cookie_set2(String& _key, cString& value, int64_t expires)
-	{
-		int r;
-
-		JSON json = JSON::array();
-		json[0] = expires;
-		json[1] = _http_cookie_date;
-		json[2] = value;
-
-		String _val = JSON::stringify(json);
-		// F_LOG("---- %s, %d", *_val, _val.length());
-
-		bp_key_t key = { _key.length(), (Char*)*_key };
-		bp_value_t val = { _val.length(), (Char*)*_val };
-
-		r = bp_set(_db, &key, &val);
-		assert_r(r);
-	}
-
-	void HttpHelper::set_cookie_with_expression(cString& domain, cString& expression)
+	void http_set_cookie_with_expression(cString& domain, cString& expression)
 	{
 		//Set-Cookie: BAIDU_WISE_UID=bd_1491295526_455; expires=Thu, 04-Apr-2019 08:45:26 GMT; path=/; domain=baidu.com
 		//Set-Cookie: BAIDUID=C9DD3739AD81A91137099489A6DA4C2F:FG=1; expires=Wed, 04-Apr-18 08:45:27 GMT; max-age=31536000; path=/; domain=.baidu.com; version=1
@@ -280,9 +280,8 @@ namespace flare {
 		}
 	}
 
-	void HttpHelper::set_cookie(cString& domain,
-															cString& name,
-															cString& value, int64_t expires, cString& path, bool secure)
+	void http_set_cookie(cString& domain, cString& name,
+											cString& value, int64_t expires, cString& path, bool secure)
 	{
 		http_cookie_open();
 		if ( _db ) {
@@ -291,7 +290,7 @@ namespace flare {
 		}
 	}
 
-	void HttpHelper::delete_cookie(cString& domain, cString& name, cString& path, bool secure) {
+	void http_delete_cookie(cString& domain, cString& name, cString& path, bool secure) {
 		http_cookie_open();
 		if ( _db ) {
 			int r;
@@ -302,7 +301,7 @@ namespace flare {
 		}
 	}
 
-	String HttpHelper::get_all_cookie_string(cString& domain, cString& path, bool secure) {
+	String http_get_all_cookie_string(cString& domain, cString& path, bool secure) {
 		Map all = get_all_cookie(domain, path, secure);
 		if (all.length()) {
 			Array<String> result;
@@ -314,10 +313,10 @@ namespace flare {
 		return String();
 	}
 
-	Map HttpHelper::get_all_cookie(cString& domain, cString& path, bool secure) {
+	DictSS http_get_all_cookie(cString& domain, cString& path, bool secure) {
 		ScopeLock scope(mutex);
 		http_cookie_open();
-		Map result;
+		DictSS result;
 
 		if ( _db ) {
 			Buffer buf[2];
@@ -328,7 +327,7 @@ namespace flare {
 				bp_key_t end = { buf[1].length(), *buf[1] };
 
 				struct tmp_data_t {
-					Map *result;
+					DictSS *result;
 					String path;
 				} _tmp = { &result, path.is_empty() ? String('/'): String(path) };
 
@@ -371,7 +370,7 @@ namespace flare {
 		return result;
 	}
 
-	void HttpHelper::delete_all_cookie(cString& domain, bool secure) {
+	void http_delete_all_cookie(cString& domain, bool secure) {
 		ScopeLock scope(mutex);
 		http_cookie_open();
 		if ( _db ) {
@@ -407,14 +406,14 @@ namespace flare {
 		}
 	}
 
-	void HttpHelper::clear_cookie() {
+	void http_clear_cookie() {
 		if ( !_db ) {
-			if (FileHelper::is_file_sync(get_db_filename())) {
-				FileHelper::unlink_sync(get_db_filename());
+			if (fs_is_file_sync(get_db_filename())) {
+				fs_unlink_sync(get_db_filename());
 			}
 		} else {
 			http_cookie_close();
-			FileHelper::unlink_sync(get_db_filename());
+			fs_unlink_sync(get_db_filename());
 		}
 	}
 

@@ -60,7 +60,7 @@ class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
 	}
 	virtual void trigger_http_end(HttpClientRequest* req) {
 		F_LOG("http_end, status: %d, %s", status_code(), url().c_str());
-		// LOG( FileHelper::read_file_sync(Path::documents("http.cc")) );
+		// LOG( fs_read_file_sync(fs_documents("http.cc")) );
 		release();
 		//RunLoop::current()->stop();
 	}
@@ -88,7 +88,7 @@ void test_http2(int argc, char **argv) {
 	//cli->set_keep_alive(false);
 	//req->disable_cache(true);
 	//req->disable_cookie(true);
-	//req->set_save_path(Path::documents("http.cc"));
+	//req->set_save_path(fs_documents("http.cc"));
 	cli->send();
 	
 	RunLoop::current()->run();
