@@ -54,14 +54,14 @@ namespace flare {
 	static bool each_sync(Array<Dirent>& ls, Cb cb, bool internal) throw(Error) {
 		for ( auto& dirent : ls ) {
 			if ( !internal ) { // 外部优先
-				CbData d = {0,&dirent,1};
+				CbData d = {0, &dirent,1};
 				cb->call(d);
 				if ( !d.rc ) { // 停止遍历
 					return false;
 				}
 			}
-			if ( dirent.type == FTYPE_DIR ) { // 目录
-				auto ls = fs_readdir_sync(dirent.pathname);
+			if ( dirent.type() == FTYPE_DIR ) { // 目录
+				auto ls = fs_readdir_sync(dirent.pathname());
 				if ( !each_sync(ls, cb, internal) ) { // 停止遍历
 					return false;
 				}
@@ -307,15 +307,15 @@ namespace flare {
 		
 		uv_fs_t req;
 		
-		return each_sync(path, Cb([&](CbData& d) {
+		return fs_each_sync(path, Cb([&](CbData& d) {
 			if ( *stop_signal ) { // 停止信号
 				d.rc = false;
 			} else {
 				Dirent* dirent = static_cast<Dirent*>(d.data);
 				int r = uv_fs_chmod(uv_default_loop(), &req,
-														fs_fallback_c(dirent->pathname), mode, nullptr);
+														fs_fallback_c(dirent->pathname()), mode, nullptr);
 				if (r != 0) {
-					uv_error(r, *dirent->pathname);
+					uv_error(r, *dirent->pathname());
 				}
 				d.rc = 1;
 			}
@@ -329,15 +329,15 @@ namespace flare {
 		}
 		uv_fs_t req;
 		
-		return each_sync(path, Cb([&](CbData& d) {
+		return fs_each_sync(path, Cb([&](CbData& d) {
 			if (*stop_signal) { // 停止信号
 				d.rc = 0;
 			} else {
 				Dirent* dirent = static_cast<Dirent*>(d.data);
 				int r = uv_fs_chown(uv_default_loop(), &req,
-														fs_fallback_c(dirent->pathname), owner, group, nullptr);
+														fs_fallback_c(dirent->pathname()), owner, group, nullptr);
 				if (r != 0) {
-					uv_error(r, *dirent->pathname);
+					uv_error(r, *dirent->pathname());
 				}
 				d.rc = 1;
 			}
@@ -356,15 +356,15 @@ namespace flare {
 				d.rc = 0;
 			} else {
 				Dirent* dirent = static_cast<Dirent*>(d.data);
-				cChar* p = fs_fallback_c(dirent->pathname);
+				cChar* p = fs_fallback_c(dirent->pathname());
 				int r;
-				if ( dirent->type == FTYPE_DIR ) {
+				if ( dirent->type() == FTYPE_DIR ) {
 					r = uv_fs_rmdir(uv_default_loop(), &req, p, nullptr);
 				} else {
 					r = uv_fs_unlink(uv_default_loop(), &req, p, nullptr);
 				}
 				if (r != 0) {
-					uv_error(r, *dirent->pathname);
+					uv_error(r, *dirent->pathname());
 				}
 				d.rc = 1;
 			}
@@ -373,8 +373,8 @@ namespace flare {
 
 	static bool cp_sync2(cString& source, cString& target, bool* stop_signal) throw(Error) {
 		
-		File source_file(source);
-		File target_file(target);
+		FileSync source_file(source);
+		FileSync target_file(target);
 		int r;
 		r = source_file.open(FOPEN_R);
 		if (r) {
@@ -413,7 +413,7 @@ namespace flare {
 
 	bool fs_copy_r_sync(cString& source, cString& target, bool* stop_signal) throw(Error) {
 		
-		if ( !is_directory_sync(fs_dirname(target)) ) { // 没有父目录,无法复制
+		if ( !fs_is_directory_sync(fs_dirname(target)) ) { // 没有父目录,无法复制
 			return false;
 		}
 		
@@ -424,18 +424,18 @@ namespace flare {
 		uint32_t s_len = fs_format("%s", *source).length();
 		String path = fs_format("%s", *target);
 		
-		return each_sync(source, Cb([&](CbData& d) {
+		return fs_each_sync(source, Cb([&](CbData& d) {
 			
 			Dirent* dirent = static_cast<Dirent*>(d.data);
-			String target = path + dirent->pathname.substr(s_len); // 目标文件
+			String target = path + dirent->pathname().substr(s_len); // 目标文件
 
-			switch (dirent->type) {
+			switch (dirent->type()) {
 				case FTYPE_DIR:
-					mkdir_sync(target); /* create dir */
+					fs_mkdir_sync(target); /* create dir */
 					d.rc = 1;
 					break;
 				case FTYPE_FILE:
-					d.rc = cp_sync2(dirent->pathname, target, stop_signal);
+					d.rc = cp_sync2(dirent->pathname(), target, stop_signal);
 					break;
 				default: break;
 			}
@@ -455,7 +455,7 @@ namespace flare {
 
 		Buffer buff;
 		uv_fs_t req;
-		int fp = open_sync(path, O_RDONLY);
+		int fp = fs_open_sync(path, O_RDONLY);
 		int r = 0;
 
 		while (1) {
@@ -483,7 +483,7 @@ namespace flare {
 		}
 		
 		if ( fp > 0 ) {
-			close_sync(fp);
+			fs_close_sync(fp);
 		}
 
 		if ( r < 0 ) {
@@ -496,12 +496,12 @@ namespace flare {
 	// write file
 
 	int fs_write_file_sync(cString& path, cString& str) throw(Error) {
-		return write_file_sync(path, *str, str.length() );
+		return fs_write_file_sync(path, *str, str.length() );
 	}
 	
 	int fs_write_file_sync(cString& path, const void* buffer, int64_t size) throw(Error) {
 		uv_fs_t req;
-		int fp = open_sync(path, O_WRONLY | O_CREAT | O_TRUNC);
+		int fp = fs_open_sync(path, O_WRONLY | O_CREAT | O_TRUNC);
 		uv_buf_t buf;
 		buf.base = (Char*)buffer;
 		buf.len = size < 0 ? 0 : size;
@@ -515,7 +515,7 @@ namespace flare {
 		uv_fs_t req;
 		int fp = uv_fs_open(uv_default_loop(), &req,
 												fs_fallback_c(path),
-												inl__file_flag_mask(flag), default_mode, nullptr);
+												inl__file_flag_mask(flag), fs_default_mode, nullptr);
 		if ( fp < 0 ) {
 			uv_error(fp, *path);
 		}

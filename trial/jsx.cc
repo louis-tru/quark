@@ -2526,7 +2526,7 @@ namespace flare {
 				} else { // import 'test_gui.jsx';   ---->>>>    import * as test_gui from 'test_gui.jsx';
 					// find identifier
 					String2 path = str.substr(1, str.length() - 2).trim();
-					String basename = Path::basename(path.to_string());
+					String basename = fs_basename(path.to_string());
 					int i = basename.last_index_of('.');
 					if (i != -1) {
 						basename = basename.substr(0, i);

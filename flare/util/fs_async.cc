@@ -365,9 +365,9 @@ namespace flare {
 				_dirent = &_last->dirents[_last->index];
 				
 				if ( _internal ) { // 内部优先
-					if ( _dirent->type == FTYPE_DIR && _last->mask == 0 ) { // 目录
+					if ( _dirent->type() == FTYPE_DIR && _last->mask == 0 ) { // 目录
 						_last->mask = 1;
-						into(_dirent->pathname);
+						into(_dirent->pathname());
 					} else {
 						_last->index++; //
 						_last->mask = 0;
@@ -375,7 +375,7 @@ namespace flare {
 					}
 				}
 				else {
-					if ( _dirent->type == FTYPE_DIR ) {
+					if ( _dirent->type() == FTYPE_DIR ) {
 						if ( _last->mask == 0 ) {
 							_last->mask = 1;
 							//sync_callback(_cb, nullptr, this);
@@ -383,7 +383,7 @@ namespace flare {
 						} else {
 							_last->index++;
 							_last->mask = 0;
-							into(_dirent->pathname);
+							into(_dirent->pathname());
 						}
 					} else {
 						_last->index++;
@@ -479,8 +479,8 @@ namespace flare {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain(); // chmod2 回调前都保持each不被释放
 			const Dirent& dirent = each->dirent();
-			String pathname = dirent.pathname;
-			chmod2(dirent.pathname, mode, Cb([each, cb, pathname](CbData& evt) {
+			String pathname = dirent.pathname();
+			chmod2(dirent.pathname(), mode, Cb([each, cb, pathname](CbData& evt) {
 				Handle<AsyncEach> handle(each);
 				each->release();
 				if ( !each->is_abort() ) {
@@ -504,7 +504,7 @@ namespace flare {
 		auto each = NewRetain<AsyncEach>(path, Cb([owner, group, cb](CbData& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain();
-			chown2(each->dirent().pathname, owner, group, Cb([each, cb](CbData& evt) {
+			chown2(each->dirent().pathname(), owner, group, Cb([each, cb](CbData& evt) {
 				Handle<AsyncEach> handle(each); each->release();
 				if ( !each->is_abort() ) {
 					if ( evt.error ) {
@@ -529,7 +529,7 @@ namespace flare {
 				async_callback(cb);
 			} else {
 				try {
-					mkdir_p_sync(path, mode);
+					fs_mkdir_p_sync(path, mode);
 				} catch(Error& err) {
 					async_callback(cb, &err);
 					return;
@@ -575,11 +575,11 @@ namespace flare {
 					}
 				}
 			});
-			if ( each->dirent().type == FTYPE_DIR ) {
+			if ( each->dirent().type() == FTYPE_DIR ) {
 				each->loop();
-				rmdir2(each->dirent().pathname, cb2, each->loop());
+				rmdir2(each->dirent().pathname(), cb2, each->loop());
 			} else {
-				unlink2(each->dirent().pathname, cb2, each->loop());
+				unlink2(each->dirent().pathname(), cb2, each->loop());
 			}
 		}), cb, true);
 		return each->start();
@@ -613,18 +613,18 @@ namespace flare {
 			}
 			
 			inline String target() {
-				return _path + dirent().pathname.substr(_s_len); // 目标文件
+				return _path + dirent().pathname().substr(_s_len); // 目标文件
 			}
 			
 			static void each_cb(CbData& d, Object* self) {
 				Task* t = static_cast<Task*>(self);
 				const Dirent& ent = t->dirent();
 				
-				switch (ent.type) {
+				switch (ent.type()) {
 					case FTYPE_DIR:
 						exists2(t->target(), Cb(&Task::is_directory_cb, t), t->loop()); break;
 					case FTYPE_FILE:
-						t->_copy_task = cp2(ent.pathname, t->target(), Cb([t](CbData& ev) {
+						t->_copy_task = cp2(ent.pathname(), t->target(), Cb([t](CbData& ev) {
 							t->_copy_task = nullptr;
 							if ( !t->is_abort() ) {
 								if ( ev.error ) {
@@ -654,7 +654,7 @@ namespace flare {
 						advance(); return;
 					}
 					/* create dir */
-					mkdir2(target(), default_mode, Cb([this](CbData& ev) {
+					mkdir2(target(), fs_default_mode, Cb([this](CbData& ev) {
 						if ( !is_abort() ) {
 							if ( ev.error ) {
 								error(ev);
@@ -1017,7 +1017,7 @@ namespace flare {
 			static void start(FileReq* req) {
 				uv_fs_open(req->uv_loop(), req->req(),
 									fs_fallback(req->data().path).c_str(),
-									O_WRONLY | O_CREAT | O_TRUNC, default_mode, &fs_open_cb);
+									O_WRONLY | O_CREAT | O_TRUNC, fs_default_mode, &fs_open_cb);
 			}
 			
 		};
@@ -1027,7 +1027,7 @@ namespace flare {
 	}
 
 	void fs_write_file(cString& path, cString& str, Cb cb) {
-		write_file(path, str.copy(), cb);
+		fs_write_file(path, str.copy(), cb);
 	}
 
 	// open/close file fd
@@ -1057,7 +1057,7 @@ namespace flare {
 									req->req(),
 									fs_fallback(data.path).c_str(),
 									inl__file_flag_mask(data.flag),
-									default_mode,
+									fs_default_mode,
 									&fs_open_cb);
 			}
 		};
@@ -1066,7 +1066,7 @@ namespace flare {
 	}
 
 	void fs_open(cString& path, Cb cb) {
-		open(path, FOPEN_R, cb);
+		fs_open(path, FOPEN_R, cb);
 	}
 
 	void fs_close(int fd, Cb cb) {
@@ -1097,7 +1097,7 @@ namespace flare {
 
 	// read with fd
 	void fs_read(int fd, Buffer buffer, Cb cb) {
-		read(fd, buffer, -1, cb);
+		fs_read(fd, buffer, -1, cb);
 	}
 
 	void fs_read(int fd, Buffer buffer, int64_t offset, Cb cb) {
@@ -1138,7 +1138,7 @@ namespace flare {
 	}
 
 	void fs_write(int fd, Buffer buffer, Cb cb) {
-		write(fd, buffer, -1, cb);
+		fs_write(fd, buffer, -1, cb);
 	}
 
 	void fs_write(int fd, Buffer buffer, int64_t offset, Cb cb) {

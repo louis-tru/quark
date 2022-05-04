@@ -72,16 +72,16 @@ namespace flare {
 	};
 
 	String FileSearch::SearchPath::get_absolute_path(cString& path) {
-		String p = Path::format("%s/%s", *m_path, *path);
-		if (FileHelper::exists_sync(p)) {
+		String p = fs_format("%s/%s", *m_path, *path);
+		if (fs_exists_sync(p)) {
 			return p;
 		}
 		return String();
 	}
 
 	Buffer FileSearch::SearchPath::read(cString& path) {
-		String p = Path::format("%s/%s", *m_path, *path);
-		return FileHelper::read_file_sync( p );
+		String p = fs_format("%s/%s", *m_path, *path);
+		return fs_read_file_sync( p );
 	}
 
 	String FileSearch::ZipInSearchPath::formatPath(cString& path1, cString& path2) {
@@ -123,9 +123,9 @@ namespace flare {
 
 	FileSearch::FileSearch() {
 		// 把资源目录加入进来
-		cString& res = Path::resources();
+		cString& res = fs_resources();
 		
-		if (Path::is_local_zip(res)) { // zip pkg
+		if (fs_is_local_zip(res)) { // zip pkg
 			int i = res.index_of("@/");
 			if (i != -1) {
 				add_zip_search_path(/*zip://*/res.substring(6, i), res.substr(i + 2));
@@ -135,7 +135,7 @@ namespace flare {
 				F_WARN("SEARCH", "Invalid path, %s", *res);
 			}
 		} else {
-			if (FileHelper::exists_sync(res)) {
+			if (fs_exists_sync(res)) {
 				add_search_path(res);
 			} else {
 				F_WARN("SEARCH", "Resource directory does not exists, %s", *res);
@@ -148,7 +148,7 @@ namespace flare {
 	}
 
 	void FileSearch::add_search_path(cString& path) {
-		String str = Path::format(*path);
+		String str = fs_format(*path);
 		
 		auto it = m_search_paths.begin();
 		auto end = m_search_paths.end();
@@ -166,7 +166,7 @@ namespace flare {
 	}
 
 	void FileSearch::add_zip_search_path(cString& zip_path, cString& path) {
-		String _zip_path = Path::format("%s", *zip_path);
+		String _zip_path = fs_format("%s", *zip_path);
 		String _path = path;
 #if F_WIN
 			_path = path.replace_all('\\', '/');
@@ -237,8 +237,8 @@ namespace flare {
 			return String();
 		}
 		
-		if (Path::is_local_absolute(path)) {
-			return FileHelper::exists_sync(path) ? Path::format(path.c_str()) : String();
+		if (fs_is_local_absolute(path)) {
+			return fs_exists_sync(path) ? fs_format(path.c_str()) : String();
 		}
 		
 		auto it = m_search_paths.begin();
@@ -284,8 +284,8 @@ namespace flare {
 			return Buffer();
 		}
 		
-		if (Path::is_local_absolute(path)) { // absolute path
-			return FileHelper::read_file_sync(path);
+		if (fs_is_local_absolute(path)) { // absolute path
+			return fs_read_file_sync(path);
 		}
 		else {
 			

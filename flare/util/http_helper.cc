@@ -38,8 +38,8 @@ namespace flare {
 
 	typedef Dict<String, String> Map;
 
-	static String http_cache_path = String();
-	static String http_user_agent = "Mozilla/5.0 flare " FLARE_VERSION " (KHTML, like Gecko)";
+	static String http_cache_path_ = String();
+	static String http_user_agent_ = "Mozilla/5.0 flare " FLARE_VERSION " (KHTML, like Gecko)";
 	// "Mozilla/5.0 (%s/%s) flare " FLARE_VERSION " (KHTML, like Gecko)";
 
 	HttpError::HttpError(int rc, cString& msg, uint32_t status, cString& url)
@@ -48,16 +48,13 @@ namespace flare {
 	HttpError::HttpError(const Error& err): Error(err), _status(0), _url()
 	{}
 
-	typedef http_RequestOptions RequestOptions;
-	typedef http_ResponseData ResponseData;
-	typedef http_Cb HCb;
 	typedef Callback<StreamResponse> SCb;
 
-	static uint32_t http_request(RequestOptions& options, HCb cb, SCb scb, bool stream) throw(HttpError) {
+	static uint32_t http_request(RequestOptions& options, HttpCb cb, SCb scb, bool stream) throw(HttpError) {
 		
 		class Task: public AsyncIOTask, public HttpClientRequest::Delegate, public Stream {
 		public:
-			HCb cb;
+			HttpCb cb;
 			SCb scb;
 			bool stream, full_data;
 			Array<String> data;
@@ -283,7 +280,7 @@ namespace flare {
 		backend_loop()->post_sync(Cb2([&](Cb2::Data& d) {
 			auto dd = d.data;
 			try {
-				request(options, HCb([&,dd](HCb::Data& ev) {
+				http_request(options, HttpCb([&,dd](HttpCb::Data& ev) {
 					if (ev.error) {
 						*const_cast<HttpError*>(&err) = std::move(*static_cast<const HttpError*>(ev.error));
 					} else {
@@ -305,10 +302,10 @@ namespace flare {
 		}
 	}
 
-	void   http_download_sync(cString& url, cString& save) throw(HttpError) {
+	void http_download_sync(cString& url, cString& save) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.save = save;
-		request_sync(options);
+		http_request_sync(options);
 	}
 
 	Buffer http_upload_sync(cString& url, cString& file) throw(HttpError) {
@@ -316,20 +313,20 @@ namespace flare {
 		options.upload = file;
 		options.method = HTTP_METHOD_POST;
 		options.disable_cache = true;
-		return request_sync(options);
+		return http_request_sync(options);
 	}
 
 	Buffer http_get_sync(cString& url, bool no_cache) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.disable_cache = no_cache;
-		return request_sync(options);
+		return http_request_sync(options);
 	}
 
 	Buffer http_post_sync(cString& url, Buffer data) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.method = HTTP_METHOD_POST;
 		options.post_data = data;
-		return request_sync(options);
+		return http_request_sync(options);
 	}
 
 
@@ -344,24 +341,24 @@ namespace flare {
 	* @func user_agent
 	*/
 	String http_user_agent() {
-		return http_user_agent;
+		return http_user_agent_;
 	}
 
 	/**
 	* @func set_user_agent
 	*/
 	void http_set_user_agent(cString& user_agent) {
-		http_user_agent = user_agent;
+		http_user_agent_ = user_agent;
 	}
 
 	/**
 	* @func cache_path
 	*/
 	String http_cache_path() {
-		if (http_cache_path.is_empty()) {
-			set_cache_path(fs_temp("http_cache"));
+		if (http_cache_path_.is_empty()) {
+			http_set_cache_path(fs_temp("http_cache"));
 		}
-		return http_cache_path;
+		return http_cache_path_;
 	}
 
 	/**
@@ -370,7 +367,7 @@ namespace flare {
 	void http_set_cache_path(cString& path) {
 		try {
 			fs_mkdir_p_sync(path);
-			http_cache_path = path;
+			http_cache_path_ = path;
 		} catch(cError& err) {
 			F_ERR(err);
 		}
@@ -381,9 +378,9 @@ namespace flare {
 	*/
 	void http_clear_cache() {
 		// delete cache files
-		if ( ! http_cache_path.is_empty() ) {
-			fs_remove_r_sync(http_cache_path);
-			set_cache_path(http_cache_path);
+		if ( ! http_cache_path_.is_empty() ) {
+			fs_remove_r_sync(http_cache_path_);
+			http_set_cache_path(http_cache_path_);
 		}
 	}
 

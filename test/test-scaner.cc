@@ -29,7 +29,7 @@ void testRenderScaner(SkCanvas* canvas) {
 	SkCanvas offcanvas(bitmapCircle);
 	//offcanvas.clear(0xff00ff00);
 
-	SkPath oval = Skfs_Oval(SkRect::MakeXYWH(.5, .9, 320, 320), SkPathDirection::kCCW);
+	SkPath oval = SkPath::Oval(SkRect::MakeXYWH(.5, .9, 320, 320), SkPathDirection::kCCW);
 	Array<uint8_t> verbs(oval.countVerbs());
 	oval.getVerbs(&verbs[0], verbs.length());
 	

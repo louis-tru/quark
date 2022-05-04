@@ -302,7 +302,7 @@ namespace flare {
 	}
 
 	String http_get_all_cookie_string(cString& domain, cString& path, bool secure) {
-		Map all = get_all_cookie(domain, path, secure);
+		DictSS all = http_get_all_cookie(domain, path, secure);
 		if (all.length()) {
 			Array<String> result;
 			for (auto& i : all) {

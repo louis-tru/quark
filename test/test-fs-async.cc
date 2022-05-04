@@ -33,10 +33,10 @@
 
 using namespace flare;
 
-class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
+class AsyncFileRead: public File, public File::Delegate {
  public:
 	
-	AsyncFileRead(cString& src): AsyncFile(src) {
+	AsyncFileRead(cString& src): File(src) {
 		set_delegate(this);
 	}
 	
@@ -52,19 +52,19 @@ class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
 		}));
 	}
 	
-	virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
+	virtual void trigger_file_error(File* file, cError& error) {
 		F_LOG("Error, %s", error.message().c_str());
 		delete this;
 	}
-	virtual void trigger_async_file_open(AsyncFile* file) {
+	virtual void trigger_file_open(File* file) {
 		F_LOG("Open, %s", *path());
 		read(Buffer::alloc(1024), 1024); // start read
 	}
-	virtual void trigger_async_file_close(AsyncFile* file) {
+	virtual void trigger_file_close(File* file) {
 		F_LOG("Close");
 		Release(this);
 	}
-	virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {
+	virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
 		if ( buffer.length() ) {
 			F_LOG( buffer.collapse_string() );
 			read(buffer, 1024); // read
@@ -75,14 +75,14 @@ class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
 		}
 	}
 	
-	virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) { }
+	virtual void trigger_file_write(File* file, Buffer buffer, int mark) { }
 	
 };
 
-class AsyncFileWrite: public AsyncFile, public AsyncFile::Delegate {
+class AsyncFileWrite: public File, public File::Delegate {
  public:
 	
-	AsyncFileWrite(cString& src): AsyncFile(src) {
+	AsyncFileWrite(cString& src): File(src) {
 		set_delegate(this);
 	}
 	
@@ -90,26 +90,26 @@ class AsyncFileWrite: public AsyncFile, public AsyncFile::Delegate {
 		F_LOG("Delete WriteFileAsync");
 	}
 	
-	virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
+	virtual void trigger_file_error(File* file, cError& error) {
 		F_LOG("Error, %s", error.message().c_str());
 		RunLoop::current()->stop();
 		Release(this);
 	}
-	virtual void trigger_async_file_open(AsyncFile* file) {
+	virtual void trigger_file_open(File* file) {
 		F_LOG("Open, %s", *path());
 		write(String("ABCDEFG-").collapse()); // start read
 	}
-	virtual void trigger_async_file_close(AsyncFile* file) {
+	virtual void trigger_file_close(File* file) {
 		F_LOG("Close");
 		Release(this);
 	}
-	virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
+	virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
 		F_LOG("Write ok");
 		(new AsyncFileRead(path()))->open();
 		close();
 	}
 	
-	virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {}
+	virtual void trigger_file_read(File* file, Buffer buffer, int mark) {}
 };
 
 void test_file_async(int argc, char **argv) {

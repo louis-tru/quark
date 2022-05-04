@@ -35,10 +35,10 @@ using namespace flare;
 
 static String write_str;
 
-class TestAsyncFile: public AsyncFile, public AsyncFile::Delegate {
+class TestAsyncFile: public File, public File::Delegate {
  public:
 
-	TestAsyncFile(cString& src): AsyncFile(src) {
+	TestAsyncFile(cString& src): File(src) {
 		set_delegate(this);
 	}
 
@@ -46,11 +46,11 @@ class TestAsyncFile: public AsyncFile, public AsyncFile::Delegate {
 		F_LOG("Delete TestAsyncFile");
 	}
 
-	virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
+	virtual void trigger_file_error(File* file, cError& error) {
 		F_LOG("Error, %s", error.message().c_str());
 	}
 
-	virtual void trigger_async_file_open(AsyncFile* file) {
+	virtual void trigger_file_open(File* file) {
 		F_LOG("Open, %s", *path());
 
 		for ( i = 0; i < 30; i++ ) {
@@ -58,12 +58,12 @@ class TestAsyncFile: public AsyncFile, public AsyncFile::Delegate {
 		}
 	}
 
-	virtual void trigger_async_file_close(AsyncFile* file) {
+	virtual void trigger_file_close(File* file) {
 		F_LOG("Close");
 		Release(this);
 	}
 
-	virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
+	virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
 		i--;
 		F_LOG("Write ok, %d", i);
 
@@ -74,7 +74,7 @@ class TestAsyncFile: public AsyncFile, public AsyncFile::Delegate {
 		}
 	}
 
-	virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {}
+	virtual void trigger_file_read(File* file, Buffer buffer, int mark) {}
 
 	int i = 0;
 

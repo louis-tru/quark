@@ -34,7 +34,7 @@
 #include "../deps/node/src/flare.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_layout
+#define TEST_FUNC_NAME test_skfont
 #endif
 
 using namespace flare;

@@ -221,7 +221,7 @@ namespace flare {
 			String compatible_path = _compatible_path + "/" + pathname;
 			
 			if ( dirname.is_empty() ) {
-				Dirent dir(pathname, compatible_path, type);
+				Dirent dir{pathname, compatible_path, type};
 				auto l = _dir_info[dirname];
 				l.push(dir);
 			} else {

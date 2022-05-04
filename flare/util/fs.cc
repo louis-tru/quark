@@ -35,6 +35,12 @@
 
 namespace flare {
 
+	Dirent::Dirent(cString& name, cString& pathname, FileType type)
+		: _name(name)
+		, _pathname(pathname), _type(type)
+	{
+	}
+
 #if F_WIN
 	const uint32_t fs_default_mode = 0;
 #else

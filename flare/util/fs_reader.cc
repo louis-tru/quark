@@ -42,8 +42,6 @@ namespace flare {
 
 	static const String SEPARATOR("@/", 2);
 
-	typedef http_ResponseData ResponseData;
-
 	class FileReader::Core {
 	public:
 		enum Protocol {
@@ -190,7 +188,7 @@ namespace flare {
 						if ( stream ) {
 							id = http_get_stream(path, *(Callback<StreamResponse>*)(&cb));
 						} else {
-							id = http_get(path, http_Cb([cb](http_Cb::Data& e) {
+							id = http_get(path, HttpCb([cb](HttpCb::Data& e) {
 								ResponseData* data = static_cast<ResponseData*>(e.data);
 								if (e.error) {
 									cb->reject(e.error);

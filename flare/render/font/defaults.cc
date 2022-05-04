@@ -132,11 +132,11 @@ namespace flare {
 		
 		String path = fs_temp(fx_font_family_list);
 		
-		if ( !FileHelper::exists_sync(path) ) { // 这个文件不存在
+		if ( !fs_exists_sync(path) ) { // 这个文件不存在
 			return false;
 		}
 
-		String data = FileHelper::read_file_sync(path);
+		String data = fs_read_file_sync(path);
 		Array<String> ls = data.split('\n');
 		
 		if ( ls.length() != 2 ) {
@@ -272,12 +272,12 @@ namespace flare {
 		
 		JSON font_familys = JSON::array();
 		
-		FileHelper::each_sync(system_fonts_dir, Cb([&](CbData& d) {
+		fs_each_sync(system_fonts_dir, Cb([&](CbData& d) {
 			
 			Dirent* ent = static_cast<Dirent*>(d.data);
 			
-			if ( ent->type == FTYPE_FILE ) {
-				Handle<SimpleFontFamily> sffd = Inl::inl_read_font_file(ent->pathname, ft_lib);
+			if ( ent->type() == FTYPE_FILE ) {
+				Handle<SimpleFontFamily> sffd = Inl::inl_read_font_file(ent->pathname(), ft_lib);
 				
 				if ( ! sffd.is_null() ) {
 					JSON item = JSON::object();
@@ -317,7 +317,7 @@ namespace flare {
 		json["font_familys"] = font_familys;
 		String json_str = JSON::stringify( json );
 		String data = String::format( "%s\n%s", *hash(json_str), *json_str );
-		FileHelper::write_file_sync(fs_temp(fx_font_family_list), data); // 写入文件
+		fs_write_file_sync(fs_temp(fx_font_family_list), data); // 写入文件
 		
 		return *system_font_family_list;
 	}

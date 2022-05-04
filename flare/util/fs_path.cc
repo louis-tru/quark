@@ -104,7 +104,7 @@ namespace flare {
 	}
 
 	bool fs_chdir(cString& path) {
-		String str = format("%s", path.c_str());
+		String str = fs_format("%s", path.c_str());
 #if F_WIN
 			return _chdir(str.substr(8).c_str()) == 0;
 #else
@@ -124,7 +124,7 @@ namespace flare {
 				return true;
 			}
 #endif
-		else if ( is_local_zip(path) || is_local_file( path ) ) {
+		else if ( fs_is_local_zip(path) || fs_is_local_file( path ) ) {
 			return true;
 		}
 		return false;
@@ -257,14 +257,14 @@ namespace flare {
 			if (s[0] == '/') { // absolute path
 				//
 			} else {
-				if ( s.length() > 7 && is_local_zip(s) ) {
+				if ( s.length() > 7 && fs_is_local_zip(s) ) {
 					prefix = "zip:///";
 					s = s.substr(7);
 				}
-				else if (s.length() >= 8 && is_local_file( s ) ) {
+				else if (s.length() >= 8 && fs_is_local_file( s ) ) {
 					s = s.substr(8);
 				} else { // Relative path
-					s = cwd().substr(8).append('/').append(s);
+					s = fs_cwd().substr(8).append('/').append(s);
 				}
 			}
 #endif
@@ -279,7 +279,7 @@ namespace flare {
 		va_start(arg, path);
 		String str = string_format(path, arg);
 		va_end(arg);
-		return format(str);
+		return fs_format(str);
 	}
 
 	int fallback_indexOf(cString& path) {

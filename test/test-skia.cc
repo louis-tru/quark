@@ -45,7 +45,7 @@ void draw_skia(SkCanvas* canvas) {
 	SkCanvas offcanvas(bitmapCircle);
 	//offcanvas.clear(0xff00ff00);
 	paint.setColor(0xffff0000);
-	SkPath oval = Skfs_Oval(SkRect::MakeWH(320, 320)/*, SkPathDirection::kCCW*/);
+	SkPath oval = SkPath::Oval(SkRect::MakeWH(320, 320)/*, SkPathDirection::kCCW*/);
 	
 	Array<uint8_t> verbs(oval.countVerbs());
 	oval.getVerbs(&verbs[0], verbs.length());
@@ -228,31 +228,28 @@ void testBitmap(SkCanvas* canvas) {
 	SkBitmap bitmap2;
 	// not hold data for installPixels
 	bitmap2.installPixels(SkImageInfo::Make(5, 1, kGray_8_SkColorType, kOpaque_SkAlphaType), set1, 5);
-
-}
-
-void testSkia(Application* app) {
-	app->render()->post_message(Cb([app](CbData&data) {
-		auto render = static_cast<SkiaRender*>(app->render()->visitor());
-		auto canvas = render->getCanvas();
-		draw_skia(canvas);
-		//testBitmap(canvas);
-		//testExtractAlphaBlur(canvas);
-		//testNotifyPixelsChanged(canvas);
-		//testBorder(canvas);
-		testBlur(canvas);
-		app->render()->submit();
-	}));
 }
 
 void test_skia(int argc, char **argv) {
 	Application app;
-	
-	app.F_On(Load, [&](Event<>& evt) { testSkia(&app); });
+
+	auto post = [](Application* app) {
+		app->render()->post_message(Cb([app](CbData&data) {
+			auto render = static_cast<SkiaRender*>(app->render()->visitor());
+			auto canvas = render->getCanvas();
+			draw_skia(canvas);
+			//testBitmap(canvas);
+			//testExtractAlphaBlur(canvas);
+			//testNotifyPixelsChanged(canvas);
+			//testBorder(canvas);
+			testBlur(canvas);
+			app->render()->submit();
+		}));
+	};
+
+	app.F_On(Load, [&](Event<>& evt) { post(&app); });
 	//app.display()->F_On(Orientation, [&app](Event<>& evt){ testSkia(&app); });
-	app.display()->F_On(Change, [&app](Event<>& evt){ testSkia(&app); });
-	
-	//layout(&app);
-	
+	app.display()->F_On(Change, [&](Event<>& evt){ post(&app); });
+
 	app.run(true);
 }

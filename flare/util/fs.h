@@ -80,16 +80,18 @@ namespace flare {
 		FTYPE_BLOCK
 	};
 
-	struct Dirent {
-		String name;
-		String pathname;
-		FileType type;
+	class Dirent: public Object {
+	public:
+		Dirent(cString& name, cString& pathname, FileType type);
+		F_DEFINE_PROP_READ(String, name);
+		F_DEFINE_PROP_READ(String, pathname);
+		F_DEFINE_PROP_READ(FileType, type);
 	};
 
 	class F_EXPORT FileSync: public Object {
 		F_HIDDEN_ALL_COPY(FileSync);
 	public:
-		FileSync(cString& path): _path(path), _fd(0) {}
+		FileSync(cString& path);
 		virtual ~FileSync();
 		bool is_open();
 		int open(int flag = FOPEN_R);

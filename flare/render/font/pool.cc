@@ -72,7 +72,7 @@ namespace flare {
 	) {
 		if ( ! path.is_empty() ) { // 文件
 			
-			if ( ! FileHelper::is_file_sync(path) )
+			if ( ! fs_is_file_sync(path) )
 				return false;
 			_paths[path] = family_name;
 			

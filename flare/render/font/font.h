@@ -94,7 +94,10 @@ namespace flare {
 		* @overwrite
 		*/
 		virtual cString& name() const;
-		virtual Font* font(TextStyleValue style = TextStyleValue::NORMAL, TextWeightValue weight = TextWeightValue::REGULAR);
+		virtual Font* font(
+			TextStyleValue style = TextStyleValue::NORMAL,
+			TextWeightValue weight = TextWeightValue::REGULAR
+		);
 		
 		/**
 		* @func font_name
@@ -311,7 +314,7 @@ namespace flare {
 	* @class FontGlyphTable
 	*/
 	class F_EXPORT FontGlyphTable: public Object {
-		public:
+	public:
 		
 		virtual ~FontGlyphTable();
 		
@@ -362,7 +365,7 @@ namespace flare {
 		*/
 		FontGlyph* use_vector_glyph(uint16_t unicode);
 		
-		private:
+	private:
 		
 		struct GlyphsBlock;
 		

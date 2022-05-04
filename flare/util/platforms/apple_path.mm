@@ -39,7 +39,7 @@
 namespace flare {
 
 	String fs_executable() {
-		static cString path( format([[[NSBundle mainBundle] executablePath] UTF8String]) );
+		static cString path( fs_format([[[NSBundle mainBundle] executablePath] UTF8String]) );
 		return path;
 	}
 
