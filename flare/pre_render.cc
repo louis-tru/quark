@@ -38,7 +38,7 @@ namespace flare {
 	* @func add_task
 	*/
 	void PreRender::add_task(Task* task) {
-		if ( task->get_task_id() == Task::ID() ) {
+		if ( task->task_id() == Task::ID() ) {
 			Task::ID id = _tasks.push_back(task);
 			task->set_task_id( id );
 		}
@@ -48,7 +48,7 @@ namespace flare {
 	* @func del_task
 	*/
 	void PreRender::del_task(Task* task) {
-		Task::ID id = task->get_task_id();
+		Task::ID id = task->task_id();
 		if ( id != Task::ID() ) {
 			(*id)->set_task_id( Task::ID() );
 			(*id) = nullptr;
@@ -122,7 +122,7 @@ namespace flare {
 			while ( i != end ) {
 				Task* task = *i;
 				if ( task ) {
-					if ( now_time > task->get_task_timeout() ) {
+					if ( now_time > task->task_timeout() ) {
 						if ( task->run_task(now_time) ) {
 							_is_render = true;
 						}
@@ -174,6 +174,14 @@ namespace flare {
 
 	PreRender::Task::~Task() {
 		unregister_task();
+	}
+
+	void PreRender::Task::set_task_id(ID id) {
+		_task_id = id;
+	}
+
+	void PreRender::Task::set_task_timeout(int64_t timeout_us) {
+		_task_timeout = timeout_us;
 	}
 
 	void PreRender::Task::register_task() {

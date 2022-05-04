@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,71 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__pre_render__
-#define __flare__pre_render__
+#ifndef __flare__layout__float__
+#define __flare__layout__float__
 
-#include "./util/util.h"
-#include "./util/list.h"
-
-/**
- * @ns flare
- */
+#include "./box.h"
 
 namespace flare {
 
-	class Application;
-	class Layout;
-
-	/**
-	* @class PreRender 预渲染
-	*/
-	class F_EXPORT PreRender: public Object {
-		F_HIDDEN_ALL_COPY(PreRender);
+	class F_EXPORT FloatLayout: public Box {
+		F_Define_View(FloatLayout);
 	public:
-
-		PreRender(Application* host);
-		virtual ~PreRender();
-
-		class F_EXPORT Task {
-		public:
-			typedef List<Task*>::Iterator ID;
-			inline Task(): _task_timeout(0) {}
-			virtual ~Task();
-			virtual bool run_task(int64_t sys_time) = 0;
-			void register_task();
-			void unregister_task();
-			inline bool is_register_task() const { return _task_id != ID(); }
-			// define props
-			F_DEFINE_PROP(ID, task_id);
-			F_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
-		};
-
-		F_DEFINE_PROP_READ(Application*, host);
-
-		/**
-			* @func solve 解决预先渲染问题,如果需要更新视图返回true
-			*/
-		bool solve(int64_t now_time);
-
-		/**
-			* @func mark
-			*/
-		void mark(Layout *layout, uint32_t depth);
-		void delete_mark(Layout *layout, uint32_t depth);
-		void mark_none();
-
-	private:
-		void add_task(Task* task);
-		void del_task(Task* task);
-		void solve_mark();
-
-		// member data
-		int32_t _mark_total;
-		List<Task*>  _tasks;
-		Array<Array<Layout*>> _marks; // 被标记的视图
-		bool _is_render;
+		FloatLayout();
 	};
 
 }
 #endif
-
