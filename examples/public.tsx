@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { NavPage } from 'flare/nav';
+import { NavPage } from 'noug/nav';
 import { 
 	ViewController, Button, Hybrid,
-	Text, Indep, default as flare, _CVD
-} from 'flare';
-import {ClickEvent} from 'flare/event';
+	Text, Indep, default as noug, _CVD
+} from 'noug';
+import {ClickEvent} from 'noug/event';
 
-const px = flare.atomPixel;
+const px = noug.atomPixel;
 const resolve = require.resolve;
 
-flare.css({
+noug.css({
 	
 	'.long_btn': {
 		margin: 10,

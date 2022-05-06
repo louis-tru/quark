@@ -1,8 +1,8 @@
 
-import { Application, Root, Div, Indep, default as flare, _CVD, ViewController } from 'flare';
-import { Color } from 'flare/value';
-import util from 'flare/util';
-import * as css from 'flare/css';
+import { Application, Root, Div, Indep, default as noug, _CVD, ViewController } from 'noug';
+import { Color } from 'noug/value';
+import util from 'noug/util';
+import * as css from 'noug/css';
 import * as uu from './uu';
 
 const random = util.random;
@@ -20,8 +20,8 @@ class RootViewController extends ViewController {
 	triggerMounted() {
 		super.triggerMounted();
 
-		var w = flare.displayPort.width;
-		var h = flare.displayPort.height;
+		var w = noug.displayPort.width;
+		var h = noug.displayPort.height;
 		var csss: Dict<css.StyleSheet> = {};
 	
 		for (var i = 0; i < test_count; i++) {
@@ -46,7 +46,7 @@ class RootViewController extends ViewController {
 	
 		v.class = 'root';
 	
-		flare.render(
+		noug.render(
 			<Div width="full" height="full">
 				{
 					Array.from({length:test_count}, (j, i)=>{

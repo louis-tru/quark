@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, AM, VM, VP, CA } from './test';
-import { Application, Root, Div, Image } from 'flare';
-import dp from 'flare/display_port';
+import { Application, Root, Div, Image } from 'noug';
+import dp from 'noug/display_port';
 
 new Application().start(
 	<Root>

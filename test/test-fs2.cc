@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/fs.h>
-#include <flare/util/loop.h>
+#include <noug/util/fs.h>
+#include <noug/util/loop.h>
 
-using namespace flare;
+using namespace noug;
 
 static String write_str;
 
@@ -84,7 +84,7 @@ void test_fs2(int argc, char **argv) {
 
 	F_LOG("START");
 	
-	write_str = fs_reader()->read_file_sync(fs_resources("flare/ctr.js"));
+	write_str = fs_reader()->read_file_sync(fs_resources("noug/ctr.js"));
 
 	TestAsyncFile* file = new TestAsyncFile(fs_documents("test_fs2.txt"));
 

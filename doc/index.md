@@ -1,9 +1,9 @@
 
-# [`Flare`]
+# [`Noug`]
 
 * [`About`](README.md)
-* [`Tools`](https://www.npmjs.com/package/fproj)
-* [`Examples`](https://github.com/louis-tru/flare/tree/master/examples)
+* [`Tools`](https://www.npmjs.com/package/noproj)
+* [`Examples`](https://github.com/louis-tru/noug/tree/master/examples)
 
 # Course
 
@@ -15,25 +15,25 @@
 
 # Modules
 
-* [`flare`](flare.md)
+* [`noug`](noug.md)
 * [`pkg`](pkg.md)
-* [`flare/action`](action.md)
-* [`flare/app`](app.md)
-* [`flare/css`](css.md)
-* [`flare/ctr`](ctr.md)
-* [`flare/display_port`](display_port.md)
-* [`flare/font`](font.md)
-* [`flare/media`](media.md)
-* [`flare/value`](value.md)
-* [`flare/util`](util.md)
-* [`flare/event`](event.md)
-* [`flare/fs`](fs.md)
-* [`flare/http`](http.md)
-* [`flare/keys`](keys.md)
-* [`flare/path`](path.md)
-* [`flare/reader`](reader.md)
-* [`flare/storage`](storage.md)
-* [`flare/sys`](sys.md)
+* [`noug/action`](action.md)
+* [`noug/app`](app.md)
+* [`noug/css`](css.md)
+* [`noug/ctr`](ctr.md)
+* [`noug/display_port`](display_port.md)
+* [`noug/font`](font.md)
+* [`noug/media`](media.md)
+* [`noug/value`](value.md)
+* [`noug/util`](util.md)
+* [`noug/event`](event.md)
+* [`noug/fs`](fs.md)
+* [`noug/http`](http.md)
+* [`noug/keys`](keys.md)
+* [`noug/path`](path.md)
+* [`noug/reader`](reader.md)
+* [`noug/storage`](storage.md)
+* [`noug/sys`](sys.md)
 * [`Native Types`](native_types.md)
 
-[`Flare`]: http://flare.cool/
+[`Noug`]: http://noug.cc/

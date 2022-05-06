@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/util/net.h"
-#include "flare/util/fs.h"
+#include "noug/util/net.h"
+#include "noug/util/fs.h"
 #include <uv.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-using namespace flare;
+using namespace noug;
 
 #define error_report printf
 #define info_report printf

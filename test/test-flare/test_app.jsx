@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { Application, Root } from 'flare';
-import 'flare/font' as f;
-import 'flare/url';
-import 'flare/app';
+import { Application, Root } from 'noug';
+import 'noug/font' as f;
+import 'noug/url';
+import 'noug/app';
 
 new Application().start(<Root/>).onLoad = function() {
 	const a = this;

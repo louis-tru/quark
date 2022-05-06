@@ -1,4 +1,4 @@
-# `flare/app`
+# `noug/app`
 
 
 ## `Class: Application`
@@ -20,8 +20,8 @@
 Example:
 
 ```jsx
-import Application from 'flare/app'
-import Root from 'flare'
+import Application from 'noug/app'
+import Root from 'noug'
 
 var opts = { anisotropic: true, mipmap: true, multisample: 2 };
 
@@ -211,6 +211,6 @@ new Application(opts).start(<Root>Hello</Root>).onLoad = function () {
 [`TextOverflow`]: value.md#class-textoverflow
 [`TextWhiteSpace`]: value.md#class-textwhitespace
 [`Display`]: display_port.md#class-displayport
-[`Root`]: flare.md#class-root
-[`View`]: flare.md#class-view
+[`Root`]: noug.md#class-root
+[`View`]: noug.md#class-view
 [`clear()`]: app.md#guiapplication-clear

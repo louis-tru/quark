@@ -1,7 +1,7 @@
 
 import { P, M, LOG, AM, VM, VP, CA } from './test'
-import 'flare/fs';
-import 'flare/url';
+import 'noug/fs';
+import 'noug/url';
 import { Buffer } from 'buffer';
 
 // init

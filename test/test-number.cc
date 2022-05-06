@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/util.h>
-#include <flare/util/loop.h>
-#include <flare/util/array.h>
-#include <flare/os/os.h>
+#include <noug/util/util.h>
+#include <noug/util/loop.h>
+#include <noug/util/array.h>
+#include <noug/os/os.h>
 
-using namespace flare;
+using namespace noug;
 
 #define Operation_DEF(name, symbol, T) {\
 	T a(random(0, 99999999)); \

@@ -117,17 +117,21 @@ function touch_files(variables) {
 		'out/native-glsl.cc',
 	]);
 
+	if (!fs.existsSync('out/noug')) {
+		fs.symlinkSync('./src', `out/noug`);
+	}
+
 	if (variables.library_output == 'shared_library' && variables.OS != 'mac') {
 		touch_file([
-			`${variables.output}/lib.target/libflare.so`,
-			`${variables.output}/lib.target/libflare-js.so`,
-			`${variables.output}/lib.target/libflare-media.so`,
-			`${variables.output}/lib.target/libflare-node.so`,
+			`${variables.output}/lib.target/libnoug.so`,
+			`${variables.output}/lib.target/libnoug-js.so`,
+			`${variables.output}/lib.target/libnoug-media.so`,
+			`${variables.output}/lib.target/libnoug-node.so`,
 		]);
 	}
 
 	if (variables.os == 'android' && (variables.debug || variables.without_visibility_hidden)) {
-		touch_file([`${variables.output}/lib.target/libflare-depes-test.so`]);
+		touch_file([`${variables.output}/lib.target/libnoug-depes-test.so`]);
 	}
 }
 

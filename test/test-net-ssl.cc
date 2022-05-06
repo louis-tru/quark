@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/util/net.h"
+#include "noug/util/net.h"
 #include <uv.h>
 
-using namespace flare;
+using namespace noug;
 
 class MySSLSocket: public SSLSocket, public Socket::Delegate {
  public:
@@ -49,7 +49,7 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 		"_Connection: keep-alive\r\n"
 		"Connection: close\r\n"
 		"Accept: */*\r\n"
-		"User-Agent: Mozilla/5.0 AppleWebKit flare Net Test\r\n\r\n";
+		"User-Agent: Mozilla/5.0 AppleWebKit noug Net Test\r\n\r\n";
 		
 		write(header.collapse());
 	}

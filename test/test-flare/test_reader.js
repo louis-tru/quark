@@ -1,8 +1,8 @@
 
 import { P, M, LOG, AM } from './test'
-import 'flare/fs';
-import 'flare/reader';
-import 'flare/url';
+import 'noug/fs';
+import 'noug/reader';
+import 'noug/url';
 
 const DIR = url.documents('test');
 const FILE = DIR + '/test_file.txt';

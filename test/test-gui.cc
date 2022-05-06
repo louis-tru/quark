@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/util.h>
-#include <flare/codec/codec.h>
-//#include <flare/sprite.h>
-//#include <flare/div.h>
-#include <flare/app.h>
-#include <flare/display.h>
-#include <flare/layout/root.h>
-#include <flare/util/fs.h>
-#include <flare/gl/gl.h>
+#include <noug/util/util.h>
+#include <noug/codec/codec.h>
+//#include <noug/sprite.h>
+//#include <noug/div.h>
+#include <noug/app.h>
+#include <noug/display.h>
+#include <noug/layout/root.h>
+#include <noug/util/fs.h>
+#include <noug/gl/gl.h>
 
-using namespace flare;
-using flare::value::ValueType;
-using flare::value::Value;
+using namespace noug;
+using noug::value::ValueType;
+using noug::value::Value;
 
 void onload_handle (Event<>& evt, void* user) {
 	Root* r = New<Root>();

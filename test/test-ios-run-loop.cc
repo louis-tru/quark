@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/macros.h>
+#include <noug/util/macros.h>
 
 #if FX_IOS
 
-#include <flare/util/util.h>
+#include <noug/util/util.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <dispatch/dispatch.h>
 #include <stdio.h>

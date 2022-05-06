@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Clip, Text, _CVD } from 'flare';
+import { Scroll, Clip, Text, _CVD } from 'noug';
 import { Navbutton, Mynavpage } from './public';
 import checkbox from './checkbox';
 import overlay from './overlay';

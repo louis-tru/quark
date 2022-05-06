@@ -298,15 +298,15 @@ function main() {
 	write(hpp,
 		'#ifndef __shader_natives_' + now,
 		'#define __shader_natives_' + now,
-		'namespace flare {',
+		'namespace noug {',
 		'namespace shader {',
 		'#pragma pack(push,4)',
 	);
 
 	write(cpp,
 		`#include "./${path.basename(output_h)}"`,
-		'#include "flare/gl/gl.h"',
-		'namespace flare {',
+		'#include "noug/gl/gl.h"',
+		'namespace noug {',
 		'namespace shader {',
 	);
 
@@ -349,7 +349,7 @@ function main() {
 	var name = path.basename(output_cc).replace(/[\.-]/gm, '_');
 	write(cpp, `FX_INIT_BLOCK(${name}) {`);
 	names.forEach(e=>{
-		write(cpp, `  GLDraw::register_gl_shader((flare::GLShader*)(&${e}));`)
+		write(cpp, `  GLDraw::register_gl_shader((noug::GLShader*)(&${e}));`)
 	});
 	write(cpp, '}');
 	write(cpp, '}', '}');

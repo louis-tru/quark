@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/util/util.h"
-#include "flare/util/fs.h"
+#include "noug/util/util.h"
+#include "noug/util/fs.h"
 
-using namespace flare;
+using namespace noug;
 
 class AsyncFileRead: public File, public File::Delegate {
  public:

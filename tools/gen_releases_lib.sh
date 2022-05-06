@@ -14,7 +14,7 @@ fi
 
 mkdir -p releases
 
-cd fproj/product
+cd noproj/product
 
 tar cfvz ../../releases/ios.tar.gz ios
 tar cfvz ../../releases/android.tar.gz android
@@ -26,18 +26,18 @@ cd ../..
 
 mkdir -p linux-ubuntu.x64.Release.shared/bin
 mkdir -p linux-ubuntu.x64.Release.shared/lib
-cp -rf fproj/product/include linux-ubuntu.x64.Release.shared
-scp $host:~/flare/out/linux-ubuntu.x64.Release.shared/flare          linux-ubuntu.x64.Release.shared/bin
-scp $host:~/flare/out/linux-ubuntu.x64.Release.shared/lib.target/* linux-ubuntu.x64.Release.shared/lib
+cp -rf noproj/product/include linux-ubuntu.x64.Release.shared
+scp $host:~/noug/out/linux-ubuntu.x64.Release.shared/noug          linux-ubuntu.x64.Release.shared/bin
+scp $host:~/noug/out/linux-ubuntu.x64.Release.shared/lib.target/* linux-ubuntu.x64.Release.shared/lib
 tar cfvz releases/linux-ubuntu.x64.Release.shared.tar.gz \
 	linux-ubuntu.x64.Release.shared/bin \
 	linux-ubuntu.x64.Release.shared/lib linux-ubuntu.x64.Release.shared/include
 
 mkdir -p linux-ubuntu.armv7.Release.shared/bin
 mkdir -p linux-ubuntu.armv7.Release.shared/lib
-cp -rf fproj/product/include linux-ubuntu.armv7.Release.shared
-scp $host:~/flare/out/linux-ubuntu.armv7.Release.shared/flare          linux-ubuntu.armv7.Release.shared/bin
-scp $host:~/flare/out/linux-ubuntu.armv7.Release.shared/lib.target/* linux-ubuntu.armv7.Release.shared/lib
+cp -rf noproj/product/include linux-ubuntu.armv7.Release.shared
+scp $host:~/noug/out/linux-ubuntu.armv7.Release.shared/noug          linux-ubuntu.armv7.Release.shared/bin
+scp $host:~/noug/out/linux-ubuntu.armv7.Release.shared/lib.target/* linux-ubuntu.armv7.Release.shared/lib
 tar cfvz releases/linux-ubuntu.armv7.Release.shared.tar.gz \
 	linux-ubuntu.armv7.Release.shared/bin \
 	linux-ubuntu.armv7.Release.shared/lib linux-ubuntu.armv7.Release.shared/include
@@ -45,14 +45,14 @@ tar cfvz releases/linux-ubuntu.armv7.Release.shared.tar.gz \
 # linux ubuntu
 
 mkdir -p linux-ubuntu.x64.Release/bin
-cp -rf fproj/product/include linux-ubuntu.x64.Release
-scp $host:~/flare/out/linux-ubuntu.x64.Release/flare linux-ubuntu.x64.Release/bin
+cp -rf noproj/product/include linux-ubuntu.x64.Release
+scp $host:~/noug/out/linux-ubuntu.x64.Release/noug linux-ubuntu.x64.Release/bin
 tar cfvz releases/linux-ubuntu.x64.Release.tar.gz \
 	linux-ubuntu.x64.Release/bin linux-ubuntu.x64.Release/include
 
 mkdir -p linux-ubuntu.armv7.Release/bin
-cp -rf fproj/product/include linux-ubuntu.armv7.Release
-scp $host:~/flare/out/linux-ubuntu.armv7.Release/flare linux-ubuntu.armv7.Release/bin
+cp -rf noproj/product/include linux-ubuntu.armv7.Release
+scp $host:~/noug/out/linux-ubuntu.armv7.Release/noug linux-ubuntu.armv7.Release/bin
 tar cfvz releases/linux-ubuntu.armv7.Release.tar.gz \
 	linux-ubuntu.armv7.Release/bin linux-ubuntu.armv7.Release/include
 

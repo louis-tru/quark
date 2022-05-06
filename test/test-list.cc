@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/array.h>
-#include <flare/util/list.h>
-#include <flare/util/string.h>
+#include <noug/util/array.h>
+#include <noug/util/list.h>
+#include <noug/util/string.h>
 #include <map>
-#include <flare/util/log.h>
+#include <noug/util/log.h>
 
-using namespace flare;
+using namespace noug;
 
 class Test{
 	String str;

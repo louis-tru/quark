@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/js/flare.h"
+#include "noug/js/noug.h"
 
-using namespace flare;
+using namespace noug;
 
 #define IP_REMOTE "127.0.0.1"
 

@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./jsx.h"
-#include "flare/util/dict.h"
-#include "flare/util/fs.h"
-#include "flare/util/codec.h"
+#include "noug/util/dict.h"
+#include "noug/util/fs.h"
+#include "noug/util/codec.h"
 
-namespace flare {
+namespace noug {
 
 	#ifdef CHECK
 	# undef CHECK
@@ -125,7 +125,7 @@ namespace flare {
 		F(NUMBER_2, "2") \
 		F(NUMBER_3, "3") \
 		F(STATIC, "static") \
-		F(JSX_HEADER, "const { _VV, _VVT, _VVD } = require('flare/ctr');") \
+		F(JSX_HEADER, "const { _VV, _VVT, _VVD } = require('noug/ctr');") \
 		F(_VV, "_VV") \
 		F(_VVT, "_VVT") \
 		F(_VVD, "_VVD") \
@@ -1598,7 +1598,7 @@ namespace flare {
 
 			if (_is_jsx) {
 				// add jsx header code
-				// import { _VV, _VVT, _VVD } from 'flare/ctr';
+				// import { _VV, _VVT, _VVD } from 'noug/ctr';
 				append(S.JSX_HEADER);
 			}
 
@@ -2405,9 +2405,9 @@ namespace flare {
 		}
 
 		void parse_import_block(String2* defaultId) {
-			// import { Application } from 'flare/app';
-			// import { Application as App } from 'flare/app';
-			// import app, { Application as App } from 'flare/app';
+			// import { Application } from 'noug/app';
+			// import { Application as App } from 'noug/app';
+			// import app, { Application as App } from 'noug/app';
 
 			F_ASSERT(token() == LBRACE);
 			append(S.LBRACE);     // {
@@ -2452,23 +2452,23 @@ namespace flare {
 				String2 id = _scanner->string_value();
 				tok = next();
 				
-				if (tok == FROM) { // import app from 'flare/app';
+				if (tok == FROM) { // import app from 'noug/app';
 					append(id);       // app   // TODO ... developer evn modify id
 					append(S.ASSIGN); // =
 					CHECK_NEXT(STRIFX_LITERAL);
-					append(S.REQUIRE); // require('flare/app').default;
+					append(S.REQUIRE); // require('noug/app').default;
 					append(S.LPAREN); // (
 					fetch();
 					append(S.RPAREN); // )
 					append(S.PERIOD); // .
 					append(S.DEFAULT); // default
-				} else if (tok == COMMA) { // import app, { Application as App } from 'flare/app';
+				} else if (tok == COMMA) { // import app, { Application as App } from 'noug/app';
 					CHECK_NEXT(LBRACE);
 					parse_import_block(&id);
 					CHECK_NEXT(FROM);
 					append(S.ASSIGN); // =
 					CHECK_NEXT(STRIFX_LITERAL);
-					append(S.REQUIRE); // require('flare/app');
+					append(S.REQUIRE); // require('noug/app');
 					append(S.LPAREN); // (
 					fetch();
 					append(S.RPAREN); // )
@@ -2477,7 +2477,7 @@ namespace flare {
 					UNEXPECTED_TOKEN_ERROR();
 				}
 			}
-			else if (tok == MUL) {  // import * as app from 'flare/app';
+			else if (tok == MUL) {  // import * as app from 'noug/app';
 				append(S.CONST);    // const
 				CHECK_NEXT(AS);       // as
 				tok = next();
@@ -2486,7 +2486,7 @@ namespace flare {
 					CHECK_NEXT(FROM);
 					append(S.ASSIGN);  // =
 					CHECK_NEXT(STRIFX_LITERAL);
-					append(S.REQUIRE); // require('flare/app');
+					append(S.REQUIRE); // require('noug/app');
 					append(S.LPAREN); // (
 					fetch();
 					append(S.RPAREN); // )
@@ -2494,18 +2494,18 @@ namespace flare {
 					UNEXPECTED_TOKEN_ERROR();
 				}
 			}
-			else if (tok == LBRACE) { // import { Application as app } from 'flare/app';
+			else if (tok == LBRACE) { // import { Application as app } from 'noug/app';
 				append(S.CONST); // const
 				parse_import_block(nullptr);
 				CHECK_NEXT(FROM);  // from
 				append(S.ASSIGN); // =
 				CHECK_NEXT(STRIFX_LITERAL);
-				append(S.REQUIRE);// require('flare/app');
+				append(S.REQUIRE);// require('noug/app');
 				append(S.LPAREN); // (
 				fetch();
 				append(S.RPAREN); // )
 			}
-			else if (tok == STRIFX_LITERAL) { // flare private syntax
+			else if (tok == STRIFX_LITERAL) { // noug private syntax
 
 				String2 str = _scanner->string_value();
 				if (peek() == AS) { // import 'test_gui.jsx' as gui;  ---->>>> import * as gui from 'test_gui.jsx';
@@ -2516,7 +2516,7 @@ namespace flare {
 						append(S.SPACE); //
 						append(S.ASSIGN); // =
 						next(); // IDENTIFIER
-						append(S.REQUIRE); // require('flare/app');
+						append(S.REQUIRE); // require('noug/app');
 						append(S.LPAREN); // (
 						append(str);
 						append(S.RPAREN); // )
@@ -2552,7 +2552,7 @@ namespace flare {
 						append(S.SPACE); //
 						append(S.ASSIGN); // =
 					}
-					append(S.REQUIRE); // require('flare/app');
+					append(S.REQUIRE); // require('noug/app');
 					append(S.LPAREN); // (
 					append(str);
 					append(S.RPAREN); // )

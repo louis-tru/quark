@@ -28,79 +28,79 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/util/http.h"
-#include "flare/os/os.h"
+#include "noug/util/http.h"
+#include "noug/os/os.h"
 
-using namespace flare;
+using namespace noug;
 
 void test_http_cookie(int argc, char **argv) {
 	
-	F_LOG(http_get_cookie("flare.cool", "test"));
+	F_LOG(http_get_cookie("noug.cc", "test"));
 	
-	http_set_cookie("flare.cool", "test", "flare.cool");
+	http_set_cookie("noug.cc", "test", "noug.cc");
 	
-	F_LOG("A, %s", *http_get_cookie("flare.cool", "test"));
+	F_LOG("A, %s", *http_get_cookie("noug.cc", "test"));
 	
-	F_LOG("B, %s", *http_get_cookie("www.flare.cool", "test"));
+	F_LOG("B, %s", *http_get_cookie("www.noug.cc", "test"));
 
-	http_set_cookie("www.flare.cool", "test", "$");
+	http_set_cookie("www.noug.cc", "test", "$");
 
-	F_LOG("B2, %s", *http_get_cookie("www.flare.cool", "test"));
+	F_LOG("B2, %s", *http_get_cookie("www.noug.cc", "test"));
 
-	http_set_cookie("flare.cool", "test2", "*");
+	http_set_cookie("noug.cc", "test2", "*");
 	
-	F_LOG("D, %s", *http_get_cookie("flare.cool", "test2"));
+	F_LOG("D, %s", *http_get_cookie("noug.cc", "test2"));
 	
-	F_LOG("E, %s", *http_get_cookie("www.flare.cool", "test2"));
+	F_LOG("E, %s", *http_get_cookie("www.noug.cc", "test2"));
 	
-	http_set_cookie("flare.cool", "test2", "-----------------------------", -1, "/AA");
+	http_set_cookie("noug.cc", "test2", "-----------------------------", -1, "/AA");
 	
-	F_LOG("F, %s", *http_get_cookie("flare.cool", "test2"));
+	F_LOG("F, %s", *http_get_cookie("noug.cc", "test2"));
 	
-	F_LOG("H, %s", *http_get_cookie("flare.cool", "test2", "/AA"));
+	F_LOG("H, %s", *http_get_cookie("noug.cc", "test2", "/AA"));
 	
-	F_LOG(http_get_all_cookie_string("www.flare.cool", "/AA"));
+	F_LOG(http_get_all_cookie_string("www.noug.cc", "/AA"));
 	
-	http_set_cookie_with_expression("flare.cool", "test3=HHHH--l; path=/AA; max-age=60");
+	http_set_cookie_with_expression("noug.cc", "test3=HHHH--l; path=/AA; max-age=60");
 	
-	F_LOG(http_get_cookie("flare.cool", "test3"));
+	F_LOG(http_get_cookie("noug.cc", "test3"));
 	
-	F_LOG(http_get_cookie("flare.cool", "test3", "/AA"));
+	F_LOG(http_get_cookie("noug.cc", "test3", "/AA"));
 	
-	F_LOG("http_cookie_get_all_string 1, %s", *http_get_all_cookie_string("www.flare.cool", "/AA"));
-	F_LOG("http_cookie_get_all_string 2, %s", *http_get_all_cookie_string("flare.cool", "/AA"));
+	F_LOG("http_cookie_get_all_string 1, %s", *http_get_all_cookie_string("www.noug.cc", "/AA"));
+	F_LOG("http_cookie_get_all_string 2, %s", *http_get_all_cookie_string("noug.cc", "/AA"));
 	
 	// test delete
 	
-	http_delete_cookie("flare.cool", "test");
+	http_delete_cookie("noug.cc", "test");
 	
-	F_LOG(http_get_cookie("flare.cool", "test"));
+	F_LOG(http_get_cookie("noug.cc", "test"));
 	
-	http_set_cookie("flare.cool", "test", "flare.cool2");
-	http_set_cookie("flare.cool", "test9", "flare.cool3");
-	http_set_cookie("flare.cool", "test8", "flare.cool4");
-	http_set_cookie("www.flare.cool", "test7", "flare.cool5");
+	http_set_cookie("noug.cc", "test", "noug.cc2");
+	http_set_cookie("noug.cc", "test9", "noug.cc3");
+	http_set_cookie("noug.cc", "test8", "noug.cc4");
+	http_set_cookie("www.noug.cc", "test7", "noug.cc5");
 	
-	F_LOG("E, %s", *http_get_cookie("flare.cool", "test"));
+	F_LOG("E, %s", *http_get_cookie("noug.cc", "test"));
 
-	http_set_cookie("flare.orh", "test--------A", "flare.cool%", -1, "KKK/MMM");
+	http_set_cookie("noug.orh", "test--------A", "noug.cc%", -1, "KKK/MMM");
 
-	F_LOG("http_cookie_get_all_string 3, %s", *http_get_all_cookie_string("flare.cool"));
+	F_LOG("http_cookie_get_all_string 3, %s", *http_get_all_cookie_string("noug.cc"));
 	
-	http_delete_all_cookie("flare.cool");
+	http_delete_all_cookie("noug.cc");
 	
-	F_LOG(http_get_cookie("flare.cool", "test"));
+	F_LOG(http_get_cookie("noug.cc", "test"));
 	
-	http_set_cookie("flare.cool", "test", "flare.cool");
+	http_set_cookie("noug.cc", "test", "noug.cc");
 	
-	F_LOG("F, %s", *http_get_cookie("flare.cool", "test--------A", "KKK/MMM", 1));
+	F_LOG("F, %s", *http_get_cookie("noug.cc", "test--------A", "KKK/MMM", 1));
 	
 	http_clear_cookie();
 	
-	F_LOG(http_get_cookie("flare.cool", "test"));
+	F_LOG(http_get_cookie("noug.cc", "test"));
 	
-	http_set_cookie("flare.cool", "test", "END test cookie", time_micro() + 6e7); // 60s expires
+	http_set_cookie("noug.cc", "test", "END test cookie", time_micro() + 6e7); // 60s expires
 	
-	F_LOG(http_get_cookie("flare.cool", "test"));
+	F_LOG(http_get_cookie("noug.cc", "test"));
 	
 }

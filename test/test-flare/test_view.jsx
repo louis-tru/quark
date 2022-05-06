@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { Vec2, value } from 'flare/value';
-import KeyframeAction from 'flare/action';
+import { Vec2, value } from 'noug/value';
+import KeyframeAction from 'noug/action';
 import {
 	Application,
 	CSS,
@@ -53,9 +53,9 @@ import {
 	Clip,
 	Input,
 	Textarea,
-	flare: gui,
-} from 'flare';
-import { Video } from 'flare/media';
+	noug: gui,
+} from 'noug';
+import { Video } from 'noug/media';
 
 CSS({
 	'.test': {

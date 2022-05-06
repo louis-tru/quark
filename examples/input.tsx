@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Text, Input, Textarea, default as flare, _CVD, View } from 'flare';
+import { Div, Button, Text, Input, Textarea, default as noug, _CVD, View } from 'noug';
 import { Mynavpage } from './public';
-import { ClickEvent } from 'flare/event';
+import { ClickEvent } from 'noug/event';
 
 const resolve = require.resolve;
 
@@ -39,7 +39,7 @@ function start_input(evt: ClickEvent) {
 }
 
 function end_input(evt: ClickEvent) {
-	(flare.app.focusView as View).blur();
+	(noug.app.focusView as View).blur();
 }
 
 export default ()=>(

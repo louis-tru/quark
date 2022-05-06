@@ -10,12 +10,12 @@
 				'../out',
 			],
 			'dependencies': [
-				'flare-util',
+				'noug-util',
 				'skia',
-				'flare',
-				'flare-media',
-				# 'flare-js',
-				# 'flare-node',
+				'noug',
+				'noug-media',
+				# 'noug-js',
+				# 'noug-node',
 				###########
 				'trial',
 				'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
@@ -24,7 +24,7 @@
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
 				'res',
-				'test-flare',
+				'test-noug',
 				'../examples',
 				'../bench',
 			],
@@ -33,7 +33,7 @@
 			},
 			'sources': [
 				'../examples',
-				'../libs/fproj',
+				'../libs/noproj',
 				'../libs/somes',
 				'test.cc',
 				'test-fs.cc',
@@ -108,14 +108,14 @@
 	],
 
 	'conditions': [
-		# gen android test depes `libflare-depes-test.so`
+		# gen android test depes `libnoug-depes-test.so`
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets': [
 			{
-				'target_name': 'flare-depes-test',
+				'target_name': 'noug-depes-test',
 				'type': 'shared_library',
 				'dependencies': [
-					'flare/util/minizip.gyp:minizip',
+					'noug/util/minizip.gyp:minizip',
 					'deps/tess2/tess2.gyp:tess2', 
 					'deps/freetype2/freetype2.gyp:ft2',
 					'deps/ffmpeg/ffmpeg.gyp:ffmpeg_compile',
@@ -144,13 +144,13 @@
 				],
 			},
 			{
-				'target_name': 'flare-depes-copy',
+				'target_name': 'noug-depes-copy',
 				'type': 'none',
-				'dependencies': [ 'flare-depes-test' ],
+				'dependencies': [ 'noug-depes-test' ],
 				'copies': [{
 					'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
 					'files': [
-						'<(output)/lib.target/libflare-depes-test.so',
+						'<(output)/lib.target/libnoug-depes-test.so',
 					],
 				}],
 			}],
@@ -158,7 +158,7 @@
 		['os in "ios osx"', {
 			'targets': [
 			{
-				'target_name': 'FlareTest',
+				'target_name': 'NougTest',
 				'type': 'shared_library',
 				'mac_bundle': 1,
 				'include_dirs': [ '.' ],

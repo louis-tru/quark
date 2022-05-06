@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/util/util.h"
-#include "flare/util/string.h"
+#include "noug/util/util.h"
+#include "noug/util/string.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <sstream>
 #include <istream>
 
 using namespace v8;
-namespace n = flare;
+namespace n = noug;
 
 MaybeLocal<v8::Value> run_script(Isolate* isolate, v8::Local<v8::String> source_string,
 																 v8::Local<v8::String> name,

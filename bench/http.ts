@@ -1,5 +1,5 @@
 
-import * as http from 'flare/http';
+import * as http from 'noug/http';
 
 var i = 0;
 

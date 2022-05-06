@@ -1,0 +1,384 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
+ *
+ * Copyright (c) 2015, xuewen.chu
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of xuewen.chu nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL xuewen.chu BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#ifndef __noug__util__fs__
+#define __noug__util__fs__
+
+#include "./cb.h"
+#include "./handle.h"
+#include "./loop.h"
+#include "./stream.h"
+
+namespace noug {
+
+	/**
+	* @enum FileOpenFlag # File open flag
+	*/
+	enum FileOpenFlag {
+		FOPEN_ACCMODE = 03,
+		FOPEN_RDONLY = 00,
+		FOPEN_WRONLY = 01,
+		FOPEN_RDWR = 02,
+		FOPEN_CREAT = 0100,
+		FOPEN_EXCL = 0200,
+		FOPEN_NOCTTY = 0400,
+		FOPEN_TRUNC = 01000,
+		FOPEN_APPEND = 02000,
+		FOPEN_NONBLOCK = 04000,
+		// r 打开只读文件，该文件必须存在。
+		FOPEN_R = FOPEN_RDONLY,
+		// w 打开只写文件，若文件存在则文件长度清为零，即该文件内容会消失，若文件不存在则建立该文件。
+		FOPEN_W = FOPEN_WRONLY | FOPEN_CREAT | FOPEN_TRUNC,
+		// a 以附加的方式打开只写文件。若文件不存在，则会建立该文件，如果文件存在，
+		//   写入的数据会被加到文件尾，即文件原先的内容会被保留。
+		FOPEN_A = FOPEN_WRONLY | FOPEN_CREAT | FOPEN_APPEND,
+		// r+ 打开可读写文件，该文件必须存在。
+		FOPEN_RP = FOPEN_RDWR,
+		// w+ 打开可读写文件，若文件存在则文件长度清为零，即该文件内容会消失。
+		//    若文件不存在则建立该文件。
+		FOPEN_WP = FOPEN_RDWR | FOPEN_CREAT | FOPEN_TRUNC,
+		// a+	以附加方式打开可读写的文件。若文件不存在，则会建立该文件，如果文件存在，
+		//    写入的数据会被加到文件尾后，即文件原先的内容会被保留。
+		FOPEN_AP = FOPEN_RDWR | FOPEN_CREAT | FOPEN_APPEND,
+	};
+
+	enum FileType {
+		FTYPE_UNKNOWN,
+		FTYPE_FILE,
+		FTYPE_DIR,
+		FTYPE_LINK,
+		FTYPE_FIFO,
+		FTYPE_SOCKET,
+		FTYPE_CHAR,
+		FTYPE_BLOCK
+	};
+
+	class Dirent: public Object {
+	public:
+		Dirent(cString& name, cString& pathname, FileType type);
+		F_DEFINE_PROP_READ(String, name);
+		F_DEFINE_PROP_READ(String, pathname);
+		F_DEFINE_PROP_READ(FileType, type);
+	};
+
+	class F_EXPORT FileSync: public Object {
+		F_HIDDEN_ALL_COPY(FileSync);
+	public:
+		FileSync(cString& path);
+		virtual ~FileSync();
+		bool is_open();
+		int open(int flag = FOPEN_R);
+		int close();
+		int read(void* buffer, int64_t size, int64_t offset = -1);
+		int write(const void* buffer, int64_t size, int64_t offset = -1);
+		// props
+		F_DEFINE_PROP_READ(String, path);
+	private:
+		int    _fd;
+	};
+
+	class F_EXPORT File: public Object {
+		F_HIDDEN_ALL_COPY(File);
+	public:
+		class F_EXPORT Delegate {
+		public:
+			virtual void trigger_file_open(File* file) = 0;
+			virtual void trigger_file_close(File* file) = 0;
+			virtual void trigger_file_error(File* file, const Error& error) = 0;
+			virtual void trigger_file_read(File* file, Buffer buffer, int mark) = 0;
+			virtual void trigger_file_write(File* file, Buffer buffer, int mark) = 0;
+		};
+		File(cString& path, RunLoop* loop = RunLoop::current());
+		virtual ~File();
+		String path() const;
+		void set_delegate(Delegate* delegate);
+		bool is_open();
+		void open(int flag = FOPEN_R);
+		void close();
+		void read(Buffer buffer, int64_t offset = -1, int mark = 0);
+		void write(Buffer buffer, int64_t offset = -1, int mark = 0);
+	private:
+		F_DEFINE_INLINE_CLASS(Inl);
+		Inl* _inl;
+	};
+
+	class F_EXPORT FileStat: public Object {
+		F_HIDDEN_ALL_COPY(FileStat);
+	public:
+		FileStat();
+		FileStat(cString& path);
+		FileStat(FileStat&& stat);
+		FileStat& operator=(FileStat&& stat);
+		virtual ~FileStat();
+		bool is_valid() const;
+		bool is_file() const;
+		bool is_dir() const;
+		bool is_link() const;
+		bool is_sock() const;
+		uint64_t mode() const;
+		FileType type() const;
+		uint64_t group() const;
+		uint64_t owner() const;
+		uint64_t nlink() const;
+		uint64_t ino() const;
+		uint64_t blksize() const;
+		uint64_t blocks() const;
+		uint64_t flags() const;
+		uint64_t gen() const;
+		uint64_t dev() const;
+		uint64_t rdev() const;
+		uint64_t size() const;
+		uint64_t atime() const;
+		uint64_t mtime() const;
+		uint64_t ctime() const;
+		uint64_t birthtime() const;
+	private:
+		void* _stat;
+		F_DEFINE_INLINE_CLASS(Inl);
+	};
+
+	class F_EXPORT FileReader: public Object {
+		F_HIDDEN_ALL_COPY(FileReader);
+	public:
+		FileReader();
+		FileReader(FileReader&& reader);
+		virtual ~FileReader();
+		virtual uint32_t read_file(cString& path, Cb cb = 0);
+		virtual uint32_t read_stream(cString& path, Callback<StreamResponse> cb = 0);
+		virtual Buffer read_file_sync(cString& path) throw(Error);
+		virtual void abort(uint32_t id);
+		virtual bool exists_sync(cString& path);
+		virtual bool is_file_sync(cString& path);
+		virtual bool is_directory_sync(cString& path);
+		virtual Array<Dirent> readdir_sync(cString& path);
+		virtual bool is_absolute(cString& path);
+		virtual String format(cString& path);
+		virtual void clear();
+		static void set_shared(FileReader* reader);
+		static FileReader* shared();
+	private:
+		class Core;
+		Core* _core;
+	};
+
+	/**
+	 * @func fs_reader() get shared reader
+	*/
+	F_EXPORT FileReader* fs_reader();
+
+	/**
+	 * @field fs_default_mode
+	*/
+	F_EXPORT extern const uint32_t fs_default_mode;
+
+	/**
+	* @func each_sync 递归遍历子文件与子目录, 遍历回调回返0停止遍历
+	*/
+	F_EXPORT bool fs_each_sync(cString& path, Cb cb, bool internal = false) throw(Error);
+	
+	// sync
+	/**
+	* @func chmod_sync
+	*/
+	F_EXPORT void fs_chmod_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
+	
+	/**
+	* @func chmod_r_sync  # 递归设置
+	* # 多线程中,设置stop_signal值为true来终止操作
+	*/
+	F_EXPORT void fs_chown_sync(cString& path, uint32_t owner, uint32_t group) throw(Error);
+	F_EXPORT void fs_mkdir_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
+	F_EXPORT void fs_rename_sync(cString& name, cString& new_name) throw(Error);
+	F_EXPORT void fs_link_sync(cString& path, cString& newPath) throw(Error);
+	F_EXPORT void fs_unlink_sync(cString& path) throw(Error);
+	F_EXPORT void fs_rmdir_sync(cString& path) throw(Error);
+	F_EXPORT Array<Dirent> fs_readdir_sync(cString& path) throw(Error);
+	F_EXPORT FileStat fs_stat_sync(cString& path) throw(Error);
+	F_EXPORT bool fs_exists_sync(cString& path);
+	F_EXPORT bool fs_is_file_sync(cString& path);
+	F_EXPORT bool fs_is_directory_sync(cString& path);
+	F_EXPORT bool fs_readable_sync(cString& path);
+	F_EXPORT bool fs_writable_sync(cString& path);
+	F_EXPORT bool fs_executable_sync(cString& path);
+	// recursion
+	F_EXPORT bool fs_chmod_r_sync(cString& path, uint32_t mode = fs_default_mode, bool* stop_signal = nullptr) throw(Error);
+	F_EXPORT bool fs_chown_r_sync(cString& path, uint32_t owner, uint32_t group, bool* stop_signal = nullptr) throw(Error);
+	F_EXPORT void fs_mkdir_p_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
+	F_EXPORT bool fs_remove_r_sync(cString& path, bool* stop_signal = nullptr) throw(Error);
+	F_EXPORT bool fs_copy_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
+	F_EXPORT bool fs_copy_r_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
+	// async
+	F_EXPORT void fs_chmod(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	F_EXPORT void fs_chown(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
+	F_EXPORT void fs_mkdir(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	F_EXPORT void fs_rename(cString& name, cString& new_name, Cb cb = 0);
+	F_EXPORT void fs_link(cString& path, cString& newPath, Cb cb = 0);
+	F_EXPORT void fs_unlink(cString& path, Cb cb = 0);
+	F_EXPORT void fs_rmdir(cString& path, Cb cb = 0);
+	F_EXPORT void fs_readdir(cString& path, Callback<Array<Dirent>> cb = 0);
+	F_EXPORT void fs_stat(cString& path, Cb cb = 0);
+	F_EXPORT void fs_exists(cString& path, Cb cb = 0);
+	F_EXPORT void fs_is_file(cString& path, Cb cb = 0);
+	F_EXPORT void fs_is_directory(cString& path, Cb cb = 0);
+	F_EXPORT void fs_readable(cString& path, Cb cb = 0);
+	F_EXPORT void fs_writable(cString& path, Cb cb = 0);
+	F_EXPORT void fs_executable(cString& path, Cb cb = 0);
+	// recursion
+	F_EXPORT void fs_mkdir_p(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	F_EXPORT uint32_t fs_chmod_r(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	F_EXPORT uint32_t fs_chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
+	F_EXPORT uint32_t fs_remove_r(cString& path, Cb cb = 0);
+	F_EXPORT uint32_t fs_copy(cString& source, cString& target, Cb cb = 0);
+	F_EXPORT uint32_t fs_copy_r(cString& source, cString& target, Cb cb = 0);
+	F_EXPORT void fs_abort(uint32_t id);
+		// read stream
+	F_EXPORT uint32_t fs_read_stream(cString& path, Callback<StreamResponse> cb = 0);
+		// read file
+	F_EXPORT Buffer fs_read_file_sync(cString& path, int64_t size = -1) throw(Error);
+	F_EXPORT void fs_read_file(cString& path, Cb cb = 0, int64_t size = -1);
+		// write file
+	F_EXPORT int fs_write_file_sync(cString& path, cString& str) throw(Error);
+	F_EXPORT int fs_write_file_sync(cString& path, const void* data, int64_t size) throw(Error);
+	F_EXPORT void fs_write_file(cString& path, cString& str, Cb cb = 0);
+	F_EXPORT void fs_write_file(cString& path, Buffer buffer, Cb cb = 0);
+		// open file fd
+	F_EXPORT int fs_open_sync(cString& path, int flag = FOPEN_R) throw(Error);
+	F_EXPORT void fs_open(cString& path, int flag = FOPEN_R, Cb cb = 0);
+	F_EXPORT void fs_open(cString& path, Cb cb = 0);
+	F_EXPORT void fs_close_sync(int fd) throw(Error);
+	F_EXPORT void fs_close(int fd, Cb cb = 0);
+		// read with fd
+	F_EXPORT int fs_read_sync(int fd, void* data, int64_t size, int64_t offset = -1) throw(Error);
+	F_EXPORT int fs_write_sync(int fd, const void* data, int64_t size, int64_t offset = -1) throw(Error);
+	F_EXPORT void fs_read(int fd, Buffer buffer, Cb cb);
+	F_EXPORT void fs_read(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
+	F_EXPORT void fs_write(int fd, Buffer buffer, Cb cb);
+	F_EXPORT void fs_write(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
+
+	/**
+	* @func extname {String} # Get the path basename
+	* @ret {String}
+	*/
+	F_EXPORT String fs_basename(cString& path);
+	
+	/**
+	* @func extname {String} # Get the path dirname
+	* @arg path {cString&}
+	* @ret {String}
+	*/
+	F_EXPORT String fs_dirname(cString& path);
+	
+	/**
+	* @func extname # Get the path extname
+	* @arg path {cString&}
+	* @ret {String}
+	*/
+	F_EXPORT String fs_extname(cString& path);
+	
+	/**
+	* @func executable_path # Get the executable path
+	* @ret {cString&}
+	*/
+	F_EXPORT String fs_executable();
+	
+	/**
+	* @func documents_dir # Get the documents dir.
+	* @ret {cString&} # The path that can be write/read a file in
+	*/
+	F_EXPORT String fs_documents(cString& child = String());
+	
+	/**
+	* @func temp_dir # Get the temp dir.
+	* @ret {cString&} # The path that can be write/read a file in
+	*/
+	F_EXPORT String fs_temp(cString& child = String());
+	
+	/**
+	* @func resources_dir # Get the resoures dir
+	* @ret {cString&}
+	*/
+	F_EXPORT String fs_resources(cString& child = String());
+	
+	/**
+	* @func is_absolute # Is absolute path
+	* @ret {bool}
+	*/
+	F_EXPORT bool fs_is_local_absolute(cString& path);
+	
+	/**
+	* @func is_local_zip
+	*/
+	F_EXPORT bool fs_is_local_zip(cString& path);
+	
+	/**
+	* @func is_local_file
+	*/
+	F_EXPORT bool fs_is_local_file(cString& path);
+	
+	/**
+	* @func format
+	* @arg format {cChar*}
+	* @arg [...] {cChar*}
+	* @ret {String}
+	*/
+	F_EXPORT String fs_format(cChar* path, ...);
+	
+	/**
+	* @func format
+	*/
+	F_EXPORT String fs_format(cString& path);
+	
+	/**
+	* @func fallback
+	*/
+	F_EXPORT String fs_fallback(cString& path);
+
+	/**
+	* @func fallback_c
+	*/
+	F_EXPORT cChar* fs_fallback_c(cString& path);
+	
+	/**
+	* @func cwd # Getting current working directory
+	* @ret {String}
+	* @static
+	*/
+	F_EXPORT String fs_cwd();
+	
+	/**
+	* @func chdir # Setting current working directory
+	* @arg path {cString&}
+	* @ret {bool}
+	* @static
+	*/
+	F_EXPORT bool fs_chdir(cString& path);
+
+}
+#endif

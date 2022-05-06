@@ -1,7 +1,7 @@
 {
 	"name": "examples",
-	"app": "Flare-Examples",
-	"id": "org.flare.examples",
+	"app": "Noug-Examples",
+	"id": "org.noug.examples",
 	"main":	"index.js",
 	"types": "index.d.ts",
 	"version": "1.0.0"

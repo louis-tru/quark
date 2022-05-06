@@ -1,5 +1,5 @@
 
-import { Application, Root, Indep, Text, Div } from 'flare';
+import { Application, Root, Indep, Text, Div } from 'noug';
 
 new Application({ multisample: 2 }).start(
 	<Root>

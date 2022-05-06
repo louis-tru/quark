@@ -1,5 +1,5 @@
 
-import * as storage from 'flare/storage';
+import * as storage from 'noug/storage';
 import * as uu from './uu';
 
 uu.start();

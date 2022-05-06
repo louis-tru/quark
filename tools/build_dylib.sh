@@ -54,44 +54,44 @@ framework() {
 	node ../../tools/gen_apple_framework.js ios $name "no-cut" "$inc" . ./lib$name.dylib
 }
 
-# flare
-link_dylib flare \
-	"$obj/flare-utils $obj/libuv $obj/openssl $obj/http_parser \
-			$obj/flare " \
+# noug
+link_dylib noug \
+	"$obj/noug-utils $obj/libuv $obj/openssl $obj/http_parser \
+			$obj/noug " \
 	"-lminizip -lbplus -lz 
 			-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
 			-framework CoreGraphics -framework QuartzCore -framework UIKit -framework MessageUI "
-framework flare no-inc # gen temp framework
+framework noug no-inc # gen temp framework
 
-# flare-media
-link_dylib flare-media \
-	"$obj/flare-media" \
+# noug-media
+link_dylib noug-media \
+	"$obj/noug-media" \
 	"-liconv -lbz2 -lz -lffmpeg" \
 	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
-			-framework CoreMedia -framework flare"
-framework flare-media no-inc # gen temp framework
+			-framework CoreMedia -framework noug"
+framework noug-media no-inc # gen temp framework
 
-# flare-js + flare-v8
+# noug-js + noug-v8
 if [ "$use_v8_link" = "1" ]; then
-	link_dylib flare-js \
-		"$obj/v8-link $obj/flare-js" \
+	link_dylib noug-js \
+		"$obj/v8-link $obj/noug-js" \
 		"" \
-		"-framework flare -framework flare-media -framework JavaScriptCore"
+		"-framework noug -framework noug-media -framework JavaScriptCore"
 else
 	# $obj/v8_base/deps/node/deps/v8/src/api.o
 	# $obj/v8_base/deps/node/deps/v8/src/inspector
-	link_dylib flare-js \
-		"$obj/v8_base $obj/v8_libplatform $obj/flare-js" \
+	link_dylib noug-js \
+		"$obj/v8_base $obj/v8_libplatform $obj/noug-js" \
 		"-lv8_base -lv8_libbase -lv8_libsampler -lv8_builtins_setup \
 				-lv8_nosnapshot -lv8_builtins_generators" \
-		"-framework flare -framework flare-media -framework JavaScriptCore"
+		"-framework noug -framework noug-media -framework JavaScriptCore"
 fi
-framework flare-js no-inc # gen temp framework
+framework noug-js no-inc # gen temp framework
 
-# flare-node
-link_dylib flare-node \
+# noug-node
+link_dylib noug-node \
 	"$obj/node" \
 	"-lnghttp2 -lcares -lz" \
-	"-framework flare -framework flare-js"
-framework flare-node no-inc # gen temp framework
+	"-framework noug -framework noug-js"
+framework noug-node no-inc # gen temp framework

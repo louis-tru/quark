@@ -1,5 +1,5 @@
 
-import { Image } from 'flare';
+import { Image } from 'noug';
 import './print';
 
 

@@ -28,20 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, _CVD, default as flare } from 'flare';
-import { Stepper } from 'flare/stepper';
+import { Div, Text, _CVD, default as noug } from 'noug';
+import { Stepper } from 'noug/stepper';
 import { Mynavpage } from './public';
-import { Event } from 'flare/event';
+import { Event } from 'noug/event';
 
 const resolve = require.resolve;
 
-flare.css({
+noug.css({
 	'.strpper_page': {
 		width: 'full',
 	},
 	'.strpper_page .item': {
 		width: 'full',
-		borderBottom: `${flare.atomPixel} #ccc`,
+		borderBottom: `${noug.atomPixel} #ccc`,
 	},
 	'.strpper_page .text': {
 		width: '140!',

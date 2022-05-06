@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/os/os.h"
+#include "noug/os/os.h"
 
-using namespace flare;
+using namespace noug;
 
 class TestSizeOf {
  private:

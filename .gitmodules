@@ -1,8 +1,8 @@
 [submodule "libs/somes"]
 	path = libs/somes
 	url = https://github.com/louis-tru/somes.git
-[submodule "libs/fproj/gyp"]
-	path = libs/fproj/gyp
+[submodule "libs/noproj/gyp"]
+	path = libs/noproj/gyp
 	url = https://github.com/louis-tru/gyp.git
 [submodule "deps/v8-link"]
 	path = deps/v8-link

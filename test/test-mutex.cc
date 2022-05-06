@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/util.h>
-#include <flare/util/loop.h>
+#include <noug/util/util.h>
+#include <noug/util/loop.h>
 
-using namespace flare;
+using namespace noug;
 
 volatile bool run_flag = false;
 Mutex mtx;

@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package cool.flare.test;
+package cool.noug.test;
 
 import android.os.Bundle;
 import android.util.Log;
 
-import org.flare.Activity;
+import org.noug.Activity;
 
 public class MainActivity extends Activity {
 
 	static {
-		System.loadLibrary("flare-js");
+		System.loadLibrary("noug-js");
 	}
 
 	@Override
@@ -47,10 +47,10 @@ public class MainActivity extends Activity {
 	}
 
 	protected String startCommand() {
-		//return "flare --inspect-brk=0.0.0.0:9229 http://192.168.0.11:1026/examples";
-		//return "flare --inspect-brk=0.0.0.0:9229 examples";
-		return "flare examples";
-		//return "flare examples";
+		//return "noug --inspect-brk=0.0.0.0:9229 http://192.168.0.11:1026/examples";
+		//return "noug --inspect-brk=0.0.0.0:9229 examples";
+		return "noug examples";
+		//return "noug examples";
 	}
 
 }

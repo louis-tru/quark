@@ -1,4 +1,4 @@
-# `flare/ctr`
+# `noug/ctr`
 
 ## static ViewController::render(vdom[,parentView) 
 
@@ -11,8 +11,8 @@
 Example:
 
 ```jsx
-import { Application, ViewController, Root, Div } from 'flare'
-import 'flare/http'
+import { Application, ViewController, Root, Div } from 'noug'
+import 'noug/http'
 class MyCtr extends ViewController {
 	triggerLoad(e) {
 		http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>(this.modle = {bf}));
@@ -143,18 +143,18 @@ new Application().start(
 [`double`]: native_types.md#double
 [`bool`]: native_types.md#bool
 
-[`View`]: flare.md#class-view
+[`View`]: noug.md#class-view
 [`ViewController`]: ctr.md#class-viewcontroller
 [`Notification`]: event.md#class-notification
-[`View.action`]: flare.md#get-view-action
-[`View.style`]: flare.md#view-style
-[`View.visible`]: flare.md#view-visible
-[`View.receive`]: flare.md#view-receive
-[`View.class`]: flare.md#get-view-class
-[`View.transition()`]: flare.md#view-transition-style-delay-cb-
-[`View.show()`]: flare.md#view-show-
-[`View.hide()`]: flare.md#view-hide-
-[`View.addClass()`]: flare.md#view-addClass-name-
-[`View.removeClass()`]: flare.md#view-removeclass-name-
-[`View.toggleClass()`]: flare.md#view-toggleclass-name-
-[`View.remove()`]: flare.md#view-remove-
+[`View.action`]: noug.md#get-view-action
+[`View.style`]: noug.md#view-style
+[`View.visible`]: noug.md#view-visible
+[`View.receive`]: noug.md#view-receive
+[`View.class`]: noug.md#get-view-class
+[`View.transition()`]: noug.md#view-transition-style-delay-cb-
+[`View.show()`]: noug.md#view-show-
+[`View.hide()`]: noug.md#view-hide-
+[`View.addClass()`]: noug.md#view-addClass-name-
+[`View.removeClass()`]: noug.md#view-removeclass-name-
+[`View.toggleClass()`]: noug.md#view-toggleclass-name-
+[`View.remove()`]: noug.md#view-remove-

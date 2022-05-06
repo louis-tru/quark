@@ -1,5 +1,5 @@
 
-import 'flare/util';
+import 'noug/util';
 
 function json_stringify(value, whitelist) {
 

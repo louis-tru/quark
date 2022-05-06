@@ -1,15 +1,15 @@
 
-import { Application, ViewController, Root, Indep, default as flare, _CVD } from 'flare';
-import { Color } from 'flare/value';
-import util from 'flare/util';
+import { Application, ViewController, Root, Indep, default as noug, _CVD } from 'noug';
+import { Color } from 'noug/value';
+import util from 'noug/util';
 import * as uu from './uu';
 
 const random = util.random;
 
 class RootViewController extends ViewController {
 	render() {
-		var w = flare.displayPort.width;
-		var h = flare.displayPort.height;
+		var w = noug.displayPort.width;
+		var h = noug.displayPort.height;
 		console.log(w,h);
 
 		return (
@@ -47,6 +47,6 @@ class RootViewController extends ViewController {
 	}
 }
 
-new Application({ multisample: 4, title: 'Flare benchmark' }).start(<RootViewController />);
+new Application({ multisample: 4, title: 'Noug benchmark' }).start(<RootViewController />);
 
 uu.show_fsp();

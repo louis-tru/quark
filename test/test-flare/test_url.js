@@ -1,12 +1,12 @@
 
-import 'flare/url'
+import 'noug/url'
 import { P, M } from './test'
 
 console.log('\nOutputs:\n');
 
-var uri = new url.URL('http://flare.cool/home/index.html?a=a&b=b#c=c&d=d');
+var uri = new url.URL('http://noug.cc/home/index.html?a=a&b=b#c=c&d=d');
 
-// new url.URL('http://flare.cool:/home/index.html?a=a&b=b#c=c&d=d').href;
+// new url.URL('http://noug.cc:/home/index.html?a=a&b=b#c=c&d=d').href;
 
 for ( var i in uri ) {
 	var r = uri[i];
@@ -42,7 +42,7 @@ M(uri, 'getHash', ['a']);
 M(uri, 'setHash', ['k', 'K'], 'href');
 M(uri, 'setHash', ['k', 'K'], 'href');
 M(uri, 'clearHash', [], 'href');
-M(uri, 'relative', ['http://flare.cool/A/B/C/test.js']);
+M(uri, 'relative', ['http://noug.cc/A/B/C/test.js']);
 
 console.log('\nMethods:\n');
 
@@ -54,39 +54,39 @@ M(url, 'restore', [url.resources()]);
 M(url, 'cwd');
 M(url, 'chdir', ['/']);
 M(url, 'cwd');
-M(url, 'search', ['http://flare.cool/?a=100']);
-M(url, 'hash', ['http://flare.cool/?a=100&b=test#a=200&b=300']);
+M(url, 'search', ['http://noug.cc/?a=100']);
+M(url, 'hash', ['http://noug.cc/?a=100&b=test#a=200&b=300']);
 M(url, 'filename', ['file:///a/b/c/kk.jsx']);
 M(url, 'dirname', ['file:///a/b/c/kk.jsx']);
 M(url, 'host', ['a/b/c/kk.jsx']);
-M(url, 'host', ['http://flare.cool/a/b/c/kk.jsx']);
+M(url, 'host', ['http://noug.cc/a/b/c/kk.jsx']);
 M(url, 'hostname', ['a/b/c/kk.jsx']);
-M(url, 'hostname', ['http://flare.cool/a/b/c/kk.jsx']);
+M(url, 'hostname', ['http://noug.cc/a/b/c/kk.jsx']);
 M(url, 'origin', ['a/b/c/kk.jsx']);
-M(url, 'origin', ['http://flare.cool/a/b/c/kk.jsx']);
+M(url, 'origin', ['http://noug.cc/a/b/c/kk.jsx']);
 M(url, 'basename', ['a/b/c/kk.jsx']);
 M(url, 'extname', ['a/b/c/kk.jsx']);
-M(url, 'port', ['http://flare.cool:81/a/b/c/kk.jsx']);
+M(url, 'port', ['http://noug.cc:81/a/b/c/kk.jsx']);
 M(url, 'protocol', ['a/b/c/kk.jsx']);
-M(url, 'protocol', ['http://flare.cool/a/b/c/kk.jsx']);
+M(url, 'protocol', ['http://noug.cc/a/b/c/kk.jsx']);
 M(url, 'protocol', ['lib://util/fs']);
 M(url, 'protocol', [':util/fs']);
 M(url, 'protocol', ['zip:///var/data/test.apk@/assets/index']);
-M(url, 'params', ['http://flare.cool/?a=100&b=test#a=200&b=300']);
-M(url, 'hashParams', ['http://flare.cool/?a=100&b=test#a=200&b=300']);
-M(url, 'get', ['http://flare.cool/?a=100&b=test#a=200&b=300', 'a']);
-M(url, 'set', ['http://flare.cool/?a=100&b=test#a=200&b=300', 'a', 'A']);
-M(url, 'del', ['http://flare.cool/?a=100&b=test#a=200&b=300', 'a']);
-M(url, 'clearParam', ['http://flare.cool/?a=100&b=test#a=200&b=300']);
-M(url, 'getHash', ['http://flare.cool/?a=100&b=test#a=200&b=300', 'a']);
-M(url, 'setHash', ['http://flare.cool/?a=100&b=test#a=200&b=300', 'a', 'H']);
-M(url, 'delHash', ['http://flare.cool/?a=100&b=test#a=200&b=300', 'a']);
-M(url, 'clearHash', ['http://flare.cool/?a=100&b=test#a=200&b=300']);
-M(url, 'relative', ['http://flare.cool/home', 'http://flare.cool/A/B/C/test.js']);
-M(url, 'isAbsolute', ['http://flare.cool/home/index.html']);
+M(url, 'params', ['http://noug.cc/?a=100&b=test#a=200&b=300']);
+M(url, 'hashParams', ['http://noug.cc/?a=100&b=test#a=200&b=300']);
+M(url, 'get', ['http://noug.cc/?a=100&b=test#a=200&b=300', 'a']);
+M(url, 'set', ['http://noug.cc/?a=100&b=test#a=200&b=300', 'a', 'A']);
+M(url, 'del', ['http://noug.cc/?a=100&b=test#a=200&b=300', 'a']);
+M(url, 'clearParam', ['http://noug.cc/?a=100&b=test#a=200&b=300']);
+M(url, 'getHash', ['http://noug.cc/?a=100&b=test#a=200&b=300', 'a']);
+M(url, 'setHash', ['http://noug.cc/?a=100&b=test#a=200&b=300', 'a', 'H']);
+M(url, 'delHash', ['http://noug.cc/?a=100&b=test#a=200&b=300', 'a']);
+M(url, 'clearHash', ['http://noug.cc/?a=100&b=test#a=200&b=300']);
+M(url, 'relative', ['http://noug.cc/home', 'http://noug.cc/A/B/C/test.js']);
+M(url, 'isAbsolute', ['http://noug.cc/home/index.html']);
 M(url, 'isAbsolute', ['file:///a/b/c/kk.jsx']);
 M(url, 'isAbsolute', ['file:///d:/a/b/c/kk.jsx']);
 M(url, 'isAbsolute', ['/a/b/c/kk.jsx']);
 M(url, 'isAbsolute', ['d:/a/b/c/kk.jsx']);
 M(url, 'isAbsolute', ['c/kk.jsx']);
-M(url, 'resolve', ['http://flare.cool/home', '..', 'A', 'B', '..', 'C', 'test.js']);
+M(url, 'resolve', ['http://noug.cc/home', '..', 'A', 'B', '..', 'C', 'test.js']);

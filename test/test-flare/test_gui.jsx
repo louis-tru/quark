@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import 'flare/sys';
-import 'flare/dialog';
+import 'noug/sys';
+import 'noug/dialog';
 import {
 	Application,
 	Root, Div, Image, Sprite,
 	Text, Label, Limit, Hybrid,
-	Span, Video, Panel, Button, TextNode, Scroll, flare: gui
-} from 'flare';
+	Span, Video, Panel, Button, TextNode, Scroll, noug: gui
+} from 'noug';
 
 const action1 = {
 	delay: 1,

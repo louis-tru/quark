@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/zlib.h>
+#include <noug/util/zlib.h>
 #include <zlib.h>
 #include <map>
 
-using namespace flare;
+using namespace noug;
 
 void test_zlib (int argc, char **argv) {
 	

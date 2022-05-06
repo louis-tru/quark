@@ -1,8 +1,8 @@
 
-import * as http from 'flare/http';
-import util from 'flare/util';
-import * as sys from 'flare/sys';
-import { Indep, ViewController, default as flare, Text, _CVD } from 'flare';
+import * as http from 'noug/http';
+import util from 'noug/util';
+import * as sys from 'noug/sys';
+import { Indep, ViewController, default as noug, Text, _CVD } from 'noug';
 
 var ts = 0;
 
@@ -30,7 +30,7 @@ class FSP extends ViewController {
 	}
 
 	up_fsp() {
-		var fsp_value = flare.displayPort.fsp();
+		var fsp_value = noug.displayPort.fsp();
 		var cpu_usage = sys.cpuUsage();
 		this.state = { fsp_value, cpu_usage };
 		setTimeout(e=>this.up_fsp(), 1000);
@@ -42,18 +42,18 @@ var fsp: FSP;
 
 export function show_fsp() {
 	util.assert(!fsp);
-	util.assert(flare.app);
+	util.assert(noug.app);
 
 	function show_fsp_ok() {
-		if (flare.root) {
-			fsp = flare.render(<FSP />, flare.root);
+		if (noug.root) {
+			fsp = noug.render(<FSP />, noug.root);
 			fsp.up_fsp();
 		}
 	}
 
-	if (flare.app.isLoaded) {
+	if (noug.app.isLoaded) {
 		show_fsp_ok.setTimeout(1000);
 	} else {
-		flare.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
+		noug.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
 	}
 };

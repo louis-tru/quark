@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { Application, Root } from 'flare';
-import 'flare/media';
+import { Application, Root } from 'noug';
+import 'noug/media';
 
 new Application().start(<Root/>).onLoad = function() {
 

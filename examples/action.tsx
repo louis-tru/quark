@@ -30,9 +30,9 @@
 
 import {
 	Hybrid, Text, Button, Image, Indep, Clip, _CVD
-} from 'flare';
-import { HighlightedStatus, HighlightedEvent, ClickEvent } from 'flare/event';
-import { Navbar, Toolbar, NavPage } from 'flare/nav';
+} from 'noug';
+import { HighlightedStatus, HighlightedEvent, ClickEvent } from 'noug/event';
+import { Navbar, Toolbar, NavPage } from 'noug/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 

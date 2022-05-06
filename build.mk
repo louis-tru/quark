@@ -11,22 +11,22 @@ V             ?= 0
 CXX           ?= g++
 LINK          ?= g++
 ANDROID_LIB   ?= $(ANDROID_SDK)/platforms/android-28/android.jar
-ANDROID_JAR    = out/android.classs.flare.jar
+ANDROID_JAR    = out/android.classs.noug.jar
 JAVAC         ?= javac
 JAR            = jar
 ENV           ?=
-FPROJ          = ./libs/fproj
-FPROJ_OUT      = out/fproj
+FPROJ          = ./libs/noproj
+FPROJ_OUT      = out/noproj
 GYP            = $(FPROJ)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
 LIBS_DIR       = out/$(OUTPUT)
 BUILD_STYLE   ?= make
-BUILD_FILE    ?= flare
+BUILD_FILE    ?= noug
 
 #######################
 
 STYLES		= make xcode msvs make-linux cmake-linux cmake
-GYPFILES	= Makefile flare.gyp tools/common.gypi out/config.gypi trial/trial.gypi
+GYPFILES	= Makefile noug.gyp tools/common.gypi out/config.gypi trial/trial.gypi
 GYP_ARGS	= -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
@@ -67,14 +67,14 @@ test2: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
 	@$(call make_compile,$(MAKE))
 
-$(ANDROID_JAR): android/org/flare/*.java
+$(ANDROID_JAR): android/org/noug/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
-	$(JAVAC) -classpath $(ANDROID_LIB) -d out/android.classs android/org/flare/*.java
-	@cd out/android.classs; $(JAR) cfv flare.jar .
+	$(JAVAC) -classpath $(ANDROID_LIB) -d out/android.classs android/org/noug/*.java
+	@cd out/android.classs; $(JAR) cfv noug.jar .
 	@mkdir -p $(FPROJ_OUT)/product/android/libs
-	@cp out/android.classs/flare.jar $(FPROJ_OUT)/product/android/libs
+	@cp out/android.classs/noug.jar $(FPROJ_OUT)/product/android/libs
 
 clean:
 	@rm -rfv $(LIBS_DIR)
-	@rm -rfv out/fproj/product/$(OS)
+	@rm -rfv out/noproj/product/$(OS)

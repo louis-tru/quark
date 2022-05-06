@@ -1,5 +1,5 @@
 {
-	"name": "test-flare",
+	"name": "test-noug",
 	"main": "test_gui.jsx",
-	"flareSyntax": true
+	"nougSyntax": true
 }

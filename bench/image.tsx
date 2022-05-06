@@ -1,7 +1,7 @@
 
-import { Application, Root, Image, Scroll, _CVD } from 'flare';
-import * as reader from 'flare/reader';
-import path from 'flare/path';
+import { Application, Root, Image, Scroll, _CVD } from 'noug';
+import * as reader from 'noug/reader';
+import path from 'noug/path';
 
 new Application({ multisample: 2 }).start(
 	<Root backgroundColor="#000">

@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Indep, default as flare, _CVD } from 'flare';
+import { Div, Button, Indep, default as noug, _CVD } from 'noug';
 import { Navbutton, Mynavpage } from './public';
-import { Overlay } from 'flare/overlay';
-import { ClickEvent } from 'flare/event';
+import { Overlay } from 'noug/overlay';
+import { ClickEvent } from 'noug/event';
 
 const resolve = require.resolve;
 
 function show_overlay(evt: ClickEvent) {
-	flare.render<Overlay>(
+	noug.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton>Menu A</Navbutton>
@@ -49,7 +49,7 @@ function show_overlay(evt: ClickEvent) {
 }
 
 function show_overlay2(evt: ClickEvent) {
-	var com = flare.render<Overlay>(
+	var com = noug.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton>Hello.</Navbutton>
@@ -63,7 +63,7 @@ function show_overlay2(evt: ClickEvent) {
 }
 
 function show_overlay3(evt: ClickEvent) {
-	var com = flare.render<Overlay>(
+	var com = noug.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton style={{textColor:"#fff"}}>Hello.</Navbutton>

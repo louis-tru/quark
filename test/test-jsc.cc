@@ -31,12 +31,12 @@
 #if USE_JSC
 
 #include <JavaScriptCore/JavaScript.h>
-#include "flare/util/util.h"
-//#include "flare/util/string-builder.h"
-#include "flare/util/array.h"
-#include "flare/util/loop.h"
+#include "noug/util/util.h"
+//#include "noug/util/string-builder.h"
+#include "noug/util/array.h"
+#include "noug/util/loop.h"
 
-using namespace flare;
+using namespace noug;
 
 static JSClassRef NativeConstructor;
 static JSObjectRef toString;
@@ -96,7 +96,7 @@ struct JSCStringTraits: public NonObjectTraits {
 	}
 };
 
-typedef flare::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
+typedef noug::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
 
 static JSValueRef ConstructorFunc(JSContextRef ctx,
 																	JSObjectRef function,

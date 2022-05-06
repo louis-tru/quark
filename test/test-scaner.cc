@@ -1,15 +1,15 @@
 
 #include <stdio.h>
-#include <flare/app.h>
-#include <flare/layout/root.h>
-#include <flare/render/skia/skia_canvas.h>
-#include <flare/render/skia/skia_render.h>
-#include <flare/render/render.h>
-#include <flare/layout/flex.h>
-#include <flare/layout/image.h>
-#include <flare/effect.h>
-#include <flare/display.h>
-#include <flare/util/fs.h>
+#include <noug/app.h>
+#include <noug/layout/root.h>
+#include <noug/render/skia/skia_canvas.h>
+#include <noug/render/skia/skia_render.h>
+#include <noug/render/render.h>
+#include <noug/layout/flex.h>
+#include <noug/layout/image.h>
+#include <noug/effect.h>
+#include <noug/display.h>
+#include <noug/util/fs.h>
 #include <vector>
 #include <skia/core/SkImage.h>
 #include <skia/core/SkFont.h>
@@ -17,9 +17,9 @@
 #include <skia/effects/SkDashPathEffect.h>
 #include <skia/core/SkBitmap.h>
 #include <skia/core/SkPath.h>
-#include <flare/render/scaner.h>
+#include <noug/render/scaner.h>
 
-using namespace flare;
+using namespace noug;
 
 void testRenderScaner(SkCanvas* canvas) {
 	

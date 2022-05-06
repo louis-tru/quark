@@ -28,16 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__trial__fs__
-#define __flare__trial__fs__
+#ifndef __noug__trial__fs__
+#define __noug__trial__fs__
 
-#include "flare/util/fs.h"
+#include "noug/util/fs.h"
 
 /**
- * @ns flare
+ * @ns noug
  */
 
-namespace flare {
+namespace noug {
 
 	/**
 	* @class FileSearch # Resources files search

@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/util.h>
-#include <flare/util/string.h>
+#include <noug/util/util.h>
+#include <noug/util/string.h>
 
-using namespace flare;
+using namespace noug;
 
 void test_util(int argc, char **argv) {
 	int64_t i = parse_time("    Sat, 27 Oct 2018 11:32:18 GMT     ");

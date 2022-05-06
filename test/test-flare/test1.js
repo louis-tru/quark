@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { Buffer } from 'buffer';
-import 'flare/http';
-import 'flare/value';
-import 'flare/sys';
+import 'noug/http';
+import 'noug/value';
+import 'noug/sys';
 
 console.log('args:', process.argv, process.mainModule.filename);
 

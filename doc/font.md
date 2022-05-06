@@ -1,4 +1,4 @@
-# `flare/font`
+# `noug/font`
 
 
 ## setDefaultFonts(fonts)

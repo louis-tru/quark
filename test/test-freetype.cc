@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/util.h>
-#include <flare/util/string.h>
-#include <flare/util/dict.h>
-#include <flare/util/fs.h>
+#include <noug/util/util.h>
+#include <noug/util/string.h>
+#include <noug/util/dict.h>
+#include <noug/util/fs.h>
 #include <trial/fs.h>
-#include <flare/util/os.h>
+#include <noug/util/os.h>
 #include <trial/fs.h>
 
 #include <ft2build.h>
@@ -46,17 +46,17 @@
 #include <chrono>
 
 //
-#include "flare/util/codec.h"
-#include "flare/texture.h"
-//#include "flare/image.h"
-//#include "flare/sprite.h"
-//#include "flare/box.h"
-//#include "flare/app.h"
-//#include "flare/display.h"
-//#include "flare/root.h"
-//#include "flare/gl/gl.h"
+#include "noug/util/codec.h"
+#include "noug/texture.h"
+//#include "noug/image.h"
+//#include "noug/sprite.h"
+//#include "noug/box.h"
+//#include "noug/app.h"
+//#include "noug/display.h"
+//#include "noug/root.h"
+//#include "noug/gl/gl.h"
 
-using namespace flare;
+using namespace noug;
 
 void each_fonts () {
 	

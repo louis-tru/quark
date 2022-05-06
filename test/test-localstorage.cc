@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/util/storage.h"
+#include "noug/util/storage.h"
 
-using namespace flare;
+using namespace noug;
 
 void test_localstorage(int argc, char **argv) {
 	
 	F_LOG(storage_get("test2"));
 	
-	storage_set("test", "flare.cool");
+	storage_set("test", "noug.cc");
 	
 	F_LOG(storage_get("test"));
 	
@@ -44,7 +44,7 @@ void test_localstorage(int argc, char **argv) {
 	
 	F_LOG(storage_get("test"));
 	
-	storage_set("test", "flare.cool");
+	storage_set("test", "noug.cc");
 	
 	F_LOG(storage_get("test"));
 	

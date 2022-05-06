@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/util.h>
-#include <flare/util/http.h>
-#include <flare/util/string.h>
-#include <flare/util/fs.h>
+#include <noug/util/util.h>
+#include <noug/util/http.h>
+#include <noug/util/string.h>
+#include <noug/util/fs.h>
 
-using namespace flare;
+using namespace noug;
 
 void test_https(int argc, char **argv) {
 	

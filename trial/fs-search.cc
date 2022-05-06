@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "trial/fs.h"
-#include "flare/util/zlib.h"
-#include "flare/util/handle.h"
-#include "flare/util/error.h"
+#include "noug/util/zlib.h"
+#include "noug/util/handle.h"
+#include "noug/util/error.h"
 
-namespace flare {
+namespace noug {
 
 	// FileSearch implementation
 

@@ -30,35 +30,35 @@
 
 var fs = require('somes/fs');
 
-function read_flare_version() {
-	var str = fs.readFileSync(__dirname + '/../flare/version.h').toString('utf-8');
+function read_noug_version() {
+	var str = fs.readFileSync(__dirname + '/../noug/version.h').toString('utf-8');
 	var MAJOR = 0;
 	var MINOR = 0;
 	var PATCH = 0;
 	var mat;
 
-	if ( (mat = /#define\s+FLARE_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+NOUG_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MAJOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+FLARE_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+NOUG_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MINOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+FLARE_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+NOUG_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
 		PATCH = parseInt(mat[1]);
 	}
 	if ( MAJOR == 0 && MINOR == 0 && PATCH == 0 ) {
-		throw new Error('Cannot parse flare version number form flare/version.h');
+		throw new Error('Cannot parse noug version number form noug/version.h');
 	}
 	return [MAJOR, MINOR, PATCH];
 }
 
-function update_flare_version() {
-	var vers = read_flare_version().join('.');
+function update_noug_version() {
+	var vers = read_noug_version().join('.');
 	[
-		__dirname + '/../libs/flare/out/flare/package.json',
-		__dirname + '/../libs/fproj/out/fproj/package.json',
-		__dirname + '/../libs/flare/package.json',
-		__dirname + '/../libs/fproj/package.json',
+		__dirname + '/../libs/noug/out/noug/package.json',
+		__dirname + '/../libs/noproj/out/noproj/package.json',
+		__dirname + '/../libs/noug/package.json',
+		__dirname + '/../libs/noproj/package.json',
 	].forEach(e=>{
 		var json = fs.readFileSync(e, 'utf-8');
 		json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);
@@ -66,5 +66,5 @@ function update_flare_version() {
 	});
 }
 
-exports.read_flare_version = read_flare_version;
-exports.update_flare_version = update_flare_version;
+exports.read_noug_version = read_noug_version;
+exports.update_noug_version = update_noug_version;

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, _CVD } from 'flare';
+import { Div, Button, _CVD } from 'noug';
 import { Mynavpage } from './public';
 
 const resolve = require.resolve;

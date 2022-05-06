@@ -1,7 +1,7 @@
 {
 	"name": "bench",
-	"appName":	"Flare-Benchmark",
-	"id": "org.flare.benchmark",
+	"appName":	"Noug-Benchmark",
+	"id": "org.noug.benchmark",
 	"version": "0.1.0",
 	"main": "action",
 	"detach": [ "img", "img2" ]

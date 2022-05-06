@@ -1,6 +1,6 @@
 
 import { LOG, AM, M, P, VM, VP, LOG } from './test'
-import { Event, EventNoticer, Notification, event } from 'flare/event';
+import { Event, EventNoticer, Notification, event } from 'noug/event';
 
 LOG('\nTest event:\n')
 

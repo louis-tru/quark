@@ -1,5 +1,5 @@
 
-import 'flare/sys'
+import 'noug/sys'
 import { P, M } from './test'
 
 M(sys, 'time');

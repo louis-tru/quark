@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/os/os.h"
-#include "flare/util/string.h"
+#include "noug/os/os.h"
+#include "noug/util/string.h"
 
-using namespace flare;
+using namespace noug;
 
 void test_os(int argc, char **argv) {
 	F_LOG(os::info());

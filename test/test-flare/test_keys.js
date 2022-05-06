@@ -1,6 +1,6 @@
 
 import 'fs'
-import 'flare/keys'
+import 'noug/keys'
 import { M } from './test'
 
 //M(keys, 'parseFile', [ resolve('lib.keys') ])

@@ -30,11 +30,11 @@
 
 import { 
 	Div, Indep, Button, Text, Hybrid, _CVD,
-} from 'flare';
+} from 'noug';
 import { Mynavpage, Page } from './public';
-import { Navbar, Toolbar } from 'flare/nav';
+import { Navbar, Toolbar } from 'noug/nav';
 import review_vx from './review';
-import { ClickEvent } from 'flare/event';
+import { ClickEvent } from 'noug/event';
 
 const resolve = require.resolve;
 

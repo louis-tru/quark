@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/util/util.h"
-#include "flare/util/array.h"
+#include "noug/util/util.h"
+#include "noug/util/array.h"
 
-using namespace flare;
+using namespace noug;
 
 void test_buffer(int argc, char **argv) {
 	

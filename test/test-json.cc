@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/json.h>
-#include <flare/util/string.h>
-#include <flare/util/event.h>
+#include <noug/util/json.h>
+#include <noug/util/string.h>
+#include <noug/util/event.h>
 #include <map>
 
-using namespace flare;
+using namespace noug;
 
 void test_json(int argc, char **argv) {
 	

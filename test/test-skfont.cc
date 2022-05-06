@@ -1,12 +1,12 @@
 
-#include <flare/app.h>
-#include <flare/display.h>
-#include <flare/render/skia/skia_render.h>
+#include <noug/app.h>
+#include <noug/display.h>
+#include <noug/render/skia/skia_render.h>
 #include <skia/core/SkCanvas.h>
 #include <skia/core/SkFont.h>
 #include <skia/core/SkFontMgr.h>
 
-using namespace flare;
+using namespace noug;
 
 void testSkfont(Application* app, SkCanvas* canvas) {
 	SkString str;

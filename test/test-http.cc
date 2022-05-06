@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/util.h>
-#include <flare/util/http.h>
-#include <flare/util/string.h>
-#include <flare/util/fs.h>
-#include <flare/util/cb.h>
+#include <noug/util/util.h>
+#include <noug/util/http.h>
+#include <noug/util/string.h>
+#include <noug/util/fs.h>
+#include <noug/util/cb.h>
 
-using namespace flare;
+using namespace noug;
 
 void test_http(int argc, char **argv) {
 	F_LOG(http_get_sync("http://www.163.com/"));

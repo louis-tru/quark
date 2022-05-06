@@ -39,7 +39,7 @@
 	<key>MinimumOSVersion</key>
 	<string>10.0</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.flare.xxxxxxxxxx</string>
+	<string>org.noug.xxxxxxxxxx</string>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>

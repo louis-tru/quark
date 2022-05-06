@@ -1,6 +1,6 @@
 
 import { LOG, M } from './test'
-import 'flare/storage'
+import 'noug/storage'
 
 LOG('\nTest Storage:\n')
 

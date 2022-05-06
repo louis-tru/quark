@@ -40,29 +40,29 @@
     <content url="file://$MODULE_DIR$/../../../out">
       <sourceFolder url="file://$MODULE_DIR$/../../../out" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../flare">
-      <sourceFolder url="file://$MODULE_DIR$/../../../flare" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../noug">
+      <sourceFolder url="file://$MODULE_DIR$/../../../noug" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../flare/font">
-      <sourceFolder url="file://$MODULE_DIR$/../../../flare/font" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../noug/font">
+      <sourceFolder url="file://$MODULE_DIR$/../../../noug/font" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../flare/gl">
-      <sourceFolder url="file://$MODULE_DIR$/../../../flare/gl" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../noug/gl">
+      <sourceFolder url="file://$MODULE_DIR$/../../../noug/gl" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../flare/image">
-      <sourceFolder url="file://$MODULE_DIR$/../../../flare/image" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../noug/image">
+      <sourceFolder url="file://$MODULE_DIR$/../../../noug/image" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../flare/js">
-      <sourceFolder url="file://$MODULE_DIR$/../../../flare/js" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../noug/js">
+      <sourceFolder url="file://$MODULE_DIR$/../../../noug/js" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../flare-js/binding">
-      <sourceFolder url="file://$MODULE_DIR$/../../../flare-js/binding" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../noug-js/binding">
+      <sourceFolder url="file://$MODULE_DIR$/../../../noug-js/binding" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../flare/platforms">
-      <sourceFolder url="file://$MODULE_DIR$/../../../flare/platforms" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../noug/platforms">
+      <sourceFolder url="file://$MODULE_DIR$/../../../noug/platforms" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../flare/util">
-      <sourceFolder url="file://$MODULE_DIR$/../../../flare/util" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../noug/util">
+      <sourceFolder url="file://$MODULE_DIR$/../../../noug/util" isTestSource="false" />
     </content>
     <content url="file://$MODULE_DIR$/../..">
       <sourceFolder url="file://$MODULE_DIR$/../.." isTestSource="false" />

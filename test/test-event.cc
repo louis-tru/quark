@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/dict.h>
-#include <flare/util/array.h>
-#include <flare/util/list.h>
-#include <flare/util/string.h>
-#include <flare/util/event.h>
+#include <noug/util/dict.h>
+#include <noug/util/array.h>
+#include <noug/util/list.h>
+#include <noug/util/string.h>
+#include <noug/util/event.h>
 
-using namespace flare;
+using namespace noug;
 
 void test_event(int argc, char **argv) {
 	

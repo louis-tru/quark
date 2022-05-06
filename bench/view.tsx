@@ -1,12 +1,12 @@
 
-import { Application, ViewController, Root, Div, Scroll, default as flare, _CVD } from 'flare';
-import { Color } from 'flare/value';
-import util from 'flare/util';
+import { Application, ViewController, Root, Div, Scroll, default as noug, _CVD } from 'noug';
+import { Color } from 'noug/value';
+import util from 'noug/util';
 import * as uu from './uu';
 
 const {random} = util
 
-flare.css({
+noug.css({
 	'.item': {
 		height: 40,
 		width: '25%',
@@ -20,7 +20,7 @@ class RootViewController extends ViewController {
 
 		uu.start();
 
-		flare.render<Scroll>(
+		noug.render<Scroll>(
 			<Scroll width="full" height="full">
 				{
 					Array.from({ length: 10000 }, ()=>{

@@ -3,23 +3,23 @@
 #include <skia/core/SkImage.h>
 #include <skia/core/SkSurface.h>
 #include <skia/core/SkCanvas.h>
-#include <flare/app.h>
-#include <flare/layout/root.h>
-#include <flare/render/render.h>
-#include <flare/render/skia/skia_render.h>
-#include <flare/layout/flow.h>
-#include <flare/layout/image.h>
-#include <flare/effect.h>
-#include <flare/display.h>
-#include <flare/util/fs.h>
+#include <noug/app.h>
+#include <noug/layout/root.h>
+#include <noug/render/render.h>
+#include <noug/render/skia/skia_render.h>
+#include <noug/layout/flow.h>
+#include <noug/layout/image.h>
+#include <noug/effect.h>
+#include <noug/display.h>
+#include <noug/util/fs.h>
 #include <vector>
 #include <skia/core/SkFont.h>
 #include <skia/core/SkMaskFilter.h>
 #include <skia/effects/SkDashPathEffect.h>
 
-using namespace flare;
+using namespace noug;
 
-namespace flare {
+namespace noug {
 	SkImage* CastSkImage(ImageSource* img);
 }
 

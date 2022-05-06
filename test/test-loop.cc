@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/loop.h>
+#include <noug/util/loop.h>
 
-using namespace flare;
+using namespace noug;
 
 static void message_cb(CbData& ev, RunLoop* loop) {
 	static int i = 0;

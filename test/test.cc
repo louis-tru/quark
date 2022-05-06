@@ -28,21 +28,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/app.h"
-#include "flare/os/os.h"
-#include "flare/util/loop.h"
-#include "../deps/node/src/flare.h"
+#include "noug/app.h"
+#include "noug/os/os.h"
+#include "noug/util/loop.h"
+#include "../deps/node/src/noug.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_skfont
 #endif
 
-using namespace flare;
+using namespace noug;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
 F_Main() {
-	// node::FlareEnvironment::test();
+	// node::NougEnvironment::test();
 
 	uint64_t st = time_micro();
 	

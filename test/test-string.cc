@@ -32,11 +32,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <flare/util/string.h>
-#include <flare/util/codec.h>
+#include <noug/util/string.h>
+#include <noug/util/codec.h>
 
 using namespace std;
-using namespace flare;
+using namespace noug;
 
 class Str {
  private:

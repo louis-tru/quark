@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, default as flare, _CVD } from 'flare';
-import { Event } from 'flare/event';
-import { Switch, Checkbox } from 'flare/checkbox';
+import { Div, Text, default as noug, _CVD } from 'noug';
+import { Event } from 'noug/event';
+import { Switch, Checkbox } from 'noug/checkbox';
 import { Mynavpage } from './public';
 
 const resolve = require.resolve;
-const px = flare.atomPixel;
+const px = noug.atomPixel;
 
-flare.css({
+noug.css({
 	'.checkbox_page': {
 		width: 'full',
 	},

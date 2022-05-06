@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input, _CVD } from 'flare';
-import util from 'flare/util';
-import * as http from 'flare/http';
-import { alert } from 'flare/dialog';
+import { Div, Button, Input, _CVD } from 'noug';
+import util from 'noug/util';
+import * as http from 'noug/http';
+import { alert } from 'noug/dialog';
 import { Mynavpage } from './public';
-import { ClickEvent, KeyEvent } from 'flare/event';
-import * as buffer from 'flare/buffer';
+import { ClickEvent, KeyEvent } from 'noug/event';
+import * as buffer from 'noug/buffer';
 
 const resolve = require.resolve;
 

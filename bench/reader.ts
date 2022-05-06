@@ -1,7 +1,7 @@
 
-import * as fs from 'flare/fs';
-import url from 'flare/path';
-import * as reader from 'flare/reader';
+import * as fs from 'noug/fs';
+import url from 'noug/path';
+import * as reader from 'noug/reader';
 import * as uu from './uu';
 
 var path = url.documents('benchmark.txt');

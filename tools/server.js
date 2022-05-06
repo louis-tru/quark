@@ -32,7 +32,7 @@ var util = require('somes').default;
 var fs = require('somes/fs');
 var service = require('somes/service').default;
 var HttpService = require('somes/http_service').HttpService;
-var server = require('fproj/server');
+var server = require('noproj/server');
 
 var opt = {
 	// remote: 'http://192.168.1.124:1026/',

@@ -1,5 +1,5 @@
 
-#include <flare/util/macros.h>
+#include <src/util/macros.h>
 
 /* jconfigint.h.  Generated from jconfigint.h.in by configure.  */
 /* libjpeg-turbo build number */

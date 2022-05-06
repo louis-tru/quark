@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__trial__jsx__
-#define __flare__trial__jsx__
+#ifndef __noug__trial__jsx__
+#define __noug__trial__jsx__
 
-#include "flare/util/error.h"
+#include "noug/util/error.h"
 
-namespace flare {
+namespace noug {
 	F_EXPORT String2 javascript_transform_x(cString2& in, cString& path, bool clean_comment) throw(Error);
 	F_EXPORT String2 javascript_transform(cString2& in, cString& path, bool clean_comment) throw(Error);
 }

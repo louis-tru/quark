@@ -1,9 +1,9 @@
 
 HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE           ?= node
-ANDROID_JAR     = out/android.classs.flare.jar
-FPROJ           = ./libs/fproj
-FPROJ_OUT       = out/fproj
+ANDROID_JAR     = out/android.classs.noug.jar
+FPROJ           = ./libs/noproj
+FPROJ_OUT       = out/noproj
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
 ifneq ($(USER),root)
@@ -27,23 +27,23 @@ check_osx=\
 	fi
 
 .PHONY: $(FORWARD) ios android linux osx \
-	product install install-fproj \
+	product install install-noproj \
 	help web doc watch all all_on_linux all_on_osx sync sync_skia
 
 .SECONDEXPANSION:
 
-# compile product flare and install
+# compile product noug and install
 # It can only run in MAC system.
 product:
 	@$(MAKE) ios
 	@$(MAKE) android
-	@$(NODE) ./tools/cp-fproj.js
+	@$(NODE) ./tools/cp-noproj.js
 
 install: product
-	@$(MAKE) install-fproj
+	@$(MAKE) install-noproj
 
-install-fproj:
-	@$(NODE) ./tools/cp-fproj.js
+install-noproj:
+	@$(NODE) ./tools/cp-noproj.js
 	@cd $(FPROJ_OUT) && npm i -f
 	@cd $(FPROJ_OUT) && $(SUDO) npm i -g
 

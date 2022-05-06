@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, _CVD } from 'flare';
-import { AudioPlayer, Video } from 'flare/media';
+import { Div, Button, _CVD } from 'noug';
+import { AudioPlayer, Video } from 'noug/media';
 import { Mynavpage } from './public';
-import { ClickEvent } from 'flare/event';
+import { ClickEvent } from 'noug/event';
 
-// const src_720 = 'http://flare.cool/media/2017-09-11_15_41_19.mp4';
-const src_720 = 'http://flare.cool/media/piper720p.mp4';
-const audio_src = 'http://flare.cool/media/all_we_know.mp3';
+// const src_720 = 'http://noug.cc/media/2017-09-11_15_41_19.mp4';
+const src_720 = 'http://noug.cc/media/piper720p.mp4';
+const audio_src = 'http://noug.cc/media/all_we_know.mp3';
 
 const resolve = require.resolve;
 

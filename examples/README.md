@@ -1,18 +1,18 @@
-Flare Examples
+Noug Examples
 ===============
 
-* 这是一个`Flare`演示工程，请使用`fproj`命令导出到`xcode`或`android studio`
+* 这是一个`Noug`演示工程，请使用`noproj`命令导出到`xcode`或`android studio`
 
 * 需要注意工具现在并不支持`Windows`系统，暂时只能在`mac`下使用
 
-## 获取`fproj`
+## 获取`noproj`
 
-* 使用 nodejs `npm`安装`fproj`
+* 使用 nodejs `npm`安装`noproj`
 
 
 ```sh
 # shell
-sudo npm install -g fproj
+sudo npm install -g noproj
 
 ```
 
@@ -22,8 +22,8 @@ sudo npm install -g fproj
 
 ```sh
 # shell
-fproj export ios
-fproj export android
+noproj export ios
+noproj export android
 ```
 
 导出后使用`xcode`或`android studio`打开`Project`文件夹下的工程文件

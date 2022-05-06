@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/js/flare.h"
+#include "noug/js/noug.h"
 
-using namespace flare;
+using namespace noug;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
@@ -47,7 +47,7 @@ static bool has_argv(cchar* name, int argc, char **argv) {
 }
 
 void test_demo(int argc, char **argv) {
-	String cmd = "flare ";
+	String cmd = "noug ";
 
 #if USE_NODE
 	cmd += " ";
@@ -106,10 +106,10 @@ void test_demo(int argc, char **argv) {
 extern "C" {
 
 #if FX_ANDROID
-#include <flare/util/android-jni.h>
+#include <noug/util/android-jni.h>
 	JNIEXPORT extern void
-	Java_org_flare_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		F_LOG("Java_org_flare_examples_MainActivity_test");
+	Java_org_noug_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
+		F_LOG("Java_org_noug_examples_MainActivity_test");
 	}
 #endif
 }

@@ -51,179 +51,179 @@ unset(TARGET)
 
 add_definitions(-DDEBUG)
 
-add_library(flare SHARED
-	# flare-util
+add_library(noug SHARED
+	# noug-util
 	../../../android/android.cc
-	../../../flare/util/_android.cc
-	../../../flare/util/android-jni.cc
-	../../../flare/util/android-log.cc
-	../../../flare/util/object.cc
-	../../../flare/util/string.cc
-	../../../flare/util/string-builder.cc
-	../../../flare/util/array.cc
-	../../../flare/util/codec.cc
-	../../../flare/util/error.cc
-	../../../flare/util/http.cc
-	../../../flare/util/http-uri.cc
-	../../../flare/util/http-helper.cc
-	../../../flare/util/fs.cc
-	../../../flare/util/fs-file.cc
-	../../../flare/util/fs-sync.cc
-	../../../flare/util/fs-async.cc
-	../../../flare/util/fs-reader.cc
-	../../../flare/util/buffer.cc
-	../../../flare/util/json.cc
-	../../../flare/util/map.cc
-	../../../flare/util/util.cc
-	../../../flare/util/zlib.cc
-	../../../flare/util/loop.cc
-	../../../flare/util/loop-private.cc
-	../../../flare/util/net.cc
-	../../../flare/util/cb.cc
-	../../../flare/util/date.cc
-	../../../flare/util/http-cookie.cc
-	../../../flare/util/localstorage.cc
-	# flare
+	../../../noug/util/_android.cc
+	../../../noug/util/android-jni.cc
+	../../../noug/util/android-log.cc
+	../../../noug/util/object.cc
+	../../../noug/util/string.cc
+	../../../noug/util/string-builder.cc
+	../../../noug/util/array.cc
+	../../../noug/util/codec.cc
+	../../../noug/util/error.cc
+	../../../noug/util/http.cc
+	../../../noug/util/http-uri.cc
+	../../../noug/util/http-helper.cc
+	../../../noug/util/fs.cc
+	../../../noug/util/fs-file.cc
+	../../../noug/util/fs-sync.cc
+	../../../noug/util/fs-async.cc
+	../../../noug/util/fs-reader.cc
+	../../../noug/util/buffer.cc
+	../../../noug/util/json.cc
+	../../../noug/util/map.cc
+	../../../noug/util/util.cc
+	../../../noug/util/zlib.cc
+	../../../noug/util/loop.cc
+	../../../noug/util/loop-private.cc
+	../../../noug/util/net.cc
+	../../../noug/util/cb.cc
+	../../../noug/util/date.cc
+	../../../noug/util/http-cookie.cc
+	../../../noug/util/localstorage.cc
+	# noug
 	../../../out/native-glsl.cc
 	../../../out/native-font.cc
-	../../../flare/action.cc
-	../../../flare/app.cc
-	../../../flare/div.cc
-	../../../flare/indep.cc
-	../../../flare/box-shadow.cc
-	../../../flare/limit.cc
-	../../../flare/limit-indep.cc
-	../../../flare/image.cc
-	../../../flare/bezier.cc
-	../../../flare/event.cc
-	../../../flare/display-port.cc
-	../../../flare/font/font.cc
-	../../../flare/image/codec.cc
-	../../../flare/image/codec-tga.cc
-	../../../flare/image/codec-pvrtc.cc
-	../../../flare/pre-render.cc
-	../../../flare/mathe.cc
-	../../../flare/label.cc
-	../../../flare/layout.cc
-	../../../flare/box.cc
-	../../../flare/text-rows.cc
-	../../../flare/view.cc
-	../../../flare/draw.cc
-	../../../flare/gl/gl.cc
-	../../../flare/gl/gl-draw.cc
-	../../../flare/gl/gl-texture.cc
-	../../../flare/gl/gl-font.cc
-	../../../flare/root.cc
-	../../../flare/sprite.cc
-	../../../flare/scroll.cc
-	../../../flare/span.cc
-	../../../flare/hybrid.cc
-	../../../flare/text-font.cc
-	../../../flare/text-node.cc
-	../../../flare/texture.cc
-	../../../flare/value.cc
-	../../../flare/panel.cc
-	../../../flare/button.cc
-	../../../flare/keyboard.cc
-	../../../flare/css.cc
-	../../../flare/property.cc
-	../../../flare/text.cc
-	../../../flare/input.cc
-	../../../flare/textarea.cc
-	../../../flare/background.cc
-	../../../flare/render-looper.cc
-	../../../flare/sys.cc
-	../../../flare/platforms/linux-gl.cc
-	../../../flare/platforms/android-app.cc
-	../../../flare/platforms/android-keyboard.cc
-	../../../flare/platforms/android-sys.cc
-	../../../flare/image/codec-gif.cc
-  ../../../flare/image/codec-jpeg.cc
-  ../../../flare/image/codec-png.cc
-  ../../../flare/image/codec-webp.cc
-  ../../../flare/media.cc
+	../../../noug/action.cc
+	../../../noug/app.cc
+	../../../noug/div.cc
+	../../../noug/indep.cc
+	../../../noug/box-shadow.cc
+	../../../noug/limit.cc
+	../../../noug/limit-indep.cc
+	../../../noug/image.cc
+	../../../noug/bezier.cc
+	../../../noug/event.cc
+	../../../noug/display-port.cc
+	../../../noug/font/font.cc
+	../../../noug/image/codec.cc
+	../../../noug/image/codec-tga.cc
+	../../../noug/image/codec-pvrtc.cc
+	../../../noug/pre-render.cc
+	../../../noug/mathe.cc
+	../../../noug/label.cc
+	../../../noug/layout.cc
+	../../../noug/box.cc
+	../../../noug/text-rows.cc
+	../../../noug/view.cc
+	../../../noug/draw.cc
+	../../../noug/gl/gl.cc
+	../../../noug/gl/gl-draw.cc
+	../../../noug/gl/gl-texture.cc
+	../../../noug/gl/gl-font.cc
+	../../../noug/root.cc
+	../../../noug/sprite.cc
+	../../../noug/scroll.cc
+	../../../noug/span.cc
+	../../../noug/hybrid.cc
+	../../../noug/text-font.cc
+	../../../noug/text-node.cc
+	../../../noug/texture.cc
+	../../../noug/value.cc
+	../../../noug/panel.cc
+	../../../noug/button.cc
+	../../../noug/keyboard.cc
+	../../../noug/css.cc
+	../../../noug/property.cc
+	../../../noug/text.cc
+	../../../noug/input.cc
+	../../../noug/textarea.cc
+	../../../noug/background.cc
+	../../../noug/render-looper.cc
+	../../../noug/sys.cc
+	../../../noug/platforms/linux-gl.cc
+	../../../noug/platforms/android-app.cc
+	../../../noug/platforms/android-keyboard.cc
+	../../../noug/platforms/android-sys.cc
+	../../../noug/image/codec-gif.cc
+  ../../../noug/image/codec-jpeg.cc
+  ../../../noug/image/codec-png.cc
+  ../../../noug/image/codec-webp.cc
+  ../../../noug/media.cc
 )
 
-add_library(flare-media SHARED
-	../../../flare/audio-player.cc
-	../../../flare/video.cc
-	../../../flare/media-codec.cc
-	../../../flare/media-codec-1.cc
-	../../../flare/media-codec-software.cc
-	../../../flare/media-init.cc
-	../../../flare/platforms/android-media-codec.cc
-	../../../flare/platforms/android-pcm-player.cc
-	../../../flare/platforms/android-pcm-audio-track.cc
+add_library(noug-media SHARED
+	../../../noug/audio-player.cc
+	../../../noug/video.cc
+	../../../noug/media-codec.cc
+	../../../noug/media-codec-1.cc
+	../../../noug/media-codec-software.cc
+	../../../noug/media-init.cc
+	../../../noug/platforms/android-media-codec.cc
+	../../../noug/platforms/android-pcm-player.cc
+	../../../noug/platforms/android-pcm-audio-track.cc
 )
 
-add_library(flare-js SHARED
+add_library(noug-js SHARED
 	../../../out/native-inl-js.cc
 	../../../out/native-lib-js.cc
 	../../../out/native-ext-js.cc
-	../../../flare-js/js-cls.cc
-	../../../flare-js/js.cc
-	../../../flare-js/flare.cc
-	../../../flare-js/str.cc
-	../../../flare-js/v8.cc
-	../../../flare-js/wrap.cc
-	../../../flare-js/node.cc
-	# binding flare-util
-	../../../flare-js/binding/cb.cc
-	../../../flare-js/binding/fs.cc
-	../../../flare-js/binding/fs-reader.cc
-	../../../flare-js/binding/fs-path.cc
-	../../../flare-js/binding/http.cc
-	../../../flare-js/binding/util.cc
-	../../../flare-js/binding/storage.cc
-	../../../flare-js/binding/json.cc
-	../../../flare-js/binding/event.cc
-	../../../flare-js/binding/sys.cc
-	../../../flare-js/binding/event.cc
-	../../../flare-js/binding/timer.cc
-	../../../flare-js/binding/console.cc
-	../../../flare-js/binding/buffer.cc
-	# binding flare-gui
-	../../../flare-js/binding/value.cc
-	../../../flare-js/binding/binding.cc
-	../../../flare-js/binding/action.cc
-	../../../flare-js/binding/action-frame.cc
-	../../../flare-js/binding/app.cc
-	../../../flare-js/binding/audio-player.cc
-	../../../flare-js/binding/video.cc
-	../../../flare-js/binding/media.cc
-	../../../flare-js/binding/div.cc
-	../../../flare-js/binding/display-port.cc
-	../../../flare-js/binding/indep.cc
-	../../../flare-js/binding/image.cc
-	../../../flare-js/binding/layout.cc
-	../../../flare-js/binding/box.cc
-	../../../flare-js/binding/view.cc
-	../../../flare-js/binding/root.cc
-	../../../flare-js/binding/span.cc
-	../../../flare-js/binding/sprite.cc
-	../../../flare-js/binding/hybrid.cc
-	../../../flare-js/binding/text-font.cc
-	../../../flare-js/binding/text-node.cc
-	../../../flare-js/binding/label.cc
-	../../../flare-js/binding/limit.cc
-	../../../flare-js/binding/panel.cc
-	../../../flare-js/binding/button.cc
-	../../../flare-js/binding/scroll.cc
-	../../../flare-js/binding/css.cc
-	../../../flare-js/binding/font.cc
-	../../../flare-js/binding/text.cc
-	../../../flare-js/binding/input.cc
-	../../../flare-js/binding/background.cc
+	../../../noug-js/js-cls.cc
+	../../../noug-js/js.cc
+	../../../noug-js/noug.cc
+	../../../noug-js/str.cc
+	../../../noug-js/v8.cc
+	../../../noug-js/wrap.cc
+	../../../noug-js/node.cc
+	# binding noug-util
+	../../../noug-js/binding/cb.cc
+	../../../noug-js/binding/fs.cc
+	../../../noug-js/binding/fs-reader.cc
+	../../../noug-js/binding/fs-path.cc
+	../../../noug-js/binding/http.cc
+	../../../noug-js/binding/util.cc
+	../../../noug-js/binding/storage.cc
+	../../../noug-js/binding/json.cc
+	../../../noug-js/binding/event.cc
+	../../../noug-js/binding/sys.cc
+	../../../noug-js/binding/event.cc
+	../../../noug-js/binding/timer.cc
+	../../../noug-js/binding/console.cc
+	../../../noug-js/binding/buffer.cc
+	# binding noug-gui
+	../../../noug-js/binding/value.cc
+	../../../noug-js/binding/binding.cc
+	../../../noug-js/binding/action.cc
+	../../../noug-js/binding/action-frame.cc
+	../../../noug-js/binding/app.cc
+	../../../noug-js/binding/audio-player.cc
+	../../../noug-js/binding/video.cc
+	../../../noug-js/binding/media.cc
+	../../../noug-js/binding/div.cc
+	../../../noug-js/binding/display-port.cc
+	../../../noug-js/binding/indep.cc
+	../../../noug-js/binding/image.cc
+	../../../noug-js/binding/layout.cc
+	../../../noug-js/binding/box.cc
+	../../../noug-js/binding/view.cc
+	../../../noug-js/binding/root.cc
+	../../../noug-js/binding/span.cc
+	../../../noug-js/binding/sprite.cc
+	../../../noug-js/binding/hybrid.cc
+	../../../noug-js/binding/text-font.cc
+	../../../noug-js/binding/text-node.cc
+	../../../noug-js/binding/label.cc
+	../../../noug-js/binding/limit.cc
+	../../../noug-js/binding/panel.cc
+	../../../noug-js/binding/button.cc
+	../../../noug-js/binding/scroll.cc
+	../../../noug-js/binding/css.cc
+	../../../noug-js/binding/font.cc
+	../../../noug-js/binding/text.cc
+	../../../noug-js/binding/input.cc
+	../../../noug-js/binding/background.cc
 )
 
-add_library(flare-trial SHARED
+add_library(noug-trial SHARED
 	../../../trial/fs-search.cc
 	../../../trial/jsx.cc
 )
 
-add_library(flare-test SHARED
+add_library(noug-test SHARED
 	../../../test/test.cc
-	#../../../test/test-flare.cc
+	#../../../test/test-noug.cc
 	../../../test/test-fs.cc
 	../../../test/test-fs2.cc
 	../../../test/test-gui.cc
@@ -264,8 +264,8 @@ add_library(flare-test SHARED
 	../../../test/test-linux-input-2.cc
 )
 
-target_link_libraries(flare       atomic z android log OpenSLES GLESv3 EGL mediandk flare-depes-test)
-target_link_libraries(flare-media flare OpenSLES GLESv3 EGL mediandk flare-depes-test)
-target_link_libraries(flare-js    flare flare-depes-test)
-target_link_libraries(flare-trial flare flare-depes-test)
-target_link_libraries(flare-test  flare flare-js flare-trial flare-depes-test)
+target_link_libraries(noug       atomic z android log OpenSLES GLESv3 EGL mediandk noug-depes-test)
+target_link_libraries(noug-media noug OpenSLES GLESv3 EGL mediandk noug-depes-test)
+target_link_libraries(noug-js    noug noug-depes-test)
+target_link_libraries(noug-trial noug noug-depes-test)
+target_link_libraries(noug-test  noug noug-js noug-trial noug-depes-test)

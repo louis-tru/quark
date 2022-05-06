@@ -2,7 +2,7 @@
 	'targets': [{
 		'target_name': 'trial',
 		'type': '<(output_type)',
-		'dependencies': [ 'flare-util' ],
+		'dependencies': [ 'noug-util' ],
 		'sources': [
 			'jsx.h',
 			'jsx.cc',

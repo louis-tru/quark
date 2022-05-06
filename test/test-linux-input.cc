@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <flare/util/util.h>
+#include <noug/util/util.h>
 
 #if FX_LINUX && !FX_ANDROID
 

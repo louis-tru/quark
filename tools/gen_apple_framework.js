@@ -35,7 +35,7 @@ var path = require('path');
 var syscall = require('somes/syscall').syscall;
 var copy_header = require('./cp-header').copy_header;
 var large_file_cut = require('somes/large_file_cut').cut;
-var read_flare_version = require('./read_version').read_flare_version
+var read_noug_version = require('./read_version').read_noug_version
 var argv = process.argv.slice(2);
 var os = argv.shift();
 var name = argv.shift();
@@ -49,8 +49,8 @@ if ( argv.length == 0 ) {
 	throw new Error('Bad argument.');
 }
 
-function read_flare_version_str() {
-	var versions = read_flare_version();
+function read_noug_version_str() {
+	var versions = read_noug_version();
 	var a = versions[0] < 10 ? '0' + versions[0] : versions[0];
 	var b = versions[1] < 10 ? '0' + versions[1] : versions[1];
 	var c = versions[2] < 10 ? '0' + versions[2] : versions[2];
@@ -58,7 +58,7 @@ function read_flare_version_str() {
 }
 
 function read_plist_and_replace_version() {
-	var version = read_flare_version_str();
+	var version = read_noug_version_str();
 	var en = 'utf-8';
 	var str = fs.readFileSync(`${__dirname}/${os}-framework.plist`, en);//.toString(en);
 	str = str.replace(new RegExp(Buffer.from('11.11.11').toString(en), 'gm'),
@@ -76,7 +76,7 @@ syscall(`plutil -convert binary1 ${framework_dir}/Info.plist`); // convert binar
 
 // copy header
 if (inc != 'no-inc') {
-	for (var src of (inc || source + '/flare').split(/\s+/)) {
+	for (var src of (inc || source + '/noug').split(/\s+/)) {
 		copy_header(src, framework_dir + '/Headers');
 	}
 }
