@@ -162,7 +162,7 @@ namespace noug {
 	}
 
 	static inline bool is_in_range(int value, int lower_limit, int higher_limit) {
-		F_ASSERT(lower_limit <= higher_limit);
+		N_ASSERT(lower_limit <= higher_limit);
 		return (uint32_t)(value - lower_limit) <= (uint32_t)(higher_limit - lower_limit);
 	}
 
@@ -582,7 +582,7 @@ namespace noug {
 			next_->location.line = line_;
 			next_->string_value = next_->string_space = String2();
 			
-			F_ASSERT(c0_ == '/');
+			N_ASSERT(c0_ == '/');
 			
 			advance();
 			if (c0_ == '/' || c0_ == '*') { // ILLEGAL
@@ -1027,8 +1027,8 @@ namespace noug {
 	/* 'keyword' is a char array, so sizeof(keyword) is */  \
 	/* strlen(keyword) plus 1 for the NUL char. */          \
 		const int keyword_length = sizeof(keyword) - 1;       \
-		F_ASSERT(keyword_length >= kMinLength);               \
-		F_ASSERT(keyword_length <= kMaxLength);               \
+		N_ASSERT(keyword_length >= kMinLength);               \
+		N_ASSERT(keyword_length <= kMaxLength);               \
 		if (input_length == keyword_length &&                 \
 			input[1] == keyword[1] &&                           \
 			(keyword_length <= 2 || input[2] == keyword[2]) &&  \
@@ -1316,7 +1316,7 @@ namespace noug {
 		}
 		
 		int scan_hex_number(int expected_length) {
-			F_ASSERT(expected_length <= 4);  // prevent overflow
+			N_ASSERT(expected_length <= 4);  // prevent overflow
 			int x = 0;
 			for (int i = 0; i < expected_length; i++) {
 				
@@ -1498,7 +1498,7 @@ namespace noug {
 		}
 		
 		bool set_pos(uint32_t pos) {
-			F_ASSERT(pos >= 0);
+			N_ASSERT(pos >= 0);
 			
 			if ( pos < size_ ) {
 				if (pos > pos_) {
@@ -1659,7 +1659,7 @@ namespace noug {
 		}
 
 		void parse_function() {
-			F_ASSERT(token() == FUNCTION);
+			N_ASSERT(token() == FUNCTION);
 			// function f(arg) { block }
 			fetch(); // function
 			if ( is_declaration_identifier(next()) ) {
@@ -1677,7 +1677,7 @@ namespace noug {
 		}
 
 		void parse_arrow_function() {
-			F_ASSERT(token() == ARROW);
+			N_ASSERT(token() == ARROW);
 			// TODO ...
 		}
 
@@ -1874,7 +1874,7 @@ namespace noug {
 		}
 
 		void parse_brace_expression(Token begin, Token end) { // 括号表达式
-			F_ASSERT( token() == begin );
+			N_ASSERT( token() == begin );
 			uint32_t level = _level;
 			_level++;
 
@@ -2052,7 +2052,7 @@ namespace noug {
 		}
 
 		void parse_regexp_expression() { // 正则表达式
-			F_ASSERT(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
+			N_ASSERT(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
 			
 			if (_scanner->scan_regexp_content(_scanner->location().beg_pos) == REGEXP_LITERAL) {
 				next();
@@ -2063,7 +2063,7 @@ namespace noug {
 		}
 
 		void parse_variable_visit_expression() { // 属性访问表达式
-			F_ASSERT( is_declaration_identifier(token()) );
+			N_ASSERT( is_declaration_identifier(token()) );
 
 			fetch(); // identifier
 
@@ -2111,13 +2111,13 @@ namespace noug {
 				UNEXPECTED_TOKEN_ERROR();
 			}
 			while(true) {
-				F_ASSERT(peek() == LBRACE);
+				N_ASSERT(peek() == LBRACE);
 				append(_scanner->string_value());
 				append(S.COMMAND);  // ${
 				// next();
 				next();
 				parse_command_string_block(); // parse { block }
-				F_ASSERT(peek() == RBRACE);
+				N_ASSERT(peek() == RBRACE);
 				append(S.RBRACE);   // }
 				_scanner->scan_command_string(_scanner->next_location().end_pos);
 				Token tok = next();
@@ -2130,7 +2130,7 @@ namespace noug {
 		}
 
 		void parse_command_string_block() {
-			F_ASSERT( _scanner->token() == LBRACE );
+			N_ASSERT( _scanner->token() == LBRACE );
 			while(true) {
 				if (peek() == RBRACE)
 					break;
@@ -2165,7 +2165,7 @@ namespace noug {
 		}
 
 		void parse_class() {
-			F_ASSERT(token() == CLASS);
+			N_ASSERT(token() == CLASS);
 		
 			fetch();
 		
@@ -2209,7 +2209,7 @@ namespace noug {
 				CHECK_TOKEN(LBRACE); // {
 			}
 			
-			F_ASSERT(_scanner->token() == LBRACE); // {
+			N_ASSERT(_scanner->token() == LBRACE); // {
 			
 			append(S.LBRACE); // {
 			
@@ -2342,7 +2342,7 @@ namespace noug {
 		}
 
 		void parse_export() {
-			F_ASSERT(_scanner->token() == EXPORT);
+			N_ASSERT(_scanner->token() == EXPORT);
 			CHECK(_level == 0);
 			
 			Token tok = next();
@@ -2409,7 +2409,7 @@ namespace noug {
 			// import { Application as App } from 'noug/app';
 			// import app, { Application as App } from 'noug/app';
 
-			F_ASSERT(token() == LBRACE);
+			N_ASSERT(token() == LBRACE);
 			append(S.LBRACE);     // {
 
 			if (defaultId) {
@@ -2444,7 +2444,7 @@ namespace noug {
 		}
 
 		void parse_import() {
-			F_ASSERT(_scanner->token() == IMPORT);
+			N_ASSERT(_scanner->token() == IMPORT);
 			Token tok = next();
 
 			if (is_import_declaration_identifier(tok)) { // identifier
@@ -2705,7 +2705,7 @@ namespace noug {
 		}
 		
 		void parse_xml_element(bool inXml) {
-			F_ASSERT(_scanner->token() == XML_ELEMENT_TAG);
+			N_ASSERT(_scanner->token() == XML_ELEMENT_TAG);
 
 			if ( !is_xml_element_legal_start(inXml) ) { // 是否为合法的xml开始
 				append(S.LT);
@@ -2847,7 +2847,7 @@ namespace noug {
 		}
 		
 		void parse_xml_element_context(cString2& tag_name) {
-			F_ASSERT(_scanner->token() == GT);  // >
+			N_ASSERT(_scanner->token() == GT);  // >
 			
 			// add chileren
 			append(S.COMMA);    // ,
@@ -2932,7 +2932,7 @@ namespace noug {
 		}
 		
 		void error(cString& msg, Scanner::Location loc) {
-			F_THROW(ERR_SYNTAX_ERROR,
+			N_THROW(ERR_SYNTAX_ERROR,
 							"%s\nline:%d, pos:%d, %s",
 							*msg, loc.line + 1, loc.end_pos, *_path);
 		}

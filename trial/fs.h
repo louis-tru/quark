@@ -42,8 +42,8 @@ namespace noug {
 	/**
 	* @class FileSearch # Resources files search
 	*/
-	class F_EXPORT FileSearch: public Object {
-		F_HIDDEN_ALL_COPY(FileSearch);
+	class N_EXPORT FileSearch: public Object {
+		N_HIDDEN_ALL_COPY(FileSearch);
 	public:
 		
 		FileSearch();

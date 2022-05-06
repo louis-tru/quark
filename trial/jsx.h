@@ -34,7 +34,7 @@
 #include "noug/util/error.h"
 
 namespace noug {
-	F_EXPORT String2 javascript_transform_x(cString2& in, cString& path, bool clean_comment) throw(Error);
-	F_EXPORT String2 javascript_transform(cString2& in, cString& path, bool clean_comment) throw(Error);
+	N_EXPORT String2 javascript_transform_x(cString2& in, cString& path, bool clean_comment) throw(Error);
+	N_EXPORT String2 javascript_transform(cString2& in, cString& path, bool clean_comment) throw(Error);
 }
 #endif

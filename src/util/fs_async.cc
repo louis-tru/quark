@@ -154,7 +154,7 @@ namespace noug {
 	static void exists2(cString& path, Cb cb, RunLoop* loop) {
 		uv_fs_access(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								fs_fallback_c(path), N_OK, &uv_fs_access_cb);
+								fs_fallback_c(path), F_OK, &uv_fs_access_cb);
 	}
 
 	static void ls2(cString& path, Callback<Array<Dirent>> cb, RunLoop* loop) {
