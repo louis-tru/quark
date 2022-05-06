@@ -46,8 +46,8 @@ namespace noug {
 	* 提供的一些对显示与屏幕的常用方法属性与事件
 	* @class Display
 	*/
-	class F_EXPORT Display: public Reference {
-		F_HIDDEN_ALL_COPY(Display);
+	class N_EXPORT Display: public Reference {
+		N_HIDDEN_ALL_COPY(Display);
 		public:
 
 			struct DisplayRegion {
@@ -82,13 +82,13 @@ namespace noug {
 			* @thread main
 			* @event onchange 显示端口变化事件
 			*/
-			F_Event(Change);
+			N_Event(Change);
 
 			/**
 			* @thread main
 			* @event onorientation 屏幕方向发生改变触发
 			*/
-			F_Event(Orientation);
+			N_Event(Orientation);
 			
 			/**
 			* @func size 当前视口尺寸

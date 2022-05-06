@@ -61,12 +61,12 @@ namespace noug {
 	*/
 
 	JNI::ScopeENV::ScopeENV(): _env(NULL), _is_attach(false) {
-		F_ASSERT( javavm );
+		N_ASSERT( javavm );
 		
 		if (  javavm->GetEnv((void**)&_env, JNI_VERSION_1_6) != JNI_OK ) {
 			jint result;
 			result = javavm->AttachCurrentThread(&_env, NULL);
-			F_ASSERT( result == JNI_OK );
+			N_ASSERT( result == JNI_OK );
 			_is_attach = true;
 		}
 	}
@@ -153,7 +153,7 @@ namespace noug {
 
 extern "C" 
 {
-	F_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+	N_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 		javavm = vm;
 		return JNI_VERSION_1_6;
 	}

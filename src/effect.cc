@@ -68,7 +68,7 @@ namespace noug {
 							left->release();
 						}
 						bool ok = new_left->retain();
-						F_ASSERT(ok);
+						N_ASSERT(ok);
 					}
 					return new_left;
 				}
@@ -105,7 +105,7 @@ namespace noug {
 	void Copying::set_next(Copying* value) {
 		if (value != _next) {
 			if (check_loop_reference(value)) {
-				F_ERR("Box background loop reference error");
+				N_ERR("Box background loop reference error");
 			} else {
 				set_next2(value);
 			}
@@ -119,7 +119,7 @@ namespace noug {
 			return left;
 		} else {
 			if (left && right && left->check_loop_reference(right->_next)) {
-				F_ERR("Box background loop reference error");
+				N_ERR("Box background loop reference error");
 				return left;
 			} else {
 				return assign2(left, right);
@@ -149,7 +149,7 @@ namespace noug {
 
 	void Copying::onChange() {
 		auto app_ = app();
-		// F_ASSERT(app_, "Application needs to be initialized first");
+		// N_ASSERT(app_, "Application needs to be initialized first");
 		if (app_) {
 			app_->pre_render()->mark_none();
 		}
@@ -250,7 +250,7 @@ namespace noug {
 	FillGradient::FillGradient(const Array<float>& pos, const Array<Color>& colors)
 		: _pos(pos)
 		, _colors(*reinterpret_cast<const Array<uint32_t>*>(&colors))
-		, _count(F_MIN(pos.length(), colors.length()))
+		, _count(N_MIN(pos.length(), colors.length()))
 	{
 	}
 
@@ -279,7 +279,7 @@ namespace noug {
 
 	void FillGradientLinear::setRadian() {
 		float angle = _angle + 90;
-		_radian = angle * F_PI_RATIO_180;
+		_radian = angle * N_PI_RATIO_180;
 		_quadrant = int(angle * 0.0111111111111111111) % 4;
 	}
 

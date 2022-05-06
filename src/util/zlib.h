@@ -40,20 +40,20 @@ namespace noug {
 	/**
 	* @func compress
 	*/
-	F_EXPORT Buffer zlib_compress(WeakBuffer buff, int level = -1);
+	N_EXPORT Buffer zlib_compress(WeakBuffer buff, int level = -1);
 	
 	/**
 	* @func uncompress
 	*/
-	F_EXPORT Buffer zlib_uncompress(WeakBuffer buff);
+	N_EXPORT Buffer zlib_uncompress(WeakBuffer buff);
 
 	/**
 	* 提供单个gzip压缩文件的读取与写入
 	*
 	* @class GZip
 	*/
-	class F_EXPORT GZip: public Object {
-		F_HIDDEN_ALL_COPY(GZip);
+	class N_EXPORT GZip: public Object {
+		N_HIDDEN_ALL_COPY(GZip);
 	public:
 		GZip(cString& path): _path(path), _gzfp(nullptr) { }
 		virtual ~GZip();
@@ -67,7 +67,7 @@ namespace noug {
 		int read(void* buffer, int64_t size, int64_t offset = -1);
 		int write(const void* buffer, int64_t size, int64_t offset = -1);
 		// define props
-		F_DEFINE_PROP_READ(String, path);
+		N_DEFINE_PROP_READ(String, path);
 	private:
 		void*  _gzfp;
 	};
@@ -77,8 +77,8 @@ namespace noug {
 	*
 	* @class ZipReader
 	*/
-	class F_EXPORT ZipReader: public Object {
-		F_HIDDEN_ALL_COPY(ZipReader);
+	class N_EXPORT ZipReader: public Object {
+		N_HIDDEN_ALL_COPY(ZipReader);
 	public:
 		
 		ZipReader(cString& path, cString& passwd = String());
@@ -211,7 +211,7 @@ namespace noug {
 		Info      _file_info;
 		DirInfo   _dir_info;
 	
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
@@ -221,8 +221,8 @@ namespace noug {
 	*
 	* @class ZipWriter
 	*/
-	class F_EXPORT ZipWriter: public Object {
-		F_HIDDEN_ALL_COPY(ZipWriter);
+	class N_EXPORT ZipWriter: public Object {
+		N_HIDDEN_ALL_COPY(ZipWriter);
 	public:
 		/**
 		*

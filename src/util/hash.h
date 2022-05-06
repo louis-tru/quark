@@ -36,7 +36,7 @@
 
 namespace noug {
 
-	class F_EXPORT SimpleHash: public Object {
+	class N_EXPORT SimpleHash: public Object {
 		uint64_t _hash;
 	public:
 		inline SimpleHash(): _hash(5381) {}
@@ -46,8 +46,8 @@ namespace noug {
 		String digest();
 	};
 
-	F_EXPORT uint64_t hash_code(const void* data, uint32_t len);
-	F_EXPORT String hash(const void* data, uint32_t len);
-	F_EXPORT String hash(cString& str);
+	N_EXPORT uint64_t hash_code(const void* data, uint32_t len);
+	N_EXPORT String hash(const void* data, uint32_t len);
+	N_EXPORT String hash(cString& str);
 }
 #endif

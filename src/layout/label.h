@@ -35,28 +35,28 @@
 
 namespace noug {
 
-	class F_EXPORT TextBasic {
+	class N_EXPORT TextBasic {
 	public:
 		TextBasic();
-		F_DEFINE_PROP(TextColor, text_background_color);
-		F_DEFINE_PROP(TextColor, text_color);
-		F_DEFINE_PROP(TextSize, text_size);
-		F_DEFINE_PROP(TextWeight, text_weight);
-		F_DEFINE_PROP(TextStyle, text_style);
-		F_DEFINE_PROP(TextFamily, text_family);
-		F_DEFINE_PROP(TextShadow, text_shadow);
-		F_DEFINE_PROP(TextLineHeight, text_line_height);
-		F_DEFINE_PROP(TextDecoration, text_decoration);
-		F_DEFINE_PROP(TextOverflow, text_overflow);
-		F_DEFINE_PROP(TextWhiteSpace, text_white_space);
+		N_DEFINE_PROP(TextColor, text_background_color);
+		N_DEFINE_PROP(TextColor, text_color);
+		N_DEFINE_PROP(TextSize, text_size);
+		N_DEFINE_PROP(TextWeight, text_weight);
+		N_DEFINE_PROP(TextStyle, text_style);
+		N_DEFINE_PROP(TextFamily, text_family);
+		N_DEFINE_PROP(TextShadow, text_shadow);
+		N_DEFINE_PROP(TextLineHeight, text_line_height);
+		N_DEFINE_PROP(TextDecoration, text_decoration);
+		N_DEFINE_PROP(TextOverflow, text_overflow);
+		N_DEFINE_PROP(TextWhiteSpace, text_white_space);
 	protected:
 		virtual void onTextChange(uint32_t mark);
 	};
 
-	class F_EXPORT Label: public View, public TextBasic {
-		F_Define_View(Label);
+	class N_EXPORT Label: public View, public TextBasic {
+		N_Define_View(Label);
 	public:
-		F_DEFINE_PROP(String, text_value);
+		N_DEFINE_PROP(String, text_value);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextRows *rows) override;

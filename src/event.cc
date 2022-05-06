@@ -36,17 +36,17 @@
 
 namespace noug {
 
-#define F_FUN(NAME, C, FLAG) \
+#define N_FUN(NAME, C, FLAG) \
 	const UIEventName UIEvent_##NAME(#NAME, UI_EVENT_CATEGORY_##C, FLAG);
-	F_UI_Events(F_FUN)
-#undef F_FUN
+	N_UI_Events(N_FUN)
+#undef N_FUN
 
 	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
 		Dict<String, UIEventName> r;
-#define F_FUN(NAME, C, F) \
+#define N_FUN(NAME, C, F) \
 		r.set(UIEvent_##NAME.to_string(), UIEvent_##NAME);
-		F_UI_Events(F_FUN)
-#undef F_FUN
+		N_UI_Events(N_FUN)
+#undef N_FUN
 		return r;
 	}());
 
@@ -78,7 +78,7 @@ namespace noug {
 	template<class T, typename... Args>
 	inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
 
-	F_DEFINE_INLINE_MEMBERS(View, InlEvent) {
+	N_DEFINE_INLINE_MEMBERS(View, InlEvent) {
 	public:
 		#define _inl_view(self) static_cast<View::InlEvent*>(static_cast<View*>(self))
 
@@ -177,7 +177,7 @@ namespace noug {
 	 */
 	class EventDispatch::OriginTouche {
 	public:
-		OriginTouche() { F_UNREACHABLE(); }
+		OriginTouche() { N_UNREACHABLE(); }
 		OriginTouche(View* view)
 			: _view(view)
 			, _start_position(view_position(view))
@@ -249,7 +249,7 @@ namespace noug {
 	/**
 	 * @class EventDispatch::Inl
 	 */
-	F_DEFINE_INLINE_MEMBERS(EventDispatch, Inl) {
+	N_DEFINE_INLINE_MEMBERS(EventDispatch, Inl) {
 	public:
 		#define _inl(self) static_cast<EventDispatch::Inl*>(self)
 		
@@ -894,7 +894,7 @@ namespace noug {
 	}
 
 	void EventDispatch::make_text_input(ITextInput* input) {
-		F_DEBUG("make_text_input");
+		N_DEBUG("make_text_input");
 		if ( input != _text_input ) {
 			_text_input = input;
 			

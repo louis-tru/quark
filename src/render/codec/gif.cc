@@ -57,7 +57,7 @@ namespace noug {
 			DGifCloseFile(gif, NULL);
 		});
 		
-		if ( DGifSlurp(gif) == GIF_ERROR ) {
+		if ( DGifSlurp(gif) == GIN_ERROR ) {
 			return rv;
 		}
 		

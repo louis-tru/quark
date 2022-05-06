@@ -35,18 +35,18 @@
 #include <atomic>
 #include <unistd.h>
 
-#if F_UNIX
+#if N_UNIX
 # include <sys/utsname.h>
 #endif
 
-#if F_ANDROID
+#if N_ANDROID
 # include "./android/api.h"
 #endif
 
 namespace noug {
 	namespace os {
 
-		#if F_UNIX
+		#if N_UNIX
 			static String* info_str = nullptr;
 
 			String info() {
@@ -70,7 +70,7 @@ namespace noug {
 			}
 		#endif
 
-		#if F_APPLE
+		#if N_APPLE
 			void get_languages_apple(Array<String>& langs);
 		#endif
 
@@ -81,11 +81,11 @@ namespace noug {
 		static language_t* get_languages() {
 			if (!langs_) {
 				langs_ = new language_t;
-			#if F_IOS
+			#if N_IOS
 				get_languages_apple(langs_->langs);
-			#elif F_ANDROID
+			#elif N_ANDROID
 				langs_->langs.push(API::language());
-			#elif F_LINUX
+			#elif N_LINUX
 				cChar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
 				if ( lang ) {
 					langs_->langs.push(String(lang).split('.')[0]);
@@ -109,7 +109,7 @@ namespace noug {
 			return network_status() >= 3;
 		}
 
-		#if F_LINUX || F_ANDROID
+		#if N_LINUX || N_ANDROID
 
 			static std::atomic_int priv_cpu_total_count(0);
 			static std::atomic_int priv_cpu_usage_count(0);

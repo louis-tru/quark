@@ -43,8 +43,8 @@
 #include "./layout/label.h"
 #include "./event.h"
 
-F_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
-F_EXPORT int (*__f_gui_main)(int, char**) = nullptr;
+N_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
+N_EXPORT int (*__f_gui_main)(int, char**) = nullptr;
 
 namespace noug {
 
@@ -108,30 +108,30 @@ namespace noug {
 			UILock lock(app);
 			if (!app->_is_load) {
 				app->_is_load = true;
-				app->F_Trigger(Load);
+				app->N_Trigger(Load);
 			}
 		}, this));
 	}
 
 	void AppInl::triggerPause() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->F_Trigger(Pause); }, this));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->N_Trigger(Pause); }, this));
 	}
 
 	void AppInl::triggerResume() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->F_Trigger(Resume); }, this));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->N_Trigger(Resume); }, this));
 	}
 
 	void AppInl::triggerBackground() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->F_Trigger(Background); }, this));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->N_Trigger(Background); }, this));
 	}
 
 	void AppInl::triggerForeground() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->F_Trigger(Foreground); }, this));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->N_Trigger(Foreground); }, this));
 	}
 
 	void AppInl::triggerMemorywarning() {
 		clear();
-		_loop->post(Cb((CbFunc)[](CbData&, AppInl* app){ app->F_Trigger(Memorywarning); }, this));
+		_loop->post(Cb((CbFunc)[](CbData&, AppInl* app){ app->N_Trigger(Memorywarning); }, this));
 	}
 
 	void AppInl::triggerUnload() {
@@ -141,8 +141,8 @@ namespace noug {
 		_loop->post_sync(Cb([&](Cb::Data& d) {
 			if (_is_load) {
 				_is_load = false;
-				F_DEBUG("onUnload()");
-				F_Trigger(Unload);
+				N_DEBUG("onUnload()");
+				N_Trigger(Unload);
 			}
 			if (_keep) {
 				Thread::abort(_loop->thread_id());
@@ -157,14 +157,14 @@ namespace noug {
 	void AppInl::on_process_exit_handle(Event<>& e) {
 		// int rc = static_cast<const Int32*>(e.data())->value;
 		triggerUnload();
-		F_DEBUG("Application onExit");
+		N_DEBUG("Application onExit");
 	}
 
 	/**
 	* @func set_root
 	*/
 	void AppInl::set_root(Root* value) throw(Error) {
-		F_CHECK(!_root, "Root view already exists");
+		N_CHECK(!_root, "Root view already exists");
 		_root = value;
 		_root->retain();   // strong ref
 		set_focus_view(value);
@@ -191,13 +191,13 @@ namespace noug {
 	}
 	
 	Application::Application(JSON opts)
-		: F_Init_Event(Load)
-		, F_Init_Event(Unload)
-		, F_Init_Event(Background)
-		, F_Init_Event(Foreground)
-		, F_Init_Event(Pause)
-		, F_Init_Event(Resume)
-		, F_Init_Event(Memorywarning)
+		: N_Init_Event(Load)
+		, N_Init_Event(Unload)
+		, N_Init_Event(Background)
+		, N_Init_Event(Foreground)
+		, N_Init_Event(Pause)
+		, N_Init_Event(Resume)
+		, N_Init_Event(Memorywarning)
 		, _is_load(false)
 		, _opts(opts)
 		, _loop(nullptr), _keep(nullptr)
@@ -208,18 +208,18 @@ namespace noug {
 		, _pre_render(nullptr), _font_pool(nullptr), _img_pool(nullptr)
 		, _max_image_memory_limit(512 * 1024 * 1024) // init 512MB
 	{
-		F_CHECK(!_shared, "At the same time can only run a Application entity");
+		N_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
 
-		F_On(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
+		N_On(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
 		// init
 		_default_text_settings = new TextBasic();
-		_pre_render = new PreRender(this); F_DEBUG("new PreRender ok");
-		_display = NewRetain<Display>(this); F_DEBUG("NewRetain<Display> ok"); // strong ref
+		_pre_render = new PreRender(this); N_DEBUG("new PreRender ok");
+		_display = NewRetain<Display>(this); N_DEBUG("NewRetain<Display> ok"); // strong ref
 		//_font_pool = new FontPool(this);
 		_img_pool = new ImagePool(this);
-		_dispatch = new EventDispatch(this); F_DEBUG("new EventDispatch ok");
-		// _action_direct = new ActionDirect(); F_DEBUG("new ActionDirect ok");
+		_dispatch = new EventDispatch(this); N_DEBUG("new EventDispatch ok");
+		// _action_direct = new ActionDirect(); N_DEBUG("new ActionDirect ok");
 	}
 
 	Application::~Application() {
@@ -242,7 +242,7 @@ namespace noug {
 		Release(_font_pool);   _font_pool = nullptr;
 		Release(_img_pool);    _img_pool = nullptr;
 
-		F_Off(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
+		N_Off(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
 
 		_shared = nullptr;
 	}
@@ -253,7 +253,7 @@ namespace noug {
 	void Application::run(bool is_loop) throw(Error) {
 		UILock lock(this);
 		if (!_keep) { // init
-			_render = Render::Make(this, Render::parseOptions(_opts)); F_DEBUG("Render::Make() ok");
+			_render = Render::Make(this, Render::parseOptions(_opts)); N_DEBUG("Render::Make() ok");
 			_loop = RunLoop::current();
 			_keep = _loop->keep_alive("Application::run(), keep"); // 保持运行
 			__run_main_wait->awaken(); // 外部线程继续运行
@@ -268,7 +268,7 @@ namespace noug {
 	* @func setMain()
 	*/
 	void Application::setMain(int (*main)(int, char**)) {
-		F_ASSERT( !__f_gui_main );
+		N_ASSERT( !__f_gui_main );
 		__f_gui_main = main;
 	}
 
@@ -277,7 +277,7 @@ namespace noug {
 	*/
 	void Application::runMain(int argc, Char* argv[]) {
 		static int _is_init = 0;
-		F_ASSERT(!_is_init++, "Cannot multiple calls.");
+		N_ASSERT(!_is_init++, "Cannot multiple calls.");
 		
 		struct Args { int argc; Char** argv; } arg = { argc, argv };
 		
@@ -285,11 +285,11 @@ namespace noug {
 		Thread::create([](Thread& t, void* arg) {
 			auto args = (Args*)arg;
 			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
-			F_ASSERT( main, "No gui main");
+			N_ASSERT( main, "No gui main");
 			__f_default_gui_main = nullptr;
 			__f_gui_main = nullptr;
 			int rc = main(args->argc, args->argv); // 运行这个自定gui入口函数
-			F_DEBUG("Application::runMain() Exit");
+			N_DEBUG("Application::runMain() Exit");
 			__run_main_wait->exit(rc);
 		}, &arg, "runMain");
 
@@ -322,7 +322,7 @@ namespace noug {
 	* @func set_max_image_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
 	*/
 	void Application::set_max_image_memory_limit(uint64_t limit) {
-		_max_image_memory_limit = F_MAX(limit, 64 * 1024 * 1024);
+		_max_image_memory_limit = N_MAX(limit, 64 * 1024 * 1024);
 	}
 	
 	/**
@@ -345,7 +345,7 @@ namespace noug {
 			i++;
 		} while(i < 3);
 		
-		F_WARN("Adjust image memory fail");
+		N_WARN("Adjust image memory fail");
 		
 		return false;
 	}

@@ -35,8 +35,8 @@
 
 namespace noug {
 
-	class F_EXPORT Video: public Image {
-		F_Define_View(Video);
+	class N_EXPORT Video: public Image {
+		N_Define_View(Video);
 	public:
 	private:
 	};

@@ -34,7 +34,7 @@ using namespace noug;
 
 static void message_cb(CbData& ev, RunLoop* loop) {
 	static int i = 0;
-	F_LOG("message_cb, %d", i++);
+	N_LOG("message_cb, %d", i++);
 }
 
 void test_loop(int argc, char **argv) {
@@ -54,14 +54,14 @@ void test_loop(int argc, char **argv) {
 	int id = loop->work(Cb([&](CbData& e){
 		for (int i = 0; i < 5; i++) {
 			Thread::sleep(1e6);
-			F_LOG("Exec work");
+			N_LOG("Exec work");
 			loop->post(Cb(message_cb, loop));
 		}
 	}), Cb([](CbData& e){
-		F_LOG("Done");
+		N_LOG("Done");
 	}));
 	
 	loop->run();
 	
-	F_LOG("Loop ok");
+	N_LOG("Loop ok");
 }

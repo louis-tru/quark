@@ -132,7 +132,7 @@ namespace noug {
 			}
 			
 			virtual void trigger_http_abort(HttpClientRequest* req) {
-				F_DEBUG("request async abort");
+				N_DEBUG("request async abort");
 			}
 			
 			virtual void trigger_http_write(HttpClientRequest* req) {}
@@ -271,7 +271,7 @@ namespace noug {
 											String::format("cannot send sync http request, %s"
 																		, options.url.c_str()), 0, options.url);
 		}
-		F_DEBUG("request_sync %s", options.url.c_str());
+		N_DEBUG("request_sync %s", options.url.c_str());
 		typedef Callback<RunLoop::PostSyncData> Cb2;
 		bool ok = false;
 		HttpError err = Error();
@@ -369,7 +369,7 @@ namespace noug {
 			fs_mkdir_p_sync(path);
 			http_cache_path_ = path;
 		} catch(cError& err) {
-			F_ERR(err);
+			N_ERR(err);
 		}
 	}
 

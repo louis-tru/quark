@@ -37,9 +37,9 @@
 #include "./util/json.h"
 #include "./value.h"
 
-#define F_Main() \
+#define N_Main() \
 	int __f_main__(int, Char**); \
-	F_INIT_BLOCK(__f_main__) { noug::Application::setMain(&__f_main__); } \
+	N_INIT_BLOCK(__f_main__) { noug::Application::setMain(&__f_main__); } \
 	int __f_main__(int argc, Char** argv)
 
 namespace noug {
@@ -67,15 +67,15 @@ namespace noug {
 	/**
 	* @class Application
 	*/
-	class F_EXPORT Application: public Object {
-		F_HIDDEN_ALL_COPY(Application);
+	class N_EXPORT Application: public Object {
+		N_HIDDEN_ALL_COPY(Application);
 	public:
 
 		/**
 		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
 		* 那么在主线程调用任何UI-API函数必须加锁。
 		*/
-		class F_EXPORT UILock {
+		class N_EXPORT UILock {
 			public:
 			UILock(Application* host = app());
 			~UILock();
@@ -86,13 +86,13 @@ namespace noug {
 			bool _lock;
 		};
 
-		F_Event(Load);
-		F_Event(Unload);
-		F_Event(Background);
-		F_Event(Foreground);
-		F_Event(Pause);
-		F_Event(Resume);
-		F_Event(Memorywarning);
+		N_Event(Load);
+		N_Event(Unload);
+		N_Event(Background);
+		N_Event(Foreground);
+		N_Event(Pause);
+		N_Event(Resume);
+		N_Event(Memorywarning);
 
 		Application(JSON opts = JSON::object());
 
@@ -211,7 +211,7 @@ namespace noug {
 		ImagePool*           _img_pool;         /* 图像池 */
 		uint64_t _max_image_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
 		
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 		
 		friend class UILock;
 		friend Application* app();

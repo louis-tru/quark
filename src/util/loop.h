@@ -59,13 +59,13 @@ namespace noug {
 	typedef std::unique_lock<Mutex> Lock;
 	typedef std::condition_variable Condition;
 
-	template<> F_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
+	template<> N_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
 
 	/**
 	 * @class Thread
 	 */
-	class F_EXPORT Thread {
-		F_HIDDEN_ALL_COPY(Thread);
+	class N_EXPORT Thread {
+		N_HIDDEN_ALL_COPY(Thread);
 	public:
 		// @members
 		typedef NonObjectTraits Traits;
@@ -88,7 +88,7 @@ namespace noug {
 	private:
 		Thread(Exec exec, cString& tag);
 		~Thread() = default;
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 		ThreadID    _id;
 		RunLoop*    _loop;
 		String      _tag;
@@ -99,12 +99,12 @@ namespace noug {
 		friend class RunLoop;
 	};
 
-	F_EXPORT EventNoticer<>& onSafeExit();
+	N_EXPORT EventNoticer<>& onSafeExit();
 
 	/**
 	* @class PostMessage
 	*/
-	class F_EXPORT PostMessage {
+	class N_EXPORT PostMessage {
 	public:
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) = 0;
 	};
@@ -112,8 +112,8 @@ namespace noug {
 	/**
 	* @class RunLoop
 	*/
-	class F_EXPORT RunLoop: public Object, public PostMessage {
-		F_HIDDEN_ALL_COPY(RunLoop);
+	class N_EXPORT RunLoop: public Object, public PostMessage {
+		N_HIDDEN_ALL_COPY(RunLoop);
 	public:
 		
 		/**
@@ -221,8 +221,8 @@ namespace noug {
 		*/
 		virtual ~RunLoop();
 		
-		F_DEFINE_INLINE_CLASS(Inl);
-		F_DEFINE_INLINE_CLASS(Inl2);
+		N_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl2);
 
 		friend class KeepLoop;
 		struct Queue {
@@ -247,10 +247,10 @@ namespace noug {
 	* 这个对像能保持RunLoop的循环不自动终止,除非调用`RunLoop::stop()`
 	* @class KeepLoop
 	*/
-	class F_EXPORT KeepLoop: public Object, public PostMessage {
-		F_HIDDEN_ALL_COPY(KeepLoop);
+	class N_EXPORT KeepLoop: public Object, public PostMessage {
+		N_HIDDEN_ALL_COPY(KeepLoop);
 	public:
-		F_DEFAULT_ALLOCATOR();
+		N_DEFAULT_ALLOCATOR();
 		/**
 		* @destructor `destructor_clear=true`时会取消通过它`post`的所有消息
 		*/

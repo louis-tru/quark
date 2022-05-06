@@ -39,7 +39,7 @@
 #include "../metal.h"
 #endif
 
-#if !F_APPLE || F_ENABLE_GL
+#if !N_APPLE || N_ENABLE_GL
 #include "../gl.h"
 #endif
 
@@ -106,7 +106,7 @@ namespace noug {
 		bool _raster; // software raster
 	};
 
-#if !F_APPLE || F_ENABLE_GL
+#if !N_APPLE || N_ENABLE_GL
 	/**
 	* @class SkiaGLRender
 	*/

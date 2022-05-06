@@ -37,7 +37,7 @@ namespace noug {
 
 	#define sk_I(img) static_cast<SkImage*>(img)
 
-	F_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
+	N_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
 	public:
 		static SkImage* CastSk(ImageSource* img) {
 			return sk_I(img->_inl);
@@ -49,7 +49,7 @@ namespace noug {
 	}
 
 	ImageSource::ImageSource(Pixel pixel)
-		: F_Init_Event(State)
+		: N_Init_Event(State)
 		, _state(STATE_NONE)
 		, _width(pixel.width())
 		, _height(pixel.height())
@@ -80,8 +80,8 @@ namespace noug {
 	}
 
 	void ImageSource::_Decode() {
-		F_ASSERT(_state & STATE_LOAD_COMPLETE);
-		F_ASSERT(_inl);
+		N_ASSERT(_state & STATE_LOAD_COMPLETE);
+		N_ASSERT(_inl);
 		// decode image
 		
 		struct Ctx {
@@ -105,7 +105,7 @@ namespace noug {
 				} else { // decode fail
 					_state = State((_state | STATE_DECODE_ERROR)    & ~STATE_DECODEING);
 				}
-				F_Trigger(State, _state);
+				N_Trigger(State, _state);
 			}
 			delete ctx;
 		}));
@@ -124,7 +124,7 @@ namespace noug {
 		_state = State(_state | STATE_LOADING);
 		
 		RunLoop::first()->post(Cb([this](CbData& e){
-			F_Trigger(State, _state); // trigger
+			N_Trigger(State, _state); // trigger
 			_load_id = fs_reader()->read_file(_uri, Cb([this](CbData& e){ // read data
 				if (_state & STATE_LOADING) {
 					_state = State((_state | STATE_LOAD_COMPLETE) & ~STATE_LOADING);
@@ -140,7 +140,7 @@ namespace noug {
 					_height = info.height();
 					_type = ColorType(info.colorType());
 					
-					F_Trigger(State, _state);
+					N_Trigger(State, _state);
 
 					if (_state & STATE_DECODEING) { // decode
 						_Decode();
@@ -169,7 +169,7 @@ namespace noug {
 				}
 				// trigger event
 				RunLoop::first()->post(Cb([this](CbData& e){
-					F_Trigger(State, _state);
+					N_Trigger(State, _state);
 				}, this));
 			}
 		}

@@ -41,7 +41,7 @@ namespace noug {
 	*/
 	template<class T, class T2 = typename T::Traits> class Handle {
 		//! Copy constructor is not permitted.
-		F_HIDDEN_ALL_COPY(Handle);
+		N_HIDDEN_ALL_COPY(Handle);
 		
 		inline T* move() {
 			return Traits::Retain(_data) ? _data : collapse();

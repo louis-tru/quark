@@ -32,7 +32,7 @@
 #include "./fs.h"
 #include "./http.h"
 
-#if F_WIN
+#if N_WIN
 	#include <io.h>
 	#include <direct.h>
 #else
@@ -154,7 +154,7 @@ namespace noug {
 	static void exists2(cString& path, Cb cb, RunLoop* loop) {
 		uv_fs_access(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
-								fs_fallback_c(path), F_OK, &uv_fs_access_cb);
+								fs_fallback_c(path), N_OK, &uv_fs_access_cb);
 	}
 
 	static void ls2(cString& path, Callback<Array<Dirent>> cb, RunLoop* loop) {
@@ -217,11 +217,11 @@ namespace noug {
 						_buffer[i] = buffer;
 					}
 				}
-				F_ASSERT(buffer.length() == 0);
+				N_ASSERT(buffer.length() == 0);
 			}
 			
 			void read_next() {
-				F_ASSERT(!_read_end);
+				N_ASSERT(!_read_end);
 				Buffer buff = alloc_buffer();
 				if ( buff.length() ) {
 					_reading_count++;
@@ -247,11 +247,11 @@ namespace noug {
 			}
 			
 			void copy_complete() {
-				F_ASSERT(_reading_count == 0);
-				F_ASSERT(_writeing_count == 0);
-				F_ASSERT(_read_end);
+				N_ASSERT(_reading_count == 0);
+				N_ASSERT(_writeing_count == 0);
+				N_ASSERT(_read_end);
 				if ( !is_abort() ) { // copy complete
-					//F_DEBUG("-----copy_complete------");
+					//N_DEBUG("-----copy_complete------");
 					Handle<Task> handle(this);
 					abort();
 					async_callback(_end);
@@ -259,16 +259,16 @@ namespace noug {
 			}
 			
 			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
-				F_ASSERT( file == _source_file );
-				F_ASSERT( _reading_count > 0 );
+				N_ASSERT( file == _source_file );
+				N_ASSERT( _reading_count > 0 );
 				_reading_count--;
 				if ( buffer.length() ) {
 					_writeing_count++;
 					_target_file->write(buffer, buffer.length());
 					read_next();
 				} else {
-					F_ASSERT(_reading_count == 0);
-					F_ASSERT(!_read_end);
+					N_ASSERT(_reading_count == 0);
+					N_ASSERT(!_read_end);
 					_read_end = true;
 					if ( _writeing_count == 0 ) {
 						copy_complete();
@@ -277,8 +277,8 @@ namespace noug {
 			}
 			
 			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
-				F_ASSERT( file == _target_file );
-				F_ASSERT( _writeing_count > 0 );
+				N_ASSERT( file == _target_file );
+				N_ASSERT( _writeing_count > 0 );
 				_writeing_count--;
 				release_buffer(buffer);
 				if ( _read_end ) {
@@ -794,7 +794,7 @@ namespace noug {
 				Task* ctx = req->ctx();
 				
 				ctx->_read_count--;
-				F_ASSERT(ctx->_read_count == 0);
+				N_ASSERT(ctx->_read_count == 0);
 				
 				if ( uv_req->result < 0 ) { // error
 					ctx->abort();
@@ -844,7 +844,7 @@ namespace noug {
 					req->ctx()->_total = uv_req->statbuf.st_size;
 					if ( req->ctx()->_offset > 0 ) {
 						req->ctx()->_total -= req->ctx()->_offset;
-						req->ctx()->_total = F_MAX(req->ctx()->_total, 0);
+						req->ctx()->_total = N_MAX(req->ctx()->_total, 0);
 					}
 					req->ctx()->read_advance(req);
 				} else { // err

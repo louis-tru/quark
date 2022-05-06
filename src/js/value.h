@@ -82,7 +82,7 @@ F(Floats, Array<float>) \
 /**
  * @class ValueProgram
  */
-class F_EXPORT ValueProgram: public Object {
+class N_EXPORT ValueProgram: public Object {
 	public:
 	#define def_attr_fn(Name, Type)           \
 		Local<JSValue> New(const Type& value);  \

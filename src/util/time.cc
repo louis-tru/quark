@@ -96,7 +96,7 @@ namespace noug {
 	#define ISDIGIT(x)  (isdigit((int)  ((unsigned char)x)))
 	#define ISALNUM(x)  (isalnum((int)  ((unsigned char)x)))
 
-	#if F_WIN
+	#if N_WIN
 	# define ERRNO         ((int)GetLastError())
 	# define SET_ERRNO(x)  (SetLastError((DWORD)(x)))
 	#else
@@ -105,7 +105,7 @@ namespace noug {
 	#endif
 
 	/* The size of `time_t', as computed by sizeof. */
-	#if F_ARCH_64BIT
+	#if N_ARCH_64BIT
 	# define SIZEOF_TIME_T 8
 	#else
 	# define SIZEOF_TIME_T 4

@@ -101,7 +101,7 @@ using namespace noug;
 		k symbol##= j; \
 	} \
 	uint64_t s2 = time_monotonic(); \
-	F_LOG("%s: %llu", name #symbol, s2 - s1 - s0); \
+	N_LOG("%s: %llu", name #symbol, s2 - s1 - s0); \
 }
 
 uint64_t test_operation_assign() {
@@ -224,7 +224,7 @@ uint64_t test_operation_assign() {
 
 	uint64_t s2 = time_monotonic();
 
-	F_LOG("assign: %lld, %d", s2 - s1, j);
+	N_LOG("assign: %lld, %d", s2 - s1, j);
 
 	return s2 - s1;
 }
@@ -235,8 +235,8 @@ void test_number(int argc, char **argv) {
 	char c = d;
 	uint8_t b = d;
 
-	F_LOG("%d", c);
-	F_LOG("%d", *(char*)&b);
+	N_LOG("%d", c);
+	N_LOG("%d", *(char*)&b);
 
 	uint64_t s0 = test_operation_assign();
 

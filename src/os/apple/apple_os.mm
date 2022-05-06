@@ -32,7 +32,7 @@
 #import <noug/util/string.h>
 #import <noug/util/handle.h>
 #import <Foundation/Foundation.h>
-#if F_IOS
+#if N_IOS
 # import <UIKit/UIKit.h>
 #else
 # import <AppKit/AppKit.h>
@@ -55,7 +55,7 @@ namespace noug {
 			return "Apple";
 		}
 
-#if F_IOS
+#if N_IOS
 
 		String version() {
 			return UIDevice.currentDevice.systemVersion.UTF8String;
@@ -95,7 +95,7 @@ namespace noug {
 			return code;
 		}
 
-#if F_IOS
+#if N_IOS
 
 		bool is_ac_power() {
 			[UIDevice currentDevice].batteryMonitoringEnabled = YES;

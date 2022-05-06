@@ -35,13 +35,13 @@
 
 namespace noug {
 
-	class F_EXPORT FlowLayout: public FlexLayout {
-		F_Define_View(FlowLayout);
+	class N_EXPORT FlowLayout: public FlexLayout {
+		N_Define_View(FlowLayout);
 	public:
 		FlowLayout();
 		// define props
-		F_DEFINE_PROP(Wrap, wrap); // 主轴溢出后换行，开启后当主轴溢出时分裂成多根交叉轴
-		F_DEFINE_PROP(WrapAlign, wrap_align); // 多根交叉轴的对齐方式,如果只有一根交叉轴该属性不起作用
+		N_DEFINE_PROP(Wrap, wrap); // 主轴溢出后换行，开启后当主轴溢出时分裂成多根交叉轴
+		N_DEFINE_PROP(WrapAlign, wrap_align); // 多根交叉轴的对齐方式,如果只有一根交叉轴该属性不起作用
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
@@ -50,7 +50,7 @@ namespace noug {
 		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
 	private:
 		template<bool is_horizontal> void layout_typesetting_wrap(bool is_reverse);
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

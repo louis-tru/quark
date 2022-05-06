@@ -135,7 +135,7 @@ namespace noug {
 
 	// Override
 	int GZip::open(int flag) {
-		F_ASSERT(!_gzfp);
+		N_ASSERT(!_gzfp);
 		if (_gzfp) // 已经打开了
 			return 0;
 		_gzfp = gzopen(fs_fallback_c(_path), inl__file_flag_str(flag));
@@ -172,7 +172,7 @@ namespace noug {
 		return gzwrite((gzFile)_gzfp, buffer, uint32_t(size));
 	}
 
-	F_DEFINE_INLINE_MEMBERS(ZipReader, Inl) {
+	N_DEFINE_INLINE_MEMBERS(ZipReader, Inl) {
 	public:
 		#define _inl_reader(self) static_cast<ZipReader::Inl*>(self)
 		
@@ -261,19 +261,19 @@ namespace noug {
 	bool ZipReader::open() {
 		
 		if ( _unzp ) {
-			F_ERR("First close the open file");
+			N_ERR("First close the open file");
 			return false;
 		}
 		
 		unzFile unzp = unzOpen(fs_fallback_c(_path));
 		if ( !unzp ) {
-			F_ERR("Cannot open file ZipReader, %s", _path.c_str());
+			N_ERR("Cannot open file ZipReader, %s", _path.c_str());
 			return false;
 		}
 		
 		ClearScope clear([&]() {
 			if ( unzClose((unzFile) unzp) != UNZ_OK ) {
-				F_ERR("Cannot close file ZipReader, %s", _path.c_str());
+				N_ERR("Cannot close file ZipReader, %s", _path.c_str());
 			}
 		});
 		
@@ -286,12 +286,12 @@ namespace noug {
 		do {
 			code = unzGetFilePos(unzp, &pos);
 			if ( code ) {
-				F_ERR("Open current file pos info error"); return false;
+				N_ERR("Open current file pos info error"); return false;
 			}
 			_unz_file_pos _pos = { pos.pos_in_zip_directory, pos.num_of_file };
 			code = unzGetCurrentFileInfo(unzp, &unzfi, name, 256, NULL, 0, NULL, 0);
 			if ( code ) {
-				F_ERR("Get current file info error"); return false;
+				N_ERR("Get current file info error"); return false;
 			}
 			String pathname = name;
 			uint32_t compressed_size = (uint32_t)unzfi.compressed_size;
@@ -315,13 +315,13 @@ namespace noug {
 	bool ZipReader::close() {
 		if ( _unzp ) {
 			if ( !_inl_reader(this)->_close_current_file() ) {
-				F_ERR("Cannot close file reader internal documents, %s, %s",
+				N_ERR("Cannot close file reader internal documents, %s, %s",
 							 _path.c_str(), _cur_it->value.pathname.c_str());
 			}
 			if ( unzClose((unzFile)_unzp) == UNZ_OK ) {
 				_unzp = nullptr;
 			} else {
-				F_ERR("Cannot close file ZipReader, %s", _path.c_str());
+				N_ERR("Cannot close file ZipReader, %s", _path.c_str());
 			}
 			_file_info.clear();
 			_dir_info.clear();
@@ -435,7 +435,7 @@ namespace noug {
 	bool ZipWriter::open(OpenMode mode) {
 		
 		if ( _zipp ) {
-			F_ERR("First close the open file");
+			N_ERR("First close the open file");
 			return false;
 		}
 		
@@ -443,7 +443,7 @@ namespace noug {
 		_zipp = zipOpen(fs_fallback(_path).c_str(), _open_mode);
 		
 		if ( !_zipp ) {
-			F_ERR("Cannot open file ZipWriter, %s", _path.c_str());
+			N_ERR("Cannot open file ZipWriter, %s", _path.c_str());
 			return false;
 		}
 		return true;
@@ -458,7 +458,7 @@ namespace noug {
 			if ( zipClose((zipFile*)_zipp, NULL) == ZIP_OK ) {
 				_zipp = nullptr;
 			} else {
-				F_ERR("Cannot close zip ZipWriter, %s", _path.c_str());
+				N_ERR("Cannot close zip ZipWriter, %s", _path.c_str());
 			}
 		}
 		return !_zipp;
@@ -487,7 +487,7 @@ namespace noug {
 			if ( i == ZIP_OK ) {
 				return true;
 			} else {
-				F_ERR("add zip file error, `%s, %s`", _path.c_str(), path.c_str());
+				N_ERR("add zip file error, `%s, %s`", _path.c_str(), path.c_str());
 			}
 		}
 		return false;
@@ -501,7 +501,7 @@ namespace noug {
 		if ( ! _new_name.is_empty() ) { // 当前有打开的新文件
 			int code = zipCloseFileInZip((zipFile*)_zipp);
 			if ( code != ZIP_OK ) {
-				F_ERR("Cannot close file writer internal documents, %s, %s", _path.c_str(), _new_name.c_str());
+				N_ERR("Cannot close file writer internal documents, %s, %s", _path.c_str(), _new_name.c_str());
 				return false;
 			}
 			_new_name = String();

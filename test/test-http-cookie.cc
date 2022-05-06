@@ -35,72 +35,72 @@ using namespace noug;
 
 void test_http_cookie(int argc, char **argv) {
 	
-	F_LOG(http_get_cookie("noug.cc", "test"));
+	N_LOG(http_get_cookie("noug.cc", "test"));
 	
 	http_set_cookie("noug.cc", "test", "noug.cc");
 	
-	F_LOG("A, %s", *http_get_cookie("noug.cc", "test"));
+	N_LOG("A, %s", *http_get_cookie("noug.cc", "test"));
 	
-	F_LOG("B, %s", *http_get_cookie("www.noug.cc", "test"));
+	N_LOG("B, %s", *http_get_cookie("www.noug.cc", "test"));
 
 	http_set_cookie("www.noug.cc", "test", "$");
 
-	F_LOG("B2, %s", *http_get_cookie("www.noug.cc", "test"));
+	N_LOG("B2, %s", *http_get_cookie("www.noug.cc", "test"));
 
 	http_set_cookie("noug.cc", "test2", "*");
 	
-	F_LOG("D, %s", *http_get_cookie("noug.cc", "test2"));
+	N_LOG("D, %s", *http_get_cookie("noug.cc", "test2"));
 	
-	F_LOG("E, %s", *http_get_cookie("www.noug.cc", "test2"));
+	N_LOG("E, %s", *http_get_cookie("www.noug.cc", "test2"));
 	
 	http_set_cookie("noug.cc", "test2", "-----------------------------", -1, "/AA");
 	
-	F_LOG("F, %s", *http_get_cookie("noug.cc", "test2"));
+	N_LOG("F, %s", *http_get_cookie("noug.cc", "test2"));
 	
-	F_LOG("H, %s", *http_get_cookie("noug.cc", "test2", "/AA"));
+	N_LOG("H, %s", *http_get_cookie("noug.cc", "test2", "/AA"));
 	
-	F_LOG(http_get_all_cookie_string("www.noug.cc", "/AA"));
+	N_LOG(http_get_all_cookie_string("www.noug.cc", "/AA"));
 	
 	http_set_cookie_with_expression("noug.cc", "test3=HHHH--l; path=/AA; max-age=60");
 	
-	F_LOG(http_get_cookie("noug.cc", "test3"));
+	N_LOG(http_get_cookie("noug.cc", "test3"));
 	
-	F_LOG(http_get_cookie("noug.cc", "test3", "/AA"));
+	N_LOG(http_get_cookie("noug.cc", "test3", "/AA"));
 	
-	F_LOG("http_cookie_get_all_string 1, %s", *http_get_all_cookie_string("www.noug.cc", "/AA"));
-	F_LOG("http_cookie_get_all_string 2, %s", *http_get_all_cookie_string("noug.cc", "/AA"));
+	N_LOG("http_cookie_get_all_string 1, %s", *http_get_all_cookie_string("www.noug.cc", "/AA"));
+	N_LOG("http_cookie_get_all_string 2, %s", *http_get_all_cookie_string("noug.cc", "/AA"));
 	
 	// test delete
 	
 	http_delete_cookie("noug.cc", "test");
 	
-	F_LOG(http_get_cookie("noug.cc", "test"));
+	N_LOG(http_get_cookie("noug.cc", "test"));
 	
 	http_set_cookie("noug.cc", "test", "noug.cc2");
 	http_set_cookie("noug.cc", "test9", "noug.cc3");
 	http_set_cookie("noug.cc", "test8", "noug.cc4");
 	http_set_cookie("www.noug.cc", "test7", "noug.cc5");
 	
-	F_LOG("E, %s", *http_get_cookie("noug.cc", "test"));
+	N_LOG("E, %s", *http_get_cookie("noug.cc", "test"));
 
 	http_set_cookie("noug.orh", "test--------A", "noug.cc%", -1, "KKK/MMM");
 
-	F_LOG("http_cookie_get_all_string 3, %s", *http_get_all_cookie_string("noug.cc"));
+	N_LOG("http_cookie_get_all_string 3, %s", *http_get_all_cookie_string("noug.cc"));
 	
 	http_delete_all_cookie("noug.cc");
 	
-	F_LOG(http_get_cookie("noug.cc", "test"));
+	N_LOG(http_get_cookie("noug.cc", "test"));
 	
 	http_set_cookie("noug.cc", "test", "noug.cc");
 	
-	F_LOG("F, %s", *http_get_cookie("noug.cc", "test--------A", "KKK/MMM", 1));
+	N_LOG("F, %s", *http_get_cookie("noug.cc", "test--------A", "KKK/MMM", 1));
 	
 	http_clear_cookie();
 	
-	F_LOG(http_get_cookie("noug.cc", "test"));
+	N_LOG(http_get_cookie("noug.cc", "test"));
 	
 	http_set_cookie("noug.cc", "test", "END test cookie", time_micro() + 6e7); // 60s expires
 	
-	F_LOG(http_get_cookie("noug.cc", "test"));
+	N_LOG(http_get_cookie("noug.cc", "test"));
 	
 }

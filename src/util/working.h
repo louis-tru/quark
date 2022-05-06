@@ -42,7 +42,7 @@ namespace noug {
 	* @class ParallelWorking
 	*/
 	class ParallelWorking: public Object {
-		F_HIDDEN_ALL_COPY(ParallelWorking);
+		N_HIDDEN_ALL_COPY(ParallelWorking);
 	public:
 		typedef Thread::Func Func;
 		ParallelWorking();
@@ -61,8 +61,8 @@ namespace noug {
 		Childs _childs;
 	};
 
-	F_EXPORT RunLoop* backend_loop();
-	F_EXPORT bool has_backend_thread();
+	N_EXPORT RunLoop* backend_loop();
+	N_EXPORT bool has_backend_thread();
 
 }
 #endif

@@ -139,14 +139,14 @@
 		],
 		'conditions': [
 			['use_gl==1 or use_skia==0', { # use opengl
-				'defines': [ 'F_ENABLE_GL=1' ],
+				'defines': [ 'N_ENABLE_GL=1' ],
 				'sources': [
 					'render/gl.h',
 					'render/gl.cc',
 				],
 			}],
 			['use_skia==1', { # use skia
-				'defines': [ 'F_ENABLE_SKIA=1' ],
+				'defines': [ 'N_ENABLE_SKIA=1' ],
 				'sources': [
 					'render/skia/skia_canvas.h',
 					'render/skia/skia_canvas.cc',
@@ -168,7 +168,7 @@
 				],
 			}],
 			['use_skia==0', { # use fastuidraw
-				'defines': [ 'F_ENABLE_FASTUIDRAW=1' ],
+				'defines': [ 'N_ENABLE_FASTUIDRAW=1' ],
 			}],
 			['os=="android"', {
 				'sources': [

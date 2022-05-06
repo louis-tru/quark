@@ -32,7 +32,7 @@
 
 #include "noug/util/macros.h"
 
-#if F_IOS
+#if N_IOS
 
 #import <UIKit/UIKit.h>
 #import "noug/app.h"

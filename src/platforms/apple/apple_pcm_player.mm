@@ -144,7 +144,7 @@ namespace noug {
 							return;
 						}
 					} else {
-						F_ERR("self->_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
+						N_ERR("self->_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
 					}
 				}
 				
@@ -259,7 +259,7 @@ namespace noug {
 			OSStatus status;
 			AudioQueueParameterValue v;
 			
-			v = F_MIN(value, 100) / 100.0;
+			v = N_MIN(value, 100) / 100.0;
 			
 			status = AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, _flush ? 0 : v);
 			
@@ -274,7 +274,7 @@ namespace noug {
 		* @overwrite
 		* */
 		virtual uint32_t buffer_size() {
-			return F_MAX(4096, _channel_count * _sample_rate / 10);
+			return N_MAX(4096, _channel_count * _sample_rate / 10);
 		}
 		
 	private:

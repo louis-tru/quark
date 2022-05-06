@@ -35,8 +35,8 @@
 
 namespace noug {
 
-	class F_EXPORT GridLayout: public Box {
-		F_Define_View(GridLayout);
+	class N_EXPORT GridLayout: public Box {
+		N_Define_View(GridLayout);
 	public:
 		GridLayout();
 	};

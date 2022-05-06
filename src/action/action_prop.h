@@ -34,7 +34,7 @@
 
 #include "./action_prop.h"
 
-F_NAMESPACE_START
+N_NAMESPACE_START
 
 // set_property
 template<> void Property2<TextColor>::set_property(List<View*>& views);
@@ -135,5 +135,5 @@ template<> void Property3<float, PROPERTY_ROTATE_Z>::bind_view(int type);
 template<> void Property3<float, PROPERTY_OPACITY>::bind_view(int type);
 template<> void Property3<bool, PROPERTY_VISIBLE>::bind_view(int type);
 
-F_NAMESPACE_END
+N_NAMESPACE_END
 #endif

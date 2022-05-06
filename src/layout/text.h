@@ -36,10 +36,10 @@
 
 namespace noug {
 
-	class F_EXPORT Text: public Box, public TextBasic {
-		F_Define_View(Text);
+	class N_EXPORT Text: public Box, public TextBasic {
+		N_Define_View(Text);
 	public:
-		F_DEFINE_PROP(TextAlign, text_align);
+		N_DEFINE_PROP(TextAlign, text_align);
 		virtual bool layout_reverse(uint32_t mark) override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;

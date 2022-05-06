@@ -37,19 +37,19 @@
 #ifndef __noug__action_action__inl__
 #define __noug__action_action__inl__
 
-F_NAMESPACE_START
+N_NAMESPACE_START
 
 typedef KeyframeAction::Frame Frame;
 typedef KeyframeAction::Property Property;
 
-F_DEFINE_INLINE_MEMBERS(View, ActionInl) {
+N_DEFINE_INLINE_MEMBERS(View, ActionInl) {
 public:
 	inline ReturnValue& trigger(const NameType& name, UIEvent& evt) {
 		return View::trigger(name, evt);
 	}
 };
 
-F_DEFINE_INLINE_MEMBERS(Action, Inl) {
+N_DEFINE_INLINE_MEMBERS(Action, Inl) {
 public:
 	#define _inl_action(self) static_cast<Action::Inl*>(static_cast<Action*>(self))
 	void set_parent(Action* parent) throw(Error);
@@ -65,14 +65,14 @@ public:
 	void del_view(View* view);
 };
 
-F_DEFINE_INLINE_MEMBERS(ActionCenter, Inl) {
+N_DEFINE_INLINE_MEMBERS(ActionCenter, Inl) {
 public:
 	#define _inl_action_center(self) static_cast<ActionCenter::Inl*>(self)
 	void add(Action* action);
 	void del(Action* action);
 };
 
-F_DEFINE_INLINE_MEMBERS(GroupAction, Inl) {
+N_DEFINE_INLINE_MEMBERS(GroupAction, Inl) {
 public:
 	#define _inl_group_action(self) \
 		static_cast<GroupAction::Inl*>(static_cast<GroupAction*>(self))
@@ -81,7 +81,7 @@ public:
 	void update_spawn_action_duration();
 };
 
-F_DEFINE_INLINE_MEMBERS(KeyframeAction, Inl) {
+N_DEFINE_INLINE_MEMBERS(KeyframeAction, Inl) {
 public:
 	#define _inl_key_action(self) static_cast<KeyframeAction::Inl*>(self)
 	void transition(uint32_t f1, uint32_t f2, float x, float y, Action* root);
@@ -187,7 +187,7 @@ public:
 	}
 };
 
-F_DEFINE_INLINE_MEMBERS(Frame, Inl) {
+N_DEFINE_INLINE_MEMBERS(Frame, Inl) {
 public:
 	#define _inl_frame(self) static_cast<KeyframeAction::Frame::Inl*>(self)
 
@@ -215,5 +215,5 @@ public:
 	}
 };
 
-F_NAMESPACE_END
+N_NAMESPACE_END
 #endif

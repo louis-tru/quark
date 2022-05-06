@@ -38,7 +38,7 @@
 #include "../fill.h"
 #include "../util/list.h"
 
-F_NAMESPACE_START
+N_NAMESPACE_START
 
 class View;
 class ActionCenter;
@@ -50,7 +50,7 @@ class KeyframeAction;
 /**
 * @class Action
 */
-class F_EXPORT Action: public Reference {
+class N_EXPORT Action: public Reference {
 public:
 	Action();
 	
@@ -143,7 +143,7 @@ public:
 	* @func speed set
 	*/
 	inline void speed(float value) {
-		_speed = F_MIN(10, F_MAX(value, 0.1));
+		_speed = N_MIN(10, N_MAX(value, 0.1));
 	}
 	
 	/**
@@ -214,7 +214,7 @@ protected:
 	
 	ActionCenterId _action_center_id;
 	
-	F_DEFINE_INLINE_CLASS(Inl);
+	N_DEFINE_INLINE_CLASS(Inl);
 	
 	friend class ActionCenter;
 	friend class GroupAction;
@@ -226,7 +226,7 @@ protected:
 /**
 * @class ActionCenter
 */
-class F_EXPORT ActionCenter: public Object {
+class N_EXPORT ActionCenter: public Object {
 	public:
 	
 	ActionCenter();
@@ -252,8 +252,8 @@ class F_EXPORT ActionCenter: public Object {
 	uint64_t _prev_sys_time;
 	Actions  _actions;
 	
-	F_DEFINE_INLINE_CLASS(Inl);
+	N_DEFINE_INLINE_CLASS(Inl);
 };
 
-F_NAMESPACE_END
+N_NAMESPACE_END
 #endif

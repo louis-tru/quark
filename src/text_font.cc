@@ -88,7 +88,7 @@ namespace noug {
 	 * @set font_size {TextSize}
 	 */
 	void TextFont::set_text_size(TextSize value) {
-		value.value = F_MAX(value.value, 0);
+		value.value = N_MAX(value.value, 0);
 		equal(_text_size) {
 			_text_size = value;
 			mark_text(View::M_LAYOUT |
@@ -126,7 +126,7 @@ namespace noug {
 	 * @set text_shadow {TextShadow}
 	 */
 	void TextFont::set_text_shadow(TextShadow value) {
-		value.value.size = F_MAX(value.value.size, 0);
+		value.value.size = N_MAX(value.value.size, 0);
 		equal(_text_shadow) {
 			_text_shadow = value;
 			mark_text(View::M_LAYOUT | View::M_TEXT_FONT);
@@ -137,7 +137,7 @@ namespace noug {
 	 * @set text_line_height {TextLineHeight}
 	 */
 	void TextFont::set_text_line_height(TextLineHeight value) {
-		value.value.height = F_MAX(value.value.height, 0);
+		value.value.height = N_MAX(value.value.height, 0);
 		equal(_text_line_height) {
 			_text_line_height = value;
 			mark_text(View::M_LAYOUT | View::M_CONTENT_OFFSET | View::M_TEXT_FONT);
@@ -161,11 +161,11 @@ namespace noug {
 																														TextLineHeightValue text_line_height) {
 		
 		//if ( _text_family.name() == "icon" && _text_line_height.value.height == 48 ) {
-		//  F_LOG("icon");
+		//  N_LOG("icon");
 		//}
 		
 		FontGlyphTable* table = font_pool()->get_table(_text_family.value, _text_style.value);
-		F_ASSERT(table);
+		N_ASSERT(table);
 		
 		/* FontGlyph中获得的数据是 26.6 frac. 64pt 值, 所以这里需要除以这个比例 */
 		float ratio = 4096.0 / _text_size.value; /* 64.0 * 64.0 = 4096.0 */
@@ -180,7 +180,7 @@ namespace noug {
 		float descender, ascender;
 		
 		descender = max_descender + (line_height - max_height) / 2.0;
-		descender = F_MAX(descender, 0);
+		descender = N_MAX(descender, 0);
 		ascender = line_height - descender;
 		
 		data.text_ascender = ascender;
@@ -235,7 +235,7 @@ namespace noug {
 			v = v->parent();
 		} while(v && ok < 3);
 		
-		FontGlyphTable* table = font_pool()->get_table(family.value, style.value); F_ASSERT(table);
+		FontGlyphTable* table = font_pool()->get_table(family.value, style.value); N_ASSERT(table);
 		
 		float rv = 0;
 		float ratio = 4096.0 / size.value;
@@ -263,8 +263,8 @@ namespace noug {
 		Region dre = app()->display_port()->draw_region();
 		Region re = View::screen_region_from_convex_quadrilateral(vertex);
 		
-		if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) <= re.h + dre.h &&
-				F_MAX( dre.x2, re.x2 ) - F_MIN( dre.x, re.x ) <= re.w + dre.w
+		if (N_MAX( dre.y2, re.y2 ) - N_MIN( dre.y, re.y ) <= re.h + dre.h &&
+				N_MAX( dre.x2, re.x2 ) - N_MIN( dre.x, re.x ) <= re.w + dre.w
 		) {
 			has_visible_draw_range = true;
 		} else {
@@ -294,7 +294,7 @@ namespace noug {
 		Vec2  vertex2[4];
 		float y, y2;
 		
-		y2 = v->origin_y() - F_MAX(0, data.text_height - data.text_hori_bearing) + in_offset_y;
+		y2 = v->origin_y() - N_MAX(0, data.text_height - data.text_hori_bearing) + in_offset_y;
 		
 		y = data.cells[0].baseline - y2 - data.text_height;
 		
@@ -320,8 +320,8 @@ namespace noug {
 				C = v->_final_matrix * Vec2(end_x, y);
 				re = View::screen_region_from_convex_quadrilateral(vertex2);
 				
-				if (F_MAX( dre.y2, re.y2 ) - F_MIN( dre.y, re.y ) < re.h + dre.h &&
-						F_MAX( dre.x2, re.x2 ) - F_MIN( dre.x, re.x ) < re.w + dre.w
+				if (N_MAX( dre.y2, re.y2 ) - N_MIN( dre.y, re.y ) < re.h + dre.h &&
+						N_MAX( dre.x2, re.x2 ) - N_MIN( dre.x, re.x ) < re.w + dre.w
 				) {
 					if ( !is_cell_draw_begin ) {
 						is_cell_draw_begin = 1;
@@ -364,7 +364,7 @@ namespace noug {
 
 	// ----------------------------------- TextLayout -----------------------------------
 
-	F_INLINE bool has_space_Char(uint16_t unicode, bool space, bool line_feed) {
+	N_INLINE bool has_space_Char(uint16_t unicode, bool space, bool line_feed) {
 		switch(unicode) {
 			case 0x0A: // \n
 				return line_feed;
@@ -378,7 +378,7 @@ namespace noug {
 		return false;
 	}
 
-	F_INLINE bool has_english_Char(uint16_t unicode) {
+	N_INLINE bool has_english_Char(uint16_t unicode) {
 		switch(unicode) {
 			case 48: case 49: case 50: case 51: case 52:
 			case 53: case 54: case 55: case 56: case 57: // 0-9
@@ -467,7 +467,7 @@ namespace noug {
 		/**
 		 * @func new_row
 		 */
-		F_INLINE void new_row(TextRows* rows, Cell& cell, Data& data, uint32_t begin) {
+		N_INLINE void new_row(TextRows* rows, Cell& cell, Data& data, uint32_t begin) {
 			
 			/* 结束上一行 */
 			if ( cell.chars.size() ) {
@@ -487,7 +487,7 @@ namespace noug {
 		/**
 		 * @func read_word
 		 */
-		F_INLINE bool read_word(Word* word, float offset_start,
+		N_INLINE bool read_word(Word* word, float offset_start,
 														 FontGlyphTable* table, float ratio,
 														 Options::SpaceWrap opts, cString2& string, uint32_t begin, uint32_t end) {
 			if ( begin < end ) {

@@ -86,7 +86,7 @@ namespace noug {
 			memory_info_t r = {0,0,0};
 
 			String s = FileHelper::read_file_sync("/proc/meminfo", 127).collapse_string();
-			F_DEBUG("/proc/meminfo, %s", *s);
+			N_DEBUG("/proc/meminfo, %s", *s);
 
 			if (!s.is_empty()) {
 				int i, j;
@@ -97,7 +97,7 @@ namespace noug {
 				if (j == -1) return r;
 
 				r.MemTotal = s.substring(i + 9, j).trim().to_uint64_t() * 1024;
-				F_DEBUG("MemTotal, %lu", r.MemTotal);
+				N_DEBUG("MemTotal, %lu", r.MemTotal);
 
 				i = s.index_of("MemFree:", j);
 				if (i == -1) return r;
@@ -105,7 +105,7 @@ namespace noug {
 				if (j == -1) return r;
 
 				r.MemFree = s.substring(i + 8, j).trim().to_uint64_t() * 1024;
-				F_DEBUG("MemFree, %lu", r.MemFree);
+				N_DEBUG("MemFree, %lu", r.MemFree);
 
 				i = s.index_of("MemAvailable:", j);
 				if (i == -1) return r;
@@ -113,7 +113,7 @@ namespace noug {
 				if (j == -1) return r;
 
 				r.MemAvailable = s.substring(i + 13, j).trim().to_uint64_t() * 1024;
-				F_DEBUG("MemAvailable, %lu", r.MemAvailable);
+				N_DEBUG("MemAvailable, %lu", r.MemAvailable);
 			}
 			return r;
 		}

@@ -36,10 +36,10 @@
 #include "./util.h"
 
 namespace noug {
-	F_EXPORT String  storage_get(cString& name);
-	F_EXPORT void    storage_set(cString& name, cString& value);
-	F_EXPORT void    storage_delete(cString& name);
-	F_EXPORT void    storage_clear();
-	F_EXPORT void    storage_transaction(Cb cb);
+	N_EXPORT String  storage_get(cString& name);
+	N_EXPORT void    storage_set(cString& name, cString& value);
+	N_EXPORT void    storage_delete(cString& name);
+	N_EXPORT void    storage_clear();
+	N_EXPORT void    storage_transaction(Cb cb);
 }
 #endif

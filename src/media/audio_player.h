@@ -41,9 +41,9 @@ namespace noug {
 	/**
 	* @class AudioPlayer
 	*/
-	class F_EXPORT AudioPlayer: public Notification<Event<>, UIEventName>,
+	class N_EXPORT AudioPlayer: public Notification<Event<>, UIEventName>,
 																public MultimediaSource::Delegate {
-		F_HIDDEN_ALL_COPY(AudioPlayer);
+		N_HIDDEN_ALL_COPY(AudioPlayer);
 	public:
 
 		typedef MultimediaSource::TrackInfo TrackInfo;
@@ -67,12 +67,12 @@ namespace noug {
 		/**
 		* @func src get src
 		*/
-		F_MEDIA_DYNAMIC String src();
+		N_MEDIA_DYNAMIC String src();
 		
 		/**
 		* @func set_src set src
 		*/
-		F_MEDIA_DYNAMIC void set_src(cString& value);
+		N_MEDIA_DYNAMIC void set_src(cString& value);
 
 		/**
 		* @func auto_play
@@ -82,17 +82,17 @@ namespace noug {
 		/**
 		* @func set_auto_play setting auto play
 		*/
-		F_MEDIA_DYNAMIC void set_auto_play(bool value);
+		N_MEDIA_DYNAMIC void set_auto_play(bool value);
 
 		/**
 		* @func source_status
 		* */
-		F_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
+		N_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
 
 		/**
 		* @func status getting play status
 		*/
-		F_MEDIA_DYNAMIC PlayerStatus status();
+		N_MEDIA_DYNAMIC PlayerStatus status();
 
 		/**
 		* @func mute getting mute status
@@ -102,7 +102,7 @@ namespace noug {
 		/**
 		* @func set_mute setting mute status
 		* */
-		F_MEDIA_DYNAMIC void set_mute(bool value);
+		N_MEDIA_DYNAMIC void set_mute(bool value);
 
 		/**
 		* @func volume
@@ -112,72 +112,72 @@ namespace noug {
 		/**
 		* @func set_volume
 		*/
-		F_MEDIA_DYNAMIC void set_volume(uint32_t value);
+		N_MEDIA_DYNAMIC void set_volume(uint32_t value);
 
 		/**
 		* @func time
 		* */
-		F_MEDIA_DYNAMIC uint64_t time();
+		N_MEDIA_DYNAMIC uint64_t time();
 
 		/**
 		* @func duration
 		* */
-		F_MEDIA_DYNAMIC uint64_t duration();
+		N_MEDIA_DYNAMIC uint64_t duration();
 
 		/**
 		* @func audio_track_count
 		*/
-		F_MEDIA_DYNAMIC uint32_t track_count();
+		N_MEDIA_DYNAMIC uint32_t track_count();
 
 		/**
 		* @func audio_track
 		*/
-		F_MEDIA_DYNAMIC uint32_t track_index();
+		N_MEDIA_DYNAMIC uint32_t track_index();
 
 		/**
 		* @func audio_track
 		*/
-		F_MEDIA_DYNAMIC const TrackInfo* track();
+		N_MEDIA_DYNAMIC const TrackInfo* track();
 
 		/**
 		* @func audio_track
 		*/
-		F_MEDIA_DYNAMIC const TrackInfo* track(uint32_t index);
+		N_MEDIA_DYNAMIC const TrackInfo* track(uint32_t index);
 
 		/**
 		* @func select_audio_track
 		* */
-		F_MEDIA_DYNAMIC void select_track(uint32_t index);
+		N_MEDIA_DYNAMIC void select_track(uint32_t index);
 
 		/**
 		* @func start play
 		*/
-		F_MEDIA_DYNAMIC void start();
+		N_MEDIA_DYNAMIC void start();
 
 		/**
 		* @func seek to target time
 		*/
-		F_MEDIA_DYNAMIC bool seek(uint64_t timeUs);
+		N_MEDIA_DYNAMIC bool seek(uint64_t timeUs);
 
 		/**
 		* @func pause play
 		* */
-		F_MEDIA_DYNAMIC void pause();
+		N_MEDIA_DYNAMIC void pause();
 
 		/**
 		* @func resume play
 		* */
-		F_MEDIA_DYNAMIC void resume();
+		N_MEDIA_DYNAMIC void resume();
 
 		/**
 		* @func stop play
 		* */
-		F_MEDIA_DYNAMIC void stop();
+		N_MEDIA_DYNAMIC void stop();
 
 		/**
 		* @func disable_wait_buffer
 		*/
-		F_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
+		N_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
 
 		/**
 		* @func disable_wait_buffer
@@ -203,7 +203,7 @@ namespace noug {
 		bool    _disable_wait_buffer;
 		bool    _waiting_buffer;
 
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

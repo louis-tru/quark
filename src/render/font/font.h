@@ -48,7 +48,7 @@ namespace noug {
 	/**
 	* @class FontFamilysID
 	*/
-	class F_EXPORT FontFamilysID {
+	class N_EXPORT FontFamilysID {
 	public:
 		inline const Array<String>& names() const { return _names; }
 		inline cString& name() const { return _name; }
@@ -61,14 +61,14 @@ namespace noug {
 		String              _name;
 		uint32_t            _code;
 		
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 		friend class FontPool;
 	};
 
 	/**
 	* @class BaseFont
 	*/
-	class F_EXPORT BaseFont: public Object {
+	class N_EXPORT BaseFont: public Object {
 	public:
 		virtual cString& name() const = 0;
 		virtual Font* font(TextStyleValue style = TextStyleValue::NORMAL, TextWeightValue weight = TextWeightValue::REGULAR) = 0;
@@ -78,8 +78,8 @@ namespace noug {
 	* @class Font 矢量字体
 	* 暂时只支持unicode编码中第0平面最常用的编码(0x0000-0xFFFF)
 	*/
-	class F_EXPORT Font: public BaseFont {
-		F_HIDDEN_ALL_COPY(Font);
+	class N_EXPORT Font: public BaseFont {
+		N_HIDDEN_ALL_COPY(Font);
 	protected:
 
 		inline Font() {}
@@ -193,7 +193,7 @@ namespace noug {
 		void*         _ft_lib;       /* FT_Library */
 		void*         _ft_face;      /* FT_Face */
 		
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 		
 		friend class FontGlyph;
 		friend class FontGlyphTable;
@@ -204,7 +204,7 @@ namespace noug {
 	/**
 	* @class FontGlyph # 字体中一个文字的字型轮廓
 	*/
-	class F_EXPORT FontGlyph {
+	class N_EXPORT FontGlyph {
 	public:
 		
 		/**
@@ -281,7 +281,7 @@ namespace noug {
 		* @func has_tex_level
 		*/
 		inline bool has_texure_level(TexureLevel level) {
-			F_ASSERT(level < LEVEL_NONE);
+			N_ASSERT(level < LEVEL_NONE);
 			return _textures[level];
 		}
 		
@@ -313,7 +313,7 @@ namespace noug {
 	/**
 	* @class FontGlyphTable
 	*/
-	class F_EXPORT FontGlyphTable: public Object {
+	class N_EXPORT FontGlyphTable: public Object {
 	public:
 		
 		virtual ~FontGlyphTable();
@@ -377,7 +377,7 @@ namespace noug {
 		TextWeightValue _weight;
 		int _height, _ascender, _descender;
 		
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 		
 		friend class FontPool;
 	};
@@ -385,8 +385,8 @@ namespace noug {
 	/**
 	* @class FontFamily 字体家族
 	*/
-	class F_EXPORT FontFamily: public BaseFont {
-		F_HIDDEN_ALL_COPY(FontFamily);
+	class N_EXPORT FontFamily: public BaseFont {
+		N_HIDDEN_ALL_COPY(FontFamily);
 		public:
 		
 		/**
@@ -418,7 +418,7 @@ namespace noug {
 		Font*         _fonts[19];
 		Array<Font*>  _all_fonts;
 		
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 		friend class FontPool;
 	};
 

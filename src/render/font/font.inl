@@ -110,7 +110,7 @@ namespace noug {
 	/**
 	 * @class Font::Inl
 	 */
-	F_DEFINE_INLINE_MEMBERS(Font, Inl) {
+	N_DEFINE_INLINE_MEMBERS(Font, Inl) {
 	public:
 		#define _inl_font(self) static_cast<Font::Inl*>(self)
 		
@@ -221,13 +221,13 @@ namespace noug {
 		
 	};
 
-	F_DEFINE_INLINE_MEMBERS(FontFamilysID, Inl) {
+	N_DEFINE_INLINE_MEMBERS(FontFamilysID, Inl) {
 	public:
 		#define _inl_ff_id(self) static_cast<FontFamilysID::Inl*>(self)
 		void initialize(const Array<String>& names);
 	};
 
-	F_DEFINE_INLINE_MEMBERS(FontGlyphTable, Inl) {
+	N_DEFINE_INLINE_MEMBERS(FontGlyphTable, Inl) {
 	public:
 		#define _inl_table(self) static_cast<FontGlyphTable::Inl*>(self)
 		void clear_table();
@@ -238,14 +238,14 @@ namespace noug {
 		FontGlyph* find_glyph(uint16_t unicode, FGTexureLevel level, bool vector);
 	};
 
-	F_DEFINE_INLINE_MEMBERS(FontFamily, Inl) {
+	N_DEFINE_INLINE_MEMBERS(FontFamily, Inl) {
 	public:
 		#define _inl_family(self) static_cast<FontFamily::Inl*>(self)
 		int get_font_style_index(TextStyleValue style);
 		void add_font(Font* font);
 	};
 
-	F_DEFINE_INLINE_MEMBERS(FontPool, Inl) {
+	N_DEFINE_INLINE_MEMBERS(FontPool, Inl) {
 	public:
 		#define _inl_pool(self) static_cast<FontPool::Inl*>(self)
 		void initialize_default_fonts();

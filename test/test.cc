@@ -41,14 +41,14 @@ using namespace noug;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
-F_Main() {
+N_Main() {
 	// node::NougEnvironment::test();
 
 	uint64_t st = time_micro();
 	
 	TEST_FUNC_NAME(argc, argv);
 	
-	F_LOG("MAIN", "eclapsed time:%dms", (time_micro() - st) / 1000);
+	N_LOG("MAIN", "eclapsed time:%dms", (time_micro() - st) / 1000);
 
 	return 0;
 }

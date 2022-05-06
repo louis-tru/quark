@@ -47,14 +47,14 @@ namespace noug {
 	/**
 	* @class PreRender 预渲染
 	*/
-	class F_EXPORT PreRender: public Object {
-		F_HIDDEN_ALL_COPY(PreRender);
+	class N_EXPORT PreRender: public Object {
+		N_HIDDEN_ALL_COPY(PreRender);
 	public:
 
 		PreRender(Application* host);
 		virtual ~PreRender();
 
-		class F_EXPORT Task {
+		class N_EXPORT Task {
 		public:
 			typedef List<Task*>::Iterator ID;
 			inline Task(): _task_timeout(0) {}
@@ -64,11 +64,11 @@ namespace noug {
 			void unregister_task();
 			inline bool is_register_task() const { return _task_id != ID(); }
 			// define props
-			F_DEFINE_PROP(ID, task_id);
-			F_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
+			N_DEFINE_PROP(ID, task_id);
+			N_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
 		};
 
-		F_DEFINE_PROP_READ(Application*, host);
+		N_DEFINE_PROP_READ(Application*, host);
 
 		/**
 			* @func solve 解决预先渲染问题,如果需要更新视图返回true

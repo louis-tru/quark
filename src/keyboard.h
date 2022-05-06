@@ -207,7 +207,7 @@ namespace noug {
 	/**
 	* @class KeyboardAdapter
 	*/
-	class F_EXPORT KeyboardAdapter: public Object {
+	class N_EXPORT KeyboardAdapter: public Object {
 	public:
 
 		KeyboardAdapter();

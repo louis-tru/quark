@@ -35,7 +35,7 @@
 #include "skia/gpu/gl/GrGLInterface.h"
 #include "skia/core/SkImageInfo.h"
 
-#if !F_APPLE || F_ENABLE_GL
+#if !N_APPLE || N_ENABLE_GL
 
 namespace noug {
 
@@ -50,7 +50,7 @@ namespace noug {
 	void SkiaGLRender::onReload() {
 		if (!_direct) {
 			_direct = GrDirectContext::MakeGL(GrGLMakeNativeInterface(), {/*_opts.grContextOptions*/});
-			F_ASSERT(_direct);
+			N_ASSERT(_direct);
 		}
 		_surface.reset(); // clear curr surface
 		_rasterSurface.reset();
@@ -63,7 +63,7 @@ namespace noug {
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 			_rasterSurface = SkSurface::MakeRaster(info);
-			F_ASSERT(_rasterSurface);
+			N_ASSERT(_rasterSurface);
 		}
 
 		GrGLFramebufferInfo fbInfo = {
@@ -78,7 +78,7 @@ namespace noug {
 															_direct.get(), backendRT,
 															kBottomLeft_GrSurfaceOrigin,
 															SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
-		F_ASSERT(_surface);
+		N_ASSERT(_surface);
 		if (_raster) {
 			_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
 		} else {

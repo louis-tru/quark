@@ -70,20 +70,20 @@ namespace noug {
 		kAlphaType_Unpremul, //!< pixel components are independent of alpha
 	};
 
-	class F_EXPORT PixelInfo: public Object {
+	class N_EXPORT PixelInfo: public Object {
 	public:
 		PixelInfo();
 		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
-		F_DEFINE_PROP_READ(int, width); // width 图像宽度
-		F_DEFINE_PROP_READ(int, height); // height 图像高度
-		F_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
-		F_DEFINE_PROP_READ(AlphaType, alphaType); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
+		N_DEFINE_PROP_READ(int, width); // width 图像宽度
+		N_DEFINE_PROP_READ(int, height); // height 图像高度
+		N_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
+		N_DEFINE_PROP_READ(AlphaType, alphaType); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
 	};
 
 	/**
 	* @class Pixel
 	*/
-	class F_EXPORT Pixel: public PixelInfo {
+	class N_EXPORT Pixel: public PixelInfo {
 	public:
 
 		/**

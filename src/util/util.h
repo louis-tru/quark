@@ -46,18 +46,18 @@
 #include "./string.h"
 
 namespace noug {
-	F_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
-	F_EXPORT int fix_random(uint32_t a, ...);
-	F_EXPORT uint64_t getId();
-	F_EXPORT uint32_t getId32();
-	F_EXPORT int64_t  parse_time(cString& str);
-	F_EXPORT String gmt_time_string(int64_t second);
-	F_EXPORT int64_t time_micro();
-	F_EXPORT int64_t time_second();
-	F_EXPORT int64_t time_monotonic();
-	F_EXPORT String platform();
-	F_EXPORT String version();
-	F_EXPORT void exit(int rc, bool force = 0); // call sys exit
-	F_EXPORT bool is_exited();
+	N_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
+	N_EXPORT int fix_random(uint32_t a, ...);
+	N_EXPORT uint64_t getId();
+	N_EXPORT uint32_t getId32();
+	N_EXPORT int64_t  parse_time(cString& str);
+	N_EXPORT String gmt_time_string(int64_t second);
+	N_EXPORT int64_t time_micro();
+	N_EXPORT int64_t time_second();
+	N_EXPORT int64_t time_monotonic();
+	N_EXPORT String platform();
+	N_EXPORT String version();
+	N_EXPORT void exit(int rc, bool force = 0); // call sys exit
+	N_EXPORT bool is_exited();
 }
 #endif

@@ -40,7 +40,7 @@
 
 namespace noug {
 
-	F_DEFINE_INLINE_MEMBERS(Application, Inl) {
+	N_DEFINE_INLINE_MEMBERS(Application, Inl) {
 	public:
 		#define _inl_app(self) static_cast<AppInl*>(self)
 

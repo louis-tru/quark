@@ -68,7 +68,7 @@ void each_fonts () {
 	auto ns = std::chrono::system_clock::now().time_since_epoch();
 	int64_t st = std::chrono::duration_cast<std::chrono::milliseconds>(ns).count(), st2;
 	
-	F_LOG("start st:%d", st);
+	N_LOG("start st:%d", st);
 	
 	int count = 0;
 	
@@ -84,11 +84,11 @@ void each_fonts () {
 			error = FT_New_Face(library, *ent->pathname, 0, &face);
 			
 			if (error) {
-				F_LOG("error,------------------------path:%s", *ent->pathname);
+				N_LOG("error,------------------------path:%s", *ent->pathname);
 			}
 			else {
 				
-				F_LOG("family:------------------------%s | num_faces:%d | path:%s",
+				N_LOG("family:------------------------%s | num_faces:%d | path:%s",
 							face->family_name,
 							face->num_faces,
 							*ent->pathname);
@@ -99,7 +99,7 @@ void each_fonts () {
 					
 					cChar* name = FT_Get_Postscript_Name(face);
 					
-					F_LOG("font:%s | style:%s | style_flags:%d | glyphs:%d",
+					N_LOG("font:%s | style:%s | style_flags:%d | glyphs:%d",
 								name,
 								face->style_name,
 								face->style_flags,
@@ -116,7 +116,7 @@ void each_fonts () {
 					if (i < face->num_faces) {
 						error = FT_New_Face(library, *ent->pathname, i, &face);
 						if (error) {
-							F_LOG("error"); break;
+							N_LOG("error"); break;
 						}
 					} else {
 						break;
@@ -131,9 +131,9 @@ void each_fonts () {
 	ns = std::chrono::system_clock::now().time_since_epoch();
 	st2 = std::chrono::duration_cast<std::chrono::milliseconds>(ns).count();
 	
-	F_LOG("end st:%d,%d", st2, st2 - st);
+	N_LOG("end st:%d,%d", st2, st2 - st);
 	
-	F_LOG("font count:%d", count);
+	N_LOG("font count:%d", count);
 	
 	FT_Done_Face(face);
 	FT_Done_FreeType(library);
@@ -157,15 +157,15 @@ void each_glyph() {
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	
-	F_ASSERT(!error);
+	N_ASSERT(!error);
 	
 	error = FT_Set_Char_Size(face, 0, 12 * 64, 300, 300);
 	
-	F_ASSERT(!error);
+	N_ASSERT(!error);
 	
 	error = FT_Set_Pixel_Sizes(face, 0, 12);
 	
-	F_ASSERT(!error);
+	N_ASSERT(!error);
 	
 	FT_GlyphSlot gl = face->glyph;
 	
@@ -173,7 +173,7 @@ void each_glyph() {
 	//  error = FT_Set_Charmap(face, face->charmaps[0]);
 	//  error = FT_Set_Charmap(face, face->charmaps[1]);
 	
-	F_ASSERT(!error);
+	N_ASSERT(!error);
 	
 	uint32_t ch[6] = { 0, 26970, 23398, 25991, 65533, 65 }; // 妤氬鏂囷拷A
 	
@@ -184,23 +184,23 @@ void each_glyph() {
 	uint32_t unicode = 0;
 	uint32_t count = 0;
 	
-	F_LOG("%s", Codec::encode(Encoding::utf8, String2((uint16_t*)&unicode, 1)).val() );
+	N_LOG("%s", Codec::encode(Encoding::utf8, String2((uint16_t*)&unicode, 1)).val() );
 	
 	do {
 		unicode = FT_Get_Next_Char(face, unicode, &glyph_index);
 		
 		Buffer data = Codec::encode(Encoding::utf8, String2((uint16_t*)&unicode, 1));
 		
-		F_LOG("unicode:%d, glyph_index:%d, char:%s", unicode, glyph_index, *data);
+		N_LOG("unicode:%d, glyph_index:%d, char:%s", unicode, glyph_index, *data);
 		count++;
 		
 	} while(glyph_index);
 	
-	F_LOG("count:%d", count);
+	N_LOG("count:%d", count);
 	
 	error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
 	
-	F_ASSERT(!error);
+	N_ASSERT(!error);
 	
 	FT_Pos x, y;
 	
@@ -218,19 +218,19 @@ void onload_f(Event<>& evt, void* user) {
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	
-	F_ASSERT(!error);
+	N_ASSERT(!error);
 	
 	float font_size = 16;
 	
 	error = FT_Set_Char_Size(face, 0, font_size * 64, 72, 72);
 	
-	F_ASSERT(!error);
+	N_ASSERT(!error);
 	
 	//  error = FT_Set_Pixel_Sizes(face, 0, 64);
 	
-	F_ASSERT(!error);
+	N_ASSERT(!error);
 	
-	F_LOG("VERTICAL:%i", FT_HAS_VERTICAL(face));
+	N_LOG("VERTICAL:%i", FT_HAS_VERTICAL(face));
 	
 	FT_GlyphSlot gl = face->glyph;
 	
@@ -240,7 +240,7 @@ void onload_f(Event<>& evt, void* user) {
 	
 	FT_UInt glyph_index = FT_Get_Char_Index( face, '\t' );
 	
-	F_LOG("glyph_index:%d", glyph_index);
+	N_LOG("glyph_index:%d", glyph_index);
 	
 	error = FT_Load_Glyph(face, glyph_index, /*FT_LOAD_NO_HINTING*/FT_LOAD_DEFAULT);
 	
@@ -253,13 +253,13 @@ void onload_f(Event<>& evt, void* user) {
 	
 	error = FT_Get_Glyph( gl, &glyph );
 	
-	F_ASSERT(!error);
+	N_ASSERT(!error);
 	
 	FT_BBox bbox;
 	
 	FT_Glyph_Get_CBox( glyph, FT_LOAD_NO_SCALE, &bbox );
 	
-	F_ASSERT(!error);
+	N_ASSERT(!error);
 	
 	if (face->glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
 		FT_Outline_Embolden(&(gl->outline), 16); //
@@ -267,12 +267,12 @@ void onload_f(Event<>& evt, void* user) {
 	
 	if (gl->format != FT_GLYPH_FORMAT_BITMAP) {
 		error = FT_Render_Glyph(gl, FT_RENDER_MODE_NORMAL);
-		F_ASSERT(!error);
+		N_ASSERT(!error);
 	}
 	
 	FT_Bitmap bit = gl->bitmap;
 	
-	F_LOG("width:%d, height:%d", bit.width, bit.rows);
+	N_LOG("width:%d, height:%d", bit.width, bit.rows);
 	
 	PixelData data(WeakBuffer((char*)bit.buffer, bit.width * bit.rows),
 								 bit.width, bit.rows, PixelData::ALPHA8);
@@ -308,7 +308,7 @@ void draw_char() {
 
 void test_freetype(int argc, char **argv) {
 	
-	F_LOG(os::info());
+	N_LOG(os::info());
 	
 	//  each_fonts();
 	

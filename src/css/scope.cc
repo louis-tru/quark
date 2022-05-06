@@ -30,7 +30,7 @@
 
 #include "./css.h"
 
-F_NAMESPACE_START
+N_NAMESPACE_START
 
 static void push_all_scope(StyleSheetsScope* self, View* scope) {
 	if ( scope ) {
@@ -43,11 +43,11 @@ StyleSheetsScope::StyleSheetsScope(View* scope) {
 	auto wrap = _style_sheets_map[root_styles()] = { root_styles(), 1 };
 	_style_sheets.push_back({ &wrap, 1 });
 	push_all_scope(this, scope);
-	F_DEBUG("use StyleSheetsScope");
+	N_DEBUG("use StyleSheetsScope");
 }
 
 void StyleSheetsScope::push_scope(View* scope) {
-	F_ASSERT(scope);
+	N_ASSERT(scope);
 	StyleSheetsClass* classs = scope->classs();
 	if ( classs && classs->has_child() ) {
 		for ( auto& i : classs->child_style_sheets() ) {
@@ -71,9 +71,9 @@ void StyleSheetsScope::pop_scope() {
 		if ( classs && classs->has_child() ) {
 			int count = classs->child_style_sheets().length();
 			for ( int i = 0; i < count; i++ ) {
-				F_ASSERT( _style_sheets.length() > 1 );
+				N_ASSERT( _style_sheets.length() > 1 );
 				Scope scope = _style_sheets.back();
-				F_ASSERT( scope.wrap->ref == scope.ref );
+				N_ASSERT( scope.wrap->ref == scope.ref );
 				if ( scope.ref == 1 ) {
 					_style_sheets_map.erase(scope.wrap->sheets);
 				} else {
@@ -86,4 +86,4 @@ void StyleSheetsScope::pop_scope() {
 	}
 }
 
-F_NAMESPACE_END
+N_NAMESPACE_END

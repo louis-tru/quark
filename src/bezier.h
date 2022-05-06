@@ -44,7 +44,7 @@ namespace noug {
 	*
 	* B(t) = P_0(1-t)^2 + 2tP_1(1-t) + P_2t^2, t<-|0,1|
 	*/
-	class F_EXPORT QuadraticBezier {
+	class N_EXPORT QuadraticBezier {
 	public:
 
 		/**
@@ -84,7 +84,7 @@ namespace noug {
 	*
 	* B(t) = P_0(1-t)^3 + 3P_1t(i-t)^2 + 3P_2t^2(1-t) + P_3t3, t<-|0,1|
 	*/
-	class F_EXPORT CubicBezier {
+	class N_EXPORT CubicBezier {
 	public:
 
 		/**
@@ -133,7 +133,7 @@ namespace noug {
 	* @class FixedCubicBezier
 	* @bases CubicBezier
 	*/
-	class F_EXPORT FixedCubicBezier: public CubicBezier {
+	class N_EXPORT FixedCubicBezier: public CubicBezier {
 	public:
 		
 		/**
@@ -191,17 +191,17 @@ namespace noug {
 		Vec2 _p1;
 		Vec2 _p2;
 		
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	typedef FixedCubicBezier Curve;
 	typedef const Curve cCurve;
 
-	F_EXPORT extern const FixedCubicBezier LINEAR;
-	F_EXPORT extern const FixedCubicBezier EASE;
-	F_EXPORT extern const FixedCubicBezier EASE_IN;
-	F_EXPORT extern const FixedCubicBezier EASE_OUT;
-	F_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
+	N_EXPORT extern const FixedCubicBezier LINEAR;
+	N_EXPORT extern const FixedCubicBezier EASE;
+	N_EXPORT extern const FixedCubicBezier EASE_IN;
+	N_EXPORT extern const FixedCubicBezier EASE_OUT;
+	N_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
 
 }
 #endif

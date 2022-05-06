@@ -66,7 +66,7 @@ namespace noug {
 
 	extern "C" {
 
-		F_EXPORT void Java_org_noug_API_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
+		N_EXPORT void Java_org_noug_API_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
 			documents_path = JNI::jstring_to_string(files_dir);
 			temp_path = JNI::jstring_to_string(cache_dir);
 			resources_path = fs_format("zip://%s@/assets", JNI::jstring_to_string(package));

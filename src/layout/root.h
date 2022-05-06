@@ -35,8 +35,8 @@
 
 namespace noug {
 
-	class F_EXPORT Root: public Box {
-		F_Define_View(Root);
+	class N_EXPORT Root: public Box {
+		N_Define_View(Root);
 	public:
 		static Root* create() throw(Error);
 		void onDisplayChange();

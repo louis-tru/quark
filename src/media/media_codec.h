@@ -88,9 +88,9 @@ namespace noug {
 	/**
 	* @class MultimediaSource
 	*/
-	class F_EXPORT MultimediaSource: public Object {
-		F_HIDDEN_ALL_COPY(MultimediaSource);
-		F_DEFINE_INLINE_CLASS(Inl);
+	class N_EXPORT MultimediaSource: public Object {
+		N_HIDDEN_ALL_COPY(MultimediaSource);
+		N_DEFINE_INLINE_CLASS(Inl);
 	public:
 		
 		struct TrackInfo {
@@ -132,8 +132,8 @@ namespace noug {
 		/**
 		* @class Extractor
 		*/
-		class F_EXPORT Extractor: public Object {
-			F_HIDDEN_ALL_COPY(Extractor);
+		class N_EXPORT Extractor: public Object {
+			N_HIDDEN_ALL_COPY(Extractor);
 		public:
 			
 			/**
@@ -358,8 +358,8 @@ namespace noug {
 	/**
 	* @class MediaCodec
 	*/
-	class F_EXPORT MediaCodec: public Object {
-		F_HIDDEN_ALL_COPY(MediaCodec);
+	class N_EXPORT MediaCodec: public Object {
+		N_HIDDEN_ALL_COPY(MediaCodec);
 	public:
 		typedef MultimediaSource::Extractor Extractor;
 		
@@ -371,7 +371,7 @@ namespace noug {
 			int       index = 0;        /* 数据Buffer在解码器中的索引 */
 		};
 		
-		class F_EXPORT Delegate {
+		class N_EXPORT Delegate {
 		 public:
 			virtual void media_decoder_eof(MediaCodec* de, uint64_t timeUs) {}
 			virtual void media_decoder_error(MediaCodec* de, cError& err) {}

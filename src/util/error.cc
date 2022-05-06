@@ -65,7 +65,7 @@ namespace noug {
 		_code = e._code;
 		_message = e._message;
 		
-		F_CHECK(0);
+		N_CHECK(0);
 		
 		return *this;
 	}

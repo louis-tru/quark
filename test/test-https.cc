@@ -39,7 +39,7 @@ void test_https(int argc, char **argv) {
 	
 	Buffer buffer = http_get_sync("https://fanyi.baidu.com/");
 	
-	F_LOG(std::move(buffer));
+	N_LOG(std::move(buffer));
 	
-	F_LOG("END");
+	N_LOG("END");
 }

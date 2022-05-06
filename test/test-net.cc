@@ -34,7 +34,7 @@
 using namespace noug;
 
 void echo_ipv6(hostent* host) {
-	F_LOG("addrtype, IPV6, %d", host->h_addrtype);
+	N_LOG("addrtype, IPV6, %d", host->h_addrtype);
 	
 	char dst[64];
 	char dst2[64];
@@ -51,16 +51,16 @@ void echo_ipv6(hostent* host) {
 			uv_ip6_name(&addr6, dst, 64);
 		}
 		{ //
-			uv_inet_ntop(AF_INET6, host->h_addr_list[i], dst2, 64);
+			uv_inet_ntop(AN_INET6, host->h_addr_list[i], dst2, 64);
 			uv_ip6_addr(dst2, 80, &addr6_2);
 			uv_ip6_name(&addr6_2, dst2, 64);
 		}
-		F_LOG("address, %s, port, %d, address, %s, port, %d", dst, addr6.sin6_port, dst2, addr6_2.sin6_port);
+		N_LOG("address, %s, port, %d, address, %s, port, %d", dst, addr6.sin6_port, dst2, addr6_2.sin6_port);
 	}
 }
 
 void echo_ipv4(hostent* host) {
-	F_LOG("addrtype, IPV4, %d", host->h_addrtype);
+	N_LOG("addrtype, IPV4, %d", host->h_addrtype);
 	
 	char dst[64];
 	char dst2[64];
@@ -77,12 +77,12 @@ void echo_ipv4(hostent* host) {
 			uv_ip4_name(&addr4, dst, 64);
 		}
 		{ //
-			uv_inet_ntop(AF_INET, host->h_addr_list[i], dst2, 64);
+			uv_inet_ntop(AN_INET, host->h_addr_list[i], dst2, 64);
 			uv_ip4_addr(dst2, 80, &addr4_2);
 			uv_ip4_name(&addr4_2, dst2, 64);
 			
 		}
-		F_LOG("address, %s, port, %d, address, %s, port, %d", dst, addr4.sin_port, dst2, addr4_2.sin_port);
+		N_LOG("address, %s, port, %d, address, %s, port, %d", dst, addr4.sin_port, dst2, addr4_2.sin_port);
 	}
 }
 
@@ -90,13 +90,13 @@ void test_net_parse_host(cString& host_str, int af) {
 	hostent* host = (af == -1) ? gethostbyname(*host_str) : gethostbyname2( *host_str, af );
 	
 	if ( host ) {
-		F_LOG("name, %s", host->h_name);
+		N_LOG("name, %s", host->h_name);
 		if ( host->h_addrtype == AF_INET ) {
 			echo_ipv4(host);
 		} else if ( host->h_addrtype == AF_INET6 ) {
 			echo_ipv6(host);
 		} else {
-			F_LOG("ERR");
+			N_LOG("ERR");
 		}
 	}
 }
@@ -122,26 +122,26 @@ class MySocket: public Socket, public Socket::Delegate {
 	}
 	
 	virtual void trigger_socket_open(Socket* stream) {
-		F_LOG("Open Socket");
+		N_LOG("Open Socket");
 		send_http();
 	}
 	virtual void trigger_socket_close(Socket* stream) {
-		F_LOG("Close Socket");
+		N_LOG("Close Socket");
 		Release(this);
 		//RunLoop::current()->stop();
 	}
 	virtual void trigger_socket_error(Socket* stream, cError& error) {
-		F_LOG("Error, %d, %s", error.code(), error.message().c_str());
+		N_LOG("Error, %d, %s", error.code(), error.message().c_str());
 	}
 	virtual void trigger_socket_data(Socket* stream, Buffer& buffer) {
 		// LOG( String(buffer.value(), buffer.length()) );
-		F_LOG("DATA.., %d", buffer.length());
+		N_LOG("DATA.., %d", buffer.length());
 	}
 	virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) {
-		F_LOG("Write, OK");
+		N_LOG("Write, OK");
 	}
 	virtual void trigger_socket_timeout(Socket* socket) {
-		F_LOG("Timeout Socket");
+		N_LOG("Timeout Socket");
 		close();
 	}
 };
@@ -155,8 +155,8 @@ void test_net(int argc, char **argv) {
 	sockaddr_in sockaddr;
 	sockaddr_in6 sockaddr6;
 	
-	F_LOG(uv_ip4_addr("192.168.1.", 80, &sockaddr));
-	F_LOG(uv_ip4_addr("192.168.1.1", 80, &sockaddr));
+	N_LOG(uv_ip4_addr("192.168.1.", 80, &sockaddr));
+	N_LOG(uv_ip4_addr("192.168.1.1", 80, &sockaddr));
 	
 	New<MySocket>();
 	RunLoop::current()->run();

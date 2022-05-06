@@ -39,9 +39,9 @@
 #include "../action/keyframe.h"
 #include "../util/dict.h"
 
-F_NAMESPACE_START
+N_NAMESPACE_START
 
-class F_EXPORT CSSName {
+class N_EXPORT CSSName {
 public:
 	CSSName(const Array<String>& classs);
 	CSSName(cString& name);
@@ -62,8 +62,8 @@ enum CSSPseudoClass { // pseudo class
 /**
 * @class StyleSheets
 */
-class F_EXPORT StyleSheets: public Object {
-	F_HIDDEN_ALL_COPY(StyleSheets);
+class N_EXPORT StyleSheets: public Object {
+	N_HIDDEN_ALL_COPY(StyleSheets);
 protected:
 	StyleSheets(const CSSName& name, StyleSheets* parent, CSSPseudoClass pseudo);
 	
@@ -75,7 +75,7 @@ protected:
 public:
 	typedef KeyframeAction::Frame Frame;
 	
-	class F_EXPORT Property {
+	class N_EXPORT Property {
 	public:
 		virtual ~Property() = default;
 		virtual void assignment(View* view) = 0;
@@ -85,7 +85,7 @@ public:
 	// -------------------- set property --------------------
 	
 	# define fx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value);
-		F_EACH_PROPERTY_TABLE(fx_def_property)
+		N_EACH_PROPERTY_TABLE(fx_def_property)
 	# undef fx_def_property
 	
 	/**
@@ -176,14 +176,14 @@ private:
 	bool           _is_support_pseudo; // _NORMAL | _HOVER | _DOWN
 	CSSPseudoClass _pseudo;
 	
-	F_DEFINE_INLINE_CLASS(Inl);
+	N_DEFINE_INLINE_CLASS(Inl);
 	friend class CSSManager;
 };
 
 /**
 * @class RootStyleSheets
 */
-class F_EXPORT RootStyleSheets: public StyleSheets {
+class N_EXPORT RootStyleSheets: public StyleSheets {
 public:
 	
 	RootStyleSheets();
@@ -204,14 +204,14 @@ private:
 	Dict<uint32_t, int>                    _all_css_names;
 	Dict<uint32_t, Array<uint32_t>>  _css_query_group_cache;
 
-	F_DEFINE_INLINE_CLASS(Inl);
+	N_DEFINE_INLINE_CLASS(Inl);
 };
 
 /**
 * @class StyleSheetsClass
 */
-class F_EXPORT StyleSheetsClass: public Object {
-	F_HIDDEN_ALL_COPY(StyleSheetsClass);
+class N_EXPORT StyleSheetsClass: public Object {
+	N_HIDDEN_ALL_COPY(StyleSheetsClass);
 public:
 	StyleSheetsClass(View* host);
 	
@@ -285,14 +285,14 @@ private:
 	bool            _once_apply;             // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
 	CSSPseudoClass  _multiple_status;
 	
-	F_DEFINE_INLINE_CLASS(Inl);
+	N_DEFINE_INLINE_CLASS(Inl);
 };
 
 /**
 * @class StyleSheetsScope
 */
-class F_EXPORT StyleSheetsScope: public Object {
-	F_HIDDEN_ALL_COPY(StyleSheetsScope);
+class N_EXPORT StyleSheetsScope: public Object {
+	N_HIDDEN_ALL_COPY(StyleSheetsScope);
 public:
 	struct Scope {
 		struct Wrap {
@@ -313,9 +313,9 @@ private:
 	StyleSheetsMap     _style_sheets_map;
 };
 
-F_INLINE RootStyleSheets* root_styles() { 
+N_INLINE RootStyleSheets* root_styles() { 
 	return RootStyleSheets::shared(); 
 }
 
-F_NAMESPACE_END
+N_NAMESPACE_END
 #endif

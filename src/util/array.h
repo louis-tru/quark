@@ -98,11 +98,11 @@ namespace noug {
 
 		// get ptr
 		inline       T& operator[](uint32_t index) {
-			F_ASSERT(index < _length, "Array access violation.");
+			N_ASSERT(index < _length, "Array access violation.");
 			return _val[index];
 		}
 		inline const T& operator[](uint32_t index) const {
-			F_ASSERT(index < _length, "Array access violation.");
+			N_ASSERT(index < _length, "Array access violation.");
 			return _val[index];
 		}
 		inline       T* operator*()       { return _val; }
@@ -231,7 +231,7 @@ namespace noug {
 	 * @class ArrayBuffer array no copy
 	 */
 	template<typename T, typename A>
-	class F_EXPORT ArrayBuffer: public Array<T, A> {
+	class N_EXPORT ArrayBuffer: public Array<T, A> {
 	public:
 		inline ArrayBuffer() {}
 		inline ArrayBuffer(Array<T, A>& arr): Array<T, A>(std::move(arr)) {}
@@ -245,7 +245,7 @@ namespace noug {
 		 * @func from() greedy new Array from ...
 		 */
 		static inline ArrayBuffer from(T* data, uint32_t length, uint32_t capacity = 0) {
-			return ArrayBuffer<T, A>(length, F_MAX(capacity, length), data);
+			return ArrayBuffer<T, A>(length, N_MAX(capacity, length), data);
 		}
 		static inline ArrayBuffer alloc(uint32_t length, uint32_t capacity = 0) {
 			return ArrayBuffer<T, A>(length, capacity);
@@ -272,7 +272,7 @@ namespace noug {
 	 * @class WeakArrayBuffer
 	 */
 	template<typename T, typename A>
-	class F_EXPORT ArrayWeak: public ArrayBuffer<T, A> {
+	class N_EXPORT ArrayWeak: public ArrayBuffer<T, A> {
 	public:
 		inline ArrayWeak()
 			: ArrayBuffer<T, A>(0, -1, nullptr) {}
@@ -395,7 +395,7 @@ namespace noug {
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::pop(uint32_t count) {
-		int j = F_MAX(_length - count, 0);
+		int j = N_MAX(_length - count, 0);
 		if (_length > j) {
 			do {
 				_length--;
@@ -411,7 +411,7 @@ namespace noug {
 	uint32_t Array<T, A>::write(
 		const Array<T, A2>& arr, int to, int size_src, uint32_t form_src)
 	{
-		int s = F_MIN(arr._length - form_src, size_src < 0 ? arr._length : size_src);
+		int s = N_MIN(arr._length - form_src, size_src < 0 ? arr._length : size_src);
 		if (s > 0) {
 			return write(arr._val + form_src, to, s);
 		}
@@ -427,7 +427,7 @@ namespace noug {
 			if ( to == -1 ) to = _length;
 			uint32_t old_len = _length;
 			uint32_t end = to + size_src;
-			_length = F_MAX(end, _length);
+			_length = N_MAX(end, _length);
 			realloc_(_length);
 			T* to_ = _val + to;
 			
@@ -459,7 +459,7 @@ namespace noug {
 
 	template<typename T, typename A>
 	ArrayWeak<T, A> Array<T, A>::slice(uint32_t start, uint32_t end) const {
-		end = F_MIN(end, _length);
+		end = N_MIN(end, _length);
 		if (start < end) {
 			return ArrayWeak<T, A>(_val + start, end - start);
 		} else {
@@ -469,7 +469,7 @@ namespace noug {
 
 	template<typename T, typename A>
 	ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const {
-		end = F_MIN(end, _length);
+		end = N_MIN(end, _length);
 		if (start < end) {
 			ArrayBuffer<T, A> arr;
 			arr._length = end - start;
@@ -523,7 +523,7 @@ namespace noug {
 
 	template<typename T, typename A>
 	void Array<T, A>::realloc(uint32_t capacity) {
-		F_ASSERT(!is_weak(), "the weak holder cannot be changed");
+		N_ASSERT(!is_weak(), "the weak holder cannot be changed");
 		if (capacity < _length) { // clear Partial data
 			T* i = _val + capacity;
 			T* end = i + _length;
@@ -538,7 +538,7 @@ namespace noug {
 	template<typename T, typename A>
 	void Array<T, A>::extend(uint32_t length, uint32_t capacity) {
 		if (length > _length) {
-			realloc_(F_MAX(length, capacity));
+			realloc_(N_MAX(length, capacity));
 			T* begin = _val + _length;
 			T* end = _val + length;
 			while (begin < end) {
@@ -557,39 +557,39 @@ namespace noug {
 
 	template<typename T, typename A>
 	void Array<T, A>::realloc_(uint32_t capacity) {
-		F_ASSERT(!is_weak(), "the weak holder cannot be changed");
+		N_ASSERT(!is_weak(), "the weak holder cannot be changed");
 		_val = (T*)A::aalloc(_val, capacity, (uint32_t*)&_capacity, sizeof(T));
 	}
 
-	template<> F_EXPORT
+	template<> N_EXPORT
 	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len);
 
-	#define F_DEF_ARRAY_SPECIAL_(T, A) \
-		template<> F_EXPORT void              Array<T, A>::extend(uint32_t length, uint32_t capacity); \
-		template<> F_EXPORT std::vector<T>    Array<T, A>::vector() const; \
-		template<> F_EXPORT Array<T, A>&      Array<T, A>::concat_(T* src, uint32_t src_length); \
-		template<> F_EXPORT uint32_t          Array<T, A>::write(const T* src, int to, uint32_t size); \
-		template<> F_EXPORT Array<T, A>&      Array<T, A>::pop(uint32_t count); \
-		template<> F_EXPORT void              Array<T, A>::clear(); \
-		template<> F_EXPORT void              Array<T, A>::realloc(uint32_t capacity); \
-		template<> F_EXPORT ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const \
+	#define N_DEF_ARRAY_SPECIAL_(T, A) \
+		template<> N_EXPORT void              Array<T, A>::extend(uint32_t length, uint32_t capacity); \
+		template<> N_EXPORT std::vector<T>    Array<T, A>::vector() const; \
+		template<> N_EXPORT Array<T, A>&      Array<T, A>::concat_(T* src, uint32_t src_length); \
+		template<> N_EXPORT uint32_t          Array<T, A>::write(const T* src, int to, uint32_t size); \
+		template<> N_EXPORT Array<T, A>&      Array<T, A>::pop(uint32_t count); \
+		template<> N_EXPORT void              Array<T, A>::clear(); \
+		template<> N_EXPORT void              Array<T, A>::realloc(uint32_t capacity); \
+		template<> N_EXPORT ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const \
 
-	#define F_DEF_ARRAY_SPECIAL(T) \
-		F_DEF_ARRAY_SPECIAL_(T, MemoryAllocator)
+	#define N_DEF_ARRAY_SPECIAL(T) \
+		N_DEF_ARRAY_SPECIAL_(T, MemoryAllocator)
 
-	F_DEF_ARRAY_SPECIAL(char);
-	F_DEF_ARRAY_SPECIAL(unsigned char);
-	F_DEF_ARRAY_SPECIAL(int16_t);
-	F_DEF_ARRAY_SPECIAL(uint16_t);
-	F_DEF_ARRAY_SPECIAL(int32_t);
-	F_DEF_ARRAY_SPECIAL(uint32_t);
-	F_DEF_ARRAY_SPECIAL(int64_t);
-	F_DEF_ARRAY_SPECIAL(uint64_t);
-	F_DEF_ARRAY_SPECIAL(float);
-	F_DEF_ARRAY_SPECIAL(double);
+	N_DEF_ARRAY_SPECIAL(char);
+	N_DEF_ARRAY_SPECIAL(unsigned char);
+	N_DEF_ARRAY_SPECIAL(int16_t);
+	N_DEF_ARRAY_SPECIAL(uint16_t);
+	N_DEF_ARRAY_SPECIAL(int32_t);
+	N_DEF_ARRAY_SPECIAL(uint32_t);
+	N_DEF_ARRAY_SPECIAL(int64_t);
+	N_DEF_ARRAY_SPECIAL(uint64_t);
+	N_DEF_ARRAY_SPECIAL(float);
+	N_DEF_ARRAY_SPECIAL(double);
 
-	//#undef F_DEF_ARRAY_SPECIAL
-	//#undef F_DEF_ARRAY_SPECIAL_
+	//#undef N_DEF_ARRAY_SPECIAL
+	//#undef N_DEF_ARRAY_SPECIAL_
 }
 
 #endif

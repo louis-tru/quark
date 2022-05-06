@@ -31,7 +31,7 @@
 #include <sys/stat.h>
 #include "./fs.h"
 
-#if F_WIN
+#if N_WIN
 	#include <io.h>
 	#include <direct.h>
 #else
@@ -46,7 +46,7 @@ namespace noug {
 
 	static String split_path(cString& path, bool basename) {
 		String s = path;
-#if F_WIN
+#if N_WIN
 			s = s.replace_all('\\', '/');
 #endif
 		int start = path.length();
@@ -89,7 +89,7 @@ namespace noug {
 	}
 
 	String fs_cwd() {
-#if F_WIN
+#if N_WIN
 			Char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/', '/' };
 			_getcwd(cwd + 8, 1024);
 			String str = String(cwd).replace_all('\\', '/');
@@ -105,7 +105,7 @@ namespace noug {
 
 	bool fs_chdir(cString& path) {
 		String str = fs_format("%s", path.c_str());
-#if F_WIN
+#if N_WIN
 			return _chdir(str.substr(8).c_str()) == 0;
 #else
 			return ::chdir(str.substr(7).c_str()) == 0;
@@ -115,7 +115,7 @@ namespace noug {
 	static cString Chars("ABCDEFGHIJKMLNOPQRSTUVWXYZabcdefghijkmlnopqrstuvwxyz");
 
 	bool fs_is_local_absolute(cString& path) {
-#if F_WIN
+#if N_WIN
 			if (Chars.index_of(s[0]) != -1 && path[1] == ':') {
 				return true;
 			}
@@ -194,7 +194,7 @@ namespace noug {
 	String fs_format(cString& path) {
 		String s = path.copy();
 		
-#if F_WIN
+#if N_WIN
 			// TODO wondows ...
 			s = path.replace_all('\\', '/');
 			
@@ -283,7 +283,7 @@ namespace noug {
 	}
 
 	int fallback_indexOf(cString& path) {
-#if F_WIN
+#if N_WIN
 			if ( fs_is_local_zip(path) ) {
 				return 7;
 			}

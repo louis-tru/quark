@@ -43,27 +43,27 @@ void test_map(int argc, char **argv) {
 	m[0] = "-100900978";
 	m[100] = "-0";
 	
-	F_LOG(m[0]);
-	F_LOG(m[100]);
+	N_LOG(m[0]);
+	N_LOG(m[100]);
 	
 	m.erase(100);
 	
-	F_LOG(m[0]);
+	N_LOG(m[0]);
 	
-	F_LOG("%d", m.size());
+	N_LOG("%d", m.size());
 	
 	auto begin = m.begin();
 	
-	F_LOG("%d", sizeof(decltype(begin)) );
+	N_LOG("%d", sizeof(decltype(begin)) );
 	
-	F_LOG(begin->second.c_str());
+	N_LOG(begin->second.c_str());
 	
 	begin++;
 	
-	F_LOG(begin->second);
+	N_LOG(begin->second);
 	
-	F_LOG(m[0]);
-	F_LOG(m[100]);
+	N_LOG(m[0]);
+	N_LOG(m[100]);
 	
 	Dict<String, String> map;
 	
@@ -80,15 +80,15 @@ void test_map(int argc, char **argv) {
 	map.set("AA9", "BB8");
 	map.set("AA0", "BB9");
 	
-	F_LOG(map["AA8"]);
-	F_LOG(map["AA4"]);
-	F_LOG(map["AA7"]);
+	N_LOG(map["AA8"]);
+	N_LOG(map["AA4"]);
+	N_LOG(map["AA7"]);
 	
 	for (uint32_t i = 0; i < 10000; i++) {
 		map.set(i, i);
 	}
 	
-	F_LOG(map.length());
+	N_LOG(map.length());
 	
 	map.erase(String("AA1"));
 	// map.mark("AAA7");
@@ -105,22 +105,22 @@ void test_map(int argc, char **argv) {
 	int j = 0;
 	
 	for (; i != end; i++) {
-		F_LOG(i->value);
-		F_LOG(j);
+		N_LOG(i->value);
+		N_LOG(j);
 		j++;
 	}
 	
 	Dict<String, String> map2(std::move(map));
 	
 	for ( i = map.begin(); i != end; i++) {
-		F_LOG(i->value);
+		N_LOG(i->value);
 	}
 	
 	i = map2.begin();
 	end = map2.end();
 	
 	for ( ; i != end; i++) {
-		F_LOG(i->value);
+		N_LOG(i->value);
 	}
 	
 	map2 = map;

@@ -136,7 +136,7 @@ class WrapDisplay: public WrapObject {
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 
 		self->next_frame(Cb([func, worker](CbData& evt) {
-			F_ASSERT(!func.IsEmpty());
+			N_ASSERT(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			JS_CALLBACK_SCOPE();
 			func.local()->Call(worker);

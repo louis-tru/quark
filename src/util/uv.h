@@ -72,7 +72,7 @@ namespace noug {
 	 * @class AsyncIOTask
 	 */
 	class AsyncIOTask: public Reference {
-		F_HIDDEN_ALL_COPY(AsyncIOTask);
+		N_HIDDEN_ALL_COPY(AsyncIOTask);
 	public:
 		AsyncIOTask(RunLoop* loop = RunLoop::current());
 		virtual ~AsyncIOTask();

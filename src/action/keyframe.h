@@ -34,15 +34,15 @@
 #include "./action.h"
 #include "../util/dict.h"
 
-F_NAMESPACE_START
+N_NAMESPACE_START
 
 /**
 * @class KeyframeAction
 */
-class F_EXPORT KeyframeAction: public Action {
+class N_EXPORT KeyframeAction: public Action {
 public:
 	
-	class F_EXPORT Property {
+	class N_EXPORT Property {
 	public:
 		virtual ~Property() { }
 		virtual void bind_view(int view_type) = 0;
@@ -53,8 +53,8 @@ public:
 		virtual void default_value(uint32_t frame) = 0;
 	};
 	
-	class F_EXPORT Frame: public Object {
-		F_HIDDEN_ALL_COPY(Frame);
+	class N_EXPORT Frame: public Object {
+		N_HIDDEN_ALL_COPY(Frame);
 	public:
 		inline Frame(KeyframeAction* host, uint32_t index, const FixedCubicBezier& curve)
 		: _host(host) , _index(index) , _curve(curve), _time(0) {}
@@ -106,7 +106,7 @@ public:
 		
 		#define fx_def_property(ENUM, TYPE, NAME) \
 			void set_##NAME(TYPE value); TYPE NAME();
-		F_EACH_PROPERTY_TABLE(fx_def_property)
+		N_EACH_PROPERTY_TABLE(fx_def_property)
 		#undef fx_def_property
 	
 	private:
@@ -115,7 +115,7 @@ public:
 		FixedCubicBezier  _curve;
 		uint64_t          _time;
 		
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 		friend class KeyframeAction;
 	};
 	
@@ -212,8 +212,8 @@ private:
 	
 	Propertys     _property;
 
-	F_DEFINE_INLINE_CLASS(Inl);
+	N_DEFINE_INLINE_CLASS(Inl);
 };
 
-F_NAMESPACE_END
+N_NAMESPACE_END
 #endif

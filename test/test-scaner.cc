@@ -42,7 +42,7 @@ void testRenderScaner(SkCanvas* canvas) {
 		SkPixmap* pixmap = (SkPixmap*)ctx;
 		int x1 = (left + (left & 0x8000)) >> 16;
 		int x2 = (right + (right & 0x8000)) >> 16;
-		F_DEBUG("%f, %f, %d, %d, %d", left / 65536.0, right / 65536.0, x1, x2, y);
+		N_DEBUG("%f, %f, %d, %d, %d", left / 65536.0, right / 65536.0, x1, x2, y);
 
 		uint32_t red = 0xff0000ff;
 
@@ -77,7 +77,7 @@ void testScaner(Application* app) {
 
 void test_scaner(int argc, char **argv) {
 	Application app;
-	app.F_On(Load, [&](Event<>& evt) { testScaner(&app); });
-	app.display()->F_On(Change, [&app](Event<>& evt){ testScaner(&app); });
+	app.N_On(Load, [&](Event<>& evt) { testScaner(&app); });
+	app.display()->N_On(Change, [&app](Event<>& evt){ testScaner(&app); });
 	app.run(true);
 }

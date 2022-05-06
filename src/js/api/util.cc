@@ -209,10 +209,10 @@ class NativeUtil {
 	static void garbageCollection(FunctionCall args) {
 		JS_WORKER(args); UILock lock;
 		worker->garbageCollection();
-		#if F_MEMORY_TRACE_MARK
+		#if N_MEMORY_TRACE_MARK
 			Array<Object*> objs = Object::mark_objects();
 			Object** objs2 = &objs[0];
-			F_LOG("All unrelease heap objects count: %d", objs.size());
+			N_LOG("All unrelease heap objects count: %d", objs.size());
 		#endif
 	}
 	
@@ -245,7 +245,7 @@ class NativeUtil {
 		}
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 		RunLoop::next_tick(Cb([worker, func](CbData& e) {
-			F_ASSERT(!func.IsEmpty());
+			N_ASSERT(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			JS_CALLBACK_SCOPE();
 			func.local()->Call(worker);

@@ -41,7 +41,7 @@ namespace noug {
 	/**
 	* @class Console # util log
 	*/
-	class F_EXPORT Console {
+	class N_EXPORT Console {
 	public:
 		typedef NonObjectTraits Traits;
 		virtual ~Console() = default;
@@ -54,24 +54,24 @@ namespace noug {
 	};
 
 	namespace console {
-		F_EXPORT void log(int8_t s);
-		F_EXPORT void log(uint8_t s);
-		F_EXPORT void log(int16_t s);
-		F_EXPORT void log(uint16_t s);
-		F_EXPORT void log(int32_t s);
-		F_EXPORT void log(uint32_t s);
-		F_EXPORT void log(float s);
-		F_EXPORT void log(double);
-		F_EXPORT void log(int64_t);
-		F_EXPORT void log(uint64_t);
-		F_EXPORT void log(size_t);
-		F_EXPORT void log(bool);
-		F_EXPORT void log(cString&);
-		F_EXPORT void log(cString2&);
-		F_EXPORT void log(cChar*, ...);
-		F_EXPORT void warn(cChar*, ...);
-		F_EXPORT void error(cChar*, ...);
-		F_EXPORT void error(const Error&);
+		N_EXPORT void log(int8_t s);
+		N_EXPORT void log(uint8_t s);
+		N_EXPORT void log(int16_t s);
+		N_EXPORT void log(uint16_t s);
+		N_EXPORT void log(int32_t s);
+		N_EXPORT void log(uint32_t s);
+		N_EXPORT void log(float s);
+		N_EXPORT void log(double);
+		N_EXPORT void log(int64_t);
+		N_EXPORT void log(uint64_t);
+		N_EXPORT void log(size_t);
+		N_EXPORT void log(bool);
+		N_EXPORT void log(cString&);
+		N_EXPORT void log(cString2&);
+		N_EXPORT void log(cChar*, ...);
+		N_EXPORT void warn(cChar*, ...);
+		N_EXPORT void error(cChar*, ...);
+		N_EXPORT void error(const Error&);
 	}
 
 }

@@ -113,9 +113,9 @@ class WrapNativeApplication: public WrapObject {
 	
 	void memorywarning_handle(Event<>& evt) {
 		worker()->garbageCollection(); // 清理内存
-		#if F_MEMORY_TRACE_MARK
+		#if N_MEMORY_TRACE_MARK
 			uint32_t count = Object::mark_objects_count();
-			F_LOG("All unrelease heap objects count: %d", count);
+			N_LOG("All unrelease heap objects count: %d", count);
 		#endif
 	}
 
@@ -137,7 +137,7 @@ class WrapNativeApplication: public WrapObject {
 			Handle<Application> h = new Application();
 			h->initialize(options);
 			auto app = h.collapse();
-			app->F_On(Memorywarning,
+			app->N_On(Memorywarning,
 								 &WrapNativeApplication::memorywarning_handle,
 								 reinterpret_cast<WrapNativeApplication*>(wrap));
 			app->run_loop_detach(); // run gui loop

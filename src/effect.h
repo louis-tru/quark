@@ -43,8 +43,8 @@ namespace noug {
 	/**
 	* @class Copying, Single linked list struct
 	*/
-	class F_EXPORT Copying: public Reference {
-		F_HIDDEN_ALL_COPY(Copying);
+	class N_EXPORT Copying: public Reference {
+		N_HIDDEN_ALL_COPY(Copying);
 	public:
 		enum Type {
 			M_INVALID,
@@ -65,13 +65,13 @@ namespace noug {
 		virtual Copying* copy(Copying* to) = 0;
 		virtual bool retain() override;
 		static Copying* assign(Copying* left, Copying* right);
-		F_DEFINE_PROP(HolderMode, holder_mode); // holder mode
+		N_DEFINE_PROP(HolderMode, holder_mode); // holder mode
 	protected:
 		static Copying* assign2(Copying* left, Copying* right);
 		void onChange();
 		bool check_loop_reference(Copying* value);
 		void set_next2(Copying* value);
-		F_DEFINE_PROP(Copying*, next);
+		N_DEFINE_PROP(Copying*, next);
 	};
 
 	class Effect: public Copying {
@@ -86,7 +86,7 @@ namespace noug {
 		inline Fill* set_next(Fill* value) { Copying::set_next(value); return this; }
 	};
 
-	class F_EXPORT FillImage: public Fill, public SourceHold {
+	class N_EXPORT FillImage: public Fill, public SourceHold {
 	public:
 		struct Init {
 			String src;
@@ -98,11 +98,11 @@ namespace noug {
 		};
 		FillImage();
 		FillImage(cString& src, Init init = {});
-		F_DEFINE_PROP(FillSize, size_x);
-		F_DEFINE_PROP(FillSize, size_y);
-		F_DEFINE_PROP(FillPosition, position_x);
-		F_DEFINE_PROP(FillPosition, position_y);
-		F_DEFINE_PROP(Repeat, repeat);
+		N_DEFINE_PROP(FillSize, size_x);
+		N_DEFINE_PROP(FillSize, size_y);
+		N_DEFINE_PROP(FillPosition, position_x);
+		N_DEFINE_PROP(FillPosition, position_y);
+		N_DEFINE_PROP(Repeat, repeat);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 		static bool  compute_size(FillSize size, float host, float& out);
@@ -125,10 +125,10 @@ namespace noug {
 		uint32_t _count;
 	};
 
-	class F_EXPORT FillGradientLinear: public FillGradient {
+	class N_EXPORT FillGradientLinear: public FillGradient {
 	public:
 		FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors);
-		F_DEFINE_PROP(float, angle);
+		N_DEFINE_PROP(float, angle);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 	private:
@@ -138,19 +138,19 @@ namespace noug {
 		friend class SkiaRender;
 	};
 
-	class F_EXPORT FillGradientRadial: public FillGradient {
+	class N_EXPORT FillGradientRadial: public FillGradient {
 	public:
 		FillGradientRadial(const Array<float>& pos, const Array<Color>& colors);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 	};
 
-	class F_EXPORT BoxShadow: public Effect {
+	class N_EXPORT BoxShadow: public Effect {
 	public:
 		BoxShadow();
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
-		F_DEFINE_PROP(Shadow, value);
+		N_DEFINE_PROP(Shadow, value);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 	};

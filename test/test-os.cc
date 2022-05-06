@@ -34,20 +34,20 @@
 using namespace noug;
 
 void test_os(int argc, char **argv) {
-	F_LOG(os::info());
-	F_LOG(os::version());
-	F_LOG(os::brand());
-	F_LOG(os::subsystem());
-	F_LOG(os::languages().join(','));
-	F_LOG(os::is_wifi());
-	F_LOG(os::is_mobile());
-	F_LOG(os::network_status());
-	F_LOG(os::is_ac_power());
-	F_LOG(os::is_battery());
-	F_LOG(os::battery_level());
-	F_LOG(os::memory());
-	F_LOG(os::used_memory());
-	F_LOG(os::available_memory());
+	N_LOG(os::info());
+	N_LOG(os::version());
+	N_LOG(os::brand());
+	N_LOG(os::subsystem());
+	N_LOG(os::languages().join(','));
+	N_LOG(os::is_wifi());
+	N_LOG(os::is_mobile());
+	N_LOG(os::network_status());
+	N_LOG(os::is_ac_power());
+	N_LOG(os::is_battery());
+	N_LOG(os::battery_level());
+	N_LOG(os::memory());
+	N_LOG(os::used_memory());
+	N_LOG(os::available_memory());
 }
 
 

@@ -34,23 +34,23 @@
 #include "./macros.h"
 #include <atomic>
 
-#ifndef F_MEMORY_TRACE_MARK
-# define F_MEMORY_TRACE_MARK 0
+#ifndef N_MEMORY_TRACE_MARK
+# define N_MEMORY_TRACE_MARK 0
 #endif
 
-#if F_MEMORY_TRACE_MARK
+#if N_MEMORY_TRACE_MARK
 # include <vector>
 #endif
 
 namespace noug {
 
-#define F_DEFAULT_ALLOCATOR() \
+#define N_DEFAULT_ALLOCATOR() \
 	static void* operator new(std::size_t size) { return ::operator new(size); } \
 	static void  operator delete(void* p) { ::operator delete(p); } \
 	virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this; }
 
-#ifndef F_MIN_CAPACITY
-# define F_MIN_CAPACITY (8)
+#ifndef N_MIN_CAPACITY
+# define N_MIN_CAPACITY (8)
 #endif
 
 	// -------------------------------------------------------
@@ -88,7 +88,7 @@ namespace noug {
 	/**
 	* @class Object
 	*/
-	class F_EXPORT Object {
+	class N_EXPORT Object {
 	public:
 		typedef ObjectTraits Traits;
 		typedef Object IsObjectCheck;
@@ -103,7 +103,7 @@ namespace noug {
 			void* (*alloc)(size_t size) = nullptr,
 			void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
 		);
-#if F_MEMORY_TRACE_MARK
+#if N_MEMORY_TRACE_MARK
 		static std::vector<Object*> mark_objects();
 		static int mark_objects_count();
 		Object();
@@ -119,7 +119,7 @@ namespace noug {
 	/**
 	* @class Reference
 	*/
-	class F_EXPORT Reference: public Object {
+	class N_EXPORT Reference: public Object {
 		typedef Reference IsObjectCheck;
 	public:
 		typedef ReferenceTraits Traits;
@@ -192,10 +192,10 @@ namespace noug {
 		static constexpr bool is_reference = false;
 	};
 
-	F_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+	N_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
-	F_EXPORT bool Retain(Object* obj);
-	F_EXPORT void Release(Object* obj);
+	N_EXPORT bool Retain(Object* obj);
+	N_EXPORT void Release(Object* obj);
 
 	template<class T, typename... Args>
 	inline T* New(Args... args) {

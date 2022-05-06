@@ -72,7 +72,7 @@ namespace noug {
 	}
 
 	PathLine::PathLine(Vec2* pts, int len, PathVerb* verbs, int verbsLen) {
-		// F_ASSERT(verbs[0] == kVerb_Move);
+		// N_ASSERT(verbs[0] == kVerb_Move);
 		_pts.write((float*)pts, -1, len * 2);
 		_verbs.write((uint8_t*)verbs, -1, verbsLen);
 	}
@@ -122,7 +122,7 @@ namespace noug {
 	}
 
 	Array<Vec2> PathLine::to_polygon(int polySize) const {
-		//F_ASSERT(_verbs.length());
+		//N_ASSERT(_verbs.length());
 
 		TESStesselator* tess = tessNewTess(nullptr);
 		ClearScope clear([tess]() { tessDeleteTess(tess); });
@@ -150,7 +150,7 @@ namespace noug {
 					len++;
 					break;
 				case kVerb_Quad: { // quadratic
-					// F_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
+					// N_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
 					QuadraticBezier bezier(tmpV.back(), pts[0], pts[1]);
 					pts+=2;
 					int sample = PathLine::get_quadratic_bezier_sample(bezier);
@@ -160,7 +160,7 @@ namespace noug {
 					break;
 				}
 				case kVerb_Cubic: {// cubic
-					//  F_DEBUG("cubic_to:%f,%f|%f,%f|%f,%f",
+					//  N_DEBUG("cubic_to:%f,%f|%f,%f|%f,%f",
 					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
 					CubicBezier bezier(tmpV.back(), pts[0], pts[1], pts[2]);
 					pts+=3;
@@ -203,7 +203,7 @@ namespace noug {
 	}
 
 	Array<Vec2> PathLine::to_edge_line() const {
-		//F_ASSERT(_verbs.length());
+		//N_ASSERT(_verbs.length());
 
 		const Vec2* pts = ((const Vec2*)*_pts) - 1;
 		Array<Vec2> edges;
@@ -224,7 +224,7 @@ namespace noug {
 					isZeor = false;
 					break;
 				case kVerb_Quad: { // Quadratic
-					//  F_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
+					//  N_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
 					QuadraticBezier bezier(isZeor ? Vec2(): pts[0], pts[1], pts[2]); pts+=2;
 					int sample = PathLine::get_quadratic_bezier_sample(bezier);
 					auto points = bezier.sample_curve_points(sample);
@@ -236,7 +236,7 @@ namespace noug {
 					break;
 				}
 				case kVerb_Cubic: { // cubic
-					//  F_DEBUG("cubic_to:%f,%f|%f,%f|%f,%f",
+					//  N_DEBUG("cubic_to:%f,%f|%f,%f|%f,%f",
 					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
 					CubicBezier bezier(isZeor ? Vec2(): pts[0], pts[1], pts[2], pts[3]); pts+=3;
 					int sample = PathLine::get_cubic_bezier_sample(bezier);
@@ -281,7 +281,7 @@ namespace noug {
 	}
 
 	PathLine PathLine::normalized() const {
-		//F_ASSERT(_verbs.length());
+		//N_ASSERT(_verbs.length());
 
 		const Vec2* pts = ((const Vec2*)*_pts);
 		PathLine line;

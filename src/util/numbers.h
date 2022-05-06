@@ -62,7 +62,7 @@ namespace noug {
 	};
 
 #define define_number(N, T) \
-	typedef Number<T> N; template<> F_EXPORT const T N::limit_min; template<> const T N::limit_max
+	typedef Number<T> N; template<> N_EXPORT const T N::limit_min; template<> const T N::limit_max
 
 	define_number(Int8, int8_t); define_number(Uint8 , uint8_t);
 	define_number(Int16, int16_t); define_number(Uint16, uint16_t);

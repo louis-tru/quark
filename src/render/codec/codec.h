@@ -41,7 +41,7 @@ namespace noug {
 	/**
 	 * @class ImageCodec
 	 */
-	class F_EXPORT ImageCodec: public Object {
+	class N_EXPORT ImageCodec: public Object {
 	public:
 		
 		enum ImageFormat {
@@ -90,7 +90,7 @@ namespace noug {
 	/**
 	 * @class TGAImageCodec
 	 */
-	class F_EXPORT TGAImageCodec: public ImageCodec {
+	class N_EXPORT TGAImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
@@ -101,7 +101,7 @@ namespace noug {
 	/**
 	 * @class JPEGImageCodec
 	 */
-	class F_EXPORT JPEGImageCodec: public ImageCodec {
+	class N_EXPORT JPEGImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
@@ -111,7 +111,7 @@ namespace noug {
 	/**
 	 * @class GIFImageCodec
 	 */
-	class F_EXPORT GIFImageCodec: public ImageCodec {
+	class N_EXPORT GIFImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
@@ -121,7 +121,7 @@ namespace noug {
 	/**
 	 * @class PNGImageParser
 	 */
-	class F_EXPORT PNGImageCodec: public ImageCodec {
+	class N_EXPORT PNGImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
@@ -131,7 +131,7 @@ namespace noug {
 	/**
 	 * @class WEBPImageCodec
 	 */
-	class F_EXPORT WEBPImageCodec: public ImageCodec {
+	class N_EXPORT WEBPImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
@@ -146,12 +146,12 @@ namespace noug {
 	 * BC4/BC5/UYVY/YUY2/RGBG8888/GRGB8888/BW1BPP...
 	 * @class PVRTImageParser
 	 */
-	class F_EXPORT PVRTCImageCodec: public ImageCodec {
+	class N_EXPORT PVRTCImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
 		virtual Buffer encode(cPixel& data);
-		F_DEFINE_INLINE_CLASS(_Inl);
+		N_DEFINE_INLINE_CLASS(_Inl);
 	};
 
 }

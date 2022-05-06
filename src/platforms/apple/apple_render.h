@@ -35,14 +35,14 @@
 
 #include "../../util/macros.h"
 
-#if F_APPLE
+#if N_APPLE
 
 #include "../../render/render.h"
 #include "./apple_app.h"
 
 namespace noug {
 
-	class F_EXPORT RenderApple {
+	class N_EXPORT RenderApple {
 	public:
 		/**
 		 * @thread render

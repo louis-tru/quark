@@ -45,9 +45,9 @@
 #include "../../layout/root.h"
 #include "../../layout/flex.h"
 
-#define F_ENABLE_DRAW 1
-#define F_ENABLE_CLIP 1
-#define F_USE_PATH_DRAW 0
+#define N_ENABLE_DRAW 1
+#define N_ENABLE_CLIP 1
+#define N_USE_PATH_DRAW 0
 
 namespace noug {
 
@@ -113,7 +113,7 @@ namespace noug {
 			auto img = CastSkImage(v->source());
 			SkRect rect = {begin.x(), begin.y(), end.x(), end.y()};
 			SkSamplingOptions opts(SkFilterMode::kLinear, SkMipmapMode::kNearest);
-			if (F_ENABLE_DRAW) render->_canvas->drawImageRect(img, rect, opts, &render->_paint);
+			if (N_ENABLE_DRAW) render->_canvas->drawImageRect(img, rect, opts, &render->_paint);
 		}: nullptr);
 	}
 
@@ -152,12 +152,12 @@ namespace noug {
 
 			if (v->_visible_region && v->_opacity > 0) {
 				solveBox(v, [](SkiaRender* render, Box* box) {
-					if (F_ENABLE_DRAW)
+					if (N_ENABLE_DRAW)
 						render->_canvas->clear(box->_fill_color.to_uint32_xrgb());
 					render->solveFill(box, box->_fill, Color::from(0));
 				});
 			} else {
-				if (F_ENABLE_DRAW) _canvas->clear(SK_ColorBLACK);
+				if (N_ENABLE_DRAW) _canvas->clear(SK_ColorBLACK);
 			}
 		}
 	}
@@ -281,18 +281,18 @@ namespace noug {
 	void SkiaRender::clipRectInside(Box* box, SkClipOp op, bool AA) {
 		if (box->_is_radius) {
 			MakeRRectInside(box, &_rrect_inside);
-			if (F_ENABLE_CLIP) _canvas->clipRRect(_rrect_inside, op, AA); // SkClipOp::kIntersect
+			if (N_ENABLE_CLIP) _canvas->clipRRect(_rrect_inside, op, AA); // SkClipOp::kIntersect
 		} else {
-			if (F_ENABLE_CLIP) _canvas->clipRect(_rect_inside, op, AA); // SkClipOp::kIntersect
+			if (N_ENABLE_CLIP) _canvas->clipRect(_rect_inside, op, AA); // SkClipOp::kIntersect
 		}
 	}
 
 	void SkiaRender::clipRect(Box* box, SkClipOp op, bool AA) {
 		if (box->_is_radius) {
 			MakeRRectOuter(box, &_rrect);
-			if (F_ENABLE_CLIP) _canvas->clipRRect(_rrect, op, AA); // SkClipOp::kIntersect
+			if (N_ENABLE_CLIP) _canvas->clipRRect(_rrect, op, AA); // SkClipOp::kIntersect
 		} else {
-			if (F_ENABLE_CLIP) _canvas->clipRect(_rect, op, AA); // SkClipOp::kIntersect
+			if (N_ENABLE_CLIP) _canvas->clipRect(_rect, op, AA); // SkClipOp::kIntersect
 		}
 	}
 
@@ -300,9 +300,9 @@ namespace noug {
 		if (box->_is_radius) {
 			SkPath path;
 			MakeRPathInside(box, &path);
-			if (F_ENABLE_CLIP) _canvas->clipPath(path, op, AA); // SkClipOp::kIntersect
+			if (N_ENABLE_CLIP) _canvas->clipPath(path, op, AA); // SkClipOp::kIntersect
 		} else {
-			if (F_ENABLE_CLIP) _canvas->clipRect(_rect_inside, op, AA); // SkClipOp::kIntersect
+			if (N_ENABLE_CLIP) _canvas->clipRect(_rect_inside, op, AA); // SkClipOp::kIntersect
 		}
 	}
 
@@ -310,9 +310,9 @@ namespace noug {
 		if (box->_is_radius) {
 			_rrect_path.reset();
 			MakeRPathOuter(box, &_rrect_path);
-			if (F_ENABLE_CLIP) _canvas->clipPath(_rrect_path, op, AA); // SkClipOp::kIntersect
+			if (N_ENABLE_CLIP) _canvas->clipPath(_rrect_path, op, AA); // SkClipOp::kIntersect
 		} else {
-			if (F_ENABLE_CLIP) _canvas->clipRect(_rect, op, AA); // SkClipOp::kIntersect
+			if (N_ENABLE_CLIP) _canvas->clipRect(_rect, op, AA); // SkClipOp::kIntersect
 		}
 	}
 
@@ -329,7 +329,7 @@ namespace noug {
 			(box->_is_clip   && (box->_first))
 		) {
 			_canvas->save();
-			if (F_USE_PATH_DRAW)
+			if (N_USE_PATH_DRAW)
 				clipPathInside(box, SkClipOp::kIntersect, true);
 			else
 				clipRectInside(box, SkClipOp::kIntersect, true); // exec reverse clip
@@ -379,7 +379,7 @@ namespace noug {
 			SkPath path;
 			path.setFillType(SkPathFillType::kEvenOdd);
 			if (box->_is_radius) {
-				if (F_USE_PATH_DRAW) {
+				if (N_USE_PATH_DRAW) {
 					MakeRPathOuter(box, &path); MakeRPathInside(box, &path);
 				} else {
 					SkRRect outer, inner;
@@ -393,7 +393,7 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(top);
 			c4f.fA *= _alpha;
 			_paint.setColor4f(c4f);
-			if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
+			if (N_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 		}
 		else
 		if (box->_is_radius) { // multi bolor color
@@ -449,7 +449,7 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(border->color_top.to_uint32_argb());
 			c4f.fA *= _alpha;
 			_paint.setColor4f(c4f);
-			if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
+			if (N_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 		}
 		if (border->width_right > 0.0 && border->color_right.a()) {
 			SkPath path;
@@ -469,7 +469,7 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(border->color_right.to_uint32_argb());
 			c4f.fA *= _alpha;
 			_paint.setColor4f(c4f);
-			if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
+			if (N_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 		}
 		if (border->width_bottom > 0.0 && border->color_bottom.a()) {
 			SkPath path;
@@ -489,7 +489,7 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(border->color_bottom.to_uint32_argb());
 			c4f.fA *= _alpha;
 			_paint.setColor4f(c4f);
-			if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
+			if (N_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 		}
 		if (border->width_left > 0.0 && border->color_left.a()) {
 			SkPath path;
@@ -509,7 +509,7 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(border->color_left.to_uint32_argb());
 			c4f.fA *= _alpha;
 			_paint.setColor4f(c4f);
-			if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
+			if (N_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 		}
 	}
 
@@ -526,7 +526,7 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(border->color_top.to_uint32_argb());
 			c4f.fA *= _alpha;
 			_paint.setColor4f(c4f);
-			if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
+			if (N_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 		}
 		if (border->width_right > 0.0 && border->color_right.a()) {
 			SkPath path;
@@ -538,7 +538,7 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(border->color_right.to_uint32_argb());
 			c4f.fA *= _alpha;
 			_paint.setColor4f(c4f);
-			if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
+			if (N_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 		}
 		if (border->width_bottom > 0.0 && border->color_bottom.a()) {
 			SkPath path;
@@ -550,7 +550,7 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(border->color_bottom.to_uint32_argb());
 			c4f.fA *= _alpha;
 			_paint.setColor4f(c4f);
-			if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
+			if (N_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 		}
 		if (border->width_left > 0.0 && border->color_left.a()) {
 			SkPath path;
@@ -562,7 +562,7 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(border->color_left.to_uint32_argb());
 			c4f.fA *= _alpha;
 			_paint.setColor4f(c4f);
-			if (F_ENABLE_DRAW) _canvas->drawPath(path, _paint);
+			if (N_ENABLE_DRAW) _canvas->drawPath(path, _paint);
 		}
 	}
 
@@ -575,10 +575,10 @@ namespace noug {
 						if (clip)
 							_canvas->restore(); // cancel reverse clip
 						_canvas->save();
-						if (F_USE_PATH_DRAW) {
-							if (F_ENABLE_CLIP) clipPath(box, SkClipOp::kDifference, true);
+						if (N_USE_PATH_DRAW) {
+							if (N_ENABLE_CLIP) clipPath(box, SkClipOp::kDifference, true);
 						} else
-							if (F_ENABLE_CLIP) clipRect(box, SkClipOp::kDifference, true); // exec reverse clip
+							if (N_ENABLE_CLIP) clipRect(box, SkClipOp::kDifference, true); // exec reverse clip
 						clip = 1;
 					}
 					SkPaint paint;// = _paint;
@@ -590,12 +590,12 @@ namespace noug {
 					_canvas->save();
 					_canvas->translate(shadow.offset_x, shadow.offset_y);
 					if (box->_is_radius) {
-						if (F_USE_PATH_DRAW) {
-							if (F_ENABLE_DRAW) _canvas->drawPath(_rrect_path, paint);
+						if (N_USE_PATH_DRAW) {
+							if (N_ENABLE_DRAW) _canvas->drawPath(_rrect_path, paint);
 						} else
-							if (F_ENABLE_DRAW) _canvas->drawRRect(_rrect, paint);
+							if (N_ENABLE_DRAW) _canvas->drawRRect(_rrect, paint);
 					} else {
-						if (F_ENABLE_DRAW) _canvas->drawRect(_rect, paint);
+						if (N_ENABLE_DRAW) _canvas->drawRect(_rect, paint);
 					}
 					_canvas->restore();
 					break;
@@ -620,7 +620,7 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(color.to_uint32_argb());
 			c4f.fA *= _alpha;
 			paint.setColor4f(c4f);
-			if (F_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
+			if (N_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
 		}
 
 		while(fill) {
@@ -685,7 +685,7 @@ namespace noug {
 				sx1 = dx1 - dx + sx;          sy1 = dy1 - dy + sy;
 				SkRect src{sx*scale_x,sy*scale_y,sx1*scale_x,sy1*scale_y};
 				SkRect dest{dx+ori.x(),dy+ori.y(),dx1+ori.x(),dy1+ori.y()};
-				if (F_ENABLE_DRAW) _canvas->drawImageRect(img, src, dest, opts, &_paint, SkCanvas::kFast_SrcRectConstraint);
+				if (N_ENABLE_DRAW) _canvas->drawImageRect(img, src, dest, opts, &_paint, SkCanvas::kFast_SrcRectConstraint);
 			}
 		} else {
 			if (_repeat == Repeat::REPEAT || _repeat == Repeat::REPEAT_X) { // repeat x
@@ -713,7 +713,7 @@ namespace noug {
 						sy1 = dy1 - dy + sy;
 						SkRect src{sx*scale_x,sy*scale_y,sx1*scale_x,sy1*scale_y};
 						SkRect dest{dx+ori.x(),dy+ori.y(),dx1+ori.x(),dy1+ori.y()};
-						if (F_ENABLE_DRAW) _canvas->drawImageRect(img, src, dest, opts, &_paint, SkCanvas::kFast_SrcRectConstraint);
+						if (N_ENABLE_DRAW) _canvas->drawImageRect(img, src, dest, opts, &_paint, SkCanvas::kFast_SrcRectConstraint);
 						dy = dy1;
 					} while (dy < dym);
 					dx = dx1;
@@ -754,7 +754,7 @@ namespace noug {
 		float centerX = _rect_inside.fLeft + b;
 		float centerY = _rect_inside.fTop + a;
 		
-		//F_DEBUG("%f, %f, %d", R * F_180_RATIO_PI, gradient->angle(), quadrant);
+		//N_DEBUG("%f, %f, %d", R * N_180_RATIO_PI, gradient->angle(), quadrant);
 		
 		SkPoint pts[2] = {
 			{p0x + centerX, p0y + centerY}, {p1x + centerX, p1y + centerY}
@@ -769,7 +769,7 @@ namespace noug {
 			(pts, colors, pos, gradient->count(), SkTileMode::kDecal, 0, nullptr);
 		SkPaint paint = _paint;
 		paint.setShader(shader);
-		if (F_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
+		if (N_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
 	}
 
 	void SkiaRender::solveFillGradientRadial(Box* box, FillGradientRadial* gradient) {
@@ -785,7 +785,7 @@ namespace noug {
 			(center, r / 2, colors, pos, gradient->count(), SkTileMode::kClamp, 0, &mat);
 		SkPaint paint = _paint;
 		paint.setShader(shader);
-		if (F_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
+		if (N_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
 	}
 
 }

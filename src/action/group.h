@@ -33,12 +33,12 @@
 
 #include "./action.h"
 
-F_NAMESPACE_START
+N_NAMESPACE_START
 
 /**
 * @class GroupAction
 */
-class F_EXPORT GroupAction: public Action {
+class N_EXPORT GroupAction: public Action {
 public:
 	/**
 	* @func operator[]
@@ -95,13 +95,13 @@ protected:
 	
 	friend class Action;
 	
-	F_DEFINE_INLINE_CLASS(Inl);
+	N_DEFINE_INLINE_CLASS(Inl);
 };
 
 /**
 * @class SpawnAction
 */
-class F_EXPORT SpawnAction: public GroupAction {
+class N_EXPORT SpawnAction: public GroupAction {
 public:
 	/**
 	* @func spawn
@@ -128,7 +128,7 @@ private:
 /**
 * @class SequenceAction
 */
-class F_EXPORT SequenceAction: public GroupAction {
+class N_EXPORT SequenceAction: public GroupAction {
 public:
 	/**
 	* @func seq
@@ -158,5 +158,5 @@ private:
 
 };
 
-F_NAMESPACE_END
+N_NAMESPACE_END
 #endif

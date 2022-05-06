@@ -43,13 +43,13 @@ namespace noug {
 	/**
 	* @class TextFont
 	*/
-	class F_EXPORT TextFont: public Protocol {
+	class N_EXPORT TextFont: public Protocol {
 	public:
 		typedef FontGlyph::TexureLevel TexureLevel;
 		
 		TextFont();
 		
-		struct F_EXPORT Cell {
+		struct N_EXPORT Cell {
 			uint32_t    line_num;       // 行号
 			float       baseline;       // 基线
 			float       offset_start;   // 偏移开始
@@ -59,7 +59,7 @@ namespace noug {
 			bool    reverse;        // 反向排列
 		};
 		
-		struct F_EXPORT Data {
+		struct N_EXPORT Data {
 			Data();
 			Array<Cell> cells;
 			String2  string;
@@ -156,7 +156,7 @@ namespace noug {
 	/**
 	* @class TextLayout
 	*/
-	class F_EXPORT TextLayout: public TextFont {
+	class N_EXPORT TextLayout: public TextFont {
 	public:
 		TextLayout();
 		
@@ -166,7 +166,7 @@ namespace noug {
 		void set_text_overflow(TextOverflow value);
 		void set_text_white_space(TextWhiteSpace value);
 		
-		struct F_EXPORT Options {
+		struct N_EXPORT Options {
 			struct SpaceWrap {
 				bool  auto_wrap;        // 使用自动wrap(自动换行)
 				bool  merge_space;      // 合并空白序列
@@ -225,7 +225,7 @@ namespace noug {
 		TextOverflow    _text_overflow;     // 文本溢出
 		TextWhiteSpace  _text_white_space;  // 空白处理
 		
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

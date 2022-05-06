@@ -37,7 +37,7 @@ namespace noug {
 	* @constructor 
 	*/
 	KeyboardAdapter::KeyboardAdapter(): _host(app()) {
-		F_ASSERT(_host);
+		N_ASSERT(_host);
 		
 		keyname_ = KEYCODE_UNKNOWN;
 		keypress_ = 0;

@@ -37,7 +37,7 @@
 #include "./keyboard.h"
 
 // all ui events / NAME, FLAG
-#define F_UI_Events(F) \
+#define N_UI_Events(F) \
 	/* can bubble event */ \
 	F(Click, CLICK, UI_EVENT_FLAG_BUBBLE) \
 	F(Back, CLICK, UI_EVENT_FLAG_BUBBLE) \
@@ -123,7 +123,7 @@ namespace noug {
 	};
 
 	// event name
-	class F_EXPORT UIEventName {
+	class N_EXPORT UIEventName {
 	public:
 		inline UIEventName(cString& n, uint32_t category, uint32_t flag)
 			: name_(n), code_((uint32_t)n.hash_code()), category_(category), flag_(flag) {}
@@ -142,22 +142,22 @@ namespace noug {
 	};
 
 	// event names string => UIEventName
-	F_EXPORT extern const Dict<String, UIEventName> UIEventNames;
+	N_EXPORT extern const Dict<String, UIEventName> UIEventNames;
 
 	// define event names
-#define F_FUN(NAME, C, F) \
-	F_EXPORT extern const UIEventName UIEvent_##NAME;
-	F_UI_Events(F_FUN)
-#undef F_FUN
+#define N_FUN(NAME, C, F) \
+	N_EXPORT extern const UIEventName UIEvent_##NAME;
+	N_UI_Events(N_FUN)
+#undef N_FUN
 
 	// -----------------------------------
 
 	/**
 	* @func UIEvent gui event
 	*/
-	class F_EXPORT UIEvent: public Event<View, Object, View, int> {
+	class N_EXPORT UIEvent: public Event<View, Object, View, int> {
 	public:
-		// inline UIEvent(cSendData& data): Event<View, Object, View>() { F_UNREACHABLE(); }
+		// inline UIEvent(cSendData& data): Event<View, Object, View>() { N_UNREACHABLE(); }
 		UIEvent(View* origin);
 		inline uint64_t timestamp() const { return time_; }
 		inline bool is_default() const { return return_value & RETURN_VALUE_MASK_DEFAULT; }
@@ -171,7 +171,7 @@ namespace noug {
 	/**
 	* @class ActionEvent
 	*/
-	class F_EXPORT ActionEvent: public UIEvent {
+	class N_EXPORT ActionEvent: public UIEvent {
 	public:
 		inline ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop)
 			: UIEvent(origin), action_(action), delay_(delay), frame_(frame), loop_(loop) {}
@@ -189,7 +189,7 @@ namespace noug {
 	/**
 	* @func KeyEvent keyboard event
 	*/
-	class F_EXPORT KeyEvent: public UIEvent {
+	class N_EXPORT KeyEvent: public UIEvent {
 	public:
 		inline KeyEvent(View* origin, uint32_t keycode,
 										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
@@ -221,7 +221,7 @@ namespace noug {
 	/**
 	* @class ClickEvent click event
 	*/
-	class F_EXPORT ClickEvent: public UIEvent {
+	class N_EXPORT ClickEvent: public UIEvent {
 	public:
 		enum Type { TOUCH = 1, KEYBOARD = 2, MOUSE = 3 };
 		inline ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1)
@@ -239,7 +239,7 @@ namespace noug {
 	/**
 	* @class UIMouseEvent mouse event
 	*/
-	class F_EXPORT MouseEvent: public KeyEvent {
+	class N_EXPORT MouseEvent: public KeyEvent {
 	public:
 		inline MouseEvent(View* origin, float x, float y, uint32_t keycode,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
@@ -255,7 +255,7 @@ namespace noug {
 	/**
 	* @class HighlightedEvent status event
 	*/
-	class F_EXPORT HighlightedEvent: public UIEvent {
+	class N_EXPORT HighlightedEvent: public UIEvent {
 	public:
 		inline HighlightedEvent(View* origin, HighlightedStatus status)
 			: UIEvent(origin), _status(status) {}
@@ -267,7 +267,7 @@ namespace noug {
 	/**
 	* @class TouchEvent touch event
 	*/
-	class F_EXPORT TouchEvent: public UIEvent {
+	class N_EXPORT TouchEvent: public UIEvent {
 	public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
@@ -288,7 +288,7 @@ namespace noug {
 	/**
 	* @class FocusMoveEvent
 	*/
-	class F_EXPORT FocusMoveEvent: public UIEvent {
+	class N_EXPORT FocusMoveEvent: public UIEvent {
 	public:
 		inline FocusMoveEvent(View* origin, View* old_focus, View* new_focus)
 			: UIEvent(origin), _old_focus(old_focus), _new_focus(new_focus) {}
@@ -305,7 +305,7 @@ namespace noug {
 	/**
 	* @class ITextInput
 	*/
-	class F_EXPORT ITextInput: public Protocol {
+	class N_EXPORT ITextInput: public Protocol {
 	public:
 		virtual void input_delete(int count) = 0;
 		virtual void input_insert(cString& text) = 0;
@@ -322,7 +322,7 @@ namespace noug {
 	/**
 	* @class EventDispatch
 	*/
-	class F_EXPORT EventDispatch: public Object {
+	class N_EXPORT EventDispatch: public Object {
 	public:
 		EventDispatch(Application* app);
 		virtual ~EventDispatch();
@@ -363,7 +363,7 @@ namespace noug {
 		KeyboardAdapter*    _keyboard;
 		ITextInput*         _text_input;
 		
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

@@ -31,7 +31,7 @@
 #include "./js.h"
 #include "../app.h"
 
-#if F_UNIX
+#if N_UNIX
 # include <dlfcn.h>
 #endif
 
@@ -52,7 +52,7 @@ int __fx_noug_have_debug = 0;
 static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Char*>& noug_argv) {
 	static String argv_str;
 
-	F_ASSERT(argv_in.length(), "Bad start argument");
+	N_ASSERT(argv_in.length(), "Bad start argument");
 	__fx_noug_have_node = 1;
 	__fx_noug_have_debug = 0;
 	argv_str = argv_in[0];
@@ -95,7 +95,7 @@ static void on_process_safe_handle(Event<>& e, Object* data) {
 		typedef Callback<RunLoop::PostSyncData> Cb;
 		RunLoop::main_loop()->post_sync(Cb([&](Cb::Data& e) {
 			auto worker = Worker::worker();
-			F_DEBUG("on_process_safe_handle");
+			N_DEBUG("on_process_safe_handle");
 			if (worker) {
 				rc = IMPL::inl(worker)->TriggerExit(rc);
 			}
@@ -122,12 +122,12 @@ int Start(const Array<String>& argv_in) {
 		Object::set_object_allocator(
 			&object_allocator_alloc, &object_allocator_release, &object_allocator_retain);
 	}
-	F_ASSERT(!__fx_noug_argv);
+	N_ASSERT(!__fx_noug_argv);
 
 	Array<Char*> argv, noug_argv;
 	parseArgv(argv_in, argv, noug_argv);
 
-	Thread::F_On(SafeExit, on_process_safe_handle);
+	Thread::N_On(SafeExit, on_process_safe_handle);
 
 	__fx_noug_argv = &noug_argv;
 	int rc = 0;
@@ -135,23 +135,23 @@ int Start(const Array<String>& argv_in) {
 	Char** argv_c = const_cast<Char**>(&argv[0]);
 
 	// Mark the current main thread and check current thread
-	F_ASSERT(RunLoop::main_loop() == RunLoop::current());
+	N_ASSERT(RunLoop::main_loop() == RunLoop::current());
 
 	if (__fx_noug_have_node ) {
 		if (node::node_api) {
 			rc = node::node_api->start(argc, argv_c);
 		} else {
-			#if F_LINUX
+			#if N_LINUX
 				// try loading nxnode
 				void* handle = dlopen("libnoug-node.so", RTLD_LAZY | RTLD_GLOBAL);
 				if (!handle) {
-					F_WARN("No node library loaded, %s", dlerror());
+					N_WARN("No node library loaded, %s", dlerror());
 					goto no_node_start;
 				} else {
 					rc = node::node_api->start(argc, argv_c);
 				}
 			#else
-				F_WARN("No node library loaded");
+				N_WARN("No node library loaded");
 				goto no_node_start;
 			#endif
 		}
@@ -161,7 +161,7 @@ int Start(const Array<String>& argv_in) {
 		rc = IMPL::start(argc, argv_c);
 	}
 	__fx_noug_argv = nullptr;
-	Thread::F_Off(SafeExit, on_process_safe_handle);
+	Thread::N_Off(SafeExit, on_process_safe_handle);
 
 	return rc;
 }
@@ -180,7 +180,7 @@ int Start(int argc, Char** argv) {
 int __default_main(int argc, Char** argv) {
 	String cmd;
 
-	#if F_ANDROID
+	#if N_ANDROID
 		cmd = API::start_cmd();
 		if ( cmd.is_empty() )
 	#endif 
@@ -205,6 +205,6 @@ int __default_main(int argc, Char** argv) {
 	}
 }
 
-F_INIT_BLOCK(__default_main) {
+N_INIT_BLOCK(__default_main) {
 	__fx_default_gui_main = __default_main;
 }

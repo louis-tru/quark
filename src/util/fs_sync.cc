@@ -32,7 +32,7 @@
 #include "./fs.h"
 #include <uv.h>
 
-#if F_WIN
+#if N_WIN
 #include <io.h>
 #include <direct.h>
 #else
@@ -198,7 +198,7 @@ namespace noug {
 
 	bool fs_exists_sync(cString& path) {
 		uv_fs_t req;
-		return uv_fs_access(uv_default_loop(), &req, fs_fallback_c(path), F_OK, nullptr) == 0;
+		return uv_fs_access(uv_default_loop(), &req, fs_fallback_c(path), N_OK, nullptr) == 0;
 	}
 
 	bool fs_is_file_sync(cString& path) {
@@ -239,7 +239,7 @@ namespace noug {
 		
 		uv_fs_t req;
 		
-		if ( uv_fs_access(uv_default_loop(), &req, path2, F_OK, nullptr) == 0 ) {
+		if ( uv_fs_access(uv_default_loop(), &req, path2, N_OK, nullptr) == 0 ) {
 			return;
 		}
 		
@@ -261,7 +261,7 @@ namespace noug {
 			if (c == '/' || c == '\\') {
 				p[i] = '\0';
 				
-				if ( uv_fs_access(uv_default_loop(), &req, p, F_OK, nullptr) == 0 ) { // ok
+				if ( uv_fs_access(uv_default_loop(), &req, p, N_OK, nullptr) == 0 ) { // ok
 					p[i] = '/';
 					break;
 				}

@@ -34,8 +34,8 @@
 #include <uv.h>
 #include <pthread.h>
 
-#ifndef F_ATEXIT_WAIT_TIMEOUT
-# define F_ATEXIT_WAIT_TIMEOUT 1e6
+#ifndef N_ATEXIT_WAIT_TIMEOUT
+# define N_ATEXIT_WAIT_TIMEOUT 1e6
 #endif
 
 namespace noug {
@@ -64,7 +64,7 @@ namespace noug {
 		return *reinterpret_cast<ThreadID*>(&id);
 	}
 
-	F_DEFINE_INLINE_MEMBERS(Thread, Inl) {
+	N_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 	public:
 		#define _inl_t(self) static_cast<Thread::Inl*>(self)
 
@@ -77,7 +77,7 @@ namespace noug {
 		}
 
 		static void set_thread_specific_data(Thread* thread) {
-			F_ASSERT(!pthread_getspecific(__specific_key));
+			N_ASSERT(!pthread_getspecific(__specific_key));
 			pthread_setspecific(__specific_key, thread);
 		}
 
@@ -96,17 +96,17 @@ namespace noug {
 				Array<ThreadID> threads_id;
 				{
 					ScopeLock scope(*__threads_mutex);
-					F_DEBUG("threads count, %d", __threads->length());
+					N_DEBUG("threads count, %d", __threads->length());
 					for ( auto& i : *__threads ) {
-						F_DEBUG("atexit_exec,tag, %p, %s", i.value->id(), *i.value->_tag);
+						N_DEBUG("atexit_exec,tag, %p, %s", i.value->id(), *i.value->_tag);
 						_inl_t(i.value)->resume(true); // resume sleep status and abort
 						threads_id.push(i.value->id());
 					}
 				}
 				for ( auto& i: threads_id ) {
 					// 在这里等待这个线程的结束,这个时间默认为1秒钟
-					F_DEBUG("atexit_exec,join, %p", i);
-					wait(i, F_ATEXIT_WAIT_TIMEOUT); // wait 1s
+					N_DEBUG("atexit_exec,join, %p", i);
+					wait(i, N_ATEXIT_WAIT_TIMEOUT); // wait 1s
 				}
 			}
 		}
@@ -131,7 +131,7 @@ namespace noug {
 		uv_thread_t tid;
 		uv_thread_create(&tid, [](void* arg) {
 			auto thread = (Thread*)arg;
-#if F_ANDROID
+#if N_ANDROID
 				JNI::ScopeENV scope;
 #endif
 			Inl::set_thread_specific_data(thread);
@@ -141,14 +141,14 @@ namespace noug {
 			}
 			{
 				ScopeLock scope(*__threads_mutex);
-				F_DEBUG("Thread end ..., %s", *thread->_tag);
+				N_DEBUG("Thread end ..., %s", *thread->_tag);
 				for (auto& i : *__wait_end_listens) {
 					if (i->thread == thread) {
 						ScopeLock scope(i->mutex);
 						i->cond.notify_one();
 					}
 				}
-				F_DEBUG("Thread end  ok, %s", *thread->_tag);
+				N_DEBUG("Thread end  ok, %s", *thread->_tag);
 				__threads->erase(thread->id());
 			}
 		}, thread);
@@ -176,7 +176,7 @@ namespace noug {
 	 */
 	void Thread::pause(uint64_t timeoutUs) {
 		auto cur = current();
-		F_ASSERT(cur, "Cannot find current noug::Thread handle, use Thread::sleep()");
+		N_ASSERT(cur, "Cannot find current noug::Thread handle, use Thread::sleep()");
 
 		Lock lock(cur->_mutex);
 		if ( !cur->_abort ) {
@@ -186,7 +186,7 @@ namespace noug {
 				cur->_cond.wait(lock); // wait
 			}
 		} else {
-			F_WARN("Thread aborted, cannot wait");
+			N_WARN("Thread aborted, cannot wait");
 		}
 	}
 
@@ -211,7 +211,7 @@ namespace noug {
 
 	void Thread::wait(ThreadID id, uint64_t timeoutUs) {
 		if (id == current_id()) {
-			F_DEBUG("Thread::wait(), cannot wait self thread");
+			N_DEBUG("Thread::wait(), cannot wait self thread");
 			return;
 		}
 		Lock lock(*__threads_mutex);
@@ -223,13 +223,13 @@ namespace noug {
 				Lock l(signal.mutex);
 				lock.unlock();
 				String tag = i->value->_tag;
-				F_DEBUG("Thread::wait(), ..., %p, %s", id, *tag);
+				N_DEBUG("Thread::wait(), ..., %p, %s", id, *tag);
 				if (timeoutUs) {
 					signal.cond.wait_for(l, std::chrono::microseconds(timeoutUs)); // wait
 				} else {
 					signal.cond.wait(l); // permanent wait
 				}
-				F_DEBUG("Thread::wait(), end, %p, %s", id, *tag);
+				N_DEBUG("Thread::wait(), end, %p, %s", id, *tag);
 			}
 			lock.lock();
 			__wait_end_listens->erase(it);
@@ -253,17 +253,17 @@ namespace noug {
 	void exit(int rc, bool forceExit) {
 		static int is_exited = 0;
 		if (!is_exited++ && !__is_process_exit) {
-			F_DEBUG("Inl::exit(), 0");
+			N_DEBUG("Inl::exit(), 0");
 			Event<> ev(Int32(rc), nullptr, rc);
-			F_Trigger(SafeExit, ev);
+			N_Trigger(SafeExit, ev);
 			rc = ev.return_value;
-			F_DEBUG("Inl::exit(), 1");
+			N_DEBUG("Inl::exit(), 1");
 			Thread::Inl::on_atexit();
-			F_DEBUG("Inl::reallyExit()");
+			N_DEBUG("Inl::reallyExit()");
 			if (forceExit)
 				::exit(rc); // foece reallyExit
 		} else {
-			F_DEBUG("The program has exited");
+			N_DEBUG("The program has exited");
 		}
 	}
 
@@ -275,20 +275,20 @@ namespace noug {
 		return *__on_process_safe_exit;
 	}
 
-	F_INIT_BLOCK(thread_init_once) {
-		F_DEBUG("thread_init_once");
+	N_INIT_BLOCK(thread_init_once) {
+		N_DEBUG("thread_init_once");
 		__threads = new Dict<ThreadID, Thread*>();
 		__threads_mutex = new Mutex();
 		__wait_end_listens = new List<ListenSignal*>();
 		__on_process_safe_exit = new EventNoticer<>("SafeExit", nullptr);
 		atexit(Thread::Inl::on_atexit);
 		int err = pthread_key_create(&__specific_key, Thread::Inl::destructor);
-		F_ASSERT(err == 0);
+		N_ASSERT(err == 0);
 	}
 
 	// --------------------- RunLoop ---------------------
 
-	F_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
+	N_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
 		#define _inl(self) static_cast<RunLoop::Inl*>(self)
 	public:
 
@@ -403,7 +403,7 @@ namespace noug {
 		 */
 		uint32_t post(Cb exec, uint32_t group, uint64_t delay_us) {
 			if (_thread->is_abort()) {
-				F_DEBUG("RunLoop::post, _thread->is_abort() == true");
+				N_DEBUG("RunLoop::post, _thread->is_abort() == true");
 				return 0;
 			}
 			ScopeLock lock(_mutex);
@@ -419,7 +419,7 @@ namespace noug {
 		}
 
 		void post_sync(Callback<RunLoop::PostSyncData> cb, uint32_t group, uint64_t delay_us) {
-			F_ASSERT(!_thread->is_abort(), "RunLoop::post_sync, _thread->is_abort() == true");
+			N_ASSERT(!_thread->is_abort(), "RunLoop::post_sync, _thread->is_abort() == true");
 
 			struct Data: public RunLoop::PostSyncData {
 				virtual void complete() {
@@ -517,10 +517,10 @@ namespace noug {
 	void  RunLoop::Inl::stop_after_print_message() {
 		ScopeLock lock(_mutex);
 		for (auto& i: _keeps) {
-			F_DEBUG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
+			N_DEBUG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
 		}
 		for (auto& i: _works) {
-			F_DEBUG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
+			N_DEBUG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
 		}
 	}
 	
@@ -536,7 +536,7 @@ namespace noug {
 		, _timeout(0)
 		, _record_timeout(0)
 	{
-		F_ASSERT(!t->_loop);
+		N_ASSERT(!t->_loop);
 		// set run loop
 		t->_loop = this;
 	}
@@ -546,16 +546,16 @@ namespace noug {
 	 */
 	RunLoop::~RunLoop() {
 		ScopeLock lock(*__threads_mutex);
-		F_ASSERT(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
+		N_ASSERT(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 		
 		{
 			ScopeLock lock(_mutex);
 			for (auto& i: _keeps) {
-				F_WARN("RunLoop keep not release \"%s\"", i->_name.c_str());
+				N_WARN("RunLoop keep not release \"%s\"", i->_name.c_str());
 				i->_loop = nullptr;
 			}
 			for (auto& i: _works) {
-				F_WARN("RunLoop work not complete: \"%s\"", i->name.c_str());
+				N_WARN("RunLoop work not complete: \"%s\"", i->name.c_str());
 				delete i;
 			}
 		}
@@ -569,8 +569,8 @@ namespace noug {
 		}
 
 		// delete run loop
-		F_ASSERT(_thread->_loop);
-		F_ASSERT(_thread->_loop == this);
+		N_ASSERT(_thread->_loop);
+		N_ASSERT(_thread->_loop == this);
 		_thread->_loop = nullptr;
 	}
 
@@ -580,7 +580,7 @@ namespace noug {
 	RunLoop* RunLoop::current() {
 		auto t = Thread::current();
 		if (!t) {
-			F_WARN("Can't get thread specific data");
+			N_WARN("Can't get thread specific data");
 			return nullptr;
 		}
 		auto loop = t->loop();
@@ -610,7 +610,7 @@ namespace noug {
 		// TODO: 小心线程安全,最好先确保已调用过`current()`
 		if (!__first_loop) {
 			current();
-			F_ASSERT(__first_loop); // asset
+			N_ASSERT(__first_loop); // asset
 		}
 		return __first_loop;
 	}
@@ -653,7 +653,7 @@ namespace noug {
 	 */
 	uint32_t RunLoop::work(Cb cb, Cb done, cString& name) {
 		if (_thread->is_abort()) {
-			F_DEBUG("RunLoop::work, _thread->is_abort() == true");
+			N_DEBUG("RunLoop::work, _thread->is_abort() == true");
 			return 0;
 		}
 
@@ -668,7 +668,7 @@ namespace noug {
 		post(Cb([work, this](CbData& ev) {
 			int r = uv_queue_work(_uv_loop, &work->uv_req,
 														Work::uv_work_cb, Work::uv_after_work_cb);
-			F_ASSERT(!r);
+			N_ASSERT(!r);
 			work->it = _works.push_back(work);
 		}));
 
@@ -684,7 +684,7 @@ namespace noug {
 			for (auto& i : _works) {
 				if (i->id == id) {
 					int r = uv_cancel((uv_req_t*)&i->uv_req);
-					F_ASSERT(!r);
+					N_ASSERT(!r);
 					break;
 				}
 			}
@@ -720,11 +720,11 @@ namespace noug {
 	 */
 	void RunLoop::run(uint64_t timeout) {
 		if (is_exited()) {
-			F_DEBUG("cannot run RunLoop, __is_process_exit != 0");
+			N_DEBUG("cannot run RunLoop, __is_process_exit != 0");
 			return;
 		}
 		if (_thread->is_abort()) {
-			F_DEBUG("cannot run RunLoop, _thread->is_abort() == true");
+			N_DEBUG("cannot run RunLoop, _thread->is_abort() == true");
 			return;
 		}
 
@@ -732,9 +732,9 @@ namespace noug {
 		uv_timer_t uv_timer;
 		{ //
 			ScopeLock lock(_mutex);
-			F_ASSERT(!_uv_async, "It is running and cannot be called repeatedly");
-			F_ASSERT(Thread::current_id() == _tid, "Must run on the target thread");
-			_timeout = F_MAX(timeout, 0);
+			N_ASSERT(!_uv_async, "It is running and cannot be called repeatedly");
+			N_ASSERT(Thread::current_id() == _tid, "Must run on the target thread");
+			_timeout = N_MAX(timeout, 0);
 			_record_timeout = 0;
 			_uv_async = &uv_async; uv_async.data = this;
 			_uv_timer = &uv_timer; uv_timer.data = this;
@@ -796,7 +796,7 @@ namespace noug {
 			if ( _de_clean ) {
 				_inl(_loop)->cancel_group_non_lock(_group);
 			}
-			F_ASSERT(_loop->_keeps.length());
+			N_ASSERT(_loop->_keeps.length());
 
 			_loop->_keeps.erase(_id); // 减少一个引用计数
 
@@ -804,7 +804,7 @@ namespace noug {
 				_inl(_loop)->activate(); // 激活循环状态,不再等待
 			}
 		} else {
-			F_DEBUG("Keep already invalid \"%s\", RunLoop already stop and release", *_name);
+			N_DEBUG("Keep already invalid \"%s\", RunLoop already stop and release", *_name);
 		}
 	}
 

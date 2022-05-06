@@ -47,7 +47,7 @@ JS_BEGIN
 /**
  * @class WrapViewBase
  */
-class F_EXPORT WrapViewBase: public WrapObject {
+class N_EXPORT WrapViewBase: public WrapObject {
 	public:
 
 	/**

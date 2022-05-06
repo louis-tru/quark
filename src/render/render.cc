@@ -39,7 +39,7 @@ namespace noug {
 
 	static inline uint32_t massSample(uint32_t n) {
 		n = integerExp(n);
-		return F_MIN(n, 8);
+		return N_MIN(n, 8);
 	}
 
 	Render::Render(Application* host, const Options& opts)
@@ -60,7 +60,7 @@ namespace noug {
 		return {
 			.msaaSampleCnt = msaa.is_uint32() ? msaa.to_int(): 0,
 			.stencilBits = stencil.is_uint32() ?
-				(int)integerExp(F_MIN(F_MAX(stencil.to_int(), 8), 16)): 8,
+				(int)integerExp(N_MIN(N_MAX(stencil.to_int(), 8), 16)): 8,
 		};
 	}
 

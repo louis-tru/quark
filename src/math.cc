@@ -32,13 +32,13 @@
 #include <math.h>
 #include "./math.h"
 
-#define F_ARRAY_NO_IMPL 1
+#define N_ARRAY_NO_IMPL 1
 
 #include "./util/array.cc"
 
 namespace noug {
 
-	F_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Vec2);
+	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Vec2);
 
 	template<>
 	float MVec2<float>::distance(MVec2<float> point) const {
@@ -95,7 +95,7 @@ namespace noug {
 
 	Mat::Mat(Vec2 translate, Vec2 scale, float rotate_z, Vec2 skew) {
 		if (rotate_z) {
-			rotate_z  *= F_PI_RATIO_180; //
+			rotate_z  *= N_PI_RATIO_180; //
 			float cz  = cosf(rotate_z);
 			float sz  = sinf(rotate_z);
 			val[0] = cz * scale[0];

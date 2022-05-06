@@ -35,7 +35,7 @@
 
 namespace noug {
 
-	class F_EXPORT TextRows {
+	class N_EXPORT TextRows {
 	public:
 		struct Row {
 			Vec2 offset_start, offset_end;
@@ -49,13 +49,13 @@ namespace noug {
 		inline float max_height() const { return _last->offset_end.y(); }
 		inline Row& operator[](uint32_t idx) { return _rows[idx]; }
 		// defines props
-		F_DEFINE_PROP(bool, is_clip);
-		F_DEFINE_PROP_READ(bool, wrap_x);
-		F_DEFINE_PROP_READ(bool, wrap_y);
-		F_DEFINE_PROP_READ(Vec2, size);
-		F_DEFINE_PROP_READ(TextAlign, text_align);
-		F_DEFINE_PROP_READ(Row*, last);
-		F_DEFINE_PROP(float, max_width);
+		N_DEFINE_PROP(bool, is_clip);
+		N_DEFINE_PROP_READ(bool, wrap_x);
+		N_DEFINE_PROP_READ(bool, wrap_y);
+		N_DEFINE_PROP_READ(Vec2, size);
+		N_DEFINE_PROP_READ(TextAlign, text_align);
+		N_DEFINE_PROP_READ(Row*, last);
+		N_DEFINE_PROP(float, max_width);
 	private:
 		void clear();
 		Array<Row>   _rows;

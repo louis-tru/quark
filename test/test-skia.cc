@@ -50,14 +50,14 @@ void draw_skia(SkCanvas* canvas) {
 	Array<uint8_t> verbs(oval.countVerbs());
 	oval.getVerbs(&verbs[0], verbs.length());
 	
-	F_DEBUG("");
+	N_DEBUG("");
 	for (int i = 0; i < oval.countPoints(); i++) {
-		F_DEBUG("Point: %f, %f", oval.getPoint(i).fX, oval.getPoint(i).fY);
+		N_DEBUG("Point: %f, %f", oval.getPoint(i).fX, oval.getPoint(i).fY);
 	}
 	for (int i = 0; i < oval.countVerbs(); i++) {
-		F_DEBUG("Verb: %d", verbs[i]);
+		N_DEBUG("Verb: %d", verbs[i]);
 	}
-	F_DEBUG("");
+	N_DEBUG("");
 	
 	// drawPath
 	canvas->translate(10, 10);
@@ -247,9 +247,9 @@ void test_skia(int argc, char **argv) {
 		}));
 	};
 
-	app.F_On(Load, [&](Event<>& evt) { post(&app); });
-	//app.display()->F_On(Orientation, [&app](Event<>& evt){ testSkia(&app); });
-	app.display()->F_On(Change, [&](Event<>& evt){ post(&app); });
+	app.N_On(Load, [&](Event<>& evt) { post(&app); });
+	//app.display()->N_On(Orientation, [&app](Event<>& evt){ testSkia(&app); });
+	app.display()->N_On(Change, [&](Event<>& evt){ post(&app); });
 
 	app.run(true);
 }

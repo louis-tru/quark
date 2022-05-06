@@ -30,7 +30,7 @@
 
 #include "./action.inl"
 
-F_NAMESPACE_START
+N_NAMESPACE_START
 
 void update_spawn_action_duration(SpawnAction* act) {
 	_inl_group_action(act)->update_spawn_action_duration();
@@ -72,7 +72,7 @@ void GroupAction::Inl::update_spawn_action_duration() {
 	int64_t new_duration = 0;
 	
 	for ( auto& i : _actions ) {
-		new_duration = F_MAX(i->_full_duration, new_duration);
+		new_duration = N_MAX(i->_full_duration, new_duration);
 	}
 	new_duration += _delay;
 	
@@ -106,7 +106,7 @@ Action* GroupAction::operator[](uint32_t index) {
  * @func append
  */
 void GroupAction::append(Action* action) throw(Error) {
-	F_ASSERT(action);
+	N_ASSERT(action);
 	_inl_action(action)->set_parent(this);
 	_actions.push_back(action);
 	_actions_index.clear();
@@ -116,7 +116,7 @@ void GroupAction::append(Action* action) throw(Error) {
 * @func insert
 */
 void GroupAction::insert(uint32_t index, Action* action) throw(Error) {
-	F_ASSERT(action);
+	N_ASSERT(action);
 	
 	if (index < _actions_index.length()) {
 		_actions.insert(_actions_index[index], action);
@@ -328,7 +328,7 @@ uint64_t SpawnAction::advance(uint64_t time_span, bool restart, Action* root) {
 	
 	for ( auto& i : _actions ) {
 		uint64_t time = i->advance(time_span, restart, root);
-		surplus_time = F_MIN(surplus_time, time);
+		surplus_time = N_MIN(surplus_time, time);
 	}
 	
 	if ( surplus_time ) {
@@ -441,4 +441,4 @@ uint64_t SequenceAction::advance(uint64_t time_span, bool restart, Action* root)
 	return time_span / _speed;
 }
 
-F_NAMESPACE_END
+N_NAMESPACE_END

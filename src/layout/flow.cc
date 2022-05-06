@@ -70,13 +70,13 @@ namespace noug {
 					if (is_reverse)
 						_items.reverse();
 					lines.push({ _total_main, _max_cross, std::move(_items) });
-					max_main = F_MAX(max_main, _total_main);
+					max_main = N_MAX(max_main, _total_main);
 					total_cross += _max_cross;
 					_total_main = is_horizontal ? size.x(): size.y();
 					_max_cross = is_horizontal ? size.y(): size.x();
 				} else {
 					_total_main = main;
-					_max_cross = F_MAX(_max_cross, size.y());
+					_max_cross = N_MAX(_max_cross, size.y());
 				}
 				_items.push({ size, v });
 				v = v->next();
@@ -86,7 +86,7 @@ namespace noug {
 				if (is_reverse)
 					_items.reverse();
 				lines.push({ _total_main, _max_cross, std::move(_items) });
-				max_main = F_MAX(max_main, _total_main);
+				max_main = N_MAX(max_main, _total_main);
 				total_cross += _max_cross;
 			}
 

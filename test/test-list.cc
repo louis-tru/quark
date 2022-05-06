@@ -46,25 +46,25 @@ void test_list(int argc, char **argv) {
 	
 	Array<String> ls = str.split(",");
 	
-	F_LOG("%d", ls.length());
+	N_LOG("%d", ls.length());
 	
 	ls.push("ABCD");
 	ls.push("ABCD1");
 	ls.pop();
 	
-	F_LOG("%d", ls.length());
+	N_LOG("%d", ls.length());
 	
-	F_LOG(ls[0]);
+	N_LOG(ls[0]);
 	
-	F_LOG(ls.join("-"));
+	N_LOG(ls.join("-"));
 	
 	String str2(str);
 	
-	F_LOG(str2.to_string());
-	F_LOG(str2.copy().collapse());
+	N_LOG(str2.to_string());
+	N_LOG(str2.copy().collapse());
 	
 	for (auto i = ls.begin(), end = ls.end(); i != end; i++) {
-		F_LOG(*i);
+		N_LOG(*i);
 	}
 	
 	Array<int> ls2;

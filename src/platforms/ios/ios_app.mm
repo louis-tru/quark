@@ -119,7 +119,7 @@ static NSString* appDelegateName = @"";
 			if (ori != appDelegate.current_orientation) {
 				appDelegate.current_orientation = ori;
 				appDelegate.app->loop()->post(Cb([](CbData& e) {
-					appDelegate.app->display()->F_Trigger(Orientation);
+					appDelegate.app->display()->N_Trigger(Orientation);
 				}));
 			}
 		} completion:nil];
@@ -171,7 +171,7 @@ static NSString* appDelegateName = @"";
 	}
 
 	-(void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		// F_DEBUG("touchesMoved, count: %d", touches.count);
+		// N_DEBUG("touchesMoved, count: %d", touches.count);
 		_inl_app(self.appSelf.app)->dispatch()->onTouchmove( [self toUITouchs:touches] );
 	}
 
@@ -214,9 +214,9 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		F_ASSERT(!appDelegate);
+		N_ASSERT(!appDelegate);
 		appDelegate = self;
-		F_ASSERT(Application::shared());
+		N_ASSERT(Application::shared());
 		_app = Application::shared(); 
 
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
@@ -457,7 +457,7 @@ void Display::keep_screen(bool keep) {
  */
 float Display::status_bar_height() {
 	CGRect rect = appDelegate.host.statusBarFrame;
-	return F_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale;
+	return N_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale;
 }
 
 /**
@@ -491,7 +491,7 @@ void Display::set_visible_status_bar(bool visible) {
 
 		// TODO 绘图表面尺寸没有改变? 表示只是单纯状态栏改变? 这个改变也当成change通知给用户
 		_host->loop()->post(Cb([this](CbData& e) {
-			F_Trigger(Change);
+			N_Trigger(Change);
 		}));
 	});
 }
@@ -562,7 +562,7 @@ void Display::set_orientation(Orientation orientation) {
 	}
 }
 
-extern "C" F_EXPORT int main(int argc, Char* argv[]) {
+extern "C" N_EXPORT int main(int argc, Char* argv[]) {
 	/**************************************************/
 	/**************************************************/
 	/*************** Start UI Application ************/

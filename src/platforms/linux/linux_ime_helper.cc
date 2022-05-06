@@ -49,22 +49,22 @@ namespace noug {
 
 			Char *locale = setlocale(LC_CTYPE, "");
 			if (locale == NULL) {
-				F_ERR("Can't set locale");
+				N_ERR("Can't set locale");
 				return nullptr;
 			}
-			F_DEBUG("locale: %s", locale);
+			N_DEBUG("locale: %s", locale);
 
 			if (!XSupportsLocale()) {
-				F_ERR("X does not support locale");
+				N_ERR("X does not support locale");
 				return nullptr;
 			}
 
 			Char *modifiers = XSetLocaleModifiers("");
 			if (modifiers == NULL) {
-				F_ERR("Can't set locale modifiers");
+				N_ERR("Can't set locale modifiers");
 				return nullptr;
 			}
-			F_DEBUG("modifiers: %s", modifiers);
+			N_DEBUG("modifiers: %s", modifiers);
 
 			return new Inl(app, dpy, win, inputStyle);
 		}
@@ -87,7 +87,7 @@ namespace noug {
 			_fontset = XCreateFontSet(_display, "*,*", 
 				&missing_list, &missing_count, &default_string);
 			if (_fontset == NULL) {
-				F_ERR("Can't create font set: %s", "*,*");
+				N_ERR("Can't create font set: %s", "*,*");
 			}
 		}
 
@@ -99,7 +99,7 @@ namespace noug {
 		}
 
 		void open() {
-			F_DEBUG("IME open");
+			N_DEBUG("IME open");
 			if (!_has_open) {
 				_has_open = true;
 				registerInstantiateCallback();
@@ -107,14 +107,14 @@ namespace noug {
 		}
 
 		void close() {
-			F_DEBUG("IME close");
+			N_DEBUG("IME close");
 			_has_open = false;
 			destroyIC();
 			closeIM();
 		}
 
 		void clear() {
-			F_DEBUG("IME clear");
+			N_DEBUG("IME clear");
 			if (_has_open && _ic) {
 				if (!_preedit_string.is_empty()) {
 					_preedit_string = String();
@@ -139,7 +139,7 @@ namespace noug {
 		}
 
 		void set_spot_location(Vec2 location) {
-			F_DEBUG("set_spot_location, x=%f,y=%f", location[0], location[1]);
+			N_DEBUG("set_spot_location, x=%f,y=%f", location[0], location[1]);
 			if (location[0] != 0 || location[1] != 0) {
 				Vec2 scale = _app->display_port()->scale_value();
 				_spot_location = {
@@ -165,7 +165,7 @@ namespace noug {
 				Xutf8LookupString(_ic, event, buf, 256, &keysym, &status);
 			}
 
-			F_DEBUG("onKeyPress %lu\n", keysym);
+			N_DEBUG("onKeyPress %lu\n", keysym);
 
 			if (status == XLookupChars || 
 				status == XLookupKeySym || status == XLookupBoth) {
@@ -238,7 +238,7 @@ namespace noug {
 		{
 			if (client_data == NULL)
 				return;
-			F_DEBUG("XIM is available now");
+			N_DEBUG("XIM is available now");
 			auto self = reinterpret_cast<Inl*>(client_data);
 			self->openIM();
 		}
@@ -246,7 +246,7 @@ namespace noug {
 		// IM destroy callbacks
 		static void IMDestroyCallback(XIM im, XPointer client_data, XPointer data)
 		{
-			F_DEBUG("xim is destroyed");
+			N_DEBUG("xim is destroyed");
 
 			if (client_data == NULL)
 				return;
@@ -263,12 +263,12 @@ namespace noug {
 		// on the spot callbacks
 		static void preeditStartCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			F_DEBUG("preedit start");
+			N_DEBUG("preedit start");
 		}
 
 		static void preeditDoneCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			F_DEBUG("preedit done");
+			N_DEBUG("preedit done");
 
 			if (user_data == NULL)
 				return;
@@ -323,44 +323,44 @@ namespace noug {
 				case XIMDontChange:
 					break;
 				default:
-					F_DEBUG("preedit caret: %d", caret_data->direction);
+					N_DEBUG("preedit caret: %d", caret_data->direction);
 					break;
 			}
 		}
 
 		static void statusStartCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			F_DEBUG("status start");
+			N_DEBUG("status start");
 		}
 
 		static void statusDoneCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			F_DEBUG("status done");
+			N_DEBUG("status done");
 		}
 
 		static void statusDrawCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			F_DEBUG("status draw");
+			N_DEBUG("status draw");
 		}
 
 		// string conversion callback
 		static void stringConversionCallback(XIM xim, XPointer client_data, XPointer data)
 		{
-			F_DEBUG("string conversion");
+			N_DEBUG("string conversion");
 		}
 
 		// for XIM interaction
 		void openIM()
 		{
-			F_ASSERT(!_im);
+			N_ASSERT(!_im);
 
 			_im = XOpenIM(_display, NULL, NULL, NULL);
 			if (_im  == NULL) {
-				F_DEBUG("Can't open XIM");
+				N_DEBUG("Can't open XIM");
 				return;
 			}
 
-			F_DEBUG("XIM is opened");
+			N_DEBUG("XIM is opened");
 			XUnregisterIMInstantiateCallback(_display, NULL, NULL, NULL,
 							IMInstantiateCallback, (XPointer)this);
 
@@ -379,7 +379,7 @@ namespace noug {
 			
 			if (ic_values != NULL) {
 				for (int i = 0; i < ic_values->count_values; i++) {
-					F_DEBUG("%s", ic_values->supported_values[i]);
+					N_DEBUG("%s", ic_values->supported_values[i]);
 					if (strcmp(ic_values->supported_values[i],
 								XNStringConversionCallback) == 0) {
 						useStringConversion = true;
@@ -399,7 +399,7 @@ namespace noug {
 			XCloseIM(_im);
 			_im = NULL;
 
-			F_DEBUG("XIM is closed");
+			N_DEBUG("XIM is closed");
 		}
 
 		void createIC(bool useStringConversion)
@@ -407,7 +407,7 @@ namespace noug {
 			if (_im == NULL)
 				return;
 			
-			F_ASSERT(!_ic);
+			N_ASSERT(!_ic);
 
 			if ((_input_style & XIMPreeditPosition) && _fontset) {
 				XRectangle area = { 0,0,1,1 };
@@ -475,9 +475,9 @@ namespace noug {
 					strconv.client_data = (XPointer)this;
 					XSetICValues(_ic, XNStringConversionCallback, &strconv, NULL);
 				}
-				F_DEBUG("XIC is created");
+				N_DEBUG("XIC is created");
 			} else {
-				F_DEBUG("cannot create XIC");
+				N_DEBUG("cannot create XIC");
 			}
 		}
 
@@ -495,7 +495,7 @@ namespace noug {
 
 			XDestroyIC(_ic);
 			_ic = NULL;
-			F_DEBUG("XIC is destroyed");
+			N_DEBUG("XIC is destroyed");
 		}
 
 		static String wChar_t_to_string(const wChar_t *str)
@@ -520,13 +520,13 @@ namespace noug {
 
 		void insert(cChar* str)
 		{
-			F_DEBUG("insert, %s", str);
+			N_DEBUG("insert, %s", str);
 			_app->dispatch()->dispatch_ime_insert(str);
 		}
 
 		void setPreeditString(cChar* str, int pos, int length)
 		{
-			F_DEBUG("setPreeditString, %s, %d, %d", str, pos, length);
+			N_DEBUG("setPreeditString, %s, %d, %d", str, pos, length);
 			if (str == NULL) {
 				_app->dispatch()->dispatch_ime_unmark(String());
 				_preedit_string = String();

@@ -39,7 +39,7 @@ namespace noug {
 	// -------------------- I m a g e . S o u r c e --------------------
 
 	ImageSource::ImageSource(cString& uri)
-		: F_Init_Event(State)
+		: N_Init_Event(State)
 		, _uri(fs_reader()->format(uri))
 		, _state(STATE_NONE)
 		, _load_id(0), _size(0), _used(0)
@@ -62,7 +62,7 @@ namespace noug {
 		
 		if (_state & STATE_LOAD_COMPLETE) {
 			RunLoop::first()->post(Cb([this](CbData& e){
-				F_Trigger(State, _state);
+				N_Trigger(State, _state);
 				_Decode();
 			}, this));
 		} else { // load and decode
@@ -75,7 +75,7 @@ namespace noug {
 
 	SourceHold::~SourceHold() {
 		if (_source) {
-			_source->F_Off(State, &SourceHold::handleSourceState, this);
+			_source->N_Off(State, &SourceHold::handleSourceState, this);
 		}
 	}
 
@@ -94,10 +94,10 @@ namespace noug {
 	void SourceHold::set_source(ImageSource* source) {
 		if (_source.value() != source) {
 			if (_source) {
-				_source->F_Off(State, &SourceHold::handleSourceState, this);
+				_source->N_Off(State, &SourceHold::handleSourceState, this);
 			}
 			if (source) {
-				source->F_On(State, &SourceHold::handleSourceState, this);
+				source->N_On(State, &SourceHold::handleSourceState, this);
 			}
 			_source = Handle<ImageSource>(source);
 		}
@@ -110,7 +110,7 @@ namespace noug {
 	void SourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
 			auto _ = app();
-			// F_ASSERT(_, "Application needs to be initialized first");
+			// N_ASSERT(_, "Application needs to be initialized first");
 			if (_) {
 				_->pre_render()->mark_none();
 			}
@@ -119,7 +119,7 @@ namespace noug {
 
 	// -------------------- I m a g e P o o l --------------------
 
-	F_DEFINE_INLINE_MEMBERS(ImagePool, Inl) {
+	N_DEFINE_INLINE_MEMBERS(ImagePool, Inl) {
 	public:
 		#define _inl_pool(self) static_cast<ImagePool::Inl*>(self)
 
@@ -143,7 +143,7 @@ namespace noug {
 
 	ImagePool::~ImagePool() {
 		for (auto& it: _sources) {
-			it.value.source->F_Off(State, &Inl::source_state_handle, _inl_pool(this));
+			it.value.source->N_Off(State, &Inl::source_state_handle, _inl_pool(this));
 		}
 	}
 
@@ -159,7 +159,7 @@ namespace noug {
 		}
 
 		ImageSource* source = new ImageSource(_uri);
-		source->F_On(State, &Inl::source_state_handle, _inl_pool(this));
+		source->N_On(State, &Inl::source_state_handle, _inl_pool(this));
 		_sources.set(id, { source->size(), source });
 		_total_data_size += source->size();
 
@@ -171,7 +171,7 @@ namespace noug {
 		String _uri = fs_reader()->format(uri);
 		auto it = _sources.find(_uri.hash_code());
 		if (it != _sources.end()) {
-			it->value.source->F_Off(State, &Inl::source_state_handle, _inl_pool(this));
+			it->value.source->N_Off(State, &Inl::source_state_handle, _inl_pool(this));
 			_sources.erase(it);
 			_total_data_size -= it->value.size;
 		}

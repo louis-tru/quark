@@ -37,7 +37,7 @@
 
 namespace noug {
 
-	class F_EXPORT PathLine: public Object {
+	class N_EXPORT PathLine: public Object {
 	public:
 		enum PathVerb: uint8_t {
 			kVerb_Move = 0, // move

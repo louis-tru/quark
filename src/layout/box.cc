@@ -423,7 +423,7 @@ namespace noug {
 
 	void Box::set_border_width_top(float val) {
 		alloc_border();
-		val = F_MAX(0, val);
+		val = N_MAX(0, val);
 		if (_border->width_top != val) {
 			_border->width_top = val;
 			mark_layout_size(kLayout_Size_Height);
@@ -432,7 +432,7 @@ namespace noug {
 
 	void Box::set_border_width_right(float val) {
 		alloc_border();
-		val = F_MAX(0, val);
+		val = N_MAX(0, val);
 		if (_border->width_right != val) {
 			_border->width_right = val;
 			mark_layout_size(kLayout_Size_Width);
@@ -441,7 +441,7 @@ namespace noug {
 
 	void Box::set_border_width_bottom(float val) {
 		alloc_border();
-		val = F_MAX(0, val);
+		val = N_MAX(0, val);
 		if (_border->width_bottom != val) {
 			_border->width_bottom = val;
 			mark_layout_size(kLayout_Size_Height);
@@ -450,7 +450,7 @@ namespace noug {
 
 	void Box::set_border_width_left(float val) {
 		alloc_border();
-		val = F_MAX(0, val);
+		val = N_MAX(0, val);
 		if (_border->width_left != val) {
 			_border->width_left = val;
 			mark_layout_size(kLayout_Size_Width);
@@ -861,8 +861,8 @@ namespace noug {
 		DisplayRegion clip = display()->clip_region();
 		Region re = screen_region_from_convex_quadrilateral(vertex);
 		
-		if (F_MAX( clip.y2, re.end.y() ) - F_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
-				F_MAX( clip.x2, re.end.x() ) - F_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width
+		if (N_MAX( clip.y2, re.end.y() ) - N_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
+				N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width
 		) {
 			return true;
 		}

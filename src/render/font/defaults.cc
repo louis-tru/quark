@@ -40,11 +40,11 @@ namespace noug {
 
 	#define fx_font_family_list ".font_family_list"
 
-	#if F_IOS || F_OSX
+	#if N_IOS || N_OSX
 		static String system_fonts_dir = "/System/Library/Fonts";
-	#elif F_ANDROID
+	#elif N_ANDROID
 		static String system_fonts_dir = "/system/fonts";
-	#elif F_LINUX
+	#elif N_LINUX
 		static String system_fonts_dir = "/usr/share/fonts";
 	#endif
 	typedef Array<FontPool::SimpleFontFamily> SimpleFontList;
@@ -56,7 +56,7 @@ namespace noug {
 	* @func find_font_family_by_path(path)
 	*/
 	static String find_font_family_by_path(cString& path) {
-		F_ASSERT(system_font_family_list);
+		N_ASSERT(system_font_family_list);
 		for ( auto i : *system_font_family_list ) {
 			if (i.path == path) {
 				return i.family;
@@ -69,11 +69,11 @@ namespace noug {
 	* @func parse_system_font_family_name()
 	*/
 	static void parse_system_font_family_name() {
-		F_ASSERT(system_font_family_list);
+		N_ASSERT(system_font_family_list);
 
 		XMLDocument* config = nullptr;
 
-		#if F_ANDROID
+		#if N_ANDROID
 			config = new XMLDocument();
 
 			if (config->LoadFile("/system/etc/fonts.xml") == XML_NO_ERROR) {
@@ -96,9 +96,9 @@ namespace noug {
 
 						#if defined(DEBUG) && 0
 							auto att = first->FirstAttribute();
-							F_LOG("%s, Attributes:", first->Name());
+							N_LOG("%s, Attributes:", first->Name());
 							while ( att ) {
-								F_LOG("     %s:%s", att->Name(), att->Value());
+								N_LOG("     %s:%s", att->Name(), att->Value());
 								att = att->Next();
 							}
 						#endif
@@ -119,8 +119,8 @@ namespace noug {
 					first = first->NextSiblingElement();
 				}
 			}
-		#elif F_LINUX 
-		#endif // F_ANDROID End
+		#elif N_LINUX 
+		#endif // N_ANDROID End
 
 		delete config;
 	}
@@ -177,7 +177,7 @@ namespace noug {
 				item["family"].to_string(), // family
 			};
 			
-			F_DEBUG("family:%s, %s", *item["family"].to_string(), *item["path"].to_string());
+			N_DEBUG("family:%s, %s", *item["family"].to_string(), *item["path"].to_string());
 			
 			for ( int j = 0, o = fonts.length(); j < o; j++ ) {
 				JSON& font = fonts[j];
@@ -193,7 +193,7 @@ namespace noug {
 					font[8].to_int(),     // underline_thickness
 				});
 				
-				// F_LOG("       %s", *JSON::stringify(font));
+				// N_LOG("       %s", *JSON::stringify(font));
 			}
 			system_font_family_list->push( std::move(sffd) );
 		}
@@ -216,7 +216,7 @@ namespace noug {
 			second.push(system_second_font_family_name);
 		}
 			
-		#if F_IOS || F_OSX
+		#if N_IOS || N_OSX
 			first.push("Helvetica Neue");
 			first.push("Helvetica");
 			first.push("Thonburi");
@@ -224,7 +224,7 @@ namespace noug {
 			second.push("HeitiFallback");
 			second.push("Heiti TC");
 			second.push(".HeitiFallback");
-		#elif F_ANDROID
+		#elif N_ANDROID
 			first.push("Roboto");
 			first.push("Droid Sans");
 			first.push("Droid Sans Mono");
@@ -232,7 +232,7 @@ namespace noug {
 			second.push("Noto Sans CJK JP");
 			second.push("Noto Sans SC");
 			third.push("Droid Sans Fallback");
-		#elif F_LINUX
+		#elif N_LINUX
 			first.push("Roboto");
 			first.push("DejaVu Sans");
 			first.push("DejaVu Sans Mono");

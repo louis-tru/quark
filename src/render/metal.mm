@@ -76,7 +76,7 @@ namespace noug {
 		if (!_device) {
 			_device = CFSafeRetain(MTLCreateSystemDefaultDevice());
 			_queue = CFSafeRetain([_device newCommandQueue]);
-			F_ASSERT(_device);
+			N_ASSERT(_device);
 
 			if (_opts.msaaSampleCnt > 1) {
 				while (![_device supportsTextureSampleCount:_opts.msaaSampleCnt])
@@ -119,7 +119,7 @@ namespace noug {
 	}
 
 	void MetalRender::begin() {
-		F_ASSERT(!_drawable);
+		N_ASSERT(!_drawable);
 		id<CAMetalDrawable> drawable;
 
 		if (@available(iOS 13.0, *)) {
@@ -129,7 +129,7 @@ namespace noug {
 		}
 
 		_drawable = CFSafeRetain(drawable);
-		// F_DEBUG("CFGetRetainCount, %d", CFGetRetainCount(_drawableHandle));
+		// N_DEBUG("CFGetRetainCount, %d", CFGetRetainCount(_drawableHandle));
 
 		onBegin();
 	}
@@ -141,7 +141,7 @@ namespace noug {
 		//test(_drawable, cmd);
 
 		//id<MTLTexture> mttex = ((__bridge id<CAMetalDrawable>)_drawable).texture;
-		//F_DEBUG("sampleCount, %d, %d", mttex.sampleCount, _opts.msaaSampleCnt);
+		//N_DEBUG("sampleCount, %d, %d", mttex.sampleCount, _opts.msaaSampleCnt);
 
 		[cmd presentDrawable:_drawable];
 		[cmd commit];

@@ -30,7 +30,7 @@
 
 #include "./_css.h"
 
-F_NAMESPACE_START
+N_NAMESPACE_START
 
 void StyleSheetsClass::Inl::update_classs(Array<String>&& classs) {
 	_classs = std::move(classs);
@@ -54,7 +54,7 @@ void StyleSheetsClass::Inl::apply(
 	_child_style_sheets.clear();
 	_is_support_pseudo = false;
 	
-	F_DEBUG("StyleSheetsClass apply, query group count: %d, style sheets count: %d, '%s'",
+	N_DEBUG("StyleSheetsClass apply, query group count: %d, style sheets count: %d, '%s'",
 					_query_group.length(), scope->style_sheets().length(), _classs.join(' ').c_str());
 	
 	if ( _query_group.length() ) {
@@ -139,7 +139,7 @@ StyleSheetsClass::StyleSheetsClass(View* host)
 , _is_support_pseudo(false)
 , _once_apply(true)
 , _multiple_status(CSS_PSEUDO_CLASS_NORMAL) {
-	F_ASSERT(host);
+	N_ASSERT(host);
 }
 
 /**
@@ -249,9 +249,9 @@ void StyleSheetsClass::apply(StyleSheetsScope* scope) {
 }
 
 void StyleSheetsClass::apply(StyleSheetsScope* scope, bool* effect_child) {
-	F_ASSERT(effect_child);
+	N_ASSERT(effect_child);
 	_inl_cvc(this)->apply(scope, effect_child, 1);
 }
 
 
-F_NAMESPACE_END
+N_NAMESPACE_END

@@ -33,7 +33,7 @@
 
 #include "noug/util/macros.h"
 
-#if F_UNIX || F_ANDROID
+#if N_UNIX || N_ANDROID
 
 #include "noug/render/gl.h"
 #include <EGL/egl.h>

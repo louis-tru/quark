@@ -46,16 +46,16 @@ void test_zlib (int argc, char **argv) {
 	map["c"] = 300;
 	map["d"] = 400;
 	
-	F_LOG(map[a]);
-	F_LOG(map[b]);
-	F_LOG(map["c"]);
-	F_LOG(map["d"]);
-	F_LOG("");
+	N_LOG(map[a]);
+	N_LOG(map[b]);
+	N_LOG(map["c"]);
+	N_LOG(map["d"]);
+	N_LOG("");
 	
 	const char* hello = "g++ -pthread -rdynamic -m64 ";
 	size_t len = strlen(hello) + 1;
-	F_LOG("%d", len);
-	F_LOG(hello);
+	N_LOG("%d", len);
+	N_LOG(hello);
 
 	{
 		uint8_t* compr = (uint8_t*)malloc(100);
@@ -79,72 +79,72 @@ void test_zlib (int argc, char **argv) {
 		free(compr2);
 	}
 	
-	F_LOG("K\n");
+	N_LOG("K\n");
 	
 	GZip gzip("/tmp/test.gz");
-	F_LOG(gzip.open());
+	N_LOG(gzip.open());
 	
-	F_LOG(gzip.write(hello, uint(len - 1)));
-	F_LOG(gzip.write("hello", 5));
+	N_LOG(gzip.write(hello, uint(len - 1)));
+	N_LOG(gzip.write("hello", 5));
 	
-	F_LOG("a\n");
+	N_LOG("a\n");
 	gzip.close();
-	F_LOG(gzip.open(FOPEN_R));
+	N_LOG(gzip.open(FOPEN_R));
 	char str[100] = { 0 };
-	F_LOG(gzip.read(str, 100));
-	F_LOG(str);
+	N_LOG(gzip.read(str, 100));
+	N_LOG(str);
 	
 	gzip.close();
 	
-	F_LOG("\nTEST zip\n");
+	N_LOG("\nTEST zip\n");
 	
 	{
 		ZipWriter writer("/tmp/test.zip");
 		writer.open();
-		F_LOG(writer.add_file("aa.txt"));
-		F_LOG(writer.write(WeakBuffer("aa.txt", 6)));
-		F_LOG(writer.add_file("bb.txt"));
-		F_LOG(writer.write(WeakBuffer("bb.txt", 6)));
-		F_LOG(writer.add_file("cc.txt"));
-		F_LOG(writer.write(WeakBuffer("cc.txt", 6)));
-		F_LOG(writer.add_file("dd.txt"));
-		F_LOG(writer.write(WeakBuffer("dd.txt", 6)));
+		N_LOG(writer.add_file("aa.txt"));
+		N_LOG(writer.write(WeakBuffer("aa.txt", 6)));
+		N_LOG(writer.add_file("bb.txt"));
+		N_LOG(writer.write(WeakBuffer("bb.txt", 6)));
+		N_LOG(writer.add_file("cc.txt"));
+		N_LOG(writer.write(WeakBuffer("cc.txt", 6)));
+		N_LOG(writer.add_file("dd.txt"));
+		N_LOG(writer.write(WeakBuffer("dd.txt", 6)));
 	}
 
 	{
 		ZipReader reader("/tmp/test.zip");
 		reader.open();
 		char str2[101] = { 0 };
-		F_LOG(reader.read(str2, 100));
-		F_LOG(str2);
+		N_LOG(reader.read(str2, 100));
+		N_LOG(str2);
 		reader.next();
-		F_LOG(reader.read(str2, 100));
-		F_LOG(str2);
+		N_LOG(reader.read(str2, 100));
+		N_LOG(str2);
 		reader.next();
-		F_LOG(reader.read(str2, 100));
-		F_LOG(str2);
+		N_LOG(reader.read(str2, 100));
+		N_LOG(str2);
 		reader.first();
-		F_LOG(reader.read(str2, 100));
-		F_LOG(str2);
+		N_LOG(reader.read(str2, 100));
+		N_LOG(str2);
 		//
 		reader.jump("cc.txt");
 		char str3[101] = { 0 };
-		F_LOG(reader.read(str3, 3));
-		F_LOG(str3);
-		F_LOG(reader.exists("dd.txt"));
-		F_LOG(reader.read(str3, 3));
-		F_LOG(str3);
-		F_LOG(reader.exists("kk.txt"));
+		N_LOG(reader.read(str3, 3));
+		N_LOG(str3);
+		N_LOG(reader.exists("dd.txt"));
+		N_LOG(reader.read(str3, 3));
+		N_LOG(str3);
+		N_LOG(reader.exists("kk.txt"));
 		//
-		F_LOG("next, %d", reader.next());
-		F_LOG(reader.read(str2, 100));
-		F_LOG(str2);
-		F_LOG("next, %d", reader.next());
-		F_LOG(reader.read(str2, 100));
-		F_LOG(str2);
-		F_LOG("next, %d", reader.next());
-		F_LOG(reader.read(str2, 100));
-		F_LOG(str2);
-		F_LOG(reader.current());
+		N_LOG("next, %d", reader.next());
+		N_LOG(reader.read(str2, 100));
+		N_LOG(str2);
+		N_LOG("next, %d", reader.next());
+		N_LOG(reader.read(str2, 100));
+		N_LOG(str2);
+		N_LOG("next, %d", reader.next());
+		N_LOG(reader.read(str2, 100));
+		N_LOG(str2);
+		N_LOG(reader.current());
 	}
 }

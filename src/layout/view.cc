@@ -38,7 +38,7 @@ namespace noug {
 	// --------------- L a y o u t  V i e w ---------------
 
 	// view private members method
-	F_DEFINE_INLINE_MEMBERS(View, Inl) {
+	N_DEFINE_INLINE_MEMBERS(View, Inl) {
 	public:
 		#define _inl(self) static_cast<View::Inl*>(self)
 
@@ -151,7 +151,7 @@ namespace noug {
 	}
 
 	View::~View() {
-		F_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
+		N_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		blur();
 		set_action(nullptr); // del action
 		remove_all_child_(); // 删除子视图
@@ -543,7 +543,7 @@ namespace noug {
 		*/
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
-			_opacity = F_MAX(0, F_MIN(val, 1));
+			_opacity = N_MAX(0, N_MIN(val, 1));
 			mark(kLayout_None); // mark none
 		}
 	}

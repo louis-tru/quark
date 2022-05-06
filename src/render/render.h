@@ -46,8 +46,8 @@ namespace noug {
 	/**
 	* @class Render
 	*/
-	class F_EXPORT Render: public Object, public PostMessage {
-		F_HIDDEN_ALL_COPY(Render);
+	class N_EXPORT Render: public Object, public PostMessage {
+		N_HIDDEN_ALL_COPY(Render);
 	public:
 		struct Options {
 			ColorType colorType;

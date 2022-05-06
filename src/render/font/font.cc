@@ -49,7 +49,7 @@ namespace noug {
 			install();
 			
 			if ( !_ft_face ) {
-				F_ERR("Unable to install font");
+				N_ERR("Unable to install font");
 				return false;
 			}
 			
@@ -89,7 +89,7 @@ namespace noug {
 	}
 	
 	void FontFromData::install() {
-		F_ASSERT(!_ft_face);
+		N_ASSERT(!_ft_face);
 		FT_New_Memory_Face((FT_Library)_ft_lib,
 											_data->value, _data->length,
 											_face_index, (FT_Face*)&_ft_face);
@@ -98,7 +98,7 @@ namespace noug {
 	FontFromFile::FontFromFile(cString& path): _font_path(path) { }
 	
 	void FontFromFile::install() {
-		F_ASSERT(!_ft_face);
+		N_ASSERT(!_ft_face);
 		FT_New_Face((FT_Library)_ft_lib,
 								fs_fallback_c(_font_path),
 								_face_index, (FT_Face*)&_ft_face);
@@ -151,7 +151,7 @@ namespace noug {
 			tessAddContour(data->tess, 2, *data->vertex, sizeof(Vec2), data->length);
 			data->length = 0;
 		}
-		// F_LOG("move_to:%d,%d", to->x, to->y);
+		// N_LOG("move_to:%d,%d", to->x, to->y);
 		
 		Vec2 vertex = Vec2(to->x, -to->y);
 		*data->push_vertex(1) = vertex;
@@ -165,7 +165,7 @@ namespace noug {
 	int Font::Inl::line_to(const FT_Vector* to, void* user) {
 		DecomposeData* data = static_cast<DecomposeData*>(user);
 		Vec2 vertex = Vec2(to->x, -to->y);
-		//  F_LOG("line_to:%d,%d", to->x, to->y);
+		//  N_LOG("line_to:%d,%d", to->x, to->y);
 		*data->push_vertex(1) = vertex;
 		data->p0 = vertex;
 		return FT_Err_Ok;
@@ -177,7 +177,7 @@ namespace noug {
 	int Font::Inl::conic_to(const FT_Vector* control, const FT_Vector* to, void* user) {
 		DecomposeData* data = static_cast<DecomposeData*>(user);
 		Vec2 p2 = Vec2(to->x, -to->y);
-		//  F_LOG("conic_to:%d,%d|%d,%d", control->x, control->y, to->x, to->y);
+		//  N_LOG("conic_to:%d,%d|%d,%d", control->x, control->y, to->x, to->y);
 		QuadraticBezier bezier(data->p0, Vec2(control->x, -control->y), p2);
 		// 使用10点采样,采样越多越能还原曲线,但需要更多有存储空间
 		bezier.sample_curve_points(data->sample, (float*)(data->push_vertex(data->sample - 1) - 1));
@@ -194,7 +194,7 @@ namespace noug {
 	{
 		DecomposeData* data = static_cast<DecomposeData*>(user);
 		Vec2 p3 = Vec2(to->x, -to->y);
-		//  F_LOG("cubic_to:%d,%d|%d,%d|%d,%d",
+		//  N_LOG("cubic_to:%d,%d|%d,%d|%d,%d",
 		//        control1->x, control1->y, control2->x, control2->y, to->x, to->y);
 		CubicBezier bezier(data->p0,
 											Vec2(control1->x, -control1->y),
@@ -241,10 +241,10 @@ namespace noug {
 	FontGlyph* Font::Inl::get_glyph(uint16_t unicode, uint32_t region,
 																	uint32_t index, FGTexureLevel level, bool vector) 
 	{
-		F_ASSERT(region < 512);
-		F_ASSERT(index < 128);
+		N_ASSERT(region < 512);
+		N_ASSERT(index < 128);
 		
-		load(); F_ASSERT(_ft_face);
+		load(); N_ASSERT(_ft_face);
 		
 		GlyphContainerFlag* flags = _flags[region];
 		
@@ -276,12 +276,12 @@ namespace noug {
 				
 				FT_Error error = FT_Set_Char_Size( (FT_Face)_ft_face, 0, 64 * 64, 72, 72);
 				if (error) {
-					F_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
+					N_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
 				}
 				
 				error = FT_Load_Glyph( (FT_Face)_ft_face, glyph_index, FT_LOAD_NO_HINTING);
 				if (error) {
-					F_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
+					N_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
 				}
 			
 				FT_GlyphSlot ft_glyph = (FT_GlyphSlot)_ft_glyph;
@@ -412,7 +412,7 @@ namespace noug {
 						}
 					}
 					
-					F_DEBUG("Font memory clear, %ld", del_data_size);
+					N_DEBUG("Font memory clear, %ld", del_data_size);
 				}
 				// not full clear end
 			}

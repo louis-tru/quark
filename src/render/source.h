@@ -45,8 +45,8 @@ namespace noug {
 	/**
 	* @class ImageSource
 	*/
-	class F_EXPORT ImageSource: public Reference {
-		F_HIDDEN_ALL_COPY(ImageSource);
+	class N_EXPORT ImageSource: public Reference {
+		N_HIDDEN_ALL_COPY(ImageSource);
 	public:
 
 		enum State: int {
@@ -62,14 +62,14 @@ namespace noug {
 		/**
 		 * @event onState
 		 */
-		F_Event(State, Event<ImageSource, State>);
+		N_Event(State, Event<ImageSource, State>);
 		
 		// Defines props
-		F_DEFINE_PROP_READ(String, uri);
-		F_DEFINE_PROP_READ(State, state);
-		F_DEFINE_PROP_READ(int, width);
-		F_DEFINE_PROP_READ(int, height);
-		F_DEFINE_PROP_READ(ColorType, type);
+		N_DEFINE_PROP_READ(String, uri);
+		N_DEFINE_PROP_READ(State, state);
+		N_DEFINE_PROP_READ(int, width);
+		N_DEFINE_PROP_READ(int, height);
+		N_DEFINE_PROP_READ(ColorType, type);
 
 		// @constructor
 		// <FlowLayout>
@@ -129,13 +129,13 @@ namespace noug {
 		Buffer   _loaded;
 		uint32_t _load_id, _size, _used;
 		void *_inl;
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
 	* @class SourceHold
 	*/
-	class F_EXPORT SourceHold {
+	class N_EXPORT SourceHold {
 	public:
 		~SourceHold();
 		void   set_src(cString& src);
@@ -151,8 +151,8 @@ namespace noug {
 	/**
 	* @class ImagePool
 	*/
-	class F_EXPORT ImagePool: public Object {
-		F_HIDDEN_ALL_COPY(ImagePool);
+	class N_EXPORT ImagePool: public Object {
+		N_HIDDEN_ALL_COPY(ImagePool);
 	public:
 		
 		/**
@@ -194,7 +194,7 @@ namespace noug {
 		uint64_t _total_data_size; /* 当前数据占用memory总容量 */
 		Mutex _Mutex;
 		Application* _host;
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

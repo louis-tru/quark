@@ -36,9 +36,9 @@
 #include "./str.h"
 
 #define js_bind_native_event( name, type, block) \
-	F_On(name, [this, func]( type & evt) { HandleScope scope(worker()); block }, id)
+	N_On(name, [this, func]( type & evt) { HandleScope scope(worker()); block }, id)
 
-#define js_unbind_native_event(name) F_Off(name, id);
+#define js_unbind_native_event(name) N_Off(name, id);
 
 #define js_bind_common_native_event(name) \
 	js_bind_native_event(name, Event<>, { call(worker()->New(func,1)); })
@@ -124,12 +124,12 @@ class JSClassIMPL {
 	inline uint64_t id() const { return id_; }
 	
 	inline void retain() {
-		F_ASSERT(ref_ >= 0);
+		N_ASSERT(ref_ >= 0);
 		ref_++;
 	}
 	
 	inline void release() {
-		F_ASSERT(ref_ >= 0);
+		N_ASSERT(ref_ >= 0);
 		if ( --ref_ <= 0 ) {
 			delete this;
 		}

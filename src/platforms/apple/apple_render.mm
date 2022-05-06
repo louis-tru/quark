@@ -41,21 +41,21 @@
 	}
 @end
 
-#if F_ENABLE_GL
+#if N_ENABLE_GL
 @interface GLView: UIView @end
-# if F_IOS
+# if N_IOS
 @implementation GLView
 	+ (Class)layerClass {
 		return CAEAGLLayer.class;
 	}
 @end
-# else // #if F_IOS else osx
+# else // #if N_IOS else osx
 @implementation GLView
 	+ (Class)layerClass {
 		return CAEAGLLayer.class;
 	}
 @end
-# endif // #if F_IOS
+# endif // #if N_IOS
 #endif
 
 
@@ -64,7 +64,7 @@
 namespace noug {
 
 	bool RenderApple::resize(CGRect rect) {
-#if F_IOS
+#if N_IOS
 		float scale = UIScreen.mainScreen.scale;
 #else
 		float scale = UIScreen.mainScreen.backingScaleFactor;
@@ -101,12 +101,12 @@ namespace noug {
 
 	// ------------------- OpenGL ------------------
 
-#if F_ENABLE_GL
+#if N_ENABLE_GL
 
 	class AppleGLRenderBase: public RenderApple {
 	public: 
 		AppleGLRenderBase(EAGLContext* ctx): _ctx(ctx) {
-			F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
+			N_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
 		}
 		~AppleGLRenderBase() {
@@ -115,7 +115,7 @@ namespace noug {
 
 		UIView* init(CGRect rect) override {
 			[EAGLContext setCurrentContext:_ctx];
-			F_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
+			N_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 			_view = [[GLView alloc] initWithFrame:rect];
 			_layer = (CAEAGLLayer*)_view.layer;
 			_layer.drawableProperties = @{
@@ -128,7 +128,7 @@ namespace noug {
 		}
 
 		void renderbufferStorage(uint32_t target) {
-			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; F_ASSERT(ok);
+			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; N_ASSERT(ok);
 		}
 
 		void swapBuffers() {
@@ -168,22 +168,22 @@ namespace noug {
 
 #endif
 
-#ifndef F_ENABLE_GPU
-# define F_ENABLE_GPU 1
+#ifndef N_ENABLE_GPU
+# define N_ENABLE_GPU 1
 #endif
-#ifndef F_ENABLE_METAL
-# define F_ENABLE_METAL 1
+#ifndef N_ENABLE_METAL
+# define N_ENABLE_METAL 1
 #endif
 
 	RenderApple* RenderApple::Make(Application* host, const Render::Options& opts) {
 		RenderApple* r = nullptr;
 
-		if (F_ENABLE_GPU) {
+		if (N_ENABLE_GPU) {
 			if (@available(macOS 10.11, iOS 13.0, *)) {
-				if (F_ENABLE_METAL)
+				if (N_ENABLE_METAL)
 					r = new AppleMetalRender<SkiaMetalRender>(host, opts, false);
 			}
-#if F_ENABLE_GL
+#if N_ENABLE_GL
 			if (!r) {
 				r = AppleGLRender<SkiaGLRender>::New(host, opts, false);
 			}
@@ -192,17 +192,17 @@ namespace noug {
 
 		if (!r) {
 			if (@available(macOS 10.11, iOS 13.0, *)) {
-				if (F_ENABLE_METAL)
+				if (N_ENABLE_METAL)
 					r = new AppleMetalRender<SkiaMetalRender>(host, opts, true);
 			}
-#if F_ENABLE_GL
+#if N_ENABLE_GL
 			if (!r) {
 				r = AppleGLRender<SkiaGLRender>::New(host, opts, true);
 			}
 #endif
 		}
 
-		F_ASSERT(r);
+		N_ASSERT(r);
 		return r;
 	}
 

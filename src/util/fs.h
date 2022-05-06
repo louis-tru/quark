@@ -83,13 +83,13 @@ namespace noug {
 	class Dirent: public Object {
 	public:
 		Dirent(cString& name, cString& pathname, FileType type);
-		F_DEFINE_PROP_READ(String, name);
-		F_DEFINE_PROP_READ(String, pathname);
-		F_DEFINE_PROP_READ(FileType, type);
+		N_DEFINE_PROP_READ(String, name);
+		N_DEFINE_PROP_READ(String, pathname);
+		N_DEFINE_PROP_READ(FileType, type);
 	};
 
-	class F_EXPORT FileSync: public Object {
-		F_HIDDEN_ALL_COPY(FileSync);
+	class N_EXPORT FileSync: public Object {
+		N_HIDDEN_ALL_COPY(FileSync);
 	public:
 		FileSync(cString& path);
 		virtual ~FileSync();
@@ -99,15 +99,15 @@ namespace noug {
 		int read(void* buffer, int64_t size, int64_t offset = -1);
 		int write(const void* buffer, int64_t size, int64_t offset = -1);
 		// props
-		F_DEFINE_PROP_READ(String, path);
+		N_DEFINE_PROP_READ(String, path);
 	private:
 		int    _fd;
 	};
 
-	class F_EXPORT File: public Object {
-		F_HIDDEN_ALL_COPY(File);
+	class N_EXPORT File: public Object {
+		N_HIDDEN_ALL_COPY(File);
 	public:
-		class F_EXPORT Delegate {
+		class N_EXPORT Delegate {
 		public:
 			virtual void trigger_file_open(File* file) = 0;
 			virtual void trigger_file_close(File* file) = 0;
@@ -125,12 +125,12 @@ namespace noug {
 		void read(Buffer buffer, int64_t offset = -1, int mark = 0);
 		void write(Buffer buffer, int64_t offset = -1, int mark = 0);
 	private:
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 		Inl* _inl;
 	};
 
-	class F_EXPORT FileStat: public Object {
-		F_HIDDEN_ALL_COPY(FileStat);
+	class N_EXPORT FileStat: public Object {
+		N_HIDDEN_ALL_COPY(FileStat);
 	public:
 		FileStat();
 		FileStat(cString& path);
@@ -161,11 +161,11 @@ namespace noug {
 		uint64_t birthtime() const;
 	private:
 		void* _stat;
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
-	class F_EXPORT FileReader: public Object {
-		F_HIDDEN_ALL_COPY(FileReader);
+	class N_EXPORT FileReader: public Object {
+		N_HIDDEN_ALL_COPY(FileReader);
 	public:
 		FileReader();
 		FileReader(FileReader&& reader);
@@ -191,156 +191,156 @@ namespace noug {
 	/**
 	 * @func fs_reader() get shared reader
 	*/
-	F_EXPORT FileReader* fs_reader();
+	N_EXPORT FileReader* fs_reader();
 
 	/**
 	 * @field fs_default_mode
 	*/
-	F_EXPORT extern const uint32_t fs_default_mode;
+	N_EXPORT extern const uint32_t fs_default_mode;
 
 	/**
 	* @func each_sync 递归遍历子文件与子目录, 遍历回调回返0停止遍历
 	*/
-	F_EXPORT bool fs_each_sync(cString& path, Cb cb, bool internal = false) throw(Error);
+	N_EXPORT bool fs_each_sync(cString& path, Cb cb, bool internal = false) throw(Error);
 	
 	// sync
 	/**
 	* @func chmod_sync
 	*/
-	F_EXPORT void fs_chmod_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
+	N_EXPORT void fs_chmod_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
 	
 	/**
 	* @func chmod_r_sync  # 递归设置
 	* # 多线程中,设置stop_signal值为true来终止操作
 	*/
-	F_EXPORT void fs_chown_sync(cString& path, uint32_t owner, uint32_t group) throw(Error);
-	F_EXPORT void fs_mkdir_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
-	F_EXPORT void fs_rename_sync(cString& name, cString& new_name) throw(Error);
-	F_EXPORT void fs_link_sync(cString& path, cString& newPath) throw(Error);
-	F_EXPORT void fs_unlink_sync(cString& path) throw(Error);
-	F_EXPORT void fs_rmdir_sync(cString& path) throw(Error);
-	F_EXPORT Array<Dirent> fs_readdir_sync(cString& path) throw(Error);
-	F_EXPORT FileStat fs_stat_sync(cString& path) throw(Error);
-	F_EXPORT bool fs_exists_sync(cString& path);
-	F_EXPORT bool fs_is_file_sync(cString& path);
-	F_EXPORT bool fs_is_directory_sync(cString& path);
-	F_EXPORT bool fs_readable_sync(cString& path);
-	F_EXPORT bool fs_writable_sync(cString& path);
-	F_EXPORT bool fs_executable_sync(cString& path);
+	N_EXPORT void fs_chown_sync(cString& path, uint32_t owner, uint32_t group) throw(Error);
+	N_EXPORT void fs_mkdir_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
+	N_EXPORT void fs_rename_sync(cString& name, cString& new_name) throw(Error);
+	N_EXPORT void fs_link_sync(cString& path, cString& newPath) throw(Error);
+	N_EXPORT void fs_unlink_sync(cString& path) throw(Error);
+	N_EXPORT void fs_rmdir_sync(cString& path) throw(Error);
+	N_EXPORT Array<Dirent> fs_readdir_sync(cString& path) throw(Error);
+	N_EXPORT FileStat fs_stat_sync(cString& path) throw(Error);
+	N_EXPORT bool fs_exists_sync(cString& path);
+	N_EXPORT bool fs_is_file_sync(cString& path);
+	N_EXPORT bool fs_is_directory_sync(cString& path);
+	N_EXPORT bool fs_readable_sync(cString& path);
+	N_EXPORT bool fs_writable_sync(cString& path);
+	N_EXPORT bool fs_executable_sync(cString& path);
 	// recursion
-	F_EXPORT bool fs_chmod_r_sync(cString& path, uint32_t mode = fs_default_mode, bool* stop_signal = nullptr) throw(Error);
-	F_EXPORT bool fs_chown_r_sync(cString& path, uint32_t owner, uint32_t group, bool* stop_signal = nullptr) throw(Error);
-	F_EXPORT void fs_mkdir_p_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
-	F_EXPORT bool fs_remove_r_sync(cString& path, bool* stop_signal = nullptr) throw(Error);
-	F_EXPORT bool fs_copy_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
-	F_EXPORT bool fs_copy_r_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
+	N_EXPORT bool fs_chmod_r_sync(cString& path, uint32_t mode = fs_default_mode, bool* stop_signal = nullptr) throw(Error);
+	N_EXPORT bool fs_chown_r_sync(cString& path, uint32_t owner, uint32_t group, bool* stop_signal = nullptr) throw(Error);
+	N_EXPORT void fs_mkdir_p_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
+	N_EXPORT bool fs_remove_r_sync(cString& path, bool* stop_signal = nullptr) throw(Error);
+	N_EXPORT bool fs_copy_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
+	N_EXPORT bool fs_copy_r_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
 	// async
-	F_EXPORT void fs_chmod(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
-	F_EXPORT void fs_chown(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
-	F_EXPORT void fs_mkdir(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
-	F_EXPORT void fs_rename(cString& name, cString& new_name, Cb cb = 0);
-	F_EXPORT void fs_link(cString& path, cString& newPath, Cb cb = 0);
-	F_EXPORT void fs_unlink(cString& path, Cb cb = 0);
-	F_EXPORT void fs_rmdir(cString& path, Cb cb = 0);
-	F_EXPORT void fs_readdir(cString& path, Callback<Array<Dirent>> cb = 0);
-	F_EXPORT void fs_stat(cString& path, Cb cb = 0);
-	F_EXPORT void fs_exists(cString& path, Cb cb = 0);
-	F_EXPORT void fs_is_file(cString& path, Cb cb = 0);
-	F_EXPORT void fs_is_directory(cString& path, Cb cb = 0);
-	F_EXPORT void fs_readable(cString& path, Cb cb = 0);
-	F_EXPORT void fs_writable(cString& path, Cb cb = 0);
-	F_EXPORT void fs_executable(cString& path, Cb cb = 0);
+	N_EXPORT void fs_chmod(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	N_EXPORT void fs_chown(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
+	N_EXPORT void fs_mkdir(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	N_EXPORT void fs_rename(cString& name, cString& new_name, Cb cb = 0);
+	N_EXPORT void fs_link(cString& path, cString& newPath, Cb cb = 0);
+	N_EXPORT void fs_unlink(cString& path, Cb cb = 0);
+	N_EXPORT void fs_rmdir(cString& path, Cb cb = 0);
+	N_EXPORT void fs_readdir(cString& path, Callback<Array<Dirent>> cb = 0);
+	N_EXPORT void fs_stat(cString& path, Cb cb = 0);
+	N_EXPORT void fs_exists(cString& path, Cb cb = 0);
+	N_EXPORT void fs_is_file(cString& path, Cb cb = 0);
+	N_EXPORT void fs_is_directory(cString& path, Cb cb = 0);
+	N_EXPORT void fs_readable(cString& path, Cb cb = 0);
+	N_EXPORT void fs_writable(cString& path, Cb cb = 0);
+	N_EXPORT void fs_executable(cString& path, Cb cb = 0);
 	// recursion
-	F_EXPORT void fs_mkdir_p(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
-	F_EXPORT uint32_t fs_chmod_r(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
-	F_EXPORT uint32_t fs_chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
-	F_EXPORT uint32_t fs_remove_r(cString& path, Cb cb = 0);
-	F_EXPORT uint32_t fs_copy(cString& source, cString& target, Cb cb = 0);
-	F_EXPORT uint32_t fs_copy_r(cString& source, cString& target, Cb cb = 0);
-	F_EXPORT void fs_abort(uint32_t id);
+	N_EXPORT void fs_mkdir_p(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	N_EXPORT uint32_t fs_chmod_r(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	N_EXPORT uint32_t fs_chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
+	N_EXPORT uint32_t fs_remove_r(cString& path, Cb cb = 0);
+	N_EXPORT uint32_t fs_copy(cString& source, cString& target, Cb cb = 0);
+	N_EXPORT uint32_t fs_copy_r(cString& source, cString& target, Cb cb = 0);
+	N_EXPORT void fs_abort(uint32_t id);
 		// read stream
-	F_EXPORT uint32_t fs_read_stream(cString& path, Callback<StreamResponse> cb = 0);
+	N_EXPORT uint32_t fs_read_stream(cString& path, Callback<StreamResponse> cb = 0);
 		// read file
-	F_EXPORT Buffer fs_read_file_sync(cString& path, int64_t size = -1) throw(Error);
-	F_EXPORT void fs_read_file(cString& path, Cb cb = 0, int64_t size = -1);
+	N_EXPORT Buffer fs_read_file_sync(cString& path, int64_t size = -1) throw(Error);
+	N_EXPORT void fs_read_file(cString& path, Cb cb = 0, int64_t size = -1);
 		// write file
-	F_EXPORT int fs_write_file_sync(cString& path, cString& str) throw(Error);
-	F_EXPORT int fs_write_file_sync(cString& path, const void* data, int64_t size) throw(Error);
-	F_EXPORT void fs_write_file(cString& path, cString& str, Cb cb = 0);
-	F_EXPORT void fs_write_file(cString& path, Buffer buffer, Cb cb = 0);
+	N_EXPORT int fs_write_file_sync(cString& path, cString& str) throw(Error);
+	N_EXPORT int fs_write_file_sync(cString& path, const void* data, int64_t size) throw(Error);
+	N_EXPORT void fs_write_file(cString& path, cString& str, Cb cb = 0);
+	N_EXPORT void fs_write_file(cString& path, Buffer buffer, Cb cb = 0);
 		// open file fd
-	F_EXPORT int fs_open_sync(cString& path, int flag = FOPEN_R) throw(Error);
-	F_EXPORT void fs_open(cString& path, int flag = FOPEN_R, Cb cb = 0);
-	F_EXPORT void fs_open(cString& path, Cb cb = 0);
-	F_EXPORT void fs_close_sync(int fd) throw(Error);
-	F_EXPORT void fs_close(int fd, Cb cb = 0);
+	N_EXPORT int fs_open_sync(cString& path, int flag = FOPEN_R) throw(Error);
+	N_EXPORT void fs_open(cString& path, int flag = FOPEN_R, Cb cb = 0);
+	N_EXPORT void fs_open(cString& path, Cb cb = 0);
+	N_EXPORT void fs_close_sync(int fd) throw(Error);
+	N_EXPORT void fs_close(int fd, Cb cb = 0);
 		// read with fd
-	F_EXPORT int fs_read_sync(int fd, void* data, int64_t size, int64_t offset = -1) throw(Error);
-	F_EXPORT int fs_write_sync(int fd, const void* data, int64_t size, int64_t offset = -1) throw(Error);
-	F_EXPORT void fs_read(int fd, Buffer buffer, Cb cb);
-	F_EXPORT void fs_read(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
-	F_EXPORT void fs_write(int fd, Buffer buffer, Cb cb);
-	F_EXPORT void fs_write(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
+	N_EXPORT int fs_read_sync(int fd, void* data, int64_t size, int64_t offset = -1) throw(Error);
+	N_EXPORT int fs_write_sync(int fd, const void* data, int64_t size, int64_t offset = -1) throw(Error);
+	N_EXPORT void fs_read(int fd, Buffer buffer, Cb cb);
+	N_EXPORT void fs_read(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
+	N_EXPORT void fs_write(int fd, Buffer buffer, Cb cb);
+	N_EXPORT void fs_write(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
 
 	/**
 	* @func extname {String} # Get the path basename
 	* @ret {String}
 	*/
-	F_EXPORT String fs_basename(cString& path);
+	N_EXPORT String fs_basename(cString& path);
 	
 	/**
 	* @func extname {String} # Get the path dirname
 	* @arg path {cString&}
 	* @ret {String}
 	*/
-	F_EXPORT String fs_dirname(cString& path);
+	N_EXPORT String fs_dirname(cString& path);
 	
 	/**
 	* @func extname # Get the path extname
 	* @arg path {cString&}
 	* @ret {String}
 	*/
-	F_EXPORT String fs_extname(cString& path);
+	N_EXPORT String fs_extname(cString& path);
 	
 	/**
 	* @func executable_path # Get the executable path
 	* @ret {cString&}
 	*/
-	F_EXPORT String fs_executable();
+	N_EXPORT String fs_executable();
 	
 	/**
 	* @func documents_dir # Get the documents dir.
 	* @ret {cString&} # The path that can be write/read a file in
 	*/
-	F_EXPORT String fs_documents(cString& child = String());
+	N_EXPORT String fs_documents(cString& child = String());
 	
 	/**
 	* @func temp_dir # Get the temp dir.
 	* @ret {cString&} # The path that can be write/read a file in
 	*/
-	F_EXPORT String fs_temp(cString& child = String());
+	N_EXPORT String fs_temp(cString& child = String());
 	
 	/**
 	* @func resources_dir # Get the resoures dir
 	* @ret {cString&}
 	*/
-	F_EXPORT String fs_resources(cString& child = String());
+	N_EXPORT String fs_resources(cString& child = String());
 	
 	/**
 	* @func is_absolute # Is absolute path
 	* @ret {bool}
 	*/
-	F_EXPORT bool fs_is_local_absolute(cString& path);
+	N_EXPORT bool fs_is_local_absolute(cString& path);
 	
 	/**
 	* @func is_local_zip
 	*/
-	F_EXPORT bool fs_is_local_zip(cString& path);
+	N_EXPORT bool fs_is_local_zip(cString& path);
 	
 	/**
 	* @func is_local_file
 	*/
-	F_EXPORT bool fs_is_local_file(cString& path);
+	N_EXPORT bool fs_is_local_file(cString& path);
 	
 	/**
 	* @func format
@@ -348,29 +348,29 @@ namespace noug {
 	* @arg [...] {cChar*}
 	* @ret {String}
 	*/
-	F_EXPORT String fs_format(cChar* path, ...);
+	N_EXPORT String fs_format(cChar* path, ...);
 	
 	/**
 	* @func format
 	*/
-	F_EXPORT String fs_format(cString& path);
+	N_EXPORT String fs_format(cString& path);
 	
 	/**
 	* @func fallback
 	*/
-	F_EXPORT String fs_fallback(cString& path);
+	N_EXPORT String fs_fallback(cString& path);
 
 	/**
 	* @func fallback_c
 	*/
-	F_EXPORT cChar* fs_fallback_c(cString& path);
+	N_EXPORT cChar* fs_fallback_c(cString& path);
 	
 	/**
 	* @func cwd # Getting current working directory
 	* @ret {String}
 	* @static
 	*/
-	F_EXPORT String fs_cwd();
+	N_EXPORT String fs_cwd();
 	
 	/**
 	* @func chdir # Setting current working directory
@@ -378,7 +378,7 @@ namespace noug {
 	* @ret {bool}
 	* @static
 	*/
-	F_EXPORT bool fs_chdir(cString& path);
+	N_EXPORT bool fs_chdir(cString& path);
 
 }
 #endif

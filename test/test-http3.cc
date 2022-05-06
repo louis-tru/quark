@@ -33,5 +33,5 @@
 using namespace noug;
 
 void test_http3(int argc, char **argv) {
-	F_LOG(http_get_sync("http://127.0.0.1:1026/demo/examples/about.jsx?DopSx"));
+	N_LOG(http_get_sync("http://127.0.0.1:1026/demo/examples/about.jsx?DopSx"));
 }

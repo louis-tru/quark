@@ -32,12 +32,12 @@
 #include "../version.h"
 #include <vector>
 
-#if F_UNIX
+#if N_UNIX
 # include <sys/utsname.h>
 # include <unistd.h>
 #endif
 
-#if F_APPLE
+#if N_APPLE
 # include <mach/mach_time.h>
 # include <mach/mach.h>
 # include <mach/clock.h>
@@ -154,17 +154,17 @@ namespace noug {
 	}
 
 	String platform() {
-		#if  F_IOS
+		#if  N_IOS
 			static String _name("darwin/iOS");
-		#elif  F_OSX
+		#elif  N_OSX
 			static String _name("darwin/MacOSX");
 			// static String _name("darwin/tvOS");
 			// static String _name("darwin/iWatch");
-		#elif  F_ANDROID
+		#elif  N_ANDROID
 			static String _name("android/Android");
-		#elif  F_WIN
+		#elif  N_WIN
 			static String _name("win32/Windows");
-		#elif  F_LINUX
+		#elif  N_LINUX
 			static String _name("linux/Linux");
 		#else
 			# error no support

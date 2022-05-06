@@ -33,10 +33,10 @@
 
 #include "../util/string.h"
 
-#ifndef F_NO_MEDIA_DYNAMIC_LIB
-# define F_MEDIA_DYNAMIC virtual
+#ifndef N_NO_MEDIA_DYNAMIC_LIB
+# define N_MEDIA_DYNAMIC virtual
 #else
-# define F_MEDIA_DYNAMIC
+# define N_MEDIA_DYNAMIC
 #endif
 
 namespace noug {
@@ -53,9 +53,9 @@ namespace noug {
 		const uint64_t tid;
 	} module_info_t;
 
-	F_EXPORT extern int initialize_media();
-	F_EXPORT extern module_info_t* module_audio_player;
-	F_EXPORT extern module_info_t* module_video;
+	N_EXPORT extern int initialize_media();
+	N_EXPORT extern module_info_t* module_audio_player;
+	N_EXPORT extern module_info_t* module_video;
 
 }
 #endif

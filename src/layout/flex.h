@@ -35,14 +35,14 @@
 
 namespace noug {
 
-	class F_EXPORT FlexLayout: public Box {
-		F_Define_View(FlexLayout);
+	class N_EXPORT FlexLayout: public Box {
+		N_Define_View(FlexLayout);
 	public:
 		FlexLayout();
 		// define props
-		F_DEFINE_PROP(Direction, direction); // typesetting direction
-		F_DEFINE_PROP(ItemsAlign, items_align); // alignment mode of the main axis
-		F_DEFINE_PROP(CrossAlign, cross_align); // alignment mode of the cross axis
+		N_DEFINE_PROP(Direction, direction); // typesetting direction
+		N_DEFINE_PROP(ItemsAlign, items_align); // alignment mode of the main axis
+		N_DEFINE_PROP(CrossAlign, cross_align); // alignment mode of the cross axis
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
@@ -56,7 +56,7 @@ namespace noug {
 		bool update_IsLockChild();
 		bool _is_lock_child;
 		friend class FlowLayout;
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

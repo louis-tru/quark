@@ -41,14 +41,14 @@ namespace noug {
 	/**
 	* @calss Socket
 	*/
-	class F_EXPORT Socket: public Object {
-		F_HIDDEN_ALL_COPY(Socket);
+	class N_EXPORT Socket: public Object {
+		N_HIDDEN_ALL_COPY(Socket);
 	public:
 		
 		/**
 		 * @class Delegate
 		*/
-		class F_EXPORT Delegate {
+		class N_EXPORT Delegate {
 		public:
 			virtual void trigger_socket_open(Socket* socket) = 0;
 			virtual void trigger_socket_close(Socket* socket) = 0;
@@ -101,7 +101,7 @@ namespace noug {
 		void resume();
 		void write(Buffer buffer, int mark = 0);
 
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 	protected:
 		Socket();
 		Inl* _inl;
@@ -110,7 +110,7 @@ namespace noug {
 	/**
 	* @class SSLSocket
 	*/
-	class F_EXPORT SSLSocket: public Socket {
+	class N_EXPORT SSLSocket: public Socket {
 	public:
 		
 		SSLSocket(cString& hostname, uint16_t port, RunLoop* loop = RunLoop::current());

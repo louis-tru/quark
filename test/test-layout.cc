@@ -137,20 +137,20 @@ void layout(Event<>& evt, Application* app) {
 	img2->set_width({0, BoxSizeType::MATCH });
 	img2->set_layout_align(Align::CENTER);
 	
-	F_DEBUG("%s, %p\n", "ok skia", app);
-	F_DEBUG("Object size %d", sizeof(Object));
-	F_DEBUG("Reference size %d", sizeof(Reference));
-	F_DEBUG("Layout size %d", sizeof(Layout));
-	F_DEBUG("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Layout>));
-	F_DEBUG("View size %d", sizeof(View));
-	F_DEBUG("Box size %d", sizeof(Box));
-	F_DEBUG("FlowLayout size %d", sizeof(FlowLayout));
-	F_DEBUG("FlexLayout size %d", sizeof(FlexLayout));
-	F_DEBUG("Root size %d", sizeof(Root));
+	N_DEBUG("%s, %p\n", "ok skia", app);
+	N_DEBUG("Object size %d", sizeof(Object));
+	N_DEBUG("Reference size %d", sizeof(Reference));
+	N_DEBUG("Layout size %d", sizeof(Layout));
+	N_DEBUG("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Layout>));
+	N_DEBUG("View size %d", sizeof(View));
+	N_DEBUG("Box size %d", sizeof(Box));
+	N_DEBUG("FlowLayout size %d", sizeof(FlowLayout));
+	N_DEBUG("FlexLayout size %d", sizeof(FlexLayout));
+	N_DEBUG("Root size %d", sizeof(Root));
 }
 
 void test_layout(int argc, char **argv) {
 	Application app;
-	app.F_On(Load, layout, &app);
+	app.N_On(Load, layout, &app);
 	app.run(true);
 }

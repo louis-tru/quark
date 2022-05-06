@@ -51,9 +51,9 @@ void test_buffer(int argc, char **argv) {
 	
 	bf4 = std::move(bf2);
 	
-	F_LOG("%i,%s", *bf, *bf);
-	F_LOG("%i,%s", *bf2, *bf2);
-	F_LOG("%i,%s", *bf3, *bf3);
-	F_LOG("%i,%s", *bf4, *bf4);
+	N_LOG("%i,%s", *bf, *bf);
+	N_LOG("%i,%s", *bf2, *bf2);
+	N_LOG("%i,%s", *bf3, *bf3);
+	N_LOG("%i,%s", *bf4, *bf4);
 	
 }

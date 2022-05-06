@@ -35,7 +35,7 @@
 
 #include "../macros.h"
 
-#if F_ANDROID
+#if N_ANDROID
 
 #include "../object.h"
 #include <jni.h>
@@ -45,14 +45,14 @@ namespace noug {
 	/**
 	* @class JNI
 	*/
-	class F_EXPORT JNI {
+	class N_EXPORT JNI {
 	public:
 
 		/**
 		* @class ScopeENV
 		*/
-		class F_EXPORT ScopeENV {
-			F_HIDDEN_ALL_COPY(ScopeENV);
+		class N_EXPORT ScopeENV {
+			N_HIDDEN_ALL_COPY(ScopeENV);
 		public:
 			ScopeENV();
 			~ScopeENV();
@@ -68,7 +68,7 @@ namespace noug {
 		/**
 		* @class MethodInfo
 		*/
-		class F_EXPORT MethodInfo {
+		class N_EXPORT MethodInfo {
 		public:
 			MethodInfo(cChar* clazz, cChar* method, cChar* param_code, bool is_static = false);
 			MethodInfo(jclass clazz, cChar* method, cChar* param_code, bool is_static = false);

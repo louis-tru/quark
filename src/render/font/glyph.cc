@@ -87,7 +87,7 @@ namespace noug {
 				}
 			}
 		} else {
-			F_ASSERT(_ffid->name() == "icon");
+			N_ASSERT(_ffid->name() == "icon");
 		}
 		
 		// 查找最大高度与行高度
@@ -97,14 +97,14 @@ namespace noug {
 		
 		for ( uint32_t i = 0; i < _fonts.length(); i++ ) {
 			Font* font = _fonts[i];
-			_height = F_MAX(_height, font->height());
-			_ascender = F_MAX(_ascender, font->ascender());
-			_descender = F_MAX(_descender, font->descender());
+			_height = N_MAX(_height, font->height());
+			_ascender = N_MAX(_ascender, font->ascender());
+			_descender = N_MAX(_descender, font->descender());
 		}
 	}
 	
 	void FontGlyphTable::Inl::set_glyph(uint32_t region, uint32_t index, FontGlyph* glyph) {
-		F_ASSERT( glyph );
+		N_ASSERT( glyph );
 		if ( !_blocks[region] ) {
 			GlyphsBlock* block = new GlyphsBlock();
 			memset(block, 0, sizeof(GlyphsBlock));
@@ -179,7 +179,7 @@ namespace noug {
 	* @func use_texture_glyph 使用纹理字型
 	*/
 	FontGlyph* FontGlyphTable::use_texture_glyph(uint16_t unicode, FGTexureLevel level) {
-		F_ASSERT(level < FontGlyph::LEVEL_NONE);
+		N_ASSERT(level < FontGlyph::LEVEL_NONE);
 		
 		FontGlyph* glyph = _inl_table(this)->get_glyph(unicode);
 		

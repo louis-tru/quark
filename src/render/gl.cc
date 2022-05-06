@@ -60,10 +60,10 @@ namespace noug {
 		String extensions = (const char*)glGetString(GL_EXTENSIONS);
 		String version = (const char*)glGetString(GL_VERSION);
 
-		F_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
-		F_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
-		F_DEBUG("OGL Info: %s", *version);
-		F_DEBUG("OGL Info: %s", *extensions);
+		N_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
+		N_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
+		N_DEBUG("OGL Info: %s", *version);
+		N_DEBUG("OGL Info: %s", *extensions);
 		
 		if (!_is_support_multisampled) {
 			for (auto s : {"OpenGL ES ", "OpenGL "}) {
@@ -115,7 +115,7 @@ namespace noug {
 		int width = region.width;
 		int height = region.height;
 
-		F_ASSERT(width && height);
+		N_ASSERT(width && height);
 
 		glViewport(0, 0, width, height);
 
@@ -140,7 +140,7 @@ namespace noug {
 				if ( MSAA > 1 ) {
 					_opts.msaaSampleCnt /= 2;
 				} else {
-					F_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
+					N_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 					return;
 				}
 			}
@@ -149,7 +149,7 @@ namespace noug {
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-		F_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+		N_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 
 		glClearStencil(0);
 		glStencilMask(0xffffffff);
@@ -171,14 +171,14 @@ namespace noug {
 			auto region = _host->display()->display_region();
 			glBlitFramebuffer(0, 0, region.width, region.height,
 												0, 0, region.width, region.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-#if !F_OSX
+#if !N_OSX
 			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
 #endif
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
 			glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 		} else {
-#if !F_OSX
+#if !N_OSX
 			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
 #endif

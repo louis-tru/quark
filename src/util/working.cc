@@ -38,7 +38,7 @@ namespace noug {
 	ParallelWorking::ParallelWorking(): ParallelWorking(RunLoop::current()) {}
 
 	ParallelWorking::ParallelWorking(RunLoop* loop) : _proxy(nullptr) {
-		F_ASSERT(loop, "Can not find current thread run loop.");
+		N_ASSERT(loop, "Can not find current thread run loop.");
 		_proxy = loop->keep_alive("ParallelWorking()");
 	}
 
@@ -86,16 +86,16 @@ namespace noug {
 			for (auto& i : childs) {
 				Thread::wait(i.key);
 			}
-			F_DEBUG("ParallelWorking::abort_child() ok, count: %d", childs.length());
+			N_DEBUG("ParallelWorking::abort_child() ok, count: %d", childs.length());
 		} else {
 			{
 				ScopeLock scope(_mutex2);
-				F_ASSERT(_childs.find(id) != _childs.end(),
+				N_ASSERT(_childs.find(id) != _childs.end(),
 					"Only subthreads belonging to \"ParallelWorking\" can be aborted");
 			}
 			Thread::abort(id);
 			Thread::wait(id);
-			F_DEBUG("ParallelWorking::abort_child(id) ok");
+			N_DEBUG("ParallelWorking::abort_child(id) ok");
 		}
 	}
 
@@ -109,7 +109,7 @@ namespace noug {
 				Thread::resume(i.key);
 			}
 		} else {
-			F_ASSERT(_childs.find(id) != _childs.end(),
+			N_ASSERT(_childs.find(id) != _childs.end(),
 				"Only subthreads belonging to \"ParallelWorking\" can be resume");
 			Thread::resume(id);
 		}

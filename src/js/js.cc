@@ -233,7 +233,7 @@ uint64_t JSClass::ID() const {
 Local<JSObject> JSClass::NewInstance(uint32_t argc, Local<JSValue>* argv) {
 	auto cls = reinterpret_cast<JSClassIMPL*>(this);
 	Local<JSFunction> func = IMPL::js_class(cls->worker())->get_constructor(cls->id());
-	F_ASSERT( !func.IsEmpty() );
+	N_ASSERT( !func.IsEmpty() );
 	return func->NewInstance(cls->worker(), argc, argv);
 }
 
@@ -252,7 +252,7 @@ void PersistentBase<JSClass>::Reset(Worker* worker, const Local<JSClass>& other)
 		worker_ = nullptr;
 	}
 	if ( !other.IsEmpty() ) {
-		F_ASSERT(worker);
+		N_ASSERT(worker);
 		val_ = *other;
 		worker_ = worker;
 		reinterpret_cast<JSClassIMPL*>(val_)->retain();
@@ -294,7 +294,7 @@ Worker* IMPL::initialize() {
 	_native_modules.Reset(_host, _host->NewObject());
 	_classs = new JSClassStore(_host);
 	_strs = new CommonStrings(_host);
-	F_ASSERT(_global.local()->IsObject(_host));
+	N_ASSERT(_global.local()->IsObject(_host));
 	_global.local()->SetProperty(_host, "global", _global.local());
 	_global.local()->SetMethod(_host, "__require__", require_native);
 
@@ -329,7 +329,7 @@ static Local<JSValue> TriggerEventFromUtil(Worker* worker,
 	cString& name, int argc = 0, Local<JSValue> argv[] = 0)
 {
 	Local<JSObject> _util = worker->bindingModule("_util").To();
-	F_ASSERT(!_util.IsEmpty());
+	N_ASSERT(!_util.IsEmpty());
 
 	Local<JSValue> func = _util->GetProperty(worker, String("__on").push(name).push("_native"));
 	if (!func->IsFunction(worker)) {
@@ -455,7 +455,7 @@ Local<JSObject> Worker::global() {
 }
 
 Local<JSObject> Worker::NewError(cChar* errmsg, ...) {
-	F_STRING_FORMAT(errmsg, str);
+	N_STRING_FORMAT(errmsg, str);
 	Error err(ERR_UNKNOWN_ERROR, str);
 	return New(err);
 }
@@ -479,7 +479,7 @@ Local<JSObject> Worker::NewError(const HttpError& err) { return New(err); }
 
 Local<JSObject> Worker::New(FileStat&& stat) {
 	Local<JSFunction> func = _inl->_classs->get_constructor(JS_TYPEID(FileStat));
-	F_ASSERT( !func.IsEmpty() );
+	N_ASSERT( !func.IsEmpty() );
 	Local<JSObject> r = func->NewInstance(this);
 	*Wrap<FileStat>::unpack(r)->self() = move(stat);
 	return r;
@@ -487,7 +487,7 @@ Local<JSObject> Worker::New(FileStat&& stat) {
 
 Local<JSObject> Worker::NewInstance(uint64_t id, uint32_t argc, Local<JSValue>* argv) {
 	Local<JSFunction> func = _inl->_classs->get_constructor(id);
-	F_ASSERT( !func.IsEmpty() );
+	N_ASSERT( !func.IsEmpty() );
 	return func->NewInstance(this, argc, argv);
 }
 
@@ -508,7 +508,7 @@ Local<JSUint8Array> Worker::NewUint8Array(Local<JSArrayBuffer> ab) {
 }
 
 void Worker::throwError(cChar* errmsg, ...) {
-	F_STRING_FORMAT(errmsg, str);
+	N_STRING_FORMAT(errmsg, str);
 	throwError(NewError(*str));
 }
 

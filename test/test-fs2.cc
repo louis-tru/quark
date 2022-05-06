@@ -43,15 +43,15 @@ class TestAsyncFile: public File, public File::Delegate {
 	}
 
 	virtual ~TestAsyncFile() {
-		F_LOG("Delete TestAsyncFile");
+		N_LOG("Delete TestAsyncFile");
 	}
 
 	virtual void trigger_file_error(File* file, cError& error) {
-		F_LOG("Error, %s", error.message().c_str());
+		N_LOG("Error, %s", error.message().c_str());
 	}
 
 	virtual void trigger_file_open(File* file) {
-		F_LOG("Open, %s", *path());
+		N_LOG("Open, %s", *path());
 
 		for ( i = 0; i < 30; i++ ) {
 			write(write_str.copy().collapse(), 0);
@@ -59,17 +59,17 @@ class TestAsyncFile: public File, public File::Delegate {
 	}
 
 	virtual void trigger_file_close(File* file) {
-		F_LOG("Close");
+		N_LOG("Close");
 		Release(this);
 	}
 
 	virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
 		i--;
-		F_LOG("Write ok, %d", i);
+		N_LOG("Write ok, %d", i);
 
 		if (i == 0) {
 			String s = fs_reader()->read_file_sync(fs_documents("test_fs2.txt"));
-			F_LOG("Write count, %d", s.length());
+			N_LOG("Write count, %d", s.length());
 			close();
 		}
 	}
@@ -82,7 +82,7 @@ class TestAsyncFile: public File, public File::Delegate {
 
 void test_fs2(int argc, char **argv) {
 
-	F_LOG("START");
+	N_LOG("START");
 	
 	write_str = fs_reader()->read_file_sync(fs_resources("noug/ctr.js"));
 
@@ -92,5 +92,5 @@ void test_fs2(int argc, char **argv) {
 
 	RunLoop::current()->run();
 
-	F_LOG("END");
+	N_LOG("END");
 }

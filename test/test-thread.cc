@@ -59,7 +59,7 @@ class Foo {
 		while (0 == flag_) {
 			cond_.wait(ul);
 		}
-		F_LOG("%d", flag_);
+		N_LOG("%d", flag_);
 	}
 	
 	void threadFunc2()
@@ -100,7 +100,7 @@ void test_for() {
 	}
 	
 	m1.lock();
-	F_LOG("result: %d", j);
+	N_LOG("result: %d", j);
 	m1.unlock();
 	
 }
@@ -120,6 +120,6 @@ void test_thread(int argc, char **argv) {
 	g_a.join();
 	g_b.join();
 	
-	F_LOG("done");
+	N_LOG("done");
 	
 }

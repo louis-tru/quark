@@ -32,11 +32,11 @@
 
 #import "noug/util/macros.h"
 
-#if F_IOS || F_OSX
+#if N_IOS || N_OSX
 
 #import <noug/app.h>
 
-#if F_OSX
+#if N_OSX
 	#import <AppKit/AppKit.h>
 	#define UIResponder NSResponder
 	#define UIApplicationDelegate NSApplicationDelegate

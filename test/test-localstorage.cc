@@ -34,26 +34,26 @@ using namespace noug;
 
 void test_localstorage(int argc, char **argv) {
 	
-	F_LOG(storage_get("test2"));
+	N_LOG(storage_get("test2"));
 	
 	storage_set("test", "noug.cc");
 	
-	F_LOG(storage_get("test"));
+	N_LOG(storage_get("test"));
 	
 	storage_delete("test");
 	
-	F_LOG(storage_get("test"));
+	N_LOG(storage_get("test"));
 	
 	storage_set("test", "noug.cc");
 	
-	F_LOG(storage_get("test"));
+	N_LOG(storage_get("test"));
 	
 	storage_clear();
 	
-	F_LOG(storage_get("test"));
+	N_LOG(storage_get("test"));
 	
 	storage_set("test2", "test2");
 	
-	F_LOG(storage_get("test2"));
+	N_LOG(storage_get("test2"));
 	
 }

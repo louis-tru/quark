@@ -81,7 +81,7 @@ namespace noug {
 		lock.unlock();
 		
 		_host->loop()->post(Cb([this](CbData& e){
-			F_Trigger(Change); // 通知事件
+			N_Trigger(Change); // 通知事件
 		}));
 
 		_host->render()->reload();
@@ -107,7 +107,7 @@ namespace noug {
 	}
 
 	Display::Display(Application* host)
-		: F_Init_Event(Change), F_Init_Event(Orientation)
+		: N_Init_Event(Change), N_Init_Event(Orientation)
 		, _host(host)
 		, _lock_size()
 		, _size(), _scale(1)
@@ -132,7 +132,7 @@ namespace noug {
 				}));
 			}
 		} else {
-			F_WARN("Lock size value can not be less than zero\n");
+			N_WARN("Lock size value can not be less than zero\n");
 		}
 	}
 
@@ -175,9 +175,9 @@ namespace noug {
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t ts2 = (time_micro() - st) / 1e3;
 				if (ts2 > 16) {
-					F_LOG("ts: %ld -------------- ", ts2);
+					N_LOG("ts: %ld -------------- ", ts2);
 				} else {
-					F_LOG("ts: %ld", ts2);
+					N_LOG("ts: %ld", ts2);
 				}
 			#endif
 		} else {
@@ -221,7 +221,7 @@ namespace noug {
 	}
 
 	void Display::pop_clip_region() {
-		F_ASSERT( _clip_region.length() > 1 );
+		N_ASSERT( _clip_region.length() > 1 );
 		_clip_region.pop();
 	}
 

@@ -45,7 +45,7 @@ namespace noug {
 	/**
 	* @class JSON
 	*/
-	class F_EXPORT JSON {
+	class N_EXPORT JSON {
 	public:
 		typedef NonObjectTraits Traits;
 		struct Member;

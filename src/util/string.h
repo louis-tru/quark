@@ -45,7 +45,7 @@ namespace noug {
 	typedef const  ArrayString<uint16_t> cString2;
 	typedef const  ArrayString<uint32_t> cString4;
 	
-	class F_EXPORT ArrayStringBase: public Object {
+	class N_EXPORT ArrayStringBase: public Object {
 	public:
 		typedef void* (*AAlloc)(void* val, uint32_t, uint32_t*, uint32_t size_of);
 		typedef void  (*Free)(void* ptr);
@@ -191,7 +191,7 @@ namespace noug {
 
 namespace noug {
 
-	class F_EXPORT _Str {
+	class N_EXPORT _Str {
 	public:
 		// static methods
 		typedef char T;
@@ -493,7 +493,7 @@ namespace noug {
 		return _Str::to_string(c_str(), length(), sizeof(T));
 	}
 	
-	template <> F_EXPORT
+	template <> N_EXPORT
 	String ArrayString<>::to_string() const;
 
 	template <typename T, typename A>

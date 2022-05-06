@@ -98,7 +98,7 @@ void test_demo(int argc, char **argv) {
 		}
 	}
 
-	F_LOG(cmd);
+	N_LOG(cmd);
 
 	js::Start(cmd);
 }
@@ -109,7 +109,7 @@ extern "C" {
 #include <noug/util/android-jni.h>
 	JNIEXPORT extern void
 	Java_org_noug_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		F_LOG("Java_org_noug_examples_MainActivity_test");
+		N_LOG("Java_org_noug_examples_MainActivity_test");
 	}
 #endif
 }

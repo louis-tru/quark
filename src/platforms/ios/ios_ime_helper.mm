@@ -272,7 +272,7 @@ using namespace noug;
 			if ( _keyboard_up_keycode == 0 ) {
 				_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 1, 0, -1, 0);
 			} else {
-				F_ASSERT( keycode == _keyboard_up_keycode );
+				N_ASSERT( keycode == _keyboard_up_keycode );
 			}
 			_app->dispatch()->onIme_insert([text UTF8String]);
 			_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 0, 0, -1, 0);

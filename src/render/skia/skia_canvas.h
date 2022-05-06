@@ -32,15 +32,15 @@
 #ifndef __noug__render__skia__skia_canvas__
 #define __noug__render__skia__skia_canvas__
 
-#if !F_APPLE || F_ENABLE_GL
+#if !N_APPLE || N_ENABLE_GL
 # define SK_GL 1
 #endif
 
-#if F_APPLE
+#if N_APPLE
 # define SK_METAL 1
-#elif F_ANDROID
+#elif N_ANDROID
 # define SK_VULKAN 1
-#elif F_WIN
+#elif N_WIN
 # define SK_DIRECT3D 1
 #endif
 

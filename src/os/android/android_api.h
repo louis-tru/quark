@@ -34,7 +34,7 @@
 
 #include "noug/util/util.h"
 
-#if F_ANDROID
+#if N_ANDROID
 
 #include "noug/util/string.h"
 

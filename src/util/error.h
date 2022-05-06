@@ -34,15 +34,15 @@
 #include "./string.h"
 #include "./errno.h"
 
-#if !F_EXCEPTIONS_SUPPORT
+#if !N_EXCEPTIONS_SUPPORT
 	#error Exceptions must be turned on
 #endif
 
-#define F_THROW(code, ...) throw noug::Error(code, __VA_ARGS__)
-#define F_CHECK(cond, ...) if(!(cond)) throw noug::Error(__VA_ARGS__)
+#define N_THROW(code, ...) throw noug::Error(code, __VA_ARGS__)
+#define N_CHECK(cond, ...) if(!(cond)) throw noug::Error(__VA_ARGS__)
 
-#define F_ERROR_IGNORE(block) try block catch (noug::Error& err) {    \
-	F_DEBUG("%s,%s", "The exception is ignored", err.message().c_str());     \
+#define N_ERROR_IGNORE(block) try block catch (noug::Error& err) {    \
+	N_DEBUG("%s,%s", "The exception is ignored", err.message().c_str());     \
 }((void)0)
 
 namespace noug {
@@ -50,7 +50,7 @@ namespace noug {
 	/**
 	* @class Error
 	*/
-	class F_EXPORT Error: public Object {
+	class N_EXPORT Error: public Object {
 	public:
 		Error(const Error& err);
 		Error(cChar* msg, ...);

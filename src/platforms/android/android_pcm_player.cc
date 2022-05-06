@@ -58,23 +58,23 @@ namespace noug {
 
 			// create engine
 			result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL); 
-			F_ASSERT(SL_RESULT_SUCCESS == result);
+			N_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// realize the engine
 			result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
-			F_ASSERT(SL_RESULT_SUCCESS == result);
+			N_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// get the engine interface, which is needed in order to create other objects
 			result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
-			F_ASSERT(SL_RESULT_SUCCESS == result);
+			N_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// create output mix,
 			result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 0, 0, 0);
-			F_ASSERT(SL_RESULT_SUCCESS == result);
+			N_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// realize the output mix
 			result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
-			F_ASSERT(SL_RESULT_SUCCESS == result);
+			N_ASSERT(SL_RESULT_SUCCESS == result);
 		}
 
 		~AudioEngine() {
@@ -224,37 +224,37 @@ namespace noug {
 				result = (*engine->engineEngine)->CreateAudioPlayer(engine->engineEngine,
 																														&bqPlayerObject,
 																														&audioSrc, &audioSnk, 3, ids, req);
-				F_ASSERT(SL_RESULT_SUCCESS == result);
+				N_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// realize the player
 				result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
-				F_ASSERT(SL_RESULT_SUCCESS == result);
+				N_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// get the play interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
-				F_ASSERT(SL_RESULT_SUCCESS == result);
+				N_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// get the buffer queue interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
-				F_ASSERT(SL_RESULT_SUCCESS == result);
+				N_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// get the effect send interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_EFFECTSEND, &bqPlayerEffectSend);
-				F_ASSERT(SL_RESULT_SUCCESS == result);
+				N_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// get the volume interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
-				F_ASSERT(SL_RESULT_SUCCESS == result);
+				N_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// get max volume level
 				result = (*bqPlayerVolume)->GetMaxVolumeLevel(bqPlayerVolume, &_max_volume_level);
-				F_ASSERT(SL_RESULT_SUCCESS == result);
+				N_ASSERT(SL_RESULT_SUCCESS == result);
 
 				// set playing status
 				result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
-				F_ASSERT(SL_RESULT_SUCCESS == result);
+				N_ASSERT(SL_RESULT_SUCCESS == result);
 
-				F_DEBUG("createAudioPlayer finish");
+				N_DEBUG("createAudioPlayer finish");
 
 				return true;
 			}
@@ -286,7 +286,7 @@ namespace noug {
 				ScopeLock scope(_lock);
 				// clear buffer
 				result = (*bqPlayerBufferQueue)->Clear(bqPlayerBufferQueue);
-				F_ASSERT(SL_RESULT_SUCCESS == result);
+				N_ASSERT(SL_RESULT_SUCCESS == result);
 			}
 
 			/**

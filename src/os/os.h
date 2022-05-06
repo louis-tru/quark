@@ -36,21 +36,21 @@
 
 namespace noug {
 	namespace os {
-		F_EXPORT String version();
-		F_EXPORT String brand();
-		F_EXPORT String subsystem();
-		F_EXPORT String info();
-		F_EXPORT const Array<String>& languages();
-		F_EXPORT bool  is_wifi();
-		F_EXPORT bool  is_mobile();
-		F_EXPORT int   network_status();
-		F_EXPORT bool  is_ac_power();
-		F_EXPORT bool  is_battery();
-		F_EXPORT float battery_level();
-		F_EXPORT uint64_t memory();
-		F_EXPORT uint64_t used_memory();
-		F_EXPORT uint64_t available_memory();
-		F_EXPORT float cpu_usage();
+		N_EXPORT String version();
+		N_EXPORT String brand();
+		N_EXPORT String subsystem();
+		N_EXPORT String info();
+		N_EXPORT const Array<String>& languages();
+		N_EXPORT bool  is_wifi();
+		N_EXPORT bool  is_mobile();
+		N_EXPORT int   network_status();
+		N_EXPORT bool  is_ac_power();
+		N_EXPORT bool  is_battery();
+		N_EXPORT float battery_level();
+		N_EXPORT uint64_t memory();
+		N_EXPORT uint64_t used_memory();
+		N_EXPORT uint64_t available_memory();
+		N_EXPORT float cpu_usage();
 	}
 }
 #endif

@@ -33,7 +33,7 @@
 #include "noug/display.h"
 #include "linux_gl.h"
 #include "native-glsl.h"
-#if F_ANDROID
+#if N_ANDROID
 # include <noug/os/android/api.h>
 # include <android/native_window.h>
 #endif
@@ -43,7 +43,7 @@
 
 namespace noug {
 
-	#if !F_ANDROID
+	#if !N_ANDROID
 		extern Vec2 __get_window_size();
 		extern Display* __get_x11_display();
 	#endif
@@ -51,15 +51,15 @@ namespace noug {
 	static EGLDisplay egl_display() {
 		static EGLDisplay display = EGL_NO_DISPLAY;
 		if ( display == EGL_NO_DISPLAY ) { // get display and init it
-			#if F_ANDROID
+			#if N_ANDROID
 				display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 			#else
 				display = eglGetDisplay(__get_x11_display());
 			#endif
-			F_DEBUG("eglGetDisplay, %p", display);
-			F_ASSERT(display != EGL_NO_DISPLAY);
+			N_DEBUG("eglGetDisplay, %p", display);
+			N_ASSERT(display != EGL_NO_DISPLAY);
 			EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
-			F_ASSERT(displayState, "Cannot initialize EGL");
+			N_ASSERT(displayState, "Cannot initialize EGL");
 		}
 		return display;
 	}
@@ -73,7 +73,7 @@ namespace noug {
 
 		cJSON& msample = options["multisample"];
 		if (msample.is_uint()) 
-			multisample = F_MAX(msample.to_uint(), 0);
+			multisample = N_MAX(msample.to_uint(), 0);
 
 		// choose configuration
 		EGLint attribs[] = {
@@ -105,11 +105,11 @@ namespace noug {
 			eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
 			
 			if (numConfigs == 0) {
-				F_FATAL("We can't have EGLConfig array with zero size!");
+				N_FATAL("We can't have EGLConfig array with zero size!");
 			}
 		}
 
-		F_DEBUG("numConfigs,%d", numConfigs);
+		N_DEBUG("numConfigs,%d", numConfigs);
 
 		// then we create array large enough to store all configs
 		Array<EGLConfig> supportedConfigs(numConfigs);
@@ -117,10 +117,10 @@ namespace noug {
 		// and load them
 		chooseConfigState = eglChooseConfig(display, attribs, 
 																				*supportedConfigs, numConfigs, &numConfigs);
-		F_ASSERT(chooseConfigState);
+		N_ASSERT(chooseConfigState);
 
 		if ( numConfigs == 0 ) {
-			F_FATAL("Value of `numConfigs` must be positive");
+			N_FATAL("Value of `numConfigs` must be positive");
 		}
 
 		EGLint configIndex = 0;
@@ -140,7 +140,7 @@ namespace noug {
 				&& (multisample <= 1 || sa >= multisample)
 			;
 			if ( hasMatch ) {
-				F_DEBUG("hasMatch,%d", configIndex);
+				N_DEBUG("hasMatch,%d", configIndex);
 				config = supportedConfigs[configIndex];
 				break;
 			}
@@ -219,7 +219,7 @@ namespace noug {
 		} else {
 			ctx_attrs[1] = 2; // opengl es 2
 			ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
-			F_ASSERT(ctx);
+			N_ASSERT(ctx);
 
 			rv = (new MyGLDraw<GLDraw>(host, display, config, ctx,
 																multisample_ok,
@@ -306,7 +306,7 @@ namespace noug {
 
 	void GLDrawProxy::initialize() {
 		_host->initialize();
-		#if F_ANDROID
+		#if N_ANDROID
 			_host->set_default_scale(API::get_display_scale());
 		#else 
 			_host->set_default_scale(1.0 / Display::default_atom_pixel());
@@ -315,7 +315,7 @@ namespace noug {
 	}
 
 	static Vec2 get_window_size(EGLNativeWindowType win) {
-		#if F_ANDROID
+		#if N_ANDROID
 			return Vec2(ANativeWindow_getWidth(win), ANativeWindow_getHeight(win));
 		#else 
 			return __get_window_size();
@@ -323,12 +323,12 @@ namespace noug {
 	}
 
 	bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
-		F_ASSERT(!_window);
-		F_ASSERT(!_surface);
+		N_ASSERT(!_window);
+		N_ASSERT(!_surface);
 		EGLSurface surface = eglCreateWindowSurface(_display, _config, window, nullptr);
 
 		if ( !surface ) {
-			F_ERR("Unable to create a drawing surface");
+			N_ERR("Unable to create a drawing surface");
 			return false;
 		}
 
@@ -336,14 +336,14 @@ namespace noug {
 
 		#define CHECK(ok) \
 			if ( !(ok) ) { \
-				F_ERR("Unable to make egl current"); \
+				N_ERR("Unable to make egl current"); \
 				eglDestroySurface(_display, surface); \
 				return false; \
 			}
 
 		// _host->host()->main_loop()->post_sync(Cb([&ok, this, surface](Se &ev) {
 		// 	ok = eglMakeCurrent(_display, surface, surface, _context);
-		// 	F_ASSERT(ok);
+		// 	N_ASSERT(ok);
 		// }));
 		// CHECK(ok);
 		
@@ -358,7 +358,7 @@ namespace noug {
 
 	void GLDrawProxy::destroy_surface(EGLNativeWindowType window) {
 		if ( _window ) {
-			F_ASSERT(window == _window);
+			N_ASSERT(window == _window);
 			if (_surface) {
 				eglDestroySurface(_display, _surface);
 			}
@@ -402,7 +402,7 @@ namespace noug {
 
 	void GLDrawProxy::refresh_virtual_keyboard_rect() {
 		// draw android virtual keyboard rect
-		#if F_ANDROID
+		#if N_ANDROID
 			_virtual_keys_rect = Rect();
 
 			Vec2 scale = _host->display()->scale();
@@ -447,13 +447,13 @@ namespace noug {
 
 		// Test the framebuffer for completeness.
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			F_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
+			N_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 		}
 
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-		F_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+		N_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 	}
 
 	void GLDrawProxy::begin_render() {

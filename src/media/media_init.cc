@@ -34,7 +34,7 @@
 
 namespace noug {
 
-	F_INIT_BLOCK(media_init) {
+	N_INIT_BLOCK(media_init) {
 
 		static module_info_t audio_player = {
 			[](void* arg) -> Object* {

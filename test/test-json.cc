@@ -40,37 +40,37 @@ void test_json(int argc, char **argv) {
 	String str1("100");
 	String str2 = str1;
 	
-	F_LOG("OK");
+	N_LOG("OK");
 	
 	cChar* json_str = "{ \"a\": \"ABCD\", \"b\": 100 }";
 	
 	JSON json = JSON::parse(json_str);
 	
-	F_LOG(JSON::stringify(json));
+	N_LOG(JSON::stringify(json));
 	
-	F_LOG("short,%d", sizeof(short));
-	F_LOG("int,%d", sizeof(int));
-	F_LOG("long,%d", sizeof(long));
-	F_LOG("long int,%d", sizeof(long int));
-	F_LOG("long double,%d", sizeof(long double));
+	N_LOG("short,%d", sizeof(short));
+	N_LOG("int,%d", sizeof(int));
+	N_LOG("long,%d", sizeof(long));
+	N_LOG("long int,%d", sizeof(long int));
+	N_LOG("long double,%d", sizeof(long double));
 	
-	F_LOG("\n");
+	N_LOG("\n");
 	
-	F_LOG("%d", sizeof(int));
-	F_LOG("%d", sizeof(int*));
-	F_LOG("%d", sizeof(long));
+	N_LOG("%d", sizeof(int));
+	N_LOG("%d", sizeof(int*));
+	N_LOG("%d", sizeof(long));
 	//  LOG(sizeof(EventDelegate<>));
 	
 	std::map<String, cChar*> m;
-	F_LOG("%s", m["a"]);
+	N_LOG("%s", m["a"]);
 	cChar*& a = m["a"];
 	a = "110";
-	F_LOG("%s", m["a"]);
+	N_LOG("%s", m["a"]);
 	
 	const int* i = new int(101);
 	
-	F_LOG(*i);
+	N_LOG(*i);
 	
 	delete i;
-	F_LOG(*i);
+	N_LOG(*i);
 }

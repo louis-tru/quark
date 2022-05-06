@@ -94,7 +94,7 @@ namespace noug {
 			while (v) {
 				auto size = v->layout_size().layout_size;
 				auto cross = is_horizontal ? size.y(): size.x();
-				max_cross = F_MAX(max_cross, cross);
+				max_cross = N_MAX(max_cross, cross);
 				v = v->next();
 			}
 		} else {
@@ -151,7 +151,7 @@ namespace noug {
 			auto v = is_reverse ? last(): first();
 			do {
 				auto size = v->layout_raw_size(cur_size).layout_size;
-				max_cross = F_MAX(max_cross, size.y()); // solve content height
+				max_cross = N_MAX(max_cross, size.y()); // solve content height
 				total_main += size.x();
 				weight_total += v->layout_weight();
 				items.push({size, v});
@@ -164,7 +164,7 @@ namespace noug {
 
 			if (weight_total > 0) {
 				total_main = 0;
-				float min_weight_total = F_MIN(weight_total, 1);
+				float min_weight_total = N_MIN(weight_total, 1);
 				float C = weight_total / (overflow * min_weight_total);
 				// 在flex中：size = size_raw + overflow * (weight / weight_total) * min(weight_total, 1)
 				for (auto i: items) {

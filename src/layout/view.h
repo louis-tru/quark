@@ -36,12 +36,12 @@
 
 namespace noug {
 
-	#define F_Each_View(F) \
+	#define N_Each_View(F) \
 		F(View)  F(Box) \
 		F(Image) F(Video) F(Scroll) \
 		F(Input) F(Text) F(Label) F(Root) F(FlexLayout) F(FlowLayout)
 
-	#define F_Define_View(N) \
+	#define N_Define_View(N) \
 	public: \
 		friend class SkiaRender; \
 		virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
@@ -49,15 +49,15 @@ namespace noug {
 	class Action;
 	class SkiaRender;
 
-	F_Define_Visitor(View, F_Each_View);
+	N_Define_Visitor(View, N_Each_View);
 
 	/**
 		* The basic elements of UI tree
 		*
 		* @class View
 		*/
-	class F_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
-		F_HIDDEN_ALL_COPY(View);
+	class N_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
+		N_HIDDEN_ALL_COPY(View);
 	public:
 
 		View();
@@ -418,24 +418,24 @@ namespace noug {
 
 	public:
 		// the objects that automatically adjust view properties
-		F_DEFINE_PROP(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
-		F_DEFINE_PROP_READ(View*, parent);
-		F_DEFINE_PROP_READ(View*, prev);
-		F_DEFINE_PROP_READ(View*, next);
-		F_DEFINE_PROP_READ(View*, first);
-		F_DEFINE_PROP_READ(View*, last);
+		N_DEFINE_PROP(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
+		N_DEFINE_PROP_READ(View*, parent);
+		N_DEFINE_PROP_READ(View*, prev);
+		N_DEFINE_PROP_READ(View*, next);
+		N_DEFINE_PROP_READ(View*, first);
+		N_DEFINE_PROP_READ(View*, last);
 		// can affect the transparency of subviews
-		F_DEFINE_PROP(float, opacity); // 可影响子视图的透明度值
+		N_DEFINE_PROP(float, opacity); // 可影响子视图的透明度值
 		// 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
 		// @prop Does the view need to receive or handle event throws from the system
-		F_DEFINE_PROP(bool, receive);
+		N_DEFINE_PROP(bool, receive);
 		// 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
-		F_DEFINE_PROP_READ(bool, visible);
+		N_DEFINE_PROP_READ(bool, visible);
 		// 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
-		F_DEFINE_PROP_READ(bool, visible_region);
+		N_DEFINE_PROP_READ(bool, visible_region);
 
-		F_DEFINE_INLINE_CLASS(Inl);
-		F_DEFINE_INLINE_CLASS(InlEvent);
+		N_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(InlEvent);
 
 		// friend class
 		friend class SkiaRender;

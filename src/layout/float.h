@@ -35,8 +35,8 @@
 
 namespace noug {
 
-	class F_EXPORT FloatLayout: public Box {
-		F_Define_View(FloatLayout);
+	class N_EXPORT FloatLayout: public Box {
+		N_Define_View(FloatLayout);
 	public:
 		FloatLayout();
 	};

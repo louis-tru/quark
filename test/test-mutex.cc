@@ -45,7 +45,7 @@ void test_mutex0()
 		ScopeLock scope(mtx);
 		cnt++;
 	}
-	F_LOG("std::mutex,%d", cnt);
+	N_LOG("std::mutex,%d", cnt);
 }
 
 void test_recursive_mutex()
@@ -56,7 +56,7 @@ void test_recursive_mutex()
 		std::lock_guard<RecursiveMutex> scope(rmtx);
 		cnt++;
 	}
-	F_LOG("std::recursive_mutex,%d", cnt);
+	N_LOG("std::recursive_mutex,%d", cnt);
 }
 
 void test_idle()
@@ -68,7 +68,7 @@ void test_idle()
 		j++;
 		cnt++;
 	}
-	F_LOG("idle,%d", cnt);
+	N_LOG("idle,%d", cnt);
 }
 
 void test_mutex(int argc, char **argv) {

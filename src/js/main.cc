@@ -33,11 +33,11 @@
 
 using namespace noug::js;
 
-F_UI_MAIN() {
+N_UI_MAIN() {
 	return Start(argc, argv);
 }
 
-#if F_ANDROID
+#if N_ANDROID
 class App: public noug::Application {
 	public: static void run(int argc, Char *argv[]) {
 		runMain(argc, argv);

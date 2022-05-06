@@ -86,7 +86,7 @@ namespace noug {
 					}
 				}
 			}
-			F_ASSERT(_mark_total >= 0);
+			N_ASSERT(_mark_total >= 0);
 		} while (_mark_total);
 
 		for (auto& levelMarks: _marks) {
@@ -147,7 +147,7 @@ namespace noug {
 	}
 
 	void PreRender::mark(Layout *layout, uint32_t depth) {
-		F_ASSERT(depth);
+		N_ASSERT(depth);
 		_marks.extend(depth + 1);
 		auto& arr = _marks[depth];
 		layout->_mark_index = arr.length();
@@ -156,7 +156,7 @@ namespace noug {
 	}
 
 	void PreRender::delete_mark(Layout *layout, uint32_t depth) {
-		F_ASSERT(depth);
+		N_ASSERT(depth);
 		auto& arr = _marks[depth];
 		auto last = arr[arr.length() - 1];
 		if (last != layout) {

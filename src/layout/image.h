@@ -36,8 +36,8 @@
 
 namespace noug {
 
-	class F_EXPORT Image: public Box, public SourceHold {
-		F_Define_View(Image);
+	class N_EXPORT Image: public Box, public SourceHold {
+		N_Define_View(Image);
 	protected:
 		virtual float solve_layout_content_width(Size &parent_layout_size) override;
 		virtual float solve_layout_content_height(Size &parent_layout_size) override;

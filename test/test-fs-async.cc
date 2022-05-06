@@ -41,36 +41,36 @@ class AsyncFileRead: public File, public File::Delegate {
 	}
 	
 	virtual ~AsyncFileRead() {
-		F_LOG("Delete");
+		N_LOG("Delete");
 		fs_read_file(fs_resources("res/bg.svg"), Cb([](CbData& evt) {
 			if ( evt.error ) {
-				F_LOG("ERR, %s", evt.error->message().c_str());
+				N_LOG("ERR, %s", evt.error->message().c_str());
 			} else {
-				F_LOG( static_cast<Buffer*>(evt.data)->collapse_string() );
+				N_LOG( static_cast<Buffer*>(evt.data)->collapse_string() );
 			}
 			RunLoop::current()->stop();
 		}));
 	}
 	
 	virtual void trigger_file_error(File* file, cError& error) {
-		F_LOG("Error, %s", error.message().c_str());
+		N_LOG("Error, %s", error.message().c_str());
 		delete this;
 	}
 	virtual void trigger_file_open(File* file) {
-		F_LOG("Open, %s", *path());
+		N_LOG("Open, %s", *path());
 		read(Buffer::alloc(1024), 1024); // start read
 	}
 	virtual void trigger_file_close(File* file) {
-		F_LOG("Close");
+		N_LOG("Close");
 		Release(this);
 	}
 	virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
 		if ( buffer.length() ) {
-			F_LOG( buffer.collapse_string() );
+			N_LOG( buffer.collapse_string() );
 			read(buffer, 1024); // read
 		} else {
 			// read end
-			F_LOG("Read END");
+			N_LOG("Read END");
 			close();
 		}
 	}
@@ -87,24 +87,24 @@ class AsyncFileWrite: public File, public File::Delegate {
 	}
 	
 	virtual ~AsyncFileWrite() {
-		F_LOG("Delete WriteFileAsync");
+		N_LOG("Delete WriteFileAsync");
 	}
 	
 	virtual void trigger_file_error(File* file, cError& error) {
-		F_LOG("Error, %s", error.message().c_str());
+		N_LOG("Error, %s", error.message().c_str());
 		RunLoop::current()->stop();
 		Release(this);
 	}
 	virtual void trigger_file_open(File* file) {
-		F_LOG("Open, %s", *path());
+		N_LOG("Open, %s", *path());
 		write(String("ABCDEFG-").collapse()); // start read
 	}
 	virtual void trigger_file_close(File* file) {
-		F_LOG("Close");
+		N_LOG("Close");
 		Release(this);
 	}
 	virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
-		F_LOG("Write ok");
+		N_LOG("Write ok");
 		(new AsyncFileRead(path()))->open();
 		close();
 	}

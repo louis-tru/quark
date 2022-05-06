@@ -66,7 +66,7 @@ namespace noug {
 	/**
 	* @class Codec
 	*/
-	class F_EXPORT Codec {
+	class N_EXPORT Codec {
 	public:
 		
 		/**

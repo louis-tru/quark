@@ -45,8 +45,8 @@ namespace noug {
 	/**
 	* @class FontPool 加载与管理所有字体、字型、字型表, 并在系统内存不足时能自动清理使用频率不高的字型数据
 	*/
-	class F_EXPORT FontPool: public Object {
-		F_HIDDEN_ALL_COPY(FontPool);
+	class N_EXPORT FontPool: public Object {
+		N_HIDDEN_ALL_COPY(FontPool);
 	public:
 		
 		FontPool(Application* host);
@@ -169,7 +169,7 @@ namespace noug {
 		*/
 		static FFID get_font_familys_id(cString fonts);
 		
-		struct F_EXPORT SimpleFont {
+		struct N_EXPORT SimpleFont {
 			String  name;
 			TextStyleValue style;
 			uint32_t    num_glyphs;
@@ -181,7 +181,7 @@ namespace noug {
 			int     underline_thickness;
 		};
 		
-		struct F_EXPORT SimpleFontFamily {
+		struct N_EXPORT SimpleFontFamily {
 			typedef NonObjectTraits Traits;
 			String path;
 			String family;
@@ -213,7 +213,7 @@ namespace noug {
 		float                 _max_glyph_texture_size; /* 纹理绘制的最大限制,超过这个size使用顶点进行绘制 */
 		float                 _display_port_scale;
 		
-		F_DEFINE_INLINE_CLASS(Inl);
+		N_DEFINE_INLINE_CLASS(Inl);
 		
 		friend class Font;
 		friend class FontGlyphTable;

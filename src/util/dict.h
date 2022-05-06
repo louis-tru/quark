@@ -52,17 +52,17 @@ namespace noug {
 		}
 	};
 	
-	template<> F_EXPORT uint64_t Compare<char>::hash_code(const char& key);
-	template<> F_EXPORT uint64_t Compare<uint8_t>::hash_code(const uint8_t& key);
-	template<> F_EXPORT uint64_t Compare<int16_t>::hash_code(const int16_t& key);
-	template<> F_EXPORT uint64_t Compare<uint16_t>::hash_code(const uint16_t& key);
-	template<> F_EXPORT uint64_t Compare<int32_t>::hash_code(const int32_t& key);
-	template<> F_EXPORT uint64_t Compare<uint32_t>::hash_code(const uint32_t& key);
-	template<> F_EXPORT uint64_t Compare<int64_t>::hash_code(const int64_t& key);
-	template<> F_EXPORT uint64_t Compare<uint64_t>::hash_code(const uint64_t& key);
-	template<> F_EXPORT uint64_t Compare<float>::hash_code(const float& key);
-	template<> F_EXPORT uint64_t Compare<double>::hash_code(const double& key);
-	template<> F_EXPORT uint64_t Compare<bool>::hash_code(const bool& key);
+	template<> N_EXPORT uint64_t Compare<char>::hash_code(const char& key);
+	template<> N_EXPORT uint64_t Compare<uint8_t>::hash_code(const uint8_t& key);
+	template<> N_EXPORT uint64_t Compare<int16_t>::hash_code(const int16_t& key);
+	template<> N_EXPORT uint64_t Compare<uint16_t>::hash_code(const uint16_t& key);
+	template<> N_EXPORT uint64_t Compare<int32_t>::hash_code(const int32_t& key);
+	template<> N_EXPORT uint64_t Compare<uint32_t>::hash_code(const uint32_t& key);
+	template<> N_EXPORT uint64_t Compare<int64_t>::hash_code(const int64_t& key);
+	template<> N_EXPORT uint64_t Compare<uint64_t>::hash_code(const uint64_t& key);
+	template<> N_EXPORT uint64_t Compare<float>::hash_code(const float& key);
+	template<> N_EXPORT uint64_t Compare<double>::hash_code(const double& key);
+	template<> N_EXPORT uint64_t Compare<bool>::hash_code(const bool& key);
 
 	/**
 	 * @class Dict hash table
@@ -269,7 +269,7 @@ namespace noug {
 	template<typename K, typename V, typename C, typename A>
 	const V& Dict<K, V, C, A>::get(const K& key) const throw(Error) {
 		auto it = find(key);
-		F_CHECK(it != IteratorConst(&_end), "Could not find key for dict");
+		N_CHECK(it != IteratorConst(&_end), "Could not find key for dict");
 		return it->value;
 	}
 
@@ -345,7 +345,7 @@ namespace noug {
 
 	template<typename K, typename V, typename C, typename A>
 	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::erase(IteratorConst it) {
-		F_ASSERT(_length);
+		N_ASSERT(_length);
 		auto node = node_(it);
 		if (node != &_end) {
 			auto next = link_(node->_prev, node->_next);
@@ -468,7 +468,7 @@ namespace noug {
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::optimize_() {
 		auto scale = float(_length) / float(_capacity);
-		if (scale > 0.7 || (scale < 0.2 && _capacity > F_MIN_CAPACITY)) {
+		if (scale > 0.7 || (scale < 0.2 && _capacity > N_MIN_CAPACITY)) {
 			_indexed = (Node**)A::aalloc(_indexed, uint32_t(_length / 0.7) , &_capacity, sizeof(Node*));
 			::memset(_indexed, 0, sizeof(Node*) * _capacity);
 			auto node = _end._next;

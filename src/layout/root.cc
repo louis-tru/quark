@@ -42,7 +42,7 @@ namespace noug {
 
 	Root* Root::create() throw(Error) {
 		auto app = noug::app();
-		F_CHECK(app, "Before you create a root, you need to create a Application");
+		N_CHECK(app, "Before you create a root, you need to create a Application");
 		Handle<Root> r = new Root();
 		r->set_layout_depth(1);
 		r->set_receive(1);
@@ -123,7 +123,7 @@ namespace noug {
 	}
 
 	void Root::set_parent(View* parent) {
-		F_UNREACHABLE();
+		N_UNREACHABLE();
 	}
 
 }
