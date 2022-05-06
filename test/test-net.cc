@@ -51,7 +51,7 @@ void echo_ipv6(hostent* host) {
 			uv_ip6_name(&addr6, dst, 64);
 		}
 		{ //
-			uv_inet_ntop(AN_INET6, host->h_addr_list[i], dst2, 64);
+			uv_inet_ntop(AF_INET6, host->h_addr_list[i], dst2, 64);
 			uv_ip6_addr(dst2, 80, &addr6_2);
 			uv_ip6_name(&addr6_2, dst2, 64);
 		}
@@ -77,7 +77,7 @@ void echo_ipv4(hostent* host) {
 			uv_ip4_name(&addr4, dst, 64);
 		}
 		{ //
-			uv_inet_ntop(AN_INET, host->h_addr_list[i], dst2, 64);
+			uv_inet_ntop(AF_INET, host->h_addr_list[i], dst2, 64);
 			uv_ip4_addr(dst2, 80, &addr4_2);
 			uv_ip4_name(&addr4_2, dst2, 64);
 			
