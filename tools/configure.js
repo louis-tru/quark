@@ -117,8 +117,9 @@ function touch_files(variables) {
 		'out/native-glsl.cc',
 	]);
 
-	if (!fs.existsSync('out/noug')) {
-		fs.symlinkSync('./src', `out/noug`);
+	if (!fs.existsSync(`${__dirname}/../out/noug`)) {
+		fs.removerSync(`${__dirname}/../out/noug`);
+		fs.symlinkSync(path.resolve(`${__dirname}/../src`), path.resolve(`${__dirname}/../out/noug`));
 	}
 
 	if (variables.library_output == 'shared_library' && variables.OS != 'mac') {

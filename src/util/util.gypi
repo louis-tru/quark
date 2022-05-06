@@ -6,7 +6,7 @@
 		'target_name': 'noug-util',
 		'type': 'static_library',
 		'dependencies': [
-			'noug/util/minizip.gyp:minizip',
+			'src/util/minizip.gyp:minizip',
 			'deps/btree/btree.gyp:btree',
 			'deps/libuv/libuv.gyp:libuv',
 			'deps/node/deps/openssl/openssl.gyp:openssl',
