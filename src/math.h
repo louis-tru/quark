@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__math__math__
-#define __noug__math__math__
+#ifndef __noug__math__
+#define __noug__math__
 
 #include "./util/util.h"
 #include "./util/array.h"

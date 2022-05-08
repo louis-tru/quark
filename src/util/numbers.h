@@ -59,6 +59,9 @@ namespace noug {
 		static inline T min(T a, T b) {
 			return a < b ? a: b;
 		}
+		static inline T limit(T x, T min, T max) {
+			return Number::max(min, Number::min(x, max));
+		}
 	};
 
 #define define_number(N, T) \

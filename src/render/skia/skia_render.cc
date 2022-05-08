@@ -43,7 +43,7 @@
 #include "../../layout/input.h"
 #include "../../layout/text.h"
 #include "../../layout/root.h"
-#include "../../layout/flex.h"
+#include "../../layout/flow.h"
 
 #define N_ENABLE_DRAW 1
 #define N_ENABLE_CLIP 1
@@ -134,9 +134,7 @@ namespace noug {
 	}
 
 	void SkiaRender::visitText(Text* text) {
-		solveBox(text, [](SkiaRender* render, Box* box) {
-			// TODO ...
-		});
+		solveBox(flow, nullptr);
 	}
 
 	void SkiaRender::visitLabel(Label* label) {
