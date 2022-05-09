@@ -43,6 +43,7 @@ namespace noug {
 		inline uint64_t hash_code() { return _hash; }
 		inline void clear() { _hash = 5381; }
 		void   update(const void* data, uint32_t len);
+		void   update(cString& str);
 		String digest();
 	};
 

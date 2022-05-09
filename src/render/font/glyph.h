@@ -28,33 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__font__pool__
-#define __noug__font__pool__
 
-#include "./typeface.h"
+#ifndef __noug__font__glyph__
+#define __noug__font__glyph__
 
 namespace noug {
-
-	class Application;
-	class FontStyle;
-
-	class N_EXPORT FontPool: public Object {
-		N_HIDDEN_ALL_COPY(FontPool);
-	public:
-		FontPool(Application* host);
-		virtual ~FontPool();
-		Array<String> family_names() const;
-		Typeface* typeface(cString& familyName, const FontStyle& style);
-		Typeface* register_from_data(Buffer buff);
-		Typeface* register_from_file(cString& path);
-		const Array<Typeface*>& default_typeface();
-		// define ptops
-		N_DEFINE_PROP_READ(Application*, host);
-	private:
-		void set_default_typeface(const Array<String>& familyNames);
-		Array<Typeface*> _default_typeface;
-		void* _impl;
-	};
-
+	
 }
+
 #endif

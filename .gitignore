@@ -19,3 +19,4 @@ bench/**.js
 *.pyc
 libs/test
 deps/bplus
+src/render/font.bk

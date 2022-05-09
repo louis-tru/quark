@@ -82,7 +82,7 @@
 						'test-skia.cc',
 						'test-scaner.cc',
 						'test-layout.cc',
-						'test-skfont.cc',
+						'test-font.cc',
 					],
 				}],
 				['os in "ios osx"', {

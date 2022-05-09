@@ -123,7 +123,7 @@ namespace noug {
 	public:
 		#define _inl_pool(self) static_cast<ImagePool::Inl*>(self)
 
-		void source_state_handle(Event<ImageSource, ImageSource::State>& evt) {
+		void onSourceStateHandle(Event<ImageSource, ImageSource::State>& evt) {
 			ScopeLock locl(_Mutex);
 			auto id = evt.sender()->uri().hash_code();
 			auto it = _sources.find(id);
@@ -143,7 +143,7 @@ namespace noug {
 
 	ImagePool::~ImagePool() {
 		for (auto& it: _sources) {
-			it.value.source->N_Off(State, &Inl::source_state_handle, _inl_pool(this));
+			it.value.source->N_Off(State, &Inl::onSourceStateHandle, _inl_pool(this));
 		}
 	}
 
@@ -159,7 +159,7 @@ namespace noug {
 		}
 
 		ImageSource* source = new ImageSource(_uri);
-		source->N_On(State, &Inl::source_state_handle, _inl_pool(this));
+		source->N_On(State, &Inl::onSourceStateHandle, _inl_pool(this));
 		_sources.set(id, { source->size(), source });
 		_total_data_size += source->size();
 
@@ -171,7 +171,7 @@ namespace noug {
 		String _uri = fs_reader()->format(uri);
 		auto it = _sources.find(_uri.hash_code());
 		if (it != _sources.end()) {
-			it->value.source->N_Off(State, &Inl::source_state_handle, _inl_pool(this));
+			it->value.source->N_Off(State, &Inl::onSourceStateHandle, _inl_pool(this));
 			_sources.erase(it);
 			_total_data_size -= it->value.size;
 		}

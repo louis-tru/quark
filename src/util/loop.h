@@ -79,7 +79,7 @@ namespace noug {
 		static ThreadID create(Exec exec, void* arg = nullptr, cString& tag = String());
 		static ThreadID create(Func func, cString& tag = String());
 		static ThreadID current_id();
-		static Thread* current();
+		static Thread*  current();
 		static void sleep(uint64_t timeoutUs = 0); // 休眠当前线程不能被唤醒
 		static void pause(uint64_t timeoutUs = 0 /*小于1永久等待*/); // 暂停当前运行可以被`resume()`唤醒
 		static void resume(ThreadID id); // 恢复线程运行

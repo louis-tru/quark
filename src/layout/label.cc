@@ -40,7 +40,7 @@ namespace noug {
 		, _text_size{16, TextValueType::VALUE}
 		, _text_weight{TextWeightValue::REGULAR, TextValueType::VALUE}
 		, _text_style{TextStyleValue::NORMAL, TextValueType::VALUE}
-		, _text_family{FontPool::get_font_familys_id(String()), TextValueType::VALUE}
+		, _text_family{FontFamilysID::Make(String()), TextValueType::VALUE}
 		, _text_shadow{{ 0, 0, 0, Color(0, 0, 0) }, TextValueType::VALUE}
 		, _text_line_height{0, TextValueType::VALUE}
 		, _text_decoration{TextDecorationValue::NONE, TextValueType::VALUE}

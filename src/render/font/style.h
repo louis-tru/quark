@@ -84,6 +84,7 @@ namespace noug {
 		int weight() const { return _value & 0xFFFF; }
 		int width() const { return (_value >> 16) & 0xFF; }
 		Slant slant() const { return (Slant)((_value >> 24) & 0xFF); }
+		inline int32_t value() const { return _value; }
 
 		static constexpr FontStyle Normal() {
 			return FontStyle(kNormal_Weight, kNormal_Width, kUpright_Slant);

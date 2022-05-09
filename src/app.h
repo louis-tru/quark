@@ -136,9 +136,9 @@ namespace noug {
 		inline ImagePool* img_pool() { return _img_pool; }
 
 		/**
-		* @func clear 清理垃圾回收内存资源, full=true 清理全部资源
+		* @func clear 清理垃圾回收内存资源, all=true 清理全部资源
 		*/
-		void clear(bool full = false);
+		void clear(bool all = false);
 
 		/**
 		* @func max_image_memory_limit()

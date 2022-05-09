@@ -39,6 +39,10 @@ namespace noug {
 		while (len--)
 			_hash += (_hash << 5) + ((cChar*)data)[len];
 	}
+
+	void SimpleHash::update(cString& str) {
+		update(str.c_str(), str.length());
+	}
 	
 	String SimpleHash::digest() {
 		String rev;

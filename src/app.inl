@@ -114,7 +114,7 @@ namespace noug {
 		/**
 		* @func onExit(code)
 		*/
-		void on_process_exit_handle(Event<>& e);
+		void onProcessExitHandle(Event<>& e);
 	};
 
 	typedef Application::Inl AppInl;

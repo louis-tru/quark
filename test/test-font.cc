@@ -2,13 +2,16 @@
 #include <noug/app.h>
 #include <noug/display.h>
 #include <noug/render/skia/skia_render.h>
+#include <noug/render/font/pool.h>
 #include <skia/core/SkCanvas.h>
 #include <skia/core/SkFont.h>
+#include <skia/core/SkData.h>
 #include <skia/core/SkFontMgr.h>
+#include <native-font.h>
 
 using namespace noug;
 
-void testSkfont(Application* app, SkCanvas* canvas) {
+void testSkFont(Application* app, SkCanvas* canvas) {
 	SkString str;
 	auto mgr = SkFontMgr::RefDefault();
 	int count = mgr->countFamilies();
@@ -39,22 +42,25 @@ void testSkfont(Application* app, SkCanvas* canvas) {
 	tf3->getFamilyName(&str);
 	N_LOG("%s", str.c_str());
 	
+	N_LOG("");
 	N_LOG("楚(26970):%d", tf->unicharToGlyph(26970)); // 楚
 	N_LOG("学(23398):%d", tf->unicharToGlyph(23398)); // 学
 	N_LOG("文(25991):%d", tf->unicharToGlyph(25991)); // 文
-	N_LOG("�(65533):%d", tf->unicharToGlyph(65533)); // �
+	N_LOG("�(65533):%d", tf->unicharToGlyph(65533));  // �
 
+	N_LOG("");
 	N_LOG("楚(26970):%d", tf2->unicharToGlyph(26970)); // 楚
 	N_LOG("学(23398):%d", tf2->unicharToGlyph(23398)); // 学
 	N_LOG("文(25991):%d", tf2->unicharToGlyph(25991)); // 文
-	N_LOG("�(65533):%d", tf2->unicharToGlyph(65533)); // �
+	N_LOG("�(65533):%d", tf2->unicharToGlyph(65533));  // �
 	
+	N_LOG("");
 	N_LOG("楚(26970):%d", tf3->unicharToGlyph(26970)); // 楚
 	N_LOG("学(23398):%d", tf3->unicharToGlyph(23398)); // 学
 	N_LOG("文(25991):%d", tf3->unicharToGlyph(25991)); // 文
-	N_LOG("�(65533):%d", tf3->unicharToGlyph(65533)); // �
+	N_LOG("�(65533):%d", tf3->unicharToGlyph(65533));  // �
 	
-	
+	N_LOG("");
 	N_LOG("countGlyphs:%d", tf->countGlyphs());
 	N_LOG("countGlyphs:%d", tf2->countGlyphs());
 	N_LOG("countGlyphs:%d", tf3->countGlyphs());
@@ -65,16 +71,38 @@ void testSkfont(Application* app, SkCanvas* canvas) {
 	
 	//SkFontMetrics metrics;
 	//font.getMetrics(&metrics);
-	
-	
-
 }
 
-void test_skfont(int argc, char **argv) {
+void testFontPool(Application* app, SkCanvas* canvas) {
+	auto pool = app->font_pool();
+	
+	for (auto& i: pool->family_names()) {
+		N_LOG(i);
+	}
+
+	FontStyle style;
+	auto tf1 = pool->typeface("", style);
+	auto tf2 = pool->typeface("PingFang HK", style);
+	
+	N_LOG(tf1.getFamilyName());
+	N_LOG(tf2.getFamilyName());
+	
+	auto DejaVuSerif_ttf = native_fonts_[0];
+	WeakBuffer buf((char*)DejaVuSerif_ttf.data, DejaVuSerif_ttf.count);
+	pool->register_from_data(buf);
+	
+	auto tf3 = pool->typeface("DejaVu Serif", style);
+	
+	N_LOG(tf3.getFamilyName());
+}
+
+void test_font(int argc, char **argv) {
 	auto post = [](Application* app) {
 		app->render()->post_message(Cb([app](CbData&data) {
 			auto render = static_cast<SkiaRender*>(app->render()->visitor());
-			testSkfont(app, render->getCanvas());
+			auto canvas = render->getCanvas();
+			//testSkFont(app, render->getCanvas());
+			testFontPool(app, render->getCanvas());
 			app->render()->submit();
 		}));
 	};

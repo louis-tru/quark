@@ -154,7 +154,7 @@ namespace noug {
 		}));
 	}
 
-	void AppInl::on_process_exit_handle(Event<>& e) {
+	void AppInl::onProcessExitHandle(Event<>& e) {
 		// int rc = static_cast<const Int32*>(e.data())->value;
 		triggerUnload();
 		N_DEBUG("Application onExit");
@@ -211,12 +211,12 @@ namespace noug {
 		N_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
 
-		N_On(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
+		N_On(SafeExit, &AppInl::onProcessExitHandle, _inl_app(this));
 		// init
 		_default_text_settings = new TextBasic();
 		_pre_render = new PreRender(this); N_DEBUG("new PreRender ok");
 		_display = NewRetain<Display>(this); N_DEBUG("NewRetain<Display> ok"); // strong ref
-		//_font_pool = new FontPool(this);
+		_font_pool = new FontPool(this);
 		_img_pool = new ImagePool(this);
 		_dispatch = new EventDispatch(this); N_DEBUG("new EventDispatch ok");
 		// _action_direct = new ActionDirect(); N_DEBUG("new ActionDirect ok");
@@ -242,7 +242,7 @@ namespace noug {
 		Release(_font_pool);   _font_pool = nullptr;
 		Release(_img_pool);    _img_pool = nullptr;
 
-		N_Off(SafeExit, &AppInl::on_process_exit_handle, _inl_app(this));
+		N_Off(SafeExit, &AppInl::onProcessExitHandle, _inl_app(this));
 
 		_shared = nullptr;
 	}
@@ -304,10 +304,9 @@ namespace noug {
 	/**
 	* @func clear([full]) 清理不需要使用的资源
 	*/
-	void Application::clear(bool full) {
-		_render->post_message(Cb([this, full](CbData& e){
-			_img_pool->clear(full);
-			_font_pool->clear(full);
+	void Application::clear(bool all) {
+		_render->post_message(Cb([this, all](CbData& e){
+			_img_pool->clear(all);
 		}));
 	}
 
@@ -329,7 +328,7 @@ namespace noug {
 	* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
 	*/
 	uint64_t Application::used_image_memory() const {
-		return _img_pool->total_data_size() + _font_pool->total_data_size();
+		return _img_pool->total_data_size();
 	}
 
 	/**

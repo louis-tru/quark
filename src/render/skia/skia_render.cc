@@ -134,7 +134,7 @@ namespace noug {
 	}
 
 	void SkiaRender::visitText(Text* text) {
-		solveBox(flow, nullptr);
+		solveBox(text, nullptr);
 	}
 
 	void SkiaRender::visitLabel(Label* label) {

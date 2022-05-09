@@ -34,7 +34,7 @@
 #include "../deps/node/src/noug.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_skfont
+#define TEST_FUNC_NAME test_font
 #endif
 
 using namespace noug;

@@ -42,16 +42,16 @@ namespace noug {
 	typedef uint16_t GlyphID;
 	typedef uint32_t FontTableTag;
 
-	class N_EXPORT Typeface: public Object {
-		N_HIDDEN_ALL_COPY(Typeface);
+	class N_EXPORT Typeface {
 	public:
-		virtual ~Typeface();
+		Typeface();
+		Typeface(const Typeface& tf);
+		~Typeface();
 		FontStyle fontStyle() const;
 		bool isBold() const;
 		bool isItalic() const;
 		bool isFixedPitch() const;
 		int countGlyphs() const;
-		int countTables() const;
 		int countTables() const;
 		int getTableTags(FontTableTag tags[]) const;
 		Buffer getTableData(FontTableTag tag) const;
@@ -62,7 +62,7 @@ namespace noug {
 		GlyphID unicharToGlyph(Unichar unichar) const;
 		Region getBounds() const;
 	private:
-		Typeface(void* impl);
+		Typeface(FontPool* pool, void* impl);
 		void* _impl;
 		friend class FontPool;
 	};

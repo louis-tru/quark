@@ -31,194 +31,44 @@
 #ifndef __noug__font__pool__
 #define __noug__font__pool__
 
-#include "./font.h"
+#include "../../value.h"
 #include "../../util/dict.h"
-#include "../../util/handle.h"
+#include "./typeface.h"
+#include "./style.h"
 
 namespace noug {
 
 	class Application;
-	class BaseFont;
-	class FontGlyphTable;
-	class Font;
 
-	/**
-	* @class FontPool 加载与管理所有字体、字型、字型表, 并在系统内存不足时能自动清理使用频率不高的字型数据
-	*/
+	class N_EXPORT FontFamilysID {
+	public:
+		inline const Array<String>& familys() const { return _familys; }
+		N_DEFINE_PROP_READ(uint64_t, code);
+		static FFID Make(cString familys);
+		static FFID Make(const Array<String>& familys);
+	private:
+		FontFamilysID(Array<String>& familys, uint64_t code);
+		Array<String> _familys;
+		friend class FontPool;
+	};
+
 	class N_EXPORT FontPool: public Object {
 		N_HIDDEN_ALL_COPY(FontPool);
 	public:
-		
 		FontPool(Application* host);
-		
-		/**
-		* @destructor
-		*/
 		virtual ~FontPool();
-		
-		/**
-		* @func set_default_fonts 尝试设置默认字体
-		* @arg first {const Array<String>*}  第一字体列表
-		* @arg ... {const Array<String>*} 第2/3/4..字体列表
-		*/
-		void set_default_fonts(const Array<String>* first, ...);
-		
-		/**
-		* @func set_default_fonts 在当前字体库找到字体名称,设置才能生效
-		* @arg fonts {const Array<String>&} 要设置的默认字体的名称
-		*/
-		void set_default_fonts(const Array<String>& fonts);
-		
-		/**
-		* @func default_font_names
-		*/
-		Array<String> default_font_names() const;
-		
-		/**
-		* @func font_familys
-		*/
 		Array<String> family_names() const;
-		
-		/**
-		* @func font_names
-		*/
-		Array<String> font_names(cString& family_name) const;
-		
-		/**
-		* @func get_font_family
-		*/
-		FontFamily* get_font_family(cString& family_name);
-		
-		/**
-		* @fucn test 测试是否有字体或家族
-		*/
-		inline bool test(cString& font) { return _blend_fonts.has(font); }
-		
-		/**
-		* @func get_font 通过名称获得一个字体对像
-		* @arg name {cString&} 字体名称或家族名称
-		*/
-		Font* get_font(cString& font, TextStyleValue style = TextStyleValue::NORMAL);
-		
-		/**
-		* @func get_group 通过id获取字型集合表
-		* @arg id {FFID} 组id
-		* @arg [style = fs_regular] {Font::TextStyle} # 使用的字体家族才生效
-		*/
-		FontGlyphTable* get_table(FFID id, TextStyleValue style = TextStyleValue::NORMAL);
-		
-		/**
-		* @func get_group 获取默认字型集合表
-		*/
-		FontGlyphTable* get_table(TextStyleValue style = TextStyleValue::NORMAL);
-		
-		/**
-		* @func register_font 通过Buffer数据注册字体
-		* @arg buff {Buffer} 字体数据
-		* @arg [family_alias = String()] {cString&} 给所属家族添加一个别名
-		* @ret {bool}
-		*/
-		bool register_font(Buffer buff, cString& family_alias = String());
-		
-		/**
-		* @func register_font_file 注册本地字体文件
-		* @arg path {cString&} 字体文件的本地路径
-		* @arg [family_alias = String()] {cString&} # 给所属家族添加一个别名
-		* @ret {bool}
-		*/
-		bool register_font_file(cString& path, cString& family_alias = String());
-		
-		/**
-		* @func set_family_alias 设置家族别名
-		*/
-		void set_family_alias(cString& family, cString& alias);
-		
-		/**
-		* @func clear 释放池中不用的字体数据,一般会由系统自动调用
-		* @arg [full = false] {bool} 全面清理资源尽可能最大程度清理
-		*/
-		void clear(bool full = false);
-		
-		/**
-		* @func get_glyph_texture_level 通过字体尺寸获取纹理等级,与纹理大小font_size
-		*/
-		FontGlyph::TexureLevel get_glyph_texture_level(float& font_size_out);
-		
-		/**
-		* @func get_family_name(path) by font file path
-		*/
-		String get_family_name(cString& path) const;
-		
-		/**
-		 * @func total_data_size()
-		 */
-		inline uint64_t total_data_size() const { return _total_data_size; }
-		
-		/**
-		* @func get_glyph_texture_size 通过等级大小获取字型纹理大小
-		*/
-		static float get_glyph_texture_size(FontGlyph::TexureLevel level);
-		
-		/**
-		* @func get_font_familys_id
-		*/
-		static FFID get_font_familys_id(const Array<String> fonts);
-		
-		/**
-		* @func get_font_familys_id
-		*/
-		static FFID get_font_familys_id(cString fonts);
-		
-		struct N_EXPORT SimpleFont {
-			String  name;
-			TextStyleValue style;
-			uint32_t    num_glyphs;
-			int     height;       /* text height in 26.6 frac. pixels       */
-			int     max_advance;  /* max horizontal advance, in 26.6 pixels */
-			int     ascender;     /* ascender in 26.6 frac. pixels          */
-			int     descender;    /* descender in 26.6 frac. pixels         */
-			int     underline_position;
-			int     underline_thickness;
-		};
-		
-		struct N_EXPORT SimpleFontFamily {
-			typedef NonObjectTraits Traits;
-			String path;
-			String family;
-			Array<SimpleFont> fonts;
-		};
-		
-		/**
-		* @func read_font_file
-		*/
-		static Handle<SimpleFontFamily> read_font_file(cString& path);
-		
-		/**
-		* @func system_font_family
-		*/
-		static const Array<SimpleFontFamily>& system_font_family();
-		
+		Typeface typeface(cString& familyName, const FontStyle& style);
+		void register_from_data(cBuffer& buff);
+		void register_from_file(cString& path);
+		const Array<Typeface>& default_typeface();
+		// define ptops
+		N_DEFINE_PROP_READ(Application*, host);
 	private:
-		
-		Application*                 _host;
-		void*                        _ft_lib;     /* FT_Library object */
-		Dict<String, BaseFont*>      _blend_fonts;/* 所有的家族与字体包括别名 name => BaseFont */
-		Dict<String, FontFamily*>    _familys;    /* 所有的字体家族 family name => FontFamily */
-		Dict<String, Font*>          _fonts;      /* 所有的字体 font name => Font */
-		Dict<uint32_t, FontGlyphTable*> _tables;  /* 所有的字型表 FFID => FontGlyphTable */
-		Dict<String, String>         _paths;      /* 所有的字体路径 name => path */
-		Array<BaseFont*>      _default_fonts;     /* default font list */
-		FontFamily*           _spare_family;     /* 备用字体家族 spare family */
-		uint64_t              _total_data_size; /* 当前使用内存数据尺寸 */
-		float                 _max_glyph_texture_size; /* 纹理绘制的最大限制,超过这个size使用顶点进行绘制 */
-		float                 _display_port_scale;
-		
-		N_DEFINE_INLINE_CLASS(Inl);
-		
-		friend class Font;
-		friend class FontGlyphTable;
-		// friend class Application;
-		friend class Render;
+		void set_default_typeface();
+		void           *_impl;
+		Array<Typeface> _default_tf;
+		Dict<String, Dict<int32_t, Typeface>> _register_tf;
 	};
 
 }

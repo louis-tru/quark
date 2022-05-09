@@ -1,9 +1,4 @@
 {
-	'variables': {
-		'gui_default_font_files': [
-			'render/font/langou.ttf',
-		],
-	},
 	'targets':[
 	{
 		'target_name': 'noug',
@@ -65,15 +60,11 @@
 			'layout/video.h',
 			'layout/view.h',
 			'layout/view.cc',
-			'render/font/_font.h',
-			'render/font/font.h',
 			'render/font/pool.h',
-			'render/font/defaults.cc',
-			'render/font/family.cc',
-			'render/font/font.cc',
-			'render/font/glyph.cc',
-			'render/font/levels.cc',
 			'render/font/pool.cc',
+			'render/font/typeface.h',
+			'render/font/typeface.cc',
+			'render/font/style.h',
 			'render/render.h',
 			'render/render.cc',
 			'render/pixel.h',
@@ -112,8 +103,6 @@
 			# 'property.cc',
 			'text_rows.cc',
 			'text_rows.h',
-			# 'text_font.h',
-			# 'text_font.cc',
 			# 'action/action.inl',
 			# 'action/action.h',
 			# 'action/group.h',
@@ -280,7 +269,7 @@
 				'action_name': 'gen_font_natives',
 				'inputs': [
 					'../tools/gen-font-natives.js',
-					'<@(gui_default_font_files)',
+					'../tools/DejaVuSerif.ttf',
 				],
 				'outputs': [
 					'../out/native-font.h',
