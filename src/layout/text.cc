@@ -46,7 +46,7 @@ namespace noug {
 
 			auto v = first();
 			if (v) {
-				TextRows rows(content_size(), layout_wrap_x(), layout_wrap_y(), _text_align);
+				Sp<TextRows> rows = new TextRows(content_size(), layout_wrap_x(), layout_wrap_y(), _text_align);
 				do {
 					v->layout_text(&rows);
 					v = v->next();

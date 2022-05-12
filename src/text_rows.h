@@ -35,19 +35,21 @@
 
 namespace noug {
 
-	class N_EXPORT TextRows {
+	class N_EXPORT TextRows: public Reference {
 	public:
 		struct Row {
 			Vec2 offset_start, offset_end;
-			float baseline, ascender, descender;
+			float baseline, ascender, descender, origin;
 			uint32_t row;
 		};
 		TextRows(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align);
 		void push(float ascender, float descender);
 		void update(float ascender, float descender);
+		void after_row_layout(Layout* layout);
 		inline uint32_t length() const { return _rows.length(); }
 		inline float max_height() const { return _last->offset_end.y(); }
 		inline Row& operator[](uint32_t idx) { return _rows[idx]; }
+		inline Row& row(uint32_t idx) { return _rows[idx]; }
 		// defines props
 		N_DEFINE_PROP(bool, is_clip);
 		N_DEFINE_PROP_READ(bool, wrap_x);
@@ -57,8 +59,10 @@ namespace noug {
 		N_DEFINE_PROP_READ(Row*, last);
 		N_DEFINE_PROP(float, max_width);
 	private:
+		void solve_lauoyt();
 		void clear();
-		Array<Row>   _rows;
+		Array<Row> _rows;
+		Array<Layout*> _afterRowLayout;
 	};
 }
 #endif

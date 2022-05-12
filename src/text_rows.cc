@@ -74,20 +74,24 @@ namespace noug {
 		_last = &_rows[row_num];
 	}
 
-	void TextRows::update(float asc, float desc) {
+	void TextRows::update(float ascender, float descender) {
 		bool change = false;
-		if (asc > _last->ascender) {
-			_last->ascender = asc;
+		if (ascender > _last->ascender) {
+			_last->ascender = ascender;
 			change = true;
 		}
-		if (desc > _last->descender) {
-			_last->descender = desc;
+		if (descender > _last->descender) {
+			_last->descender = descender;
 			change = true;
 		}
 		if ( change ) {
 			_last->baseline = _last->offset_start.y() + _last->ascender;
 			_last->offset_end.set_y(_last->baseline + _last->descender);
 		}
+	}
+
+	void TextRows::after_row_layout(Layout* layout) {
+		_afterRowLayout.push(layout);
 	}
 
 	void TextRows::set_max_width(float value) {

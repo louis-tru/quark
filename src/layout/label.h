@@ -32,12 +32,17 @@
 #define __noug__layout__label__
 
 #include "./view.h"
+#include "../render/font/font.h"
+#include "../text_rows.h"
 
 namespace noug {
+
+	class FontPool;
 
 	class N_EXPORT TextBasic {
 	public:
 		TextBasic();
+		TextBasic(FontPool* pool);
 		N_DEFINE_PROP(TextColor, text_background_color);
 		N_DEFINE_PROP(TextColor, text_color);
 		N_DEFINE_PROP(TextSize, text_size);
@@ -66,6 +71,8 @@ namespace noug {
 		virtual bool solve_visible_region() override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
+		Array<TextBlob> _blob;
+		Sp<TextRows>    _rows;
 	};
 
 }

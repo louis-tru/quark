@@ -28,9 +28,47 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#inlcue "./font.h"
+#include "./font.h"
+#include "./pool.h"
 
 namespace noug {
 
-	
+	template<> uint64_t Compare<FontStyle>::hash_code(const FontStyle& key) {
+		return key.value();
+	}
+
+	FontFamilys::FontFamilys(FontPool* pool, Array<String>& familys)
+		: _pool(pool), _familys(std::move(familys))
+	{}
+
+	const Array<String>& FontFamilys::familys() const {
+		return _familys;
+	}
+
+	const Array<Typeface>& FontFamilys::match(FontStyle style) {
+		auto it = _fts.find(style);
+		if (it != _fts.end())
+			return it->value;
+
+		Array<Typeface> fts;
+		for (auto& name: _familys) {
+			auto tf = _pool->match(name, style);
+			if (tf.isValid())
+				fts.push(std::move(tf));
+		}
+		_fts.set(style, std::move(fts));
+		return _fts[style];
+	}
+
+	Font::Font(FFID FFID, FontStyle style, float fontSize)
+		: _FFID(FFID)
+		, _style(style)
+		, _fontSize(fontSize)
+	{}
+
+	bool Font::text_blob(const ArrayBuffer<Unichar>& unichar, float startX, float endX, TextBlob* blob) {
+		// TODO ...
+		return true;
+	}
+
 }

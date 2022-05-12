@@ -193,9 +193,6 @@ namespace noug {
 		LEFT,           /* 左对齐 */
 		CENTER,         /* 居中 */
 		RIGHT,          /* 右对齐 */
-		LEFT_REVERSE,   /* 左对齐并反向 */
-		CENTER_REVERSE, /* 居中对齐并反向 */
-		RIGHT_REVERSE,  /* 右对齐并反向 */
 	};
 
 	/**
@@ -263,9 +260,9 @@ namespace noug {
 		WRAP,              /* 保留所有空白,强制使用自动wrap */
 	};
 
-	class FontFamilysID;
+	class FontFamilys;
 
-	typedef FontFamilysID* FFID;
+	typedef FontFamilys* FFID;
 
 	typedef TemplateValue<TextValueType, TextValueType::INHERIT, Color> TextColor;
 	typedef TemplateValue<TextValueType, TextValueType::INHERIT, float> TextSize;

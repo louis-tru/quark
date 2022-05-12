@@ -76,9 +76,7 @@ void testSkFont(Application* app, SkCanvas* canvas) {
 void testFontPool(Application* app, SkCanvas* canvas) {
 	auto pool = app->font_pool();
 	
-	for (auto& i: pool->family_names()) {
-		N_LOG(i);
-	}
+	N_LOG("family_names,%d", pool->family_names().length());
 
 	FontStyle style;
 	auto tf1 = pool->typeface("", style);

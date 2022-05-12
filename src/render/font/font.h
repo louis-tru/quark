@@ -32,12 +32,44 @@
 #define __noug__font__font__
 
 #include "./typeface.h"
+#include "./style.h"
+#include "../source.h"
 
 namespace noug {
 
+	class N_EXPORT FontFamilys {
+	public:
+		FontFamilys(FontPool* pool, Array<String>& familys);
+		const Array<String>&   familys() const;
+		const Array<Typeface>& match(FontStyle style);
+		N_DEFINE_PROP_READ(FontPool*, pool);
+	private:
+		Array<String> _familys;
+		Dict<FontStyle, Array<Typeface>> _fts;
+		friend class FontPool;
+	};
+
+	struct TextBlob {
+		Typeface        typeface;
+		Array<GlyphID>  glyphs;
+		Array<float>    offset;
+		float           origin;
+		Sp<ImageSource> cache;
+		uint32_t        row;
+	};
+
 	class N_EXPORT Font {
 	public:
-	private:
+		Font(FFID FFID, FontStyle style, float fontSize);
+		/**
+		 * Consume Unichar output text blob and return whether to wrap 
+		 * @func text_blob() 
+		 */
+		bool text_blob(const ArrayBuffer<Unichar>& unichar, TextBlob* blob, float offsetEnd);
+		// define props
+		N_DEFINE_PROP_READ(FFID, FFID);
+		N_DEFINE_PROP_READ(FontStyle, fontStyle);
+		N_DEFINE_PROP_READ(float, fontSize);
 	};
 
 }

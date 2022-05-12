@@ -38,7 +38,7 @@
 namespace noug {
 
 	class FontPool;
-	typedef int32_t  Unichar;
+	typedef uint32_t Unichar;
 	typedef uint16_t GlyphID;
 	typedef uint32_t FontTableTag;
 
@@ -61,8 +61,9 @@ namespace noug {
 		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
 		GlyphID unicharToGlyph(Unichar unichar) const;
 		Region getBounds() const;
+		inline bool isValid() const { return _impl; }
 	private:
-		Typeface(FontPool* pool, void* impl);
+		Typeface(void* impl);
 		void* _impl;
 		friend class FontPool;
 	};

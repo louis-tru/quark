@@ -37,24 +37,23 @@ namespace noug {
 
 	#define SkTF(impl) static_cast<SkTypeface*>(impl)
 
-	Typeface::Typeface() {
-		N_UNREACHABLE("Typeface::Typeface() No Access");
+	Typeface::Typeface(): _impl(nullptr) {
 	}
 
 	Typeface::Typeface(const Typeface& tf): _impl(tf._impl) {
-		SkTF(_impl)->ref();
-	}
-
-	Typeface::Typeface(FontPool* pool, void* impl): _impl(impl) {
-		if (!_impl) {
-			N_ASSERT(pool->default_typeface().length());
-			_impl = pool->default_typeface()[0]._impl;
+		if(_impl) {
+			SkTF(_impl)->ref();
 		}
 	}
 
+	Typeface::Typeface(void* impl): _impl(impl) {
+	}
+
 	Typeface::~Typeface() {
-		SkTF(_impl)->unref();
-		_impl = nullptr;
+		if (_impl) {
+			SkTF(_impl)->unref();
+			_impl = nullptr;
+		}
 	}
 
 	FontStyle Typeface::fontStyle() const {

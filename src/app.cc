@@ -213,12 +213,12 @@ namespace noug {
 
 		N_On(SafeExit, &AppInl::onProcessExitHandle, _inl_app(this));
 		// init
-		_default_text_settings = new TextBasic();
 		_pre_render = new PreRender(this); N_DEBUG("new PreRender ok");
 		_display = NewRetain<Display>(this); N_DEBUG("NewRetain<Display> ok"); // strong ref
 		_font_pool = new FontPool(this);
 		_img_pool = new ImagePool(this);
 		_dispatch = new EventDispatch(this); N_DEBUG("new EventDispatch ok");
+		_default_text_settings = new TextBasic(_font_pool);
 		// _action_direct = new ActionDirect(); N_DEBUG("new ActionDirect ok");
 	}
 

@@ -606,6 +606,7 @@ namespace noug {
 
 	void Box::layout_text(TextRows *rows) {
 		// TODO ...
+		rows->add_layout(this);
 	}
 
 	Vec2 Box::layout_lock(Vec2 layout_size) {

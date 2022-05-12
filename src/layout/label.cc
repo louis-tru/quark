@@ -31,16 +31,20 @@
 #include "./label.h"
 #include "../text_rows.h"
 #include "../render/font/pool.h"
+#include "../app.h"
 
 namespace noug {
 
-	TextBasic::TextBasic()
+	TextBasic::TextBasic(): TextBasic(app()->font_pool()) {
+	}
+
+	TextBasic::TextBasic(FontPool* pool)
 		: _text_background_color{Color(0, 0, 0, 0), TextValueType::VALUE}
 		, _text_color{Color(0, 0, 0), TextValueType::VALUE}
 		, _text_size{16, TextValueType::VALUE}
 		, _text_weight{TextWeightValue::REGULAR, TextValueType::VALUE}
 		, _text_style{TextStyleValue::NORMAL, TextValueType::VALUE}
-		, _text_family{FontFamilysID::Make(String()), TextValueType::VALUE}
+		, _text_family{pool->font_familys(String()), TextValueType::VALUE}
 		, _text_shadow{{ 0, 0, 0, Color(0, 0, 0) }, TextValueType::VALUE}
 		, _text_line_height{0, TextValueType::VALUE}
 		, _text_decoration{TextDecorationValue::NONE, TextValueType::VALUE}
@@ -156,14 +160,14 @@ namespace noug {
 
 	void Label::set_layout_offset(Vec2 val) {
 		auto size = parent()->layout_size();
-		TextRows rows(size.content_size, false, false, TextAlign::LEFT); // use left align
-		layout_text(&rows);
+		Sp<TextRows> rows = new TextRows(size.content_size, false, false, TextAlign::LEFT); // use left align
+		layout_text(*rows);
 		mark_none(kRecursive_Transform);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 size) {
-		TextRows rows(size, false, false, TextAlign::LEFT); // use left align
-		layout_text(&rows);
+		Sp<TextRows> rows = new TextRows(size, false, false, TextAlign::LEFT); // use left align
+		layout_text(*rows);
 		mark_none(kRecursive_Transform);
 	}
 

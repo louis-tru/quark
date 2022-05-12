@@ -32,6 +32,7 @@
 #define __noug__font__style__
 
 #include "../../util/numbers.h"
+#include "../../util/dict.h"
 
 namespace noug {
 
@@ -103,6 +104,7 @@ namespace noug {
 		int32_t _value;
 	};
 
+	template<> N_EXPORT uint64_t Compare<FontStyle>::hash_code(const FontStyle& key);
 
 }
 #endif

@@ -32,43 +32,35 @@
 #define __noug__font__pool__
 
 #include "../../value.h"
-#include "../../util/dict.h"
-#include "./typeface.h"
-#include "./style.h"
+#include "./font.h"
 
 namespace noug {
 
 	class Application;
-
-	class N_EXPORT FontFamilysID {
-	public:
-		inline const Array<String>& familys() const { return _familys; }
-		N_DEFINE_PROP_READ(uint64_t, code);
-		static FFID Make(cString familys);
-		static FFID Make(const Array<String>& familys);
-	private:
-		FontFamilysID(Array<String>& familys, uint64_t code);
-		Array<String> _familys;
-		friend class FontPool;
-	};
 
 	class N_EXPORT FontPool: public Object {
 		N_HIDDEN_ALL_COPY(FontPool);
 	public:
 		FontPool(Application* host);
 		virtual ~FontPool();
-		Array<String> family_names() const;
-		Typeface typeface(cString& familyName, const FontStyle& style);
+		int32_t count_families() const;
+		Array<String> familys() const;
+		FFID font_familys(cString familys);
+		FFID font_familys(const Array<String>& familys);
+		Typeface match(cString& familyName, const FontStyle& style);
 		void register_from_data(cBuffer& buff);
 		void register_from_file(cString& path);
-		const Array<Typeface>& default_typeface();
+		const Array<Typeface>& second() const;
+		const Typeface&        last() const;
 		// define ptops
 		N_DEFINE_PROP_READ(Application*, host);
 	private:
-		void set_default_typeface();
+		void initialize();
 		void           *_impl;
-		Array<Typeface> _default_tf;
-		Dict<String, Dict<int32_t, Typeface>> _register_tf;
+		Array<Typeface> _second;
+		Typeface        _last;
+		Dict<String, Dict<FontStyle, Typeface>> _rtf;
+		Dict<uint64_t, FFID> _FFIDs;
 	};
 
 }
