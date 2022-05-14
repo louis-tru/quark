@@ -37,6 +37,22 @@ namespace noug {
 		return key.value();
 	}
 
+	// --------------------- F o n t . G l y p h s --------------------- 
+
+	FontGlyphs::FontGlyphs(const GlyphID glyphs[], uint32_t count, const Typeface* typeface, float fontSize)
+		: _typeface(typeface)
+		, _fontSize(fontSize)
+	{
+		_glyphs.write(glyphs, 0, count);
+	}
+
+	bool FontGlyphs::text_blob(TextBlob* blob, float offsetEnd) {
+		// TODO ...
+		return true;
+	}
+
+	// --------------------- F o n t . F a m i l y s --------------------- 
+
 	FontFamilys::FontFamilys(FontPool* pool, Array<String>& familys)
 		: _pool(pool), _familys(std::move(familys))
 	{}
@@ -56,19 +72,70 @@ namespace noug {
 			if (tf.isValid())
 				fts.push(std::move(tf));
 		}
+
+		fts.write(_pool->second()); // append default typeface
 		_fts.set(style, std::move(fts));
+
 		return _fts[style];
 	}
 
-	Font::Font(FFID FFID, FontStyle style, float fontSize)
-		: _FFID(FFID)
-		, _style(style)
-		, _fontSize(fontSize)
-	{}
+	struct MakeFontGlyphsCtx {
+		const Array<Unichar>  &unichars;
+		const Array<Typeface> &tfs;
+		Array<FontGlyphs>     &result;
+		float                 fontSize;
+		FontPool*             pool;
 
-	bool Font::text_blob(const ArrayBuffer<Unichar>& unichar, float startX, float endX, TextBlob* blob) {
-		// TODO ...
-		return true;
+		void make(GlyphID glyphs[], uint32_t count, uint32_t ftIdx) {
+			int prev_idx = -1;
+			int prev_val = glyphs[0] ? 0: 1;
+			for (int i = 0; i < count + 1; i++) {
+				if (count == i) {
+					if (prev_val) goto a;
+					else goto b;
+				}
+				if (glyphs[i]) { // valid
+					if (prev_val) {
+						a:
+						// exec recursion
+						int idx = prev_idx + 1;
+						int count = i - idx;
+						if (ftIdx + 1 < tfs.length()) {
+							tfs[ftIdx + 1].unicharsToGlyphs(*unichars + idx, count, glyphs + idx);
+							make(glyphs + idx, count, ftIdx + 1);
+						} else {
+							result.push(FontGlyphs(glyphs + idx, count, &pool->last(), fontSize));
+						}
+						prev_idx = i - 1;
+						prev_val = 0;
+					}
+				} else { // zero
+					if (ftIdx + 1 == tfs.length()) {
+						glyphs[i] = pool->last_glyphID_65533(); // use 65533 glyph
+					}
+					if (!prev_val) {
+						b:
+						int idx = prev_idx + 1;
+						int count = i - idx;
+						result.push(FontGlyphs(glyphs + idx, count, *tfs + ftIdx, fontSize));
+						prev_idx = i - 1;
+						prev_val = 1;
+					}
+				}
+			}
+		}
+	};
+
+	Array<FontGlyphs> FontFamilys::makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize) {
+		Array<FontGlyphs> result;
+
+		if (unichars.length()) {
+			MakeFontGlyphsCtx ctx = { unichars, match(style), result, fontSize, _pool };
+			auto glyphs = ctx.tfs[0].unicharsToGlyphs(unichars);
+			ctx.make(*glyphs, glyphs.length(), 0);
+		}
+		return result;
 	}
+
 
 }

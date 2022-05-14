@@ -112,8 +112,14 @@ namespace noug {
 
 	Array<GlyphID> Typeface::unicharsToGlyphs(const Array<Unichar>& unichar) const {
 		Array<GlyphID> result(unichar.length());
-		SkTF(_impl)->unicharsToGlyphs(*unichar, unichar.length(), *result);
+		auto skunichar = reinterpret_cast<const SkUnichar*>(*unichar);
+		SkTF(_impl)->unicharsToGlyphs(skunichar, unichar.length(), *result);
 		return result;
+	}
+
+	void Typeface::unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const {
+		auto skunichar = reinterpret_cast<const SkUnichar*>(unichar);
+		SkTF(_impl)->unicharsToGlyphs(skunichar, count, glyphs);
 	}
 
 	GlyphID Typeface::unicharToGlyph(Unichar unichar) const {

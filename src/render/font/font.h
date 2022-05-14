@@ -37,18 +37,6 @@
 
 namespace noug {
 
-	class N_EXPORT FontFamilys {
-	public:
-		FontFamilys(FontPool* pool, Array<String>& familys);
-		const Array<String>&   familys() const;
-		const Array<Typeface>& match(FontStyle style);
-		N_DEFINE_PROP_READ(FontPool*, pool);
-	private:
-		Array<String> _familys;
-		Dict<FontStyle, Array<Typeface>> _fts;
-		friend class FontPool;
-	};
-
 	struct TextBlob {
 		Typeface        typeface;
 		Array<GlyphID>  glyphs;
@@ -58,18 +46,40 @@ namespace noug {
 		uint32_t        row;
 	};
 
-	class N_EXPORT Font {
+	class N_EXPORT FontGlyphs {
 	public:
-		Font(FFID FFID, FontStyle style, float fontSize);
+		FontGlyphs(const GlyphID glyphs[], uint32_t count, const Typeface* typeface, float fontSize);
+
 		/**
-		 * Consume Unichar output text blob and return whether to wrap 
-		 * @func text_blob() 
+		 * Consume Unichar output text blob and return whether to wrap
+		 * @func text_blob()
 		 */
-		bool text_blob(const ArrayBuffer<Unichar>& unichar, TextBlob* blob, float offsetEnd);
+		bool text_blob(TextBlob* blob, float offsetEnd);
+
+		/**
+		 * glyphs in typeface object
+		 * @func glyphs()
+		*/
+		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
+
 		// define props
-		N_DEFINE_PROP_READ(FFID, FFID);
-		N_DEFINE_PROP_READ(FontStyle, fontStyle);
+		N_DEFINE_PROP_READ(const Typeface*, typeface);
 		N_DEFINE_PROP_READ(float, fontSize);
+	private:
+		Array<GlyphID> _glyphs;
+	};
+
+	class N_EXPORT FontFamilys {
+	public:
+		FontFamilys(FontPool* pool, Array<String>& familys);
+		const Array<String>&   familys() const;
+		const Array<Typeface>& match(FontStyle style);
+		Array<FontGlyphs> makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize);
+		N_DEFINE_PROP_READ(FontPool*, pool);
+	private:
+		Array<String> _familys;
+		Dict<FontStyle, Array<Typeface>> _fts;
+		friend class FontPool;
 	};
 
 }

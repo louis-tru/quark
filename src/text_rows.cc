@@ -67,7 +67,7 @@ namespace noug {
 			Vec2(0, _last->offset_end.y() + line_height),
 			_last->offset_end.y() + ascender,
 			ascender,
-			descender,
+			descender, 0,/*origin*/
 			row_num,
 		});
 

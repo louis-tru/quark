@@ -48,7 +48,7 @@ namespace noug {
 			if (v) {
 				Sp<TextRows> rows = new TextRows(content_size(), layout_wrap_x(), layout_wrap_y(), _text_align);
 				do {
-					v->layout_text(&rows);
+					v->layout_text(*rows);
 					v = v->next();
 				} while(v);
 			}

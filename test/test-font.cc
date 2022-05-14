@@ -76,11 +76,11 @@ void testSkFont(Application* app, SkCanvas* canvas) {
 void testFontPool(Application* app, SkCanvas* canvas) {
 	auto pool = app->font_pool();
 	
-	N_LOG("family_names,%d", pool->family_names().length());
+	N_LOG("family_names,%d", pool->familys().length());
 
 	FontStyle style;
-	auto tf1 = pool->typeface("", style);
-	auto tf2 = pool->typeface("PingFang HK", style);
+	auto tf1 = pool->match("", style, true);
+	auto tf2 = pool->match("PingFang HK", style);
 	
 	N_LOG(tf1.getFamilyName());
 	N_LOG(tf2.getFamilyName());
@@ -89,9 +89,16 @@ void testFontPool(Application* app, SkCanvas* canvas) {
 	WeakBuffer buf((char*)DejaVuSerif_ttf.data, DejaVuSerif_ttf.count);
 	pool->register_from_data(buf);
 	
-	auto tf3 = pool->typeface("DejaVu Serif", style);
+	auto tf3 = pool->match("DejaVu Serif", style);
 	
 	N_LOG(tf3.getFamilyName());
+
+	FFID ffid = pool->getFFID("Helvetica, DejaVu Serif, PingFang HK");
+
+	N_LOG("%p", ffid);
+
+	ffid->makeFontGlyphs({ 65, 66, 26970, 23398, 25991 }, style, 16);
+
 }
 
 void test_font(int argc, char **argv) {

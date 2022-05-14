@@ -58,8 +58,9 @@ namespace noug {
 		int getUnitsPerEm() const;
 		String getFamilyName() const;
 		bool getPostScriptName(String* name) const;
-		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
 		GlyphID unicharToGlyph(Unichar unichar) const;
+		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
+		void unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const;
 		Region getBounds() const;
 		inline bool isValid() const { return _impl; }
 	private:

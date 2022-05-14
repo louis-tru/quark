@@ -65,6 +65,8 @@
 			'render/font/typeface.h',
 			'render/font/typeface.cc',
 			'render/font/style.h',
+			'render/font/font.h',
+			'render/font/font.cc',
 			'render/render.h',
 			'render/render.cc',
 			'render/pixel.h',

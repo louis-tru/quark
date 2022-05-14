@@ -45,15 +45,16 @@ namespace noug {
 		virtual ~FontPool();
 		int32_t count_families() const;
 		Array<String> familys() const;
-		FFID font_familys(cString familys);
-		FFID font_familys(const Array<String>& familys);
-		Typeface match(cString& familyName, const FontStyle& style);
+		FFID getFFID(cString familys);
+		FFID getFFID(const Array<String>& familys);
+		Typeface match(cString& familyName, const FontStyle& style, bool useDefault = false);
 		void register_from_data(cBuffer& buff);
 		void register_from_file(cString& path);
 		const Array<Typeface>& second() const;
 		const Typeface&        last() const;
 		// define ptops
 		N_DEFINE_PROP_READ(Application*, host);
+		N_DEFINE_PROP_READ(GlyphID, last_glyphID_65533);
 	private:
 		void initialize();
 		void           *_impl;

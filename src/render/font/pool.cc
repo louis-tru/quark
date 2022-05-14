@@ -44,6 +44,7 @@ namespace noug {
 
 	FontPool::FontPool(Application* host)
 		: _host(host)
+		, _last_glyphID_65533(0)
 		, _impl(SkFontMgr::RefDefault().get())
 	{
 		N_ASSERT(_impl);
@@ -72,7 +73,7 @@ namespace noug {
 		return familyNames;
 	}
 
-	FFID FontPool::font_familys(const Array<String>& familys) {
+	FFID FontPool::getFFID(const Array<String>& familys) {
 
 		Array<String> newFamilys;
 		SimpleHash hash;
@@ -95,14 +96,15 @@ namespace noug {
 		return id;
 	}
 
-	FFID FontPool::font_familys(cString familys) {
+	FFID FontPool::getFFID(cString familys) {
 		if ( familys.is_empty() )
-			return font_familys(Array<String>());
+			return getFFID(Array<String>());
 		else
-			return font_familys(familys.split(','));
+			return getFFID(familys.split(","));
 	}
 
-	Typeface FontPool::match(cString& familyName, const FontStyle& style) {
+	Typeface FontPool::match(cString& familyName, const FontStyle& style, bool useDefault) {
+		auto skStyle = *reinterpret_cast<const SkFontStyle*>(&style);
 
 		if (!familyName.is_empty()) {
 			
@@ -118,7 +120,6 @@ namespace noug {
 			// find system font family
 			sk_sp<SkFontStyleSet> styleSet(SkMgr(_impl)->matchFamily(familyName.c_str()));
 			if (styleSet->count()) {
-				auto skStyle = *reinterpret_cast<const SkFontStyle*>(&style);
 				auto tf = styleSet->matchStyle(skStyle);
 				if (tf)
 					return Typeface(tf);
@@ -129,7 +130,11 @@ namespace noug {
 				return Typeface(tf2);
 			}
 		}
-
+		
+		if (useDefault) {
+			auto Default = SkMgr(_impl)->matchFamilyStyle(nullptr, skStyle);
+			return Typeface(Default);
+		}
 		return Typeface();
 	}
 
@@ -176,9 +181,10 @@ namespace noug {
 		}
 
 		// find last �(65533)
-		auto tf = SkMgr(_impl)->matchFamilyStyleCharacter(nullptr, skStyle, nullptr, 0, 65533);
-		if (tf) {
-			_last = Typeface(tf);
+		auto tf2 = SkMgr(_impl)->matchFamilyStyleCharacter(nullptr, skStyle, nullptr, 0, 65533);
+		if (tf2) {
+			_last = Typeface(tf2);
+			_last_glyphID_65533 = _last.unicharToGlyph(65533);
 			N_DEBUG(_last.getFamilyName());
 		}
 	}

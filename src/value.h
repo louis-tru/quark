@@ -245,7 +245,7 @@ namespace noug {
 		NORMAL,          /* 不做任何处理 */
 		CLIP,            /* 剪切 */
 		ELLIPSIS,        /* 剪切并显示省略号 */
-		CENTER_ELLIPSIS, /* 剪切并居中显示省略号 */
+		ELLIPSIS_CENTER, /* 剪切并居中显示省略号 */
 	};
 
 	/**
