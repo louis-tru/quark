@@ -46,8 +46,8 @@ namespace noug {
 		Handle<Root> r = new Root();
 		r->set_layout_depth(1);
 		r->set_receive(1);
-		r->set_width({0, BoxSizeType::MATCH});
-		r->set_height({0, BoxSizeType::MATCH});
+		r->set_width({0, BoxSizeKind::MATCH});
+		r->set_height({0, BoxSizeKind::MATCH});
 		
 		auto region = app->display()->display_region();
 		float scale = app->display()->scale();

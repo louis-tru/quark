@@ -30,6 +30,10 @@
 
 #include "./font.h"
 #include "./pool.h"
+#include <skia/core/SkFont.h>
+#include <skia/core/SkTypeface.h>
+#include <skia/core/SkFontMetrics.h>
+#include <skia/core/SkFontTypes.h>
 
 namespace noug {
 
@@ -37,21 +41,7 @@ namespace noug {
 		return key.value();
 	}
 
-	// --------------------- F o n t . G l y p h s --------------------- 
-
-	FontGlyphs::FontGlyphs(const GlyphID glyphs[], uint32_t count, const Typeface* typeface, float fontSize)
-		: _typeface(typeface)
-		, _fontSize(fontSize)
-	{
-		_glyphs.write(glyphs, 0, count);
-	}
-
-	bool FontGlyphs::text_blob(TextBlob* blob, float offsetEnd) {
-		// TODO ...
-		return true;
-	}
-
-	// --------------------- F o n t . F a m i l y s --------------------- 
+	// --------------------- F o n t . F a m i l y s ---------------------
 
 	FontFamilys::FontFamilys(FontPool* pool, Array<String>& familys)
 		: _pool(pool), _familys(std::move(familys))
@@ -79,63 +69,104 @@ namespace noug {
 		return _fts[style];
 	}
 
-	struct MakeFontGlyphsCtx {
-		const Array<Unichar>  &unichars;
+	struct FontGlyphsBuilder {
 		const Array<Typeface> &tfs;
-		Array<FontGlyphs>     &result;
 		float                 fontSize;
 		FontPool*             pool;
+		Array<FontGlyphs>     result;
+		/**
+		 * @func make() build FontGlyphs
+		*/
+		void make(const Unichar *unichars,
+			GlyphID glyphs[], const uint32_t count, const uint32_t ftIdx);
+	};
 
-		void make(GlyphID glyphs[], uint32_t count, uint32_t ftIdx) {
-			int prev_idx = -1;
-			int prev_val = glyphs[0] ? 0: 1;
-			for (int i = 0; i < count + 1; i++) {
-				if (count == i) {
-					if (prev_val) goto a;
-					else goto b;
+	void FontGlyphsBuilder::make(const Unichar *unichars,
+		GlyphID glyphs[], const uint32_t count, const uint32_t ftIdx)
+	{
+		int prev_idx = -1;
+		int prev_val = glyphs[0] ? 0: 1;
+		for (int i = 0; i < count + 1; i++) {
+			if (count == i) {
+				if (prev_val) goto a;
+				else goto b;
+			}
+			if (glyphs[i]) { // valid
+				if (prev_val) {
+					a:
+					// exec recursion
+					int idx = prev_idx + 1;
+					int count = i - idx;
+					if (ftIdx + 1 < tfs.length()) {
+						tfs[ftIdx + 1].unicharsToGlyphs(unichars + idx, count, glyphs + idx);
+						make(unichars + idx, glyphs + idx, count, ftIdx + 1);
+					} else {
+						result.push(FontGlyphs(glyphs + idx, count, pool->last(), fontSize));
+					}
+					prev_idx = i - 1;
+					prev_val = 0;
 				}
-				if (glyphs[i]) { // valid
-					if (prev_val) {
-						a:
-						// exec recursion
-						int idx = prev_idx + 1;
-						int count = i - idx;
-						if (ftIdx + 1 < tfs.length()) {
-							tfs[ftIdx + 1].unicharsToGlyphs(*unichars + idx, count, glyphs + idx);
-							make(glyphs + idx, count, ftIdx + 1);
-						} else {
-							result.push(FontGlyphs(glyphs + idx, count, &pool->last(), fontSize));
-						}
-						prev_idx = i - 1;
-						prev_val = 0;
-					}
-				} else { // zero
-					if (ftIdx + 1 == tfs.length()) {
-						glyphs[i] = pool->last_glyphID_65533(); // use 65533 glyph
-					}
-					if (!prev_val) {
-						b:
-						int idx = prev_idx + 1;
-						int count = i - idx;
-						result.push(FontGlyphs(glyphs + idx, count, *tfs + ftIdx, fontSize));
-						prev_idx = i - 1;
-						prev_val = 1;
-					}
+			} else { // zero
+				if (ftIdx + 1 == tfs.length()) {
+					glyphs[i] = pool->last_65533(); // use 65533 glyph
+				}
+				if (!prev_val) {
+					b:
+					int idx = prev_idx + 1;
+					int count = i - idx;
+					result.push(FontGlyphs(glyphs + idx, count, tfs[ftIdx], fontSize));
+					prev_idx = i - 1;
+					prev_val = 1;
 				}
 			}
 		}
-	};
-
-	Array<FontGlyphs> FontFamilys::makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize) {
-		Array<FontGlyphs> result;
-
-		if (unichars.length()) {
-			MakeFontGlyphsCtx ctx = { unichars, match(style), result, fontSize, _pool };
-			auto glyphs = ctx.tfs[0].unicharsToGlyphs(unichars);
-			ctx.make(*glyphs, glyphs.length(), 0);
-		}
-		return result;
 	}
 
+	Array<FontGlyphs> FontFamilys::makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize) {
+		if (unichars.length()) {
+			FontGlyphsBuilder builder = { match(style), fontSize, _pool };
+			auto glyphs = builder.tfs[0].unicharsToGlyphs(unichars);
+			builder.make(*unichars, *glyphs, glyphs.length(), 0);
+			return builder.result;
+		} else {
+			return Array<FontGlyphs>();
+		}
+	}
+
+	// --------------------- F o n t . G l y p h s ---------------------
+	
+	inline const SkFont* CastSkFont(const FontGlyphs* fg) {
+		return reinterpret_cast<const SkFont*>(reinterpret_cast<const Array<GlyphID>*>(fg) + 1);
+	}
+
+	FontGlyphs::FontGlyphs(const GlyphID glyphs[], uint32_t count, const Typeface& typeface, float fontSize)
+		: _typeface( *((void**)(&typeface)) )
+		, _fontSize(fontSize)
+		, _scaleX(1)
+		, _skewX(0)
+		, _flags(1 << 5)
+		, _edging(static_cast<unsigned>(SkFont::Edging::kAntiAlias))
+		, _hinting(static_cast<unsigned>(SkFontHinting::kNormal))
+	{
+		_glyphs.write(glyphs, 0, count);
+		_glyphs.realloc(count + 1);
+		(*_glyphs)[count] = 0;
+	}
+
+	Array<float> FontGlyphs::get_offset() {
+		auto font = CastSkFont(this);
+		auto len = _glyphs.length() + 1;
+		Array<float> offset(len);
+		font->getXPos(*_glyphs, len, *offset);
+		return offset;
+	}
+	
+	const Typeface& FontGlyphs::typeface() const {
+		return *((const Typeface*)&_typeface);
+	}
+
+	float FontGlyphs::get_metrics(FontMetrics* metrics) const {
+		return CastSkFont(this)->getMetrics( (SkFontMetrics*)metrics );
+	}
 
 }

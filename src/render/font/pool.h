@@ -45,7 +45,7 @@ namespace noug {
 		virtual ~FontPool();
 		int32_t count_families() const;
 		Array<String> familys() const;
-		FFID getFFID(cString familys);
+		FFID getFFID(cString familys = String());
 		FFID getFFID(const Array<String>& familys);
 		Typeface match(cString& familyName, const FontStyle& style, bool useDefault = false);
 		void register_from_data(cBuffer& buff);
@@ -54,7 +54,7 @@ namespace noug {
 		const Typeface&        last() const;
 		// define ptops
 		N_DEFINE_PROP_READ(Application*, host);
-		N_DEFINE_PROP_READ(GlyphID, last_glyphID_65533);
+		N_DEFINE_PROP_READ(GlyphID, last_65533);
 	private:
 		void initialize();
 		void           *_impl;

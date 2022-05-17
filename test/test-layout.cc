@@ -86,8 +86,8 @@ void layout(Event<>& evt, Application* app) {
 	flex->set_fill(new FillGradientLinear(0, { 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) }));
 	flex->set_effect(New<BoxShadow>(10, 10, 5, Color(0,0,0,255)));
 	//flex->set_effect(New<BoxShadow>(10, 10, 5, Color(255,0,0,255)))
-	flex->set_width({ 0, BoxSizeType::MATCH });
-	flex->set_height({ 180, BoxSizeType::PIXEL });
+	flex->set_width({ 0, BoxSizeKind::MATCH });
+	flex->set_height({ 180, BoxSizeKind::PIXEL });
 	flex->set_margin_left(10);
 	flex->set_margin_top(10);
 	flex->set_margin_right(10);
@@ -113,8 +113,8 @@ void layout(Event<>& evt, Application* app) {
 	//flex->set_skew(Vec2(0,1));
 	//flex->set_translate(Vec2(100, 0));
 	//
-	flow->set_width({ 50, BoxSizeType::PIXEL });
-	flow->set_height({ 50, BoxSizeType::PIXEL });
+	flow->set_width({ 50, BoxSizeKind::PIXEL });
+	flow->set_height({ 50, BoxSizeKind::PIXEL });
 	flow->set_fill_color(Color(0,0,255,255));
 	flow->set_layout_align(Align::LEFT_BOTTOM);
 	flow->set_margin_left(10);
@@ -123,7 +123,7 @@ void layout(Event<>& evt, Application* app) {
 	flow->set_margin_bottom(10);
 	flow->set_padding_left(50);
 	//
-	img->set_height({ 50, BoxSizeType::PIXEL });
+	img->set_height({ 50, BoxSizeKind::PIXEL });
 	img->set_layout_align(Align::RIGHT_BOTTOM);
 	img->set_src(fs_resources("bench/img2/21.jpeg"));
 	img->set_fill_color(Color(255,0,0,255));
@@ -134,7 +134,7 @@ void layout(Event<>& evt, Application* app) {
 	img->set_padding_left(50);
 	//
 	//img2->set_src(fs_resources("bench/img/99.jpeg"));
-	img2->set_width({0, BoxSizeType::MATCH });
+	img2->set_width({0, BoxSizeKind::MATCH });
 	img2->set_layout_align(Align::CENTER);
 	
 	N_DEBUG("%s, %p\n", "ok skia", app);

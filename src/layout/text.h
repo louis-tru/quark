@@ -36,13 +36,13 @@
 
 namespace noug {
 
-	class N_EXPORT Text: public Box, public TextBasic {
-		N_Define_View(Text);
+	class N_EXPORT TextLayout: public Box, public TextSettings {
+		N_Define_View(TextLayout);
 	public:
 		N_DEFINE_PROP(TextAlign, text_align);
 		virtual bool layout_reverse(uint32_t mark) override;
 	protected:
-		virtual void onTextChange(uint32_t mark) override;
+		virtual void onTextChange(uint32_t mark, uint32_t flags) override;
 	};
 
 }

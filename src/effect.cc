@@ -224,23 +224,23 @@ namespace noug {
 	}
 
 	bool FillImage::compute_size(FillSize size, float host, float& out) {
-		switch (size.type) {
+		switch (size.kind) {
 			default: return false; // AUTO
-			case FillSizeType::PIXEL: out = size.value; break;
-			case FillSizeType::RATIO: out = size.value * host; break;
+			case FillSizeKind::PIXEL: out = size.value; break;
+			case FillSizeKind::RATIO: out = size.value * host; break;
 		}
 		return true;
 	}
 
 	float FillImage::compute_position(FillPosition pos, float host, float size) {
 		float out = 0;
-		switch (pos.type) {
+		switch (pos.kind) {
 			default: break;
 			//case FillPositionType::START: out = 0; break;
-			case FillPositionType::PIXEL: out = pos.value; break;
-			case FillPositionType::RATIO: out = pos.value * host; break;
-			case FillPositionType::END: out = host - size; break;
-			case FillPositionType::CENTER: out = (host - size) / 2; break;
+			case FillPositionKind::PIXEL: out = pos.value; break;
+			case FillPositionKind::RATIO: out = pos.value * host; break;
+			case FillPositionKind::END: out = host - size; break;
+			case FillPositionKind::CENTER: out = (host - size) / 2; break;
 		}
 		return out;
 	}

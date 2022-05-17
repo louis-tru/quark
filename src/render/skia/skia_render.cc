@@ -133,7 +133,7 @@ namespace noug {
 		});
 	}
 
-	void SkiaRender::visitText(Text* text) {
+	void SkiaRender::visitTextLayout(TextLayout* text) {
 		solveBox(text, nullptr);
 	}
 

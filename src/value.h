@@ -36,33 +36,24 @@
 
 namespace noug {
 
-	template<typename Type, Type TypeInit, typename Value = float>
-	struct TemplateValue {
+	template<typename Kind, Kind KindInit, typename Value = float>
+	struct ValueWrap {
 		Value value = Value();
-		Type type = TypeInit;
-		// @members method
-		inline bool operator==(const TemplateValue& val) const {
-			return val.type == type && val.value == value;
-		}
-		inline bool operator!=(const TemplateValue& val) const {
-			return val.type != type || val.value != value;
-		}
+		Kind kind = KindInit;
+		inline bool operator!=(const ValueWrap& val) const { return val.kind != kind || val.value != value; }
+		inline bool operator==(const ValueWrap& val) const { return !operator!=(val); }
 	};
 
-	// shadow
 	struct Shadow {
 		float offset_x, offset_y, size;
 		Color color;
-		// @members method
 		inline bool operator==(const Shadow& val) const {
 			return (
 				val.offset_x == offset_x && val.offset_y == offset_y && 
 				val.size     == size     && val.color    == color
 			);
 		}
-		inline bool operator!=(const Shadow& val) const {
-			return ! operator==(val);
-		}
+		inline bool operator!=(const Shadow& val) const { return ! operator==(val); }
 	};
 
 	// ---------------- F i l l ----------------
@@ -78,9 +69,9 @@ namespace noug {
 	};
 
 	/**
-	* @enum FillPositionType
+	* @enum FillPositionKind
 	*/
-	enum class FillPositionType: uint8_t {
+	enum class FillPositionKind: uint8_t {
 		PIXEL,     /* 像素值  px */
 		RATIO,     /* 百分比  % */
 		START,      /* 开始 start */
@@ -89,16 +80,16 @@ namespace noug {
 	};
 
 	/**
-	* @enum FillSizeType
+	* @enum FillSizeKind
 	*/
-	enum class FillSizeType: uint8_t {
+	enum class FillSizeKind: uint8_t {
 		AUTO,      /* 自动值  auto */
 		PIXEL,     /* 像素值  px */
 		RATIO,   /* 百分比  % */
 	};
 
-	typedef TemplateValue<FillSizeType, FillSizeType::AUTO, float> FillSize;
-	typedef TemplateValue<FillPositionType, FillPositionType::PIXEL, float> FillPosition;
+	typedef ValueWrap<FillSizeKind, FillSizeKind::AUTO, float> FillSize;
+	typedef ValueWrap<FillPositionKind, FillPositionKind::PIXEL, float> FillPosition;
 
 	struct FillSizeCollection {
 		FillSize x, y;
@@ -171,9 +162,9 @@ namespace noug {
 	};
 
 	/**
-	* @enum BoxSizeType
+	* @enum BoxSizeKind
 	*/
-	enum class BoxSizeType: uint8_t {
+	enum class BoxSizeKind: uint8_t {
 		NONE,    /* none default wrap content */
 		WRAP,    /* 包裹内容 wrap content */
 		MATCH,   /* 匹配父视图 match parent */
@@ -182,7 +173,7 @@ namespace noug {
 		MINUS,   /* 减法(parent-value) value ! */
 	};
 
-	typedef TemplateValue<BoxSizeType, BoxSizeType::WRAP> BoxSize;
+	typedef ValueWrap<BoxSizeKind, BoxSizeKind::WRAP> BoxSize;
 
 	// ---------------- T e x t . F o n t ----------------
 
@@ -193,21 +184,14 @@ namespace noug {
 		LEFT,           /* 左对齐 */
 		CENTER,         /* 居中 */
 		RIGHT,          /* 右对齐 */
+		DEFAULT = LEFT,
 	};
 
 	/**
-	* @enum TextValueType
+	* @enum TextWeight
 	*/
-	enum class TextValueType: uint8_t {
-		DEFAULT,
-		INHERIT,
-		VALUE,
-	};
-
-	/**
-	* @enum TextWeightValue
-	*/
-	enum class TextWeightValue: uint8_t {
+	enum class TextWeight: uint8_t {
+		INHERIT, // inherit
 		THIN,
 		ULTRALIGHT,
 		LIGHT,
@@ -217,63 +201,83 @@ namespace noug {
 		BOLD,
 		HEAVY,
 		BLACK,
+		DEFAULT = REGULAR, // default
 	};
 
 	/**
-		* @enum TextStyleValue
+		* @enum TextStyle
 		*/
-	enum class TextStyleValue: uint8_t {
+	enum class TextStyle: uint8_t {
+		INHERIT, // inherit
 		NORMAL, // 正常
 		ITALIC, // 斜体
 		OBLIQUE,  // 倾斜
+		DEFAULT = NORMAL,
 	};
 
 	/**
-	* @enum TextDecorationValue
+	* @enum TextDecoration
 	*/
-	enum class TextDecorationValue: uint8_t {
+	enum class TextDecoration: uint8_t {
+		INHERIT, // inherit
 		NONE,           /* 没有 */
 		OVERLINE,       /* 上划线 */
 		LINE_THROUGH,   /* 中划线 */
 		UNDERLINE,      /* 下划线 */
+		DEFAULT = NONE,
 	};
 
 	/**
-	* @enum TextOverflowValue
+	* @enum TextOverflow
 	*/
-	enum class TextOverflowValue: uint8_t {
+	enum class TextOverflow: uint8_t {
+		INHERIT, // inherit
 		NORMAL,          /* 不做任何处理 */
 		CLIP,            /* 剪切 */
 		ELLIPSIS,        /* 剪切并显示省略号 */
 		ELLIPSIS_CENTER, /* 剪切并居中显示省略号 */
+		DEFAULT = NORMAL,
 	};
 
 	/**
-		* @enum TextWhiteSpaceValue
+		* @enum TextWhiteSpace
 		*/
-	enum class TextWhiteSpaceValue: uint8_t {
-		NORMAL,          /* 保留所有空白,使用自动wrap */
-		NO_WRAP,        /* 合并空白序列,不使用自动wrap */
+	enum class TextWhiteSpace: uint8_t {
+		INHERIT, // inherit
+		NORMAL,        /* 保留所有空白,使用自动wrap */
+		NO_WRAP,       /* 合并空白序列,不使用自动wrap */
 		NO_SPACE,      /* 合并空白序列,使用自动wrap */
-		PRE,                /* 保留所有空白,不使用自动wrap */
+		PRE,           /* 保留所有空白,不使用自动wrap */
 		PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
-		WRAP,              /* 保留所有空白,强制使用自动wrap */
+		WRAP,          /* 保留所有空白,强制使用自动wrap */
+		DEFAULT = NORMAL,
 	};
 
 	class FontFamilys;
-
 	typedef FontFamilys* FFID;
 
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, Color> TextColor;
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, float> TextSize;
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextWeightValue> TextWeight;
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextStyleValue> TextStyle;
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, Shadow> TextShadow;
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, float> TextLineHeight;
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextDecorationValue> TextDecoration;
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextOverflowValue> TextOverflow;
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextWhiteSpaceValue> TextWhiteSpace;
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, FFID> TextFamily;
+	/**
+	* @enum TextValueKind
+	*/
+	enum class TextValueKind: uint8_t {
+		INHERIT, DEFAULT, VALUE,
+	};
+
+	// text value template
+	template<typename Value> struct TextValueWrap {
+		Value value = Value();
+		TextValueKind kind = TextValueKind::INHERIT;
+		inline bool operator!=(const TextValueWrap& val) const {
+			return kind != val.kind || (kind == TextValueKind::VALUE && value != val.value);
+		}
+		inline bool operator==(const TextValueWrap& val) const { return !operator!=(val); }
+	};
+
+	typedef TextValueWrap<Color> TextColor; // inherit / default / value
+	typedef TextValueWrap<float> TextSize;
+	typedef TextValueWrap<Shadow> TextShadow;
+	typedef TextValueWrap<float> TextLineHeight;
+	typedef TextValueWrap<FFID> TextFamily;
 
 	// ---------------- K e y b o a r d . T y p e ----------------
 

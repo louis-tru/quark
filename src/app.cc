@@ -218,7 +218,7 @@ namespace noug {
 		_font_pool = new FontPool(this);
 		_img_pool = new ImagePool(this);
 		_dispatch = new EventDispatch(this); N_DEBUG("new EventDispatch ok");
-		_default_text_settings = new TextBasic(_font_pool);
+		_default_text_settings = new DefaultTextSettings(_font_pool);
 		// _action_direct = new ActionDirect(); N_DEBUG("new ActionDirect ok");
 	}
 

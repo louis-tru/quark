@@ -41,63 +41,51 @@ namespace noug {
 
 	void TextRows::clear() {
 		_rows.clear();
-		_rows.push({ Vec2(), Vec2(), 0, 0, 0, 0 });
+		_rows.push({ 0, 0, 0, 0, 0, 0, 0, 0 });
 		_last = &_rows[0];
 		_max_width = 0;
 		_is_clip = false;
 	}
 
-	void TextRows::push(float ascender, float descender) {
-
-		float line_height = ascender + descender;
-		
-		if (_last->offset_start.y() == _last->offset_end.y()) { // 只有第一行才会这样
-			_last->offset_end.set_y(_last->offset_start.y() + line_height);
-			_last->baseline = ascender;
-			_last->ascender = ascender;
-			_last->descender = descender;
-		}
-
-		set_max_width( _last->offset_end.x() );
-
-		uint32_t row_num = _rows.length();
-
-		_rows.push({
-			Vec2(0, _last->offset_end.y()),
-			Vec2(0, _last->offset_end.y() + line_height),
-			_last->offset_end.y() + ascender,
-			ascender,
-			descender, 0,/*origin*/
-			row_num,
-		});
-
-		_last = &_rows[row_num];
+	void TextRows::push() {
+		finish();
+		_rows.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _rows.length() });
+		_last = &_rows.back();
 	}
 
-	void TextRows::update(float ascender, float descender) {
-		bool change = false;
-		if (ascender > _last->ascender) {
-			_last->ascender = ascender;
-			change = true;
+	void TextRows::finish() {
+		if ( _last->width > _max_width ) {
+			_max_width = _last->width;
 		}
-		if (descender > _last->descender) {
-			_last->descender = descender;
-			change = true;
+
+		switch(_text_align) {
+			case TextAlign::LEFT: break;
+			case TextAlign::CENTER: _last->origin = (_size.x() - _last->width) / 2; break;
+			case TextAlign::RIGHT:  _last->origin = _size.x() - _last->width; break;
 		}
-		if ( change ) {
-			_last->baseline = _last->offset_start.y() + _last->ascender;
-			_last->offset_end.set_y(_last->baseline + _last->descender);
+
+		for (auto layout: _rowLayout) {
+			auto size = layout->layout_size().layout_size;
+			auto offset = layout->layout_offset();
+			layout->set_layout_offset(Vec2(_last->origin + offset.x(), _last->baseline - size.y()));
+		}
+		_rowLayout.clear();
+	}
+
+	void TextRows::set_metrics(float ascent, float descent) {
+		if (ascent != _last->ascent || descent != _last->descent) {
+			_last->ascent = ascent;
+			_last->descent = descent;
+			_last->baseline = _last->start_y + _last->ascent;
+			_last->end_y = _last->baseline + _last->descent;
 		}
 	}
 
-	void TextRows::after_row_layout(Layout* layout) {
-		_afterRowLayout.push(layout);
-	}
-
-	void TextRows::set_max_width(float value) {
-		if ( value > _max_width ) {
-			_max_width = value;
-		}
+	void TextRows::add_row_layout(Layout* layout) {
+		// auto size = layout->layout_size().layout_size;
+		// auto align = layout->layout_align();
+		// set_metrics(size.y(), 0);
+		_rowLayout.push(layout);
 	}
 
 	void TextRows::set_is_clip(bool value) {

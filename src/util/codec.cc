@@ -705,16 +705,19 @@ namespace noug {
 
 		template <class Char>
 		static ArrayBuffer<Char> decode_from_utf8(cChar* source, uint32_t len) {
-			uint32_t rev_len = decode_utf8_str_length(source, len);
-			auto rev = ArrayBuffer<Char>::alloc(rev_len, rev_len + 1);
-			Char* data = *rev;
-			
+			// uint32_t rev_len = decode_utf8_str_length(source, len);
+			//auto rev = ArrayBuffer<Char>::alloc(rev_len + 1);
+			// Char* data = *rev;
+			Char data;
+			ArrayBuffer<Char> rev;
 			cChar* end = source + len;
 			while (source < end) {
-				source += decode_utf8_to_word(reinterpret_cast<const uint8_t*>(source), data);
-				data++;
+				source += decode_utf8_to_word(reinterpret_cast<const uint8_t*>(source), &data);
+				rev.push(data);
 			}
-			*data = '\0';
+			rev.realloc(rev.length() + 1);
+			(*rev)[rev.length()] = 0;
+
 			return rev;
 		}
 

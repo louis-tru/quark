@@ -44,7 +44,7 @@ namespace noug {
 
 	FontPool::FontPool(Application* host)
 		: _host(host)
-		, _last_glyphID_65533(0)
+		, _last_65533(0)
 		, _impl(SkFontMgr::RefDefault().get())
 	{
 		N_ASSERT(_impl);
@@ -184,7 +184,7 @@ namespace noug {
 		auto tf2 = SkMgr(_impl)->matchFamilyStyleCharacter(nullptr, skStyle, nullptr, 0, 65533);
 		if (tf2) {
 			_last = Typeface(tf2);
-			_last_glyphID_65533 = _last.unicharToGlyph(65533);
+			_last_65533 = _last.unicharToGlyph(65533);
 			N_DEBUG(_last.getFamilyName());
 		}
 	}

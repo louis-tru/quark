@@ -33,32 +33,22 @@
 
 #include "./view.h"
 #include "../render/font/font.h"
+#include "../render/source.h"
 #include "../text_rows.h"
+#include "../text_settings.h"
 
 namespace noug {
 
-	class FontPool;
-
-	class N_EXPORT TextBasic {
-	public:
-		TextBasic();
-		TextBasic(FontPool* pool);
-		N_DEFINE_PROP(TextColor, text_background_color);
-		N_DEFINE_PROP(TextColor, text_color);
-		N_DEFINE_PROP(TextSize, text_size);
-		N_DEFINE_PROP(TextWeight, text_weight);
-		N_DEFINE_PROP(TextStyle, text_style);
-		N_DEFINE_PROP(TextFamily, text_family);
-		N_DEFINE_PROP(TextShadow, text_shadow);
-		N_DEFINE_PROP(TextLineHeight, text_line_height);
-		N_DEFINE_PROP(TextDecoration, text_decoration);
-		N_DEFINE_PROP(TextOverflow, text_overflow);
-		N_DEFINE_PROP(TextWhiteSpace, text_white_space);
-	protected:
-		virtual void onTextChange(uint32_t mark);
+	struct TextBlob {
+		Typeface        typeface;
+		Array<GlyphID>  glyphs;
+		Array<float>    offset;
+		float           origin;
+		uint32_t        row;
+		Sp<ImageSource> cache;
 	};
 
-	class N_EXPORT Label: public View, public TextBasic {
+	class N_EXPORT Label: public View, public TextSettings {
 		N_Define_View(Label);
 	public:
 		N_DEFINE_PROP(String, text_value);
@@ -70,7 +60,7 @@ namespace noug {
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 	protected:
-		virtual void onTextChange(uint32_t mark) override;
+		virtual void onTextChange(uint32_t mark, uint32_t flags) override;
 		Array<TextBlob> _blob;
 		Sp<TextRows>    _rows;
 	};

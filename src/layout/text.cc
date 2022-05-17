@@ -33,14 +33,14 @@
 
 namespace noug {
 
-	void Text::set_text_align(TextAlign value) {
+	void TextLayout::set_text_align(TextAlign value) {
 		if(_text_align == value) {
 			_text_align = value;
 			mark(kLayout_Typesetting);
 		}
 	}
 
-	bool Text::layout_reverse(uint32_t mark) {
+	bool TextLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return true; // continue iteration
 
@@ -60,7 +60,7 @@ namespace noug {
 		return false;
 	}
 
-	void Text::onTextChange(uint32_t value) {
+	void TextLayout::onTextChange(uint32_t value, uint32_t flags) {
 		value ? mark(value): mark_none();
 	}
 

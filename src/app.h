@@ -52,7 +52,7 @@ namespace noug {
 	class Root;
 	class EventDispatch;
 	class ActionDirect;
-	class TextBasic;
+	class DefaultTextSettings;
 	class FontPool;
 	class ImagePool;
 
@@ -124,7 +124,7 @@ namespace noug {
 		/**
 			* @func default_text_settings()
 			*/
-		inline TextBasic* default_text_settings() { return _default_text_settings; }
+		inline DefaultTextSettings* default_text_settings() { return _default_text_settings; }
 		inline Display* display() { return _display; }
 		inline Root* root() { return _root; }
 		inline View* focus_view() { return _focus_view; }
@@ -203,7 +203,7 @@ namespace noug {
 		Render*              _render;
 		Root*                _root;             // 根视图
 		View*                _focus_view;       // 焦点视图
-		TextBasic*           _default_text_settings;
+		DefaultTextSettings* _default_text_settings;
 		EventDispatch*       _dispatch;
 		ActionDirect*        _action_direct;
 		RecursiveMutex       _render_mutex;

@@ -32,6 +32,7 @@
 #include "../app.h"
 #include "../display.h"
 #include "../render/render.h"
+#include "../text_rows.h"
 
 namespace noug {
 
@@ -40,17 +41,17 @@ namespace noug {
 		bool* is_wrap_in_out = &parent_layout_size.wrap_x;
 		float result;
 
-		switch (_width.type) {
+		switch (_width.kind) {
 			default: // NONE /* none default wrap content */
-			case BoxSizeType::WRAP: /* 包裹内容 wrap content */
+			case BoxSizeKind::WRAP: /* 包裹内容 wrap content */
 				*is_wrap_in_out = true;
 				result = 0; // invalid wrap width
 				break;
-			case BoxSizeType::PIXEL: /* 明确值 value px */
+			case BoxSizeKind::PIXEL: /* 明确值 value px */
 				*is_wrap_in_out = false;
 				result = _width.value;
 				break;
-			case BoxSizeType::MATCH: /* 匹配父视图 match parent */
+			case BoxSizeKind::MATCH: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -61,7 +62,7 @@ namespace noug {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeType::RATIO: /* 百分比 value % */
+			case BoxSizeKind::RATIO: /* 百分比 value % */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -69,7 +70,7 @@ namespace noug {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeType::MINUS: /* 减法(parent-value) value ! */
+			case BoxSizeKind::MINUS: /* 减法(parent-value) value ! */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -86,17 +87,17 @@ namespace noug {
 		bool* is_wrap_in_out = &parent_layout_size.wrap_y;
 		float result;
 
-		switch (_height.type) {
+		switch (_height.kind) {
 			default: // NONE /* none default wrap content */
-			case BoxSizeType::WRAP: /* 包裹内容 wrap content */
+			case BoxSizeKind::WRAP: /* 包裹内容 wrap content */
 				*is_wrap_in_out = true;
 				result = 0; // invalid wrap height
 				break;
-			case BoxSizeType::PIXEL: /* 明确值 value px */
+			case BoxSizeKind::PIXEL: /* 明确值 value px */
 				*is_wrap_in_out = false;
 				result = _height.value;
 				break;
-			case BoxSizeType::MATCH: /* 匹配父视图 match parent */
+			case BoxSizeKind::MATCH: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -107,7 +108,7 @@ namespace noug {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeType::RATIO: /* 百分比 value % */
+			case BoxSizeKind::RATIO: /* 百分比 value % */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -115,7 +116,7 @@ namespace noug {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeType::MINUS: /* 减法(parent-value) value ! */
+			case BoxSizeKind::MINUS: /* 减法(parent-value) value ! */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -143,7 +144,7 @@ namespace noug {
 		*/
 	Box::Box()
 		: _layout_wrap_x(true), _layout_wrap_y(true), _is_radius(false), _is_clip(false)
-		, _width_limit{0, BoxSizeType::NONE}, _height_limit{0, BoxSizeType::NONE}
+		, _width_limit{0, BoxSizeKind::NONE}, _height_limit{0, BoxSizeKind::NONE}
 		, _margin_top(0), _margin_right(0)
 		, _margin_bottom(0), _margin_left(0)
 		, _padding_top(0), _padding_right(0)
@@ -605,8 +606,10 @@ namespace noug {
 	}
 
 	void Box::layout_text(TextRows *rows) {
-		// TODO ...
-		//rows->add_layout(this);
+		//if (rows->wrap_x()) {
+			// TODO ...
+		//}
+		rows->add_row_layout(this);
 	}
 
 	Vec2 Box::layout_lock(Vec2 layout_size) {

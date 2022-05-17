@@ -29,105 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./label.h"
-#include "../text_rows.h"
-#include "../render/font/pool.h"
-#include "../app.h"
+#include "../util/codec.h"
 
 namespace noug {
-
-	TextBasic::TextBasic(): TextBasic(app()->font_pool()) {
-	}
-
-	TextBasic::TextBasic(FontPool* pool)
-		: _text_background_color{Color(0, 0, 0, 0), TextValueType::VALUE}
-		, _text_color{Color(0, 0, 0), TextValueType::VALUE}
-		, _text_size{16, TextValueType::VALUE}
-		, _text_weight{TextWeightValue::REGULAR, TextValueType::VALUE}
-		, _text_style{TextStyleValue::NORMAL, TextValueType::VALUE}
-		, _text_family{pool->getFFID(String()), TextValueType::VALUE}
-		, _text_shadow{{ 0, 0, 0, Color(0, 0, 0) }, TextValueType::VALUE}
-		, _text_line_height{0, TextValueType::VALUE}
-		, _text_decoration{TextDecorationValue::NONE, TextValueType::VALUE}
-		, _text_overflow{TextOverflowValue::NORMAL, TextValueType::VALUE}
-		, _text_white_space{TextWhiteSpaceValue::NORMAL, TextValueType::VALUE}
-	{
-	}
-
-	void TextBasic::onTextChange(uint32_t mark) {
-		// noop
-	}
-
-	void TextBasic::set_text_background_color(TextColor value) {
-		if ( value.type == TextValueType::VALUE ) {
-			_text_background_color = value;
-			onTextChange(Layout::kLayout_None);
-		}
-	}
-
-	void TextBasic::set_text_color(TextColor value) {
-		if ( value.type == TextValueType::VALUE ) {
-			_text_color = value;
-			onTextChange(Layout::kLayout_None);
-		}
-	}
-
-	void TextBasic::set_text_size(TextSize value) {
-		if ( value.type == TextValueType::VALUE ) {
-			_text_size = value;
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
-		}
-	}
-
-	void TextBasic::set_text_style(TextStyle value) {
-		if ( value.type == TextValueType::VALUE ) {
-			_text_style = value;
-			onTextChange(Layout::kLayout_None);
-		}
-	}
-
-	void TextBasic::set_text_family(TextFamily value) {
-		if ( value.type == TextValueType::VALUE ) {
-			_text_family = value;
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
-		}
-	}
-
-	void TextBasic::set_text_shadow(TextShadow value) {
-		if ( value.type == TextValueType::VALUE ) {
-			_text_shadow = value;
-			onTextChange(Layout::kLayout_None);
-		}
-	}
-
-	void TextBasic::set_text_line_height(TextLineHeight value) {
-		if ( value.type == TextValueType::VALUE ) {
-			_text_line_height = value;
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
-		}
-	}
-
-	void TextBasic::set_text_decoration(TextDecoration value) {
-		if ( value.type == TextValueType::VALUE ) {
-			_text_decoration = value;
-			onTextChange(Layout::kLayout_None);
-		}
-	}
-
-	void TextBasic::set_text_overflow(TextOverflow value) {
-		if ( value.type == TextValueType::VALUE ) {
-			_text_overflow = value;
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
-		}
-	}
-
-	void TextBasic::set_text_white_space(TextWhiteSpace value) {
-		if ( value.type == TextValueType::VALUE ) {
-			_text_white_space = value;
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
-		}
-	}
-
-	// ---------------- L a b e l ----------------
 
 	void Label::set_text_value(String val) {
 		if (_text_value != val) {
@@ -136,7 +40,7 @@ namespace noug {
 		}
 	}
 
-	void Label::onTextChange(uint32_t value) {
+	void Label::onTextChange(uint32_t value, uint32_t flags) {
 		value ? mark(value): mark_none();
 	}
 
@@ -154,8 +58,13 @@ namespace noug {
 
 	void Label::layout_text(TextRows *rows) {
 		// TODO ...
-		// TextAlign align = TextAlign::LEFT;
-		// left / center / right / LEFT_REVERSE / CENTER_REVERSE / RIGHT_REVERSE
+		FontStyle style;
+		auto bf = Codec::decode_to_uint32(Encoding::UTF8, _text_value);
+		auto fgs = text_family().value->makeFontGlyphs(bf, style, text_size().value);
+
+		for (auto& fg: fgs) {
+			auto offset = fg.get_offset(); // Array<float>
+		}
 	}
 
 	void Label::set_layout_offset(Vec2 val) {

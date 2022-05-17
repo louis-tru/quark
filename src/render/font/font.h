@@ -33,41 +33,11 @@
 
 #include "./typeface.h"
 #include "./style.h"
-#include "../source.h"
+#include "./metrics.h"
 
 namespace noug {
 
-	struct TextBlob {
-		Typeface        typeface;
-		Array<GlyphID>  glyphs;
-		Array<float>    offset;
-		float           origin;
-		Sp<ImageSource> cache;
-		uint32_t        row;
-	};
-
-	class N_EXPORT FontGlyphs {
-	public:
-		FontGlyphs(const GlyphID glyphs[], uint32_t count, const Typeface* typeface, float fontSize);
-
-		/**
-		 * Consume Unichar output text blob and return whether to wrap
-		 * @func text_blob()
-		 */
-		bool text_blob(TextBlob* blob, float offsetEnd);
-
-		/**
-		 * glyphs in typeface object
-		 * @func glyphs()
-		*/
-		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
-
-		// define props
-		N_DEFINE_PROP_READ(const Typeface*, typeface);
-		N_DEFINE_PROP_READ(float, fontSize);
-	private:
-		Array<GlyphID> _glyphs;
-	};
+	class FontGlyphs;
 
 	class N_EXPORT FontFamilys {
 	public:
@@ -80,6 +50,45 @@ namespace noug {
 		Array<String> _familys;
 		Dict<FontStyle, Array<Typeface>> _fts;
 		friend class FontPool;
+	};
+
+	class N_EXPORT FontGlyphs {
+	public:
+		FontGlyphs(const GlyphID glyphs[], uint32_t count, const Typeface& typeface, float fontSize);
+
+		/**
+		 * glyphs in typeface object
+		 * @func glyphs()
+		*/
+		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
+		
+		/**
+		 * @func typeface()
+		*/
+		const Typeface& typeface() const;
+
+		/**
+		 * @func get_offset()
+		 * @return offset values for GlyphID
+		 */
+		Array<float> get_offset();
+
+		/**
+		 * Returns FontMetrics associated with Typeface.
+		 * @func get_metrics()
+		 * @return recommended spacing between lines
+		*/
+		float get_metrics(FontMetrics* metrics) const;
+		
+	private:
+		Array<GlyphID> _glyphs;
+		void          *_typeface;
+	public:
+		N_DEFINE_PROP(float, fontSize);
+		N_DEFINE_PROP(float, scaleX);
+		N_DEFINE_PROP(float, skewX);
+	private:
+		uint8_t _flags, _edging, _hinting, ___[5];
 	};
 
 }

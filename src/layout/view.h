@@ -39,7 +39,7 @@ namespace noug {
 	#define N_Each_View(F) \
 		F(View)  F(Box) \
 		F(Image) F(Video) F(Scroll) \
-		F(Input) F(Text) F(Label) F(Root) F(FlexLayout) F(FlowLayout)
+		F(Label) F(Input) F(Root) F(TextLayout) F(FlexLayout) F(FlowLayout)
 
 	#define N_Define_View(N) \
 	public: \
