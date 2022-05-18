@@ -144,7 +144,7 @@ namespace noug {
 		set_func(font, TextFont, PROPERTY_TEXT_BACKGROUND_COLOR, text_background_color);
 		set_func(font, TextFont, PROPERTY_TEXT_COLOR, text_color);
 		set_func(font, TextFont, PROPERTY_TEXT_SIZE, text_size);
-		set_func(font, TextFont, PROPERTY_TEXT_STYLE, text_style);
+		set_func(font, TextFont, PROPERTY_text_slant, text_slant);
 		set_func(font, TextFont, PROPERTY_TEXT_FAMILY, text_family);
 		set_func(font, TextFont, PROPERTY_TEXT_SHADOW, text_shadow);
 		set_func(font, TextFont, PROPERTY_TEXT_LINE_HEIGHT, text_line_height);

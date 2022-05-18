@@ -203,7 +203,7 @@ namespace noug {
 		, _loop(nullptr), _keep(nullptr)
 		, _render(nullptr), _display(nullptr)
 		, _root(nullptr), _focus_view(nullptr)
-		, _default_text_settings(nullptr)
+		, _default_text_options(nullptr)
 		, _dispatch(nullptr), _action_direct(nullptr)
 		, _pre_render(nullptr), _font_pool(nullptr), _img_pool(nullptr)
 		, _max_image_memory_limit(512 * 1024 * 1024) // init 512MB
@@ -218,7 +218,7 @@ namespace noug {
 		_font_pool = new FontPool(this);
 		_img_pool = new ImagePool(this);
 		_dispatch = new EventDispatch(this); N_DEBUG("new EventDispatch ok");
-		_default_text_settings = new DefaultTextSettings(_font_pool);
+		_default_text_options = new DefaultTextOptions(_font_pool);
 		// _action_direct = new ActionDirect(); N_DEBUG("new ActionDirect ok");
 	}
 
@@ -232,7 +232,7 @@ namespace noug {
 			_focus_view->release();
 			_focus_view = nullptr;
 		}
-		delete _default_text_settings; _default_text_settings = nullptr;
+		delete _default_text_options; _default_text_options = nullptr;
 		Release(_dispatch);      _dispatch = nullptr;
 		// Release(_action_direct); _action_direct = nullptr;
 		Release(_display);     _display = nullptr;

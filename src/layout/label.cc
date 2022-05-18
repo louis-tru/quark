@@ -30,6 +30,8 @@
 
 #include "./label.h"
 #include "../util/codec.h"
+#include "../pre_render.h"
+#include "../app.h"
 
 namespace noug {
 
@@ -56,27 +58,39 @@ namespace noug {
 		return false;
 	}
 
-	void Label::layout_text(TextRows *rows) {
-		// TODO ...
-		FontStyle style;
-		auto bf = Codec::decode_to_uint32(Encoding::UTF8, _text_value);
-		auto fgs = text_family().value->makeFontGlyphs(bf, style, text_size().value);
+	void Label::layout_text(TextRows *rows, TextConfig *base) {
+		TextConfig cfg(this, base);
+		ArrayBuffer<Unichar> bf = Codec::decode_to_uint32(Encoding::UTF8, _text_value);
+		
+		
+		//	enum class TextWhiteSpace: uint8_t {
+		//		INHERIT, // inherit
+		//		NORMAL,        /* 保留所有空白,使用自动wrap */
+		//		NO_WRAP,       /* 合并空白序列,不使用自动wrap */
+		//		NO_SPACE,      /* 合并空白序列,使用自动wrap */
+		//		PRE,           /* 保留所有空白,不使用自动wrap */
+		//		PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
+		//		WRAP,          /* 保留所有空白,强制使用自动wrap */
+		//		DEFAULT = NORMAL,
+		//	};
+		
+		Array<FontGlyphs> fgs = text_family().value->makeFontGlyphs(bf, cfg.font_style(), cfg.text_size());
 
 		for (auto& fg: fgs) {
-			auto offset = fg.get_offset(); // Array<float>
+			Array<float> offset = fg.get_offset();
 		}
 	}
 
 	void Label::set_layout_offset(Vec2 val) {
 		auto size = parent()->layout_size();
 		Sp<TextRows> rows = new TextRows(size.content_size, false, false, TextAlign::LEFT); // use left align
-		layout_text(*rows);
+		layout_text(*rows, pre_render()->host()->default_text_options());
 		mark_none(kRecursive_Transform);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 size) {
 		Sp<TextRows> rows = new TextRows(size, false, false, TextAlign::LEFT); // use left align
-		layout_text(*rows);
+		layout_text(*rows, pre_render()->host()->default_text_options());
 		mark_none(kRecursive_Transform);
 	}
 

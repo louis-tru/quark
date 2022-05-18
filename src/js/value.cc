@@ -269,12 +269,12 @@ Local<JSValue> ValueProgram::New(const TextFamily& value) {
 	return _TextFamily.local()->Call(worker, 2, args);
 }
 
-Local<JSValue> ValueProgram::New(const TextStyle& value) {
+Local<JSValue> ValueProgram::New(const TextSlant& value) {
 	Local<JSValue> args[] = {
 		worker->New((uint)value.type),
 		worker->New((uint)value.value),
 	};
-	return _TextStyle.local()->Call(worker, 2, args);
+	return _TextSlant.local()->Call(worker, 2, args);
 }
 
 Local<JSValue> ValueProgram::New(const TextShadow& value) {
@@ -731,10 +731,10 @@ bool ValueProgram::parseTextFamily(Local<JSValue> in, TextFamily& out, cChar* de
 		out.value = FontPool::get_font_familys_id(fonts);
 	});
 }
-bool ValueProgram::parseTextStyle(Local<JSValue> in, TextStyle& out, cChar* desc) {
-	js_parse(TextStyle, {
+bool ValueProgram::parseTextSlant(Local<JSValue> in, TextSlant& out, cChar* desc) {
+	js_parse(TextSlant, {
 		out.type = (TextValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker);
-		out.value = (TextStyleEnum)obj->Get(worker, worker->strs()->value())->ToUint32Value(worker);
+		out.value = (TextSlantEnum)obj->Get(worker, worker->strs()->value())->ToUint32Value(worker);
 	});
 }
 bool ValueProgram::parseTextShadow(Local<JSValue> in, TextShadow& out, cChar* desc) {

@@ -36,7 +36,7 @@
 
 namespace noug {
 
-	class N_EXPORT TextLayout: public Box, public TextSettings {
+	class N_EXPORT TextLayout: public Box, public TextOptions {
 		N_Define_View(TextLayout);
 	public:
 		N_DEFINE_PROP(TextAlign, text_align);

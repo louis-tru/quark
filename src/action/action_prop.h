@@ -39,7 +39,7 @@ N_NAMESPACE_START
 // set_property
 template<> void Property2<TextColor>::set_property(List<View*>& views);
 template<> void Property2<TextSize>::set_property(List<View*>& views);
-template<> void Property2<TextStyle>::set_property(List<View*>& views);
+template<> void Property2<TextSlant>::set_property(List<View*>& views);
 template<> void Property2<TextFamily>::set_property(List<View*>& views);
 template<> void Property2<TextLineHeight>::set_property(List<View*>& views);
 template<> void Property2<TextShadow>::set_property(List<View*>& views);
@@ -50,7 +50,7 @@ template<> void Property2<TextWhiteSpace>::set_property(List<View*>& views);
 // get_property
 template<> TextColor Property2<TextColor>::get_property(View* view);
 template<> TextSize Property2<TextSize>::get_property(View* view);
-template<> TextStyle Property2<TextStyle>::get_property(View* view);
+template<> TextSlant Property2<TextSlant>::get_property(View* view);
 template<> TextFamily Property2<TextFamily>::get_property(View* view);
 template<> TextLineHeight Property2<TextLineHeight>::get_property(View* view);
 template<> TextShadow Property2<TextShadow>::get_property(View* view);
@@ -85,7 +85,7 @@ void Property2<TextColor>::transition(uint32_t f1, uint32_t f2, float x, float t
 template<>
 void Property2<TextSize>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
 template<>
-void Property2<TextStyle>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
+void Property2<TextSlant>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
 template<>
 void Property2<TextFamily>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root);
 template<>

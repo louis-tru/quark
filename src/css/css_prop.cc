@@ -46,7 +46,7 @@ template<> inline void CSSProperty<TextSize>::assignment(View* view, PropertyNam
 		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
-template<> inline void CSSProperty<TextStyle>::assignment(View* view, PropertyName Name) {
+template<> inline void CSSProperty<TextSlant>::assignment(View* view, PropertyName Name) {
 	N_ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {

@@ -84,7 +84,7 @@ namespace noug {
 	F(PROPERTY_TEXT_BACKGROUND_COLOR, TextColor, text_background_color) /* text-font */ \
 	F(PROPERTY_TEXT_COLOR, TextColor, text_color) \
 	F(PROPERTY_TEXT_SIZE, TextSize, text_size) \
-	F(PROPERTY_TEXT_STYLE, TextStyle, text_style) \
+	F(PROPERTY_text_slant, TextSlant, text_slant) \
 	F(PROPERTY_TEXT_FAMILY, TextFamily, text_family) \
 	F(PROPERTY_TEXT_LINE_HEIGHT, TextLineHeight, text_line_height) \
 	F(PROPERTY_TEXT_SHADOW, TextShadow, text_shadow) \

@@ -605,7 +605,7 @@ namespace noug {
 		return false; // stop iteration
 	}
 
-	void Box::layout_text(TextRows *rows) {
+	void Box::layout_text(TextRows *rows, TextConfig* textSet) {
 		//if (rows->wrap_x()) {
 			// TODO ...
 		//}

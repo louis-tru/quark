@@ -77,7 +77,7 @@ namespace noug {
 		inline TextColor text_background_color() const { return _text_background_color; }
 		inline TextColor text_color() const { return _text_color; }
 		inline TextSize text_size() const { return _text_size; }
-		inline TextStyle text_style() const { return _text_style; }
+		inline TextSlant text_slant() const { return _text_slant; }
 		inline TextFamily text_family() const { return _text_family; }
 		inline TextShadow text_shadow() const { return _text_shadow; }
 		inline TextLineHeight text_line_height() const { return _text_line_height; }
@@ -86,7 +86,7 @@ namespace noug {
 		void set_text_background_color(TextColor value);
 		void set_text_color(TextColor value);
 		void set_text_size(TextSize value);
-		void set_text_style(TextStyle value);
+		void set_text_slant(TextSlant value);
 		void set_text_family(TextFamily value);
 		void set_text_shadow(TextShadow value);
 		void set_text_line_height(TextLineHeight value);
@@ -144,7 +144,7 @@ namespace noug {
 		TextColor   _text_background_color;  // 文本背景颜色
 		TextColor   _text_color;             // 字体颜色
 		TextSize    _text_size;              // 字体尺寸
-		TextStyle   _text_style;             // 字体样式
+		TextSlant   _text_slant;             // 字体样式
 		TextFamily  _text_family;            // 字体名称
 		TextLineHeight  _text_line_height;  // 行高
 		TextShadow      _text_shadow;       // 文本阴影

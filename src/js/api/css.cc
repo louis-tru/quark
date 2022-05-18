@@ -184,7 +184,7 @@ class WrapStyleSheets: public WrapObject {
 	def_property_from_type(clip, bool);
 	def_property_from_type(text_color, TextColor);
 	def_property_from_type(text_size, TextSize);
-	def_property_from_type(text_style, TextStyle);
+	def_property_from_type(text_slant, TextSlant);
 	def_property_from_type(text_family, TextFamily);
 	def_property_from_type(text_line_height, TextLineHeight);
 	def_property_from_type(text_shadow, TextShadow);
@@ -354,7 +354,7 @@ class WrapStyleSheets: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(textBackgroundColor, nullptr, set_text_background_color);
 			JS_SET_CLASS_ACCESSOR(textColor, nullptr, set_text_color);
 			JS_SET_CLASS_ACCESSOR(textSize, nullptr, set_text_size);
-			JS_SET_CLASS_ACCESSOR(textStyle, nullptr, set_text_style);
+			JS_SET_CLASS_ACCESSOR(TextSlant, nullptr, set_text_slant);
 			JS_SET_CLASS_ACCESSOR(textFamily, nullptr, set_text_family);
 			JS_SET_CLASS_ACCESSOR(textLineHeight, nullptr, set_text_line_height);
 			JS_SET_CLASS_ACCESSOR(textShadow, nullptr, set_text_shadow);

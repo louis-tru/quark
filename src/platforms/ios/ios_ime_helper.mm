@@ -305,11 +305,11 @@ using namespace noug;
 		return [IOSTextRange new];
 	}
 
-	- (void)setMarkedTextStyle:(NSDictionary*)style {
+	- (void)setMarkedTextSlant:(NSDictionary*)style {
 		
 	}
 
-	- (NSDictionary*)markedTextStyle {
+	- (NSDictionary*)markedTextSlant {
 		return nil;
 	}
 

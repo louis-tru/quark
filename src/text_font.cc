@@ -57,7 +57,7 @@ namespace noug {
 		: _text_background_color({ TextValueType::INHERIT })
 		, _text_color({ TextValueType::INHERIT })
 		, _text_size({ TextValueType::INHERIT })
-		, _text_style({ TextValueType::INHERIT })
+		, _text_slant({ TextValueType::INHERIT })
 		, _text_family(TextValueType::INHERIT)
 		, _text_line_height({ TextValueType::INHERIT })
 		, _text_shadow({ TextValueType::INHERIT })
@@ -103,11 +103,11 @@ namespace noug {
 	}
 
 	/**
-	 * @set text_style {TextStyle}
+	 * @set text_slant {TextSlant}
 	 */
-	void TextFont::set_text_style(TextStyle value) {
-		equal(_text_style) {
-			_text_style = value;
+	void TextFont::set_text_slant(TextSlant value) {
+		equal(_text_slant) {
+			_text_slant = value;
 			mark_text(View::M_LAYOUT | View::M_CONTENT_OFFSET | View::M_TEXT_FONT);
 		}
 	}
@@ -164,7 +164,7 @@ namespace noug {
 		//  N_LOG("icon");
 		//}
 		
-		FontGlyphTable* table = font_pool()->get_table(_text_family.value, _text_style.value);
+		FontGlyphTable* table = font_pool()->get_table(_text_family.value, _text_slant.value);
 		N_ASSERT(table);
 		
 		/* FontGlyph中获得的数据是 26.6 frac. 64pt 值, 所以这里需要除以这个比例 */
@@ -212,7 +212,7 @@ namespace noug {
 		View* v = view();
 		
 		TextFamily family = { TextValueType::INHERIT, app()->default_text_family().value };
-		TextStyle style = { TextValueType::INHERIT, app()->default_text_style().value };
+		TextSlant style = { TextValueType::INHERIT, app()->default_text_slant().value };
 		TextSize size = { TextValueType::INHERIT, app()->default_text_size().value };
 		int ok = 0;
 		
@@ -224,8 +224,8 @@ namespace noug {
 					family = text->_text_family; ok++;
 				}
 				if (style.type == TextValueType::INHERIT &&
-						text->_text_style.type != TextValueType::INHERIT) {
-					style = text->_text_style; ok++;
+						text->_text_slant.type != TextValueType::INHERIT) {
+					style = text->_text_slant; ok++;
 				}
 				if (size.type == TextValueType::INHERIT &&
 						text->_text_size.type != TextValueType::INHERIT) {
@@ -429,8 +429,8 @@ namespace noug {
 			if (_text_size.type == TextValueType::INHERIT) {
 				_text_size.value = parent->_text_size.value;
 			}
-			if (_text_style.type == TextValueType::INHERIT) {
-				_text_style.value = parent->_text_style.value;
+			if (_text_slant.type == TextValueType::INHERIT) {
+				_text_slant.value = parent->_text_slant.value;
 			}
 			if (_text_family.type == TextValueType::INHERIT) {
 				_text_family.value = parent->_text_family.value;
@@ -848,8 +848,8 @@ namespace noug {
 			if (_text_size.type == TextValueType::INHERIT) {
 				_text_size.value = parent->_text_size.value;
 			}
-			if (_text_style.type == TextValueType::INHERIT) {
-				_text_style.value = parent->_text_style.value;
+			if (_text_slant.type == TextValueType::INHERIT) {
+				_text_slant.value = parent->_text_slant.value;
 			}
 			if (_text_family.type == TextValueType::INHERIT) {
 				_text_family.value = parent->_text_family.value;
@@ -879,8 +879,8 @@ namespace noug {
 			if (_text_size.type == TextValueType::INHERIT) {
 				_text_size.value = app()->default_text_size().value;
 			}
-			if (_text_style.type == TextValueType::INHERIT) {
-				_text_style.value = app()->default_text_style().value;
+			if (_text_slant.type == TextValueType::INHERIT) {
+				_text_slant.value = app()->default_text_slant().value;
 			}
 			if (_text_family.type == TextValueType::INHERIT) {
 				_text_family.value = app()->default_text_family().value;

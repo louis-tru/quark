@@ -298,12 +298,12 @@ class WrapNativeApplication: public WrapObject {
 	}
 	
 	/**
-	 * @get default_text_style {TextStyle}
+	 * @get default_text_slant {TextSlant}
 	 */
-	static void default_text_style(Local<JSString> name, PropertyCall args) {
+	static void default_text_slant(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_style()) );
+		JS_RETURN( worker->values()->New(self->default_text_slant()) );
 	}
 	
 	/**
@@ -394,14 +394,14 @@ class WrapNativeApplication: public WrapObject {
 	}
 	
 	/**
-	 * @set default_text_style {TextStyle}
+	 * @set default_text_slant {TextSlant}
 	 */
-	static void set_default_text_style(Local<JSString> name,
+	static void set_default_text_slant(Local<JSString> name,
 																		 Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); UILock lock;
 		JS_SELF(Application);
-		js_parse_value(TextStyle, value, "Application.defaultTextStyle = %s");
-		self->set_default_text_style(out);
+		js_parse_value(TextSlant, value, "Application.defaultTextSlant = %s");
+		self->set_default_text_slant(out);
 	}
 	
 	/**
@@ -487,7 +487,7 @@ class WrapNativeApplication: public WrapObject {
 														default_text_background_color, set_default_text_background_color);
 			JS_SET_CLASS_ACCESSOR(defaultTextColor, default_text_color, set_default_text_color);
 			JS_SET_CLASS_ACCESSOR(defaultTextSize, default_text_size, set_default_text_size);
-			JS_SET_CLASS_ACCESSOR(defaultTextStyle, default_text_style, set_default_text_style);
+			JS_SET_CLASS_ACCESSOR(defaultTextSlant, default_text_slant, set_default_text_slant);
 			JS_SET_CLASS_ACCESSOR(defaultTextFamily, default_text_family, set_default_text_family);
 			JS_SET_CLASS_ACCESSOR(defaultTextShadow, default_text_shadow, set_default_text_shadow);
 			JS_SET_CLASS_ACCESSOR(defaultTextLineHeight, default_text_line_height, set_default_text_line_height);

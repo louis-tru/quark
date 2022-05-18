@@ -61,11 +61,11 @@ class WrapTextFont {
 		TextFont* text = self->as_text_font();
 		JS_RETURN( worker->values()->New(text->text_size()) );
 	}
-	static void text_style(Local<JSString> name, PropertyCall args) {
+	static void text_slant(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(View);
 		TextFont* text = self->as_text_font();
-		JS_RETURN( worker->values()->New(text->text_style()) );
+		JS_RETURN( worker->values()->New(text->text_slant()) );
 	}
 	static void text_family(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
@@ -113,12 +113,12 @@ class WrapTextFont {
 		TextFont* text = self->as_text_font();
 		text->set_text_size(out);
 	}
-	static void set_text_style(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+	static void set_text_slant(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); UILock lock;
-		js_parse_value(TextStyle, value, "TextFont.textStyle = %s");
+		js_parse_value(TextSlant, value, "TextFont.TextSlant = %s");
 		JS_SELF(View);
 		TextFont* text = self->as_text_font();
-		text->set_text_style(out);
+		text->set_text_slant(out);
 	}
 	static void set_text_family(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); UILock lock;
@@ -163,7 +163,7 @@ class WrapTextFont {
 		JS_SET_CLASS_ACCESSOR(textBackgroundColor, text_background_color, set_text_background_color);
 		JS_SET_CLASS_ACCESSOR(textColor, text_color, set_text_color);
 		JS_SET_CLASS_ACCESSOR(textSize, text_size, set_text_size);
-		JS_SET_CLASS_ACCESSOR(textStyle, text_style, set_text_style);
+		JS_SET_CLASS_ACCESSOR(TextSlant, text_slant, set_text_slant);
 		JS_SET_CLASS_ACCESSOR(textFamily, text_family, set_text_family);
 		JS_SET_CLASS_ACCESSOR(textShadow, text_shadow, set_text_shadow);
 		JS_SET_CLASS_ACCESSOR(textLineHeight, text_line_height, set_text_line_height);

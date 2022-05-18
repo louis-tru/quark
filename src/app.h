@@ -52,7 +52,7 @@ namespace noug {
 	class Root;
 	class EventDispatch;
 	class ActionDirect;
-	class DefaultTextSettings;
+	class DefaultTextOptions;
 	class FontPool;
 	class ImagePool;
 
@@ -122,9 +122,9 @@ namespace noug {
 		inline cJSON& options() const { return _opts; }
 
 		/**
-			* @func default_text_settings()
+			* @func default_text_options()
 			*/
-		inline DefaultTextSettings* default_text_settings() { return _default_text_settings; }
+		inline DefaultTextOptions* default_text_options() { return _default_text_options; }
 		inline Display* display() { return _display; }
 		inline Root* root() { return _root; }
 		inline View* focus_view() { return _focus_view; }
@@ -203,7 +203,7 @@ namespace noug {
 		Render*              _render;
 		Root*                _root;             // 根视图
 		View*                _focus_view;       // 焦点视图
-		DefaultTextSettings* _default_text_settings;
+		DefaultTextOptions*  _default_text_options;
 		EventDispatch*       _dispatch;
 		ActionDirect*        _action_direct;
 		RecursiveMutex       _render_mutex;

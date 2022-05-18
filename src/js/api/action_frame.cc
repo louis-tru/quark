@@ -201,7 +201,7 @@ class WrapFrame: public WrapObject {
 	def_property_from_type(text_background_color, TextColor);
 	def_property_from_type(text_color, TextColor);
 	def_property_from_type(text_size, TextSize);
-	def_property_from_type(text_style, TextStyle);
+	def_property_from_type(text_slant, TextSlant);
 	def_property_from_type(text_family, TextFamily);
 	def_property_from_type(text_line_height, TextLineHeight);
 	def_property_from_type(text_shadow, TextShadow);
@@ -455,7 +455,7 @@ class WrapFrame: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(textBackgroundColor, text_background_color, set_text_background_color);
 			JS_SET_CLASS_ACCESSOR(textColor, text_color, set_text_color);
 			JS_SET_CLASS_ACCESSOR(textSize, text_size, set_text_size);
-			JS_SET_CLASS_ACCESSOR(textStyle, text_style, set_text_style);
+			JS_SET_CLASS_ACCESSOR(TextSlant, text_slant, set_text_slant);
 			JS_SET_CLASS_ACCESSOR(textFamily, text_family, set_text_family);
 			JS_SET_CLASS_ACCESSOR(textLineHeight, text_line_height, set_text_line_height);
 			JS_SET_CLASS_ACCESSOR(textShadow, text_shadow, set_text_shadow);

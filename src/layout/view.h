@@ -391,7 +391,7 @@ namespace noug {
 			*/
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
-		virtual void layout_text(TextRows *rows) override;
+		virtual void layout_text(TextRows *rows, TextConfig* textSet) override;
 		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 

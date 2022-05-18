@@ -29,86 +29,86 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./layout/layout.h"
-#include "./text_settings.h"
+#include "./text_opts.h"
 #include "./render/font/pool.h"
 
 namespace noug {
 
-	void TextSettings::onTextChange(uint32_t mark, uint32_t flags) {
+	void TextOptions::onTextChange(uint32_t mark, uint32_t flags) {
 		// noop
 	}
 
-	void TextSettings::set_text_weight(TextWeight value) {
+	void TextOptions::set_text_weight(TextWeight value) {
 		if (value != _text_weight) {
 			_text_weight = value;
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 0));
 		}
 	}
 
-	void TextSettings::set_text_style(TextStyle value) {
-		if (value != _text_style) {
-			_text_style = value;
+	void TextOptions::set_text_slant(TextSlant value) {
+		if (value != _text_slant) {
+			_text_slant = value;
 			onTextChange(Layout::kLayout_None, (1 << 1));
 		}
 	}
 
-	void TextSettings::set_text_decoration(TextDecoration value) {
+	void TextOptions::set_text_decoration(TextDecoration value) {
 		if (value != _text_decoration) {
 			_text_decoration = value;
 			onTextChange(Layout::kLayout_None, (1 << 2));
 		}
 	}
 
-	void TextSettings::set_text_overflow(TextOverflow value) {
+	void TextOptions::set_text_overflow(TextOverflow value) {
 		if (value != _text_overflow) {
 			_text_overflow = value;
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 3));
 		}
 	}
 
-	void TextSettings::set_text_white_space(TextWhiteSpace value) {
+	void TextOptions::set_text_white_space(TextWhiteSpace value) {
 		if (value != _text_white_space) {
 			_text_white_space = value;
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 4));
 		}
 	}
 
-	void TextSettings::set_text_size(TextSize value) {
+	void TextOptions::set_text_size(TextSize value) {
 		if (value != _text_size) {
 			_text_size = value;
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 5));
 		}
 	}
 
-	void TextSettings::set_text_background_color(TextColor value) {
+	void TextOptions::set_text_background_color(TextColor value) {
 		if (value != _text_background_color) {
 			_text_background_color = value;
 			onTextChange(Layout::kLayout_None, (1 << 6));
 		}
 	}
 
-	void TextSettings::set_text_color(TextColor value) {
+	void TextOptions::set_text_color(TextColor value) {
 		if (value != _text_color) {
 			_text_color = value;
 			onTextChange(Layout::kLayout_None, (1 << 7));
 		}
 	}
 
-	void TextSettings::set_text_shadow(TextShadow value) {
+	void TextOptions::set_text_shadow(TextShadow value) {
 		if (value != _text_shadow) {
 			_text_shadow = value;
 			onTextChange(Layout::kLayout_None, (1 << 8));
 		}
 	}
 
-	void TextSettings::set_text_line_height(TextLineHeight value) {
+	void TextOptions::set_text_line_height(TextLineHeight value) {
 		if (value != _text_line_height) {
 			_text_line_height = value;
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 9));
 		}
 	}
 
-	void TextSettings::set_text_family(TextFamily value) {
+	void TextOptions::set_text_family(TextFamily value) {
 		if (value != _text_family) {
 			_text_family = value;
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 10));
@@ -117,72 +117,75 @@ namespace noug {
 
 	// ---------------- T e x t . S e t t i n g s . A c c e s s o r ----------------
 
-	TextSettingsAccessor::TextSettingsAccessor(TextSettings* textSet, TextSettingsAccessor* prototype)
-		: _textSettings(textSet), _prototype(prototype), _flags(0xffffffffu)
+	TextConfig::TextConfig(TextOptions* textOpts, TextConfig* base)
+		: _textOptions(textOpts), _base(base), _flags(0xffffffffu)
 	{}
 
-#define N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL(Type, name, flag) \
-	Type TextSettingsAccessor::name() { \
+#define N_DEFINE_TEXT_CONFIG_IMPL(Type, name, flag) \
+	Type TextConfig::name() { \
 		if (_flags & (1 << flag)) { \
-			if (_textSettings->_##name == Type::INHERIT) \
-				_##name = _prototype->name(); \
+			if (_textOptions->_##name == Type::INHERIT) \
+				_##name = _base->name(); \
 			_flags &= ~(1 << flag); \
 		} \
 		return _##name; \
 	} \
 
-#define N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL_2(Type, name, flag, Default) \
-	Type TextSettingsAccessor::name() { \
+#define N_DEFINE_TEXT_CONFIG_IMPL_2(Type, name, flag, Default) \
+	Type TextConfig::name() { \
 		if (_flags & (1 << flag)) { \
-			if (_textSettings->_##name.kind == TextValueKind::INHERIT) {  \
-				_textSettings->_##name.value = _prototype->name(); \
-			} else if (_textSettings->_##name.kind == TextValueKind::DEFAULT) { \
-				_textSettings->_##name.value = Default; \
+			if (_textOptions->_##name.kind == TextValueKind::INHERIT) {  \
+				_textOptions->_##name.value = _base->name(); \
+			} else if (_textOptions->_##name.kind == TextValueKind::DEFAULT) { \
+				_textOptions->_##name.value = Default; \
 			} \
 			_flags &= ~(1 << flag); \
 		} \
-		return _textSettings->_##name.value; \
+		return _textOptions->_##name.value; \
 	} \
 
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL(TextWeight, text_weight, 0);
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL(TextStyle, text_style, 1);
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL(TextDecoration, text_decoration, 2);
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL(TextOverflow, text_overflow, 3);
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL(TextWhiteSpace, text_white_space, 4);
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL_2(float, text_size, 5, 16);
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL_2(Color, text_background_color, 6, Color(0, 0, 0, 0));
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL_2(Color, text_color, 7, Color(0, 0, 0));
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL_2(Shadow, text_shadow, 8, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL_2(float, text_line_height, 9, 0);
-	N_DEFINE_TEXT_SETTINGS_ACCESSOR_IMPL_2(FFID, text_family, 10, (_prototype->text_family()->pool()->getFFID()));
-
+	N_DEFINE_TEXT_CONFIG_IMPL(TextWeight, text_weight, 0);
+	N_DEFINE_TEXT_CONFIG_IMPL(TextSlant, text_slant, 1);
+	N_DEFINE_TEXT_CONFIG_IMPL(TextDecoration, text_decoration, 2);
+	N_DEFINE_TEXT_CONFIG_IMPL(TextOverflow, text_overflow, 3);
+	N_DEFINE_TEXT_CONFIG_IMPL(TextWhiteSpace, text_white_space, 4);
+	N_DEFINE_TEXT_CONFIG_IMPL_2(float, text_size, 5, 16);
+	N_DEFINE_TEXT_CONFIG_IMPL_2(Color, text_background_color, 6, Color(0, 0, 0, 0));
+	N_DEFINE_TEXT_CONFIG_IMPL_2(Color, text_color, 7, Color(0, 0, 0));
+	N_DEFINE_TEXT_CONFIG_IMPL_2(Shadow, text_shadow, 8, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
+	N_DEFINE_TEXT_CONFIG_IMPL_2(float, text_line_height, 9, 0);
+	N_DEFINE_TEXT_CONFIG_IMPL_2(FFID, text_family, 10, (_base->text_family()->pool()->getFFID()));
+	
+	FontStyle TextConfig::font_style() {
+		return {text_weight(), TextWidth::DEFAULT, text_slant()};
+	}
 
 	// ---------------- D e f a u l t . T e x t . S e t t i n g s ----------------
 
-	DefaultTextSettings::DefaultTextSettings(FontPool *pool)
-		: TextSettings()
-		, TextSettingsAccessor(this, new TextSettingsAccessor(new TextSettings(), nullptr))
+	DefaultTextOptions::DefaultTextOptions(FontPool *pool)
+		: TextOptions()
+		, TextConfig(this, new TextConfig(new TextOptions(), nullptr))
 	{
-		auto text = _prototype->textSettings();
-		text->set_text_weight(TextWeight::DEFAULT);
-		text->set_text_style(TextStyle::DEFAULT);
-		text->set_text_decoration(TextDecoration::DEFAULT);
-		text->set_text_overflow(TextOverflow::DEFAULT);
-		text->set_text_white_space(TextWhiteSpace::DEFAULT);
-		text->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::VALUE});
-		text->set_text_color({Color(0, 0, 0), TextValueKind::VALUE});
-		text->set_text_size({16, TextValueKind::VALUE});
-		text->set_text_line_height({0, TextValueKind::DEFAULT});
-		text->set_text_family({pool->getFFID(), TextValueKind::VALUE});
-		text->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::VALUE});
+		auto opts = _base->textOptions();
+		opts->set_text_weight(TextWeight::DEFAULT);
+		opts->set_text_slant(TextSlant::DEFAULT);
+		opts->set_text_decoration(TextDecoration::DEFAULT);
+		opts->set_text_overflow(TextOverflow::DEFAULT);
+		opts->set_text_white_space(TextWhiteSpace::DEFAULT);
+		opts->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::VALUE});
+		opts->set_text_color({Color(0, 0, 0), TextValueKind::VALUE});
+		opts->set_text_size({16, TextValueKind::VALUE});
+		opts->set_text_line_height({0, TextValueKind::DEFAULT});
+		opts->set_text_family({pool->getFFID(), TextValueKind::VALUE});
+		opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::VALUE});
 	}
 
-	DefaultTextSettings::~DefaultTextSettings() {
-		delete _prototype->textSettings();
-		delete _prototype;
+	DefaultTextOptions::~DefaultTextOptions() {
+		delete _base->textOptions();
+		delete _base;
 	}
 
-	void DefaultTextSettings::onTextChange(uint32_t mark, uint32_t flags) {
+	void DefaultTextOptions::onTextChange(uint32_t mark, uint32_t flags) {
 		_flags |= flags; // mark
 	}
 }

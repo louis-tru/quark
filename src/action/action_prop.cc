@@ -45,8 +45,8 @@ template<> void Property2<TextSize>::set_property(List<View*>& views) {
 		(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 	}
 }
-template<> void Property2<TextStyle>::set_property(List<View*>& views) {
-	typedef void (TextFont::*Func)(TextStyle);
+template<> void Property2<TextSlant>::set_property(List<View*>& views) {
+	typedef void (TextFont::*Func)(TextSlant);
 	for ( auto& i : views ) {
 		(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 	}
@@ -97,8 +97,8 @@ template<> TextSize Property2<TextSize>::get_property(View* view) {
 	typedef TextSize (TextFont::*Func)() const;
 	return (view->as_text_font()->*reinterpret_cast<Func>(_get_property_func))();
 }
-template<> TextStyle Property2<TextStyle>::get_property(View* view) {
-	typedef TextStyle (TextFont::*Func)() const;
+template<> TextSlant Property2<TextSlant>::get_property(View* view) {
+	typedef TextSlant (TextFont::*Func)() const;
 	return (view->as_text_font()->*reinterpret_cast<Func>(_get_property_func))();
 }
 template<> TextFamily Property2<TextFamily>::get_property(View* view) {
@@ -250,7 +250,7 @@ void Property2<TextSize>::transition(uint32_t f1, uint32_t f2, float x, float t,
 	}
 }
 template<>
-void Property2<TextStyle>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root) {
+void Property2<TextSlant>::transition(uint32_t f1, uint32_t f2, float x, float t, Action* root) {
 	if ( _set_property_func ) {
 		_transition = x < 1.0 ? _frames[f1] : _frames[f2];
 		set_property(_inl_action(root)->views());

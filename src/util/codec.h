@@ -36,9 +36,6 @@
 
 namespace noug {
 
-	/**
-	* @enum Encoding
-	*/
 	enum class Encoding {
 		binary = 0, /**binary*/
 		ascii,      /**ascii*/
@@ -60,12 +57,8 @@ namespace noug {
 		UTF16   = utf16,
 		UTF32   = utf32,
 		UNKNOWN = unknown,
-		//@end enum
 	};
 
-	/**
-	* @class Codec
-	*/
 	class N_EXPORT Codec {
 	public:
 		

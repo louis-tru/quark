@@ -28,20 +28,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__text_settings__
-#define __noug__text_settings__
+#ifndef __noug__text_opts__
+#define __noug__text_opts__
 
 #include "./value.h"
 
 namespace noug {
 
+	class FontStyle;
 	class FontPool;
-	class TextSettingsAccessor;
+	class TextConfig;
 
-	class N_EXPORT TextSettings {
+	class N_EXPORT TextOptions {
 	public:
 		N_DEFINE_PROP(TextWeight, text_weight);
-		N_DEFINE_PROP(TextStyle, text_style);
+		N_DEFINE_PROP(TextSlant, text_slant);
 		N_DEFINE_PROP(TextDecoration, text_decoration);
 		N_DEFINE_PROP(TextOverflow, text_overflow);
 		N_DEFINE_PROP(TextWhiteSpace, text_white_space);
@@ -53,17 +54,17 @@ namespace noug {
 		N_DEFINE_PROP(TextFamily, text_family);
 	protected:
 		virtual void onTextChange(uint32_t mark, uint32_t flags);
-		friend class TextSettingsAccessor;
+		friend class TextConfig;
 	};
 
-	class N_EXPORT TextSettingsAccessor {
+	class N_EXPORT TextConfig {
 	public:
-		TextSettingsAccessor(TextSettings* textSet, TextSettingsAccessor* proto);
+		TextConfig(TextOptions* textSet, TextConfig* base);
 		// define accseeor
 		TextWeight text_weight();
-		TextStyle text_style();
+		TextSlant  text_slant();
 		TextDecoration text_decoration();
-		TextOverflow text_overflow();
+		TextOverflow   text_overflow();
 		TextWhiteSpace text_white_space();
 		float text_size();
 		Color text_background_color();
@@ -71,23 +72,24 @@ namespace noug {
 		Shadow text_shadow();
 		float text_line_height();
 		FFID  text_family();
-		inline TextSettings* textSettings() const { return _textSettings; };
-		inline TextSettingsAccessor* prototype() const { return _prototype; };
+		FontStyle font_style();
+		inline TextOptions* textOptions() const { return _textOptions; };
+		inline TextConfig* base() const { return _base; };
 	protected:
-		TextSettings* _textSettings;
-		TextSettingsAccessor* _prototype; // prototype chain accessor
+		TextOptions*  _textOptions;
+		TextConfig*   _base; // prototype chain accessor
 		uint32_t   _flags;
 		TextWeight _text_weight;
-		TextStyle _text_style;
+		TextSlant _text_slant;
 		TextDecoration _text_decoration;
 		TextOverflow _text_overflow;
 		TextWhiteSpace _text_white_space;
 	};
 
-	class N_EXPORT DefaultTextSettings: public TextSettings, public TextSettingsAccessor {
+	class N_EXPORT DefaultTextOptions: public TextOptions, public TextConfig {
 	public:
-		DefaultTextSettings(FontPool *pool);
-		~DefaultTextSettings();
+		DefaultTextOptions(FontPool *pool);
+		~DefaultTextOptions();
 	protected:
 		virtual void onTextChange(uint32_t mark, uint32_t flags);
 	};

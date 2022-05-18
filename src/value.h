@@ -175,11 +175,9 @@ namespace noug {
 
 	typedef ValueWrap<BoxSizeKind, BoxSizeKind::WRAP> BoxSize;
 
+
 	// ---------------- T e x t . F o n t ----------------
 
-	/**
-	* @enum TextAlign 文本对齐方式
-	*/
 	enum class TextAlign: uint8_t {
 		LEFT,           /* 左对齐 */
 		CENTER,         /* 居中 */
@@ -187,27 +185,36 @@ namespace noug {
 		DEFAULT = LEFT,
 	};
 
-	/**
-	* @enum TextWeight
-	*/
-	enum class TextWeight: uint8_t {
-		INHERIT, // inherit
-		THIN,
-		ULTRALIGHT,
-		LIGHT,
-		REGULAR,
-		MEDIUM,
-		SEMIBOLD,
-		BOLD,
-		HEAVY,
-		BLACK,
-		DEFAULT = REGULAR, // default
+	enum class TextWeight: uint16_t {
+		INHERIT      = 0,
+		THIN         = 100,
+		ULTRALIGHT   = 200,
+		LIGHT        = 300,
+		REGULAR      = 400,
+		MEDIUM       = 500,
+		SEMIBOLD     = 600,
+		BOLD         = 700,
+		HEAVY        = 800,
+		BLACK        = 900,
+		ExtraBlack   = 1000,
+		DEFAULT      = REGULAR, // default
 	};
 
-	/**
-		* @enum TextStyle
-		*/
-	enum class TextStyle: uint8_t {
+	enum class TextWidth: uint8_t {
+		INHERIT          = 0, // inherit
+		UltraCondensed   = 1,
+		ExtraCondensed   = 2,
+		Condensed        = 3,
+		SemiCondensed    = 4,
+		Normal           = 5,
+		SemiExpanded     = 6,
+		Expanded         = 7,
+		ExtraExpanded    = 8,
+		UltraExpanded    = 9,
+		DEFAULT          = Normal,
+	};
+
+	enum class TextSlant: uint8_t {
 		INHERIT, // inherit
 		NORMAL, // 正常
 		ITALIC, // 斜体
@@ -215,9 +222,6 @@ namespace noug {
 		DEFAULT = NORMAL,
 	};
 
-	/**
-	* @enum TextDecoration
-	*/
 	enum class TextDecoration: uint8_t {
 		INHERIT, // inherit
 		NONE,           /* 没有 */
@@ -227,9 +231,6 @@ namespace noug {
 		DEFAULT = NONE,
 	};
 
-	/**
-	* @enum TextOverflow
-	*/
 	enum class TextOverflow: uint8_t {
 		INHERIT, // inherit
 		NORMAL,          /* 不做任何处理 */
@@ -239,9 +240,6 @@ namespace noug {
 		DEFAULT = NORMAL,
 	};
 
-	/**
-		* @enum TextWhiteSpace
-		*/
 	enum class TextWhiteSpace: uint8_t {
 		INHERIT, // inherit
 		NORMAL,        /* 保留所有空白,使用自动wrap */

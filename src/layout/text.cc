@@ -30,6 +30,8 @@
 
 #include "./text.h"
 #include "../text_rows.h"
+#include "../pre_render.h"
+#include "../app.h"
 
 namespace noug {
 
@@ -47,8 +49,9 @@ namespace noug {
 			auto v = first();
 			if (v) {
 				Sp<TextRows> rows = new TextRows(content_size(), layout_wrap_x(), layout_wrap_y(), _text_align);
+				TextConfig cfg(this, pre_render()->host()->default_text_options());
 				do {
-					v->layout_text(*rows);
+					v->layout_text(*rows, &cfg);
 					v = v->next();
 				} while(v);
 			}

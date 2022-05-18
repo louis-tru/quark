@@ -35,7 +35,7 @@
 #include "../render/font/font.h"
 #include "../render/source.h"
 #include "../text_rows.h"
-#include "../text_settings.h"
+#include "../text_opts.h"
 
 namespace noug {
 
@@ -48,13 +48,13 @@ namespace noug {
 		Sp<ImageSource> cache;
 	};
 
-	class N_EXPORT Label: public View, public TextSettings {
+	class N_EXPORT Label: public View, public TextOptions {
 		N_Define_View(Label);
 	public:
 		N_DEFINE_PROP(String, text_value);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
-		virtual void layout_text(TextRows *rows) override;
+		virtual void layout_text(TextRows *rows, TextConfig *cfg) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_lazy(Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;

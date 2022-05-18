@@ -66,7 +66,7 @@ F(Vec3, Vec3)                           F(Vec4, Vec4) \
 F(Rect, Rect)                         F(Mat, Mat) \
 F(Mat4, Mat4)                           F(Value, Value) \
 F(TextColor, TextColor)                 F(TextSize, TextSize)  \
-F(TextFamily, TextFamily)               F(TextStyle, TextStyle) \
+F(TextFamily, TextFamily)               F(TextSlant, TextSlant) \
 F(TextShadow, TextShadow)               F(TextLineHeight, TextLineHeight) \
 F(TextDecoration, TextDecoration)       F(Repeat, Repeat) \
 F(Curve, Curve)                         F(Direction, Direction) \

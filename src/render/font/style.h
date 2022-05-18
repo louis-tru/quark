@@ -33,50 +33,20 @@
 
 #include "../../util/numbers.h"
 #include "../../util/dict.h"
+#include "../../value.h"
 
 namespace noug {
 
 	class N_EXPORT FontStyle {
 	public:
-		enum Weight {
-			kInvisible_Weight   =    0,
-			kThin_Weight        =  100,
-			kExtraLight_Weight  =  200,
-			kLight_Weight       =  300,
-			kNormal_Weight      =  400,
-			kMedium_Weight      =  500,
-			kSemiBold_Weight    =  600,
-			kBold_Weight        =  700,
-			kExtraBold_Weight   =  800,
-			kBlack_Weight       =  900,
-			kExtraBlack_Weight  = 1000,
-		};
 
-		enum Width {
-			kUltraCondensed_Width   = 1,
-			kExtraCondensed_Width   = 2,
-			kCondensed_Width        = 3,
-			kSemiCondensed_Width    = 4,
-			kNormal_Width           = 5,
-			kSemiExpanded_Width     = 6,
-			kExpanded_Width         = 7,
-			kExtraExpanded_Width    = 8,
-			kUltraExpanded_Width    = 9,
-		};
-
-		enum Slant {
-			kUpright_Slant,
-			kItalic_Slant,
-			kOblique_Slant,
-		};
-
-		constexpr FontStyle(int weight, int width, Slant slant) : _value(
-			(Int32::limit(weight, kInvisible_Weight, kExtraBlack_Weight)) +
-			(Int32::limit(width, kUltraCondensed_Width, kUltraExpanded_Width) << 16) +
-			(Int32::limit(slant, kUpright_Slant, kOblique_Slant) << 24)
+		constexpr FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
+			(Int32::limit(int(weight), int(TextWeight::INHERIT), int(TextWeight::ExtraBlack))) +
+			(Int32::limit(int(width), int(TextWidth::UltraCondensed), int(TextWidth::UltraExpanded)) << 16) +
+			(Int32::limit(int(slant) - 1, 0, 2) << 24)
 		) {}
 
-		constexpr FontStyle() : FontStyle{kNormal_Weight, kNormal_Width, kUpright_Slant} {}
+		constexpr FontStyle(): FontStyle{TextWeight::DEFAULT, TextWidth::DEFAULT, TextSlant::NORMAL} {}
 
 		bool operator==(const FontStyle& rhs) const {
 			return _value == rhs._value;
@@ -84,20 +54,20 @@ namespace noug {
 
 		int weight() const { return _value & 0xFFFF; }
 		int width() const { return (_value >> 16) & 0xFF; }
-		Slant slant() const { return (Slant)((_value >> 24) & 0xFF); }
+		TextSlant slant() const { return TextSlant(((_value >> 24) & 0xFF) + 1); }
 		inline int32_t value() const { return _value; }
 
 		static constexpr FontStyle Normal() {
-			return FontStyle(kNormal_Weight, kNormal_Width, kUpright_Slant);
+			return FontStyle(TextWeight::DEFAULT, TextWidth::DEFAULT, TextSlant::DEFAULT);
 		}
 		static constexpr FontStyle Bold() {
-			return FontStyle(kBold_Weight, kNormal_Width, kUpright_Slant);
+			return FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::DEFAULT);
 		}
 		static constexpr FontStyle Italic() {
-			return FontStyle(kNormal_Weight, kNormal_Width, kItalic_Slant );
+			return FontStyle(TextWeight::DEFAULT, TextWidth::DEFAULT, TextSlant::ITALIC );
 		}
 		static constexpr FontStyle BoldItalic() {
-			return FontStyle(kBold_Weight, kNormal_Width, kItalic_Slant );
+			return FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::ITALIC );
 		}
 
 	private:

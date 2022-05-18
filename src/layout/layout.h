@@ -38,6 +38,7 @@ namespace noug {
 
 	class PreRender;
 	class TextRows;
+	class TextConfig;
 
 	/**
 		*
@@ -201,7 +202,7 @@ namespace noug {
 		 * 
 		 * @func layout_text(rows)
 		 */
-		virtual void layout_text(TextRows *rows) = 0;
+		virtual void layout_text(TextRows *rows, TextConfig* textSet) = 0;
 
 		/**
 			* 
