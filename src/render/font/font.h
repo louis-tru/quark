@@ -79,6 +79,12 @@ namespace noug {
 		 * @return recommended spacing between lines
 		*/
 		float get_metrics(FontMetrics* metrics) const;
+
+		/**
+		 * Returns FontMetrics associated with Typeface.
+		 * @func get_metrics()
+		*/
+		static float get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize);
 		
 	private:
 		Array<GlyphID> _glyphs;

@@ -48,12 +48,27 @@ namespace noug {
 
 			auto v = first();
 			if (v) {
-				Sp<TextRows> rows = new TextRows(content_size(), layout_wrap_x(), layout_wrap_y(), _text_align);
+
+				Vec2 cur_size = content_size();
+				Sp<TextRows> rows = new TextRows(cur_size, layout_wrap_x(), layout_wrap_y(), _text_align);
 				TextConfig cfg(this, pre_render()->host()->default_text_options());
+
 				do {
 					v->layout_text(*rows, &cfg);
 					v = v->next();
 				} while(v);
+
+				rows->finish();
+
+				Vec2 new_size(
+					layout_wrap_x() ? rows->max_width(): cur_size.x(),
+					layout_wrap_y() ? rows->max_height(): cur_size.y()
+				);
+
+				if (new_size != cur_size) {
+					set_content_size(new_size);
+					parent()->onChildLayoutChange(this, kChild_Layout_Size);
+				}
 			}
 			unmark(kLayout_Typesetting);
 			mark_none(kRecursive_Transform);

@@ -36,27 +36,16 @@
 
 namespace noug {
 
-	enum class Encoding {
-		binary = 0, /**binary*/
-		ascii,      /**ascii*/
-		base64,     /**base64*/
-		hex,        /**hex*/
-		utf8,       /**utf8*/
-		ucs2,       /**ucs2*/
-		ucs4,       /**ucs4*/
-		utf16,      /**utf16*/
-		utf32,      /**utf32*/
-		unknown,
-		BINARY  = binary,
-		ASCII   = ascii,
-		BASE64  = base64,
-		HEX     = hex,
-		UTF8    = utf8,
-		UCS2    = ucs2,
-		UCS4    = ucs4,
-		UTF16   = utf16,
-		UTF32   = utf32,
-		UNKNOWN = unknown,
+	enum Encoding {
+		kInvalid_Encoding,
+		kBinary_Encoding,
+		kAscii_Encoding,
+		kHex_Encoding,
+		kBase64_Encoding,
+		kUTF8_Encoding,
+		kUTF16_Encoding,
+		kUCS2_Encoding,
+		kUCS4_Encoding,
 	};
 
 	class N_EXPORT Codec {
@@ -71,6 +60,11 @@ namespace noug {
 		* @func encoding_string
 		*/
 		static String encoding_string(Encoding en);
+
+		/**
+		 * @func decode_utf8_to_unichar(str, out)
+		*/
+		static uint32_t decode_utf8_to_unichar(const uint8_t* str, uint32_t* out);
 		
 		// encoding
 		static Buffer encode(Encoding target_en, const ArrayBuffer<char>& source);

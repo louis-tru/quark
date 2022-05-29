@@ -35,17 +35,22 @@
 
 namespace noug {
 
+	class FontMetrics;
+	class TextConfig;
+
 	class N_EXPORT TextRows: public Reference {
 	public:
 		struct Row {
 			float start_y, end_y, width;
 			float baseline, ascent, descent, origin;
-			uint32_t row;
+			uint32_t row_num;
 		};
 		TextRows(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align);
 		void push(); // first call finish() then add new row
+		void push(TextConfig *cfg); // push new row
 		void finish(); // finish row
 		void set_metrics(float ascent, float descent);
+		void set_metrics(FontMetrics *metrics);
 		void add_row_layout(Layout* layout);
 		inline uint32_t length() const { return _rows.length(); }
 		inline float max_height() const { return _last->end_y; }
@@ -58,7 +63,7 @@ namespace noug {
 		N_DEFINE_PROP_READ(Vec2, size);
 		N_DEFINE_PROP_READ(TextAlign, text_align);
 		N_DEFINE_PROP_READ(Row*, last);
-		N_DEFINE_PROP(float, max_width);
+		N_DEFINE_PROP_READ(float, max_width);
 	private:
 		void clear();
 		Array<Row> _rows;

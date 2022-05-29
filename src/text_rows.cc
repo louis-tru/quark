@@ -29,6 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text_rows.h"
+#include "./text_opts.h"
+#include "./render/font/font.h"
 
 namespace noug {
 
@@ -51,6 +53,13 @@ namespace noug {
 		finish();
 		_rows.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _rows.length() });
 		_last = &_rows.back();
+	}
+
+	void TextRows::push(TextConfig *cfg) {
+		FontMetrics metrics;
+		FontGlyphs::get_metrics(&metrics, cfg->text_family(), cfg->font_style(), cfg->text_size());
+		push(); // new row
+		set_metrics(&metrics);
 	}
 
 	void TextRows::finish() {
@@ -79,6 +88,10 @@ namespace noug {
 			_last->baseline = _last->start_y + _last->ascent;
 			_last->end_y = _last->baseline + _last->descent;
 		}
+	}
+
+	void TextRows::set_metrics(FontMetrics *metrics) {
+		set_metrics(-metrics->fAscent, metrics->fDescent + metrics->fLeading);
 	}
 
 	void TextRows::add_row_layout(Layout* layout) {

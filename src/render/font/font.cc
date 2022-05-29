@@ -169,4 +169,8 @@ namespace noug {
 		return CastSkFont(this)->getMetrics( (SkFontMetrics*)metrics );
 	}
 
+	float FontGlyphs::get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize) {
+		return FontGlyphs(nullptr, 0, FFID.match(style)[0], fontSize).get_metrics(metrics);
+	}
+
 }

@@ -28,31 +28,41 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__label__
-#define __noug__layout__label__
 
-#include "./view.h"
-#include "../text_blob.h"
-#include "../text_rows.h"
-#include "../text_opts.h"
+#ifndef __noug__text_blob__
+#define __noug__text_blob__
+
+#include "./render/font/font.h"
+#include "./render/source.h"
+#include "./text_rows.h"
+#include "./text_opts.h"
 
 namespace noug {
 
-	class N_EXPORT Label: public View, public TextOptions {
-		N_Define_View(Label);
+	N_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
+
+	struct TextBlob {
+		Typeface        typeface;
+		Array<GlyphID>  glyphs;
+		Array<float>    offset;
+		float           origin;
+		uint32_t        row_num;
+		Sp<ImageSource> cache;
+	};
+
+	class N_EXPORT TextBlobBuilder {
 	public:
-		N_DEFINE_PROP(String, text_value);
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
-		virtual void layout_text(TextRows *rows, TextConfig *cfg) override;
-		virtual void set_layout_offset(Vec2 val) override;
-		virtual void set_layout_offset_lazy(Vec2 size) override;
-		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
-		virtual bool solve_visible_region() override;
-	protected:
-		virtual void onTextChange(uint32_t mark, uint32_t flags) override;
-		Array<TextBlob> _blob;
-		Sp<TextRows>    _rows;
+		TextBlobBuilder(
+			TextRows *rows, TextConfig *cfg, Array<TextBlob>* blob);
+		void make_as_no_auto_wrap(FontGlyphs &fg, Unichar *unichar);
+		void make_as_auto_wrap(FontGlyphs &fg, Unichar *unichar);
+		void make_as_normal(FontGlyphs &fg, Unichar *unichar);
+		void make_as_break_all(FontGlyphs &fg, Unichar *unichar);
+		void make_as_keep_all(FontGlyphs &fg, Unichar *unichar);
+	private:
+		TextRows *rows;
+		TextConfig *cfg;
+		Array<TextBlob>* blob;
 	};
 
 }

@@ -108,6 +108,8 @@
 			'text_rows.h',
 			'text_opts.cc',
 			'text_opts.h',
+			'text_blob.cc',
+			'text_blob.h',
 			# 'action/action.inl',
 			# 'action/action.h',
 			# 'action/group.h',

@@ -73,58 +73,67 @@ namespace noug {
 		}
 	}
 
+	void TextOptions::set_text_word_break(TextWordBreak value) {
+		if (value != _text_word_break) {
+			_text_word_break = value;
+			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 5));
+		}
+	}
+
 	void TextOptions::set_text_size(TextSize value) {
 		if (value != _text_size) {
+			value.value = N_MAX(1, value.value);
 			_text_size = value;
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 5));
+			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 6));
 		}
 	}
 
 	void TextOptions::set_text_background_color(TextColor value) {
 		if (value != _text_background_color) {
 			_text_background_color = value;
-			onTextChange(Layout::kLayout_None, (1 << 6));
+			onTextChange(Layout::kLayout_None, (1 << 7));
 		}
 	}
 
 	void TextOptions::set_text_color(TextColor value) {
 		if (value != _text_color) {
 			_text_color = value;
-			onTextChange(Layout::kLayout_None, (1 << 7));
+			onTextChange(Layout::kLayout_None, (1 << 8));
 		}
 	}
 
 	void TextOptions::set_text_shadow(TextShadow value) {
 		if (value != _text_shadow) {
 			_text_shadow = value;
-			onTextChange(Layout::kLayout_None, (1 << 8));
+			onTextChange(Layout::kLayout_None, (1 << 9));
 		}
 	}
 
 	void TextOptions::set_text_line_height(TextLineHeight value) {
 		if (value != _text_line_height) {
+			value.value = N_MAX(0, value.value);
 			_text_line_height = value;
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 9));
+			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 10));
 		}
 	}
 
 	void TextOptions::set_text_family(TextFamily value) {
 		if (value != _text_family) {
 			_text_family = value;
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 10));
+			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height, (1 << 11));
 		}
 	}
 
 	// ---------------- T e x t . S e t t i n g s . A c c e s s o r ----------------
 
-	TextConfig::TextConfig(TextOptions* textOpts, TextConfig* base)
-		: _textOptions(textOpts), _base(base), _flags(0xffffffffu)
+	TextConfig::TextConfig(TextOptions* opts, TextConfig* base)
+		: _text_options(opts), _base(base), _flags(0xffffffffu)
 	{}
 
 #define N_DEFINE_TEXT_CONFIG_IMPL(Type, name, flag) \
 	Type TextConfig::name() { \
 		if (_flags & (1 << flag)) { \
-			if (_textOptions->_##name == Type::INHERIT) \
+			if (_text_options->_##name == Type::INHERIT) \
 				_##name = _base->name(); \
 			_flags &= ~(1 << flag); \
 		} \
@@ -134,14 +143,14 @@ namespace noug {
 #define N_DEFINE_TEXT_CONFIG_IMPL_2(Type, name, flag, Default) \
 	Type TextConfig::name() { \
 		if (_flags & (1 << flag)) { \
-			if (_textOptions->_##name.kind == TextValueKind::INHERIT) {  \
-				_textOptions->_##name.value = _base->name(); \
-			} else if (_textOptions->_##name.kind == TextValueKind::DEFAULT) { \
-				_textOptions->_##name.value = Default; \
+			if (_text_options->_##name.kind == TextValueKind::INHERIT) {  \
+				_text_options->_##name.value = _base->name(); \
+			} else if (_text_options->_##name.kind == TextValueKind::DEFAULT) { \
+				_text_options->_##name.value = Default; \
 			} \
 			_flags &= ~(1 << flag); \
 		} \
-		return _textOptions->_##name.value; \
+		return _text_options->_##name.value; \
 	} \
 
 	N_DEFINE_TEXT_CONFIG_IMPL(TextWeight, text_weight, 0);
@@ -149,12 +158,13 @@ namespace noug {
 	N_DEFINE_TEXT_CONFIG_IMPL(TextDecoration, text_decoration, 2);
 	N_DEFINE_TEXT_CONFIG_IMPL(TextOverflow, text_overflow, 3);
 	N_DEFINE_TEXT_CONFIG_IMPL(TextWhiteSpace, text_white_space, 4);
-	N_DEFINE_TEXT_CONFIG_IMPL_2(float, text_size, 5, 16);
-	N_DEFINE_TEXT_CONFIG_IMPL_2(Color, text_background_color, 6, Color(0, 0, 0, 0));
-	N_DEFINE_TEXT_CONFIG_IMPL_2(Color, text_color, 7, Color(0, 0, 0));
-	N_DEFINE_TEXT_CONFIG_IMPL_2(Shadow, text_shadow, 8, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
-	N_DEFINE_TEXT_CONFIG_IMPL_2(float, text_line_height, 9, 0);
-	N_DEFINE_TEXT_CONFIG_IMPL_2(FFID, text_family, 10, (_base->text_family()->pool()->getFFID()));
+	N_DEFINE_TEXT_CONFIG_IMPL(TextWordBreak, text_word_break, 5);
+	N_DEFINE_TEXT_CONFIG_IMPL_2(float, text_size, 6, 16);
+	N_DEFINE_TEXT_CONFIG_IMPL_2(Color, text_background_color, 7, Color(0, 0, 0, 0));
+	N_DEFINE_TEXT_CONFIG_IMPL_2(Color, text_color, 8, Color(0, 0, 0));
+	N_DEFINE_TEXT_CONFIG_IMPL_2(Shadow, text_shadow, 9, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
+	N_DEFINE_TEXT_CONFIG_IMPL_2(float, text_line_height, 10, 0);
+	N_DEFINE_TEXT_CONFIG_IMPL_2(FFID, text_family, 11, (_base->text_family()->pool()->getFFID()));
 	
 	FontStyle TextConfig::font_style() {
 		return {text_weight(), TextWidth::DEFAULT, text_slant()};
@@ -166,12 +176,13 @@ namespace noug {
 		: TextOptions()
 		, TextConfig(this, new TextConfig(new TextOptions(), nullptr))
 	{
-		auto opts = _base->textOptions();
+		auto opts = base()->text_options();
 		opts->set_text_weight(TextWeight::DEFAULT);
 		opts->set_text_slant(TextSlant::DEFAULT);
 		opts->set_text_decoration(TextDecoration::DEFAULT);
 		opts->set_text_overflow(TextOverflow::DEFAULT);
 		opts->set_text_white_space(TextWhiteSpace::DEFAULT);
+		opts->set_text_word_break(TextWordBreak::DEFAULT);
 		opts->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::VALUE});
 		opts->set_text_color({Color(0, 0, 0), TextValueKind::VALUE});
 		opts->set_text_size({16, TextValueKind::VALUE});
@@ -181,8 +192,8 @@ namespace noug {
 	}
 
 	DefaultTextOptions::~DefaultTextOptions() {
-		delete _base->textOptions();
-		delete _base;
+		delete base()->text_options();
+		delete base();
 	}
 
 	void DefaultTextOptions::onTextChange(uint32_t mark, uint32_t flags) {

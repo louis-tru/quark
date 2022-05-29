@@ -42,11 +42,12 @@ namespace noug {
 	class N_EXPORT TextOptions {
 	public:
 		N_DEFINE_PROP(TextWeight, text_weight);
-		N_DEFINE_PROP(TextSlant, text_slant);
+		N_DEFINE_PROP(TextSlant,  text_slant);
 		N_DEFINE_PROP(TextDecoration, text_decoration);
-		N_DEFINE_PROP(TextOverflow, text_overflow);
+		N_DEFINE_PROP(TextOverflow,   text_overflow);
 		N_DEFINE_PROP(TextWhiteSpace, text_white_space);
-		N_DEFINE_PROP(TextSize, text_size); // TextValueWrap
+		N_DEFINE_PROP(TextWordBreak,  text_word_break);
+		N_DEFINE_PROP(TextSize,  text_size); // TextValueWrap
 		N_DEFINE_PROP(TextColor, text_background_color);
 		N_DEFINE_PROP(TextColor, text_color);
 		N_DEFINE_PROP(TextShadow, text_shadow);
@@ -57,33 +58,33 @@ namespace noug {
 		friend class TextConfig;
 	};
 
+#define N_DEFINE_Text_Config(type, name) type name(); private: type _##name; public:
+#define N_DEFINE_Text_Config_2(type, name) type name()
+
 	class N_EXPORT TextConfig {
 	public:
-		TextConfig(TextOptions* textSet, TextConfig* base);
-		// define accseeor
-		TextWeight text_weight();
-		TextSlant  text_slant();
-		TextDecoration text_decoration();
-		TextOverflow   text_overflow();
-		TextWhiteSpace text_white_space();
-		float text_size();
-		Color text_background_color();
-		Color text_color();
-		Shadow text_shadow();
-		float text_line_height();
-		FFID  text_family();
-		FontStyle font_style();
-		inline TextOptions* textOptions() const { return _textOptions; };
-		inline TextConfig* base() const { return _base; };
+		TextConfig(TextOptions* opts, TextConfig* base);
+		// define props read
+		N_DEFINE_PROP_READ(TextOptions*, text_options);
+		N_DEFINE_PROP_READ(TextConfig*, base); // prototype chain accessor
+		// define prop accseeor
+		N_DEFINE_Text_Config(TextWeight, text_weight);
+		N_DEFINE_Text_Config(TextSlant, text_slant);
+		N_DEFINE_Text_Config(TextDecoration, text_decoration);
+		N_DEFINE_Text_Config(TextOverflow, text_overflow);
+		N_DEFINE_Text_Config(TextWhiteSpace, text_white_space);
+		N_DEFINE_Text_Config(TextWordBreak, text_word_break);
+		N_DEFINE_Text_Config_2(float, text_size);
+		N_DEFINE_Text_Config_2(Color, text_background_color);
+		N_DEFINE_Text_Config_2(Color, text_color);
+		N_DEFINE_Text_Config_2(Shadow, text_shadow);
+		N_DEFINE_Text_Config_2(float, text_line_height);
+		N_DEFINE_Text_Config_2(FFID, text_family);
+		N_DEFINE_Text_Config_2(FontStyle, font_style);
 	protected:
-		TextOptions*  _textOptions;
-		TextConfig*   _base; // prototype chain accessor
-		uint32_t   _flags;
-		TextWeight _text_weight;
-		TextSlant _text_slant;
-		TextDecoration _text_decoration;
-		TextOverflow _text_overflow;
-		TextWhiteSpace _text_white_space;
+		uint32_t _flags;
+#undef N_DEFINE_Text_Config
+#undef N_DEFINE_Text_Config_2
 	};
 
 	class N_EXPORT DefaultTextOptions: public TextOptions, public TextConfig {

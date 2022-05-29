@@ -34,103 +34,228 @@
 
 namespace noug {
 
-	namespace codec {
-		// ============ Utf-8 编码的范围 ==============
-		//  1 | 0000 0000 - 0000 007F |                                              0xxxxxxx
-		//  2 | 0000 0080 - 0000 07FF |                                     110xxxxx 10xxxxxx
-		//  3 | 0000 0800 - 0000 FFFF |                            1110xxxx 10xxxxxx 10xxxxxx
-		//  4 | 0001 0000 - 0010 FFFF |                   11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-		//  5 | 0020 0000 - 03FF FFFF |          111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-		//  6 | 0400 0000 - 7FFF FFFF | 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-		// ===========================================
-		// 单个unicode转换成utf8的长度
-		static uint32_t encode_utf8_char_length(uint32_t unicode) {
-			if (unicode < 0x7F + 1) {               // 单字节编码
-				return 1;
-			}
-			else {
-				if (unicode < 0x7FF + 1) {            // 两字节编码
-					return 2;
-				}
-				else if (unicode < 0xFFFF + 1) {      // 三字节编码
-					return 3;
-				}
-				else if (unicode < 0x10FFFF + 1) {    // 四字节编码
-					return 4;
-				}
-				else if (unicode < 0x3FFFFFF + 1) {   // 五字节编码
-					if (unicode > 0x200000 - 1) {
-						return 5;
-					}
-					else { // 这个区间没有编码
-						return 0;
-					}
-				}
-				else {                                //六字节编码
-					return 6;
-				}
-				return 0;
-			}
-		}
+	// --------------------- U T F 8 ---------------------
 
-		template <class Char>
-		static uint32_t encode_utf8_str_length(const Char* source, uint32_t len) {
-			uint32_t rev = 0;
-			const Char* end = source + len;
-			while (source < end) {
-				rev += encode_utf8_char_length(*source);
-				source++;
-			}
-			return rev;
-		}
+	// 1字节 0xxxxxxx
+	// 2字节 110xxxxx 10xxxxxx
+	// 3字节 1110xxxx 10xxxxxx 10xxxxxx
+	// 4字节 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+	// 5字节 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+	// 6字节 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+	static int decode_utf8_word_length(char c) {
 
-		// 单个unicode转换到utf-8编码
-		static uint32_t encode_unicode_to_utf8_char(uint32_t unicode, char* s) {
-			uint32_t rev = 1;
-			
-			if (unicode < 0x7F + 1) {             // 单字节编码
-				*s = unicode;
-			}
-			else {
-				// int length;
-				if (unicode < 0x7FF + 1) {            // 两字节编码
-					rev = 2;
-					*s = 0b11000000;
-				}
-				else if (unicode < 0xFFFF + 1) {      // 三字节编码
-					rev = 3;
-					*s = 0b11100000;
-				}
-				else if (unicode < 0x10FFFF + 1) {    // 四字节编码
-					rev = 4;
-					*s = 0b11110000;
-				}
-				else if (unicode < 0x3FFFFFF + 1) {   // 五字节编码
-					if (unicode > 0x200000 - 1) {
-						rev = 5;
-						*s = 0b11111000;
-					}
-					else { // 这个区间没有编码
-						return 0;
-					}
-				}
-				else {                               //六字节编码
-					rev = 6;
-					*s = 0b11111100;
-				}
-				for (int i = rev - 1; i > 0; i--) {
-					s[i] = 0b10000000 | (unicode & 0b00111111);
-					unicode >>= 6;
-				}
-				s[0] |= unicode;
-			}
-			return rev;
+		if ((c & 0x80) == 0) { // 小于 128 (c & 10000000) == 00000000
+			// uft8单字节编码 0xxxxxxx
+			return 1;
 		}
+		else if ((c & 0xe0) == 0xc0) { // (c & 11100000) == 11000000
+			// uft8双字节编码 110xxxxx 10xxxxxx
+			return 2;
+		}
+		else if ((c & 0xf0) == 0xe0) { //(c & 11110000) == 11100000
+			// uft8三字节编码 1110xxxx 10xxxxxx 10xxxxxx
+			return 3;
+		}
+		else if ((c & 0xf8) == 0xf0) { // (c & 11111000) == 11110000
+			// uft8四字节编码 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+			return 4;
+		}
+		else if ((c & 0xfc) == 0xf8) { // (c & 11111100) == 11111000
+			// uft8五字节编码 , utf8最多可用6个字节表示31位二进制
+			return 5;
+		}
+		else if ((c & 0xfe) == 0xfc) { // (c & 11111110) == 11111100
+			return 6;
+		}
+		// 未知容错,算成一个长度
+		return 1;
+	}
 
-		/**
-		 * @func encode_to_binary
-		 * @private
-		 */
+	// uincode 长度
+	static uint32_t decode_utf8_str_length(cChar* source, uint32_t len) {
+		uint32_t rev = 0;
+		cChar* end = source + len;
+		while (source < end) {
+			source += decode_utf8_word_length(*source);
+			rev++;
+		}
+		return rev;
+	}
+
+	// 解码单个unicode
+	uint32_t Codec::decode_utf8_to_unichar(const uint8_t* str, uint32_t* out) {
+
+		uint32_t c = *str;
+		str++;
+		if ((c & 0x80) == 0) { // 小于 128 (c & 10000000) == 00000000
+			//uft8单字节编码 0xxxxxxx
+			*out = c;
+			return 1;
+		}
+		else if ((c & 0xe0) == 0xc0) { // (c & 11100000) == 11000000
+			//uft8双字节编码 110xxxxx 10xxxxxx
+			uint32_t r_c = 0;
+			uint32_t c2 = *str; str++;
+			r_c |= (c2 & ~0xc0);
+			r_c |= ((c & ~0xe0) << 6);
+			*out = r_c;
+			return 2;
+		}
+		else if ((c & 0xf0) == 0xe0) { //(c & 11110000) == 11100000
+			//uft8三字节编码 1110xxxx 10xxxxxx 10xxxxxx
+			uint32_t r_c = 0;
+			uint32_t c2 = *str; str++;
+			uint32_t c3 = *str; str++;
+			r_c |= (c3 & ~0xc0);
+			r_c |= ((c2 & ~0xc0) << 6);
+			r_c |= ((c & ~0xf0) << 12);
+			*out = r_c;
+			return 3;
+		}
+		else if ((c & 0xf8) == 0xf0) { // (c & 11111000) == 11110000
+			//uft8四字节编码 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+			uint32_t r_c = 0;
+			uint32_t c2 = *str; str++;
+			uint32_t c3 = *str; str++;
+			uint32_t c4 = *str; str++;
+			r_c |= (c4 & ~0xc0);
+			r_c |= ((c3 & ~0xc0) << 6);
+			r_c |= ((c2 & ~0xc0) << 12);
+			r_c |= ((c & ~0xf8) << 18);
+			*out = r_c;
+			return 4;
+		}
+		else if ((c & 0xfc) == 0xf8) { // (c & 11111100) == 11111000
+			//uft8五字节编码 , utf8最多可用6个字节表示31位二进制
+			uint32_t r_c = 0;
+			uint32_t c2 = *str; str++;
+			uint32_t c3 = *str; str++;
+			uint32_t c4 = *str; str++;
+			uint32_t c5 = *str; str++;
+			r_c |= (c5 & ~0xc0);
+			r_c |= ((c4 & ~0xc0) << 6);
+			r_c |= ((c3 & ~0xc0) << 12);
+			r_c |= ((c2 & ~0xc0) << 18);
+			r_c |= ((c & ~0xfc) << 24);
+			*out = r_c;
+			return 5;
+		}
+		else if ((c & 0xfe) == 0xfc) { // (c & 11111110) == 11111100
+			//uft8六字节编码
+			uint32_t r_c = 0;
+			uint32_t c2 = *str; str++;
+			uint32_t c3 = *str; str++;
+			uint32_t c4 = *str; str++;
+			uint32_t c5 = *str; str++;
+			uint32_t c6 = *str; str++;
+			r_c |= (c6 & ~0xc0);
+			r_c |= ((c5 & ~0xc0) << 6);
+			r_c |= ((c4 & ~0xc0) << 12);
+			r_c |= ((c3 & ~0xc0) << 18);
+			r_c |= ((c2 & ~0xc0) << 24);
+			r_c |= ((c & ~0xfe) << 30);
+			*out = r_c;
+			return 6;
+		}
+		return 1;
+	}
+
+	// ============ Utf-8 编码的范围 ==============
+	//  1 | 0000 0000 - 0000 007F |                                              0xxxxxxx
+	//  2 | 0000 0080 - 0000 07FF |                                     110xxxxx 10xxxxxx
+	//  3 | 0000 0800 - 0000 FFFF |                            1110xxxx 10xxxxxx 10xxxxxx
+	//  4 | 0001 0000 - 0010 FFFF |                   11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+	//  5 | 0020 0000 - 03FF FFFF |          111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+	//  6 | 0400 0000 - 7FFF FFFF | 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+	// ===========================================
+	// 单个unicode转换成utf8的长度
+	static uint32_t encode_utf8_char_length(uint32_t unicode) {
+		if (unicode < 0x7F + 1) {               // 单字节编码
+			return 1;
+		}
+		else {
+			if (unicode < 0x7FF + 1) {            // 两字节编码
+				return 2;
+			}
+			else if (unicode < 0xFFFF + 1) {      // 三字节编码
+				return 3;
+			}
+			else if (unicode < 0x10FFFF + 1) {    // 四字节编码
+				return 4;
+			}
+			else if (unicode < 0x3FFFFFF + 1) {   // 五字节编码
+				if (unicode > 0x200000 - 1) {
+					return 5;
+				}
+				else { // 这个区间没有编码
+					return 0;
+				}
+			}
+			else {                                //六字节编码
+				return 6;
+			}
+			return 0;
+		}
+	}
+
+	template <class Char>
+	static uint32_t encode_utf8_str_length(const Char* source, uint32_t len) {
+		uint32_t rev = 0;
+		const Char* end = source + len;
+		while (source < end) {
+			rev += encode_utf8_char_length(*source);
+			source++;
+		}
+		return rev;
+	}
+
+	// 单个unicode转换到utf-8编码
+	static uint32_t encode_unicode_to_utf8_char(uint32_t unicode, char* s) {
+		uint32_t rev = 1;
+		
+		if (unicode < 0x7F + 1) {             // 单字节编码
+			*s = unicode;
+		}
+		else {
+			// int length;
+			if (unicode < 0x7FF + 1) {            // 两字节编码
+				rev = 2;
+				*s = 0b11000000;
+			}
+			else if (unicode < 0xFFFF + 1) {      // 三字节编码
+				rev = 3;
+				*s = 0b11100000;
+			}
+			else if (unicode < 0x10FFFF + 1) {    // 四字节编码
+				rev = 4;
+				*s = 0b11110000;
+			}
+			else if (unicode < 0x3FFFFFF + 1) {   // 五字节编码
+				if (unicode > 0x200000 - 1) {
+					rev = 5;
+					*s = 0b11111000;
+				}
+				else { // 这个区间没有编码
+					return 0;
+				}
+			}
+			else {                               //六字节编码
+				rev = 6;
+				*s = 0b11111100;
+			}
+			for (int i = rev - 1; i > 0; i--) {
+				s[i] = 0b10000000 | (unicode & 0b00111111);
+				unicode >>= 6;
+			}
+			s[0] |= unicode;
+		}
+		return rev;
+	}
+
+	// --------------------- e n c o d e ---------------------
+
+	namespace encode {
+
 		template <class Char>
 		static Buffer encode_to_binary(const Char* source, uint32_t len) {
 			const Char* end = source + len;
@@ -145,10 +270,6 @@ namespace noug {
 			return rev;
 		}
 
-		/**
-		 * @func encode_to_ascii
-		 * @private
-		 */
 		template <class Char>
 		static Buffer encode_to_ascii(const Char* source, uint32_t len) {
 			// ucs2/ucs4到ascii会丢失所有ascii以外的编码
@@ -163,10 +284,6 @@ namespace noug {
 			return rev;
 		}
 
-		/**
-		 * @func encode_to_utf8
-		 * @private
-		 */
 		template <class Char>
 		static Buffer encode_to_utf8(const Char* source, uint32_t len) {
 			uint32_t utf8_len = encode_utf8_str_length(source, len);
@@ -182,10 +299,6 @@ namespace noug {
 			return rev;
 		}
 
-		/**
-		 * @func encode_to_base64
-		 * @private
-		 */
 		template <class Char>
 		static Buffer encode_to_base64(const Char* source, uint32_t len) {
 			cChar* src = (cChar*)source;
@@ -247,10 +360,6 @@ namespace noug {
 			return rev;
 		}
 
-		/**
-		 * @func encode_to_hex
-		 * @private
-		 */
 		template <class Char>
 		static Buffer encode_to_hex(const Char* source, uint32_t len) {
 			cChar* hex = "0123456789abcdef";
@@ -269,10 +378,6 @@ namespace noug {
 			return rev;
 		}
 
-		/**
-		 * @func encode_to_ucs2
-		 * @private
-		 */
 		template <class Char>
 		static Buffer encode_to_ucs2(const Char* source, uint32_t len) {
 			// ucs4到ucs2会丢失所有ucs2以外的编码
@@ -287,10 +392,6 @@ namespace noug {
 			return rev;
 		}
 
-		/**
-		 * @func encode_to_ucs4
-		 * @private
-		 */
 		template <class Char>
 		static Buffer encode_to_ucs4(const Char* source, uint32_t len) {
 			const Char* end = source + len;
@@ -305,246 +406,79 @@ namespace noug {
 		}
 
 		static Buffer encode_with_buffer(Encoding target_en, cChar* source, uint32_t len) {
-			// cChar* end = source + len;
-			
 			switch (target_en) {
-				case Encoding::binary: {
+				case kBinary_Encoding:
 					return encode_to_binary(source, len);
-				}
-				case Encoding::ascii: {
+				case kAscii_Encoding: // 会丢失编码
 					return encode_to_ascii(source, len);
-				}
-				case Encoding::base64: {
-					return encode_to_base64(source, len);
-				}
-				case Encoding::hex: {
+				case kHex_Encoding:
 					return encode_to_hex(source, len);
-				}
-				case Encoding::utf8: {
+				case kBase64_Encoding:
+					return encode_to_base64(source, len);
+				case kUTF8_Encoding:
 					return encode_to_utf8((const uint8_t*)source, len);
-				}
-				case Encoding::utf16: { // 暂时使用ucs2,ucs2不能包括所有字符编码
-					//N_WARN("%s", "From ascii to ucs2 would be a waste of memory space.");
+				case kUTF16_Encoding: // 暂时使用ucs2,ucs2不能包括所有字符编码
 					return encode_to_ucs2(source, len);
-				}
-				case Encoding::ucs2: {  // 最小2字节编码
-					//N_WARN("%s", "From ascii to ucs2 would be a waste of memory space.");
+				case kUCS2_Encoding:  // 固定2字节编码
 					return encode_to_ucs2(source, len);
-				}
-				case Encoding::utf32:
-				case Encoding::ucs4: {  // 最小4字节编码
-					//N_WARN("%s", "From ascii to ucs4 would be a waste of memory space.");
+				case kUCS4_Encoding: // 固定4字节编码
 					return encode_to_ucs4(source, len);
-				}
 				default: N_ERR("%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
 
 		static Buffer encode_with_uint16(Encoding target_en, const uint16_t* source, uint32_t len) {
-			// const uint16* end = source + len;
-			
 			switch (target_en) {
-				case Encoding::binary: {
-					//N_WARN("%s", "Conversion from ucs2 to Binary will lose data.");
+				case kBinary_Encoding: // 会丢失编码
 					return encode_to_binary(source, len);
-				}
-				case Encoding::ascii: {  // 会丢失编码
-					//N_WARN("%s", "Conversion from ucs2 to ASCII will lose data.");
+				case kAscii_Encoding: // 会丢失编码
 					return encode_to_ascii(source, len);
-				}
-				case Encoding::base64: {
-					return encode_to_base64(source, len);
-				}
-				case Encoding::hex: {
+				case kHex_Encoding:
 					return encode_to_hex(source, len);
-				}
-				case Encoding::utf8: {
+				case kBase64_Encoding:
+					return encode_to_base64(source, len);
+				case kUTF8_Encoding:
 					return encode_to_utf8(source, len);
-				}
-				case Encoding::utf16: { // 暂时使用ucs2,ucs2不能包括所有字符编码
-					//N_WARN("%s", "No need to convert form ucs2 to ucs2.");
+				case kUTF16_Encoding:// 暂时使用ucs2,ucs2不能包括所有字符编码
 					return encode_to_ucs2(source, len);
-				}
-				case Encoding::ucs2: { // 最小2字节编码
-					//N_WARN("%s", "No need to convert form ucs2 to ucs2.");
+				case kUCS2_Encoding: // 固定2字节编码,会丢失编码
 					return encode_to_ucs2(source, len);
-				}
-				case Encoding::utf32:
-				case Encoding::ucs4: { // 最小4字节编码
-					//N_WARN("%s", "From ucs2 to ucs4 would be a waste of memory space.");
+				case kUCS4_Encoding:// 固定4字节编码
 					return encode_to_ucs4(source, len);
-				}
 				default: N_ERR("%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
 
 		static Buffer encode_with_uint32(Encoding target_en, const uint32_t* source, uint32_t len) {
-			// const uint32* end = source + len;
-			
 			switch (target_en) {
-				case Encoding::binary: {
-					//N_WARN("%s", "Conversion from ucs4 to Binary will lose data.");
+				case kBinary_Encoding:
 					return encode_to_binary(source, len);
-				}
-				case Encoding::ascii: {  // 会丢失编码
-					//N_WARN("%s", "Conversion from ucs4 to ASCII will lose data.");
+				case kAscii_Encoding:  // 会丢失编码
 					return encode_to_ascii(source, len);
-				}
-				case Encoding::base64: {
-					return encode_to_base64(source, len);
-				}
-				case Encoding::hex: {
+				case kHex_Encoding:
 					return encode_to_hex(source, len);
-				}
-				case Encoding::utf8: {
+				case kBase64_Encoding:
+					return encode_to_base64(source, len);
+				case kUTF8_Encoding:
 					return encode_to_utf8(source, len);
-				}
-				case Encoding::utf16: {    // 暂时使用ucs2,ucs2不能包括所有字符编码
-					//N_WARN("%s", "Conversion from ucs4 to ucs2 will lose data.");
+				case kUTF16_Encoding: // 暂时使用ucs2,ucs2不能包括所有字符编码
 					return encode_to_ucs2(source, len);
-				}
-				case Encoding::ucs2: {
-					//N_WARN("%s", "Conversion from ucs4 to ucs2 will lose data.");
+				case kUCS2_Encoding:
 					return encode_to_ucs2(source, len);
-				}
-				case Encoding::utf32:
-				case Encoding::ucs4: {
-					//N_WARN("%s", "No need to convert form ucs4 to ucs4.");
+				case kUCS4_Encoding:
 					return encode_to_ucs4(source, len);
-				}
 				default: N_ERR("%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
 
-		// ============== decode ==============
+	}
 
-		// 1字节 0xxxxxxx
-		// 2字节 110xxxxx 10xxxxxx
-		// 3字节 1110xxxx 10xxxxxx 10xxxxxx
-		// 4字节 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-		// 5字节 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-		// 6字节 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-		static int decode_utf8_word_length(char c) {
+	// --------------------- d e c o d e ---------------------
 
-			if ((c & 0x80) == 0) { // 小于 128 (c & 10000000) == 00000000
-				// uft8单字节编码 0xxxxxxx
-				return 1;
-			}
-			else if ((c & 0xe0) == 0xc0) { // (c & 11100000) == 11000000
-				// uft8双字节编码 110xxxxx 10xxxxxx
-				return 2;
-			}
-			else if ((c & 0xf0) == 0xe0) { //(c & 11110000) == 11100000
-				// uft8三字节编码 1110xxxx 10xxxxxx 10xxxxxx
-				return 3;
-			}
-			else if ((c & 0xf8) == 0xf0) { // (c & 11111000) == 11110000
-				// uft8四字节编码 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-				return 4;
-			}
-			else if ((c & 0xfc) == 0xf8) { // (c & 11111100) == 11111000
-				// uft8五字节编码 , utf8最多可用6个字节表示31位二进制
-				return 5;
-			}
-			else if ((c & 0xfe) == 0xfc) { // (c & 11111110) == 11111100
-				return 6;
-			}
-			// 未知容错,算成一个长度
-			return 1;
-		}
-
-		// uincode 长度
-		static uint32_t decode_utf8_str_length(cChar* source, uint32_t len) {
-			uint32_t rev = 0;
-			cChar* end = source + len;
-			while (source < end) {
-				source += decode_utf8_word_length(*source);
-				rev++;
-			}
-			return rev;
-		}
-
-		// 解码单个unicode
-		template<class Char>
-		static uint32_t decode_utf8_to_word(const uint8_t* str, Char* out) {
-
-			uint32_t c = *str;
-			str++;
-			if ((c & 0x80) == 0) { // 小于 128 (c & 10000000) == 00000000
-				//uft8单字节编码 0xxxxxxx
-				*out = c;
-				return 1;
-			}
-			else if ((c & 0xe0) == 0xc0) { // (c & 11100000) == 11000000
-				//uft8双字节编码 110xxxxx 10xxxxxx
-				uint32_t r_c = 0;
-				uint32_t c2 = *str; str++;
-				r_c |= (c2 & ~0xc0);
-				r_c |= ((c & ~0xe0) << 6);
-				*out = r_c;
-				return 2;
-			}
-			else if ((c & 0xf0) == 0xe0) { //(c & 11110000) == 11100000
-				//uft8三字节编码 1110xxxx 10xxxxxx 10xxxxxx
-				uint32_t r_c = 0;
-				uint32_t c2 = *str; str++;
-				uint32_t c3 = *str; str++;
-				r_c |= (c3 & ~0xc0);
-				r_c |= ((c2 & ~0xc0) << 6);
-				r_c |= ((c & ~0xf0) << 12);
-				*out = r_c;
-				return 3;
-			}
-			else if ((c & 0xf8) == 0xf0) { // (c & 11111000) == 11110000
-				//uft8四字节编码 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-				uint32_t r_c = 0;
-				uint32_t c2 = *str; str++;
-				uint32_t c3 = *str; str++;
-				uint32_t c4 = *str; str++;
-				r_c |= (c4 & ~0xc0);
-				r_c |= ((c3 & ~0xc0) << 6);
-				r_c |= ((c2 & ~0xc0) << 12);
-				r_c |= ((c & ~0xf8) << 18);
-				*out = r_c;
-				return 4;
-			}
-			else if ((c & 0xfc) == 0xf8) { // (c & 11111100) == 11111000
-				//uft8五字节编码 , utf8最多可用6个字节表示31位二进制
-				uint32_t r_c = 0;
-				uint32_t c2 = *str; str++;
-				uint32_t c3 = *str; str++;
-				uint32_t c4 = *str; str++;
-				uint32_t c5 = *str; str++;
-				r_c |= (c5 & ~0xc0);
-				r_c |= ((c4 & ~0xc0) << 6);
-				r_c |= ((c3 & ~0xc0) << 12);
-				r_c |= ((c2 & ~0xc0) << 18);
-				r_c |= ((c & ~0xfc) << 24);
-				*out = r_c;
-				return 5;
-			}
-			else if ((c & 0xfe) == 0xfc) { // (c & 11111110) == 11111100
-				//uft8六字节编码
-				uint32_t r_c = 0;
-				uint32_t c2 = *str; str++;
-				uint32_t c3 = *str; str++;
-				uint32_t c4 = *str; str++;
-				uint32_t c5 = *str; str++;
-				uint32_t c6 = *str; str++;
-				r_c |= (c6 & ~0xc0);
-				r_c |= ((c5 & ~0xc0) << 6);
-				r_c |= ((c4 & ~0xc0) << 12);
-				r_c |= ((c3 & ~0xc0) << 18);
-				r_c |= ((c2 & ~0xc0) << 24);
-				r_c |= ((c & ~0xfe) << 30);
-				*out = r_c;
-				return 6;
-			}
-			return 1;
-		}
+	namespace decode {
 
 		template <class Char>
 		static ArrayBuffer<Char> decode_from_binary(cChar* source, uint32_t len) {
@@ -705,19 +639,15 @@ namespace noug {
 
 		template <class Char>
 		static ArrayBuffer<Char> decode_from_utf8(cChar* source, uint32_t len) {
-			// uint32_t rev_len = decode_utf8_str_length(source, len);
-			//auto rev = ArrayBuffer<Char>::alloc(rev_len + 1);
-			// Char* data = *rev;
-			Char data;
+			uint32_t data;
 			ArrayBuffer<Char> rev;
 			cChar* end = source + len;
 			while (source < end) {
-				source += decode_utf8_to_word(reinterpret_cast<const uint8_t*>(source), &data);
+				source += Codec::decode_utf8_to_unichar(reinterpret_cast<const uint8_t*>(source), &data);
 				rev.push(data);
 			}
 			rev.realloc(rev.length() + 1);
 			(*rev)[rev.length()] = 0;
-
 			return rev;
 		}
 
@@ -747,7 +677,7 @@ namespace noug {
 			return rev;
 		}
 
-		static Buffer decode_to_buffer(Encoding source_en, cChar* source, uint32_t len) {
+		static ArrayBuffer<char> decode_to_buffer(Encoding source_en, cChar* source, uint32_t len) {
 			switch (source_en) {
 				case Encoding::binary: {
 					return decode_from_binary<char>(source, len);
@@ -785,35 +715,22 @@ namespace noug {
 
 		static ArrayBuffer<uint16_t> decode_to_uint16(Encoding source_en, cChar* source, uint32_t len) {
 			switch (source_en) {
-				case Encoding::binary: {
+				case kBinary_Encoding:
 					return decode_from_binary<uint16_t>(source, len);
-				}
-				case Encoding::ascii: {
+				case kAscii_Encoding:
 					return decode_from_ascii<uint16_t>(source, len);
-				}
-				case Encoding::base64: {
-					return decode_from_base64<uint16_t>(source, len);
-				}
-				case Encoding::hex: {
+				case kHex_Encoding:
 					return decode_from_hex<uint16_t>(source, len);
-				}
-				case Encoding::utf8: { // 会丢失ucs2外的编码
-					// N_WARN("%s", "Conversion from utf8 to ucs2 will lose data.");
+				case kBase64_Encoding:
+					return decode_from_base64<uint16_t>(source, len);
+				case kUTF8_Encoding: // 会丢失ucs2外的编码
 					return decode_from_utf8<uint16_t>(source, len);
-				}
-				case Encoding::utf16: { // 暂时使用ucs2
-					//N_WARN("%s", "Conversion from utf16 to ucs2 will lose data.");
+				case kUTF16_Encoding: // 暂时使用ucs2
 					return decode_from_ucs2<uint16_t>(source, len);
-				}
-				case Encoding::ucs2: { //
-					//N_WARN("%s", "No need to convert form ucs2 to ucs2.");
+				case kUCS2_Encoding:
 					return decode_from_ucs2<uint16_t>(source, len);
-				}
-				case Encoding::utf32:
-				case Encoding::ucs4: { // 会丢失ucs2外的编码
-					//N_WARN("%s", "Conversion from ucs4 to ucs2 will lose data.");
+				case kUCS4_Encoding: // 会丢失ucs2外的编码
 					return decode_from_ucs4<uint16_t>(source, len);
-				}
 				default: N_ERR("%s", "Unknown encode."); break;
 			}
 			return ArrayBuffer<uint16_t>();
@@ -821,31 +738,22 @@ namespace noug {
 
 		static ArrayBuffer<uint32_t> decode_to_uint32(Encoding source_en, cChar* source, uint32_t len) {
 			switch (source_en) {
-				case Encoding::binary: {
+				case kBinary_Encoding:
 					return decode_from_binary<uint32_t>(source, len);
-				}
-				case Encoding::ascii: {
+				case kAscii_Encoding:
 					return decode_from_ascii<uint32_t>(source, len);
-				}
-				case Encoding::base64:{
-					return decode_from_base64<uint32_t>(source, len);
-				}
-				case Encoding::hex: {
+				case kHex_Encoding:
 					return decode_from_hex<uint32_t>(source, len);
-				}
-				case Encoding::utf8: {
+				case kBase64_Encoding:
+					return decode_from_base64<uint32_t>(source, len);
+				case kUTF8_Encoding:
 					return decode_from_utf8<uint32_t>(source, len);
-				}
-				case Encoding::utf16:
-				case Encoding::ucs2: {
+				case kUTF16_Encoding:
 					return decode_from_ucs2<uint32_t>(source, len);
-				}
-				case Encoding::utf32:
-				case Encoding::ucs4: {
-					//N_WARN("%s", "No need to convert form ucs4 to ucs4.");
+				case kUCS2_Encoding:
+					return decode_from_ucs2<uint32_t>(source, len);
+				case kUCS4_Encoding:
 					return decode_from_ucs4<uint32_t>(source, len);
-					break;
-				}
 				default: N_ERR("%s", "Unknown encode."); break;
 			}
 			return ArrayBuffer<uint32_t>();
@@ -853,106 +761,87 @@ namespace noug {
 
 	}
 
-	static Dict<String, Encoding> init_parse_encoding() {
-		Dict<String, Encoding> encodes;
-		encodes["binary"] = Encoding::binary;
-		encodes["ascii"] = Encoding::ascii;
-		encodes["base64"] = Encoding::base64;
-		encodes["hex"] = Encoding::hex;
-		encodes["utf8"] = Encoding::utf8;
-		encodes["utf-8"] = Encoding::utf8;
-		encodes["ucs2"] = Encoding::ucs2;
-		encodes["ucs4"] = Encoding::ucs4;
-		encodes["utf16"] = Encoding::utf16;
-		encodes["utf-16"] = Encoding::utf16;
-		encodes["utf32"] = Encoding::utf32;
-		encodes["utf-32"] = Encoding::utf32;
-		encodes["unknown"] = Encoding::unknown;
-		return encodes;
+	Encoding Codec::parse_encoding(cString& encoding) {
+		static Dict<String, Encoding> encodings_dict({
+			{ "binary", kBinary_Encoding },
+			{ "ascii", kAscii_Encoding },
+			{ "hex", kHex_Encoding },
+			{ "base64", kBase64_Encoding },
+			{ "utf8", kUTF8_Encoding },
+			{ "utf-8", kUTF8_Encoding },
+			{ "utf16", kUTF16_Encoding },
+			{ "utf-16", kUTF16_Encoding },
+			{ "ucs2", kUCS2_Encoding },
+			{ "ucs4", kUCS4_Encoding },
+		});
+		auto i = encodings_dict.find(encoding.to_lower_case());
+		return i == encodings_dict.end() ? Encoding::kInvalid_Encoding : i->value;
 	}
 
-	static Dict<uint32_t, String> init_encoding_string() {
-		Dict<uint32_t, String> strs;
-		strs[(uint32_t)Encoding::binary] = "binary";
-		strs[(uint32_t)Encoding::ascii] = "ascii";
-		strs[(uint32_t)Encoding::base64] = "base64";
-		strs[(uint32_t)Encoding::hex] = "hex";
-		strs[(uint32_t)Encoding::utf8] = "utf8";
-		strs[(uint32_t)Encoding::ucs2] = "ucs2";
-		strs[(uint32_t)Encoding::ucs4] = "ucs4";
-		strs[(uint32_t)Encoding::utf16] = "utf16";
-		strs[(uint32_t)Encoding::utf32] = "utf32";
-		strs[(uint32_t)Encoding::unknown] = "unknown";
-		return strs;
-	}
-
-	Encoding Codec::parse_encoding(cString& en) {
-		static const Dict<String, Encoding> encodes(init_parse_encoding());
-		String encode = en.to_lower_case();
-		
-		auto i = encodes.find(en.to_lower_case());
-		if (i != encodes.end()) {
-			return i->value;
-		}
-		return Encoding::unknown;
-	}
-
-	String Codec::encoding_string(Encoding en) {
-		static const Dict<uint32_t, String> strs(init_encoding_string());
-		static cString unknown = "unknown";
-		auto i = strs.find((uint32_t)en);
-		if (i != strs.end()) {
-			return i->value;
-		}
-		return unknown;
+	String Codec::encoding_string(Encoding encoding) {
+		static cString invalid = "invalid";
+		static Dict<uint32_t, String> strs({
+			{ kBinary_Encoding, "binary" },
+			{ kAscii_Encoding, "ascii" },
+			{ kHex_Encoding, "hex" },
+			{ kBase64_Encoding, "base64" },
+			{ kUTF8_Encoding, "utf8" },
+			{ kUTF8_Encoding, "utf-8" },
+			{ kUTF16_Encoding, "utf16" },
+			{ kUTF16_Encoding, "utf-16" },
+			{ kUCS2_Encoding, "ucs2" },
+			{ kUCS4_Encoding, "ucs4" },
+		});
+		auto i = strs.find((uint32_t)encoding);
+		return i == strs.end() ? invalid: i->value;
 	}
 
 	ArrayBuffer<char> Codec::encode(Encoding target_en, const ArrayBuffer<char>& source) {
-		return codec::encode_with_buffer(target_en, *source, source.length());
+		return encode::encode_with_buffer(target_en, *source, source.length());
 	}
 
 	ArrayBuffer<char> Codec::encode(Encoding target_en, const ArrayBuffer<uint16_t>& source) {
-		return codec::encode_with_uint16(target_en, *source, source.length());
+		return encode::encode_with_uint16(target_en, *source, source.length());
 	}
 
 	ArrayBuffer<char> Codec::encode(Encoding target_en, const ArrayBuffer<uint32_t>& source) {
-		return codec::encode_with_uint32(target_en, *source, source.length());
+		return encode::encode_with_uint32(target_en, *source, source.length());
 	}
 
 	ArrayBuffer<char> Codec::encode(Encoding target_en, const ArrayString<char>& source) {
-		return codec::encode_with_buffer(target_en, source.c_str(), source.length());
+		return encode::encode_with_buffer(target_en, source.c_str(), source.length());
 	}
 
 	ArrayBuffer<char> Codec::encode(Encoding target_en, const ArrayString<uint16_t>& source) {
-		return codec::encode_with_uint16(target_en, source.c_str(), source.length());
+		return encode::encode_with_uint16(target_en, source.c_str(), source.length());
 	}
 
 	ArrayBuffer<char> Codec::encode(Encoding target_en, const ArrayString<uint32_t>& source) {
-		return codec::encode_with_uint32(target_en, source.c_str(), source.length());
+		return encode::encode_with_uint32(target_en, source.c_str(), source.length());
 	}
 
 	ArrayBuffer<char> Codec::decode_to_buffer(Encoding source_en, const ArrayString<char>& source) {
-		return codec::decode_to_buffer(source_en, source.c_str(), source.length());
+		return decode::decode_to_buffer(source_en, source.c_str(), source.length());
 	}
 
 	ArrayBuffer<uint16_t> Codec::decode_to_uint16(Encoding source_en, const ArrayString<char>& source) {
-		return codec::decode_to_uint16(source_en, source.c_str(), source.length());
+		return decode::decode_to_uint16(source_en, source.c_str(), source.length());
 	}
 
 	ArrayBuffer<uint32_t> Codec::decode_to_uint32(Encoding source_en, const ArrayString<char>& source) {
-		return codec::decode_to_uint32(source_en, source.c_str(), source.length());
+		return decode::decode_to_uint32(source_en, source.c_str(), source.length());
 	}
 
 	ArrayBuffer<char> Codec::decode_to_buffer(Encoding source_en, const ArrayBuffer<char>& source) {
-		return codec::decode_to_buffer(source_en, *source, source.length());
+		return decode::decode_to_buffer(source_en, *source, source.length());
 	}
 
 	ArrayBuffer<uint16_t> Codec::decode_to_uint16(Encoding source_en, const ArrayBuffer<char>& source) {
-		return codec::decode_to_uint16(source_en, *source, source.length());
+		return decode::decode_to_uint16(source_en, *source, source.length());
 	}
 
 	ArrayBuffer<uint32_t> Codec::decode_to_uint32(Encoding source_en, const ArrayBuffer<char>& source) {
-		return codec::decode_to_uint32(source_en, *source, source.length());
+		return decode::decode_to_uint32(source_en, *source, source.length());
 	}
 
 }

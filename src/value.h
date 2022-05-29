@@ -241,13 +241,21 @@ namespace noug {
 	};
 
 	enum class TextWhiteSpace: uint8_t {
-		INHERIT, // inherit
-		NORMAL,        /* 保留所有空白,使用自动wrap */
+		INHERIT,       // inherit
+		NORMAL,        /* 合并空白序列,使用自动wrap */
 		NO_WRAP,       /* 合并空白序列,不使用自动wrap */
-		NO_SPACE,      /* 合并空白序列,使用自动wrap */
 		PRE,           /* 保留所有空白,不使用自动wrap */
+		PRE_WRAP,      /* 保留所有空白,使用自动wrap */
 		PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
-		WRAP,          /* 保留所有空白,强制使用自动wrap */
+		DEFAULT = NORMAL,
+	};
+
+	enum class TextWordBreak: uint8_t {
+		INHERIT,   // inherit
+		NORMAL,    /* 保持单词在同一行 */
+		BREAK_WORD,/* 保持单词在同一行,除非单词长度超过一行才截断 */
+		BREAK_ALL, /* 以字为单位行空间不足换行 */
+		KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
 		DEFAULT = NORMAL,
 	};
 

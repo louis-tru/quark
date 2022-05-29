@@ -52,7 +52,7 @@ namespace noug {
 
 		typedef SimpleIterator<Member,       Member>  Iterator;
 		typedef SimpleIterator<const Member, Member>  IteratorConst;
-		typedef JSON*                                 ArrayIterator;
+		typedef       JSON*                           ArrayIterator;
 		typedef const JSON*                           ArrayIteratorConst;
 		
 		//! Type of JSON value
