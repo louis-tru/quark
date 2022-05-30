@@ -136,7 +136,65 @@ namespace noug {
 		: rows(rows), cfg(cfg), blob(blob)
 	{}
 
-	void TextBlobBuilder::make_as_no_auto_wrap(FontGlyphs &fg, Unichar *unichar) {
+	void TextBlobBuilder::make(cString& text) {
+		FontMetrics metrics;
+
+		auto text_white_space = cfg.text_white_space();
+		bool is_auto_wrap = true;
+
+		// enum class TextWhiteSpace: uint8_t {
+		// 	NORMAL,        /* 合并空白序列,使用自动wrap */
+		// 	NO_WRAP,       /* 合并空白序列,不使用自动wrap */
+		// 	PRE,           /* 保留所有空白,不使用自动wrap */
+		// 	PRE_WRAP,      /* 保留所有空白,使用自动wrap */
+		// 	PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
+		// };
+
+		// enum class TextWordBreak: uint8_t {
+		// 	NORMAL,    /* 保持单词在同一行 */
+		// 	BREAK_WORD,/* 保持单词在同一行,除非单词长度超过一行才截断 */
+		// 	BREAK_ALL, /* 以字为单位行空间不足换行 */
+		// 	KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
+		// };
+
+		if (rows->wrap_x() || // 容器没有固定宽度
+				text_white_space == TextWhiteSpace::NO_WRAP ||
+				text_white_space == TextWhiteSpace::PRE
+		) { // 不使用自动wrap
+			is_auto_wrap = false;
+		}
+
+		auto unis = string_to_unichar(text, text_white_space);
+
+		for ( int i = 0; i < unis.length(); i++ ) {
+			if (i) { // force line feed
+				rows->push(cfg);
+			}
+			auto fg_arr = cfg->text_family()->makeFontGlyphs(unis[i], cfg->font_style(), cfg->text_size());
+			auto unichar = *unis[i];
+
+			for (auto& fg: fg_arr) {
+				if (is_auto_wrap) {
+					switch(cfg->text_word_break()) {
+						default:
+						case TextWordBreak::NORMAL: make_as_normal(fg, unichar); break;
+						case TextWordBreak::BREAK_WORD: make_as_normal(fg, unichar); break;
+						case TextWordBreak::BREAK_ALL: make_as_break_all(fg, unichar); break;
+						case TextWordBreak::KEEP_ALL: make_as_keep_all(fg, unichar); break;
+					}
+					unichar += fg.glyphs().length();
+				} else {
+					make_as_no_auto_wrap(fg); // no auto wrap
+				}
+
+				fg   .get_metrics(&metrics);
+				rows->set_metrics(&metrics);
+			}
+		}
+
+	}
+
+	void TextBlobBuilder::make_as_no_auto_wrap(FontGlyphs &fg) {
 		auto row = rows->last();
 		auto origin = row->width;
 		auto offset = fg.get_offset();
@@ -144,24 +202,19 @@ namespace noug {
 		blob->push({ fg.typeface, fg.glyphs(), std::move(offset), origin, row->row_num });
 	}
 
-	void TextBlobBuilder::make_as_auto_wrap(FontGlyphs &fg, Unichar *unichar) {
-		switch(cfg->text_word_break()) {
-			default:
-			case TextWordBreak::NORMAL: make_as_normal(fg, unichar); break;
-			case TextWordBreak::BREAK_WORD: make_as_normal(fg, unichar); break;
-			case TextWordBreak::BREAK_ALL: make_as_break_all(fg, unichar); break;
-			case TextWordBreak::KEEP_ALL: make_as_keep_all(fg, unichar); break;
-		}
-	}
-
 	// NORMAL 保持单词在同一行
 	// BREAK_WORD 保持单词在同一行,除非单词长度超过一行才截断
 	void TextBlobBuilder::make_as_normal(FontGlyphs &fg, Unichar *unichar) {
-		int len = fg.glyphs().length();
+		auto& glyphs = fg.glyphs();
+		auto  offset = fg.get_offset();
+		auto  row = rows->last();
+
+		float limitX = rows->size().x();
+		float origin = row->width;
+		int   len = fg.glyphs().length();
+
 		for (int j = 0; j < len; j++) {
-			// Symbol sym = unicode_to_symbol(unichar[j]);
-			//if (row_width + offset[j + 1] > limitX) {
-			//}
+			Symbol sym = unicode_to_symbol(unichar[j]);
 		}
 	}
 
@@ -180,13 +233,13 @@ namespace noug {
 			float x = origin + offset[j + 1];
 			if (x > limitX) {
 				if (j) {
-					blob->push({ fg.typeface,
+					blob->push({ fg.typeface(),
 						glyphs.copy(blob_start_idx, j),
 						offset.copy(blob_start_idx, j + 1), origin, row->row_num
 					});
 					blob_start_idx = j;
 				}
-				rows->push(cfg);
+				rows->push(cfg); // new row
 				row = rows->last();
 				origin = -offset[j];
 			} else {
@@ -194,7 +247,7 @@ namespace noug {
 			}
 		}
 
-		blob->push({ fg.typeface,
+		blob->push({ fg.typeface(),
 			glyphs.copy(blob_start_idx, len),
 			offset.copy(blob_start_idx, len + 1), origin, row->row_num
 		});

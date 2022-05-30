@@ -63,54 +63,14 @@ namespace noug {
 		_blob.clear();
 		_rows = rows;
 
-		auto text_white_space = cfg.text_white_space();
-		bool is_auto_wrap = true;
-
-		// enum class TextWhiteSpace: uint8_t {
-		// 	NORMAL,        /* 合并空白序列,使用自动wrap */
-		// 	NO_WRAP,       /* 合并空白序列,不使用自动wrap */
-		// 	PRE,           /* 保留所有空白,不使用自动wrap */
-		// 	PRE_WRAP,      /* 保留所有空白,使用自动wrap */
-		// 	PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
-		// };
-
-		// enum class TextWordBreak: uint8_t {
-		// 	NORMAL,    /* 保持单词在同一行 */
-		// 	BREAK_WORD,/* 保持单词在同一行,除非单词长度超过一行才截断 */
-		// 	BREAK_ALL, /* 以字为单位行空间不足换行 */
-		// 	KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
-		// };
-
-		if (rows->wrap_x() || // 容器没有固定宽度
-				text_white_space == TextWhiteSpace::NO_WRAP ||
-				text_white_space == TextWhiteSpace::PRE
-		) { // 不使用自动wrap
-			is_auto_wrap = false;
-		}
-
-		FontMetrics metrics;
 		TextBlobBuilder tbb(rows, &cfg, &_blob);
 
-		auto unis = string_to_unichar(_text_value, text_white_space);
+		tbb.make(_text_value);
 
-		for ( int i = 0; i < unis.length(); i++) {
-			if (i) { // force line feed
-				rows->push(&cfg);
-			}
-
-			auto fg_arr = cfg.text_family()->makeFontGlyphs(unis[i], cfg.font_style(), cfg.text_size());
-
-			for (auto& fg: fg_arr) {
-				fg   .get_metrics(&metrics);
-				rows->set_metrics(&metrics);
-				auto unichar =  *unis[i];
-				if (is_auto_wrap) {
-					tbb.make_as_auto_wrap(fg, unichar); // auto wrap
-				} else {
-					tbb.make_as_no_auto_wrap(fg, unichar); // no auto wrap
-				}
-				unichar += fg.glyphs().length();
-			}
+		auto v = first();
+		while(v) {
+			v->layout_text(rows, &cfg);
+			v = v->next();
 		}
 	}
 
