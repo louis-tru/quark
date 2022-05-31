@@ -170,7 +170,7 @@ namespace noug {
 	}
 
 	float FontGlyphs::get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize) {
-		return FontGlyphs(nullptr, 0, FFID.match(style)[0], fontSize).get_metrics(metrics);
+		return FontGlyphs(nullptr, 0, FFID->match(style)[0], fontSize).get_metrics(metrics);
 	}
 
 }

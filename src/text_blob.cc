@@ -139,7 +139,8 @@ namespace noug {
 	void TextBlobBuilder::make(cString& text) {
 		FontMetrics metrics;
 
-		auto text_white_space = cfg.text_white_space();
+		auto text_white_space = cfg->text_white_space();
+		auto text_word_break = cfg->text_word_break();
 		bool is_auto_wrap = true;
 
 		// enum class TextWhiteSpace: uint8_t {
@@ -175,7 +176,7 @@ namespace noug {
 
 			for (auto& fg: fg_arr) {
 				if (is_auto_wrap) {
-					switch(cfg->text_word_break()) {
+					switch (text_word_break) {
 						default:
 						case TextWordBreak::NORMAL: make_as_normal(fg, unichar); break;
 						case TextWordBreak::BREAK_WORD: make_as_normal(fg, unichar); break;
@@ -199,7 +200,7 @@ namespace noug {
 		auto origin = row->width;
 		auto offset = fg.get_offset();
 		row->width += offset.back();
-		blob->push({ fg.typeface, fg.glyphs(), std::move(offset), origin, row->row_num });
+		blob->push({ fg.typeface(), fg.glyphs(), std::move(offset), origin, row->row_num });
 	}
 
 	// NORMAL 保持单词在同一行
