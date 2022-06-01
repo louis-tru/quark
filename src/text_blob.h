@@ -62,6 +62,10 @@ namespace noug {
 		TextRows *rows;
 		TextConfig *cfg;
 		Array<TextBlob>* blob;
+		TextWhiteSpace _text_white_space;
+		TextWordBreak  _text_word_break;
+		FontStyle      _font_style;
+		float          _text_size;
 	};
 
 }

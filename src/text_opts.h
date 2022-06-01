@@ -41,6 +41,7 @@ namespace noug {
 
 	class N_EXPORT TextOptions {
 	public:
+		TextOptions();
 		N_DEFINE_PROP(TextWeight, text_weight);
 		N_DEFINE_PROP(TextSlant,  text_slant);
 		N_DEFINE_PROP(TextDecoration, text_decoration);
@@ -53,46 +54,32 @@ namespace noug {
 		N_DEFINE_PROP(TextShadow, text_shadow);
 		N_DEFINE_PROP(TextLineHeight, text_line_height);
 		N_DEFINE_PROP(TextFamily, text_family);
+		// compute text final props
+		N_DEFINE_PROP_READ(TextWeight, text_weight_value);
+		N_DEFINE_PROP_READ(TextSlant, text_slant_value);
+		N_DEFINE_PROP_READ(TextDecoration, text_decoration_value);
+		N_DEFINE_PROP_READ(TextOverflow, text_overflow_value);
+		N_DEFINE_PROP_READ(TextWhiteSpace, text_white_space_value);
+		N_DEFINE_PROP_READ(TextWordBreak, text_word_break_value);
+		FontStyle font_style() const;
 	protected:
-		virtual void onTextChange(uint32_t mark, uint32_t flags);
+		virtual void onTextChange(uint32_t mark);
+		uint32_t     _flags = 0xffffffff;
 		friend class TextConfig;
 	};
-
-#define N_DEFINE_Text_Config(type, name) type name(); private: type _##name; public:
-#define N_DEFINE_Text_Config_2(type, name) type name()
 
 	class N_EXPORT TextConfig {
 	public:
 		TextConfig(TextOptions* opts, TextConfig* base);
-		// define props read
-		N_DEFINE_PROP_READ(TextOptions*, text_options);
-		N_DEFINE_PROP_READ(TextConfig*, base); // prototype chain accessor
-		// define prop accseeor
-		N_DEFINE_Text_Config(TextWeight, text_weight);
-		N_DEFINE_Text_Config(TextSlant, text_slant);
-		N_DEFINE_Text_Config(TextDecoration, text_decoration);
-		N_DEFINE_Text_Config(TextOverflow, text_overflow);
-		N_DEFINE_Text_Config(TextWhiteSpace, text_white_space);
-		N_DEFINE_Text_Config(TextWordBreak, text_word_break);
-		N_DEFINE_Text_Config_2(float, text_size);
-		N_DEFINE_Text_Config_2(Color, text_background_color);
-		N_DEFINE_Text_Config_2(Color, text_color);
-		N_DEFINE_Text_Config_2(Shadow, text_shadow);
-		N_DEFINE_Text_Config_2(float, text_line_height);
-		N_DEFINE_Text_Config_2(FFID, text_family);
-		N_DEFINE_Text_Config_2(FontStyle, font_style);
-	protected:
-		uint32_t _flags;
-#undef N_DEFINE_Text_Config
-#undef N_DEFINE_Text_Config_2
+		~TextConfig();
+		N_DEFINE_PROP_READ(TextOptions*, opts);
+		N_DEFINE_PROP_READ(TextConfig*,  base);
 	};
 
 	class N_EXPORT DefaultTextOptions: public TextOptions, public TextConfig {
 	public:
 		DefaultTextOptions(FontPool *pool);
 		~DefaultTextOptions();
-	protected:
-		virtual void onTextChange(uint32_t mark, uint32_t flags);
 	};
 
 }

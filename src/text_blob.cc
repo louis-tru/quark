@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text_blob.h"
-#include "../util/codec.h"
+#include "./util/codec.h"
 
 namespace noug {
 
@@ -216,6 +216,9 @@ namespace noug {
 
 		for (int j = 0; j < len; j++) {
 			Symbol sym = unicode_to_symbol(unichar[j]);
+
+			//if (sym == kLineFeed_Symbol || sym == kSpace_Symbol) { // space
+			//}
 		}
 	}
 

@@ -78,7 +78,7 @@ namespace noug {
 		return false;
 	}
 
-	void TextLayout::onTextChange(uint32_t value, uint32_t flags) {
+	void TextLayout::onTextChange(uint32_t value) {
 		value ? mark(value): mark_none();
 	}
 
