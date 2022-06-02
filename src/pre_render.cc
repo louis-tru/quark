@@ -31,6 +31,7 @@
 #include "./pre_render.h"
 #include "./layout/layout.h"
 #include "./app.h"
+#include "./text_opts.h"
 
 namespace noug {
 
@@ -56,6 +57,8 @@ namespace noug {
 	}
 
 	void PreRender::solve_mark() {
+		TextConfig cfg(_host->default_text_options(), _host->default_text_options()->base());
+
 		do {
 			{ // forward iteration
 				for (auto& levelMarks: _marks) {

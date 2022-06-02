@@ -36,7 +36,7 @@
 namespace noug {
 
 	class FontMetrics;
-	class TextConfig;
+	class TextOptions;
 
 	class N_EXPORT TextRows: public Reference {
 	public:
@@ -47,7 +47,7 @@ namespace noug {
 		};
 		TextRows(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align);
 		void push(); // first call finish() then add new row
-		void push(TextConfig *cfg); // push new row
+		void push(TextOptions *opts); // push new row
 		void finish(); // finish row
 		void set_metrics(float ascent, float descent);
 		void set_metrics(FontMetrics *metrics);

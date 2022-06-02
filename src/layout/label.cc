@@ -63,13 +63,15 @@ namespace noug {
 		_blob.clear();
 		_rows = rows;
 
-		TextBlobBuilder tbb(rows, &cfg, &_blob);
+		TextBlobBuilder tbb(rows, this, &_blob);
 
 		tbb.make(_text_value);
 
 		auto v = first();
 		while(v) {
-			v->layout_text(rows, &cfg);
+			if (v->visible()) {
+				v->layout_text(rows, &cfg);
+			}
 			v = v->next();
 		}
 	}
@@ -96,6 +98,16 @@ namespace noug {
 	bool Label::solve_visible_region() {
 		// TODO ...
 		return true;
+	}
+
+	void Label::set_visible(bool val) {
+		View::set_visible(val);
+		_text_flags = 0xffffffff;
+	}
+
+	void Label::set_parent(View *val) {
+		View::set_parent(val);
+		_text_flags = 0xffffffff;
 	}
 
 }

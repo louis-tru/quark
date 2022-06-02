@@ -132,15 +132,15 @@ namespace noug {
 		return rows;
 	}
 
-	TextBlobBuilder::TextBlobBuilder(TextRows *rows, TextConfig *cfg, Array<TextBlob>* blob)
-		: rows(rows), cfg(cfg), blob(blob)
+	TextBlobBuilder::TextBlobBuilder(TextRows *rows, TextOptions *opts, Array<TextBlob>* blob)
+		: _rows(rows), _opts(opts), _blob(blob)
 	{}
 
 	void TextBlobBuilder::make(cString& text) {
 		FontMetrics metrics;
 
-		auto text_white_space = cfg->text_white_space();
-		auto text_word_break = cfg->text_word_break();
+		auto text_white_space = _opts->text_white_space_value();
+		auto text_word_break = _opts->text_word_break_value();
 		bool is_auto_wrap = true;
 
 		// enum class TextWhiteSpace: uint8_t {
@@ -158,7 +158,7 @@ namespace noug {
 		// 	KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
 		// };
 
-		if (rows->wrap_x() || // 容器没有固定宽度
+		if (_rows->wrap_x() || // 容器没有固定宽度
 				text_white_space == TextWhiteSpace::NO_WRAP ||
 				text_white_space == TextWhiteSpace::PRE
 		) { // 不使用自动wrap
@@ -169,66 +169,80 @@ namespace noug {
 
 		for ( int i = 0; i < unis.length(); i++ ) {
 			if (i) { // force line feed
-				rows->push(cfg);
+				_rows->push(_opts);
 			}
-			auto fg_arr = cfg->text_family()->makeFontGlyphs(unis[i], cfg->font_style(), cfg->text_size());
+			auto fg_arr = _opts->text_family().value->makeFontGlyphs(unis[i], _opts->font_style(), _opts->text_size().value);
 			auto unichar = *unis[i];
 
 			for (auto& fg: fg_arr) {
 				if (is_auto_wrap) {
 					switch (text_word_break) {
 						default:
-						case TextWordBreak::NORMAL: make_as_normal(fg, unichar); break;
-						case TextWordBreak::BREAK_WORD: make_as_normal(fg, unichar); break;
-						case TextWordBreak::BREAK_ALL: make_as_break_all(fg, unichar); break;
-						case TextWordBreak::KEEP_ALL: make_as_keep_all(fg, unichar); break;
+						case TextWordBreak::NORMAL: as_normal(fg, unichar); break;
+						case TextWordBreak::BREAK_WORD: as_normal(fg, unichar); break;
+						case TextWordBreak::BREAK_ALL: as_break_all(fg, unichar); break;
+						case TextWordBreak::KEEP_ALL: as_keep_all(fg, unichar); break;
 					}
 					unichar += fg.glyphs().length();
 				} else {
-					make_as_no_auto_wrap(fg); // no auto wrap
+					as_no_auto_wrap(fg); // no auto wrap
 				}
-
-				fg   .get_metrics(&metrics);
-				rows->set_metrics(&metrics);
+				fg    .get_metrics(&metrics);
+				_rows->set_metrics(&metrics);
 			}
 		}
 
 	}
 
-	void TextBlobBuilder::make_as_no_auto_wrap(FontGlyphs &fg) {
-		auto row = rows->last();
+	void TextBlobBuilder::as_no_auto_wrap(FontGlyphs &fg) {
+		auto row = _rows->last();
 		auto origin = row->width;
 		auto offset = fg.get_offset();
 		row->width += offset.back();
-		blob->push({ fg.typeface(), fg.glyphs(), std::move(offset), origin, row->row_num });
+		_blob->push({
+			fg.typeface(),
+			fg.glyphs(), std::move(offset), origin, row->row_num,
+		});
 	}
 
 	// NORMAL 保持单词在同一行
 	// BREAK_WORD 保持单词在同一行,除非单词长度超过一行才截断
-	void TextBlobBuilder::make_as_normal(FontGlyphs &fg, Unichar *unichar) {
+	void TextBlobBuilder::as_normal(FontGlyphs &fg, Unichar *unichar) {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.get_offset();
-		auto  row = rows->last();
 
-		float limitX = rows->size().x();
-		float origin = row->width;
+		float limitX = _rows->size().x();
+		float origin = _rows->cur_width;
 		int   len = fg.glyphs().length();
+		int   blob_start_idx = 0;
 
 		for (int j = 0; j < len; j++) {
-			Symbol sym = unicode_to_symbol(unichar[j]);
+			float x = origin + offset[j + 1];
+			if (x > limitX) {
+				_rows->push(); // new row
+				origin = -offset[j];
+			} else {
+				_rows->cur_width = x;
+			}
+			// prev word end or next word start, record position and offset
+			if (unicode_to_symbol(unichar[j]) == kSpace_Symbol) { // space
+				_rows->add_text_blob(fg, _blob, blob_start_idx, j + 1, true);
+				blob_start_idx = j + 1;
+			}
+		}
 
-			//if (sym == kLineFeed_Symbol || sym == kSpace_Symbol) { // space
-			//}
+		if (blob_start_idx < len) {
+			_rows->add_text_blob(fg, _blob, blob_start_idx, len, false);
 		}
 	}
 
 	// BREAK_ALL 以字符为单位行空间不足换行
-	void TextBlobBuilder::make_as_break_all(FontGlyphs &fg, Unichar *unichar) {
+	void TextBlobBuilder::as_break_all(FontGlyphs &fg, Unichar *unichar) {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.get_offset();
-		auto  row = rows->last();
-		
-		float limitX = rows->size().x();
+		auto  row = _rows->last();
+
+		float limitX = _rows->size().x();
 		float origin = row->width;
 		int   len = glyphs.length();
 		int   blob_start_idx = 0;
@@ -237,21 +251,21 @@ namespace noug {
 			float x = origin + offset[j + 1];
 			if (x > limitX) {
 				if (j) {
-					blob->push({ fg.typeface(),
+					_blob->push({ fg.typeface(),
 						glyphs.copy(blob_start_idx, j),
 						offset.copy(blob_start_idx, j + 1), origin, row->row_num
 					});
 					blob_start_idx = j;
 				}
-				rows->push(cfg); // new row
-				row = rows->last();
+				_rows->push(_opts); // new row
+				row = _rows->last();
 				origin = -offset[j];
 			} else {
 				row->width = x;
 			}
 		}
 
-		blob->push({ fg.typeface(),
+		_blob->push({ fg.typeface(),
 			glyphs.copy(blob_start_idx, len),
 			offset.copy(blob_start_idx, len + 1), origin, row->row_num
 		});
@@ -260,7 +274,7 @@ namespace noug {
 	}
 
 	// KEEP_ALL 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
-	void TextBlobBuilder::make_as_keep_all(FontGlyphs &fg, Unichar *unichar) {
+	void TextBlobBuilder::as_keep_all(FontGlyphs &fg, Unichar *unichar) {
 		// TODO ...
 	}
 

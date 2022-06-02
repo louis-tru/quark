@@ -41,8 +41,10 @@ namespace noug {
 	public:
 		N_DEFINE_PROP(TextAlign, text_align);
 		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void set_visible(bool val) override;
+		virtual void set_parent(View *val) override;
 	protected:
-		virtual void onTextChange(uint32_t mark, uint32_t flags) override;
+		virtual void onTextChange(uint32_t mark) override;
 	};
 
 }

@@ -49,9 +49,9 @@ namespace noug {
 		virtual void set_layout_offset_lazy(Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 		virtual bool solve_visible_region() override;
-		virtual void onChildLayoutChange() override;
+		virtual void set_visible(bool val) override;
+		virtual void set_parent(View *val) override;
 	protected:
-		virtual void set_parent(View* parent);
 		virtual void onTextChange(uint32_t mark) override;
 		Array<TextBlob> _blob;
 		Sp<TextRows>    _rows;

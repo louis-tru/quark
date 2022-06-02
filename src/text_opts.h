@@ -64,7 +64,7 @@ namespace noug {
 		FontStyle font_style() const;
 	protected:
 		virtual void onTextChange(uint32_t mark);
-		uint32_t     _flags = 0xffffffff;
+		uint32_t     _text_flags;
 		friend class TextConfig;
 	};
 

@@ -55,9 +55,9 @@ namespace noug {
 		_last = &_rows.back();
 	}
 
-	void TextRows::push(TextConfig *cfg) {
+	void TextRows::push(TextOptions *opts) {
 		FontMetrics metrics;
-		FontGlyphs::get_metrics(&metrics, cfg->text_family(), cfg->font_style(), cfg->text_size());
+		FontGlyphs::get_metrics(&metrics, opts->text_family().value, opts->font_style(), opts->text_size().value);
 		push(); // new row
 		set_metrics(&metrics);
 	}

@@ -52,20 +52,17 @@ namespace noug {
 
 	class N_EXPORT TextBlobBuilder {
 	public:
-		TextBlobBuilder(TextRows *rows, TextConfig *cfg, Array<TextBlob>* blob);
+		TextBlobBuilder(TextRows *rows, TextOptions *opts, Array<TextBlob>* blob);
 		void make(cString& text);
-		void make_as_no_auto_wrap(FontGlyphs &fg);
-		void make_as_normal(FontGlyphs &fg, Unichar *unichar);
-		void make_as_break_all(FontGlyphs &fg, Unichar *unichar);
-		void make_as_keep_all(FontGlyphs &fg, Unichar *unichar);
 	private:
-		TextRows *rows;
-		TextConfig *cfg;
-		Array<TextBlob>* blob;
-		TextWhiteSpace _text_white_space;
-		TextWordBreak  _text_word_break;
-		FontStyle      _font_style;
-		float          _text_size;
+		void as_no_auto_wrap(FontGlyphs &fg);
+		void as_normal(FontGlyphs &fg, Unichar *unichar);
+		void as_break_all(FontGlyphs &fg, Unichar *unichar);
+		void as_keep_all(FontGlyphs &fg, Unichar *unichar);
+	private:
+		TextRows *_rows;
+		TextOptions *_opts;
+		Array<TextBlob> *_blob;
 	};
 
 }

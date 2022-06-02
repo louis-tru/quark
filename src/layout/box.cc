@@ -594,7 +594,8 @@ namespace noug {
 			auto v = first();
 			if (v) {
 				do { // lazy layout
-					v->set_layout_offset_lazy(_content_size); // lazy layout
+					if (v->visible())
+						v->set_layout_offset_lazy(_content_size); // lazy layout
 					v = v->next();
 				} while(v);
 			}

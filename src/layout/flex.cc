@@ -92,9 +92,11 @@ namespace noug {
 		if (is_horizontal ? cur_size.wrap_y: cur_size.wrap_x) { // wrap y or x
 			auto v = first();
 			while (v) {
-				auto size = v->layout_size().layout_size;
-				auto cross = is_horizontal ? size.y(): size.x();
-				max_cross = N_MAX(max_cross, cross);
+				if (v->visible()) {
+					auto size = v->layout_size().layout_size;
+					auto cross = is_horizontal ? size.y(): size.x();
+					max_cross = N_MAX(max_cross, cross);
+				}
 				v = v->next();
 			}
 		} else {
@@ -103,23 +105,25 @@ namespace noug {
 
 		auto v = is_reverse ? last(): first();
 		while (v) {
-			auto size = v->layout_size().layout_size;
-			auto align = v->layout_align();
-			float offset_cross = 0;
-			switch (align == Align::AUTO ? _cross_align: CrossAlign(int(align) - 1)) {
-				default:
-				case CrossAlign::START: break; // 与交叉轴内的起点对齐
-				case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-					offset_cross = (max_cross - (is_horizontal ? size.y(): size.x())) / 2.0; break;
-				case CrossAlign::END: // 与交叉轴内的终点对齐
-					offset_cross = max_cross - (is_horizontal ? size.y(): size.x()); break;
-			}
-			if (is_horizontal) {
-				v->set_layout_offset(Vec2(offset, offset_cross));
-				offset += size.x();
-			} else {
-				v->set_layout_offset(Vec2(offset_cross, offset));
-				offset += size.y();
+			if (v->visible()) {
+				auto size = v->layout_size().layout_size;
+				auto align = v->layout_align();
+				float offset_cross = 0;
+				switch (align == Align::AUTO ? _cross_align: CrossAlign(int(align) - 1)) {
+					default:
+					case CrossAlign::START: break; // 与交叉轴内的起点对齐
+					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
+						offset_cross = (max_cross - (is_horizontal ? size.y(): size.x())) / 2.0; break;
+					case CrossAlign::END: // 与交叉轴内的终点对齐
+						offset_cross = max_cross - (is_horizontal ? size.y(): size.x()); break;
+				}
+				if (is_horizontal) {
+					v->set_layout_offset(Vec2(offset, offset_cross));
+					offset += size.x();
+				} else {
+					v->set_layout_offset(Vec2(offset_cross, offset));
+					offset += size.y();
+				}
 			}
 			v = is_reverse ? v->prev() : v->next();
 		}
@@ -150,11 +154,13 @@ namespace noug {
 
 			auto v = is_reverse ? last(): first();
 			do {
-				auto size = v->layout_raw_size(cur_size).layout_size;
-				max_cross = N_MAX(max_cross, size.y()); // solve content height
-				total_main += size.x();
-				weight_total += v->layout_weight();
-				items.push({size, v});
+				if (v->visible()) {
+					auto size = v->layout_raw_size(cur_size).layout_size;
+					max_cross = N_MAX(max_cross, size.y()); // solve content height
+					total_main += size.x();
+					weight_total += v->layout_weight();
+					items.push({size, v});
+				}
 				v = is_reverse ? v->prev() : v->next();
 			} while(v);
 

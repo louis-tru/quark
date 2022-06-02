@@ -82,4 +82,14 @@ namespace noug {
 		value ? mark(value): mark_none();
 	}
 
+	void TextLayout::set_visible(bool val) {
+		Box::set_visible(val);
+		_text_flags = 0xffffffff;
+	}
+
+	void TextLayout::set_parent(View *val) {
+		Box::set_parent(val);
+		_text_flags = 0xffffffff;
+	}
+
 }

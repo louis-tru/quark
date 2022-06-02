@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./layout/layout.h"
 #include "./text_opts.h"
+#include "./layout/layout.h"
 #include "./render/font/pool.h"
 
 namespace noug {
 
-	TextOptions::TextOptions(): _flags(0xffffffff) {
+	TextOptions::TextOptions(): _text_flags(0xffffffff) {
 	}
 
 	void TextOptions::onTextChange(uint32_t mark) {
@@ -44,7 +44,7 @@ namespace noug {
 	void TextOptions::set_text_weight(TextWeight value) {
 		if (value != _text_weight) {
 			_text_weight = _text_weight_value = value;
-			_flags |= (1 << 0);
+			_text_flags |= (1 << 0);
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
@@ -52,7 +52,7 @@ namespace noug {
 	void TextOptions::set_text_slant(TextSlant value) {
 		if (value != _text_slant) {
 			_text_slant = _text_slant_value = value;
-			_flags |= (1 << 1);
+			_text_flags |= (1 << 1);
 			onTextChange(Layout::kLayout_None);
 		}
 	}
@@ -60,7 +60,7 @@ namespace noug {
 	void TextOptions::set_text_decoration(TextDecoration value) {
 		if (value != _text_decoration) {
 			_text_decoration = _text_decoration_value = value;
-			_flags |= (1 << 2);
+			_text_flags |= (1 << 2);
 			onTextChange(Layout::kLayout_None);
 		}
 	}
@@ -68,7 +68,7 @@ namespace noug {
 	void TextOptions::set_text_overflow(TextOverflow value) {
 		if (value != _text_overflow) {
 			_text_overflow = _text_overflow_value = value;
-			_flags |= (1 << 3);
+			_text_flags |= (1 << 3);
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
@@ -76,7 +76,7 @@ namespace noug {
 	void TextOptions::set_text_white_space(TextWhiteSpace value) {
 		if (value != _text_white_space) {
 			_text_white_space = _text_white_space_value = value;
-			_flags |= (1 << 4);
+			_text_flags |= (1 << 4);
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
@@ -84,7 +84,7 @@ namespace noug {
 	void TextOptions::set_text_word_break(TextWordBreak value) {
 		if (value != _text_word_break) {
 			_text_word_break = _text_word_break_value = value;
-			_flags |= (1 << 5);
+			_text_flags |= (1 << 5);
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
@@ -93,7 +93,7 @@ namespace noug {
 		if (value != _text_size) {
 			value.value = N_MAX(1, value.value);
 			_text_size = value;
-			_flags |= (1 << 6);
+			_text_flags |= (1 << 6);
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
@@ -101,7 +101,7 @@ namespace noug {
 	void TextOptions::set_text_background_color(TextColor value) {
 		if (value != _text_background_color) {
 			_text_background_color = value;
-			_flags |= (1 << 7);
+			_text_flags |= (1 << 7);
 			onTextChange(Layout::kLayout_None);
 		}
 	}
@@ -109,7 +109,7 @@ namespace noug {
 	void TextOptions::set_text_color(TextColor value) {
 		if (value != _text_color) {
 			_text_color = value;
-			_flags |= (1 << 8);
+			_text_flags |= (1 << 8);
 			onTextChange(Layout::kLayout_None);
 		}
 	}
@@ -117,7 +117,7 @@ namespace noug {
 	void TextOptions::set_text_shadow(TextShadow value) {
 		if (value != _text_shadow) {
 			_text_shadow = value;
-			_flags |= (1 << 9);
+			_text_flags |= (1 << 9);
 			onTextChange(Layout::kLayout_None);
 		}
 	}
@@ -126,7 +126,7 @@ namespace noug {
 		if (value != _text_line_height) {
 			value.value = N_MAX(0, value.value);
 			_text_line_height = value;
-			_flags |= (1 << 10);
+			_text_flags |= (1 << 10);
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
@@ -134,7 +134,7 @@ namespace noug {
 	void TextOptions::set_text_family(TextFamily value) {
 		if (value != _text_family) {
 			_text_family = value;
-			_flags |= (1 << 11);
+			_text_flags |= (1 << 11);
 			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		}
 	}
@@ -160,7 +160,8 @@ namespace noug {
 	TextConfig::TextConfig(TextOptions* opts, TextConfig* base)
 		: _opts(opts), _base(base)
 	{
-		if (_opts->_flags || _base->_opts->_flags) {
+		if (_opts->_text_flags || _base->_opts->_text_flags) {
+			_opts->_text_flags |= _base->_opts->_text_flags;
 			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 0);
 			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 1);
 			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 2);
@@ -173,12 +174,11 @@ namespace noug {
 			N_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 9, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
 			N_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 10, 0);
 			N_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 11, (_base->_opts->_text_family.value->pool()->getFFID()));
-			_opts->_flags |= _base->_opts->_flags;
 		}
 	}
 
 	TextConfig::~TextConfig() {
-		_opts->_flags = 0; // clear flags
+		_opts->_text_flags = 0; // clear flags
 	}
 
 	// ---------------- D e f a u l t . T e x t . S e t t i n g s ----------------

@@ -64,21 +64,23 @@ namespace noug {
 
 			auto v = first();
 			do {
-				auto size = v->layout_size().layout_size;
-				auto main = _total_main + (is_horizontal ? size.x(): size.y());
-				if (main > main_size) { // Line feed
-					if (is_reverse)
-						_items.reverse();
-					lines.push({ _total_main, _max_cross, std::move(_items) });
-					max_main = N_MAX(max_main, _total_main);
-					total_cross += _max_cross;
-					_total_main = is_horizontal ? size.x(): size.y();
-					_max_cross = is_horizontal ? size.y(): size.x();
-				} else {
-					_total_main = main;
-					_max_cross = N_MAX(_max_cross, size.y());
+				if (v->visible()) {
+					auto size = v->layout_size().layout_size;
+					auto main = _total_main + (is_horizontal ? size.x(): size.y());
+					if (main > main_size) { // Line feed
+						if (is_reverse)
+							_items.reverse();
+						lines.push({ _total_main, _max_cross, std::move(_items) });
+						max_main = N_MAX(max_main, _total_main);
+						total_cross += _max_cross;
+						_total_main = is_horizontal ? size.x(): size.y();
+						_max_cross = is_horizontal ? size.y(): size.x();
+					} else {
+						_total_main = main;
+						_max_cross = N_MAX(_max_cross, size.y());
+					}
+					_items.push({ size, v });
 				}
-				_items.push({ size, v });
 				v = v->next();
 			} while(v);
 
