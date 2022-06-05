@@ -56,7 +56,7 @@ namespace noug {
 		void make(cString& text);
 	private:
 		void as_no_auto_wrap(FontGlyphs &fg);
-		void as_normal(FontGlyphs &fg, Unichar *unichar);
+		void as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD);
 		void as_break_all(FontGlyphs &fg, Unichar *unichar);
 		void as_keep_all(FontGlyphs &fg, Unichar *unichar);
 	private:
