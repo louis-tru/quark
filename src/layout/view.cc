@@ -30,7 +30,7 @@
 
 #include "../app.inl"
 #include "./view.h"
-#include "../text_rows.h"
+#include "../text_lines.h"
 #include <math.h>
 
 namespace noug {
@@ -345,7 +345,7 @@ namespace noug {
 
 	/**
 		* 
-		* Sets whether the view needs to receive or handle event throws from the system
+		* Sets whether the view needs to receive or handle event thlines from the system
 		*
 		* @func set_receive()
 		*/
@@ -592,7 +592,7 @@ namespace noug {
 		return false;
 	}
 
-	void View::layout_text(TextRows *rows, TextConfig* textSet) {
+	void View::layout_text(TextLines *lines, TextConfig* textSet) {
 		// NOOP
 	}
 

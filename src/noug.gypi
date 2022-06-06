@@ -104,8 +104,8 @@
 			#
 			# 'property.h',
 			# 'property.cc',
-			'text_rows.cc',
-			'text_rows.h',
+			'text_lines.cc',
+			'text_lines.h',
 			'text_opts.cc',
 			'text_opts.h',
 			'text_blob.cc',

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__text_rows__
-#define __noug__text_rows__
+#ifndef __noug__text_lines__
+#define __noug__text_lines__
 
 #include "./layout/layout.h"
 
@@ -37,37 +37,48 @@ namespace noug {
 
 	class FontMetrics;
 	class TextOptions;
+	class TextBlob;
 
-	class N_EXPORT TextRows: public Reference {
+	class N_EXPORT TextLines: public Reference {
 	public:
-		struct Row {
+		struct Line {
 			float start_y, end_y, width;
 			float baseline, ascent, descent, origin;
-			uint32_t row_num;
+			uint32_t line;
 		};
-		TextRows(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align);
+		struct PreTextBlob {
+			Typeface        typeface;
+			float           text_size;
+			Array<TextBlob> *blob;
+			Array<GlyphID>  glyphs;
+			Array<float>    offset;
+		};
+		TextLines(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align);
 		void push(); // first call finish() then add new row
 		void push(TextOptions *opts); // push new row
-		void finish(); // finish row
+		void finish(); // finish all
 		void set_metrics(float ascent, float descent);
 		void set_metrics(FontMetrics *metrics);
-		void add_row_layout(Layout* layout);
-		inline uint32_t length() const { return _rows.length(); }
+		void add_layout(Layout* layout);
+		void add_text_blob(PreTextBlob blob,
+				const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre);
+		inline uint32_t length() const { return _lines.length(); }
 		inline float max_height() const { return _last->end_y; }
-		inline Row& operator[](uint32_t idx) { return _rows[idx]; }
-		inline Row& row(uint32_t idx) { return _rows[idx]; }
+		inline Line& operator[](uint32_t idx) { return _lines[idx]; }
 		// defines props
-		N_DEFINE_PROP(bool, is_clip);
+		N_DEFINE_PROP(float, pre_width);
 		N_DEFINE_PROP_READ(bool, wrap_x);
 		N_DEFINE_PROP_READ(bool, wrap_y);
 		N_DEFINE_PROP_READ(Vec2, size);
 		N_DEFINE_PROP_READ(TextAlign, text_align);
-		N_DEFINE_PROP_READ(Row*, last);
+		N_DEFINE_PROP_READ(Line*,  last);
 		N_DEFINE_PROP_READ(float, max_width);
 	private:
+		void finish_line(); // finish line
 		void clear();
-		Array<Row> _rows;
-		Array<Layout*> _rowLayout;
+		Array<Line> _lines;
+		Array<Layout*> _preLayout;
+		Array<PreTextBlob> _preBlob;
 	};
 }
 #endif

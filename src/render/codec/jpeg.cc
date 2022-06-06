@@ -91,13 +91,13 @@ namespace noug {
 			uint32_t count = h * rowbytes;
 			Buffer buff(count);
 
-			JSAMPARRAY rows = (*jpeg.mem->alloc_sarray)((j_common_ptr) &jpeg, JPOOL_IMAGE, w * num, 1);
+			JSAMPARRAY lines = (*jpeg.mem->alloc_sarray)((j_common_ptr) &jpeg, JPOOL_IMAGE, w * num, 1);
 
 			while(jpeg.output_scanline < jpeg.output_height) {
 				row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;
-				jpeg_read_scanlines(&jpeg, rows, 1);
+				jpeg_read_scanlines(&jpeg, lines, 1);
 
-				JSAMPROW row2 = rows[0];
+				JSAMPROW row2 = lines[0];
 
 				for (uint32_t column = 0; column < w; column++) {
 					*((int*)row) = *((int*)row2);

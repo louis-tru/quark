@@ -391,7 +391,7 @@ namespace noug {
 			*/
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
-		virtual void layout_text(TextRows *rows, TextConfig* textSet) override;
+		virtual void layout_text(TextLines *lines, TextConfig* textSet) override;
 		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 
@@ -427,7 +427,7 @@ namespace noug {
 		// can affect the transparency of subviews
 		N_DEFINE_PROP(float, opacity); // 可影响子视图的透明度值
 		// 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
-		// @prop Does the view need to receive or handle event throws from the system
+		// @prop Does the view need to receive or handle event thlines from the system
 		N_DEFINE_PROP(bool, receive);
 		// 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
 		N_DEFINE_PROP_READ(bool, visible);

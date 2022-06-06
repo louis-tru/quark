@@ -33,7 +33,7 @@
 
 #include "./view.h"
 #include "../text_blob.h"
-#include "../text_rows.h"
+#include "../text_lines.h"
 #include "../text_opts.h"
 
 namespace noug {
@@ -44,7 +44,7 @@ namespace noug {
 		N_DEFINE_PROP(String, text_value);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
-		virtual void layout_text(TextRows *rows, TextConfig *cfg) override;
+		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_lazy(Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
@@ -54,7 +54,7 @@ namespace noug {
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
 		Array<TextBlob> _blob;
-		Sp<TextRows>    _rows;
+		Sp<TextLines>   _lines;
 	};
 
 }

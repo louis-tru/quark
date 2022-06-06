@@ -28,41 +28,42 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./text_rows.h"
+#include "./text_lines.h"
 #include "./text_opts.h"
+#include "./text_blob.h"
 #include "./render/font/font.h"
 
 namespace noug {
 
-	TextRows::TextRows(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align)
-		: _is_clip(false)
+	TextLines::TextLines(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align)
+		: _pre_width(0)
 		, _wrap_x(wrap_x), _wrap_y(wrap_y), _size(size), _text_align(text_align)
 	{
 		clear();
 	}
 
-	void TextRows::clear() {
-		_rows.clear();
-		_rows.push({ 0, 0, 0, 0, 0, 0, 0, 0 });
-		_last = &_rows[0];
+	void TextLines::clear() {
+		_lines.clear();
+		_lines.push({ 0, 0, 0, 0, 0, 0, 0, 0 });
+		_last = &_lines[0];
 		_max_width = 0;
-		_is_clip = false;
 	}
 
-	void TextRows::push() {
-		finish();
-		_rows.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _rows.length() });
-		_last = &_rows.back();
+	void TextLines::push() {
+		finish_line();
+		_lines.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _lines.length() });
+		_last = &_lines.back();
+		_pre_width = 0;
 	}
 
-	void TextRows::push(TextOptions *opts) {
+	void TextLines::push(TextOptions *opts) {
 		FontMetrics metrics;
 		FontGlyphs::get_metrics(&metrics, opts->text_family().value, opts->font_style(), opts->text_size().value);
 		push(); // new row
 		set_metrics(&metrics);
 	}
 
-	void TextRows::finish() {
+	void TextLines::finish_line() {
 		if ( _last->width > _max_width ) {
 			_max_width = _last->width;
 		}
@@ -73,15 +74,20 @@ namespace noug {
 			case TextAlign::RIGHT:  _last->origin = _size.x() - _last->width; break;
 		}
 
-		for (auto layout: _rowLayout) {
+		for (auto layout: _preLayout) {
 			auto size = layout->layout_size().layout_size;
 			auto offset = layout->layout_offset();
 			layout->set_layout_offset(Vec2(_last->origin + offset.x(), _last->baseline - size.y()));
 		}
-		_rowLayout.clear();
+		_preLayout.clear();
 	}
 
-	void TextRows::set_metrics(float ascent, float descent) {
+	void TextLines::finish() {
+		add_text_blob({}, Array<GlyphID>(), Array<float>(), false); // solve text blob
+		finish_line();
+	}
+
+	void TextLines::set_metrics(float ascent, float descent) {
 		if (ascent != _last->ascent || descent != _last->descent) {
 			_last->ascent = ascent;
 			_last->descent = descent;
@@ -90,19 +96,62 @@ namespace noug {
 		}
 	}
 
-	void TextRows::set_metrics(FontMetrics *metrics) {
+	void TextLines::set_metrics(FontMetrics *metrics) {
 		set_metrics(-metrics->fAscent, metrics->fDescent + metrics->fLeading);
 	}
 
-	void TextRows::add_row_layout(Layout* layout) {
+	void TextLines::add_layout(Layout* layout) {
 		// auto size = layout->layout_size().layout_size;
 		// auto align = layout->layout_align();
 		// set_metrics(size.y(), 0);
-		_rowLayout.push(layout);
+		_preLayout.push(layout);
 	}
 
-	void TextRows::set_is_clip(bool value) {
-		_is_clip = value;
+	void TextLines::add_text_blob(PreTextBlob blob, const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre) {
+
+		if (is_pre) {
+			blob.glyphs = glyphs.copy();
+			blob.offset = offset.copy();
+			_preBlob.push(std::move(blob));
+			return;
+		}
+
+		auto add = [&](PreTextBlob& blob, const Array<GlyphID>& glyphs, const Array<float>& offset) {
+			auto line = _last->line;
+
+			if (blob.blob->length()) {
+				auto& last = blob.blob->back();
+				// merge glyphs
+				if (last.line == line && last.offset.back() == offset.front()) {
+					last.glyphs.write(glyphs);
+					last.offset.write(offset, -1, -1, 1);
+					_last->width = last.origin + last.offset.back();
+					return;
+				}
+			}
+
+			auto origin  = _last->width - blob.offset[0];
+			blob.blob->push({
+				blob.typeface, glyphs.copy(), offset.copy(), origin, line });
+			_last->width = origin + blob.offset.back();
+
+			FontMetrics metrics;
+			FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);
+			set_metrics(&metrics);
+		};
+
+		if (_preBlob.length()) {
+			for (auto& i: _preBlob)
+				add(i, i.glyphs, i.offset);
+			_preBlob.clear();
+		}
+		if (glyphs.length()) {
+			add(blob, glyphs, offset);
+		}
+	}
+
+	void TextLines::set_pre_width(float value) {
+		_pre_width = value;
 	}
 
 }

@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text.h"
-#include "../text_rows.h"
+#include "../text_lines.h"
 #include "../pre_render.h"
 #include "../app.h"
 
@@ -50,19 +50,19 @@ namespace noug {
 			if (v) {
 
 				Vec2 cur_size = content_size();
-				Sp<TextRows> rows = new TextRows(cur_size, layout_wrap_x(), layout_wrap_y(), _text_align);
+				Sp<TextLines> lines = new TextLines(cur_size, layout_wrap_x(), layout_wrap_y(), _text_align);
 				TextConfig cfg(this, pre_render()->host()->default_text_options());
 
 				do {
-					v->layout_text(*rows, &cfg);
+					v->layout_text(*lines, &cfg);
 					v = v->next();
 				} while(v);
 
-				rows->finish();
+				lines->finish();
 
 				Vec2 new_size(
-					layout_wrap_x() ? rows->max_width(): cur_size.x(),
-					layout_wrap_y() ? rows->max_height(): cur_size.y()
+					layout_wrap_x() ? lines->max_width(): cur_size.x(),
+					layout_wrap_y() ? lines->max_height(): cur_size.y()
 				);
 
 				if (new_size != cur_size) {

@@ -37,6 +37,7 @@ namespace noug {
 		kInvalid_Symbol,
 		kLineFeed_Symbol,
 		kSpace_Symbol,
+		kPunctuation_Symbol,
 		kNumber_Symbol,
 		kLetter_Symbol,
 		kLetterCap_Symbol,
@@ -66,6 +67,15 @@ namespace noug {
 			case 107: case 108: case 109: case 110: case 111:
 			case 112: case 113: case 114: case 115: case 116:
 			case 117: case 118: case 119: case 120: case 121: case 122: return kLetter_Symbol; // a-z
+			case 44: // ,
+			case 46: // .
+			case 58: // :
+			case 59: // ;
+			case 63: // ?
+			case 126: // ~
+			// case 12290: // 。
+			// case 65292: // ，
+				return kPunctuation_Symbol;
 			default:
 				return kInvalid_Symbol;
 		}
@@ -73,7 +83,7 @@ namespace noug {
 
 	Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space) {
 		Unichar data;
-		Array<Array<Unichar>> rows;
+		Array<Array<Unichar>> lines;
 		Array<Unichar> row;
 		cChar* source = *str;
 		cChar* end = source + str.length();
@@ -98,7 +108,7 @@ namespace noug {
 		auto push_row = [&]() {
 			row.realloc(row.length() + 1);
 			(*row)[row.length()] = 0;
-			rows.push(std::move(row));
+			lines.push(std::move(row));
 		};
 
 		while (source < end) {
@@ -129,15 +139,14 @@ namespace noug {
 
 		if (row.length()) push_row();
 
-		return rows;
+		return lines;
 	}
 
-	TextBlobBuilder::TextBlobBuilder(TextRows *rows, TextOptions *opts, Array<TextBlob>* blob)
-		: _rows(rows), _opts(opts), _blob(blob)
+	TextBlobBuilder::TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob)
+		: _lines(lines), _opts(opts), _blob(blob)
 	{}
 
 	void TextBlobBuilder::make(cString& text) {
-		FontMetrics metrics;
 
 		auto text_white_space = _opts->text_white_space_value();
 		auto text_word_break = _opts->text_word_break_value();
@@ -158,7 +167,7 @@ namespace noug {
 		// 	KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
 		// };
 
-		if (_rows->wrap_x() || // 容器没有固定宽度
+		if (_lines->wrap_x() || // 容器没有固定宽度
 				text_white_space == TextWhiteSpace::NO_WRAP ||
 				text_white_space == TextWhiteSpace::PRE
 		) { // 不使用自动wrap
@@ -169,8 +178,9 @@ namespace noug {
 
 		for ( int i = 0; i < unis.length(); i++ ) {
 			if (i) { // force line feed
-				_rows->push(_opts);
+				_lines->push(_opts);
 			}
+
 			auto fg_arr = _opts->text_family().value->makeFontGlyphs(unis[i], _opts->font_style(), _opts->text_size().value);
 			auto unichar = *unis[i];
 
@@ -178,53 +188,119 @@ namespace noug {
 				if (is_auto_wrap) {
 					switch (text_word_break) {
 						default:
-						case TextWordBreak::NORMAL: as_normal(fg, unichar, false); break;
-						case TextWordBreak::BREAK_WORD: as_normal(fg, unichar, true); break;
+						case TextWordBreak::NORMAL: as_normal(fg, unichar, false, false); break;
+						case TextWordBreak::BREAK_WORD: as_normal(fg, unichar, true, false); break;
 						case TextWordBreak::BREAK_ALL: as_break_all(fg, unichar); break;
-						case TextWordBreak::KEEP_ALL: as_keep_all(fg, unichar); break;
+						case TextWordBreak::KEEP_ALL: as_normal(fg, unichar, false, true); break;
 					}
 					unichar += fg.glyphs().length();
-				} else {
-					as_no_auto_wrap(fg); // no auto wrap
+				} else {  // no auto wrap
+					as_no_auto_wrap(fg);
 				}
-				fg    .get_metrics(&metrics);
-				_rows->set_metrics(&metrics);
 			}
 		}
 
 	}
 
 	void TextBlobBuilder::as_no_auto_wrap(FontGlyphs &fg) {
-		auto row = _rows->last();
-		auto origin = row->width;
+		auto line = _lines->last();
+		auto origin = line->width;
 		auto offset = fg.get_offset();
-		row->width += offset.back();
-		_blob->push({ fg.typeface(), fg.glyphs(), std::move(offset), origin, row->row_num });
+		auto overflow = _opts->text_overflow_value();
+		auto width = line->width;
+		auto limitX = _lines->size().x();
+		
+		if (overflow != TextOverflow::NORMAL) {
+			if (width >= limitX) return; // skip
+
+			// CLIP,            /* 剪切 */
+			// ELLIPSIS,        /* 剪切并显示省略号 */
+			// ELLIPSIS_CENTER, /* 剪切并居中显示省略号 */
+
+			int overflow_val = width + offset.back() - limitX;
+			if (overflow_val > 0) {
+				int len = fg.glyphs().length();
+
+				if (overflow == TextOverflow::CLIP) {
+					for (int j = 0; j < len; j++) {
+						float x = origin + offset[j + 1];
+						if (x > limitX) {
+							// discard overflow part
+							_blob->push({ fg.typeface(), fg.glyphs().copy(0, j), offset.copy(0, j + 1), origin, line->line });
+							line->width = limitX;
+							break;
+						}
+					}
+				} else { // ELLIPSIS or ELLIPSIS_CENTER
+
+					Array<Unichar> uinchar({46,46,46});
+					auto ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), _opts->text_size().value)[0];
+					auto ellipsis_offset = ellipsis.get_offset();
+					auto ellipsis_width = ellipsis_offset.back();
+					auto limit2 = limitX - ellipsis_width;
+
+					if (limit2 >= 0) {
+						for (int j = 0; j < len; j++) {
+							float x = origin + offset[j + 1];
+							if (x > limit2) {
+								if (j) {
+									_blob->push({ fg.typeface(), fg.glyphs().copy(0, j), offset.copy(0, j + 1), origin, line->line });
+									// line->width = origin + offset[j];
+								}
+								break;
+							}
+						}
+						// add ellipsis
+						origin = limitX - ellipsis_width;
+						_blob->push({ fg.typeface(), ellipsis.glyphs(), std::move(ellipsis_offset), origin, line->line });
+						line->width = limitX;
+
+					} else { // limit2 < 0.0, only add ellipsis
+						origin = line->width;
+						for (int j = 0; j < 3; j++) {
+							float x = origin + offset[j + 1];
+							if (x > limitX) {
+								_blob->push({ fg.typeface(), ellipsis.glyphs().copy(0, j), ellipsis_offset.copy(0, j + 1), origin, line->line });
+								line->width = limitX;
+								break;
+							}
+						}
+						N_ASSERT(line->width == limitX);
+					}
+				}
+
+				return;
+			}
+		}
+
+		line->width = width + offset.back();
+		_blob->push({ fg.typeface(), fg.glyphs(), std::move(offset), origin, line->line });
 	}
 
 	// NORMAL 保持单词在同一行
 	// BREAK_WORD 保持单词在同一行,除非单词长度超过一行才截断
-	void TextBlobBuilder::as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD) {
+	// KEEP_ALL 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
+	void TextBlobBuilder::as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD, bool is_KEEP_ALL) {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.get_offset();
-		auto  row = _rows->last();
+		auto  row = _lines->last();
 		bool  line_head = row->width == 0.0;
+		auto  text_size = _opts->text_size().value;
 
-		float limitX = _rows->size().x();
-		float origin = _rows->pre_width;
+		float limitX = _lines->size().x();
+		float origin = _lines->pre_width();
 		int   len = fg.glyphs().length();
 		int   start = 0;
 
 		for (int j = 0; j < len; j++) {
-
-			bool isSpace = unicode_to_symbol(unichar[j]) == kSpace_Symbol;
-			if (isSpace && row->row_num && _rows->pre_width == 0.0) {
+			auto sym = unicode_to_symbol(unichar[j]);
+			if (sym == kSpace_Symbol && _lines->last()->line && _lines->pre_width() == 0.0) {
 				// skip line leading spaces
 			skipLine:
 				origin = -offset[j];
 				if (++j < len) {
-					isSpace = unicode_to_symbol(unichar[j]) == kSpace_Symbol;
-					if (isSpace)
+					sym = unicode_to_symbol(unichar[j]);
+					if (sym == kSpace_Symbol)
 						goto skipLine;
 				} else {
 					break;
@@ -234,25 +310,26 @@ namespace noug {
 			float x = origin + offset[j + 1];
 			if (x > limitX) {
 				if (is_BREAK_WORD) { // force new line
-					_rows->add_text_blob(fg, _blob, *glyphs+start, *offset+start, j-start, false);
+					_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
 					goto newLine;
 				}
 				if (line_head) { // line start then not new line
-					_rows->pre_width = x;
+					_lines->set_pre_width(x);
 				} else {
 				newLine:
-					_rows->push(); // new row
-					row = _rows->last();
+					_lines->push(); // new row
 					line_head = true;
 					origin = -offset[j];
 				}
 			} else {
-				_rows->pre_width = x;
+				_lines->set_pre_width(x);
 			}
 
 			// prev word end or next word start, record position and offset
-			if (isSpace) { // space
-				_rows->add_text_blob(fg, _blob, *glyphs+start, *offset+start, j-start, false);
+			if (is_KEEP_ALL ? sym == kSpace_Symbol || sym == kPunctuation_Symbol :
+												sym < kNumber_Symbol
+			) {
+				_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
 				if (start < j)
 					line_head = false;
 				start = j;
@@ -260,7 +337,7 @@ namespace noug {
 		}
 
 		if (start < len) {
-			_rows->add_text_blob(fg, _blob, *glyphs+start, *offset+start, len-start, true);
+			_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, len), offset.slice(start, len + 1), true);
 		}
 	}
 
@@ -268,31 +345,26 @@ namespace noug {
 	void TextBlobBuilder::as_break_all(FontGlyphs &fg, Unichar *unichar) {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.get_offset();
+		auto  text_size = _opts->text_size().value;
 
-		float limitX = _rows->size().x();
-		float origin = _rows->pre_width;
+		float limitX = _lines->size().x();
+		float origin = _lines->pre_width();
 		int   len = glyphs.length();
 		int   start = 0;
 
 		for (int j = 0; j < len; j++) {
 			float x = origin + offset[j + 1];
 			if (x > limitX) {
-				_rows->add_text_blob(fg, _blob, *glyphs+start, *offset+start, j-start, false);
-				start = j;
-				_rows->push(_opts); // new row
-				row = _rows->last();
+				_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
+				_lines->push(); // new row
 				origin = -offset[j];
+				start = j;
 			} else {
-				_rows->pre_width = x;
+				_lines->set_pre_width(x);
 			}
 		}
 
-		_rows->add_text_blob(fg, _blob, *glyphs+start, *offset+start, len-start, false);
-	}
-
-	// KEEP_ALL 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
-	void TextBlobBuilder::as_keep_all(FontGlyphs &fg, Unichar *unichar) {
-		// TODO ...
+		_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, len), offset.slice(start, len + 1), false);
 	}
 
 }

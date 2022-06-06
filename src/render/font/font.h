@@ -85,6 +85,7 @@ namespace noug {
 		 * @func get_metrics()
 		*/
 		static float get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize);
+		static float get_metrics(FontMetrics* metrics, const Typeface& typeface, float fontSize);
 		
 	private:
 		Array<GlyphID> _glyphs;

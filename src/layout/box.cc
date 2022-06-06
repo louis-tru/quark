@@ -32,7 +32,7 @@
 #include "../app.h"
 #include "../display.h"
 #include "../render/render.h"
-#include "../text_rows.h"
+#include "../text_lines.h"
 
 namespace noug {
 
@@ -606,11 +606,11 @@ namespace noug {
 		return false; // stop iteration
 	}
 
-	void Box::layout_text(TextRows *rows, TextConfig* textSet) {
-		//if (rows->wrap_x()) {
+	void Box::layout_text(TextLines *lines, TextConfig* textSet) {
+		//if (lines->wrap_x()) {
 			// TODO ...
 		//}
-		rows->add_row_layout(this);
+		lines->add_layout(this);
 	}
 
 	Vec2 Box::layout_lock(Vec2 layout_size) {

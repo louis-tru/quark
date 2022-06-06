@@ -57,20 +57,20 @@ namespace noug {
 		return false;
 	}
 
-	void Label::layout_text(TextRows *rows, TextConfig *base) {
+	void Label::layout_text(TextLines *lines, TextConfig *base) {
 		TextConfig cfg(this, base);
 
 		_blob.clear();
-		_rows = rows;
+		_lines = lines;
 
-		TextBlobBuilder tbb(rows, this, &_blob);
+		TextBlobBuilder tbb(lines, this, &_blob);
 
 		tbb.make(_text_value);
 
 		auto v = first();
 		while(v) {
 			if (v->visible()) {
-				v->layout_text(rows, &cfg);
+				v->layout_text(lines, &cfg);
 			}
 			v = v->next();
 		}
@@ -78,16 +78,16 @@ namespace noug {
 
 	void Label::set_layout_offset(Vec2 val) {
 		auto size = parent()->layout_size();
-		Sp<TextRows> rows = new TextRows(size.content_size, false, false, TextAlign::LEFT); // use left align
-		layout_text(*rows, pre_render()->host()->default_text_options());
-		rows->finish();
+		Sp<TextLines> lines = new TextLines(size.content_size, false, false, TextAlign::LEFT); // use left align
+		layout_text(*lines, pre_render()->host()->default_text_options());
+		lines->finish();
 		mark_none(kRecursive_Transform);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 size) {
-		Sp<TextRows> rows = new TextRows(size, false, false, TextAlign::LEFT); // use left align
-		layout_text(*rows, pre_render()->host()->default_text_options());
-		rows->finish();
+		Sp<TextLines> lines = new TextLines(size, false, false, TextAlign::LEFT); // use left align
+		layout_text(*lines, pre_render()->host()->default_text_options());
+		lines->finish();
 		mark_none(kRecursive_Transform);
 	}
 

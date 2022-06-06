@@ -34,7 +34,7 @@
 
 #include "./render/font/font.h"
 #include "./render/source.h"
-#include "./text_rows.h"
+#include "./text_lines.h"
 #include "./text_opts.h"
 
 namespace noug {
@@ -46,21 +46,20 @@ namespace noug {
 		Array<GlyphID>  glyphs;
 		Array<float>    offset;
 		float           origin;
-		uint32_t        row_num;
+		uint32_t        line;
 		Sp<ImageSource> cache;
 	};
 
 	class N_EXPORT TextBlobBuilder {
 	public:
-		TextBlobBuilder(TextRows *rows, TextOptions *opts, Array<TextBlob>* blob);
+		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
 		void make(cString& text);
 	private:
 		void as_no_auto_wrap(FontGlyphs &fg);
-		void as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD);
+		void as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD, bool is_KEEP_ALL);
 		void as_break_all(FontGlyphs &fg, Unichar *unichar);
-		void as_keep_all(FontGlyphs &fg, Unichar *unichar);
 	private:
-		TextRows *_rows;
+		TextLines *_lines;
 		TextOptions *_opts;
 		Array<TextBlob> *_blob;
 	};

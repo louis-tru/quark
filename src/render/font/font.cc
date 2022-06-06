@@ -173,4 +173,8 @@ namespace noug {
 		return FontGlyphs(nullptr, 0, FFID->match(style)[0], fontSize).get_metrics(metrics);
 	}
 
+	float FontGlyphs::get_metrics(FontMetrics* metrics, const Typeface& typeface, float fontSize) {
+		return FontGlyphs(nullptr, 0, typeface, fontSize).get_metrics(metrics);
+	}
+
 }
