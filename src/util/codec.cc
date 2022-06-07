@@ -679,32 +679,31 @@ namespace noug {
 
 		static ArrayBuffer<char> decode_to_buffer(Encoding source_en, cChar* source, uint32_t len) {
 			switch (source_en) {
-				case Encoding::binary: {
+				case Encoding::kBinary_Encoding: {
 					return decode_from_binary<char>(source, len);
 				}
-				case Encoding::ascii: {
+				case Encoding::kAscii_Encoding: {
 					return decode_from_ascii<char>(source, len);
 				}
-				case Encoding::base64: {
+				case Encoding::kBase64_Encoding: {
 					return decode_from_base64<char>(source, len);
 				}
-				case Encoding::hex: {
+				case Encoding::kHex_Encoding: {
 					return decode_from_hex<char>(source, len);
 				}
-				case Encoding::utf8: { // 会丢失ascii外的编码
+				case Encoding::kUTF8_Encoding: { // 会丢失ascii外的编码
 					//N_WARN("%s", "Conversion from utf8 to ascii will lose data.");
 					return decode_from_utf8<char>(source, len);
 				}
-				case Encoding::utf16: { // 暂时使用ucs2
+				case Encoding::kUTF16_Encoding: { // 暂时使用ucs2
 					//N_WARN("%s", "Conversion from utf16 to ascii will lose data.");
 					return decode_from_ucs2<char>(source, len);
 				}
-				case Encoding::ucs2: { // 会丢失ascii外的编码
+				case Encoding::kUCS2_Encoding: { // 会丢失ascii外的编码
 					//N_WARN("%s", "Conversion from ucs2 to ascii will lose data.");
 					return decode_from_ucs2<char>(source, len);
 				}
-				case Encoding::utf32:
-				case Encoding::ucs4: { // 会丢失ascii外的编码
+				case Encoding::kUCS4_Encoding: { // 会丢失ascii外的编码
 					//N_WARN("%s", "Conversion from ucs4 to ascii will lose data.");
 					return decode_from_ucs4<char>(source, len);
 				}

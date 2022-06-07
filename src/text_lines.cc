@@ -74,16 +74,41 @@ namespace noug {
 			case TextAlign::RIGHT:  _last->origin = _size.x() - _last->width; break;
 		}
 
-		for (auto layout: _preLayout) {
-			auto size = layout->layout_size().layout_size;
-			auto offset = layout->layout_offset();
-			layout->set_layout_offset(Vec2(_last->origin + offset.x(), _last->baseline - size.y()));
+		if (_preLayout.length()) {
+			auto ascent = _last->ascent;
+			auto descent = _last->descent;
+
+			for (auto layout: _preLayout) {
+				auto height = layout->layout_size().layout_size.y();
+				switch (layout->layout_align()) {
+					case Align::START:  set_metrics(ascent, height - descent); break;
+					case Align::CENTER: height = (height - ascent - descent) / 2;
+						set_metrics(height + ascent, height + descent); break;
+					case Align::END:    set_metrics(height - descent, descent); break;
+					default:            set_metrics(height, 0); break;
+				}
+			}
+
+			for (auto layout: _preLayout) {
+				auto size_y = layout->layout_size().layout_size.y();
+				auto x = _last->origin + layout->layout_offset().x();
+				float y;
+
+				switch (layout->layout_align()) {
+					case Align::START:  y = _last->baseline - ascent; break;
+					case Align::CENTER: y = _last->baseline - (size_y + ascent - descent) / 2; break;
+					case Align::END: y = _last->baseline - size_y + descent; break;
+					default:         y = _last->baseline - size_y; break;
+				}
+				layout->set_layout_offset(Vec2(x, y));
+			}
+
+			_preLayout.clear();
 		}
-		_preLayout.clear();
 	}
 
 	void TextLines::finish() {
-		add_text_blob({}, Array<GlyphID>(), Array<float>(), false); // solve text blob
+		finish_text_blob();
 		finish_line();
 	}
 
@@ -101,10 +126,11 @@ namespace noug {
 	}
 
 	void TextLines::add_layout(Layout* layout) {
-		// auto size = layout->layout_size().layout_size;
-		// auto align = layout->layout_align();
-		// set_metrics(size.y(), 0);
 		_preLayout.push(layout);
+	}
+
+	void TextLines::finish_text_blob() {
+		add_text_blob({}, Array<GlyphID>(), Array<float>(), false); // solve text blob
 	}
 
 	void TextLines::add_text_blob(PreTextBlob blob, const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre) {
@@ -130,7 +156,7 @@ namespace noug {
 				}
 			}
 
-			auto origin  = _last->width - blob.offset[0];
+			auto origin = _last->width - blob.offset[0];
 			blob.blob->push({
 				blob.typeface, glyphs.copy(), offset.copy(), origin, line });
 			_last->width = origin + blob.offset.back();

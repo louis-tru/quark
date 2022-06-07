@@ -33,6 +33,7 @@
 #include "../display.h"
 #include "../render/render.h"
 #include "../text_lines.h"
+#include "../text_opts.h"
 
 namespace noug {
 
@@ -606,10 +607,35 @@ namespace noug {
 		return false; // stop iteration
 	}
 
-	void Box::layout_text(TextLines *lines, TextConfig* textSet) {
-		//if (lines->wrap_x()) {
-			// TODO ...
-		//}
+	void Box::layout_text(TextLines *lines, TextConfig *cfg) {
+		auto opts = cfg->opts();
+		auto text_white_space = opts->text_white_space_value();
+		//auto text_word_break = opts->text_word_break_value();
+		bool is_auto_wrap = true;
+		auto limitX = lines->size().x();
+		auto origin = lines->pre_width();
+
+		if (lines->wrap_x() || // 容器没有固定宽度
+				text_white_space == TextWhiteSpace::NO_WRAP ||
+				text_white_space == TextWhiteSpace::PRE
+		) { // 不使用自动wrap
+			is_auto_wrap = false;
+		}
+
+		if (is_auto_wrap) {
+			if (origin + _layout_size.x() > limitX) {
+				lines->finish_text_blob();
+				lines->push();
+				origin = 0;
+			}
+			set_layout_offset(Vec2());
+			lines->set_pre_width(_layout_size.x());
+		} else {
+			set_layout_offset(Vec2(origin, 0));
+			lines->finish_text_blob();
+			lines->set_pre_width(origin + _layout_size.x());
+		}
+
 		lines->add_layout(this);
 	}
 

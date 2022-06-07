@@ -32,6 +32,7 @@
 #define __noug__text_lines__
 
 #include "./layout/layout.h"
+#include "./render/font/font.h"
 
 namespace noug {
 
@@ -62,6 +63,7 @@ namespace noug {
 		void add_layout(Layout* layout);
 		void add_text_blob(PreTextBlob blob,
 				const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre);
+		void finish_text_blob();
 		inline uint32_t length() const { return _lines.length(); }
 		inline float max_height() const { return _last->end_y; }
 		inline Line& operator[](uint32_t idx) { return _lines[idx]; }

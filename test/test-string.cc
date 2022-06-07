@@ -92,10 +92,10 @@ void test2 (const string& str) {
 void test_string (int argc, char **argv) {
 	
 	// utf8 / ucs2 / ucs4
-	String2 ucs2 = Coder::decode_to_uint16(Encoding::utf8, "楚学文"); // 解码
-	String4 ucs4 = Coder::decode_to_uint32(Encoding::utf8, "楚学文");
-	String utf8_1 = Coder::encode(Encoding::utf8, ucs2); // 编码
-	String utf8_2 = Coder::encode(Encoding::utf8, ucs4);
+	String2 ucs2 = Coder::decode_to_uint16(kUTF8_Encoding, "楚学文"); // 解码
+	String4 ucs4 = Coder::decode_to_uint32(kUTF8_Encoding, "楚学文");
+	String utf8_1 = Coder::encode(kUTF8_Encoding, ucs2); // 编码
+	String utf8_2 = Coder::encode(kUTF8_Encoding, ucs4);
 	
 	N_LOG(ucs2.hash_code() % 10);
 	N_LOG(ucs4.hash_code() % 10);

@@ -49,9 +49,9 @@ bool transform_js(cString& src, String2 in, Buffer& out, bool jsx, bool clean_co
 #else
 	try {
 		if ( jsx ) {
-			out = Codec::encode(Encoding::utf8, javascript_transform_x(in, src, clean_comment));
+			out = Codec::encode(kUTF8_Encoding, javascript_transform_x(in, src, clean_comment));
 		} else {
-			out = Codec::encode(Encoding::utf8, javascript_transform(in, src, clean_comment));
+			out = Codec::encode(kUTF8_Encoding, javascript_transform(in, src, clean_comment));
 		}
 	} catch(Error& err) {
 		error(err);
@@ -89,7 +89,7 @@ int test_jsx(int argc, char* argv[]) {
 		}
 	}
 	
-	in = Codec::decode_to_uint16(Encoding::utf8, fs_read_file_sync(src));
+	in = Codec::decode_to_uint16(kUTF8_Encoding, fs_read_file_sync(src));
 	
 	int r = 0;
 		

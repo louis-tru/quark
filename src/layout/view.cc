@@ -275,7 +275,7 @@ namespace noug {
 			set_action(nullptr); // del action
 			remove_all_child_(); // 删除子视图
 			clear();
-			// remove_event_listener(); // TODO
+			// remove_event_listener();
 			set_layout_depth(0);
 			_parent = _prev = _next = nullptr;
 			release(); // Disconnect from parent view strong reference

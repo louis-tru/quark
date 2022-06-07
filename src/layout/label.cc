@@ -96,7 +96,7 @@ namespace noug {
 	}
 
 	bool Label::solve_visible_region() {
-		// TODO ...
+		// TODO solve_visible_region
 		return true;
 	}
 

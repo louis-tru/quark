@@ -182,7 +182,7 @@ namespace noug {
 		}
 		
 		void log(cString2& msg) {
-			Console::instance()->log(Coder::encode(Encoding::utf8, msg), "\n");
+			Console::instance()->log(Coder::encode(kUTF8_Encoding, msg), "\n");
 		}
 
 		void log(cChar* format, ...) {

@@ -469,7 +469,7 @@ namespace noug {
 			for (auto i = _queue.begin(), e = _queue.end(); i != e; ) {
 				auto j = i++;
 				if (j->group == group) {
-					// TODO: 删除时如果析构函数间接调用锁定`_mutex`的函数会锁死线程
+					// NOTE: 删除时如果析构函数间接调用锁定`_mutex`的函数会锁死线程
 					_queue.erase(j);
 				}
 			}
@@ -607,7 +607,7 @@ namespace noug {
 	 * @func first();
 	 */
 	RunLoop* RunLoop::first() {
-		// TODO: 小心线程安全,最好先确保已调用过`current()`
+		// NOTE: 小心线程安全,最好先确保已调用过`current()`
 		if (!__first_loop) {
 			current();
 			N_ASSERT(__first_loop); // asset
@@ -616,7 +616,7 @@ namespace noug {
 	}
 
 	/**
-	 * TODO: Be careful about thread security issues
+	 * NOTE: Be careful about thread security issues
 	 * @func runing()
 	 */
 	bool RunLoop::runing() const {
@@ -624,7 +624,7 @@ namespace noug {
 	}
 
 	/**
-	 * TODO: Be careful about thread security issues
+	 * NOTE: Be careful about thread security issues
 	 * @func is_alive
 	 */
 	bool RunLoop::is_alive() const {
@@ -632,7 +632,7 @@ namespace noug {
 	}
 
 	/**
-	 * TODO: Be careful about thread security issues
+	 * NOTE: Be careful about thread security issues
 	 * @func sync # 延时
 	 */
 	uint32_t RunLoop::post(Cb cb, uint64_t delay_us) {
@@ -640,7 +640,7 @@ namespace noug {
 	}
 
 	/**
-	 * TODO: Be careful about thread security issues
+	 * NOTE: Be careful about thread security issues
 	 * @func post_sync(cb)
 	 */
 	void RunLoop::post_sync(Callback<PostSyncData> cb) {
@@ -648,7 +648,7 @@ namespace noug {
 	}
 
 	/**
-	 * TODO: Be careful about thread security issues
+	 * NOTE: Be careful about thread security issues
 	 * @func work()
 	 */
 	uint32_t RunLoop::work(Cb cb, Cb done, cString& name) {
@@ -676,7 +676,7 @@ namespace noug {
 	}
 
 	/**
-	 * TODO: Be careful about thread security issues
+	 * NOTE: Be careful about thread security issues
 	 * @func cancel_work(id)
 	 */
 	void RunLoop::cancel_work(uint32_t id) {
@@ -692,7 +692,7 @@ namespace noug {
 	}
 
 	/**
-	 * TODO: Be careful about thread security issues
+	 * NOTE: Be careful about thread security issues
 	 * @overwrite
 	 */
 	uint32_t RunLoop::post_message(Cb cb, uint64_t delay_us) {
@@ -700,14 +700,14 @@ namespace noug {
 	}
 
 	/**
-	 * TODO: Be careful about thread security issues
+	 * NOTE: Be careful about thread security issues
 	 * @func cancel # 取消同步
 	 */
 	void RunLoop::cancel(uint32_t id) {
 		ScopeLock lock(_mutex);
 		for (auto i = _queue.begin(), e = _queue.end(); i != e; i++) {
 			if (i->id == id) {
-				// TODO: 删除时如果析构函数间接调用锁定`_mutex`的函数会锁死线程
+				// NOTE: 删除时如果析构函数间接调用锁定`_mutex`的函数会锁死线程
 				_queue.erase(i);
 				break;
 			}
@@ -758,7 +758,7 @@ namespace noug {
 	}
 
 	/**
-	 * TODO: Be careful about thread security issues
+	 * NOTE: Be careful about thread security issues
 	 * @func stop
 	 */
 	void RunLoop::stop() {
@@ -770,7 +770,7 @@ namespace noug {
 	}
 
 	/**
-	 * TODO: Be careful about thread security issues
+	 * NOTE: Be careful about thread security issues
 	 * 保持活动状态,并返回一个代理,只要不删除返回的代理对像,消息队列会一直保持活跃状态
 	 * @func keep_alive
 	 */
@@ -809,7 +809,7 @@ namespace noug {
 	}
 
 	uint32_t KeepLoop::post(Cb exec, uint64_t delay_us) {
-		// TODO: Be careful about thread security issues
+		// NOTE: Be careful about thread security issues
 		if (_loop)
 			return _inl(_loop)->post(exec, _group, delay_us);
 		else
@@ -817,7 +817,7 @@ namespace noug {
 	}
 
 	uint32_t KeepLoop::post_message(Cb cb, uint64_t delay_us) {
-		// TODO: Be careful about thread security issues
+		// NOTE: Be careful about thread security issues
 		if (_loop)
 			return _inl(_loop)->post(cb, _group, delay_us);
 		else
@@ -825,13 +825,13 @@ namespace noug {
 	}
 
 	void KeepLoop::cancel_all() {
-		// TODO: Be careful about thread security issues
+		// NOTE: Be careful about thread security issues
 		if (_loop)
 			_inl(_loop)->cancel_group(_group); // abort all
 	}
 
 	void KeepLoop::cancel(uint32_t id) {
-		// TODO: Be careful about thread security issues
+		// NOTE: Be careful about thread security issues
 		if (_loop)
 			_loop->cancel(id);
 	}

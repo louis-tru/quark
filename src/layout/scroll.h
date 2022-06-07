@@ -38,9 +38,7 @@ namespace noug {
 	class N_EXPORT Scroll: public FlowLayout {
 		N_Define_View(Scroll);
 	public:
-	// TODO ...
 	private:
-	// TODO ...
 	};
 
 }

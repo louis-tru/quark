@@ -304,13 +304,13 @@ namespace noug {
 			size->capacity = len_ + 1;
 		}
 		else if (size_of == 2) {
-			auto b = Codec::decode_to_uint16(Encoding::UTF8, Buffer::from(str, len_));
+			auto b = Codec::decode_to_uint16(kUTF8_Encoding, Buffer::from(str, len_));
 			size->len = b.length();
 			size->capacity = b.length() + 1;
 			str = (char*)b.collapse();
 		}
 		else if (size_of == 4) {
-			auto b = Codec::decode_to_uint32(Encoding::UTF8, Buffer::from(str, len_));
+			auto b = Codec::decode_to_uint32(kUTF8_Encoding, Buffer::from(str, len_));
 			size->len = b.length();
 			size->capacity = b.length() + 1;
 			str = (char*)b.collapse();
@@ -404,9 +404,9 @@ namespace noug {
 		if (size_of == 1) { // char
 			return String((const char*)ptr, len);
 		} else if (size_of == 2) { // uint16_t
-			return Codec::encode(Encoding::UTF8, ArrayWeak<uint16_t>((const uint16_t*)ptr, len));
+			return Codec::encode(kUTF8_Encoding, ArrayWeak<uint16_t>((const uint16_t*)ptr, len));
 		} else if (size_of == 4) { // uint32_t
-			return Codec::encode(Encoding::UTF8, ArrayWeak<uint32_t>((const uint32_t*)ptr, len));
+			return Codec::encode(kUTF8_Encoding, ArrayWeak<uint32_t>((const uint32_t*)ptr, len));
 		} else {
 			N_FATAL("I won't support it, to_string");
 			return String();

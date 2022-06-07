@@ -203,21 +203,20 @@ namespace noug {
 	}
 
 	void TextBlobBuilder::as_no_auto_wrap(FontGlyphs &fg) {
-		auto line = _lines->last();
-		auto origin = line->width;
+		auto origin = _lines->pre_width();
 		auto offset = fg.get_offset();
 		auto overflow = _opts->text_overflow_value();
-		auto width = line->width;
 		auto limitX = _lines->size().x();
+		auto text_size = _opts->text_size().value;
 		
 		if (overflow != TextOverflow::NORMAL) {
-			if (width >= limitX) return; // skip
+			if (origin >= limitX) return; // skip
 
 			// CLIP,            /* 剪切 */
 			// ELLIPSIS,        /* 剪切并显示省略号 */
 			// ELLIPSIS_CENTER, /* 剪切并居中显示省略号 */
 
-			int overflow_val = width + offset.back() - limitX;
+			int overflow_val = origin + offset.back() - limitX;
 			if (overflow_val > 0) {
 				int len = fg.glyphs().length();
 
@@ -226,15 +225,15 @@ namespace noug {
 						float x = origin + offset[j + 1];
 						if (x > limitX) {
 							// discard overflow part
-							_blob->push({ fg.typeface(), fg.glyphs().copy(0, j), offset.copy(0, j + 1), origin, line->line });
-							line->width = limitX;
+							_lines->add_text_blob({fg.typeface(), text_size, _blob}, fg.glyphs().slice(0, j), offset.slice(0, j + 1), false);
+							_lines->set_pre_width(limitX);
 							break;
 						}
 					}
 				} else { // ELLIPSIS or ELLIPSIS_CENTER
 
 					Array<Unichar> uinchar({46,46,46});
-					auto ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), _opts->text_size().value)[0];
+					auto ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), text_size)[0];
 					auto ellipsis_offset = ellipsis.get_offset();
 					auto ellipsis_width = ellipsis_offset.back();
 					auto limit2 = limitX - ellipsis_width;
@@ -244,28 +243,27 @@ namespace noug {
 							float x = origin + offset[j + 1];
 							if (x > limit2) {
 								if (j) {
-									_blob->push({ fg.typeface(), fg.glyphs().copy(0, j), offset.copy(0, j + 1), origin, line->line });
-									// line->width = origin + offset[j];
+									_lines->add_text_blob({fg.typeface(), text_size, _blob}, fg.glyphs().slice(0, j), offset.slice(0, j + 1), false);
 								}
 								break;
 							}
 						}
+
 						// add ellipsis
-						origin = limitX - ellipsis_width;
-						_blob->push({ fg.typeface(), ellipsis.glyphs(), std::move(ellipsis_offset), origin, line->line });
-						line->width = limitX;
+						_lines->add_text_blob({fg.typeface(), text_size, _blob}, ellipsis.glyphs(), ellipsis_offset, false);
+						_blob->back().origin = limitX - ellipsis_width; // align right
+						_lines->set_pre_width(limitX);
 
 					} else { // limit2 < 0.0, only add ellipsis
-						origin = line->width;
 						for (int j = 0; j < 3; j++) {
 							float x = origin + offset[j + 1];
 							if (x > limitX) {
-								_blob->push({ fg.typeface(), ellipsis.glyphs().copy(0, j), ellipsis_offset.copy(0, j + 1), origin, line->line });
-								line->width = limitX;
+								_lines->add_text_blob({fg.typeface(), text_size, _blob}, ellipsis.glyphs().slice(0, j), ellipsis_offset.slice(0, j + 1), false);
+								_lines->set_pre_width(limitX);
 								break;
 							}
 						}
-						N_ASSERT(line->width == limitX);
+						N_ASSERT(_lines->pre_width() == limitX);
 					}
 				}
 
@@ -273,8 +271,8 @@ namespace noug {
 			}
 		}
 
-		line->width = width + offset.back();
-		_blob->push({ fg.typeface(), fg.glyphs(), std::move(offset), origin, line->line });
+		_lines->add_text_blob({fg.typeface(), text_size, _blob}, fg.glyphs(), offset, false);
+		_lines->set_pre_width(origin + offset.back());
 	}
 
 	// NORMAL 保持单词在同一行

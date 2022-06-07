@@ -42,7 +42,7 @@ namespace noug {
 		N_DEFINE_PROP(TextAlign, text_align);
 		N_DEFINE_PROP(String, text_value);
 	protected:
-		virtual void onTextChange(uint32_t mark, uint32_t flags) override;
+		virtual void onTextChange(uint32_t mark) override;
 	};
 
 }
