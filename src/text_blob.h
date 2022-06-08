@@ -44,7 +44,7 @@ namespace noug {
 	struct TextBlob {
 		Typeface        typeface;
 		Array<GlyphID>  glyphs;
-		Array<float>    offset;
+		Array<Vec2>     offset;
 		float           origin;
 		uint32_t        line;
 		Sp<ImageSource> cache;

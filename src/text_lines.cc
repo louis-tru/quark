@@ -150,8 +150,10 @@ namespace noug {
 				// merge glyphs
 				if (last.line == line && last.offset.back() == offset.front()) {
 					last.glyphs.write(glyphs);
-					last.offset.write(offset, -1, -1, 1);
-					_last->width = last.origin + last.offset.back();
+					// last.offset.write(offset, -1, -1, 1);
+					for (int i = 1, len = offset.length(); i < len; i++)
+						last.offset.push(Vec2(offset[i], 0));
+					_last->width = last.origin + last.offset.back().x();
 					return;
 				}
 			}

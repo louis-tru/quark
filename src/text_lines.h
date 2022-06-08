@@ -67,6 +67,7 @@ namespace noug {
 		inline uint32_t length() const { return _lines.length(); }
 		inline float max_height() const { return _last->end_y; }
 		inline Line& operator[](uint32_t idx) { return _lines[idx]; }
+		inline Line& line(uint32_t idx) { return _lines[idx]; }
 		// defines props
 		N_DEFINE_PROP(float, pre_width);
 		N_DEFINE_PROP_READ(bool, wrap_x);

@@ -65,7 +65,7 @@ namespace noug {
 		inline bool isValid() const { return _impl; }
 	private:
 		Typeface(void* impl);
-		void* _impl;
+		void*  _impl;
 		friend class FontPool;
 	};
 

@@ -31,10 +31,12 @@
 #include "../../app.h"
 #include "../../display.h"
 #include "./skia_render.h"
+// skia
 #include <skia/core/SkImage.h>
 #include <skia/effects/SkGradientShader.h>
 #include <skia/core/SkBlendMode.h>
 #include <skia/core/SkMaskFilter.h>
+#include <skia/core/SkTypeface.h>
 // views
 #include "../../layout/box.h"
 #include "../../layout/image.h"
@@ -138,7 +140,29 @@ namespace noug {
 	}
 
 	void SkiaRender::visitLabel(Label* label) {
-		// TODO ...
+
+		if (label->_blob.length()) {
+			auto lines = *label->_lines;
+			auto size = label->text_size().value;
+
+			SkPaint paint = _paint;
+			auto c4f = SkColor4f::FromColor(label->text_color().value.to_uint32_argb());
+			c4f.fA *= _alpha;
+			// paint.setColor4f(c4f);
+			// if (N_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
+
+			for (auto& blob: label->_blob) {
+				SkFont font(sk_sp<SkFont>(*reinterpret_cast<SkTypeface**>(&blob.typeface)), size);
+				_canvas->drawGlyphs(
+					blob.glyphs.length(),
+					*blob.glyphs, *blob.offset,
+					Vec2(blob.origin, lines->line(blob.line).baseline), _paint
+				);
+			}
+		}
+
+		SkiaRender::visitView(box);
+
 	}
 
 	void SkiaRender::visitRoot(Root* v) {
