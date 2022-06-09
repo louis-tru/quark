@@ -54,7 +54,7 @@ namespace noug {
 
 	class N_EXPORT FontGlyphs {
 	public:
-		FontGlyphs(const GlyphID glyphs[], uint32_t count, const Typeface& typeface, float fontSize);
+		FontGlyphs(const Typeface& typeface, float fontSize, const GlyphID glyphs[] = nullptr, uint32_t count = 0);
 
 		/**
 		 * glyphs in typeface object

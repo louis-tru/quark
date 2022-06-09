@@ -101,7 +101,7 @@ namespace noug {
 						tfs[ftIdx + 1].unicharsToGlyphs(unichars + idx, count, glyphs + idx);
 						make(unichars + idx, glyphs + idx, count, ftIdx + 1);
 					} else {
-						result.push(FontGlyphs(glyphs + idx, count, pool->last(), fontSize));
+						result.push(FontGlyphs(pool->last(), fontSize, glyphs + idx, count));
 					}
 					prev_idx = i - 1;
 					prev_val = 0;
@@ -114,7 +114,7 @@ namespace noug {
 					b:
 					int idx = prev_idx + 1;
 					int count = i - idx;
-					result.push(FontGlyphs(glyphs + idx, count, tfs[ftIdx], fontSize));
+					result.push(FontGlyphs(tfs[ftIdx], fontSize, glyphs + idx, count));
 					prev_idx = i - 1;
 					prev_val = 1;
 				}
@@ -139,7 +139,7 @@ namespace noug {
 		return reinterpret_cast<const SkFont*>(reinterpret_cast<const Array<GlyphID>*>(fg) + 1);
 	}
 
-	FontGlyphs::FontGlyphs(const GlyphID glyphs[], uint32_t count, const Typeface& typeface, float fontSize)
+	FontGlyphs::FontGlyphs(const Typeface& typeface, float fontSize, const GlyphID glyphs[], uint32_t count)
 		: _typeface( *((void**)(&typeface)) )
 		, _fontSize(fontSize)
 		, _scaleX(1)
@@ -170,11 +170,11 @@ namespace noug {
 	}
 
 	float FontGlyphs::get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize) {
-		return FontGlyphs(nullptr, 0, FFID->match(style)[0], fontSize).get_metrics(metrics);
+		return FontGlyphs(FFID->match(style)[0], fontSize, nullptr, 0).get_metrics(metrics);
 	}
 
 	float FontGlyphs::get_metrics(FontMetrics* metrics, const Typeface& typeface, float fontSize) {
-		return FontGlyphs(nullptr, 0, typeface, fontSize).get_metrics(metrics);
+		return FontGlyphs(typeface, fontSize, nullptr, 0).get_metrics(metrics);
 	}
 
 }

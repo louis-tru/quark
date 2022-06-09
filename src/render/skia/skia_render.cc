@@ -148,16 +148,19 @@ namespace noug {
 			SkPaint paint = _paint;
 			auto c4f = SkColor4f::FromColor(label->text_color().value.to_uint32_argb());
 			c4f.fA *= _alpha;
-			// paint.setColor4f(c4f);
+			paint.setColor4f(c4f);
 			// if (N_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
 
 			for (auto& blob: label->_blob) {
-				SkFont font(sk_sp<SkFont>(*reinterpret_cast<SkTypeface**>(&blob.typeface)), size);
-				_canvas->drawGlyphs(
-					blob.glyphs.length(),
-					*blob.glyphs, *blob.offset,
-					Vec2(blob.origin, lines->line(blob.line).baseline), _paint
-				);
+				auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
+				tf->ref();
+
+				if (N_ENABLE_DRAW)
+					_canvas->drawGlyphs(
+						blob.glyphs.length(), *blob.glyphs, *blob.offset,
+						Vec2(blob.origin, lines->line(blob.line).baseline),
+						SkFont(sk_sp<SkTypeface>(tf), size), _paint
+					);
 			}
 		}
 
