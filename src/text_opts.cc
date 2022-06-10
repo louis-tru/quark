@@ -34,7 +34,15 @@
 
 namespace noug {
 
-	TextOptions::TextOptions(): _text_flags(0xffffffff) {
+	TextOptions::TextOptions()
+		: _text_size{ .kind=TextValueKind::INHERIT }
+		, _text_background_color{ .kind=TextValueKind::INHERIT }
+		, _text_color{ .kind=TextValueKind::INHERIT }
+		, _text_shadow{ .kind=TextValueKind::INHERIT }
+		, _text_line_height{ .kind=TextValueKind::INHERIT }
+		, _text_family{ .kind=TextValueKind::INHERIT }
+		, _text_flags(0xffffffff)
+	{
 	}
 
 	void TextOptions::onTextChange(uint32_t mark) {
@@ -160,7 +168,7 @@ namespace noug {
 	TextConfig::TextConfig(TextOptions* opts, TextConfig* base)
 		: _opts(opts), _base(base)
 	{
-		if (_opts->_text_flags || _base->_opts->_text_flags) {
+		if (_base && (_opts->_text_flags || _base->_opts->_text_flags)) {
 			_opts->_text_flags |= _base->_opts->_text_flags;
 			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 0);
 			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 1);
@@ -183,24 +191,29 @@ namespace noug {
 
 	// ---------------- D e f a u l t . T e x t . S e t t i n g s ----------------
 
+	class DefaultTextConfig: public TextConfig {
+	public:
+		DefaultTextConfig(FontPool *pool): TextConfig(new TextOptions(), nullptr) {
+			auto opts = this->opts();
+			opts->set_text_weight(TextWeight::DEFAULT);
+			opts->set_text_slant(TextSlant::DEFAULT);
+			opts->set_text_decoration(TextDecoration::DEFAULT);
+			opts->set_text_overflow(TextOverflow::DEFAULT);
+			opts->set_text_white_space(TextWhiteSpace::DEFAULT);
+			opts->set_text_word_break(TextWordBreak::DEFAULT);
+			opts->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::VALUE});
+			opts->set_text_color({Color(0, 0, 0), TextValueKind::VALUE});
+			opts->set_text_size({16, TextValueKind::VALUE});
+			opts->set_text_line_height({0, TextValueKind::DEFAULT});
+			opts->set_text_family({pool->getFFID(), TextValueKind::VALUE});
+			opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::VALUE});
+		}
+	};
+
 	DefaultTextOptions::DefaultTextOptions(FontPool *pool)
 		: TextOptions()
-		, TextConfig(this, new TextConfig(new TextOptions(), nullptr))
-	{
-		auto opts = base()->opts();
-		opts->set_text_weight(TextWeight::DEFAULT);
-		opts->set_text_slant(TextSlant::DEFAULT);
-		opts->set_text_decoration(TextDecoration::DEFAULT);
-		opts->set_text_overflow(TextOverflow::DEFAULT);
-		opts->set_text_white_space(TextWhiteSpace::DEFAULT);
-		opts->set_text_word_break(TextWordBreak::DEFAULT);
-		opts->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::VALUE});
-		opts->set_text_color({Color(0, 0, 0), TextValueKind::VALUE});
-		opts->set_text_size({16, TextValueKind::VALUE});
-		opts->set_text_line_height({0, TextValueKind::DEFAULT});
-		opts->set_text_family({pool->getFFID(), TextValueKind::VALUE});
-		opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::VALUE});
-	}
+		, TextConfig(this, new DefaultTextConfig(pool))
+	{}
 
 	DefaultTextOptions::~DefaultTextOptions() {
 		delete base()->opts();

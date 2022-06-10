@@ -251,8 +251,8 @@ namespace noug {
 		static int memcmp(const void* s1, const void* s2, uint32_t len, int size_of);
 		// 1 > , -1 <, 0 ==
 		template <typename T>
-		static int memcmp(const T* s1, const T* s2, uint32_t len) {
-			return _Str::memcmp(s1, s2, len, sizeof(T));
+		static int strcmp(const T* s1, const T* s2, uint32_t len) {
+			return _Str::memcmp(s1, s2, len + 1, sizeof(T));
 		}
 		static int32_t index_of(
 			const void* s1, uint32_t s1_len,
@@ -535,27 +535,27 @@ namespace noug {
 
 	template <typename T, typename A>
 	bool ArrayString<T, A>::operator==(const T* s) const {
-		return _Str::memcmp(c_str(), s, length()) == 0;
+		return _Str::strcmp(c_str(), s, length()) == 0;
 	}
 
 	template <typename T, typename A>
 	bool ArrayString<T, A>::operator!=(const T* s) const {
-		return _Str::memcmp(c_str(), s, length()) != 0;
+		return _Str::strcmp(c_str(), s, length()) != 0;
 	}
 
 	template <typename T, typename A>
 	bool ArrayString<T, A>::operator>(const T* s) const {
-		return _Str::memcmp(c_str(), s, length()) > 0;
+		return _Str::strcmp(c_str(), s, length()) > 0;
 	}
 
 	template <typename T, typename A>
 	bool ArrayString<T, A>::operator<(const T* s) const {
-		return _Str::memcmp(c_str(), s, length()) < 0;
+		return _Str::strcmp(c_str(), s, length()) < 0;
 	}
 
 	template <typename T, typename A>
 	bool ArrayString<T, A>::operator>=(const T* s) const {
-		return _Str::memcmp(c_str(), s, length()) >= 0;
+		return _Str::strcmp(c_str(), s, length()) >= 0;
 	}
 
 	template <typename T, typename A>

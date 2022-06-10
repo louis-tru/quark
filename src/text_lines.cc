@@ -148,7 +148,7 @@ namespace noug {
 			if (blob.blob->length()) {
 				auto& last = blob.blob->back();
 				// merge glyphs
-				if (last.line == line && last.offset.back() == offset.front()) {
+				if (last.line == line && last.offset.back().x() == offset.front()) {
 					last.glyphs.write(glyphs);
 					// last.offset.write(offset, -1, -1, 1);
 					for (int i = 1; i < offset.length(); i++)
@@ -158,12 +158,12 @@ namespace noug {
 				}
 			}
 
-			auto origin = _last->width - blob.offset[0];
+			auto origin = _last->width - offset[0];
 			Array<Vec2> pos(offset.length());
 			for (int i = 0; i < offset.length(); i++)
 				pos[i] = Vec2(offset[i], 0);
 			blob.blob->push({ blob.typeface, glyphs.copy(), std::move(pos), origin, line });
-			_last->width = origin + blob.offset.back();
+			_last->width = origin + offset.back();
 
 			FontMetrics metrics;
 			FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);

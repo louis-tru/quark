@@ -281,8 +281,7 @@ namespace noug {
 	void TextBlobBuilder::as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD, bool is_KEEP_ALL) {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.get_offset();
-		auto  row = _lines->last();
-		bool  line_head = row->width == 0.0;
+		bool  line_head = _lines->last()->width == 0.0;
 		auto  text_size = _opts->text_size().value;
 
 		float limitX = _lines->size().x();
@@ -292,26 +291,44 @@ namespace noug {
 
 		for (int j = 0; j < len; j++) {
 			auto sym = unicode_to_symbol(unichar[j]);
-			if (sym == kSpace_Symbol && _lines->last()->line && _lines->pre_width() == 0.0) {
+			auto isSpace = sym == kSpace_Symbol;
+
+			if (isSpace && _lines->last()->line && _lines->pre_width() == 0.0) {
 				// skip line leading spaces
 			skipLine:
 				origin = -offset[j];
 				if (++j < len) {
 					sym = unicode_to_symbol(unichar[j]);
-					if (sym == kSpace_Symbol)
+					isSpace = sym == kSpace_Symbol;
+					if (isSpace)
 						goto skipLine;
 				} else {
 					break;
 				}
 			}
+			
+			// check word end
+			// prev word end or next word start, record position and offset
+			auto i = j;
+			if (isSpace) {
+				i++;
+				goto wordEnd;
+			}
+			if (is_KEEP_ALL ? sym == kPunctuation_Symbol : sym < kNumber_Symbol) {
+			wordEnd:
+				_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, i), offset.slice(start, i + 1), false);
+				line_head = _lines->last()->width == 0.0;
+				start = i;
+			}
 
 			float x = origin + offset[j + 1];
 			if (x > limitX) {
-				if (is_BREAK_WORD) { // force new line
-					_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
-					goto newLine;
-				}
+
 				if (line_head) { // line start then not new line
+					if (is_BREAK_WORD) { // force new line
+					//	_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
+					//	goto newLine;
+					}
 					_lines->set_pre_width(x);
 				} else {
 				newLine:
@@ -322,16 +339,7 @@ namespace noug {
 			} else {
 				_lines->set_pre_width(x);
 			}
-
-			// prev word end or next word start, record position and offset
-			if (is_KEEP_ALL ? sym == kSpace_Symbol || sym == kPunctuation_Symbol :
-												sym < kNumber_Symbol
-			) {
-				_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
-				if (start < j)
-					line_head = false;
-				start = j;
-			}
+			
 		}
 
 		if (start < len) {

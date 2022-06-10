@@ -37,6 +37,7 @@
 #include <skia/core/SkBlendMode.h>
 #include <skia/core/SkMaskFilter.h>
 #include <skia/core/SkTypeface.h>
+#include <skia/core/SkFont.h>
 // views
 #include "../../layout/box.h"
 #include "../../layout/image.h"
@@ -149,23 +150,21 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(label->text_color().value.to_uint32_argb());
 			c4f.fA *= _alpha;
 			paint.setColor4f(c4f);
-			// if (N_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
 
+			if (N_ENABLE_DRAW)
 			for (auto& blob: label->_blob) {
 				auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
 				tf->ref();
 
-				if (N_ENABLE_DRAW)
-					_canvas->drawGlyphs(
-						blob.glyphs.length(), *blob.glyphs, *blob.offset,
-						Vec2(blob.origin, lines->line(blob.line).baseline),
-						SkFont(sk_sp<SkTypeface>(tf), size), _paint
-					);
+				_canvas->drawGlyphs(
+					blob.glyphs.length(), *blob.glyphs, (SkPoint*)*blob.offset,
+					{blob.origin, lines->line(blob.line).baseline},
+					SkFont(sk_sp<SkTypeface>(tf), size), paint
+				);
 			}
 		}
 
-		SkiaRender::visitView(box);
-
+		SkiaRender::visitView(label);
 	}
 
 	void SkiaRender::visitRoot(Root* v) {

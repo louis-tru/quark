@@ -103,7 +103,7 @@ namespace noug {
 		float           _alpha;
 		uint32_t        _mark_recursive;
 		SkPaint         _paint;
-		bool _raster; // software raster
+		bool            _raster; // software raster
 	};
 
 #if !N_APPLE || N_ENABLE_GL

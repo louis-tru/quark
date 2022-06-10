@@ -9,6 +9,8 @@
 #include <noug/render/skia/skia_render.h>
 #include <noug/layout/flow.h>
 #include <noug/layout/image.h>
+#include <noug/layout/label.h>
+#include <noug/layout/text.h>
 #include <noug/effect.h>
 #include <noug/display.h>
 #include <noug/util/fs.h>
@@ -67,6 +69,21 @@ public:
 	}
 };
 
+void layout_text(FlowLayout* flow) {
+	auto text = (TextLayout*)New<TextLayout>()->append_to(flow);
+	auto labe = (Label*)     New<Label>()     ->append_to(text);
+
+	text->set_width({ 0, BoxSizeKind::MATCH });
+	text->set_height({ 0, BoxSizeKind::MATCH });
+	text->set_text_size({ 14 });
+
+	text->set_fill_color(Color(255,0,0,255));
+
+	//labe->set_text_value("ABC  DEFG楚");
+	labe->set_text_value("DEFG楚");
+	labe->set_text_color({ Color(0,0,255,255) });
+}
+
 void layout(Event<>& evt, Application* app) {
 	app->display()->set_status_bar_style(Display::STATUS_BAR_STYLE_BLACK);
 
@@ -75,6 +92,8 @@ void layout(Event<>& evt, Application* app) {
 	auto flow = (FlowLayout*)New<FlowLayout>()->append_to(r);
 	auto img  = (Image*)     New<Image>     ()->append_to(r);
 	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
+	
+	layout_text(flow);
 
 	flex->set_fill_color(Color(255,0,0,255));
 	//flex->set_fill(New<FillImage>(fs_resources("bench/img/21.jpeg"), FillImage::Init{

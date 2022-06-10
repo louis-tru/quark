@@ -272,7 +272,7 @@ namespace noug {
 	// text value template
 	template<typename Value> struct TextValueWrap {
 		Value value = Value();
-		TextValueKind kind = TextValueKind::INHERIT;
+		TextValueKind kind = TextValueKind::VALUE;
 		inline bool operator!=(const TextValueWrap& val) const {
 			return kind != val.kind || (kind == TextValueKind::VALUE && value != val.value);
 		}
