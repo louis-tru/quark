@@ -128,6 +128,8 @@ namespace noug {
 							is_merge_runing = true;
 							row.push(0x20);
 						}
+					} else {
+						row.push(0x20);
 					}
 					break;
 				default:
@@ -283,6 +285,7 @@ namespace noug {
 		auto  offset = fg.get_offset();
 		bool  line_head = _lines->last()->width == 0.0;
 		auto  text_size = _opts->text_size().value;
+		auto  line = _lines->last();
 
 		float limitX = _lines->size().x();
 		float origin = _lines->pre_width();
@@ -291,6 +294,20 @@ namespace noug {
 
 		for (int j = 0; j < len; j++) {
 			auto sym = unicode_to_symbol(unichar[j]);
+			
+			// skip line start space symbol
+			if (line->is_wrap) {
+				if (sym == kSpace_Symbol) {
+				skip:
+					start = j + 1;
+					origin = -offset[j + 1];
+					if (++j == len) break;
+					sym = unicode_to_symbol(unichar[j]);
+					if (sym == kSpace_Symbol) goto skip;
+				}
+				line->is_wrap = false;
+			}
+			
 			auto x = origin + offset[j + 1];
 			auto overflow = x > limitX;
 
@@ -304,24 +321,26 @@ namespace noug {
 			if (is_KEEP_ALL ? sym == kPunctuation_Symbol : sym < kNumber_Symbol) {
 			wordEnd:
 				_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, i), offset.slice(start, i + 1), false);
-				line_head = _lines->last()->width == 0.0;
+				line_head = line->width == 0.0;
 				start = i;
 			}
 
 			// check wrap overflow new line
 			if (overflow) {
+				auto blob_pre = true;
 				if (line_head) { // line start then not new line
 					if (is_BREAK_WORD) { // force new line
-						_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
-						start = j;
-						goto newLine;
+						blob_pre = false; goto newLine;
 					}
 					_lines->set_pre_width(x);
 				} else {
 				newLine:
+					_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), blob_pre);
 					_lines->push(true); // new row
+					line = _lines->last();
 					line_head = true;
-					origin = -offset[j];
+					start = j;
+					origin = _lines->pre_width() - offset[j];
 				}
 			} else {
 				_lines->set_pre_width(x);
@@ -339,6 +358,7 @@ namespace noug {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.get_offset();
 		auto  text_size = _opts->text_size().value;
+		auto  line = _lines->last();
 
 		float limitX = _lines->size().x();
 		float origin = _lines->pre_width();
@@ -346,12 +366,28 @@ namespace noug {
 		int   start = 0;
 
 		for (int j = 0; j < len; j++) {
-			float x = origin + offset[j + 1];
+			// skip line start space symbol
+			if (line->is_wrap) {
+				auto sym = unicode_to_symbol(unichar[j]);
+				if (sym == kSpace_Symbol) {
+				skip:
+					start = j + 1;
+					origin = -offset[j + 1];
+					if (++j == len) break;
+					sym = unicode_to_symbol(unichar[j]);
+					if (sym == kSpace_Symbol) goto skip;
+				}
+				line->is_wrap = false;
+			}
+
+			// check wrap overflow new line
+			auto x = origin + offset[j + 1];
 			if (x > limitX) {
 				_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
 				_lines->push(true); // new row
-				origin = -offset[j];
+				line = _lines->last();
 				start = j;
+				origin = -offset[j];
 			} else {
 				_lines->set_pre_width(x);
 			}

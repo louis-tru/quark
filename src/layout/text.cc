@@ -36,7 +36,7 @@
 namespace noug {
 
 	void TextLayout::set_text_align(TextAlign value) {
-		if(_text_align == value) {
+		if(_text_align != value) {
 			_text_align = value;
 			mark(kLayout_Typesetting);
 		}

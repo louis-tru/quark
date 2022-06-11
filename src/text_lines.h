@@ -46,7 +46,7 @@ namespace noug {
 			float start_y, end_y, width;
 			float baseline, ascent, descent, origin;
 			uint32_t line;
-			bool  is_wrap;
+			bool is_wrap;
 		};
 		struct PreTextBlob {
 			Typeface        typeface;

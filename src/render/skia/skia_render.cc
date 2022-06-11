@@ -153,12 +153,13 @@ namespace noug {
 
 			if (N_ENABLE_DRAW)
 			for (auto& blob: label->_blob) {
+				auto &line = lines->line(blob.line);
 				auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
 				tf->ref();
 
 				_canvas->drawGlyphs(
 					blob.glyphs.length(), *blob.glyphs, (SkPoint*)*blob.offset,
-					{blob.origin, lines->line(blob.line).baseline},
+					{line.origin + blob.origin, line.baseline},
 					SkFont(sk_sp<SkTypeface>(tf), size), paint
 				);
 			}

@@ -14,6 +14,7 @@
 #include <noug/effect.h>
 #include <noug/display.h>
 #include <noug/util/fs.h>
+#include <noug/render/font/pool.h>
 #include <vector>
 #include <skia/core/SkFont.h>
 #include <skia/core/SkMaskFilter.h>
@@ -75,17 +76,23 @@ void layout_text(FlowLayout* flow) {
 
 	text->set_width({ 0, BoxSizeKind::MATCH });
 	text->set_height({ 0, BoxSizeKind::MATCH });
-	text->set_text_size({ 14 });
+	text->set_text_size({ 12 });
 
 	text->set_fill_color(Color(255,0,0,255));
+	text->set_text_align(TextAlign::CENTER);
+	//text->set_text_family({ app()->font_pool()->getFFID("Helvetica, PingFang SC") });
 
+	labe->set_text_white_space(TextWhiteSpace::PRE_WRAP);
+	labe->set_text_slant(TextSlant::ITALIC);
+	labe->set_text_weight(TextWeight::BOLD);
 	//labe->set_text_value("ABC  DEFG楚");
-	labe->set_text_value("DEFG楚");
-	labe->set_text_color({ Color(0,0,255,255) });
+	labe->set_text_value("Noug 1           abcdefghijkmln 禁忌");
+	labe->set_text_color({ Color(0,255,255,255) });
 }
 
 void layout(Event<>& evt, Application* app) {
 	app->display()->set_status_bar_style(Display::STATUS_BAR_STYLE_BLACK);
+	app->default_text_options()->set_text_family({ app->font_pool()->getFFID("Helvetica, PingFang SC") });
 
 	auto r = Root::create();
 	auto flex = (FlexLayout*)New<FlexLayout>()->append_to(r);

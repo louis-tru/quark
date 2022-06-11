@@ -53,7 +53,34 @@ namespace noug {
 		finish_line();
 		_lines.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _lines.length(), is_wrap });
 		_last = &_lines.back();
+		
+		if (is_wrap) {
+			// skip line start spaces
+			for (auto &blob: _preBlob) {
+				auto id = blob.typeface.unicharToGlyph(0x20); // space
+				int i = 0, len = blob.glyphs.length();
+			skip:
+				if (blob.glyphs[i] != id) {
+					blob.glyphs = blob.glyphs.copy(i);
+					blob.offset = blob.offset.copy(i);
+					break;
+				}
+				if (++i < len) {
+					goto skip;
+				}
+				blob.glyphs.clear();
+				blob.offset.clear();
+			}
+		}
+		
 		_pre_width = 0;
+		
+		for (auto &blob: _preBlob) {
+			_pre_width += blob.offset.back() - blob.offset.front();
+		}
+		if (_pre_width) {
+			_last->is_wrap = false;
+		}
 	}
 
 	void TextLines::push(TextOptions *opts) {
@@ -136,15 +163,19 @@ namespace noug {
 	void TextLines::add_text_blob(PreTextBlob blob, const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre) {
 
 		if (is_pre) {
-			blob.glyphs = glyphs.copy();
-			blob.offset = offset.copy();
-			_preBlob.push(std::move(blob));
+			if (glyphs.length()) {
+				blob.glyphs = glyphs.copy();
+				blob.offset = offset.copy();
+				_preBlob.push(std::move(blob));
+			}
 			return;
 		}
 
 		auto add = [&](PreTextBlob& blob, const Array<GlyphID>& glyphs, const Array<float>& offset) {
-			auto line = _last->line;
+			if (glyphs.length() == 0)
+				return;
 
+			auto line = _last->line;
 			if (blob.blob->length()) {
 				auto& last = blob.blob->back();
 				// merge glyphs
@@ -158,30 +189,16 @@ namespace noug {
 				}
 			}
 
-			int i = 0, len = glyphs.length();
-			// skip line leading spaces
-			if (_last->is_wrap) {
-				GlyphID id = blob.typeface.unicharToGlyph(0x20); // space
-				for (; i < len; i++) {
-					if (glyphs[i] != id) {
-						_last->is_wrap = false;
-						break;
-					}
-				}
-			}
+			auto origin = _last->width - offset[0];
+			Array<Vec2> pos(offset.length());
+			for (int i = 0; i < offset.length(); i++)
+				pos[i] = Vec2(offset[i], 0);
+			blob.blob->push({ blob.typeface, glyphs.copy(), std::move(pos), origin, line });
+			_last->width = origin + offset.back();
 
-			if (i < len) {
-				auto origin = _last->width - offset[i];
-				Array<Vec2> pos(offset.length());
-				for (; i < offset.length(); i++)
-					pos[i] = Vec2(offset[i], 0);
-				blob.blob->push({ blob.typeface, glyphs.copy(), std::move(pos), origin, line });
-				_last->width = origin + offset.back();
-
-				FontMetrics metrics;
-				FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);
-				set_metrics(&metrics);
-			}
+			FontMetrics metrics;
+			FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);
+			set_metrics(&metrics);
 		};
 
 		if (_preBlob.length()) {
@@ -189,9 +206,8 @@ namespace noug {
 				add(i, i.glyphs, i.offset);
 			_preBlob.clear();
 		}
-		if (glyphs.length()) {
-			add(blob, glyphs, offset);
-		}
+
+		add(blob, glyphs, offset);
 	}
 
 	void TextLines::set_pre_width(float value) {
