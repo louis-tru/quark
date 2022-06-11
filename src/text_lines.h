@@ -46,6 +46,7 @@ namespace noug {
 			float start_y, end_y, width;
 			float baseline, ascent, descent, origin;
 			uint32_t line;
+			bool  is_wrap;
 		};
 		struct PreTextBlob {
 			Typeface        typeface;
@@ -55,7 +56,7 @@ namespace noug {
 			Array<float>    offset;
 		};
 		TextLines(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align);
-		void push(); // first call finish() then add new row
+		void push(bool is_wrap = false); // first call finish() then add new row
 		void push(TextOptions *opts); // push new row
 		void finish(); // finish all
 		void set_metrics(float ascent, float descent);

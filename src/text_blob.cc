@@ -291,27 +291,14 @@ namespace noug {
 
 		for (int j = 0; j < len; j++) {
 			auto sym = unicode_to_symbol(unichar[j]);
-			auto isSpace = sym == kSpace_Symbol;
+			auto x = origin + offset[j + 1];
+			auto overflow = x > limitX;
 
-			if (isSpace && _lines->last()->line && _lines->pre_width() == 0.0) {
-				// skip line leading spaces
-			skipLine:
-				origin = -offset[j];
-				if (++j < len) {
-					sym = unicode_to_symbol(unichar[j]);
-					isSpace = sym == kSpace_Symbol;
-					if (isSpace)
-						goto skipLine;
-				} else {
-					break;
-				}
-			}
-			
 			// check word end
 			// prev word end or next word start, record position and offset
 			auto i = j;
-			if (isSpace) {
-				i++;
+			if (sym == kSpace_Symbol) {
+				if (!overflow) i++; // not overflow
 				goto wordEnd;
 			}
 			if (is_KEEP_ALL ? sym == kPunctuation_Symbol : sym < kNumber_Symbol) {
@@ -321,18 +308,18 @@ namespace noug {
 				start = i;
 			}
 
-			float x = origin + offset[j + 1];
-			if (x > limitX) {
-
+			// check wrap overflow new line
+			if (overflow) {
 				if (line_head) { // line start then not new line
 					if (is_BREAK_WORD) { // force new line
-					//	_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
-					//	goto newLine;
+						_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
+						start = j;
+						goto newLine;
 					}
 					_lines->set_pre_width(x);
 				} else {
 				newLine:
-					_lines->push(); // new row
+					_lines->push(true); // new row
 					line_head = true;
 					origin = -offset[j];
 				}
@@ -362,7 +349,7 @@ namespace noug {
 			float x = origin + offset[j + 1];
 			if (x > limitX) {
 				_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
-				_lines->push(); // new row
+				_lines->push(true); // new row
 				origin = -offset[j];
 				start = j;
 			} else {

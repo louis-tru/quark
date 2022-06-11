@@ -49,9 +49,9 @@ namespace noug {
 		_max_width = 0;
 	}
 
-	void TextLines::push() {
+	void TextLines::push(bool is_wrap) {
 		finish_line();
-		_lines.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _lines.length() });
+		_lines.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _lines.length(), is_wrap });
 		_last = &_lines.back();
 		_pre_width = 0;
 	}
@@ -59,7 +59,7 @@ namespace noug {
 	void TextLines::push(TextOptions *opts) {
 		FontMetrics metrics;
 		FontGlyphs::get_metrics(&metrics, opts->text_family().value, opts->font_style(), opts->text_size().value);
-		push(); // new row
+		push(false); // new row
 		set_metrics(&metrics);
 	}
 
@@ -158,16 +158,30 @@ namespace noug {
 				}
 			}
 
-			auto origin = _last->width - offset[0];
-			Array<Vec2> pos(offset.length());
-			for (int i = 0; i < offset.length(); i++)
-				pos[i] = Vec2(offset[i], 0);
-			blob.blob->push({ blob.typeface, glyphs.copy(), std::move(pos), origin, line });
-			_last->width = origin + offset.back();
+			int i = 0, len = glyphs.length();
+			// skip line leading spaces
+			if (_last->is_wrap) {
+				GlyphID id = blob.typeface.unicharToGlyph(0x20); // space
+				for (; i < len; i++) {
+					if (glyphs[i] != id) {
+						_last->is_wrap = false;
+						break;
+					}
+				}
+			}
 
-			FontMetrics metrics;
-			FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);
-			set_metrics(&metrics);
+			if (i < len) {
+				auto origin = _last->width - offset[i];
+				Array<Vec2> pos(offset.length());
+				for (; i < offset.length(); i++)
+					pos[i] = Vec2(offset[i], 0);
+				blob.blob->push({ blob.typeface, glyphs.copy(), std::move(pos), origin, line });
+				_last->width = origin + offset.back();
+
+				FontMetrics metrics;
+				FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);
+				set_metrics(&metrics);
+			}
 		};
 
 		if (_preBlob.length()) {
