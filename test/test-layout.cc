@@ -75,7 +75,7 @@ void layout_text(FlowLayout* flow) {
 	auto labe = (Label*)     New<Label>()     ->append_to(text);
 
 	text->set_width({ 0, BoxSizeKind::MATCH });
-	text->set_height({ 0, BoxSizeKind::MATCH });
+	// text->set_height({ 0, BoxSizeKind::MATCH });
 	text->set_text_size({ 12 });
 
 	text->set_fill_color(Color(255,0,0,255));

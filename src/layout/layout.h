@@ -66,7 +66,7 @@ namespace noug {
 			kChild_Layout_Size     = (1 << 0),
 			kChild_Layout_Visible  = (1 << 1),
 			kChild_Layout_Align    = (1 << 2),
-			kChild_Layout_Weight    = (1 << 3),
+			kChild_Layout_Weight   = (1 << 3),
 			kChild_Layout_Text     = (1 << 4),
 		};
 

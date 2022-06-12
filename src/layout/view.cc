@@ -620,7 +620,7 @@ namespace noug {
 
 		if (mark & kRecursive_Visible_Region) {
 			unmark(kRecursive_Visible_Region); // unmark
-			visible_region:
+		visible_region:
 			_visible_region = solve_visible_region();
 			/*
 			if (_visible_region) {
