@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./label.h"
+#include "../display.h"
 #include "../pre_render.h"
 #include "../app.h"
 
@@ -60,6 +61,7 @@ namespace noug {
 	void Label::layout_text(TextLines *lines, TextConfig *base) {
 		TextConfig cfg(this, base);
 
+		_blob_visible.clear();
 		_blob.clear();
 		_lines = lines;
 
@@ -76,16 +78,25 @@ namespace noug {
 		}
 	}
 
+	// disable layout matrix prop
+	Mat Label::layout_matrix() {
+		Vec2 translate = parent()->layout_offset_inside();
+		return Mat(
+			1, 0, translate.x(),
+			0, 1, translate.y()
+		);
+	}
+
 	void Label::set_layout_offset(Vec2 val) {
-		auto size = parent()->layout_size();
-		Sp<TextLines> lines = new TextLines(size.content_size, false, false, TextAlign::LEFT); // use left align
+		auto size = parent()->layout_size().content_size;
+		Sp<TextLines> lines = new TextLines(this, TextAlign::LEFT, size, false); // use left align
 		layout_text(*lines, pre_render()->host()->default_text_options());
 		lines->finish();
 		mark_none(kRecursive_Transform);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 size) {
-		Sp<TextLines> lines = new TextLines(size, false, false, TextAlign::LEFT); // use left align
+		Sp<TextLines> lines = new TextLines(this, TextAlign::LEFT, size, false); // use left align
 		layout_text(*lines, pre_render()->host()->default_text_options());
 		lines->finish();
 		mark_none(kRecursive_Transform);
@@ -96,8 +107,34 @@ namespace noug {
 	}
 
 	bool Label::solve_visible_region() {
-		// TODO solve_visible_region
-		return true;
+		N_DEBUG("Label::solve_visible_region");
+
+		_blob_visible.clear();
+
+		if (_lines->host() == this) {
+			_lines->solve_visible_region();
+		}
+
+		if (!_lines->visible_region()) {
+			return false;
+		}
+
+		auto& clip = pre_render()->host()->display()->clip_region();
+		bool is_break = false;
+
+		for (int i = 0; i < _blob.length(); i++) {
+			auto &blob = _blob[i];
+			auto &line = _lines->line(blob.line);
+			if (line.visible_region) {
+				is_break = true;
+				_blob_visible.push(i);
+			} else {
+				if (is_break) break;
+			}
+			N_DEBUG("blob,%f,%d,%d,%i", blob.origin, blob.line, blob.glyphs.length(), line.visible_region);
+		}
+
+		return _blob_visible.length();
 	}
 
 	void Label::set_visible(bool val) {

@@ -39,6 +39,7 @@ namespace noug {
 	class FontMetrics;
 	class TextOptions;
 	class TextBlob;
+	class View;
 
 	class N_EXPORT TextLines: public Reference {
 	public:
@@ -46,7 +47,7 @@ namespace noug {
 			float start_y, end_y, width;
 			float baseline, ascent, descent, origin;
 			uint32_t line;
-			bool is_wrap;
+			bool visible_region;
 		};
 		struct PreTextBlob {
 			Typeface        typeface;
@@ -55,8 +56,8 @@ namespace noug {
 			Array<GlyphID>  glyphs;
 			Array<float>    offset;
 		};
-		TextLines(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align);
-		void push(bool is_wrap = false); // first call finish() then add new row
+		TextLines(View *host, TextAlign text_align, Vec2 size, bool no_wrap);
+		void push(bool trim_start = false); // first call finish() then add new row
 		void push(TextOptions *opts); // push new row
 		void finish(); // finish all
 		void set_metrics(float ascent, float descent);
@@ -65,18 +66,22 @@ namespace noug {
 		void add_text_blob(PreTextBlob blob,
 				const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre);
 		void finish_text_blob();
+		void solve_visible_region();
 		inline uint32_t length() const { return _lines.length(); }
 		inline float max_height() const { return _last->end_y; }
 		inline Line& operator[](uint32_t idx) { return _lines[idx]; }
 		inline Line& line(uint32_t idx) { return _lines[idx]; }
 		// defines props
 		N_DEFINE_PROP(float, pre_width);
-		N_DEFINE_PROP_READ(bool, wrap_x);
-		N_DEFINE_PROP_READ(bool, wrap_y);
-		N_DEFINE_PROP_READ(Vec2, size);
+		N_DEFINE_PROP(bool,  trim_start);
+		N_DEFINE_PROP_READ(bool, no_wrap);
+		N_DEFINE_PROP_READ(bool, visible_region);
 		N_DEFINE_PROP_READ(TextAlign, text_align);
-		N_DEFINE_PROP_READ(Line*,  last);
+		N_DEFINE_PROP_READ(Vec2, size);
+		N_DEFINE_PROP_READ(Line*, last);
+		N_DEFINE_PROP_READ(View*, host);
 		N_DEFINE_PROP_READ(float, max_width);
+		N_DEFINE_PROP_READ(float, min_origin);
 	private:
 		void finish_line(); // finish line
 		void clear();

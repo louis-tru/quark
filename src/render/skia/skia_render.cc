@@ -152,7 +152,8 @@ namespace noug {
 			paint.setColor4f(c4f);
 
 			if (N_ENABLE_DRAW)
-			for (auto& blob: label->_blob) {
+			for (auto i: label->_blob_visible) {
+				auto &blob = label->_blob[i];
 				auto &line = lines->line(blob.line);
 				auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
 				tf->ref();

@@ -42,6 +42,7 @@ public:
 		}
 		auto render = static_cast<SkiaRender*>(visitor);
 		auto src = source();
+
 		render->solveBox(this, src && src->ready() ? [](SkiaRender* render, Box* box) {
 			Image* v = static_cast<Image*>(box);
 			auto img = CastSkImage(v->source());
@@ -86,6 +87,7 @@ void layout_text(FlowLayout* flow) {
 	labe->set_text_slant(TextSlant::ITALIC);
 	labe->set_text_weight(TextWeight::BOLD);
 	//labe->set_text_value("ABC  DEFG楚");
+	//labe->set_text_value("Noug 1           abcdefghijkmln 禁忌");
 	labe->set_text_value("Noug 1           abcdefghijkmln 禁忌");
 	labe->set_text_color({ Color(0,255,255,255) });
 }
@@ -158,6 +160,7 @@ void layout(Event<>& evt, Application* app) {
 	img->set_margin_right(10);
 	img->set_margin_bottom(10);
 	img->set_padding_left(50);
+	//img->set_rotate(45);
 	//
 	//img2->set_src(fs_resources("bench/img/99.jpeg"));
 	img2->set_width({0, BoxSizeKind::MATCH });

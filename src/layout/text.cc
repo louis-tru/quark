@@ -49,26 +49,28 @@ namespace noug {
 			auto v = first();
 			if (v) {
 
-				Vec2 cur_size = content_size();
-				Sp<TextLines> lines = new TextLines(cur_size, layout_wrap_x(), layout_wrap_y(), _text_align);
+				Vec2 size = content_size();
+				_lines = new TextLines(this, _text_align, size, layout_wrap_x());
 				TextConfig cfg(this, pre_render()->host()->default_text_options());
 
 				do {
-					v->layout_text(*lines, &cfg);
+					v->layout_text(*_lines, &cfg);
 					v = v->next();
 				} while(v);
 
-				lines->finish();
+				_lines->finish();
 
 				Vec2 new_size(
-					layout_wrap_x() ? lines->max_width(): cur_size.x(),
-					layout_wrap_y() ? lines->max_height(): cur_size.y()
+					layout_wrap_x() ? _lines->max_width(): size.x(),
+					layout_wrap_y() ? _lines->max_height(): size.y()
 				);
 
-				if (new_size != cur_size) {
+				if (new_size != size) {
 					set_content_size(new_size);
 					parent()->onChildLayoutChange(this, kChild_Layout_Size);
 				}
+			} else {
+				_lines = nullptr;
 			}
 			unmark(kLayout_Typesetting);
 			mark_none(kRecursive_Transform);
@@ -81,15 +83,23 @@ namespace noug {
 	void TextLayout::onTextChange(uint32_t value) {
 		value ? mark(value): mark_none();
 	}
+	
+	bool TextLayout::solve_visible_region() {
+		bool ok = Box::solve_visible_region();
+		if (ok && _lines) {
+			_lines->solve_visible_region();
+		}
+		return ok;
+	}
 
 	void TextLayout::set_visible(bool val) {
 		Box::set_visible(val);
-		_text_flags = 0xffffffff;
+		_text_flags = 0xffffffffu;
 	}
 
 	void TextLayout::set_parent(View *val) {
 		Box::set_parent(val);
-		_text_flags = 0xffffffff;
+		_text_flags = 0xffffffffu;
 	}
 
 }

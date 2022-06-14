@@ -414,7 +414,7 @@ namespace noug {
 		void clear_layout_depth(); //  clear layout depth
 		void set_layout_depth_(uint32_t depth); // settings depth
 		// get transform instance
-		Transform* get_transform_instance();
+		Transform* transform_instance();
 
 	public:
 		// the objects that automatically adjust view properties

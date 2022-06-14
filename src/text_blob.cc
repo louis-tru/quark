@@ -169,7 +169,7 @@ namespace noug {
 		// 	KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
 		// };
 
-		if (_lines->wrap_x() || // 容器没有固定宽度
+		if (_lines->no_wrap() || // 不使用自动wrap
 				text_white_space == TextWhiteSpace::NO_WRAP ||
 				text_white_space == TextWhiteSpace::PRE
 		) { // 不使用自动wrap
@@ -276,6 +276,18 @@ namespace noug {
 		_lines->add_text_blob({fg.typeface(), text_size, _blob}, fg.glyphs(), offset, false);
 		_lines->set_pre_width(origin + offset.back());
 	}
+	
+
+	// skip line start space symbol
+	static int skip_space(Unichar *unichar, TextLines *lines, int j, int len) {
+		do {
+			if (unicode_to_symbol(unichar[j]) != kSpace_Symbol) {
+				lines->set_trim_start(false);
+				break;
+			}
+		} while(++j < len);
+		return j;
+	}
 
 	// NORMAL 保持单词在同一行
 	// BREAK_WORD 保持单词在同一行,除非单词长度超过一行才截断
@@ -291,23 +303,21 @@ namespace noug {
 		float origin = _lines->pre_width();
 		int   len = fg.glyphs().length();
 		int   start = 0;
-
-		for (int j = 0; j < len; j++) {
-			auto sym = unicode_to_symbol(unichar[j]);
-			
-			// skip line start space symbol
-			if (line->is_wrap) {
-				if (sym == kSpace_Symbol) {
-				skip:
-					start = j + 1;
-					origin = -offset[j + 1];
-					if (++j == len) break;
-					sym = unicode_to_symbol(unichar[j]);
-					if (sym == kSpace_Symbol) goto skip;
-				}
-				line->is_wrap = false;
+		int   j = 0;
+		
+		// skip line start space symbol
+		auto skip = [&]() {
+			if (_lines->trim_start()) {
+				j = skip_space(unichar, _lines, j, len);
+				start = j;
+				origin = -offset[j];
 			}
-			
+		};
+
+		for (; j < len; j++) {
+			skip(); // skip line start space
+
+			auto sym = unicode_to_symbol(unichar[j]);
 			auto x = origin + offset[j + 1];
 			auto overflow = x > limitX;
 
@@ -341,11 +351,12 @@ namespace noug {
 					line_head = true;
 					start = j;
 					origin = _lines->pre_width() - offset[j];
+					skip(); // skip line start space
 				}
 			} else {
 				_lines->set_pre_width(x);
 			}
-			
+
 		}
 
 		if (start < len) {
@@ -364,21 +375,19 @@ namespace noug {
 		float origin = _lines->pre_width();
 		int   len = glyphs.length();
 		int   start = 0;
+		int   j = 0;
 
-		for (int j = 0; j < len; j++) {
-			// skip line start space symbol
-			if (line->is_wrap) {
-				auto sym = unicode_to_symbol(unichar[j]);
-				if (sym == kSpace_Symbol) {
-				skip:
-					start = j + 1;
-					origin = -offset[j + 1];
-					if (++j == len) break;
-					sym = unicode_to_symbol(unichar[j]);
-					if (sym == kSpace_Symbol) goto skip;
-				}
-				line->is_wrap = false;
+		// skip line start space symbol
+		auto skip = [&]() {
+			if (_lines->trim_start()) {
+				j = skip_space(unichar, _lines, j, len);
+				start = j;
+				origin = -offset[j];
 			}
+		};
+
+		for (; j < len; j++) {
+			skip(); // skip line start space
 
 			// check wrap overflow new line
 			auto x = origin + offset[j + 1];
@@ -388,6 +397,7 @@ namespace noug {
 				line = _lines->last();
 				start = j;
 				origin = -offset[j];
+				skip(); // skip line start space
 			} else {
 				_lines->set_pre_width(x);
 			}

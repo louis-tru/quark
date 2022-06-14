@@ -133,7 +133,7 @@ namespace noug {
 			/**
 			* @func display_region
 			*/
-			inline DisplayRegion clip_region() const {
+			inline const DisplayRegion& clip_region() const {
 				return _clip_region.back();
 			}
 

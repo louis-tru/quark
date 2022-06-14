@@ -130,7 +130,7 @@ namespace noug {
 		* 
 		* @func transform()
 		*/
-	View::Transform* View::get_transform_instance() {
+	View::Transform* View::transform_instance() {
 		if (!_transform) {
 			_transform = new Transform();
 			_transform->scale = Vec2(1);
@@ -417,7 +417,7 @@ namespace noug {
 		*/
 	void View::set_translate(Vec2 val) {
 		if (translate() != val) {
-			get_transform_instance()->translate = val;
+			transform_instance()->translate = val;
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -429,7 +429,7 @@ namespace noug {
 		*/
 	void View::set_scale(Vec2 val) {
 		if (scale() != val) {
-			get_transform_instance()->scale = val;
+			transform_instance()->scale = val;
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -441,7 +441,7 @@ namespace noug {
 		*/
 	void View::set_skew(Vec2 val) {
 		if (skew() != val) {
-			get_transform_instance()->skew = val;
+			transform_instance()->skew = val;
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -453,7 +453,7 @@ namespace noug {
 		*/
 	void View::set_rotate(float val) {
 		if (rotate() != val) {
-			get_transform_instance()->rotate = val;
+			transform_instance()->rotate = val;
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -466,7 +466,7 @@ namespace noug {
 		*/
 	void View::set_x(float val) {
 		if (translate().x() != val) {
-			get_transform_instance()->translate.set_x(val);
+			transform_instance()->translate.set_x(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -479,7 +479,7 @@ namespace noug {
 		*/
 	void View::set_y(float val) {
 		if (translate().y() != val) {
-			get_transform_instance()->translate.set_y(val);
+			transform_instance()->translate.set_y(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -492,7 +492,7 @@ namespace noug {
 		*/
 	void View::set_scale_x(float val) {
 		if (scale().x() != val) {
-			get_transform_instance()->scale.set_x(val);
+			transform_instance()->scale.set_x(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -505,7 +505,7 @@ namespace noug {
 		*/
 	void View::set_scale_y(float val) {
 		if (scale().y() != val) {
-			get_transform_instance()->scale.set_y(val);
+			transform_instance()->scale.set_y(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -518,7 +518,7 @@ namespace noug {
 		*/
 	void View::set_skew_x(float val) {
 		if (skew().x() != val) {
-			get_transform_instance()->skew.set_x(val);
+			transform_instance()->skew.set_x(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -531,7 +531,7 @@ namespace noug {
 		*/
 	void View::set_skew_y(float val) {
 		if (skew().y() != val) {
-			get_transform_instance()->skew.set_y(val);
+			transform_instance()->skew.set_y(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -707,7 +707,7 @@ namespace noug {
 		#define C quadrilateral_vertex[2]
 		#define D quadrilateral_vertex[3]
 		
-		Vec2 min, max, size;
+		Vec2 min, max;//, size;
 		
 		float w1 = fabs(A.x() - C.x());
 		float w2 = fabs(B.x() - D.x());

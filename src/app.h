@@ -71,21 +71,6 @@ namespace noug {
 		N_HIDDEN_ALL_COPY(Application);
 	public:
 
-		/**
-		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
-		* 那么在主线程调用任何UI-API函数必须加锁。
-		*/
-		class N_EXPORT UILock {
-			public:
-			UILock(Application* host = app());
-			~UILock();
-			void lock();
-			void unlock();
-			private:
-			Application* _host;
-			bool _lock;
-		};
-
 		N_Event(Load);
 		N_Event(Unload);
 		N_Event(Background);
@@ -93,6 +78,21 @@ namespace noug {
 		N_Event(Pause);
 		N_Event(Resume);
 		N_Event(Memorywarning);
+
+		/**
+		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
+		* 那么在主线程调用任何UI-API函数必须加锁。
+		*/
+		class N_EXPORT UILock {
+		public:
+			UILock(Application* host = app());
+			~UILock();
+			void lock();
+			void unlock();
+		private:
+			Application* _host;
+			bool _lock;
+		};
 
 		Application(JSON opts = JSON::object());
 
@@ -112,28 +112,21 @@ namespace noug {
 		void pending();
 
 		/**
-		* @func is_loaded
-		*/
-		inline bool is_loaded() const { return _is_load; }
-
-		/**
 		 * @func options application options
 		 */
 		inline cJSON& options() const { return _opts; }
 
-		/**
-			* @func default_text_options()
-			*/
-		inline DefaultTextOptions* default_text_options() { return _default_text_options; }
-		inline Display* display() { return _display; }
-		inline Root* root() { return _root; }
-		inline View* focus_view() { return _focus_view; }
-		inline RunLoop* loop() { return _loop; }
-		inline ActionDirect* action_direct() { return _action_direct; }
-		inline PreRender* pre_render() { return _pre_render; }
-		inline Render* render() { return _render; }
-		inline FontPool* font_pool() { return _font_pool; }
-		inline ImagePool* img_pool() { return _img_pool; }
+		N_DEFINE_PROP_READ(bool, is_loaded);
+		N_DEFINE_PROP_READ(DefaultTextOptions*, default_text_options); // 默认文本设置
+		N_DEFINE_PROP_READ(Display*, display); // 当前显示端口
+		N_DEFINE_PROP_READ(Root*, root); // 根视图
+		N_DEFINE_PROP_READ(View*, focus_view); // 焦点视图
+		N_DEFINE_PROP_READ(RunLoop*, loop); // 运行消息循环
+		N_DEFINE_PROP_READ(ActionDirect*, action_direct); // 动作管理器
+		N_DEFINE_PROP_READ(PreRender*, pre_render); // 预渲染器
+		N_DEFINE_PROP_READ(Render*, render); // 渲染器
+		N_DEFINE_PROP_READ(FontPool*, font_pool); // 字体管理器
+		N_DEFINE_PROP_READ(ImagePool*, img_pool); // 图片加载器
 
 		/**
 		* @func clear 清理垃圾回收内存资源, all=true 清理全部资源
@@ -172,7 +165,6 @@ namespace noug {
 										cString& subject,
 										cString& cc = String(),
 										cString& bcc = String(), cString& body = String());
-
 		/**
 		 * 
 		 * setting main function
@@ -182,37 +174,25 @@ namespace noug {
 		static void setMain(int (*main)(int, char**));
 		
 		/**
+		* @func runMain(argc, argv) create sub gui thread, call by system, First thread call
+		*/
+		static void runMain(int argc, Char* argv[]);
+		
+		/**
 		* @func app Get current gui application entity
 		*/
 		static inline Application* shared() { return _shared; }
 
-	protected:
-		/**
-		* @func runMain(argc, argv) create sub gui thread, call by system, First thread call
-		*/
-		static void runMain(int argc, Char* argv[]);
-
 	private:
 		static Application*  _shared;   // 当前应用程序
-		bool                 _is_load;
-		JSON                 _opts;
-		RunLoop*             _loop;
-		KeepLoop*            _keep;
-		Display*             _display;     // 当前显示端口
-		PreRender*           _pre_render;
-		Render*              _render;
-		Root*                _root;             // 根视图
-		View*                _focus_view;       // 焦点视图
-		DefaultTextOptions*  _default_text_options;
-		EventDispatch*       _dispatch;
-		ActionDirect*        _action_direct;
-		RecursiveMutex       _render_mutex;
-		FontPool*            _font_pool;        /* 字体纹理池 */
-		ImagePool*           _img_pool;         /* 图像池 */
-		uint64_t _max_image_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
-		
+		JSON           _opts;
+		KeepLoop*      _keep;
+		EventDispatch* _dispatch;
+		RecursiveMutex _render_mutex;
+		uint64_t       _max_image_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
+
 		N_DEFINE_INLINE_CLASS(Inl);
-		
+
 		friend class UILock;
 		friend Application* app();
 		friend Display* display();

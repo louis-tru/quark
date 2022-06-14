@@ -32,6 +32,7 @@
 #include "../app.h"
 #include "../display.h"
 #include "../render/render.h"
+#include "../pre_render.h"
 #include "../text_lines.h"
 #include "../text_opts.h"
 
@@ -615,7 +616,7 @@ namespace noug {
 		auto limitX = lines->size().x();
 		auto origin = lines->pre_width();
 
-		if (lines->wrap_x() || // 容器没有固定宽度
+		if (lines->no_wrap() || // 容器没有固定宽度
 				text_white_space == TextWhiteSpace::NO_WRAP ||
 				text_white_space == TextWhiteSpace::PRE
 		) { // 不使用自动wrap
@@ -882,21 +883,25 @@ namespace noug {
 	}
 
 	bool Box::solve_visible_region() {
-		Vec2 vertex[4];
-		solve_rect_vertex(vertex);
+		// Vec2 vertex[4];
+		solve_rect_vertex(_vertex);
 
 		/*
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 		* 这种模糊测试在大多数时候都是正确有效的。
 		*/
-		DisplayRegion clip = display()->clip_region();
-		Region re = screen_region_from_convex_quadrilateral(vertex);
-		
+		auto& clip = pre_render()->host()->display()->clip_region();
+		auto  re   = screen_region_from_convex_quadrilateral(_vertex);
+
 		if (N_MAX( clip.y2, re.end.y() ) - N_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
-				N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width
-		) {
+				N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width) {
 			return true;
 		}
+
+		N_DEBUG("visible_region-x: %f<=%f", N_MAX( clip.y2, re.end.y() ) - N_MIN( clip.y, re.origin.y() ),
+																				re.end.y() - re.origin.y() + clip.height);
+		N_DEBUG("visible_region-y: %f<=%f", N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ),
+																				re.end.x() - re.origin.x() + clip.width);
 
 		return false;
 	}

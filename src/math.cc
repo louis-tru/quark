@@ -30,6 +30,7 @@
 
 #include <string.h>
 #include <math.h>
+//#include <arm/endian.h>
 #include "./math.h"
 
 #define N_ARRAY_NO_IMPL 1

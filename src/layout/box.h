@@ -62,6 +62,7 @@ namespace noug {
 		void set_layout_weight(float weight);
 
 		/**
+			* client rect = border + padding + content
 			* @func solve_rect_vertex(vertex)
 			*/
 		void solve_rect_vertex(Vec2 vertex[4]);
@@ -157,7 +158,9 @@ namespace noug {
 		N_DEFINE_PROP(Color, fill_color); // fill color
 		N_DEFINE_PROP(Fill*, fill); // fill, image|gradient
 		N_DEFINE_PROP(Effect*, effect); // effect, shadow
-		N_DEFINE_PROP_READ(Vec2, transform_origin); // Start the matrix transformation from this origin point
+		// Start the matrix transformation from this origin point start.
+		// with border as the starting point.
+		N_DEFINE_PROP_READ(Vec2, transform_origin);
 		N_DEFINE_PROP_READ(Vec2, content_size); // width,height / size
 		N_DEFINE_PROP_READ(Vec2, client_size); // border + padding + content
 
@@ -173,7 +176,8 @@ namespace noug {
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
 		float _layout_weight; // layout weight
-		Align _layout_align; // layout align
+		Vec2  _vertex[4];     // box vertex
+		Align _layout_align;  // layout align
 	};
 
 

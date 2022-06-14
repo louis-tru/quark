@@ -62,6 +62,7 @@ namespace noug {
 		TextLines *_lines;
 		TextOptions *_opts;
 		Array<TextBlob> *_blob;
+		
 	};
 
 }

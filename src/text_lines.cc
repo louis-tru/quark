@@ -28,6 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "./display.h"
+#include "./pre_render.h"
+#include "./app.h"
+#include "./layout/view.h"
 #include "./text_lines.h"
 #include "./text_opts.h"
 #include "./text_blob.h"
@@ -35,9 +39,9 @@
 
 namespace noug {
 
-	TextLines::TextLines(Vec2 size, bool wrap_x, bool wrap_y, TextAlign text_align)
-		: _pre_width(0)
-		, _wrap_x(wrap_x), _wrap_y(wrap_y), _size(size), _text_align(text_align)
+	TextLines::TextLines(View *host, TextAlign text_align, Vec2 size, bool no_wrap)
+		: _pre_width(0), _trim_start(false), _host(host)
+		, _size(size), _no_wrap(no_wrap), _text_align(text_align), _visible_region(false)
 	{
 		clear();
 	}
@@ -47,15 +51,18 @@ namespace noug {
 		_lines.push({ 0, 0, 0, 0, 0, 0, 0, 0 });
 		_last = &_lines[0];
 		_max_width = 0;
+		_min_origin = Float::limit_max;
+		_visible_region = false;
 	}
 
-	void TextLines::push(bool is_wrap) {
+	void TextLines::push(bool trim_start) {
 		finish_line();
-		_lines.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _lines.length(), is_wrap });
+		_lines.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _lines.length() });
 		_last = &_lines.back();
+		_trim_start = trim_start;
 		
-		if (is_wrap) {
-			// skip line start spaces
+		if (trim_start) {
+			// skip line start space
 			for (auto &blob: _preBlob) {
 				auto id = blob.typeface.unicharToGlyph(0x20); // space
 				int i = 0, len = blob.glyphs.length();
@@ -79,7 +86,7 @@ namespace noug {
 			_pre_width += blob.offset.back() - blob.offset.front();
 		}
 		if (_pre_width) {
-			_last->is_wrap = false;
+			_trim_start = false;
 		}
 	}
 
@@ -91,14 +98,18 @@ namespace noug {
 	}
 
 	void TextLines::finish_line() {
-		if ( _last->width > _max_width ) {
-			_max_width = _last->width;
-		}
 
 		switch(_text_align) {
 			case TextAlign::LEFT: break;
 			case TextAlign::CENTER: _last->origin = (_size.x() - _last->width) / 2; break;
 			case TextAlign::RIGHT:  _last->origin = _size.x() - _last->width; break;
+		}
+
+		if ( _last->width > _max_width ) {
+			_max_width = _last->width;
+		}
+		if ( _last->origin < _min_origin) {
+			_min_origin = _last->origin;
 		}
 
 		if (_preLayout.length()) {
@@ -140,7 +151,7 @@ namespace noug {
 	}
 
 	void TextLines::set_metrics(float ascent, float descent) {
-		if (ascent != _last->ascent || descent != _last->descent) {
+		if (ascent > _last->ascent || descent > _last->descent) {
 			_last->ascent = ascent;
 			_last->descent = descent;
 			_last->baseline = _last->start_y + _last->ascent;
@@ -158,6 +169,50 @@ namespace noug {
 
 	void TextLines::finish_text_blob() {
 		add_text_blob({}, Array<GlyphID>(), Array<float>(), false); // solve text blob
+	}
+
+	void TextLines::solve_visible_region() {
+		// solve lines visible region
+		auto& clip = _host->pre_render()->host()->display()->clip_region();
+		auto& mat = _host->matrix();
+		auto  offset_in = _host->layout_offset_inside();
+		auto  x1 = _min_origin + offset_in.x();
+		auto  x2 = x1 + _max_width;
+		auto  y  = offset_in.y();
+
+		Vec2 vertex[4];
+
+		vertex[0] = mat * Vec2(x1, _lines.front().start_y + y);
+		vertex[1] = mat * Vec2(x2, _lines.front().start_y + y);
+		
+		bool is_all_false = false;
+		
+		// TODO
+		// Use optimization algorithm using dichotomy
+
+		for (auto &line: _lines) {
+			if (is_all_false) {
+				line.visible_region = false;
+				continue;
+			}
+			auto y2 = line.end_y + y;
+			vertex[3] = mat * Vec2(x1, y2);
+			vertex[2] = mat * Vec2(x2, y2);
+
+			auto re = View::screen_region_from_convex_quadrilateral(vertex);
+
+			if (N_MAX( clip.y2, re.end.y() ) - N_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
+				N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width) {
+				line.visible_region = true;
+				_visible_region = true;
+			} else {
+				is_all_false = true;
+				line.visible_region = false;
+			}
+			vertex[0] = vertex[3];
+			vertex[1] = vertex[2];
+		}
+
 	}
 
 	void TextLines::add_text_blob(PreTextBlob blob, const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre) {
@@ -212,6 +267,10 @@ namespace noug {
 
 	void TextLines::set_pre_width(float value) {
 		_pre_width = value;
+	}
+
+	void TextLines::set_trim_start(bool value) {
+		_trim_start = false;
 	}
 
 }

@@ -102,12 +102,12 @@ namespace noug {
 	typedef void (*CbFunc) (CbData&, AppInl*);
 
 	void AppInl::triggerLoad() {
-		if (_is_load || !_keep)
+		if (_is_loaded || !_keep)
 			return;
 		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) {
 			UILock lock(app);
-			if (!app->_is_load) {
-				app->_is_load = true;
+			if (!app->_is_loaded) {
+				app->_is_loaded = true;
 				app->N_Trigger(Load);
 			}
 		}, this));
@@ -139,8 +139,8 @@ namespace noug {
 		typedef Callback<RunLoop::PostSyncData> Cb;
 
 		_loop->post_sync(Cb([&](Cb::Data& d) {
-			if (_is_load) {
-				_is_load = false;
+			if (_is_loaded) {
+				_is_loaded = false;
 				N_DEBUG("onUnload()");
 				N_Trigger(Unload);
 			}
@@ -198,7 +198,7 @@ namespace noug {
 		, N_Init_Event(Pause)
 		, N_Init_Event(Resume)
 		, N_Init_Event(Memorywarning)
-		, _is_load(false)
+		, _is_loaded(false)
 		, _opts(opts)
 		, _loop(nullptr), _keep(nullptr)
 		, _render(nullptr), _display(nullptr)
