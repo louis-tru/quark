@@ -592,7 +592,7 @@ namespace noug {
 		return false;
 	}
 
-	void View::layout_text(TextLines *lines, TextConfig* textSet) {
+	void View::layout_text(TextLines *lines, TextConfig* cfg) {
 		// NOOP
 	}
 

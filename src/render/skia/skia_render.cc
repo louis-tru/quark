@@ -105,8 +105,8 @@ namespace noug {
 		solveBox(box, src && src->ready() ? [](SkiaRender* render, Box* box) {
 			Image* v = static_cast<Image*>(box);
 			auto begin = Vec2(
-				v->_padding_left - v->_transform_origin.x(),
-				v->_padding_top - v->_transform_origin.y()
+				v->_padding_left - v->_origin_value.x(),
+				v->_padding_top - v->_origin_value.y()
 			);
 			if (box->_border) {
 				begin.val[0] += box->_border->width_left;
@@ -143,6 +143,8 @@ namespace noug {
 	void SkiaRender::visitLabel(Label* label) {
 
 		if (label->_blob.length()) {
+			_canvas->setMatrix(label->matrix());
+
 			auto lines = *label->_lines;
 			auto size = label->text_size().value;
 
@@ -150,14 +152,14 @@ namespace noug {
 			auto c4f = SkColor4f::FromColor(label->text_color().value.to_uint32_argb());
 			c4f.fA *= _alpha;
 			paint.setColor4f(c4f);
-
-			if (N_ENABLE_DRAW)
-			for (auto i: label->_blob_visible) {
+			
+			// TODO draw text shadow and text  background ...
+			
+			if (N_ENABLE_DRAW) for (auto i: label->_blob_visible) {
 				auto &blob = label->_blob[i];
 				auto &line = lines->line(blob.line);
 				auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
 				tf->ref();
-
 				_canvas->drawGlyphs(
 					blob.glyphs.length(), *blob.glyphs, (SkPoint*)*blob.offset,
 					{line.origin + blob.origin, line.baseline},
@@ -197,7 +199,7 @@ namespace noug {
 	}
 
 	void SkiaRender::MakeSkRectFrom(Box *host) {
-		auto begin = host->_transform_origin; // begin
+		auto begin = host->_origin_value; // begin
 		auto end = host->_client_size - begin; // end
 		_rect_inside = _rect = {-begin.x(), -begin.y(), end.x(), end.y()};
 		if (host->_border) {

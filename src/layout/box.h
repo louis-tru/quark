@@ -131,6 +131,8 @@ namespace noug {
 		N_DEFINE_PROP(BoxSize, height); // size height
 		N_DEFINE_PROP(BoxSize, width_limit); // limit max size
 		N_DEFINE_PROP(BoxSize, height_limit);
+		N_DEFINE_PROP(BoxOrigin, origin_x);
+		N_DEFINE_PROP(BoxOrigin, origin_y);
 		N_DEFINE_PROP(float, margin_top); // margin
 		N_DEFINE_PROP(float, margin_right);
 		N_DEFINE_PROP(float, margin_bottom);
@@ -143,6 +145,9 @@ namespace noug {
 		N_DEFINE_PROP(float, radius_right_top);
 		N_DEFINE_PROP(float, radius_right_bottom);
 		N_DEFINE_PROP(float, radius_left_bottom);
+		N_DEFINE_PROP(Color, fill_color); // fill color
+		N_DEFINE_PROP(Fill*, fill); // fill, image|gradient
+		N_DEFINE_PROP(Effect*, effect); // effect, shadow
 		N_DEFINE_ACCESSOR(Color, border_color_top); // border_color
 		N_DEFINE_ACCESSOR(Color, border_color_right);
 		N_DEFINE_ACCESSOR(Color, border_color_bottom);
@@ -155,16 +160,14 @@ namespace noug {
 		N_DEFINE_ACCESSOR(BorderStyle, border_style_right);
 		N_DEFINE_ACCESSOR(BorderStyle, border_style_bottom);
 		N_DEFINE_ACCESSOR(BorderStyle, border_style_left);
-		N_DEFINE_PROP(Color, fill_color); // fill color
-		N_DEFINE_PROP(Fill*, fill); // fill, image|gradient
-		N_DEFINE_PROP(Effect*, effect); // effect, shadow
-		// Start the matrix transformation from this origin point start.
+		// Start the matrix transform from this origin point start.
 		// with border as the starting point.
-		N_DEFINE_PROP_READ(Vec2, transform_origin);
+		N_DEFINE_PROP_READ(Vec2, origin_value);
 		N_DEFINE_PROP_READ(Vec2, content_size); // width,height / size
 		N_DEFINE_PROP_READ(Vec2, client_size); // border + padding + content
 
 	protected:
+		void solve_origin_value();
 		void alloc_border();
 		struct Border {
 			Color color_top, color_right, color_bottom, color_left; // border_color

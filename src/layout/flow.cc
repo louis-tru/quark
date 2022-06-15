@@ -128,7 +128,7 @@ namespace noug {
 						default:
 						case CrossAlign::START: break; // 与交叉轴内的起点对齐
 						case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-							cross_offset_item += ((cross - (is_horizontal ? s.y(): s.x())) / 2.0); break;
+							cross_offset_item += ((cross - (is_horizontal ? s.y(): s.x())) * .5); break;
 						case CrossAlign::END: // 与交叉轴内的终点对齐
 							cross_offset_item += (cross - (is_horizontal ? s.y(): s.x())); break;
 					}
@@ -260,7 +260,9 @@ namespace noug {
 			}
 
 			unmark(kLayout_Typesetting);
-			// TODO check transform_origin change ...
+
+			// check transform_origin change
+			solve_origin_value();
 		}
 		return false;
 	}

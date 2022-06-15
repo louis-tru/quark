@@ -147,6 +147,7 @@ namespace noug {
 	Box::Box()
 		: _layout_wrap_x(true), _layout_wrap_y(true), _is_radius(false), _is_clip(false)
 		, _width_limit{0, BoxSizeKind::NONE}, _height_limit{0, BoxSizeKind::NONE}
+		, _origin_x{0, BoxOriginKind::PIXEL}, _origin_y{0, BoxOriginKind::PIXEL}
 		, _margin_top(0), _margin_right(0)
 		, _margin_bottom(0), _margin_left(0)
 		, _padding_top(0), _padding_right(0)
@@ -210,6 +211,20 @@ namespace noug {
 		if (_width_limit != val) {
 			_width_limit = val;
 			mark_layout_size(kLayout_Size_Width);
+		}
+	}
+
+	void Box::set_origin_x(BoxOrigin val) {
+		if (_origin_x != val) {
+			_origin_x = val;
+			mark(kTransform_Origin);
+		}
+	}
+
+	void Box::set_origin_y(BoxOrigin val) {
+		if (_origin_y != val) {
+			_origin_y = val;
+			mark(kTransform_Origin);
 		}
 	}
 
@@ -584,9 +599,16 @@ namespace noug {
 			}
 			mark(kLayout_Typesetting); // rearrange
 			mark_none(kRecursive_Visible_Region);
+			return true;
 		}
 
-		return (layout_mark() & kLayout_Typesetting);
+		if (layout_mark() & kLayout_Typesetting) {
+			return true;
+		} else if (_mark & kTransform_Origin) {
+			solve_origin_value();
+		}
+
+		return false;
 	}
 
 	bool Box::layout_reverse(uint32_t mark) {
@@ -603,9 +625,34 @@ namespace noug {
 			}
 			unmark(kLayout_Typesetting);
 
-			// TODO check transform_origin change ...
+			// check transform_origin change
+			solve_origin_value();
 		}
+
 		return false; // stop iteration
+	}
+
+	void Box::solve_origin_value() {
+		auto old = _origin_value;
+
+		switch (_origin_x.kind) {
+			default:
+			case BoxOriginKind::AUTO:  _origin_value.set_x(_client_size.x() * 0.5); break; // center
+			case BoxOriginKind::PIXEL: _origin_value.set_x(_origin_x.value); break;
+			case BoxOriginKind::RATIO: _origin_value.set_x(_client_size.x() * _origin_x.value); break;
+		}
+		switch (_origin_y.kind) {
+			default:
+			case BoxOriginKind::AUTO:  _origin_value.set_y(_client_size.y() * 0.5); break; // center
+			case BoxOriginKind::PIXEL: _origin_value.set_y(_origin_y.value); break;
+			case BoxOriginKind::RATIO: _origin_value.set_y(_client_size.y() * _origin_y.value); break;
+		}
+
+		unmark(kTransform_Origin);
+
+		if (old != _origin_value) {
+			mark_none(kRecursive_Transform);
+		}
 	}
 
 	void Box::layout_text(TextLines *lines, TextConfig *cfg) {
@@ -689,7 +736,6 @@ namespace noug {
 			}
 			mark(kLayout_Typesetting); // rearrange
 			mark_none(kRecursive_Visible_Region);
-			// TODO check transform_origin change ...
 		}
 
 		unmark(kLayout_Size_Width | kLayout_Size_Height);
@@ -708,7 +754,6 @@ namespace noug {
 		}
 		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
 												_margin_top + _margin_bottom + _client_size.y());
-		// TODO check transform_origin change ...
 	}
 
 	Vec2 Box::layout_offset() {
@@ -742,17 +787,18 @@ namespace noug {
 	}
 
 	Mat Box::layout_matrix() {
+
 		if (_transform) {
 			return Mat(
 				layout_offset() + Vec2(_margin_left, _margin_top) +
-									_transform->translate + _transform_origin + parent()->layout_offset_inside(), // translate
+									_transform->translate + _origin_value + parent()->layout_offset_inside(), // translate
 				_transform->scale,
 				-_transform->rotate,
 				_transform->skew
 			);
 		} else {
 			Vec2 translate = layout_offset() +
-				Vec2(_margin_left, _margin_top) + _transform_origin + parent()->layout_offset_inside();
+				Vec2(_margin_left, _margin_top) + _origin_value + parent()->layout_offset_inside();
 			return Mat(
 				1, 0, translate.x(),
 				0, 1, translate.y()
@@ -762,7 +808,7 @@ namespace noug {
 
 	Vec2 Box::layout_offset_inside() {
 		// return Vec2(-_margin_left, -_margin_top) - _transform_origin;
-		Vec2 offset(_padding_left - _transform_origin.val[0], _padding_top - _transform_origin.val[1]);
+		Vec2 offset(_padding_left - _origin_value.val[0], _padding_top - _origin_value.val[1]);
 		if (_border) {
 			offset.val[0] += _border->width_left;
 			offset.val[1] += _border->width_top;
@@ -813,30 +859,30 @@ namespace noug {
 			case Align::LEFT_TOP: // left top
 				break;
 			case Align::CENTER_TOP: // center top
-				offset = Vec2((size.x() - _layout_size.x()) / 2.0, 0);
+				offset = Vec2((size.x() - _layout_size.x()) * .5, 0);
 				break;
 			case Align::RIGHT_TOP: // right top
 				offset = Vec2(size.x() - _layout_size.x(), 0);
 				break;
 			case Align::LEFT_CENTER: // left center
-				offset = Vec2(0, (size.y() - _layout_size.y()) / 2.0);
+				offset = Vec2(0, (size.y() - _layout_size.y()) * .5);
 				break;
 			case Align::CENTER_CENTER: // center center
 				offset = Vec2(
-					(size.x() - _layout_size.x()) / 2.0,
-					(size.y() - _layout_size.y()) / 2.0);
+					(size.x() - _layout_size.x()) * .5,
+					(size.y() - _layout_size.y()) * .5);
 				break;
 			case Align::RIGHT_CENTER: // right center
 				offset = Vec2(
 					(size.x() - _layout_size.x()),
-					(size.y() - _layout_size.y()) / 2.0);
+					(size.y() - _layout_size.y()) * .5);
 				break;
 			case Align::LEFT_BOTTOM: // left bottom
 				offset = Vec2(0, (size.y() - _layout_size.y()));
 				break;
 			case Align::CENTER_BOTTOM: // center bottom
 				offset = Vec2(
-					(size.x() - _layout_size.x()) / 2.0,
+					(size.x() - _layout_size.x()) * .5,
 					(size.y() - _layout_size.y()));
 				break;
 			case Align::RIGHT_BOTTOM: // right bottom
@@ -874,7 +920,7 @@ namespace noug {
 		*/
 	void Box::solve_rect_vertex(Vec2 vertex[4]) {
 		auto& mat = matrix();
-		Vec2 start(-_transform_origin.x(), -_transform_origin.y());
+		Vec2 start(-_origin_value.x(), -_origin_value.y());
 		Vec2 end(_client_size.x() + start.x(), _client_size.y() + start.y());
 		vertex[0] = mat * start;
 		vertex[1] = mat * Vec2(end.x(), start.y());

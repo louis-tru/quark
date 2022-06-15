@@ -73,10 +73,12 @@ namespace noug {
 				_lines = nullptr;
 			}
 			unmark(kLayout_Typesetting);
-			mark_none(kRecursive_Transform);
+			//mark_none(kRecursive_Transform);
 
-			// TODO check transform_origin change ...
+			// check transform_origin change
+			solve_origin_value();
 		}
+
 		return false;
 	}
 

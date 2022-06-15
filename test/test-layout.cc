@@ -30,7 +30,7 @@ class ImageTest: public Image {
 public:
 
 	static SkRect MakeSkRectFrom(Box *host) {
-		auto begin = host->transform_origin(); // begin
+		auto begin = host->origin_value(); // begin
 		auto end = host->client_size() - begin; // end
 		SkRect _rect_inside = {-begin.x(), -begin.y(), end.x(), end.y()};
 		return _rect_inside;
@@ -76,8 +76,11 @@ void layout_text(FlowLayout* flow) {
 	auto labe = (Label*)     New<Label>()     ->append_to(text);
 
 	text->set_width({ 0, BoxSizeKind::MATCH });
-	// text->set_height({ 0, BoxSizeKind::MATCH });
+	text->set_height({ 0, BoxSizeKind::MATCH });
 	text->set_text_size({ 12 });
+	text->set_origin_x({ 0, BoxOriginKind::AUTO });
+	text->set_origin_y({ 0, BoxOriginKind::AUTO });
+	text->set_rotate(45);
 
 	text->set_fill_color(Color(255,0,0,255));
 	text->set_text_align(TextAlign::CENTER);

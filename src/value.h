@@ -63,9 +63,6 @@ namespace noug {
 		REPEAT_X,
 		REPEAT_Y,
 		NO_REPEAT,
-		//MIRRORED_REPEAT,
-		//MIRRORED_REPEAT_X,
-		//MIRRORED_REPEAT_Y,
 	};
 
 	/**
@@ -85,7 +82,7 @@ namespace noug {
 	enum class FillSizeKind: uint8_t {
 		AUTO,      /* 自动值  auto */
 		PIXEL,     /* 像素值  px */
-		RATIO,   /* 百分比  % */
+		RATIO,     /* 百分比  % */
 	};
 
 	typedef ValueWrap<FillSizeKind, FillSizeKind::AUTO, float> FillSize;
@@ -173,8 +170,9 @@ namespace noug {
 		MINUS,   /* 减法(parent-value) value ! */
 	};
 
+	typedef FillSizeKind BoxOriginKind;
 	typedef ValueWrap<BoxSizeKind, BoxSizeKind::WRAP> BoxSize;
-
+	typedef ValueWrap<BoxOriginKind, BoxOriginKind::AUTO> BoxOrigin;
 
 	// ---------------- T e x t . F o n t ----------------
 

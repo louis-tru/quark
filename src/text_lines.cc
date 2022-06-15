@@ -202,7 +202,8 @@ namespace noug {
 			auto re = View::screen_region_from_convex_quadrilateral(vertex);
 
 			if (N_MAX( clip.y2, re.end.y() ) - N_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
-				N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width) {
+					N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width
+			) {
 				line.visible_region = true;
 				_visible_region = true;
 			} else {

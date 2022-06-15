@@ -43,7 +43,7 @@ namespace noug {
 				}
 				break;
 			case ItemsAlign::CENTER: // 居中
-				offset_x =  overflow / 2;
+				offset_x =  overflow * .5;
 				break;
 			case ItemsAlign::END: // 右对齐
 				if (!is_reverse) {
@@ -62,16 +62,16 @@ namespace noug {
 			case ItemsAlign::SPACE_AROUND: // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
 				if (overflow > 0) {
 					space = overflow / count;
-					offset_x = space / 2;
+					offset_x = space * .5;
 				} else {
-					offset_x = overflow / 2;
+					offset_x = overflow * .5;
 				}
 				break;
 			case ItemsAlign::SPACE_EVENLY: // 每个项目两侧的间隔相等,这包括边框的间距
 				if (overflow > 0) {
 					offset_x = space = overflow / (count + 1);
 				} else {
-					offset_x = overflow / 2;
+					offset_x = overflow * .5;
 				}
 				break;
 		}
@@ -113,7 +113,7 @@ namespace noug {
 					default:
 					case CrossAlign::START: break; // 与交叉轴内的起点对齐
 					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-						offset_cross = (max_cross - (is_horizontal ? size.y(): size.x())) / 2.0; break;
+						offset_cross = (max_cross - (is_horizontal ? size.y(): size.x())) * .5; break;
 					case CrossAlign::END: // 与交叉轴内的终点对齐
 						offset_cross = max_cross - (is_horizontal ? size.y(): size.x()); break;
 				}
@@ -199,7 +199,7 @@ namespace noug {
 					default:
 					case CrossAlign::START: break; // 与交叉轴内的起点对齐
 					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-						offset_cross = (cross_size - size.y()) / 2.0; break;
+						offset_cross = (cross_size - size.y()) * .5; break;
 					case CrossAlign::END: // 与交叉轴内的终点对齐
 						offset_cross = cross_size - size.y(); break;
 				}
@@ -343,6 +343,11 @@ namespace noug {
 			}
 
 			unmark(kLayout_Typesetting);
+
+			// check transform_origin change
+			solve_origin_value();
+		} else if (_mark & kTransform_Origin) {
+			solve_origin_value();
 		}
 
 		return false;
@@ -393,7 +398,8 @@ namespace noug {
 
 			unmark(kLayout_Typesetting);
 
-			// TODO check transform_origin change ...
+			// check transform_origin change
+			solve_origin_value();
 		}
 		return false;
 	}

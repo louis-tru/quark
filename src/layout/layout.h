@@ -56,6 +56,7 @@ namespace noug {
 			kLayout_Size_Height       = (1 << 1),
 			kLayout_Typesetting       = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
 			kLayout_Text              = (1 << 3), /* 文本布局改变 */
+			kTransform_Origin         = (1 << 4),
 			// RECURSIVE MARKS
 			kRecursive_Transform      = (1 << 30), /* 矩阵变换 recursive mark */
 			kRecursive_Visible_Region = (1U << 31), /* 可见范围 */

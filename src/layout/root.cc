@@ -88,7 +88,14 @@ namespace noug {
 
 			set_layout_size(xy, &size.wrap_x, false);
 		}
-		return (_mark & kLayout_Typesetting);
+
+		if (layout_mark() & kLayout_Typesetting) {
+			return true;
+		} else if (_mark & kTransform_Origin) {
+			solve_origin_value();
+		}
+
+		return false;
 	}
 
 	bool Root::layout_reverse(uint32_t mark) {
@@ -100,6 +107,8 @@ namespace noug {
 				v = v->next();
 			}
 			unmark(kLayout_Typesetting);
+
+			solve_origin_value();
 		}
 		return false; // stop iteration
 	}
@@ -108,13 +117,13 @@ namespace noug {
 		if (_transform) {
 			return Mat(
 				layout_offset() + Vec2(margin_left(), margin_top()) +
-									transform_origin() + _transform->translate, // translate
+									origin_value() + _transform->translate, // translate
 				_transform->scale,
 				-_transform->rotate,
 				_transform->skew
 			);
 		} else {
-			Vec2 translate = layout_offset() + Vec2(margin_left(), margin_top()) + transform_origin();
+			Vec2 translate = layout_offset() + Vec2(margin_left(), margin_top()) + origin_value();
 			return Mat(
 				1, 0, translate.x(),
 				0, 1, translate.y()
