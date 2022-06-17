@@ -37,93 +37,7 @@
 
 namespace noug {
 
-#define N_FUN(NAME, C, FLAG) \
-	const UIEventName UIEvent_##NAME(#NAME, UI_EVENT_CATEGORY_##C, FLAG);
-	N_UI_Events(N_FUN)
-#undef N_FUN
-
-	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
-		Dict<String, UIEventName> r;
-#define N_FUN(NAME, C, F) r.set(UIEvent_##NAME.to_string(), UIEvent_##NAME);
-		N_UI_Events(N_FUN)
-#undef N_FUN
-		return r;
-	}());
-
-	UIEventName::UIEventName(cString& name, uint32_t category, uint32_t flag)
-		: _to_string(name), _hash_code((uint32_t)name.hash_code()), _category(category), _flag(flag)
-	{}
-
-	UIEvent::UIEvent(View* origin)
-		: Event(SendData(), origin), _timestamp(time_micro()) {
-		return_value = RETURN_VALUE_MASK_ALL;
-	}
-
-	ActionEvent::ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop)
-		: UIEvent(origin), _action(action), _delay(delay), _frame(frame), _loop(loop)
-	{}
-
-	void ActionEvent::release() {
-		_action = nullptr;
-		UIEvent::release();
-	}
-
-	KeyEvent::KeyEvent(View* origin, uint32_t keycode,
-										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-										uint32_t repeat, int device, int source)
-		: UIEvent(origin), _keycode(keycode)
-		, _device(device), _source(source), _repeat(repeat), _shift(shift)
-		, _ctrl(ctrl), _alt(alt), _command(command), _caps_lock(caps_lock), _focus_move(nullptr)
-	{}
-
-	void KeyEvent::set_focus_move(View* view) {
-		if (origin())
-			_focus_move = view;
-	}
-
-	void KeyEvent::set_keycode(uint32_t keycode) {
-		_keycode = keycode;
-	}
-
-	void KeyEvent::release() {
-		_focus_move = nullptr;
-		UIEvent::release();
-	}
-
-	ClickEvent::ClickEvent(View* origin, float x, float y, Type type, uint32_t count)
-		: UIEvent(origin), _x(x), _y(y), _count(count), _type(type)
-	{}
-
-	MouseEvent::MouseEvent(View* origin, float x, float y, uint32_t keycode,
-										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-										uint32_t repeat, int device, int source)
-		: KeyEvent(origin, keycode, shift, ctrl, alt, command, caps_lock, repeat, device, source), _x(x), _y(y)
-	{}
-
-	HighlightedEvent::HighlightedEvent(View* origin, HighlightedStatus status)
-		: UIEvent(origin), _status(status)
-	{}
-
-	TouchEvent::TouchEvent(View* origin, Array<TouchPoint>& touches)
-		: UIEvent(origin), _change_touches(touches)
-	{}
-
-	FocusMoveEvent::FocusMoveEvent(View* origin, View* focus, View* focus_move)
-		: UIEvent(origin), _focus(focus), _focus_move(focus_move)
-	{}
-
-	void FocusMoveEvent::release()  {
-		_focus = nullptr;
-		_focus_move = nullptr;
-		UIEvent::release();
-	}
-
-	static inline HighlightedStatus HOVER_or_NORMAL(View* view) {
-		return view->is_focus() ? HIGHLIGHTED_HOVER : HIGHLIGHTED_NORMAL;
-	}
-
-	template<class T, typename... Args>
-	inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
+ // -------------------------- v i e w --------------------------
 
 	N_DEFINE_INLINE_MEMBERS(View, InlEvent) {
 	public:
@@ -219,6 +133,96 @@ namespace noug {
 		return true;
 	}
 
+	// -------------------------- e v e n t --------------------------
+
+#define N_FUN(NAME, C, FLAG) \
+	const UIEventName UIEvent_##NAME(#NAME, UI_EVENT_CATEGORY_##C, FLAG);
+	N_UI_Events(N_FUN)
+#undef N_FUN
+
+	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
+		Dict<String, UIEventName> r;
+#define N_FUN(NAME, C, F) r.set(UIEvent_##NAME.to_string(), UIEvent_##NAME);
+		N_UI_Events(N_FUN)
+#undef N_FUN
+		return r;
+	}());
+
+	UIEventName::UIEventName(cString& name, uint32_t category, uint32_t flag)
+		: _to_string(name), _hash_code((uint32_t)name.hash_code()), _category(category), _flag(flag)
+	{}
+
+	UIEvent::UIEvent(View* origin)
+		: Event(SendData(), origin), _timestamp(time_micro()) {
+		return_value = RETURN_VALUE_MASK_ALL;
+	}
+
+	ActionEvent::ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop)
+		: UIEvent(origin), _action(action), _delay(delay), _frame(frame), _loop(loop)
+	{}
+
+	void ActionEvent::release() {
+		_action = nullptr;
+		UIEvent::release();
+	}
+
+	KeyEvent::KeyEvent(View* origin, uint32_t keycode,
+										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
+										uint32_t repeat, int device, int source)
+		: UIEvent(origin), _keycode(keycode)
+		, _device(device), _source(source), _repeat(repeat), _shift(shift)
+		, _ctrl(ctrl), _alt(alt), _command(command), _caps_lock(caps_lock), _focus_move(nullptr)
+	{}
+
+	void KeyEvent::set_focus_move(View* view) {
+		if (origin())
+			_focus_move = view;
+	}
+
+	void KeyEvent::set_keycode(uint32_t keycode) {
+		_keycode = keycode;
+	}
+
+	void KeyEvent::release() {
+		_focus_move = nullptr;
+		UIEvent::release();
+	}
+
+	ClickEvent::ClickEvent(View* origin, float x, float y, Type type, uint32_t count)
+		: UIEvent(origin), _x(x), _y(y), _count(count), _type(type)
+	{}
+
+	MouseEvent::MouseEvent(View* origin, float x, float y, uint32_t keycode,
+										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
+										uint32_t repeat, int device, int source)
+		: KeyEvent(origin, keycode, shift, ctrl, alt, command, caps_lock, repeat, device, source), _x(x), _y(y)
+	{}
+
+	HighlightedEvent::HighlightedEvent(View* origin, HighlightedStatus status)
+		: UIEvent(origin), _status(status)
+	{}
+
+	TouchEvent::TouchEvent(View* origin, Array<TouchPoint>& touches)
+		: UIEvent(origin), _change_touches(touches)
+	{}
+
+	FocusMoveEvent::FocusMoveEvent(View* origin, View* focus, View* focus_move)
+		: UIEvent(origin), _focus(focus), _focus_move(focus_move)
+	{}
+
+	void FocusMoveEvent::release()  {
+		_focus = nullptr;
+		_focus_move = nullptr;
+		UIEvent::release();
+	}
+
+	static inline HighlightedStatus HOVER_or_NORMAL(View* view) {
+		return view->is_focus() ? HIGHLIGHTED_HOVER : HIGHLIGHTED_NORMAL;
+	}
+
+	template<class T, typename... Args>
+	inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
+
 	/**
 	 * @class EventDispatch::OriginTouche
 	 */
@@ -310,7 +314,7 @@ namespace noug {
 
 	typedef Callback<List<TouchPoint>> TouchCb;
 
-	// -------------------------- touch --------------------------
+	// -------------------------- t o u c h --------------------------
 
 	void EventDispatch::touchstart_erase(View* view, List<TouchPoint>& in) {
 		if ( view->receive() && in.length() ) {
@@ -549,7 +553,7 @@ namespace noug {
 		}), std::move(list), _loop);
 	}
 
-// -------------------------- mouse --------------------------
+// -------------------------- m o u s e --------------------------
 
 	static View* find_receive_event_view(View* view, Vec2 pos) {
 		if ( view->visible() ) {
@@ -744,7 +748,7 @@ namespace noug {
 		}), _loop);
 	}
 
-	// -------------------------- keyboard --------------------------
+	// -------------------------- k e y b o a r d --------------------------
 
 	void EventDispatch::onKeyboard_down() {
 
@@ -860,7 +864,7 @@ namespace noug {
 		}
 	}
 
-	// -------------------------- IME --------------------------
+	// -------------------------- I M E --------------------------
 
 	void EventDispatch::onImeDelete(int count) {
 		async_resolve(Cb([=](CbData& d) {
