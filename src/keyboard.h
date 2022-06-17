@@ -36,9 +36,9 @@
 
 namespace noug {
 
-	class Application;
+	class EventDispatch;
 
-#define fx_each_keyboard_key_name_table(F) \
+#define n_each_keyboard_key_name_table(F) \
 	F(KEYCODE_UNKNOWN,          0)  \
 	F(KEYCODE_MOUSE_LEFT,       1)  \
 	F(KEYCODE_MOUSE_CENTER,     2)  \
@@ -199,9 +199,9 @@ namespace noug {
 
 
 	enum KeyboardKeyName {
-#define fx_def_enum_keyboard_key_name(Name, Code) Name = Code,
-		fx_each_keyboard_key_name_table(fx_def_enum_keyboard_key_name)
-#undef fx_def_enum_keyboard_key_name
+#define n_def_enum_keyboard_key_name(Name, Code) Name = Code,
+		n_each_keyboard_key_name_table(n_def_enum_keyboard_key_name)
+#undef n_def_enum_keyboard_key_name
 	};
 
 	/**
@@ -209,75 +209,44 @@ namespace noug {
 	*/
 	class N_EXPORT KeyboardAdapter: public Object {
 	public:
+		static KeyboardAdapter* create();
 
 		KeyboardAdapter();
-		
-		/**
-		* @func create
-		*/
-		static KeyboardAdapter* create();
-		
-		/**
-		* @func keyname
-		*/
-		inline KeyboardKeyName keyname() const { return keyname_; }
 
-		/**
-		* @func keypress
-		*/
-		inline int keypress() const { return keypress_; }
-		
-		inline bool shift() const { return shift_; }
-		inline bool alt() const { return alt_; }
-		inline bool ctrl() const { return ctrl_; }
-		inline bool command() const { return command_; }
-		inline bool caps_lock() const { return caps_lock_; }
-		inline int  repeat() const { return repeat_; }
-		inline int  device() const { return device_; }
-		inline int  source() const { return source_; }
-		
-		/**
-		* @func dispatch
-		*/
-		void dispatch(uint32_t keycode, bool ascii, bool down,
+		void onDispatch(uint32_t keycode, bool ascii, bool down,
 									int repeat = 0, int device = 0, int source = 0);
-		
-	protected:
-		/**
-		* @func set_utils_keycodes
-		*/
-		void set_utils_keycodes();
 
-		/**
-		* @func to_keypress
-		*/
-		virtual int to_keypress(KeyboardKeyName name);
-		
-		/**
-		* @func transformation
-		*/
-		virtual bool transformation(uint32_t keycode, bool unicode, bool down);
-		
+		N_DEFINE_PROP_READ(EventDispatch*, host);
+		N_DEFINE_PROP_READ(KeyboardKeyName, keyname);
+		N_DEFINE_PROP_READ(int, keypress);
+		N_DEFINE_PROP_READ(bool, shift);
+		N_DEFINE_PROP_READ(bool, alt);
+		N_DEFINE_PROP_READ(bool, ctrl);
+		N_DEFINE_PROP_READ(bool, command);
+		N_DEFINE_PROP_READ(bool, caps_lock);
+		N_DEFINE_PROP_READ(bool, repeat);
+		N_DEFINE_PROP_READ(bool, device);
+		N_DEFINE_PROP_READ(bool, source);
+
+	protected:
+
+		friend class EventDispatch;
+
+		virtual int  keypress(KeyboardKeyName name);
+		virtual bool convert(uint32_t keycode, bool unicode, bool down);
+
 		struct AsciiKeyboardKeycode {
 			KeyboardKeyName name;
 			bool is_shift;
 		};
-		
+
 		struct SymbolKeypressValue {
 			int normal, shift;
 		};
-		
+
 		Dict<int, KeyboardKeyName>      _keycodes;
 		Dict<int, AsciiKeyboardKeycode> _ascii_keycodes;
 		Dict<int, SymbolKeypressValue>  _symbol_keypress;
-		
-		Application* _host;
-		KeyboardKeyName keyname_;
-		int   keypress_;
-		bool  shift_;
-		bool  alt_, ctrl_;
-		bool  command_, caps_lock_;
-		int   repeat_, device_, source_;
 	};
 
 }

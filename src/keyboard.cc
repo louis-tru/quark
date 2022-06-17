@@ -30,23 +30,23 @@
 
 #include "./keyboard.h"
 #include "./app.inl"
+#include "./event.h"
 
 namespace noug {
 
 	/**
 	* @constructor 
 	*/
-	KeyboardAdapter::KeyboardAdapter(): _host(app()) {
-		N_ASSERT(_host);
-		
-		keyname_ = KEYCODE_UNKNOWN;
-		keypress_ = 0;
-		shift_ = false;
-		alt_ = false;
-		ctrl_ = false;
-		command_ = false;
-		caps_lock_ = false;
-		repeat_ = device_ = source_ = 0;
+	KeyboardAdapter::KeyboardAdapter()  {
+
+		_keyname = KEYCODE_UNKNOWN;
+		_keypress = 0;
+		_shift = false;
+		_alt = false;
+		_ctrl = false;
+		_command = false;
+		_caps_lock = false;
+		_repeat = _device = _source = 0;
 		
 		_symbol_keypress[KEYCODE_0]               = { 48, 41 }; 	// 0 )
 		_symbol_keypress[KEYCODE_1]               = { 49, 33 }; 	// 1 !
@@ -190,20 +190,37 @@ namespace noug {
 
 	}
 
-	/**
-	* @func set_utils_keycodes
-	*/
-	void KeyboardAdapter::set_utils_keycodes() {
+	void KeyboardAdapter::onDispatch(uint32_t keycode, bool unicode,
+																	bool down, int repeat, int device, int source)
+	{
+		async_resolve(Cb([=](CbData& evt) {
+			UILock lock;
+			_repeat = repeat;
+			_device = device;
+			_source = source;
+
+			bool is_clear = convert(keycode, unicode, down);
+
+			if ( down ) {
+				_host->onKeyboard_down();
+			} else {
+				_host->onKeyboard_up();
+			}
+
+			if ( is_clear ) {
+				_ctrl = _command = _shift = _alt = false;
+			}
+		}), static_cast<PostMessage*>(_host->host()->loop()));
 	}
 
 	/**
-	* @func to_keypress
+	* @func keypress
 	*/
-	int KeyboardAdapter::to_keypress(KeyboardKeyName name) {
+	int KeyboardAdapter::keypress(KeyboardKeyName name) {
 
 		// Letters
 		if ( name >= 65 && name <= 90 ) {
-			if ( caps_lock_ || shift_ ) { // A - Z
+			if ( _caps_lock || _shift ) { // A - Z
 				return name; // caps | shift
 			} else {
 				return name + 32; // lowercase a - z
@@ -213,7 +230,7 @@ namespace noug {
 		// Symbol
 		auto it = _symbol_keypress.find(int(name));
 		if ( it != _symbol_keypress.end() ) {
-			if ( shift_ ) {
+			if ( _shift ) {
 				return it->value.shift;
 			} else {
 				return it->value.normal;
@@ -222,48 +239,48 @@ namespace noug {
 		return 0;
 	}
 
-	bool KeyboardAdapter::transformation(uint32_t keycode, bool unicode, bool down) {
+	bool KeyboardAdapter::convert(uint32_t keycode, bool unicode, bool down) {
 		
 		if ( unicode ) {
 			auto it = _ascii_keycodes.find(keycode);
 			if ( it == _ascii_keycodes.end() ) {
-				keyname_ = KEYCODE_UNKNOWN;
-				keypress_ = keycode;
+				_keyname = KEYCODE_UNKNOWN;
+				_keypress = keycode;
 			} else {
-				shift_ = it->value.is_shift;
-				keyname_ = it->value.name;
-				keypress_ = to_keypress( keyname_ );
+				_shift = it->value.is_shift;
+				_keyname = it->value.name;
+				_keypress = keypress( _keyname );
 			}
 		} else {
 			auto it = _keycodes.find(keycode);
 			if ( it == _keycodes.end() ) { // Unknown keycode
-				keyname_ = KeyboardKeyName(keycode + 100000);
-				keypress_ = 0;
+				_keyname = KeyboardKeyName(keycode + 100000);
+				_keypress = 0;
 			} else {
-				keyname_ = it->value;
+				_keyname = it->value;
 				
 				if ( down ) {
-					switch ( keyname_ ) {
-						case KEYCODE_SHIFT: shift_ = 1; break;
-						case KEYCODE_CTRL: ctrl_ = 1; break;
-						case KEYCODE_ALT: alt_ = 1; break;
-						case KEYCODE_COMMAND: command_ = 1; break;
-						case KEYCODE_CAPS_LOCK: caps_lock_ = !caps_lock_; break;
+					switch ( _keyname ) {
+						case KEYCODE_SHIFT: _shift = 1; break;
+						case KEYCODE_CTRL: _ctrl = 1; break;
+						case KEYCODE_ALT: _alt = 1; break;
+						case KEYCODE_COMMAND: _command = 1; break;
+						case KEYCODE_CAPS_LOCK: _caps_lock = !_caps_lock; break;
 						default: break;
 					}
 				} else {
-					switch ( keyname_ ) {
-						case KEYCODE_SHIFT: shift_ = 0; break;
-						case KEYCODE_CTRL: ctrl_ = 0; break;
-						case KEYCODE_ALT: alt_ = 0; break;
-						case KEYCODE_COMMAND: command_ = 0; break;
+					switch ( _keyname ) {
+						case KEYCODE_SHIFT: _shift = 0; break;
+						case KEYCODE_CTRL: _ctrl = 0; break;
+						case KEYCODE_ALT: _alt = 0; break;
+						case KEYCODE_COMMAND: _command = 0; break;
 						default: break;
 					}
 				}
-				keypress_ = to_keypress( keyname_ );
+				_keypress = keypress( _keyname );
 			}
 		}
-		
+
 		return unicode;
 	}
 

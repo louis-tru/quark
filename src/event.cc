@@ -32,6 +32,7 @@
 #include "./app.inl"
 #include "./layout/root.h"
 #include "./keyboard.h"
+#include "./pre_render.h"
 #include <math.h>
 
 namespace noug {
@@ -43,31 +44,77 @@ namespace noug {
 
 	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
 		Dict<String, UIEventName> r;
-#define N_FUN(NAME, C, F) \
-		r.set(UIEvent_##NAME.to_string(), UIEvent_##NAME);
+#define N_FUN(NAME, C, F) r.set(UIEvent_##NAME.to_string(), UIEvent_##NAME);
 		N_UI_Events(N_FUN)
 #undef N_FUN
 		return r;
 	}());
 
+	UIEventName::UIEventName(cString& name, uint32_t category, uint32_t flag)
+		: _to_string(name), _hash_code((uint32_t)name.hash_code()), _category(category), _flag(flag)
+	{}
+
 	UIEvent::UIEvent(View* origin)
-		: Event(SendData(), origin), time_(time_micro()) {
+		: Event(SendData(), origin), _timestamp(time_micro()) {
 		return_value = RETURN_VALUE_MASK_ALL;
 	}
 
+	ActionEvent::ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop)
+		: UIEvent(origin), _action(action), _delay(delay), _frame(frame), _loop(loop)
+	{}
+
 	void ActionEvent::release() {
-		action_ = nullptr;
+		_action = nullptr;
 		UIEvent::release();
+	}
+
+	KeyEvent::KeyEvent(View* origin, uint32_t keycode,
+										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
+										uint32_t repeat, int device, int source)
+		: UIEvent(origin), _keycode(keycode)
+		, _device(device), _source(source), _repeat(repeat), _shift(shift)
+		, _ctrl(ctrl), _alt(alt), _command(command), _caps_lock(caps_lock), _focus_move(nullptr)
+	{}
+
+	void KeyEvent::set_focus_move(View* view) {
+		if (origin())
+			_focus_move = view;
+	}
+
+	void KeyEvent::set_keycode(uint32_t keycode) {
+		_keycode = keycode;
 	}
 
 	void KeyEvent::release() {
-		focus_move_ = nullptr;
+		_focus_move = nullptr;
 		UIEvent::release();
 	}
 
+	ClickEvent::ClickEvent(View* origin, float x, float y, Type type, uint32_t count)
+		: UIEvent(origin), _x(x), _y(y), _count(count), _type(type)
+	{}
+
+	MouseEvent::MouseEvent(View* origin, float x, float y, uint32_t keycode,
+										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
+										uint32_t repeat, int device, int source)
+		: KeyEvent(origin, keycode, shift, ctrl, alt, command, caps_lock, repeat, device, source), _x(x), _y(y)
+	{}
+
+	HighlightedEvent::HighlightedEvent(View* origin, HighlightedStatus status)
+		: UIEvent(origin), _status(status)
+	{}
+
+	TouchEvent::TouchEvent(View* origin, Array<TouchPoint>& touches)
+		: UIEvent(origin), _change_touches(touches)
+	{}
+
+	FocusMoveEvent::FocusMoveEvent(View* origin, View* focus, View* focus_move)
+		: UIEvent(origin), _focus(focus), _focus_move(focus_move)
+	{}
+
 	void FocusMoveEvent::release()  {
-		_old_focus = nullptr;
-		_new_focus = nullptr;
+		_focus = nullptr;
+		_focus_move = nullptr;
 		UIEvent::release();
 	}
 
@@ -161,7 +208,7 @@ namespace noug {
 	 */
 	bool View::blur() {
 		if ( is_focus() ) {
-			View* v = app()->root();
+			View* v = pre_render()->host()->root();
 			if ( v ) {
 				if ( v != this ) {
 					return v->focus();
@@ -246,507 +293,15 @@ namespace noug {
 		Vec2 _start_position, _position;
 	};
 
-	/**
-	 * @class EventDispatch::Inl
-	 */
-	N_DEFINE_INLINE_MEMBERS(EventDispatch, Inl) {
-	public:
-		#define _inl(self) static_cast<EventDispatch::Inl*>(self)
-		
-		// -------------------------- touch --------------------------
-
-		void touchstart(View* view, List<TouchPoint>& in) {
-			if ( view->receive() && in.length() ) {
-				Array<TouchPoint> change_touches;
-				
-				for ( auto i = in.begin(), e = in.end(); i != e; ) {
-
-					if ( view->overlap_test(Vec2(i->x, i->y)) ) {
-						TouchPoint& touch = *i;
-						touch.start_x = touch.x;
-						touch.start_y = touch.y;
-						touch.click_in = true;
-						touch.view = view;
-						
-						if ( !_origin_touches.has(view) ) {
-							_origin_touches[view] = new OriginTouche(view);
-						}
-						(*_origin_touches[view])[touch.id] = touch;
-						
-						change_touches.push( touch );
-						in.erase(i++);
-					} else {
-						i++;
-					}
-				}
-				
-				if ( change_touches.length() ) { // notice
-					auto evt = NewEvent<TouchEvent>(view, change_touches);
-					_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
-					
-					if ( !_origin_touches[view]->is_click_down() ) { // trigger click down
-						_origin_touches[view]->set_click_down(true);
-						auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
-						_inl_view(view)->trigger_highlightted(**evt); // emit event
-					}
-				}
-			}
-		}
-
-		void onTouchstart(View* view, List<TouchPoint>& in) {
-			
-			if ( view->visible() && in.length() ) {
-				if ( view->visible_region() /*|| view->_need_draw*/ ) {
-					
-					if ( view->last() /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {
-						List<TouchPoint> in2;
-						
-						for ( auto i = in.begin(), e = in.end(); i != e; ) {
-							if ( view->overlap_test(Vec2(i->x, i->y)) ) {
-								in2.push_back(*i);
-								in.erase(i++);
-							} else {
-								i++;
-							}
-						}
-						
-						View* v = view->last();
-						while( v && in2.length() ) {
-							onTouchstart(v, in2);
-							v = v->prev();
-						}
-						
-						touchstart(view, in2);
-						
-						if ( in2.length() ) {
-							in.splice(in.end(), in2);
-						}
-					} else {
-						View* v = view->last();
-						while( v && in.length() ) {
-							onTouchstart(v, in);
-							v = v->prev();
-						}
-						touchstart(view, in);
-					}
-					
-				}
-			}
-		}
-
-		void onTouchmove(List<TouchPoint>& in) {
-			Dict<View*, Array<TouchPoint>> change_touches;
-			
-			for ( auto in_touch : in ) {
-				// TouchPoint& in_touch = i;
-				for ( auto touches : _origin_touches ) {
-					if ( touches.value->has(in_touch.id) ) {
-						TouchPoint& touch = (*touches.value)[in_touch.id];
-						touch.x = in_touch.x;
-						touch.y = in_touch.y;
-						touch.force = in_touch.force;
-						if ( !touches.value->is_click_invalid() ) {
-							touch.click_in = touch.view->overlap_test(Vec2(touch.x, touch.y));
-						}
-						change_touches[touch.view].push(touch);
-						break;
-					}
-				}
-			}
-			
-			for ( auto i : change_touches ) {
-				
-				Array<TouchPoint>& touchs = i.value;
-				View* view = touchs[0].view;
-				// emit event
-				_inl_view(view)->bubble_trigger(
-					UIEvent_TouchMove,
-					**NewEvent<TouchEvent>(view, i.value)
-				);
-				
-				OriginTouche* origin_touche = _origin_touches[view];
-				
-				if ( !origin_touche->is_click_invalid() ) { // no invalid
-					Vec2 position = OriginTouche::view_position(view);
-					Vec2 start_position = origin_touche->view_start_position();
-					
-					float d = sqrtf(powf((position.x() - start_position.x()), 2) +
-													powf((position.y() - start_position.y()), 2));
-					// 视图位置移动超过2取消点击状态
-					if ( d > 2 ) { // trigger invalid status
-						if ( origin_touche->is_click_down() ) { // trigger style up
-							// emit style status event
-							auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
-							_inl_view(view)->trigger_highlightted(**evt);
-						}
-						origin_touche->set_click_invalid();
-					}
-					else { // no invalid
-						
-						if ( origin_touche->is_click_down() ) { // May trigger click up
-							bool trigger_event = true;
-							for ( auto t : origin_touche->values() ) {
-								if (t.value.click_in) {
-									trigger_event = false; break;
-								}
-							}
-							if ( trigger_event ) {
-								origin_touche->set_click_down(false); // set up status
-								// emit style status event
-								auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
-								_inl_view(view)->trigger_highlightted(**evt);
-							}
-						} else { // May trigger click down
-							for ( int i = 0; i < touchs.length(); i++) {
-								auto item = touchs[i];
-								if ( item.click_in ) { // find range == true
-									origin_touche->set_click_down(true); // set down status
-									// emit style down event
-									auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
-									_inl_view(view)->trigger_highlightted(**evt);
-									break;
-								}
-							}
-						}
-					} // no invalid end
-				} // if end
-			} // each end
-		}
-		
-		void onTouchend(List<TouchPoint>& in, const UIEventName& type) {
-			Dict<View*, Array<TouchPoint>> change_touches;
-			
-			for ( auto& in_touch : in ) {
-				for ( auto& item : _origin_touches ) {
-					if ( item.value->has(in_touch.id) ) {
-						TouchPoint& touch = (*item.value)[in_touch.id];
-						touch.x = in_touch.x;
-						touch.y = in_touch.y;
-						touch.force = in_touch.force;
-						change_touches[touch.view].push(touch);
-						item.value->del(touch.id); // del touch point
-						break;
-					}
-				}
-			}
-			
-			for ( auto& i : change_touches ) { // views
-				Array<TouchPoint>& touchs = i.value;
-				View* view = touchs[0].view;
-				_inl_view(view)->bubble_trigger(type, **NewEvent<TouchEvent>(view, touchs)); // emit touch end event
-				
-				OriginTouche* origin_touche = _origin_touches[view];
-				
-				if ( origin_touche->count() == 0 ) {
-					if ( origin_touche->is_click_down() ) { // trigger click
-						for ( auto& item : touchs ) {
-							// find range == true
-							if ( item.click_in ) {
-								// emit style up event
-								auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
-								_inl_view(view)->trigger_highlightted(**evt);
-								
-								if ( type == UIEvent_TouchEnd && view->layout_depth() ) {
-									auto evt = NewEvent<ClickEvent>(view, item.x, item.y, ClickEvent::TOUCH);
-									_inl_view(view)->bubble_trigger(UIEvent_Click, **evt); // emit click event
-								}
-								break;
-							}
-						}
-					}
-					delete origin_touche;
-					_origin_touches.erase(view); // del
-				}
-				//
-			}
-		}
-
-		// -------------------------- mouse --------------------------
-
-		Handle<MouseEvent> NewMouseEvent(View* view, float x, float y, uint32_t keycode = 0) {
-			return NewEvent<MouseEvent>(view, x, y, keycode,
-				_keyboard->shift(),
-				_keyboard->ctrl(), _keyboard->alt(),
-				_keyboard->command(), _keyboard->caps_lock(), 0, 0, 0
-			);
-		}
-
-		static View* find_receive_event_view_2(View* view, Vec2 pos) {
-			if ( view->visible() ) {
-				if ( view->visible_region()/* || view->_need_draw*/ ) {
-					View* v = view->last();
-
-					if (v /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {
-						if (view->overlap_test(pos)) {
-							while (v) {
-								auto r = find_receive_event_view_2(v, pos);
-								if (r) {
-									return r;
-								}
-								v = v->prev();
-							}
-							if (view->receive()) {
-								return view;
-							}
-						}
-					} else {
-						while (v) {
-							auto r = find_receive_event_view_2(v, pos);
-							if (r) {
-								return r;
-							}
-							v = v->prev();
-						}
-						if (view->receive() && view->overlap_test(pos)) {
-							return view;
-						}
-					}
-				}
-			}
-			return nullptr;
-		}
-
-		inline View* find_receive_event_view(Vec2 pos) {
-			return _host->root() ? find_receive_event_view_2(_host->root(), pos) : nullptr;
-		}
-
-		void onMousemove(View* view, Vec2 pos) {
-			View* d_view = _mouse_h->click_down_view();
-
-			if ( d_view ) { // no invalid
-				Vec2 position = OriginTouche::view_position(d_view);
-				Vec2 start_position = _mouse_h->view_start_position();
-				float d = sqrtf(powf((position.x() - start_position.x()), 2) +
-												powf((position.y() - start_position.y()), 2));
-				// 视图位置移动超过2取消点击状态
-				if ( d > 2 ) { // trigger invalid status
-					if (view == d_view) {
-						_inl_view(view)->trigger_highlightted( // emit style status event
-							**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER));
-					}
-					_mouse_h->set_click_down_view(nullptr);
-				}
-			}
-
-			float x = pos[0], y = pos[1];
-
-			View* old = _mouse_h->view();
-
-			if (old != view) {
-				_mouse_h->set_view(view);
-
-				if (old) {
-					auto evt = NewMouseEvent(old, x, y);
-					_inl_view(old)->bubble_trigger(UIEvent_MouseOut, **evt);
-
-					if (evt->is_default()) {
-						evt->return_value = RETURN_VALUE_MASK_ALL;
-
-						if (!view || !old->has_child(view)) {
-							_inl_view(old)->bubble_trigger(UIEvent_MouseLeave, **evt);
-						}
-
-						_inl_view(old)->trigger_highlightted( // emit style status event
-							**NewEvent<HighlightedEvent>(old, HIGHLIGHTED_NORMAL));
-					}
-				}
-				if (view) {
-					auto evt = NewMouseEvent(view, x, y);
-					_inl_view(view)->bubble_trigger(UIEvent_MouseOver, **evt);
-
-					if (evt->is_default()) {
-						evt->return_value = RETURN_VALUE_MASK_ALL;
-						
-						if (!old || !view->has_child(old)) {
-							_inl_view(view)->bubble_trigger(UIEvent_MouseEnter, **evt);
-						}
-
-						_inl_view(view)->trigger_highlightted( // emit style status event
-							**NewEvent<HighlightedEvent>(view,
-								view == d_view ? HIGHLIGHTED_DOWN: HIGHLIGHTED_HOVER)
-						);
-					}
-				}
-			}
-			else if (view) {
-				_inl_view(view)->bubble_trigger(UIEvent_MouseMove, **NewMouseEvent(view, x, y));
-			}
-		}
-
-		void onMousepress(KeyboardKeyName name, bool down, Vec2 pos) {
-			float x = pos[0], y = pos[1];
-			Handle<View> view(find_receive_event_view(pos));
-
-			if (_mouse_h->view() != *view) {
-				onMousemove(*view, pos);
-			}
-
-			if (view.is_null()) return;
-
-			auto evt = NewMouseEvent(*view, x, y, name);
-
-			Handle<View> raw_down_view = _mouse_h->click_down_view();
-
-			if (down) {
-				_mouse_h->set_click_down_view(*view);
-				_inl_view(*view)->bubble_trigger(UIEvent_MouseDown, **evt);
-			} else {
-				_mouse_h->set_click_down_view(nullptr);
-				_inl_view(*view)->bubble_trigger(UIEvent_MouseUp, **evt);
-			}
-
-			if (name != KEYCODE_MOUSE_LEFT || !evt->is_default()) return;
-
-			if (down) {
-				_inl_view(*view)->trigger_highlightted(
-					**NewEvent<HighlightedEvent>(*view, HIGHLIGHTED_DOWN)); // emit style status event
-			} else {
-				_inl_view(*view)->trigger_highlightted(
-					**NewEvent<HighlightedEvent>(*view, HIGHLIGHTED_HOVER)); // emit style status event
-
-				if (*view == *raw_down_view) {
-					_inl_view(*view)->bubble_trigger(UIEvent_Click,
-						**NewEvent<ClickEvent>(*view, x, y, ClickEvent::MOUSE));
-				}
-			}
-		}
-
-		void onMousewhell(KeyboardKeyName name, bool down, float x, float y) {
-			if (down) {
-				auto view = _mouse_h->view();
-				if (view) {
-					_inl_view(view)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(view, x, y, name));
-				}
-			}
-		}
-
-		// -------------------------- keyboard --------------------------
-
-		void onKeyboard_down() {
-
-			View* view = _host->focus_view();
-			if ( !view )
-				view = _host->root();
-
-			if ( view ) {
-				auto name = _keyboard->keyname();
-				View* focus_move = nullptr;
-
-				// TODO Keyboard navigation ...
-				// Panel* panel = nullptr;
-				// Direction direction = Direction::NONE;
-				// switch ( name ) {
-				// 	case KEYCODE_LEFT: direction = Direction::LEFT; break;  // left
-				// 	case KEYCODE_UP: direction = Direction::TOP; break;     // top
-				// 	case KEYCODE_RIGHT: direction = Direction::RIGHT; break; // right
-				// 	case KEYCODE_DOWN: direction = Direction::BOTTOM; break; // bottom
-				// 	default: break;
-				// }
-				// if ( direction != Direction::NONE ) {
-				// 	Button* button = view->as_button();
-				// 	if ( button ) {
-				// 		if ( (panel = button->panel()) && panel->enable_select() ) {
-				// 			focus_move = button->find_next_button(direction);
-				// 		}
-				// 	}
-				// }
-				
-				auto evt = NewEvent<KeyEvent>(view, name,
-					_keyboard->shift(),
-					_keyboard->ctrl(), _keyboard->alt(),
-					_keyboard->command(), _keyboard->caps_lock(),
-					_keyboard->repeat(), _keyboard->device(), _keyboard->source()
-				);
-				
-				evt->set_focus_move(focus_move);
-				
-				_inl_view(view)->bubble_trigger(UIEvent_KeyDown, **evt);
-				
-				if ( evt->is_default() ) {
-					
-					if ( name == KEYCODE_ENTER ) {
-						_inl_view(view)->bubble_trigger(UIEvent_KeyEnter, **evt);
-					} else if ( name == KEYCODE_VOLUME_UP ) {
-						_inl_app(_host)->set_volume_up();
-					} else if ( name == KEYCODE_VOLUME_DOWN ) {
-						_inl_app(_host)->set_volume_down();
-					}
-					
-					int keypress_code = _keyboard->keypress();
-					if ( keypress_code ) { // keypress
-						evt->set_keycode( keypress_code );
-						_inl_view(view)->bubble_trigger(UIEvent_KeyPress, **evt);
-					}
-
-					if ( name == KEYCODE_CENTER && _keyboard->repeat() == 0 ) {
-						// Rect rect = view->screen_rect();
-						auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
-						_inl_view(view)->trigger_highlightted(**evt); // emit click status event
-					}
-					
-					if ( evt->focus_move() ) {
-						evt->focus_move()->focus();
-					}
-					
-				} // if ( evt->is_default() ) {
-			} // if ( view )
-		}
-		
-		void onKeyboard_up() {
-
-			View* view = _host->focus_view();
-			if ( !view )
-				view = _host->root();
-
-			if ( view ) {
-				auto name = _keyboard->keyname();
-				auto evt = NewEvent<KeyEvent>(view, name,
-					_keyboard->shift(),
-					_keyboard->ctrl(), _keyboard->alt(),
-					_keyboard->command(), _keyboard->caps_lock(),
-					_keyboard->repeat(), _keyboard->device(), _keyboard->source()
-				);
-
-				_inl_view(view)->bubble_trigger(UIEvent_KeyUp, **evt);
-				
-				if ( evt->is_default() ) {
-					if ( name == KEYCODE_BACK ) {
-						Rect rect;// = view->screen_rect(); // TODO ...
-						auto evt = NewEvent<ClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
-																								rect.origin.y() + rect.size.y() / 2,
-																								ClickEvent::KEYBOARD);
-						_inl_view(view)->bubble_trigger(UIEvent_Back, **evt); // emit back
-						
-						if ( evt->is_default() ) {
-							// pending gui application (挂起应用)
-							_host->pending();
-						}
-					}
-					else if ( name == KEYCODE_CENTER ) {
-						auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER);
-						_inl_view(view)->trigger_highlightted(**evt); // emit style status event
-						
-						Rect rect;// = view->screen_rect(); // TODO ...
-						auto evt2 = NewEvent<ClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
-																								rect.origin.y() + rect.size.y() / 2,
-																								ClickEvent::KEYBOARD);
-						_inl_view(view)->bubble_trigger(UIEvent_Click, **evt2);
-					} //
-				}
-			}
-		}
-		
-	};
-
 	EventDispatch::EventDispatch(Application* app): _host(app), _text_input(nullptr) {
 		_keyboard = KeyboardAdapter::create();
+		_keyboard->_host = this;
 		_mouse_h = new MouseHandle();
 	}
 
 	EventDispatch::~EventDispatch() {
-		for (auto& i : _origin_touches) {
+		for (auto& i : _origin_touches)
 			delete i.value;
-		}
 		Release(_keyboard);
 		delete _mouse_h;
 	}
@@ -755,12 +310,220 @@ namespace noug {
 
 	typedef Callback<List<TouchPoint>> TouchCb;
 
+	// -------------------------- touch --------------------------
+
+	void EventDispatch::touchstart_erase(View* view, List<TouchPoint>& in) {
+		if ( view->receive() && in.length() ) {
+			Array<TouchPoint> change_touches;
+			
+			for ( auto i = in.begin(), e = in.end(); i != e; ) {
+
+				if ( view->overlap_test(Vec2(i->x, i->y)) ) {
+					TouchPoint& touch = *i;
+					touch.start_x = touch.x;
+					touch.start_y = touch.y;
+					touch.click_in = true;
+					touch.view = view;
+					
+					if ( !_origin_touches.has(view) ) {
+						_origin_touches[view] = new OriginTouche(view);
+					}
+					(*_origin_touches[view])[touch.id] = touch;
+					
+					change_touches.push( touch );
+					in.erase(i++);
+				} else {
+					i++;
+				}
+			}
+			
+			if ( change_touches.length() ) { // notice
+				auto evt = NewEvent<TouchEvent>(view, change_touches);
+				_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
+				
+				if ( !_origin_touches[view]->is_click_down() ) { // trigger click down
+					_origin_touches[view]->set_click_down(true);
+					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
+					_inl_view(view)->trigger_highlightted(**evt); // emit event
+				}
+			}
+		}
+	}
+
+	void EventDispatch::touchstart(View* view, List<TouchPoint>& in) {
+		
+		if ( view->visible() && in.length() ) {
+			if ( view->visible_region() /*|| view->_need_draw*/ ) {
+				
+				if ( view->last() /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {
+					List<TouchPoint> in2;
+					
+					for ( auto i = in.begin(), e = in.end(); i != e; ) {
+						if ( view->overlap_test(Vec2(i->x, i->y)) ) {
+							in2.push_back(*i);
+							in.erase(i++);
+						} else {
+							i++;
+						}
+					}
+					
+					View* v = view->last();
+					while( v && in2.length() ) {
+						touchstart(v, in2);
+						v = v->prev();
+					}
+					
+					touchstart_erase(view, in2);
+					
+					if ( in2.length() ) {
+						in.splice(in.end(), in2);
+					}
+				} else {
+					View* v = view->last();
+					while( v && in.length() ) {
+						touchstart(v, in);
+						v = v->prev();
+					}
+					touchstart_erase(view, in);
+				}
+				
+			}
+		}
+	}
+
+	void EventDispatch::touchmove(List<TouchPoint>& in) {
+		Dict<View*, Array<TouchPoint>> change_touches;
+		
+		for ( auto in_touch : in ) {
+			// TouchPoint& in_touch = i;
+			for ( auto touches : _origin_touches ) {
+				if ( touches.value->has(in_touch.id) ) {
+					TouchPoint& touch = (*touches.value)[in_touch.id];
+					touch.x = in_touch.x;
+					touch.y = in_touch.y;
+					touch.force = in_touch.force;
+					if ( !touches.value->is_click_invalid() ) {
+						touch.click_in = touch.view->overlap_test(Vec2(touch.x, touch.y));
+					}
+					change_touches[touch.view].push(touch);
+					break;
+				}
+			}
+		}
+		
+		for ( auto i : change_touches ) {
+			
+			Array<TouchPoint>& touchs = i.value;
+			View* view = touchs[0].view;
+			// emit event
+			_inl_view(view)->bubble_trigger(
+				UIEvent_TouchMove,
+				**NewEvent<TouchEvent>(view, i.value)
+			);
+			
+			OriginTouche* origin_touche = _origin_touches[view];
+			
+			if ( !origin_touche->is_click_invalid() ) { // no invalid
+				Vec2 position = OriginTouche::view_position(view);
+				Vec2 start_position = origin_touche->view_start_position();
+				
+				float d = sqrtf(powf((position.x() - start_position.x()), 2) +
+												powf((position.y() - start_position.y()), 2));
+				// 视图位置移动超过2取消点击状态
+				if ( d > 2 ) { // trigger invalid status
+					if ( origin_touche->is_click_down() ) { // trigger style up
+						// emit style status event
+						auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
+						_inl_view(view)->trigger_highlightted(**evt);
+					}
+					origin_touche->set_click_invalid();
+				}
+				else { // no invalid
+					
+					if ( origin_touche->is_click_down() ) { // May trigger click up
+						bool trigger_event = true;
+						for ( auto t : origin_touche->values() ) {
+							if (t.value.click_in) {
+								trigger_event = false; break;
+							}
+						}
+						if ( trigger_event ) {
+							origin_touche->set_click_down(false); // set up status
+							// emit style status event
+							auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
+							_inl_view(view)->trigger_highlightted(**evt);
+						}
+					} else { // May trigger click down
+						for ( int i = 0; i < touchs.length(); i++) {
+							auto item = touchs[i];
+							if ( item.click_in ) { // find range == true
+								origin_touche->set_click_down(true); // set down status
+								// emit style down event
+								auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
+								_inl_view(view)->trigger_highlightted(**evt);
+								break;
+							}
+						}
+					}
+				} // no invalid end
+			} // if end
+		} // each end
+	}
+	
+	void EventDispatch::touchend(List<TouchPoint>& in, const UIEventName& type) {
+		Dict<View*, Array<TouchPoint>> change_touches;
+		
+		for ( auto& in_touch : in ) {
+			for ( auto& item : _origin_touches ) {
+				if ( item.value->has(in_touch.id) ) {
+					TouchPoint& touch = (*item.value)[in_touch.id];
+					touch.x = in_touch.x;
+					touch.y = in_touch.y;
+					touch.force = in_touch.force;
+					change_touches[touch.view].push(touch);
+					item.value->del(touch.id); // del touch point
+					break;
+				}
+			}
+		}
+		
+		for ( auto& i : change_touches ) { // views
+			Array<TouchPoint>& touchs = i.value;
+			View* view = touchs[0].view;
+			_inl_view(view)->bubble_trigger(type, **NewEvent<TouchEvent>(view, touchs)); // emit touch end event
+			
+			OriginTouche* origin_touche = _origin_touches[view];
+			
+			if ( origin_touche->count() == 0 ) {
+				if ( origin_touche->is_click_down() ) { // trigger click
+					for ( auto& item : touchs ) {
+						// find range == true
+						if ( item.click_in ) {
+							// emit style up event
+							auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
+							_inl_view(view)->trigger_highlightted(**evt);
+							
+							if ( type == UIEvent_TouchEnd && view->layout_depth() ) {
+								auto evt = NewEvent<ClickEvent>(view, item.x, item.y, ClickEvent::TOUCH);
+								_inl_view(view)->bubble_trigger(UIEvent_Click, **evt); // emit click event
+							}
+							break;
+						}
+					}
+				}
+				delete origin_touche;
+				_origin_touches.erase(view); // del
+			}
+			//
+		}
+	}
+
 	void EventDispatch::onTouchstart(List<TouchPoint>&& list) {
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
 			Root* r = _host->root();
 			if (r) {
-				_inl(this)->onTouchstart(r, *evt.data);
+				touchstart(r, *evt.data);
 			}
 		}), std::move(list), _loop);
 	}
@@ -768,22 +531,181 @@ namespace noug {
 	void EventDispatch::onTouchmove(List<TouchPoint>&& list) {
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
-			_inl(this)->onTouchmove(*evt.data);
+			touchmove(*evt.data);
 		}), std::move(list), _loop);
 	}
 
 	void EventDispatch::onTouchend(List<TouchPoint>&& list) {
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
-			_inl(this)->onTouchend(*evt.data, UIEvent_TouchEnd);
+			touchend(*evt.data, UIEvent_TouchEnd);
 		}), std::move(list), _loop);
 	}
 
 	void EventDispatch::onTouchcancel(List<TouchPoint>&& list) {
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
-			_inl(this)->onTouchend(*evt.data, UIEvent_TouchCancel);
+			touchend(*evt.data, UIEvent_TouchCancel);
 		}), std::move(list), _loop);
+	}
+
+// -------------------------- mouse --------------------------
+
+	static View* find_receive_event_view(View* view, Vec2 pos) {
+		if ( view->visible() ) {
+			if ( view->visible_region()/* || view->_need_draw*/ ) {
+				View* v = view->last();
+
+				if (v /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {
+					if (view->overlap_test(pos)) {
+						while (v) {
+							auto r = find_receive_event_view(v, pos);
+							if (r) {
+								return r;
+							}
+							v = v->prev();
+						}
+						if (view->receive()) {
+							return view;
+						}
+					}
+				} else {
+					while (v) {
+						auto r = find_receive_event_view(v, pos);
+						if (r) {
+							return r;
+						}
+						v = v->prev();
+					}
+					if (view->receive() && view->overlap_test(pos)) {
+						return view;
+					}
+				}
+			}
+		}
+		return nullptr;
+	}
+
+	View* EventDispatch::find_receive_event_view(Vec2 pos) {
+		return _host->root() ? noug::find_receive_event_view(_host->root(), pos) : nullptr;
+	}
+
+	Sp<MouseEvent> EventDispatch::NewMouseEvent(View* view, float x, float y, uint32_t keycode) {
+		return NewEvent<MouseEvent>(view, x, y, keycode,
+			_keyboard->shift(),
+			_keyboard->ctrl(), _keyboard->alt(),
+			_keyboard->command(), _keyboard->caps_lock(), 0, 0, 0
+		);
+	}
+
+	void EventDispatch::mousemove(View* view, Vec2 pos) {
+		View* d_view = _mouse_h->click_down_view();
+
+		if ( d_view ) { // no invalid
+			Vec2 position = OriginTouche::view_position(d_view);
+			Vec2 start_position = _mouse_h->view_start_position();
+			float d = sqrtf(powf((position.x() - start_position.x()), 2) +
+											powf((position.y() - start_position.y()), 2));
+			// 视图位置移动超过2取消点击状态
+			if ( d > 2 ) { // trigger invalid status
+				if (view == d_view) {
+					_inl_view(view)->trigger_highlightted( // emit style status event
+						**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER));
+				}
+				_mouse_h->set_click_down_view(nullptr);
+			}
+		}
+
+		float x = pos[0], y = pos[1];
+
+		View* old = _mouse_h->view();
+
+		if (old != view) {
+			_mouse_h->set_view(view);
+
+			if (old) {
+				auto evt = NewMouseEvent(old, x, y);
+				_inl_view(old)->bubble_trigger(UIEvent_MouseOut, **evt);
+
+				if (evt->is_default()) {
+					evt->return_value = RETURN_VALUE_MASK_ALL;
+
+					if (!view || !old->has_child(view)) {
+						_inl_view(old)->bubble_trigger(UIEvent_MouseLeave, **evt);
+					}
+
+					_inl_view(old)->trigger_highlightted( // emit style status event
+						**NewEvent<HighlightedEvent>(old, HIGHLIGHTED_NORMAL));
+				}
+			}
+			if (view) {
+				auto evt = NewMouseEvent(view, x, y);
+				_inl_view(view)->bubble_trigger(UIEvent_MouseOver, **evt);
+
+				if (evt->is_default()) {
+					evt->return_value = RETURN_VALUE_MASK_ALL;
+					
+					if (!old || !view->has_child(old)) {
+						_inl_view(view)->bubble_trigger(UIEvent_MouseEnter, **evt);
+					}
+
+					_inl_view(view)->trigger_highlightted( // emit style status event
+						**NewEvent<HighlightedEvent>(view,
+							view == d_view ? HIGHLIGHTED_DOWN: HIGHLIGHTED_HOVER)
+					);
+				}
+			}
+		}
+		else if (view) {
+			_inl_view(view)->bubble_trigger(UIEvent_MouseMove, **NewMouseEvent(view, x, y));
+		}
+	}
+
+	void EventDispatch::mousepress(KeyboardKeyName name, bool down, Vec2 pos) {
+		float x = pos[0], y = pos[1];
+		Handle<View> view(find_receive_event_view(pos));
+
+		if (_mouse_h->view() != *view) {
+			mousemove(*view, pos);
+		}
+
+		if (view.is_null()) return;
+
+		auto evt = NewMouseEvent(*view, x, y, name);
+
+		Handle<View> raw_down_view = _mouse_h->click_down_view();
+
+		if (down) {
+			_mouse_h->set_click_down_view(*view);
+			_inl_view(*view)->bubble_trigger(UIEvent_MouseDown, **evt);
+		} else {
+			_mouse_h->set_click_down_view(nullptr);
+			_inl_view(*view)->bubble_trigger(UIEvent_MouseUp, **evt);
+		}
+
+		if (name != KEYCODE_MOUSE_LEFT || !evt->is_default()) return;
+
+		if (down) {
+			_inl_view(*view)->trigger_highlightted(
+				**NewEvent<HighlightedEvent>(*view, HIGHLIGHTED_DOWN)); // emit style status event
+		} else {
+			_inl_view(*view)->trigger_highlightted(
+				**NewEvent<HighlightedEvent>(*view, HIGHLIGHTED_HOVER)); // emit style status event
+
+			if (*view == *raw_down_view) {
+				_inl_view(*view)->bubble_trigger(UIEvent_Click,
+					**NewEvent<ClickEvent>(*view, x, y, ClickEvent::MOUSE));
+			}
+		}
+	}
+
+	void EventDispatch::mousewhell(KeyboardKeyName name, bool down, float x, float y) {
+		if (down) {
+			auto view = _mouse_h->view();
+			if (view) {
+				_inl_view(view)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(view, x, y, name));
+			}
+		}
 	}
 
 	void EventDispatch::onMousemove(float x, float y) {
@@ -794,8 +716,8 @@ namespace noug {
 			_mouse_h->set_position(pos);
 
 			if (_host->root()) {
-				Handle<View> v(_inl(this)->find_receive_event_view(pos));
-				_inl(this)->onMousemove(*v, pos);
+				Handle<View> v(find_receive_event_view(pos));
+				mousemove(*v, pos);
 			}
 		}), _loop);
 	}
@@ -807,45 +729,140 @@ namespace noug {
 				case KEYCODE_MOUSE_LEFT:
 				case KEYCODE_MOUSE_CENTER:
 				case KEYCODE_MOUSE_RIGHT:
-					_inl(this)->onMousepress(name, down, _mouse_h->position());
+					mousepress(name, down, _mouse_h->position());
 					break;
 				case KEYCODE_MOUSE_WHEEL_UP:
-					_inl(this)->onMousewhell(name, down, 0, -53); break;
+					mousewhell(name, down, 0, -53); break;
 				case KEYCODE_MOUSE_WHEEL_DOWN:
-					_inl(this)->onMousewhell(name, down, 0, 53); break;
+					mousewhell(name, down, 0, 53); break;
 				case KEYCODE_MOUSE_WHEEL_LEFT:
-					_inl(this)->onMousewhell(name, down, -53, 0); break;
+					mousewhell(name, down, -53, 0); break;
 				case KEYCODE_MOUSE_WHEEL_RIGHT:
-					_inl(this)->onMousewhell(name, down, 53, 0); break;
+					mousewhell(name, down, 53, 0); break;
 				default: break;
 			}
 		}), _loop);
 	}
 
-	void KeyboardAdapter::dispatch(uint32_t keycode, bool unicode,
-																	bool down, int repeat, int device, int source)
-	{
-		async_resolve(Cb([=](CbData& evt) {
-			UILock lock;
-			repeat_ = repeat; device_ = device;
-			source_ = source;
+	// -------------------------- keyboard --------------------------
 
-			bool is_clear = transformation(keycode, unicode, down);
+	void EventDispatch::onKeyboard_down() {
+
+		View* view = _host->focus_view();
+		if ( !view )
+			view = _host->root();
+
+		if ( view ) {
+			auto name = _keyboard->keyname();
+			View* focus_move = nullptr;
+
+			// TODO Keyboard navigation ...
+			// Panel* panel = nullptr;
+			// Direction direction = Direction::NONE;
+			// switch ( name ) {
+			// 	case KEYCODE_LEFT: direction = Direction::LEFT; break;  // left
+			// 	case KEYCODE_UP: direction = Direction::TOP; break;     // top
+			// 	case KEYCODE_RIGHT: direction = Direction::RIGHT; break; // right
+			// 	case KEYCODE_DOWN: direction = Direction::BOTTOM; break; // bottom
+			// 	default: break;
+			// }
+			// if ( direction != Direction::NONE ) {
+			// 	Button* button = view->as_button();
+			// 	if ( button ) {
+			// 		if ( (panel = button->panel()) && panel->enable_select() ) {
+			// 			focus_move = button->find_next_button(direction);
+			// 		}
+			// 	}
+			// }
 			
-			if ( down ) {
-				_inl(_inl_app(_host)->dispatch())->onKeyboard_down();
-			} else {
-				_inl(_inl_app(_host)->dispatch())->onKeyboard_up();
-			}
+			auto evt = NewEvent<KeyEvent>(view, name,
+				_keyboard->shift(),
+				_keyboard->ctrl(), _keyboard->alt(),
+				_keyboard->command(), _keyboard->caps_lock(),
+				_keyboard->repeat(), _keyboard->device(), _keyboard->source()
+			);
+			
+			evt->set_focus_move(focus_move);
+			
+			_inl_view(view)->bubble_trigger(UIEvent_KeyDown, **evt);
+			
+			if ( evt->is_default() ) {
+				
+				if ( name == KEYCODE_ENTER ) {
+					_inl_view(view)->bubble_trigger(UIEvent_KeyEnter, **evt);
+				} else if ( name == KEYCODE_VOLUME_UP ) {
+					_inl_app(_host)->set_volume_up();
+				} else if ( name == KEYCODE_VOLUME_DOWN ) {
+					_inl_app(_host)->set_volume_down();
+				}
+				
+				int keypress_code = _keyboard->keypress();
+				if ( keypress_code ) { // keypress
+					evt->set_keycode( keypress_code );
+					_inl_view(view)->bubble_trigger(UIEvent_KeyPress, **evt);
+				}
 
-			if ( is_clear ) {
-				shift_ = alt_ = false;
-				ctrl_ = command_ = false;
+				if ( name == KEYCODE_CENTER && _keyboard->repeat() == 0 ) {
+					// Rect rect = view->screen_rect();
+					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
+					_inl_view(view)->trigger_highlightted(**evt); // emit click status event
+				}
+				
+				if ( evt->focus_move() ) {
+					evt->focus_move()->focus();
+				}
+				
+			} // if ( evt->is_default() ) {
+		} // if ( view )
+	}
+	
+	void EventDispatch::onKeyboard_up() {
+
+		View* view = _host->focus_view();
+		if ( !view )
+			view = _host->root();
+
+		if ( view ) {
+			auto name = _keyboard->keyname();
+			auto evt = NewEvent<KeyEvent>(view, name,
+				_keyboard->shift(),
+				_keyboard->ctrl(), _keyboard->alt(),
+				_keyboard->command(), _keyboard->caps_lock(),
+				_keyboard->repeat(), _keyboard->device(), _keyboard->source()
+			);
+
+			_inl_view(view)->bubble_trigger(UIEvent_KeyUp, **evt);
+			
+			if ( evt->is_default() ) {
+				if ( name == KEYCODE_BACK ) {
+					Rect rect;// = view->screen_rect(); // TODO ...
+					auto evt = NewEvent<ClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
+																							rect.origin.y() + rect.size.y() / 2,
+																							ClickEvent::KEYBOARD);
+					_inl_view(view)->bubble_trigger(UIEvent_Back, **evt); // emit back
+					
+					if ( evt->is_default() ) {
+						// pending gui application (挂起应用)
+						_host->pending();
+					}
+				}
+				else if ( name == KEYCODE_CENTER ) {
+					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER);
+					_inl_view(view)->trigger_highlightted(**evt); // emit style status event
+					
+					Rect rect;// = view->screen_rect(); // TODO ...
+					auto evt2 = NewEvent<ClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
+																							rect.origin.y() + rect.size.y() / 2,
+																							ClickEvent::KEYBOARD);
+					_inl_view(view)->bubble_trigger(UIEvent_Click, **evt2);
+				} //
 			}
-		}), _loop);
+		}
 	}
 
-	void EventDispatch::onIme_delete(int count) {
+	// -------------------------- IME --------------------------
+
+	void EventDispatch::onImeDelete(int count) {
 		async_resolve(Cb([=](CbData& d) {
 			UILock lock;
 			if ( _text_input ) {
@@ -857,7 +874,7 @@ namespace noug {
 		}), _loop);
 	}
 
-	void EventDispatch::onIme_insert(cString& text) {
+	void EventDispatch::onImeInsert(cString& text) {
 		async_resolve(Cb([=](CbData& d) {
 			UILock lock;
 			if ( _text_input ) {
@@ -866,7 +883,7 @@ namespace noug {
 		}), _loop);
 	}
 
-	void EventDispatch::onIme_marked(cString& text) {
+	void EventDispatch::onImeMarked(cString& text) {
 		async_resolve(Cb([=](CbData& d) {
 			UILock lock;
 			if ( _text_input ) {
@@ -875,7 +892,7 @@ namespace noug {
 		}), _loop);
 	}
 
-	void EventDispatch::onIme_unmark(cString& text) {
+	void EventDispatch::onImeUnmark(cString& text) {
 		async_resolve(Cb([=](CbData& d) {
 			UILock lock;
 			if ( _text_input ) {
@@ -884,7 +901,7 @@ namespace noug {
 		}), _loop);
 	}
 
-	void EventDispatch::onIme_control(KeyboardKeyName name) {
+	void EventDispatch::onImeControl(KeyboardKeyName name) {
 		async_resolve(Cb([=](CbData& d) {
 			UILock lock;
 			if ( _text_input ) {
@@ -893,7 +910,7 @@ namespace noug {
 		}), _loop);
 	}
 
-	void EventDispatch::make_text_input(ITextInput* input) {
+	void EventDispatch::set_text_input(ITextInput* input) {
 		N_DEBUG("make_text_input");
 		if ( input != _text_input ) {
 			_text_input = input;

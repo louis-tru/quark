@@ -183,7 +183,7 @@ namespace noug {
 		// _keycodes[0] = KEYCODE_HELP;                 /* Help */
 	}
 
-	KeyboardAdapter* KeyboardAdapter::create() {
+	KeyboardAdapter* KeyboardAdapter::create(host) {
 		return new UnixKeyboardAdapter();
 	}
 

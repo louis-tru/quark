@@ -32,6 +32,7 @@
 #define __noug__event__
 
 #include "./util/event.h"
+#include "./util/handle.h"
 #include "./math.h"
 #include "./value.h"
 #include "./keyboard.h"
@@ -122,23 +123,18 @@ namespace noug {
 		HIGHLIGHTED_DOWN,
 	};
 
-	// event name
 	class N_EXPORT UIEventName {
 	public:
-		inline UIEventName(cString& n, uint32_t category, uint32_t flag)
-			: name_(n), code_((uint32_t)n.hash_code()), category_(category), flag_(flag) {}
-		inline uint32_t hash_code() const { return code_; }
-		inline bool equals(const UIEventName& o) const { return o.hash_code() == code_; }
-		inline String to_string() const { return name_; }
-		inline uint32_t category() const { return category_; }
-		inline uint32_t flag() const { return flag_; }
-		inline bool operator==(const UIEventName& type) const { return type.code_ == code_; }
-		inline bool operator!=(const UIEventName& type) const { return type.code_ != code_; }
-		inline bool operator>(const UIEventName& type) const { return code_ > type.code_; }
-		inline bool operator<(const UIEventName& type) const { return code_ < type.code_; }
-	private:
-		String  name_;
-		uint32_t code_, category_, flag_;
+		UIEventName(cString& name, uint32_t category, uint32_t flag);
+		N_DEFINE_PROP_READ(String, to_string);
+		N_DEFINE_PROP_READ(uint32_t, category);
+		N_DEFINE_PROP_READ(uint32_t, flag);
+		N_DEFINE_PROP_READ(uint32_t, hash_code);
+		inline bool equals(const UIEventName& v) const { return v.hash_code() == _hash_code; }
+		inline bool operator==(const UIEventName& v) const { return v._hash_code == _hash_code; }
+		inline bool operator!=(const UIEventName& v) const { return v._hash_code != _hash_code; }
+		inline bool operator>(const UIEventName& v) const { return _hash_code > v._hash_code; }
+		inline bool operator<(const UIEventName& v) const { return _hash_code < v._hash_code; }
 	};
 
 	// event names string => UIEventName
@@ -159,13 +155,11 @@ namespace noug {
 	public:
 		// inline UIEvent(cSendData& data): Event<View, Object, View>() { N_UNREACHABLE(); }
 		UIEvent(View* origin);
-		inline uint64_t timestamp() const { return time_; }
+		N_DEFINE_PROP_READ(uint64_t, timestamp);
 		inline bool is_default() const { return return_value & RETURN_VALUE_MASK_DEFAULT; }
 		inline bool is_bubble() const { return return_value & RETURN_VALUE_MASK_BUBBLE; }
 		inline void cancel_default() { return_value &= ~RETURN_VALUE_MASK_DEFAULT; }
 		inline void cancel_bubble() { return_value &= ~RETURN_VALUE_MASK_BUBBLE; }
-	private:
-		uint64_t time_;
 	};
 
 	/**
@@ -173,17 +167,12 @@ namespace noug {
 	*/
 	class N_EXPORT ActionEvent: public UIEvent {
 	public:
-		inline ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop)
-			: UIEvent(origin), action_(action), delay_(delay), frame_(frame), loop_(loop) {}
-		inline Action* action() const { return action_; }
-		inline uint64_t delay() const { return delay_; }
-		inline uint32_t frame() const { return frame_; }
-		inline uint32_t loop() const { return loop_; }
+		ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop);
+		N_DEFINE_PROP_READ(Action*, action);
+		N_DEFINE_PROP_READ(uint64_t, delay);
+		N_DEFINE_PROP_READ(uint32_t, frame);
+		N_DEFINE_PROP_READ(uint32_t, loop);
 		virtual void release();
-	private:
-		Action* action_;
-		uint64_t  delay_;
-		uint32_t  frame_, loop_;
 	};
 
 	/**
@@ -191,31 +180,20 @@ namespace noug {
 	*/
 	class N_EXPORT KeyEvent: public UIEvent {
 	public:
-		inline KeyEvent(View* origin, uint32_t keycode,
-										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-										uint32_t repeat, int device, int source)
-			: UIEvent(origin), keycode_(keycode)
-			, device_(device), source_(source), repeat_(repeat), shift_(shift)
-			, ctrl_(ctrl), alt_(alt), command_(command), caps_lock_(caps_lock), focus_move_(nullptr) {}
-		inline int  keycode() const { return keycode_; }
-		inline int  repeat() const { return repeat_; }
-		inline int  device() const { return device_; }
-		inline int  source() const { return source_; }
-		inline bool shift() const { return shift_; }
-		inline bool ctrl() const { return ctrl_; }
-		inline bool alt() const { return alt_; }
-		inline bool command() const { return command_; }
-		inline bool caps_lock() const { return caps_lock_; }
-		inline void set_keycode(int value) { keycode_ = value; }
-		inline View* focus_move() const { return focus_move_; }
-		inline void set_focus_move(View* view) { if (origin()) focus_move_ = view; }
+		KeyEvent(View* origin, uint32_t keycode,
+						bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
+						uint32_t repeat, int device, int source);
+		N_DEFINE_PROP(View*, focus_move);
+		N_DEFINE_PROP(uint32_t, keycode);
+		N_DEFINE_PROP_READ(uint32_t, repeat);
+		N_DEFINE_PROP_READ(uint32_t, device);
+		N_DEFINE_PROP_READ(uint32_t, source);
+		N_DEFINE_PROP_READ(uint32_t, shift);
+		N_DEFINE_PROP_READ(uint32_t, ctrl);
+		N_DEFINE_PROP_READ(uint32_t, alt);
+		N_DEFINE_PROP_READ(uint32_t, command);
+		N_DEFINE_PROP_READ(uint32_t, caps_lock);
 		virtual void release();
-	private:
-		int  keycode_;
-		int  device_, source_, repeat_;
-		bool shift_, ctrl_, alt_;
-		bool command_, caps_lock_;
-		View* focus_move_;
 	};
 
 	/**
@@ -223,17 +201,14 @@ namespace noug {
 	*/
 	class N_EXPORT ClickEvent: public UIEvent {
 	public:
-		enum Type { TOUCH = 1, KEYBOARD = 2, MOUSE = 3 };
-		inline ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1)
-			: UIEvent(origin), x_(x), y_(y), count_(count), type_(type) {}
-		inline float x() const { return x_; }
-		inline float y() const { return y_; }
-		inline uint32_t count() const { return count_; }
-		inline Type type() const { return type_; }
-	private:
-		float x_, y_;
-		uint32_t count_;
-		Type type_;
+		enum Type {
+			TOUCH = 1, KEYBOARD = 2, MOUSE = 3
+		};
+		ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1);
+		N_DEFINE_PROP_READ(float, x);
+		N_DEFINE_PROP_READ(float, y);
+		N_DEFINE_PROP_READ(uint32_t, count);
+		N_DEFINE_PROP_READ(Type, type);
 	};
 
 	/**
@@ -241,15 +216,11 @@ namespace noug {
 	*/
 	class N_EXPORT MouseEvent: public KeyEvent {
 	public:
-		inline MouseEvent(View* origin, float x, float y, uint32_t keycode,
+		MouseEvent(View* origin, float x, float y, uint32_t keycode,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-											uint32_t repeat = 0, int device = 0, int source = 0)
-			: KeyEvent(origin, keycode, shift, ctrl, alt,
-				command, caps_lock, repeat, device, source), x_(x), y_(y) {}
-		inline float x() const { return x_; }
-		inline float y() const { return y_; }
-	private:
-		float x_, y_;
+											uint32_t repeat = 0, int device = 0, int source = 0);
+		N_DEFINE_PROP_READ(float, x);
+		N_DEFINE_PROP_READ(float, y);
 	};
 
 	/**
@@ -257,11 +228,8 @@ namespace noug {
 	*/
 	class N_EXPORT HighlightedEvent: public UIEvent {
 	public:
-		inline HighlightedEvent(View* origin, HighlightedStatus status)
-			: UIEvent(origin), _status(status) {}
-		inline HighlightedStatus status() const { return _status; }
-	private:
-		HighlightedStatus _status;
+		HighlightedEvent(View* origin, HighlightedStatus status);
+		N_DEFINE_PROP_READ(HighlightedStatus, status);
 	};
 
 	/**
@@ -276,8 +244,7 @@ namespace noug {
 			bool     click_in;
 			View*    view;
 		};
-		inline TouchEvent(View* origin, Array<TouchPoint>& touches)
-			: UIEvent(origin), _change_touches(touches) {}
+		TouchEvent(View* origin, Array<TouchPoint>& touches);
 		inline Array<TouchPoint>& changed_touches() { return _change_touches; }
 	private:
 		Array<TouchPoint> _change_touches;
@@ -290,16 +257,10 @@ namespace noug {
 	*/
 	class N_EXPORT FocusMoveEvent: public UIEvent {
 	public:
-		inline FocusMoveEvent(View* origin, View* old_focus, View* new_focus)
-			: UIEvent(origin), _old_focus(old_focus), _new_focus(new_focus) {}
-		inline View* old_focus() { return _old_focus; }
-		inline View* new_focus() { return _new_focus; }
-		inline View* focus() { return _old_focus; }
-		inline View* focus_move() { return _new_focus; }
+		FocusMoveEvent(View* origin, View* focus, View* focus_move);
+		N_DEFINE_PROP_READ(View*, focus);
+		N_DEFINE_PROP_READ(View*, focus_move);
 		virtual void release();
-	private:
-		View* _old_focus;
-		View* _new_focus;
 	};
 
 	/**
@@ -334,36 +295,34 @@ namespace noug {
 		void onTouchcancel(List<TouchPoint>&& touches);
 		void onMousemove(float x, float y);
 		void onMousepress(KeyboardKeyName key, bool down);
-		void onIme_delete(int count);
-		void onIme_insert(cString& text);
-		void onIme_marked(cString& text);
-		void onIme_unmark(cString& text);
-		void onIme_control(KeyboardKeyName name);
+		// ime
+		void onImeDelete(int count);
+		void onImeInsert(cString& text);
+		void onImeMarked(cString& text);
+		void onImeUnmark(cString& text);
+		void onImeControl(KeyboardKeyName name);
+		// keyboard main loop call
+		void onKeyboard_down();
+		void onKeyboard_up();
 
-		/**
-		* @func make_text_input(input)
-		*/
-		void make_text_input(ITextInput* input);
-		
-		/**
-		* @func keyboard_adapter()
-		*/
-		inline KeyboardAdapter* keyboard_adapter() {
-			return _keyboard;
-		}
-		
+		N_DEFINE_PROP_READ(Application*, host);
+		N_DEFINE_PROP_READ(KeyboardAdapter*, keyboard);
+		N_DEFINE_PROP(ITextInput*, text_input);
+
 	private:
+		void touchstart_erase(View* view, List<TouchPoint>& in);
+		void touchstart(View* view, List<TouchPoint>& in);
+		void touchmove(List<TouchPoint>& in);
+		void touchend(List<TouchPoint>& in, const UIEventName& type);
+		void mousemove(View* view, Vec2 pos);
+		void mousepress(KeyboardKeyName name, bool down, Vec2 pos);
+		void mousewhell(KeyboardKeyName name, bool down, float x, float y);
+		View* find_receive_event_view(Vec2 pos);
+		Sp<MouseEvent> NewMouseEvent(View* view, float x, float y, uint32_t keycode = 0);
 		class OriginTouche;
 		class MouseHandle;
-		typedef Dict<View*, OriginTouche*> OriginTouches;
-		
-		Application*        _host;
-		OriginTouches       _origin_touches;
-		MouseHandle*        _mouse_h;
-		KeyboardAdapter*    _keyboard;
-		ITextInput*         _text_input;
-		
-		N_DEFINE_INLINE_CLASS(Inl);
+		Dict<View*, OriginTouche*> _origin_touches;
+		MouseHandle*  _mouse_h;
 	};
 
 }

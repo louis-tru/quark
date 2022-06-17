@@ -184,8 +184,8 @@ namespace noug {
 		_keycodes[AKEYCODE_HELP] = KEYCODE_HELP;
 	}
 
-	KeyboardAdapter* KeyboardAdapter::create() {
-		return new AndroidKeyboardAdapter();
+	KeyboardAdapter* KeyboardAdapter::create(EventDispatch* host) {
+		return new AndroidKeyboardAdapter(host);
 	}
 
 }

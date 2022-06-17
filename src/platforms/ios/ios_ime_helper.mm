@@ -270,23 +270,23 @@ using namespace noug;
 		if ( text.length == 1 && _marked_text.length == 0 ) {
 			uint16_t keycode = [text characterAtIndex:0];
 			if ( _keyboard_up_keycode == 0 ) {
-				_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 1, 0, -1, 0);
+				_app->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
 			} else {
 				N_ASSERT( keycode == _keyboard_up_keycode );
 			}
-			_app->dispatch()->onIme_insert([text UTF8String]);
-			_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 0, 0, -1, 0);
+			_app->dispatch()->onImeInsert([text UTF8String]);
+			_app->dispatch()->keyboard()->onDispatch(keycode, 1, 0, 0, -1, 0);
 			_keyboard_up_keycode = 0;
 		} else {
-			_app->dispatch()->onIme_insert([text UTF8String]);
+			_app->dispatch()->onImeInsert([text UTF8String]);
 		}
 	}
 
 	- (void)deleteBackward {
 		_keyboard_up_keycode = 0;
-		_app->dispatch()->keyboard_adapter()->dispatch(KEYCODE_BACK_SPACE, 1, 1, 0, -1, 0);
-		_app->dispatch()->onIme_delete(-1);
-		_app->dispatch()->keyboard_adapter()->dispatch(KEYCODE_BACK_SPACE, 1, 0, 0, -1, 0);
+		_app->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 1, 0, -1, 0);
+		_app->dispatch()->onImeDelete(-1);
+		_app->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 0, 0, -1, 0);
 	}
 
 	- (NSString*)textInRange:(UITextRange*)range {
@@ -324,10 +324,10 @@ using namespace noug;
 		
 		if ( !_clearing ) {
 			_marked_text = markedText;
-			_app->dispatch()->onIme_marked([_marked_text UTF8String]);
+			_app->dispatch()->onImeMarked([_marked_text UTF8String]);
 			
 			if ( _keyboard_up_keycode ) {
-				_app->dispatch()->keyboard_adapter()->dispatch(_keyboard_up_keycode, 1, 0, 0, -1, 0);
+				_app->dispatch()->keyboard()->onDispatch(_keyboard_up_keycode, 1, 0, 0, -1, 0);
 				_keyboard_up_keycode = 0;
 			}
 		}
@@ -335,7 +335,7 @@ using namespace noug;
 
 	- (void)unmarkText {
 		if ( !_clearing ) {
-			_app->dispatch()->onIme_unmark([_marked_text UTF8String]);
+			_app->dispatch()->onImeUnmark([_marked_text UTF8String]);
 		}
 		_marked_text = @"";
 	}
@@ -436,7 +436,7 @@ using namespace noug;
 				
 				if ( ![text isEqualToString:_marked_text] ) {
 					_keyboard_up_keycode = keycode;
-					_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 1, 0, -1, 0);
+					_app->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
 				}
 			}
 		}

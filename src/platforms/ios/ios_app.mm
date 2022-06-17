@@ -77,7 +77,7 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-		switch ( appDelegate.setting_orientation ) {
+		switch ( self.appSelf.setting_orientation ) {
 			case Orientation::ORIENTATION_PORTRAIT:
 				return UIInterfaceOrientationMaskPortrait;
 			case Orientation::ORIENTATION_LANDSCAPE:
@@ -92,8 +92,8 @@ static NSString* appDelegateName = @"";
 				return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
 			case Orientation::ORIENTATION_USER_LANDSCAPE:
 				return UIInterfaceOrientationMaskLandscape;
-			case Orientation::ORIENTATION_USER_LOCKED:
-				switch(appDelegate.current_orientation  ) {
+			case Orientation::ORIENTATION_USER_LOCKED: {
+				switch (self.appSelf.current_orientation) {
 					default:
 					case Orientation::ORIENTATION_INVALID:
 						return UIInterfaceOrientationMaskAll;
@@ -106,6 +106,7 @@ static NSString* appDelegateName = @"";
 					case Orientation::ORIENTATION_REVERSE_LANDSCAPE:
 						return UIInterfaceOrientationMaskLandscapeLeft;
 				}
+			}
 		}
 		return UIInterfaceOrientationMaskAll;
 	}
@@ -114,11 +115,11 @@ static NSString* appDelegateName = @"";
 				 withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 	{
 		[coordinator animateAlongsideTransition:^(id context) {
-			renderApple->resize(appDelegate.view.frame);
-			Orientation ori = self.appSelf.app->display()->orientation();
-			if (ori != appDelegate.current_orientation) {
-				appDelegate.current_orientation = ori;
-				appDelegate.app->loop()->post(Cb([](CbData& e) {
+			renderApple->resize(self.appSelf.view.frame);
+			Orientation orient = self.appSelf.app->display()->orientation();
+			if (orient != self.appSelf.current_orientation) {
+				self.appSelf.current_orientation = orient;
+				self.appSelf.app->loop()->post(Cb([](CbData& e) {
 					appDelegate.app->display()->N_Trigger(Orientation);
 				}));
 			}
@@ -136,51 +137,47 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (BOOL)prefersStatusBarHidden {
-		return !appDelegate.visible_status_bar;
+		return !self.appSelf.visible_status_bar;
 	}
 
-	-(List<TouchPoint>)toUITouchs:(NSSet<UITouch*>*)touches {
-		NSEnumerator* enumerator = [touches objectEnumerator];
-		List<TouchPoint> rv; // (uint(touches.count));
-		
+	-(List<TouchPoint>)touchsList:(NSSet<UITouch*>*)touches {
+		List<TouchPoint> rv;
+
 		Vec2 size = self.appSelf.app->display()->size();
-		
-		float scale_x = size.x() / appDelegate.view.frame.size.width;
-		float scale_y = size.y() / appDelegate.view.frame.size.height;
-		
-		for (UITouch* touch in enumerator) {
+
+		float scale_x = size.x() /  self.appSelf.view.frame.size.width;
+		float scale_y = size.y() /  self.appSelf.view.frame.size.height;
+
+		for (UITouch* touch in [touches objectEnumerator]) {
 			CGPoint point = [touch locationInView:touch.view];
 			CGFloat force = touch.force;
 			// CGFloat angle = touch.altitudeAngle;
 			// CGFloat max_force = touch.maximumPossibleForce;
 			rv.push_back({
-				uint32_t((size_t)touch % Uint32::limit_max),
-				0, 0,
-				float(point.x * scale_x),
-				float(point.y * scale_y),
-				float(force),
-				false,
-				nullptr,
+				uint32_t((size_t)touch % Uint32::limit_max), 0, 0,
+				float(point.x * scale_x), float(point.y * scale_y),
+				float(force), false, nullptr,
 			});
 		}
+
 		return rv;
 	}
 
 	-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		_inl_app(self.appSelf.app)->dispatch()->onTouchstart( [self toUITouchs:touches] );
+		_inl_app(self.appSelf.app)->dispatch()->onTouchstart( [self touchsList:touches] );
 	}
 
 	-(void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
 		// N_DEBUG("touchesMoved, count: %d", touches.count);
-		_inl_app(self.appSelf.app)->dispatch()->onTouchmove( [self toUITouchs:touches] );
+		_inl_app(self.appSelf.app)->dispatch()->onTouchmove( [self touchsList:touches] );
 	}
 
 	-(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event{
-		_inl_app(self.appSelf.app)->dispatch()->onTouchend( [self toUITouchs:touches] );
+		_inl_app(self.appSelf.app)->dispatch()->onTouchend( [self touchsList:touches] );
 	}
 
 	-(void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		_inl_app(self.appSelf.app)->dispatch()->onTouchcancel( [self toUITouchs:touches] );
+		_inl_app(self.appSelf.app)->dispatch()->onTouchcancel( [self touchsList:touches] );
 	}
 
 @end
@@ -359,12 +356,12 @@ static NSArray<NSString*>* split_ns_array(cString& str) {
 void Application::send_email(cString& recipient,
 															cString& subject,
 															cString& cc, cString& bcc, cString& body) {
-
 	id recipient_ = split_ns_array(recipient);
 	id subject_ = [NSString stringWithUTF8String:*subject];
 	id cc_ = split_ns_array(cc);
 	id bcc_ = split_ns_array(bcc);
 	id body_ = [NSString stringWithUTF8String:*body];
+
 	dispatch_async(dispatch_get_main_queue(), ^{
 		MFMailComposeViewController* mail = [MFMailComposeViewController new];
 		[mail setToRecipients:recipient_];
@@ -486,7 +483,7 @@ void Display::set_visible_status_bar(bool visible) {
 		//}
 		[appDelegate refresh_status];
 
-		// TODO 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 ?		
+		// TODO 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 ?
 		renderApple->resize(appDelegate.view.frame);
 
 		// TODO 绘图表面尺寸没有改变? 表示只是单纯状态栏改变? 这个改变也当成change通知给用户
@@ -563,13 +560,8 @@ void Display::set_orientation(Orientation orientation) {
 }
 
 extern "C" N_EXPORT int main(int argc, Char* argv[]) {
-	/**************************************************/
-	/**************************************************/
-	/*************** Start UI Application ************/
-	/**************************************************/
-	/**************************************************/
 	AppInl::runMain(argc, argv);
-	
+
 	if ( app() ) {
 		@autoreleasepool {
 			if ( [appDelegateName isEqual:@""] ) {
