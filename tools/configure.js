@@ -828,6 +828,7 @@ async function configure() {
 			android_abi: '',
 			xcode_version: 0,
 			llvm_version: 0,
+			gas_version: '0.0',
 			// depes config
 			openssl_fips: '',
 			openssl_no_asm: bi(os.match(/^(ios|android)$/) || arch.match(/arm/)),
@@ -1089,9 +1090,9 @@ async function configure() {
 		await install_depe(opts, variables);
 
 		try {
-			variables.xcode_version = syscall('xcodebuild -version').first.match(/\d+.\d+$/)[0];
+			variables.xcode_version = syscall('xcodebuild -version').first.match(/\d+.\d+/)[0];
 			variables.llvm_version = 
-				syscall('cc --version').first.match(/clang-(\d+\.\d+(\.\d+)?)/i)[1];
+				syscall('cc --version').first.match(/(\d+\.\d+)/i)[1];
 		} catch(e) {}
 
 		if ( arch == 'arm' ) {

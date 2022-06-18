@@ -85,7 +85,7 @@ namespace noug {
 	void TextLayout::onTextChange(uint32_t value) {
 		value ? mark(value): mark_none();
 	}
-	
+
 	bool TextLayout::solve_visible_region() {
 		bool ok = Box::solve_visible_region();
 		if (ok && _lines) {

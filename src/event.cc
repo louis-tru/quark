@@ -31,13 +31,21 @@
 #include "./event.h"
 #include "./app.inl"
 #include "./layout/root.h"
+#include "./layout/button.h"
 #include "./keyboard.h"
 #include "./pre_render.h"
 #include <math.h>
 
 namespace noug {
 
- // -------------------------- v i e w --------------------------
+	static inline HighlightedStatus HOVER_or_NORMAL(View* view) {
+		return view->is_focus() ? HIGHLIGHTED_HOVER : HIGHLIGHTED_NORMAL;
+	}
+
+	template<class T, typename... Args>
+	inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
+
+ // -------------------------- V i e w --------------------------
 
 	N_DEFINE_INLINE_MEMBERS(View, InlEvent) {
 	public:
@@ -90,20 +98,13 @@ namespace noug {
 	bool View::focus() {
 		if ( is_focus() ) return true;
 		
-		View* old = app()->focus_view();
-		Handle<FocusMoveEvent> evt;
+		auto app = pre_render()->host();
+		View* old = app->focus_view();
 
-		// TODO Keyboard navigation ...
-		// Panel* panel = reinterpret_cast<Button*>(this)->panel();
-		// if ( panel ) {
-		// 	evt = NewEvent<FocusMoveEvent>(panel, old, this);
-		// 	_inl_view(panel)->trigger(UIEvent_FocusMove, **evt );
-		// }
-		
-		if ( (*evt && !evt->is_default()) || !_inl_app(app())->set_focus_view(this) ) {
+		if ( !_inl_app(app)->set_focus_view(this) ) {
 			return false;
 		}
-		
+
 		if ( old ) {
 			_inl_view(old)->bubble_trigger(UIEvent_Blur, **NewEvent<UIEvent>(old));
 			_inl_view(old)->trigger_highlightted(
@@ -117,23 +118,7 @@ namespace noug {
 		return true;
 	}
 
-	/**
-	 * @func blur()
-	 */
-	bool View::blur() {
-		if ( is_focus() ) {
-			View* v = pre_render()->host()->root();
-			if ( v ) {
-				if ( v != this ) {
-					return v->focus();
-				}
-			}
-			return false;
-		}
-		return true;
-	}
-
-	// -------------------------- e v e n t --------------------------
+	// -------------------------- E v e n t --------------------------
 
 #define N_FUN(NAME, C, FLAG) \
 	const UIEventName UIEvent_##NAME(#NAME, UI_EVENT_CATEGORY_##C, FLAG);
@@ -205,23 +190,6 @@ namespace noug {
 	TouchEvent::TouchEvent(View* origin, Array<TouchPoint>& touches)
 		: UIEvent(origin), _change_touches(touches)
 	{}
-
-	FocusMoveEvent::FocusMoveEvent(View* origin, View* focus, View* focus_move)
-		: UIEvent(origin), _focus(focus), _focus_move(focus_move)
-	{}
-
-	void FocusMoveEvent::release()  {
-		_focus = nullptr;
-		_focus_move = nullptr;
-		UIEvent::release();
-	}
-
-	static inline HighlightedStatus HOVER_or_NORMAL(View* view) {
-		return view->is_focus() ? HIGHLIGHTED_HOVER : HIGHLIGHTED_NORMAL;
-	}
-
-	template<class T, typename... Args>
-	inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
 
 	/**
 	 * @class EventDispatch::OriginTouche
@@ -314,7 +282,7 @@ namespace noug {
 
 	typedef Callback<List<TouchPoint>> TouchCb;
 
-	// -------------------------- t o u c h --------------------------
+	// -------------------------- T o u c h --------------------------
 
 	void EventDispatch::touchstart_erase(View* view, List<TouchPoint>& in) {
 		if ( view->receive() && in.length() ) {
@@ -357,9 +325,9 @@ namespace noug {
 	void EventDispatch::touchstart(View* view, List<TouchPoint>& in) {
 		
 		if ( view->visible() && in.length() ) {
-			if ( view->visible_region() /*|| view->_need_draw*/ ) {
+			if ( view->visible_region() ) {
 				
-				if ( view->last() /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {
+				if ( view->last() && view->clip() ) {
 					List<TouchPoint> in2;
 					
 					for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -399,7 +367,6 @@ namespace noug {
 		Dict<View*, Array<TouchPoint>> change_touches;
 		
 		for ( auto in_touch : in ) {
-			// TouchPoint& in_touch = i;
 			for ( auto touches : _origin_touches ) {
 				if ( touches.value->has(in_touch.id) ) {
 					TouchPoint& touch = (*touches.value)[in_touch.id];
@@ -553,14 +520,14 @@ namespace noug {
 		}), std::move(list), _loop);
 	}
 
-// -------------------------- m o u s e --------------------------
+// -------------------------- M o u s e --------------------------
 
 	static View* find_receive_event_view(View* view, Vec2 pos) {
 		if ( view->visible() ) {
-			if ( view->visible_region()/* || view->_need_draw*/ ) {
+			if ( view->visible_region() ) {
 				View* v = view->last();
 
-				if (v /*&& view->as_box()*/ /*&& static_cast<Box*>(view)->clip()*/ ) {
+				if (v && view->clip() ) {
 					if (view->overlap_test(pos)) {
 						while (v) {
 							auto r = find_receive_event_view(v, pos);
@@ -758,27 +725,23 @@ namespace noug {
 
 		if ( view ) {
 			auto name = _keyboard->keyname();
-			View* focus_move = nullptr;
+			auto btn = view->as_button();
+			View *focus_move = nullptr;
 
-			// TODO Keyboard navigation ...
-			// Panel* panel = nullptr;
-			// Direction direction = Direction::NONE;
-			// switch ( name ) {
-			// 	case KEYCODE_LEFT: direction = Direction::LEFT; break;  // left
-			// 	case KEYCODE_UP: direction = Direction::TOP; break;     // top
-			// 	case KEYCODE_RIGHT: direction = Direction::RIGHT; break; // right
-			// 	case KEYCODE_DOWN: direction = Direction::BOTTOM; break; // bottom
-			// 	default: break;
-			// }
-			// if ( direction != Direction::NONE ) {
-			// 	Button* button = view->as_button();
-			// 	if ( button ) {
-			// 		if ( (panel = button->panel()) && panel->enable_select() ) {
-			// 			focus_move = button->find_next_button(direction);
-			// 		}
-			// 	}
-			// }
-			
+			if (btn) {
+				FindDirection dir;
+				switch ( name ) {
+					case KEYCODE_LEFT: dir = FindDirection::LEFT; break;  // left
+					case KEYCODE_UP: dir = FindDirection::TOP; break;     // top
+					case KEYCODE_RIGHT: dir = FindDirection::RIGHT; break; // right
+					case KEYCODE_DOWN: dir = FindDirection::BOTTOM; break; // bottom
+					default: dir = FindDirection::NONE; break;
+				}
+				if ( dir != FindDirection::NONE ) {
+					focus_move = btn->next_button(dir);
+				}
+			}
+
 			auto evt = NewEvent<KeyEvent>(view, name,
 				_keyboard->shift(),
 				_keyboard->ctrl(), _keyboard->alt(),
@@ -807,7 +770,6 @@ namespace noug {
 				}
 
 				if ( name == KEYCODE_CENTER && _keyboard->repeat() == 0 ) {
-					// Rect rect = view->screen_rect();
 					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
 					_inl_view(view)->trigger_highlightted(**evt); // emit click status event
 				}
@@ -839,10 +801,8 @@ namespace noug {
 			
 			if ( evt->is_default() ) {
 				if ( name == KEYCODE_BACK ) {
-					Rect rect;// = view->screen_rect(); // TODO ...
-					auto evt = NewEvent<ClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
-																							rect.origin.y() + rect.size.y() / 2,
-																							ClickEvent::KEYBOARD);
+					auto point = view->position();
+					auto evt = NewEvent<ClickEvent>(view, point.x(), point.y(), ClickEvent::KEYBOARD);
 					_inl_view(view)->bubble_trigger(UIEvent_Back, **evt); // emit back
 					
 					if ( evt->is_default() ) {
@@ -854,10 +814,8 @@ namespace noug {
 					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER);
 					_inl_view(view)->trigger_highlightted(**evt); // emit style status event
 					
-					Rect rect;// = view->screen_rect(); // TODO ...
-					auto evt2 = NewEvent<ClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
-																							rect.origin.y() + rect.size.y() / 2,
-																							ClickEvent::KEYBOARD);
+					auto point = view->position();
+					auto evt2 = NewEvent<ClickEvent>(view, point.x(), point.y(), ClickEvent::KEYBOARD);
 					_inl_view(view)->bubble_trigger(UIEvent_Click, **evt2);
 				} //
 			}
@@ -914,14 +872,15 @@ namespace noug {
 		}), _loop);
 	}
 
-	void EventDispatch::set_text_input(ITextInput* input) {
-		N_DEBUG("make_text_input");
+	void EventDispatch::set_text_input(TextInput* input) {
+		N_DEBUG("set_text_input");
 		if ( input != _text_input ) {
 			_text_input = input;
 			
 			if ( input ) {
 				_inl_app(_host)->ime_keyboard_open({
-					true, input->input_keyboard_type(),
+					true,
+					input->input_keyboard_type(),
 					input->input_keyboard_return_type(),
 					input->input_spot_location(),
 				});
@@ -931,7 +890,8 @@ namespace noug {
 		} else {
 			if ( input ) {
 				_inl_app(_host)->ime_keyboard_open({
-					false, input->input_keyboard_type(),
+					false,
+					input->input_keyboard_type(),
 					input->input_keyboard_return_type(),
 					input->input_spot_location(),
 				});

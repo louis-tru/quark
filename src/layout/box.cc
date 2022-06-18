@@ -915,6 +915,14 @@ namespace noug {
 		return true;
 	}
 
+	Vec2 Box::position() {
+		Vec2 point(
+			_client_size.x() * 0.5 - _origin_value.x(),
+			_client_size.y() * 0.5 - _origin_value.y()
+		);
+		return matrix() * point;
+	}
+
 	/**
 		* @func solve_rect_vertex(vertex)
 		*/
@@ -950,6 +958,14 @@ namespace noug {
 																				re.end.x() - re.origin.x() + clip.width);
 
 		return false;
+	}
+
+	bool Box::clip() {
+		return _is_clip;
+	}
+
+	bool Box::overlap_test(Vec2 point) {
+		return overlap_test_from_convex_quadrilateral(_vertex, point);
 	}
 
 }

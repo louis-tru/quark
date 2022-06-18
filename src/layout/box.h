@@ -87,6 +87,9 @@ namespace noug {
 		virtual void set_layout_offset_lazy(Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 		virtual bool solve_visible_region() override;
+		virtual bool clip() override;
+		virtual bool overlap_test(Vec2 point) override;
+		virtual Vec2 position() override;
 
 	protected:
 		/**

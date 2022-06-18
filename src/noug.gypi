@@ -60,6 +60,8 @@
 			'layout/video.h',
 			'layout/view.h',
 			'layout/view.cc',
+			'layout/button.h',
+			'layout/button.cc',
 			'render/font/pool.h',
 			'render/font/pool.cc',
 			'render/font/typeface.h',
@@ -107,6 +109,7 @@
 			'text_opts.h',
 			'text_blob.cc',
 			'text_blob.h',
+			'text_input.h',
 		],
 		'conditions': [
 			['use_gl==1 or use_skia==0', { # use opengl

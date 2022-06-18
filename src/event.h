@@ -35,7 +35,7 @@
 #include "./util/handle.h"
 #include "./math.h"
 #include "./value.h"
-#include "./keyboard.h"
+#include "./text_input.h"
 
 // all ui events / NAME, FLAG
 #define N_UI_Events(F) \
@@ -64,7 +64,6 @@
 	F(Highlighted, HIGHLIGHTED, UI_EVENT_FLAG_NONE) /* normal / hover / down */ \
 	F(ActionKeyframe, ACTION, UI_EVENT_FLAG_NONE) \
 	F(ActionLoop, ACTION, UI_EVENT_FLAG_NONE) \
-	F(FocusMove, FOCUS_MOVE, UI_EVENT_FLAG_NONE) /*Panel*/ \
 	F(Scroll, DEFAULT, UI_EVENT_FLAG_NONE) /*BasicScroll*/\
 	F(Change, DEFAULT, UI_EVENT_FLAG_NONE) /*Input*/ \
 	F(Load, DEFAULT, UI_EVENT_FLAG_NONE) /* Image */ \
@@ -85,6 +84,7 @@ namespace noug {
 	class Application;
 	class View;
 	class Action;
+	class TextInput;
 
 	// event category
 	enum {
@@ -253,34 +253,6 @@ namespace noug {
 	typedef TouchEvent::TouchPoint TouchPoint;
 
 	/**
-	* @class FocusMoveEvent
-	*/
-	class N_EXPORT FocusMoveEvent: public UIEvent {
-	public:
-		FocusMoveEvent(View* origin, View* focus, View* focus_move);
-		N_DEFINE_PROP_READ(View*, focus);
-		N_DEFINE_PROP_READ(View*, focus_move);
-		virtual void release();
-	};
-
-	/**
-	* @class ITextInput
-	*/
-	class N_EXPORT ITextInput: public Protocol {
-	public:
-		virtual void input_delete(int count) = 0;
-		virtual void input_insert(cString& text) = 0;
-		virtual void input_marked(cString& text) = 0;
-		virtual void input_unmark(cString& text) = 0;
-		virtual void input_control(KeyboardKeyName name) = 0;
-		virtual bool input_can_delete() = 0;
-		virtual bool input_can_backspace() = 0;
-		virtual Vec2 input_spot_location() = 0;
-		virtual KeyboardType input_keyboard_type() = 0;
-		virtual KeyboardReturnType input_keyboard_return_type() = 0;
-	};
-
-	/**
 	* @class EventDispatch
 	*/
 	class N_EXPORT EventDispatch: public Object {
@@ -307,7 +279,7 @@ namespace noug {
 
 		N_DEFINE_PROP_READ(Application*, host);
 		N_DEFINE_PROP_READ(KeyboardAdapter*, keyboard);
-		N_DEFINE_PROP(ITextInput*, text_input);
+		N_DEFINE_PROP(TextInput*, text_input);
 
 	private:
 		void touchstart_erase(View* view, List<TouchPoint>& in);

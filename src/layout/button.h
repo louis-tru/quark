@@ -28,35 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__input__
-#define __noug__layout__input__
+#ifndef __noug__layout__button__
+#define __noug__layout__button__
 
-#include "./box.h"
-#include "./label.h"
-#include "../text_input.h"
+#include "./text.h"
 
 namespace noug {
 
-	class N_EXPORT Input: public Box, public TextOptions, public TextInput {
-		N_Define_View(Input);
+	class N_EXPORT Button: public TextLayout {
+		N_Define_View(Button);
 	public:
-		N_DEFINE_PROP(TextAlign, text_align);
-		N_DEFINE_PROP(String, text_value);
-		// @override
+		Button();
 		virtual bool can_become_focus() override;
-		virtual TextInput* as_text_input() override;
-		virtual void input_delete(int count) override;
-		virtual void input_insert(cString& text) override;
-		virtual void input_marked(cString& text) override;
-		virtual void input_unmark(cString& text) override;
-		virtual void input_control(KeyboardKeyName name) override;
-		virtual bool input_can_delete() override;
-		virtual bool input_can_backspace() override;
-		virtual Vec2 input_spot_location() override;
-		virtual KeyboardType input_keyboard_type() override;
-		virtual KeyboardReturnType input_keyboard_return_type() override;
-	protected:
-		virtual void onTextChange(uint32_t mark) override;
+		virtual Button* as_button() override;
+		virtual Button* next_button(FindDirection dir);
 	};
 
 }

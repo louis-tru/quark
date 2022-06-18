@@ -35,8 +35,6 @@
 #include "./layout/root.h"
 #include "./display.h"
 #include "./app.inl"
-// #include "./action/action.h"
-// #include "./css/css.h"
 #include "./render/font/pool.h"
 #include "./render/source.h"
 #include "./pre_render.h"
@@ -177,12 +175,11 @@ namespace noug {
 		if ( _focus_view != view ) {
 			if ( view->layout_depth() && view->can_become_focus() ) {
 				if ( _focus_view ) {
-					_focus_view->release();
+					_focus_view->release(); // unref
 				}
 				_focus_view = view;
 				_focus_view->retain(); // strong ref
-				// TODO ...
-				// _dispatch->make_text_input(view->as_itext_input());
+				_dispatch->set_text_input(view->as_text_input());
 			} else {
 				return false;
 			}

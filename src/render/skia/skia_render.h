@@ -65,6 +65,7 @@ namespace noug {
 		virtual void visitVideo(Video* video);
 		virtual void visitScroll(Scroll* scroll);
 		virtual void visitInput(Input* input);
+		virtual void visitButton(Button* btn);
 		virtual void visitTextLayout(TextLayout* text);
 		virtual void visitLabel(Label* label);
 		virtual void visitRoot(Root* root);

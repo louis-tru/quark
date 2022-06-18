@@ -45,6 +45,7 @@ namespace noug {
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual Mat  layout_matrix() override;
 		virtual void set_parent(View* parent) override;
+		virtual bool can_become_focus() override;
 	};
 
 }

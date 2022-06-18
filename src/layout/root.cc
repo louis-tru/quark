@@ -135,4 +135,8 @@ namespace noug {
 		N_UNREACHABLE();
 	}
 
+	bool Root::can_become_focus() {
+		return true;
+	}
+
 }

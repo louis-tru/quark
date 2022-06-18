@@ -47,6 +47,7 @@
 #include "../../layout/text.h"
 #include "../../layout/root.h"
 #include "../../layout/flow.h"
+#include "../../layout/button.h"
 
 #define N_ENABLE_DRAW 1
 #define N_ENABLE_CLIP 1
@@ -134,6 +135,10 @@ namespace noug {
 		solveBox(input, [](SkiaRender* render, Box* box) {
 			// TODO ...
 		});
+	}
+
+	void SkiaRender::visitButton(Button* btn) {
+		visitTextLayout(btn);
 	}
 
 	void SkiaRender::visitTextLayout(TextLayout* text) {

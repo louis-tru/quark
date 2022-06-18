@@ -28,35 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__input__
-#define __noug__layout__input__
+#ifndef __noug__text_input__
+#define __noug__text_input__
 
-#include "./box.h"
-#include "./label.h"
-#include "../text_input.h"
+#include "./keyboard.h"
+#include "./value.h"
 
 namespace noug {
 
-	class N_EXPORT Input: public Box, public TextOptions, public TextInput {
-		N_Define_View(Input);
+	/**
+	* @class TextInput protocol
+	*/
+	class N_EXPORT TextInput: public Protocol {
 	public:
-		N_DEFINE_PROP(TextAlign, text_align);
-		N_DEFINE_PROP(String, text_value);
-		// @override
-		virtual bool can_become_focus() override;
-		virtual TextInput* as_text_input() override;
-		virtual void input_delete(int count) override;
-		virtual void input_insert(cString& text) override;
-		virtual void input_marked(cString& text) override;
-		virtual void input_unmark(cString& text) override;
-		virtual void input_control(KeyboardKeyName name) override;
-		virtual bool input_can_delete() override;
-		virtual bool input_can_backspace() override;
-		virtual Vec2 input_spot_location() override;
-		virtual KeyboardType input_keyboard_type() override;
-		virtual KeyboardReturnType input_keyboard_return_type() override;
-	protected:
-		virtual void onTextChange(uint32_t mark) override;
+		virtual void input_delete(int count) = 0;
+		virtual void input_insert(cString& text) = 0;
+		virtual void input_marked(cString& text) = 0;
+		virtual void input_unmark(cString& text) = 0;
+		virtual void input_control(KeyboardKeyName name) = 0;
+		virtual bool input_can_delete() = 0;
+		virtual bool input_can_backspace() = 0;
+		virtual Vec2 input_spot_location() = 0;
+		virtual KeyboardType input_keyboard_type() = 0;
+		virtual KeyboardReturnType input_keyboard_return_type() = 0;
 	};
 
 }

@@ -319,6 +319,10 @@ namespace noug {
 		CONTINUE,
 	};
 
+	enum class FindDirection: uint8_t {
+		NONE, LEFT, TOP, RIGHT, BOTTOM
+	};
+
 	/**
 	* @enum BorderStyle
 	*/

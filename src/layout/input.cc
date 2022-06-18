@@ -32,4 +32,55 @@
 
 namespace noug {
 
+	bool Input::can_become_focus() {
+		return true;
+	}
+
+	TextInput* Input::as_text_input() {
+		return this;
+	}
+
+	void Input::input_delete(int count) {
+		// TODO ..
+	}
+
+	void Input::input_insert(cString& text) {
+		// TODO ..
+	}
+
+	void Input::input_marked(cString& text) {
+		// TODO ..
+	}
+
+	void Input::input_unmark(cString& text) {
+		// TODO ..
+	}
+
+	void Input::input_control(KeyboardKeyName name) {
+		// TODO ..
+	}
+
+	bool Input::input_can_delete() {
+		// TODO ..
+	}
+
+	bool Input::input_can_backspace() {
+		// TODO ..
+	}
+
+	Vec2 Input::input_spot_location() {
+		// TODO ..
+	}
+
+	KeyboardType Input::input_keyboard_type() {
+		// TODO ..
+	}
+
+	KeyboardReturnType Input::input_keyboard_return_type() {
+		// TODO ..
+	}
+
+	void Input::onTextChange(uint32_t value) {
+		value ? mark(value): mark_none();
+	}
 }

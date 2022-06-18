@@ -38,7 +38,7 @@ namespace noug {
 
 	#define N_Each_View(F) \
 		F(View)  F(Box) \
-		F(Image) F(Video) F(Scroll) \
+		F(Image) F(Video) F(Scroll) F(Button) \
 		F(Label) F(Input) F(Root) F(TextLayout) F(FlexLayout) F(FlowLayout)
 
 	#define N_Define_View(N) \
@@ -48,6 +48,7 @@ namespace noug {
 
 	class Action;
 	class SkiaRender;
+	class TextInput;
 
 	N_Define_Visitor(View, N_Each_View);
 
@@ -142,23 +143,7 @@ namespace noug {
 			* @func blur()
 			*/
 		bool blur();
-		
-		/**
-			*
-			* get is keyboard focus 
-			*
-			* @func is_focus()
-			*/
-		bool is_focus() const;
 
-		/**
-			*
-			* setting focus value
-			*
-			* @func set_is_focus(value)
-			*/
-		void set_is_focus(bool value);
-		
 		/**
 			*
 			* Can it be the focus
@@ -166,6 +151,14 @@ namespace noug {
 			* @func can_become_focus()
 			*/
 		virtual bool can_become_focus();
+
+		/**
+			*
+			* is clip render the view
+			* 
+			* @func clip()
+			*/
+		virtual bool clip();
 
 		/**
 		 * @overwrite
@@ -176,158 +169,6 @@ namespace noug {
 		 * @func has_child(child)
 		 */
 		bool has_child(View* child);
-		
-		/**
-			* Returns matrix displacement for the view
-			*
-			* @func translate
-			*/
-		Vec2 translate() const;
-
-		/**
-			* Returns the Matrix scaling
-			*
-			* @func scale()
-			*/
-		Vec2 scale() const;
-
-		/**
-			* Returns the Matrix skew
-			*
-			* @func skew()
-			*/
-		Vec2 skew() const;
-
-		/**
-			* Returns the z-axis rotation of the matrix
-			*
-			* @func rotate()
-			*/
-		float rotate() const;
-
-		/**
-			* 
-			* Returns x-axis matrix displacement for the view
-			*
-			* @func x()
-			*/
-		inline float x() const { return translate()[0]; }
-
-		/**
-			* 
-			* Returns y-axis matrix displacement for the view
-			*
-			* @func y()
-			*/
-		inline float y() const { return translate()[1]; }
-
-		/**
-			* 
-			* Returns x-axis matrix scaling for the view
-			*
-			* @func scale_x()
-			*/
-		inline float scale_x() const { return scale()[0]; }
-
-		/**
-			* 
-			* Returns y-axis matrix scaling for the view
-			*
-			* @func scale_y()
-			*/
-		inline float scale_y() const { return scale()[1]; }
-
-		/**
-			* 
-			* Returns x-axis matrix skew for the view
-			*
-			* @func skew_x()
-			*/
-		inline float skew_x() const { return skew()[0]; }
-
-		/**
-			* 
-			* Returns y-axis matrix skew for the view
-			*
-			* @func skew_y()
-			*/
-		inline float skew_y() const { return skew()[1]; }
-
-		/**
-			* Set the matrix `translate` properties of the view object
-			*
-			* @func set_translate(val)
-			*/
-		void set_translate(Vec2 val);
-
-		/**
-			* Set the matrix `scale` properties of the view object
-			*
-			* @func set_scale(val)
-			*/
-		void set_scale(Vec2 val);
-
-		/**
-			* Set the matrix `skew` properties of the view object
-			*
-			* @func set_skew(val)
-			*/
-		void set_skew(Vec2 val);
-
-		/**
-			* Set the z-axis  matrix `rotate` properties the view object
-			*
-			* @func set_rotate(val)
-			*/
-		void set_rotate(float val);
-
-		/**
-			* 
-			* Setting x-axis matrix displacement for the view
-			*
-			* @func set_x(val)
-			*/
-		void set_x(float val);
-
-		/**
-			* 
-			* Setting y-axis matrix displacement for the view
-			*
-			* @func set_y(val)
-			*/
-		void set_y(float val);
-
-		/**
-			* 
-			* Returns x-axis matrix scaling for the view
-			*
-			* @func set_scale_x(val)
-			*/
-		void set_scale_x(float val);
-
-		/**
-			* 
-			* Returns y-axis matrix scaling for the view
-			*
-			* @func set_scale_y(val)
-			*/
-		void set_scale_y(float val);
-
-		/**
-			* 
-			* Returns x-axis matrix skew for the view
-			*
-			* @func set_skew_x(val)
-			*/
-		void set_skew_x(float val);
-
-		/**
-			* 
-			* Returns y-axis matrix skew for the view
-			*
-			* @func set_skew_y(val)
-			*/
-		void set_skew_y(float val);
 
 		/**
 			* 
@@ -357,6 +198,14 @@ namespace noug {
 		void solve_recursive_marks(uint32_t mark);
 
 		/**
+		 * 
+		 * returns view position in the screen
+		 * 
+		 * @func screen_position()
+		*/
+		virtual Vec2 position();
+
+		/**
 			* @func solve_visible_region()
 			*/
 		virtual bool solve_visible_region();
@@ -370,6 +219,22 @@ namespace noug {
 		 * @func accept() 定义访问接收器
 		 */
 		virtual void accept(ViewVisitor *visitor);
+
+		/**
+		 * 
+		 * Returns text input object
+		 * 
+		 * @func as_text_input()
+		*/
+		virtual TextInput* as_text_input();
+
+		/**
+		 * 
+		 * Returns button object
+		 * 
+		 * @func as_buttn()
+		*/
+		virtual Button* as_button();
 
 		/**
 		* @func overlap_test_from_convex_quadrilateral
@@ -408,15 +273,18 @@ namespace noug {
 		Transform *_transform; // 矩阵变换
 		Mat        _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 
-	private:
-		void remove_all_child_(); // remove all child views
-		void clear(); // Cleaning up associated view information
-		void clear_layout_depth(); //  clear layout depth
-		void set_layout_depth_(uint32_t depth); // settings depth
-		// get transform instance
-		Transform* transform_instance();
-
 	public:
+		N_DEFINE_ACCESSOR(Vec2, translate); // matrix displacement for the view
+		N_DEFINE_ACCESSOR(Vec2, scale); // Matrix scaling
+		N_DEFINE_ACCESSOR(Vec2, skew); // Matrix skew
+		N_DEFINE_ACCESSOR(float, rotate); // z-axis rotation of the matrix
+		N_DEFINE_ACCESSOR(float, x); // x-axis matrix displacement for the view
+		N_DEFINE_ACCESSOR(float, y); // y-axis matrix displacement for the view
+		N_DEFINE_ACCESSOR(float, scale_x); // x-axis matrix scaling for the view
+		N_DEFINE_ACCESSOR(float, scale_y); // y-axis matrix scaling for the view
+		N_DEFINE_ACCESSOR(float, skew_x); // x-axis matrix skew for the view
+		N_DEFINE_ACCESSOR(float, skew_y); // y-axis matrix skew for the view
+		N_DEFINE_ACCESSOR(bool,  is_focus); // keyboard focus view
 		// the objects that automatically adjust view properties
 		N_DEFINE_PROP(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
 		N_DEFINE_PROP_READ(View*, parent);
@@ -436,6 +304,14 @@ namespace noug {
 
 		N_DEFINE_INLINE_CLASS(Inl);
 		N_DEFINE_INLINE_CLASS(InlEvent);
+
+	private:
+		void remove_all_child_(); // remove all child views
+		void clear(); // Cleaning up associated view information
+		void clear_layout_depth(); //  clear layout depth
+		void set_layout_depth_(uint32_t depth); // settings depth
+		// get transform instance
+		Transform* transform_obj();
 
 		// friend class
 		friend class SkiaRender;

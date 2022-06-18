@@ -31,6 +31,8 @@
 #include "../app.inl"
 #include "./view.h"
 #include "../text_lines.h"
+#include "../pre_render.h"
+#include "./root.h"
 #include <math.h>
 
 namespace noug {
@@ -130,7 +132,7 @@ namespace noug {
 		* 
 		* @func transform()
 		*/
-	View::Transform* View::transform_instance() {
+	View::Transform* View::transform_obj() {
 		if (!_transform) {
 			_transform = new Transform();
 			_transform->scale = Vec2(1);
@@ -417,7 +419,7 @@ namespace noug {
 		*/
 	void View::set_translate(Vec2 val) {
 		if (translate() != val) {
-			transform_instance()->translate = val;
+			transform_obj()->translate = val;
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -429,7 +431,7 @@ namespace noug {
 		*/
 	void View::set_scale(Vec2 val) {
 		if (scale() != val) {
-			transform_instance()->scale = val;
+			transform_obj()->scale = val;
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -441,7 +443,7 @@ namespace noug {
 		*/
 	void View::set_skew(Vec2 val) {
 		if (skew() != val) {
-			transform_instance()->skew = val;
+			transform_obj()->skew = val;
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -453,10 +455,58 @@ namespace noug {
 		*/
 	void View::set_rotate(float val) {
 		if (rotate() != val) {
-			transform_instance()->rotate = val;
+			transform_obj()->rotate = val;
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
+
+	/**
+		* 
+		* Returns x-axis matrix displacement for the view
+		*
+		* @func x()
+		*/
+	float View::x() const { return translate()[0]; }
+
+	/**
+		* 
+		* Returns y-axis matrix displacement for the view
+		*
+		* @func y()
+		*/
+	float View::y() const { return translate()[1]; }
+
+	/**
+		* 
+		* Returns x-axis matrix scaling for the view
+		*
+		* @func scale_x()
+		*/
+	float View::scale_x() const { return scale()[0]; }
+
+	/**
+		* 
+		* Returns y-axis matrix scaling for the view
+		*
+		* @func scale_y()
+		*/
+	float View::scale_y() const { return scale()[1]; }
+
+	/**
+		* 
+		* Returns x-axis matrix skew for the view
+		*
+		* @func skew_x()
+		*/
+	float View::skew_x() const { return skew()[0]; }
+
+	/**
+		* 
+		* Returns y-axis matrix skew for the view
+		*
+		* @func skew_y()
+		*/
+	float View::skew_y() const { return skew()[1]; }
 
 	/**
 		* 
@@ -466,7 +516,7 @@ namespace noug {
 		*/
 	void View::set_x(float val) {
 		if (translate().x() != val) {
-			transform_instance()->translate.set_x(val);
+			transform_obj()->translate.set_x(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -479,7 +529,7 @@ namespace noug {
 		*/
 	void View::set_y(float val) {
 		if (translate().y() != val) {
-			transform_instance()->translate.set_y(val);
+			transform_obj()->translate.set_y(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -492,7 +542,7 @@ namespace noug {
 		*/
 	void View::set_scale_x(float val) {
 		if (scale().x() != val) {
-			transform_instance()->scale.set_x(val);
+			transform_obj()->scale.set_x(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -505,7 +555,7 @@ namespace noug {
 		*/
 	void View::set_scale_y(float val) {
 		if (scale().y() != val) {
-			transform_instance()->scale.set_y(val);
+			transform_obj()->scale.set_y(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -518,7 +568,7 @@ namespace noug {
 		*/
 	void View::set_skew_x(float val) {
 		if (skew().x() != val) {
-			transform_instance()->skew.set_x(val);
+			transform_obj()->skew.set_x(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -531,7 +581,7 @@ namespace noug {
 		*/
 	void View::set_skew_y(float val) {
 		if (skew().y() != val) {
-			transform_instance()->skew.set_y(val);
+			transform_obj()->skew.set_y(val);
 			mark_none(kRecursive_Transform); // mark transform
 		}
 	}
@@ -633,6 +683,10 @@ namespace noug {
 		}
 	}
 
+	Vec2 View::position() {
+		return Vec2(_matrix[2], _matrix[5]);
+	}
+
 	bool View::solve_visible_region() {
 		return true;
 	}
@@ -648,6 +702,13 @@ namespace noug {
 		visitor->visitView(this);
 	}
 
+	TextInput* View::as_text_input() {
+		return nullptr;
+	}
+
+	Button* View::as_button() {
+		return nullptr;
+	}
 
 	/**
 	* @func overlap_test_from_convex_quadrilateral
@@ -763,8 +824,7 @@ namespace noug {
 	 * @func is_focus()
 	 */
 	bool View::is_focus() const {
-		auto app_ = _inl_app(app());
-		return app_ && this == app_->focus_view();
+		return this == pre_render()->host()->focus_view();
 	}
 
 	/**
@@ -774,6 +834,30 @@ namespace noug {
 	 * @func can_become_focus()
 	 */
 	bool View::can_become_focus() {
+		return false;
+	}
+
+	/**
+	 * @func blur()
+	 */
+	bool View::blur() {
+		if ( is_focus() ) {
+			auto root = pre_render()->host()->root();
+			if ( root && root != this ) {
+				return root->focus();
+			}
+			return false;
+		}
+		return true;
+	}
+
+	/**
+		*
+		* is clip render the view
+		* 
+		* @func clip()
+		*/
+	bool View::clip() {
 		return false;
 	}
 
