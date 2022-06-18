@@ -29,8 +29,85 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./input.h"
+#include "../app.h"
+#include "../pre_render.h"
 
 namespace noug {
+
+	void Input::set_is_multiline(bool val) {
+		if (_is_multiline != val) {
+			_is_multiline = val;
+			mark(kLayout_Typesetting);
+		}
+	}
+
+	void Input::set_text_align(TextAlign val) {
+		if(_text_align != val) {
+			_text_align = val;
+			mark(kLayout_Typesetting);
+		}
+	}
+
+	void Input::set_text_value(String val) {
+		if (_text_value != val) {
+			_text_value = std::move(val);
+			mark(kLayout_Typesetting);
+		}
+	}
+
+	bool Input::layout_reverse(uint32_t mark) {
+		if (mark & kLayout_Typesetting) {
+			if (!is_ready_layout_typesetting()) return true; // continue iteration
+
+			Vec2 size = content_size();
+			_lines = new TextLines(this, _text_align, size, layout_wrap_x());
+			TextConfig cfg(this, pre_render()->host()->default_text_options());
+
+			// TODO ...
+
+			// do {
+			// 	v->layout_text(*_lines, &cfg);
+			// 	v = v->next();
+			// } while(v);
+
+			_lines->finish();
+
+			Vec2 new_size(
+				layout_wrap_x() ? _lines->max_width(): size.x(),
+				layout_wrap_y() ? _lines->max_height(): size.y()
+			);
+
+			if (new_size != size) {
+				set_content_size(new_size);
+				parent()->onChildLayoutChange(this, kChild_Layout_Size);
+			}
+
+			unmark(kLayout_Typesetting);
+
+			// check transform_origin change
+			solve_origin_value();
+		}
+
+		return false;
+	}
+
+	bool Input::solve_visible_region() {
+		return true;
+	}
+
+	void Input::set_visible(bool val) {
+		View::set_visible(val);
+		_text_flags = 0xffffffff;
+	}
+
+	void Input::set_parent(View *val) {
+		View::set_parent(val);
+		_text_flags = 0xffffffff;
+	}
+
+	bool Input::is_allow_append_child() {
+		return false;
+	}
 
 	bool Input::can_become_focus() {
 		return true;

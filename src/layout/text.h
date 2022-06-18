@@ -32,7 +32,8 @@
 #define __noug__layout__text__
 
 #include "./box.h"
-#include "./label.h"
+#include "../text_opts.h"
+#include "../text_lines.h"
 
 namespace noug {
 

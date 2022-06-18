@@ -217,6 +217,10 @@ namespace noug {
 		* @func prepend(child)
 		*/
 	void View::prepend(View* child) {
+		if (!is_allow_append_child()) {
+			N_WARN("Not can allow prepend child view");
+			return;
+		}
 		if (this == child->_parent) {
 			child->clear();
 		} else {
@@ -242,6 +246,10 @@ namespace noug {
 		* @func append(child)
 		*/
 	void View::append(View* child) {
+		if (!is_allow_append_child()) {
+			N_WARN("Not can allow append child view");
+			return;
+		}
 		if (this == child->_parent) {
 			child->clear();
 		} else {
@@ -258,6 +266,10 @@ namespace noug {
 			_first = child;
 			_last = child;
 		}
+	}
+
+	bool View::is_allow_append_child() {
+		return true;
 	}
 
 	View* View::append_to(View* parent) {

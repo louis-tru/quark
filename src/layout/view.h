@@ -87,7 +87,7 @@ namespace noug {
 			* 
 			* @func prepend(child)
 			*/
-		virtual void prepend(View* child);
+		void prepend(View* child);
 
 		/**
 			*
@@ -95,7 +95,7 @@ namespace noug {
 			*
 			* @func append(child)
 			*/
-		virtual void append(View* child);
+		void append(View* child);
 
 		/**
 		 * Append subview to parent
@@ -103,6 +103,14 @@ namespace noug {
 		 * @func append_to(parent)
 		 */
 		View* append_to(View* parent);
+
+		/**
+		 * 
+		 * Returns is can allow append child view
+		 * 
+		 * @func is_allow_append_child()
+		*/
+		virtual bool is_allow_append_child();
 
 		/**
 			*

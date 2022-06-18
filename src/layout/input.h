@@ -32,7 +32,9 @@
 #define __noug__layout__input__
 
 #include "./box.h"
-#include "./label.h"
+#include "../text_blob.h"
+#include "../text_opts.h"
+#include "../text_lines.h"
 #include "../text_input.h"
 
 namespace noug {
@@ -40,9 +42,15 @@ namespace noug {
 	class N_EXPORT Input: public Box, public TextOptions, public TextInput {
 		N_Define_View(Input);
 	public:
+		N_DEFINE_PROP(bool, is_multiline);
 		N_DEFINE_PROP(TextAlign, text_align);
 		N_DEFINE_PROP(String, text_value);
 		// @override
+		virtual bool layout_reverse(uint32_t mark) override;
+		virtual bool solve_visible_region() override;
+		virtual void set_visible(bool val) override;
+		virtual void set_parent(View *val) override;
+		virtual bool is_allow_append_child() override;
 		virtual bool can_become_focus() override;
 		virtual TextInput* as_text_input() override;
 		virtual void input_delete(int count) override;
@@ -57,6 +65,10 @@ namespace noug {
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
+	private:
+		Array<TextBlob> _blob;
+		Array<uint32_t> _blob_visible;
+		Sp<TextLines> _lines;
 	};
 
 }
