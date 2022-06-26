@@ -66,14 +66,15 @@ namespace noug {
 			for (auto &blob: _preBlob) {
 				auto id = blob.typeface.unicharToGlyph(0x20); // space
 				int i = 0, len = blob.glyphs.length();
-			skip:
+			check:
 				if (blob.glyphs[i] != id) {
 					blob.glyphs = blob.glyphs.copy(i);
 					blob.offset = blob.offset.copy(i);
 					break;
 				}
 				if (++i < len) {
-					goto skip;
+					blob.index++;
+					goto check; // skip space
 				}
 				blob.glyphs.clear();
 				blob.offset.clear();
@@ -91,10 +92,8 @@ namespace noug {
 	}
 
 	void TextLines::push(TextOptions *opts) {
-		FontMetrics metrics;
-		FontGlyphs::get_metrics(&metrics, opts->text_family().value, opts->font_style(), opts->text_size().value);
 		push(false); // new row
-		set_metrics(&metrics);
+		set_metrics(opts);
 	}
 
 	void TextLines::finish_line() {
@@ -113,16 +112,16 @@ namespace noug {
 		}
 
 		if (_preLayout.length()) {
-			auto ascent = _last->ascent;
-			auto descent = _last->descent;
+			auto top = _last->top;
+			auto bottom = _last->bottom;
 
 			for (auto layout: _preLayout) {
 				auto height = layout->layout_size().layout_size.y();
 				switch (layout->layout_align()) {
-					case Align::START:  set_metrics(ascent, height - descent); break;
-					case Align::CENTER: height = (height - ascent - descent) / 2;
-						set_metrics(height + ascent, height + descent); break;
-					case Align::END:    set_metrics(height - descent, descent); break;
+					case Align::START:  set_metrics(top, height - bottom); break;
+					case Align::CENTER: height = (height - top - bottom) / 2;
+						set_metrics(height + top, height + bottom); break;
+					case Align::END:    set_metrics(height - bottom, bottom); break;
 					default:            set_metrics(height, 0); break;
 				}
 			}
@@ -133,9 +132,9 @@ namespace noug {
 				float y;
 
 				switch (layout->layout_align()) {
-					case Align::START:  y = _last->baseline - ascent; break;
-					case Align::CENTER: y = _last->baseline - (size_y + ascent - descent) / 2; break;
-					case Align::END: y = _last->baseline - size_y + descent; break;
+					case Align::START:  y = _last->baseline - top; break;
+					case Align::CENTER: y = _last->baseline - (size_y + top - bottom) / 2; break;
+					case Align::END: y = _last->baseline - size_y + bottom; break;
 					default:         y = _last->baseline - size_y; break;
 				}
 				layout->set_layout_offset(Vec2(x, y));
@@ -150,17 +149,34 @@ namespace noug {
 		finish_line();
 	}
 
-	void TextLines::set_metrics(float ascent, float descent) {
-		if (ascent > _last->ascent || descent > _last->descent) {
-			_last->ascent = ascent;
-			_last->descent = descent;
-			_last->baseline = _last->start_y + _last->ascent;
-			_last->end_y = _last->baseline + _last->descent;
+	void TextLines::set_metrics(float top, float bottom) {
+		if (top > _last->top || bottom > _last->bottom) {
+			_last->top = top;
+			_last->bottom = bottom;
+			_last->baseline = _last->start_y + _last->top;
+			_last->end_y = _last->baseline + _last->bottom;
 		}
 	}
 
-	void TextLines::set_metrics(FontMetrics *metrics) {
-		set_metrics(-metrics->fAscent, metrics->fDescent + metrics->fLeading);
+	void TextLines::set_metrics(FontMetrics *metrics, float line_height) {
+		auto top = -metrics->fAscent;
+		auto bottom = metrics->fDescent + metrics->fLeading;
+		auto height = top + bottom;
+		if (line_height != 0) { // value
+			auto y = (line_height - height) / 2;
+			top += y; bottom += y;
+			if (bottom < 0) {
+				top += bottom;
+				bottom = 0;
+			}
+		}
+		set_metrics(top, bottom);
+	}
+
+	void TextLines::set_metrics(TextOptions *opts) {
+		FontMetrics metrics;
+		FontGlyphs::get_metrics(&metrics, opts->text_family().value, opts->font_style(), opts->text_size().value);
+		set_metrics(&metrics, opts->text_line_height().value);
 	}
 
 	void TextLines::add_layout(Layout* layout) {
@@ -216,6 +232,32 @@ namespace noug {
 
 	}
 
+	void TextLines::solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
+
+		N_DEBUG("TextLines::solve_visible_region_blob");
+
+		blob_visible->clear();
+
+		if (!visible_region()) {
+			return;
+		}
+
+		auto& clip = _host->pre_render()->host()->display()->clip_region();
+		bool is_break = false;
+
+		for (int i = 0, len = blob->length(); i < len; i++) {
+			auto &item = (*blob)[i];
+			auto &line = this->line(item.line);
+			if (line.visible_region) {
+				is_break = true;
+				blob_visible->push(i);
+			} else {
+				if (is_break) break;
+			}
+			N_DEBUG("blob,%f,%d,%d,%i", blob.origin, blob.line, blob.glyphs.length(), line.visible_region);
+		}
+	}
+
 	void TextLines::add_text_blob(PreTextBlob blob, const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre) {
 
 		if (is_pre) {
@@ -245,16 +287,21 @@ namespace noug {
 				}
 			}
 
+			FontMetrics metrics;
+			FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);
+
+			auto ascent = -metrics.fAscent;
+			auto descent = metrics.fDescent + metrics.fLeading;
+			auto height = ascent + descent;
 			auto origin = _last->width - offset[0];
+
 			Array<Vec2> pos(offset.length());
 			for (int i = 0; i < offset.length(); i++)
 				pos[i] = Vec2(offset[i], 0);
-			blob.blob->push({ blob.typeface, glyphs.copy(), std::move(pos), origin, line });
+			blob.blob->push({ blob.typeface, glyphs.copy(), std::move(pos), ascent, height, origin, line, blob.index });
 			_last->width = origin + offset.back();
 
-			FontMetrics metrics;
-			FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);
-			set_metrics(&metrics);
+			set_metrics(&metrics, blob.line_height);
 		};
 
 		if (_preBlob.length()) {

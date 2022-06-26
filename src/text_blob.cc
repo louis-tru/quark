@@ -81,29 +81,13 @@ namespace noug {
 		}
 	}
 
-	Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space) {
-		Unichar data;
+	Array<Array<Unichar>> to_unichar_lines(bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed,
+		bool (*each)(Unichar& out, void* ctx), void* ctx
+	) {
 		Array<Array<Unichar>> lines;
 		Array<Unichar> row;
-		cChar* source = *str;
-		cChar* end = source + str.length();
 
 		bool is_merge_runing = false;
-		bool is_merge_space = true;
-		bool is_merge_line_feed = true;
-
-		// 	NORMAL,        /* 合并空白序列,使用自动wrap */
-		// 	NO_WRAP,       /* 合并空白序列,不使用自动wrap */
-		// 	PRE,           /* 保留所有空白,不使用自动wrap */
-		// 	PRE_WRAP,      /* 保留所有空白,使用自动wrap */
-		// 	PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
-
-		if (space == TextWhiteSpace::PRE || space == TextWhiteSpace::PRE_WRAP) { // 保留所有空白
-			is_merge_space = false;
-			is_merge_line_feed = false;
-		} else if (space == TextWhiteSpace::PRE_LINE) { // 保留换行符
-			is_merge_line_feed = false;
-		}
 
 		auto push_row = [&]() {
 			row.realloc(row.length() + 1);
@@ -111,13 +95,14 @@ namespace noug {
 			lines.push(std::move(row));
 		};
 
-		while (source < end) {
-			source += Codec::decode_utf8_to_unichar(reinterpret_cast<const uint8_t*>(source), &data);
+		Unichar data;
 
+		while (each(data, ctx)) {
 			switch (unicode_to_symbol(data)) {
 				case kLineFeed_Symbol:
 					if (is_merge_line_feed)
-						goto merge;
+						if (!disable_line_feed)
+							goto merge;
 					else // new row
 						push_row();
 					break;
@@ -144,11 +129,73 @@ namespace noug {
 		return lines;
 	}
 
+	Array<Array<Unichar>> string4_to_unichar(cString4& str,
+		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed) {
+		const Unichar* src = *str;
+		const Unichar* end = src + str.length();
+
+		struct Ctx { const Unichar* src, *end; } ctx = { src, end };
+
+		auto each = [](Unichar &unicode, void* ctx) {
+			auto _ = (Ctx*)ctx;
+			if (_->src < _->end) {
+				unicode = *_->src;
+				_->src++;
+				return true;
+			}
+			return false;
+		};
+
+		return to_unichar_lines(is_merge_space, is_merge_line_feed, disable_line_feed, each, &ctx);
+	}
+
+	Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space) {
+		Unichar data;
+		Array<Array<Unichar>> lines;
+		Array<Unichar> row;
+		cChar* src = *str;
+		cChar* end = src + str.length();
+
+		bool is_merge_space = true;
+		bool is_merge_line_feed = true;
+
+		// 	NORMAL,        /* 合并空白序列,使用自动wrap */
+		// 	NO_WRAP,       /* 合并空白序列,不使用自动wrap */
+		// 	PRE,           /* 保留所有空白,不使用自动wrap */
+		// 	PRE_WRAP,      /* 保留所有空白,使用自动wrap */
+		// 	PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
+
+		if (space == TextWhiteSpace::PRE || space == TextWhiteSpace::PRE_WRAP) { // 保留所有空白
+			is_merge_space = false;
+			is_merge_line_feed = false;
+		} else if (space == TextWhiteSpace::PRE_LINE) { // 保留换行符
+			is_merge_line_feed = false;
+		}
+
+		struct Ctx { cChar *src, *end; } ctx = { src, end };
+
+		auto each = [](Unichar &unicode, void* ctx) {
+			auto _ = (Ctx*)ctx;
+			if (_->src < _->end) {
+				_->src += Codec::decode_utf8_to_unichar(reinterpret_cast<const uint8_t*>(_->src), &unicode);
+				return true;
+			}
+			return false;
+		};
+
+		return to_unichar_lines(is_merge_space, is_merge_line_feed, false, each, &ctx);
+	}
+
 	TextBlobBuilder::TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob)
-		: _lines(lines), _opts(opts), _blob(blob)
+		: _disable_overflow(false), _lines(lines), _opts(opts), _blob(blob)
 	{}
 
 	void TextBlobBuilder::make(cString& text) {
+		auto lines = string_to_unichar(text, _opts->text_white_space_value());
+		make(lines);
+	}
+
+	void TextBlobBuilder::make(Array<Array<Unichar>>& lines) {
 
 		auto text_white_space = _opts->text_white_space_value();
 		auto text_word_break = _opts->text_word_break_value();
@@ -176,42 +223,45 @@ namespace noug {
 			is_auto_wrap = false;
 		}
 
-		auto unis = string_to_unichar(text, text_white_space);
+		uint32_t index = 0;
 
-		for ( int i = 0; i < unis.length(); i++ ) {
+		for ( int i = 0; i < lines.length(); i++ ) {
 			if (i) { // force line feed
 				_lines->push(_opts);
+				index++;
 			}
 
-			auto fg_arr = _opts->text_family().value->makeFontGlyphs(unis[i], _opts->font_style(), _opts->text_size().value);
-			auto unichar = *unis[i];
+			auto fg_arr = _opts->text_family().value->makeFontGlyphs(lines[i], _opts->font_style(), _opts->text_size().value);
+			auto unichar = *lines[i];
 
 			for (auto& fg: fg_arr) {
 				if (is_auto_wrap) {
 					switch (text_word_break) {
 						default:
-						case TextWordBreak::NORMAL: as_normal(fg, unichar, false, false); break;
-						case TextWordBreak::BREAK_WORD: as_normal(fg, unichar, true, false); break;
-						case TextWordBreak::BREAK_ALL: as_break_all(fg, unichar); break;
-						case TextWordBreak::KEEP_ALL: as_normal(fg, unichar, false, true); break;
+						case TextWordBreak::NORMAL: as_normal(fg, unichar, index, false, false); break;
+						case TextWordBreak::BREAK_WORD: as_normal(fg, unichar, index, true, false); break;
+						case TextWordBreak::BREAK_ALL: as_break_all(fg, unichar, index); break;
+						case TextWordBreak::KEEP_ALL: as_normal(fg, unichar, index, false, true); break;
 					}
 					unichar += fg.glyphs().length();
 				} else {  // no auto wrap
-					as_no_auto_wrap(fg);
+					as_no_auto_wrap(fg, index);
 				}
 			}
-		}
 
+			index += lines[i].length();
+		}
 	}
 
-	void TextBlobBuilder::as_no_auto_wrap(FontGlyphs &fg) {
+	void TextBlobBuilder::as_no_auto_wrap(FontGlyphs &fg, uint32_t index) {
 		auto origin = _lines->pre_width();
 		auto offset = fg.get_offset();
 		auto overflow = _opts->text_overflow_value();
 		auto limitX = _lines->size().x();
 		auto text_size = _opts->text_size().value;
+		auto line_height = _opts->text_line_height().value;
 		
-		if (overflow != TextOverflow::NORMAL) {
+		if (!_disable_overflow && overflow != TextOverflow::NORMAL) {
 			if (origin >= limitX) return; // skip
 
 			// CLIP,            /* 剪切 */
@@ -227,7 +277,10 @@ namespace noug {
 						float x = origin + offset[j + 1];
 						if (x > limitX) {
 							// discard overflow part
-							_lines->add_text_blob({fg.typeface(), text_size, _blob}, fg.glyphs().slice(0, j), offset.slice(0, j + 1), false);
+							_lines->add_text_blob(
+								{fg.typeface(), text_size, line_height, index, _blob},
+								fg.glyphs().slice(0, j), offset.slice(0, j + 1), false
+							);
 							_lines->set_pre_width(limitX);
 							break;
 						}
@@ -241,18 +294,25 @@ namespace noug {
 					auto limit2 = limitX - ellipsis_width;
 
 					if (limit2 >= 0) {
-						for (int j = 0; j < len; j++) {
+						uint32_t j = 0;
+						for (; j < len; j++) {
 							float x = origin + offset[j + 1];
 							if (x > limit2) {
 								if (j) {
-									_lines->add_text_blob({fg.typeface(), text_size, _blob}, fg.glyphs().slice(0, j), offset.slice(0, j + 1), false);
+									_lines->add_text_blob(
+										{fg.typeface(), text_size, line_height, index, _blob},
+										fg.glyphs().slice(0, j), offset.slice(0, j + 1), false
+									);
 								}
 								break;
 							}
 						}
 
 						// add ellipsis
-						_lines->add_text_blob({fg.typeface(), text_size, _blob}, ellipsis.glyphs(), ellipsis_offset, false);
+						_lines->add_text_blob(
+							{fg.typeface(), text_size, line_height, j, _blob},
+							ellipsis.glyphs(), ellipsis_offset, false
+						);
 						_blob->back().origin = limitX - ellipsis_width; // align right
 						_lines->set_pre_width(limitX);
 
@@ -260,7 +320,10 @@ namespace noug {
 						for (int j = 0; j < 3; j++) {
 							float x = origin + offset[j + 1];
 							if (x > limitX) {
-								_lines->add_text_blob({fg.typeface(), text_size, _blob}, ellipsis.glyphs().slice(0, j), ellipsis_offset.slice(0, j + 1), false);
+								_lines->add_text_blob(
+									{fg.typeface(), text_size, line_height, index, _blob},
+									ellipsis.glyphs().slice(0, j), ellipsis_offset.slice(0, j + 1), false
+								);
 								_lines->set_pre_width(limitX);
 								break;
 							}
@@ -273,10 +336,9 @@ namespace noug {
 			}
 		}
 
-		_lines->add_text_blob({fg.typeface(), text_size, _blob}, fg.glyphs(), offset, false);
+		_lines->add_text_blob({fg.typeface(), text_size, line_height, index, _blob}, fg.glyphs(), offset, false);
 		_lines->set_pre_width(origin + offset.back());
 	}
-	
 
 	// skip line start space symbol
 	static int skip_space(Unichar *unichar, TextLines *lines, int j, int len) {
@@ -292,11 +354,12 @@ namespace noug {
 	// NORMAL 保持单词在同一行
 	// BREAK_WORD 保持单词在同一行,除非单词长度超过一行才截断
 	// KEEP_ALL 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
-	void TextBlobBuilder::as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD, bool is_KEEP_ALL) {
+	void TextBlobBuilder::as_normal(FontGlyphs &fg, Unichar *unichar, uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL) {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.get_offset();
 		bool  line_head = _lines->last()->width == 0.0;
 		auto  text_size = _opts->text_size().value;
+		auto  line_height = _opts->text_line_height().value;
 		auto  line = _lines->last();
 
 		float limitX = _lines->size().x();
@@ -325,12 +388,15 @@ namespace noug {
 			// prev word end or next word start, record position and offset
 			auto i = j;
 			if (sym == kSpace_Symbol) {
-				if (!overflow) i++; // not overflow
+				if (!overflow) i++; // not overflow, plus space is overflow
 				goto wordEnd;
 			}
 			if (is_KEEP_ALL ? sym == kPunctuation_Symbol : sym < kNumber_Symbol) {
 			wordEnd:
-				_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, i), offset.slice(start, i + 1), false);
+				_lines->add_text_blob(
+					{fg.typeface(), text_size, line_height, index + start, _blob},
+					glyphs.slice(start, i), offset.slice(start, i + 1), false
+				);
 				line_head = line->width == 0.0;
 				start = i;
 			}
@@ -345,7 +411,10 @@ namespace noug {
 					_lines->set_pre_width(x);
 				} else {
 				newLine:
-					_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), blob_pre);
+					_lines->add_text_blob(
+						{fg.typeface(), text_size, line_height, index + start, _blob},
+						glyphs.slice(start, j), offset.slice(start, j + 1), blob_pre
+					);
 					_lines->push(true); // new row
 					line = _lines->last();
 					line_head = true;
@@ -360,15 +429,19 @@ namespace noug {
 		}
 
 		if (start < len) {
-			_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, len), offset.slice(start, len + 1), true);
+			_lines->add_text_blob(
+				{fg.typeface(), text_size, line_height, index + start, _blob},
+				glyphs.slice(start, len), offset.slice(start, len + 1), true
+			);
 		}
 	}
 
 	// BREAK_ALL 以字符为单位行空间不足换行
-	void TextBlobBuilder::as_break_all(FontGlyphs &fg, Unichar *unichar) {
+	void TextBlobBuilder::as_break_all(FontGlyphs &fg, Unichar *unichar, uint32_t index) {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.get_offset();
 		auto  text_size = _opts->text_size().value;
+		auto  line_height = _opts->text_line_height().value;
 		auto  line = _lines->last();
 
 		float limitX = _lines->size().x();
@@ -392,7 +465,10 @@ namespace noug {
 			// check wrap overflow new line
 			auto x = origin + offset[j + 1];
 			if (x > limitX) {
-				_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, j), offset.slice(start, j + 1), false);
+				_lines->add_text_blob(
+					{fg.typeface(), text_size, line_height, index + start, _blob},
+					glyphs.slice(start, j), offset.slice(start, j + 1), false
+				);
 				_lines->push(true); // new row
 				line = _lines->last();
 				start = j;
@@ -403,7 +479,10 @@ namespace noug {
 			}
 		}
 
-		_lines->add_text_blob({fg.typeface(), text_size, _blob}, glyphs.slice(start, len), offset.slice(start, len + 1), false);
+		_lines->add_text_blob(
+			{fg.typeface(), text_size, line_height, index + start, _blob},
+			glyphs.slice(start, len), offset.slice(start, len + 1), false
+		);
 	}
 
 }

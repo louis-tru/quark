@@ -57,7 +57,8 @@ namespace noug {
 	*/
 	class SkiaRender: public ViewVisitor {
 	public:
-		SkiaRender();
+		SkiaRender(Application* app);
+		N_DEFINE_PROP_READ(Application*, app);
 		virtual int  flags();
 		virtual void visitView(View* v);
 		virtual void visitBox(Box* box);
@@ -86,7 +87,7 @@ namespace noug {
 		void clipPathInside(Box* box, SkClipOp op, bool AA);
 		void clipPath(Box* box, SkClipOp op, bool AA);
 		// solve
-		void solveEffect(Box* box, Effect* effect);
+		void solveEffect(Box* box, Effect* effect, int &clip);
 		void solveFill(Box* box, Fill* fill, Color fill_color);
 		void solveFillImage(Box* box, FillImage* fill);
 		void solveFillGradientLinear(Box* box, FillGradientLinear* fill);

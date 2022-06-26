@@ -36,15 +36,27 @@
 #include "../text_opts.h"
 #include "../text_lines.h"
 #include "../text_input.h"
+#include "../pre_render.h"
 
 namespace noug {
 
-	class N_EXPORT Input: public Box, public TextOptions, public TextInput {
+	class N_EXPORT Input: public Box, public TextOptions, public PreRender::Task, public TextInput {
 		N_Define_View(Input);
 	public:
+		typedef ReferenceTraits Traits;
+		// define props
 		N_DEFINE_PROP(bool, is_multiline);
+		N_DEFINE_PROP(bool, security);
 		N_DEFINE_PROP(TextAlign, text_align);
-		N_DEFINE_PROP(String, text_value);
+		N_DEFINE_PROP(KeyboardType, type);
+		N_DEFINE_PROP(KeyboardReturnType, return_type);
+		N_DEFINE_PROP(String4, text_value_u4);
+		N_DEFINE_PROP(String4, placeholder_u4);
+		N_DEFINE_PROP(Color, placeholder_color);
+		N_DEFINE_PROP(float, text_margin);
+		N_DEFINE_ACCESSOR(String, text_value);
+		N_DEFINE_ACCESSOR(String, placeholder);
+		N_DEFINE_ACCESSOR_READ(uint32_t, text_length);
 		// @override
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
@@ -53,6 +65,8 @@ namespace noug {
 		virtual bool is_allow_append_child() override;
 		virtual bool can_become_focus() override;
 		virtual TextInput* as_text_input() override;
+		virtual bool run_task(int64_t sys_time) override;
+		// impl text input
 		virtual void input_delete(int count) override;
 		virtual void input_insert(cString& text) override;
 		virtual void input_marked(cString& text) override;
@@ -65,10 +79,24 @@ namespace noug {
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
+		N_DEFINE_ACCESSOR(Vec2, input_text_offset);
 	private:
+		void refresh_cursor_screen_position();
+
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;
 		Sp<TextLines> _lines;
+		String4 _marked_text;
+		Color   _marked_color;
+		uint32_t  _marked_text_idx, _cursor, _cursor_linenum;
+		uint32_t  _marked_cell_begin, _marked_cell_end;
+		float _cursor_x, _input_text_offset_x;
+		float _text_ascent, _text_height;
+		bool  _editing, _cursor_twinkle_status;
+		char  _flag;
+		Vec2  _point;
+
+		N_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

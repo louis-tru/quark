@@ -787,18 +787,18 @@ namespace noug {
 	}
 
 	Mat Box::layout_matrix() {
+		Vec2 translate = parent()->layout_offset_inside()
+			+ layout_offset()
+			+ Vec2(_margin_left, _margin_top) + _origin_value;
 
 		if (_transform) {
 			return Mat(
-				layout_offset() + Vec2(_margin_left, _margin_top) +
-									_transform->translate + _origin_value + parent()->layout_offset_inside(), // translate
+				_transform->translate + translate,
 				_transform->scale,
 				-_transform->rotate,
 				_transform->skew
 			);
 		} else {
-			Vec2 translate = layout_offset() +
-				Vec2(_margin_left, _margin_top) + _origin_value + parent()->layout_offset_inside();
 			return Mat(
 				1, 0, translate.x(),
 				0, 1, translate.y()

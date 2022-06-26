@@ -48,6 +48,7 @@
 #include "../../layout/root.h"
 #include "../../layout/flow.h"
 #include "../../layout/button.h"
+#include "../../layout/label.h"
 
 #define N_ENABLE_DRAW 1
 #define N_ENABLE_CLIP 1
@@ -63,7 +64,9 @@ namespace noug {
 		return _canvas;
 	}
 
-	SkiaRender::SkiaRender(): _canvas(nullptr), _alpha(1), _mark_recursive(0) {
+	SkiaRender::SkiaRender(Application* app)
+		: _app(app), _canvas(nullptr), _alpha(1), _mark_recursive(0)
+	{
 		_paint.setAntiAlias(true);
 		_rrect_path.setIsVolatile(true);
 	}
@@ -355,44 +358,68 @@ namespace noug {
 
 		MakeSkRectFrom(box);
 
-		// step 1: if exist radius or overflow clip and exist draw task then clip rect
-		int clip = 0; // 1 kDifference, 2 kIntersect
-		if (
-			(box->_is_radius && (box->_fill_color.a() || box->_fill || fillFn)) ||
-			(box->_is_clip   && (box->_first))
-		) {
-			_canvas->save();
-			if (N_USE_PATH_DRAW)
-				clipPathInside(box, SkClipOp::kIntersect, true);
-			else
-				clipRectInside(box, SkClipOp::kIntersect, true); // exec reverse clip
-			clip = 2;
+		// clip type, 1 Inside kDifference, 2 Inside kIntersect, 3 kDifference, 4 kIntersect
+		int clip = 0;
+
+		auto use_clip = [&]() {
+			if (clip != 2) {
+				if (clip)
+					_canvas->restore(); // cancel reverse clip
+				_canvas->save();
+				if (N_USE_PATH_DRAW)
+					clipPathInside(box, SkClipOp::kIntersect, true);
+				else
+					clipRectInside(box, SkClipOp::kIntersect, true); // exec reverse clip
+				clip = 2;
+			}
+		};
+
+		auto cancel_clip = [&]() {
+			if (clip) {
+				_canvas->restore(); // cancel clip
+				clip = 0;
+			}
+		};
+
+		// step 1: if exist border then draw border
+		if (box->_border) {
+			solveBorder(box);
 		}
 
-		// step 2: if exist fillFn then exec fillFn else exec draw color and image and gradient background ...
+		// step 2: if exist radius and exist draw task then clip rect
+		if ( box->_is_radius) {
+			if (box->_fill_color.a() || box->_fill || fillFn) {
+				use_clip();
+			}
+		}
+
+		// step 3: if exist fillFn then exec fillFn else exec draw color and image and gradient background ...
 		if (fillFn) {
 			fillFn(this, box);
 		} else {
 			solveFill(box, box->_fill, box->_fill_color);
 		}
 
-		// step 3: if exist clip then cancel clip rect
-		if (clip) {
-			_canvas->restore(); // cancel clip
-		}
-
-		// step 4: if exist border then draw border
-		if (box->_border) {
-			solveBorder(box);
-		}
-
-		// step 5: exec child draw task
-		SkiaRender::visitView(box);
-
-		// step 6: if exist effect then reverse clip rect and draw effect
+		// step 4: if exist effect then reverse clip rect and draw effect
 		if (box->_effect) {
-			solveEffect(box, box->_effect);
+			solveEffect(box, box->_effect, clip);
+			if (clip != 2)
+				cancel_clip();
 		}
+
+		// step 5: if exist overflow clip then exec clip and child draw task
+		if (box->_is_clip && box->_first) {
+			use_clip();
+			auto re = View::screen_region_from_convex_quadrilateral(box->_vertex);
+			_app->display()->push_clip_region(re);
+			SkiaRender::visitView(box);
+			_app->display()->pop_clip_region();
+		} else {
+			SkiaRender::visitView(box);
+		}
+
+		// step 6: if exist clip then cancel clip rect
+		cancel_clip();
 	}
 
 	void SkiaRender::solveBorder(Box* box) {
@@ -599,12 +626,12 @@ namespace noug {
 		}
 	}
 
-	void SkiaRender::solveEffect(Box* box, Effect* effect) {
-		int clip = 0; // 1 kDifference, 2 kIntersect
+	void SkiaRender::solveEffect(Box* box, Effect* effect, int &clip) {
+		// clip type, 1 Inside kDifference, 2 Inside kIntersect, 3 kDifference, 4 kIntersect
 		do {
 			switch (effect->type()) {
 				case Effect::M_SHADOW: {
-					if (clip != 1) { // 1 kDifference, 2 kIntersect
+					if (clip != 3) { // 3 kDifference, 4 kIntersect
 						if (clip)
 							_canvas->restore(); // cancel reverse clip
 						_canvas->save();
@@ -612,7 +639,7 @@ namespace noug {
 							if (N_ENABLE_CLIP) clipPath(box, SkClipOp::kDifference, true);
 						} else
 							if (N_ENABLE_CLIP) clipRect(box, SkClipOp::kDifference, true); // exec reverse clip
-						clip = 1;
+						clip = 3;
 					}
 					SkPaint paint;// = _paint;
 					auto shadow = static_cast<BoxShadow*>(effect)->value();
@@ -641,9 +668,6 @@ namespace noug {
 			}
 			effect = effect->next();
 		} while(effect);
-
-		if (clip)
-			_canvas->restore(); // cancel reverse clip
 	}
 
 	void SkiaRender::solveFill(Box* box, Fill* fill, Color color) {

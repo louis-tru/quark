@@ -52,6 +52,7 @@ namespace noug {
 		virtual bool solve_visible_region() override;
 		virtual void set_visible(bool val) override;
 		virtual void set_parent(View *val) override;
+		static bool solve_visible_region(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
 		Array<TextBlob> _blob;

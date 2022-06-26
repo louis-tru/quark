@@ -93,7 +93,7 @@ namespace noug {
 	}
 
 	SkiaGLRender::SkiaGLRender(Application* host, const Options& opts, bool raster)
-		: GLRender(host, opts) {
+		: GLRender(host, opts), SkiaRender(host) {
 		_raster = raster;
 	}
 

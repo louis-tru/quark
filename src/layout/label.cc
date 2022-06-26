@@ -107,33 +107,9 @@ namespace noug {
 	}
 
 	bool Label::solve_visible_region() {
-		N_DEBUG("Label::solve_visible_region");
-
-		_blob_visible.clear();
-
-		if (_lines->host() == this) {
+		if (_lines->host() == this)
 			_lines->solve_visible_region();
-		}
-
-		if (!_lines->visible_region()) {
-			return false;
-		}
-
-		auto& clip = pre_render()->host()->display()->clip_region();
-		bool is_break = false;
-
-		for (int i = 0; i < _blob.length(); i++) {
-			auto &blob = _blob[i];
-			auto &line = _lines->line(blob.line);
-			if (line.visible_region) {
-				is_break = true;
-				_blob_visible.push(i);
-			} else {
-				if (is_break) break;
-			}
-			N_DEBUG("blob,%f,%d,%d,%i", blob.origin, blob.line, blob.glyphs.length(), line.visible_region);
-		}
-
+		_lines->solve_visible_region_blob(&_blob, &_blob_visible);
 		return _blob_visible.length();
 	}
 

@@ -184,39 +184,39 @@ namespace noug {
 		}
 	}
 
-	 void Display::push_clip_region(Region clip) {
+	void Display::push_clip_region(Region clip) {
 		DisplayRegion re = { clip.origin.x(), clip.origin.y(), clip.end.x(), clip.end.y(), 0,0 };
-	 	DisplayRegion dre = _clip_region.back();
-		 
+		DisplayRegion dre = _clip_region.back();
+			
 		// 计算一个交集区域
+			
+		float x, x2, y, y2;
 		
-	 	float x, x2, y, y2;
+		y = dre.y2 > re.y2 ? re.y2 : dre.y2; // 选择一个小的
+		y2 = dre.y > re.y ? dre.y : re.y; // 选择一个大的
+		x = dre.x2 > re.x2 ? re.x2 : dre.x2; // 选择一个小的
+		x2 = dre.x > re.x ? dre.x : re.x; // 选择一个大的
 		
-	 	y = dre.y2 > re.y2 ? re.y2 : dre.y2; // 选择一个小的
-	 	y2 = dre.y > re.y ? dre.y : re.y; // 选择一个大的
-	 	x = dre.x2 > re.x2 ? re.x2 : dre.x2; // 选择一个小的
-	 	x2 = dre.x > re.x ? dre.x : re.x; // 选择一个大的
+		if ( x > x2 ) {
+			re.x = x2;
+			re.x2 = x;
+		} else {
+			re.x = x;
+			re.x2 = x2;
+		}
 		
-	 	if ( x > x2 ) {
-	 		re.x = x2;
-	 		re.x2 = x;
-	 	} else {
-	 		re.x = x;
-	 		re.x2 = x2;
-	 	}
+		if ( y > y2 ) {
+			re.y = y2;
+			re.y2 = y;
+		} else {
+			re.y = y;
+			re.y2 = y2;
+		}
 		
-	 	if ( y > y2 ) {
-	 		re.y = y2;
-	 		re.y2 = y;
-	 	} else {
-	 		re.y = y;
-	 		re.y2 = y2;
-	 	}
+		re.width = re.x2 - re.x;
+		re.height = re.y2 - re.y;
 		
-	 	re.width = re.x2 - re.x;
-	 	re.height = re.y2 - re.y;
-		
-		 _clip_region.push(re);
+		_clip_region.push(re);
 	}
 
 	void Display::pop_clip_region() {

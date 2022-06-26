@@ -45,13 +45,15 @@ namespace noug {
 	public:
 		struct Line {
 			float start_y, end_y, width;
-			float baseline, ascent, descent, origin;
+			float baseline, top, bottom, origin;
 			uint32_t line;
 			bool visible_region;
 		};
 		struct PreTextBlob {
 			Typeface        typeface;
 			float           text_size;
+			float           line_height;
+			uint32_t        index;
 			Array<TextBlob> *blob;
 			Array<GlyphID>  glyphs;
 			Array<float>    offset;
@@ -60,13 +62,15 @@ namespace noug {
 		void push(bool trim_start = false); // first call finish() then add new row
 		void push(TextOptions *opts); // push new row
 		void finish(); // finish all
-		void set_metrics(float ascent, float descent);
-		void set_metrics(FontMetrics *metrics);
+		void set_metrics(float top, float bottom);
+		void set_metrics(FontMetrics *metrics, float line_height);
+		void set_metrics(TextOptions *opts);
 		void add_layout(Layout* layout);
 		void add_text_blob(PreTextBlob blob,
 				const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre);
 		void finish_text_blob();
 		void solve_visible_region();
+		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
 		inline uint32_t length() const { return _lines.length(); }
 		inline float max_height() const { return _last->end_y; }
 		inline Line& operator[](uint32_t idx) { return _lines[idx]; }

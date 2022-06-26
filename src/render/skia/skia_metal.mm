@@ -104,7 +104,7 @@ namespace noug {
 	}
 
 	SkiaMetalRender::SkiaMetalRender(Application* host, const Options& opts, bool raster)
-	: MetalRender(host, opts) {
+	: MetalRender(host, opts), SkiaRender(host) {
 		_raster = raster;
 	}
 

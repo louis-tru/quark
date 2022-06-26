@@ -39,30 +39,36 @@
 
 namespace noug {
 
+	N_EXPORT Array<Array<Unichar>> string4_to_unichar(cString4& str,
+		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
 	N_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
 
 	struct TextBlob {
 		Typeface        typeface;
 		Array<GlyphID>  glyphs;
 		Array<Vec2>     offset;
-		float           origin;
-		uint32_t        line;
+		float           ascent; // 当前blob基线距离文本顶部
+		float           height; // 当前blob高度
+		float           origin; // offset origin start
+		uint32_t        line;   // line number
+		uint32_t        index;  // blob index in unichar glyphs
 		Sp<ImageSource> cache;
 	};
 
 	class N_EXPORT TextBlobBuilder {
 	public:
 		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
+		N_DEFINE_PROP(bool, disable_overflow);
 		void make(cString& text);
+		void make(Array<Array<Unichar>>& lines);
 	private:
-		void as_no_auto_wrap(FontGlyphs &fg);
-		void as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD, bool is_KEEP_ALL);
-		void as_break_all(FontGlyphs &fg, Unichar *unichar);
+		void as_no_auto_wrap(FontGlyphs &fg, uint32_t index);
+		void as_normal(FontGlyphs &fg, Unichar *unichar, uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL);
+		void as_break_all(FontGlyphs &fg, Unichar *unichar, uint32_t index);
 	private:
 		TextLines *_lines;
 		TextOptions *_opts;
 		Array<TextBlob> *_blob;
-		
 	};
 
 }
