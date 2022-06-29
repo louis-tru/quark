@@ -261,7 +261,7 @@ namespace noug {
 		auto text_size = _opts->text_size().value;
 		auto line_height = _opts->text_line_height().value;
 		
-		if (!_disable_overflow && overflow != TextOverflow::NORMAL) {
+		if (!_disable_overflow && overflow != TextOverflow::NORMAL && !_lines->no_wrap()) {
 			if (origin >= limitX) return; // skip
 
 			// CLIP,            /* 剪切 */

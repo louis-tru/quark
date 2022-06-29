@@ -201,9 +201,9 @@ namespace noug {
 		}
 
 		/**
-		 * @func solve_recursive_marks(mark)
+		 * @func solve_marks(mark)
 		*/
-		void solve_recursive_marks(uint32_t mark);
+		virtual void solve_marks(uint32_t mark);
 
 		/**
 		 * 

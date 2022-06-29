@@ -46,34 +46,31 @@ namespace noug {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return true; // continue iteration
 
+			auto size = content_size();
 			auto v = first();
+			_lines = new TextLines(this, _text_align, size, layout_wrap_x());
+
 			if (v) {
-
-				Vec2 size = content_size();
-				_lines = new TextLines(this, _text_align, size, layout_wrap_x());
 				TextConfig cfg(this, pre_render()->host()->default_text_options());
-
 				do {
 					v->layout_text(*_lines, &cfg);
 					v = v->next();
 				} while(v);
-
-				_lines->finish();
-
-				Vec2 new_size(
-					layout_wrap_x() ? _lines->max_width(): size.x(),
-					layout_wrap_y() ? _lines->max_height(): size.y()
-				);
-
-				if (new_size != size) {
-					set_content_size(new_size);
-					parent()->onChildLayoutChange(this, kChild_Layout_Size);
-				}
-			} else {
-				_lines = nullptr;
 			}
+			_lines->finish();
+
+			Vec2 new_size(
+				layout_wrap_x() ? _lines->max_width(): size.x(),
+				layout_wrap_y() ? _lines->max_height(): size.y()
+			);
+
+			if (new_size != size) {
+				set_content_size(new_size);
+				parent()->onChildLayoutChange(this, kChild_Layout_Size);
+			}
+
 			unmark(kLayout_Typesetting);
-			//mark_none(kRecursive_Transform);
+			mark_none(kRecursive_Visible_Region); // force test region and lines region
 
 			// check transform_origin change
 			solve_origin_value();

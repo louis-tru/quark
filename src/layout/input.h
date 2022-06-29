@@ -45,20 +45,23 @@ namespace noug {
 	public:
 		typedef ReferenceTraits Traits;
 		// define props
-		N_DEFINE_PROP(bool, is_multiline);
 		N_DEFINE_PROP(bool, security);
+		N_DEFINE_PROP(bool, readonly);
 		N_DEFINE_PROP(TextAlign, text_align);
 		N_DEFINE_PROP(KeyboardType, type);
 		N_DEFINE_PROP(KeyboardReturnType, return_type);
 		N_DEFINE_PROP(String4, text_value_u4);
 		N_DEFINE_PROP(String4, placeholder_u4);
 		N_DEFINE_PROP(Color, placeholder_color);
-		N_DEFINE_PROP(float, text_margin);
+		N_DEFINE_PROP(uint32_t, max_length);
 		N_DEFINE_ACCESSOR(String, text_value);
 		N_DEFINE_ACCESSOR(String, placeholder);
 		N_DEFINE_ACCESSOR_READ(uint32_t, text_length);
+		// virtual func
+		virtual bool is_multiline();
 		// @override
 		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void solve_marks(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void set_visible(bool val) override;
 		virtual void set_parent(View *val) override;
@@ -78,11 +81,11 @@ namespace noug {
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 	protected:
-		virtual void onTextChange(uint32_t mark) override;
-		N_DEFINE_ACCESSOR(Vec2, input_text_offset);
-	private:
 		void refresh_cursor_screen_position();
-
+		virtual void onTextChange(uint32_t mark) override;
+		virtual Vec2 input_text_offset();
+		virtual void set_input_text_offset(Vec2 val);
+	private:
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;
 		Sp<TextLines> _lines;
@@ -95,6 +98,8 @@ namespace noug {
 		bool  _editing, _cursor_twinkle_status;
 		char  _flag;
 		Vec2  _point;
+
+		friend class Textarea;
 
 		N_DEFINE_INLINE_CLASS(Inl);
 	};

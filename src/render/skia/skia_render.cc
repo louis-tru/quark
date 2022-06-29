@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../../app.h"
+#include "../../app.inl"
 #include "../../display.h"
 #include "./skia_render.h"
 // skia
@@ -83,9 +84,10 @@ namespace noug {
 			uint32_t markCurr = _mark_recursive;
 			do {
 				if (v->_visible) {
-					_mark_recursive = markCurr | v->layout_mark();
-					if (_mark_recursive) {
-						v->solve_recursive_marks(_mark_recursive);
+					uint32_t mark = markCurr | v->layout_mark(); // inherit recursive
+					if (mark) {
+						v->solve_marks(mark);
+						_mark_recursive = mark & Layout::kRecursive_Mark;
 					}
 					if (v->_visible_region && v->_opacity > 0) {
 						_alpha = alphaCurr * v->_opacity;
@@ -136,7 +138,7 @@ namespace noug {
 
 	void SkiaRender::visitInput(Input* input) {
 		solveBox(input, [](SkiaRender* render, Box* box) {
-			// TODO ...
+			// accept
 		});
 	}
 
@@ -181,9 +183,10 @@ namespace noug {
 
 	void SkiaRender::visitRoot(Root* v) {
 		if (v->_visible) {
-			_mark_recursive = v->layout_mark();
-			if (_mark_recursive) {
-				v->solve_recursive_marks(_mark_recursive);
+			uint32_t mark = v->layout_mark();
+			if (mark) {
+				v->solve_marks(mark);
+				_mark_recursive = mark & Layout::kRecursive_Mark;
 			}
 
 			if (v->_visible_region && v->_opacity > 0) {
@@ -403,8 +406,6 @@ namespace noug {
 		// step 4: if exist effect then reverse clip rect and draw effect
 		if (box->_effect) {
 			solveEffect(box, box->_effect, clip);
-			if (clip != 2)
-				cancel_clip();
 		}
 
 		// step 5: if exist overflow clip then exec clip and child draw task
@@ -414,12 +415,12 @@ namespace noug {
 			_app->display()->push_clip_region(re);
 			SkiaRender::visitView(box);
 			_app->display()->pop_clip_region();
+			// step 6: if exist clip then cancel clip rect
+			cancel_clip();
 		} else {
+			cancel_clip();
 			SkiaRender::visitView(box);
 		}
-
-		// step 6: if exist clip then cancel clip rect
-		cancel_clip();
 	}
 
 	void SkiaRender::solveBorder(Box* box) {

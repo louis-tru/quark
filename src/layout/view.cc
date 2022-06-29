@@ -668,7 +668,7 @@ namespace noug {
 		// NOOP
 	}
 
-	void View::solve_recursive_marks(uint32_t mark) {
+	void View::solve_marks(uint32_t mark) {
 
 		if (mark & kRecursive_Transform) { // update transform matrix
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
@@ -684,14 +684,6 @@ namespace noug {
 			unmark(kRecursive_Visible_Region); // unmark
 		visible_region:
 			_visible_region = solve_visible_region();
-			/*
-			if (_visible_region) {
-				View *v = _first;
-				while (v) {
-					v->layout_recursive(mark | v->layout_mark());
-					v = v->_next;
-				}
-			}*/
 		}
 	}
 

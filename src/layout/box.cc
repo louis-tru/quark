@@ -754,6 +754,8 @@ namespace noug {
 		}
 		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
 												_margin_top + _margin_bottom + _client_size.y());
+
+		mark_none(kRecursive_Visible_Region);
 	}
 
 	Vec2 Box::layout_offset() {

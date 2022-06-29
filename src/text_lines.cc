@@ -202,7 +202,9 @@ namespace noug {
 		vertex[1] = mat * Vec2(x2, _lines.front().start_y + y);
 		
 		bool is_all_false = false;
-		
+
+		_visible_region = false;
+
 		// TODO
 		// Use optimization algorithm using dichotomy
 

@@ -36,216 +36,67 @@
 
 namespace noug {
 
+	enum {
+		kFlag_Normal = 0,      // 正常状态未激活光标查询
+		kFlag_Wait_Find,       // 等待超时激活光标定位
+		kFlag_Disable_Find,    // 禁用激活光标定位
+		kFlag_Find,            // 激活光标定位
+		kFlag_Auto_Find,       // 激活自动光标定位
+		kFlag_Range_Select,    // 范围选择
+		kFlag_Auto_Range_Select,  // 自动范围选择
+		kFlag_Check_Move_Focus,   // 检测文本移动聚焦
+		kFlag_Disable_Click_Find, // 禁用点击聚焦
+	};
+
 	N_DEFINE_INLINE_MEMBERS(Input, Inl) {
 	public:
 
 		void touchstart_handle(UIEvent& evt) {
 			TouchEvent* e = static_cast<TouchEvent*>(&evt);
-			start_handle(Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
+			start_action(Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
 		}
 
 		void touchmove_handle(UIEvent& evt) {
 			TouchEvent* e = static_cast<TouchEvent*>(&evt);
-			move_handle(evt, Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
+			move_action(evt, Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
 		}
 
 		void touchend_handle(UIEvent& evt) {
 			TouchEvent* e = static_cast<TouchEvent*>(&evt);
-			end_handle(Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
+			end_action(Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
 		}
 
 		void mousedown_handle(UIEvent& evt) {
 			MouseEvent* e = static_cast<MouseEvent*>(&evt);
-			start_handle(Vec2(e->x(), e->y()));
+			start_action(Vec2(e->x(), e->y()));
 		}
 
 		void mousemove_handle(UIEvent& evt) {
 			MouseEvent* e = static_cast<MouseEvent*>(&evt);
-			move_handle(evt, Vec2(e->x(), e->y()));
+			move_action(evt, Vec2(e->x(), e->y()));
 		}
 
 		void mouseup_handle(UIEvent& evt) {
 			MouseEvent* e = static_cast<MouseEvent*>(&evt);
-			end_handle(Vec2(e->x(), e->y()));
+			end_action(Vec2(e->x(), e->y()));
 		}
 
-		int64_t activate_touchmove_selectd_timeout() {
-			if ( _is_multiline ) {
-				return 1e6;
-			} else {
-				return 0;
-			}
-		}
-		
 		void click_handle(UIEvent& evt) {
 			ClickEvent* e = static_cast<ClickEvent*>(&evt);
 			if ( _editing ) {
 				_inl_app(pre_render()->host())->ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
 			} else {
-				if ( _flag == 8 ) { // 禁用点击聚焦
-					_flag = 0;
+				if ( _flag == kFlag_Disable_Click_Find ) { // 禁用点击聚焦
+					_flag = kFlag_Normal;
 				} else {
 					focus();
-					set_cursor_with_screen_coord(Vec2(e->x(), e->y()));
+					find_cursor(Vec2(e->x(), e->y()));
 				}
 			}
 		}
-		
-		int has_can_activate_auto_selectd(Vec2 point) {
-			Vec2 pos = position();
-			
-			int i = 0;
 
-			auto size = content_size();
-			
-			if (point.x() < pos.x() + 16 || point.x() > pos.x() + size.x() - 16) {
-				i++;
-			}
-			if ( point.y() < pos.y() || point.y() > pos.y() + size.y() ) {
-				i++;
-			}
-			return i;
-		}
-
-		void start_handle(Vec2 point) {
-			if ( _editing ) {
-				_point = point;
-				/*
-				* _flag
-				* 0.未激活
-				* 1.等待超时激活光标定位
-				* 2.禁用激活光标定位
-				* 3.光标定位
-				* 4.自动光标定位
-				* 5.范围选择
-				* 6.自动范围选择
-				* 7.开始检测文本移动聚焦
-				* 8.禁用文本点击聚焦
-				*/
-				if ( !_flag ) { // 开始超时激活光标定位
-					_flag = 1;
-					int64_t timeout = activate_touchmove_selectd_timeout();
-					if ( timeout ) {
-						pre_render()->host()->loop()->post(Cb([this](CbData& evt) { // delay
-							UILock lock;
-							if ( _flag == 1 ) {
-								_flag = 3; // 激活光标定位
-								set_cursor_with_screen_coord(_point);
-							}
-						}, this), N_MIN(timeout, 1e6/*1s*/));
-					} else { // 立即激活
-						_flag = 3;
-					}
-				}
-			} else {
-				if ( _flag == 0 ) {
-					if ( _is_multiline ) { // 多行移动后禁用焦点
-						_point = point;
-						_flag = 7;      // 开始检测点击聚焦
-					}
-				}
-			}
-		}
-		
-		void move_handle(UIEvent& evt, Vec2 point) {
-			if ( _editing ) {
-				_point = point;
-				
-				switch (_flag) {
-					default: break;
-					case 1:       // 等待激活光标定位
-						_flag = 2;  // 禁用
-						break;
-					case 3: // 光标定位
-						if ( has_can_activate_auto_selectd(_point) ) {
-							_flag = 4;
-						} else {
-							set_cursor_with_screen_coord(_point);
-						}
-						evt.return_value = 0;
-						break;
-					case 4: {// 自动光标定位
-						int i = has_can_activate_auto_selectd(_point);
-						if ( !i ) {
-							_flag = 3;
-						} else {
-							if ( i == 1 ) {
-								set_cursor_with_screen_coord(_point);
-							}
-						}
-						evt.return_value = 0;
-						break;
-					}
-					case 5: // 范围选择
-						break;
-					case 6: // 自动范围选择
-						break;
-				}
-			} else {
-				if ( _flag == 7 ) { // 已经开始检测
-					// TODO
-					//Textarea* textarea = as_textarea();
-					//if ( textarea ) { // 多行移动后禁用点击聚焦
-					/*
-					if ( _is_multiline ) { // 多行移动后禁用点击聚焦
-						if ( textarea->scroll_x() != 0 || textarea->scroll_y() != 0 ) {
-							// 计算移动距离
-							float d = sqrtf(powf(point.x() - _point.x(), 2) + powf(point.y() - _point.y(), 2));
-							if ( d > 5 ) { // 移动超过5禁用点击聚焦
-								_flag = 8;
-							}
-						}
-					}*/
-				}
-			}
-		}
-		
-		void end_handle(Vec2 point) {
-			if ( _editing ) {
-				if ( _flag == 1 || _flag == 3 ) {
-					set_cursor_with_screen_coord(point);
-				}
-				_flag = 0;
-			}
-		}
-		
-		void focus_handle(UIEvent& evt) {
-			_editing = true;
-			_cursor_twinkle_status = 0;
-			_flag = 0;
-			mark(M_INPUT_STATUS);
-			register_task();
-		}
-		
-		void blur_handle(UIEvent& evt) {
-			_editing = false;
-			_flag = 0;
-			if ( _marked_text.length() ) {
-				input_unmark_text(_marked_text);
-			} else {
-				mark(M_INPUT_STATUS);
-			}
-			unregister_task();
-		}
-
-		Vec2 spot_location() {
-			Vec2 offset = input_text_offset();
-
-			float y = _lines->line(_cursor_linenum).baseline - _text_ascent + offset.y();
-			float x = _cursor_x + offset.x();
-
-			auto origin = origin_value();
-
-			Vec2 cursor_offset(x - origin.x(), y + _text_height - origin.y());
-			Vec2 location = matrix() * cursor_offset;
-
-			N_DEBUG("input_spot_location,x:%f,y:%f", location.x(), location.y());
-			
-			return location;
-		}
-		
 		void keydown_handle(UIEvent& evt) { // keyboard event
-			if ( _editing && _flag == 0 ) {
+			if ( _editing && _flag == kFlag_Normal ) {
 				
 				switch ( static_cast<KeyEvent*>(&evt)->keycode() ) {
 					default: break;
@@ -255,7 +106,7 @@ namespace noug {
 					case KEYCODE_UP: {
 						Vec2 location = spot_location();
 						Vec2 coord(location.x(), location.y() - (_text_height * 1.5));
-						set_cursor_with_screen_coord(coord);
+						find_cursor(coord);
 						break;
 					}
 					case KEYCODE_RIGHT:
@@ -264,7 +115,7 @@ namespace noug {
 					case KEYCODE_DOWN: {
 						Vec2 location = spot_location();
 						Vec2 coord(location.x(), location.y() + (_text_height * 0.5));
-						set_cursor_with_screen_coord(coord);
+						find_cursor(coord);
 						break;
 					}
 					case KEYCODE_PAGE_UP: /* TODO */
@@ -281,89 +132,240 @@ namespace noug {
 				
 				limit_cursor_in_marked_text();
 				reset_cursor_twinkle_task_timeout();
-				mark(M_INPUT_STATUS);
+				mark_none(KInput_Status);
 			}
 		}
-		
-		void auto_selectd() {
 
-			if ( !_editing || _blob.length() == 0 ) return;
-			if ( _flag != 4 ) return; // 非自动光标定位
+		void focus_handle(UIEvent& evt) {
+			_editing = true;
+			_cursor_twinkle_status = 0;
+			_flag = kFlag_Normal;
+			mark_none(KInput_Status);
+			register_task();
+		}
 
-			Vec2 pos = position();
-			Vec2 point = _point;
-			Vec2 offset = input_text_offset();
+		void blur_handle(UIEvent& evt) {
+			_editing = false;
+			_flag = kFlag_Normal;
+			if ( _marked_text.length() ) {
+				input_unmark_text(_marked_text);
+			} else {
+				mark_none(KInput_Status);
+			}
+			unregister_task();
+		}
+
+		Vec2 position() {
+			Vec2 point(padding_left() - origin_value()[0], padding_top() - origin_value()[1]);
+			if (_border) {
+				point[0] += _border->width_left;
+				point[1] += _border->width_top;
+			}
+			return matrix() * point;
+		}
+
+		void start_action(Vec2 point) {
+			if ( _editing ) {
+				_point = point;
+				if ( _flag == kFlag_Normal ) { // 开始超时激活光标定位
+					_flag = kFlag_Wait_Find;
+					int64_t timeout = is_multiline() ? 1e6/*1s*/: 0;
+					if ( timeout ) {
+						pre_render()->host()->loop()->post(Cb([this](CbData& evt) { // delay
+							UILock lock;
+							if ( _flag == kFlag_Wait_Find ) {
+								_flag = kFlag_Find; // 激活光标定位
+								find_cursor(_point);
+							}
+						}, this), N_MIN(timeout, 1e6/*1s*/));
+					} else { // 立即激活
+						_flag = kFlag_Find;
+					}
+				}
+			} else {
+				if ( _flag == kFlag_Normal ) {
+					if ( is_multiline() ) { // 多行移动后禁用焦点
+						_point = point;
+						_flag = kFlag_Check_Move_Focus;  // 开始检测点击聚焦
+					}
+				}
+			}
+		}
+
+		void move_action(UIEvent& evt, Vec2 point) {
+			if ( _editing ) {
+				_point = point;
+				
+				switch (_flag) {
+					case kFlag_Wait_Find:          // 等待激活光标定位
+						_flag = kFlag_Disable_Find;  // 禁用
+						break;
+					case kFlag_Find: // 光标定位
+						auto has = is_auto_find_is_required(_point);
+						if ( has.x() || has.y() ) {
+							_flag = kFlag_Auto_Find;
+						} else {
+							find_cursor(_point); // 立即查找位置
+						}
+						evt.return_value = 0;
+						break;
+					case kFlag_Auto_Find: { // 自动光标定位
+						auto has = is_auto_find_is_required(_point);
+						if ( has.x() || has.y() ) {
+							if ( (has.x() & has.y()) == 0 ) {
+								find_cursor(_point);
+							}
+						} else { // 不需要使用自动选择
+							_flag = kFlag_Find;
+						}
+						evt.return_value = 0;
+						break;
+					}
+					case kFlag_Range_Select: // 范围选择
+						break;
+					case kFlag_Auto_Range_Select: // 自动范围选择
+						break;
+					default: break;
+				}
+			} else {
+				if ( _flag == kFlag_Check_Move_Focus ) { // 已经开始检测
+					// TODO
+					//Textarea* textarea = as_textarea();
+					//if ( textarea ) { // 多行移动后禁用点击聚焦
+					/*
+					if ( is_multiline() ) { // 多行移动后禁用点击聚焦
+						if ( textarea->scroll_x() != 0 || textarea->scroll_y() != 0 ) {
+							// 计算移动距离
+							float d = sqrtf(powf(point.x() - _point.x(), 2) + powf(point.y() - _point.y(), 2));
+							if ( d > 5 ) { // 移动超过5禁用点击聚焦
+								_flag = kFlag_Disable_Click_Find;
+							}
+						}
+					}*/
+				}
+			}
+		}
+
+		void end_action(Vec2 point) {
+			if ( _editing ) {
+				if ( _flag == kFlag_Wait_Find || _flag == kFlag_Find ) {
+					find_cursor(point);
+				}
+				_flag = kFlag_Normal;
+			}
+		}
+
+		Vec2 spot_location() {
+			auto offset = input_text_offset();
+			auto y = _lines->line(_cursor_linenum).baseline - _text_ascent + _text_height + offset.y();
+			auto x = _cursor_x + offset.x();
+			auto origin = origin_value();
+
+			x += padding_left();
+			y += padding_top();
+
+			if (_border) {
+				x += _border->width_left;
+				y += _border->width_top;
+			}
+
+			Vec2 cursor_offset(x - origin.x(), y - origin.y());
+			Vec2 location = matrix() * cursor_offset;
+
+			N_DEBUG("input_spot_location,x:%f,y:%f", location.x(), location.y());
 			
-			int direction_x = 0, direction_y = 0; // 0 表示没有方向,不做处理
+			return location;
+		}
+
+		Vec2i is_auto_find_is_required(Vec2 point) {
+			auto pos = position();
 			auto size = content_size();
-			
-			if ( point.x() < pos.x() + 16 ) {
-				direction_x = -1; // left
-			} else if ( point.x() > pos.x() + size.x() - 16 ) {
-				direction_x = 1; // right
-			}
-			
-			if ( point.y() < pos.y() ) {
-				direction_y = -1; // left
-			} else if ( point.y() > pos.y() + size.y() ) {
-				direction_y = 1; // right
+
+			int x = 0, y = 0; // 0 表示没有方向,不需要自动查找
+			int edge_x1 = 10 - padding_left();
+			int edge_x2 = 10 - padding_right();
+			int edge_y1 = size.y() > 20 ? 10 - padding_top(): 0;
+			int edge_y2 = size.y() > 20 ? 10 - padding_bottom(): 0;
+
+			if ( point.x() < pos.x() + edge_x1 ) {
+				x = -1; // left
+			} else if ( point.x() > pos.x() + size.x() - edge_x2 ) {
+				x = 1; // right
 			}
 
-			if ( direction_y ) {
-				int linenum = _cursor_linenum;
-				linenum += direction_y;
-				linenum = N_MIN(_lines->last()->line, N_MAX(linenum, 0));
-				point.set_y(pos.y() + _lines->line(linenum).baseline + offset.y());
+			if ( point.y() < pos.y() + edge_y1 ) {
+				y = -1; // top
+			} else if ( point.y() > pos.y() + size.y() - edge_y2 ) {
+				y = 1; // bottom
 			}
-			
-			if ( direction_x ) {
-				
-				int begin = _blob.length() - 1;
-				
-				for ( ; begin >=0; begin-- ) {
-					if ( _blob[begin].line == _cursor_linenum ) break;
+
+			return Vec2i(x, y);
+		}
+
+		void auto_selectd() {
+			if ( !_editing || _blob.length() == 0 ) return;
+
+			auto pos = position();
+			auto point = _point;
+			auto offset = input_text_offset();
+			auto dir = is_auto_find_is_required(point);
+
+			if (_flag == kFlag_Auto_Find) { // 自动光标定位
+
+				if ( dir.y() ) {
+					int linenum = _cursor_linenum;
+					linenum += dir.y();
+					linenum = N_MIN(_lines->last()->line, N_MAX(linenum, 0));
+					point.set_y(pos.y() + _lines->line(linenum).baseline + offset.y());
 				}
 
-				int cursor = _cursor + (direction_x > 0 ? 1: -1);
-				cursor = N_MIN(text_length(), N_MAX(cursor, 0));
-				
-				for ( int j = begin; j >= 0; j-- ) {
-					auto cell = &_blob[j];
-					if ( cell->line == _cursor_linenum ) {
-						if ( int(cell->index) <= cursor ) {
-							float x = cell->origin + cell->offset[N_MIN(cursor - cell->index, cell->glyphs.length())].x();
+				if ( dir.x() ) {
+					int begin = _blob.length() - 1;
+
+					for ( ; begin >= 0; begin-- ) {
+						if ( _blob[begin].line == _cursor_linenum ) break;
+					}
+
+					int cursor = _cursor + (dir.x() > 0 ? 1: -1);
+					cursor = N_MIN(text_length(), N_MAX(cursor, 0));
+					
+					for ( int j = begin; j >= 0; j-- ) {
+						auto cell = &_blob[j];
+						if ( cell->line == _cursor_linenum ) {
+							if ( int(cell->index) <= cursor ) {
+								float x = cell->origin + cell->offset[N_MIN(cursor - cell->index, cell->glyphs.length())].x();
+								x += _lines->line(cell->line).origin;
+								point.set_x(pos.x() + offset.x() + x);
+								break;
+							}
+						} else {
+							cell = &_blob[j+1];
+							float x = cell->origin + cell->offset.front().x();
 							x += _lines->line(cell->line).origin;
 							point.set_x(pos.x() + offset.x() + x);
 							break;
 						}
-					} else {
-						cell = &_blob[j+1];
-						float x = cell->origin + cell->offset.front().x();
-						x += _lines->line(cell->line).origin;
-						point.set_x(pos.x() + offset.x() + x);
-						break;
 					}
 				}
-			}
-			
-			set_cursor_with_screen_coord(point);
+				
+				find_cursor(point);
+			} // if (_flag == kFlag_Auto_Find)
 		}
-		
-		void set_cursor_with_screen_coord(Vec2 screen_coord) {
-			
+
+		void find_cursor(Vec2 screen_coord) {
+
 			if ( !_editing || text_length() == 0 ) {
 				return;
 			}
 
-			auto &mat = matrix();
-			Vec2 pos = Vec2(mat[2], mat[5]) - origin_value();
-			
+			auto pos = position();
+
 			// find line
-			
+
 			float x = screen_coord.x() - pos.x();
 			float y = screen_coord.y() - pos.y();
 			Vec2 offset = input_text_offset();
-			
+
 			const TextLines::Line* line = nullptr;
 			
 			if ( y < offset.y() ) {
@@ -382,7 +384,7 @@ namespace noug {
 			
 			N_ASSERT(line);
 			
-			// find cell start and end
+			// find cell start_action and end_action
 			int cell_begin = -1, cell_end = -1;
 			
 			for ( uint32_t i = 0; i < _blob.length(); i++ ) {
@@ -404,7 +406,7 @@ namespace noug {
 				if ( x <= offset_start ) { // 行开始位置
 					_cursor = _blob[cell_begin].index;
 				} else if ( x >= offset_start + line->width ) { // 行结束位置
-					_cursor = _blob[cell_end].index + _blob[cell_end].glyphs.length(); // end
+					_cursor = _blob[cell_end].index + _blob[cell_end].glyphs.length(); // end_action
 				} else {
 					// 通过在cells中查询光标位置
 					for ( int i = cell_begin; i <= cell_end; i++ ) {
@@ -421,7 +423,7 @@ namespace noug {
 								} else {
 									_cursor = cell.index + j;
 								}
-								goto end;
+								goto end_action;
 							} else {
 								offset0 = offset;
 							}
@@ -430,13 +432,13 @@ namespace noug {
 				}
 				// if ( x <= offset_start )
 			}
-		end:
+		end_action:
 			
 			limit_cursor_in_marked_text();
 			reset_cursor_twinkle_task_timeout();
-			mark(M_INPUT_STATUS);
+			mark_none(KInput_Status);
 		}
-		
+
 		void limit_cursor_in_marked_text() {
 			if ( _marked_text.length() ) { // 限制在marked中
 				if ( _cursor < _marked_text_idx ) {
@@ -446,15 +448,17 @@ namespace noug {
 				}
 			}
 		}
-		
+
 		void reset_cursor_twinkle_task_timeout() {
 			_cursor_twinkle_status = 1;
-			if ( _flag == 4 || _flag == 6 ) {
-				set_task_timeout(time_monotonic() + 10000);
+			if ( _flag == kFlag_Auto_Find || _flag == kFlag_Auto_Range_Select ) {
+				set_task_timeout(time_monotonic() + 50000); // 50ms
 			} else {
-				set_task_timeout(time_monotonic() + 700000);
+				set_task_timeout(time_monotonic() + 700000); // 700ms
 			}
 		}
+
+		// input text insert action
 
 		String4 delete_line_feed_format(cString& text) {
 			String s = text;
@@ -473,6 +477,9 @@ namespace noug {
 
 		void input_insert_text(cString4& text) {
 			if ( !text.length() ) {
+				if (_max_length && _text_value_u4.length() + text.length() > _max_length)
+					return;
+
 				if ( _cursor < text_length() ) { // insert
 					String4 old = _text_value_u4;
 					_text_value_u4 = String4(*old, _cursor, *text, text.length());
@@ -484,8 +491,12 @@ namespace noug {
 				mark(kLayout_Typesetting); // 标记内容变化
 			}
 		}
-		
-		void input_marked_text(cString4& text) {
+
+		bool input_marked_text(cString4& text) {
+			if (_max_length) {
+				if ( _text_value_u4.length() + text.length() - _marked_text.length() > _max_length)
+					return false;
+			}
 			if ( _marked_text.length() == 0 ) {
 				_marked_text_idx = _cursor;
 			}
@@ -498,36 +509,39 @@ namespace noug {
 			_cursor = N_MAX(_marked_text_idx, _cursor);
 			_marked_text = text;
 			mark(kLayout_Typesetting); // 标记内容变化
+
+			return true;
 		}
-		
+
 		void input_unmark_text(cString4& text) {
-			input_marked_text(text);
-			_cursor = _marked_text_idx + _marked_text.length();
-			_marked_text = String4();
+			if (input_marked_text(text)) {
+				_cursor = _marked_text_idx + _marked_text.length();
+				_marked_text = String4();
+			}
 		}
-		
+
 		void trigger_change() {
 			pre_render()->host()->loop()->post(Cb([this](CbData& e){
 				Handle<UIEvent> evt = New<UIEvent>(this);
 				trigger(UIEvent_Change, **evt); // trigger event
 			}, this));
 		}
+
 	};
 
 	Input::Input()
-		: _is_multiline(false)
-		, _security(false)
+		: _security(false), _readonly(false)
 		, _text_align(TextAlign::LEFT)
 		, _type(KeyboardType::NORMAL)
 		, _return_type(KeyboardReturnType::NORMAL)
 		, _placeholder_color(150, 150, 150)
-		, _text_margin(6)
+		, _max_length(0)
 		, _marked_color(0, 160, 255, 100)
 		, _marked_text_idx(0), _cursor(0), _cursor_linenum(0)
 		, _marked_cell_begin(0), _marked_cell_end(0)
 		, _cursor_x(0), _input_text_offset_x(0)
 		, _text_ascent(0), _text_height(0)
-		, _editing(false), _cursor_twinkle_status(true), _flag(0)
+		, _editing(false), _cursor_twinkle_status(true), _flag(kFlag_Normal)
 	{
 		set_is_clip(true);
 		set_receive(true);
@@ -546,11 +560,8 @@ namespace noug {
 		add_event_listener(UIEvent_KeyDown, &Input::Inl::keydown_handle, Inl_Input(this));
 	}
 
-	void Input::set_is_multiline(bool val) {
-		if (_is_multiline != val) {
-			_is_multiline = val;
-			mark(kLayout_Typesetting);
-		}
+	bool Input::is_multiline() {
+		return false;
 	}
 
 	void Input::set_text_align(TextAlign val) {
@@ -564,6 +575,7 @@ namespace noug {
 		if (_text_value_u4 != val) {
 			_text_value_u4 = val;
 			mark(kLayout_Typesetting);
+			set_max_length(_max_length);
 		}
 	}
 
@@ -605,7 +617,7 @@ namespace noug {
 
 			if (str->length()) {
 				TextBlobBuilder tbb(*_lines, this, &_blob);
-				auto lines = string4_to_unichar(*str, false, false, !_is_multiline);
+				auto lines = string4_to_unichar(*str, false, false, !is_multiline());
 				tbb.set_disable_overflow(true);
 				tbb.make(lines);
 			}
@@ -626,9 +638,28 @@ namespace noug {
 
 			// check transform_origin change
 			solve_origin_value();
+
+			// mark input status change
+			mark_none(KInput_Status | kRecursive_Visible_Region);
 		}
 
 		return false;
+	}
+
+	void Input::solve_marks(uint32_t mark) {
+		if (mark & KInput_Status) {
+			unmark(Layout::KInput_Status);
+			// text cursor status
+			refresh_cursor_screen_position(); // text layout
+
+			View::solve_marks(mark);
+
+			if (_editing) {
+				_inl_app(app())->ime_keyboard_spot_location(input_spot_location());
+			}
+		} else {
+			View::solve_marks(mark);
+		}
 	}
 
 	bool Input::solve_visible_region() {
@@ -637,6 +668,138 @@ namespace noug {
 		_lines->solve_visible_region();
 		_lines->solve_visible_region_blob(&_blob, &_blob_visible);
 		return true;
+	}
+
+	void Input::refresh_cursor_screen_position() {
+		
+		if ( _editing ) {
+			auto size = content_size();
+			auto final_width = size.x();
+			auto final_height = size.y();
+		
+			Vec2  text_offset = input_text_offset();
+			TextBlob* cell = nullptr;
+			
+			if ( text_length() ) {
+				int i = 0;
+			
+				for ( int j = 0; j < _blob.length(); j++ ) {
+					auto& i = _blob[j];
+					uint32_t index = i.index;
+					
+					if ( _cursor == index ) {
+						cell = &i; break;
+					} else if ( _cursor > index ) {
+						uint32_t end_action = index + i.glyphs.length();
+						
+						if ( _cursor < end_action ) {
+							cell = &i; break;
+						} else {
+							if ( _cursor == end_action ) {
+								if ( uint32_t(j + 1) == i.glyphs.length() ) { // last cell
+									cell = &i; break;
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			// 计算光标的具体偏移位置与文本编辑状态下最适合的显示的文本偏移量
+			
+			TextLines::Line* line = nullptr;
+			
+			if ( cell ) { // set cursor pos
+				float offset = cell->offset[_cursor - cell->index].x();
+				_cursor_linenum = cell->line;
+				line = &_lines->line(_cursor_linenum);
+				_cursor_x = line->origin + cell->origin + offset;
+			} else { // 找不到cell定位到最后行
+				switch ( _text_align ) {
+					default:
+						_cursor_x = 0; break;
+					case TextAlign::CENTER:
+						_cursor_x = final_width / 2.0; break;
+					case TextAlign::RIGHT:
+						_cursor_x = final_width; break;
+				}
+				_cursor_linenum = _lines->last()->line;
+				line = &_lines->line(_cursor_linenum);
+			}
+
+			float max_width = _lines->max_width();
+
+			// y
+			if ( is_multiline() ) {
+				if ( _lines->max_height() < final_height) {
+					text_offset.set_y(0);
+				} else {
+					float offset = line->start_y + text_offset.y();
+					
+					if ( offset < 0 ) { // top cursor
+						text_offset.set_y(-line->start_y);
+					} else { // bottom cursor
+						offset = line->end_y + text_offset.y();
+						if ( offset > final_height ) {
+							text_offset.set_y(final_height - line->end_y);
+						}
+					}
+					
+					if ( text_offset.y() > 0 ) { // top
+						text_offset.set_y(0);
+						goto x;
+					}
+					offset = text_offset.y() + _lines->max_height();
+					if ( offset < final_height ) { // bottom
+						text_offset.set_y(final_height - _lines->max_height());
+					}
+				}
+			}
+			
+		x:
+			
+			// x
+			if ( max_width <= final_width ) {
+				text_offset.set_x(0);
+			} else {
+				
+				// 让光标x轴始终在可见范围
+				
+				float offset = _cursor_x + text_offset.x();
+				
+				if ( offset < 0 ) { // left cursor
+					text_offset.set_x(-_cursor_x);
+				} else if ( offset > final_width )  { // right cursor
+					text_offset.set_x(final_width - _cursor_x);
+				}
+				
+				// 检测文本x轴两端是在非法显示区域
+				
+				switch ( _text_align ) {
+					default:
+						offset = text_offset.x(); break;
+					case TextAlign::CENTER:
+						offset = text_offset.x() + (final_width - max_width) / 2.0; break;
+					case TextAlign::RIGHT:
+						offset = text_offset.x() + final_width - max_width; break;
+				}
+
+				if ( offset > 0 ) { // left
+					text_offset.set_x(text_offset.x() - offset); goto end_action;
+				}
+				offset += max_width;
+				if ( offset < final_width ) { // right
+					text_offset.set_x(text_offset.x() - offset + final_width);
+				}
+			}
+		end_action:
+			
+			set_input_text_offset(text_offset);
+		} else {
+			if ( !is_multiline() ) { // 
+				set_input_text_offset(Vec2());
+			}
+		}
 	}
 
 	void Input::set_visible(bool val) {
@@ -684,8 +847,6 @@ namespace noug {
 						mark(kLayout_Typesetting); // 标记内容变化
 					}
 				}
-			} else {
-				// TODO..
 			}
 			
 			Inl_Input(this)->trigger_change();
@@ -719,7 +880,7 @@ namespace noug {
 	}
 
 	void Input::input_control(KeyboardKeyName name) {
-		if ( _editing && _flag == 0 ) {
+		if ( _editing && _flag == kFlag_Normal ) {
 			// LOG("input_control,%d", name);
 		}
 	}
@@ -789,10 +950,13 @@ namespace noug {
 		}
 	}
 
-	void Input::set_text_margin(float value) {
-		if (_text_margin != value) {
-			_text_margin = N_MAX(0, value);
-			mark(kLayout_Typesetting);
+	void Input::set_max_length(uint32_t value) {
+		_max_length = value;
+		if (_max_length) { // check mx length
+			if (_text_value_u4.length() > _max_length) {
+				_text_value_u4 = _text_value_u4.substr(0, _max_length);
+				mark(kLayout_Typesetting);
+			}
 		}
 	}
 
@@ -800,7 +964,7 @@ namespace noug {
 		return _text_value_u4.length();
 	}
 
-	Vec2 Input::input_text_offset() const {
+	Vec2 Input::input_text_offset() {
 		return Vec2(_input_text_offset_x, 0);
 	}
 
@@ -809,10 +973,9 @@ namespace noug {
 	}
 
 	bool Input::run_task(int64_t sys_time) {
-		if ( _flag > 2 ) {
-			// direction
+		if ( _flag > kFlag_Disable_Find ) {
 			_cursor_twinkle_status = 1;
-			if ( _flag == 4 || _flag == 6 ) {
+			if ( _flag == kFlag_Auto_Find || _flag == kFlag_Auto_Range_Select ) {
 				Inl_Input(this)->auto_selectd();
 			}
 			set_task_timeout(sys_time + 100000); /* 100ms */
@@ -822,143 +985,6 @@ namespace noug {
 			return true;
 		}
 		return false;
-	}
-
-	void Input::refresh_cursor_screen_position() {
-		
-		if ( _editing ) {
-			auto size = content_size();
-			auto m_final_width = size.x();
-			auto m_final_height = size.y();
-		
-			Vec2  text_offset = input_text_offset();
-			TextBlob* cell = nullptr;
-			
-			if ( text_length() ) {
-				int i = 0;
-			
-				for ( int j = 0; j < _blob.length(); j++ ) {
-					auto& i = _blob[j];
-					uint32_t index = i.index;
-					
-					if ( _cursor == index ) {
-						cell = &i; break;
-					} else if ( _cursor > index ) {
-						uint32_t end = index + i.glyphs.length();
-						
-						if ( _cursor < end ) {
-							cell = &i; break;
-						} else {
-							if ( _cursor == end ) {
-								if ( uint32_t(j + 1) == i.glyphs.length() ) { // last cell
-									cell = &i; break;
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			// 计算光标的具体偏移位置与文本编辑状态下最适合的显示的文本偏移量
-			
-			TextLines::Line* line = nullptr;
-			
-			if ( cell ) { // set cursor pos
-				float offset = cell->offset[_cursor - cell->index].x();
-				_cursor_linenum = cell->line;
-				line = &_lines->line(_cursor_linenum);
-				_cursor_x = line->origin + cell->origin + offset;
-			} else { // 找不到cell定位到最后行
-				switch ( _text_align ) {
-					default:
-					// case TextAlign::LEFT_REVERSE:
-						_cursor_x = _text_margin; break;
-					// case TextAlign::CENTER_REVERSE:
-					case TextAlign::CENTER:
-						_cursor_x = m_final_width / 2.0; break;
-					// case TextAlign::RIGHT_REVERSE:
-					case TextAlign::RIGHT:
-						_cursor_x = m_final_width - _text_margin; break;
-				}
-				_cursor_linenum = _lines->last()->line;
-				line = &_lines->line(_cursor_linenum);
-			}
-
-			float max_width = _lines->max_width();
-
-			// y
-			if ( is_multiline() ) {
-				if ( _lines->max_height() < m_final_height) {
-					text_offset.set_y(0);
-				} else {
-					float offset = line->start_y + text_offset.y();
-					
-					if ( offset < 0 ) { // top cursor
-						text_offset.set_y(-line->start_y);
-					} else { // bottom cursor
-						offset = line->end_y + text_offset.y();
-						if ( offset > m_final_height ) {
-							text_offset.set_y(m_final_height - line->end_y);
-						}
-					}
-					
-					if ( text_offset.y() > 0 ) { // top
-						text_offset.set_y(0); goto x;
-					}
-					offset = text_offset.y() + _lines->max_height();
-					if ( offset < m_final_height ) { // bottom
-						text_offset.set_y(m_final_height - _lines->max_height());
-					}
-				}
-			}
-			
-		x:
-			
-			// x
-			if ( max_width <= m_final_width - _text_margin - _text_margin ) {
-				text_offset.set_x(0);
-			} else {
-				
-				// 让光标x轴始终在可见范围
-				
-				float offset = _cursor_x + text_offset.x();
-				
-				if ( offset < _text_margin ) { // left cursor
-					text_offset.set_x(_text_margin - _cursor_x);
-				} else if ( offset > m_final_width - _text_margin )  { // right cursor
-					text_offset.set_x(m_final_width - _text_margin - _cursor_x);
-				}
-				
-				// 检测文本x轴两端是在非法显示区域
-				
-				switch ( _text_align ) {
-					default:
-					// case TextAlign::LEFT_REVERSE:
-						offset = text_offset.x(); break;
-					// case TextAlign::CENTER_REVERSE:
-					case TextAlign::CENTER:
-						offset = text_offset.x() + (m_final_width - max_width) / 2.0; break;
-					// case TextAlign::RIGHT_REVERSE:
-					case TextAlign::RIGHT:
-						offset = text_offset.x() + m_final_width - max_width; break;
-				}
-
-				if ( offset > _text_margin ) { // left
-					text_offset.set_x(text_offset.x() - offset + _text_margin); goto end;
-				}
-				offset += max_width;
-				if ( offset < m_final_width - _text_margin ) { // right
-					text_offset.set_x(text_offset.x() - offset - _text_margin + m_final_width);
-				}
-			}
-		end:
-			
-			set_input_text_offset(text_offset);
-		} else {
-			if ( !is_multiline() ) { // 
-				set_input_text_offset(Vec2());
-			}
-		}
 	}
 
 }

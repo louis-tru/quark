@@ -53,7 +53,7 @@ namespace noug {
 		if (value != _text_weight) {
 			_text_weight = _text_weight_value = value;
 			_text_flags |= (1 << 0);
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+			onTextChange(Layout::kLayout_Typesetting);
 		}
 	}
 
@@ -77,7 +77,7 @@ namespace noug {
 		if (value != _text_overflow) {
 			_text_overflow = _text_overflow_value = value;
 			_text_flags |= (1 << 3);
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+			onTextChange(Layout::kLayout_Typesetting);
 		}
 	}
 
@@ -85,7 +85,7 @@ namespace noug {
 		if (value != _text_white_space) {
 			_text_white_space = _text_white_space_value = value;
 			_text_flags |= (1 << 4);
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+			onTextChange(Layout::kLayout_Typesetting);
 		}
 	}
 
@@ -93,7 +93,7 @@ namespace noug {
 		if (value != _text_word_break) {
 			_text_word_break = _text_word_break_value = value;
 			_text_flags |= (1 << 5);
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+			onTextChange(Layout::kLayout_Typesetting);
 		}
 	}
 
@@ -102,7 +102,7 @@ namespace noug {
 			value.value = N_MAX(1, value.value);
 			_text_size = value;
 			_text_flags |= (1 << 6);
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+			onTextChange(Layout::kLayout_Typesetting);
 		}
 	}
 
@@ -135,7 +135,7 @@ namespace noug {
 			value.value = N_MAX(0, value.value);
 			_text_line_height = value;
 			_text_flags |= (1 << 10);
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+			onTextChange(Layout::kLayout_Typesetting);
 		}
 	}
 
@@ -143,7 +143,7 @@ namespace noug {
 		if (value != _text_family) {
 			_text_family = value;
 			_text_flags |= (1 << 11);
-			onTextChange(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+			onTextChange(Layout::kLayout_Typesetting);
 		}
 	}
 

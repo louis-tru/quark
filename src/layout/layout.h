@@ -57,9 +57,11 @@ namespace noug {
 			kLayout_Typesetting       = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
 			kLayout_Text              = (1 << 3), /* 文本布局改变 */
 			kTransform_Origin         = (1 << 4),
+			KInput_Status             = (1 << 5), /* 输入状态这不包含布局的改变 */
 			// RECURSIVE MARKS
 			kRecursive_Transform      = (1 << 30), /* 矩阵变换 recursive mark */
 			kRecursive_Visible_Region = (1U << 31), /* 可见范围 */
+			kRecursive_Mark           = (kRecursive_Transform | kRecursive_Visible_Region),
 		};
 
 		// child layout change mark key values
