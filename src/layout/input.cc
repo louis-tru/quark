@@ -156,7 +156,10 @@ namespace noug {
 		}
 
 		Vec2 position() {
-			Vec2 point(padding_left() - origin_value()[0], padding_top() - origin_value()[1]);
+			Vec2 point(
+				padding_left() - origin_value()[0],
+				padding_top() - origin_value()[1]
+			);
 			if (_border) {
 				point[0] += _border->width_left;
 				point[1] += _border->width_top;
@@ -538,7 +541,7 @@ namespace noug {
 		, _max_length(0)
 		, _marked_color(0, 160, 255, 100)
 		, _marked_text_idx(0), _cursor(0), _cursor_linenum(0)
-		, _marked_cell_begin(0), _marked_cell_end(0)
+		, _marked_blob_begin(0), _marked_blob_end(0)
 		, _cursor_x(0), _input_text_offset_x(0)
 		, _text_ascent(0), _text_height(0)
 		, _editing(false), _cursor_twinkle_status(true), _flag(kFlag_Normal)
@@ -609,17 +612,56 @@ namespace noug {
 			_lines->set_metrics(&metrics, text_line_height().value);
 			_text_ascent = -metrics.fAscent;
 			_text_height =  metrics.fDescent + metrics.fLeading;
+			_marked_blob_begin = _marked_blob_end = 0;
 
 			_blob_visible.clear();
 			_blob.clear();
 
 			auto str = _text_value_u4.length() ? &_text_value_u4: &_placeholder_u4;
 
-			if (str->length()) {
+			if (str->length()) { // text layout
 				TextBlobBuilder tbb(*_lines, this, &_blob);
-				auto lines = string4_to_unichar(*str, false, false, !is_multiline());
+
+				if (!is_multiline()) {
+					tbb.set_disable_auto_wrap(true);
+				}
 				tbb.set_disable_overflow(true);
-				tbb.make(lines);
+
+				if (_text_value_u4.length() && !_security && _marked_text.length()) { // marked text layout
+					auto src = *_text_value_u4;
+					auto mark = _marked_text_idx;
+					auto mark_end = mark + _marked_text.length();
+
+					Array<TextBlob> blobTmp;
+
+					auto make = [&](const Unichar *src, uint32_t len) {
+						tbb.make(string4_to_unichar(src, len, false, false, !is_multiline()));
+						if (blobTmp.length()) blobTmp.concat(std::move(_blob));
+						else blobTmp = std::move(_blob);
+					};
+
+					if ( mark ) {
+						make(src, mark);
+					}
+					_marked_blob_begin = blobTmp.length();
+					make(src+mark, _marked_text.length());
+					_marked_blob_end = blobTmp.length();
+
+					if ( mark_end < _text_value_u4.length() ) {
+						make(src+mark_end, _text_value_u4.length()-mark_end);
+					}
+					_blob = std::move(blobTmp);
+				}
+				else if ( _text_value_u4.length() && _security ) { // password
+					Unichar pwd = 9679; /*●*/
+					Array<Array<Unichar>> lines(1);
+					lines.front().extend(_text_value_u4.length());
+					memset_pattern4(*lines.front(), &pwd, _text_value_u4.length());
+					tbb.make(lines);
+				}
+				else {
+					tbb.make(string4_to_unichar(*str, false, false, !is_multiline()));
+				}
 			}
 
 			_lines->finish();
@@ -648,7 +690,7 @@ namespace noug {
 
 	void Input::solve_marks(uint32_t mark) {
 		if (mark & KInput_Status) {
-			unmark(Layout::KInput_Status);
+			unmark(KInput_Status);
 			// text cursor status
 			refresh_cursor_screen_position(); // text layout
 
@@ -677,7 +719,7 @@ namespace noug {
 			auto final_width = size.x();
 			auto final_height = size.y();
 		
-			Vec2  text_offset = input_text_offset();
+			Vec2 text_offset = input_text_offset();
 			TextBlob* cell = nullptr;
 			
 			if ( text_length() ) {

@@ -39,6 +39,8 @@
 
 namespace noug {
 
+	N_EXPORT Array<Array<Unichar>> string4_to_unichar(const Unichar *src, uint32_t length,
+		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
 	N_EXPORT Array<Array<Unichar>> string4_to_unichar(cString4& str,
 		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
 	N_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
@@ -59,8 +61,10 @@ namespace noug {
 	public:
 		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
 		N_DEFINE_PROP(bool, disable_overflow);
+		N_DEFINE_PROP(bool, disable_auto_wrap);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
+		void make(Array<Array<Unichar>>&& lines);
 	private:
 		void as_no_auto_wrap(FontGlyphs &fg, uint32_t index);
 		void as_normal(FontGlyphs &fg, Unichar *unichar, uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL);

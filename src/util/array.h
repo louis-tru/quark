@@ -135,9 +135,7 @@ namespace noug {
 			* @func concat() use right value move mode concat buffer 
 			*/
 		template<typename A2>
-		inline Array& concat(Array<T, A2>&& arr) {
-			return concat_(*arr, arr.length());
-		}
+		Array& concat(Array<T, A2>&& arr);
 
 		/**
 		 * @slice() weak copy array buffer
@@ -454,6 +452,14 @@ namespace noug {
 				src++; to++;
 			}
 		}
+		return *this;
+	}
+
+	template<typename T, typename A>
+	template<typename A2>
+	Array<T, A>& Array<T, A>::concat(Array<T, A2>&& arr) {
+		concat_(*arr, arr.length());
+		arr.clear();
 		return *this;
 	}
 

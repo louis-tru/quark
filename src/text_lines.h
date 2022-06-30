@@ -58,7 +58,7 @@ namespace noug {
 			Array<GlyphID>  glyphs;
 			Array<float>    offset;
 		};
-		TextLines(View *host, TextAlign text_align, Vec2 size, bool no_wrap);
+		TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap);
 		void push(bool trim_start = false); // first call finish() then add new row
 		void push(TextOptions *opts); // push new row
 		void finish(); // finish all
@@ -81,7 +81,7 @@ namespace noug {
 		N_DEFINE_PROP_READ(bool, no_wrap);
 		N_DEFINE_PROP_READ(bool, visible_region);
 		N_DEFINE_PROP_READ(TextAlign, text_align);
-		N_DEFINE_PROP_READ(Vec2, size);
+		N_DEFINE_PROP_READ(Vec2, host_size);
 		N_DEFINE_PROP_READ(Line*, last);
 		N_DEFINE_PROP_READ(View*, host);
 		N_DEFINE_PROP_READ(float, max_width);
@@ -90,8 +90,8 @@ namespace noug {
 		void finish_line(); // finish line
 		void clear();
 		Array<Line> _lines;
-		Array<Layout*> _preLayout;
-		Array<PreTextBlob> _preBlob;
+		Array<Array<Layout*>> _preLayout;
+		Array<PreTextBlob>    _preBlob;
 	};
 }
 #endif

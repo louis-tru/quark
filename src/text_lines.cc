@@ -39,9 +39,9 @@
 
 namespace noug {
 
-	TextLines::TextLines(View *host, TextAlign text_align, Vec2 size, bool no_wrap)
+	TextLines::TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
 		: _pre_width(0), _trim_start(false), _host(host)
-		, _size(size), _no_wrap(no_wrap), _text_align(text_align), _visible_region(false)
+		, _host_size(host_size), _no_wrap(no_wrap), _text_align(text_align), _visible_region(false)
 	{
 		clear();
 	}
@@ -50,6 +50,8 @@ namespace noug {
 		_lines.clear();
 		_lines.push({ 0, 0, 0, 0, 0, 0, 0, 0 });
 		_last = &_lines[0];
+		_preLayout.clear();
+		_preLayout.push(Array<Layout*>());
 		_max_width = 0;
 		_min_origin = Float::limit_max;
 		_visible_region = false;
@@ -57,9 +59,11 @@ namespace noug {
 
 	void TextLines::push(bool trim_start) {
 		finish_line();
+
 		_lines.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _lines.length() });
 		_last = &_lines.back();
 		_trim_start = trim_start;
+		_preLayout.push(Array<Layout*>());
 		
 		if (trim_start) {
 			// skip line start space
@@ -98,35 +102,44 @@ namespace noug {
 
 	void TextLines::finish_line() {
 
-		switch(_text_align) {
-			case TextAlign::LEFT: break;
-			case TextAlign::CENTER: _last->origin = (_size.x() - _last->width) / 2; break;
-			case TextAlign::RIGHT:  _last->origin = _size.x() - _last->width; break;
-		}
-
 		if ( _last->width > _max_width ) {
 			_max_width = _last->width;
 		}
-		if ( _last->origin < _min_origin) {
-			_min_origin = _last->origin;
+		auto top = _last->top;
+		auto bottom = _last->bottom;
+
+		for (auto layout: _preLayout.back()) {
+			auto height = layout->layout_size().layout_size.y();
+			switch (layout->layout_align()) {
+				case Align::START:  set_metrics(top, height - bottom); break;
+				case Align::CENTER: height = (height - top - bottom) / 2;
+					set_metrics(height + top, height + bottom); break;
+				case Align::END:    set_metrics(height - bottom, bottom); break;
+				default:            set_metrics(height, 0); break;
+			}
 		}
+	}
 
-		if (_preLayout.length()) {
-			auto top = _last->top;
-			auto bottom = _last->bottom;
+	void TextLines::finish() {
+		finish_text_blob();
+		finish_line();
 
-			for (auto layout: _preLayout) {
-				auto height = layout->layout_size().layout_size.y();
-				switch (layout->layout_align()) {
-					case Align::START:  set_metrics(top, height - bottom); break;
-					case Align::CENTER: height = (height - top - bottom) / 2;
-						set_metrics(height + top, height + bottom); break;
-					case Align::END:    set_metrics(height - bottom, bottom); break;
-					default:            set_metrics(height, 0); break;
-				}
+		auto width = _no_wrap ? _max_width: _host_size.x();
+
+		for (auto &line: _lines) {
+			switch(_text_align) {
+				case TextAlign::LEFT: break;
+				case TextAlign::CENTER: line.origin = (width - line.width) / 2; break;
+				case TextAlign::RIGHT:  line.origin = width - line.width; break;
+			}
+			if ( line.origin < _min_origin) {
+				_min_origin = line.origin;
 			}
 
-			for (auto layout: _preLayout) {
+			auto top = line.top;
+			auto bottom = line.bottom;
+
+			for (auto layout: _preLayout[line.line]) {
 				auto size_y = layout->layout_size().layout_size.y();
 				auto x = _last->origin + layout->layout_offset().x();
 				float y;
@@ -139,14 +152,9 @@ namespace noug {
 				}
 				layout->set_layout_offset(Vec2(x, y));
 			}
-
-			_preLayout.clear();
 		}
-	}
 
-	void TextLines::finish() {
-		finish_text_blob();
-		finish_line();
+		_preLayout.clear();
 	}
 
 	void TextLines::set_metrics(float top, float bottom) {
@@ -180,7 +188,7 @@ namespace noug {
 	}
 
 	void TextLines::add_layout(Layout* layout) {
-		_preLayout.push(layout);
+		_preLayout.back().push(layout);
 	}
 
 	void TextLines::finish_text_blob() {

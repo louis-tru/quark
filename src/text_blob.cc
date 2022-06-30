@@ -129,12 +129,10 @@ namespace noug {
 		return lines;
 	}
 
-	Array<Array<Unichar>> string4_to_unichar(cString4& str,
+	Array<Array<Unichar>> string4_to_unichar(const Unichar *src, uint32_t length,
 		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed) {
-		const Unichar* src = *str;
-		const Unichar* end = src + str.length();
-
-		struct Ctx { const Unichar* src, *end; } ctx = { src, end };
+		
+		struct Ctx { const Unichar* src, *end; } ctx = { src, src+length };
 
 		auto each = [](Unichar &unicode, void* ctx) {
 			auto _ = (Ctx*)ctx;
@@ -147,6 +145,11 @@ namespace noug {
 		};
 
 		return to_unichar_lines(is_merge_space, is_merge_line_feed, disable_line_feed, each, &ctx);
+	}
+
+	Array<Array<Unichar>> string4_to_unichar(cString4& str,
+		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed) {
+		return string4_to_unichar(*str, str.length(), is_merge_space, is_merge_line_feed, disable_line_feed);
 	}
 
 	Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space) {
@@ -187,11 +190,15 @@ namespace noug {
 	}
 
 	TextBlobBuilder::TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob)
-		: _disable_overflow(false), _lines(lines), _opts(opts), _blob(blob)
+		: _disable_overflow(false), _disable_auto_wrap(false), _lines(lines), _opts(opts), _blob(blob)
 	{}
 
 	void TextBlobBuilder::make(cString& text) {
 		auto lines = string_to_unichar(text, _opts->text_white_space_value());
+		make(lines);
+	}
+
+	void TextBlobBuilder::make(Array<Array<Unichar>>&& lines) {
 		make(lines);
 	}
 
@@ -216,7 +223,7 @@ namespace noug {
 		// 	KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
 		// };
 
-		if (_lines->no_wrap() || // 不使用自动wrap
+		if (_disable_auto_wrap || _lines->no_wrap() || // 不使用自动wrap
 				text_white_space == TextWhiteSpace::NO_WRAP ||
 				text_white_space == TextWhiteSpace::PRE
 		) { // 不使用自动wrap
@@ -257,7 +264,7 @@ namespace noug {
 		auto origin = _lines->pre_width();
 		auto offset = fg.get_offset();
 		auto overflow = _opts->text_overflow_value();
-		auto limitX = _lines->size().x();
+		auto limitX = _lines->host_size().x();
 		auto text_size = _opts->text_size().value;
 		auto line_height = _opts->text_line_height().value;
 		
@@ -362,7 +369,7 @@ namespace noug {
 		auto  line_height = _opts->text_line_height().value;
 		auto  line = _lines->last();
 
-		float limitX = _lines->size().x();
+		float limitX = _lines->host_size().x();
 		float origin = _lines->pre_width();
 		int   len = fg.glyphs().length();
 		int   start = 0;
@@ -444,7 +451,7 @@ namespace noug {
 		auto  line_height = _opts->text_line_height().value;
 		auto  line = _lines->last();
 
-		float limitX = _lines->size().x();
+		float limitX = _lines->host_size().x();
 		float origin = _lines->pre_width();
 		int   len = glyphs.length();
 		int   start = 0;

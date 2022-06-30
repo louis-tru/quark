@@ -92,7 +92,7 @@ namespace noug {
 		String4 _marked_text;
 		Color   _marked_color;
 		uint32_t  _marked_text_idx, _cursor, _cursor_linenum;
-		uint32_t  _marked_cell_begin, _marked_cell_end;
+		uint32_t  _marked_blob_begin, _marked_blob_end;
 		float _cursor_x, _input_text_offset_x;
 		float _text_ascent, _text_height;
 		bool  _editing, _cursor_twinkle_status;
