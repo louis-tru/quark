@@ -203,7 +203,7 @@ namespace noug {
 					case kFlag_Wait_Find:          // 等待激活光标定位
 						_flag = kFlag_Disable_Find;  // 禁用
 						break;
-					case kFlag_Find: // 光标定位
+					case kFlag_Find: { // 光标定位
 						auto has = is_auto_find_is_required(_point);
 						if ( has.x() || has.y() ) {
 							_flag = kFlag_Auto_Find;
@@ -212,6 +212,7 @@ namespace noug {
 						}
 						evt.return_value = 0;
 						break;
+					}
 					case kFlag_Auto_Find: { // 自动光标定位
 						auto has = is_auto_find_is_required(_point);
 						if ( has.x() || has.y() ) {
@@ -550,17 +551,17 @@ namespace noug {
 		set_receive(true);
 		set_text_word_break(TextWordBreak::BREAK_WORD);
 		// bind events
-		add_event_listener(UIEvent_Click, &Input::Inl::click_handle, Inl_Input(this));
-		add_event_listener(UIEvent_TouchStart, &Input::Inl::touchstart_handle, Inl_Input(this));
-		add_event_listener(UIEvent_TouchMove, &Input::Inl::touchmove_handle, Inl_Input(this));
-		add_event_listener(UIEvent_TouchEnd, &Input::Inl::touchend_handle, Inl_Input(this));
-		add_event_listener(UIEvent_TouchCancel, &Input::Inl::touchend_handle, Inl_Input(this));
-		add_event_listener(UIEvent_MouseDown, &Input::Inl::mousedown_handle, Inl_Input(this));
-		add_event_listener(UIEvent_MouseMove, &Input::Inl::mousemove_handle, Inl_Input(this));
-		add_event_listener(UIEvent_MouseUp, &Input::Inl::mouseup_handle, Inl_Input(this));
-		add_event_listener(UIEvent_Focus, &Input::Inl::focus_handle, Inl_Input(this));
-		add_event_listener(UIEvent_Blur, &Input::Inl::blur_handle, Inl_Input(this));
-		add_event_listener(UIEvent_KeyDown, &Input::Inl::keydown_handle, Inl_Input(this));
+		add_event_listener(UIEvent_Click, &Inl::click_handle, Inl_Input(this));
+		add_event_listener(UIEvent_TouchStart, &Inl::touchstart_handle, Inl_Input(this));
+		add_event_listener(UIEvent_TouchMove, &Inl::touchmove_handle, Inl_Input(this));
+		add_event_listener(UIEvent_TouchEnd, &Inl::touchend_handle, Inl_Input(this));
+		add_event_listener(UIEvent_TouchCancel, &Inl::touchend_handle, Inl_Input(this));
+		add_event_listener(UIEvent_MouseDown, &Inl::mousedown_handle, Inl_Input(this));
+		add_event_listener(UIEvent_MouseMove, &Inl::mousemove_handle, Inl_Input(this));
+		add_event_listener(UIEvent_MouseUp, &Inl::mouseup_handle, Inl_Input(this));
+		add_event_listener(UIEvent_Focus, &Inl::focus_handle, Inl_Input(this));
+		add_event_listener(UIEvent_Blur, &Inl::blur_handle, Inl_Input(this));
+		add_event_listener(UIEvent_KeyDown, &Inl::keydown_handle, Inl_Input(this));
 	}
 
 	bool Input::is_multiline() {

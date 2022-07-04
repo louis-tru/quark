@@ -171,7 +171,7 @@ namespace noug {
 		/**
 		 * @overwrite
 		 */
-		virtual void trigger_listener_change(const NameType& name, int count, int change);
+		virtual void trigger_listener_change(const NameType& name, int count, int change) override;
 
 		/**
 		 * @func has_child(child)

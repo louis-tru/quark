@@ -95,6 +95,7 @@ namespace noug {
 		void solveBorder(Box* box);
 		void solveBorderRadius(Box* box);
 		void solveBorderNoRadius(Box* box);
+		// void solveTextBackground(Array<TextBlob> *blob);
 	protected:
 		sk_sp<GrDirectContext> _direct;
 		sk_sp<SkSurface> _surface, _rasterSurface;

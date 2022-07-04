@@ -81,6 +81,8 @@ void layout_text(FlowLayout* flow) {
 	text->set_origin_x({ 0, BoxOriginKind::AUTO });
 	text->set_origin_y({ 0, BoxOriginKind::AUTO });
 	text->set_rotate(45);
+	text->set_text_line_height({16});
+	text->set_text_background_color({ Color(0,255,0) });
 
 	text->set_fill_color(Color(255,0,0,255));
 	text->set_text_align(TextAlign::CENTER);
@@ -92,7 +94,7 @@ void layout_text(FlowLayout* flow) {
 	//labe->set_text_value("ABC  DEFG楚");
 	//labe->set_text_value("Noug 1           abcdefghijkmln 禁忌");
 	labe->set_text_value("Noug 1           abcdefghijkmln 禁忌");
-	labe->set_text_color({ Color(0,255,255,255) });
+	labe->set_text_color({ Color(0,0,0) });
 }
 
 void layout(Event<>& evt, Application* app) {

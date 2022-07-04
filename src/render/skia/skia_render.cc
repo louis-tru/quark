@@ -137,8 +137,65 @@ namespace noug {
 	}
 
 	void SkiaRender::visitInput(Input* input) {
-		solveBox(input, [](SkiaRender* render, Box* box) {
-			// accept
+		solveBox(input, [](SkiaRender* r, Box* box) {
+			auto v = static_cast<Input*>(box);
+
+			if (!N_ENABLE_DRAW) return;
+			if (v->_blob_visible.length() == 0) return;
+
+			auto lines = *v->_lines;
+			auto size = v->text_size().value;
+			SkPaint paint = r->_paint;
+
+			auto setColor = [&](Color color) {
+				auto c4f = SkColor4f::FromColor(color.to_uint32_argb());
+				c4f.fA *= r->_alpha;
+				paint.setColor4f(c4f);
+			};
+
+			auto drawBackground = [&](TextBlob &blob) {
+				auto &line = lines->line(blob.line);
+				auto x = line.origin + blob.origin;
+				auto y = line.baseline - blob.ascent;
+				r->_canvas->drawRect({
+					x + blob.offset.front().x(), y,
+					x + blob.offset.back().x(), y + blob.height
+				}, paint);
+			};
+
+			// draw text background
+			if (v->text_background_color().value.a()) {
+				setColor(v->text_background_color().value);
+				for (auto i: v->_blob_visible) drawBackground(v->_blob[i]);
+			}
+
+			// draw text marked
+			auto begin = v->_marked_blob_begin;
+			auto end = v->_marked_blob_end;
+			if (begin < end) {
+				setColor(v->_marked_color);
+				do drawBackground(v->_blob[begin++]); while(begin < end);
+			}
+			
+			auto color = v->_text_value_u4.length() ? v->text_color().value: v->placeholder_color();
+			if (color.a()) {
+				// TODO draw text shadow
+
+				// draw text
+				setColor(color);
+				for (auto i: v->_blob_visible) {
+					auto &blob = v->_blob[i];
+					auto &line = lines->line(blob.line);
+					auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
+					tf->ref();
+					r->_canvas->drawGlyphs(
+						blob.glyphs.length(), *blob.glyphs, (SkPoint*)*blob.offset,
+						{line.origin + blob.origin, line.baseline},
+						SkFont(sk_sp<SkTypeface>(tf), size), paint
+					);
+				}
+			} // if (color.a())
+			// callback end
 		});
 	}
 
@@ -150,23 +207,46 @@ namespace noug {
 		solveBox(text, nullptr);
 	}
 
-	void SkiaRender::visitLabel(Label* label) {
+	void SkiaRender::visitLabel(Label* v) {
 
-		if (label->_blob.length()) {
-			_canvas->setMatrix(label->matrix());
+		if (!N_ENABLE_DRAW) return;
+		if (v->_blob_visible.length() == 0) return;
 
-			auto lines = *label->_lines;
-			auto size = label->text_size().value;
+		_canvas->setMatrix(v->matrix());
 
-			SkPaint paint = _paint;
-			auto c4f = SkColor4f::FromColor(label->text_color().value.to_uint32_argb());
+		auto lines = *v->_lines;
+		auto size = v->text_size().value;
+		SkPaint paint = _paint;
+
+		// draw text  background
+		
+		if (v->text_background_color().value.a()) {
+			auto c4f = SkColor4f::FromColor(v->text_background_color().value.to_uint32_argb());
 			c4f.fA *= _alpha;
 			paint.setColor4f(c4f);
-			
-			// TODO draw text shadow and text  background ...
-			
-			if (N_ENABLE_DRAW) for (auto i: label->_blob_visible) {
-				auto &blob = label->_blob[i];
+
+			for (auto i: v->_blob_visible) {
+				auto &blob = v->_blob[i];
+				auto &line = lines->line(blob.line);
+				auto x = line.origin + blob.origin;
+				auto y = line.baseline - blob.ascent;
+				_canvas->drawRect({
+					x + blob.offset.front().x(), y,
+					x + blob.offset.back().x(), y + blob.height
+				}, paint);
+			}
+		}
+		
+		if (v->text_color().value.a()) {
+			// TODO draw text shadow
+
+			// draw text
+			auto c4f = SkColor4f::FromColor(v->text_color().value.to_uint32_argb());
+			c4f.fA *= _alpha;
+			paint.setColor4f(c4f);
+
+			for (auto i: v->_blob_visible) {
+				auto &blob = v->_blob[i];
 				auto &line = lines->line(blob.line);
 				auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
 				tf->ref();
@@ -176,9 +256,9 @@ namespace noug {
 					SkFont(sk_sp<SkTypeface>(tf), size), paint
 				);
 			}
-		}
+		} // if (v->text_color().value.a())
 
-		SkiaRender::visitView(label);
+		SkiaRender::visitView(v);
 	}
 
 	void SkiaRender::visitRoot(Root* v) {

@@ -44,6 +44,7 @@ namespace noug {
 		N_Define_View(Input);
 	public:
 		typedef ReferenceTraits Traits;
+		Input();
 		// define props
 		N_DEFINE_PROP(bool, security);
 		N_DEFINE_PROP(bool, readonly);

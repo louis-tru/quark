@@ -660,7 +660,7 @@ namespace noug {
 		auto text_white_space = opts->text_white_space_value();
 		//auto text_word_break = opts->text_word_break_value();
 		bool is_auto_wrap = true;
-		auto limitX = lines->size().x();
+		auto limitX = lines->host_size().x();
 		auto origin = lines->pre_width();
 
 		if (lines->no_wrap() || // 容器没有固定宽度

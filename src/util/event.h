@@ -542,6 +542,8 @@ namespace noug {
 		
 		virtual ~Notification() {
 			if ( _noticers ) {
+				for (auto& i: *_noticers)
+					delete i.value;
 				delete _noticers;
 				_noticers = nullptr;
 			}
@@ -551,7 +553,7 @@ namespace noug {
 			if ( _noticers != nullptr ) {
 				auto it = _noticers->find(name);
 				if (it != _noticers->end()) {
-					return &it->value;
+					return it->value;
 				}
 			}
 			return nullptr;
@@ -786,17 +788,16 @@ namespace noug {
 
 	private:
 
-		typedef Dict<Name, Noticer> Noticers;
+		typedef Dict<Name, Noticer*> Noticers;
 
-		Noticer& get_noticer2(const Name& name) {
-			if (_noticers == nullptr) {
+		Noticer* get_noticer2(const Name& name) {
+			if (_noticers == nullptr)
 				_noticers = new Noticers();
-			}
 			auto it = _noticers->find(name);
 			if (it != _noticers->end()) {
-				return &it->value;
+				return it->value;
 			} else {
-				return &_noticers->set(name, Noticer(name, static_cast<typename Noticer::Sender*>(this)));
+				return _noticers->set(name, new Noticer(name.to_string(), static_cast<typename Noticer::Sender*>(this)));
 			}
 		}
 

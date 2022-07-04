@@ -264,7 +264,7 @@ namespace noug {
 			} else {
 				if (is_break) break;
 			}
-			N_DEBUG("blob,%f,%d,%d,%i", blob.origin, blob.line, blob.glyphs.length(), line.visible_region);
+			N_DEBUG("blob,%f,%d,%d,%i", item.origin, item.line, item.glyphs.length(), line.visible_region);
 		}
 	}
 

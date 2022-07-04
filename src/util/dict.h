@@ -308,7 +308,8 @@ namespace noug {
 	V& Dict<K, V, C, A>::set(const K& key, V&& value) {
 		Pair* pair;
 		if (get_(key, &pair)) {
-			new(&pair->key) K(key); new(&pair->value) V(std::move(value));
+			new(&pair->key) K(key);
+			new(&pair->value) V(std::move(value));
 		} else {
 			pair->value = std::move(value);
 		}
