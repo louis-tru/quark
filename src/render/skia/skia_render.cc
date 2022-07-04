@@ -217,7 +217,6 @@ namespace noug {
 			SkPaint paint = _paint;
 
 			// draw text  background
-			
 			if (v->text_background_color().value.a()) {
 				auto c4f = SkColor4f::FromColor(v->text_background_color().value.to_uint32_argb());
 				c4f.fA *= _alpha;
