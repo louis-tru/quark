@@ -155,7 +155,7 @@ namespace noug {
 			unregister_task();
 		}
 
-		Vec2 position() {
+		Vec2 get_position() {
 			Vec2 point(
 				padding_left() - origin_value()[0],
 				padding_top() - origin_value()[1]
@@ -282,7 +282,7 @@ namespace noug {
 		}
 
 		Vec2i is_auto_find_is_required(Vec2 point) {
-			auto pos = position();
+			auto pos = get_position();
 			auto size = content_size();
 
 			int x = 0, y = 0; // 0 表示没有方向,不需要自动查找
@@ -309,7 +309,7 @@ namespace noug {
 		void auto_selectd() {
 			if ( !_editing || _blob.length() == 0 ) return;
 
-			auto pos = position();
+			auto pos = get_position();
 			auto point = _point;
 			auto offset = input_text_offset();
 			auto dir = is_auto_find_is_required(point);
@@ -362,7 +362,7 @@ namespace noug {
 				return;
 			}
 
-			auto pos = position();
+			auto pos = get_position();
 
 			// find line
 
@@ -381,7 +381,8 @@ namespace noug {
 					auto& item = _lines->line(j);
 					if (y >= offset.y() + item.start_y &&
 							y <= offset.y() + item.end_y ) {
-						line = &item; break;
+						line = &item;
+						break;
 					}
 				}
 			}
@@ -480,7 +481,7 @@ namespace noug {
 		}
 
 		void input_insert_text(cString4& text) {
-			if ( !text.length() ) {
+			if ( text.length() ) {
 				if (_max_length && _text_value_u4.length() + text.length() > _max_length)
 					return;
 
@@ -543,7 +544,7 @@ namespace noug {
 		, _marked_color(0, 160, 255, 100)
 		, _marked_text_idx(0), _cursor(0), _cursor_linenum(0)
 		, _marked_blob_begin(0), _marked_blob_end(0)
-		, _cursor_x(0), _input_text_offset_x(0)
+		, _cursor_x(0), _input_text_offset_x(0), _input_text_offset_y(0)
 		, _text_ascent(0), _text_height(0)
 		, _editing(false), _cursor_twinkle_status(true), _flag(kFlag_Normal)
 	{
@@ -612,7 +613,7 @@ namespace noug {
 
 			_lines->set_metrics(&metrics, text_line_height().value);
 			_text_ascent = -metrics.fAscent;
-			_text_height =  metrics.fDescent + metrics.fLeading;
+			_text_height =  _text_ascent + metrics.fDescent + metrics.fLeading;
 			_marked_blob_begin = _marked_blob_end = 0;
 
 			_blob_visible.clear();
@@ -728,20 +729,17 @@ namespace noug {
 			
 				for ( int j = 0; j < _blob.length(); j++ ) {
 					auto& i = _blob[j];
-					uint32_t index = i.index;
+					auto index = i.index;
+					auto end = index + i.glyphs.length();
 					
 					if ( _cursor == index ) {
 						cell = &i; break;
 					} else if ( _cursor > index ) {
-						uint32_t end_action = index + i.glyphs.length();
-						
-						if ( _cursor < end_action ) {
+						if ( _cursor < end ) {
 							cell = &i; break;
-						} else {
-							if ( _cursor == end_action ) {
-								if ( uint32_t(j + 1) == i.glyphs.length() ) { // last cell
-									cell = &i; break;
-								}
+						} else if ( _cursor == end ) {
+							if ( uint32_t(j + 1) == i.glyphs.length() ) { // last cell
+								cell = &i; break;
 							}
 						}
 					}
@@ -797,6 +795,8 @@ namespace noug {
 						text_offset.set_y(final_height - _lines->max_height());
 					}
 				}
+			} else {
+				 text_offset.set_y((final_height - _lines->max_height()) / 2);
 			}
 			
 		x:
@@ -817,7 +817,6 @@ namespace noug {
 				}
 				
 				// 检测文本x轴两端是在非法显示区域
-				
 				switch ( _text_align ) {
 					default:
 						offset = text_offset.x(); break;
@@ -839,8 +838,8 @@ namespace noug {
 			
 			set_input_text_offset(text_offset);
 		} else {
-			if ( !is_multiline() ) { // 
-				set_input_text_offset(Vec2());
+			if ( !is_multiline() ) {
+				set_input_text_offset(Vec2(0, (content_size().y() - _lines->max_height()) / 2));
 			}
 		}
 	}
@@ -952,6 +951,10 @@ namespace noug {
 		return _return_type;
 	}
 
+	Object* Input::to_object() {
+		return this;
+	}
+
 	void Input::onTextChange(uint32_t value) {
 		value ? mark(value): mark_none();
 	}
@@ -1008,11 +1011,12 @@ namespace noug {
 	}
 
 	Vec2 Input::input_text_offset() {
-		return Vec2(_input_text_offset_x, 0);
+		return Vec2(_input_text_offset_x, _input_text_offset_y);
 	}
 
 	void Input::set_input_text_offset(Vec2 val) {
 		_input_text_offset_x = val.x();
+		_input_text_offset_y = val.y();
 	}
 
 	bool Input::run_task(int64_t sys_time) {

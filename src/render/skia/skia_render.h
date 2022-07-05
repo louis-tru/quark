@@ -73,7 +73,7 @@ namespace noug {
 		virtual void visitFlowLayout(FlowLayout* flow);
 		virtual void visitFlexLayout(FlexLayout* flex);
 		virtual SkiaCanvas* getCanvas();
-		void solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v));
+		void solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v, int &clip));
 	private:
 		// make
 		void MakeSkRectFrom(Box *box);
@@ -95,7 +95,7 @@ namespace noug {
 		void solveBorder(Box* box);
 		void solveBorderRadius(Box* box);
 		void solveBorderNoRadius(Box* box);
-		// void solveTextBackground(Array<TextBlob> *blob);
+		void useInsideClip(Box* box, int &clip);
 	protected:
 		sk_sp<GrDirectContext> _direct;
 		sk_sp<SkSurface> _surface, _rasterSurface;

@@ -58,41 +58,41 @@ using namespace noug;
 
 @implementation IOSTextRange
 
-	+ (id)new {
-		return [IOSTextRange new:[IOSTextPosition new] end:[IOSTextPosition new]];
-	}
++ (id)new {
+	return [IOSTextRange new:[IOSTextPosition new] end:[IOSTextPosition new]];
+}
 
-	+ (id)new:(IOSTextPosition*)start end:(IOSTextPosition*)end {
-		IOSTextRange* range = [[IOSTextRange alloc] init];
-		range->_start = start.value;
-		range->_end = end.value;
-		return range;
-	}
++ (id)new:(IOSTextPosition*)start end:(IOSTextPosition*)end {
+	IOSTextRange* range = [[IOSTextRange alloc] init];
+	range->_start = start.value;
+	range->_end = end.value;
+	return range;
+}
 
-	+ (id)new_with_uint:(NSUInteger)start end:(NSUInteger)end {
-		IOSTextRange* range = [[IOSTextRange alloc] init];
-		range->_start = start;
-		range->_end = end;
-		return range;
-	}
++ (id)new_with_uint:(NSUInteger)start end:(NSUInteger)end {
+	IOSTextRange* range = [[IOSTextRange alloc] init];
+	range->_start = start;
+	range->_end = end;
+	return range;
+}
 
-	- (BOOL)isEmpty {
-		return _end == _start;
-	}
+- (BOOL)isEmpty {
+	return _end == _start;
+}
 
-	- (UITextPosition*)start {
-		return [IOSTextPosition new:_start];
-	}
+- (UITextPosition*)start {
+	return [IOSTextPosition new:_start];
+}
 
-	- (UITextPosition*)end {
-		return [IOSTextPosition new:_end];
-	}
+- (UITextPosition*)end {
+	return [IOSTextPosition new:_end];
+}
 
-	- (id)copyWithZone:(NSZone*)zone {
-		IOSTextRange* copy = [[[self class] allocWithZone: zone] init];
-		copy->_start = _start; copy->_end = _end;
-		return copy;
-	}
+- (id)copyWithZone:(NSZone*)zone {
+	IOSTextRange* copy = [[[self class] allocWithZone: zone] init];
+	copy->_start = _start; copy->_end = _end;
+	return copy;
+}
 
 @end
 
@@ -112,335 +112,399 @@ using namespace noug;
 
 @implementation IOSIMEHelprt
 
-	#pragma mark UITextInputTraits protocol
-	@synthesize autocapitalizationType;
-	@synthesize autocorrectionType;
-	@synthesize keyboardType;
-	@synthesize keyboardAppearance;
-	@synthesize returnKeyType;
-	@synthesize spellCheckingType;
-	@synthesize enablesReturnKeyAutomatically;
+#pragma mark UITextInputTraits protocol
+@synthesize autocapitalizationType;
+@synthesize autocorrectionType;
+@synthesize keyboardType;
+@synthesize keyboardAppearance;
+@synthesize returnKeyType;
+@synthesize spellCheckingType;
+@synthesize enablesReturnKeyAutomatically;
 
-	#pragma mark UITextInput protocol
-	@synthesize selectedTextRange;
-	@synthesize markedTextRange;
-	@synthesize markedTextStyle;
-	@synthesize beginningOfDocument;
-	@synthesize endOfDocument;
-	@synthesize inputDelegate;
-	@synthesize tokenizer;
+#pragma mark UITextInput protocol
+@synthesize selectedTextRange;
+@synthesize markedTextRange;
+@synthesize markedTextStyle;
+@synthesize beginningOfDocument;
+@synthesize endOfDocument;
+@synthesize inputDelegate;
+@synthesize tokenizer;
 
-	- (id)initWithApplication:(Application*)app {
-		self = [super initWithFrame:CGRectMake(0, -1000, 0, 0)];
-		if (self) {
-			self.autocapitalizationType = UITextAutocapitalizationTypeNone;
-			self.autocorrectionType = UITextAutocorrectionTypeNo;
-			self.keyboardType = UIKeyboardTypeDefault;
-			self.returnKeyType = UIReturnKeyDefault;
-			self.backgroundColor = [UIColor whiteColor];
-			_marked_text = @"";
-			_tokenizer = [[UITextInputStringTokenizer alloc] initWithTextInput:self];
-			_can_backspace = NO;
-			_app = _inl_app(app);
-			_keyboard_up_keycode = 0;
-			_clearing = NO;
-			_has_open = NO;
-			
-			NSNotificationCenter* notification = [NSNotificationCenter defaultCenter];
-			
-			[notification addObserver:self
-											selector:@selector(UIKeyboardWillShowNotification:)
-													name:UIKeyboardWillShowNotification
-												object:nil];
-			[notification addObserver:self
-											selector:@selector(UIKeyboardDidShowNotification:)
-													name:UIKeyboardDidShowNotification
-												object:nil];
-			[notification addObserver:self
-											selector:@selector(UIKeyboardWillHideNotification:)
-													name:UIKeyboardWillHideNotification
-												object:nil];
-			[notification addObserver:self
-											selector:@selector(UIKeyboardDidHideNotification:)
-													name:UIKeyboardDidHideNotification
-												object:nil];
-			[notification addObserver:self
-											selector:@selector(UITextInputCurrentInputModeDidChangeNotification:)
-													name:UITextInputCurrentInputModeDidChangeNotification
-												object:nil];
-		}
-		return self;
-	}
-
-	- (void)dealloc {
-		[[NSNotificationCenter defaultCenter] removeObserver:self];
-	}
-
-	- (void)UIKeyboardWillShowNotification:(NSNotification*)note {
+- (id)initWithApplication:(Application*)app {
+	self = [super initWithFrame:CGRectMake(0, -1000, 0, 0)];
+	if (self) {
+		self.autocapitalizationType = UITextAutocapitalizationTypeNone;
+		self.autocorrectionType = UITextAutocorrectionTypeNo;
+		self.keyboardType = UIKeyboardTypeDefault;
+		self.returnKeyType = UIReturnKeyDefault;
+		self.backgroundColor = [UIColor whiteColor];
+		_marked_text = @"";
+		_tokenizer = [[UITextInputStringTokenizer alloc] initWithTextInput:self];
+		_can_backspace = NO;
+		_app = _inl_app(app);
+		_keyboard_up_keycode = 0;
+		_clearing = NO;
+		_has_open = NO;
 		
-	}
-
-	- (void)UIKeyboardDidShowNotification:(NSNotification*)note {
+		NSNotificationCenter* notification = [NSNotificationCenter defaultCenter];
 		
+		[notification addObserver:self
+										selector:@selector(UIKeyboardWillShowNotification:)
+												name:UIKeyboardWillShowNotification
+											object:nil];
+		[notification addObserver:self
+										selector:@selector(UIKeyboardDidShowNotification:)
+												name:UIKeyboardDidShowNotification
+											object:nil];
+		[notification addObserver:self
+										selector:@selector(UIKeyboardWillHideNotification:)
+												name:UIKeyboardWillHideNotification
+											object:nil];
+		[notification addObserver:self
+										selector:@selector(UIKeyboardDidHideNotification:)
+												name:UIKeyboardDidHideNotification
+											object:nil];
+		[notification addObserver:self
+										selector:@selector(UITextInputCurrentInputModeDidChangeNotification:)
+												name:UITextInputCurrentInputModeDidChangeNotification
+											object:nil];
 	}
+	return self;
+}
 
-	- (void)UIKeyboardWillHideNotification:(NSNotification*)note {
-		
+- (void)dealloc {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)UIKeyboardWillShowNotification:(NSNotification*)note {
+	
+}
+
+- (void)UIKeyboardDidShowNotification:(NSNotification*)note {
+	
+}
+
+- (void)UIKeyboardWillHideNotification:(NSNotification*)note {
+	
+}
+
+- (void)UIKeyboardDidHideNotification:(NSNotification*)note {
+	
+}
+
+- (void)UITextInputCurrentInputModeDidChangeNotification:(NSNotification*)note {
+	
+}
+
+- (void)open {
+	_has_open = YES;
+	if ([self becomeFirstResponder]) {
+		N_DEBUG("becomeFirstResponder ok");
 	}
+}
+- (void)close {
+	_has_open = NO;
+	[self resignFirstResponder];
+}
 
-	- (void)UIKeyboardDidHideNotification:(NSNotification*)note {
-		
-	}
-
-	- (void)UITextInputCurrentInputModeDidChangeNotification:(NSNotification*)note {
-		
-	}
-
-	- (void)open {
-		_has_open = YES;
+- (void)clear {
+	_marked_text = @"";
+	_keyboard_up_keycode = 0;
+	_clearing = YES;
+	if ( self.isFirstResponder ) {
+		[self resignFirstResponder];
 		[self becomeFirstResponder];
 	}
-	- (void)close {
-		_has_open = NO;
-		[self resignFirstResponder];
-	}
+	_clearing = NO;
+}
 
-	- (void)clear {
-		_marked_text = @"";
-		_keyboard_up_keycode = 0;
-		_clearing = YES;
-		if ( self.isFirstResponder ) {
-			[self resignFirstResponder];
-			[self becomeFirstResponder];
-		}
-		_clearing = NO;
-	}
+- (void)set_keyboard_can_backspace:(bool)can_backspace can_delete:(bool)can_delete {
+	_can_backspace = can_backspace;
+}
 
-	- (void)set_keyboard_can_backspace:(bool)can_backspace can_delete:(bool)can_delete {
-		_can_backspace = can_backspace;
-	}
-
-	- (void)set_keyboard_type:(KeyboardType)type {
-			UIKeyboardType type2 = UIKeyboardTypeDefault;
-			switch ( type ) {
-				default: break;
-				case KeyboardType::ASCII: type2 = UIKeyboardTypeASCIICapable; break;
-				case KeyboardType::NUMBER: type2 = UIKeyboardTypeNumbersAndPunctuation; break;
-				case KeyboardType::URL: type2 = UIKeyboardTypeURL; break;
-				case KeyboardType::NUMBER_PAD: type2 = UIKeyboardTypeNumberPad; break;
-				case KeyboardType::PHONE: type2 = UIKeyboardTypePhonePad; break;
-				case KeyboardType::NAME_PHONE: type2 = UIKeyboardTypeNamePhonePad; break;
-				case KeyboardType::EMAIL: type2 = UIKeyboardTypeEmailAddress; break;
-				case KeyboardType::DECIMAL: type2 = UIKeyboardTypeDecimalPad; break;
-				case KeyboardType::TWITTER: type2 = UIKeyboardTypeTwitter; break;
-				case KeyboardType::SEARCH: type2 = UIKeyboardTypeWebSearch; break;
-				case KeyboardType::ASCII_NUMBER: type2 = UIKeyboardTypeASCIICapableNumberPad; break;
-			}
-			self.keyboardType = type2;
-	}
-
-	- (void)set_keyboard_return_type:(KeyboardReturnType)type {
-		UIReturnKeyType type2 = UIReturnKeyDefault;
+- (void)set_keyboard_type:(KeyboardType)type {
+		UIKeyboardType type2 = UIKeyboardTypeDefault;
 		switch ( type ) {
 			default: break;
-			case KeyboardReturnType::GO: type2 = UIReturnKeyGo; break;
-			//case KeyboardReturnType::GOOGLE: type2 = UIReturnKeyGoogle; break;
-			case KeyboardReturnType::JOIN: type2 = UIReturnKeyJoin; break;
-			case KeyboardReturnType::NEXT: type2 = UIReturnKeyNext; break;
-			case KeyboardReturnType::ROUTE: type2 = UIReturnKeyRoute; break;
-			case KeyboardReturnType::SEARCH: type2 = UIReturnKeySearch; break;
-			case KeyboardReturnType::SEND: type2 = UIReturnKeySend; break;
-			//case KeyboardReturnType::YAHOO: type2 = UIReturnKeyYahoo; break;
-			case KeyboardReturnType::DONE: type2 = UIReturnKeyDone; break;
-			case KeyboardReturnType::EMERGENCY: type2 = UIReturnKeyEmergencyCall; break;
-			case KeyboardReturnType::CONTINUE: type2 = UIReturnKeyContinue; break;
+			case KeyboardType::ASCII: type2 = UIKeyboardTypeASCIICapable; break;
+			case KeyboardType::NUMBER: type2 = UIKeyboardTypeNumbersAndPunctuation; break;
+			case KeyboardType::URL: type2 = UIKeyboardTypeURL; break;
+			case KeyboardType::NUMBER_PAD: type2 = UIKeyboardTypeNumberPad; break;
+			case KeyboardType::PHONE: type2 = UIKeyboardTypePhonePad; break;
+			case KeyboardType::NAME_PHONE: type2 = UIKeyboardTypeNamePhonePad; break;
+			case KeyboardType::EMAIL: type2 = UIKeyboardTypeEmailAddress; break;
+			case KeyboardType::DECIMAL: type2 = UIKeyboardTypeDecimalPad; break;
+			case KeyboardType::TWITTER: type2 = UIKeyboardTypeTwitter; break;
+			case KeyboardType::SEARCH: type2 = UIKeyboardTypeWebSearch; break;
+			case KeyboardType::ASCII_NUMBER: type2 = UIKeyboardTypeASCIICapableNumberPad; break;
 		}
-		self.returnKeyType = type2;
-	}
+		self.keyboardType = type2;
+}
 
-	- (BOOL)canBecomeFirstResponder {
-		return YES;
+- (void)set_keyboard_return_type:(KeyboardReturnType)type {
+	UIReturnKeyType type2 = UIReturnKeyDefault;
+	switch ( type ) {
+		default: break;
+		case KeyboardReturnType::GO: type2 = UIReturnKeyGo; break;
+		//case KeyboardReturnType::GOOGLE: type2 = UIReturnKeyGoogle; break;
+		case KeyboardReturnType::JOIN: type2 = UIReturnKeyJoin; break;
+		case KeyboardReturnType::NEXT: type2 = UIReturnKeyNext; break;
+		case KeyboardReturnType::ROUTE: type2 = UIReturnKeyRoute; break;
+		case KeyboardReturnType::SEARCH: type2 = UIReturnKeySearch; break;
+		case KeyboardReturnType::SEND: type2 = UIReturnKeySend; break;
+		//case KeyboardReturnType::YAHOO: type2 = UIReturnKeyYahoo; break;
+		case KeyboardReturnType::DONE: type2 = UIReturnKeyDone; break;
+		case KeyboardReturnType::EMERGENCY: type2 = UIReturnKeyEmergencyCall; break;
+		case KeyboardReturnType::CONTINUE: type2 = UIReturnKeyContinue; break;
 	}
+	self.returnKeyType = type2;
+}
 
-	- (BOOL)hasText {
-		return _marked_text.length > 0;
-	}
+- (BOOL)canBecomeFirstResponder {
+	return YES;
+}
 
-	- (void)insertText:(NSString*)text {
-		if ( text.length == 1 && _marked_text.length == 0 ) {
-			uint16_t keycode = [text characterAtIndex:0];
-			if ( _keyboard_up_keycode == 0 ) {
-				_app->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
-			} else {
-				N_ASSERT( keycode == _keyboard_up_keycode );
-			}
-			_app->dispatch()->onImeInsert([text UTF8String]);
-			_app->dispatch()->keyboard()->onDispatch(keycode, 1, 0, 0, -1, 0);
-			_keyboard_up_keycode = 0;
+- (BOOL)hasText {
+	return _marked_text.length > 0;
+}
+
+- (void)insertText:(NSString*)text {
+	if ( text.length == 1 && _marked_text.length == 0 ) {
+		uint16_t keycode = [text characterAtIndex:0];
+		if ( _keyboard_up_keycode == 0 ) {
+			_app->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
 		} else {
-			_app->dispatch()->onImeInsert([text UTF8String]);
+			N_ASSERT( keycode == _keyboard_up_keycode );
 		}
-	}
-
-	- (void)deleteBackward {
+		_app->dispatch()->onImeInsert([text UTF8String]);
+		_app->dispatch()->keyboard()->onDispatch(keycode, 1, 0, 0, -1, 0);
 		_keyboard_up_keycode = 0;
-		_app->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 1, 0, -1, 0);
-		_app->dispatch()->onImeDelete(-1);
-		_app->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 0, 0, -1, 0);
+	} else {
+		_app->dispatch()->onImeInsert([text UTF8String]);
 	}
+}
 
-	- (NSString*)textInRange:(UITextRange*)range {
-		return _marked_text;
-	}
+- (void)deleteBackward {
+	_keyboard_up_keycode = 0;
+	_app->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 1, 0, -1, 0);
+	_app->dispatch()->onImeDelete(-1);
+	_app->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 0, 0, -1, 0);
+}
 
-	- (void)replaceRange:(UITextRange*)range withText:(NSString*)text {
-		
-	}
+- (NSString*)textInRange:(UITextRange*)range {
+	return _marked_text;
+}
 
-	- (void)setSelectedTextRange:(UITextRange*)aSelectedTextRange {
-		
-	}
+- (void)replaceRange:(UITextRange*)range withText:(NSString*)text {
+}
 
-	- (UITextRange*)selectedTextRange {
-		return [IOSTextRange new];
-	}
+- (UITextRange*)selectedTextRange {
+	return [IOSTextRange new];
+}
 
-	- (void)setMarkedTextSlant:(NSDictionary*)style {
-		
-	}
-
-	- (NSDictionary*)markedTextSlant {
+- (UITextRange*)markedTextRange {
+	if ( _marked_text.length == 0 ) {
 		return nil;
 	}
+	return [IOSTextRange new];
+}
 
-	- (UITextRange*)markedTextRange {
-		if ( _marked_text.length == 0 ) {
-			return nil;
-		}
-		return [IOSTextRange new];
-	}
+- (void)setSelectedTextRange:(UITextRange*)aSelectedTextRange {
+}
 
-	- (void)setMarkedText:(NSString*)markedText selectedRange:(NSRange)selectedRange {
+- (NSDictionary*)markedTextSlant {
+	return nil;
+}
+
+- (void)setMarkedTextSlant:(NSDictionary*)style {
+}
+
+- (void)setMarkedText:(NSString*)markedText selectedRange:(NSRange)selectedRange {
+	if ( !_clearing ) {
+		_marked_text = markedText;
+		_app->dispatch()->onImeMarked([_marked_text UTF8String]);
 		
-		if ( !_clearing ) {
-			_marked_text = markedText;
-			_app->dispatch()->onImeMarked([_marked_text UTF8String]);
+		if ( _keyboard_up_keycode ) {
+			_app->dispatch()->keyboard()->onDispatch(_keyboard_up_keycode, 1, 0, 0, -1, 0);
+			_keyboard_up_keycode = 0;
+		}
+	}
+}
+
+- (void)unmarkText {
+	if ( !_clearing ) {
+		_app->dispatch()->onImeUnmark([_marked_text UTF8String]);
+	}
+	_marked_text = @"";
+}
+
+- (UITextPosition*)beginningOfDocument {
+	return [IOSTextPosition new];
+}
+
+- (UITextPosition*)endOfDocument {
+	return [IOSTextPosition new:_marked_text.length];
+}
+
+- (UITextRange*)textRangeFromPosition:(UITextPosition*)fromPosition
+													toPosition:(UITextPosition*)toPosition {
+	return [IOSTextRange new:(IOSTextPosition*)fromPosition end:(IOSTextPosition*)toPosition];
+}
+
+- (UITextPosition*)positionFromPosition:(UITextPosition*)position
+																offset:(NSInteger)offset {
+	IOSTextPosition* p = (IOSTextPosition*)position;
+	return [IOSTextPosition new:p.value + offset];
+}
+
+- (UITextPosition*)positionFromPosition:(UITextPosition*)position
+														inDirection:(UITextLayoutDirection)direction
+																offset:(NSInteger)offset {
+	return [IOSTextPosition new];
+}
+
+- (NSComparisonResult)comparePosition:(UITextPosition*)position
+													toPosition:(UITextPosition*)other {
+	return _can_backspace ? NSOrderedAscending: NSOrderedSame;
+}
+
+- (NSInteger)offsetFromPosition:(UITextPosition*)from
+										toPosition:(UITextPosition*)toPosition {
+	NSUInteger a = [(IOSTextPosition*)from value];
+	NSUInteger b = [(IOSTextPosition*)toPosition value];
+	NSInteger result = b - a;
+	return result;
+}
+
+- (id<UITextInputTokenizer>)tokenizer {
+	return _tokenizer;
+}
+
+- (UITextPosition*)positionWithinRange:(UITextRange *)range
+									farthestInDirection:(UITextLayoutDirection)direction {
+	return nil;
+}
+
+- (nullable UITextRange *)characterRangeByExtendingPosition:(nonnull UITextPosition *)position
+																								inDirection:(UITextLayoutDirection)direction {
+	return nil;
+}
+
+- (UITextWritingDirection)baseWritingDirectionForPosition:(UITextPosition *)position
+																							inDirection:(UITextStorageDirection)direction; {
+	return UITextWritingDirectionLeftToRight;
+}
+
+- (void)setBaseWritingDirection:(UITextWritingDirection)writingDirection
+											forRange:(UITextRange*)range {
+	
+}
+
+- (::CGRect)firstRectForRange:(UITextRange*)range {
+	return CGRectZero;
+}
+
+- (::CGRect)caretRectForPosition:(UITextPosition*)position {
+	return CGRectZero;
+}
+
+- (NSArray*)selectionRectsForRange:(UITextRange*)range{
+	return nil;
+}
+
+- (UITextPosition*)closestPositionToPoint:(CGPoint)point {
+	return [IOSTextPosition new];
+}
+
+- (UITextPosition*)closestPositionToPoint:(CGPoint)point withinRange:(UITextRange*)range {
+	return range.start;
+}
+
+- (nullable UITextRange *)characterRangeAtPoint:(CGPoint)point {
+	return [IOSTextRange new];
+}
+
+- (BOOL)shouldChangeTextInRange:(UITextRange*)range replacementText:(NSString*)text {
+	
+	_keyboard_up_keycode = 0;
+	
+	if ( text ) {
+		if ( text.length == 1 ) {
+			uint16_t keycode = [text characterAtIndex:0];
 			
-			if ( _keyboard_up_keycode ) {
-				_app->dispatch()->keyboard()->onDispatch(_keyboard_up_keycode, 1, 0, 0, -1, 0);
-				_keyboard_up_keycode = 0;
+			if ( ![text isEqualToString:_marked_text] ) {
+				_keyboard_up_keycode = keycode;
+				_app->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
 			}
 		}
 	}
+	return YES;
+}
 
-	- (void)unmarkText {
-		if ( !_clearing ) {
-			_app->dispatch()->onImeUnmark([_marked_text UTF8String]);
-		}
-		_marked_text = @"";
-	}
+- (void)encodeWithCoder:(nonnull NSCoder *)coder {
+}
 
-	- (UITextPosition*)beginningOfDocument {
-		return [IOSTextPosition new];
-	}
+//+ (nonnull instancetype)appearance {
+//
+//}
+//
+//+ (nonnull instancetype)appearanceForTraitCollection:(nonnull UITraitCollection *)trait {
+//
+//}
+//
+//+ (nonnull instancetype)appearanceForTraitCollection:(nonnull UITraitCollection *)trait whenContainedIn:(nullable Class<UIAppearanceContainer>)ContainerClass, ... {
+//
+//}
+//
+//+ (nonnull instancetype)appearanceForTraitCollection:(nonnull UITraitCollection *)trait whenContainedInInstancesOfClasses:(nonnull NSArray<Class<UIAppearanceContainer>> *)containerTypes {
+//
+//}
+//
+//+ (nonnull instancetype)appearanceWhenContainedIn:(nullable Class<UIAppearanceContainer>)ContainerClass, ... {
+//
+//}
+//
+//+ (nonnull instancetype)appearanceWhenContainedInInstancesOfClasses:(nonnull NSArray<Class<UIAppearanceContainer>> *)containerTypes {
+//
+//}
 
-	- (UITextPosition*)endOfDocument {
-		return [IOSTextPosition new:_marked_text.length];
-	}
+- (void)traitCollectionDidChange:(nullable UITraitCollection *)previousTraitCollection {
+	N_DEBUG("traitCollectionDidChange");
+}
 
-	- (UITextRange*)textRangeFromPosition:(UITextPosition*)fromPosition
-														toPosition:(UITextPosition*)toPosition {
-		return [IOSTextRange new:(IOSTextPosition*)fromPosition end:(IOSTextPosition*)toPosition];
-	}
+- (CGPoint)convertPoint:(CGPoint)point fromCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
+	N_DEBUG("convertPoint:fromCoordinateSpace");
+}
 
-	- (UITextPosition*)positionFromPosition:(UITextPosition*)position
-																	offset:(NSInteger)offset {
-		IOSTextPosition* p = (IOSTextPosition*)position;
-		return [IOSTextPosition new:p.value + offset];
-	}
+- (CGPoint)convertPoint:(CGPoint)point toCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
+	N_DEBUG("convertPoint:toCoordinateSpace");
+}
 
-	- (UITextPosition*)positionFromPosition:(UITextPosition*)position
-															inDirection:(UITextLayoutDirection)direction
-																	offset:(NSInteger)offset {
-		return [IOSTextPosition new];
-	}
+- (CGRect)convertRect:(CGRect)rect fromCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
+	N_DEBUG("convertRect:fromCoordinateSpace");
+}
 
-	- (NSComparisonResult)comparePosition:(UITextPosition*)position
-														toPosition:(UITextPosition*)other {
-		return _can_backspace ? NSOrderedAscending: NSOrderedSame;
-	}
+- (CGRect)convertRect:(CGRect)rect toCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
+	N_DEBUG("convertRect:toCoordinateSpace");
+}
 
-	- (NSInteger)offsetFromPosition:(UITextPosition*)from
-											toPosition:(UITextPosition*)toPosition {
-		NSUInteger a = [(IOSTextPosition*)from value];
-		NSUInteger b = [(IOSTextPosition*)toPosition value];
-		NSInteger result = b - a;
-		return result;
-	}
+- (void)didUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context withAnimationCoordinator:(nonnull UIFocusAnimationCoordinator *)coordinator {
+	N_DEBUG("didUpdateFocusInContext:withAnimationCoordinator");
+}
 
-	- (id<UITextInputTokenizer>)tokenizer {
-		return _tokenizer;
-	}
+- (void)setNeedsFocusUpdate {
+	N_DEBUG("setNeedsFocusUpdate");
+}
 
-	- (UITextPosition*)positionWithinRange:(UITextRange *)range
-										farthestInDirection:(UITextLayoutDirection)direction {
-		return nil;
-	}
+- (BOOL)shouldUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context {
+	N_DEBUG("shouldUpdateFocusInContext");
+}
 
-	- (UITextRange*)CharacterRangeByExtendingPosition:(UITextPosition *)position
-																				inDirection:(UITextLayoutDirection)direction; {
-		return nil;
-	}
+- (void)updateFocusIfNeeded {
+	N_DEBUG("updateFocusIfNeeded");
+}
 
-	- (UITextWritingDirection)baseWritingDirectionForPosition:(UITextPosition *)position
-																								inDirection:(UITextStorageDirection)direction; {
-		return UITextWritingDirectionLeftToRight;
-	}
-
-	- (void)setBaseWritingDirection:(UITextWritingDirection)writingDirection
-												forRange:(UITextRange*)range {
-		
-	}
-
-	- (::CGRect)firstRectForRange:(UITextRange*)range {
-		return CGRectZero;
-	}
-
-	- (::CGRect)caretRectForPosition:(UITextPosition*)position {
-		return CGRectZero;
-	}
-
-	- (NSArray*)selectionRectsForRange:(UITextRange*)range{
-		return nil;
-	}
-
-	- (UITextPosition*)closestPositionToPoint:(CGPoint)point {
-		return [IOSTextPosition new];
-	}
-
-	- (UITextPosition*)closestPositionToPoint:(CGPoint)point withinRange:(UITextRange*)range {
-		return range.start;
-	}
-
-	- (UITextRange*)CharacterRangeAtPoint:(CGPoint)point {
-		return [IOSTextRange new];
-	}
-
-	- (BOOL)shouldChangeTextInRange:(UITextRange*)range replacementText:(NSString*)text {
-		
-		_keyboard_up_keycode = 0;
-		
-		if ( text ) {
-			if ( text.length == 1 ) {
-				uint16_t keycode = [text characterAtIndex:0];
-				
-				if ( ![text isEqualToString:_marked_text] ) {
-					_keyboard_up_keycode = keycode;
-					_app->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
-				}
-			}
-		}
-		return YES;
-	}
+//- (nonnull NSArray<id<UIFocusItem>> *)focusItemsInRect:(CGRect)rect {
+//}
 
 @end

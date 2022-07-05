@@ -171,8 +171,8 @@ namespace noug {
 	};
 
 	typedef FillSizeKind BoxOriginKind;
-	typedef ValueWrap<BoxSizeKind, BoxSizeKind::WRAP> BoxSize;
-	typedef ValueWrap<BoxOriginKind, BoxOriginKind::AUTO> BoxOrigin;
+	typedef ValueWrap<BoxSizeKind, BoxSizeKind::PIXEL> BoxSize;
+	typedef ValueWrap<BoxOriginKind, BoxOriginKind::PIXEL> BoxOrigin;
 
 	// ---------------- T e x t . F o n t ----------------
 

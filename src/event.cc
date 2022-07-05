@@ -69,6 +69,27 @@ namespace noug {
 			}
 		}
 		
+		void trigger_click(UIEvent& evt) {
+			View* view = this;
+			do {
+				if ( view->_receive ) {
+					view->trigger(UIEvent_Click, evt);
+					if ( !evt.is_bubble() ) {
+						break; // Stop bubble
+					}
+				}
+				if (view->parent()) { // root
+					view = view->parent();
+				} else {
+					if (evt.is_default()) {
+						if (evt.origin() != pre_render()->host()->focus_view())
+							view->focus(); // root
+					}
+					break;
+				}
+			} while(true);
+		}
+
 		/**
 		 * @func bubble_trigger
 		 */
@@ -84,7 +105,7 @@ namespace noug {
 				view = view->parent();
 			}
 		}
-
+		
 		void trigger(const NameType& name, UIEvent& evt) {
 			if ( _receive ) {
 				Notification::trigger(name, evt);
@@ -218,7 +239,7 @@ namespace noug {
 			_is_click_invalid = true;
 			_is_click_down = false;
 		}
-		inline void set_click_down(bool value) {
+		inline void set_is_click_down(bool value) {
 			if ( !_is_click_invalid )
 				_is_click_down = value;
 		}
@@ -314,7 +335,7 @@ namespace noug {
 				_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
 				
 				if ( !_origin_touches[view]->is_click_down() ) { // trigger click down
-					_origin_touches[view]->set_click_down(true);
+					_origin_touches[view]->set_is_click_down(true);
 					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
 					_inl_view(view)->trigger_highlightted(**evt); // emit event
 				}
@@ -415,11 +436,12 @@ namespace noug {
 						bool trigger_event = true;
 						for ( auto t : origin_touche->values() ) {
 							if (t.value.click_in) {
-								trigger_event = false; break;
+								trigger_event = false;
+								break;
 							}
 						}
 						if ( trigger_event ) {
-							origin_touche->set_click_down(false); // set up status
+							origin_touche->set_is_click_down(false); // set up status
 							// emit style status event
 							auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
 							_inl_view(view)->trigger_highlightted(**evt);
@@ -428,7 +450,7 @@ namespace noug {
 						for ( int i = 0; i < touchs.length(); i++) {
 							auto item = touchs[i];
 							if ( item.click_in ) { // find range == true
-								origin_touche->set_click_down(true); // set down status
+								origin_touche->set_is_click_down(true); // set down status
 								// emit style down event
 								auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
 								_inl_view(view)->trigger_highlightted(**evt);
@@ -476,7 +498,7 @@ namespace noug {
 							
 							if ( type == UIEvent_TouchEnd && view->layout_depth() ) {
 								auto evt = NewEvent<ClickEvent>(view, item.x, item.y, ClickEvent::TOUCH);
-								_inl_view(view)->bubble_trigger(UIEvent_Click, **evt); // emit click event
+								_inl_view(view)->trigger_click(**evt); // emit click event
 							}
 							break;
 						}
@@ -664,8 +686,7 @@ namespace noug {
 				**NewEvent<HighlightedEvent>(*view, HIGHLIGHTED_HOVER)); // emit style status event
 
 			if (*view == *raw_down_view) {
-				_inl_view(*view)->bubble_trigger(UIEvent_Click,
-					**NewEvent<ClickEvent>(*view, x, y, ClickEvent::MOUSE));
+				_inl_view(*view)->trigger_click(**NewEvent<ClickEvent>(*view, x, y, ClickEvent::MOUSE));
 			}
 		}
 	}
@@ -816,7 +837,7 @@ namespace noug {
 					
 					auto point = view->position();
 					auto evt2 = NewEvent<ClickEvent>(view, point.x(), point.y(), ClickEvent::KEYBOARD);
-					_inl_view(view)->bubble_trigger(UIEvent_Click, **evt2);
+					_inl_view(view)->trigger_click(**evt2);
 				} //
 			}
 		}

@@ -11,6 +11,7 @@
 #include <noug/layout/image.h>
 #include <noug/layout/label.h>
 #include <noug/layout/text.h>
+#include <noug/layout/input.h>
 #include <noug/effect.h>
 #include <noug/display.h>
 #include <noug/util/fs.h>
@@ -43,7 +44,7 @@ public:
 		auto render = static_cast<SkiaRender*>(visitor);
 		auto src = source();
 
-		render->solveBox(this, src && src->ready() ? [](SkiaRender* render, Box* box) {
+		render->solveBox(this, src && src->ready() ? [](SkiaRender* render, Box* box, int &clip) {
 			Image* v = static_cast<Image*>(box);
 			auto img = CastSkImage(v->source());
 			auto canvas = render->getCanvas();
@@ -67,12 +68,12 @@ public:
 		
 		auto r = app()->root();
 		auto fill = static_cast<FillGradientLinear*>(static_cast<Box*>(r->first())->fill());
-		fill->set_angle(fill->angle() + 2);
+		//fill->set_angle(fill->angle() + 2);
 	}
 };
 
-void layout_text(FlowLayout* flow) {
-	auto text = (TextLayout*)New<TextLayout>()->append_to(flow);
+void layout_text(Box* box) {
+	auto text = (TextLayout*)New<TextLayout>()->append_to(box);
 	auto labe = (Label*)     New<Label>()     ->append_to(text);
 
 	text->set_width({ 0, BoxSizeKind::MATCH });
@@ -93,8 +94,20 @@ void layout_text(FlowLayout* flow) {
 	labe->set_text_weight(TextWeight::BOLD);
 	//labe->set_text_value("ABC  DEFG楚");
 	//labe->set_text_value("Noug 1           abcdefghijkmln 禁忌");
-	labe->set_text_value("Noug 1           abcdefghijkmln 禁忌");
+	labe->set_text_value("Noug 1           abcdefghijkmln 禁忌学");
 	labe->set_text_color({ Color(0,0,0) });
+}
+
+void layout_input(Box* box) {
+	auto input = (Input*)New<Input>()->append_to(box);
+
+	input->set_width({ 200, BoxSizeKind::PIXEL });
+	input->set_height({ 100, BoxSizeKind::PIXEL });
+	input->set_fill_color(Color(255,255,255));
+	// input->set_text_line_height({ 40 });
+	input->set_padding_left(4);
+	input->set_padding_right(4);
+	input->set_placeholder("placeholder..");
 }
 
 void layout(Event<>& evt, Application* app) {
@@ -102,12 +115,14 @@ void layout(Event<>& evt, Application* app) {
 	app->default_text_options()->set_text_family({ app->font_pool()->getFFID("Helvetica, PingFang SC") });
 
 	auto r = Root::create();
-	auto flex = (FlexLayout*)New<FlexLayout>()->append_to(r);
+	//auto flex = (FlexLayout*)New<FlexLayout>()->aprpend_to(r);
+	auto flex = (FlowLayout*)New<FlowLayout>()->append_to(r);
 	auto flow = (FlowLayout*)New<FlowLayout>()->append_to(r);
 	auto img  = (Image*)     New<Image>     ()->append_to(r);
 	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
 	
-	layout_text(flow);
+	//layout_text(flow);
+	layout_input(r);
 
 	flex->set_fill_color(Color(255,0,0,255));
 	//flex->set_fill(New<FillImage>(fs_resources("bench/img/21.jpeg"), FillImage::Init{

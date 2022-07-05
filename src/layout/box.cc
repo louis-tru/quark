@@ -146,6 +146,7 @@ namespace noug {
 		*/
 	Box::Box()
 		: _layout_wrap_x(true), _layout_wrap_y(true), _is_radius(false), _is_clip(false)
+		, _width{0, BoxSizeKind::WRAP}, _height{0, BoxSizeKind::WRAP} 
 		, _width_limit{0, BoxSizeKind::NONE}, _height_limit{0, BoxSizeKind::NONE}
 		, _origin_x{0, BoxOriginKind::PIXEL}, _origin_y{0, BoxOriginKind::PIXEL}
 		, _margin_top(0), _margin_right(0)

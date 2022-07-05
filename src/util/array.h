@@ -306,7 +306,7 @@ namespace noug {
 	{}
 
 	template<typename T, typename A>
-	Array<T, A>::Array(Array& arr): Array(std::move(arr))
+	Array<T, A>::Array(Array& arr): Array(arr.copy())//Array(std::move(arr))
 	{}
 
 	template<typename T, typename A>

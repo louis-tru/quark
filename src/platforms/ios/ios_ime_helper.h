@@ -45,7 +45,8 @@ using namespace noug;
 	- (void)open;
 	- (void)close;
 	- (void)clear;
-	- (void)set_keyboard_can_backspace:(bool)can_backspace can_delete:(bool)can_delete;
+	- (void)set_keyboard_can_backspace:(bool)can_backspace
+													can_delete:(bool)can_delete;
 	- (void)set_keyboard_type:(KeyboardType)type;
 	- (void)set_keyboard_return_type:(KeyboardReturnType)type;
 @end

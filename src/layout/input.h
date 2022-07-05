@@ -81,6 +81,7 @@ namespace noug {
 		virtual Vec2 input_spot_location() override;
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
+		virtual Object* to_object() override;
 	protected:
 		void refresh_cursor_screen_position();
 		virtual void onTextChange(uint32_t mark) override;
@@ -94,7 +95,7 @@ namespace noug {
 		Color   _marked_color;
 		uint32_t  _marked_text_idx, _cursor, _cursor_linenum;
 		uint32_t  _marked_blob_begin, _marked_blob_end;
-		float _cursor_x, _input_text_offset_x;
+		float _cursor_x, _input_text_offset_x, _input_text_offset_y;
 		float _text_ascent, _text_height;
 		bool  _editing, _cursor_twinkle_status;
 		char  _flag;

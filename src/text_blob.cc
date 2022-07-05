@@ -193,6 +193,14 @@ namespace noug {
 		: _disable_overflow(false), _disable_auto_wrap(false), _lines(lines), _opts(opts), _blob(blob)
 	{}
 
+	void TextBlobBuilder::set_disable_overflow(bool value) {
+		_disable_overflow = value;
+	}
+
+	void TextBlobBuilder::set_disable_auto_wrap(bool value) {
+		_disable_auto_wrap = value;
+	}
+
 	void TextBlobBuilder::make(cString& text) {
 		auto lines = string_to_unichar(text, _opts->text_white_space_value());
 		make(lines);

@@ -108,7 +108,7 @@ namespace noug {
 
 	void SkiaRender::visitImage(Image* box) {
 		auto src = box->source();
-		solveBox(box, src && src->ready() ? [](SkiaRender* render, Box* box) {
+		solveBox(box, src && src->ready() ? [](SkiaRender* render, Box* box, int &clip) {
 			Image* v = static_cast<Image*>(box);
 			auto begin = Vec2(
 				v->_padding_left - v->_origin_value.x(),
@@ -127,7 +127,7 @@ namespace noug {
 	}
 
 	void SkiaRender::visitVideo(Video* video) {
-		solveBox(video, [](SkiaRender* render, Box* box) {
+		solveBox(video, [](SkiaRender* render, Box* box, int &clip) {
 			// TODO ...
 		});
 	}
@@ -137,63 +137,82 @@ namespace noug {
 	}
 
 	void SkiaRender::visitInput(Input* input) {
-		solveBox(input, [](SkiaRender* r, Box* box) {
+		solveBox(input, [](SkiaRender* r, Box* box, int &clip) {
+			if (!N_ENABLE_DRAW) return;
+
 			auto v = static_cast<Input*>(box);
-
-			if (v->_blob_visible.length() == 0 || !N_ENABLE_DRAW) return;
-
 			auto lines = *v->_lines;
-			auto size = v->text_size().value;
+			auto offset = v->input_text_offset() + Vec2(v->_padding_left, v->_padding_top);
 			SkPaint paint = r->_paint;
+			
+			r->solveFill(box, box->_fill, box->_fill_color);
 
-			auto setColor = [&](Color color) {
+			auto set_color = [&](Color color) {
 				auto c4f = SkColor4f::FromColor(color.to_uint32_argb());
 				c4f.fA *= r->_alpha;
 				paint.setColor4f(c4f);
 			};
 
-			auto drawBackground = [&](TextBlob &blob) {
-				auto &line = lines->line(blob.line);
-				auto x = line.origin + blob.origin;
-				auto y = line.baseline - blob.ascent;
-				r->_canvas->drawRect({
-					x + blob.offset.front().x(), y,
-					x + blob.offset.back().x(), y + blob.height
-				}, paint);
-			};
+			if (v->_blob_visible.length()) {
+				r->useInsideClip(box, clip);
 
-			// draw text background
-			if (v->text_background_color().value.a()) {
-				setColor(v->text_background_color().value);
-				for (auto i: v->_blob_visible) drawBackground(v->_blob[i]);
-			}
-
-			// draw text marked
-			auto begin = v->_marked_blob_begin;
-			auto end = v->_marked_blob_end;
-			if (begin < end) {
-				setColor(v->_marked_color);
-				do drawBackground(v->_blob[begin++]); while(begin < end);
-			}
-			
-			auto color = v->_text_value_u4.length() ? v->text_color().value: v->placeholder_color();
-			if (color.a()) {
-				// TODO draw text shadow
-
-				// draw text
-				setColor(color);
-				for (auto i: v->_blob_visible) {
-					auto &blob = v->_blob[i];
+				auto draw_background = [&](TextBlob &blob) {
 					auto &line = lines->line(blob.line);
-					auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
-					tf->ref();
-					r->_canvas->drawGlyphs(
-						blob.glyphs.length(), *blob.glyphs, (SkPoint*)*blob.offset,
-						{line.origin + blob.origin, line.baseline},
-						SkFont(sk_sp<SkTypeface>(tf), size), paint
-					);
+					auto x = offset.x() + line.origin + blob.origin;
+					auto y = offset.y() + line.baseline - blob.ascent;
+					r->_canvas->drawRect({
+						x + blob.offset.front().x(), y,
+						x + blob.offset.back().x(), y + blob.height
+					}, paint);
+				};
+
+				// draw text background
+				if (v->text_background_color().value.a()) {
+					set_color(v->text_background_color().value);
+					for (auto i: v->_blob_visible)
+						draw_background(v->_blob[i]);
 				}
-			} // if (color.a())
+
+				// draw text marked
+				auto begin = v->_marked_blob_begin;
+				if (begin < v->_marked_blob_end && v->_marked_color.a()) {
+					set_color(v->_marked_color);
+					do
+						draw_background(v->_blob[begin++]);
+					while(begin < v->_marked_blob_end);
+				}
+				
+				auto color = v->_text_value_u4.length() ? v->text_color().value: v->placeholder_color();
+				if (color.a()) {
+					auto size = v->text_size().value;
+					// TODO draw text shadow
+
+					// draw text
+					set_color(color);
+					for (auto i: v->_blob_visible) {
+						auto &blob = v->_blob[i];
+						auto &line = lines->line(blob.line);
+						auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
+						tf->ref();
+						r->_canvas->drawGlyphs(
+							blob.glyphs.length(), *blob.glyphs, (SkPoint*)*blob.offset,
+							{offset.x() + line.origin + blob.origin, offset.y() + line.baseline},
+							SkFont(sk_sp<SkTypeface>(tf), size), paint
+						);
+					}
+				} // if (color.a())
+			}
+
+			// draw cursor
+			if (v->_editing && v->_cursor_twinkle_status) {
+				r->useInsideClip(box, clip);
+				set_color(v->text_color().value);
+				auto &line = lines->line(v->_cursor_linenum);
+				auto x = offset.x() + v->_cursor_x - 1;
+				auto y = offset.y() + line.baseline - v->_text_ascent - 2;
+				r->_canvas->drawRect({ x, y, x + 2, y + v->_text_height + 4 }, paint);
+			}
+
 			// callback end
 		});
 	}
@@ -209,7 +228,6 @@ namespace noug {
 	void SkiaRender::visitLabel(Label* v) {
 
 		if (v->_blob_visible.length() && N_ENABLE_DRAW) {
-
 			_canvas->setMatrix(v->matrix());
 
 			auto lines = *v->_lines;
@@ -268,7 +286,7 @@ namespace noug {
 			}
 
 			if (v->_visible_region && v->_opacity > 0) {
-				solveBox(v, [](SkiaRender* render, Box* box) {
+				solveBox(v, [](SkiaRender* render, Box* box, int &clip) {
 					if (N_ENABLE_DRAW)
 						render->_canvas->clear(box->_fill_color.to_uint32_xrgb());
 					render->solveFill(box, box->_fill, Color::from(0));
@@ -276,6 +294,8 @@ namespace noug {
 			} else {
 				if (N_ENABLE_DRAW) _canvas->clear(SK_ColorBLACK);
 			}
+			
+			_mark_recursive = 0;
 		}
 	}
 
@@ -433,7 +453,20 @@ namespace noug {
 		}
 	}
 
-	void SkiaRender::solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v)) {
+	void SkiaRender::useInsideClip(Box *box, int &clip) {
+		if (clip != 2) {
+			if (clip)
+				_canvas->restore(); // cancel reverse clip
+			_canvas->save();
+			if (N_USE_PATH_DRAW)
+				clipPathInside(box, SkClipOp::kIntersect, true);
+			else
+				clipRectInside(box, SkClipOp::kIntersect, true); // exec reverse clip
+			clip = 2;
+		}
+	}
+
+	void SkiaRender::solveBox(Box* box, void (*fillFn)(SkiaRender* render, Box* v, int &clip)) {
 
 		_canvas->setMatrix(box->matrix());
 
@@ -443,16 +476,7 @@ namespace noug {
 		int clip = 0;
 
 		auto use_clip = [&]() {
-			if (clip != 2) {
-				if (clip)
-					_canvas->restore(); // cancel reverse clip
-				_canvas->save();
-				if (N_USE_PATH_DRAW)
-					clipPathInside(box, SkClipOp::kIntersect, true);
-				else
-					clipRectInside(box, SkClipOp::kIntersect, true); // exec reverse clip
-				clip = 2;
-			}
+			useInsideClip(box, clip);
 		};
 
 		auto cancel_clip = [&]() {
@@ -476,7 +500,7 @@ namespace noug {
 
 		// step 3: if exist fillFn then exec fillFn else exec draw color and image and gradient background ...
 		if (fillFn) {
-			fillFn(this, box);
+			fillFn(this, box, clip);
 		} else {
 			solveFill(box, box->_fill, box->_fill_color);
 		}
