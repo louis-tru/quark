@@ -108,6 +108,7 @@ void layout_input(Box* box) {
 	input->set_padding_left(4);
 	input->set_padding_right(4);
 	input->set_placeholder("placeholder..");
+	//input->set_readonly(true);
 }
 
 void layout(Event<>& evt, Application* app) {
@@ -115,14 +116,14 @@ void layout(Event<>& evt, Application* app) {
 	app->default_text_options()->set_text_family({ app->font_pool()->getFFID("Helvetica, PingFang SC") });
 
 	auto r = Root::create();
-	//auto flex = (FlexLayout*)New<FlexLayout>()->aprpend_to(r);
+	//auto flex = (FlexLayout*)New<FlexLayout>()->append_to(r);
 	auto flex = (FlowLayout*)New<FlowLayout>()->append_to(r);
 	auto flow = (FlowLayout*)New<FlowLayout>()->append_to(r);
 	auto img  = (Image*)     New<Image>     ()->append_to(r);
 	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
 	
 	//layout_text(flow);
-	layout_input(r);
+	layout_input(flex);
 
 	flex->set_fill_color(Color(255,0,0,255));
 	//flex->set_fill(New<FillImage>(fs_resources("bench/img/21.jpeg"), FillImage::Init{

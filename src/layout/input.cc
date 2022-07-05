@@ -137,7 +137,10 @@ namespace noug {
 		}
 
 		void focus_handle(UIEvent& evt) {
-			_editing = true;
+			if (_readonly)
+				_editing = false;
+			else
+				_editing = true;
 			_cursor_twinkle_status = 0;
 			_flag = kFlag_Normal;
 			mark_none(KInput_Status);
@@ -457,7 +460,7 @@ namespace noug {
 		void reset_cursor_twinkle_task_timeout() {
 			_cursor_twinkle_status = 1;
 			if ( _flag == kFlag_Auto_Find || _flag == kFlag_Auto_Range_Select ) {
-				set_task_timeout(time_monotonic() + 50000); // 50ms
+				set_task_timeout(time_monotonic() + 10000); // 10ms
 			} else {
 				set_task_timeout(time_monotonic() + 700000); // 700ms
 			}
@@ -720,56 +723,46 @@ namespace noug {
 			auto size = content_size();
 			auto final_width = size.x();
 			auto final_height = size.y();
-		
-			Vec2 text_offset = input_text_offset();
+			auto text_offset = input_text_offset();
 			TextBlob* cell = nullptr;
 			
-			if ( text_length() ) {
-				int i = 0;
-			
-				for ( int j = 0; j < _blob.length(); j++ ) {
-					auto& i = _blob[j];
-					auto index = i.index;
-					auto end = index + i.glyphs.length();
-					
-					if ( _cursor == index ) {
+			for ( int j = 0; j < _blob.length(); j++ ) {
+				auto &i = _blob[j];
+				auto index = i.index;
+				auto end = index + i.glyphs.length();
+				
+				if ( _cursor == index ) {
+					cell = &i; break;
+				} else if ( _cursor > index ) {
+					if ( _cursor < end ) {
 						cell = &i; break;
-					} else if ( _cursor > index ) {
-						if ( _cursor < end ) {
+					} else if ( _cursor == end ) {
+						if ( uint32_t(j + 1) == _blob.length() ) { // last cell
 							cell = &i; break;
-						} else if ( _cursor == end ) {
-							if ( uint32_t(j + 1) == i.glyphs.length() ) { // last cell
-								cell = &i; break;
-							}
 						}
 					}
 				}
 			}
 			
-			// 计算光标的具体偏移位置与文本编辑状态下最适合的显示的文本偏移量
-			
+			// 计算光标的具体偏移位置
 			TextLines::Line* line = nullptr;
-			
+
 			if ( cell ) { // set cursor pos
-				float offset = cell->offset[_cursor - cell->index].x();
+				auto offset = cell->offset[_cursor - cell->index].x();
 				_cursor_linenum = cell->line;
 				line = &_lines->line(_cursor_linenum);
 				_cursor_x = line->origin + cell->origin + offset;
 			} else { // 找不到cell定位到最后行
-				switch ( _text_align ) {
-					default:
-						_cursor_x = 0; break;
-					case TextAlign::CENTER:
-						_cursor_x = final_width / 2.0; break;
-					case TextAlign::RIGHT:
-						_cursor_x = final_width; break;
-				}
 				_cursor_linenum = _lines->last()->line;
 				line = &_lines->line(_cursor_linenum);
+				switch ( _text_align ) {
+					default: _cursor_x = 0; break;
+					case TextAlign::CENTER: _cursor_x = final_width / 2.0; break;
+					case TextAlign::RIGHT:  _cursor_x = final_width; break;
+				}
 			}
-
-			float max_width = _lines->max_width();
-
+			
+			// 计算文本编辑状态下最适合的显示的文本偏移量
 			// y
 			if ( is_multiline() ) {
 				if ( _lines->max_height() < final_height) {
@@ -788,27 +781,24 @@ namespace noug {
 					
 					if ( text_offset.y() > 0 ) { // top
 						text_offset.set_y(0);
-						goto x;
-					}
-					offset = text_offset.y() + _lines->max_height();
-					if ( offset < final_height ) { // bottom
-						text_offset.set_y(final_height - _lines->max_height());
+					} else {
+						offset = text_offset.y() + _lines->max_height();
+						if ( offset < final_height ) { // bottom
+							text_offset.set_y(final_height - _lines->max_height());
+						}
 					}
 				}
 			} else {
-				 text_offset.set_y((final_height - _lines->max_height()) / 2);
+				text_offset.set_y((final_height - _lines->max_height()) / 2);
 			}
 			
-		x:
-			
 			// x
+			auto max_width = _lines->max_width();
 			if ( max_width <= final_width ) {
 				text_offset.set_x(0);
 			} else {
-				
 				// 让光标x轴始终在可见范围
-				
-				float offset = _cursor_x + text_offset.x();
+				auto offset = _cursor_x + text_offset.x();
 				
 				if ( offset < 0 ) { // left cursor
 					text_offset.set_x(-_cursor_x);
@@ -827,19 +817,20 @@ namespace noug {
 				}
 
 				if ( offset > 0 ) { // left
-					text_offset.set_x(text_offset.x() - offset); goto end_action;
-				}
-				offset += max_width;
-				if ( offset < final_width ) { // right
-					text_offset.set_x(text_offset.x() - offset + final_width);
+					text_offset.set_x(text_offset.x() - offset);
+				} else {
+					offset += max_width;
+					if ( offset < final_width ) { // right
+						text_offset.set_x(text_offset.x() - offset + final_width);
+					}
 				}
 			}
-		end_action:
 			
 			set_input_text_offset(text_offset);
 		} else {
 			if ( !is_multiline() ) {
 				set_input_text_offset(Vec2(0, (content_size().y() - _lines->max_height()) / 2));
+				//set_input_text_offset(Vec2());
 			}
 		}
 	}
@@ -995,6 +986,18 @@ namespace noug {
 			mark(kLayout_Typesetting);
 		}
 	}
+
+	void Input::set_readonly(bool value) {
+		 if (_readonly != value) {
+			 _readonly = value;
+			 if (_readonly) {
+				 _editing = false;
+			 } else if (is_focus()) {
+				 _editing = true;
+			 }
+			 mark(KInput_Status);
+		 }
+	 }
 
 	void Input::set_max_length(uint32_t value) {
 		_max_length = value;

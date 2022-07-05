@@ -272,12 +272,12 @@ using namespace noug;
 	if ( text.length == 1 && _marked_text.length == 0 ) {
 		uint16_t keycode = [text characterAtIndex:0];
 		if ( _keyboard_up_keycode == 0 ) {
-			_app->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
+			_app->dispatch()->keyboard()->onDispatch(keycode, 1, true/*down*/, 0, -1, 0);
 		} else {
 			N_ASSERT( keycode == _keyboard_up_keycode );
 		}
 		_app->dispatch()->onImeInsert([text UTF8String]);
-		_app->dispatch()->keyboard()->onDispatch(keycode, 1, 0, 0, -1, 0);
+		_app->dispatch()->keyboard()->onDispatch(keycode, 1, false/*up*/, 0, -1, 0);
 		_keyboard_up_keycode = 0;
 	} else {
 		_app->dispatch()->onImeInsert([text UTF8String]);
@@ -425,7 +425,6 @@ using namespace noug;
 }
 
 - (BOOL)shouldChangeTextInRange:(UITextRange*)range replacementText:(NSString*)text {
-	
 	_keyboard_up_keycode = 0;
 	
 	if ( text ) {

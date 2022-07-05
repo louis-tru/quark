@@ -190,8 +190,7 @@ namespace noug {
 
 	}
 
-	void KeyboardAdapter::onDispatch(uint32_t keycode, bool unicode,
-																	bool down, int repeat, int device, int source)
+	void KeyboardAdapter::onDispatch(uint32_t keycode, bool unicode, bool down, int repeat, int device, int source)
 	{
 		async_resolve(Cb([=](CbData& evt) {
 			UILock lock;

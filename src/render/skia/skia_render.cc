@@ -209,8 +209,8 @@ namespace noug {
 				set_color(v->text_color().value);
 				auto &line = lines->line(v->_cursor_linenum);
 				auto x = offset.x() + v->_cursor_x - 1;
-				auto y = offset.y() + line.baseline - v->_text_ascent - 2;
-				r->_canvas->drawRect({ x, y, x + 2, y + v->_text_height + 4 }, paint);
+				auto y = offset.y() + line.baseline - v->_text_ascent - 1;
+				r->_canvas->drawRect({ x, y, x + 2, y + v->_text_height + 2 }, paint);
 			}
 
 			// callback end
