@@ -410,7 +410,6 @@ void AppInl::ime_keyboard_close() {
  * @func ime_keyboard_spot_location
  */
 void AppInl::ime_keyboard_spot_location(Vec2 location) {
-	// TODO...
 }
 
 /**

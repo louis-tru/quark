@@ -35,7 +35,13 @@
 namespace noug {
 
 	TextOptions::TextOptions()
-		: _text_size{ .kind=TextValueKind::INHERIT }
+		: _text_weight(TextWeight::INHERIT)
+		, _text_slant(TextSlant::INHERIT)
+		, _text_decoration(TextDecoration::INHERIT)
+		, _text_overflow(TextOverflow::INHERIT)
+		, _text_white_space(TextWhiteSpace::INHERIT)
+		, _text_word_break(TextWordBreak::INHERIT)
+		, _text_size{ .kind=TextValueKind::INHERIT }
 		, _text_background_color{ .kind=TextValueKind::INHERIT }
 		, _text_color{ .kind=TextValueKind::INHERIT }
 		, _text_shadow{ .kind=TextValueKind::INHERIT }

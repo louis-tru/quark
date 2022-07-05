@@ -101,13 +101,15 @@ void layout_text(Box* box) {
 void layout_input(Box* box) {
 	auto input = (Input*)New<Input>()->append_to(box);
 
-	input->set_width({ 200, BoxSizeKind::PIXEL });
-	input->set_height({ 100, BoxSizeKind::PIXEL });
+	input->set_width({ 200 });
+	input->set_height({ 26 });
 	input->set_fill_color(Color(255,255,255));
 	// input->set_text_line_height({ 40 });
 	input->set_padding_left(4);
 	input->set_padding_right(4);
 	input->set_placeholder("placeholder..");
+	//input->set_text_background_color({Color(255,0,0)});
+ 	//input->set_text_weight(TextWeight::DEFAULT);
 	//input->set_readonly(true);
 }
 

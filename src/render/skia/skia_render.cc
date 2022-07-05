@@ -167,7 +167,7 @@ namespace noug {
 				};
 
 				// draw text background
-				if (v->text_background_color().value.a()) {
+				if (v->text_length() && v->text_background_color().value.a()) {
 					set_color(v->text_background_color().value);
 					for (auto i: v->_blob_visible)
 						draw_background(v->_blob[i]);
