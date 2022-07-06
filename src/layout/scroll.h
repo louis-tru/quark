@@ -79,7 +79,6 @@ namespace noug {
 		uint64_t _move_start_time;
 		uint32_t _action_id;
 		float _scrollbar_opacity;
-		Curve *_scroll_curve;
 		bool _moved;               // 受外力移动中
 		bool _scroll_h, _scroll_v; // 是否已激活水平与垂直滚动
 		bool _lock_h, _lock_v;
