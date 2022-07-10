@@ -109,10 +109,6 @@ namespace noug {
 			uint64_t time;
 		};
 
-		void mark_none(uint32_t mark) {
-			//_host->mark_none(mark);
-		}
-
 		class ScrollMotionTask: public BaseScroll::Task {
 		public:
 			
@@ -692,7 +688,7 @@ namespace noug {
 		} else {
 			_scroll_raw = Vec2(-value.x(), -value.y());
 			_scroll = _inl(this)->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
-			_host->mark(View::M_SCROLL);
+			_host->mark(View::kScroll_Bar);
 		}
 	}
 
@@ -772,7 +768,7 @@ namespace noug {
 		_inl(this)->termination_recovery(0);
 	}
 
-	void BaseScroll::set_scroll_curve(cCurve* value) {
+	void BaseScroll::set_scroll_curve(Curve* value) {
 		if ( _scroll_curve == &ease_out )
 			_scroll_curve = new Curve();
 		*_scroll_curve = *value;

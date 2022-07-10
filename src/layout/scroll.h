@@ -57,7 +57,7 @@ namespace noug {
 		N_DEFINE_PROP(float, scrollbar_width);
 		N_DEFINE_PROP(float, scrollbar_margin);
 		N_DEFINE_PROP(uint64_t, scroll_duration);
-		N_DEFINE_PROP(cCurve*, scroll_curve);
+		N_DEFINE_PROP(Curve*, scroll_curve);
 		// constructor
 		BaseScroll(Box *host);
 		virtual ~BaseScroll();
