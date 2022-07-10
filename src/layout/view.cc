@@ -649,7 +649,7 @@ namespace noug {
 				v->set_layout_offset_lazy(Vec2()); // lazy layout
 				v = v->next();
 			}
-			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height | kLayout_Text);
+			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height);
 		}
 		return false;
 	}

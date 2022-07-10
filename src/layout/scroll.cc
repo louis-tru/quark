@@ -109,6 +109,10 @@ namespace noug {
 			uint64_t time;
 		};
 
+		void mark_none(uint32_t mark) {
+			//_host->mark_none(mark);
+		}
+
 		class ScrollMotionTask: public BaseScroll::Task {
 		public:
 			
@@ -148,18 +152,18 @@ namespace noug {
 
 			virtual void run(float y) {
 				m_host->_scrollbar_opacity = (m_to - m_from) * y + m_from;
-				m_host->_host->mark(View::M_SCROLL_BAR);
+				m_host->_host->mark_none(View::kScroll_Bar);
 			}
 
 			virtual void end() {
 				m_host->_scrollbar_opacity = m_to;
-				m_host->_host->mark(View::M_SCROLL_BAR);
+				m_host->_host->mark_none(View::kScroll_Bar);
 				_inl(m_host)->termination_task(this);
 			}
 
 			virtual void immediate_end() {
 				m_host->_scrollbar_opacity = m_to;
-				m_host->_host->mark(View::M_SCROLL_BAR);
+				m_host->_host->mark(View::kScroll_Bar);
 				_inl(m_host)->termination_task(this);
 			}
 
@@ -386,7 +390,7 @@ namespace noug {
 				} else {
 					if ( _scrollbar_opacity != 0 ) {
 						_scrollbar_opacity = 0;
-						_host->mark(View::M_SCROLL_BAR);
+						_host->mark(View::kScroll_Bar);
 					}
 				}
 			} else {

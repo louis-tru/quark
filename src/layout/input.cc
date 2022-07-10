@@ -132,7 +132,7 @@ namespace noug {
 				
 				limit_cursor_in_marked_text();
 				reset_cursor_twinkle_task_timeout();
-				mark_none(KInput_Status);
+				mark_none(kInput_Status);
 			}
 		}
 
@@ -143,7 +143,7 @@ namespace noug {
 				_editing = true;
 			_cursor_twinkle_status = 0;
 			_flag = kFlag_Normal;
-			mark_none(KInput_Status);
+			mark_none(kInput_Status);
 			register_task();
 		}
 
@@ -153,7 +153,7 @@ namespace noug {
 			if ( _marked_text.length() ) {
 				input_unmark_text(_marked_text);
 			} else {
-				mark_none(KInput_Status);
+				mark_none(kInput_Status);
 			}
 			unregister_task();
 		}
@@ -444,7 +444,7 @@ namespace noug {
 			
 			limit_cursor_in_marked_text();
 			reset_cursor_twinkle_task_timeout();
-			mark_none(KInput_Status);
+			mark_none(kInput_Status);
 		}
 
 		void limit_cursor_in_marked_text() {
@@ -687,15 +687,15 @@ namespace noug {
 			solve_origin_value();
 
 			// mark input status change
-			mark_none(KInput_Status | kRecursive_Visible_Region);
+			mark_none(kInput_Status | kRecursive_Visible_Region);
 		}
 
 		return false;
 	}
 
 	void Input::solve_marks(uint32_t mark) {
-		if (mark & KInput_Status) {
-			unmark(KInput_Status);
+		if (mark & kInput_Status) {
+			unmark(kInput_Status);
 			// text cursor status
 			refresh_cursor_screen_position(); // text layout
 
@@ -995,7 +995,7 @@ namespace noug {
 			 } else if (is_focus()) {
 				 _editing = true;
 			 }
-			 mark(KInput_Status);
+			 mark(kInput_Status);
 		 }
 	 }
 

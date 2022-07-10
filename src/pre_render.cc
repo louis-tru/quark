@@ -44,7 +44,7 @@ namespace noug {
 			task->set_task_id( id );
 		}
 	}
-	
+
 	/**
 	* @func del_task
 	*/
