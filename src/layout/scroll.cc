@@ -37,8 +37,27 @@
 
 namespace noug {
 
-	static Curve ease_in_out(0.3, 0.3, 0.3, 1);
-	static Curve ease_out(0, 0, 0.58, 1);
+	// ------------------------ B a s e . S c r o l l --------------------------
+
+	static const Curve ease_in_out(0.3, 0.3, 0.3, 1);
+	static const Curve ease_out(0, 0, 0.58, 1);
+
+	class BaseScroll::ScrollBox: public Box {
+	public:
+
+		void triggerScroll() {
+			Sp<UIEvent> evt = New<UIEvent>(this);
+			Notification<UIEvent, UIEventName, Layout>::trigger(UIEvent_Scroll, **evt);
+		}
+
+		void mark_none(uint32_t mark = kLayout_None) {
+			Layout::mark_none(mark);
+		}
+
+		void unmark(uint32_t mark = (~View::kLayout_None)) {
+			Layout::unmark(mark);
+		}
+	};
 
 	class BaseScroll::Task: public PreRender::Task {
 	public:
@@ -50,8 +69,7 @@ namespace noug {
 			, m_immediate_end_flag(false)
 			, m_curve(curve)
 			, m_is_inl_ease_out(&ease_out == &curve)
-		{
-		}
+		{}
 
 		/**
 		 * @func immediate_end_flag
@@ -148,18 +166,18 @@ namespace noug {
 
 			virtual void run(float y) {
 				m_host->_scrollbar_opacity = (m_to - m_from) * y + m_from;
-				m_host->_host->mark_none(View::kScroll_Bar);
+				m_host->_host->mark_none();
 			}
 
 			virtual void end() {
 				m_host->_scrollbar_opacity = m_to;
-				m_host->_host->mark_none(View::kScroll_Bar);
+				m_host->_host->mark_none();
 				_inl(m_host)->termination_task(this);
 			}
 
 			virtual void immediate_end() {
 				m_host->_scrollbar_opacity = m_to;
-				m_host->_host->mark(View::kScroll_Bar);
+				m_host->_host->mark_none();
 				_inl(m_host)->termination_task(this);
 			}
 
@@ -232,12 +250,9 @@ namespace noug {
 		}
 
 		Vec2 get_catch_value() {
-			float x = (_catch_position_x < 1 ||
-								_catch_position_x > _host->final_width()) ?
-								_host->final_width() : _catch_position_x;
-			float y = (_catch_position_y < 1 ||
-								_catch_position_y > _host->final_width()) ?
-								_host->final_height() : _catch_position_y;
+			auto size = _host->content_size();
+			float x = (_catch_position_x < 1 || _catch_position_x > size.x()) ? size.x() : _catch_position_x;
+			float y = (_catch_position_y < 1 || _catch_position_y > size.y()) ? size.y() : _catch_position_y;
 			if (x == 0.0)
 				x = 1.0;
 			if (y == 0.0)
@@ -276,17 +291,17 @@ namespace noug {
 		}
 
 		void set_h_scrollbar_pos() {
-			
 			if ( ! _scrollbar_h ) {
 				return;
 			}
 			
+			float size_x = _host->content_size().x() + _host->padding_left() + _host->padding_right();
 			float left_margin = scrollbar_margin();
 			float right_margin = _scrollbar_v ? left_margin + scrollbar_width() : left_margin;
-			float h_scrollbar_max_size = Float:max(_host->final_width() - left_margin - right_margin, 0);
-			
+			float h_scrollbar_max_size = Float::max(size_x - left_margin - right_margin, 0);
+
 			float h_scrollbar_indicator_size = roundf(powf(h_scrollbar_max_size, 2) / _scroll_size.x());
-			h_scrollbar_indicator_size = Float:max(h_scrollbar_indicator_size, 8.0);
+			h_scrollbar_indicator_size = Float::max(h_scrollbar_indicator_size, 8);
 			float h_scrollbar_max_scroll = h_scrollbar_max_size - h_scrollbar_indicator_size;
 			float h_scrollbar_prop = h_scrollbar_max_scroll / _scroll_max.x();
 			
@@ -309,14 +324,14 @@ namespace noug {
 		}
 
 		void set_v_scrollbar_pos() {
-			
 			if ( ! _scrollbar_v ) {
 				return;
 			}
-			
+
+			float size_y = _host->content_size().y() + _host->padding_top() + _host->padding_bottom();
 			float top_margin = scrollbar_margin();
 			float bottom_margin = _scrollbar_h ? top_margin + scrollbar_width() : top_margin;
-			float v_scrollbar_max_size = Float::max(_host->final_height() - top_margin - bottom_margin, 0);
+			float v_scrollbar_max_size = Float::max(size_y - top_margin - bottom_margin, 0);
 			
 			float v_scrollbar_indicator_size = roundf(powf(v_scrollbar_max_size, 2) / _scroll_size.y());
 			v_scrollbar_indicator_size = Float::max(v_scrollbar_indicator_size, 8);
@@ -356,11 +371,10 @@ namespace noug {
 				set_h_scrollbar_pos();
 				set_v_scrollbar_pos();
 				
-				_host->mark(View::M_SCROLL); // mark
+				_host->mark_none(View::kScroll); // mark
 				
 				_host->pre_render()->host()->loop()->post(Cb([this](CbData& se) {
-					Sp<UIEvent> evt = New<UIEvent>(_host);
-					_host->trigger(UIEvent_Scroll, **evt); // trigger event
+					_host->triggerScroll(); // trigger event
 				}, _host));
 			}
 		}
@@ -386,7 +400,7 @@ namespace noug {
 				} else {
 					if ( _scrollbar_opacity != 0 ) {
 						_scrollbar_opacity = 0;
-						_host->mark(View::kScroll_Bar);
+						_host->mark_none();
 					}
 				}
 			} else {
@@ -502,15 +516,16 @@ namespace noug {
 			if ( duration < 3e5 ) {
 				
 				if ( _momentum ) {
+					auto size = _host->content_size();
 					if ( new_x ) {
 						momentum_x = momentum(duration, new_x - _move_start_scroll.x(),
 																	-_scroll.x(), _scroll.x() - _scroll_max.x(),
-																	_bounce ? _host->final_width() / 2.0 : 0);
+																	_bounce ? size.x() / 2.0 : 0);
 					}
 					if ( new_y ) {
 						momentum_y = momentum(duration, new_y - _move_start_scroll.y(),
 																	-_scroll.y(), _scroll.y() - _scroll_max.y(),
-																	_bounce ? _host->final_height() / 2.0 : 0);
+																	_bounce ? size.y() / 2.0 : 0);
 					}
 					new_x = _scroll.x() + momentum_x.dist;
 					new_y = _scroll.y() + momentum_y.dist;
@@ -641,7 +656,7 @@ namespace noug {
 		, _scrollbar_width(2.0)
 		, _scrollbar_margin(2.0)
 		, _scroll_duration(0)
-		, _host(host)
+		, _host(static_cast<ScrollBox*>(host))
 		, _move_start_time(0)
 		, _action_id(0)
 		, _scrollbar_opacity(0)
@@ -679,7 +694,7 @@ namespace noug {
 		if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
 			_inl(this)->scroll_to_valid_scroll(scroll, duration, curve);
 		}
-		_host->mark(View::M_SCROLL);
+		_host->mark_none(View::kScroll);
 	}
 
 	void BaseScroll::set_scroll(Vec2 value) {
@@ -688,20 +703,20 @@ namespace noug {
 		} else {
 			_scroll_raw = Vec2(-value.x(), -value.y());
 			_scroll = _inl(this)->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
-			_host->mark(View::kScroll_Bar);
+			_host->mark_none();
 		}
 	}
 
 	void BaseScroll::set_scroll_x(float value) {
 		_scroll_raw.set_x(-value);
 		_scroll = _inl(this)->catch_valid_scroll( Vec2(-value, _scroll_raw.y()) );
-		_host->mark(View::M_SCROLL);
+		_host->mark_none(View::kScroll);
 	}
 
 	void BaseScroll::set_scroll_y(float value) {
 		_scroll_raw.set_y(-value);
 		_scroll = _inl(this)->catch_valid_scroll( Vec2(_scroll_raw.x(), -value) );
-		_host->mark(View::M_SCROLL);
+		_host->mark_none(View::kScroll);
 	}
 
 	Vec2 BaseScroll::scroll() const {
@@ -768,10 +783,67 @@ namespace noug {
 		_inl(this)->termination_recovery(0);
 	}
 
-	void BaseScroll::set_scroll_curve(Curve* value) {
+	void BaseScroll::set_scroll_curve(cCurve* value) {
 		if ( _scroll_curve == &ease_out )
 			_scroll_curve = new Curve();
-		*_scroll_curve = *value;
+		*const_cast<Curve*>(_scroll_curve) = *value;
+	}
+
+	void BaseScroll::set_scroll_size(Vec2 size) {
+		if (_scroll_size != size) {
+			_inl(this)->immediate_end_all_task(); // change size immediate task
+			_scroll_size = size;
+		}
+		auto content_size = _host->content_size();
+		_scroll_max = Vec2(Float::min(content_size.x() - size.x(), 0), Float::min(content_size.y() - size.y(), 0));
+		
+		_scroll_h = _scroll_max.x() < 0;
+		_scroll_v = ((!_bounce_lock && !_scroll_h) || _scroll_max.y() < 0);
+		
+		_scrollbar_h = (_scroll_h && _scrollbar);
+		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);
+		//
+		_host->mark_none(View::kScroll);
+	}
+
+	void BaseScroll::solve(uint32_t mark) {
+		if ( mark & View::kScroll ) {
+			if ( !_moved && !_inl(this)->is_task() ) {
+				// fix scroll value
+				_scroll = _inl(this)->catch_valid_scroll(_scroll_raw);
+				_scroll_raw = _scroll;
+			}
+			_host->unmark(View::kScroll);
+			_host->mark_none(View::kRecursive_Transform);
+		}
+	}
+
+	// ------------------------ S c r o l l --------------------------
+
+	Scroll::Scroll(): BaseScroll(this)
+	{}
+
+	Vec2 Srcoll::layout_offset_inside() {
+		auto origin = origin_value();
+		Vec2 offset(
+			padding_left() - origin.x() + scroll_x(),
+			padding_top() - origin.y() + scroll_y()
+		);
+		if (_border) {
+			offset.val[0] += _border->width_left;
+			offset.val[1] += _border->width_top;
+		}
+		return offset;
+	}
+
+	bool Srcoll::layout_reverse(uint32_t mark) {
+		//TODO ...
+		return FloatLayout::layout_reverse(mark);
+	}
+
+	void Srcoll::solve_marks(uint32_t mark) {
+		BaseScroll::solve(mark);
+		View::solve_marks(mark);
 	}
 
 }

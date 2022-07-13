@@ -31,7 +31,7 @@
 #ifndef __noug__layout__scroll__
 #define __noug__layout__scroll__
 
-#include "./flow.h"
+#include "./float.h"
 #include "../bezier.h"
 
 namespace noug {
@@ -57,7 +57,7 @@ namespace noug {
 		N_DEFINE_PROP(float, scrollbar_width);
 		N_DEFINE_PROP(float, scrollbar_margin);
 		N_DEFINE_PROP(uint64_t, scroll_duration);
-		N_DEFINE_PROP(Curve*, scroll_curve);
+		N_DEFINE_PROP(cCurve*, scroll_curve);
 		// constructor
 		BaseScroll(Box *host);
 		virtual ~BaseScroll();
@@ -67,11 +67,13 @@ namespace noug {
 		void terminate();
 	protected:
 		void set_scroll_size(Vec2 size);
-		void solve();
+		void solve(uint32_t mark);
 	private:
+		class ScrollBox;
 		N_DEFINE_INLINE_CLASS(Inl);
 		N_DEFINE_INLINE_CLASS(Task);
-		Box *_host;
+
+		ScrollBox *_host;
 		List<Task*> _tasks;
 		Vec2 _scroll_raw, _scroll, _scroll_max;
 		Vec2 _move_start_scroll, _move_point, _move_dist;
@@ -84,10 +86,13 @@ namespace noug {
 		bool _lock_h, _lock_v;
 	};
 
-	class N_EXPORT Scroll: public FlowLayout, public BaseScroll {
+	class N_EXPORT Scroll: public FloatLayout, public BaseScroll {
 		N_Define_View(Scroll);
 	public:
-	private:
+		Scroll();
+		virtual Vec2 layout_offset_inside() override;
+		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void solve_marks(uint32_t mark) override;
 	};
 
 }

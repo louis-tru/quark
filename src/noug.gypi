@@ -39,6 +39,8 @@
 		'sources': [
 			'layout/box.h',
 			'layout/box.cc',
+			'layout/float.h',
+			'layout/float.cc',
 			'layout/flex.h',
 			'layout/flex.cc',
 			'layout/flow.h',

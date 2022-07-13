@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015, xuewen.chu
+ * Copyright © 2015-2016, xuewen.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__float__
-#define __noug__layout__float__
-
-#include "./box.h"
+#include "./float.h"
 
 namespace noug {
 
-	class N_EXPORT FloatLayout: public Box {
-		N_Define_View(FloatLayout);
-	public:
-		virtual bool layout_reverse(uint32_t mark) override;
-	};
-
+	bool FloatLayout::layout_reverse(uint32_t mark) {
+		//TODO ...
+		return Box::layout_reverse(mark);
+	}
 }
-#endif

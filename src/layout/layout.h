@@ -57,7 +57,7 @@ namespace noug {
 			kLayout_Typesetting       = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
 			kTransform_Origin         = (1 << 3),
 			kInput_Status             = (1 << 4), /* 输入状态这不包含布局的改变 */
-			kScroll_Bar               = (1 << 5), /* scroll bar status change */
+			kScroll                   = (1 << 5), /* scroll status change */
 			// RECURSIVE MARKS
 			kRecursive_Transform      = (1 << 30), /* 矩阵变换 recursive mark */
 			kRecursive_Visible_Region = (1U << 31), /* 可见范围 */
@@ -284,7 +284,6 @@ namespace noug {
 		N_DEFINE_PROP_READ(PreRender*, pre_render);
 
 		friend class PreRender;
-		friend class BaseScroll;
 	};
 
 }

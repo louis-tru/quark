@@ -47,6 +47,8 @@
 #include "../../layout/input.h"
 #include "../../layout/text.h"
 #include "../../layout/root.h"
+#include "../../layout/float.h"
+#include "../../layout/flex.h"
 #include "../../layout/flow.h"
 #include "../../layout/button.h"
 #include "../../layout/label.h"
@@ -297,6 +299,10 @@ namespace noug {
 			
 			_mark_recursive = 0;
 		}
+	}
+
+	void SkiaRender::visitFloatLayout(FloatLayout* flow) {
+		solveBox(flow, nullptr);
 	}
 
 	void SkiaRender::visitFlowLayout(FlowLayout* flow) {

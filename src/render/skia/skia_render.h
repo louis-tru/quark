@@ -70,6 +70,7 @@ namespace noug {
 		virtual void visitTextLayout(TextLayout* text);
 		virtual void visitLabel(Label* label);
 		virtual void visitRoot(Root* root);
+		virtual void visitFloatLayout(FloatLayout* flow);
 		virtual void visitFlowLayout(FlowLayout* flow);
 		virtual void visitFlexLayout(FlexLayout* flex);
 		virtual SkiaCanvas* getCanvas();
