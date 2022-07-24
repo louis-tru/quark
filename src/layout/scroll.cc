@@ -57,6 +57,14 @@ namespace noug {
 		void unmark(uint32_t mark = (~View::kLayout_None)) {
 			Layout::unmark(mark);
 		}
+
+		inline bool layout_wrap_x() const {
+			return Box::layout_wrap_x();
+		}
+
+		inline bool layout_wrap_y() const {
+			return Box::layout_wrap_y();
+		}
 	};
 
 	class BaseScroll::Task: public PreRender::Task {
@@ -796,9 +804,12 @@ namespace noug {
 		}
 		auto content_size = _host->content_size();
 		_scroll_max = Vec2(Float::min(content_size.x() - size.x(), 0), Float::min(content_size.y() - size.y(), 0));
-		
+
 		_scroll_h = _scroll_max.x() < 0;
 		_scroll_v = ((!_bounce_lock && !_scroll_h) || _scroll_max.y() < 0);
+
+		_scroll_h = _scroll_h && !_host->layout_wrap_x(); // 非wrap的size才能滚动
+		_scroll_v = _scroll_v && !_host->layout_wrap_y();
 		
 		_scrollbar_h = (_scroll_h && _scrollbar);
 		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);
@@ -820,10 +831,10 @@ namespace noug {
 
 	// ------------------------ S c r o l l --------------------------
 
-	Scroll::Scroll(): BaseScroll(this)
+	Scroll::Scroll(): FloatLayout(), BaseScroll(this)
 	{}
 
-	Vec2 Srcoll::layout_offset_inside() {
+	Vec2 Scroll::layout_offset_inside() {
 		auto origin = origin_value();
 		Vec2 offset(
 			padding_left() - origin.x() + scroll_x(),
@@ -836,12 +847,16 @@ namespace noug {
 		return offset;
 	}
 
-	bool Srcoll::layout_reverse(uint32_t mark) {
-		//TODO ...
-		return FloatLayout::layout_reverse(mark);
+	bool Scroll::layout_reverse(uint32_t mark) {
+		if (mark & kLayout_Typesetting) {
+			if (!is_ready_layout_typesetting()) return true; // continue iteration
+			auto size = layout_typesetting_float(); // return full content size
+			set_scroll_size(size);
+		}
+		return false; // stop iteration
 	}
 
-	void Srcoll::solve_marks(uint32_t mark) {
+	void Scroll::solve_marks(uint32_t mark) {
 		BaseScroll::solve(mark);
 		View::solve_marks(mark);
 	}

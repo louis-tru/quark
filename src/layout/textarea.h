@@ -28,20 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__float__
-#define __noug__layout__float__
+#ifndef __noug__layout__textarea__
+#define __noug__layout__textarea__
 
-#include "./box.h"
+#include "./input.h"
+#include "./scroll.h"
 
 namespace noug {
 
-	class N_EXPORT FloatLayout: public Box {
-		N_Define_View(FloatLayout);
+	class N_EXPORT Textarea: public Input, public BaseScroll {
+		N_Define_View(Textarea);
 	public:
-		virtual bool layout_reverse(uint32_t mark) override;
+		Textarea();
+		// virtual BasicScroll* as_basic_scroll() { return this; }
+		// virtual Object* to_object() { return this; }
 	protected:
-		Vec2 layout_typesetting_float();
+		virtual void draw(Draw* draw);
+		virtual void set_layout_content_offset();
+		virtual bool is_multi_line_input();
+		virtual Vec2 input_text_offset();
+		virtual void set_input_text_offset(Vec2 value);
+		virtual void set_draw_visible();
 	};
 
 }
+
 #endif

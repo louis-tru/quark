@@ -33,7 +33,31 @@
 namespace noug {
 
 	bool FloatLayout::layout_reverse(uint32_t mark) {
-		//TODO ...
-		return Box::layout_reverse(mark);
+		if (mark & kLayout_Typesetting) {
+			if (!is_ready_layout_typesetting()) return true; // continue iteration
+			layout_typesetting_float();
+		}
+		return false; // stop iterations
 	}
+
+	Vec2 FloatLayout::layout_typesetting_float() {
+		// TODO ...
+
+		auto v = first();
+		if (v) {
+			do { // lazy layout
+				if (v->visible())
+					v->set_layout_offset_lazy(content_size()); // lazy layout
+				v = v->next();
+			} while(v);
+		}
+
+		unmark(kLayout_Typesetting);
+
+		// check transform_origin change
+		solve_origin_value();
+
+		return Vec2();
+	}
+
 }
