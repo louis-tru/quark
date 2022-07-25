@@ -41,15 +41,78 @@ namespace noug {
 	}
 
 	Vec2 FloatLayout::layout_typesetting_float() {
-		// TODO ...
+		Vec2 full_size;
 
 		auto v = first();
 		if (v) {
-			do { // lazy layout
-				if (v->visible())
-					v->set_layout_offset_lazy(content_size()); // lazy layout
+			auto size = content_size();
+			auto size_x = size.x();
+
+			if ( layout_wrap_x() ) { // wrap width
+				size_x = 0;
+				do {
+					if (v->visible()) {
+						size_x = Float::max(size_x, v->layout_size().layout_size.x());
+					}
+					v = v->next();
+				} while(v);
+				v = first();
+			}
+
+			float offset_left = 0, offset_right = 0;
+			float offset_y = 0;
+			float line_width = 0, max_width = 0;
+			float line_height = 0;
+
+			do {
+				if (v->visible()) {
+					auto size = v->layout_size().layout_size;
+					auto new_width = line_width + size.x();
+
+					line_height = Float::max(line_height, size.y());
+
+					if (new_width > size_x && line_width != 0) { // new line
+						max_width = Float::max(max_width, line_width);
+						line_width = offset_left = offset_right = 0;
+						new_width = size.x();
+						offset_y += line_height;
+						line_height = 0;
+					} else {
+						line_width = new_width;
+					}
+
+					switch (v->layout_align()) {
+						case Align::AUTO:
+						case Align::LEFT_TOP:
+						case Align::LEFT_CENTER:
+						case Align::LEFT_BOTTOM:
+						case Align::CENTER_TOP:
+						case Align::CENTER_CENTER:
+						case Align::CENTER_BOTTOM: // left
+							set_layout_offset(Vec2(offset_left, offset_y));
+							offset_left += size.x();
+							break;
+						default: // right
+							set_layout_offset(Vec2(size_x - offset_right - size.x(), offset_y));
+							offset_right += size.x();
+							break;
+					}
+				}
 				v = v->next();
 			} while(v);
+
+			max_width = Float::max(max_width, line_width);
+			full_size = Vec2(max_width, offset_y + line_height);
+
+			Vec2 new_size(
+				layout_wrap_x() ? full_size.x(): size.x(),
+				layout_wrap_y() ? full_size.y(): size.y()
+			);
+
+			if (new_size != size) {
+				set_content_size(new_size);
+				parent()->onChildLayoutChange(this, kChild_Layout_Size);
+			}
 		}
 
 		unmark(kLayout_Typesetting);
@@ -57,7 +120,7 @@ namespace noug {
 		// check transform_origin change
 		solve_origin_value();
 
-		return Vec2();
+		return full_size;
 	}
 
 }
