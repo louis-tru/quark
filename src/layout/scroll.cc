@@ -837,8 +837,8 @@ namespace noug {
 	Vec2 Scroll::layout_offset_inside() {
 		auto origin = origin_value();
 		Vec2 offset(
-			padding_left() - origin.x() + scroll_x(),
-			padding_top() - origin.y() + scroll_y()
+			padding_left() - origin.x() - scroll_x(),
+			padding_top() - origin.y() - scroll_y()
 		);
 		if (_border) {
 			offset.val[0] += _border->width_left;

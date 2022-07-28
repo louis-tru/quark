@@ -40,15 +40,12 @@ namespace noug {
 		N_Define_View(Textarea);
 	public:
 		Textarea();
-		// virtual BasicScroll* as_basic_scroll() { return this; }
-		// virtual Object* to_object() { return this; }
+		virtual bool is_multiline() override;
+		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void solve_marks(uint32_t mark) override;
 	protected:
-		virtual void draw(Draw* draw);
-		virtual void set_layout_content_offset();
-		virtual bool is_multi_line_input();
 		virtual Vec2 input_text_offset();
-		virtual void set_input_text_offset(Vec2 value);
-		virtual void set_draw_visible();
+		virtual void set_input_text_offset(Vec2 val);
 	};
 
 }

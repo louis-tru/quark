@@ -12,6 +12,7 @@
 #include <noug/layout/label.h>
 #include <noug/layout/text.h>
 #include <noug/layout/input.h>
+#include <noug/layout/textarea.h>
 #include <noug/effect.h>
 #include <noug/display.h>
 #include <noug/util/fs.h>
@@ -99,10 +100,10 @@ void layout_text(Box* box) {
 }
 
 void layout_input(Box* box) {
-	auto input = (Input*)New<Input>()->append_to(box);
+	auto input = (Input*)New<Textarea>()->append_to(box);
 
 	input->set_width({ 200 });
-	input->set_height({ 26 });
+	input->set_height({ 150 });
 	input->set_fill_color(Color(255,255,255));
 	// input->set_text_line_height({ 40 });
 	input->set_padding_left(4);

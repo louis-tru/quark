@@ -37,87 +37,50 @@ namespace noug {
 	Textarea::Textarea(): Input(), BaseScroll(this) {
 	}
 
-	void Textarea::draw(Draw* draw) {
-		if ( m_visible ) {
-			
-			if ( mark_value ) {
-				
-				BasicScroll::solve();
-				
-				if (m_rows.max_width() <= final_width()) {
-					input_text_offset_x_ = 0;
-				} else {
-					switch ( m_text_align ) {
-						default:
-						case TextAlign::LEFT_REVERSE:
-							input_text_offset_x_ = 0; break;
-						case TextAlign::CENTER:
-						case TextAlign::CENTER_REVERSE:
-							input_text_offset_x_ = (final_width() - m_rows.max_width()) / 2.0;
-							break;
-						case TextAlign::RIGHT:
-						case TextAlign::RIGHT_REVERSE:
-							input_text_offset_x_ = final_width() - m_rows.max_width();
-							break;
-					}
-				}
-				
-				if ( mark_value & (M_CONTENT_OFFSET | M_LAYOUT_THREE_TIMES) ) {
-					set_text_align_offset(text_margin_);
-				}
-
-				bool change = mark_value & (M_CONTENT_OFFSET | M_INPUT_STATUS);
-				if ( change ) {
-					refresh_cursor_screen_position(); // text layout
-				}
-
-				if ( mark_value & M_SCROLL ) {
-					mark_value |= M_SHAPE; // 设置这个标记只为了重新调用 set_draw_visible()
-				}
-
-				Input::solve();
-
-				if (change && editing_) {
-					_inl_app(app())->ime_keyboard_spot_location(input_spot_location());
-				}
-				
-				if ( mark_value & (M_TRANSFORM | M_TEXT_SIZE) ) {
-					set_glyph_texture_level(m_data);
-				}
-			}
-			
-			draw->draw(this);
-			
-			mark_value = M_NONE;
-		}
-	}
-
-	void Textarea::set_layout_content_offset() {
-		if ( m_final_visible ) {
-			Input::set_layout_content_offset();
-			BasicScroll::set_scroll_size(Vec2(m_rows.max_width(), m_rows.max_height()));
-		}
-	}
-
-	bool Textarea::is_multi_line_input() {
+	bool Textarea::is_multiline() {
 		return true;
 	}
 
+	bool Textarea::layout_reverse(uint32_t mark) {
+		if (mark & kLayout_Typesetting) {
+			if (!is_ready_layout_typesetting()) return true; // continue iteration
+			auto full_size = layout_typesetting_input_text(); // return full content size
+			set_scroll_size(full_size);
+		}
+		return false; // stop iteration
+	}
+
+	void Textarea::solve_marks(uint32_t mark) {
+		if (mark & kInput_Status) {
+			auto final_width = content_size().x();
+			auto max_width = _lines->max_width();
+
+			// setting default test offset
+			if (max_width <= final_width) {
+				_input_text_offset_x = 0;df s
+			} else { // max_width > final_width
+				switch ( _text_align ) {
+					default:
+						_input_text_offset_x = 0; break;
+					case TextAlign::CENTER:
+						_input_text_offset_x = (max_width - final_width) / 2.0;
+						break;
+					case TextAlign::RIGHT:
+						_input_text_offset_x = max_width - final_width;
+						break;
+				}
+			}
+		}
+		BaseScroll::solve(mark);
+		Input::solve_marks(mark);
+	}
+
 	Vec2 Textarea::input_text_offset() {
-		return Vec2( -scroll_x() - input_text_offset_x_, -scroll_y() );
+		return Vec2( -scroll_x() + _input_text_offset_x, -scroll_y() );
 	}
 
 	void Textarea::set_input_text_offset(Vec2 value) {
-		set_scroll( Vec2(-value.x() - input_text_offset_x_, -value.y()) );
-	}
-
-	void Textarea::set_draw_visible() {
-		
-		compute_box_vertex(m_final_vertex);
-		
-		m_draw_visible =
-		
-			compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, scroll_y());
+		set_scroll( Vec2(-value.x() + _input_text_offset_x, -value.y()) );
 	}
 
 }

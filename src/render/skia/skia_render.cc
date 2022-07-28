@@ -45,6 +45,7 @@
 #include "../../layout/video.h"
 #include "../../layout/scroll.h"
 #include "../../layout/input.h"
+#include "../../layout/textarea.h"
 #include "../../layout/text.h"
 #include "../../layout/root.h"
 #include "../../layout/float.h"
@@ -217,6 +218,10 @@ namespace noug {
 
 			// callback end
 		});
+	}
+
+	void SkiaRender::visitTextarea(Textarea* textarea) {
+		visitInput(textarea);
 	}
 
 	void SkiaRender::visitButton(Button* btn) {

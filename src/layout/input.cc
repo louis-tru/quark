@@ -32,6 +32,7 @@
 #include "../app.inl"
 #include "../pre_render.h"
 #include "../util/codec.h"
+#include "./textarea.h"
 #include <math.h>
 
 namespace noug {
@@ -236,11 +237,8 @@ namespace noug {
 				}
 			} else {
 				if ( _flag == kFlag_Check_Move_Focus ) { // 已经开始检测
-					// TODO
-					//Textarea* textarea = as_textarea();
-					//if ( textarea ) { // 多行移动后禁用点击聚焦
-					/*
 					if ( is_multiline() ) { // 多行移动后禁用点击聚焦
+						auto textarea = static_cast<Textarea*>(static_cast<Input*>(this));
 						if ( textarea->scroll_x() != 0 || textarea->scroll_y() != 0 ) {
 							// 计算移动距离
 							float d = sqrtf(powf(point.x() - _point.x(), 2) + powf(point.y() - _point.y(), 2));
@@ -248,7 +246,7 @@ namespace noug {
 								_flag = kFlag_Disable_Click_Find;
 							}
 						}
-					}*/
+					} // if ( is_multiline() )
 				}
 			}
 		}
@@ -606,91 +604,96 @@ namespace noug {
 	bool Input::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return true; // continue iteration
+			layout_typesetting_input_text();
+		}
+		return false;
+	}
 
-			Vec2 size = content_size();
-			_lines = new TextLines(this, _text_align, size, layout_wrap_x());
-			TextConfig cfg(this, pre_render()->host()->default_text_options());
+	Vec2 Input::layout_typesetting_input_text() {
 
-			FontMetrics metrics;
-			FontGlyphs::get_metrics(&metrics, text_family().value, font_style(), text_size().value);
+		Vec2 size = content_size();
+		_lines = new TextLines(this, _text_align, size, layout_wrap_x());
+		TextConfig cfg(this, pre_render()->host()->default_text_options());
 
-			_lines->set_metrics(&metrics, text_line_height().value);
-			_text_ascent = -metrics.fAscent;
-			_text_height =  _text_ascent + metrics.fDescent + metrics.fLeading;
-			_marked_blob_begin = _marked_blob_end = 0;
+		FontMetrics metrics;
+		FontGlyphs::get_metrics(&metrics, text_family().value, font_style(), text_size().value);
 
-			_blob_visible.clear();
-			_blob.clear();
+		_lines->set_metrics(&metrics, text_line_height().value);
+		_text_ascent = -metrics.fAscent;
+		_text_height =  _text_ascent + metrics.fDescent + metrics.fLeading;
+		_marked_blob_begin = _marked_blob_end = 0;
 
-			auto str = _text_value_u4.length() ? &_text_value_u4: &_placeholder_u4;
+		_blob_visible.clear();
+		_blob.clear();
 
-			if (str->length()) { // text layout
-				TextBlobBuilder tbb(*_lines, this, &_blob);
+		auto str = _text_value_u4.length() ? &_text_value_u4: &_placeholder_u4;
 
-				if (!is_multiline()) {
-					tbb.set_disable_auto_wrap(true);
-				}
-				tbb.set_disable_overflow(true);
+		if (str->length()) { // text layout
+			TextBlobBuilder tbb(*_lines, this, &_blob);
 
-				if (_text_value_u4.length() && !_security && _marked_text.length()) { // marked text layout
-					auto src = *_text_value_u4;
-					auto mark = _marked_text_idx;
-					auto mark_end = mark + _marked_text.length();
-
-					Array<TextBlob> blobTmp;
-
-					auto make = [&](const Unichar *src, uint32_t len) {
-						tbb.make(string4_to_unichar(src, len, false, false, !is_multiline()));
-						if (blobTmp.length()) blobTmp.concat(std::move(_blob));
-						else blobTmp = std::move(_blob);
-					};
-
-					if ( mark ) {
-						make(src, mark);
-					}
-					_marked_blob_begin = blobTmp.length();
-					make(src+mark, _marked_text.length());
-					_marked_blob_end = blobTmp.length();
-
-					if ( mark_end < _text_value_u4.length() ) {
-						make(src+mark_end, _text_value_u4.length()-mark_end);
-					}
-					_blob = std::move(blobTmp);
-				}
-				else if ( _text_value_u4.length() && _security ) { // password
-					Unichar pwd = 9679; /*●*/
-					Array<Array<Unichar>> lines(1);
-					lines.front().extend(_text_value_u4.length());
-					memset_pattern4(*lines.front(), &pwd, _text_value_u4.length());
-					tbb.make(lines);
-				}
-				else {
-					tbb.make(string4_to_unichar(*str, false, false, !is_multiline()));
-				}
+			if (!is_multiline()) {
+				tbb.set_disable_auto_wrap(true);
 			}
+			tbb.set_disable_overflow(true);
 
-			_lines->finish();
+			if (_text_value_u4.length() && !_security && _marked_text.length()) { // marked text layout
+				auto src = *_text_value_u4;
+				auto mark = _marked_text_idx;
+				auto mark_end = mark + _marked_text.length();
 
-			Vec2 new_size(
-				layout_wrap_x() ? _lines->max_width(): size.x(),
-				layout_wrap_y() ? _lines->max_height(): size.y()
-			);
+				Array<TextBlob> blobTmp;
 
-			if (new_size != size) {
-				set_content_size(new_size);
-				parent()->onChildLayoutChange(this, kChild_Layout_Size);
+				auto make = [&](const Unichar *src, uint32_t len) {
+					tbb.make(string4_to_unichar(src, len, false, false, !is_multiline()));
+					if (blobTmp.length()) blobTmp.concat(std::move(_blob));
+					else blobTmp = std::move(_blob);
+				};
+
+				if ( mark ) {
+					make(src, mark);
+				}
+				_marked_blob_begin = blobTmp.length();
+				make(src+mark, _marked_text.length());
+				_marked_blob_end = blobTmp.length();
+
+				if ( mark_end < _text_value_u4.length() ) {
+					make(src+mark_end, _text_value_u4.length()-mark_end);
+				}
+				_blob = std::move(blobTmp);
 			}
-
-			unmark(kLayout_Typesetting);
-
-			// check transform_origin change
-			solve_origin_value();
-
-			// mark input status change
-			mark_none(kInput_Status | kRecursive_Visible_Region);
+			else if ( _text_value_u4.length() && _security ) { // password
+				Unichar pwd = 9679; /*●*/
+				Array<Array<Unichar>> lines(1);
+				lines.front().extend(_text_value_u4.length());
+				memset_pattern4(*lines.front(), &pwd, _text_value_u4.length());
+				tbb.make(lines);
+			}
+			else {
+				tbb.make(string4_to_unichar(*str, false, false, !is_multiline()));
+			}
 		}
 
-		return false;
+		_lines->finish();
+
+		Vec2 new_size(
+			layout_wrap_x() ? _lines->max_width(): size.x(),
+			layout_wrap_y() ? _lines->max_height(): size.y()
+		);
+
+		if (new_size != size) {
+			set_content_size(new_size);
+			parent()->onChildLayoutChange(this, kChild_Layout_Size);
+		}
+
+		unmark(kLayout_Typesetting);
+
+		// check transform_origin change
+		solve_origin_value();
+
+		// mark input status change
+		mark_none(kInput_Status | kRecursive_Visible_Region);
+
+		return Vec2(_lines->max_width(), _lines->max_height());
 	}
 
 	void Input::solve_marks(uint32_t mark) {
@@ -718,14 +721,14 @@ namespace noug {
 	}
 
 	void Input::refresh_cursor_screen_position() {
-		
+
 		if ( _editing ) {
 			auto size = content_size();
 			auto final_width = size.x();
 			auto final_height = size.y();
 			auto text_offset = input_text_offset();
 			TextBlob* cell = nullptr;
-			
+
 			for ( int j = 0; j < _blob.length(); j++ ) {
 				auto &i = _blob[j];
 				auto index = i.index;
@@ -743,7 +746,7 @@ namespace noug {
 					}
 				}
 			}
-			
+
 			// 计算光标的具体偏移位置
 			TextLines::Line* line = nullptr;
 
@@ -768,30 +771,21 @@ namespace noug {
 				if ( _lines->max_height() < final_height) {
 					text_offset.set_y(0);
 				} else {
-					float offset = line->start_y + text_offset.y();
-					
-					if ( offset < 0 ) { // top cursor
+					if ( line->start_y + text_offset.y() < 0 ) { // top cursor
 						text_offset.set_y(-line->start_y);
-					} else { // bottom cursor
-						offset = line->end_y + text_offset.y();
-						if ( offset > final_height ) {
-							text_offset.set_y(final_height - line->end_y);
-						}
+					} else if (line->end_y + text_offset.y() > final_height) { // bottom cursor
+						text_offset.set_y(final_height - line->end_y);
 					}
-					
 					if ( text_offset.y() > 0 ) { // top
 						text_offset.set_y(0);
-					} else {
-						offset = text_offset.y() + _lines->max_height();
-						if ( offset < final_height ) { // bottom
-							text_offset.set_y(final_height - _lines->max_height());
-						}
+					} else if ( text_offset.y() + _lines->max_height() < final_height ) { // bottom
+						text_offset.set_y(final_height - _lines->max_height());
 					}
 				}
 			} else {
 				text_offset.set_y((final_height - _lines->max_height()) / 2);
 			}
-			
+
 			// x
 			auto max_width = _lines->max_width();
 			if ( max_width <= final_width ) {
@@ -825,12 +819,11 @@ namespace noug {
 					}
 				}
 			}
-			
+
 			set_input_text_offset(text_offset);
 		} else {
 			if ( !is_multiline() ) {
 				set_input_text_offset(Vec2(0, (content_size().y() - _lines->max_height()) / 2));
-				//set_input_text_offset(Vec2());
 			}
 		}
 	}
@@ -858,7 +851,6 @@ namespace noug {
 	}
 
 	void Input::input_delete(int count) {
-
 		if ( _editing ) {
 			int cursor = _cursor;
 			if ( !_marked_text.length() ) {
@@ -881,11 +873,10 @@ namespace noug {
 					}
 				}
 			}
-			
+
 			Inl_Input(this)->trigger_change();
 			Inl_Input(this)->reset_cursor_twinkle_task_timeout();
 		}
-		
 	}
 
 	void Input::input_insert(cString& text) {
@@ -988,16 +979,16 @@ namespace noug {
 	}
 
 	void Input::set_readonly(bool value) {
-		 if (_readonly != value) {
-			 _readonly = value;
-			 if (_readonly) {
-				 _editing = false;
-			 } else if (is_focus()) {
-				 _editing = true;
-			 }
-			 mark(kInput_Status);
-		 }
-	 }
+		if (_readonly != value) {
+			_readonly = value;
+			if (_readonly) {
+				_editing = false;
+			} else if (is_focus()) {
+				_editing = true;
+			}
+			mark(kInput_Status);
+		}
+	}
 
 	void Input::set_max_length(uint32_t value) {
 		_max_length = value;
@@ -1011,6 +1002,20 @@ namespace noug {
 
 	uint32_t Input::text_length() const {
 		return _text_value_u4.length();
+	}
+
+	Vec2 Input::layout_offset_inside() {
+		auto origin = origin_value();
+		auto text_offset = input_text_offset();
+		Vec2 offset(
+			padding_left() - origin.x() + text_offset.x(),
+			padding_top()  - origin.y() + text_offset.y()
+		);
+		if (_border) {
+			offset.val[0] += _border->width_left;
+			offset.val[1] += _border->width_top;
+		}
+		return offset;
 	}
 
 	Vec2 Input::input_text_offset() {

@@ -62,6 +62,7 @@ namespace noug {
 		virtual bool is_multiline();
 		// @override
 		virtual bool layout_reverse(uint32_t mark) override;
+		virtual Vec2 layout_offset_inside() override;
 		virtual void solve_marks(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void set_visible(bool val) override;
@@ -83,6 +84,7 @@ namespace noug {
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 		virtual Object* to_object() override;
 	protected:
+		Vec2 layout_typesetting_input_text();
 		void refresh_cursor_screen_position();
 		virtual void onTextChange(uint32_t mark) override;
 		virtual Vec2 input_text_offset();
