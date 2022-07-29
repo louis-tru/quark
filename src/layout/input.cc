@@ -486,7 +486,7 @@ namespace noug {
 				if (_max_length && _text_value_u4.length() + text.length() > _max_length)
 					return;
 
-				if ( _cursor < text_length() ) { // insert
+				if ( _cursor < text_length() ) { // insertd
 					String4 old = _text_value_u4;
 					_text_value_u4 = String4(*old, _cursor, *text, text.length());
 					_text_value_u4.append(*old + _cursor, old.length() - _cursor);
@@ -603,7 +603,8 @@ namespace noug {
 
 	bool Input::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) return true; // continue iteration
+			if (!is_ready_layout_typesetting())
+				return true; // continue iteration
 			layout_typesetting_input_text();
 		}
 		return false;

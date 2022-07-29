@@ -43,7 +43,8 @@ namespace noug {
 
 	bool Textarea::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) return true; // continue iteration
+			if (!is_ready_layout_typesetting())
+				return true; // continue iteration
 			auto full_size = layout_typesetting_input_text(); // return full content size
 			set_scroll_size(full_size);
 		}
@@ -57,7 +58,7 @@ namespace noug {
 
 			// setting default test offset
 			if (max_width <= final_width) {
-				_input_text_offset_x = 0;df s
+				_input_text_offset_x = 0;
 			} else { // max_width > final_width
 				switch ( _text_align ) {
 					default:

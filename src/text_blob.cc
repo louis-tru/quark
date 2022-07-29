@@ -100,11 +100,12 @@ namespace noug {
 		while (each(data, ctx)) {
 			switch (unicode_to_symbol(data)) {
 				case kLineFeed_Symbol:
-					if (is_merge_line_feed)
+					if (is_merge_line_feed) {
 						if (!disable_line_feed)
 							goto merge;
-					else // new row
+					} else { // new row
 						push_row();
+					}
 					break;
 				case kSpace_Symbol:
 					if (is_merge_space) {
