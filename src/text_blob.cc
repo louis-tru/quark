@@ -88,6 +88,7 @@ namespace noug {
 		Array<Unichar> row;
 
 		bool is_merge_runing = false;
+		bool is_push_row = false;
 
 		auto push_row = [&]() {
 			row.realloc(row.length() + 1);
@@ -98,12 +99,15 @@ namespace noug {
 		Unichar data;
 
 		while (each(data, ctx)) {
+			is_push_row = false;
+
 			switch (unicode_to_symbol(data)) {
 				case kLineFeed_Symbol:
 					if (is_merge_line_feed) {
 						if (!disable_line_feed)
 							goto merge;
 					} else { // new row
+						is_push_row = true;
 						push_row();
 					}
 					break;
@@ -125,7 +129,9 @@ namespace noug {
 			}
 		}
 
-		if (row.length()) push_row();
+		if (row.length() || is_push_row) {
+			push_row();
+		}
 
 		return lines;
 	}

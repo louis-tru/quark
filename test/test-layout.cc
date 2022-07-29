@@ -109,7 +109,7 @@ void layout_input(Box* box) {
 	input->set_padding_left(4);
 	input->set_padding_right(4);
 	input->set_placeholder("placeholder..");
-	//input->set_text_background_color({Color(255,0,0)});
+	input->set_text_background_color({Color(255,0,0)});
  	//input->set_text_weight(TextWeight::DEFAULT);
 	//input->set_readonly(true);
 }
