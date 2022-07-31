@@ -62,17 +62,16 @@ namespace noug {
 		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
 		N_DEFINE_PROP(bool, disable_overflow);
 		N_DEFINE_PROP(bool, disable_auto_wrap);
+		N_DEFINE_PROP(TextLines*, lines);
+		N_DEFINE_PROP(TextOptions*, opts);
+		N_DEFINE_PROP(Array<TextBlob>*, blob);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
 		void make(Array<Array<Unichar>>&& lines);
 	private:
-		void as_no_auto_wrap(FontGlyphs &fg, uint32_t index);
 		void as_normal(FontGlyphs &fg, Unichar *unichar, uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL);
 		void as_break_all(FontGlyphs &fg, Unichar *unichar, uint32_t index);
-	private:
-		TextLines *_lines;
-		TextOptions *_opts;
-		Array<TextBlob> *_blob;
+		void as_no_auto_wrap(FontGlyphs &fg, uint32_t index);
 	};
 
 }

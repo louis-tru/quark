@@ -277,7 +277,7 @@ namespace noug {
 			Vec2 cursor_offset(x - origin.x(), y - origin.y());
 			Vec2 location = matrix() * cursor_offset;
 
-			N_DEBUG("input_spot_location,x:%f,y:%f", location.x(), location.y());
+			// N_DEBUG("input_spot_location,x:%f,y:%f", location.x(), location.y());
 			
 			return location;
 		}
@@ -394,13 +394,20 @@ namespace noug {
 			int cell_begin = -1, cell_end = -1;
 			
 			for ( uint32_t i = 0; i < _blob.length(); i++ ) {
-				if ( _blob[i].line == line->line ) { // 排除小余目标行cell
+				auto &it = _blob[i];
+				if ( it.line == line->line ) { // 排除小余目标行cell
 					if (cell_begin == -1)
 						cell_begin = i;
 					cell_end = i;
 				} else {
 					if (cell_begin != -1)
 						break;
+					//else if (it.line > line->line) {
+						// line_feed
+					//	auto idx = Int32::max(0, int32_t(it.index) - 1);
+					//	_cursor = idx;
+					//	goto end_action;
+					//}
 				}
 			}
 			
@@ -541,6 +548,7 @@ namespace noug {
 		, _type(KeyboardType::NORMAL)
 		, _return_type(KeyboardReturnType::NORMAL)
 		, _placeholder_color(150, 150, 150)
+		, _cursor_color(0x43,0x95,0xff) //#4395ff
 		, _max_length(0)
 		, _marked_color(0, 160, 255, 100)
 		, _marked_text_idx(0), _cursor(0), _cursor_linenum(0)
@@ -728,42 +736,41 @@ namespace noug {
 			auto final_width = size.x();
 			auto final_height = size.y();
 			auto text_offset = input_text_offset();
-			TextBlob* cell = nullptr;
-
-			for ( int j = 0; j < _blob.length(); j++ ) {
-				auto &i = _blob[j];
-				auto index = i.index;
-				auto end = index + i.glyphs.length();
-				
-				if ( _cursor == index ) {
-					cell = &i; break;
-				} else if ( _cursor > index ) {
-					if ( _cursor < end ) {
-						cell = &i; break;
-					} else if ( _cursor == end ) {
-						if ( uint32_t(j + 1) == _blob.length() ) { // last cell
-							cell = &i; break;
-						}
+			TextBlob* blob = nullptr;
+			
+			for ( int i = 0; i < _blob.length(); i++ ) {
+				auto &it  = _blob[i];
+				auto index = it.index;
+				auto end = index + it.glyphs.length();
+				if (_cursor >= index && _cursor <= end) {
+					blob = &it; break;
+				} else if (i + 1 < _blob.length()) {
+					if (_cursor < _blob[i + 1].index) {
+						blob = &it; break;
 					}
+				} else if (it.line == _lines->last()->line) { // last blob
+					blob = &it;
 				}
 			}
 
 			// 计算光标的具体偏移位置
 			TextLines::Line* line = nullptr;
 
-			if ( cell ) { // set cursor pos
-				auto offset = cell->offset[_cursor - cell->index].x();
-				_cursor_linenum = cell->line;
+			if ( blob ) { // set cursor pos
+				auto idx = _cursor - blob->index;
+				float offset = 0;
+				if (idx < blob->offset.length()) {
+					offset = blob->offset[idx].x();
+				} else if (blob->offset.length()) {
+					offset = blob->offset.back().x();
+				}
+				_cursor_linenum = blob->line;
 				line = &_lines->line(_cursor_linenum);
-				_cursor_x = line->origin + cell->origin + offset;
+				_cursor_x = line->origin + blob->origin + offset;
 			} else { // 找不到cell定位到最后行
 				_cursor_linenum = _lines->last()->line;
 				line = &_lines->line(_cursor_linenum);
-				switch ( _text_align ) {
-					default: _cursor_x = 0; break;
-					case TextAlign::CENTER: _cursor_x = final_width / 2.0; break;
-					case TextAlign::RIGHT:  _cursor_x = final_width; break;
-				}
+				_cursor_x = line->origin;
 			}
 			
 			// 计算文本编辑状态下最适合的显示的文本偏移量

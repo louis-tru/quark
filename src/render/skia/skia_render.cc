@@ -160,6 +160,7 @@ namespace noug {
 				r->useInsideClip(box, clip);
 
 				auto draw_background = [&](TextBlob &blob) {
+					//if (blob.glyphs.length() == 0) return;
 					auto &line = lines->line(blob.line);
 					auto x = offset.x() + line.origin + blob.origin;
 					auto y = offset.y() + line.baseline - blob.ascent;
@@ -209,7 +210,8 @@ namespace noug {
 			// draw cursor
 			if (v->_editing && v->_cursor_twinkle_status) {
 				r->useInsideClip(box, clip);
-				set_color(v->text_color().value);
+				// set_color(v->text_color().value);
+				set_color(v->cursor_color());
 				auto &line = lines->line(v->_cursor_linenum);
 				auto x = offset.x() + v->_cursor_x - 1;
 				auto y = offset.y() + line.baseline - v->_text_ascent - 1;

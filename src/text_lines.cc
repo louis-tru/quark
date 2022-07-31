@@ -57,10 +57,16 @@ namespace noug {
 		_visible_region = false;
 	}
 
-	void TextLines::push(bool trim_start) {
+	void TextLines::lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar) {
+		finish_text_blob_pre(); // force line feed
+		add_text_blob_empty(builder, index_of_unichar);
+		push(builder->opts(), false); // new row
+	}
+
+	void TextLines::push(TextOptions *opts, bool trim_start) {
 		finish_line();
 
-		_lines.push({ _last->end_y, 0, 0, 0, 0, 0, 0, _lines.length() });
+		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, _lines.length() });
 		_last = &_lines.back();
 		_trim_start = trim_start;
 		_preLayout.push(Array<Layout*>());
@@ -77,7 +83,7 @@ namespace noug {
 					break;
 				}
 				if (++i < len) {
-					blob.index++;
+					blob.index_of_unichar++;
 					goto check; // skip space
 				}
 				blob.glyphs.clear();
@@ -93,15 +99,12 @@ namespace noug {
 		if (_pre_width) {
 			_trim_start = false;
 		}
-	}
-
-	void TextLines::push(TextOptions *opts) {
-		push(false); // new row
-		set_metrics(opts);
+		
+		if (opts)
+			set_metrics(opts);
 	}
 
 	void TextLines::finish_line() {
-
 		if ( _last->width > _max_width ) {
 			_max_width = _last->width;
 		}
@@ -111,17 +114,21 @@ namespace noug {
 		for (auto layout: _preLayout.back()) {
 			auto height = layout->layout_size().layout_size.y();
 			switch (layout->layout_align()) {
-				case Align::START:  set_metrics(top, height - bottom); break;
-				case Align::CENTER: height = (height - top - bottom) / 2;
+				case Align::START:
+					set_metrics(top, height - bottom); break;
+				case Align::CENTER:
+					height = (height - top - bottom) / 2;
 					set_metrics(height + top, height + bottom); break;
-				case Align::END:    set_metrics(height - bottom, bottom); break;
-				default:            set_metrics(height, 0); break;
+				case Align::END:
+					set_metrics(height - bottom, bottom); break;
+				default:
+					set_metrics(height, 0); break;
 			}
 		}
 	}
 
 	void TextLines::finish() {
-		finish_text_blob();
+		finish_text_blob_pre();
 		finish_line();
 
 		auto width = _no_wrap ? _max_width: _host_size.x();
@@ -145,10 +152,14 @@ namespace noug {
 				float y;
 
 				switch (layout->layout_align()) {
-					case Align::START:  y = _last->baseline - top; break;
-					case Align::CENTER: y = _last->baseline - (size_y + top - bottom) / 2; break;
-					case Align::END: y = _last->baseline - size_y + bottom; break;
-					default:         y = _last->baseline - size_y; break;
+					case Align::START:
+						y = _last->baseline - top; break;
+					case Align::CENTER:
+						y = _last->baseline - (size_y + top - bottom) / 2; break;
+					case Align::END:
+						y = _last->baseline - size_y + bottom; break;
+					default:
+						y = _last->baseline - size_y; break;
 				}
 				layout->set_layout_offset(Vec2(x, y));
 			}
@@ -191,8 +202,12 @@ namespace noug {
 		_preLayout.back().push(layout);
 	}
 
-	void TextLines::finish_text_blob() {
-		add_text_blob({}, Array<GlyphID>(), Array<float>(), false); // solve text blob
+	void TextLines::finish_text_blob_pre() {
+		if (_preBlob.length()) {
+			for (auto& i: _preBlob)
+				add_text_blob(i, i.glyphs, i.offset);
+			_preBlob.clear();
+		}
 	}
 
 	void TextLines::solve_visible_region() {
@@ -233,7 +248,8 @@ namespace noug {
 				line.visible_region = true;
 				_visible_region = true;
 			} else {
-				is_all_false = true;
+				if (_visible_region)
+					is_all_false = true;
 				line.visible_region = false;
 			}
 			vertex[0] = vertex[3];
@@ -243,7 +259,6 @@ namespace noug {
 	}
 
 	void TextLines::solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
-
 		N_DEBUG("TextLines::solve_visible_region_blob");
 
 		blob_visible->clear();
@@ -257,6 +272,7 @@ namespace noug {
 
 		for (int i = 0, len = blob->length(); i < len; i++) {
 			auto &item = (*blob)[i];
+			if (item.glyphs.length() == 0) continue;
 			auto &line = this->line(item.line);
 			if (line.visible_region) {
 				is_break = true;
@@ -264,63 +280,80 @@ namespace noug {
 			} else {
 				if (is_break) break;
 			}
-			N_DEBUG("blob,%f,%d,%d,%i", item.origin, item.line, item.glyphs.length(), line.visible_region);
+			N_DEBUG("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
+				item.origin, item.line, item.glyphs.length(), line.visible_region);
 		}
 	}
 
 	void TextLines::add_text_blob(PreTextBlob blob, const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre) {
-
 		if (is_pre) {
 			if (glyphs.length()) {
 				blob.glyphs = glyphs.copy();
 				blob.offset = offset.copy();
 				_preBlob.push(std::move(blob));
 			}
-			return;
+		} else {
+			finish_text_blob_pre(); // finish pre
+			add_text_blob(blob, glyphs, offset);
 		}
-
-		auto add = [&](PreTextBlob& blob, const Array<GlyphID>& glyphs, const Array<float>& offset) {
-			if (glyphs.length() == 0)
-				return;
-
-			auto line = _last->line;
-			if (blob.blob->length()) {
-				auto& last = blob.blob->back();
-				// merge glyphs
-				if (last.line == line && last.offset.back().x() == offset.front()) {
-					last.glyphs.write(glyphs);
-					// last.offset.write(offset, -1, -1, 1);
-					for (int i = 1; i < offset.length(); i++)
-						last.offset.push(Vec2(offset[i], 0));
-					_last->width = last.origin + last.offset.back().x();
-					return;
-				}
-			}
-
+	}
+	
+	void TextLines::add_text_blob_empty(TextBlobBuilder* builder, uint32_t index_of_unichar) {
+		auto _opts = builder->opts();
+		auto _blob = builder->blob();
+		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
+			auto tf = _opts->text_family().value->match(_opts->font_style())[0];
 			FontMetrics metrics;
-			FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);
-
+			FontGlyphs::get_metrics(&metrics, tf, _opts->text_size().value);
 			auto ascent = -metrics.fAscent;
 			auto descent = metrics.fDescent + metrics.fLeading;
 			auto height = ascent + descent;
-			auto origin = _last->width - offset[0];
+			auto origin = _last->width;
 
-			Array<Vec2> pos(offset.length());
-			for (int i = 0; i < offset.length(); i++)
-				pos[i] = Vec2(offset[i], 0);
-			blob.blob->push({ blob.typeface, glyphs.copy(), std::move(pos), ascent, height, origin, line, blob.index });
-			_last->width = origin + offset.back();
+			_blob->push({
+				tf, Array<GlyphID>(), Array<Vec2>(),
+				ascent, height, _last->width, _last->line, index_of_unichar
+			});
+		}
+	}
+	
+	void TextLines::add_text_blob(PreTextBlob& blob, const Array<GlyphID>& glyphs, const Array<float>& offset) {
+		if (glyphs.length() == 0)
+			return;
 
-			set_metrics(&metrics, blob.line_height);
-		};
-
-		if (_preBlob.length()) {
-			for (auto& i: _preBlob)
-				add(i, i.glyphs, i.offset);
-			_preBlob.clear();
+		auto line = _last->line;
+		if (blob.blob->length()) {
+			auto& last = blob.blob->back();
+			// merge glyphs
+			if (last.line == line && last.offset.back().x() == offset.front()) {
+				last.glyphs.write(glyphs);
+				// last.offset.write(offset, -1, -1, 1);
+				for (int i = 1; i < offset.length(); i++)
+					last.offset.push(Vec2(offset[i], 0));
+				_last->width = last.origin + last.offset.back().x();
+				return;
+			}
 		}
 
-		add(blob, glyphs, offset);
+		FontMetrics metrics;
+		FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);
+
+		auto ascent = -metrics.fAscent;
+		auto descent = metrics.fDescent + metrics.fLeading;
+		auto height = ascent + descent;
+		auto origin = _last->width - offset[0];
+
+		Array<Vec2> offset2(offset.length());
+		for (int i = 0; i < offset.length(); i++)
+			offset2[i] = Vec2(offset[i], 0);
+
+		blob.blob->push({
+			blob.typeface, glyphs.copy(), std::move(offset2),
+			ascent, height, origin, line, blob.index_of_unichar
+		});
+		_last->width = origin + offset.back();
+
+		set_metrics(&metrics, blob.line_height);
 	}
 
 	void TextLines::set_pre_width(float value) {

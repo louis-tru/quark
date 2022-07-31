@@ -732,7 +732,7 @@ namespace noug {
 	}
 
 	float BaseScroll::scroll_x() const {
-		return -_scroll.y();
+		return -_scroll.x();
 	}
 
 	float BaseScroll::scroll_y() const {

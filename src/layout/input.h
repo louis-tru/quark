@@ -54,6 +54,7 @@ namespace noug {
 		N_DEFINE_PROP(String4, text_value_u4);
 		N_DEFINE_PROP(String4, placeholder_u4);
 		N_DEFINE_PROP(Color, placeholder_color);
+		N_DEFINE_PROP(Color, cursor_color);
 		N_DEFINE_PROP(uint32_t, max_length);
 		N_DEFINE_ACCESSOR(String, text_value);
 		N_DEFINE_ACCESSOR(String, placeholder);

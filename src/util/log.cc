@@ -268,6 +268,7 @@ namespace noug {
 		report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
 		dump_backtrace();
 		Console::instance()->clear();
+
 		IMMEDIATE_CRASH();
 	}
 

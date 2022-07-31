@@ -673,7 +673,7 @@ namespace noug {
 
 		if (is_auto_wrap) {
 			if (origin + _layout_size.x() > limitX) {
-				lines->finish_text_blob();
+				lines->finish_text_blob_pre();
 				lines->push();
 				origin = 0;
 			}
@@ -681,7 +681,7 @@ namespace noug {
 			lines->set_pre_width(_layout_size.x());
 		} else {
 			set_layout_offset(Vec2(origin, 0));
-			lines->finish_text_blob();
+			lines->finish_text_blob_pre();
 			lines->set_pre_width(origin + _layout_size.x());
 		}
 

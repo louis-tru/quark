@@ -40,6 +40,7 @@ namespace noug {
 	class TextOptions;
 	class TextBlob;
 	class View;
+	class TextBlobBuilder;
 
 	class N_EXPORT TextLines: public Reference {
 	public:
@@ -49,32 +50,17 @@ namespace noug {
 			uint32_t line;
 			bool visible_region;
 		};
+
 		struct PreTextBlob {
 			Typeface        typeface;
 			float           text_size;
 			float           line_height;
-			uint32_t        index;
+			uint32_t        index_of_unichar;
 			Array<TextBlob> *blob;
 			Array<GlyphID>  glyphs;
 			Array<float>    offset;
 		};
-		TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap);
-		void push(bool trim_start = false); // first call finish() then add new row
-		void push(TextOptions *opts); // push new row
-		void finish(); // finish all
-		void set_metrics(float top, float bottom);
-		void set_metrics(FontMetrics *metrics, float line_height);
-		void set_metrics(TextOptions *opts);
-		void add_layout(Layout* layout);
-		void add_text_blob(PreTextBlob blob,
-				const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre);
-		void finish_text_blob();
-		void solve_visible_region();
-		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
-		inline uint32_t length() const { return _lines.length(); }
-		inline float max_height() const { return _last->end_y; }
-		inline Line& operator[](uint32_t idx) { return _lines[idx]; }
-		inline Line& line(uint32_t idx) { return _lines[idx]; }
+
 		// defines props
 		N_DEFINE_PROP(float, pre_width);
 		N_DEFINE_PROP(bool,  trim_start);
@@ -86,9 +72,29 @@ namespace noug {
 		N_DEFINE_PROP_READ(View*, host);
 		N_DEFINE_PROP_READ(float, max_width);
 		N_DEFINE_PROP_READ(float, min_origin);
+
+		// defines methods
+		TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap);
+		void lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar); // push new row
+		void push(TextOptions *opts = nullptr, bool trim_start = false); // first call finish() then add new row
+		void finish(); // finish all
+		void finish_text_blob_pre();
+		void set_metrics(float top, float bottom);
+		void set_metrics(FontMetrics *metrics, float line_height);
+		void set_metrics(TextOptions *opts);
+		void add_layout(Layout* layout);
+		void add_text_blob(PreTextBlob blob, const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre);
+		void solve_visible_region();
+		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
+		inline uint32_t length() const { return _lines.length(); }
+		inline float max_height() const { return _last->end_y; }
+		inline Line& operator[](uint32_t idx) { return _lines[idx]; }
+		inline Line& line(uint32_t idx) { return _lines[idx]; }
 	private:
 		void finish_line(); // finish line
 		void clear();
+		void add_text_blob(PreTextBlob& blob, const Array<GlyphID>& glyphs, const Array<float>& offset);
+		void add_text_blob_empty(TextBlobBuilder* builder, uint32_t index_of_unichar);
 		Array<Line> _lines;
 		Array<Array<Layout*>> _preLayout;
 		Array<PreTextBlob>    _preBlob;

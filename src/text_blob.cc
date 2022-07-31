@@ -245,12 +245,24 @@ namespace noug {
 			is_auto_wrap = false;
 		}
 
-		uint32_t index = 0;
+		uint32_t index_of_unichar = 0;
+		auto length = lines.length();
+		
+		for ( int i = 0; i < length; i++ ) {
 
-		for ( int i = 0; i < lines.length(); i++ ) {
+			if (DEBUG) {
+				if (lines[i].length() == 0) {
+					N_LOG("====== %s", "\\n");
+				} else {
+					auto weak = ArrayWeak<Unichar>(*lines[i], lines[i].length());
+					auto buf = Codec::encode(Encoding::kUTF8_Encoding, weak);
+					N_LOG("====== %s", *buf);
+				}
+			}
+
 			if (i) { // force line feed
-				_lines->push(_opts);
-				index++;
+				_lines->lineFeed(this, index_of_unichar);
+				index_of_unichar++; // add index \n
 			}
 
 			auto fg_arr = _opts->text_family().value->makeFontGlyphs(lines[i], _opts->font_style(), _opts->text_size().value);
@@ -260,19 +272,181 @@ namespace noug {
 				if (is_auto_wrap) {
 					switch (text_word_break) {
 						default:
-						case TextWordBreak::NORMAL: as_normal(fg, unichar, index, false, false); break;
-						case TextWordBreak::BREAK_WORD: as_normal(fg, unichar, index, true, false); break;
-						case TextWordBreak::BREAK_ALL: as_break_all(fg, unichar, index); break;
-						case TextWordBreak::KEEP_ALL: as_normal(fg, unichar, index, false, true); break;
+						case TextWordBreak::NORMAL:
+							as_normal(fg, unichar, index_of_unichar, false, false); break;
+						case TextWordBreak::BREAK_WORD:
+							as_normal(fg, unichar, index_of_unichar, true, false); break;
+						case TextWordBreak::BREAK_ALL:
+							as_break_all(fg, unichar, index_of_unichar); break;
+						case TextWordBreak::KEEP_ALL:
+							as_normal(fg, unichar, index_of_unichar, false, true); break;
 					}
 					unichar += fg.glyphs().length();
 				} else {  // no auto wrap
-					as_no_auto_wrap(fg, index);
+					as_no_auto_wrap(fg, index_of_unichar);
 				}
 			}
 
-			index += lines[i].length();
+			index_of_unichar += lines[i].length();
 		}
+	}
+
+	// skip line start space symbol
+	static int skip_space(Unichar *unichar, TextLines *lines, int j, int len) {
+		do {
+			if (unicode_to_symbol(unichar[j]) != kSpace_Symbol) {
+				lines->set_trim_start(false);
+				break;
+			}
+		} while(++j < len);
+		return j;
+	}
+
+	// NORMAL 保持单词在同一行
+	// BREAK_WORD 保持单词在同一行,除非单词长度超过一行才截断
+	// KEEP_ALL 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
+	void TextBlobBuilder::as_normal(FontGlyphs &fg, Unichar *unichar,
+		uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL)
+	{
+		auto& glyphs = fg.glyphs();
+		auto  offset = fg.get_offset();
+		bool  line_head = _lines->last()->width == 0.0;
+		auto  text_size = _opts->text_size().value;
+		auto  line_height = _opts->text_line_height().value;
+		auto  line = _lines->last();
+
+		float limitX = _lines->host_size().x();
+		float origin = _lines->pre_width();
+		int   len = fg.glyphs().length();
+		int   start = 0;
+		int   j = 0;
+		
+		// skip line start space symbol
+		auto skip = [&]() {
+			if (_lines->trim_start()) {
+				start = j = skip_space(unichar, _lines, j, len);
+				origin = -offset[j];
+			}
+		};
+		
+		skip(); // skip line start space
+
+		for (; j < len; j++) {
+			auto sym = unicode_to_symbol(unichar[j]);
+			auto x = origin + offset[j + 1];
+			auto overflow = x > limitX;
+
+			// check word end
+			// prev word end or next word start, record position and offset
+			auto i = j;
+			if (sym == kSpace_Symbol) {
+				if (!overflow) {
+					i++; // not overflow, plus space is overflow
+				} else {
+					N_DEBUG("%s", "overflow");
+				}
+				goto wordEnd;
+			}
+			if (is_KEEP_ALL ? sym == kPunctuation_Symbol : sym < kNumber_Symbol) {
+			wordEnd:
+				_lines->add_text_blob(
+					{fg.typeface(), text_size, line_height, index + start, _blob},
+					glyphs.slice(start, i), offset.slice(start, i + 1), false
+				);
+				line_head = line->width == 0.0;
+				start = i;
+			}
+
+			// check wrap overflow new line
+			if (overflow) {
+				if (sym == kSpace_Symbol) { // skip end of line space
+					start = j = skip_space(unichar, _lines, j, len);
+					j--;
+					continue;
+				}
+
+				auto blob_pre = true;
+				if (line_head) { // line start then not new line
+					if (is_BREAK_WORD) { // force new line
+						blob_pre = false;
+						goto newLine;
+					}
+					_lines->set_pre_width(x);
+				} else {
+				newLine:
+					_lines->add_text_blob(
+						{fg.typeface(), text_size, line_height, index + start, _blob},
+						glyphs.slice(start, j), offset.slice(start, j + 1), blob_pre
+					);
+					_lines->push(_opts, true); // new row
+					line = _lines->last();
+					line_head = true;
+					start = j;
+					origin = _lines->pre_width() - offset[j];
+				}
+			} else {
+				_lines->set_pre_width(x);
+			}
+			
+			skip(); // skip line start space
+		}
+
+		if (start < len) {
+			_lines->add_text_blob(
+				{fg.typeface(), text_size, line_height, index + start, _blob},
+				glyphs.slice(start, len), offset.slice(start, len + 1), true
+			);
+		}
+	}
+
+	// BREAK_ALL 以字符为单位行空间不足换行
+	void TextBlobBuilder::as_break_all(FontGlyphs &fg, Unichar *unichar, uint32_t index) {
+		auto& glyphs = fg.glyphs();
+		auto  offset = fg.get_offset();
+		auto  text_size = _opts->text_size().value;
+		auto  line_height = _opts->text_line_height().value;
+		auto  line = _lines->last();
+
+		float limitX = _lines->host_size().x();
+		float origin = _lines->pre_width();
+		int   len = glyphs.length();
+		int   start = 0;
+		int   j = 0;
+
+		// skip line start space symbol
+		auto skip = [&]() {
+			if (_lines->trim_start()) {
+				j = skip_space(unichar, _lines, j, len);
+				start = j;
+				origin = -offset[j];
+			}
+		};
+		
+		skip(); // skip line start space
+
+		for (; j < len; j++) {
+			// check wrap overflow new line
+			auto x = origin + offset[j + 1];
+			if (x > limitX) {
+				_lines->add_text_blob(
+					{fg.typeface(), text_size, line_height, index + start, _blob},
+					glyphs.slice(start, j), offset.slice(start, j + 1), false
+				);
+				_lines->push(_opts, true); // new row
+				line = _lines->last();
+				start = j;
+				origin = -offset[j];
+			} else {
+				_lines->set_pre_width(x);
+			}
+			
+			skip(); // skip line start space
+		}
+
+		_lines->add_text_blob(
+			{fg.typeface(), text_size, line_height, index + start, _blob},
+			glyphs.slice(start, len), offset.slice(start, len + 1), false
+		);
 	}
 
 	void TextBlobBuilder::as_no_auto_wrap(FontGlyphs &fg, uint32_t index) {
@@ -360,151 +534,6 @@ namespace noug {
 
 		_lines->add_text_blob({fg.typeface(), text_size, line_height, index, _blob}, fg.glyphs(), offset, false);
 		_lines->set_pre_width(origin + offset.back());
-	}
-
-	// skip line start space symbol
-	static int skip_space(Unichar *unichar, TextLines *lines, int j, int len) {
-		do {
-			if (unicode_to_symbol(unichar[j]) != kSpace_Symbol) {
-				lines->set_trim_start(false);
-				break;
-			}
-		} while(++j < len);
-		return j;
-	}
-
-	// NORMAL 保持单词在同一行
-	// BREAK_WORD 保持单词在同一行,除非单词长度超过一行才截断
-	// KEEP_ALL 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
-	void TextBlobBuilder::as_normal(FontGlyphs &fg, Unichar *unichar, uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL) {
-		auto& glyphs = fg.glyphs();
-		auto  offset = fg.get_offset();
-		bool  line_head = _lines->last()->width == 0.0;
-		auto  text_size = _opts->text_size().value;
-		auto  line_height = _opts->text_line_height().value;
-		auto  line = _lines->last();
-
-		float limitX = _lines->host_size().x();
-		float origin = _lines->pre_width();
-		int   len = fg.glyphs().length();
-		int   start = 0;
-		int   j = 0;
-		
-		// skip line start space symbol
-		auto skip = [&]() {
-			if (_lines->trim_start()) {
-				j = skip_space(unichar, _lines, j, len);
-				start = j;
-				origin = -offset[j];
-			}
-		};
-
-		for (; j < len; j++) {
-			skip(); // skip line start space
-
-			auto sym = unicode_to_symbol(unichar[j]);
-			auto x = origin + offset[j + 1];
-			auto overflow = x > limitX;
-
-			// check word end
-			// prev word end or next word start, record position and offset
-			auto i = j;
-			if (sym == kSpace_Symbol) {
-				if (!overflow) i++; // not overflow, plus space is overflow
-				goto wordEnd;
-			}
-			if (is_KEEP_ALL ? sym == kPunctuation_Symbol : sym < kNumber_Symbol) {
-			wordEnd:
-				_lines->add_text_blob(
-					{fg.typeface(), text_size, line_height, index + start, _blob},
-					glyphs.slice(start, i), offset.slice(start, i + 1), false
-				);
-				line_head = line->width == 0.0;
-				start = i;
-			}
-
-			// check wrap overflow new line
-			if (overflow) {
-				auto blob_pre = true;
-				if (line_head) { // line start then not new line
-					if (is_BREAK_WORD) { // force new line
-						blob_pre = false; goto newLine;
-					}
-					_lines->set_pre_width(x);
-				} else {
-				newLine:
-					_lines->add_text_blob(
-						{fg.typeface(), text_size, line_height, index + start, _blob},
-						glyphs.slice(start, j), offset.slice(start, j + 1), blob_pre
-					);
-					_lines->push(true); // new row
-					line = _lines->last();
-					line_head = true;
-					start = j;
-					origin = _lines->pre_width() - offset[j];
-					skip(); // skip line start space
-				}
-			} else {
-				_lines->set_pre_width(x);
-			}
-
-		}
-
-		if (start < len) {
-			_lines->add_text_blob(
-				{fg.typeface(), text_size, line_height, index + start, _blob},
-				glyphs.slice(start, len), offset.slice(start, len + 1), true
-			);
-		}
-	}
-
-	// BREAK_ALL 以字符为单位行空间不足换行
-	void TextBlobBuilder::as_break_all(FontGlyphs &fg, Unichar *unichar, uint32_t index) {
-		auto& glyphs = fg.glyphs();
-		auto  offset = fg.get_offset();
-		auto  text_size = _opts->text_size().value;
-		auto  line_height = _opts->text_line_height().value;
-		auto  line = _lines->last();
-
-		float limitX = _lines->host_size().x();
-		float origin = _lines->pre_width();
-		int   len = glyphs.length();
-		int   start = 0;
-		int   j = 0;
-
-		// skip line start space symbol
-		auto skip = [&]() {
-			if (_lines->trim_start()) {
-				j = skip_space(unichar, _lines, j, len);
-				start = j;
-				origin = -offset[j];
-			}
-		};
-
-		for (; j < len; j++) {
-			skip(); // skip line start space
-
-			// check wrap overflow new line
-			auto x = origin + offset[j + 1];
-			if (x > limitX) {
-				_lines->add_text_blob(
-					{fg.typeface(), text_size, line_height, index + start, _blob},
-					glyphs.slice(start, j), offset.slice(start, j + 1), false
-				);
-				_lines->push(true); // new row
-				line = _lines->last();
-				start = j;
-				origin = -offset[j];
-				skip(); // skip line start space
-			} else {
-				_lines->set_pre_width(x);
-			}
-		}
-
-		_lines->add_text_blob(
-			{fg.typeface(), text_size, line_height, index + start, _blob},
-			glyphs.slice(start, len), offset.slice(start, len + 1), false
-		);
 	}
 
 }

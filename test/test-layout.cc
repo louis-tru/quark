@@ -108,10 +108,13 @@ void layout_input(Box* box) {
 	// input->set_text_line_height({ 40 });
 	input->set_padding_left(4);
 	input->set_padding_right(4);
-	input->set_placeholder("placeholder..");
+	input->set_placeholder("Placeholder..");
 	input->set_text_background_color({Color(255,0,0)});
- 	//input->set_text_weight(TextWeight::DEFAULT);
+	input->set_text_color({Color(255,255,255)});
+	input->set_text_line_height({20});
+ 	input->set_text_weight(TextWeight::BOLD);
 	//input->set_readonly(true);
+	//input->set_text_value("ABCDEFG AA");
 }
 
 void layout(Event<>& evt, Application* app) {
