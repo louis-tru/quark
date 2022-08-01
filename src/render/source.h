@@ -138,8 +138,8 @@ namespace noug {
 	class N_EXPORT SourceHold {
 	public:
 		~SourceHold();
-		void   set_src(cString& src);
-		void   set_source(ImageSource* source);
+		void set_src(cString& src);
+		void set_source(ImageSource* source);
 		String src() const;
 		ImageSource* source();
 	private:

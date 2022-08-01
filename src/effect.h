@@ -90,10 +90,8 @@ namespace noug {
 	public:
 		struct Init {
 			String src;
-			FillSize size_x;
-			FillSize size_y;
-			FillPosition position_x;
-			FillPosition position_y;
+			FillSize size_x, size_y;
+			FillPosition position_x, position_y;
 			Repeat repeat;
 		};
 		FillImage();

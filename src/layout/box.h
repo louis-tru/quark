@@ -186,6 +186,5 @@ namespace noug {
 		Align _layout_align;  // layout align
 	};
 
-
 }
 #endif

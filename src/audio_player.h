@@ -57,12 +57,12 @@ namespace noug {
 		N_DEFINE_ACCESSOR_READ(PlayerStatus, status);
 		N_DEFINE_ACCESSOR_READ(uint64_t, time);
 		N_DEFINE_ACCESSOR_READ(uint64_t, duration);
-		N_DEFINE_ACCESSOR_READ(uint32_t, track_count);
-		N_DEFINE_ACCESSOR_READ(uint32_t, track_index);
-		N_DEFINE_ACCESSOR_READ(const TrackInfo*, track);
+		N_DEFINE_ACCESSOR_READ(uint32_t, audio_track_count);
+		N_DEFINE_ACCESSOR_READ(uint32_t, audio_track_index);
+		N_DEFINE_ACCESSOR_READ(const TrackInfo*, audio_track);
 		// define methods
-		const TrackInfo* get_track(uint32_t index);
-		void select_track(uint32_t index);
+		const TrackInfo* audio_track_at(uint32_t index);
+		void select_audio_track(uint32_t index);
 		void start();
 		bool seek(uint64_t timeUs);
 		void pause();
