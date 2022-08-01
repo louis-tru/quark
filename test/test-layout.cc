@@ -108,10 +108,10 @@ void layout_scroll(Box *box) {
 	v->set_padding_right(10);
 	v->set_padding_bottom(10);
 	v->set_fill_color(Color(255,255,255));
-	v->set_radius_left_top(10);
-	v->set_radius_right_top(10);
-	v->set_radius_left_bottom(10);
-	v->set_radius_right_bottom(10);
+	v->set_radius_left_top(5);
+	v->set_radius_right_top(5);
+	v->set_radius_left_bottom(5);
+	v->set_radius_right_bottom(5);
 
 	auto a = (Box*)New<Box>()->append_to(v);
 	a->set_margin_top(10);
