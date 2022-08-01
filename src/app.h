@@ -137,12 +137,12 @@ namespace noug {
 		* @func max_image_memory_limit()
 		*/
 		uint64_t max_image_memory_limit() const;
-		
+
 		/**
 		* @func set_max_image_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
 		*/
 		void set_max_image_memory_limit(uint64_t limit);
-		
+
 		/**
 		* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
 		*/
@@ -157,7 +157,7 @@ namespace noug {
 		* @func open_url()
 		*/
 		void open_url(cString& url);
-		
+
 		/**
 		* @func send_email
 		*/
@@ -172,12 +172,12 @@ namespace noug {
 		 * @func setMain()
 		 */
 		static void setMain(int (*main)(int, char**));
-		
+
 		/**
 		* @func runMain(argc, argv) create sub gui thread, call by system, First thread call
 		*/
 		static void runMain(int argc, Char* argv[]);
-		
+
 		/**
 		* @func app Get current gui application entity
 		*/
