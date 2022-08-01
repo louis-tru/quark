@@ -99,8 +99,48 @@ void layout_text(Box* box) {
 	labe->set_text_color({ Color(0,0,0) });
 }
 
+void layout_scroll(Box *box) {
+	auto v = (Scroll*)New<Scroll>()->append_to(box);
+	
+	v->set_width({ 200 });
+	v->set_height({ 150 });
+	v->set_padding_left(10);
+	v->set_padding_right(10);
+	v->set_padding_bottom(10);
+	v->set_fill_color(Color(255,255,255));
+	v->set_radius_left_top(10);
+	v->set_radius_right_top(10);
+	v->set_radius_left_bottom(10);
+	v->set_radius_right_bottom(10);
+
+	auto a = (Box*)New<Box>()->append_to(v);
+	a->set_margin_top(10);
+	a->set_width({ 0, BoxSizeKind::MATCH });
+	a->set_height({ 100 });
+	a->set_fill_color(Color(255,0,0));
+
+	auto b = (Box*)New<Box>()->append_to(v);
+	b->set_margin_top(10);
+	b->set_width({ 0, BoxSizeKind::MATCH });
+	b->set_height({ 100 });
+	b->set_fill_color(Color(0,255,0));
+
+	auto c = (Box*)New<Box>()->append_to(v);
+	c->set_margin_top(10);
+	c->set_width({ 0.5, BoxSizeKind::RATIO });
+	c->set_height({ 100 });
+	c->set_fill_color(Color(0,0,255));
+
+	auto d = (Box*)New<Box>()->append_to(v);
+	d->set_margin_top(10);
+	d->set_width({ 0.5, BoxSizeKind::RATIO });
+	d->set_height({ 100 });
+	d->set_fill_color(Color(0,255,255));
+	
+}
+
 void layout_input(Box* box) {
-	auto input = (Input*)New<Textarea>()->append_to(box);
+	auto input = (Textarea*)New<Textarea>()->append_to(box);
 	//auto input = (Input*)New<Input>()->append_to(box);
 
 	input->set_width({ 200 });
@@ -116,6 +156,7 @@ void layout_input(Box* box) {
 	input->set_text_color({Color(255,255,255)});
 	input->set_text_line_height({20});
  	input->set_text_weight(TextWeight::BOLD);
+	input->set_scrollbar_width(5);
 	//input->set_readonly(true);
 	//input->set_text_value("ABCDEFG AA");
 }
@@ -132,7 +173,8 @@ void layout(Event<>& evt, Application* app) {
 	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
 	
 	//layout_text(flow);
-	layout_input(flex);
+	//layout_input(flex);
+	layout_scroll(flex);
 
 	flex->set_fill_color(Color(255,0,0,255));
 	//flex->set_fill(New<FillImage>(fs_resources("bench/img/21.jpeg"), FillImage::Init{

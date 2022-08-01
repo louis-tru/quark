@@ -403,7 +403,7 @@ namespace noug {
 			if ( scroll.x() == _scroll.x() && scroll.y() == _scroll.y() ) {
 				if ( duration ) {
 					if ( _scrollbar_opacity != 0 ) {
-						register_task( new ScrollBarFadeInOutTask(this, 2e5, 0) );
+						register_task( new ScrollBarFadeInOutTask(this, 3e5, 0) );
 					}
 				} else {
 					if ( _scrollbar_opacity != 0 ) {
@@ -832,7 +832,9 @@ namespace noug {
 	// ------------------------ S c r o l l --------------------------
 
 	Scroll::Scroll(): FloatLayout(), BaseScroll(this)
-	{}
+	{
+		set_is_clip(true);
+	}
 
 	Vec2 Scroll::layout_offset_inside() {
 		auto origin = origin_value();

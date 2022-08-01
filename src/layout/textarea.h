@@ -44,8 +44,8 @@ namespace noug {
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(uint32_t mark) override;
 	protected:
-		virtual Vec2 input_text_offset();
-		virtual void set_input_text_offset(Vec2 val);
+		virtual Vec2 input_text_offset() override;
+		virtual void set_input_text_offset(Vec2 val) override;
 	};
 
 }

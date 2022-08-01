@@ -73,10 +73,10 @@ namespace noug {
 
 					if (new_width > size_x && line_width != 0) { // new line
 						max_width = Float::max(max_width, line_width);
-						line_width = offset_left = offset_right = 0;
-						new_width = size.x();
+						offset_left = offset_right = 0;
 						offset_y += line_height;
-						line_height = 0;
+						line_width = size.x();
+						line_height = size.y();
 					} else {
 						line_width = new_width;
 					}
@@ -89,11 +89,11 @@ namespace noug {
 						case Align::CENTER_TOP:
 						case Align::CENTER_CENTER:
 						case Align::CENTER_BOTTOM: // left
-							set_layout_offset(Vec2(offset_left, offset_y));
+							v->set_layout_offset(Vec2(offset_left, offset_y));
 							offset_left += size.x();
 							break;
 						default: // right
-							set_layout_offset(Vec2(size_x - offset_right - size.x(), offset_y));
+							v->set_layout_offset(Vec2(size_x - offset_right - size.x(), offset_y));
 							offset_right += size.x();
 							break;
 					}

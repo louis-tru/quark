@@ -143,10 +143,11 @@ namespace noug {
 	}
 
 	void SkiaRender::solveScrollBar(BaseScroll* v, Box *v1) {
-		if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_color.a() ) {
+		if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_opacity ) {
 
 			float scrollbar_width = v->scrollbar_width();
 			float scrollbar_margin = v->scrollbar_margin();
+			float radius = scrollbar_width / 2;
 			
 			auto size = v1->content_size();
 			auto origin = v1->origin_value();
@@ -155,19 +156,23 @@ namespace noug {
 
 			SkPaint paint = _paint;
 			auto c4f = SkColor4f::FromColor(v->scrollbar_color().to_uint32_argb());
-			c4f.fA *= _alpha;
+			c4f.fA *= _alpha * v->_scrollbar_opacity;
 			paint.setColor4f(c4f);
 
 			if ( v->_scrollbar_h ) { // 绘制水平滚动条
-				Vec2 a(v->_scrollbar_position_h.x() - origin.x(), final_height - origin.y() - scrollbar_width - scrollbar_margin);
+				Vec2 a(v->_scrollbar_position_h.x() - origin.x(),
+							 final_height - origin.y() - scrollbar_width - scrollbar_margin);
 				Vec2 c(a.x() + v->_scrollbar_position_h.y(), a.y() + scrollbar_width);
-				_canvas->drawRect({ a.x(), a.y(), c.x(), c.y() }, paint);
+				auto rrect = SkRRect::MakeRectXY({ a.x(), a.y(), c.x(), c.y() }, radius, radius);
+				_canvas->drawRRect(rrect, paint);
 			}
 
 			if ( v->_scrollbar_v ) { // 绘制垂直滚动条
-				Vec2 a(final_width - origin.x() - scrollbar_width - scrollbar_margin, v->_scrollbar_position_v.x() - origin.y());
+				Vec2 a(final_width - origin.x() - scrollbar_width - scrollbar_margin,
+							 v->_scrollbar_position_v.x() - origin.y());
 				Vec2 c(a.x() + scrollbar_width, a.y() + v->_scrollbar_position_v.y());
-				_canvas->drawRect({ a.x(), a.y(), c.x(), c.y() }, paint);
+				auto rrect = SkRRect::MakeRectXY({ a.x(), a.y(), c.x(), c.y() }, radius, radius);
+				_canvas->drawRRect(rrect, paint);
 			}
 		}
 	}
