@@ -756,7 +756,7 @@ namespace noug {
 			// 计算光标的具体偏移位置
 			TextLines::Line* line = nullptr;
 
-			if ( blob ) { // set cursor pos
+			if ( blob && _text_value_u4.length() ) { // set cursor pos
 				auto idx = _cursor - blob->index;
 				float offset = 0;
 				if (idx < blob->offset.length()) {
@@ -768,9 +768,16 @@ namespace noug {
 				line = &_lines->line(_cursor_linenum);
 				_cursor_x = line->origin + blob->origin + offset;
 			} else { // 找不到cell定位到最后行
+				switch ( _text_align ) {
+					default:
+						_cursor_x = 0; break;
+					case TextAlign::CENTER:
+						_cursor_x = final_width / 2; break;
+					case TextAlign::RIGHT:
+						_cursor_x = final_width; break;
+				}
 				_cursor_linenum = _lines->last()->line;
 				line = &_lines->line(_cursor_linenum);
-				_cursor_x = line->origin;
 			}
 			
 			// 计算文本编辑状态下最适合的显示的文本偏移量

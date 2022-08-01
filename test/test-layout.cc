@@ -106,6 +106,8 @@ void layout_input(Box* box) {
 	input->set_height({ 150 });
 	input->set_fill_color(Color(255,255,255));
 	// input->set_text_line_height({ 40 });
+	input->set_text_align(TextAlign::CENTER);
+	//input->set_text_align(TextAlign::RIGHT);
 	input->set_padding_left(4);
 	input->set_padding_right(4);
 	input->set_placeholder("Placeholder..");
