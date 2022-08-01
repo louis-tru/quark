@@ -36,6 +36,8 @@
 
 namespace noug {
 
+	class SkiaRender;
+
 	class N_EXPORT BaseScroll {
 	public:
 		// define props
@@ -84,6 +86,8 @@ namespace noug {
 		bool _moved;               // 受外力移动中
 		bool _scroll_h, _scroll_v; // 是否已激活水平与垂直滚动
 		bool _lock_h, _lock_v;
+
+		friend class SkiaRender;
 	};
 
 	class N_EXPORT Scroll: public FloatLayout, public BaseScroll {

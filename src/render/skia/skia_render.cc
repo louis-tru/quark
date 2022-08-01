@@ -136,7 +136,40 @@ namespace noug {
 	}
 
 	void SkiaRender::visitScroll(Scroll* scroll) {
-		solveBox(scroll, nullptr);
+		solveBox(scroll, [](SkiaRender* r, Box* box, int &clip) {
+			r->solveFill(box, box->_fill, box->_fill_color);
+			r->solveScrollBar(static_cast<Scroll*>(box), box);
+		});
+	}
+
+	void SkiaRender::solveScrollBar(BaseScroll* v, Box *v1) {
+		if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_color.a() ) {
+
+			float scrollbar_width = v->scrollbar_width();
+			float scrollbar_margin = v->scrollbar_margin();
+			
+			auto size = v1->content_size();
+			auto origin = v1->origin_value();
+			auto final_width = size.x() + v1->padding_left() + v1->padding_right();
+			auto final_height = size.y() + v1->padding_top() + v1->padding_bottom();
+
+			SkPaint paint = _paint;
+			auto c4f = SkColor4f::FromColor(v->scrollbar_color().to_uint32_argb());
+			c4f.fA *= _alpha;
+			paint.setColor4f(c4f);
+
+			if ( v->_scrollbar_h ) { // 绘制水平滚动条
+				Vec2 a(v->_scrollbar_position_h.x() - origin.x(), final_height - origin.y() - scrollbar_width - scrollbar_margin);
+				Vec2 c(a.x() + v->_scrollbar_position_h.y(), a.y() + scrollbar_width);
+				_canvas->drawRect({ a.x(), a.y(), c.x(), c.y() }, paint);
+			}
+
+			if ( v->_scrollbar_v ) { // 绘制垂直滚动条
+				Vec2 a(final_width - origin.x() - scrollbar_width - scrollbar_margin, v->_scrollbar_position_v.x() - origin.y());
+				Vec2 c(a.x() + scrollbar_width, a.y() + v->_scrollbar_position_v.y());
+				_canvas->drawRect({ a.x(), a.y(), c.x(), c.y() }, paint);
+			}
+		}
 	}
 
 	void SkiaRender::visitInput(Input* input) {
@@ -216,6 +249,10 @@ namespace noug {
 				auto x = offset.x() + v->_cursor_x - 1;
 				auto y = offset.y() + line.baseline - v->_text_ascent - 1;
 				r->_canvas->drawRect({ x, y, x + 2, y + v->_text_height + 2 }, paint);
+			}
+
+			if ( v->is_multiline() ) {
+				r->solveScrollBar(static_cast<Textarea*>(v), v);
 			}
 
 			// callback end

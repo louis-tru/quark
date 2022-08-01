@@ -101,6 +101,7 @@ void layout_text(Box* box) {
 
 void layout_input(Box* box) {
 	auto input = (Input*)New<Textarea>()->append_to(box);
+	//auto input = (Input*)New<Input>()->append_to(box);
 
 	input->set_width({ 200 });
 	input->set_height({ 150 });

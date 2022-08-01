@@ -286,7 +286,7 @@ namespace noug {
 
 	template<typename T, typename A>
 	void List<T, A>::clear() {
-		erase(IteratorConst(_end._next), IteratorConst(_end._prev));
+		erase(IteratorConst(_end._next), IteratorConst(&_end));
 	}
 
 	template<typename T, typename A>

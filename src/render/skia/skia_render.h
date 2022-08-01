@@ -51,6 +51,7 @@
 #include "skia/gpu/GrDirectContext.h"
 
 namespace noug {
+	class BaseScroll;
 
 	/**
 	* @class SkiaRender
@@ -97,6 +98,7 @@ namespace noug {
 		void solveBorder(Box* box);
 		void solveBorderRadius(Box* box);
 		void solveBorderNoRadius(Box* box);
+		void solveScrollBar(BaseScroll* scroll, Box *box);
 		void useInsideClip(Box* box, int &clip);
 	protected:
 		sk_sp<GrDirectContext> _direct;
