@@ -541,7 +541,7 @@ namespace noug {
 	/**
 	 * @func audio_track_count
 	 */
-	uint32_t AudioPlayer::track_count() const {
+	uint32_t AudioPlayer::audio_track_count() const {
 		//ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return _audio->extractor()->track_count();
@@ -552,7 +552,7 @@ namespace noug {
 	/**
 	 * @func audio_track
 	 */
-	uint32_t AudioPlayer::track_index() const {
+	uint32_t AudioPlayer::audio_track_index() const {
 		//ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return _audio->extractor()->track_index();
@@ -563,7 +563,7 @@ namespace noug {
 	/**
 	 * @func audio_track
 	 */
-	const TrackInfo* AudioPlayer::track() const {
+	const TrackInfo* AudioPlayer::audio_track() const {
 		//ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return &_audio->extractor()->track();
@@ -574,7 +574,7 @@ namespace noug {
 	/**
 	 * @func audio_track
 	 */
-	const TrackInfo* AudioPlayer::get_track(uint32_t index) {
+	const TrackInfo* AudioPlayer::audio_track_at(uint32_t index) {
 		ScopeLock lock(_mutex);
 		if ( _audio && index < _audio->extractor()->track_count() ) {
 			return &_audio->extractor()->track(index);
@@ -585,7 +585,7 @@ namespace noug {
 	/**
 	 * @func select_audio_track
 	 * */
-	void AudioPlayer::select_track(uint32_t index) {
+	void AudioPlayer::select_audio_track(uint32_t index) {
 		ScopeLock scope(_mutex);
 		if ( _audio && index < _audio->extractor()->track_count() ) {
 			_audio->extractor()->select_track(index);
