@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <math.h>
-#include "app.h"
-#include "video.h"
-#include "texture.h"
+#include "../app.h"
+#include "./video.h"
+//#include "texture.h"
 #include "../media/media_codec.h"
 #include "../util/loop.h"
 #include "../util/fs.h"

@@ -955,10 +955,12 @@ namespace noug {
 			return true;
 		}
 
+#if 0
 		N_DEBUG("visible_region-x: %f<=%f", N_MAX( clip.y2, re.end.y() ) - N_MIN( clip.y, re.origin.y() ),
 																				re.end.y() - re.origin.y() + clip.height);
 		N_DEBUG("visible_region-y: %f<=%f", N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ),
 																				re.end.x() - re.origin.x() + clip.width);
+#endif
 
 		return false;
 	}

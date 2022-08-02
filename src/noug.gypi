@@ -61,7 +61,7 @@
 			'layout/scroll.cc',
 			'layout/text.h',
 			'layout/text.cc',
-			'layout/video.h',
+			# 'layout/video.h',
 			'layout/view.h',
 			'layout/view.cc',
 			'layout/button.h',
@@ -292,7 +292,7 @@
 			'media/media_codec_inl.cc',
 			'media/media_codec_software.cc',
 			'media/media_init.cc',
-			'layout/video.cc',
+			# 'layout/video.cc',
 		],
 		'conditions': [
 			['os=="android"', {

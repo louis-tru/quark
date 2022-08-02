@@ -42,7 +42,7 @@
 // views
 #include "../../layout/box.h"
 #include "../../layout/image.h"
-#include "../../layout/video.h"
+//#include "../../layout/video.h"
 #include "../../layout/scroll.h"
 #include "../../layout/input.h"
 #include "../../layout/textarea.h"
@@ -130,9 +130,9 @@ namespace noug {
 	}
 
 	void SkiaRender::visitVideo(Video* video) {
-		solveBox(video, [](SkiaRender* render, Box* box, int &clip) {
+		//solveBox(video, [](SkiaRender* render, Box* box, int &clip) {
 			// TODO ...
-		});
+		//});
 	}
 
 	void SkiaRender::visitScroll(Scroll* scroll) {

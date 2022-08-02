@@ -44,8 +44,8 @@ namespace noug {
 		};
 
 		static module_info_t video = {
-			[](void* arg) -> Object* { return new Video(); },
-			typeid(Video).hash_code(),
+			[](void* arg) -> Object* { return nullptr;/*new Video();*/ },
+			0,//typeid(Video).hash_code(),
 		};
 
 		module_audio_player = &audio_player;

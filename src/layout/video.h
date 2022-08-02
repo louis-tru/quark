@@ -32,9 +32,9 @@
 #define __noug__layout__video__
 
 #include "./image.h"
-#include "./pre_render.h"
-#include "./media/media_codec.h"
-#include "./media/pcm.h"
+#include "../pre_render.h"
+#include "../media/media_codec.h"
+#include "../media/pcm.h"
 
 namespace noug {
 
@@ -96,7 +96,6 @@ namespace noug {
 		uint32_t  _task_id;
 		VideoColorFormat _color_format;
 		Mutex     _audio_loop_mutex, _mutex;
-		uint32_t  _volume;
 		bool      _waiting_buffer;
 
 		N_DEFINE_INLINE_CLASS(Inl);

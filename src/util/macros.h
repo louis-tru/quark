@@ -274,6 +274,10 @@
 #define N_MIN(A, B)          ((A) < (B) ? (A) : (B))
 #define N_MAX(A, B)          ((A) > (B) ? (A) : (B))
 
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
 #if DEBUG || N_MORE_LOG
 # define N_DEBUG N_LOG
 #else

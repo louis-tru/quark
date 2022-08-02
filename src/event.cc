@@ -512,6 +512,7 @@ namespace noug {
 	}
 
 	void EventDispatch::onTouchstart(List<TouchPoint>&& list) {
+		N_DEBUG("onTouchstart x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
 			Root* r = _host->root();
@@ -522,6 +523,7 @@ namespace noug {
 	}
 
 	void EventDispatch::onTouchmove(List<TouchPoint>&& list) {
+		N_DEBUG("onTouchmove x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
 			touchmove(*evt.data);

@@ -250,7 +250,7 @@ namespace noug {
 		
 		for ( int i = 0; i < length; i++ ) {
 
-			if (DEBUG) {
+#if DEBUG
 				if (lines[i].length() == 0) {
 					N_LOG("====== %s", "\\n");
 				} else {
@@ -258,7 +258,7 @@ namespace noug {
 					auto buf = Codec::encode(Encoding::kUTF8_Encoding, weak);
 					N_LOG("====== %s", *buf);
 				}
-			}
+#endif
 
 			if (i) { // force line feed
 				_lines->lineFeed(this, index_of_unichar);
