@@ -136,6 +136,24 @@ void layout_scroll(Box *box) {
 	d->set_width({ 0.5, BoxSizeKind::RATIO });
 	d->set_height({ 100 });
 	d->set_fill_color(Color(0,255,255));
+
+	auto e = (Box*)New<Box>()->append_to(v);
+	e->set_margin_top(10);
+	e->set_width({ 0, BoxSizeKind::MATCH });
+	e->set_height({ 100 });
+	e->set_fill_color(Color(0,255,0));
+
+	auto f = (Box*)New<Box>()->append_to(v);
+	f->set_margin_top(10);
+	f->set_width({ 0, BoxSizeKind::MATCH });
+	f->set_height({ 100 });
+	f->set_fill_color(Color(0,0,255));
+	
+	auto g = (Box*)New<Box>()->append_to(v);
+	g->set_margin_top(10);
+	g->set_width({ 0, BoxSizeKind::MATCH });
+	g->set_height({ 100 });
+	g->set_fill_color(Color(255,0,255));
 	
 }
 
