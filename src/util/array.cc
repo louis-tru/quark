@@ -99,7 +99,7 @@ namespace noug {
 		} \
 		\
 		template<> void Array<T, A>::realloc(uint32_t capacity) { \
-			N_ASSERT(!is_weak(), "the weak holder cannot be changed"); \
+			N_Asset(!is_weak(), "the weak holder cannot be changed"); \
 			if (capacity < _length) { /* clear Partial data */ \
 				_length = capacity;\
 			} \

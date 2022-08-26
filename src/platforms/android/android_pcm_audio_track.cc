@@ -179,7 +179,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 															1  /* MODE_STREAM */
 			);
 
-			N_ASSERT(_self);
+			N_Asset(_self);
 
 			_self = env->NewGlobalRef(_self);
 

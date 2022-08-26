@@ -47,7 +47,7 @@ namespace noug {
 		, _last_65533(0)
 		, _impl(SkFontMgr::RefDefault().get())
 	{
-		N_ASSERT(_impl);
+		N_Asset(_impl);
 		SkMgr(_impl)->ref();
 		initialize();
 	}
@@ -126,7 +126,7 @@ namespace noug {
 				// use default style
 				styleSet->getStyle(0, &skStyle, nullptr);
 				auto tf2 = styleSet->matchStyle(skStyle);
-				N_ASSERT(tf2);
+				N_Asset(tf2);
 				return Typeface(tf2);
 			}
 		}

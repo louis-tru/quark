@@ -59,7 +59,7 @@ namespace noug {
 	class SkiaRender: public ViewVisitor {
 	public:
 		SkiaRender(Application* app);
-		N_DEFINE_PROP_READ(Application*, app);
+		N_Define_Prop_Get(Application*, app);
 		virtual int  flags();
 		virtual void visitView(View* v);
 		virtual void visitBox(Box* box);

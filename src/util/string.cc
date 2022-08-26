@@ -431,7 +431,7 @@ namespace noug {
 	}
 
 	void ArrayStringBase::Release(LongStr* l, Free free) {
-		N_ASSERT(l->ref > 0);
+		N_Asset(l->ref > 0);
 		if ( --l->ref == 0 ) {
 			free(l->val);
 			l->val = nullptr;

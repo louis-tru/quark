@@ -106,7 +106,7 @@ Action* GroupAction::operator[](uint32_t index) {
  * @func append
  */
 void GroupAction::append(Action* action) throw(Error) {
-	N_ASSERT(action);
+	N_Asset(action);
 	_inl_action(action)->set_parent(this);
 	_actions.push_back(action);
 	_actions_index.clear();
@@ -116,7 +116,7 @@ void GroupAction::append(Action* action) throw(Error) {
 * @func insert
 */
 void GroupAction::insert(uint32_t index, Action* action) throw(Error) {
-	N_ASSERT(action);
+	N_Asset(action);
 	
 	if (index < _actions_index.length()) {
 		_actions.insert(_actions_index[index], action);

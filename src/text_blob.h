@@ -60,11 +60,11 @@ namespace noug {
 	class N_EXPORT TextBlobBuilder {
 	public:
 		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
-		N_DEFINE_PROP(bool, disable_overflow);
-		N_DEFINE_PROP(bool, disable_auto_wrap);
-		N_DEFINE_PROP(TextLines*, lines);
-		N_DEFINE_PROP(TextOptions*, opts);
-		N_DEFINE_PROP(Array<TextBlob>*, blob);
+		N_Define_Prop(bool, disable_overflow);
+		N_Define_Prop(bool, disable_auto_wrap);
+		N_Define_Prop(TextLines*, lines);
+		N_Define_Prop(TextOptions*, opts);
+		N_Define_Prop(Array<TextBlob>*, blob);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
 		void make(Array<Array<Unichar>>&& lines);

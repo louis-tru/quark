@@ -46,21 +46,23 @@ namespace noug {
 		typedef MultimediaSource::TrackInfo TrackInfo;
 		typedef MediaCodec::OutputBuffer    OutputBuffer;
 
-		AudioPlayer(cString& uri = String());
+		static AudioPlayer* create(String src, Application* host = nullptr);
+
+		AudioPlayer(Application* host = nullptr);
 		virtual ~AudioPlayer();
 		// define props
-		N_DEFINE_PROP(bool, auto_play);
-		N_DEFINE_PROP(bool, mute);
-		N_DEFINE_PROP(bool, disable_wait_buffer);
-		N_DEFINE_PROP(uint32_t, volume);
-		N_DEFINE_ACCESSOR(String, src);
-		N_DEFINE_ACCESSOR_READ(MultimediaSourceStatus, source_status);
-		N_DEFINE_ACCESSOR_READ(PlayerStatus, status);
-		N_DEFINE_ACCESSOR_READ(uint64_t, time);
-		N_DEFINE_ACCESSOR_READ(uint64_t, duration);
-		N_DEFINE_ACCESSOR_READ(uint32_t, audio_track_count);
-		N_DEFINE_ACCESSOR_READ(uint32_t, audio_track_index);
-		N_DEFINE_ACCESSOR_READ(const TrackInfo*, audio_track);
+		N_Define_Prop_Acc(bool, auto_play, NoConst);
+		N_Define_Prop_Acc(bool, mute, NoConst);
+		N_Define_Prop_Acc(bool, disable_wait_buffer, NoConst);
+		N_Define_Prop_Acc(uint32_t, volume, NoConst);
+		N_Define_Prop_Acc(String, src, NoConst);
+		N_Define_Prop_Acc_Get(MultimediaSourceStatus, source_status, NoConst);
+		N_Define_Prop_Acc_Get(PlayerStatus, status, NoConst);
+		N_Define_Prop_Acc_Get(uint64_t, time, NoConst);
+		N_Define_Prop_Acc_Get(uint64_t, duration, NoConst);
+		N_Define_Prop_Acc_Get(uint32_t, audio_track_count, NoConst);
+		N_Define_Prop_Acc_Get(uint32_t, audio_track_index, NoConst);
+		N_Define_Prop_Acc_Get(const TrackInfo*, audio_track, NoConst);
 		// define methods
 		const TrackInfo* audio_track_at(uint32_t index);
 		void select_audio_track(uint32_t index);
@@ -80,13 +82,15 @@ namespace noug {
 		PCMPlayer*    _pcm;
 		MediaCodec*   _audio;
 		KeepLoop*     _keep;
+		bool          _auto_play, _mute, _disable_wait_buffer;
 		PlayerStatus  _status;
 		OutputBuffer  _audio_buffer;
 		uint64_t  _duration, _time;
 		uint64_t  _uninterrupted_play_start_time;
 		uint64_t  _uninterrupted_play_start_systime;
 		uint64_t  _prev_presentation_time;
-		Mutex     _audio_loop_mutex, _mutex;
+		Mutex     _mutex;
+		ThreadID  _run_loop_id;
 		uint32_t  _task_id;
 		uint32_t  _volume;
 		bool      _waiting_buffer;

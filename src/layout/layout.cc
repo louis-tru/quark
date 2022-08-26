@@ -46,7 +46,7 @@ namespace noug {
 		, _layout_depth(0)
 		, _pre_render(pre)
 	{
-		N_ASSERT(pre);
+		N_Asset(pre);
 	}
 
 	/**

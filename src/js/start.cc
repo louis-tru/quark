@@ -52,7 +52,7 @@ int __fx_noug_have_debug = 0;
 static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Char*>& noug_argv) {
 	static String argv_str;
 
-	N_ASSERT(argv_in.length(), "Bad start argument");
+	N_Asset(argv_in.length(), "Bad start argument");
 	__fx_noug_have_node = 1;
 	__fx_noug_have_debug = 0;
 	argv_str = argv_in[0];
@@ -122,7 +122,7 @@ int Start(const Array<String>& argv_in) {
 		Object::set_object_allocator(
 			&object_allocator_alloc, &object_allocator_release, &object_allocator_retain);
 	}
-	N_ASSERT(!__fx_noug_argv);
+	N_Asset(!__fx_noug_argv);
 
 	Array<Char*> argv, noug_argv;
 	parseArgv(argv_in, argv, noug_argv);
@@ -135,7 +135,7 @@ int Start(const Array<String>& argv_in) {
 	Char** argv_c = const_cast<Char**>(&argv[0]);
 
 	// Mark the current main thread and check current thread
-	N_ASSERT(RunLoop::main_loop() == RunLoop::current());
+	N_Asset(RunLoop::main_loop() == RunLoop::current());
 
 	if (__fx_noug_have_node ) {
 		if (node::node_api) {

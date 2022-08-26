@@ -64,11 +64,11 @@ namespace noug {
 			void unregister_task();
 			inline bool is_register_task() const { return _task_id != ID(); }
 			// define props
-			N_DEFINE_PROP(ID, task_id);
-			N_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
+			N_Define_Prop(ID, task_id);
+			N_Define_Prop(int64_t, task_timeout); // Unit is subtle
 		};
 
-		N_DEFINE_PROP_READ(Application*, host);
+		N_Define_Prop_Get(Application*, host);
 
 		/**
 			* @func solve 解决预先渲染问题,如果需要更新视图返回true

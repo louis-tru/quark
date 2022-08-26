@@ -124,50 +124,50 @@ namespace noug {
 		// --------------- m e m b e r . f i e l d ---------------
 
 		// define props
-		N_DEFINE_PROP_READ(bool, layout_wrap_x); // Returns the is use border radius
+		N_Define_Prop_Get(bool, layout_wrap_x); // Returns the is use border radius
 	protected:
-		N_DEFINE_PROP_READ(bool, layout_wrap_y); // Returns the is use border radius
+		N_Define_Prop_Get(bool, layout_wrap_y); // Returns the is use border radius
 	public:
-		N_DEFINE_PROP(bool, is_clip); // is clip box display range
-		N_DEFINE_PROP_READ(bool, is_radius); // Returns the is use border radius
-		N_DEFINE_PROP(BoxSize, width); // size width
-		N_DEFINE_PROP(BoxSize, height); // size height
-		N_DEFINE_PROP(BoxSize, width_limit); // limit max size
-		N_DEFINE_PROP(BoxSize, height_limit);
-		N_DEFINE_PROP(BoxOrigin, origin_x);
-		N_DEFINE_PROP(BoxOrigin, origin_y);
-		N_DEFINE_PROP(float, margin_top); // margin
-		N_DEFINE_PROP(float, margin_right);
-		N_DEFINE_PROP(float, margin_bottom);
-		N_DEFINE_PROP(float, margin_left);
-		N_DEFINE_PROP(float, padding_top); // padding
-		N_DEFINE_PROP(float, padding_right);
-		N_DEFINE_PROP(float, padding_bottom);
-		N_DEFINE_PROP(float, padding_left);
-		N_DEFINE_PROP(float, radius_left_top); // border_radius
-		N_DEFINE_PROP(float, radius_right_top);
-		N_DEFINE_PROP(float, radius_right_bottom);
-		N_DEFINE_PROP(float, radius_left_bottom);
-		N_DEFINE_PROP(Color, fill_color); // fill color
-		N_DEFINE_PROP(Fill*, fill); // fill, image|gradient
-		N_DEFINE_PROP(Effect*, effect); // effect, shadow
-		N_DEFINE_ACCESSOR(Color, border_color_top); // border_color
-		N_DEFINE_ACCESSOR(Color, border_color_right);
-		N_DEFINE_ACCESSOR(Color, border_color_bottom);
-		N_DEFINE_ACCESSOR(Color, border_color_left);
-		N_DEFINE_ACCESSOR(float, border_width_top); // border_width
-		N_DEFINE_ACCESSOR(float, border_width_right);
-		N_DEFINE_ACCESSOR(float, border_width_bottom);
-		N_DEFINE_ACCESSOR(float, border_width_left);
-		N_DEFINE_ACCESSOR(BorderStyle, border_style_top); // border_style
-		N_DEFINE_ACCESSOR(BorderStyle, border_style_right);
-		N_DEFINE_ACCESSOR(BorderStyle, border_style_bottom);
-		N_DEFINE_ACCESSOR(BorderStyle, border_style_left);
+		N_Define_Prop(bool, is_clip); // is clip box display range
+		N_Define_Prop_Get(bool, is_radius); // Returns the is use border radius
+		N_Define_Prop(BoxSize, width); // size width
+		N_Define_Prop(BoxSize, height); // size height
+		N_Define_Prop(BoxSize, width_limit); // limit max size
+		N_Define_Prop(BoxSize, height_limit);
+		N_Define_Prop(BoxOrigin, origin_x);
+		N_Define_Prop(BoxOrigin, origin_y);
+		N_Define_Prop(float, margin_top); // margin
+		N_Define_Prop(float, margin_right);
+		N_Define_Prop(float, margin_bottom);
+		N_Define_Prop(float, margin_left);
+		N_Define_Prop(float, padding_top); // padding
+		N_Define_Prop(float, padding_right);
+		N_Define_Prop(float, padding_bottom);
+		N_Define_Prop(float, padding_left);
+		N_Define_Prop(float, radius_left_top); // border_radius
+		N_Define_Prop(float, radius_right_top);
+		N_Define_Prop(float, radius_right_bottom);
+		N_Define_Prop(float, radius_left_bottom);
+		N_Define_Prop(Color, fill_color); // fill color
+		N_Define_Prop(Fill*, fill); // fill, image|gradient
+		N_Define_Prop(Effect*, effect); // effect, shadow
+		N_Define_Prop_Acc(Color, border_color_top); // border_color
+		N_Define_Prop_Acc(Color, border_color_right);
+		N_Define_Prop_Acc(Color, border_color_bottom);
+		N_Define_Prop_Acc(Color, border_color_left);
+		N_Define_Prop_Acc(float, border_width_top); // border_width
+		N_Define_Prop_Acc(float, border_width_right);
+		N_Define_Prop_Acc(float, border_width_bottom);
+		N_Define_Prop_Acc(float, border_width_left);
+		N_Define_Prop_Acc(BorderStyle, border_style_top); // border_style
+		N_Define_Prop_Acc(BorderStyle, border_style_right);
+		N_Define_Prop_Acc(BorderStyle, border_style_bottom);
+		N_Define_Prop_Acc(BorderStyle, border_style_left);
 		// Start the matrix transform from this origin point start.
 		// with border as the starting point.
-		N_DEFINE_PROP_READ(Vec2, origin_value);
-		N_DEFINE_PROP_READ(Vec2, content_size); // width,height / size
-		N_DEFINE_PROP_READ(Vec2, client_size); // border + padding + content
+		N_Define_Prop_Get(Vec2, origin_value);
+		N_Define_Prop_Get(Vec2, content_size); // width,height / size
+		N_Define_Prop_Get(Vec2, client_size); // border + padding + content
 
 	protected:
 		void solve_origin_value();

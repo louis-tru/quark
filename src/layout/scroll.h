@@ -41,25 +41,25 @@ namespace noug {
 	class N_EXPORT BaseScroll {
 	public:
 		// define props
-		N_DEFINE_PROP(bool, scrollbar); // 显示scrollbar
-		N_DEFINE_PROP(bool, bounce);    // 使用回弹力
-		N_DEFINE_PROP(bool, bounce_lock); // 使用回弹力锁定
-		N_DEFINE_PROP(bool, momentum); // 是否使用惯性
-		N_DEFINE_PROP(bool, lock_direction); // 锁定方向
-		N_DEFINE_PROP_READ(bool, scrollbar_h); // 是否显示水平滚动条
-		N_DEFINE_PROP_READ(bool, scrollbar_v); // 是否显示垂直滚动条
-		N_DEFINE_ACCESSOR(float, scroll_x);
-		N_DEFINE_ACCESSOR(float, scroll_y);
-		N_DEFINE_ACCESSOR(Vec2,  scroll);
-		N_DEFINE_PROP_READ(Vec2, scroll_size);
-		N_DEFINE_PROP(float, resistance); // resistance default=1
-		N_DEFINE_PROP(float, catch_position_x); // 停止后捕获位置
-		N_DEFINE_PROP(float, catch_position_y);
-		N_DEFINE_PROP(Color, scrollbar_color);
-		N_DEFINE_PROP(float, scrollbar_width);
-		N_DEFINE_PROP(float, scrollbar_margin);
-		N_DEFINE_PROP(uint64_t, scroll_duration);
-		N_DEFINE_PROP(cCurve*, scroll_curve);
+		N_Define_Prop(bool, scrollbar); // 显示scrollbar
+		N_Define_Prop(bool, bounce);    // 使用回弹力
+		N_Define_Prop(bool, bounce_lock); // 使用回弹力锁定
+		N_Define_Prop(bool, momentum); // 是否使用惯性
+		N_Define_Prop(bool, lock_direction); // 锁定方向
+		N_Define_Prop_Get(bool, scrollbar_h); // 是否显示水平滚动条
+		N_Define_Prop_Get(bool, scrollbar_v); // 是否显示垂直滚动条
+		N_Define_Prop_Acc(float, scroll_x);
+		N_Define_Prop_Acc(float, scroll_y);
+		N_Define_Prop_Acc(Vec2,  scroll);
+		N_Define_Prop_Get(Vec2, scroll_size);
+		N_Define_Prop(float, resistance); // resistance default=1
+		N_Define_Prop(float, catch_position_x); // 停止后捕获位置
+		N_Define_Prop(float, catch_position_y);
+		N_Define_Prop(Color, scrollbar_color);
+		N_Define_Prop(float, scrollbar_width);
+		N_Define_Prop(float, scrollbar_margin);
+		N_Define_Prop(uint64_t, scroll_duration);
+		N_Define_Prop(cCurve*, scroll_curve);
 		// constructor
 		BaseScroll(Box *host);
 		virtual ~BaseScroll();

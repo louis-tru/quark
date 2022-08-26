@@ -120,10 +120,10 @@ namespace noug {
 		{}
 		
 		virtual ~Inl() {
-			N_ASSERT(!_sending);
-			N_ASSERT(!_connect);
-			N_ASSERT(!_cache_reader);
-			N_ASSERT(!_file_writer);
+			N_Asset(!_sending);
+			N_Asset(!_connect);
+			N_Asset(!_cache_reader);
+			N_Asset(!_file_writer);
 			Release(_keep); _keep = nullptr;
 		}
 		
@@ -144,7 +144,7 @@ namespace noug {
 				Release(_host);
 			}
 			void release() {
-				N_ASSERT(_host);
+				N_Asset(_host);
 				_host->_sending = nullptr;
 				delete this;
 			}
@@ -190,7 +190,7 @@ namespace noug {
 					_socket = new Socket(hostname, port, loop);
 				}
 				
-				N_ASSERT(_socket);
+				N_Asset(_socket);
 				_socket->set_delegate(this);
 				
 				_parser.data = this;
@@ -205,7 +205,7 @@ namespace noug {
 			}
 			
 			~Connect() {
-				N_ASSERT( _id == ConnectID() );
+				N_Asset( _id == ConnectID() );
 				Release(_socket);     _socket = nullptr;
 				Release(_upload_file);_upload_file = nullptr;
 			}
@@ -213,8 +213,8 @@ namespace noug {
 			inline RunLoop* loop() { return _loop; }
 			
 			void bind_client_and_send(Client* client) {
-				N_ASSERT(client);
-				N_ASSERT(!_client);
+				N_Asset(client);
+				N_Asset(!_client);
 				
 				_client = client;
 				_socket->set_timeout(_client->_timeout); // set timeout
@@ -244,7 +244,7 @@ namespace noug {
 				if (status_code == 200) {
 					self->_client->_write_cache_flag = 2; // set write cache flag
 				}
-				N_ASSERT(status_code == parser->status_code);
+				N_Asset(status_code == parser->status_code);
 				// N_LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
 				self->_client->_status_code = status_code;
 				self->_client->_http_response_version =
@@ -569,28 +569,28 @@ namespace noug {
 			}
 			
 			virtual void trigger_file_open(File* file) {
-				N_ASSERT( _is_multipart_form_data );
+				N_Asset( _is_multipart_form_data );
 				send_multipart_form_data();
 			}
 			
 			virtual void trigger_file_close(File* file) {
-				N_ASSERT( _is_multipart_form_data );
+				N_Asset( _is_multipart_form_data );
 				Error err(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown");
 				_client->report_error_and_abort(err);
 			}
 			
 			virtual void trigger_file_error(File* file, cError& error) {
-				N_ASSERT( _is_multipart_form_data );
+				N_Asset( _is_multipart_form_data );
 				_client->report_error_and_abort(error);
 			}
 			
 			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
-				N_ASSERT( _is_multipart_form_data );
+				N_Asset( _is_multipart_form_data );
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
 				} else {
-					N_ASSERT(_multipart_form_data.length());
-					N_ASSERT(_upload_file);
+					N_Asset(_multipart_form_data.length());
+					N_Asset(_upload_file);
 					_socket->write(string_header_end.copy().collapse()); // \r\n
 					_upload_file->release(); // release file
 					_upload_file = nullptr;
@@ -604,10 +604,10 @@ namespace noug {
 			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {}
 			
 			void send_multipart_form_data() {
-				N_ASSERT( _multipart_form_buffer.length() == BUFFER_SIZE );
+				N_Asset( _multipart_form_buffer.length() == BUFFER_SIZE );
 				
 				if ( _upload_file ) { // upload file
-					N_ASSERT( _upload_file->is_open() );
+					N_Asset( _upload_file->is_open() );
 					_upload_file->read(_multipart_form_buffer);
 				}
 				else if ( _multipart_form_data.length() ) {
@@ -701,10 +701,10 @@ namespace noug {
 			}
 			
 			void get_connect(Client* client, Cb cb) {
-				N_ASSERT(client);
-				N_ASSERT(!client->_uri.is_null());
-				N_ASSERT(!client->_uri.hostname().is_empty());
-				N_ASSERT(client->_uri.type() == URI_HTTP || client->_uri.type() == URI_HTTPS);
+				N_Asset(client);
+				N_Asset(!client->_uri.is_null());
+				N_Asset(!client->_uri.hostname().is_empty());
+				N_Asset(client->_uri.type() == URI_HTTP || client->_uri.type() == URI_HTTPS);
 				
 				uint16_t  port = client->_uri.port();
 				if (!port) {
@@ -762,7 +762,7 @@ namespace noug {
 					}
 				}
 				
-				N_ASSERT(connect_count <= MAX_CONNECT_COUNT);
+				N_Asset(connect_count <= MAX_CONNECT_COUNT);
 				
 				if (!conn) {
 					if (connect_count == MAX_CONNECT_COUNT) {
@@ -800,7 +800,7 @@ namespace noug {
 					connect->release();
 				} else {
 					if ( connect->_use ) {
-						N_ASSERT( connect->_id != ConnectID() );
+						N_Asset( connect->_id != ConnectID() );
 						connect->_use = false;
 						connect->_client = nullptr;
 						connect->socket()->set_timeout(0);
@@ -849,7 +849,7 @@ namespace noug {
 				, _client(client)
 				, _parse_header(true), _offset(0), _size(size)
 			{
-				N_ASSERT(!_client->_cache_reader);
+				N_Asset(!_client->_cache_reader);
 				_client->_cache_reader = this;
 				set_delegate(this);
 				open();
@@ -952,7 +952,7 @@ namespace noug {
 				} else {
 					// read cache
 					_read_count--;
-					N_ASSERT(_read_count == 0);
+					N_Asset(_read_count == 0);
 					
 					if ( buffer.length() ) {
 						_offset += buffer.length();
@@ -1033,14 +1033,14 @@ namespace noug {
 				// flag = 1 only write header
 				// flag = 2 write header and body
 
-				N_ASSERT(!_client->_file_writer);
+				N_Asset(!_client->_file_writer);
 				_client->_file_writer = this;
 
 				// N_LOG("FileWriter _write_flag -- %i, %s", _write_flag, *path);
 				
 				if ( _write_flag ) { // verification cache is valid
 					auto r_header = _client->response_header();
-					N_ASSERT(r_header.length());
+					N_Asset(r_header.length());
 
 					if ( r_header.has("cache-control") ) {
 						String expires = convert_to_expires(r_header["cache-control"]);
@@ -1132,7 +1132,7 @@ namespace noug {
 				} else {
 					_client->trigger_http_data2(buffer);
 					_write_count--;
-					N_ASSERT(_write_count >= 0);
+					N_Asset(_write_count >= 0);
 				 advance:
 					if ( _write_count == 0 ) {
 						if ( _completed_end ) { // http已经结束
@@ -1187,7 +1187,7 @@ namespace noug {
 		}
 		
 		void read_advance() {
-			Reader* r = reader(); N_ASSERT(r);
+			Reader* r = reader(); N_Asset(r);
 			if ( _pause ) {
 				r->read_pause();
 			} else {
@@ -1196,7 +1196,7 @@ namespace noug {
 		}
 
 		void read_pause() {
-			Reader* r = reader(); N_ASSERT(r);
+			Reader* r = reader(); N_Asset(r);
 			r->read_pause();
 		}
 		
@@ -1263,8 +1263,8 @@ namespace noug {
 		void http_response_complete(bool fromCache) {
 
 			if (!fromCache) {
-				N_ASSERT(_pool_ptr);
-				N_ASSERT(_connect);
+				N_Asset(_pool_ptr);
+				N_Asset(_connect);
 				_pool_ptr->release(_connect, false);
 				_connect = nullptr;
 
@@ -1311,15 +1311,15 @@ namespace noug {
 		}
 
 		void send_http() {
-			N_ASSERT(_sending);
-			N_ASSERT(!_connect);
-			N_ASSERT(_pool_ptr);
+			N_Asset(_sending);
+			N_Asset(!_connect);
+			N_Asset(_pool_ptr);
 			_pool_ptr->get_connect(this, Cb([this](CbData& evt) {
 				if ( _wait_connect_id ) {
 					if ( evt.error ) {
 						report_error_and_abort(*evt.error);
 					} else {
-						N_ASSERT( !_connect );
+						N_Asset( !_connect );
 						_connect = static_cast<Connect*>(evt.data);
 						_connect->bind_client_and_send(this);
 					}
@@ -1349,7 +1349,7 @@ namespace noug {
 			if ( _sending && !_sending->_ending ) {
 				_sending->_ending = true;
 				
-				N_ASSERT(_pool_ptr);
+				N_Asset(_pool_ptr);
 				
 				Release(_cache_reader); _cache_reader = nullptr;
 				Release(_file_writer);  _file_writer = nullptr;
@@ -1364,7 +1364,7 @@ namespace noug {
 					if (state == _ready_state)
 						_ready_state = HTTP_READY_STATE_INITIAL;
 				} else {
-					N_ASSERT(_sending);
+					N_Asset(_sending);
 					_ready_state = HTTP_READY_STATE_COMPLETED;
 					_delegate->trigger_http_readystate_change(_host);
 					_sending->release();
@@ -1485,7 +1485,7 @@ namespace noug {
 	}
 
 	HttpClientRequest::~HttpClientRequest() {
-		N_ASSERT(_inl->_keep->host() == RunLoop::current());
+		N_Asset(_inl->_keep->host() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		_inl->abort();
 		_inl->release();

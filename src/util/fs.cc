@@ -255,14 +255,14 @@ namespace noug {
 		, _delegate(nullptr)
 		, _host(host)
 		{
-			N_ASSERT(_keep);
+			N_Asset(_keep);
 		}
 		
 		virtual ~Inl() {
 			if ( _fd ) {
 				uv_fs_t req;
 				int res = uv_fs_close(_keep->host()->uv_loop(), &req, _fd, nullptr); // sync
-				N_ASSERT( res == 0 );
+				N_Asset( res == 0 );
 			}
 			Release(_keep); _keep = nullptr;
 			clear_writeing();
@@ -357,7 +357,7 @@ namespace noug {
 			uv_fs_req_cleanup(uv_req);
 			FileReq* req = FileReq::cast(uv_req);
 			Handle<FileReq> handle(req);
-			N_ASSERT( req->ctx()->_opening );
+			N_Asset( req->ctx()->_opening );
 			req->ctx()->_opening = false;
 			if ( uv_req->result > 0 ) {
 				if ( req->ctx()->_fd ) {
@@ -413,7 +413,7 @@ namespace noug {
 			auto self = req->ctx();
 			uv_fs_req_cleanup(uv_req);
 			
-			N_ASSERT(self->_writeing.front() == req);
+			N_Asset(self->_writeing.front() == req);
 			self->_writeing.pop_front();
 			self->continue_write();
 
@@ -441,7 +441,7 @@ namespace noug {
 	{}
 
 	File::~File() {
-		N_ASSERT(_inl->loop() == RunLoop::current());
+		N_Asset(_inl->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
 			_inl->close();

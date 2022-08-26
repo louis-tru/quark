@@ -65,11 +65,11 @@ namespace noug {
 		N_Event(State, Event<ImageSource, State>);
 		
 		// Defines props
-		N_DEFINE_PROP_READ(String, uri);
-		N_DEFINE_PROP_READ(State, state);
-		N_DEFINE_PROP_READ(int, width);
-		N_DEFINE_PROP_READ(int, height);
-		N_DEFINE_PROP_READ(ColorType, type);
+		N_Define_Prop_Get(String, uri);
+		N_Define_Prop_Get(State, state);
+		N_Define_Prop_Get(int, width);
+		N_Define_Prop_Get(int, height);
+		N_Define_Prop_Get(ColorType, type);
 
 		// @constructor
 		// <FlowLayout>

@@ -216,17 +216,17 @@ namespace noug {
 		void onDispatch(uint32_t keycode, bool ascii, bool down,
 									int repeat = 0, int device = 0, int source = 0);
 
-		N_DEFINE_PROP_READ(EventDispatch*, host);
-		N_DEFINE_PROP_READ(KeyboardKeyName, keyname);
-		N_DEFINE_PROP_READ(int, keypress);
-		N_DEFINE_PROP_READ(bool, shift);
-		N_DEFINE_PROP_READ(bool, alt);
-		N_DEFINE_PROP_READ(bool, ctrl);
-		N_DEFINE_PROP_READ(bool, command);
-		N_DEFINE_PROP_READ(bool, caps_lock);
-		N_DEFINE_PROP_READ(bool, repeat);
-		N_DEFINE_PROP_READ(bool, device);
-		N_DEFINE_PROP_READ(bool, source);
+		N_Define_Prop_Get(EventDispatch*, host);
+		N_Define_Prop_Get(KeyboardKeyName, keyname);
+		N_Define_Prop_Get(int, keypress);
+		N_Define_Prop_Get(bool, shift);
+		N_Define_Prop_Get(bool, alt);
+		N_Define_Prop_Get(bool, ctrl);
+		N_Define_Prop_Get(bool, command);
+		N_Define_Prop_Get(bool, caps_lock);
+		N_Define_Prop_Get(bool, repeat);
+		N_Define_Prop_Get(bool, device);
+		N_Define_Prop_Get(bool, source);
 
 	protected:
 

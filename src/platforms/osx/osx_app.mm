@@ -196,9 +196,9 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (void)applicationDidFinishLaunching:(NSNotification*) notification {
-		N_ASSERT(!appDelegate);
+		N_Asset(!appDelegate);
 		appDelegate = self;
-		N_ASSERT(Application::shared());
+		N_Asset(Application::shared());
 		_app = Application::shared();
 
 		// UIApplication* host = UIApplication.sharedApplication;

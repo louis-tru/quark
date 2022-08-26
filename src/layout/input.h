@@ -46,19 +46,19 @@ namespace noug {
 		typedef ReferenceTraits Traits;
 		Input();
 		// define props
-		N_DEFINE_PROP(bool, security);
-		N_DEFINE_PROP(bool, readonly);
-		N_DEFINE_PROP(TextAlign, text_align);
-		N_DEFINE_PROP(KeyboardType, type);
-		N_DEFINE_PROP(KeyboardReturnType, return_type);
-		N_DEFINE_PROP(String4, text_value_u4);
-		N_DEFINE_PROP(String4, placeholder_u4);
-		N_DEFINE_PROP(Color, placeholder_color);
-		N_DEFINE_PROP(Color, cursor_color);
-		N_DEFINE_PROP(uint32_t, max_length);
-		N_DEFINE_ACCESSOR(String, text_value);
-		N_DEFINE_ACCESSOR(String, placeholder);
-		N_DEFINE_ACCESSOR_READ(uint32_t, text_length);
+		N_Define_Prop(bool, security);
+		N_Define_Prop(bool, readonly);
+		N_Define_Prop(TextAlign, text_align);
+		N_Define_Prop(KeyboardType, type);
+		N_Define_Prop(KeyboardReturnType, return_type);
+		N_Define_Prop(String4, text_value_u4);
+		N_Define_Prop(String4, placeholder_u4);
+		N_Define_Prop(Color, placeholder_color);
+		N_Define_Prop(Color, cursor_color);
+		N_Define_Prop(uint32_t, max_length);
+		N_Define_Prop_Acc(String, text_value);
+		N_Define_Prop_Acc(String, placeholder);
+		N_Define_Prop_Acc_Get(uint32_t, text_length);
 		// virtual func
 		virtual bool is_multiline();
 		// @override

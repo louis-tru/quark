@@ -122,7 +122,7 @@ namespace noug {
 				::close(fd);
 			}
 			int err = AMediaExtractor_selectTrack(_TEST_ex, select_track);
-			N_ASSERT(err == 0);
+			N_Asset(err == 0);
 		}
 
 		static void _TEST_get_sample_data(uint8_t* out, uint32_t size, uint& sample_size) {

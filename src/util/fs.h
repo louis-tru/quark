@@ -83,9 +83,9 @@ namespace noug {
 	class Dirent: public Object {
 	public:
 		Dirent(cString& name, cString& pathname, FileType type);
-		N_DEFINE_PROP_READ(String, name);
-		N_DEFINE_PROP_READ(String, pathname);
-		N_DEFINE_PROP_READ(FileType, type);
+		N_Define_Prop_Get(String, name);
+		N_Define_Prop_Get(String, pathname);
+		N_Define_Prop_Get(FileType, type);
 	};
 
 	class N_EXPORT FileSync: public Object {
@@ -99,7 +99,7 @@ namespace noug {
 		int read(void* buffer, int64_t size, int64_t offset = -1);
 		int write(const void* buffer, int64_t size, int64_t offset = -1);
 		// props
-		N_DEFINE_PROP_READ(String, path);
+		N_Define_Prop_Get(String, path);
 	private:
 		int    _fd;
 	};

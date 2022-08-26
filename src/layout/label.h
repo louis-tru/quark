@@ -41,7 +41,7 @@ namespace noug {
 	class N_EXPORT Label: public View, public TextOptions {
 		N_Define_View(Label);
 	public:
-		N_DEFINE_PROP(String, text_value);
+		N_Define_Prop(String, text_value);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;

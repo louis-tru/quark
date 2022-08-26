@@ -126,10 +126,10 @@ namespace noug {
 	class N_EXPORT UIEventName {
 	public:
 		UIEventName(cString& name, uint32_t category, uint32_t flag);
-		N_DEFINE_PROP_READ(String, to_string);
-		N_DEFINE_PROP_READ(uint32_t, category);
-		N_DEFINE_PROP_READ(uint32_t, flag);
-		N_DEFINE_PROP_READ(uint32_t, hash_code);
+		N_Define_Prop_Get(String, to_string);
+		N_Define_Prop_Get(uint32_t, category);
+		N_Define_Prop_Get(uint32_t, flag);
+		N_Define_Prop_Get(uint32_t, hash_code);
 		inline bool equals(const UIEventName& v) const { return v.hash_code() == _hash_code; }
 		inline bool operator==(const UIEventName& v) const { return v._hash_code == _hash_code; }
 		inline bool operator!=(const UIEventName& v) const { return v._hash_code != _hash_code; }
@@ -155,7 +155,7 @@ namespace noug {
 	public:
 		// inline UIEvent(cSendData& data): Event<View, Object, View>() { N_UNREACHABLE(); }
 		UIEvent(View* origin);
-		N_DEFINE_PROP_READ(uint64_t, timestamp);
+		N_Define_Prop_Get(uint64_t, timestamp);
 		inline bool is_default() const { return return_value & RETURN_VALUE_MASK_DEFAULT; }
 		inline bool is_bubble() const { return return_value & RETURN_VALUE_MASK_BUBBLE; }
 		inline void cancel_default() { return_value &= ~RETURN_VALUE_MASK_DEFAULT; }
@@ -168,10 +168,10 @@ namespace noug {
 	class N_EXPORT ActionEvent: public UIEvent {
 	public:
 		ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop);
-		N_DEFINE_PROP_READ(Action*, action);
-		N_DEFINE_PROP_READ(uint64_t, delay);
-		N_DEFINE_PROP_READ(uint32_t, frame);
-		N_DEFINE_PROP_READ(uint32_t, loop);
+		N_Define_Prop_Get(Action*, action);
+		N_Define_Prop_Get(uint64_t, delay);
+		N_Define_Prop_Get(uint32_t, frame);
+		N_Define_Prop_Get(uint32_t, loop);
 		virtual void release();
 	};
 
@@ -183,16 +183,16 @@ namespace noug {
 		KeyEvent(View* origin, uint32_t keycode,
 						bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 						uint32_t repeat, int device, int source);
-		N_DEFINE_PROP(View*, focus_move);
-		N_DEFINE_PROP(uint32_t, keycode);
-		N_DEFINE_PROP_READ(uint32_t, repeat);
-		N_DEFINE_PROP_READ(uint32_t, device);
-		N_DEFINE_PROP_READ(uint32_t, source);
-		N_DEFINE_PROP_READ(uint32_t, shift);
-		N_DEFINE_PROP_READ(uint32_t, ctrl);
-		N_DEFINE_PROP_READ(uint32_t, alt);
-		N_DEFINE_PROP_READ(uint32_t, command);
-		N_DEFINE_PROP_READ(uint32_t, caps_lock);
+		N_Define_Prop(View*, focus_move);
+		N_Define_Prop(uint32_t, keycode);
+		N_Define_Prop_Get(uint32_t, repeat);
+		N_Define_Prop_Get(uint32_t, device);
+		N_Define_Prop_Get(uint32_t, source);
+		N_Define_Prop_Get(uint32_t, shift);
+		N_Define_Prop_Get(uint32_t, ctrl);
+		N_Define_Prop_Get(uint32_t, alt);
+		N_Define_Prop_Get(uint32_t, command);
+		N_Define_Prop_Get(uint32_t, caps_lock);
 		virtual void release();
 	};
 
@@ -205,10 +205,10 @@ namespace noug {
 			TOUCH = 1, KEYBOARD = 2, MOUSE = 3
 		};
 		ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1);
-		N_DEFINE_PROP_READ(float, x);
-		N_DEFINE_PROP_READ(float, y);
-		N_DEFINE_PROP_READ(uint32_t, count);
-		N_DEFINE_PROP_READ(Type, type);
+		N_Define_Prop_Get(float, x);
+		N_Define_Prop_Get(float, y);
+		N_Define_Prop_Get(uint32_t, count);
+		N_Define_Prop_Get(Type, type);
 	};
 
 	/**
@@ -219,8 +219,8 @@ namespace noug {
 		MouseEvent(View* origin, float x, float y, uint32_t keycode,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat = 0, int device = 0, int source = 0);
-		N_DEFINE_PROP_READ(float, x);
-		N_DEFINE_PROP_READ(float, y);
+		N_Define_Prop_Get(float, x);
+		N_Define_Prop_Get(float, y);
 	};
 
 	/**
@@ -229,7 +229,7 @@ namespace noug {
 	class N_EXPORT HighlightedEvent: public UIEvent {
 	public:
 		HighlightedEvent(View* origin, HighlightedStatus status);
-		N_DEFINE_PROP_READ(HighlightedStatus, status);
+		N_Define_Prop_Get(HighlightedStatus, status);
 	};
 
 	/**
@@ -277,9 +277,9 @@ namespace noug {
 		void onKeyboard_down();
 		void onKeyboard_up();
 
-		N_DEFINE_PROP_READ(Application*, host);
-		N_DEFINE_PROP_READ(KeyboardAdapter*, keyboard);
-		N_DEFINE_PROP(TextInput*, text_input);
+		N_Define_Prop_Get(Application*, host);
+		N_Define_Prop_Get(KeyboardAdapter*, keyboard);
+		N_Define_Prop(TextInput*, text_input);
 
 	private:
 		void touchstart_erase(View* view, List<TouchPoint>& in);

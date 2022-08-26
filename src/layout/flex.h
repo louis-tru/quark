@@ -40,9 +40,9 @@ namespace noug {
 	public:
 		FlexLayout();
 		// define props
-		N_DEFINE_PROP(Direction, direction); // typesetting direction
-		N_DEFINE_PROP(ItemsAlign, items_align); // alignment mode of the main axis
-		N_DEFINE_PROP(CrossAlign, cross_align); // alignment mode of the cross axis
+		N_Define_Prop(Direction, direction); // typesetting direction
+		N_Define_Prop(ItemsAlign, items_align); // alignment mode of the main axis
+		N_Define_Prop(CrossAlign, cross_align); // alignment mode of the cross axis
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;

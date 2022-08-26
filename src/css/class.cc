@@ -139,7 +139,7 @@ StyleSheetsClass::StyleSheetsClass(View* host)
 , _is_support_pseudo(false)
 , _once_apply(true)
 , _multiple_status(CSS_PSEUDO_CLASS_NORMAL) {
-	N_ASSERT(host);
+	N_Asset(host);
 }
 
 /**
@@ -249,7 +249,7 @@ void StyleSheetsClass::apply(StyleSheetsScope* scope) {
 }
 
 void StyleSheetsClass::apply(StyleSheetsScope* scope, bool* effect_child) {
-	N_ASSERT(effect_child);
+	N_Asset(effect_child);
 	_inl_cvc(this)->apply(scope, effect_child, 1);
 }
 

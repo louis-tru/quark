@@ -53,8 +53,8 @@ namespace noug {
 		const Array<Typeface>& second() const;
 		const Typeface&        last() const;
 		// define ptops
-		N_DEFINE_PROP_READ(Application*, host);
-		N_DEFINE_PROP_READ(GlyphID, last_65533);
+		N_Define_Prop_Get(Application*, host);
+		N_Define_Prop_Get(GlyphID, last_65533);
 	private:
 		void initialize();
 		void           *_impl;

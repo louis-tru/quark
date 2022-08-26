@@ -211,9 +211,9 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		N_ASSERT(!appDelegate);
+		N_Asset(!appDelegate);
 		appDelegate = self;
-		N_ASSERT(Application::shared());
+		N_Asset(Application::shared());
 		_app = Application::shared(); 
 
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];

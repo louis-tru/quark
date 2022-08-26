@@ -74,10 +74,10 @@ namespace noug {
 	public:
 		PixelInfo();
 		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
-		N_DEFINE_PROP_READ(int, width); // width 图像宽度
-		N_DEFINE_PROP_READ(int, height); // height 图像高度
-		N_DEFINE_PROP_READ(ColorType, type); // format 图像像素的排列格式
-		N_DEFINE_PROP_READ(AlphaType, alphaType); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
+		N_Define_Prop_Get(int, width); // width 图像宽度
+		N_Define_Prop_Get(int, height); // height 图像高度
+		N_Define_Prop_Get(ColorType, type); // format 图像像素的排列格式
+		N_Define_Prop_Get(AlphaType, alphaType); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
 	};
 
 	/**

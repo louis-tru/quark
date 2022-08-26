@@ -62,16 +62,16 @@ namespace noug {
 		};
 
 		// defines props
-		N_DEFINE_PROP(float, pre_width);
-		N_DEFINE_PROP(bool,  trim_start);
-		N_DEFINE_PROP_READ(bool, no_wrap);
-		N_DEFINE_PROP_READ(bool, visible_region);
-		N_DEFINE_PROP_READ(TextAlign, text_align);
-		N_DEFINE_PROP_READ(Vec2, host_size);
-		N_DEFINE_PROP_READ(Line*, last);
-		N_DEFINE_PROP_READ(View*, host);
-		N_DEFINE_PROP_READ(float, max_width);
-		N_DEFINE_PROP_READ(float, min_origin);
+		N_Define_Prop(float, pre_width);
+		N_Define_Prop(bool,  trim_start);
+		N_Define_Prop_Get(bool, no_wrap);
+		N_Define_Prop_Get(bool, visible_region);
+		N_Define_Prop_Get(TextAlign, text_align);
+		N_Define_Prop_Get(Vec2, host_size);
+		N_Define_Prop_Get(Line*, last);
+		N_Define_Prop_Get(View*, host);
+		N_Define_Prop_Get(float, max_width);
+		N_Define_Prop_Get(float, min_origin);
 
 		// defines methods
 		TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap);

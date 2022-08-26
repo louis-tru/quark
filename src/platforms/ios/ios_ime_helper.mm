@@ -274,7 +274,7 @@ using namespace noug;
 		if ( _keyboard_up_keycode == 0 ) {
 			_app->dispatch()->keyboard()->onDispatch(keycode, 1, true/*down*/, 0, -1, 0);
 		} else {
-			N_ASSERT( keycode == _keyboard_up_keycode );
+			N_Asset( keycode == _keyboard_up_keycode );
 		}
 		_app->dispatch()->onImeInsert([text UTF8String]);
 		_app->dispatch()->keyboard()->onDispatch(keycode, 1, false/*up*/, 0, -1, 0);

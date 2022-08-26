@@ -78,7 +78,7 @@ namespace noug {
 		, _current_orientation(Orientation::ORIENTATION_INVALID)
 		, _is_init_ok(false)
 		{
-			N_ASSERT(!application); application = this;
+			N_Asset(!application); application = this;
 			_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 		}
 
@@ -113,7 +113,7 @@ namespace noug {
 		}
 
 		static void onDestroy(ANativeActivity* activity) {
-			N_ASSERT(application->_activity);
+			N_Asset(application->_activity);
 
 			activity->callbacks->onDestroy                  = nullptr;
 			activity->callbacks->onStart                    = nullptr;
@@ -150,7 +150,7 @@ namespace noug {
 					// ScopeLock scope(application->_mutex);
 					if ( window == application->_window ) {
 						ok = gl_draw_context->create_surface(window);
-						N_ASSERT(ok);
+						N_Asset(ok);
 					}
 				}
 				if ( ok ) {
@@ -193,9 +193,9 @@ namespace noug {
 				application->_dispatch = application->_host->dispatch();
 				application->_render_looper = new RenderLooper(application->_host);
 
-				N_ASSERT(application->_activity);
-				N_ASSERT(application->_host);
-				N_ASSERT(application->_host->render_loop());
+				N_Asset(application->_activity);
+				N_Asset(application->_host);
+				N_Asset(application->_host->render_loop());
 			}
 			application->_host->triggerForeground();
 			application->stop_render_task();
@@ -476,7 +476,7 @@ namespace noug {
 	}
 
 	void AppInl::initialize(cJSON& options) {
-		N_ASSERT(!gl_draw_context);
+		N_Asset(!gl_draw_context);
 		gl_draw_context = GLDrawProxy::create(this, options);
 		_draw_ctx = gl_draw_context->host();
 	}

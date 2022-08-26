@@ -258,7 +258,7 @@ namespace noug {
 	template<typename T, typename A>
 	typename List<T, A>::Iterator
 	List<T, A>::erase(IteratorConst it) {
-		N_ASSERT(_length);
+		N_Asset(_length);
 		auto node = node_(it);
 		if (node != &_end) {
 			auto next = link_(node->_prev, node->_next);

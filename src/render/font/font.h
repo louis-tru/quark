@@ -45,7 +45,7 @@ namespace noug {
 		const Array<String>&   familys() const;
 		const Array<Typeface>& match(FontStyle style);
 		Array<FontGlyphs> makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize);
-		N_DEFINE_PROP_READ(FontPool*, pool);
+		N_Define_Prop_Get(FontPool*, pool);
 	private:
 		Array<String> _familys;
 		Dict<FontStyle, Array<Typeface>> _fts;
@@ -91,9 +91,9 @@ namespace noug {
 		Array<GlyphID> _glyphs;
 		void          *_typeface;
 	public:
-		N_DEFINE_PROP(float, fontSize);
-		N_DEFINE_PROP(float, scaleX);
-		N_DEFINE_PROP(float, skewX);
+		N_Define_Prop(float, fontSize);
+		N_Define_Prop(float, scaleX);
+		N_Define_Prop(float, skewX);
 	private:
 		uint8_t _flags, _edging, _hinting, ___[5];
 	};

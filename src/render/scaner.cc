@@ -196,8 +196,8 @@ namespace noug {
 		_activeEdges.next = _firstLineEdges; // first line edges
 
 		while (y < e) {
-			Edge *left = _activeEdges.next; N_ASSERT(left, "left Edge cannot be empty");
-			Edge *right = left->next;       N_ASSERT(right, "right Edge cannot be empty");
+			Edge *left = _activeEdges.next; N_Asset(left, "left Edge cannot be empty");
+			Edge *right = left->next;       N_Asset(right, "right Edge cannot be empty");
 
 			//if (left->x > right->x) {
 			//	cb(right->x, left->x, y, ctx);

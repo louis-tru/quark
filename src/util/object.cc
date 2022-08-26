@@ -53,7 +53,7 @@ namespace noug {
 				size = powf(2, ceil(log2(size)));
 				*size_out = size;
 				val = val ? ::realloc(val, size_of * size) : ::malloc(size_of * size);
-				N_ASSERT(val);
+				N_Asset(val);
 			}
 		} else {
 			*size_out = 0;
@@ -103,7 +103,7 @@ namespace noug {
 			if ( mark_index_ > -1 ) {
 				ScopeLock scope(mark_objects_mutex);
 				mark_objects_[mark_index_] = nullptr;
-				N_ASSERT(active_mark_objects_count_);
+				N_Asset(active_mark_objects_count_);
 				active_mark_objects_count_--;
 			}
 		}
@@ -122,7 +122,7 @@ namespace noug {
 				}
 			}
 			
-			N_ASSERT( new_mark_objects.length() == active_mark_objects_count_ );
+			N_Asset( new_mark_objects.length() == active_mark_objects_count_ );
 			
 			mark_objects_ = std::move(new_mark_objects);
 			return rv;
@@ -196,11 +196,11 @@ namespace noug {
 	}
 
 	Reference::~Reference() {
-		N_ASSERT( _ref_count <= 0 );
+		N_Asset( _ref_count <= 0 );
 	}
 
 	bool Reference::retain() {
-		N_ASSERT(_ref_count >= 0);
+		N_Asset(_ref_count >= 0);
 		if ( _ref_count++ == 0 ) {
 			object_allocator_retain(this);
 		}
@@ -208,7 +208,7 @@ namespace noug {
 	}
 
 	void Reference::release() {
-		N_ASSERT(_ref_count >= 0);
+		N_Asset(_ref_count >= 0);
 		if ( --_ref_count <= 0 ) { // 当引用记数小宇等于0释放
 			object_allocator_release(this);
 		}

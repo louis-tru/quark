@@ -116,17 +116,17 @@ namespace noug {
 		 */
 		inline cJSON& options() const { return _opts; }
 
-		N_DEFINE_PROP_READ(bool, is_loaded);
-		N_DEFINE_PROP_READ(DefaultTextOptions*, default_text_options); // 默认文本设置
-		N_DEFINE_PROP_READ(Display*, display); // 当前显示端口
-		N_DEFINE_PROP_READ(Root*, root); // 根视图
-		N_DEFINE_PROP_READ(View*, focus_view); // 焦点视图
-		N_DEFINE_PROP_READ(RunLoop*, loop); // 运行消息循环
-		N_DEFINE_PROP_READ(ActionDirect*, action_direct); // 动作管理器
-		N_DEFINE_PROP_READ(PreRender*, pre_render); // 预渲染器
-		N_DEFINE_PROP_READ(Render*, render); // 渲染器
-		N_DEFINE_PROP_READ(FontPool*, font_pool); // 字体管理器
-		N_DEFINE_PROP_READ(ImagePool*, img_pool); // 图片加载器
+		N_Define_Prop_Get(bool, is_loaded);
+		N_Define_Prop_Get(DefaultTextOptions*, default_text_options); // 默认文本设置
+		N_Define_Prop_Get(Display*, display); // 当前显示端口
+		N_Define_Prop_Get(Root*, root); // 根视图
+		N_Define_Prop_Get(View*, focus_view); // 焦点视图
+		N_Define_Prop_Get(RunLoop*, loop); // 运行消息循环
+		N_Define_Prop_Get(ActionDirect*, action_direct); // 动作管理器
+		N_Define_Prop_Get(PreRender*, pre_render); // 预渲染器
+		N_Define_Prop_Get(Render*, render); // 渲染器
+		N_Define_Prop_Get(FontPool*, font_pool); // 字体管理器
+		N_Define_Prop_Get(ImagePool*, img_pool); // 图片加载器
 
 		/**
 		* @func clear 清理垃圾回收内存资源, all=true 清理全部资源

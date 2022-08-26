@@ -42,25 +42,25 @@ namespace noug {
 	class N_EXPORT TextOptions {
 	public:
 		TextOptions();
-		N_DEFINE_PROP(TextWeight, text_weight);
-		N_DEFINE_PROP(TextSlant,  text_slant);
-		N_DEFINE_PROP(TextDecoration, text_decoration);
-		N_DEFINE_PROP(TextOverflow,   text_overflow);
-		N_DEFINE_PROP(TextWhiteSpace, text_white_space);
-		N_DEFINE_PROP(TextWordBreak,  text_word_break);
-		N_DEFINE_PROP(TextSize,  text_size); // TextValueWrap
-		N_DEFINE_PROP(TextColor, text_background_color);
-		N_DEFINE_PROP(TextColor, text_color);
-		N_DEFINE_PROP(TextShadow, text_shadow);
-		N_DEFINE_PROP(TextLineHeight, text_line_height);
-		N_DEFINE_PROP(TextFamily, text_family);
+		N_Define_Prop(TextWeight, text_weight);
+		N_Define_Prop(TextSlant,  text_slant);
+		N_Define_Prop(TextDecoration, text_decoration);
+		N_Define_Prop(TextOverflow,   text_overflow);
+		N_Define_Prop(TextWhiteSpace, text_white_space);
+		N_Define_Prop(TextWordBreak,  text_word_break);
+		N_Define_Prop(TextSize,  text_size); // TextValueWrap
+		N_Define_Prop(TextColor, text_background_color);
+		N_Define_Prop(TextColor, text_color);
+		N_Define_Prop(TextShadow, text_shadow);
+		N_Define_Prop(TextLineHeight, text_line_height);
+		N_Define_Prop(TextFamily, text_family);
 		// compute text final props
-		N_DEFINE_PROP_READ(TextWeight, text_weight_value);
-		N_DEFINE_PROP_READ(TextSlant, text_slant_value);
-		N_DEFINE_PROP_READ(TextDecoration, text_decoration_value);
-		N_DEFINE_PROP_READ(TextOverflow, text_overflow_value);
-		N_DEFINE_PROP_READ(TextWhiteSpace, text_white_space_value);
-		N_DEFINE_PROP_READ(TextWordBreak, text_word_break_value);
+		N_Define_Prop_Get(TextWeight, text_weight_value);
+		N_Define_Prop_Get(TextSlant, text_slant_value);
+		N_Define_Prop_Get(TextDecoration, text_decoration_value);
+		N_Define_Prop_Get(TextOverflow, text_overflow_value);
+		N_Define_Prop_Get(TextWhiteSpace, text_white_space_value);
+		N_Define_Prop_Get(TextWordBreak, text_word_break_value);
 		FontStyle font_style() const;
 	protected:
 		virtual void onTextChange(uint32_t mark);
@@ -72,8 +72,8 @@ namespace noug {
 	public:
 		TextConfig(TextOptions* opts, TextConfig* base);
 		~TextConfig();
-		N_DEFINE_PROP_READ(TextOptions*, opts);
-		N_DEFINE_PROP_READ(TextConfig*,  base);
+		N_Define_Prop_Get(TextOptions*, opts);
+		N_Define_Prop_Get(TextConfig*,  base);
 	};
 
 	class N_EXPORT DefaultTextOptions: public TextOptions, public TextConfig {

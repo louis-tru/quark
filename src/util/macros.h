@@ -254,9 +254,9 @@
 #endif
 
 #if DEBUG || N_STRICT_ASSERT
-# define N_ASSERT(cond, ...) if(!(cond)) noug::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+# define N_Asset(cond, ...) if(!(cond)) noug::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #else
-# define N_ASSERT(cond, ...) ((void)0)
+# define N_Asset(cond, ...) ((void)0)
 #endif
 
 #define N_DEFINE_INLINE_CLASS(Inl) public: class Inl; friend class Inl; private:
@@ -375,20 +375,23 @@
 	private: static void* operator new(size_t size) = delete; \
 	private: static void operator delete(void*, size_t) = delete
 
-#define N_DEFINE_ACCESSOR_READ(type, name) \
-	type name () const; public:
+#define N_Define_Prop_Modifier const
+#define N_Define_Prop_ModifierNoConst
 
-#define N_DEFINE_ACCESSOR(type, name) \
+#define N_Define_Prop_Acc_Get(type, name, ...) \
+	type name () N_Define_Prop_Modifier##__VA_ARGS__; public:
+
+#define N_Define_Prop_Acc(type, name, ...) \
 	void set_##name (type val); \
-	N_DEFINE_ACCESSOR_READ(type, name) \
+	N_Define_Prop_Acc_Get(type, name, ##__VA_ARGS__) \
 
-#define N_DEFINE_PROP_READ(type, name) \
-	inline type name () const { return _##name; } \
+#define N_Define_Prop_Get(type, name, ...) \
+	inline type name () N_Define_Prop_Modifier##__VA_ARGS__ { return _##name; } \
 	private: type _##name; public:\
 
-#define N_DEFINE_PROP(type, name) \
+#define N_Define_Prop(type, name, ...) \
 	void set_##name (type val); \
-	N_DEFINE_PROP_READ(type, name) \
+	N_Define_Prop_Get(type, name, ##__VA_ARGS__) \
 
 #define N_Define_Class(Name) class Name;
 #define N_Define_Visitor_Visit(N) virtual void visit##N(N *v) = 0;

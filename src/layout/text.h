@@ -40,7 +40,7 @@ namespace noug {
 	class N_EXPORT TextLayout: public Box, public TextOptions {
 		N_Define_View(TextLayout);
 	public:
-		N_DEFINE_PROP(TextAlign, text_align);
+		N_Define_Prop(TextAlign, text_align);
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void set_visible(bool val) override;

@@ -67,7 +67,7 @@ namespace noug {
 		int read(void* buffer, int64_t size, int64_t offset = -1);
 		int write(const void* buffer, int64_t size, int64_t offset = -1);
 		// define props
-		N_DEFINE_PROP_READ(String, path);
+		N_Define_Prop_Get(String, path);
 	private:
 		void*  _gzfp;
 	};

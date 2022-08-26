@@ -110,7 +110,7 @@ namespace noug {
 	void SourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
 			auto _ = app();
-			// N_ASSERT(_, "Application needs to be initialized first");
+			// N_Asset(_, "Application needs to be initialized first");
 			if (_) {
 				_->pre_render()->mark_none();
 			}

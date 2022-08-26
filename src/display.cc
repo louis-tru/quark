@@ -220,7 +220,7 @@ namespace noug {
 	}
 
 	void Display::pop_clip_region() {
-		N_ASSERT( _clip_region.length() > 1 );
+		N_Asset( _clip_region.length() > 1 );
 		_clip_region.pop();
 	}
 

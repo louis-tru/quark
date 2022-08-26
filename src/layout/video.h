@@ -49,20 +49,20 @@ namespace noug {
 		Video();
 		virtual ~Video();
 		// define props
-		N_DEFINE_PROP(bool, auto_play);
-		N_DEFINE_PROP(bool, mute);
-		N_DEFINE_PROP(bool, disable_wait_buffer);
-		N_DEFINE_PROP(uint32_t, volume);
-		N_DEFINE_ACCESSOR_READ(MultimediaSourceStatus, source_status);
-		N_DEFINE_ACCESSOR_READ(PlayerStatus, status);
-		N_DEFINE_ACCESSOR_READ(uint64_t, time);
-		N_DEFINE_ACCESSOR_READ(uint64_t, duration);
-		N_DEFINE_ACCESSOR_READ(uint32_t, audio_track_count);
-		N_DEFINE_ACCESSOR_READ(uint32_t, audio_track_index);
-		N_DEFINE_ACCESSOR_READ(const TrackInfo*, audio_track);
-		N_DEFINE_ACCESSOR_READ(const TrackInfo*, video_track);
-		N_DEFINE_ACCESSOR_READ(uint32_t, video_width);
-		N_DEFINE_ACCESSOR_READ(uint32_t, video_height);
+		N_Define_Prop(bool, auto_play);
+		N_Define_Prop(bool, mute);
+		N_Define_Prop(bool, disable_wait_buffer);
+		N_Define_Prop(uint32_t, volume);
+		N_Define_Prop_Acc_Get(MultimediaSourceStatus, source_status);
+		N_Define_Prop_Acc_Get(PlayerStatus, status);
+		N_Define_Prop_Acc_Get(uint64_t, time);
+		N_Define_Prop_Acc_Get(uint64_t, duration);
+		N_Define_Prop_Acc_Get(uint32_t, audio_track_count);
+		N_Define_Prop_Acc_Get(uint32_t, audio_track_index);
+		N_Define_Prop_Acc_Get(const TrackInfo*, audio_track);
+		N_Define_Prop_Acc_Get(const TrackInfo*, video_track);
+		N_Define_Prop_Acc_Get(uint32_t, video_width);
+		N_Define_Prop_Acc_Get(uint32_t, video_height);
 		// define methods
 		const TrackInfo* audio_track_at(uint32_t index);
 		void select_audio_track(uint32_t index);

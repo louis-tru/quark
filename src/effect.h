@@ -65,13 +65,13 @@ namespace noug {
 		virtual Copying* copy(Copying* to) = 0;
 		virtual bool retain() override;
 		static Copying* assign(Copying* left, Copying* right);
-		N_DEFINE_PROP(HolderMode, holder_mode); // holder mode
+		N_Define_Prop(HolderMode, holder_mode); // holder mode
 	protected:
 		static Copying* assign2(Copying* left, Copying* right);
 		void onChange();
 		bool check_loop_reference(Copying* value);
 		void set_next2(Copying* value);
-		N_DEFINE_PROP(Copying*, next);
+		N_Define_Prop(Copying*, next);
 	};
 
 	class Effect: public Copying {
@@ -96,11 +96,11 @@ namespace noug {
 		};
 		FillImage();
 		FillImage(cString& src, Init init = {});
-		N_DEFINE_PROP(FillSize, size_x);
-		N_DEFINE_PROP(FillSize, size_y);
-		N_DEFINE_PROP(FillPosition, position_x);
-		N_DEFINE_PROP(FillPosition, position_y);
-		N_DEFINE_PROP(Repeat, repeat);
+		N_Define_Prop(FillSize, size_x);
+		N_Define_Prop(FillSize, size_y);
+		N_Define_Prop(FillPosition, position_x);
+		N_Define_Prop(FillPosition, position_y);
+		N_Define_Prop(Repeat, repeat);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 		static bool  compute_size(FillSize size, float host, float& out);
@@ -126,7 +126,7 @@ namespace noug {
 	class N_EXPORT FillGradientLinear: public FillGradient {
 	public:
 		FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors);
-		N_DEFINE_PROP(float, angle);
+		N_Define_Prop(float, angle);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 	private:
@@ -148,7 +148,7 @@ namespace noug {
 		BoxShadow();
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
-		N_DEFINE_PROP(Shadow, value);
+		N_Define_Prop(Shadow, value);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 	};

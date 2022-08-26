@@ -269,19 +269,19 @@ namespace noug {
 		*  需要这些标记的原因主要是为了最大程度的节省性能开销,因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
 		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到需要帧渲染时统一进行更新.
 		*/
-		N_DEFINE_PROP_READ(uint32_t, layout_mark);
+		N_Define_Prop_Get(uint32_t, layout_mark);
 		/*
 		* @field layout_mark
 		*
 		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
 		* 这个值受`View::_visible`影响, View::_visible=false时_depth=0
 		*/
-		N_DEFINE_PROP_READ(uint32_t, layout_depth);
+		N_Define_Prop_Get(uint32_t, layout_depth);
 
 		/*
 		* @field pre_render
 		*/
-		N_DEFINE_PROP_READ(PreRender*, pre_render);
+		N_Define_Prop_Get(PreRender*, pre_render);
 
 		friend class PreRender;
 	};

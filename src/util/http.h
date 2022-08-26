@@ -216,8 +216,8 @@ namespace noug {
 	public:
 		HttpError(int rc, cString& msg, uint32_t status, cString& url);
 		HttpError(const Error& err);
-		N_DEFINE_PROP_READ(uint32_t, status);
-		N_DEFINE_PROP_READ(String, url);
+		N_Define_Prop_Get(uint32_t, status);
+		N_Define_Prop_Get(String, url);
 	};
 
 	N_EXPORT uint32_t http_request(RequestOptions& options, HttpCb cb = 0) throw(HttpError);

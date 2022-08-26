@@ -91,7 +91,7 @@ namespace noug {
 		}
 		
 		bool advance_video(uint64_t sys_time) {
-			N_ASSERT(m_status != PLAYER_STATUS_STOP);
+			N_Asset(m_status != PLAYER_STATUS_STOP);
 			
 			bool draw = false;
 			
@@ -307,9 +307,9 @@ namespace noug {
 		void start_run() {
 			Lock lock(_mutex);
 			
-			N_ASSERT( m_source && m_video );
-			N_ASSERT( m_source->is_active() );
-			N_ASSERT( m_status == PLAYER_STATUS_START );
+			N_Asset( m_source && m_video );
+			N_Asset( m_source->is_active() );
+			N_Asset( m_status == PLAYER_STATUS_START );
 
 			_waiting_buffer = false;
 
@@ -386,7 +386,7 @@ namespace noug {
 	}
 
 	void Video::multimedia_source_ready(MultimediaSource* src) {
-		N_ASSERT( _source == src );
+		N_Asset( _source == src );
 		
 		if ( _video ) {
 			Inl_Video(this)->trigger(UIEvent_Ready); // trigger event ready
@@ -396,8 +396,8 @@ namespace noug {
 			return;
 		}
 
-		N_ASSERT(!m_video);
-		N_ASSERT(!m_audio);
+		N_Asset(!m_video);
+		N_Asset(!m_audio);
 		
 		// 创建解码器很耗时这会导致gui线程延时,所以这里不在主线程创建
 		
@@ -471,7 +471,7 @@ namespace noug {
 			Inl_Video(this)->stop_and_release(lock, true);
 		}
 		auto loop = pre_render()->host()->loop();
-		N_ASSERT(loop, "Cannot find main run loop");
+		N_Asset(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
 		_keep = loop->keep_alive("Video::set_source");
 		_source->set_delegate(this);
@@ -519,7 +519,7 @@ namespace noug {
 		ScopeLock scope(_mutex);
 		
 		if ( Inl_Video(this)->is_active() && timeUs < _duration ) {
-			N_ASSERT( m_source );
+			N_Asset( m_source );
 			
 			if ( _source->seek(timeUs) ) {
 				_uninterrupted_play_start_systime = 0;

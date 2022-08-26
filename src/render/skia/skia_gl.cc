@@ -50,7 +50,7 @@ namespace noug {
 	void SkiaGLRender::onReload() {
 		if (!_direct) {
 			_direct = GrDirectContext::MakeGL(GrGLMakeNativeInterface(), {/*_opts.grContextOptions*/});
-			N_ASSERT(_direct);
+			N_Asset(_direct);
 		}
 		_surface.reset(); // clear curr surface
 		_rasterSurface.reset();
@@ -63,7 +63,7 @@ namespace noug {
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 			_rasterSurface = SkSurface::MakeRaster(info);
-			N_ASSERT(_rasterSurface);
+			N_Asset(_rasterSurface);
 		}
 
 		GrGLFramebufferInfo fbInfo = {
@@ -78,7 +78,7 @@ namespace noug {
 															_direct.get(), backendRT,
 															kBottomLeft_GrSurfaceOrigin,
 															SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
-		N_ASSERT(_surface);
+		N_Asset(_surface);
 		if (_raster) {
 			_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
 		} else {
