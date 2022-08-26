@@ -28,163 +28,54 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__media__audio_player__
-#define __noug__media__audio_player__
+#ifndef __noug__audio_player__
+#define __noug__audio_player__
 
+#include "../app.h"
 #include "../event.h"
-#include "./media.h"
-#include "./pcm.h"
-#include "./media_codec.h"
+#include "./media/media.h"
+#include "./media/pcm.h"
+#include "./media/media_codec.h"
 
 namespace noug {
 
-	/**
-	* @class AudioPlayer
-	*/
 	class N_EXPORT AudioPlayer: public Notification<Event<>, UIEventName>,
-																public MultimediaSource::Delegate {
+															public MultimediaSource::Delegate {
 		N_HIDDEN_ALL_COPY(AudioPlayer);
 	public:
-
 		typedef MultimediaSource::TrackInfo TrackInfo;
 		typedef MediaCodec::OutputBuffer    OutputBuffer;
 
 		AudioPlayer(cString& uri = String());
-
-		/**
-		* @destructor
-		*/
 		virtual ~AudioPlayer();
-
-		/**
-		* @overwrite
-		*/
+		// define props
+		N_DEFINE_PROP(bool, auto_play);
+		N_DEFINE_PROP(bool, mute);
+		N_DEFINE_PROP(bool, disable_wait_buffer);
+		N_DEFINE_PROP(uint32_t, volume);
+		N_DEFINE_ACCESSOR(String, src);
+		N_DEFINE_ACCESSOR_READ(MultimediaSourceStatus, source_status);
+		N_DEFINE_ACCESSOR_READ(PlayerStatus, status);
+		N_DEFINE_ACCESSOR_READ(uint64_t, time);
+		N_DEFINE_ACCESSOR_READ(uint64_t, duration);
+		N_DEFINE_ACCESSOR_READ(uint32_t, audio_track_count);
+		N_DEFINE_ACCESSOR_READ(uint32_t, audio_track_index);
+		N_DEFINE_ACCESSOR_READ(const TrackInfo*, audio_track);
+		// define methods
+		const TrackInfo* audio_track_at(uint32_t index);
+		void select_audio_track(uint32_t index);
+		void start();
+		bool seek(uint64_t timeUs);
+		void pause();
+		void resume();
+		void stop();
+		// @overwrite
 		virtual void multimedia_source_ready(MultimediaSource* src);
 		virtual void multimedia_source_wait_buffer(MultimediaSource* src, float process);
 		virtual void multimedia_source_eof(MultimediaSource* src);
 		virtual void multimedia_source_error(MultimediaSource* src, cError& err);
-
-		/**
-		* @func src get src
-		*/
-		N_MEDIA_DYNAMIC String src();
-		
-		/**
-		* @func set_src set src
-		*/
-		N_MEDIA_DYNAMIC void set_src(cString& value);
-
-		/**
-		* @func auto_play
-		*/
-		inline bool auto_play() const { return _auto_play; }
-
-		/**
-		* @func set_auto_play setting auto play
-		*/
-		N_MEDIA_DYNAMIC void set_auto_play(bool value);
-
-		/**
-		* @func source_status
-		* */
-		N_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
-
-		/**
-		* @func status getting play status
-		*/
-		N_MEDIA_DYNAMIC PlayerStatus status();
-
-		/**
-		* @func mute getting mute status
-		* */
-		inline bool mute() const { return _mute; }
-
-		/**
-		* @func set_mute setting mute status
-		* */
-		N_MEDIA_DYNAMIC void set_mute(bool value);
-
-		/**
-		* @func volume
-		*/
-		inline uint32_t volume() { return _volume; }
-
-		/**
-		* @func set_volume
-		*/
-		N_MEDIA_DYNAMIC void set_volume(uint32_t value);
-
-		/**
-		* @func time
-		* */
-		N_MEDIA_DYNAMIC uint64_t time();
-
-		/**
-		* @func duration
-		* */
-		N_MEDIA_DYNAMIC uint64_t duration();
-
-		/**
-		* @func audio_track_count
-		*/
-		N_MEDIA_DYNAMIC uint32_t track_count();
-
-		/**
-		* @func audio_track
-		*/
-		N_MEDIA_DYNAMIC uint32_t track_index();
-
-		/**
-		* @func audio_track
-		*/
-		N_MEDIA_DYNAMIC const TrackInfo* track();
-
-		/**
-		* @func audio_track
-		*/
-		N_MEDIA_DYNAMIC const TrackInfo* track(uint32_t index);
-
-		/**
-		* @func select_audio_track
-		* */
-		N_MEDIA_DYNAMIC void select_track(uint32_t index);
-
-		/**
-		* @func start play
-		*/
-		N_MEDIA_DYNAMIC void start();
-
-		/**
-		* @func seek to target time
-		*/
-		N_MEDIA_DYNAMIC bool seek(uint64_t timeUs);
-
-		/**
-		* @func pause play
-		* */
-		N_MEDIA_DYNAMIC void pause();
-
-		/**
-		* @func resume play
-		* */
-		N_MEDIA_DYNAMIC void resume();
-
-		/**
-		* @func stop play
-		* */
-		N_MEDIA_DYNAMIC void stop();
-
-		/**
-		* @func disable_wait_buffer
-		*/
-		N_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
-
-		/**
-		* @func disable_wait_buffer
-		*/
-		inline bool disable_wait_buffer() const { return _disable_wait_buffer; }
-
 	private:
+		Application *_host;
 		MultimediaSource* _source;
 		PCMPlayer*    _pcm;
 		MediaCodec*   _audio;
@@ -195,16 +86,12 @@ namespace noug {
 		uint64_t  _uninterrupted_play_start_time;
 		uint64_t  _uninterrupted_play_start_systime;
 		uint64_t  _prev_presentation_time;
-		Mutex   _audio_loop_mutex, _mutex;
-		uint32_t    _task_id;
-		uint32_t    _volume;
-		bool    _mute;
-		bool    _auto_play;
-		bool    _disable_wait_buffer;
-		bool    _waiting_buffer;
+		Mutex     _audio_loop_mutex, _mutex;
+		uint32_t  _task_id;
+		uint32_t  _volume;
+		bool      _waiting_buffer;
 
 		N_DEFINE_INLINE_CLASS(Inl);
 	};
-
 }
 #endif

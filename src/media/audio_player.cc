@@ -29,17 +29,17 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./audio_player.h"
-#include "../app.h"
 #include "../errno.h"
 #include "../util/fs.h"
 
 namespace noug {
 
 	/**
-	* @constructor
-	*/
+	 * @constructor
+	 */
 	AudioPlayer::AudioPlayer(cString& uri)
-		: _source(NULL)
+		: _host(app())
+		, _source(NULL)
 		, _pcm(NULL)
 		, _audio(NULL)
 		, _keep(NULL)
@@ -62,16 +62,15 @@ namespace noug {
 	typedef MultimediaSource::TrackInfo TrackInfo;
 
 	/**
-	* @class Video::Inl
-	*/
+	 * @class Video::Inl
+	 */
 	N_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
-		public:
+	public:
 		
-		// set pcm ..
 		bool write_audio_pcm(uint64_t st) {
-			bool r = _pcm->write(WeakBuffer((Char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
+			bool r = _pcm->write(WeakBuffer((char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
 			if ( !r ) {
-				N_DEBUG("Discard, audio PCM frame, %lld", _audio_buffer.time);
+				N_DEBUG("Discard, audio PCM frame, %lld", maudio_buffer.time);
 			} else {
 				_prev_presentation_time = st;
 			}
@@ -81,13 +80,13 @@ namespace noug {
 		
 		void play_audio() {
 			float compensate = _pcm->compensate();
-			loop:
+		loop:
 			
 			uint64_t sys_time = time_monotonic();
 			
 			{ //
 				ScopeLock scope(_mutex);
-				
+
 				if ( _status == PLAYER_STATUS_STOP ) { // stop
 					return; // stop audio
 				}
@@ -95,27 +94,21 @@ namespace noug {
 				if ( !_audio_buffer.total ) {
 					if ( _status == PLAYER_STATUS_PLAYING || _status == PLAYER_STATUS_START ) {
 						_audio_buffer = _audio->output();
-						
+
 						if ( _audio_buffer.total ) {
 							if ( _waiting_buffer ) {
-								_keep->post(Cb([this](CbData& evt) {
-									trigger(UIEvent_WaitBuffer, Float(1.0F)); // trigger source WAIT event
-								}));
+								_keep->post(Cb([this](CbData& evt) { trigger(UIEvent_WaitBuffer, Float(1.0F)); /* trigger source WAIT event */ }));
 								_waiting_buffer = false;
 							}
 						} else {
 							MultimediaSourceStatus status = _source->status();
 							if ( status == MULTIMEDIA_SOURCE_STATUS_WAIT ) { // 源..等待数据
 								if ( _waiting_buffer == false ) {
-									_keep->post(Cb([this](CbData& evt) {
-										trigger(UIEvent_WaitBuffer, Float(0.0F)); // trigger source WAIT event
-									}));
+									_keep->post(Cb([this](CbData& evt) { trigger(UIEvent_WaitBuffer, Float(0.0F)); /* trigger source WAIT event */ }));
 									_waiting_buffer = true;
 								}
 							} else if ( status == MULTIMEDIA_SOURCE_STATUS_EOF ) {
-								_keep->post(Cb([this](CbData& evt) {
-									stop();
-								}));
+								_keep->post(Cb([this](CbData& evt) { stop(); }));
 								return;
 							}
 						}
@@ -140,9 +133,7 @@ namespace noug {
 					} else {
 						if ( _status == PLAYER_STATUS_START ) {
 							_status = PLAYER_STATUS_PLAYING;
-							_keep->post(Cb([this](CbData& evt) {
-								trigger(UIEvent_StartPlay); // trigger start_play event
-							}));
+							_keep->post(Cb([this](CbData& evt) { trigger(UIEvent_StartPlay); /* trigger start_play event */ }));
 						}
 						_uninterrupted_play_start_systime = sys_time;
 						_uninterrupted_play_start_time = _audio_buffer.time;
@@ -195,9 +186,7 @@ namespace noug {
 					ScopeLock scope(_audio_loop_mutex);
 				}
 				if ( is_event ) {
-					_keep->post(Cb([this](CbData& e){
-						Inl_AudioPlayer(this)->trigger(UIEvent_Stop); // trigger stop event
-					}));
+					_keep->post(Cb([this](CbData& e){ Inl_AudioPlayer(this)->trigger(UIEvent_Stop); /* trigger stop event */ }));
 				}
 				lock.lock();
 				
@@ -230,8 +219,8 @@ namespace noug {
 		}
 		
 		/**
-		* @func is_active
-		*/
+		 * @func is_active
+		 */
 		inline bool is_active() {
 			return _status == PLAYER_STATUS_PAUSED || _status == PLAYER_STATUS_PLAYING;
 		}
@@ -254,11 +243,11 @@ namespace noug {
 				_pcm->set_volume(_volume);
 				_pcm->set_mute(_mute);
 				
-				Thread::create([](Thread& t, void* arg) {
-					auto self = (Inl*)arg;
-					ScopeLock scope(self->_audio_loop_mutex);
-					self->play_audio();
-				}, this, "audio");
+				Thread::create([this](Thread& t) {
+					ScopeLock scope(_audio_loop_mutex);
+					Inl_AudioPlayer(this)->play_audio();
+					return 0;
+				}, "audio");
 			} else {
 				stop_2(lock, true);
 			}
@@ -345,17 +334,17 @@ namespace noug {
 	}
 
 	/**
-	* @destructor
-	*/
+	 * @destructor
+	 */
 	AudioPlayer::~AudioPlayer() {
 		Inl_AudioPlayer(this)->stop_and_release(false);
 	}
 
 	/**
-	* @func src # get src
-	*/
-	String AudioPlayer::src() {
-		ScopeLock lock(_mutex);
+	 * @func src # get src
+	 */
+	String AudioPlayer::src() const {
+		//ScopeLock lock(_mutex);
 		if ( _source ) {
 			return _source->uri().href();
 		} else {
@@ -364,15 +353,15 @@ namespace noug {
 	}
 
 	/**
-	* @func src # set src
-	*/
-	void AudioPlayer::set_src(cString& value) {
+	 * @func src # set src
+	 */
+	void AudioPlayer::set_src(String value) {
 
 		if ( value.is_empty() ) {
 			return;
 		}
 		String src = fs_reader()->format(value);
-		
+
 		Lock lock(_mutex);
 		
 		if ( _source ) {
@@ -381,7 +370,7 @@ namespace noug {
 			}
 			Inl_AudioPlayer(this)->stop_and_release(lock, true);
 		}
-		auto loop = app()->loop();
+		auto loop = _host->loop();
 		N_ASSERT(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
 		_keep = loop->keep_alive("AudioPlayer::set_src");
@@ -391,8 +380,8 @@ namespace noug {
 	}
 
 	/**
-	* @func start play
-	*/
+	 * @func start play
+	 */
 	void AudioPlayer::start() {
 		Lock scope(_mutex);
 		if ( _status == PLAYER_STATUS_STOP && _source ) {
@@ -412,26 +401,26 @@ namespace noug {
 	}
 
 	/**
-	* @func stop play
-	* */
+	 * @func stop play
+	 * */
 	void AudioPlayer::stop() {
 		Lock lock(_mutex);
 		Inl_AudioPlayer(this)->stop_2(lock, true);
 	}
 
 	/**
-	* @func set_auto_play setting auto play
-	*/
+	 * @func set_auto_play setting auto play
+	 */
 	void AudioPlayer::set_auto_play(bool value) {
 		ScopeLock scope(_mutex); 
 		_auto_play = value; 
 	}
 
 	/**
-	* @func source_status
-	* */
-	MultimediaSourceStatus AudioPlayer::source_status() {
-		ScopeLock scope(_mutex);
+	 * @func source_status
+	 * */
+	MultimediaSourceStatus AudioPlayer::source_status() const {
+		//ScopeLock scope(_mutex);
 		if ( _source ) {
 			return _source->status();
 		}
@@ -439,16 +428,16 @@ namespace noug {
 	}
 
 	/**
-	* @func status getting play status
-	*/
-	PlayerStatus AudioPlayer::status() {
-		ScopeLock scope(_mutex); 
+	 * @func status getting play status
+	 */
+	PlayerStatus AudioPlayer::status() const {
+		//ScopeLock scope(_mutex);
 		return _status; 
 	}
 
 	/**
-	* @func seek to target time
-	*/
+	 * @func seek to target time
+	 */
 	bool AudioPlayer::seek(uint64_t timeUs) {
 		ScopeLock scope(_mutex);
 		if ( Inl_AudioPlayer(this)->is_active() && timeUs < _duration ) {
@@ -469,8 +458,8 @@ namespace noug {
 	}
 
 	/**
-	* @func pause play
-	* */
+	 * @func pause play
+	 * */
 	void AudioPlayer::pause() {
 		ScopeLock scope(_mutex);
 		if ( _status == PLAYER_STATUS_PLAYING && _duration /*没有长度信息不能暂停*/ ) {
@@ -483,8 +472,8 @@ namespace noug {
 	}
 
 	/**
-	* @func resume play
-	* */
+	 * @func resume play
+	 * */
 	void AudioPlayer::resume() {
 		ScopeLock scope(_mutex);
 		if ( _status == PLAYER_STATUS_PAUSED ) {
@@ -497,8 +486,8 @@ namespace noug {
 	}
 
 	/**
-	* @func set_mute setting mute status
-	* */
+	 * @func set_mute setting mute status
+	 * */
 	void AudioPlayer::set_mute(bool value) {
 		ScopeLock scope(_mutex);
 		if ( value != _mute ) {
@@ -510,8 +499,8 @@ namespace noug {
 	}
 
 	/**
-	* @func set_volume
-	*/
+	 * @func set_volume
+	 */
 	void AudioPlayer::set_volume(uint32_t value) {
 		ScopeLock scope(_mutex);
 		value = N_MIN(value, 100);
@@ -522,23 +511,25 @@ namespace noug {
 	}
 
 	/**
-	* @func time
-	* */
-	uint64_t AudioPlayer::time() {
-		ScopeLock scope(_mutex); return _time;
+	 * @func time
+	 * */
+	uint64_t AudioPlayer::time() const {
+		//ScopeLock scope(_mutex);
+		return _time;
 	}
 
 	/**
-	* @func duration
-	* */
-	uint64_t AudioPlayer::duration() {
-		ScopeLock scope(_mutex); return _duration;
+	 * @func duration
+	 * */
+	uint64_t AudioPlayer::duration() const {
+		//ScopeLock scope(_mutex);
+		return _duration;
 	}
 
 	/**
-	* @func disable_wait_buffer
-	*/
-	void AudioPlayer::disable_wait_buffer(bool value) {
+	 * @func disable_wait_buffer
+	 */
+	void AudioPlayer::set_disable_wait_buffer(bool value) {
 		ScopeLock scope(_mutex);
 		_disable_wait_buffer = value;
 		if (_source) {
@@ -547,10 +538,10 @@ namespace noug {
 	}
 
 	/**
-	* @func audio_track_count
-	*/
-	uint32_t AudioPlayer::track_count() {
-		ScopeLock lock(_mutex);
+	 * @func audio_track_count
+	 */
+	uint32_t AudioPlayer::audio_track_count() const {
+		//ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return _audio->extractor()->track_count();
 		}
@@ -558,10 +549,10 @@ namespace noug {
 	}
 
 	/**
-	* @func audio_track
-	*/
-	uint32_t AudioPlayer::track_index() {
-		ScopeLock lock(_mutex);
+	 * @func audio_track
+	 */
+	uint32_t AudioPlayer::audio_track_index() const {
+		//ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return _audio->extractor()->track_index();
 		}
@@ -569,10 +560,10 @@ namespace noug {
 	}
 
 	/**
-	* @func audio_track
-	*/
-	const TrackInfo* AudioPlayer::track() {
-		ScopeLock lock(_mutex);
+	 * @func audio_track
+	 */
+	const TrackInfo* AudioPlayer::audio_track() const {
+		//ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return &_audio->extractor()->track();
 		}
@@ -580,9 +571,9 @@ namespace noug {
 	}
 
 	/**
-	* @func audio_track
-	*/
-	const TrackInfo* AudioPlayer::track(uint32_t index) {
+	 * @func audio_track
+	 */
+	const TrackInfo* AudioPlayer::audio_track_at(uint32_t index) {
 		ScopeLock lock(_mutex);
 		if ( _audio && index < _audio->extractor()->track_count() ) {
 			return &_audio->extractor()->track(index);
@@ -591,9 +582,9 @@ namespace noug {
 	}
 
 	/**
-	* @func select_audio_track
-	* */
-	void AudioPlayer::select_track(uint32_t index) {
+	 * @func select_audio_track
+	 * */
+	void AudioPlayer::select_audio_track(uint32_t index) {
 		ScopeLock scope(_mutex);
 		if ( _audio && index < _audio->extractor()->track_count() ) {
 			_audio->extractor()->select_track(index);
