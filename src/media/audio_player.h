@@ -33,9 +33,9 @@
 
 #include "../app.h"
 #include "../event.h"
-#include "./media/media.h"
-#include "./media/pcm.h"
-#include "./media/media_codec.h"
+#include "./media.h"
+#include "./pcm.h"
+#include "./media_codec.h"
 
 namespace noug {
 
