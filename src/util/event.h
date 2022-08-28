@@ -451,7 +451,7 @@ namespace noug {
 		}
 		
 		inline void get_listener() {
-			N_Asset(!_name.is_empty());
+			N_Assert(!_name.is_empty());
 			if (_listener == nullptr) {
 				_listener = new List<LWrap>();
 			}

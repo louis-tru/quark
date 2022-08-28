@@ -100,13 +100,13 @@ void JSClassStore::reset_constructor(uint64_t id) {
 
 WrapObject* JSClassStore::attach(uint64_t id, Object* object) {
 	WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
-	N_Asset( !wrap->worker() );
+	N_Assert( !wrap->worker() );
 	
 	auto it = values_.find(id);
 	if ( !it.is_null() ) {
 		it.value()->attach_callback(wrap);
 		
-		N_Asset( !current_attach_object_ );
+		N_Assert( !current_attach_object_ );
 		
 		Local<JSFunction> func = it.value()->function.local();
 		if ( func.IsEmpty() ) {

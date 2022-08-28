@@ -77,7 +77,7 @@ namespace noug {
 		}
 
 		static void set_thread_specific_data(Thread* thread) {
-			N_Asset(!pthread_getspecific(__specific_key));
+			N_Assert(!pthread_getspecific(__specific_key));
 			pthread_setspecific(__specific_key, thread);
 		}
 
@@ -176,7 +176,7 @@ namespace noug {
 	 */
 	void Thread::pause(uint64_t timeoutUs) {
 		auto cur = current();
-		N_Asset(cur, "Cannot find current noug::Thread handle, use Thread::sleep()");
+		N_Assert(cur, "Cannot find current noug::Thread handle, use Thread::sleep()");
 
 		Lock lock(cur->_mutex);
 		if ( !cur->_abort ) {
@@ -283,7 +283,7 @@ namespace noug {
 		__on_process_safe_exit = new EventNoticer<>("SafeExit", nullptr);
 		atexit(Thread::Inl::on_atexit);
 		int err = pthread_key_create(&__specific_key, Thread::Inl::destructor);
-		N_Asset(err == 0);
+		N_Assert(err == 0);
 	}
 
 	// --------------------- RunLoop ---------------------
@@ -419,7 +419,7 @@ namespace noug {
 		}
 
 		void post_sync(Callback<RunLoop::PostSyncData> cb, uint32_t group, uint64_t delay_us) {
-			N_Asset(!_thread->is_abort(), "RunLoop::post_sync, _thread->is_abort() == true");
+			N_Assert(!_thread->is_abort(), "RunLoop::post_sync, _thread->is_abort() == true");
 
 			struct Data: public RunLoop::PostSyncData {
 				virtual void complete() {
@@ -536,7 +536,7 @@ namespace noug {
 		, _timeout(0)
 		, _record_timeout(0)
 	{
-		N_Asset(!t->_loop);
+		N_Assert(!t->_loop);
 		// set run loop
 		t->_loop = this;
 	}
@@ -546,7 +546,7 @@ namespace noug {
 	 */
 	RunLoop::~RunLoop() {
 		ScopeLock lock(*__threads_mutex);
-		N_Asset(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
+		N_Assert(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 		
 		{
 			ScopeLock lock(_mutex);
@@ -569,8 +569,8 @@ namespace noug {
 		}
 
 		// delete run loop
-		N_Asset(_thread->_loop);
-		N_Asset(_thread->_loop == this);
+		N_Assert(_thread->_loop);
+		N_Assert(_thread->_loop == this);
 		_thread->_loop = nullptr;
 	}
 
@@ -610,7 +610,7 @@ namespace noug {
 		// NOTE: 小心线程安全,最好先确保已调用过`current()`
 		if (!__first_loop) {
 			current();
-			N_Asset(__first_loop); // asset
+			N_Assert(__first_loop); // asset
 		}
 		return __first_loop;
 	}
@@ -668,7 +668,7 @@ namespace noug {
 		post(Cb([work, this](CbData& ev) {
 			int r = uv_queue_work(_uv_loop, &work->uv_req,
 														Work::uv_work_cb, Work::uv_after_work_cb);
-			N_Asset(!r);
+			N_Assert(!r);
 			work->it = _works.push_back(work);
 		}));
 
@@ -684,7 +684,7 @@ namespace noug {
 			for (auto& i : _works) {
 				if (i->id == id) {
 					int r = uv_cancel((uv_req_t*)&i->uv_req);
-					N_Asset(!r);
+					N_Assert(!r);
 					break;
 				}
 			}
@@ -732,8 +732,8 @@ namespace noug {
 		uv_timer_t uv_timer;
 		{ //
 			ScopeLock lock(_mutex);
-			N_Asset(!_uv_async, "It is running and cannot be called repeatedly");
-			N_Asset(Thread::current_id() == _tid, "Must run on the target thread");
+			N_Assert(!_uv_async, "It is running and cannot be called repeatedly");
+			N_Assert(Thread::current_id() == _tid, "Must run on the target thread");
 			_timeout = N_MAX(timeout, 0);
 			_record_timeout = 0;
 			_uv_async = &uv_async; uv_async.data = this;
@@ -796,7 +796,7 @@ namespace noug {
 			if ( _de_clean ) {
 				_inl(_loop)->cancel_group_non_lock(_group);
 			}
-			N_Asset(_loop->_keeps.length());
+			N_Assert(_loop->_keeps.length());
 
 			_loop->_keeps.erase(_id); // 减少一个引用计数
 

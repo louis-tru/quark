@@ -74,32 +74,32 @@ namespace noug {
 	// -------------------- S o u r c e H o l d --------------------
 
 	SourceHold::~SourceHold() {
-		if (_source) {
-			_source->N_Off(State, &SourceHold::handleSourceState, this);
+		if (_imageSource) {
+			_imageSource->N_Off(State, &SourceHold::handleSourceState, this);
 		}
 	}
 
 	String SourceHold::src() const {
-		return _source ? _source->uri(): String();
+		return _imageSource ? _imageSource->uri(): String();
 	}
 
 	ImageSource* SourceHold::source() {
-		return _source.value();
+		return _imageSource.value();
 	}
 
-	void SourceHold::set_src(cString& value) {
+	void SourceHold::set_src(String value) {
 		set_source(app() ? app()->img_pool()->get(value): new ImageSource(value));
 	}
 
 	void SourceHold::set_source(ImageSource* source) {
-		if (_source.value() != source) {
-			if (_source) {
-				_source->N_Off(State, &SourceHold::handleSourceState, this);
+		if (_imageSource.value() != source) {
+			if (_imageSource) {
+				_imageSource->N_Off(State, &SourceHold::handleSourceState, this);
 			}
 			if (source) {
 				source->N_On(State, &SourceHold::handleSourceState, this);
 			}
-			_source = Handle<ImageSource>(source);
+			_imageSource = Handle<ImageSource>(source);
 		}
 	}
 
@@ -110,7 +110,7 @@ namespace noug {
 	void SourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
 			auto _ = app();
-			// N_Asset(_, "Application needs to be initialized first");
+			// N_Assert(_, "Application needs to be initialized first");
 			if (_) {
 				_->pre_render()->mark_none();
 			}

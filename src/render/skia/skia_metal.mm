@@ -50,7 +50,7 @@ namespace noug {
 			backendContext.fQueue.retain((__bridge void*)_queue);
 
 			_direct = GrDirectContext::MakeMetal(backendContext, {/*_opts.grContextOptions*/});
-			N_Asset(_direct);
+			N_Assert(_direct);
 		}
 
 		_surface.reset(); // clear curr surface
@@ -63,7 +63,7 @@ namespace noug {
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 			_rasterSurface = SkSurface::MakeRaster(info);
-			N_Asset(_rasterSurface);
+			N_Assert(_rasterSurface);
 			//_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
 		}
 	}
@@ -86,7 +86,7 @@ namespace noug {
 		_surface = SkSurface::MakeFromBackendRenderTarget(_direct.get(), backendRT,
 														kTopLeft_GrSurfaceOrigin,
 														kBGRA_8888_SkColorType, nullptr, &props);
-		N_Asset(_surface);
+		N_Assert(_surface);
 
 		if (_raster) {
 			_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());

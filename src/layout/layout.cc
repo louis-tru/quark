@@ -46,7 +46,7 @@ namespace noug {
 		, _layout_depth(0)
 		, _pre_render(pre)
 	{
-		N_Asset(pre);
+		N_Assert(pre, "#Layout#Layout PreRender host cannot be null");
 	}
 
 	/**

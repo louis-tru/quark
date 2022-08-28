@@ -42,7 +42,7 @@ Cb get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		
 		return Cb([worker, func](CbData& d) {
-			N_Asset(!func.IsEmpty());
+			N_Assert(!func.IsEmpty());
 			HandleScope scope(worker);
 			JS_CALLBACK_SCOPE();
 			Local<JSFunction> f = func.local();
@@ -88,7 +88,7 @@ Cb get_callback_for_buffer2(Worker* worker, Local<JSValue> cb, Encoding encoding
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 
 		return Cb([worker, func, encoding](CbData& d) {
-			N_Asset(!func.IsEmpty());
+			N_Assert(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			JS_CALLBACK_SCOPE();
 			Local<JSFunction> f = func.local();
@@ -113,7 +113,7 @@ Cb get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		
 		return Cb([worker, func](CbData& d) {
-			N_Asset(!func.IsEmpty());
+			N_Assert(!func.IsEmpty());
 			HandleScope scope(worker);
 			JS_CALLBACK_SCOPE();
 			
@@ -144,7 +144,7 @@ Cb get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		
 		return Cb([worker, func](CbData& d) {
-			N_Asset(!func.IsEmpty());
+			N_Assert(!func.IsEmpty());
 			HandleScope scope(worker);
 			JS_CALLBACK_SCOPE();
 			
@@ -173,7 +173,7 @@ Cb get_callback_for_none(Worker* worker, Local<JSValue> cb) {
 	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		return Cb([worker, func](CbData& d) {
-			N_Asset(!func.IsEmpty());
+			N_Assert(!func.IsEmpty());
 			HandleScope scope(worker);
 			JS_CALLBACK_SCOPE();
 			Local<JSFunction> f = func.local();

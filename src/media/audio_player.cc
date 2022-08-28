@@ -53,7 +53,7 @@ namespace noug {
 		, _disable_wait_buffer(false)
 		, _waiting_buffer(false)
 	{
-		N_Asset(_host, "#AudioPlayer#AudioPlayer Application host cannot be null");
+		N_Assert(_host, "#AudioPlayer#AudioPlayer Application host cannot be null");
 	}
 
 	AudioPlayer* AudioPlayer::create(String src, Application* host) {
@@ -73,7 +73,7 @@ namespace noug {
 		bool write_audio_pcm(uint64_t st) {
 			bool r = _pcm->write(WeakBuffer((char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
 			if ( !r ) {
-				N_DEBUG("Discard, audio PCM frame, %lld", maudio_buffer.time);
+				N_DEBUG("Discard, audio PCM frame, %lld", _audio_buffer.time);
 			} else {
 				_prev_presentation_time = st;
 			}
@@ -222,9 +222,9 @@ namespace noug {
 		void start_run() {
 			Lock lock(_mutex);
 			
-			N_Asset( _source && _audio && _pcm );
-			N_Asset( _source->is_active() );
-			N_Asset( _status == PLAYER_STATUS_START );
+			N_Assert( _source && _audio && _pcm );
+			N_Assert( _source->is_active() );
+			N_Assert( _status == PLAYER_STATUS_START );
 
 			_waiting_buffer = false;
 			
@@ -247,7 +247,7 @@ namespace noug {
 	};
 
 	void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
-		N_Asset(_source == src);
+		N_Assert(_source == src);
 		
 		if (_audio) {
 			Inl_AudioPlayer(this)->trigger(UIEvent_Ready); // trigger event ready
@@ -391,7 +391,7 @@ namespace noug {
 			Inl_AudioPlayer(this)->stop_and_release(lock, true);
 		}
 		auto loop = _host->loop();
-		N_Asset(loop, "Cannot find main run loop");
+		N_Assert(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
 		_keep = loop->keep_alive("AudioPlayer::set_src");
 		_source->set_delegate(this);
@@ -448,7 +448,7 @@ namespace noug {
 	bool AudioPlayer::seek(uint64_t timeUs) {
 		ScopeLock scope(_mutex);
 		if ( Inl_AudioPlayer(this)->is_active() && timeUs < _duration ) {
-			N_Asset(_source);
+			N_Assert(_source);
 			if ( _source->seek(timeUs) ) {
 				_uninterrupted_play_start_systime = 0;
 				_time = timeUs;

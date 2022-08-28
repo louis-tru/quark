@@ -217,11 +217,11 @@ namespace noug {
 						_buffer[i] = buffer;
 					}
 				}
-				N_Asset(buffer.length() == 0);
+				N_Assert(buffer.length() == 0);
 			}
 			
 			void read_next() {
-				N_Asset(!_read_end);
+				N_Assert(!_read_end);
 				Buffer buff = alloc_buffer();
 				if ( buff.length() ) {
 					_reading_count++;
@@ -247,9 +247,9 @@ namespace noug {
 			}
 			
 			void copy_complete() {
-				N_Asset(_reading_count == 0);
-				N_Asset(_writeing_count == 0);
-				N_Asset(_read_end);
+				N_Assert(_reading_count == 0);
+				N_Assert(_writeing_count == 0);
+				N_Assert(_read_end);
 				if ( !is_abort() ) { // copy complete
 					//N_DEBUG("-----copy_complete------");
 					Handle<Task> handle(this);
@@ -259,16 +259,16 @@ namespace noug {
 			}
 			
 			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
-				N_Asset( file == _source_file );
-				N_Asset( _reading_count > 0 );
+				N_Assert( file == _source_file );
+				N_Assert( _reading_count > 0 );
 				_reading_count--;
 				if ( buffer.length() ) {
 					_writeing_count++;
 					_target_file->write(buffer, buffer.length());
 					read_next();
 				} else {
-					N_Asset(_reading_count == 0);
-					N_Asset(!_read_end);
+					N_Assert(_reading_count == 0);
+					N_Assert(!_read_end);
 					_read_end = true;
 					if ( _writeing_count == 0 ) {
 						copy_complete();
@@ -277,8 +277,8 @@ namespace noug {
 			}
 			
 			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
-				N_Asset( file == _target_file );
-				N_Asset( _writeing_count > 0 );
+				N_Assert( file == _target_file );
+				N_Assert( _writeing_count > 0 );
 				_writeing_count--;
 				release_buffer(buffer);
 				if ( _read_end ) {
@@ -794,7 +794,7 @@ namespace noug {
 				Task* ctx = req->ctx();
 				
 				ctx->_read_count--;
-				N_Asset(ctx->_read_count == 0);
+				N_Assert(ctx->_read_count == 0);
 				
 				if ( uv_req->result < 0 ) { // error
 					ctx->abort();

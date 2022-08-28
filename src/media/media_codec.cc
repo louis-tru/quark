@@ -151,7 +151,7 @@ namespace noug {
 	* @func set_delegate
 	*/
 	void MediaCodec::set_delegate(Delegate* delegate) {
-		N_Asset(delegate);
+		N_Assert(delegate);
 		_delegate = delegate;
 	}
 

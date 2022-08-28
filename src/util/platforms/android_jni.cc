@@ -61,12 +61,12 @@ namespace noug {
 	*/
 
 	JNI::ScopeENV::ScopeENV(): _env(NULL), _is_attach(false) {
-		N_Asset( javavm );
+		N_Assert( javavm );
 		
 		if (  javavm->GetEnv((void**)&_env, JNI_VERSION_1_6) != JNI_OK ) {
 			jint result;
 			result = javavm->AttachCurrentThread(&_env, NULL);
-			N_Asset( result == JNI_OK );
+			N_Assert( result == JNI_OK );
 			_is_attach = true;
 		}
 	}

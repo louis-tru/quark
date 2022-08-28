@@ -210,7 +210,7 @@ Action::Action()
 * @destructor
 */
 Action::~Action() {
-	N_Asset( _action_center_id == ActionCenterId() );
+	N_Assert( _action_center_id == ActionCenterId() );
 }
 
 /**

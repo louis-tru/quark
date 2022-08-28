@@ -106,7 +106,7 @@ namespace noug {
 	class AppleGLRenderBase: public RenderApple {
 	public: 
 		AppleGLRenderBase(EAGLContext* ctx): _ctx(ctx) {
-			N_Asset([EAGLContext currentContext], "Failed to set current OpenGL context");
+			N_Assert([EAGLContext currentContext], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
 		}
 		~AppleGLRenderBase() {
@@ -115,7 +115,7 @@ namespace noug {
 
 		UIView* init(CGRect rect) override {
 			[EAGLContext setCurrentContext:_ctx];
-			N_Asset([EAGLContext currentContext], "Failed to set current OpenGL context");
+			N_Assert([EAGLContext currentContext], "Failed to set current OpenGL context");
 			_view = [[GLView alloc] initWithFrame:rect];
 			_layer = (CAEAGLLayer*)_view.layer;
 			_layer.drawableProperties = @{
@@ -128,7 +128,7 @@ namespace noug {
 		}
 
 		void renderbufferStorage(uint32_t target) {
-			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; N_Asset(ok);
+			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; N_Assert(ok);
 		}
 
 		void swapBuffers() {
@@ -202,7 +202,7 @@ namespace noug {
 #endif
 		}
 
-		N_Asset(r);
+		N_Assert(r);
 		return r;
 	}
 

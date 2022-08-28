@@ -80,8 +80,8 @@ namespace noug {
 	}
 
 	void ImageSource::_Decode() {
-		N_Asset(_state & STATE_LOAD_COMPLETE);
-		N_Asset(_inl);
+		N_Assert(_state & STATE_LOAD_COMPLETE);
+		N_Assert(_inl);
 		// decode image
 		
 		struct Ctx {

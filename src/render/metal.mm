@@ -76,7 +76,7 @@ namespace noug {
 		if (!_device) {
 			_device = CFSafeRetain(MTLCreateSystemDefaultDevice());
 			_queue = CFSafeRetain([_device newCommandQueue]);
-			N_Asset(_device);
+			N_Assert(_device);
 
 			if (_opts.msaaSampleCnt > 1) {
 				while (![_device supportsTextureSampleCount:_opts.msaaSampleCnt])
@@ -119,7 +119,7 @@ namespace noug {
 	}
 
 	void MetalRender::begin() {
-		N_Asset(!_drawable);
+		N_Assert(!_drawable);
 		id<CAMetalDrawable> drawable;
 
 		if (@available(iOS 13.0, *)) {

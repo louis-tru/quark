@@ -34,6 +34,7 @@
 
 #include "skia/gpu/gl/GrGLInterface.h"
 #include "skia/core/SkImageInfo.h"
+#include "skia/gpu/GrTypes.h"
 
 #if !N_APPLE || N_ENABLE_GL
 
@@ -50,7 +51,7 @@ namespace noug {
 	void SkiaGLRender::onReload() {
 		if (!_direct) {
 			_direct = GrDirectContext::MakeGL(GrGLMakeNativeInterface(), {/*_opts.grContextOptions*/});
-			N_Asset(_direct);
+			N_Assert(_direct);
 		}
 		_surface.reset(); // clear curr surface
 		_rasterSurface.reset();
@@ -63,7 +64,7 @@ namespace noug {
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 			_rasterSurface = SkSurface::MakeRaster(info);
-			N_Asset(_rasterSurface);
+			N_Assert(_rasterSurface);
 		}
 
 		GrGLFramebufferInfo fbInfo = {
@@ -78,7 +79,7 @@ namespace noug {
 															_direct.get(), backendRT,
 															kBottomLeft_GrSurfaceOrigin,
 															SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
-		N_Asset(_surface);
+		N_Assert(_surface);
 		if (_raster) {
 			_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
 		} else {
@@ -89,7 +90,13 @@ namespace noug {
 	void SkiaGLRender::onSubmit() {
 		if (_raster)
 			_rasterSurface->draw(_surface->getCanvas(), 0, 0);
-		_surface->flushAndSubmit(); // commit sk
+		//_surface->flush(SkSurface::BackendSurfaceAccess::kNoAccess, GrFlushInfo());
+		//_surface->flushAndSubmit(); // commit sk
+		//auto direct = GrAsDirectContext(_surface->recordingContext());
+		//if (direct) {
+		//	N_LOG("submit, %i", direct->submit());
+		//}
+		_direct->flushAndSubmit();
 	}
 
 	SkiaGLRender::SkiaGLRender(Application* host, const Options& opts, bool raster)

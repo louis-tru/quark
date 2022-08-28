@@ -352,7 +352,7 @@ namespace noug {
 		// for XIM interaction
 		void openIM()
 		{
-			N_Asset(!_im);
+			N_Assert(!_im);
 
 			_im = XOpenIM(_display, NULL, NULL, NULL);
 			if (_im  == NULL) {
@@ -407,7 +407,7 @@ namespace noug {
 			if (_im == NULL)
 				return;
 			
-			N_Asset(!_ic);
+			N_Assert(!_ic);
 
 			if ((_input_style & XIMPreeditPosition) && _fontset) {
 				XRectangle area = { 0,0,1,1 };

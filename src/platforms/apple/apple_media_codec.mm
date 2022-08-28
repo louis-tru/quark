@@ -187,8 +187,8 @@ namespace noug {
 			OSStatus status;
 			const TrackInfo& track = _extractor->track();
 			
-			N_Asset(track.width);
-			N_Asset(track.height);
+			N_Assert(track.width);
+			N_Assert(track.height);
 			
 			CFDictionaryRef attrs = (__bridge CFDictionaryRef)
 			[NSDictionary dictionaryWithObjectsAndKeys:
@@ -210,7 +210,7 @@ namespace noug {
 			};
 			status = VTDecompressionSessionCreate(NULL, _format_desc, NULL, attrs, &cb, &_session);
 			
-			N_Asset(status >= 0);
+			N_Assert(status >= 0);
 			
 			CFRetain(_session);
 			

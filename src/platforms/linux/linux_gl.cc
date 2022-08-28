@@ -57,9 +57,9 @@ namespace noug {
 				display = eglGetDisplay(__get_x11_display());
 			#endif
 			N_DEBUG("eglGetDisplay, %p", display);
-			N_Asset(display != EGL_NO_DISPLAY);
+			N_Assert(display != EGL_NO_DISPLAY);
 			EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
-			N_Asset(displayState, "Cannot initialize EGL");
+			N_Assert(displayState, "Cannot initialize EGL");
 		}
 		return display;
 	}
@@ -117,7 +117,7 @@ namespace noug {
 		// and load them
 		chooseConfigState = eglChooseConfig(display, attribs, 
 																				*supportedConfigs, numConfigs, &numConfigs);
-		N_Asset(chooseConfigState);
+		N_Assert(chooseConfigState);
 
 		if ( numConfigs == 0 ) {
 			N_FATAL("Value of `numConfigs` must be positive");
@@ -219,7 +219,7 @@ namespace noug {
 		} else {
 			ctx_attrs[1] = 2; // opengl es 2
 			ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
-			N_Asset(ctx);
+			N_Assert(ctx);
 
 			rv = (new MyGLDraw<GLDraw>(host, display, config, ctx,
 																multisample_ok,
@@ -323,8 +323,8 @@ namespace noug {
 	}
 
 	bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
-		N_Asset(!_window);
-		N_Asset(!_surface);
+		N_Assert(!_window);
+		N_Assert(!_surface);
 		EGLSurface surface = eglCreateWindowSurface(_display, _config, window, nullptr);
 
 		if ( !surface ) {
@@ -343,7 +343,7 @@ namespace noug {
 
 		// _host->host()->main_loop()->post_sync(Cb([&ok, this, surface](Se &ev) {
 		// 	ok = eglMakeCurrent(_display, surface, surface, _context);
-		// 	N_Asset(ok);
+		// 	N_Assert(ok);
 		// }));
 		// CHECK(ok);
 		
@@ -358,7 +358,7 @@ namespace noug {
 
 	void GLDrawProxy::destroy_surface(EGLNativeWindowType window) {
 		if ( _window ) {
-			N_Asset(window == _window);
+			N_Assert(window == _window);
 			if (_surface) {
 				eglDestroySurface(_display, _surface);
 			}

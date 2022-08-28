@@ -346,7 +346,7 @@ namespace noug {
 
 	template<typename K, typename V, typename C, typename A>
 	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::erase(IteratorConst it) {
-		N_Asset(_length);
+		N_Assert(_length);
 		auto node = node_(it);
 		if (node != &_end) {
 			auto next = link_(node->_prev, node->_next);

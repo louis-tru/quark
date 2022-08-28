@@ -50,7 +50,7 @@ static ApplicationDelegate* appDelegate = nil;
 static RenderApple* renderApple = nil;
 static NSString* appDelegateName = @"";
 
-@interface RootViewController: UIViewController;
+@interface RootViewController: UIViewController
 	@property (weak, nonatomic) ApplicationDelegate* appSelf;
 @end
 
@@ -58,6 +58,7 @@ static NSString* appDelegateName = @"";
 	{
 		UIWindow* _window;
 		BOOL _is_background;
+		int  _fps;
 	}
 	@property (strong, nonatomic) UIView* view;
 	@property (strong, nonatomic) IOSIMEHelprt* ime;
@@ -187,7 +188,12 @@ static NSString* appDelegateName = @"";
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
 		auto _ = self.app;
 		if (_->is_loaded()) {
-			_->display()->render();
+			if (_fps == 0) { // 3 = 15, 1 = 30
+				_->display()->render();
+				_fps = 0;
+			} else {
+				_fps++;
+			}
 		}
 	}
 
@@ -211,9 +217,9 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		N_Asset(!appDelegate);
+		N_Assert(!appDelegate);
 		appDelegate = self;
-		N_Asset(Application::shared());
+		N_Assert(Application::shared());
 		_app = Application::shared(); 
 
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];

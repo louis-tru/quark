@@ -90,12 +90,12 @@ namespace noug {
 			, _uv_timer(nullptr)
 			, _timeout(0)
 		{ //
-			N_Asset(_keep);
+			N_Assert(_keep);
 		}
 		
 		virtual ~Inl() {
-			N_Asset(!_is_open);
-			N_Asset(!_uv_handle);
+			N_Assert(!_is_open);
+			N_Assert(!_uv_handle);
 			Release(_keep); _keep = nullptr;
 		}
 		
@@ -105,8 +105,8 @@ namespace noug {
 			inline UVHandle(Inl* host, uv_loop_t* loop): host(host) {
 				host->retain();
 				int r;
-				r = uv_tcp_init(loop, &uv_tcp); N_Asset( r == 0 );
-				r = uv_timer_init(loop, &uv_timer); N_Asset( r == 0 );
+				r = uv_tcp_init(loop, &uv_tcp); N_Assert( r == 0 );
+				r = uv_timer_init(loop, &uv_timer); N_Assert( r == 0 );
 				uv_tcp.data = this;
 				uv_timer.data = this;
 			}
@@ -286,8 +286,8 @@ namespace noug {
 		// ------------------------------------------------------------------------------------------
 		
 		void open2() {
-			N_Asset(_is_opening == false);
-			N_Asset(_uv_handle == nullptr);
+			N_Assert(_is_opening == false);
+			N_Assert(_uv_handle == nullptr);
 			
 			if ( _remote_ip.is_empty() ) {
 				sockaddr_in sockaddr;
@@ -338,8 +338,8 @@ namespace noug {
 			
 			if ( !_remote_ip.is_empty() ) {
 				_uv_handle = new UVHandle(this, uv_loop());
-				N_Asset(_uv_tcp == nullptr);
-				N_Asset(_uv_timer == nullptr);
+				N_Assert(_uv_tcp == nullptr);
+				N_Assert(_uv_timer == nullptr);
 				_uv_tcp = &_uv_handle->uv_tcp;
 				_uv_timer = &_uv_handle->uv_timer;
 				auto req = new SocketConReq(this);
@@ -354,7 +354,7 @@ namespace noug {
 		}
 		
 		void close2() {
-			N_Asset(_uv_handle);
+			N_Assert(_uv_handle);
 			uv_close((uv_handle_t*)_uv_tcp, [](uv_handle_t* handle){
 				Handle<UVHandle> h((UVHandle*)handle->data);
 			});
@@ -388,8 +388,8 @@ namespace noug {
 		static void open_cb(uv_connect_t* uv_req, int status) {
 			Handle<SocketConReq> req = SocketConReq::cast(uv_req);
 			Inl* self = req->ctx();
-			N_Asset(self->_is_opening);
-			N_Asset(!self->_is_open);
+			N_Assert(self->_is_opening);
+			N_Assert(!self->_is_open);
 			
 			uv_tcp_keepalive(self->_uv_tcp, self->_enable_keep_alive, self->_keep_idle);
 			uv_tcp_nodelay(self->_uv_tcp, self->_no_delay);
@@ -439,7 +439,7 @@ namespace noug {
 		}
 		
 		virtual void trigger_socket_data(int nread, Char* buffer) {
-			N_Asset( _is_open );
+			N_Assert( _is_open );
 			if ( nread < 0 ) {
 				if ( nread != UV_EOF ) { // 异常断开
 					report_uv_err(int(nread));
@@ -647,7 +647,7 @@ namespace noug {
 		
 		static void ssl_write_cb(uv_write_t* req, int status) {
 			SSLSocketWriteReq* req_ = SSLSocketWriteReq::cast(req);
-			N_Asset(req_->data().buffers_count);
+			N_Assert(req_->data().buffers_count);
 			
 			req_->data().buffers_count--;
 			
@@ -684,7 +684,7 @@ namespace noug {
 		
 		static int bio_write(BIO* b, cChar* in, int inl) {
 			SSL_INL* self = ((SSL_INL*)b->ptr);
-			N_Asset( self->_ssl_handshake );
+			N_Assert( self->_ssl_handshake );
 			
 			int r;
 			
@@ -716,7 +716,7 @@ namespace noug {
 				if ( self->_ssl_write_req ) { // send msg
 					
 					auto req = self->_ssl_write_req;
-					N_Asset( req->data().buffers_count < 2 );
+					N_Assert( req->data().buffers_count < 2 );
 					
 					uv_buf_t buf;
 					buf.base = *buffer;
@@ -751,7 +751,7 @@ namespace noug {
 		}
 		
 		static int bio_read(BIO *b, Char* out, int outl) {
-			N_Asset(out);
+			N_Assert(out);
 			SSL_INL* self = ((SSL_INL*)b->ptr);
 			
 			int ret = N_MIN(outl, self->_bio_read_source_buffer_length);
@@ -788,13 +788,13 @@ namespace noug {
 		}
 		
 		void set_ssl_handshake_timeout() {
-			N_Asset(_uv_handle);
+			N_Assert(_uv_handle);
 			uv_timer_stop(_uv_timer);
 			uv_timer_start(_uv_timer, &ssl_handshake_timeout_cb, 1e7, 0); // 10s handshake timeout
 		}
 		
 		virtual void trigger_socket_connect_open() {
-			N_Asset( !_ssl_handshake );
+			N_Assert( !_ssl_handshake );
 			set_ssl_handshake_timeout();
 			_bio_read_source_buffer_length = 0;
 			_ssl_handshake = 1;
@@ -819,7 +819,7 @@ namespace noug {
 				close2();
 			} else {
 				
-				N_Asset( _bio_read_source_buffer_length == 0 );
+				N_Assert( _bio_read_source_buffer_length == 0 );
 				
 				_bio_read_source_buffer = buffer;
 				_bio_read_source_buffer_length = nread;
@@ -845,7 +845,7 @@ namespace noug {
 						}
 					}
 				} else { // ssl handshake
-					N_Asset(_ssl_handshake == 1);
+					N_Assert(_ssl_handshake == 1);
 					
 					int r = SSL_connect(_ssl);
 					
@@ -862,7 +862,7 @@ namespace noug {
 						reset_timeout();
 						_delegate->trigger_socket_open(_host);
 						
-						N_Asset( _bio_read_source_buffer_length == 0 );
+						N_Assert( _bio_read_source_buffer_length == 0 );
 					}
 				}
 				
@@ -870,7 +870,7 @@ namespace noug {
 		}
 		
 		virtual void write(Buffer& buffer, int mark) {
-			N_Asset(!_ssl_write_req);
+			N_Assert(!_ssl_write_req);
 			
 			auto req = new SSLSocketWriteReq(this, 0, { buffer, mark, 0, 0 });
 			_ssl_write_req = req;
@@ -919,7 +919,7 @@ namespace noug {
 	}
 
 	Socket::~Socket() {
-		N_Asset(_inl->_keep->host() == RunLoop::current());
+		N_Assert(_inl->_keep->host() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
 			_inl->close();
@@ -974,7 +974,7 @@ namespace noug {
 	}
 
 	N_EXPORT void set_ssl_root_x509_store_function(X509_STORE* (*func)()) {
-		N_Asset(func);
+		N_Assert(func);
 		new_root_cert_store = func;
 	}
 

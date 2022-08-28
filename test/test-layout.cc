@@ -102,6 +102,8 @@ void layout_text(Box* box) {
 void layout_scroll(Box *box) {
 	auto v = (Scroll*)New<Scroll>()->append_to(box);
 	
+	v->set_is_clip(false);
+	
 	v->set_width({ 200 });
 	v->set_height({ 150 });
 	v->set_padding_left(10);

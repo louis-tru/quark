@@ -29,9 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <math.h>
-#include "../app.h"
 #include "./video.h"
-//#include "texture.h"
+#include "../app.h"
 #include "../media/media_codec.h"
 #include "../util/loop.h"
 #include "../util/fs.h"
@@ -43,9 +42,6 @@ namespace noug {
 	typedef PreRender::Task::ID TaskID;
 	typedef MediaCodec::OutputBuffer OutputBuffer;
 
-	/**
-	 * @constructor
-	 */
 	Video::Video()
 		: _source(NULL)
 		, _audio(NULL)
@@ -68,12 +64,8 @@ namespace noug {
 		, _disable_wait_buffer(false)
 		, _waiting_buffer(false)
 	{
-		// Image::set_texture( new TextureYUV() );
 	}
 
-	/**
-	 * @class Video::Inl
-	 */
 	N_DEFINE_INLINE_MEMBERS(Video, Inl) {
 	public:
 
@@ -83,15 +75,15 @@ namespace noug {
 			body[1] = WeakBuffer((char*)buffer.data[1], buffer.linesize[1]);  // u
 			body[2] = WeakBuffer((char*)buffer.data[2], buffer.linesize[2]);  // v
 			
-			PixelData pixel(body, _video_width, _video_height, (PixelData::Format)_color_format );
+			// PixelData pixel(body, _video_width, _video_height, (PixelData::Format)_color_format );
 			
-			bool r = static_cast<TextureYUV*>(texture())->load_yuv(pixel); // load texture
-			_video->release(buffer);
-			return r;
+			// bool r = static_cast<TextureYUV*>(texture())->load_yuv(pixel); // load texture
+			// _video->release(buffer);
+			// return r;
 		}
 		
 		bool advance_video(uint64_t sys_time) {
-			N_Asset(m_status != PLAYER_STATUS_STOP);
+			N_Assert(m_status != PLAYER_STATUS_STOP, "#Video#Inl#advance_video 0");
 			
 			bool draw = false;
 			
@@ -183,7 +175,7 @@ namespace noug {
 			return r;
 		}
 		
-		void play_audio() {
+		void run_play_audio_loop() {
 			float compensate = _pcm->compensate();
 			// m_audio->set_frame_size( m_pcm->buffer_size() );
 		loop:
@@ -235,7 +227,7 @@ namespace noug {
 			View::trigger(name, **evt);
 		}
 		
-		bool stop_2(Lock& lock, bool is_event) {
+		bool stop_from(Lock& lock, bool is_event) {
 			
 			if ( _status != PLAYER_STATUS_STOP ) {
 				
@@ -254,7 +246,7 @@ namespace noug {
 					_video->release(_video_buffer);
 					_video->extractor()->set_disable(true);
 					_video->close();
-					texture()->unload();
+					SourceHold::set_source(nullptr);
 				}
 
 				if (_pcm) {
@@ -264,10 +256,10 @@ namespace noug {
 				unregister_task();
 				_source->stop();
 				
+				auto loop_id = _run_loop_id;
 				lock.unlock();
-				{ // wait audio thread end
-					ScopeLock scope(_audio_loop_mutex);
-				}
+				Thread::wait(loop_id); // wait audio thread end
+
 				if ( is_event ) {
 					_keep->post(Cb([this](CbData& e){ trigger(UIEvent_Stop); /* trigger stop event */ }));
 				}
@@ -285,7 +277,7 @@ namespace noug {
 				_task_id = 0;
 			}
 			
-			stop_2(lock, is_event);
+			stop_from(lock, is_event);
 			
 			Release(_audio); _audio = nullptr;
 			Release(_video); _video = nullptr;
@@ -299,17 +291,12 @@ namespace noug {
 			_video_height = 0;
 		}
 		
-		inline void stop_and_release(bool is_event) {
-			Lock lock(_mutex);
-			stop_and_release(lock, is_event);
-		}
-		
 		void start_run() {
 			Lock lock(_mutex);
 			
-			N_Asset( m_source && m_video );
-			N_Asset( m_source->is_active() );
-			N_Asset( m_status == PLAYER_STATUS_START );
+			N_Assert( _source && _video, "#Video#Inl#start_run 0");
+			N_Assert( _source->is_active(), "#Video#Inl#start_run 1");
+			N_Assert( _status == PLAYER_STATUS_START, "#Video#Inl#start_run 2");
 
 			_waiting_buffer = false;
 
@@ -319,7 +306,7 @@ namespace noug {
 				_video->flush();
 				_video->extractor()->set_disable(false);
 			} else {
-				stop_2(lock, true);
+				stop_from(lock, true);
 				N_ERR("Unable to open video decoder");
 				return;
 			}
@@ -331,30 +318,22 @@ namespace noug {
 				_pcm->flush();
 				_pcm->set_volume(_volume);
 				_pcm->set_mute(_mute);
-				
-				Thread::create([this](Thread& t){
-					ScopeLock scope(_audio_loop_mutex);
-					Inl_Video(this)->play_audio();
-					return 0;
-				}, "audio");
+
+				_run_loop_id = Thread::create([](Thread& t, void* self) { // new thread
+					((Inl*)self)->run_play_audio_loop(); }, this, "audio_loop");
 			}
 
 			register_task();
 		}
-		
-		/**
-		 * @func is_active
-		 */
-		inline bool is_active() {
+
+		bool is_active() {
 			return _status == PLAYER_STATUS_PAUSED || _status == PLAYER_STATUS_PLAYING;
 		}
 	};
 
-	/**
-	 * @destructor
-	 */
 	Video::~Video() {
-		Inl_Video(this)->stop_and_release(false);
+		Lock lock(_mutex);
+		Inl_Video(this)->stop_and_release(lock, false);
 	}
 
 	void Video::multimedia_source_wait_buffer(MultimediaSource* so, float process) {
@@ -377,7 +356,7 @@ namespace noug {
 		stop();
 	}
 
-	String Video::source() const {
+	String Video::src() {
 		if ( _source ) {
 			return _source->uri().href();
 		} else {
@@ -386,7 +365,7 @@ namespace noug {
 	}
 
 	void Video::multimedia_source_ready(MultimediaSource* src) {
-		N_Asset( _source == src );
+		N_Assert( _source == src, "#Video#multimedia_source_ready 0");
 		
 		if ( _video ) {
 			Inl_Video(this)->trigger(UIEvent_Ready); // trigger event ready
@@ -396,11 +375,10 @@ namespace noug {
 			return;
 		}
 
-		N_Asset(!m_video);
-		N_Asset(!m_audio);
-		
+		N_Assert(!_video, "#Video#multimedia_source_ready 1");
+		N_Assert(!_audio, "#Video#multimedia_source_ready 1");
+
 		// 创建解码器很耗时这会导致gui线程延时,所以这里不在主线程创建
-		
 		_task_id = _keep->host()->work(Cb([=](CbData& d) {
 			if (_source != src) return; // 源已被更改,所以取消
 			
@@ -455,12 +433,10 @@ namespace noug {
 		}));
 	}
 
-	void Video::set_source(cString& value) {
-		
+	void Video::set_src(String value) {
 		if ( value.is_empty() ) {
 			return;
 		}
-		
 		String src = fs_reader()->format(value);
 		Lock lock(_mutex);
 
@@ -471,7 +447,7 @@ namespace noug {
 			Inl_Video(this)->stop_and_release(lock, true);
 		}
 		auto loop = pre_render()->host()->loop();
-		N_Asset(loop, "Cannot find main run loop");
+		N_Assert(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
 		_keep = loop->keep_alive("Video::set_source");
 		_source->set_delegate(this);
@@ -479,9 +455,6 @@ namespace noug {
 		_source->start();
 	}
 
-	/**
-	 * @func start play
-	 */
 	void Video::start() {
 		Lock scope(_mutex);
 		
@@ -502,24 +475,18 @@ namespace noug {
 		}
 	}
 
-	/**
-	 * @func stop play
-	 * */
 	void Video::stop() {
 		Lock lock(_mutex);
-		if ( Inl_Video(this)->stop_2(lock, true) ) {
-			mark(M_TEXTURE);
+		if ( Inl_Video(this)->stop_from(lock, true) ) {
+			mark_none();
 		}
 	}
 
-	/**
-	 * @func seek to target time
-	 */
 	bool Video::seek(uint64_t timeUs) {
 		ScopeLock scope(_mutex);
 		
 		if ( Inl_Video(this)->is_active() && timeUs < _duration ) {
-			N_Asset( m_source );
+			N_Assert( m_source );
 			
 			if ( _source->seek(timeUs) ) {
 				_uninterrupted_play_start_systime = 0;
@@ -572,9 +539,6 @@ namespace noug {
 		}
 	}
 
-	/**
-	 * @func set_mute setting mute status
-	 * */
 	void Video::set_mute(bool value) {
 		ScopeLock scope(_mutex);
 		if ( value != _mute ) {
@@ -585,10 +549,7 @@ namespace noug {
 		}
 	}
 
-	/**
-	 * @func set_volume
-	 */
-	void Video::set_volume(uint value) {
+	void Video::set_volume(uint32_t value) {
 		ScopeLock scope(_mutex);
 		value = N_MIN(value, 100);
 		_volume = value;
@@ -597,59 +558,40 @@ namespace noug {
 		}
 	}
 
-
-	/**
-	 * @func time
-	 * */
-	uint64_t Video::time() const {
-		//ScopeLock scope(_mutex);
+	uint64_t Video::time() {
+		ScopeLock scope(_mutex);
 		return _time;
 	}
 
-	/**
-	 * @func duration
-	 * */
-	uint64_t Video::duration() const {
-		// ScopeLock scope(_mutex);
+	uint64_t Video::duration() {
+		ScopeLock scope(_mutex);
 		return _duration;
 	}
 
-	/**
-	 * @func audio_track_count
-	 */
-	uint Video::audio_track_count() const {
-		// ScopeLock lock(m_mutex);
+	uint32_t Video::audio_track_count() {
+		ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return _audio->extractor()->track_count();
 		}
 		return 0;
 	}
 
-	/**
-	 * @func audio_track_index
-	 */
-	uint Video::audio_track_index() const {
-		// ScopeLock lock(_mutex);
+	uint32_t Video::audio_track_index() {
+		ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return _audio->extractor()->track_index();
 		}
 		return 0;
 	}
 
-	/**
-	 * @func audio_track
-	 */
-	const TrackInfo* Video::audio_track() const {
-		// ScopeLock lock(_mutex);
+	const TrackInfo* Video::audio_track() {
+		ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return &_audio->extractor()->track();
 		}
 		return nullptr;
 	}
 
-	/**
-	 * @func audio_track
-	 */
 	const TrackInfo* Video::audio_track_at(uint32_t index) {
 		ScopeLock lock(_mutex);
 		if ( _audio && index < _audio->extractor()->track_count() ) {
@@ -658,65 +600,48 @@ namespace noug {
 		return nullptr;
 	}
 
-	/**
-	 * @func video_track
-	 * */
-	const TrackInfo* Video::video_track() const {
-		//ScopeLock lock(m_mutex);
+	const TrackInfo* Video::video_track() {
+		ScopeLock lock(_mutex);
 		if ( _video ) {
 			return &_video->extractor()->track();
 		}
 		return nullptr;
 	}
 
-	/**
-	 * @func select_audio_track
-	 * */
-	void Video::select_audio_track(uint index) {
+	void Video::select_audio_track(uint32_t index) {
 		ScopeLock scope(_mutex);
 		if ( _audio && index < _audio->extractor()->track_count() ) {
 			_audio->extractor()->select_track(index);
 		}
 	}
 
-	/**
-	 * @func source_status
-	 * */
-	MultimediaSourceStatus Video::source_status() const {
-		// ScopeLock lock(_mutex);
+	MultimediaSourceStatus Video::source_status() {
+		ScopeLock lock(_mutex);
 		if ( _source ) {
 			return _source->status();
 		}
 		return MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
 	}
 
-	/**
-	 * @func video_width
-	 */
-	uint Video::video_width() const {
-		// ScopeLock lock(_mutex);
+	uint32_t Video::video_width() {
+		ScopeLock lock(_mutex);
 		return _video_width;
 	}
 
-	/**
-	 * @func video_height
-	 */
-	uint Video::video_height() const {
-		// ScopeLock lock(_mutex);
+	uint32_t Video::video_height() {
+		ScopeLock lock(_mutex);
 		return _video_height;
 	}
 
-	PlayerStatus Video::status() const {
-		// ScopeLock lock(_mutex);
+	PlayerStatus Video::status() {
+		ScopeLock lock(_mutex);
 		return _status;
 	}
 
 	bool Video::run_task(int64_t sys_time) {
 		// video
 		bool draw = Inl_Video(this)->advance_video(sys_time);
-		
 		// FX_DEBUG("------------------------ frame: %llu", sys_time_monotonic() - sys_time);
-		
 		{
 			ScopeLock scope(_mutex);
 			if (_uninterrupted_play_start_systime) {
@@ -740,27 +665,16 @@ namespace noug {
 		}
 	}
 
-	void Video::set_texture(Texture* value) {
-		N_WARN("Video cannot set this property");
-	}
-
 	void Video::set_auto_play(bool value) {
 		ScopeLock scope(_mutex);
 		_auto_play = value;
 	}
 
-	// void Video::draw(Draw* draw) {
-	// 	if ( m_visible ) {
-	// 		if ( mark_value ) {
-	// 			solve();
-	// 		}
-	// 		draw->draw(this);
-	// 		mark_value = M_NONE;
-	// 	}
-	// }
-
 	void Video::remove() {
-		Inl_Video(this)->stop_and_release(true);
+		{
+			Lock lock(_mutex);
+			Inl_Video(this)->stop_and_release(lock, true);
+		}
 		Image::remove();
 	}
 

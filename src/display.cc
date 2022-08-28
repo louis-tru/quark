@@ -145,11 +145,14 @@ namespace noug {
 		int64_t now_time = time_monotonic();
 		// _host->action_direct()->advance(now_time); // advance action TODO ...
 		
+		//need = true;
+		
 		if (root && (_host->pre_render()->solve(now_time) || need)) {
 			if (now_time - _next_fsp_time >= 1e6) { // 1s
 				_fsp = _next_fsp;
 				_next_fsp = 0;
 				_next_fsp_time = now_time;
+				N_DEBUG("fps: %d", _fsp);
 			}
 			_next_fsp++;
 
@@ -220,7 +223,7 @@ namespace noug {
 	}
 
 	void Display::pop_clip_region() {
-		N_Asset( _clip_region.length() > 1 );
+		N_Assert( _clip_region.length() > 1 );
 		_clip_region.pop();
 	}
 

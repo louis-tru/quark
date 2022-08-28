@@ -56,7 +56,7 @@ public:
 	inline void set_value(T value) { _value = value; }
 	
 	inline void assignment(View* view, PropertyName name) {
-		N_Asset(view);
+		N_Assert(view);
 		PropertysAccessor::Accessor accessor =
 		PropertysAccessor::shared()->accessor(view->view_type(), name);
 		if (accessor.set_accessor) {

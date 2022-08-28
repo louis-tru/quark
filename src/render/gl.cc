@@ -115,7 +115,7 @@ namespace noug {
 		int width = region.width;
 		int height = region.height;
 
-		N_Asset(width && height);
+		N_Assert(width && height);
 
 		glViewport(0, 0, width, height);
 

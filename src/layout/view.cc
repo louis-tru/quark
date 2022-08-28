@@ -153,7 +153,7 @@ namespace noug {
 	}
 
 	View::~View() {
-		N_Asset(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
+		N_Assert(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		blur();
 		set_action(nullptr); // del action
 		remove_all_child_(); // 删除子视图

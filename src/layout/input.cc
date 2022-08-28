@@ -388,7 +388,7 @@ namespace noug {
 				}
 			}
 			
-			N_Asset(line);
+			N_Assert(line);
 			
 			// find cell start_action and end_action
 			int cell_begin = -1, cell_end = -1;

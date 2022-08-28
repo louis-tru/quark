@@ -82,12 +82,12 @@ void WrapObject::destroy() {
 }
 
 void WrapObject::init2(FunctionCall args) {
-	N_Asset(args.IsConstructCall());
+	N_Assert(args.IsConstructCall());
 	Worker* worker_ = args.worker();
 	auto classs = IMPL::current(worker_)->js_class();
-	N_Asset( !classs->current_attach_object_ );
+	N_Assert( !classs->current_attach_object_ );
 	handle_.Reset(worker_, args.This());
-	bool ok = IMPL::SetObjectPrivate(args.This(), this); N_Asset(ok);
+	bool ok = IMPL::SetObjectPrivate(args.This(), this); N_Assert(ok);
 	#if N_MEMORY_TRACE_MARK
 		record_wrap_count++; 
 		record_strong_count++;
@@ -104,10 +104,10 @@ WrapObject* WrapObject::attach(FunctionCall args) {
 	auto classs = IMPL::current(worker)->js_class();
 	if ( classs->current_attach_object_ ) {
 		WrapObject* wrap = classs->current_attach_object_;
-		N_Asset(!wrap->worker());
-		N_Asset(args.IsConstructCall());
+		N_Assert(!wrap->worker());
+		N_Assert(args.IsConstructCall());
 		wrap->handle_.Reset(worker, args.This());
-		bool ok = IMPL::SetObjectPrivate(args.This(), wrap); N_Asset(ok);
+		bool ok = IMPL::SetObjectPrivate(args.This(), wrap); N_Assert(ok);
 		classs->current_attach_object_ = nullptr;
 		wrap->initialize();
 		#if N_MEMORY_TRACE_MARK
@@ -121,7 +121,7 @@ WrapObject* WrapObject::attach(FunctionCall args) {
 }
 
 WrapObject::~WrapObject() {
-	N_Asset(handle_.IsEmpty());
+	N_Assert(handle_.IsEmpty());
 
 	#if N_MEMORY_TRACE_MARK
 		record_wrap_count--;
@@ -139,7 +139,7 @@ Object* WrapObject::privateData() {
 }
 
 bool WrapObject::setPrivateData(Object* data, bool trusteeship) {
-	N_Asset(data);
+	N_Assert(data);
 	auto p = pack(data, JS_TYPEID(Object));
 	if (p) {
 		set(worker()->strs()->__native_private_data(), p->that());
@@ -149,7 +149,7 @@ bool WrapObject::setPrivateData(Object* data, bool trusteeship) {
 				_inl_wrap(static_cast<WrapObject*>(p))->make_weak();
 			}
 		}
-		N_Asset(privateData());
+		N_Assert(privateData());
 	}
 	return p;
 }
@@ -170,12 +170,12 @@ Local<JSValue> WrapObject::call(cString& name, int argc, Local<JSValue> argv[]) 
 }
 
 bool WrapObject::isPack(Local<JSObject> object) {
-	N_Asset(!object.IsEmpty());
+	N_Assert(!object.IsEmpty());
 	return IMPL::GetObjectPrivate(object);
 }
 
 WrapObject* WrapObject::unpack2(Local<JSObject> object) {
-	N_Asset(!object.IsEmpty());
+	N_Assert(!object.IsEmpty());
 	return static_cast<WrapObject*>(IMPL::GetObjectPrivate(object));
 }
 
@@ -190,7 +190,7 @@ WrapObject* WrapObject::pack2(Object* object, uint64_t type_id) {
 
 void* object_allocator_alloc(size_t size) {
 	WrapObject* o = (WrapObject*)::malloc(size + sizeof(WrapObject));
-	N_Asset(o);
+	N_Assert(o);
 	memset((void*)o, 0, sizeof(WrapObject));
 	return o + 1;
 }

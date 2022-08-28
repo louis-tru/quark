@@ -68,7 +68,7 @@ namespace noug {
 							left->release();
 						}
 						bool ok = new_left->retain();
-						N_Asset(ok);
+						N_Assert(ok);
 					}
 					return new_left;
 				}
@@ -149,7 +149,7 @@ namespace noug {
 
 	void Copying::onChange() {
 		auto app_ = app();
-		// N_Asset(app_, "Application needs to be initialized first");
+		// N_Assert(app_, "Application needs to be initialized first");
 		if (app_) {
 			app_->pre_render()->mark_none();
 		}

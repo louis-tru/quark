@@ -37,7 +37,7 @@
 namespace noug {
 
 	#define _db _http_cookie_db
-	#define assert_r(c) N_Asset(c == BP_OK)
+	#define assert_r(c) N_Assert(c == BP_OK)
 
 	static Mutex mutex;
 	static bp_db_t* _http_cookie_db = nullptr;

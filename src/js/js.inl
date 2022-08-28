@@ -124,12 +124,12 @@ class JSClassIMPL {
 	inline uint64_t id() const { return id_; }
 	
 	inline void retain() {
-		N_Asset(ref_ >= 0);
+		N_Assert(ref_ >= 0);
 		ref_++;
 	}
 	
 	inline void release() {
-		N_Asset(ref_ >= 0);
+		N_Assert(ref_ >= 0);
 		if ( --ref_ <= 0 ) {
 			delete this;
 		}

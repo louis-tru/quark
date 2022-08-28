@@ -38,7 +38,7 @@ namespace noug {
 
 		static module_info_t audio_player = {
 			[](void* arg) -> Object* {
-				return new AudioPlayer(arg ? *(String*)arg: String());
+				return AudioPlayer::create(arg ? *(String*)arg: String());
 			},
 			typeid(AudioPlayer).hash_code(),
 		};

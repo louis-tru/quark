@@ -254,9 +254,9 @@
 #endif
 
 #if DEBUG || N_STRICT_ASSERT
-# define N_Asset(cond, ...) if(!(cond)) noug::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+# define N_Assert(cond, ...) if(!(cond)) noug::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #else
-# define N_Asset(cond, ...) ((void)0)
+# define N_Assert(cond, ...) ((void)0)
 #endif
 
 #define N_DEFINE_INLINE_CLASS(Inl) public: class Inl; friend class Inl; private:

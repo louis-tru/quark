@@ -52,7 +52,7 @@ static ActionCenter* action_center_shared = nullptr;
 
 ActionCenter::ActionCenter()
 : _prev_sys_time(0) {
-	N_Asset(!action_center_shared); action_center_shared = this;
+	N_Assert(!action_center_shared); action_center_shared = this;
 }
 
 ActionCenter::~ActionCenter() {

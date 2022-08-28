@@ -72,7 +72,7 @@ namespace noug {
 	}
 
 	PathLine::PathLine(Vec2* pts, int len, PathVerb* verbs, int verbsLen) {
-		// N_Asset(verbs[0] == kVerb_Move);
+		// N_Assert(verbs[0] == kVerb_Move);
 		_pts.write((float*)pts, -1, len * 2);
 		_verbs.write((uint8_t*)verbs, -1, verbsLen);
 	}
@@ -122,7 +122,7 @@ namespace noug {
 	}
 
 	Array<Vec2> PathLine::to_polygon(int polySize) const {
-		//N_Asset(_verbs.length());
+		//N_Assert(_verbs.length());
 
 		TESStesselator* tess = tessNewTess(nullptr);
 		ClearScope clear([tess]() { tessDeleteTess(tess); });
@@ -203,7 +203,7 @@ namespace noug {
 	}
 
 	Array<Vec2> PathLine::to_edge_line() const {
-		//N_Asset(_verbs.length());
+		//N_Assert(_verbs.length());
 
 		const Vec2* pts = ((const Vec2*)*_pts) - 1;
 		Array<Vec2> edges;
@@ -281,7 +281,7 @@ namespace noug {
 	}
 
 	PathLine PathLine::normalized() const {
-		//N_Asset(_verbs.length());
+		//N_Assert(_verbs.length());
 
 		const Vec2* pts = ((const Vec2*)*_pts);
 		PathLine line;

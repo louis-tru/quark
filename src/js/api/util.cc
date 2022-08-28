@@ -245,7 +245,7 @@ class NativeUtil {
 		}
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 		RunLoop::next_tick(Cb([worker, func](CbData& e) {
-			N_Asset(!func.IsEmpty());
+			N_Assert(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			JS_CALLBACK_SCOPE();
 			func.local()->Call(worker);

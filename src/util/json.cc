@@ -174,8 +174,8 @@ namespace noug {
 	JSON& JSON::operator[](cJSON& key) {
 		RValue* self = reinterpret_cast<RValue*>(this);
 		CRValue& n = *reinterpret_cast<CRValue*>(&key);
-		N_Asset(self->IsObject());
-		N_Asset(n.IsString());
+		N_Assert(self->IsObject());
+		N_Assert(n.IsString());
 		RValue::MemberIterator member = self->FindMember(n);
 		RValue* value = NULL;
 		
@@ -195,8 +195,8 @@ namespace noug {
 	const JSON& JSON::operator[](cJSON& key) const {
 		CRValue* self = reinterpret_cast<CRValue*>(this);
 		CRValue& n = *reinterpret_cast<CRValue*>(&key);
-		N_Asset(self->IsObject());
-		N_Asset(n.IsString());
+		N_Assert(self->IsObject());
+		N_Assert(n.IsString());
 		RValue::ConstMemberIterator member = self->FindMember(n);
 		
 		if (member != self->MemberEnd()){
@@ -206,9 +206,9 @@ namespace noug {
 	}
 
 	JSON& JSON::operator[](int index) {
-		N_Asset(is_array());
+		N_Assert(is_array());
 		RValue* self = reinterpret_cast<RValue*>(this);
-		N_Asset(self->IsArray());
+		N_Assert(self->IsArray());
 		RValue* value = NULL;
 		
 		int size = self->Size();
@@ -228,7 +228,7 @@ namespace noug {
 
 	JSON& JSON::operator[] (cChar* key) {
 		RValue* self = reinterpret_cast<RValue*>(this);
-		N_Asset(self->IsObject());
+		N_Assert(self->IsObject());
 		RValue n(rapidjson::StringRef(key));
 		RValue::MemberIterator member = self->FindMember(n);
 		RValue* value = NULL;
@@ -252,7 +252,7 @@ namespace noug {
 
 	const JSON& JSON::operator[](int index) const {
 		CRValue* self = reinterpret_cast<CRValue*>(this);
-		N_Asset(self->IsArray());
+		N_Assert(self->IsArray());
 		
 		int size = self->Size();
 		if(index < size){
@@ -263,7 +263,7 @@ namespace noug {
 
 	const JSON& JSON::operator[](cChar* key) const {
 		CRValue* self = reinterpret_cast<CRValue*>(this);
-		N_Asset(self->IsObject());
+		N_Assert(self->IsObject());
 		RValue n(rapidjson::StringRef(key));
 		RValue::ConstMemberIterator member = self->FindMember(n);
 		
@@ -325,7 +325,7 @@ namespace noug {
 
 	void JSON::remove(cChar* key) {
 		RValue* self = reinterpret_cast<RValue*>(this);
-		N_Asset(self->IsObject());
+		N_Assert(self->IsObject());
 		RValue n(rapidjson::StringRef(key));
 		RValue::MemberIterator member = self->FindMember(n);
 		
@@ -423,7 +423,7 @@ namespace noug {
 			}
 		}
 		else {
-			//  N_Asset(0, "This method is only applicable to \"Object\" type of JOSN");
+			//  N_Assert(0, "This method is only applicable to \"Object\" type of JOSN");
 			N_WARN("%s", "This method is only applicable to \"Object\" type of JOSN");
 		}
 		return o;

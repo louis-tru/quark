@@ -92,7 +92,7 @@ namespace noug {
 		, _element(nullptr)
 		, _JSONfullscreen(0)
 		{
-			N_Asset(!application); application = this;
+			N_Assert(!application); application = this;
 		}
 
 		~UnixApplication() {
@@ -117,7 +117,7 @@ namespace noug {
 		}
 
 		void post_message(cCb& cb) {
-			N_Asset(_win);
+			N_Assert(_win);
 			{
 				ScopeLock lock(_queue_mutex);
 				_queue.push(cb);
@@ -184,7 +184,7 @@ namespace noug {
 
 			// N_DEBUG("_xset.background_pixel 3, %d", _xset.background_pixel);
 
-			N_Asset(win, "Cannot create XWindow");
+			N_Assert(win, "Cannot create XWindow");
 
 			if (_multitouch_device) {
 				N_DEBUG("_multitouch_device");
@@ -358,7 +358,7 @@ namespace noug {
 					_host->display()->render_frame(); // 刷新显示
 				} else {
 					_is_init = 1;
-					N_Asset(gl_draw_context->create_surface(_win));
+					N_Assert(gl_draw_context->create_surface(_win));
 					gl_draw_context->initialize();
 					_host->triggerLoad();
 					_host->triggerForeground();
@@ -375,7 +375,7 @@ namespace noug {
 		void initialize_display() {
 			if (!_dpy) {
 				_dpy = XOpenDisplay(nullptr);
-				N_Asset(_dpy, "Error: Can't open display");
+				N_Assert(_dpy, "Error: Can't open display");
 				_xft_dpi = get_monitor_dpi();
 				_xwin_scale = _xft_dpi / 96.0;
 			}
@@ -387,7 +387,7 @@ namespace noug {
 		}
 
 		void initialize(cJSON& options) {
-			N_Asset(XInitThreads(), "Error: Can't init X threads");
+			N_Assert(XInitThreads(), "Error: Can't init X threads");
 
 			cJSON& o_x = options["x"];
 			cJSON& o_y = options["y"];
@@ -442,7 +442,7 @@ namespace noug {
 		}
 
 		void initialize_multitouch() {
-			N_Asset(!_multitouch_device);
+			N_Assert(!_multitouch_device);
 
 			Atom touchAtom = XInternAtom(_dpy, "TOUCHSCREEN", true);
 			if (touchAtom == None) {
@@ -541,7 +541,7 @@ namespace noug {
 		}
 
 		void initialize_master_volume_control() {
-			N_Asset(!_mixer);
+			N_Assert(!_mixer);
 			snd_mixer_open(&_mixer, 0);
 			snd_mixer_attach(_mixer, "default");
 			snd_mixer_selem_register(_mixer, NULL, NULL);
@@ -628,18 +628,18 @@ namespace noug {
 	};
 
 	Vec2 __get_window_size() {
-		N_Asset(application);
+		N_Assert(application);
 		return application->get_window_size();
 	}
 
 	Display* __get_x11_display() {
-		N_Asset(application);
+		N_Assert(application);
 		return application->get_x11_display();
 	}
 
 	// sync to x11 main message loop
 	void __dispatch_x11_async(cCb& cb) {
-		N_Asset(application);
+		N_Assert(application);
 		return application->post_message(cb);
 	}
 
@@ -701,7 +701,7 @@ namespace noug {
 	*/
 	void AppInl::initialize(cJSON& options) {
 		N_DEBUG("AppInl::initialize");
-		N_Asset(!gl_draw_context);
+		N_Assert(!gl_draw_context);
 		application->initialize(options);
 		gl_draw_context = GLDrawProxy::create(this, options);
 		_draw_ctx = gl_draw_context->host();

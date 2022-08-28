@@ -82,18 +82,17 @@ namespace noug {
 		PCMPlayer*    _pcm;
 		MediaCodec*   _audio;
 		KeepLoop*     _keep;
-		bool          _auto_play, _mute, _disable_wait_buffer;
+		bool          _auto_play, _mute, _disable_wait_buffer, _waiting_buffer;
 		PlayerStatus  _status;
 		OutputBuffer  _audio_buffer;
 		uint64_t  _duration, _time;
 		uint64_t  _uninterrupted_play_start_time;
 		uint64_t  _uninterrupted_play_start_systime;
 		uint64_t  _prev_presentation_time;
-		Mutex     _mutex;
-		ThreadID  _run_loop_id;
 		uint32_t  _task_id;
 		uint32_t  _volume;
-		bool      _waiting_buffer;
+		Mutex     _mutex;
+		ThreadID  _run_loop_id;
 
 		N_DEFINE_INLINE_CLASS(Inl);
 	};

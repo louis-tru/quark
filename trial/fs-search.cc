@@ -115,7 +115,7 @@ namespace noug {
 		: SearchPath(path)
 		, m_zip_path(zip_path)
 		, m_zip (zip_path) {
-		N_ASSERT( m_zip.open(), "Cannot open zip file, `%s`", *zip_path );
+		N_Assert( m_zip.open(), "Cannot open zip file, `%s`", *zip_path );
 	}
 
 	FileSearch::ZipInSearchPath::~ZipInSearchPath() {

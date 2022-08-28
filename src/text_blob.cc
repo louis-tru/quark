@@ -524,7 +524,7 @@ namespace noug {
 								break;
 							}
 						}
-						N_Asset(_lines->pre_width() == limitX);
+						N_Assert(_lines->pre_width() == limitX);
 					}
 				}
 
