@@ -187,7 +187,7 @@ static NSString* appDelegateName = @"";
 
 @implementation ApplicationDelegate
 
-	static void render_exec_func(CbD& evt, Object* ctx) {
+	static void render_exec_func(CbData& evt, Object* ctx) {
 		appDelegate.render_task_count--;
 		appDelegate.app->display()->render();
 	}

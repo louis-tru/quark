@@ -40,7 +40,7 @@
 #include "../layout/view.h"
 
 #ifndef N_USE_DEFAULT_THREAD_RENDER
-#define N_USE_DEFAULT_THREAD_RENDER 0
+#define N_USE_DEFAULT_THREAD_RENDER 1
 #endif
 
 namespace noug {
