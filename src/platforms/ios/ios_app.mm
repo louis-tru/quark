@@ -59,6 +59,7 @@ static NSString* appDelegateName = @"";
 		UIWindow* _window;
 		BOOL _is_background;
 		int  _fps;
+		Cb   _render_exec;
 	}
 	@property (strong, nonatomic) UIView* view;
 	@property (strong, nonatomic) IOSIMEHelprt* ime;
@@ -69,6 +70,7 @@ static NSString* appDelegateName = @"";
 	@property (assign, nonatomic) Orientation current_orientation;
 	@property (assign, nonatomic) bool visible_status_bar;
 	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
+	@property (assign, atomic) NSInteger render_task_count;
 @end
 
 @implementation RootViewController
@@ -185,8 +187,14 @@ static NSString* appDelegateName = @"";
 
 @implementation ApplicationDelegate
 
+	static void render_exec_func(CbD& evt, Object* ctx) {
+		appDelegate.render_task_count--;
+		appDelegate.app->display()->render();
+	}
+
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
 		auto _ = self.app;
+#if N_USE_DEFAULT_THREAD_RENDER
 		if (_->is_loaded()) {
 			if (_fps == 0) { // 3 = 15, 1 = 30
 				_->display()->render();
@@ -195,6 +203,14 @@ static NSString* appDelegateName = @"";
 				_fps++;
 			}
 		}
+#else
+		if (self.render_task_count == 0) {
+			self.render_task_count++;
+			_->loop()->post(_render_exec);
+		} else {
+			N_DEBUG("miss frame");
+		}
+#endif
 	}
 
 	- (void)refresh_status {
@@ -227,8 +243,10 @@ static NSString* appDelegateName = @"";
 
 		_window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 		_is_background = NO;
+		_render_exec = Cb(render_exec_func);
 		
 		self.host = app;
+		self.render_task_count = 0;
 		self.setting_orientation = Orientation::ORIENTATION_USER;
 		self.current_orientation = Orientation::ORIENTATION_INVALID;
 		self.visible_status_bar = YES;

@@ -58,7 +58,6 @@
 # endif // #if N_IOS
 #endif
 
-
 // namespace start
 
 namespace noug {
@@ -75,12 +74,16 @@ namespace noug {
 	}
 
 	uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
+#if N_USE_DEFAULT_THREAD_RENDER
 		auto core = cb.Handle::collapse();
 		dispatch_async(dispatch_get_main_queue(), ^{
 			Cb cb(core);
 			cb->resolve();
 		});
 		return 0;
+#else
+		return render()->host()->loop()->post(cb, delay_us);
+#endif
 	}
 
 	// ------------------- Metal ------------------

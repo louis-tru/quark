@@ -39,6 +39,10 @@
 #include "./source.h"
 #include "../layout/view.h"
 
+#ifndef N_USE_DEFAULT_THREAD_RENDER
+#define N_USE_DEFAULT_THREAD_RENDER 0
+#endif
+
 namespace noug {
 
 	class Application;
