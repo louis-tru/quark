@@ -227,17 +227,17 @@ namespace noug {
 	N_EXPORT uint32_t http_get(cString& url, HttpCb cb = 0, bool no_cache = false) throw(HttpError);
 	N_EXPORT uint32_t http_get_stream(cString& url, Callback<StreamResponse> cb = 0, bool no_cache = false) throw(HttpError);
 	N_EXPORT uint32_t http_post(cString& url, Buffer data, HttpCb cb = 0) throw(HttpError);
-	N_EXPORT Buffer http_request_sync(RequestOptions& options) throw(HttpError);
-	N_EXPORT void   http_download_sync(cString& url, cString& save) throw(HttpError);
-	N_EXPORT Buffer http_upload_sync(cString& url, cString& file) throw(HttpError);
-	N_EXPORT Buffer http_get_sync(cString& url, bool no_cache = false) throw(HttpError);
-	N_EXPORT Buffer http_post_sync(cString& url, Buffer data) throw(HttpError);
-	N_EXPORT void   http_abort(uint32_t id);
-	N_EXPORT String http_user_agent();
-	N_EXPORT void   http_set_user_agent(cString& user_agent);
-	N_EXPORT String http_cache_path();
-	N_EXPORT void   http_set_cache_path(cString& path);
-	N_EXPORT void   http_clear_cache();
+	N_EXPORT Buffer   http_request_sync(RequestOptions& options) throw(HttpError);
+	N_EXPORT void     http_download_sync(cString& url, cString& save) throw(HttpError);
+	N_EXPORT Buffer   http_upload_sync(cString& url, cString& file) throw(HttpError);
+	N_EXPORT Buffer   http_get_sync(cString& url, bool no_cache = false) throw(HttpError);
+	N_EXPORT Buffer   http_post_sync(cString& url, Buffer data) throw(HttpError);
+	N_EXPORT void     http_abort(uint32_t id);
+	N_EXPORT String   http_user_agent();
+	N_EXPORT void     http_set_user_agent(cString& user_agent);
+	N_EXPORT String   http_cache_path();
+	N_EXPORT void     http_set_cache_path(cString& path);
+	N_EXPORT void     http_clear_cache();
 	// http cookie
 	N_EXPORT String http_get_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
 	N_EXPORT String http_get_all_cookie_string(cString& domain, cString& path = String(), bool ssl = 0);
