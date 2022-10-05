@@ -33,7 +33,7 @@
 			},
 			'sources': [
 				'../examples',
-				'../libs/noproj',
+				'../libs/qkmake',
 				'../libs/somes',
 				'test.cc',
 				'test-fs.cc',
