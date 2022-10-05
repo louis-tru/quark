@@ -247,9 +247,9 @@ void test_skia(int argc, char **argv) {
 		}));
 	};
 
-	app.N_On(Load, [&](Event<>& evt) { post(&app); });
+	app.Qk_On(Load, [&](Event<>& evt) { post(&app); });
 	//app.display()->N_On(Orientation, [&app](Event<>& evt){ testSkia(&app); });
-	app.display()->N_On(Change, [&](Event<>& evt){ post(&app); });
+	app.display()->Qk_On(Change, [&](Event<>& evt){ post(&app); });
 
 	app.run(true);
 }

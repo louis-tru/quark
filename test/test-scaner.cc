@@ -77,7 +77,7 @@ void testScaner(Application* app) {
 
 void test_scaner(int argc, char **argv) {
 	Application app;
-	app.N_On(Load, [&](Event<>& evt) { testScaner(&app); });
-	app.display()->N_On(Change, [&app](Event<>& evt){ testScaner(&app); });
+	app.Qk_On(Load, [&](Event<>& evt) { testScaner(&app); });
+	app.display()->Qk_On(Change, [&app](Event<>& evt){ testScaner(&app); });
 	app.run(true);
 }

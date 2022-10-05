@@ -41,7 +41,7 @@ using namespace quark;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
-N_Main() {
+Qk_Main() {
 	// node::QuarkEnvironment::test();
 
 	uint64_t st = time_micro();

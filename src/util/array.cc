@@ -35,7 +35,7 @@
 
 namespace quark {
 
-	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATIOQk_(T, A, APPEND_ZERO) \
+	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, A, APPEND_ZERO) \
 		\
 		template<> void Array<T, A>::extend(uint32_t length, uint32_t capacity) \
 		{ \

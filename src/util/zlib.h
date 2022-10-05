@@ -243,9 +243,9 @@ namespace quark {
 		* @enum OpenMode
 		*/
 		enum OpenMode {
-			OPEQk_MODE_CREATE = 0,         // 创建新的zip包,如果如果已存在该文件先删除存在文件
-			OPEQk_MODE_CREATE_AFTER = 1,   // 在存在文件在文件结尾创建zip包,zip包必需存在
-			OPEQk_MODE_ADD_IN_ZIP = 2      // 在存在的zip包追加内容,zip包必需存在
+			OPEN_MODE_CREATE = 0,         // 创建新的zip包,如果如果已存在该文件先删除存在文件
+			OPEN_MODE_CREATE_AFTER = 1,   // 在存在文件在文件结尾创建zip包,zip包必需存在
+			OPEN_MODE_ADD_IN_ZIP = 2      // 在存在的zip包追加内容,zip包必需存在
 		};
 		
 		ZipWriter(cString& path, cString& passwd = String());

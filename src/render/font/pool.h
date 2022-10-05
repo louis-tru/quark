@@ -44,8 +44,8 @@ namespace quark {
 		FontPool(Application* host);
 		virtual ~FontPool();
 		// define ptops
-		Qk_Define_Prop_Get(int32_t, count_families);
-		Qk_Define_Prop_Get(Array<String>, familys);
+		Qk_Define_Prop_Acc_Get(int32_t, count_families);
+		Qk_Define_Prop_Acc_Get(Array<String>, familys);
 		Qk_Define_Prop_Acc_Get(const Array<Typeface>&, second);
 		Qk_Define_Prop_Acc_Get(const Typeface&, last);
 		Qk_Define_Prop_Get(Application*, host);

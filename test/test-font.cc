@@ -126,7 +126,7 @@ void test_font(int argc, char **argv) {
 	};
 
 	Application app;
-	app.N_On(Load, [&](Event<>& evt) { post(&app); });
-	app.display()->N_On(Change, [&](Event<>& evt){ post(&app); });
+	app.Qk_On(Load, [&](Event<>& evt) { post(&app); });
+	app.display()->Qk_On(Change, [&](Event<>& evt){ post(&app); });
 	app.run(true);
 }

@@ -103,7 +103,7 @@ namespace quark {
 		ROW,
 		ROW_REVERSE,
 		COLUMN,
-		COLUMQk_REVERSE,
+		COLUMN_REVERSE,
 	};
 
 	// 项目在主轴上的对齐方式

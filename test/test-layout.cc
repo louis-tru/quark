@@ -272,6 +272,6 @@ void layout(Event<>& evt, Application* app) {
 
 void test_layout(int argc, char **argv) {
 	Application app;
-	app.N_On(Load, layout, &app);
+	app.Qk_On(Load, layout, &app);
 	app.run(true);
 }
