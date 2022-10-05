@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__render__pixel__
-#define __noug__render__pixel__
+#ifndef __quark__render__pixel__
+#define __quark__render__pixel__
 
 #include "../util/util.h"
 #include "../util/string.h"
 #include "../util/array.h"
 
-namespace noug {
+namespace quark {
 
 	class         PixelInfo;
 	class         Pixel;
@@ -43,11 +43,11 @@ namespace noug {
 	typedef const PixelInfo cPixelInfo;
 
 	/**
-	 * @enum ColorType
+	 * @enum ColorType color tye enum
 	 */
 	enum ColorType {
-		kColor_Type_Invalid,
-		kColor_Type_Alpha_8,
+		kColor_Type_Invalid, //!< Invalid 
+		kColor_Type_Alpha_8, //!< Alpha 8 bit
 		kColor_Type_RGB_565,
 		kColor_Type_ARGB_4444,
 		kColor_Type_RGBA_8888,
@@ -70,20 +70,20 @@ namespace noug {
 		kAlphaType_Unpremul, //!< pixel components are independent of alpha
 	};
 
-	class N_EXPORT PixelInfo: public Object {
+	class Qk_EXPORT PixelInfo: public Object {
 	public:
 		PixelInfo();
 		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
-		N_Define_Prop_Get(int, width); // width 图像宽度
-		N_Define_Prop_Get(int, height); // height 图像高度
-		N_Define_Prop_Get(ColorType, type); // format 图像像素的排列格式
-		N_Define_Prop_Get(AlphaType, alphaType); // 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
+		Qk_Define_Prop_Get(int, width); //!< width 图像宽度
+		Qk_Define_Prop_Get(int, height); //!< height 图像高度
+		Qk_Define_Prop_Get(ColorType, type); //!< format 图像像素的排列格式
+		Qk_Define_Prop_Get(AlphaType, alphaType); //!< 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
 	};
 
 	/**
 	* @class Pixel
 	*/
-	class N_EXPORT Pixel: public PixelInfo {
+	class Qk_EXPORT Pixel: public PixelInfo {
 	public:
 
 		/**
@@ -106,13 +106,13 @@ namespace noug {
 		Pixel(cPixelInfo& info, cWeakBuffer& body);
 
 		/**
-		* @func body 图像数据主体
+		* Returns image data body
 		*/
 		inline  WeakBuffer& body() { return _body; }
 		inline cWeakBuffer& body() const { return _body; }
 
 		/**
-		* @func ptr() 图像数据主体指针
+		* Returns pointer for image data body
 		*/
 		inline const void* ptr() const { return _body.val(); }
 		

@@ -33,11 +33,11 @@
 #include "skia/core/SkImage.h"
 
 
-namespace noug {
+namespace quark {
 
 	#define sk_I(img) static_cast<SkImage*>(img)
 
-	N_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
 	public:
 		static SkImage* CastSk(ImageSource* img) {
 			return sk_I(img->_inl);
@@ -49,7 +49,7 @@ namespace noug {
 	}
 
 	ImageSource::ImageSource(Pixel pixel)
-		: N_Init_Event(State)
+		: Qk_Init_Event(State)
 		, _state(STATE_NONE)
 		, _width(pixel.width())
 		, _height(pixel.height())
@@ -80,8 +80,8 @@ namespace noug {
 	}
 
 	void ImageSource::_Decode() {
-		N_Assert(_state & STATE_LOAD_COMPLETE);
-		N_Assert(_inl);
+		Qk_Assert(_state & STATE_LOAD_COMPLETE);
+		Qk_Assert(_inl);
 		// decode image
 		
 		struct Ctx {
@@ -105,7 +105,7 @@ namespace noug {
 				} else { // decode fail
 					_state = State((_state | STATE_DECODE_ERROR)    & ~STATE_DECODEING);
 				}
-				N_Trigger(State, _state);
+				Qk_Trigger(State, _state);
 			}
 			delete ctx;
 		}));
@@ -124,7 +124,7 @@ namespace noug {
 		_state = State(_state | STATE_LOADING);
 		
 		RunLoop::first()->post(Cb([this](CbData& e){
-			N_Trigger(State, _state); // trigger
+			Qk_Trigger(State, _state); // trigger
 			_load_id = fs_reader()->read_file(_uri, Cb([this](CbData& e){ // read data
 				if (_state & STATE_LOADING) {
 					_state = State((_state | STATE_LOAD_COMPLETE) & ~STATE_LOADING);
@@ -140,7 +140,7 @@ namespace noug {
 					_height = info.height();
 					_type = ColorType(info.colorType());
 					
-					N_Trigger(State, _state);
+					Qk_Trigger(State, _state);
 
 					if (_state & STATE_DECODEING) { // decode
 						_Decode();
@@ -169,7 +169,7 @@ namespace noug {
 				}
 				// trigger event
 				RunLoop::first()->post(Cb([this](CbData& e){
-					N_Trigger(State, _state);
+					Qk_Trigger(State, _state);
 				}, this));
 			}
 		}

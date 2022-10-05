@@ -33,20 +33,20 @@
 #include "../../util/os.h"
 #include "../../util/loop.h"
 #include "./_view.h"
-//#include "noug/util/jsx.h"
+//#include "quark/util/jsx.h"
 #include <native-ext-js.h>
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
 
 using namespace native_js;
 
-extern Array<Char*>* __fx_noug_argv;
-extern int __fx_noug_have_node;
-extern int __fx_noug_have_debug;
+extern Array<Char*>* __fx_quark_argv;
+extern int __fx_quark_have_node;
+extern int __fx_quark_have_debug;
 
 typedef Object NativeObject;
 
@@ -154,7 +154,7 @@ class NativeUtil {
 	
 	static void version(FunctionCall args) {
 		JS_WORKER(args);
-		JS_RETURN( noug::version() );
+		JS_RETURN( quark::version() );
 	}
 	
 	static void addNativeEventListener(FunctionCall args) {
@@ -209,10 +209,10 @@ class NativeUtil {
 	static void garbageCollection(FunctionCall args) {
 		JS_WORKER(args); UILock lock;
 		worker->garbageCollection();
-		#if N_MEMORY_TRACE_MARK
+		#if Qk_MEMORY_TRACE_MARK
 			Array<Object*> objs = Object::mark_objects();
 			Object** objs2 = &objs[0];
-			N_LOG("All unrelease heap objects count: %d", objs.size());
+			Qk_LOG("All unrelease heap objects count: %d", objs.size());
 		#endif
 	}
 	
@@ -245,7 +245,7 @@ class NativeUtil {
 		}
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 		RunLoop::next_tick(Cb([worker, func](CbData& e) {
-			N_Assert(!func.IsEmpty());
+			Qk_Assert(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			JS_CALLBACK_SCOPE();
 			func.local()->Call(worker);
@@ -258,7 +258,7 @@ class NativeUtil {
 		if (args.Length() > 0 && args[0]->IsInt32(worker)) {
 			code = args[0]->ToInt32Value(worker);
 		}
-		noug::exit(code);
+		quark::exit(code);
 	}
 
 	static void extendModuleContent(FunctionCall args) {
@@ -291,17 +291,17 @@ class NativeUtil {
 		JS_SET_METHOD(garbageCollection, garbageCollection);
 		JS_SET_METHOD(nextTick, next_tick);
 		JS_SET_METHOD(_exit, exit);
-		JS_SET_PROPERTY(platform, noug::platform());
+		JS_SET_PROPERTY(platform, quark::platform());
 
 		Local<JSArray> argv = worker->NewArray();
-		if (__fx_noug_argv) {
-			for (uint32_t i = 0; i < __fx_noug_argv->length(); i++) {
-				argv->Set(worker, i, worker->New(__fx_noug_argv->item(i)));
+		if (__fx_quark_argv) {
+			for (uint32_t i = 0; i < __fx_quark_argv->length(); i++) {
+				argv->Set(worker, i, worker->New(__fx_quark_argv->item(i)));
 			}
 		}
 		JS_SET_PROPERTY(argv, argv);
-		JS_SET_PROPERTY(haveNode, !!__fx_noug_have_node);
-		JS_SET_PROPERTY(debug, !!__fx_noug_have_debug);
+		JS_SET_PROPERTY(haveNode, !!__fx_quark_have_node);
+		JS_SET_PROPERTY(debug, !!__fx_quark_have_debug);
 
 		// extendModule
 		Local<JSObject> extendModule = worker->NewObject();

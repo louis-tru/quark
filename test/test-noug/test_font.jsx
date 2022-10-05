@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test';
-import { Application, Root } from 'noug';
-import 'noug/font' as f;
+import { Application, Root } from 'quark';
+import 'quark/font' as f;
 import 'fs';
-import 'noug/url';
+import 'quark/url';
 
 new Application().start(<Root/>).onLoad = function() {
 

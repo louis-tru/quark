@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/util/util.h"
-#include "noug/util/string.h"
+#include "quark/util/util.h"
+#include "quark/util/string.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <sstream>
 #include <istream>
 
 using namespace v8;
-namespace n = noug;
+namespace n = quark;
 
 MaybeLocal<v8::Value> run_script(Isolate* isolate, v8::Local<v8::String> source_string,
 																 v8::Local<v8::String> name,
@@ -87,12 +87,12 @@ void test_persistent(Isolate* isolate, Local<Context> ctx) {
 	Local<Number> num3 = *reinterpret_cast<Local<Number>*>(&p3);
 	Local<Number> num4 = *reinterpret_cast<Local<Number>*>(&p4);
 	
-	N_LOG(num1->Value());
-	N_LOG(num2->Value());
-	N_LOG(num3->Value());
-	N_LOG(num4->Value());
+	Qk_LOG(num1->Value());
+	Qk_LOG(num2->Value());
+	Qk_LOG(num3->Value());
+	Qk_LOG(num4->Value());
 
-	N_LOG("OK");
+	Qk_LOG("OK");
 }
 
 void test_template(Isolate* isolate, Local<Context> ctx) {
@@ -101,8 +101,8 @@ void test_template(Isolate* isolate, Local<Context> ctx) {
 	auto num = Integer::New(isolate, 100);
 	// Function Template
 	auto ft = FunctionTemplate::New(isolate, [](const FunctionCallbackInfo<Value>& info){
-		N_LOG(info.Data()->NumberValue());
-		N_LOG("OK.1");
+		Qk_LOG(info.Data()->NumberValue());
+		Qk_LOG("OK.1");
 	}, num);
 	ft->PrototypeTemplate()->Set(isolate, "a", num);
 	ft->Set(isolate, "num", num);
@@ -115,49 +115,49 @@ void test_template(Isolate* isolate, Local<Context> ctx) {
 	//  }, num);
 	auto o = ot->NewInstance();
 	auto o3 = ot->NewInstance();
-	N_LOG(o->GetPrototype()->StrictEquals(o3->GetPrototype()));
-	N_LOG(o->StrictEquals(o3));
-	N_LOG(o->IsFunction());
+	Qk_LOG(o->GetPrototype()->StrictEquals(o3->GetPrototype()));
+	Qk_LOG(o->StrictEquals(o3));
+	Qk_LOG(o->IsFunction());
 	if (o->IsFunction())
 		o->CallAsFunction(ctx, Undefined(isolate), 0, 0).ToLocalChecked();
 	auto c = o->Get(ctx, String::NewFromUtf8(isolate, "constructor")).ToLocalChecked();
-	N_LOG(c->IsFunction());
+	Qk_LOG(c->IsFunction());
 	c.As<Object>()->CallAsFunction(ctx, Undefined(isolate), 0, 0).ToLocalChecked();
-	N_LOG(o->Has(ctx, String::NewFromUtf8(isolate, "a")).ToChecked());
-	N_LOG(o->HasOwnProperty(ctx, String::NewFromUtf8(isolate, "a")).ToChecked());
-	N_LOG(o->Get(ctx, String::NewFromUtf8(isolate, "a")).ToLocalChecked()->NumberValue());
+	Qk_LOG(o->Has(ctx, String::NewFromUtf8(isolate, "a")).ToChecked());
+	Qk_LOG(o->HasOwnProperty(ctx, String::NewFromUtf8(isolate, "a")).ToChecked());
+	Qk_LOG(o->Get(ctx, String::NewFromUtf8(isolate, "a")).ToLocalChecked()->NumberValue());
 	
 	// Object Template
 	auto ot2 = ObjectTemplate::New(isolate);
 	ot2->Set(isolate, "num", num);
 	auto o2 = ot2->NewInstance();
-	N_LOG(o2->IsFunction());
+	Qk_LOG(o2->IsFunction());
 	auto c2 = o2->Get(ctx, String::NewFromUtf8(isolate, "constructor")).ToLocalChecked();
-	N_LOG(c2->IsFunction());
+	Qk_LOG(c2->IsFunction());
 	auto O = global->Get(ctx, String::NewFromUtf8(isolate, "Object")).ToLocalChecked();
-	N_LOG(c2->StrictEquals(O));
+	Qk_LOG(c2->StrictEquals(O));
 	c2.As<Object>()->CallAsFunction(ctx, Undefined(isolate), 0, 0).ToLocalChecked();
-	N_LOG(o2->HasOwnProperty(ctx, num_s).ToChecked());
-	N_LOG(o2->HasOwnProperty(ctx, String::NewFromUtf8(isolate, "constructor")).ToChecked());
+	Qk_LOG(o2->HasOwnProperty(ctx, num_s).ToChecked());
+	Qk_LOG(o2->HasOwnProperty(ctx, String::NewFromUtf8(isolate, "constructor")).ToChecked());
 	
 	// Function
 	auto f = ft->GetFunction(ctx).ToLocalChecked();
 	ft->Set(String::NewFromUtf8(isolate, "k"), num);
 	ft->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "j"), num);
 	auto f2 = ft->GetFunction(ctx).ToLocalChecked();
-	N_LOG(f->IsFunction());
-	N_LOG(f->StrictEquals(f2));
-	N_LOG(f->Get(String::NewFromUtf8(isolate, "prototype"))->
+	Qk_LOG(f->IsFunction());
+	Qk_LOG(f->StrictEquals(f2));
+	Qk_LOG(f->Get(String::NewFromUtf8(isolate, "prototype"))->
 			StrictEquals(f2->Get(String::NewFromUtf8(isolate, "prototype"))));
 	auto f_i = f->CallAsConstructor(0, 0).As<Object>();
 	auto f2_i = f2->CallAsConstructor(0, 0).As<Object>();
-	N_LOG(f_i->Get(String::NewFromUtf8(isolate, "j"))->NumberValue());
-	N_LOG(f2_i->Get(String::NewFromUtf8(isolate, "j"))->NumberValue());
-	N_LOG(f->Get(String::NewFromUtf8(isolate, "k"))->NumberValue());
-	N_LOG(f2->Get(String::NewFromUtf8(isolate, "k"))->NumberValue());
-	N_LOG(f2->Has(ctx, num_s).ToChecked());
-	N_LOG(f->Has(ctx, num_s).ToChecked());
-	N_LOG(f->Get(ctx, num_s).ToLocalChecked()->NumberValue());
+	Qk_LOG(f_i->Get(String::NewFromUtf8(isolate, "j"))->NumberValue());
+	Qk_LOG(f2_i->Get(String::NewFromUtf8(isolate, "j"))->NumberValue());
+	Qk_LOG(f->Get(String::NewFromUtf8(isolate, "k"))->NumberValue());
+	Qk_LOG(f2->Get(String::NewFromUtf8(isolate, "k"))->NumberValue());
+	Qk_LOG(f2->Has(ctx, num_s).ToChecked());
+	Qk_LOG(f->Has(ctx, num_s).ToChecked());
+	Qk_LOG(f->Get(ctx, num_s).ToLocalChecked()->NumberValue());
 	
 	// run script
 	global->Set(String::NewFromUtf8(isolate, "test"), ft->GetFunction());

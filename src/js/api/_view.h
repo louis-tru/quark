@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__js__api__view__
-#define __noug__js__api__view__
+#ifndef __quark__js__api__view__
+#define __quark__js__api__view__
 
 #include "../js.h"
 #include "../value.h"
 #include "../../app.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
@@ -47,7 +47,7 @@ JS_BEGIN
 /**
  * @class WrapViewBase
  */
-class N_EXPORT WrapViewBase: public WrapObject {
+class Qk_EXPORT WrapViewBase: public WrapObject {
 	public:
 
 	/**

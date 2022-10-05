@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__js__strs__
-#define __noug__js__strs__
+#ifndef __quark__js__strs__
+#define __quark__js__strs__
 
 #include "./js.h"
 
@@ -61,7 +61,7 @@ JS_BEGIN
 /**
  * @class CommonStrings
  */
-class N_EXPORT CommonStrings: public Object {
+class Qk_EXPORT CommonStrings: public Object {
 	public:
 	CommonStrings(Worker* worker);
 	#define js_def_persistent_string(name) \

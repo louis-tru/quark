@@ -32,7 +32,7 @@
 #include "./app.inl"
 #include "./event.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @constructor 

@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__media__media_codec__
-#define __noug__media__media_codec__
+#ifndef __quark__media__media_codec__
+#define __quark__media__media_codec__
 
 #include "../util/util.h"
 #include "../util/string.h"
@@ -39,7 +39,7 @@
 
 typedef struct AVStream AVStream;
 
-namespace noug {
+namespace quark {
 
 	enum MultimediaSourceStatus {
 		MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED = 0,
@@ -88,9 +88,9 @@ namespace noug {
 	/**
 	* @class MultimediaSource
 	*/
-	class N_EXPORT MultimediaSource: public Object {
-		N_HIDDEN_ALL_COPY(MultimediaSource);
-		N_DEFINE_INLINE_CLASS(Inl);
+	class Qk_EXPORT MultimediaSource: public Object {
+		Qk_HIDDEN_ALL_COPY(MultimediaSource);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
 		
 		struct TrackInfo {
@@ -132,8 +132,8 @@ namespace noug {
 		/**
 		* @class Extractor
 		*/
-		class N_EXPORT Extractor: public Object {
-			N_HIDDEN_ALL_COPY(Extractor);
+		class Qk_EXPORT Extractor: public Object {
+			Qk_HIDDEN_ALL_COPY(Extractor);
 		public:
 			
 			/**
@@ -358,8 +358,8 @@ namespace noug {
 	/**
 	* @class MediaCodec
 	*/
-	class N_EXPORT MediaCodec: public Object {
-		N_HIDDEN_ALL_COPY(MediaCodec);
+	class Qk_EXPORT MediaCodec: public Object {
+		Qk_HIDDEN_ALL_COPY(MediaCodec);
 	public:
 		typedef MultimediaSource::Extractor Extractor;
 		
@@ -371,7 +371,7 @@ namespace noug {
 			int       index = 0;        /* 数据Buffer在解码器中的索引 */
 		};
 		
-		class N_EXPORT Delegate {
+		class Qk_EXPORT Delegate {
 		 public:
 			virtual void media_decoder_eof(MediaCodec* de, uint64_t timeUs) {}
 			virtual void media_decoder_error(MediaCodec* de, cError& err) {}

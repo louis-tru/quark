@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__input__
-#define __noug__layout__input__
+#ifndef __quark__layout__input__
+#define __quark__layout__input__
 
 #include "./box.h"
 #include "../text_blob.h"
@@ -38,27 +38,27 @@
 #include "../text_input.h"
 #include "../pre_render.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT Input: public Box, public TextOptions, public PreRender::Task, public TextInput {
-		N_Define_View(Input);
+	class Qk_EXPORT Input: public Box, public TextOptions, public PreRender::Task, public TextInput {
+		Qk_Define_View(Input);
 	public:
 		typedef ReferenceTraits Traits;
 		Input();
 		// define props
-		N_Define_Prop(bool, security);
-		N_Define_Prop(bool, readonly);
-		N_Define_Prop(TextAlign, text_align);
-		N_Define_Prop(KeyboardType, type);
-		N_Define_Prop(KeyboardReturnType, return_type);
-		N_Define_Prop(String4, text_value_u4);
-		N_Define_Prop(String4, placeholder_u4);
-		N_Define_Prop(Color, placeholder_color);
-		N_Define_Prop(Color, cursor_color);
-		N_Define_Prop(uint32_t, max_length);
-		N_Define_Prop_Acc(String, text_value);
-		N_Define_Prop_Acc(String, placeholder);
-		N_Define_Prop_Acc_Get(uint32_t, text_length);
+		Qk_Define_Prop(bool, security);
+		Qk_Define_Prop(bool, readonly);
+		Qk_Define_Prop(TextAlign, text_align);
+		Qk_Define_Prop(KeyboardType, type);
+		Qk_Define_Prop(KeyboardReturnType, return_type);
+		Qk_Define_Prop(String4, text_value_u4);
+		Qk_Define_Prop(String4, placeholder_u4);
+		Qk_Define_Prop(Color, placeholder_color);
+		Qk_Define_Prop(Color, cursor_color);
+		Qk_Define_Prop(uint32_t, max_length);
+		Qk_Define_Prop_Acc(String, text_value);
+		Qk_Define_Prop_Acc(String, placeholder);
+		Qk_Define_Prop_Acc_Get(uint32_t, text_length);
 		// virtual func
 		virtual bool is_multiline();
 		// @override
@@ -106,7 +106,7 @@ namespace noug {
 
 		friend class Textarea;
 
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

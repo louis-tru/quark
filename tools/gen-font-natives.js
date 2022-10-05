@@ -79,16 +79,16 @@ function main() {
 	}
 	
 	write(h_fd, 
-		'#ifndef __noug__native__',
-		'#define __noug__native__',
-	 'namespace noug{',
+		'#ifndef __quark__native__',
+		'#define __quark__native__',
+	 'namespace quark{',
 		'struct Native_font_data_ {',
 				'unsigned int count;',
 				'const unsigned char* data;',
 	 '};'
 	);
 
-	write(cc_fd, 'namespace noug{');
+	write(cc_fd, 'namespace quark{');
 	
 	var fonts = [];
 	

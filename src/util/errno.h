@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug_util_errno__
-#define __noug_util_errno__
+#ifndef __quark_util_errno__
+#define __quark_util_errno__
 
 /**
- * @ns noug
+ * @ns quark
  */
 
-namespace noug {
+namespace quark {
 
 	enum {
 		ERR_UNKNOWN_ERROR         = -10000,

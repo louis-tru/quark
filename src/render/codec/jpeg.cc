@@ -35,14 +35,14 @@ extern "C" {
 # include <jpeglib.h>
 }
 
-namespace noug {
+namespace quark {
 
 	struct JPEGClientData {
 		jmp_buf jmpbuf;
 	};
 
 	static void jpeg_error_output(j_common_ptr cinfo) {
-		N_ERR("%s", "Invalid JPEG file structure: missing SOS marker");
+		Qk_ERR("%s", "Invalid JPEG file structure: missing SOS marker");
 		JPEGClientData* data = (JPEGClientData*)cinfo->client_data;
 		longjmp(data->jmpbuf, 1);
 	}

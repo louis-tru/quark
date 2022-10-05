@@ -1,7 +1,7 @@
 
 var { Buffer } = require('buffer');
 var util = require('somes').default;
-var r = require('noug/util/request');
+var r = require('quark/util/request');
 
 // 测试EOS区块链RPC交易
 

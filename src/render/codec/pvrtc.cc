@@ -30,7 +30,7 @@
 
 #include "./codec.h"
 
-namespace noug {
+namespace quark {
 
 	static const uint32_t PVR2TEXTURE_FLAG_TYPE_MASK = 0xff;
 	static const uint64_t PVR3TEXTURE_PFHIGH_MASK = 0xffffffff00000000ULL;
@@ -239,9 +239,9 @@ namespace noug {
 			uint64_t uiDataSize = 0;
 			
 			//Get the dimensions of the specified MIP Map level.
-			uint32_t uiWidth = N_MAX(1, header.width >> iMipLevel);
-			uint32_t uiHeight = N_MAX(1, header.height >> iMipLevel);
-			uint32_t uiDepth = N_MAX(1, header.depth >> iMipLevel);
+			uint32_t uiWidth = Qk_MAX(1, header.width >> iMipLevel);
+			uint32_t uiHeight = Qk_MAX(1, header.height >> iMipLevel);
+			uint32_t uiDepth = Qk_MAX(1, header.depth >> iMipLevel);
 			
 			//If pixel format is compressed, the dimensions need to be padded.
 			if (PixelFormatPartHigh == 0) {
@@ -338,8 +338,8 @@ namespace noug {
 					
 					dataOffset += data_size;
 					
-					width = N_MAX(width >> 1, 1);
-					height = N_MAX(height >> 1, 1);
+					width = Qk_MAX(width >> 1, 1);
+					height = Qk_MAX(height >> 1, 1);
 				}
 			}
 			return rest;
@@ -385,8 +385,8 @@ namespace noug {
 						LOG("TexurePVR: Invalid lenght");
 						return rest;
 					}
-					width = N_MAX(width >> 1, 1);
-					height = N_MAX(height >> 1, 1);
+					width = Qk_MAX(width >> 1, 1);
+					height = Qk_MAX(height >> 1, 1);
 				}
 			}
 			else {
@@ -404,7 +404,7 @@ namespace noug {
 		else if (_inl_pvr(this)->m_is_pvr_v3(data)) {
 			return _inl_pvr(this)->m_decode_pvr_v3(data);
 		}
-		N_ERR("TexurePVR: Invalid data");
+		Qk_ERR("TexurePVR: Invalid data");
 		return Array<PixelData>();
 	}
 
@@ -448,7 +448,7 @@ namespace noug {
 	}
 
 	Buffer PVRTCImageCodec::encode(cPixelData& data) {
-		N_UNIMPLEMENTED();
+		Qk_UNIMPLEMENTED();
 		return Buffer();
 	}
 

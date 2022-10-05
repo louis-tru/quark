@@ -31,35 +31,35 @@
 #include "./_js.h"
 #include "../../util/loop.h"
 #include "../../util/codec.h"
-#include <deps/node/src/noug.h>
+#include <deps/node/src/quark.h>
 
 namespace node {
 
-	NougApi* noug_api = nullptr;
+	QuarkApi* quark_api = nullptr;
 	NodeAPI* node_api = nullptr;
 
-	NougApi::~NougApi() {
-		noug::Release(_worker);
+	QuarkApi::~QuarkApi() {
+		quark::Release(_worker);
 		_worker = nullptr;
-		noug_api = nullptr;
+		quark_api = nullptr;
 	}
 
-	void NougApi::run_main_loop() {
-		noug::RunLoop::main_loop()->run();
+	void QuarkApi::run_main_loop() {
+		quark::RunLoop::main_loop()->run();
 	}
 
-	bool NougApi::is_exited() {
-		return noug::is_exited();
+	bool QuarkApi::is_exited() {
+		return quark::is_exited();
 	}
 
-	Char* NougApi::encoding_to_utf8(const uint16_t * src, int length, int* out_len) {
-		auto buff = noug::Codec::encoding(noug::Encoding::UTF8, src, length);
+	Char* QuarkApi::encoding_to_utf8(const uint16_t * src, int length, int* out_len) {
+		auto buff = quark::Codec::encoding(quark::Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();
 	}
 
-	uint16_t * NougApi::decoding_utf8_to_uint16(cChar* src, int length, int* out_len) {
-		auto buff = noug::Codec::decoding_to_uint16(noug::Encoding::UTF8, src, length);
+	uint16_t * QuarkApi::decoding_utf8_to_uint16(cChar* src, int length, int* out_len) {
+		auto buff = quark::Codec::decoding_to_uint16(quark::Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();
 	}

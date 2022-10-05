@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/loop.h>
+#include <quark/util/loop.h>
 
-using namespace noug;
+using namespace quark;
 
 static void message_cb(CbData& ev, RunLoop* loop) {
 	static int i = 0;
-	N_LOG("message_cb, %d", i++);
+	Qk_LOG("message_cb, %d", i++);
 }
 
 void test_loop(int argc, char **argv) {
@@ -54,14 +54,14 @@ void test_loop(int argc, char **argv) {
 	int id = loop->work(Cb([&](CbData& e){
 		for (int i = 0; i < 5; i++) {
 			Thread::sleep(1e6);
-			N_LOG("Exec work");
+			Qk_LOG("Exec work");
 			loop->post(Cb(message_cb, loop));
 		}
 	}), Cb([](CbData& e){
-		N_LOG("Done");
+		Qk_LOG("Done");
 	}));
 	
 	loop->run();
 	
-	N_LOG("Loop ok");
+	Qk_LOG("Loop ok");
 }

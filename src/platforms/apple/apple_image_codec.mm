@@ -28,18 +28,18 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import <noug/render/codec/codec.h>
+#import <quark/render/codec/codec.h>
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
 
-#if N_OSX
+#if Qk_OSX
 # import <AppKit/AppKit.h>
 # define UIImage NSImage
 #else
 # import <UIKit/UIKit.h>
 #endif
 
-namespace noug {
+namespace quark {
 
 	static PixelData image_decode(cBuffer& data) {
 
@@ -47,7 +47,7 @@ namespace noug {
 																					length:data.length()
 																		freeWhenDone:NO];
 		UIImage* img = [[UIImage alloc] initWithData:nsdata];
-	#if N_OSX
+	#if Qk_OSX
 		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
 	#else 
 		CGImageRef image = [img CGImage];
@@ -108,7 +108,7 @@ namespace noug {
 																					length:data.length()
 																		freeWhenDone:NO];
 		UIImage* img = [[UIImage alloc] initWithData:nsdata];
-	#if N_OSX
+	#if Qk_OSX
 		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
 	#else
 		CGImageRef image = [img CGImage];

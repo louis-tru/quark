@@ -28,32 +28,32 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/util/storage.h"
+#include "quark/util/storage.h"
 
-using namespace noug;
+using namespace quark;
 
 void test_localstorage(int argc, char **argv) {
 	
-	N_LOG(storage_get("test2"));
+	Qk_LOG(storage_get("test2"));
 	
-	storage_set("test", "noug.cc");
+	storage_set("test", "quarks.cc");
 	
-	N_LOG(storage_get("test"));
+	Qk_LOG(storage_get("test"));
 	
 	storage_delete("test");
 	
-	N_LOG(storage_get("test"));
+	Qk_LOG(storage_get("test"));
 	
-	storage_set("test", "noug.cc");
+	storage_set("test", "quarks.cc");
 	
-	N_LOG(storage_get("test"));
+	Qk_LOG(storage_get("test"));
 	
 	storage_clear();
 	
-	N_LOG(storage_get("test"));
+	Qk_LOG(storage_get("test"));
 	
 	storage_set("test2", "test2");
 	
-	N_LOG(storage_get("test2"));
+	Qk_LOG(storage_get("test2"));
 	
 }

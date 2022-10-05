@@ -37,7 +37,7 @@
 #include <native-inl-js.h>
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
@@ -48,7 +48,7 @@ ValueProgram::ValueProgram(Worker* worker,
 #define Ascii(s) worker->NewAscii(s)
 
 #define js_init_func(Name, Type) \
-	N_DEBUG("init value %s", #Name);\
+	Qk_DEBUG("init value %s", #Name);\
 	_parse##Name       .Reset(worker, priv->Get(worker,Ascii("parse"#Name)).To<JSFunction>()); \
 	_##Name.Reset(worker, priv->Get(worker,Ascii("_"#Name)).To<JSFunction>());
 
@@ -238,7 +238,7 @@ Local<JSValue> ValueProgram::New(const BackgroundSize& value) {
 }
 
 Local<JSValue> ValueProgram::New(const BackgroundPtr& value) {
-	N_UNIMPLEMENTED();
+	Qk_UNIMPLEMENTED();
 	return Local<JSValue>();
 }
 
@@ -856,7 +856,7 @@ class NativeValue {
 				if ( try_catch.HasCaught() ) {
 					worker->reportException(&try_catch);
 				}
-				N_FATAL("Could not initialize native/_value.js");
+				Qk_FATAL("Could not initialize native/_value.js");
 			}
 		}
 		worker->_inl->_values = new ValueProgram(worker, exports, _prve);

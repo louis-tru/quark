@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/js/noug.h"
+#include "quark/js/quark.h"
 
-using namespace noug;
+using namespace quark;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
@@ -47,7 +47,7 @@ static bool has_argv(cchar* name, int argc, char **argv) {
 }
 
 void test_demo(int argc, char **argv) {
-	String cmd = "noug ";
+	String cmd = "quark ";
 
 #if USE_NODE
 	cmd += " ";
@@ -98,7 +98,7 @@ void test_demo(int argc, char **argv) {
 		}
 	}
 
-	N_LOG(cmd);
+	Qk_LOG(cmd);
 
 	js::Start(cmd);
 }
@@ -106,10 +106,10 @@ void test_demo(int argc, char **argv) {
 extern "C" {
 
 #if FX_ANDROID
-#include <noug/util/android-jni.h>
+#include <quark/util/android-jni.h>
 	JNIEXPORT extern void
-	Java_org_noug_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		N_LOG("Java_org_noug_examples_MainActivity_test");
+	Java_org_quark_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
+		Qk_LOG("Java_org_quark_examples_MainActivity_test");
 	}
 #endif
 }

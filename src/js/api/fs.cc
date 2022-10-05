@@ -36,7 +36,7 @@
 #include "./_fs.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
@@ -363,7 +363,7 @@ static bool parse_file_write_params(FunctionCall args, bool sync, int& args_inde
 		if ( args.Length() > args_index && args[args_index]->IsInt32(worker) ) { // size
 			int num = args[args_index]->ToInt32Value(worker);
 			if ( num >= 0 ) {
-				size = N_MIN( num, size );
+				size = Qk_MIN( num, size );
 				if (!sync) {
 					buffer.realloc((uint)size);
 				}
@@ -1443,7 +1443,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( convert_buffer(worker, r, encoding) );
 		} else {
-			// N_LOG("read_file,args,%d", args.Length());
+			// Qk_LOG("read_file,args,%d", args.Length());
 			Cb cb = get_callback_for_buffer(worker, args[0], encoding);
 			FileHelper::read_file(path, cb);
 		}
@@ -1530,7 +1530,7 @@ class NativeFileHelper {
 			CopyablePersistentValue persistent(worker, args[2]);
 			
 			FileHelper::write_file(path, buffer, Cb([persistent, afterCollapse, cb, size](CbData& ev) {
-				N_Assert( ev.data );
+				Qk_Assert( ev.data );
 				if (afterCollapse) {
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
 					static_cast<Buffer*>(ev.data)->collapse();
@@ -1703,7 +1703,7 @@ class NativeFileHelper {
 		if ( args.Length() > args_index && args[args_index]->IsInt32(worker) ) {
 			int num = args[args_index]->ToInt32Value(worker);
 			if ( num >= 0 ) {
-				size = N_MIN(size, num);
+				size = Qk_MIN(size, num);
 			}
 			args_index++;
 		}
@@ -1731,7 +1731,7 @@ class NativeFileHelper {
 			
 			FileHelper::read(fd, WeakBuffer(*raw_buf, size), offset,
 											 Cb([persistent, cb](CbData& ev) {
-				N_Assert( ev.data );
+				Qk_Assert( ev.data );
 				Int read_len(static_cast<Buffer*>(ev.data)->length());
 				CbData r = { nullptr, &read_len, 0 };
 				cb->call(r);
@@ -1832,7 +1832,7 @@ class NativeFileHelper {
 			CopyablePersistentValue persistent(worker, args[2]);
 
 			FileHelper::write(fd, buffer, offset, Cb([persistent, afterCollapse, cb, size](CbData& ev) {
-				N_Assert( ev.data );
+				Qk_Assert( ev.data );
 				if (afterCollapse) { // restore raw buffer
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
 					static_cast<Buffer*>(ev.data)->collapse();

@@ -4183,7 +4183,7 @@ enum nl80211_tx_power_setting {
  * @__NL80211_PKTPAT_INVALID: invalid number for nested attribute
  * @NL80211_PKTPAT_PATTERN: the pattern, values where the mask has
  *	a zero bit are ignored
- * @NL80211_PKTPAT_MASK: pattern mask, must be long enough to have
+ * @NL80211_PKTPAT_MASK: pattern mask, must be long equarkh to have
  *	a bit for each byte in the pattern. The lowest-order bit corresponds
  *	to the first byte of the pattern, but the bytes of the pattern are
  *	in a little-endian-like format, i.e. the 9th byte of the pattern

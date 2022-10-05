@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, TextNode, _CVD } from 'noug';
+import { Div, Button, TextNode, _CVD } from 'quark';
 import { Mynavpage } from './public';
-import * as dialog from 'noug/dialog';
+import * as dialog from 'quark/dialog';
 
 const resolve = require.resolve;
 

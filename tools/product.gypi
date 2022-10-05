@@ -80,10 +80,10 @@
 					'libraries': [
 						'-llog', 
 						'-landroid',
-						'-lnoug',
-						'-lnoug-media',
-						'-lnoug-js',
-						'-lnoug-node',
+						'-lquark',
+						'-lquark-media',
+						'-lquark-js',
+						'-lquark-node',
 					],
 					'library_dirs': [
 						'<(DEPTH)/out/libs/android/jniLibs/${ANDROID_ABI}',
@@ -133,20 +133,20 @@
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-node.framework',
 					],
 				},
 				'mac_framework_dirs': [
 					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
 				],
 				'mac_bundle_frameworks': [
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug.framework',
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-media.framework',
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-js.framework',
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-node.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-media.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-js.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-node.framework',
 				],
 				'include_dirs': [ '<(DEPTH)/out/libs/include' ],
 			}],
@@ -183,7 +183,7 @@
 	},
 
 	'_targets': [{
-		'target_name': 'libnoug',
+		'target_name': 'libquark',
 		'type': 'none',
 		'direct_dependent_settings': {
 			'defines': [ 
@@ -204,10 +204,10 @@
 					'libraries': [
 						'-llog', 
 						'-landroid',
-						'-lnoug',
-						'-lnoug-media',
-						'-lnoug-js',
-						'-lnoug-node',
+						'-lquark',
+						'-lquark-media',
+						'-lquark-js',
+						'-lquark-node',
 					],
 					'library_dirs': [
 						'<(DEPTH)/out/libs/android/jniLibs/${ANDROID_ABI}',
@@ -221,10 +221,10 @@
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-node.framework',
 					],
 				},
 				'direct_dependent_settings': {
@@ -232,10 +232,10 @@
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
 					],
 					'mac_bundle_frameworks': [
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/noug-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-node.framework',
 					],
 					'include_dirs': [ '<(DEPTH)/out/libs/include' ],
 				},

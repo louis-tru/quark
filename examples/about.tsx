@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Text, Scroll, _CVD } from 'noug';
+import { Text, Scroll, _CVD } from 'quark';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;
 
 export default ()=>{
 
-	var code = `Noug
+	var code = `Quark
 	===============
 	
 	Used C/C++/OpenGL/javascript to implement a GUI typesetting display engine and cross platform GUI application development framework
@@ -44,13 +44,13 @@ export default ()=>{
 	使用C/C++/OpenGL/javascript实现的一个GUI排版显示引擎与跨平台GUI应用开发框架
 	目标：在此基础上开发GUI应用程序可兼顾开发WEB应用程序的简单与速度同时拥有Native应用程序的性能与体验.
 	
-	Noug Source 
+	Quark Source 
 	===============
-	https://github.com/louis-tru/noug.git
+	https://github.com/louis-tru/quark.git
 	
 	Support
 	===============
-	http://noug.cc
+	http://quarks.cc
 	louistru@hotmail.com`;
 
 	return (

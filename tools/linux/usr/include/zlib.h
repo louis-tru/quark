@@ -51,7 +51,7 @@ extern "C" {
   but other algorithms will be added later and will have the same stream
   interface.
 
-    Compression can be done in a single step if the buffers are large enough,
+    Compression can be done in a single step if the buffers are large equarkh,
   or can be done by repeated calls of the compression function.  In the latter
   case, the application must provide more input and/or consume the output
   (providing more output space) before each call.
@@ -142,7 +142,7 @@ typedef gz_header FAR *gz_headerp;
    memory management.  The compression library attaches no meaning to the
    opaque value.
 
-     zalloc must return Z_NULL if there is not enough memory for the object.
+     zalloc must return Z_NULL if there is not equarkh memory for the object.
    If zlib is used in a multi-threaded application, zalloc and zfree must be
    thread safe.  In that case, zlib is thread-safe.  When zalloc and zfree are
    Z_NULL on entry to the initialization function, they are set to internal
@@ -238,7 +238,7 @@ ZEXTERN int ZEXPORT deflateInit OF((z_streamp strm, int level));
    requests a default compromise between speed and compression (currently
    equivalent to level 6).
 
-     deflateInit returns Z_OK if success, Z_MEM_ERROR if there was not enough
+     deflateInit returns Z_OK if success, Z_MEM_ERROR if there was not equarkh
    memory, Z_STREAM_ERROR if level is not a valid compression level, or
    Z_VERSION_ERROR if the zlib library version (zlib_version) is incompatible
    with the version assumed by the caller (ZLIB_VERSION).  msg is set to null
@@ -259,7 +259,7 @@ ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
 
   - Compress more input starting at next_in and update next_in and avail_in
     accordingly.  If not all input can be processed (because there is not
-    enough room in the output buffer), next_in and avail_in are updated and
+    equarkh room in the output buffer), next_in and avail_in are updated and
     processing will resume at this point for the next call of deflate().
 
   - Generate more output starting at next_out and update next_out and avail_out
@@ -286,7 +286,7 @@ ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
     If the parameter flush is set to Z_SYNC_FLUSH, all pending output is
   flushed to the output buffer and the output is aligned on a byte boundary, so
   that the decompressor can get all input data available so far.  (In
-  particular avail_in is zero after the call if enough output space has been
+  particular avail_in is zero after the call if equarkh output space has been
   provided before the call.) Flushing may degrade compression for some
   compression algorithms and so it should be used only when necessary.  This
   completes the current deflate block and follows it with an empty stored block
@@ -297,7 +297,7 @@ ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
   output buffer, but the output is not aligned to a byte boundary.  All of the
   input data so far will be available to the decompressor, as for Z_SYNC_FLUSH.
   This completes the current deflate block and follows it with an empty fixed
-  codes block that is 10 bits long.  This assures that enough bytes are output
+  codes block that is 10 bits long.  This assures that equarkh bytes are output
   in order for the decompressor to finish the block before the empty fixed
   codes block.
 
@@ -305,7 +305,7 @@ ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
   for Z_SYNC_FLUSH, but the output is not aligned on a byte boundary, and up to
   seven bits of the current block are held to be written as the next byte after
   the next deflate block is completed.  In this case, the decompressor may not
-  be provided enough bits at this point in order to complete decompression of
+  be provided equarkh bits at this point in order to complete decompression of
   the data provided so far to the compressor.  It may need to wait for the next
   block to be emitted.  This is for advanced applications that need to control
   the emission of deflate blocks.
@@ -325,7 +325,7 @@ ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
 
     If the parameter flush is set to Z_FINISH, pending input is processed,
   pending output is flushed and deflate returns with Z_STREAM_END if there was
-  enough output space.  If deflate returns with Z_OK or Z_BUF_ERROR, this
+  equarkh output space.  If deflate returns with Z_OK or Z_BUF_ERROR, this
   function must be called again with Z_FINISH and more output space (updated
   avail_out) but no more input data, until it returns with Z_STREAM_END or an
   error.  After deflate has returned Z_STREAM_END, the only possible operations
@@ -334,7 +334,7 @@ ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
     Z_FINISH can be used in the first deflate call after deflateInit if all the
   compression is to be done in a single step.  In order to complete in one
   call, avail_out must be at least the value returned by deflateBound (see
-  below).  Then deflate is guaranteed to return Z_STREAM_END.  If not enough
+  below).  Then deflate is guaranteed to return Z_STREAM_END.  If not equarkh
   output space is provided, deflate will not return Z_STREAM_END, and it must
   be called again as described above.
 
@@ -385,7 +385,7 @@ ZEXTERN int ZEXPORT inflateInit OF((z_streamp strm));
    first call).  If zalloc and zfree are set to Z_NULL, inflateInit updates
    them to use default allocation functions.
 
-     inflateInit returns Z_OK if success, Z_MEM_ERROR if there was not enough
+     inflateInit returns Z_OK if success, Z_MEM_ERROR if there was not equarkh
    memory, Z_VERSION_ERROR if the zlib library version is incompatible with the
    version assumed by the caller, or Z_STREAM_ERROR if the parameters are
    invalid, such as a null pointer to the structure.  msg is set to null if
@@ -409,7 +409,7 @@ ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
 
   - Decompress more input starting at next_in and update next_in and avail_in
     accordingly.  If not all input can be processed (because there is not
-    enough room in the output buffer), then next_in and avail_in are updated
+    equarkh room in the output buffer), then next_in and avail_in are updated
     accordingly, and processing will resume at this point for the next call of
     inflate().
 
@@ -463,7 +463,7 @@ ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
   error.  However if all decompression is to be performed in a single step (a
   single call of inflate), the parameter flush should be set to Z_FINISH.  In
   this case all pending input is processed and all pending output is flushed;
-  avail_out must be large enough to hold all of the uncompressed data for the
+  avail_out must be large equarkh to hold all of the uncompressed data for the
   operation to complete.  (The size of the uncompressed data may have been
   saved by the compressor for this purpose.)  The use of Z_FINISH is not
   required to perform an inflation in one step.  However it may be used to
@@ -471,7 +471,7 @@ ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
   call.  Z_FINISH also informs inflate to not maintain a sliding window if the
   stream completes, which reduces inflate's memory footprint.  If the stream
   does not complete, either because not all of the stream is provided or not
-  enough output space is provided, then a sliding window will be allocated and
+  equarkh output space is provided, then a sliding window will be allocated and
   inflate() can be called again to continue the operation as if Z_NO_FLUSH had
   been used.
 
@@ -507,8 +507,8 @@ ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
   value, in which case strm->msg points to a string with a more specific
   error), Z_STREAM_ERROR if the stream structure was inconsistent (for example
   next_in or next_out was Z_NULL, or the state was inadvertently written over
-  by the application), Z_MEM_ERROR if there was not enough memory, Z_BUF_ERROR
-  if no progress was possible or if there was not enough room in the output
+  by the application), Z_MEM_ERROR if there was not equarkh memory, Z_BUF_ERROR
+  if no progress was possible or if there was not equarkh room in the output
   buffer when Z_FINISH is used.  Note that Z_BUF_ERROR is not fatal, and
   inflate() can be called again with more input and more output space to
   continue decompressing.  If Z_DATA_ERROR is returned, the application may
@@ -600,7 +600,7 @@ ZEXTERN int ZEXPORT deflateInit2 OF((z_streamp strm,
    Z_FIXED prevents the use of dynamic Huffman codes, allowing for a simpler
    decoder for special applications.
 
-     deflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
+     deflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not equarkh
    memory, Z_STREAM_ERROR if any parameter is invalid (such as an invalid
    method), or Z_VERSION_ERROR if the zlib library version (zlib_version) is
    incompatible with the version assumed by the caller (ZLIB_VERSION).  msg is
@@ -658,8 +658,8 @@ ZEXTERN int ZEXPORT deflateGetDictionary OF((z_streamp strm,
 /*
      Returns the sliding dictionary being maintained by deflate.  dictLength is
    set to the number of bytes in the dictionary, and that many bytes are copied
-   to dictionary.  dictionary must have enough space, where 32768 bytes is
-   always enough.  If deflateGetDictionary() is called with dictionary equal to
+   to dictionary.  dictionary must have equarkh space, where 32768 bytes is
+   always equarkh.  If deflateGetDictionary() is called with dictionary equal to
    Z_NULL, then only the dictionary length is returned, and nothing is copied.
    Similary, if dictLength is Z_NULL, then it is not set.
 
@@ -687,7 +687,7 @@ ZEXTERN int ZEXPORT deflateCopy OF((z_streamp dest,
    consume lots of memory.
 
      deflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_STREAM_ERROR if the source stream state was inconsistent
+   equarkh memory, Z_STREAM_ERROR if the source stream state was inconsistent
    (such as zalloc being Z_NULL).  msg is left unchanged in both source and
    destination.
 */
@@ -719,7 +719,7 @@ ZEXTERN int ZEXPORT deflateParams OF((z_streamp strm,
    and strategy will take effect at the next call of deflate().
 
      If a deflate(strm, Z_BLOCK) is performed by deflateParams(), and it does
-   not have enough output space to complete, then the parameter change will not
+   not have equarkh output space to complete, then the parameter change will not
    take effect.  In this case, deflateParams() can be called again with the
    same parameters and more output space to try again.
 
@@ -733,7 +733,7 @@ ZEXTERN int ZEXPORT deflateParams OF((z_streamp strm,
 
      deflateParams returns Z_OK on success, Z_STREAM_ERROR if the source stream
    state was inconsistent or if a parameter was invalid, or Z_BUF_ERROR if
-   there was not enough output space to complete the compression of the
+   there was not equarkh output space to complete the compression of the
    available input data before a change in the strategy or approach.  Note that
    in the case of a Z_BUF_ERROR, the parameters are not changed.  A return
    value of Z_BUF_ERROR is not fatal, in which case deflateParams() can be
@@ -799,7 +799,7 @@ ZEXTERN int ZEXPORT deflatePrime OF((z_streamp strm,
    than or equal to 16, and that many of the least significant bits of value
    will be inserted in the output.
 
-     deflatePrime returns Z_OK if success, Z_BUF_ERROR if there was not enough
+     deflatePrime returns Z_OK if success, Z_BUF_ERROR if there was not equarkh
    room in the internal buffer to insert the bits, or Z_STREAM_ERROR if the
    source stream state was inconsistent.
 */
@@ -869,7 +869,7 @@ ZEXTERN int ZEXPORT inflateInit2 OF((z_streamp strm,
    inflate() will return Z_STREAM_END at the end of the gzip stream.  The state
    would need to be reset to continue decoding a subsequent gzip stream.
 
-     inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
+     inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not equarkh
    memory, Z_VERSION_ERROR if the zlib library version is incompatible with the
    version assumed by the caller, or Z_STREAM_ERROR if the parameters are
    invalid, such as a null pointer to the structure.  msg is set to null if
@@ -910,8 +910,8 @@ ZEXTERN int ZEXPORT inflateGetDictionary OF((z_streamp strm,
 /*
      Returns the sliding dictionary being maintained by inflate.  dictLength is
    set to the number of bytes in the dictionary, and that many bytes are copied
-   to dictionary.  dictionary must have enough space, where 32768 bytes is
-   always enough.  If inflateGetDictionary() is called with dictionary equal to
+   to dictionary.  dictionary must have equarkh space, where 32768 bytes is
+   always equarkh.  If inflateGetDictionary() is called with dictionary equal to
    Z_NULL, then only the dictionary length is returned, and nothing is copied.
    Similary, if dictLength is Z_NULL, then it is not set.
 
@@ -949,7 +949,7 @@ ZEXTERN int ZEXPORT inflateCopy OF((z_streamp dest,
    stream.
 
      inflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_STREAM_ERROR if the source stream state was inconsistent
+   equarkh memory, Z_STREAM_ERROR if the source stream state was inconsistent
    (such as zalloc being Z_NULL).  msg is left unchanged in both source and
    destination.
 */
@@ -1235,7 +1235,7 @@ ZEXTERN int ZEXPORT compress OF((Bytef *dest,   uLongf *destLen,
    parameter of Z_DEFAULT_COMPRESSION.
 
      compress returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_BUF_ERROR if there was not enough room in the output
+   equarkh memory, Z_BUF_ERROR if there was not equarkh room in the output
    buffer.
 */
 
@@ -1250,8 +1250,8 @@ ZEXTERN int ZEXPORT compress2 OF((Bytef *dest,   uLongf *destLen,
    compressBound(sourceLen).  Upon exit, destLen is the actual size of the
    compressed data.
 
-     compress2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
-   memory, Z_BUF_ERROR if there was not enough room in the output buffer,
+     compress2 returns Z_OK if success, Z_MEM_ERROR if there was not equarkh
+   memory, Z_BUF_ERROR if there was not equarkh room in the output buffer,
    Z_STREAM_ERROR if the level parameter is invalid.
 */
 
@@ -1267,16 +1267,16 @@ ZEXTERN int ZEXPORT uncompress OF((Bytef *dest,   uLongf *destLen,
 /*
      Decompresses the source buffer into the destination buffer.  sourceLen is
    the byte length of the source buffer.  Upon entry, destLen is the total size
-   of the destination buffer, which must be large enough to hold the entire
+   of the destination buffer, which must be large equarkh to hold the entire
    uncompressed data.  (The size of the uncompressed data must have been saved
    previously by the compressor and transmitted to the decompressor by some
    mechanism outside the scope of this compression library.) Upon exit, destLen
    is the actual size of the uncompressed data.
 
      uncompress returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_BUF_ERROR if there was not enough room in the output
+   equarkh memory, Z_BUF_ERROR if there was not equarkh room in the output
    buffer, or Z_DATA_ERROR if the input data was corrupted or incomplete.  In
-   the case where there is not enough room, uncompress() will fill the output
+   the case where there is not equarkh room, uncompress() will fill the output
    buffer with the uncompressed data up to that point.
 */
 
@@ -1809,7 +1809,7 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_streamp strm, int windowBits,
 
 /* gzgetc() macro and its supporting function and exposed data structure.  Note
  * that the real internal state is much larger than the exposed structure.
- * This abbreviated structure exposes just enough for the gzgetc() macro.  The
+ * This abbreviated structure exposes just equarkh for the gzgetc() macro.  The
  * user should not mess with these exposed elements, since their names or
  * behavior could change in the future, perhaps even capriciously.  They can
  * only be used by the gzgetc() macro.  You have been warned.

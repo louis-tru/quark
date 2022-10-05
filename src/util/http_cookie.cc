@@ -34,10 +34,10 @@
 #include <btree.h>
 #include <vector>
 
-namespace noug {
+namespace quark {
 
 	#define _db _http_cookie_db
-	#define assert_r(c) N_Assert(c == BP_OK)
+	#define assert_r(c) Qk_Assert(c == BP_OK)
 
 	static Mutex mutex;
 	static bp_db_t* _http_cookie_db = nullptr;
@@ -139,7 +139,7 @@ namespace noug {
 		int r = bp__fuzz_compare_cb(arg, a, b);
 		if (r != 0) return r;
 		if (b->length > a->length) return -1;
-		// N_LOG("a: %s, b: %s", a->value, b->value);
+		// Qk_LOG("a: %s, b: %s", a->value, b->value);
 		cur->write(a->value, 0, a->length);
 		return 0;
 	};
@@ -178,7 +178,7 @@ namespace noug {
 		json[2] = value;
 
 		String _val = JSON::stringify(json);
-		// N_LOG("---- %s, %d", *_val, _val.length());
+		// Qk_LOG("---- %s, %d", *_val, _val.length());
 
 		bp_key_t key = { _key.length(), (Char*)*_key };
 		bp_value_t val = { _val.length(), (Char*)*_val };
@@ -205,7 +205,7 @@ namespace noug {
 						return json[2].to_string();
 					}
 				} catch(cError& err) {
-					N_ERR(err);
+					Qk_ERR(err);
 				}
 			}
 		}
@@ -338,7 +338,7 @@ namespace noug {
 						int i = 0, t_len = path->length();
 						auto t = path->c_str();
 
-						// N_LOG("bp_get_filtered_range, %s, %s", s, t);
+						// Qk_LOG("bp_get_filtered_range, %s, %s", s, t);
 
 						while(s[i] != '@') {
 							if (s[i] != t[i] || i >= t_len) {
@@ -362,7 +362,7 @@ namespace noug {
 							(*m)[String(s, key->length - (s - key->value))] = json[2].to_string();
 						}
 					} catch(cError& err) {
-						N_ERR(err);
+						Qk_ERR(err);
 					}
 				}, &_tmp);
 			}

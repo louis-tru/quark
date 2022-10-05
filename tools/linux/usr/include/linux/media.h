@@ -204,7 +204,7 @@ struct media_entity_desc {
 		 * TODO: this shouldn't have been added without
 		 * actual drivers that use this. When the first real driver
 		 * appears that sets this information, special attention
-		 * should be given whether this information is 1) enough, and
+		 * should be given whether this information is 1) equarkh, and
 		 * 2) can deal with udev rules that rename devices. The struct
 		 * dev would not be sufficient for this since that does not
 		 * contain the subdevice information. In addition, struct dev
@@ -226,7 +226,7 @@ struct media_entity_desc {
 		 * avoid breaking compilation, but media_entity_desc.dev
 		 * should be used instead. In particular, alsa and dvb
 		 * fields below are wrong: for all devnodes, there should
-		 * be just major/minor inside the struct, as this is enough
+		 * be just major/minor inside the struct, as this is equarkh
 		 * to represent any devnode, no matter what type.
 		 */
 		struct {
@@ -274,9 +274,9 @@ struct media_link_desc {
 
 struct media_links_enum {
 	__u32 entity;
-	/* Should have enough room for pads elements */
+	/* Should have equarkh room for pads elements */
 	struct media_pad_desc *pads;
-	/* Should have enough room for links elements */
+	/* Should have equarkh room for links elements */
 	struct media_link_desc *links;
 	__u32 reserved[4];
 };

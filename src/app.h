@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__app__
-#define __noug__app__
+#ifndef __quark__app__
+#define __quark__app__
 
 #include "./util/util.h"
 #include "./util/event.h"
@@ -37,12 +37,12 @@
 #include "./util/json.h"
 #include "./value.h"
 
-#define N_Main() \
+#define Qk_Main() \
 	int __f_main__(int, Char**); \
-	N_INIT_BLOCK(__f_main__) { noug::Application::setMain(&__f_main__); } \
+	Qk_INIT_BLOCK(__f_main__) { quark::Application::setMain(&__f_main__); } \
 	int __f_main__(int argc, Char** argv)
 
-namespace noug {
+namespace quark {
 
 	class Application;
 	class Display;
@@ -67,23 +67,23 @@ namespace noug {
 	/**
 	* @class Application
 	*/
-	class N_EXPORT Application: public Object {
-		N_HIDDEN_ALL_COPY(Application);
+	class Qk_EXPORT Application: public Object {
+		Qk_HIDDEN_ALL_COPY(Application);
 	public:
 
-		N_Event(Load);
-		N_Event(Unload);
-		N_Event(Background);
-		N_Event(Foreground);
-		N_Event(Pause);
-		N_Event(Resume);
-		N_Event(Memorywarning);
+		Qk_Event(Load);
+		Qk_Event(Unload);
+		Qk_Event(Background);
+		Qk_Event(Foreground);
+		Qk_Event(Pause);
+		Qk_Event(Resume);
+		Qk_Event(Memorywarning);
 
 		/**
 		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
 		* 那么在主线程调用任何UI-API函数必须加锁。
 		*/
-		class N_EXPORT UILock {
+		class Qk_EXPORT UILock {
 		public:
 			UILock(Application* host = app());
 			~UILock();
@@ -116,17 +116,17 @@ namespace noug {
 		 */
 		inline cJSON& options() const { return _opts; }
 
-		N_Define_Prop_Get(bool, is_loaded);
-		N_Define_Prop_Get(DefaultTextOptions*, default_text_options); // 默认文本设置
-		N_Define_Prop_Get(Display*, display); // 当前显示端口
-		N_Define_Prop_Get(Root*, root); // 根视图
-		N_Define_Prop_Get(View*, focus_view); // 焦点视图
-		N_Define_Prop_Get(RunLoop*, loop); // 运行消息循环
-		N_Define_Prop_Get(ActionDirect*, action_direct); // 动作管理器
-		N_Define_Prop_Get(PreRender*, pre_render); // 预渲染器
-		N_Define_Prop_Get(Render*, render); // 渲染器
-		N_Define_Prop_Get(FontPool*, font_pool); // 字体管理器
-		N_Define_Prop_Get(ImagePool*, img_pool); // 图片加载器
+		Qk_Define_Prop_Get(bool, is_loaded);
+		Qk_Define_Prop_Get(DefaultTextOptions*, default_text_options); // 默认文本设置
+		Qk_Define_Prop_Get(Display*, display); // 当前显示端口
+		Qk_Define_Prop_Get(Root*, root); // 根视图
+		Qk_Define_Prop_Get(View*, focus_view); // 焦点视图
+		Qk_Define_Prop_Get(RunLoop*, loop); // 运行消息循环
+		Qk_Define_Prop_Get(ActionDirect*, action_direct); // 动作管理器
+		Qk_Define_Prop_Get(PreRender*, pre_render); // 预渲染器
+		Qk_Define_Prop_Get(Render*, render); // 渲染器
+		Qk_Define_Prop_Get(FontPool*, font_pool); // 字体管理器
+		Qk_Define_Prop_Get(ImagePool*, img_pool); // 图片加载器
 
 		/**
 		* @func clear 清理垃圾回收内存资源, all=true 清理全部资源
@@ -191,7 +191,7 @@ namespace noug {
 		RecursiveMutex _render_mutex;
 		uint64_t       _max_image_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
 
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 
 		friend class UILock;
 		friend Application* app();

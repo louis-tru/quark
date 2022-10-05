@@ -30,10 +30,10 @@
 
 #include "./css.h"
 
-#ifndef __noug__css_inl__
-#define __noug__css_inl__
+#ifndef __quark__css_inl__
+#define __quark__css_inl__
 
-N_NAMESPACE_START
+Qk_NAMESPACE_START
 
 typedef StyleSheets::Property Property;
 typedef PropertysAccessor::Accessor Accessor;
@@ -56,7 +56,7 @@ public:
 	inline void set_value(T value) { _value = value; }
 	
 	inline void assignment(View* view, PropertyName name) {
-		N_Assert(view);
+		Qk_Assert(view);
 		PropertysAccessor::Accessor accessor =
 		PropertysAccessor::shared()->accessor(view->view_type(), name);
 		if (accessor.set_accessor) {
@@ -77,11 +77,11 @@ public:
 		CSSProperty<T>::assignment(view, Name);
 	}
 	virtual void assignment(Frame* frame) {
-		N_UNREACHABLE();
+		Qk_UNREACHABLE();
 	}
 };
 
-N_DEFINE_INLINE_MEMBERS(StyleSheets, Inl) {
+Qk_DEFINE_INLINE_MEMBERS(StyleSheets, Inl) {
 public:
 	#define _inl_ss(self) static_cast<StyleSheets::Inl*>(self)
 
@@ -115,7 +115,7 @@ public:
 	KeyframeAction* assignment(View* view, KeyframeAction* action, bool ignore_action);
 };
 
-N_DEFINE_INLINE_MEMBERS(RootStyleSheets, Inl) {
+Qk_DEFINE_INLINE_MEMBERS(RootStyleSheets, Inl) {
 	public:
 	#define _inl_r(self) static_cast<RootStyleSheets::Inl*>(self)
 	static Array<String>& sort( Array<String>& arr, uint32_t len );
@@ -132,7 +132,7 @@ N_DEFINE_INLINE_MEMBERS(RootStyleSheets, Inl) {
 	Array<uint32_t> get_css_query_grpup(Array<String>& classs);
 };
 
-N_DEFINE_INLINE_MEMBERS(StyleSheetsClass, Inl) {
+Qk_DEFINE_INLINE_MEMBERS(StyleSheetsClass, Inl) {
 	public:
 	#define _inl_cvc(self) static_cast<StyleSheetsClass::Inl*>(self)
 	void update_classs(Array<String>&& classs);
@@ -141,5 +141,5 @@ N_DEFINE_INLINE_MEMBERS(StyleSheetsClass, Inl) {
 
 static void mark_classs_names(const CSSName& name);
 
-N_NAMESPACE_END
+Qk_NAMESPACE_END
 #endif

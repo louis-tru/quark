@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__http__
-#define __noug__util__http__
+#ifndef __quark__util__http__
+#define __quark__util__http__
 
 #include "./handle.h"
 #include "./event.h"
@@ -38,7 +38,7 @@
 #include "./stream.h"
 #include "./dict.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @enum URIType
@@ -105,7 +105,7 @@ namespace noug {
 	/**
 	* @class URI
 	*/
-	class N_EXPORT URI {
+	class Qk_EXPORT URI {
 	public:
 		URI();
 		URI(cString& src);
@@ -137,8 +137,8 @@ namespace noug {
 	/**
 	* @class HttpClientRequest
 	*/
-	class N_EXPORT HttpClientRequest: public Object, public Stream {
-		N_HIDDEN_ALL_COPY(HttpClientRequest);
+	class Qk_EXPORT HttpClientRequest: public Object, public Stream {
+		Qk_HIDDEN_ALL_COPY(HttpClientRequest);
 	public:
 		class Delegate {
 		public:
@@ -205,49 +205,49 @@ namespace noug {
 	
 	private:
 
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 		Inl* _inl;
 	};
 
 	/**
 	* @class HttpError
 	*/
-	class N_EXPORT HttpError: public Error {
+	class Qk_EXPORT HttpError: public Error {
 	public:
 		HttpError(int rc, cString& msg, uint32_t status, cString& url);
 		HttpError(const Error& err);
-		N_Define_Prop_Get(uint32_t, status);
-		N_Define_Prop_Get(String, url);
+		Qk_Define_Prop_Get(uint32_t, status);
+		Qk_Define_Prop_Get(String, url);
 	};
 
-	N_EXPORT uint32_t http_request(RequestOptions& options, HttpCb cb = 0) throw(HttpError);
-	N_EXPORT uint32_t http_request_stream(RequestOptions& options, Callback<StreamResponse> cb = 0) throw(HttpError);
-	N_EXPORT uint32_t http_download(cString& url, cString& save, HttpCb cb = 0) throw(HttpError);
-	N_EXPORT uint32_t http_upload(cString& url, cString& file, HttpCb cb = 0) throw(HttpError);
-	N_EXPORT uint32_t http_get(cString& url, HttpCb cb = 0, bool no_cache = false) throw(HttpError);
-	N_EXPORT uint32_t http_get_stream(cString& url, Callback<StreamResponse> cb = 0, bool no_cache = false) throw(HttpError);
-	N_EXPORT uint32_t http_post(cString& url, Buffer data, HttpCb cb = 0) throw(HttpError);
-	N_EXPORT Buffer   http_request_sync(RequestOptions& options) throw(HttpError);
-	N_EXPORT void     http_download_sync(cString& url, cString& save) throw(HttpError);
-	N_EXPORT Buffer   http_upload_sync(cString& url, cString& file) throw(HttpError);
-	N_EXPORT Buffer   http_get_sync(cString& url, bool no_cache = false) throw(HttpError);
-	N_EXPORT Buffer   http_post_sync(cString& url, Buffer data) throw(HttpError);
-	N_EXPORT void     http_abort(uint32_t id);
-	N_EXPORT String   http_user_agent();
-	N_EXPORT void     http_set_user_agent(cString& user_agent);
-	N_EXPORT String   http_cache_path();
-	N_EXPORT void     http_set_cache_path(cString& path);
-	N_EXPORT void     http_clear_cache();
+	Qk_EXPORT uint32_t http_request(RequestOptions& options, HttpCb cb = 0) throw(HttpError);
+	Qk_EXPORT uint32_t http_request_stream(RequestOptions& options, Callback<StreamResponse> cb = 0) throw(HttpError);
+	Qk_EXPORT uint32_t http_download(cString& url, cString& save, HttpCb cb = 0) throw(HttpError);
+	Qk_EXPORT uint32_t http_upload(cString& url, cString& file, HttpCb cb = 0) throw(HttpError);
+	Qk_EXPORT uint32_t http_get(cString& url, HttpCb cb = 0, bool no_cache = false) throw(HttpError);
+	Qk_EXPORT uint32_t http_get_stream(cString& url, Callback<StreamResponse> cb = 0, bool no_cache = false) throw(HttpError);
+	Qk_EXPORT uint32_t http_post(cString& url, Buffer data, HttpCb cb = 0) throw(HttpError);
+	Qk_EXPORT Buffer   http_request_sync(RequestOptions& options) throw(HttpError);
+	Qk_EXPORT void     http_download_sync(cString& url, cString& save) throw(HttpError);
+	Qk_EXPORT Buffer   http_upload_sync(cString& url, cString& file) throw(HttpError);
+	Qk_EXPORT Buffer   http_get_sync(cString& url, bool no_cache = false) throw(HttpError);
+	Qk_EXPORT Buffer   http_post_sync(cString& url, Buffer data) throw(HttpError);
+	Qk_EXPORT void     http_abort(uint32_t id);
+	Qk_EXPORT String   http_user_agent();
+	Qk_EXPORT void     http_set_user_agent(cString& user_agent);
+	Qk_EXPORT String   http_cache_path();
+	Qk_EXPORT void     http_set_cache_path(cString& path);
+	Qk_EXPORT void     http_clear_cache();
 	// http cookie
-	N_EXPORT String http_get_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
-	N_EXPORT String http_get_all_cookie_string(cString& domain, cString& path = String(), bool ssl = 0);
-	N_EXPORT DictSS http_get_all_cookie(cString& domain, cString& path = String(), bool ssl = 0);
-	N_EXPORT void http_set_cookie_with_expression(cString& domain, cString& expression);
-	N_EXPORT void http_set_cookie(cString& domain, cString& name, cString& value, 
+	Qk_EXPORT String http_get_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
+	Qk_EXPORT String http_get_all_cookie_string(cString& domain, cString& path = String(), bool ssl = 0);
+	Qk_EXPORT DictSS http_get_all_cookie(cString& domain, cString& path = String(), bool ssl = 0);
+	Qk_EXPORT void http_set_cookie_with_expression(cString& domain, cString& expression);
+	Qk_EXPORT void http_set_cookie(cString& domain, cString& name, cString& value, 
 																int64_t expires = -1, cString& path = String(), bool ssl = 0);
-	N_EXPORT void http_delete_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
-	N_EXPORT void http_delete_all_cookie(cString& domain, bool ssl = 0);
-	N_EXPORT void http_clear_cookie();
+	Qk_EXPORT void http_delete_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
+	Qk_EXPORT void http_delete_all_cookie(cString& domain, bool ssl = 0);
+	Qk_EXPORT void http_clear_cookie();
 
 }
 #endif

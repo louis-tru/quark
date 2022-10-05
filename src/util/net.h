@@ -28,27 +28,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__net__
-#define __noug__util__net__
+#ifndef __quark__util__net__
+#define __quark__util__net__
 
 #include "./util.h"
 #include "./string.h"
 #include "./loop.h"
 #include "./stream.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @calss Socket
 	*/
-	class N_EXPORT Socket: public Object {
-		N_HIDDEN_ALL_COPY(Socket);
+	class Qk_EXPORT Socket: public Object {
+		Qk_HIDDEN_ALL_COPY(Socket);
 	public:
 		
 		/**
 		 * @class Delegate
 		*/
-		class N_EXPORT Delegate {
+		class Qk_EXPORT Delegate {
 		public:
 			virtual void trigger_socket_open(Socket* socket) = 0;
 			virtual void trigger_socket_close(Socket* socket) = 0;
@@ -101,7 +101,7 @@ namespace noug {
 		void resume();
 		void write(Buffer buffer, int mark = 0);
 
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	protected:
 		Socket();
 		Inl* _inl;
@@ -110,7 +110,7 @@ namespace noug {
 	/**
 	* @class SSLSocket
 	*/
-	class N_EXPORT SSLSocket: public Socket {
+	class Qk_EXPORT SSLSocket: public Socket {
 	public:
 		
 		SSLSocket(cString& hostname, uint16_t port, RunLoop* loop = RunLoop::current());

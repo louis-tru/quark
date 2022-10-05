@@ -34,13 +34,13 @@
 
 #include "./render.h"
 
-#if N_IOS
+#if Qk_IOS
 # include <OpenGLES/ES3/gl.h>
 # include <OpenGLES/ES3/glext.h>
-#elif N_OSX
+#elif Qk_OSX
 # include <OpenGL/gl3.h>
 # include <OpenGL/gl3ext.h>
-#elif N_ANDROID || N_LINUX
+#elif Qk_ANDROID || Qk_LINUX
 # define GL_GLEXT_PROTOTYPES
 # include <GLES3/gl3.h>
 # include <GLES3/gl3ext.h>
@@ -48,7 +48,7 @@
 # error "The operating system does not support"
 #endif
 
-namespace noug {
+namespace quark {
 
 	class GLRender: public Render {
 	public:

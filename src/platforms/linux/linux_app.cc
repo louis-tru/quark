@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/util/loop.h"
-#include "noug/app.inl"
-#include "noug/event.h"
-#include "noug/display.h"
-#include "noug/util/loop.h"
-#include "noug/util/http.h"
+#include "quark/util/loop.h"
+#include "quark/app.inl"
+#include "quark/event.h"
+#include "quark/display.h"
+#include "quark/util/loop.h"
+#include "quark/util/http.h"
 #include "linux_gl.h"
 #include "linux_ime_helper.h"
 #include <X11/Xlib.h>
@@ -45,14 +45,14 @@
 #include <unistd.h>
 #include <alsa/asoundlib.h>
 
-namespace noug {
+namespace quark {
 
 	class UnixApplication;
 	static UnixApplication* application = nullptr;
 	static GLDrawProxy* gl_draw_context = nullptr;
 	typedef Display::Orientation Orientation;
 
-	#if DEBUG || N_MORE_LOG
+	#if DEBUG || Qk_MORE_LOG
 		cChar* MOUSE_KEYS[] = {
 			"left",
 			"second (or middle)",
@@ -92,7 +92,7 @@ namespace noug {
 		, _element(nullptr)
 		, _JSONfullscreen(0)
 		{
-			N_Assert(!application); application = this;
+			Qk_Assert(!application); application = this;
 		}
 
 		~UnixApplication() {
@@ -117,7 +117,7 @@ namespace noug {
 		}
 
 		void post_message(cCb& cb) {
-			N_Assert(_win);
+			Qk_Assert(_win);
 			{
 				ScopeLock lock(_queue_mutex);
 				_queue.push(cb);
@@ -170,7 +170,7 @@ namespace noug {
 				;
 			}
 
-			N_DEBUG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", _x, _y, _width, _height);
+			Qk_DEBUG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", _x, _y, _width, _height);
 
 			Window win = XCreateWindow(
 				_dpy, _root,
@@ -182,12 +182,12 @@ namespace noug {
 				CWBackPixel | CWEventMask | CWBorderPixel | CWColormap, &_xset
 			);
 
-			// N_DEBUG("_xset.background_pixel 3, %d", _xset.background_pixel);
+			// Qk_DEBUG("_xset.background_pixel 3, %d", _xset.background_pixel);
 
-			N_Assert(win, "Cannot create XWindow");
+			Qk_Assert(win, "Cannot create XWindow");
 
 			if (_multitouch_device) {
-				N_DEBUG("_multitouch_device");
+				Qk_DEBUG("_multitouch_device");
 
 				XIEventMask eventmask;
 				uint8_t mask[3] = { 0,0,0 };
@@ -241,46 +241,46 @@ namespace noug {
 						break;
 					case MapNotify:
 						if (_is_init) {
-							N_DEBUG("event, MapNotify, Window onForeground");
+							Qk_DEBUG("event, MapNotify, Window onForeground");
 							_host->triggerForeground();
 							_render_looper->start();
 						}
 						break;
 					case UnmapNotify:
-						N_DEBUG("event, UnmapNotify, Window onBackground");
+						Qk_DEBUG("event, UnmapNotify, Window onBackground");
 						_host->triggerBackground();
 						_render_looper->stop();
 						break;
 					case FocusIn:
-						N_DEBUG("event, FocusIn, Window onResume");
+						Qk_DEBUG("event, FocusIn, Window onResume");
 						_ime->focus_in();
 						_host->triggerResume();
 						break;
 					case FocusOut:
-						N_DEBUG("event, FocusOut, Window onPause");
+						Qk_DEBUG("event, FocusOut, Window onPause");
 						_ime->focus_out();
 						_host->triggerPause();
 						break;
 					case KeyPress:
-						N_DEBUG("event, KeyDown, keycode: %ld", event.xkey.keycode);
+						Qk_DEBUG("event, KeyDown, keycode: %ld", event.xkey.keycode);
 						_ime->key_press(&event.xkey);
 						_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 1);
 						break;
 					case KeyRelease:
-						N_DEBUG("event, KeyUp, keycode: %d", event.xkey.keycode);
+						Qk_DEBUG("event, KeyUp, keycode: %d", event.xkey.keycode);
 						_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 0);
 						break;
 					case ButtonPress:
-						N_DEBUG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
+						Qk_DEBUG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
 						_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), true);
 						break;
 					case ButtonRelease:
-						N_DEBUG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
+						Qk_DEBUG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
 						_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), false);
 						break;
 					case MotionNotify: {
 						Vec2 scale = _host->display_port()->scale();
-						N_DEBUG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
+						Qk_DEBUG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
 						_dispatch->dispatch_mousemove(event.xmotion.x / scale[0], event.xmotion.y / scale[1]);
 						break;
 					}
@@ -298,7 +298,7 @@ namespace noug {
 						}
 						break;
 					default:
-						N_DEBUG("event, %d", event.type);
+						Qk_DEBUG("event, %d", event.type);
 						break;
 				}
 			} while(!_exit);
@@ -325,17 +325,17 @@ namespace noug {
 
 			switch(cookie->evtype) {
 				case XI_TouchBegin:
-					N_DEBUG("event, XI_TouchBegin, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
+					Qk_DEBUG("event, XI_TouchBegin, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
 						xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
 					_dispatch->dispatch_touchstart( move(touchs) );
 					break;
 				case XI_TouchEnd:
-					N_DEBUG("event, XI_TouchEnd, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
+					Qk_DEBUG("event, XI_TouchEnd, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
 						xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
 					_dispatch->dispatch_touchend( move(touchs) );
 					break;
 				case XI_TouchUpdate:
-					N_DEBUG("event, XI_TouchUpdate, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
+					Qk_DEBUG("event, XI_TouchUpdate, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
 						xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
 					_dispatch->dispatch_touchmove( move(touchs) );
 					break;
@@ -343,7 +343,7 @@ namespace noug {
 		}
 
 		void handle_expose(XEvent& event) {
-			N_DEBUG("event, Expose");
+			Qk_DEBUG("event, Expose");
 			XWindowAttributes attrs;
 			XGetWindowAttributes(_dpy, _win, &attrs);
 
@@ -358,7 +358,7 @@ namespace noug {
 					_host->display()->render_frame(); // 刷新显示
 				} else {
 					_is_init = 1;
-					N_Assert(gl_draw_context->create_surface(_win));
+					Qk_Assert(gl_draw_context->create_surface(_win));
 					gl_draw_context->initialize();
 					_host->triggerLoad();
 					_host->triggerForeground();
@@ -375,7 +375,7 @@ namespace noug {
 		void initialize_display() {
 			if (!_dpy) {
 				_dpy = XOpenDisplay(nullptr);
-				N_Assert(_dpy, "Error: Can't open display");
+				Qk_Assert(_dpy, "Error: Can't open display");
 				_xft_dpi = get_monitor_dpi();
 				_xwin_scale = _xft_dpi / 96.0;
 			}
@@ -387,7 +387,7 @@ namespace noug {
 		}
 
 		void initialize(cJSON& options) {
-			N_Assert(XInitThreads(), "Error: Can't init X threads");
+			Qk_Assert(XInitThreads(), "Error: Can't init X threads");
 
 			cJSON& o_x = options["x"];
 			cJSON& o_y = options["y"];
@@ -428,12 +428,12 @@ namespace noug {
 			// APP, "_xset.background_pixel 1, %d", _xset.background_pixel);
 
 			if (o_b.is_uint()) _xset.background_pixel = o_b.to_uint();
-			if (o_w.is_uint()) _width = N_MAX(1, o_w.to_uint()) * _xwin_scale;
-			if (o_h.is_uint()) _height = N_MAX(1, o_h.to_uint()) * _xwin_scale;
+			if (o_w.is_uint()) _width = Qk_MAX(1, o_w.to_uint()) * _xwin_scale;
+			if (o_h.is_uint()) _height = Qk_MAX(1, o_h.to_uint()) * _xwin_scale;
 			if (o_x.is_uint()) _x = o_x.to_uint() * _xwin_scale; else _x = (_s_width - _width) / 2;
 			if (o_y.is_uint()) _y = o_y.to_uint() * _xwin_scale; else _y = (_s_height - _height) / 2;
 
-			// N_DEBUG("_xset.background_pixel 2, %d", _xset.background_pixel);
+			// Qk_DEBUG("_xset.background_pixel 2, %d", _xset.background_pixel);
 
 			if (is_enable_touch)
 				initialize_multitouch();
@@ -442,7 +442,7 @@ namespace noug {
 		}
 
 		void initialize_multitouch() {
-			N_Assert(!_multitouch_device);
+			Qk_Assert(!_multitouch_device);
 
 			Atom touchAtom = XInternAtom(_dpy, "TOUCHSCREEN", true);
 			if (touchAtom == None) {
@@ -468,7 +468,7 @@ namespace noug {
 			if (!_multitouch_device)
 				return;
 
-			N_DEBUG("X11 Touch enable active for device «%s»", touchInfo->name);
+			Qk_DEBUG("X11 Touch enable active for device «%s»", touchInfo->name);
 
 			Atom enabledAtom = XInternAtom(_dpy, "Device Enabled", false);
 
@@ -486,8 +486,8 @@ namespace noug {
 		}
 
 		void set_master_volume(int volume) {
-			volume = N_MAX(0, volume);
-			volume = N_MIN(100, volume);
+			volume = Qk_MAX(0, volume);
+			volume = Qk_MIN(100, volume);
 
 			const snd_mixer_selem_channel_id_t chs[] = {
 				SND_MIXER_SCHN_FRONT_LEFT,
@@ -541,14 +541,14 @@ namespace noug {
 		}
 
 		void initialize_master_volume_control() {
-			N_Assert(!_mixer);
+			Qk_Assert(!_mixer);
 			snd_mixer_open(&_mixer, 0);
 			snd_mixer_attach(_mixer, "default");
 			snd_mixer_selem_register(_mixer, NULL, NULL);
 			snd_mixer_load(_mixer);
 
 			/* 取得第一個 element，也就是 Master */
-			_element = snd_mixer_first_elem(_mixer); N_DEBUG("element,%p", _element);
+			_element = snd_mixer_first_elem(_mixer); Qk_DEBUG("element,%p", _element);
 
 			/* 設定音量的範圍 0 ~ 100 */
 			if (_element) {
@@ -575,18 +575,18 @@ namespace noug {
 		void destroy() {
 			if (!is_exited()) {
 				_render_looper->stop();
-				noug::safeExit(0);
+				quark::safeExit(0);
 			}
 			XDestroyWindow(_dpy, _win); _win = 0;
 			XCloseDisplay(_dpy); _dpy = nullptr; // disconnect x display
-			N_DEBUG("UnixApplication Exit");
+			Qk_DEBUG("UnixApplication Exit");
 		}
 
 		float get_monitor_dpi() {
 			Char* ms = XResourceManagerString(_dpy);
 			float dpi = 96.0;
 			if (ms) {
-				N_DEBUG("Entire DB:\n%s", ms);
+				Qk_DEBUG("Entire DB:\n%s", ms);
 				XrmDatabase db = XrmGetStringDatabase(ms);
 				XrmValue value;
 				Char* type = nullptr;
@@ -596,7 +596,7 @@ namespace noug {
 					}
 				}
 			}
-			N_DEBUG("DPI: %f", dpi);
+			Qk_DEBUG("DPI: %f", dpi);
 			return dpi;
 		}
 
@@ -628,18 +628,18 @@ namespace noug {
 	};
 
 	Vec2 __get_window_size() {
-		N_Assert(application);
+		Qk_Assert(application);
 		return application->get_window_size();
 	}
 
 	Display* __get_x11_display() {
-		N_Assert(application);
+		Qk_Assert(application);
 		return application->get_x11_display();
 	}
 
 	// sync to x11 main message loop
 	void __dispatch_x11_async(cCb& cb) {
-		N_Assert(application);
+		Qk_Assert(application);
 		return application->post_message(cb);
 	}
 
@@ -700,8 +700,8 @@ namespace noug {
 	* @func initialize(options)
 	*/
 	void AppInl::initialize(cJSON& options) {
-		N_DEBUG("AppInl::initialize");
-		N_Assert(!gl_draw_context);
+		Qk_DEBUG("AppInl::initialize");
+		Qk_Assert(!gl_draw_context);
 		application->initialize(options);
 		gl_draw_context = GLDrawProxy::create(this, options);
 		_draw_ctx = gl_draw_context->host();
@@ -753,7 +753,7 @@ namespace noug {
 	* @func default_atom_pixel
 	*/
 	float Display::default_atom_pixel() {
-		// N_LOG());
+		// Qk_LOG());
 		return 1.0 / application->xwin_scale();
 	}
 
@@ -814,9 +814,9 @@ namespace noug {
 
 }
 
-using namespace noug;
+using namespace quark;
 
-extern "C" N_EXPORT int main(int argc, Char* argv[]) {
+extern "C" Qk_EXPORT int main(int argc, Char* argv[]) {
 	Handle<UnixApplication> h = new UnixApplication();
 
 	/**************************************************/

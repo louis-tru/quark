@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-namespace noug {
+namespace quark {
 	class SkiaCanvas;
 }
 
-#define AutoUpdateQRBounds AutoUpdateQRBounds; friend class noug::SkiaCanvas
+#define AutoUpdateQRBounds AutoUpdateQRBounds; friend class quark::SkiaCanvas
 
 #include "./skia_canvas.h"
 #include "../../display.h"
@@ -40,7 +40,7 @@ namespace noug {
 #include "../render.h"
 #include <math.h>
 
-using namespace noug;
+using namespace quark;
 
 struct Layer;
 struct BackImage;
@@ -80,7 +80,7 @@ private:
 
 #include "./skia_canvas.h"
 
-namespace noug {
+namespace quark {
 
 	void SkiaCanvas::setMatrix(const Mat& mat) {
 		SkM44 m4(mat[0],  mat[1], 0, mat[2],

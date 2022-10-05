@@ -41,10 +41,10 @@
 #include "./layout/label.h"
 #include "./event.h"
 
-N_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
-N_EXPORT int (*__f_gui_main)(int, char**) = nullptr;
+Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
+Qk_EXPORT int (*__f_gui_main)(int, char**) = nullptr;
 
-namespace noug {
+namespace quark {
 
 	typedef Application::Inl AppInl;
 
@@ -62,7 +62,7 @@ namespace noug {
 		void exit(int rc) {
 			_exit = true;
 			awaken();
-			noug::exit(rc); // if sub thread end then exit
+			quark::exit(rc); // if sub thread end then exit
 		}
 		Mutex _thread_mutex;
 		Condition _thread_cond;
@@ -106,30 +106,30 @@ namespace noug {
 			UILock lock(app);
 			if (!app->_is_loaded) {
 				app->_is_loaded = true;
-				app->N_Trigger(Load);
+				app->Qk_Trigger(Load);
 			}
 		}, this));
 	}
 
 	void AppInl::triggerPause() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->N_Trigger(Pause); }, this));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->Qk_Trigger(Pause); }, this));
 	}
 
 	void AppInl::triggerResume() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->N_Trigger(Resume); }, this));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->Qk_Trigger(Resume); }, this));
 	}
 
 	void AppInl::triggerBackground() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->N_Trigger(Background); }, this));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->Qk_Trigger(Background); }, this));
 	}
 
 	void AppInl::triggerForeground() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->N_Trigger(Foreground); }, this));
+		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->Qk_Trigger(Foreground); }, this));
 	}
 
 	void AppInl::triggerMemorywarning() {
 		clear();
-		_loop->post(Cb((CbFunc)[](CbData&, AppInl* app){ app->N_Trigger(Memorywarning); }, this));
+		_loop->post(Cb((CbFunc)[](CbData&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
 	}
 
 	void AppInl::triggerUnload() {
@@ -139,8 +139,8 @@ namespace noug {
 		_loop->post_sync(Cb([&](Cb::Data& d) {
 			if (_is_loaded) {
 				_is_loaded = false;
-				N_DEBUG("onUnload()");
-				N_Trigger(Unload);
+				Qk_DEBUG("onUnload()");
+				Qk_Trigger(Unload);
 			}
 			if (_keep) {
 				Thread::abort(_loop->thread_id());
@@ -155,14 +155,14 @@ namespace noug {
 	void AppInl::onProcessExitHandle(Event<>& e) {
 		// int rc = static_cast<const Int32*>(e.data())->value;
 		triggerUnload();
-		N_DEBUG("Application onExit");
+		Qk_DEBUG("Application onExit");
 	}
 
 	/**
 	* @func set_root
 	*/
 	void AppInl::set_root(Root* value) throw(Error) {
-		N_CHECK(!_root, "Root view already exists");
+		Qk_CHECK(!_root, "Root view already exists");
 		_root = value;
 		_root->retain();   // strong ref
 		set_focus_view(value);
@@ -188,13 +188,13 @@ namespace noug {
 	}
 	
 	Application::Application(JSON opts)
-		: N_Init_Event(Load)
-		, N_Init_Event(Unload)
-		, N_Init_Event(Background)
-		, N_Init_Event(Foreground)
-		, N_Init_Event(Pause)
-		, N_Init_Event(Resume)
-		, N_Init_Event(Memorywarning)
+		: Qk_Init_Event(Load)
+		, Qk_Init_Event(Unload)
+		, Qk_Init_Event(Background)
+		, Qk_Init_Event(Foreground)
+		, Qk_Init_Event(Pause)
+		, Qk_Init_Event(Resume)
+		, Qk_Init_Event(Memorywarning)
 		, _is_loaded(false)
 		, _opts(opts)
 		, _loop(nullptr), _keep(nullptr)
@@ -205,18 +205,18 @@ namespace noug {
 		, _pre_render(nullptr), _font_pool(nullptr), _img_pool(nullptr)
 		, _max_image_memory_limit(512 * 1024 * 1024) // init 512MB
 	{
-		N_CHECK(!_shared, "At the same time can only run a Application entity");
+		Qk_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
 
-		N_On(SafeExit, &AppInl::onProcessExitHandle, _inl_app(this));
+		Qk_On(SafeExit, &AppInl::onProcessExitHandle, _inl_app(this));
 		// init
-		_pre_render = new PreRender(this); N_DEBUG("new PreRender ok");
-		_display = NewRetain<Display>(this); N_DEBUG("NewRetain<Display> ok"); // strong ref
+		_pre_render = new PreRender(this); Qk_DEBUG("new PreRender ok");
+		_display = NewRetain<Display>(this); Qk_DEBUG("NewRetain<Display> ok"); // strong ref
 		_font_pool = new FontPool(this);
 		_img_pool = new ImagePool(this);
-		_dispatch = new EventDispatch(this); N_DEBUG("new EventDispatch ok");
+		_dispatch = new EventDispatch(this); Qk_DEBUG("new EventDispatch ok");
 		_default_text_options = new DefaultTextOptions(_font_pool);
-		// _action_direct = new ActionDirect(); N_DEBUG("new ActionDirect ok");
+		// _action_direct = new ActionDirect(); Qk_DEBUG("new ActionDirect ok");
 	}
 
 	Application::~Application() {
@@ -239,7 +239,7 @@ namespace noug {
 		Release(_font_pool);   _font_pool = nullptr;
 		Release(_img_pool);    _img_pool = nullptr;
 
-		N_Off(SafeExit, &AppInl::onProcessExitHandle, _inl_app(this));
+		Qk_Off(SafeExit, &AppInl::onProcessExitHandle, _inl_app(this));
 
 		_shared = nullptr;
 	}
@@ -250,7 +250,7 @@ namespace noug {
 	void Application::run(bool is_loop) throw(Error) {
 		UILock lock(this);
 		if (!_keep) { // init
-			_render = Render::Make(this, Render::parseOptions(_opts)); N_DEBUG("Render::Make() ok");
+			_render = Render::Make(this, Render::parseOptions(_opts)); Qk_DEBUG("Render::Make() ok");
 			_loop = RunLoop::current();
 			_keep = _loop->keep_alive("Application::run(), keep"); // 保持运行
 			__run_main_wait->awaken(); // 外部线程继续运行
@@ -265,7 +265,7 @@ namespace noug {
 	* @func setMain()
 	*/
 	void Application::setMain(int (*main)(int, char**)) {
-		N_Assert( !__f_gui_main );
+		Qk_Assert( !__f_gui_main );
 		__f_gui_main = main;
 	}
 
@@ -274,7 +274,7 @@ namespace noug {
 	*/
 	void Application::runMain(int argc, Char* argv[]) {
 		static int _is_init = 0;
-		N_Assert(!_is_init++, "Cannot multiple calls.");
+		Qk_Assert(!_is_init++, "Cannot multiple calls.");
 		
 		struct Args { int argc; Char** argv; } arg = { argc, argv };
 		
@@ -282,11 +282,11 @@ namespace noug {
 		Thread::create([](Thread& t, void* arg) {
 			auto args = (Args*)arg;
 			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
-			N_Assert( main, "No gui main");
+			Qk_Assert( main, "No gui main");
 			__f_default_gui_main = nullptr;
 			__f_gui_main = nullptr;
 			int rc = main(args->argc, args->argv); // 运行这个自定gui入口函数
-			N_DEBUG("Application::runMain() Exit");
+			Qk_DEBUG("Application::runMain() Exit");
 			__run_main_wait->exit(rc);
 		}, &arg, "runMain");
 
@@ -318,7 +318,7 @@ namespace noug {
 	* @func set_max_image_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
 	*/
 	void Application::set_max_image_memory_limit(uint64_t limit) {
-		_max_image_memory_limit = N_MAX(limit, 64 * 1024 * 1024);
+		_max_image_memory_limit = Qk_MAX(limit, 64 * 1024 * 1024);
 	}
 	
 	/**
@@ -341,7 +341,7 @@ namespace noug {
 			i++;
 		} while(i < 3);
 		
-		N_WARN("Adjust image memory fail");
+		Qk_WARN("Adjust image memory fail");
 		
 		return false;
 	}

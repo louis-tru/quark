@@ -30,15 +30,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#include "noug/util/macros.h"
+#include "quark/util/macros.h"
 
-#if N_IOS
+#if Qk_IOS
 
 #import <UIKit/UIKit.h>
-#import "noug/app.h"
-#import "noug/event.h"
+#import "quark/app.h"
+#import "quark/event.h"
 
-using namespace noug;
+using namespace quark;
 
 @interface IOSIMEHelprt: UIView<UITextInput>
 	- (id)initWithApplication:(Application*)app;

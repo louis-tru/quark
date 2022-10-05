@@ -1,4 +1,4 @@
-# `noug/css`
+# `quark/css`
 
 * `css`样式表类似于html `css`样式表，支持使用多级样式表，但只支持`class`类
 
@@ -36,9 +36,9 @@
 Example:
 
 ```js
-import CSS from 'noug/css'
-import { Application, Root, Div } from 'noug'
-import 'noug/dialog'
+import CSS from 'quark/css'
+import { Application, Root, Div } from 'quark'
+import 'quark/dialog'
 // 样式表都是全局的
 CSS({
 	'.test': {
@@ -168,7 +168,7 @@ new Application().start(
 
 [`KeyframeAction`]: action.md#class-keyframeaction
 [`Frame`]: action.md#class-frame
-[`HIGHLIGHTED_NORMAL`]: noug.md#highlighted_normal
-[`HIGHLIGHTED_HOVER`]: noug.md#highlighted_hover
-[`HIGHLIGHTED_DOWN`]: noug.md#highlighted_down
-[`View.onHighlighted`]: noug.md#view-onhighlighted
+[`HIGHLIGHTED_NORMAL`]: quark.md#highlighted_normal
+[`HIGHLIGHTED_HOVER`]: quark.md#highlighted_hover
+[`HIGHLIGHTED_DOWN`]: quark.md#highlighted_down
+[`View.onHighlighted`]: quark.md#view-onhighlighted

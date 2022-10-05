@@ -35,7 +35,7 @@
 #include "./textarea.h"
 #include <math.h>
 
-namespace noug {
+namespace quark {
 
 	enum {
 		kFlag_Normal = 0,      // 正常状态未激活光标查询
@@ -49,7 +49,7 @@ namespace noug {
 		kFlag_Disable_Click_Find, // 禁用点击聚焦
 	};
 
-	N_DEFINE_INLINE_MEMBERS(Input, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(Input, Inl) {
 	public:
 
 		void touchstart_handle(UIEvent& evt) {
@@ -102,7 +102,7 @@ namespace noug {
 				switch ( static_cast<KeyEvent*>(&evt)->keycode() ) {
 					default: break;
 					case KEYCODE_LEFT:
-						_cursor = N_MAX(0, int(_cursor - 1));
+						_cursor = Qk_MAX(0, int(_cursor - 1));
 						break;
 					case KEYCODE_UP: {
 						Vec2 location = spot_location();
@@ -111,7 +111,7 @@ namespace noug {
 						break;
 					}
 					case KEYCODE_RIGHT:
-						_cursor = N_MIN(text_length(), _cursor + 1);
+						_cursor = Qk_MIN(text_length(), _cursor + 1);
 						break;
 					case KEYCODE_DOWN: {
 						Vec2 location = spot_location();
@@ -184,7 +184,7 @@ namespace noug {
 								_flag = kFlag_Find; // 激活光标定位
 								find_cursor(_point);
 							}
-						}, this), N_MIN(timeout, 1e6/*1s*/));
+						}, this), Qk_MIN(timeout, 1e6/*1s*/));
 					} else { // 立即激活
 						_flag = kFlag_Find;
 					}
@@ -277,7 +277,7 @@ namespace noug {
 			Vec2 cursor_offset(x - origin.x(), y - origin.y());
 			Vec2 location = matrix() * cursor_offset;
 
-			// N_DEBUG("input_spot_location,x:%f,y:%f", location.x(), location.y());
+			// Qk_DEBUG("input_spot_location,x:%f,y:%f", location.x(), location.y());
 			
 			return location;
 		}
@@ -320,7 +320,7 @@ namespace noug {
 				if ( dir.y() ) {
 					int linenum = _cursor_linenum;
 					linenum += dir.y();
-					linenum = N_MIN(_lines->last()->line, N_MAX(linenum, 0));
+					linenum = Qk_MIN(_lines->last()->line, Qk_MAX(linenum, 0));
 					point.set_y(pos.y() + _lines->line(linenum).baseline + offset.y());
 				}
 
@@ -332,13 +332,13 @@ namespace noug {
 					}
 
 					int cursor = _cursor + (dir.x() > 0 ? 1: -1);
-					cursor = N_MIN(text_length(), N_MAX(cursor, 0));
+					cursor = Qk_MIN(text_length(), Qk_MAX(cursor, 0));
 					
 					for ( int j = begin; j >= 0; j-- ) {
 						auto cell = &_blob[j];
 						if ( cell->line == _cursor_linenum ) {
 							if ( int(cell->index) <= cursor ) {
-								float x = cell->origin + cell->offset[N_MIN(cursor - cell->index, cell->glyphs.length())].x();
+								float x = cell->origin + cell->offset[Qk_MIN(cursor - cell->index, cell->glyphs.length())].x();
 								x += _lines->line(cell->line).origin;
 								point.set_x(pos.x() + offset.x() + x);
 								break;
@@ -388,7 +388,7 @@ namespace noug {
 				}
 			}
 			
-			N_Assert(line);
+			Qk_Assert(line);
 			
 			// find cell start_action and end_action
 			int cell_begin = -1, cell_end = -1;
@@ -519,7 +519,7 @@ namespace noug {
 												old.length() - _marked_text_idx - _marked_text.length());
 			
 			_cursor += text.length() - _marked_text.length();
-			_cursor = N_MAX(_marked_text_idx, _cursor);
+			_cursor = Qk_MAX(_marked_text_idx, _cursor);
 			_marked_text = text;
 			mark(kLayout_Typesetting); // 标记内容变化
 
@@ -870,7 +870,7 @@ namespace noug {
 			int cursor = _cursor;
 			if ( !_marked_text.length() ) {
 				if ( count < 0 ) {
-					count = N_MIN(cursor, -count);
+					count = Qk_MIN(cursor, -count);
 					if ( count ) {
 						String4 old = _text_value_u4;
 						_text_value_u4 = String4(*old, cursor - count, *old + cursor, int(old.length()) - cursor);
@@ -878,7 +878,7 @@ namespace noug {
 						mark(kLayout_Typesetting); // 标记内容变化
 					}
 				} else if ( count > 0 ) {
-					count = N_MIN(int(text_length()) - cursor, count);
+					count = Qk_MIN(int(text_length()) - cursor, count);
 					if ( count ) {
 						String4 old = _text_value_u4;
 						_text_value_u4 = String4(*old, cursor,

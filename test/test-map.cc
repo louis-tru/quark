@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/array.h>
-#include <noug/util/list.h>
-#include <noug/util/string.h>
-#include <noug/util/dict.h>
+#include <quark/util/array.h>
+#include <quark/util/list.h>
+#include <quark/util/string.h>
+#include <quark/util/dict.h>
 #include <map>
 
-using namespace noug;
+using namespace quark;
 
 void test_map(int argc, char **argv) {
 	
@@ -43,27 +43,27 @@ void test_map(int argc, char **argv) {
 	m[0] = "-100900978";
 	m[100] = "-0";
 	
-	N_LOG(m[0]);
-	N_LOG(m[100]);
+	Qk_LOG(m[0]);
+	Qk_LOG(m[100]);
 	
 	m.erase(100);
 	
-	N_LOG(m[0]);
+	Qk_LOG(m[0]);
 	
-	N_LOG("%d", m.size());
+	Qk_LOG("%d", m.size());
 	
 	auto begin = m.begin();
 	
-	N_LOG("%d", sizeof(decltype(begin)) );
+	Qk_LOG("%d", sizeof(decltype(begin)) );
 	
-	N_LOG(begin->second.c_str());
+	Qk_LOG(begin->second.c_str());
 	
 	begin++;
 	
-	N_LOG(begin->second);
+	Qk_LOG(begin->second);
 	
-	N_LOG(m[0]);
-	N_LOG(m[100]);
+	Qk_LOG(m[0]);
+	Qk_LOG(m[100]);
 	
 	Dict<String, String> map;
 	
@@ -80,15 +80,15 @@ void test_map(int argc, char **argv) {
 	map.set("AA9", "BB8");
 	map.set("AA0", "BB9");
 	
-	N_LOG(map["AA8"]);
-	N_LOG(map["AA4"]);
-	N_LOG(map["AA7"]);
+	Qk_LOG(map["AA8"]);
+	Qk_LOG(map["AA4"]);
+	Qk_LOG(map["AA7"]);
 	
 	for (uint32_t i = 0; i < 10000; i++) {
 		map.set(i, i);
 	}
 	
-	N_LOG(map.length());
+	Qk_LOG(map.length());
 	
 	map.erase(String("AA1"));
 	// map.mark("AAA7");
@@ -105,22 +105,22 @@ void test_map(int argc, char **argv) {
 	int j = 0;
 	
 	for (; i != end; i++) {
-		N_LOG(i->value);
-		N_LOG(j);
+		Qk_LOG(i->value);
+		Qk_LOG(j);
 		j++;
 	}
 	
 	Dict<String, String> map2(std::move(map));
 	
 	for ( i = map.begin(); i != end; i++) {
-		N_LOG(i->value);
+		Qk_LOG(i->value);
 	}
 	
 	i = map2.begin();
 	end = map2.end();
 	
 	for ( ; i != end; i++) {
-		N_LOG(i->value);
+		Qk_LOG(i->value);
 	}
 	
 	map2 = map;

@@ -125,7 +125,7 @@ static __inline__ struct bkey *bkey_idx(const struct bkey *k, unsigned nr_keys)
 	__u64 *d = (void *) k;
 	return (struct bkey *) (d + nr_keys);
 }
-/* Enough for a key with 6 pointers */
+/* Equarkh for a key with 6 pointers */
 #define BKEY_PAD		8
 
 #define BKEY_PADDED(key)					\

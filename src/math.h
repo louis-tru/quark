@@ -28,18 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__math__
-#define __noug__math__
+#ifndef __quark__math__
+#define __quark__math__
 
 #include "./util/util.h"
 #include "./util/array.h"
 
-#define N_PI 3.1415926535898f                   // PI
-#define N_PI2 1.5707963267949f                  // PI / 2
-#define N_PI_RATIO_180  0.017453292519943f      // PI / 180
-#define N_180_RATIO_PI 57.29577951308232f       // 180 / PI
+#define Qk_PI 3.1415926535898f                   // PI
+#define Qk_PI2 1.5707963267949f                  // PI / 2
+#define Qk_PI_RATIO_180  0.017453292519943f      // PI / 180
+#define Qk_180_RATIO_PI 57.29577951308232f       // 180 / PI
 
-namespace noug {
+namespace quark {
 
 	template <typename T, int LEN> struct MVec {
 		T val[LEN];
@@ -190,7 +190,7 @@ namespace noug {
 	/**
 	* @class Color4f
 	*/
-	struct N_EXPORT Color4f: public MColor<float> {
+	struct Qk_EXPORT Color4f: public MColor<float> {
 		inline Color4f(): MColor<float>(0, 0, 0, 1) {}
 		inline Color4f(float r, float g, float b): MColor<float>(r, g, b, 1) { }
 		inline Color4f(float r, float g, float b, float a): MColor<float>(r, g, b, a) { }
@@ -201,7 +201,7 @@ namespace noug {
 	/**
 	* @class Color
 	*/
-	struct N_EXPORT Color: public MColor<uint8_t> {
+	struct Qk_EXPORT Color: public MColor<uint8_t> {
 		Color(uint32_t argb);
 		inline Color(): MColor<uint8_t>(0, 0, 0, 255) {}
 		inline Color(uint8_t r, uint8_t g, uint8_t b): MColor<uint8_t>(r, g, b, 255) {}
@@ -225,7 +225,7 @@ namespace noug {
 	/**
 	* @class Mat
 	*/
-	struct N_EXPORT Mat: public MVec<float, 6> {
+	struct Qk_EXPORT Mat: public MVec<float, 6> {
 		inline Mat(): Mat(1) {}
 		Mat(float value);
 		Mat(float m0, float m1, float m2, float m3, float m4, float m5);
@@ -262,7 +262,7 @@ namespace noug {
 		* @func rotate 通过角度旋转
 		*/
 		inline void rotate(float z) {
-			rotatea(z * N_PI_RATIO_180);
+			rotatea(z * Qk_PI_RATIO_180);
 		}
 		
 		/**
@@ -274,10 +274,10 @@ namespace noug {
 		* @func skew 通过角度歪斜变形
 		*/
 		void skew(float x, float y) {
-			skewa(x * N_PI_RATIO_180, y * N_PI_RATIO_180);
+			skewa(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180);
 		}
-		void skew_x(float x) { skewa_x(x * N_PI_RATIO_180); }
-		void skew_y(float y) { skewa_y(y * N_PI_RATIO_180); }
+		void skew_x(float x) { skewa_x(x * Qk_PI_RATIO_180); }
+		void skew_y(float y) { skewa_y(y * Qk_PI_RATIO_180); }
 		
 		/**
 		* @func skewa 通过弧度歪斜变形
@@ -311,7 +311,7 @@ namespace noug {
 	/**
 	* @class Mat4
 	*/
-	struct N_EXPORT Mat4: public MVec<float, 16> {
+	struct Qk_EXPORT Mat4: public MVec<float, 16> {
 		inline Mat4(): Mat4(1) {}
 		Mat4(float value);
 		Mat4(float m0, float m1, float m2, float m3,
@@ -373,11 +373,11 @@ namespace noug {
 		* @func rotate 通过角度旋转
 		*/
 		inline void rotate(float x, float y, float z) {
-			rotatea(x * N_PI_RATIO_180, y * N_PI_RATIO_180, z * N_PI_RATIO_180);
+			rotatea(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180, z * Qk_PI_RATIO_180);
 		}
-		inline void rotate_x(float x) { rotatea_x(x * N_PI_RATIO_180); }
-		inline void rotate_y(float y) { rotatea_y(y * N_PI_RATIO_180); }
-		inline void rotate_z(float z) { rotatea_z(z * N_PI_RATIO_180); }
+		inline void rotate_x(float x) { rotatea_x(x * Qk_PI_RATIO_180); }
+		inline void rotate_y(float y) { rotatea_y(y * Qk_PI_RATIO_180); }
+		inline void rotate_z(float z) { rotatea_z(z * Qk_PI_RATIO_180); }
 		
 		/**
 		* @func rotatea 通过弧度旋转
@@ -391,11 +391,11 @@ namespace noug {
 		* @func skew 通过角度歪斜变形
 		*/
 		void skew(float x, float y, float z) {
-			skewa(x * N_PI_RATIO_180, y * N_PI_RATIO_180, z * N_PI_RATIO_180);
+			skewa(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180, z * Qk_PI_RATIO_180);
 		}
-		void skew_x(float x) { skewa_x(x * N_PI_RATIO_180); }
-		void skew_y(float y) { skewa_y(y * N_PI_RATIO_180); }
-		void skew_z(float z) { skewa_z(z * N_PI_RATIO_180); }
+		void skew_x(float x) { skewa_x(x * Qk_PI_RATIO_180); }
+		void skew_y(float y) { skewa_y(y * Qk_PI_RATIO_180); }
+		void skew_z(float z) { skewa_z(z * Qk_PI_RATIO_180); }
 		
 		/**
 		* @func skewa 通过弧度歪斜变形
@@ -441,7 +441,7 @@ namespace noug {
 		static Mat4 ortho(float left, float right, float top, float bottom, float near, float far);
 	};
 
-	N_DEF_ARRAY_SPECIAL(Vec2);
+	Qk_DEF_ARRAY_SPECIAL(Vec2);
 
 }
 #endif

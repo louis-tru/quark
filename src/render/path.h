@@ -28,16 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__render__path__
-#define __noug__render__path__
+#ifndef __quark__render__path__
+#define __quark__render__path__
 
 #include "../value.h"
 #include "../bezier.h"
 #include "../util/array.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT PathLine: public Object {
+	class Qk_EXPORT PathLine: public Object {
 	public:
 		enum PathVerb: uint8_t {
 			kVerb_Move = 0, // move

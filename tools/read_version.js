@@ -30,8 +30,8 @@
 
 var fs = require('somes/fs');
 
-function read_noug_version() {
-	var str = fs.readFileSync(__dirname + '/../noug/version.h').toString('utf-8');
+function read_quark_version() {
+	var str = fs.readFileSync(__dirname + '/../quark/version.h').toString('utf-8');
 	var MAJOR = 0;
 	var MINOR = 0;
 	var PATCH = 0;
@@ -47,17 +47,17 @@ function read_noug_version() {
 		PATCH = parseInt(mat[1]);
 	}
 	if ( MAJOR == 0 && MINOR == 0 && PATCH == 0 ) {
-		throw new Error('Cannot parse noug version number form noug/version.h');
+		throw new Error('Cannot parse quark version number form quark/version.h');
 	}
 	return [MAJOR, MINOR, PATCH];
 }
 
-function update_noug_version() {
-	var vers = read_noug_version().join('.');
+function update_quark_version() {
+	var vers = read_quark_version().join('.');
 	[
-		__dirname + '/../libs/noug/out/noug/package.json',
+		__dirname + '/../libs/quark/out/quark/package.json',
 		__dirname + '/../libs/noproj/out/noproj/package.json',
-		__dirname + '/../libs/noug/package.json',
+		__dirname + '/../libs/quark/package.json',
 		__dirname + '/../libs/noproj/package.json',
 	].forEach(e=>{
 		var json = fs.readFileSync(e, 'utf-8');
@@ -66,5 +66,5 @@ function update_noug_version() {
 	});
 }
 
-exports.read_noug_version = read_noug_version;
-exports.update_noug_version = update_noug_version;
+exports.read_quark_version = read_quark_version;
+exports.update_quark_version = update_quark_version;

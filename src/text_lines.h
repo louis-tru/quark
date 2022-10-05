@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__text_lines__
-#define __noug__text_lines__
+#ifndef __quark__text_lines__
+#define __quark__text_lines__
 
 #include "./layout/layout.h"
 #include "./render/font/font.h"
 
-namespace noug {
+namespace quark {
 
 	class FontMetrics;
 	class TextOptions;
@@ -42,7 +42,7 @@ namespace noug {
 	class View;
 	class TextBlobBuilder;
 
-	class N_EXPORT TextLines: public Reference {
+	class Qk_EXPORT TextLines: public Reference {
 	public:
 		struct Line {
 			float start_y, end_y, width;
@@ -62,16 +62,16 @@ namespace noug {
 		};
 
 		// defines props
-		N_Define_Prop(float, pre_width);
-		N_Define_Prop(bool,  trim_start);
-		N_Define_Prop_Get(bool, no_wrap);
-		N_Define_Prop_Get(bool, visible_region);
-		N_Define_Prop_Get(TextAlign, text_align);
-		N_Define_Prop_Get(Vec2, host_size);
-		N_Define_Prop_Get(Line*, last);
-		N_Define_Prop_Get(View*, host);
-		N_Define_Prop_Get(float, max_width);
-		N_Define_Prop_Get(float, min_origin);
+		Qk_Define_Prop(float, pre_width);
+		Qk_Define_Prop(bool,  trim_start);
+		Qk_Define_Prop_Get(bool, no_wrap);
+		Qk_Define_Prop_Get(bool, visible_region);
+		Qk_Define_Prop_Get(TextAlign, text_align);
+		Qk_Define_Prop_Get(Vec2, host_size);
+		Qk_Define_Prop_Get(Line*, last);
+		Qk_Define_Prop_Get(View*, host);
+		Qk_Define_Prop_Get(float, max_width);
+		Qk_Define_Prop_Get(float, min_origin);
 
 		// defines methods
 		TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap);

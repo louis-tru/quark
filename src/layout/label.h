@@ -28,20 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__label__
-#define __noug__layout__label__
+#ifndef __quark__layout__label__
+#define __quark__layout__label__
 
 #include "./view.h"
 #include "../text_blob.h"
 #include "../text_lines.h"
 #include "../text_opts.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT Label: public View, public TextOptions {
-		N_Define_View(Label);
+	class Qk_EXPORT Label: public View, public TextOptions {
+		Qk_Define_View(Label);
 	public:
-		N_Define_Prop(String, text_value);
+		Qk_Define_Prop(String, text_value);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;

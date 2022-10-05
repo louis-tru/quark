@@ -30,9 +30,9 @@
 
 import {
 	Hybrid, Text, Button, Image, Indep, Clip, _CVD, Div, Label
-} from 'noug';
-import { HighlightedStatus, HighlightedEvent, ClickEvent } from 'noug/event';
-import { Navbar, Toolbar, NavPage } from 'noug/nav';
+} from 'quark';
+import { HighlightedStatus, HighlightedEvent, ClickEvent } from 'quark/event';
+import { Navbar, Toolbar, NavPage } from 'quark/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 

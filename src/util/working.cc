@@ -30,7 +30,7 @@
 
  #include "./working.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @constructor
@@ -38,7 +38,7 @@ namespace noug {
 	ParallelWorking::ParallelWorking(): ParallelWorking(RunLoop::current()) {}
 
 	ParallelWorking::ParallelWorking(RunLoop* loop) : _proxy(nullptr) {
-		N_Assert(loop, "Can not find current thread run loop.");
+		Qk_Assert(loop, "Can not find current thread run loop.");
 		_proxy = loop->keep_alive("ParallelWorking()");
 	}
 
@@ -86,16 +86,16 @@ namespace noug {
 			for (auto& i : childs) {
 				Thread::wait(i.key);
 			}
-			N_DEBUG("ParallelWorking::abort_child() ok, count: %d", childs.length());
+			Qk_DEBUG("ParallelWorking::abort_child() ok, count: %d", childs.length());
 		} else {
 			{
 				ScopeLock scope(_mutex2);
-				N_Assert(_childs.find(id) != _childs.end(),
+				Qk_Assert(_childs.find(id) != _childs.end(),
 					"Only subthreads belonging to \"ParallelWorking\" can be aborted");
 			}
 			Thread::abort(id);
 			Thread::wait(id);
-			N_DEBUG("ParallelWorking::abort_child(id) ok");
+			Qk_DEBUG("ParallelWorking::abort_child(id) ok");
 		}
 	}
 
@@ -109,7 +109,7 @@ namespace noug {
 				Thread::resume(i.key);
 			}
 		} else {
-			N_Assert(_childs.find(id) != _childs.end(),
+			Qk_Assert(_childs.find(id) != _childs.end(),
 				"Only subthreads belonging to \"ParallelWorking\" can be resume");
 			Thread::resume(id);
 		}

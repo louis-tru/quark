@@ -28,16 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/util.h>
-#include <noug/util/http.h>
-#include <noug/util/string.h>
-#include <noug/util/fs.h>
-#include <noug/util/cb.h>
+#include <quark/util/util.h>
+#include <quark/util/http.h>
+#include <quark/util/string.h>
+#include <quark/util/fs.h>
+#include <quark/util/cb.h>
 
-using namespace noug;
+using namespace quark;
 
 void test_http(int argc, char **argv) {
-	N_LOG(http_get_sync("http://www.163.com/"));
+	Qk_LOG(http_get_sync("http://www.163.com/"));
 	
 	String m3u8 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
 	"14461-ai-de-zhui-zong-01-ji_201608180551/14461-ai-de-zhui-zong-01-ji.m3u8";
@@ -47,18 +47,18 @@ void test_http(int argc, char **argv) {
 	
 	http_download_sync("https://www.baidu.com/", fs_documents("baidu3.htm"));
 	
-	N_LOG(fs_read_file_sync(fs_documents("baidu3.htm")));
+	Qk_LOG(fs_read_file_sync(fs_documents("baidu3.htm")));
 	
 	typedef Callback<StreamResponse> SCb;
 	
 	http_get_stream(url, SCb([](SCb::Data& d) {
 		if ( d.error ) {
-			N_LOG(d.error->message());
+			Qk_LOG(d.error->message());
 		} else {
 			StreamResponse* data = d.data;
 			int len = data->buffer().length();
-			N_LOG(String(data->buffer().collapse(), len));
-			N_LOG("%llu/%llu, complete: %i", data->size(), data->total(), data->complete());
+			Qk_LOG(String(data->buffer().collapse(), len));
+			Qk_LOG("%llu/%llu, complete: %i", data->size(), data->total(), data->complete());
 			
 			fs_abort(data->id());
 		}
@@ -66,5 +66,5 @@ void test_http(int argc, char **argv) {
 	
 	RunLoop::current()->run();
 	
-	N_LOG("END");
+	Qk_LOG("END");
 }

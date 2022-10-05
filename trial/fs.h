@@ -28,22 +28,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__trial__fs__
-#define __noug__trial__fs__
+#ifndef __quark__trial__fs__
+#define __quark__trial__fs__
 
-#include "noug/util/fs.h"
+#include "quark/util/fs.h"
 
 /**
- * @ns noug
+ * @ns quark
  */
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class FileSearch # Resources files search
 	*/
-	class N_EXPORT FileSearch: public Object {
-		N_HIDDEN_ALL_COPY(FileSearch);
+	class Qk_EXPORT FileSearch: public Object {
+		Qk_HIDDEN_ALL_COPY(FileSearch);
 	public:
 		
 		FileSearch();

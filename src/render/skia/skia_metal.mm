@@ -36,8 +36,8 @@
 // #include "skia/gpu/mtl/GrMtlTypes.h" //
 // #include "skia/private/GrMtlTypesPriv.h"
 
-#if N_APPLE
-namespace noug {
+#if Qk_APPLE
+namespace quark {
 
 	ViewVisitor* SkiaMetalRender::visitor() {
 		return this;
@@ -50,7 +50,7 @@ namespace noug {
 			backendContext.fQueue.retain((__bridge void*)_queue);
 
 			_direct = GrDirectContext::MakeMetal(backendContext, {/*_opts.grContextOptions*/});
-			N_Assert(_direct);
+			Qk_Assert(_direct);
 		}
 
 		_surface.reset(); // clear curr surface
@@ -63,7 +63,7 @@ namespace noug {
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 			_rasterSurface = SkSurface::MakeRaster(info);
-			N_Assert(_rasterSurface);
+			Qk_Assert(_rasterSurface);
 			//_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
 		}
 	}
@@ -75,10 +75,10 @@ namespace noug {
 		fbInfo.fTexture.retain((__bridge void*)tex);
 		
 		//auto region = _host->display()->surface_region();
-		//N_DEBUG("width, %f==%d", region.width, tex.width);
-		//N_DEBUG("height, %f==%d", region.height, tex.height);
+		//Qk_DEBUG("width, %f==%d", region.width, tex.width);
+		//Qk_DEBUG("height, %f==%d", region.height, tex.height);
 		//tex.sampleCount = _opts.msaaSampleCnt;
-		//N_DEBUG("%d, %d", tex.sampleCount, _opts.msaaSampleCnt);
+		//Qk_DEBUG("%d, %d", tex.sampleCount, _opts.msaaSampleCnt);
 
 		GrBackendRenderTarget backendRT((int)tex.width, (int)tex.height, _opts.msaaSampleCnt, fbInfo);
 		SkSurfaceProps props(0, kUnknown_SkPixelGeometry);
@@ -86,7 +86,7 @@ namespace noug {
 		_surface = SkSurface::MakeFromBackendRenderTarget(_direct.get(), backendRT,
 														kTopLeft_GrSurfaceOrigin,
 														kBGRA_8888_SkColorType, nullptr, &props);
-		N_Assert(_surface);
+		Qk_Assert(_surface);
 
 		if (_raster) {
 			_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());

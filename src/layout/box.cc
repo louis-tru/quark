@@ -36,7 +36,7 @@
 #include "../text_lines.h"
 #include "../text_opts.h"
 
-namespace noug {
+namespace quark {
 
 	float Box::solve_layout_content_width(Size &parent_layout_size) {
 		float ps = parent_layout_size.content_size.x();
@@ -442,7 +442,7 @@ namespace noug {
 
 	void Box::set_border_width_top(float val) {
 		alloc_border();
-		val = N_MAX(0, val);
+		val = Qk_MAX(0, val);
 		if (_border->width_top != val) {
 			_border->width_top = val;
 			mark_layout_size(kLayout_Size_Height);
@@ -451,7 +451,7 @@ namespace noug {
 
 	void Box::set_border_width_right(float val) {
 		alloc_border();
-		val = N_MAX(0, val);
+		val = Qk_MAX(0, val);
 		if (_border->width_right != val) {
 			_border->width_right = val;
 			mark_layout_size(kLayout_Size_Width);
@@ -460,7 +460,7 @@ namespace noug {
 
 	void Box::set_border_width_bottom(float val) {
 		alloc_border();
-		val = N_MAX(0, val);
+		val = Qk_MAX(0, val);
 		if (_border->width_bottom != val) {
 			_border->width_bottom = val;
 			mark_layout_size(kLayout_Size_Height);
@@ -469,7 +469,7 @@ namespace noug {
 
 	void Box::set_border_width_left(float val) {
 		alloc_border();
-		val = N_MAX(0, val);
+		val = Qk_MAX(0, val);
 		if (_border->width_left != val) {
 			_border->width_left = val;
 			mark_layout_size(kLayout_Size_Width);
@@ -950,15 +950,15 @@ namespace noug {
 		auto& clip = pre_render()->host()->display()->clip_region();
 		auto  re   = screen_region_from_convex_quadrilateral(_vertex);
 
-		if (N_MAX( clip.y2, re.end.y() ) - N_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
-				N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width) {
+		if (Qk_MAX( clip.y2, re.end.y() ) - Qk_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
+				Qk_MAX( clip.x2, re.end.x() ) - Qk_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width) {
 			return true;
 		}
 
 #if 0
-		N_DEBUG("visible_region-x: %f<=%f", N_MAX( clip.y2, re.end.y() ) - N_MIN( clip.y, re.origin.y() ),
+		Qk_DEBUG("visible_region-x: %f<=%f", Qk_MAX( clip.y2, re.end.y() ) - Qk_MIN( clip.y, re.origin.y() ),
 																				re.end.y() - re.origin.y() + clip.height);
-		N_DEBUG("visible_region-y: %f<=%f", N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ),
+		Qk_DEBUG("visible_region-y: %f<=%f", Qk_MAX( clip.x2, re.end.x() ) - Qk_MIN( clip.x, re.origin.x() ),
 																				re.end.x() - re.origin.x() + clip.width);
 #endif
 

@@ -28,20 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, _CVD, default as noug } from 'noug';
-import { Stepper } from 'noug/stepper';
+import { Div, Text, _CVD, default as quark } from 'quark';
+import { Stepper } from 'quark/stepper';
 import { Mynavpage } from './public';
-import { Event } from 'noug/event';
+import { Event } from 'quark/event';
 
 const resolve = require.resolve;
 
-noug.css({
+quark.css({
 	'.strpper_page': {
 		width: 'full',
 	},
 	'.strpper_page .item': {
 		width: 'full',
-		borderBottom: `${noug.atomPixel} #ccc`,
+		borderBottom: `${quark.atomPixel} #ccc`,
 	},
 	'.strpper_page .text': {
 		width: '140!',

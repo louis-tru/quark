@@ -293,7 +293,7 @@ enum {
 #define DM_INACTIVE_PRESENT_FLAG (1 << 6) /* Out */
 
 /*
- * Indicates that the buffer passed in wasn't big enough for the
+ * Indicates that the buffer passed in wasn't big equarkh for the
  * results.
  */
 #define DM_BUFFER_FULL_FLAG	(1 << 8) /* Out */

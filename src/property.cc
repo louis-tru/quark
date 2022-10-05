@@ -36,7 +36,7 @@
 #include "./layout/image.h"
 #include "./layout/sprite.h"
 
-namespace noug {
+namespace quark {
 
 #define set_func(view, cls, Name, func) \
 	view.set(Name, Accessor(&cls::func, &cls::set_##func))

@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__list__
-#define __noug__util__list__
+#ifndef __quark__util__list__
+#define __quark__util__list__
 
 #include "./object.h"
 #include "./iterator.h"
 #include <initializer_list>
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class List Double linked list
@@ -258,7 +258,7 @@ namespace noug {
 	template<typename T, typename A>
 	typename List<T, A>::Iterator
 	List<T, A>::erase(IteratorConst it) {
-		N_Assert(_length);
+		Qk_Assert(_length);
 		auto node = node_(it);
 		if (node != &_end) {
 			auto next = link_(node->_prev, node->_next);

@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/util.h>
-#include <noug/util/loop.h>
-#include <noug/util/array.h>
-#include <noug/os/os.h>
+#include <quark/util/util.h>
+#include <quark/util/loop.h>
+#include <quark/util/array.h>
+#include <quark/os/os.h>
 
-using namespace noug;
+using namespace quark;
 
 #define Operation_DEF(name, symbol, T) {\
 	T a(random(0, 99999999)); \
@@ -101,7 +101,7 @@ using namespace noug;
 		k symbol##= j; \
 	} \
 	uint64_t s2 = time_monotonic(); \
-	N_LOG("%s: %llu", name #symbol, s2 - s1 - s0); \
+	Qk_LOG("%s: %llu", name #symbol, s2 - s1 - s0); \
 }
 
 uint64_t test_operation_assign() {
@@ -224,7 +224,7 @@ uint64_t test_operation_assign() {
 
 	uint64_t s2 = time_monotonic();
 
-	N_LOG("assign: %lld, %d", s2 - s1, j);
+	Qk_LOG("assign: %lld, %d", s2 - s1, j);
 
 	return s2 - s1;
 }
@@ -235,8 +235,8 @@ void test_number(int argc, char **argv) {
 	char c = d;
 	uint8_t b = d;
 
-	N_LOG("%d", c);
-	N_LOG("%d", *(char*)&b);
+	Qk_LOG("%d", c);
+	Qk_LOG("%d", *(char*)&b);
 
 	uint64_t s0 = test_operation_assign();
 

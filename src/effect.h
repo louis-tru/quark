@@ -28,23 +28,23 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__effect__
-#define __noug__effect__
+#ifndef __quark__effect__
+#define __quark__effect__
 
 #include "./value.h"
 #include "./render/source.h"
 #include "./util/handle.h"
 #include "./util/array.h"
 
-namespace noug {
+namespace quark {
 
 	class SkiaRender;
 
 	/**
 	* @class Copying, Single linked list struct
 	*/
-	class N_EXPORT Copying: public Reference {
-		N_HIDDEN_ALL_COPY(Copying);
+	class Qk_EXPORT Copying: public Reference {
+		Qk_HIDDEN_ALL_COPY(Copying);
 	public:
 		enum Type {
 			M_INVALID,
@@ -65,13 +65,13 @@ namespace noug {
 		virtual Copying* copy(Copying* to) = 0;
 		virtual bool retain() override;
 		static Copying* assign(Copying* left, Copying* right);
-		N_Define_Prop(HolderMode, holder_mode); // holder mode
+		Qk_Define_Prop(HolderMode, holder_mode); // holder mode
 	protected:
 		static Copying* assign2(Copying* left, Copying* right);
 		void onChange();
 		bool check_loop_reference(Copying* value);
 		void set_next2(Copying* value);
-		N_Define_Prop(Copying*, next);
+		Qk_Define_Prop(Copying*, next);
 	};
 
 	class Effect: public Copying {
@@ -86,7 +86,7 @@ namespace noug {
 		inline Fill* set_next(Fill* value) { Copying::set_next(value); return this; }
 	};
 
-	class N_EXPORT FillImage: public Fill, public SourceHold {
+	class Qk_EXPORT FillImage: public Fill, public SourceHold {
 	public:
 		struct Init {
 			String src;
@@ -96,11 +96,11 @@ namespace noug {
 		};
 		FillImage();
 		FillImage(cString& src, Init init = {});
-		N_Define_Prop(FillSize, size_x);
-		N_Define_Prop(FillSize, size_y);
-		N_Define_Prop(FillPosition, position_x);
-		N_Define_Prop(FillPosition, position_y);
-		N_Define_Prop(Repeat, repeat);
+		Qk_Define_Prop(FillSize, size_x);
+		Qk_Define_Prop(FillSize, size_y);
+		Qk_Define_Prop(FillPosition, position_x);
+		Qk_Define_Prop(FillPosition, position_y);
+		Qk_Define_Prop(Repeat, repeat);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 		static bool  compute_size(FillSize size, float host, float& out);
@@ -123,10 +123,10 @@ namespace noug {
 		uint32_t _count;
 	};
 
-	class N_EXPORT FillGradientLinear: public FillGradient {
+	class Qk_EXPORT FillGradientLinear: public FillGradient {
 	public:
 		FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors);
-		N_Define_Prop(float, angle);
+		Qk_Define_Prop(float, angle);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 	private:
@@ -136,19 +136,19 @@ namespace noug {
 		friend class SkiaRender;
 	};
 
-	class N_EXPORT FillGradientRadial: public FillGradient {
+	class Qk_EXPORT FillGradientRadial: public FillGradient {
 	public:
 		FillGradientRadial(const Array<float>& pos, const Array<Color>& colors);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 	};
 
-	class N_EXPORT BoxShadow: public Effect {
+	class Qk_EXPORT BoxShadow: public Effect {
 	public:
 		BoxShadow();
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
-		N_Define_Prop(Shadow, value);
+		Qk_Define_Prop(Shadow, value);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 	};

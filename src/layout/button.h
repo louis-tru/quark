@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__button__
-#define __noug__layout__button__
+#ifndef __quark__layout__button__
+#define __quark__layout__button__
 
 #include "./text.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT Button: public TextLayout {
-		N_Define_View(Button);
+	class Qk_EXPORT Button: public TextLayout {
+		Qk_Define_View(Button);
 	public:
 		Button();
 		virtual bool can_become_focus() override;

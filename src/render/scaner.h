@@ -36,10 +36,10 @@
 #include "../value.h"
 #include "./path.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT XLineScaner: public Object {
-		N_HIDDEN_ALL_COPY(XLineScaner);
+	class Qk_EXPORT XLineScaner: public Object {
+		Qk_HIDDEN_ALL_COPY(XLineScaner);
 	public:
 		typedef void (*ScanCb)(int32_t left, int32_t right, int32_t y, void* ctx);
 		XLineScaner(const PathLine& path, Rect clip, float scale = 1.0, bool is_convex_polygon = false);

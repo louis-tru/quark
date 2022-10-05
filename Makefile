@@ -1,7 +1,7 @@
 
 HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE           ?= node
-ANDROID_JAR     = out/android.classs.noug.jar
+ANDROID_JAR     = out/android.classs.quark.jar
 FPROJ           = ./libs/noproj
 FPROJ_OUT       = out/noproj
 REMOTE_COMPILE_HOST ?= 192.168.0.115
@@ -32,7 +32,7 @@ check_osx=\
 
 .SECONDEXPANSION:
 
-# compile product noug and install
+# compile product quark and install
 # It can only run in MAC system.
 product:
 	@$(MAKE) ios

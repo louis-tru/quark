@@ -33,7 +33,7 @@
 #include "../../views2/text-node.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

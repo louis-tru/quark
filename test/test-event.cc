@@ -28,27 +28,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/dict.h>
-#include <noug/util/array.h>
-#include <noug/util/list.h>
-#include <noug/util/string.h>
-#include <noug/util/event.h>
+#include <quark/util/dict.h>
+#include <quark/util/array.h>
+#include <quark/util/list.h>
+#include <quark/util/string.h>
+#include <quark/util/event.h>
 
-using namespace noug;
+using namespace quark;
 
 void test_event(int argc, char **argv) {
 	
 	EventNoticer<Event<void, int>> onTest("Test");
 	
 	onTest.on([](Event<void, int>& evt) {
-		N_LOG("data:%d", evt.data());
+		Qk_LOG("data:%d", evt.data());
 	});
 	
 	onTest.on([](Event<void, int>& evt) {
-		N_LOG("hh:%d", evt.data());
+		Qk_LOG("hh:%d", evt.data());
 	});
 	
-	N_LOG("done");
+	Qk_LOG("done");
 	
 	const Dict<String, String> map;
 	

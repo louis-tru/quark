@@ -31,7 +31,7 @@
 #include "./codec.h"
 #include <png.h>
 
-namespace noug {
+namespace quark {
 
 	struct PngDataSource {
 		cBuffer* buff;

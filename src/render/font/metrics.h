@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__font__metrics__
-#define __noug__font__metrics__
+#ifndef __quark__font__metrics__
+#define __quark__font__metrics__
 
 #include "../../util/util.h"
 
-namespace noug {
+namespace quark {
 
 	struct FontMetrics {
 

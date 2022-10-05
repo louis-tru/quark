@@ -36,7 +36,7 @@
 
 static JavaVM* javavm = nullptr;
 
-namespace noug {
+namespace quark {
 
 	// ------------------- JNI -------------------
 
@@ -56,17 +56,17 @@ namespace noug {
 		Arrat	[Ljava/lang/String;
 	{	
 	JniMethodInfo info;
-	get_static_method_info(info, "com/noug/Helper", "get_package_code_path", "()Ljava/lang/String;");
+	get_static_method_info(info, "com/quark/Helper", "get_package_code_path", "()Ljava/lang/String;");
 	}
 	*/
 
 	JNI::ScopeENV::ScopeENV(): _env(NULL), _is_attach(false) {
-		N_Assert( javavm );
+		Qk_Assert( javavm );
 		
 		if (  javavm->GetEnv((void**)&_env, JNI_VERSION_1_6) != JNI_OK ) {
 			jint result;
 			result = javavm->AttachCurrentThread(&_env, NULL);
-			N_Assert( result == JNI_OK );
+			Qk_Assert( result == JNI_OK );
 			_is_attach = true;
 		}
 	}
@@ -153,7 +153,7 @@ namespace noug {
 
 extern "C" 
 {
-	N_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+	Qk_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 		javavm = vm;
 		return JNI_VERSION_1_6;
 	}

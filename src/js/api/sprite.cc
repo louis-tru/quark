@@ -33,7 +33,7 @@
 #include "../../views2/sprite.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

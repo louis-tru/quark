@@ -36,7 +36,7 @@
 #include "./uv.h"
 #include "./dict.h"
 
-namespace noug {
+namespace quark {
 
 	String inl_format_part_path(cString& path);
 
@@ -121,7 +121,7 @@ namespace noug {
 			reader = new ZipReader(path);
 			if ( !reader->open() ) {
 				Release(reader);
-				N_THROW(ERR_FILE_NOT_EXISTS, "Cannot open zip file, `%s`", *path);
+				Qk_THROW(ERR_FILE_NOT_EXISTS, "Cannot open zip file, `%s`", *path);
 			}
 			zips_[path] = reader;
 			return reader;
@@ -211,13 +211,13 @@ namespace noug {
 			switch ( protocol(path) ) {
 				default:
 				case FILE:
-					N_CHECK(fs_exists_sync(path),
+					Qk_CHECK(fs_exists_sync(path),
 										ERR_FILE_NOT_EXISTS, "Unable to read file contents, \"%s\"", *path);
 					rv = fs_read_file_sync(path);
 					break;
 				case ZIP: {
 					String zip = zip_path(path);
-					N_CHECK(!zip.is_empty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
+					Qk_CHECK(!zip.is_empty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
 					
 					ScopeLock lock(zip_mutex_);
 					
@@ -227,14 +227,14 @@ namespace noug {
 					if ( read->jump(inl_path) ) {
 						rv = read->read();
 					} else {
-						N_THROW(ERR_ZIP_IN_FILE_NOT_EXISTS,
+						Qk_THROW(ERR_ZIP_IN_FILE_NOT_EXISTS,
 							"Zip package internal file does not exist, %s", *path);
 					}
 					break;
 				}
 				case FTP:
 				case FTPS:
-					N_THROW(ERR_NOT_SUPPORTED_FILE_PROTOCOL, "This file protocol is not supported");
+					Qk_THROW(ERR_NOT_SUPPORTED_FILE_PROTOCOL, "This file protocol is not supported");
 					break;
 				case HTTP:
 				case HTTPS: rv = http_get_sync(path); break;
@@ -258,7 +258,7 @@ namespace noug {
 				case ZIP: {
 					String zip = zip_path(path);
 					if ( !zip.is_empty() ) {
-						N_ERROR_IGNORE({
+						Qk_ERROR_IGNORE({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
 							String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
@@ -283,7 +283,7 @@ namespace noug {
 				case ZIP: {
 					String zip = zip_path(path);
 					if ( !zip.is_empty() ) {
-						N_ERROR_IGNORE({
+						Qk_ERROR_IGNORE({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
 							String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
@@ -391,7 +391,7 @@ namespace noug {
 		try {
 			return _core->readdir_sync(path);
 		} catch(Error& err) {
-			N_ERR(err);
+			Qk_ERR(err);
 		}
 		return Array<Dirent>();
 	}

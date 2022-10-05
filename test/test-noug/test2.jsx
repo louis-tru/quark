@@ -1,5 +1,5 @@
 
-import { Application, Root, Indep, Text, Div } from 'noug';
+import { Application, Root, Indep, Text, Div } from 'quark';
 
 new Application({ multisample: 2 }).start(
 	<Root>

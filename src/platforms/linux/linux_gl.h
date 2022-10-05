@@ -28,19 +28,19 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__unix_gl_1__
-#define __noug__unix_gl_1__
+#ifndef __quark__unix_gl_1__
+#define __quark__unix_gl_1__
 
-#include "noug/util/macros.h"
+#include "quark/util/macros.h"
 
-#if N_UNIX || N_ANDROID
+#if Qk_UNIX || Qk_ANDROID
 
-#include "noug/render/gl.h"
+#include "quark/render/gl.h"
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <EGL/eglplatform.h>
 
-namespace noug {
+namespace quark {
 
 	class GLRender_unix {
 	public:

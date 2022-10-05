@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Scroll, TextNode, Hybrid, _CVD } from 'noug';
+import { Div, Scroll, TextNode, Hybrid, _CVD } from 'quark';
 import { Mynavpage } from './public';
 
 const resolve = require.resolve;

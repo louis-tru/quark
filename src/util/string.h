@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__string__
-#define __noug__util__string__
+#ifndef __quark__util__string__
+#define __quark__util__string__
 
 #include "./array.h"
 #include "./list.h"
 #include <stdarg.h>
 #include <string.h>
 
-namespace noug {
+namespace quark {
 
 	typedef        char                  Char;
 	typedef        ArrayString<uint16_t> String2;
@@ -45,7 +45,7 @@ namespace noug {
 	typedef const  ArrayString<uint16_t> cString2;
 	typedef const  ArrayString<uint32_t> cString4;
 	
-	class N_EXPORT ArrayStringBase: public Object {
+	class Qk_EXPORT ArrayStringBase: public Object {
 	public:
 		typedef void* (*AAlloc)(void* val, uint32_t, uint32_t*, uint32_t size_of);
 		typedef void  (*Free)(void* ptr);
@@ -189,9 +189,9 @@ namespace noug {
 
 // -------------------------------------- IMPL --------------------------------------
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT _Str {
+	class Qk_EXPORT _Str {
 	public:
 		// static methods
 		typedef char T;
@@ -473,7 +473,7 @@ namespace noug {
 
 	template <typename T, typename A>
 	uint64_t ArrayString<T, A>::hash_code() const {
-		return noug::hash_code(c_str(), length() * sizeof(T));
+		return quark::hash_code(c_str(), length() * sizeof(T));
 	}
 
 	template <typename T, typename A>
@@ -493,7 +493,7 @@ namespace noug {
 		return _Str::to_string(c_str(), length(), sizeof(T));
 	}
 	
-	template <> N_EXPORT
+	template <> Qk_EXPORT
 	String ArrayString<>::to_string() const;
 
 	template <typename T, typename A>
@@ -740,8 +740,8 @@ namespace noug {
 
 namespace std {
 	template<typename T, typename A>
-	struct hash<noug::ArrayString<T, A>> {
-		size_t operator()(const noug::ArrayString<T, A>& val) const {
+	struct hash<quark::ArrayString<T, A>> {
+		size_t operator()(const quark::ArrayString<T, A>& val) const {
 			return val.hash_code();
 		}
 	};

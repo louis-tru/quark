@@ -28,61 +28,64 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__font__font__
-#define __noug__font__font__
+#ifndef __quark__font__font__
+#define __quark__font__font__
 
 #include "./typeface.h"
 #include "./style.h"
 #include "./metrics.h"
 
-namespace noug {
+namespace quark {
 
 	class FontGlyphs;
 
-	class N_EXPORT FontFamilys {
+	class Qk_EXPORT FontFamilys {
 	public:
 		FontFamilys(FontPool* pool, Array<String>& familys);
-		const Array<String>&   familys() const;
+		Qk_Define_Prop_Acc_Get(const Array<String>&, familys);
+		Qk_Define_Prop_Get(FontPool*, pool);
 		const Array<Typeface>& match(FontStyle style);
 		Array<FontGlyphs> makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize);
-		N_Define_Prop_Get(FontPool*, pool);
 	private:
 		Array<String> _familys;
 		Dict<FontStyle, Array<Typeface>> _fts;
 		friend class FontPool;
 	};
 
-	class N_EXPORT FontGlyphs {
+	class Qk_EXPORT FontGlyphs {
 	public:
 		FontGlyphs(const Typeface& typeface, float fontSize, const GlyphID glyphs[] = nullptr, uint32_t count = 0);
 
 		/**
-		 * glyphs in typeface object
-		 * @func glyphs()
+		 * Returns the current typeface array object
 		*/
 		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
-		
+
 		/**
-		 * @func typeface()
+		 * Returns the current typeface
 		*/
 		const Typeface& typeface() const;
 
 		/**
-		 * @func get_offset()
-		 * @return offset values for GlyphID
+		 * Returns offset values for GlyphID
+		 * @return array floar number
 		 */
 		Array<float> get_offset();
 
 		/**
-		 * Returns FontMetrics associated with Typeface.
-		 * @func get_metrics()
-		 * @return recommended spacing between lines
+		 * @brief Returns Font Metrics associated with Typeface.
+		 * @param[out] font metrics value the output param
+		 * @return returns recommended spacing between lines
 		*/
 		float get_metrics(FontMetrics* metrics) const;
 
 		/**
-		 * Returns FontMetrics associated with Typeface.
-		 * @func get_metrics()
+		 * Returns font metrics associated with Typeface.
+		 * @param[out] metrics
+		 * @param[in] FFID
+		 * @param[in] style
+		 * @param[in] fontSize
+		 * @return returns recommended spacing between lines
 		*/
 		static float get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize);
 		static float get_metrics(FontMetrics* metrics, const Typeface& typeface, float fontSize);
@@ -91,9 +94,9 @@ namespace noug {
 		Array<GlyphID> _glyphs;
 		void          *_typeface;
 	public:
-		N_Define_Prop(float, fontSize);
-		N_Define_Prop(float, scaleX);
-		N_Define_Prop(float, skewX);
+		Qk_Define_Prop(float, fontSize);
+		Qk_Define_Prop(float, scaleX);
+		Qk_Define_Prop(float, skewX);
 	private:
 		uint8_t _flags, _edging, _hinting, ___[5];
 	};

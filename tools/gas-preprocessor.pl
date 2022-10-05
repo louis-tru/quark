@@ -833,7 +833,7 @@ sub handle_serialized_line {
 
 		if ($line =~ s/^\s*(\d+)://) {
 			# Convert local labels into unique labels. armasm (at least in
-			# RVCT) has something similar, but still different enough.
+			# RVCT) has something similar, but still different equarkh.
 			# By converting to unique labels we avoid any possible
 			# incompatibilities.
 

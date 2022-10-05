@@ -30,8 +30,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __noug__render__metal__
-#define __noug__render__metal__
+#ifndef __quark__render__metal__
+#define __quark__render__metal__
 
 #include "./render.h"
 
@@ -39,7 +39,7 @@
 #include <Metal/Metal.h>
 #include <MetalKit/MTKView.h>
 
-namespace noug {
+namespace quark {
 
 	class API_AVAILABLE(ios(13.0)) API_AVAILABLE(ios(13.0)) API_AVAILABLE(ios(13.0)) MetalRender: public Render {
 	public:

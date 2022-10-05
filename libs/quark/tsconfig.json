@@ -1,0 +1,37 @@
+{
+	"compileOnSave": true,
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "ES2018",
+		"moduleResolution": "node",
+		"sourceMap": false,
+		"outDir": "out/quark",
+		"rootDir": ".",
+		"baseUrl": ".",
+		"declaration": true,
+		"alwaysStrict": true,
+		"allowJs": true,
+		"checkJs": false,
+		"strict": true,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": false,
+		"emitDecoratorMetadata": false,
+		"experimentalDecorators": true,
+		"removeComments": true,
+		"jsx": "react",
+		"jsxFactory": "_CVD",
+	},
+	"include": [
+		"**/*",
+	],
+	"exclude": [
+		"out",
+		"var",
+		".git",
+		".svn",
+		"node_modules",
+		"_.js",
+	]
+}

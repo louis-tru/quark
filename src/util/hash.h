@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__hash__
-#define __noug__util__hash__
+#ifndef __quark__util__hash__
+#define __quark__util__hash__
 
 #include "./object.h"
 #include "./string.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT SimpleHash: public Object {
+	class Qk_EXPORT SimpleHash: public Object {
 		uint64_t _hash;
 	public:
 		inline SimpleHash(): _hash(5381) {}
@@ -47,8 +47,8 @@ namespace noug {
 		String digest();
 	};
 
-	N_EXPORT uint64_t hash_code(const void* data, uint32_t len);
-	N_EXPORT String hash(const void* data, uint32_t len);
-	N_EXPORT String hash(cString& str);
+	Qk_EXPORT uint64_t hash_code(const void* data, uint32_t len);
+	Qk_EXPORT String hash(const void* data, uint32_t len);
+	Qk_EXPORT String hash(cString& str);
 }
 #endif

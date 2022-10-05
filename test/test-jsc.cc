@@ -31,12 +31,12 @@
 #if USE_JSC
 
 #include <JavaScriptCore/JavaScript.h>
-#include "noug/util/util.h"
-//#include "noug/util/string-builder.h"
-#include "noug/util/array.h"
-#include "noug/util/loop.h"
+#include "quark/util/util.h"
+//#include "quark/util/string-builder.h"
+#include "quark/util/array.h"
+#include "quark/util/loop.h"
 
-using namespace noug;
+using namespace quark;
 
 static JSClassRef NativeConstructor;
 static JSObjectRef toString;
@@ -82,10 +82,10 @@ static JSObjectRef B_prototyp;
 static void FinalizeCallback(JSObjectRef object) {
 	int* i = (int*)JSObjectGetPrivate(object);
 	if ( i ) {
-		N_LOG("FinalizeCallback, %d", *i);
+		Qk_LOG("FinalizeCallback, %d", *i);
 		delete i;
 	} else {
-		N_LOG("FinalizeCallback");
+		Qk_LOG("FinalizeCallback");
 	}
 }
 
@@ -96,14 +96,14 @@ struct JSCStringTraits: public NonObjectTraits {
 	}
 };
 
-typedef noug::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
+typedef quark::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
 
 static JSValueRef ConstructorFunc(JSContextRef ctx,
 																	JSObjectRef function,
 																	JSObjectRef thisObject,
 																	size_t argumentCount,
 																	const JSValueRef arguments[], JSValueRef* exception) {
-	N_LOG("Call Constructor func");
+	Qk_LOG("Call Constructor func");
 	JSObjectRef o = JSObjectMake(ctx, NativeConstructor, 0);
 	JSObjectSetPrototype(ctx, o, JSObjectGetPrototype(ctx, thisObject));
 	
@@ -137,7 +137,7 @@ static JSValueRef A_get_a(JSContextRef ctx,
 													JSObjectRef thisObject,
 													size_t argumentCount,
 													const JSValueRef arguments[], JSValueRef* exception) {
-	N_LOG("get a");
+	Qk_LOG("get a");
 	return JSValueMakeNumber(ctx, 100);
 }
 
@@ -146,7 +146,7 @@ static JSValueRef A_set_a(JSContextRef ctx,
 													JSObjectRef thisObject,
 													size_t argumentCount,
 													const JSValueRef arguments[], JSValueRef* exception) {
-	N_LOG("set a");
+	Qk_LOG("set a");
 	return 0;
 }
 
@@ -164,7 +164,7 @@ static JSValueRef BFunctionCallback(JSContextRef ctx,
 																		JSObjectRef function, JSObjectRef thisObject,
 																		size_t argumentCount,
 																		const JSValueRef arguments[], JSValueRef* exception) {
-	N_LOG(JSValueIsObject(ctx, thisObject));
+	Qk_LOG(JSValueIsObject(ctx, thisObject));
 	return JSObjectMake(ctx, NativeConstructor, 0);
 }
 
@@ -174,9 +174,9 @@ static JSValueRef GetPropertyCallback(JSContextRef ctx,
 	size_t size = JSStringGetMaximumUTF8CStringSize(propertyName);
 	char* buffer = (char*)malloc(size);
 	JSStringGetUTF8CString(propertyName, buffer, size);
-	N_LOG("propertyName: %s", buffer);
+	Qk_LOG("propertyName: %s", buffer);
 	free(buffer);
-	N_LOG("JSValueIsStrictEqual: %d", JSValueIsStrictEqual(ctx, B_prototyp, object));
+	Qk_LOG("JSValueIsStrictEqual: %d", JSValueIsStrictEqual(ctx, B_prototyp, object));
 	return nullptr;
 }
 
@@ -294,17 +294,17 @@ static void test_jsc_class(JSGlobalContextRef ctx, JSObjectRef global) {
 		JSValueRef line = JSObjectGetProperty(ctx, (JSObjectRef)exception, line_s, 0);
 		JSValueRef message = JSObjectGetProperty(ctx, (JSObjectRef)exception, message_s, 0);
 		JSValueRef stack = JSObjectGetProperty(ctx, (JSObjectRef)exception, stack_s, 0);
-		N_LOG("");
-		N_LOG("line: %s, column: %s", *to_string_utf8(ctx, line), *to_string_utf8(ctx, column));
-		N_LOG("");
-		N_LOG(to_string_utf8(ctx, message));
-		N_LOG("");
-		N_LOG(to_string_utf8(ctx, stack));
-		N_LOG("");
+		Qk_LOG("");
+		Qk_LOG("line: %s, column: %s", *to_string_utf8(ctx, line), *to_string_utf8(ctx, column));
+		Qk_LOG("");
+		Qk_LOG(to_string_utf8(ctx, message));
+		Qk_LOG("");
+		Qk_LOG(to_string_utf8(ctx, stack));
+		Qk_LOG("");
 		//LOG(JSValueIsObject(ctx, stack));
 	}
 	
-	N_LOG(to_string_utf8(ctx, rv));
+	Qk_LOG(to_string_utf8(ctx, rv));
 }
 
 static void test_jsc_proxy(JSGlobalContextRef ctx, JSObjectRef global) {
@@ -330,21 +330,21 @@ static void test_jsc_proxy(JSGlobalContextRef ctx, JSObjectRef global) {
 	};
 	
 	if (ex) {
-		N_LOG(to_string_utf8(ctx, ex));
+		Qk_LOG(to_string_utf8(ctx, ex));
 	}
-	N_LOG(proxy);
+	Qk_LOG(proxy);
 	
 	JSProxy* p = reinterpret_cast<JSProxy*>(proxy);
 	
 	JSObjectCallAsFunction(ctx, revoke, proxy_warp, 0, 0, &ex);
-	N_Assert(ex == nullptr);
-	N_Assert(p->handle == Null);
+	Qk_Assert(ex == nullptr);
+	Qk_Assert(p->handle == Null);
 	
-	N_LOG("end");
+	Qk_LOG("end");
 }
 
 static void ArrayBytesDeallocator(void* bytes, void* deallocatorContext) {
-	N_LOG(bytes);
+	Qk_LOG(bytes);
 	free(bytes);
 }
 
@@ -354,32 +354,32 @@ static void test_jsc_buffer(JSGlobalContextRef ctx, JSObjectRef global) {
 	SharedArrayBuffer = (JSObjectRef)JSObjectGetProperty(ctx, global, SharedArrayBuffer_s, 0);
 	JSObjectRef bf = JSObjectMakeArrayBufferWithBytesNoCopy
 	(ctx, malloc(8), 8, ArrayBytesDeallocator, nullptr, nullptr);
-	N_LOG(JSObjectGetArrayBufferByteLength(ctx, bf, 0));
-	N_LOG(JSObjectGetArrayBufferBytesPtr(ctx, bf, 0));
+	Qk_LOG(JSObjectGetArrayBufferByteLength(ctx, bf, 0));
+	Qk_LOG(JSObjectGetArrayBufferBytesPtr(ctx, bf, 0));
 	JSObjectRef Int8Array = JSObjectMakeTypedArrayWithArrayBuffer
 	(ctx, kJSTypedArrayTypeInt8Array, bf, 0);
-	N_LOG(JSObjectGetTypedArrayBytesPtr(ctx, Int8Array, 0));
-	N_LOG(JSObjectGetTypedArrayLength(ctx, Int8Array, 0));
+	Qk_LOG(JSObjectGetTypedArrayBytesPtr(ctx, Int8Array, 0));
+	Qk_LOG(JSObjectGetTypedArrayLength(ctx, Int8Array, 0));
 	JSObjectRef Int16Array = JSObjectMakeTypedArrayWithArrayBuffer
 	(ctx, kJSTypedArrayTypeInt16Array, bf, 0);
-	N_LOG(JSObjectGetTypedArrayBytesPtr(ctx, Int16Array, 0));
-	N_LOG(JSObjectGetTypedArrayLength(ctx, Int16Array, 0));
+	Qk_LOG(JSObjectGetTypedArrayBytesPtr(ctx, Int16Array, 0));
+	Qk_LOG(JSObjectGetTypedArrayLength(ctx, Int16Array, 0));
 	JSObjectRef Int32Array = JSObjectMakeTypedArrayWithArrayBuffer
 	(ctx, kJSTypedArrayTypeInt32Array, bf, 0);
-	N_LOG(JSObjectGetTypedArrayBytesPtr(ctx, Int32Array, 0));
-	N_LOG(JSObjectGetTypedArrayLength(ctx, Int32Array, 0));
-	N_LOG(JSObjectGetTypedArrayByteLength(ctx, Int32Array, 0));
+	Qk_LOG(JSObjectGetTypedArrayBytesPtr(ctx, Int32Array, 0));
+	Qk_LOG(JSObjectGetTypedArrayLength(ctx, Int32Array, 0));
+	Qk_LOG(JSObjectGetTypedArrayByteLength(ctx, Int32Array, 0));
 	JSObjectRef Float64Array = JSObjectMakeTypedArrayWithArrayBuffer
 	(ctx, kJSTypedArrayTypeFloat64Array, bf, 0);
-	N_LOG(JSObjectGetTypedArrayBytesPtr(ctx, Float64Array, 0));
-	N_LOG(JSObjectGetTypedArrayLength(ctx, Float64Array, 0));
+	Qk_LOG(JSObjectGetTypedArrayBytesPtr(ctx, Float64Array, 0));
+	Qk_LOG(JSObjectGetTypedArrayLength(ctx, Float64Array, 0));
 	// shared array buffer
 	JSValueRef argv[1] = {
 		JSValueMakeNumber(ctx, 8),
 	};
 	auto sbf = JSObjectCallAsConstructor(ctx, SharedArrayBuffer, 1, argv, 0);
-	N_LOG(JSObjectGetArrayBufferBytesPtr(ctx, sbf, 0));
-	N_LOG(JSObjectGetArrayBufferByteLength(ctx, sbf, 0));
+	Qk_LOG(JSObjectGetArrayBufferBytesPtr(ctx, sbf, 0));
+	Qk_LOG(JSObjectGetArrayBufferByteLength(ctx, sbf, 0));
 	//
 }
 
@@ -390,7 +390,7 @@ JSValueRef PrintCallback(JSContextRef ctx, JSObjectRef function,
 	for (int i = 0; i < argumentCount; i++) {
 		s.append(to_string_utf8(ctx, arguments[i]));
 	}
-	N_LOG(s);
+	Qk_LOG(s);
 	return nullptr;
 }
 
@@ -412,8 +412,8 @@ void test_jsc(int argc, char **argv) {
 	JSObjectSetProperty(ctx, global_wrapper, column_s, JSValueMakeNumber(ctx, 200), 0, 0);
 	JSValueRef JSObject = JSObjectGetProperty(ctx, global, Object_s, 0);
 	JSValueRef JSObject1 = JSObjectGetProperty(ctx1, global, Object_s, 0);
-	N_Assert(JSObject == JSObject1);
-	N_LOG(to_string_utf8(ctx, JSObjectGetProperty(ctx, global, column_s, 0)));
+	Qk_Assert(JSObject == JSObject1);
+	Qk_LOG(to_string_utf8(ctx, JSObjectGetProperty(ctx, global, column_s, 0)));
 	
 	JSCStringPtr js = JSStringCreateWithUTF8CString("var a = 100; b = 200; print(a, b)");
 	JSEvaluateScript(ctx, *js, 0, 0, 0, 0);
@@ -422,16 +422,16 @@ void test_jsc(int argc, char **argv) {
 	
 	auto Object_0 = JSObjectGetProperty(ctx, global, Object_s, 0);
 	auto Object_1 = JSObjectGetProperty(ctx1, global1, Object_s, 0);
-	N_LOG(Object_0 == Object_1);
+	Qk_LOG(Object_0 == Object_1);
 	auto Uint8Array_0 = JSObjectGetProperty(ctx, global, Uint8Array_s, 0);
 	auto Uint8Array_1 = JSObjectGetProperty(ctx1, global1, Uint8Array_s, 0);
-	N_LOG(Uint8Array_0 == Uint8Array_1);
+	Qk_LOG(Uint8Array_0 == Uint8Array_1);
 	
 	
 	//
 	int o;
-	N_LOG(sscanf( "100v.v009", "%d", &o));
-	N_LOG(o);
+	Qk_LOG(sscanf( "100v.v009", "%d", &o));
+	Qk_LOG(o);
 	
 	test_jsc_proxy(ctx, global);
 	test_jsc_buffer(ctx, global);
@@ -439,7 +439,7 @@ void test_jsc(int argc, char **argv) {
 	
 	JSValueProtect(ctx, print);
 	JSGlobalContextRelease(ctx1);
-	N_LOG(to_string_utf8(ctx, JSObjectGetProperty(ctx, global1, print_s, 0)));
+	Qk_LOG(to_string_utf8(ctx, JSObjectGetProperty(ctx, global1, print_s, 0)));
 	JSGlobalContextRelease(ctx);
 	JSContextGroupRelease(group);
 }

@@ -1,4 +1,4 @@
-# `noug/display_port`
+# `quark/display_port`
 
 
 ## `Enum: Orientation`
@@ -223,7 +223,7 @@ Callback: cb()
 [`Color`]: value.md#class-color
 
 [`app.displayPort`]: app.md#get-guiapplication-displayport
-[`gui.displayPort`]: noug.md#get-displayport
+[`gui.displayPort`]: quark.md#get-displayport
 
 [`Orientation`]: display_port.md#enum-orientation
 [`StatusBarStyle`]: display_port.md#enum-statusbarstyle

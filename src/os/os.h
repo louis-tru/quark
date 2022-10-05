@@ -28,29 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__os__os__
-#define __noug__os__os__
+#ifndef __quark__os__os__
+#define __quark__os__os__
 
-#include <noug/util/util.h>
-#include <noug/util/array.h>
+#include <quark/util/util.h>
+#include <quark/util/array.h>
 
-namespace noug {
+namespace quark {
 	namespace os {
-		N_EXPORT String version();
-		N_EXPORT String brand();
-		N_EXPORT String subsystem();
-		N_EXPORT String info();
-		N_EXPORT const Array<String>& languages();
-		N_EXPORT bool  is_wifi();
-		N_EXPORT bool  is_mobile();
-		N_EXPORT int   network_status();
-		N_EXPORT bool  is_ac_power();
-		N_EXPORT bool  is_battery();
-		N_EXPORT float battery_level();
-		N_EXPORT uint64_t memory();
-		N_EXPORT uint64_t used_memory();
-		N_EXPORT uint64_t available_memory();
-		N_EXPORT float cpu_usage();
+		Qk_EXPORT String version();
+		Qk_EXPORT String brand();
+		Qk_EXPORT String subsystem();
+		Qk_EXPORT String info();
+		Qk_EXPORT const Array<String>& languages();
+		Qk_EXPORT bool  is_wifi();
+		Qk_EXPORT bool  is_mobile();
+		Qk_EXPORT int   network_status();
+		Qk_EXPORT bool  is_ac_power();
+		Qk_EXPORT bool  is_battery();
+		Qk_EXPORT float battery_level();
+		Qk_EXPORT uint64_t memory();
+		Qk_EXPORT uint64_t used_memory();
+		Qk_EXPORT uint64_t available_memory();
+		Qk_EXPORT float cpu_usage();
 	}
 }
 #endif

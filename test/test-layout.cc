@@ -3,28 +3,28 @@
 #include <skia/core/SkImage.h>
 #include <skia/core/SkSurface.h>
 #include <skia/core/SkCanvas.h>
-#include <noug/app.h>
-#include <noug/layout/root.h>
-#include <noug/render/render.h>
-#include <noug/render/skia/skia_render.h>
-#include <noug/layout/flow.h>
-#include <noug/layout/image.h>
-#include <noug/layout/label.h>
-#include <noug/layout/text.h>
-#include <noug/layout/input.h>
-#include <noug/layout/textarea.h>
-#include <noug/effect.h>
-#include <noug/display.h>
-#include <noug/util/fs.h>
-#include <noug/render/font/pool.h>
+#include <quark/app.h>
+#include <quark/layout/root.h>
+#include <quark/render/render.h>
+#include <quark/render/skia/skia_render.h>
+#include <quark/layout/flow.h>
+#include <quark/layout/image.h>
+#include <quark/layout/label.h>
+#include <quark/layout/text.h>
+#include <quark/layout/input.h>
+#include <quark/layout/textarea.h>
+#include <quark/effect.h>
+#include <quark/display.h>
+#include <quark/util/fs.h>
+#include <quark/render/font/pool.h>
 #include <vector>
 #include <skia/core/SkFont.h>
 #include <skia/core/SkMaskFilter.h>
 #include <skia/effects/SkDashPathEffect.h>
 
-using namespace noug;
+using namespace quark;
 
-namespace noug {
+namespace quark {
 	SkImage* CastSkImage(ImageSource* img);
 }
 
@@ -94,8 +94,8 @@ void layout_text(Box* box) {
 	labe->set_text_slant(TextSlant::ITALIC);
 	labe->set_text_weight(TextWeight::BOLD);
 	//labe->set_text_value("ABC  DEFG楚");
-	//labe->set_text_value("Noug 1           abcdefghijkmln 禁忌");
-	labe->set_text_value("Noug 1           abcdefghijkmln 禁忌学");
+	//labe->set_text_value("Quark 1           abcdefghijkmln 禁忌");
+	labe->set_text_value("Quark 1           abcdefghijkmln 禁忌学");
 	labe->set_text_color({ Color(0,0,0) });
 }
 
@@ -258,16 +258,16 @@ void layout(Event<>& evt, Application* app) {
 	img2->set_width({0, BoxSizeKind::MATCH });
 	img2->set_layout_align(Align::CENTER);
 	
-	N_DEBUG("%s, %p\n", "ok skia", app);
-	N_DEBUG("Object size %d", sizeof(Object));
-	N_DEBUG("Reference size %d", sizeof(Reference));
-	N_DEBUG("Layout size %d", sizeof(Layout));
-	N_DEBUG("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Layout>));
-	N_DEBUG("View size %d", sizeof(View));
-	N_DEBUG("Box size %d", sizeof(Box));
-	N_DEBUG("FlowLayout size %d", sizeof(FlowLayout));
-	N_DEBUG("FlexLayout size %d", sizeof(FlexLayout));
-	N_DEBUG("Root size %d", sizeof(Root));
+	Qk_DEBUG("%s, %p\n", "ok skia", app);
+	Qk_DEBUG("Object size %d", sizeof(Object));
+	Qk_DEBUG("Reference size %d", sizeof(Reference));
+	Qk_DEBUG("Layout size %d", sizeof(Layout));
+	Qk_DEBUG("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Layout>));
+	Qk_DEBUG("View size %d", sizeof(View));
+	Qk_DEBUG("Box size %d", sizeof(Box));
+	Qk_DEBUG("FlowLayout size %d", sizeof(FlowLayout));
+	Qk_DEBUG("FlexLayout size %d", sizeof(FlexLayout));
+	Qk_DEBUG("Root size %d", sizeof(Root));
 }
 
 void test_layout(int argc, char **argv) {

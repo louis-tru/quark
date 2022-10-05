@@ -29,17 +29,17 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __noug__util__storage__
-#define __noug__util__storage__
+#ifndef __quark__util__storage__
+#define __quark__util__storage__
 
 #include "./cb.h"
 #include "./util.h"
 
-namespace noug {
-	N_EXPORT String  storage_get(cString& name);
-	N_EXPORT void    storage_set(cString& name, cString& value);
-	N_EXPORT void    storage_delete(cString& name);
-	N_EXPORT void    storage_clear();
-	N_EXPORT void    storage_transaction(Cb cb);
+namespace quark {
+	Qk_EXPORT String  storage_get(cString& name);
+	Qk_EXPORT void    storage_set(cString& name, cString& value);
+	Qk_EXPORT void    storage_delete(cString& name);
+	Qk_EXPORT void    storage_clear();
+	Qk_EXPORT void    storage_transaction(Cb cb);
 }
 #endif

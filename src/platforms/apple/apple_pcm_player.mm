@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "noug/media/pcm.h"
-#import "noug/util/handle.h"
-#import "noug/util/loop.h"
+#import "quark/media/pcm.h"
+#import "quark/util/handle.h"
+#import "quark/util/loop.h"
 #import <AudioToolbox/AudioToolbox.h>
 
-namespace noug {
+namespace quark {
 
 	#define QUEUE_BUFFER_COUNT 3
 	#define WAIT_WRITE_BUFFER_COUNT 3
@@ -144,7 +144,7 @@ namespace noug {
 							return;
 						}
 					} else {
-						N_ERR("self->_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
+						Qk_ERR("self->_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
 					}
 				}
 				
@@ -259,7 +259,7 @@ namespace noug {
 			OSStatus status;
 			AudioQueueParameterValue v;
 			
-			v = N_MIN(value, 100) / 100.0;
+			v = Qk_MIN(value, 100) / 100.0;
 			
 			status = AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, _flush ? 0 : v);
 			
@@ -274,7 +274,7 @@ namespace noug {
 		* @overwrite
 		* */
 		virtual uint32_t buffer_size() {
-			return N_MAX(4096, _channel_count * _sample_rate / 10);
+			return Qk_MAX(4096, _channel_count * _sample_rate / 10);
 		}
 		
 	private:

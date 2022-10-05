@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../noug.h"
+#include "../quark.h"
 #include "../../css/css.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

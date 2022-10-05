@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Div, Clip, Text, _CVD } from 'noug';
+import { Scroll, Div, Clip, Text, _CVD } from 'quark';
 import { Navbutton, Mynavpage } from './public';
 import components from './components';
 import input from './input';

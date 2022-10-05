@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/util.h>
-#include <noug/util/string.h>
+#include <quark/util/util.h>
+#include <quark/util/string.h>
 
-using namespace noug;
+using namespace quark;
 
 void test_util(int argc, char **argv) {
 	int64_t i = parse_time("    Sat, 27 Oct 2018 11:32:18 GMT     ");
-	N_LOG("UTIL", "%lld", i);
+	Qk_LOG("UTIL", "%lld", i);
 }

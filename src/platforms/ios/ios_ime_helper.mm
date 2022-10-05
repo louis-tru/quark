@@ -33,7 +33,7 @@
 #import "../../event.h"
 #import "../../app.inl"
 
-using namespace noug;
+using namespace quark;
 
 @interface IOSTextPosition: UITextPosition
 	@property (assign, nonatomic) NSUInteger value;
@@ -199,7 +199,7 @@ using namespace noug;
 - (void)open {
 	_has_open = YES;
 	if ([self becomeFirstResponder]) {
-		N_DEBUG("becomeFirstResponder ok");
+		Qk_DEBUG("becomeFirstResponder ok");
 	}
 }
 - (void)close {
@@ -274,7 +274,7 @@ using namespace noug;
 		if ( _keyboard_up_keycode == 0 ) {
 			_app->dispatch()->keyboard()->onDispatch(keycode, 1, true/*down*/, 0, -1, 0);
 		} else {
-			N_Assert( keycode == _keyboard_up_keycode );
+			Qk_Assert( keycode == _keyboard_up_keycode );
 		}
 		_app->dispatch()->onImeInsert([text UTF8String]);
 		_app->dispatch()->keyboard()->onDispatch(keycode, 1, false/*up*/, 0, -1, 0);
@@ -468,39 +468,39 @@ using namespace noug;
 //}
 
 - (void)traitCollectionDidChange:(nullable UITraitCollection *)previousTraitCollection {
-	N_DEBUG("traitCollectionDidChange");
+	Qk_DEBUG("traitCollectionDidChange");
 }
 
 - (CGPoint)convertPoint:(CGPoint)point fromCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
-	N_DEBUG("convertPoint:fromCoordinateSpace");
+	Qk_DEBUG("convertPoint:fromCoordinateSpace");
 }
 
 - (CGPoint)convertPoint:(CGPoint)point toCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
-	N_DEBUG("convertPoint:toCoordinateSpace");
+	Qk_DEBUG("convertPoint:toCoordinateSpace");
 }
 
 - (CGRect)convertRect:(CGRect)rect fromCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
-	N_DEBUG("convertRect:fromCoordinateSpace");
+	Qk_DEBUG("convertRect:fromCoordinateSpace");
 }
 
 - (CGRect)convertRect:(CGRect)rect toCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
-	N_DEBUG("convertRect:toCoordinateSpace");
+	Qk_DEBUG("convertRect:toCoordinateSpace");
 }
 
 - (void)didUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context withAnimationCoordinator:(nonnull UIFocusAnimationCoordinator *)coordinator {
-	N_DEBUG("didUpdateFocusInContext:withAnimationCoordinator");
+	Qk_DEBUG("didUpdateFocusInContext:withAnimationCoordinator");
 }
 
 - (void)setNeedsFocusUpdate {
-	N_DEBUG("setNeedsFocusUpdate");
+	Qk_DEBUG("setNeedsFocusUpdate");
 }
 
 - (BOOL)shouldUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context {
-	N_DEBUG("shouldUpdateFocusInContext");
+	Qk_DEBUG("shouldUpdateFocusInContext");
 }
 
 - (void)updateFocusIfNeeded {
-	N_DEBUG("updateFocusIfNeeded");
+	Qk_DEBUG("updateFocusIfNeeded");
 }
 
 //- (nonnull NSArray<id<UIFocusItem>> *)focusItemsInRect:(CGRect)rect {

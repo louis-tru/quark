@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__action__action__
-#define __noug__action__action__
+#ifndef __quark__action__action__
+#define __quark__action__action__
 
 #include "../value.h"
 #include "../bezier.h"
@@ -38,7 +38,7 @@
 #include "../fill.h"
 #include "../util/list.h"
 
-N_NAMESPACE_START
+Qk_NAMESPACE_START
 
 class View;
 class ActionCenter;
@@ -50,7 +50,7 @@ class KeyframeAction;
 /**
 * @class Action
 */
-class N_EXPORT Action: public Reference {
+class Qk_EXPORT Action: public Reference {
 public:
 	Action();
 	
@@ -143,7 +143,7 @@ public:
 	* @func speed set
 	*/
 	inline void speed(float value) {
-		_speed = N_MIN(10, N_MAX(value, 0.1));
+		_speed = Qk_MIN(10, Qk_MAX(value, 0.1));
 	}
 	
 	/**
@@ -214,7 +214,7 @@ protected:
 	
 	ActionCenterId _action_center_id;
 	
-	N_DEFINE_INLINE_CLASS(Inl);
+	Qk_DEFINE_INLINE_CLASS(Inl);
 	
 	friend class ActionCenter;
 	friend class GroupAction;
@@ -226,7 +226,7 @@ protected:
 /**
 * @class ActionCenter
 */
-class N_EXPORT ActionCenter: public Object {
+class Qk_EXPORT ActionCenter: public Object {
 	public:
 	
 	ActionCenter();
@@ -252,8 +252,8 @@ class N_EXPORT ActionCenter: public Object {
 	uint64_t _prev_sys_time;
 	Actions  _actions;
 	
-	N_DEFINE_INLINE_CLASS(Inl);
+	Qk_DEFINE_INLINE_CLASS(Inl);
 };
 
-N_NAMESPACE_END
+Qk_NAMESPACE_END
 #endif

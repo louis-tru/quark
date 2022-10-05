@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "noug/media/media_codec_inl.h"
+#import "quark/media/media_codec_inl.h"
 #import <VideoToolbox/VideoToolbox.h>
 #import <AudioToolbox/AudioToolbox.h>
 
-namespace noug {
+namespace quark {
 
 	#define OUTPUT_BUFFER_NUM 12
 
@@ -187,8 +187,8 @@ namespace noug {
 			OSStatus status;
 			const TrackInfo& track = _extractor->track();
 			
-			N_Assert(track.width);
-			N_Assert(track.height);
+			Qk_Assert(track.width);
+			Qk_Assert(track.height);
 			
 			CFDictionaryRef attrs = (__bridge CFDictionaryRef)
 			[NSDictionary dictionaryWithObjectsAndKeys:
@@ -196,7 +196,7 @@ namespace noug {
 				kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange], (id)kCVPixelBufferPixelFormatTypeKey,
 				[NSNumber numberWithUnsignedInt:track.width], (id)kCVPixelBufferWidthKey,
 				[NSNumber numberWithUnsignedInt:track.height], (id)kCVPixelBufferHeightKey,
-				#if N_IOS
+				#if Qk_IOS
 					[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLESCompatibilityKey,
 				#else
 					[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLCompatibilityKey,
@@ -210,7 +210,7 @@ namespace noug {
 			};
 			status = VTDecompressionSessionCreate(NULL, _format_desc, NULL, attrs, &cb, &_session);
 			
-			N_Assert(status >= 0);
+			Qk_Assert(status >= 0);
 			
 			CFRetain(_session);
 			
@@ -335,7 +335,7 @@ namespace noug {
 					
 					if ( status == noErr ) {
 						if ( _extractor->eof_flags() ) {
-							N_DEBUG("%s", "eos flags");
+							Qk_DEBUG("%s", "eos flags");
 						}
 						_extractor->deplete_sample();
 						return true;

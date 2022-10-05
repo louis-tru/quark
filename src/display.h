@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__display__
-#define __noug__display__
+#ifndef __quark__display__
+#define __quark__display__
 
 #include "./util/util.h"
 #include "./util/event.h"
@@ -38,7 +38,7 @@
 #include "./util/cb.h"
 #include "./util/loop.h"
 
-namespace noug {
+namespace quark {
 
 	class Application;
 
@@ -46,8 +46,8 @@ namespace noug {
 	* 提供的一些对显示与屏幕的常用方法属性与事件
 	* @class Display
 	*/
-	class N_EXPORT Display: public Reference {
-		N_HIDDEN_ALL_COPY(Display);
+	class Qk_EXPORT Display: public Reference {
+		Qk_HIDDEN_ALL_COPY(Display);
 		public:
 
 			struct DisplayRegion {
@@ -82,13 +82,13 @@ namespace noug {
 			* @thread main
 			* @event onchange 显示端口变化事件
 			*/
-			N_Event(Change);
+			Qk_Event(Change);
 
 			/**
 			* @thread main
 			* @event onorientation 屏幕方向发生改变触发
 			*/
-			N_Event(Orientation);
+			Qk_Event(Orientation);
 			
 			/**
 			* @func size 当前视口尺寸

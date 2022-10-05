@@ -28,29 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__object__
-#define __noug__util__object__
+#ifndef __quark__util__object__
+#define __quark__util__object__
 
 #include "./macros.h"
 #include <atomic>
 
-#ifndef N_MEMORY_TRACE_MARK
-# define N_MEMORY_TRACE_MARK 0
+#ifndef Qk_MEMORY_TRACE_MARK
+# define Qk_MEMORY_TRACE_MARK 0
 #endif
 
-#if N_MEMORY_TRACE_MARK
+#if Qk_MEMORY_TRACE_MARK
 # include <vector>
 #endif
 
-namespace noug {
+namespace quark {
 
-#define N_DEFAULT_ALLOCATOR() \
+#define Qk_DEFAULT_ALLOCATOR() \
 	static void* operator new(std::size_t size) { return ::operator new(size); } \
 	static void  operator delete(void* p) { ::operator delete(p); } \
 	virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this; }
 
-#ifndef N_MIN_CAPACITY
-# define N_MIN_CAPACITY (8)
+#ifndef Qk_MIN_CAPACITY
+# define Qk_MIN_CAPACITY (8)
 #endif
 
 	// -------------------------------------------------------
@@ -88,7 +88,7 @@ namespace noug {
 	/**
 	* @class Object
 	*/
-	class N_EXPORT Object {
+	class Qk_EXPORT Object {
 	public:
 		typedef ObjectTraits Traits;
 		typedef Object IsObjectCheck;
@@ -103,7 +103,7 @@ namespace noug {
 			void* (*alloc)(size_t size) = nullptr,
 			void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
 		);
-#if N_MEMORY_TRACE_MARK
+#if Qk_MEMORY_TRACE_MARK
 		static std::vector<Object*> mark_objects();
 		static int mark_objects_count();
 		Object();
@@ -119,7 +119,7 @@ namespace noug {
 	/**
 	* @class Reference
 	*/
-	class N_EXPORT Reference: public Object {
+	class Qk_EXPORT Reference: public Object {
 		typedef Reference IsObjectCheck;
 	public:
 		typedef ReferenceTraits Traits;
@@ -192,10 +192,10 @@ namespace noug {
 		static constexpr bool is_reference = false;
 	};
 
-	N_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+	Qk_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
-	N_EXPORT bool Retain(Object* obj);
-	N_EXPORT void Release(Object* obj);
+	Qk_EXPORT bool Retain(Object* obj);
+	Qk_EXPORT void Release(Object* obj);
 
 	template<class T, typename... Args>
 	inline T* New(Args... args) {

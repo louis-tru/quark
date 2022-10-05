@@ -34,13 +34,13 @@
 #include "./_view.h"
 #include "../../util/http.h"
 #include "./_event.h"
-#include <noug/os/android/api.h>
+#include <quark/os/android/api.h>
 #include <native-inl-js.h>
-#include <deps/node/src/noug.h>
+#include <deps/node/src/quark.h>
 #include <uv.h>
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
@@ -65,7 +65,7 @@ static void addEventListener_1(
 			ev->setPrivateData(cast); // set data cast func
 		Local<JSValue> args[2] = { ev->that(), worker->New(true) };
 		
-		N_DEBUG("addEventListener_1, %s, EventType: %s", *func, *evt.name());
+		Qk_DEBUG("addEventListener_1, %s, EventType: %s", *func, *evt.name());
 
 		// call js trigger func
 		Local<JSValue> r = wrap->call( worker->New(func,1), 2, args );
@@ -119,7 +119,7 @@ bool WrapViewBase::removeEventListener(cString& name, int id) {
 		return false;
 	}
 	
-	N_DEBUG("removeEventListener, name:%s, id:%d", *name, id);
+	Qk_DEBUG("removeEventListener, name:%s, id:%d", *name, id);
 	
 	auto wrap = reinterpret_cast<Wrap<View>*>(this);
 	wrap->self()->remove_event_listener(i.value(), id); // off event listener

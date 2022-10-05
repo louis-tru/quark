@@ -30,7 +30,7 @@
 
 #include "./action.inl"
 
-N_NAMESPACE_START
+Qk_NAMESPACE_START
 
 void ActionCenter::Inl::add(Action* action) {
 	if ( action->_action_center_id == Action::ActionCenterId() ) {
@@ -52,7 +52,7 @@ static ActionCenter* action_center_shared = nullptr;
 
 ActionCenter::ActionCenter()
 : _prev_sys_time(0) {
-	N_Assert(!action_center_shared); action_center_shared = this;
+	Qk_Assert(!action_center_shared); action_center_shared = this;
 }
 
 ActionCenter::~ActionCenter() {
@@ -67,7 +67,7 @@ void ActionCenter::advance(int64_t now_time) {
 	static int len = 0;
 	if (len != _actions.length()) {
 		len = _actions.length();
-		N_LOG("ActionCenter::advance,length, %d", len);
+		Qk_LOG("ActionCenter::advance,length, %d", len);
 	}*/
 	
 	if ( _actions.length() ) { // run task
@@ -110,4 +110,4 @@ ActionCenter* ActionCenter::shared() {
 	return action_center_shared;
 }
 
-N_NAMESPACE_END
+Qk_NAMESPACE_END

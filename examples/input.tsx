@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Text, Input, Textarea, default as noug, _CVD, View } from 'noug';
+import { Div, Button, Text, Input, Textarea, default as quark, _CVD, View } from 'quark';
 import { Mynavpage } from './public';
-import { ClickEvent } from 'noug/event';
+import { ClickEvent } from 'quark/event';
 
 const resolve = require.resolve;
 
@@ -39,7 +39,7 @@ function start_input(evt: ClickEvent) {
 }
 
 function end_input(evt: ClickEvent) {
-	(noug.app.focusView as View).blur();
+	(quark.app.focusView as View).blur();
 }
 
 export default ()=>(

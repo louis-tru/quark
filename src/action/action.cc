@@ -32,16 +32,16 @@
 #include "../app.h"
 #include "../errno.h"
 
-N_NAMESPACE_START
+Qk_NAMESPACE_START
 
 void Action::Inl::set_parent(Action* parent) throw(Error) {
 	
 	if ( _parent || _views.length() ) {
-		N_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
+		Qk_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
 	}
 	
 	if (_action_center_id != ActionCenterId()) {
-		N_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
+		Qk_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
 	}
 	
 	retain(); // retain
@@ -148,12 +148,12 @@ void Action::Inl::update_duration(int64_t difference) {
 void Action::Inl::add_view(View* view) throw(Error) {
 	
 	if ( _parent ) {
-		N_THROW(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
+		Qk_THROW(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
 	}
 	View* first = first_view();
 	if ( first ) {
 		if ( first->view_type() != view->view_type() ) {
-			N_THROW(ERR_ACTION_ILLEGAL_VIEW_TYPE,
+			Qk_THROW(ERR_ACTION_ILLEGAL_VIEW_TYPE,
 				"Action can only be bound to the same type of view !");
 		}
 	} else {
@@ -210,7 +210,7 @@ Action::Action()
 * @destructor
 */
 Action::~Action() {
-	N_Assert( _action_center_id == ActionCenterId() );
+	Qk_Assert( _action_center_id == ActionCenterId() );
 }
 
 /**
@@ -280,8 +280,8 @@ void Action::playing(bool value) {
 */
 void Action::seek(int64_t time) {
 	time += _delay;
-	time = N_MIN(time, _full_duration);
-	time = N_MAX(time, 0);
+	time = Qk_MIN(time, _full_duration);
+	time = Qk_MAX(time, 0);
 	if (_parent) {
 		_parent->seek_before(time, this);
 	} else {
@@ -305,4 +305,4 @@ void Action::seek_stop(int64_t time) {
 	stop();
 }
 
-N_NAMESPACE_END
+Qk_NAMESPACE_END

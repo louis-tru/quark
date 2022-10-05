@@ -1,7 +1,7 @@
-Noug Examples
+Quark Examples
 ===============
 
-* 这是一个`Noug`演示工程，请使用`noproj`命令导出到`xcode`或`android studio`
+* 这是一个`Quark`演示工程，请使用`noproj`命令导出到`xcode`或`android studio`
 
 * 需要注意工具现在并不支持`Windows`系统，暂时只能在`mac`下使用
 

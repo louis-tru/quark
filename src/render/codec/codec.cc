@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./codec.h"
-#include "noug/util/string.h"
+#include "quark/util/string.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	 * @func image_format 通过路径获取图片类型

@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P: F, M, LOG, VM, VP } from './test'
-import 'noug/css'
+import 'quark/css'
 
 LOG('\nTest CSS:\n')
 

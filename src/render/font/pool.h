@@ -28,33 +28,34 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__font__pool__
-#define __noug__font__pool__
+#ifndef __quark__font__pool__
+#define __quark__font__pool__
 
 #include "../../value.h"
 #include "./font.h"
 
-namespace noug {
+namespace quark {
 
 	class Application;
 
-	class N_EXPORT FontPool: public Object {
-		N_HIDDEN_ALL_COPY(FontPool);
+	class Qk_EXPORT FontPool: public Object {
+		Qk_HIDDEN_ALL_COPY(FontPool);
 	public:
 		FontPool(Application* host);
 		virtual ~FontPool();
-		int32_t count_families() const;
-		Array<String> familys() const;
+		// define ptops
+		Qk_Define_Prop_Get(int32_t, count_families);
+		Qk_Define_Prop_Get(Array<String>, familys);
+		Qk_Define_Prop_Acc_Get(const Array<Typeface>&, second);
+		Qk_Define_Prop_Acc_Get(const Typeface&, last);
+		Qk_Define_Prop_Get(Application*, host);
+		Qk_Define_Prop_Get(GlyphID, last_65533);
+		// methods
 		FFID getFFID(cString familys = String());
 		FFID getFFID(const Array<String>& familys);
 		Typeface match(cString& familyName, const FontStyle& style, bool useDefault = false);
 		void register_from_data(cBuffer& buff);
 		void register_from_file(cString& path);
-		const Array<Typeface>& second() const;
-		const Typeface&        last() const;
-		// define ptops
-		N_Define_Prop_Get(Application*, host);
-		N_Define_Prop_Get(GlyphID, last_65533);
 	private:
 		void initialize();
 		void           *_impl;

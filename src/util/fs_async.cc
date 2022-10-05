@@ -32,7 +32,7 @@
 #include "./fs.h"
 #include "./http.h"
 
-#if N_WIN
+#if Qk_WIN
 	#include <io.h>
 	#include <direct.h>
 #else
@@ -40,7 +40,7 @@
 #endif
 #include "./uv.h"
 
-namespace noug {
+namespace quark {
 
 	#define LOOP RunLoop::current()
 	#define LOOP2 RunLoop* loop = LOOP
@@ -217,11 +217,11 @@ namespace noug {
 						_buffer[i] = buffer;
 					}
 				}
-				N_Assert(buffer.length() == 0);
+				Qk_Assert(buffer.length() == 0);
 			}
 			
 			void read_next() {
-				N_Assert(!_read_end);
+				Qk_Assert(!_read_end);
 				Buffer buff = alloc_buffer();
 				if ( buff.length() ) {
 					_reading_count++;
@@ -247,11 +247,11 @@ namespace noug {
 			}
 			
 			void copy_complete() {
-				N_Assert(_reading_count == 0);
-				N_Assert(_writeing_count == 0);
-				N_Assert(_read_end);
+				Qk_Assert(_reading_count == 0);
+				Qk_Assert(_writeing_count == 0);
+				Qk_Assert(_read_end);
 				if ( !is_abort() ) { // copy complete
-					//N_DEBUG("-----copy_complete------");
+					//Qk_DEBUG("-----copy_complete------");
 					Handle<Task> handle(this);
 					abort();
 					async_callback(_end);
@@ -259,16 +259,16 @@ namespace noug {
 			}
 			
 			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
-				N_Assert( file == _source_file );
-				N_Assert( _reading_count > 0 );
+				Qk_Assert( file == _source_file );
+				Qk_Assert( _reading_count > 0 );
 				_reading_count--;
 				if ( buffer.length() ) {
 					_writeing_count++;
 					_target_file->write(buffer, buffer.length());
 					read_next();
 				} else {
-					N_Assert(_reading_count == 0);
-					N_Assert(!_read_end);
+					Qk_Assert(_reading_count == 0);
+					Qk_Assert(!_read_end);
 					_read_end = true;
 					if ( _writeing_count == 0 ) {
 						copy_complete();
@@ -277,8 +277,8 @@ namespace noug {
 			}
 			
 			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
-				N_Assert( file == _target_file );
-				N_Assert( _writeing_count > 0 );
+				Qk_Assert( file == _target_file );
+				Qk_Assert( _writeing_count > 0 );
 				_writeing_count--;
 				release_buffer(buffer);
 				if ( _read_end ) {
@@ -794,7 +794,7 @@ namespace noug {
 				Task* ctx = req->ctx();
 				
 				ctx->_read_count--;
-				N_Assert(ctx->_read_count == 0);
+				Qk_Assert(ctx->_read_count == 0);
 				
 				if ( uv_req->result < 0 ) { // error
 					ctx->abort();
@@ -844,7 +844,7 @@ namespace noug {
 					req->ctx()->_total = uv_req->statbuf.st_size;
 					if ( req->ctx()->_offset > 0 ) {
 						req->ctx()->_total -= req->ctx()->_offset;
-						req->ctx()->_total = N_MAX(req->ctx()->_total, 0);
+						req->ctx()->_total = Qk_MAX(req->ctx()->_total, 0);
 					}
 					req->ctx()->read_advance(req);
 				} else { // err

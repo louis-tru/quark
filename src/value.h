@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__value__
-#define __noug__value__
+#ifndef __quark__value__
+#define __quark__value__
 
 #include "./util/util.h"
 #include "./math.h"
 
-namespace noug {
+namespace quark {
 
 	template<typename Kind, Kind KindInit, typename Value = float>
 	struct ValueWrap {
@@ -103,7 +103,7 @@ namespace noug {
 		ROW,
 		ROW_REVERSE,
 		COLUMN,
-		COLUMN_REVERSE,
+		COLUMQk_REVERSE,
 	};
 
 	// 项目在主轴上的对齐方式

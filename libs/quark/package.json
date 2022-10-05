@@ -1,0 +1,41 @@
+{
+	"name": "quark",
+	"version": "1.0.0",
+	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
+	"main": "index.js",
+	"types": "index",
+	"author": {
+		"name": "xuewen.chu",
+		"email": "louistru@hotmail.com",
+		"url": "http://quarks.cc/"
+	},
+	"scripts": {
+		"build": "tsc && cp LICENSE *.md out/quark && node _.js"
+	},
+	"keywords": [
+		"jsx",
+		"javascript",
+		"ecmascript",
+		"html5",
+		"css",
+		"css3",
+		"qt",
+		"android",
+		"ios",
+		"appletv",
+		"gui",
+		"ui",
+		"opengl",
+		"react",
+		"native",
+		"es6",
+		"es7",
+		"es2017"
+	],
+	"license": "BSD-2-Clause",
+	"bugs": {
+		"url": "https://github.com/louis-tru/./issues",
+		"email": "louistru@hotmail.com"
+	},
+	"homepage": "http://quarks.cc/"
+}

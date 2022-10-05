@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "../os.h"
-#import <noug/util/string.h>
-#import <noug/util/handle.h>
+#import <quark/util/string.h>
+#import <quark/util/handle.h>
 #import <Foundation/Foundation.h>
-#if N_IOS
+#if Qk_IOS
 # import <UIKit/UIKit.h>
 #else
 # import <AppKit/AppKit.h>
@@ -48,14 +48,14 @@
 #import <sys/sysctl.h>
 #import <mach/mach.h>
 
-namespace noug {
+namespace quark {
 	namespace os {
 
 		String brand() {
 			return "Apple";
 		}
 
-#if N_IOS
+#if Qk_IOS
 
 		String version() {
 			return UIDevice.currentDevice.systemVersion.UTF8String;
@@ -95,7 +95,7 @@ namespace noug {
 			return code;
 		}
 
-#if N_IOS
+#if Qk_IOS
 
 		bool is_ac_power() {
 			[UIDevice currentDevice].batteryMonitoringEnabled = YES;

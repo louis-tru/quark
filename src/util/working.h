@@ -30,19 +30,19 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __noug__util___working__
-#define __noug__util___working__
+#ifndef __quark__util___working__
+#define __quark__util___working__
 
 #include "./loop.h"
 #include "./dict.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class ParallelWorking
 	*/
 	class ParallelWorking: public Object {
-		N_HIDDEN_ALL_COPY(ParallelWorking);
+		Qk_HIDDEN_ALL_COPY(ParallelWorking);
 	public:
 		typedef Thread::Func Func;
 		ParallelWorking();
@@ -61,8 +61,8 @@ namespace noug {
 		Childs _childs;
 	};
 
-	N_EXPORT RunLoop* backend_loop();
-	N_EXPORT bool has_backend_thread();
+	Qk_EXPORT RunLoop* backend_loop();
+	Qk_EXPORT bool has_backend_thread();
 
 }
 #endif

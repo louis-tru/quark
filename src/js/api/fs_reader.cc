@@ -36,7 +36,7 @@
 #include "./_fs.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

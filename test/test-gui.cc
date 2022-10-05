@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/util.h>
-#include <noug/codec/codec.h>
-//#include <noug/sprite.h>
-//#include <noug/div.h>
-#include <noug/app.h>
-#include <noug/display.h>
-#include <noug/layout/root.h>
-#include <noug/util/fs.h>
-#include <noug/gl/gl.h>
+#include <quark/util/util.h>
+#include <quark/codec/codec.h>
+//#include <quark/sprite.h>
+//#include <quark/div.h>
+#include <quark/app.h>
+#include <quark/display.h>
+#include <quark/layout/root.h>
+#include <quark/util/fs.h>
+#include <quark/gl/gl.h>
 
-using namespace noug;
-using noug::value::ValueType;
-using noug::value::Value;
+using namespace quark;
+using quark::value::ValueType;
+using quark::value::Value;
 
 void onload_handle (Event<>& evt, void* user) {
 	Root* r = New<Root>();

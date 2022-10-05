@@ -35,24 +35,24 @@
 #include <algorithm>
 
 #if defined(__GLIBC__) || defined(__GNU_LIBRARY__)
-# define N_VLIBC_GLIBC 1
+# define Qk_VLIBC_GLIBC 1
 #endif
 
-#if N_VLIBC_GLIBC || N_BSD
+#if Qk_VLIBC_GLIBC || Qk_BSD
 # include <cxxabi.h>
 # include <dlfcn.h>
 # include <execinfo.h>
-#elif N_QNX
+#elif Qk_QNX
 # include <backtrace.h>
-#endif  // N_VLIBC_GLIBC || N_BSD
+#endif  // Qk_VLIBC_GLIBC || Qk_BSD
 
-#if N_GNUC && !N_ANDROID
+#if Qk_GNUC && !Qk_ANDROID
 # define IMMEDIATE_CRASH() __builtin_trap()
 #else
 # define IMMEDIATE_CRASH() ((void(*)())0)()
 #endif
 
-#if N_ANDROID
+#if Qk_ANDROID
 #include <android/log.h>
 #endif
 
@@ -60,20 +60,20 @@
 # define f_stderr stdout
 #endif
 
-#define N_STRING_FORMAT(format, str) \
+#define Qk_STRING_FORMAT(format, str) \
 	va_list __arg; \
 	va_start(__arg, format); \
 	String str = string_format(format, __arg); \
 	va_end(__arg)
 
-namespace noug {
+namespace quark {
 
 	String string_format(cChar* f, va_list arg);
 
 	static Console* _default_console = nullptr;
 
 	void Console::log(cString& str, cChar* feed) {
-#if N_ANDROID
+#if Qk_ANDROID
 			__android_log_print(ANDROID_LOG_INFO, "LOG ", "%s%s", str.c_str(), feed ? feed: "");
 #else
 			printf("%s%s", str.c_str(), feed ? feed: "");
@@ -81,7 +81,7 @@ namespace noug {
 	}
 
 	void Console::warn(cString& str, cChar* feed) {
-#if N_ANDROID
+#if Qk_ANDROID
 			__android_log_print(ANDROID_LOG_WARN, "WARN", "%s%s", str.c_str(), feed ? feed: "");
 #else
 			printf("%s%s", str.c_str(), feed ? feed: "");
@@ -89,7 +89,7 @@ namespace noug {
 	}
 
 	void Console::error(cString& str, cChar* feed) {
-#if N_ANDROID
+#if Qk_ANDROID
 			__android_log_print(ANDROID_LOG_ERROR, "ERR ", "%s%s", str.c_str(), feed ? feed: "");
 #else
 			fprintf(f_stderr, "%s%s", str.c_str(), feed ? feed: "");
@@ -150,7 +150,7 @@ namespace noug {
 		}
 
 		void log(int64_t msg) {
-			#if N_ARCH_64BIT
+			#if Qk_ARCH_64BIT
 				Console::instance()->log( String::format("%ld\n", msg) );
 			#else
 				Console::instance()->log( String::format("%lld\n", msg) );
@@ -158,7 +158,7 @@ namespace noug {
 		}
 
 		void log(uint64_t msg) {
-#if N_ARCH_64BIT
+#if Qk_ARCH_64BIT
 				Console::instance()->log( String::format("%lu\n", msg) );
 #else
 				Console::instance()->log( String::format("%llu\n", msg) );
@@ -166,7 +166,7 @@ namespace noug {
 		}
 
 		void log(size_t msg) {
-#if N_ARCH_64BIT
+#if Qk_ARCH_64BIT
 				Console::instance()->log( String::format("%lu\n", msg) );
 #else
 				Console::instance()->log( String::format("%llu\n", msg) );
@@ -186,17 +186,17 @@ namespace noug {
 		}
 
 		void log(cChar* format, ...) {
-			N_STRING_FORMAT(format, str);
+			Qk_STRING_FORMAT(format, str);
 			Console::instance()->log(str, "\n");
 		}
 		
 		void warn(cChar* format, ...) {
-			N_STRING_FORMAT(format, str);
+			Qk_STRING_FORMAT(format, str);
 			Console::instance()->warn(str, "\n");
 		}
 		
 		void error(cChar* format, ...) {
-			N_STRING_FORMAT(format, str);
+			Qk_STRING_FORMAT(format, str);
 			Console::instance()->error(str, "\n");
 		}
 		
@@ -208,13 +208,13 @@ namespace noug {
 	}
 
 	static void report_error(cChar* format, ...) {
-		N_STRING_FORMAT(format, str);
+		Qk_STRING_FORMAT(format, str);
 		printf("%s", str.c_str());
 	}
 
 	// Attempts to dump a backtrace (if supported).
 	static void dump_backtrace() {
-#if N_VLIBC_GLIBC || N_BSD
+#if Qk_VLIBC_GLIBC || Qk_BSD
 			void* trace[100];
 			int size = backtrace(trace, 100);
 			report_error("\n==== C stack trace ===============================\n\n");
@@ -235,7 +235,7 @@ namespace noug {
 					}
 				}
 			}
-#elif N_QNX
+#elif Qk_QNX
 			Char out[1024];
 			bt_accessor_t acc;
 			bt_memmap_t memmap;
@@ -255,13 +255,13 @@ namespace noug {
 			}
 			bt_unload_memmap(&memmap);
 			bt_release_accessor(&acc);
-#endif  // N_VLIBC_GLIBC || N_BSD
+#endif  // Qk_VLIBC_GLIBC || Qk_BSD
 	}
 
 	void fatal(cChar* file, uint32_t line, cChar* func, cChar* msg, ...) {
 		Console::instance()->clear();
 		if (msg) {
-			N_STRING_FORMAT(msg, str);
+			Qk_STRING_FORMAT(msg, str);
 			Console::instance()->error("\n\n\n");
 			Console::instance()->error(str, "\n");
 		}

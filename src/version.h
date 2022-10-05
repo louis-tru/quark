@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__version__
-#define __noug__version__
+#ifndef __quark__version__
+#define __quark__version__
 
 #define NOUG_MAJOR_VERSION 1
 #define NOUG_MINOR_VERSION 0

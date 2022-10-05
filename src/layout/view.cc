@@ -35,12 +35,12 @@
 #include "./root.h"
 #include <math.h>
 
-namespace noug {
+namespace quark {
 
 	// --------------- L a y o u t  V i e w ---------------
 
 	// view private members method
-	N_DEFINE_INLINE_MEMBERS(View, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(View, Inl) {
 	public:
 		#define _inl(self) static_cast<View::Inl*>(self)
 
@@ -153,7 +153,7 @@ namespace noug {
 	}
 
 	View::~View() {
-		N_Assert(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
+		Qk_Assert(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		blur();
 		set_action(nullptr); // del action
 		remove_all_child_(); // 删除子视图
@@ -218,7 +218,7 @@ namespace noug {
 		*/
 	void View::prepend(View* child) {
 		if (!is_allow_append_child()) {
-			N_WARN("Not can allow prepend child view");
+			Qk_WARN("Not can allow prepend child view");
 			return;
 		}
 		if (this == child->_parent) {
@@ -247,7 +247,7 @@ namespace noug {
 		*/
 	void View::append(View* child) {
 		if (!is_allow_append_child()) {
-			N_WARN("Not can allow append child view");
+			Qk_WARN("Not can allow append child view");
 			return;
 		}
 		if (this == child->_parent) {
@@ -605,7 +605,7 @@ namespace noug {
 		*/
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
-			_opacity = N_MAX(0, N_MIN(val, 1));
+			_opacity = Qk_MAX(0, Qk_MIN(val, 1));
 			mark(kLayout_None); // mark none
 		}
 	}

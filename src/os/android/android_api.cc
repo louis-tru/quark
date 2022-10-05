@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/os/android/android_api.h>
-#include <noug/util/platforms/android_jni.h>
+#include <quark/os/android/android_api.h>
+#include <quark/util/platforms/android_jni.h>
 
-namespace noug {
+namespace quark {
 
 	typedef JNI::MethodInfo MethodInfo;
 	typedef JNI::ScopeENV   ScopeENV;
@@ -40,7 +40,7 @@ namespace noug {
 	public:
 		Api_INL() {
 			ScopeENV env;
-			clazz_              = JNI::find_clazz("org/noug/API");
+			clazz_              = JNI::find_clazz("org/quark/API");
 			//clazz_build_        = JNI::find_clazz("android.os.Build");
 			version_            = JNI::find_static_method(clazz_, "version", "()Ljava/lang/String;");
 			brand_              = JNI::find_static_method(clazz_, "brand", "()Ljava/lang/String;");

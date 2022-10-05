@@ -138,9 +138,9 @@ static const char *__xtransname = "_XTrans";
 
 /*
  * Create a single address structure that can be used wherever
- * an address structure is needed. struct sockaddr is not big enough
+ * an address structure is needed. struct sockaddr is not big equarkh
  * to hold a sockadd_un, so we create this definition to have a single
- * structure that is big enough for all the structures we might need.
+ * structure that is big equarkh for all the structures we might need.
  *
  * This structure needs to be independent of the socket/TLI interface used.
  */
@@ -148,7 +148,7 @@ static const char *__xtransname = "_XTrans";
 #if defined(IPv6) && defined(AF_INET6)
 typedef struct sockaddr_storage Xtransaddr;
 #else
-#define XTRANS_MAX_ADDR_LEN	128	/* large enough to hold sun_path */
+#define XTRANS_MAX_ADDR_LEN	128	/* large equarkh to hold sun_path */
 
 typedef	struct {
     unsigned char	addr[XTRANS_MAX_ADDR_LEN];

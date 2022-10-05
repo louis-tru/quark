@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/util.h>
+#include <quark/util/util.h>
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
 #include <functional>
 
-using namespace noug;
+using namespace quark;
 
 class Foo {
  public:
@@ -59,7 +59,7 @@ class Foo {
 		while (0 == flag_) {
 			cond_.wait(ul);
 		}
-		N_LOG("%d", flag_);
+		Qk_LOG("%d", flag_);
 	}
 	
 	void threadFunc2()
@@ -100,7 +100,7 @@ void test_for() {
 	}
 	
 	m1.lock();
-	N_LOG("result: %d", j);
+	Qk_LOG("result: %d", j);
 	m1.unlock();
 	
 }
@@ -120,6 +120,6 @@ void test_thread(int argc, char **argv) {
 	g_a.join();
 	g_b.join();
 	
-	N_LOG("done");
+	Qk_LOG("done");
 	
 }

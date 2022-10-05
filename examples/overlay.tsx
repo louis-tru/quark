@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Indep, default as noug, _CVD } from 'noug';
+import { Div, Button, Indep, default as quark, _CVD } from 'quark';
 import { Navbutton, Mynavpage } from './public';
-import { Overlay } from 'noug/overlay';
-import { ClickEvent } from 'noug/event';
+import { Overlay } from 'quark/overlay';
+import { ClickEvent } from 'quark/event';
 
 const resolve = require.resolve;
 
 function show_overlay(evt: ClickEvent) {
-	noug.render<Overlay>(
+	quark.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton>Menu A</Navbutton>
@@ -49,7 +49,7 @@ function show_overlay(evt: ClickEvent) {
 }
 
 function show_overlay2(evt: ClickEvent) {
-	var com = noug.render<Overlay>(
+	var com = quark.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton>Hello.</Navbutton>
@@ -63,7 +63,7 @@ function show_overlay2(evt: ClickEvent) {
 }
 
 function show_overlay3(evt: ClickEvent) {
-	var com = noug.render<Overlay>(
+	var com = quark.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton style={{textColor:"#fff"}}>Hello.</Navbutton>

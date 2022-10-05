@@ -30,10 +30,10 @@
 
 #include "./_json.h"
 #include "../js.h"
-// #include "noug/util/string-builder.h"
+// #include "quark/util/string-builder.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

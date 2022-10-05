@@ -28,20 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__render__codec__codec__
-#define __noug__render__codec__codec__
+#ifndef __quark__render__codec__codec__
+#define __quark__render__codec__codec__
 
-#include "noug/util/handle.h"
-#include "noug/util/array.h"
+#include "quark/util/handle.h"
+#include "quark/util/array.h"
 
 #include "../pixel.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	 * @class ImageCodec
 	 */
-	class N_EXPORT ImageCodec: public Object {
+	class Qk_EXPORT ImageCodec: public Object {
 	public:
 		
 		enum ImageFormat {
@@ -90,7 +90,7 @@ namespace noug {
 	/**
 	 * @class TGAImageCodec
 	 */
-	class N_EXPORT TGAImageCodec: public ImageCodec {
+	class Qk_EXPORT TGAImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
@@ -101,7 +101,7 @@ namespace noug {
 	/**
 	 * @class JPEGImageCodec
 	 */
-	class N_EXPORT JPEGImageCodec: public ImageCodec {
+	class Qk_EXPORT JPEGImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
@@ -111,7 +111,7 @@ namespace noug {
 	/**
 	 * @class GIFImageCodec
 	 */
-	class N_EXPORT GIFImageCodec: public ImageCodec {
+	class Qk_EXPORT GIFImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
@@ -121,7 +121,7 @@ namespace noug {
 	/**
 	 * @class PNGImageParser
 	 */
-	class N_EXPORT PNGImageCodec: public ImageCodec {
+	class Qk_EXPORT PNGImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
@@ -131,7 +131,7 @@ namespace noug {
 	/**
 	 * @class WEBPImageCodec
 	 */
-	class N_EXPORT WEBPImageCodec: public ImageCodec {
+	class Qk_EXPORT WEBPImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
@@ -146,12 +146,12 @@ namespace noug {
 	 * BC4/BC5/UYVY/YUY2/RGBG8888/GRGB8888/BW1BPP...
 	 * @class PVRTImageParser
 	 */
-	class N_EXPORT PVRTCImageCodec: public ImageCodec {
+	class Qk_EXPORT PVRTCImageCodec: public ImageCodec {
 	public:
 		virtual bool test(cBuffer& data, Pixel* out);
 		virtual Array<Pixel> decode(cBuffer& data);
 		virtual Buffer encode(cPixel& data);
-		N_DEFINE_INLINE_CLASS(_Inl);
+		Qk_DEFINE_INLINE_CLASS(_Inl);
 	};
 
 }

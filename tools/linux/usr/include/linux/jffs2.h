@@ -134,7 +134,7 @@ struct jffs2_raw_dirent
 /* The JFFS2 raw inode structure: Used for storage on physical media.  */
 /* The uid, gid, atime, mtime and ctime members could be longer, but
    are left like this for space efficiency. If and when people decide
-   they really need them extended, it's simple enough to add support for
+   they really need them extended, it's simple equarkh to add support for
    a new type of raw node.
 */
 struct jffs2_raw_inode

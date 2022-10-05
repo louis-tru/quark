@@ -39,7 +39,7 @@
 #include "../metal.h"
 #endif
 
-#if !N_APPLE || N_ENABLE_GL
+#if !Qk_APPLE || Qk_ENABLE_GL
 #include "../gl.h"
 #endif
 
@@ -50,7 +50,7 @@
 #include "skia/gpu/GrBackendSurface.h"
 #include "skia/gpu/GrDirectContext.h"
 
-namespace noug {
+namespace quark {
 	class BaseScroll;
 
 	/**
@@ -59,7 +59,7 @@ namespace noug {
 	class SkiaRender: public ViewVisitor {
 	public:
 		SkiaRender(Application* app);
-		N_Define_Prop_Get(Application*, app);
+		Qk_Define_Prop_Get(Application*, app);
 		virtual int  flags();
 		virtual void visitView(View* v);
 		virtual void visitBox(Box* box);
@@ -113,7 +113,7 @@ namespace noug {
 		bool            _raster; // software raster
 	};
 
-#if !N_APPLE || N_ENABLE_GL
+#if !Qk_APPLE || Qk_ENABLE_GL
 	/**
 	* @class SkiaGLRender
 	*/

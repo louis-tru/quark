@@ -1,7 +1,7 @@
 
 import { P, M, LOG, AM, VM, VP, CA } from './test'
-import 'noug/fs';
-import 'noug/url';
+import 'quark/fs';
+import 'quark/url';
 import { Buffer } from 'buffer';
 
 // init

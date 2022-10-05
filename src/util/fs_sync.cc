@@ -32,14 +32,14 @@
 #include "./fs.h"
 #include <uv.h>
 
-#if N_WIN
+#if Qk_WIN
 #include <io.h>
 #include <direct.h>
 #else
 #include <unistd.h>
 #endif
 
-namespace noug {
+namespace quark {
 
 	extern void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat);
 	extern int inl__file_flag_mask(int flag);
@@ -97,11 +97,11 @@ namespace noug {
 			Dirent{fs_basename(path), fs_format("%s", *path), stat.type()}
 		};
 
-		return noug::each_sync(ls, cb, internal);
+		return quark::each_sync(ls, cb, internal);
 	}
 
 	bool fs_each_sync(cString& path, Cb cb, bool internal) throw(Error) {
-		return noug::each_sync_1(path, cb, internal, false);
+		return quark::each_sync_1(path, cb, internal, false);
 	}
 
 	void fs_chmod_sync(cString& path, uint32_t mode) throw(Error) {

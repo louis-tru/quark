@@ -42,13 +42,13 @@ var include = target + '/product/include';
 fs.rm_r_sync(include);
 fs.rm_r_sync(target + '/product/libs');
 fs.rm_r_sync(target + '/product/examples');
-fs.rm_r_sync(target + '/product/noug');
+fs.rm_r_sync(target + '/product/quark');
 
-read_version.update_noug_version();
+read_version.update_quark_version();
 
-// build noug
-execSync(`cd ${root}/libs/noug && npm run build`);
-fs.cp_sync(root + '/libs/noug/out/@types', target + '/product/@types');
+// build quark
+execSync(`cd ${root}/libs/quark && npm run build`);
+fs.cp_sync(root + '/libs/quark/out/@types', target + '/product/@types');
 
 // build noproj
 execSync(`cd ${root}/libs/noproj && npm run build`);
@@ -58,8 +58,8 @@ fs.cp_sync(root + '/libs/noproj/gyp', target + '/gyp', {ignore_hide:1,replace:0}
 fs.chmodSync(target + '/gyp/gyp', 0755);
 fs.chmodSync(target + '/shell.js', 0755);
 
-copy_header(root + '/noug', `${include}/noug`);
-copy_header(root + '/noug-js', `${include}/noug-js`);
+copy_header(root + '/quark', `${include}/quark`);
+copy_header(root + '/quark-js', `${include}/quark-js`);
 // copy_header(`${root}/deps/v8-link/include`, include);
 // copy_header(`${root}/deps/node/deps/openssl/openssl/include/openssl`, `${include}/openssl`);
 // copy_header(`${root}/deps/node/deps/openssl/config`, `${include}/openssl`);
@@ -73,8 +73,8 @@ copy_header(root + '/noug-js', `${include}/noug-js`);
 // copy_header(`${root}/deps/node/src/node_object_wrap.h`, `${include}/node_object_wrap.h`);
 // copy_header(`${root}/deps/node/src/node_version.h`, `${include}/node_version.h`);
 
-// fs.cp_sync(root + '/libs/noug', target + '/product/libs/noug');
+// fs.cp_sync(root + '/libs/quark', target + '/product/libs/quark');
 fs.cp_sync(root + '/examples', target + '/product/examples');
-fs.cp_sync(root + '/tools/product.gypi', target + '/product/noug.gypi');
+fs.cp_sync(root + '/tools/product.gypi', target + '/product/quark.gypi');
 // fs.cp_sync(root + '/tools/common.gypi', target + '/product/common.gypi');
 // fs.cp_sync(root + '/out/config.gypi', target + '/product/config.gypi');

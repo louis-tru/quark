@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__render__source__
-#define __noug__render__source__
+#ifndef __quark__render__source__
+#define __quark__render__source__
 
 #include "../util/util.h"
 #include "../util/string.h"
@@ -38,15 +38,15 @@
 #include "../util/loop.h"
 #include "./pixel.h"
 
-namespace noug {
+namespace quark {
 
 	class Application;
 
 	/**
 	* @class ImageSource
 	*/
-	class N_EXPORT ImageSource: public Reference {
-		N_HIDDEN_ALL_COPY(ImageSource);
+	class Qk_EXPORT ImageSource: public Reference {
+		Qk_HIDDEN_ALL_COPY(ImageSource);
 	public:
 
 		enum State: int {
@@ -62,21 +62,21 @@ namespace noug {
 		/**
 		 * @event onState
 		 */
-		N_Event(State, Event<ImageSource, State>);
+		Qk_Event(State, Event<ImageSource, State>);
 		
 		// Defines props
-		N_Define_Prop_Get(String, uri);
-		N_Define_Prop_Get(State, state);
-		N_Define_Prop_Get(int, width);
-		N_Define_Prop_Get(int, height);
-		N_Define_Prop_Get(ColorType, type);
+		Qk_Define_Prop_Get(String, uri);
+		Qk_Define_Prop_Get(State, state);
+		Qk_Define_Prop_Get(int, width);
+		Qk_Define_Prop_Get(int, height);
+		Qk_Define_Prop_Get(ColorType, type);
 
 		// @constructor
 		// <FlowLayout>
-		// 	<Image src={app.imagePool.get('http://noug.cc/res/test.jpeg')} />
-		// 	<Image src={new ImageSource('http://noug.cc/res/test2.jpeg')} />
+		// 	<Image src={app.imagePool.get('http://quarks.cc/res/test.jpeg')} />
+		// 	<Image src={new ImageSource('http://quarks.cc/res/test2.jpeg')} />
 		// 	<Image
-		// 		src='http://noug.cc/res/test.jpeg'
+		// 		src='http://quarks.cc/res/test.jpeg'
 		// 		width={100} 
 		// 		height={100} margin={100} padding={100} 
 		// 		fill="#f00,rgba(0,0,0,1)" class="img1" style={{width:100, height: 100}}
@@ -129,17 +129,17 @@ namespace noug {
 		Buffer   _loaded;
 		uint32_t _load_id, _size, _used;
 		void *_inl;
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
 	* @class SourceHold
 	*/
-	class N_EXPORT SourceHold {
+	class Qk_EXPORT SourceHold {
 	public:
 		~SourceHold();
-		N_Define_Prop_Acc(String, src);
-		N_Define_Prop_Acc(ImageSource*, source, NoConst);
+		Qk_Define_Prop_Acc(String, src);
+		Qk_Define_Prop_Acc(ImageSource*, source, NoConst);
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);
@@ -149,8 +149,8 @@ namespace noug {
 	/**
 	* @class ImagePool
 	*/
-	class N_EXPORT ImagePool: public Object {
-		N_HIDDEN_ALL_COPY(ImagePool);
+	class Qk_EXPORT ImagePool: public Object {
+		Qk_HIDDEN_ALL_COPY(ImagePool);
 	public:
 		
 		/**
@@ -192,7 +192,7 @@ namespace noug {
 		uint64_t _total_data_size; /* 当前数据占用memory总容量 */
 		Mutex _Mutex;
 		Application* _host;
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

@@ -28,42 +28,42 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/fs.h>
+#include <quark/util/fs.h>
 #include <trial/fs.h>
 #include <pwd.h>
 
-using namespace noug;
+using namespace quark;
 
 void test_fs(int argc, char **argv) {
 	
 	String test_str = "ABCDEFG";
 	
-	N_LOG(test_str.last_index_of("G", 1));
+	Qk_LOG(test_str.last_index_of("G", 1));
 	
-	N_LOG(fs_executable());
+	Qk_LOG(fs_executable());
 	
-	N_LOG(fs_cwd());
+	Qk_LOG(fs_cwd());
 	
 	if(fs_chdir("/home/louis/www/jsxdev/bin/") == 0){
-		N_LOG("修改工作路径成功");
+		Qk_LOG("修改工作路径成功");
 	}
 	
-	N_LOG(fs_cwd());
+	Qk_LOG(fs_cwd());
 	
 	String str = "/tmp/kkl/";
 	
-	N_LOG(str.length() - str.last_index_of('/') == 1);
+	Qk_LOG(str.length() - str.last_index_of('/') == 1);
 	
-	N_LOG(fs_documents());
+	Qk_LOG(fs_documents());
 	
 	fs_chdir(fs_executable()); // 应该不能成功
 	
-	N_LOG(fs_cwd()); // echo "/"
+	Qk_LOG(fs_cwd()); // echo "/"
 	
 	// ios 测试成功
-	N_LOG("\nTEST FileSearch");
+	Qk_LOG("\nTEST FileSearch");
 	fs_chdir( fs_dirname(fs_executable()) );
-	N_LOG("设置工作目录,%s", *fs_cwd());
+	Qk_LOG("设置工作目录,%s", *fs_cwd());
 	
 	FileSearch* search = FileSearch::shared();
 	search->add_search_path("res/test");
@@ -71,79 +71,79 @@ void test_fs(int argc, char **argv) {
 	search->add_zip_search_path("res/test-fs.apk", "assets");
 	search->add_zip_search_path("res/test-fs.apk", "assets/thk/res_r_hd");
 	
-	N_LOG("length, %d", search->get_search_paths().length());
+	Qk_LOG("length, %d", search->get_search_paths().length());
 	
-	N_LOG("aa.txt,exist,%d", search->exists("aa.txt"));
-	N_LOG("bb.txt,exist,%d", search->exists("bb.txt"));
-	N_LOG("cc.txt,exist,%d", search->exists("cc.txt"));
-	N_LOG("dd.txt,exist,%d", search->exists("dd.txt"));
+	Qk_LOG("aa.txt,exist,%d", search->exists("aa.txt"));
+	Qk_LOG("bb.txt,exist,%d", search->exists("bb.txt"));
+	Qk_LOG("cc.txt,exist,%d", search->exists("cc.txt"));
+	Qk_LOG("dd.txt,exist,%d", search->exists("dd.txt"));
 	
-	N_LOG("aa.txt,abs,%s", search->get_absolute_path("aa.txt").c_str());
-	N_LOG("bb.txt,abs,%s", search->get_absolute_path("bb.txt").c_str());
-	N_LOG("cc.txt,abs,%s", search->get_absolute_path("cc.txt").c_str());
-	N_LOG("dd.txt,abs,%s", search->get_absolute_path("dd.txt").c_str());
+	Qk_LOG("aa.txt,abs,%s", search->get_absolute_path("aa.txt").c_str());
+	Qk_LOG("bb.txt,abs,%s", search->get_absolute_path("bb.txt").c_str());
+	Qk_LOG("cc.txt,abs,%s", search->get_absolute_path("cc.txt").c_str());
+	Qk_LOG("dd.txt,abs,%s", search->get_absolute_path("dd.txt").c_str());
 	
 	// The normal need to release the memory
-	N_LOG("aa.txt,data,%s", search->read("aa.txt").val());
-	N_LOG("bb.txt,data,%s", search->read("bb.txt").val());
-	N_LOG("cc.txt,data,%s", search->read("cc.txt").val());
-	N_LOG("dd.txt,data,%s", search->read("dd.txt").val());
+	Qk_LOG("aa.txt,data,%s", search->read("aa.txt").val());
+	Qk_LOG("bb.txt,data,%s", search->read("bb.txt").val());
+	Qk_LOG("cc.txt,data,%s", search->read("cc.txt").val());
+	Qk_LOG("dd.txt,data,%s", search->read("dd.txt").val());
 	
-	N_LOG("\nTEST zip\n");
+	Qk_LOG("\nTEST zip\n");
 	
-	N_LOG("bgm/1.mp3,exist,%d", search->exists("bgm/1.mp3"));
-	N_LOG("bin/_nmxOB.js_v274443,exist,%d", search->exists("bin/_nmxOB.js_v274443"));
-	N_LOG("thk/res_r_hd/ad/39.jpg_v94859,exist,%d", search->exists("thk/res_r_hd/ad/39.jpg_v94859"));
-	N_LOG("ad/39.jpg_v94859,exist,%d", search->exists("ad/39.jpg_v94859"));
+	Qk_LOG("bgm/1.mp3,exist,%d", search->exists("bgm/1.mp3"));
+	Qk_LOG("bin/_nmxOB.js_v274443,exist,%d", search->exists("bin/_nmxOB.js_v274443"));
+	Qk_LOG("thk/res_r_hd/ad/39.jpg_v94859,exist,%d", search->exists("thk/res_r_hd/ad/39.jpg_v94859"));
+	Qk_LOG("ad/39.jpg_v94859,exist,%d", search->exists("ad/39.jpg_v94859"));
 	
-	N_LOG("bgm/1.mp3,abs,%s", search->get_absolute_path("bgm/1.mp3").c_str());
-	N_LOG("bin/_nmxOB.js_v274443,abs,%s", search->get_absolute_path("bin/_nmxOB.js_v274443").c_str());
-	N_LOG("thk/res_r_hd/ad/39.jpg_v94859,abs,%s", search->get_absolute_path("thk/res_r_hd/ad/39.jpg_v94859").c_str());
-	N_LOG("ad/39.jpg_v94859,abs,%s", search->get_absolute_path("ad/39.jpg_v94859").c_str());
+	Qk_LOG("bgm/1.mp3,abs,%s", search->get_absolute_path("bgm/1.mp3").c_str());
+	Qk_LOG("bin/_nmxOB.js_v274443,abs,%s", search->get_absolute_path("bin/_nmxOB.js_v274443").c_str());
+	Qk_LOG("thk/res_r_hd/ad/39.jpg_v94859,abs,%s", search->get_absolute_path("thk/res_r_hd/ad/39.jpg_v94859").c_str());
+	Qk_LOG("ad/39.jpg_v94859,abs,%s", search->get_absolute_path("ad/39.jpg_v94859").c_str());
 
 	// The normal need to release the memory
-	N_LOG("bgm/1.mp3,data,%s", search->read("bgm/1.mp3").val());
+	Qk_LOG("bgm/1.mp3,data,%s", search->read("bgm/1.mp3").val());
 	
 	
 	Buffer s = search->read("bin/_nmxOB.js_v274443");
-	N_LOG("Copy data");
+	Qk_LOG("Copy data");
 	Buffer d = s;
-	N_LOG("%i", s.is_null());
-	N_LOG("bin/_nmxOB.js_v274443,data,%s", d.val());
-	N_LOG("Copy string");
+	Qk_LOG("%i", s.is_null());
+	Qk_LOG("bin/_nmxOB.js_v274443,data,%s", d.val());
+	Qk_LOG("Copy string");
 	String ss = std::move(d);
-	N_LOG("%i", d.is_null());
-	N_LOG("bin/_nmxOB.js_v274443,data,%s", ss.c_str());
-	N_LOG("\n");
+	Qk_LOG("%i", d.is_null());
+	Qk_LOG("bin/_nmxOB.js_v274443,data,%s", ss.c_str());
+	Qk_LOG("\n");
 	
-	N_LOG("Copy string 2");
+	Qk_LOG("Copy string 2");
 	String s2 = search->read("bin/_nmxOB.js_v274443");
-	N_LOG("bin/_nmxOB.js_v274443,data,%s", s2.c_str());
-	N_LOG("\n");
+	Qk_LOG("bin/_nmxOB.js_v274443,data,%s", s2.c_str());
+	Qk_LOG("\n");
 	
-	N_LOG("Copy string operator=, default call copy constructor ");
+	Qk_LOG("Copy string operator=, default call copy constructor ");
 	String s3 = "String2";
 	s3 = search->read("bin/_nmxOB.js_v274443").val();
-	N_LOG("BB");
-	N_LOG("bin/_nmxOB.js_v274443,data,%s", s3.c_str());
-	N_LOG("\n");
+	Qk_LOG("BB");
+	Qk_LOG("bin/_nmxOB.js_v274443,data,%s", s3.c_str());
+	Qk_LOG("\n");
 	
-	N_LOG("Copy data operator=");
+	Qk_LOG("Copy data operator=");
 	d = search->read("bin/_nmxOB.js_v274443");
-	N_LOG("bin/_nmxOB.js_v274443,data,%s", d.val());
-	N_LOG("\n");
+	Qk_LOG("bin/_nmxOB.js_v274443,data,%s", d.val());
+	Qk_LOG("\n");
 	
-	N_LOG("thk/res_r_hd/ad/39.jpg_v94859,data,%s", search->read("thk/res_r_hd/ad/39.jpg_v94859").val());
-	N_LOG("ad/39.jpg_v94859,data,%s", search->read("ad/39.jpg_v94859").val());
-	N_LOG("\n");
+	Qk_LOG("thk/res_r_hd/ad/39.jpg_v94859,data,%s", search->read("thk/res_r_hd/ad/39.jpg_v94859").val());
+	Qk_LOG("ad/39.jpg_v94859,data,%s", search->read("ad/39.jpg_v94859").val());
+	Qk_LOG("\n");
 
-	N_LOG("Test zip path");
-	N_LOG(search->get_absolute_path("bin/_nmxOB.js_v274443"));
-	N_LOG("ad/39.jpg_v94859,data,%s", search->read(search->get_absolute_path("bin/_nmxOB.js_v274443")).val());
-	N_LOG("\n");
+	Qk_LOG("Test zip path");
+	Qk_LOG(search->get_absolute_path("bin/_nmxOB.js_v274443"));
+	Qk_LOG("ad/39.jpg_v94859,data,%s", search->read(search->get_absolute_path("bin/_nmxOB.js_v274443")).val());
+	Qk_LOG("\n");
 	
-	N_LOG("Test zip get_absolute_path");
-	N_LOG(search->get_absolute_path("thk/../../assets/thk/../thk/res_r_hd/ad/39.jpg_v94859"));
+	Qk_LOG("Test zip get_absolute_path");
+	Qk_LOG(search->get_absolute_path("thk/../../assets/thk/../thk/res_r_hd/ad/39.jpg_v94859"));
 
-	N_LOG("Very good, doen");
+	Qk_LOG("Very good, doen");
 }

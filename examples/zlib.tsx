@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, _CVD } from 'noug';
+import { Div, Button, _CVD } from 'quark';
 import { Mynavpage } from './public';
 
 const resolve = require.resolve;

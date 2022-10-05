@@ -30,15 +30,15 @@
 * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __noug__util__uv__
-#define __noug__util__uv__
+#ifndef __quark__util__uv__
+#define __quark__util__uv__
 
 #include <uv.h>
 #include "./util.h"
 #include "./cb.h"
 #include "./loop.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	 * @class UVRequestWrap
@@ -72,7 +72,7 @@ namespace noug {
 	 * @class AsyncIOTask
 	 */
 	class AsyncIOTask: public Reference {
-		N_HIDDEN_ALL_COPY(AsyncIOTask);
+		Qk_HIDDEN_ALL_COPY(AsyncIOTask);
 	public:
 		AsyncIOTask(RunLoop* loop = RunLoop::current());
 		virtual ~AsyncIOTask();

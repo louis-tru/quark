@@ -1,4 +1,4 @@
-# `noug`
+# `quark`
 
 
 ## `Class: Application`
@@ -86,15 +86,15 @@
 Example:
 
 ```js
-import { View, Div, noug } from 'noug'
+import { View, Div, quark } from 'quark'
 
 var v = new View();
 v.x = 100;
 v.y = 100;
-noug.root.append(v);
+quark.root.append(v);
 
 // jsx语法只能存在于.jsx文件中
-var v2 = noug.render(<Div width=100 height=100 backgroundColor="#f00" />, v);
+var v2 = quark.render(<Div width=100 height=100 backgroundColor="#f00" />, v);
 v2.onClick.on(function(ev) {
 	console.log('div click');
 })
@@ -1750,38 +1750,38 @@ console.log(view.class);
 [`ViewController`]: ctr.md#class-viewcontroller
 [`HighlightedStatus`]: event.md#enum-highlightedstatus
 [`Notification`]: event.md#class-notification
-[`TextFont`]: noug.md#class-textfont
-[`TextLayout`]: noug.md#class-textlayout
-[`View`]: noug.md#class-view
-[`Sprite`]: noug.md#class-sprite
-[`Layout`]: noug.md#class-layout
-[`Span`]: noug.md#class-span
-[`Box`]: noug.md#class-box
-[`Div`]: noug.md#class-div
-[`Hybrid`]:  noug.md#class-hybrid
-[`Limit`]:  noug.md#class-limit
-[`Indep`]:  noug.md#class-indep
-[`LimitIndep`]:  noug.md#class-limitindep
-[`Image`]:  noug.md#class-image
-[`Panel`]:  noug.md#class-panel
-[`Root`]:  noug.md#class-root
-[`BasicScroll`]: noug.md#class-basicscroll
-[`Scroll`]: noug.md#class-scroll
-[`Button`]: noug.md#class-button
-[`Text`]: noug.md#class-text
-[`Input`]: noug.md#class-input
-[`Textarea`]: noug.md#class-textarea
-[`TextNode`]: noug.md#class-textnode
-[`Label`]: noug.md#class-label
-[`Trap in Layout`]: noug.md#trap-in-layout
+[`TextFont`]: quark.md#class-textfont
+[`TextLayout`]: quark.md#class-textlayout
+[`View`]: quark.md#class-view
+[`Sprite`]: quark.md#class-sprite
+[`Layout`]: quark.md#class-layout
+[`Span`]: quark.md#class-span
+[`Box`]: quark.md#class-box
+[`Div`]: quark.md#class-div
+[`Hybrid`]:  quark.md#class-hybrid
+[`Limit`]:  quark.md#class-limit
+[`Indep`]:  quark.md#class-indep
+[`LimitIndep`]:  quark.md#class-limitindep
+[`Image`]:  quark.md#class-image
+[`Panel`]:  quark.md#class-panel
+[`Root`]:  quark.md#class-root
+[`BasicScroll`]: quark.md#class-basicscroll
+[`Scroll`]: quark.md#class-scroll
+[`Button`]: quark.md#class-button
+[`Text`]: quark.md#class-text
+[`Input`]: quark.md#class-input
+[`Textarea`]: quark.md#class-textarea
+[`TextNode`]: quark.md#class-textnode
+[`Label`]: quark.md#class-label
+[`Trap in Layout`]: quark.md#trap-in-layout
 [`reader`]: reader.md
 [`$(path)`]: global.md#_Path-path-
 [`Repeat`]: value.md#class-repeat
 [`ContentAlign`]: value.md#class-contentalign
-[`Limit.minWidth`]: noug.md#limit-minWidth
-[`Limit.minHeight`]: noug.md#limit-minHeight
-[`Limit.maxWidth`]: noug.md#limit-maxWidth
-[`Limit.maxHeight`]: noug.md#limit-maxHeight
+[`Limit.minWidth`]: quark.md#limit-minWidth
+[`Limit.minHeight`]: quark.md#limit-minHeight
+[`Limit.maxWidth`]: quark.md#limit-maxWidth
+[`Limit.maxHeight`]: quark.md#limit-maxHeight
 [`Curve`]: value.md#class-curve
 [`TextColor`]: value.md#class-textcolor
 [`TextSize`]: value.md#class-textsize

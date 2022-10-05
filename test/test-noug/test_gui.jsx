@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import 'noug/sys';
-import 'noug/dialog';
+import 'quark/sys';
+import 'quark/dialog';
 import {
 	Application,
 	Root, Div, Image, Sprite,
 	Text, Label, Limit, Hybrid,
-	Span, Video, Panel, Button, TextNode, Scroll, noug: gui
-} from 'noug';
+	Span, Video, Panel, Button, TextNode, Scroll, quark: gui
+} from 'quark';
 
 const action1 = {
 	delay: 1,

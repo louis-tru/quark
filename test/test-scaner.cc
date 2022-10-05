@@ -1,15 +1,15 @@
 
 #include <stdio.h>
-#include <noug/app.h>
-#include <noug/layout/root.h>
-#include <noug/render/skia/skia_canvas.h>
-#include <noug/render/skia/skia_render.h>
-#include <noug/render/render.h>
-#include <noug/layout/flex.h>
-#include <noug/layout/image.h>
-#include <noug/effect.h>
-#include <noug/display.h>
-#include <noug/util/fs.h>
+#include <quark/app.h>
+#include <quark/layout/root.h>
+#include <quark/render/skia/skia_canvas.h>
+#include <quark/render/skia/skia_render.h>
+#include <quark/render/render.h>
+#include <quark/layout/flex.h>
+#include <quark/layout/image.h>
+#include <quark/effect.h>
+#include <quark/display.h>
+#include <quark/util/fs.h>
 #include <vector>
 #include <skia/core/SkImage.h>
 #include <skia/core/SkFont.h>
@@ -17,9 +17,9 @@
 #include <skia/effects/SkDashPathEffect.h>
 #include <skia/core/SkBitmap.h>
 #include <skia/core/SkPath.h>
-#include <noug/render/scaner.h>
+#include <quark/render/scaner.h>
 
-using namespace noug;
+using namespace quark;
 
 void testRenderScaner(SkCanvas* canvas) {
 	
@@ -42,7 +42,7 @@ void testRenderScaner(SkCanvas* canvas) {
 		SkPixmap* pixmap = (SkPixmap*)ctx;
 		int x1 = (left + (left & 0x8000)) >> 16;
 		int x2 = (right + (right & 0x8000)) >> 16;
-		N_DEBUG("%f, %f, %d, %d, %d", left / 65536.0, right / 65536.0, x1, x2, y);
+		Qk_DEBUG("%f, %f, %d, %d, %d", left / 65536.0, right / 65536.0, x1, x2, y);
 
 		uint32_t red = 0xff0000ff;
 

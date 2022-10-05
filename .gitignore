@@ -3,7 +3,7 @@ out
 .DS_Store
 *.DS_Store
 node_modules/.bin
-noug.sublime-workspace
+quark.sublime-workspace
 *jsa-shell
 .idea
 *.o
@@ -11,7 +11,7 @@ noug.sublime-workspace
 *.so
 .vscode
 node_modules
-libs/noug/out
+libs/quark/out
 .node_modules
 package-lock.json
 examples/**.js

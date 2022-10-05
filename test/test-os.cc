@@ -28,26 +28,26 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/os/os.h"
-#include "noug/util/string.h"
+#include "quark/os/os.h"
+#include "quark/util/string.h"
 
-using namespace noug;
+using namespace quark;
 
 void test_os(int argc, char **argv) {
-	N_LOG(os::info());
-	N_LOG(os::version());
-	N_LOG(os::brand());
-	N_LOG(os::subsystem());
-	N_LOG(os::languages().join(','));
-	N_LOG(os::is_wifi());
-	N_LOG(os::is_mobile());
-	N_LOG(os::network_status());
-	N_LOG(os::is_ac_power());
-	N_LOG(os::is_battery());
-	N_LOG(os::battery_level());
-	N_LOG(os::memory());
-	N_LOG(os::used_memory());
-	N_LOG(os::available_memory());
+	Qk_LOG(os::info());
+	Qk_LOG(os::version());
+	Qk_LOG(os::brand());
+	Qk_LOG(os::subsystem());
+	Qk_LOG(os::languages().join(','));
+	Qk_LOG(os::is_wifi());
+	Qk_LOG(os::is_mobile());
+	Qk_LOG(os::network_status());
+	Qk_LOG(os::is_ac_power());
+	Qk_LOG(os::is_battery());
+	Qk_LOG(os::battery_level());
+	Qk_LOG(os::memory());
+	Qk_LOG(os::used_memory());
+	Qk_LOG(os::available_memory());
 }
 
 

@@ -29,17 +29,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__pre_render__
-#define __noug__pre_render__
+#ifndef __quark__pre_render__
+#define __quark__pre_render__
 
 #include "./util/util.h"
 #include "./util/list.h"
 
 /**
- * @ns noug
+ * @ns quark
  */
 
-namespace noug {
+namespace quark {
 
 	class Application;
 	class Layout;
@@ -47,14 +47,14 @@ namespace noug {
 	/**
 	* @class PreRender 预渲染
 	*/
-	class N_EXPORT PreRender: public Object {
-		N_HIDDEN_ALL_COPY(PreRender);
+	class Qk_EXPORT PreRender: public Object {
+		Qk_HIDDEN_ALL_COPY(PreRender);
 	public:
 
 		PreRender(Application* host);
 		virtual ~PreRender();
 
-		class N_EXPORT Task {
+		class Qk_EXPORT Task {
 		public:
 			typedef List<Task*>::Iterator ID;
 			inline Task(): _task_timeout(0) {}
@@ -64,11 +64,11 @@ namespace noug {
 			void unregister_task();
 			inline bool is_register_task() const { return _task_id != ID(); }
 			// define props
-			N_Define_Prop(ID, task_id);
-			N_Define_Prop(int64_t, task_timeout); // Unit is subtle
+			Qk_Define_Prop(ID, task_id);
+			Qk_Define_Prop(int64_t, task_timeout); // Unit is subtle
 		};
 
-		N_Define_Prop_Get(Application*, host);
+		Qk_Define_Prop_Get(Application*, host);
 
 		/**
 			* @func solve 解决预先渲染问题,如果需要更新视图返回true

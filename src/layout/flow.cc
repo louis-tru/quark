@@ -30,7 +30,7 @@
 
 #include "./flow.h"
 
-namespace noug {
+namespace quark {
 
 	float parse_align_space(ItemsAlign align,  bool is_reverse, float overflow, int count, float *space_out);
 
@@ -71,13 +71,13 @@ namespace noug {
 						if (is_reverse)
 							_items.reverse();
 						lines.push({ _total_main, _max_cross, std::move(_items) });
-						max_main = N_MAX(max_main, _total_main);
+						max_main = Qk_MAX(max_main, _total_main);
 						total_cross += _max_cross;
 						_total_main = is_horizontal ? size.x(): size.y();
 						_max_cross = is_horizontal ? size.y(): size.x();
 					} else {
 						_total_main = main;
-						_max_cross = N_MAX(_max_cross, size.y());
+						_max_cross = Qk_MAX(_max_cross, size.y());
 					}
 					_items.push({ size, v });
 				}
@@ -88,7 +88,7 @@ namespace noug {
 				if (is_reverse)
 					_items.reverse();
 				lines.push({ _total_main, _max_cross, std::move(_items) });
-				max_main = N_MAX(max_main, _total_main);
+				max_main = Qk_MAX(max_main, _total_main);
 				total_cross += _max_cross;
 			}
 

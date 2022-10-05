@@ -32,7 +32,7 @@
 #include "./codec.h"
 #include "./dict.h"
 
-namespace noug {
+namespace quark {
 
 	// --------------------- U T F 8 ---------------------
 
@@ -423,7 +423,7 @@ namespace noug {
 					return encode_to_ucs2(source, len);
 				case kUCS4_Encoding: // 固定4字节编码
 					return encode_to_ucs4(source, len);
-				default: N_ERR("%s", "Unknown encode."); break;
+				default: Qk_ERR("%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
@@ -446,7 +446,7 @@ namespace noug {
 					return encode_to_ucs2(source, len);
 				case kUCS4_Encoding:// 固定4字节编码
 					return encode_to_ucs4(source, len);
-				default: N_ERR("%s", "Unknown encode."); break;
+				default: Qk_ERR("%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
@@ -469,7 +469,7 @@ namespace noug {
 					return encode_to_ucs2(source, len);
 				case kUCS4_Encoding:
 					return encode_to_ucs4(source, len);
-				default: N_ERR("%s", "Unknown encode."); break;
+				default: Qk_ERR("%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
@@ -692,22 +692,22 @@ namespace noug {
 					return decode_from_hex<char>(source, len);
 				}
 				case Encoding::kUTF8_Encoding: { // 会丢失ascii外的编码
-					//N_WARN("%s", "Conversion from utf8 to ascii will lose data.");
+					//Qk_WARN("%s", "Conversion from utf8 to ascii will lose data.");
 					return decode_from_utf8<char>(source, len);
 				}
 				case Encoding::kUTF16_Encoding: { // 暂时使用ucs2
-					//N_WARN("%s", "Conversion from utf16 to ascii will lose data.");
+					//Qk_WARN("%s", "Conversion from utf16 to ascii will lose data.");
 					return decode_from_ucs2<char>(source, len);
 				}
 				case Encoding::kUCS2_Encoding: { // 会丢失ascii外的编码
-					//N_WARN("%s", "Conversion from ucs2 to ascii will lose data.");
+					//Qk_WARN("%s", "Conversion from ucs2 to ascii will lose data.");
 					return decode_from_ucs2<char>(source, len);
 				}
 				case Encoding::kUCS4_Encoding: { // 会丢失ascii外的编码
-					//N_WARN("%s", "Conversion from ucs4 to ascii will lose data.");
+					//Qk_WARN("%s", "Conversion from ucs4 to ascii will lose data.");
 					return decode_from_ucs4<char>(source, len);
 				}
-				default: N_ERR("%s", "Unknown encode."); break;
+				default: Qk_ERR("%s", "Unknown encode."); break;
 			}
 			return Buffer();
 		}
@@ -730,7 +730,7 @@ namespace noug {
 					return decode_from_ucs2<uint16_t>(source, len);
 				case kUCS4_Encoding: // 会丢失ucs2外的编码
 					return decode_from_ucs4<uint16_t>(source, len);
-				default: N_ERR("%s", "Unknown encode."); break;
+				default: Qk_ERR("%s", "Unknown encode."); break;
 			}
 			return ArrayBuffer<uint16_t>();
 		}
@@ -753,7 +753,7 @@ namespace noug {
 					return decode_from_ucs2<uint32_t>(source, len);
 				case kUCS4_Encoding:
 					return decode_from_ucs4<uint32_t>(source, len);
-				default: N_ERR("%s", "Unknown encode."); break;
+				default: Qk_ERR("%s", "Unknown encode."); break;
 			}
 			return ArrayBuffer<uint32_t>();
 		}

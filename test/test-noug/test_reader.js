@@ -1,8 +1,8 @@
 
 import { P, M, LOG, AM } from './test'
-import 'noug/fs';
-import 'noug/reader';
-import 'noug/url';
+import 'quark/fs';
+import 'quark/reader';
+import 'quark/url';
 
 const DIR = url.documents('test');
 const FILE = DIR + '/test_file.txt';

@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__float__
-#define __noug__layout__float__
+#ifndef __quark__layout__float__
+#define __quark__layout__float__
 
 #include "./box.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT FloatLayout: public Box {
-		N_Define_View(FloatLayout);
+	class Qk_EXPORT FloatLayout: public Box {
+		Qk_Define_View(FloatLayout);
 	public:
 		virtual bool layout_reverse(uint32_t mark) override;
 	protected:

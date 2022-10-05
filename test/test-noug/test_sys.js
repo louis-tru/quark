@@ -1,5 +1,5 @@
 
-import 'noug/sys'
+import 'quark/sys'
 import { P, M } from './test'
 
 M(sys, 'time');

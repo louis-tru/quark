@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/util/util.h"
-#include "noug/util/array.h"
+#include "quark/util/util.h"
+#include "quark/util/array.h"
 
-using namespace noug;
+using namespace quark;
 
 void test_buffer(int argc, char **argv) {
 	
@@ -51,9 +51,9 @@ void test_buffer(int argc, char **argv) {
 	
 	bf4 = std::move(bf2);
 	
-	N_LOG("%i,%s", *bf, *bf);
-	N_LOG("%i,%s", *bf2, *bf2);
-	N_LOG("%i,%s", *bf3, *bf3);
-	N_LOG("%i,%s", *bf4, *bf4);
+	Qk_LOG("%i,%s", *bf, *bf);
+	Qk_LOG("%i,%s", *bf2, *bf2);
+	Qk_LOG("%i,%s", *bf3, *bf3);
+	Qk_LOG("%i,%s", *bf4, *bf4);
 	
 }

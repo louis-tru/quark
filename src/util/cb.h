@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__cb__
-#define __noug__util__cb__
+#ifndef __quark__util__cb__
+#define __quark__util__cb__
 
 #include "./util.h"
 #include "./error.h"
 #include "./handle.h"
 #include <functional>
 
-namespace noug {
+namespace quark {
 
 	class PostMessage;
 
@@ -51,7 +51,7 @@ namespace noug {
 
 	template<class D, class E = Error>
 	class CallbackCore: public Reference {
-		N_HIDDEN_ALL_COPY(CallbackCore);
+		Qk_HIDDEN_ALL_COPY(CallbackCore);
 	public:
 		inline CallbackCore() {}
 		virtual void call(CallbackData<D, E>& evt) const = 0;
@@ -151,7 +151,7 @@ namespace noug {
 	typedef const Cb cCb;
 	typedef Cb::Data CbData;
 
-	N_EXPORT void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop);
+	Qk_EXPORT void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop);
 
 	template<class D, class E>
 	void async_callback(Callback<D, E> cb, E* e = nullptr, D* d = nullptr, PostMessage* loop = nullptr) {

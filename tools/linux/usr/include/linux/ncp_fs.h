@@ -137,7 +137,7 @@ struct ncp_nls_ioctl
 #define NCP_IOC_SETDENTRYTTL		_IOR('n', 12, __u32)
 
 /*
- * The packet size to allocate. One page should be enough.
+ * The packet size to allocate. One page should be equarkh.
  */
 #define NCP_PACKET_SIZE 4070
 

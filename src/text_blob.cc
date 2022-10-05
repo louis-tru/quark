@@ -31,7 +31,7 @@
 #include "./text_blob.h"
 #include "./util/codec.h"
 
-namespace noug {
+namespace quark {
 
 	enum Symbol {
 		kInvalid_Symbol,
@@ -252,11 +252,11 @@ namespace noug {
 
 #if DEBUG
 				if (lines[i].length() == 0) {
-					N_LOG("====== %s", "\\n");
+					Qk_LOG("====== %s", "\\n");
 				} else {
 					auto weak = ArrayWeak<Unichar>(*lines[i], lines[i].length());
 					auto buf = Codec::encode(Encoding::kUTF8_Encoding, weak);
-					N_LOG("====== %s", *buf);
+					Qk_LOG("====== %s", *buf);
 				}
 #endif
 
@@ -343,7 +343,7 @@ namespace noug {
 				if (!overflow) {
 					i++; // not overflow, plus space is overflow
 				} else {
-					N_DEBUG("%s", "overflow");
+					Qk_DEBUG("%s", "overflow");
 				}
 				goto wordEnd;
 			}
@@ -524,7 +524,7 @@ namespace noug {
 								break;
 							}
 						}
-						N_Assert(_lines->pre_width() == limitX);
+						Qk_Assert(_lines->pre_width() == limitX);
 					}
 				}
 

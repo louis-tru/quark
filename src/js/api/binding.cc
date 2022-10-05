@@ -31,7 +31,7 @@
 #include "./_view.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
@@ -58,9 +58,9 @@ void binding_text(Local<JSObject> exports, Worker* worker);
 void binding_input(Local<JSObject> exports, Worker* worker);
 
 /**
- * @class NativeNoug
+ * @class NativeQuark
  */
-class NativeNoug {
+class NativeQuark {
 	public:
 
 	static void lock(FunctionCall args) {
@@ -76,30 +76,30 @@ class NativeNoug {
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->bindingModule("_value");	N_DEBUG("binding noug_value ok");
-		worker->bindingModule("_event");	N_DEBUG("binding noug_event ok");
-		binding_app(exports, worker); 			N_DEBUG("binding app ok");
-		binding_view(exports, worker); 			N_DEBUG("binding view ok");
-		binding_sprite(exports, worker); 		N_DEBUG("binding sprite ok");
-		binding_layout(exports, worker); 		N_DEBUG("binding layout ok");
-		binding_box(exports, worker); 			N_DEBUG("binding box ok");
-		binding_div(exports, worker); 			N_DEBUG("binding div ok");
-		binding_panel(exports, worker); 		N_DEBUG("binding panel ok");
-		binding_hybrid(exports, worker); 		N_DEBUG("binding hybrid ok");
-		binding_span(exports, worker); 			N_DEBUG("binding span ok");
-		binding_text_node(exports, worker); N_DEBUG("binding text_node ok");
-		binding_image(exports, worker); 		N_DEBUG("binding image ok");
-		binding_indep_div(exports, worker); N_DEBUG("binding indep_div ok");
-		binding_root(exports, worker); 			N_DEBUG("binding root ok");
-		binding_label(exports, worker); 		N_DEBUG("binding label ok");
-		binding_limit(exports, worker); 		N_DEBUG("binding limit ok");
-		binding_scroll(exports, worker); 		N_DEBUG("binding scroll ok");
-		binding_text(exports, worker); 			N_DEBUG("binding text ok");
-		binding_button(exports, worker); 		N_DEBUG("binding button ok");
-		binding_input(exports, worker); 		N_DEBUG("binding input ok");
-		JS_SET_METHOD(lock, lock); 					N_DEBUG("binding lock ok");
+		worker->bindingModule("_value");	Qk_DEBUG("binding quark_value ok");
+		worker->bindingModule("_event");	Qk_DEBUG("binding quark_event ok");
+		binding_app(exports, worker); 			Qk_DEBUG("binding app ok");
+		binding_view(exports, worker); 			Qk_DEBUG("binding view ok");
+		binding_sprite(exports, worker); 		Qk_DEBUG("binding sprite ok");
+		binding_layout(exports, worker); 		Qk_DEBUG("binding layout ok");
+		binding_box(exports, worker); 			Qk_DEBUG("binding box ok");
+		binding_div(exports, worker); 			Qk_DEBUG("binding div ok");
+		binding_panel(exports, worker); 		Qk_DEBUG("binding panel ok");
+		binding_hybrid(exports, worker); 		Qk_DEBUG("binding hybrid ok");
+		binding_span(exports, worker); 			Qk_DEBUG("binding span ok");
+		binding_text_node(exports, worker); Qk_DEBUG("binding text_node ok");
+		binding_image(exports, worker); 		Qk_DEBUG("binding image ok");
+		binding_indep_div(exports, worker); Qk_DEBUG("binding indep_div ok");
+		binding_root(exports, worker); 			Qk_DEBUG("binding root ok");
+		binding_label(exports, worker); 		Qk_DEBUG("binding label ok");
+		binding_limit(exports, worker); 		Qk_DEBUG("binding limit ok");
+		binding_scroll(exports, worker); 		Qk_DEBUG("binding scroll ok");
+		binding_text(exports, worker); 			Qk_DEBUG("binding text ok");
+		binding_button(exports, worker); 		Qk_DEBUG("binding button ok");
+		binding_input(exports, worker); 		Qk_DEBUG("binding input ok");
+		JS_SET_METHOD(lock, lock); 					Qk_DEBUG("binding lock ok");
 	}
 };
 
-JS_REG_MODULE(_noug, NativeNoug);
+JS_REG_MODULE(_quark, NativeQuark);
 JS_END

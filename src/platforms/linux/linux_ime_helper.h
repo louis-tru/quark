@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/app.inl"
-#include "noug/event.h"
+#include "quark/app.inl"
+#include "quark/event.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-namespace noug {
+namespace quark {
 
 	typedef AppInl::KeyboardOptions KeyboardOptions;
 

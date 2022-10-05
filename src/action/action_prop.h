@@ -29,12 +29,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__action__action_prop__
-#define __noug__action__action_prop__
+#ifndef __quark__action__action_prop__
+#define __quark__action__action_prop__
 
 #include "./action_prop.h"
 
-N_NAMESPACE_START
+Qk_NAMESPACE_START
 
 // set_property
 template<> void Property2<TextColor>::set_property(List<View*>& views);
@@ -135,5 +135,5 @@ template<> void Property3<float, PROPERTY_ROTATE_Z>::bind_view(int type);
 template<> void Property3<float, PROPERTY_OPACITY>::bind_view(int type);
 template<> void Property3<bool, PROPERTY_VISIBLE>::bind_view(int type);
 
-N_NAMESPACE_END
+Qk_NAMESPACE_END
 #endif

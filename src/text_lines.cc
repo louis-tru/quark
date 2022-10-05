@@ -37,7 +37,7 @@
 #include "./text_blob.h"
 #include "./render/font/font.h"
 
-namespace noug {
+namespace quark {
 
 	TextLines::TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
 		: _pre_width(0), _trim_start(false), _host(host)
@@ -242,8 +242,8 @@ namespace noug {
 
 			auto re = View::screen_region_from_convex_quadrilateral(vertex);
 
-			if (N_MAX( clip.y2, re.end.y() ) - N_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
-					N_MAX( clip.x2, re.end.x() ) - N_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width
+			if (Qk_MAX( clip.y2, re.end.y() ) - Qk_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
+					Qk_MAX( clip.x2, re.end.x() ) - Qk_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width
 			) {
 				line.visible_region = true;
 				_visible_region = true;
@@ -259,7 +259,7 @@ namespace noug {
 	}
 
 	void TextLines::solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
-		N_DEBUG("TextLines::solve_visible_region_blob");
+		Qk_DEBUG("TextLines::solve_visible_region_blob");
 
 		blob_visible->clear();
 
@@ -280,7 +280,7 @@ namespace noug {
 			} else {
 				if (is_break) break;
 			}
-			N_DEBUG("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
+			Qk_DEBUG("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
 				item.origin, item.line, item.glyphs.length(), line.visible_region);
 		}
 	}

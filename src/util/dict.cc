@@ -30,7 +30,7 @@
 
 #include "./dict.h"
 
-namespace noug {
+namespace quark {
 
 	template<> uint64_t Compare<char>::hash_code(const char& key) { return key; }
 	template<> uint64_t Compare<uint8_t>::hash_code(const uint8_t& key) { return key; }

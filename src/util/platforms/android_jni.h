@@ -30,29 +30,29 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __noug__util__android_jni__
-#define __noug__util__android_jni__
+#ifndef __quark__util__android_jni__
+#define __quark__util__android_jni__
 
 #include "../macros.h"
 
-#if N_ANDROID
+#if Qk_ANDROID
 
 #include "../object.h"
 #include <jni.h>
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class JNI
 	*/
-	class N_EXPORT JNI {
+	class Qk_EXPORT JNI {
 	public:
 
 		/**
 		* @class ScopeENV
 		*/
-		class N_EXPORT ScopeENV {
-			N_HIDDEN_ALL_COPY(ScopeENV);
+		class Qk_EXPORT ScopeENV {
+			Qk_HIDDEN_ALL_COPY(ScopeENV);
 		public:
 			ScopeENV();
 			~ScopeENV();
@@ -68,7 +68,7 @@ namespace noug {
 		/**
 		* @class MethodInfo
 		*/
-		class N_EXPORT MethodInfo {
+		class Qk_EXPORT MethodInfo {
 		public:
 			MethodInfo(cChar* clazz, cChar* method, cChar* param_code, bool is_static = false);
 			MethodInfo(jclass clazz, cChar* method, cChar* param_code, bool is_static = false);

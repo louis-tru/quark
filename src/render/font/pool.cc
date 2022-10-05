@@ -36,7 +36,7 @@
 #include <skia/core/SkString.h>
 #include <skia/core/SkData.h>
 
-namespace noug {
+namespace quark {
 
 	#define SkMgr(impl) static_cast<SkFontMgr*>(impl)
 
@@ -47,7 +47,7 @@ namespace noug {
 		, _last_65533(0)
 		, _impl(SkFontMgr::RefDefault().get())
 	{
-		N_Assert(_impl);
+		Qk_Assert(_impl);
 		SkMgr(_impl)->ref();
 		initialize();
 	}
@@ -126,7 +126,7 @@ namespace noug {
 				// use default style
 				styleSet->getStyle(0, &skStyle, nullptr);
 				auto tf2 = styleSet->matchStyle(skStyle);
-				N_Assert(tf2);
+				Qk_Assert(tf2);
 				return Typeface(tf2);
 			}
 		}
@@ -166,18 +166,18 @@ namespace noug {
 	}
 
 	void FontPool::initialize() {
-		SkFontStyle skStyle;
+		SkFontStyle skStyle; // default style
 		
 		// Find english character set
 		auto tf = SkMgr(_impl)->matchFamilyStyle(nullptr, skStyle);
 		_second.push(Typeface(tf));
-		N_DEBUG(_second[0].getFamilyName());
+		Qk_DEBUG(_second[0].getFamilyName());
 
 		// Find chinese character set, 楚(26970)
 		auto tf1 = SkMgr(_impl)->matchFamilyStyleCharacter(nullptr, skStyle, nullptr, 0, 26970);
 		if (tf1) {
 			_second.push(Typeface(tf1));
-			N_DEBUG(_second[1].getFamilyName());
+			Qk_DEBUG(_second[1].getFamilyName());
 		}
 
 		// find last �(65533)
@@ -185,7 +185,7 @@ namespace noug {
 		if (tf2) {
 			_last = Typeface(tf2);
 			_last_65533 = _last.unicharToGlyph(65533);
-			N_DEBUG(_last.getFamilyName());
+			Qk_DEBUG(_last.getFamilyName());
 		}
 	}
 

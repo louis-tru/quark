@@ -1,15 +1,15 @@
 
-import { Application, ViewController, Root, Indep, default as noug, _CVD } from 'noug';
-import { Color } from 'noug/value';
-import util from 'noug/util';
+import { Application, ViewController, Root, Indep, default as quark, _CVD } from 'quark';
+import { Color } from 'quark/value';
+import util from 'quark/util';
 import * as uu from './uu';
 
 const random = util.random;
 
 class RootViewController extends ViewController {
 	render() {
-		var w = noug.displayPort.width;
-		var h = noug.displayPort.height;
+		var w = quark.displayPort.width;
+		var h = quark.displayPort.height;
 		console.log(w,h);
 
 		return (
@@ -47,6 +47,6 @@ class RootViewController extends ViewController {
 	}
 }
 
-new Application({ multisample: 4, title: 'Noug benchmark' }).start(<RootViewController />);
+new Application({ multisample: 4, title: 'Quark benchmark' }).start(<RootViewController />);
 
 uu.show_fsp();

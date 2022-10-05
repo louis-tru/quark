@@ -31,7 +31,7 @@
 #include "./numbers.h"
 #include <limits>
 
-namespace noug {
+namespace quark {
 #define define_number(N, T) \
 	template<> const T Number<T>::limit_min(std::numeric_limits<T>::min());\
 	template<> const T Number<T>::limit_max(std::numeric_limits<T>::max());

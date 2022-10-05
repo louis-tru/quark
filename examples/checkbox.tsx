@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, default as noug, _CVD } from 'noug';
-import { Event } from 'noug/event';
-import { Switch, Checkbox } from 'noug/checkbox';
+import { Div, Text, default as quark, _CVD } from 'quark';
+import { Event } from 'quark/event';
+import { Switch, Checkbox } from 'quark/checkbox';
 import { Mynavpage } from './public';
 
 const resolve = require.resolve;
-const px = noug.atomPixel;
+const px = quark.atomPixel;
 
-noug.css({
+quark.css({
 	'.checkbox_page': {
 		width: 'full',
 	},

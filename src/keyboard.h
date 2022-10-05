@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__keyboard__
-#define __noug__keyboard__
+#ifndef __quark__keyboard__
+#define __quark__keyboard__
 
 #include "./util/util.h"
 #include "./util/dict.h"
 
-namespace noug {
+namespace quark {
 
 	class EventDispatch;
 
@@ -207,7 +207,7 @@ namespace noug {
 	/**
 	* @class KeyboardAdapter
 	*/
-	class N_EXPORT KeyboardAdapter: public Object {
+	class Qk_EXPORT KeyboardAdapter: public Object {
 	public:
 		static KeyboardAdapter* create();
 
@@ -216,17 +216,17 @@ namespace noug {
 		void onDispatch(uint32_t keycode, bool ascii, bool down,
 									int repeat = 0, int device = 0, int source = 0);
 
-		N_Define_Prop_Get(EventDispatch*, host);
-		N_Define_Prop_Get(KeyboardKeyName, keyname);
-		N_Define_Prop_Get(int, keypress);
-		N_Define_Prop_Get(bool, shift);
-		N_Define_Prop_Get(bool, alt);
-		N_Define_Prop_Get(bool, ctrl);
-		N_Define_Prop_Get(bool, command);
-		N_Define_Prop_Get(bool, caps_lock);
-		N_Define_Prop_Get(bool, repeat);
-		N_Define_Prop_Get(bool, device);
-		N_Define_Prop_Get(bool, source);
+		Qk_Define_Prop_Get(EventDispatch*, host);
+		Qk_Define_Prop_Get(KeyboardKeyName, keyname);
+		Qk_Define_Prop_Get(int, keypress);
+		Qk_Define_Prop_Get(bool, shift);
+		Qk_Define_Prop_Get(bool, alt);
+		Qk_Define_Prop_Get(bool, ctrl);
+		Qk_Define_Prop_Get(bool, command);
+		Qk_Define_Prop_Get(bool, caps_lock);
+		Qk_Define_Prop_Get(bool, repeat);
+		Qk_Define_Prop_Get(bool, device);
+		Qk_Define_Prop_Get(bool, source);
 
 	protected:
 

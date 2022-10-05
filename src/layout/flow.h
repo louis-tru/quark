@@ -28,20 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__flow__
-#define __noug__layout__flow__
+#ifndef __quark__layout__flow__
+#define __quark__layout__flow__
 
 #include "./flex.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT FlowLayout: public FlexLayout {
-		N_Define_View(FlowLayout);
+	class Qk_EXPORT FlowLayout: public FlexLayout {
+		Qk_Define_View(FlowLayout);
 	public:
 		FlowLayout();
 		// define props
-		N_Define_Prop(Wrap, wrap); // 主轴溢出后换行，开启后当主轴溢出时分裂成多根交叉轴
-		N_Define_Prop(WrapAlign, wrap_align); // 多根交叉轴的对齐方式,如果只有一根交叉轴该属性不起作用
+		Qk_Define_Prop(Wrap, wrap); // 主轴溢出后换行，开启后当主轴溢出时分裂成多根交叉轴
+		Qk_Define_Prop(WrapAlign, wrap_align); // 多根交叉轴的对齐方式,如果只有一根交叉轴该属性不起作用
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
@@ -50,7 +50,7 @@ namespace noug {
 		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
 	private:
 		template<bool is_horizontal> void layout_typesetting_wrap(bool is_reverse);
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

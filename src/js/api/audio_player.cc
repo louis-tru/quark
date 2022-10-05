@@ -34,7 +34,7 @@
 #include "../../media/audio-player.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
@@ -106,9 +106,9 @@ static void addEventListener_1(Wrap<Self>* wrap, const UIEventName& type,
 		
 		// test:
 		//if (r->IsNumber(worker)) {
-		//  N_LOG("--------------number,%s", *r->ToStringValue(wrap->worker()));
+		//  Qk_LOG("--------------number,%s", *r->ToStringValue(wrap->worker()));
 		//} else {
-		//  N_LOG("--------------string,%s", *r->ToStringValue(wrap->worker()));
+		//  Qk_LOG("--------------string,%s", *r->ToStringValue(wrap->worker()));
 		//}
 	};
 	

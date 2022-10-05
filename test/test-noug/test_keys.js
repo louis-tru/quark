@@ -1,6 +1,6 @@
 
 import 'fs'
-import 'noug/keys'
+import 'quark/keys'
 import { M } from './test'
 
 //M(keys, 'parseFile', [ resolve('lib.keys') ])

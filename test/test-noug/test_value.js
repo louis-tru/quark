@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import 'noug/value' as v;
+import 'quark/value' as v;
 
 LOG('\nTest Enum Value:\n')
 

@@ -1,9 +1,9 @@
 
 #include <iostream>
-#include "../noug/util/dict.h"
-#include "../noug/util/string.h"
+#include "../quark/util/dict.h"
+#include "../quark/util/string.h"
 
-using namespace noug;
+using namespace quark;
 
 // thanks to Substitution failure is not an erro (SFINAE)
 template<typename T>
@@ -42,12 +42,12 @@ void test_template() {
 	D d;
 	
 	int i = has_object_type<D>::type;
-	N_LOG(i);
+	Qk_LOG(i);
 	
-	N_LOG(_Str::to_string(&a));
-	N_LOG(_Str::to_string(s));
-	N_LOG(_Str::to_string(c));
-	N_LOG(_Str::to_string(d));
+	Qk_LOG(_Str::to_string(&a));
+	Qk_LOG(_Str::to_string(s));
+	Qk_LOG(_Str::to_string(c));
+	Qk_LOG(_Str::to_string(d));
 
 }
 

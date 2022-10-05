@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__js__json__
-#define __noug__js__json__
+#ifndef __quark__js__json__
+#define __quark__js__json__
 
-// #include "noug/util/string-builder.h"
+// #include "quark/util/string-builder.h"
 #include "../js.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

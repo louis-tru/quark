@@ -36,13 +36,13 @@
 #include "../render/render.h"
 #include "../pre_render.h"
 
-namespace noug {
+namespace quark {
 
 	void __View_set_visible(View* self, bool val, uint32_t layout_depth);
 
 	Root* Root::create() throw(Error) {
-		auto app = noug::app();
-		N_CHECK(app, "Before you create a root, you need to create a Application");
+		auto app = quark::app();
+		Qk_CHECK(app, "Before you create a root, you need to create a Application");
 		Handle<Root> r = new Root();
 		r->set_layout_depth(1);
 		r->set_receive(1);
@@ -132,7 +132,7 @@ namespace noug {
 	}
 
 	void Root::set_parent(View* parent) {
-		N_UNREACHABLE();
+		Qk_UNREACHABLE();
 	}
 
 	bool Root::can_become_focus() {

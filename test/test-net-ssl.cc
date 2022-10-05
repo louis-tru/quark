@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/util/net.h"
+#include "quark/util/net.h"
 #include <uv.h>
 
-using namespace noug;
+using namespace quark;
 
 class MySSLSocket: public SSLSocket, public Socket::Delegate {
  public:
@@ -49,32 +49,32 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 		"_Connection: keep-alive\r\n"
 		"Connection: close\r\n"
 		"Accept: */*\r\n"
-		"User-Agent: Mozilla/5.0 AppleWebKit noug Net Test\r\n\r\n";
+		"User-Agent: Mozilla/5.0 AppleWebKit quark Net Test\r\n\r\n";
 		
 		write(header.collapse());
 	}
 	
 	virtual void trigger_socket_open(Socket* stream) {
-		N_LOG("Open Socket");
+		Qk_LOG("Open Socket");
 		send_http();
 	}
 	virtual void trigger_socket_close(Socket* stream) {
-		N_LOG("Close Socket");
+		Qk_LOG("Close Socket");
 		Release(this);
 		//RunLoop::current()->stop();
 	}
 	virtual void trigger_socket_error(Socket* stream, cError& error) {
-		N_LOG("Error, %d, %s", error.code(), error.message().c_str());
+		Qk_LOG("Error, %d, %s", error.code(), error.message().c_str());
 	}
 	virtual void trigger_socket_data(Socket* stream, Buffer& buffer) {
 		//LOG( String(buffer.value(), buffer.length()) );
-		N_LOG("DATA.., %d", buffer.length());
+		Qk_LOG("DATA.., %d", buffer.length());
 	}
 	virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) {
-		N_LOG("Write, OK");
+		Qk_LOG("Write, OK");
 	}
 	virtual void trigger_socket_timeout(Socket* socket) {
-		N_LOG("Timeout Socket");
+		Qk_LOG("Timeout Socket");
 		close();
 	}
 };

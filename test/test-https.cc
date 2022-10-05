@@ -28,18 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/util.h>
-#include <noug/util/http.h>
-#include <noug/util/string.h>
-#include <noug/util/fs.h>
+#include <quark/util/util.h>
+#include <quark/util/http.h>
+#include <quark/util/string.h>
+#include <quark/util/fs.h>
 
-using namespace noug;
+using namespace quark;
 
 void test_https(int argc, char **argv) {
 	
 	Buffer buffer = http_get_sync("https://fanyi.baidu.com/");
 	
-	N_LOG(std::move(buffer));
+	Qk_LOG(std::move(buffer));
 	
-	N_LOG("END");
+	Qk_LOG("END");
 }

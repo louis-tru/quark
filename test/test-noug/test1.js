@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { Buffer } from 'buffer';
-import 'noug/http';
-import 'noug/value';
-import 'noug/sys';
+import 'quark/http';
+import 'quark/value';
+import 'quark/sys';
 
 console.log('args:', process.argv, process.mainModule.filename);
 

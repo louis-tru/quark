@@ -28,16 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__font__style__
-#define __noug__font__style__
+#ifndef __quark__font__style__
+#define __quark__font__style__
 
 #include "../../util/numbers.h"
 #include "../../util/dict.h"
 #include "../../value.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT FontStyle {
+	class Qk_EXPORT FontStyle {
 	public:
 
 		constexpr FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
@@ -74,7 +74,7 @@ namespace noug {
 		int32_t _value;
 	};
 
-	template<> N_EXPORT uint64_t Compare<FontStyle>::hash_code(const FontStyle& key);
+	template<> Qk_EXPORT uint64_t Compare<FontStyle>::hash_code(const FontStyle& key);
 
 }
 #endif

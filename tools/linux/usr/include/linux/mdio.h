@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
 /*
  * linux/mdio.h: definitions for MDIO (clause 45) transceivers
- * Copyright 2006-2009 Solarnoug Communications Inc.
+ * Copyright 2006-2009 Solarquark Communications Inc.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published

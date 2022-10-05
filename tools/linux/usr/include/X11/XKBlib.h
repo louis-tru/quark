@@ -1000,7 +1000,7 @@ extern	int	XkbKeyTypesForCoreSymbols(	/* returns # of groups */
     KeySym *	/* core_syms */,		/* always mapWidth symbols */
     unsigned int	/* protected */,	/* explicit key types */
     int *	/* types_inout */,		/* always four type indices */
-    KeySym * 	/* xkb_syms_rtrn */		/* must have enough space */
+    KeySym * 	/* xkb_syms_rtrn */		/* must have equarkh space */
 );
 
 extern	Bool	XkbApplyCompatMapToKey(	/* False only on error */

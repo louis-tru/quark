@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__trial__jsx__
-#define __noug__trial__jsx__
+#ifndef __quark__trial__jsx__
+#define __quark__trial__jsx__
 
-#include "noug/util/error.h"
+#include "quark/util/error.h"
 
-namespace noug {
-	N_EXPORT String2 javascript_transform_x(cString2& in, cString& path, bool clean_comment) throw(Error);
-	N_EXPORT String2 javascript_transform(cString2& in, cString& path, bool clean_comment) throw(Error);
+namespace quark {
+	Qk_EXPORT String2 javascript_transform_x(cString2& in, cString& path, bool clean_comment) throw(Error);
+	Qk_EXPORT String2 javascript_transform(cString2& in, cString& path, bool clean_comment) throw(Error);
 }
 #endif

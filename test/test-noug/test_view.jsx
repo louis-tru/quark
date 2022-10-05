@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { Vec2, value } from 'noug/value';
-import KeyframeAction from 'noug/action';
+import { Vec2, value } from 'quark/value';
+import KeyframeAction from 'quark/action';
 import {
 	Application,
 	CSS,
@@ -53,9 +53,9 @@ import {
 	Clip,
 	Input,
 	Textarea,
-	noug: gui,
-} from 'noug';
-import { Video } from 'noug/media';
+	quark: gui,
+} from 'quark';
+import { Video } from 'quark/media';
 
 CSS({
 	'.test': {

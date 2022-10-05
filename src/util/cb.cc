@@ -32,7 +32,7 @@
 #include "./string.h"
 #include "./loop.h"
 
-namespace noug {
+namespace quark {
 
 	class DefaultCallbackCore: public CallbackCore<Object, Error> {
 	public:

@@ -32,11 +32,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <noug/util/string.h>
-#include <noug/util/codec.h>
+#include <quark/util/string.h>
+#include <quark/util/codec.h>
 
 using namespace std;
-using namespace noug;
+using namespace quark;
 
 class Str {
  private:
@@ -48,19 +48,19 @@ class Str {
 		_length = str._length;
 		_value = (char*)malloc(_length + 1);
 		memcpy(_value, str._value, _length + 1);
-		N_LOG("%s\n", "copy constructor");
+		Qk_LOG("%s\n", "copy constructor");
 	}
 	Str (Str&& str) {
 		_length = str._length;
 		_value = str._value;
 		str._value = NULL;
-		N_LOG("%s\n", "move constructor");
+		Qk_LOG("%s\n", "move constructor");
 	}
 	Str (const char* str) {
 		_length = strlen(str);
 		_value = (char*)malloc(_length + 1);
 		memcpy(_value, str, _length + 1);
-		N_LOG("%s\n", "new constructor");
+		Qk_LOG("%s\n", "new constructor");
 	}
 	
 	~ Str () {
@@ -80,7 +80,7 @@ class Str {
 
 void test (const Str& str) {
 	printf("str:%s, len:%d, add:%s, test ok\n", str.c_str(), str.length(), str.c_str());
-	N_LOG("");
+	Qk_LOG("");
 }
 
 void test2 (const string& str) {
@@ -97,27 +97,27 @@ void test_string (int argc, char **argv) {
 	String utf8_1 = Coder::encode(kUTF8_Encoding, ucs2); // 编码
 	String utf8_2 = Coder::encode(kUTF8_Encoding, ucs4);
 	
-	N_LOG(ucs2.hash_code() % 10);
-	N_LOG(ucs4.hash_code() % 10);
-	N_LOG(utf8_1.hash_code() % 10);
-	N_LOG(utf8_2.hash_code() % 10);
+	Qk_LOG(ucs2.hash_code() % 10);
+	Qk_LOG(ucs4.hash_code() % 10);
+	Qk_LOG(utf8_1.hash_code() % 10);
+	Qk_LOG(utf8_2.hash_code() % 10);
 	
-	N_LOG(ucs2[0]);
-	N_LOG(ucs2[1]);
-	N_LOG(ucs2[2]);
-	N_LOG(ucs2[3]);
-	N_LOG(ucs4[0]);
-	N_LOG(ucs4[1]);
-	N_LOG(ucs4[2]);
-	N_LOG(ucs4[3]);
-	N_LOG(utf8_1);
-	N_LOG(utf8_2);
+	Qk_LOG(ucs2[0]);
+	Qk_LOG(ucs2[1]);
+	Qk_LOG(ucs2[2]);
+	Qk_LOG(ucs2[3]);
+	Qk_LOG(ucs4[0]);
+	Qk_LOG(ucs4[1]);
+	Qk_LOG(ucs4[2]);
+	Qk_LOG(ucs4[3]);
+	Qk_LOG(utf8_1);
+	Qk_LOG(utf8_2);
 	
-	N_LOG("%d", __cplusplus);
+	Qk_LOG("%d", __cplusplus);
 	
 	const char* c = "op";
 	
-	N_LOG(c);
+	Qk_LOG(c);
 	
 	// Str s = "op";
 	
@@ -129,7 +129,7 @@ void test_string (int argc, char **argv) {
 	
 	const char* str = "ABCD";
 	
-	N_LOG(str);
+	Qk_LOG(str);
 	
 	string str0 = str;
 	
@@ -141,17 +141,17 @@ void test_string (int argc, char **argv) {
 	
 	string str3(str0.c_str());
 	
-	N_LOG("%u,%u\n", str0.c_str(), str3.c_str());
+	Qk_LOG("%u,%u\n", str0.c_str(), str3.c_str());
 	
-	N_LOG("capacity:%d,%d\n", str0.capacity(), str3.capacity());
+	Qk_LOG("capacity:%d,%d\n", str0.capacity(), str3.capacity());
 	
 	const_cast<char*>(str0.c_str())[0] = 'K';
 	
 	str0 = "ABCD-KKKKK";
 	
-	N_LOG("%u,%u\n", str0.c_str(), str3.c_str());
+	Qk_LOG("%u,%u\n", str0.c_str(), str3.c_str());
 	
-	N_LOG("capacity:%d,%d\n", str0.capacity(), str3.capacity());
+	Qk_LOG("capacity:%d,%d\n", str0.capacity(), str3.capacity());
 	
-	N_LOG("%s,%s\n", str0.c_str(), str3.c_str());
+	Qk_LOG("%s,%s\n", str0.c_str(), str3.c_str());
 }

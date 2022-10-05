@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__js__value__
-#define __noug__js__value__
+#ifndef __quark__js__value__
+#define __quark__js__value__
 
 #include "./js.h"
 #include "../value.h"
@@ -37,12 +37,12 @@
 #include "../background.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
 
-using namespace noug::value;
+using namespace quark::value;
 
 #define js_parse_value(Type, value, desc) js_parse_value2(Type, Type, value, desc)
 #define js_parse_value2(Type, Name, value, desc) \
@@ -82,7 +82,7 @@ F(Floats, Array<float>) \
 /**
  * @class ValueProgram
  */
-class N_EXPORT ValueProgram: public Object {
+class Qk_EXPORT ValueProgram: public Object {
 	public:
 	#define def_attr_fn(Name, Type)           \
 		Local<JSValue> New(const Type& value);  \

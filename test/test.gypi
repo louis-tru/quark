@@ -10,12 +10,12 @@
 				'../out',
 			],
 			'dependencies': [
-				'noug-util',
+				'quark-util',
 				'skia',
-				'noug',
-				'noug-media',
-				# 'noug-js',
-				# 'noug-node',
+				'quark',
+				'quark-media',
+				# 'quark-js',
+				# 'quark-node',
 				###########
 				'trial',
 				'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
@@ -24,7 +24,7 @@
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
 				'res',
-				'test-noug',
+				'test-quark',
 				'../examples',
 				'../bench',
 			],
@@ -108,14 +108,14 @@
 	],
 
 	'conditions': [
-		# gen android test depes `libnoug-depes-test.so`
+		# gen android test depes `libquark-depes-test.so`
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets': [
 			{
-				'target_name': 'noug-depes-test',
+				'target_name': 'quark-depes-test',
 				'type': 'shared_library',
 				'dependencies': [
-					'noug/util/minizip.gyp:minizip',
+					'quark/util/minizip.gyp:minizip',
 					'deps/tess2/tess2.gyp:tess2', 
 					'deps/freetype2/freetype2.gyp:ft2',
 					'deps/ffmpeg/ffmpeg.gyp:ffmpeg_compile',
@@ -144,13 +144,13 @@
 				],
 			},
 			{
-				'target_name': 'noug-depes-copy',
+				'target_name': 'quark-depes-copy',
 				'type': 'none',
-				'dependencies': [ 'noug-depes-test' ],
+				'dependencies': [ 'quark-depes-test' ],
 				'copies': [{
 					'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
 					'files': [
-						'<(output)/lib.target/libnoug-depes-test.so',
+						'<(output)/lib.target/libquark-depes-test.so',
 					],
 				}],
 			}],
@@ -158,7 +158,7 @@
 		['os in "ios osx"', {
 			'targets': [
 			{
-				'target_name': 'NougTest',
+				'target_name': 'QuarkTest',
 				'type': 'shared_library',
 				'mac_bundle': 1,
 				'include_dirs': [ '.' ],

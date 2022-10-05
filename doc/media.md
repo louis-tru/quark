@@ -1,4 +1,4 @@
-# `noug/media`
+# `quark/media`
 
 
 ## `Class: Video`
@@ -414,7 +414,7 @@ Mime类型字符串
 [`double`]: native_types.md#double
 [`bool`]: native_types.md#bool
 
-[`Image`]: noug.md#class-image
+[`Image`]: quark.md#class-image
 [`MediaType`]: media.md#enum-mediatype
 [`TrackInfo`]: media.md#object-trackinfo
 [`PlayerStatus`]: media.md#enum-playerstatus

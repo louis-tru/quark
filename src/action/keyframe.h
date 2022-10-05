@@ -28,21 +28,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__action__keyframe__
-#define __noug__action__keyframe__
+#ifndef __quark__action__keyframe__
+#define __quark__action__keyframe__
 
 #include "./action.h"
 #include "../util/dict.h"
 
-N_NAMESPACE_START
+Qk_NAMESPACE_START
 
 /**
 * @class KeyframeAction
 */
-class N_EXPORT KeyframeAction: public Action {
+class Qk_EXPORT KeyframeAction: public Action {
 public:
 	
-	class N_EXPORT Property {
+	class Qk_EXPORT Property {
 	public:
 		virtual ~Property() { }
 		virtual void bind_view(int view_type) = 0;
@@ -53,8 +53,8 @@ public:
 		virtual void default_value(uint32_t frame) = 0;
 	};
 	
-	class N_EXPORT Frame: public Object {
-		N_HIDDEN_ALL_COPY(Frame);
+	class Qk_EXPORT Frame: public Object {
+		Qk_HIDDEN_ALL_COPY(Frame);
 	public:
 		inline Frame(KeyframeAction* host, uint32_t index, const FixedCubicBezier& curve)
 		: _host(host) , _index(index) , _curve(curve), _time(0) {}
@@ -106,7 +106,7 @@ public:
 		
 		#define fx_def_property(ENUM, TYPE, NAME) \
 			void set_##NAME(TYPE value); TYPE NAME();
-		N_EACH_PROPERTY_TABLE(fx_def_property)
+		Qk_EACH_PROPERTY_TABLE(fx_def_property)
 		#undef fx_def_property
 	
 	private:
@@ -115,7 +115,7 @@ public:
 		FixedCubicBezier  _curve;
 		uint64_t          _time;
 		
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class KeyframeAction;
 	};
 	
@@ -212,8 +212,8 @@ private:
 	
 	Propertys     _property;
 
-	N_DEFINE_INLINE_CLASS(Inl);
+	Qk_DEFINE_INLINE_CLASS(Inl);
 };
 
-N_NAMESPACE_END
+Qk_NAMESPACE_END
 #endif

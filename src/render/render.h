@@ -39,19 +39,19 @@
 #include "./source.h"
 #include "../layout/view.h"
 
-#ifndef N_USE_DEFAULT_THREAD_RENDER
-#define N_USE_DEFAULT_THREAD_RENDER 1
+#ifndef Qk_USE_DEFAULT_THREAD_RENDER
+#define Qk_USE_DEFAULT_THREAD_RENDER 1
 #endif
 
-namespace noug {
+namespace quark {
 
 	class Application;
 
 	/**
 	* @class Render
 	*/
-	class N_EXPORT Render: public Object, public PostMessage {
-		N_HIDDEN_ALL_COPY(Render);
+	class Qk_EXPORT Render: public Object, public PostMessage {
+		Qk_HIDDEN_ALL_COPY(Render);
 	public:
 		struct Options {
 			ColorType colorType;

@@ -28,38 +28,38 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__scroll__
-#define __noug__layout__scroll__
+#ifndef __quark__layout__scroll__
+#define __quark__layout__scroll__
 
 #include "./float.h"
 #include "../bezier.h"
 
-namespace noug {
+namespace quark {
 
 	class SkiaRender;
 
-	class N_EXPORT BaseScroll {
+	class Qk_EXPORT BaseScroll {
 	public:
 		// define props
-		N_Define_Prop(bool, scrollbar); // 显示scrollbar
-		N_Define_Prop(bool, bounce);    // 使用回弹力
-		N_Define_Prop(bool, bounce_lock); // 使用回弹力锁定
-		N_Define_Prop(bool, momentum); // 是否使用惯性
-		N_Define_Prop(bool, lock_direction); // 锁定方向
-		N_Define_Prop_Get(bool, scrollbar_h); // 是否显示水平滚动条
-		N_Define_Prop_Get(bool, scrollbar_v); // 是否显示垂直滚动条
-		N_Define_Prop_Acc(float, scroll_x);
-		N_Define_Prop_Acc(float, scroll_y);
-		N_Define_Prop_Acc(Vec2,  scroll);
-		N_Define_Prop_Get(Vec2, scroll_size);
-		N_Define_Prop(float, resistance); // resistance default=1
-		N_Define_Prop(float, catch_position_x); // 停止后捕获位置
-		N_Define_Prop(float, catch_position_y);
-		N_Define_Prop(Color, scrollbar_color);
-		N_Define_Prop(float, scrollbar_width);
-		N_Define_Prop(float, scrollbar_margin);
-		N_Define_Prop(uint64_t, scroll_duration);
-		N_Define_Prop(cCurve*, scroll_curve);
+		Qk_Define_Prop(bool, scrollbar); // 显示scrollbar
+		Qk_Define_Prop(bool, bounce);    // 使用回弹力
+		Qk_Define_Prop(bool, bounce_lock); // 使用回弹力锁定
+		Qk_Define_Prop(bool, momentum); // 是否使用惯性
+		Qk_Define_Prop(bool, lock_direction); // 锁定方向
+		Qk_Define_Prop_Get(bool, scrollbar_h); // 是否显示水平滚动条
+		Qk_Define_Prop_Get(bool, scrollbar_v); // 是否显示垂直滚动条
+		Qk_Define_Prop_Acc(float, scroll_x);
+		Qk_Define_Prop_Acc(float, scroll_y);
+		Qk_Define_Prop_Acc(Vec2,  scroll);
+		Qk_Define_Prop_Get(Vec2, scroll_size);
+		Qk_Define_Prop(float, resistance); // resistance default=1
+		Qk_Define_Prop(float, catch_position_x); // 停止后捕获位置
+		Qk_Define_Prop(float, catch_position_y);
+		Qk_Define_Prop(Color, scrollbar_color);
+		Qk_Define_Prop(float, scrollbar_width);
+		Qk_Define_Prop(float, scrollbar_margin);
+		Qk_Define_Prop(uint64_t, scroll_duration);
+		Qk_Define_Prop(cCurve*, scroll_curve);
 		// constructor
 		BaseScroll(Box *host);
 		virtual ~BaseScroll();
@@ -72,8 +72,8 @@ namespace noug {
 		void solve(uint32_t mark);
 	private:
 		class ScrollBox;
-		N_DEFINE_INLINE_CLASS(Inl);
-		N_DEFINE_INLINE_CLASS(Task);
+		Qk_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Task);
 
 		ScrollBox *_host;
 		List<Task*> _tasks;
@@ -90,8 +90,8 @@ namespace noug {
 		friend class SkiaRender;
 	};
 
-	class N_EXPORT Scroll: public FloatLayout, public BaseScroll {
-		N_Define_View(Scroll);
+	class Qk_EXPORT Scroll: public FloatLayout, public BaseScroll {
+		Qk_Define_View(Scroll);
 	public:
 		Scroll();
 		virtual Vec2 layout_offset_inside() override;

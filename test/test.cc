@@ -28,27 +28,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/app.h"
-#include "noug/os/os.h"
-#include "noug/util/loop.h"
-#include "../deps/node/src/noug.h"
+#include "quark/app.h"
+#include "quark/os/os.h"
+#include "quark/util/loop.h"
+#include "../deps/node/src/quark.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_layout
 #endif
 
-using namespace noug;
+using namespace quark;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
 N_Main() {
-	// node::NougEnvironment::test();
+	// node::QuarkEnvironment::test();
 
 	uint64_t st = time_micro();
 	
 	TEST_FUNC_NAME(argc, argv);
 	
-	N_LOG("MAIN", "eclapsed time:%dms", (time_micro() - st) / 1000);
+	Qk_LOG("MAIN", "eclapsed time:%dms", (time_micro() - st) / 1000);
 
 	return 0;
 }

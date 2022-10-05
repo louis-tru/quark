@@ -1,6 +1,6 @@
 
 import { LOG, M } from './test'
-import 'noug/storage'
+import 'quark/storage'
 
 LOG('\nTest Storage:\n')
 

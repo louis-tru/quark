@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__box__
-#define __noug__layout__box__
+#ifndef __quark__layout__box__
+#define __quark__layout__box__
 
 #include "./view.h"
 #include "../effect.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 		* @class Box
 		*/
-	class N_EXPORT Box: public View {
-		N_Define_View(Box);
+	class Qk_EXPORT Box: public View {
+		Qk_Define_View(Box);
 	public:
 		Box();
 		virtual ~Box();
@@ -124,50 +124,50 @@ namespace noug {
 		// --------------- m e m b e r . f i e l d ---------------
 
 		// define props
-		N_Define_Prop_Get(bool, layout_wrap_x); // Returns the is use border radius
+		Qk_Define_Prop_Get(bool, layout_wrap_x); // Returns the is use border radius
 	protected:
-		N_Define_Prop_Get(bool, layout_wrap_y); // Returns the is use border radius
+		Qk_Define_Prop_Get(bool, layout_wrap_y); // Returns the is use border radius
 	public:
-		N_Define_Prop(bool, is_clip); // is clip box display range
-		N_Define_Prop_Get(bool, is_radius); // Returns the is use border radius
-		N_Define_Prop(BoxSize, width); // size width
-		N_Define_Prop(BoxSize, height); // size height
-		N_Define_Prop(BoxSize, width_limit); // limit max size
-		N_Define_Prop(BoxSize, height_limit);
-		N_Define_Prop(BoxOrigin, origin_x);
-		N_Define_Prop(BoxOrigin, origin_y);
-		N_Define_Prop(float, margin_top); // margin
-		N_Define_Prop(float, margin_right);
-		N_Define_Prop(float, margin_bottom);
-		N_Define_Prop(float, margin_left);
-		N_Define_Prop(float, padding_top); // padding
-		N_Define_Prop(float, padding_right);
-		N_Define_Prop(float, padding_bottom);
-		N_Define_Prop(float, padding_left);
-		N_Define_Prop(float, radius_left_top); // border_radius
-		N_Define_Prop(float, radius_right_top);
-		N_Define_Prop(float, radius_right_bottom);
-		N_Define_Prop(float, radius_left_bottom);
-		N_Define_Prop(Color, fill_color); // fill color
-		N_Define_Prop(Fill*, fill); // fill, image|gradient
-		N_Define_Prop(Effect*, effect); // effect, shadow
-		N_Define_Prop_Acc(Color, border_color_top); // border_color
-		N_Define_Prop_Acc(Color, border_color_right);
-		N_Define_Prop_Acc(Color, border_color_bottom);
-		N_Define_Prop_Acc(Color, border_color_left);
-		N_Define_Prop_Acc(float, border_width_top); // border_width
-		N_Define_Prop_Acc(float, border_width_right);
-		N_Define_Prop_Acc(float, border_width_bottom);
-		N_Define_Prop_Acc(float, border_width_left);
-		N_Define_Prop_Acc(BorderStyle, border_style_top); // border_style
-		N_Define_Prop_Acc(BorderStyle, border_style_right);
-		N_Define_Prop_Acc(BorderStyle, border_style_bottom);
-		N_Define_Prop_Acc(BorderStyle, border_style_left);
+		Qk_Define_Prop(bool, is_clip); // is clip box display range
+		Qk_Define_Prop_Get(bool, is_radius); // Returns the is use border radius
+		Qk_Define_Prop(BoxSize, width); // size width
+		Qk_Define_Prop(BoxSize, height); // size height
+		Qk_Define_Prop(BoxSize, width_limit); // limit max size
+		Qk_Define_Prop(BoxSize, height_limit);
+		Qk_Define_Prop(BoxOrigin, origin_x);
+		Qk_Define_Prop(BoxOrigin, origin_y);
+		Qk_Define_Prop(float, margin_top); // margin
+		Qk_Define_Prop(float, margin_right);
+		Qk_Define_Prop(float, margin_bottom);
+		Qk_Define_Prop(float, margin_left);
+		Qk_Define_Prop(float, padding_top); // padding
+		Qk_Define_Prop(float, padding_right);
+		Qk_Define_Prop(float, padding_bottom);
+		Qk_Define_Prop(float, padding_left);
+		Qk_Define_Prop(float, radius_left_top); // border_radius
+		Qk_Define_Prop(float, radius_right_top);
+		Qk_Define_Prop(float, radius_right_bottom);
+		Qk_Define_Prop(float, radius_left_bottom);
+		Qk_Define_Prop(Color, fill_color); // fill color
+		Qk_Define_Prop(Fill*, fill); // fill, image|gradient
+		Qk_Define_Prop(Effect*, effect); // effect, shadow
+		Qk_Define_Prop_Acc(Color, border_color_top); // border_color
+		Qk_Define_Prop_Acc(Color, border_color_right);
+		Qk_Define_Prop_Acc(Color, border_color_bottom);
+		Qk_Define_Prop_Acc(Color, border_color_left);
+		Qk_Define_Prop_Acc(float, border_width_top); // border_width
+		Qk_Define_Prop_Acc(float, border_width_right);
+		Qk_Define_Prop_Acc(float, border_width_bottom);
+		Qk_Define_Prop_Acc(float, border_width_left);
+		Qk_Define_Prop_Acc(BorderStyle, border_style_top); // border_style
+		Qk_Define_Prop_Acc(BorderStyle, border_style_right);
+		Qk_Define_Prop_Acc(BorderStyle, border_style_bottom);
+		Qk_Define_Prop_Acc(BorderStyle, border_style_left);
 		// Start the matrix transform from this origin point start.
 		// with border as the starting point.
-		N_Define_Prop_Get(Vec2, origin_value);
-		N_Define_Prop_Get(Vec2, content_size); // width,height / size
-		N_Define_Prop_Get(Vec2, client_size); // border + padding + content
+		Qk_Define_Prop_Get(Vec2, origin_value);
+		Qk_Define_Prop_Get(Vec2, content_size); // width,height / size
+		Qk_Define_Prop_Get(Vec2, client_size); // border + padding + content
 
 	protected:
 		void solve_origin_value();

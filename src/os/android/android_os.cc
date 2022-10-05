@@ -31,7 +31,7 @@
 #include "../os.h"
 #include "./android_api.h"
 
-namespace noug {
+namespace quark {
 	namespace os {
 
 		String version() {

@@ -1,0 +1,54 @@
+{
+	"name": "qkmake",
+	"version": "1.0.0",
+	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
+	"main": "server.js",
+	"types": "server",
+	"author": {
+		"name": "xuewen.chu",
+		"email": "louistru@hotmail.com",
+		"url": "http://quarks.cc/"
+	},
+	"bin": {
+		"qkmake": "shell.js"
+	},
+	"scripts": {
+		"cp": "mkdir -p out/noproj && cp -rf LICENSE *.keys *.md marked export package.json out/noproj && if [ ! -d out/noproj/gyp ]; then ln -s ../../gyp out/noproj; fi ",
+		"build": "npm run cp && tsc"
+	},
+	"keywords": [
+		"jsx",
+		"javascript",
+		"ecmascript",
+		"html5",
+		"css",
+		"css3",
+		"qt",
+		"android",
+		"ios",
+		"appletv",
+		"gui",
+		"ui",
+		"opengl",
+		"react",
+		"native",
+		"es6",
+		"es7",
+		"es2017"
+	],
+	"dependencies": {
+		"marked": "~0.3.6",
+		"uglify-es": "~3.0.28",
+		"somes": "~0.10.112",
+		"typescript": "~3.7.4"
+	},
+	"devDependencies": {
+		"@types/node": "~12.12.20"
+	},
+	"license": "BSD-2-Clause",
+	"bugs": {
+		"url": "https://github.com/louis-tru/quark/issues",
+		"email": "louistru@hotmail.com"
+	},
+	"homepage": "http://quarks.cc/"
+}

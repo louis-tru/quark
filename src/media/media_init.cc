@@ -32,9 +32,9 @@
 #include "./audio_player.h"
 #include "../layout/video.h"
 
-namespace noug {
+namespace quark {
 
-	N_INIT_BLOCK(media_init) {
+	Qk_INIT_BLOCK(media_init) {
 
 		static module_info_t audio_player = {
 			[](void* arg) -> Object* {

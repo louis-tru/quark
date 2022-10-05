@@ -29,22 +29,22 @@
 *
 * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__js__js_inl__
-#define __noug__js__js_inl__
+#ifndef __quark__js__js_inl__
+#define __quark__js__js_inl__
 
 #include "./js.h"
 #include "./str.h"
 
 #define js_bind_native_event( name, type, block) \
-	N_On(name, [this, func]( type & evt) { HandleScope scope(worker()); block }, id)
+	Qk_On(name, [this, func]( type & evt) { HandleScope scope(worker()); block }, id)
 
-#define js_unbind_native_event(name) N_Off(name, id);
+#define js_unbind_native_event(name) Qk_Off(name, id);
 
 #define js_bind_common_native_event(name) \
 	js_bind_native_event(name, Event<>, { call(worker()->New(func,1)); })
 
 /**
-* @ns noug::js
+* @ns quark::js
 */
 
 JS_BEGIN
@@ -124,12 +124,12 @@ class JSClassIMPL {
 	inline uint64_t id() const { return id_; }
 	
 	inline void retain() {
-		N_Assert(ref_ >= 0);
+		Qk_Assert(ref_ >= 0);
 		ref_++;
 	}
 	
 	inline void release() {
-		N_Assert(ref_ >= 0);
+		Qk_Assert(ref_ >= 0);
 		if ( --ref_ <= 0 ) {
 			delete this;
 		}

@@ -34,8 +34,8 @@
 #include <iostream>
 #include <limits>
 #include <stdarg.h>
-#include <noug/util/macros.h>
-#include <noug/util/string.h>
+#include <quark/util/macros.h>
+#include <quark/util/string.h>
 #include <functional>
 #include <stdlib.h>
 #include <string.h>
@@ -47,7 +47,7 @@ const int* test_big_int = (const int*)test_big_char;
 const bool has_big_data = *test_big_int != 1;
 
 using namespace std;
-using namespace noug;
+using namespace quark;
 
 class Str {
 	public:

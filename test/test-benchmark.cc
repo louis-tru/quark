@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/js/noug.h"
+#include "quark/js/quark.h"
 
-using namespace noug;
+using namespace quark;
 
 #define IP_REMOTE "127.0.0.1"
 

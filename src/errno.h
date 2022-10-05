@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug_errno__
-#define __noug_errno__
+#ifndef __quark_errno__
+#define __quark_errno__
 
-namespace noug {
+namespace quark {
 
 	enum {
 		ERR_MEDIA_UNKNOWN         = -20029,

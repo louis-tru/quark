@@ -108,7 +108,7 @@ typedef struct _XRegion {
         }
 
 /*
- *   Check to see if there is enough memory in the present region.
+ *   Check to see if there is equarkh memory in the present region.
  */
 #define MEMCHECK(reg, rect, firstrect){\
         if ((reg)->numRects >= ((reg)->size - 1)){\

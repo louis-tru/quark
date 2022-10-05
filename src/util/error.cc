@@ -32,7 +32,7 @@
 #include "./util.h"
 //#include <algorithm>
 
-namespace noug {
+namespace quark {
 
 	String string_format(cChar* f, va_list arg);
 
@@ -65,7 +65,7 @@ namespace noug {
 		_code = e._code;
 		_message = e._message;
 		
-		N_CHECK(0);
+		Qk_CHECK(0);
 		
 		return *this;
 	}

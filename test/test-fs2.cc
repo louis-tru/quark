@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/fs.h>
-#include <noug/util/loop.h>
+#include <quark/util/fs.h>
+#include <quark/util/loop.h>
 
-using namespace noug;
+using namespace quark;
 
 static String write_str;
 
@@ -43,15 +43,15 @@ class TestAsyncFile: public File, public File::Delegate {
 	}
 
 	virtual ~TestAsyncFile() {
-		N_LOG("Delete TestAsyncFile");
+		Qk_LOG("Delete TestAsyncFile");
 	}
 
 	virtual void trigger_file_error(File* file, cError& error) {
-		N_LOG("Error, %s", error.message().c_str());
+		Qk_LOG("Error, %s", error.message().c_str());
 	}
 
 	virtual void trigger_file_open(File* file) {
-		N_LOG("Open, %s", *path());
+		Qk_LOG("Open, %s", *path());
 
 		for ( i = 0; i < 30; i++ ) {
 			write(write_str.copy().collapse(), 0);
@@ -59,17 +59,17 @@ class TestAsyncFile: public File, public File::Delegate {
 	}
 
 	virtual void trigger_file_close(File* file) {
-		N_LOG("Close");
+		Qk_LOG("Close");
 		Release(this);
 	}
 
 	virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
 		i--;
-		N_LOG("Write ok, %d", i);
+		Qk_LOG("Write ok, %d", i);
 
 		if (i == 0) {
 			String s = fs_reader()->read_file_sync(fs_documents("test_fs2.txt"));
-			N_LOG("Write count, %d", s.length());
+			Qk_LOG("Write count, %d", s.length());
 			close();
 		}
 	}
@@ -82,9 +82,9 @@ class TestAsyncFile: public File, public File::Delegate {
 
 void test_fs2(int argc, char **argv) {
 
-	N_LOG("START");
+	Qk_LOG("START");
 	
-	write_str = fs_reader()->read_file_sync(fs_resources("noug/ctr.js"));
+	write_str = fs_reader()->read_file_sync(fs_resources("quark/ctr.js"));
 
 	TestAsyncFile* file = new TestAsyncFile(fs_documents("test_fs2.txt"));
 
@@ -92,5 +92,5 @@ void test_fs2(int argc, char **argv) {
 
 	RunLoop::current()->run();
 
-	N_LOG("END");
+	Qk_LOG("END");
 }

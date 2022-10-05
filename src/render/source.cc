@@ -34,12 +34,12 @@
 #include "../util/fs.h"
 
 
-namespace noug {
+namespace quark {
 
 	// -------------------- I m a g e . S o u r c e --------------------
 
 	ImageSource::ImageSource(cString& uri)
-		: N_Init_Event(State)
+		: Qk_Init_Event(State)
 		, _uri(fs_reader()->format(uri))
 		, _state(STATE_NONE)
 		, _load_id(0), _size(0), _used(0)
@@ -62,7 +62,7 @@ namespace noug {
 		
 		if (_state & STATE_LOAD_COMPLETE) {
 			RunLoop::first()->post(Cb([this](CbData& e){
-				N_Trigger(State, _state);
+				Qk_Trigger(State, _state);
 				_Decode();
 			}, this));
 		} else { // load and decode
@@ -75,7 +75,7 @@ namespace noug {
 
 	SourceHold::~SourceHold() {
 		if (_imageSource) {
-			_imageSource->N_Off(State, &SourceHold::handleSourceState, this);
+			_imageSource->Qk_Off(State, &SourceHold::handleSourceState, this);
 		}
 	}
 
@@ -94,10 +94,10 @@ namespace noug {
 	void SourceHold::set_source(ImageSource* source) {
 		if (_imageSource.value() != source) {
 			if (_imageSource) {
-				_imageSource->N_Off(State, &SourceHold::handleSourceState, this);
+				_imageSource->Qk_Off(State, &SourceHold::handleSourceState, this);
 			}
 			if (source) {
-				source->N_On(State, &SourceHold::handleSourceState, this);
+				source->Qk_On(State, &SourceHold::handleSourceState, this);
 			}
 			_imageSource = Handle<ImageSource>(source);
 		}
@@ -110,7 +110,7 @@ namespace noug {
 	void SourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
 			auto _ = app();
-			// N_Assert(_, "Application needs to be initialized first");
+			// Qk_Assert(_, "Application needs to be initialized first");
 			if (_) {
 				_->pre_render()->mark_none();
 			}
@@ -119,7 +119,7 @@ namespace noug {
 
 	// -------------------- I m a g e P o o l --------------------
 
-	N_DEFINE_INLINE_MEMBERS(ImagePool, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(ImagePool, Inl) {
 	public:
 		#define _inl_pool(self) static_cast<ImagePool::Inl*>(self)
 
@@ -143,7 +143,7 @@ namespace noug {
 
 	ImagePool::~ImagePool() {
 		for (auto& it: _sources) {
-			it.value.source->N_Off(State, &Inl::onSourceStateHandle, _inl_pool(this));
+			it.value.source->Qk_Off(State, &Inl::onSourceStateHandle, _inl_pool(this));
 		}
 	}
 
@@ -159,7 +159,7 @@ namespace noug {
 		}
 
 		ImageSource* source = new ImageSource(_uri);
-		source->N_On(State, &Inl::onSourceStateHandle, _inl_pool(this));
+		source->Qk_On(State, &Inl::onSourceStateHandle, _inl_pool(this));
 		_sources.set(id, { source->size(), source });
 		_total_data_size += source->size();
 
@@ -171,7 +171,7 @@ namespace noug {
 		String _uri = fs_reader()->format(uri);
 		auto it = _sources.find(_uri.hash_code());
 		if (it != _sources.end()) {
-			it->value.source->N_Off(State, &Inl::onSourceStateHandle, _inl_pool(this));
+			it->value.source->Qk_Off(State, &Inl::onSourceStateHandle, _inl_pool(this));
 			_sources.erase(it);
 			_total_data_size -= it->value.size;
 		}

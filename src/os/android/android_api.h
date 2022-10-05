@@ -29,16 +29,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__os__android__api__
-#define __noug__os__android__api__
+#ifndef __quark__os__android__api__
+#define __quark__os__android__api__
 
-#include "noug/util/util.h"
+#include "quark/util/util.h"
 
-#if N_ANDROID
+#if Qk_ANDROID
 
-#include "noug/util/string.h"
+#include "quark/util/string.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class API

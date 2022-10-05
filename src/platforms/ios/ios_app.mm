@@ -41,7 +41,7 @@ typedef UIEvent AppleUIEvent;
 #import "../apple/apple_render.h"
 #import "./ios_ime_helper.h"
 
-using namespace noug;
+using namespace quark;
 
 typedef Display::Orientation Orientation;
 typedef Display::StatusBarStyle StatusBarStyle;
@@ -123,7 +123,7 @@ static NSString* appDelegateName = @"";
 			if (orient != self.appSelf.current_orientation) {
 				self.appSelf.current_orientation = orient;
 				self.appSelf.app->loop()->post(Cb([](CbData& e) {
-					appDelegate.app->display()->N_Trigger(Orientation);
+					appDelegate.app->display()->Qk_Trigger(Orientation);
 				}));
 			}
 		} completion:nil];
@@ -171,7 +171,7 @@ static NSString* appDelegateName = @"";
 	}
 
 	-(void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		// N_DEBUG("touchesMoved, count: %d", touches.count);
+		// Qk_DEBUG("touchesMoved, count: %d", touches.count);
 		_inl_app(self.appSelf.app)->dispatch()->onTouchmove( [self touchsList:touches] );
 	}
 
@@ -194,7 +194,7 @@ static NSString* appDelegateName = @"";
 
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
 		auto _ = self.app;
-#if N_USE_DEFAULT_THREAD_RENDER
+#if Qk_USE_DEFAULT_THREAD_RENDER
 		if (_->is_loaded()) {
 			if (_fps == 0) { // 3 = 15, 1 = 30
 				_->display()->render();
@@ -208,7 +208,7 @@ static NSString* appDelegateName = @"";
 			self.render_task_count++;
 			_->loop()->post(_render_exec);
 		} else {
-			N_DEBUG("miss frame");
+			Qk_DEBUG("miss frame");
 		}
 #endif
 	}
@@ -233,9 +233,9 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		N_Assert(!appDelegate);
+		Qk_Assert(!appDelegate);
 		appDelegate = self;
-		N_Assert(Application::shared());
+		Qk_Assert(Application::shared());
 		_app = Application::shared(); 
 
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
@@ -477,7 +477,7 @@ void Display::keep_screen(bool keep) {
  */
 float Display::status_bar_height() {
 	CGRect rect = appDelegate.host.statusBarFrame;
-	return N_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale;
+	return Qk_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale;
 }
 
 /**
@@ -511,7 +511,7 @@ void Display::set_visible_status_bar(bool visible) {
 
 		// TODO 绘图表面尺寸没有改变? 表示只是单纯状态栏改变? 这个改变也当成change通知给用户
 		_host->loop()->post(Cb([this](CbData& e) {
-			N_Trigger(Change);
+			Qk_Trigger(Change);
 		}));
 	});
 }
@@ -582,7 +582,7 @@ void Display::set_orientation(Orientation orientation) {
 	}
 }
 
-extern "C" N_EXPORT int main(int argc, Char* argv[]) {
+extern "C" Qk_EXPORT int main(int argc, Char* argv[]) {
 	AppInl::runMain(argc, argv);
 
 	if ( app() ) {

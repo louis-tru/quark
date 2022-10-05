@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/macros.h>
+#include <quark/util/macros.h>
 
 #if FX_IOS
 
-#include <noug/util/util.h>
+#include <quark/util/util.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <dispatch/dispatch.h>
 #include <stdio.h>

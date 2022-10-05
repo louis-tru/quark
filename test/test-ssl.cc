@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/util/net.h"
-#include "noug/util/fs.h"
+#include "quark/util/net.h"
+#include "quark/util/fs.h"
 #include <uv.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-using namespace noug;
+using namespace quark;
 
 #define error_report printf
 #define info_report printf
@@ -182,15 +182,15 @@ static BIO_METHOD method = {
 
 static void SSLInfoCallback(const SSL* ssl_, int where, int ret) {
 	if (where & SSL_CB_HANDSHAKE_START) {
-		N_LOG("----------------start");
+		Qk_LOG("----------------start");
 	}
 	if ( where & SSL_CB_HANDSHAKE_DONE ) {
-		N_LOG("----------------done");
+		Qk_LOG("----------------done");
 	}
 }
 
 static int SSLCertCallback(SSL* s, void* arg) {
-	N_LOG("SSLCertCallback");
+	Qk_LOG("SSLCertCallback");
 	return 1;
 }
 

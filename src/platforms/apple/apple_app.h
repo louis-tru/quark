@@ -30,13 +30,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#import "noug/util/macros.h"
+#import "quark/util/macros.h"
 
-#if N_IOS || N_OSX
+#if Qk_IOS || Qk_OSX
 
-#import <noug/app.h>
+#import <quark/app.h>
 
-#if N_OSX
+#if Qk_OSX
 	#import <AppKit/AppKit.h>
 	#define UIResponder NSResponder
 	#define UIApplicationDelegate NSApplicationDelegate
@@ -52,7 +52,7 @@
 #endif
 
 @interface ApplicationDelegate: UIResponder<UIApplicationDelegate>
-	@property (assign, nonatomic, readonly) noug::Application* app;
+	@property (assign, nonatomic, readonly) quark::Application* app;
 	+ (void)set_application_delegate:(NSString*)name;
 	- (UIWindow*)window;
 @end

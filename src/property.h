@@ -28,17 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__property__
-#define __noug__property__
+#ifndef __quark__property__
+#define __quark__property__
 
 #include "./util/util.h"
 #include "./util/dict.h"
 
-namespace noug {
+namespace quark {
 
 	class View;
 
-#define N_EACH_PROPERTY_TABLE(F) \
+#define Qk_EACH_PROPERTY_TABLE(F) \
 	F(PROPERTY_X, float, x) /*view*/ \
 	F(PROPERTY_Y, float, y) \
 	F(PROPERTY_SCALE_X, float, scale_x) \
@@ -101,7 +101,7 @@ namespace noug {
 	 */
 	enum PropertyName: uint32_t {
 #define fx_def_enum(ENUM, TYPE, NAME) ENUM,
-		N_EACH_PROPERTY_TABLE(fx_def_enum)
+		Qk_EACH_PROPERTY_TABLE(fx_def_enum)
 #undef fx_def_enum
 	};
 
@@ -110,13 +110,13 @@ namespace noug {
 	/**
 	 * @class PropertysAccessor
 	 */
-	class N_EXPORT PropertysAccessor: public Object {
+	class Qk_EXPORT PropertysAccessor: public Object {
 	public:
 		
 		typedef void (View::*Func)();
 		typedef int ViewType;
 		
-		struct N_EXPORT Accessor {
+		struct Qk_EXPORT Accessor {
 			inline Accessor(): get_accessor(nullptr), set_accessor(nullptr) {}
 
 			template<typename T, typename T2>

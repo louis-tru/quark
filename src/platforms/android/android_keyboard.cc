@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/keyboard.h"
-#include "noug/util/map.h"
+#include "quark/keyboard.h"
+#include "quark/util/map.h"
 #include <android/keycodes.h>
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class AndroidKeyboardAdapter

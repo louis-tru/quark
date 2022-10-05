@@ -29,8 +29,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__media_codec_inl__
-#define __noug__media_codec_inl__
+#ifndef __quark__media_codec_inl__
+#define __quark__media_codec_inl__
 
 extern "C" {
 # include <libavutil/avutil.h>
@@ -40,7 +40,7 @@ extern "C" {
 #include "./media_codec.h"
 #include "../util/working.h"
 
-namespace noug {
+namespace quark {
 
 	typedef MultimediaSource::BitRateInfo BitRateInfo;
 	typedef MultimediaSource::Extractor   Extractor;

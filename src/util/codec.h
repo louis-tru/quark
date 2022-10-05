@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__codec__
-#define __noug__util__codec__
+#ifndef __quark__util__codec__
+#define __quark__util__codec__
 
 #include "./util.h"
 #include "./array.h"
 
-namespace noug {
+namespace quark {
 
 	enum Encoding {
 		kInvalid_Encoding,
@@ -48,7 +48,7 @@ namespace noug {
 		kUCS4_Encoding,
 	};
 
-	class N_EXPORT Codec {
+	class Qk_EXPORT Codec {
 	public:
 		
 		/**

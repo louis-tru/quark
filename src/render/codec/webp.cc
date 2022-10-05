@@ -31,7 +31,7 @@
 #include "./codec.h"
 #include <webp/decode.h>
 
-namespace noug {
+namespace quark {
 
 	bool WEBPImageCodec::test(cBuffer& data, Pixel* out) {
 		int width = 0, height = 0;

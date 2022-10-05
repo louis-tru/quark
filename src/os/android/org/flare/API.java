@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.noug;
+package org.quark;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -46,7 +46,7 @@ import android.app.ActivityManager;
 import android.util.Log;
 
 public class API {
-	private static String TAG = "Noug";
+	private static String TAG = "Quark";
 	private static Activity activity = null;
 	private static int battery_status = BatteryManager.BATTERY_STATUS_UNKNOWN;
 	private static boolean is_ac_power_connected = false;

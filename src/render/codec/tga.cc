@@ -30,7 +30,7 @@
 
 #include "./codec.h"
 
-namespace noug {
+namespace quark {
 
 	class TGAImageCodec::_Inl : public TGAImageCodec {
 	#define _inl_tga(self) static_cast<TGAImageCodec::_Inl*>(self)

@@ -1,5 +1,5 @@
 
-import { Image } from 'noug';
+import { Image } from 'quark';
 import './print';
 
 

@@ -33,7 +33,7 @@
 #include "../../display-port.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
@@ -136,7 +136,7 @@ class WrapDisplay: public WrapObject {
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 
 		self->next_frame(Cb([func, worker](CbData& evt) {
-			N_Assert(!func.IsEmpty());
+			Qk_Assert(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			JS_CALLBACK_SCOPE();
 			func.local()->Call(worker);

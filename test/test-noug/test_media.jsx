@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { Application, Root } from 'noug';
-import 'noug/media';
+import { Application, Root } from 'quark';
+import 'quark/media';
 
 new Application().start(<Root/>).onLoad = function() {
 

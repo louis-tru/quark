@@ -2,7 +2,7 @@
 	'targets': [{
 		'target_name': 'trial',
 		'type': '<(output_type)',
-		'dependencies': [ 'noug-util' ],
+		'dependencies': [ 'quark-util' ],
 		'sources': [
 			'jsx.h',
 			'jsx.cc',

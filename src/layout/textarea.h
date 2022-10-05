@@ -28,16 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__textarea__
-#define __noug__layout__textarea__
+#ifndef __quark__layout__textarea__
+#define __quark__layout__textarea__
 
 #include "./input.h"
 #include "./scroll.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT Textarea: public Input, public BaseScroll {
-		N_Define_View(Textarea);
+	class Qk_EXPORT Textarea: public Input, public BaseScroll {
+		Qk_Define_View(Textarea);
 	public:
 		Textarea();
 		virtual bool is_multiline() override;

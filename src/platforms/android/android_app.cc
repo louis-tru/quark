@@ -28,17 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/util/loop.h"
-#include "noug/app.inl"
-#include "noug/event.h"
-#include "noug/display.h"
+#include "quark/util/loop.h"
+#include "quark/app.inl"
+#include "quark/event.h"
+#include "quark/display.h"
 #include "../linux/linux_gl.h"
-#include "noug/util/platform/android_jni.h"
-#include "noug/util/platform/android_api.h"
+#include "quark/util/platform/android_jni.h"
+#include "quark/util/platform/android_api.h"
 #include <android/native_activity.h>
 #include <android/native_window.h>
 
-namespace noug {
+namespace quark {
 
 	class AndroidApplication;
 	static AndroidApplication* application = nullptr;
@@ -78,7 +78,7 @@ namespace noug {
 		, _current_orientation(Orientation::ORIENTATION_INVALID)
 		, _is_init_ok(false)
 		{
-			N_Assert(!application); application = this;
+			Qk_Assert(!application); application = this;
 			_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 		}
 
@@ -113,7 +113,7 @@ namespace noug {
 		}
 
 		static void onDestroy(ANativeActivity* activity) {
-			N_Assert(application->_activity);
+			Qk_Assert(application->_activity);
 
 			activity->callbacks->onDestroy                  = nullptr;
 			activity->callbacks->onStart                    = nullptr;
@@ -150,7 +150,7 @@ namespace noug {
 					// ScopeLock scope(application->_mutex);
 					if ( window == application->_window ) {
 						ok = gl_draw_context->create_surface(window);
-						N_Assert(ok);
+						Qk_Assert(ok);
 					}
 				}
 				if ( ok ) {
@@ -193,9 +193,9 @@ namespace noug {
 				application->_dispatch = application->_host->dispatch();
 				application->_render_looper = new RenderLooper(application->_host);
 
-				N_Assert(application->_activity);
-				N_Assert(application->_host);
-				N_Assert(application->_host->render_loop());
+				Qk_Assert(application->_activity);
+				Qk_Assert(application->_host);
+				Qk_Assert(application->_host->render_loop());
 			}
 			application->_host->triggerForeground();
 			application->stop_render_task();
@@ -230,7 +230,7 @@ namespace noug {
 
 				if ( targger_orientation ) { // 触发方向变化事件
 					application->_host->main_loop()->post(Cb([](CbData& e) {
-						application->_host->display()->N_Trigger(orientation);
+						application->_host->display()->Qk_Trigger(orientation);
 					}));
 				}
 				ev.data->complete();
@@ -245,19 +245,19 @@ namespace noug {
 		}
 
 		static void onWindowFocusChanged(ANativeActivity* activity, int hasFocus) {
-			N_DEBUG("onWindowFocusChanged");
+			Qk_DEBUG("onWindowFocusChanged");
 			application->start_render_task();
 		}
 
 		static void onNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window) {
-			N_DEBUG("onNativeWindowRedrawNeeded");
+			Qk_DEBUG("onNativeWindowRedrawNeeded");
 			application->start_render_task();
 		}
 
 		// ----------------------------------------------------------------------
 		
 		static void onLowMemory(ANativeActivity* activity) {
-			N_DEBUG("onLowMemory");
+			Qk_DEBUG("onLowMemory");
 			application->_host->triggerMemorywarning();
 		}
 
@@ -276,11 +276,11 @@ namespace noug {
 		}
 		
 		static void onConfigurationChanged(ANativeActivity* activity) {
-			N_DEBUG("onConfigurationChanged");
+			Qk_DEBUG("onConfigurationChanged");
 		}
 		
 		static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
-			N_DEBUG("onNativeWindowResized");
+			Qk_DEBUG("onNativeWindowResized");
 		}
 
 		// --------------------------- Dispatch event ---------------------------
@@ -312,7 +312,7 @@ namespace noug {
 					dispatchEvent(event);
 					AInputQueue_finishEvent(queue, event, fd);
 				} else {
-					N_DEBUG("AInputQueue_preDispatchEvent(queue, event) != 0");
+					Qk_DEBUG("AInputQueue_preDispatchEvent(queue, event) != 0");
 				}
 			}
 			return 1;
@@ -331,7 +331,7 @@ namespace noug {
 				int repeat = AKeyEvent_getRepeatCount(event);
 				int action = AKeyEvent_getAction(event);
 
-				N_DEBUG("code:%d, repeat:%d, action:%d, "
+				Qk_DEBUG("code:%d, repeat:%d, action:%d, "
 												"flags:%d, scancode:%d, metastate:%d, downtime:%ld, time:%ld",
 								code, repeat, action,
 								AKeyEvent_getFlags(event),
@@ -351,7 +351,7 @@ namespace noug {
 							dispatch->keyboard_adapter()->dispatch(code, 0, 0, repeat, device, source);
 						break;
 					case AKEY_EVENT_ACTION_MULTIPLE:
-						N_DEBUG("AKEY_EVENT_ACTION_MULTIPLE");
+						Qk_DEBUG("AKEY_EVENT_ACTION_MULTIPLE");
 						break;
 				}
 			}
@@ -379,7 +379,7 @@ namespace noug {
 					case AMOTION_EVENT_ACTION_MOVE:
 						touchs = toGuiTouchs(event, true);
 						if ( touchs.length() ) {
-							// N_DEBUG("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
+							// Qk_DEBUG("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
 							dispatch->dispatch_touchmove( std::move(touchs) );
 						}
 						break;
@@ -476,7 +476,7 @@ namespace noug {
 	}
 
 	void AppInl::initialize(cJSON& options) {
-		N_Assert(!gl_draw_context);
+		Qk_Assert(!gl_draw_context);
 		gl_draw_context = GLDrawProxy::create(this, options);
 		_draw_ctx = gl_draw_context->host();
 	}
@@ -599,35 +599,35 @@ namespace noug {
 
 	extern "C" {
 
-		N_EXPORT void Java_org_noug_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
+		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
 			_inl_app(app())->dispatch()->dispatch_ime_delete(count);
 		}
 
-		N_EXPORT void Java_org_noug_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
+		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
 			_inl_app(app())->dispatch()->dispatch_ime_insert(JNI::jstring_to_string(text));
 		}
 
-		N_EXPORT void Java_org_noug_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
+		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
 			_inl_app(app())->dispatch()->dispatch_ime_marked(JNI::jstring_to_string(text));
 		}
 
-		N_EXPORT void Java_org_noug_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
+		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
 			_inl_app(app())->dispatch()->dispatch_ime_unmark(JNI::jstring_to_string(text));
 		}
 		
-		N_EXPORT void Java_org_noug_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
+		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
 			jint keycode, jboolean ascii, jboolean down, jint repeat, jint device, jint source) {
 			_inl_app(app())->dispatch()->keyboard_adapter()->
 				dispatch(keycode, ascii, down, repeat, device, source);
 		}
 
-		N_EXPORT void Java_org_noug_NougActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
+		Qk_EXPORT void Java_org_quark_QuarkActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
 			application->host()->main_loop()->post(Cb([](CbData& ev){
-				application->host()->display_port()->N_Trigger(change);
+				application->host()->display_port()->Qk_Trigger(change);
 			}));
 		}
 
-		N_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
+		Qk_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
 																						void* savedState, size_t savedStateSize)
 		{
 			AndroidApplication::onCreate(activity, savedState, savedStateSize);

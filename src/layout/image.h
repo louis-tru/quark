@@ -28,16 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__image__
-#define __noug__layout__image__
+#ifndef __quark__layout__image__
+#define __quark__layout__image__
 
 #include "./box.h"
 #include "../render/source.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT Image: public Box, public SourceHold {
-		N_Define_View(Image);
+	class Qk_EXPORT Image: public Box, public SourceHold {
+		Qk_Define_View(Image);
 	protected:
 		virtual float solve_layout_content_width(Size &parent_layout_size) override;
 		virtual float solve_layout_content_height(Size &parent_layout_size) override;

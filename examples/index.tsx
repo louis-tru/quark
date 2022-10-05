@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import util from 'noug/util';
-import * as reader from 'noug/reader';
-import * as font from 'noug/font';
-import { Application } from 'noug/app';
+import util from 'quark/util';
+import * as reader from 'quark/reader';
+import * as font from 'quark/font';
+import { Application } from 'quark/app';
 
 var app = new Application({
 	multisample: 4,
@@ -40,23 +40,23 @@ var app = new Application({
 	fullScreen: !!util.options.full_screen,
 	enableTouch: true,
 	background: 0xffffff,
-	title: 'Noug Examples',
+	title: 'Quark Examples',
 });
 
 import {
-	Root, Scroll, Div, Hybrid, Clip, Text, Button, TextNode as T, default as noug, _CVD
-} from 'noug';
-import { NavPageCollection, Toolbar } from 'noug/nav';
+	Root, Scroll, Div, Hybrid, Clip, Text, Button, TextNode as T, default as quark, _CVD
+} from 'quark';
+import { NavPageCollection, Toolbar } from 'quark/nav';
 import { Navbutton, Mynavpage, Page } from './public';
 import examples from './examples';
 import about_vx from './about';
 import review_vx from './review';
-import {ClickEvent} from 'noug/event';
+import {ClickEvent} from 'quark/event';
 
 const resolve = require.resolve;
-const px = noug.atomPixel;
+const px = quark.atomPixel;
 
-noug.css({
+quark.css({
 	
 	'.category_title': {
 		width: 'full',
@@ -115,22 +115,22 @@ function review_code(evt: ClickEvent) {
 	evt.sender.ownerAs<Page>().collection.push(review_vx(), true);
 }
 
-const noug_tools = 'https://www.npmjs.com/package/noproj';
-const noug_tools_issues_url = 'https://github.com/louis-tru/noug/issues';
-const examples_source = 'https://github.com/louis-tru/noug.git';
-const documents = 'http://noug.cc/';
+const quark_tools = 'https://www.npmjs.com/package/noproj';
+const quark_tools_issues_url = 'https://github.com/louis-tru/quark/issues';
+const examples_source = 'https://github.com/louis-tru/quark.git';
+const documents = 'http://quarks.cc/';
 
 // registerFont
 
 function handle_go_to(evt: ClickEvent) {
 	var url = (evt.sender as any).url;
 	if ( url ) {
-		noug.app.openUrl(url);
+		quark.app.openUrl(url);
 	}
 }
 
 function handle_bug_feedback() {
-	noug.app.sendEmail('louistru@hotmail.com', 'bug feedback');
+	quark.app.sendEmail('louistru@hotmail.com', 'bug feedback');
 }
 
 class DefaultToolbar extends Toolbar {
@@ -145,14 +145,14 @@ class DefaultToolbar extends Toolbar {
 	}
 }
 
-const noug_tools_vx = ()=>(
-	<Mynavpage title="Noug Tools" source={resolve(__filename)}>
+const quark_tools_vx = ()=>(
+	<Mynavpage title="Quark Tools" source={resolve(__filename)}>
 		<Div width="full">
 			<Hybrid class="category_title">
 1. You can use nodejs <T textBackgroundColor="#ddd" value={"npm install -g noproj\n"} />.
 2. Or get the node modules from Github.
 			</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={noug_tools}>Go Github</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={quark_tools}>Go Github</Button>
 		</Div>
 	</Mynavpage>
 )
@@ -169,7 +169,7 @@ const examples_source_vx = ()=>(
 const documents_vx = ()=>(
 	<Mynavpage title="Documents" source={resolve(__filename)}>
 		<Div width="full">
-			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="noug.cc" /> to view the document?</Hybrid>
+			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="quarks.cc" /> to view the document?</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={documents}>Go Documents</Button>
 		</Div>
 	</Mynavpage>
@@ -179,7 +179,7 @@ const bug_feedback_vx = ()=>(
 	<Mynavpage title="Bug Feedback" source={resolve(__filename)}>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to Github issues list?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={noug_tools_issues_url}>Go Github Issues</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={quark_tools_issues_url}>Go Github Issues</Button>
 			<Hybrid class="category_title">Or you can send me email, too.</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick={handle_bug_feedback}>Send email</Button>
 		</Div>
@@ -202,7 +202,7 @@ app.start(
 					<Text class="hello" value="Hello." />
 					<Div class="category" borderBottom={`${px} #c8c7cc`}>
 						<Hybrid class="codepre">
-							<T class="keywork" value="import"/> {"{"} <T class="identifier" value="Application" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'noug'" />
+							<T class="keywork" value="import"/> {"{"} <T class="identifier" value="Application" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'quark'" />
 								<T class="keywork" value={'\nnew'}/> <T class="identifier" value="Application"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>
 								(
 									{"<"}<T class="tag_name" value="Root" />{">"}hello world!{"</"}<T class="tag_name" value="Root" />{">"}
@@ -214,7 +214,7 @@ app.start(
 					<Clip class="category">
 						<Navbutton next={examples}>Examples</Navbutton>
 						<Navbutton next={examples_source_vx}>Examples Source</Navbutton>
-						<Navbutton next={noug_tools_vx}>Noug Tools</Navbutton>
+						<Navbutton next={quark_tools_vx}>Quark Tools</Navbutton>
 					</Clip>
 
 					<Text class="category_title" />

@@ -28,79 +28,79 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/util/http.h"
-#include "noug/os/os.h"
+#include "quark/util/http.h"
+#include "quark/os/os.h"
 
-using namespace noug;
+using namespace quark;
 
 void test_http_cookie(int argc, char **argv) {
 	
-	N_LOG(http_get_cookie("noug.cc", "test"));
+	Qk_LOG(http_get_cookie("quarks.cc", "test"));
 	
-	http_set_cookie("noug.cc", "test", "noug.cc");
+	http_set_cookie("quarks.cc", "test", "quarks.cc");
 	
-	N_LOG("A, %s", *http_get_cookie("noug.cc", "test"));
+	Qk_LOG("A, %s", *http_get_cookie("quarks.cc", "test"));
 	
-	N_LOG("B, %s", *http_get_cookie("www.noug.cc", "test"));
+	Qk_LOG("B, %s", *http_get_cookie("www.quarks.cc", "test"));
 
-	http_set_cookie("www.noug.cc", "test", "$");
+	http_set_cookie("www.quarks.cc", "test", "$");
 
-	N_LOG("B2, %s", *http_get_cookie("www.noug.cc", "test"));
+	Qk_LOG("B2, %s", *http_get_cookie("www.quarks.cc", "test"));
 
-	http_set_cookie("noug.cc", "test2", "*");
+	http_set_cookie("quarks.cc", "test2", "*");
 	
-	N_LOG("D, %s", *http_get_cookie("noug.cc", "test2"));
+	Qk_LOG("D, %s", *http_get_cookie("quarks.cc", "test2"));
 	
-	N_LOG("E, %s", *http_get_cookie("www.noug.cc", "test2"));
+	Qk_LOG("E, %s", *http_get_cookie("www.quarks.cc", "test2"));
 	
-	http_set_cookie("noug.cc", "test2", "-----------------------------", -1, "/AA");
+	http_set_cookie("quarks.cc", "test2", "-----------------------------", -1, "/AA");
 	
-	N_LOG("F, %s", *http_get_cookie("noug.cc", "test2"));
+	Qk_LOG("F, %s", *http_get_cookie("quarks.cc", "test2"));
 	
-	N_LOG("H, %s", *http_get_cookie("noug.cc", "test2", "/AA"));
+	Qk_LOG("H, %s", *http_get_cookie("quarks.cc", "test2", "/AA"));
 	
-	N_LOG(http_get_all_cookie_string("www.noug.cc", "/AA"));
+	Qk_LOG(http_get_all_cookie_string("www.quarks.cc", "/AA"));
 	
-	http_set_cookie_with_expression("noug.cc", "test3=HHHH--l; path=/AA; max-age=60");
+	http_set_cookie_with_expression("quarks.cc", "test3=HHHH--l; path=/AA; max-age=60");
 	
-	N_LOG(http_get_cookie("noug.cc", "test3"));
+	Qk_LOG(http_get_cookie("quarks.cc", "test3"));
 	
-	N_LOG(http_get_cookie("noug.cc", "test3", "/AA"));
+	Qk_LOG(http_get_cookie("quarks.cc", "test3", "/AA"));
 	
-	N_LOG("http_cookie_get_all_string 1, %s", *http_get_all_cookie_string("www.noug.cc", "/AA"));
-	N_LOG("http_cookie_get_all_string 2, %s", *http_get_all_cookie_string("noug.cc", "/AA"));
+	Qk_LOG("http_cookie_get_all_string 1, %s", *http_get_all_cookie_string("www.quarks.cc", "/AA"));
+	Qk_LOG("http_cookie_get_all_string 2, %s", *http_get_all_cookie_string("quarks.cc", "/AA"));
 	
 	// test delete
 	
-	http_delete_cookie("noug.cc", "test");
+	http_delete_cookie("quarks.cc", "test");
 	
-	N_LOG(http_get_cookie("noug.cc", "test"));
+	Qk_LOG(http_get_cookie("quarks.cc", "test"));
 	
-	http_set_cookie("noug.cc", "test", "noug.cc2");
-	http_set_cookie("noug.cc", "test9", "noug.cc3");
-	http_set_cookie("noug.cc", "test8", "noug.cc4");
-	http_set_cookie("www.noug.cc", "test7", "noug.cc5");
+	http_set_cookie("quarks.cc", "test", "quarks.cc2");
+	http_set_cookie("quarks.cc", "test9", "quarks.cc3");
+	http_set_cookie("quarks.cc", "test8", "quarks.cc4");
+	http_set_cookie("www.quarks.cc", "test7", "quarks.cc5");
 	
-	N_LOG("E, %s", *http_get_cookie("noug.cc", "test"));
+	Qk_LOG("E, %s", *http_get_cookie("quarks.cc", "test"));
 
-	http_set_cookie("noug.orh", "test--------A", "noug.cc%", -1, "KKK/MMM");
+	http_set_cookie("quark.orh", "test--------A", "quarks.cc%", -1, "KKK/MMM");
 
-	N_LOG("http_cookie_get_all_string 3, %s", *http_get_all_cookie_string("noug.cc"));
+	Qk_LOG("http_cookie_get_all_string 3, %s", *http_get_all_cookie_string("quarks.cc"));
 	
-	http_delete_all_cookie("noug.cc");
+	http_delete_all_cookie("quarks.cc");
 	
-	N_LOG(http_get_cookie("noug.cc", "test"));
+	Qk_LOG(http_get_cookie("quarks.cc", "test"));
 	
-	http_set_cookie("noug.cc", "test", "noug.cc");
+	http_set_cookie("quarks.cc", "test", "quarks.cc");
 	
-	N_LOG("F, %s", *http_get_cookie("noug.cc", "test--------A", "KKK/MMM", 1));
+	Qk_LOG("F, %s", *http_get_cookie("quarks.cc", "test--------A", "KKK/MMM", 1));
 	
 	http_clear_cookie();
 	
-	N_LOG(http_get_cookie("noug.cc", "test"));
+	Qk_LOG(http_get_cookie("quarks.cc", "test"));
 	
-	http_set_cookie("noug.cc", "test", "END test cookie", time_micro() + 6e7); // 60s expires
+	http_set_cookie("quarks.cc", "test", "END test cookie", time_micro() + 6e7); // 60s expires
 	
-	N_LOG(http_get_cookie("noug.cc", "test"));
+	Qk_LOG(http_get_cookie("quarks.cc", "test"));
 	
 }

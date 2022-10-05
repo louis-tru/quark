@@ -11,7 +11,7 @@ V             ?= 0
 CXX           ?= g++
 LINK          ?= g++
 ANDROID_LIB   ?= $(ANDROID_SDK)/platforms/android-28/android.jar
-ANDROID_JAR    = out/android.classs.noug.jar
+ANDROID_JAR    = out/android.classs.quark.jar
 JAVAC         ?= javac
 JAR            = jar
 ENV           ?=
@@ -21,12 +21,12 @@ GYP            = $(FPROJ)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
 LIBS_DIR       = out/$(OUTPUT)
 BUILD_STYLE   ?= make
-BUILD_FILE    ?= noug
+BUILD_FILE    ?= quark
 
 #######################
 
 STYLES		= make xcode msvs make-linux cmake-linux cmake
-GYPFILES	= Makefile noug.gyp tools/common.gypi out/config.gypi trial/trial.gypi
+GYPFILES	= Makefile quark.gyp tools/common.gypi out/config.gypi trial/trial.gypi
 GYP_ARGS	= -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
@@ -67,13 +67,13 @@ test2: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
 	@$(call make_compile,$(MAKE))
 
-$(ANDROID_JAR): android/org/noug/*.java
+$(ANDROID_JAR): android/org/quark/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
-	$(JAVAC) -classpath $(ANDROID_LIB) -d out/android.classs android/org/noug/*.java
-	@cd out/android.classs; $(JAR) cfv noug.jar .
+	$(JAVAC) -classpath $(ANDROID_LIB) -d out/android.classs android/org/quark/*.java
+	@cd out/android.classs; $(JAR) cfv quark.jar .
 	@mkdir -p $(FPROJ_OUT)/product/android/libs
-	@cp out/android.classs/noug.jar $(FPROJ_OUT)/product/android/libs
+	@cp out/android.classs/quark.jar $(FPROJ_OUT)/product/android/libs
 
 clean:
 	@rm -rfv $(LIBS_DIR)

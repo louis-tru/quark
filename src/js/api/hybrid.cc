@@ -33,7 +33,7 @@
 #include "../../hybrid.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

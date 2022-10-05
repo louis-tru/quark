@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { Application, Root, Div, Button, Indep, Image } from 'noug';
-import * as action from 'noug/action';
-import css from 'noug/css';
+import { Application, Root, Div, Button, Indep, Image } from 'quark';
+import * as action from 'quark/action';
+import css from 'quark/css';
 
 new Application().start(
 	<Root>

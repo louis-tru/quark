@@ -31,7 +31,7 @@
 #include "./js.h"
 #include "../app.h"
 
-#if N_UNIX
+#if Qk_UNIX
 # include <dlfcn.h>
 #endif
 
@@ -44,28 +44,28 @@ void  object_allocator_release(Object* obj);
 void  object_allocator_retain(Object* obj);
 
 // startup argv
-Array<Char*>* __fx_noug_argv = nullptr;
-int __fx_noug_have_node = 1;
-int __fx_noug_have_debug = 0;
+Array<Char*>* __fx_quark_argv = nullptr;
+int __fx_quark_have_node = 1;
+int __fx_quark_have_debug = 0;
 
 // parse argv
-static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Char*>& noug_argv) {
+static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Char*>& quark_argv) {
 	static String argv_str;
 
-	N_Assert(argv_in.length(), "Bad start argument");
-	__fx_noug_have_node = 1;
-	__fx_noug_have_debug = 0;
+	Qk_Assert(argv_in.length(), "Bad start argument");
+	__fx_quark_have_node = 1;
+	__fx_quark_have_debug = 0;
 	argv_str = argv_in[0];
 	Array<int> indexs = {-1};
 
 	for (int i = 1, index = argv_in[0].length(); i < argv_in.length(); i++) {
-		if (argv_in[i].index_of("--no-node") == 0) { // noug arg
-			__fx_noug_have_node = 0; // disable node
+		if (argv_in[i].index_of("--no-node") == 0) { // quark arg
+			__fx_quark_have_node = 0; // disable node
 		} else if (argv_in[i].index_of("--debug") == 0) {
-			__fx_noug_have_debug = 1;
+			__fx_quark_have_debug = 1;
 		} else {
 			if (argv_in[i].index_of("--inspect") == 0) {
-				__fx_noug_have_debug = 1;
+				__fx_quark_have_debug = 1;
 			}
 			argv_str.push(' ').push(argv_in[i]);
 			indexs.push(index);
@@ -75,15 +75,15 @@ static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Cha
 
 	Char* str_c = const_cast<Char*>(*argv_str);
 	argv.push(str_c);
-	noug_argv.push(str_c);
+	quark_argv.push(str_c);
 
-	for (int i = 1, noug_ok = 0; i < indexs.length(); i++) {
+	for (int i = 1, quark_ok = 0; i < indexs.length(); i++) {
 		int index = indexs[i];
 		str_c[index] = '\0';
 		Char* arg = str_c + index + 1;
-		if (noug_ok || arg[0] != '-') {
-			noug_ok = 1; // noug argv start
-			noug_argv.push(arg);
+		if (quark_ok || arg[0] != '-') {
+			quark_ok = 1; // quark argv start
+			quark_argv.push(arg);
 		}
 		argv.push(arg);
 	}
@@ -95,7 +95,7 @@ static void on_process_safe_handle(Event<>& e, Object* data) {
 		typedef Callback<RunLoop::PostSyncData> Cb;
 		RunLoop::main_loop()->post_sync(Cb([&](Cb::Data& e) {
 			auto worker = Worker::worker();
-			N_DEBUG("on_process_safe_handle");
+			Qk_DEBUG("on_process_safe_handle");
 			if (worker) {
 				rc = IMPL::inl(worker)->TriggerExit(rc);
 			}
@@ -122,46 +122,46 @@ int Start(const Array<String>& argv_in) {
 		Object::set_object_allocator(
 			&object_allocator_alloc, &object_allocator_release, &object_allocator_retain);
 	}
-	N_Assert(!__fx_noug_argv);
+	Qk_Assert(!__fx_quark_argv);
 
-	Array<Char*> argv, noug_argv;
-	parseArgv(argv_in, argv, noug_argv);
+	Array<Char*> argv, quark_argv;
+	parseArgv(argv_in, argv, quark_argv);
 
-	Thread::N_On(SafeExit, on_process_safe_handle);
+	Thread::Qk_On(SafeExit, on_process_safe_handle);
 
-	__fx_noug_argv = &noug_argv;
+	__fx_quark_argv = &quark_argv;
 	int rc = 0;
 	int argc = argv.length();
 	Char** argv_c = const_cast<Char**>(&argv[0]);
 
 	// Mark the current main thread and check current thread
-	N_Assert(RunLoop::main_loop() == RunLoop::current());
+	Qk_Assert(RunLoop::main_loop() == RunLoop::current());
 
-	if (__fx_noug_have_node ) {
+	if (__fx_quark_have_node ) {
 		if (node::node_api) {
 			rc = node::node_api->start(argc, argv_c);
 		} else {
-			#if N_LINUX
+			#if Qk_LINUX
 				// try loading nxnode
-				void* handle = dlopen("libnoug-node.so", RTLD_LAZY | RTLD_GLOBAL);
+				void* handle = dlopen("libquark-node.so", RTLD_LAZY | RTLD_GLOBAL);
 				if (!handle) {
-					N_WARN("No node library loaded, %s", dlerror());
+					Qk_WARN("No node library loaded, %s", dlerror());
 					goto no_node_start;
 				} else {
 					rc = node::node_api->start(argc, argv_c);
 				}
 			#else
-				N_WARN("No node library loaded");
+				Qk_WARN("No node library loaded");
 				goto no_node_start;
 			#endif
 		}
 	} else {
 	 no_node_start:
-		__fx_noug_have_node = 0;
+		__fx_quark_have_node = 0;
 		rc = IMPL::start(argc, argv_c);
 	}
-	__fx_noug_argv = nullptr;
-	Thread::N_Off(SafeExit, on_process_safe_handle);
+	__fx_quark_argv = nullptr;
+	Thread::Qk_Off(SafeExit, on_process_safe_handle);
 
 	return rc;
 }
@@ -180,7 +180,7 @@ int Start(int argc, Char** argv) {
 int __default_main(int argc, Char** argv) {
 	String cmd;
 
-	#if N_ANDROID
+	#if Qk_ANDROID
 		cmd = API::start_cmd();
 		if ( cmd.is_empty() )
 	#endif 
@@ -205,6 +205,6 @@ int __default_main(int argc, Char** argv) {
 	}
 }
 
-N_INIT_BLOCK(__default_main) {
+Qk_INIT_BLOCK(__default_main) {
 	__fx_default_gui_main = __default_main;
 }

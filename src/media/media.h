@@ -28,18 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__media__media__
-#define __noug__media__media__
+#ifndef __quark__media__media__
+#define __quark__media__media__
 
 #include "../util/string.h"
 
-#ifndef N_NO_MEDIA_DYNAMIC_LIB
-# define N_MEDIA_DYNAMIC virtual
+#ifndef Qk_NO_MEDIA_DYNAMIC_LIB
+# define Qk_MEDIA_DYNAMIC virtual
 #else
-# define N_MEDIA_DYNAMIC
+# define Qk_MEDIA_DYNAMIC
 #endif
 
-namespace noug {
+namespace quark {
 
 	enum PlayerStatus {
 		PLAYER_STATUS_STOP = 0,
@@ -53,9 +53,9 @@ namespace noug {
 		const uint64_t tid;
 	} module_info_t;
 
-	N_EXPORT extern int initialize_media();
-	N_EXPORT extern module_info_t* module_audio_player;
-	N_EXPORT extern module_info_t* module_video;
+	Qk_EXPORT extern int initialize_media();
+	Qk_EXPORT extern module_info_t* module_audio_player;
+	Qk_EXPORT extern module_info_t* module_video;
 
 }
 #endif

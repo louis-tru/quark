@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/util/util.h"
-#include "noug/util/fs.h"
+#include "quark/util/util.h"
+#include "quark/util/fs.h"
 
-using namespace noug;
+using namespace quark;
 
 class AsyncFileRead: public File, public File::Delegate {
  public:
@@ -41,36 +41,36 @@ class AsyncFileRead: public File, public File::Delegate {
 	}
 	
 	virtual ~AsyncFileRead() {
-		N_LOG("Delete");
+		Qk_LOG("Delete");
 		fs_read_file(fs_resources("res/bg.svg"), Cb([](CbData& evt) {
 			if ( evt.error ) {
-				N_LOG("ERR, %s", evt.error->message().c_str());
+				Qk_LOG("ERR, %s", evt.error->message().c_str());
 			} else {
-				N_LOG( static_cast<Buffer*>(evt.data)->collapse_string() );
+				Qk_LOG( static_cast<Buffer*>(evt.data)->collapse_string() );
 			}
 			RunLoop::current()->stop();
 		}));
 	}
 	
 	virtual void trigger_file_error(File* file, cError& error) {
-		N_LOG("Error, %s", error.message().c_str());
+		Qk_LOG("Error, %s", error.message().c_str());
 		delete this;
 	}
 	virtual void trigger_file_open(File* file) {
-		N_LOG("Open, %s", *path());
+		Qk_LOG("Open, %s", *path());
 		read(Buffer::alloc(1024), 1024); // start read
 	}
 	virtual void trigger_file_close(File* file) {
-		N_LOG("Close");
+		Qk_LOG("Close");
 		Release(this);
 	}
 	virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
 		if ( buffer.length() ) {
-			N_LOG( buffer.collapse_string() );
+			Qk_LOG( buffer.collapse_string() );
 			read(buffer, 1024); // read
 		} else {
 			// read end
-			N_LOG("Read END");
+			Qk_LOG("Read END");
 			close();
 		}
 	}
@@ -87,24 +87,24 @@ class AsyncFileWrite: public File, public File::Delegate {
 	}
 	
 	virtual ~AsyncFileWrite() {
-		N_LOG("Delete WriteFileAsync");
+		Qk_LOG("Delete WriteFileAsync");
 	}
 	
 	virtual void trigger_file_error(File* file, cError& error) {
-		N_LOG("Error, %s", error.message().c_str());
+		Qk_LOG("Error, %s", error.message().c_str());
 		RunLoop::current()->stop();
 		Release(this);
 	}
 	virtual void trigger_file_open(File* file) {
-		N_LOG("Open, %s", *path());
+		Qk_LOG("Open, %s", *path());
 		write(String("ABCDEFG-").collapse()); // start read
 	}
 	virtual void trigger_file_close(File* file) {
-		N_LOG("Close");
+		Qk_LOG("Close");
 		Release(this);
 	}
 	virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
-		N_LOG("Write ok");
+		Qk_LOG("Write ok");
 		(new AsyncFileRead(path()))->open();
 		close();
 	}

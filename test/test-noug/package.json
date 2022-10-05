@@ -1,5 +1,5 @@
 {
-	"name": "test-noug",
+	"name": "test-quark",
 	"main": "test_gui.jsx",
-	"nougSyntax": true
+	"quarkSyntax": true
 }

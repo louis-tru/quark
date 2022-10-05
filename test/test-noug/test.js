@@ -1,5 +1,5 @@
 
-import 'noug/util';
+import 'quark/util';
 
 function json_stringify(value, whitelist) {
 

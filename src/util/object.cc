@@ -32,7 +32,7 @@
 #include "./array.h"
 #include <math.h>
 
-namespace noug {
+namespace quark {
 
 	void* MemoryAllocator::alloc(uint32_t size) {
 		return ::malloc(size);
@@ -48,12 +48,12 @@ namespace noug {
 
 	void* MemoryAllocator::aalloc(void* val, uint32_t size, uint32_t* size_out, uint32_t size_of) {
 		if ( size ) {
-			size = N_MAX(N_MIN_CAPACITY, size);
+			size = Qk_MAX(Qk_MIN_CAPACITY, size);
 			if ( size > *size_out || size < *size_out / 4.0 ) {
 				size = powf(2, ceil(log2(size)));
 				*size_out = size;
 				val = val ? ::realloc(val, size_of * size) : ::malloc(size_of * size);
-				N_Assert(val);
+				Qk_Assert(val);
 			}
 		} else {
 			*size_out = 0;
@@ -78,7 +78,7 @@ namespace noug {
 	static void  (*object_allocator_release)(Object* obj) = &default_object_release;
 	static void  (*object_allocator_retain)(Object* obj) = &default_object_retain;
 
-#if N_MEMORY_TRACE_MARK
+#if Qk_MEMORY_TRACE_MARK
 
 		static int active_mark_objects_count_ = 0;
 		static Mutex mark_objects_mutex;
@@ -103,7 +103,7 @@ namespace noug {
 			if ( mark_index_ > -1 ) {
 				ScopeLock scope(mark_objects_mutex);
 				mark_objects_[mark_index_] = nullptr;
-				N_Assert(active_mark_objects_count_);
+				Qk_Assert(active_mark_objects_count_);
 				active_mark_objects_count_--;
 			}
 		}
@@ -122,7 +122,7 @@ namespace noug {
 				}
 			}
 			
-			N_Assert( new_mark_objects.length() == active_mark_objects_count_ );
+			Qk_Assert( new_mark_objects.length() == active_mark_objects_count_ );
 			
 			mark_objects_ = std::move(new_mark_objects);
 			return rv;
@@ -147,7 +147,7 @@ namespace noug {
 	}
 
 	void* Object::operator new(std::size_t size) {
-#if N_MEMORY_TRACE_MARK
+#if Qk_MEMORY_TRACE_MARK
 			void* p = object_allocator_alloc(size);
 			((Object*)p)->mark_index_ = 123456;
 			return p;
@@ -162,7 +162,7 @@ namespace noug {
 	}
 
 	void Object::operator delete(void* p) {
-		N_UNREACHABLE("Modify to `Release(obj)`");
+		Qk_UNREACHABLE("Modify to `Release(obj)`");
 	}
 
 	void Object::set_object_allocator(
@@ -196,11 +196,11 @@ namespace noug {
 	}
 
 	Reference::~Reference() {
-		N_Assert( _ref_count <= 0 );
+		Qk_Assert( _ref_count <= 0 );
 	}
 
 	bool Reference::retain() {
-		N_Assert(_ref_count >= 0);
+		Qk_Assert(_ref_count >= 0);
 		if ( _ref_count++ == 0 ) {
 			object_allocator_retain(this);
 		}
@@ -208,7 +208,7 @@ namespace noug {
 	}
 
 	void Reference::release() {
-		N_Assert(_ref_count >= 0);
+		Qk_Assert(_ref_count >= 0);
 		if ( --_ref_count <= 0 ) { // 当引用记数小宇等于0释放
 			object_allocator_release(this);
 		}

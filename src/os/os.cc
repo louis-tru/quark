@@ -29,24 +29,24 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./os.h"
-#include <noug/util/fs.h>
-#include <noug/util/dict.h>
+#include <quark/util/fs.h>
+#include <quark/util/dict.h>
 #include <string.h>
 #include <atomic>
 #include <unistd.h>
 
-#if N_UNIX
+#if Qk_UNIX
 # include <sys/utsname.h>
 #endif
 
-#if N_ANDROID
+#if Qk_ANDROID
 # include "./android/api.h"
 #endif
 
-namespace noug {
+namespace quark {
 	namespace os {
 
-		#if N_UNIX
+		#if Qk_UNIX
 			static String* info_str = nullptr;
 
 			String info() {
@@ -70,7 +70,7 @@ namespace noug {
 			}
 		#endif
 
-		#if N_APPLE
+		#if Qk_APPLE
 			void get_languages_apple(Array<String>& langs);
 		#endif
 
@@ -81,11 +81,11 @@ namespace noug {
 		static language_t* get_languages() {
 			if (!langs_) {
 				langs_ = new language_t;
-			#if N_IOS
+			#if Qk_IOS
 				get_languages_apple(langs_->langs);
-			#elif N_ANDROID
+			#elif Qk_ANDROID
 				langs_->langs.push(API::language());
-			#elif N_LINUX
+			#elif Qk_LINUX
 				cChar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
 				if ( lang ) {
 					langs_->langs.push(String(lang).split('.')[0]);
@@ -109,7 +109,7 @@ namespace noug {
 			return network_status() >= 3;
 		}
 
-		#if N_LINUX || N_ANDROID
+		#if Qk_LINUX || Qk_ANDROID
 
 			static std::atomic_int priv_cpu_total_count(0);
 			static std::atomic_int priv_cpu_usage_count(0);

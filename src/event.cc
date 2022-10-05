@@ -36,7 +36,7 @@
 #include "./pre_render.h"
 #include <math.h>
 
-namespace noug {
+namespace quark {
 
 	static inline HighlightedStatus HOVER_or_NORMAL(View* view) {
 		return view->is_focus() ? HIGHLIGHTED_HOVER : HIGHLIGHTED_NORMAL;
@@ -47,7 +47,7 @@ namespace noug {
 
  // -------------------------- V i e w --------------------------
 
-	N_DEFINE_INLINE_MEMBERS(View, InlEvent) {
+	Qk_DEFINE_INLINE_MEMBERS(View, InlEvent) {
 	public:
 		#define _inl_view(self) static_cast<View::InlEvent*>(static_cast<View*>(self))
 
@@ -141,16 +141,16 @@ namespace noug {
 
 	// -------------------------- E v e n t --------------------------
 
-#define N_FUN(NAME, C, FLAG) \
+#define Qk_FUN(NAME, C, FLAG) \
 	const UIEventName UIEvent_##NAME(#NAME, UI_EVENT_CATEGORY_##C, FLAG);
-	N_UI_Events(N_FUN)
-#undef N_FUN
+	Qk_UI_Events(Qk_FUN)
+#undef Qk_FUN
 
 	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
 		Dict<String, UIEventName> r;
-#define N_FUN(NAME, C, F) r.set(UIEvent_##NAME.to_string(), UIEvent_##NAME);
-		N_UI_Events(N_FUN)
-#undef N_FUN
+#define Qk_FUN(NAME, C, F) r.set(UIEvent_##NAME.to_string(), UIEvent_##NAME);
+		Qk_UI_Events(Qk_FUN)
+#undef Qk_FUN
 		return r;
 	}());
 
@@ -217,7 +217,7 @@ namespace noug {
 	 */
 	class EventDispatch::OriginTouche {
 	public:
-		OriginTouche() { N_UNREACHABLE(); }
+		OriginTouche() { Qk_UNREACHABLE(); }
 		OriginTouche(View* view)
 			: _view(view)
 			, _start_position(view_position(view))
@@ -512,7 +512,7 @@ namespace noug {
 	}
 
 	void EventDispatch::onTouchstart(List<TouchPoint>&& list) {
-		N_DEBUG("onTouchstart x: %f, y: %f", list.front().y, list.front().y);
+		Qk_DEBUG("onTouchstart x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
 			Root* r = _host->root();
@@ -523,7 +523,7 @@ namespace noug {
 	}
 
 	void EventDispatch::onTouchmove(List<TouchPoint>&& list) {
-		N_DEBUG("onTouchmove x: %f, y: %f", list.front().y, list.front().y);
+		Qk_DEBUG("onTouchmove x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
 			touchmove(*evt.data);
@@ -582,7 +582,7 @@ namespace noug {
 	}
 
 	View* EventDispatch::find_receive_event_view(Vec2 pos) {
-		return _host->root() ? noug::find_receive_event_view(_host->root(), pos) : nullptr;
+		return _host->root() ? quark::find_receive_event_view(_host->root(), pos) : nullptr;
 	}
 
 	Sp<MouseEvent> EventDispatch::NewMouseEvent(View* view, float x, float y, uint32_t keycode) {
@@ -896,7 +896,7 @@ namespace noug {
 	}
 
 	void EventDispatch::set_text_input(TextInput* input) {
-		N_DEBUG("set_text_input");
+		Qk_DEBUG("set_text_input");
 		if ( input != _text_input ) {
 			_text_input = input;
 			

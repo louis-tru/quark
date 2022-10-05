@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/util.h>
-#include <noug/util/loop.h>
+#include <quark/util/util.h>
+#include <quark/util/loop.h>
 
-using namespace noug;
+using namespace quark;
 
 volatile bool run_flag = false;
 Mutex mtx;
@@ -45,7 +45,7 @@ void test_mutex0()
 		ScopeLock scope(mtx);
 		cnt++;
 	}
-	N_LOG("std::mutex,%d", cnt);
+	Qk_LOG("std::mutex,%d", cnt);
 }
 
 void test_recursive_mutex()
@@ -56,7 +56,7 @@ void test_recursive_mutex()
 		std::lock_guard<RecursiveMutex> scope(rmtx);
 		cnt++;
 	}
-	N_LOG("std::recursive_mutex,%d", cnt);
+	Qk_LOG("std::recursive_mutex,%d", cnt);
 }
 
 void test_idle()
@@ -68,7 +68,7 @@ void test_idle()
 		j++;
 		cnt++;
 	}
-	N_LOG("idle,%d", cnt);
+	Qk_LOG("idle,%d", cnt);
 }
 
 void test_mutex(int argc, char **argv) {

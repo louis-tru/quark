@@ -33,7 +33,7 @@
 #include "./uv.h"
 #include <list>
 
-namespace noug {
+namespace quark {
 
 	Dirent::Dirent(cString& name, cString& pathname, FileType type)
 		: _name(name)
@@ -41,7 +41,7 @@ namespace noug {
 	{
 	}
 
-#if N_WIN
+#if Qk_WIN
 	const uint32_t fs_default_mode = 0;
 #else
 	const uint32_t fs_default_mode([]() {
@@ -51,7 +51,7 @@ namespace noug {
 	}());
 #endif
 
-	N_DEFINE_INLINE_MEMBERS(FileStat, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(FileStat, Inl) {
 	public:
 		void set__stat(uv_stat_t* stat) {
 			if ( !_stat ) {
@@ -138,7 +138,7 @@ namespace noug {
 	 * @func get C file flga
 	 */
 	int inl__file_flag_mask(int flag) {
-#if N_POSIX || N_UNIX
+#if Qk_POSIX || Qk_UNIX
 			return flag;
 #else
 			int r_flag = flag & ~(O_ACCMODE | O_WRONLY | O_RDWR |
@@ -180,7 +180,7 @@ namespace noug {
 
 	int FileSync::open(int flag) {
 		if ( _fd ) { // 文件已经打开
-			N_WARN("file already open" );
+			Qk_WARN("file already open" );
 			return 0;
 		}
 		uv_fs_t req;
@@ -255,14 +255,14 @@ namespace noug {
 		, _delegate(nullptr)
 		, _host(host)
 		{
-			N_Assert(_keep);
+			Qk_Assert(_keep);
 		}
 		
 		virtual ~Inl() {
 			if ( _fd ) {
 				uv_fs_t req;
 				int res = uv_fs_close(_keep->host()->uv_loop(), &req, _fd, nullptr); // sync
-				N_Assert( res == 0 );
+				Qk_Assert( res == 0 );
 			}
 			Release(_keep); _keep = nullptr;
 			clear_writeing();
@@ -336,7 +336,7 @@ namespace noug {
 				uv_buf_t buf;
 				buf.base = req->data().buffer.val();
 				buf.len = req->data().buffer.length();
-				// N_LOG("write_first-- %ld", req->data().offset);
+				// Qk_LOG("write_first-- %ld", req->data().offset);
 				uv_fs_write(uv_loop(), req->req(), _fd, &buf, 1, req->data().offset, &Inl::fs_write_cb);
 			}
 		}
@@ -357,7 +357,7 @@ namespace noug {
 			uv_fs_req_cleanup(uv_req);
 			FileReq* req = FileReq::cast(uv_req);
 			Handle<FileReq> handle(req);
-			N_Assert( req->ctx()->_opening );
+			Qk_Assert( req->ctx()->_opening );
 			req->ctx()->_opening = false;
 			if ( uv_req->result > 0 ) {
 				if ( req->ctx()->_fd ) {
@@ -413,7 +413,7 @@ namespace noug {
 			auto self = req->ctx();
 			uv_fs_req_cleanup(uv_req);
 			
-			N_Assert(self->_writeing.front() == req);
+			Qk_Assert(self->_writeing.front() == req);
 			self->_writeing.pop_front();
 			self->continue_write();
 
@@ -441,7 +441,7 @@ namespace noug {
 	{}
 
 	File::~File() {
-		N_Assert(_inl->loop() == RunLoop::current());
+		Qk_Assert(_inl->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
 			_inl->close();

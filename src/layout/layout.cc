@@ -32,9 +32,9 @@
 #include "../pre_render.h"
 #include "../app.h"
 
-namespace noug {
+namespace quark {
 
-	Layout::Layout(): Layout(noug::pre_render()) {
+	Layout::Layout(): Layout(quark::pre_render()) {
 	}
 
 	/**
@@ -46,7 +46,7 @@ namespace noug {
 		, _layout_depth(0)
 		, _pre_render(pre)
 	{
-		N_Assert(pre, "#Layout#Layout PreRender host cannot be null");
+		Qk_Assert(pre, "#Layout#Layout PreRender host cannot be null");
 	}
 
 	/**

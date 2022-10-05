@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/keyboard.h"
-#include "noug/util/dict.h"
+#include "quark/keyboard.h"
+#include "quark/util/dict.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class UnixKeyboardAdapter

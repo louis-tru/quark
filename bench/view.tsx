@@ -1,12 +1,12 @@
 
-import { Application, ViewController, Root, Div, Scroll, default as noug, _CVD } from 'noug';
-import { Color } from 'noug/value';
-import util from 'noug/util';
+import { Application, ViewController, Root, Div, Scroll, default as quark, _CVD } from 'quark';
+import { Color } from 'quark/value';
+import util from 'quark/util';
 import * as uu from './uu';
 
 const {random} = util
 
-noug.css({
+quark.css({
 	'.item': {
 		height: 40,
 		width: '25%',
@@ -20,7 +20,7 @@ class RootViewController extends ViewController {
 
 		uu.start();
 
-		noug.render<Scroll>(
+		quark.render<Scroll>(
 			<Scroll width="full" height="full">
 				{
 					Array.from({ length: 10000 }, ()=>{

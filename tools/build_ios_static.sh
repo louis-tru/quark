@@ -10,11 +10,11 @@ BUILD_V8=$2
 build() {
 	make build
 	cd out/ios.$1.Release
-	rm -f libnoug.a libv8.a
+	rm -f libquark.a libv8.a
 	
-	ar rc libnoug.a `find obj.target/noug \
-													obj.target/noug-utils \
-													obj.target/noug-js \
+	ar rc libquark.a `find obj.target/quark \
+													obj.target/quark-utils \
+													obj.target/quark-js \
 													obj.target/zlib \
 													obj.target/ft2 \
 													obj.target/http_parser \
@@ -25,7 +25,7 @@ build() {
 													obj.target/tinyxml2 \
 													obj.target/ffmpeg/libs \
 													-name *.o|xargs`
-	ranlib libnoug.a
+	ranlib libquark.a
 
 	if [ "$2" = 1 ]; then
 		ar rc libv8.a `find obj.target/v8_base \
@@ -45,9 +45,9 @@ build arm64 $BUILD_V8
 ./configure --os=ios --arch=x64
 build x64 $BUILD_V8
 
-LIBS_NODEUI="out/ios.armv7.Release/libnoug.a 
-							out/ios.arm64.Release/libnoug.a 
-							out/ios.x64.Release/libnoug.a"
+LIBS_NODEUI="out/ios.armv7.Release/libquark.a 
+							out/ios.arm64.Release/libquark.a 
+							out/ios.x64.Release/libquark.a"
 LIBS_V8="out/ios.armv7.Release/libv8.a 
 				out/ios.arm64.Release/libv8.a 
 				out/ios.x64.Release/libv8.a"
@@ -59,8 +59,8 @@ if [ "$BUILD_ALL" = 1 ]; then
 	build x86 $BUILD_V8
 	
 	LIBS_NODEUI="$OUT_LIBS_NODEUI
-								out/ios.armv7s.Release/libnoug.a 
-								out/ios.x86.Release/libnoug.a"
+								out/ios.armv7s.Release/libquark.a 
+								out/ios.x86.Release/libquark.a"
 	LIBS_V8="$LIBS_V8 
 					out/ios.armv7s.Release/libv8.a 
 					out/ios.x86.Release/libv8.a"
@@ -69,7 +69,7 @@ fi
 mkdir -p ${PRODUCT_DIR}/ios
 rm -rf ${PRODUCT_DIR}/ios/*.a
 
-lipo $LIBS_NODEUI -create -output ${PRODUCT_DIR}/ios/libnoug.a
+lipo $LIBS_NODEUI -create -output ${PRODUCT_DIR}/ios/libquark.a
 if [ "$BUILD_V8" = 1 ]; then
 	lipo $LIBS_V8 -create -output ${PRODUCT_DIR}/ios/libv8.a
 fi

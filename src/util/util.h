@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__util__
-#define __noug__util__util__
+#ifndef __quark__util__util__
+#define __quark__util__util__
 
 #if !defined(__cplusplus)
 # error "Please use the c++ compiler"
@@ -45,19 +45,19 @@
 #include "./numbers.h"
 #include "./string.h"
 
-namespace noug {
-	N_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
-	N_EXPORT int fix_random(uint32_t a, ...);
-	N_EXPORT uint64_t getId();
-	N_EXPORT uint32_t getId32();
-	N_EXPORT int64_t  parse_time(cString& str);
-	N_EXPORT String gmt_time_string(int64_t second);
-	N_EXPORT int64_t time_micro();
-	N_EXPORT int64_t time_second();
-	N_EXPORT int64_t time_monotonic();
-	N_EXPORT String platform();
-	N_EXPORT String version();
-	N_EXPORT void exit(int rc, bool force = 0); // call sys exit
-	N_EXPORT bool is_exited();
+namespace quark {
+	Qk_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
+	Qk_EXPORT int fix_random(uint32_t a, ...);
+	Qk_EXPORT uint64_t getId();
+	Qk_EXPORT uint32_t getId32();
+	Qk_EXPORT int64_t  parse_time(cString& str);
+	Qk_EXPORT String gmt_time_string(int64_t second);
+	Qk_EXPORT int64_t time_micro();
+	Qk_EXPORT int64_t time_second();
+	Qk_EXPORT int64_t time_monotonic();
+	Qk_EXPORT String platform();
+	Qk_EXPORT String version();
+	Qk_EXPORT void exit(int rc, bool force = 0); // call sys exit
+	Qk_EXPORT bool is_exited();
 }
 #endif

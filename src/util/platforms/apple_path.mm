@@ -30,13 +30,13 @@
 
 #include "../fs.h"
 #include <Foundation/Foundation.h>
-#if N_IOS
+#if Qk_IOS
 # import <UIKit/UIKit.h>
 #else
 # import <AppKit/AppKit.h>
 #endif
 
-namespace noug {
+namespace quark {
 
 	String fs_executable() {
 		static cString path( fs_format([[[NSBundle mainBundle] executablePath] UTF8String]) );

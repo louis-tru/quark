@@ -1,8 +1,8 @@
 
-import * as http from 'noug/http';
-import util from 'noug/util';
-import * as sys from 'noug/sys';
-import { Indep, ViewController, default as noug, Text, _CVD } from 'noug';
+import * as http from 'quark/http';
+import util from 'quark/util';
+import * as sys from 'quark/sys';
+import { Indep, ViewController, default as quark, Text, _CVD } from 'quark';
 
 var ts = 0;
 
@@ -30,7 +30,7 @@ class FSP extends ViewController {
 	}
 
 	up_fsp() {
-		var fsp_value = noug.displayPort.fsp();
+		var fsp_value = quark.displayPort.fsp();
 		var cpu_usage = sys.cpuUsage();
 		this.state = { fsp_value, cpu_usage };
 		setTimeout(e=>this.up_fsp(), 1000);
@@ -42,18 +42,18 @@ var fsp: FSP;
 
 export function show_fsp() {
 	util.assert(!fsp);
-	util.assert(noug.app);
+	util.assert(quark.app);
 
 	function show_fsp_ok() {
-		if (noug.root) {
-			fsp = noug.render(<FSP />, noug.root);
+		if (quark.root) {
+			fsp = quark.render(<FSP />, quark.root);
 			fsp.up_fsp();
 		}
 	}
 
-	if (noug.app.isLoaded) {
+	if (quark.app.isLoaded) {
 		show_fsp_ok.setTimeout(1000);
 	} else {
-		noug.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
+		quark.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
 	}
 };

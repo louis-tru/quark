@@ -30,7 +30,7 @@
 
 #include "./action_prop.h"
 
-N_NAMESPACE_START
+Qk_NAMESPACE_START
 
 // set_property
 template<> void Property2<TextColor>::set_property(List<View*>& views) {
@@ -484,4 +484,4 @@ template<> void Property3<bool, PROPERTY_VISIBLE>::bind_view(int type) {
 	this->_set_property_func = &View::set_visible_1;
 }
 
-N_NAMESPACE_END
+Qk_NAMESPACE_END

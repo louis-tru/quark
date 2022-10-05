@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__event__
-#define __noug__event__
+#ifndef __quark__event__
+#define __quark__event__
 
 #include "./util/event.h"
 #include "./util/handle.h"
@@ -38,7 +38,7 @@
 #include "./text_input.h"
 
 // all ui events / NAME, FLAG
-#define N_UI_Events(F) \
+#define Qk_UI_Events(F) \
 	/* can bubble event */ \
 	F(Click, CLICK, UI_EVENT_FLAG_BUBBLE) \
 	F(Back, CLICK, UI_EVENT_FLAG_BUBBLE) \
@@ -79,7 +79,7 @@
 	F(Seek, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_UINT64) \
 
 
-namespace noug {
+namespace quark {
 
 	class Application;
 	class View;
@@ -123,13 +123,13 @@ namespace noug {
 		HIGHLIGHTED_DOWN,
 	};
 
-	class N_EXPORT UIEventName {
+	class Qk_EXPORT UIEventName {
 	public:
 		UIEventName(cString& name, uint32_t category, uint32_t flag);
-		N_Define_Prop_Get(String, to_string);
-		N_Define_Prop_Get(uint32_t, category);
-		N_Define_Prop_Get(uint32_t, flag);
-		N_Define_Prop_Get(uint32_t, hash_code);
+		Qk_Define_Prop_Get(String, to_string);
+		Qk_Define_Prop_Get(uint32_t, category);
+		Qk_Define_Prop_Get(uint32_t, flag);
+		Qk_Define_Prop_Get(uint32_t, hash_code);
 		inline bool equals(const UIEventName& v) const { return v.hash_code() == _hash_code; }
 		inline bool operator==(const UIEventName& v) const { return v._hash_code == _hash_code; }
 		inline bool operator!=(const UIEventName& v) const { return v._hash_code != _hash_code; }
@@ -138,24 +138,24 @@ namespace noug {
 	};
 
 	// event names string => UIEventName
-	N_EXPORT extern const Dict<String, UIEventName> UIEventNames;
+	Qk_EXPORT extern const Dict<String, UIEventName> UIEventNames;
 
 	// define event names
-#define N_FUN(NAME, C, F) \
-	N_EXPORT extern const UIEventName UIEvent_##NAME;
-	N_UI_Events(N_FUN)
-#undef N_FUN
+#define Qk_FUN(NAME, C, F) \
+	Qk_EXPORT extern const UIEventName UIEvent_##NAME;
+	Qk_UI_Events(Qk_FUN)
+#undef Qk_FUN
 
 	// -----------------------------------
 
 	/**
 	* @func UIEvent gui event
 	*/
-	class N_EXPORT UIEvent: public Event<View, Object, View, int> {
+	class Qk_EXPORT UIEvent: public Event<View, Object, View, int> {
 	public:
-		// inline UIEvent(cSendData& data): Event<View, Object, View>() { N_UNREACHABLE(); }
+		// inline UIEvent(cSendData& data): Event<View, Object, View>() { Qk_UNREACHABLE(); }
 		UIEvent(View* origin);
-		N_Define_Prop_Get(uint64_t, timestamp);
+		Qk_Define_Prop_Get(uint64_t, timestamp);
 		inline bool is_default() const { return return_value & RETURN_VALUE_MASK_DEFAULT; }
 		inline bool is_bubble() const { return return_value & RETURN_VALUE_MASK_BUBBLE; }
 		inline void cancel_default() { return_value &= ~RETURN_VALUE_MASK_DEFAULT; }
@@ -165,77 +165,77 @@ namespace noug {
 	/**
 	* @class ActionEvent
 	*/
-	class N_EXPORT ActionEvent: public UIEvent {
+	class Qk_EXPORT ActionEvent: public UIEvent {
 	public:
 		ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop);
-		N_Define_Prop_Get(Action*, action);
-		N_Define_Prop_Get(uint64_t, delay);
-		N_Define_Prop_Get(uint32_t, frame);
-		N_Define_Prop_Get(uint32_t, loop);
+		Qk_Define_Prop_Get(Action*, action);
+		Qk_Define_Prop_Get(uint64_t, delay);
+		Qk_Define_Prop_Get(uint32_t, frame);
+		Qk_Define_Prop_Get(uint32_t, loop);
 		virtual void release();
 	};
 
 	/**
 	* @func KeyEvent keyboard event
 	*/
-	class N_EXPORT KeyEvent: public UIEvent {
+	class Qk_EXPORT KeyEvent: public UIEvent {
 	public:
 		KeyEvent(View* origin, uint32_t keycode,
 						bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 						uint32_t repeat, int device, int source);
-		N_Define_Prop(View*, focus_move);
-		N_Define_Prop(uint32_t, keycode);
-		N_Define_Prop_Get(uint32_t, repeat);
-		N_Define_Prop_Get(uint32_t, device);
-		N_Define_Prop_Get(uint32_t, source);
-		N_Define_Prop_Get(uint32_t, shift);
-		N_Define_Prop_Get(uint32_t, ctrl);
-		N_Define_Prop_Get(uint32_t, alt);
-		N_Define_Prop_Get(uint32_t, command);
-		N_Define_Prop_Get(uint32_t, caps_lock);
+		Qk_Define_Prop(View*, focus_move);
+		Qk_Define_Prop(uint32_t, keycode);
+		Qk_Define_Prop_Get(uint32_t, repeat);
+		Qk_Define_Prop_Get(uint32_t, device);
+		Qk_Define_Prop_Get(uint32_t, source);
+		Qk_Define_Prop_Get(uint32_t, shift);
+		Qk_Define_Prop_Get(uint32_t, ctrl);
+		Qk_Define_Prop_Get(uint32_t, alt);
+		Qk_Define_Prop_Get(uint32_t, command);
+		Qk_Define_Prop_Get(uint32_t, caps_lock);
 		virtual void release();
 	};
 
 	/**
 	* @class ClickEvent click event
 	*/
-	class N_EXPORT ClickEvent: public UIEvent {
+	class Qk_EXPORT ClickEvent: public UIEvent {
 	public:
 		enum Type {
 			TOUCH = 1, KEYBOARD = 2, MOUSE = 3
 		};
 		ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1);
-		N_Define_Prop_Get(float, x);
-		N_Define_Prop_Get(float, y);
-		N_Define_Prop_Get(uint32_t, count);
-		N_Define_Prop_Get(Type, type);
+		Qk_Define_Prop_Get(float, x);
+		Qk_Define_Prop_Get(float, y);
+		Qk_Define_Prop_Get(uint32_t, count);
+		Qk_Define_Prop_Get(Type, type);
 	};
 
 	/**
 	* @class UIMouseEvent mouse event
 	*/
-	class N_EXPORT MouseEvent: public KeyEvent {
+	class Qk_EXPORT MouseEvent: public KeyEvent {
 	public:
 		MouseEvent(View* origin, float x, float y, uint32_t keycode,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat = 0, int device = 0, int source = 0);
-		N_Define_Prop_Get(float, x);
-		N_Define_Prop_Get(float, y);
+		Qk_Define_Prop_Get(float, x);
+		Qk_Define_Prop_Get(float, y);
 	};
 
 	/**
 	* @class HighlightedEvent status event
 	*/
-	class N_EXPORT HighlightedEvent: public UIEvent {
+	class Qk_EXPORT HighlightedEvent: public UIEvent {
 	public:
 		HighlightedEvent(View* origin, HighlightedStatus status);
-		N_Define_Prop_Get(HighlightedStatus, status);
+		Qk_Define_Prop_Get(HighlightedStatus, status);
 	};
 
 	/**
 	* @class TouchEvent touch event
 	*/
-	class N_EXPORT TouchEvent: public UIEvent {
+	class Qk_EXPORT TouchEvent: public UIEvent {
 	public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
@@ -255,7 +255,7 @@ namespace noug {
 	/**
 	* @class EventDispatch
 	*/
-	class N_EXPORT EventDispatch: public Object {
+	class Qk_EXPORT EventDispatch: public Object {
 	public:
 		EventDispatch(Application* app);
 		virtual ~EventDispatch();
@@ -277,9 +277,9 @@ namespace noug {
 		void onKeyboard_down();
 		void onKeyboard_up();
 
-		N_Define_Prop_Get(Application*, host);
-		N_Define_Prop_Get(KeyboardAdapter*, keyboard);
-		N_Define_Prop(TextInput*, text_input);
+		Qk_Define_Prop_Get(Application*, host);
+		Qk_Define_Prop_Get(KeyboardAdapter*, keyboard);
+		Qk_Define_Prop(TextInput*, text_input);
 
 	private:
 		void touchstart_erase(View* view, List<TouchPoint>& in);

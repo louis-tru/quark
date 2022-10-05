@@ -34,7 +34,7 @@
 #include "./layout/root.h"
 #include "./render/render.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 		* @thread render
@@ -80,7 +80,7 @@ namespace noug {
 		lock.unlock();
 		
 		_host->loop()->post(Cb([this](CbData& e){
-			N_Trigger(Change); // 通知事件
+			Qk_Trigger(Change); // 通知事件
 		}));
 
 		_host->render()->reload();
@@ -106,7 +106,7 @@ namespace noug {
 	}
 
 	Display::Display(Application* host)
-		: N_Init_Event(Change), N_Init_Event(Orientation)
+		: Qk_Init_Event(Change), Qk_Init_Event(Orientation)
 		, _host(host)
 		, _lock_size()
 		, _size(), _scale(1)
@@ -131,7 +131,7 @@ namespace noug {
 				}));
 			}
 		} else {
-			N_WARN("Lock size value can not be less than zero\n");
+			Qk_WARN("Lock size value can not be less than zero\n");
 		}
 	}
 
@@ -152,7 +152,7 @@ namespace noug {
 				_fsp = _next_fsp;
 				_next_fsp = 0;
 				_next_fsp_time = now_time;
-				N_DEBUG("fps: %d", _fsp);
+				Qk_DEBUG("fps: %d", _fsp);
 			}
 			_next_fsp++;
 
@@ -177,9 +177,9 @@ namespace noug {
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
 				int64_t ts2 = (time_micro() - st) / 1e3;
 				if (ts2 > 16) {
-					N_LOG("ts: %ld -------------- ", ts2);
+					Qk_LOG("ts: %ld -------------- ", ts2);
 				} else {
-					N_LOG("ts: %ld", ts2);
+					Qk_LOG("ts: %ld", ts2);
 				}
 			#endif
 		} else {
@@ -223,7 +223,7 @@ namespace noug {
 	}
 
 	void Display::pop_clip_region() {
-		N_Assert( _clip_region.length() > 1 );
+		Qk_Assert( _clip_region.length() > 1 );
 		_clip_region.pop();
 	}
 

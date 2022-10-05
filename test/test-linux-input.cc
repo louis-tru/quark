@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/util.h>
+#include <quark/util/util.h>
 
 #if FX_LINUX && !FX_ANDROID
 
@@ -89,7 +89,7 @@ int test_linux_input2()
 		{ 
 			ret	= read( fd, &event, sizeof(struct input_event) );
 			time	= event.time;
-			N_LOG( "timeS=%d,timeUS=%d,type=%d,code=%d,value=%d\n", 
+			Qk_LOG( "timeS=%d,timeUS=%d,type=%d,code=%d,value=%d\n", 
 				time.tv_sec, time.tv_usec, event.type, event.code, event.value );
 		}
 	}
@@ -134,21 +134,21 @@ int test_linux_input__(int argc, char **argv)
 
 	//得到X轴的abs信息
 	ioctl(fd, EVIOCGABS(ABS_X), &absI);
-	N_LOG("x abs lastest value=%d\n", absI.value);
-	N_LOG("x abs min=%d\n", absI.minimum);
-	N_LOG("x abs max=%d\n", absI.maximum);
+	Qk_LOG("x abs lastest value=%d\n", absI.value);
+	Qk_LOG("x abs min=%d\n", absI.minimum);
+	Qk_LOG("x abs max=%d\n", absI.maximum);
 
 	//得到y轴的abs信息
 	ioctl(fd,EVIOCGABS(ABS_Y), &absI);
-	N_LOG("y abs lastest value=%d\n", absI.value);
-	N_LOG("y abs min=%d\n", absI.minimum);
-	N_LOG("y abs max=%d\n", absI.maximum);
+	Qk_LOG("y abs lastest value=%d\n", absI.value);
+	Qk_LOG("y abs min=%d\n", absI.minimum);
+	Qk_LOG("y abs max=%d\n", absI.maximum);
 
 	//得到按压轴的abs信息
 	ioctl(fd,EVIOCGABS(ABS_PRESSURE), &absI);
-	N_LOG("pressure abs lastest value=%d\n", absI.value);
-	N_LOG("pressure abs min=%d\n", absI.minimum);
-	N_LOG("pressure abs max=%d\n", absI.maximum);
+	Qk_LOG("pressure abs lastest value=%d\n", absI.value);
+	Qk_LOG("pressure abs min=%d\n", absI.minimum);
+	Qk_LOG("pressure abs max=%d\n", absI.maximum);
 
 	close(fd);
 

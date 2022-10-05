@@ -28,32 +28,32 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__zlib__
-#define __noug__util__zlib__
+#ifndef __quark__util__zlib__
+#define __quark__util__zlib__
 
 #include "./fs.h"
 #include "./error.h"
 #include "./dict.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @func compress
 	*/
-	N_EXPORT Buffer zlib_compress(WeakBuffer buff, int level = -1);
+	Qk_EXPORT Buffer zlib_compress(WeakBuffer buff, int level = -1);
 	
 	/**
 	* @func uncompress
 	*/
-	N_EXPORT Buffer zlib_uncompress(WeakBuffer buff);
+	Qk_EXPORT Buffer zlib_uncompress(WeakBuffer buff);
 
 	/**
 	* 提供单个gzip压缩文件的读取与写入
 	*
 	* @class GZip
 	*/
-	class N_EXPORT GZip: public Object {
-		N_HIDDEN_ALL_COPY(GZip);
+	class Qk_EXPORT GZip: public Object {
+		Qk_HIDDEN_ALL_COPY(GZip);
 	public:
 		GZip(cString& path): _path(path), _gzfp(nullptr) { }
 		virtual ~GZip();
@@ -67,7 +67,7 @@ namespace noug {
 		int read(void* buffer, int64_t size, int64_t offset = -1);
 		int write(const void* buffer, int64_t size, int64_t offset = -1);
 		// define props
-		N_Define_Prop_Get(String, path);
+		Qk_Define_Prop_Get(String, path);
 	private:
 		void*  _gzfp;
 	};
@@ -77,8 +77,8 @@ namespace noug {
 	*
 	* @class ZipReader
 	*/
-	class N_EXPORT ZipReader: public Object {
-		N_HIDDEN_ALL_COPY(ZipReader);
+	class Qk_EXPORT ZipReader: public Object {
+		Qk_HIDDEN_ALL_COPY(ZipReader);
 	public:
 		
 		ZipReader(cString& path, cString& passwd = String());
@@ -211,7 +211,7 @@ namespace noug {
 		Info      _file_info;
 		DirInfo   _dir_info;
 	
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**
@@ -221,8 +221,8 @@ namespace noug {
 	*
 	* @class ZipWriter
 	*/
-	class N_EXPORT ZipWriter: public Object {
-		N_HIDDEN_ALL_COPY(ZipWriter);
+	class Qk_EXPORT ZipWriter: public Object {
+		Qk_HIDDEN_ALL_COPY(ZipWriter);
 	public:
 		/**
 		*
@@ -243,9 +243,9 @@ namespace noug {
 		* @enum OpenMode
 		*/
 		enum OpenMode {
-			OPEN_MODE_CREATE = 0,         // 创建新的zip包,如果如果已存在该文件先删除存在文件
-			OPEN_MODE_CREATE_AFTER = 1,   // 在存在文件在文件结尾创建zip包,zip包必需存在
-			OPEN_MODE_ADD_IN_ZIP = 2      // 在存在的zip包追加内容,zip包必需存在
+			OPEQk_MODE_CREATE = 0,         // 创建新的zip包,如果如果已存在该文件先删除存在文件
+			OPEQk_MODE_CREATE_AFTER = 1,   // 在存在文件在文件结尾创建zip包,zip包必需存在
+			OPEQk_MODE_ADD_IN_ZIP = 2      // 在存在的zip包追加内容,zip包必需存在
 		};
 		
 		ZipWriter(cString& path, cString& passwd = String());

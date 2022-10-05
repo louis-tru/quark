@@ -130,7 +130,7 @@ int test2_alsa2(int argc, char *argv[])
 		exit(1);
 	}
 	
-	/* Use a buffer large enough to hold one period */
+	/* Use a buffer large equarkh to hold one period */
 	snd_pcm_hw_params_get_period_size(hw_params, &frames, &dir);
 
 	size = frames * 2; /* 2 bytes/sample, 2 channels */

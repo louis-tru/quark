@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Text, _CVD } from 'noug';
+import { Scroll, Text, _CVD } from 'quark';
 import { Mynavpage, Page } from './public';
-import { Navbar, Toolbar } from 'noug/nav';
-import * as reader from 'noug/reader';
-import {Event} from 'noug/event';
+import { Navbar, Toolbar } from 'quark/nav';
+import * as reader from 'quark/reader';
+import {Event} from 'quark/event';
 
 function foreground(evt: Event<void, Page>) {
 	var navpage = evt.sender;

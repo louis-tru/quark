@@ -117,22 +117,22 @@ function touch_files(variables) {
 		'out/native-glsl.cc',
 	]);
 
-	if (!fs.existsSync(`${__dirname}/../out/noug`)) {
-		fs.removerSync(`${__dirname}/../out/noug`);
-		fs.symlinkSync(path.resolve(`${__dirname}/../src`), path.resolve(`${__dirname}/../out/noug`));
+	if (!fs.existsSync(`${__dirname}/../out/quark`)) {
+		fs.removerSync(`${__dirname}/../out/quark`);
+		fs.symlinkSync(path.resolve(`${__dirname}/../src`), path.resolve(`${__dirname}/../out/quark`));
 	}
 
 	if (variables.library_output == 'shared_library' && variables.OS != 'mac') {
 		touch_file([
-			`${variables.output}/lib.target/libnoug.so`,
-			`${variables.output}/lib.target/libnoug-js.so`,
-			`${variables.output}/lib.target/libnoug-media.so`,
-			`${variables.output}/lib.target/libnoug-node.so`,
+			`${variables.output}/lib.target/libquark.so`,
+			`${variables.output}/lib.target/libquark-js.so`,
+			`${variables.output}/lib.target/libquark-media.so`,
+			`${variables.output}/lib.target/libquark-node.so`,
 		]);
 	}
 
 	if (variables.os == 'android' && (variables.debug || variables.without_visibility_hidden)) {
-		touch_file([`${variables.output}/lib.target/libnoug-depes-test.so`]);
+		touch_file([`${variables.output}/lib.target/libquark-depes-test.so`]);
 	}
 }
 

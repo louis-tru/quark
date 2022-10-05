@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__stream__
-#define __noug__util__stream__
+#ifndef __quark__util__stream__
+#define __quark__util__stream__
 
 #include "./array.h"
 
-namespace noug {
+namespace quark {
 
 	class Stream {
 	public:

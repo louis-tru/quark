@@ -28,21 +28,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__font__typeface__
-#define __noug__font__typeface__
+#ifndef __quark__font__typeface__
+#define __quark__font__typeface__
 
 #include "../../util/string.h"
 #include "../../math.h"
 #include "./style.h"
 
-namespace noug {
+namespace quark {
 
 	class FontPool;
 	typedef uint32_t Unichar;
 	typedef uint16_t GlyphID;
 	typedef uint32_t FontTableTag;
 
-	class N_EXPORT Typeface {
+	class Qk_EXPORT Typeface {
 	public:
 		Typeface();
 		Typeface(const Typeface& tf);

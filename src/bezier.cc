@@ -31,7 +31,7 @@
 #include "./bezier.h"
 #include <math.h>
 
-namespace noug {
+namespace quark {
 
 	// 德卡斯特里奥算法
 

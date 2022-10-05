@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { NavPage } from 'noug/nav';
+import { NavPage } from 'quark/nav';
 import { 
 	ViewController, Button, Hybrid,
-	Text, Indep, default as noug, _CVD
-} from 'noug';
-import {ClickEvent} from 'noug/event';
+	Text, Indep, default as quark, _CVD
+} from 'quark';
+import {ClickEvent} from 'quark/event';
 
-const px = noug.atomPixel;
+const px = quark.atomPixel;
 const resolve = require.resolve;
 
-noug.css({
+quark.css({
 	
 	'.long_btn': {
 		margin: 10,

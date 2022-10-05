@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/util.h>
-#include <noug/util/http.h>
-#include <noug/util/string.h>
-#include <noug/util/fs.h>
+#include <quark/util/util.h>
+#include <quark/util/http.h>
+#include <quark/util/string.h>
+#include <quark/util/fs.h>
 
-using namespace noug;
+using namespace quark;
 
 class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
  public:
@@ -42,36 +42,36 @@ class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
 	}
 	
 	virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
-		N_LOG("trigger_http_error, %s", *error.message());
+		Qk_LOG("trigger_http_error, %s", *error.message());
 	}
 	virtual void trigger_http_write(HttpClientRequest* req) {
-		N_LOG("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		Qk_LOG("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
 	}
 	virtual void trigger_http_header(HttpClientRequest* req) {
-		N_LOG("Header: %d", status_code());
+		Qk_LOG("Header: %d", status_code());
 		for ( auto& i : get_all_response_headers() ) {
-			N_LOG("  %s: %s", i.key.c_str(), i.value.c_str());
+			Qk_LOG("  %s: %s", i.key.c_str(), i.value.c_str());
 		}
-		N_LOG("");
+		Qk_LOG("");
 	}
 	virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
-		N_LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
-		N_LOG( String(buffer.val(), buffer.length()) );
+		Qk_LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		Qk_LOG( String(buffer.val(), buffer.length()) );
 	}
 	virtual void trigger_http_end(HttpClientRequest* req) {
-		N_LOG("http_end, status: %d, %s", status_code(), url().c_str());
+		Qk_LOG("http_end, status: %d, %s", status_code(), url().c_str());
 		// LOG( fs_read_file_sync(fs_documents("http.cc")) );
 		release();
 		//RunLoop::current()->stop();
 	}
 	virtual void trigger_http_readystate_change(HttpClientRequest* req) {
-		N_LOG("http_readystate_change, %d", ready_state() );
+		Qk_LOG("http_readystate_change, %d", ready_state() );
 	}
 	virtual void trigger_http_timeout(HttpClientRequest* req) {
-		N_LOG("trigger_http_timeout" );
+		Qk_LOG("trigger_http_timeout" );
 	}
 	virtual void trigger_http_abort(HttpClientRequest* req) {
-		N_LOG("trigger_http_abort" );
+		Qk_LOG("trigger_http_abort" );
 	}
 	
 	int count;

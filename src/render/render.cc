@@ -31,7 +31,7 @@
 #include "./render.h"
 #include <math.h>
 
-namespace noug {
+namespace quark {
 
 	static inline uint32_t integerExp(uint32_t n) {
 		return (uint32_t) powf(2, floor(log2(n)));
@@ -39,7 +39,7 @@ namespace noug {
 
 	static inline uint32_t massSample(uint32_t n) {
 		n = integerExp(n);
-		return N_MIN(n, 8);
+		return Qk_MIN(n, 8);
 	}
 
 	Render::Render(Application* host, const Options& opts)
@@ -60,7 +60,7 @@ namespace noug {
 		return {
 			.msaaSampleCnt = msaa.is_uint32() ? msaa.to_int(): 0,
 			.stencilBits = stencil.is_uint32() ?
-				(int)integerExp(N_MIN(N_MAX(stencil.to_int(), 8), 16)): 8,
+				(int)integerExp(Qk_MIN(Qk_MAX(stencil.to_int(), 8), 16)): 8,
 		};
 	}
 

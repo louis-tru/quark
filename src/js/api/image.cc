@@ -33,7 +33,7 @@
 #include "../../views2/image.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

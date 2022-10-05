@@ -1,6 +1,6 @@
 
 import { LOG, AM, M, P, VM, VP, LOG } from './test'
-import { Event, EventNoticer, Notification, event } from 'noug/event';
+import { Event, EventNoticer, Notification, event } from 'quark/event';
 
 LOG('\nTest event:\n')
 

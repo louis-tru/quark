@@ -30,11 +30,11 @@
 
 import { 
 	Div, Indep, Button, Text, Hybrid, _CVD,
-} from 'noug';
+} from 'quark';
 import { Mynavpage, Page } from './public';
-import { Navbar, Toolbar } from 'noug/nav';
+import { Navbar, Toolbar } from 'quark/nav';
 import review_vx from './review';
-import { ClickEvent } from 'noug/event';
+import { ClickEvent } from 'quark/event';
 
 const resolve = require.resolve;
 

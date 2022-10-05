@@ -28,29 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__error__
-#define __noug__util__error__
+#ifndef __quark__util__error__
+#define __quark__util__error__
 
 #include "./string.h"
 #include "./errno.h"
 
-#if !N_EXCEPTIONS_SUPPORT
+#if !Qk_EXCEPTIONS_SUPPORT
 	#error Exceptions must be turned on
 #endif
 
-#define N_THROW(code, ...) throw noug::Error(code, __VA_ARGS__)
-#define N_CHECK(cond, ...) if(!(cond)) throw noug::Error(__VA_ARGS__)
+#define Qk_THROW(code, ...) throw quark::Error(code, __VA_ARGS__)
+#define Qk_CHECK(cond, ...) if(!(cond)) throw quark::Error(__VA_ARGS__)
 
-#define N_ERROR_IGNORE(block) try block catch (noug::Error& err) {    \
-	N_DEBUG("%s,%s", "The exception is ignored", err.message().c_str());     \
+#define Qk_ERROR_IGNORE(block) try block catch (quark::Error& err) {    \
+	Qk_DEBUG("%s,%s", "The exception is ignored", err.message().c_str());     \
 }((void)0)
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class Error
 	*/
-	class N_EXPORT Error: public Object {
+	class Qk_EXPORT Error: public Object {
 	public:
 		Error(const Error& err);
 		Error(cChar* msg, ...);

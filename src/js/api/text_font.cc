@@ -32,7 +32,7 @@
 #include "../../views2/text-font.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

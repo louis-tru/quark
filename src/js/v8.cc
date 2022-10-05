@@ -32,14 +32,14 @@
 #include <libplatform/libplatform.h>
 #include "../util/util.h"
 #include "../util/http.h"
-// #include "noug/util/string-builder.h"
+// #include "quark/util/string-builder.h"
 #include "../views2/view.h"
 #include "../errno.h"
 #include "./_js.h"
 #include "./value.h"
 #include <native-inl-js.h>
 #include <uv.h>
-#include <deps/node/src/noug.h>
+#include <deps/node/src/quark.h>
 
 #if USE_JSC
 #include <JavaScriptCore/JavaScriptCore.h>
@@ -54,12 +54,12 @@ if (ex) { \
 }}while(0
 namespace v8 {
 	JSGlobalContextRef javascriptcore_context(v8::Isolate* isolate);
-	struct JSCStringTraits: public noug::NonObjectTraits {
+	struct JSCStringTraits: public quark::NonObjectTraits {
 		inline static void Release(JSStringRef str) {
 			if ( str ) JSStringRelease(str);
 		}
 	};
-	typedef noug::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
+	typedef quark::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
 }
 #endif
 
@@ -86,13 +86,13 @@ typedef const v8::PropertyCallbackInfo<Value>& V8PropertyCall;
 typedef const v8::PropertyCallbackInfo<void>&  V8PropertySetCall;
 
 template<class T = JSValue, class S>
-N_INLINE Local<T> Cast(v8::Local<S> o) {
+Qk_INLINE Local<T> Cast(v8::Local<S> o) {
 	auto _ = reinterpret_cast<Local<T>*>(&o);
 	return *_;
 }
 
 template<class T = v8::Value, class S>
-N_INLINE v8::Local<T> Back(Local<S> o) {
+Qk_INLINE v8::Local<T> Back(Local<S> o) {
 	auto _ = reinterpret_cast<v8::Local<T>*>(&o);
 	return *_;
 }
@@ -198,16 +198,16 @@ class WorkerIMPL: public IMPL {
 		return worker;
 	}
 	
-	N_INLINE v8::Local<v8::String> NewFromOneByte(cChar* str) {
+	Qk_INLINE v8::Local<v8::String> NewFromOneByte(cChar* str) {
 		return v8::String::NewFromOneByte(isolate_, (uint8_t*)str);
 	}
 	
-	N_INLINE v8::Local<v8::String> NewFromUtf8(cChar* str) {
+	Qk_INLINE v8::Local<v8::String> NewFromUtf8(cChar* str) {
 		return v8::String::NewFromUtf8(isolate_, str);
 	}
 	
 	template <class T, class M = NonCopyablePersistentTraits<T>>
-	N_INLINE v8::Local<T> strong(const v8::Persistent<T, M>& persistent) {
+	Qk_INLINE v8::Local<T> strong(const v8::Persistent<T, M>& persistent) {
 		return *reinterpret_cast<v8::Local<T>*>(const_cast<v8::Persistent<T, M>*>(&persistent));
 	}
 	
@@ -250,7 +250,7 @@ class WorkerIMPL: public IMPL {
 			rv = func->Call(CONTEXT(_host), v8::Undefined(ISOLATE(this)), 3, args);
 			if (!rv.IsEmpty()) {
 				Local<JSValue> rv = module->Get(_host, _host->strs()->exports());
-				N_Assert(rv->IsObject(_host));
+				Qk_Assert(rv->IsObject(_host));
 				return rv;
 			}
 		}
@@ -312,14 +312,14 @@ class WorkerIMPL: public IMPL {
 	}
 	
 	void print_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-		N_ERR(parse_exception_message(message, error) );
+		Qk_ERR(parse_exception_message(message, error) );
 	}
 
 	static void OnFatalError(cChar* location, cChar* message) {
 		if (location) {
-			N_FATAL("FATAL ERROR: %s %s\n", location, message);
+			Qk_FATAL("FATAL ERROR: %s %s\n", location, message);
 		} else {
-			N_FATAL("FATAL ERROR: %s\n", message);
+			Qk_FATAL("FATAL ERROR: %s\n", message);
 		}
 	}
 
@@ -336,7 +336,7 @@ class WorkerIMPL: public IMPL {
 	void uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
 		if ( !TriggerUncaughtException(Cast(error)) ) {
 			print_exception(message, error);
-			noug::exit(ERR_UNCAUGHT_EXCEPTION);
+			quark::exit(ERR_UNCAUGHT_EXCEPTION);
 		}
 	}
 
@@ -349,7 +349,7 @@ class WorkerIMPL: public IMPL {
 			v8::HandleScope scope(isolate_);
 			v8::Local<v8::Message> message = v8::Exception::CreateMessage(isolate_, reason);
 			print_exception(message, reason);
-			noug::exit(ERR_UNHANDLED_REJECTION);
+			quark::exit(ERR_UNHANDLED_REJECTION);
 		}
 	}
 
@@ -364,7 +364,7 @@ Worker* IMPL::create() {
 	return (new WorkerIMPL())->initialize();
 }
 
-N_EXPORT Worker* new_worker_with_node(v8::Isolate* isolate, v8::Local<v8::Context> context) {
+Qk_EXPORT Worker* new_worker_with_node(v8::Isolate* isolate, v8::Local<v8::Context> context) {
 	return (new WorkerIMPL(isolate, context))->initialize();
 }
 
@@ -441,14 +441,14 @@ void* WeakCallbackInfo::GetParameter() const {
 }
 
 bool IMPL::IsWeak(PersistentBase<JSObject>& handle) {
-	N_Assert( !handle.IsEmpty() );
+	Qk_Assert( !handle.IsEmpty() );
 	auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
 	return h->IsWeak();
 }
 
 void IMPL::SetWeak(PersistentBase<JSObject>& handle,
 												WrapObject* ptr, WeakCallbackInfo::Callback callback) {
-	N_Assert( !handle.IsEmpty() );
+	Qk_Assert( !handle.IsEmpty() );
 	auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
 	h->MarkIndependent();
 	h->SetWeak(ptr, reinterpret_cast<v8::WeakCallbackInfo<WrapObject>::Callback>(callback),
@@ -456,7 +456,7 @@ void IMPL::SetWeak(PersistentBase<JSObject>& handle,
 }
 
 void IMPL::ClearWeak(PersistentBase<JSObject>& handle, WrapObject* ptr) {
-	N_Assert( !handle.IsEmpty() );
+	Qk_Assert( !handle.IsEmpty() );
 	auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
 	h->ClearWeak();
 }
@@ -468,14 +468,14 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 		bool ok;
 		// function.__proto__ = base
 		// ok = f->SetPrototype(v8cls->ParentFromFunction());
-		// N_Assert(ok);
+		// Qk_Assert(ok);
 		// function.prototype.__proto__ = base.prototype
 		auto b = v8cls->ParentFromFunction();
 		auto s = Back(_host->strs()->prototype());
 		auto p = f->Get(CONTEXT(_host), s).ToLocalChecked().As<v8::Object>();
 		auto p2 = b->Get(CONTEXT(_host), s).ToLocalChecked().As<v8::Object>();
 		ok = p->SetPrototype(p2);
-		N_Assert(ok);
+		Qk_Assert(ok);
 	}
 	return Cast<JSFunction>(f);
 }
@@ -506,7 +506,7 @@ HandleScope::~HandleScope() {
 CallbackScope::CallbackScope(Worker* worker) {
 	auto impl = WORKER(worker);
 	if (impl->is_node()) {
-		val_ = node::node_api->callback_scope(node::noug_api->env());
+		val_ = node::node_api->callback_scope(node::quark_api->env());
 	} else {
 		val_ = nullptr;
 	}
@@ -958,7 +958,7 @@ template<> bool JSClass::SetStaticProperty<Local<JSValue>>
 	return true;
 }
 
-template <> N_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked() {
+template <> Qk_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked() {
 	return Cast(reinterpret_cast<v8::MaybeLocal<v8::Value>*>(this)->ToLocalChecked());
 }
 
@@ -1079,7 +1079,7 @@ template <> void PersistentBase<JSValue>::Reset() {
 
 template <> template <>
 void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other) {
-	N_Assert(worker);
+	Qk_Assert(worker);
 	reinterpret_cast<v8::PersistentBase<v8::Value>*>(this)->
 		Reset(ISOLATE(worker), *reinterpret_cast<const v8::Local<v8::Value>*>(&other));
 	worker_ = worker;
@@ -1087,7 +1087,7 @@ void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other)
 
 template<> template<>
 void PersistentBase<JSValue>::Copy(const PersistentBase<JSValue>& that) {
-	N_Assert(that.worker_);
+	Qk_Assert(that.worker_);
 	typedef v8::CopyablePersistentTraits<v8::Value>::CopyablePersistent Handle;
 	reinterpret_cast<Handle*>(this)->operator=(*reinterpret_cast<const Handle*>(&that));
 	worker_ = that.worker_;
@@ -1225,7 +1225,7 @@ Local<JSArrayBuffer> Worker::NewArrayBuffer(uint32_t len) {
 }
 Local<JSUint8Array> Worker::NewUint8Array(Local<JSArrayBuffer> ab, uint32_t offset, uint32_t size) {
   auto ab2 = Back<v8::ArrayBuffer>(ab);
-  offset = N_MIN((uint)ab2->ByteLength(), offset);
+  offset = Qk_MIN((uint)ab2->ByteLength(), offset);
   if (size + offset > ab2->ByteLength()) {
     size = (uint)ab2->ByteLength() - offset;
   }
@@ -1265,22 +1265,22 @@ Local<JSString> Worker::NewAscii(cChar* str) {
   Local<JSString> NewAscii(cChar* str);
 
 Local<JSObject> Worker::NewRangeError(cChar* errmsg, ...) {
-	N_STRING_FORMAT(errmsg, str);
+	Qk_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::RangeError(Back(New(str))->ToString()));
 }
 
 Local<JSObject> Worker::NewReferenceError(cChar* errmsg, ...) {
-	N_STRING_FORMAT(errmsg, str);
+	Qk_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::ReferenceError(Back(New(str))->ToString()));
 }
 
 Local<JSObject> Worker::NewSyntaxError(cChar* errmsg, ...) {
-	N_STRING_FORMAT(errmsg, str);
+	Qk_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::SyntaxError( Back(New(str))->ToString() ));
 }
 
 Local<JSObject> Worker::NewTypeError(cChar* errmsg, ...) {
-	N_STRING_FORMAT(errmsg, str);
+	Qk_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::TypeError( Back(New(str))->ToString() ));
 }
 
@@ -1406,12 +1406,12 @@ int IMPL::start(int argc, Char** argv) {
 		{
 			HandleScope scope(*worker);
 			auto _pkg = worker->bindingModule("_pkg");
-			N_Assert(!_pkg.IsEmpty(), "Can't start worker");
+			Qk_Assert(!_pkg.IsEmpty(), "Can't start worker");
 			Local<JSValue> r = _pkg.To()->
 				GetProperty(*worker, "Module").To()->
 				GetProperty(*worker, "runMain").To<JSFunction>()->Call(*worker);
 			if (r.IsEmpty()) {
-				N_ERR("ERROR: Can't call runMain()");
+				Qk_ERR("ERROR: Can't call runMain()");
 				return ERR_RUN_MAIN_EXCEPTION;
 			}
 		}

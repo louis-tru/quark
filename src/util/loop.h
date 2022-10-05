@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__loop__
-#define __noug__util__loop__
+#ifndef __quark__util__loop__
+#define __quark__util__loop__
 
 #include <functional>
 #include <thread>
@@ -47,7 +47,7 @@ typedef struct uv_loop_s uv_loop_t;
 typedef struct uv_async_s uv_async_t;
 typedef struct uv_timer_s uv_timer_t;
 
-namespace noug {
+namespace quark {
 
 	class RunLoop;
 	class KeepLoop;
@@ -59,13 +59,13 @@ namespace noug {
 	typedef std::unique_lock<Mutex> Lock;
 	typedef std::condition_variable Condition;
 
-	template<> N_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
+	template<> Qk_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
 
 	/**
 	 * @class Thread
 	 */
-	class N_EXPORT Thread {
-		N_HIDDEN_ALL_COPY(Thread);
+	class Qk_EXPORT Thread {
+		Qk_HIDDEN_ALL_COPY(Thread);
 	public:
 		// @members
 		typedef NonObjectTraits Traits;
@@ -88,7 +88,7 @@ namespace noug {
 	private:
 		Thread(Exec exec, cString& tag);
 		~Thread() = default;
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 		ThreadID    _id;
 		RunLoop*    _loop;
 		String      _tag;
@@ -99,12 +99,12 @@ namespace noug {
 		friend class RunLoop;
 	};
 
-	N_EXPORT EventNoticer<>& onSafeExit();
+	Qk_EXPORT EventNoticer<>& onSafeExit();
 
 	/**
 	* @class PostMessage
 	*/
-	class N_EXPORT PostMessage {
+	class Qk_EXPORT PostMessage {
 	public:
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) = 0;
 	};
@@ -112,8 +112,8 @@ namespace noug {
 	/**
 	* @class RunLoop
 	*/
-	class N_EXPORT RunLoop: public Object, public PostMessage {
-		N_HIDDEN_ALL_COPY(RunLoop);
+	class Qk_EXPORT RunLoop: public Object, public PostMessage {
+		Qk_HIDDEN_ALL_COPY(RunLoop);
 	public:
 		
 		/**
@@ -221,8 +221,8 @@ namespace noug {
 		*/
 		virtual ~RunLoop();
 		
-		N_DEFINE_INLINE_CLASS(Inl);
-		N_DEFINE_INLINE_CLASS(Inl2);
+		Qk_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl2);
 
 		friend class KeepLoop;
 		struct Queue {
@@ -247,10 +247,10 @@ namespace noug {
 	* 这个对像能保持RunLoop的循环不自动终止,除非调用`RunLoop::stop()`
 	* @class KeepLoop
 	*/
-	class N_EXPORT KeepLoop: public Object, public PostMessage {
-		N_HIDDEN_ALL_COPY(KeepLoop);
+	class Qk_EXPORT KeepLoop: public Object, public PostMessage {
+		Qk_HIDDEN_ALL_COPY(KeepLoop);
 	public:
-		N_DEFAULT_ALLOCATOR();
+		Qk_DEFAULT_ALLOCATOR();
 		/**
 		* @destructor `destructor_clear=true`时会取消通过它`post`的所有消息
 		*/

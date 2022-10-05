@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/http.h>
+#include <quark/util/http.h>
 
-using namespace noug;
+using namespace quark;
 
 void test_http3(int argc, char **argv) {
-	N_LOG(http_get_sync("http://127.0.0.1:1026/demo/examples/about.jsx?DopSx"));
+	Qk_LOG(http_get_sync("http://127.0.0.1:1026/demo/examples/about.jsx?DopSx"));
 }

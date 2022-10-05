@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.noug;
+package org.quark;
 
 import android.content.Context;
 import android.os.Bundle;

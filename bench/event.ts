@@ -1,5 +1,5 @@
 
-import { EventNoticer } from 'noug/event';
+import { EventNoticer } from 'quark/event';
 import * as uu from './uu';
 
 uu.start();

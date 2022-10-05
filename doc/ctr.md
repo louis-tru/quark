@@ -1,4 +1,4 @@
-# `noug/ctr`
+# `quark/ctr`
 
 ## static ViewController::render(vdom[,parentView) 
 
@@ -11,8 +11,8 @@
 Example:
 
 ```jsx
-import { Application, ViewController, Root, Div } from 'noug'
-import 'noug/http'
+import { Application, ViewController, Root, Div } from 'quark'
+import 'quark/http'
 class MyCtr extends ViewController {
 	triggerLoad(e) {
 		http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>(this.modle = {bf}));
@@ -143,18 +143,18 @@ new Application().start(
 [`double`]: native_types.md#double
 [`bool`]: native_types.md#bool
 
-[`View`]: noug.md#class-view
+[`View`]: quark.md#class-view
 [`ViewController`]: ctr.md#class-viewcontroller
 [`Notification`]: event.md#class-notification
-[`View.action`]: noug.md#get-view-action
-[`View.style`]: noug.md#view-style
-[`View.visible`]: noug.md#view-visible
-[`View.receive`]: noug.md#view-receive
-[`View.class`]: noug.md#get-view-class
-[`View.transition()`]: noug.md#view-transition-style-delay-cb-
-[`View.show()`]: noug.md#view-show-
-[`View.hide()`]: noug.md#view-hide-
-[`View.addClass()`]: noug.md#view-addClass-name-
-[`View.removeClass()`]: noug.md#view-removeclass-name-
-[`View.toggleClass()`]: noug.md#view-toggleclass-name-
-[`View.remove()`]: noug.md#view-remove-
+[`View.action`]: quark.md#get-view-action
+[`View.style`]: quark.md#view-style
+[`View.visible`]: quark.md#view-visible
+[`View.receive`]: quark.md#view-receive
+[`View.class`]: quark.md#get-view-class
+[`View.transition()`]: quark.md#view-transition-style-delay-cb-
+[`View.show()`]: quark.md#view-show-
+[`View.hide()`]: quark.md#view-hide-
+[`View.addClass()`]: quark.md#view-addClass-name-
+[`View.removeClass()`]: quark.md#view-removeclass-name-
+[`View.toggleClass()`]: quark.md#view-toggleclass-name-
+[`View.remove()`]: quark.md#view-remove-

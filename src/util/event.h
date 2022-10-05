@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__event__
-#define __noug__util__event__
+#ifndef __quark__util__event__
+#define __quark__util__event__
 
 #include "./util.h"
 #include "./error.h"
@@ -37,24 +37,24 @@
 #include "./dict.h"
 #include <functional>
 
-#define N_Event(name, ...) \
-	public: inline noug::EventNoticer<__VA_ARGS__>& on##name () { return _on##name; } \
-	private:noug::EventNoticer<__VA_ARGS__> _on##name; public:
+#define Qk_Event(name, ...) \
+	public: inline quark::EventNoticer<__VA_ARGS__>& on##name () { return _on##name; } \
+	private:quark::EventNoticer<__VA_ARGS__> _on##name; public:
 
-#define N_Init_Event(name)   _on##name(#name, this)
-#define N_On(name, ...)      on##name().on( __VA_ARGS__ )
-#define N_Once(name, ...)    on##name().once( __VA_ARGS__ )
-#define N_Off(name, ...)     on##name().off( __VA_ARGS__ )
-#define N_Trigger(name, ...) on##name().trigger( __VA_ARGS__ )
+#define Qk_Init_Event(name)   _on##name(#name, this)
+#define Qk_On(name, ...)      on##name().on( __VA_ARGS__ )
+#define Qk_Once(name, ...)    on##name().once( __VA_ARGS__ )
+#define Qk_Off(name, ...)     on##name().off( __VA_ARGS__ )
+#define Qk_Trigger(name, ...) on##name().trigger( __VA_ARGS__ )
 
-namespace noug {
+namespace quark {
 
 	template<class Sender = Object, class SendData = Object, class Origin = Object, typename RC = int> class Event;
 	template<class Event = Event<>> class EventNoticer;
 
 	template<class T_Sender, class T_SendData, class T_Origin, typename T_RC>
 	class Event: public Object {
-		N_HIDDEN_ALL_COPY(Event);
+		Qk_HIDDEN_ALL_COPY(Event);
 	public:
 		typedef T_SendData       SendData;
 		typedef T_Sender         Sender;
@@ -87,7 +87,7 @@ namespace noug {
 
 	template<class Event>
 	class EventNoticer: public Object {
-		N_HIDDEN_ALL_COPY(EventNoticer);
+		Qk_HIDDEN_ALL_COPY(EventNoticer);
 	public:
 		typedef Event EventType;
 		typedef typename Event::SendData        SendData;
@@ -451,7 +451,7 @@ namespace noug {
 		}
 		
 		inline void get_listener() {
-			N_Assert(!_name.is_empty());
+			Qk_Assert(!_name.is_empty());
 			if (_listener == nullptr) {
 				_listener = new List<LWrap>();
 			}
@@ -471,7 +471,7 @@ namespace noug {
 			typedef OnListener<Scope> OnListener2;
 			for ( auto& i : *_listener ) {
 				if ( i.value && i->is_on_listener() ) {
-					N_CHECK( !(static_cast<OnListener2*>(i.value)->equals( listener ) &&
+					Qk_CHECK( !(static_cast<OnListener2*>(i.value)->equals( listener ) &&
 											static_cast<OnListener2*>(i.value)->equals( scope )),
 											ERR_DUPLICATE_LISTENER,
 											"Noticers have been added over the letter");
@@ -484,7 +484,7 @@ namespace noug {
 			typedef OnStaticListener<Data> OnStaticListener2;
 			for ( auto& i : *_listener ) {
 				if ( i.value && i->is_on_static_listener() ) {
-					N_CHECK( !(static_cast<OnStaticListener2*>(i.value)->equals( listener ) &&
+					Qk_CHECK( !(static_cast<OnStaticListener2*>(i.value)->equals( listener ) &&
 											static_cast<OnStaticListener2*>(i.value)->equals( data )),
 											ERR_DUPLICATE_LISTENER,
 											"Noticers have been added over the letter");
@@ -495,7 +495,7 @@ namespace noug {
 		void assert_shell(EventNoticer* shell) throw(Error) {
 			for ( auto& i : *_listener ) {
 				if ( i.value && i->is_on_shell_listener() ) {
-					N_CHECK( !static_cast<OnShellListener*>(i.value)->equals( shell ),
+					Qk_CHECK( !static_cast<OnShellListener*>(i.value)->equals( shell ),
 										ERR_DUPLICATE_LISTENER,
 										"Noticers have been added over the letter");
 				}
@@ -515,7 +515,7 @@ namespace noug {
 		Sender*       _sender;
 		List<LWrap>*  _listener;
 
-		friend class  noug::Event<SendData, Sender>;
+		friend class  quark::Event<SendData, Sender>;
 		friend class  OnShellListener;
 		friend class  OnceShellListener;
 	};
@@ -529,7 +529,7 @@ namespace noug {
 		class Basic = Object
 	>
 	class Notification: public Basic {
-		N_HIDDEN_ALL_COPY(Notification);
+		Qk_HIDDEN_ALL_COPY(Notification);
 	public:
 		typedef Event               EventType;
 		typedef Name                NameType;

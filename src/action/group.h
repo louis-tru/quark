@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__action__group__
-#define __noug__action__group__
+#ifndef __quark__action__group__
+#define __quark__action__group__
 
 #include "./action.h"
 
-N_NAMESPACE_START
+Qk_NAMESPACE_START
 
 /**
 * @class GroupAction
 */
-class N_EXPORT GroupAction: public Action {
+class Qk_EXPORT GroupAction: public Action {
 public:
 	/**
 	* @func operator[]
@@ -95,13 +95,13 @@ protected:
 	
 	friend class Action;
 	
-	N_DEFINE_INLINE_CLASS(Inl);
+	Qk_DEFINE_INLINE_CLASS(Inl);
 };
 
 /**
 * @class SpawnAction
 */
-class N_EXPORT SpawnAction: public GroupAction {
+class Qk_EXPORT SpawnAction: public GroupAction {
 public:
 	/**
 	* @func spawn
@@ -128,7 +128,7 @@ private:
 /**
 * @class SequenceAction
 */
-class N_EXPORT SequenceAction: public GroupAction {
+class Qk_EXPORT SequenceAction: public GroupAction {
 public:
 	/**
 	* @func seq
@@ -158,5 +158,5 @@ private:
 
 };
 
-N_NAMESPACE_END
+Qk_NAMESPACE_END
 #endif

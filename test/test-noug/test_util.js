@@ -1,7 +1,7 @@
 
 import { LOG, AM, M, P, VM, VP, CA } from './test'
-import 'noug/base'
-import 'noug/http'
+import 'quark/base'
+import 'quark/http'
 
 async function test() {
 
@@ -16,7 +16,7 @@ async function test() {
 	await AM(process, 'nextTick', [()=>1])
 	M(util, 'garbageCollection')
 	M(util, 'transformJSX', ['var vx = (<Div> ABCDEFG </Div>); New(vx)', 'test.jsx'])
-	M(util, 'transformJS', ['import "noug/base"', 'test.js'])
+	M(util, 'transformJS', ['import "quark/base"', 'test.js'])
 	P(util, 'noop')
 	M(util, 'extend', [{a:10}, {b:100}])
 	M(util, 'err', ['Err'])

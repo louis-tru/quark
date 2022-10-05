@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/array.h>
-#include <noug/util/list.h>
-#include <noug/util/string.h>
+#include <quark/util/array.h>
+#include <quark/util/list.h>
+#include <quark/util/string.h>
 #include <map>
-#include <noug/util/log.h>
+#include <quark/util/log.h>
 
-using namespace noug;
+using namespace quark;
 
 class Test{
 	String str;
@@ -46,25 +46,25 @@ void test_list(int argc, char **argv) {
 	
 	Array<String> ls = str.split(",");
 	
-	N_LOG("%d", ls.length());
+	Qk_LOG("%d", ls.length());
 	
 	ls.push("ABCD");
 	ls.push("ABCD1");
 	ls.pop();
 	
-	N_LOG("%d", ls.length());
+	Qk_LOG("%d", ls.length());
 	
-	N_LOG(ls[0]);
+	Qk_LOG(ls[0]);
 	
-	N_LOG(ls.join("-"));
+	Qk_LOG(ls.join("-"));
 	
 	String str2(str);
 	
-	N_LOG(str2.to_string());
-	N_LOG(str2.copy().collapse());
+	Qk_LOG(str2.to_string());
+	Qk_LOG(str2.copy().collapse());
 	
 	for (auto i = ls.begin(), end = ls.end(); i != end; i++) {
-		N_LOG(*i);
+		Qk_LOG(*i);
 	}
 	
 	Array<int> ls2;

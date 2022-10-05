@@ -33,7 +33,7 @@
 #include "./pool.h"
 #include <skia/core/SkTypeface.h>
 
-namespace noug {
+namespace quark {
 
 	#define SkTF(impl) static_cast<SkTypeface*>(impl)
 

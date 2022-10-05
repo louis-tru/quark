@@ -1,11 +1,11 @@
-noug
+quark
 ===============
 
-Noug是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。
+Quark是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。
 
 * 暂时只支持`iOS`与`Android`系统，并不包含`AndroidTV`因为`TV`应用与手机应用有很大的不同
 
-* 从这里[`Go API Index`](http://noug.cc/doc/)可以到 `API Documents Index`
+* 从这里[`Go API Index`](http://quarks.cc/doc/)可以到 `API Documents Index`
 
 | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-a053c44f45adcaca.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-93fd936d3d3fdc03.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-056a731d62180993.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) |
 |--|--|--|
@@ -16,7 +16,7 @@ Noug是一个跨平台（Android/iOS）前端开发框架，核心代码使用C+
 这是一个简单的在屏幕上显示`hello world!`的程序
 
 ```jsx
-import { Application, Text } from 'noug'
+import { Application, Text } from 'quark'
 new Application().start(
 	<Text>hello world!</Text>
 )
@@ -26,11 +26,11 @@ new Application().start(
 
 # Start Usage
 
-如果你从来没有使用过`Noug`你可以从这里开始，一步步创建你的`Noug`程序。
+如果你从来没有使用过`Quark`你可以从这里开始，一步步创建你的`Quark`程序。
 
 ## Install noproj
 
-首先你需要安装`Noug`提供的工具包
+首先你需要安装`Quark`提供的工具包
 
 * 使用 nodejs `npm` 安装 `noproj`
 
@@ -48,7 +48,7 @@ $ sudo npm install -g noproj
 
 ## Create new project
 
-使用下面的`shell`命令创建一个新的`Noug`工程：
+使用下面的`shell`命令创建一个新的`Quark`工程：
 
 ```sh
 # shell
@@ -81,7 +81,7 @@ $ noproj export android
 导出工程后，接下来你可以使用[Xcode]与[Android Studio]打开它
 
 
-## Noug test http server
+## Quark test http server
 
 `noproj`提供了一个测试http服务器，你不需要每次修改完`js`或`jsx`代码都进行重新安装
 
@@ -99,12 +99,12 @@ $ noproj
 * Project [Source code] from `Github`
 
 
-[Examples]: https://github.com/louis-tru/noug/tree/master/examples
+[Examples]: https://github.com/louis-tru/quark/tree/master/examples
 [Xcode]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [Android Studio]: https://developer.android.com/studio/projects/create-project.html
-[Android APK]: https://github.com/louis-tru/noug/releases/download/v0.1.0/examples-release.apk
+[Android APK]: https://github.com/louis-tru/quark/releases/download/v0.1.0/examples-release.apk
 [NPM]: https://www.npmjs.com/package/noproj
-[Source code]: https://github.com/louis-tru/noug
+[Source code]: https://github.com/louis-tru/quark
 
 
 

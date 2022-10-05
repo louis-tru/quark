@@ -35,7 +35,7 @@
 #include <skia/core/SkFontMetrics.h>
 #include <skia/core/SkFontTypes.h>
 
-namespace noug {
+namespace quark {
 
 	template<> uint64_t Compare<FontStyle>::hash_code(const FontStyle& key) {
 		return key.value();

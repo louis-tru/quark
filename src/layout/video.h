@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__video__
-#define __noug__layout__video__
+#ifndef __quark__layout__video__
+#define __quark__layout__video__
 
 #include "./image.h"
 #include "../pre_render.h"
 #include "../media/media_codec.h"
 #include "../media/pcm.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT Video: public Image,
+	class Qk_EXPORT Video: public Image,
 												public PreRender::Task, public MultimediaSource::Delegate {
-		N_Define_View(Video);
+		Qk_Define_View(Video);
 	public:
 		typedef MediaCodec::OutputBuffer OutputBuffer;
 		typedef MultimediaSource::TrackInfo TrackInfo;
@@ -49,21 +49,21 @@ namespace noug {
 		Video();
 		virtual ~Video();
 		// define props
-		N_Define_Prop_Acc(bool, auto_play, NoConst);
-		N_Define_Prop_Acc(bool, mute, NoConst);
-		N_Define_Prop_Acc(bool, disable_wait_buffer, NoConst);
-		N_Define_Prop_Acc(uint32_t, volume, NoConst);
-		N_Define_Prop_Acc(String, src, NoConst);
-		N_Define_Prop_Acc_Get(MultimediaSourceStatus, source_status, NoConst);
-		N_Define_Prop_Acc_Get(PlayerStatus, status, NoConst);
-		N_Define_Prop_Acc_Get(uint64_t, time, NoConst);
-		N_Define_Prop_Acc_Get(uint64_t, duration, NoConst);
-		N_Define_Prop_Acc_Get(uint32_t, audio_track_count, NoConst);
-		N_Define_Prop_Acc_Get(uint32_t, audio_track_index, NoConst);
-		N_Define_Prop_Acc_Get(const TrackInfo*, audio_track, NoConst);
-		N_Define_Prop_Acc_Get(const TrackInfo*, video_track, NoConst);
-		N_Define_Prop_Acc_Get(uint32_t, video_width, NoConst);
-		N_Define_Prop_Acc_Get(uint32_t, video_height, NoConst);
+		Qk_Define_Prop_Acc(bool, auto_play, NoConst);
+		Qk_Define_Prop_Acc(bool, mute, NoConst);
+		Qk_Define_Prop_Acc(bool, disable_wait_buffer, NoConst);
+		Qk_Define_Prop_Acc(uint32_t, volume, NoConst);
+		Qk_Define_Prop_Acc(String, src, NoConst);
+		Qk_Define_Prop_Acc_Get(MultimediaSourceStatus, source_status, NoConst);
+		Qk_Define_Prop_Acc_Get(PlayerStatus, status, NoConst);
+		Qk_Define_Prop_Acc_Get(uint64_t, time, NoConst);
+		Qk_Define_Prop_Acc_Get(uint64_t, duration, NoConst);
+		Qk_Define_Prop_Acc_Get(uint32_t, audio_track_count, NoConst);
+		Qk_Define_Prop_Acc_Get(uint32_t, audio_track_index, NoConst);
+		Qk_Define_Prop_Acc_Get(const TrackInfo*, audio_track, NoConst);
+		Qk_Define_Prop_Acc_Get(const TrackInfo*, video_track, NoConst);
+		Qk_Define_Prop_Acc_Get(uint32_t, video_width, NoConst);
+		Qk_Define_Prop_Acc_Get(uint32_t, video_height, NoConst);
 		// define methods
 		const TrackInfo* audio_track_at(uint32_t index);
 		void select_audio_track(uint32_t index);
@@ -99,7 +99,7 @@ namespace noug {
 		Mutex     _mutex;
 		ThreadID  _run_loop_id;
 
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

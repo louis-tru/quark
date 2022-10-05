@@ -38,10 +38,10 @@ extern "C" {
 	// #include <libavcodec/fft.h>
 }
 
-#include <noug/util/util.h>
-#include <noug/util/fs.h>
+#include <quark/util/util.h>
+#include <quark/util/fs.h>
 
-using namespace noug;
+using namespace quark;
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL, *audio_dec_ctx;
@@ -370,7 +370,7 @@ int test_ffmpeg (int argc, char **argv)
 		ret = av_read_frame(fmt_ctx, &pkt);
 		if (ret < 0) break;
 		AVPacket orig_pkt = pkt;
-		N_LOG("----------------------------------------------------stream_index:%d", pkt.stream_index);
+		Qk_LOG("----------------------------------------------------stream_index:%d", pkt.stream_index);
 		do {
 			ret = decode_packet(&got_frame, 0);
 			if (ret < 0)

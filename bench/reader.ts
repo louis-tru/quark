@@ -1,7 +1,7 @@
 
-import * as fs from 'noug/fs';
-import url from 'noug/path';
-import * as reader from 'noug/reader';
+import * as fs from 'quark/fs';
+import url from 'quark/path';
+import * as reader from 'quark/reader';
 import * as uu from './uu';
 
 var path = url.documents('benchmark.txt');

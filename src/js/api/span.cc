@@ -33,7 +33,7 @@
 #include "../../views2/span.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

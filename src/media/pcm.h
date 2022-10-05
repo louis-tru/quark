@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__media__pcm__
-#define __noug__media__pcm__
+#ifndef __quark__media__pcm__
+#define __quark__media__pcm__
 
 #include "../util/util.h"
 #include "../util/array.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class PCMPlayer

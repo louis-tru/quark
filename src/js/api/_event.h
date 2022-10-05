@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__js__event__
-#define __noug__js__event__
+#ifndef __quark__js__event__
+#define __quark__js__event__
 
 #include "../js.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

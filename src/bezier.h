@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__math__bezier__
-#define __noug__math__bezier__
+#ifndef __quark__math__bezier__
+#define __quark__math__bezier__
 
 #include "./math.h"
 #include "./util/array.h"
 
-namespace noug {
+namespace quark {
 
 	// Bezier curve formula of order N
 	// B(t) = E(i=0,n) P_i(1-t)^(n-i)t^i, t<-|0,1|
@@ -44,7 +44,7 @@ namespace noug {
 	*
 	* B(t) = P_0(1-t)^2 + 2tP_1(1-t) + P_2t^2, t<-|0,1|
 	*/
-	class N_EXPORT QuadraticBezier {
+	class Qk_EXPORT QuadraticBezier {
 	public:
 
 		/**
@@ -84,7 +84,7 @@ namespace noug {
 	*
 	* B(t) = P_0(1-t)^3 + 3P_1t(i-t)^2 + 3P_2t^2(1-t) + P_3t3, t<-|0,1|
 	*/
-	class N_EXPORT CubicBezier {
+	class Qk_EXPORT CubicBezier {
 	public:
 
 		/**
@@ -133,7 +133,7 @@ namespace noug {
 	* @class FixedCubicBezier
 	* @bases CubicBezier
 	*/
-	class N_EXPORT FixedCubicBezier: public CubicBezier {
+	class Qk_EXPORT FixedCubicBezier: public CubicBezier {
 	public:
 		
 		/**
@@ -191,17 +191,17 @@ namespace noug {
 		Vec2 _p1;
 		Vec2 _p2;
 		
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	typedef FixedCubicBezier Curve;
 	typedef const Curve cCurve;
 
-	N_EXPORT extern const FixedCubicBezier LINEAR;
-	N_EXPORT extern const FixedCubicBezier EASE;
-	N_EXPORT extern const FixedCubicBezier EASE_IN;
-	N_EXPORT extern const FixedCubicBezier EASE_OUT;
-	N_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
+	Qk_EXPORT extern const FixedCubicBezier LINEAR;
+	Qk_EXPORT extern const FixedCubicBezier EASE;
+	Qk_EXPORT extern const FixedCubicBezier EASE_IN;
+	Qk_EXPORT extern const FixedCubicBezier EASE_OUT;
+	Qk_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
 
 }
 #endif

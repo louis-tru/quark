@@ -32,7 +32,7 @@
 #include "./uv.h"
 #include "./dict.h"
 
-namespace noug {
+namespace quark {
 
 	struct TaskList {
 		Mutex mutex;
@@ -43,7 +43,7 @@ namespace noug {
 
 	AsyncIOTask::AsyncIOTask(RunLoop* loop)
 	: _id(getId32()), _abort(false), _loop(loop) {
-		N_CHECK(_loop);
+		Qk_CHECK(_loop);
 		ScopeLock scope(tasks->mutex);
 		tasks->values[_id] = this;
 	}

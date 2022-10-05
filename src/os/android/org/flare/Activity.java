@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.noug;
+package org.quark;
 
 import android.app.KeyguardManager;
 import android.app.NativeActivity;
@@ -54,7 +54,7 @@ import android.content.pm.ApplicationInfo;
 
 public class Activity extends NativeActivity implements View.OnSystemUiVisibilityChangeListener {
 
-	private static String TAG = "Noug";
+	private static String TAG = "Quark";
 	private IMEHelper _ime = null;
 	private Handler _handler = null;
 	private PowerManager pm = null;
@@ -158,9 +158,9 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 
 	static public class PrivateAPI {
 
-		private NougActivity host = null;
+		private QuarkActivity host = null;
 
-		private PrivateAPI(NougActivity host) {
+		private PrivateAPI(QuarkActivity host) {
 			this.host = host;
 		}
 

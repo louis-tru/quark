@@ -30,8 +30,8 @@
 
 #include <unistd.h>
 #include <fcntl.h>
-#include "noug/util/platform/android_jni.h"
-#include "noug/media/media_codec_inl.h"
+#include "quark/util/platform/android_jni.h"
+#include "quark/media/media_codec_inl.h"
 
 #ifndef USE_FFMPEG_MEDIACODEC
 #define USE_FFMPEG_MEDIACODEC 0
@@ -105,7 +105,7 @@ enum {
 
 // ------------------------------------------------------------------------------------------------
 
-namespace noug {
+namespace quark {
 
 	#if DEBUG && !USE_FFMPEG_MEDIACODEC
 
@@ -122,7 +122,7 @@ namespace noug {
 				::close(fd);
 			}
 			int err = AMediaExtractor_selectTrack(_TEST_ex, select_track);
-			N_Assert(err == 0);
+			Qk_Assert(err == 0);
 		}
 
 		static void _TEST_get_sample_data(uint8_t* out, uint32_t size, uint& sample_size) {
@@ -139,7 +139,7 @@ namespace noug {
 					o++;
 				}
 			}
-			N_DEBUG("cmp: %d|%d|%d|%d|%d, cmp_s: %d, sample_size:%d|%d",
+			Qk_DEBUG("cmp: %d|%d|%d|%d|%d, cmp_s: %d, sample_size:%d|%d",
 							j[0], j[1], j[2], j[3], j[4], o, sample_size, sample_size2);
 
 			memcpy(out, *buf, sample_size2);
@@ -159,7 +159,7 @@ namespace noug {
 			if (!has_init) {
 				has_init = true;
 				if ( fx_jni_set_java_vm(JNI::jvm(), NULL) != 0 ) {
-					N_ERR("x_jni_set_java_vm(), unsuccessful." );
+					Qk_ERR("x_jni_set_java_vm(), unsuccessful." );
 				}
 			}
 		#endif 
@@ -273,10 +273,10 @@ namespace noug {
 						uint64_t sample_time = _extractor->sample_time();
 
 						if ( sample_time == 0 ) {
-							N_DEBUG("advance:0");
+							Qk_DEBUG("advance:0");
 						}
 						if (sample_flags) {
-							N_DEBUG("%s", "eos flags");
+							Qk_DEBUG("%s", "eos flags");
 						}
 						if ( sample_size ) {
 							if ( type() == MEDIA_TYPE_VIDEO ) {
@@ -302,14 +302,14 @@ namespace noug {
 
 					if ( status >= 0 ) {
 						if (info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) {
-							N_DEBUG("output EOS");
+							Qk_DEBUG("output EOS");
 							_eof_flags = true;
 							_delegate->media_decoder_eof(this, info.presentationTimeUs);
 						}
 						int64_t presentation = info.presentationTimeUs;
 
 						if ( presentation == 0 ) {
-							N_DEBUG("output:0");
+							Qk_DEBUG("output:0");
 						}
 
 						size_t size;
@@ -351,15 +351,15 @@ namespace noug {
 							AMediaCodec_releaseOutputBuffer(_codec, status, true);
 						}
 					} else if ( status == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED ) {
-						N_DEBUG("output buffers changed");
+						Qk_DEBUG("output buffers changed");
 					} else if ( status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED ) {
 						AMediaFormat* format = AMediaCodec_getOutputFormat(_codec);
-						N_DEBUG("format changed to: %s", AMediaFormat_toString(format));
+						Qk_DEBUG("format changed to: %s", AMediaFormat_toString(format));
 						AMediaFormat_delete(format);
 					} else if ( status == AMEDIACODEC_INFO_TRY_AGAIN_LATER ) {
-						// N_DEBUG("no output buffer right now");
+						// Qk_DEBUG("no output buffer right now");
 					} else {
-						N_DEBUG("unexpected info code: %d", status);
+						Qk_DEBUG("unexpected info code: %d", status);
 					}
 				}
 				return OutputBuffer();
@@ -468,18 +468,18 @@ namespace noug {
 					// format = AMediaExtractor_getTrackFormat(_TEST_ex, 0);
 				}
 
-				N_DEBUG("%s", AMediaFormat_toString(format));
+				Qk_DEBUG("%s", AMediaFormat_toString(format));
 				int result = AMediaCodec_configure(codec, format, nullptr, nullptr, 0);
 
 				if ( result == 0 && AMediaCodec_start(codec) == 0 ) {
 					rv = new AndroidHardwareMediaCodec(ex, codec, format);
 				} else {
-					N_ERR("Unable to configure and run the decoder");
+					Qk_ERR("Unable to configure and run the decoder");
 					AMediaCodec_delete(codec);
 					AMediaFormat_delete(format);
 				}
 			} else {
-				N_ERR("cannot create decoder");
+				Qk_ERR("cannot create decoder");
 			}
 		}
 		return rv;

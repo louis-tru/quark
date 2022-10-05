@@ -35,7 +35,7 @@
 #include "../util/numbers.h"
 #include <math.h>
 
-namespace noug {
+namespace quark {
 
 	// ------------------------ B a s e . S c r o l l --------------------------
 
@@ -126,7 +126,7 @@ namespace noug {
 		friend class BaseScroll::Inl;
 	};
 
-	N_DEFINE_INLINE_MEMBERS(BaseScroll, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(BaseScroll, Inl) {
 	public:
 		#define _inl(self) static_cast<BaseScroll::Inl*>(static_cast<BaseScroll*>(self))
 
@@ -320,11 +320,11 @@ namespace noug {
 			
 			if ( pos < 0 ) {
 				size = h_scrollbar_indicator_size + roundf(pos * 3);
-				size = N_MAX(size, 8);
+				size = Qk_MAX(size, 8);
 				pos = 0;
 			} else if ( pos > h_scrollbar_max_scroll ) {
 				size = h_scrollbar_indicator_size - roundf((pos - h_scrollbar_max_scroll) * 3);
-				size = N_MAX(size, 8);
+				size = Qk_MAX(size, 8);
 				pos = h_scrollbar_max_scroll + h_scrollbar_indicator_size - size;
 			}
 			
@@ -564,7 +564,7 @@ namespace noug {
 					new_x -= dist_x;
 					dist_x = fabsf(dist_x) * 1e4;
 					
-					momentum_x.time = N_MAX(N_MIN(dist_x, 3e5), momentum_x.time);
+					momentum_x.time = Qk_MAX(Qk_MIN(dist_x, 3e5), momentum_x.time);
 				}
 				
 				if ( new_y < 0 && new_y > _scroll_max.y() && mod_y != 0 ) {
@@ -576,7 +576,7 @@ namespace noug {
 					new_y -= dist_y;
 					dist_y = fabsf(dist_y) * 1e4;
 					
-					momentum_y.time = N_MAX(N_MIN(dist_y, 3e5), momentum_y.time);
+					momentum_y.time = Qk_MAX(Qk_MIN(dist_y, 3e5), momentum_y.time);
 				}
 			}
 			
@@ -585,7 +585,7 @@ namespace noug {
 			//****************************************************************
 
 			if ( momentum_x.time || momentum_y.time ) {
-				uint64_t duration = N_MAX(N_MAX(momentum_x.time, momentum_y.time), 1e4);
+				uint64_t duration = Qk_MAX(Qk_MAX(momentum_x.time, momentum_y.time), 1e4);
 				scroll_to_valid_scroll(Vec2(new_x, new_y), duration);
 			} else {
 				termination_recovery(3e5, ease_in_out);
@@ -682,7 +682,7 @@ namespace noug {
 		host->add_event_listener(UIEvent_MouseDown, &Inl::mouse_down_handle, _inl(this));
 		host->add_event_listener(UIEvent_MouseMove, &Inl::mouse_move_handle, _inl(this));
 		host->add_event_listener(UIEvent_MouseUp, &Inl::mouse_up_handle, _inl(this));
-		// N_DEBUG("BaseScroll: %d", sizeof(BaseScroll));
+		// Qk_DEBUG("BaseScroll: %d", sizeof(BaseScroll));
 	}
 
 	BaseScroll::~BaseScroll() {
@@ -744,7 +744,7 @@ namespace noug {
 	}
 
 	void BaseScroll::set_resistance(float value) {
-		_resistance = N_MAX(0.5, value);
+		_resistance = Qk_MAX(0.5, value);
 	}
 
 	void BaseScroll::set_bounce(bool value) {

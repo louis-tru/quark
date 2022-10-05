@@ -36,7 +36,7 @@
 #include "../util/fs.h"
 #include "../errno.h"
 
-namespace noug {
+namespace quark {
 
 	typedef MultimediaSource::TrackInfo TrackInfo;
 	typedef PreRender::Task::ID TaskID;
@@ -66,7 +66,7 @@ namespace noug {
 	{
 	}
 
-	N_DEFINE_INLINE_MEMBERS(Video, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(Video, Inl) {
 	public:
 
 		bool load_yuv_texture(OutputBuffer& buffer) { // set yuv texture ..
@@ -83,7 +83,7 @@ namespace noug {
 		}
 		
 		bool advance_video(uint64_t sys_time) {
-			N_Assert(m_status != PLAYER_STATUS_STOP, "#Video#Inl#advance_video 0");
+			Qk_Assert(m_status != PLAYER_STATUS_STOP, "#Video#Inl#advance_video 0");
 			
 			bool draw = false;
 			
@@ -139,7 +139,7 @@ namespace noug {
 						draw = true;
 					}
 				} else { // start reander one frame
-					N_DEBUG("Reset timing : prs: %lld, %lld, %lld",
+					Qk_DEBUG("Reset timing : prs: %lld, %lld, %lld",
 									pts,
 									sys_time - _prev_presentation_time, _uninterrupted_play_start_systime);
 
@@ -169,7 +169,7 @@ namespace noug {
 		bool write_audio_pcm() {
 			bool r = _pcm->write(WeakBuffer((char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
 			if ( !r ) {
-				N_LOG("Discard, audio PCM frame, %lld", _audio_buffer.time);
+				Qk_LOG("Discard, audio PCM frame, %lld", _audio_buffer.time);
 			}
 			_audio->release(_audio_buffer);
 			return r;
@@ -294,9 +294,9 @@ namespace noug {
 		void start_run() {
 			Lock lock(_mutex);
 			
-			N_Assert( _source && _video, "#Video#Inl#start_run 0");
-			N_Assert( _source->is_active(), "#Video#Inl#start_run 1");
-			N_Assert( _status == PLAYER_STATUS_START, "#Video#Inl#start_run 2");
+			Qk_Assert( _source && _video, "#Video#Inl#start_run 0");
+			Qk_Assert( _source->is_active(), "#Video#Inl#start_run 1");
+			Qk_Assert( _status == PLAYER_STATUS_START, "#Video#Inl#start_run 2");
 
 			_waiting_buffer = false;
 
@@ -307,7 +307,7 @@ namespace noug {
 				_video->extractor()->set_disable(false);
 			} else {
 				stop_from(lock, true);
-				N_ERR("Unable to open video decoder");
+				Qk_ERR("Unable to open video decoder");
 				return;
 			}
 
@@ -365,7 +365,7 @@ namespace noug {
 	}
 
 	void Video::multimedia_source_ready(MultimediaSource* src) {
-		N_Assert( _source == src, "#Video#multimedia_source_ready 0");
+		Qk_Assert( _source == src, "#Video#multimedia_source_ready 0");
 		
 		if ( _video ) {
 			Inl_Video(this)->trigger(UIEvent_Ready); // trigger event ready
@@ -375,8 +375,8 @@ namespace noug {
 			return;
 		}
 
-		N_Assert(!_video, "#Video#multimedia_source_ready 1");
-		N_Assert(!_audio, "#Video#multimedia_source_ready 1");
+		Qk_Assert(!_video, "#Video#multimedia_source_ready 1");
+		Qk_Assert(!_audio, "#Video#multimedia_source_ready 1");
 
 		// 创建解码器很耗时这会导致gui线程延时,所以这里不在主线程创建
 		_task_id = _keep->host()->work(Cb([=](CbData& d) {
@@ -403,7 +403,7 @@ namespace noug {
 		}, this/*保持Video*/), Cb([=](CbData& d) {
 			_task_id = 0;
 			if ( _source != src ) return;
-			if ( !_audio) N_ERR("Unable to create audio decoder");
+			if ( !_audio) Qk_ERR("Unable to create audio decoder");
 			if (_video) {
 				{ //
 					ScopeLock scope(_mutex);
@@ -426,7 +426,7 @@ namespace noug {
 				}
 			} else {
 				Error e(ERR_VIDEO_NEW_CODEC_FAIL, "Unable to create video decoder");
-				N_ERR("%s", *e.message());
+				Qk_ERR("%s", *e.message());
 				Inl_Video(this)->trigger(UIEvent_Error, e); // trigger event error
 				stop();
 			} 
@@ -447,7 +447,7 @@ namespace noug {
 			Inl_Video(this)->stop_and_release(lock, true);
 		}
 		auto loop = pre_render()->host()->loop();
-		N_Assert(loop, "Cannot find main run loop");
+		Qk_Assert(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
 		_keep = loop->keep_alive("Video::set_source");
 		_source->set_delegate(this);
@@ -486,7 +486,7 @@ namespace noug {
 		ScopeLock scope(_mutex);
 		
 		if ( Inl_Video(this)->is_active() && timeUs < _duration ) {
-			N_Assert( m_source );
+			Qk_Assert( m_source );
 			
 			if ( _source->seek(timeUs) ) {
 				_uninterrupted_play_start_systime = 0;
@@ -551,7 +551,7 @@ namespace noug {
 
 	void Video::set_volume(uint32_t value) {
 		ScopeLock scope(_mutex);
-		value = N_MIN(value, 100);
+		value = Qk_MIN(value, 100);
 		_volume = value;
 		if ( _pcm ) {
 			_pcm->set_volume(value);

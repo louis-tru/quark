@@ -29,18 +29,18 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__app_inl__
-#define __noug__app_inl__
+#ifndef __quark__app_inl__
+#define __quark__app_inl__
 
 #include "./app.h"
 
 /**
- * @ns noug
+ * @ns quark
  */
 
-namespace noug {
+namespace quark {
 
-	N_DEFINE_INLINE_MEMBERS(Application, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(Application, Inl) {
 	public:
 		#define _inl_app(self) static_cast<AppInl*>(self)
 

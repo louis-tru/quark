@@ -1,7 +1,7 @@
 {
 	"name": "bench",
-	"appName":	"Noug-Benchmark",
-	"id": "org.noug.benchmark",
+	"appName":	"Quark-Benchmark",
+	"id": "org.quark.benchmark",
 	"version": "0.1.0",
 	"main": "action",
 	"detach": [ "img", "img2" ]

@@ -1,13 +1,13 @@
-noug
+quark
 ===============
 
-noug is a cross-platform (Android/iOS) front-end development framework. The core code is written in C++. The bottom layer is based on OpenGL drawing. The upper layer implements a streamlined typesetting engine and a JS/JSX running environment. The goal is to develop GUI applications on this basis, which can take both development speed and operation efficiency into account.
+quark is a cross-platform (Android/iOS) front-end development framework. The core code is written in C++. The bottom layer is based on OpenGL drawing. The upper layer implements a streamlined typesetting engine and a JS/JSX running environment. The goal is to develop GUI applications on this basis, which can take both development speed and operation efficiency into account.
 
 * Only `iOS` and `Android` systems are supported for the time being, this does not include `AndroidTV`, because `TV` applications are very different from mobile applications
 
-* From here, [`Go API Index`](http://noug.cc/doc/) can go to `API Documents Index`
+* From here, [`Go API Index`](http://quarks.cc/doc/) can go to `API Documents Index`
 
-| ![Screenshot](http://noug.cc/img/0x0ss.jpg) | ![Screenshot](http://noug.cc/img/0x0ss_3.jpg) | ![Screenshot](http://noug.cc/img/0x0ss_4.jpg) |
+| ![Screenshot](http://quarks.cc/img/0x0ss.jpg) | ![Screenshot](http://quarks.cc/img/0x0ss_3.jpg) | ![Screenshot](http://quarks.cc/img/0x0ss_4.jpg) |
 |--|--|--|
 
 
@@ -16,7 +16,7 @@ noug is a cross-platform (Android/iOS) front-end development framework. The core
 This is a simple program to display Hello world on the screen
 
 ```jsx
-import { Application, Root } from 'noug'
+import { Application, Root } from 'quark'
 new Application().start(
 	<Root>hello world!</Root>
 )
@@ -26,11 +26,11 @@ You can get a more detailed [`Examples`]
 
 # Start Usage
 
-If you've never used Noug before, you can start from here and build your Noug program step by step.
+If you've never used Quark before, you can start from here and build your Quark program step by step.
 
 ## Install noproj
 
-First, you need to install the toolkit provided by `Noug`
+First, you need to install the toolkit provided by `Quark`
 
 * Install `noproj` using nodejs `npm` 
 
@@ -48,7 +48,7 @@ $ sudo npm install -g noproj
 
 ## Create new project
 
-Create a new `Noug` project using the following `shell` command：
+Create a new `Quark` project using the following `shell` command：
 
 ```sh
 # shell
@@ -81,7 +81,7 @@ $ noproj export androids
 
 After exporting the project, next you can open it using [`Xcode`] and [`Android Studio`]
 
-## Noug test http server
+## Quark test http server
 
 `noproj` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
 
@@ -99,12 +99,12 @@ $ noproj
 * Project [`Source code`] from `Github`
 
 
-[`Examples`]: https://github.com/louis-tru/noug/tree/master/examples
+[`Examples`]: https://github.com/louis-tru/quark/tree/master/examples
 [`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
-[`Android APK`]: https://github.com/louis-tru/noug/releases/download/v0.1.0/examples-release.apk
+[`Android APK`]: https://github.com/louis-tru/quark/releases/download/v0.1.0/examples-release.apk
 [`NPM`]: https://www.npmjs.com/package/noproj
-[`Source code`]: https://github.com/louis-tru/noug
+[`Source code`]: https://github.com/louis-tru/quark
 
 <script>
 	<!--

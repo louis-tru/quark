@@ -29,18 +29,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__render__skia__skia_canvas__
-#define __noug__render__skia__skia_canvas__
+#ifndef __quark__render__skia__skia_canvas__
+#define __quark__render__skia__skia_canvas__
 
-#if !N_APPLE || N_ENABLE_GL
+#if !Qk_APPLE || Qk_ENABLE_GL
 # define SK_GL 1
 #endif
 
-#if N_APPLE
+#if Qk_APPLE
 # define SK_METAL 1
-#elif N_ANDROID
+#elif Qk_ANDROID
 # define SK_VULKAN 1
-#elif N_WIN
+#elif Qk_WIN
 # define SK_DIRECT3D 1
 #endif
 
@@ -50,7 +50,7 @@
 #include "../pixel.h"
 #include <skia/core/SkCanvas.h>
 
-namespace noug {
+namespace quark {
 
 	class SkiaCanvas: public SkCanvas {
 	public:

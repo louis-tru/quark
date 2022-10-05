@@ -55,7 +55,7 @@
  * types regardless of the specific type.
  *
  * Data passed in the @closure field for a request will be returned in the
- * corresponding event.  It is big enough to hold a pointer on all platforms.
+ * corresponding event.  It is big equarkh to hold a pointer on all platforms.
  * The ioctl used to set @closure depends on the @type of event.
  */
 struct fw_cdev_event_common {
@@ -374,7 +374,7 @@ struct fw_cdev_event_phy_packet {
  * processing.  Note that for a request, response or iso_interrupt event,
  * the data[] or header[] may make the size of the full event larger than
  * sizeof(union fw_cdev_event).  Also note that if you attempt to read(2)
- * an event into a buffer that is not large enough for it, the data that does
+ * an event into a buffer that is not large equarkh for it, the data that does
  * not fit will be discarded so that the next read(2) will return a new event.
  */
 union fw_cdev_event {

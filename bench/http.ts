@@ -1,5 +1,5 @@
 
-import * as http from 'noug/http';
+import * as http from 'quark/http';
 
 var i = 0;
 

@@ -1,15 +1,15 @@
 
-#include <noug/app.h>
-#include <noug/display.h>
-#include <noug/render/skia/skia_render.h>
-#include <noug/render/font/pool.h>
+#include <quark/app.h>
+#include <quark/display.h>
+#include <quark/render/skia/skia_render.h>
+#include <quark/render/font/pool.h>
 #include <skia/core/SkCanvas.h>
 #include <skia/core/SkFont.h>
 #include <skia/core/SkData.h>
 #include <skia/core/SkFontMgr.h>
 #include <native-font.h>
 
-using namespace noug;
+using namespace quark;
 
 void testSkFont(Application* app, SkCanvas* canvas) {
 	SkString str;
@@ -18,52 +18,52 @@ void testSkFont(Application* app, SkCanvas* canvas) {
 
 	for (int i = 0; i < count; i++) {
 		mgr->getFamilyName(i, &str);
-		N_LOG("%d, %s", i, str.c_str());
+		Qk_LOG("%d, %s", i, str.c_str());
 	}
 	
 	sk_sp<SkFontStyleSet> set(mgr->matchFamily("Academy Engraved LET"));
-	N_LOG(set->count());
+	Qk_LOG(set->count());
 
 	SkFontStyle style;
 	sk_sp<SkTypeface> tf(mgr->matchFamilyStyle(nullptr, style));
 	sk_sp<SkTypeface> tf2(mgr->matchFamilyStyleCharacter("", style, nullptr, 0, 65533));
 	sk_sp<SkTypeface> tf3(mgr->matchFamilyStyle("PingFang HK", style));
 
-	N_LOG("%d", tf->uniqueID());
-	N_LOG("%d", tf2->uniqueID());
-	N_LOG("%d", tf3->uniqueID());
+	Qk_LOG("%d", tf->uniqueID());
+	Qk_LOG("%d", tf2->uniqueID());
+	Qk_LOG("%d", tf3->uniqueID());
 
 	tf->getFamilyName(&str);
-	N_LOG("%s", str.c_str());
+	Qk_LOG("%s", str.c_str());
 
 	tf2->getFamilyName(&str);
-	N_LOG("%s", str.c_str());
+	Qk_LOG("%s", str.c_str());
 
 	tf3->getFamilyName(&str);
-	N_LOG("%s", str.c_str());
+	Qk_LOG("%s", str.c_str());
 
-	N_LOG("");
-	N_LOG("楚(26970):%d", tf->unicharToGlyph(26970)); // 楚
-	N_LOG("学(23398):%d", tf->unicharToGlyph(23398)); // 学
-	N_LOG("文(25991):%d", tf->unicharToGlyph(25991)); // 文
-	N_LOG("�(65533):%d", tf->unicharToGlyph(65533));  // �
+	Qk_LOG("");
+	Qk_LOG("楚(26970):%d", tf->unicharToGlyph(26970)); // 楚
+	Qk_LOG("学(23398):%d", tf->unicharToGlyph(23398)); // 学
+	Qk_LOG("文(25991):%d", tf->unicharToGlyph(25991)); // 文
+	Qk_LOG("�(65533):%d", tf->unicharToGlyph(65533));  // �
 
-	N_LOG("");
-	N_LOG("楚(26970):%d", tf2->unicharToGlyph(26970)); // 楚
-	N_LOG("学(23398):%d", tf2->unicharToGlyph(23398)); // 学
-	N_LOG("文(25991):%d", tf2->unicharToGlyph(25991)); // 文
-	N_LOG("�(65533):%d", tf2->unicharToGlyph(65533));  // �
+	Qk_LOG("");
+	Qk_LOG("楚(26970):%d", tf2->unicharToGlyph(26970)); // 楚
+	Qk_LOG("学(23398):%d", tf2->unicharToGlyph(23398)); // 学
+	Qk_LOG("文(25991):%d", tf2->unicharToGlyph(25991)); // 文
+	Qk_LOG("�(65533):%d", tf2->unicharToGlyph(65533));  // �
 
-	N_LOG("");
-	N_LOG("楚(26970):%d", tf3->unicharToGlyph(26970)); // 楚
-	N_LOG("学(23398):%d", tf3->unicharToGlyph(23398)); // 学
-	N_LOG("文(25991):%d", tf3->unicharToGlyph(25991)); // 文
-	N_LOG("�(65533):%d", tf3->unicharToGlyph(65533));  // �
+	Qk_LOG("");
+	Qk_LOG("楚(26970):%d", tf3->unicharToGlyph(26970)); // 楚
+	Qk_LOG("学(23398):%d", tf3->unicharToGlyph(23398)); // 学
+	Qk_LOG("文(25991):%d", tf3->unicharToGlyph(25991)); // 文
+	Qk_LOG("�(65533):%d", tf3->unicharToGlyph(65533));  // �
 
-	N_LOG("");
-	N_LOG("countGlyphs:%d", tf->countGlyphs());
-	N_LOG("countGlyphs:%d", tf2->countGlyphs());
-	N_LOG("countGlyphs:%d", tf3->countGlyphs());
+	Qk_LOG("");
+	Qk_LOG("countGlyphs:%d", tf->countGlyphs());
+	Qk_LOG("countGlyphs:%d", tf2->countGlyphs());
+	Qk_LOG("countGlyphs:%d", tf3->countGlyphs());
 
 	SkFont font(tf, 16);
 	SkFont font2(tf2, 16);
@@ -76,14 +76,14 @@ void testSkFont(Application* app, SkCanvas* canvas) {
 void testFontPool(Application* app, SkCanvas* canvas) {
 	auto pool = app->font_pool();
 
-	N_LOG("family_names,%d", pool->familys().length());
+	Qk_LOG("family_names,%d", pool->familys().length());
 
 	FontStyle style;
 	auto tf1 = pool->match("", style, true);
 	auto tf2 = pool->match("PingFang HK", style);
 
-	N_LOG(tf1.getFamilyName());
-	N_LOG(tf2.getFamilyName());
+	Qk_LOG(tf1.getFamilyName());
+	Qk_LOG(tf2.getFamilyName());
 
 	auto DejaVuSerif_ttf = native_fonts_[0];
 	WeakBuffer buf((char*)DejaVuSerif_ttf.data, DejaVuSerif_ttf.count);
@@ -91,24 +91,24 @@ void testFontPool(Application* app, SkCanvas* canvas) {
 
 	auto tf3 = pool->match("DejaVu Serif", style);
 
-	N_LOG(tf3.getFamilyName());
+	Qk_LOG(tf3.getFamilyName());
 
 	//FFID ffid = pool->getFFID("Helvetica, PingFang HK");
 	// FFID ffid = pool->getFFID("PingFang HK");
 	FFID ffid = pool->getFFID("DejaVu Serifa");
 
-	N_LOG("%p", ffid);
+	Qk_LOG("%p", ffid);
 
 	auto fontGlyphs = ffid->makeFontGlyphs({ /*32,*/ 65, 66, 26970, 23398, 25991 }, style, 16);
 
 	for (auto& fg: fontGlyphs) {
-		N_LOG("Family: %s, fontSize: %f", fg.typeface().getFamilyName().c_str(), fg.fontSize());
+		Qk_LOG("Family: %s, fontSize: %f", fg.typeface().getFamilyName().c_str(), fg.fontSize());
 
 		int i = 0;
 		auto gs = fg.glyphs();
 
 		for (auto& glyph: fg.get_offset()) {
-			N_LOG("OffsetX: %f, GlyphId: %d", glyph, i < gs.length() ? gs[i++]: 0);
+			Qk_LOG("OffsetX: %f, GlyphId: %d", glyph, i < gs.length() ? gs[i++]: 0);
 		}
 	}
 

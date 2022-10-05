@@ -32,10 +32,10 @@
 #include "./fs.h"
 #include <btree.h>
 
-namespace noug {
+namespace quark {
 
 	#define _db _storage_db
-	#define assert_r(c) N_Assert(c == BP_OK)
+	#define assert_r(c) Qk_Assert(c == BP_OK)
 
 	static bp_db_t* _storage_db = nullptr;
 	static int64_t _has_initialize = 0;

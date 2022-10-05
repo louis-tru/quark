@@ -28,18 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__text_input__
-#define __noug__text_input__
+#ifndef __quark__text_input__
+#define __quark__text_input__
 
 #include "./keyboard.h"
 #include "./value.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class TextInput protocol
 	*/
-	class N_EXPORT TextInput: public Protocol {
+	class Qk_EXPORT TextInput: public Protocol {
 	public:
 		virtual void input_delete(int count) = 0;
 		virtual void input_insert(cString& text) = 0;

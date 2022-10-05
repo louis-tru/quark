@@ -40,29 +40,29 @@
     <content url="file://$MODULE_DIR$/../../../out">
       <sourceFolder url="file://$MODULE_DIR$/../../../out" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../noug">
-      <sourceFolder url="file://$MODULE_DIR$/../../../noug" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../quark">
+      <sourceFolder url="file://$MODULE_DIR$/../../../quark" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../noug/font">
-      <sourceFolder url="file://$MODULE_DIR$/../../../noug/font" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../quark/font">
+      <sourceFolder url="file://$MODULE_DIR$/../../../quark/font" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../noug/gl">
-      <sourceFolder url="file://$MODULE_DIR$/../../../noug/gl" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../quark/gl">
+      <sourceFolder url="file://$MODULE_DIR$/../../../quark/gl" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../noug/image">
-      <sourceFolder url="file://$MODULE_DIR$/../../../noug/image" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../quark/image">
+      <sourceFolder url="file://$MODULE_DIR$/../../../quark/image" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../noug/js">
-      <sourceFolder url="file://$MODULE_DIR$/../../../noug/js" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../quark/js">
+      <sourceFolder url="file://$MODULE_DIR$/../../../quark/js" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../noug-js/binding">
-      <sourceFolder url="file://$MODULE_DIR$/../../../noug-js/binding" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../quark-js/binding">
+      <sourceFolder url="file://$MODULE_DIR$/../../../quark-js/binding" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../noug/platforms">
-      <sourceFolder url="file://$MODULE_DIR$/../../../noug/platforms" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../quark/platforms">
+      <sourceFolder url="file://$MODULE_DIR$/../../../quark/platforms" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../noug/util">
-      <sourceFolder url="file://$MODULE_DIR$/../../../noug/util" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../quark/util">
+      <sourceFolder url="file://$MODULE_DIR$/../../../quark/util" isTestSource="false" />
     </content>
     <content url="file://$MODULE_DIR$/../..">
       <sourceFolder url="file://$MODULE_DIR$/../.." isTestSource="false" />

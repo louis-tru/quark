@@ -30,7 +30,7 @@
 
 #include "./action_prop.h"
 
-N_NAMESPACE_START
+Qk_NAMESPACE_START
 
 #define fx_def_property(ENUM, TYPE, NAME) \
 	TYPE Frame::NAME() { \
@@ -40,7 +40,7 @@ N_NAMESPACE_START
 		_inl_frame(this)->set_property_value<ENUM>(value); \
 	}
 
-N_EACH_PROPERTY_TABLE(fx_def_property)
+Qk_EACH_PROPERTY_TABLE(fx_def_property)
 #undef fx_def_accessor
 
 /**
@@ -51,7 +51,7 @@ void Frame::set_time(uint64_t value) {
 		uint32_t next = _index + 1;
 		if ( next < _host->length() ) {
 			uint64_t max_time = _host->frame(next)->time();
-			_time = N_MIN(value, max_time);
+			_time = Qk_MIN(value, max_time);
 		} else { // no next
 			_time = value;
 		}
@@ -176,7 +176,7 @@ uint64_t KeyframeAction::Inl::advance(uint64_t time_span, Action* root) {
 }
 
 void KeyframeAction::seek_before(int64_t time, Action* child) {
-	N_UNIMPLEMENTED();
+	Qk_UNIMPLEMENTED();
 }
 
 void KeyframeAction::seek_time(uint64_t time, Action* root) {
@@ -204,7 +204,7 @@ void KeyframeAction::seek_time(uint64_t time, Action* root) {
 		}
 		
 		_frame = frame->index();
-		_time = N_MIN(int64_t(time), _full_duration - _delay);
+		_time = Qk_MIN(int64_t(time), _full_duration - _delay);
 		
 		uint32_t f1 = _frame;
 		uint32_t f2 = f1 + 1;
@@ -343,4 +343,4 @@ bool KeyframeAction::match_property(PropertyName name) {
 	return PropertysAccessor::shared()->has_accessor(_bind_view_type, name);
 }
 
-N_NAMESPACE_END
+Qk_NAMESPACE_END

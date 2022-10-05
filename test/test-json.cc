@@ -28,49 +28,49 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/json.h>
-#include <noug/util/string.h>
-#include <noug/util/event.h>
+#include <quark/util/json.h>
+#include <quark/util/string.h>
+#include <quark/util/event.h>
 #include <map>
 
-using namespace noug;
+using namespace quark;
 
 void test_json(int argc, char **argv) {
 	
 	String str1("100");
 	String str2 = str1;
 	
-	N_LOG("OK");
+	Qk_LOG("OK");
 	
 	cChar* json_str = "{ \"a\": \"ABCD\", \"b\": 100 }";
 	
 	JSON json = JSON::parse(json_str);
 	
-	N_LOG(JSON::stringify(json));
+	Qk_LOG(JSON::stringify(json));
 	
-	N_LOG("short,%d", sizeof(short));
-	N_LOG("int,%d", sizeof(int));
-	N_LOG("long,%d", sizeof(long));
-	N_LOG("long int,%d", sizeof(long int));
-	N_LOG("long double,%d", sizeof(long double));
+	Qk_LOG("short,%d", sizeof(short));
+	Qk_LOG("int,%d", sizeof(int));
+	Qk_LOG("long,%d", sizeof(long));
+	Qk_LOG("long int,%d", sizeof(long int));
+	Qk_LOG("long double,%d", sizeof(long double));
 	
-	N_LOG("\n");
+	Qk_LOG("\n");
 	
-	N_LOG("%d", sizeof(int));
-	N_LOG("%d", sizeof(int*));
-	N_LOG("%d", sizeof(long));
+	Qk_LOG("%d", sizeof(int));
+	Qk_LOG("%d", sizeof(int*));
+	Qk_LOG("%d", sizeof(long));
 	//  LOG(sizeof(EventDelegate<>));
 	
 	std::map<String, cChar*> m;
-	N_LOG("%s", m["a"]);
+	Qk_LOG("%s", m["a"]);
 	cChar*& a = m["a"];
 	a = "110";
-	N_LOG("%s", m["a"]);
+	Qk_LOG("%s", m["a"]);
 	
 	const int* i = new int(101);
 	
-	N_LOG(*i);
+	Qk_LOG(*i);
 	
 	delete i;
-	N_LOG(*i);
+	Qk_LOG(*i);
 }

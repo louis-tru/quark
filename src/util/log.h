@@ -28,20 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__log__
-#define __noug__util__log__
+#ifndef __quark__util__log__
+#define __quark__util__log__
 
 #include "./macros.h"
 #include "./string.h"
 
-namespace noug {
+namespace quark {
 
 	class Error;
 
 	/**
 	* @class Console # util log
 	*/
-	class N_EXPORT Console {
+	class Qk_EXPORT Console {
 	public:
 		typedef NonObjectTraits Traits;
 		virtual ~Console() = default;
@@ -54,24 +54,24 @@ namespace noug {
 	};
 
 	namespace console {
-		N_EXPORT void log(int8_t s);
-		N_EXPORT void log(uint8_t s);
-		N_EXPORT void log(int16_t s);
-		N_EXPORT void log(uint16_t s);
-		N_EXPORT void log(int32_t s);
-		N_EXPORT void log(uint32_t s);
-		N_EXPORT void log(float s);
-		N_EXPORT void log(double);
-		N_EXPORT void log(int64_t);
-		N_EXPORT void log(uint64_t);
-		N_EXPORT void log(size_t);
-		N_EXPORT void log(bool);
-		N_EXPORT void log(cString&);
-		N_EXPORT void log(cString2&);
-		N_EXPORT void log(cChar*, ...);
-		N_EXPORT void warn(cChar*, ...);
-		N_EXPORT void error(cChar*, ...);
-		N_EXPORT void error(const Error&);
+		Qk_EXPORT void log(int8_t s);
+		Qk_EXPORT void log(uint8_t s);
+		Qk_EXPORT void log(int16_t s);
+		Qk_EXPORT void log(uint16_t s);
+		Qk_EXPORT void log(int32_t s);
+		Qk_EXPORT void log(uint32_t s);
+		Qk_EXPORT void log(float s);
+		Qk_EXPORT void log(double);
+		Qk_EXPORT void log(int64_t);
+		Qk_EXPORT void log(uint64_t);
+		Qk_EXPORT void log(size_t);
+		Qk_EXPORT void log(bool);
+		Qk_EXPORT void log(cString&);
+		Qk_EXPORT void log(cString2&);
+		Qk_EXPORT void log(cChar*, ...);
+		Qk_EXPORT void warn(cChar*, ...);
+		Qk_EXPORT void error(cChar*, ...);
+		Qk_EXPORT void error(const Error&);
 	}
 
 }

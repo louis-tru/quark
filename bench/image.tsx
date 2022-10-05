@@ -1,7 +1,7 @@
 
-import { Application, Root, Image, Scroll, _CVD } from 'noug';
-import * as reader from 'noug/reader';
-import path from 'noug/path';
+import { Application, Root, Image, Scroll, _CVD } from 'quark';
+import * as reader from 'quark/reader';
+import path from 'quark/path';
 
 new Application({ multisample: 2 }).start(
 	<Root backgroundColor="#000">

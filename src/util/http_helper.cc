@@ -34,13 +34,13 @@
 #include "./uv.h"
 #include "./working.h"
 
-namespace noug {
+namespace quark {
 
 	typedef Dict<String, String> Map;
 
 	static String http_cache_path_ = String();
-	static String http_user_agent_ = "Mozilla/5.0 noug " NOUG_VERSION " (KHTML, like Gecko)";
-	// "Mozilla/5.0 (%s/%s) noug " NOUG_VERSION " (KHTML, like Gecko)";
+	static String http_user_agent_ = "Mozilla/5.0 quark " NOUG_VERSION " (KHTML, like Gecko)";
+	// "Mozilla/5.0 (%s/%s) quark " NOUG_VERSION " (KHTML, like Gecko)";
 
 	HttpError::HttpError(int rc, cString& msg, uint32_t status, cString& url)
 		: Error(rc, msg), _status(status), _url(url)
@@ -132,7 +132,7 @@ namespace noug {
 			}
 			
 			virtual void trigger_http_abort(HttpClientRequest* req) {
-				N_DEBUG("request async abort");
+				Qk_DEBUG("request async abort");
 			}
 			
 			virtual void trigger_http_write(HttpClientRequest* req) {}
@@ -271,7 +271,7 @@ namespace noug {
 											String::format("cannot send sync http request, %s"
 																		, options.url.c_str()), 0, options.url);
 		}
-		N_DEBUG("request_sync %s", options.url.c_str());
+		Qk_DEBUG("request_sync %s", options.url.c_str());
 		typedef Callback<RunLoop::PostSyncData> Cb2;
 		bool ok = false;
 		HttpError err = Error();
@@ -369,7 +369,7 @@ namespace noug {
 			fs_mkdir_p_sync(path);
 			http_cache_path_ = path;
 		} catch(cError& err) {
-			N_ERR(err);
+			Qk_ERR(err);
 		}
 	}
 

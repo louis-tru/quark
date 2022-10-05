@@ -30,19 +30,19 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __noug__ios_render__
-#define __noug__ios_render__
+#ifndef __quark__ios_render__
+#define __quark__ios_render__
 
 #include "../../util/macros.h"
 
-#if N_APPLE
+#if Qk_APPLE
 
 #include "../../render/render.h"
 #include "./apple_app.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT RenderApple {
+	class Qk_EXPORT RenderApple {
 	public:
 		/**
 		 * @thread render

@@ -29,21 +29,21 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __noug__text_blob__
-#define __noug__text_blob__
+#ifndef __quark__text_blob__
+#define __quark__text_blob__
 
 #include "./render/font/font.h"
 #include "./render/source.h"
 #include "./text_lines.h"
 #include "./text_opts.h"
 
-namespace noug {
+namespace quark {
 
-	N_EXPORT Array<Array<Unichar>> string4_to_unichar(const Unichar *src, uint32_t length,
+	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(const Unichar *src, uint32_t length,
 		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
-	N_EXPORT Array<Array<Unichar>> string4_to_unichar(cString4& str,
+	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(cString4& str,
 		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
-	N_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
+	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
 
 	struct TextBlob {
 		Typeface        typeface;
@@ -57,14 +57,14 @@ namespace noug {
 		Sp<ImageSource> cache;
 	};
 
-	class N_EXPORT TextBlobBuilder {
+	class Qk_EXPORT TextBlobBuilder {
 	public:
 		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
-		N_Define_Prop(bool, disable_overflow);
-		N_Define_Prop(bool, disable_auto_wrap);
-		N_Define_Prop(TextLines*, lines);
-		N_Define_Prop(TextOptions*, opts);
-		N_Define_Prop(Array<TextBlob>*, blob);
+		Qk_Define_Prop(bool, disable_overflow);
+		Qk_Define_Prop(bool, disable_auto_wrap);
+		Qk_Define_Prop(TextLines*, lines);
+		Qk_Define_Prop(TextOptions*, opts);
+		Qk_Define_Prop(Array<TextBlob>*, blob);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
 		void make(Array<Array<Unichar>>&& lines);

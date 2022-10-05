@@ -32,7 +32,7 @@
 #include "./codec.h"
 #include "./handle.h"
 
-namespace noug {
+namespace quark {
 
 	cChar _Str::ws[8] = {
 		0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20, /*0xA0,*/ 0x0
@@ -50,8 +50,8 @@ namespace noug {
 				::memcpy(o, i, len * sizeof_o);
 				::memset(((char*)o) + len * sizeof_o, 0, sizeof_o);
 			} else {
-				int min = N_MIN(sizeof_o, sizeof_i);
-				int max = N_MIN(sizeof_o, sizeof_i);
+				int min = Qk_MIN(sizeof_o, sizeof_i);
+				int max = Qk_MIN(sizeof_o, sizeof_i);
 				if (is_big_data) { // big data layout
 					for (int j = 0; j < len; j++) {
 						::memcpy(o, i + max - min, min); // Copy low order only
@@ -73,7 +73,7 @@ namespace noug {
 			return sscanf( (const char*)i, f, o);
 		} else {
 			Char i_[65];
-			_Str::strcpy(i_, 1, i, sizeof_i, N_MIN(len_i, 64));
+			_Str::strcpy(i_, 1, i, sizeof_i, Qk_MIN(len_i, 64));
 			return sscanf( i_, f, o );
 		}
 	}
@@ -87,7 +87,7 @@ namespace noug {
 	}
 
 	bool _Str::to_number(const void* i, int sizeof_i, int len, int64_t* o) {
-		#if N_ARCH_64BIT
+		#if Qk_ARCH_64BIT
 			return _to_number(i, sizeof_i, len, "%ld", o);
 		#else
 			return _to_number(i, sizeof_i, len, "%lld", o);
@@ -95,7 +95,7 @@ namespace noug {
 	}
 
 	bool _Str::to_number(const void* i, int size_of, int len, uint64_t* o) {
-		#if N_ARCH_64BIT
+		#if Qk_ARCH_64BIT
 			return _to_number(i, size_of, len, "%lu", o);
 		#else
 			return _to_number(i, size_of, len, "%llu", o);
@@ -265,7 +265,7 @@ namespace noug {
 		va_start(arg, f);
 		int r = vsnprintf((char*)o, len + 1, f, arg);
 		va_end(arg);
-		return N_MIN(r, len);
+		return Qk_MIN(r, len);
 	}
 	
 	int32_t _Str::format_n(char* o, uint32_t len_o, int32_t i) {
@@ -275,14 +275,14 @@ namespace noug {
 		return _Str::format_n(o, len_o, "%u", i);
 	}
 	int32_t _Str::format_n(char* o, uint32_t len_o, int64_t i) {
-#if N_ARCH_64BIT
+#if Qk_ARCH_64BIT
 			return _Str::format_n(o, len_o, "%ld", i);
 #else
 			return _Str::format_n(o, len_o, "%lld", i);
 #endif
 	}
 	int32_t _Str::format_n(char* o, uint32_t len_o, uint64_t i) {
-		#if N_ARCH_64BIT
+		#if Qk_ARCH_64BIT
 			return _Str::format_n(o, len_o, "%lu", i);
 		#else
 			return _Str::format_n(o, len_o, "%llu", i);
@@ -297,7 +297,7 @@ namespace noug {
 
 	void* _Str::format(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg) {
 		char* str;
-		int len_ = noug::vasprintf(&str, f, arg);
+		int len_ = quark::vasprintf(&str, f, arg);
 
 		if (size_of == 1) {
 			size->len = len_;
@@ -315,7 +315,7 @@ namespace noug {
 			size->capacity = b.length() + 1;
 			str = (char*)b.collapse();
 		}	else {
-			N_FATAL("I won't support it, format");
+			Qk_FATAL("I won't support it, format");
 		}
 
 		if (&MemoryAllocator::alloc != alloc && alloc != (void*)&::malloc) {
@@ -346,14 +346,14 @@ namespace noug {
 		return _Str::format(size, size_of, alloc, "%u", i);
 	}
 	void* _Str::format(Size* size, int size_of, Alloc alloc, int64_t i) {
-		#if N_ARCH_64BIT
+		#if Qk_ARCH_64BIT
 			return _Str::format(size, size_of, alloc, "%ld", i);
 		#else
 			return _Str::format(size, size_of, alloc, "%lld", i);
 		#endif
 	}
 	void* _Str::format(Size* size, int size_of, Alloc alloc, uint64_t i) {
-		#if N_ARCH_64BIT
+		#if Qk_ARCH_64BIT
 			return _Str::format(size, size_of, alloc, "%lu", i);
 		#else
 			return _Str::format(size, size_of, alloc, "%llu", i);
@@ -408,7 +408,7 @@ namespace noug {
 		} else if (size_of == 4) { // uint32_t
 			return Codec::encode(kUTF8_Encoding, ArrayWeak<uint32_t>((const uint32_t*)ptr, len));
 		} else {
-			N_FATAL("I won't support it, to_string");
+			Qk_FATAL("I won't support it, to_string");
 			return String();
 		}
 	}
@@ -431,7 +431,7 @@ namespace noug {
 	}
 
 	void ArrayStringBase::Release(LongStr* l, Free free) {
-		N_Assert(l->ref > 0);
+		Qk_Assert(l->ref > 0);
 		if ( --l->ref == 0 ) {
 			free(l->val);
 			l->val = nullptr;
@@ -520,7 +520,7 @@ namespace noug {
 				auto leave = _val.l;
 				_val.l = NewLong(len, 0, nullptr);
 				_val.l->val = (char*)aalloc(_val.l->val, len + size_of, &_val.l->capacity, 1);
-				::memcpy(_val.l->val, leave->val, N_MIN(len, leave->length));
+				::memcpy(_val.l->val, leave->val, Qk_MIN(len, leave->length));
 				Release(leave, free); // release old
 			} else {
 				_val.l->length = len;

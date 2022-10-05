@@ -2,15 +2,15 @@
 #include <stdio.h>
 #include <skia/core/SkCanvas.h>
 #include <skia/core/SkImage.h>
-#include <noug/app.h>
-#include <noug/layout/root.h>
-#include <noug/render/render.h>
-#include <noug/layout/flex.h>
-#include <noug/layout/image.h>
-#include <noug/effect.h>
-#include <noug/render/skia/skia_render.h>
-#include <noug/display.h>
-#include <noug/util/fs.h>
+#include <quark/app.h>
+#include <quark/layout/root.h>
+#include <quark/render/render.h>
+#include <quark/layout/flex.h>
+#include <quark/layout/image.h>
+#include <quark/effect.h>
+#include <quark/render/skia/skia_render.h>
+#include <quark/display.h>
+#include <quark/util/fs.h>
 #include <vector>
 #include <skia/core/SkFont.h>
 #include <skia/core/SkMaskFilter.h>
@@ -18,9 +18,9 @@
 #include <skia/core/SkBitmap.h>
 #include <skia/core/SkPath.h>
 
-using namespace noug;
+using namespace quark;
 
-namespace noug {
+namespace quark {
 	SkImage* CastSkImage(ImageSource* img);
 	SkRect MakeSkRectFrom(Box *host);
 }
@@ -50,14 +50,14 @@ void draw_skia(SkCanvas* canvas) {
 	Array<uint8_t> verbs(oval.countVerbs());
 	oval.getVerbs(&verbs[0], verbs.length());
 	
-	N_DEBUG("");
+	Qk_DEBUG("");
 	for (int i = 0; i < oval.countPoints(); i++) {
-		N_DEBUG("Point: %f, %f", oval.getPoint(i).fX, oval.getPoint(i).fY);
+		Qk_DEBUG("Point: %f, %f", oval.getPoint(i).fX, oval.getPoint(i).fY);
 	}
 	for (int i = 0; i < oval.countVerbs(); i++) {
-		N_DEBUG("Verb: %d", verbs[i]);
+		Qk_DEBUG("Verb: %d", verbs[i]);
 	}
-	N_DEBUG("");
+	Qk_DEBUG("");
 	
 	// drawPath
 	canvas->translate(10, 10);

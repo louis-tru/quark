@@ -28,20 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__handle__
-#define __noug__util__handle__
+#ifndef __quark__util__handle__
+#define __quark__util__handle__
 
 #include "./object.h"
 #include <functional>
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class Handle
 	*/
 	template<class T, class T2 = typename T::Traits> class Handle {
 		//! Copy constructor is not permitted.
-		N_HIDDEN_ALL_COPY(Handle);
+		Qk_HIDDEN_ALL_COPY(Handle);
 		
 		inline T* move() {
 			return Traits::Retain(_data) ? _data : collapse();

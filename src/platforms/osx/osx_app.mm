@@ -40,7 +40,7 @@
 
 #import <MacTypes.h>
 
-using namespace noug;
+using namespace quark;
 
 typedef Display::Orientation Orientation;
 typedef Display::StatusBarStyle StatusBarStyle;
@@ -84,8 +84,8 @@ static NSString* appDelegateName = @"";
 		cJSON& o_b = options["background"];
 		cJSON& o_t = options["title"];
 		
-		if (o_w.is_uint32()) _width = N_MAX(1, o_w.to_uint32());
-		if (o_h.is_uint32()) _height = N_MAX(1, o_h.to_uint32());
+		if (o_w.is_uint32()) _width = Qk_MAX(1, o_w.to_uint32());
+		if (o_h.is_uint32()) _height = Qk_MAX(1, o_h.to_uint32());
 		if (o_x.is_uint32()) _x = o_x.to_uint32();
 		if (o_y.is_uint32()) _y = o_y.to_uint32();
 		if (o_t.is_string()) _title = o_t.to_string();
@@ -134,7 +134,7 @@ static NSString* appDelegateName = @"";
 	- (void)resize_with:(CGRect)rect {
 		if (_loaded) {
 			renderApple->resize(appDelegate.view.frame);
-			N_DEBUG("refresh_surface_size, %f, %f", rect.size.width, rect.size.height);
+			Qk_DEBUG("refresh_surface_size, %f, %f", rect.size.width, rect.size.height);
 		}
 	}
 
@@ -150,7 +150,7 @@ static NSString* appDelegateName = @"";
 		if (_loaded && !_is_background) {
 			[self pause];
 			_is_background = YES;
-			N_DEBUG("onBackground");
+			Qk_DEBUG("onBackground");
 			_inl_app(_app)->triggerBackground();
 		}
 	}
@@ -158,7 +158,7 @@ static NSString* appDelegateName = @"";
 	- (void)foreground {
 		if (_loaded && _is_background) {
 			_is_background = NO;
-			N_DEBUG("onForeground");
+			Qk_DEBUG("onForeground");
 			_inl_app(_app)->triggerForeground();
 			[self resume];
 		}
@@ -166,7 +166,7 @@ static NSString* appDelegateName = @"";
 
 	- (void)pause {
 		if (_loaded && !_is_pause) {
-			N_DEBUG("onPause");
+			Qk_DEBUG("onPause");
 			_is_pause = YES;
 			_inl_app(_app)->triggerPause();
 		}
@@ -174,7 +174,7 @@ static NSString* appDelegateName = @"";
 
 	- (void)resume {
 		if (_loaded && _is_pause) {
-			N_DEBUG("onResume");
+			Qk_DEBUG("onResume");
 			_is_pause = NO;
 			_inl_app(_app)->triggerResume();
 			[self resize];
@@ -196,9 +196,9 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (void)applicationDidFinishLaunching:(NSNotification*) notification {
-		N_Assert(!appDelegate);
+		Qk_Assert(!appDelegate);
 		appDelegate = self;
-		N_Assert(Application::shared());
+		Qk_Assert(Application::shared());
 		_app = Application::shared();
 
 		// UIApplication* host = UIApplication.sharedApplication;
@@ -285,20 +285,20 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (void)applicationDidHide:(NSNotification*)notification {
-		N_DEBUG("applicationDidHide, onBackground");
+		Qk_DEBUG("applicationDidHide, onBackground");
 	}
 
 	- (void)applicationWillUnhide:(NSNotification*)notification {
-		N_DEBUG("applicationWillUnhide, onForeground");
+		Qk_DEBUG("applicationWillUnhide, onForeground");
 	}
 
 	- (void)applicationWillTerminate:(NSNotification*)notification {
-		N_DEBUG("applicationWillTerminate");
+		Qk_DEBUG("applicationWillTerminate");
 		_inl_app(_app)->triggerUnload();
 	}
 
 	- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
-		N_DEBUG("exit application");
+		Qk_DEBUG("exit application");
 		return YES;
 	}
 
@@ -465,7 +465,7 @@ void Display::set_orientation(Orientation orientation) {
 	// noop
 }
 
-extern "C" N_EXPORT int main(int argc, Char* argv[]) {
+extern "C" Qk_EXPORT int main(int argc, Char* argv[]) {
 	/**************************************************/
 	/**************************************************/
 	/*************** Start UI Application ************/

@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input, _CVD } from 'noug';
-import * as storage from 'noug/storage';
-import { alert } from 'noug/dialog';
+import { Div, Button, Input, _CVD } from 'quark';
+import * as storage from 'quark/storage';
+import { alert } from 'quark/dialog';
 import { Mynavpage } from './public';
-import {KeyEvent,ClickEvent} from 'noug/event';
+import {KeyEvent,ClickEvent} from 'quark/event';
 
 var resolve = require.resolve;
 

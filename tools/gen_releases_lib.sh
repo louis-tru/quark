@@ -27,8 +27,8 @@ cd ../..
 mkdir -p linux-ubuntu.x64.Release.shared/bin
 mkdir -p linux-ubuntu.x64.Release.shared/lib
 cp -rf noproj/product/include linux-ubuntu.x64.Release.shared
-scp $host:~/noug/out/linux-ubuntu.x64.Release.shared/noug          linux-ubuntu.x64.Release.shared/bin
-scp $host:~/noug/out/linux-ubuntu.x64.Release.shared/lib.target/* linux-ubuntu.x64.Release.shared/lib
+scp $host:~/quark/out/linux-ubuntu.x64.Release.shared/quark          linux-ubuntu.x64.Release.shared/bin
+scp $host:~/quark/out/linux-ubuntu.x64.Release.shared/lib.target/* linux-ubuntu.x64.Release.shared/lib
 tar cfvz releases/linux-ubuntu.x64.Release.shared.tar.gz \
 	linux-ubuntu.x64.Release.shared/bin \
 	linux-ubuntu.x64.Release.shared/lib linux-ubuntu.x64.Release.shared/include
@@ -36,8 +36,8 @@ tar cfvz releases/linux-ubuntu.x64.Release.shared.tar.gz \
 mkdir -p linux-ubuntu.armv7.Release.shared/bin
 mkdir -p linux-ubuntu.armv7.Release.shared/lib
 cp -rf noproj/product/include linux-ubuntu.armv7.Release.shared
-scp $host:~/noug/out/linux-ubuntu.armv7.Release.shared/noug          linux-ubuntu.armv7.Release.shared/bin
-scp $host:~/noug/out/linux-ubuntu.armv7.Release.shared/lib.target/* linux-ubuntu.armv7.Release.shared/lib
+scp $host:~/quark/out/linux-ubuntu.armv7.Release.shared/quark          linux-ubuntu.armv7.Release.shared/bin
+scp $host:~/quark/out/linux-ubuntu.armv7.Release.shared/lib.target/* linux-ubuntu.armv7.Release.shared/lib
 tar cfvz releases/linux-ubuntu.armv7.Release.shared.tar.gz \
 	linux-ubuntu.armv7.Release.shared/bin \
 	linux-ubuntu.armv7.Release.shared/lib linux-ubuntu.armv7.Release.shared/include
@@ -46,13 +46,13 @@ tar cfvz releases/linux-ubuntu.armv7.Release.shared.tar.gz \
 
 mkdir -p linux-ubuntu.x64.Release/bin
 cp -rf noproj/product/include linux-ubuntu.x64.Release
-scp $host:~/noug/out/linux-ubuntu.x64.Release/noug linux-ubuntu.x64.Release/bin
+scp $host:~/quark/out/linux-ubuntu.x64.Release/quark linux-ubuntu.x64.Release/bin
 tar cfvz releases/linux-ubuntu.x64.Release.tar.gz \
 	linux-ubuntu.x64.Release/bin linux-ubuntu.x64.Release/include
 
 mkdir -p linux-ubuntu.armv7.Release/bin
 cp -rf noproj/product/include linux-ubuntu.armv7.Release
-scp $host:~/noug/out/linux-ubuntu.armv7.Release/noug linux-ubuntu.armv7.Release/bin
+scp $host:~/quark/out/linux-ubuntu.armv7.Release/quark linux-ubuntu.armv7.Release/bin
 tar cfvz releases/linux-ubuntu.armv7.Release.tar.gz \
 	linux-ubuntu.armv7.Release/bin linux-ubuntu.armv7.Release/include
 

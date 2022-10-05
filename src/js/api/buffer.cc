@@ -33,7 +33,7 @@
 #include "../../util/array.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
@@ -120,11 +120,11 @@ class NativeBuffer {
 			args_index++;
 		}
 		if (args.Length() > args_index && args[args_index]->ToUint32Maybe(worker).To(start)) {
-			start = N_MIN(len, start);
+			start = Qk_MIN(len, start);
 			args_index++;
 		}
 		if (args.Length() > args_index && args[args_index]->ToUint32Maybe(worker).To(end)) {
-			end = N_MIN(len, end);
+			end = Qk_MIN(len, end);
 			args_index++;
 		}
 

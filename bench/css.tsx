@@ -1,8 +1,8 @@
 
-import { Application, Root, Div, Indep, default as noug, _CVD, ViewController } from 'noug';
-import { Color } from 'noug/value';
-import util from 'noug/util';
-import * as css from 'noug/css';
+import { Application, Root, Div, Indep, default as quark, _CVD, ViewController } from 'quark';
+import { Color } from 'quark/value';
+import util from 'quark/util';
+import * as css from 'quark/css';
 import * as uu from './uu';
 
 const random = util.random;
@@ -20,8 +20,8 @@ class RootViewController extends ViewController {
 	triggerMounted() {
 		super.triggerMounted();
 
-		var w = noug.displayPort.width;
-		var h = noug.displayPort.height;
+		var w = quark.displayPort.width;
+		var h = quark.displayPort.height;
 		var csss: Dict<css.StyleSheet> = {};
 	
 		for (var i = 0; i < test_count; i++) {
@@ -46,7 +46,7 @@ class RootViewController extends ViewController {
 	
 		v.class = 'root';
 	
-		noug.render(
+		quark.render(
 			<Div width="full" height="full">
 				{
 					Array.from({length:test_count}, (j, i)=>{

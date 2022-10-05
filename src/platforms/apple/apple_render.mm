@@ -41,29 +41,29 @@
 	}
 @end
 
-#if N_ENABLE_GL
+#if Qk_ENABLE_GL
 @interface GLView: UIView @end
-# if N_IOS
+# if Qk_IOS
 @implementation GLView
 	+ (Class)layerClass {
 		return CAEAGLLayer.class;
 	}
 @end
-# else // #if N_IOS else osx
+# else // #if Qk_IOS else osx
 @implementation GLView
 	+ (Class)layerClass {
 		return CAEAGLLayer.class;
 	}
 @end
-# endif // #if N_IOS
+# endif // #if Qk_IOS
 #endif
 
 // namespace start
 
-namespace noug {
+namespace quark {
 
 	bool RenderApple::resize(CGRect rect) {
-#if N_IOS
+#if Qk_IOS
 		float scale = UIScreen.mainScreen.scale;
 #else
 		float scale = UIScreen.mainScreen.backingScaleFactor;
@@ -74,7 +74,7 @@ namespace noug {
 	}
 
 	uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
-#if N_USE_DEFAULT_THREAD_RENDER
+#if Qk_USE_DEFAULT_THREAD_RENDER
 		auto core = cb.Handle::collapse();
 		dispatch_async(dispatch_get_main_queue(), ^{
 			Cb cb(core);
@@ -104,12 +104,12 @@ namespace noug {
 
 	// ------------------- OpenGL ------------------
 
-#if N_ENABLE_GL
+#if Qk_ENABLE_GL
 
 	class AppleGLRenderBase: public RenderApple {
 	public: 
 		AppleGLRenderBase(EAGLContext* ctx): _ctx(ctx) {
-			N_Assert([EAGLContext currentContext], "Failed to set current OpenGL context");
+			Qk_Assert([EAGLContext currentContext], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
 		}
 		~AppleGLRenderBase() {
@@ -118,7 +118,7 @@ namespace noug {
 
 		UIView* init(CGRect rect) override {
 			[EAGLContext setCurrentContext:_ctx];
-			N_Assert([EAGLContext currentContext], "Failed to set current OpenGL context");
+			Qk_Assert([EAGLContext currentContext], "Failed to set current OpenGL context");
 			_view = [[GLView alloc] initWithFrame:rect];
 			_layer = (CAEAGLLayer*)_view.layer;
 			_layer.drawableProperties = @{
@@ -131,7 +131,7 @@ namespace noug {
 		}
 
 		void renderbufferStorage(uint32_t target) {
-			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; N_Assert(ok);
+			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; Qk_Assert(ok);
 		}
 
 		void swapBuffers() {
@@ -171,22 +171,22 @@ namespace noug {
 
 #endif
 
-#ifndef N_ENABLE_GPU
-# define N_ENABLE_GPU 1
+#ifndef Qk_ENABLE_GPU
+# define Qk_ENABLE_GPU 1
 #endif
-#ifndef N_ENABLE_METAL
-# define N_ENABLE_METAL 1
+#ifndef Qk_ENABLE_METAL
+# define Qk_ENABLE_METAL 1
 #endif
 
 	RenderApple* RenderApple::Make(Application* host, const Render::Options& opts) {
 		RenderApple* r = nullptr;
 
-		if (N_ENABLE_GPU) {
+		if (Qk_ENABLE_GPU) {
 			if (@available(macOS 10.11, iOS 13.0, *)) {
-				if (N_ENABLE_METAL)
+				if (Qk_ENABLE_METAL)
 					r = new AppleMetalRender<SkiaMetalRender>(host, opts, false);
 			}
-#if N_ENABLE_GL
+#if Qk_ENABLE_GL
 			if (!r) {
 				r = AppleGLRender<SkiaGLRender>::New(host, opts, false);
 			}
@@ -195,17 +195,17 @@ namespace noug {
 
 		if (!r) {
 			if (@available(macOS 10.11, iOS 13.0, *)) {
-				if (N_ENABLE_METAL)
+				if (Qk_ENABLE_METAL)
 					r = new AppleMetalRender<SkiaMetalRender>(host, opts, true);
 			}
-#if N_ENABLE_GL
+#if Qk_ENABLE_GL
 			if (!r) {
 				r = AppleGLRender<SkiaGLRender>::New(host, opts, true);
 			}
 #endif
 		}
 
-		N_Assert(r);
+		Qk_Assert(r);
 		return r;
 	}
 

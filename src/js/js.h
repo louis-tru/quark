@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__js__js__
-#define __noug__js__js__
+#ifndef __quark__js__js__
+#define __quark__js__js__
 
 #include "../util/util.h"
 #include "../util/string.h"
@@ -41,13 +41,13 @@
 
 // ------------- js common macro -------------
 
-#define JS_BEGIN         namespace noug { namespace js {
+#define JS_BEGIN         namespace quark { namespace js {
 #define JS_END           } }
 #define JS_WORKER(...)   auto worker = Worker::worker(__VA_ARGS__)
 #define JS_RETURN(rev)   return worker->result(args, (rev))
 #define JS_RETURN_NULL() return worker->result(args, worker->NewNull())
-#define JS_UNPACK(type)  auto wrap = noug::js::WrapObject::unpack<type>(args.This())
-#define JS_SELF(type)    auto self = noug::js::WrapObject::unpack<type>(args.This())->self()
+#define JS_UNPACK(type)  auto wrap = quark::js::WrapObject::unpack<type>(args.This())
+#define JS_SELF(type)    auto self = quark::js::WrapObject::unpack<type>(args.This())->self()
 #define JS_HANDLE_SCOPE() HandleScope scope(worker)
 #define JS_CALLBACK_SCOPE() CallbackScope cscope(worker)
 
@@ -58,9 +58,9 @@
 #define JS_TRY_CATCH(block, Error) try block catch(const Error& e) { JS_THROW_ERR(e); }
 
 #define JS_REG_MODULE(name, cls) \
-	N_INIT_BLOCK(JS_REG_MODULE_##name) { \
-		N_DEBUG("%s", "JS_REG_MODULE "#name""); \
-		noug::js::Worker::registerModule(#name, cls::binding, __FILE__); \
+	Qk_INIT_BLOCK(JS_REG_MODULE_##name) { \
+		Qk_DEBUG("%s", "JS_REG_MODULE "#name""); \
+		quark::js::Worker::registerModule(#name, cls::binding, __FILE__); \
 	}
 
 #define JS_TYPEID(t) (typeid(t).hash_code())
@@ -101,15 +101,15 @@
 #define JS_SET_ACCESSOR(name, get, ...)    exports->SetAccessor(worker, #name, get, ##__VA_ARGS__)
 #define JS_SET_PROPERTY(name, value)       exports->SetProperty(worker, #name, value)
 
-namespace noug {
+namespace quark {
 	class HttpError;
 }
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
-namespace noug {
+namespace quark {
 namespace js {
 
 class ValueProgram;
@@ -140,28 +140,28 @@ class JSFunction;
 class JSArrayBuffer;
 class JSClass;
 
-class N_EXPORT NoCopy {
+class Qk_EXPORT NoCopy {
 public:
-	N_INLINE NoCopy() {}
-	N_HIDDEN_ALL_COPY(NoCopy);
-	N_HIDDEN_HEAP_ALLOC();
+	Qk_INLINE NoCopy() {}
+	Qk_HIDDEN_ALL_COPY(NoCopy);
+	Qk_HIDDEN_HEAP_ALLOC();
 };
 
 template<class T>
-class N_EXPORT Maybe {
+class Qk_EXPORT Maybe {
 public:
 	Maybe() : val_ok_(false) {}
 	explicit Maybe(const T& t) : val_ok_(true), val_(t) {}
 	explicit Maybe(T&& t) : val_ok_(true), val_(move(t)) {}
-	N_INLINE bool Ok() const { return val_ok_; }
-	N_INLINE bool To(T& out) {
+	Qk_INLINE bool Ok() const { return val_ok_; }
+	Qk_INLINE bool To(T& out) {
 		if ( val_ok_ ) {
 			out = move(val_);
 			return true;
 		}
 		return false;
 	}
-	N_INLINE T FromMaybe(const T& default_value) {
+	Qk_INLINE T FromMaybe(const T& default_value) {
 		return val_ok_ ? move(val_) : default_value;
 	}
 private:
@@ -170,23 +170,23 @@ private:
 };
 
 template <class T>
-class N_EXPORT MaybeLocal {
+class Qk_EXPORT MaybeLocal {
 public:
-	N_INLINE MaybeLocal() : val_(nullptr) {}
+	Qk_INLINE MaybeLocal() : val_(nullptr) {}
 	template <class S>
-	N_INLINE MaybeLocal(Local<S> that)
+	Qk_INLINE MaybeLocal(Local<S> that)
 	: val_(reinterpret_cast<T*>(*that)) {
 		JS_TYPE_CHECK(T, S);
 	}
-	N_INLINE bool IsEmpty() const { return val_ == nullptr; }
+	Qk_INLINE bool IsEmpty() const { return val_ == nullptr; }
 	template <class S>
-	N_INLINE bool ToLocal(Local<S>* out) const {
+	Qk_INLINE bool ToLocal(Local<S>* out) const {
 		out->val_ = IsEmpty() ? nullptr : this->val_;
 		return !IsEmpty();
 	}
-	N_INLINE Local<T> ToLocalChecked();
+	Qk_INLINE Local<T> ToLocalChecked();
 	template <class S>
-	N_INLINE Local<S> FromMaybe(Local<S> default_value) const {
+	Qk_INLINE Local<S> FromMaybe(Local<S> default_value) const {
 		return IsEmpty() ? default_value : Local<S>(val_);
 	}
 private:
@@ -194,22 +194,22 @@ private:
 };
 
 template<class T>
-class N_EXPORT Local {
+class Qk_EXPORT Local {
 public:
-	N_INLINE Local() : val_(0) {}
+	Qk_INLINE Local() : val_(0) {}
 	template <class S>
-	N_INLINE Local(Local<S> that)
+	Qk_INLINE Local(Local<S> that)
 	: val_(reinterpret_cast<T*>(*that)) {
 		JS_TYPE_CHECK(T, S);
 	}
-	N_INLINE bool IsEmpty() const { return val_ == 0; }
-	N_INLINE void Clear() { val_ = 0; }
-	N_INLINE T* operator->() const { return val_; }
-	N_INLINE T* operator*() const { return val_; }
-	template <class S> N_INLINE static Local<T> Cast(Local<S> that) {
+	Qk_INLINE bool IsEmpty() const { return val_ == 0; }
+	Qk_INLINE void Clear() { val_ = 0; }
+	Qk_INLINE T* operator->() const { return val_; }
+	Qk_INLINE T* operator*() const { return val_; }
+	template <class S> Qk_INLINE static Local<T> Cast(Local<S> that) {
 		return Local<T>( static_cast<T*>(*that) );
 	}
-	template <class S = JSObject> N_INLINE Local<S> To() const {
+	template <class S = JSObject> Qk_INLINE Local<S> To() const {
 		// unsafe conversion 
 		return Local<S>::Cast(*this);
 	}
@@ -219,97 +219,97 @@ private:
 	friend class JSString;
 	friend class JSClass;
 	friend class Worker;
-	explicit N_INLINE Local(T* that) : val_(that) { }
+	explicit Qk_INLINE Local(T* that) : val_(that) { }
 	T* val_;
 };
 
 template<class T>
-class N_EXPORT PersistentBase: public NoCopy {
+class Qk_EXPORT PersistentBase: public NoCopy {
 public:
 	typedef void (*WeakCallback)(void* ptr);
-	N_INLINE void Reset() {
+	Qk_INLINE void Reset() {
 		JS_TYPE_CHECK(JSValue, T);
 		reinterpret_cast<PersistentBase<JSValue>*>(this)->Reset();
 	}
 	template <class S>
-	N_INLINE void Reset(Worker* worker, const Local<S>& other) {
+	Qk_INLINE void Reset(Worker* worker, const Local<S>& other) {
 		JS_TYPE_CHECK(T, S);
 		JS_TYPE_CHECK(JSValue, T);
 		reinterpret_cast<PersistentBase<JSValue>*>(this)->
 		Reset(worker, *reinterpret_cast<const Local<JSValue>*>(&other));
 	}
 	template <class S>
-	N_INLINE void Reset(Worker* worker, const PersistentBase<S>& other) {
+	Qk_INLINE void Reset(Worker* worker, const PersistentBase<S>& other) {
 		JS_TYPE_CHECK(T, S);
 		reinterpret_cast<PersistentBase<JSValue>*>(this)->Reset(worker, other.local());
 	}
-	N_INLINE bool IsEmpty() const { return val_ == 0; }
-	N_INLINE Local<T> local() const {
+	Qk_INLINE bool IsEmpty() const { return val_ == 0; }
+	Qk_INLINE Local<T> local() const {
 		return *reinterpret_cast<Local<T>*>(const_cast<PersistentBase*>(this));
 	}
-	N_INLINE Worker* worker() const { return worker_; }
+	Qk_INLINE Worker* worker() const { return worker_; }
 private:
 	friend class WrapObject;
 	friend class Worker;
 	template<class F1, class F2> friend class Persistent;
-	N_INLINE PersistentBase(): val_(0), worker_(0) { }
-	N_INLINE void Empty() { val_ = 0; }
+	Qk_INLINE PersistentBase(): val_(0), worker_(0) { }
+	Qk_INLINE void Empty() { val_ = 0; }
 	template<class S> void Copy(const PersistentBase<S>& that);
 	T* val_;
 	Worker* worker_;
 };
 
 template<class T> class
-N_EXPORT NonCopyablePersistentTraits {
+Qk_EXPORT NonCopyablePersistentTraits {
 public:
 	static constexpr bool kResetInDestructor = true;
-	N_INLINE static void CopyCheck() { Uncompilable<Object>(); }
+	Qk_INLINE static void CopyCheck() { Uncompilable<Object>(); }
 	template<class O> static void Uncompilable() {
 		JS_TYPE_CHECK(O, JSValue);
 	}
 };
 
 template<class T> class
-N_EXPORT CopyablePersistentTraits {
+Qk_EXPORT CopyablePersistentTraits {
 public:
 	typedef Persistent<T, CopyablePersistentTraits<T>> Handle;
 	static constexpr bool kResetInDestructor = true;
-	static N_INLINE void CopyCheck() { }
+	static Qk_INLINE void CopyCheck() { }
 };
 
 template<class T, class M>
-class N_EXPORT Persistent: public PersistentBase<T> {
+class Qk_EXPORT Persistent: public PersistentBase<T> {
 public:
-	N_INLINE Persistent() { }
+	Qk_INLINE Persistent() { }
 	
 	~Persistent() { if(M::kResetInDestructor) this->Reset(); }
 	
 	template <class S>
-	N_INLINE Persistent(Worker* worker, Local<S> that) {
+	Qk_INLINE Persistent(Worker* worker, Local<S> that) {
 		this->Reset(worker, that);
 	}
 	
 	template <class S, class M2>
-	N_INLINE Persistent(Worker* worker, const Persistent<S, M2>& that) {
+	Qk_INLINE Persistent(Worker* worker, const Persistent<S, M2>& that) {
 		this->Reset(worker, that);
 	}
 	
-	N_INLINE Persistent(const Persistent& that) {
+	Qk_INLINE Persistent(const Persistent& that) {
 		Copy(that);
 	}
 	
 	template<class S, class M2>
-	N_INLINE Persistent(const Persistent<S, M2>& that) {
+	Qk_INLINE Persistent(const Persistent<S, M2>& that) {
 		Copy(that);
 	}
 	
-	N_INLINE Persistent& operator=(const Persistent& that) {
+	Qk_INLINE Persistent& operator=(const Persistent& that) {
 		Copy(that);
 		return *this;
 	}
 	
 	template <class S, class M2>
-	N_INLINE Persistent& operator=(const Persistent<S, M2>& that) {
+	Qk_INLINE Persistent& operator=(const Persistent<S, M2>& that) {
 		Copy(that);
 		return *this;
 	}
@@ -317,7 +317,7 @@ public:
 private:
 	template<class F1, class F2> friend class Persistent;
 	template<class S>
-	N_INLINE void Copy(const PersistentBase<S>& that) {
+	Qk_INLINE void Copy(const PersistentBase<S>& that) {
 		M::CopyCheck();
 		JS_TYPE_CHECK(T, S);
 		JS_TYPE_CHECK(JSValue, T);
@@ -328,7 +328,7 @@ private:
 	}
 };
 
-class N_EXPORT ReturnValue {
+class Qk_EXPORT ReturnValue {
 public:
 	template <class S>
 	inline void Set(Local<S> value) {
@@ -347,7 +347,7 @@ private:
 	void* val_;
 };
 
-class N_EXPORT FunctionCallbackInfo: public NoCopy {
+class Qk_EXPORT FunctionCallbackInfo: public NoCopy {
 public:
 	Worker* worker() const;
 	int Length() const;
@@ -357,14 +357,14 @@ public:
 	ReturnValue GetReturnValue() const;
 };
 
-class N_EXPORT PropertyCallbackInfo: public NoCopy {
+class Qk_EXPORT PropertyCallbackInfo: public NoCopy {
 public:
 	Worker* worker() const;
 	Local<JSObject> This() const;
 	ReturnValue GetReturnValue() const;
 };
 
-class N_EXPORT PropertySetCallbackInfo: public NoCopy {
+class Qk_EXPORT PropertySetCallbackInfo: public NoCopy {
 	public:
 	Worker* worker() const;
 	Local<JSObject> This() const;
@@ -379,7 +379,7 @@ typedef void (*AccessorSetterCallback)(Local<JSString> name, Local<JSValue> valu
 typedef void (*IndexedPropertyGetterCallback)(uint32_t index, PropertyCall info);
 typedef void (*IndexedPropertySetterCallback)(uint32_t index, Local<JSValue> value, PropertyCall info);
 
-class N_EXPORT HandleScope: public NoCopy {
+class Qk_EXPORT HandleScope: public NoCopy {
 public:
 	explicit HandleScope(Worker* worker);
 	~HandleScope();
@@ -387,7 +387,7 @@ private:
 	void* val_[3];
 };
 
-class N_EXPORT CallbackScope: public NoCopy {
+class Qk_EXPORT CallbackScope: public NoCopy {
 public:
 	explicit CallbackScope(Worker* worker);
 	~CallbackScope();
@@ -395,7 +395,7 @@ private:
 	void* val_;
 };
 
-class N_EXPORT JSValue: public NoCopy {
+class Qk_EXPORT JSValue: public NoCopy {
 public:
 	bool IsUndefined() const;
 	bool IsNull() const;
@@ -451,7 +451,7 @@ public:
 	WeakBuffer AsBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
 };
 
-class N_EXPORT JSString: public JSValue {
+class Qk_EXPORT JSString: public JSValue {
 public:
 	int Length(Worker* worker) const;
 	String Value(Worker* worker, bool ascii = false) const;
@@ -459,7 +459,7 @@ public:
 	static Local<JSString> Empty(Worker* worker);
 };
 
-class N_EXPORT JSObject: public JSValue {
+class Qk_EXPORT JSObject: public JSValue {
 public:
 	Local<JSValue> Get(Worker* worker, Local<JSValue> key);
 	Local<JSValue> Get(Worker* worker, uint32_t index);
@@ -482,7 +482,7 @@ public:
 									 AccessorGetterCallback get, AccessorSetterCallback set = nullptr);
 };
 
-class N_EXPORT JSArray: public JSObject {
+class Qk_EXPORT JSArray: public JSObject {
 public:
 	int Length(Worker* worker) const;
 	Maybe<Array<String>> ToStringArrayMaybe(Worker* worker);
@@ -490,37 +490,37 @@ public:
 	Maybe<Buffer> ToBufferMaybe(Worker* worker);
 };
 
-class N_EXPORT JSDate: public JSObject {
+class Qk_EXPORT JSDate: public JSObject {
 public:
 	double ValueOf(Worker* worker) const;
 };
 
-class N_EXPORT JSNumber: public JSValue {
+class Qk_EXPORT JSNumber: public JSValue {
 public:
 	double Value(Worker* worker) const;
 };
 
-class N_EXPORT JSInt32: public JSNumber {
+class Qk_EXPORT JSInt32: public JSNumber {
 public:
 	int Value(Worker* worker) const;
 };
 
-class N_EXPORT JSInteger: public JSNumber {
+class Qk_EXPORT JSInteger: public JSNumber {
 public:
 	int64_t Value(Worker* worker) const;
 };
 
-class N_EXPORT JSUint32: public JSNumber {
+class Qk_EXPORT JSUint32: public JSNumber {
 public:
 	uint32_t Value(Worker* worker) const;
 };
 
-class N_EXPORT JSBoolean: public JSValue {
+class Qk_EXPORT JSBoolean: public JSValue {
 public:
 	bool Value(Worker* worker) const;
 };
 
-class N_EXPORT JSFunction: public JSObject {
+class Qk_EXPORT JSFunction: public JSObject {
 public:
 	Local<JSValue> Call(Worker* worker, int argc = 0,
 											Local<JSValue> argv[] = nullptr,
@@ -530,14 +530,14 @@ public:
 															Local<JSValue> argv[] = nullptr);
 };
 
-class N_EXPORT JSArrayBuffer: public JSObject {
+class Qk_EXPORT JSArrayBuffer: public JSObject {
 public:
 	int ByteLength(Worker* worker) const;
 	Char* Data(Worker* worker);
 	WeakBuffer weakBuffer(Worker* worker);
 };
 
-class N_EXPORT JSTypedArray: public JSObject {
+class Qk_EXPORT JSTypedArray: public JSObject {
 public:
 	Local<JSArrayBuffer> Buffer(Worker* worker);
 	WeakBuffer weakBuffer(Worker* worker);
@@ -545,17 +545,17 @@ public:
 	int ByteOffset(Worker* worker);
 };
 
-class N_EXPORT JSUint8Array: public JSTypedArray {
+class Qk_EXPORT JSUint8Array: public JSTypedArray {
 };
 
-class N_EXPORT JSSet: public JSObject {
+class Qk_EXPORT JSSet: public JSObject {
 public:
 	MaybeLocal<JSSet> Add(Worker* worker, Local<JSValue> key);
 	Maybe<bool> Has(Worker* worker, Local<JSValue> key);
 	Maybe<bool> Delete(Worker* worker, Local<JSValue> key);
 };
 
-class N_EXPORT JSClass: public NoCopy {
+class Qk_EXPORT JSClass: public NoCopy {
 public:
 	uint64_t ID() const;
 	bool HasInstance(Worker* worker, Local<JSValue> val);
@@ -577,7 +577,7 @@ public:
 	int InstanceInternalFieldCount();
 };
 
-class N_EXPORT TryCatch: public NoCopy {
+class Qk_EXPORT TryCatch: public NoCopy {
 public:
 	TryCatch();
 	~TryCatch();
@@ -590,8 +590,8 @@ public:
 /**
  * @class Worker
  */
-class N_EXPORT Worker: public Object {
-	N_HIDDEN_ALL_COPY(Worker);
+class Qk_EXPORT Worker: public Object {
+	Qk_HIDDEN_ALL_COPY(Worker);
 public:
 	typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
 	typedef void (*WrapAttachCallback)(WrapObject* wrap);
@@ -668,10 +668,10 @@ public:
 	inline Local<JSNumber>  New(const Uint64& v) { return New(v.value); }
 	
 	template <class T>
-	N_INLINE Local<T> New(Local<T> val) { return val; }
+	Qk_INLINE Local<T> New(Local<T> val) { return val; }
 	
 	template <class T>
-	N_INLINE Local<T> New(const PersistentBase<T>& value) {
+	Qk_INLINE Local<T> New(const PersistentBase<T>& value) {
 		auto r = New(*reinterpret_cast<const PersistentBase<JSValue>*>(&value));
 		auto r_ = reinterpret_cast<Local<T>*>(&r);
 		return *r_;
@@ -831,7 +831,7 @@ private:
 
 	friend class NativeValue;
 	friend class WorkerIMPL;
-	N_DEFINE_INLINE_CLASS(IMPL);
+	Qk_DEFINE_INLINE_CLASS(IMPL);
 	IMPL* _inl;
 
 	Worker(IMPL* inl);
@@ -840,8 +840,8 @@ private:
 /**
  * @class WrapObject
  */
-class N_EXPORT WrapObject {
-	N_HIDDEN_ALL_COPY(WrapObject);
+class Qk_EXPORT WrapObject {
+	Qk_HIDDEN_ALL_COPY(WrapObject);
 protected:
 	
 	inline WrapObject() {}
@@ -932,12 +932,12 @@ public:
 
 protected:
 	Persistent<JSObject> handle_;
-	N_DEFINE_INLINE_CLASS(Inl);
+	Qk_DEFINE_INLINE_CLASS(Inl);
 	friend class Allocator;
 };
 
 template<class T = Object>
-class N_EXPORT Wrap: public WrapObject {
+class Qk_EXPORT Wrap: public WrapObject {
 	Wrap() = delete;
 public:
 	inline static Wrap<T>* unpack(Local<JSObject> value) {
@@ -948,9 +948,9 @@ public:
 	}
 };
 
-N_EXPORT int Start(cString& cmd);
-N_EXPORT int Start(const Array<String>& argv);
-N_EXPORT int Start(int argc, Char** argv);
+Qk_EXPORT int Start(cString& cmd);
+Qk_EXPORT int Start(const Array<String>& argv);
+Qk_EXPORT int Start(int argc, Char** argv);
 
 // **********************************************************************
 
@@ -960,19 +960,19 @@ typedef CopyablePersistentTraits<JSObject>::Handle CopyablePersistentObject;
 typedef CopyablePersistentTraits<JSValue>::Handle CopyablePersistentValue;
 
 template <>
-N_EXPORT void PersistentBase<JSValue>::Reset();
+Qk_EXPORT void PersistentBase<JSValue>::Reset();
 template <>
-N_EXPORT void PersistentBase<JSClass>::Reset();
+Qk_EXPORT void PersistentBase<JSClass>::Reset();
 template <> template <>
-N_EXPORT void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other);
+Qk_EXPORT void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other);
 template <> template <>
-N_EXPORT void PersistentBase<JSClass>::Reset(Worker* worker, const Local<JSClass>& other);
+Qk_EXPORT void PersistentBase<JSClass>::Reset(Worker* worker, const Local<JSClass>& other);
 template<> template<>
-N_EXPORT void PersistentBase<JSValue>::Copy(const PersistentBase<JSValue>& that);
+Qk_EXPORT void PersistentBase<JSValue>::Copy(const PersistentBase<JSValue>& that);
 template<> template<>
-N_EXPORT void CopyablePersistentClass::Copy(const PersistentBase<JSClass>& that);
+Qk_EXPORT void CopyablePersistentClass::Copy(const PersistentBase<JSClass>& that);
 
-template<> N_EXPORT void ReturnValue::Set<JSValue>(Local<JSValue> value);
+template<> Qk_EXPORT void ReturnValue::Set<JSValue>(Local<JSValue> value);
 
 template<class T>
 bool JSObject::SetProperty(Worker* worker, cString& name, T value) {
@@ -986,11 +986,11 @@ template<class T>
 bool JSClass::SetStaticProperty(Worker* worker, cString& name, T value) {
 	return SetStaticProperty<Local<JSValue>>(worker, name, worker->New(value));
 }
-template<> N_EXPORT bool JSClass::SetMemberProperty<Local<JSValue>>
+template<> Qk_EXPORT bool JSClass::SetMemberProperty<Local<JSValue>>
 (
  Worker* worker, cString& name, Local<JSValue> value
  );
-template<> N_EXPORT bool JSClass::SetStaticProperty<Local<JSValue>>
+template<> Qk_EXPORT bool JSClass::SetStaticProperty<Local<JSValue>>
 (
  Worker* worker, cString& name, Local<JSValue> value
  );
@@ -999,7 +999,7 @@ Local<T> MaybeLocal<T>::ToLocalChecked() {
 	reinterpret_cast<MaybeLocal<JSValue>*>(this)->ToLocalChecked();
 	return Local<T>(val_);
 }
-template <> N_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked();
+template <> Qk_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked();
 
 }}
 #endif

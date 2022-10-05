@@ -33,7 +33,7 @@
 #include "./_cb.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN

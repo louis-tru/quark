@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/media/media_codec_inl.h"
+#include "quark/media/media_codec_inl.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class UnixHardwareMediaCodec

@@ -30,7 +30,7 @@
 
 #include "./media_codec_inl.h"
 
-namespace noug {
+namespace quark {
 
 	/**
 	* @class SoftwareMediaCodec
@@ -54,7 +54,7 @@ namespace noug {
 			, _is_open(false)
 			, _output_occupy(false)
 		{
-			_frame = av_frame_alloc(); N_Assert(_frame);
+			_frame = av_frame_alloc(); Qk_Assert(_frame);
 			
 			if (type() == MEDIA_TYPE_VIDEO) {
 				_color_format = VIDEO_COLOR_FORMAT_YUV420P;
@@ -101,10 +101,10 @@ namespace noug {
 				AVStream* stream = _extractor->host()->get_stream(_extractor->track());
 				if ( !stream ) {
 					stream = _extractor->host()->get_stream(_extractor->track());
-					N_Assert( stream );
+					Qk_Assert( stream );
 				}
 				
-				const AVCodec* codec = get_avcodec(); N_Assert(codec);
+				const AVCodec* codec = get_avcodec(); Qk_Assert(codec);
 				
 				if ( _threads > 1 ) { // set threads
 					if ((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
@@ -337,7 +337,7 @@ namespace noug {
 		* */
 		virtual void set_frame_size(uint32_t size) {
 			if ( type() == MEDIA_TYPE_AUDIO ) {
-				_audio_frame_size = N_MAX(512, size);
+				_audio_frame_size = Qk_MAX(512, size);
 				if (_audio_frame_size * 2 > _audio_buffer.length()) {
 					_audio_buffer = Buffer::alloc(_audio_frame_size * 2);
 					_audio_buffer_size = 0;
@@ -356,7 +356,7 @@ namespace noug {
 		virtual void set_threads(uint32_t value) {
 			ScopeLock scope(_mutex);
 			if ( !_is_open ) {
-				_threads = N_MAX(1, N_MIN(8, value));
+				_threads = Qk_MAX(1, Qk_MIN(8, value));
 			}
 		}
 		

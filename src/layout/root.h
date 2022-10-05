@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__root__
-#define __noug__layout__root__
+#ifndef __quark__layout__root__
+#define __quark__layout__root__
 
 #include "./box.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT Root: public Box {
-		N_Define_View(Root);
+	class Qk_EXPORT Root: public Box {
+		Qk_Define_View(Root);
 	public:
 		static Root* create() throw(Error);
 		void onDisplayChange();

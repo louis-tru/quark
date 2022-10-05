@@ -32,7 +32,7 @@
 #include "../fs.h"
 #include "../android-jni.h"
 
-namespace noug {
+namespace quark {
 
 	static String documents_path, temp_path, resources_path, executable_path;
 
@@ -66,7 +66,7 @@ namespace noug {
 
 	extern "C" {
 
-		N_EXPORT void Java_org_noug_API_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
+		Qk_EXPORT void Java_org_quark_API_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
 			documents_path = JNI::jstring_to_string(files_dir);
 			temp_path = JNI::jstring_to_string(cache_dir);
 			resources_path = fs_format("zip://%s@/assets", JNI::jstring_to_string(package));

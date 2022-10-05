@@ -3,7 +3,7 @@
 	{
 		# 'product_prefix': '',
 		# 'product_ext': 'so',
-		'target_name': 'noug-util',
+		'target_name': 'quark-util',
 		'type': 'static_library',
 		'dependencies': [
 			'src/util/minizip.gyp:minizip',

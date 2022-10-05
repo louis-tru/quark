@@ -32,12 +32,12 @@
 #include "../version.h"
 #include <vector>
 
-#if N_UNIX
+#if Qk_UNIX
 # include <sys/utsname.h>
 # include <unistd.h>
 #endif
 
-#if N_APPLE
+#if Qk_APPLE
 # include <mach/mach_time.h>
 # include <mach/mach.h>
 # include <mach/clock.h>
@@ -96,7 +96,7 @@ int clock_gettime2(clockid_t id, struct timespec *tspec) {
 
 #endif
 
-namespace noug {
+namespace quark {
 
 	int random(uint32_t start, uint32_t end) {
 		static uint32_t id;
@@ -154,17 +154,17 @@ namespace noug {
 	}
 
 	String platform() {
-		#if  N_IOS
+		#if  Qk_IOS
 			static String _name("darwin/iOS");
-		#elif  N_OSX
+		#elif  Qk_OSX
 			static String _name("darwin/MacOSX");
 			// static String _name("darwin/tvOS");
 			// static String _name("darwin/iWatch");
-		#elif  N_ANDROID
+		#elif  Qk_ANDROID
 			static String _name("android/Android");
-		#elif  N_WIN
+		#elif  Qk_WIN
 			static String _name("win32/Windows");
-		#elif  N_LINUX
+		#elif  Qk_LINUX
 			static String _name("linux/Linux");
 		#else
 			# error no support

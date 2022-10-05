@@ -30,7 +30,7 @@
 
 #include "./media_codec_inl.h"
 
-namespace noug {
+namespace quark {
 
 	static MediaCodec::Delegate default_media_decoder_delegate;
 
@@ -95,7 +95,7 @@ namespace noug {
 	* */
 	uint32_t Extractor::deplete_sample(Char* out, uint32_t size) {
 		if ( _sample_data.size ) {
-			size = N_MIN(_sample_data.size, size);
+			size = Qk_MIN(_sample_data.size, size);
 			memcpy(out, _sample_data.data, size);
 			_sample_data.data += size;
 			_sample_data.size -= size;
@@ -118,7 +118,7 @@ namespace noug {
 	* @func deplete_sample
 	* */
 	uint32_t Extractor::deplete_sample(uint32_t size) {
-		size = N_MIN(size, _sample_data.size);
+		size = Qk_MIN(size, _sample_data.size);
 		_sample_data.size -= size;
 		_sample_data.data += size;
 		return size;
@@ -151,7 +151,7 @@ namespace noug {
 	* @func set_delegate
 	*/
 	void MediaCodec::set_delegate(Delegate* delegate) {
-		N_Assert(delegate);
+		Qk_Assert(delegate);
 		_delegate = delegate;
 	}
 

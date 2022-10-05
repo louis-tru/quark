@@ -31,7 +31,7 @@
 #include "./scaner.h"
 #include <math.h>
 
-namespace noug {
+namespace quark {
 
 	XLineScaner::XLineScaner(const PathLine& path, Rect clipRect, float scale, bool is_convex_polygon)
 		: _activeEdges{0, 0, Int32::limit_min, 0, 0},
@@ -47,7 +47,7 @@ namespace noug {
 		for (auto edge: path2.to_edge_line()) {
 			edges.push(Vec2i(edge.x(), edge.y()));
 			//if (i++ % 2 == 0)
-			//N_DEBUG("Edge, %f, %f", edge.x() / 65536, edge.y() / 65536);
+			//Qk_DEBUG("Edge, %f, %f", edge.x() / 65536, edge.y() / 65536);
 		}
 
 		// clip paths
@@ -153,7 +153,7 @@ namespace noug {
 			//while ((left = getLeft(right, prev->next, y)) && (right = left->next)) {
 			while ((left = prev->next) && (right = left->next)) {
 				//if (y == 319) {
-				//	N_DEBUG("%d", y);
+				//	Qk_DEBUG("%d", y);
 				//}
 
 				cb(left->x/* >> 16*/, right->x/* >> 16*/, y, ctx);
@@ -196,8 +196,8 @@ namespace noug {
 		_activeEdges.next = _firstLineEdges; // first line edges
 
 		while (y < e) {
-			Edge *left = _activeEdges.next; N_Assert(left, "left Edge cannot be empty");
-			Edge *right = left->next;       N_Assert(right, "right Edge cannot be empty");
+			Edge *left = _activeEdges.next; Qk_Assert(left, "left Edge cannot be empty");
+			Edge *right = left->next;       Qk_Assert(right, "right Edge cannot be empty");
 
 			//if (left->x > right->x) {
 			//	cb(right->x, left->x, y, ctx);
@@ -233,7 +233,7 @@ namespace noug {
 		// check new edges
 		Edge *prev = &_activeEdges;
 		Edge *edge = prev->next; // edge
-		// N_DEBUG("%d", newEdge->x);
+		// Qk_DEBUG("%d", newEdge->x);
 		if (!edge) {
 			prev->next = newEdge; // end
 			//newEdge->x += newEdge->incr_x; // incr

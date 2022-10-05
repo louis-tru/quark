@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__iterator__
-#define __noug__util__iterator__
+#ifndef __quark__util__iterator__
+#define __quark__util__iterator__
 
-namespace noug {
+namespace quark {
 
 	template <typename T, typename T2>
 	class SimpleIterator {

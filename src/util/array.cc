@@ -33,15 +33,15 @@
 #include <string.h>
 #include <math.h>
 
-namespace noug {
+namespace quark {
 
-	#define N_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, A, APPEND_ZERO) \
+	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATIOQk_(T, A, APPEND_ZERO) \
 		\
 		template<> void Array<T, A>::extend(uint32_t length, uint32_t capacity) \
 		{ \
 			if (length > _length) {  \
 				_length = length; \
-				realloc_(N_MAX(_length + APPEND_ZERO, capacity)); \
+				realloc_(Qk_MAX(_length + APPEND_ZERO, capacity)); \
 				if (APPEND_ZERO) _val[_length] = 0; \
 			}\
 		}\
@@ -68,7 +68,7 @@ namespace noug {
 		template<> uint32_t Array<T, A>::write(const T* src, int to, uint32_t size) { \
 			if (size) { \
 				if ( to == -1 ) to = _length; \
-				_length = N_MAX(to + size, _length); \
+				_length = Qk_MAX(to + size, _length); \
 				realloc_(_length + APPEND_ZERO); \
 				memcpy((void*)(_val + to), src, size * sizeof(T) ); \
 				if (APPEND_ZERO) _val[_length] = 0; \
@@ -77,7 +77,7 @@ namespace noug {
 		} \
 		\
 		template<> Array<T, A>& Array<T, A>::pop(uint32_t count) { \
-			uint32_t j = uint32_t(N_MAX(_length - count, 0)); \
+			uint32_t j = uint32_t(Qk_MAX(_length - count, 0)); \
 			if (_length > j) {  \
 				_length = j;  \
 				realloc_(_length + APPEND_ZERO); \
@@ -99,7 +99,7 @@ namespace noug {
 		} \
 		\
 		template<> void Array<T, A>::realloc(uint32_t capacity) { \
-			N_Assert(!is_weak(), "the weak holder cannot be changed"); \
+			Qk_Assert(!is_weak(), "the weak holder cannot be changed"); \
 			if (capacity < _length) { /* clear Partial data */ \
 				_length = capacity;\
 			} \
@@ -108,7 +108,7 @@ namespace noug {
 		} \
 		\
 		template<> ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const { \
-			end = N_MIN(end, _length); \
+			end = Qk_MIN(end, _length); \
 			if (start < end) { \
 				ArrayBuffer<T, A> arr(end - start, end - start + APPEND_ZERO); \
 				memcpy((void*)arr.val(), _val + start, arr.length() * sizeof(T)); \
@@ -118,11 +118,11 @@ namespace noug {
 			return ArrayBuffer<T, A>();\
 		} \
 
-	#define N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T) \
-		N_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, MemoryAllocator, 1)
+	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T) \
+		Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, MemoryAllocator, 1)
 	
 
-#ifndef N_ARRAY_NO_IMPL
+#ifndef Qk_ARRAY_NO_IMPL
 	template<> void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {
 		if (len > 1) {
 			char* _src = (char*)src;
@@ -141,16 +141,16 @@ namespace noug {
 		}
 	}
 	
-	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char);
-	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(unsigned char);
-	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16_t);
-	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16_t);
-	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int32_t);
-	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint32_t);
-	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64_t);
-	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64_t);
-	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float);
-	N_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(unsigned char);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16_t);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16_t);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int32_t);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint32_t);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64_t);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64_t);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double);
 #endif
 
 }

@@ -32,7 +32,7 @@
 #include "./media.h"
 #include <uv.h>
 
-namespace noug {
+namespace quark {
 
 	module_info_t* module_audio_player = nullptr;
 	module_info_t* module_video = nullptr;
@@ -48,14 +48,14 @@ namespace noug {
 		}
 		// try loading nxnode
 		uv_lib_t lib;
-		int err = uv_dlopen("libnoug-media.so", &lib);
+		int err = uv_dlopen("libquark-media.so", &lib);
 		if (err != 0) {
-			N_WARN("No noug-media library loaded, %s", uv_dlerror(&lib));
+			Qk_WARN("No quark-media library loaded, %s", uv_dlerror(&lib));
 		} else {
 			if (is_loaded_lib()) {
 				return 1;
 			}
-			N_WARN("No noug-media library loaded");
+			Qk_WARN("No quark-media library loaded");
 		}
 
 		return 0;

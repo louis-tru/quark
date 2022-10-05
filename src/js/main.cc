@@ -31,14 +31,14 @@
 #include "./js.h"
 #include "../app.h"
 
-using namespace noug::js;
+using namespace quark::js;
 
-N_UI_MAIN() {
+Qk_UI_MAIN() {
 	return Start(argc, argv);
 }
 
-#if N_ANDROID
-class App: public noug::Application {
+#if Qk_ANDROID
+class App: public quark::Application {
 	public: static void run(int argc, Char *argv[]) {
 		runMain(argc, argv);
 	}

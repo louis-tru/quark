@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <noug/util/zlib.h>
+#include <quark/util/zlib.h>
 #include <zlib.h>
 #include <map>
 
-using namespace noug;
+using namespace quark;
 
 void test_zlib (int argc, char **argv) {
 	
@@ -46,16 +46,16 @@ void test_zlib (int argc, char **argv) {
 	map["c"] = 300;
 	map["d"] = 400;
 	
-	N_LOG(map[a]);
-	N_LOG(map[b]);
-	N_LOG(map["c"]);
-	N_LOG(map["d"]);
-	N_LOG("");
+	Qk_LOG(map[a]);
+	Qk_LOG(map[b]);
+	Qk_LOG(map["c"]);
+	Qk_LOG(map["d"]);
+	Qk_LOG("");
 	
 	const char* hello = "g++ -pthread -rdynamic -m64 ";
 	size_t len = strlen(hello) + 1;
-	N_LOG("%d", len);
-	N_LOG(hello);
+	Qk_LOG("%d", len);
+	Qk_LOG(hello);
 
 	{
 		uint8_t* compr = (uint8_t*)malloc(100);
@@ -79,72 +79,72 @@ void test_zlib (int argc, char **argv) {
 		free(compr2);
 	}
 	
-	N_LOG("K\n");
+	Qk_LOG("K\n");
 	
 	GZip gzip("/tmp/test.gz");
-	N_LOG(gzip.open());
+	Qk_LOG(gzip.open());
 	
-	N_LOG(gzip.write(hello, uint(len - 1)));
-	N_LOG(gzip.write("hello", 5));
+	Qk_LOG(gzip.write(hello, uint(len - 1)));
+	Qk_LOG(gzip.write("hello", 5));
 	
-	N_LOG("a\n");
+	Qk_LOG("a\n");
 	gzip.close();
-	N_LOG(gzip.open(FOPEN_R));
+	Qk_LOG(gzip.open(FOPEN_R));
 	char str[100] = { 0 };
-	N_LOG(gzip.read(str, 100));
-	N_LOG(str);
+	Qk_LOG(gzip.read(str, 100));
+	Qk_LOG(str);
 	
 	gzip.close();
 	
-	N_LOG("\nTEST zip\n");
+	Qk_LOG("\nTEST zip\n");
 	
 	{
 		ZipWriter writer("/tmp/test.zip");
 		writer.open();
-		N_LOG(writer.add_file("aa.txt"));
-		N_LOG(writer.write(WeakBuffer("aa.txt", 6)));
-		N_LOG(writer.add_file("bb.txt"));
-		N_LOG(writer.write(WeakBuffer("bb.txt", 6)));
-		N_LOG(writer.add_file("cc.txt"));
-		N_LOG(writer.write(WeakBuffer("cc.txt", 6)));
-		N_LOG(writer.add_file("dd.txt"));
-		N_LOG(writer.write(WeakBuffer("dd.txt", 6)));
+		Qk_LOG(writer.add_file("aa.txt"));
+		Qk_LOG(writer.write(WeakBuffer("aa.txt", 6)));
+		Qk_LOG(writer.add_file("bb.txt"));
+		Qk_LOG(writer.write(WeakBuffer("bb.txt", 6)));
+		Qk_LOG(writer.add_file("cc.txt"));
+		Qk_LOG(writer.write(WeakBuffer("cc.txt", 6)));
+		Qk_LOG(writer.add_file("dd.txt"));
+		Qk_LOG(writer.write(WeakBuffer("dd.txt", 6)));
 	}
 
 	{
 		ZipReader reader("/tmp/test.zip");
 		reader.open();
 		char str2[101] = { 0 };
-		N_LOG(reader.read(str2, 100));
-		N_LOG(str2);
+		Qk_LOG(reader.read(str2, 100));
+		Qk_LOG(str2);
 		reader.next();
-		N_LOG(reader.read(str2, 100));
-		N_LOG(str2);
+		Qk_LOG(reader.read(str2, 100));
+		Qk_LOG(str2);
 		reader.next();
-		N_LOG(reader.read(str2, 100));
-		N_LOG(str2);
+		Qk_LOG(reader.read(str2, 100));
+		Qk_LOG(str2);
 		reader.first();
-		N_LOG(reader.read(str2, 100));
-		N_LOG(str2);
+		Qk_LOG(reader.read(str2, 100));
+		Qk_LOG(str2);
 		//
 		reader.jump("cc.txt");
 		char str3[101] = { 0 };
-		N_LOG(reader.read(str3, 3));
-		N_LOG(str3);
-		N_LOG(reader.exists("dd.txt"));
-		N_LOG(reader.read(str3, 3));
-		N_LOG(str3);
-		N_LOG(reader.exists("kk.txt"));
+		Qk_LOG(reader.read(str3, 3));
+		Qk_LOG(str3);
+		Qk_LOG(reader.exists("dd.txt"));
+		Qk_LOG(reader.read(str3, 3));
+		Qk_LOG(str3);
+		Qk_LOG(reader.exists("kk.txt"));
 		//
-		N_LOG("next, %d", reader.next());
-		N_LOG(reader.read(str2, 100));
-		N_LOG(str2);
-		N_LOG("next, %d", reader.next());
-		N_LOG(reader.read(str2, 100));
-		N_LOG(str2);
-		N_LOG("next, %d", reader.next());
-		N_LOG(reader.read(str2, 100));
-		N_LOG(str2);
-		N_LOG(reader.current());
+		Qk_LOG("next, %d", reader.next());
+		Qk_LOG(reader.read(str2, 100));
+		Qk_LOG(str2);
+		Qk_LOG("next, %d", reader.next());
+		Qk_LOG(reader.read(str2, 100));
+		Qk_LOG(str2);
+		Qk_LOG("next, %d", reader.next());
+		Qk_LOG(reader.read(str2, 100));
+		Qk_LOG(str2);
+		Qk_LOG(reader.current());
 	}
 }

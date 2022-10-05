@@ -28,21 +28,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__layout__flex__
-#define __noug__layout__flex__
+#ifndef __quark__layout__flex__
+#define __quark__layout__flex__
 
 #include "./box.h"
 
-namespace noug {
+namespace quark {
 
-	class N_EXPORT FlexLayout: public Box {
-		N_Define_View(FlexLayout);
+	class Qk_EXPORT FlexLayout: public Box {
+		Qk_Define_View(FlexLayout);
 	public:
 		FlexLayout();
 		// define props
-		N_Define_Prop(Direction, direction); // typesetting direction
-		N_Define_Prop(ItemsAlign, items_align); // alignment mode of the main axis
-		N_Define_Prop(CrossAlign, cross_align); // alignment mode of the cross axis
+		Qk_Define_Prop(Direction, direction); // typesetting direction
+		Qk_Define_Prop(ItemsAlign, items_align); // alignment mode of the main axis
+		Qk_Define_Prop(CrossAlign, cross_align); // alignment mode of the cross axis
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
@@ -56,7 +56,7 @@ namespace noug {
 		bool update_IsLockChild();
 		bool _is_lock_child;
 		friend class FlowLayout;
-		N_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

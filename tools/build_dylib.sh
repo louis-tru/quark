@@ -54,44 +54,44 @@ framework() {
 	node ../../tools/gen_apple_framework.js ios $name "no-cut" "$inc" . ./lib$name.dylib
 }
 
-# noug
-link_dylib noug \
-	"$obj/noug-utils $obj/libuv $obj/openssl $obj/http_parser \
-			$obj/noug " \
+# quark
+link_dylib quark \
+	"$obj/quark-utils $obj/libuv $obj/openssl $obj/http_parser \
+			$obj/quark " \
 	"-lminizip -lbplus -lz 
 			-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
 			-framework CoreGraphics -framework QuartzCore -framework UIKit -framework MessageUI "
-framework noug no-inc # gen temp framework
+framework quark no-inc # gen temp framework
 
-# noug-media
-link_dylib noug-media \
-	"$obj/noug-media" \
+# quark-media
+link_dylib quark-media \
+	"$obj/quark-media" \
 	"-liconv -lbz2 -lz -lffmpeg" \
 	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
-			-framework CoreMedia -framework noug"
-framework noug-media no-inc # gen temp framework
+			-framework CoreMedia -framework quark"
+framework quark-media no-inc # gen temp framework
 
-# noug-js + noug-v8
+# quark-js + quark-v8
 if [ "$use_v8_link" = "1" ]; then
-	link_dylib noug-js \
-		"$obj/v8-link $obj/noug-js" \
+	link_dylib quark-js \
+		"$obj/v8-link $obj/quark-js" \
 		"" \
-		"-framework noug -framework noug-media -framework JavaScriptCore"
+		"-framework quark -framework quark-media -framework JavaScriptCore"
 else
 	# $obj/v8_base/deps/node/deps/v8/src/api.o
 	# $obj/v8_base/deps/node/deps/v8/src/inspector
-	link_dylib noug-js \
-		"$obj/v8_base $obj/v8_libplatform $obj/noug-js" \
+	link_dylib quark-js \
+		"$obj/v8_base $obj/v8_libplatform $obj/quark-js" \
 		"-lv8_base -lv8_libbase -lv8_libsampler -lv8_builtins_setup \
 				-lv8_nosnapshot -lv8_builtins_generators" \
-		"-framework noug -framework noug-media -framework JavaScriptCore"
+		"-framework quark -framework quark-media -framework JavaScriptCore"
 fi
-framework noug-js no-inc # gen temp framework
+framework quark-js no-inc # gen temp framework
 
-# noug-node
-link_dylib noug-node \
+# quark-node
+link_dylib quark-node \
 	"$obj/node" \
 	"-lnghttp2 -lcares -lz" \
-	"-framework noug -framework noug-js"
-framework noug-node no-inc # gen temp framework
+	"-framework quark -framework quark-js"
+framework quark-node no-inc # gen temp framework

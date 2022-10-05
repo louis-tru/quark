@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __noug__util__json__
-#define __noug__util__json__
+#ifndef __quark__util__json__
+#define __quark__util__json__
 
 #include "./handle.h"
 #include "./string.h"
 #include "./error.h"
 #include "./iterator.h"
 
-namespace noug {
+namespace quark {
 
 	class JSON;
 
@@ -45,7 +45,7 @@ namespace noug {
 	/**
 	* @class JSON
 	*/
-	class N_EXPORT JSON {
+	class Qk_EXPORT JSON {
 	public:
 		typedef NonObjectTraits Traits;
 		struct Member;

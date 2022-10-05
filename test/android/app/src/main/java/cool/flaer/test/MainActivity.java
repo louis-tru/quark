@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package cool.noug.test;
+package cool.quark.test;
 
 import android.os.Bundle;
 import android.util.Log;
 
-import org.noug.Activity;
+import org.quark.Activity;
 
 public class MainActivity extends Activity {
 
 	static {
-		System.loadLibrary("noug-js");
+		System.loadLibrary("quark-js");
 	}
 
 	@Override
@@ -47,10 +47,10 @@ public class MainActivity extends Activity {
 	}
 
 	protected String startCommand() {
-		//return "noug --inspect-brk=0.0.0.0:9229 http://192.168.0.11:1026/examples";
-		//return "noug --inspect-brk=0.0.0.0:9229 examples";
-		return "noug examples";
-		//return "noug examples";
+		//return "quark --inspect-brk=0.0.0.0:9229 http://192.168.0.11:1026/examples";
+		//return "quark --inspect-brk=0.0.0.0:9229 examples";
+		return "quark examples";
+		//return "quark examples";
 	}
 
 }

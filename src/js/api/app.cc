@@ -37,12 +37,12 @@
 #include "../../views2/limit.h"
 
 /**
- * @ns noug::js
+ * @ns quark::js
  */
 
 JS_BEGIN
 
-using namespace noug;
+using namespace quark;
 
 static cString load("Load");
 static cString unload("Unload");
@@ -113,9 +113,9 @@ class WrapNativeApplication: public WrapObject {
 	
 	void memorywarning_handle(Event<>& evt) {
 		worker()->garbageCollection(); // 清理内存
-		#if N_MEMORY_TRACE_MARK
+		#if Qk_MEMORY_TRACE_MARK
 			uint32_t count = Object::mark_objects_count();
-			N_LOG("All unrelease heap objects count: %d", count);
+			Qk_LOG("All unrelease heap objects count: %d", count);
 		#endif
 	}
 
@@ -137,7 +137,7 @@ class WrapNativeApplication: public WrapObject {
 			Handle<Application> h = new Application();
 			h->initialize(options);
 			auto app = h.collapse();
-			app->N_On(Memorywarning,
+			app->Qk_On(Memorywarning,
 								 &WrapNativeApplication::memorywarning_handle,
 								 reinterpret_cast<WrapNativeApplication*>(wrap));
 			app->run_loop_detach(); // run gui loop

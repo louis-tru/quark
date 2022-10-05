@@ -31,7 +31,7 @@
 #include "./css.inl"
 #include "../layout/view.h"
 
-N_NAMESPACE_START
+Qk_NAMESPACE_START
 
 static Dict<String, CSSPseudoClass> pseudo_class_table([]() {
 	Dict<String, CSSPseudoClass> r;
@@ -109,7 +109,7 @@ StyleSheets* StyleSheets::Inl::find2(const CSSName& name, CSSPseudoClass pseudo)
 }
 
 KeyframeAction* StyleSheets::Inl::assignment(View* view, KeyframeAction* action, bool ignore_action) {
-	N_Assert(view);
+	Qk_Assert(view);
 	
 	if ( ! ignore_action && _time ) { // 创建动作
 		
@@ -148,7 +148,7 @@ StyleSheets::StyleSheets(const CSSName& name, StyleSheets* parent, CSSPseudoClas
 	, _pseudo( parent ? parent->_pseudo : CSS_PSEUDO_CLASS_NONE )
 {
 	if ( pseudo ) { // pseudo cls
-		N_Assert( !_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
+		Qk_Assert( !_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
 		_pseudo = pseudo;
 	}
 }
@@ -171,7 +171,7 @@ StyleSheets::~StyleSheets() {
 	void StyleSheets::set_##NAME(TYPE value) { \
 	_inl_ss(this)->set_property_value<ENUM>(value); \
 	}
-N_EACH_PROPERTY_TABLE(fx_def_property)
+Qk_EACH_PROPERTY_TABLE(fx_def_property)
 #undef fx_def_accessor
 
 template <> BackgroundPtr StyleSheets::Inl::
@@ -204,7 +204,7 @@ StyleSheets* StyleSheets::find(const CSSName& name) {
 * @func assignment
 */
 void StyleSheets::assignment(View* view) {
-	N_Assert(view);
+	Qk_Assert(view);
 	for ( auto i : _property ) {
 		i.value->assignment(view);
 	}
@@ -214,7 +214,7 @@ void StyleSheets::assignment(View* view) {
 * @func assignment
 */
 void StyleSheets::assignment(Frame* frame) {
-	N_Assert(frame);
+	Qk_Assert(frame);
 	for ( auto i : _property ) {
 		i.value->assignment(frame);
 	}
@@ -276,20 +276,20 @@ StyleSheets* RootStyleSheets::Inl::instance(cString& expression) {
 		CSSPseudoClass pseudo = CSS_PSEUDO_CLASS_NONE;
 		
 		if ( !verification_and_format(i.trim(), name, pseudo) ) {
-			N_ERR("Invalid css name \"%s\"", *expression);
+			Qk_ERR("Invalid css name \"%s\"", *expression);
 			return nullptr;
 		}
 		
-		N_Assert( !name.value().is_empty() );
+		Qk_Assert( !name.value().is_empty() );
 		
 		ss = _inl_ss(ss)->find2(name, pseudo);
 		
 		if ( ! ss ) {
-			N_ERR("Invalid css name \"%s\"", *expression);
+			Qk_ERR("Invalid css name \"%s\"", *expression);
 			return nullptr;
 		}
 	}
-	N_Assert( ss != this );
+	Qk_Assert( ss != this );
 	
 	return ss;
 }
@@ -442,4 +442,4 @@ RootStyleSheets* RootStyleSheets::shared() {
 	return root_style_sheets;
 }
 
-N_NAMESPACE_END
+Qk_NAMESPACE_END

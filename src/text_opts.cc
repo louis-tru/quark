@@ -32,7 +32,7 @@
 #include "./layout/layout.h"
 #include "./render/font/pool.h"
 
-namespace noug {
+namespace quark {
 
 	TextOptions::TextOptions()
 		: _text_weight(TextWeight::INHERIT)
@@ -105,7 +105,7 @@ namespace noug {
 
 	void TextOptions::set_text_size(TextSize value) {
 		if (value != _text_size) {
-			value.value = N_MAX(1, value.value);
+			value.value = Qk_MAX(1, value.value);
 			_text_size = value;
 			_text_flags |= (1 << 6);
 			onTextChange(Layout::kLayout_Typesetting);
@@ -138,7 +138,7 @@ namespace noug {
 
 	void TextOptions::set_text_line_height(TextLineHeight value) {
 		if (value != _text_line_height) {
-			value.value = N_MAX(0, value.value);
+			value.value = Qk_MAX(0, value.value);
 			_text_line_height = value;
 			_text_flags |= (1 << 10);
 			onTextChange(Layout::kLayout_Typesetting);
@@ -159,12 +159,12 @@ namespace noug {
 
 	// ---------------- T e x t . C o n f i g ----------------
 
-#define N_DEFINE_COMPUTE_TEXT_OPTIONS(Type, name, flag) \
+#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS(Type, name, flag) \
 	if (_opts->_##name == Type::INHERIT) { \
 		_opts->_##name##_value = _base->_opts->_##name##_value; \
 	}
 
-#define N_DEFINE_COMPUTE_TEXT_OPTIONS_2(Type, name, flag, Default) \
+#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Type, name, flag, Default) \
 	if (_opts->_##name.kind == TextValueKind::INHERIT) {  \
 		_opts->_##name.value = _base->_opts->_##name.value; \
 	} else if (_opts->_##name.kind == TextValueKind::DEFAULT) { \
@@ -176,18 +176,18 @@ namespace noug {
 	{
 		if (_base && (_opts->_text_flags || _base->_opts->_text_flags)) {
 			_opts->_text_flags |= _base->_opts->_text_flags;
-			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 0);
-			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 1);
-			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 2);
-			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextOverflow, text_overflow, 3);
-			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextWhiteSpace, text_white_space, 4);
-			N_DEFINE_COMPUTE_TEXT_OPTIONS(TextWordBreak, text_word_break, 5);
-			N_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_size, 6, 16);
-			N_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_background_color, 7, Color(0, 0, 0, 0));
-			N_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 8, Color(0, 0, 0));
-			N_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 9, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
-			N_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 10, 0);
-			N_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 11, (_base->_opts->_text_family.value->pool()->getFFID()));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 0);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 1);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 2);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextOverflow, text_overflow, 3);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWhiteSpace, text_white_space, 4);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWordBreak, text_word_break, 5);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_size, 6, 16);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_background_color, 7, Color(0, 0, 0, 0));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 8, Color(0, 0, 0));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 9, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 10, 0);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 11, (_base->_opts->_text_family.value->pool()->getFFID()));
 		}
 	}
 

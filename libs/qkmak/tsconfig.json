@@ -1,0 +1,34 @@
+{
+	"compileOnSave": true,
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "ES2018",
+		"moduleResolution": "node",
+		"sourceMap": false,
+		"outDir": "out/qkmake",
+		"rootDir": ".",
+		"baseUrl": ".",
+		"declaration": true,
+		"alwaysStrict": true,
+		"allowJs": true,
+		"checkJs": false,
+		"strict": true,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": false,
+		"emitDecoratorMetadata": false,
+		"experimentalDecorators": true,
+	},
+	"include": [
+		"**/*",
+	],
+	"exclude": [
+		"out",
+		"node_modules",
+		"var",
+		".git",
+		".svn",
+		"_.js",
+	]
+}

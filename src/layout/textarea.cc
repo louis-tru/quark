@@ -32,7 +32,7 @@
 #include "../display.h"
 #include "../app.inl"
 
-namespace noug {
+namespace quark {
 
 	Textarea::Textarea(): Input(), BaseScroll(this) {
 	}

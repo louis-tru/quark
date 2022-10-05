@@ -39,7 +39,7 @@
 #include <http_parser.h>
 #include <zlib.h>
 
-namespace noug {
+namespace quark {
 
 	typedef HttpClientRequest::Delegate HttpDelegate;
 
@@ -52,9 +52,9 @@ namespace noug {
 	static cString string_max_age("max-age=");
 	static cString content_type_form("application/x-www-form-urlencoded; Charset=utf-8");
 	static cString content_type_multipart_form("multipart/form-data; "
-																									"boundary=----NougFormBoundaryrGKCBY7qhFd3TrwA");
-	static cString multipart_boundary_start("------NougFormBoundaryrGKCBY7qhFd3TrwA\r\n");
-	static cString multipart_boundary_end  ("------NougFormBoundaryrGKCBY7qhFd3TrwA--");
+																									"boundary=----QuarkFormBoundaryrGKCBY7qhFd3TrwA");
+	static cString multipart_boundary_start("------QuarkFormBoundaryrGKCBY7qhFd3TrwA\r\n");
+	static cString multipart_boundary_end  ("------QuarkFormBoundaryrGKCBY7qhFd3TrwA--");
 
 	#define MAX_CONNECT_COUNT (5)
 	#define BUFFER_SIZE (65536)
@@ -120,10 +120,10 @@ namespace noug {
 		{}
 		
 		virtual ~Inl() {
-			N_Assert(!_sending);
-			N_Assert(!_connect);
-			N_Assert(!_cache_reader);
-			N_Assert(!_file_writer);
+			Qk_Assert(!_sending);
+			Qk_Assert(!_connect);
+			Qk_Assert(!_cache_reader);
+			Qk_Assert(!_file_writer);
 			Release(_keep); _keep = nullptr;
 		}
 		
@@ -144,7 +144,7 @@ namespace noug {
 				Release(_host);
 			}
 			void release() {
-				N_Assert(_host);
+				Qk_Assert(_host);
 				_host->_sending = nullptr;
 				delete this;
 			}
@@ -190,7 +190,7 @@ namespace noug {
 					_socket = new Socket(hostname, port, loop);
 				}
 				
-				N_Assert(_socket);
+				Qk_Assert(_socket);
 				_socket->set_delegate(this);
 				
 				_parser.data = this;
@@ -205,7 +205,7 @@ namespace noug {
 			}
 			
 			~Connect() {
-				N_Assert( _id == ConnectID() );
+				Qk_Assert( _id == ConnectID() );
 				Release(_socket);     _socket = nullptr;
 				Release(_upload_file);_upload_file = nullptr;
 			}
@@ -213,8 +213,8 @@ namespace noug {
 			inline RunLoop* loop() { return _loop; }
 			
 			void bind_client_and_send(Client* client) {
-				N_Assert(client);
-				N_Assert(!_client);
+				Qk_Assert(client);
+				Qk_Assert(!_client);
 				
 				_client = client;
 				_socket->set_timeout(_client->_timeout); // set timeout
@@ -244,8 +244,8 @@ namespace noug {
 				if (status_code == 200) {
 					self->_client->_write_cache_flag = 2; // set write cache flag
 				}
-				N_Assert(status_code == parser->status_code);
-				// N_LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
+				Qk_Assert(status_code == parser->status_code);
+				// Qk_LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
 				self->_client->_status_code = status_code;
 				self->_client->_http_response_version =
 					String(parser->http_major) + '.' + parser->http_minor;
@@ -334,7 +334,7 @@ namespace noug {
 				if ( self->_z_gzip ) {
 					int r = self->gzip_inflate(at, uint32_t(length), buff);
 					if (r < 0) {
-						N_ERR("un gzip err, %d", r);
+						Qk_ERR("un gzip err, %d", r);
 					}
 				} else {
 					buff = WeakBuffer(at, uint32_t(length)).copy();
@@ -406,7 +406,7 @@ namespace noug {
 					
 					if ( _client->_post_data.length() ) { // ignore form data
 						if ( _client->_post_form_data.length() ) {
-							N_WARN("Ignore form data");
+							Qk_WARN("Ignore form data");
 						}
 						_client->_upload_total = _client->_post_data.length();
 						header["Content-Length"] = _client->_upload_total;
@@ -569,28 +569,28 @@ namespace noug {
 			}
 			
 			virtual void trigger_file_open(File* file) {
-				N_Assert( _is_multipart_form_data );
+				Qk_Assert( _is_multipart_form_data );
 				send_multipart_form_data();
 			}
 			
 			virtual void trigger_file_close(File* file) {
-				N_Assert( _is_multipart_form_data );
+				Qk_Assert( _is_multipart_form_data );
 				Error err(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown");
 				_client->report_error_and_abort(err);
 			}
 			
 			virtual void trigger_file_error(File* file, cError& error) {
-				N_Assert( _is_multipart_form_data );
+				Qk_Assert( _is_multipart_form_data );
 				_client->report_error_and_abort(error);
 			}
 			
 			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
-				N_Assert( _is_multipart_form_data );
+				Qk_Assert( _is_multipart_form_data );
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
 				} else {
-					N_Assert(_multipart_form_data.length());
-					N_Assert(_upload_file);
+					Qk_Assert(_multipart_form_data.length());
+					Qk_Assert(_upload_file);
 					_socket->write(string_header_end.copy().collapse()); // \r\n
 					_upload_file->release(); // release file
 					_upload_file = nullptr;
@@ -604,10 +604,10 @@ namespace noug {
 			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {}
 			
 			void send_multipart_form_data() {
-				N_Assert( _multipart_form_buffer.length() == BUFFER_SIZE );
+				Qk_Assert( _multipart_form_buffer.length() == BUFFER_SIZE );
 				
 				if ( _upload_file ) { // upload file
-					N_Assert( _upload_file->is_open() );
+					Qk_Assert( _upload_file->is_open() );
 					_upload_file->read(_multipart_form_buffer);
 				}
 				else if ( _multipart_form_data.length() ) {
@@ -701,10 +701,10 @@ namespace noug {
 			}
 			
 			void get_connect(Client* client, Cb cb) {
-				N_Assert(client);
-				N_Assert(!client->_uri.is_null());
-				N_Assert(!client->_uri.hostname().is_empty());
-				N_Assert(client->_uri.type() == URI_HTTP || client->_uri.type() == URI_HTTPS);
+				Qk_Assert(client);
+				Qk_Assert(!client->_uri.is_null());
+				Qk_Assert(!client->_uri.hostname().is_empty());
+				Qk_Assert(client->_uri.type() == URI_HTTP || client->_uri.type() == URI_HTTPS);
 				
 				uint16_t  port = client->_uri.port();
 				if (!port) {
@@ -762,7 +762,7 @@ namespace noug {
 					}
 				}
 				
-				N_Assert(connect_count <= MAX_CONNECT_COUNT);
+				Qk_Assert(connect_count <= MAX_CONNECT_COUNT);
 				
 				if (!conn) {
 					if (connect_count == MAX_CONNECT_COUNT) {
@@ -800,7 +800,7 @@ namespace noug {
 					connect->release();
 				} else {
 					if ( connect->_use ) {
-						N_Assert( connect->_id != ConnectID() );
+						Qk_Assert( connect->_id != ConnectID() );
 						connect->_use = false;
 						connect->_client = nullptr;
 						connect->socket()->set_timeout(0);
@@ -849,7 +849,7 @@ namespace noug {
 				, _client(client)
 				, _parse_header(true), _offset(0), _size(size)
 			{
-				N_Assert(!_client->_cache_reader);
+				Qk_Assert(!_client->_cache_reader);
 				_client->_cache_reader = this;
 				set_delegate(this);
 				open();
@@ -910,11 +910,11 @@ namespace noug {
 									int64_t expires = parse_time(_header["expires"]);
 									if ( expires > time_micro() ) {
 										_client->trigger_http_readystate_change(HTTP_READY_STATE_RESPONSE);
-										_client->_download_total = N_MAX(_size - _offset, 0);
+										_client->_download_total = Qk_MAX(_size - _offset, 0);
 										_client->trigger_http_header(200, std::move(_header), true);
 										read_advance();
 									} else {
-										// N_LOG("Read -- %ld, %ld, %s", expires, sys::time(), *_header.get("expires"));
+										// Qk_LOG("Read -- %ld, %ld, %s", expires, sys::time(), *_header.get("expires"));
 										if (parse_time(_header["last-modified"]) > 0 ||
 												!_header["etag"].is_empty()
 										) {
@@ -928,7 +928,7 @@ namespace noug {
 								} else {
 									int k = str.index_of(s2, i);
 									if ( k != -1 && k - i > 1 && j - k > 2 ) {
-										// N_LOG("  %s:-> %s", str.substring(i, k).lower_case().c(), str.substring(k + 2, j).c());
+										// Qk_LOG("  %s:-> %s", str.substring(i, k).lower_case().c(), str.substring(k + 2, j).c());
 										_header[str.substring(i, k).lower_case()] = str.substring(k + 2, j);
 									}
 								}
@@ -952,7 +952,7 @@ namespace noug {
 				} else {
 					// read cache
 					_read_count--;
-					N_Assert(_read_count == 0);
+					Qk_Assert(_read_count == 0);
 					
 					if ( buffer.length() ) {
 						_offset += buffer.length();
@@ -1033,18 +1033,18 @@ namespace noug {
 				// flag = 1 only write header
 				// flag = 2 write header and body
 
-				N_Assert(!_client->_file_writer);
+				Qk_Assert(!_client->_file_writer);
 				_client->_file_writer = this;
 
-				// N_LOG("FileWriter _write_flag -- %i, %s", _write_flag, *path);
+				// Qk_LOG("FileWriter _write_flag -- %i, %s", _write_flag, *path);
 				
 				if ( _write_flag ) { // verification cache is valid
 					auto r_header = _client->response_header();
-					N_Assert(r_header.length());
+					Qk_Assert(r_header.length());
 
 					if ( r_header.has("cache-control") ) {
 						String expires = convert_to_expires(r_header["cache-control"]);
-						// N_LOG("FileWriter -- %s", *expires);
+						// Qk_LOG("FileWriter -- %s", *expires);
 						if ( !expires.is_empty() ) {
 							r_header["expires"] = expires;
 						}
@@ -1132,7 +1132,7 @@ namespace noug {
 				} else {
 					_client->trigger_http_data2(buffer);
 					_write_count--;
-					N_Assert(_write_count >= 0);
+					Qk_Assert(_write_count >= 0);
 				 advance:
 					if ( _write_count == 0 ) {
 						if ( _completed_end ) { // http已经结束
@@ -1187,7 +1187,7 @@ namespace noug {
 		}
 		
 		void read_advance() {
-			Reader* r = reader(); N_Assert(r);
+			Reader* r = reader(); Qk_Assert(r);
 			if ( _pause ) {
 				r->read_pause();
 			} else {
@@ -1196,7 +1196,7 @@ namespace noug {
 		}
 
 		void read_pause() {
-			Reader* r = reader(); N_Assert(r);
+			Reader* r = reader(); Qk_Assert(r);
 			r->read_pause();
 		}
 		
@@ -1263,8 +1263,8 @@ namespace noug {
 		void http_response_complete(bool fromCache) {
 
 			if (!fromCache) {
-				N_Assert(_pool_ptr);
-				N_Assert(_connect);
+				Qk_Assert(_pool_ptr);
+				Qk_Assert(_connect);
 				_pool_ptr->release(_connect, false);
 				_connect = nullptr;
 
@@ -1284,7 +1284,7 @@ namespace noug {
 						_cache_reader->read_advance();
 						return;
 					} else {
-						N_ERR("http response status code error, %d", _status_code);
+						Qk_ERR("http response status code error, %d", _status_code);
 					}
 				}
 			}
@@ -1311,15 +1311,15 @@ namespace noug {
 		}
 
 		void send_http() {
-			N_Assert(_sending);
-			N_Assert(!_connect);
-			N_Assert(_pool_ptr);
+			Qk_Assert(_sending);
+			Qk_Assert(!_connect);
+			Qk_Assert(_pool_ptr);
 			_pool_ptr->get_connect(this, Cb([this](CbData& evt) {
 				if ( _wait_connect_id ) {
 					if ( evt.error ) {
 						report_error_and_abort(*evt.error);
 					} else {
-						N_Assert( !_connect );
+						Qk_Assert( !_connect );
 						_connect = static_cast<Connect*>(evt.data);
 						_connect->bind_client_and_send(this);
 					}
@@ -1349,7 +1349,7 @@ namespace noug {
 			if ( _sending && !_sending->_ending ) {
 				_sending->_ending = true;
 				
-				N_Assert(_pool_ptr);
+				Qk_Assert(_pool_ptr);
 				
 				Release(_cache_reader); _cache_reader = nullptr;
 				Release(_file_writer);  _file_writer = nullptr;
@@ -1364,7 +1364,7 @@ namespace noug {
 					if (state == _ready_state)
 						_ready_state = HTTP_READY_STATE_INITIAL;
 				} else {
-					N_Assert(_sending);
+					Qk_Assert(_sending);
 					_ready_state = HTTP_READY_STATE_COMPLETED;
 					_delegate->trigger_http_readystate_change(_host);
 					_sending->release();
@@ -1379,9 +1379,9 @@ namespace noug {
 		// public api
 		
 		void send(Buffer data) throw(Error) {
-			N_CHECK(!_sending, ERR_REPEAT_CALL, "Sending repeat call");
-			N_CHECK( !_uri.is_null(), ERR_INVALID_FILE_PATH, "Invalid path" );
-			N_CHECK(_uri.type() == URI_HTTP ||
+			Qk_CHECK(!_sending, ERR_REPEAT_CALL, "Sending repeat call");
+			Qk_CHECK( !_uri.is_null(), ERR_INVALID_FILE_PATH, "Invalid path" );
+			Qk_CHECK(_uri.type() == URI_HTTP ||
 							_uri.type() == URI_HTTPS, ERR_INVALID_FILE_PATH, "Invalid path `%s`", *_uri.href());
 			_post_data = data;
 			
@@ -1419,7 +1419,7 @@ namespace noug {
 		}
 		
 		void check_is_can_modify() throw(Error) {
-			N_CHECK(!_sending, ERR_SENDIF_CANNOT_MODIFY,
+			Qk_CHECK(!_sending, ERR_SENDIF_CANNOT_MODIFY,
 								"Http request sending cannot modify property");
 		}
 		
@@ -1485,7 +1485,7 @@ namespace noug {
 	}
 
 	HttpClientRequest::~HttpClientRequest() {
-		N_Assert(_inl->_keep->host() == RunLoop::current());
+		Qk_Assert(_inl->_keep->host() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		_inl->abort();
 		_inl->release();
@@ -1562,7 +1562,7 @@ namespace noug {
 
 	void HttpClientRequest::set_form(cString& form_name, cString& value) throw(Error) {
 		_inl->check_is_can_modify();
-		N_CHECK( value.length() <= BUFFER_SIZE,
+		Qk_CHECK( value.length() <= BUFFER_SIZE,
 							ERR_HTTP_FORM_SIZE_LIMIT, "Http form field size limit <= %d", BUFFER_SIZE);
 		_inl->_post_form_data[form_name] = {
 			FORM_TYPE_TEXT, value, inl__uri_encode(form_name)

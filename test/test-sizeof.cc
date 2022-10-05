@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "noug/os/os.h"
+#include "quark/os/os.h"
 
-using namespace noug;
+using namespace quark;
 
 class TestSizeOf {
  private:
@@ -50,9 +50,9 @@ void test_sizeof(int argc, char **argv) {
 	
 	TestSizeOfPtr of = TestSizeOfPtr();
 
-	N_Assert(!of);
+	Qk_Assert(!of);
 	
-	N_LOG("TestSizeOf: %d", sizeof(TestSizeOf));
+	Qk_LOG("TestSizeOf: %d", sizeof(TestSizeOf));
 }
 
 

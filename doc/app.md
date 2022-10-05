@@ -1,4 +1,4 @@
-# `noug/app`
+# `quark/app`
 
 
 ## `Class: Application`
@@ -20,8 +20,8 @@
 Example:
 
 ```jsx
-import Application from 'noug/app'
-import Root from 'noug'
+import Application from 'quark/app'
+import Root from 'quark'
 
 var opts = { anisotropic: true, mipmap: true, multisample: 2 };
 
@@ -211,6 +211,6 @@ new Application(opts).start(<Root>Hello</Root>).onLoad = function () {
 [`TextOverflow`]: value.md#class-textoverflow
 [`TextWhiteSpace`]: value.md#class-textwhitespace
 [`Display`]: display_port.md#class-displayport
-[`Root`]: noug.md#class-root
-[`View`]: noug.md#class-view
+[`Root`]: quark.md#class-root
+[`View`]: quark.md#class-view
 [`clear()`]: app.md#guiapplication-clear
