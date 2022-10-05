@@ -20,3 +20,4 @@ bench/**.js
 libs/test
 deps/bplus
 src/render/font.bk
+deps/glyphy*
