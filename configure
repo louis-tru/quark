@@ -13,7 +13,8 @@ if [ "`which tsc`" = "" ]; then
 fi
 
 if   [ ! -d libs/somes ] \
-	|| [ ! -d libs/qkmake/gyp ] \
+	|| [ ! -d libs/quark ] \
+	|| [ ! -d libs/qkmake ] \
 	|| [ ! -d deps/v8-link ] \
 	|| [ ! -d deps/ffmpeg ] \
 	|| [ ! -d deps/node ] \
