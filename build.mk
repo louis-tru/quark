@@ -15,9 +15,9 @@ ANDROID_JAR    = out/android.classs.quark.jar
 JAVAC         ?= javac
 JAR            = jar
 ENV           ?=
-FPROJ          = ./libs/noproj
-FPROJ_OUT      = out/noproj
-GYP            = $(FPROJ)/gyp/gyp
+QKMAKE         = ./libs/qkmake
+QKMAKE_OUT     = out/qkmake
+GYP            = $(QKMAKE)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
 LIBS_DIR       = out/$(OUTPUT)
 BUILD_STYLE   ?= make
@@ -72,8 +72,8 @@ $(ANDROID_JAR): android/org/quark/*.java
 	@rm -rf out/android.classs/*
 	$(JAVAC) -classpath $(ANDROID_LIB) -d out/android.classs android/org/quark/*.java
 	@cd out/android.classs; $(JAR) cfv quark.jar .
-	@mkdir -p $(FPROJ_OUT)/product/android/libs
-	@cp out/android.classs/quark.jar $(FPROJ_OUT)/product/android/libs
+	@mkdir -p $(QKMAKE_OUT)/product/android/libs
+	@cp out/android.classs/quark.jar $(QKMAKE_OUT)/product/android/libs
 
 clean:
 	@rm -rfv $(LIBS_DIR)
