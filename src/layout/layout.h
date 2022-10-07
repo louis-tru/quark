@@ -32,7 +32,7 @@
 #define __quark__layout__layout__
 
 #include "../util/object.h"
-#include "../value.h"
+#include "../types.h"
 
 namespace quark {
 

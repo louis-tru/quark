@@ -34,7 +34,7 @@
 #include "./util/util.h"
 #include "./util/event.h"
 #include "./math.h"
-#include "./value.h"
+#include "./types.h"
 #include "./util/cb.h"
 #include "./util/loop.h"
 

@@ -31,7 +31,7 @@
 #ifndef __quark__effect__
 #define __quark__effect__
 
-#include "./value.h"
+#include "./types.h"
 #include "./render/source.h"
 #include "./util/handle.h"
 #include "./util/array.h"

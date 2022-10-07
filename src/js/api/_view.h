@@ -32,7 +32,7 @@
 #define __quark__js__api__view__
 
 #include "../js.h"
-#include "../value.h"
+#include "../types.h"
 #include "../../app.h"
 
 /**

@@ -33,7 +33,7 @@
 #define __ftr__render__scaner__
 
 #include "../util/util.h"
-#include "../value.h"
+#include "../types.h"
 #include "./path.h"
 
 namespace quark {

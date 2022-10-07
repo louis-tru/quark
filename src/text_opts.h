@@ -31,7 +31,7 @@
 #ifndef __quark__text_opts__
 #define __quark__text_opts__
 
-#include "./value.h"
+#include "./types.h"
 
 namespace quark {
 

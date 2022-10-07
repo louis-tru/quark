@@ -28,20 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./font.h"
+#include "./familys.h"
 #include "./pool.h"
-#include <skia/core/SkFont.h>
-#include <skia/core/SkTypeface.h>
-#include <skia/core/SkFontMetrics.h>
-#include <skia/core/SkFontTypes.h>
 
 namespace quark {
-
-	template<> uint64_t Compare<FontStyle>::hash_code(const FontStyle& key) {
-		return key.value();
-	}
-
-	// --------------------- F o n t . F a m i l y s ---------------------
 
 	FontFamilys::FontFamilys(FontPool* pool, Array<String>& familys)
 		: _pool(pool), _familys(std::move(familys))
@@ -131,50 +121,6 @@ namespace quark {
 		} else {
 			return Array<FontGlyphs>();
 		}
-	}
-
-	// --------------------- F o n t . G l y p h s ---------------------
-	
-	inline const SkFont* CastSkFont(const FontGlyphs* fg) {
-		return reinterpret_cast<const SkFont*>(reinterpret_cast<const Array<GlyphID>*>(fg) + 1);
-	}
-
-	FontGlyphs::FontGlyphs(const Typeface& typeface, float fontSize, const GlyphID glyphs[], uint32_t count)
-		: _typeface( *((void**)(&typeface)) )
-		, _fontSize(fontSize)
-		, _scaleX(1)
-		, _skewX(0)
-		, _flags(1 << 5)
-		, _edging(static_cast<unsigned>(SkFont::Edging::kAntiAlias))
-		, _hinting(static_cast<unsigned>(SkFontHinting::kNormal))
-	{
-		_glyphs.write(glyphs, 0, count);
-		_glyphs.realloc(count + 1);
-		(*_glyphs)[count] = 0;
-	}
-
-	Array<float> FontGlyphs::get_offset() {
-		auto font = CastSkFont(this);
-		auto len = _glyphs.length() + 1;
-		Array<float> offset(len);
-		font->getXPos(*_glyphs, len, *offset);
-		return offset;
-	}
-	
-	const Typeface& FontGlyphs::typeface() const {
-		return *((const Typeface*)&_typeface);
-	}
-
-	float FontGlyphs::get_metrics(FontMetrics* metrics) const {
-		return CastSkFont(this)->getMetrics( (SkFontMetrics*)metrics );
-	}
-
-	float FontGlyphs::get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize) {
-		return FontGlyphs(FFID->match(style)[0], fontSize, nullptr, 0).get_metrics(metrics);
-	}
-
-	float FontGlyphs::get_metrics(FontMetrics* metrics, const Typeface& typeface, float fontSize) {
-		return FontGlyphs(typeface, fontSize, nullptr, 0).get_metrics(metrics);
 	}
 
 }

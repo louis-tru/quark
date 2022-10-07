@@ -31,7 +31,7 @@
 #include "./str.h"
 #include "./_js.h"
 #include "./api/_view.h"
-#include "./value.h"
+#include "./types.h"
 #include "../font/font.h"
 #include "../draw.h"
 #include <native-inl-js.h>

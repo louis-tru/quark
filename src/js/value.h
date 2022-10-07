@@ -32,7 +32,7 @@
 #define __quark__js__value__
 
 #include "./js.h"
-#include "../value.h"
+#include "../types.h"
 #include "../math/bezier.h"
 #include "../background.h"
 

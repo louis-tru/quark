@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__value__
-#define __quark__value__
+#ifndef __quark__types__
+#define __quark__types__
 
 #include "./util/util.h"
 #include "./math.h"

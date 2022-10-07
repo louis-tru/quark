@@ -34,7 +34,7 @@
 #include "../util/util.h"
 #include "../util/string.h"
 #include "../property.h"
-#include "../value.h"
+#include "../types.h"
 #include "../action/action.h"
 #include "../action/keyframe.h"
 #include "../util/dict.h"

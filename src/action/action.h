@@ -31,7 +31,7 @@
 #ifndef __quark__action__action__
 #define __quark__action__action__
 
-#include "../value.h"
+#include "../types.h"
 #include "../bezier.h"
 #include "../event.h"
 #include "../property.h"

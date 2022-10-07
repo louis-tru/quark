@@ -35,7 +35,7 @@
 #include "../../action/action.h"
 #include "../../css/css.h"
 #include "../../views2/button.h"
-#include "../value.h"
+#include "../types.h"
 
 /**
  * @ns quark::js

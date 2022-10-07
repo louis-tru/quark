@@ -33,7 +33,7 @@
 
 #include "../../util/numbers.h"
 #include "../../util/dict.h"
-#include "../../value.h"
+#include "../../types.h"
 
 namespace quark {
 

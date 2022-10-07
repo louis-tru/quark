@@ -36,7 +36,7 @@
 #include "../views2/view.h"
 #include "../errno.h"
 #include "./_js.h"
-#include "./value.h"
+#include "./types.h"
 #include <native-inl-js.h>
 #include <uv.h>
 #include <deps/node/src/quark.h>

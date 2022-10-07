@@ -28,29 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__font__font__
-#define __quark__font__font__
+#ifndef __quark__font__glphs__
+#define __quark__font__glphs__
 
 #include "./typeface.h"
 #include "./style.h"
 #include "./metrics.h"
 
 namespace quark {
-
-	class FontGlyphs;
-
-	class Qk_EXPORT FontFamilys {
-	public:
-		FontFamilys(FontPool* pool, Array<String>& familys);
-		Qk_Define_Prop_Acc_Get(const Array<String>&, familys);
-		Qk_Define_Prop_Get(FontPool*, pool);
-		const Array<Typeface>& match(FontStyle style);
-		Array<FontGlyphs> makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize);
-	private:
-		Array<String> _familys;
-		Dict<FontStyle, Array<Typeface>> _fts;
-		friend class FontPool;
-	};
 
 	class Qk_EXPORT FontGlyphs {
 	public:

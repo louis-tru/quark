@@ -31,8 +31,8 @@
 #ifndef __quark__font__pool__
 #define __quark__font__pool__
 
-#include "../../value.h"
-#include "./font.h"
+#include "../../types.h"
+#include "./familys.h"
 
 namespace quark {
 

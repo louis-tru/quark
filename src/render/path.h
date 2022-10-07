@@ -31,7 +31,7 @@
 #ifndef __quark__render__path__
 #define __quark__render__path__
 
-#include "../value.h"
+#include "../types.h"
 #include "../bezier.h"
 #include "../util/array.h"
 

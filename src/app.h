@@ -35,7 +35,7 @@
 #include "./util/event.h"
 #include "./util/loop.h"
 #include "./util/json.h"
-#include "./value.h"
+#include "./types.h"
 
 #define Qk_Main() \
 	int __f_main__(int, Char**); \
@@ -54,7 +54,7 @@ namespace quark {
 	class ActionDirect;
 	class DefaultTextOptions;
 	class FontPool;
-	class ImagePool;
+	class ImageSourcePool;
 
 	/*
 	* 关于UI中的事件:
@@ -126,7 +126,7 @@ namespace quark {
 		Qk_Define_Prop_Get(PreRender*, pre_render); // 预渲染器
 		Qk_Define_Prop_Get(Render*, render); // 渲染器
 		Qk_Define_Prop_Get(FontPool*, font_pool); // 字体管理器
-		Qk_Define_Prop_Get(ImagePool*, img_pool); // 图片加载器
+		Qk_Define_Prop_Get(ImageSourcePool*, img_pool); // 图片加载器
 
 		/**
 		* @func clear 清理垃圾回收内存资源, all=true 清理全部资源

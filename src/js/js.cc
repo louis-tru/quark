@@ -35,7 +35,7 @@
 #include "./quark.h"
 #include "../util/http.h"
 #include "../util/codec.h"
-#include "./value.h"
+#include "./types.h"
 
 /**
  * @ns quark::js

@@ -33,10 +33,9 @@
 
 #include "../util/util.h"
 #include "../util/string.h"
-#include "../util/array.h"
 #include "../util/event.h"
-#include "../util/loop.h"
 #include "./pixel.h"
+#include "../util/loop.h"
 
 namespace quark {
 
@@ -129,69 +128,6 @@ namespace quark {
 		Buffer   _loaded;
 		uint32_t _load_id, _size, _used;
 		void *_inl;
-		Qk_DEFINE_INLINE_CLASS(Inl);
-	};
-
-	/**
-	* @class SourceHold
-	*/
-	class Qk_EXPORT SourceHold {
-	public:
-		~SourceHold();
-		Qk_Define_Prop_Acc(String, src);
-		Qk_Define_Prop_Acc(ImageSource*, source, NoConst);
-	private:
-		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
-		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);
-		Handle<ImageSource> _imageSource;
-	};
-
-	/**
-	* @class ImagePool
-	*/
-	class Qk_EXPORT ImagePool: public Object {
-		Qk_HIDDEN_ALL_COPY(ImagePool);
-	public:
-		
-		/**
-		 * @constructor
-		 */
-		ImagePool(Application* host);
-		
-		/**
-		 * @destructor
-		 */
-		virtual ~ImagePool();
-
-		/**
-		 * @func total_data_size() returns the data memory size total
-		 */
-		uint64_t total_data_size() const { return _total_data_size; }
-
-		/**
-		 * @func get(uri) get image source by uri
-		 */
-		ImageSource* get(cString& uri);
-
-		/**
-		 * @func remove(id) remove image source member
-		 */
-		void remove(cString& uri);
-
-		/**
-			* @func clear(full?: bool) clear memory
-			*/
-		void clear(bool full = false);
-		
-	private:
-		struct Member {
-			uint32_t size;
-			Handle<ImageSource> source;
-		};
-		Dict<uint64_t, Member> _sources;
-		uint64_t _total_data_size; /* 当前数据占用memory总容量 */
-		Mutex _Mutex;
-		Application* _host;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 

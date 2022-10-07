@@ -37,7 +37,7 @@ namespace quark {
 
 	struct FontMetrics {
 
-		/** \enum FontMetricsFlags
+		/** @enum FontMetricsFlags
 		 FontMetricsFlags indicate when certain metrics are valid;
 			the underline or strikeout metrics may be valid and zero.
 			Fonts with embedded bitmaps may not have valid underline or strikeout metrics.

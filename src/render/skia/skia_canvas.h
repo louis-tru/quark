@@ -45,7 +45,7 @@
 #endif
 
 #include "../../math.h"
-#include "../../value.h"
+#include "../../types.h"
 #include "../source.h"
 #include "../pixel.h"
 #include <skia/core/SkCanvas.h>

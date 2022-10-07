@@ -32,7 +32,7 @@
 #define __quark__text_input__
 
 #include "./keyboard.h"
-#include "./value.h"
+#include "./types.h"
 
 namespace quark {
 
