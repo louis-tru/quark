@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 
-#include "include/core/SkRefCnt.h"
+#include "./SkRefCnt.h"
 
 class SkStream;
 

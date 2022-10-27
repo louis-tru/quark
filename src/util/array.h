@@ -267,7 +267,7 @@ namespace quark {
 	};
 
 	/**
-	 * @class WeakArrayBuffer
+	 * @class ArrayWeak
 	 */
 	template<typename T, typename A>
 	class Qk_EXPORT ArrayWeak: public ArrayBuffer<T, A> {

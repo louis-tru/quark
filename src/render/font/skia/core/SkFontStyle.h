@@ -8,8 +8,9 @@
 #ifndef SkFontStyle_DEFINED
 #define SkFontStyle_DEFINED
 
-#include "include/core/SkTypes.h"
-#include "include/private/SkTPin.h"
+#include "SkTypes.h"
+// #include "include/private/SkTPin.h"
+#include "../../util/numbers.h"
 
 class SK_API SkFontStyle {
 public:
@@ -46,9 +47,9 @@ public:
     };
 
     constexpr SkFontStyle(int weight, int width, Slant slant) : fValue(
-        (SkTPin<int>(weight, kInvisible_Weight, kExtraBlack_Weight)) +
-        (SkTPin<int>(width, kUltraCondensed_Width, kUltraExpanded_Width) << 16) +
-        (SkTPin<int>(slant, kUpright_Slant, kOblique_Slant) << 24)
+        (quark::Int32::limit(weight, kInvisible_Weight, kExtraBlack_Weight)) +
+        (quark::Int32::limit(width, kUltraCondensed_Width, kUltraExpanded_Width) << 16) +
+        (quark::Int32::limit(slant, kUpright_Slant, kOblique_Slant) << 24)
      ) { }
 
     constexpr SkFontStyle() : SkFontStyle{kNormal_Weight, kNormal_Width, kUpright_Slant} { }

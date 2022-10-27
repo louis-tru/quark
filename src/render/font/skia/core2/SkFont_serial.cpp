@@ -5,9 +5,9 @@
  * found in the LICENSE file.
  */
 
-#include "include/core/SkTypeface.h"
-#include "include/private/SkTo.h"
-#include "src/core/SkFontPriv.h"
+#include "SkTypeface.h"
+// #include "../private/SkTo.h"
+#include "SkFontPriv.h"
 // #include "src/core/SkReadBuffer.h"
 // #include "src/core/SkWriteBuffer.h"
 

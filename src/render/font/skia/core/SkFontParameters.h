@@ -8,19 +8,20 @@
 #ifndef SkFontParameters_DEFINED
 #define SkFontParameters_DEFINED
 
-#include "include/core/SkScalar.h"
-#include "include/core/SkTypes.h"
+// #include "include/core/SkScalar.h"
+// #include "SkTypes.h"
 
 struct SkFontParameters {
     struct Variation {
         // Parameters in a variation font axis.
         struct Axis {
             constexpr Axis() : tag(0), min(0), def(0), max(0), flags(0) {}
-            constexpr Axis(SkFourByteTag tag, float min, float def, float max, bool hidden) :
+            constexpr Axis(uint32_t tag, float min, float def, float max, bool hidden) :
                 tag(tag), min(min), def(def), max(max), flags(hidden ? HIDDEN : 0) {}
 
             // Four character identifier of the font axis (weight, width, slant, italic...).
-            SkFourByteTag tag;
+            //SkFourByteTag tag;
+            uint32_t tag;
             // Minimum value supported by this axis.
             float min;
             // Default value set by this axis.

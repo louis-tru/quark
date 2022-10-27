@@ -8,14 +8,15 @@
 #ifndef SkFontArguments_DEFINED
 #define SkFontArguments_DEFINED
 
-#include "include/core/SkScalar.h"
-#include "include/core/SkTypes.h"
+// #include "SkScalar.h"
+// #include "SkTypes.h"
 
 /** Represents a set of actual arguments for a font. */
 struct SkFontArguments {
     struct VariationPosition {
         struct Coordinate {
-            SkFourByteTag axis;
+            // SkFourByteTag axis;
+            uint32_t axis;
             float value;
         };
         const Coordinate* coordinates;

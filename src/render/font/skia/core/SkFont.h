@@ -8,9 +8,9 @@
 #ifndef SkFont_DEFINED
 #define SkFont_DEFINED
 
-#include "include/core/SkFontTypes.h"
-#include "include/core/SkScalar.h"
-#include "include/core/SkTypeface.h"
+#include "SkFontTypes.h"
+// #include "SkScalar.h"
+#include "SkTypeface.h"
 
 #include <vector>
 

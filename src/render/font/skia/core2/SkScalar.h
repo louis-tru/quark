@@ -8,7 +8,7 @@
 #ifndef SkScalar_DEFINED
 #define SkScalar_DEFINED
 
-#include "include/private/SkFloatingPoint.h"
+#include "SkFloatingPoint.h""
 
 #undef SK_SCALAR_IS_FLOAT
 #define SK_SCALAR_IS_FLOAT  1

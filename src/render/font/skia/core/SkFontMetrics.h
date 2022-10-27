@@ -8,7 +8,9 @@
 #ifndef SkFontMetrics_DEFINED
 #define SkFontMetrics_DEFINED
 
-#include "include/core/SkScalar.h"
+// #include "SkScalar.h"
+
+#define SkScalar float
 
 /** \class SkFontMetrics
     The metrics of an SkFont.
