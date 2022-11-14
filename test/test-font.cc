@@ -102,7 +102,7 @@ void testFontPool(Application* app, SkCanvas* canvas) {
 	auto fontGlyphs = ffid->makeFontGlyphs({ /*32,*/ 65, 66, 26970, 23398, 25991 }, style, 16);
 
 	for (auto& fg: fontGlyphs) {
-		Qk_LOG("Family: %s, fontSize: %f", fg.typeface().getFamilyName().c_str(), fg.fontSize());
+		Qk_LOG("Family: %s, fontSize: %f", fg.typeface().getFamilyName().c_str(), fg.font().fontSize());
 
 		int i = 0;
 		auto gs = fg.glyphs();

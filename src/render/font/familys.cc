@@ -86,7 +86,7 @@ namespace quark {
 							tfs[ftIdx + 1].unicharsToGlyphs(unichars + idx, count, glyphs + idx);
 							make(unichars + idx, glyphs + idx, count, ftIdx + 1);
 						} else {
-							result.push(FontGlyphs(pool->last(), fontSize, glyphs + idx, count));
+							result.push(FontGlyphs(Font(pool->last(), fontSize), glyphs + idx, count));
 						}
 						prev_idx = i - 1;
 						prev_val = 0;
@@ -99,7 +99,7 @@ namespace quark {
 						b:
 						int idx = prev_idx + 1;
 						int count = i - idx;
-						result.push(FontGlyphs(tfs[ftIdx], fontSize, glyphs + idx, count));
+						result.push(FontGlyphs(Font(tfs[ftIdx], fontSize), glyphs + idx, count));
 						prev_idx = i - 1;
 						prev_val = 1;
 					}

@@ -48,8 +48,8 @@ namespace quark {
 		Qk_Define_Prop_Acc_Get(Array<String>, familys);
 		Qk_Define_Prop_Acc_Get(const Array<Typeface>&, second);
 		Qk_Define_Prop_Acc_Get(const Typeface&, last);
-		Qk_Define_Prop_Get(Application*, host);
 		Qk_Define_Prop_Get(GlyphID, last_65533);
+		Qk_Define_Prop_Get(Application*, host);
 		// methods
 		FFID getFFID(cString familys = String());
 		FFID getFFID(const Array<String>& familys);

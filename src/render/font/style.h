@@ -39,7 +39,6 @@ namespace quark {
 
 	class Qk_EXPORT FontStyle {
 	public:
-
 		constexpr FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
 			(Int32::limit(int(weight), int(TextWeight::INHERIT), int(TextWeight::ExtraBlack))) +
 			(Int32::limit(int(width), int(TextWidth::UltraCondensed), int(TextWidth::UltraExpanded)) << 16) +
@@ -52,8 +51,8 @@ namespace quark {
 			return _value == rhs._value;
 		}
 
-		int weight() const { return _value & 0xFFFF; }
-		int width() const { return (_value >> 16) & 0xFF; }
+		TextWeight weight() const { return TextWeight(_value & 0xFFFF); }
+		TextWidth width() const { return TextWidth((_value >> 16) & 0xFF); }
 		TextSlant slant() const { return TextSlant(((_value >> 24) & 0xFF) + 1); }
 		inline int32_t value() const { return _value; }
 

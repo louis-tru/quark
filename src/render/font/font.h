@@ -37,14 +37,9 @@
 
 namespace quark {
 
-	class Qk_EXPORT FontGlyphs {
+	class Qk_EXPORT Font {
 	public:
-		FontGlyphs(const Typeface& typeface, float fontSize, const GlyphID glyphs[] = nullptr, uint32_t count = 0);
-
-		/**
-		 * Returns the current typeface array object
-		*/
-		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
+		Font(const Typeface& typeface, float fontSize);
 
 		/**
 		 * Returns the current typeface
@@ -52,10 +47,10 @@ namespace quark {
 		const Typeface& typeface() const;
 
 		/**
-		 * Returns offset values for GlyphID
+		 * Returns offset values by GlyphIDs
 		 * @return array floar number
 		 */
-		Array<float> get_offset();
+		Array<float> get_offset(const GlyphID glyphs[], uint32_t count) const;
 
 		/**
 		 * @brief Returns Font Metrics associated with Typeface.
@@ -76,14 +71,43 @@ namespace quark {
 		static float get_metrics(FontMetrics* metrics, const Typeface& typeface, float fontSize);
 		
 	private:
-		Array<GlyphID> _glyphs;
-		void          *_typeface;
+		void *_typeface;
 	public:
 		Qk_Define_Prop(float, fontSize);
 		Qk_Define_Prop(float, scaleX);
 		Qk_Define_Prop(float, skewX);
 	private:
 		uint8_t _flags, _edging, _hinting, ___[5];
+	};
+
+	class Qk_EXPORT FontGlyphs {
+	public:
+		FontGlyphs(Font&& font, const GlyphID glyphs[], uint32_t count);
+		
+		/**
+		 * Returns the font object
+		*/
+		inline const Font& font() const { return _font; }
+		
+		/**
+		 * Returns the current typeface
+		*/
+		inline const Typeface& typeface() const { return _font.typeface(); }
+
+		/**
+		 * Returns the current typeface array object
+		*/
+		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
+
+		/**
+		 * Returns offset values for GlyphID
+		 * @return array floar number
+		 */
+		Array<float> get_offset() const;
+
+	private:
+		Font _font;
+		Array<GlyphID> _glyphs;
 	};
 
 }

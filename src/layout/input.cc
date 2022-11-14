@@ -625,7 +625,7 @@ namespace quark {
 		TextConfig cfg(this, pre_render()->host()->default_text_options());
 
 		FontMetrics metrics;
-		FontGlyphs::get_metrics(&metrics, text_family().value, font_style(), text_size().value);
+		Font::get_metrics(&metrics, text_family().value, font_style(), text_size().value);
 
 		_lines->set_metrics(&metrics, text_line_height().value);
 		_text_ascent = -metrics.fAscent;

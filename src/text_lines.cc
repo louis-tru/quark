@@ -35,7 +35,7 @@
 #include "./text_lines.h"
 #include "./text_opts.h"
 #include "./text_blob.h"
-#include "./render/font/font.h"
+#include "./render/font/familys.h"
 
 namespace quark {
 
@@ -194,7 +194,7 @@ namespace quark {
 
 	void TextLines::set_metrics(TextOptions *opts) {
 		FontMetrics metrics;
-		FontGlyphs::get_metrics(&metrics, opts->text_family().value, opts->font_style(), opts->text_size().value);
+		Font::get_metrics(&metrics, opts->text_family().value, opts->font_style(), opts->text_size().value);
 		set_metrics(&metrics, opts->text_line_height().value);
 	}
 
@@ -304,7 +304,7 @@ namespace quark {
 		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
 			auto tf = _opts->text_family().value->match(_opts->font_style())[0];
 			FontMetrics metrics;
-			FontGlyphs::get_metrics(&metrics, tf, _opts->text_size().value);
+			Font::get_metrics(&metrics, tf, _opts->text_size().value);
 			auto ascent = -metrics.fAscent;
 			auto descent = metrics.fDescent + metrics.fLeading;
 			auto height = ascent + descent;
@@ -336,7 +336,7 @@ namespace quark {
 		}
 
 		FontMetrics metrics;
-		FontGlyphs::get_metrics(&metrics, blob.typeface, blob.text_size);
+		Font::get_metrics(&metrics, blob.typeface, blob.text_size);
 
 		auto ascent = -metrics.fAscent;
 		auto descent = metrics.fDescent + metrics.fLeading;
