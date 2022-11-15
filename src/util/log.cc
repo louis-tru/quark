@@ -31,6 +31,7 @@
 #include "./log.h"
 #include "./error.h"
 #include "./codec.h"
+#include "./array.h"
 #include <stdio.h>
 #include <algorithm>
 
@@ -72,27 +73,27 @@ namespace quark {
 
 	static Console* _default_console = nullptr;
 
-	void Console::log(cString& str, cChar* feed) {
+	void Console::log(cChar* str, cChar* feed) {
 #if Qk_ANDROID
 			__android_log_print(ANDROID_LOG_INFO, "LOG ", "%s%s", str.c_str(), feed ? feed: "");
 #else
-			printf("%s%s", str.c_str(), feed ? feed: "");
+			printf("%s%s", str, feed ? feed: "");
 #endif
 	}
 
-	void Console::warn(cString& str, cChar* feed) {
+	void Console::warn(cChar* str, cChar* feed) {
 #if Qk_ANDROID
 			__android_log_print(ANDROID_LOG_WARN, "WARN", "%s%s", str.c_str(), feed ? feed: "");
 #else
-			printf("%s%s", str.c_str(), feed ? feed: "");
+			printf("%s%s", str, feed ? feed: "");
 #endif
 	}
 
-	void Console::error(cString& str, cChar* feed) {
+	void Console::error(cChar* str, cChar* feed) {
 #if Qk_ANDROID
 			__android_log_print(ANDROID_LOG_ERROR, "ERR ", "%s%s", str.c_str(), feed ? feed: "");
 #else
-			fprintf(f_stderr, "%s%s", str.c_str(), feed ? feed: "");
+			fprintf(f_stderr, "%s%s", str, feed ? feed: "");
 #endif
 	}
 
@@ -118,58 +119,58 @@ namespace quark {
 	namespace console {
 
 		void log(int8_t msg) {
-			Console::instance()->log( String::format("%u\n", msg) );
+			Console::instance()->log( String::format("%u\n", msg).c_str() );
 		}
 		
 		void log(uint8_t msg) {
-			Console::instance()->log( String::format("%u\n", msg) );
+			Console::instance()->log( String::format("%u\n", msg).c_str() );
 		}
 
 		void log(int16_t msg) {
-			Console::instance()->log( String::format("%d\n", msg) );
+			Console::instance()->log( String::format("%d\n", msg).c_str() );
 		}
 
 		void log(uint16_t  msg) {
-			Console::instance()->log( String::format("%u\n", msg) );
+			Console::instance()->log( String::format("%u\n", msg).c_str() );
 		}
 
 		void log(int32_t msg) {
-			Console::instance()->log( String::format("%d\n", msg) );
+			Console::instance()->log( String::format("%d\n", msg).c_str() );
 		}
 		
 		void log(uint32_t msg) {
-			Console::instance()->log( String::format("%u\n", msg) );
+			Console::instance()->log( String::format("%u\n", msg).c_str() );
 		}
 
 		void log(float msg) {
-			Console::instance()->log( String::format("%f\n", msg) );
+			Console::instance()->log( String::format("%f\n", msg).c_str() );
 		}
 
 		void log(double msg) {
-			Console::instance()->log( String::format("%lf\n", msg) );
+			Console::instance()->log( String::format("%lf\n", msg).c_str() );
 		}
 
 		void log(int64_t msg) {
 			#if Qk_ARCH_64BIT
-				Console::instance()->log( String::format("%ld\n", msg) );
+				Console::instance()->log( String::format("%ld\n", msg).c_str() );
 			#else
-				Console::instance()->log( String::format("%lld\n", msg) );
+				Console::instance()->log( String::format("%lld\n", msg).c_str() );
 			#endif
 		}
 
 		void log(uint64_t msg) {
 #if Qk_ARCH_64BIT
-				Console::instance()->log( String::format("%lu\n", msg) );
+				Console::instance()->log( String::format("%lu\n", msg).c_str() );
 #else
-				Console::instance()->log( String::format("%llu\n", msg) );
+				Console::instance()->log( String::format("%llu\n", msg).c_str() );
 #endif
 		}
 
 		void log(size_t msg) {
 #if Qk_ARCH_64BIT
-				Console::instance()->log( String::format("%lu\n", msg) );
+				Console::instance()->log( String::format("%lu\n", msg).c_str() );
 #else
-				Console::instance()->log( String::format("%llu\n", msg) );
+				Console::instance()->log( String::format("%llu\n", msg).c_str() );
 #endif
 		}
 
@@ -178,31 +179,35 @@ namespace quark {
 		}
 
 		void log(cString& msg) {
-			Console::instance()->log(msg, "\n");
+			Console::instance()->log(msg.c_str(), "\n");
+		}
+	
+		void log(cBuffer& buf) {
+			Console::instance()->log(*buf, "\n");
 		}
 		
 		void log(cString2& msg) {
-			Console::instance()->log(Coder::encode(kUTF8_Encoding, msg), "\n");
+			Console::instance()->log(*Coder::encode(kUTF8_Encoding, msg), "\n");
 		}
 
 		void log(cChar* format, ...) {
 			Qk_STRING_FORMAT(format, str);
-			Console::instance()->log(str, "\n");
+			Console::instance()->log(str.c_str(), "\n");
 		}
 		
 		void warn(cChar* format, ...) {
 			Qk_STRING_FORMAT(format, str);
-			Console::instance()->warn(str, "\n");
+			Console::instance()->warn(str.c_str(), "\n");
 		}
 		
 		void error(cChar* format, ...) {
 			Qk_STRING_FORMAT(format, str);
-			Console::instance()->error(str, "\n");
+			Console::instance()->error(str.c_str(), "\n");
 		}
 		
 		void error(const Error& err) {
 			auto str = String::format("Error: %d \n message:\n\t%s\n", err.code(), err.message().c_str());
-			Console::instance()->error(str);
+			Console::instance()->error(str.c_str());
 		}
 
 	}
@@ -263,7 +268,7 @@ namespace quark {
 		if (msg) {
 			Qk_STRING_FORMAT(msg, str);
 			Console::instance()->error("\n\n\n");
-			Console::instance()->error(str, "\n");
+			Console::instance()->error(str.c_str(), "\n");
 		}
 		report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
 		dump_backtrace();

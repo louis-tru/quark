@@ -77,7 +77,12 @@
 			'render/font/metrics.h',
 			'render/font/familys.h',
 			'render/font/familys.cc',
-			'render/font/pool_mac.cc',
+			# test
+			'render/font/mac_pool.cc',
+			'render/font/mac_typeface.cc',
+			'render/font/mac_typeface.h',
+			'render/font/mac_util.cc',
+			'render/font/mac_util.h',
 			#
 			# 'render/font/skia/ports/SkFontMgr_mac_ct.cpp',
 			# 'render/font/skia/ports/SkTypeface_mac_ct.cpp',

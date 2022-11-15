@@ -45,9 +45,9 @@ namespace quark {
 	public:
 		typedef NonObjectTraits Traits;
 		virtual ~Console() = default;
-		virtual void log(cString& log, cChar* feed = nullptr);
-		virtual void warn(cString& log, cChar* feed = nullptr);
-		virtual void error(cString& log, cChar* feed = nullptr);
+		virtual void log(cChar* log, cChar* feed = nullptr);
+		virtual void warn(cChar* log, cChar* feed = nullptr);
+		virtual void error(cChar* log, cChar* feed = nullptr);
 		virtual void clear();
 		void set_as_default();
 		static Console* instance();
@@ -67,6 +67,7 @@ namespace quark {
 		Qk_EXPORT void log(size_t);
 		Qk_EXPORT void log(bool);
 		Qk_EXPORT void log(cString&);
+		Qk_EXPORT void log(cBuffer&);
 		Qk_EXPORT void log(cString2&);
 		Qk_EXPORT void log(cChar*, ...);
 		Qk_EXPORT void warn(cChar*, ...);

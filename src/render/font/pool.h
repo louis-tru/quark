@@ -32,6 +32,7 @@
 #define __quark__font__pool__
 
 #include "../../types.h"
+#include "../../util/array.h"
 #include "./familys.h"
 
 namespace quark {
@@ -41,27 +42,37 @@ namespace quark {
 	class Qk_EXPORT FontPool: public Object {
 		Qk_HIDDEN_ALL_COPY(FontPool);
 	public:
-		FontPool(Application* host);
+		FontPool();
 		virtual ~FontPool();
 		// define ptops
-		Qk_Define_Prop_Acc_Get(int32_t, count_families);
-		Qk_Define_Prop_Acc_Get(Array<String>, familys);
-		Qk_Define_Prop_Acc_Get(const Array<Typeface>&, second);
-		Qk_Define_Prop_Acc_Get(const Typeface&, last);
+		Qk_Define_Prop_Acc_Get(int32_t, countFamilies);
+		Qk_Define_Prop_Acc_Get(const Array<String>&, second);
+		Qk_Define_Prop_Get(Sp<Typeface>, last, NoConst);
 		Qk_Define_Prop_Get(GlyphID, last_65533);
 		Qk_Define_Prop_Get(Application*, host);
 		// methods
-		FFID getFFID(cString familys = String());
+		FFID getFFID(cString& familys = String());
 		FFID getFFID(const Array<String>& familys);
-		Typeface match(cString& familyName, const FontStyle& style, bool useDefault = false);
-		void register_from_data(cBuffer& buff);
-		void register_from_file(cString& path);
+		void addFromData(cBuffer& buff);
+
+		String getFamilyName(int index) const;
+		Sp<Typeface> matchFamilyStyle(cString& familyName, const FontStyle& style) const;
+		Sp<Typeface> matchFamilyStyleCharacter(cString& familyName, const FontStyle&,
+																				const char* bcp47[], int bcp47Count,
+																				Unichar character) const;
 	private:
 		void initialize();
-		void           *_impl;
-		Array<Typeface> _second;
-		Typeface        _last;
-		Dict<String, Dict<FontStyle, Typeface>> _rtf;
+		virtual int onCountFamilies() const = 0;
+		virtual String onGetFamilyName(int index) const = 0;
+
+		virtual Typeface* onMatchFamilyStyle(const char familyName[], const FontStyle&) const = 0;
+		virtual Typeface* onMatchFamilyStyleCharacter(const char familyName[], const FontStyle&,
+																									const char* bcp47[], int bcp47Count,
+																									Unichar character) const = 0;
+		virtual Typeface* onMakeFromData(cBuffer& data, int ttcIndex) const = 0;
+
+		Array<String> _second; // default family names
+		Dict<String, Dict<FontStyle, Sp<Typeface>>> _extFamilies;
 		Dict<uint64_t, FFID> _FFIDs;
 	};
 

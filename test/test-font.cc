@@ -76,7 +76,7 @@ void testSkFont(Application* app, SkCanvas* canvas) {
 void testFontPool(Application* app, SkCanvas* canvas) {
 	auto pool = app->font_pool();
 
-	Qk_LOG("family_names,%d", pool->familys().length());
+	// Qk_LOG("family_names,%d", pool->familys().length());
 
 	FontStyle style;
 	auto tf1 = pool->match("", style, true);
@@ -87,7 +87,7 @@ void testFontPool(Application* app, SkCanvas* canvas) {
 
 	auto DejaVuSerif_ttf = native_fonts_[0];
 	WeakBuffer buf((char*)DejaVuSerif_ttf.data, DejaVuSerif_ttf.count);
-	pool->register_from_data(buf);
+	// pool->register_from_data(buf);
 
 	auto tf3 = pool->match("DejaVu Serif", style);
 

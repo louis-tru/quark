@@ -54,6 +54,7 @@ namespace quark {
 	class Array: public Object {
 	public:
 		typedef T     Type;
+		typedef A     Alloc;
 		// constructors
 		Array();
 		Array(Array& arr);  // right value copy constructors
@@ -91,6 +92,7 @@ namespace quark {
 		inline uint32_t length() const { return _length; }
 		inline int32_t  capacity() const { return _capacity; }
 
+		inline operator bool() const { return _length != 0; }
 		// operator=
 		Array& operator=(Array& arr);
 		Array& operator=(Array&& arr);

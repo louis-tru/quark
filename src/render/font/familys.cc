@@ -41,19 +41,24 @@ namespace quark {
 		return _familys;
 	}
 
-	const Array<Typeface>& FontFamilys::match(FontStyle style) {
+	const Array<Sp<Typeface>>& FontFamilys::match(FontStyle style) {
 		auto it = _fts.find(style);
 		if (it != _fts.end())
 			return it->value;
 
-		Array<Typeface> fts;
-		for (auto& name: _familys) {
-			auto tf = _pool->match(name, style);
-			if (tf.isValid())
-				fts.push(std::move(tf));
-		}
+		auto familys = _familys.copy();
+		familys.write(_pool->second());
+		Array<Sp<Typeface>> fts;
+		Dict<String, bool> set;
 
-		fts.write(_pool->second()); // append default typeface
+		for (auto& name: familys) {
+			if (!set.has(name)) {
+				auto tf = _pool->matchFamilyStyle(name, style);
+				if (tf)
+					fts.push(tf);
+				set.set(name, true);
+			}
+		}
 		_fts.set(style, std::move(fts));
 
 		return _fts[style];
@@ -78,7 +83,7 @@ namespace quark {
 				}
 				if (glyphs[i]) { // valid
 					if (prev_val) {
-						a:
+					a:
 						// exec recursion
 						int idx = prev_idx + 1;
 						int count = i - idx;
@@ -96,7 +101,7 @@ namespace quark {
 						glyphs[i] = pool->last_65533(); // use 65533 glyph
 					}
 					if (!prev_val) {
-						b:
+					b:
 						int idx = prev_idx + 1;
 						int count = i - idx;
 						result.push(FontGlyphs(Font(tfs[ftIdx], fontSize), glyphs + idx, count));

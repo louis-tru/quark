@@ -31,104 +31,72 @@
 #include "./typeface.h"
 #include "./style.h"
 #include "./pool.h"
-#include <skia/core/SkTypeface.h>
 
 namespace quark {
 
 	#define SkTF(impl) static_cast<SkTypeface*>(impl)
 
-	Typeface::Typeface(): _impl(nullptr) {
-	}
-
-	Typeface::Typeface(const Typeface& tf): _impl(tf._impl) {
-		if(_impl) {
-			SkTF(_impl)->ref();
-		}
-	}
-
-	Typeface::Typeface(void* impl): _impl(impl) {
-	}
-
-	Typeface::~Typeface() {
-		if (_impl) {
-			SkTF(_impl)->unref();
-			_impl = nullptr;
-		}
+	Typeface::Typeface() {
 	}
 
 	FontStyle Typeface::fontStyle() const {
-		SkFontStyle style = SkTF(_impl)->fontStyle();
-		return *reinterpret_cast<FontStyle*>(&style);
+		FontStyle style;// = SkTF(_impl)->fontStyle();
+		//return *reinterpret_cast<FontStyle*>(&style);
+		return style;
 	}
 
 	bool Typeface::isBold() const {
-		return SkTF(_impl)->isBold();
+		return true;
 	}
 
 	bool Typeface::isItalic() const {
-		return SkTF(_impl)->isItalic();
+		return true;
 	}
 
 	bool Typeface::isFixedPitch() const {
-		return SkTF(_impl)->isFixedPitch();
+		return true;
 	}
 
 	int Typeface::countGlyphs() const {
-		return SkTF(_impl)->countGlyphs();
+		return 0;
 	}
 
 	int Typeface::countTables() const {
-		return SkTF(_impl)->countTables();
+		return 0;
 	}
 
 	int Typeface::getTableTags(FontTableTag tags[]) const {
-		return SkTF(_impl)->getTableTags(tags);
+		return 0;
 	}
 
 	Buffer Typeface::getTableData(FontTableTag tag) const {
-		size_t size = SkTF(_impl)->getTableSize(tag);
-		Buffer buf = Buffer::alloc((uint32_t)size);
-		SkTF(_impl)->getTableData(tag, 0, size, *buf);
-		return buf;
+		return Buffer();
 	}
 
 	int Typeface::getUnitsPerEm() const {
-		return SkTF(_impl)->getUnitsPerEm();
+		return 0;
 	}
 
 	String Typeface::getFamilyName() const {
-		SkString str;
-		SkTF(_impl)->getFamilyName(&str);
-		return String(str.c_str(), (uint32_t)str.size());
+		return String();
 	}
 
 	bool Typeface::getPostScriptName(String* name) const {
-		SkString str;
-		bool ok = SkTF(_impl)->getPostScriptName(&str);
-		if (ok)
-			*name = String(str.c_str(), (uint32_t)str.size());
-		return ok;
+		return true;
 	}
 
 	Array<GlyphID> Typeface::unicharsToGlyphs(const Array<Unichar>& unichar) const {
-		Array<GlyphID> result(unichar.length());
-		auto skunichar = reinterpret_cast<const SkUnichar*>(*unichar);
-		SkTF(_impl)->unicharsToGlyphs(skunichar, unichar.length(), *result);
-		return result;
+		return Array<GlyphID>();
 	}
 
 	void Typeface::unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const {
-		auto skunichar = reinterpret_cast<const SkUnichar*>(unichar);
-		SkTF(_impl)->unicharsToGlyphs(skunichar, count, glyphs);
 	}
 
 	GlyphID Typeface::unicharToGlyph(Unichar unichar) const {
-		return SkTF(_impl)->unicharToGlyph(unichar);
 	}
 
 	Region Typeface::getBounds() const {
-		SkRect rect = SkTF(_impl)->getBounds();
-		return *reinterpret_cast<Region*>(&rect);
+		return {};
 	}
 
 }

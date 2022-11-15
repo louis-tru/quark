@@ -56,7 +56,7 @@ namespace quark {
 	static Mutex* __threads_mutex = nullptr;
 	static Dict<ThreadID, Thread*>* __threads = nullptr;
 	static List<ListenSignal*>* __wait_end_listens = nullptr;
-	static pthread_key_t __specific_key;
+	static pthread_key_t __specific_key = 0;
 	static int __is_process_exit = 0;
 	static EventNoticer<>* __on_process_safe_exit = nullptr;
 

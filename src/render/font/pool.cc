@@ -31,50 +31,44 @@
 #include "../../util/fs.h"
 #include "../../util/hash.h"
 #include "./pool.h"
-#include <skia/core/SkFontMgr.h>
-#include <skia/core/SkTypeface.h>
-#include <skia/core/SkString.h>
-#include <skia/core/SkData.h>
 
 namespace quark {
 
-	#define SkMgr(impl) static_cast<SkFontMgr*>(impl)
-
 	// ---------------------- F o n t . P o o l --------------------------
 
-	FontPool::FontPool(Application* host)
-		: _host(host)
+	FontPool::FontPool()
+		: _host(nullptr)
 		, _last_65533(0)
-		, _impl(SkFontMgr::RefDefault().get())
 	{
-		Qk_Assert(_impl);
-		SkMgr(_impl)->ref();
 		initialize();
 	}
 
 	FontPool::~FontPool() {
-		SkMgr(_impl)->unref();
-		_impl = nullptr;
 	}
 
-	int32_t FontPool::count_families() const {
-		return SkMgr(_impl)->countFamilies();
-	}
+	void FontPool::initialize() {
+		 FontStyle style; // default style
 
-	Array<String> FontPool::familys() const {
-		Array<String> familyNames;
-		auto mgr = SkMgr(_impl);
-		auto count = mgr->countFamilies();
-		SkString familyName;
-		for (int i = 0; i < count; i++) {
-			mgr->getFamilyName(i, &familyName);
-			familyNames.push(String(familyName.c_str(), (uint32_t)familyName.size()));
-		}
-		return familyNames;
-	}
+		 // Find english character set
+		 auto tf = matchFamilyStyle(nullptr, style);
+		 _second.push(tf->getFamilyName());
+		 Qk_DEBUG(_second[0]);
+
+		 // Find chinese character set, 楚(26970)
+		 auto tf1 = matchFamilyStyleCharacter(nullptr, style, nullptr, 0, 26970);
+		 if (tf1) {
+			 _second.push(tf1->getFamilyName());
+			 Qk_DEBUG(_second[1]);
+		 }
+
+		 // find last �(65533)
+		 _last = matchFamilyStyleCharacter(nullptr, style, nullptr, 0, 65533);
+		 Qk_Assert(_last);
+		 Qk_DEBUG(_last->getFamilyName());
+		 _last_65533 = _last->unicharToGlyph(65533);
+	 }
 
 	FFID FontPool::getFFID(const Array<String>& familys) {
-
 		Array<String> newFamilys;
 		SimpleHash hash;
 
@@ -96,97 +90,58 @@ namespace quark {
 		return id;
 	}
 
-	FFID FontPool::getFFID(cString familys) {
+	FFID FontPool::getFFID(cString& familys) {
 		if ( familys.is_empty() )
 			return getFFID(Array<String>());
 		else
 			return getFFID(familys.split(","));
 	}
 
-	Typeface FontPool::match(cString& familyName, const FontStyle& style, bool useDefault) {
-		auto skStyle = *reinterpret_cast<const SkFontStyle*>(&style);
-
-		if (!familyName.is_empty()) {
-			
-			// find register font family
-			auto it0 = _rtf.find(familyName);
-			if (it0 != _rtf.end()) {
-				auto it = it0->value.find(style);
-				if (it != it0->value.end())
-					return it->value;
-				return it0->value.begin()->value;
-			}
-
-			// find system font family
-			sk_sp<SkFontStyleSet> styleSet(SkMgr(_impl)->matchFamily(familyName.c_str()));
-			if (styleSet->count()) {
-				auto tf = styleSet->matchStyle(skStyle);
-				if (tf)
-					return Typeface(tf);
-				// use default style
-				styleSet->getStyle(0, &skStyle, nullptr);
-				auto tf2 = styleSet->matchStyle(skStyle);
-				Qk_Assert(tf2);
-				return Typeface(tf2);
-			}
-		}
-		
-		if (useDefault) {
-			auto Default = SkMgr(_impl)->matchFamilyStyle(nullptr, skStyle);
-			return Typeface(Default);
-		}
-		return Typeface();
-	}
-
-	void FontPool::register_from_data(cBuffer& buff) {
-		auto data = SkData::MakeWithoutCopy(*buff, buff.length());
+	void FontPool::addFromData(cBuffer& buff) {
 		for (int i = 0; ;i++) {
-			auto tf = SkMgr(_impl)->makeFromData(data, i);
-			if (!tf) break;
-			Typeface tf2(tf.get());
-			tf->ref();
-			String familyName = tf2.getFamilyName();
-			auto& family = _rtf[familyName];
-			if (!family.has(tf2.fontStyle())) {
-				family.set(tf2.fontStyle(), tf2);
+			auto tf = onMakeFromData(buff, i);
+			if (!tf)
+				break;
+			String familyName = tf->getFamilyName();
+			auto& family = _extFamilies[familyName];
+			if ( !family.has(tf->fontStyle()) ) {
+				family.set(tf->fontStyle(), tf);
 			}
 		}
 	}
 
-	void FontPool::register_from_file(cString& path) {
-		register_from_data(fs_read_file_sync(path));
-	}
-
-	const Array<Typeface>& FontPool::second() const {
+	const Array<String>& FontPool::second() const {
 		return _second;
 	}
 
-	const Typeface& FontPool::last() const {
-		return _last;
+	int FontPool::countFamilies() const {
+		return onCountFamilies();
 	}
 
-	void FontPool::initialize() {
-		SkFontStyle skStyle; // default style
-		
-		// Find english character set
-		auto tf = SkMgr(_impl)->matchFamilyStyle(nullptr, skStyle);
-		_second.push(Typeface(tf));
-		Qk_DEBUG(_second[0].getFamilyName());
-
-		// Find chinese character set, 楚(26970)
-		auto tf1 = SkMgr(_impl)->matchFamilyStyleCharacter(nullptr, skStyle, nullptr, 0, 26970);
-		if (tf1) {
-			_second.push(Typeface(tf1));
-			Qk_DEBUG(_second[1].getFamilyName());
+	String FontPool::getFamilyName(int index) const {
+		return onGetFamilyName(index);
+	}
+	
+	Sp<Typeface> FontPool::matchFamilyStyle(cString& familyName, const FontStyle& style) const {
+		if (familyName.is_empty()) {
+			return onMatchFamilyStyle(nullptr, style);
 		}
-
-		// find last �(65533)
-		auto tf2 = SkMgr(_impl)->matchFamilyStyleCharacter(nullptr, skStyle, nullptr, 0, 65533);
-		if (tf2) {
-			_last = Typeface(tf2);
-			_last_65533 = _last.unicharToGlyph(65533);
-			Qk_DEBUG(_last.getFamilyName());
+		// find register font family
+		auto it0 = _extFamilies.find(familyName);
+		if (it0 != _extFamilies.end()) {
+			auto it = it0->value.find(style);
+			if (it != it0->value.end())
+				return it->value;
+			return it0->value.begin()->value;
 		}
+		return onMatchFamilyStyle(familyName.c_str(), style);
+	}
+
+	Sp<Typeface> FontPool::matchFamilyStyleCharacter(cString& familyName, const FontStyle& style,
+																								const char* bcp47[], int bcp47Count,
+																								Unichar character) const {
+		cChar* c_familyName = familyName.is_empty() ? nullptr: familyName.c_str();
+		return onMatchFamilyStyleCharacter(c_familyName, style, bcp47, bcp47Count, character);
 	}
 
 }

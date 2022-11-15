@@ -46,7 +46,7 @@ namespace quark {
 	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
 
 	struct TextBlob {
-		Typeface        typeface;
+		Sp<Typeface>    typeface;
 		Array<GlyphID>  glyphs;
 		Array<Vec2>     offset;
 		float           ascent; // 当前blob基线距离文本顶部

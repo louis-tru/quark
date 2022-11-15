@@ -42,11 +42,11 @@ namespace quark {
 	template<class T, class T2 = typename T::Traits> class Handle {
 		//! Copy constructor is not permitted.
 		Qk_HIDDEN_ALL_COPY(Handle);
-		
+
 		inline T* move() {
 			return Traits::Retain(_data) ? _data : collapse();
 		}
-		
+
 	public:
 		typedef T Type;
 		typedef T2 Traits;
@@ -55,21 +55,21 @@ namespace quark {
 		inline Handle(T* data): _data(data) { Traits::Retain(data); }
 		inline Handle(Handle& handle) { _data = handle.move(); }
 		inline Handle(Handle&& handle) { _data = handle.move(); }
-		
-		~Handle() { release(); }
-		
+
+		inline ~Handle() { release(); }
+
 		inline Handle& operator=(Handle& handle) {
 			release();
 			_data = handle.move();
 			return *this;
 		}
-		
+
 		inline Handle& operator=(Handle&& handle) {
 			release();
 			_data = handle.move();
 			return *this;
 		}
-		
+
 		inline operator bool() const { return _data != nullptr; }
 		inline T* operator->() { return _data; }
 		inline T* operator*() { return _data; }
@@ -79,17 +79,18 @@ namespace quark {
 		inline const T* value() const { return _data; }
 
 		/**
-		* @func is_null() Is null data available ?
-		*/
+		 * @func is_null() Is null data available ?
+		 */
 		inline bool is_null() const {
 			return _data == nullptr;
 		}
 		
 		/**
-		* @func collapse() 解绑数据,用函数失去对数据的管理权,数据被移走
-		*/
+		 * @func collapse() Unbinding data, loss of data management, and data removal
+		 *
+		 */
 		inline T* collapse() {
-			T* data = _data; 
+			T* data = _data;
 			_data = nullptr;
 			return data;
 		}

@@ -314,31 +314,46 @@
 # define Qk_HAS_FORCE_INLINE 1
 #endif
 
+#if !defined(Qk_CPU_BENDIAN) && !defined(Qk_CPU_LENDIAN)
+	#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+		#define Qk_CPU_BENDIAN 1
+	#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+		#define Qk_CPU_LENDIAN 1
+	#elif defined(__sparc) || defined(__sparc__) || \
+		defined(_POWER) || defined(__powerpc__) || \
+		defined(__ppc__) || defined(__hppa) || \
+		defined(__PPC__) || defined(__PPC64__) || \
+		defined(_MIPSEB) || defined(__ARMEB__) || \
+		defined(__s390__) || \
+		(defined(__sh__) && defined(__BIG_ENDIAN__)) || \
+		(defined(__ia64) && defined(__BIG_ENDIAN__))
+			#define Qk_CPU_BENDIAN 1
+	#else
+		#define Qk_CPU_LENDIAN 1
+	#endif
+#endif
+
 // ------------------------------------------------------------------
 
 #if Qk_MSC
-
-#ifdef Qk_BUILDING_SHARED
-# define Qk_EXPORT __declspec(dllexport)
-#elif Qk_USING_SHARED
-# define Qk_EXPORT __declspec(dllimport)
-#else
-# define Qk_EXPORT
-#endif  // Qk_BUILDING_SHARED
-
+	#ifdef Qk_BUILDING_SHARED
+	# define Qk_EXPORT __declspec(dllexport)
+	#elif Qk_USING_SHARED
+	# define Qk_EXPORT __declspec(dllimport)
+	#else
+	# define Qk_EXPORT
+	#endif  // Qk_BUILDING_SHARED
 #else  // Qk_MSC
-
-// Setup for Linux shared library export.
-#if Qk_HAS_ATTRIBUTE_VISIBILITY
-# ifdef Qk_BUILDING_SHARED
-#  define Qk_EXPORT __attribute__((visibility("default")))
-# else
-#  define Qk_EXPORT
-# endif
-#else
-# define Qk_EXPORT
-#endif
-
+	// Setup for Linux shared library export.
+	#if Qk_HAS_ATTRIBUTE_VISIBILITY
+	# ifdef Qk_BUILDING_SHARED
+	#  define Qk_EXPORT __attribute__((visibility("default")))
+	# else
+	#  define Qk_EXPORT
+	# endif
+	#else
+	# define Qk_EXPORT
+	#endif
 #endif // Qk_MSC
 
 

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__font__glphs__
-#define __quark__font__glphs__
+#ifndef __quark__font__font__
+#define __quark__font__font__
 
 #include "./typeface.h"
 #include "./style.h"

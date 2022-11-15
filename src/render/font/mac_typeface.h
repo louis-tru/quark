@@ -28,26 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__font__familys__
-#define __quark__font__familys__
+#ifndef __quark__font__mac_typeface__
+#define __quark__font__mac_typeface__
 
-#include "../../util/handle.h"
-#include "./font.h"
+#include "mac_util.h"
+#include "style.h"
+#include "../../types.h"
 
-namespace quark {
+using namespace quark;
 
-	class Qk_EXPORT FontFamilys {
-	public:
-		FontFamilys(FontPool* pool, Array<String>& familys);
-		Qk_Define_Prop_Acc_Get(const Array<String>&, familys);
-		Qk_Define_Prop_Get(FontPool*, pool);
-		const Array<Sp<Typeface>>& match(FontStyle style);
-		Array<FontGlyphs> makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize);
-	private:
-		Array<String> _familys;
-		Dict<FontStyle, Array<Sp<Typeface>>> _fts;
-		friend class FontPool;
-	};
+FontStyle QkCTFontDescriptorGetSkFontStyle(CTFontDescriptorRef desc, bool fromDataProvider);
 
-}
+CGFloat QkCTFontCTWeightForCSSWeight(TextWeight fontstyleWeight);
+CGFloat QkCTFontCTWidthForCSSWidth(TextWidth fontstyleWidth);
+
 #endif
