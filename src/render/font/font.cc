@@ -62,8 +62,8 @@ namespace quark {
 		return offset;
 	}
 	
-	const Typeface& Font::typeface() const {
-		return *((const Typeface*)&_typeface);
+	const Typeface* Font::typeface() const {
+		return _typeface.value();
 	}
 
 	float Font::get_metrics(FontMetrics* metrics) const {
@@ -74,7 +74,7 @@ namespace quark {
 		return Font(FFID->match(style)[0], fontSize).get_metrics(metrics);
 	}
 
-	float Font::get_metrics(FontMetrics* metrics, const Typeface& typeface, float fontSize) {
+	float Font::get_metrics(FontMetrics* metrics, Typeface* typeface, float fontSize) {
 		return Font(typeface, fontSize).get_metrics(metrics);
 	}
 

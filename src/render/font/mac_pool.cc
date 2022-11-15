@@ -160,21 +160,21 @@ static Typeface* create_from_desc(CTFontDescriptorRef desc) {
 
 // -----------------------------------------------------------------------------
 
-static QkUniqueCFRef<CFDataRef> cfdata_from_skdata(Buffer data) {
+static QkUniqueCFRef<CFDataRef> cfdata_from_skdata(cBuffer& data) {
 	void const * const addr = data.val();
 	size_t const size = data.length();
 
 	CFAllocatorContext ctx = {
 			0, // CFIndex version
-			data.collapse(), // void* info
+			addr, // void* info
 			nullptr, // const void *(*retain)(const void *info);
 			nullptr, // void (*release)(const void *info);
 			nullptr, // CFStringRef (*copyDescription)(const void *info);
 			nullptr, // void * (*allocate)(CFIndex size, CFOptionFlags hint, void *info);
 			nullptr, // void*(*reallocate)(void* ptr,CFIndex newsize,CFOptionFlags hint,void* info);
 			[](void*,void* info) -> void { // void (*deallocate)(void *ptr, void *info);
-				Qk_Assert(info);
-				Buffer::Alloc::free(info);
+				// Qk_Assert(info);
+				// Buffer::Alloc::free(info);
 			},
 			nullptr, // CFIndex (*preferredSize)(CFIndex size, CFOptionFlags hint, void *info);
 	};
@@ -183,7 +183,7 @@ static QkUniqueCFRef<CFDataRef> cfdata_from_skdata(Buffer data) {
 					kCFAllocatorDefault, (const UInt8 *)addr, size, alloc.get()));
 }
 
-static QkUniqueCFRef<CTFontRef> ctfont_from_skdata(Buffer data, int ttcIndex) {
+static QkUniqueCFRef<CTFontRef> ctfont_from_skdata(cBuffer& data, int ttcIndex) {
 	// TODO: Use CTFontManagerCreateFontDescriptorsFromData when available.
 	if (ttcIndex != 0) {
 		return nullptr;

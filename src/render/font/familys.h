@@ -41,9 +41,10 @@ namespace quark {
 		FontFamilys(FontPool* pool, Array<String>& familys);
 		Qk_Define_Prop_Acc_Get(const Array<String>&, familys);
 		Qk_Define_Prop_Get(FontPool*, pool);
-		const Array<Sp<Typeface>>& match(FontStyle style);
+		Sp<Typeface> match(FontStyle style, uint32_t index);
 		Array<FontGlyphs> makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize);
 	private:
+		Array<Sp<Typeface>>& match(FontStyle style);
 		Array<String> _familys;
 		Dict<FontStyle, Array<Sp<Typeface>>> _fts;
 		friend class FontPool;

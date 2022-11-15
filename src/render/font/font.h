@@ -39,12 +39,12 @@ namespace quark {
 
 	class Qk_EXPORT Font {
 	public:
-		Font(const Typeface& typeface, float fontSize);
+		Font(Sp<Typeface> typeface, float fontSize);
 
 		/**
 		 * Returns the current typeface
 		*/
-		const Typeface& typeface() const;
+		const Typeface* typeface() const;
 
 		/**
 		 * Returns offset values by GlyphIDs
@@ -68,10 +68,10 @@ namespace quark {
 		 * @return returns recommended spacing between lines
 		*/
 		static float get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize);
-		static float get_metrics(FontMetrics* metrics, const Typeface& typeface, float fontSize);
+		static float get_metrics(FontMetrics* metrics, Typeface* typeface, float fontSize);
 		
 	private:
-		void *_typeface;
+		Sp<Typeface> _typeface;
 	public:
 		Qk_Define_Prop(float, fontSize);
 		Qk_Define_Prop(float, scaleX);
@@ -92,7 +92,7 @@ namespace quark {
 		/**
 		 * Returns the current typeface
 		*/
-		inline const Typeface& typeface() const { return _font.typeface(); }
+		inline const Typeface* typeface() const { return _font.typeface(); }
 
 		/**
 		 * Returns the current typeface array object

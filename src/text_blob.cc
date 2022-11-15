@@ -350,7 +350,7 @@ namespace quark {
 			if (is_KEEP_ALL ? sym == kPunctuation_Symbol : sym < kNumber_Symbol) {
 			wordEnd:
 				_lines->add_text_blob(
-					{fg.typeface(), text_size, line_height, index + start, _blob},
+					{fg.typeface()->id(), text_size, line_height, index + start, _blob},
 					glyphs.slice(start, i), offset.slice(start, i + 1), false
 				);
 				line_head = line->width == 0.0;

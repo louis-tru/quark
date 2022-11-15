@@ -41,6 +41,7 @@ namespace quark {
 	typedef uint32_t Unichar;
 	typedef uint16_t GlyphID;
 	typedef uint32_t FontTableTag;
+	typedef uint32_t TypefaceID;
 
 	class Qk_EXPORT Typeface: public Reference {
 	public:
@@ -60,6 +61,7 @@ namespace quark {
 		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
 		void unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const;
 		Region getBounds() const;
+		TypefaceID id() const;
 	};
 
 }

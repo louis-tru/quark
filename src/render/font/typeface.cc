@@ -99,4 +99,8 @@ namespace quark {
 		return {};
 	}
 
+	TypefaceID Typeface::id() const {
+		return TypefaceID((size_t(this)));
+	}
+
 }

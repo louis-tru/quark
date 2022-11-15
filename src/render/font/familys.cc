@@ -41,7 +41,11 @@ namespace quark {
 		return _familys;
 	}
 
-	const Array<Sp<Typeface>>& FontFamilys::match(FontStyle style) {
+	Sp<Typeface> FontFamilys::match(FontStyle style, uint32_t index) {
+		return match(style)[index];
+	}
+
+	Array<Sp<Typeface>>& FontFamilys::match(FontStyle style) {
 		auto it = _fts.find(style);
 		if (it != _fts.end())
 			return it->value;

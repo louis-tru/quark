@@ -302,9 +302,9 @@ namespace quark {
 		auto _opts = builder->opts();
 		auto _blob = builder->blob();
 		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
-			auto tf = _opts->text_family().value->match(_opts->font_style())[0];
+			auto tf = _opts->text_family().value->match(_opts->font_style(), 0);
 			FontMetrics metrics;
-			Font::get_metrics(&metrics, tf, _opts->text_size().value);
+			Font::get_metrics(&metrics, *tf, _opts->text_size().value);
 			auto ascent = -metrics.fAscent;
 			auto descent = metrics.fDescent + metrics.fLeading;
 			auto height = ascent + descent;
@@ -336,7 +336,8 @@ namespace quark {
 		}
 
 		FontMetrics metrics;
-		Font::get_metrics(&metrics, blob.typeface, blob.text_size);
+		// Font::get_metrics(&metrics, blob.typeface, blob.text_size);
+		Font::get_metrics(&metrics, nullptr, blob.text_size);
 
 		auto ascent = -metrics.fAscent;
 		auto descent = metrics.fDescent + metrics.fLeading;

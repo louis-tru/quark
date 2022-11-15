@@ -52,7 +52,7 @@ namespace quark {
 		};
 
 		struct PreTextBlob {
-			Typeface        typeface;
+			TypefaceID      typeface;
 			float           text_size;
 			float           line_height;
 			uint32_t        index_of_unichar;
