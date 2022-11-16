@@ -109,7 +109,7 @@ StyleSheets* StyleSheets::Inl::find2(const CSSName& name, CSSPseudoClass pseudo)
 }
 
 KeyframeAction* StyleSheets::Inl::assignment(View* view, KeyframeAction* action, bool ignore_action) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	
 	if ( ! ignore_action && _time ) { // 创建动作
 		
@@ -148,7 +148,7 @@ StyleSheets::StyleSheets(const CSSName& name, StyleSheets* parent, CSSPseudoClas
 	, _pseudo( parent ? parent->_pseudo : CSS_PSEUDO_CLASS_NONE )
 {
 	if ( pseudo ) { // pseudo cls
-		Qk_Assert( !_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
+		Qk_ASSERT( !_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
 		_pseudo = pseudo;
 	}
 }
@@ -204,7 +204,7 @@ StyleSheets* StyleSheets::find(const CSSName& name) {
 * @func assignment
 */
 void StyleSheets::assignment(View* view) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	for ( auto i : _property ) {
 		i.value->assignment(view);
 	}
@@ -214,7 +214,7 @@ void StyleSheets::assignment(View* view) {
 * @func assignment
 */
 void StyleSheets::assignment(Frame* frame) {
-	Qk_Assert(frame);
+	Qk_ASSERT(frame);
 	for ( auto i : _property ) {
 		i.value->assignment(frame);
 	}
@@ -280,7 +280,7 @@ StyleSheets* RootStyleSheets::Inl::instance(cString& expression) {
 			return nullptr;
 		}
 		
-		Qk_Assert( !name.value().is_empty() );
+		Qk_ASSERT( !name.value().is_empty() );
 		
 		ss = _inl_ss(ss)->find2(name, pseudo);
 		
@@ -289,7 +289,7 @@ StyleSheets* RootStyleSheets::Inl::instance(cString& expression) {
 			return nullptr;
 		}
 	}
-	Qk_Assert( ss != this );
+	Qk_ASSERT( ss != this );
 	
 	return ss;
 }

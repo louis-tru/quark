@@ -46,19 +46,19 @@ namespace quark {
 		typedef ReferenceTraits Traits;
 		Input();
 		// define props
-		Qk_Define_Prop(bool, security);
-		Qk_Define_Prop(bool, readonly);
-		Qk_Define_Prop(TextAlign, text_align);
-		Qk_Define_Prop(KeyboardType, type);
-		Qk_Define_Prop(KeyboardReturnType, return_type);
-		Qk_Define_Prop(String4, text_value_u4);
-		Qk_Define_Prop(String4, placeholder_u4);
-		Qk_Define_Prop(Color, placeholder_color);
-		Qk_Define_Prop(Color, cursor_color);
-		Qk_Define_Prop(uint32_t, max_length);
-		Qk_Define_Prop_Acc(String, text_value);
-		Qk_Define_Prop_Acc(String, placeholder);
-		Qk_Define_Prop_Acc_Get(uint32_t, text_length);
+		Qk_DEFINE_PROP(bool, security);
+		Qk_DEFINE_PROP(bool, readonly);
+		Qk_DEFINE_PROP(TextAlign, text_align);
+		Qk_DEFINE_PROP(KeyboardType, type);
+		Qk_DEFINE_PROP(KeyboardReturnType, return_type);
+		Qk_DEFINE_PROP(String4, text_value_u4);
+		Qk_DEFINE_PROP(String4, placeholder_u4);
+		Qk_DEFINE_PROP(Color, placeholder_color);
+		Qk_DEFINE_PROP(Color, cursor_color);
+		Qk_DEFINE_PROP(uint32_t, max_length);
+		Qk_DEFINE_PROP_ACC(String, text_value);
+		Qk_DEFINE_PROP_ACC(String, placeholder);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length);
 		// virtual func
 		virtual bool is_multiline();
 		// @override

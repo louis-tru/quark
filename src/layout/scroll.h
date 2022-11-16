@@ -41,25 +41,25 @@ namespace quark {
 	class Qk_EXPORT BaseScroll {
 	public:
 		// define props
-		Qk_Define_Prop(bool, scrollbar); // 显示scrollbar
-		Qk_Define_Prop(bool, bounce);    // 使用回弹力
-		Qk_Define_Prop(bool, bounce_lock); // 使用回弹力锁定
-		Qk_Define_Prop(bool, momentum); // 是否使用惯性
-		Qk_Define_Prop(bool, lock_direction); // 锁定方向
-		Qk_Define_Prop_Get(bool, scrollbar_h); // 是否显示水平滚动条
-		Qk_Define_Prop_Get(bool, scrollbar_v); // 是否显示垂直滚动条
-		Qk_Define_Prop_Acc(float, scroll_x);
-		Qk_Define_Prop_Acc(float, scroll_y);
-		Qk_Define_Prop_Acc(Vec2,  scroll);
-		Qk_Define_Prop_Get(Vec2, scroll_size);
-		Qk_Define_Prop(float, resistance); // resistance default=1
-		Qk_Define_Prop(float, catch_position_x); // 停止后捕获位置
-		Qk_Define_Prop(float, catch_position_y);
-		Qk_Define_Prop(Color, scrollbar_color);
-		Qk_Define_Prop(float, scrollbar_width);
-		Qk_Define_Prop(float, scrollbar_margin);
-		Qk_Define_Prop(uint64_t, scroll_duration);
-		Qk_Define_Prop(cCurve*, scroll_curve);
+		Qk_DEFINE_PROP(bool, scrollbar); // 显示scrollbar
+		Qk_DEFINE_PROP(bool, bounce);    // 使用回弹力
+		Qk_DEFINE_PROP(bool, bounce_lock); // 使用回弹力锁定
+		Qk_DEFINE_PROP(bool, momentum); // 是否使用惯性
+		Qk_DEFINE_PROP(bool, lock_direction); // 锁定方向
+		Qk_DEFINE_PROP_GET(bool, scrollbar_h); // 是否显示水平滚动条
+		Qk_DEFINE_PROP_GET(bool, scrollbar_v); // 是否显示垂直滚动条
+		Qk_DEFINE_PROP_ACC(float, scroll_x);
+		Qk_DEFINE_PROP_ACC(float, scroll_y);
+		Qk_DEFINE_PROP_ACC(Vec2,  scroll);
+		Qk_DEFINE_PROP_GET(Vec2, scroll_size);
+		Qk_DEFINE_PROP(float, resistance); // resistance default=1
+		Qk_DEFINE_PROP(float, catch_position_x); // 停止后捕获位置
+		Qk_DEFINE_PROP(float, catch_position_y);
+		Qk_DEFINE_PROP(Color, scrollbar_color);
+		Qk_DEFINE_PROP(float, scrollbar_width);
+		Qk_DEFINE_PROP(float, scrollbar_margin);
+		Qk_DEFINE_PROP(uint64_t, scroll_duration);
+		Qk_DEFINE_PROP(cCurve*, scroll_curve);
 		// constructor
 		BaseScroll(Box *host);
 		virtual ~BaseScroll();

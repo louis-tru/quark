@@ -74,10 +74,10 @@ namespace quark {
 	public:
 		PixelInfo();
 		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
-		Qk_Define_Prop_Get(int, width); //!< width 图像宽度
-		Qk_Define_Prop_Get(int, height); //!< height 图像高度
-		Qk_Define_Prop_Get(ColorType, type); //!< format 图像像素的排列格式
-		Qk_Define_Prop_Get(AlphaType, alphaType); //!< 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
+		Qk_DEFINE_PROP_GET(int, width); //!< width 图像宽度
+		Qk_DEFINE_PROP_GET(int, height); //!< height 图像高度
+		Qk_DEFINE_PROP_GET(ColorType, type); //!< format 图像像素的排列格式
+		Qk_DEFINE_PROP_GET(AlphaType, alphaType); //!< 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
 	};
 
 	/**

@@ -67,7 +67,7 @@ namespace quark {
 		int read(void* buffer, int64_t size, int64_t offset = -1);
 		int write(const void* buffer, int64_t size, int64_t offset = -1);
 		// define props
-		Qk_Define_Prop_Get(String, path);
+		Qk_DEFINE_PROP_GET(String, path);
 	private:
 		void*  _gzfp;
 	};

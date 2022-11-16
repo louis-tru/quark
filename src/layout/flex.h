@@ -40,9 +40,9 @@ namespace quark {
 	public:
 		FlexLayout();
 		// define props
-		Qk_Define_Prop(Direction, direction); // typesetting direction
-		Qk_Define_Prop(ItemsAlign, items_align); // alignment mode of the main axis
-		Qk_Define_Prop(CrossAlign, cross_align); // alignment mode of the cross axis
+		Qk_DEFINE_PROP(Direction, direction); // typesetting direction
+		Qk_DEFINE_PROP(ItemsAlign, items_align); // alignment mode of the main axis
+		Qk_DEFINE_PROP(CrossAlign, cross_align); // alignment mode of the cross axis
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;

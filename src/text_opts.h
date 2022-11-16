@@ -42,25 +42,25 @@ namespace quark {
 	class Qk_EXPORT TextOptions {
 	public:
 		TextOptions();
-		Qk_Define_Prop(TextWeight, text_weight);
-		Qk_Define_Prop(TextSlant,  text_slant);
-		Qk_Define_Prop(TextDecoration, text_decoration);
-		Qk_Define_Prop(TextOverflow,   text_overflow);
-		Qk_Define_Prop(TextWhiteSpace, text_white_space);
-		Qk_Define_Prop(TextWordBreak,  text_word_break);
-		Qk_Define_Prop(TextSize,  text_size); // TextValueWrap
-		Qk_Define_Prop(TextColor, text_background_color);
-		Qk_Define_Prop(TextColor, text_color);
-		Qk_Define_Prop(TextShadow, text_shadow);
-		Qk_Define_Prop(TextLineHeight, text_line_height);
-		Qk_Define_Prop(TextFamily, text_family);
+		Qk_DEFINE_PROP(TextWeight, text_weight);
+		Qk_DEFINE_PROP(TextSlant,  text_slant);
+		Qk_DEFINE_PROP(TextDecoration, text_decoration);
+		Qk_DEFINE_PROP(TextOverflow,   text_overflow);
+		Qk_DEFINE_PROP(TextWhiteSpace, text_white_space);
+		Qk_DEFINE_PROP(TextWordBreak,  text_word_break);
+		Qk_DEFINE_PROP(TextSize,  text_size); // TextValueWrap
+		Qk_DEFINE_PROP(TextColor, text_background_color);
+		Qk_DEFINE_PROP(TextColor, text_color);
+		Qk_DEFINE_PROP(TextShadow, text_shadow);
+		Qk_DEFINE_PROP(TextLineHeight, text_line_height);
+		Qk_DEFINE_PROP(TextFamily, text_family);
 		// compute text final props
-		Qk_Define_Prop_Get(TextWeight, text_weight_value);
-		Qk_Define_Prop_Get(TextSlant, text_slant_value);
-		Qk_Define_Prop_Get(TextDecoration, text_decoration_value);
-		Qk_Define_Prop_Get(TextOverflow, text_overflow_value);
-		Qk_Define_Prop_Get(TextWhiteSpace, text_white_space_value);
-		Qk_Define_Prop_Get(TextWordBreak, text_word_break_value);
+		Qk_DEFINE_PROP_GET(TextWeight, text_weight_value);
+		Qk_DEFINE_PROP_GET(TextSlant, text_slant_value);
+		Qk_DEFINE_PROP_GET(TextDecoration, text_decoration_value);
+		Qk_DEFINE_PROP_GET(TextOverflow, text_overflow_value);
+		Qk_DEFINE_PROP_GET(TextWhiteSpace, text_white_space_value);
+		Qk_DEFINE_PROP_GET(TextWordBreak, text_word_break_value);
 		FontStyle font_style() const;
 	protected:
 		virtual void onTextChange(uint32_t mark);
@@ -72,8 +72,8 @@ namespace quark {
 	public:
 		TextConfig(TextOptions* opts, TextConfig* base);
 		~TextConfig();
-		Qk_Define_Prop_Get(TextOptions*, opts);
-		Qk_Define_Prop_Get(TextConfig*,  base);
+		Qk_DEFINE_PROP_GET(TextOptions*, opts);
+		Qk_DEFINE_PROP_GET(TextConfig*,  base);
 	};
 
 	class Qk_EXPORT DefaultTextOptions: public TextOptions, public TextConfig {

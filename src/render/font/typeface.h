@@ -34,6 +34,7 @@
 #include "../../util/string.h"
 #include "../../math.h"
 #include "./style.h"
+#include "metrics.h"
 
 namespace quark {
 
@@ -41,27 +42,40 @@ namespace quark {
 	typedef uint32_t Unichar;
 	typedef uint16_t GlyphID;
 	typedef uint32_t FontTableTag;
-	typedef uint32_t TypefaceID;
 
 	class Qk_EXPORT Typeface: public Reference {
+		Qk_HIDDEN_ALL_COPY(Typeface);
 	public:
-		Typeface();
-		FontStyle fontStyle() const;
-		bool isBold() const;
-		bool isItalic() const;
-		bool isFixedPitch() const;
+		Qk_DEFINE_PROP_GET(FontStyle, fontStyle);
+		Qk_DEFINE_PROP_GET(bool, isFixedPitch);
+		bool isBold() const { return _fontStyle.weight() >= TextWeight::SEMIBOLD; }
+		bool isItalic() const { return _fontStyle.slant() != TextSlant::DEFAULT; }
 		int countGlyphs() const;
 		int countTables() const;
 		int getTableTags(FontTableTag tags[]) const;
 		Buffer getTableData(FontTableTag tag) const;
+		size_t getTableSize(FontTableTag) const;
 		int getUnitsPerEm() const;
 		String getFamilyName() const;
 		bool getPostScriptName(String* name) const;
-		GlyphID unicharToGlyph(Unichar unichar) const;
-		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
 		void unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const;
-		Region getBounds() const;
-		TypefaceID id() const;
+		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
+		GlyphID unicharToGlyph(Unichar unichar) const;
+		float getMetrics(FontMetrics* metrics, float fontSize);
+	protected:
+		Typeface(FontStyle fs, bool isFixedPitch);
+		void setIsFixedPitch(bool isFixedPitch) { _isFixedPitch = isFixedPitch; }
+		void setFontStyle(FontStyle style) { _fontStyle = style; }
+		virtual int onCountGlyphs() const = 0;
+		virtual int onGetUPEM() const = 0;
+		virtual String onGetFamilyName() const = 0;
+		virtual bool onGetPostScriptName(String*) const = 0;
+		virtual int onGetTableTags(FontTableTag tags[]) const = 0;
+		virtual size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const = 0;
+		virtual void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const = 0;
+		virtual void onGetMetrics(FontMetrics* metrics, float fontSize) const = 0;
+	private:
+		Dict<float, FontMetrics> _MetricsCaches;
 	};
 
 }

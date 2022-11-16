@@ -68,7 +68,7 @@ namespace quark {
 							left->release();
 						}
 						bool ok = new_left->retain();
-						Qk_Assert(ok);
+						Qk_ASSERT(ok);
 					}
 					return new_left;
 				}
@@ -149,7 +149,7 @@ namespace quark {
 
 	void Copying::onChange() {
 		auto app_ = app();
-		// Qk_Assert(app_, "Application needs to be initialized first");
+		// Qk_ASSERT(app_, "Application needs to be initialized first");
 		if (app_) {
 			app_->pre_render()->mark_none();
 		}

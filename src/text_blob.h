@@ -46,7 +46,7 @@ namespace quark {
 	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
 
 	struct TextBlob {
-		TypefaceID      typeface;
+		Sp<Typeface>    typeface;
 		Array<GlyphID>  glyphs;
 		Array<Vec2>     offset;
 		float           ascent; // 当前blob基线距离文本顶部
@@ -60,11 +60,11 @@ namespace quark {
 	class Qk_EXPORT TextBlobBuilder {
 	public:
 		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
-		Qk_Define_Prop(bool, disable_overflow);
-		Qk_Define_Prop(bool, disable_auto_wrap);
-		Qk_Define_Prop(TextLines*, lines);
-		Qk_Define_Prop(TextOptions*, opts);
-		Qk_Define_Prop(Array<TextBlob>*, blob);
+		Qk_DEFINE_PROP(bool, disable_overflow);
+		Qk_DEFINE_PROP(bool, disable_auto_wrap);
+		Qk_DEFINE_PROP(TextLines*, lines);
+		Qk_DEFINE_PROP(TextOptions*, opts);
+		Qk_DEFINE_PROP(Array<TextBlob>*, blob);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
 		void make(Array<Array<Unichar>>&& lines);

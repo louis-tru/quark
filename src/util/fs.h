@@ -83,9 +83,9 @@ namespace quark {
 	class Dirent: public Object {
 	public:
 		Dirent(cString& name, cString& pathname, FileType type);
-		Qk_Define_Prop_Get(String, name);
-		Qk_Define_Prop_Get(String, pathname);
-		Qk_Define_Prop_Get(FileType, type);
+		Qk_DEFINE_PROP_GET(String, name);
+		Qk_DEFINE_PROP_GET(String, pathname);
+		Qk_DEFINE_PROP_GET(FileType, type);
 	};
 
 	class Qk_EXPORT FileSync: public Object {
@@ -99,7 +99,7 @@ namespace quark {
 		int read(void* buffer, int64_t size, int64_t offset = -1);
 		int write(const void* buffer, int64_t size, int64_t offset = -1);
 		// props
-		Qk_Define_Prop_Get(String, path);
+		Qk_DEFINE_PROP_GET(String, path);
 	private:
 		int    _fd;
 	};

@@ -43,37 +43,33 @@ namespace quark {
 		Qk_HIDDEN_ALL_COPY(FontPool);
 	public:
 		FontPool();
-		virtual ~FontPool();
 		// define ptops
-		Qk_Define_Prop_Acc_Get(int32_t, countFamilies);
-		Qk_Define_Prop_Acc_Get(const Array<String>&, second);
-		Qk_Define_Prop_Get(Sp<Typeface>, last, NoConst);
-		Qk_Define_Prop_Get(GlyphID, last_65533);
-		Qk_Define_Prop_Get(Application*, host);
+		Qk_DEFINE_PROP_ACC_GET(int32_t, countFamilies);
+		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, second);
+		Qk_DEFINE_PROP_GET(Sp<Typeface>, last, NoConst);
+		Qk_DEFINE_PROP_GET(GlyphID, last_65533);
+		Qk_DEFINE_PROP_GET(Application*, host);
 		// methods
 		FFID getFFID(cString& familys = String());
 		FFID getFFID(const Array<String>& familys);
 		void addFromData(cBuffer& buff);
 
 		String getFamilyName(int index) const;
-		Sp<Typeface> matchFamilyStyle(cString& familyName, const FontStyle& style) const;
-		Sp<Typeface> matchFamilyStyleCharacter(cString& familyName, const FontStyle&,
-																				const char* bcp47[], int bcp47Count,
-																				Unichar character) const;
+		Typeface* match(cString& familyName, FontStyle style) const;
+		Typeface* matchCharacter(cString& familyName, FontStyle, Unichar character) const;
 	private:
 		void initialize();
 		virtual int onCountFamilies() const = 0;
 		virtual String onGetFamilyName(int index) const = 0;
 
-		virtual Typeface* onMatchFamilyStyle(const char familyName[], const FontStyle&) const = 0;
-		virtual Typeface* onMatchFamilyStyleCharacter(const char familyName[], const FontStyle&,
-																									const char* bcp47[], int bcp47Count,
-																									Unichar character) const = 0;
+		virtual Typeface* onMatchFamilyStyle(const char familyName[], FontStyle) const = 0;
+		virtual Typeface* onMatchFamilyStyleCharacter(const char familyName[],
+																									FontStyle, Unichar character) const = 0;
 		virtual Typeface* onMakeFromData(cBuffer& data, int ttcIndex) const = 0;
 
 		Array<String> _second; // default family names
 		Dict<String, Dict<FontStyle, Sp<Typeface>>> _extFamilies;
-		Dict<uint64_t, FFID> _FFIDs;
+		Dict<uint64_t, Sp<FontFamilys>> _FFIDs;
 	};
 
 }

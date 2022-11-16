@@ -254,9 +254,9 @@
 #endif
 
 #if DEBUG || Qk_STRICT_ASSERT
-# define Qk_Assert(cond, ...) if(!(cond)) quark::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+# define Qk_ASSERT(cond, ...) if(!(cond)) quark::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #else
-# define Qk_Assert(cond, ...) ((void)0)
+# define Qk_ASSERT(cond, ...) ((void)0)
 #endif
 
 #define Qk_DEFINE_INLINE_CLASS(Inl) public: class Inl; friend class Inl; private:
@@ -390,32 +390,32 @@
 	private: static void* operator new(size_t size) = delete; \
 	private: static void operator delete(void*, size_t) = delete
 
-#define Qk_Define_Prop_Modifier const
-#define Qk_Define_Prop_ModifierNoConst
+#define Qk_DEFINE_PROP_MODIFIER const
+#define Qk_DEFINE_PROP_MODIFIERNoConst
 
-#define Qk_Define_Prop_Acc_Get(type, name, ...) \
-	type name () Qk_Define_Prop_Modifier##__VA_ARGS__; public:
+#define Qk_DEFINE_PROP_ACC_GET(type, name, ...) \
+	type name () Qk_DEFINE_PROP_MODIFIER##__VA_ARGS__; public:
 
-#define Qk_Define_Prop_Acc(type, name, ...) \
+#define Qk_DEFINE_PROP_ACC(type, name, ...) \
 	void set_##name (type val); \
-	Qk_Define_Prop_Acc_Get(type, name, ##__VA_ARGS__) \
+	Qk_DEFINE_PROP_ACC_GET(type, name, ##__VA_ARGS__) \
 
-#define Qk_Define_Prop_Get(type, name, ...) \
-	inline type name () Qk_Define_Prop_Modifier##__VA_ARGS__ { return _##name; } \
+#define Qk_DEFINE_PROP_GET(type, name, ...) \
+	inline type name () Qk_DEFINE_PROP_MODIFIER##__VA_ARGS__ { return _##name; } \
 	private: type _##name; public:\
 
-#define Qk_Define_Prop(type, name, ...) \
+#define Qk_DEFINE_PROP(type, name, ...) \
 	void set_##name (type val); \
-	Qk_Define_Prop_Get(type, name, ##__VA_ARGS__) \
+	Qk_DEFINE_PROP_GET(type, name, ##__VA_ARGS__) \
 
-#define Qk_Define_Class(Name) class Name;
-#define Qk_Define_Visitor_Visit(N) virtual void visit##N(N *v) = 0;
-#define Qk_Define_Visitor(Name, Each) \
-	Each(Qk_Define_Class); \
+#define Qk_DEFINE_CLASS(Name) class Name;
+#define Qk_DEFINE_VISITOR_VISIT(N) virtual void visit##N(N *v) = 0;
+#define Qk_DEFINE_VISITOR(Name, Each) \
+	Each(Qk_DEFINE_CLASS); \
 	class Name##Visitor { \
 	public: \
 		virtual int flags() = 0; \
-		Each(Qk_Define_Visitor_Visit); \
+		Each(Qk_DEFINE_VISITOR_VISIT); \
 }
 
 // Helper macros end

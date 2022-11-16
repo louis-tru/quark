@@ -196,9 +196,9 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (void)applicationDidFinishLaunching:(NSNotification*) notification {
-		Qk_Assert(!appDelegate);
+		Qk_ASSERT(!appDelegate);
 		appDelegate = self;
-		Qk_Assert(Application::shared());
+		Qk_ASSERT(Application::shared());
 		_app = Application::shared();
 
 		// UIApplication* host = UIApplication.sharedApplication;

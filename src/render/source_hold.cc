@@ -72,7 +72,7 @@ namespace quark {
 	void SourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
 			auto _ = app();
-			// Qk_Assert(_, "Application needs to be initialized first");
+			// Qk_ASSERT(_, "Application needs to be initialized first");
 			if (_) {
 				_->pre_render()->mark_none();
 			}

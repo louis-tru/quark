@@ -151,7 +151,7 @@ namespace quark {
 	* @func set_delegate
 	*/
 	void MediaCodec::set_delegate(Delegate* delegate) {
-		Qk_Assert(delegate);
+		Qk_ASSERT(delegate);
 		_delegate = delegate;
 	}
 

@@ -352,7 +352,7 @@ namespace quark {
 		// for XIM interaction
 		void openIM()
 		{
-			Qk_Assert(!_im);
+			Qk_ASSERT(!_im);
 
 			_im = XOpenIM(_display, NULL, NULL, NULL);
 			if (_im  == NULL) {
@@ -407,7 +407,7 @@ namespace quark {
 			if (_im == NULL)
 				return;
 			
-			Qk_Assert(!_ic);
+			Qk_ASSERT(!_ic);
 
 			if ((_input_style & XIMPreeditPosition) && _fontset) {
 				XRectangle area = { 0,0,1,1 };

@@ -65,13 +65,13 @@ namespace quark {
 		virtual Copying* copy(Copying* to) = 0;
 		virtual bool retain() override;
 		static Copying* assign(Copying* left, Copying* right);
-		Qk_Define_Prop(HolderMode, holder_mode); // holder mode
+		Qk_DEFINE_PROP(HolderMode, holder_mode); // holder mode
 	protected:
 		static Copying* assign2(Copying* left, Copying* right);
 		void onChange();
 		bool check_loop_reference(Copying* value);
 		void set_next2(Copying* value);
-		Qk_Define_Prop(Copying*, next);
+		Qk_DEFINE_PROP(Copying*, next);
 	};
 
 	class Effect: public Copying {
@@ -96,11 +96,11 @@ namespace quark {
 		};
 		FillImage();
 		FillImage(cString& src, Init init = {});
-		Qk_Define_Prop(FillSize, size_x);
-		Qk_Define_Prop(FillSize, size_y);
-		Qk_Define_Prop(FillPosition, position_x);
-		Qk_Define_Prop(FillPosition, position_y);
-		Qk_Define_Prop(Repeat, repeat);
+		Qk_DEFINE_PROP(FillSize, size_x);
+		Qk_DEFINE_PROP(FillSize, size_y);
+		Qk_DEFINE_PROP(FillPosition, position_x);
+		Qk_DEFINE_PROP(FillPosition, position_y);
+		Qk_DEFINE_PROP(Repeat, repeat);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 		static bool  compute_size(FillSize size, float host, float& out);
@@ -126,7 +126,7 @@ namespace quark {
 	class Qk_EXPORT FillGradientLinear: public FillGradient {
 	public:
 		FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors);
-		Qk_Define_Prop(float, angle);
+		Qk_DEFINE_PROP(float, angle);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 	private:
@@ -148,7 +148,7 @@ namespace quark {
 		BoxShadow();
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
-		Qk_Define_Prop(Shadow, value);
+		Qk_DEFINE_PROP(Shadow, value);
 		virtual Type     type() const override;
 		virtual Copying* copy(Copying* to) override;
 	};

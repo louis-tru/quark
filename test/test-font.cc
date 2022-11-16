@@ -79,11 +79,11 @@ void testFontPool(Application* app, SkCanvas* canvas) {
 	// Qk_LOG("family_names,%d", pool->familys().length());
 
 	FontStyle style;
-	auto tf1 = pool->match("", style, true);
+	auto tf1 = pool->match("", style);
 	auto tf2 = pool->match("PingFang HK", style);
 
-	Qk_LOG(tf1.getFamilyName());
-	Qk_LOG(tf2.getFamilyName());
+	Qk_LOG(tf1->getFamilyName());
+	Qk_LOG(tf2->getFamilyName());
 
 	auto DejaVuSerif_ttf = native_fonts_[0];
 	WeakBuffer buf((char*)DejaVuSerif_ttf.data, DejaVuSerif_ttf.count);
@@ -91,7 +91,7 @@ void testFontPool(Application* app, SkCanvas* canvas) {
 
 	auto tf3 = pool->match("DejaVu Serif", style);
 
-	Qk_LOG(tf3.getFamilyName());
+	Qk_LOG(tf3->getFamilyName());
 
 	//FFID ffid = pool->getFFID("Helvetica, PingFang HK");
 	// FFID ffid = pool->getFFID("PingFang HK");
@@ -102,7 +102,7 @@ void testFontPool(Application* app, SkCanvas* canvas) {
 	auto fontGlyphs = ffid->makeFontGlyphs({ /*32,*/ 65, 66, 26970, 23398, 25991 }, style, 16);
 
 	for (auto& fg: fontGlyphs) {
-		Qk_LOG("Family: %s, fontSize: %f", fg.typeface().getFamilyName().c_str(), fg.font().fontSize());
+		Qk_LOG("Family: %s, fontSize: %f", fg.typeface()->getFamilyName().c_str(), fg.fontSize());
 
 		int i = 0;
 		auto gs = fg.glyphs();

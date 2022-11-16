@@ -76,7 +76,7 @@ namespace quark {
 		if (!_device) {
 			_device = CFSafeRetain(MTLCreateSystemDefaultDevice());
 			_queue = CFSafeRetain([_device newCommandQueue]);
-			Qk_Assert(_device);
+			Qk_ASSERT(_device);
 
 			if (_opts.msaaSampleCnt > 1) {
 				while (![_device supportsTextureSampleCount:_opts.msaaSampleCnt])
@@ -119,7 +119,7 @@ namespace quark {
 	}
 
 	void MetalRender::begin() {
-		Qk_Assert(!_drawable);
+		Qk_ASSERT(!_drawable);
 		id<CAMetalDrawable> drawable;
 
 		if (@available(iOS 13.0, *)) {

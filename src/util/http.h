@@ -216,8 +216,8 @@ namespace quark {
 	public:
 		HttpError(int rc, cString& msg, uint32_t status, cString& url);
 		HttpError(const Error& err);
-		Qk_Define_Prop_Get(uint32_t, status);
-		Qk_Define_Prop_Get(String, url);
+		Qk_DEFINE_PROP_GET(uint32_t, status);
+		Qk_DEFINE_PROP_GET(String, url);
 	};
 
 	Qk_EXPORT uint32_t http_request(RequestOptions& options, HttpCb cb = 0) throw(HttpError);

@@ -72,7 +72,7 @@ namespace quark {
 	}
 
 	PathLine::PathLine(Vec2* pts, int len, PathVerb* verbs, int verbsLen) {
-		// Qk_Assert(verbs[0] == kVerb_Move);
+		// Qk_ASSERT(verbs[0] == kVerb_Move);
 		_pts.write((float*)pts, -1, len * 2);
 		_verbs.write((uint8_t*)verbs, -1, verbsLen);
 	}
@@ -122,7 +122,7 @@ namespace quark {
 	}
 
 	Array<Vec2> PathLine::to_polygon(int polySize) const {
-		//Qk_Assert(_verbs.length());
+		//Qk_ASSERT(_verbs.length());
 
 		TESStesselator* tess = tessNewTess(nullptr);
 		ClearScope clear([tess]() { tessDeleteTess(tess); });
@@ -203,7 +203,7 @@ namespace quark {
 	}
 
 	Array<Vec2> PathLine::to_edge_line() const {
-		//Qk_Assert(_verbs.length());
+		//Qk_ASSERT(_verbs.length());
 
 		const Vec2* pts = ((const Vec2*)*_pts) - 1;
 		Array<Vec2> edges;
@@ -281,7 +281,7 @@ namespace quark {
 	}
 
 	PathLine PathLine::normalized() const {
-		//Qk_Assert(_verbs.length());
+		//Qk_ASSERT(_verbs.length());
 
 		const Vec2* pts = ((const Vec2*)*_pts);
 		PathLine line;

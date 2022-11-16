@@ -52,7 +52,7 @@ int __fx_quark_have_debug = 0;
 static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Char*>& quark_argv) {
 	static String argv_str;
 
-	Qk_Assert(argv_in.length(), "Bad start argument");
+	Qk_ASSERT(argv_in.length(), "Bad start argument");
 	__fx_quark_have_node = 1;
 	__fx_quark_have_debug = 0;
 	argv_str = argv_in[0];
@@ -122,7 +122,7 @@ int Start(const Array<String>& argv_in) {
 		Object::set_object_allocator(
 			&object_allocator_alloc, &object_allocator_release, &object_allocator_retain);
 	}
-	Qk_Assert(!__fx_quark_argv);
+	Qk_ASSERT(!__fx_quark_argv);
 
 	Array<Char*> argv, quark_argv;
 	parseArgv(argv_in, argv, quark_argv);
@@ -135,7 +135,7 @@ int Start(const Array<String>& argv_in) {
 	Char** argv_c = const_cast<Char**>(&argv[0]);
 
 	// Mark the current main thread and check current thread
-	Qk_Assert(RunLoop::main_loop() == RunLoop::current());
+	Qk_ASSERT(RunLoop::main_loop() == RunLoop::current());
 
 	if (__fx_quark_have_node ) {
 		if (node::node_api) {

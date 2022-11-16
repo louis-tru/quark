@@ -115,7 +115,7 @@ namespace quark {
 		: SearchPath(path)
 		, m_zip_path(zip_path)
 		, m_zip (zip_path) {
-		Qk_Assert( m_zip.open(), "Cannot open zip file, `%s`", *zip_path );
+		Qk_ASSERT( m_zip.open(), "Cannot open zip file, `%s`", *zip_path );
 	}
 
 	FileSearch::ZipInSearchPath::~ZipInSearchPath() {

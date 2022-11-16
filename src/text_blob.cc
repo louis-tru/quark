@@ -350,7 +350,7 @@ namespace quark {
 			if (is_KEEP_ALL ? sym == kPunctuation_Symbol : sym < kNumber_Symbol) {
 			wordEnd:
 				_lines->add_text_blob(
-					{fg.typeface()->id(), text_size, line_height, index + start, _blob},
+					{fg.typeface(), text_size, line_height, index + start, _blob},
 					glyphs.slice(start, i), offset.slice(start, i + 1), false
 				);
 				line_head = line->width == 0.0;
@@ -484,7 +484,7 @@ namespace quark {
 				} else { // ELLIPSIS or ELLIPSIS_CENTER
 
 					Array<Unichar> uinchar({46,46,46});
-					auto ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), text_size)[0];
+					auto& ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), text_size)[0];
 					auto ellipsis_offset = ellipsis.get_offset();
 					auto ellipsis_width = ellipsis_offset.back();
 					auto limit2 = limitX - ellipsis_width;
@@ -524,7 +524,7 @@ namespace quark {
 								break;
 							}
 						}
-						Qk_Assert(_lines->pre_width() == limitX);
+						Qk_ASSERT(_lines->pre_width() == limitX);
 					}
 				}
 

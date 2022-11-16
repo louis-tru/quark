@@ -451,7 +451,7 @@ namespace quark {
 		}
 		
 		inline void get_listener() {
-			Qk_Assert(!_name.is_empty());
+			Qk_ASSERT(!_name.is_empty());
 			if (_listener == nullptr) {
 				_listener = new List<LWrap>();
 			}

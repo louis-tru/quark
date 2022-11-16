@@ -1530,7 +1530,7 @@ class NativeFileHelper {
 			CopyablePersistentValue persistent(worker, args[2]);
 			
 			FileHelper::write_file(path, buffer, Cb([persistent, afterCollapse, cb, size](CbData& ev) {
-				Qk_Assert( ev.data );
+				Qk_ASSERT( ev.data );
 				if (afterCollapse) {
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
 					static_cast<Buffer*>(ev.data)->collapse();
@@ -1731,7 +1731,7 @@ class NativeFileHelper {
 			
 			FileHelper::read(fd, WeakBuffer(*raw_buf, size), offset,
 											 Cb([persistent, cb](CbData& ev) {
-				Qk_Assert( ev.data );
+				Qk_ASSERT( ev.data );
 				Int read_len(static_cast<Buffer*>(ev.data)->length());
 				CbData r = { nullptr, &read_len, 0 };
 				cb->call(r);
@@ -1832,7 +1832,7 @@ class NativeFileHelper {
 			CopyablePersistentValue persistent(worker, args[2]);
 
 			FileHelper::write(fd, buffer, offset, Cb([persistent, afterCollapse, cb, size](CbData& ev) {
-				Qk_Assert( ev.data );
+				Qk_ASSERT( ev.data );
 				if (afterCollapse) { // restore raw buffer
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
 					static_cast<Buffer*>(ev.data)->collapse();

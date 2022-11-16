@@ -216,17 +216,17 @@ namespace quark {
 		void onDispatch(uint32_t keycode, bool ascii, bool down,
 									int repeat = 0, int device = 0, int source = 0);
 
-		Qk_Define_Prop_Get(EventDispatch*, host);
-		Qk_Define_Prop_Get(KeyboardKeyName, keyname);
-		Qk_Define_Prop_Get(int, keypress);
-		Qk_Define_Prop_Get(bool, shift);
-		Qk_Define_Prop_Get(bool, alt);
-		Qk_Define_Prop_Get(bool, ctrl);
-		Qk_Define_Prop_Get(bool, command);
-		Qk_Define_Prop_Get(bool, caps_lock);
-		Qk_Define_Prop_Get(bool, repeat);
-		Qk_Define_Prop_Get(bool, device);
-		Qk_Define_Prop_Get(bool, source);
+		Qk_DEFINE_PROP_GET(EventDispatch*, host);
+		Qk_DEFINE_PROP_GET(KeyboardKeyName, keyname);
+		Qk_DEFINE_PROP_GET(int, keypress);
+		Qk_DEFINE_PROP_GET(bool, shift);
+		Qk_DEFINE_PROP_GET(bool, alt);
+		Qk_DEFINE_PROP_GET(bool, ctrl);
+		Qk_DEFINE_PROP_GET(bool, command);
+		Qk_DEFINE_PROP_GET(bool, caps_lock);
+		Qk_DEFINE_PROP_GET(bool, repeat);
+		Qk_DEFINE_PROP_GET(bool, device);
+		Qk_DEFINE_PROP_GET(bool, source);
 
 	protected:
 

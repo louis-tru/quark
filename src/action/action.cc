@@ -210,7 +210,7 @@ Action::Action()
 * @destructor
 */
 Action::~Action() {
-	Qk_Assert( _action_center_id == ActionCenterId() );
+	Qk_ASSERT( _action_center_id == ActionCenterId() );
 }
 
 /**

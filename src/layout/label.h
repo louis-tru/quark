@@ -41,7 +41,7 @@ namespace quark {
 	class Qk_EXPORT Label: public View, public TextOptions {
 		Qk_Define_View(Label);
 	public:
-		Qk_Define_Prop(String, text_value);
+		Qk_DEFINE_PROP(String, text_value);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;

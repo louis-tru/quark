@@ -38,7 +38,7 @@ namespace quark {
 	ParallelWorking::ParallelWorking(): ParallelWorking(RunLoop::current()) {}
 
 	ParallelWorking::ParallelWorking(RunLoop* loop) : _proxy(nullptr) {
-		Qk_Assert(loop, "Can not find current thread run loop.");
+		Qk_ASSERT(loop, "Can not find current thread run loop.");
 		_proxy = loop->keep_alive("ParallelWorking()");
 	}
 
@@ -90,7 +90,7 @@ namespace quark {
 		} else {
 			{
 				ScopeLock scope(_mutex2);
-				Qk_Assert(_childs.find(id) != _childs.end(),
+				Qk_ASSERT(_childs.find(id) != _childs.end(),
 					"Only subthreads belonging to \"ParallelWorking\" can be aborted");
 			}
 			Thread::abort(id);
@@ -109,7 +109,7 @@ namespace quark {
 				Thread::resume(i.key);
 			}
 		} else {
-			Qk_Assert(_childs.find(id) != _childs.end(),
+			Qk_ASSERT(_childs.find(id) != _childs.end(),
 				"Only subthreads belonging to \"ParallelWorking\" can be resume");
 			Thread::resume(id);
 		}

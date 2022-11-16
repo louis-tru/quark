@@ -124,12 +124,12 @@ class JSClassIMPL {
 	inline uint64_t id() const { return id_; }
 	
 	inline void retain() {
-		Qk_Assert(ref_ >= 0);
+		Qk_ASSERT(ref_ >= 0);
 		ref_++;
 	}
 	
 	inline void release() {
-		Qk_Assert(ref_ >= 0);
+		Qk_ASSERT(ref_ >= 0);
 		if ( --ref_ <= 0 ) {
 			delete this;
 		}

@@ -174,8 +174,8 @@ namespace quark {
 	JSON& JSON::operator[](cJSON& key) {
 		RValue* self = reinterpret_cast<RValue*>(this);
 		CRValue& n = *reinterpret_cast<CRValue*>(&key);
-		Qk_Assert(self->IsObject());
-		Qk_Assert(n.IsString());
+		Qk_ASSERT(self->IsObject());
+		Qk_ASSERT(n.IsString());
 		RValue::MemberIterator member = self->FindMember(n);
 		RValue* value = NULL;
 		
@@ -195,8 +195,8 @@ namespace quark {
 	const JSON& JSON::operator[](cJSON& key) const {
 		CRValue* self = reinterpret_cast<CRValue*>(this);
 		CRValue& n = *reinterpret_cast<CRValue*>(&key);
-		Qk_Assert(self->IsObject());
-		Qk_Assert(n.IsString());
+		Qk_ASSERT(self->IsObject());
+		Qk_ASSERT(n.IsString());
 		RValue::ConstMemberIterator member = self->FindMember(n);
 		
 		if (member != self->MemberEnd()){
@@ -206,9 +206,9 @@ namespace quark {
 	}
 
 	JSON& JSON::operator[](int index) {
-		Qk_Assert(is_array());
+		Qk_ASSERT(is_array());
 		RValue* self = reinterpret_cast<RValue*>(this);
-		Qk_Assert(self->IsArray());
+		Qk_ASSERT(self->IsArray());
 		RValue* value = NULL;
 		
 		int size = self->Size();
@@ -228,7 +228,7 @@ namespace quark {
 
 	JSON& JSON::operator[] (cChar* key) {
 		RValue* self = reinterpret_cast<RValue*>(this);
-		Qk_Assert(self->IsObject());
+		Qk_ASSERT(self->IsObject());
 		RValue n(rapidjson::StringRef(key));
 		RValue::MemberIterator member = self->FindMember(n);
 		RValue* value = NULL;
@@ -252,7 +252,7 @@ namespace quark {
 
 	const JSON& JSON::operator[](int index) const {
 		CRValue* self = reinterpret_cast<CRValue*>(this);
-		Qk_Assert(self->IsArray());
+		Qk_ASSERT(self->IsArray());
 		
 		int size = self->Size();
 		if(index < size){
@@ -263,7 +263,7 @@ namespace quark {
 
 	const JSON& JSON::operator[](cChar* key) const {
 		CRValue* self = reinterpret_cast<CRValue*>(this);
-		Qk_Assert(self->IsObject());
+		Qk_ASSERT(self->IsObject());
 		RValue n(rapidjson::StringRef(key));
 		RValue::ConstMemberIterator member = self->FindMember(n);
 		
@@ -325,7 +325,7 @@ namespace quark {
 
 	void JSON::remove(cChar* key) {
 		RValue* self = reinterpret_cast<RValue*>(this);
-		Qk_Assert(self->IsObject());
+		Qk_ASSERT(self->IsObject());
 		RValue n(rapidjson::StringRef(key));
 		RValue::MemberIterator member = self->FindMember(n);
 		
@@ -423,7 +423,7 @@ namespace quark {
 			}
 		}
 		else {
-			//  Qk_Assert(0, "This method is only applicable to \"Object\" type of JOSN");
+			//  Qk_ASSERT(0, "This method is only applicable to \"Object\" type of JOSN");
 			Qk_WARN("%s", "This method is only applicable to \"Object\" type of JOSN");
 		}
 		return o;

@@ -53,7 +53,7 @@ namespace quark {
 		, _disable_wait_buffer(false)
 		, _waiting_buffer(false)
 	{
-		Qk_Assert(_host, "#AudioPlayer#AudioPlayer Application host cannot be null");
+		Qk_ASSERT(_host, "#AudioPlayer#AudioPlayer Application host cannot be null");
 	}
 
 	AudioPlayer* AudioPlayer::create(String src, Application* host) {
@@ -222,9 +222,9 @@ namespace quark {
 		void start_run() {
 			Lock lock(_mutex);
 			
-			Qk_Assert( _source && _audio && _pcm );
-			Qk_Assert( _source->is_active() );
-			Qk_Assert( _status == PLAYER_STATUS_START );
+			Qk_ASSERT( _source && _audio && _pcm );
+			Qk_ASSERT( _source->is_active() );
+			Qk_ASSERT( _status == PLAYER_STATUS_START );
 
 			_waiting_buffer = false;
 			
@@ -247,7 +247,7 @@ namespace quark {
 	};
 
 	void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
-		Qk_Assert(_source == src);
+		Qk_ASSERT(_source == src);
 		
 		if (_audio) {
 			Inl_AudioPlayer(this)->trigger(UIEvent_Ready); // trigger event ready
@@ -391,7 +391,7 @@ namespace quark {
 			Inl_AudioPlayer(this)->stop_and_release(lock, true);
 		}
 		auto loop = _host->loop();
-		Qk_Assert(loop, "Cannot find main run loop");
+		Qk_ASSERT(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
 		_keep = loop->keep_alive("AudioPlayer::set_src");
 		_source->set_delegate(this);
@@ -448,7 +448,7 @@ namespace quark {
 	bool AudioPlayer::seek(uint64_t timeUs) {
 		ScopeLock scope(_mutex);
 		if ( Inl_AudioPlayer(this)->is_active() && timeUs < _duration ) {
-			Qk_Assert(_source);
+			Qk_ASSERT(_source);
 			if ( _source->seek(timeUs) ) {
 				_uninterrupted_play_start_systime = 0;
 				_time = timeUs;

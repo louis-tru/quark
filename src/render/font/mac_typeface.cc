@@ -29,6 +29,84 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "mac_typeface.h"
+#include "sfnt/QkOTTable_OS_2.h"
+
+String QkCFTypeIDDescription(CFTypeID id) {
+	QkUniqueCFRef<CFStringRef> typeDescription(CFCopyTypeIDDescription(id));
+	return QkStringFromCFString(typeDescription.get());
+}
+
+template<typename CF> CFTypeID QkCFGetTypeID();
+#define Qk_GETCFTYPEID(cf) \
+template<> CFTypeID QkCFGetTypeID<cf##Ref>() { return cf##GetTypeID(); }
+Qk_GETCFTYPEID(CFBoolean);
+Qk_GETCFTYPEID(CFDictionary);
+Qk_GETCFTYPEID(CFNumber);
+
+/* Checked dynamic downcast of CFTypeRef.
+ *
+ * @param cf the ref to downcast.
+ * @param cfAsCF if cf can be cast to the type CF, receives the downcast ref.
+ * @param name if non-nullptr the cast is expected to succeed and failures will be logged.
+ * @return true if the cast succeeds, false otherwise.
+ */
+template <typename CF>
+static bool SkCFDynamicCast(CFTypeRef cf, CF* cfAsCF, char const* name) {
+	//SkDEBUGF("SkCFDynamicCast '%s' of type %s to type %s\n", name ? name : "<annon>",
+	//         SkCFTypeIDDescription(  CFGetTypeID(cf)  ).c_str()
+	//         SkCFTypeIDDescription(SkCFGetTypeID<CF>()).c_str());
+	if (!cf) {
+		if (name) {
+			Qk_DEBUG("%s not present\n", name);
+		}
+		return false;
+	}
+	if (CFGetTypeID(cf) != QkCFGetTypeID<CF>()) {
+		if (name) {
+			Qk_DEBUG("%s is a %s but expected a %s\n", name,
+								QkCFTypeIDDescription(CFGetTypeID(cf)  ).c_str(),
+								QkCFTypeIDDescription(QkCFGetTypeID<CF>()).c_str());
+		}
+		return false;
+	}
+	*cfAsCF = static_cast<CF>(cf);
+	return true;
+}
+
+template <typename S, typename D, typename C> struct QkLinearInterpolater {
+	struct Mapping {
+		S src_val;
+		D dst_val;
+	};
+	constexpr QkLinearInterpolater(Mapping const mapping[], int mappingCount)
+		: fMapping(mapping), fMappingCount(mappingCount) {}
+
+	static D map(S value, S src_min, S src_max, D dst_min, D dst_max) {
+		Qk_ASSERT(src_min < src_max);
+		Qk_ASSERT(dst_min <= dst_max);
+		return C()(dst_min + (((value - src_min) * (dst_max - dst_min)) / (src_max - src_min)));
+	}
+
+	D map(S val) const {
+		// -Inf to [0]
+		if (val < fMapping[0].src_val) {
+			return fMapping[0].dst_val;
+		}
+		// Linear from [i] to [i+1]
+		for (int i = 0; i < fMappingCount - 1; ++i) {
+			if (val < fMapping[i+1].src_val) {
+				return map(val, fMapping[i].src_val, fMapping[i+1].src_val,
+												fMapping[i].dst_val, fMapping[i+1].dst_val);
+			}
+		}
+		// From [n] to +Inf
+		// if (fcweight < Inf)
+		return fMapping[fMappingCount - 1].dst_val;
+	}
+
+	Mapping const * fMapping;
+	int fMappingCount;
+};
 
 struct RoundCGFloatToInt {
 		int operator()(CGFloat s) { return s + 0.5; }
@@ -77,4 +155,388 @@ CGFloat QkCTFontCTWidthForCSSWidth(TextWidth fontstyleWidth) {
 	};
 	static constexpr Interpolator interpolator(widthMappings, Qk_ARRAY_COUNT(widthMappings));
 	return interpolator.map(int(fontstyleWidth));
+}
+
+// In macOS 10.12 and later any variation on the CGFont which has default axis value will be
+// dropped when creating the CTFont. Unfortunately, in macOS 10.15 the priority of setting
+// the optical size (and opsz variation) is
+// 1. the value of kCTFontOpticalSizeAttribute in the CTFontDescriptor (undocumented)
+// 2. the opsz axis default value if kCTFontOpticalSizeAttribute is 'none' (undocumented)
+// 3. the opsz variation on the nascent CTFont from the CGFont (was dropped if default)
+// 4. the opsz variation in kCTFontVariationAttribute in CTFontDescriptor (crashes 10.10)
+// 5. the size requested (can fudge in SkTypeface but not SkScalerContext)
+// The first one which is found will be used to set the opsz variation (after clamping).
+static void add_opsz_attr(CFMutableDictionaryRef attr, double opsz) {
+	QkUniqueCFRef<CFNumberRef> opszValueNumber(
+			CFNumberCreate(kCFAllocatorDefault, kCFNumberDoubleType, &opsz));
+	// Avoid using kCTFontOpticalSizeAttribute directly
+	CFStringRef SkCTFontOpticalSizeAttribute = CFSTR("NSCTFontOpticalSizeAttribute");
+	CFDictionarySetValue(attr, SkCTFontOpticalSizeAttribute, opszValueNumber.get());
+}
+
+// This turns off application of the 'trak' table to advances, but also all other tracking.
+static void add_notrak_attr(CFMutableDictionaryRef attr) {
+	int zero = 0;
+	QkUniqueCFRef<CFNumberRef> unscaledTrackingNumber(
+			CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &zero));
+	CFStringRef SkCTFontUnscaledTrackingAttribute = CFSTR("NSCTFontUnscaledTrackingAttribute");
+	CFDictionarySetValue(attr, SkCTFontUnscaledTrackingAttribute, unscaledTrackingNumber.get());
+}
+
+QkUniqueCFRef<CTFontRef> QkCTFontCreateExactCopy(CTFontRef baseFont, CGFloat textSize, OpszVariation opsz)
+{
+	QkUniqueCFRef<CFMutableDictionaryRef> attr(
+	CFDictionaryCreateMutable(kCFAllocatorDefault, 0,
+														&kCFTypeDictionaryKeyCallBacks,
+														&kCFTypeDictionaryValueCallBacks));
+
+	if (opsz.isSet) {
+			add_opsz_attr(attr.get(), opsz.value);
+	} else {
+		// On (at least) 10.10 though 10.14 the default system font was SFNSText/SFNSDisplay.
+		// The CTFont is backed by both; optical size < 20 means SFNSText else SFNSDisplay.
+		// On at least 10.11 the glyph ids in these fonts became non-interchangable.
+		// To keep glyph ids stable over size changes, preserve the optical size.
+		// In 10.15 this was replaced with use of variable fonts with an opsz axis.
+		// A CTFont backed by multiple fonts picked by opsz where the multiple backing fonts are
+		// variable fonts with opsz axis and non-interchangeable glyph ids would break the
+		// opsz.isSet branch above, but hopefully that never happens.
+		// See https://crbug.com/524646 .
+		CFStringRef SkCTFontOpticalSizeAttribute = CFSTR("NSCTFontOpticalSizeAttribute");
+		QkUniqueCFRef<CFTypeRef> opsz(CTFontCopyAttribute(baseFont, SkCTFontOpticalSizeAttribute));
+		double opsz_val;
+		if (!opsz ||
+				CFGetTypeID(opsz.get()) != CFNumberGetTypeID() ||
+				!CFNumberGetValue(static_cast<CFNumberRef>(opsz.get()),kCFNumberDoubleType,&opsz_val) ||
+				opsz_val <= 0)
+		{
+				opsz_val = CTFontGetSize(baseFont);
+		}
+		add_opsz_attr(attr.get(), opsz_val);
+	}
+	add_notrak_attr(attr.get());
+
+	QkUniqueCFRef<CTFontDescriptorRef> desc(CTFontDescriptorCreateWithAttributes(attr.get()));
+
+	return QkUniqueCFRef<CTFontRef>(
+					CTFontCreateCopyWithAttributes(baseFont, textSize, nullptr, desc.get()));
+}
+
+/** Convert the [-1, 1] CTFontDescriptor weight to [0, 1000] CSS weight.
+ *
+ *  The -1 to 1 weights reported by CTFontDescriptors have different mappings depending on if the
+ *  CTFont is native or created from a CGDataProvider.
+ */
+static int ct_weight_to_fontstyle(CGFloat cgWeight, bool fromDataProvider) {
+	using Interpolator = QkLinearInterpolater<CGFloat, int, RoundCGFloatToInt>;
+
+	// Note that Mac supports the old OS2 version A so 0 through 10 are as if multiplied by 100.
+	// However, on this end we can't tell, so this is ignored.
+
+	static Interpolator::Mapping nativeWeightMappings[11];
+	static Interpolator::Mapping dataProviderWeightMappings[11];
+	static int once = [] {
+		const CGFloat(&nsFontWeights)[11] = QkCTFontGetNSFontWeightMapping();
+		const CGFloat(&userFontWeights)[11] = QkCTFontGetDataFontWeightMapping();
+		for (int i = 0; i < 11; ++i) {
+			nativeWeightMappings[i].src_val = nsFontWeights[i];
+			nativeWeightMappings[i].dst_val = i * 100;
+
+			dataProviderWeightMappings[i].src_val = userFontWeights[i];
+			dataProviderWeightMappings[i].dst_val = i * 100;
+		}
+		return 0;
+	}();
+	static constexpr Interpolator nativeInterpolator(
+					nativeWeightMappings, Qk_ARRAY_COUNT(nativeWeightMappings));
+	static constexpr Interpolator dataProviderInterpolator(
+					dataProviderWeightMappings, Qk_ARRAY_COUNT(dataProviderWeightMappings));
+
+	return fromDataProvider ? dataProviderInterpolator.map(cgWeight)
+													: nativeInterpolator.map(cgWeight);
+}
+
+/** Convert the [-1, 1] CTFontDescriptor width to [0, 10] CSS weight. */
+static int ct_width_to_fontstyle(CGFloat cgWidth) {
+	using Interpolator = QkLinearInterpolater<CGFloat, int, RoundCGFloatToInt>;
+
+	// Values determined by creating font data with every width, creating a CTFont,
+	// and asking the CTFont for its width. See TypefaceStyle test for basics.
+	static constexpr Interpolator::Mapping widthMappings[] = {
+		{ -0.5,  0 },
+		{  0.5, 10 },
+	};
+	static constexpr Interpolator interpolator(widthMappings, Qk_ARRAY_COUNT(widthMappings));
+	return interpolator.map(cgWidth);
+}
+
+static bool find_dict_CGFloat(CFDictionaryRef dict, CFStringRef name, CGFloat* value) {
+	CFNumberRef num;
+	return CFDictionaryGetValueIfPresent(dict, name, (const void**)&num)
+		&& CFNumberIsFloatType(num)
+		&& CFNumberGetValue(num, kCFNumberCGFloatType, value);
+}
+
+FontStyle QkCTFontDescriptorGetSkFontStyle(CTFontDescriptorRef desc, bool fromDataProvider) {
+	QkUniqueCFRef<CFTypeRef> traits(CTFontDescriptorCopyAttribute(desc, kCTFontTraitsAttribute));
+	CFDictionaryRef fontTraitsDict;
+	if (!SkCFDynamicCast(traits.get(), &fontTraitsDict, "Font traits")) {
+		return FontStyle();
+	}
+
+	CGFloat weight, width, slant;
+	if (!find_dict_CGFloat(fontTraitsDict, kCTFontWeightTrait, &weight)) {
+		weight = 0;
+	}
+	if (!find_dict_CGFloat(fontTraitsDict, kCTFontWidthTrait, &width)) {
+		width = 0;
+	}
+	if (!find_dict_CGFloat(fontTraitsDict, kCTFontSlantTrait, &slant)) {
+		slant = 0;
+	}
+
+	return FontStyle((TextWeight)ct_weight_to_fontstyle(weight, fromDataProvider),
+										(TextWidth)ct_width_to_fontstyle(width),
+										slant ? TextSlant::ITALIC: TextSlant::DEFAULT);
+}
+
+
+// If, as is the case with web fonts, the CTFont data isn't available,
+// the CGFont data may work. While the CGFont may always provide the
+// right result, leave the CTFont code path to minimize disruption.
+static QkUniqueCFRef<CFDataRef> copy_table_from_font(CTFontRef ctFont, FontTableTag tag) {
+	QkUniqueCFRef<CFDataRef> data(CTFontCopyTable(ctFont, (CTFontTableTag) tag,
+																								kCTFontTableOptionNoOptions));
+	if (!data) {
+		QkUniqueCFRef<CGFontRef> cgFont(CTFontCopyGraphicsFont(ctFont, nullptr));
+		data.reset(CGFontCopyTableForTag(cgFont.get(), tag));
+	}
+	return data;
+}
+
+static inline bool QkUTF16_IsLeadingSurrogate(uint16_t c) { return ((c) & 0xFC00) == 0xD800; }
+
+size_t QkToUTF16(Unichar uni, uint16_t utf16[2]) {
+	if ((uint32_t)uni > 0x10FFFF) {
+		return 0;
+	}
+	int extra = (uni > 0xFFFF);
+	if (utf16) {
+		if (extra) {
+			utf16[0] = (uint16_t)((0xD800 - 64) + (uni >> 10));
+			utf16[1] = (uint16_t)(0xDC00 | (uni & 0x3FF));
+		} else {
+			utf16[0] = (uint16_t)uni;
+		}
+	}
+	return 1 + extra;
+}
+
+// -----------------------------------------------------------------------------------
+
+QkTypeface_Mac::QkTypeface_Mac(QkUniqueCFRef<CTFontRef> font, OpszVariation opszVariation, bool isData)
+	: Typeface(FontStyle(), true)
+	, fFontRef(std::move(font))
+	, fOpszVariation(opszVariation)
+	, fHasColorGlyphs(CTFontGetSymbolicTraits(fFontRef.get()) & kCTFontColorGlyphsTrait)
+	, fIsData(isData)
+{
+	Qk_ASSERT(fFontRef);
+	QkUniqueCFRef<CTFontDescriptorRef> desc(CTFontCopyFontDescriptor(fFontRef.get()));
+	FontStyle style = QkCTFontDescriptorGetSkFontStyle(desc.get(), fIsData);
+	CTFontSymbolicTraits traits = CTFontGetSymbolicTraits(font.get());
+	bool isFixedPitch = (traits & kCTFontMonoSpaceTrait);
+	setFontStyle(style);
+	setIsFixedPitch(isFixedPitch);
+}
+
+int QkTypeface_Mac::onCountGlyphs() const {
+	return int(CTFontGetGlyphCount(fFontRef.get()));
+}
+
+int QkTypeface_Mac::onGetUPEM() const {
+	QkUniqueCFRef<CGFontRef> cgFont(CTFontCopyGraphicsFont(fFontRef.get(), nullptr));
+	return CGFontGetUnitsPerEm(cgFont.get());
+}
+
+int QkTypeface_Mac::onGetTableTags(FontTableTag tags[]) const {
+	QkUniqueCFRef<CFArrayRef> cfArray(
+		CTFontCopyAvailableTables(fFontRef.get(), kCTFontTableOptionNoOptions));
+	if (!cfArray) {
+		return 0;
+	}
+	int count = int(CFArrayGetCount(cfArray.get()));
+	if (tags) {
+		for (int i = 0; i < count; ++i) {
+			uintptr_t fontTag = reinterpret_cast<uintptr_t>(
+					CFArrayGetValueAtIndex(cfArray.get(), i));
+			tags[i] = static_cast<FontTableTag>(fontTag);
+		}
+	}
+	return count;
+}
+
+bool QkTypeface_Mac::onGetPostScriptName(String* skPostScriptName) const {
+	QkUniqueCFRef<CFStringRef> ctPostScriptName(CTFontCopyPostScriptName(fFontRef.get()));
+	if (!ctPostScriptName) {
+		return false;
+	}
+	if (skPostScriptName) {
+		*skPostScriptName = QkStringFromCFString(ctPostScriptName.get());
+	}
+	return true;
+}
+
+String QkTypeface_Mac::onGetFamilyName() const {
+	QkUniqueCFRef<CFStringRef> familyName(CTFontCopyFamilyName(fFontRef.get()));
+	return QkStringFromCFString(familyName.get());
+}
+
+size_t QkTypeface_Mac::onGetTableData(FontTableTag tag, size_t offset,size_t length, void* dstData) const {
+	QkUniqueCFRef<CFDataRef> srcData = copy_table_from_font(fFontRef.get(), tag);
+	if (!srcData) {
+		return 0;
+	}
+	size_t srcSize = CFDataGetLength(srcData.get());
+	if (offset >= srcSize) {
+		return 0;
+	}
+	if (length > srcSize - offset) {
+		length = srcSize - offset;
+	}
+	if (dstData) {
+		memcpy(dstData, CFDataGetBytePtr(srcData.get()) + offset, length);
+	}
+	return length;
+}
+
+void QkTypeface_Mac::onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyphs[]) const {
+	// Undocumented behavior of CTFontGetGlyphsForCharacters with non-bmp code points:
+	// When a surrogate pair is detected, the glyph index used is the index of the high surrogate.
+	// It is documented that if a mapping is unavailable, the glyph will be set to 0.
+
+	ArrayBuffer<uint16_t> charStorage = ArrayBuffer<uint16_t>::alloc(2 * count);
+	const UniChar* src = *charStorage; // UniChar is a UTF-16 16-bit code unit.
+	const Unichar* utf32 = uni;
+	UniChar* utf16 = *charStorage;
+	for (int i = 0; i < count; ++i) {
+		utf16 += QkToUTF16(utf32[i], utf16);
+	}
+	int srcCount = int(utf16 - src);
+
+	// If there are any non-bmp code points, the provided 'glyphs' storage will be inadequate.
+	ArrayBuffer<uint16_t> glyphStorage;
+	uint16_t* macGlyphs = glyphs;
+	if (srcCount > count) {
+		glyphStorage.extend(srcCount);
+		macGlyphs = *glyphStorage;
+	}
+
+	CTFontGetGlyphsForCharacters(fFontRef.get(), src, macGlyphs, srcCount);
+
+	// If there were any non-bmp, then copy and compact.
+	// If all are bmp, 'glyphs' already contains the compact glyphs.
+	// If some are non-bmp, copy and compact into 'glyphs'.
+	if (srcCount > count) {
+		Qk_ASSERT(glyphs != macGlyphs);
+		int extra = 0;
+		for (int i = 0; i < count; ++i) {
+			glyphs[i] = macGlyphs[i + extra];
+			if (QkUTF16_IsLeadingSurrogate(src[i + extra])) {
+				++extra;
+			}
+		}
+	} else {
+		Qk_ASSERT(glyphs == macGlyphs);
+	}
+}
+
+static inline float SkScalarFromCGFloat(CGFloat cgFloat) {
+	return static_cast<float>(cgFloat);
+}
+
+static inline CGFloat SkCGRectGetMaxY(const CGRect& rect) {
+		return rect.origin.y + rect.size.height;
+}
+
+static inline CGFloat SkCGRectGetWidth(const CGRect& rect) {
+		return rect.size.width;
+}
+
+static inline CGFloat SkCGRectGetMinY(const CGRect& rect) {
+		return rect.origin.y;
+}
+
+static inline CGFloat SkCGRectGetMaxX(const CGRect& rect) {
+		return rect.origin.x + rect.size.width;
+}
+
+static inline CGFloat SkCGRectGetMinX(const CGRect& rect) {
+		return rect.origin.x;
+}
+
+void QkTypeface_Mac::onGetMetrics(FontMetrics* metrics, float fontSize) const {
+	if (nullptr == metrics) {
+		return;
+	}
+
+	QkUniqueCFRef<CTFontRef> fontHolder;
+	CTFontRef fontRef = fFontRef.get();
+
+	if (fontSize != CTFontGetSize(fontRef)) {
+		fontRef = CTFontCreateCopyWithAttributes(fontRef, fontSize, nullptr, nullptr);
+		fontHolder.reset(fontRef);
+	}
+
+	CGRect theBounds = CTFontGetBoundingBox(fontRef);
+
+	metrics->fTop          = SkScalarFromCGFloat(-SkCGRectGetMaxY(theBounds));
+	metrics->fAscent       = SkScalarFromCGFloat(-CTFontGetAscent(fontRef));
+	metrics->fDescent      = SkScalarFromCGFloat( CTFontGetDescent(fontRef));
+	metrics->fBottom       = SkScalarFromCGFloat(-SkCGRectGetMinY(theBounds));
+	metrics->fLeading      = SkScalarFromCGFloat( CTFontGetLeading(fontRef));
+	metrics->fAvgCharWidth = SkScalarFromCGFloat( SkCGRectGetWidth(theBounds));
+	metrics->fXMin         = SkScalarFromCGFloat( SkCGRectGetMinX(theBounds));
+	metrics->fXMax         = SkScalarFromCGFloat( SkCGRectGetMaxX(theBounds));
+	metrics->fMaxCharWidth = metrics->fXMax - metrics->fXMin;
+	metrics->fXHeight      = SkScalarFromCGFloat( CTFontGetXHeight(fontRef));
+	metrics->fCapHeight    = SkScalarFromCGFloat( CTFontGetCapHeight(fontRef));
+	metrics->fUnderlineThickness = SkScalarFromCGFloat( CTFontGetUnderlineThickness(fontRef));
+	metrics->fUnderlinePosition = -SkScalarFromCGFloat( CTFontGetUnderlinePosition(fontRef));
+
+	metrics->fFlags = 0;
+	metrics->fFlags |= FontMetrics::kUnderlineThicknessIsValid_Flag;
+	metrics->fFlags |= FontMetrics::kUnderlinePositionIsValid_Flag;
+
+	QkUniqueCFRef<CFArrayRef> ctAxes(CTFontCopyVariationAxes(fontRef));
+	if (ctAxes && CFArrayGetCount(ctAxes.get()) > 0) {
+		// The bounds are only valid for the default variation.
+		metrics->fFlags |= FontMetrics::kBoundsInvalid_Flag;
+	}
+
+	// See https://bugs.chromium.org/p/skia/issues/detail?id=6203
+	// At least on 10.12.3 with memory based fonts the x-height is always 0.6666 of the ascent and
+	// the cap-height is always 0.8888 of the ascent. It appears that the values from the 'OS/2'
+	// table are read, but then overwritten if the font is not a system font. As a result, if there
+	// is a valid 'OS/2' table available use the values from the table if they aren't too strange.
+	struct OS2HeightMetrics {
+		uint16_t sxHeight;
+		uint16_t sCapHeight;
+	} heights;
+	size_t bytesRead = onGetTableData(
+					QkEndian_SwapBE32(QkOTTableOS2::TAG), offsetof(QkOTTableOS2, version.v2.sxHeight),
+					sizeof(heights), &heights);
+	if (bytesRead == sizeof(heights)) {
+		// 'fontSize' is correct because the entire resolved size is set by the constructor.
+		unsigned upem = CTFontGetUnitsPerEm(fontRef);
+		unsigned maxSaneHeight = upem * 2;
+		uint16_t xHeight = QkEndian_SwapBE16(heights.sxHeight);
+		if (xHeight && xHeight < maxSaneHeight) {
+			metrics->fXHeight = SkScalarFromCGFloat(xHeight * fontSize / upem);
+		}
+		uint16_t capHeight = QkEndian_SwapBE16(heights.sCapHeight);
+		if (capHeight && capHeight < maxSaneHeight) {
+			metrics->fCapHeight = SkScalarFromCGFloat(capHeight * fontSize / upem);
+		}
+	}
 }

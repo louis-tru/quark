@@ -99,7 +99,7 @@ namespace quark {
 		} \
 		\
 		template<> void Array<T, A>::realloc(uint32_t capacity) { \
-			Qk_Assert(!is_weak(), "the weak holder cannot be changed"); \
+			Qk_ASSERT(!is_weak(), "the weak holder cannot be changed"); \
 			if (capacity < _length) { /* clear Partial data */ \
 				_length = capacity;\
 			} \

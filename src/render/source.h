@@ -64,11 +64,11 @@ namespace quark {
 		Qk_Event(State, Event<ImageSource, State>);
 		
 		// Defines props
-		Qk_Define_Prop_Get(String, uri);
-		Qk_Define_Prop_Get(State, state);
-		Qk_Define_Prop_Get(int, width);
-		Qk_Define_Prop_Get(int, height);
-		Qk_Define_Prop_Get(ColorType, type);
+		Qk_DEFINE_PROP_GET(String, uri);
+		Qk_DEFINE_PROP_GET(State, state);
+		Qk_DEFINE_PROP_GET(int, width);
+		Qk_DEFINE_PROP_GET(int, height);
+		Qk_DEFINE_PROP_GET(ColorType, type);
 
 		// @constructor
 		// <FlowLayout>

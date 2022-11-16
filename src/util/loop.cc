@@ -77,7 +77,7 @@ namespace quark {
 		}
 
 		static void set_thread_specific_data(Thread* thread) {
-			Qk_Assert(!pthread_getspecific(__specific_key));
+			Qk_ASSERT(!pthread_getspecific(__specific_key));
 			pthread_setspecific(__specific_key, thread);
 		}
 
@@ -176,7 +176,7 @@ namespace quark {
 	 */
 	void Thread::pause(uint64_t timeoutUs) {
 		auto cur = current();
-		Qk_Assert(cur, "Cannot find current quark::Thread handle, use Thread::sleep()");
+		Qk_ASSERT(cur, "Cannot find current quark::Thread handle, use Thread::sleep()");
 
 		Lock lock(cur->_mutex);
 		if ( !cur->_abort ) {
@@ -283,7 +283,7 @@ namespace quark {
 		__on_process_safe_exit = new EventNoticer<>("SafeExit", nullptr);
 		atexit(Thread::Inl::on_atexit);
 		int err = pthread_key_create(&__specific_key, Thread::Inl::destructor);
-		Qk_Assert(err == 0);
+		Qk_ASSERT(err == 0);
 	}
 
 	// --------------------- RunLoop ---------------------
@@ -419,7 +419,7 @@ namespace quark {
 		}
 
 		void post_sync(Callback<RunLoop::PostSyncData> cb, uint32_t group, uint64_t delay_us) {
-			Qk_Assert(!_thread->is_abort(), "RunLoop::post_sync, _thread->is_abort() == true");
+			Qk_ASSERT(!_thread->is_abort(), "RunLoop::post_sync, _thread->is_abort() == true");
 
 			struct Data: public RunLoop::PostSyncData {
 				virtual void complete() {
@@ -536,7 +536,7 @@ namespace quark {
 		, _timeout(0)
 		, _record_timeout(0)
 	{
-		Qk_Assert(!t->_loop);
+		Qk_ASSERT(!t->_loop);
 		// set run loop
 		t->_loop = this;
 	}
@@ -546,7 +546,7 @@ namespace quark {
 	 */
 	RunLoop::~RunLoop() {
 		ScopeLock lock(*__threads_mutex);
-		Qk_Assert(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
+		Qk_ASSERT(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 		
 		{
 			ScopeLock lock(_mutex);
@@ -569,8 +569,8 @@ namespace quark {
 		}
 
 		// delete run loop
-		Qk_Assert(_thread->_loop);
-		Qk_Assert(_thread->_loop == this);
+		Qk_ASSERT(_thread->_loop);
+		Qk_ASSERT(_thread->_loop == this);
 		_thread->_loop = nullptr;
 	}
 
@@ -610,7 +610,7 @@ namespace quark {
 		// NOTE: 小心线程安全,最好先确保已调用过`current()`
 		if (!__first_loop) {
 			current();
-			Qk_Assert(__first_loop); // asset
+			Qk_ASSERT(__first_loop); // asset
 		}
 		return __first_loop;
 	}
@@ -668,7 +668,7 @@ namespace quark {
 		post(Cb([work, this](CbData& ev) {
 			int r = uv_queue_work(_uv_loop, &work->uv_req,
 														Work::uv_work_cb, Work::uv_after_work_cb);
-			Qk_Assert(!r);
+			Qk_ASSERT(!r);
 			work->it = _works.push_back(work);
 		}));
 
@@ -684,7 +684,7 @@ namespace quark {
 			for (auto& i : _works) {
 				if (i->id == id) {
 					int r = uv_cancel((uv_req_t*)&i->uv_req);
-					Qk_Assert(!r);
+					Qk_ASSERT(!r);
 					break;
 				}
 			}
@@ -732,8 +732,8 @@ namespace quark {
 		uv_timer_t uv_timer;
 		{ //
 			ScopeLock lock(_mutex);
-			Qk_Assert(!_uv_async, "It is running and cannot be called repeatedly");
-			Qk_Assert(Thread::current_id() == _tid, "Must run on the target thread");
+			Qk_ASSERT(!_uv_async, "It is running and cannot be called repeatedly");
+			Qk_ASSERT(Thread::current_id() == _tid, "Must run on the target thread");
 			_timeout = Qk_MAX(timeout, 0);
 			_record_timeout = 0;
 			_uv_async = &uv_async; uv_async.data = this;
@@ -796,7 +796,7 @@ namespace quark {
 			if ( _de_clean ) {
 				_inl(_loop)->cancel_group_non_lock(_group);
 			}
-			Qk_Assert(_loop->_keeps.length());
+			Qk_ASSERT(_loop->_keeps.length());
 
 			_loop->_keeps.erase(_id); // 减少一个引用计数
 

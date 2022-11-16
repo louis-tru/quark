@@ -217,11 +217,11 @@ namespace quark {
 						_buffer[i] = buffer;
 					}
 				}
-				Qk_Assert(buffer.length() == 0);
+				Qk_ASSERT(buffer.length() == 0);
 			}
 			
 			void read_next() {
-				Qk_Assert(!_read_end);
+				Qk_ASSERT(!_read_end);
 				Buffer buff = alloc_buffer();
 				if ( buff.length() ) {
 					_reading_count++;
@@ -247,9 +247,9 @@ namespace quark {
 			}
 			
 			void copy_complete() {
-				Qk_Assert(_reading_count == 0);
-				Qk_Assert(_writeing_count == 0);
-				Qk_Assert(_read_end);
+				Qk_ASSERT(_reading_count == 0);
+				Qk_ASSERT(_writeing_count == 0);
+				Qk_ASSERT(_read_end);
 				if ( !is_abort() ) { // copy complete
 					//Qk_DEBUG("-----copy_complete------");
 					Handle<Task> handle(this);
@@ -259,16 +259,16 @@ namespace quark {
 			}
 			
 			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
-				Qk_Assert( file == _source_file );
-				Qk_Assert( _reading_count > 0 );
+				Qk_ASSERT( file == _source_file );
+				Qk_ASSERT( _reading_count > 0 );
 				_reading_count--;
 				if ( buffer.length() ) {
 					_writeing_count++;
 					_target_file->write(buffer, buffer.length());
 					read_next();
 				} else {
-					Qk_Assert(_reading_count == 0);
-					Qk_Assert(!_read_end);
+					Qk_ASSERT(_reading_count == 0);
+					Qk_ASSERT(!_read_end);
 					_read_end = true;
 					if ( _writeing_count == 0 ) {
 						copy_complete();
@@ -277,8 +277,8 @@ namespace quark {
 			}
 			
 			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
-				Qk_Assert( file == _target_file );
-				Qk_Assert( _writeing_count > 0 );
+				Qk_ASSERT( file == _target_file );
+				Qk_ASSERT( _writeing_count > 0 );
 				_writeing_count--;
 				release_buffer(buffer);
 				if ( _read_end ) {
@@ -794,7 +794,7 @@ namespace quark {
 				Task* ctx = req->ctx();
 				
 				ctx->_read_count--;
-				Qk_Assert(ctx->_read_count == 0);
+				Qk_ASSERT(ctx->_read_count == 0);
 				
 				if ( uv_req->result < 0 ) { // error
 					ctx->abort();

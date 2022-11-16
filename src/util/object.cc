@@ -53,7 +53,7 @@ namespace quark {
 				size = powf(2, ceil(log2(size)));
 				*size_out = size;
 				val = val ? ::realloc(val, size_of * size) : ::malloc(size_of * size);
-				Qk_Assert(val);
+				Qk_ASSERT(val);
 			}
 		} else {
 			*size_out = 0;
@@ -103,7 +103,7 @@ namespace quark {
 			if ( mark_index_ > -1 ) {
 				ScopeLock scope(mark_objects_mutex);
 				mark_objects_[mark_index_] = nullptr;
-				Qk_Assert(active_mark_objects_count_);
+				Qk_ASSERT(active_mark_objects_count_);
 				active_mark_objects_count_--;
 			}
 		}
@@ -122,7 +122,7 @@ namespace quark {
 				}
 			}
 			
-			Qk_Assert( new_mark_objects.length() == active_mark_objects_count_ );
+			Qk_ASSERT( new_mark_objects.length() == active_mark_objects_count_ );
 			
 			mark_objects_ = std::move(new_mark_objects);
 			return rv;
@@ -196,11 +196,11 @@ namespace quark {
 	}
 
 	Reference::~Reference() {
-		Qk_Assert( _ref_count <= 0 );
+		Qk_ASSERT( _ref_count <= 0 );
 	}
 
 	bool Reference::retain() {
-		Qk_Assert(_ref_count >= 0);
+		Qk_ASSERT(_ref_count >= 0);
 		if ( _ref_count++ == 0 ) {
 			object_allocator_retain(this);
 		}
@@ -208,7 +208,7 @@ namespace quark {
 	}
 
 	void Reference::release() {
-		Qk_Assert(_ref_count >= 0);
+		Qk_ASSERT(_ref_count >= 0);
 		if ( --_ref_count <= 0 ) { // 当引用记数小宇等于0释放
 			object_allocator_release(this);
 		}

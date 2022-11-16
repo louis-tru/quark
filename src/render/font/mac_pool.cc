@@ -154,8 +154,7 @@ static Typeface* create_from_desc(CTFontDescriptorRef desc) {
 	if (!ctFont) {
 		return nullptr;
 	}
-	// return QkTypeface_Mac::Make(std::move(ctFont), OpszVariation(), nullptr);
-	return nullptr;
+	return new QkTypeface_Mac(std::move(ctFont), OpszVariation(), WeakBuffer());
 }
 
 // -----------------------------------------------------------------------------
@@ -166,14 +165,14 @@ static QkUniqueCFRef<CFDataRef> cfdata_from_skdata(cBuffer& data) {
 
 	CFAllocatorContext ctx = {
 			0, // CFIndex version
-			addr, // void* info
+			(void*)addr, // void* info
 			nullptr, // const void *(*retain)(const void *info);
 			nullptr, // void (*release)(const void *info);
 			nullptr, // CFStringRef (*copyDescription)(const void *info);
 			nullptr, // void * (*allocate)(CFIndex size, CFOptionFlags hint, void *info);
 			nullptr, // void*(*reallocate)(void* ptr,CFIndex newsize,CFOptionFlags hint,void* info);
 			[](void*,void* info) -> void { // void (*deallocate)(void *ptr, void *info);
-				// Qk_Assert(info);
+				// Qk_ASSERT(info);
 				// Buffer::Alloc::free(info);
 			},
 			nullptr, // CFIndex (*preferredSize)(CFIndex size, CFOptionFlags hint, void *info);
@@ -252,20 +251,20 @@ QkUniqueCFRef<CFArrayRef> QkCTFontManagerCopyAvailableFontFamilyNames() {
 }
 
 class QkFontPool_Mac : public FontPool {
-		QkUniqueCFRef<CFArrayRef> fNames;
-		int fCount;
+	QkUniqueCFRef<CFArrayRef> fNames;
+	int fCount;
 
-		CFStringRef getFamilyNameAt(int index) const {
-			Qk_Assert((unsigned)index < (unsigned)fCount);
-			return (CFStringRef)CFArrayGetValueAtIndex(fNames.get(), index);
-		}
+	CFStringRef getFamilyNameAt(int index) const {
+		Qk_ASSERT((unsigned)index < (unsigned)fCount);
+		return (CFStringRef)CFArrayGetValueAtIndex(fNames.get(), index);
+	}
 
 public:
-		QkFontPool_Mac(CTFontCollectionRef fontCollection)
-			: fNames(fontCollection ? QkCopyAvailableFontFamilyNames(fontCollection)
-															: QkCTFontManagerCopyAvailableFontFamilyNames())
-			, fCount(fNames ? int(CFArrayGetCount(fNames.get())) : 0)
-		{}
+	QkFontPool_Mac(CTFontCollectionRef fontCollection)
+		: fNames(fontCollection ? QkCopyAvailableFontFamilyNames(fontCollection)
+														: QkCTFontManagerCopyAvailableFontFamilyNames())
+		, fCount(fNames ? int(CFArrayGetCount(fNames.get())) : 0)
+	{}
 
 protected:
 	int onCountFamilies() const override {
@@ -281,15 +280,14 @@ protected:
 	}
 
 	Typeface* onMatchFamilyStyle(const char familyName[],
-																const FontStyle& style) const override {
+																FontStyle style) const override {
 		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familyName, style);
 		return create_from_desc(desc.get());
 	}
 
 	Typeface* onMatchFamilyStyleCharacter(const char familyName[],
-																					const FontStyle& style,
-																					const char* bcp47[], int bcp47Count,
-																					Unichar character) const override {
+																				FontStyle style,
+																				Unichar character) const override {
 		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familyName, style);
 		QkUniqueCFRef<CTFontRef> familyFont(CTFontCreateWithFontDescriptor(desc.get(), 0, nullptr));
 
@@ -311,8 +309,7 @@ protected:
 		CFRange range = CFRangeMake(0, CFStringGetLength(string.get()));  // in UniChar units.
 		QkUniqueCFRef<CTFontRef> fallbackFont(
 						CTFontCreateForString(familyFont.get(), string.get(), range));
-		// return SkTypeface_Mac::Make(std::move(fallbackFont), OpszVariation(), nullptr).release();
-		return nullptr;
+		return new QkTypeface_Mac(std::move(fallbackFont), OpszVariation(), WeakBuffer());
 	}
 
 	Typeface* onMakeFromData(cBuffer& data, int ttcIndex) const override {
@@ -323,9 +320,7 @@ protected:
 		if (!ct) {
 			return nullptr;
 		}
-		//return SkTypeface_Mac::Make(std::move(ct), OpszVariation(),
-		//														SkMemoryStream::Make(std::move(data)));
-		return nullptr;
+		return new QkTypeface_Mac(std::move(ct), OpszVariation(), data);
 	}
 
 };

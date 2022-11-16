@@ -31,15 +31,47 @@
 #ifndef __quark__font__mac_typeface__
 #define __quark__font__mac_typeface__
 
-#include "mac_util.h"
-#include "style.h"
 #include "../../types.h"
+#include "mac_util.h"
+#include "typeface.h"
 
 using namespace quark;
+
+struct OpszVariation {
+	bool isSet = false;
+	double value = 0;
+};
+
+struct CTFontVariation {
+	QkUniqueCFRef<CFDictionaryRef> variation;
+	QkUniqueCFRef<CFDictionaryRef> wrongOpszVariation;
+	OpszVariation opsz;
+};
+
+QkUniqueCFRef<CTFontRef> SkCTFontCreateExactCopy(CTFontRef baseFont, CGFloat textSize, OpszVariation opsz);
 
 FontStyle QkCTFontDescriptorGetSkFontStyle(CTFontDescriptorRef desc, bool fromDataProvider);
 
 CGFloat QkCTFontCTWeightForCSSWeight(TextWeight fontstyleWeight);
 CGFloat QkCTFontCTWidthForCSSWidth(TextWidth fontstyleWidth);
+
+class QkTypeface_Mac: public Typeface {
+public:
+	QkTypeface_Mac(QkUniqueCFRef<CTFontRef> fontRef, OpszVariation opszVariation, bool isData);
+	QkUniqueCFRef<CTFontRef> fFontRef;
+	const OpszVariation fOpszVariation;
+	const bool fHasColorGlyphs;
+protected:
+	int onCountGlyphs() const override;
+	int onGetUPEM() const override;
+	int onGetTableTags(FontTableTag tags[]) const override;
+	bool onGetPostScriptName(String*) const override;
+	String onGetFamilyName() const override;
+	size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const override;
+	void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const override;
+	void onGetMetrics(FontMetrics* metrics, float fontSize) const override;
+private:
+	bool fIsData;
+};
 
 #endif

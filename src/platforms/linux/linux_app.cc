@@ -92,7 +92,7 @@ namespace quark {
 		, _element(nullptr)
 		, _JSONfullscreen(0)
 		{
-			Qk_Assert(!application); application = this;
+			Qk_ASSERT(!application); application = this;
 		}
 
 		~UnixApplication() {
@@ -117,7 +117,7 @@ namespace quark {
 		}
 
 		void post_message(cCb& cb) {
-			Qk_Assert(_win);
+			Qk_ASSERT(_win);
 			{
 				ScopeLock lock(_queue_mutex);
 				_queue.push(cb);
@@ -184,7 +184,7 @@ namespace quark {
 
 			// Qk_DEBUG("_xset.background_pixel 3, %d", _xset.background_pixel);
 
-			Qk_Assert(win, "Cannot create XWindow");
+			Qk_ASSERT(win, "Cannot create XWindow");
 
 			if (_multitouch_device) {
 				Qk_DEBUG("_multitouch_device");
@@ -358,7 +358,7 @@ namespace quark {
 					_host->display()->render_frame(); // 刷新显示
 				} else {
 					_is_init = 1;
-					Qk_Assert(gl_draw_context->create_surface(_win));
+					Qk_ASSERT(gl_draw_context->create_surface(_win));
 					gl_draw_context->initialize();
 					_host->triggerLoad();
 					_host->triggerForeground();
@@ -375,7 +375,7 @@ namespace quark {
 		void initialize_display() {
 			if (!_dpy) {
 				_dpy = XOpenDisplay(nullptr);
-				Qk_Assert(_dpy, "Error: Can't open display");
+				Qk_ASSERT(_dpy, "Error: Can't open display");
 				_xft_dpi = get_monitor_dpi();
 				_xwin_scale = _xft_dpi / 96.0;
 			}
@@ -387,7 +387,7 @@ namespace quark {
 		}
 
 		void initialize(cJSON& options) {
-			Qk_Assert(XInitThreads(), "Error: Can't init X threads");
+			Qk_ASSERT(XInitThreads(), "Error: Can't init X threads");
 
 			cJSON& o_x = options["x"];
 			cJSON& o_y = options["y"];
@@ -442,7 +442,7 @@ namespace quark {
 		}
 
 		void initialize_multitouch() {
-			Qk_Assert(!_multitouch_device);
+			Qk_ASSERT(!_multitouch_device);
 
 			Atom touchAtom = XInternAtom(_dpy, "TOUCHSCREEN", true);
 			if (touchAtom == None) {
@@ -541,7 +541,7 @@ namespace quark {
 		}
 
 		void initialize_master_volume_control() {
-			Qk_Assert(!_mixer);
+			Qk_ASSERT(!_mixer);
 			snd_mixer_open(&_mixer, 0);
 			snd_mixer_attach(_mixer, "default");
 			snd_mixer_selem_register(_mixer, NULL, NULL);
@@ -628,18 +628,18 @@ namespace quark {
 	};
 
 	Vec2 __get_window_size() {
-		Qk_Assert(application);
+		Qk_ASSERT(application);
 		return application->get_window_size();
 	}
 
 	Display* __get_x11_display() {
-		Qk_Assert(application);
+		Qk_ASSERT(application);
 		return application->get_x11_display();
 	}
 
 	// sync to x11 main message loop
 	void __dispatch_x11_async(cCb& cb) {
-		Qk_Assert(application);
+		Qk_ASSERT(application);
 		return application->post_message(cb);
 	}
 
@@ -701,7 +701,7 @@ namespace quark {
 	*/
 	void AppInl::initialize(cJSON& options) {
 		Qk_DEBUG("AppInl::initialize");
-		Qk_Assert(!gl_draw_context);
+		Qk_ASSERT(!gl_draw_context);
 		application->initialize(options);
 		gl_draw_context = GLDrawProxy::create(this, options);
 		_draw_ctx = gl_draw_context->host();

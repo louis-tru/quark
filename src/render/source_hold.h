@@ -42,8 +42,8 @@ namespace quark {
 	class Qk_EXPORT SourceHold {
 	public:
 		~SourceHold();
-		Qk_Define_Prop_Acc(String, src);
-		Qk_Define_Prop_Acc(ImageSource*, source, NoConst);
+		Qk_DEFINE_PROP_ACC(String, src);
+		Qk_DEFINE_PROP_ACC(ImageSource*, source, NoConst);
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);

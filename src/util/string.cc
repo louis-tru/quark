@@ -431,7 +431,7 @@ namespace quark {
 	}
 
 	void ArrayStringBase::Release(LongStr* l, Free free) {
-		Qk_Assert(l->ref > 0);
+		Qk_ASSERT(l->ref > 0);
 		if ( --l->ref == 0 ) {
 			free(l->val);
 			l->val = nullptr;

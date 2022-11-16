@@ -126,10 +126,10 @@ namespace quark {
 	class Qk_EXPORT UIEventName {
 	public:
 		UIEventName(cString& name, uint32_t category, uint32_t flag);
-		Qk_Define_Prop_Get(String, to_string);
-		Qk_Define_Prop_Get(uint32_t, category);
-		Qk_Define_Prop_Get(uint32_t, flag);
-		Qk_Define_Prop_Get(uint32_t, hash_code);
+		Qk_DEFINE_PROP_GET(String, to_string);
+		Qk_DEFINE_PROP_GET(uint32_t, category);
+		Qk_DEFINE_PROP_GET(uint32_t, flag);
+		Qk_DEFINE_PROP_GET(uint32_t, hash_code);
 		inline bool equals(const UIEventName& v) const { return v.hash_code() == _hash_code; }
 		inline bool operator==(const UIEventName& v) const { return v._hash_code == _hash_code; }
 		inline bool operator!=(const UIEventName& v) const { return v._hash_code != _hash_code; }
@@ -155,7 +155,7 @@ namespace quark {
 	public:
 		// inline UIEvent(cSendData& data): Event<View, Object, View>() { Qk_UNREACHABLE(); }
 		UIEvent(View* origin);
-		Qk_Define_Prop_Get(uint64_t, timestamp);
+		Qk_DEFINE_PROP_GET(uint64_t, timestamp);
 		inline bool is_default() const { return return_value & RETURN_VALUE_MASK_DEFAULT; }
 		inline bool is_bubble() const { return return_value & RETURN_VALUE_MASK_BUBBLE; }
 		inline void cancel_default() { return_value &= ~RETURN_VALUE_MASK_DEFAULT; }
@@ -168,10 +168,10 @@ namespace quark {
 	class Qk_EXPORT ActionEvent: public UIEvent {
 	public:
 		ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop);
-		Qk_Define_Prop_Get(Action*, action);
-		Qk_Define_Prop_Get(uint64_t, delay);
-		Qk_Define_Prop_Get(uint32_t, frame);
-		Qk_Define_Prop_Get(uint32_t, loop);
+		Qk_DEFINE_PROP_GET(Action*, action);
+		Qk_DEFINE_PROP_GET(uint64_t, delay);
+		Qk_DEFINE_PROP_GET(uint32_t, frame);
+		Qk_DEFINE_PROP_GET(uint32_t, loop);
 		virtual void release();
 	};
 
@@ -183,16 +183,16 @@ namespace quark {
 		KeyEvent(View* origin, uint32_t keycode,
 						bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 						uint32_t repeat, int device, int source);
-		Qk_Define_Prop(View*, focus_move);
-		Qk_Define_Prop(uint32_t, keycode);
-		Qk_Define_Prop_Get(uint32_t, repeat);
-		Qk_Define_Prop_Get(uint32_t, device);
-		Qk_Define_Prop_Get(uint32_t, source);
-		Qk_Define_Prop_Get(uint32_t, shift);
-		Qk_Define_Prop_Get(uint32_t, ctrl);
-		Qk_Define_Prop_Get(uint32_t, alt);
-		Qk_Define_Prop_Get(uint32_t, command);
-		Qk_Define_Prop_Get(uint32_t, caps_lock);
+		Qk_DEFINE_PROP(View*, focus_move);
+		Qk_DEFINE_PROP(uint32_t, keycode);
+		Qk_DEFINE_PROP_GET(uint32_t, repeat);
+		Qk_DEFINE_PROP_GET(uint32_t, device);
+		Qk_DEFINE_PROP_GET(uint32_t, source);
+		Qk_DEFINE_PROP_GET(uint32_t, shift);
+		Qk_DEFINE_PROP_GET(uint32_t, ctrl);
+		Qk_DEFINE_PROP_GET(uint32_t, alt);
+		Qk_DEFINE_PROP_GET(uint32_t, command);
+		Qk_DEFINE_PROP_GET(uint32_t, caps_lock);
 		virtual void release();
 	};
 
@@ -205,10 +205,10 @@ namespace quark {
 			TOUCH = 1, KEYBOARD = 2, MOUSE = 3
 		};
 		ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1);
-		Qk_Define_Prop_Get(float, x);
-		Qk_Define_Prop_Get(float, y);
-		Qk_Define_Prop_Get(uint32_t, count);
-		Qk_Define_Prop_Get(Type, type);
+		Qk_DEFINE_PROP_GET(float, x);
+		Qk_DEFINE_PROP_GET(float, y);
+		Qk_DEFINE_PROP_GET(uint32_t, count);
+		Qk_DEFINE_PROP_GET(Type, type);
 	};
 
 	/**
@@ -219,8 +219,8 @@ namespace quark {
 		MouseEvent(View* origin, float x, float y, uint32_t keycode,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat = 0, int device = 0, int source = 0);
-		Qk_Define_Prop_Get(float, x);
-		Qk_Define_Prop_Get(float, y);
+		Qk_DEFINE_PROP_GET(float, x);
+		Qk_DEFINE_PROP_GET(float, y);
 	};
 
 	/**
@@ -229,7 +229,7 @@ namespace quark {
 	class Qk_EXPORT HighlightedEvent: public UIEvent {
 	public:
 		HighlightedEvent(View* origin, HighlightedStatus status);
-		Qk_Define_Prop_Get(HighlightedStatus, status);
+		Qk_DEFINE_PROP_GET(HighlightedStatus, status);
 	};
 
 	/**
@@ -277,9 +277,9 @@ namespace quark {
 		void onKeyboard_down();
 		void onKeyboard_up();
 
-		Qk_Define_Prop_Get(Application*, host);
-		Qk_Define_Prop_Get(KeyboardAdapter*, keyboard);
-		Qk_Define_Prop(TextInput*, text_input);
+		Qk_DEFINE_PROP_GET(Application*, host);
+		Qk_DEFINE_PROP_GET(KeyboardAdapter*, keyboard);
+		Qk_DEFINE_PROP(TextInput*, text_input);
 
 	private:
 		void touchstart_erase(View* view, List<TouchPoint>& in);

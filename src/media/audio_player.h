@@ -51,18 +51,18 @@ namespace quark {
 		AudioPlayer(Application* host = nullptr);
 		virtual ~AudioPlayer();
 		// define props
-		Qk_Define_Prop_Acc(bool, auto_play, NoConst);
-		Qk_Define_Prop_Acc(bool, mute, NoConst);
-		Qk_Define_Prop_Acc(bool, disable_wait_buffer, NoConst);
-		Qk_Define_Prop_Acc(uint32_t, volume, NoConst);
-		Qk_Define_Prop_Acc(String, src, NoConst);
-		Qk_Define_Prop_Acc_Get(MultimediaSourceStatus, source_status, NoConst);
-		Qk_Define_Prop_Acc_Get(PlayerStatus, status, NoConst);
-		Qk_Define_Prop_Acc_Get(uint64_t, time, NoConst);
-		Qk_Define_Prop_Acc_Get(uint64_t, duration, NoConst);
-		Qk_Define_Prop_Acc_Get(uint32_t, audio_track_count, NoConst);
-		Qk_Define_Prop_Acc_Get(uint32_t, audio_track_index, NoConst);
-		Qk_Define_Prop_Acc_Get(const TrackInfo*, audio_track, NoConst);
+		Qk_DEFINE_PROP_ACC(bool, auto_play, NoConst);
+		Qk_DEFINE_PROP_ACC(bool, mute, NoConst);
+		Qk_DEFINE_PROP_ACC(bool, disable_wait_buffer, NoConst);
+		Qk_DEFINE_PROP_ACC(uint32_t, volume, NoConst);
+		Qk_DEFINE_PROP_ACC(String, src, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(MultimediaSourceStatus, source_status, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(PlayerStatus, status, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(uint64_t, time, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_count, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_index, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, audio_track, NoConst);
 		// define methods
 		const TrackInfo* audio_track_at(uint32_t index);
 		void select_audio_track(uint32_t index);

@@ -57,9 +57,9 @@ namespace quark {
 				display = eglGetDisplay(__get_x11_display());
 			#endif
 			Qk_DEBUG("eglGetDisplay, %p", display);
-			Qk_Assert(display != EGL_NO_DISPLAY);
+			Qk_ASSERT(display != EGL_NO_DISPLAY);
 			EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
-			Qk_Assert(displayState, "Cannot initialize EGL");
+			Qk_ASSERT(displayState, "Cannot initialize EGL");
 		}
 		return display;
 	}
@@ -117,7 +117,7 @@ namespace quark {
 		// and load them
 		chooseConfigState = eglChooseConfig(display, attribs, 
 																				*supportedConfigs, numConfigs, &numConfigs);
-		Qk_Assert(chooseConfigState);
+		Qk_ASSERT(chooseConfigState);
 
 		if ( numConfigs == 0 ) {
 			Qk_FATAL("Value of `numConfigs` must be positive");
@@ -219,7 +219,7 @@ namespace quark {
 		} else {
 			ctx_attrs[1] = 2; // opengl es 2
 			ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
-			Qk_Assert(ctx);
+			Qk_ASSERT(ctx);
 
 			rv = (new MyGLDraw<GLDraw>(host, display, config, ctx,
 																multisample_ok,
@@ -323,8 +323,8 @@ namespace quark {
 	}
 
 	bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
-		Qk_Assert(!_window);
-		Qk_Assert(!_surface);
+		Qk_ASSERT(!_window);
+		Qk_ASSERT(!_surface);
 		EGLSurface surface = eglCreateWindowSurface(_display, _config, window, nullptr);
 
 		if ( !surface ) {
@@ -343,7 +343,7 @@ namespace quark {
 
 		// _host->host()->main_loop()->post_sync(Cb([&ok, this, surface](Se &ev) {
 		// 	ok = eglMakeCurrent(_display, surface, surface, _context);
-		// 	Qk_Assert(ok);
+		// 	Qk_ASSERT(ok);
 		// }));
 		// CHECK(ok);
 		
@@ -358,7 +358,7 @@ namespace quark {
 
 	void GLDrawProxy::destroy_surface(EGLNativeWindowType window) {
 		if ( _window ) {
-			Qk_Assert(window == _window);
+			Qk_ASSERT(window == _window);
 			if (_surface) {
 				eglDestroySurface(_display, _surface);
 			}

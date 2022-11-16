@@ -187,8 +187,8 @@ namespace quark {
 			OSStatus status;
 			const TrackInfo& track = _extractor->track();
 			
-			Qk_Assert(track.width);
-			Qk_Assert(track.height);
+			Qk_ASSERT(track.width);
+			Qk_ASSERT(track.height);
 			
 			CFDictionaryRef attrs = (__bridge CFDictionaryRef)
 			[NSDictionary dictionaryWithObjectsAndKeys:
@@ -210,7 +210,7 @@ namespace quark {
 			};
 			status = VTDecompressionSessionCreate(NULL, _format_desc, NULL, attrs, &cb, &_session);
 			
-			Qk_Assert(status >= 0);
+			Qk_ASSERT(status >= 0);
 			
 			CFRetain(_session);
 			

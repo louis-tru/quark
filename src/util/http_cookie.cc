@@ -37,7 +37,7 @@
 namespace quark {
 
 	#define _db _http_cookie_db
-	#define assert_r(c) Qk_Assert(c == BP_OK)
+	#define assert_r(c) Qk_ASSERT(c == BP_OK)
 
 	static Mutex mutex;
 	static bp_db_t* _http_cookie_db = nullptr;

@@ -41,35 +41,35 @@ namespace quark {
 		return _familys;
 	}
 
-	Sp<Typeface> FontFamilys::match(FontStyle style, uint32_t index) {
-		return match(style)[index];
+	Typeface* FontFamilys::match(FontStyle style, uint32_t index) {
+		return matchAll(style)[index].value();
 	}
 
-	Array<Sp<Typeface>>& FontFamilys::match(FontStyle style) {
-		auto it = _fts.find(style);
-		if (it != _fts.end())
+	Array<Sp<Typeface>>& FontFamilys::matchAll(FontStyle style) {
+		auto it = _FTs.find(style);
+		if (it != _FTs.end())
 			return it->value;
 
 		auto familys = _familys.copy();
 		familys.write(_pool->second());
-		Array<Sp<Typeface>> fts;
+		Array<Sp<Typeface>> arr;
 		Dict<String, bool> set;
 
 		for (auto& name: familys) {
 			if (!set.has(name)) {
-				auto tf = _pool->matchFamilyStyle(name, style);
+				auto tf = _pool->match(name, style);
 				if (tf)
-					fts.push(tf);
+					arr.push(tf);
 				set.set(name, true);
 			}
 		}
-		_fts.set(style, std::move(fts));
+		_FTs.set(style, std::move(arr));
 
-		return _fts[style];
+		return _FTs[style];
 	}
 
 	struct FontGlyphsBuilder {
-		const Array<Typeface> &tfs;
+		Array<Sp<Typeface>>   &tfs;
 		float                 fontSize;
 		FontPool*             pool;
 		Array<FontGlyphs>     result;
@@ -92,10 +92,10 @@ namespace quark {
 						int idx = prev_idx + 1;
 						int count = i - idx;
 						if (ftIdx + 1 < tfs.length()) {
-							tfs[ftIdx + 1].unicharsToGlyphs(unichars + idx, count, glyphs + idx);
+							tfs[ftIdx + 1]->unicharsToGlyphs(unichars + idx, count, glyphs + idx);
 							make(unichars + idx, glyphs + idx, count, ftIdx + 1);
 						} else {
-							result.push(FontGlyphs(Font(pool->last(), fontSize), glyphs + idx, count));
+							result.push(FontGlyphs(pool->last().value(), fontSize, glyphs + idx, count));
 						}
 						prev_idx = i - 1;
 						prev_val = 0;
@@ -108,7 +108,7 @@ namespace quark {
 					b:
 						int idx = prev_idx + 1;
 						int count = i - idx;
-						result.push(FontGlyphs(Font(tfs[ftIdx], fontSize), glyphs + idx, count));
+						result.push(FontGlyphs(tfs[ftIdx].value(), fontSize, glyphs + idx, count));
 						prev_idx = i - 1;
 						prev_val = 1;
 					}
@@ -119,10 +119,10 @@ namespace quark {
 
 	Array<FontGlyphs> FontFamilys::makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize) {
 		if (unichars.length()) {
-			FontGlyphsBuilder builder = { match(style), fontSize, _pool };
-			auto glyphs = builder.tfs[0].unicharsToGlyphs(unichars);
+			FontGlyphsBuilder builder = { matchAll(style), fontSize, _pool };
+			auto glyphs = builder.tfs[0]->unicharsToGlyphs(unichars);
 			builder.make(*unichars, *glyphs, glyphs.length(), 0);
-			return builder.result;
+			return std::move(builder.result);
 		} else {
 			return Array<FontGlyphs>();
 		}

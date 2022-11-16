@@ -52,7 +52,7 @@ namespace quark {
 		};
 
 		struct PreTextBlob {
-			TypefaceID      typeface;
+			Sp<Typeface>    typeface;
 			float           text_size;
 			float           line_height;
 			uint32_t        index_of_unichar;
@@ -62,16 +62,16 @@ namespace quark {
 		};
 
 		// defines props
-		Qk_Define_Prop(float, pre_width);
-		Qk_Define_Prop(bool,  trim_start);
-		Qk_Define_Prop_Get(bool, no_wrap);
-		Qk_Define_Prop_Get(bool, visible_region);
-		Qk_Define_Prop_Get(TextAlign, text_align);
-		Qk_Define_Prop_Get(Vec2, host_size);
-		Qk_Define_Prop_Get(Line*, last);
-		Qk_Define_Prop_Get(View*, host);
-		Qk_Define_Prop_Get(float, max_width);
-		Qk_Define_Prop_Get(float, min_origin);
+		Qk_DEFINE_PROP(float, pre_width);
+		Qk_DEFINE_PROP(bool,  trim_start);
+		Qk_DEFINE_PROP_GET(bool, no_wrap);
+		Qk_DEFINE_PROP_GET(bool, visible_region);
+		Qk_DEFINE_PROP_GET(TextAlign, text_align);
+		Qk_DEFINE_PROP_GET(Vec2, host_size);
+		Qk_DEFINE_PROP_GET(Line*, last);
+		Qk_DEFINE_PROP_GET(View*, host);
+		Qk_DEFINE_PROP_GET(float, max_width);
+		Qk_DEFINE_PROP_GET(float, min_origin);
 
 		// defines methods
 		TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap);

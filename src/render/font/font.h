@@ -37,77 +37,19 @@
 
 namespace quark {
 
-	class Qk_EXPORT Font {
-	public:
-		Font(Sp<Typeface> typeface, float fontSize);
-
-		/**
-		 * Returns the current typeface
-		*/
-		const Typeface* typeface() const;
-
-		/**
-		 * Returns offset values by GlyphIDs
-		 * @return array floar number
-		 */
-		Array<float> get_offset(const GlyphID glyphs[], uint32_t count) const;
-
-		/**
-		 * @brief Returns Font Metrics associated with Typeface.
-		 * @param[out] font metrics value the output param
-		 * @return returns recommended spacing between lines
-		*/
-		float get_metrics(FontMetrics* metrics) const;
-
-		/**
-		 * Returns font metrics associated with Typeface.
-		 * @param[out] metrics
-		 * @param[in] FFID
-		 * @param[in] style
-		 * @param[in] fontSize
-		 * @return returns recommended spacing between lines
-		*/
-		static float get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize);
-		static float get_metrics(FontMetrics* metrics, Typeface* typeface, float fontSize);
-		
-	private:
-		Sp<Typeface> _typeface;
-	public:
-		Qk_Define_Prop(float, fontSize);
-		Qk_Define_Prop(float, scaleX);
-		Qk_Define_Prop(float, skewX);
-	private:
-		uint8_t _flags, _edging, _hinting, ___[5];
-	};
-
 	class Qk_EXPORT FontGlyphs {
 	public:
-		FontGlyphs(Font&& font, const GlyphID glyphs[], uint32_t count);
-		
-		/**
-		 * Returns the font object
-		*/
-		inline const Font& font() const { return _font; }
-		
-		/**
-		 * Returns the current typeface
-		*/
-		inline const Typeface* typeface() const { return _font.typeface(); }
-
-		/**
-		 * Returns the current typeface array object
-		*/
+		FontGlyphs(Typeface *typeface, float fontSize);
+		FontGlyphs(Typeface *typeface, float fontSize, const GlyphID glyphs[], uint32_t count);
+		Qk_DEFINE_PROP(float, fontSize);
 		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
-
-		/**
-		 * Returns offset values for GlyphID
-		 * @return array floar number
-		 */
+		inline Typeface* typeface() { return *_typeface; }
 		Array<float> get_offset() const;
-
+		float get_metrics(FontMetrics* metrics);
+		static float get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize);
 	private:
-		Font _font;
 		Array<GlyphID> _glyphs;
+		Sp<Typeface> _typeface;
 	};
 
 }

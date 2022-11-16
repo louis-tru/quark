@@ -120,10 +120,10 @@ namespace quark {
 		{}
 		
 		virtual ~Inl() {
-			Qk_Assert(!_sending);
-			Qk_Assert(!_connect);
-			Qk_Assert(!_cache_reader);
-			Qk_Assert(!_file_writer);
+			Qk_ASSERT(!_sending);
+			Qk_ASSERT(!_connect);
+			Qk_ASSERT(!_cache_reader);
+			Qk_ASSERT(!_file_writer);
 			Release(_keep); _keep = nullptr;
 		}
 		
@@ -144,7 +144,7 @@ namespace quark {
 				Release(_host);
 			}
 			void release() {
-				Qk_Assert(_host);
+				Qk_ASSERT(_host);
 				_host->_sending = nullptr;
 				delete this;
 			}
@@ -190,7 +190,7 @@ namespace quark {
 					_socket = new Socket(hostname, port, loop);
 				}
 				
-				Qk_Assert(_socket);
+				Qk_ASSERT(_socket);
 				_socket->set_delegate(this);
 				
 				_parser.data = this;
@@ -205,7 +205,7 @@ namespace quark {
 			}
 			
 			~Connect() {
-				Qk_Assert( _id == ConnectID() );
+				Qk_ASSERT( _id == ConnectID() );
 				Release(_socket);     _socket = nullptr;
 				Release(_upload_file);_upload_file = nullptr;
 			}
@@ -213,8 +213,8 @@ namespace quark {
 			inline RunLoop* loop() { return _loop; }
 			
 			void bind_client_and_send(Client* client) {
-				Qk_Assert(client);
-				Qk_Assert(!_client);
+				Qk_ASSERT(client);
+				Qk_ASSERT(!_client);
 				
 				_client = client;
 				_socket->set_timeout(_client->_timeout); // set timeout
@@ -244,7 +244,7 @@ namespace quark {
 				if (status_code == 200) {
 					self->_client->_write_cache_flag = 2; // set write cache flag
 				}
-				Qk_Assert(status_code == parser->status_code);
+				Qk_ASSERT(status_code == parser->status_code);
 				// Qk_LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
 				self->_client->_status_code = status_code;
 				self->_client->_http_response_version =
@@ -569,28 +569,28 @@ namespace quark {
 			}
 			
 			virtual void trigger_file_open(File* file) {
-				Qk_Assert( _is_multipart_form_data );
+				Qk_ASSERT( _is_multipart_form_data );
 				send_multipart_form_data();
 			}
 			
 			virtual void trigger_file_close(File* file) {
-				Qk_Assert( _is_multipart_form_data );
+				Qk_ASSERT( _is_multipart_form_data );
 				Error err(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown");
 				_client->report_error_and_abort(err);
 			}
 			
 			virtual void trigger_file_error(File* file, cError& error) {
-				Qk_Assert( _is_multipart_form_data );
+				Qk_ASSERT( _is_multipart_form_data );
 				_client->report_error_and_abort(error);
 			}
 			
 			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
-				Qk_Assert( _is_multipart_form_data );
+				Qk_ASSERT( _is_multipart_form_data );
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
 				} else {
-					Qk_Assert(_multipart_form_data.length());
-					Qk_Assert(_upload_file);
+					Qk_ASSERT(_multipart_form_data.length());
+					Qk_ASSERT(_upload_file);
 					_socket->write(string_header_end.copy().collapse()); // \r\n
 					_upload_file->release(); // release file
 					_upload_file = nullptr;
@@ -604,10 +604,10 @@ namespace quark {
 			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {}
 			
 			void send_multipart_form_data() {
-				Qk_Assert( _multipart_form_buffer.length() == BUFFER_SIZE );
+				Qk_ASSERT( _multipart_form_buffer.length() == BUFFER_SIZE );
 				
 				if ( _upload_file ) { // upload file
-					Qk_Assert( _upload_file->is_open() );
+					Qk_ASSERT( _upload_file->is_open() );
 					_upload_file->read(_multipart_form_buffer);
 				}
 				else if ( _multipart_form_data.length() ) {
@@ -701,10 +701,10 @@ namespace quark {
 			}
 			
 			void get_connect(Client* client, Cb cb) {
-				Qk_Assert(client);
-				Qk_Assert(!client->_uri.is_null());
-				Qk_Assert(!client->_uri.hostname().is_empty());
-				Qk_Assert(client->_uri.type() == URI_HTTP || client->_uri.type() == URI_HTTPS);
+				Qk_ASSERT(client);
+				Qk_ASSERT(!client->_uri.is_null());
+				Qk_ASSERT(!client->_uri.hostname().is_empty());
+				Qk_ASSERT(client->_uri.type() == URI_HTTP || client->_uri.type() == URI_HTTPS);
 				
 				uint16_t  port = client->_uri.port();
 				if (!port) {
@@ -762,7 +762,7 @@ namespace quark {
 					}
 				}
 				
-				Qk_Assert(connect_count <= MAX_CONNECT_COUNT);
+				Qk_ASSERT(connect_count <= MAX_CONNECT_COUNT);
 				
 				if (!conn) {
 					if (connect_count == MAX_CONNECT_COUNT) {
@@ -800,7 +800,7 @@ namespace quark {
 					connect->release();
 				} else {
 					if ( connect->_use ) {
-						Qk_Assert( connect->_id != ConnectID() );
+						Qk_ASSERT( connect->_id != ConnectID() );
 						connect->_use = false;
 						connect->_client = nullptr;
 						connect->socket()->set_timeout(0);
@@ -849,7 +849,7 @@ namespace quark {
 				, _client(client)
 				, _parse_header(true), _offset(0), _size(size)
 			{
-				Qk_Assert(!_client->_cache_reader);
+				Qk_ASSERT(!_client->_cache_reader);
 				_client->_cache_reader = this;
 				set_delegate(this);
 				open();
@@ -952,7 +952,7 @@ namespace quark {
 				} else {
 					// read cache
 					_read_count--;
-					Qk_Assert(_read_count == 0);
+					Qk_ASSERT(_read_count == 0);
 					
 					if ( buffer.length() ) {
 						_offset += buffer.length();
@@ -1033,14 +1033,14 @@ namespace quark {
 				// flag = 1 only write header
 				// flag = 2 write header and body
 
-				Qk_Assert(!_client->_file_writer);
+				Qk_ASSERT(!_client->_file_writer);
 				_client->_file_writer = this;
 
 				// Qk_LOG("FileWriter _write_flag -- %i, %s", _write_flag, *path);
 				
 				if ( _write_flag ) { // verification cache is valid
 					auto r_header = _client->response_header();
-					Qk_Assert(r_header.length());
+					Qk_ASSERT(r_header.length());
 
 					if ( r_header.has("cache-control") ) {
 						String expires = convert_to_expires(r_header["cache-control"]);
@@ -1132,7 +1132,7 @@ namespace quark {
 				} else {
 					_client->trigger_http_data2(buffer);
 					_write_count--;
-					Qk_Assert(_write_count >= 0);
+					Qk_ASSERT(_write_count >= 0);
 				 advance:
 					if ( _write_count == 0 ) {
 						if ( _completed_end ) { // http已经结束
@@ -1187,7 +1187,7 @@ namespace quark {
 		}
 		
 		void read_advance() {
-			Reader* r = reader(); Qk_Assert(r);
+			Reader* r = reader(); Qk_ASSERT(r);
 			if ( _pause ) {
 				r->read_pause();
 			} else {
@@ -1196,7 +1196,7 @@ namespace quark {
 		}
 
 		void read_pause() {
-			Reader* r = reader(); Qk_Assert(r);
+			Reader* r = reader(); Qk_ASSERT(r);
 			r->read_pause();
 		}
 		
@@ -1263,8 +1263,8 @@ namespace quark {
 		void http_response_complete(bool fromCache) {
 
 			if (!fromCache) {
-				Qk_Assert(_pool_ptr);
-				Qk_Assert(_connect);
+				Qk_ASSERT(_pool_ptr);
+				Qk_ASSERT(_connect);
 				_pool_ptr->release(_connect, false);
 				_connect = nullptr;
 
@@ -1311,15 +1311,15 @@ namespace quark {
 		}
 
 		void send_http() {
-			Qk_Assert(_sending);
-			Qk_Assert(!_connect);
-			Qk_Assert(_pool_ptr);
+			Qk_ASSERT(_sending);
+			Qk_ASSERT(!_connect);
+			Qk_ASSERT(_pool_ptr);
 			_pool_ptr->get_connect(this, Cb([this](CbData& evt) {
 				if ( _wait_connect_id ) {
 					if ( evt.error ) {
 						report_error_and_abort(*evt.error);
 					} else {
-						Qk_Assert( !_connect );
+						Qk_ASSERT( !_connect );
 						_connect = static_cast<Connect*>(evt.data);
 						_connect->bind_client_and_send(this);
 					}
@@ -1349,7 +1349,7 @@ namespace quark {
 			if ( _sending && !_sending->_ending ) {
 				_sending->_ending = true;
 				
-				Qk_Assert(_pool_ptr);
+				Qk_ASSERT(_pool_ptr);
 				
 				Release(_cache_reader); _cache_reader = nullptr;
 				Release(_file_writer);  _file_writer = nullptr;
@@ -1364,7 +1364,7 @@ namespace quark {
 					if (state == _ready_state)
 						_ready_state = HTTP_READY_STATE_INITIAL;
 				} else {
-					Qk_Assert(_sending);
+					Qk_ASSERT(_sending);
 					_ready_state = HTTP_READY_STATE_COMPLETED;
 					_delegate->trigger_http_readystate_change(_host);
 					_sending->release();
@@ -1485,7 +1485,7 @@ namespace quark {
 	}
 
 	HttpClientRequest::~HttpClientRequest() {
-		Qk_Assert(_inl->_keep->host() == RunLoop::current());
+		Qk_ASSERT(_inl->_keep->host() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		_inl->abort();
 		_inl->release();

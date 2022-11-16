@@ -80,8 +80,8 @@ namespace quark {
 	}
 
 	void ImageSource::_Decode() {
-		Qk_Assert(_state & STATE_LOAD_COMPLETE);
-		Qk_Assert(_inl);
+		Qk_ASSERT(_state & STATE_LOAD_COMPLETE);
+		Qk_ASSERT(_inl);
 		// decode image
 		
 		struct Ctx {

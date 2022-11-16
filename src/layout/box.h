@@ -124,50 +124,50 @@ namespace quark {
 		// --------------- m e m b e r . f i e l d ---------------
 
 		// define props
-		Qk_Define_Prop_Get(bool, layout_wrap_x); // Returns the is use border radius
+		Qk_DEFINE_PROP_GET(bool, layout_wrap_x); // Returns the is use border radius
 	protected:
-		Qk_Define_Prop_Get(bool, layout_wrap_y); // Returns the is use border radius
+		Qk_DEFINE_PROP_GET(bool, layout_wrap_y); // Returns the is use border radius
 	public:
-		Qk_Define_Prop(bool, is_clip); // is clip box display range
-		Qk_Define_Prop_Get(bool, is_radius); // Returns the is use border radius
-		Qk_Define_Prop(BoxSize, width); // size width
-		Qk_Define_Prop(BoxSize, height); // size height
-		Qk_Define_Prop(BoxSize, width_limit); // limit max size
-		Qk_Define_Prop(BoxSize, height_limit);
-		Qk_Define_Prop(BoxOrigin, origin_x);
-		Qk_Define_Prop(BoxOrigin, origin_y);
-		Qk_Define_Prop(float, margin_top); // margin
-		Qk_Define_Prop(float, margin_right);
-		Qk_Define_Prop(float, margin_bottom);
-		Qk_Define_Prop(float, margin_left);
-		Qk_Define_Prop(float, padding_top); // padding
-		Qk_Define_Prop(float, padding_right);
-		Qk_Define_Prop(float, padding_bottom);
-		Qk_Define_Prop(float, padding_left);
-		Qk_Define_Prop(float, radius_left_top); // border_radius
-		Qk_Define_Prop(float, radius_right_top);
-		Qk_Define_Prop(float, radius_right_bottom);
-		Qk_Define_Prop(float, radius_left_bottom);
-		Qk_Define_Prop(Color, fill_color); // fill color
-		Qk_Define_Prop(Fill*, fill); // fill, image|gradient
-		Qk_Define_Prop(Effect*, effect); // effect, shadow
-		Qk_Define_Prop_Acc(Color, border_color_top); // border_color
-		Qk_Define_Prop_Acc(Color, border_color_right);
-		Qk_Define_Prop_Acc(Color, border_color_bottom);
-		Qk_Define_Prop_Acc(Color, border_color_left);
-		Qk_Define_Prop_Acc(float, border_width_top); // border_width
-		Qk_Define_Prop_Acc(float, border_width_right);
-		Qk_Define_Prop_Acc(float, border_width_bottom);
-		Qk_Define_Prop_Acc(float, border_width_left);
-		Qk_Define_Prop_Acc(BorderStyle, border_style_top); // border_style
-		Qk_Define_Prop_Acc(BorderStyle, border_style_right);
-		Qk_Define_Prop_Acc(BorderStyle, border_style_bottom);
-		Qk_Define_Prop_Acc(BorderStyle, border_style_left);
+		Qk_DEFINE_PROP(bool, is_clip); // is clip box display range
+		Qk_DEFINE_PROP_GET(bool, is_radius); // Returns the is use border radius
+		Qk_DEFINE_PROP(BoxSize, width); // size width
+		Qk_DEFINE_PROP(BoxSize, height); // size height
+		Qk_DEFINE_PROP(BoxSize, width_limit); // limit max size
+		Qk_DEFINE_PROP(BoxSize, height_limit);
+		Qk_DEFINE_PROP(BoxOrigin, origin_x);
+		Qk_DEFINE_PROP(BoxOrigin, origin_y);
+		Qk_DEFINE_PROP(float, margin_top); // margin
+		Qk_DEFINE_PROP(float, margin_right);
+		Qk_DEFINE_PROP(float, margin_bottom);
+		Qk_DEFINE_PROP(float, margin_left);
+		Qk_DEFINE_PROP(float, padding_top); // padding
+		Qk_DEFINE_PROP(float, padding_right);
+		Qk_DEFINE_PROP(float, padding_bottom);
+		Qk_DEFINE_PROP(float, padding_left);
+		Qk_DEFINE_PROP(float, radius_left_top); // border_radius
+		Qk_DEFINE_PROP(float, radius_right_top);
+		Qk_DEFINE_PROP(float, radius_right_bottom);
+		Qk_DEFINE_PROP(float, radius_left_bottom);
+		Qk_DEFINE_PROP(Color, fill_color); // fill color
+		Qk_DEFINE_PROP(Fill*, fill); // fill, image|gradient
+		Qk_DEFINE_PROP(Effect*, effect); // effect, shadow
+		Qk_DEFINE_PROP_ACC(Color, border_color_top); // border_color
+		Qk_DEFINE_PROP_ACC(Color, border_color_right);
+		Qk_DEFINE_PROP_ACC(Color, border_color_bottom);
+		Qk_DEFINE_PROP_ACC(Color, border_color_left);
+		Qk_DEFINE_PROP_ACC(float, border_width_top); // border_width
+		Qk_DEFINE_PROP_ACC(float, border_width_right);
+		Qk_DEFINE_PROP_ACC(float, border_width_bottom);
+		Qk_DEFINE_PROP_ACC(float, border_width_left);
+		Qk_DEFINE_PROP_ACC(BorderStyle, border_style_top); // border_style
+		Qk_DEFINE_PROP_ACC(BorderStyle, border_style_right);
+		Qk_DEFINE_PROP_ACC(BorderStyle, border_style_bottom);
+		Qk_DEFINE_PROP_ACC(BorderStyle, border_style_left);
 		// Start the matrix transform from this origin point start.
 		// with border as the starting point.
-		Qk_Define_Prop_Get(Vec2, origin_value);
-		Qk_Define_Prop_Get(Vec2, content_size); // width,height / size
-		Qk_Define_Prop_Get(Vec2, client_size); // border + padding + content
+		Qk_DEFINE_PROP_GET(Vec2, origin_value);
+		Qk_DEFINE_PROP_GET(Vec2, content_size); // width,height / size
+		Qk_DEFINE_PROP_GET(Vec2, client_size); // border + padding + content
 
 	protected:
 		void solve_origin_value();

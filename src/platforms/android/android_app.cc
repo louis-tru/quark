@@ -78,7 +78,7 @@ namespace quark {
 		, _current_orientation(Orientation::ORIENTATION_INVALID)
 		, _is_init_ok(false)
 		{
-			Qk_Assert(!application); application = this;
+			Qk_ASSERT(!application); application = this;
 			_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 		}
 
@@ -113,7 +113,7 @@ namespace quark {
 		}
 
 		static void onDestroy(ANativeActivity* activity) {
-			Qk_Assert(application->_activity);
+			Qk_ASSERT(application->_activity);
 
 			activity->callbacks->onDestroy                  = nullptr;
 			activity->callbacks->onStart                    = nullptr;
@@ -150,7 +150,7 @@ namespace quark {
 					// ScopeLock scope(application->_mutex);
 					if ( window == application->_window ) {
 						ok = gl_draw_context->create_surface(window);
-						Qk_Assert(ok);
+						Qk_ASSERT(ok);
 					}
 				}
 				if ( ok ) {
@@ -193,9 +193,9 @@ namespace quark {
 				application->_dispatch = application->_host->dispatch();
 				application->_render_looper = new RenderLooper(application->_host);
 
-				Qk_Assert(application->_activity);
-				Qk_Assert(application->_host);
-				Qk_Assert(application->_host->render_loop());
+				Qk_ASSERT(application->_activity);
+				Qk_ASSERT(application->_host);
+				Qk_ASSERT(application->_host->render_loop());
 			}
 			application->_host->triggerForeground();
 			application->stop_render_task();
@@ -476,7 +476,7 @@ namespace quark {
 	}
 
 	void AppInl::initialize(cJSON& options) {
-		Qk_Assert(!gl_draw_context);
+		Qk_ASSERT(!gl_draw_context);
 		gl_draw_context = GLDrawProxy::create(this, options);
 		_draw_ctx = gl_draw_context->host();
 	}

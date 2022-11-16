@@ -179,7 +179,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 															1  /* MODE_STREAM */
 			);
 
-			Qk_Assert(_self);
+			Qk_ASSERT(_self);
 
 			_self = env->NewGlobalRef(_self);
 

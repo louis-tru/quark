@@ -34,73 +34,73 @@
 
 namespace quark {
 
-	#define SkTF(impl) static_cast<SkTypeface*>(impl)
-
-	Typeface::Typeface() {
-	}
-
-	FontStyle Typeface::fontStyle() const {
-		FontStyle style;// = SkTF(_impl)->fontStyle();
-		//return *reinterpret_cast<FontStyle*>(&style);
-		return style;
-	}
-
-	bool Typeface::isBold() const {
-		return true;
-	}
-
-	bool Typeface::isItalic() const {
-		return true;
-	}
-
-	bool Typeface::isFixedPitch() const {
-		return true;
+	Typeface::Typeface(FontStyle fs, bool isFixedPitch)
+		: _fontStyle(fs), _isFixedPitch(isFixedPitch)
+	{
 	}
 
 	int Typeface::countGlyphs() const {
-		return 0;
+		return onCountGlyphs();
 	}
 
 	int Typeface::countTables() const {
-		return 0;
+		return onGetTableTags(nullptr);
 	}
 
 	int Typeface::getTableTags(FontTableTag tags[]) const {
-		return 0;
+		return onGetTableTags(tags);
 	}
 
 	Buffer Typeface::getTableData(FontTableTag tag) const {
-		return Buffer();
+		size_t size = getTableSize(tag);
+		Buffer buf = Buffer::alloc((uint32_t)size);
+		onGetTableData(tag, 0, size, *buf);
+		return buf;
+	}
+
+	size_t Typeface::getTableSize(FontTableTag tag) const {
+		return onGetTableData(tag, 0, ~0U, nullptr);
 	}
 
 	int Typeface::getUnitsPerEm() const {
-		return 0;
+		return onGetUPEM();
 	}
 
 	String Typeface::getFamilyName() const {
-		return String();
+		return onGetFamilyName();
 	}
 
 	bool Typeface::getPostScriptName(String* name) const {
-		return true;
-	}
-
-	Array<GlyphID> Typeface::unicharsToGlyphs(const Array<Unichar>& unichar) const {
-		return Array<GlyphID>();
+		return onGetPostScriptName(name);
 	}
 
 	void Typeface::unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const {
+		onCharsToGlyphs(unichar, count, glyphs);
+	}
+
+	Array<GlyphID> Typeface::unicharsToGlyphs(const Array<Unichar>& unichar) const {
+		if (unichar.length() > 0) {
+			Array<GlyphID> result(unichar.length());
+			onCharsToGlyphs(*unichar, unichar.length(), *result);
+			return std::move(result);
+		}
+		return Array<GlyphID>();
 	}
 
 	GlyphID Typeface::unicharToGlyph(Unichar unichar) const {
+		GlyphID id;
+		onCharsToGlyphs(&unichar, 1, &id);
+		return id;
 	}
 
-	Region Typeface::getBounds() const {
-		return {};
+	float Typeface::getMetrics(FontMetrics* metrics, float fontSize) {
+		auto it = _MetricsCaches.find(fontSize);
+		if (it != _MetricsCaches.end()) {
+			*metrics = it->value;
+		} else {
+			onGetMetrics(metrics, fontSize);
+			_MetricsCaches.set(fontSize, *metrics);
+		}
+		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
 	}
-
-	TypefaceID Typeface::id() const {
-		return TypefaceID((size_t(this)));
-	}
-
 }

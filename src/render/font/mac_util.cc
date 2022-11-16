@@ -29,6 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../../util/array.h"
+#include "sfnt/QkOTTable_OS_2.h"
+#include "sfnt/QkSFNTHeader.h"
 #include "mac_util.h"
 #include <dlfcn.h>
 
@@ -221,60 +223,60 @@ static constexpr const uint8_t kSpiderSymbol_ttf[] = {
  */
 QkCTFontSmoothBehavior QkCTFontGetSmoothBehavior() {
 	static QkCTFontSmoothBehavior gSmoothBehavior = []{
-			uint32_t noSmoothBitmap[16][16] = {};
-			uint32_t smoothBitmap[16][16] = {};
+		uint32_t noSmoothBitmap[16][16] = {};
+		uint32_t smoothBitmap[16][16] = {};
 
-			QkUniqueCFRef<CGColorSpaceRef> colorspace(CGColorSpaceCreateDeviceRGB());
-			QkUniqueCFRef<CGContextRef> noSmoothContext(
-							CGBitmapContextCreate(&noSmoothBitmap, 16, 16, 8, 16*4,
-																		colorspace.get(), kBitmapInfoRGB));
-			QkUniqueCFRef<CGContextRef> smoothContext(
-							CGBitmapContextCreate(&smoothBitmap, 16, 16, 8, 16*4,
-																		colorspace.get(), kBitmapInfoRGB));
+		QkUniqueCFRef<CGColorSpaceRef> colorspace(CGColorSpaceCreateDeviceRGB());
+		QkUniqueCFRef<CGContextRef> noSmoothContext(
+						CGBitmapContextCreate(&noSmoothBitmap, 16, 16, 8, 16*4,
+																	colorspace.get(), kBitmapInfoRGB));
+		QkUniqueCFRef<CGContextRef> smoothContext(
+						CGBitmapContextCreate(&smoothBitmap, 16, 16, 8, 16*4,
+																	colorspace.get(), kBitmapInfoRGB));
 
-			QkUniqueCFRef<CFDataRef> data(CFDataCreateWithBytesNoCopy(
-							kCFAllocatorDefault, kSpiderSymbol_ttf, Qk_ARRAY_COUNT(kSpiderSymbol_ttf),
-							kCFAllocatorNull));
-			QkUniqueCFRef<CTFontDescriptorRef> desc(
-							CTFontManagerCreateFontDescriptorFromData(data.get()));
-			QkUniqueCFRef<CTFontRef> ctFont(CTFontCreateWithFontDescriptor(desc.get(), 16, nullptr));
-			Qk_Assert(ctFont);
+		QkUniqueCFRef<CFDataRef> data(CFDataCreateWithBytesNoCopy(
+						kCFAllocatorDefault, kSpiderSymbol_ttf, Qk_ARRAY_COUNT(kSpiderSymbol_ttf),
+						kCFAllocatorNull));
+		QkUniqueCFRef<CTFontDescriptorRef> desc(
+						CTFontManagerCreateFontDescriptorFromData(data.get()));
+		QkUniqueCFRef<CTFontRef> ctFont(CTFontCreateWithFontDescriptor(desc.get(), 16, nullptr));
+		Qk_ASSERT(ctFont);
 
-			CGContextSetShouldSmoothFonts(noSmoothContext.get(), false);
-			CGContextSetShouldAntialias(noSmoothContext.get(), true);
-			CGContextSetTextDrawingMode(noSmoothContext.get(), kCGTextFill);
-			CGContextSetGrayFillColor(noSmoothContext.get(), 1, 1);
+		CGContextSetShouldSmoothFonts(noSmoothContext.get(), false);
+		CGContextSetShouldAntialias(noSmoothContext.get(), true);
+		CGContextSetTextDrawingMode(noSmoothContext.get(), kCGTextFill);
+		CGContextSetGrayFillColor(noSmoothContext.get(), 1, 1);
 
-			CGContextSetShouldSmoothFonts(smoothContext.get(), true);
-			CGContextSetShouldAntialias(smoothContext.get(), true);
-			CGContextSetTextDrawingMode(smoothContext.get(), kCGTextFill);
-			CGContextSetGrayFillColor(smoothContext.get(), 1, 1);
+		CGContextSetShouldSmoothFonts(smoothContext.get(), true);
+		CGContextSetShouldAntialias(smoothContext.get(), true);
+		CGContextSetTextDrawingMode(smoothContext.get(), kCGTextFill);
+		CGContextSetGrayFillColor(smoothContext.get(), 1, 1);
 
-			CGPoint point = CGPointMake(0, 3);
-			CGGlyph spiderGlyph = 3;
-			CTFontDrawGlyphs(ctFont.get(), &spiderGlyph, &point, 1, noSmoothContext.get());
-			CTFontDrawGlyphs(ctFont.get(), &spiderGlyph, &point, 1, smoothContext.get());
+		CGPoint point = CGPointMake(0, 3);
+		CGGlyph spiderGlyph = 3;
+		CTFontDrawGlyphs(ctFont.get(), &spiderGlyph, &point, 1, noSmoothContext.get());
+		CTFontDrawGlyphs(ctFont.get(), &spiderGlyph, &point, 1, smoothContext.get());
 
-			// For debugging.
-			//SkUniqueCFRef<CGImageRef> image(CGBitmapContextCreateImage(noSmoothContext()));
-			//SkUniqueCFRef<CGImageRef> image(CGBitmapContextCreateImage(smoothContext()));
+		// For debugging.
+		//SkUniqueCFRef<CGImageRef> image(CGBitmapContextCreateImage(noSmoothContext()));
+		//SkUniqueCFRef<CGImageRef> image(CGBitmapContextCreateImage(smoothContext()));
 
-			QkCTFontSmoothBehavior smoothBehavior = QkCTFontSmoothBehavior::none;
-			for (int x = 0; x < 16; ++x) {
-					for (int y = 0; y < 16; ++y) {
-							uint32_t smoothPixel = smoothBitmap[x][y];
-							uint32_t r = (smoothPixel >> 16) & 0xFF;
-							uint32_t g = (smoothPixel >>  8) & 0xFF;
-							uint32_t b = (smoothPixel >>  0) & 0xFF;
-							if (r != g || r != b) {
-									return QkCTFontSmoothBehavior::subpixel;
-							}
-							if (noSmoothBitmap[x][y] != smoothPixel) {
-									smoothBehavior = QkCTFontSmoothBehavior::some;
-							}
-					}
-			}
-			return smoothBehavior;
+		QkCTFontSmoothBehavior smoothBehavior = QkCTFontSmoothBehavior::none;
+		for (int x = 0; x < 16; ++x) {
+				for (int y = 0; y < 16; ++y) {
+						uint32_t smoothPixel = smoothBitmap[x][y];
+						uint32_t r = (smoothPixel >> 16) & 0xFF;
+						uint32_t g = (smoothPixel >>  8) & 0xFF;
+						uint32_t b = (smoothPixel >>  0) & 0xFF;
+						if (r != g || r != b) {
+								return QkCTFontSmoothBehavior::subpixel;
+						}
+						if (noSmoothBitmap[x][y] != smoothPixel) {
+								smoothBehavior = QkCTFontSmoothBehavior::some;
+						}
+				}
+		}
+		return smoothBehavior;
 	}();
 	return gSmoothBehavior;
 }
@@ -286,21 +288,21 @@ QkCTFontWeightMapping& QkCTFontGetNSFontWeightMapping() {
 
 	// Declarations in <AppKit/AppKit.h> on macOS, <UIKit/UIKit.h> on iOS
 #if Qk_OSX
-#  define SK_KIT_FONT_WEIGHT_PREFIX "NS"
+#  define Qk_KIT_FONT_WEIGHT_PREFIX "NS"
 #endif
 #if Qk_IOS
-#  define SK_KIT_FONT_WEIGHT_PREFIX "UI"
+#  define Qk_KIT_FONT_WEIGHT_PREFIX "UI"
 #endif
 	static constexpr const char* nsFontWeightNames[] = {
-			SK_KIT_FONT_WEIGHT_PREFIX "FontWeightUltraLight",
-			SK_KIT_FONT_WEIGHT_PREFIX "FontWeightThin",
-			SK_KIT_FONT_WEIGHT_PREFIX "FontWeightLight",
-			SK_KIT_FONT_WEIGHT_PREFIX "FontWeightRegular",
-			SK_KIT_FONT_WEIGHT_PREFIX "FontWeightMedium",
-			SK_KIT_FONT_WEIGHT_PREFIX "FontWeightSemibold",
-			SK_KIT_FONT_WEIGHT_PREFIX "FontWeightBold",
-			SK_KIT_FONT_WEIGHT_PREFIX "FontWeightHeavy",
-			SK_KIT_FONT_WEIGHT_PREFIX "FontWeightBlack",
+		Qk_KIT_FONT_WEIGHT_PREFIX "FontWeightUltraLight",
+		Qk_KIT_FONT_WEIGHT_PREFIX "FontWeightThin",
+		Qk_KIT_FONT_WEIGHT_PREFIX "FontWeightLight",
+		Qk_KIT_FONT_WEIGHT_PREFIX "FontWeightRegular",
+		Qk_KIT_FONT_WEIGHT_PREFIX "FontWeightMedium",
+		Qk_KIT_FONT_WEIGHT_PREFIX "FontWeightSemibold",
+		Qk_KIT_FONT_WEIGHT_PREFIX "FontWeightBold",
+		Qk_KIT_FONT_WEIGHT_PREFIX "FontWeightHeavy",
+		Qk_KIT_FONT_WEIGHT_PREFIX "FontWeightBlack",
 	};
 	static_assert(Qk_ARRAY_COUNT(nsFontWeightNames) == 9, "");
 
@@ -310,12 +312,12 @@ QkCTFontWeightMapping& QkCTFontGetNSFontWeightMapping() {
 		size_t i = 0;
 		nsFontWeights[i++] = -1.00;
 		for (const char* nsFontWeightName : nsFontWeightNames) {
-				void* nsFontWeightValuePtr = dlsym(RTLD_DEFAULT, nsFontWeightName);
-				if (nsFontWeightValuePtr) {
-						nsFontWeights[i++] = *(static_cast<CGFloat*>(nsFontWeightValuePtr));
-				} else {
-						return 0;
-				}
+			void* nsFontWeightValuePtr = dlsym(RTLD_DEFAULT, nsFontWeightName);
+			if (nsFontWeightValuePtr) {
+					nsFontWeights[i++] = *(static_cast<CGFloat*>(nsFontWeightValuePtr));
+			} else {
+					return 0;
+			}
 		}
 		nsFontWeights[i++] = 1.00;
 		selectedNSFontWeights = &nsFontWeights;
@@ -335,42 +337,17 @@ QkCTFontWeightMapping& QkCTFontGetDataFontWeightMapping() {
 	static int once = []()->int{
 		constexpr size_t dataSize = Qk_ARRAY_COUNT(kSpiderSymbol_ttf);
 		WeakBuffer data((char*)kSpiderSymbol_ttf, dataSize);
-		
-		typedef uint16_t SK_SFNT_USHORT;
-		typedef uint32_t SK_SFNT_ULONG;
 
-		struct SkSFNTHeader {
-			SK_SFNT_ULONG fontType; // 32
-			SK_SFNT_USHORT numTables; // 16
-			SK_SFNT_USHORT searchRange; // 16
-			SK_SFNT_USHORT entrySelector; // 16
-			SK_SFNT_USHORT rangeShift; // 16
-	};
-		struct TableDirectoryEntry {
-				SK_SFNT_ULONG tag;
-				SK_SFNT_ULONG checksum;
-				SK_SFNT_ULONG offset; //From beginning of header.
-				SK_SFNT_ULONG logicalLength;
-		}; //tableDirectoryEntries[numTables]
-		
-		struct SkOTTableOS2_V0 {
-			uint16_t version;
-			uint16_t xAvgCharWidth;
-			struct WeightClass {
-				uint16_t value;
-			} usWeightClass;
-		};
+		using TableDirectoryEntry = QkSFNTHeader::TableDirectoryEntry;
 
-		const SkSFNTHeader* sfntHeader = reinterpret_cast<const SkSFNTHeader*>(*data);
+		const QkSFNTHeader* sfntHeader = reinterpret_cast<const QkSFNTHeader*>(*data);
 		const TableDirectoryEntry* tableEntry = reinterpret_cast<const TableDirectoryEntry*>(sfntHeader+1);
 
 		const TableDirectoryEntry* os2TableEntry = nullptr;
 		int numTables = QkEndian_SwapBE16(sfntHeader->numTables);
-		
-		static const SK_SFNT_ULONG QkOTTableOS2_TAG = QkEndian_SwapBE32(QkSetFourByteTag('O', 'S', '/', '2'));
 
 		for (int tableEntryIndex = 0; tableEntryIndex < numTables; ++tableEntryIndex) {
-			if (QkOTTableOS2_TAG == tableEntry[tableEntryIndex].tag) {
+			if (QkOTTableOS2::TAG == tableEntry[tableEntryIndex].tag) {
 				os2TableEntry = tableEntry + tableEntryIndex;
 				break;
 			}
@@ -381,7 +358,7 @@ QkCTFontWeightMapping& QkCTFontGetDataFontWeightMapping() {
 		}
 
 		size_t os2TableOffset = QkEndian_SwapBE32(os2TableEntry->offset);
-		SkOTTableOS2_V0 *os2Table = reinterpret_cast<SkOTTableOS2_V0*>(*data + os2TableOffset);
+		QkOTTableOS2_V0 *os2Table = reinterpret_cast<QkOTTableOS2_V0*>(*data + os2TableOffset);
 
 		for (int i = 0; i < 11; ++i) {
 			 os2Table->usWeightClass.value = QkEndian_SwapBE16(i * 100);

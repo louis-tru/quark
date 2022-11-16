@@ -116,17 +116,17 @@ namespace quark {
 		 */
 		inline cJSON& options() const { return _opts; }
 
-		Qk_Define_Prop_Get(bool, is_loaded);
-		Qk_Define_Prop_Get(DefaultTextOptions*, default_text_options); // 默认文本设置
-		Qk_Define_Prop_Get(Display*, display); // 当前显示端口
-		Qk_Define_Prop_Get(Root*, root); // 根视图
-		Qk_Define_Prop_Get(View*, focus_view); // 焦点视图
-		Qk_Define_Prop_Get(RunLoop*, loop); // 运行消息循环
-		Qk_Define_Prop_Get(ActionDirect*, action_direct); // 动作管理器
-		Qk_Define_Prop_Get(PreRender*, pre_render); // 预渲染器
-		Qk_Define_Prop_Get(Render*, render); // 渲染器
-		Qk_Define_Prop_Get(FontPool*, font_pool); // 字体管理器
-		Qk_Define_Prop_Get(ImageSourcePool*, img_pool); // 图片加载器
+		Qk_DEFINE_PROP_GET(bool, is_loaded);
+		Qk_DEFINE_PROP_GET(DefaultTextOptions*, default_text_options); // 默认文本设置
+		Qk_DEFINE_PROP_GET(Display*, display); // 当前显示端口
+		Qk_DEFINE_PROP_GET(Root*, root); // 根视图
+		Qk_DEFINE_PROP_GET(View*, focus_view); // 焦点视图
+		Qk_DEFINE_PROP_GET(RunLoop*, loop); // 运行消息循环
+		Qk_DEFINE_PROP_GET(ActionDirect*, action_direct); // 动作管理器
+		Qk_DEFINE_PROP_GET(PreRender*, pre_render); // 预渲染器
+		Qk_DEFINE_PROP_GET(Render*, render); // 渲染器
+		Qk_DEFINE_PROP_GET(FontPool*, font_pool); // 字体管理器
+		Qk_DEFINE_PROP_GET(ImageSourcePool*, img_pool); // 图片加载器
 
 		/**
 		* @func clear 清理垃圾回收内存资源, all=true 清理全部资源

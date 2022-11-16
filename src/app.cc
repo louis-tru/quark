@@ -265,7 +265,7 @@ namespace quark {
 	* @func setMain()
 	*/
 	void Application::setMain(int (*main)(int, char**)) {
-		Qk_Assert( !__f_gui_main );
+		Qk_ASSERT( !__f_gui_main );
 		__f_gui_main = main;
 	}
 
@@ -274,7 +274,7 @@ namespace quark {
 	*/
 	void Application::runMain(int argc, Char* argv[]) {
 		static int _is_init = 0;
-		Qk_Assert(!_is_init++, "Cannot multiple calls.");
+		Qk_ASSERT(!_is_init++, "Cannot multiple calls.");
 		
 		struct Args { int argc; Char** argv; } arg = { argc, argv };
 		
@@ -282,7 +282,7 @@ namespace quark {
 		Thread::create([](Thread& t, void* arg) {
 			auto args = (Args*)arg;
 			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
-			Qk_Assert( main, "No gui main");
+			Qk_ASSERT( main, "No gui main");
 			__f_default_gui_main = nullptr;
 			__f_gui_main = nullptr;
 			int rc = main(args->argc, args->argv); // 运行这个自定gui入口函数

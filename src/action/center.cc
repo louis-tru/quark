@@ -52,7 +52,7 @@ static ActionCenter* action_center_shared = nullptr;
 
 ActionCenter::ActionCenter()
 : _prev_sys_time(0) {
-	Qk_Assert(!action_center_shared); action_center_shared = this;
+	Qk_ASSERT(!action_center_shared); action_center_shared = this;
 }
 
 ActionCenter::~ActionCenter() {

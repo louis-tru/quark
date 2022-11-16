@@ -74,7 +74,7 @@ namespace quark {
 		if (trim_start) {
 			// skip line start space
 			for (auto &blob: _preBlob) {
-				auto id = blob.typeface.unicharToGlyph(0x20); // space
+				auto id = blob.typeface->unicharToGlyph(0x20); // space
 				int i = 0, len = blob.glyphs.length();
 			check:
 				if (blob.glyphs[i] != id) {
@@ -194,7 +194,7 @@ namespace quark {
 
 	void TextLines::set_metrics(TextOptions *opts) {
 		FontMetrics metrics;
-		Font::get_metrics(&metrics, opts->text_family().value, opts->font_style(), opts->text_size().value);
+		FontGlyphs::get_metrics(&metrics, opts->text_family().value, opts->font_style(), opts->text_size().value);
 		set_metrics(&metrics, opts->text_line_height().value);
 	}
 
@@ -304,7 +304,7 @@ namespace quark {
 		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
 			auto tf = _opts->text_family().value->match(_opts->font_style(), 0);
 			FontMetrics metrics;
-			Font::get_metrics(&metrics, *tf, _opts->text_size().value);
+			tf->getMetrics(&metrics, _opts->text_size().value);
 			auto ascent = -metrics.fAscent;
 			auto descent = metrics.fDescent + metrics.fLeading;
 			auto height = ascent + descent;
@@ -336,8 +336,7 @@ namespace quark {
 		}
 
 		FontMetrics metrics;
-		// Font::get_metrics(&metrics, blob.typeface, blob.text_size);
-		Font::get_metrics(&metrics, nullptr, blob.text_size);
+		blob.typeface->getMetrics(&metrics, blob.text_size);
 
 		auto ascent = -metrics.fAscent;
 		auto descent = metrics.fDescent + metrics.fLeading;

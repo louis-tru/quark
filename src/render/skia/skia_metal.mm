@@ -50,7 +50,7 @@ namespace quark {
 			backendContext.fQueue.retain((__bridge void*)_queue);
 
 			_direct = GrDirectContext::MakeMetal(backendContext, {/*_opts.grContextOptions*/});
-			Qk_Assert(_direct);
+			Qk_ASSERT(_direct);
 		}
 
 		_surface.reset(); // clear curr surface
@@ -63,7 +63,7 @@ namespace quark {
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 			_rasterSurface = SkSurface::MakeRaster(info);
-			Qk_Assert(_rasterSurface);
+			Qk_ASSERT(_rasterSurface);
 			//_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
 		}
 	}
@@ -86,7 +86,7 @@ namespace quark {
 		_surface = SkSurface::MakeFromBackendRenderTarget(_direct.get(), backendRT,
 														kTopLeft_GrSurfaceOrigin,
 														kBGRA_8888_SkColorType, nullptr, &props);
-		Qk_Assert(_surface);
+		Qk_ASSERT(_surface);
 
 		if (_raster) {
 			_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());

@@ -40,7 +40,7 @@ namespace quark {
 	class Qk_EXPORT TextLayout: public Box, public TextOptions {
 		Qk_Define_View(TextLayout);
 	public:
-		Qk_Define_Prop(TextAlign, text_align);
+		Qk_DEFINE_PROP(TextAlign, text_align);
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void set_visible(bool val) override;

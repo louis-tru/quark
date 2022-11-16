@@ -255,14 +255,14 @@ namespace quark {
 		, _delegate(nullptr)
 		, _host(host)
 		{
-			Qk_Assert(_keep);
+			Qk_ASSERT(_keep);
 		}
 		
 		virtual ~Inl() {
 			if ( _fd ) {
 				uv_fs_t req;
 				int res = uv_fs_close(_keep->host()->uv_loop(), &req, _fd, nullptr); // sync
-				Qk_Assert( res == 0 );
+				Qk_ASSERT( res == 0 );
 			}
 			Release(_keep); _keep = nullptr;
 			clear_writeing();
@@ -357,7 +357,7 @@ namespace quark {
 			uv_fs_req_cleanup(uv_req);
 			FileReq* req = FileReq::cast(uv_req);
 			Handle<FileReq> handle(req);
-			Qk_Assert( req->ctx()->_opening );
+			Qk_ASSERT( req->ctx()->_opening );
 			req->ctx()->_opening = false;
 			if ( uv_req->result > 0 ) {
 				if ( req->ctx()->_fd ) {
@@ -413,7 +413,7 @@ namespace quark {
 			auto self = req->ctx();
 			uv_fs_req_cleanup(uv_req);
 			
-			Qk_Assert(self->_writeing.front() == req);
+			Qk_ASSERT(self->_writeing.front() == req);
 			self->_writeing.pop_front();
 			self->continue_write();
 
@@ -441,7 +441,7 @@ namespace quark {
 	{}
 
 	File::~File() {
-		Qk_Assert(_inl->loop() == RunLoop::current());
+		Qk_ASSERT(_inl->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
 			_inl->close();

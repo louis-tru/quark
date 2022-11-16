@@ -100,11 +100,11 @@ namespace quark {
 
 		// get ptr
 		inline       T& operator[](uint32_t index) {
-			Qk_Assert(index < _length, "Array access violation.");
+			Qk_ASSERT(index < _length, "Array access violation.");
 			return _val[index];
 		}
 		inline const T& operator[](uint32_t index) const {
-			Qk_Assert(index < _length, "Array access violation.");
+			Qk_ASSERT(index < _length, "Array access violation.");
 			return _val[index];
 		}
 		inline       T* operator*()       { return _val; }
@@ -531,7 +531,7 @@ namespace quark {
 
 	template<typename T, typename A>
 	void Array<T, A>::realloc(uint32_t capacity) {
-		Qk_Assert(!is_weak(), "the weak holder cannot be changed");
+		Qk_ASSERT(!is_weak(), "the weak holder cannot be changed");
 		if (capacity < _length) { // clear Partial data
 			T* i = _val + capacity;
 			T* end = i + _length;
@@ -565,7 +565,7 @@ namespace quark {
 
 	template<typename T, typename A>
 	void Array<T, A>::realloc_(uint32_t capacity) {
-		Qk_Assert(!is_weak(), "the weak holder cannot be changed");
+		Qk_ASSERT(!is_weak(), "the weak holder cannot be changed");
 		_val = (T*)A::aalloc(_val, capacity, (uint32_t*)&_capacity, sizeof(T));
 	}
 

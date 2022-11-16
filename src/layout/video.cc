@@ -83,7 +83,7 @@ namespace quark {
 		}
 		
 		bool advance_video(uint64_t sys_time) {
-			Qk_Assert(m_status != PLAYER_STATUS_STOP, "#Video#Inl#advance_video 0");
+			Qk_ASSERT(m_status != PLAYER_STATUS_STOP, "#Video#Inl#advance_video 0");
 			
 			bool draw = false;
 			
@@ -294,9 +294,9 @@ namespace quark {
 		void start_run() {
 			Lock lock(_mutex);
 			
-			Qk_Assert( _source && _video, "#Video#Inl#start_run 0");
-			Qk_Assert( _source->is_active(), "#Video#Inl#start_run 1");
-			Qk_Assert( _status == PLAYER_STATUS_START, "#Video#Inl#start_run 2");
+			Qk_ASSERT( _source && _video, "#Video#Inl#start_run 0");
+			Qk_ASSERT( _source->is_active(), "#Video#Inl#start_run 1");
+			Qk_ASSERT( _status == PLAYER_STATUS_START, "#Video#Inl#start_run 2");
 
 			_waiting_buffer = false;
 
@@ -365,7 +365,7 @@ namespace quark {
 	}
 
 	void Video::multimedia_source_ready(MultimediaSource* src) {
-		Qk_Assert( _source == src, "#Video#multimedia_source_ready 0");
+		Qk_ASSERT( _source == src, "#Video#multimedia_source_ready 0");
 		
 		if ( _video ) {
 			Inl_Video(this)->trigger(UIEvent_Ready); // trigger event ready
@@ -375,8 +375,8 @@ namespace quark {
 			return;
 		}
 
-		Qk_Assert(!_video, "#Video#multimedia_source_ready 1");
-		Qk_Assert(!_audio, "#Video#multimedia_source_ready 1");
+		Qk_ASSERT(!_video, "#Video#multimedia_source_ready 1");
+		Qk_ASSERT(!_audio, "#Video#multimedia_source_ready 1");
 
 		// 创建解码器很耗时这会导致gui线程延时,所以这里不在主线程创建
 		_task_id = _keep->host()->work(Cb([=](CbData& d) {
@@ -447,7 +447,7 @@ namespace quark {
 			Inl_Video(this)->stop_and_release(lock, true);
 		}
 		auto loop = pre_render()->host()->loop();
-		Qk_Assert(loop, "Cannot find main run loop");
+		Qk_ASSERT(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
 		_keep = loop->keep_alive("Video::set_source");
 		_source->set_delegate(this);
@@ -486,7 +486,7 @@ namespace quark {
 		ScopeLock scope(_mutex);
 		
 		if ( Inl_Video(this)->is_active() && timeUs < _duration ) {
-			Qk_Assert( m_source );
+			Qk_ASSERT( m_source );
 			
 			if ( _source->seek(timeUs) ) {
 				_uninterrupted_play_start_systime = 0;

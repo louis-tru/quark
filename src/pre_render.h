@@ -64,11 +64,11 @@ namespace quark {
 			void unregister_task();
 			inline bool is_register_task() const { return _task_id != ID(); }
 			// define props
-			Qk_Define_Prop(ID, task_id);
-			Qk_Define_Prop(int64_t, task_timeout); // Unit is subtle
+			Qk_DEFINE_PROP(ID, task_id);
+			Qk_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
 		};
 
-		Qk_Define_Prop_Get(Application*, host);
+		Qk_DEFINE_PROP_GET(Application*, host);
 
 		/**
 			* @func solve 解决预先渲染问题,如果需要更新视图返回true

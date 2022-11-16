@@ -46,7 +46,7 @@ namespace quark {
 		, _layout_depth(0)
 		, _pre_render(pre)
 	{
-		Qk_Assert(pre, "#Layout#Layout PreRender host cannot be null");
+		Qk_ASSERT(pre, "#Layout#Layout PreRender host cannot be null");
 	}
 
 	/**

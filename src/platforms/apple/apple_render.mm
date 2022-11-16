@@ -109,7 +109,7 @@ namespace quark {
 	class AppleGLRenderBase: public RenderApple {
 	public: 
 		AppleGLRenderBase(EAGLContext* ctx): _ctx(ctx) {
-			Qk_Assert([EAGLContext currentContext], "Failed to set current OpenGL context");
+			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
 		}
 		~AppleGLRenderBase() {
@@ -118,7 +118,7 @@ namespace quark {
 
 		UIView* init(CGRect rect) override {
 			[EAGLContext setCurrentContext:_ctx];
-			Qk_Assert([EAGLContext currentContext], "Failed to set current OpenGL context");
+			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 			_view = [[GLView alloc] initWithFrame:rect];
 			_layer = (CAEAGLLayer*)_view.layer;
 			_layer.drawableProperties = @{
@@ -131,7 +131,7 @@ namespace quark {
 		}
 
 		void renderbufferStorage(uint32_t target) {
-			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; Qk_Assert(ok);
+			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; Qk_ASSERT(ok);
 		}
 
 		void swapBuffers() {
@@ -205,7 +205,7 @@ namespace quark {
 #endif
 		}
 
-		Qk_Assert(r);
+		Qk_ASSERT(r);
 		return r;
 	}
 

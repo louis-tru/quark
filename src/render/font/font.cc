@@ -30,64 +30,38 @@
 
 #include "./familys.h"
 #include "./pool.h"
-#include <skia/core/SkFont.h>
-#include <skia/core/SkTypeface.h>
-#include <skia/core/SkFontMetrics.h>
-#include <skia/core/SkFontTypes.h>
 
 namespace quark {
 
-	// --------------- F o n t ---------------
+	FontGlyphs::FontGlyphs(Typeface *typeface, float fontSize): FontGlyphs(typeface, fontSize, nullptr, 0) {}
 
-	inline const SkFont* CastSkFont(const Font* fg) {
-		return reinterpret_cast<const SkFont*>(fg);
-	}
-
-	Font::Font(const Typeface& typeface, float fontSize)
-		: _typeface( *((void**)(&typeface)) )
-		, _fontSize(fontSize)
-		, _scaleX(1)
-		, _skewX(0)
-		, _flags(1 << 5)
-		, _edging(static_cast<unsigned>(SkFont::Edging::kAntiAlias))
-		, _hinting(static_cast<unsigned>(SkFontHinting::kNormal))
+	FontGlyphs::FontGlyphs(Typeface *typeface,
+		float fontSize, const GlyphID glyphs[], uint32_t count)
+		: _fontSize(fontSize)
+		, _typeface(typeface)
 	{
-	}
-
-	Array<float> Font::get_offset(const GlyphID glyphs[], uint32_t count) const {
-		auto font = CastSkFont(this);
-		auto len = count + 1;
-		Array<float> offset(len);
-		font->getXPos(glyphs, len, *offset);
-		return offset;
-	}
-	
-	const Typeface* Font::typeface() const {
-		return _typeface.value();
-	}
-
-	float Font::get_metrics(FontMetrics* metrics) const {
-		return CastSkFont(this)->getMetrics( (SkFontMetrics*)metrics );
-	}
-
-	float Font::get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize) {
-		return Font(FFID->match(style)[0], fontSize).get_metrics(metrics);
-	}
-
-	float Font::get_metrics(FontMetrics* metrics, Typeface* typeface, float fontSize) {
-		return Font(typeface, fontSize).get_metrics(metrics);
-	}
-
-	// --------------- F o n t . G l y p h s ---------------
-
-	FontGlyphs::FontGlyphs(Font&& font, const GlyphID glyphs[], uint32_t count): _font(std::move(font)) {
-		_glyphs.write(glyphs, 0, count);
-		_glyphs.realloc(count + 1);
-		(*_glyphs)[count] = 0;
+		if (count) {
+			_glyphs.write(glyphs, 0, count);
+			_glyphs.realloc(count + 1);
+			(*_glyphs)[count] = 0;
+		}
 	}
 
 	Array<float> FontGlyphs::get_offset() const {
-		return _font.get_offset(*_glyphs, _glyphs.length());
+		// auto font = CastSkFont(this);
+		// auto len = count + 1;
+		// Array<float> offset(len);
+		// font->getXPos(glyphs, len, *offset);
+		// return offset;
+		return Array<float>();
+	}
+
+	float FontGlyphs::get_metrics(FontMetrics* metrics) {
+		return _typeface->getMetrics(metrics, _fontSize);
+	}
+
+	float FontGlyphs::get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize) {
+		return FFID->match(style, 0)->getMetrics(metrics, fontSize);
 	}
 
 }

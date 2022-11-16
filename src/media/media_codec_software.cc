@@ -54,7 +54,7 @@ namespace quark {
 			, _is_open(false)
 			, _output_occupy(false)
 		{
-			_frame = av_frame_alloc(); Qk_Assert(_frame);
+			_frame = av_frame_alloc(); Qk_ASSERT(_frame);
 			
 			if (type() == MEDIA_TYPE_VIDEO) {
 				_color_format = VIDEO_COLOR_FORMAT_YUV420P;
@@ -101,10 +101,10 @@ namespace quark {
 				AVStream* stream = _extractor->host()->get_stream(_extractor->track());
 				if ( !stream ) {
 					stream = _extractor->host()->get_stream(_extractor->track());
-					Qk_Assert( stream );
+					Qk_ASSERT( stream );
 				}
 				
-				const AVCodec* codec = get_avcodec(); Qk_Assert(codec);
+				const AVCodec* codec = get_avcodec(); Qk_ASSERT(codec);
 				
 				if ( _threads > 1 ) { // set threads
 					if ((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)

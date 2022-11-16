@@ -90,12 +90,12 @@ namespace quark {
 			, _uv_timer(nullptr)
 			, _timeout(0)
 		{ //
-			Qk_Assert(_keep);
+			Qk_ASSERT(_keep);
 		}
 		
 		virtual ~Inl() {
-			Qk_Assert(!_is_open);
-			Qk_Assert(!_uv_handle);
+			Qk_ASSERT(!_is_open);
+			Qk_ASSERT(!_uv_handle);
 			Release(_keep); _keep = nullptr;
 		}
 		
@@ -105,8 +105,8 @@ namespace quark {
 			inline UVHandle(Inl* host, uv_loop_t* loop): host(host) {
 				host->retain();
 				int r;
-				r = uv_tcp_init(loop, &uv_tcp); Qk_Assert( r == 0 );
-				r = uv_timer_init(loop, &uv_timer); Qk_Assert( r == 0 );
+				r = uv_tcp_init(loop, &uv_tcp); Qk_ASSERT( r == 0 );
+				r = uv_timer_init(loop, &uv_timer); Qk_ASSERT( r == 0 );
 				uv_tcp.data = this;
 				uv_timer.data = this;
 			}
@@ -286,8 +286,8 @@ namespace quark {
 		// ------------------------------------------------------------------------------------------
 		
 		void open2() {
-			Qk_Assert(_is_opening == false);
-			Qk_Assert(_uv_handle == nullptr);
+			Qk_ASSERT(_is_opening == false);
+			Qk_ASSERT(_uv_handle == nullptr);
 			
 			if ( _remote_ip.is_empty() ) {
 				sockaddr_in sockaddr;
@@ -338,8 +338,8 @@ namespace quark {
 			
 			if ( !_remote_ip.is_empty() ) {
 				_uv_handle = new UVHandle(this, uv_loop());
-				Qk_Assert(_uv_tcp == nullptr);
-				Qk_Assert(_uv_timer == nullptr);
+				Qk_ASSERT(_uv_tcp == nullptr);
+				Qk_ASSERT(_uv_timer == nullptr);
 				_uv_tcp = &_uv_handle->uv_tcp;
 				_uv_timer = &_uv_handle->uv_timer;
 				auto req = new SocketConReq(this);
@@ -354,7 +354,7 @@ namespace quark {
 		}
 		
 		void close2() {
-			Qk_Assert(_uv_handle);
+			Qk_ASSERT(_uv_handle);
 			uv_close((uv_handle_t*)_uv_tcp, [](uv_handle_t* handle){
 				Handle<UVHandle> h((UVHandle*)handle->data);
 			});
@@ -388,8 +388,8 @@ namespace quark {
 		static void open_cb(uv_connect_t* uv_req, int status) {
 			Handle<SocketConReq> req = SocketConReq::cast(uv_req);
 			Inl* self = req->ctx();
-			Qk_Assert(self->_is_opening);
-			Qk_Assert(!self->_is_open);
+			Qk_ASSERT(self->_is_opening);
+			Qk_ASSERT(!self->_is_open);
 			
 			uv_tcp_keepalive(self->_uv_tcp, self->_enable_keep_alive, self->_keep_idle);
 			uv_tcp_nodelay(self->_uv_tcp, self->_no_delay);
@@ -439,7 +439,7 @@ namespace quark {
 		}
 		
 		virtual void trigger_socket_data(int nread, Char* buffer) {
-			Qk_Assert( _is_open );
+			Qk_ASSERT( _is_open );
 			if ( nread < 0 ) {
 				if ( nread != UV_EOF ) { // 异常断开
 					report_uv_err(int(nread));
@@ -647,7 +647,7 @@ namespace quark {
 		
 		static void ssl_write_cb(uv_write_t* req, int status) {
 			SSLSocketWriteReq* req_ = SSLSocketWriteReq::cast(req);
-			Qk_Assert(req_->data().buffers_count);
+			Qk_ASSERT(req_->data().buffers_count);
 			
 			req_->data().buffers_count--;
 			
@@ -684,7 +684,7 @@ namespace quark {
 		
 		static int bio_write(BIO* b, cChar* in, int inl) {
 			SSL_INL* self = ((SSL_INL*)b->ptr);
-			Qk_Assert( self->_ssl_handshake );
+			Qk_ASSERT( self->_ssl_handshake );
 			
 			int r;
 			
@@ -716,7 +716,7 @@ namespace quark {
 				if ( self->_ssl_write_req ) { // send msg
 					
 					auto req = self->_ssl_write_req;
-					Qk_Assert( req->data().buffers_count < 2 );
+					Qk_ASSERT( req->data().buffers_count < 2 );
 					
 					uv_buf_t buf;
 					buf.base = *buffer;
@@ -751,7 +751,7 @@ namespace quark {
 		}
 		
 		static int bio_read(BIO *b, Char* out, int outl) {
-			Qk_Assert(out);
+			Qk_ASSERT(out);
 			SSL_INL* self = ((SSL_INL*)b->ptr);
 			
 			int ret = Qk_MIN(outl, self->_bio_read_source_buffer_length);
@@ -788,13 +788,13 @@ namespace quark {
 		}
 		
 		void set_ssl_handshake_timeout() {
-			Qk_Assert(_uv_handle);
+			Qk_ASSERT(_uv_handle);
 			uv_timer_stop(_uv_timer);
 			uv_timer_start(_uv_timer, &ssl_handshake_timeout_cb, 1e7, 0); // 10s handshake timeout
 		}
 		
 		virtual void trigger_socket_connect_open() {
-			Qk_Assert( !_ssl_handshake );
+			Qk_ASSERT( !_ssl_handshake );
 			set_ssl_handshake_timeout();
 			_bio_read_source_buffer_length = 0;
 			_ssl_handshake = 1;
@@ -819,7 +819,7 @@ namespace quark {
 				close2();
 			} else {
 				
-				Qk_Assert( _bio_read_source_buffer_length == 0 );
+				Qk_ASSERT( _bio_read_source_buffer_length == 0 );
 				
 				_bio_read_source_buffer = buffer;
 				_bio_read_source_buffer_length = nread;
@@ -845,7 +845,7 @@ namespace quark {
 						}
 					}
 				} else { // ssl handshake
-					Qk_Assert(_ssl_handshake == 1);
+					Qk_ASSERT(_ssl_handshake == 1);
 					
 					int r = SSL_connect(_ssl);
 					
@@ -862,7 +862,7 @@ namespace quark {
 						reset_timeout();
 						_delegate->trigger_socket_open(_host);
 						
-						Qk_Assert( _bio_read_source_buffer_length == 0 );
+						Qk_ASSERT( _bio_read_source_buffer_length == 0 );
 					}
 				}
 				
@@ -870,7 +870,7 @@ namespace quark {
 		}
 		
 		virtual void write(Buffer& buffer, int mark) {
-			Qk_Assert(!_ssl_write_req);
+			Qk_ASSERT(!_ssl_write_req);
 			
 			auto req = new SSLSocketWriteReq(this, 0, { buffer, mark, 0, 0 });
 			_ssl_write_req = req;
@@ -919,7 +919,7 @@ namespace quark {
 	}
 
 	Socket::~Socket() {
-		Qk_Assert(_inl->_keep->host() == RunLoop::current());
+		Qk_ASSERT(_inl->_keep->host() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
 			_inl->close();
@@ -974,7 +974,7 @@ namespace quark {
 	}
 
 	Qk_EXPORT void set_ssl_root_x509_store_function(X509_STORE* (*func)()) {
-		Qk_Assert(func);
+		Qk_ASSERT(func);
 		new_root_cert_store = func;
 	}
 

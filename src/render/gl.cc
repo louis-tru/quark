@@ -115,7 +115,7 @@ namespace quark {
 		int width = region.width;
 		int height = region.height;
 
-		Qk_Assert(width && height);
+		Qk_ASSERT(width && height);
 
 		glViewport(0, 0, width, height);
 

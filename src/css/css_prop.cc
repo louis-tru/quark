@@ -33,63 +33,63 @@
 Qk_NAMESPACE_START
 
 template<> inline void CSSProperty<TextColor>::assignment(View* view, PropertyName Name) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
 		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty<TextSize>::assignment(View* view, PropertyName Name) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
 		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty<TextSlant>::assignment(View* view, PropertyName Name) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
 		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty<TextFamily>::assignment(View* view, PropertyName Name) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
 		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty<TextLineHeight>::assignment(View* view, PropertyName Name) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
 		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty<TextShadow>::assignment(View* view, PropertyName Name) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
 		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty<TextDecoration>::assignment(View* view, PropertyName Name) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
 		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty<TextOverflow>::assignment(View* view, PropertyName Name) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
 		(view->as_text_layout()->*reinterpret_cast<Set3>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty<TextWhiteSpace>::assignment(View* view, PropertyName Name) {
-	Qk_Assert(view);
+	Qk_ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
 		(view->as_text_layout()->*reinterpret_cast<Set3>(accessor.set_accessor))(_value);

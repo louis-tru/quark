@@ -223,7 +223,7 @@ namespace quark {
 	}
 
 	void Display::pop_clip_region() {
-		Qk_Assert( _clip_region.length() > 1 );
+		Qk_ASSERT( _clip_region.length() > 1 );
 		_clip_region.pop();
 	}
 

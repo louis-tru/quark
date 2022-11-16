@@ -51,7 +51,7 @@ namespace quark {
 	void SkiaGLRender::onReload() {
 		if (!_direct) {
 			_direct = GrDirectContext::MakeGL(GrGLMakeNativeInterface(), {/*_opts.grContextOptions*/});
-			Qk_Assert(_direct);
+			Qk_ASSERT(_direct);
 		}
 		_surface.reset(); // clear curr surface
 		_rasterSurface.reset();
@@ -64,7 +64,7 @@ namespace quark {
 			auto info = SkImageInfo::Make(region.width, region.height,
 																		SkColorType(_opts.colorType), kPremul_SkAlphaType, nullptr);
 			_rasterSurface = SkSurface::MakeRaster(info);
-			Qk_Assert(_rasterSurface);
+			Qk_ASSERT(_rasterSurface);
 		}
 
 		GrGLFramebufferInfo fbInfo = {
@@ -79,7 +79,7 @@ namespace quark {
 															_direct.get(), backendRT,
 															kBottomLeft_GrSurfaceOrigin,
 															SkColorType(_opts.colorType), /*_opts.colorSpace*/nullptr, &props);
-		Qk_Assert(_surface);
+		Qk_ASSERT(_surface);
 		if (_raster) {
 			_canvas = static_cast<SkiaCanvas*>(_rasterSurface->getCanvas());
 		} else {

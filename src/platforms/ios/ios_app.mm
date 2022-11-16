@@ -233,9 +233,9 @@ static NSString* appDelegateName = @"";
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		Qk_Assert(!appDelegate);
+		Qk_ASSERT(!appDelegate);
 		appDelegate = self;
-		Qk_Assert(Application::shared());
+		Qk_ASSERT(Application::shared());
 		_app = Application::shared(); 
 
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
