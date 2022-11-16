@@ -140,6 +140,6 @@ struct QkOTTableOS2_V0 {
 #pragma pack(pop)
 
 
-static_assert(sizeof(QkOTTableOS2_V0) == 78, "sizeof_SkOTTableOS2_V0_not_78");
+static_assert(sizeof(QkOTTableOS2_V0) == 78, "sizeof_QkOTTableOS2_V0_not_78");
 
 #endif

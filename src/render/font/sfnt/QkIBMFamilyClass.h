@@ -137,6 +137,6 @@ struct QkIBMFamilyClass {
 #pragma pack(pop)
 
 
-static_assert(sizeof(QkIBMFamilyClass) == 2, "sizeof_SkIBMFamilyClass_not_2");
+static_assert(sizeof(QkIBMFamilyClass) == 2, "sizeof_QkIBMFamilyClass_not_2");
 
 #endif

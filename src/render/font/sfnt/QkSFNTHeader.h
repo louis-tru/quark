@@ -63,7 +63,7 @@ struct QkSFNTHeader {
 #pragma pack(pop)
 
 
-static_assert(sizeof(QkSFNTHeader) == 12, "sizeof_SkSFNTHeader_not_12");
-static_assert(sizeof(QkSFNTHeader::TableDirectoryEntry) == 16, "sizeof_SkSFNTHeader_TableDirectoryEntry_not_16");
+static_assert(sizeof(QkSFNTHeader) == 12, "sizeof_QkSFNTHeader_not_12");
+static_assert(sizeof(QkSFNTHeader::TableDirectoryEntry) == 16, "sizeof_QkSFNTHeader_TableDirectoryEntry_not_16");
 
 #endif

@@ -522,6 +522,6 @@ struct QkPanose {
 #pragma pack(pop)
 
 
-static_assert(sizeof(QkPanose) == 10, "sizeof_SkPanose_not_10");
+static_assert(sizeof(QkPanose) == 10, "sizeof_QkPanose_not_10");
 
 #endif
