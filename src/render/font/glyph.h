@@ -31,7 +31,6 @@
 #ifndef __quark__font__glyph__
 #define __quark__font__glyph__
 
-#include "../../math.h"
 #include "metrics.h"
 
 namespace quark {
@@ -53,12 +52,6 @@ namespace quark {
 		// The advance for this glyph.
 		Qk_DEFINE_PROP_GET(float, advanceX);
 		Qk_DEFINE_PROP_GET(float, advanceY);
-		/**
-		 * get bounds for glyph
-		*/
-		inline Rect getBounds() const {
-			return {Vec2(_left, _top), Vec2(_width, _height)};
-		}
 	private:
 		friend class Typeface_Mac;
 	};
