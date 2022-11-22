@@ -55,23 +55,28 @@ FontStyle QkCTFontDescriptorGetSkFontStyle(CTFontDescriptorRef desc, bool fromDa
 CGFloat QkCTFontCTWeightForCSSWeight(TextWeight fontstyleWeight);
 CGFloat QkCTFontCTWidthForCSSWidth(TextWidth fontstyleWidth);
 
-class QkTypeface_Mac: public Typeface {
-public:
-	QkTypeface_Mac(QkUniqueCFRef<CTFontRef> fontRef, OpszVariation opszVariation, bool isData);
-	QkUniqueCFRef<CTFontRef> fFontRef;
-	const OpszVariation fOpszVariation;
-	const bool fHasColorGlyphs;
-protected:
-	int onCountGlyphs() const override;
-	int onGetUPEM() const override;
-	int onGetTableTags(FontTableTag tags[]) const override;
-	bool onGetPostScriptName(String*) const override;
-	String onGetFamilyName() const override;
-	size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const override;
-	void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const override;
-	void onGetMetrics(FontMetrics* metrics, float fontSize) const override;
-private:
-	bool fIsData;
-};
+namespace quark {
+
+	class Typeface_Mac: public Typeface {
+	public:
+		Typeface_Mac(QkUniqueCFRef<CTFontRef> fontRef, OpszVariation opszVariation, bool isData);
+		QkUniqueCFRef<CTFontRef> fFontRef;
+		const OpszVariation fOpszVariation;
+		const bool fHasColorGlyphs;
+	protected:
+		int onCountGlyphs() const override;
+		int onGetUPEM() const override;
+		int onGetTableTags(FontTableTag tags[]) const override;
+		bool onGetPostScriptName(String*) const override;
+		String onGetFamilyName() const override;
+		size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const override;
+		void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const override;
+		void onGetMetrics(FontMetrics* metrics) const override;
+		void onGetGlyph(FontGlyph* glyph, GlyphID id) const override;
+	private:
+		bool fIsData;
+	};
+
+}
 
 #endif

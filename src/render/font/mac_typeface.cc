@@ -52,7 +52,7 @@ Qk_GETCFTYPEID(CFNumber);
  */
 template <typename CF>
 static bool SkCFDynamicCast(CFTypeRef cf, CF* cfAsCF, char const* name) {
-	//SkDEBUGF("SkCFDynamicCast '%s' of type %s to type %s\n", name ? name : "<annon>",
+	// Qk_DEBUG("SkCFDynamicCast '%s' of type %s to type %s\n", name ? name : "<annon>",
 	//         SkCFTypeIDDescription(  CFGetTypeID(cf)  ).c_str()
 	//         SkCFTypeIDDescription(SkCFGetTypeID<CF>()).c_str());
 	if (!cf) {
@@ -334,7 +334,7 @@ size_t QkToUTF16(Unichar uni, uint16_t utf16[2]) {
 
 // -----------------------------------------------------------------------------------
 
-QkTypeface_Mac::QkTypeface_Mac(QkUniqueCFRef<CTFontRef> font, OpszVariation opszVariation, bool isData)
+Typeface_Mac::Typeface_Mac(QkUniqueCFRef<CTFontRef> font, OpszVariation opszVariation, bool isData)
 	: Typeface(FontStyle(), true)
 	, fFontRef(std::move(font))
 	, fOpszVariation(opszVariation)
@@ -350,16 +350,16 @@ QkTypeface_Mac::QkTypeface_Mac(QkUniqueCFRef<CTFontRef> font, OpszVariation opsz
 	setIsFixedPitch(isFixedPitch);
 }
 
-int QkTypeface_Mac::onCountGlyphs() const {
+int Typeface_Mac::onCountGlyphs() const {
 	return int(CTFontGetGlyphCount(fFontRef.get()));
 }
 
-int QkTypeface_Mac::onGetUPEM() const {
+int Typeface_Mac::onGetUPEM() const {
 	QkUniqueCFRef<CGFontRef> cgFont(CTFontCopyGraphicsFont(fFontRef.get(), nullptr));
 	return CGFontGetUnitsPerEm(cgFont.get());
 }
 
-int QkTypeface_Mac::onGetTableTags(FontTableTag tags[]) const {
+int Typeface_Mac::onGetTableTags(FontTableTag tags[]) const {
 	QkUniqueCFRef<CFArrayRef> cfArray(
 		CTFontCopyAvailableTables(fFontRef.get(), kCTFontTableOptionNoOptions));
 	if (!cfArray) {
@@ -376,7 +376,7 @@ int QkTypeface_Mac::onGetTableTags(FontTableTag tags[]) const {
 	return count;
 }
 
-bool QkTypeface_Mac::onGetPostScriptName(String* skPostScriptName) const {
+bool Typeface_Mac::onGetPostScriptName(String* skPostScriptName) const {
 	QkUniqueCFRef<CFStringRef> ctPostScriptName(CTFontCopyPostScriptName(fFontRef.get()));
 	if (!ctPostScriptName) {
 		return false;
@@ -387,12 +387,12 @@ bool QkTypeface_Mac::onGetPostScriptName(String* skPostScriptName) const {
 	return true;
 }
 
-String QkTypeface_Mac::onGetFamilyName() const {
+String Typeface_Mac::onGetFamilyName() const {
 	QkUniqueCFRef<CFStringRef> familyName(CTFontCopyFamilyName(fFontRef.get()));
 	return QkStringFromCFString(familyName.get());
 }
 
-size_t QkTypeface_Mac::onGetTableData(FontTableTag tag, size_t offset,size_t length, void* dstData) const {
+size_t Typeface_Mac::onGetTableData(FontTableTag tag, size_t offset,size_t length, void* dstData) const {
 	QkUniqueCFRef<CFDataRef> srcData = copy_table_from_font(fFontRef.get(), tag);
 	if (!srcData) {
 		return 0;
@@ -410,7 +410,7 @@ size_t QkTypeface_Mac::onGetTableData(FontTableTag tag, size_t offset,size_t len
 	return length;
 }
 
-void QkTypeface_Mac::onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyphs[]) const {
+void Typeface_Mac::onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyphs[]) const {
 	// Undocumented behavior of CTFontGetGlyphsForCharacters with non-bmp code points:
 	// When a surrogate pair is detected, the glyph index used is the index of the high surrogate.
 	// It is documented that if a mapping is unavailable, the glyph will be set to 0.
@@ -475,10 +475,11 @@ static inline CGFloat SkCGRectGetMinX(const CGRect& rect) {
 		return rect.origin.x;
 }
 
-void QkTypeface_Mac::onGetMetrics(FontMetrics* metrics, float fontSize) const {
+void Typeface_Mac::onGetMetrics(FontMetrics* metrics) const {
 	if (nullptr == metrics) {
 		return;
 	}
+	constexpr float fontSize = 64.0;
 
 	QkUniqueCFRef<CTFontRef> fontHolder;
 	CTFontRef fontRef = fFontRef.get();
@@ -539,4 +540,65 @@ void QkTypeface_Mac::onGetMetrics(FontMetrics* metrics, float fontSize) const {
 			metrics->fCapHeight = SkScalarFromCGFloat(capHeight * fontSize / upem);
 		}
 	}
+}
+
+static inline bool QkCGRectIsEmpty(const CGRect& rect) {
+	return rect.size.width <= 0 || rect.size.height <= 0;
+}
+
+void Typeface_Mac::onGetGlyph(FontGlyph* glyph, GlyphID id) const {
+	if (nullptr == glyph) {
+		return;
+	}
+	constexpr float fontSize = 64.0;
+
+	QkUniqueCFRef<CTFontRef> fontHolder;
+	CTFontRef fontRef = fFontRef.get();
+
+	if (fontSize != CTFontGetSize(fontRef)) {
+		fontRef = CTFontCreateCopyWithAttributes(fontRef, fontSize, nullptr, nullptr);
+		fontHolder.reset(fontRef);
+	}
+
+	const CGGlyph cgGlyph = (CGGlyph) id;
+
+	// The following block produces cgAdvance in CG units (pixels, y up).
+	CGSize cgAdvance;
+	CTFontGetAdvancesForGlyphs(fontRef, kCTFontOrientationHorizontal,
+															&cgGlyph, &cgAdvance, 1);
+	// cgAdvance = CGSizeApplyAffineTransform(cgAdvance, fTransform);
+	glyph->_advanceX =  static_cast<float>(cgAdvance.width);
+	glyph->_advanceY = -static_cast<float>(cgAdvance.height);
+
+	// The following produces skBounds in SkGlyph units (pixels, y down),
+	// or returns early if skBounds would be empty.
+	quark::Rect qkBounds;
+
+	// Glyphs are always drawn from the horizontal origin. The caller must manually use the result
+	// of CTFontGetVerticalTranslationsForGlyphs to calculate where to draw the glyph for vertical
+	// glyphs. As a result, always get the horizontal bounds of a glyph and translate it if the
+	// glyph is vertical. This avoids any diagreement between the various means of retrieving
+	// vertical metrics.
+	{
+		// CTFontGetBoundingRectsForGlyphs produces cgBounds in CG units (pixels, y up).
+		CGRect cgBounds;
+		CTFontGetBoundingRectsForGlyphs(fontRef, kCTFontOrientationHorizontal,
+																		&cgGlyph, &cgBounds, 1);
+		// cgBounds = CGRectApplyAffineTransform(cgBounds, fTransform);
+
+		if (QkCGRectIsEmpty(cgBounds)) {
+			return;
+		}
+
+		// Convert cgBounds to SkGlyph units (pixels, y down).
+		qkBounds = {
+			Vec2(cgBounds.origin.x, -cgBounds.origin.y - cgBounds.size.height),
+			Vec2(cgBounds.size.width, cgBounds.size.height),
+		};
+	}
+
+	glyph->_left = qkBounds.origin.x();
+	glyph->_top = qkBounds.origin.y();
+	glyph->_width = qkBounds.size.x();
+	glyph->_height = qkBounds.size.y();
 }

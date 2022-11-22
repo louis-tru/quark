@@ -37,6 +37,7 @@ namespace quark {
 	Typeface::Typeface(FontStyle fs, bool isFixedPitch)
 		: _fontStyle(fs), _isFixedPitch(isFixedPitch)
 	{
+		_metrics.fAscent = 0;
 	}
 
 	int Typeface::countGlyphs() const {
@@ -93,14 +94,21 @@ namespace quark {
 		return id;
 	}
 
-	float Typeface::getMetrics(FontMetrics* metrics, float fontSize) {
-		auto it = _MetricsCaches.find(fontSize);
-		if (it != _MetricsCaches.end()) {
-			*metrics = it->value;
-		} else {
-			onGetMetrics(metrics, fontSize);
-			_MetricsCaches.set(fontSize, *metrics);
+	FontGlyph* Typeface::getGlyph(GlyphID glyph) {
+		auto it = _glyphs.find(glyph);
+		if (it != _glyphs.end()) {
+			return &it->value;
 		}
-		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
+		FontGlyph fontGlyph;
+		onGetGlyph(&fontGlyph, glyph);
+		_glyphs.set(glyph, fontGlyph);
+		return &_glyphs[glyph];
+	}
+
+	const FontMetrics& Typeface::getMetrics() {
+		if (_metrics.fAscent == 0) {
+			onGetMetrics(&_metrics);
+		}
+		return _metrics;
 	}
 }

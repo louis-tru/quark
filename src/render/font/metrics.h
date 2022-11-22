@@ -35,6 +35,10 @@
 
 namespace quark {
 
+	struct FontMetricsBase {
+		float fAscent,fDescent,fLeading;
+	};
+
 	struct FontMetrics {
 
 		/** @enum FontMetricsFlags

@@ -77,17 +77,8 @@
 			'render/font/metrics.h',
 			'render/font/familys.h',
 			'render/font/familys.cc',
-			# test
-			'render/font/mac_pool.cc',
-			'render/font/mac_typeface.cc',
-			'render/font/mac_typeface.h',
-			'render/font/mac_util.cc',
-			'render/font/mac_util.h',
-			#
-			# 'render/font/skia/ports/SkFontMgr_mac_ct.cpp',
-			# 'render/font/skia/ports/SkTypeface_mac_ct.cpp',
-			# 'render/font/skia/ports/SkTypeface_mac_ct.h',
-			#
+			'render/font/glyph.h',
+			'render/font/glyph.cc',
 			'render/render.h',
 			'render/render.cc',
 			'render/pixel.h',
@@ -215,6 +206,11 @@
 					'render/metal.h',
 					'render/metal.mm',
 					'render/skia/skia_metal.mm',
+					'render/font/mac_pool.cc',
+					'render/font/mac_typeface.cc',
+					'render/font/mac_typeface.h',
+					'render/font/mac_util.cc',
+					'render/font/mac_util.h',
 					'os/apple/apple_os.mm',
 				],
 				'link_settings': {

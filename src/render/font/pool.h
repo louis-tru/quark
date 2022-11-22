@@ -42,7 +42,7 @@ namespace quark {
 	class Qk_EXPORT FontPool: public Object {
 		Qk_HIDDEN_ALL_COPY(FontPool);
 	public:
-		FontPool();
+		static FontPool* Make(Application* host);
 		// define ptops
 		Qk_DEFINE_PROP_ACC_GET(int32_t, countFamilies);
 		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, second);
@@ -57,7 +57,8 @@ namespace quark {
 		String getFamilyName(int index) const;
 		Typeface* match(cString& familyName, FontStyle style) const;
 		Typeface* matchCharacter(cString& familyName, FontStyle, Unichar character) const;
-	private:
+	protected:
+		FontPool(Application* host);
 		void initialize();
 		virtual int onCountFamilies() const = 0;
 		virtual String onGetFamilyName(int index) const = 0;

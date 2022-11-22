@@ -39,6 +39,7 @@
 #include <skia/core/SkMaskFilter.h>
 #include <skia/core/SkTypeface.h>
 #include <skia/core/SkFont.h>
+#include <skia/core/SkFontMgr.h>
 // views
 #include "../../layout/box.h"
 #include "../../layout/image.h"
@@ -234,8 +235,9 @@ namespace quark {
 					for (auto i: v->_blob_visible) {
 						auto &blob = v->_blob[i];
 						auto &line = lines->line(blob.line);
-						auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
-						tf->ref();
+						auto style = blob.typeface->fontStyle();
+						SkFontStyle skStyle((int)style.weight(), (int)style.width(), SkFontStyle::Slant(int(style.slant()) - 1));
+						auto tf = SkFontMgr::RefDefault()->matchFamilyStyle(blob.typeface->getFamilyName().c_str(), skStyle);
 						r->_canvas->drawGlyphs(
 							blob.glyphs.length(), *blob.glyphs, (SkPoint*)*blob.offset,
 							{offset.x() + line.origin + blob.origin, offset.y() + line.baseline},
@@ -314,8 +316,9 @@ namespace quark {
 				for (auto i: v->_blob_visible) {
 					auto &blob = v->_blob[i];
 					auto &line = lines->line(blob.line);
-					auto tf = *reinterpret_cast<SkTypeface**>(&blob.typeface);
-					tf->ref();
+					auto style = blob.typeface->fontStyle();
+					SkFontStyle skStyle((int)style.weight(), (int)style.width(), SkFontStyle::Slant(int(style.slant()) - 1));
+					auto tf = SkFontMgr::RefDefault()->matchFamilyStyle(blob.typeface->getFamilyName().c_str(), skStyle);
 					_canvas->drawGlyphs(
 						blob.glyphs.length(), *blob.glyphs, (SkPoint*)*blob.offset,
 						{line.origin + blob.origin, line.baseline},

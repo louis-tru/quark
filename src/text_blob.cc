@@ -309,7 +309,7 @@ namespace quark {
 		uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL)
 	{
 		auto& glyphs = fg.glyphs();
-		auto  offset = fg.get_offset();
+		auto  offset = fg.getOffset();
 		bool  line_head = _lines->last()->width == 0.0;
 		auto  text_size = _opts->text_size().value;
 		auto  line_height = _opts->text_line_height().value;
@@ -402,7 +402,7 @@ namespace quark {
 	// BREAK_ALL 以字符为单位行空间不足换行
 	void TextBlobBuilder::as_break_all(FontGlyphs &fg, Unichar *unichar, uint32_t index) {
 		auto& glyphs = fg.glyphs();
-		auto  offset = fg.get_offset();
+		auto  offset = fg.getOffset();
 		auto  text_size = _opts->text_size().value;
 		auto  line_height = _opts->text_line_height().value;
 		auto  line = _lines->last();
@@ -451,7 +451,7 @@ namespace quark {
 
 	void TextBlobBuilder::as_no_auto_wrap(FontGlyphs &fg, uint32_t index) {
 		auto origin = _lines->pre_width();
-		auto offset = fg.get_offset();
+		auto offset = fg.getOffset();
 		auto overflow = _opts->text_overflow_value();
 		auto limitX = _lines->host_size().x();
 		auto text_size = _opts->text_size().value;
@@ -485,7 +485,7 @@ namespace quark {
 
 					Array<Unichar> uinchar({46,46,46});
 					auto& ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), text_size)[0];
-					auto ellipsis_offset = ellipsis.get_offset();
+					auto ellipsis_offset = ellipsis.getOffset();
 					auto ellipsis_width = ellipsis_offset.back();
 					auto limit2 = limitX - ellipsis_width;
 

@@ -28,26 +28,39 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__font__font__
-#define __quark__font__font__
+#ifndef __quark__font__glyph__
+#define __quark__font__glyph__
 
-#include "./typeface.h"
+#include "../../math.h"
+#include "metrics.h"
 
 namespace quark {
 
-	class Qk_EXPORT FontGlyphs {
+	typedef uint32_t Unichar;
+	typedef uint16_t GlyphID;
+	typedef uint32_t FontTableTag;
+	
+	class Typeface_Mac;
+
+	class Qk_EXPORT FontGlyph {
 	public:
-		FontGlyphs(Typeface *typeface, float fontSize, const GlyphID glyphs[] = nullptr, uint32_t count = 0);
-		Qk_DEFINE_PROP(float, fontSize);
-		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
-		inline Typeface* typeface() { return *_typeface; }
-		Array<float> getOffset(float origin = 0);
-		float getMetrics(FontMetrics* metrics);
-		float getMetrics(FontMetricsBase* metrics);
-		static float getMetrics(FontMetricsBase* metrics, Typeface *typeface, float fontSize);
+		// The offset from the glyphs origin on the baseline to the top left of the glyph mask.
+		Qk_DEFINE_PROP_GET(float, left);
+		Qk_DEFINE_PROP_GET(float, top);
+		// The width and height of the glyph mask.
+		Qk_DEFINE_PROP_GET(float, width);
+		Qk_DEFINE_PROP_GET(float, height);
+		// The advance for this glyph.
+		Qk_DEFINE_PROP_GET(float, advanceX);
+		Qk_DEFINE_PROP_GET(float, advanceY);
+		/**
+		 * get bounds for glyph
+		*/
+		inline Rect getBounds() const {
+			return {Vec2(_left, _top), Vec2(_width, _height)};
+		}
 	private:
-		Array<GlyphID> _glyphs;
-		Sp<Typeface> _typeface;
+		friend class Typeface_Mac;
 	};
 
 }

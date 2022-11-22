@@ -192,7 +192,7 @@ void layout(Event<>& evt, Application* app) {
 	auto img  = (Image*)     New<Image>     ()->append_to(r);
 	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
 	
-	//layout_text(flow);
+	layout_text(flow);
 	//layout_input(flex);
 	layout_scroll(flex);
 

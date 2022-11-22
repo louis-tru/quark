@@ -28,27 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__font__font__
-#define __quark__font__font__
-
-#include "./typeface.h"
+#include "glyph.h"
 
 namespace quark {
-
-	class Qk_EXPORT FontGlyphs {
-	public:
-		FontGlyphs(Typeface *typeface, float fontSize, const GlyphID glyphs[] = nullptr, uint32_t count = 0);
-		Qk_DEFINE_PROP(float, fontSize);
-		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
-		inline Typeface* typeface() { return *_typeface; }
-		Array<float> getOffset(float origin = 0);
-		float getMetrics(FontMetrics* metrics);
-		float getMetrics(FontMetricsBase* metrics);
-		static float getMetrics(FontMetricsBase* metrics, Typeface *typeface, float fontSize);
-	private:
-		Array<GlyphID> _glyphs;
-		Sp<Typeface> _typeface;
-	};
-
+	// TODO ...
 }
-#endif

@@ -33,7 +33,23 @@
 
 namespace quark {
 
-	FontGlyphs::FontGlyphs(Typeface *typeface, float fontSize): FontGlyphs(typeface, fontSize, nullptr, 0) {}
+	static void scaleFontMetrics(FontMetrics* metrics, float scale) {
+		metrics->fTop *= scale;
+		metrics->fAscent *= scale;
+		metrics->fDescent *= scale;
+		metrics->fBottom *= scale;
+		metrics->fLeading *= scale;
+		metrics->fAvgCharWidth *= scale;
+		metrics->fMaxCharWidth *= scale;
+		metrics->fXMin *= scale;
+		metrics->fXMax *= scale;
+		metrics->fXHeight *= scale;
+		metrics->fCapHeight *= scale;
+		metrics->fUnderlineThickness *= scale;
+		metrics->fUnderlinePosition *= scale;
+		metrics->fStrikeoutThickness *= scale;
+		metrics->fStrikeoutPosition *= scale;
+	}
 
 	FontGlyphs::FontGlyphs(Typeface *typeface,
 		float fontSize, const GlyphID glyphs[], uint32_t count)
@@ -47,21 +63,52 @@ namespace quark {
 		}
 	}
 
-	Array<float> FontGlyphs::get_offset() const {
-		// auto font = CastSkFont(this);
-		// auto len = count + 1;
-		// Array<float> offset(len);
-		// font->getXPos(glyphs, len, *offset);
-		// return offset;
-		return Array<float>();
+	Array<float> FontGlyphs::getOffset(float origin) {
+		if (!_glyphs.length()) return Array<float>({0});
+
+		const float scale = _fontSize / 64.0;
+		const bool isScale = scale != 1.0;
+
+		Array<float> result(_glyphs.length() + 1);
+		float loc = origin;
+		float* cursor = *result;
+		GlyphID *src = *_glyphs;
+		GlyphID *end = src + result.length();
+
+		while (src != end) {
+			FontGlyph *glyph = _typeface->getGlyph(*src);
+			*cursor++ = loc;
+			loc += (isScale? glyph->advanceX() * scale: glyph->advanceX());
+			src++;
+		}
+		return std::move(result);
 	}
 
-	float FontGlyphs::get_metrics(FontMetrics* metrics) {
-		return _typeface->getMetrics(metrics, _fontSize);
+	float FontGlyphs::getMetrics(FontMetrics* metrics) {
+		if (!metrics) return 0;
+		memcpy(metrics, &_typeface->getMetrics(), sizeof(FontMetrics));
+		float scale = _fontSize / 64.0;
+		if (scale != 1.0)
+			scaleFontMetrics(metrics, scale);
+		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
 	}
 
-	float FontGlyphs::get_metrics(FontMetrics* metrics, FFID FFID, FontStyle style, float fontSize) {
-		return FFID->match(style, 0)->getMetrics(metrics, fontSize);
+	float FontGlyphs::getMetrics(FontMetricsBase* metrics) {
+		return getMetrics(metrics, *_typeface, _fontSize);
 	}
 
+	float FontGlyphs::getMetrics(FontMetricsBase* metrics, Typeface *typeface, float fontSize) {
+		if (!metrics) return 0;
+		float scale = fontSize / 64.0;
+		auto& metrics0 = typeface->getMetrics();
+		metrics->fAscent = metrics0.fAscent;
+		metrics->fDescent = metrics0.fDescent;
+		metrics->fLeading = metrics0.fLeading;
+		if (scale != 1.0) {
+			metrics->fAscent *= scale;
+			metrics->fDescent *= scale;
+			metrics->fLeading *= scale;
+		}
+		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
+	}
 }

@@ -107,7 +107,7 @@ void testFontPool(Application* app, SkCanvas* canvas) {
 		int i = 0;
 		auto gs = fg.glyphs();
 
-		for (auto& glyph: fg.get_offset()) {
+		for (auto& glyph: fg.getOffset()) {
 			Qk_LOG("OffsetX: %f, GlyphId: %d", glyph, i < gs.length() ? gs[i++]: 0);
 		}
 	}

@@ -177,7 +177,7 @@ namespace quark {
 		}
 	}
 
-	void TextLines::set_metrics(FontMetrics *metrics, float line_height) {
+	void TextLines::set_metrics(FontMetricsBase *metrics, float line_height) {
 		auto top = -metrics->fAscent;
 		auto bottom = metrics->fDescent + metrics->fLeading;
 		auto height = top + bottom;
@@ -193,8 +193,9 @@ namespace quark {
 	}
 
 	void TextLines::set_metrics(TextOptions *opts) {
-		FontMetrics metrics;
-		FontGlyphs::get_metrics(&metrics, opts->text_family().value, opts->font_style(), opts->text_size().value);
+		auto tf = opts->text_family().value->match(opts->font_style());
+		FontMetricsBase metrics;
+		FontGlyphs::getMetrics(&metrics, tf, opts->text_size().value);
 		set_metrics(&metrics, opts->text_line_height().value);
 	}
 
@@ -303,11 +304,9 @@ namespace quark {
 		auto _blob = builder->blob();
 		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
 			auto tf = _opts->text_family().value->match(_opts->font_style(), 0);
-			FontMetrics metrics;
-			tf->getMetrics(&metrics, _opts->text_size().value);
+			FontMetricsBase metrics;
+			auto height = FontGlyphs::getMetrics(&metrics, tf, _opts->text_size().value);
 			auto ascent = -metrics.fAscent;
-			auto descent = metrics.fDescent + metrics.fLeading;
-			auto height = ascent + descent;
 			auto origin = _last->width;
 
 			_blob->push({
@@ -335,12 +334,9 @@ namespace quark {
 			}
 		}
 
-		FontMetrics metrics;
-		blob.typeface->getMetrics(&metrics, blob.text_size);
-
+		FontMetricsBase metrics;
+		auto height = FontGlyphs::getMetrics(&metrics, *blob.typeface, blob.text_size);
 		auto ascent = -metrics.fAscent;
-		auto descent = metrics.fDescent + metrics.fLeading;
-		auto height = ascent + descent;
 		auto origin = _last->width - offset[0];
 
 		Array<Vec2> offset2(offset.length());

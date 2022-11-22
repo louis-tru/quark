@@ -624,8 +624,8 @@ namespace quark {
 		_lines = new TextLines(this, _text_align, size, layout_wrap_x());
 		TextConfig cfg(this, pre_render()->host()->default_text_options());
 
-		FontMetrics metrics;
-		FontGlyphs::get_metrics(&metrics, text_family().value, font_style(), text_size().value);
+		FontMetricsBase metrics;
+		FontGlyphs::getMetrics(&metrics, text_family().value->match(font_style()), text_size().value);
 
 		_lines->set_metrics(&metrics, text_line_height().value);
 		_text_ascent = -metrics.fAscent;

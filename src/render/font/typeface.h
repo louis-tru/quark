@@ -35,13 +35,9 @@
 #include "../../math.h"
 #include "./style.h"
 #include "metrics.h"
+#include "glyph.h"
 
 namespace quark {
-
-	class FontPool;
-	typedef uint32_t Unichar;
-	typedef uint16_t GlyphID;
-	typedef uint32_t FontTableTag;
 
 	class Qk_EXPORT Typeface: public Reference {
 		Qk_HIDDEN_ALL_COPY(Typeface);
@@ -61,7 +57,8 @@ namespace quark {
 		void unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const;
 		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
 		GlyphID unicharToGlyph(Unichar unichar) const;
-		float getMetrics(FontMetrics* metrics, float fontSize);
+		FontGlyph* getGlyph(GlyphID glyph);
+		const FontMetrics& getMetrics();
 	protected:
 		Typeface(FontStyle fs, bool isFixedPitch);
 		void setIsFixedPitch(bool isFixedPitch) { _isFixedPitch = isFixedPitch; }
@@ -73,9 +70,11 @@ namespace quark {
 		virtual int onGetTableTags(FontTableTag tags[]) const = 0;
 		virtual size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const = 0;
 		virtual void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const = 0;
-		virtual void onGetMetrics(FontMetrics* metrics, float fontSize) const = 0;
+		virtual void onGetMetrics(FontMetrics* metrics) const = 0;
+		virtual void onGetGlyph(FontGlyph* glyph, GlyphID id) const = 0;
 	private:
-		Dict<float, FontMetrics> _MetricsCaches;
+		FontMetrics _metrics;
+		Dict<GlyphID, FontGlyph> _glyphs;
 	};
 
 }

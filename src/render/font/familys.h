@@ -36,12 +36,14 @@
 
 namespace quark {
 
+	class FontPool;
+
 	class Qk_EXPORT FontFamilys: public Object {
 	public:
 		FontFamilys(FontPool* pool, Array<String>& familys);
 		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, familys);
 		Qk_DEFINE_PROP_GET(FontPool*, pool);
-		Typeface* match(FontStyle style, uint32_t index);
+		Typeface* match(FontStyle style, uint32_t index = 0);
 		Array<FontGlyphs> makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize);
 	private:
 		Array<Sp<Typeface>>& matchAll(FontStyle style);

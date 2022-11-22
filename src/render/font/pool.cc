@@ -36,18 +36,16 @@ namespace quark {
 
 	// ---------------------- F o n t . P o o l --------------------------
 
-	FontPool::FontPool()
-		: _host(nullptr)
+	FontPool::FontPool(Application* host)
+		: _host(host)
 		, _last_65533(0)
-	{
-		initialize();
-	}
+	{}
 
 	void FontPool::initialize() {
 		FontStyle style; // default style
 
 		// Find english character set
-		auto tf = match(nullptr, style);
+		auto tf = match(String(), style);
 		_second.push(tf->getFamilyName());
 		Qk_DEBUG(_second[0]);
 
