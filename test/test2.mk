@@ -29,6 +29,8 @@ ifeq ($(OS),osx)
 	OSX = 1
 endif
 
+# --------------------------------------------------------------------
+
 # android
 # -ffunction-sections -fdata-sections 
 
@@ -54,6 +56,8 @@ SOURCES = ../out/test2.cc \
 					../src/util/error.cc \
 					../src/util/dict.cc \
 
+# ---------------------------- Platform ----------------------------
+
 ifeq ($(LINUX),1)
 	INCLUDES += -I../tools/linux/usr/include
 	LINKFLAGS_START += -Wl,--whole-archive
@@ -75,6 +79,8 @@ ifeq ($(OSX),1)
 		-framework AppKit -framework OpenGL -framework CoreVideo
 	SOURCES += test2-opengl.mm
 endif
+
+# --------------------------------------------------------------------
 
 OBJS = $(foreach file,$(SOURCES),$(OUT)/$(file).o)
 
