@@ -401,23 +401,23 @@ function configure_skia(opts, variables) {
 
 	// args0 += `--target_cpu="x86_64" `
 
-	if (variables.debug) {
-		args += ` \
-			is_debug=true \
-			is_official_build=false \
-		`;
-	} else {
-		args += ` \
-			is_debug=false \
-			is_official_build=true \
-			skia_use_system_libjpeg_turbo=false \
-			skia_use_system_libpng=false \
-			skia_use_system_libwebp=false \
-			skia_use_icu=false \
-			skia_use_system_expat=false \
-		`;
+	// if (variables.debug) {
+		// args += ` \
+			// is_debug=true \
+			// is_official_build=false \
+		// `;
+	// } else {
+	args += ` \
+		is_debug=false \
+		is_official_build=true \
+		skia_use_system_libjpeg_turbo=false \
+		skia_use_system_libpng=false \
+		skia_use_system_libwebp=false \
+		skia_use_icu=false \
+		skia_use_system_expat=false \
+	`;
 		//skia_use_system_harfbuzz=false \
-	}
+	// }
 
 	if (os == 'android') {
 		args0 += `--ndk="${opts.ndk_path}" `;
@@ -1160,6 +1160,7 @@ async function configure() {
 	config_mk.push('BRAND=' + brand);
 	config_mk.push('OUTPUT=' + output);
 	config_mk.push('ANDROID_API_LEVEL=' + android_api_level);
+	config_mk.push('SYSROOT=' + variables.build_sysroot);
 
 	ENV.push('export CC=' + variables.cc);
 	ENV.push('export CXX=' + variables.cxx);

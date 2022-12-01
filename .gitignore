@@ -21,3 +21,4 @@ libs/test
 deps/bplus
 src/render/font.bk
 deps/glyphy*
+test/math/test

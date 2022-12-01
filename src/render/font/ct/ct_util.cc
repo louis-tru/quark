@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../../util/array.h"
-#include "sfnt/QkOTTable_OS_2.h"
-#include "sfnt/QkSFNTHeader.h"
-#include "mac_util.h"
+#include "../../../util/array.h"
+#include "../sfnt/QkOTTable_OS_2.h"
+#include "../sfnt/QkSFNTHeader.h"
+#include "./ct_util.h"
 #include <dlfcn.h>
 
 using namespace quark;

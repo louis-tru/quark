@@ -28,49 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__font__pool__
-#define __quark__font__pool__
+#include <stdio.h>
+#include <sys/utsname.h>
 
-#include "../../types.h"
-#include "../../util/array.h"
-#include "./familys.h"
+int test2_math(int argc, char *argv[]) {
+	struct utsname utsn;
+	uname(&utsn);
 
-namespace quark {
+	printf("sysname:%s\n", utsn.sysname);
+	printf("nodename:%s\n", utsn.nodename);
+	printf("release:%s\n", utsn.release);
+	printf("version:%s\n", utsn.version);
+	printf("machine:%s\n", utsn.machine);
 
-	class Application;
-
-	class Qk_EXPORT FontPool: public Object {
-		Qk_HIDDEN_ALL_COPY(FontPool);
-	public:
-		static FontPool* Make(Application* host);
-		// define ptops
-		Qk_DEFINE_PROP_ACC_GET(int32_t, countFamilies);
-		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, second);
-		Qk_DEFINE_PROP_GET(Sp<Typeface>, last, NoConst);
-		Qk_DEFINE_PROP_GET(GlyphID, last_65533);
-		Qk_DEFINE_PROP_GET(Application*, host);
-		// methods
-		FFID getFFID(cString& familys = String());
-		FFID getFFID(const Array<String>& familys);
-		void addFromData(cBuffer& buff);
-		String getFamilyName(int index) const;
-		Typeface* match(cString& familyName, FontStyle style) const;
-		Typeface* matchCharacter(cString& familyName, FontStyle, Unichar character) const;
-	protected:
-		FontPool(Application* host);
-		void initialize();
-		virtual int onCountFamilies() const = 0;
-		virtual String onGetFamilyName(int index) const = 0;
-
-		virtual Typeface* onMatchFamilyStyle(const char familyName[], FontStyle) const = 0;
-		virtual Typeface* onMatchFamilyStyleCharacter(const char familyName[],
-																									FontStyle, Unichar character) const = 0;
-		virtual Typeface* onMakeFromData(cBuffer& data, int ttcIndex) const = 0;
-
-		Array<String> _second; // default family names
-		Dict<String, Dict<FontStyle, Sp<Typeface>>> _extFamilies;
-		Dict<uint64_t, Sp<FontFamilys>> _FFIDs;
-	};
-
+	return 0;
 }
-#endif

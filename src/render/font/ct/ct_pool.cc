@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "pool.h"
-#include "mac_util.h"
-#include "mac_typeface.h"
-#include "style.h"
+#include "../pool.h"
+#include "./ct_util.h"
+#include "./ct_typeface.h"
+#include "../style.h"
 #include <dlfcn.h>
 
 using namespace quark;

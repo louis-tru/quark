@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "mac_typeface.h"
-#include "sfnt/QkOTTable_OS_2.h"
+#include "./ct_typeface.h"
+#include "../sfnt/QkOTTable_OS_2.h"
 
 String QkCFTypeIDDescription(CFTypeID id) {
 	QkUniqueCFRef<CFStringRef> typeDescription(CFCopyTypeIDDescription(id));

@@ -31,9 +31,9 @@
 #ifndef __quark__font__mac_typeface__
 #define __quark__font__mac_typeface__
 
-#include "../../types.h"
-#include "mac_util.h"
-#include "typeface.h"
+#include "../../../types.h"
+#include "./ct_util.h"
+#include "../typeface.h"
 
 using namespace quark;
 

@@ -41,8 +41,8 @@
 # include <CoreFoundation/CoreFoundation.h>
 #endif
 
-#include "../../util/util.h"
-#include "util.h"
+#include "../../../util/util.h"
+#include "../util.h"
 
 using namespace quark;
 

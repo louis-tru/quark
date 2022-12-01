@@ -6,7 +6,7 @@
 #include <quark/util/array.h>
 #include <quark/util/string.h>
 #include <map>
-#include "../quark/util/list.h"
+#include "quark/util/list.h"
 
 using namespace std;
 using namespace quark;
