@@ -97,13 +97,27 @@ namespace quark {
 	Pixel::Pixel(const PixelInfo& info, Buffer body)
 		: PixelInfo(info)
 		, _data(body)
-		, _body(*body, _data.length()) {
+		, _body(*_data, _data.length()) {
 	}
 
 	Pixel::Pixel(const PixelInfo& info, cWeakBuffer& body)
 		: PixelInfo(info)
 		, _data()
 		, _body(body) {
+	}
+	
+	Pixel& Pixel::operator=(cPixel& pixel) {
+		PixelInfo::operator=(pixel);
+		_data = Buffer();
+		_body = pixel._body;
+		return *this;
+	}
+
+	Pixel& Pixel::operator=(Pixel&& pixel) {
+		PixelInfo::operator=(pixel);
+		_data = pixel._data;
+		_body = pixel._body;
+		return *this;
 	}
 
 }

@@ -30,6 +30,8 @@
 
 #include "./ct_typeface.h"
 #include "../sfnt/QkOTTable_OS_2.h"
+#include "../../codec/codec.h"
+#include "../../../util/fs.h"
 
 String QkCFTypeIDDescription(CFTypeID id) {
 	QkUniqueCFRef<CFStringRef> typeDescription(CFCopyTypeIDDescription(id));
@@ -336,6 +338,7 @@ size_t QkToUTF16(Unichar uni, uint16_t utf16[2]) {
 
 Typeface_Mac::Typeface_Mac(QkUniqueCFRef<CTFontRef> font, OpszVariation opszVariation, bool isData)
 	: Typeface(FontStyle(), true)
+	, fRGBSpace(nullptr)
 	, fFontRef(std::move(font))
 	, fOpszVariation(opszVariation)
 	, fHasColorGlyphs(CTFontGetSymbolicTraits(fFontRef.get()) & kCTFontColorGlyphsTrait)
@@ -451,6 +454,14 @@ void Typeface_Mac::onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyph
 	}
 }
 
+QkUniqueCFRef<CTFontRef> Typeface_Mac::ctFont(float fontSize) const {
+	if (fontSize != CTFontGetSize(fFontRef.get())) {
+		return QkUniqueCFRef<CTFontRef>(CTFontCreateCopyWithAttributes(fFontRef.get(), fontSize, nullptr, nullptr));
+	} else {
+		return QkUniqueCFRef<CTFontRef>(fFontRef.get());
+	}
+}
+
 static inline float SkScalarFromCGFloat(CGFloat cgFloat) {
 	return static_cast<float>(cgFloat);
 }
@@ -476,18 +487,12 @@ static inline CGFloat SkCGRectGetMinX(const CGRect& rect) {
 }
 
 void Typeface_Mac::onGetMetrics(FontMetrics* metrics) const {
-	if (nullptr == metrics) {
+	if (nullptr == metrics)
 		return;
-	}
+
 	constexpr float fontSize = 64.0;
-
-	QkUniqueCFRef<CTFontRef> fontHolder;
-	CTFontRef fontRef = fFontRef.get();
-
-	if (fontSize != CTFontGetSize(fontRef)) {
-		fontRef = CTFontCreateCopyWithAttributes(fontRef, fontSize, nullptr, nullptr);
-		fontHolder.reset(fontRef);
-	}
+	auto font = ctFont(fontSize);
+	CTFontRef fontRef = font.get();
 
 	CGRect theBounds = CTFontGetBoundingBox(fontRef);
 
@@ -546,19 +551,12 @@ static inline bool QkCGRectIsEmpty(const CGRect& rect) {
 	return rect.size.width <= 0 || rect.size.height <= 0;
 }
 
-void Typeface_Mac::onGetGlyph(FontGlyph* glyph, GlyphID id) const {
-	if (nullptr == glyph) {
+void Typeface_Mac::onGetGlyph(GlyphID id, FontGlyphMetrics* glyph) const {
+	if (nullptr == glyph)
 		return;
-	}
-	constexpr float fontSize = 64.0;
 
-	QkUniqueCFRef<CTFontRef> fontHolder;
-	CTFontRef fontRef = fFontRef.get();
-
-	if (fontSize != CTFontGetSize(fontRef)) {
-		fontRef = CTFontCreateCopyWithAttributes(fontRef, fontSize, nullptr, nullptr);
-		fontHolder.reset(fontRef);
-	}
+	auto font = ctFont(64.0);
+	CTFontRef fontRef = font.get();
 
 	const CGGlyph cgGlyph = (CGGlyph) id;
 
@@ -567,12 +565,12 @@ void Typeface_Mac::onGetGlyph(FontGlyph* glyph, GlyphID id) const {
 	CTFontGetAdvancesForGlyphs(fontRef, kCTFontOrientationHorizontal,
 															&cgGlyph, &cgAdvance, 1);
 	// cgAdvance = CGSizeApplyAffineTransform(cgAdvance, fTransform);
-	glyph->_advanceX =  static_cast<float>(cgAdvance.width);
-	glyph->_advanceY = -static_cast<float>(cgAdvance.height);
+	glyph->advanceX =  static_cast<float>(cgAdvance.width);
+	glyph->advanceY = -static_cast<float>(cgAdvance.height);
 
 	// The following produces skBounds in SkGlyph units (pixels, y down),
 	// or returns early if skBounds would be empty.
-	quark::Rect qkBounds;
+	quark::Rect bounds;
 
 	// Glyphs are always drawn from the horizontal origin. The caller must manually use the result
 	// of CTFontGetVerticalTranslationsForGlyphs to calculate where to draw the glyph for vertical
@@ -582,8 +580,7 @@ void Typeface_Mac::onGetGlyph(FontGlyph* glyph, GlyphID id) const {
 	{
 		// CTFontGetBoundingRectsForGlyphs produces cgBounds in CG units (pixels, y up).
 		CGRect cgBounds;
-		CTFontGetBoundingRectsForGlyphs(fontRef, kCTFontOrientationHorizontal,
-																		&cgGlyph, &cgBounds, 1);
+		CTFontGetBoundingRectsForGlyphs(fontRef, kCTFontOrientationHorizontal, &cgGlyph, &cgBounds, 1);
 		// cgBounds = CGRectApplyAffineTransform(cgBounds, fTransform);
 
 		if (QkCGRectIsEmpty(cgBounds)) {
@@ -591,14 +588,110 @@ void Typeface_Mac::onGetGlyph(FontGlyph* glyph, GlyphID id) const {
 		}
 
 		// Convert cgBounds to SkGlyph units (pixels, y down).
-		qkBounds = {
+		bounds = {
 			Vec2(cgBounds.origin.x, -cgBounds.origin.y - cgBounds.size.height),
 			Vec2(cgBounds.size.width, cgBounds.size.height),
 		};
+		
+		Qk_DEBUG("#Typeface_Mac#onGetGlyph,f%", bounds.origin.x());
 	}
 
-	glyph->_left = qkBounds.origin.x();
-	glyph->_top = qkBounds.origin.y();
-	glyph->_width = qkBounds.size.x();
-	glyph->_height = qkBounds.size.y();
+	glyph->left = bounds.origin.x();
+	glyph->top = bounds.origin.y();
+	glyph->width = bounds.size.x();
+	glyph->height = bounds.size.y();
+}
+
+void Typeface_Mac::onGetPath(GlyphID glyph, PathLine *path) const {
+	if (nullptr == path)
+		return;
+	auto font = ctFont(64.0);
+	CTFontRef fontRef = font.get();
+
+	// TODO ...
+}
+
+float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) {
+
+	if (!fRGBSpace) {
+		//It doesn't appear to matter what color space is specified.
+		//Regular blends and antialiased text are always (s*a + d*(1-a))
+		//and subpixel antialiased text is always g=2.0.
+		fRGBSpace.reset(CGColorSpaceCreateDeviceRGB());
+	}
+
+	auto font = ctFont(fontSize);
+	CTFontRef fontRef = font.get();
+
+	const CGGlyph* cgGlyph = (const CGGlyph*) *glyphs;
+	
+	Array<CGSize> cgAdvance(glyphs.length());
+	Array<CGRect> cgBounds(glyphs.length());
+	Array<CGPoint> drawPoints(glyphs.length());
+
+	CTFontGetAdvancesForGlyphs(
+		fontRef, kCTFontOrientationHorizontal, cgGlyph, *cgAdvance, glyphs.length());
+	CGRect bounds = CTFontGetBoundingRectsForGlyphs(
+		fontRef, kCTFontOrientationHorizontal, cgGlyph, *cgBounds, glyphs.length());
+	
+	float top = bounds.size.height + bounds.origin.y;
+	float width_f = 0;
+	
+	for (int i = 0; i < glyphs.length(); i++) {
+		drawPoints[i].x = width_f;
+		drawPoints[i].y = -cgBounds[i].origin.y;
+		Qk_DEBUG("#Typeface_Mac#onGetImage,bounds, left:%f, top:%f, width:%f, height:%f | advanceX:%f",
+			cgBounds[i].origin.x, cgBounds[i].origin.y,
+			cgBounds[i].size.width, cgBounds[i].size.height, cgAdvance[i].width);
+		width_f += cgAdvance[i].width;
+	}
+
+	int width = ceilf(width_f + cgBounds.back().origin.x);
+	int height = ceilf(bounds.size.height);
+	
+	Qk_DEBUG("#Typeface_Mac#onGetImage,bounds[i].origin.y=%f,top=%f,height=%d", bounds.origin.y, top, height);
+
+	int rowBytes = width * sizeof(uint32_t);
+	Buffer image = Buffer::alloc(rowBytes * height);
+
+	memset(*image, 0, image.length()); // reset storage
+
+	const CGImageAlphaInfo alpha = kCGImageAlphaPremultipliedFirst;
+	//const CGImageAlphaInfo alpha = kCGImageAlphaNoneSkipFirst;
+	const CGBitmapInfo bitmapInfo = kCGBitmapByteOrder32Host | (CGBitmapInfo)alpha;
+	
+	QkUniqueCFRef<CGContextRef> fCG(
+		CGBitmapContextCreate(*image, width, height, 8, rowBytes, fRGBSpace.get(), bitmapInfo));
+
+	// Skia handles quantization and subpixel positioning,
+	// so disable quantization and enable subpixel positioning in CG.
+	CGContextSetAllowsFontSubpixelQuantization(fCG.get(), false);
+	CGContextSetShouldSubpixelQuantizeFonts(fCG.get(), false);
+
+	// Because CG always draws from the horizontal baseline,
+	// if there is a non-integral translation from the horizontal origin to the vertical origin,
+	// then CG cannot draw the glyph in the correct location without subpixel positioning.
+	CGContextSetAllowsFontSubpixelPositioning(fCG.get(), true);
+	CGContextSetShouldSubpixelPositionFonts(fCG.get(), true);
+
+	CGContextSetTextDrawingMode(fCG.get(), kCGTextFill);
+
+	// Draw black on white to create mask. (Special path exists to speed this up in CG.)
+	CGContextSetGrayFillColor(fCG.get(), 0.0f, 1.0f);
+
+	CGContextSetShouldAntialias(fCG.get(), true);
+	CGContextSetShouldSmoothFonts(fCG.get(), false);
+
+	CTFontDrawGlyphs(fontRef, cgGlyph, *drawPoints, glyphs.length(), fCG.get());
+	
+	Pixel pix(PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul), image);
+	
+	//auto data = ImageCodec::Make(ImageCodec::TGA)->encode(pix);
+	//auto path = fs_documents("test.tga");
+	//auto write = fs_write_file_sync(path, *data, data.size());
+	//Qk_DEBUG("#Typeface_Mac#onGetImage,write:%d,%s", write, path.c_str());
+
+	*imgOut = new ImageSource(std::move(pix));
+	
+	return top;
 }

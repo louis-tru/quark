@@ -94,21 +94,72 @@ namespace quark {
 		return id;
 	}
 
-	FontGlyph* Typeface::getGlyph(GlyphID glyph) {
+	const FontGlyphMetrics& Typeface::getGlyph(GlyphID glyph) {
 		auto it = _glyphs.find(glyph);
-		if (it != _glyphs.end()) {
-			return &it->value;
-		}
-		FontGlyph fontGlyph;
-		onGetGlyph(&fontGlyph, glyph);
+		if (it != _glyphs.end())
+			return it->value;
+		FontGlyphMetrics fontGlyph;
+		onGetGlyph(glyph, &fontGlyph);
 		_glyphs.set(glyph, fontGlyph);
-		return &_glyphs[glyph];
+		return _glyphs[glyph];
 	}
 
-	const FontMetrics& Typeface::getMetrics() {
+	const PathLine& Typeface::getPath(GlyphID glyph) {
+		auto it = _paths.find(glyph);
+		if (it != _paths.end())
+			return it->value;
+		PathLine path;
+		onGetPath(glyph, &path);
+		_paths.set(glyph, std::move(path));
+		return _paths[glyph];
+	}
+
+	float Typeface::getMetrics(FontMetrics* metrics, float fontSize) {
 		if (_metrics.fAscent == 0) {
 			onGetMetrics(&_metrics);
 		}
-		return _metrics;
+		if (!metrics) return 0;
+		memcpy(metrics, &_metrics, sizeof(FontMetrics));
+		float scale = fontSize / 64.0;
+		if (scale != 1.0) {
+			// scale font metrics
+			metrics->fTop *= scale;
+			metrics->fAscent *= scale;
+			metrics->fDescent *= scale;
+			metrics->fBottom *= scale;
+			metrics->fLeading *= scale;
+			metrics->fAvgCharWidth *= scale;
+			metrics->fMaxCharWidth *= scale;
+			metrics->fXMin *= scale;
+			metrics->fXMax *= scale;
+			metrics->fXHeight *= scale;
+			metrics->fCapHeight *= scale;
+			metrics->fUnderlineThickness *= scale;
+			metrics->fUnderlinePosition *= scale;
+			metrics->fStrikeoutThickness *= scale;
+			metrics->fStrikeoutPosition *= scale;
+		}
+		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
+	}
+
+	float Typeface::getMetrics(FontMetricsBase* metrics, float fontSize) {
+		if (_metrics.fAscent == 0) {
+			onGetMetrics(&_metrics);
+		}
+		if (!metrics) return 0;
+		float scale = fontSize / 64.0;
+		metrics->fAscent = _metrics.fAscent;
+		metrics->fDescent = _metrics.fDescent;
+		metrics->fLeading = _metrics.fLeading;
+		if (scale != 1.0) {
+			metrics->fAscent *= scale;
+			metrics->fDescent *= scale;
+			metrics->fLeading *= scale;
+		}
+		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
+	}
+
+	float Typeface::getImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) {
+		return onGetImage(glyphs, fontSize, imgOut);
 	}
 }

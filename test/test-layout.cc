@@ -79,23 +79,26 @@ void layout_text(Box* box) {
 
 	text->set_width({ 0, BoxSizeKind::MATCH });
 	text->set_height({ 0, BoxSizeKind::MATCH });
-	text->set_text_size({ 12 });
+	text->set_text_size({ 80 });
 	text->set_origin_x({ 0, BoxOriginKind::AUTO });
 	text->set_origin_y({ 0, BoxOriginKind::AUTO });
-	text->set_rotate(45);
-	text->set_text_line_height({16});
+	//text->set_rotate(45);
+	//text->set_text_line_height({16});
 	text->set_text_background_color({ Color(0,255,0) });
 
 	text->set_fill_color(Color(255,0,0,255));
 	text->set_text_align(TextAlign::CENTER);
 	//text->set_text_family({ app()->font_pool()->getFFID("Helvetica, PingFang SC") });
+	text->set_padding_top(20);
 
 	labe->set_text_white_space(TextWhiteSpace::PRE_WRAP);
 	labe->set_text_slant(TextSlant::ITALIC);
 	labe->set_text_weight(TextWeight::BOLD);
+  //labe->set_text_value("楚文学");
+	labe->set_text_value("BAC");
 	//labe->set_text_value("ABC  DEFG楚");
 	//labe->set_text_value("Quark 1           abcdefghijkmln 禁忌");
-	labe->set_text_value("Quark 1           abcdefghijkmln 禁忌学");
+	//labe->set_text_value("Quark 1           abcdefghijkmln 禁忌学");
 	labe->set_text_color({ Color(0,0,0) });
 }
 
@@ -192,6 +195,7 @@ void layout(Event<>& evt, Application* app) {
 	auto img  = (Image*)     New<Image>     ()->append_to(r);
 	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
 	
+	layout_text(r);
 	layout_text(flow);
 	//layout_input(flex);
 	layout_scroll(flex);

@@ -61,6 +61,7 @@ namespace quark {
 		kColor_Type_RGB_888,
 		kColor_Type_RGBA_5551,
 		kColor_Type_Luminance_Alpha_88,
+		kColor_Type_SDF_Float, // signed distance function
 	};
 
 	enum AlphaType {
@@ -76,7 +77,7 @@ namespace quark {
 		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
 		Qk_DEFINE_PROP_GET(int, width); //!< width 图像宽度
 		Qk_DEFINE_PROP_GET(int, height); //!< height 图像高度
-		Qk_DEFINE_PROP_GET(ColorType, type); //!< format 图像像素的排列格式
+		Qk_DEFINE_PROP_GET(ColorType, type); //!< type 图像像素的排列格式
 		Qk_DEFINE_PROP_GET(AlphaType, alphaType); //!< 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
 	};
 
@@ -103,7 +104,11 @@ namespace quark {
 		Pixel(cPixel& data);
 		Pixel(Pixel&& data);
 		Pixel(cPixelInfo& info, Buffer body);
-		Pixel(cPixelInfo& info, cWeakBuffer& body);
+		Pixel(cPixelInfo& info, cWeakBuffer& body = WeakBuffer());
+		
+		// operator=
+		Pixel& operator=(cPixel& pixel);
+		Pixel& operator=(Pixel&& pixel);
 
 		/**
 		* Returns image data body

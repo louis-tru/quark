@@ -33,9 +33,10 @@
 
 #include "../../util/string.h"
 #include "../../math.h"
+#include "../path.h"
 #include "./style.h"
 #include "metrics.h"
-#include "glyph.h"
+#include "../source.h"
 
 namespace quark {
 
@@ -57,12 +58,16 @@ namespace quark {
 		void unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const;
 		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
 		GlyphID unicharToGlyph(Unichar unichar) const;
-		FontGlyph* getGlyph(GlyphID glyph);
-		const FontMetrics& getMetrics();
+		const FontGlyphMetrics& getGlyph(GlyphID glyph); // returns the font glyph metrics in 64 px
+		const PathLine& getPath(GlyphID glyph); // returns the path of glyph in 64 px
+		float getMetrics(FontMetrics* metrics, float fontSize);
+		float getMetrics(FontMetricsBase* metrics, float fontSize);
+		// get image source object from out param and return top to baseline value for image text
+		float getImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut);
 	protected:
 		Typeface(FontStyle fs, bool isFixedPitch);
-		void setIsFixedPitch(bool isFixedPitch) { _isFixedPitch = isFixedPitch; }
 		void setFontStyle(FontStyle style) { _fontStyle = style; }
+		void setIsFixedPitch(bool isFixedPitch) { _isFixedPitch = isFixedPitch; }
 		virtual int onCountGlyphs() const = 0;
 		virtual int onGetUPEM() const = 0;
 		virtual String onGetFamilyName() const = 0;
@@ -71,10 +76,13 @@ namespace quark {
 		virtual size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const = 0;
 		virtual void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const = 0;
 		virtual void onGetMetrics(FontMetrics* metrics) const = 0;
-		virtual void onGetGlyph(FontGlyph* glyph, GlyphID id) const = 0;
+		virtual void onGetGlyph(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
+		virtual void onGetPath(GlyphID glyph, PathLine *path) const = 0;
+		virtual float onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) = 0;
 	private:
 		FontMetrics _metrics;
-		Dict<GlyphID, FontGlyph> _glyphs;
+		Dict<GlyphID, FontGlyphMetrics> _glyphs;
+		Dict<GlyphID, PathLine> _paths;
 	};
 
 }

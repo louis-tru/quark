@@ -62,7 +62,7 @@ namespace quark {
 		/**
 		 * @func create # 通过格式创建图像解析器
 		 */
-		static ImageCodec* Make(ImageFormat format);
+		static Sp<ImageCodec> Make(ImageFormat format);
 
 		/**
 		 * @func test

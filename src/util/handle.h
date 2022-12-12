@@ -111,16 +111,22 @@ namespace quark {
 	template <class T, class T2 = typename T::Traits> using Sp = Handle<T, T2>;
 
 	/**
-	* @class ScopeClear
+	* @class CPointer
 	*/
-	class ClearScope {
+	template<typename T> class CPointer {
 	public:
-		typedef std::function<void()> Clear;
-		ClearScope(Clear clear): _clear(clear) { }
-		~ClearScope() { _clear(); }
-		inline void cancel() { _clear = [](){}; }
+		typedef std::function<void(T*)> Destroy;
+		CPointer(T* ptr, Destroy destroy): _destroy(destroy) {}
+		~CPointer() { _destroy(_ptr); }
+		inline void collapse() { _destroy = [](T*p){}; }
+		inline operator bool() const { return _ptr != nullptr; }
+		inline T* operator->() { return _ptr; }
+		inline T* operator*() { return _ptr; }
+		inline const T* operator->() const { return _ptr; }
+		inline const T* operator*() const { return _ptr; }
 	private:
-		Clear _clear;
+		T *_ptr;
+		Destroy _destroy;
 	};
 
 }

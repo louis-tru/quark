@@ -90,7 +90,7 @@ namespace quark {
 		/**
 		* @constructor
 		*/
-		inline CubicBezier() { }
+		inline CubicBezier() {}
 		
 		/**
 		* @constructor
@@ -153,17 +153,7 @@ namespace quark {
 		inline FixedCubicBezier(float p1x, float p1y, float p2x, float p2y)
 			: FixedCubicBezier(Vec2(p1x, p1y), Vec2(p2x, p2y))
 		{}
-		
-		/**
-		* @func point1
-		*/
-		inline Vec2 point1() const { return _p1; }
-		
-		/**
-		* @func point2
-		*/
-		inline Vec2 point2() const { return _p2; }
-		
+
 		/**
 		* @func sample_curve_derivative_x
 		*/
@@ -188,9 +178,7 @@ namespace quark {
 		typedef float (FixedCubicBezier::*Solve)(float x, float epsilon) const;
 		
 		Solve _solve_y;
-		Vec2 _p1;
-		Vec2 _p2;
-		
+
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 

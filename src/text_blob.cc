@@ -506,7 +506,7 @@ namespace quark {
 
 						// add ellipsis
 						_lines->add_text_blob(
-							{fg.typeface(), text_size, line_height, j, _blob},
+							{ellipsis.typeface(), text_size, line_height, j, _blob},
 							ellipsis.glyphs(), ellipsis_offset, false
 						);
 						_blob->back().origin = limitX - ellipsis_width; // align right
@@ -517,7 +517,7 @@ namespace quark {
 							float x = origin + offset[j + 1];
 							if (x > limitX) {
 								_lines->add_text_blob(
-									{fg.typeface(), text_size, line_height, index, _blob},
+									{ellipsis.typeface(), text_size, line_height, index, _blob},
 									ellipsis.glyphs().slice(0, j), ellipsis_offset.slice(0, j + 1), false
 								);
 								_lines->set_pre_width(limitX);

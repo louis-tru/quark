@@ -46,6 +46,23 @@ namespace quark {
 	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
 
 	struct TextBlob {
+		/**
+		 * @enum SizeLevel font size level
+		 */
+		enum SizeLevel {
+			LEVEL_0,        //  0 Invalid
+			LEVEL_10,       //  0-10
+			LEVEL_12,       // 10-12
+			LEVEL_14,       // 12-14
+			LEVEL_16,       // 14-16
+			LEVEL_18,       // 16-18
+			LEVEL_20,       // 18-20
+			LEVEL_26,       // 20-26
+			LEVEL_32,       // 26-32
+			LEVEL_64,       // 32-64
+			LEVEL_128,      // 64-128
+			LEVEL_PATH,     // >128
+		};
 		Sp<Typeface>    typeface;
 		Array<GlyphID>  glyphs;
 		Array<Vec2>     offset;
@@ -54,7 +71,9 @@ namespace quark {
 		float           origin; // offset origin start
 		uint32_t        line;   // line number
 		uint32_t        index;  // blob index in unichar glyphs
-		Sp<ImageSource> cache;
+		Sp<ImageSource> image;  // image cache
+		Sp<PathLine>    path;   // path cache
+		SizeLevel       level;
 	};
 
 	class Qk_EXPORT TextBlobBuilder {

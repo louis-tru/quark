@@ -8,6 +8,7 @@ BUILDTYPE  ?= Release
 SUFFIX     ?= $(ARCH)
 OUT        ?= ../out/$(OS).$(SUFFIX).$(BUILDTYPE)/test2/out
 CXX        ?= g++
+LINK       ?= g++
 NAME       ?= test2
 TARGET     ?= $(OUT)/$(NAME)
 TEST       ?= sys
@@ -35,7 +36,7 @@ endif
 # -ffunction-sections -fdata-sections 
 
 INCLUDES	 = -I. -I.. -I../out
-FLAGS 		 = -Wall -g -O0 '-DDEBUG' '-D_DEBUG'
+CFLAGS		 = -Wall -g -O0 '-DDEBUG' '-D_DEBUG'
 CXXFLAGS 	 = -std=c++0x -fexceptions -frtti
 LINKFLAGS_START =
 LINKFLAGS  =
@@ -108,4 +109,4 @@ $(TARGET): $(OBJS)
 
 $(OBJS): $$(subst $$(OUT)/,,$$(basename $$@)) test2.mk
 	@mkdir -p $(dir $@)
-	$(CXX) $(INCLUDES) $(FLAGS) $(CXXFLAGS) -MMD -MF $@.d.raw -c -o $@ $(subst $(OUT)/,,$(basename $@))
+	$(CXX) $(INCLUDES) $(CFLAGS) $(CXXFLAGS) -MMD -MF $@.d.raw -c -o $@ $(subst $(OUT)/,,$(basename $@))

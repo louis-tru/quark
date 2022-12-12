@@ -116,8 +116,8 @@ namespace quark {
 		}
 		
 		void m_read_16_data_black(uint8_t** in, uint8_t** out, int alpha) {
-			uint16* in_ = (uint16*)*in;
-			uint16* out_ = (uint16*)*out;
+			uint16_t* in_ = (uint16_t*)*in;
+			uint16_t* out_ = (uint16_t*)*out;
 			*out_ = (in_[0] << 1) | (alpha ? (in_[0] & 0x8000) : 1);
 			*in = (uint8_t*)(in_ + 1);
 			*out = (uint8_t*)(out_ + 1);
@@ -164,9 +164,9 @@ namespace quark {
 		}
 	}
 
-	static Buffer flip_vertical(cchar* data, int width, int height, int bytes) {
+	static Buffer flip_vertical(cChar* data, int width, int height, int bytes) {
 		
-		Buffer rev(width * height * bytes);
+		Buffer rev = Buffer::alloc(width * height * bytes);
 		char* p = *rev;
 		int row_size = width * bytes;
 		char* tmp = p + (height - 1) * row_size;
@@ -197,13 +197,14 @@ namespace quark {
 		} else {
 			format = alpha ? kColor_Type_RGBA_8888: kColor_Type_RGB_888X;
 		}
-		*out = PixelData(Buffer(), header->width, header->height, format, false);
+		
+		*out = Pixel(PixelInfo(header->width, header->height, format, kAlphaType_Unpremul));
 
 		return true;
 	}
 
-	Array<PixelData> TGAImageCodec::decode(cBuffer& data) {
-		Array<PixelData> rv;
+	Array<Pixel> TGAImageCodec::decode(cBuffer& data) {
+		Array<Pixel> rv;
 		
 		_Inl::Header* header = (_Inl::Header*)*data; // 适用小端格式CPU
 		// parse image
@@ -234,8 +235,8 @@ namespace quark {
 		int pixex_size = width * height;
 		int out_size = pixex_size * bytes;
 		Buffer out = Buffer::alloc(out_size);
-		uint8_t* out_ = (utin8_t*)out.val();
-		uint8_t* in_ = ((utin8_t*)data.val()) + sizeof(_Inl::Header) + header->idlength;
+		uint8_t* out_ = (uint8_t*)out.val();
+		uint8_t* in_ = ((uint8_t*)data.val()) + sizeof(_Inl::Header) + header->idlength;
 		
 		switch ( code ) {
 			case 2:  // RGB
@@ -260,8 +261,8 @@ namespace quark {
 				_inl_tga(this)->m_parse_gray_rle(in_, out_, bytes, pixex_size, alpha);
 				break;
 			default:
-				LOG("Parse tga image error, data type code undefined");
-				return Array<PixelData>();
+				Qk_WARN("Parse tga image error, data type code undefined");
+				return Array<Pixel>();
 		}
 		
 		// 表示像素是从底部开始的,需要调个头
@@ -269,18 +270,17 @@ namespace quark {
 		// BOTTOM_LEFT
 			out = flip_vertical(*out, width, height, bytes);
 		}
-		rv.push( PixelData(out, width, height, format, false) );
+		rv.push( Pixel(PixelInfo(width, height, format, kAlphaType_Unpremul), out) );
 		return rv;
 	}
 
 	Buffer TGAImageCodec::encode(cPixel& pixel_data) {
 		
-		if (pixel_data.format() == kColor_Type_RGBA_8888) {
+		if (pixel_data.type() == kColor_Type_RGBA_8888) {
 		
 			int size = sizeof(_Inl::Header) + pixel_data.width() * pixel_data.height() * 4;
 			
-			char* ret_data_p = new char[size];
-			Buffer ret_data(ret_data_p, size);
+			Buffer ret_data = Buffer::alloc(size);
 
 			_Inl::Header header;
 			header.idlength = 0;
@@ -296,38 +296,37 @@ namespace quark {
 			header.bits_per_pixel = 32;
 			header.image_descriptor =  0x08 | 0x20; //alpha flag | top-left flag
 			
-			memcpy(ret_data_p, &header, sizeof(_Inl::Header));
+			memcpy(*ret_data, &header, sizeof(_Inl::Header));
 			
 			cBuffer& pixel_data_d = pixel_data.body();
-			int pixex_size = pixel_data_d.length() / 4;
-			uint8_t* tmp = (uint8_t*)ret_data_p;
-			const uint8_t* data = (const uint8_t*)*pixel_data_d;
+			int pixels = pixel_data_d.length() / 4;
+			const uint8_t* src = (const uint8_t*)*pixel_data_d;
+			uint8_t* dest = (uint8_t*)*ret_data + sizeof(_Inl::Header);
 
 			// 写入BGRA数据
-			if ( pixel_data.is_premultiplied_alpha() ) {
-				for (int i = 0; i < pixex_size; i++) {
-					float alpha = data[3] / 255;
-					tmp[2] = data[0] / alpha;
-					tmp[1] = data[1] / alpha;
-					tmp[0] = data[2] / alpha;
-					tmp[3] = data[3];
-					tmp += 4;
-					data += 4;
+			if ( pixel_data.alphaType() == kAlphaType_Premul ) {
+				for (int i = 0; i < pixels; i++) {
+					float alpha = src[3] / 255;
+					dest[2] = src[0] / alpha;
+					dest[1] = src[1] / alpha;
+					dest[0] = src[2] / alpha;
+					dest[3] = src[3];
+					dest += 4;
+					src += 4;
 				}
-			}
-			else {
-				for ( int i = 0; i < pixex_size; i++ ) {
-					tmp[2] = data[0];
-					tmp[1] = data[1];
-					tmp[0] = data[2];
-					tmp[3] = data[3];
-					tmp += 4;
-					data += 4;
+			} else {
+				for ( int i = 0; i < pixels; i++ ) {
+					dest[2] = src[0];
+					dest[1] = src[1];
+					dest[0] = src[2];
+					dest[3] = src[3];
+					dest += 4;
+					src += 4;
 				}
 			}
 			return ret_data;
 		}
-		LOG("Pixel data: Invalid data, required for RGBA 8888 format");
+		Qk_WARN("Pixel data: Invalid data, required for RGBA 8888 format");
 		return Buffer();
 	}
 

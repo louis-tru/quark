@@ -35,12 +35,15 @@
 
 namespace quark {
 
+	typedef uint32_t Unichar;
+	typedef uint16_t GlyphID;
+	typedef uint32_t FontTableTag;
+
 	struct FontMetricsBase {
 		float fAscent,fDescent,fLeading;
 	};
 
 	struct FontMetrics {
-
 		/** @enum FontMetricsFlags
 		 FontMetricsFlags indicate when certain metrics are valid;
 			the underline or strikeout metrics may be valid and zero.
@@ -70,6 +73,15 @@ namespace quark {
 		float fUnderlinePosition;  //!< distance from baseline to top of stroke, typically positive
 		float fStrikeoutThickness; //!< strikeout thickness
 		float fStrikeoutPosition;  //!< distance from baseline to bottom of stroke, typically negative
+	};
+
+	struct FontGlyphMetrics {
+		// The offset from the glyphs origin on the baseline to the top left of the glyph mask.
+		float left, top;
+		// The width and height of the glyph mask.
+		float width, height;
+		// The advance for this glyph.
+		float advanceX, advanceY;
 	};
 
 }

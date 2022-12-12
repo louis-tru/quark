@@ -33,24 +33,6 @@
 
 namespace quark {
 
-	static void scaleFontMetrics(FontMetrics* metrics, float scale) {
-		metrics->fTop *= scale;
-		metrics->fAscent *= scale;
-		metrics->fDescent *= scale;
-		metrics->fBottom *= scale;
-		metrics->fLeading *= scale;
-		metrics->fAvgCharWidth *= scale;
-		metrics->fMaxCharWidth *= scale;
-		metrics->fXMin *= scale;
-		metrics->fXMax *= scale;
-		metrics->fXHeight *= scale;
-		metrics->fCapHeight *= scale;
-		metrics->fUnderlineThickness *= scale;
-		metrics->fUnderlinePosition *= scale;
-		metrics->fStrikeoutThickness *= scale;
-		metrics->fStrikeoutPosition *= scale;
-	}
-
 	FontGlyphs::FontGlyphs(Typeface *typeface,
 		float fontSize, const GlyphID glyphs[], uint32_t count)
 		: _fontSize(fontSize)
@@ -64,7 +46,8 @@ namespace quark {
 	}
 
 	Array<float> FontGlyphs::getOffset(float origin) {
-		if (!_glyphs.length()) return Array<float>({0});
+		if (!_glyphs.length())
+			return Array<float>({0});
 
 		const float scale = _fontSize / 64.0;
 		const bool isScale = scale != 1.0;
@@ -76,39 +59,12 @@ namespace quark {
 		GlyphID *end = src + result.length();
 
 		while (src != end) {
-			FontGlyph *glyph = _typeface->getGlyph(*src);
+			auto& glyph = _typeface->getGlyph(*src);
 			*cursor++ = loc;
-			loc += (isScale? glyph->advanceX() * scale: glyph->advanceX());
+			loc += (isScale? glyph.advanceX * scale: glyph.advanceX);
 			src++;
 		}
 		return std::move(result);
 	}
 
-	float FontGlyphs::getMetrics(FontMetrics* metrics) {
-		if (!metrics) return 0;
-		memcpy(metrics, &_typeface->getMetrics(), sizeof(FontMetrics));
-		float scale = _fontSize / 64.0;
-		if (scale != 1.0)
-			scaleFontMetrics(metrics, scale);
-		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
-	}
-
-	float FontGlyphs::getMetrics(FontMetricsBase* metrics) {
-		return getMetrics(metrics, *_typeface, _fontSize);
-	}
-
-	float FontGlyphs::getMetrics(FontMetricsBase* metrics, Typeface *typeface, float fontSize) {
-		if (!metrics) return 0;
-		float scale = fontSize / 64.0;
-		auto& metrics0 = typeface->getMetrics();
-		metrics->fAscent = metrics0.fAscent;
-		metrics->fDescent = metrics0.fDescent;
-		metrics->fLeading = metrics0.fLeading;
-		if (scale != 1.0) {
-			metrics->fAscent *= scale;
-			metrics->fDescent *= scale;
-			metrics->fLeading *= scale;
-		}
-		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
-	}
 }

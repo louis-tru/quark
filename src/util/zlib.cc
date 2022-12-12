@@ -271,9 +271,9 @@ namespace quark {
 			return false;
 		}
 		
-		ClearScope clear([&]() {
+		CPointer<void> clear(unzp, [](unzFile unzp) {
 			if ( unzClose((unzFile) unzp) != UNZ_OK ) {
-				Qk_ERR("Cannot close file ZipReader, %s", _path.c_str());
+				//Qk_ERR("Cannot close file ZipReader, %s", _path.c_str());
 			}
 		});
 		
@@ -303,7 +303,7 @@ namespace quark {
 		
 		first();
 		
-		clear.cancel(); // 安全通过后取消
+		clear.collapse(); // 安全通过后取消
 		
 		_unzp = unzp;
 		return true;

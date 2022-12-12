@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./codec.h"
-#include "quark/util/string.h"
+#include "../../util/string.h"
 
 namespace quark {
 
@@ -66,20 +66,20 @@ namespace quark {
 		return Unknown;
 	}
 
-	ImageCodec* ImageCodec::Make(ImageFormat format) {
+	Sp<ImageCodec> ImageCodec::Make(ImageFormat format) {
 		switch (format) {
 			case TGA:
 					return new TGAImageCodec();
 			case JPEG:
-				return new JPEGImageCodec();
+//				return new JPEGImageCodec();
 			case GIF:
-				return new GIFImageCodec();
+//				return new GIFImageCodec();
 			case PNG:
-				return new PNGImageCodec();
+//				return new PNGImageCodec();
 			case WEBP:
-				return new WEBPImageCodec();
+//				return new WEBPImageCodec();
 			case PVRTC:
-				return new PVRTCImageCodec();
+//				return new PVRTCImageCodec();
 			default:
 				return nullptr;
 		}

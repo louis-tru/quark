@@ -343,13 +343,6 @@ namespace quark {
 			
 			AVFormatContext* fmt_ctx = nullptr;
 			
-			ClearScope clear([&fmt_ctx, this]() {
-				if ( fmt_ctx ) {
-					avformat_close_input(&fmt_ctx);
-				}
-				Qk_DEBUG("free ffmpeg AVFormatContext");
-			});
-			
 			int r;
 			
 			/* open input file, and allocate format context */
@@ -362,6 +355,11 @@ namespace quark {
 								"Could not open source file: `%s`, msg: %s", *uri, msg);
 				ABORT();
 			}
+			
+			CPointer<AVFormatContext> clear(fmt_ctx, [](AVFormatContext *fmt_ctx) {
+				avformat_close_input(&fmt_ctx);
+				Qk_DEBUG("free ffmpeg AVFormatContext");
+			});
 			
 			/* retrieve stream information */
 			r = avformat_find_stream_info(fmt_ctx, nullptr);

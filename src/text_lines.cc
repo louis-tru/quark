@@ -195,7 +195,7 @@ namespace quark {
 	void TextLines::set_metrics(TextOptions *opts) {
 		auto tf = opts->text_family().value->match(opts->font_style());
 		FontMetricsBase metrics;
-		FontGlyphs::getMetrics(&metrics, tf, opts->text_size().value);
+		tf->getMetrics(&metrics, opts->text_size().value);
 		set_metrics(&metrics, opts->text_line_height().value);
 	}
 
@@ -305,7 +305,7 @@ namespace quark {
 		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
 			auto tf = _opts->text_family().value->match(_opts->font_style(), 0);
 			FontMetricsBase metrics;
-			auto height = FontGlyphs::getMetrics(&metrics, tf, _opts->text_size().value);
+			auto height = tf->getMetrics(&metrics, _opts->text_size().value);
 			auto ascent = -metrics.fAscent;
 			auto origin = _last->width;
 
@@ -335,7 +335,7 @@ namespace quark {
 		}
 
 		FontMetricsBase metrics;
-		auto height = FontGlyphs::getMetrics(&metrics, *blob.typeface, blob.text_size);
+		auto height = blob.typeface->getMetrics(&metrics, blob.text_size);
 		auto ascent = -metrics.fAscent;
 		auto origin = _last->width - offset[0];
 

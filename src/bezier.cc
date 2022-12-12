@@ -67,8 +67,8 @@ namespace quark {
 			float t3 = t2 * t2;    // t'^2
 			float t4 = t * t2 * 2; // 2tt'
 			float t5 = t * t;      // t^2
-			out[0]  = t3 * p0x + t4 * p1x + t5 * p2x;
-			out[1]  = t3 * p0y + t4 * p1y + t5 * p2y;
+			out[0]  = t3 * p0x + t4 * p1x + t5 * p2x; // x
+			out[1]  = t3 * p0y + t4 * p1y + t5 * p2y; // y
 			out += 2;
 		}
 	}
@@ -119,17 +119,9 @@ namespace quark {
 	*/
 	class FixedCubicBezier::Inl: public FixedCubicBezier {
 	public:
-		
-		/**
-		* @func defalut_solve
-		*/
 		float defalut_solve(float x, float epsilon) const {
 			return sample_curve_y(solve_t(x, epsilon));
 		}
-		
-		/**
-		* @func solve_linear
-		*/
 		float solve_linear(float x, float epsilon) const {
 			return x;
 		}
@@ -141,7 +133,6 @@ namespace quark {
 	FixedCubicBezier::FixedCubicBezier()
 		: CubicBezier(Vec2(0, 0), Vec2(0, 0), Vec2(1, 1), Vec2(1, 1))
 		, _solve_y((Solve)&Inl::solve_linear)
-		, _p1(Vec2(0, 0)), _p2(Vec2(1, 1))
 	{}
 
 	/**
@@ -151,7 +142,6 @@ namespace quark {
 	FixedCubicBezier::FixedCubicBezier(Vec2 p1, Vec2 p2)
 		: CubicBezier(Vec2(0, 0), p1, p2, Vec2(1, 1))
 		, _solve_y((Solve)&Inl::defalut_solve)
-		, _p1(p1), _p2(p2)
 	{
 		if ( p1.x() == 0 && p1.y() == 0 && p2.x() == 1 && p2.y() == 1 ) {
 			_solve_y = (Solve)&Inl::solve_linear;

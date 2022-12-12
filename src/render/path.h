@@ -49,6 +49,7 @@ namespace quark {
 		static PathLine Oval(Rect rect);
 		static PathLine Rect(Rect rect);
 		static PathLine Circle(Vec2 center, float radius);
+		PathLine();
 		PathLine(Vec2 move);
 		PathLine(Vec2* pts, int len, PathVerb* verbs, int verbsLen);
 		// add path points
@@ -78,9 +79,9 @@ namespace quark {
 	private:
 		void quad_to2(float *p);
 		void cubic_to2(float *p);
-		PathLine();
 		Array<float> _pts;
 		Array<uint8_t> _verbs;
+		bool _IsNormalized;
 	};
 
 }

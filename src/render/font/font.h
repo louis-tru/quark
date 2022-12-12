@@ -37,14 +37,11 @@ namespace quark {
 
 	class Qk_EXPORT FontGlyphs {
 	public:
-		FontGlyphs(Typeface *typeface, float fontSize, const GlyphID glyphs[] = nullptr, uint32_t count = 0);
+		FontGlyphs(Typeface *typeface, float fontSize, const GlyphID glyphs[], uint32_t count);
 		Qk_DEFINE_PROP(float, fontSize);
-		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
-		inline Typeface* typeface() { return *_typeface; }
 		Array<float> getOffset(float origin = 0);
-		float getMetrics(FontMetrics* metrics);
-		float getMetrics(FontMetricsBase* metrics);
-		static float getMetrics(FontMetricsBase* metrics, Typeface *typeface, float fontSize);
+		inline Typeface* typeface() { return *_typeface; }
+		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
 	private:
 		Array<GlyphID> _glyphs;
 		Sp<Typeface> _typeface;
