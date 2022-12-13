@@ -337,7 +337,7 @@ size_t QkToUTF16(Unichar uni, uint16_t utf16[2]) {
 // -----------------------------------------------------------------------------------
 
 Typeface_Mac::Typeface_Mac(QkUniqueCFRef<CTFontRef> font, OpszVariation opszVariation, bool isData)
-	: Typeface(FontStyle(), true)
+	: Typeface(FontStyle())
 	, fRGBSpace(nullptr)
 	, fFontRef(std::move(font))
 	, fOpszVariation(opszVariation)
@@ -347,10 +347,10 @@ Typeface_Mac::Typeface_Mac(QkUniqueCFRef<CTFontRef> font, OpszVariation opszVari
 	Qk_ASSERT(fFontRef);
 	QkUniqueCFRef<CTFontDescriptorRef> desc(CTFontCopyFontDescriptor(fFontRef.get()));
 	FontStyle style = QkCTFontDescriptorGetSkFontStyle(desc.get(), fIsData);
-	CTFontSymbolicTraits traits = CTFontGetSymbolicTraits(font.get());
-	bool isFixedPitch = (traits & kCTFontMonoSpaceTrait);
+	//CTFontSymbolicTraits traits = CTFontGetSymbolicTraits(font.get());
+	//bool isFixedPitch = (traits & kCTFontMonoSpaceTrait);
 	setFontStyle(style);
-	setIsFixedPitch(isFixedPitch);
+	//setIsFixedPitch(isFixedPitch);
 }
 
 int Typeface_Mac::onCountGlyphs() const {
@@ -602,13 +602,68 @@ void Typeface_Mac::onGetGlyph(GlyphID id, FontGlyphMetrics* glyph) const {
 	glyph->height = bounds.size.y();
 }
 
-void Typeface_Mac::onGetPath(GlyphID glyph, PathLine *path) const {
-	if (nullptr == path)
-		return;
+bool Typeface_Mac::onGetPath(GlyphID glyph, PathLine *path) const {
+	if (nullptr == path) {
+		return false;
+	}
+
 	auto font = ctFont(64.0);
 	CTFontRef fontRef = font.get();
 
-	// TODO ...
+	const CGGlyph cgGlyph = (CGGlyph) glyph;
+
+	QkUniqueCFRef<CGPathRef> cgPath(CTFontCreatePathForGlyph(fontRef, cgGlyph, nullptr));
+
+	if (!cgPath) {
+		return false;
+	}
+
+	struct Ctx {
+		PathLine *path;
+		CGPoint fCurrent;
+		bool currentIsNot(const CGPoint& pt) {
+			return fCurrent.x != pt.x || fCurrent.y != pt.y;
+		}
+	} ctx = {path, {0,0}};
+
+	CGPathApply(cgPath.get(), &ctx, [](void *_, const CGPathElement *element) {
+		Ctx* ctx = (Ctx*)_;
+		PathLine& self = *ctx->path;
+		CGPoint* points = element->points;
+
+		switch (element->type) {
+			case kCGPathElementMoveToPoint:
+				ctx->fCurrent = points[0];
+				self.move_to(Vec2(points[0].x, points[0].y));
+				break;
+			case kCGPathElementAddLineToPoint:
+				if (ctx->currentIsNot(points[0])) {
+					self.line_to(Vec2(points[0].x, -points[0].y));
+				}
+				break;
+			case kCGPathElementAddQuadCurveToPoint:
+				if (ctx->currentIsNot(points[0]) || ctx->currentIsNot(points[1])) {
+					self.quad_to(Vec2(points[0].x, -points[0].y), Vec2(points[1].x, -points[1].y));
+				}
+				break;
+			case kCGPathElementAddCurveToPoint:
+				if (ctx->currentIsNot(points[0]) ||
+						ctx->currentIsNot(points[1]) || ctx->currentIsNot(points[2]))
+				{
+					self.cubic_to(Vec2(points[0].x, -points[0].y),
+												Vec2(points[1].x, -points[1].y), Vec2(points[2].x, -points[2].y));
+				}
+				break;
+			case kCGPathElementCloseSubpath:
+				self.close();
+				break;
+			default:
+				Qk_FATAL("Unknown path element!");
+				break;
+		}
+	});
+
+	return true;
 }
 
 float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) {

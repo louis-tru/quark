@@ -54,8 +54,8 @@ namespace quark {
 		FFID getFFID(const Array<String>& familys);
 		void addFromData(cBuffer& buff);
 		String getFamilyName(int index) const;
-		Typeface* match(cString& familyName, FontStyle style) const;
-		Typeface* matchCharacter(cString& familyName, FontStyle, Unichar character) const;
+		Sp<Typeface> match(cString& familyName, FontStyle style) const;
+		Sp<Typeface> matchCharacter(cString& familyName, FontStyle, Unichar character) const;
 	protected:
 		FontPool(Application* host);
 		void initialize();

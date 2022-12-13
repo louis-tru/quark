@@ -119,7 +119,7 @@ namespace quark {
 	*/
 	class SkiaGLRender: public GLRender, public SkiaRender {
 	public:
-		virtual ViewVisitor* visitor() override;
+		virtual ViewVisitor* render() override;
 	protected:
 		virtual void onReload() override;
 		virtual void onSubmit() override;

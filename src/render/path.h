@@ -57,7 +57,7 @@ namespace quark {
 		void line_to(Vec2 to);
 		void quad_to(Vec2 control, Vec2 to);
 		void cubic_to(Vec2 control1, Vec2 control2, Vec2 to);
-		void close_to(); // close line
+		void close(); // close line
 		// point ptr
 		inline const Vec2* pts() const { return (Vec2*)*_pts; }
 		inline const PathVerb* verbs() const { return (PathVerb*)*_verbs; }

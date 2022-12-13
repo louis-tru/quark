@@ -320,9 +320,10 @@ namespace quark {
 					SkFontStyle skStyle((int)style.weight(), (int)style.width(), SkFontStyle::Slant(int(style.slant()) - 1));
 					auto tf = SkFontMgr::RefDefault()->matchFamilyStyle(blob.typeface->getFamilyName().c_str(), skStyle);
 					
-					// TODO ...
-					Sp<ImageSource> img;
-					blob.typeface->getImage(blob.glyphs, size, &img);
+					// TEST ...
+					//Sp<ImageSource> img;
+					//blob.typeface->getImage(blob.glyphs, size, &img);
+					//auto& path = blob.typeface->getPath(blob.glyphs[0]);
 					
 					_canvas->drawGlyphs(
 						blob.glyphs.length(), *blob.glyphs, (SkPoint*)*blob.offset,

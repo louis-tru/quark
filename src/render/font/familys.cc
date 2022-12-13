@@ -41,31 +41,32 @@ namespace quark {
 		return _familys;
 	}
 
-	Typeface* FontFamilys::match(FontStyle style, uint32_t index) {
-		return matchAll(style)[index].value();
+	Sp<Typeface> FontFamilys::match(FontStyle style, uint32_t index) {
+		return matchs(style)[index];
 	}
 
-	Array<Sp<Typeface>>& FontFamilys::matchAll(FontStyle style) {
-		auto it = _FTs.find(style);
-		if (it != _FTs.end())
+	Array<Sp<Typeface>>& FontFamilys::matchs(FontStyle style) {
+		auto it = _TFs.find(style);
+		if (it != _TFs.end()) {
 			return it->value;
-
-		auto familys = _familys.copy();
-		familys.write(_pool->second());
+		}
 		Array<Sp<Typeface>> arr;
 		Dict<String, bool> set;
 
-		for (auto& name: familys) {
+		auto match = [&](cString& name) {
 			if (!set.has(name)) {
 				auto tf = _pool->match(name, style);
 				if (tf)
-					arr.push(tf);
+					arr.push(std::move(tf));
 				set.set(name, true);
 			}
-		}
-		_FTs.set(style, std::move(arr));
+		};
+		for (auto& name: _familys) match(name);
+		for (auto& name: _pool->second()) match(name);
 
-		return _FTs[style];
+		_TFs.set(style, std::move(arr));
+
+		return _TFs[style];
 	}
 
 	struct FontGlyphsBuilder {
@@ -119,7 +120,7 @@ namespace quark {
 
 	Array<FontGlyphs> FontFamilys::makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize) {
 		if (unichars.length()) {
-			FontGlyphsBuilder builder = { matchAll(style), fontSize, _pool };
+			FontGlyphsBuilder builder = { matchs(style), fontSize, _pool };
 			auto glyphs = builder.tfs[0]->unicharsToGlyphs(unichars);
 			builder.make(*unichars, *glyphs, glyphs.length(), 0);
 			return std::move(builder.result);

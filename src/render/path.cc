@@ -59,7 +59,7 @@ namespace quark {
 		path.line_to(Vec2(x2, r.origin.y()));
 		path.line_to(Vec2(x2, y2));
 		path.line_to(Vec2(r.origin.x(), y2));
-		path.close_to();
+		path.close();
 		return path;
 	}
 
@@ -95,7 +95,7 @@ namespace quark {
 		_pts.write(control.val, -1, 2);
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Quad);
-		_IsNormalized = true;
+		_IsNormalized = false;
 	}
 
 	void PathLine::cubic_to(Vec2 control1, Vec2 control2, Vec2 to) {
@@ -106,22 +106,22 @@ namespace quark {
 		_pts.write(control2.val, -1, 2);
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Cubic);
-		_IsNormalized = true;
+		_IsNormalized = false;
 	}
 
 	void PathLine::quad_to2(float *p) {
 		_pts.write(p, -1, 4);
 		_verbs.push(kVerb_Quad);
-		_IsNormalized = true;
+		_IsNormalized = false;
 	}
 
 	void PathLine::cubic_to2(float *p) {
 		_pts.write(p, -1, 6);
 		_verbs.push(kVerb_Cubic);
-		_IsNormalized = true;
+		_IsNormalized = false;
 	}
 
-	void PathLine::close_to() {
+	void PathLine::close() {
 		_verbs.push(kVerb_Close);
 	}
 

@@ -117,7 +117,7 @@ namespace quark {
 		return onGetFamilyName(index);
 	}
 	
-	Typeface* FontPool::match(cString& familyName, FontStyle style) const {
+	Sp<Typeface> FontPool::match(cString& familyName, FontStyle style) const {
 		if (familyName.is_empty()) {
 			return onMatchFamilyStyle(nullptr, style);
 		}
@@ -132,7 +132,7 @@ namespace quark {
 		return onMatchFamilyStyle(familyName.c_str(), style);
 	}
 
-	Typeface* FontPool::matchCharacter(cString& familyName, FontStyle style,
+	Sp<Typeface> FontPool::matchCharacter(cString& familyName, FontStyle style,
 																		 Unichar character) const {
 		cChar* c_familyName = familyName.is_empty() ? nullptr: familyName.c_str();
 		return onMatchFamilyStyleCharacter(c_familyName, style, character);

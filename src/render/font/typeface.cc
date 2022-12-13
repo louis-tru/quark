@@ -34,8 +34,7 @@
 
 namespace quark {
 
-	Typeface::Typeface(FontStyle fs, bool isFixedPitch)
-		: _fontStyle(fs), _isFixedPitch(isFixedPitch)
+	Typeface::Typeface(FontStyle fs): _fontStyle(fs)
 	{
 		_metrics.fAscent = 0;
 	}
@@ -110,7 +109,7 @@ namespace quark {
 			return it->value;
 		PathLine path;
 		onGetPath(glyph, &path);
-		_paths.set(glyph, std::move(path));
+		_paths.set(glyph, path.normalized());
 		return _paths[glyph];
 	}
 

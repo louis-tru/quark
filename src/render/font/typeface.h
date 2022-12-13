@@ -44,7 +44,6 @@ namespace quark {
 		Qk_HIDDEN_ALL_COPY(Typeface);
 	public:
 		Qk_DEFINE_PROP_GET(FontStyle, fontStyle);
-		Qk_DEFINE_PROP_GET(bool, isFixedPitch);
 		bool isBold() const { return _fontStyle.weight() >= TextWeight::SEMIBOLD; }
 		bool isItalic() const { return _fontStyle.slant() != TextSlant::DEFAULT; }
 		int countGlyphs() const;
@@ -65,9 +64,8 @@ namespace quark {
 		// get image source object from out param and return top to baseline value for image text
 		float getImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut);
 	protected:
-		Typeface(FontStyle fs, bool isFixedPitch);
+		Typeface(FontStyle fs);
 		void setFontStyle(FontStyle style) { _fontStyle = style; }
-		void setIsFixedPitch(bool isFixedPitch) { _isFixedPitch = isFixedPitch; }
 		virtual int onCountGlyphs() const = 0;
 		virtual int onGetUPEM() const = 0;
 		virtual String onGetFamilyName() const = 0;
@@ -77,7 +75,7 @@ namespace quark {
 		virtual void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const = 0;
 		virtual void onGetMetrics(FontMetrics* metrics) const = 0;
 		virtual void onGetGlyph(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
-		virtual void onGetPath(GlyphID glyph, PathLine *path) const = 0;
+		virtual bool onGetPath(GlyphID glyph, PathLine *path) const = 0;
 		virtual float onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) = 0;
 	private:
 		FontMetrics _metrics;

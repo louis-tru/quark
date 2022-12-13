@@ -61,7 +61,8 @@ namespace quark {
 			LEVEL_32,       // 26-32
 			LEVEL_64,       // 32-64
 			LEVEL_128,      // 64-128
-			LEVEL_PATH,     // >128
+			LEVEL_256,      // 128-256
+			LEVEL_PATH,     // >256
 		};
 		Sp<Typeface>    typeface;
 		Array<GlyphID>  glyphs;

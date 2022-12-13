@@ -68,7 +68,7 @@ protected:
 	void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const override;
 	void onGetMetrics(FontMetrics* metrics) const override;
 	void onGetGlyph(GlyphID glyph, FontGlyphMetrics* metrics) const override;
-	void onGetPath(GlyphID glyph, PathLine *path) const override;
+	bool onGetPath(GlyphID glyph, PathLine *path) const override;
 	float onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) override;
 private:
 	QkUniqueCFRef<CTFontRef> ctFont(float fontSize) const;
