@@ -11,7 +11,7 @@ CXX        ?= g++
 LINK       ?= g++
 NAME       ?= test2
 TARGET     ?= $(OUT)/$(NAME)
-TEST       ?= sys
+FUNC       ?= sys
 
 ifeq ($(BUILDTYPE),Release)
 	DEBUG=1
@@ -96,8 +96,8 @@ build: cfg
 	@make -f test2.mk $(TARGET)
 
 cfg:
-	@if [ ! -f ../out/test2_cfg.h ] || [ "`grep test2_$(TEST) ../out/test2_cfg.h`" == "" ]; then \
-		echo '#define TEST_FUNC_NAME test2_$(TEST)' > ../out/test2_cfg.h; \
+	@if [ ! -f ../out/test2_cfg.h ] || [ "`grep test2_$(FUNC) ../out/test2_cfg.h`" == "" ]; then \
+		echo '#define TEST_FUNC_NAME test2_$(FUNC)' > ../out/test2_cfg.h; \
 	fi
 
 ../out/test2.cc: test2.cc ../out/test2_cfg.h
