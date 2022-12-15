@@ -76,10 +76,6 @@ namespace quark {
 		_rrect_path.setIsVolatile(true);
 	}
 
-	int SkiaRender::flags() {
-		return 0;
-	}
-
 	void SkiaRender::visitView(View* view) {
 		// visit child
 		auto v = view->_first;

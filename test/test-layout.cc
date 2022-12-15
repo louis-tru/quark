@@ -39,7 +39,7 @@ public:
 	}
 
 	virtual void accept(ViewVisitor *visitor) override {
-		if (visitor->flags() != 0) {
+		if (app()->render()->visitor() != visitor) {
 			return visitor->visitImage(this);
 		}
 		auto render = static_cast<SkiaRender*>(visitor);
@@ -94,8 +94,8 @@ void layout_text(Box* box) {
 	labe->set_text_white_space(TextWhiteSpace::PRE_WRAP);
 	labe->set_text_slant(TextSlant::ITALIC);
 	labe->set_text_weight(TextWeight::BOLD);
-  labe->set_text_value("楚文学");
-	//labe->set_text_value("BAC");
+  //labe->set_text_value("楚文学");
+	labe->set_text_value("BAC");
 	//labe->set_text_value("ABC  DEFG楚");
 	//labe->set_text_value("Quark 1           abcdefghijkmln 禁忌");
 	//labe->set_text_value("Quark 1           abcdefghijkmln 禁忌学");

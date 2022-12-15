@@ -60,7 +60,6 @@ namespace quark {
 	public:
 		SkiaRender(Application* app);
 		Qk_DEFINE_PROP_GET(Application*, app);
-		virtual int  flags();
 		virtual void visitView(View* v);
 		virtual void visitBox(Box* box);
 		virtual void visitImage(Image* image);

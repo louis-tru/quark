@@ -46,8 +46,8 @@ SOURCES = ../out/test2.cc \
 					test2-str.cc \
 					test2-list.cc \
 					test2-dict.cc \
-					math/dot.cc \
-					math/InvSqrt.cc \
+					test2-math_dot.cc \
+					test2-math_InvSqrt.cc \
 					../src/util/log.cc \
 					../src/util/array.cc \
 					../src/util/string.cc \

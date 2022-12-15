@@ -414,7 +414,6 @@
 	Each(Qk_DEFINE_CLASS); \
 	class Name##Visitor { \
 	public: \
-		virtual int flags() = 0; \
 		Each(Qk_DEFINE_VISITOR_VISIT); \
 }
 
