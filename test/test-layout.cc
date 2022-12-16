@@ -68,8 +68,8 @@ public:
 		}: nullptr);
 		
 		auto r = app()->root();
-		//auto fill = static_cast<FillGradientLinear*>(static_cast<Box*>(r->first())->fill());
-		//fill->set_angle(fill->angle() + 2);
+		auto fill = static_cast<FillGradientLinear*>(static_cast<Box*>(r->first())->fill());
+		fill->set_angle(fill->angle() + 2);
 	}
 };
 
@@ -195,7 +195,7 @@ void layout(Event<>& evt, Application* app) {
 	auto img  = (Image*)     New<Image>     ()->append_to(r);
 	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
 	
-	layout_text(r);
+	// layout_text(r);
 	layout_text(flow);
 	//layout_input(flex);
 	layout_scroll(flex);
@@ -207,9 +207,9 @@ void layout(Event<>& evt, Application* app) {
 	// 	.position_y={0, FillPositionType::CENTER},
 	//}));
 	//flex->set_fill(new FillGradientRadial({ 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 0, 255, 255), Color(0, 255, 255, 255) }));
-	//  flex->set_fill(new FillGradientLinear(0, { 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) }));
-	//  flex->set_effect(New<BoxShadow>(10, 10, 5, Color(0,0,0,255)));
-	//flex->set_effect(New<BoxShadow>(10, 10, 5, Color(255,0,0,255)))
+	flex->set_fill(new FillGradientLinear(0, { 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) }));
+	flex->set_effect(New<BoxShadow>(10, 10, 5, Color(0,0,0,255)));
+	//flex->set_effect(New<BoxShadow>(10, 10, 5, Color(255,0,0,255)));
 	flex->set_width({ 0, BoxSizeKind::MATCH });
 	flex->set_height({ 180, BoxSizeKind::PIXEL });
 	flex->set_margin_left(10);
