@@ -28,3 +28,6 @@
 [submodule "deps/skia"]
 	path = deps/skia
 	url = https://github.com/louis-tru/skia.git
+[submodule "deps/freetype"]
+	path = deps/freetype
+	url = https://github.com/louis-tru/freetype.git
