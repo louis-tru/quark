@@ -34,4 +34,27 @@
 [submodule "deps/fastuidraw"]
 	path = deps/fastuidraw
 	url = https://github.com/louis-tru/fastuidraw.git
-	
+[submodule "deps/libgif"]
+	path = deps/libgif
+	url = https://github.com/louis-tru/libgif.git
+[submodule "deps/libjpeg"]
+	path = deps/libjpeg
+	url = https://github.com/louis-tru/libjpeg.git
+[submodule "deps/libpng"]
+	path = deps/libpng
+	url = https://github.com/louis-tru/libpng.git
+[submodule "deps/libwebp"]
+	path = deps/libwebp
+	url = https://github.com/louis-tru/libwebp.git
+[submodule "deps/rapidjson"]
+	path = deps/rapidjson
+	url = https://github.com/louis-tru/rapidjson.git
+[submodule "deps/reachavility"]
+	path = deps/reachavility
+	url = https://github.com/louis-tru/reachavility.git
+[submodule "deps/tess2"]
+	path = deps/tess2
+	url = https://github.com/louis-tru/tess2.git
+[submodule "deps/tinyxml2"]
+	path = deps/tinyxml2
+	url = https://github.com/louis-tru/tinyxml2.git
