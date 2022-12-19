@@ -6,14 +6,14 @@
 		'include_dirs': [
 			'..',
 			'../out',
-			'../deps/freetype2/include',
+			'../deps/freetype/include',
 			'../deps/tess2/Include',
 			'../deps/tinyxml2',
 		],
 		'dependencies': [
 			'quark-util',
 			'deps/tess2/tess2.gyp:tess2', 
-			'deps/freetype2/freetype2.gyp:ft2',
+			'deps/freetype/freetype.gyp:freetype',
 			'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
 		],
 		'direct_dependent_settings': {
