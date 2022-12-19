@@ -49,9 +49,9 @@
 [submodule "deps/rapidjson"]
 	path = deps/rapidjson
 	url = https://github.com/louis-tru/rapidjson.git
-[submodule "deps/reachavility"]
-	path = deps/reachavility
-	url = https://github.com/louis-tru/reachavility.git
+[submodule "deps/reachability"]
+	path = deps/reachability
+	url = https://github.com/louis-tru/reachability.git
 [submodule "deps/tess2"]
 	path = deps/tess2
 	url = https://github.com/louis-tru/tess2.git
