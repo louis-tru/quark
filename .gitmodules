@@ -31,3 +31,7 @@
 [submodule "deps/freetype"]
 	path = deps/freetype
 	url = https://github.com/louis-tru/freetype.git
+[submodule "deps/fastuidraw"]
+	path = deps/fastuidraw
+	url = https://github.com/louis-tru/fastuidraw.git
+	
