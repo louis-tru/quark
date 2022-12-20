@@ -19,7 +19,7 @@
 				###########
 				'trial',
 				'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
-				'deps/freetype2/freetype2.gyp:ft2',
+				'deps/freetype/freetype.gyp:freetype',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
