@@ -38,7 +38,7 @@ namespace quark {
 	public:
 		virtual bool retain() { return 1; }
 		virtual void release() {}
-		virtual void call(CbData& event) const {}
+		virtual void call(Cb::Data& event) const {}
 	};
 
 	static DefaultCallbackCore* default_callback_ = nullptr;
@@ -71,7 +71,7 @@ namespace quark {
 			Release(_err);
 			Release(_data);
 		}
-		virtual void call(CbData& evt) const {
+		virtual void call(Cb::Data& evt) const {
 			evt.error = _err;
 			evt.data = _data;
 			_cb->call(evt);

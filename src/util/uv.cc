@@ -67,7 +67,7 @@ namespace quark {
 			if (i == tasks->values.end())
 				return;
 			
-			i->value->_loop->post(Cb([id](CbData& e) {
+			i->value->_loop->post(Cb([id](Cb::Data& e) {
 				AsyncIOTask* task = nullptr;
 				{ //
 					ScopeLock scope(tasks->mutex);

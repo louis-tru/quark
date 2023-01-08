@@ -436,7 +436,7 @@ namespace quark {
 			data.inl = this;
 			data.ok = false;
 
-			typedef CallbackData<RunLoop::PostSyncData> PCbData;
+			typedef CallbackData<RunLoop::PostSyncData> PCb::Data;
 
 			bool isCur = Thread::current_id() == _thread->id();
 			if (isCur) { // 立即调用
@@ -448,7 +448,7 @@ namespace quark {
 			if (!isCur) {
 				_queue.push_back({
 					0, group, 0,
-					Cb([cb, datap, this](CbData& e) {
+					Cb([cb, datap, this](Cb::Data& e) {
 						cb->resolve(datap);
 					})
 				});
@@ -665,7 +665,7 @@ namespace quark {
 		work->host = this;
 		work->name = name;
 
-		post(Cb([work, this](CbData& ev) {
+		post(Cb([work, this](Cb::Data& ev) {
 			int r = uv_queue_work(_uv_loop, &work->uv_req,
 														Work::uv_work_cb, Work::uv_after_work_cb);
 			Qk_ASSERT(!r);
@@ -680,7 +680,7 @@ namespace quark {
 	 * @func cancel_work(id)
 	 */
 	void RunLoop::cancel_work(uint32_t id) {
-		post(Cb([=](CbData& ev) {
+		post(Cb([=](Cb::Data& ev) {
 			for (auto& i : _works) {
 				if (i->id == id) {
 					int r = uv_cancel((uv_req_t*)&i->uv_req);
@@ -763,7 +763,7 @@ namespace quark {
 	 */
 	void RunLoop::stop() {
 		if ( runing() ) {
-			post(Cb([this](CbData& se) {
+			post(Cb([this](Cb::Data& se) {
 				uv_stop(_uv_loop);
 			}));
 		}

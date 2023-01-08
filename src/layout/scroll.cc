@@ -381,7 +381,7 @@ namespace quark {
 				
 				_host->mark_none(View::kScroll); // mark
 				
-				_host->pre_render()->host()->loop()->post(Cb([this](CbData& se) {
+				_host->pre_render()->host()->loop()->post(Cb([this](Cb::Data& se) {
 					_host->triggerScroll(); // trigger event
 				}, _host));
 			}

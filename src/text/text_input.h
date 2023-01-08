@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,36 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __quark_textinput__
+#define __quark_textinput__
 
-#ifndef __quark__render__metal__
-#define __quark__render__metal__
-
-#include "./render.h"
-
-#include <QuartzCore/CAMetalLayer.h>
-#include <Metal/Metal.h>
-#include <MetalKit/MTKView.h>
+#include "../keyboard.h"
+#include "../types.h"
 
 namespace quark {
 
-	class API_AVAILABLE(ios(13.0)) MetalRender: public Render {
+	/**
+	* @class TextInput protocol
+	*/
+	class Qk_EXPORT TextInput: public Protocol {
 	public:
-		virtual ~MetalRender();
-		virtual void reload() override;
-		virtual void begin() override;
-		virtual void submit() override;
-		virtual void activate(bool isActive) override;
-	protected:
-		virtual void onReload() = 0;
-		virtual void onBegin() = 0;
-		virtual void onSubmit() = 0;
-		MetalRender(Application* host, const Options& opts);
-		MTKView*            _view;
-		CAMetalLayer*       _layer;
-		id<MTLDevice>       _device;
-		id<MTLCommandQueue> _queue; // sk_cfp<id<MTLCommandQueue>>
-		id<CAMetalDrawable> _drawable;
-		id               _pipelineArchive; // id<MTLBinaryArchive>
+		virtual void input_delete(int count) = 0;
+		virtual void input_insert(cString& text) = 0;
+		virtual void input_marked(cString& text) = 0;
+		virtual void input_unmark(cString& text) = 0;
+		virtual void input_control(KeyboardKeyName name) = 0;
+		virtual bool input_can_delete() = 0;
+		virtual bool input_can_backspace() = 0;
+		virtual Vec2 input_spot_location() = 0;
+		virtual KeyboardType input_keyboard_type() = 0;
+		virtual KeyboardReturnType input_keyboard_return_type() = 0;
 	};
 
 }

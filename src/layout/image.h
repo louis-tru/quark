@@ -36,7 +36,7 @@
 
 namespace quark {
 
-	class Qk_EXPORT Image: public Box, public SourceHold {
+	class Qk_EXPORT Image: public Box, public ImageSourceHold {
 		Qk_Define_View(Image);
 	protected:
 		virtual float solve_layout_content_width(Size &parent_layout_size) override;

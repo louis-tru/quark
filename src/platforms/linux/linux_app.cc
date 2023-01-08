@@ -566,7 +566,7 @@ namespace quark {
 			}
 			if (queue.length()) {
 				for (auto& i: queue) {
-					CbData data = { 0, _host, 0 };
+					Cb::Data data = { 0, _host, 0 };
 					i.value()->call(data);
 				}
 			}
@@ -794,7 +794,7 @@ namespace quark {
 	* @func request_fullscreen(fullscreen)
 	*/
 	void Display::request_fullscreen(bool fullscreen) {
-		__dispatch_x11_async(Cb([fullscreen](CbData& e) {
+		__dispatch_x11_async(Cb([fullscreen](Cb::Data& e) {
 			application->request_fullscreen(fullscreen);
 		}));
 	}

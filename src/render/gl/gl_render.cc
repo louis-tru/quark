@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../app.h"
-#include "../display.h"
-#include "./gl.h"
+#include "../../app.h"
+#include "../../display.h"
+#include "./gl_render.h"
 
 namespace quark {
 

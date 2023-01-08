@@ -229,7 +229,7 @@ namespace quark {
 				gl_draw_context->refresh_surface_size(&application->_rect);
 
 				if ( targger_orientation ) { // 触发方向变化事件
-					application->_host->main_loop()->post(Cb([](CbData& e) {
+					application->_host->main_loop()->post(Cb([](Cb::Data& e) {
 						application->_host->display()->Qk_Trigger(orientation);
 					}));
 				}
@@ -622,7 +622,7 @@ namespace quark {
 		}
 
 		Qk_EXPORT void Java_org_quark_QuarkActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
-			application->host()->main_loop()->post(Cb([](CbData& ev){
+			application->host()->main_loop()->post(Cb([](Cb::Data& ev){
 				application->host()->display_port()->Qk_Trigger(change);
 			}));
 		}

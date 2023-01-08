@@ -192,10 +192,6 @@ namespace quark {
 		* @overwrite
 		*/
 		virtual void pause();
-		
-		/**
-		* @overwrite
-		*/
 		virtual void resume();
 		
 		/**
@@ -204,7 +200,6 @@ namespace quark {
 		void abort();
 	
 	private:
-
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Inl* _inl;
 	};
@@ -242,12 +237,12 @@ namespace quark {
 	Qk_EXPORT String http_get_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
 	Qk_EXPORT String http_get_all_cookie_string(cString& domain, cString& path = String(), bool ssl = 0);
 	Qk_EXPORT DictSS http_get_all_cookie(cString& domain, cString& path = String(), bool ssl = 0);
-	Qk_EXPORT void http_set_cookie_with_expression(cString& domain, cString& expression);
-	Qk_EXPORT void http_set_cookie(cString& domain, cString& name, cString& value, 
-																int64_t expires = -1, cString& path = String(), bool ssl = 0);
-	Qk_EXPORT void http_delete_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
-	Qk_EXPORT void http_delete_all_cookie(cString& domain, bool ssl = 0);
-	Qk_EXPORT void http_clear_cookie();
+	Qk_EXPORT void   http_set_cookie_with_expression(cString& domain, cString& expression);
+	Qk_EXPORT void   http_set_cookie(cString& domain, cString& name, cString& value, 
+																	int64_t expires = -1, cString& path = String(), bool ssl = 0);
+	Qk_EXPORT void   http_delete_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
+	Qk_EXPORT void   http_delete_all_cookie(cString& domain, bool ssl = 0);
+	Qk_EXPORT void   http_clear_cookie();
 
 }
 #endif

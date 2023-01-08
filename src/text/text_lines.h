@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__text_lines__
-#define __quark__text_lines__
+#ifndef __quark_textlines__
+#define __quark_textlines__
 
-#include "./layout/layout.h"
-#include "./render/font/familys.h"
+#include "../layout/layout.h"
+#include "../render/font/familys.h"
 
 namespace quark {
 

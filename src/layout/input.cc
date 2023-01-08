@@ -178,7 +178,7 @@ namespace quark {
 					_flag = kFlag_Wait_Find;
 					int64_t timeout = is_multiline() ? 1e6/*1s*/: 0;
 					if ( timeout ) {
-						pre_render()->host()->loop()->post(Cb([this](CbData& evt) { // delay
+						pre_render()->host()->loop()->post(Cb([this](Cb::Data& evt) { // delay
 							UILock lock;
 							if ( _flag == kFlag_Wait_Find ) {
 								_flag = kFlag_Find; // 激活光标定位
@@ -534,7 +534,7 @@ namespace quark {
 		}
 
 		void trigger_change() {
-			pre_render()->host()->loop()->post(Cb([this](CbData& e){
+			pre_render()->host()->loop()->post(Cb([this](Cb::Data& e){
 				Handle<UIEvent> evt = New<UIEvent>(this);
 				trigger(UIEvent_Change, **evt); // trigger event
 			}, this));

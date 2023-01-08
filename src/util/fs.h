@@ -80,12 +80,10 @@ namespace quark {
 		FTYPE_BLOCK
 	};
 
-	class Dirent: public Object {
-	public:
-		Dirent(cString& name, cString& pathname, FileType type);
-		Qk_DEFINE_PROP_GET(String, name);
-		Qk_DEFINE_PROP_GET(String, pathname);
-		Qk_DEFINE_PROP_GET(FileType, type);
+	struct Dirent {
+		String   name;
+		String   pathname;
+		FileType type;
 	};
 
 	class Qk_EXPORT FileSync: public Object {
@@ -94,14 +92,14 @@ namespace quark {
 		FileSync(cString& path);
 		virtual ~FileSync();
 		bool is_open();
-		int open(int flag = FOPEN_R);
-		int close();
-		int read(void* buffer, int64_t size, int64_t offset = -1);
-		int write(const void* buffer, int64_t size, int64_t offset = -1);
+		int  open(int flag = FOPEN_R);
+		int  close();
+		int  read(void* buffer, int64_t size, int64_t offset = -1);
+		int  write(const void* buffer, int64_t size, int64_t offset = -1);
 		// props
 		Qk_DEFINE_PROP_GET(String, path);
 	private:
-		int    _fd;
+		int  _fd;
 	};
 
 	class Qk_EXPORT File: public Object {
@@ -201,7 +199,7 @@ namespace quark {
 	/**
 	* @func each_sync 递归遍历子文件与子目录, 遍历回调回返0停止遍历
 	*/
-	Qk_EXPORT bool fs_each_sync(cString& path, Cb cb, bool internal = false) throw(Error);
+	Qk_EXPORT bool fs_each_sync(cString& path, Callback<Dirent> cb, bool internal = false) throw(Error);
 	
 	// sync
 	/**
@@ -251,32 +249,32 @@ namespace quark {
 	Qk_EXPORT void fs_writable(cString& path, Cb cb = 0);
 	Qk_EXPORT void fs_executable(cString& path, Cb cb = 0);
 	// recursion
-	Qk_EXPORT void fs_mkdir_p(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	Qk_EXPORT void     fs_mkdir_p(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
 	Qk_EXPORT uint32_t fs_chmod_r(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
 	Qk_EXPORT uint32_t fs_chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
 	Qk_EXPORT uint32_t fs_remove_r(cString& path, Cb cb = 0);
 	Qk_EXPORT uint32_t fs_copy(cString& source, cString& target, Cb cb = 0);
 	Qk_EXPORT uint32_t fs_copy_r(cString& source, cString& target, Cb cb = 0);
-	Qk_EXPORT void fs_abort(uint32_t id);
+	Qk_EXPORT void     fs_abort(uint32_t id);
 		// read stream
 	Qk_EXPORT uint32_t fs_read_stream(cString& path, Callback<StreamResponse> cb = 0);
 		// read file
 	Qk_EXPORT Buffer fs_read_file_sync(cString& path, int64_t size = -1) throw(Error);
 	Qk_EXPORT void fs_read_file(cString& path, Cb cb = 0, int64_t size = -1);
 		// write file
-	Qk_EXPORT int fs_write_file_sync(cString& path, cString& str) throw(Error);
-	Qk_EXPORT int fs_write_file_sync(cString& path, const void* data, int64_t size) throw(Error);
+	Qk_EXPORT int  fs_write_file_sync(cString& path, cString& str) throw(Error);
+	Qk_EXPORT int  fs_write_file_sync(cString& path, const void* data, int64_t size) throw(Error);
 	Qk_EXPORT void fs_write_file(cString& path, cString& str, Cb cb = 0);
 	Qk_EXPORT void fs_write_file(cString& path, Buffer buffer, Cb cb = 0);
 		// open file fd
-	Qk_EXPORT int fs_open_sync(cString& path, int flag = FOPEN_R) throw(Error);
+	Qk_EXPORT int  fs_open_sync(cString& path, int flag = FOPEN_R) throw(Error);
 	Qk_EXPORT void fs_open(cString& path, int flag = FOPEN_R, Cb cb = 0);
 	Qk_EXPORT void fs_open(cString& path, Cb cb = 0);
 	Qk_EXPORT void fs_close_sync(int fd) throw(Error);
 	Qk_EXPORT void fs_close(int fd, Cb cb = 0);
 		// read with fd
-	Qk_EXPORT int fs_read_sync(int fd, void* data, int64_t size, int64_t offset = -1) throw(Error);
-	Qk_EXPORT int fs_write_sync(int fd, const void* data, int64_t size, int64_t offset = -1) throw(Error);
+	Qk_EXPORT int  fs_read_sync(int fd, void* data, int64_t size, int64_t offset = -1) throw(Error);
+	Qk_EXPORT int  fs_write_sync(int fd, const void* data, int64_t size, int64_t offset = -1) throw(Error);
 	Qk_EXPORT void fs_read(int fd, Buffer buffer, Cb cb);
 	Qk_EXPORT void fs_read(int fd, Buffer buffer, int64_t offset = -1, Cb cb = 0);
 	Qk_EXPORT void fs_write(int fd, Buffer buffer, Cb cb);

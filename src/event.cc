@@ -703,7 +703,7 @@ namespace quark {
 	}
 
 	void EventDispatch::onMousemove(float x, float y) {
-		async_resolve(Cb([=](CbData& evt) {
+		async_resolve(Cb([=](Cb::Data& evt) {
 			UILock lock;
 			Vec2 pos(x, y);
 			// set current mouse pos
@@ -717,7 +717,7 @@ namespace quark {
 	}
 
 	void EventDispatch::onMousepress(KeyboardKeyName name, bool down) {
-		async_resolve(Cb([=](CbData& evt) {
+		async_resolve(Cb([=](Cb::Data& evt) {
 			UILock lock;
 			switch(name) {
 				case KEYCODE_MOUSE_LEFT:
@@ -848,7 +848,7 @@ namespace quark {
 	// -------------------------- I M E --------------------------
 
 	void EventDispatch::onImeDelete(int count) {
-		async_resolve(Cb([=](CbData& d) {
+		async_resolve(Cb([=](Cb::Data& d) {
 			UILock lock;
 			if ( _text_input ) {
 				_text_input->input_delete(count);
@@ -860,7 +860,7 @@ namespace quark {
 	}
 
 	void EventDispatch::onImeInsert(cString& text) {
-		async_resolve(Cb([=](CbData& d) {
+		async_resolve(Cb([=](Cb::Data& d) {
 			UILock lock;
 			if ( _text_input ) {
 				_text_input->input_insert(text);
@@ -869,7 +869,7 @@ namespace quark {
 	}
 
 	void EventDispatch::onImeMarked(cString& text) {
-		async_resolve(Cb([=](CbData& d) {
+		async_resolve(Cb([=](Cb::Data& d) {
 			UILock lock;
 			if ( _text_input ) {
 				_text_input->input_marked(text);
@@ -878,7 +878,7 @@ namespace quark {
 	}
 
 	void EventDispatch::onImeUnmark(cString& text) {
-		async_resolve(Cb([=](CbData& d) {
+		async_resolve(Cb([=](Cb::Data& d) {
 			UILock lock;
 			if ( _text_input ) {
 				_text_input->input_unmark(text);
@@ -887,7 +887,7 @@ namespace quark {
 	}
 
 	void EventDispatch::onImeControl(KeyboardKeyName name) {
-		async_resolve(Cb([=](CbData& d) {
+		async_resolve(Cb([=](Cb::Data& d) {
 			UILock lock;
 			if ( _text_input ) {
 				_text_input->input_control(name);

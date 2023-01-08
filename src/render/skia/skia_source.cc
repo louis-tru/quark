@@ -91,13 +91,13 @@ namespace quark {
 		auto ctx = new Ctx({ this, sk_sp<SkImage>(sk_I(_inl)) });
 		ctx->img->ref();
 		
-		RunLoop::first()->work(Cb([this,ctx](CbData& e){
+		RunLoop::first()->work(Cb([this,ctx](Cb::Data& e){
 			char tmp[16];
 			SkImageInfo info = SkImageInfo::Make(1, 1, ctx->img->colorType(), ctx->img->alphaType());
 			if (!ctx->img->readPixels(nullptr, info, tmp, SkColorTypeBytesPerPixel(ctx->img->colorType()), 0, 0)) {
 				ctx->img = nullptr; // fail decode
 			}
-		}), Cb([this,ctx](CbData& e){
+		}), Cb([this,ctx](Cb::Data& e){
 			if (_state & STATE_DECODEING) {
 				if (ctx->img) { // decode image complete
 					_size += Pixel::bytes_per_pixel(_type) * _width * _height;
@@ -123,9 +123,9 @@ namespace quark {
 		}
 		_state = State(_state | STATE_LOADING);
 		
-		RunLoop::first()->post(Cb([this](CbData& e){
+		RunLoop::first()->post(Cb([this](Cb::Data& e){
 			Qk_Trigger(State, _state); // trigger
-			_load_id = fs_reader()->read_file(_uri, Cb([this](CbData& e){ // read data
+			_load_id = fs_reader()->read_file(_uri, Cb([this](Cb::Data& e){ // read data
 				if (_state & STATE_LOADING) {
 					_state = State((_state | STATE_LOAD_COMPLETE) & ~STATE_LOADING);
 					_loaded = *static_cast<Buffer*>(e.data);
@@ -168,7 +168,7 @@ namespace quark {
 					_load_id = 0;
 				}
 				// trigger event
-				RunLoop::first()->post(Cb([this](CbData& e){
+				RunLoop::first()->post(Cb([this](Cb::Data& e){
 					Qk_Trigger(State, _state);
 				}, this));
 			}

@@ -36,7 +36,7 @@
 #include "./display.h"
 #include "./app.inl"
 #include "./render/font/pool.h"
-#include "./render/source_pool.h"
+#include "./render/source.h"
 #include "./pre_render.h"
 #include "./layout/label.h"
 #include "./event.h"
@@ -97,12 +97,12 @@ namespace quark {
 		}
 	}
 
-	typedef void (*CbFunc) (CbData&, AppInl*);
+	typedef void (*CbFunc) (Cb::Data&, AppInl*);
 
 	void AppInl::triggerLoad() {
 		if (_is_loaded || !_keep)
 			return;
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) {
+		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) {
 			UILock lock(app);
 			if (!app->_is_loaded) {
 				app->_is_loaded = true;
@@ -112,24 +112,24 @@ namespace quark {
 	}
 
 	void AppInl::triggerPause() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->Qk_Trigger(Pause); }, this));
+		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) { app->Qk_Trigger(Pause); }, this));
 	}
 
 	void AppInl::triggerResume() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->Qk_Trigger(Resume); }, this));
+		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) { app->Qk_Trigger(Resume); }, this));
 	}
 
 	void AppInl::triggerBackground() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->Qk_Trigger(Background); }, this));
+		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) { app->Qk_Trigger(Background); }, this));
 	}
 
 	void AppInl::triggerForeground() {
-		_loop->post(Cb((CbFunc)[](CbData& d, AppInl* app) { app->Qk_Trigger(Foreground); }, this));
+		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) { app->Qk_Trigger(Foreground); }, this));
 	}
 
 	void AppInl::triggerMemorywarning() {
 		clear();
-		_loop->post(Cb((CbFunc)[](CbData&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
+		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
 	}
 
 	void AppInl::triggerUnload() {
@@ -302,7 +302,7 @@ namespace quark {
 	* @func clear([full]) 清理不需要使用的资源
 	*/
 	void Application::clear(bool all) {
-		_render->post_message(Cb([this, all](CbData& e){
+		_render->post_message(Cb([this, all](Cb::Data& e){
 			_img_pool->clear(all);
 		}));
 	}

@@ -29,15 +29,17 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __quark__text_blob__
-#define __quark__text_blob__
+#ifndef __quark_textblob__
+#define __quark_textblob__
 
-#include "./render/font/familys.h"
-#include "./render/source.h"
+#include "../render/font/familys.h"
+#include "../render/source.h"
 #include "./text_lines.h"
 #include "./text_opts.h"
 
 namespace quark {
+
+	// @dev text layout 
 
 	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(const Unichar *src, uint32_t length,
 		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);

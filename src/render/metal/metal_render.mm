@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./metal.h"
-#include "../app.h"
-#include "../display.h"
+#include "./metal_render.h"
+#include "../../app.h"
+#include "../../display.h"
 
 template <typename T> static inline T CFSafeRetain(T obj) {
 	if (obj) {

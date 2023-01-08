@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__render__source__
-#define __quark__render__source__
+#ifndef __quark_render_source__
+#define __quark_render_source__
 
 #include "../util/util.h"
 #include "../util/string.h"
@@ -129,6 +129,73 @@ namespace quark {
 		uint32_t _load_id, _size, _used;
 		void *_inl;
 		Qk_DEFINE_INLINE_CLASS(Inl);
+	};
+
+
+	/**
+	* @class ImageSourcePool
+	*/
+	class Qk_EXPORT ImageSourcePool: public Object {
+		Qk_HIDDEN_ALL_COPY(ImageSourcePool);
+	public:
+		
+		/**
+		 * @constructor
+		 */
+		ImageSourcePool(Application* host);
+		
+		/**
+		 * @destructor
+		 */
+		virtual ~ImageSourcePool();
+
+		/**
+		 * @func total_data_size() returns the data memory size total
+		 */
+		uint64_t total_data_size() const { return _total_data_size; }
+
+		/**
+		 * @func get(uri) get image source by uri
+		 */
+		ImageSource* get(cString& uri);
+
+		/**
+		 * @func remove(id) remove image source member
+		 */
+		void remove(cString& uri);
+
+		/**
+			* @func clear(full?: bool) clear memory
+			*/
+		void clear(bool full = false);
+		
+	private:
+		struct Member {
+			uint32_t size;
+			Handle<ImageSource> source;
+		};
+		Dict<uint64_t, Member> _sources;
+		uint64_t _total_data_size; /* 当前数据占用memory总容量 */
+		Mutex _Mutex;
+		Application* _host;
+		Qk_DEFINE_INLINE_CLASS(Inl);
+	};
+
+	typedef ImageSourcePool ImagePool;
+
+
+	/**
+	* @class SourceHold
+	*/
+	class Qk_EXPORT ImageSourceHold {
+	public:
+		~ImageSourceHold();
+		Qk_DEFINE_PROP_ACC(String, src);
+		Qk_DEFINE_PROP_ACC(ImageSource*, source, NoConst);
+	private:
+		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
+		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);
+		Handle<ImageSource> _imageSource;
 	};
 
 }

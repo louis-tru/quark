@@ -32,7 +32,7 @@
 #define __quark__effect__
 
 #include "./types.h"
-#include "./render/source_hold.h"
+#include "./render/source.h"
 #include "./util/handle.h"
 #include "./util/array.h"
 

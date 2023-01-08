@@ -341,7 +341,7 @@ namespace quark {
 			}
 		}
 			
-		void fs_error_cb(CbData& evt) {
+		void fs_error_cb(Cb::Data& evt) {
 			_delegate->trigger_file_error(_host, *evt.error);
 		}
 		

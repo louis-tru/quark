@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,29 +29,36 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__text_input__
-#define __quark__text_input__
 
-#include "./keyboard.h"
-#include "./types.h"
+#ifndef __quark_render_metal_metalrender__
+#define __quark_render_metal_metalrender__
+
+#include "../render.h"
+
+#include <QuartzCore/CAMetalLayer.h>
+#include <Metal/Metal.h>
+#include <MetalKit/MTKView.h>
 
 namespace quark {
 
-	/**
-	* @class TextInput protocol
-	*/
-	class Qk_EXPORT TextInput: public Protocol {
+	class API_AVAILABLE(ios(13.0)) MetalRender: public Render {
 	public:
-		virtual void input_delete(int count) = 0;
-		virtual void input_insert(cString& text) = 0;
-		virtual void input_marked(cString& text) = 0;
-		virtual void input_unmark(cString& text) = 0;
-		virtual void input_control(KeyboardKeyName name) = 0;
-		virtual bool input_can_delete() = 0;
-		virtual bool input_can_backspace() = 0;
-		virtual Vec2 input_spot_location() = 0;
-		virtual KeyboardType input_keyboard_type() = 0;
-		virtual KeyboardReturnType input_keyboard_return_type() = 0;
+		virtual ~MetalRender();
+		virtual void reload() override;
+		virtual void begin() override;
+		virtual void submit() override;
+		virtual void activate(bool isActive) override;
+	protected:
+		virtual void onReload() = 0;
+		virtual void onBegin() = 0;
+		virtual void onSubmit() = 0;
+		MetalRender(Application* host, const Options& opts);
+		MTKView*            _view;
+		CAMetalLayer*       _layer;
+		id<MTLDevice>       _device;
+		id<MTLCommandQueue> _queue; // sk_cfp<id<MTLCommandQueue>>
+		id<CAMetalDrawable> _drawable;
+		id                  _pipelineArchive; // id<MTLBinaryArchive>
 	};
 
 }

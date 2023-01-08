@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__text_opts__
-#define __quark__text_opts__
+#ifndef __quark_textopts__
+#define __quark_textopts__
 
-#include "./types.h"
+#include "../types.h"
 
 namespace quark {
 

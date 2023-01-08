@@ -122,7 +122,7 @@ static NSString* appDelegateName = @"";
 			Orientation orient = self.appSelf.app->display()->orientation();
 			if (orient != self.appSelf.current_orientation) {
 				self.appSelf.current_orientation = orient;
-				self.appSelf.app->loop()->post(Cb([](CbData& e) {
+				self.appSelf.app->loop()->post(Cb([](Cb::Data& e) {
 					appDelegate.app->display()->Qk_Trigger(Orientation);
 				}));
 			}
@@ -187,7 +187,7 @@ static NSString* appDelegateName = @"";
 
 @implementation ApplicationDelegate
 
-	static void render_exec_func(CbData& evt, Object* ctx) {
+	static void render_exec_func(Cb::Data& evt, Object* ctx) {
 		appDelegate.render_task_count--;
 		appDelegate.app->display()->render();
 	}
@@ -510,7 +510,7 @@ void Display::set_visible_status_bar(bool visible) {
 		renderApple->resize(appDelegate.view.frame);
 
 		// TODO 绘图表面尺寸没有改变? 表示只是单纯状态栏改变? 这个改变也当成change通知给用户
-		_host->loop()->post(Cb([this](CbData& e) {
+		_host->loop()->post(Cb([this](Cb::Data& e) {
 			Qk_Trigger(Change);
 		}));
 	});

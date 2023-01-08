@@ -244,7 +244,7 @@ class NativeUtil {
 			JS_THROW_ERR("Bad argument");
 		}
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
-		RunLoop::next_tick(Cb([worker, func](CbData& e) {
+		RunLoop::next_tick(Cb([worker, func](Cb::Data& e) {
 			Qk_ASSERT(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			JS_CALLBACK_SCOPE();

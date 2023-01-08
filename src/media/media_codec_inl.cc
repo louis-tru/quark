@@ -404,7 +404,7 @@ namespace quark {
 			select_bit_rate(bit_rate_index);
 			select_multi_bit_rate2(bit_rate_index);
 
-			post(Cb([this](CbData& d) {
+			post(Cb([this](Cb::Data& d) {
 				{ ScopeLock scope(mutex());
 					_status = MULTIMEDIA_SOURCE_STATUS_READY;
 				}
@@ -431,7 +431,7 @@ namespace quark {
 			extractor_flush(i.value);
 		}
 		
-		post(Cb([this](CbData& d) {
+		post(Cb([this](Cb::Data& d) {
 			ScopeLock scope(mutex());
 			_status = MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
 		}));
@@ -663,7 +663,7 @@ namespace quark {
 				if ( AVERROR_EOF == ok ) {
 					Qk_DEBUG("read_frame() eof break;");
 					
-					post(Cb([this](CbData& d) {
+					post(Cb([this](Cb::Data& d) {
 						ScopeLock scope(mutex());
 						_read_eof = 1;
 						_fmt_ctx = nullptr;
@@ -725,7 +725,7 @@ namespace quark {
 	* */
 	void Inl::trigger_error(cError& e) {
 		Qk_ERR(e);
-		post(Cb([e, this](CbData& d) {
+		post(Cb([e, this](Cb::Data& d) {
 			{ ScopeLock scope(mutex());
 				_status = MULTIMEDIA_SOURCE_STATUS_FAULT;
 				_fmt_ctx = nullptr;
@@ -738,7 +738,7 @@ namespace quark {
 	* @func trigger_wait_buffer
 	* */
 	void Inl::trigger_wait_buffer() {
-		post(Cb([this](CbData& d) {
+		post(Cb([this](Cb::Data& d) {
 			{ ScopeLock scope(mutex());
 				if ( _status != MULTIMEDIA_SOURCE_STATUS_READY ) {
 					return;
@@ -754,7 +754,7 @@ namespace quark {
 	* @func trigger_ready_buffer
 	* */
 	void Inl::trigger_ready_buffer() {
-		post(Cb([this](CbData& d) {
+		post(Cb([this](Cb::Data& d) {
 			{ ScopeLock scope(mutex());
 				if ( _status != MULTIMEDIA_SOURCE_STATUS_WAIT ) return;
 				_status = MULTIMEDIA_SOURCE_STATUS_READY;
@@ -768,7 +768,7 @@ namespace quark {
 	* @func trigger_eof
 	* */
 	void Inl::trigger_eof() {
-		post(Cb([this](CbData& d) {
+		post(Cb([this](Cb::Data& d) {
 			{ ScopeLock scope(mutex());
 				if (_status == MULTIMEDIA_SOURCE_STATUS_EOF) return;
 				_status = MULTIMEDIA_SOURCE_STATUS_EOF;

@@ -583,7 +583,7 @@ namespace quark {
 
 	void UnixIMEHelper::open(KeyboardOptions options) {
 		if (!_inl) return;
-		__dispatch_x11_async(Cb([=](CbData& e){
+		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->set_keyboard_type(options.type);
 			_inl->set_keyboard_return_type(options.return_type);
 			_inl->set_spot_location(options.spot_location);
@@ -596,42 +596,42 @@ namespace quark {
 
 	void UnixIMEHelper::close() {
 		if (!_inl) return;
-		__dispatch_x11_async(Cb([=](CbData& e){
+		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->close();
 		}));
 	}
 
 	void UnixIMEHelper::clear() {
 		if (!_inl) return;
-		__dispatch_x11_async(Cb([=](CbData& e){
+		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->clear();
 		}));
 	}
 
 	void UnixIMEHelper::set_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 		if (!_inl) return;
-		__dispatch_x11_async(Cb([=](CbData& e){
+		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->set_keyboard_can_backspace(can_backspace, can_delete);
 		}));
 	}
 
 	void UnixIMEHelper::set_keyboard_type(KeyboardType type) {
 		if (!_inl) return;
-		__dispatch_x11_async(Cb([=](CbData& e){
+		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->set_keyboard_type(type);
 		}));
 	}
 
 	void UnixIMEHelper::set_keyboard_return_type(KeyboardReturnType type) {
 		if (!_inl) return;
-		__dispatch_x11_async(Cb([=](CbData& e){
+		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->set_keyboard_return_type(type);
 		}));
 	}
 
 	void UnixIMEHelper::set_spot_location(Vec2 location) {
 		if (!_inl) return;
-		__dispatch_x11_async(Cb([=](CbData& e){
+		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->set_spot_location(location);
 		}));
 	}

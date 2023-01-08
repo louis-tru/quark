@@ -55,9 +55,9 @@ namespace quark {
 	public:
 		inline CallbackCore() {}
 		virtual void call(CallbackData<D, E>& evt) const = 0;
-		inline  int call(E* e, D* d) const { CallbackData<D, E> evt = { e,d,0 }; call(evt); return evt.rc; }
-		inline  int resolve(D* d = nullptr) const { CallbackData<D, E> evt = { 0,d,0 }; call(evt); return evt.rc; }
-		inline  int reject(E* e) const { CallbackData<D, E> evt = { e,0,0 }; call(evt); return evt.rc; }
+		inline  int  call(E* e, D* d) const { CallbackData<D, E> evt = { e,d,0 }; call(evt); return evt.rc; }
+		inline  int  resolve(D* d = nullptr) const { CallbackData<D, E> evt = { 0,d,0 }; call(evt); return evt.rc; }
+		inline  int  reject(E* e) const { CallbackData<D, E> evt = { e,0,0 }; call(evt); return evt.rc; }
 	};
 
 	template<class T, class D, class E>
@@ -149,7 +149,6 @@ namespace quark {
 
 	typedef Callback<> Cb;
 	typedef const Cb cCb;
-	typedef Cb::Data CbData;
 
 	Qk_EXPORT void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop);
 

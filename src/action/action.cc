@@ -95,7 +95,7 @@ void Action::Inl::trigger_action_loop(uint64_t delay, Action* root) {
 		View* v = *i;
 		if (v) {
 			auto evt = new UIActionEvent(this, v, delay, 0, _loop);
-			main_loop()->post(Cb([this, evt, v](CbData& e) {
+			main_loop()->post(Cb([this, evt, v](Cb::Data& e) {
 				Handle<UIActionEvent> handle(evt);
 				ActionInl_View(v)->trigger(UI_EVENT_ACTION_LOOP, *evt);
 			}, v));
@@ -115,7 +115,7 @@ void Action::Inl::trigger_action_key_frame(
 		View* v = *i;
 		if (v) {
 			auto evt = new UIActionEvent(this, v, delay, frame_index, _loop);
-			main_loop()->post(Cb([this, evt, v](CbData& e) {
+			main_loop()->post(Cb([this, evt, v](Cb::Data& e) {
 				Handle<UIActionEvent> handle(evt);
 				ActionInl_View(v)->trigger(UI_EVENT_ACTION_KEYFRAME, *evt);
 			}, v));

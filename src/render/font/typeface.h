@@ -35,7 +35,7 @@
 #include "../../math.h"
 #include "../path.h"
 #include "./style.h"
-#include "metrics.h"
+#include "./metrics.h"
 #include "../source.h"
 
 namespace quark {

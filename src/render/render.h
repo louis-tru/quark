@@ -51,8 +51,7 @@ namespace quark {
 	/**
 	* @class Render
 	*/
-	class Qk_EXPORT Render: public Object, public PostMessage {
-		Qk_HIDDEN_ALL_COPY(Render);
+	class Qk_EXPORT Render: public PostMessage {
 	public:
 		struct Options {
 			ColorType colorType;
@@ -63,13 +62,14 @@ namespace quark {
 		static Render* Make(Application* host, const Options& opts);
 
 		virtual ~Render();
-		virtual void reload() = 0;
-		virtual void begin() = 0;
-		virtual void submit() = 0;
-		virtual void activate(bool isActive);
+		virtual void         reload() = 0;
+		virtual void         begin() = 0;
+		virtual void         submit() = 0;
+		virtual void         activate(bool isActive);
 		virtual ViewVisitor* visitor() = 0;
+		virtual Canvas*      canvas() = 0;
 		inline  Application* host() { return _host; }
-		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
+		virtual uint32_t     post_message(Cb cb, uint64_t delay_us = 0) override;
 
 	protected:
 		Render(Application* host, const Options& opts);

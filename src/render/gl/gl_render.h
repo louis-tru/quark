@@ -1,4 +1,4 @@
-
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,27 +29,44 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__render__source_hold__
-#define __quark__render__source_hold__
+#ifndef __quark_render_gl_glrender__
+#define __quark_render_gl_glrender__
 
-#include "./source.h"
+#include "../render.h"
+#include "./gl_canvas.h"
+
+#if Qk_IOS
+# include <OpenGLES/ES3/gl.h>
+# include <OpenGLES/ES3/glext.h>
+#elif Qk_OSX
+# include <OpenGL/gl3.h>
+# include <OpenGL/gl3ext.h>
+#elif Qk_ANDROID || Qk_LINUX
+# define GL_GLEXT_PROTOTYPES
+# include <GLES3/gl3.h>
+# include <GLES3/gl3ext.h>
+#else
+# error "The operating system does not support"
+#endif
 
 namespace quark {
 
-	/**
-	* @class SourceHold
-	*/
-	class Qk_EXPORT SourceHold {
+	class GLRender: public GLCanvas, public Render {
 	public:
-		~SourceHold();
-		Qk_DEFINE_PROP_ACC(String, src);
-		Qk_DEFINE_PROP_ACC(ImageSource*, source, NoConst);
-	private:
-		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
-		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);
-		Handle<ImageSource> _imageSource;
+		virtual ~GLRender();
+		virtual void reload() override;
+		virtual void begin() override;
+		virtual void submit() override;
+	protected:
+		virtual void onRenderbufferStorage(uint32_t target);
+		virtual void onSwapBuffers() = 0;
+		virtual void onReload() = 0;
+		virtual void onSubmit() = 0;
+		GLRender(Application* host, const Options& opts);
+		uint32_t  _render_buffer, _frame_buffer;
+		uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
+		bool _is_support_multisampled;
 	};
 
 }
-
 #endif

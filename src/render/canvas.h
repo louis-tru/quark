@@ -29,8 +29,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__render__canvas__
-#define __quark__render__canvas__
+#ifndef __quark_render_canvas__
+#define __quark_render_canvas__
 
 #include "../util/util.h"
 

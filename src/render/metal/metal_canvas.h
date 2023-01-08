@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,56 +29,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../app.h"
-#include "./source_hold.h"
-#include "./source_pool.h"
-#include "../pre_render.h"
+#ifndef __quark_render_metal_metalcanvas__
+#define __quark_render_metal_metalcanvas__
+
+#include "../canvas.h"
 
 namespace quark {
 
-	SourceHold::~SourceHold() {
-		if (_imageSource) {
-			_imageSource->Qk_Off(State, &SourceHold::handleSourceState, this);
-		}
-	}
-
-	String SourceHold::src() const {
-		return _imageSource ? _imageSource->uri(): String();
-	}
-
-	ImageSource* SourceHold::source() {
-		return _imageSource.value();
-	}
-
-	void SourceHold::set_src(String value) {
-		set_source(app() ? app()->img_pool()->get(value): new ImageSource(value));
-	}
-
-	void SourceHold::set_source(ImageSource* source) {
-		if (_imageSource.value() != source) {
-			if (_imageSource) {
-				_imageSource->Qk_Off(State, &SourceHold::handleSourceState, this);
-			}
-			if (source) {
-				source->Qk_On(State, &SourceHold::handleSourceState, this);
-			}
-			_imageSource = Handle<ImageSource>(source);
-		}
-	}
-
-	void SourceHold::handleSourceState(Event<ImageSource, ImageSource::State>& evt) { // 收到图像变化通知
-		onSourceState(evt);
-	}
-
-	void SourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (*evt.data() & ImageSource::STATE_DECODE_COMPLETE) {
-			auto _ = app();
-			// Qk_ASSERT(_, "Application needs to be initialized first");
-			if (_) {
-				_->pre_render()->mark_none();
-			}
-		}
-	}
-
+	class MetalCanvas: public Canvas {
+	public:
+	};
 
 }
+#endif

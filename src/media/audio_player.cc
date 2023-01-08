@@ -100,18 +100,18 @@ namespace quark {
 
 						if ( _audio_buffer.total ) {
 							if ( _waiting_buffer ) {
-								_keep->post(Cb([this](CbData& evt) { trigger(UIEvent_WaitBuffer, Float(1.0F)); /* trigger source WAIT event */ }));
+								_keep->post(Cb([this](Cb::Data& evt) { trigger(UIEvent_WaitBuffer, Float(1.0F)); /* trigger source WAIT event */ }));
 								_waiting_buffer = false;
 							}
 						} else {
 							MultimediaSourceStatus status = _source->status();
 							if ( status == MULTIMEDIA_SOURCE_STATUS_WAIT ) { // 源..等待数据
 								if ( _waiting_buffer == false ) {
-									_keep->post(Cb([this](CbData& evt) { trigger(UIEvent_WaitBuffer, Float(0.0F)); /* trigger source WAIT event */ }));
+									_keep->post(Cb([this](Cb::Data& evt) { trigger(UIEvent_WaitBuffer, Float(0.0F)); /* trigger source WAIT event */ }));
 									_waiting_buffer = true;
 								}
 							} else if ( status == MULTIMEDIA_SOURCE_STATUS_EOF ) {
-								_keep->post(Cb([this](CbData& evt) { stop(); }));
+								_keep->post(Cb([this](Cb::Data& evt) { stop(); }));
 								return;
 							}
 						}
@@ -136,7 +136,7 @@ namespace quark {
 					} else {
 						if ( _status == PLAYER_STATUS_START ) {
 							_status = PLAYER_STATUS_PLAYING;
-							_keep->post(Cb([this](CbData& evt) { trigger(UIEvent_StartPlay); /* trigger start_play event */ }));
+							_keep->post(Cb([this](Cb::Data& evt) { trigger(UIEvent_StartPlay); /* trigger start_play event */ }));
 						}
 						_uninterrupted_play_start_systime = sys_time;
 						_uninterrupted_play_start_time = _audio_buffer.time;
@@ -189,7 +189,7 @@ namespace quark {
 				Thread::wait(loop_id); // wait audio thread end
 
 				if ( is_event ) {
-					_keep->post(Cb([this](CbData& e){ Inl_AudioPlayer(this)->trigger(UIEvent_Stop); /* trigger stop event */ }));
+					_keep->post(Cb([this](Cb::Data& e){ Inl_AudioPlayer(this)->trigger(UIEvent_Stop); /* trigger stop event */ }));
 				}
 				lock.lock();
 				
@@ -258,7 +258,7 @@ namespace quark {
 		}
 		
 		// 创建解码器很耗时这会导致主线程延时,所以任务方式发送到工作线程
-		_task_id = _keep->host()->work(Cb([=](CbData& d) {
+		_task_id = _keep->host()->work(Cb([=](Cb::Data& d) {
 			if (_source != src) return; // 源已被更改,所以取消
 			
 			MediaCodec* audio = MediaCodec::create(MEDIA_TYPE_AUDIO, _source);
@@ -277,7 +277,7 @@ namespace quark {
 			} else {
 				_audio = audio;
 			}
-		}, this/*保持AutoPlayer不释放直到任务结束*/), Cb([=](CbData& d) { //任务完成后回调
+		}, this/*保持AutoPlayer不释放直到任务结束*/), Cb([=](Cb::Data& d) { //任务完成后回调
 			_task_id = 0; //
 			if ( _source != src ) return;
 			
@@ -455,7 +455,7 @@ namespace quark {
 				_audio->release( _audio_buffer );
 				_audio->flush();
 				_pcm->flush();
-				_keep->post(Cb([this](CbData& e){
+				_keep->post(Cb([this](Cb::Data& e){
 					Inl_AudioPlayer(this)->trigger(UIEvent_Seek, Uint64(_time)); // trigger seek event
 				}));
 				return true;
@@ -472,7 +472,7 @@ namespace quark {
 		if ( _status == PLAYER_STATUS_PLAYING && _duration /*没有长度信息不能暂停*/ ) {
 			_status = PLAYER_STATUS_PAUSED;
 			_uninterrupted_play_start_systime = 0;
-			_keep->post(Cb([this](CbData& e){
+			_keep->post(Cb([this](Cb::Data& e){
 				Inl_AudioPlayer(this)->trigger(UIEvent_Pause); // trigger pause event
 			}));
 		}
@@ -486,7 +486,7 @@ namespace quark {
 		if ( _status == PLAYER_STATUS_PAUSED ) {
 			_status = PLAYER_STATUS_PLAYING;
 			_uninterrupted_play_start_systime = 0;
-			_keep->post(Cb([this](CbData& e){
+			_keep->post(Cb([this](Cb::Data& e){
 				Inl_AudioPlayer(this)->trigger(UIEvent_Resume); // trigger resume event
 			}));
 		}

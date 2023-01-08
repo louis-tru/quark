@@ -79,7 +79,7 @@ namespace quark {
 
 		lock.unlock();
 		
-		_host->loop()->post(Cb([this](CbData& e){
+		_host->loop()->post(Cb([this](Cb::Data& e){
 			Qk_Trigger(Change); // 通知事件
 		}));
 
@@ -92,7 +92,7 @@ namespace quark {
 	void Display::solve_next_frame() {
 		if (_next_frame.length()) {
 			List<Cb>* cb = new List<Cb>(std::move(_next_frame));
-			_host->loop()->post(Cb([cb](CbData& e) {
+			_host->loop()->post(Cb([cb](Cb::Data& e) {
 				Handle<List<Cb>> handle(cb);
 				for ( auto& i : *cb ) {
 					i->resolve();
@@ -126,7 +126,7 @@ namespace quark {
 			UILock lock(_host);
 			if (_lock_size.x() != width || _lock_size.y() != height) {
 				_lock_size = { width, height };
-				_host->render()->post_message(Cb([this](CbData& e) {
+				_host->render()->post_message(Cb([this](Cb::Data& e) {
 					updateState();
 				}));
 			}

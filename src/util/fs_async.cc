@@ -102,7 +102,7 @@ namespace quark {
 	static void uv_fs_access_cb(uv_fs_t* req) {
 		uv_fs_req_cleanup(req);
 		Handle<FileReq> handle(FileReq::cast(req));
-		async_resolve<Object>(handle->cb(), Bool(req->result == 0));
+		async_resolve(handle->cb(), Bool(req->result == 0));
 	}
 
 	static void ls_cb(uv_fs_t* req) {
@@ -123,9 +123,9 @@ namespace quark {
 		uv_fs_req_cleanup(req);
 		Handle<FileReq> handle(FileReq::cast(req));
 		if ( req->result == 0 ) { // ok
-			async_resolve<Object>(handle->cb(), Bool(!S_ISDIR(req->statbuf.st_mode)));
+			async_resolve(handle->cb(), Bool(!S_ISDIR(req->statbuf.st_mode)));
 		} else { // err
-			async_resolve<Object>(handle->cb(), Bool(false));
+			async_resolve(handle->cb(), Bool(false));
 		}
 	}
 
@@ -133,9 +133,9 @@ namespace quark {
 		uv_fs_req_cleanup(req);
 		Handle<FileReq> handle(FileReq::cast(req));
 		if ( req->result == 0 ) { // ok
-			async_resolve<Object>(handle->cb(), Bool(S_ISDIR(req->statbuf.st_mode)));
+			async_resolve(handle->cb(), Bool(S_ISDIR(req->statbuf.st_mode)));
 		} else { // err
-			async_resolve<Object>(handle->cb(), Bool(false));
+			async_resolve(handle->cb(), Bool(false));
 		}
 	}
 
@@ -145,7 +145,7 @@ namespace quark {
 		if ( req->result == 0 ) { // ok
 			FileStat stat;
 			inl__set_file_stat(&stat, &req->statbuf);
-			async_resolve<Object>(handle->cb(), std::move(stat));
+			async_resolve(handle->cb(), std::move(stat));
 		} else { // err
 			async_err_callback(*handle);
 		}
@@ -365,9 +365,9 @@ namespace quark {
 				_dirent = &_last->dirents[_last->index];
 				
 				if ( _internal ) { // 内部优先
-					if ( _dirent->type() == FTYPE_DIR && _last->mask == 0 ) { // 目录
+					if ( _dirent->type == FTYPE_DIR && _last->mask == 0 ) { // 目录
 						_last->mask = 1;
-						into(_dirent->pathname());
+						into(_dirent->pathname);
 					} else {
 						_last->index++; //
 						_last->mask = 0;
@@ -375,7 +375,7 @@ namespace quark {
 					}
 				}
 				else {
-					if ( _dirent->type() == FTYPE_DIR ) {
+					if ( _dirent->type == FTYPE_DIR ) {
 						if ( _last->mask == 0 ) {
 							_last->mask = 1;
 							//sync_callback(_cb, nullptr, this);
@@ -383,7 +383,7 @@ namespace quark {
 						} else {
 							_last->index++;
 							_last->mask = 0;
-							into(_dirent->pathname());
+							into(_dirent->pathname);
 						}
 					} else {
 						_last->index++;
@@ -433,7 +433,7 @@ namespace quark {
 			}
 		}
 		
-		void start_cb(CbData& evt) {
+		void start_cb(Cb::Data& evt) {
 			if ( !is_abort() ) {
 				if ( evt.error ) { // err
 					abort();
@@ -475,12 +475,12 @@ namespace quark {
 	}
 
 	uint32_t fs_chmod_r(cString& path, uint32_t mode, Cb cb) {
-		auto each = NewRetain<AsyncEach>(path, Cb([mode, cb](CbData& evt) {
+		auto each = NewRetain<AsyncEach>(path, Cb([mode, cb](Cb::Data& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain(); // chmod2 回调前都保持each不被释放
 			const Dirent& dirent = each->dirent();
-			String pathname = dirent.pathname();
-			chmod2(dirent.pathname(), mode, Cb([each, cb, pathname](CbData& evt) {
+			String pathname = dirent.pathname;
+			chmod2(dirent.pathname, mode, Cb([each, cb, pathname](Cb::Data& evt) {
 				Handle<AsyncEach> handle(each);
 				each->release();
 				if ( !each->is_abort() ) {
@@ -501,10 +501,10 @@ namespace quark {
 	}
 
 	uint32_t fs_chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb) {
-		auto each = NewRetain<AsyncEach>(path, Cb([owner, group, cb](CbData& evt) {
+		auto each = NewRetain<AsyncEach>(path, Cb([owner, group, cb](Cb::Data& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain();
-			chown2(each->dirent().pathname(), owner, group, Cb([each, cb](CbData& evt) {
+			chown2(each->dirent().pathname, owner, group, Cb([each, cb](Cb::Data& evt) {
 				Handle<AsyncEach> handle(each); each->release();
 				if ( !each->is_abort() ) {
 					if ( evt.error ) {
@@ -524,7 +524,7 @@ namespace quark {
 	}
 
 	void fs_mkdir_p(cString& path, uint32_t mode, Cb cb) {
-		exists2(path, Cb([=](CbData& evt) {
+		exists2(path, Cb([=](Cb::Data& evt) {
 			if ( static_cast<Bool*>(evt.data)->value ) { // ok
 				async_callback(cb);
 			} else {
@@ -560,11 +560,11 @@ namespace quark {
 	}
 
 	uint32_t fs_remove_r(cString& path, Cb cb) {
-		auto each = NewRetain<AsyncEach>(path, Cb([cb](CbData& evt) {
+		auto each = NewRetain<AsyncEach>(path, Cb([cb](Cb::Data& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain();
 
-			Cb cb2([each, cb](CbData& evt) {
+			Cb cb2([each, cb](Cb::Data& evt) {
 				Handle<AsyncEach> handle(each); each->release();
 				if ( !each->is_abort() ) {
 					if ( evt.error ) {
@@ -575,11 +575,11 @@ namespace quark {
 					}
 				}
 			});
-			if ( each->dirent().type() == FTYPE_DIR ) {
+			if ( each->dirent().type == FTYPE_DIR ) {
 				each->loop();
-				rmdir2(each->dirent().pathname(), cb2, each->loop());
+				rmdir2(each->dirent().pathname, cb2, each->loop());
 			} else {
-				unlink2(each->dirent().pathname(), cb2, each->loop());
+				unlink2(each->dirent().pathname, cb2, each->loop());
 			}
 		}), cb, true);
 		return each->start();
@@ -600,7 +600,7 @@ namespace quark {
 			, _path(fs_format("%s", *target))
 			, _copy_task(nullptr)
 			{ //
-				is_dir2(fs_dirname(target), Cb([this](CbData& ev) {
+				is_dir2(fs_dirname(target), Cb([this](Cb::Data& ev) {
 					if ( is_abort() ) return;
 					if ( static_cast<Bool*>(ev.data)->value ) {
 						start();
@@ -613,18 +613,18 @@ namespace quark {
 			}
 			
 			inline String target() {
-				return _path + dirent().pathname().substr(_s_len); // 目标文件
+				return _path + dirent().pathname.substr(_s_len); // 目标文件
 			}
 			
-			static void each_cb(CbData& d, Object* self) {
+			static void each_cb(Cb::Data& d, Object* self) {
 				Task* t = static_cast<Task*>(self);
 				const Dirent& ent = t->dirent();
 				
-				switch (ent.type()) {
+				switch (ent.type) {
 					case FTYPE_DIR:
 						exists2(t->target(), Cb(&Task::is_directory_cb, t), t->loop()); break;
 					case FTYPE_FILE:
-						t->_copy_task = cp2(ent.pathname(), t->target(), Cb([t](CbData& ev) {
+						t->_copy_task = cp2(ent.pathname, t->target(), Cb([t](Cb::Data& ev) {
 							t->_copy_task = nullptr;
 							if ( !t->is_abort() ) {
 								if ( ev.error ) {
@@ -640,12 +640,12 @@ namespace quark {
 				}
 			}
 			
-			void error(CbData& ev) {
+			void error(Cb::Data& ev) {
 				abort();
 				async_callback(_end, ev.error);
 			}
 			
-			void is_directory_cb(CbData& evt) {
+			void is_directory_cb(Cb::Data& evt) {
 				if ( is_abort() ) return;
 				if ( evt.error ) {
 					error(evt);
@@ -654,7 +654,7 @@ namespace quark {
 						advance(); return;
 					}
 					/* create dir */
-					mkdir2(target(), fs_default_mode, Cb([this](CbData& ev) {
+					mkdir2(target(), fs_default_mode, Cb([this](Cb::Data& ev) {
 						if ( !is_abort() ) {
 							if ( ev.error ) {
 								error(ev);
@@ -922,7 +922,7 @@ namespace quark {
 					buf[(uint32_t)uv_req->result] = '\0';
 					req->data().buff = Buffer::from(buf, (uint32_t)uv_req->result);
 					Buffer& buff = req->data().buff;
-					async_resolve<Object>(req->cb(), buff);
+					async_resolve(req->cb(), buff);
 				}
 				uv_fs_close(req->uv_loop(), uv_req, req->data().fd, &fs_close_cb); // close
 			}
@@ -993,7 +993,7 @@ namespace quark {
 					auto err = uv_error(uv_req, req->data().path.c_str());
 					async_callback<Object>(req->cb(), &err, &buff);
 				} else {
-					async_resolve<Object>(req->cb(), std::move(buff));
+					async_resolve(req->cb(), std::move(buff));
 				}
 				uv_fs_close(req->uv_loop(), uv_req, req->data().fd, &fs_close_cb); // close
 			}
@@ -1045,7 +1045,7 @@ namespace quark {
 				Handle<FileReq> handle(req);
 				if ( uv_req->result > 0 ) {
 					int fd = (int)uv_req->result;
-					async_resolve<Object>(req->cb(), Int32(fd));
+					async_resolve(req->cb(), Int32(fd));
 				} else { // open file fail
 					async_err_callback(req->cb(), uv_req, *req->data().path);
 				}

@@ -128,7 +128,7 @@ namespace quark {
 		inline RunLoop* loop() { return _keep->host(); }
 		inline uv_loop_t* uv_loop() { return loop()->uv_loop(); }
 		
-		void report_err_from_loop(CbData& evt) {
+		void report_err_from_loop(Cb::Data& evt) {
 			_delegate->trigger_socket_error(_host, *evt.error);
 		}
 		
@@ -156,7 +156,7 @@ namespace quark {
 			report_err(Error(ERR_NOT_OPTN_TCP_CONNECT, "not tcp connect or open connecting"), async);
 		}
 		
-		void timeout_cb2(CbData& evt) {
+		void timeout_cb2(Cb::Data& evt) {
 			_delegate->trigger_socket_timeout(_host);
 		}
 		
@@ -639,7 +639,7 @@ namespace quark {
 			Inl::shutdown();
 		}
 		
-		static void trigger_socket_write_from_loop(CbData& evt, SSLSocketWriteReq* req) {
+		static void trigger_socket_write_from_loop(Cb::Data& evt, SSLSocketWriteReq* req) {
 			Handle<SSLSocketWriteReq> req_(req);
 			req->ctx()->_delegate->trigger_socket_write(req->ctx()->_host, req->data().raw_buffer,
 																									req->data().mark);

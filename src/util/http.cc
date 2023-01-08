@@ -693,7 +693,7 @@ namespace quark {
 				for (auto& i : _pool) {
 					auto con = i;
 					con->_id = ConnectID();
-					con->_loop->post(Cb([con](CbData& e){
+					con->_loop->post(Cb([con](Cb::Data& e){
 						Release(con);
 					}));
 				}
@@ -733,7 +733,7 @@ namespace quark {
 					}
 				}
 				if (conn) {
-					CbData evt = { 0, conn };
+					Cb::Data evt = { 0, conn };
 					cb->call(evt);
 				}
 			}
@@ -771,7 +771,7 @@ namespace quark {
 							connect_count--;
 							_pool.erase(conn2->_id);
 							conn2->_id = ConnectID();
-							conn2->loop()->post(Cb([conn2](CbData& e) {
+							conn2->loop()->post(Cb([conn2](Cb::Data& e) {
 								conn2->release();
 							}));
 						}
@@ -820,7 +820,7 @@ namespace quark {
 							// _connect_req.del(i);
 							_connect_req.erase(j);
 							lock.unlock(); // unlock
-							CbData evt = { 0, conn };
+							Cb::Data evt = { 0, conn };
 							cb->call( evt );
 							break;
 						}
@@ -1314,7 +1314,7 @@ namespace quark {
 			Qk_ASSERT(_sending);
 			Qk_ASSERT(!_connect);
 			Qk_ASSERT(_pool_ptr);
-			_pool_ptr->get_connect(this, Cb([this](CbData& evt) {
+			_pool_ptr->get_connect(this, Cb([this](Cb::Data& evt) {
 				if ( _wait_connect_id ) {
 					if ( evt.error ) {
 						report_error_and_abort(*evt.error);
@@ -1327,7 +1327,7 @@ namespace quark {
 			}, this));
 		}
 		
-		void cache_file_stat_cb(CbData& evt) {
+		void cache_file_stat_cb(Cb::Data& evt) {
 			if ( _sending ) {
 				if ( evt.error ) { //
 					send_http();

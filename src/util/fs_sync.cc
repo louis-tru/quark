@@ -51,23 +51,23 @@ namespace quark {
 								uv_err_name((int)errno), uv_strerror((int)err), msg ? msg: "");
 	}
 
-	static bool each_sync(Array<Dirent>& ls, Cb cb, bool internal) throw(Error) {
+	static bool each_sync(Array<Dirent>& ls, Callback<Dirent> cb, bool internal) throw(Error) {
 		for ( auto& dirent : ls ) {
 			if ( !internal ) { // 外部优先
-				CbData d = {0, &dirent,1};
+				Callback<Dirent>::Data d = {0, &dirent,1};
 				cb->call(d);
 				if ( !d.rc ) { // 停止遍历
 					return false;
 				}
 			}
-			if ( dirent.type() == FTYPE_DIR ) { // 目录
-				auto ls = fs_readdir_sync(dirent.pathname());
+			if ( dirent.type == FTYPE_DIR ) { // 目录
+				auto ls = fs_readdir_sync(dirent.pathname);
 				if ( !each_sync(ls, cb, internal) ) { // 停止遍历
 					return false;
 				}
 			}
 			if ( internal ) { // 内部优先
-				CbData d = {0,&dirent,1};
+				Callback<Dirent>::Data d = {0,&dirent,1};
 				cb->call(d);
 				if ( !d.rc ) { // 停止遍历
 					return false;
@@ -78,7 +78,7 @@ namespace quark {
 	}
 
 	static bool each_sync_1(
-		cString& path, Cb cb, bool internal, bool skip_empty_path = false) throw(Error) 
+		cString& path, Callback<Dirent> cb, bool internal, bool skip_empty_path = false) throw(Error) 
 	{
 		FileStat stat;
 		try {
@@ -100,7 +100,7 @@ namespace quark {
 		return quark::each_sync(ls, cb, internal);
 	}
 
-	bool fs_each_sync(cString& path, Cb cb, bool internal) throw(Error) {
+	bool fs_each_sync(cString& path, Callback<Dirent> cb, bool internal) throw(Error) {
 		return quark::each_sync_1(path, cb, internal, false);
 	}
 
@@ -307,15 +307,15 @@ namespace quark {
 		
 		uv_fs_t req;
 		
-		return fs_each_sync(path, Cb([&](CbData& d) {
+		return fs_each_sync(path, Callback<Dirent>([&](Callback<Dirent>::Data& d) {
 			if ( *stop_signal ) { // 停止信号
 				d.rc = false;
 			} else {
-				Dirent* dirent = static_cast<Dirent*>(d.data);
+				Dirent* dirent = d.data;
 				int r = uv_fs_chmod(uv_default_loop(), &req,
-														fs_fallback_c(dirent->pathname()), mode, nullptr);
+														fs_fallback_c(dirent->pathname), mode, nullptr);
 				if (r != 0) {
-					uv_error(r, *dirent->pathname());
+					uv_error(r, *dirent->pathname);
 				}
 				d.rc = 1;
 			}
@@ -329,15 +329,15 @@ namespace quark {
 		}
 		uv_fs_t req;
 		
-		return fs_each_sync(path, Cb([&](CbData& d) {
+		return fs_each_sync(path, Callback<Dirent>([&](Callback<Dirent>::Data& d) {
 			if (*stop_signal) { // 停止信号
 				d.rc = 0;
 			} else {
-				Dirent* dirent = static_cast<Dirent*>(d.data);
+				Dirent* dirent = d.data;
 				int r = uv_fs_chown(uv_default_loop(), &req,
-														fs_fallback_c(dirent->pathname()), owner, group, nullptr);
+														fs_fallback_c(dirent->pathname), owner, group, nullptr);
 				if (r != 0) {
-					uv_error(r, *dirent->pathname());
+					uv_error(r, *dirent->pathname);
 				}
 				d.rc = 1;
 			}
@@ -351,20 +351,20 @@ namespace quark {
 		}
 		uv_fs_t req;
 
-		return each_sync_1(path, Cb([&](CbData& d) {
+		return each_sync_1(path, Callback<Dirent>([&](Callback<Dirent>::Data& d) {
 			if ( *stop_signal ) { // 停止信号
 				d.rc = 0;
 			} else {
-				Dirent* dirent = static_cast<Dirent*>(d.data);
-				cChar* p = fs_fallback_c(dirent->pathname());
+				Dirent* dirent = d.data;
+				cChar* p = fs_fallback_c(dirent->pathname);
 				int r;
-				if ( dirent->type() == FTYPE_DIR ) {
+				if ( dirent->type == FTYPE_DIR ) {
 					r = uv_fs_rmdir(uv_default_loop(), &req, p, nullptr);
 				} else {
 					r = uv_fs_unlink(uv_default_loop(), &req, p, nullptr);
 				}
 				if (r != 0) {
-					uv_error(r, *dirent->pathname());
+					uv_error(r, *dirent->pathname);
 				}
 				d.rc = 1;
 			}
@@ -424,18 +424,18 @@ namespace quark {
 		uint32_t s_len = fs_format("%s", *source).length();
 		String path = fs_format("%s", *target);
 		
-		return fs_each_sync(source, Cb([&](CbData& d) {
+		return fs_each_sync(source, Callback<Dirent>([&](Callback<Dirent>::Data& d) {
 			
-			Dirent* dirent = static_cast<Dirent*>(d.data);
-			String target = path + dirent->pathname().substr(s_len); // 目标文件
+			Dirent* dirent = d.data;
+			String target = path + dirent->pathname.substr(s_len); // 目标文件
 
-			switch (dirent->type()) {
+			switch (dirent->type) {
 				case FTYPE_DIR:
 					fs_mkdir_sync(target); /* create dir */
 					d.rc = 1;
 					break;
 				case FTYPE_FILE:
-					d.rc = cp_sync2(dirent->pathname(), target, stop_signal);
+					d.rc = cp_sync2(dirent->pathname, target, stop_signal);
 					break;
 				default: break;
 			}

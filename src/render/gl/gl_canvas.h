@@ -1,3 +1,4 @@
+// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,66 +29,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__render__source_pool__
-#define __quark__render__source_pool__
+#ifndef __quark_render_gl_glcanvas__
+#define __quark_render_gl_glcanvas__
 
-#include "./source.h"
-#include "../util/array.h"
+#include "../canvas.h"
 
 namespace quark {
 
-	class Application;
-
-	/**
-	* @class ImageSourcePool
-	*/
-	class Qk_EXPORT ImageSourcePool: public Object {
-		Qk_HIDDEN_ALL_COPY(ImageSourcePool);
+	class GLCanvas: public Canvas {
 	public:
-		
-		/**
-		 * @constructor
-		 */
-		ImageSourcePool(Application* host);
-		
-		/**
-		 * @destructor
-		 */
-		virtual ~ImageSourcePool();
-
-		/**
-		 * @func total_data_size() returns the data memory size total
-		 */
-		uint64_t total_data_size() const { return _total_data_size; }
-
-		/**
-		 * @func get(uri) get image source by uri
-		 */
-		ImageSource* get(cString& uri);
-
-		/**
-		 * @func remove(id) remove image source member
-		 */
-		void remove(cString& uri);
-
-		/**
-			* @func clear(full?: bool) clear memory
-			*/
-		void clear(bool full = false);
-		
-	private:
-		struct Member {
-			uint32_t size;
-			Handle<ImageSource> source;
-		};
-		Dict<uint64_t, Member> _sources;
-		uint64_t _total_data_size; /* 当前数据占用memory总容量 */
-		Mutex _Mutex;
-		Application* _host;
-		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
-
-	typedef ImageSourcePool ImagePool;
 
 }
 #endif
