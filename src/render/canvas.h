@@ -29,53 +29,23 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __quark__render__canvas__
+#define __quark__render__canvas__
 
-#ifndef __ftr__render_render__
-#define __ftr__render_render__
-
-#include "../util/loop.h"
-#include "../util/json.h"
-#include "../math.h"
-#include "./source.h"
-#include "../layout/view.h"
-#include "./canvas.h"
-
-#ifndef Qk_USE_DEFAULT_THREAD_RENDER
-#define Qk_USE_DEFAULT_THREAD_RENDER 1
-#endif
+#include "../util/util.h"
 
 namespace quark {
 
-	class Application;
-
 	/**
-	* @class Render
-	*/
-	class Qk_EXPORT Render: public Object, public PostMessage {
-		Qk_HIDDEN_ALL_COPY(Render);
+	 * @class Canvas base abstract type, define all draw apis
+	 */
+	class Qk_EXPORT Canvas: public Object {
+		Qk_HIDDEN_ALL_COPY(Canvas);
 	public:
-		struct Options {
-			ColorType colorType;
-			int  msaaSampleCnt; // gpu msaa
-			int  stencilBits;   // gpu stencil
-		};
-		static Options parseOptions(cJSON& json);
-		static Render* Make(Application* host, const Options& opts);
-
-		virtual ~Render();
-		virtual void reload() = 0;
-		virtual void begin() = 0;
-		virtual void submit() = 0;
-		virtual void activate(bool isActive);
-		virtual ViewVisitor* visitor() = 0;
-		inline  Application* host() { return _host; }
-		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
-
-	protected:
-		Render(Application* host, const Options& opts);
-		Application*  _host;
-		Options       _opts;
+		virtual void drawPath() = 0;
+		virtual void drawGlyphs() = 0;
 	};
 
 }
+
 #endif
