@@ -344,8 +344,8 @@ static NSString* appDelegateName = @"";
 
 // ***************** A p p l i c a t i o n *****************
 
-Render* Render::Make(Application* host, const Options& opts) {
-	renderApple = RenderApple::Make(host, opts);
+Render* Render::Make(Application* host) {
+	renderApple = RenderApple::Make(host);
 	return renderApple->render();
 }
 

@@ -35,14 +35,14 @@
 
 namespace quark {
 
-	PathLine PathLine::Oval(struct Rect r) {
+	Path Path::Oval(struct Rect r) {
 		float w = r.size.x(), h = r.size.y();
 		float x = r.origin.x(), y = r.origin.y();
 		float x2 = x + w / 2, y2 = y + h / 2;
 		float x3 = x + w, y3 = y + h;
 		float cx = w / 2 * 0.552284749831f, cy = h / 2 * 0.552284749831f;
 
-		PathLine path(Vec2(x2, y)); // move
+		Path path(Vec2(x2, y)); // move
 		float a[] = {x2 + cx, y, x3, y2 - cy, x3, y2}; path.cubic_to2(a); // top,right
 		float b[] = {x3, y2 + cy, x2 + cx, y3, x2, y3}; path.cubic_to2(b); // right,bottom
 		float c[] = {x2 - cx, y3, x, y2 + cy, x, y2}; path.cubic_to2(c); // bottom,left
@@ -52,8 +52,8 @@ namespace quark {
 		return path;
 	}
 
-	PathLine PathLine::Rect(struct Rect r) {
-		PathLine path(r.origin);
+	Path Path::Rect(struct Rect r) {
+		Path path(r.origin);
 		float x2 = r.origin.x() + r.size.x();
 		float y2 = r.origin.y() + r.size.y();
 		path.line_to(Vec2(x2, r.origin.y()));
@@ -63,42 +63,42 @@ namespace quark {
 		return path;
 	}
 
-	PathLine PathLine::Circle(Vec2 center, float radius) {
+	Path Path::Circle(Vec2 center, float radius) {
 		return Oval({ Vec2(center.x() - radius / 2, center.y() - radius / 2), Vec2(radius) * 2 });
 	}
 
-	PathLine::PathLine(Vec2 move): _IsNormalized(true) {
+	Path::Path(Vec2 move): _IsNormalized(true) {
 		move_to(move);
 	}
 
-	PathLine::PathLine(Vec2* pts, int len, PathVerb* verbs, int verbsLen): _IsNormalized(false) {
+	Path::Path(Vec2* pts, int len, PathVerb* verbs, int verbsLen): _IsNormalized(false) {
 		// Qk_ASSERT(verbs[0] == kVerb_Move);
 		_pts.write((float*)pts, -1, len * 2);
 		_verbs.write((uint8_t*)verbs, -1, verbsLen);
 	}
 
-	PathLine::PathLine(): _IsNormalized(true) {}
+	Path::Path(): _IsNormalized(true) {}
 
-	void PathLine::move_to(Vec2 to) {
+	void Path::move_to(Vec2 to) {
 		// _pts.push(to.x()); _pts.push(to.y());
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Move);
 	}
 
-	void PathLine::line_to(Vec2 to) {
+	void Path::line_to(Vec2 to) {
 		// _pts.push(to);
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Line);
 	}
 
-	void PathLine::quad_to(Vec2 control, Vec2 to) {
+	void Path::quad_to(Vec2 control, Vec2 to) {
 		_pts.write(control.val, -1, 2);
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Quad);
 		_IsNormalized = false;
 	}
 
-	void PathLine::cubic_to(Vec2 control1, Vec2 control2, Vec2 to) {
+	void Path::cubic_to(Vec2 control1, Vec2 control2, Vec2 to) {
 		//_pts.push(control1[0]); _pts.push(control1[1]);
 		//_pts.push(control2[0]); _pts.push(control2[1]);
 		//_pts.push(to[0]); _pts.push(to[1]);
@@ -109,23 +109,23 @@ namespace quark {
 		_IsNormalized = false;
 	}
 
-	void PathLine::quad_to2(float *p) {
+	void Path::quad_to2(float *p) {
 		_pts.write(p, -1, 4);
 		_verbs.push(kVerb_Quad);
 		_IsNormalized = false;
 	}
 
-	void PathLine::cubic_to2(float *p) {
+	void Path::cubic_to2(float *p) {
 		_pts.write(p, -1, 6);
 		_verbs.push(kVerb_Cubic);
 		_IsNormalized = false;
 	}
 
-	void PathLine::close() {
+	void Path::close() {
 		_verbs.push(kVerb_Close);
 	}
 
-	Array<Vec2> PathLine::to_polygon(int polySize) const {
+	Array<Vec2> Path::to_polygon(int polySize) const {
 		TESStesselator* tess = tessNewTess(nullptr);
 		CPointer<TESStesselator> hold(tess, [](TESStesselator*p) { tessDeleteTess(p); });
 
@@ -155,7 +155,7 @@ namespace quark {
 					// Qk_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
 					QuadraticBezier bezier(tmpV.back(), pts[0], pts[1]);
 					pts+=2;
-					int sample = PathLine::get_quadratic_bezier_sample(bezier);
+					int sample = Path::get_quadratic_bezier_sample(bezier);
 					tmpV.extend(tmpV.length() + sample - 1);
 					bezier.sample_curve_points(sample, (float*)&tmpV[tmpV.length() - sample]);
 					len += sample - 1;
@@ -166,7 +166,7 @@ namespace quark {
 					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
 					CubicBezier bezier(tmpV.back(), pts[0], pts[1], pts[2]);
 					pts+=3;
-					int sample = PathLine::get_cubic_bezier_sample(bezier);
+					int sample = Path::get_cubic_bezier_sample(bezier);
 					tmpV.extend(tmpV.length() + sample - 1);
 					bezier.sample_curve_points(sample, (float*)&tmpV[tmpV.length() - sample]);
 					len += sample - 1;
@@ -204,7 +204,7 @@ namespace quark {
 		return polygons;
 	}
 
-	Array<Vec2> PathLine::to_edge_line() const {
+	Array<Vec2> Path::to_edge_line() const {
 		const Vec2* pts = ((const Vec2*)*_pts) - 1;
 		Array<Vec2> edges;
 		int len = 0;
@@ -226,7 +226,7 @@ namespace quark {
 				case kVerb_Quad: { // Quadratic
 					//  Qk_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
 					QuadraticBezier bezier(isZeor ? Vec2(): pts[0], pts[1], pts[2]); pts+=2;
-					int sample = PathLine::get_quadratic_bezier_sample(bezier);
+					int sample = Path::get_quadratic_bezier_sample(bezier);
 					auto points = bezier.sample_curve_points(sample);
 					for (int i = 0; i < sample - 1; i++) {
 						edges.push(points[i]); edges.push(points[i + 1]); // add edge line
@@ -239,7 +239,7 @@ namespace quark {
 					//  Qk_DEBUG("cubic_to:%f,%f|%f,%f|%f,%f",
 					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
 					CubicBezier bezier(isZeor ? Vec2(): pts[0], pts[1], pts[2], pts[3]); pts+=3;
-					int sample = PathLine::get_cubic_bezier_sample(bezier);
+					int sample = Path::get_cubic_bezier_sample(bezier);
 					auto points = bezier.sample_curve_points(sample);
 					for (int i = 0; i < sample - 1; i++) {
 						edges.push(points[i]); edges.push(points[i + 1]); // add edge line
@@ -261,7 +261,7 @@ namespace quark {
 		return edges;
 	}
 
-	void PathLine::transfrom(const Mat& matrix) {
+	void Path::transfrom(const Mat& matrix) {
 		float* pts = *_pts;
 		float* e = pts + _pts.length();
 		while (pts < e) {
@@ -270,7 +270,7 @@ namespace quark {
 		}
 	}
 
-	void PathLine::scale(Vec2 scale) {
+	void Path::scale(Vec2 scale) {
 		float* pts = *_pts;
 		float* e = pts + _pts.length();
 		while (pts < e) {
@@ -280,12 +280,12 @@ namespace quark {
 		}
 	}
 
-	PathLine PathLine::normalized() const {
+	Path Path::normalized() const {
 		if (_IsNormalized)
 			return *this; // copy self
 
 		const Vec2* pts = ((const Vec2*)*_pts);
-		PathLine line;
+		Path line;
 		bool isZeor = true;
 
 		for (auto verb: _verbs) {
@@ -305,7 +305,7 @@ namespace quark {
 						line.move_to(Vec2());
 					QuadraticBezier bezier(line._pts.back(), pts[0], pts[1]);
 					pts+=2;
-					int sample = PathLine::get_quadratic_bezier_sample(bezier) - 1;
+					int sample = Path::get_quadratic_bezier_sample(bezier) - 1;
 					line._pts.extend(line._pts.length() + sample * 2);
 					bezier.sample_curve_points(sample, &line._pts[line._pts.length() - sample * 2 - 2]);
 					line._verbs.extend(line._verbs.length() + sample);
@@ -318,7 +318,7 @@ namespace quark {
 						line.move_to(Vec2());
 					CubicBezier bezier(line._pts.back(), pts[0], pts[1], pts[2]);
 					pts+=3;
-					int sample = PathLine::get_cubic_bezier_sample(bezier) - 1;
+					int sample = Path::get_cubic_bezier_sample(bezier) - 1;
 					line._pts.extend(line._pts.length() + sample * 2);
 					bezier.sample_curve_points(sample, &line._pts[line._pts.length() - sample * 2 - 2]);
 					line._verbs.extend(line._verbs.length() + sample);
@@ -336,18 +336,18 @@ namespace quark {
 		return std::move(line);
 	}
 
-	PathLine PathLine::clip(const PathLine& path) const {
+	Path Path::clip(const Path& path) const {
 		// TODO ...
 		auto path0 = path.normalized();
 		auto path1 = normalized();
-		return PathLine();
+		return Path();
 	}
 
-	int PathLine::get_quadratic_bezier_sample(const QuadraticBezier& curve) {
+	int Path::get_quadratic_bezier_sample(const QuadraticBezier& curve) {
 		return 16;
 	}
 
-	int PathLine::get_cubic_bezier_sample(const CubicBezier& curve) {
+	int Path::get_cubic_bezier_sample(const CubicBezier& curve) {
 		return 20;
 	}
 

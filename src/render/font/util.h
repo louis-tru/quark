@@ -1,3 +1,4 @@
+//@private
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *

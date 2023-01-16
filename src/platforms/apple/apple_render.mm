@@ -91,7 +91,7 @@ namespace quark {
 	template<class RenderIMPL>
 	class AppleMetalRender: public RenderIMPL, public RenderApple {
 	public:
-		AppleMetalRender(Application* host, const Render::Options& opts, bool raster): RenderIMPL(host, opts, raster)
+		AppleMetalRender(Application* host, bool raster): RenderIMPL(host, opts, raster)
 		{}
 		UIView* init(CGRect rect) override {
 			MTKView* view = this->_view = [[MTKView alloc] initWithFrame:rect device:nil];
@@ -150,8 +150,8 @@ namespace quark {
 	template<class RenderIMPL>
 	class AppleGLRender: public RenderIMPL, public AppleGLRenderBase {
 	public:
-		AppleGLRender(Application* host, const Render::Options& params, EAGLContext* ctx, bool raster)
-			: RenderIMPL(host, params, raster), AppleGLRenderBase(ctx)
+		AppleGLRender(Application* host, EAGLContext* ctx, bool raster)
+			: RenderIMPL(host, raster), AppleGLRenderBase(ctx)
 		{
 			//_is_support_multisampled = true;
 		}
@@ -159,11 +159,11 @@ namespace quark {
 		void onRenderbufferStorage(uint32_t target) override { renderbufferStorage(target); }
 		void onSwapBuffers() override { swapBuffers(); }
 
-		static AppleGLRender* New(Application* host, const Render::Options& parems, bool raster) {
+		static AppleGLRender* New(Application* host, bool raster) {
 			EAGLContext* ctx = [EAGLContext alloc];
 			if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
 				[EAGLContext setCurrentContext:ctx];
-				return new AppleGLRender<RenderIMPL>(host, parems, ctx, raster);
+				return new AppleGLRender<RenderIMPL>(host, ctx, raster);
 			}
 			return nullptr;
 		}
@@ -178,17 +178,17 @@ namespace quark {
 # define Qk_ENABLE_METAL 1
 #endif
 
-	RenderApple* RenderApple::Make(Application* host, const Render::Options& opts) {
+	RenderApple* RenderApple::Make(Application* host) {
 		RenderApple* r = nullptr;
 
 		if (Qk_ENABLE_GPU) {
 			if (@available(macOS 10.11, iOS 13.0, *)) {
 				if (Qk_ENABLE_METAL)
-					r = new AppleMetalRender<SkiaMetalRender>(host, opts, false);
+					r = new AppleMetalRender<SkiaMetalRender>(host, false);
 			}
 #if Qk_ENABLE_GL
 			if (!r) {
-				r = AppleGLRender<SkiaGLRender>::New(host, opts, false);
+				r = AppleGLRender<SkiaGLRender>::New(host, false);
 			}
 #endif
 		}
@@ -196,11 +196,11 @@ namespace quark {
 		if (!r) {
 			if (@available(macOS 10.11, iOS 13.0, *)) {
 				if (Qk_ENABLE_METAL)
-					r = new AppleMetalRender<SkiaMetalRender>(host, opts, true);
+					r = new AppleMetalRender<SkiaMetalRender>(host, true);
 			}
 #if Qk_ENABLE_GL
 			if (!r) {
-				r = AppleGLRender<SkiaGLRender>::New(host, opts, true);
+				r = AppleGLRender<SkiaGLRender>::New(host, true);
 			}
 #endif
 		}

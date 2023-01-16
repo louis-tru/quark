@@ -49,17 +49,16 @@ namespace quark {
 	class Application;
 
 	/**
-	* @class Render
-	*/
+	 * @class Render drawing management
+	 */
 	class Qk_EXPORT Render: public PostMessage {
 	public:
 		struct Options {
-			ColorType colorType;
-			int  msaaSampleCnt; // gpu msaa
-			int  stencilBits;   // gpu stencil
+			ColorType   colorType;
+			int         msaaSampleCnt; // gpu msaa
+			int         stencilBits;   // gpu stencil
 		};
-		static Options parseOptions(cJSON& json);
-		static Render* Make(Application* host, const Options& opts);
+		static Render* Make(Application* host);
 
 		virtual ~Render();
 		virtual void         reload() = 0;
@@ -68,11 +67,12 @@ namespace quark {
 		virtual void         activate(bool isActive);
 		virtual ViewVisitor* visitor() = 0;
 		virtual Canvas*      canvas() = 0;
-		inline  Application* host() { return _host; }
 		virtual uint32_t     post_message(Cb cb, uint64_t delay_us = 0) override;
 
+		inline  Application* host() { return _host; }
+
 	protected:
-		Render(Application* host, const Options& opts);
+		Render(Application* host);
 		Application*  _host;
 		Options       _opts;
 	};

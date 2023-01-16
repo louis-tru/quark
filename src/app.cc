@@ -187,7 +187,7 @@ namespace quark {
 		return true;
 	}
 	
-	Application::Application(JSON opts)
+	Application::Application(Options opts)
 		: Qk_Init_Event(Load)
 		, Qk_Init_Event(Unload)
 		, Qk_Init_Event(Background)
@@ -234,7 +234,7 @@ namespace quark {
 		// Release(_action_direct); _action_direct = nullptr;
 		Release(_display);     _display = nullptr;
 		Release(_pre_render);  _pre_render = nullptr;
-		Release(_render);      _render = nullptr;
+		Release(dynamic_cast<Object*>(_render));      _render = nullptr;
 		Release(_keep);        _keep = nullptr; _loop = nullptr;
 		Release(_font_pool);   _font_pool = nullptr;
 		Release(_img_pool);    _img_pool = nullptr;
@@ -250,7 +250,7 @@ namespace quark {
 	void Application::run(bool is_loop) throw(Error) {
 		UILock lock(this);
 		if (!_keep) { // init
-			_render = Render::Make(this, Render::parseOptions(_opts)); Qk_DEBUG("Render::Make() ok");
+			_render = Render::Make(this); Qk_DEBUG("Render::Make() ok");
 			_loop = RunLoop::current();
 			_keep = _loop->keep_alive("Application::run(), keep"); // 保持运行
 			__run_main_wait->awaken(); // 外部线程继续运行

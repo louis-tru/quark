@@ -33,6 +33,8 @@
 #define __quark_render_canvas__
 
 #include "../util/util.h"
+#include "./path.h"
+#include "./pixel.h"
 
 namespace quark {
 
@@ -42,7 +44,18 @@ namespace quark {
 	class Qk_EXPORT Canvas: public Object {
 		Qk_HIDDEN_ALL_COPY(Canvas);
 	public:
-		virtual void drawPath() = 0;
+		enum ClipOp {
+			kDifference    = 0,
+			kIntersect     = 1,
+		};
+		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) = 0;
+		virtual void clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) = 0;
+		virtual void clipPath(const Path& path, ClipOp op, bool doAntiAlias) = 0;
+		virtual void drawColor(const Color4f& color) = 0;
+		inline  void drawColor(const Color& color) {
+			drawColor(color.to_color4f());
+		}
+		virtual void drawPath(const Path& path) = 0;
 		virtual void drawGlyphs() = 0;
 	};
 

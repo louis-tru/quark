@@ -32,9 +32,9 @@
 #define __quark__layout__label__
 
 #include "./view.h"
-#include "../text_blob.h"
-#include "../text_lines.h"
-#include "../text_opts.h"
+#include "../text/text_blob.h"
+#include "../text/text_lines.h"
+#include "../text/text_opts.h"
 
 namespace quark {
 

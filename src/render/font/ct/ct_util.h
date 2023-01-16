@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__font__mac_util__
-#define __quark__font__mac_util__
+#ifndef __quark__font__ct_util__
+#define __quark__font__ct_util__
 
 #if Qk_OSX
 # include <ApplicationServices/ApplicationServices.h>

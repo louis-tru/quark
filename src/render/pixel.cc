@@ -62,6 +62,7 @@ namespace quark {
 			case kColor_Type_RGB_888: return 3;
 			case kColor_Type_RGBA_5551: return 2;
 			case kColor_Type_Luminance_Alpha_88: return 2;
+			case kColor_Type_SDF_Float: return 4;
 		}
 	}
 

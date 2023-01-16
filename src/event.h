@@ -35,7 +35,7 @@
 #include "./util/handle.h"
 #include "./math.h"
 #include "./types.h"
-#include "./text_input.h"
+#include "./text/text_input.h"
 
 // all ui events / NAME, FLAG
 #define Qk_UI_Events(F) \

@@ -62,7 +62,7 @@ namespace quark {
 		virtual void onSwapBuffers() = 0;
 		virtual void onReload() = 0;
 		virtual void onSubmit() = 0;
-		GLRender(Application* host, const Options& opts);
+		GLRender(Application* host);
 		uint32_t  _render_buffer, _frame_buffer;
 		uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
 		bool _is_support_multisampled;

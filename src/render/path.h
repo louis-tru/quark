@@ -37,7 +37,7 @@
 
 namespace quark {
 
-	class Qk_EXPORT PathLine: public Object {
+	class Qk_EXPORT Path: public Object {
 	public:
 		enum PathVerb: uint8_t {
 			kVerb_Move = 0, // move
@@ -46,12 +46,12 @@ namespace quark {
 			kVerb_Cubic, // Cubic bezier
 			kVerb_Close, // close
 		};
-		static PathLine Oval(Rect rect);
-		static PathLine Rect(Rect rect);
-		static PathLine Circle(Vec2 center, float radius);
-		PathLine();
-		PathLine(Vec2 move);
-		PathLine(Vec2* pts, int len, PathVerb* verbs, int verbsLen);
+		static Path Oval(Rect rect);
+		static Path Rect(Rect rect);
+		static Path Circle(Vec2 center, float radius);
+		Path();
+		Path(Vec2 move);
+		Path(Vec2* pts, int len, PathVerb* verbs, int verbsLen);
 		// add path points
 		void move_to(Vec2 to);
 		void line_to(Vec2 to);
@@ -71,8 +71,8 @@ namespace quark {
 		// scale transfrom
 		void scale(Vec2 scale);
 		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
-		PathLine normalized() const; // normal
-		PathLine clip(const PathLine& path) const;
+		Path normalized() const; // normal
+		Path clip(const Path& path) const;
 		// estimate sample rate
 		static int get_quadratic_bezier_sample(const QuadraticBezier& curve);
 		static int get_cubic_bezier_sample(const CubicBezier& curve);

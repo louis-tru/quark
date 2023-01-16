@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__font__mac_typeface__
-#define __quark__font__mac_typeface__
+#ifndef __quark__font__ct_typeface__
+#define __quark__font__ct_typeface__
 
 #include "../../../types.h"
 #include "./ct_util.h"

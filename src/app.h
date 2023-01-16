@@ -36,6 +36,7 @@
 #include "./util/loop.h"
 #include "./util/json.h"
 #include "./types.h"
+#include "./render/render.h"
 
 #define Qk_Main() \
 	int __f_main__(int, Char**); \
@@ -44,10 +45,8 @@
 
 namespace quark {
 
-	class Application;
 	class Display;
 	class PreRender;
-	class Render;
 	class View;
 	class Root;
 	class EventDispatch;
@@ -70,6 +69,10 @@ namespace quark {
 	class Qk_EXPORT Application: public Object {
 		Qk_HIDDEN_ALL_COPY(Application);
 	public:
+
+		struct Options {
+			Render::Options render;
+		};
 
 		Qk_Event(Load);
 		Qk_Event(Unload);
@@ -94,7 +97,7 @@ namespace quark {
 			bool _lock;
 		};
 
-		Application(JSON opts = JSON::object());
+		Application(Options opts = {});
 
 		/**
 		* @destructor
@@ -114,7 +117,7 @@ namespace quark {
 		/**
 		 * @func options application options
 		 */
-		inline cJSON& options() const { return _opts; }
+		inline const Options& options() const { return _opts; }
 
 		Qk_DEFINE_PROP_GET(bool, is_loaded);
 		Qk_DEFINE_PROP_GET(DefaultTextOptions*, default_text_options); // 默认文本设置
@@ -185,7 +188,7 @@ namespace quark {
 
 	private:
 		static Application*  _shared;   // 当前应用程序
-		JSON           _opts;
+		Options        _opts;
 		KeepLoop*      _keep;
 		EventDispatch* _dispatch;
 		RecursiveMutex _render_mutex;

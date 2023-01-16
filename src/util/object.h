@@ -193,19 +193,14 @@ namespace quark {
 	};
 
 	Qk_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
-
 	Qk_EXPORT bool Retain(Object* obj);
 	Qk_EXPORT void Release(Object* obj);
 
 	template<class T, typename... Args>
-	inline T* New(Args... args) {
-		return new T(args...);
-	}
+	inline T* New(Args... args) { return new T(args...); }
 
 	template<class T, typename... Args>
-	inline T* NewRetain(Args... args) {
-		T* r = new T(args...); return r->retain(), r;
-	}
+	inline T* NewRetain(Args... args) { T* r = new T(args...); return r->retain(), r; }
 
 }
 #endif

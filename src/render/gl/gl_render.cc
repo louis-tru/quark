@@ -45,8 +45,8 @@ namespace quark {
 		}
 	}
 
-	GLRender::GLRender(Application* host, const Options& opts)
-		: Render(host, opts)
+	GLRender::GLRender(Application* host)
+		: Render(host)
 		, _frame_buffer(0), _is_support_multisampled(false)
 	{
 
