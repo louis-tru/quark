@@ -29,34 +29,32 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark_render_canvas__
-#define __quark_render_canvas__
+#ifndef __quark_render_gradient__
+#define __quark_render_gradient__
 
-#include "../util/util.h"
-#include "./path.h"
-#include "./pixel.h"
-#include "./paint.h"
+#include "../math.h"
 
 namespace quark {
 
-	/**
-	 * @class Canvas base abstract type, define all draw apis
-	 */
-	class Qk_EXPORT Canvas: public Object {
-		Qk_HIDDEN_ALL_COPY(Canvas);
+	class Qk_EXPORT GradientPaint: public Reference {
 	public:
-		enum ClipOp {
-			kDifference_ClipOp,
-			kIntersect_ClipOp,
-		};
-		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) = 0;
-		virtual void clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) = 0;
-		virtual void clipPath(const Path& path, ClipOp op, bool doAntiAlias) = 0;
-		virtual void drawColor(const Color4f& color, BlendMode mode = kSrcOver_BlendMode) = 0;
-		virtual void drawPaint(const Paint& paint) = 0;
-		virtual void drawRect(const Rect& rect, const Paint& paint) = 0;
-		virtual void drawPath(const Path& path, const Paint& paint) = 0;
-		virtual void drawGlyphs() = 0;
+		enum GradientType { kLinear, kRadial, /*kConical,*/};
+
+		static GradientPaint* Linear(Array<Color4f>&& colors, Array<float> &&pos, Vec2 start, Vec2 end);
+		static GradientPaint* Radial(Array<Color4f>&& colors, Array<float> &&pos, Vec2 center, float radial);
+
+		Qk_DEFINE_PROP_GET(GradientType, type);
+		Qk_DEFINE_PROP_GET(Vec2, start);
+		Qk_DEFINE_PROP_GET(Vec2, end);
+
+		inline Vec2 center() const { return _start; }
+		inline float radial() const { return _end[0]; }
+		inline const Array<Color4f>& colors() const { return _colors; }
+		inline const Array<float>&   positions() const { return _positions; }
+
+	private:
+		Array<Color4f>   _colors;
+		Array<float>     _positions;
 	};
 
 }

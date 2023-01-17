@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,36 +28,26 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark_render_canvas__
-#define __quark_render_canvas__
-
-#include "../util/util.h"
-#include "./path.h"
-#include "./pixel.h"
-#include "./paint.h"
+#include "./gradient.h"
 
 namespace quark {
 
-	/**
-	 * @class Canvas base abstract type, define all draw apis
-	 */
-	class Qk_EXPORT Canvas: public Object {
-		Qk_HIDDEN_ALL_COPY(Canvas);
-	public:
-		enum ClipOp {
-			kDifference_ClipOp,
-			kIntersect_ClipOp,
-		};
-		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) = 0;
-		virtual void clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) = 0;
-		virtual void clipPath(const Path& path, ClipOp op, bool doAntiAlias) = 0;
-		virtual void drawColor(const Color4f& color, BlendMode mode = kSrcOver_BlendMode) = 0;
-		virtual void drawPaint(const Paint& paint) = 0;
-		virtual void drawRect(const Rect& rect, const Paint& paint) = 0;
-		virtual void drawPath(const Path& path, const Paint& paint) = 0;
-		virtual void drawGlyphs() = 0;
-	};
+	GradientPaint* GradientPaint::Linear(Array<Color4f>&& colors, Array<float> &&pos, Vec2 start, Vec2 end) {
+		auto g = new GradientPaint();
+		g->_colors = std::move(colors);
+		g->_positions = std::move(pos);
+		g->_type = kLinear;
+		g->_start = start;
+		g->_end = end;
+	}
+
+	GradientPaint* GradientPaint::Radial(Array<Color4f>&& colors, Array<float> &&pos, Vec2 center, float radial) {
+		auto g = new GradientPaint();
+		g->_colors = std::move(colors);
+		g->_positions = std::move(pos);
+		g->_type = kRadial;
+		g->_start = center;
+		g->_end[0] = radial;
+	}
 
 }
-
-#endif

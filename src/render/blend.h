@@ -29,34 +29,31 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark_render_canvas__
-#define __quark_render_canvas__
+#ifndef __quark_render_blend__
+#define __quark_render_blend__
 
 #include "../util/util.h"
-#include "./path.h"
-#include "./pixel.h"
-#include "./paint.h"
+#include "./source.h"
+#include "./gradient.h"
 
 namespace quark {
 
-	/**
-	 * @class Canvas base abstract type, define all draw apis
-	 */
-	class Qk_EXPORT Canvas: public Object {
-		Qk_HIDDEN_ALL_COPY(Canvas);
-	public:
-		enum ClipOp {
-			kDifference_ClipOp,
-			kIntersect_ClipOp,
-		};
-		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) = 0;
-		virtual void clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) = 0;
-		virtual void clipPath(const Path& path, ClipOp op, bool doAntiAlias) = 0;
-		virtual void drawColor(const Color4f& color, BlendMode mode = kSrcOver_BlendMode) = 0;
-		virtual void drawPaint(const Paint& paint) = 0;
-		virtual void drawRect(const Rect& rect, const Paint& paint) = 0;
-		virtual void drawPath(const Path& path, const Paint& paint) = 0;
-		virtual void drawGlyphs() = 0;
+	enum BlendMode {
+		kClear_BlendMode,         //!< r = 0
+		kSrc_BlendMode,           //!< r = s
+		kDst_BlendMode,           //!< r = d
+		kSrcOver_BlendMode,       //!< r = s + (1-sa)*d
+		kDstOver_BlendMode,       //!< r = d + (1-da)*s
+		kDstIn_BlendMode,         //!< r = d * sa
+		kDstOut_BlendMode,        //!< r = d * (1-sa)
+		kSrcIn_BlendMode,         //!< r = s * da
+		kSrcOut_BlendMode,        //!< r = s * (1-da)
+		kSrcATop_BlendMode,       //!< r = s*da + d*(1-sa)
+		kDstATop_BlendMode,       //!< r = d*sa + s*(1-da)
+		kXor_BlendMode,           //!< r = s*(1-da) + d*(1-sa)
+		kPlus_BlendMode,          //!< r = min(s + d, 1)
+		kModulate_BlendMode,      //!< r = s*d
+		kScreen_BlendMode,        //!< r = s + d - s*d
 	};
 
 }
