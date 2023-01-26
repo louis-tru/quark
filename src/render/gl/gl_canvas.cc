@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,48 +28,76 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark_render_canvas__
-#define __quark_render_canvas__
-
-#include "../util/util.h"
-#include "./path.h"
-#include "./pixel.h"
-#include "./paint.h"
-#include "./font/metrics.h"
-#include "../text/text_blob.h"
+#include "./gl_canvas.h"
 
 namespace quark {
 
-	/**
-	 * @class Canvas base abstract type, define all draw apis
-	 */
-	class Qk_EXPORT Canvas: public Object {
-		Qk_HIDDEN_ALL_COPY(Canvas);
-	public:
-		enum ClipOp {
-			kDifference_ClipOp,
-			kIntersect_ClipOp,
-		};
-		virtual int  save() = 0;
-		virtual void restore() = 0;
-		virtual int  getSaveCount() const = 0;
-		virtual void restoreToCount(int saveCount) = 0;
-		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) = 0;
-		virtual void clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) = 0;
-		virtual void clipPath(const Path& path, ClipOp op, bool doAntiAlias) = 0;
-		virtual void drawColor(const Color4f& color, BlendMode mode = kSrcOver_BlendMode) = 0;
-		virtual void drawPaint(const Paint& paint) = 0;
-		virtual void drawRect(const Rect& rect, const Paint& paint) = 0;
-		virtual void drawPath(const Path& path, const Paint& paint) = 0;
-		virtual void drawOval(const Rect& oval, const Paint& paint) = 0;
-		virtual void drawCircle(Vec2 center, float radius, const Paint& paint) = 0;
-		virtual void drawArc(const Rect& oval, float startAngle, float sweepAngle,
-			bool useCenter, const Paint& paint) = 0;
-		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
-			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) = 0;
-		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) = 0;
-	};
+	int  GLCanvas::save() {
+		// TODO ...
+	}
+
+	void GLCanvas::restore() {
+		// TODO ...
+	}
+
+	int  GLCanvas::getSaveCount() const {
+		// TODO ...
+	}
+
+	void GLCanvas::restoreToCount(int saveCount) {
+		// TODO ...
+	}
+
+	bool GLCanvas::readPixels(Pixel* dstPixels, int srcX, int srcY) {
+		// TODO ...
+	}
+
+	void GLCanvas::clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) {
+		// TODO ...
+	}
+
+	void GLCanvas::clipPath(const Path& path, ClipOp op, bool doAntiAlias) {
+		// TODO ...
+	}
+
+	void GLCanvas::drawColor(const Color4f& color, BlendMode mode) {
+		// TODO ...
+	}
+
+	void GLCanvas::drawPaint(const Paint& paint) {
+		// TODO ...
+	}
+
+	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
+		// TODO ...
+	}
+
+	void GLCanvas::drawPath(const Path& path, const Paint& paint) {
+		// TODO ...
+	}
+
+	void GLCanvas::drawOval(const Rect& oval, const Paint& paint) {
+		// TODO ...
+	}
+
+	void GLCanvas::drawCircle(Vec2 center, float radius, const Paint& paint) {
+		// TODO ...
+	}
+
+	void GLCanvas::drawArc(const Rect& oval, float startAngle, float sweepAngle,
+		bool useCenter, const Paint& paint)
+	{
+		// TODO ...
+	}
+
+	void GLCanvas::drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
+		Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) 
+	{
+		// TODO ...
+	}
+
+	void GLCanvas::drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) {
+		// TODO ...
+	}
 
 }
-
-#endif

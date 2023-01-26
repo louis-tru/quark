@@ -42,9 +42,9 @@ namespace quark {
 	struct Paint {
 
 		enum Type {
-			kColor_Type,
-			kGradient_Type,
-			kImage_Type,
+			kColor_Type,          //!< set to color paint type
+			kImage_Type,          //!< set to image paint type
+			kGradient_Type,       //!< set to gradient paint type
 		};
 
 		enum Style {
@@ -54,15 +54,15 @@ namespace quark {
 		};
 
 		enum Cap {
-			kButt_Cap,                  //!< no stroke extension
-			kRound_Cap,                 //!< adds circle
-			kSquare_Cap,                //!< adds square
+			kButt_Cap,            //!< no stroke extension
+			kRound_Cap,           //!< adds circle
+			kSquare_Cap,          //!< adds square
 		};
 
 		enum Join {
-			kMiter_Join,                 //!< extends to miter limit
-			kRound_Join,                 //!< adds circle
-			kBevel_Join,                 //!< connects outside edges
+			kMiter_Join,          //!< extends to miter limit
+			kRound_Join,          //!< adds circle
+			kBevel_Join,          //!< connects outside edges
 		};
 
 		enum TileMode {
@@ -76,41 +76,66 @@ namespace quark {
 			kDecal_TileMode,
 		};
 
-		Color4f           color;
-		Sp<ImageSource>   image = nullptr;
-		Sp<GradientPaint> gradient = nullptr;
-		float             width = 1; // stroke width
+		enum FilterMode {
+			kNearest_FilterMode,   //!< single sample point (nearest neighbor)
+			kLinear_FilterMode,    //!< interporate between 2x2 sample points (bilinear interpolation)
+		};
+
+		enum MipmapMode {
+			kNone_MipmapMode,      //!< ignore mipmap levels, sample from the "base"
+			kNearest_MipmapMode,   //!< sample from the nearest level
+			kLinear_MipmapMode,    //!< interpolate between the two nearest levels
+		};
+
+		inline const &Rect imageRect() const {
+			return *reinterpret_cast<Rect*>(&color);
+		}
+
+		inline void setImageRect(const Rect& src) {
+			*reinterpret_cast<Rect*>(&color) = src;
+		}
 
 		union {
 			struct {
 				Type          type: 2;// = kColor_Type;
 				Style         style : 2;// = kFill_Style;
+				BlendMode     blendMode: 8; // = kSrcOver_BlendMode
 				Cap           cap: 2;// = kButt_Cap;
 				Join          join : 2;// = kMiter_Join;
 				TileMode      tileMode: 2; // = kClamp_TileMode
-				BlendMode     blendMode: 8; // = kSrcOver_BlendMode
+				FilterMode    filterMode: 2;// = kNearest_FilterMode, image source filter mode
+				MipmapMode    mipmapMode: 2;// = kNone_MipmapMode, image source mipmap mode
 				bool          antiAlias : 1;// = false;
-				bool          dither : 1;// = false;
-				unsigned      padding : 12;  // 12 = 32-2-2-2-2-2-8-1-1
+				unsigned      padding : 9;  // 32 = 2+2+8+2+2+2+2+2+1+9
 			};
 			uint32_t        bitfields = (
 				(kColor_Type << 0) |
 				(kFill_Style << 2) |
-				(kButt_Cap << 4) |
-				(kMiter_Join << 6) |
-				(kClamp_TileMode << 8) |
-				(kSrcOver_BlendMode << 10) |
-				(1 << 18) | // antiAlias
-				(1 << 19) | // dither
+				(kSrcOver_BlendMode << 4) |
+				(kButt_Cap << 12) |
+				(kMiter_Join << 14) |
+				(kClamp_TileMode << 16) |
+				(kNearest_FilterMode << 18) |
+				(kNone_MipmapMode << 20) |
+				(1 << 22) | // antiAlias
 				0
 			);
 		}; // size 32bit
+
+		Color4f           color;
+		Sp<ImageSource>   image      = nullptr;
+		Sp<GradientPaint> gradient   = nullptr;
+		float             width      = 1; // stroke width
+		Vec2              scale      = Vec2(1,1);
+
 	};
+
+	// -------------------------------------------------------
 
 	void test() {
 		Paint paint;
 		paint.style = Paint::kFill_Style;
-		GradientPaint::Linear({Color4f(0,0,0),Color4f(1,1,1)},{0,0.5,1},{0,0},{1,1});
+		Sp<GradientPaint> g = new GradientPaint::Linear({Color4f(0,0,0),Color4f(1,1,1)},{0,0.5,1},{0,0},{1,1});
 	}
 }
 

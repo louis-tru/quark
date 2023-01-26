@@ -38,6 +38,24 @@ namespace quark {
 
 	class GLCanvas: public Canvas {
 	public:
+		virtual int  save() override;
+		virtual void restore() override;
+		virtual int  getSaveCount() const override;
+		virtual void restoreToCount(int saveCount) override;
+		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) override;
+		virtual void clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
+		virtual void clipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
+		virtual void drawColor(const Color4f& color, BlendMode mode) override;
+		virtual void drawPaint(const Paint& paint) override;
+		virtual void drawRect(const Rect& rect, const Paint& paint) override;
+		virtual void drawPath(const Path& path, const Paint& paint) override;
+		virtual void drawOval(const Rect& oval, const Paint& paint) override;
+		virtual void drawCircle(Vec2 center, float radius, const Paint& paint) override;
+		virtual void drawArc(const Rect& oval, float startAngle, float sweepAngle,
+			bool useCenter, const Paint& paint) override;
+		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
+			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) override;
+		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) override;
 	};
 
 }

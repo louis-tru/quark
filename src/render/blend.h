@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -32,9 +31,6 @@
 #ifndef __quark_render_blend__
 #define __quark_render_blend__
 
-#include "../util/util.h"
-#include "./source.h"
-#include "./gradient.h"
 
 namespace quark {
 

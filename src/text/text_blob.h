@@ -75,7 +75,7 @@ namespace quark {
 		uint32_t        line;   // line number
 		uint32_t        index;  // blob index in unichar glyphs
 		Sp<ImageSource> image;  // image cache
-		Sp<PathLine>    path;   // path cache
+		Sp<Path>        path;   // path cache
 		SizeLevel       level;
 	};
 
