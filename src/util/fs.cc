@@ -35,12 +35,6 @@
 
 namespace quark {
 
-	Dirent::Dirent(cString& name, cString& pathname, FileType type)
-		: _name(name)
-		, _pathname(pathname), _type(type)
-	{
-	}
-
 #if Qk_WIN
 	const uint32_t fs_default_mode = 0;
 #else
@@ -51,18 +45,15 @@ namespace quark {
 	}());
 #endif
 
-	Qk_DEFINE_INLINE_MEMBERS(FileStat, Inl) {
-	public:
-		void set__stat(uv_stat_t* stat) {
-			if ( !_stat ) {
-				_stat = malloc(sizeof(uv_stat_t));
-			}
-			memcpy(_stat, stat, sizeof(uv_stat_t));
+	void inl__set_file_stat(FileStat* stat, uv_stat_t* src) {
+		struct INL_FileStat: public Object {
+			uv_stat_t *_stat;
+		};
+		INL_FileStat* s = reinterpret_cast<INL_FileStat*>(stat);
+		if ( !s->_stat ) {
+			s->_stat = (uv_stat_t*)malloc(sizeof(uv_stat_t));
 		}
-	};
-
-	void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat) {
-		Inl_FileStat(stat)->set__stat(uv_stat);
+		memcpy(s->_stat, src, sizeof(uv_stat_t));
 	}
 
 	FileStat::FileStat(): _stat(nullptr) {}
@@ -71,12 +62,10 @@ namespace quark {
 		stat._stat = nullptr;
 	}
 
-	FileStat& FileStat::operator=(FileStat&& stat) {
-		if ( _stat ) {
-			free(_stat);
-		}
-		_stat = stat._stat;
-		stat._stat = nullptr;
+	FileStat& FileStat::operator=(FileStat&& src) {
+		free(_stat);
+		_stat = src._stat;
+		src._stat = nullptr;
 		return *this;
 	}
 
@@ -139,20 +128,20 @@ namespace quark {
 	 */
 	int inl__file_flag_mask(int flag) {
 #if Qk_POSIX || Qk_UNIX
-			return flag;
+		return flag;
 #else
-			int r_flag = flag & ~(O_ACCMODE | O_WRONLY | O_RDWR |
-				O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC | O_APPEND | O_NONBLOCK);
-			if (FOPEN_ACCMODE & flag) r_flag =| O_ACCMODE;
-			if (FOPEN_WRONLY & flag) r_flag =| O_WRONLY;
-			if (FOPEN_RDWR & flag) r_flag =| O_RDWR;
-			if (FOPEN_CREAT & flag) r_flag =| O_CREAT;
-			if (FOPEN_EXCL & flag) r_flag =| O_EXCL;
-			if (FOPEN_NOCTTY & flag) r_flag =| O_NOCTTY;
-			if (FOPEN_TRUNC & flag) r_flag =| O_TRUNC;
-			if (FOPEN_APPEND & flag) r_flag =| O_APPEND;
-			if (FOPEN_NONBLOCK & flag) r_flag =| O_NONBLOCK;
-			return r_flag;
+		int r_flag = flag & ~(O_ACCMODE | O_WRONLY | O_RDWR |
+			O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC | O_APPEND | O_NONBLOCK);
+		if (FOPEN_ACCMODE & flag) r_flag =| O_ACCMODE;
+		if (FOPEN_WRONLY & flag) r_flag =| O_WRONLY;
+		if (FOPEN_RDWR & flag) r_flag =| O_RDWR;
+		if (FOPEN_CREAT & flag) r_flag =| O_CREAT;
+		if (FOPEN_EXCL & flag) r_flag =| O_EXCL;
+		if (FOPEN_NOCTTY & flag) r_flag =| O_NOCTTY;
+		if (FOPEN_TRUNC & flag) r_flag =| O_TRUNC;
+		if (FOPEN_APPEND & flag) r_flag =| O_APPEND;
+		if (FOPEN_NONBLOCK & flag) r_flag =| O_NONBLOCK;
+		return r_flag;
 #endif
 	}
 
@@ -178,15 +167,15 @@ namespace quark {
 		return _fd;
 	}
 
-	int FileSync::open(int flag) {
+	int FileSync::open(int flag, uint32_t mode) {
 		if ( _fd ) { // 文件已经打开
-			Qk_WARN("file already open" );
+			Qk_WARN("File handle already open" );
 			return 0;
 		}
 		uv_fs_t req;
 		_fd = uv_fs_open(uv_default_loop(), &req,
 											fs_fallback_c(_path),
-											inl__file_flag_mask(flag), fs_default_mode, nullptr);
+											inl__file_flag_mask(flag), mode, nullptr);
 		if ( _fd > 0 ) {
 			return 0;
 		}
@@ -271,7 +260,7 @@ namespace quark {
 		inline String& path() { return _path; }
 		inline bool is_open() { return _fd; }
 		
-		void open(int flag) {
+		void open(int flag, uint32_t mode) {
 			if (_fd) {
 				Error e(ERR_FILE_ALREADY_OPEN, "File already open");
 				async_reject(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
@@ -286,7 +275,7 @@ namespace quark {
 			auto req = new FileReq(this);
 			uv_fs_open(uv_loop(), req->req(),
 								 fs_fallback_c(_path),
-								 inl__file_flag_mask(flag), fs_default_mode, &Inl::fs_open_cb);
+								 inl__file_flag_mask(flag), mode, &Inl::fs_open_cb);
 		}
 		
 		void close() {
@@ -459,8 +448,8 @@ namespace quark {
 		return _inl->is_open();
 	}
 
-	void File::open(int flag) {
-		_inl->open(flag);
+	void File::open(int flag, uint32_t mode) {
+		_inl->open(flag, mode);
 	}
 
 	void File::close() {

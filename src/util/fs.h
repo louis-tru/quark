@@ -39,6 +39,11 @@
 namespace quark {
 
 	/**
+	 * @field fs_default_mode
+	*/
+	Qk_EXPORT extern const uint32_t fs_default_mode;
+
+	/**
 	* @enum FileOpenFlag # File open flag
 	*/
 	enum FileOpenFlag {
@@ -92,7 +97,7 @@ namespace quark {
 		FileSync(cString& path);
 		virtual ~FileSync();
 		bool is_open();
-		int  open(int flag = FOPEN_R);
+		int  open(int flag = FOPEN_R, uint32_t mode = fs_default_mode);
 		int  close();
 		int  read(void* buffer, int64_t size, int64_t offset = -1);
 		int  write(const void* buffer, int64_t size, int64_t offset = -1);
@@ -118,7 +123,7 @@ namespace quark {
 		String path() const;
 		void set_delegate(Delegate* delegate);
 		bool is_open();
-		void open(int flag = FOPEN_R);
+		void open(int flag = FOPEN_R, uint32_t mode = fs_default_mode);
 		void close();
 		void read(Buffer buffer, int64_t offset = -1, int mark = 0);
 		void write(Buffer buffer, int64_t offset = -1, int mark = 0);
@@ -159,7 +164,6 @@ namespace quark {
 		uint64_t birthtime() const;
 	private:
 		void* _stat;
-		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	class Qk_EXPORT FileReader: public Object {
@@ -190,11 +194,6 @@ namespace quark {
 	 * @func fs_reader() get shared reader
 	*/
 	Qk_EXPORT FileReader* fs_reader();
-
-	/**
-	 * @field fs_default_mode
-	*/
-	Qk_EXPORT extern const uint32_t fs_default_mode;
 
 	/**
 	* @func each_sync 递归遍历子文件与子目录, 遍历回调回返0停止遍历

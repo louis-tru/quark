@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./gradient.h"
+#include "./paint.h"
 
 namespace quark {
 
@@ -39,6 +40,7 @@ namespace quark {
 		g->_type = kLinear;
 		g->_start = start;
 		g->_end = end;
+		return g;
 	}
 
 	GradientPaint* GradientPaint::Radial(Array<Color4f>&& colors, Array<float> &&pos, Vec2 center, float radial) {
@@ -48,6 +50,19 @@ namespace quark {
 		g->_type = kRadial;
 		g->_start = center;
 		g->_end[0] = radial;
+		return g;
+	}
+
+	// -------------------------------------------------------
+
+	void test() {
+		Paint paint;
+		paint.type = Paint::kGradient_Type;
+		paint.style = Paint::kFill_Style;
+		paint.antiAlias = true;
+		// Array<Color4f>&& colors, Array<float> &&pos, Vec2 start, Vec2 end
+		Sp<GradientPaint> g = 
+		GradientPaint::Linear({Color4f(0,0,0),Color4f(1,1,1)},{0,0.5,1},{0,0},{1,1});
 	}
 
 }

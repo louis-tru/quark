@@ -87,8 +87,8 @@ namespace quark {
 			kLinear_MipmapMode,    //!< interpolate between the two nearest levels
 		};
 
-		inline const &Rect imageRect() const {
-			return *reinterpret_cast<Rect*>(&color);
+		inline const Rect& imageRect() const {
+			return *reinterpret_cast<const Rect*>(&color);
 		}
 
 		inline void setImageRect(const Rect& src) {
@@ -96,18 +96,6 @@ namespace quark {
 		}
 
 		union {
-			struct {
-				Type          type: 2;// = kColor_Type;
-				Style         style : 2;// = kFill_Style;
-				BlendMode     blendMode: 8; // = kSrcOver_BlendMode
-				Cap           cap: 2;// = kButt_Cap;
-				Join          join : 2;// = kMiter_Join;
-				TileMode      tileMode: 2; // = kClamp_TileMode
-				FilterMode    filterMode: 2;// = kNearest_FilterMode, image source filter mode
-				MipmapMode    mipmapMode: 2;// = kNone_MipmapMode, image source mipmap mode
-				bool          antiAlias : 1;// = false;
-				unsigned      padding : 9;  // 32 = 2+2+8+2+2+2+2+2+1+9
-			};
 			uint32_t        bitfields = (
 				(kColor_Type << 0) |
 				(kFill_Style << 2) |
@@ -117,12 +105,24 @@ namespace quark {
 				(kClamp_TileMode << 16) |
 				(kNearest_FilterMode << 18) |
 				(kNone_MipmapMode << 20) |
-				(1 << 22) | // antiAlias
+				(1 << 22) | // antiAlias = true
 				0
 			);
+			struct {
+				Type          type: 2;// default kColor_Type;
+				Style         style : 2;// default kFill_Style;
+				BlendMode     blendMode: 8; // default kSrcOver_BlendMode
+				Cap           cap: 2;// default kButt_Cap;
+				Join          join : 2;// default kMiter_Join;
+				TileMode      tileMode: 2; // default kClamp_TileMode
+				FilterMode    filterMode: 2;// default kNearest_FilterMode, image source filter mode
+				MipmapMode    mipmapMode: 2;// default kNone_MipmapMode, image source mipmap mode
+				bool          antiAlias : 1;// default false;
+				unsigned      padding : 9;  // 32 = 2+2+8+2+2+2+2+2+1+9
+			};
 		}; // size 32bit
 
-		Color4f           color;
+		Color4f           color; // color or image source rect
 		Sp<ImageSource>   image      = nullptr;
 		Sp<GradientPaint> gradient   = nullptr;
 		float             width      = 1; // stroke width
@@ -130,13 +130,6 @@ namespace quark {
 
 	};
 
-	// -------------------------------------------------------
-
-	void test() {
-		Paint paint;
-		paint.style = Paint::kFill_Style;
-		Sp<GradientPaint> g = new GradientPaint::Linear({Color4f(0,0,0),Color4f(1,1,1)},{0,0.5,1},{0,0},{1,1});
-	}
 }
 
 #endif
