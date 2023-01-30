@@ -52,8 +52,66 @@ namespace quark {
 		_opts.stencilBits = integerExp(Qk_MIN(Qk_MAX(_opts.stencilBits, 8), 16));
 	}
 
-	Render::~Render() {}
+	Render::~Render() {
+	}
 
-	void Render::activate(bool isActive) {}
+	void Render::activate(bool isActive) {
+	}
+
+	void Render::visitView(View* v) {
+		// TODO ...
+	}
+
+	void Render::visitBox(Box* box) {
+		// TODO ...
+	}
+
+	void Render::visitImage(Image* image) {
+		// TODO ...
+	}
+
+	void Render::visitVideo(Video* video) {
+		// TODO ...
+	}
+
+	void Render::visitScroll(Scroll* scroll) {
+		// TODO ...
+	}
+
+	void Render::visitInput(Input* input) {
+		// TODO ...
+	}
+
+	void Render::visitTextarea(Textarea* textarea) {
+		// TODO ...
+	}
+
+	void Render::visitButton(Button* btn) {
+		// TODO ...
+	}
+
+	void Render::visitTextLayout(TextLayout* text) {
+		// TODO ...
+	}
+
+	void Render::visitLabel(Label* label) {
+		// TODO ...
+	}
+
+	void Render::visitRoot(Root* root) {
+		// TODO ...
+	}
+
+	void Render::visitFloatLayout(FloatLayout* flow) {
+		// TODO ...
+	}
+
+	void Render::visitFlowLayout(FlowLayout* flow) {
+		// TODO ...
+	}
+
+	void Render::visitFlexLayout(FlexLayout* flex) {
+		// TODO ...
+	}
 
 }

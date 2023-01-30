@@ -48,11 +48,11 @@ namespace quark {
 		virtual void begin() override;
 		virtual void submit() override;
 		virtual void activate(bool isActive) override;
-	protected:
 		virtual void onReload() = 0;
 		virtual void onBegin() = 0;
 		virtual void onSubmit() = 0;
-		MetalRender(Application* host, const Options& opts);
+	protected:
+		MetalRender(Application* host);
 		MTKView*            _view;
 		CAMetalLayer*       _layer;
 		id<MTLDevice>       _device;

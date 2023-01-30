@@ -30,7 +30,9 @@
 
 #include "./apple_render.h"
 #include "../../display.h"
-#include "../../render/skia/skia_render.h"
+#include "../../render/gl/gl_render.h"
+#include "../../render/metal/metal_render.h"
+// #include "../../render/skia/skia_render.h"
 
 @interface MTView: UIView @end
 @implementation MTView
@@ -88,16 +90,15 @@ namespace quark {
 
 	// ------------------- Metal ------------------
 
-	template<class RenderIMPL>
-	class AppleMetalRender: public RenderIMPL, public RenderApple {
+	// template<class RenderIMPL>
+	class AppleMetalRender: public SkiaMetalRender, public RenderApple {
 	public:
-		AppleMetalRender(Application* host, bool raster): RenderIMPL(host, opts, raster)
+		AppleMetalRender(Application* host, bool raster): SkiaMetalRender(host, opts, raster)
 		{}
 		UIView* init(CGRect rect) override {
-			MTKView* view = this->_view = [[MTKView alloc] initWithFrame:rect device:nil];
-			//UIView* view = [[MTKView alloc] initWithFrame:rect];
-			view.layer.opaque = YES;
-			return view;
+			_view = [[MTKView alloc] initWithFrame:rect device:nil];
+			_view.layer.opaque = YES;
+			return _view;
 		}
 		Render* render() override { return this; }
 	};
@@ -140,14 +141,14 @@ namespace quark {
 			// and calling the presentRenderbuffer: method on your rendering context.
 			[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
 		}
-		
+
 	private:
-		EAGLContext* _ctx;
-		CAEAGLLayer* _layer;
-		GLView* _view;
+		EAGLContext *_ctx;
+		CAEAGLLayer *_layer;
+		GLView      *_view;
 	};
 
-	template<class RenderIMPL>
+	// template<class RenderIMPL>
 	class AppleGLRender: public RenderIMPL, public AppleGLRenderBase {
 	public:
 		AppleGLRender(Application* host, EAGLContext* ctx, bool raster)

@@ -49,7 +49,6 @@ namespace quark {
 		: Render(host)
 		, _frame_buffer(0), _is_support_multisampled(false)
 	{
-
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888: _opts.colorType = kColor_Type_RGBA_8888; break;
 			case kColor_Type_BGRA_1010102: _opts.colorType = kColor_Type_RGBA_1010102; break;

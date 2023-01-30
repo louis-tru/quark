@@ -45,36 +45,48 @@
 #endif
 
 namespace quark {
-
 	class Application;
 
 	/**
 	 * @class Render drawing management
 	 */
-	class Qk_EXPORT Render: public PostMessage {
+	class Qk_EXPORT Render: public PostMessage, public ViewVisitor {
 	public:
 		struct Options {
 			ColorType   colorType;
 			int         msaaSampleCnt; // gpu msaa
 			int         stencilBits;   // gpu stencil
 		};
-		static Render* Make(Application* host);
-
-		virtual ~Render();
-		virtual void         reload() = 0;
-		virtual void         begin() = 0;
-		virtual void         submit() = 0;
-		virtual void         activate(bool isActive);
-		virtual ViewVisitor* visitor() = 0;
-		virtual Canvas*      canvas() = 0;
-		virtual uint32_t     post_message(Cb cb, uint64_t delay_us = 0) override;
-
-		inline  Application* host() { return _host; }
-
+		virtual           ~Render();
+		static  Render*   Make(Application* host);
+		virtual void      reload() = 0;
+		virtual void      begin() = 0;
+		virtual void      submit() = 0;
+		virtual void      activate(bool isActive);
+		inline  Canvas*   getCanvas() { return _canvas; };
+		inline  Application* host() { return _host; };
+		// @overwrite class PostMessage
+		virtual uint32_t  post_message(Cb cb, uint64_t delay_us = 0) override;
+		// @overwrite class ViewVisitor
+		virtual void      visitView(View* v) override;
+		virtual void      visitBox(Box* box) override;
+		virtual void      visitImage(Image* image) override;
+		virtual void      visitVideo(Video* video) override;
+		virtual void      visitScroll(Scroll* scroll) override;
+		virtual void      visitInput(Input* input) override;
+		virtual void      visitTextarea(Textarea* textarea) override;
+		virtual void      visitButton(Button* btn) override;
+		virtual void      visitTextLayout(TextLayout* text) override;
+		virtual void      visitLabel(Label* label) override;
+		virtual void      visitRoot(Root* root) override;
+		virtual void      visitFloatLayout(FloatLayout* flow) override;
+		virtual void      visitFlowLayout(FlowLayout* flow) override;
+		virtual void      visitFlexLayout(FlexLayout* flex) override;
 	protected:
-		Render(Application* host);
-		Application*  _host;
+		Render(Application *host);
 		Options       _opts;
+		Application  *_host;
+		Canvas       *_canvas;
 	};
 
 }

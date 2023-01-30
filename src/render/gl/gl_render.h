@@ -51,17 +51,17 @@
 
 namespace quark {
 
-	class GLRender: public GLCanvas, public Render {
+	class GLRender: /*public GLCanvas,*/ public Render {
 	public:
 		virtual ~GLRender();
 		virtual void reload() override;
 		virtual void begin() override;
 		virtual void submit() override;
-	protected:
 		virtual void onRenderbufferStorage(uint32_t target);
 		virtual void onSwapBuffers() = 0;
 		virtual void onReload() = 0;
 		virtual void onSubmit() = 0;
+	protected:
 		GLRender(Application* host);
 		uint32_t  _render_buffer, _frame_buffer;
 		uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
