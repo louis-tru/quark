@@ -179,7 +179,7 @@ namespace quark {
 		/**
 		* @func runMain(argc, argv) create sub gui thread, call by system, First thread call
 		*/
-		static void runMain(int argc, Char* argv[]);
+		static void runMain(int argc, char* argv[]);
 
 		/**
 		* @func app Get current gui application entity

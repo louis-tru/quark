@@ -54,13 +54,8 @@ Qk_Main() {
 }
 
 #if FX_ANDROID
-class App: public Application {
-	public: static void run(int argc, char *argv[]) {
-		runMain(argc, argv);
-	}
-};
 int main(int argc, char *argv[]) {
-	App::run(argc, argv);
+	Application::runMain(argc, argv);
 	return 0;
 }
 #endif

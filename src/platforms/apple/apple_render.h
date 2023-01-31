@@ -42,15 +42,13 @@
 
 namespace quark {
 
-	class Qk_EXPORT RenderApple {
+	class RenderApple {
 	public:
-		/**
-		 * @thread render
-		 */
-		virtual UIView*     init(CGRect rect) = 0;
-		virtual Render*     render() = 0;
-		bool                resize(CGRect rect);
-		static RenderApple* Make(Application* host);
+		// Called on the rendering thread
+		virtual UIView*      init(CGRect rect) = 0;
+		virtual Render*      render() = 0;
+		bool                 resize(CGRect rect);
+		static  RenderApple* Make(Application* host);
 	};
 
 }

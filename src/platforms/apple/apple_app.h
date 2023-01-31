@@ -51,10 +51,16 @@
 	#import <UIKit/UIKit.h>
 #endif
 
+@class RootViewController;
+
 @interface ApplicationDelegate: UIResponder<UIApplicationDelegate>
 	@property (assign, nonatomic, readonly) quark::Application* app;
-	+ (void)set_application_delegate:(NSString*)name;
-	- (UIWindow*)window;
+	@property (strong, nonatomic, readonly) RootViewController* root_ctr;
+	@property (strong, nonatomic, readonly) UIWindow *window;
+@end
+
+@interface RootViewController: UIViewController
+	@property (weak, nonatomic, readonly) ApplicationDelegate* appSelf;
 @end
 
 #endif

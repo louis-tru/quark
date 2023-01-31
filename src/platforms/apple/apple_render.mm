@@ -32,9 +32,9 @@
 #include "../../display.h"
 #include "../../render/gl/gl_render.h"
 #include "../../render/metal/metal_render.h"
-// #include "../../render/skia/skia_render.h"
 
 @interface MTView: UIView @end
+
 @implementation MTView
 	+ (Class)layerClass {
 		if (@available(iOS 13.0, *))
@@ -47,15 +47,11 @@
 @interface GLView: UIView @end
 # if Qk_IOS
 @implementation GLView
-	+ (Class)layerClass {
-		return CAEAGLLayer.class;
-	}
+	+ (Class)layerClass { return CAEAGLLayer.class; }
 @end
 # else // #if Qk_IOS else osx
 @implementation GLView
-	+ (Class)layerClass {
-		return CAEAGLLayer.class;
-	}
+	+ (Class)layerClass { return CAEAGLLayer.class; }
 @end
 # endif // #if Qk_IOS
 #endif
@@ -91,9 +87,9 @@ namespace quark {
 	// ------------------- Metal ------------------
 
 	// template<class RenderIMPL>
-	class AppleMetalRender: public SkiaMetalRender, public RenderApple {
+	class AppleMetalRender: public MetalRender, public RenderApple {
 	public:
-		AppleMetalRender(Application* host, bool raster): SkiaMetalRender(host, opts, raster)
+		AppleMetalRender(Application* host, bool raster): MetalRender(host, raster)
 		{}
 		UIView* init(CGRect rect) override {
 			_view = [[MTKView alloc] initWithFrame:rect device:nil];
@@ -107,14 +103,38 @@ namespace quark {
 
 #if Qk_ENABLE_GL
 
-	class AppleGLRenderBase: public RenderApple {
-	public: 
-		AppleGLRenderBase(EAGLContext* ctx): _ctx(ctx) {
+	class AppleGLRender: public GLRender, public RenderApple {
+	public:
+		static AppleGLRender* New(Application* host, bool raster) {
+			EAGLContext* ctx = [EAGLContext alloc];
+			if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
+				[EAGLContext setCurrentContext:ctx];
+				return new AppleGLRender(host, ctx, raster);
+			}
+			return nullptr;
+		}
+
+		AppleGLRender(Application* host, EAGLContext* ctx, bool raster)
+			: GLRender(host, raster), _ctx(ctx) 
+		{
 			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
+			//_is_support_multisampled = true;
 		}
-		~AppleGLRenderBase() {
+
+		~AppleGLRender() {
 			[EAGLContext setCurrentContext:nullptr];
+		}
+
+		void onRenderbufferStorage(uint32_t target) override {
+			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; Qk_ASSERT(ok);
+		}
+
+		void onSwapBuffers() override {
+			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
+			// you present its contents by making it the current renderbuffer
+			// and calling the presentRenderbuffer: method on your rendering context.
+			[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
 		}
 
 		UIView* init(CGRect rect) override {
@@ -131,43 +151,12 @@ namespace quark {
 			return _view;
 		}
 
-		void renderbufferStorage(uint32_t target) {
-			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; Qk_ASSERT(ok);
-		}
-
-		void swapBuffers() {
-			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
-			// you present its contents by making it the current renderbuffer
-			// and calling the presentRenderbuffer: method on your rendering context.
-			[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
-		}
+		Render* render() override { return this; }
 
 	private:
 		EAGLContext *_ctx;
 		CAEAGLLayer *_layer;
 		GLView      *_view;
-	};
-
-	// template<class RenderIMPL>
-	class AppleGLRender: public RenderIMPL, public AppleGLRenderBase {
-	public:
-		AppleGLRender(Application* host, EAGLContext* ctx, bool raster)
-			: RenderIMPL(host, raster), AppleGLRenderBase(ctx)
-		{
-			//_is_support_multisampled = true;
-		}
-		Render* render() override { return this; }
-		void onRenderbufferStorage(uint32_t target) override { renderbufferStorage(target); }
-		void onSwapBuffers() override { swapBuffers(); }
-
-		static AppleGLRender* New(Application* host, bool raster) {
-			EAGLContext* ctx = [EAGLContext alloc];
-			if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
-				[EAGLContext setCurrentContext:ctx];
-				return new AppleGLRender<RenderIMPL>(host, ctx, raster);
-			}
-			return nullptr;
-		}
 	};
 
 #endif
@@ -185,11 +174,11 @@ namespace quark {
 		if (Qk_ENABLE_GPU) {
 			if (@available(macOS 10.11, iOS 13.0, *)) {
 				if (Qk_ENABLE_METAL)
-					r = new AppleMetalRender<SkiaMetalRender>(host, false);
+					r = new AppleMetalRender(host, false);
 			}
 #if Qk_ENABLE_GL
 			if (!r) {
-				r = AppleGLRender<SkiaGLRender>::New(host, false);
+				r = AppleGLRender::New(host, false);
 			}
 #endif
 		}
@@ -197,11 +186,11 @@ namespace quark {
 		if (!r) {
 			if (@available(macOS 10.11, iOS 13.0, *)) {
 				if (Qk_ENABLE_METAL)
-					r = new AppleMetalRender<SkiaMetalRender>(host, true);
+					r = new AppleMetalRender(host, true);
 			}
 #if Qk_ENABLE_GL
 			if (!r) {
-				r = AppleGLRender<SkiaGLRender>::New(host, true);
+				r = AppleGLRender::New(host, true);
 			}
 #endif
 		}

@@ -42,35 +42,27 @@
 #include "./event.h"
 
 Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
-Qk_EXPORT int (*__f_gui_main)(int, char**) = nullptr;
+Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;
 
 namespace quark {
 
 	typedef Application::Inl AppInl;
 
-	struct RunMainWait {
-		bool wait() {
-			if (_exit) return false;
+	struct RunMain {
+		void wait() {
 			Lock lock(_thread_mutex);
 			_thread_cond.wait(lock);
-			return !_exit;
 		}
-		void awaken() {
+		void next() {
 			ScopeLock scope(_thread_mutex);
 			_thread_cond.notify_all();
 		}
-		void exit(int rc) {
-			_exit = true;
-			awaken();
-			quark::exit(rc); // if sub thread end then exit
-		}
-		Mutex _thread_mutex;
+		Mutex     _thread_mutex;
 		Condition _thread_cond;
-		bool _exit;
 	};
 
 	// thread helper
-	static auto *__run_main_wait = new RunMainWait();
+	static auto *__run_main = new RunMain();
 
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
@@ -253,7 +245,7 @@ namespace quark {
 			_render = Render::Make(this); Qk_DEBUG("Render::Make() ok");
 			_loop = RunLoop::current();
 			_keep = _loop->keep_alive("Application::run(), keep"); // 保持运行
-			__run_main_wait->awaken(); // 外部线程继续运行
+			__run_main->next(); // 外部线程继续运行
 		}
 		if (is_loop) { // run loop
 			lock.unlock();
@@ -265,36 +257,35 @@ namespace quark {
 	* @func setMain()
 	*/
 	void Application::setMain(int (*main)(int, char**)) {
-		Qk_ASSERT( !__f_gui_main );
 		__f_gui_main = main;
 	}
 
 	/**
 	* @func runMain()
 	*/
-	void Application::runMain(int argc, Char* argv[]) {
-		static int _is_init = 0;
-		Qk_ASSERT(!_is_init++, "Cannot multiple calls.");
-		
-		struct Args { int argc; Char** argv; } arg = { argc, argv };
-		
+	void Application::runMain(int argc, char* argv[]) {
+		static std::atomic_int _is_run = 0;
+		Qk_ASSERT(!_is_run++, "Cannot multiple calls.");
+
+		struct Args { int argc; char** argv; } arg = { argc, argv };
+
 		// 创建一个新子工作线程.这个函数必须由main入口调用
 		Thread::create([](Thread& t, void* arg) {
 			auto args = (Args*)arg;
 			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
 			Qk_ASSERT( main, "No gui main");
-			__f_default_gui_main = nullptr;
-			__f_gui_main = nullptr;
 			int rc = main(args->argc, args->argv); // 运行这个自定gui入口函数
-			Qk_DEBUG("Application::runMain() Exit");
-			__run_main_wait->exit(rc);
+			Qk_DEBUG("Application::runMain() Thread::create() Exit");
+			_is_run--;
+			__run_main->next();
+			quark::exit(rc); // if sub thread end then exit
 		}, &arg, "runMain");
 
 		// 在调用Application::run()之前一直阻塞这个主线程
 		while (!_shared || !_shared->_keep) {
-			if (!__run_main_wait->wait()) {
+			if (!_is_run)
 				break;
-			}
+			__run_main->wait();
 		}
 	}
 

@@ -48,15 +48,9 @@ typedef Display::StatusBarStyle StatusBarStyle;
 
 static ApplicationDelegate* appDelegate = nil;
 static RenderApple* renderApple = nil;
-static NSString* appDelegateName = @"";
-
-@interface RootViewController: UIViewController
-	@property (weak, nonatomic) ApplicationDelegate* appSelf;
-@end
 
 @interface ApplicationDelegate()<MFMailComposeViewControllerDelegate>
 	{
-		UIWindow* _window;
 		BOOL _is_background;
 		int  _fps;
 		Cb   _render_exec;
@@ -66,6 +60,7 @@ static NSString* appDelegateName = @"";
 	@property (strong, nonatomic) CADisplayLink* display_link;
 	@property (strong, nonatomic) UIApplication* host;
 	@property (strong, nonatomic) RootViewController* root_ctr;
+	@property (strong, nonatomic) UIWindow *window;
 	@property (assign, nonatomic) Orientation setting_orientation;
 	@property (assign, nonatomic) Orientation current_orientation;
 	@property (assign, nonatomic) bool visible_status_bar;
@@ -73,13 +68,17 @@ static NSString* appDelegateName = @"";
 	@property (assign, atomic) NSInteger render_task_count;
 @end
 
+@interface RootViewController()
+	@property (weak, nonatomic) ApplicationDelegate* appSelf;
+@end
+
 @implementation RootViewController
 
-	- (BOOL)shouldAutorotate {
+	-(BOOL)shouldAutorotate {
 		return YES;
 	}
 
-	- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+	-(UIInterfaceOrientationMask)supportedInterfaceOrientations {
 		switch ( self.appSelf.setting_orientation ) {
 			case Orientation::ORIENTATION_PORTRAIT:
 				return UIInterfaceOrientationMaskPortrait;
@@ -114,8 +113,8 @@ static NSString* appDelegateName = @"";
 		return UIInterfaceOrientationMaskAll;
 	}
 
-	- (void)viewWillTransitionToSize:(CGSize)size
-				 withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
+	-(void)viewWillTransitionToSize:(CGSize)size
+				withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 	{
 		[coordinator animateAlongsideTransition:^(id context) {
 			renderApple->resize(self.appSelf.view.frame);
@@ -130,16 +129,16 @@ static NSString* appDelegateName = @"";
 		[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
 	}
 
-	- (UIStatusBarStyle)preferredStatusBarStyle {
+	-(UIStatusBarStyle)preferredStatusBarStyle {
 		return self.appSelf.status_bar_style;
 	}
 
-	- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
+	-(UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
 		// UIApplicationWillChangeStatusBarFrameNotification
 		return UIStatusBarAnimationSlide;
 	}
 
-	- (BOOL)prefersStatusBarHidden {
+	-(BOOL)prefersStatusBarHidden {
 		return !self.appSelf.visible_status_bar;
 	}
 
@@ -220,16 +219,22 @@ static NSString* appDelegateName = @"";
 		}
 	}
 
+	- (RootViewController*)root_ctr {
+		 if (!_root_ctr) {
+			 self.root_ctr = [[RootViewController alloc] init];
+		 }
+		 return _root_ctr;
+	 }
+
 	- (UIWindow*)window {
-		return _window;
-	}
+		 if (!_window) {
+			 self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+		 }
+		 return _window;
+	 }
 
 	- (void)resize {
 		renderApple->resize(appDelegate.view.frame);
-	}
-
-	+ (void)set_application_delegate:(NSString*)name {
-		appDelegateName = name;
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
@@ -241,7 +246,6 @@ static NSString* appDelegateName = @"";
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];
 
-		_window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 		_is_background = NO;
 		_render_exec = Cb(render_exec_func);
 		
@@ -251,7 +255,6 @@ static NSString* appDelegateName = @"";
 		self.current_orientation = Orientation::ORIENTATION_INVALID;
 		self.visible_status_bar = YES;
 		self.status_bar_style = UIStatusBarStyleDefault;
-		self.root_ctr = [[RootViewController alloc] init];
 		self.root_ctr.appSelf = self;
 		self.display_link = [CADisplayLink displayLinkWithTarget:self
 																										selector:@selector(display_link_callback:)];
@@ -582,16 +585,11 @@ void Display::set_orientation(Orientation orientation) {
 	}
 }
 
-extern "C" Qk_EXPORT int main(int argc, Char* argv[]) {
-	AppInl::runMain(argc, argv);
-
+extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
+	Application::runMain(argc, argv);
 	if ( app() ) {
 		@autoreleasepool {
-			if ( [appDelegateName isEqual:@""] ) {
-				UIApplicationMain(argc, argv, nil, NSStringFromClass(ApplicationDelegate.class));
-			} else {
-				UIApplicationMain(argc, argv, nil, appDelegateName);
-			}
+			UIApplicationMain(argc, argv, nil, NSStringFromClass(ApplicationDelegate.class));
 		}
 	}
 	return 0;

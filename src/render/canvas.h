@@ -69,6 +69,8 @@ namespace quark {
 		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
 			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) = 0;
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) = 0;
+	protected:
+		Canvas() = default;
 	};
 
 }

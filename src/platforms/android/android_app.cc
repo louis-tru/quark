@@ -182,12 +182,7 @@ namespace quark {
 		static void onStart(ANativeActivity* activity) {
 			
 			if ( application->_host == nullptr ) { // start gui
-				/**************************************************/
-				/**************************************************/
-				/*************** Start UI Application ************/
-				/**************************************************/
-				/**************************************************/
-				AppInl::runMain(0, nullptr); // run gui application
+				Application::runMain(0, nullptr); // run gui application
 
 				application->_host = Inl_Application(app());
 				application->_dispatch = application->_host->dispatch();

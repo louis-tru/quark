@@ -45,7 +45,7 @@ namespace quark {
 		}
 	}
 
-	GLRender::GLRender(Application* host)
+	GLRender::GLRender(Application* host, bool raster)
 		: Render(host)
 		, _frame_buffer(0), _is_support_multisampled(false)
 	{

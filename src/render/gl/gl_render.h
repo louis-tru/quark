@@ -51,7 +51,7 @@
 
 namespace quark {
 
-	class GLRender: /*public GLCanvas,*/ public Render {
+	class GLRender: public GLCanvas, public Render {
 	public:
 		virtual ~GLRender();
 		virtual void reload() override;
@@ -62,7 +62,7 @@ namespace quark {
 		virtual void onReload() = 0;
 		virtual void onSubmit() = 0;
 	protected:
-		GLRender(Application* host);
+		GLRender(Application* host, bool raster);
 		uint32_t  _render_buffer, _frame_buffer;
 		uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
 		bool _is_support_multisampled;
