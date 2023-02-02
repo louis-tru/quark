@@ -127,7 +127,9 @@ namespace quark {
 		}
 
 		void onRenderbufferStorage(uint32_t target) override {
-			BOOL ok = [_ctx renderbufferStorage:target fromDrawable:_layer]; Qk_ASSERT(ok);
+			if (! [_ctx renderbufferStorage:target fromDrawable:_layer] ) {
+				Qk_FATAL("#AppleGLRender#onRenderbufferStorage nil");
+			}
 		}
 
 		void onSwapBuffers() override {
