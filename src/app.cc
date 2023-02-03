@@ -120,7 +120,7 @@ namespace quark {
 	}
 
 	void AppInl::triggerMemorywarning() {
-		clear();
+		clean();
 		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
 	}
 
@@ -290,9 +290,9 @@ namespace quark {
 	}
 
 	/**
-	* @func clear([full]) 清理不需要使用的资源
+	* @func clean([full]) 清理不需要使用的资源
 	*/
-	void Application::clear(bool all) {
+	void Application::clean(bool all) {
 		_render->post_message(Cb([this, all](Cb::Data& e){
 			_img_pool->clear(all);
 		}));

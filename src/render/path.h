@@ -46,8 +46,9 @@ namespace quark {
 			kVerb_Cubic, // Cubic bezier
 			kVerb_Close, // close
 		};
-		static Path Oval(Rect rect);
-		static Path Rect(Rect rect);
+		static Path Oval(const Rect& rect);
+		static Path Arc (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
+		static Path Rect(const Rect& rect);
 		static Path Circle(Vec2 center, float radius);
 		Path();
 		Path(Vec2 move);
@@ -57,6 +58,8 @@ namespace quark {
 		void line_to(Vec2 to);
 		void quad_to(Vec2 control, Vec2 to);
 		void cubic_to(Vec2 control1, Vec2 control2, Vec2 to);
+		void oval_to(const quark::Rect& rect);
+		void rect_to(const quark::Rect& rect);
 		void close(); // close line
 		// point ptr
 		inline const Vec2* pts() const { return (Vec2*)*_pts; }

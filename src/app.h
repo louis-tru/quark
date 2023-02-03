@@ -132,9 +132,9 @@ namespace quark {
 		Qk_DEFINE_PROP_GET(ImageSourcePool*, img_pool); // 图片加载器
 
 		/**
-		* @func clear 清理垃圾回收内存资源, all=true 清理全部资源
+		* @func clean 清理垃圾回收内存资源, all=true 清理全部资源
 		*/
-		void clear(bool all = false);
+		void clean(bool all = false);
 
 		/**
 		* @func max_image_memory_limit()

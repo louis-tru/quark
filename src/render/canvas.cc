@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,50 +28,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark_render_canvas__
-#define __quark_render_canvas__
-
-#include "../util/util.h"
-#include "./path.h"
-#include "./pixel.h"
-#include "./paint.h"
-#include "./font/metrics.h"
-#include "../text/text_blob.h"
+#include "./canvas.h"
 
 namespace quark {
 
-	/**
-	 * @class Canvas base abstract type, define all draw apis
-	 */
-	class Qk_EXPORT Canvas: public Object {
-		Qk_HIDDEN_ALL_COPY(Canvas);
-	public:
-		enum ClipOp {
-			kDifference_ClipOp,
-			kIntersect_ClipOp,
-		};
-		virtual int  save() = 0;
-		virtual void restore() = 0;
-		virtual int  getSaveCount() const = 0;
-		virtual void restoreToCount(int saveCount) = 0;
-		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) = 0;
-		virtual void clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) = 0;
-		virtual void clipPath(const Path& path, ClipOp op, bool doAntiAlias) = 0;
-		virtual void drawColor(const Color4f& color, BlendMode mode = kSrcOver_BlendMode) = 0;
-		virtual void drawPaint(const Paint& paint) = 0;
-		virtual void drawRect(const Rect& rect, const Paint& paint);
-		virtual void drawPath(const Path& path, const Paint& paint) = 0;
-		virtual void drawOval(const Rect& oval, const Paint& paint);
-		virtual void drawArc (const Rect& oval, float startAngle, float sweepAngle,
-			bool useCenter, const Paint& paint);
-		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
-		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
-			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) = 0;
-		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) = 0;
-	protected:
-		Canvas() = default;
-	};
+	void Canvas::drawRect(const Rect& rect, const Paint& paint) {
+		drawPath(Path::Rect(rect), paint);
+	}
+
+	void Canvas::drawOval(const Rect& oval, const Paint& paint) {
+		drawPath(Path::Oval(oval), paint);
+	}
+
+	void Canvas::drawArc (const Rect& oval, float startAngle, float sweepAngle,
+		bool useCenter, const Paint& paint) {
+		drawPath(Path::Arc(oval, startAngle, sweepAngle, useCenter), paint);
+	}
+
+	void Canvas::drawCircle(Vec2 center, float radius, const Paint& paint) {
+		drawPath(Path::Circle(center, radius), paint);
+	}
 
 }
-
-#endif

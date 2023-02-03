@@ -68,26 +68,8 @@ namespace quark {
 		// TODO ...
 	}
 
-	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
-		// TODO ...
-	}
-
 	void GLCanvas::drawPath(const Path& path, const Paint& paint) {
-		// TODO ...
-	}
-
-	void GLCanvas::drawOval(const Rect& oval, const Paint& paint) {
-		// TODO ...
-	}
-
-	void GLCanvas::drawCircle(Vec2 center, float radius, const Paint& paint) {
-		// TODO ...
-	}
-
-	void GLCanvas::drawArc(const Rect& oval, float startAngle, float sweepAngle,
-		bool useCenter, const Paint& paint)
-	{
-		// TODO ...
+		Path normalizedPath = path.normalized();
 	}
 
 	void GLCanvas::drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,

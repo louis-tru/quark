@@ -35,32 +35,22 @@
 
 namespace quark {
 
-	Path Path::Oval(struct Rect r) {
-		float w = r.size.x(), h = r.size.y();
-		float x = r.origin.x(), y = r.origin.y();
-		float x2 = x + w / 2, y2 = y + h / 2;
-		float x3 = x + w, y3 = y + h;
-		float cx = w / 2 * 0.552284749831f, cy = h / 2 * 0.552284749831f;
-
-		Path path(Vec2(x2, y)); // move
-		float a[] = {x2 + cx, y, x3, y2 - cy, x3, y2}; path.cubic_to2(a); // top,right
-		float b[] = {x3, y2 + cy, x2 + cx, y3, x2, y3}; path.cubic_to2(b); // right,bottom
-		float c[] = {x2 - cx, y3, x, y2 + cy, x, y2}; path.cubic_to2(c); // bottom,left
-		float d[] = {x, y2 - cy, x2 - cx, y, x2, y}; path.cubic_to2(d); // left,top
-		// path.close_to();
-
-		return path;
+	Path Path::Oval(const quark::Rect& r) {
+		Path path;
+		path.oval_to(r);
+		path.close();
+		return std::move(path);
 	}
 
-	Path Path::Rect(struct Rect r) {
-		Path path(r.origin);
-		float x2 = r.origin.x() + r.size.x();
-		float y2 = r.origin.y() + r.size.y();
-		path.line_to(Vec2(x2, r.origin.y()));
-		path.line_to(Vec2(x2, y2));
-		path.line_to(Vec2(r.origin.x(), y2));
+	Path Path::Arc(const quark::Rect& oval, float startAngle, float sweepAngle, bool useCenter) {
+		// TODO ...
+	}
+
+	Path Path::Rect(const quark::Rect& r) {
+		Path path;
+		path.rect_to(r);
 		path.close();
-		return path;
+		return std::move(path);
 	}
 
 	Path Path::Circle(Vec2 center, float radius) {
@@ -107,6 +97,29 @@ namespace quark {
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Cubic);
 		_IsNormalized = false;
+	}
+
+	void Path::oval_to(const quark::Rect& r) {
+		float w = r.size.x(), h = r.size.y();
+		float x = r.origin.x(), y = r.origin.y();
+		float x2 = x + w / 2, y2 = y + h / 2;
+		float x3 = x + w, y3 = y + h;
+		float cx = w / 2 * 0.552284749831f, cy = h / 2 * 0.552284749831f;
+		move_to(Vec2(x2, y));
+		float a[] = {x2 + cx, y, x3, y2 - cy, x3, y2}; cubic_to2(a); // top,right
+		float b[] = {x3, y2 + cy, x2 + cx, y3, x2, y3}; cubic_to2(b); // right,bottom
+		float c[] = {x2 - cx, y3, x, y2 + cy, x, y2}; cubic_to2(c); // bottom,left
+		float d[] = {x, y2 - cy, x2 - cx, y, x2, y}; cubic_to2(d); // left,top
+	}
+
+	void Path::rect_to(const quark::Rect& r) {
+		move_to(r.origin);
+		float x2 = r.origin.x() + r.size.x();
+		float y2 = r.origin.y() + r.size.y();
+		line_to(Vec2(x2, r.origin.y()));
+		line_to(Vec2(x2, y2));
+		line_to(Vec2(r.origin.x(), y2));
+		line_to(r.origin); // origin point
 	}
 
 	void Path::quad_to2(float *p) {
