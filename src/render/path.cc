@@ -32,6 +32,7 @@
 #include "./path.h"
 #include "../util/handle.h"
 #include "../bezier.h"
+#include <math.h>
 
 namespace quark {
 
@@ -42,8 +43,11 @@ namespace quark {
 		return std::move(path);
 	}
 
-	Path Path::Arc(const quark::Rect& oval, float startAngle, float sweepAngle, bool useCenter) {
-		// TODO ...
+	Path Path::Arc(const quark::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
+		Path path;
+		path.arc_to(r, startAngle, sweepAngle, useCenter);
+		path.close();
+		return std::move(path);
 	}
 
 	Path Path::Rect(const quark::Rect& r) {
@@ -54,7 +58,7 @@ namespace quark {
 	}
 
 	Path Path::Circle(Vec2 center, float radius) {
-		return Oval({ Vec2(center.x() - radius / 2, center.y() - radius / 2), Vec2(radius) * 2 });
+		return Oval({ Vec2(center.x() - radius, center.y() - radius), Vec2(radius) * 2 });
 	}
 
 	Path::Path(Vec2 move): _IsNormalized(true) {
@@ -99,12 +103,14 @@ namespace quark {
 		_IsNormalized = false;
 	}
 
+	const float magicCircle = 0.551915024494f; // 0.552284749831f
+
 	void Path::oval_to(const quark::Rect& r) {
 		float w = r.size.x(), h = r.size.y();
 		float x = r.origin.x(), y = r.origin.y();
 		float x2 = x + w / 2, y2 = y + h / 2;
 		float x3 = x + w, y3 = y + h;
-		float cx = w / 2 * 0.552284749831f, cy = h / 2 * 0.552284749831f;
+		float cx = w / 2 * magicCircle, cy = h / 2 * magicCircle;
 		move_to(Vec2(x2, y));
 		float a[] = {x2 + cx, y, x3, y2 - cy, x3, y2}; cubic_to2(a); // top,right
 		float b[] = {x3, y2 + cy, x2 + cx, y3, x2, y3}; cubic_to2(b); // right,bottom
@@ -120,6 +126,53 @@ namespace quark {
 		line_to(Vec2(x2, y2));
 		line_to(Vec2(r.origin.x(), y2));
 		line_to(r.origin); // origin point
+	}
+
+	void Path::arc_to(const quark::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
+
+		float rx = r.size.x() / 2.0f;
+		float ry = r.size.y() / 2.0f;
+		float cx = r.origin.x() + rx;
+		float cy = r.origin.y() + ry;
+
+		float n = ceilf(abs(sweepAngle) / Qk_PI2);
+		float sweep = sweepAngle / n;
+		float magic = abs(sweep) == Qk_PI2 ? 
+			magicCircle: tanf(sweep / 4.0f) * 1.3333333333333333f/*4.0 / 3.0*/;
+
+		startAngle = -startAngle;
+
+		float x0 = cosf(startAngle);
+		float y0 = sinf(startAngle);
+
+		Vec2 start(x0 * rx + cx, y0 * ry + cy);
+
+		if (useCenter) {
+			move_to(Vec2(cx, cy));
+			line_to(start);
+		} else {
+			move_to(start);
+		}
+
+		for (int i = 0; i < n; i++) {
+			startAngle -= sweep;
+			float x3 = cosf(startAngle);
+			float y3 = sinf(startAngle);
+			float x1 = x0 - magic * y0;
+			float y1 = y0 + magic * x0;
+			float x2 = x3 + magic * y3;
+			float y2 = y3 - magic * x3;
+			float pts[] = {
+				x1 * rx + cx, y1 * ry + cy, // p1
+				x2 * rx + cx, y2 * ry + cy, // p2
+				x3 * rx + cx, y3 * ry + cy  // p3
+			};
+			cubic_to2(pts);
+		}
+
+		if (useCenter) {
+			line_to(Vec2(cx, cy));
+		}
 	}
 
 	void Path::quad_to2(float *p) {

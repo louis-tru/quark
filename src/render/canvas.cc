@@ -40,11 +40,6 @@ namespace quark {
 		drawPath(Path::Oval(oval), paint);
 	}
 
-	void Canvas::drawArc (const Rect& oval, float startAngle, float sweepAngle,
-		bool useCenter, const Paint& paint) {
-		drawPath(Path::Arc(oval, startAngle, sweepAngle, useCenter), paint);
-	}
-
 	void Canvas::drawCircle(Vec2 center, float radius, const Paint& paint) {
 		drawPath(Path::Circle(center, radius), paint);
 	}

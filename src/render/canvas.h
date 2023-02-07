@@ -63,8 +63,6 @@ namespace quark {
 		virtual void drawRect(const Rect& rect, const Paint& paint);
 		virtual void drawPath(const Path& path, const Paint& paint) = 0;
 		virtual void drawOval(const Rect& oval, const Paint& paint);
-		virtual void drawArc (const Rect& oval, float startAngle, float sweepAngle,
-			bool useCenter, const Paint& paint);
 		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
 		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
 			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) = 0;

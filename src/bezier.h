@@ -37,12 +37,12 @@
 namespace quark {
 
 	// Bezier curve formula of order N
-	// B(t) = E(i=0,n) P_i(1-t)^(n-i)t^i, t<-|0,1|
+	// F(t) = E(i=0,n) P_i(1-t)^(n-i)t^i, t<-|0,1|
 
 	/**
 	* @class QuadraticBezier 二次贝塞尔曲线
 	*
-	* B(t) = P_0(1-t)^2 + 2tP_1(1-t) + P_2t^2, t<-|0,1|
+	* F(t) = A(1-t)^2 + B2t(1-t) + Ct^2, t<-|0,1|
 	*/
 	class Qk_EXPORT QuadraticBezier {
 	public:
@@ -82,7 +82,7 @@ namespace quark {
 	/**
 	* @class CubicBezier 三次贝塞尔曲线
 	*
-	* B(t) = P_0(1-t)^3 + 3P_1t(i-t)^2 + 3P_2t^2(1-t) + P_3t3, t<-|0,1|
+	* F(t) = A(1-t)^3 + B3t(1-t)^2 + C3t^2(1-t) + D3t, t<-|0,1|
 	*/
 	class Qk_EXPORT CubicBezier {
 	public:
