@@ -60,8 +60,10 @@ namespace quark {
 	* @func compute_bezier_points
 	*/
 	void QuadraticBezier::sample_curve_points(uint32_t sample_count, float* out) const {
-		float dt = 1.0 / ( sample_count - 1 );
-		for( uint32_t i = 0; i < sample_count; i++) {
+		sample_count--;
+		reinterpret_cast<Vec2*>(out)[0] = _p0; out += 2;
+		float dt = 1.0 / sample_count;
+		for( uint32_t i = 1; i < sample_count; i++) {
 			float t  = i * dt; float t2 = 1.0 - t;
 			float t3 = t2 * t2;    // t'^2
 			float t4 = t * t2 * 2; // 2tt'
@@ -70,6 +72,7 @@ namespace quark {
 			out[1]  = t3 * _p0.y() + t4 * _p1.y() + t5 * _p2.y(); // y
 			out += 2;
 		}
+		reinterpret_cast<Vec2*>(out)[0] = _p2;
 	}
 
 	/**
@@ -96,13 +99,16 @@ namespace quark {
 	* @func compute_bezier_points
 	*/
 	void CubicBezier::sample_curve_points(uint32_t sample_count, float* out) const {
-		float dt = 1.0 / ( sample_count - 1 );
-		for( uint32_t i = 0; i < sample_count; i++) {
+		sample_count--;
+		reinterpret_cast<Vec2*>(out)[0] = _p0; out += 2;
+		float dt = 1.0 / sample_count;
+		for( uint32_t i = 1; i < sample_count; i++) {
 			float t = i * dt;
 			out[0] = sample_curve_x(t);
 			out[1] = sample_curve_y(t);
 			out += 2;
 		}
+		reinterpret_cast<Vec2*>(out)[0] = _p3;
 	}
 
 	/**
