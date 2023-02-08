@@ -46,6 +46,10 @@ namespace quark {
 	*/
 	class Qk_EXPORT QuadraticBezier {
 	public:
+		// define props
+		Qk_DEFINE_PROP_GET(Vec2, p0);
+		Qk_DEFINE_PROP_GET(Vec2, p1);
+		Qk_DEFINE_PROP_GET(Vec2, p2);
 
 		/**
 		* @constructor
@@ -71,12 +75,6 @@ namespace quark {
 		* @func sample_curve_points
 		*/
 		Array<Vec2> sample_curve_points(uint32_t sample_count) const;
-		
-	private:
-		
-		float p0x, p0y;
-		float p1x, p1y;
-		float p2x, p2y;
 	};
 
 	/**
@@ -86,6 +84,11 @@ namespace quark {
 	*/
 	class Qk_EXPORT CubicBezier {
 	public:
+		// define props
+		Qk_DEFINE_PROP_GET(Vec2, p0);
+		Qk_DEFINE_PROP_GET(Vec2, p1);
+		Qk_DEFINE_PROP_GET(Vec2, p2);
+		Qk_DEFINE_PROP_GET(Vec2, p3);
 
 		/**
 		* @constructor
@@ -102,14 +105,14 @@ namespace quark {
 		*/
 		inline float sample_curve_x(float t) const {
 			// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
-			return ((ax * t + bx) * t + cx) * t + p0x;
+			return ((ax * t + bx) * t + cx) * t + _p0.x();
 		}
 		
 		/**
 		* @func sample_curve_y
 		*/
 		inline float sample_curve_y(float t) const {
-			return ((ay * t + by) * t + cy) * t + p0y;
+			return ((ay * t + by) * t + cy) * t + _p0.y();
 		}
 		
 		/**
@@ -121,12 +124,10 @@ namespace quark {
 		* @func sample_curve_points
 		*/
 		Array<Vec2> sample_curve_points(uint32_t sample_count) const;
-		
-	protected:
 
+	protected:
 		float ax, bx, cx;
 		float ay, by, cy;
-		float p0x, p0y;
 	};
 
 	/**

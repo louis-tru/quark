@@ -38,15 +38,14 @@ namespace quark {
 	/**
 	* @constructor
 	*/
-	QuadraticBezier::QuadraticBezier(Vec2 p0, Vec2 p1, Vec2 p2)
-		: p0x(p0.x()), p0y(p0.y()), p1x(p1.x()), p1y(p1.y()), p2x(p2.x()), p2y(p2.y()) { }
+	QuadraticBezier::QuadraticBezier(Vec2 p0, Vec2 p1, Vec2 p2): _p0(p0), _p1(p1), _p2(p2) { }
 
 	/**
 	* @func sample_curve_x
 	*/
 	float QuadraticBezier::sample_curve_x(float t) const {
 		float t2 = 1 - t;
-		return t2 * t2 * p0x + 2 * t * t2 * p1x + t * t * p2x;
+		return t2 * t2 * _p0.x() + 2 * t * t2 * _p1.x() + t * t * _p2.x();
 	}
 
 	/**
@@ -54,7 +53,7 @@ namespace quark {
 	*/
 	float QuadraticBezier::sample_curve_y(float t) const {
 		float t2 = 1 - t;
-		return t2 * t2 * p0y + 2 * t * t2 * p1y + t * t * p2y;
+		return t2 * t2 * _p0.y() + 2 * t * t2 * _p1.y() + t * t * _p2.y();
 	}
 
 	/**
@@ -67,8 +66,8 @@ namespace quark {
 			float t3 = t2 * t2;    // t'^2
 			float t4 = t * t2 * 2; // 2tt'
 			float t5 = t * t;      // t^2
-			out[0]  = t3 * p0x + t4 * p1x + t5 * p2x; // x
-			out[1]  = t3 * p0y + t4 * p1y + t5 * p2y; // y
+			out[0]  = t3 * _p0.x() + t4 * _p1.x() + t5 * _p2.x(); // x
+			out[1]  = t3 * _p0.y() + t4 * _p1.y() + t5 * _p2.y(); // y
 			out += 2;
 		}
 	}
@@ -82,14 +81,15 @@ namespace quark {
 		return rev;
 	}
 
-	CubicBezier::CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3): p0x(p0.x()), p0y(p0.y()) {
-		cx = 3.0 * (p1.x() - p0x);
+	CubicBezier::CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3)
+		: _p0(p0), _p1(p1), _p2(p2), _p3(p3)
+	{
+		cx = 3.0 * (p1.x() - p0.x());
 		bx = 3.0 * (p2.x() - p1.x()) - cx;
-		ax = p3.x() - p0x - cx - bx;
-		//
-		cy = 3.0 * (p1.y() - p0y);
+		ax = p3.x() - p0.x() - cx - bx;
+		cy = 3.0 * (p1.y() - p0.y());
 		by = 3.0 * (p2.y() - p1.y()) - cy;
-		ay = p3.y() - p0y - cy - by;
+		ay = p3.y() - p0.y() - cy - by;
 	}
 
 	/**

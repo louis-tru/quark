@@ -68,18 +68,18 @@ namespace quark {
 		inline const uint32_t pts_len() const { return _pts.length() >> 1; }
 		inline const uint32_t verbs_len() const { return _verbs.length(); }
 		// convert func
-		Array<Vec2>  to_polygon(int polySize = 3) const;
-		Array<Vec2>  to_edge_line() const;
+		Array<Vec2>  to_polygon(int polySize = 3, float epsilon = 1.0) const;
+		Array<Vec2>  to_edge_line(float epsilon = 1.0) const;
 		// matrix transfrom
 		void transfrom(const Mat& matrix);
 		// scale transfrom
 		void scale(Vec2 scale);
 		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
-		Path normalized() const; // normal
+		Path normalized(float epsilon = 1.0) const; // normal
 		Path clip(const Path& path) const;
 		// estimate sample rate
-		static int get_quadratic_bezier_sample(const QuadraticBezier& curve);
-		static int get_cubic_bezier_sample(const CubicBezier& curve);
+		static int get_quadratic_bezier_sample(const QuadraticBezier& curve, float epsilon = 1.0);
+		static int get_cubic_bezier_sample(const CubicBezier& curve, float epsilon = 1.0);
 	private:
 		void quad_to2(float *p);
 		void cubic_to2(float *p);

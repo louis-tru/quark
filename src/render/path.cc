@@ -103,7 +103,7 @@ namespace quark {
 		_IsNormalized = false;
 	}
 
-	const float magicCircle = 0.551915024494f; // 0.552284749831f
+	constexpr float magicCircle = 0.551915024494f; // 0.552284749831f
 
 	void Path::oval_to(const quark::Rect& r) {
 		float w = r.size.x(), h = r.size.y();
@@ -191,7 +191,7 @@ namespace quark {
 		_verbs.push(kVerb_Close);
 	}
 
-	Array<Vec2> Path::to_polygon(int polySize) const {
+	Array<Vec2> Path::to_polygon(int polySize, float epsilon) const {
 		TESStesselator* tess = tessNewTess(nullptr);
 		CPointer<TESStesselator> hold(tess, [](TESStesselator*p) { tessDeleteTess(p); });
 
@@ -221,7 +221,7 @@ namespace quark {
 					// Qk_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
 					QuadraticBezier bezier(tmpV.back(), pts[0], pts[1]);
 					pts+=2;
-					int sample = Path::get_quadratic_bezier_sample(bezier);
+					int sample = Path::get_quadratic_bezier_sample(bezier, epsilon);
 					tmpV.extend(tmpV.length() + sample - 1);
 					bezier.sample_curve_points(sample, (float*)&tmpV[tmpV.length() - sample]);
 					len += sample - 1;
@@ -232,7 +232,7 @@ namespace quark {
 					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
 					CubicBezier bezier(tmpV.back(), pts[0], pts[1], pts[2]);
 					pts+=3;
-					int sample = Path::get_cubic_bezier_sample(bezier);
+					int sample = Path::get_cubic_bezier_sample(bezier, epsilon);
 					tmpV.extend(tmpV.length() + sample - 1);
 					bezier.sample_curve_points(sample, (float*)&tmpV[tmpV.length() - sample]);
 					len += sample - 1;
@@ -270,7 +270,7 @@ namespace quark {
 		return polygons;
 	}
 
-	Array<Vec2> Path::to_edge_line() const {
+	Array<Vec2> Path::to_edge_line(float epsilon) const {
 		const Vec2* pts = ((const Vec2*)*_pts) - 1;
 		Array<Vec2> edges;
 		int len = 0;
@@ -292,7 +292,7 @@ namespace quark {
 				case kVerb_Quad: { // Quadratic
 					//  Qk_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
 					QuadraticBezier bezier(isZeor ? Vec2(): pts[0], pts[1], pts[2]); pts+=2;
-					int sample = Path::get_quadratic_bezier_sample(bezier);
+					int sample = Path::get_quadratic_bezier_sample(bezier, epsilon);
 					auto points = bezier.sample_curve_points(sample);
 					for (int i = 0; i < sample - 1; i++) {
 						edges.push(points[i]); edges.push(points[i + 1]); // add edge line
@@ -305,7 +305,7 @@ namespace quark {
 					//  Qk_DEBUG("cubic_to:%f,%f|%f,%f|%f,%f",
 					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
 					CubicBezier bezier(isZeor ? Vec2(): pts[0], pts[1], pts[2], pts[3]); pts+=3;
-					int sample = Path::get_cubic_bezier_sample(bezier);
+					int sample = Path::get_cubic_bezier_sample(bezier, epsilon);
 					auto points = bezier.sample_curve_points(sample);
 					for (int i = 0; i < sample - 1; i++) {
 						edges.push(points[i]); edges.push(points[i + 1]); // add edge line
@@ -346,7 +346,7 @@ namespace quark {
 		}
 	}
 
-	Path Path::normalized() const {
+	Path Path::normalized(float epsilon) const {
 		if (_IsNormalized)
 			return *this; // copy self
 
@@ -371,9 +371,9 @@ namespace quark {
 						line.move_to(Vec2());
 					QuadraticBezier bezier(line._pts.back(), pts[0], pts[1]);
 					pts+=2;
-					int sample = Path::get_quadratic_bezier_sample(bezier) - 1;
+					int sample = Path::get_quadratic_bezier_sample(bezier, epsilon) - 1;
 					line._pts.extend(line._pts.length() + sample * 2);
-					bezier.sample_curve_points(sample, &line._pts[line._pts.length() - sample * 2 - 2]);
+					bezier.sample_curve_points(sample+1, &line._pts[line._pts.length() - (sample+1) * 2]);
 					line._verbs.extend(line._verbs.length() + sample);
 					memset(line._verbs.val() + (line._verbs.length() - sample), kVerb_Line, sample);
 					isZeor = false;
@@ -384,9 +384,9 @@ namespace quark {
 						line.move_to(Vec2());
 					CubicBezier bezier(line._pts.back(), pts[0], pts[1], pts[2]);
 					pts+=3;
-					int sample = Path::get_cubic_bezier_sample(bezier) - 1;
+					int sample = Path::get_cubic_bezier_sample(bezier, epsilon) - 1;
 					line._pts.extend(line._pts.length() + sample * 2);
-					bezier.sample_curve_points(sample, &line._pts[line._pts.length() - sample * 2 - 2]);
+					bezier.sample_curve_points(sample+1, &line._pts[line._pts.length() - (sample+1) * 2]);
 					line._verbs.extend(line._verbs.length() + sample);
 					memset(line._verbs.val() + (line._verbs.length() - sample), kVerb_Line, sample);
 					isZeor = false;
@@ -409,12 +409,43 @@ namespace quark {
 		return Path();
 	}
 
-	int Path::get_quadratic_bezier_sample(const QuadraticBezier& curve) {
-		return 16;
+	int Path::get_quadratic_bezier_sample(const QuadraticBezier& curve, float epsilon) {
+		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2();
+
+		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x()) + (C.x()*A.y() - C.y()*A.x());
+		float S = S_ABC * 0.5 * epsilon;
+
+		if (S < 10000.0) { // < 100^2
+			constexpr float count = 10000.0 * (16.0 - 3.0);
+			return int(S / count) + 3;
+		} else {
+			return 16;
+		}
 	}
 
-	int Path::get_cubic_bezier_sample(const CubicBezier& curve) {
-		return 20;
+	/*
+	function get_cubic_bezier_sample(A, B, C, D, epsilon = 1) {
+		let S_ABC = (A.x*B.y - A.y*B.x) + (B.x*C.y - B.y*C.x);
+		let S_CDA = (C.x*D.y - C.y*D.x) + (D.x*A.y - D.y*A.x);
+		let S = (S_ABC + S_CDA) * 0.5 * epsilon;
+		return S;
+	}
+	console.log(get_cubic_bezier_sample({x:0,y:0}, {x:10,y:0}, {x:10,y:10}, {x:0,y:10}));
+	*/
+
+	int Path::get_cubic_bezier_sample(const CubicBezier& curve, float epsilon) {
+		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2(), D = curve.p3();
+
+		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x());// + (C.x()*A.y() - C.y()*A.x());
+		float S_CDA = (C.x()*D.y() - C.y()*D.x()) + (D.x()*A.y() - D.y()*A.x());// + (A.x()*C.y() - A.y()*C.x());
+		float S = (S_ABC + S_CDA) * 0.5 * epsilon;
+
+		if (S < 10000.0) { // < 100^2
+			constexpr float count = 10000.0 * (20.0 - 3.0);
+			return int(S / count) + 3;
+		} else {
+			return 20;
+		}
 	}
 
 }
