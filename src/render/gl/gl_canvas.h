@@ -45,7 +45,6 @@ namespace quark {
 		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) override;
 		virtual void clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
 		virtual void clipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
-		virtual void drawColor(const Color4f& color, BlendMode mode) override;
 		virtual void drawPaint(const Paint& paint) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
 		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,

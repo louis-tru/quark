@@ -60,10 +60,6 @@ namespace quark {
 		// TODO ...
 	}
 
-	void GLCanvas::drawColor(const Color4f& color, BlendMode mode) {
-		// TODO ...
-	}
-
 	void GLCanvas::drawPaint(const Paint& paint) {
 		// TODO ...
 	}
