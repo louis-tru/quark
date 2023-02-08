@@ -416,8 +416,8 @@ namespace quark {
 		float S = S_ABC * 0.5 * epsilon;
 
 		if (S < 10000.0) { // < 100^2
-			constexpr float count = 10000.0 * (16.0 - 3.0);
-			return int(S / count) + 3;
+			constexpr float count = (16.0 - 2.0) / 10000.0;
+			return int(S * count) + 2;
 		} else {
 			return 16;
 		}
@@ -441,8 +441,8 @@ namespace quark {
 		float S = (S_ABC + S_CDA) * 0.5 * epsilon;
 
 		if (S < 10000.0) { // < 100^2
-			constexpr float count = 10000.0 * (20.0 - 3.0);
-			return int(S / count) + 3;
+			constexpr float count = (20.0 - 2.0) / 10000.0;
+			return int(S * count) + 2;
 		} else {
 			return 20;
 		}

@@ -65,11 +65,12 @@ namespace quark {
 		// point ptr
 		inline const Vec2* pts() const { return (Vec2*)*_pts; }
 		inline const PathVerb* verbs() const { return (PathVerb*)*_verbs; }
-		inline const uint32_t pts_len() const { return _pts.length() >> 1; }
-		inline const uint32_t verbs_len() const { return _verbs.length(); }
+		inline uint32_t pts_len() const { return _pts.length() >> 1; }
+		inline uint32_t verbs_len() const { return _verbs.length(); }
+		inline bool isNormalized() const { return _IsNormalized; }
 		// convert func
-		Array<Vec2>  to_polygon(int polySize = 3, float epsilon = 1.0) const;
-		Array<Vec2>  to_edge_line(float epsilon = 1.0) const;
+		Array<Vec2> to_polygon(int polySize = 3, float epsilon = 1.0) const;
+		Array<Vec2> to_edge_line(float epsilon = 1.0) const;
 		// matrix transfrom
 		void transfrom(const Mat& matrix);
 		// scale transfrom
