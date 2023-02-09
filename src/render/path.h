@@ -34,6 +34,7 @@
 #include "../types.h"
 #include "../bezier.h"
 #include "../util/array.h"
+#include "./paint.h"
 
 namespace quark {
 
@@ -46,6 +47,12 @@ namespace quark {
 			kVerb_Cubic, // Cubic bezier
 			kVerb_Close, // close
 		};
+		enum StrokeMode {
+			kCenter_StrokeMode,
+			kOutside_StrokeMode,
+			kInside_StrokeMode,
+		};
+		typedef Paint::Join Join;
 		static Path Oval(const Rect& rect);
 		static Path Arc (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		static Path Rect(const Rect& rect);
@@ -69,8 +76,12 @@ namespace quark {
 		inline uint32_t verbs_len() const { return _verbs.length(); }
 		inline bool isNormalized() const { return _IsNormalized; }
 		// convert func
-		Array<Vec2> to_polygon(int polySize = 3, float epsilon = 1.0) const;
-		Array<Vec2> to_edge_line(float epsilon = 1.0) const;
+		/**
+		 * @brief to_polygons() convert to polygons and use anti alias
+		 * @return {Array<Vec3>} points Vec3 { x, y, weight }[]
+		*/
+		Array<Vec3> to_polygons(int polySize = 3, bool antiAlias = false, float epsilon = 1.0) const;
+		Array<Vec2> to_edge_lines(float epsilon = 1.0) const;
 		// matrix transfrom
 		void transfrom(const Mat& matrix);
 		// scale transfrom
@@ -78,6 +89,7 @@ namespace quark {
 		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
 		Path normalized(float epsilon = 1.0) const; // normal
 		Path clip(const Path& path) const;
+		Path genStrokePath(float width, Join join, bool containFill, StrokeMode mode = kCenter_StrokeMode) const;
 		// estimate sample rate
 		static int get_quadratic_bezier_sample(const QuadraticBezier& curve, float epsilon = 1.0);
 		static int get_cubic_bezier_sample(const CubicBezier& curve, float epsilon = 1.0);

@@ -602,7 +602,7 @@ void Typeface_Mac::onGetGlyph(GlyphID id, FontGlyphMetrics* glyph) const {
 	glyph->height = bounds.size.y();
 }
 
-bool Typeface_Mac::onGetPath(GlyphID glyph, PathLine *path) const {
+bool Typeface_Mac::onGetPath(GlyphID glyph, Path *path) const {
 	if (nullptr == path) {
 		return false;
 	}
@@ -619,7 +619,7 @@ bool Typeface_Mac::onGetPath(GlyphID glyph, PathLine *path) const {
 	}
 
 	struct Ctx {
-		PathLine *path;
+		Path *path;
 		CGPoint fCurrent;
 		bool currentIsNot(const CGPoint& pt) {
 			return fCurrent.x != pt.x || fCurrent.y != pt.y;
@@ -628,7 +628,7 @@ bool Typeface_Mac::onGetPath(GlyphID glyph, PathLine *path) const {
 
 	CGPathApply(cgPath.get(), &ctx, [](void *_, const CGPathElement *element) {
 		Ctx* ctx = (Ctx*)_;
-		PathLine& self = *ctx->path;
+		Path& self = *ctx->path;
 		CGPoint* points = element->points;
 
 		switch (element->type) {

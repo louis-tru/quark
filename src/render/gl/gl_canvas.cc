@@ -32,6 +32,12 @@
 
 namespace quark {
 
+	GLCanvas::GLCanvas()
+		: _blendMode(kClear_BlendMode)
+		, _IsDeviceAntiAlias(false)
+	{
+	}
+
 	int  GLCanvas::save() {
 		// TODO ...
 	}
@@ -52,11 +58,11 @@ namespace quark {
 		// TODO ...
 	}
 
-	void GLCanvas::clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) {
+	void GLCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
 		// TODO ...
 	}
 
-	void GLCanvas::clipPath(const Path& path, ClipOp op, bool doAntiAlias) {
+	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
 		// TODO ...
 	}
 
@@ -65,7 +71,39 @@ namespace quark {
 	}
 
 	void GLCanvas::drawPath(const Path& path, const Paint& paint) {
-		Path normalizedPath = path.normalized();
+
+		bool antiAlias = paint.antiAlias && !_IsDeviceAntiAlias; // Anti-aliasing using software
+
+		Array<Vec3> polygons;
+
+		if (_blendMode != paint.blendMode) {
+			setBlendMode(paint.blendMode); // switch blend mode
+		}
+
+		// gen stroke path and fill path and polygons
+		switch (paint.style) {
+			case Paint::kFill_Style:
+				polygons = path.to_polygons(3, antiAlias);
+				break;
+			case Paint::kStroke_Style:
+				polygons = path.genStrokePath(paint.width, paint.join, false)
+					.to_polygons(3, antiAlias);
+				break;
+			case Paint::kStrokeAndFill_Style:
+				polygons = path.genStrokePath(paint.width, paint.join, true)
+					.to_polygons(3, antiAlias);
+				break;
+		}
+
+		// fill polygons
+		switch (paint.type) {
+			case Paint::kColor_Type:
+				fillColor(polygons, paint); break;
+			case Paint::kGradient_Type:
+				fillGradient(polygons, paint); break;
+			case Paint::kImage_Type:
+				fillImage(polygons, paint); break;
+		}
 	}
 
 	void GLCanvas::drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
@@ -76,6 +114,57 @@ namespace quark {
 
 	void GLCanvas::drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) {
 		// TODO ...
+	}
+
+	void GLCanvas::fillColor(const Array<Vec3>& triangles, const Paint& paint) {
+		// TODO ...
+	}
+
+	void GLCanvas::fillGradient(const Array<Vec3>& triangles, const Paint& paint) {
+		// TODO ...
+	}
+
+	void GLCanvas::fillImage(const Array<Vec3>& triangles, const Paint& paint) {
+		// TODO ...
+	}
+
+	void GLCanvas::setBlendMode(BlendMode blendMode) {
+
+		switch (blendMode) {
+			case kClear_BlendMode:         //!< r = 0
+				break;
+			case kSrc_BlendMode:           //!< r = s
+				break;
+			case kDst_BlendMode:           //!< r = d
+				break;
+			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
+				break;
+			case kDstOver_BlendMode:       //!< r = d + (1-da)*s
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kDstIn_BlendMode:         //!< r = d * sa
+				break;
+			case kDstOut_BlendMode:        //!< r = d * (1-sa)
+				break;
+			case kSrcIn_BlendMode:         //!< r = s * da
+				break;
+			case kSrcOut_BlendMode:        //!< r = s * (1-da)
+				break;
+			case kSrcATop_BlendMode:       //!< r = s*da + d*(1-sa)
+				break;
+			case kDstATop_BlendMode:       //!< r = d*sa + s*(1-da)
+				break;
+			case kXor_BlendMode:           //!< r = s*(1-da) + d*(1-sa)
+				break;
+			case kPlus_BlendMode:          //!< r = min(s + d, 1)
+				break;
+			case kModulate_BlendMode:      //!< r = s*d
+				break;
+			case kScreen_BlendMode:        //!< r = s + d - s*d
+				break;
+		}
+
+		_blendMode = blendMode;
 	}
 
 }

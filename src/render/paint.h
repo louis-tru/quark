@@ -43,8 +43,8 @@ namespace quark {
 
 		enum Type {
 			kColor_Type,          //!< set to color paint type
-			kImage_Type,          //!< set to image paint type
 			kGradient_Type,       //!< set to gradient paint type
+			kImage_Type,          //!< set to image paint type
 		};
 
 		enum Style {
@@ -53,13 +53,13 @@ namespace quark {
 			kStrokeAndFill_Style, //!< sets to stroke and fill geometry
 		};
 
-		enum Cap {
+		enum Cap {              //!< point style
 			kButt_Cap,            //!< no stroke extension
 			kRound_Cap,           //!< adds circle
 			kSquare_Cap,          //!< adds square
 		};
 
-		enum Join {
+		enum Join {             //!< stroke style
 			kMiter_Join,          //!< extends to miter limit
 			kRound_Join,          //!< adds circle
 			kBevel_Join,          //!< connects outside edges
@@ -87,11 +87,11 @@ namespace quark {
 			kLinear_MipmapMode,    //!< interpolate between the two nearest levels
 		};
 
-		inline const Rect& imageRect() const {
+		inline const Rect& imageSourceRect() const {
 			return *reinterpret_cast<const Rect*>(&color);
 		}
 
-		inline void setImageRect(const Rect& src) {
+		inline void setImageSourceRect(const Rect& src) {
 			*reinterpret_cast<Rect*>(&color) = src;
 		}
 

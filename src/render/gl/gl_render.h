@@ -35,20 +35,6 @@
 #include "../render.h"
 #include "./gl_canvas.h"
 
-#if Qk_IOS
-# include <OpenGLES/ES3/gl.h>
-# include <OpenGLES/ES3/glext.h>
-#elif Qk_OSX
-# include <OpenGL/gl3.h>
-# include <OpenGL/gl3ext.h>
-#elif Qk_ANDROID || Qk_LINUX
-# define GL_GLEXT_PROTOTYPES
-# include <GLES3/gl3.h>
-# include <GLES3/gl3ext.h>
-#else
-# error "The operating system does not support"
-#endif
-
 namespace quark {
 
 	class GLRender: public GLCanvas, public Render {
@@ -59,13 +45,11 @@ namespace quark {
 		virtual void submit() override;
 		virtual void onRenderbufferStorage(uint32_t target);
 		virtual void onSwapBuffers() = 0;
-		virtual void onReload() = 0;
-		virtual void onSubmit() = 0;
 	protected:
 		GLRender(Application* host, bool raster);
-		uint32_t  _render_buffer, _frame_buffer;
-		uint32_t  _msaa_render_buffer, _msaa_frame_buffer;
-		bool _is_support_multisampled;
+		uint32_t _render_buffer, _frame_buffer;
+		uint32_t _msaa_render_buffer, _msaa_frame_buffer;
+		bool _is_support_multisampled, _raster;
 	};
 
 }

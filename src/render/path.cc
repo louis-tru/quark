@@ -191,12 +191,13 @@ namespace quark {
 		_verbs.push(kVerb_Close);
 	}
 
-	Array<Vec2> Path::to_polygon(int polySize, float epsilon) const {
+	Array<Vec3> Path::to_polygons(int polySize, bool antiAlias, float epsilon) const {
 		TESStesselator* tess = tessNewTess(nullptr);
 		CPointer<TESStesselator> hold(tess, [](TESStesselator*p) { tessDeleteTess(p); });
 
 		const Vec2* pts = (const Vec2*)*_pts;
-		Array<Vec2> polygons, tmpV;
+		Array<Vec3> polygons;
+		Array<Vec2> tmpV;
 		int len = 0;
 
 		for (auto verb: _verbs) {
@@ -262,15 +263,15 @@ namespace quark {
 			for (int i = 0; i < nelems * polySize; i++) {
 				float x = verts[elems[0]];
 				float y = verts[elems[1]];
-				polygons.push(Vec2(x, y));
+				polygons.push(Vec3(x, y, 1.0));
 				elems += 2;
 			}
 		}
 
-		return polygons;
+		return std::move(polygons);
 	}
 
-	Array<Vec2> Path::to_edge_line(float epsilon) const {
+	Array<Vec2> Path::to_edge_lines(float epsilon) const {
 		const Vec2* pts = ((const Vec2*)*_pts) - 1;
 		Array<Vec2> edges;
 		int len = 0;
@@ -407,6 +408,11 @@ namespace quark {
 		auto path0 = path.normalized();
 		auto path1 = normalized();
 		return Path();
+	}
+
+	Path Path::genStrokePath(float width, Join join, bool containFill, StrokeMode mode) const {
+		// TODO ...
+		return *this;
 	}
 
 	int Path::get_quadratic_bezier_sample(const QuadraticBezier& curve, float epsilon) {

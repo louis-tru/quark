@@ -34,22 +34,45 @@
 
 #include "../canvas.h"
 
+#if Qk_IOS
+# include <OpenGLES/ES3/gl.h>
+# include <OpenGLES/ES3/glext.h>
+#elif Qk_OSX
+# include <OpenGL/gl3.h>
+# include <OpenGL/gl3ext.h>
+#elif Qk_ANDROID || Qk_LINUX
+# define GL_GLEXT_PROTOTYPES
+# include <GLES3/gl3.h>
+# include <GLES3/gl3ext.h>
+#else
+# error "The operating system does not support"
+#endif
+
 namespace quark {
 
 	class GLCanvas: public Canvas {
 	public:
+		GLCanvas();
 		virtual int  save() override;
 		virtual void restore() override;
 		virtual int  getSaveCount() const override;
 		virtual void restoreToCount(int saveCount) override;
 		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) override;
-		virtual void clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
-		virtual void clipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
+		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
+		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
 		virtual void drawPaint(const Paint& paint) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
 		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
 			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) override;
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) override;
+	private:
+		void fillColor(const Array<Vec3>& triangles, const Paint& paint);
+		void fillGradient(const Array<Vec3>& triangles, const Paint& paint);
+		void fillImage(const Array<Vec3>& triangles, const Paint& paint);
+	protected:
+		void setBlendMode(BlendMode blendMode);
+		BlendMode _blendMode;
+		bool _IsDeviceAntiAlias; // device anti alias, msaa
 	};
 
 }

@@ -42,7 +42,7 @@ namespace quark {
 		Qk_HIDDEN_ALL_COPY(XLineScaner);
 	public:
 		typedef void (*ScanCb)(int32_t left, int32_t right, int32_t y, void* ctx);
-		XLineScaner(const PathLine& path, Rect clip, float scale = 1.0, bool is_convex_polygon = false);
+		XLineScaner(const Path& path, Rect clip, float scale = 1.0, bool is_convex_polygon = false);
 		void scan(ScanCb cb, void* ctx);
 	private:
 		void scan_polygon(ScanCb cb, void* ctx);

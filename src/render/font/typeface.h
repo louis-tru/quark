@@ -58,7 +58,7 @@ namespace quark {
 		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
 		GlyphID unicharToGlyph(Unichar unichar) const;
 		const FontGlyphMetrics& getGlyph(GlyphID glyph); // returns the font glyph metrics in 64 px
-		const PathLine& getPath(GlyphID glyph); // returns the path of glyph in 64 px
+		const Path& getPath(GlyphID glyph); // returns the path of glyph in 64 px
 		float getMetrics(FontMetrics* metrics, float fontSize);
 		float getMetrics(FontMetricsBase* metrics, float fontSize);
 		// get image source object from out param and return top to baseline value for image text
@@ -75,12 +75,12 @@ namespace quark {
 		virtual void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const = 0;
 		virtual void onGetMetrics(FontMetrics* metrics) const = 0;
 		virtual void onGetGlyph(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
-		virtual bool onGetPath(GlyphID glyph, PathLine *path) const = 0;
+		virtual bool onGetPath(GlyphID glyph, Path *path) const = 0;
 		virtual float onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) = 0;
 	private:
 		FontMetrics _metrics;
 		Dict<GlyphID, FontGlyphMetrics> _glyphs;
-		Dict<GlyphID, PathLine> _paths;
+		Dict<GlyphID, Path> _paths;
 	};
 
 }

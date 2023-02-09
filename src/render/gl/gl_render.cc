@@ -45,40 +45,39 @@ namespace quark {
 		}
 	}
 
-	GLRender::GLRender(Application* host, bool raster)
-		: Render(host)
-		, _frame_buffer(0), _is_support_multisampled(false)
-	{
-		switch(_opts.colorType) {
-			case kColor_Type_BGRA_8888: _opts.colorType = kColor_Type_RGBA_8888; break;
-			case kColor_Type_BGRA_1010102: _opts.colorType = kColor_Type_RGBA_1010102; break;
-			case kColor_Type_BGR_101010X: _opts.colorType = kColor_Type_RGB_101010X; break;
-			default: break;
-		}
-
+	bool checkIsSupportMultisampled() {
 		String extensions = (const char*)glGetString(GL_EXTENSIONS);
 		String version = (const char*)glGetString(GL_VERSION);
+
+		bool ok = false;
 
 		Qk_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
 		Qk_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
 		Qk_DEBUG("OGL Info: %s", *version);
 		Qk_DEBUG("OGL Info: %s", *extensions);
-		
-		if (!_is_support_multisampled) {
-			for (auto s : {"OpenGL ES ", "OpenGL "}) {
-				int idx = version.index_of(s);
-				if (idx != -1) {
-					int num = version.substr(idx + 10, 1).to_number<int>();
-					if (num > 2) {
-						_is_support_multisampled = true;
-					} else {
-						_is_support_multisampled = extensions.index_of( "multisample" ) != -1;
-					}
-					if (_is_support_multisampled)
-						break;
+
+		for (auto s : {"OpenGL ES ", "OpenGL "}) {
+			int idx = version.index_of(s);
+			if (idx != -1) {
+				int num = version.substr(idx + 10, 1).to_number<int>();
+				if (num > 2) {
+					ok = true;
+				} else {
+					ok = extensions.index_of( "multisample" ) != -1;
 				}
+				if (ok)
+					break;
 			}
 		}
+
+		return ok;
+	}
+
+	GLRender::GLRender(Application* host, bool raster)
+		: Render(host)
+		, _frame_buffer(0), _is_support_multisampled(false), _raster(raster)
+	{
+		_is_support_multisampled = checkIsSupportMultisampled();
 
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(1, &_frame_buffer);
@@ -89,7 +88,22 @@ namespace quark {
 		glGenRenderbuffers(1, &_msaa_render_buffer);
 
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		setBlendMode(kDstOver_BlendMode); // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		switch(_opts.colorType) {
+			case kColor_Type_BGRA_8888:
+				_opts.colorType = kColor_Type_RGBA_8888; break;
+			case kColor_Type_BGRA_1010102:
+				_opts.colorType = kColor_Type_RGBA_1010102; break;
+			case kColor_Type_BGR_101010X:
+				_opts.colorType = kColor_Type_RGB_101010X; break;
+			default: break;
+		}
+
+		if (_raster) {
+			// new raster canvas
+		}
+		_canvas = this;
 	}
 
 	GLRender::~GLRender() {
@@ -105,7 +119,7 @@ namespace quark {
 	}
 
 	void GLRender::reload() {
-		if (!_is_support_multisampled) {
+		if (!_is_support_multisampled || _raster) {
 			_opts.msaaSampleCnt = 0;
 		}
 
@@ -114,14 +128,15 @@ namespace quark {
 		int width = region.width;
 		int height = region.height;
 
-		Qk_ASSERT(width && height);
+		Qk_ASSERT(width && height, "Invalid viewport size");
 
 		glViewport(0, 0, width, height);
 
+		// --------------------- Init render and frame buffers ---------------------
 		do {
 			glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			onRenderbufferStorage(GL_RENDERBUFFER);
+			onRenderbufferStorage(GL_RENDERBUFFER); // create buffer storage
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 
 			int MSAA = _opts.msaaSampleCnt;
@@ -134,14 +149,12 @@ namespace quark {
 
 			// Test the framebuffer for completeness.
 			if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
+				_IsDeviceAntiAlias = true;
 				break;
+			} else if ( MSAA > 1 ) {
+				_opts.msaaSampleCnt /= 2;
 			} else {
-				if ( MSAA > 1 ) {
-					_opts.msaaSampleCnt /= 2;
-				} else {
-					Qk_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
-					return;
-				}
+				Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
 			}
 		} while(1);
 
@@ -150,19 +163,16 @@ namespace quark {
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 
+		// ---------------------------------------------------------------
+
 		glClearStencil(0);
 		glStencilMask(0xffffffff);
-
-		onReload();
 	}
 
 	void GLRender::begin() {
-		//glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-		//glBindRenderbuffer(GL_RENDERBUFFER, _frame_buffer);
 	}
 
 	void GLRender::submit() {
-		onSubmit();
 
 		if (_opts.msaaSampleCnt > 1) {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);

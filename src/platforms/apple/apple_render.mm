@@ -119,7 +119,6 @@ namespace quark {
 		{
 			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 			ctx.multiThreaded = NO;
-			//_is_support_multisampled = true;
 		}
 
 		~AppleGLRender() {

@@ -103,11 +103,11 @@ namespace quark {
 		return _glyphs[glyph];
 	}
 
-	const PathLine& Typeface::getPath(GlyphID glyph) {
+	const Path& Typeface::getPath(GlyphID glyph) {
 		auto it = _paths.find(glyph);
 		if (it != _paths.end())
 			return it->value;
-		PathLine path;
+		Path path;
 		onGetPath(glyph, &path);
 		_paths.set(glyph, path.normalized());
 		return _paths[glyph];

@@ -33,14 +33,14 @@
 
 namespace quark {
 
-	XLineScaner::XLineScaner(const PathLine& path, Rect clipRect, float scale, bool is_convex_polygon)
+	XLineScaner::XLineScaner(const Path& path, Rect clipRect, float scale, bool is_convex_polygon)
 		: _activeEdges{0, 0, Int32::limit_min, 0, 0},
 		_start_y(Int32::limit_max), _end_y(Int32::limit_min), _is_convex_polygon(is_convex_polygon)
 	{
 		scale *= 65536;
 
 		Array<Vec2i> edges;
-		PathLine path2(path);
+		Path path2(path);
 		path2.scale(Vec2(scale));
 
 		//int i = 0;
