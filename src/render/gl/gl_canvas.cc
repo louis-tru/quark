@@ -83,15 +83,13 @@ namespace quark {
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
-				polygons = path.to_polygons(3, antiAlias);
+				polygons = path.getPolygons(3, antiAlias);
 				break;
 			case Paint::kStroke_Style:
-				polygons = path.genStrokePath(paint.width, paint.join, false)
-					.to_polygons(3, antiAlias);
+				polygons = path.strokePath(paint.width, paint.join).getPolygons(3, antiAlias);
 				break;
 			case Paint::kStrokeAndFill_Style:
-				polygons = path.genStrokePath(paint.width, paint.join, true)
-					.to_polygons(3, antiAlias);
+				polygons = path.extendPath(paint.width / 2.0, paint.join).getPolygons(3, antiAlias);
 				break;
 		}
 

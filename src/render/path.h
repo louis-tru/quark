@@ -77,19 +77,23 @@ namespace quark {
 		inline bool isNormalized() const { return _IsNormalized; }
 		// convert func
 		/**
-		 * @brief to_polygons() convert to polygons and use anti alias
+		 * @brief toPolygons() convert to polygons and use anti alias
 		 * @return {Array<Vec3>} points Vec3 { x, y, weight }[]
 		*/
-		Array<Vec3> to_polygons(int polySize = 3, bool antiAlias = false, float epsilon = 1.0) const;
-		Array<Vec2> to_edge_lines(float epsilon = 1.0) const;
+		Array<Vec3> getPolygons(int polySize = 3, bool antiAlias = false, float epsilon = 1.0) const;
+		Array<Vec2> getEdgeLines(float epsilon = 1.0) const;
+		// modification to stroke path
+		Path strokePath(float width, Join join, float offset = 0) const;
+		// Expand or shrink path
+		Path extendPath(float width, Join join) const;
+		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
+		Path normalizedPath(float epsilon = 1.0) const; // normal
 		// matrix transfrom
 		void transfrom(const Mat& matrix);
 		// scale transfrom
 		void scale(Vec2 scale);
-		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
-		Path normalized(float epsilon = 1.0) const; // normal
+		// clip path
 		Path clip(const Path& path) const;
-		Path genStrokePath(float width, Join join, bool containFill, StrokeMode mode = kCenter_StrokeMode) const;
 		// estimate sample rate
 		static int get_quadratic_bezier_sample(const QuadraticBezier& curve, float epsilon = 1.0);
 		static int get_cubic_bezier_sample(const CubicBezier& curve, float epsilon = 1.0);

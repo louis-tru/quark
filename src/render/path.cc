@@ -191,7 +191,7 @@ namespace quark {
 		_verbs.push(kVerb_Close);
 	}
 
-	Array<Vec3> Path::to_polygons(int polySize, bool antiAlias, float epsilon) const {
+	Array<Vec3> Path::getPolygons(int polySize, bool antiAlias, float epsilon) const {
 		TESStesselator* tess = tessNewTess(nullptr);
 		CPointer<TESStesselator> hold(tess, [](TESStesselator*p) { tessDeleteTess(p); });
 
@@ -271,7 +271,7 @@ namespace quark {
 		return std::move(polygons);
 	}
 
-	Array<Vec2> Path::to_edge_lines(float epsilon) const {
+	Array<Vec2> Path::getEdgeLines(float epsilon) const {
 		const Vec2* pts = ((const Vec2*)*_pts) - 1;
 		Array<Vec2> edges;
 		int len = 0;
@@ -328,26 +328,17 @@ namespace quark {
 		return edges;
 	}
 
-	void Path::transfrom(const Mat& matrix) {
-		float* pts = *_pts;
-		float* e = pts + _pts.length();
-		while (pts < e) {
-			*((Vec2*)pts) = matrix * (*(Vec2*)pts);
-			pts += 2;
-		}
+	Path Path::strokePath(float width, Join join, float offset) const {
+		// TODO ...
+		return *this;
 	}
 
-	void Path::scale(Vec2 scale) {
-		float* pts = *_pts;
-		float* e = pts + _pts.length();
-		while (pts < e) {
-			pts[0] *= scale[0];
-			pts[1] *= scale[1];
-			pts += 2;
-		}
+	Path Path::extendPath(float width, Join join) const {
+		// TODO ...
+		return *this;
 	}
 
-	Path Path::normalized(float epsilon) const {
+	Path Path::normalizedPath(float epsilon) const {
 		if (_IsNormalized)
 			return *this; // copy self
 
@@ -403,16 +394,30 @@ namespace quark {
 		return std::move(line);
 	}
 
-	Path Path::clip(const Path& path) const {
-		// TODO ...
-		auto path0 = path.normalized();
-		auto path1 = normalized();
-		return Path();
+	void Path::transfrom(const Mat& matrix) {
+		float* pts = *_pts;
+		float* e = pts + _pts.length();
+		while (pts < e) {
+			*((Vec2*)pts) = matrix * (*(Vec2*)pts);
+			pts += 2;
+		}
 	}
 
-	Path Path::genStrokePath(float width, Join join, bool containFill, StrokeMode mode) const {
+	void Path::scale(Vec2 scale) {
+		float* pts = *_pts;
+		float* e = pts + _pts.length();
+		while (pts < e) {
+			pts[0] *= scale[0];
+			pts[1] *= scale[1];
+			pts += 2;
+		}
+	}
+
+	Path Path::clip(const Path& path) const {
 		// TODO ...
-		return *this;
+		auto path0 = path.normalizedPath();
+		auto path1 = normalizedPath();
+		return Path();
 	}
 
 	int Path::get_quadratic_bezier_sample(const QuadraticBezier& curve, float epsilon) {
