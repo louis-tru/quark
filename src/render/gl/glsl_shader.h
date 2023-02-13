@@ -29,40 +29,69 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark_render_gl_glcanvas__
-#define __quark_render_gl_glcanvas__
+#ifndef __quark_render_gl_glsl_shader__
+#define __quark_render_gl_glsl_shader__
 
-#include "../canvas.h"
-#include "./glsl_shader.h"
+#include "../../util/util.h"
+
+#if Qk_IOS
+# include <OpenGLES/ES3/gl.h>
+# include <OpenGLES/ES3/glext.h>
+#elif Qk_OSX
+# include <OpenGL/gl3.h>
+# include <OpenGL/gl3ext.h>
+#elif Qk_ANDROID || Qk_LINUX
+# define GL_GLEXT_PROTOTYPES
+# include <GLES3/gl3.h>
+# include <GLES3/gl3ext.h>
+#else
+# error "The operating system does not support"
+#endif
 
 namespace quark {
 
-	class GLCanvas: public Canvas {
+	class GLSLShader: public Object {
 	public:
-		GLCanvas();
-		virtual int  save() override;
-		virtual void restore() override;
-		virtual int  getSaveCount() const override;
-		virtual void restoreToCount(int saveCount) override;
-		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) override;
-		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
-		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
-		virtual void drawPaint(const Paint& paint) override;
-		virtual void drawPath(const Path& path, const Paint& paint) override;
-		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
-			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) override;
-		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) override;
-	private:
-		void fillColor(const Array<Vec3>& triangles, const Paint& paint);
-		void fillGradient(const Array<Vec3>& triangles, const Paint& paint);
-		void fillImage(const Array<Vec3>& triangles, const Paint& paint);
+		Qk_DEFINE_PROP_GET(GLuint, shader);
+		Qk_DEFINE_PROP_GET(GLuint, root_matrix);
+		Qk_DEFINE_PROP_GET(GLuint, view_matrix);
 	protected:
-		void setBlendMode(BlendMode blendMode);
-		BlendMode _blendMode;
-		bool      _IsDeviceAntiAlias; // device anti alias, msaa
-		GLSLColor _color;
-		GLSLImage _image;
+		void compile(
+			cChar* name,
+			cChar* vertexShader, cChar* fragmentShader,
+			cChar* attributes, cChar* uniforms
+		);
+	};
+
+	class GLSLColor: public GLSLShader {
+	public:
+		GLSLColor();
+		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
+		Qk_DEFINE_PROP_GET(GLuint, color);
+	};
+
+	class GLSLImage: public GLSLShader {
+	public:
+		GLSLImage();
+		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
+		Qk_DEFINE_PROP_GET(GLuint, opacity);
+		Qk_DEFINE_PROP_GET(GLuint, src);
+		Qk_DEFINE_PROP_GET(GLuint, dest);
+		Qk_DEFINE_PROP_GET(GLuint, image);
+	};
+
+	class GLSLLinear: public GLSLShader {
+	public:
+		GLSLLinear();
+		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
+	};
+
+	class GLSLRadial: public GLSLShader {
+	public:
+		GLSLRadial();
+		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
 	};
 
 }
+
 #endif

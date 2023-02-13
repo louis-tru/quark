@@ -104,16 +104,6 @@ namespace quark {
 		}
 	}
 
-	void GLCanvas::drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
-		Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) 
-	{
-		// TODO ...
-	}
-
-	void GLCanvas::drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) {
-		// TODO ...
-	}
-
 	void GLCanvas::fillColor(const Array<Vec3>& triangles, const Paint& paint) {
 		// TODO ...
 	}
@@ -163,6 +153,16 @@ namespace quark {
 		}
 
 		_blendMode = blendMode;
+	}
+
+	void GLCanvas::drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
+		Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) 
+	{
+		// TODO ...
+	}
+
+	void GLCanvas::drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) {
+		// TODO ...
 	}
 
 }

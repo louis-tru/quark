@@ -167,6 +167,9 @@ namespace quark {
 
 		glClearStencil(0);
 		glStencilMask(0xffffffff);
+
+		// update all shader root matrix
+		// _color.root_matrix();
 	}
 
 	void GLRender::begin() {

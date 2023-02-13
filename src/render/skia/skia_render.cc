@@ -960,8 +960,8 @@ namespace quark {
 		*/
 		float w = _rect_inside.fRight - _rect_inside.fLeft;
 		float h = _rect_inside.fBottom - _rect_inside.fTop;
-		float a = h / 2;
-		float b = w / 2;
+		float a = h * 0.5;
+		float b = w * 0.5;
 		float c = sqrtf(a*a + b*b);
 		float A = quadrant & 0x1 ? -atanf(a/b): atanf(a/b);
 		float A_ = A - R;
@@ -996,13 +996,13 @@ namespace quark {
 		const SkColor *colors = gradient->colors_argb_uint32_t().val();
 		const SkScalar *pos = gradient->positions().val();
 		SkTileMode mode = SkTileMode::kClamp;
-		float centerX = (_rect_inside.fLeft + _rect_inside.fRight) / 2;
+		float centerX = (_rect_inside.fLeft + _rect_inside.fRight) * 0.5;
 		SkPoint center = SkPoint::Make(centerX, centerX);
 		double r = _rect_inside.fRight - _rect_inside.fLeft;
 		double r2 = _rect_inside.fBottom - _rect_inside.fTop;
 		auto mat = SkMatrix::Scale(1, r2 / r);
 		auto shader = SkGradientShader::MakeRadial
-			(center, r / 2, colors, pos, gradient->count(), SkTileMode::kClamp, 0, &mat);
+			(center, r * 0.5, colors, pos, gradient->count(), SkTileMode::kClamp, 0, &mat);
 		SkPaint paint = _paint;
 		paint.setShader(shader);
 		if (Qk_ENABLE_DRAW) _canvas->drawRect(_rect_inside, paint);
