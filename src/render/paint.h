@@ -87,13 +87,31 @@ namespace quark {
 			kLinear_MipmapMode,    //!< interpolate between the two nearest levels
 		};
 
-		inline const Rect& imageSourceRect() const {
-			return *reinterpret_cast<const Rect*>(&color);
+		inline Vec2 offset() const {
+			return Vec2(color.b(), color.g());
 		}
 
-		inline void setImageSourceRect(const Rect& src) {
-			*reinterpret_cast<Rect*>(&color) = src;
+		inline Vec2 scale() const {
+			return Vec2(color.r(), color.a());
 		}
+
+		inline void setOffset(Vec2 offset) {
+			color.b(offset.x());
+			color.g(offset.y());
+		}
+
+		inline void setScale(Vec2 scale) {
+			color.r(scale.x());
+			color.a(scale.y());
+		}
+
+		inline const GradientPaint* gradient() const {
+			return reinterpret_cast<const GradientPaint*>(*image);
+		}
+
+		void setImage(ImageSource* image, const Rect& dest, const Rect& src);
+		void setImage(ImageSource* image, const Rect& dest); // src = {Vec2(0,0),Vec2(w,h)}
+		void setGradient(GradientPaint* gradient);
 
 		union {
 			uint32_t        bitfields = (
@@ -117,17 +135,15 @@ namespace quark {
 				TileMode      tileMode: 2; // default kClamp_TileMode
 				FilterMode    filterMode: 2;// default kNearest_FilterMode, image source filter mode
 				MipmapMode    mipmapMode: 2;// default kNone_MipmapMode, image source mipmap mode
-				bool          antiAlias : 1;// default false;
+				bool          antiAlias : 1;// default true;
 				unsigned      padding : 9;  // 32 = 2+2+8+2+2+2+2+2+1+9
 			};
 		}; // size 32bit
 
-		Color4f           color; // color or image source rect
-		Sp<ImageSource>   image      = nullptr;
-		Sp<GradientPaint> gradient   = nullptr;
-		float             width      = 1; // stroke width
-		Vec2              scale      = Vec2(1,1);
-
+		float             opacity; // image opacity
+		Color4f           color; // color or image source uv coord
+		Sp<ImageSource>   image; // storage image source or gradient paint
+		float             width; // stroke width
 	};
 
 }

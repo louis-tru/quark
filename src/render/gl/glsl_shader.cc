@@ -137,11 +137,11 @@ void main() {\n\
 "\n\
 in      vec3  vertex_in;\n\
 uniform float opacity;\n\
-uniform vec4  src;\n\
-uniform vec4  dest;\n\
+uniform vec4  coord;//offset,scale\n\
 \n\
 void main() {\n\
 	opacity_f = opacity * vertex_in.z;\n\
+	image_uv_f = (vertex_in.xy - coord.xy) * coord.zw;\n\
 	gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\n\
 }\n\
 out     float opacity_f;\n\
@@ -155,7 +155,7 @@ void main() {\n\
 	color_o = texture(image, image_uv_f) * vec4(1.0, 1.0, 1.0, opacity_f);\n\
 }\n\
 ",
-		"vertex_in", "opacity,src,dest,image");
+		"vertex_in", "opacity,coord,image");
 	}
 
 }

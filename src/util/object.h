@@ -150,7 +150,7 @@ namespace quark {
 	*/
 	class ObjectTraits {
 	public:
-		inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
+		inline static bool Retain(Object* obj) { return obj ? obj->retain(): 0; }
 		inline static void Release(Object* obj) { if (obj) obj->release(); }
 		static constexpr bool is_reference = false;
 		static constexpr bool is_object = true;

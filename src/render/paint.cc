@@ -28,36 +28,31 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark_render_gradient__
-#define __quark_render_gradient__
-
-#include "../math.h"
+#include "./paint.h"
 
 namespace quark {
 
-	class Qk_EXPORT GradientPaint: public Reference {
-	public:
-		enum GradientType { kLinear, kRadial, /*kConical,*/};
+	void Paint::setImage(ImageSource* _image, const Rect& dest, const Rect& src) {
+		type = kImage_Type;
+		image = _image;
+		Vec2 scale(dest.size.x() / src.size.x(), dest.size.y() / src.size.y());
+		*reinterpret_cast<Rect*>(&color) = {
+			Vec2(
+				src.origin.x() * scale.x() - dest.origin.x(),
+				src.origin.y() * scale.y() - dest.origin.y()
+			),
+			// shader scale
+			Vec2(scale.x() / float(_image->width()), scale.y() / float(_image->height())),
+		};
+	}
 
-		static GradientPaint* Linear(Array<Color4f>&& colors,
-			Array<float> &&pos, Vec2 start, Vec2 end);
-		static GradientPaint* Radial(Array<Color4f>&& colors,
-			Array<float> &&pos, Vec2 center, float radial);
+	void Paint::setImage(ImageSource* image, const Rect& dest) {
+		setImage(image, dest, { Vec2(0,0), Vec2(image->width(), image->height()) });
+	}
 
-		Qk_DEFINE_PROP_GET(GradientType, type);
-		Qk_DEFINE_PROP_GET(Vec2, start);
-		Qk_DEFINE_PROP_GET(Vec2, end);
-
-		inline Vec2 center() const { return _start; }
-		inline float radial() const { return _end[0]; }
-		inline const Array<Color4f>& colors() const { return _colors; }
-		inline const Array<float>&   positions() const { return _positions; }
-
-	private:
-		Array<Color4f>   _colors;
-		Array<float>     _positions;
-	};
+	void Paint::setGradient(GradientPaint* gradient) {
+		type = kGradient_Type;
+		image = reinterpret_cast<ImageSource*>(gradient);
+	}
 
 }
-
-#endif

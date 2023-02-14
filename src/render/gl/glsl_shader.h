@@ -75,8 +75,7 @@ namespace quark {
 		GLSLImage();
 		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
 		Qk_DEFINE_PROP_GET(GLuint, opacity);
-		Qk_DEFINE_PROP_GET(GLuint, src);
-		Qk_DEFINE_PROP_GET(GLuint, dest);
+		Qk_DEFINE_PROP_GET(GLuint, coord);
 		Qk_DEFINE_PROP_GET(GLuint, image);
 	};
 
