@@ -62,6 +62,8 @@ namespace quark {
 		bool      _IsDeviceAntiAlias; // device anti alias, msaa
 		GLSLColor _color;
 		GLSLImage _image;
+		GLSLGradient _linear;
+		GLSLGradient _radial;
 	};
 
 }

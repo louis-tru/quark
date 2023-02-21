@@ -161,10 +161,39 @@ void main() {\n\
 		"vertex_in", "opacity,coord,image");
 	}
 
-	GLSLLinear::GLSLLinear() {
+	GLSLGradient::GLSLGradient(GradientPaint::GradientType type) {
+		if (type == GradientPaint::kLinear) {
+			compile_linear();
+		} else {
+			compile_radial();
+		}
 	}
 
-	GLSLRadial::GLSLRadial() {
+	void GLSLGradient::compile_linear() {
+		compile("image shader",
+"\n\
+in      vec3  vertex_in;\n\
+uniform int   count;\n\
+uniform vec4  points;//start/end or center/radial\n\
+uniform vec4  colors;\n\
+uniform float positions;\n\
+\n\
+void main() {\n\
+}\n\
+out     float opacity_f;\n\
+out     vec2  image_uv_f;\n\
+",
+"\n\
+in lowp float opacity_f;\n\
+in lowp vec2  image_uv_f;\n\
+uniform sampler2D image;\n\
+void main() {\n\
+}\n\
+",
+		"vertex_in", "count,points,colors,positions");
+	}
+
+	void GLSLGradient::compile_radial() {
 	}
 
 }

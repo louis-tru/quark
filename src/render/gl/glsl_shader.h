@@ -48,6 +48,8 @@
 # error "The operating system does not support"
 #endif
 
+#include "../gradient.h"
+
 namespace quark {
 
 	class GLSLShader: public Object {
@@ -80,16 +82,17 @@ namespace quark {
 		Qk_DEFINE_PROP_GET(GLuint, image);
 	};
 
-	class GLSLLinear: public GLSLShader {
+	class GLSLGradient: public GLSLShader {
 	public:
-		GLSLLinear();
+		GLSLGradient(GradientPaint::GradientType type);
 		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
-	};
-
-	class GLSLRadial: public GLSLShader {
-	public:
-		GLSLRadial();
-		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
+		Qk_DEFINE_PROP_GET(GLuint, count);
+		Qk_DEFINE_PROP_GET(GLuint, points);
+		Qk_DEFINE_PROP_GET(GLuint, colors);
+		Qk_DEFINE_PROP_GET(GLuint, positions);
+	private:
+		void compile_linear();
+		void compile_radial();
 	};
 
 }

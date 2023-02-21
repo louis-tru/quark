@@ -35,6 +35,8 @@ namespace quark {
 	GLCanvas::GLCanvas()
 		: _blendMode(kClear_BlendMode)
 		, _IsDeviceAntiAlias(false)
+		, _linear(GradientPaint::kLinear)
+		, _radial(GradientPaint::kRadial)
 	{
 	}
 

@@ -48,6 +48,9 @@ namespace quark {
 		Qk_DEFINE_PROP_GET(Vec2, start);
 		Qk_DEFINE_PROP_GET(Vec2, end);
 
+		inline const float* points() const { // points vector, start/end or center/radial
+			return reinterpret_cast<const float*>(&_start);
+		}
 		inline Vec2 center() const { return _start; }
 		inline float radial() const { return _end[0]; }
 		inline const Array<Color4f>& colors() const { return _colors; }
