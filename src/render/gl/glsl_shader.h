@@ -89,7 +89,6 @@ namespace quark {
 		Qk_DEFINE_PROP_GET(GLuint, count);
 		Qk_DEFINE_PROP_GET(GLuint, points);
 		Qk_DEFINE_PROP_GET(GLuint, colors);
-		Qk_DEFINE_PROP_GET(GLuint, positions);
 	private:
 		void compile_linear();
 		void compile_radial();

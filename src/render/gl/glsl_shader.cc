@@ -175,8 +175,7 @@ void main() {\n\
 in      vec3  vertex_in;\n\
 uniform int   count;\n\
 uniform vec4  points;//start/end or center/radial\n\
-uniform vec4  colors;\n\
-uniform float positions;\n\
+uniform vec4  colors[256];\n\
 \n\
 void main() {\n\
 }\n\
@@ -190,7 +189,7 @@ uniform sampler2D image;\n\
 void main() {\n\
 }\n\
 ",
-		"vertex_in", "count,points,colors,positions");
+		"vertex_in", "count,points,colors");
 	}
 
 	void GLSLGradient::compile_radial() {
