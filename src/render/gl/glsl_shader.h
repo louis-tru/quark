@@ -56,6 +56,7 @@ namespace quark {
 		Qk_DEFINE_PROP_GET(GLuint, root_matrix);
 		Qk_DEFINE_PROP_GET(GLuint, view_matrix);
 	protected:
+		GLSLShader();
 		void compile(
 			cChar* name,
 			cChar* vertexShader, cChar* fragmentShader,

@@ -423,6 +423,8 @@ namespace quark {
 	int Path::get_quadratic_bezier_sample(const QuadraticBezier& curve, float epsilon) {
 		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2();
 
+		// calculate triangle area by point cross multiplication
+
 		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x()) + (C.x()*A.y() - C.y()*A.x());
 		float S = S_ABC * 0.5 * epsilon;
 
@@ -446,6 +448,8 @@ namespace quark {
 
 	int Path::get_cubic_bezier_sample(const CubicBezier& curve, float epsilon) {
 		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2(), D = curve.p3();
+
+		// calculate the area of two triangles by point cross multiplication
 
 		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x());// + (C.x()*A.y() - C.y()*A.x());
 		float S_CDA = (C.x()*D.y() - C.y()*D.x()) + (D.x()*A.y() - D.y()*A.x());// + (A.x()*C.y() - A.y()*C.x());

@@ -65,11 +65,14 @@ mat4 v_matrix() {\n\
 out lowp vec4 color_o;\n\
 		");
 
+	GLSLShader::GLSLShader(): _shader(0), _root_matrix(0), _view_matrix(0) {
+	}
+
 	void GLSLShader::compile(
 		cChar* name, cChar* vertexShader, cChar* fragmentShader,
 		cChar* _attrs, cChar* _uniforms)
 	{
-
+		Qk_ASSERT(!_shader, "#GLSLShader::compile");
 		GLuint vertex_handle =
 			compile_shader(name, (vertexHeader + vertexShader).c_str(), GL_VERTEX_SHADER);
 		GLuint fragment_handle =
@@ -156,6 +159,12 @@ void main() {\n\
 }\n\
 ",
 		"vertex_in", "opacity,coord,image");
+	}
+
+	GLSLLinear::GLSLLinear() {
+	}
+
+	GLSLRadial::GLSLRadial() {
 	}
 
 }
