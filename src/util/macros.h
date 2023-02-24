@@ -65,7 +65,7 @@
 #define Qk_BSD           0
 #define Qk_CYGWIN        0
 #define Qk_NACL          0
-#define Qk_IOS           0
+#define Qk_iOS           0
 #define Qk_OSX           0
 #define Qk_ANDROID       0
 #define Qk_WIN           0
@@ -153,7 +153,8 @@
 # define Qk_UNIX       1
 #endif
 
-#if defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
+#if defined(__OpenBSD__) || defined(__NetBSD__) || \
+		defined(__FreeBSD__) || defined(__DragonFly__)
 # undef Qk_POSIX
 # define Qk_POSIX      1
 # undef Qk_BSD
@@ -163,6 +164,7 @@
 #endif
 
 #if defined(__APPLE__)
+# include <TargetConditionals.h>
 # undef Qk_APPLE
 # define Qk_APPLE      1
 # undef Qk_POSIX
@@ -201,13 +203,9 @@
 # define Qk_POSIX      1
 #endif
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
-
 #if TARGET_OS_IPHONE
-# undef Qk_IOS
-# define Qk_IOS        1
+# undef Qk_iOS
+# define Qk_iOS        1
 #endif
 
 #if TARGET_OS_MAC && !TARGET_OS_IPHONE

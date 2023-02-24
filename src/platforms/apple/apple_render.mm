@@ -45,15 +45,15 @@
 
 #if Qk_ENABLE_GL
 @interface GLView: UIView @end
-# if Qk_IOS
+# if Qk_iOS
 @implementation GLView
 	+ (Class)layerClass { return CAEAGLLayer.class; }
 @end
-# else // #if Qk_IOS else osx
+# else // #if Qk_iOS else osx
 @implementation GLView
 	+ (Class)layerClass { return CAEAGLLayer.class; }
 @end
-# endif // #if Qk_IOS
+# endif // #if Qk_iOS
 #endif
 
 // namespace start
@@ -61,7 +61,7 @@
 namespace quark {
 
 	bool RenderApple::resize(CGRect rect) {
-#if Qk_IOS
+#if Qk_iOS
 		float scale = UIScreen.mainScreen.scale;
 #else
 		float scale = UIScreen.mainScreen.backingScaleFactor;

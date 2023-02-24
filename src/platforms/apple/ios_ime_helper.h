@@ -32,7 +32,7 @@
 
 #include "quark/util/macros.h"
 
-#if Qk_IOS
+#if Qk_iOS
 
 #import <UIKit/UIKit.h>
 #import "quark/app.h"

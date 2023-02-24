@@ -32,7 +32,7 @@
 #import <quark/util/string.h>
 #import <quark/util/handle.h>
 #import <Foundation/Foundation.h>
-#if Qk_IOS
+#if Qk_iOS
 # import <UIKit/UIKit.h>
 #else
 # import <AppKit/AppKit.h>
@@ -55,8 +55,7 @@ namespace quark {
 			return "Apple";
 		}
 
-#if Qk_IOS
-
+#if Qk_iOS
 		String version() {
 			return UIDevice.currentDevice.systemVersion.UTF8String;
 		}
@@ -64,9 +63,7 @@ namespace quark {
 		String subsystem() {
 			return UIDevice.currentDevice.model.UTF8String;
 		}
-
 #else
-
 		String version() {
 			return String();
 		}
@@ -75,7 +72,6 @@ namespace quark {
 			static String name("MacOSX");
 			return name;
 		}
-
 #endif
 
 		void get_languages_apple(Array<String>& langs) {
@@ -95,8 +91,7 @@ namespace quark {
 			return code;
 		}
 
-#if Qk_IOS
-
+#if Qk_iOS
 		bool is_ac_power() {
 			[UIDevice currentDevice].batteryMonitoringEnabled = YES;
 			UIDeviceBatteryState state = [UIDevice currentDevice].batteryState;
@@ -115,9 +110,7 @@ namespace quark {
 			[UIDevice currentDevice].batteryMonitoringEnabled = YES;
 			return [UIDevice currentDevice].batteryLevel;
 		}
-
 #else
-
 		bool is_ac_power() {
 			CFTypeRef blob = IOPSCopyPowerSourcesInfo();
 			CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
@@ -184,7 +177,6 @@ namespace quark {
 			}
 			return -1.0f;
 		}
-
 #endif
 
 		uint64_t memory() {

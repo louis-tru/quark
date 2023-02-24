@@ -38,7 +38,7 @@ typedef UIEvent AppleUIEvent;
 #import "../../app.inl"
 #import "../../display.h"
 #import "../../event.h"
-#import "../apple/apple_render.h"
+#import "./apple_render.h"
 #import "./ios_ime_helper.h"
 
 using namespace quark;

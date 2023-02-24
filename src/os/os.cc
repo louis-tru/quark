@@ -81,7 +81,7 @@ namespace quark {
 		static language_t* get_languages() {
 			if (!langs_) {
 				langs_ = new language_t;
-			#if Qk_IOS
+			#if Qk_iOS
 				get_languages_apple(langs_->langs);
 			#elif Qk_ANDROID
 				langs_->langs.push(API::language());

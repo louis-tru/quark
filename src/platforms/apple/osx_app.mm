@@ -36,7 +36,7 @@
 #import "../../app.inl"
 #import "../../display.h"
 #import "../../event.h"
-#import "../apple/apple_render.h"
+#import "./apple_render.h"
 
 #import <MacTypes.h>
 

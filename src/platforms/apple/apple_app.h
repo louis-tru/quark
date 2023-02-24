@@ -32,7 +32,7 @@
 
 #import "quark/util/macros.h"
 
-#if Qk_IOS || Qk_OSX
+#if Qk_iOS || Qk_OSX
 
 #import <quark/app.h>
 

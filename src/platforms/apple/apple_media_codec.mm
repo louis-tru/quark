@@ -196,7 +196,7 @@ namespace quark {
 				kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange], (id)kCVPixelBufferPixelFormatTypeKey,
 				[NSNumber numberWithUnsignedInt:track.width], (id)kCVPixelBufferWidthKey,
 				[NSNumber numberWithUnsignedInt:track.height], (id)kCVPixelBufferHeightKey,
-				#if Qk_IOS
+				#if Qk_iOS
 					[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLESCompatibilityKey,
 				#else
 					[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLCompatibilityKey,

@@ -154,7 +154,7 @@ namespace quark {
 	}
 
 	String platform() {
-		#if  Qk_IOS
+		#if  Qk_iOS
 			static String _name("darwin/iOS");
 		#elif  Qk_OSX
 			static String _name("darwin/MacOSX");

@@ -30,7 +30,7 @@
 
 #include "../fs.h"
 #include <Foundation/Foundation.h>
-#if Qk_IOS
+#if Qk_iOS
 # import <UIKit/UIKit.h>
 #else
 # import <AppKit/AppKit.h>
