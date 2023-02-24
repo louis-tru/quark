@@ -53,22 +53,15 @@ fi
 
 if   [ ! -d tools/node_modules/somes ] \
 	|| [ ! -d tools/node_modules/qkmake ] \
+	|| [ ! -d tools/node_modules/quark ] \
 ; then
 	rm -rf tools/node_modules/*
 	mkdir -p tools/node_modules
 	cd tools/node_modules
 	ln -s ../../libs/somes/out/somes
 	ln -s ../../libs/qkmake/out/qkmake
+	ln -s ../../libs/quark/out/quark
 	cd ../..
-fi
-
-if [ ! -d node_modules ]; then
-	mkdir node_modules
-	cd node_modules
-	ln -s ../libs/quark/out/quark
-	ln -s ../libs/somes/out/somes
-	ln -s ../libs/qkmake/out/qkmake
-	cd ..
 fi
 
 node tools/configure.js "$@"

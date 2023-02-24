@@ -23,6 +23,18 @@
 		"removeComments": true,
 		"jsx": "react",
 		"jsxFactory": "_CVD",
+		"paths": {
+			"*": [
+				"./node_modules/*",
+				"../tools/node_modules/*",
+				"../out/*",
+				"../node_modules/*",
+				"../../node_modules/*",
+				"../../../node_modules/*",
+				"../../../../node_modules/*",
+				"../../../../../node_modules/*",
+			],
+		},
 	},
 	"include": [
 		"**/*",
