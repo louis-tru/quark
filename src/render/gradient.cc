@@ -43,13 +43,13 @@ namespace quark {
 		return g;
 	}
 
-	GradientPaint* GradientPaint::Radial(Array<Color4f>&& colors, Array<float> &&pos, Vec2 center, float radial) {
+	GradientPaint* GradientPaint::Radial(Array<Color4f>&& colors, Array<float> &&pos, Vec2 center, Vec2 radius) {
 		auto g = new GradientPaint();
 		g->_colors = std::move(colors);
 		g->_positions = std::move(pos);
 		g->_type = kRadial;
 		g->_start = center;
-		g->_end[0] = radial;
+		g->_end = radius;
 		return g;
 	}
 

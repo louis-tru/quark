@@ -34,7 +34,7 @@
 #if Qk_OSX
 # include <ApplicationServices/ApplicationServices.h>
 #endif
-#if Qk_IOS
+#if Qk_iOS
 # include <CoreText/CoreText.h>
 # include <CoreText/CTFontManager.h>
 # include <CoreGraphics/CoreGraphics.h>

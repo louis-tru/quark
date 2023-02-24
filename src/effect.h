@@ -111,16 +111,14 @@ namespace quark {
 	public:
 		FillGradient(const Array<float>& pos, const Array<Color>& colors);
 		virtual ~FillGradient();
-		inline uint32_t count() const { return _count; }
 		inline const Array<float>& positions() const { return _pos; }
 		inline const Array<Color>& colors() const { return *reinterpret_cast<const Array<Color>*>(&_colors); }
 		inline const Array<uint32_t>& colors_argb_uint32_t() const { return _colors; }
 		void set_positions(const Array<float>& pos);
 		void set_colors(const Array<Color>& colors);
 	private:
-		Array<float> _pos;
+		Array<float>    _pos;
 		Array<uint32_t> _colors;
-		uint32_t _count;
 	};
 
 	class Qk_EXPORT FillGradientLinear: public FillGradient {
@@ -131,7 +129,7 @@ namespace quark {
 		virtual Copying* copy(Copying* to) override;
 	private:
 		void setRadian();
-		float _radian;
+		float   _radian;
 		uint8_t _quadrant;
 		friend class SkiaRender;
 	};

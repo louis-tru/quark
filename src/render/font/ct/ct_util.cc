@@ -290,7 +290,7 @@ QkCTFontWeightMapping& QkCTFontGetNSFontWeightMapping() {
 #if Qk_OSX
 #  define Qk_KIT_FONT_WEIGHT_PREFIX "NS"
 #endif
-#if Qk_IOS
+#if Qk_iOS
 #  define Qk_KIT_FONT_WEIGHT_PREFIX "UI"
 #endif
 	static constexpr const char* nsFontWeightNames[] = {

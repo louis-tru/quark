@@ -42,17 +42,17 @@ namespace quark {
 		static GradientPaint* Linear(Array<Color4f>&& colors,
 			Array<float> &&pos, Vec2 start, Vec2 end);
 		static GradientPaint* Radial(Array<Color4f>&& colors,
-			Array<float> &&pos, Vec2 center, float radial);
+			Array<float> &&pos, Vec2 center, Vec2 radius);
 
 		Qk_DEFINE_PROP_GET(GradientType, type);
 		Qk_DEFINE_PROP_GET(Vec2, start);
 		Qk_DEFINE_PROP_GET(Vec2, end);
 
-		inline const float* points() const { // points vector, start/end or center/radial
+		inline const float* range() const { // range, start/end or center/radius
 			return reinterpret_cast<const float*>(&_start);
 		}
 		inline Vec2 center() const { return _start; }
-		inline float radial() const { return _end[0]; }
+		inline Vec2 radius() const { return _end; }
 		inline const Array<Color4f>& colors() const { return _colors; }
 		inline const Array<float>&   positions() const { return _positions; }
 

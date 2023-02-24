@@ -36,7 +36,7 @@
 
 using namespace quark;
 
-#if (Qk_IOS && defined(__IPHONE_14_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_14_0) ||  \
+#if (Qk_iOS && defined(__IPHONE_14_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_14_0) ||  \
 	  (Qk_OSX && defined(__MAC_11_0)    && __MAC_OS_VERSION_MIN_REQUIRED    >= __MAC_11_0)
 
 static uint32_t QkGetCoreTextVersion() {
@@ -234,7 +234,7 @@ QkUniqueCFRef<CFArrayRef> QkCopyAvailableFontFamilyNames(CTFontCollectionRef col
 
 /** Use CTFontManagerCopyAvailableFontFamilyNames if available, simulate if not. */
 QkUniqueCFRef<CFArrayRef> QkCTFontManagerCopyAvailableFontFamilyNames() {
-#if Qk_IOS
+#if Qk_iOS
 	using CTFontManagerCopyAvailableFontFamilyNamesProc = CFArrayRef (*)(void);
 	CTFontManagerCopyAvailableFontFamilyNamesProc ctFontManagerCopyAvailableFontFamilyNames;
 	*(void**)(&ctFontManagerCopyAvailableFontFamilyNames) =

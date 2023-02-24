@@ -34,7 +34,7 @@
 
 #include "../../util/util.h"
 
-#if Qk_IOS
+#if Qk_iOS
 # include <OpenGLES/ES3/gl.h>
 # include <OpenGLES/ES3/glext.h>
 #elif Qk_OSX
@@ -86,12 +86,10 @@ namespace quark {
 	public:
 		GLSLGradient(GradientPaint::GradientType type);
 		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
-		Qk_DEFINE_PROP_GET(GLuint, count);
-		Qk_DEFINE_PROP_GET(GLuint, points);
-		Qk_DEFINE_PROP_GET(GLuint, colors);
-	private:
-		void compile_linear();
-		void compile_radial();
+		Qk_DEFINE_PROP_GET(GLuint, range); // vertex uniform value
+		Qk_DEFINE_PROP_GET(GLuint, count); // fragment uniform value
+		Qk_DEFINE_PROP_GET(GLuint, colors); 
+		Qk_DEFINE_PROP_GET(GLuint, positions);
 	};
 
 }

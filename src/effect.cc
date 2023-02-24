@@ -250,7 +250,6 @@ namespace quark {
 	FillGradient::FillGradient(const Array<float>& pos, const Array<Color>& colors)
 		: _pos(pos)
 		, _colors(*reinterpret_cast<const Array<uint32_t>*>(&colors))
-		, _count(Qk_MIN(pos.length(), colors.length()))
 	{
 	}
 
