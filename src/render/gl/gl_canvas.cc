@@ -91,7 +91,7 @@ namespace quark {
 				polygons = path.strokePath(paint.width, paint.join).getPolygons(3, antiAlias);
 				break;
 			case Paint::kStrokeAndFill_Style:
-				polygons = path.extendPath(paint.width / 2.0, paint.join).getPolygons(3, antiAlias);
+				polygons = path.extendPath(paint.width * 0.5, paint.join).getPolygons(3, antiAlias);
 				break;
 		}
 
