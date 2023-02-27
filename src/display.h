@@ -50,8 +50,8 @@ namespace quark {
 		Qk_HIDDEN_ALL_COPY(Display);
 		public:
 
-			struct DisplayRegion {
-				float x, y, x2, y2, width, height;
+			struct RegionSize: Region {
+				Vec2 size; // full surface
 			};
 
 			enum Orientation {
@@ -112,11 +112,6 @@ namespace quark {
 			*
 			*/
 			void set_size(float width = 0, float height = 0);
-			
-			/**
-			 * @func phy_size()
-			 */
-			Vec2 phy_size() const;
 
 			/**
 			* @thread rebder
@@ -131,9 +126,9 @@ namespace quark {
 			void pop_clip_region();
 			
 			/**
-			* @func display_region
+			* @func clip_region
 			*/
-			inline const DisplayRegion& clip_region() const {
+			inline const RegionSize& clip_region() const {
 				return _clip_region.back();
 			}
 
@@ -188,10 +183,17 @@ namespace quark {
 			inline uint32_t fsp() const { return _fsp; }
 
 			/**
+			 * @func surface_size()
+			 */
+			inline Vec2 surface_size() const {
+				return _surface_region.end - _surface_region.origin;
+			}
+
+			/**
 			 * @func default_scale()
 			 */
-			inline float default_scale() const { return _default_scale; }
-			inline DisplayRegion display_region() const { return _display_region; }
+			inline float      default_scale() const { return _default_scale; }
+			inline RegionSize surface_region() const { return _surface_region; }
 
 			/**
 			 * @thread render
@@ -201,7 +203,7 @@ namespace quark {
 			/**
 			 * @thread render
 			 */
-			bool set_display_region(DisplayRegion display_region); // call from render loop
+			bool set_surface_region(RegionSize region); // call from render loop
 
 			/**
 			 * @thread render
@@ -225,7 +227,7 @@ namespace quark {
 
 			// member data
 			Application*      _host;
-			Vec2              _lock_size;  // 锁定视口的尺寸
+			Vec2              _set_size;  // 锁定视口的尺寸
 			Vec2              _size;       // 当前视口尺寸
 			float             _scale;   // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
 			float             _atom_pixel;
@@ -233,11 +235,9 @@ namespace quark {
 			List<Cb>          _next_frame;
 			uint32_t          _fsp, _next_fsp;
 			int64_t           _next_fsp_time;
-			Array<DisplayRegion> _clip_region;
-			DisplayRegion     _display_region;  /* 选择绘图表面有区域 */
+			Array<RegionSize> _clip_region;
+			RegionSize        _surface_region;  /* 选择绘图表面有区域 */
 	};
-
-	typedef Display::DisplayRegion DisplayRegion;
 
 }
 #endif

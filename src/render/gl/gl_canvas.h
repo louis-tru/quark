@@ -40,6 +40,7 @@ namespace quark {
 	class GLCanvas: public Canvas {
 	public:
 		GLCanvas();
+		virtual void setMatrix(const Mat& mat) override;
 		virtual int  save() override;
 		virtual void restore() override;
 		virtual int  getSaveCount() const override;
@@ -53,13 +54,14 @@ namespace quark {
 			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) override;
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) override;
 	private:
-		void fillColor(const Array<Vec3>& triangles, const Paint& paint);
-		void fillGradient(const Array<Vec3>& triangles, const Paint& paint);
-		void fillImage(const Array<Vec3>& triangles, const Paint& paint);
+		void drawColor(const Array<Vec3>& triangles, const Paint& paint);
+		void drawGradient(const Array<Vec3>& triangles, const Paint& paint);
+		void drawImage(const Array<Vec3>& triangles, const Paint& paint);
 	protected:
 		void setBlendMode(BlendMode blendMode);
 		BlendMode _blendMode;
 		bool      _IsDeviceAntiAlias; // device anti alias, msaa
+		GLuint    _ubo;
 		GLSLColor _color;
 		GLSLImage _image;
 		GLSLGradient _linear;

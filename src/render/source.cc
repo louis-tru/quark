@@ -71,7 +71,6 @@ namespace quark {
 		return false;
 	}
 
-
 	// -------------------- I m a g e . S o u r c e . P o o l --------------------
 
 	Qk_DEFINE_INLINE_MEMBERS(ImageSourcePool, Inl) {

@@ -57,6 +57,8 @@ namespace quark {
 		Qk_DEFINE_PROP_GET(GLuint, shader);
 		Qk_DEFINE_PROP_GET(GLuint, root_matrix);
 		Qk_DEFINE_PROP_GET(GLuint, view_matrix);
+		Qk_DEFINE_PROP_GET(GLuint, vertex_in); // glEnableVertexAttribArray
+		virtual void build() = 0;
 	protected:
 		GLSLShader();
 		void compile(
@@ -68,28 +70,28 @@ namespace quark {
 
 	class GLSLColor: public GLSLShader {
 	public:
-		GLSLColor();
-		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
 		Qk_DEFINE_PROP_GET(GLuint, color);
+		virtual void build() override;
 	};
 
 	class GLSLImage: public GLSLShader {
 	public:
-		GLSLImage();
-		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
 		Qk_DEFINE_PROP_GET(GLuint, opacity);
 		Qk_DEFINE_PROP_GET(GLuint, coord);
 		Qk_DEFINE_PROP_GET(GLuint, image);
+		virtual void build() override;
 	};
 
 	class GLSLGradient: public GLSLShader {
 	public:
-		GLSLGradient(GradientPaint::GradientType type);
-		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
+		typedef GradientPaint::GradientType GradientType;
+		GLSLGradient(GradientType type): _type(type) {}
 		Qk_DEFINE_PROP_GET(GLuint, range); // vertex uniform value
 		Qk_DEFINE_PROP_GET(GLuint, count); // fragment uniform value
-		Qk_DEFINE_PROP_GET(GLuint, colors); 
+		Qk_DEFINE_PROP_GET(GLuint, colors);
 		Qk_DEFINE_PROP_GET(GLuint, positions);
+		Qk_DEFINE_PROP_GET(GradientType, type);
+		virtual void build() override;
 	};
 
 }

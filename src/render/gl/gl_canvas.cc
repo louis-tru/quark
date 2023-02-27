@@ -38,6 +38,32 @@ namespace quark {
 		, _linear(GradientPaint::kLinear)
 		, _radial(GradientPaint::kRadial)
 	{
+		glGenBuffers(1, &_ubo);
+		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, NULL, GL_DYNAMIC_DRAW);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _ubo);
+
+		GLSLShader *shaders[] = {
+			&_color, &_image, &_linear, &_radial
+		};
+		for (auto shader: shaders) {
+			shader->build();
+		}
+
+		glUseProgram(_image.shader());
+		glUniform1i(_image.image(), 0);
+		glUseProgram(0);
+	}
+
+	void GLCanvas::setMatrix(const Mat& mat) {
+		float mat4[16] = {
+			mat[0], mat[3], 0.0, 0.0,
+			mat[1], mat[4], 0.0, 0.0,
+			0.0,    0.0,    1.0, 0.0,
+			mat[2], mat[5], 0.0, 1.0
+		};
+		// glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, mat4);
 	}
 
 	int  GLCanvas::save() {
@@ -98,63 +124,42 @@ namespace quark {
 		// fill polygons
 		switch (paint.type) {
 			case Paint::kColor_Type:
-				fillColor(polygons, paint); break;
+				drawColor(polygons, paint); break;
 			case Paint::kGradient_Type:
-				fillGradient(polygons, paint); break;
+				drawGradient(polygons, paint); break;
 			case Paint::kImage_Type:
-				fillImage(polygons, paint); break;
+				drawImage(polygons, paint); break;
 		}
 	}
 
-	void GLCanvas::fillColor(const Array<Vec3>& triangles, const Paint& paint) {
-		// TODO ...
+	void GLCanvas::drawColor(const Array<Vec3>& triangles, const Paint& paint) {
+		glUseProgram(_color.shader());
+		glUniform4fv(_color.color(), 1, paint.color.val);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, triangles.val());
+		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
 
-	void GLCanvas::fillGradient(const Array<Vec3>& triangles, const Paint& paint) {
-		// TODO ...
+	void GLCanvas::drawGradient(const Array<Vec3>& triangles, const Paint& paint) {
+		const GradientPaint *g = paint.gradient();
+		auto shader = g->type() == GradientPaint::kLinear ? &_linear: &_radial;
+		glUseProgram(shader->shader());
+		glUniform4fv(shader->range(), 1, g->range());
+		glUniform1i(shader->count(), g->colors().length());
+		glUniform4fv(shader->colors(), g->colors().length(), (const GLfloat*)g->colors().val());
+		glUniform1fv(shader->positions(), g->colors().length(), (const GLfloat*)g->positions().val());
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, triangles.val());
+		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
 
-	void GLCanvas::fillImage(const Array<Vec3>& triangles, const Paint& paint) {
-		// TODO ...
-	}
-
-	void GLCanvas::setBlendMode(BlendMode blendMode) {
-
-		switch (blendMode) {
-			case kClear_BlendMode:         //!< r = 0
-				break;
-			case kSrc_BlendMode:           //!< r = s
-				break;
-			case kDst_BlendMode:           //!< r = d
-				break;
-			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
-				break;
-			case kDstOver_BlendMode:       //!< r = d + (1-da)*s
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				break;
-			case kDstIn_BlendMode:         //!< r = d * sa
-				break;
-			case kDstOut_BlendMode:        //!< r = d * (1-sa)
-				break;
-			case kSrcIn_BlendMode:         //!< r = s * da
-				break;
-			case kSrcOut_BlendMode:        //!< r = s * (1-da)
-				break;
-			case kSrcATop_BlendMode:       //!< r = s*da + d*(1-sa)
-				break;
-			case kDstATop_BlendMode:       //!< r = d*sa + s*(1-da)
-				break;
-			case kXor_BlendMode:           //!< r = s*(1-da) + d*(1-sa)
-				break;
-			case kPlus_BlendMode:          //!< r = min(s + d, 1)
-				break;
-			case kModulate_BlendMode:      //!< r = s*d
-				break;
-			case kScreen_BlendMode:        //!< r = s + d - s*d
-				break;
-		}
-
-		_blendMode = blendMode;
+	void GLCanvas::drawImage(const Array<Vec3>& triangles, const Paint& paint) {
+		auto image = *paint.image;
+		glUseProgram(_image.shader());
+		glUniform1f(_image.opacity(), paint.opacity);
+		glUniform4fv(_image.coord(), 1, paint.color.val);
+		// set image texture data
+		// ..
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, triangles.val());
+		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
 
 	void GLCanvas::drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
@@ -165,6 +170,59 @@ namespace quark {
 
 	void GLCanvas::drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) {
 		// TODO ...
+	}
+
+	void GLCanvas::setBlendMode(BlendMode blendMode) {
+
+		switch (blendMode) {
+			case kClear_BlendMode:         //!< r = 0
+				glBlendFunc(GL_ZERO, GL_ZERO);
+				break;
+			case kSrc_BlendMode:           //!< r = s
+				glBlendFunc(GL_ONE, GL_ZERO);
+				break;
+			case kDst_BlendMode:           //!< r = d
+				glBlendFunc(GL_ZERO, GL_ONE);
+				break;
+			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kDstOver_BlendMode:       //!< r = (1-da)*s + d
+				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
+				break;
+			case kDstIn_BlendMode:         //!< r = sa*d
+				glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
+				break;
+			case kDstOut_BlendMode:        //!< r = (1-sa)*d
+				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kSrcIn_BlendMode:         //!< r = da*s
+				glBlendFunc(GL_DST_ALPHA, GL_ZERO);
+				break;
+			case kSrcOut_BlendMode:        //!< r = (1-da)*s
+				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ZERO);
+				break;
+			case kSrcATop_BlendMode:       //!< r = da*s + (1-sa)*d
+				glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kDstATop_BlendMode:       //!< r = (1-da)*s + sa*d
+				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_SRC_ALPHA);
+				break;
+			case kXor_BlendMode:           //!< r = (1-da)*s + (1-sa)*d
+				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kPlus_BlendMode:          //!< r = min(s + d, 1)
+				glBlendFunc(GL_ONE, GL_ONE);
+				break;
+			case kModulate_BlendMode:      //!< r = s*d
+				glBlendFunc(GL_ONE, GL_ZERO); // unrealized
+				break;
+			case kScreen_BlendMode:        //!< r = s + d - s*d
+				glBlendFunc(GL_ONE, GL_ZERO); // unrealized
+				break;
+		}
+
+		_blendMode = blendMode;
 	}
 
 }

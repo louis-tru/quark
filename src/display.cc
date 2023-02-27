@@ -36,29 +36,43 @@
 
 namespace quark {
 
+	Display::Display(Application* host)
+		: Qk_Init_Event(Change), Qk_Init_Event(Orientation)
+		, _host(host)
+		, _set_size()
+		, _size(), _scale(1)
+		, _atom_pixel(1)
+		, _fsp(0)
+		, _next_fsp(0)
+		, _next_fsp_time(0), _surface_region()
+	{
+		_clip_region.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
+	}
+
+	Display::~Display() {
+	}
+
 	/**
 		* @thread render
 		*/
 	void Display::updateState() { // Called in render loop
 		UILock lock(_host);
 
-		Vec2 _phy_size = phy_size();
-		float width = _phy_size.x();
-		float height = _phy_size.y();
+		Vec2 size = surface_size();
+		float width = size.x();
+		float height = size.y();
 
-		if (_lock_size.x() == 0 && _lock_size.y() == 0) { // 使用系统默认的最合适的尺寸
-			_size = {
-				width / _default_scale,
-				height / _default_scale,
-			};
+		if (_set_size.x() == 0 && _set_size.y() == 0) { // 使用系统默认的最合适的尺寸
+			_size = { width / _default_scale, height / _default_scale };
 		}
-		else if (_lock_size.x() != 0) { // 锁定宽度
-			_size.set_y(_lock_size.x());
-			_size.set_y(_size.x() / width * height);
+		else if (_set_size.x() != 0) { // 锁定宽度
+			_size = { _set_size.x(), _set_size.x() / width * height };
 		}
-		else { // _lock_height == 0 // 锁定高度
-			_size.set_y(_lock_size.y());
-			_size.set_x(_size.y() / height * width);
+		else if (_set_size.y() != 0) { // 锁定高度
+			_size = { _set_size.y() / height * width, _set_size.y() };
+		}
+		else { // 使用系统默认的最合适的尺寸
+			_size = { width / _default_scale, height / _default_scale };
 		}
 
 		_scale = (width + height) / (_size.x() + _size.y());
@@ -72,13 +86,13 @@ namespace quark {
 
 		// set default draw region
 		_clip_region.front() = {
-			0, 0,
-			_size.x(), _size.y(),
-			_size.x(), _size.y(),
+			Vec2{0, 0},
+			Vec2{_size.x(), _size.y()},
+			Vec2{_size.x(), _size.y()},
 		};
 
 		lock.unlock();
-		
+
 		_host->loop()->post(Cb([this](Cb::Data& e){
 			Qk_Trigger(Change); // 通知事件
 		}));
@@ -101,31 +115,11 @@ namespace quark {
 		}
 	}
 
-	Vec2 Display::phy_size() const {
-		return Vec2(_display_region.x2 - _display_region.x, _display_region.y2 - _display_region.y);
-	}
-
-	Display::Display(Application* host)
-		: Qk_Init_Event(Change), Qk_Init_Event(Orientation)
-		, _host(host)
-		, _lock_size()
-		, _size(), _scale(1)
-		, _atom_pixel(1)
-		, _fsp(0)
-		, _next_fsp(0)
-		, _next_fsp_time(0), _display_region()
-	{
-		_clip_region.push({ 0,0,0,0,0,0 });
-	}
-
-	Display::~Display() {
-	}
-
 	void Display::set_size(float width, float height) {
 		if (width >= 0.0 && height >= 0.0) {
 			UILock lock(_host);
-			if (_lock_size.x() != width || _lock_size.y() != height) {
-				_lock_size = { width, height };
+			if (_set_size.x() != width || _set_size.y() != height) {
+				_set_size = { width, height };
 				_host->render()->post_message(Cb([this](Cb::Data& e) {
 					updateState();
 				}));
@@ -159,7 +153,7 @@ namespace quark {
 			auto render = _host->render();
 
 			render->begin(); // ready render
-			root->accept(render->visitor()); // 开始绘图
+			root->accept(render); // 开始绘图
 			solve_next_frame();
 
 			#if DEBUG && PRINT_RENDER_FRAME_TIME
@@ -188,37 +182,38 @@ namespace quark {
 	}
 
 	void Display::push_clip_region(Region clip) {
-		DisplayRegion re = { clip.origin.x(), clip.origin.y(), clip.end.x(), clip.end.y(), 0,0 };
-		DisplayRegion dre = _clip_region.back();
+		RegionSize re = {
+			Vec2{clip.origin.x(), clip.origin.y()}, Vec2{clip.end.x(), clip.end.y()}, Vec2{0,0}
+		};
+		RegionSize dre = _clip_region.back();
 			
 		// 计算一个交集区域
 			
 		float x, x2, y, y2;
 		
-		y = dre.y2 > re.y2 ? re.y2 : dre.y2; // 选择一个小的
-		y2 = dre.y > re.y ? dre.y : re.y; // 选择一个大的
-		x = dre.x2 > re.x2 ? re.x2 : dre.x2; // 选择一个小的
-		x2 = dre.x > re.x ? dre.x : re.x; // 选择一个大的
+		y = dre.end.y() > re.end.y() ? re.end.y() : dre.end.y(); // 选择一个小的
+		y2 = dre.origin.y() > re.origin.y() ? dre.origin.y() : re.origin.y(); // 选择一个大的
+		x = dre.end.x() > re.end.x() ? re.end.x() : dre.end.x(); // 选择一个小的
+		x2 = dre.origin.x() > re.origin.x() ? dre.origin.x() : re.origin.x(); // 选择一个大的
 		
 		if ( x > x2 ) {
-			re.x = x2;
-			re.x2 = x;
+			re.origin.set_x(x2);
+			re.end.set_x(x);
 		} else {
-			re.x = x;
-			re.x2 = x2;
+			re.origin.set_x(x);
+			re.end.set_x(x2);
 		}
 		
 		if ( y > y2 ) {
-			re.y = y2;
-			re.y2 = y;
+			re.origin.set_y(y2);
+			re.end.set_y(y);
 		} else {
-			re.y = y;
-			re.y2 = y2;
+			re.origin.set_y(y);
+			re.end.set_y(y2);
 		}
-		
-		re.width = re.x2 - re.x;
-		re.height = re.y2 - re.y;
-		
+
+		re.size = Vec2(re.end.x() - re.origin.x(), re.end.y() - re.origin.y());
+
 		_clip_region.push(re);
 	}
 
@@ -237,18 +232,18 @@ namespace quark {
 		_default_scale = value;
 	}
 
-	bool Display::set_display_region(DisplayRegion region) {
+	bool Display::set_surface_region(RegionSize region) {
 		bool ok = false;
-		if (region.width != 0 && region.height != 0) {
+		if (region.size.x() != 0 && region.size.y() != 0) {
 			UILock lock(_host);
-			if (  _display_region.x != region.x
-				||	_display_region.y != region.y
-				||	_display_region.x2 != region.x2
-				||	_display_region.y2 != region.y2
-				||	_display_region.width != region.width
-				||	_display_region.height != region.height
+			if (  _surface_region.origin.x() != region.origin.x()
+				||	_surface_region.origin.y() != region.origin.y()
+				||	_surface_region.end.x() != region.end.x()
+				||	_surface_region.end.y() != region.end.y()
+				||	_surface_region.size.x() != region.size.x()
+				||	_surface_region.size.y() != region.size.y()
 			) {
-				_display_region = region;
+				_surface_region = region;
 				ok = true;
 			}
 		}

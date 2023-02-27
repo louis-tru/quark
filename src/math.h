@@ -150,24 +150,19 @@ namespace quark {
 	typedef MVec4<int> Vec4i;
 
 	// rect
-	struct Rect {
-		Vec2 origin, size;
+	template<typename T> struct MRect {
+		T origin,size;
+	};
+
+	template<typename T> struct MRegion {
+		T origin,end;
 	};
 
 	// rect int
-	struct Recti {
-		Vec2i origin, size;
-	};
-
-	// react region
-	struct Region {
-		Vec2 origin, end;
-	};
-
-	// react region int
-	struct Regioni {
-		Vec2i origin, end;
-	};
+	typedef MRect<Vec2>    Rect;
+	typedef MRegion<Vec2>  Region;
+	typedef MRect<Vec2i>   Recti;
+	typedef MRegion<Vec2i> Regioni;
 
 	template <typename T> struct MColor: public MVec<T, 4> {
 		inline MColor(){}

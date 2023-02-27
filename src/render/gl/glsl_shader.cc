@@ -50,21 +50,25 @@ namespace quark {
 	static const String vertexHeader("\n\
 	#version 300 es\n\
 	uniform mat4  root_matrix;\n\
-	uniform float view_matrix[6];\n\
-	#define matrix root_matrix * v_matrix()\n\
-	mat4 v_matrix() {\n\
+	/*uniform float view_matrix[6];*/\n\
+	layout (std140,binding=0) uniform ubo {\n\
+		mat4 view_matrix;\n\
+	};\n\
+	#define matrix root_matrix * ubo.view_matrix\n\
+	in      vec3  vertex_in;\n\
+	/*mat4 v_matrix() {\n\
 		return mat4(view_matrix[0], view_matrix[3], 0.0, 0.0,\n\
 								view_matrix[1], view_matrix[4], 0.0, 0.0,\n\
 								0.0,            0.0,            1.0, 0.0,\n\
 								view_matrix[2], view_matrix[5], 0.0, 1.0);\n\
-	}");
+	}*/");
 
 	static const String fragmentHeader("\n\
 	#version 300 es\n\
 	out lowp vec4 color_o;\n\
 	");
 
-	GLSLShader::GLSLShader(): _shader(0), _root_matrix(0), _view_matrix(0) {
+	GLSLShader::GLSLShader(): _shader(0) {
 	}
 
 	void GLSLShader::compile(
@@ -76,48 +80,60 @@ namespace quark {
 			compile_shader(name, (vertexHeader + vertexShader).c_str(), GL_VERTEX_SHADER);
 		GLuint fragment_handle =
 			compile_shader(name, (fragmentHeader + fragmentShader).c_str(), GL_FRAGMENT_SHADER);
-		GLuint program_handle = glCreateProgram();
-		glAttachShader(program_handle, vertex_handle);
-		glAttachShader(program_handle, fragment_handle);
+		GLuint program = glCreateProgram();
+		glAttachShader(program, vertex_handle);
+		glAttachShader(program, fragment_handle);
 
 		auto attrs = String(_attrs).split(',');
 		auto uniforms = String(_uniforms).split(',');
-		
+
+		glBindAttribLocation(program, _vertex_in = 0, "vertex_in");
+
 		GLuint *store = static_cast<GLuint*>(((void*)(this)) + sizeof(GLSLShader));
-		GLuint index = 0;
-		for (auto& i: attrs) {
-			glBindAttribLocation(program_handle, *store = index++, i.c_str());
-			store++;
+		GLuint index = 1;
+		for (auto &i: attrs) {
+			if (!i.is_empty()) {
+				glBindAttribLocation(program, *store = index++, i.c_str());
+				store++;
+			}
 		}
 
-		glLinkProgram(program_handle);
+		glLinkProgram(program);
 		glDeleteShader(vertex_handle);
 		glDeleteShader(fragment_handle);
 
 		GLint ok;
-		glGetProgramiv(program_handle, GL_LINK_STATUS, &ok);
+		glGetProgramiv(program, GL_LINK_STATUS, &ok);
 
 		if (ok != GL_TRUE) {
 			char log[256] = { 0 };
-			glGetProgramInfoLog(program_handle, 255, &ok, log);
+			glGetProgramInfoLog(program, 255, &ok, log);
 			Qk_FATAL("Link shader error, %s\n\n%s", name, log);
 		}
 
-		_root_matrix = glGetUniformLocation(program_handle, "root_matrix");
-		_view_matrix = glGetUniformLocation(program_handle, "view_matrix");
+		_root_matrix = glGetUniformLocation(program, "root_matrix");
+		// _view_matrix = glGetUniformLocation(program, "view_matrix");
+		// GLuint ubo = glGetUniformBlockIndex(program, "ubo");
+		// glUniformBlockBinding(program, ubo, 0);
+		// GLint bufferSize;
+		// glGetActiveUniformBlockiv(program, _view_matrix, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
 
 		for (auto &i: uniforms) {
-			*store = glGetUniformLocation(program_handle, i.c_str());
-			store++;
+			if (!i.is_empty()) {
+				*store = glGetUniformLocation(program, i.c_str());
+				store++;
+			}
 		}
 
-		_shader = program_handle;
+		glUseProgram(program);
+		glEnableVertexAttribArray(_vertex_in);
+
+		_shader = program;
 	}
 
-	GLSLColor::GLSLColor() {
+	void GLSLColor::build() {
 		compile("color shader",
 		"\n\
-		in      vec3  vertex_in;\n\
 		uniform vec4  color;\n\
 		void main() {\n\
 			color_f = color * vec4(1.0, 1.0, 1.0, vertex_in.z);\n\
@@ -131,13 +147,12 @@ namespace quark {
 			color_o = color_f;\n\
 		}\n\
 		",
-		"vertex_in", "color");
+		"", "color");
 	}
 
-	GLSLImage::GLSLImage() {
+	void GLSLImage::build() {
 		compile("image shader",
 		"\n\
-		in        vec3      vertex_in;\n\
 		uniform   float     opacity;\n\
 		uniform   vec4      coord;//offset,scale\n\
 		\n\
@@ -157,15 +172,14 @@ namespace quark {
 			color_o = texture(image, image_uv_f) * vec4(1.0, 1.0, 1.0, opacity_f);\n\
 		}\n\
 		",
-		"vertex_in", "opacity,coord,image");
+		"", "opacity,coord,image");
 	}
 
-	GLSLGradient::GLSLGradient(GradientPaint::GradientType type) {
+	void GLSLGradient::build() {
 
-		const char *v_shader = type == GradientPaint::kLinear ?
+		const char *v_shader = _type == GradientType::kLinear ?
 		// kLinear
 		"\n\
-		in        vec3      vertex_in;\n\
 		uniform   vec4      range;//start/end range for rect\n\
 		\n\
 		void main() {\n\
@@ -179,7 +193,6 @@ namespace quark {
 		":
 		// kRadial
 		"\n\
-		in        vec3      vertex_in;\n\
 		uniform   vec4      range;//center/radius for circle\n\
 		\n\
 		void main() {\n\
@@ -194,9 +207,9 @@ namespace quark {
 		"\n\
 		in lowp   float     opacity_f;\n\
 		in lowp   float     position_f;\n\
-		uniform   float     count;\n\
+		uniform   int       count;\n\
 		uniform   vec4      colors[256];//max 256 color points\n\
-		uniform   vec4      positions[256];\n\
+		uniform   float     positions[256];\n\
 		void main() {\n\
 			int s = 0;\n\
 			int e = count-1;\n\
@@ -215,7 +228,7 @@ namespace quark {
 		\
 		}\n\
 		",
-		"vertex_in", "range,count,colors,positions");
+		"", "range,count,colors,positions");
 	}
 
 }

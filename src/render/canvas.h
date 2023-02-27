@@ -51,6 +51,7 @@ namespace quark {
 			kDifference_ClipOp,
 			kIntersect_ClipOp,
 		};
+		virtual void setMatrix(const Mat& mat) = 0;
 		virtual int  save() = 0;
 		virtual void restore() = 0;
 		virtual int  getSaveCount() const = 0;

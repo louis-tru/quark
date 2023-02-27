@@ -48,12 +48,6 @@ namespace quark {
 		r->set_receive(1);
 		r->set_width({0, BoxSizeKind::MATCH});
 		r->set_height({0, BoxSizeKind::MATCH});
-		
-		auto region = app->display()->display_region();
-		float scale = app->display()->scale();
-
-		r->set_translate(Vec2(region.x / scale, region.y / scale));
-
 		r->mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		r->set_fill_color(Color(255, 255, 255, 255)); // 默认白色背景
 		r->mark_none(kRecursive_Transform);
@@ -62,11 +56,7 @@ namespace quark {
 	}
 
 	void Root::onDisplayChange() {
-		auto display = pre_render()->host()->display();
-		auto region = display->display_region();
-		float scale = display->scale();
 		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
-		set_translate(Vec2(region.x / scale, region.y / scale));
 	}
 
 	void Root::set_visible(bool val) {

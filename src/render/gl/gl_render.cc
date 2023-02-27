@@ -88,7 +88,6 @@ namespace quark {
 		glGenRenderbuffers(1, &_msaa_render_buffer);
 
 		glEnable(GL_BLEND);
-		setBlendMode(kDstOver_BlendMode); // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
@@ -114,8 +113,9 @@ namespace quark {
 	}
 
 	void GLRender::onRenderbufferStorage(uint32_t target) {
-		auto region = _host->display()->display_region();
-		::glRenderbufferStorage(target, glPixelInternalFormat(_opts.colorType), region.width, region.height);
+		auto region = _host->display()->surface_region();
+		int w = region.size.x(), h = region.size.y();
+		::glRenderbufferStorage(target, glPixelInternalFormat(_opts.colorType), w, h);
 	}
 
 	void GLRender::reload() {
@@ -123,12 +123,13 @@ namespace quark {
 			_opts.msaaSampleCnt = 0;
 		}
 
-		auto region = _host->display()->display_region();
+		auto region = _host->display()->surface_region();
 
-		int width = region.width;
-		int height = region.height;
+		int width = region.size.x();
+		int height = region.size.y();
 
-		Qk_ASSERT(width && height, "Invalid viewport size");
+		Qk_ASSERT(width, "Invalid viewport size width");
+		Qk_ASSERT(height, "Invalid viewport size height");
 
 		glViewport(0, 0, width, height);
 
@@ -169,10 +170,22 @@ namespace quark {
 		glStencilMask(0xffffffff);
 
 		// update all shader root matrix
-		// _color.root_matrix();
+		auto scale = _host->display()->scale();
+		Vec2 start = Vec2(-region.origin.x() / scale, -region.origin.y() / scale);
+		Vec2 end   = Vec2(region.size.x() / scale + start.x(), region.size.y() / scale + start.y());
+		auto matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
+		// root_matrix.transpose();
+
+		GLSLShader *shaders[]{ &_color, &_image, &_linear, &_radial};
+
+		for (auto shader: shaders) {
+			glUseProgram(shader->shader());
+			glUniformMatrix4fv( shader->root_matrix(), 1, GL_TRUE, matrix.val );
+		}
 	}
 
 	void GLRender::begin() {
+		setBlendMode(kSrcOver_BlendMode);
 	}
 
 	void GLRender::submit() {
@@ -180,9 +193,9 @@ namespace quark {
 		if (_opts.msaaSampleCnt > 1) {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
-			auto region = _host->display()->display_region();
-			glBlitFramebuffer(0, 0, region.width, region.height,
-												0, 0, region.width, region.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			auto region = _host->display()->surface_region();
+			glBlitFramebuffer(0, 0, region.size.x(), region.size.y(),
+												0, 0, region.size.x(), region.size.y(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #if !Qk_OSX
 			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
