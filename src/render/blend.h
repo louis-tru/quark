@@ -40,10 +40,10 @@ namespace quark {
 		kDst_BlendMode,           //!< r = d
 		kSrcOver_BlendMode,       //!< r = s + (1-sa)*d
 		kDstOver_BlendMode,       //!< r = d + (1-da)*s
-		kDstIn_BlendMode,         //!< r = d * sa
-		kDstOut_BlendMode,        //!< r = d * (1-sa)
 		kSrcIn_BlendMode,         //!< r = s * da
+		kDstIn_BlendMode,         //!< r = d * sa
 		kSrcOut_BlendMode,        //!< r = s * (1-da)
+		kDstOut_BlendMode,        //!< r = d * (1-sa)
 		kSrcATop_BlendMode,       //!< r = s*da + d*(1-sa)
 		kDstATop_BlendMode,       //!< r = d*sa + s*(1-da)
 		kXor_BlendMode,           //!< r = s*(1-da) + d*(1-sa)
