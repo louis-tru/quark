@@ -32,129 +32,125 @@
 
 namespace quark {
 
-	class TGAImageCodec::_Inl : public TGAImageCodec {
-	#define _inl_tga(self) static_cast<TGAImageCodec::_Inl*>(self)
-		public:
-	#pragma pack(push,1)
-		struct Header {
-			uint8_t idlength;              /* 00h Size of Image ID field */
-			uint8_t color_map_type;        /* 01h Color map type */
-			// 2-rgb
-			// 3-grayscale
-			// 10-rle rgb
-			// 11-rle grayscale
-			uint8_t data_type_code;        /* 02h Image type code */
-			uint16_t color_map_origin;    /* 03h Color map origin */
-			uint16_t color_map_length;    /* 05h Color map length */
-			uint8_t color_map_depth;       /* 07h Depth of color map entries */
-			uint16_t x_origin;            /* 08h X origin of image */
-			uint16_t y_origin;            /* 0Ah Y origin of image */
-			uint16_t width;               /* 0Ch Width of image */
-			uint16_t height;              /* 0Eh Height of image */
-			// 16、24、32
-			uint8_t bits_per_pixel;        /* 10h Image pixel size */
-			uint8_t image_descriptor;      /* 11h Image descriptor byte */
-		};
-	#pragma pack(pop)
-
-		typedef void (TGAImageCodec::_Inl::*ReadDataBlackFunc)(uint8_t** in, uint8_t** out, int alpha);
-		
-		/**
-		 * @func m_parse_rgb_rle # 解析RLE RGB图
-		 * @arg data {const byte*} # 图像数据指针
-		 * @arg new_data {byte*} # 新的通胀图像数据指针
-		 * @arg pixex_size {int} # 图像像素数量
-		 * @arg func {ReadDataBlackFunc} # 处理函数
-		 * @private
-		 */
-		void m_parse_rgb_rle(uint8_t* in, uint8_t* out,
-												int bytes,
-												int pixex_size, ReadDataBlackFunc func, int alpha) {
-			for (int i = 0; i < pixex_size; i++) {
-				uint8_t mask = in[0];
-				in++;
-				(this->*func)(&in, &out, alpha);
-				
-				int j = mask & 0x7f;    // data[0] & 01111111
-				if (mask & 0x80) {       // data[0] & 10000000
-					// 相同的像素
-					uint8_t* cp = out - bytes;
-					for (int k = 0; k < j; k++, i++) {
-						memcpy(out, cp, bytes);
-						out += bytes;
-					}
-				} else {
-					for (int k = 0; k < j; k++, i++) {
-						(this->*func)(&in, &out, alpha);
-					}
-				}
-			}
-		}
-		
-		// RLE 灰度图
-		void m_parse_gray_rle(uint8_t* in, uint8_t* out, int bytes, int pixex_size, int alpha) {
-			for (int i = 0; i < pixex_size; i++) {
-				uint8_t mask = in[0];
-				in += 1;
-				m_read_gray_data_black(&in, &out, bytes, alpha);
-				
-				int j = mask & 0x7f;    // data[0] & 01111111
-				if (mask & 0x80) {       // data[0] & 10000000
-					// 相同的像素
-					uint8_t* tmp = out - 2;
-					for (int k = 0; k < j; k++, i++) {
-						memcpy(out, tmp, 2);
-						out += 4;
-					}
-				}
-				else {
-					for (int k = 0; k < j; k++, i++) {
-						m_read_gray_data_black(&in, &out, bytes, alpha);
-					}
-				}
-			}
-		}
-		
-		void m_read_16_data_black(uint8_t** in, uint8_t** out, int alpha) {
-			uint16_t* in_ = (uint16_t*)*in;
-			uint16_t* out_ = (uint16_t*)*out;
-			*out_ = (in_[0] << 1) | (alpha ? (in_[0] & 0x8000) : 1);
-			*in = (uint8_t*)(in_ + 1);
-			*out = (uint8_t*)(out_ + 1);
-		}
-		
-		void m_read_24_data_black(uint8_t** in, uint8_t** out, int alpha) {
-			uint8_t* in_ = *in;
-			uint8_t* out_ = *out;
-			out_[2] = in_[0];
-			out_[1] = in_[1];
-			out_[0] = in_[2];
-			*in = in_ + 3;
-			*out = out_ + 3;
-		}
-		
-		void m_read_32_data_black(uint8_t** in, uint8_t** out, int alpha) {
-			uint8_t* in_ = *in;
-			uint8_t* out_ = *out;
-			out_[2] = in_[0];
-			out_[1] = in_[1];
-			out_[0] = in_[2];
-			out_[3] = alpha ? in_[3] : 255;
-			*in = in_ + 4;
-			*out = out_ + 4;
-		}
-		
-		void m_read_gray_data_black(uint8_t** in, uint8_t** out, int bytes, int alpha) {
-			uint8_t* in_ = *in;
-			uint8_t* out_ = *out;
-			out_[0] = in_[0];
-			out_[1] = alpha ? in_[1] : 255;
-			*in = in_ + bytes;
-			*out = out_ + bytes;
-		}
+	struct TGAHeader {
+		#pragma pack(push,1)
+		uint8_t idlength;              /* 00h Size of Image ID field */
+		uint8_t color_map_type;        /* 01h Color map type */
+		// 2-rgb
+		// 3-grayscale
+		// 10-rle rgb
+		// 11-rle grayscale
+		uint8_t data_type_code;        /* 02h Image type code */
+		uint16_t color_map_origin;    /* 03h Color map origin */
+		uint16_t color_map_length;    /* 05h Color map length */
+		uint8_t color_map_depth;       /* 07h Depth of color map entries */
+		uint16_t x_origin;            /* 08h X origin of image */
+		uint16_t y_origin;            /* 0Ah Y origin of image */
+		uint16_t width;               /* 0Ch Width of image */
+		uint16_t height;              /* 0Eh Height of image */
+		// 16、24、32
+		uint8_t bits_per_pixel;        /* 10h Image pixel size */
+		uint8_t image_descriptor;      /* 11h Image descriptor byte */
+		#pragma pack(pop)
 	};
 
-	static void premultiplied_alpha(uint8_t* data, int pixex_size) {
+	typedef void (*TGAReadDataBlackFunc)(uint8_t** in, uint8_t** out, int alpha);
+	
+	/**
+	 * @func tga_parse_rgb_rle # 解析RLE RGB图
+	 * @arg data {const byte*} # 图像数据指针
+	 * @arg new_data {byte*} # 新的通胀图像数据指针
+	 * @arg pixex_size {int} # 图像像素数量
+	 * @arg func {ReadDataBlackFunc} # 处理函数
+	 * @private
+	 */
+	void tga_parse_rgb_rle(uint8_t* in, uint8_t* out,
+											int bytes,
+											int pixex_size, TGAReadDataBlackFunc func, int alpha) {
+		for (int i = 0; i < pixex_size; i++) {
+			uint8_t mask = in[0];
+			in++;
+			(func)(&in, &out, alpha);
+			
+			int j = mask & 0x7f;    // data[0] & 01111111
+			if (mask & 0x80) {       // data[0] & 10000000
+				// 相同的像素
+				uint8_t* cp = out - bytes;
+				for (int k = 0; k < j; k++, i++) {
+					memcpy(out, cp, bytes);
+					out += bytes;
+				}
+			} else {
+				for (int k = 0; k < j; k++, i++) {
+					(func)(&in, &out, alpha);
+				}
+			}
+		}
+	}
+	
+	// RLE 灰度图
+	void tga_parse_gray_rle(uint8_t* in, uint8_t* out, int bytes, int pixex_size, int alpha) {
+		for (int i = 0; i < pixex_size; i++) {
+			uint8_t mask = in[0];
+			in += 1;
+			tga_read_gray_data_black(&in, &out, bytes, alpha);
+			
+			int j = mask & 0x7f;    // data[0] & 01111111
+			if (mask & 0x80) {       // data[0] & 10000000
+				// 相同的像素
+				uint8_t* tmp = out - 2;
+				for (int k = 0; k < j; k++, i++) {
+					memcpy(out, tmp, 2);
+					out += 4;
+				}
+			}
+			else {
+				for (int k = 0; k < j; k++, i++) {
+					tga_read_gray_data_black(&in, &out, bytes, alpha);
+				}
+			}
+		}
+	}
+	
+	void tga_read_16_data_black(uint8_t** in, uint8_t** out, int alpha) {
+		uint16_t* in_ = (uint16_t*)*in;
+		uint16_t* out_ = (uint16_t*)*out;
+		*out_ = (in_[0] << 1) | (alpha ? (in_[0] & 0x8000) : 1);
+		*in = (uint8_t*)(in_ + 1);
+		*out = (uint8_t*)(out_ + 1);
+	}
+	
+	void tga_read_24_data_black(uint8_t** in, uint8_t** out, int alpha) {
+		uint8_t* in_ = *in;
+		uint8_t* out_ = *out;
+		out_[2] = in_[0];
+		out_[1] = in_[1];
+		out_[0] = in_[2];
+		*in = in_ + 3;
+		*out = out_ + 3;
+	}
+	
+	void tga_read_32_data_black(uint8_t** in, uint8_t** out, int alpha) {
+		uint8_t* in_ = *in;
+		uint8_t* out_ = *out;
+		out_[2] = in_[0];
+		out_[1] = in_[1];
+		out_[0] = in_[2];
+		out_[3] = alpha ? in_[3] : 255;
+		*in = in_ + 4;
+		*out = out_ + 4;
+	}
+	
+	void tga_read_gray_data_black(uint8_t** in, uint8_t** out, int bytes, int alpha) {
+		uint8_t* in_ = *in;
+		uint8_t* out_ = *out;
+		out_[0] = in_[0];
+		out_[1] = alpha ? in_[1] : 255;
+		*in = in_ + bytes;
+		*out = out_ + bytes;
+	}
+
+	void tga_premultiplied_alpha(uint8_t* data, int pixex_size) {
 		for(int i = 0; i < pixex_size; i++){
 			float alpha = data[3] / 255;
 			data[0] *= alpha;
@@ -164,7 +160,7 @@ namespace quark {
 		}
 	}
 
-	static Buffer flip_vertical(cChar* data, int width, int height, int bytes) {
+	Buffer tga_flip_vertical(cChar* data, int width, int height, int bytes) {
 		
 		Buffer rev = Buffer::alloc(width * height * bytes);
 		char* p = *rev;
@@ -179,8 +175,8 @@ namespace quark {
 		return rev;
 	}
 
-	bool TGAImageCodec::test(cBuffer& data, Pixel* out) {
-		_Inl::Header* header = (_Inl::Header*)*data;
+	bool img_tga_test(cBuffer& data, PixelInfo* out) {
+		TGAHeader* header = (TGAHeader*)*data;
 		bool alpha = header->image_descriptor & 0x08;
 		int bytes = header->bits_per_pixel / 8; // 2、3、4
 		uint8_t code = header->data_type_code;
@@ -197,23 +193,22 @@ namespace quark {
 		} else {
 			format = alpha ? kColor_Type_RGBA_8888: kColor_Type_RGB_888X;
 		}
-		
-		*out = Pixel(PixelInfo(header->width, header->height, format, kAlphaType_Unpremul));
+
+		*out = PixelInfo(header->width, header->height, format, kAlphaType_Unpremul);
 
 		return true;
 	}
 
-	Array<Pixel> TGAImageCodec::decode(cBuffer& data) {
-		Array<Pixel> rv;
+	bool img_tga_decode(cBuffer& data, Array<Pixel> *pixel) {
 		
-		_Inl::Header* header = (_Inl::Header*)*data; // 适用小端格式CPU
+		TGAHeader* header = (TGAHeader*)*data; // 适用小端格式CPU
 		// parse image
 		int alpha = header->image_descriptor & 0x08;
 		int bytes = header->bits_per_pixel / 8; // 2、3、4
 		uint8_t code = header->data_type_code;
 		
 		ColorType format;
-		_Inl::ReadDataBlackFunc func;
+		TGAReadDataBlackFunc func;
 		
 		if (bytes == 2) {
 			if (code == 2 || code == 10) { // RGB | RLE RGB
@@ -221,13 +216,13 @@ namespace quark {
 			} else { // GRAY | RLE GRAY
 				format = kColor_Type_Luminance_Alpha_88;
 			}
-			func = &TGAImageCodec::_Inl::m_read_16_data_black;
+			func = &tga_read_16_data_black;
 		} else if (bytes == 3) {
 			format = kColor_Type_RGB_888;
-			func = &TGAImageCodec::_Inl::m_read_24_data_black;
+			func = &tga_read_24_data_black;
 		} else {
 			format = alpha ? kColor_Type_RGBA_8888: kColor_Type_RGB_888X;
-			func = &TGAImageCodec::_Inl::m_read_32_data_black;
+			func = &tga_read_32_data_black;
 		}
 		
 		int width = header->width;
@@ -236,18 +231,18 @@ namespace quark {
 		int out_size = pixex_size * bytes;
 		Buffer out = Buffer::alloc(out_size);
 		uint8_t* out_ = (uint8_t*)out.val();
-		uint8_t* in_ = ((uint8_t*)data.val()) + sizeof(_Inl::Header) + header->idlength;
+		uint8_t* in_ = ((uint8_t*)data.val()) + sizeof(TGAHeader) + header->idlength;
 		
 		switch ( code ) {
 			case 2:  // RGB
 			case 10: // RLE RGB
 				if ( code == 2 ) { // RGB
 					for ( int i = 0; i < pixex_size; i++ ) {
-						(_inl_tga(this)->*func)(&in_, &out_, alpha);
+						(func)(&in_, &out_, alpha);
 					}
 				}
 				else {  // RLE RGB
-					_inl_tga(this)->m_parse_rgb_rle(in_, out_, bytes, pixex_size, func, alpha);
+					tga_parse_rgb_rle(in_, out_, bytes, pixex_size, func, alpha);
 				}
 				break;
 			case 3:  // GRAY
@@ -258,31 +253,32 @@ namespace quark {
 				}
 				break;
 			case 11: // RLE GRAY
-				_inl_tga(this)->m_parse_gray_rle(in_, out_, bytes, pixex_size, alpha);
+				tga_parse_gray_rle(in_, out_, bytes, pixex_size, alpha);
 				break;
 			default:
 				Qk_WARN("Parse tga image error, data type code undefined");
-				return Array<Pixel>();
+				return false;
 		}
 		
 		// 表示像素是从底部开始的,需要调个头
 		if ( ! (header->image_descriptor & 0x20) ) {
 		// BOTTOM_LEFT
-			out = flip_vertical(*out, width, height, bytes);
+			out = tga_flip_vertical(*out, width, height, bytes);
 		}
-		rv.push( Pixel(PixelInfo(width, height, format, kAlphaType_Unpremul), out) );
-		return rv;
+		pixel->push( Pixel(PixelInfo(width, height, format, kAlphaType_Unpremul), out) );
+
+		return true;
 	}
 
-	Buffer TGAImageCodec::encode(cPixel& pixel_data) {
+	Buffer img_tga_encode(cPixel& pixel_data) {
 		
 		if (pixel_data.type() == kColor_Type_RGBA_8888) {
 		
-			int size = sizeof(_Inl::Header) + pixel_data.width() * pixel_data.height() * 4;
+			int size = sizeof(TGAHeader) + pixel_data.width() * pixel_data.height() * 4;
 			
 			Buffer ret_data = Buffer::alloc(size);
 
-			_Inl::Header header;
+			TGAHeader header;
 			header.idlength = 0;
 			header.color_map_type = 0;
 			header.data_type_code = 2;
@@ -296,12 +292,12 @@ namespace quark {
 			header.bits_per_pixel = 32;
 			header.image_descriptor =  0x08 | 0x20; //alpha flag | top-left flag
 			
-			memcpy(*ret_data, &header, sizeof(_Inl::Header));
+			memcpy(*ret_data, &header, sizeof(TGAHeader));
 			
 			cBuffer& pixel_data_d = pixel_data.body();
 			int pixels = pixel_data_d.length() / 4;
 			const uint8_t* src = (const uint8_t*)*pixel_data_d;
-			uint8_t* dest = (uint8_t*)*ret_data + sizeof(_Inl::Header);
+			uint8_t* dest = (uint8_t*)*ret_data + sizeof(TGAHeader);
 
 			// 写入BGRA数据
 			if ( pixel_data.alphaType() == kAlphaType_Premul ) {

@@ -33,56 +33,107 @@
 
 namespace quark {
 
-	/**
-	 * @func image_format 通过路径获取图片类型
-	 */
-	ImageCodec::ImageFormat ImageCodec::image_format(cString& path) {
-		
+#if Qk_APPLE
+	bool apple_img_test(cBuffer& data, PixelInfo* out);
+	bool apple_img_decode(cBuffer& data, Array<Pixel>* out);
+#else
+	bool img_jpeg_test(cBuffer& data, PixelInfo* out);
+	bool img_gif_test(cBuffer& data, PixelInfo* out);
+	bool img_png_test(cBuffer& data, PixelInfo* out);
+	bool img_webp_test(cBuffer& data, PixelInfo* out);
+	bool img_tga_test(cBuffer& data, PixelInfo* out);
+	// decode
+	bool img_jpeg_decode(cBuffer& data, Array<Pixel> *out);
+	bool img_gif_decode(cBuffer& data, Array<Pixel> *out);
+	bool img_png_decode(cBuffer& data, Array<Pixel> *out);
+	bool img_webp_decode(cBuffer& data, Array<Pixel> *out);
+	bool img_tga_decode(cBuffer& data, Array<Pixel> *out);
+#endif
+
+	bool img_pvrt_test(cBuffer& data, PixelInfo* out);
+	bool img_pvrt_decode(cBuffer& data, Array<Pixel> *out);
+
+	bool img_test(cBuffer& data, PixelInfo* out, ImageFormat fmt) {
+#if Qk_APPLE
+		return apple_img_test(data, out) || img_pvrt_test(data, out);
+#else
+		bool ok = false;
+
+		switch (fmt) {
+			case kJPEG_ImageFormat: ok = img_jpeg_test(data, out); break;
+			case kGIF_ImageFormat: ok = img_gif_test(data, out); break;
+			case kPNG_ImageFormat: ok = img_png_test(data, out); break;
+			case kWEBP_ImageFormat: ok = img_webp_test(data, out); break;
+			case kTGA_ImageFormat: ok = img_tga_test(data, out); break;
+			case kPVRTC_ImageFormat: ok = img_pvrt_test(data, out); break;
+			default: break;
+		}
+
+		return ok
+			||img_jpeg_test(data, out)
+			|| img_gif_test(data, out)
+			|| img_png_test(data, out)
+			|| img_webp_test(data, out)
+			|| img_tga_test(data, out)
+			|| img_pvrt_test(data, out);
+#endif
+	}
+
+	bool img_decode(cBuffer& data, Array<Pixel> *out, ImageFormat fmt) {
+		// Array<Pixel> out;
+#if Qk_APPLE
+	return apple_img_decode(data, out) || img_pvrt_decode(data, out);
+#else
+		bool ok = false;
+
+		switch (fmt) {
+			case kJPEG_ImageFormat: ok = img_jpeg_decode(data, out); break;
+			case kGIF_ImageFormat: ok = img_gif_decode(data, out); break;
+			case kPNG_ImageFormat: ok = img_png_decode(data, out); break;
+			case kWEBP_ImageFormat: ok = img_webp_decode(data, out); break;
+			case kTGA_ImageFormat: ok = img_tga_decode(data, out); break;
+			case kPVRTC_ImageFormat: ok = img_pvrt_decode(data, out); break;
+			default: break;
+		}
+
+		return ok
+			|| img_jpeg_decode(data, out)
+			|| img_gif_decode(data, out)
+			|| img_png_decode(data, out)
+			|| img_webp_decode(data, out)
+			|| img_tga_decode(data, out)
+			|| img_pvrt_decode(data, out);
+#endif
+	}
+
+	ImageFormat img_format_from(cString& path) {
+
 		String str = path.to_lower_case();
 		int len = str.length();
 		
 		if (str.last_index_of(".pvr") != -1) {
-			return PVRTC;
+			return kPVRTC_ImageFormat;
 		}
 		else if (str.last_index_of(".tga") != -1) {
-			return TGA;
+			return kTGA_ImageFormat;
 		}
 		// JPF、JPX、J2C、JP2、J2K、JPC、LWF
 		else if ( str.last_index_of(".jpg") != -1 ||
 							str.last_index_of(".jpf") != -1 ||
 							str.last_index_of(".jpeg") != -1
 		) {
-			return JPEG;
+			return kJPEG_ImageFormat;
 		}
 		else if (str.last_index_of(".gif") != -1) {
-			return GIF;
+			return kGIF_ImageFormat;
 		}
 		else if (str.last_index_of(".png") != -1) {
-			return PNG;
+			return kPNG_ImageFormat;
 		}
 		else if (str.last_index_of(".webp") != -1) {
-			return WEBP;
+			return kWEBP_ImageFormat;
 		}
-		return Unknown;
-	}
-
-	Sp<ImageCodec> ImageCodec::Make(ImageFormat format) {
-		switch (format) {
-			case TGA:
-					return new TGAImageCodec();
-			case JPEG:
-//				return new JPEGImageCodec();
-			case GIF:
-//				return new GIFImageCodec();
-			case PNG:
-//				return new PNGImageCodec();
-			case WEBP:
-//				return new WEBPImageCodec();
-			case PVRTC:
-//				return new PVRTCImageCodec();
-			default:
-				return nullptr;
-		}
+		return kUnknown_ImageFormat;
 	}
 
 }

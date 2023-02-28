@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./pixel.h"
-#include "skia/core/SkImage.h"
+#include "./codec/codec.h"
 
 namespace quark {
 
@@ -58,7 +58,6 @@ namespace quark {
 			case kColor_Type_BGRA_1010102: return 4;
 			case kColor_Type_RGB_101010X: return 4;
 			case kColor_Type_BGR_101010X: return 4;
-			case kColor_Type_Gray_8: return 1;
 			case kColor_Type_RGB_888: return 3;
 			case kColor_Type_RGBA_5551: return 2;
 			case kColor_Type_Luminance_Alpha_88: return 2;
@@ -66,18 +65,10 @@ namespace quark {
 		}
 	}
 
-	Pixel Pixel::decode(cBuffer& buf) {
-		auto img = SkImage::MakeFromEncoded(SkData::MakeWithProc(buf.val(), buf.length(), nullptr, nullptr));
-		SkImageInfo info = img->imageInfo();
-		auto rowBytes = info.minRowBytes();
-		auto body = Buffer::alloc((uint32_t)rowBytes * info.height());
-		if (img->readPixels(nullptr, info, body.val(), rowBytes, 0, 0)) {
-			PixelInfo info2(info.width(), info.height(),
-											ColorType(info.colorType()),
-											AlphaType(info.alphaType()));
-			return Pixel(info2, std::move(body));
-		}
-		return Pixel();
+	Array<Pixel> Pixel::decode(cBuffer& raw) {
+		Array<Pixel> out;
+		img_decode(raw, &out);
+		return std::move(out);
 	}
 
 	Pixel::Pixel()

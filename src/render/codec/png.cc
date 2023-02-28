@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./codec.h"
-#include <png.h>
+#include <libpng/png.h>
 
 namespace quark {
 
@@ -39,27 +39,25 @@ namespace quark {
 	};
 
 	static void png_rw_fn(png_structp png, png_bytep bytep, png_size_t size) {
-		PngDataSource* s = (PngDataSource*)png->io_ptr;
-		memcpy(bytep, s->buff->value() + s->index, size);
+		PngDataSource *s = (PngDataSource*)png->io_ptr;
+		memcpy(bytep, s->buff->val() + s->index, size);
 		s->index += size;
 	}
 
-	Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
-		Array<PixelData> rv;
+	bool img_png_decode(cBuffer& data, Array<Pixel> *rv) {
 		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 		
-		ScopeClear scope([&png]() {
+		CPointer<png_struct> scope(png, [](png_structp png) {
 			png_destroy_read_struct(&png, NULL, NULL);
 		});
-		
+
 		png_infop info = png_create_info_struct(png);
 		
-		if ( ! info ) {
-			return rv;
-		}
-		if ( setjmp(png_jmpbuf(png)) ) {
-			return rv;
-		}
+		if ( ! info )
+			return false;
+
+		if ( setjmp(png_jmpbuf(png)) )
+			return false;
 		
 		PngDataSource source = { &data, 0 };
 		png_set_read_fn(png, &source, png_rw_fn);
@@ -70,16 +68,16 @@ namespace quark {
 		int color_type;
 		png_uint_32 r = png_get_IHDR(png, info, &w, &h, &bit_depth, &color_type, NULL, NULL, NULL);
 		
-		// PNG_kColor_Type_GRAY          // 灰度图像,1,2,4,8或16 (1/2/4/8/16)
-		// PNG_kColor_Type_PALETTE       // 索引彩色图像,1,2,4或8 (4/8/16/32)
-		// PNG_kColor_Type_RGB           // 真彩色图像,8或16 (24/48)
-		// PNG_kColor_Type_RGB_ALPHA     // 带α通道数据的真彩色图像,8或16 (32/64)
-		// PNG_kColor_Type_GRAY_ALPHA    // 带α通道数据的灰度图像,8或16 (16/32)
+		// PNG_COLOR_TYPE_GRAY          // 灰度图像,1,2,4,8或16 (1/2/4/8/16)
+		// PNG_COLOR_TYPE_PALETTE       // 索引彩色图像,1,2,4或8 (4/8/16/32)
+		// PNG_COLOR_TYPE_RGB           // 真彩色图像,8或16 (24/48)
+		// PNG_COLOR_TYPE_RGB_ALPHA     // 带α通道数据的真彩色图像,8或16 (32/64)
+		// PNG_COLOR_TYPE_GRAY_ALPHA    // 带α通道数据的灰度图像,8或16 (16/32)
 		
 		if ( bit_depth == 16 ) {
 			png_set_strip_16(png);
 		}
-		if (color_type == PNG_kColor_Type_PALETTE) {
+		if (color_type == PNG_COLOR_TYPE_PALETTE) {
 			png_set_expand(png);
 		}
 		if ( bit_depth < 8 ) {
@@ -93,45 +91,45 @@ namespace quark {
 		
 		png_uint_32 rowbytes = png_get_rowbytes(png, info);
 		png_uint_32 channel = rowbytes / w;
-		PixelData::Format format;
+		ColorType format;
 		
 		switch (channel) {
-			case 1: format = PixelData::LUMINANCE8; break;
-			case 2: format = PixelData::LUMINANCE_ALPHA88; break;
-			case 3: format = PixelData::RGB888; break;
-			case 4: format = PixelData::RGBA8888; break;
+			case 1: format = kColor_Type_Luminance_8; break;
+			case 2: format = kColor_Type_Luminance_Alpha_88; break;
+			case 3: format = kColor_Type_RGB_888; break;
+			case 4: format = kColor_Type_RGBA_8888; break;
 			default: // unknown error
-				return rv;
+				return false;
 		}
 		
-		Buffer buff((uint)(h * rowbytes));
-		Array<png_bytep> row_pointers((uint)h);
+		auto buff = Buffer::alloc((uint32_t)(h * rowbytes));
+		Array<png_bytep> row_pointers((uint32_t)h);
 		
 		for (uint32_t i = 0; i < h; i++) {
-			row_pointers[i] = (byte*)buff.value() + rowbytes * i;
+			row_pointers[i] = (uint8_t*)buff.val() + rowbytes * i;
 		}
 		png_read_image(png, &row_pointers[0]);
 		png_read_end(png, info);
 		
-		rv.push( PixelData(buff, (uint)w, (uint)h, format, false) );
-		return rv;
+		rv->push( Pixel(PixelInfo(w, h, format, kAlphaType_Unpremul), buff) );
+
+		return true;
 	}
 
-	PixelData PNGImageCodec::decode_header(cBuffer& data) {
+	bool img_jpeg_test(cBuffer& data, PixelInfo *out) {
 		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 		
-		ScopeClear scope([&png]() {
+		CPointer<png_struct> scope(png, [](png_structp png) {
 			png_destroy_read_struct(&png, NULL, NULL);
 		});
-		
+
 		png_infop info = png_create_info_struct(png);
 		
-		if ( ! info ) {
-			return PixelData();
-		}
-		if ( setjmp(png_jmpbuf(png)) ) {
-			return PixelData();
-		}
+		if ( ! info )
+			return false;
+
+		if ( setjmp(png_jmpbuf(png)) )
+			return false;
 		
 		PngDataSource source = { &data, 0 };
 		png_set_read_fn(png, &source, png_rw_fn);
@@ -145,7 +143,7 @@ namespace quark {
 		if ( bit_depth == 16 ) {
 			png_set_strip_16(png);
 		}
-		if (color_type == PNG_kColor_Type_PALETTE) {
+		if (color_type == PNG_COLOR_TYPE_PALETTE) {
 			png_set_expand(png);
 		}
 		if ( bit_depth < 8 ) {
@@ -159,21 +157,19 @@ namespace quark {
 		
 		png_uint_32 rowbytes = png_get_rowbytes(png, info);
 		png_uint_32 channel = rowbytes / w;
-		PixelData::Format format;
+		ColorType format;
 		
 		switch (channel) {
-			case 1: format = PixelData::LUMINANCE8; break;
-			case 2: format = PixelData::LUMINANCE_ALPHA88; break;
-			case 3: format = PixelData::RGB888; break;
-			case 4: format = PixelData::RGBA8888; break;
+			case 1: format = kColor_Type_Luminance_8; break;
+			case 2: format = kColor_Type_Luminance_Alpha_88; break;
+			case 3: format = kColor_Type_RGB_888; break;
+			case 4: format = kColor_Type_RGBA_8888; break;
 			default: // unknown error
-				return PixelData();
+				return false;
 		}
-		return PixelData(Buffer(), (uint)w, (uint)h, format, false);
-	}
+		*out = PixelInfo(w, h, format, kAlphaType_Unpremul);
 
-	Buffer PNGImageCodec::encode(const PixelData& pixel_data) {
-		return Buffer();
+		return true;
 	}
 
 }

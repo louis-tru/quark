@@ -188,6 +188,7 @@
 		'include_dirs': [
 			'..',
 			'../out',
+			'../deps',
 			'../deps/libuv/include',
 			'../deps/node/deps/openssl/openssl/include',
 			'../deps/node/deps/zlib',

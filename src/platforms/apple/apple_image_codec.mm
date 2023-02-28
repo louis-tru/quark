@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import <quark/render/codec/codec.h>
+#import "../../render/codec/codec.h"
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
 
@@ -41,7 +41,7 @@
 
 namespace quark {
 
-	static PixelData image_decode(cBuffer& data) {
+	bool apple_img_decode(cBuffer& data, Array<Pixel> *out) {
 
 		NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
 																					length:data.length()
@@ -56,38 +56,24 @@ namespace quark {
 		if (image) {
 			CGColorSpaceRef color_space = CGImageGetColorSpace(image);
 			if (color_space) {
-				
 				int width = (int)CGImageGetWidth(image);
 				int height = (int)CGImageGetHeight(image);
 				int pixel_size = width * height * 4;
 				
-				CGImageAlphaInfo info;
-				PixelData::Format format;
-				bool alpha = true;
-				
-				switch (CGImageGetAlphaInfo(image)) {
-					case kCGImageAlphaPremultipliedLast:
-					case kCGImageAlphaPremultipliedFirst:
-					case kCGImageAlphaLast:
-					case kCGImageAlphaFirst:
-						format = PixelData::RGBA8888;
-						break;
-					default:
-						format = PixelData::RGBX8888;
-						alpha = false;
-						break;
-				}
-				
-				bool isPremultipliedAlpha;
-				
-				if (alpha) {
-					info = kCGImageAlphaPremultipliedLast;
-					isPremultipliedAlpha = true;
-				} else {
-					info = kCGImageAlphaNoneSkipLast;
-					isPremultipliedAlpha = false;
-				}
-				
+				CGImageAlphaInfo info = kCGImageAlphaPremultipliedLast;
+
+				// switch (CGImageGetAlphaInfo(image)) {
+				// 	case kCGImageAlphaPremultipliedLast:
+				// 	case kCGImageAlphaPremultipliedFirst:
+				// 	case kCGImageAlphaLast:
+				// 	case kCGImageAlphaFirst:
+				// 		//format = kColor_Type_RGBA_8888;
+				// 		break;
+				// 	default:
+				// 		//format = kColor_Type_RGB_888X;
+				// 		break;
+				// }
+
 				Buffer pixel_data(pixel_size);
 				color_space = CGColorSpaceCreateDeviceRGB();
 				CGContextRef context =
@@ -96,13 +82,20 @@ namespace quark {
 				CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
 				CGContextRelease(context);
 				CFRelease(color_space);
-				return PixelData(pixel_data, width, height, PixelData::RGBA8888, isPremultipliedAlpha);
+
+				PixelInfo info(width, height, kColor_Type_RGBA_8888,
+					info == kCGImageAlphaPremultipliedLast ? kAlphaType_Premul: kAlphaType_Unpremul);
+
+				out->push(Pixel(info, pixel_data));
+
+				return true;
 			}
 		}
-		return PixelData();
+
+		return false;
 	}
 
-	static PixelData image_decode_header(cBuffer& data) {
+	bool apple_img_test(cBuffer& data, PixelInfo* out) {
 		
 		NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
 																					length:data.length()
@@ -114,79 +107,15 @@ namespace quark {
 		CGImageRef image = [img CGImage];
 	#endif
 		
-		if (image) {
-			int width = (int)CGImageGetWidth(image);
-			int height = (int)CGImageGetHeight(image);
-			CGImageAlphaInfo alpha = CGImageGetAlphaInfo(image);
-			PixelData::Format format;
-			
-			if (alpha == kCGImageAlphaPremultipliedLast ||
-					alpha == kCGImageAlphaPremultipliedFirst ||
-					alpha == kCGImageAlphaLast ||
-					alpha == kCGImageAlphaFirst) {
-				format = PixelData::RGBA8888;
-			} else {
-				format = PixelData::RGBX8888;
-			}
-			return PixelData(Buffer(), width, height, format, false);
-		}
-		return PixelData();
-	}
+		if (!image)
+			return false;
 
-	Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
-		Array<PixelData> rv; rv.push(image_decode(data));
-		return rv;
-	}
+		int width = (int)CGImageGetWidth(image);
+		int height = (int)CGImageGetHeight(image);
 
-	PixelData JPEGImageCodec::decode_header(cBuffer& data) {
-		return image_decode_header(data);
-	}
+		*out = PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Premul);
 
-	Buffer JPEGImageCodec::encode(cPixelData& data) {
-		FX_UNIMPLEMENTED();
-		return Buffer();
-	}
-
-	Array<PixelData> GIFImageCodec::decode(cBuffer& data) {
-		Array<PixelData> rv; rv.push(image_decode(data));
-		return rv;
-	}
-
-	PixelData GIFImageCodec::decode_header(cBuffer& data) {
-		return image_decode_header(data);
-	}
-
-	Buffer GIFImageCodec::encode(cPixelData& data) {
-		FX_UNIMPLEMENTED();
-		return Buffer();
-	}
-
-	Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
-		Array<PixelData> rv; rv.push(image_decode(data));
-		return rv;
-	}
-
-	PixelData PNGImageCodec::decode_header(cBuffer& data) {
-		return image_decode_header(data);
-	}
-
-	Buffer PNGImageCodec::encode(cPixelData& data) {
-		FX_UNIMPLEMENTED();
-		return Buffer();
-	}
-
-	Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
-		Array<PixelData> rv; rv.push(image_decode(data));
-		return rv;
-	}
-
-	PixelData WEBPImageCodec::decode_header(cBuffer& data) {
-		return image_decode_header(data);
-	}
-
-	Buffer WEBPImageCodec::encode(cPixelData& data) {
-		FX_UNIMPLEMENTED();
-		return Buffer();
+		return true;
 	}
 
 }

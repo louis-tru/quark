@@ -47,8 +47,7 @@ namespace quark {
 		longjmp(data->jmpbuf, 1);
 	}
 
-	Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
-		Array<PixelData> rv;
+	bool img_jpeg_decode(cBuffer& data, Array<Pixel> *rv) {
 		struct jpeg_decompress_struct jpeg;
 		struct jpeg_error_mgr jerr;
 		jpeg.err = jpeg_std_error(&jerr);
@@ -58,7 +57,7 @@ namespace quark {
 		jpeg.client_data = &client_data;
 		jpeg_create_decompress(&jpeg);
 
-		jpeg_mem_src(&jpeg, (byte*)*data, data.length());
+		jpeg_mem_src(&jpeg, (uint8_t*)*data, data.length());
 		
 		if ( setjmp(client_data.jmpbuf) ) {
 			jpeg_destroy_decompress(&jpeg);
@@ -77,19 +76,19 @@ namespace quark {
 		if (num == 1) {
 			uint32_t rowbytes = w * num;
 			uint32_t count = h * rowbytes;
-			Buffer buff(count);
+			auto buff = Buffer::alloc(count);
 
 			while(jpeg.output_scanline < jpeg.output_height) {
 				row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;
 				jpeg_read_scanlines(&jpeg, &row, 1);
 			}
 
-			rv.push( PixelData(buff, w, h, PixelData::LUMINANCE8, false) );
+			rv->push( Pixel(PixelInfo(w, h, kColor_Type_Gray_8, kAlphaType_Opaque), buff) );
 
 		} else if (num == 3) {
 			uint32_t rowbytes = w * 4;
 			uint32_t count = h * rowbytes;
-			Buffer buff(count);
+			auto buff = Buffer::alloc(count);
 
 			JSAMPARRAY lines = (*jpeg.mem->alloc_sarray)((j_common_ptr) &jpeg, JPOOL_IMAGE, w * num, 1);
 
@@ -106,16 +105,18 @@ namespace quark {
 				}
 			}
 
-			rv.push( PixelData(buff, w, h, PixelData::RGBX8888, false) );
+			rv->push( Pixel(PixelInfo(w, h, kColor_Type_RGB_888X, kAlphaType_Opaque), buff) );
+		} else {
+			return false;
 		}
 
 		jpeg_start_decompress(&jpeg);
 		jpeg_destroy_decompress(&jpeg);
 
-		return rv;
+		return true;
 	}
 
-	PixelData JPEGImageCodec::decode_header(cBuffer& data) {
+	bool img_jpeg_test(cBuffer& data, PixelInfo *out) {
 		struct jpeg_decompress_struct jpeg;
 		struct jpeg_error_mgr jerr;
 		jpeg.err = jpeg_std_error(&jerr);
@@ -125,13 +126,14 @@ namespace quark {
 		jpeg.client_data = &client_data;
 		jpeg_create_decompress(&jpeg);
 		
-		ScopeClear clear([&jpeg]() {
-			jpeg_destroy_decompress(&jpeg);
+		CPointer<jpeg_decompress_struct> clear(&jpeg, [](jpeg_decompress_struct *jpeg) {
+			jpeg_destroy_decompress(jpeg);
 		});
-		jpeg_mem_src(&jpeg, (byte*)*data, data.length());
+
+		jpeg_mem_src(&jpeg, (uint8_t*)*data, data.length());
 		
 		if ( setjmp(client_data.jmpbuf) ) {
-			return PixelData();
+			return false;
 		}
 		
 		jpeg_read_header(&jpeg, TRUE);
@@ -140,13 +142,15 @@ namespace quark {
 		uint32_t h = jpeg.image_height;
 		int num = jpeg.num_components;
 
-		return PixelData(Buffer(), w, h,
-										num == 1 ? PixelData::LUMINANCE8:
-										num == 3 ? PixelData::RGBX8888: PixelData::INVALID, false);
-	}
+		if (num == 1) {
+			*out = PixelInfo(w, h, kColor_Type_Gray_8, kAlphaType_Opaque);
+		} else if (num == 3) {
+			*out = PixelInfo(w, h, kColor_Type_RGB_888X, kAlphaType_Opaque);
+		} else {
+			return false;
+		}
 
-	Buffer JPEGImageCodec::encode(const PixelData& pixel_data) {
-		return Buffer();
+		return true;
 	}
 
 }

@@ -41,7 +41,7 @@
 	public: inline quark::EventNoticer<__VA_ARGS__>& on##name () { return _on##name; } \
 	private:quark::EventNoticer<__VA_ARGS__> _on##name; public:
 
-#define Qk_Init_Event(name)   _on##name(#name, this)
+#define Qk_Init_Event(name)   _on##name(this)
 #define Qk_On(name, ...)      on##name().on( __VA_ARGS__ )
 #define Qk_Once(name, ...)    on##name().once( __VA_ARGS__ )
 #define Qk_Off(name, ...)     on##name().off( __VA_ARGS__ )
@@ -61,32 +61,29 @@ namespace quark {
 		typedef T_Origin         Origin;
 		typedef T_RC             ReturnValue;
 		typedef const SendData   cSendData;
-		typedef EventNoticer<Event> Noticer;
 
 		Event(cSendData& data = SendData(), Origin* origin = nullptr, const ReturnValue& rc = ReturnValue())
-			: _noticer(nullptr), _data(&data), _origin(origin), return_value(rc) {}
+			: _sender(nullptr), _origin(origin), _data(&data), return_value(rc) {}
 
-		inline Noticer* noticer() const { return this->_noticer; }
-		inline String name() const { return this->_noticer->name(); }
-		inline Sender* sender() const { return this->_noticer->sender(); }
-		inline cSendData* data() const { return _data; }
+		inline Sender* sender() const { return _sender; }
 		inline Origin* origin() const { return _origin; }
+		inline cSendData* data() const { return _data; }
 
 		// "new" method alloc can call，Otherwise, fatal exception will be caused
 		virtual void release() {
-			_data = nullptr;
-			_origin = nullptr; _noticer = nullptr; Object::release();
+			_sender = _origin = _data = nullptr;
+			Object::release();
 		}
 	private:
-		Noticer*     _noticer;
-		cSendData*   _data;
-		Origin*      _origin;
+		Sender      *_sender;
+		Origin      *_origin;
+		cSendData   *_data;
 	public:
 		ReturnValue return_value;
 	};
 
 	template<class Event>
-	class EventNoticer: public Object {
+	class EventNoticer {
 		Qk_HIDDEN_ALL_COPY(EventNoticer);
 	public:
 		typedef Event EventType;
@@ -106,10 +103,10 @@ namespace quark {
 			virtual bool is_on_static_listener() { return false; }
 			virtual bool is_on_shell_listener() { return false; }
 			virtual bool is_on_func_listener() { return false; }
-			protected:
+		protected:
 			EventNoticer* _noticer;
 		};
-		
+
 		// On
 		template<class Scope> class OnListener: public Listener {
 		public:
@@ -215,29 +212,18 @@ namespace quark {
 			}
 		};
 		
-		inline EventNoticer(cString& name, Sender* sender = nullptr)
-			: _name(name), _sender(sender), _listener(nullptr) {}
+		EventNoticer(Sender *sender = nullptr)
+			: _sender(sender), _listener(nullptr) {}
 
-		virtual ~EventNoticer() {
+		~EventNoticer() {
 			if (_listener) {
 				off();
 				Release(_listener);
 			}
 		}
-		
-		/**
-		* @fun name
-		*/
-		inline String name() const { return _name; }
-		
-		/**
-		* @func sender
-		*/
+
 		inline Sender* sender() const { return _sender; }
-		
-		/**
-		* @fun count # 获取侦听器数量
-		*/
+
 		inline int count() const {
 			return _listener ? (int)_listener->length() : 0;
 		}
@@ -407,14 +393,14 @@ namespace quark {
 				}
 			}
 		}
-		
+
 		void trigger() {
 			if (_listener) {
 				Event evt;
 				trigger(evt);
 			}
 		}
-		
+
 		void trigger(cSendData& data) {
 			if (_listener) {
 				Event evt(data);
@@ -429,27 +415,20 @@ namespace quark {
 					auto j = i++;
 					auto listener = j->value;
 					if ( listener ) {
-						// TODO:
-						// listener->mListener 如果为空指针或者野指针,会导致程序崩溃。。
-						// 应该在对像释放前移除事件侦听器，这对于大型gui程序无GC的c++是非常糟糕的,
-						// 在VC中有delegate,在QT中有SIGNAL/SLOT,
-						// 幸好我们的程序是运行在js环境中的,无需对原生的api有过多的依赖。
 						listener->call(evt);
 					} else {
 						_listener->erase(j);
 					}
 				}
-				// set_event(evt, nullptr);
 			}
 		}
 
 	private:
-
 		inline void set_event(Event& evt) {
-			struct Ev: public Object { void *_noticer; };
-			reinterpret_cast<Ev*>(&evt)->_noticer = this;
+			struct Ev: public Object { void *_sender; };
+			reinterpret_cast<Ev*>(&evt)->_sender = _sender;
 		}
-		
+
 		inline void get_listener() {
 			Qk_ASSERT(!_name.is_empty());
 			if (_listener == nullptr) {
@@ -502,20 +481,15 @@ namespace quark {
 			}
 		}
 
-	private:
-		typedef typename List<Listener*>::Iterator iterator;
-
 		struct LWrap {
 			Listener* value;
 			Listener* operator->() { return value; }
 			void del() { delete value; value = nullptr; }
 		};
 
-		String        _name;
-		Sender*       _sender;
-		List<LWrap>*  _listener;
+		Sender       *_sender;
+		List<LWrap>  *_listener;
 
-		friend class  quark::Event<SendData, Sender>;
 		friend class  OnShellListener;
 		friend class  OnceShellListener;
 	};
@@ -585,7 +559,7 @@ namespace quark {
 		inline void add_event_listener(const Name& name,
 									void (Scope::*listener)(Event&),
 									Scope* scope) {
-			auto del = get_noticer2(name);
+			auto del = get_noticer_no_null(name);
 			del->on(listener, scope);
 			trigger_listener_change(name, del->count(), 1);
 		}
@@ -594,7 +568,7 @@ namespace quark {
 		inline void add_event_listener_once(const Name& name,
 										void (Scope::*listener)(Event&),
 										Scope* scope) {
-			auto del = get_noticer2(name);
+			auto del = get_noticer_no_null(name);
 			del->once(listener, scope);
 			trigger_listener_change(name, del->count(), 1);
 		}
@@ -603,7 +577,7 @@ namespace quark {
 		inline void add_event_listener(const Name& name,
 									void (*listener)(Event&, Data*),
 									Data* data = nullptr) {
-			auto del = get_noticer2(name);
+			auto del = get_noticer_no_null(name);
 			del->once(listener, data);
 			trigger_listener_change(name, del->count(), 1);
 		}
@@ -612,25 +586,25 @@ namespace quark {
 		inline void add_event_listener_once(const Name& name,
 										void (*listener)(Event&, Data*),
 										Data* data = nullptr) {
-			auto del = get_noticer2(name);
+			auto del = get_noticer_no_null(name);
 			del->once(listener, data);
 			trigger_listener_change(name, del->count(), 1);
 		}
 		
 		inline void add_event_listener( const Name& name, ListenerFunc listener, int id = 0) {
-			auto del = get_noticer2(name);
+			auto del = get_noticer_no_null(name);
 			del->on(listener, id);
 			trigger_listener_change(name, del->count(), 1);
 		}
 		
 		inline void add_event_listener_once( const Name& name, ListenerFunc listener, int id = 0) {
-			auto del = get_noticer2(name);
+			auto del = get_noticer_no_null(name);
 			del->once(listener, id);
 			trigger_listener_change(name, del->count(), 1);
 		}
 		
 		inline void add_event_listener(const Name& name, Noticer* shell) {
-			auto del = get_noticer2(name);
+			auto del = get_noticer_no_null(name);
 			del->on(shell);
 			trigger_listener_change(name, del->count(), 1);
 		}
@@ -639,7 +613,7 @@ namespace quark {
 		* 添加一个侦听器,只侦听一次,后被卸载
 		*/
 		inline void add_event_listener_once(const Name& name, Noticer* shell) {
-			auto del = get_noticer2(name);
+			auto del = get_noticer_no_null(name);
 			del->once(shell);
 			trigger_listener_change(name, del->count(), 1);
 		}
@@ -732,7 +706,6 @@ namespace quark {
 		}
 		
 	protected:
-		
 		/**
 		* 卸载指定事件名称上的全部侦听函数
 		*/
@@ -743,7 +716,7 @@ namespace quark {
 				trigger_listener_change(name, del->count(), -1);
 			}
 		}
-		
+
 		/**
 		* 卸载全部侦听函数
 		*/
@@ -755,7 +728,7 @@ namespace quark {
 				}
 			}
 		}
-		
+
 		/**
 		* 触发事件
 		* @arg name {const Key&}
@@ -765,7 +738,7 @@ namespace quark {
 			auto del = get_noticer(name);
 			if (del) del->trigger();
 		}
-		
+
 		/*
 		* 触发事件
 		* @arg name {const Key&}
@@ -775,7 +748,7 @@ namespace quark {
 			auto del = get_noticer(name);
 			if (del) del->trigger(data);
 		}
-		
+
 		/*
 		* 触发事件
 		* @arg name {const Key&}
@@ -787,17 +760,17 @@ namespace quark {
 		}
 
 	private:
-
 		typedef Dict<Name, Noticer*> Noticers;
 
-		Noticer* get_noticer2(const Name& name) {
-			if (_noticers == nullptr)
+		Noticer* get_noticer_no_null(const Name& name) {
+			if (_noticers == nullptr) {
 				_noticers = new Noticers();
+			}
 			auto it = _noticers->find(name);
 			if (it != _noticers->end()) {
 				return it->value;
 			} else {
-				return _noticers->set(name, new Noticer(name.to_string(), static_cast<typename Noticer::Sender*>(this)));
+				return _noticers->set(name, new Noticer(static_cast<typename Noticer::Sender*>(this)));
 			}
 		}
 

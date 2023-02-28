@@ -174,42 +174,6 @@ namespace quark {
 
 	void GLCanvas::setBlendMode(BlendMode blendMode) {
 
-    // /** [0, 0] */
-    // CLEAR       (0),
-    // /** [Sa, Sc] */
-    // SRC         (1),
-    // /** [Da, Dc] */
-    // DST         (2),
-    // /** [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] */
-    // SRC_OVER    (3),
-    // /** [Sa + (1 - Sa)*Da, Rc = Dc + (1 - Da)*Sc] */
-    // DST_OVER    (4),
-    // /** [Sa * Da, Sc * Da] */
-    // SRC_IN      (5),
-    // /** [Sa * Da, Sa * Dc] */
-    // DST_IN      (6),
-    // /** [Sa * (1 - Da), Sc * (1 - Da)] */
-    // SRC_OUT     (7),
-    // /** [Da * (1 - Sa), Dc * (1 - Sa)] */
-    // DST_OUT     (8),
-    // /** [Da, Sc * Da + (1 - Sa) * Dc] */
-    // SRC_ATOP    (9),
-    // /** [Sa, Sa * Dc + Sc * (1 - Da)] */
-    // DST_ATOP    (10),
-    // /** [Sa + Da - 2 * Sa * Da, Sc * (1 - Da) + (1 - Sa) * Dc] */
-    // XOR         (11),
-    // /** [Sa + Da - Sa*Da, Sc*(1 - Da) + Dc*(1 - Sa) + min(Sc, Dc)] */
-    // DARKEN      (12),
-    // /** [Sa + Da - Sa*Da, Sc*(1 - Da) + Dc*(1 - Sa) + max(Sc, Dc)] */
-    // LIGHTEN     (13),
-    // /** [Sa * Da, Sc * Dc] */
-    // MULTIPLY    (14),
-    // /** [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] */
-    // SCREEN      (15),
-    // /** Saturate(S + D) */
-    // ADD         (16),
-    // OVERLAY     (17);
-
 		switch (blendMode) {
 			case kClear_BlendMode:         //!< r = 0
 				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
@@ -221,14 +185,14 @@ namespace quark {
 				glBlendFunc(GL_ZERO, GL_ONE);
 				break;
 			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-				//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				/** [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] */
+				// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 			case kDstOver_BlendMode:       //!< r = (1-da)*s + d
-				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
-				//glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-				//glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+				/** [Sa + (1 - Sa)*Da, Rc = Dc + (1 - Da)*Sc] */
+				// glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
+				glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
 				break;
 			case kSrcIn_BlendMode:         //!< r = da*s
 				glBlendFunc(GL_DST_ALPHA, GL_ZERO);

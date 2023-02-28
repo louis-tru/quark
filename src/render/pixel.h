@@ -48,20 +48,56 @@ namespace quark {
 	enum ColorType {
 		kColor_Type_Invalid, //!< Invalid 
 		kColor_Type_Alpha_8, //!< Alpha 8 bit
+		kColor_Type_Gray_8 = kColor_Type_Alpha_8,
+		kColor_Type_Luminance_8 = kColor_Type_Alpha_8,
 		kColor_Type_RGB_565,
 		kColor_Type_ARGB_4444,
 		kColor_Type_RGBA_8888,
 		kColor_Type_RGB_888X,
-		kColor_Type_BGRA_8888,
+		kColor_Type_BGRA_8888, //
 		kColor_Type_RGBA_1010102,
 		kColor_Type_BGRA_1010102,
 		kColor_Type_RGB_101010X,
 		kColor_Type_BGR_101010X,
-		kColor_Type_Gray_8,
 		kColor_Type_RGB_888,
 		kColor_Type_RGBA_5551,
 		kColor_Type_Luminance_Alpha_88,
 		kColor_Type_SDF_Float, // signed distance function
+		// Compressed package for pvrtc
+		kColor_Type_PVRTCI_2BPP_RGB,
+		kColor_Type_PVRTCI_2BPP_RGBA,
+		kColor_Type_PVRTCI_4BPP_RGB,
+		kColor_Type_PVRTCI_4BPP_RGBA,
+		kColor_Type_PVRTCII_2BPP,
+		kColor_Type_PVRTCII_4BPP,
+		kColor_Type_ETC1,
+		kColor_Type_DXT1,
+		kColor_Type_DXT2,
+		kColor_Type_DXT3,
+		kColor_Type_DXT4,
+		kColor_Type_DXT5,
+		kColor_Type_BC1 = kColor_Type_DXT1,
+		kColor_Type_BC2 = kColor_Type_DXT3,
+		kColor_Type_BC3 = kColor_Type_DXT5,
+		kColor_Type_BC4,
+		kColor_Type_BC5,
+		kColor_Type_BC6,
+		kColor_Type_BC7,
+		kColor_Type_UYVY,
+		kColor_Type_YUY2,
+		kColor_Type_YUV420P,
+		kColor_Type_YUV420SP,
+		kColor_Type_YUV411P,
+		kColor_Type_YUV411SP,
+		kColor_Type_BW1BPP,
+		kColor_Type_SharedExponentR9G9B9E5,
+		kColor_Type_RGBG8888,
+		kColor_Type_GRGB8888,
+		kColor_Type_ETC2_RGB,
+		kColor_Type_ETC2_RGBA,
+		kColor_Type_ETC2_RGB_A1,
+		kColor_Type_EAC_R11,
+		kColor_Type_EAC_RG11,
 	};
 
 	enum AlphaType {
@@ -98,7 +134,7 @@ namespace quark {
 		 *
 		 * @func decode()
 		 */
-		static Pixel decode(cBuffer& raw);
+		static Array<Pixel> decode(cBuffer& raw);
 
 		Pixel();
 		Pixel(cPixel& data);

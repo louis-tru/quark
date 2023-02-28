@@ -33,126 +33,43 @@
 
 #include "quark/util/handle.h"
 #include "quark/util/array.h"
-
 #include "../pixel.h"
 
 namespace quark {
 
-	/**
-	 * @class ImageCodec
-	 */
-	class Qk_EXPORT ImageCodec: public Object {
-	public:
-		
-		enum ImageFormat {
-			Unknown = 0,
-			TGA,
-			JPEG,
-			GIF,
-			PNG,
-			WEBP,
-			PVRTC,
-		};
-		
-		/**
-		 * @func image_format 通过路径获取图片类型
-		 */
-		static ImageFormat image_format(cString& path);
-		
-		/**
-		 * @func create # 通过格式创建图像解析器
-		 */
-		static Sp<ImageCodec> Make(ImageFormat format);
-
-		/**
-		 * @func test
-		 * 只解码头信息,返回除主体数据以外的描述数据 width、height、format、
-		 * 如果当前只需要知道图像的附加信息可调用该函数,
-		 * 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
-		 */
-		virtual bool test(cBuffer& data, Pixel* out) = 0;
-
-		/**
-		 * 解码图像为GPU可读取的格式如:RGBA8888/RGBA4444/ETC1/ETC2_RGB/ETC2_RGBA...,并返回mipmap列表
-		 * @func decode
-		 * @arg data {cBuffer&}
-		 * @ret {Array<Pixel>}
-		 */
-		virtual Array<Pixel> decode(cBuffer& data) = 0;
-		
-		/**
-		 * @func encode 编码图像数据
-		 */
-		virtual Buffer encode(cPixel& data) = 0;
-
+	enum ImageFormat {
+		kUnknown_ImageFormat,
+		kJPEG_ImageFormat,
+		kGIF_ImageFormat,
+		kPNG_ImageFormat,
+		kWEBP_ImageFormat,
+		kTGA_ImageFormat,
+		kPVRTC_ImageFormat,
 	};
 
 	/**
-	 * @class TGAImageCodec
+	 * @func test
+	 * 只解码头信息,返回除主体数据以外的描述数据 width、height、format、
+	 * 如果当前只需要知道图像的附加信息可调用该函数,
+	 * 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
 	 */
-	class Qk_EXPORT TGAImageCodec: public ImageCodec {
-	public:
-		virtual bool test(cBuffer& data, Pixel* out);
-		virtual Array<Pixel> decode(cBuffer& data);
-		virtual Buffer encode(cPixel& data);
-		friend class _Inl; class _Inl;
-	};
+	Qk_EXPORT bool img_test(cBuffer& data, PixelInfo* out, ImageFormat fmt = kUnknown_ImageFormat);
 
 	/**
-	 * @class JPEGImageCodec
+	 * 解码图像为GPU可读取的格式如:RGBA8888/RGBA4444/ETC1/ETC2_RGB/ETC2_RGBA...,并返回mipmap列表
+	 * @func decode
+	 * @arg data {cBuffer&}
+	 * @ret {Array<Pixel>}
 	 */
-	class Qk_EXPORT JPEGImageCodec: public ImageCodec {
-	public:
-		virtual bool test(cBuffer& data, Pixel* out);
-		virtual Array<Pixel> decode(cBuffer& data);
-		virtual Buffer encode(cPixel& data);
-	};
+	Qk_EXPORT bool img_decode(cBuffer& data, Array<Pixel> *out, ImageFormat fmt = kUnknown_ImageFormat);
 
 	/**
-	 * @class GIFImageCodec
+	 * @func image_format 通过路径获取图片类型
 	 */
-	class Qk_EXPORT GIFImageCodec: public ImageCodec {
-	public:
-		virtual bool test(cBuffer& data, Pixel* out);
-		virtual Array<Pixel> decode(cBuffer& data);
-		virtual Buffer encode(cPixel& data);
-	};
+	Qk_EXPORT ImageFormat img_format_from(cString& path);
 
-	/**
-	 * @class PNGImageParser
-	 */
-	class Qk_EXPORT PNGImageCodec: public ImageCodec {
-	public:
-		virtual bool test(cBuffer& data, Pixel* out);
-		virtual Array<Pixel> decode(cBuffer& data);
-		virtual Buffer encode(cPixel& data);
-	};
-
-	/**
-	 * @class WEBPImageCodec
-	 */
-	class Qk_EXPORT WEBPImageCodec: public ImageCodec {
-	public:
-		virtual bool test(cBuffer& data, Pixel* out);
-		virtual Array<Pixel> decode(cBuffer& data);
-		virtual Buffer encode(cPixel& data);
-	};
-
-	/**
-	 * 原生GPU压缩图像容器格式,无需解码GPU可直接读取
-	 * 格式可包含 :
-	 * PVRTCI_4BPP_RGB/PVRTCI_4BPP_RGBA/PVRTCI_2BPP_RGB/PVRTCI_2BPP_RGBA/PVRTCII_4BPP/PVRTCII_2BPP
-	 * DXT1/DXT2/DXT3/DXT4/DXT5/ETC1/ETC2_RGB/ETC2_RGBA/ETC2_RGB_A1/ETC2/EAC_R11/EAC_RG11
-	 * BC4/BC5/UYVY/YUY2/RGBG8888/GRGB8888/BW1BPP...
-	 * @class PVRTImageParser
-	 */
-	class Qk_EXPORT PVRTCImageCodec: public ImageCodec {
-	public:
-		virtual bool test(cBuffer& data, Pixel* out);
-		virtual Array<Pixel> decode(cBuffer& data);
-		virtual Buffer encode(cPixel& data);
-		Qk_DEFINE_INLINE_CLASS(_Inl);
-	};
+	// encode to tga data
+	Qk_EXPORT Buffer img_tga_encode(cPixel& pixel);
 
 }
 #endif

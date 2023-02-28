@@ -32,42 +32,165 @@
 #include "./source.h"
 #include "../pre_render.h"
 #include "../util/fs.h"
+#include "./codec/codec.h"
+
 
 
 namespace quark {
 
 	// -------------------- I m a g e . S o u r c e --------------------
 
-	ImageSource::ImageSource(cString& uri)
-		: Qk_Init_Event(State)
+	ImageSource::ImageSource(cString& uri): Qk_Init_Event(State)
 		, _uri(fs_reader()->format(uri))
 		, _state(STATE_NONE)
-		, _load_id(0), _size(0), _used(0)
+		, _load_id(0), _size(0)
 		, _inl(nullptr)
-	{
+	{}
+
+	ImageSource::~ImageSource() {
+		if (_inl) {
+			// TODO ..
+			// sk_I(_inl)->unref();
+			_inl = nullptr;
+			_state = STATE_NONE;
+			_size = 0;
+		}
+		unload();
 	}
 
 	/**
-		* @func ready() async ready
+		* @func load() async load image source
+		*/
+	bool ImageSource::load() {
+		if (_state & STATE_LOAD_COMPLETE) {
+			return true;
+		}
+		if (_state & STATE_LOADING) {
+			return false;
+		}
+
+		RunLoop::first()->post(Cb([this](auto e) {
+			_Load();
+		}, this));
+
+		return false;
+	}
+
+	/**
+		* @func ready() async ready decode
 		*/
 	bool ImageSource::ready() {
-		_used++;
 		if (is_ready()) {
 			return true;
 		}
 		if (_state & STATE_DECODEING) {
 			return false;
 		}
-		_state = State(_state | STATE_DECODEING);
-		
-		if (_state & STATE_LOAD_COMPLETE) {
-			RunLoop::first()->post(Cb([this](Cb::Data& e){
-				Qk_Trigger(State, _state);
+
+		RunLoop::first()->post(Cb([this](Cb::Data& e) {
+			if (_state & STATE_DECODEING)
+				return;
+			_state = State(_state | STATE_DECODEING);
+			Qk_Trigger(State, _state);
+
+			if (_state & STATE_LOAD_COMPLETE) {
 				_Decode();
-			}, this));
-		} else { // load and decode
-			load();
+			} else { // load and decode
+				_Load();
+			}
+		}, this));
+
+		return false;
+	}
+
+	void ImageSource::_Load() {
+		if (_state & STATE_LOADING)
+			return;
+
+		_state = State(_state | STATE_LOADING);
+		Qk_Trigger(State, _state); // trigger
+
+		_load_id = fs_reader()->read_file(_uri, Cb([this](Cb::Data& e){ // read data
+			if (_state & STATE_LOADING) {
+				_state = State((_state | STATE_LOAD_COMPLETE) & ~STATE_LOADING);
+				_loaded = *static_cast<Buffer*>(e.data);
+				_size = _loaded.length();
+
+				PixelInfo info;
+				if (img_test(_loaded, &info)) {
+					_width = info.width();
+					_height = info.height();
+					_type = ColorType(info.type());
+
+					Qk_Trigger(State, _state);
+
+					if (_state & STATE_DECODEING) { // decode
+						_Decode();
+					}
+				} else {
+					_state = State(_state | STATE_DECODE_ERROR);
+
+					Qk_Trigger(State, _state);
+				}
+			}
+		}, this));
+	}
+
+	void ImageSource::_Decode() {
+		Qk_ASSERT(_state & STATE_LOAD_COMPLETE);
+		// Qk_ASSERT(_inl);
+		// decode image
+
+		RunLoop::first()->work(Cb([this](Cb::Data& e) {
+				Array<Pixel> pixel;
+				if (img_decode(_loaded, &pixel)) {
+				}
+		}), Cb([this](Cb::Data& e) {
+			if (_state & STATE_DECODEING) {
+				if (ctx->img) { // decode image complete
+					_size += Pixel::bytes_per_pixel(_type) * _width * _height;
+					_state = State((_state | STATE_DECODE_COMPLETE) & ~STATE_DECODEING);
+				} else { // decode fail
+					_state = State((_state | STATE_DECODE_ERROR)    & ~STATE_DECODEING);
+				}
+				Qk_Trigger(State, _state);
+			}
+			delete ctx;
+		}, this));
+	}
+
+	/**
+		* @func unload() delete load and ready
+		*/
+	void ImageSource::unload() {
+		if (_inl) {
+			if (_memPixel.body().is_null()) { // no mem pixel
+				// TODO ..
+				// sk_I(_inl)->unref();
+				_inl = nullptr;
+				_state = State( _state & ~(STATE_LOADING | STATE_LOAD_COMPLETE | STATE_DECODEING | STATE_DECODE_COMPLETE) );
+				_loaded.clear(); // clear raw data
+				_size = 0;
+				if (_load_id) { // cancel load and ready
+					fs_reader()->abort(_load_id);
+					_load_id = 0;
+				}
+				// trigger event
+				RunLoop::first()->post(Cb([this](Cb::Data& e){
+					Qk_Trigger(State, _state);
+				}, this));
+			}
 		}
+	}
+
+	/**
+		* 
+		* mark as gpu texture
+		*
+		* @func mark_as_texture()
+		*/
+	bool ImageSource::mark_as_texture() {
+		// TODO ...
 		return false;
 	}
 
@@ -181,6 +304,5 @@ namespace quark {
 			}
 		}
 	}
-
 
 }

@@ -33,29 +33,24 @@
 
 namespace quark {
 
-	bool WEBPImageCodec::test(cBuffer& data, Pixel* out) {
+	bool img_jpeg_test(cBuffer& data, PixelInfo *out) {
 		int width = 0, height = 0;
 		int ok = WebPGetInfo((uint8_t*)data.val(), data.length(), &width, &height);
 		if ( ok == VP8_STATUS_OK ) {
-			*out = Pixel( Buffer(), width, height, kColor_Type_RGBA_8888, false);
+			*out = PixelInfo( width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul);
 			return true;
 		}
 		return false;
 	}
 
-	Array<Pixel> WEBPImageCodec::decode(cBuffer& data) {
-		Array<Pixel> rv;
+	bool img_png_decode(cBuffer& data, Array<Pixel> *rv) {
 		int width, height;
 		uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.val(), data.length(), &width, &height);
 		if (buff) {
-			Buffer bf = Buffer::from((char*)buff, width * height * 4);
-			rv.push( Pixel( bf, width, height, kColor_Type_RGBA_8888, false) );
+			auto bf = Buffer::from((char*)buff, width * height * 4);
+			rv->push( Pixel( PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul), bf) );
 		}
-		return rv;
-	}
-
-	Buffer WEBPImageCodec::encode(const Pixel& pixel_data) {
-		return Buffer();
+		return true;
 	}
 
 }

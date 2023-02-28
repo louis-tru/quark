@@ -38,7 +38,6 @@
 #include "../util/loop.h"
 
 namespace quark {
-
 	class Application;
 
 	/**
@@ -47,22 +46,21 @@ namespace quark {
 	class Qk_EXPORT ImageSource: public Reference {
 		Qk_HIDDEN_ALL_COPY(ImageSource);
 	public:
-
 		enum State: int {
 			STATE_NONE = 0,
 			STATE_LOADING = (1 << 0),
 			STATE_LOAD_ERROR = (1 << 1),
 			STATE_LOAD_COMPLETE = (1 << 2),
-			STATE_DECODEING = (1 << 3),
+			STATE_DECODEING = (1 << 3), //!< ready decodeing
 			STATE_DECODE_ERROR = (1 << 4),
 			STATE_DECODE_COMPLETE = (1 << 5),
 		};
-		
+
 		/**
 		 * @event onState
 		 */
 		Qk_Event(State, Event<ImageSource, State>);
-		
+
 		// Defines props
 		Qk_DEFINE_PROP_GET(String, uri);
 		Qk_DEFINE_PROP_GET(State, state);
@@ -124,11 +122,10 @@ namespace quark {
 
 	private:
 		void _Decode();
+		void _Load();
 		Pixel _memPixel;
 		Buffer   _loaded;
-		uint32_t _load_id, _size, _used;
-		void *_inl;
-		Qk_DEFINE_INLINE_CLASS(Inl);
+		uint32_t _load_id, _size;
 	};
 
 
@@ -171,7 +168,7 @@ namespace quark {
 		
 	private:
 		struct Member {
-			uint32_t size;
+			uint32_t            size;
 			Handle<ImageSource> source;
 		};
 		Dict<uint64_t, Member> _sources;
