@@ -59,7 +59,7 @@
 #define Qk_ENABLE_CLIP 1
 #define Qk_USE_PATH_DRAW 0
 
-namespace quark {
+namespace qk {
 
 	// --------------- S k i a . R e n d e r ---------------
 

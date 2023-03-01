@@ -31,7 +31,7 @@
 #include "./gradient.h"
 #include "./paint.h"
 
-namespace quark {
+namespace qk {
 
 	GradientPaint* GradientPaint::Linear(Array<Color4f>&& colors, Array<float> &&pos, Vec2 start, Vec2 end) {
 		auto g = new GradientPaint();

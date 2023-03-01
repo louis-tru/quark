@@ -35,7 +35,7 @@
 #include "../../util/dict.h"
 #include "../../types.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT FontStyle {
 	public:

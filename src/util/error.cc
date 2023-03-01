@@ -32,7 +32,7 @@
 #include "./util.h"
 //#include <algorithm>
 
-namespace quark {
+namespace qk {
 
 	String string_format(cChar* f, va_list arg);
 

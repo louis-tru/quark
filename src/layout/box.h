@@ -34,7 +34,7 @@
 #include "./view.h"
 #include "../effect.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 		* @class Box

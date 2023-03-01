@@ -39,7 +39,7 @@
 # define Qk_MEDIA_DYNAMIC
 #endif
 
-namespace quark {
+namespace qk {
 
 	enum PlayerStatus {
 		PLAYER_STATUS_STOP = 0,

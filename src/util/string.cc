@@ -32,7 +32,7 @@
 #include "./codec.h"
 #include "./handle.h"
 
-namespace quark {
+namespace qk {
 
 	cChar _Str::ws[8] = {
 		0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20, /*0xA0,*/ 0x0
@@ -297,20 +297,20 @@ namespace quark {
 
 	void* _Str::format(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg) {
 		char* str;
-		int len_ = quark::vasprintf(&str, f, arg);
+		int len_ = qk::vasprintf(&str, f, arg);
 
 		if (size_of == 1) {
 			size->len = len_;
 			size->capacity = len_ + 1;
 		}
 		else if (size_of == 2) {
-			auto b = Codec::decode_to_uint16(kUTF8_Encoding, Buffer::from(str, len_));
+			auto b = codec_decode_to_uint16(kUTF8_Encoding, Buffer::from(str, len_));
 			size->len = b.length();
 			size->capacity = b.length() + 1;
 			str = (char*)b.collapse();
 		}
 		else if (size_of == 4) {
-			auto b = Codec::decode_to_uint32(kUTF8_Encoding, Buffer::from(str, len_));
+			auto b = codec_decode_to_uint32(kUTF8_Encoding, Buffer::from(str, len_));
 			size->len = b.length();
 			size->capacity = b.length() + 1;
 			str = (char*)b.collapse();
@@ -404,9 +404,9 @@ namespace quark {
 		if (size_of == 1) { // char
 			return String((const char*)ptr, len);
 		} else if (size_of == 2) { // uint16_t
-			return Codec::encode(kUTF8_Encoding, ArrayWeak<uint16_t>((const uint16_t*)ptr, len));
+			return codec_encode(kUTF8_Encoding, ArrayWeak<uint16_t>((const uint16_t*)ptr, len));
 		} else if (size_of == 4) { // uint32_t
-			return Codec::encode(kUTF8_Encoding, ArrayWeak<uint32_t>((const uint32_t*)ptr, len));
+			return codec_encode(kUTF8_Encoding, ArrayWeak<uint32_t>((const uint32_t*)ptr, len));
 		} else {
 			Qk_FATAL("I won't support it, to_string");
 			return String();

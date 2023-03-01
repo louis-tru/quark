@@ -38,7 +38,7 @@
  * @ns quark
  */
 
-namespace quark {
+namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(Application, Inl) {
 	public:

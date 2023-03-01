@@ -34,7 +34,7 @@
 #include "./ct_util.h"
 #include <dlfcn.h>
 
-using namespace quark;
+using namespace qk;
 
 static constexpr CGBitmapInfo kBitmapInfoRGB = ((CGBitmapInfo)kCGImageAlphaNoneSkipFirst |
                                                 kCGBitmapByteOrder32Host);

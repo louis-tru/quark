@@ -33,7 +33,7 @@
 
 #include "./typeface.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT FontGlyphs {
 	public:

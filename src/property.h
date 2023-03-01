@@ -34,7 +34,7 @@
 #include "./util/util.h"
 #include "./util/dict.h"
 
-namespace quark {
+namespace qk {
 
 	class View;
 

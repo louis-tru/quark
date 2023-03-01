@@ -32,7 +32,7 @@
 #include <zlib.h>
 #include <map>
 
-using namespace quark;
+using namespace qk;
 
 void test_zlib (int argc, char **argv) {
 	

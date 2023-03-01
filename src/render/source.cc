@@ -36,7 +36,7 @@
 
 
 
-namespace quark {
+namespace qk {
 
 	// -------------------- I m a g e . S o u r c e --------------------
 

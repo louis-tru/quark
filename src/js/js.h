@@ -41,13 +41,13 @@
 
 // ------------- js common macro -------------
 
-#define JS_BEGIN         namespace quark { namespace js {
+#define JS_BEGIN         namespace qk { namespace js {
 #define JS_END           } }
 #define JS_WORKER(...)   auto worker = Worker::worker(__VA_ARGS__)
 #define JS_RETURN(rev)   return worker->result(args, (rev))
 #define JS_RETURN_NULL() return worker->result(args, worker->NewNull())
-#define JS_UNPACK(type)  auto wrap = quark::js::WrapObject::unpack<type>(args.This())
-#define JS_SELF(type)    auto self = quark::js::WrapObject::unpack<type>(args.This())->self()
+#define JS_UNPACK(type)  auto wrap = qk::js::WrapObject::unpack<type>(args.This())
+#define JS_SELF(type)    auto self = qk::js::WrapObject::unpack<type>(args.This())->self()
 #define JS_HANDLE_SCOPE() HandleScope scope(worker)
 #define JS_CALLBACK_SCOPE() CallbackScope cscope(worker)
 
@@ -60,7 +60,7 @@
 #define JS_REG_MODULE(name, cls) \
 	Qk_INIT_BLOCK(JS_REG_MODULE_##name) { \
 		Qk_DEBUG("%s", "JS_REG_MODULE "#name""); \
-		quark::js::Worker::registerModule(#name, cls::binding, __FILE__); \
+		qk::js::Worker::registerModule(#name, cls::binding, __FILE__); \
 	}
 
 #define JS_TYPEID(t) (typeid(t).hash_code())
@@ -101,15 +101,15 @@
 #define JS_SET_ACCESSOR(name, get, ...)    exports->SetAccessor(worker, #name, get, ##__VA_ARGS__)
 #define JS_SET_PROPERTY(name, value)       exports->SetProperty(worker, #name, value)
 
-namespace quark {
+namespace qk {
 	class HttpError;
 }
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
-namespace quark {
+namespace qk {
 namespace js {
 
 class ValueProgram;

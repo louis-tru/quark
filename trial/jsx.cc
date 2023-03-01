@@ -33,7 +33,7 @@
 #include "quark/util/fs.h"
 #include "quark/util/codec.h"
 
-namespace quark {
+namespace qk {
 
 	#ifdef CHECK
 	# undef CHECK

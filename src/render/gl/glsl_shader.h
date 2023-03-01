@@ -50,7 +50,7 @@
 
 #include "../gradient.h"
 
-namespace quark {
+namespace qk {
 
 	class GLSLShader: public Object {
 	public:

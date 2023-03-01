@@ -40,10 +40,10 @@
 
 #define Qk_Main() \
 	int __f_main__(int, Char**); \
-	Qk_INIT_BLOCK(__f_main__) { quark::Application::setMain(&__f_main__); } \
+	Qk_INIT_BLOCK(__f_main__) { qk::Application::setMain(&__f_main__); } \
 	int __f_main__(int argc, Char** argv)
 
-namespace quark {
+namespace qk {
 
 	class Display;
 	class PreRender;

@@ -35,7 +35,7 @@ extern "C" {
 # include <jpeglib.h>
 }
 
-namespace quark {
+namespace qk {
 
 	struct JPEGClientData {
 		jmp_buf jmpbuf;

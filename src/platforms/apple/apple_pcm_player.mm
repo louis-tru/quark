@@ -33,7 +33,7 @@
 #import "quark/util/loop.h"
 #import <AudioToolbox/AudioToolbox.h>
 
-namespace quark {
+namespace qk {
 
 	#define QUEUE_BUFFER_COUNT 3
 	#define WAIT_WRITE_BUFFER_COUNT 3

@@ -31,7 +31,7 @@
 #include "quark/util/http.h"
 #include "quark/os/os.h"
 
-using namespace quark;
+using namespace qk;
 
 void test_http_cookie(int argc, char **argv) {
 	

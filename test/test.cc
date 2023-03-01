@@ -37,7 +37,7 @@
 #define TEST_FUNC_NAME test_layout
 #endif
 
-using namespace quark;
+using namespace qk;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 

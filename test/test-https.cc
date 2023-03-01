@@ -33,7 +33,7 @@
 #include <quark/util/string.h>
 #include <quark/util/fs.h>
 
-using namespace quark;
+using namespace qk;
 
 void test_https(int argc, char **argv) {
 	

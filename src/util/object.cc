@@ -32,7 +32,7 @@
 #include "./array.h"
 #include <math.h>
 
-namespace quark {
+namespace qk {
 
 	void* MemoryAllocator::alloc(uint32_t size) {
 		return ::malloc(size);

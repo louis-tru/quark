@@ -33,7 +33,7 @@
 #include "../pre_render.h"
 #include "../app.h"
 
-namespace quark {
+namespace qk {
 
 	void Label::set_text_value(String val) {
 		if (_text_value != val) {

@@ -32,7 +32,7 @@
 #include "quark/util/codec.h"
 #include "trial/jsx.h"
 
-using namespace quark;
+using namespace qk;
 
 #define DEBUG_JSA 0
 #define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/quark_ace/ace/Makefile.dryice.js"

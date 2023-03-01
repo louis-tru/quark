@@ -34,7 +34,7 @@
 #include "./error.h"
 #include "./log.h"
 
-namespace quark {
+namespace qk {
 
 	typedef rapidjson::CrtAllocator MemoryPoolAllocator;
 	typedef       rapidjson::GenericValue<rapidjson::UTF8<>, MemoryPoolAllocator> RValue;

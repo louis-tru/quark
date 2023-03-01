@@ -36,7 +36,7 @@
 #include "../text_lines.h"
 #include "../text_opts.h"
 
-namespace quark {
+namespace qk {
 
 	float Box::solve_layout_content_width(Size &parent_layout_size) {
 		float ps = parent_layout_size.content_size.x();

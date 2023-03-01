@@ -33,7 +33,7 @@
 #include <sys/utsname.h>
 #include "../fs.h"
 
-namespace quark {
+namespace qk {
 
 	String fs_executable() {
 		static cString path([]() -> String { 

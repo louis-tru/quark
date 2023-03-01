@@ -38,7 +38,7 @@
 #include "./metrics.h"
 #include "../source.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT Typeface: public Reference {
 		Qk_HIDDEN_ALL_COPY(Typeface);

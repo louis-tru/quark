@@ -39,7 +39,7 @@
 #include <http_parser.h>
 #include <zlib.h>
 
-namespace quark {
+namespace qk {
 
 	typedef HttpClientRequest::Delegate HttpDelegate;
 
@@ -378,7 +378,7 @@ namespace quark {
 				
 				if ( !_client->_username.is_empty() && !_client->_password.is_empty() ) {
 					String s = _client->_username + ':' + _client->_password;
-					header["Authorization"] = Codec::encode(kBase64_Encoding, s);
+					header["Authorization"] = codec_encode(kBase64_Encoding, s);
 				}
 				
 				if ( !_client->_disable_cookie && !_client->_disable_send_cookie ) { // send cookies

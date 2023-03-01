@@ -35,7 +35,7 @@
 #include "../text_opts.h"
 #include "../text_lines.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT TextLayout: public Box, public TextOptions {
 		Qk_Define_View(TextLayout);

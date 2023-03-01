@@ -33,7 +33,7 @@
 #include "./uv.h"
 #include <list>
 
-namespace quark {
+namespace qk {
 
 #if Qk_WIN
 	const uint32_t fs_default_mode = 0;

@@ -22,9 +22,9 @@
 #include <skia/core/SkMaskFilter.h>
 #include <skia/effects/SkDashPathEffect.h>
 
-using namespace quark;
+using namespace qk;
 
-namespace quark {
+namespace qk {
 	SkImage* CastSkImage(ImageSource* img);
 }
 

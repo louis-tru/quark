@@ -30,7 +30,7 @@
 
 #include "./codec.h"
 
-namespace quark {
+namespace qk {
 
 	struct TGAHeader {
 		#pragma pack(push,1)

@@ -32,7 +32,7 @@
 #include "./layout/layout.h"
 #include "./render/font/pool.h"
 
-namespace quark {
+namespace qk {
 
 	TextOptions::TextOptions()
 		: _text_weight(TextWeight::INHERIT)

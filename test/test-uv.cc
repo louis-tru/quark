@@ -33,7 +33,7 @@
 #include "quark/util/loop.h"
 #include <uv.h>
 
-using namespace quark;
+using namespace qk;
 
 static uv_loop_t* uv_loop = nullptr;
 

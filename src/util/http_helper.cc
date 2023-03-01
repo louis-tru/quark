@@ -34,7 +34,7 @@
 #include "./uv.h"
 #include "./working.h"
 
-namespace quark {
+namespace qk {
 
 	typedef Dict<String, String> Map;
 

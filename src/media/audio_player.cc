@@ -32,7 +32,7 @@
 #include "../errno.h"
 #include "../util/fs.h"
 
-namespace quark {
+namespace qk {
 
 	AudioPlayer::AudioPlayer(Application* host)
 		: _host(host ? host: app())
@@ -261,7 +261,7 @@ namespace quark {
 		_task_id = _keep->host()->work(Cb([=](Cb::Data& d) {
 			if (_source != src) return; // 源已被更改,所以取消
 			
-			MediaCodec* audio = MediaCodec::create(MEDIA_TYPE_AUDIO, _source);
+			MediaCodec* audio = Mediacodec_create(MEDIA_TYPE_AUDIO, _source);
 			PCMPlayer* pcm = _pcm;
 			
 			if ( audio && !_pcm ) {

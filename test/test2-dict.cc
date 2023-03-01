@@ -3,7 +3,7 @@
 #include "quark/util/dict.h"
 #include "quark/util/string.h"
 
-using namespace quark;
+using namespace qk;
 
 // thanks to Substitution failure is not an erro (SFINAE)
 template<typename T>

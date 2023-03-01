@@ -33,7 +33,7 @@
 #include "../pre_render.h"
 #include "../app.h"
 
-namespace quark {
+namespace qk {
 
 	void TextLayout::set_text_align(TextAlign value) {
 		if(_text_align != value) {

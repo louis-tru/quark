@@ -30,7 +30,7 @@
 
 #include "./codec.h"
 
-namespace quark {
+namespace qk {
 
 	static const uint32_t PVR2TEXTURE_FLAG_TYPE_MASK = 0xff;
 	static const uint64_t PVR3TEXTURE_PFHIGH_MASK = 0xffffffff00000000ULL;

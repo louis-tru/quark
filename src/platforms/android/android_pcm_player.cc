@@ -39,7 +39,7 @@
 #define USE_ANDROID_OPENSLES_PCM_PLAYER 0
 #endif
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @func get_channel_mask

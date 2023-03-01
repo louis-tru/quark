@@ -67,7 +67,7 @@
 	String str = string_format(format, __arg); \
 	va_end(__arg)
 
-namespace quark {
+namespace qk {
 
 	String string_format(cChar* f, va_list arg);
 

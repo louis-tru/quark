@@ -33,7 +33,7 @@
 #include <string.h>
 #include <math.h>
 
-namespace quark {
+namespace qk {
 
 	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, A, APPEND_ZERO) \
 		\

@@ -34,23 +34,23 @@
 #include "../bezier.h"
 #include <math.h>
 
-namespace quark {
+namespace qk {
 
-	Path Path::Oval(const quark::Rect& r) {
+	Path Path::Oval(const qk::Rect& r) {
 		Path path;
 		path.oval_to(r);
 		path.close();
 		return std::move(path);
 	}
 
-	Path Path::Arc(const quark::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
+	Path Path::Arc(const qk::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
 		Path path;
 		path.arc_to(r, startAngle, sweepAngle, useCenter);
 		path.close();
 		return std::move(path);
 	}
 
-	Path Path::Rect(const quark::Rect& r) {
+	Path Path::Rect(const qk::Rect& r) {
 		Path path;
 		path.rect_to(r);
 		path.close();
@@ -105,7 +105,7 @@ namespace quark {
 
 	constexpr float magicCircle = 0.551915024494f; // 0.552284749831f
 
-	void Path::oval_to(const quark::Rect& r) {
+	void Path::oval_to(const qk::Rect& r) {
 		float w = r.size.x(), h = r.size.y();
 		float x = r.origin.x(), y = r.origin.y();
 		float x2 = x + w / 2, y2 = y + h / 2;
@@ -118,7 +118,7 @@ namespace quark {
 		float d[] = {x, y2 - cy, x2 - cx, y, x2, y}; cubic_to2(d); // left,top
 	}
 
-	void Path::rect_to(const quark::Rect& r) {
+	void Path::rect_to(const qk::Rect& r) {
 		move_to(r.origin);
 		float x2 = r.origin.x() + r.size.x();
 		float y2 = r.origin.y() + r.size.y();
@@ -128,7 +128,7 @@ namespace quark {
 		line_to(r.origin); // origin point
 	}
 
-	void Path::arc_to(const quark::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
+	void Path::arc_to(const qk::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
 
 		float rx = r.size.x() / 2.0f;
 		float ry = r.size.y() / 2.0f;

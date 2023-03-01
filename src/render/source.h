@@ -37,7 +37,7 @@
 #include "./pixel.h"
 #include "../util/loop.h"
 
-namespace quark {
+namespace qk {
 	class Application;
 
 	/**

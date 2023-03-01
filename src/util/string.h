@@ -36,7 +36,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-namespace quark {
+namespace qk {
 
 	typedef        char                  Char;
 	typedef        ArrayString<uint16_t> String2;
@@ -189,7 +189,7 @@ namespace quark {
 
 // -------------------------------------- IMPL --------------------------------------
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT _Str {
 	public:
@@ -473,7 +473,7 @@ namespace quark {
 
 	template <typename T, typename A>
 	uint64_t ArrayString<T, A>::hash_code() const {
-		return quark::hash_code(c_str(), length() * sizeof(T));
+		return qk::hash_code(c_str(), length() * sizeof(T));
 	}
 
 	template <typename T, typename A>
@@ -740,8 +740,8 @@ namespace quark {
 
 namespace std {
 	template<typename T, typename A>
-	struct hash<quark::ArrayString<T, A>> {
-		size_t operator()(const quark::ArrayString<T, A>& val) const {
+	struct hash<qk::ArrayString<T, A>> {
+		size_t operator()(const qk::ArrayString<T, A>& val) const {
 			return val.hash_code();
 		}
 	};

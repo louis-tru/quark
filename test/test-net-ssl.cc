@@ -31,7 +31,7 @@
 #include "quark/util/net.h"
 #include <uv.h>
 
-using namespace quark;
+using namespace qk;
 
 class MySSLSocket: public SSLSocket, public Socket::Delegate {
  public:

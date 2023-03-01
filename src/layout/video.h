@@ -36,13 +36,13 @@
 #include "../media/media_codec.h"
 #include "../media/pcm.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT Video: public Image,
 												public PreRender::Task, public MultimediaSource::Delegate {
 		Qk_Define_View(Video);
 	public:
-		typedef MediaCodec::OutputBuffer OutputBuffer;
+		typedef Mediacodec_OutputBuffer OutputBuffer;
 		typedef MultimediaSource::TrackInfo TrackInfo;
 		typedef PreRender::Task::ID TaskID;
 

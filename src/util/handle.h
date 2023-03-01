@@ -34,7 +34,7 @@
 #include "./object.h"
 #include <functional>
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class Handle

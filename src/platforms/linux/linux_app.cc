@@ -45,7 +45,7 @@
 #include <unistd.h>
 #include <alsa/asoundlib.h>
 
-namespace quark {
+namespace qk {
 
 	class UnixApplication;
 	static UnixApplication* application = nullptr;
@@ -575,7 +575,7 @@ namespace quark {
 		void destroy() {
 			if (!is_exited()) {
 				_render_looper->stop();
-				quark::safeExit(0);
+				qk::safeExit(0);
 			}
 			XDestroyWindow(_dpy, _win); _win = 0;
 			XCloseDisplay(_dpy); _dpy = nullptr; // disconnect x display
@@ -814,7 +814,7 @@ namespace quark {
 
 }
 
-using namespace quark;
+using namespace qk;
 
 extern "C" Qk_EXPORT int main(int argc, Char* argv[]) {
 	Handle<UnixApplication> h = new UnixApplication();

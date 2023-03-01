@@ -33,7 +33,7 @@
 #import "../../event.h"
 #import "../../app.inl"
 
-using namespace quark;
+using namespace qk;
 
 @interface IOSTextPosition: UITextPosition
 	@property (assign, nonatomic) NSUInteger value;

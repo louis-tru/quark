@@ -44,7 +44,7 @@
 #define Qk_USE_DEFAULT_THREAD_RENDER 1
 #endif
 
-namespace quark {
+namespace qk {
 	class Application;
 
 	/**

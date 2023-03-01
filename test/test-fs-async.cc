@@ -31,7 +31,7 @@
 #include "quark/util/util.h"
 #include "quark/util/fs.h"
 
-using namespace quark;
+using namespace qk;
 
 class AsyncFileRead: public File, public File::Delegate {
  public:

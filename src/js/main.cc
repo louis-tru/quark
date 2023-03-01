@@ -31,14 +31,14 @@
 #include "./js.h"
 #include "../app.h"
 
-using namespace quark::js;
+using namespace qk::js;
 
 Qk_UI_MAIN() {
 	return Start(argc, argv);
 }
 
 #if Qk_ANDROID
-class App: public quark::Application {
+class App: public qk::Application {
 	public: static void run(int argc, Char *argv[]) {
 		runMain(argc, argv);
 	}

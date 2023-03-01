@@ -35,7 +35,7 @@
 #include "quark/util/array.h"
 #include "../pixel.h"
 
-namespace quark {
+namespace qk {
 
 	enum ImageFormat {
 		kUnknown_ImageFormat,

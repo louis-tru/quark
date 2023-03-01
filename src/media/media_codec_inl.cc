@@ -34,7 +34,7 @@
 #include "../errno.h"
 #include "../util/fs.h"
 
-namespace quark {
+namespace qk {
 
 	#define CACHE_DATA_TIME_SECOND 10
 

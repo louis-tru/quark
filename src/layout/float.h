@@ -33,7 +33,7 @@
 
 #include "./box.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT FloatLayout: public Box {
 		Qk_Define_View(FloatLayout);

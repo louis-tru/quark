@@ -37,12 +37,12 @@
 #include "../../views2/limit.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN
 
-using namespace quark;
+using namespace qk;
 
 static cString load("Load");
 static cString unload("Unload");

@@ -38,7 +38,7 @@
 #include "./cb.h"
 #include "./loop.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	 * @class UVRequestWrap

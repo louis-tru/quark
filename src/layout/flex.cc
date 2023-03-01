@@ -30,7 +30,7 @@
 
 #include "./flex.h"
 
-namespace quark {
+namespace qk {
 
 	float parse_align_space(ItemsAlign align, bool is_reverse, float overflow, int count, float *space_out) {
 		float offset_x = 0, space = 0;

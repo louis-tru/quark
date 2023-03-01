@@ -35,7 +35,7 @@
 #include <condition_variable>
 #include <functional>
 
-using namespace quark;
+using namespace qk;
 
 class Foo {
  public:

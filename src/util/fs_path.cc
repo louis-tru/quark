@@ -38,7 +38,7 @@
 	#include <unistd.h>
 #endif
 
-namespace quark {
+namespace qk {
 
 	String string_format(cChar* f, va_list arg);
 

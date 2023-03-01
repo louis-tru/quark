@@ -30,7 +30,7 @@
 
 #include "./canvas.h"
 
-namespace quark {
+namespace qk {
 
 	void Canvas::drawColor(const Color4f& color, BlendMode mode) {
 		Paint paint { .color = color };

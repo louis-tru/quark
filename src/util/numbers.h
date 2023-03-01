@@ -33,7 +33,7 @@
 
 #include "./object.h"
 
-namespace quark {
+namespace qk {
 
 	template <typename T> class Number: public Object {
 	public:

@@ -32,7 +32,7 @@
 #include "../app.h"
 #include <math.h>
 
-namespace quark {
+namespace qk {
 
 	static inline uint32_t integerExp(uint32_t n) {
 		return (uint32_t) powf(2, floor(log2(n)));

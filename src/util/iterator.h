@@ -31,7 +31,7 @@
 #ifndef __quark__util__iterator__
 #define __quark__util__iterator__
 
-namespace quark {
+namespace qk {
 
 	template <typename T, typename T2>
 	class SimpleIterator {

@@ -34,7 +34,7 @@
 #include "../util/util.h"
 #include "../util/array.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class PCMPlayer

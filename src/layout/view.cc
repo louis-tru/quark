@@ -35,7 +35,7 @@
 #include "./root.h"
 #include <math.h>
 
-namespace quark {
+namespace qk {
 
 	// --------------- L a y o u t  V i e w ---------------
 

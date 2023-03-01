@@ -33,7 +33,7 @@
 #include "skia/core/SkImage.h"
 
 
-namespace quark {
+namespace qk {
 
 	#define sk_I(img) static_cast<SkImage*>(img)
 

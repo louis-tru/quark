@@ -252,7 +252,7 @@
 #endif
 
 #if DEBUG || Qk_STRICT_ASSERT
-# define Qk_ASSERT(cond, ...) if(!(cond)) quark::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+# define Qk_ASSERT(cond, ...) if(!(cond)) qk::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #else
 # define Qk_ASSERT(cond, ...) ((void)0)
 #endif
@@ -263,10 +263,10 @@
 		return reinterpret_cast<cls::Inl*>(self); \
 	} class cls::Inl: public cls
 
-#define Qk_LOG(msg, ...)      quark::console::log(msg, ##__VA_ARGS__)
-#define Qk_WARN(msg, ...)     quark::console::warn(msg, ##__VA_ARGS__)
-#define Qk_ERR(msg, ...)      quark::console::error(msg, ##__VA_ARGS__)
-#define Qk_FATAL(...)         quark::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#define Qk_LOG(msg, ...)      qk::console::log(msg, ##__VA_ARGS__)
+#define Qk_WARN(msg, ...)     qk::console::warn(msg, ##__VA_ARGS__)
+#define Qk_ERR(msg, ...)      qk::console::error(msg, ##__VA_ARGS__)
+#define Qk_FATAL(...)         qk::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #define Qk_UNIMPLEMENTED(...)    Qk_FATAL("Unimplemented code, %s", ##__VA_ARGS__)
 #define Qk_UNREACHABLE(...)      Qk_FATAL("Unreachable code, %s", ##__VA_ARGS__)
 #define Qk_MIN(A, B)          ((A) < (B) ? (A) : (B))

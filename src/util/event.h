@@ -38,8 +38,8 @@
 #include <functional>
 
 #define Qk_Event(name, ...) \
-	public: inline quark::EventNoticer<__VA_ARGS__>& on##name () { return _on##name; } \
-	private:quark::EventNoticer<__VA_ARGS__> _on##name; public:
+	public: inline qk::EventNoticer<__VA_ARGS__>& on##name () { return _on##name; } \
+	private:qk::EventNoticer<__VA_ARGS__> _on##name; public:
 
 #define Qk_Init_Event(name)   _on##name(this)
 #define Qk_On(name, ...)      on##name().on( __VA_ARGS__ )
@@ -47,7 +47,7 @@
 #define Qk_Off(name, ...)     on##name().off( __VA_ARGS__ )
 #define Qk_Trigger(name, ...) on##name().trigger( __VA_ARGS__ )
 
-namespace quark {
+namespace qk {
 
 	template<class Sender = Object, class SendData = Object, class Origin = Object, typename RC = int> class Event;
 	template<class Event = Event<>> class EventNoticer;

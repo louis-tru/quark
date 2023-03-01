@@ -33,7 +33,7 @@
 
 #include "./flex.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT FlowLayout: public FlexLayout {
 		Qk_Define_View(FlowLayout);

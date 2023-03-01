@@ -33,7 +33,7 @@
 #include <quark/util/event.h>
 #include <map>
 
-using namespace quark;
+using namespace qk;
 
 void test_json(int argc, char **argv) {
 	

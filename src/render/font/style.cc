@@ -30,7 +30,7 @@
 
 #include "./style.h"
 
-namespace quark {
+namespace qk {
 
 	template<> uint64_t Compare<FontStyle>::hash_code(const FontStyle& key) {
 		return key.value();

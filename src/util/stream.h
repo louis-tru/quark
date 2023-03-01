@@ -33,7 +33,7 @@
 
 #include "./array.h"
 
-namespace quark {
+namespace qk {
 
 	class Stream {
 	public:

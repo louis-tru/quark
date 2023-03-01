@@ -30,7 +30,7 @@
 
 #include "./gl_canvas.h"
 
-namespace quark {
+namespace qk {
 
 	GLCanvas::GLCanvas()
 		: _blendMode(kClear_BlendMode)

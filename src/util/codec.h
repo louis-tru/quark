@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__util__codec__
-#define __quark__util__codec__
+#ifndef __quark_util_codec__
+#define __quark_util_codec__
 
 #include "./util.h"
 #include "./array.h"
 
-namespace quark {
+namespace qk {
 
 	enum Encoding {
 		kInvalid_Encoding,
@@ -48,41 +48,23 @@ namespace quark {
 		kUCS4_Encoding,
 	};
 
-	class Qk_EXPORT Codec {
-	public:
-		
-		/**
-		* @func parse_encoding
-		*/
-		static Encoding parse_encoding(cString& en);
-		
-		/**
-		* @func encoding_string
-		*/
-		static String encoding_string(Encoding en);
-
-		/**
-		 * @func decode_utf8_to_unichar(str, out)
-		*/
-		static uint32_t decode_utf8_to_unichar(const uint8_t* str, uint32_t* out);
-		
-		// encoding
-		static Buffer encode(Encoding target_en, const ArrayBuffer<char>& source);
-		static Buffer encode(Encoding target_en, const ArrayString<char>& source);
-		static Buffer encode(Encoding target_en, const ArrayBuffer<uint16_t>& source);
-		static Buffer encode(Encoding target_en, const ArrayString<uint16_t>& source);
-		static Buffer encode(Encoding target_en, const ArrayBuffer<uint32_t>& source);
-		static Buffer encode(Encoding target_en, const ArrayString<uint32_t>& source);
-		// decoding
-		static ArrayBuffer<char>     decode_to_buffer(Encoding source_en, const ArrayBuffer<char>& source);
-		static ArrayBuffer<char>     decode_to_buffer(Encoding source_en, const ArrayString<char>& source);
-		static ArrayBuffer<uint16_t> decode_to_uint16(Encoding source_en, const ArrayBuffer<char>& source);
-		static ArrayBuffer<uint16_t> decode_to_uint16(Encoding source_en, const ArrayString<char>& source);
-		static ArrayBuffer<uint32_t> decode_to_uint32(Encoding source_en, const ArrayBuffer<char>& source);
-		static ArrayBuffer<uint32_t> decode_to_uint32(Encoding source_en, const ArrayString<char>& source);
-	};
-
-	typedef Codec Coder;
+	Qk_EXPORT Encoding codec_parse_encoding(cString& en);
+	Qk_EXPORT String   codec_encoding_string(Encoding en);
+	Qk_EXPORT uint32_t codec_decode_utf8_to_unichar(const uint8_t *str, uint32_t *out);
+	// encode
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayBuffer<char>& source);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayString<char>& source);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayBuffer<uint16_t>& source);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayString<uint16_t>& source);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayBuffer<uint32_t>& source);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayString<uint32_t>& source);
+	// decode
+	Qk_EXPORT ArrayBuffer<char>     codec_decode_to_buffer(Encoding source_en, const ArrayBuffer<char>& source);
+	Qk_EXPORT ArrayBuffer<char>     codec_decode_to_buffer(Encoding source_en, const ArrayString<char>& source);
+	Qk_EXPORT ArrayBuffer<uint16_t> codec_decode_to_uint16(Encoding source_en, const ArrayBuffer<char>& source);
+	Qk_EXPORT ArrayBuffer<uint16_t> codec_decode_to_uint16(Encoding source_en, const ArrayString<char>& source);
+	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_to_uint32(Encoding source_en, const ArrayBuffer<char>& source);
+	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_to_uint32(Encoding source_en, const ArrayString<char>& source);
 
 }
 #endif

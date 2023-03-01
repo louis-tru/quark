@@ -54,12 +54,12 @@ if (ex) { \
 }}while(0
 namespace v8 {
 	JSGlobalContextRef javascriptcore_context(v8::Isolate* isolate);
-	struct JSCStringTraits: public quark::NonObjectTraits {
+	struct JSCStringTraits: public qk::NonObjectTraits {
 		inline static void Release(JSStringRef str) {
 			if ( str ) JSStringRelease(str);
 		}
 	};
-	typedef quark::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
+	typedef qk::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
 }
 #endif
 
@@ -336,7 +336,7 @@ class WorkerIMPL: public IMPL {
 	void uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
 		if ( !TriggerUncaughtException(Cast(error)) ) {
 			print_exception(message, error);
-			quark::exit(ERR_UNCAUGHT_EXCEPTION);
+			qk::exit(ERR_UNCAUGHT_EXCEPTION);
 		}
 	}
 
@@ -349,7 +349,7 @@ class WorkerIMPL: public IMPL {
 			v8::HandleScope scope(isolate_);
 			v8::Local<v8::Message> message = v8::Exception::CreateMessage(isolate_, reason);
 			print_exception(message, reason);
-			quark::exit(ERR_UNHANDLED_REJECTION);
+			qk::exit(ERR_UNHANDLED_REJECTION);
 		}
 	}
 

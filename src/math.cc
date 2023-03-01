@@ -37,7 +37,7 @@
 
 #include "./util/array.cc"
 
-namespace quark {
+namespace qk {
 
 	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Vec2);
 

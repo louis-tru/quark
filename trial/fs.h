@@ -37,7 +37,7 @@
  * @ns quark
  */
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class FileSearch # Resources files search

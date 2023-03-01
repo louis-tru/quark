@@ -34,7 +34,7 @@
 #include "../keyboard.h"
 #include "../types.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class TextInput protocol

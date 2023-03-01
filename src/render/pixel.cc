@@ -31,7 +31,7 @@
 #include "./pixel.h"
 #include "./codec/codec.h"
 
-namespace quark {
+namespace qk {
 
 	PixelInfo::PixelInfo(): _width(0), _height(0), _type(kColor_Type_Invalid), _alphaType(kAlphaType_Unknown) {
 	}

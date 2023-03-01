@@ -37,7 +37,7 @@
 #include "./gradient.h"
 #include "./blend.h"
 
-namespace quark {
+namespace qk {
 
 	struct Paint {
 

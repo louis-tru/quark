@@ -38,7 +38,7 @@
 #include "../text_input.h"
 #include "../pre_render.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT Input: public Box, public TextOptions, public PreRender::Task, public TextInput {
 		Qk_Define_View(Input);

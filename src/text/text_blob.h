@@ -37,7 +37,7 @@
 #include "./text_lines.h"
 #include "./text_opts.h"
 
-namespace quark {
+namespace qk {
 
 	// @dev text layout 
 

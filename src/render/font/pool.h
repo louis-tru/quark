@@ -35,7 +35,7 @@
 #include "../../util/array.h"
 #include "./familys.h"
 
-namespace quark {
+namespace qk {
 
 	class Application;
 

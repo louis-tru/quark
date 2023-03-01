@@ -45,7 +45,7 @@ template <typename T> static inline void CFSafeRelease(T obj) {
 	}
 }
 
-namespace quark {
+namespace qk {
 
 	MetalRender::MetalRender(Application* host, bool raster)
 		: Render(host)

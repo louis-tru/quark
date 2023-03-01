@@ -31,7 +31,7 @@
 #include <quark/util/util.h>
 #include <quark/util/string.h>
 
-using namespace quark;
+using namespace qk;
 
 void test_util(int argc, char **argv) {
 	int64_t i = parse_time("    Sat, 27 Oct 2018 11:32:18 GMT     ");

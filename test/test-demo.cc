@@ -30,7 +30,7 @@
 
 #include "quark/js/quark.h"
 
-using namespace quark;
+using namespace qk;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0

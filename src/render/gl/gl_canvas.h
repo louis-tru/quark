@@ -35,7 +35,7 @@
 #include "../canvas.h"
 #include "./glsl_shader.h"
 
-namespace quark {
+namespace qk {
 
 	class GLCanvas: public Canvas {
 	public:

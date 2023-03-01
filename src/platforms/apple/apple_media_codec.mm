@@ -32,7 +32,7 @@
 #import <VideoToolbox/VideoToolbox.h>
 #import <AudioToolbox/AudioToolbox.h>
 
-namespace quark {
+namespace qk {
 
 	#define OUTPUT_BUFFER_NUM 12
 
@@ -111,7 +111,7 @@ namespace quark {
 			// init CMFormatDescriptionRef
 			Buffer psp, pps;
 			
-			if ( MediaCodec::parse_avc_psp_pps(WeakBuffer(track.extradata), psp, pps) ) {
+			if ( Mediacodec_parse_avc_psp_pps(WeakBuffer(track.extradata), psp, pps) ) {
 				uint8_t*  param[2] = { (uint8_t*)(*psp + 4), (uint8_t*)(*pps + 4) };
 				size_t size[2]  = { psp.length() - 4, pps.length() - 4 };
 				status = CMVideoFormatDescriptionCreateFromH264ParameterSets(NULL, 2,
@@ -205,7 +205,7 @@ namespace quark {
 			];
 			
 			VTDecompressionOutputCallbackRecord cb = {
-				(VTDecompressionOutputCallback)&AppleVideoCodec::decompress_frame_cb,
+				(VTDecompressionOutputCallback)&AppleVideocodec_decompress_frame_cb,
 				this,
 			};
 			status = VTDecompressionSessionCreate(NULL, _format_desc, NULL, attrs, &cb, &_session);
@@ -274,7 +274,7 @@ namespace quark {
 			}
 			
 			WeakBuffer data = _extractor->sample_data();
-			MediaCodec::convert_sample_data_to_mp4_style(data);
+			Mediacodec_convert_sample_data_to_mp4_style(data);
 			
 			status = CMBlockBufferCreateWithMemoryBlock(nullptr,
 																									(uint8_t*)*data,
@@ -458,7 +458,7 @@ namespace quark {
 	/**
 	* @func hardware
 	*/
-	MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
+	MediaCodec* Mediacodec_hardware(MediaType type, MultimediaSource* source) {
 		Extractor* ex = source->extractor(type);
 		if ( ex ) {
 			if (type == MEDIA_TYPE_AUDIO) {

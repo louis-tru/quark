@@ -34,7 +34,7 @@
 #include "./math.h"
 #include "./util/array.h"
 
-namespace quark {
+namespace qk {
 
 	// Bezier curve formula of order N
 	// F(t) = E(i=0,n) P_i(1-t)^(n-i)t^i, t<-|0,1|

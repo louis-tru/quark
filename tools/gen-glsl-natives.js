@@ -298,7 +298,7 @@ function main() {
 	write(hpp,
 		'#ifndef __shader_natives_' + now,
 		'#define __shader_natives_' + now,
-		'namespace quark {',
+		'namespace qk {',
 		'namespace shader {',
 		'#pragma pack(push,4)',
 	);
@@ -306,7 +306,7 @@ function main() {
 	write(cpp,
 		`#include "./${path.basename(output_h)}"`,
 		'#include "quark/gl/gl.h"',
-		'namespace quark {',
+		'namespace qk {',
 		'namespace shader {',
 	);
 
@@ -349,7 +349,7 @@ function main() {
 	var name = path.basename(output_cc).replace(/[\.-]/gm, '_');
 	write(cpp, `FX_INIT_BLOCK(${name}) {`);
 	names.forEach(e=>{
-		write(cpp, `  GLDraw::register_gl_shader((quark::GLShader*)(&${e}));`)
+		write(cpp, `  GLDraw::register_gl_shader((qk::GLShader*)(&${e}));`)
 	});
 	write(cpp, '}');
 	write(cpp, '}', '}');

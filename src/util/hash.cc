@@ -30,7 +30,7 @@
 
 #include "./hash.h"
 
-namespace quark {
+namespace qk {
 
 	static cChar* I64BIT_TABLE =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";

@@ -38,14 +38,14 @@
 	#error Exceptions must be turned on
 #endif
 
-#define Qk_THROW(code, ...) throw quark::Error(code, __VA_ARGS__)
-#define Qk_CHECK(cond, ...) if(!(cond)) throw quark::Error(__VA_ARGS__)
+#define Qk_THROW(code, ...) throw qk::Error(code, __VA_ARGS__)
+#define Qk_CHECK(cond, ...) if(!(cond)) throw qk::Error(__VA_ARGS__)
 
-#define Qk_ERROR_IGNORE(block) try block catch (quark::Error& err) {    \
+#define Qk_ERROR_IGNORE(block) try block catch (qk::Error& err) {    \
 	Qk_DEBUG("%s,%s", "The exception is ignored", err.message().c_str());     \
 }((void)0)
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class Error

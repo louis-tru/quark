@@ -31,7 +31,7 @@
 #include "./text_blob.h"
 #include "./util/codec.h"
 
-namespace quark {
+namespace qk {
 
 	enum Symbol {
 		kInvalid_Symbol,
@@ -187,7 +187,7 @@ namespace quark {
 		auto each = [](Unichar &unicode, void* ctx) {
 			auto _ = (Ctx*)ctx;
 			if (_->src < _->end) {
-				_->src += Codec::decode_utf8_to_unichar(reinterpret_cast<const uint8_t*>(_->src), &unicode);
+				_->src += codec_decode_utf8_to_unichar(reinterpret_cast<const uint8_t*>(_->src), &unicode);
 				return true;
 			}
 			return false;
@@ -255,7 +255,7 @@ namespace quark {
 					Qk_LOG("====== %s", "\\n");
 				} else {
 					auto weak = ArrayWeak<Unichar>(*lines[i], lines[i].length());
-					auto buf = Codec::encode(Encoding::kUTF8_Encoding, weak);
+					auto buf = codec_encode(Encoding::kUTF8_Encoding, weak);
 					Qk_LOG("====== %s", *buf);
 				}
 #endif

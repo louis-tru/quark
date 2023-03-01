@@ -33,7 +33,7 @@
 #include "./app.h"
 #include "./text_opts.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @func add_task

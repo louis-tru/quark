@@ -36,7 +36,7 @@
 #include "./render/render.h"
 #include <math.h>
 
-namespace quark {
+namespace qk {
 
 	bool Copying::check_loop_reference(Copying* value) {
 		if (value) {

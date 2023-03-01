@@ -33,7 +33,7 @@
 #include "../../views2/indep.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN

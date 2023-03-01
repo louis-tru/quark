@@ -34,7 +34,7 @@
 #include "../../util/handle.h"
 #include "./font.h"
 
-namespace quark {
+namespace qk {
 
 	class FontPool;
 

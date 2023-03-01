@@ -34,7 +34,7 @@
 #include "../layout/layout.h"
 #include "../render/font/familys.h"
 
-namespace quark {
+namespace qk {
 
 	class FontMetrics;
 	class TextOptions;

@@ -105,7 +105,7 @@ enum {
 
 // ------------------------------------------------------------------------------------------------
 
-namespace quark {
+namespace qk {
 
 	#if DEBUG && !USE_FFMPEG_MEDIACODEC
 
@@ -281,7 +281,7 @@ namespace quark {
 						if ( sample_size ) {
 							if ( type() == MEDIA_TYPE_VIDEO ) {
 								WeakBuffer buffer((Char*)buf, sample_size);
-								MediaCodec::convert_sample_data_to_nalu(buffer);
+								Mediacodec_convert_sample_data_to_nalu(buffer);
 							}
 							AMediaCodec_queueInputBuffer( _codec, bufidx, 0,
 																						sample_size, sample_time, sample_flags);
@@ -414,7 +414,7 @@ namespace quark {
 	/**
 	* @func hardware
 	*/
-	MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
+	MediaCodec* Mediacodec_hardware(MediaType type, MultimediaSource* source) {
 		init_ffmpeg_jni();
 		
 		AndroidHardwareMediaCodec* rv = NULL;

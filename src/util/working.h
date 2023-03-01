@@ -36,7 +36,7 @@
 #include "./loop.h"
 #include "./dict.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class ParallelWorking

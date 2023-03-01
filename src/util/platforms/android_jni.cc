@@ -36,7 +36,7 @@
 
 static JavaVM* javavm = nullptr;
 
-namespace quark {
+namespace qk {
 
 	// ------------------- JNI -------------------
 

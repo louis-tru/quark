@@ -36,11 +36,11 @@
 #include "../util/fs.h"
 #include "../errno.h"
 
-namespace quark {
+namespace qk {
 
 	typedef MultimediaSource::TrackInfo TrackInfo;
 	typedef PreRender::Task::ID TaskID;
-	typedef MediaCodec::OutputBuffer OutputBuffer;
+	typedef Mediacodec_OutputBuffer OutputBuffer;
 
 	Video::Video()
 		: _source(NULL)
@@ -382,8 +382,8 @@ namespace quark {
 		_task_id = _keep->host()->work(Cb([=](Cb::Data& d) {
 			if (_source != src) return; // 源已被更改,所以取消
 			
-			MediaCodec* audio = MediaCodec::create(MEDIA_TYPE_AUDIO, _source);
-			MediaCodec* video = MediaCodec::create(MEDIA_TYPE_VIDEO, _source);
+			MediaCodec* audio = Mediacodec_create(MEDIA_TYPE_AUDIO, _source);
+			MediaCodec* video = Mediacodec_create(MEDIA_TYPE_VIDEO, _source);
 			PCMPlayer* pcm = _pcm;
 			
 			if ( audio && !_pcm ) {

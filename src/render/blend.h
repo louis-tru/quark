@@ -32,7 +32,7 @@
 #define __quark_render_blend__
 
 
-namespace quark {
+namespace qk {
 
 	enum BlendMode {
 		kClear_BlendMode,         //!< r = 0

@@ -30,7 +30,7 @@
 
 #include "./button.h"
 
-namespace quark {
+namespace qk {
 
 	Button::Button() {
 		set_receive(true); // default enable event receive

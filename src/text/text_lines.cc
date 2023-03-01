@@ -37,7 +37,7 @@
 #include "./text_blob.h"
 #include "./render/font/familys.h"
 
-namespace quark {
+namespace qk {
 
 	TextLines::TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
 		: _pre_width(0), _trim_start(false), _host(host)

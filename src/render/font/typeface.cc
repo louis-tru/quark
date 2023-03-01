@@ -32,7 +32,7 @@
 #include "./style.h"
 #include "./pool.h"
 
-namespace quark {
+namespace qk {
 
 	Typeface::Typeface(FontStyle fs): _fontStyle(fs)
 	{

@@ -32,7 +32,7 @@
 #include <trial/fs.h>
 #include <pwd.h>
 
-using namespace quark;
+using namespace qk;
 
 void test_fs(int argc, char **argv) {
 	

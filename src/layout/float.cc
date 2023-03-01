@@ -30,7 +30,7 @@
 
 #include "./float.h"
 
-namespace quark {
+namespace qk {
 
 	bool FloatLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {

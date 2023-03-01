@@ -31,7 +31,7 @@
 #include "./codec.h"
 #include <libpng/png.h>
 
-namespace quark {
+namespace qk {
 
 	struct PngDataSource {
 		cBuffer* buff;
@@ -116,7 +116,7 @@ namespace quark {
 		return true;
 	}
 
-	bool img_jpeg_test(cBuffer& data, PixelInfo *out) {
+	bool img_png_test(cBuffer& data, PixelInfo *out) {
 		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 		
 		CPointer<png_struct> scope(png, [](png_structp png) {

@@ -32,7 +32,7 @@
 #include "./media.h"
 #include <uv.h>
 
-namespace quark {
+namespace qk {
 
 	module_info_t* module_audio_player = nullptr;
 	module_info_t* module_video = nullptr;

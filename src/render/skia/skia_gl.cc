@@ -38,7 +38,7 @@
 
 #if !Qk_APPLE || Qk_ENABLE_GL
 
-namespace quark {
+namespace qk {
 
 	uint32_t glPixelInternalFormat(ColorType type);
 

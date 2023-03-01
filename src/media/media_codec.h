@@ -39,7 +39,7 @@
 
 typedef struct AVStream AVStream;
 
-namespace quark {
+namespace qk {
 
 	enum MultimediaSourceStatus {
 		MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED = 0,

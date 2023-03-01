@@ -35,7 +35,7 @@
 #include "../render.h"
 #include "./gl_canvas.h"
 
-namespace quark {
+namespace qk {
 
 	class GLRender: public GLCanvas, public Render {
 	public:

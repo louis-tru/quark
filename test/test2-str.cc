@@ -47,7 +47,7 @@ const int* test_big_int = (const int*)test_big_char;
 const bool has_big_data = *test_big_int != 1;
 
 using namespace std;
-using namespace quark;
+using namespace qk;
 
 class Str {
 	public:

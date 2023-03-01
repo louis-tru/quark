@@ -40,7 +40,7 @@
 #include "../../render/render.h"
 #include "./apple_app.h"
 
-namespace quark {
+namespace qk {
 
 	class RenderApple {
 	public:

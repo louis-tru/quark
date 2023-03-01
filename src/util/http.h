@@ -38,7 +38,7 @@
 #include "./stream.h"
 #include "./dict.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @enum URIType

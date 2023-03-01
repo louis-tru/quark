@@ -34,7 +34,7 @@
 #include "./box.h"
 #include "../render/source.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT Image: public Box, public ImageSourceHold {
 		Qk_Define_View(Image);

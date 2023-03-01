@@ -34,7 +34,7 @@
 #include <map>
 #include <quark/util/log.h>
 
-using namespace quark;
+using namespace qk;
 
 class Test{
 	String str;

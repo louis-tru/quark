@@ -38,7 +38,7 @@
 #include "./types.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN
@@ -513,7 +513,7 @@ void Worker::throwError(cChar* errmsg, ...) {
 }
 
 bool Worker::hasView(Local<JSValue> val) {
-	return _inl->_classs->instanceof(val, quark::View::VIEW);
+	return _inl->_classs->instanceof(val, qk::View::VIEW);
 }
 
 bool Worker::hasInstance(Local<JSValue> val, uint64_t id) {

@@ -34,7 +34,7 @@
 
 #include "../../util/util.h"
 
-using namespace quark;
+using namespace qk;
 
 typedef uint8_t Qk_OT_BYTE;
 #if CHAR_BIT == 8

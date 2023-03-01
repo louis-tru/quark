@@ -33,12 +33,12 @@
 #include "../../draw.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN
 
-using namespace quark;
+using namespace qk;
 
 /**
  * @class WrapFontStatic

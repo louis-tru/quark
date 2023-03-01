@@ -33,7 +33,7 @@
 #include "quark/util/handle.h"
 #include "quark/util/error.h"
 
-namespace quark {
+namespace qk {
 
 	// FileSearch implementation
 

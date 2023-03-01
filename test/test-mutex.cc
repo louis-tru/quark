@@ -31,7 +31,7 @@
 #include <quark/util/util.h>
 #include <quark/util/loop.h>
 
-using namespace quark;
+using namespace qk;
 
 volatile bool run_flag = false;
 Mutex mtx;

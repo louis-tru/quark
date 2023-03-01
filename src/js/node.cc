@@ -39,27 +39,27 @@ namespace node {
 	NodeAPI* node_api = nullptr;
 
 	QuarkApi::~QuarkApi() {
-		quark::Release(_worker);
+		qk::Release(_worker);
 		_worker = nullptr;
 		quark_api = nullptr;
 	}
 
 	void QuarkApi::run_main_loop() {
-		quark::RunLoop::main_loop()->run();
+		qk::RunLoop::main_loop()->run();
 	}
 
 	bool QuarkApi::is_exited() {
-		return quark::is_exited();
+		return qk::is_exited();
 	}
 
 	Char* QuarkApi::encoding_to_utf8(const uint16_t * src, int length, int* out_len) {
-		auto buff = quark::Codec::encoding(quark::Encoding::UTF8, src, length);
+		auto buff = qk::codec_encoding(qk::Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();
 	}
 
 	uint16_t * QuarkApi::decoding_utf8_to_uint16(cChar* src, int length, int* out_len) {
-		auto buff = quark::Codec::decoding_to_uint16(quark::Encoding::UTF8, src, length);
+		auto buff = qk::codec_decoding_to_uint16(qk::Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();
 	}

@@ -41,7 +41,7 @@
 #define GL_ETC1_RGB8_OES  0x8D64
 #define EGL_NO_NATIVE_WINDOW 0
 
-namespace quark {
+namespace qk {
 
 	#if !Qk_ANDROID
 		extern Vec2 __get_window_size();

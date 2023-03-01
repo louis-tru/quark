@@ -36,7 +36,7 @@
 #include "./error.h"
 #include "./iterator.h"
 
-namespace quark {
+namespace qk {
 
 	class JSON;
 

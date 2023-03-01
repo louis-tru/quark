@@ -30,7 +30,7 @@
 
 #include "quark/util/storage.h"
 
-using namespace quark;
+using namespace qk;
 
 void test_localstorage(int argc, char **argv) {
 	

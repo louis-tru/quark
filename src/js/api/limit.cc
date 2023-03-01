@@ -34,7 +34,7 @@
 #include "../../views2/limit-indep.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN

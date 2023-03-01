@@ -30,9 +30,9 @@
 
 #include "./media_codec_inl.h"
 
-namespace quark {
+namespace qk {
 
-	static MediaCodec::Delegate default_media_decoder_delegate;
+	static Mediacodec_Delegate default_media_decoder_delegate;
 
 	// ------------------- MultimediaSource ------------------
 
@@ -136,7 +136,7 @@ namespace quark {
 	/**
 	* @constructor
 	*/
-	MediaCodec::MediaCodec(Extractor* extractor)
+	Mediacodec_MediaCodec(Extractor* extractor)
 		: _extractor(extractor)
 		, _delegate(&default_media_decoder_delegate)
 		, _color_format(VIDEO_COLOR_FORMAT_INVALID)
@@ -150,7 +150,7 @@ namespace quark {
 	/**
 	* @func set_delegate
 	*/
-	void MediaCodec::set_delegate(Delegate* delegate) {
+	void Mediacodec_set_delegate(Delegate* delegate) {
 		Qk_ASSERT(delegate);
 		_delegate = delegate;
 	}
@@ -185,7 +185,7 @@ namespace quark {
 	/**
 	* @func parse_psp_pps
 	* */
-	bool MediaCodec::parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps) {
+	bool Mediacodec_parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps) {
 		// set sps and pps
 		uint8_t* buf = (uint8_t*)*extradata;
 		
@@ -224,7 +224,7 @@ namespace quark {
 	/**
 	* @func convert_sample_data_to_nalu
 	* */
-	bool MediaCodec::convert_sample_data_to_nalu(Buffer& buffer) {
+	bool Mediacodec_convert_sample_data_to_nalu(Buffer& buffer) {
 		uint32_t size = buffer.length();
 		if (size) {
 			uint8_t* buf = (uint8_t*)*buffer;
@@ -248,7 +248,7 @@ namespace quark {
 	/**
 	* @func convert_sample_data_to_mp4_style
 	* */
-	bool MediaCodec::convert_sample_data_to_mp4_style(Buffer& buffer) {
+	bool Mediacodec_convert_sample_data_to_mp4_style(Buffer& buffer) {
 		uint32_t size = buffer.length();
 		if (size) {
 			uint8_t* buf = (uint8_t*)*buffer;
@@ -269,7 +269,7 @@ namespace quark {
 	/**
 	* @func create decoder
 	* */
-	MediaCodec* MediaCodec::create(MediaType type, MultimediaSource* source) {
+	MediaCodec* Mediacodec_create(MediaType type, MultimediaSource* source) {
 		MediaCodec* rv = hardware(type, source);
 		if ( ! rv ) {
 			rv = software(type, source);

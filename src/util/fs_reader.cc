@@ -36,7 +36,7 @@
 #include "./uv.h"
 #include "./dict.h"
 
-namespace quark {
+namespace qk {
 
 	String inl_format_part_path(cString& path);
 

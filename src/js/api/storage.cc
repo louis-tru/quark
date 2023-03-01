@@ -33,7 +33,7 @@
 #include "../../util/storage.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN

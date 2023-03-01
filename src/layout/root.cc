@@ -36,12 +36,12 @@
 #include "../render/render.h"
 #include "../pre_render.h"
 
-namespace quark {
+namespace qk {
 
 	void __View_set_visible(View* self, bool val, uint32_t layout_depth);
 
 	Root* Root::create() throw(Error) {
-		auto app = quark::app();
+		auto app = qk::app();
 		Qk_CHECK(app, "Before you create a root, you need to create a Application");
 		Handle<Root> r = new Root();
 		r->set_layout_depth(1);

@@ -36,7 +36,7 @@
 #include "./handle.h"
 #include <functional>
 
-namespace quark {
+namespace qk {
 
 	class PostMessage;
 

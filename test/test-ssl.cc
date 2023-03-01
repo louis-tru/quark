@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-using namespace quark;
+using namespace qk;
 
 #define error_report printf
 #define info_report printf

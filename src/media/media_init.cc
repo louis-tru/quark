@@ -32,7 +32,7 @@
 #include "./audio_player.h"
 #include "../layout/video.h"
 
-namespace quark {
+namespace qk {
 
 	Qk_INIT_BLOCK(media_init) {
 

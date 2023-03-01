@@ -30,7 +30,7 @@
 
 #include "./metal_canvas.h"
 
-namespace quark {
+namespace qk {
 
 	int  MetalCanvas::save() {
 		// TODO ...

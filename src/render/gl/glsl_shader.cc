@@ -30,7 +30,7 @@
 
 #include "./glsl_shader.h"
 
-namespace quark {
+namespace qk {
 
 	GLuint compile_shader(cChar* name, const GLchar* code, GLenum shader_type) {
 		GLuint shader_handle = glCreateShader(shader_type);

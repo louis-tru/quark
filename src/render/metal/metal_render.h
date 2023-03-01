@@ -39,7 +39,7 @@
 #include <Metal/Metal.h>
 #include <MetalKit/MTKView.h>
 
-namespace quark {
+namespace qk {
 
 	class API_AVAILABLE(ios(13.0)) MetalRender: public Render {
 	public:

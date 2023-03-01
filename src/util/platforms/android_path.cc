@@ -32,7 +32,7 @@
 #include "../fs.h"
 #include "../android-jni.h"
 
-namespace quark {
+namespace qk {
 
 	static String documents_path, temp_path, resources_path, executable_path;
 

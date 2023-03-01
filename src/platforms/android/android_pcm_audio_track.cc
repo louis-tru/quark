@@ -32,7 +32,7 @@
 #include "quark/util/handle.h"
 #include "quark/util/platform/android_jni.h"
 
-namespace quark {
+namespace qk {
 
 typedef JNI::MethodInfo MethodInfo;
 typedef JNI::ScopeENV   ScopeENV;

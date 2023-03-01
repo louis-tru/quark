@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-namespace quark {
+namespace qk {
 
 	#define DEFAULT_PCM_PERIOD_SIZE 4096
 	#define DEFAULT_PCM_PERIODS 3

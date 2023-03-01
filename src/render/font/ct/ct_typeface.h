@@ -35,7 +35,7 @@
 #include "./ct_util.h"
 #include "../typeface.h"
 
-using namespace quark;
+using namespace qk;
 
 struct OpszVariation {
 	bool isSet = false;

@@ -36,7 +36,7 @@
 #include "../util/array.h"
 #include "./paint.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT Path: public Object {
 	public:
@@ -65,9 +65,9 @@ namespace quark {
 		void line_to(Vec2 to);
 		void quad_to(Vec2 control, Vec2 to);
 		void cubic_to(Vec2 control1, Vec2 control2, Vec2 to);
-		void oval_to(const quark::Rect& rect);
-		void rect_to(const quark::Rect& rect);
-		void arc_to (const quark::Rect& rect, float startAngle, float sweepAngle, bool useCenter);
+		void oval_to(const qk::Rect& rect);
+		void rect_to(const qk::Rect& rect);
+		void arc_to (const qk::Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		void close(); // close line
 		// point ptr
 		inline const Vec2* pts() const { return (Vec2*)*_pts; }

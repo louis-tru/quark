@@ -31,9 +31,9 @@
 #include "./codec.h"
 #include <webp/decode.h>
 
-namespace quark {
+namespace qk {
 
-	bool img_jpeg_test(cBuffer& data, PixelInfo *out) {
+	bool img_webp_test(cBuffer& data, PixelInfo *out) {
 		int width = 0, height = 0;
 		int ok = WebPGetInfo((uint8_t*)data.val(), data.length(), &width, &height);
 		if ( ok == VP8_STATUS_OK ) {
@@ -43,7 +43,7 @@ namespace quark {
 		return false;
 	}
 
-	bool img_png_decode(cBuffer& data, Array<Pixel> *rv) {
+	bool img_webp_decode(cBuffer& data, Array<Pixel> *rv) {
 		int width, height;
 		uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.val(), data.length(), &width, &height);
 		if (buff) {

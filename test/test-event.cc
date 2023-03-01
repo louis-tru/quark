@@ -34,7 +34,7 @@
 #include <quark/util/string.h>
 #include <quark/util/event.h>
 
-using namespace quark;
+using namespace qk;
 
 void test_event(int argc, char **argv) {
 	

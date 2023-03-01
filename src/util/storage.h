@@ -35,7 +35,7 @@
 #include "./cb.h"
 #include "./util.h"
 
-namespace quark {
+namespace qk {
 	Qk_EXPORT String  storage_get(cString& name);
 	Qk_EXPORT void    storage_set(cString& name, cString& value);
 	Qk_EXPORT void    storage_delete(cString& name);

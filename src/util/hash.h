@@ -34,7 +34,7 @@
 #include "./object.h"
 #include "./string.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT SimpleHash: public Object {
 		uint64_t _hash;

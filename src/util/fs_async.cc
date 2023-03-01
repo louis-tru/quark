@@ -40,7 +40,7 @@
 #endif
 #include "./uv.h"
 
-namespace quark {
+namespace qk {
 
 	#define LOOP RunLoop::current()
 	#define LOOP2 RunLoop* loop = LOOP

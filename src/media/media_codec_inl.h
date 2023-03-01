@@ -40,7 +40,7 @@ extern "C" {
 #include "./media_codec.h"
 #include "../util/working.h"
 
-namespace quark {
+namespace qk {
 
 	typedef MultimediaSource::BitRateInfo BitRateInfo;
 	typedef MultimediaSource::Extractor   Extractor;

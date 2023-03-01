@@ -58,7 +58,7 @@
 
 // namespace start
 
-namespace quark {
+namespace qk {
 
 	bool RenderApple::resize(CGRect rect) {
 #if Qk_iOS

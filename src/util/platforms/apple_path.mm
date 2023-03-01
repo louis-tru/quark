@@ -36,7 +36,7 @@
 # import <AppKit/AppKit.h>
 #endif
 
-namespace quark {
+namespace qk {
 
 	String fs_executable() {
 		static cString path( fs_format([[[NSBundle mainBundle] executablePath] UTF8String]) );

@@ -40,7 +40,7 @@
 #include "../object.h"
 #include <jni.h>
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class JNI

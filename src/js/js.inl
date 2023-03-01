@@ -44,7 +44,7 @@
 	js_bind_native_event(name, Event<>, { call(worker()->New(func,1)); })
 
 /**
-* @ns quark::js
+* @ns qk::js
 */
 
 JS_BEGIN

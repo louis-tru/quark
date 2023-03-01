@@ -36,7 +36,7 @@
 #include <zlib.h>
 #include <unzip.h>
 
-namespace quark {
+namespace qk {
 
 	/*
 	 gzip是一种文件压缩工具（或该压缩工具产生的压缩文件格式），它的设计目标是处理单个

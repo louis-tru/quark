@@ -19,7 +19,7 @@
 #include <skia/core/SkPath.h>
 #include <quark/render/scaner.h>
 
-using namespace quark;
+using namespace qk;
 
 void testRenderScaner(SkCanvas* canvas) {
 	

@@ -31,7 +31,7 @@
 #include <quark/util/fs.h>
 #include <quark/util/loop.h>
 
-using namespace quark;
+using namespace qk;
 
 static String write_str;
 

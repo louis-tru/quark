@@ -36,7 +36,7 @@
 #include "quark/util/array.h"
 #include "quark/util/loop.h"
 
-using namespace quark;
+using namespace qk;
 
 static JSClassRef NativeConstructor;
 static JSObjectRef toString;
@@ -96,7 +96,7 @@ struct JSCStringTraits: public NonObjectTraits {
 	}
 };
 
-typedef quark::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
+typedef qk::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
 
 static JSValueRef ConstructorFunc(JSContextRef ctx,
 																	JSObjectRef function,

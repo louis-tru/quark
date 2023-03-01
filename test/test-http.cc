@@ -34,7 +34,7 @@
 #include <quark/util/fs.h>
 #include <quark/util/cb.h>
 
-using namespace quark;
+using namespace qk;
 
 void test_http(int argc, char **argv) {
 	Qk_LOG(http_get_sync("http://www.163.com/"));

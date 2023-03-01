@@ -48,7 +48,7 @@
 #import <sys/sysctl.h>
 #import <mach/mach.h>
 
-namespace quark {
+namespace qk {
 	namespace os {
 
 		String brand() {

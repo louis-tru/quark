@@ -32,9 +32,9 @@
 #include "../pre_render.h"
 #include "../app.h"
 
-namespace quark {
+namespace qk {
 
-	Layout::Layout(): Layout(quark::pre_render()) {
+	Layout::Layout(): Layout(qk::pre_render()) {
 	}
 
 	/**

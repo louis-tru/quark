@@ -38,7 +38,7 @@
 # define Qk_ATEXIT_WAIT_TIMEOUT 1e6
 #endif
 
-namespace quark {
+namespace qk {
 
 	// ---------------------------------------------------------
 
@@ -176,7 +176,7 @@ namespace quark {
 	 */
 	void Thread::pause(uint64_t timeoutUs) {
 		auto cur = current();
-		Qk_ASSERT(cur, "Cannot find current quark::Thread handle, use Thread::sleep()");
+		Qk_ASSERT(cur, "Cannot find current qk::Thread handle, use Thread::sleep()");
 
 		Lock lock(cur->_mutex);
 		if ( !cur->_abort ) {

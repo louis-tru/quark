@@ -37,12 +37,12 @@
 #include "../background.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN
 
-using namespace quark::value;
+using namespace qk::value;
 
 #define js_parse_value(Type, value, desc) js_parse_value2(Type, Type, value, desc)
 #define js_parse_value2(Type, Name, value, desc) \

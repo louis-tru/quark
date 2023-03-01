@@ -34,7 +34,7 @@
 #include "./layout/root.h"
 #include "./render/render.h"
 
-namespace quark {
+namespace qk {
 
 	Display::Display(Application* host)
 		: Qk_Init_Event(Change), Qk_Init_Event(Orientation)

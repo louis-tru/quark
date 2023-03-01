@@ -35,7 +35,7 @@
 #include "./error.h"
 #include "./dict.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @func compress

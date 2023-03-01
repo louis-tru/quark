@@ -35,7 +35,7 @@
 #include "../util/string.h"
 #include "../util/array.h"
 
-namespace quark {
+namespace qk {
 
 	class         PixelInfo;
 	class         Pixel;

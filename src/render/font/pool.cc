@@ -32,7 +32,7 @@
 #include "../../util/hash.h"
 #include "./pool.h"
 
-namespace quark {
+namespace qk {
 
 	// ---------------------- F o n t . P o o l --------------------------
 

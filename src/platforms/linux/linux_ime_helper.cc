@@ -35,7 +35,7 @@
 #include <X11/keysym.h>
 #include <locale.h>
 
-namespace quark {
+namespace qk {
 
 	extern void __dispatch_x11_async(cCb& cb); // sync to x11 main message loop
 

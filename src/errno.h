@@ -31,7 +31,7 @@
 #ifndef __quark_errno__
 #define __quark_errno__
 
-namespace quark {
+namespace qk {
 
 	enum {
 		ERR_MEDIA_UNKNOWN         = -20029,

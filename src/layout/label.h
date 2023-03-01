@@ -36,7 +36,7 @@
 #include "../text/text_lines.h"
 #include "../text/text_opts.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT Label: public View, public TextOptions {
 		Qk_Define_View(Label);

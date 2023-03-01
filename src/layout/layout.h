@@ -34,7 +34,7 @@
 #include "../util/object.h"
 #include "../types.h"
 
-namespace quark {
+namespace qk {
 
 	class PreRender;
 	class TextLines;

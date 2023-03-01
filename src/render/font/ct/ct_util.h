@@ -44,7 +44,7 @@
 #include "../../../util/util.h"
 #include "../util.h"
 
-using namespace quark;
+using namespace qk;
 
 enum class QkCTFontSmoothBehavior {
 	none, // SmoothFonts produces no effect.

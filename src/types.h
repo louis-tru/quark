@@ -34,7 +34,7 @@
 #include "./util/util.h"
 #include "./math.h"
 
-namespace quark {
+namespace qk {
 
 	template<typename Kind, Kind KindInit, typename Value = float>
 	struct ValueWrap {

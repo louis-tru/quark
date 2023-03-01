@@ -38,7 +38,7 @@
 #include <android/native_activity.h>
 #include <android/native_window.h>
 
-namespace quark {
+namespace qk {
 
 	class AndroidApplication;
 	static AndroidApplication* application = nullptr;

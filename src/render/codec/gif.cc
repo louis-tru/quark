@@ -31,7 +31,7 @@
 #include "./codec.h"
 #include <gif_lib.h>
 
-namespace quark {
+namespace qk {
 
 	struct GifSource {
 		cBuffer* buff;

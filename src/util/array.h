@@ -36,7 +36,7 @@
 #include <initializer_list>
 #include <vector>
 
-namespace quark {
+namespace qk {
 
 	template<typename T = char, typename A = MemoryAllocator> class Array;
 	template<typename T = char, typename A = MemoryAllocator> class ArrayBuffer;
@@ -306,7 +306,7 @@ namespace quark {
 
 }
 
-namespace quark {
+namespace qk {
 
 	// ---------------------------------- IMPL ----------------------------------
 

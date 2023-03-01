@@ -32,7 +32,7 @@
 #include "./uv.h"
 #include "./dict.h"
 
-namespace quark {
+namespace qk {
 
 	struct TaskList {
 		Mutex mutex;

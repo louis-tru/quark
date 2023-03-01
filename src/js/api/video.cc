@@ -35,7 +35,7 @@
 #include "../../media/media-codec.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN

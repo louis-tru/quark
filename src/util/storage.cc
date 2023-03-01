@@ -32,7 +32,7 @@
 #include "./fs.h"
 #include <btree.h>
 
-namespace quark {
+namespace qk {
 
 	#define _db _storage_db
 	#define assert_r(c) Qk_ASSERT(c == BP_OK)

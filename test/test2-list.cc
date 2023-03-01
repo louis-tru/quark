@@ -9,7 +9,7 @@
 #include "quark/util/list.h"
 
 using namespace std;
-using namespace quark;
+using namespace qk;
 
 class B {
 	public:

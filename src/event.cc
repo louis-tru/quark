@@ -36,7 +36,7 @@
 #include "./pre_render.h"
 #include <math.h>
 
-namespace quark {
+namespace qk {
 
 	static inline HighlightedStatus HOVER_or_NORMAL(View* view) {
 		return view->is_focus() ? HIGHLIGHTED_HOVER : HIGHLIGHTED_NORMAL;
@@ -582,7 +582,7 @@ namespace quark {
 	}
 
 	View* EventDispatch::find_receive_event_view(Vec2 pos) {
-		return _host->root() ? quark::find_receive_event_view(_host->root(), pos) : nullptr;
+		return _host->root() ? qk::find_receive_event_view(_host->root(), pos) : nullptr;
 	}
 
 	Sp<MouseEvent> EventDispatch::NewMouseEvent(View* view, float x, float y, uint32_t keycode) {

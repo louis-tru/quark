@@ -39,7 +39,7 @@
 #define Qk_PI_RATIO_180  0.017453292519943f      // PI / 180
 #define Qk_180_RATIO_PI 57.29577951308232f       // 180 / PI
 
-namespace quark {
+namespace qk {
 
 	template <typename T, int LEN> struct MVec {
 		T val[LEN];

@@ -50,7 +50,7 @@
 #include "skia/gpu/GrBackendSurface.h"
 #include "skia/gpu/GrDirectContext.h"
 
-namespace quark {
+namespace qk {
 	class BaseScroll;
 
 	/**

@@ -79,7 +79,7 @@
 	F(Seek, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_UINT64) \
 
 
-namespace quark {
+namespace qk {
 
 	class Application;
 	class View;

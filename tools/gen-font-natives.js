@@ -81,14 +81,14 @@ function main() {
 	write(h_fd, 
 		'#ifndef __quark__native__',
 		'#define __quark__native__',
-	 'namespace quark{',
+	 'namespace qk{',
 		'struct Native_font_data_ {',
 				'unsigned int count;',
 				'const unsigned char* data;',
 	 '};'
 	);
 
-	write(cc_fd, 'namespace quark{');
+	write(cc_fd, 'namespace qk{');
 	
 	var fonts = [];
 	

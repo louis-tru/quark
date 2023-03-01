@@ -41,7 +41,7 @@ typedef UIEvent AppleUIEvent;
 #import "./apple_render.h"
 #import "./ios_ime_helper.h"
 
-using namespace quark;
+using namespace qk;
 
 typedef Display::Orientation Orientation;
 typedef Display::StatusBarStyle StatusBarStyle;

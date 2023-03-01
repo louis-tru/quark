@@ -38,9 +38,9 @@
 #include <quark/util/fs.h>
 #include <quark/gl/gl.h>
 
-using namespace quark;
-using quark::value::ValueType;
-using quark::value::Value;
+using namespace qk;
+using qk::value::ValueType;
+using qk::value::Value;
 
 void onload_handle (Event<>& evt, void* user) {
 	Root* r = New<Root>();

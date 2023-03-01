@@ -34,7 +34,7 @@
 
 #include "../canvas.h"
 
-namespace quark {
+namespace qk {
 
 	class MetalCanvas: public Canvas {
 	public:

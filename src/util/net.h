@@ -36,7 +36,7 @@
 #include "./loop.h"
 #include "./stream.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @calss Socket

@@ -39,7 +39,7 @@
 #include <unistd.h>
 #endif
 
-namespace quark {
+namespace qk {
 
 	extern void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat);
 	extern int inl__file_flag_mask(int flag);
@@ -97,11 +97,11 @@ namespace quark {
 			Dirent{fs_basename(path), fs_format("%s", *path), stat.type()}
 		};
 
-		return quark::each_sync(ls, cb, internal);
+		return qk::each_sync(ls, cb, internal);
 	}
 
 	bool fs_each_sync(cString& path, Callback<Dirent> cb, bool internal) throw(Error) {
-		return quark::each_sync_1(path, cb, internal, false);
+		return qk::each_sync_1(path, cb, internal, false);
 	}
 
 	void fs_chmod_sync(cString& path, uint32_t mode) throw(Error) {

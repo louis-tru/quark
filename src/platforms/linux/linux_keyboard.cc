@@ -31,7 +31,7 @@
 #include "quark/keyboard.h"
 #include "quark/util/dict.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class UnixKeyboardAdapter

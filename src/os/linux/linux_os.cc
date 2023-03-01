@@ -35,7 +35,7 @@
 #include <quark/util/array.h>
 #include <unistd.h>
 
-namespace quark {
+namespace qk {
 	namespace os {
 
 		static struct utsname* utsn = NULL;

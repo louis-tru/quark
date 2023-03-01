@@ -33,7 +33,7 @@
 
 #include "./text.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT Button: public TextLayout {
 		Qk_Define_View(Button);

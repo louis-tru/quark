@@ -31,7 +31,7 @@
 #include "./familys.h"
 #include "./pool.h"
 
-namespace quark {
+namespace qk {
 
 	FontGlyphs::FontGlyphs(Typeface *typeface,
 		float fontSize, const GlyphID glyphs[], uint32_t count)

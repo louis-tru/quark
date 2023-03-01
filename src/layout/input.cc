@@ -35,7 +35,7 @@
 #include "./textarea.h"
 #include <math.h>
 
-namespace quark {
+namespace qk {
 
 	enum {
 		kFlag_Normal = 0,      // 正常状态未激活光标查询
@@ -485,7 +485,7 @@ namespace quark {
 					return String4();
 				}
 			}
-			return Codec::decode_to_uint32(kUTF8_Encoding, s);
+			return codec_decode_to_uint32(kUTF8_Encoding, s);
 		}
 
 		void input_insert_text(cString4& text) {
@@ -594,19 +594,19 @@ namespace quark {
 	}
 
 	String Input::text_value() const {
-		return String(Codec::encode(kUTF8_Encoding, _text_value_u4));
+		return String(codec_encode(kUTF8_Encoding, _text_value_u4));
 	}
 
 	String Input::placeholder() const {
-		return String(Codec::encode(kUTF8_Encoding, _placeholder_u4));
+		return String(codec_encode(kUTF8_Encoding, _placeholder_u4));
 	}
 
 	void Input::set_text_value(String val) {
-		set_text_value_u4(String4(Codec::decode_to_uint32(kUTF8_Encoding, val)));
+		set_text_value_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
 	}
 
 	void Input::set_placeholder(String val) {
-		set_placeholder_u4(String4(Codec::decode_to_uint32(kUTF8_Encoding, val)));
+		set_placeholder_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
 	}
 
 	bool Input::layout_reverse(uint32_t mark) {

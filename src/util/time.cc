@@ -88,7 +88,7 @@
 #include <string>
 #include "./util.h"
 
-namespace quark {
+namespace qk {
 
 	#define FALSE 0
 	#define TRUE 1

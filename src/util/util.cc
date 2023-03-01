@@ -96,7 +96,7 @@ int clock_gettime2(clockid_t id, struct timespec *tspec) {
 
 #endif
 
-namespace quark {
+namespace qk {
 
 	int random(uint32_t start, uint32_t end) {
 		static uint32_t id;

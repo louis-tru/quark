@@ -42,7 +42,7 @@
 # include <vector>
 #endif
 
-namespace quark {
+namespace qk {
 
 #define Qk_DEFAULT_ALLOCATOR() \
 	static void* operator new(std::size_t size) { return ::operator new(size); } \

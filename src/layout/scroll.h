@@ -34,7 +34,7 @@
 #include "./float.h"
 #include "../bezier.h"
 
-namespace quark {
+namespace qk {
 
 	class SkiaRender;
 

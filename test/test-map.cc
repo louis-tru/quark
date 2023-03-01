@@ -34,7 +34,7 @@
 #include <quark/util/dict.h>
 #include <map>
 
-using namespace quark;
+using namespace qk;
 
 void test_map(int argc, char **argv) {
 	

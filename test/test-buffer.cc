@@ -31,7 +31,7 @@
 #include "quark/util/util.h"
 #include "quark/util/array.h"
 
-using namespace quark;
+using namespace qk;
 
 void test_buffer(int argc, char **argv) {
 	

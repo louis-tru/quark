@@ -44,7 +44,7 @@
 Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
 Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;
 
-namespace quark {
+namespace qk {
 
 	typedef Application::Inl AppInl;
 
@@ -278,7 +278,7 @@ namespace quark {
 			Qk_DEBUG("Application::runMain() Thread::create() Exit");
 			_is_run--;
 			__run_main->next();
-			quark::exit(rc); // if sub thread end then exit
+			qk::exit(rc); // if sub thread end then exit
 		}, &arg, "runMain");
 
 		// 在调用Application::run()之前一直阻塞这个主线程

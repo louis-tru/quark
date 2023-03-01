@@ -34,7 +34,7 @@
 #include <quark/util/util.h>
 #include <quark/util/array.h>
 
-namespace quark {
+namespace qk {
 	namespace os {
 		Qk_EXPORT String version();
 		Qk_EXPORT String brand();

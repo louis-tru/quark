@@ -39,7 +39,7 @@
 #include "./font/metrics.h"
 #include "../text/text_blob.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	 * @class Canvas base abstract type, define all draw apis

@@ -36,7 +36,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-namespace quark {
+namespace qk {
 
 	typedef Socket::Delegate Delegate;
 

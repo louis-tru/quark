@@ -30,7 +30,7 @@
 
 #include "quark/media/media_codec_inl.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class UnixHardwareMediaCodec
@@ -57,7 +57,7 @@ namespace quark {
 	/**
 	* @func hardware
 	*/
-	MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
+	MediaCodec* Mediacodec_hardware(MediaType type, MultimediaSource* source) {
 		return nullptr;
 	}
 

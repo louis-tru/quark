@@ -43,7 +43,7 @@
 # include "./android/api.h"
 #endif
 
-namespace quark {
+namespace qk {
 	namespace os {
 
 		#if Qk_UNIX

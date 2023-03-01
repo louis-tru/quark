@@ -41,7 +41,7 @@ extern "C" {
 #include <quark/util/util.h>
 #include <quark/util/fs.h>
 
-using namespace quark;
+using namespace qk;
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL, *audio_dec_ctx;

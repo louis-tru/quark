@@ -34,7 +34,7 @@
 #include "../style.h"
 #include <dlfcn.h>
 
-using namespace quark;
+using namespace qk;
 
 #if (Qk_iOS && defined(__IPHONE_14_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_14_0) ||  \
 	  (Qk_OSX && defined(__MAC_11_0)    && __MAC_OS_VERSION_MIN_REQUIRED    >= __MAC_11_0)
@@ -328,6 +328,6 @@ protected:
 
 };
 
-quark::FontPool* quark::FontPool::Make(Application* host) {
+qk::FontPool* qk::FontPool::Make(Application* host) {
 	return new QkFontPool_Mac(host, nullptr);
 }

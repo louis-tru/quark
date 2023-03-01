@@ -37,7 +37,7 @@
 #include <native-ext-js.h>
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN
@@ -154,7 +154,7 @@ class NativeUtil {
 	
 	static void version(FunctionCall args) {
 		JS_WORKER(args);
-		JS_RETURN( quark::version() );
+		JS_RETURN( qk::version() );
 	}
 	
 	static void addNativeEventListener(FunctionCall args) {
@@ -258,7 +258,7 @@ class NativeUtil {
 		if (args.Length() > 0 && args[0]->IsInt32(worker)) {
 			code = args[0]->ToInt32Value(worker);
 		}
-		quark::exit(code);
+		qk::exit(code);
 	}
 
 	static void extendModuleContent(FunctionCall args) {
@@ -291,7 +291,7 @@ class NativeUtil {
 		JS_SET_METHOD(garbageCollection, garbageCollection);
 		JS_SET_METHOD(nextTick, next_tick);
 		JS_SET_METHOD(_exit, exit);
-		JS_SET_PROPERTY(platform, quark::platform());
+		JS_SET_PROPERTY(platform, qk::platform());
 
 		Local<JSArray> argv = worker->NewArray();
 		if (__fx_quark_argv) {

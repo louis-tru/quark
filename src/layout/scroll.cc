@@ -35,7 +35,7 @@
 #include "../util/numbers.h"
 #include <math.h>
 
-namespace quark {
+namespace qk {
 
 	// ------------------------ B a s e . S c r o l l --------------------------
 

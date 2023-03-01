@@ -34,7 +34,7 @@
 #include <btree.h>
 #include <vector>
 
-namespace quark {
+namespace qk {
 
 	#define _db _http_cookie_db
 	#define assert_r(c) Qk_ASSERT(c == BP_OK)

@@ -33,7 +33,7 @@
 #include <quark/util/array.h>
 #include <quark/os/os.h>
 
-using namespace quark;
+using namespace qk;
 
 #define Operation_DEF(name, symbol, T) {\
 	T a(random(0, 99999999)); \

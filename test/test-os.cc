@@ -31,7 +31,7 @@
 #include "quark/os/os.h"
 #include "quark/util/string.h"
 
-using namespace quark;
+using namespace qk;
 
 void test_os(int argc, char **argv) {
 	Qk_LOG(os::info());

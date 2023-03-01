@@ -570,7 +570,7 @@ void Typeface_Mac::onGetGlyph(GlyphID id, FontGlyphMetrics* glyph) const {
 
 	// The following produces skBounds in SkGlyph units (pixels, y down),
 	// or returns early if skBounds would be empty.
-	quark::Rect bounds;
+	qk::Rect bounds;
 
 	// Glyphs are always drawn from the horizontal origin. The caller must manually use the result
 	// of CTFontGetVerticalTranslationsForGlyphs to calculate where to draw the glyph for vertical
@@ -741,7 +741,7 @@ float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<
 	
 	Pixel pix(PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul), image);
 	
-	//auto data = ImageCodec::Make(ImageCodec::TGA)->encode(pix);
+	//auto data = Imagecodec_Make(Imagecodec_TGA)->encode(pix);
 	//auto path = fs_documents("test.tga");
 	//auto write = fs_write_file_sync(path, *data, data.size());
 	//Qk_DEBUG("#Typeface_Mac#onGetImage,write:%d,%s", write, path.c_str());

@@ -31,7 +31,7 @@
 #include "quark/util/net.h"
 #include <uv.h>
 
-using namespace quark;
+using namespace qk;
 
 void echo_ipv6(hostent* host) {
 	Qk_LOG("addrtype, IPV6, %d", host->h_addrtype);

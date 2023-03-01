@@ -30,7 +30,7 @@
 
 #include "./paint.h"
 
-namespace quark {
+namespace qk {
 
 	void Paint::setImage(ImageSource* _image, const Rect& dest, const Rect& src) {
 		type = kImage_Type;

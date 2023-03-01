@@ -40,7 +40,7 @@
 
 #import <MacTypes.h>
 
-using namespace quark;
+using namespace qk;
 
 typedef Display::Orientation Orientation;
 typedef Display::StatusBarStyle StatusBarStyle;

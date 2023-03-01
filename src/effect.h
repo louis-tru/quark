@@ -36,7 +36,7 @@
 #include "./util/handle.h"
 #include "./util/array.h"
 
-namespace quark {
+namespace qk {
 
 	class SkiaRender;
 

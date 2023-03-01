@@ -37,7 +37,7 @@
 #include "./error.h"
 #include <initializer_list>
 
-namespace quark {
+namespace qk {
 
 	template<typename T> struct Compare {
 		static uint64_t hash_code(const T& key) {

@@ -37,14 +37,14 @@
 #include "./pcm.h"
 #include "./media_codec.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT AudioPlayer: public Notification<Event<>, UIEventName>,
 															public MultimediaSource::Delegate {
 		Qk_HIDDEN_ALL_COPY(AudioPlayer);
 	public:
 		typedef MultimediaSource::TrackInfo TrackInfo;
-		typedef MediaCodec::OutputBuffer    OutputBuffer;
+		typedef Mediacodec_OutputBuffer    OutputBuffer;
 
 		static AudioPlayer* create(String src, Application* host = nullptr);
 

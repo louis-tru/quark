@@ -34,7 +34,7 @@
 #include "./layout.h"
 #include "../event.h"
 
-namespace quark {
+namespace qk {
 
 	#define Qk_Each_View(F) \
 		F(View)  F(Box) \

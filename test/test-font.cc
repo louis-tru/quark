@@ -9,7 +9,7 @@
 #include <skia/core/SkFontMgr.h>
 #include <native-font.h>
 
-using namespace quark;
+using namespace qk;
 
 void testSkFont(Application* app, SkCanvas* canvas) {
 	SkString str;

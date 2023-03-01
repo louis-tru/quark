@@ -50,7 +50,7 @@
 #include "../pixel.h"
 #include <skia/core/SkCanvas.h>
 
-namespace quark {
+namespace qk {
 
 	class SkiaCanvas: public SkCanvas {
 	public:

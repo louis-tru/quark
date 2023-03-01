@@ -30,7 +30,7 @@
 
 #include "quark/os/os.h"
 
-using namespace quark;
+using namespace qk;
 
 class TestSizeOf {
  private:

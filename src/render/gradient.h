@@ -33,7 +33,7 @@
 
 #include "../math.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT GradientPaint: public Reference {
 	public:

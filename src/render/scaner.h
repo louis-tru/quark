@@ -36,7 +36,7 @@
 #include "../types.h"
 #include "./path.h"
 
-namespace quark {
+namespace qk {
 
 	class Qk_EXPORT XLineScaner: public Object {
 		Qk_HIDDEN_ALL_COPY(XLineScaner);

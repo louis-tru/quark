@@ -37,7 +37,7 @@
 // #include "skia/private/GrMtlTypesPriv.h"
 
 #if Qk_APPLE
-namespace quark {
+namespace qk {
 
 	ViewVisitor* SkiaMetalRender::visitor() {
 		return this;

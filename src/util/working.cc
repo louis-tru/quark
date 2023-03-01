@@ -30,7 +30,7 @@
 
  #include "./working.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @constructor

@@ -36,7 +36,7 @@
 #include <quark/util/codec.h>
 
 using namespace std;
-using namespace quark;
+using namespace qk;
 
 class Str {
  private:

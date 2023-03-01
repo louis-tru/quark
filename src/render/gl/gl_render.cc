@@ -32,7 +32,7 @@
 #include "../../display.h"
 #include "./gl_render.h"
 
-namespace quark {
+namespace qk {
 
 	uint32_t glPixelInternalFormat(ColorType type) {
 		switch (type) {

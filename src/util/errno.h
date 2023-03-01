@@ -35,7 +35,7 @@
  * @ns quark
  */
 
-namespace quark {
+namespace qk {
 
 	enum {
 		ERR_UNKNOWN_ERROR         = -10000,

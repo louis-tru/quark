@@ -54,7 +54,7 @@
 @class RootViewController;
 
 @interface ApplicationDelegate: UIResponder<UIApplicationDelegate>
-	@property (assign, nonatomic, readonly) quark::Application* app;
+	@property (assign, nonatomic, readonly) qk::Application* app;
 	@property (strong, nonatomic, readonly) RootViewController* root_ctr;
 	@property (strong, nonatomic, readonly) UIWindow *window;
 @end

@@ -38,7 +38,7 @@
 #import "quark/app.h"
 #import "quark/event.h"
 
-using namespace quark;
+using namespace qk;
 
 @interface IOSIMEHelprt: UIView<UITextInput>
 	- (id)initWithApplication:(Application*)app;

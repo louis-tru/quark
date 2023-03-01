@@ -36,7 +36,7 @@
 #include <zlib.h>
 #include <uv.h>
 
-namespace quark {
+namespace qk {
 
 	// ----------------------------- URL -----------------------------
 

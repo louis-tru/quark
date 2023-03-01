@@ -30,7 +30,7 @@
 
 #include "./media_codec_inl.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class SoftwareMediaCodec
@@ -417,12 +417,12 @@ namespace quark {
 	/**
 	* @func software create software decoder
 	* */
-	MediaCodec* MediaCodec::software(MediaType type, MultimediaSource* source) {
+	MediaCodec* Mediacodec_software(MediaType type, MultimediaSource* source) {
 		SoftwareMediaCodec* rv = nullptr;
 		Extractor* ex = source->extractor(type);
 		
 		if ( ex ) {
-			AVCodecContext* codec_ctx = SoftwareMediaCodec::find_avcodec_ctx(ex);
+			AVCodecContext* codec_ctx = SoftwareMediacodec_find_avcodec_ctx(ex);
 			if (codec_ctx) {
 				rv = new SoftwareMediaCodec(ex, codec_ctx);
 			}

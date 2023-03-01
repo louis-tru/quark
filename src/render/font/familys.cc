@@ -31,7 +31,7 @@
 #include "./familys.h"
 #include "./pool.h"
 
-namespace quark {
+namespace qk {
 
 	FontFamilys::FontFamilys(FontPool* pool, Array<String>& familys)
 		: _pool(pool), _familys(std::move(familys))

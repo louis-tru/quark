@@ -32,7 +32,7 @@
 #include "quark/util/map.h"
 #include <android/keycodes.h>
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class AndroidKeyboardAdapter

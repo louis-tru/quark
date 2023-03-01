@@ -33,7 +33,7 @@
 #include "../../views2/root.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN

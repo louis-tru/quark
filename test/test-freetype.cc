@@ -56,7 +56,7 @@
 //#include "quark/root.h"
 //#include "quark/gl/gl.h"
 
-using namespace quark;
+using namespace qk;
 
 void each_fonts () {
 	

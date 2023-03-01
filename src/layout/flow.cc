@@ -30,7 +30,7 @@
 
 #include "./flow.h"
 
-namespace quark {
+namespace qk {
 
 	float parse_align_space(ItemsAlign align,  bool is_reverse, float overflow, int count, float *space_out);
 

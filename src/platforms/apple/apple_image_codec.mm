@@ -39,7 +39,7 @@
 # import <UIKit/UIKit.h>
 #endif
 
-namespace quark {
+namespace qk {
 
 	bool apple_img_decode(cBuffer& data, Array<Pixel> *out) {
 

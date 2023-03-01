@@ -33,7 +33,7 @@
 #include "../../views2/box.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN

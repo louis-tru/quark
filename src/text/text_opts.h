@@ -33,7 +33,7 @@
 
 #include "../types.h"
 
-namespace quark {
+namespace qk {
 
 	class FontStyle;
 	class FontPool;

@@ -18,9 +18,9 @@
 #include <skia/core/SkBitmap.h>
 #include <skia/core/SkPath.h>
 
-using namespace quark;
+using namespace qk;
 
-namespace quark {
+namespace qk {
 	SkImage* CastSkImage(ImageSource* img);
 	SkRect MakeSkRectFrom(Box *host);
 }

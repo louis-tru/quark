@@ -33,7 +33,7 @@
 
 #include "../../util/util.h"
 
-namespace quark {
+namespace qk {
 
 	typedef uint32_t Unichar;
 	typedef uint16_t GlyphID;

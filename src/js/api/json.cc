@@ -34,7 +34,7 @@
 #include "../../views2/view.h"
 
 /**
- * @ns quark::js
+ * @ns qk::js
  */
 
 JS_BEGIN

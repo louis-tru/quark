@@ -31,7 +31,7 @@
 #include "./codec.h"
 #include "../../util/string.h"
 
-namespace quark {
+namespace qk {
 
 #if Qk_APPLE
 	bool apple_img_test(cBuffer& data, PixelInfo* out);
@@ -70,7 +70,7 @@ namespace quark {
 		}
 
 		return ok
-			||img_jpeg_test(data, out)
+			|| img_jpeg_test(data, out)
 			|| img_gif_test(data, out)
 			|| img_png_test(data, out)
 			|| img_webp_test(data, out)

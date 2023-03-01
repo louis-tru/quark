@@ -34,7 +34,7 @@
 #include "./macros.h"
 #include "./string.h"
 
-namespace quark {
+namespace qk {
 
 	class Error;
 

@@ -30,7 +30,7 @@
 
 #include <quark/util/loop.h>
 
-using namespace quark;
+using namespace qk;
 
 static void message_cb(CbData& ev, RunLoop* loop) {
 	static int i = 0;

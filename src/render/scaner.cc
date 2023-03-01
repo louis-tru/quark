@@ -31,7 +31,7 @@
 #include "./scaner.h"
 #include <math.h>
 
-namespace quark {
+namespace qk {
 
 	XLineScaner::XLineScaner(const Path& path, Rect clipRect, float scale, bool is_convex_polygon)
 		: _activeEdges{0, 0, Int32::limit_min, 0, 0},

@@ -30,7 +30,7 @@
 
 #import "../../keyboard.h"
 
-namespace quark {
+namespace qk {
 
 	/**
 	* @class AppleKeyboardAdapter

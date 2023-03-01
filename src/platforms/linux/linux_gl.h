@@ -40,7 +40,7 @@
 #include <EGL/eglext.h>
 #include <EGL/eglplatform.h>
 
-namespace quark {
+namespace qk {
 
 	class GLRender_unix {
 	public:
