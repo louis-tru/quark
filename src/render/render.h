@@ -63,8 +63,8 @@ namespace qk {
 		virtual void    begin() = 0;
 		virtual void    submit() = 0;
 		virtual void    activate(bool isActive);
-		inline  Canvas* getCanvas() { return _canvas; };
-		inline  Application* host() { return _host; };
+		inline  Canvas* getCanvas() { return _canvas; }
+		inline  Application* host() { return _host; }
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
 		// @overwrite class ViewVisitor

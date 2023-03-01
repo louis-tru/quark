@@ -36,6 +36,7 @@
 #include "../util/event.h"
 #include "./pixel.h"
 #include "../util/loop.h"
+#include "./canvas.h"
 
 namespace qk {
 	class Application;
@@ -47,13 +48,13 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(ImageSource);
 	public:
 		enum State: int {
-			STATE_NONE = 0,
-			STATE_LOADING = (1 << 0),
-			STATE_LOAD_ERROR = (1 << 1),
-			STATE_LOAD_COMPLETE = (1 << 2),
-			STATE_DECODEING = (1 << 3), //!< ready decodeing
-			STATE_DECODE_ERROR = (1 << 4),
-			STATE_DECODE_COMPLETE = (1 << 5),
+			kSTATE_NONE = 0,
+			kSTATE_LOADING = (1 << 0),
+			kSTATE_LOAD_ERROR = (1 << 1),
+			kSTATE_LOAD_COMPLETE = (1 << 2),
+			kSTATE_DECODEING = (1 << 3), //!< ready decodeing
+			kSTATE_DECODE_ERROR = (1 << 4),
+			kSTATE_DECODE_COMPLETE = (1 << 5),
 		};
 
 		/**
@@ -64,9 +65,6 @@ namespace qk {
 		// Defines props
 		Qk_DEFINE_PROP_GET(String, uri);
 		Qk_DEFINE_PROP_GET(State, state);
-		Qk_DEFINE_PROP_GET(int, width);
-		Qk_DEFINE_PROP_GET(int, height);
-		Qk_DEFINE_PROP_GET(ColorType, type);
 
 		// @constructor
 		// <FlowLayout>
@@ -80,7 +78,7 @@ namespace qk {
 		// 	/>
 		// </FlowLayout>
 		ImageSource(cString& uri);
-		ImageSource(Pixel pixel);
+		ImageSource(Array<Pixel>&& pixels);
 
 		/**
 			* @destructor
@@ -101,31 +99,37 @@ namespace qk {
 		 * @func unload() delete load and decode ready
 		 */
 		void unload();
-		
+
 		/**
 		 *
 		 * mark as gpu texture
 		 *
 		 * @func mark_as_texture()
 		 */
-		bool mark_as_texture();
+		Sp<ImageSource> mark_as_texture();
 
 		/**
 		 * @func is_ready() is ready draw image
 		 */
-		inline bool is_ready() const { return _state & STATE_DECODE_COMPLETE; }
+		inline bool is_ready() const { return _state & kSTATE_DECODE_COMPLETE; }
 
 		/**
-		 * @func size() Use memory size
-		 */
-		inline uint32_t size() const { return _size; };
+		 * @func pixel() Returns pixel info
+		*/
+		inline cPixelInfo& info() const { return _info; }
+
+		/**
+		 * @func pixel() Returns pixel data and info
+		*/
+		inline const Array<Pixel>& pixel() const { return _pixels; }
 
 	private:
 		void _Decode();
 		void _Load();
-		Pixel _memPixel;
+		PixelInfo    _info;
+		Array<Pixel> _pixels;
 		Buffer   _loaded;
-		uint32_t _load_id, _size;
+		uint32_t _load_id;
 	};
 
 
@@ -135,12 +139,12 @@ namespace qk {
 	class Qk_EXPORT ImageSourcePool: public Object {
 		Qk_HIDDEN_ALL_COPY(ImageSourcePool);
 	public:
-		
+
 		/**
 		 * @constructor
 		 */
 		ImageSourcePool(Application* host);
-		
+
 		/**
 		 * @destructor
 		 */
@@ -165,8 +169,10 @@ namespace qk {
 			* @func clear(full?: bool) clear memory
 			*/
 		void clear(bool full = false);
-		
+
 	private:
+		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
+
 		struct Member {
 			uint32_t            size;
 			Handle<ImageSource> source;
@@ -175,7 +181,6 @@ namespace qk {
 		uint64_t _total_data_size; /* 当前数据占用memory总容量 */
 		Mutex _Mutex;
 		Application* _host;
-		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	typedef ImageSourcePool ImagePool;

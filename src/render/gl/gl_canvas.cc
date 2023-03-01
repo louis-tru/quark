@@ -152,7 +152,7 @@ namespace qk {
 	}
 
 	void GLCanvas::drawImage(const Array<Vec3>& triangles, const Paint& paint) {
-		auto image = *paint.image;
+		auto image = paint.image;
 		glUseProgram(_image.shader());
 		glUniform1f(_image.opacity(), paint.opacity);
 		glUniform4fv(_image.coord(), 1, paint.color.val);

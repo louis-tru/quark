@@ -59,32 +59,19 @@ namespace qk {
 				int width = (int)CGImageGetWidth(image);
 				int height = (int)CGImageGetHeight(image);
 				int pixel_size = width * height * 4;
-				
-				CGImageAlphaInfo info = kCGImageAlphaPremultipliedLast;
 
-				// switch (CGImageGetAlphaInfo(image)) {
-				// 	case kCGImageAlphaPremultipliedLast:
-				// 	case kCGImageAlphaPremultipliedFirst:
-				// 	case kCGImageAlphaLast:
-				// 	case kCGImageAlphaFirst:
-				// 		//format = kColor_Type_RGBA_8888;
-				// 		break;
-				// 	default:
-				// 		//format = kColor_Type_RGB_888X;
-				// 		break;
-				// }
+				CGImageAlphaInfo info = kCGImageAlphaLast | kCGBitmapByteOrder32Big;
+				// info = CGImageGetAlphaInfo(image);
 
-				Buffer pixel_data(pixel_size);
+				auto pixel_data = Buffer::alloc(pixel_size);
 				color_space = CGColorSpaceCreateDeviceRGB();
-				CGContextRef context =
-				CGBitmapContextCreate(*pixel_data, width, height, 8,
-															width * 4, color_space, info | kCGBitmapByteOrder32Big);
-				CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
-				CGContextRelease(context);
+				CGContextRef ctx =
+				CGBitmapContextCreate(*pixel_data, width, height, 8, width * 4, color_space, info);
+				CGContextDrawImage(ctx, CGRectMake(0, 0, width, height), image);
+				CGContextRelease(ctx);
 				CFRelease(color_space);
 
-				PixelInfo info(width, height, kColor_Type_RGBA_8888,
-					info == kCGImageAlphaPremultipliedLast ? kAlphaType_Premul: kAlphaType_Unpremul);
+				PixelInfo info(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul);
 
 				out->push(Pixel(info, pixel_data));
 
@@ -113,7 +100,7 @@ namespace qk {
 		int width = (int)CGImageGetWidth(image);
 		int height = (int)CGImageGetHeight(image);
 
-		*out = PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Premul);
+		*out = PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul);
 
 		return true;
 	}

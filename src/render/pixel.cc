@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./pixel.h"
-#include "./codec/codec.h"
 
 namespace qk {
 
@@ -39,6 +38,15 @@ namespace qk {
 		: _width(width), _height(height), _type(type), _alphaType(alphaType) {
 	}
 
+	uint32_t PixelInfo::rowbytes() const {
+		return _width * Pixel::bytes_per_pixel(_type);
+	}
+
+	uint32_t PixelInfo::size() const {
+		uint32_t rowbytes = _width * Pixel::bytes_per_pixel(_type);
+		return rowbytes * _height;
+	}
+
 	// -------------------- P i x e l --------------------
 
 	/**
@@ -46,7 +54,7 @@ namespace qk {
 	*/
 	uint32_t Pixel::bytes_per_pixel(ColorType type) {
 		switch (type) {
-			kColor_Type_Invalid:
+			case kColor_Type_Invalid:
 			default: return 0;
 			case kColor_Type_Alpha_8: return 1;
 			case kColor_Type_RGB_565: return 2;
@@ -60,54 +68,49 @@ namespace qk {
 			case kColor_Type_BGR_101010X: return 4;
 			case kColor_Type_RGB_888: return 3;
 			case kColor_Type_RGBA_5551: return 2;
+			case kColor_Type_Luminance_8: return 1;
 			case kColor_Type_Luminance_Alpha_88: return 2;
 			case kColor_Type_SDF_Float: return 4;
 		}
 	}
 
-	Array<Pixel> Pixel::decode(cBuffer& raw) {
-		Array<Pixel> out;
-		img_decode(raw, &out);
-		return std::move(out);
-	}
-
 	Pixel::Pixel()
-		: _data()
+		: _hold()
 		, _body() {
 	}
 
 	Pixel::Pixel(cPixel& pixel): PixelInfo(pixel)
-		, _data()
+		, _hold()
 		, _body(pixel._body) {
 	}
 
 	Pixel::Pixel(Pixel&& pixel): PixelInfo(pixel)
-		, _data(pixel._data)
+		, _hold(pixel._hold)
 		, _body(std::move(pixel._body)) {
 	}
 
 	Pixel::Pixel(const PixelInfo& info, Buffer body)
 		: PixelInfo(info)
-		, _data(body)
-		, _body(*_data, _data.length()) {
+		, _hold(body)
+		, _body(*_hold, _hold.length()) {
 	}
 
 	Pixel::Pixel(const PixelInfo& info, cWeakBuffer& body)
 		: PixelInfo(info)
-		, _data()
+		, _hold()
 		, _body(body) {
 	}
 	
 	Pixel& Pixel::operator=(cPixel& pixel) {
 		PixelInfo::operator=(pixel);
-		_data = Buffer();
+		_hold = Buffer();
 		_body = pixel._body;
 		return *this;
 	}
 
 	Pixel& Pixel::operator=(Pixel&& pixel) {
 		PixelInfo::operator=(pixel);
-		_data = pixel._data;
+		_hold = pixel._hold;
 		_body = pixel._body;
 		return *this;
 	}

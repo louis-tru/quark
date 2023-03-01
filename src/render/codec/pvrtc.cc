@@ -372,9 +372,8 @@ namespace qk {
 				PixelInfo info(width, height,
 					ColorType(format + kColor_Type_PVRTCI_2BPP_RGB), kAlphaType_Unpremul
 				);
-				Pixel pix(info, Buffer::from(_data, data_size));
 
-				rest->push(std::move(pix));
+				rest->push(Pixel(info, Buffer::from(_data, data_size)));
 				dataOffset += data_size;
 				
 				width = Qk_MAX(width >> 1, 1);
@@ -417,9 +416,8 @@ namespace qk {
 				PixelInfo info(width, height, ColorType(format + kColor_Type_PVRTCI_2BPP_RGB),
 					isPremultipliedAlpha ? kAlphaType_Premul: kAlphaType_Unpremul
 				);
-				Pixel pix(info, Buffer::from(new_data, dataSize));
 
-				rest->push(std::move(pix));
+				rest->push(Pixel(info, Buffer::from(new_data, dataSize)));
 				dataOffset += dataSize;
 				
 				if (dataOffset > dataLen) {

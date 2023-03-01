@@ -62,16 +62,16 @@ namespace qk {
 
 		uint32_t width = gif->SWidth;
 		uint32_t height = gif->SHeight;
-		uint32_t row_size = width * 2;
+		uint32_t rowbytes = width * 2;
 
-		for ( int i = 0; i < gif->ImageCount; i++ ) { // 暂时只读取一张图像
-			auto buff = Buffer::alloc(row_size * height); // RGBA5551
+		for ( int i = 0; i < gif->ImageCount; i++ ) {
+			auto buff = Buffer::alloc(rowbytes * height); // RGBA5551
 			memset(*buff, 0, buff.length());
 
 			SavedImage* image = gif->SavedImages + i;
 			GifImageDesc* desc = &image->ImageDesc;
 			ColorMapObject* ColorMap =  desc->ColorMap ? desc->ColorMap : gif->SColorMap;
-			
+
 			int trans_color = -1;
 			for ( int k = 0; k < image->ExtensionBlockCount; k++ ) {
 				ExtensionBlock* block = image->ExtensionBlocks + k;
@@ -87,7 +87,7 @@ namespace qk {
 			
 			for ( int row = 0; row < desc->Height; row++ ) {
 				GifByteType* in = image->RasterBits + row * desc->Width;
-				uint16_t* out = (uint16_t*)(buff.val() + ((desc->Top + row) * row_size) + desc->Left * 2);
+				uint16_t* out = (uint16_t*)(buff.val() + ((desc->Top + row) * rowbytes) + desc->Left * 2);
 				
 				for ( int col = 0; col < desc->Width; col++ ) {
 					if ( trans_color == -1 || trans_color != in[col] ) { //

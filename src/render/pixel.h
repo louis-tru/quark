@@ -48,8 +48,6 @@ namespace qk {
 	enum ColorType {
 		kColor_Type_Invalid, //!< Invalid 
 		kColor_Type_Alpha_8, //!< Alpha 8 bit
-		kColor_Type_Gray_8 = kColor_Type_Alpha_8,
-		kColor_Type_Luminance_8 = kColor_Type_Alpha_8,
 		kColor_Type_RGB_565,
 		kColor_Type_ARGB_4444,
 		kColor_Type_RGBA_8888,
@@ -61,6 +59,8 @@ namespace qk {
 		kColor_Type_BGR_101010X,
 		kColor_Type_RGB_888,
 		kColor_Type_RGBA_5551,
+		kColor_Type_Gray_8,
+		kColor_Type_Luminance_8 = kColor_Type_Gray_8,
 		kColor_Type_Luminance_Alpha_88,
 		kColor_Type_SDF_Float, // signed distance function
 		// Compressed package for pvrtc
@@ -107,7 +107,7 @@ namespace qk {
 		kAlphaType_Unpremul, //!< pixel components are independent of alpha
 	};
 
-	class Qk_EXPORT PixelInfo: public Object {
+	class Qk_EXPORT PixelInfo {
 	public:
 		PixelInfo();
 		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
@@ -115,6 +115,8 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(int, height); //!< height 图像高度
 		Qk_DEFINE_PROP_GET(ColorType, type); //!< type 图像像素的排列格式
 		Qk_DEFINE_PROP_GET(AlphaType, alphaType); //!< 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
+		uint32_t rowbytes() const;
+		uint32_t size() const;
 	};
 
 	/**
@@ -122,26 +124,19 @@ namespace qk {
 	*/
 	class Qk_EXPORT Pixel: public PixelInfo {
 	public:
+		Qk_DEFINE_PROP_GET(uint32_t, texture); // gpu texture id
 
 		/**
 		* @func pixel_bit_size()
 		*/
 		static uint32_t bytes_per_pixel(ColorType type);
 
-		/**
-		 *
-		 * decode jpg/png/gif... image format data
-		 *
-		 * @func decode()
-		 */
-		static Array<Pixel> decode(cBuffer& raw);
-
 		Pixel();
 		Pixel(cPixel& data);
 		Pixel(Pixel&& data);
 		Pixel(cPixelInfo& info, Buffer body);
 		Pixel(cPixelInfo& info, cWeakBuffer& body = WeakBuffer());
-		
+
 		// operator=
 		Pixel& operator=(cPixel& pixel);
 		Pixel& operator=(Pixel&& pixel);
@@ -152,13 +147,8 @@ namespace qk {
 		inline  WeakBuffer& body() { return _body; }
 		inline cWeakBuffer& body() const { return _body; }
 
-		/**
-		* Returns pointer for image data body
-		*/
-		inline const void* ptr() const { return _body.val(); }
-		
 	private:
-		Buffer     _data; // hold data
+		Buffer     _hold; // hold data
 		WeakBuffer _body;
 	};
 

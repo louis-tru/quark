@@ -106,7 +106,7 @@ namespace qk {
 		}
 
 		inline const GradientPaint* gradient() const {
-			return reinterpret_cast<const GradientPaint*>(*image);
+			return reinterpret_cast<const GradientPaint*>(image);
 		}
 
 		void setImage(ImageSource* image, const Rect& dest, const Rect& src);
@@ -142,7 +142,7 @@ namespace qk {
 
 		float             opacity; // image opacity
 		Color4f           color; // color or image source uv coord
-		Sp<ImageSource>   image; // storage image source or gradient paint
+		ImageSource      *image; // storage image source or gradient paint
 		float             width; // stroke width
 	};
 

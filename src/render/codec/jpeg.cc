@@ -59,58 +59,35 @@ namespace qk {
 
 		jpeg_mem_src(&jpeg, (uint8_t*)*data, data.length());
 		
-		if ( setjmp(client_data.jmpbuf) ) {
+		if ( setjmp(client_data.jmpbuf) ) { // error goto
 			jpeg_destroy_decompress(&jpeg);
-			return rv;
+			return false;
 		}
-		
+
 		jpeg_read_header(&jpeg, TRUE);
 
 		uint32_t w = jpeg.image_width;
 		uint32_t h = jpeg.image_height;
 		int num = jpeg.num_components;
-		JSAMPROW row;
+
+		if (num != 1 && num != 3)
+			return false;
 
 		jpeg_start_decompress(&jpeg);
 
-		if (num == 1) {
-			uint32_t rowbytes = w * num;
-			uint32_t count = h * rowbytes;
-			auto buff = Buffer::alloc(count);
+		uint32_t rowbytes = w * num;
+		uint32_t count = h * rowbytes;
+		auto buff = Buffer::alloc(count);
 
-			while(jpeg.output_scanline < jpeg.output_height) {
-				row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;
-				jpeg_read_scanlines(&jpeg, &row, 1);
-			}
-
-			rv->push( Pixel(PixelInfo(w, h, kColor_Type_Gray_8, kAlphaType_Opaque), buff) );
-
-		} else if (num == 3) {
-			uint32_t rowbytes = w * 4;
-			uint32_t count = h * rowbytes;
-			auto buff = Buffer::alloc(count);
-
-			JSAMPARRAY lines = (*jpeg.mem->alloc_sarray)((j_common_ptr) &jpeg, JPOOL_IMAGE, w * num, 1);
-
-			while(jpeg.output_scanline < jpeg.output_height) {
-				row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;
-				jpeg_read_scanlines(&jpeg, lines, 1);
-
-				JSAMPROW row2 = lines[0];
-
-				for (uint32_t column = 0; column < w; column++) {
-					*((int*)row) = *((int*)row2);
-					row[3] = 255;
-					row += 4; row2 += 3;
-				}
-			}
-
-			rv->push( Pixel(PixelInfo(w, h, kColor_Type_RGB_888X, kAlphaType_Opaque), buff) );
-		} else {
-			return false;
+		while(jpeg.output_scanline < jpeg.output_height) {
+			JSAMPROW row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;
+			jpeg_read_scanlines(&jpeg, &row, 1);
 		}
 
-		jpeg_start_decompress(&jpeg);
+		PixelInfo info(w, h, num == 1 ? kColor_Type_Gray_8: kColor_Type_RGB_888, kAlphaType_Opaque);
+
+		rv->push(Pixel(info, buff));
+
 		jpeg_destroy_decompress(&jpeg);
 
 		return true;
@@ -142,13 +119,10 @@ namespace qk {
 		uint32_t h = jpeg.image_height;
 		int num = jpeg.num_components;
 
-		if (num == 1) {
-			*out = PixelInfo(w, h, kColor_Type_Gray_8, kAlphaType_Opaque);
-		} else if (num == 3) {
-			*out = PixelInfo(w, h, kColor_Type_RGB_888X, kAlphaType_Opaque);
-		} else {
+		if (num != 1 && num != 3)
 			return false;
-		}
+
+		*out = PixelInfo(w, h, num == 1 ? kColor_Type_Gray_8: kColor_Type_RGB_888, kAlphaType_Opaque);
 
 		return true;
 	}
