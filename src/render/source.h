@@ -86,14 +86,14 @@ namespace qk {
 		virtual ~ImageSource();
 
 		/**
-		 * @func load() async load image source
-		 */
-		bool load();
+		 * @func load() reload pixels
+		*/
+		void load(Array<Pixel>&& pixels);
 
 		/**
-		 * @func ready() ready decode
+		 * @func load() async load source and decode
 		 */
-		bool ready();
+		bool load(bool decode = false);
 
 		/**
 		 * @func unload() delete load and decode ready
@@ -106,7 +106,7 @@ namespace qk {
 		 *
 		 * @func mark_as_texture()
 		 */
-		Sp<ImageSource> mark_as_texture();
+		Sp<ImageSource> mark_as_texture(Canvas *canvas);
 
 		/**
 		 * @func is_ready() is ready draw image
@@ -114,22 +114,24 @@ namespace qk {
 		inline bool is_ready() const { return _state & kSTATE_DECODE_COMPLETE; }
 
 		/**
-		 * @func pixel() Returns pixel info
+		 * @func info() Returns pixel info
 		*/
 		inline cPixelInfo& info() const { return _info; }
 
 		/**
 		 * @func pixel() Returns pixel data and info
 		*/
-		inline const Array<Pixel>& pixel() const { return _pixels; }
+		inline const Array<Pixel>& pixels() const { return _pixels; }
 
 	private:
 		void _Decode();
 		void _Load();
+		bool _Load(Array<Pixel>& pixels);
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
-		Buffer   _loaded;
-		uint32_t _load_id;
+		Array<Pixel> _pixels_old;
+		Buffer       _loaded;
+		uint32_t     _load_id;
 	};
 
 
@@ -174,8 +176,8 @@ namespace qk {
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 
 		struct Member {
-			uint32_t            size;
-			Handle<ImageSource> source;
+			uint32_t        size;
+			Sp<ImageSource> source;
 		};
 		Dict<uint64_t, Member> _sources;
 		uint64_t _total_data_size; /* 当前数据占用memory总容量 */
@@ -187,17 +189,17 @@ namespace qk {
 
 
 	/**
-	* @class SourceHold
+	* @class ImageSourceHolder
 	*/
-	class Qk_EXPORT ImageSourceHold {
+	class Qk_EXPORT ImageSourceHolder {
 	public:
-		~ImageSourceHold();
+		~ImageSourceHolder();
 		Qk_DEFINE_PROP_ACC(String, src);
 		Qk_DEFINE_PROP_ACC(ImageSource*, source, NoConst);
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);
-		Handle<ImageSource> _imageSource;
+		Sp<ImageSource> _imageSource;
 	};
 
 }

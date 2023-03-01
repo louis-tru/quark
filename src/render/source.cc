@@ -35,7 +35,6 @@
 #include "./codec/codec.h"
 
 
-
 namespace qk {
 
 	// -------------------- I m a g e . S o u r c e --------------------
@@ -46,21 +45,11 @@ namespace qk {
 		, _load_id(0)
 	{}
 
-	ImageSource::ImageSource(Array<Pixel>&& pixels)
-		: Qk_Init_Event(State)
+	ImageSource::ImageSource(Array<Pixel>&& pixels): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _pixels(std::move(pixels))
 		, _load_id(0)
 	{
-		if (_pixels.length()) {
-			_info = _pixels[0];
-			_uri = String("mem://").append(random());
-			_state = State(kSTATE_LOAD_COMPLETE | kSTATE_DECODE_COMPLETE);
-
-			uint32_t rowbytes = _info.width() * Pixel::bytes_per_pixel(_info.type());
-			uint32_t size = rowbytes * _info.height();
-			Qk_ASSERT(size == _pixels[0].body().length(), "#ImageSource::ImageSource pixel size no match");
-		}
+		_Load(pixels);
 	}
 
 	ImageSource::~ImageSource() {
@@ -68,43 +57,61 @@ namespace qk {
 		unload();
 	}
 
-	/**
-		* @func load() async load image source
-		*/
-	bool ImageSource::load() {
-		if (_state & (kSTATE_LOAD_COMPLETE | kSTATE_DECODE_COMPLETE))
-			return true;
-		if (_state & kSTATE_LOADING)
+	void ImageSource::load(Array<Pixel>&& pixels) {
+		// TODO ...
+	}
+
+	bool ImageSource::_Load(Array<Pixel>& pixels) {
+		if (!pixels.length())
 			return false;
+		// TODO ...
 
-		RunLoop::first()->post(Cb([this](auto e) {
-			_Load();
-		}, this));
+		_info = pixels[0];
+		_pixels = std::move(pixels);
+		_uri = String("mem://").append(random());
+		_state = State(kSTATE_LOAD_COMPLETE | kSTATE_DECODE_COMPLETE);
 
-		return false;
+		uint32_t rowbytes = _info.width() * Pixel::bytes_per_pixel(_info.type());
+		uint32_t size = rowbytes * _info.height();
+		Qk_ASSERT(size == _pixels[0].body().length(), "#ImageSource::ImageSource pixel size no match");
+
+		return true;
 	}
 
 	/**
-		* @func ready() async ready decode
+		* @func load() async load source and decode
 		*/
-	bool ImageSource::ready() {
-		if (is_ready())
+	bool ImageSource::load(bool decode) {
+		if (_state & kSTATE_DECODE_COMPLETE)
 			return true;
-		if (_state & kSTATE_DECODEING)
-			return false;
 
-		RunLoop::first()->post(Cb([this](Cb::Data& e) {
-			if (_state & kSTATE_DECODEING)
-				return;
-			_state = State(_state | kSTATE_DECODEING);
-			Qk_Trigger(State, _state);
+		if (decode) { // load source and decode
+			if (_state & (kSTATE_DECODEING | kSTATE_LOAD_ERROR | kSTATE_DECODE_ERROR))
+				return false;
 
-			if (_state & kSTATE_LOAD_COMPLETE) {
-				_Decode();
-			} else { // load and decode
+			RunLoop::first()->post(Cb([this](Cb::Data& e) {
+				if (_state & kSTATE_DECODEING)
+					return;
+				_state = State(_state | kSTATE_DECODEING);
+				Qk_Trigger(State, _state);
+
+				if (_state & kSTATE_LOAD_COMPLETE) {
+					_Decode();
+				} else {
+					_Load(); // load and decode
+				}
+			}, this));
+
+		} else {  // only load
+			if (_state & kSTATE_LOAD_COMPLETE)
+				return true;
+			if (_state & (kSTATE_LOADING | kSTATE_LOAD_ERROR))
+				return false;
+
+			RunLoop::first()->post(Cb([this](auto e) {
 				_Load();
-			}
-		}, this));
+			}, this));
+		}
 
 		return false;
 	}
@@ -186,7 +193,7 @@ namespace qk {
 		*
 		* @func mark_as_texture()
 		*/
-	Sp<ImageSource> ImageSource::mark_as_texture() {
+	Sp<ImageSource> ImageSource::mark_as_texture(Canvas *canvas) {
 		// TODO ...
 	}
 
@@ -220,7 +227,7 @@ namespace qk {
 		String _uri = fs_reader()->format(uri);
 		uint64_t id = _uri.hash_code();
 
-		// 通过路径查找
+		// find image source by path
 		auto it = _sources.find(id);
 		if ( it != _sources.end() ) {
 			return it->value.source.value();
@@ -251,43 +258,43 @@ namespace qk {
 		// TODO ..
 	}
 
-	// -------------------- I m a g e . S o u r c e . H o l d --------------------
+	// -------------------- I m a g e . S o u r c e . H o l d e r --------------------
 
-	ImageSourceHold::~ImageSourceHold() {
+	ImageSourceHolder::~ImageSourceHolder() {
 		if (_imageSource) {
-			_imageSource->Qk_Off(State, &ImageSourceHold::handleSourceState, this);
+			_imageSource->Qk_Off(State, &ImageSourceHolder::handleSourceState, this);
 		}
 	}
 
-	String ImageSourceHold::src() const {
+	String ImageSourceHolder::src() const {
 		return _imageSource ? _imageSource->uri(): String();
 	}
 
-	ImageSource* ImageSourceHold::source() {
+	ImageSource* ImageSourceHolder::source() {
 		return _imageSource.value();
 	}
 
-	void ImageSourceHold::set_src(String value) {
+	void ImageSourceHolder::set_src(String value) {
 		set_source(app() ? app()->img_pool()->get(value): new ImageSource(value));
 	}
 
-	void ImageSourceHold::set_source(ImageSource* source) {
+	void ImageSourceHolder::set_source(ImageSource* source) {
 		if (_imageSource.value() != source) {
 			if (_imageSource) {
-				_imageSource->Qk_Off(State, &ImageSourceHold::handleSourceState, this);
+				_imageSource->Qk_Off(State, &ImageSourceHolder::handleSourceState, this);
 			}
 			if (source) {
-				source->Qk_On(State, &ImageSourceHold::handleSourceState, this);
+				source->Qk_On(State, &ImageSourceHolder::handleSourceState, this);
 			}
 			_imageSource = Handle<ImageSource>(source);
 		}
 	}
 
-	void ImageSourceHold::handleSourceState(Event<ImageSource, ImageSource::State>& evt) { // 收到图像变化通知
+	void ImageSourceHolder::handleSourceState(Event<ImageSource, ImageSource::State>& evt) { // 收到图像变化通知
 		onSourceState(evt);
 	}
 
-	void ImageSourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
+	void ImageSourceHolder::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_DECODE_COMPLETE) {
 			auto _ = app();
 			// Qk_ASSERT(_, "Application needs to be initialized first");
