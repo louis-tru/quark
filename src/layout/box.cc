@@ -131,10 +131,10 @@ namespace qk {
 	}
 
 	void Box::mark_layout_size(uint32_t _mark) {
-		auto Parent = parent();
-		if (Parent) {
-			if (Parent->is_lock_child_layout_size()) {
-				Parent->onChildLayoutChange(this, kChild_Layout_Size);
+		auto _parent = parent();
+		if (_parent) {
+			if (_parent->is_lock_child_layout_size()) {
+				_parent->onChildLayoutChange(this, kChild_Layout_Size);
 			} else {
 				mark(_mark);
 			}

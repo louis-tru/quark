@@ -45,6 +45,8 @@ namespace qk {
 		virtual void submit() override;
 		virtual void onRenderbufferStorage(uint32_t target);
 		virtual void onSwapBuffers() = 0;
+		virtual uint32_t setTexture(cPixel& src, uint32_t id) override;
+		virtual void deleteTextures(const Array<uint32_t> &IDs) override;
 	protected:
 		GLRender(Application* host, bool raster);
 		uint32_t _render_buffer, _frame_buffer;

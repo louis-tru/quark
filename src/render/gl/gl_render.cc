@@ -36,12 +36,12 @@ namespace qk {
 
 	uint32_t glPixelInternalFormat(ColorType type) {
 		switch (type) {
-			default: return 0;
 			case kColor_Type_RGB_565: return GL_RGB565;
 			case kColor_Type_RGBA_8888: return GL_RGBA8;
 			case kColor_Type_RGB_888X: return GL_RGBA8;
 			case kColor_Type_RGBA_1010102: return GL_RGB10_A2;
 			case kColor_Type_RGB_101010X: return GL_RGB10_A2;
+			default: return 0;
 		}
 	}
 
@@ -69,7 +69,6 @@ namespace qk {
 					break;
 			}
 		}
-
 		return ok;
 	}
 
@@ -88,6 +87,7 @@ namespace qk {
 		glGenRenderbuffers(1, &_msaa_render_buffer);
 
 		glEnable(GL_BLEND);
+		setBlendMode(kSrcOver_BlendMode);
 
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
@@ -185,11 +185,9 @@ namespace qk {
 	}
 
 	void GLRender::begin() {
-		setBlendMode(kSrcOver_BlendMode);
 	}
 
 	void GLRender::submit() {
-
 		if (_opts.msaaSampleCnt > 1) {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
@@ -215,6 +213,14 @@ namespace qk {
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
 			glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer);
 		}
+	}
+
+	uint32_t GLRender::setTexture(cPixel& src, uint32_t id) {
+		return GLCanvas::setTexture(src, id, true);
+	}
+
+	void GLRender::deleteTextures(const Array<uint32_t> &IDs) {
+		GLCanvas::deleteTextures(IDs);
 	}
 
 }

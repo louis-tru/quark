@@ -33,6 +33,7 @@
 #include "../pre_render.h"
 #include "../util/fs.h"
 #include "./codec/codec.h"
+#include "./render.h"
 
 
 namespace qk {
@@ -49,31 +50,51 @@ namespace qk {
 		, _state(kSTATE_NONE)
 		, _load_id(0)
 	{
-		_Load(pixels);
+		reload_unsafe(std::move(pixels));
 	}
 
 	ImageSource::~ImageSource() {
-		_state = kSTATE_NONE;
-		unload();
+		_Unload();
 	}
 
-	void ImageSource::load(Array<Pixel>&& pixels) {
-		// TODO ...
-	}
-
-	bool ImageSource::_Load(Array<Pixel>& pixels) {
+	bool ImageSource::reload_unsafe(Array<Pixel>&& pixels) {
 		if (!pixels.length())
 			return false;
-		// TODO ...
-
-		_info = pixels[0];
-		_pixels = std::move(pixels);
-		_uri = String("mem://").append(random());
-		_state = State(kSTATE_LOAD_COMPLETE | kSTATE_DECODE_COMPLETE);
+		if (_state & kSTATE_LOADING)
+			return false;
 
 		uint32_t rowbytes = _info.width() * Pixel::bytes_per_pixel(_info.type());
 		uint32_t size = rowbytes * _info.height();
 		Qk_ASSERT(size == _pixels[0].body().length(), "#ImageSource::ImageSource pixel size no match");
+
+		_info = pixels[0];
+		_uri = String("mem://").append(random());
+		_state = kSTATE_LOAD_COMPLETE;
+
+		if (_device) { // mark as texture
+			uint32_t i = 0;
+			uint32_t old_len = _pixels.length();
+
+			while (i < pixels.length()) {
+				auto &pix = pixels[i];
+				auto id = _device->setTexture(pix, i < old_len ? _pixels[i]._textureId: 0);
+				if (!id)
+					return false;
+				pix = PixelInfo(pix); // clear memory pixel data
+				pix._textureId = id;
+				i++;
+			}
+
+			if (i < old_len) {
+				Array<uint32_t> IDs;
+				do
+					IDs.push(_pixels[i]._textureId);
+				while(++i < old_len);
+				_device->deleteTextures(IDs);
+			}
+		}
+
+		_pixels = std::move(pixels);
 
 		return true;
 	}
@@ -81,93 +102,59 @@ namespace qk {
 	/**
 		* @func load() async load source and decode
 		*/
-	bool ImageSource::load(bool decode) {
-		if (_state & kSTATE_DECODE_COMPLETE)
+	bool ImageSource::load() {
+		if (_state & kSTATE_LOAD_COMPLETE)
 			return true;
+		if (_state & (kSTATE_LOADING | kSTATE_LOAD_ERROR | kSTATE_DECODE_ERROR))
+			return false;
 
-		if (decode) { // load source and decode
-			if (_state & (kSTATE_DECODEING | kSTATE_LOAD_ERROR | kSTATE_DECODE_ERROR))
-				return false;
+		if (_uri.is_empty()) // empty uri
+			return false;
 
-			RunLoop::first()->post(Cb([this](Cb::Data& e) {
-				if (_state & kSTATE_DECODEING)
-					return;
-				_state = State(_state | kSTATE_DECODEING);
-				Qk_Trigger(State, _state);
+		RunLoop::first()->post(Cb([this](auto e) {
+			if (_state & kSTATE_LOADING)
+				return;
+			_state = State(_state | kSTATE_LOADING);
+			Qk_Trigger(State, _state); // trigger
 
-				if (_state & kSTATE_LOAD_COMPLETE) {
-					_Decode();
-				} else {
-					_Load(); // load and decode
+			_load_id = fs_reader()->read_file(_uri, Cb([this](Cb::Data& e) { // read data
+				if (_state & kSTATE_LOADING) {
+					if (e.error) {
+						_state = State((_state | kSTATE_LOAD_ERROR) & ~kSTATE_LOADING);
+						Qk_DEBUG("#ImageSource::_Load kSTATE_LOAD_ERROR, %s", e.error->message().c_str());
+						Qk_Trigger(State, _state);
+					} else {
+						_Decode(*static_cast<Buffer*>(e.data));
+					}
 				}
 			}, this));
-
-		} else {  // only load
-			if (_state & kSTATE_LOAD_COMPLETE)
-				return true;
-			if (_state & (kSTATE_LOADING | kSTATE_LOAD_ERROR))
-				return false;
-
-			RunLoop::first()->post(Cb([this](auto e) {
-				_Load();
-			}, this));
-		}
+		}, this));
 
 		return false;
 	}
 
-	void ImageSource::_Load() {
-		if (_state & kSTATE_LOADING)
-			return;
-
-		_state = State(_state | kSTATE_LOADING);
-		Qk_Trigger(State, _state); // trigger
-
-		_load_id = fs_reader()->read_file(_uri, Cb([this](Cb::Data& e) { // read data
-			if (_state & kSTATE_LOADING) {
-				if (e.error) {
-					_state = State((_state | kSTATE_LOAD_ERROR) & ~kSTATE_LOADING);
-					Qk_DEBUG("#ImageSource::_Load kSTATE_LOAD_ERROR, %s", e.error->message().c_str());
-					Qk_Trigger(State, _state);
-					return;
-				}
-				_state = State((_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
-				_loaded = *static_cast<Buffer*>(e.data);
-
-				if (_state & kSTATE_DECODEING) {
-					_Decode();
-				} else {
-					if (!img_test(_loaded, &_info)) // test fail
-						_state = State(_state | kSTATE_DECODE_ERROR);
-					Qk_Trigger(State, _state);
-				}
-			}
-		}, this));
-	}
-
-	void ImageSource::_Decode() {
-		Qk_ASSERT(_state & kSTATE_LOAD_COMPLETE, "#ImageSource::_Decode");
-
+	void ImageSource::_Decode(Buffer& data) {
 		struct Ctx {
 			bool isComplete;
+			Buffer data;
 			Array<Pixel> pixels;
 		};
-		auto ctx = new Ctx{false};
+		auto ctx = new Ctx{false, data};
 
 		RunLoop::first()->work(Cb([this, ctx](Cb::Data& e) {
-			ctx->isComplete = img_decode(_loaded, &ctx->pixels);
+			ctx->isComplete = img_decode(ctx->data, &ctx->pixels);
 		}), Cb([this, ctx](Cb::Data& e) {
-			if (_state & kSTATE_DECODEING) {
+			if (_state & kSTATE_LOADING) {
 				if (ctx->isComplete) { // decode image complete
-					_loaded.clear(); // clear load data
+					_state = State((_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
 					_info = ctx->pixels[0];
 					_pixels = std::move(ctx->pixels);
-					_state = State((_state | kSTATE_DECODE_COMPLETE) & ~kSTATE_DECODEING);
 				} else { // decode fail
-					_state = State((_state | kSTATE_DECODE_ERROR)    & ~kSTATE_DECODEING);
+					_state = State((_state | kSTATE_DECODE_ERROR)  & ~kSTATE_LOADING);
 				}
 				Qk_Trigger(State, _state);
 			}
+			delete ctx;
 		}, this));
 	}
 
@@ -175,26 +162,52 @@ namespace qk {
 		* @func unload() delete load and ready
 		*/
 	void ImageSource::unload() {
-		_state = State( _state & ~(kSTATE_LOADING | kSTATE_LOAD_COMPLETE | kSTATE_DECODEING | kSTATE_DECODE_COMPLETE) );
-		_loaded.clear(); // clear raw data
-		if (_load_id) { // cancel load and ready
-			fs_reader()->abort(_load_id);
-			_load_id = 0;
-		}
-		// trigger event
-		RunLoop::first()->post(Cb([this](Cb::Data& e){
+		RunLoop::first()->post(Cb([this](auto e) {
+			_Unload();
 			Qk_Trigger(State, _state);
 		}, this));
+	}
+
+	void ImageSource::_Unload() {
+		_state = State( _state & ~(kSTATE_LOADING | kSTATE_LOAD_COMPLETE) );
+		fs_reader()->abort(_load_id); // cancel load and ready
+		_load_id = 0;
+
+		if (_device) {
+			Array<uint32_t> IDs;
+			for (auto &pix: _pixels)
+				IDs.push(pix.textureId());
+			auto device = _device;
+			_device = nullptr;
+			device->post_message(Cb([device,IDs](Cb::Data& data) {
+				device->deleteTextures(IDs);
+			}));
+		}
+		_pixels.clear();
 	}
 
 	/**
 		* 
 		* mark as gpu texture
 		*
-		* @func mark_as_texture()
+		* @func mark_as_texture_unsafe()
 		*/
-	Sp<ImageSource> ImageSource::mark_as_texture(Canvas *canvas) {
-		// TODO ...
+	Sp<ImageSource> ImageSource::mark_as_texture_unsafe(BackendDevice *device) const {
+		if (!device && _device)
+			return nullptr;
+
+		Array<Pixel> new_pixels;
+		for (auto &pix: _pixels) {
+			PixelInfo info(pix);
+			Pixel _pix(info);
+			auto id = device->setTexture(pix, 0);
+			if (!id)
+				return nullptr;
+			_pix._textureId = id;
+		}
+		auto src = new ImageSource(std::move(new_pixels));
+		src->_device = device;
+		return src;
 	}
 
 	// -------------------- I m a g e . S o u r c e . P o o l --------------------
@@ -295,7 +308,7 @@ namespace qk {
 	}
 
 	void ImageSourceHolder::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (*evt.data() & ImageSource::kSTATE_DECODE_COMPLETE) {
+		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
 			auto _ = app();
 			// Qk_ASSERT(_, "Application needs to be initialized first");
 			if (_) {

@@ -360,7 +360,8 @@ namespace qk {
 		
 		void resolve_queue() {
 			List<Queue> queue;
-			{ ScopeLock lock(_mutex);
+			{
+				ScopeLock lock(_mutex);
 				if (_queue.length()) {
 					queue = std::move(_queue);
 				} else {
@@ -379,7 +380,8 @@ namespace qk {
 				}
 			}
 
-			{ ScopeLock lock(_mutex);
+			{
+				ScopeLock lock(_mutex);
 				_queue.splice(_queue.begin(), queue);
 				if (_queue.length() == 0) {
 					resolve_queue_after(-1);
@@ -435,8 +437,6 @@ namespace qk {
 			Data* datap = &data;
 			data.inl = this;
 			data.ok = false;
-
-			typedef CallbackData<RunLoop::PostSyncData> PCb::Data;
 
 			bool isCur = Thread::current_id() == _thread->id();
 			if (isCur) { // 立即调用

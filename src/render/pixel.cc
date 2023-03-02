@@ -54,11 +54,11 @@ namespace qk {
 	*/
 	uint32_t Pixel::bytes_per_pixel(ColorType type) {
 		switch (type) {
-			case kColor_Type_Invalid:
-			default: return 0;
+			case kColor_Type_Invalid: return 0;
 			case kColor_Type_Alpha_8: return 1;
 			case kColor_Type_RGB_565: return 2;
-			case kColor_Type_ARGB_4444: return 2;
+			case kColor_Type_RGBA_4444: return 2;
+			case kColor_Type_RGB_444X:  return 2;
 			case kColor_Type_RGBA_8888: return 4;
 			case kColor_Type_RGB_888X: return 4;
 			case kColor_Type_BGRA_8888: return 4;
@@ -71,6 +71,7 @@ namespace qk {
 			case kColor_Type_Luminance_8: return 1;
 			case kColor_Type_Luminance_Alpha_88: return 2;
 			case kColor_Type_SDF_Float: return 4;
+			default: return 1;
 		}
 	}
 

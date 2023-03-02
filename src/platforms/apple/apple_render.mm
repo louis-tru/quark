@@ -118,7 +118,7 @@ namespace qk {
 			: GLRender(host, raster), _ctx(ctx) 
 		{
 			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
-			ctx.multiThreaded = NO;
+			// ctx.multiThreaded = NO;
 		}
 
 		~AppleGLRender() {

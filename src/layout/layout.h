@@ -35,7 +35,6 @@
 #include "../types.h"
 
 namespace qk {
-
 	class PreRender;
 	class TextLines;
 	class TextConfig;

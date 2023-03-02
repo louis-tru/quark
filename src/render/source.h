@@ -36,10 +36,10 @@
 #include "../util/event.h"
 #include "./pixel.h"
 #include "../util/loop.h"
-#include "./canvas.h"
 
 namespace qk {
 	class Application;
+	class BackendDevice;
 
 	/**
 	* @class ImageSource
@@ -50,11 +50,9 @@ namespace qk {
 		enum State: int {
 			kSTATE_NONE = 0,
 			kSTATE_LOADING = (1 << 0),
-			kSTATE_LOAD_ERROR = (1 << 1),
-			kSTATE_LOAD_COMPLETE = (1 << 2),
-			kSTATE_DECODEING = (1 << 3), //!< ready decodeing
-			kSTATE_DECODE_ERROR = (1 << 4),
-			kSTATE_DECODE_COMPLETE = (1 << 5),
+			kSTATE_LOAD_COMPLETE = (1 << 1),
+			kSTATE_LOAD_ERROR = (1 << 2),
+			kSTATE_DECODE_ERROR = (1 << 3),
 		};
 
 		/**
@@ -86,14 +84,19 @@ namespace qk {
 		virtual ~ImageSource();
 
 		/**
-		 * @func load() reload pixels
+		 * 
+		 * unsafe mode reload pixels and no trigger state event
+		 * 
+		 * Note: To be called in the rendering thread
+		 * 
+		 * @func reload_unsafe()
 		*/
-		void load(Array<Pixel>&& pixels);
+		bool reload_unsafe(Array<Pixel>&& pixels);
 
 		/**
 		 * @func load() async load source and decode
 		 */
-		bool load(bool decode = false);
+		bool load();
 
 		/**
 		 * @func unload() delete load and decode ready
@@ -102,16 +105,18 @@ namespace qk {
 
 		/**
 		 *
-		 * mark as gpu texture
+		 * mark as gpu texture and return a new image source object after success
+		 * 
+		 * Note: To be called in the rendering thread
 		 *
-		 * @func mark_as_texture()
+		 * @func mark_as_texture_unsafe()
 		 */
-		Sp<ImageSource> mark_as_texture(Canvas *canvas);
+		Sp<ImageSource> mark_as_texture_unsafe(BackendDevice *device) const;
 
 		/**
-		 * @func is_ready() is ready draw image
+		 * @func is_loaded() is ready draw image
 		 */
-		inline bool is_ready() const { return _state & kSTATE_DECODE_COMPLETE; }
+		inline bool is_loaded() const { return _state & kSTATE_LOAD_COMPLETE; }
 
 		/**
 		 * @func info() Returns pixel info
@@ -119,19 +124,38 @@ namespace qk {
 		inline cPixelInfo& info() const { return _info; }
 
 		/**
+		 * @func info() Returns pixel type
+		*/
+		inline ColorType type() const { return _info.type(); }
+
+		/**
+		 * @func info() Returns pixel bitmap width
+		*/
+		inline int width() const { return _info.width(); }
+
+		/**
+		 * @func info() Returns pixel bitmap height
+		*/
+		inline int height() const { return _info.height(); }
+
+		/**
 		 * @func pixel() Returns pixel data and info
 		*/
 		inline const Array<Pixel>& pixels() const { return _pixels; }
 
+		/**
+		 * @func is_texture() Whether to mark as texture
+		*/
+		inline bool is_texture() const { return _device; }
+
 	private:
-		void _Decode();
-		void _Load();
-		bool _Load(Array<Pixel>& pixels);
+		void _Decode(Buffer& data);
+		void _Unload();
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
-		Array<Pixel> _pixels_old;
-		Buffer       _loaded;
 		uint32_t     _load_id;
+		BackendDevice *_device; // weak ref
+		friend class ImageSourcePool;
 	};
 
 

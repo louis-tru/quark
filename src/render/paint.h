@@ -70,8 +70,16 @@ namespace qk {
 			kClamp_TileMode,
 			//!< Repeat the shader's image horizontally and vertically.
 			kRepeat_TileMode,
+			//!< Repeat the shader's image horizontally.
+			kRepeat_TileMode_X,
+			//!< Repeat the shader's image vertically.
+			kRepeat_TileMode_Y,
 			//!< Repeat the shader's image horizontally and vertically, alternating mirror images so that adjacent images always seam.
 			kMirror_TileMode,
+			//!< Repeat the shader's image horizontally, alternating mirror images so that adjacent images always seam.
+			kMirror_TileMode_X,
+			//!< Repeat the shader's image vertically, alternating mirror images so that adjacent images always seam.
+			kMirror_TileMode_Y,
 			//!< Only draw within the original domain, return transparent-black everywhere else.
 			kDecal_TileMode,
 		};
@@ -108,10 +116,13 @@ namespace qk {
 		inline const GradientPaint* gradient() const {
 			return reinterpret_cast<const GradientPaint*>(image);
 		}
+		inline const ImagePixel* imagePixel() const {
+			return reinterpret_cast<const ImagePixel*>(image);
+		}
 
-		void setImage(ImageSource* image, const Rect& dest, const Rect& src);
-		void setImage(ImageSource* image, const Rect& dest); // src = {Vec2(0,0),Vec2(w,h)}
-		void setGradient(GradientPaint* gradient);
+		void setImage(ImagePixel *image, const Rect& dest, const Rect& src);
+		void setImage(ImagePixel *image, const Rect& dest); // src = {Vec2(0,0),Vec2(w,h)}
+		void setGradient(GradientPaint *gradient);
 
 		union {
 			uint32_t        bitfields = (
@@ -121,9 +132,9 @@ namespace qk {
 				(kButt_Cap << 12) |
 				(kMiter_Join << 14) |
 				(kClamp_TileMode << 16) |
-				(kNearest_FilterMode << 18) |
-				(kNone_MipmapMode << 20) |
-				(1 << 22) | // antiAlias = true
+				(kNearest_FilterMode << 19) |
+				(kNone_MipmapMode << 21) |
+				(1 << 23) | // antiAlias = true
 				0
 			);
 			struct {
@@ -132,17 +143,17 @@ namespace qk {
 				BlendMode     blendMode: 8; // default kSrcOver_BlendMode
 				Cap           cap: 2;// default kButt_Cap;
 				Join          join : 2;// default kMiter_Join;
-				TileMode      tileMode: 2; // default kClamp_TileMode
+				TileMode      tileMode: 3; // default kClamp_TileMode
 				FilterMode    filterMode: 2;// default kNearest_FilterMode, image source filter mode
 				MipmapMode    mipmapMode: 2;// default kNone_MipmapMode, image source mipmap mode
 				bool          antiAlias : 1;// default true;
-				unsigned      padding : 9;  // 32 = 2+2+8+2+2+2+2+2+1+9
+				unsigned      padding : 8;  // 32 = 2+2+8+2+2+3+2+2+1+8
 			};
 		}; // size 32bit
 
 		float             opacity; // image opacity
 		Color4f           color; // color or image source uv coord
-		ImageSource      *image; // storage image source or gradient paint
+		void             *image; // storage image pixel or gradient paint
 		float             width; // stroke width
 	};
 

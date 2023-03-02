@@ -36,11 +36,13 @@
 #include "../util/array.h"
 
 namespace qk {
-
+	class         ImageSource;
 	class         PixelInfo;
 	class         Pixel;
 	typedef const Pixel cPixel;
 	typedef const PixelInfo cPixelInfo;
+	typedef       Pixel ImagePixel;
+	typedef const Pixel cImagePixel;
 
 	/**
 	 * @enum ColorType color tye enum
@@ -49,10 +51,11 @@ namespace qk {
 		kColor_Type_Invalid, //!< Invalid 
 		kColor_Type_Alpha_8, //!< Alpha 8 bit
 		kColor_Type_RGB_565,
-		kColor_Type_ARGB_4444,
+		kColor_Type_RGBA_4444,
+		kColor_Type_RGB_444X,
 		kColor_Type_RGBA_8888,
 		kColor_Type_RGB_888X,
-		kColor_Type_BGRA_8888, //
+		kColor_Type_BGRA_8888,
 		kColor_Type_RGBA_1010102,
 		kColor_Type_BGRA_1010102,
 		kColor_Type_RGB_101010X,
@@ -124,7 +127,7 @@ namespace qk {
 	*/
 	class Qk_EXPORT Pixel: public PixelInfo {
 	public:
-		Qk_DEFINE_PROP_GET(uint32_t, texture); // gpu texture id
+		Qk_DEFINE_PROP_GET(uint32_t, textureId); // gpu texture id
 
 		/**
 		* @func pixel_bit_size()
@@ -150,6 +153,7 @@ namespace qk {
 	private:
 		Buffer     _hold; // hold data
 		WeakBuffer _body;
+		friend class ImageSource;
 	};
 
 }

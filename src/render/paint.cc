@@ -32,24 +32,22 @@
 
 namespace qk {
 
-	void Paint::setImage(ImageSource* _image, const Rect& dest, const Rect& src) {
+	void Paint::setImage(ImagePixel* _image, const Rect& dest, const Rect& src) {
 		type = kImage_Type;
 		image = _image;
 		Vec2 scale(dest.size.x() / src.size.x(), dest.size.y() / src.size.y());
-		auto &info = _image->info();
 		*reinterpret_cast<Rect*>(&color) = {
 			Vec2(
 				src.origin.x() * scale.x() - dest.origin.x(),
 				src.origin.y() * scale.y() - dest.origin.y()
 			),
 			// shader scale
-			Vec2(scale.x() / float(info.width()), scale.y() / float(info.height())),
+			Vec2(scale.x() / float(_image->width()), scale.y() / float(_image->height())),
 		};
 	}
 
-	void Paint::setImage(ImageSource* image, const Rect& dest) {
-		auto &info = image->info();
-		setImage(image, dest, { Vec2(0,0), Vec2(info.width(), info.height()) });
+	void Paint::setImage(ImagePixel* image, const Rect& dest) {
+		setImage(image, dest, { Vec2(0,0), Vec2(image->width(), image->height()) });
 	}
 
 	void Paint::setGradient(GradientPaint* gradient) {

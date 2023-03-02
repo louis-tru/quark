@@ -30,7 +30,8 @@
 
 #include "./image.h"
 #include "../render/render.h"
-#include "skia/core/SkImage.h"
+#include "../pre_render.h"
+#include "../app.h"
 
 namespace qk {
 
@@ -69,7 +70,8 @@ namespace qk {
 	}
 
 	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (*evt.data() & (ImageSource::STATE_DECODE_COMPLETE | ImageSource::STATE_LOADING)) {
+		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
+			UILock lock(pre_render()->host());
 			mark_layout_size(kLayout_Size_Width | kLayout_Size_Height);
 		}
 	}

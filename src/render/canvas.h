@@ -69,8 +69,6 @@ namespace qk {
 			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) = 0;
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) = 0;
 	protected:
-		//virtual uint32_t mark_as_texture(ImageSource* src) = 0;
-		//virtual void     unmark_texture(uint32_t id) = 0;
 		Canvas() = default;
 	};
 

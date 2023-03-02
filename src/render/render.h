@@ -33,11 +33,10 @@
 #ifndef __ftr__render_render__
 #define __ftr__render_render__
 
-#include "../util/loop.h"
 #include "../util/json.h"
 #include "../math.h"
-#include "./source.h"
 #include "../layout/view.h"
+#include "./source.h"
 #include "./canvas.h"
 
 #ifndef Qk_USE_DEFAULT_THREAD_RENDER
@@ -47,18 +46,24 @@
 namespace qk {
 	class Application;
 
+	class BackendDevice: public PostMessage {
+	public:
+		virtual uint32_t setTexture(cPixel& src, uint32_t id) = 0;
+		virtual void     deleteTextures(const Array<uint32_t> &IDs) = 0;
+	};
+
 	/**
 	 * @class Render drawing management
 	 */
-	class Qk_EXPORT Render: public PostMessage, public ViewVisitor {
+	class Qk_EXPORT Render: public BackendDevice, public ViewVisitor {
 	public:
 		struct Options {
 			ColorType   colorType;
 			int         msaaSampleCnt; // gpu msaa
 			int         stencilBits;   // gpu stencil
 		};
-		virtual         ~Render();
 		static  Render* Make(Application* host);
+		virtual        ~Render();
 		virtual void    reload() = 0;
 		virtual void    begin() = 0;
 		virtual void    submit() = 0;
