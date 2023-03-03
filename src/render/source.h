@@ -90,18 +90,10 @@ namespace qk {
 		 * Note: To be called in the rendering thread
 		 * 
 		 * @func reload_unsafe()
+		 * @param pixels bitmap pixels
+		 * @param device mark as texture
 		*/
-		bool reload_unsafe(Array<Pixel>&& pixels);
-
-		/**
-		 * @func load() async load source and decode
-		 */
-		bool load();
-
-		/**
-		 * @func unload() delete load and decode ready
-		 */
-		void unload();
+		bool reload_unsafe(Array<Pixel>&& pixels, BackendDevice *device = nullptr);
 
 		/**
 		 *
@@ -112,6 +104,16 @@ namespace qk {
 		 * @func mark_as_texture_unsafe()
 		 */
 		Sp<ImageSource> mark_as_texture_unsafe(BackendDevice *device) const;
+
+		/**
+		 * @func load() async load source and decode
+		 */
+		bool load();
+
+		/**
+		 * @func unload() delete load and decode ready
+		 */
+		void unload();
 
 		/**
 		 * @func is_loaded() is ready draw image

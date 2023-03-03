@@ -41,8 +41,8 @@ namespace qk {
 	class         Pixel;
 	typedef const Pixel cPixel;
 	typedef const PixelInfo cPixelInfo;
-	typedef       Pixel ImagePixel;
-	typedef const Pixel cImagePixel;
+	typedef       Pixel BitmapPixel;
+	typedef const Pixel cBitmapPixel;
 
 	/**
 	 * @enum ColorType color tye enum
@@ -66,6 +66,11 @@ namespace qk {
 		kColor_Type_Luminance_8 = kColor_Type_Gray_8,
 		kColor_Type_Luminance_Alpha_88,
 		kColor_Type_SDF_Float, // signed distance function
+		kColor_Type_YUV420P_Y_8,
+		kColor_Type_YUV420P_U_8,
+		kColor_Type_YUV420P_V_8 = kColor_Type_YUV420P_U_8,
+		kColor_Type_YUV420SP_Y_8,
+		kColor_Type_YUV420SP_UV_88,
 		// Compressed package for pvrtc
 		kColor_Type_PVRTCI_2BPP_RGB,
 		kColor_Type_PVRTCI_2BPP_RGBA,
@@ -127,7 +132,7 @@ namespace qk {
 	*/
 	class Qk_EXPORT Pixel: public PixelInfo {
 	public:
-		Qk_DEFINE_PROP_GET(uint32_t, textureId); // gpu texture id
+		Qk_DEFINE_PROP_GET(uint32_t, texture); // gpu texture id
 
 		/**
 		* @func pixel_bit_size()

@@ -71,21 +71,25 @@ namespace qk {
 			case kColor_Type_Luminance_8: return 1;
 			case kColor_Type_Luminance_Alpha_88: return 2;
 			case kColor_Type_SDF_Float: return 4;
+			case kColor_Type_YUV420P_Y_8: return 1;
+			case kColor_Type_YUV420P_U_8: return 1;
+			case kColor_Type_YUV420SP_Y_8: return 1;
+			case kColor_Type_YUV420SP_UV_88: return 2;
 			default: return 1;
 		}
 	}
 
-	Pixel::Pixel()
-		: _hold()
-		, _body() {
+	Pixel::Pixel(): _hold(), _texture(0), _body() {
 	}
 
 	Pixel::Pixel(cPixel& pixel): PixelInfo(pixel)
+		, _texture(pixel._texture)
 		, _hold()
 		, _body(pixel._body) {
 	}
 
 	Pixel::Pixel(Pixel&& pixel): PixelInfo(pixel)
+		, _texture(pixel._texture)
 		, _hold(pixel._hold)
 		, _body(std::move(pixel._body)) {
 	}
@@ -104,6 +108,7 @@ namespace qk {
 	
 	Pixel& Pixel::operator=(cPixel& pixel) {
 		PixelInfo::operator=(pixel);
+		_texture = pixel._texture;
 		_hold = Buffer();
 		_body = pixel._body;
 		return *this;
@@ -111,6 +116,7 @@ namespace qk {
 
 	Pixel& Pixel::operator=(Pixel&& pixel) {
 		PixelInfo::operator=(pixel);
+		_texture = pixel._texture;
 		_hold = pixel._hold;
 		_body = pixel._body;
 		return *this;

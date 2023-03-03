@@ -32,27 +32,165 @@
 
 namespace qk {
 
+#if Qk_OSX
+# define GL_LUMINANCE GL_RED
+# define GL_LUMINANCE_ALPHA GL_RED
+#endif
+
+	static void glUseTexture(GLuint id, const Paint& paint, uint32_t slot) {
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, id);
+
+		switch (paint.tileMode) {
+			case Paint::kClamp_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+				break;
+			case Paint::kRepeat_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				break;
+			case Paint::kRepeat_X_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				break;
+			case Paint::kRepeat_Y_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				break;
+			case Paint::kMirror_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+				break;
+			case Paint::kMirror_X_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				break;
+			case Paint::kMirror_Y_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+				break;
+			case Paint::kDecal_TileMode: // no repeat
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				break;
+		}
+
+		switch (paint.filterMode) {
+			case Paint::kNearest_FilterMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				break;
+			case Paint::kLinear_FilterMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				break;
+		}
+
+		switch (paint.mipmapMode) {
+			case Paint::kNone_MipmapMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+				break;
+			case Paint::kNearest_MipmapMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+				break;
+			case Paint::kLinear_MipmapMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				break;
+		}
+	}
+
+	static GLint get_gl_texture_pixel_format(ColorType type) {
+#if Qk_APPLE
+	switch (type) {
+		case kColor_Type_Alpha_8: return GL_ALPHA;
+		case kColor_Type_RGB_565: return GL_RGB;
+		case kColor_Type_RGBA_4444: return GL_RGBA;
+		case kColor_Type_RGB_444X: return GL_RGB;
+		case kColor_Type_RGBA_8888: return GL_RGBA;
+		case kColor_Type_RGB_888X: return GL_RGB;
+		case kColor_Type_BGRA_8888: return GL_BGRA;
+		case kColor_Type_RGBA_1010102: return GL_RGBA;
+		case kColor_Type_BGRA_1010102: return GL_BGRA;
+		case kColor_Type_RGB_101010X: return GL_RGB;
+		case kColor_Type_BGR_101010X: return GL_BGR;
+		case kColor_Type_RGB_888: return GL_RGB;
+		case kColor_Type_RGBA_5551: return GL_RGBA;
+		case kColor_Type_Luminance_8: return GL_LUMINANCE;
+		case kColor_Type_Luminance_Alpha_88: return GL_LUMINANCE_ALPHA;
+		// case kColor_Type_SDF_Float: return GL_RGBA;
+		case kColor_Type_YUV420P_Y_8: return GL_LUMINANCE;
+		case kColor_Type_YUV420P_U_8: return GL_LUMINANCE;
+		case kColor_Type_YUV420SP_Y_8: return GL_LUMINANCE;
+		case kColor_Type_YUV420SP_UV_88: return GL_LUMINANCE_ALPHA;
+#if !Qk_OSX // ios
+			// compressd texture
+		case kColor_Type_PVRTCI_2BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+		case kColor_Type_PVRTCI_2BPP_RGBA:
+		case kColor_Type_PVRTCII_2BPP: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+		case kColor_Type_PVRTCI_4BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+		case kColor_Type_PVRTCI_4BPP_RGBA:
+		case kColor_Type_PVRTCII_4BPP: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+		case kColor_Type_ETC1:
+		case kColor_Type_ETC2_RGB: return GL_COMPRESSED_RGB8_ETC2;
+		case kColor_Type_ETC2_RGB_A1:
+		case kColor_Type_ETC2_RGBA: return GL_COMPRESSED_RGBA8_ETC2_EAC;
+#endif
+		default: return 0;
+	}
+#endif
+
+#if Qk_LINUX
+		return 0;
+#endif
+	}
+
+	static GLint get_gl_texture_data_format(ColorType format) {
+		switch (format) {
+			case kColor_Type_Alpha_8: return GL_UNSIGNED_BYTE;
+			case kColor_Type_RGB_565: return GL_UNSIGNED_SHORT_5_6_5;
+			case kColor_Type_RGBA_4444: return GL_UNSIGNED_SHORT_4_4_4_4;
+			case kColor_Type_RGB_444X: return GL_UNSIGNED_SHORT_4_4_4_4;
+			case kColor_Type_RGBA_8888: return GL_UNSIGNED_INT_8_8_8_8;
+			case kColor_Type_RGB_888X: return GL_UNSIGNED_INT_8_8_8_8;
+			case kColor_Type_BGRA_8888: return GL_UNSIGNED_INT_8_8_8_8;
+			case kColor_Type_RGBA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
+			case kColor_Type_BGRA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
+			case kColor_Type_RGB_101010X: return GL_UNSIGNED_INT_10_10_10_2;
+			case kColor_Type_BGR_101010X: return GL_UNSIGNED_INT_10_10_10_2;
+			case kColor_Type_RGB_888: return GL_UNSIGNED_BYTE;
+			case kColor_Type_RGBA_5551: return GL_UNSIGNED_SHORT_5_5_5_1;
+			default: return GL_UNSIGNED_BYTE;
+		}
+	}
+
 	GLCanvas::GLCanvas()
 		: _blendMode(kClear_BlendMode)
 		, _IsDeviceAntiAlias(false)
-		, _linear(GradientPaint::kLinear)
-		, _radial(GradientPaint::kRadial)
-		, _texTmp(0)
+		, _texTmp{0,0,0}
+		, _linear(Paint::kLinear_GradientType)
+		, _radial(Paint::kRadial_GradientType)
+		, _shaders{&_color, &_image, &_yuv420p, &_yuv420sp, &_linear, &_radial}
 	{
 		glGenBuffers(1, &_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, NULL, GL_DYNAMIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _ubo);
 
-		GLSLShader *shaders[] = {
-			&_color, &_image, &_linear, &_radial
-		};
-		for (auto shader: shaders) {
+		for (auto shader: _shaders) {
 			shader->build();
 		}
 
 		glUseProgram(_image.shader());
 		glUniform1i(_image.image(), 0);
+
+		glUseProgram(_yuv420p.shader());
+		glUniform1i(_yuv420p.image(), 0);
+		glUniform1i(_yuv420p.image_u(), 1);
+		glUniform1i(_yuv420p.image_v(), 2);
+
+		glUseProgram(_yuv420sp.shader());
+		glUniform1i(_yuv420sp.image(), 0);
+		glUniform1i(_yuv420sp.image_uv(), 1);
+
 		glUseProgram(0);
 	}
 
@@ -128,7 +266,7 @@ namespace qk {
 				drawColor(polygons, paint); break;
 			case Paint::kGradient_Type:
 				drawGradient(polygons, paint); break;
-			case Paint::kImage_Type:
+			case Paint::kBitmap_Type:
 				drawImage(polygons, paint); break;
 		}
 	}
@@ -141,90 +279,43 @@ namespace qk {
 	}
 
 	void GLCanvas::drawGradient(const Array<Vec3>& triangles, const Paint& paint) {
-		const GradientPaint *g = paint.gradient();
-		auto shader = g->type() == GradientPaint::kLinear ? &_linear: &_radial;
+		const GradientColor *g = paint.gradientColor();
+		auto shader = paint.gradientType == Paint::kLinear_GradientType ? &_linear: &_radial;
 		glUseProgram(shader->shader());
-		glUniform4fv(shader->range(), 1, g->range());
-		glUniform1i(shader->count(), g->colors().length());
-		glUniform4fv(shader->colors(), g->colors().length(), (const GLfloat*)g->colors().val());
-		glUniform1fv(shader->positions(), g->colors().length(), (const GLfloat*)g->positions().val());
+		glUniform4fv(shader->range(), 1, paint.color.val);
+		glUniform1i(shader->count(), g->colors.length());
+		glUniform4fv(shader->colors(), g->colors.length(), (const GLfloat*)g->colors.val());
+		glUniform1fv(shader->positions(), g->colors.length(), (const GLfloat*)g->positions.val());
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, triangles.val());
 		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
 
-	static void glUseTexture(GLuint id, const Paint& paint, uint32_t slot) {
-		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, id);
-
-		switch (paint.tileMode) {
-			case Paint::kClamp_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-				break;
-			case Paint::kRepeat_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-				break;
-			case Paint::kRepeat_TileMode_X:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				break;
-			case Paint::kRepeat_TileMode_Y:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-				break;
-			case Paint::kMirror_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-				break;
-			case Paint::kMirror_TileMode_X:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				break;
-			case Paint::kMirror_TileMode_Y:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-				break;
-			case Paint::kDecal_TileMode: // no repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				break;
-		}
-
-		switch (paint.filterMode) {
-			case Paint::kNearest_FilterMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				break;
-			case Paint::kLinear_FilterMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				break;
-		}
-
-		switch (paint.mipmapMode) {
-			case Paint::kNone_MipmapMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-				break;
-			case Paint::kNearest_MipmapMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-				break;
-			case Paint::kLinear_MipmapMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				break;
-		}
-	}
-
 	void GLCanvas::drawImage(const Array<Vec3>& triangles, const Paint& paint) {
-		auto pixel = paint.imagePixel();
-		glUseProgram(_image.shader());
-		glUniform1f(_image.opacity(), paint.opacity);
-		glUniform4fv(_image.coord(), 1, paint.color.val);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, triangles.val());
-		GLuint id = pixel->textureId();
-		if (!id) {
-			if (id = setTexture(*pixel, _texTmp, false))
-				_texTmp = id;
+		auto pixel = paint.bitmapPixel();
+		auto type = pixel->type();
+		auto shader = &_image;
+		auto texCount = 1;
+
+		if (type == kColor_Type_YUV420P_Y_8) {
+			shader = &_yuv420p;
+			texCount = 3;
+		} else if (type == kColor_Type_YUV420SP_Y_8) {
+			shader = &_yuv420sp;
+			texCount = 2;
 		}
-		glUseTexture(id, paint, 0);
+
+		glUseProgram(shader->shader());
+		glUniform1f(shader->opacity(), paint.opacity);
+		glUniform4fv(shader->coord(), 1, paint.color.val);
+
+		for (int i = 0; i < texCount; i++) {
+			auto id = pixel[i].texture();
+			if (!id || (id = setTexture(pixel+i, _texTmp[i], true)))
+				_texTmp[i] = id;
+			glUseTexture(id, paint, i);
+		}
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, triangles.val());
 		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
 
@@ -295,83 +386,20 @@ namespace qk {
 		_blendMode = blendMode;
 	}
 
-#if Qk_OSX
-#define GL_LUMINANCE GL_RED
-#define GL_LUMINANCE_ALPHA GL_RED
-#endif
-
-	static GLint get_gl_texture_pixel_format(ColorType type) {
-#if Qk_APPLE
-	switch (type) {
-		case kColor_Type_Alpha_8: return GL_ALPHA;
-		case kColor_Type_RGB_565: return GL_RGB;
-		case kColor_Type_RGBA_4444: return GL_RGBA;
-		case kColor_Type_RGB_444X: return GL_RGB;
-		case kColor_Type_RGBA_8888: return GL_RGBA;
-		case kColor_Type_RGB_888X: return GL_RGB;
-		case kColor_Type_BGRA_8888: return GL_BGRA;
-		case kColor_Type_RGBA_1010102: return GL_RGBA;
-		case kColor_Type_BGRA_1010102: return GL_BGRA;
-		case kColor_Type_RGB_101010X: return GL_RGB;
-		case kColor_Type_BGR_101010X: return GL_BGR;
-		case kColor_Type_RGB_888: return GL_RGB;
-		case kColor_Type_RGBA_5551: return GL_RGBA;
-		case kColor_Type_Luminance_8: return GL_LUMINANCE;
-		case kColor_Type_Luminance_Alpha_88: return GL_LUMINANCE_ALPHA;
-#if !Qk_OSX // ios
-			// compressd texture
-		case kColor_Type_PVRTCI_2BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
-		case kColor_Type_PVRTCI_2BPP_RGBA:
-		case kColor_Type_PVRTCII_2BPP: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
-		case kColor_Type_PVRTCI_4BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
-		case kColor_Type_PVRTCI_4BPP_RGBA:
-		case kColor_Type_PVRTCII_4BPP: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
-		case kColor_Type_ETC1:
-		case kColor_Type_ETC2_RGB: return GL_COMPRESSED_RGB8_ETC2;
-		case kColor_Type_ETC2_RGB_A1:
-		case kColor_Type_ETC2_RGBA: return GL_COMPRESSED_RGBA8_ETC2_EAC;
-#endif
-		default: return 0;
-	}
-#endif
-
-#if Qk_LINUX
-		return 0;
-#endif
-	}
-
-	static GLint get_gl_texture_data_format(ColorType format) {
-		switch (format) {
-			case kColor_Type_Alpha_8: return GL_UNSIGNED_BYTE;
-			case kColor_Type_RGB_565: return GL_UNSIGNED_SHORT_5_6_5;
-			case kColor_Type_RGBA_4444: return GL_UNSIGNED_SHORT_4_4_4_4;
-			case kColor_Type_RGB_444X: return GL_UNSIGNED_SHORT_4_4_4_4;
-			case kColor_Type_RGBA_8888: return GL_UNSIGNED_INT_8_8_8_8;
-			case kColor_Type_RGB_888X: return GL_UNSIGNED_INT_8_8_8_8;
-			case kColor_Type_BGRA_8888: return GL_UNSIGNED_INT_8_8_8_8;
-			case kColor_Type_RGBA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
-			case kColor_Type_BGRA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
-			case kColor_Type_RGB_101010X: return GL_UNSIGNED_INT_10_10_10_2;
-			case kColor_Type_BGR_101010X: return GL_UNSIGNED_INT_10_10_10_2;
-			case kColor_Type_RGB_888: return GL_UNSIGNED_BYTE;
-			case kColor_Type_RGBA_5551: return GL_UNSIGNED_SHORT_5_5_5_1;
-			default: return GL_UNSIGNED_BYTE;
-		}
-	}
-
-	uint32_t GLCanvas::setTexture(cPixel& src, GLuint id, bool isGenerateMipmap) {
-		if ( src.body().length() == 0 )
+	uint32_t GLCanvas::setTexture(cPixel* src, GLuint id, bool isGenerateMipmap) {
+		if ( src->body().length() == 0 )
 			return 0;
 
-		ColorType type = src.type();
+		ColorType type = src->type();
 		GLint internalformat = get_gl_texture_pixel_format(type);
 		Qk_ASSERT(format, "#GLCanvas::setTexture");
 
 		if (!internalformat)
 			return 0;
 
-		if (!id)
+		if (!id) {
 			glGenTextures(1, &id);
+		}
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, id);
 
@@ -385,21 +413,21 @@ namespace qk {
 		// GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT 
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-		if ( type > kColor_Type_SDF_Float ) {
+		if ( type >= kColor_Type_PVRTCI_2BPP_RGB ) {
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_level - 1);
 			glCompressedTexImage2D(GL_TEXTURE_2D, 0/*level*/, internalformat,
-														src.width(),
-														src.height(), 0/*border*/, src.body().length(), *src.body());
+														src->width(),
+														src->height(), 0/*border*/, src->body().length(), *src->body());
 		} else {
 			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, internalformat,
-									src.width(),
-									src.height(), 0/*border*/, internalformat/*format*/,
-									get_gl_texture_data_format(type), *src.body());
+									src->width(),
+									src->height(), 0/*border*/, internalformat/*format*/,
+									get_gl_texture_data_format(type), *src->body());
 			if (isGenerateMipmap) {
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
 		}
@@ -407,8 +435,8 @@ namespace qk {
 		return id;
 	}
 
-	void GLCanvas::deleteTextures(const Array<uint32_t> &IDs) {
-		glDeleteTextures(IDs.length(), IDs.val());
+	void GLCanvas::deleteTextures(const uint32_t *IDs, uint32_t count) {
+		glDeleteTextures(count, IDs);
 	}
 
 }

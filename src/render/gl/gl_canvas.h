@@ -53,8 +53,8 @@ namespace qk {
 		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
 			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) override;
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) override;
-		uint32_t     setTexture(cPixel& src, GLuint id, bool isGenerateMipmap);
-		void         deleteTextures(const Array<uint32_t> &IDs);
+		uint32_t     setTexture(cPixel *src, GLuint id, bool isGenerateMipmap);
+		void         deleteTextures(const uint32_t *IDs, uint32_t count);
 	protected:
 		void drawColor(const Array<Vec3>& triangles, const Paint& paint);
 		void drawGradient(const Array<Vec3>& triangles, const Paint& paint);
@@ -63,11 +63,13 @@ namespace qk {
 		// props
 		BlendMode _blendMode;
 		bool      _IsDeviceAntiAlias; // device anti alias, msaa
-		GLuint    _ubo, _texTmp;
+		GLuint    _ubo, _texTmp[3];
 		GLSLColor _color;
 		GLSLImage _image;
-		GLSLGradient _linear;
-		GLSLGradient _radial;
+		GLSLImageYUV420P _yuv420p;
+		GLSLImageYUV420SP _yuv420sp;
+		GLSLGradient _linear,_radial;
+		GLSLShader  *_shaders[6];
 	};
 
 }

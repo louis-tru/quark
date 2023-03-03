@@ -176,9 +176,7 @@ namespace qk {
 		auto matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 		// root_matrix.transpose();
 
-		GLSLShader *shaders[]{ &_color, &_image, &_linear, &_radial};
-
-		for (auto shader: shaders) {
+		for (auto shader: _shaders) {
 			glUseProgram(shader->shader());
 			glUniformMatrix4fv( shader->root_matrix(), 1, GL_TRUE, matrix.val );
 		}
@@ -215,12 +213,12 @@ namespace qk {
 		}
 	}
 
-	uint32_t GLRender::setTexture(cPixel& src, uint32_t id) {
+	uint32_t GLRender::setTexture(cPixel *src, uint32_t id) {
 		return GLCanvas::setTexture(src, id, true);
 	}
 
-	void GLRender::deleteTextures(const Array<uint32_t> &IDs) {
-		GLCanvas::deleteTextures(IDs);
+	void GLRender::deleteTextures(const uint32_t *IDs, uint32_t count) {
+		GLCanvas::deleteTextures(IDs, count);
 	}
 
 }

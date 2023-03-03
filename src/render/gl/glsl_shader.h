@@ -48,7 +48,7 @@
 # error "The operating system does not support"
 #endif
 
-#include "../gradient.h"
+#include "../paint.h"
 
 namespace qk {
 
@@ -82,9 +82,22 @@ namespace qk {
 		virtual void build() override;
 	};
 
+	class GLSLImageYUV420P: public GLSLImage {
+	public:
+		Qk_DEFINE_PROP_GET(GLuint, image_u);
+		Qk_DEFINE_PROP_GET(GLuint, image_v);
+		virtual void build() override;
+	};
+
+	class GLSLImageYUV420SP: public GLSLImage {
+	public:
+		Qk_DEFINE_PROP_GET(GLuint, image_uv);
+		virtual void build() override;
+	};
+
 	class GLSLGradient: public GLSLShader {
 	public:
-		typedef GradientPaint::GradientType GradientType;
+		typedef Paint::GradientType GradientType;
 		GLSLGradient(GradientType type): _type(type) {}
 		Qk_DEFINE_PROP_GET(GLuint, range); // vertex uniform value
 		Qk_DEFINE_PROP_GET(GLuint, count); // fragment uniform value

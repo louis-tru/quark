@@ -32,19 +32,23 @@
 #ifndef __quark_render_paint__
 #define __quark_render_paint__
 
-#include "../util/util.h"
+#include "../math.h"
 #include "./source.h"
-#include "./gradient.h"
 #include "./blend.h"
 
 namespace qk {
+
+	struct GradientColor {
+		Array<Color4f> colors;
+		Array<float>   positions;
+	};
 
 	struct Paint {
 
 		enum Type {
 			kColor_Type,          //!< set to color paint type
 			kGradient_Type,       //!< set to gradient paint type
-			kImage_Type,          //!< set to image paint type
+			kBitmap_Type,         //!< set to bitmap image paint type
 		};
 
 		enum Style {
@@ -71,15 +75,15 @@ namespace qk {
 			//!< Repeat the shader's image horizontally and vertically.
 			kRepeat_TileMode,
 			//!< Repeat the shader's image horizontally.
-			kRepeat_TileMode_X,
+			kRepeat_X_TileMode,
 			//!< Repeat the shader's image vertically.
-			kRepeat_TileMode_Y,
+			kRepeat_Y_TileMode,
 			//!< Repeat the shader's image horizontally and vertically, alternating mirror images so that adjacent images always seam.
 			kMirror_TileMode,
 			//!< Repeat the shader's image horizontally, alternating mirror images so that adjacent images always seam.
-			kMirror_TileMode_X,
+			kMirror_X_TileMode,
 			//!< Repeat the shader's image vertically, alternating mirror images so that adjacent images always seam.
-			kMirror_TileMode_Y,
+			kMirror_Y_TileMode,
 			//!< Only draw within the original domain, return transparent-black everywhere else.
 			kDecal_TileMode,
 		};
@@ -95,65 +99,63 @@ namespace qk {
 			kLinear_MipmapMode,    //!< interpolate between the two nearest levels
 		};
 
-		inline Vec2 offset() const {
-			return Vec2(color.b(), color.g());
+		enum GradientType {
+			kLinear_GradientType,  //!< linear gradient type
+			kRadial_GradientType,  //!< radial gradient type
+		};
+
+		inline Vec2 bitmapOffset() const { return Vec2(color[0], color[1]); }
+		inline Vec2 bitmapScale() const { return Vec2(color[2], color[3]); }
+		inline Vec2 linearStart() const { return Vec2(color[0], color[1]); }
+		inline Vec2 linearEnd() const { return Vec2(color[2], color[3]); }
+		inline Vec2 radialCenter() const { return Vec2(color[0], color[1]); }
+		inline Vec2 radialRadius() const { return Vec2(color[2], color[3]); }
+
+		inline const GradientColor* gradientColor() const {
+			return reinterpret_cast<const GradientColor*>(image);
+		}
+		inline const BitmapPixel* bitmapPixel() const {
+			return reinterpret_cast<cPixel*>(image);
 		}
 
-		inline Vec2 scale() const {
-			return Vec2(color.r(), color.a());
-		}
-
-		inline void setOffset(Vec2 offset) {
-			color.b(offset.x());
-			color.g(offset.y());
-		}
-
-		inline void setScale(Vec2 scale) {
-			color.r(scale.x());
-			color.a(scale.y());
-		}
-
-		inline const GradientPaint* gradient() const {
-			return reinterpret_cast<const GradientPaint*>(image);
-		}
-		inline const ImagePixel* imagePixel() const {
-			return reinterpret_cast<const ImagePixel*>(image);
-		}
-
-		void setImage(ImagePixel *image, const Rect& dest, const Rect& src);
-		void setImage(ImagePixel *image, const Rect& dest); // src = {Vec2(0,0),Vec2(w,h)}
-		void setGradient(GradientPaint *gradient);
+		void setBitmapPixel(cPixel *image, const Rect& dest, const Rect& src);
+		void setBitmapPixel(cPixel *image, const Rect& dest); // src = {Vec2(0,0),Vec2(w,h)}
+		void setLinearGradient(const GradientColor *colors, Vec2 start, Vec2 end);
+		void setRadialGradient(const GradientColor *colors, Vec2 center, Vec2 radius);
 
 		union {
 			uint32_t        bitfields = (
-				(kColor_Type << 0) |
-				(kFill_Style << 2) |
-				(kSrcOver_BlendMode << 4) |
-				(kButt_Cap << 12) |
-				(kMiter_Join << 14) |
-				(kClamp_TileMode << 16) |
-				(kNearest_FilterMode << 19) |
-				(kNone_MipmapMode << 21) |
-				(1 << 23) | // antiAlias = true
+				(kColor_Type << 0) | // 2 bits
+				(kFill_Style << 2) | // 2 bits
+				(kSrcOver_BlendMode << 4) | // 6 bits
+				(kButt_Cap << 10) | // 2 bits
+				(kMiter_Join << 12) | // 2 bits
+				(kClamp_TileMode << 14) | // 3 bits
+				(kNearest_FilterMode << 17) | // 1 bits
+				(kNone_MipmapMode << 18) | // 2 bits
+				(kLinear_GradientType << 20) | // 1 bits
+				(1 << 21) | // 1 bits, default antiAlias = true
 				0
 			);
 			struct {
 				Type          type: 2;// default kColor_Type;
 				Style         style : 2;// default kFill_Style;
-				BlendMode     blendMode: 8; // default kSrcOver_BlendMode
+				BlendMode     blendMode: 6; // default kSrcOver_BlendMode
 				Cap           cap: 2;// default kButt_Cap;
 				Join          join : 2;// default kMiter_Join;
 				TileMode      tileMode: 3; // default kClamp_TileMode
-				FilterMode    filterMode: 2;// default kNearest_FilterMode, image source filter mode
+				FilterMode    filterMode: 1;// default kNearest_FilterMode, image source filter mode
 				MipmapMode    mipmapMode: 2;// default kNone_MipmapMode, image source mipmap mode
+				GradientType  gradientType: 1;// default kLinear_GradientType, gradient color type
 				bool          antiAlias : 1;// default true;
-				unsigned      padding : 8;  // 32 = 2+2+8+2+2+3+2+2+1+8
+				unsigned      padding : 10;
 			};
 		}; // size 32bit
 
-		float             opacity; // image opacity
-		Color4f           color; // color or image source uv coord
-		void             *image; // storage image pixel or gradient paint
+		float             opacity; // bitmap opacity
+		// color or bitmap uv coord or start/end or center/radius for gradient color range
+		Color4f           color;
+		const void       *image; // bitmap or gradient color, weak ref
 		float             width; // stroke width
 	};
 

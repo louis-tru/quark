@@ -57,7 +57,7 @@ namespace qk {
 		_Unload();
 	}
 
-	bool ImageSource::reload_unsafe(Array<Pixel>&& pixels) {
+	bool ImageSource::reload_unsafe(Array<Pixel>&& pixels, BackendDevice *device) {
 		if (!pixels.length())
 			return false;
 		if (_state & kSTATE_LOADING)
@@ -65,38 +65,71 @@ namespace qk {
 
 		uint32_t rowbytes = _info.width() * Pixel::bytes_per_pixel(_info.type());
 		uint32_t size = rowbytes * _info.height();
-		Qk_ASSERT(size == _pixels[0].body().length(), "#ImageSource::ImageSource pixel size no match");
+		Qk_ASSERT(size == _pixels[0].body().length(), "#ImageSource::reload_unsafe pixel size no match");
 
 		_info = pixels[0];
 		_uri = String("mem://").append(random());
 		_state = kSTATE_LOAD_COMPLETE;
 
-		if (_device) { // mark as texture
+		if (_device) {
+			Qk_ASSERT(_device == device, "#ImageSource::reload_unsafe device no match");
+		} else {
+			device = _device;
+		}
+
+		if (device) { // mark as texture
 			uint32_t i = 0;
 			uint32_t old_len = _pixels.length();
 
 			while (i < pixels.length()) {
 				auto &pix = pixels[i];
-				auto id = _device->setTexture(pix, i < old_len ? _pixels[i]._textureId: 0);
-				if (!id)
+				auto id = device->setTexture(&pix, i < old_len ? _pixels[i]._texture: 0);
+				if (id == 0) {
+					for (int j = 0; j < i; j++)
+						if (_pixels[i]._texture == 0 && pixels[j]._texture != 0)
+							device->deleteTextures(&pixels[j]._texture, 1); // RollBACK
 					return false;
+				}
 				pix = PixelInfo(pix); // clear memory pixel data
-				pix._textureId = id;
+				pix._texture = id;
 				i++;
 			}
 
 			if (i < old_len) {
-				Array<uint32_t> IDs;
 				do
-					IDs.push(_pixels[i]._textureId);
+					device->deleteTextures(&_pixels[i]._texture, 1);
 				while(++i < old_len);
-				_device->deleteTextures(IDs);
 			}
 		}
 
 		_pixels = std::move(pixels);
+		_device = device;
 
 		return true;
+	}
+
+	/**
+		* 
+		* mark as gpu texture
+		*
+		* @func mark_as_texture_unsafe()
+		*/
+	Sp<ImageSource> ImageSource::mark_as_texture_unsafe(BackendDevice *device) const {
+		if (!device && _device)
+			return nullptr;
+
+		Array<Pixel> new_pixels;
+		for (auto &pix: _pixels) {
+			PixelInfo info(pix);
+			Pixel _pix(info);
+			auto id = device->setTexture(&pix, 0);
+			if (!id)
+				return nullptr;
+			_pix._texture = id;
+		}
+		auto src = new ImageSource(std::move(new_pixels));
+		src->_device = device;
+		return src;
 	}
 
 	/**
@@ -176,38 +209,14 @@ namespace qk {
 		if (_device) {
 			Array<uint32_t> IDs;
 			for (auto &pix: _pixels)
-				IDs.push(pix.textureId());
+				IDs.push(pix.texture());
 			auto device = _device;
 			_device = nullptr;
 			device->post_message(Cb([device,IDs](Cb::Data& data) {
-				device->deleteTextures(IDs);
+				device->deleteTextures(IDs.val(), IDs.length());
 			}));
 		}
 		_pixels.clear();
-	}
-
-	/**
-		* 
-		* mark as gpu texture
-		*
-		* @func mark_as_texture_unsafe()
-		*/
-	Sp<ImageSource> ImageSource::mark_as_texture_unsafe(BackendDevice *device) const {
-		if (!device && _device)
-			return nullptr;
-
-		Array<Pixel> new_pixels;
-		for (auto &pix: _pixels) {
-			PixelInfo info(pix);
-			Pixel _pix(info);
-			auto id = device->setTexture(pix, 0);
-			if (!id)
-				return nullptr;
-			_pix._textureId = id;
-		}
-		auto src = new ImageSource(std::move(new_pixels));
-		src->_device = device;
-		return src;
 	}
 
 	// -------------------- I m a g e . S o u r c e . P o o l --------------------
