@@ -76,7 +76,7 @@ namespace qk {
 		cChar* name, cChar* vertexShader, cChar* fragmentShader,
 		cChar* _attrs, cChar* _uniforms)
 	{
-		Qk_ASSERT(!_shader, "#GLSLShader::compile");
+		Qk_ASSERT(!_shader);
 		GLuint vertex_handle =
 			compile_shader(name, (vertexHeader + vertexShader).c_str(), GL_VERTEX_SHADER);
 		GLuint fragment_handle =

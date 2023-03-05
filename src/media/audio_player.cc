@@ -53,7 +53,7 @@ namespace qk {
 		, _disable_wait_buffer(false)
 		, _waiting_buffer(false)
 	{
-		Qk_ASSERT(_host, "#AudioPlayer#AudioPlayer Application host cannot be null");
+		Qk_ASSERT(_host);
 	}
 
 	AudioPlayer* AudioPlayer::create(String src, Application* host) {

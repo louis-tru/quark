@@ -112,7 +112,7 @@ namespace qk {
 		glDeleteRenderbuffers(1, &_msaa_frame_buffer);
 	}
 
-	void GLRender::onRenderbufferStorage(uint32_t target) {
+	void GLRender::onRenderbufferStorage(GLuint target) {
 		auto region = _host->display()->surface_region();
 		int w = region.size.x(), h = region.size.y();
 		::glRenderbufferStorage(target, glPixelInternalFormat(_opts.colorType), w, h);
@@ -183,6 +183,7 @@ namespace qk {
 	}
 
 	void GLRender::begin() {
+		// noop
 	}
 
 	void GLRender::submit() {
@@ -213,11 +214,11 @@ namespace qk {
 		}
 	}
 
-	uint32_t GLRender::setTexture(cPixel *src, uint32_t id) {
+	GLuint GLRender::setTexture(cPixel *src, GLuint id) {
 		return GLCanvas::setTexture(src, id, true);
 	}
 
-	void GLRender::deleteTextures(const uint32_t *IDs, uint32_t count) {
+	void GLRender::deleteTextures(const GLuint *IDs, GLuint count) {
 		GLCanvas::deleteTextures(IDs, count);
 	}
 

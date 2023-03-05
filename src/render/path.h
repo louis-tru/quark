@@ -61,19 +61,19 @@ namespace qk {
 		Path(Vec2 move);
 		Path(Vec2* pts, int len, PathVerb* verbs, int verbsLen);
 		// add path points
-		void move_to(Vec2 to);
-		void line_to(Vec2 to);
-		void quad_to(Vec2 control, Vec2 to);
-		void cubic_to(Vec2 control1, Vec2 control2, Vec2 to);
-		void oval_to(const qk::Rect& rect);
-		void rect_to(const qk::Rect& rect);
-		void arc_to (const qk::Rect& rect, float startAngle, float sweepAngle, bool useCenter);
+		void moveTo(Vec2 to);
+		void lineTo(Vec2 to);
+		void quadTo(Vec2 control, Vec2 to);
+		void cubicTo(Vec2 control1, Vec2 control2, Vec2 to);
+		void ovalTo(const qk::Rect& rect);
+		void rectTo(const qk::Rect& rect);
+		void arcTo (const qk::Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		void close(); // close line
 		// point ptr
 		inline const Vec2* pts() const { return (Vec2*)*_pts; }
 		inline const PathVerb* verbs() const { return (PathVerb*)*_verbs; }
-		inline uint32_t pts_len() const { return _pts.length() >> 1; }
-		inline uint32_t verbs_len() const { return _verbs.length(); }
+		inline uint32_t ptsLen() const { return _pts.length() >> 1; }
+		inline uint32_t verbsLen() const { return _verbs.length(); }
 		inline bool isNormalized() const { return _IsNormalized; }
 		// convert func
 		/**
@@ -95,11 +95,11 @@ namespace qk {
 		// clip path
 		Path clip(const Path& path) const;
 		// estimate sample rate
-		static int get_quadratic_bezier_sample(const QuadraticBezier& curve, float epsilon = 1.0);
-		static int get_cubic_bezier_sample(const CubicBezier& curve, float epsilon = 1.0);
+		static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon = 1.0);
+		static int getCubicBezierSample(const CubicBezier& curve, float epsilon = 1.0);
 	private:
-		void quad_to2(float *p);
-		void cubic_to2(float *p);
+		void quadTo2(float *p);
+		void cubicTo2(float *p);
 		Array<float> _pts;
 		Array<uint8_t> _verbs;
 		bool _IsNormalized;

@@ -41,14 +41,17 @@ namespace qk {
 	// -------------------- I m a g e . S o u r c e --------------------
 
 	ImageSource::ImageSource(cString& uri): Qk_Init_Event(State)
-		, _uri(fs_reader()->format(uri))
 		, _state(kSTATE_NONE)
-		, _load_id(0)
-	{}
+		, _load_id(0), _device(nullptr)
+	{
+		if (!uri.is_empty())
+			_uri = fs_reader()->format(uri);
+	}
 
 	ImageSource::ImageSource(Array<Pixel>&& pixels): Qk_Init_Event(State)
+		, _uri(String("mem://").append(random()))
 		, _state(kSTATE_NONE)
-		, _load_id(0)
+		, _load_id(0), _device(nullptr)
 	{
 		reload_unsafe(std::move(pixels));
 	}
@@ -65,14 +68,10 @@ namespace qk {
 
 		uint32_t rowbytes = _info.width() * Pixel::bytes_per_pixel(_info.type());
 		uint32_t size = rowbytes * _info.height();
-		Qk_ASSERT(size == _pixels[0].body().length(), "#ImageSource::reload_unsafe pixel size no match");
-
-		_info = pixels[0];
-		_uri = String("mem://").append(random());
-		_state = kSTATE_LOAD_COMPLETE;
+		Qk_ASSERT(size == _pixels[0].body().length(), "pixel size no match");
 
 		if (_device) {
-			Qk_ASSERT(_device == device, "#ImageSource::reload_unsafe device no match");
+			Qk_ASSERT(_device == device, "device no match");
 		} else {
 			device = _device;
 		}
@@ -102,6 +101,8 @@ namespace qk {
 			}
 		}
 
+		_info = pixels[0];
+		_state = kSTATE_LOAD_COMPLETE;
 		_pixels = std::move(pixels);
 		_device = device;
 
@@ -117,18 +118,9 @@ namespace qk {
 	Sp<ImageSource> ImageSource::mark_as_texture_unsafe(BackendDevice *device) const {
 		if (!device && _device)
 			return nullptr;
-
-		Array<Pixel> new_pixels;
-		for (auto &pix: _pixels) {
-			PixelInfo info(pix);
-			Pixel _pix(info);
-			auto id = device->setTexture(&pix, 0);
-			if (!id)
-				return nullptr;
-			_pix._texture = id;
-		}
-		auto src = new ImageSource(std::move(new_pixels));
-		src->_device = device;
+		auto src = new ImageSource();
+		src->_uri = _uri;
+		src->reload_unsafe(Array<Pixel>(_pixels), device);
 		return src;
 	}
 
@@ -312,7 +304,7 @@ namespace qk {
 		}
 	}
 
-	void ImageSourceHolder::handleSourceState(Event<ImageSource, ImageSource::State>& evt) { // 收到图像变化通知
+	void ImageSourceHolder::handleSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		onSourceState(evt);
 	}
 

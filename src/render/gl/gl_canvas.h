@@ -53,8 +53,8 @@ namespace qk {
 		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
 			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) override;
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) override;
-		uint32_t     setTexture(cPixel *src, GLuint id, bool isGenerateMipmap);
-		void         deleteTextures(const uint32_t *IDs, uint32_t count);
+		GLuint       setTexture(cPixel *src, GLuint id, bool isGenerateMipmap);
+		void         deleteTextures(const GLuint *IDs, uint32_t count);
 	protected:
 		void drawColor(const Array<Vec3>& triangles, const Paint& paint);
 		void drawGradient(const Array<Vec3>& triangles, const Paint& paint);

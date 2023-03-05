@@ -44,7 +44,7 @@ namespace qk {
 		path2.scale(Vec2(scale));
 
 		//int i = 0;
-		for (auto edge: path2.to_edge_line()) {
+		for (auto edge: path2.getEdgeLines()) {
 			edges.push(Vec2i(edge.x(), edge.y()));
 			//if (i++ % 2 == 0)
 			//Qk_DEBUG("Edge, %f, %f", edge.x() / 65536, edge.y() / 65536);
@@ -196,8 +196,10 @@ namespace qk {
 		_activeEdges.next = _firstLineEdges; // first line edges
 
 		while (y < e) {
-			Edge *left = _activeEdges.next; Qk_ASSERT(left, "left Edge cannot be empty");
-			Edge *right = left->next;       Qk_ASSERT(right, "right Edge cannot be empty");
+			Edge *left = _activeEdges.next;
+			Qk_ASSERT(left, "left Edge cannot be empty");
+			Edge *right = left->next;
+			Qk_ASSERT(right, "right Edge cannot be empty");
 
 			//if (left->x > right->x) {
 			//	cb(right->x, left->x, y, ctx);

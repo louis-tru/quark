@@ -46,7 +46,7 @@ namespace qk {
 		, _layout_depth(0)
 		, _pre_render(pre)
 	{
-		Qk_ASSERT(pre, "#Layout#Layout PreRender host cannot be null");
+		Qk_ASSERT(pre, "PreRender host cannot be null");
 	}
 
 	/**

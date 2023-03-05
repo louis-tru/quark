@@ -43,14 +43,14 @@ namespace qk {
 		virtual void reload() override;
 		virtual void begin() override;
 		virtual void submit() override;
-		virtual void onRenderbufferStorage(uint32_t target);
+		virtual void onRenderbufferStorage(GLuint target);
 		virtual void onSwapBuffers() = 0;
-		virtual uint32_t setTexture(cPixel *src, uint32_t id) override;
-		virtual void deleteTextures(const uint32_t *IDs, uint32_t count) override;
+		virtual GLuint setTexture(cPixel *src, GLuint id) override;
+		virtual void deleteTextures(const GLuint *IDs, GLuint count) override;
 	protected:
 		GLRender(Application* host, bool raster);
-		uint32_t _render_buffer, _frame_buffer;
-		uint32_t _msaa_render_buffer, _msaa_frame_buffer;
+		GLuint _render_buffer, _frame_buffer;
+		GLuint _msaa_render_buffer, _msaa_frame_buffer;
 		bool _is_support_multisampled, _raster;
 	};
 

@@ -75,7 +75,7 @@ namespace qk {
 		// 		fill="#f00,rgba(0,0,0,1)" class="img1" style={{width:100, height: 100}}
 		// 	/>
 		// </FlowLayout>
-		ImageSource(cString& uri);
+		ImageSource(cString& uri = String());
 		ImageSource(Array<Pixel>&& pixels);
 
 		/**

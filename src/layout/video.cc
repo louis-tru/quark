@@ -293,10 +293,10 @@ namespace qk {
 		
 		void start_run() {
 			Lock lock(_mutex);
-			
-			Qk_ASSERT( _source && _video, "#Video#Inl#start_run 0");
-			Qk_ASSERT( _source->is_active(), "#Video#Inl#start_run 1");
-			Qk_ASSERT( _status == PLAYER_STATUS_START, "#Video#Inl#start_run 2");
+
+			Qk_ASSERT( _source && _video);
+			Qk_ASSERT( _source->is_active());
+			Qk_ASSERT( _status == PLAYER_STATUS_START);
 
 			_waiting_buffer = false;
 
@@ -365,7 +365,7 @@ namespace qk {
 	}
 
 	void Video::multimedia_source_ready(MultimediaSource* src) {
-		Qk_ASSERT( _source == src, "#Video#multimedia_source_ready 0");
+		Qk_ASSERT( _source == src);
 		
 		if ( _video ) {
 			Inl_Video(this)->trigger(UIEvent_Ready); // trigger event ready
@@ -375,8 +375,8 @@ namespace qk {
 			return;
 		}
 
-		Qk_ASSERT(!_video, "#Video#multimedia_source_ready 1");
-		Qk_ASSERT(!_audio, "#Video#multimedia_source_ready 1");
+		Qk_ASSERT(!_video);
+		Qk_ASSERT(!_audio);
 
 		// 创建解码器很耗时这会导致gui线程延时,所以这里不在主线程创建
 		_task_id = _keep->host()->work(Cb([=](Cb::Data& d) {

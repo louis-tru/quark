@@ -392,7 +392,7 @@ namespace qk {
 
 		ColorType type = src->type();
 		GLint internalformat = get_gl_texture_pixel_format(type);
-		Qk_ASSERT(format, "#GLCanvas::setTexture");
+		Qk_ASSERT(format);
 
 		if (!internalformat)
 			return 0;

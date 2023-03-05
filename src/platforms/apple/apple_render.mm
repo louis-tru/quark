@@ -127,7 +127,7 @@ namespace qk {
 
 		void onRenderbufferStorage(uint32_t target) override {
 			if (! [_ctx renderbufferStorage:target fromDrawable:_layer] ) {
-				Qk_FATAL("#AppleGLRender#onRenderbufferStorage nil");
+				Qk_FATAL();
 			}
 		}
 

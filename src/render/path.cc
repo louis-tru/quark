@@ -38,21 +38,21 @@ namespace qk {
 
 	Path Path::Oval(const qk::Rect& r) {
 		Path path;
-		path.oval_to(r);
+		path.ovalTo(r);
 		path.close();
 		return std::move(path);
 	}
 
 	Path Path::Arc(const qk::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
 		Path path;
-		path.arc_to(r, startAngle, sweepAngle, useCenter);
+		path.arcTo(r, startAngle, sweepAngle, useCenter);
 		path.close();
 		return std::move(path);
 	}
 
 	Path Path::Rect(const qk::Rect& r) {
 		Path path;
-		path.rect_to(r);
+		path.rectTo(r);
 		path.close();
 		return std::move(path);
 	}
@@ -62,7 +62,7 @@ namespace qk {
 	}
 
 	Path::Path(Vec2 move): _IsNormalized(true) {
-		move_to(move);
+		moveTo(move);
 	}
 
 	Path::Path(Vec2* pts, int len, PathVerb* verbs, int verbsLen): _IsNormalized(false) {
@@ -73,26 +73,26 @@ namespace qk {
 
 	Path::Path(): _IsNormalized(true) {}
 
-	void Path::move_to(Vec2 to) {
+	void Path::moveTo(Vec2 to) {
 		// _pts.push(to.x()); _pts.push(to.y());
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Move);
 	}
 
-	void Path::line_to(Vec2 to) {
+	void Path::lineTo(Vec2 to) {
 		// _pts.push(to);
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Line);
 	}
 
-	void Path::quad_to(Vec2 control, Vec2 to) {
+	void Path::quadTo(Vec2 control, Vec2 to) {
 		_pts.write(control.val, -1, 2);
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Quad);
 		_IsNormalized = false;
 	}
 
-	void Path::cubic_to(Vec2 control1, Vec2 control2, Vec2 to) {
+	void Path::cubicTo(Vec2 control1, Vec2 control2, Vec2 to) {
 		//_pts.push(control1[0]); _pts.push(control1[1]);
 		//_pts.push(control2[0]); _pts.push(control2[1]);
 		//_pts.push(to[0]); _pts.push(to[1]);
@@ -105,30 +105,30 @@ namespace qk {
 
 	constexpr float magicCircle = 0.551915024494f; // 0.552284749831f
 
-	void Path::oval_to(const qk::Rect& r) {
+	void Path::ovalTo(const qk::Rect& r) {
 		float w = r.size.x(), h = r.size.y();
 		float x = r.origin.x(), y = r.origin.y();
 		float x2 = x + w / 2, y2 = y + h / 2;
 		float x3 = x + w, y3 = y + h;
 		float cx = w / 2 * magicCircle, cy = h / 2 * magicCircle;
-		move_to(Vec2(x2, y));
-		float a[] = {x2 + cx, y, x3, y2 - cy, x3, y2}; cubic_to2(a); // top,right
-		float b[] = {x3, y2 + cy, x2 + cx, y3, x2, y3}; cubic_to2(b); // right,bottom
-		float c[] = {x2 - cx, y3, x, y2 + cy, x, y2}; cubic_to2(c); // bottom,left
-		float d[] = {x, y2 - cy, x2 - cx, y, x2, y}; cubic_to2(d); // left,top
+		moveTo(Vec2(x2, y));
+		float a[] = {x2 + cx, y, x3, y2 - cy, x3, y2}; cubicTo2(a); // top,right
+		float b[] = {x3, y2 + cy, x2 + cx, y3, x2, y3}; cubicTo2(b); // right,bottom
+		float c[] = {x2 - cx, y3, x, y2 + cy, x, y2}; cubicTo2(c); // bottom,left
+		float d[] = {x, y2 - cy, x2 - cx, y, x2, y}; cubicTo2(d); // left,top
 	}
 
-	void Path::rect_to(const qk::Rect& r) {
-		move_to(r.origin);
+	void Path::rectTo(const qk::Rect& r) {
+		moveTo(r.origin);
 		float x2 = r.origin.x() + r.size.x();
 		float y2 = r.origin.y() + r.size.y();
-		line_to(Vec2(x2, r.origin.y()));
-		line_to(Vec2(x2, y2));
-		line_to(Vec2(r.origin.x(), y2));
-		line_to(r.origin); // origin point
+		lineTo(Vec2(x2, r.origin.y()));
+		lineTo(Vec2(x2, y2));
+		lineTo(Vec2(r.origin.x(), y2));
+		lineTo(r.origin); // origin point
 	}
 
-	void Path::arc_to(const qk::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
+	void Path::arcTo(const qk::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
 
 		float rx = r.size.x() / 2.0f;
 		float ry = r.size.y() / 2.0f;
@@ -148,10 +148,10 @@ namespace qk {
 		Vec2 start(x0 * rx + cx, y0 * ry + cy);
 
 		if (useCenter) {
-			move_to(Vec2(cx, cy));
-			line_to(start);
+			moveTo(Vec2(cx, cy));
+			lineTo(start);
 		} else {
-			move_to(start);
+			moveTo(start);
 		}
 
 		for (int i = 0; i < n; i++) {
@@ -167,21 +167,21 @@ namespace qk {
 				x2 * rx + cx, y2 * ry + cy, // p2
 				x3 * rx + cx, y3 * ry + cy  // p3
 			};
-			cubic_to2(pts);
+			cubicTo2(pts);
 		}
 
 		if (useCenter) {
-			line_to(Vec2(cx, cy));
+			lineTo(Vec2(cx, cy));
 		}
 	}
 
-	void Path::quad_to2(float *p) {
+	void Path::quadTo2(float *p) {
 		_pts.write(p, -1, 4);
 		_verbs.push(kVerb_Quad);
 		_IsNormalized = false;
 	}
 
-	void Path::cubic_to2(float *p) {
+	void Path::cubicTo2(float *p) {
 		_pts.write(p, -1, 6);
 		_verbs.push(kVerb_Cubic);
 		_IsNormalized = false;
@@ -192,10 +192,8 @@ namespace qk {
 	}
 
 	Array<Vec3> Path::getPolygons(int polySize, bool antiAlias, float epsilon) const {
-		TESStesselator* tess = tessNewTess(nullptr);
-		CPointer<TESStesselator> hold(tess, [](TESStesselator*p) { tessDeleteTess(p); });
-
-		const Vec2* pts = (const Vec2*)*_pts;
+		auto tess = tessNewTess(nullptr); // TESStesselator*
+		auto pts = (const Vec2*)*_pts;
 		Array<Vec3> polygons;
 		Array<Vec2> tmpV;
 		int len = 0;
@@ -219,21 +217,21 @@ namespace qk {
 					len++;
 					break;
 				case kVerb_Quad: { // quadratic
-					// Qk_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
+					// Qk_DEBUG("conicTo:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
 					QuadraticBezier bezier(tmpV.back(), pts[0], pts[1]);
-					pts+=2;
-					int sample = Path::get_quadratic_bezier_sample(bezier, epsilon);
+					pts += 2;
+					int sample = Path::getQuadraticBezierSample(bezier, epsilon);
 					tmpV.extend(tmpV.length() + sample - 1);
 					bezier.sample_curve_points(sample, (float*)&tmpV[tmpV.length() - sample]);
 					len += sample - 1;
 					break;
 				}
 				case kVerb_Cubic: {// cubic
-					//  Qk_DEBUG("cubic_to:%f,%f|%f,%f|%f,%f",
+					//  Qk_DEBUG("cubicTo:%f,%f|%f,%f|%f,%f",
 					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
 					CubicBezier bezier(tmpV.back(), pts[0], pts[1], pts[2]);
-					pts+=3;
-					int sample = Path::get_cubic_bezier_sample(bezier, epsilon);
+					pts += 3;
+					int sample = Path::getCubicBezierSample(bezier, epsilon);
 					tmpV.extend(tmpV.length() + sample - 1);
 					bezier.sample_curve_points(sample, (float*)&tmpV[tmpV.length() - sample]);
 					len += sample - 1;
@@ -254,31 +252,28 @@ namespace qk {
 		}
 
 		// Convert to convex contour vertex data
-		if ( tessTesselate(tess, TESS_WINDING_POSITIVE,
-											TESS_CONNECTED_POLYGONS/*TESS_POLYGONS*/, polySize, 2, 0) 
-		) {
+		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 2, 0) ) {
 			const int nelems = tessGetElementCount(tess);
 			const TESSindex* elems = tessGetElements(tess);
-			const TESSreal* verts = tessGetVertices(tess);
-			for (int i = 0; i < nelems * polySize; i++) {
-				float x = verts[elems[0]];
-				float y = verts[elems[1]];
-				polygons.push(Vec3(x, y, 1.0));
-				elems += 2;
+			const Vec2* verts = (const Vec2*)tessGetVertices(tess);
+			for (int i = 0, len = nelems * polySize; i < len; i++) {
+				Vec2 vec = verts[*elems++];
+				polygons.push(Vec3(vec.x(), vec.y(), 1.0));
 			}
 		}
+
+		tessDeleteTess(tess);
 
 		return std::move(polygons);
 	}
 
 	Array<Vec2> Path::getEdgeLines(float epsilon) const {
-		const Vec2* pts = ((const Vec2*)*_pts) - 1;
 		Array<Vec2> edges;
-		int len = 0;
+		auto pts = ((const Vec2*)*_pts) - 1;
+		int  len = 0;
 		bool isZeor = true;
 
 		for (auto verb: _verbs) {
-
 			switch(verb) {
 				case kVerb_Move:
 					pts++;
@@ -286,30 +281,33 @@ namespace qk {
 					isZeor = false;
 					break;
 				case kVerb_Line:
-					edges.push(isZeor ? (pts++, Vec2()): *pts++); edges.push(*pts); // edge 0
+					edges.push(isZeor ? (pts++, Vec2()): *pts++);
+					edges.push(*pts); // edge 0
 					len+=2;
 					isZeor = false;
 					break;
 				case kVerb_Quad: { // Quadratic
-					//  Qk_DEBUG("conic_to:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
+					//  Qk_DEBUG("conicTo:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
 					QuadraticBezier bezier(isZeor ? Vec2(): pts[0], pts[1], pts[2]); pts+=2;
-					int sample = Path::get_quadratic_bezier_sample(bezier, epsilon);
+					int sample = Path::getQuadraticBezierSample(bezier, epsilon);
 					auto points = bezier.sample_curve_points(sample);
 					for (int i = 0; i < sample - 1; i++) {
-						edges.push(points[i]); edges.push(points[i + 1]); // add edge line
+						edges.push(points[i]);
+						edges.push(points[i + 1]); // add edge line
 					}
 					len += (sample * 2 - 2);
 					isZeor = false;
 					break;
 				}
 				case kVerb_Cubic: { // cubic
-					//  Qk_DEBUG("cubic_to:%f,%f|%f,%f|%f,%f",
+					//  Qk_DEBUG("cubicTo:%f,%f|%f,%f|%f,%f",
 					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
 					CubicBezier bezier(isZeor ? Vec2(): pts[0], pts[1], pts[2], pts[3]); pts+=3;
-					int sample = Path::get_cubic_bezier_sample(bezier, epsilon);
+					int sample = Path::getCubicBezierSample(bezier, epsilon);
 					auto points = bezier.sample_curve_points(sample);
 					for (int i = 0; i < sample - 1; i++) {
-						edges.push(points[i]); edges.push(points[i + 1]); // add edge line
+						edges.push(points[i]);
+						edges.push(points[i + 1]); // add edge line
 					}
 					len += (sample * 2 - 2);
 					isZeor = false;
@@ -317,7 +315,8 @@ namespace qk {
 				}
 				default: // close
 					if (len) {
-						edges.push(*pts); edges.push(edges[edges.length() - len - 1]); // add close edge line
+						edges.push(*pts);
+						edges.push(edges[edges.length() - len - 1]); // add close edge line
 					}
 					len = 0;
 					isZeor = true;
@@ -342,28 +341,28 @@ namespace qk {
 		if (_IsNormalized)
 			return *this; // copy self
 
-		const Vec2* pts = ((const Vec2*)*_pts);
 		Path line;
+		auto pts = ((const Vec2*)*_pts);
 		bool isZeor = true;
 
 		for (auto verb: _verbs) {
 			switch(verb) {
 				case kVerb_Move:
-					line.move_to(*pts++);
+					line.moveTo(*pts++);
 					isZeor = false;
 					break;
 				case kVerb_Line:
 					if (isZeor)
-						line.move_to(Vec2()); // add zeor
-					line.line_to(*pts++);
+						line.moveTo(Vec2()); // add zeor
+					line.lineTo(*pts++);
 					isZeor = false;
 					break;
 				case kVerb_Quad: { // quadratic bezier
 					if (isZeor)
-						line.move_to(Vec2());
+						line.moveTo(Vec2());
 					QuadraticBezier bezier(line._pts.back(), pts[0], pts[1]);
 					pts+=2;
-					int sample = Path::get_quadratic_bezier_sample(bezier, epsilon) - 1;
+					int sample = Path::getQuadraticBezierSample(bezier, epsilon) - 1;
 					line._pts.extend(line._pts.length() + sample * 2);
 					bezier.sample_curve_points(sample+1, &line._pts[line._pts.length() - (sample+1) * 2]);
 					line._verbs.extend(line._verbs.length() + sample);
@@ -373,10 +372,10 @@ namespace qk {
 				}
 				case kVerb_Cubic: { // cubic bezier
 					if (isZeor)
-						line.move_to(Vec2());
+						line.moveTo(Vec2());
 					CubicBezier bezier(line._pts.back(), pts[0], pts[1], pts[2]);
 					pts+=3;
-					int sample = Path::get_cubic_bezier_sample(bezier, epsilon) - 1;
+					int sample = Path::getCubicBezierSample(bezier, epsilon) - 1;
 					line._pts.extend(line._pts.length() + sample * 2);
 					bezier.sample_curve_points(sample+1, &line._pts[line._pts.length() - (sample+1) * 2]);
 					line._verbs.extend(line._verbs.length() + sample);
@@ -420,7 +419,7 @@ namespace qk {
 		return Path();
 	}
 
-	int Path::get_quadratic_bezier_sample(const QuadraticBezier& curve, float epsilon) {
+	int Path::getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon) {
 		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2();
 
 		// calculate triangle area by point cross multiplication
@@ -436,17 +435,16 @@ namespace qk {
 		}
 	}
 
-	/*
-	function get_cubic_bezier_sample(A, B, C, D, epsilon = 1) {
-		let S_ABC = (A.x*B.y - A.y*B.x) + (B.x*C.y - B.y*C.x);
-		let S_CDA = (C.x*D.y - C.y*D.x) + (D.x*A.y - D.y*A.x);
-		let S = (S_ABC + S_CDA) * 0.5 * epsilon;
-		return S;
-	}
-	console.log(get_cubic_bezier_sample({x:0,y:0}, {x:10,y:0}, {x:10,y:10}, {x:0,y:10}));
-	*/
-
-	int Path::get_cubic_bezier_sample(const CubicBezier& curve, float epsilon) {
+	int Path::getCubicBezierSample(const CubicBezier& curve, float epsilon) {
+		/*
+		function get_cubic_bezier_sample(A, B, C, D, epsilon = 1) {
+			let S_ABC = (A.x*B.y - A.y*B.x) + (B.x*C.y - B.y*C.x);
+			let S_CDA = (C.x*D.y - C.y*D.x) + (D.x*A.y - D.y*A.x);
+			let S = (S_ABC + S_CDA) * 0.5 * epsilon;
+			return S;
+		}
+		console.log(get_cubic_bezier_sample({x:0,y:0}, {x:10,y:0}, {x:10,y:10}, {x:0,y:10}));
+		*/
 		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2(), D = curve.p3();
 
 		// calculate the area of two triangles by point cross multiplication
