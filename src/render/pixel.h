@@ -119,10 +119,10 @@ namespace qk {
 	public:
 		PixelInfo();
 		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
-		Qk_DEFINE_PROP_GET(int, width); //!< width 图像宽度
-		Qk_DEFINE_PROP_GET(int, height); //!< height 图像高度
-		Qk_DEFINE_PROP_GET(ColorType, type); //!< type 图像像素的排列格式
-		Qk_DEFINE_PROP_GET(AlphaType, alphaType); //!< 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
+		Qk_DEFINE_PROP_GET(int, width); //!< bitmap width
+		Qk_DEFINE_PROP_GET(int, height); //!< bitmap height
+		Qk_DEFINE_PROP_GET(ColorType, type); //!< bitmap pixel color type
+		Qk_DEFINE_PROP_GET(AlphaType, alphaType); //!< is premultiplied by alpha
 		uint32_t rowbytes() const;
 		uint32_t size() const;
 	};
