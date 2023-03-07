@@ -89,6 +89,12 @@ namespace qk {
 		glEnable(GL_BLEND);
 		setBlendMode(kSrcOver_BlendMode);
 
+		glClearStencil(0);
+		glStencilMask(0xffffffff);
+
+		glDisable(GL_DEPTH);
+		glDisable(GL_STENCIL);
+
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
 				_opts.colorType = kColor_Type_RGBA_8888; break;
@@ -134,30 +140,31 @@ namespace qk {
 		glViewport(0, 0, width, height);
 
 		// --------------------- Init render and frame buffers ---------------------
-		do {
-			glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
-			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			onRenderbufferStorage(GL_RENDERBUFFER); // create buffer storage
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
+		onRenderbufferStorage(GL_RENDERBUFFER); // create main buffer storage
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 
+		do {
 			int MSAA = _opts.msaaSampleCnt;
 			if ( MSAA > 1 ) { // 启用多重采样
-				glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render buffer
 				glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
+				glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render buffer
 				glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAA, glPixelInternalFormat(_opts.colorType), width, height);
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaa_render_buffer);
 			}
-
 			// Test the framebuffer for completeness.
 			if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
 				_IsDeviceAntiAlias = true;
 				break;
 			} else if ( MSAA > 1 ) {
-				_opts.msaaSampleCnt /= 2;
+				_opts.msaaSampleCnt >>= 1;
 			} else {
 				Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
 			}
 		} while(1);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
@@ -165,9 +172,6 @@ namespace qk {
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 
 		// ---------------------------------------------------------------
-
-		glClearStencil(0);
-		glStencilMask(0xffffffff);
 
 		// update all shader root matrix
 		auto scale = _host->display()->scale();
@@ -198,19 +202,16 @@ namespace qk {
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
 #endif
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
+			// glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
+			onSwapBuffers();
+			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
+			// glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer);
 		} else {
 #if !Qk_OSX
 			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
 #endif
-		}
-
-		onSwapBuffers();
-
-		if ( _opts.msaaSampleCnt > 1 ) {
-			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
-			glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer);
+			onSwapBuffers();
 		}
 	}
 

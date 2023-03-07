@@ -37,7 +37,7 @@ namespace qk {
 # define GL_LUMINANCE_ALPHA GL_RED
 #endif
 
-	static void glUseTexture(GLuint id, const Paint& paint, uint32_t slot) {
+	static void gl_use_texture(GLuint id, const Paint& paint, uint32_t slot) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, id);
 
@@ -312,7 +312,7 @@ namespace qk {
 			auto id = pixel[i].texture();
 			if (!id || (id = setTexture(pixel+i, _texTmp[i], true)))
 				_texTmp[i] = id;
-			glUseTexture(id, paint, i);
+			gl_use_texture(id, paint, i);
 		}
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, triangles.val());
