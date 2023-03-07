@@ -202,7 +202,6 @@ void GLDraw::initialize() {
 }
 
 void GLDraw::initializ_gl_status() {
-	
 	glClearDepthf(0);
 	glClearStencil(0);
 	
@@ -247,9 +246,7 @@ void GLDraw::initializ_gl_buffers() {
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
 		glGenRenderbuffers(1, &m_render_buffer);
 		// Perform similar steps to create and attach a depth renderbuffer.
-		if ( nx_use_depth_test ) {
-			glGenRenderbuffers(1, &m_depth_buffer);
-		}
+		glGenRenderbuffers(1, &m_depth_buffer);
 		// stencil buffer
 		glGenRenderbuffers(1, &m_stencil_buffer);
 		// Create multisample buffers
@@ -276,66 +273,40 @@ void GLDraw::refresh_buffer() {
 
 	int width = surface_size()[0];
 	int height = surface_size()[1];
+	int maas = multisample();
 	
 	glViewport(0, 0, width, height);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_render_buffer);
-	gl_main_render_buffer_storage();
+	gl_main_render_buffer_storage(); // alloc main storage
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_render_buffer);
-	
-	if ( multisample() > 1 && is_support_multisampled() ) { // 启用多重采样
+
+	if ( maas > 1 && is_support_multisampled() ) {
 		glBindFramebuffer(GL_FRAMEBUFFER, m_msaa_frame_buffer);
+		// alloc storage
 		glBindRenderbuffer(GL_RENDERBUFFER, m_msaa_render_buffer); // render
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_RGBA8, width, height);
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, maas, GL_RGBA8, width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_msaa_render_buffer);
-
-		if ( nx_use_depth_test ) {
-			if ( is_support_packed_depth_stencil() ) {
-				glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
-				glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_DEPTH24_STENCIL8, width, height);
-			} else {
-				glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
-				glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_DEPTH_COMPONENT16, width, height);
-				glBindRenderbuffer(GL_RENDERBUFFER, m_stencil_buffer); // stencil
-				glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_STENCIL_INDEX8, width, height);
-			}
-		} else {
-			glBindRenderbuffer(GL_RENDERBUFFER, m_stencil_buffer); // stencil
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_STENCIL_INDEX8, width, height);
-		}
+		glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, maas, GL_DEPTH_COMPONENT16, width, height);
+		glBindRenderbuffer(GL_RENDERBUFFER, m_stencil_buffer); // stencil
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, maas, GL_STENCIL_INDEX8, width, height);
 	} else {
-		if ( nx_use_depth_test ) {
-			if ( is_support_packed_depth_stencil() ) {
-				glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
-				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-			} else {
-				glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
-				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
-				glBindRenderbuffer(GL_RENDERBUFFER, m_stencil_buffer); // stencil
-				glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
-			}
-		} else {
-			glBindRenderbuffer(GL_RENDERBUFFER, m_stencil_buffer); // stencil
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
-		}
+		glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+		glBindRenderbuffer(GL_RENDERBUFFER, m_stencil_buffer); // stencil
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
 	}
 
-	if ( nx_use_depth_test ) {
-		 glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_buffer);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-															is_support_packed_depth_stencil() ? m_depth_buffer : m_stencil_buffer);
-	} else {
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_stencil_buffer);
-	}
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_buffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_stencil_buffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-	glBindRenderbuffer(GL_RENDERBUFFER, m_frame_buffer);
-	
 	// Test the framebuffer for completeness.
 	if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
 		FX_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 	}
-	
 	// Retrieve the height and width of the color renderbuffer.
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
@@ -377,11 +348,11 @@ void GLDraw::begin_render() {
 	glDisable(GL_STENCIL_TEST);
 	if ( multisample() > 1 && is_support_multisampled() ) {
 		glBindFramebuffer(GL_FRAMEBUFFER, m_msaa_frame_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_msaa_frame_buffer);
+		// glBindRenderbuffer(GL_RENDERBUFFER, m_msaa_frame_buffer);
 		m_current_frame_buffer = m_msaa_frame_buffer;
 	} else {
 		glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_frame_buffer);
+		// glBindRenderbuffer(GL_RENDERBUFFER, m_frame_buffer);
 		m_current_frame_buffer = m_frame_buffer;
 	}
 }
@@ -397,7 +368,7 @@ void GLDraw::commit_render() {
 		glBlitFramebuffer(0, 0, ssize.width(), ssize.height(),
 											0, 0, ssize.width(), ssize.height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_frame_buffer);
+		// glBindRenderbuffer(GL_RENDERBUFFER, m_frame_buffer);
 	}
 }
 
