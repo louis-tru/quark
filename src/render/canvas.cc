@@ -50,8 +50,4 @@ namespace qk {
 		drawPath(Path::Circle(center, radius), paint);
 	}
 
-	BackendDevice* Canvas::backendDevice() {
-		return nullptr;
-	}
-
 }
