@@ -28,188 +28,50 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import <UIKit/UIKit.h>
-#import <MessageUI/MFMailComposeViewController.h>
-#import <MetalKit/MTKView.h>
-
-typedef UIEvent AppleUIEvent;
-
 #import "../../util/loop.h"
-#import "../../app.inl"
-#import "../../display.h"
+#import "../../app.h"
 #import "../../event.h"
-#import "./apple_render.h"
-#import "./ios_ime_helper.h"
+#import "../../display.h"
+#import "./ios_app.h"
 
 using namespace qk;
 
+// ***************** Q k . A p p l i c a t i o n . D e l e g a t e *****************
+
 typedef Display::Orientation Orientation;
-typedef Display::StatusBarStyle StatusBarStyle;
 
-static ApplicationDelegate* appDelegate = nil;
-static RenderApple* renderApple = nil;
+QkApplicationDelegate *__appDelegate = nil; // global object
 
-@interface ApplicationDelegate()<MFMailComposeViewControllerDelegate>
-	{
-		BOOL _is_background;
-		int  _fps;
-		Cb   _render_exec;
-	}
-	@property (strong, nonatomic) UIView* view;
-	@property (strong, nonatomic) IOSIMEHelprt* ime;
-	@property (strong, nonatomic) CADisplayLink* display_link;
-	@property (strong, nonatomic) UIApplication* host;
-	@property (strong, nonatomic) RootViewController* root_ctr;
-	@property (strong, nonatomic) UIWindow *window;
-	@property (assign, nonatomic) Orientation setting_orientation;
-	@property (assign, nonatomic) Orientation current_orientation;
-	@property (assign, nonatomic) bool visible_status_bar;
-	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
-	@property (assign, atomic) NSInteger render_task_count;
+@interface QkRootViewController()
+	@property (weak, nonatomic) QkApplicationDelegate* appDelegate;
 @end
 
-@interface RootViewController()
-	@property (weak, nonatomic) ApplicationDelegate* appSelf;
-@end
-
-@implementation RootViewController
-
-	-(BOOL)shouldAutorotate {
-		return YES;
-	}
-
-	-(UIInterfaceOrientationMask)supportedInterfaceOrientations {
-		switch ( self.appSelf.setting_orientation ) {
-			case Orientation::ORIENTATION_PORTRAIT:
-				return UIInterfaceOrientationMaskPortrait;
-			case Orientation::ORIENTATION_LANDSCAPE:
-				return UIInterfaceOrientationMaskLandscapeRight;
-			case Orientation::ORIENTATION_REVERSE_PORTRAIT:
-				return UIInterfaceOrientationMaskPortraitUpsideDown;
-			case Orientation::ORIENTATION_REVERSE_LANDSCAPE:
-				return UIInterfaceOrientationMaskLandscapeLeft;
-			case Orientation::ORIENTATION_USER: default:
-				return UIInterfaceOrientationMaskAll;
-			case Orientation::ORIENTATION_USER_PORTRAIT:
-				return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
-			case Orientation::ORIENTATION_USER_LANDSCAPE:
-				return UIInterfaceOrientationMaskLandscape;
-			case Orientation::ORIENTATION_USER_LOCKED: {
-				switch (self.appSelf.current_orientation) {
-					default:
-					case Orientation::ORIENTATION_INVALID:
-						return UIInterfaceOrientationMaskAll;
-					case Orientation::ORIENTATION_PORTRAIT:
-						return UIInterfaceOrientationMaskPortrait;
-					case Orientation::ORIENTATION_LANDSCAPE:
-						return UIInterfaceOrientationMaskLandscapeRight;
-					case Orientation::ORIENTATION_REVERSE_PORTRAIT:
-						return UIInterfaceOrientationMaskPortraitUpsideDown;
-					case Orientation::ORIENTATION_REVERSE_LANDSCAPE:
-						return UIInterfaceOrientationMaskLandscapeLeft;
-				}
-			}
-		}
-		return UIInterfaceOrientationMaskAll;
-	}
-
-	-(void)viewWillTransitionToSize:(CGSize)size
-				withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
-	{
-		[coordinator animateAlongsideTransition:^(id context) {
-			renderApple->resize(self.appSelf.view.frame);
-			Orientation orient = self.appSelf.app->display()->orientation();
-			if (orient != self.appSelf.current_orientation) {
-				self.appSelf.current_orientation = orient;
-				self.appSelf.app->loop()->post(Cb([](Cb::Data& e) {
-					appDelegate.app->display()->Qk_Trigger(Orientation);
-				}));
-			}
-		} completion:nil];
-		[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
-	}
-
-	-(UIStatusBarStyle)preferredStatusBarStyle {
-		return self.appSelf.status_bar_style;
-	}
-
-	-(UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
-		// UIApplicationWillChangeStatusBarFrameNotification
-		return UIStatusBarAnimationSlide;
-	}
-
-	-(BOOL)prefersStatusBarHidden {
-		return !self.appSelf.visible_status_bar;
-	}
-
-	-(List<TouchPoint>)touchsList:(NSSet<UITouch*>*)touches {
-		List<TouchPoint> rv;
-
-		Vec2 size = self.appSelf.app->display()->size();
-
-		float scale_x = size.x() /  self.appSelf.view.frame.size.width;
-		float scale_y = size.y() /  self.appSelf.view.frame.size.height;
-
-		for (UITouch* touch in [touches objectEnumerator]) {
-			CGPoint point = [touch locationInView:touch.view];
-			CGFloat force = touch.force;
-			// CGFloat angle = touch.altitudeAngle;
-			// CGFloat max_force = touch.maximumPossibleForce;
-			rv.push_back({
-				uint32_t((size_t)touch % Uint32::limit_max), 0, 0,
-				float(point.x * scale_x), float(point.y * scale_y),
-				float(force), false, nullptr,
-			});
-		}
-
-		return rv;
-	}
-
-	-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		_inl_app(self.appSelf.app)->dispatch()->onTouchstart( [self touchsList:touches] );
-	}
-
-	-(void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		// Qk_DEBUG("touchesMoved, count: %d", touches.count);
-		_inl_app(self.appSelf.app)->dispatch()->onTouchmove( [self touchsList:touches] );
-	}
-
-	-(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event{
-		_inl_app(self.appSelf.app)->dispatch()->onTouchend( [self touchsList:touches] );
-	}
-
-	-(void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
-		_inl_app(self.appSelf.app)->dispatch()->onTouchcancel( [self touchsList:touches] );
-	}
-
-@end
-
-@implementation ApplicationDelegate
+@implementation QkApplicationDelegate
 
 	static void render_exec_func(Cb::Data& evt, Object* ctx) {
-		appDelegate.render_task_count--;
-		appDelegate.app->display()->render();
+		__appDelegate.render_task_count--;
+		__appDelegate.app->display()->render();
 	}
 
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
 		auto _ = self.app;
-#if Qk_USE_DEFAULT_THREAD_RENDER
-		if (_->is_loaded()) {
-			if (_fps == 0) { // 3 = 15, 1 = 30
-				_->display()->render();
-				_fps = 0;
-			} else {
-				_fps++;
+		#if Qk_USE_DEFAULT_THREAD_RENDER
+			if (_->is_loaded()) {
+				if (_fps == 0) { // 3 = 15, 1 = 30
+					_->display()->render();
+					_fps = 0;
+				} else {
+					_fps++;
+				}
 			}
-		}
-#else
-		if (self.render_task_count == 0) {
-			self.render_task_count++;
-			_->loop()->post(_render_exec);
-		} else {
-			Qk_DEBUG("miss frame");
-		}
-#endif
+		#else
+			if (self.render_task_count == 0) {
+				self.render_task_count++;
+				_->loop()->post(_render_exec);
+			} else {
+				Qk_DEBUG("miss frame");
+			}
+		#endif
 	}
 
 	- (void)refresh_status {
@@ -220,32 +82,30 @@ static RenderApple* renderApple = nil;
 	}
 
 	- (RootViewController*)root_ctr {
-		 if (!_root_ctr) {
-			 self.root_ctr = [[RootViewController alloc] init];
-		 }
-		 return _root_ctr;
-	 }
+		if (!_root_ctr) // singleton mode
+			self.root_ctr = [[RootViewController alloc] init];
+		return _root_ctr;
+	}
 
 	- (UIWindow*)window {
-		 if (!_window) {
-			 self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-		 }
-		 return _window;
-	 }
+		if (!_window) // singleton mode
+			self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+		return _window;
+	}
 
 	- (void)resize {
-		renderApple->resize(appDelegate.view.frame);
+		auto render = dynamic_cast<AppleRender*>(self.host->render());
+		render->resize(__appDelegate.view.frame);
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		Qk_ASSERT(!appDelegate);
-		appDelegate = self;
+		Qk_ASSERT(!__appDelegate);
+		__appDelegate = self;
 		Qk_ASSERT(Application::shared());
-		_app = Application::shared(); 
+		_host = Application::shared();
 
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];
-
 		_is_background = NO;
 		_render_exec = Cb(render_exec_func);
 		
@@ -255,7 +115,7 @@ static RenderApple* renderApple = nil;
 		self.current_orientation = Orientation::ORIENTATION_INVALID;
 		self.visible_status_bar = YES;
 		self.status_bar_style = UIStatusBarStyleDefault;
-		self.root_ctr.appSelf = self;
+		self.root_ctr.appDelegate = self;
 		self.display_link = [CADisplayLink displayLinkWithTarget:self
 																										selector:@selector(display_link_callback:)];
 		self.window.backgroundColor = [UIColor blackColor];
@@ -263,15 +123,16 @@ static RenderApple* renderApple = nil;
 		
 		[self.window makeKeyAndVisible];
 		
-		UIView* rootView = self.window.rootViewController.view;
-		
-		self.view = renderApple->init(rootView.bounds);
+		UIView *rootView = self.window.rootViewController.view;
+		auto render = dynamic_cast<AppleRender*>(self.host->render());
+
+		self.view = render->init(rootView.bounds);
 		self.view.contentScaleFactor = UIScreen.mainScreen.scale;
 		self.view.translatesAutoresizingMaskIntoConstraints = NO;
 		self.view.multipleTouchEnabled = YES;
 		self.view.userInteractionEnabled = YES;
 
-		self.ime = [[IOSIMEHelprt alloc] initWithApplication:self.app];
+		self.ime = [[IOSIMEHelprt alloc] initWithApplication:self.host];
 
 		[rootView addSubview:self.view];
 		[rootView addSubview:self.ime];
@@ -292,11 +153,11 @@ static RenderApple* renderApple = nil;
 												multiplier:1
 												constant:0]];
 		
-		_app->display()->set_default_scale(UIScreen.mainScreen.scale);
+		_host->display()->set_default_scale(UIScreen.mainScreen.scale);
 
-		renderApple->resize(self.view.frame);
+		render->resize(self.view.frame);
 
-		_inl_app(_app)->triggerLoad();
+		_inl_app(_host)->triggerLoad();
 
 		[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
 														forMode:NSDefaultRunLoopMode];
@@ -304,37 +165,37 @@ static RenderApple* renderApple = nil;
 	}
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(CGRect)frame {
-		if ( appDelegate && !_is_background ) {
+		if ( __appDelegate && !_is_background ) {
 			[self resize];
 		}
 	}
 
 	- (void)applicationWillResignActive:(UIApplication*) application {
-		_inl_app(_app)->triggerPause();
+		_inl_app(_host)->triggerPause();
 	}
 
 	- (void)applicationDidBecomeActive:(UIApplication*) application {
-		_inl_app(_app)->triggerResume();
+		_inl_app(_host)->triggerResume();
 		[self resize];
 	}
 
 	- (void)applicationDidEnterBackground:(UIApplication*) application {
 		_is_background = YES;
-		_inl_app(_app)->triggerBackground();
+		_inl_app(_host)->triggerBackground();
 	}
 
 	- (void)applicationWillEnterForeground:(UIApplication*) application {
 		_is_background = NO;
-		_inl_app(_app)->triggerForeground();
+		_inl_app(_host)->triggerForeground();
 	}
 
 	- (void)applicationDidReceiveMemoryWarning:(UIApplication*) application {
-		_inl_app(_app)->triggerMemorywarning();
+		_inl_app(_host)->triggerMemorywarning();
 	}
 
 	- (void)applicationWillTerminate:(UIApplication*)application {
 		[self.display_link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-		_inl_app(_app)->triggerUnload();
+		_inl_app(_host)->triggerUnload();
 	}
 
 	- (void) mailComposeController:(MFMailComposeViewController*)controller
@@ -345,41 +206,27 @@ static RenderApple* renderApple = nil;
 
 @end
 
+
 // ***************** A p p l i c a t i o n *****************
 
-Render* Render::Make(Application* host) {
-	renderApple = RenderApple::Make(host);
-	return renderApple->render();
+static NSArray<NSString*>* split_ns_array(cString& str) {
+	auto arr = [NSMutableArray<NSString*> new];
+	for (auto& i : str.split(','))
+		[arr addObject: [NSString stringWithUTF8String:i.c_str()]];
+	return arr;
 }
 
-/**
- * @func pending() 挂起应用进程
- */
 void Application::pending() {
 	// exit(0);
 }
 
-/**
- * @func open_url()
- */
 void Application::open_url(cString& url) {
-	NSURL* url2 = [NSURL URLWithString:[NSString stringWithUTF8String:*url]];
+	NSURL* url_ = [NSURL URLWithString:[NSString stringWithUTF8String:*url]];
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[appDelegate.host openURL:url2 options:@{} completionHandler:nil];
+		[__appDelegate.app openURL:url_ options:@{} completionHandler:nil];
 	});
 }
 
-static NSArray<NSString*>* split_ns_array(cString& str) {
-	NSMutableArray<NSString*>* arr = [NSMutableArray<NSString*> new];
-	for (auto& i : str.split(',')) {
-		[arr addObject: [NSString stringWithUTF8String:i.c_str()]];
-	}
-	return arr;
-}
-
-/**
- * @func send_email()
- */
 void Application::send_email(cString& recipient,
 															cString& subject,
 															cString& cc, cString& bcc, cString& body) {
@@ -396,201 +243,44 @@ void Application::send_email(cString& recipient,
 		[mail setCcRecipients:cc_];
 		[mail setBccRecipients:bcc_];
 		[mail setMessageBody:body_ isHTML:NO];
-		mail.mailComposeDelegate = appDelegate;
-			[appDelegate.root_ctr presentViewController:mail animated:YES completion:nil];
+		mail.mailComposeDelegate = __appDelegate;
+		[__appDelegate.root_ctr presentViewController:mail animated:YES completion:nil];
 	});
 }
 
-/**
- * @func ime_keyboard_open
- */
-void AppInl::ime_keyboard_open(KeyboardOptions options) {
+// ***************** E v e n t . D i s p a t c h *****************
+
+void EventDispatch::set_volume_up() {
+	// TODO ..
+}
+
+void EventDispatch::set_volume_down() {
+	// TODO ..
+}
+
+void EventDispatch::set_ime_keyboard_open(KeyboardOptions options) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[appDelegate.ime set_keyboard_type:options.type];
-		[appDelegate.ime set_keyboard_return_type:options.return_type];
+		[__appDelegate.ime set_keyboard_type:options.type];
+		[__appDelegate.ime set_keyboard_return_type:options.return_type];
 		if ( options.is_clear ) {
-			[appDelegate.ime clear];
+			[__appDelegate.ime clear];
 		}
-		[appDelegate.ime open];
+		[__appDelegate.ime open];
 	});
 }
 
-/**
- * @func ime_keyboard_can_backspace
- */
-void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
+void EventDispatch::set_ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[appDelegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
+		[__appDelegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
 	});
 }
 
-/**
- * @func ime_keyboard_close
- */
-void AppInl::ime_keyboard_close() {
+void EventDispatch::set_ime_keyboard_close() {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[appDelegate.ime close];
+		[__appDelegate.ime close];
 	});
 }
 
-/**
- * @func ime_keyboard_spot_location
- */
-void AppInl::ime_keyboard_spot_location(Vec2 location) {
-}
-
-/**
- * @func set_volume_up()
- */
-void AppInl::set_volume_up() {
-	// TODO ..
-}
-
-/**
- * @func set_volume_down()
- */
-void AppInl::set_volume_down() {
-	// TODO ..
-}
-
-// ***************** D i s p l a y *****************
-
-/**
- * @func default_atom_pixel
- */
-float Display::default_atom_pixel() {
-	return 1.0 / UIScreen.mainScreen.scale;
-}
-
-/**
- * @func keep_screen(keep)
- */
-void Display::keep_screen(bool keep) {
-	dispatch_async(dispatch_get_main_queue(), ^{
-		if ( keep ) {
-			appDelegate.host.idleTimerDisabled = YES;
-		} else {
-			appDelegate.host.idleTimerDisabled = NO;
-		}
-	});
-}
-
-/**
- * @func status_bar_height()
- */
-float Display::status_bar_height() {
-	CGRect rect = appDelegate.host.statusBarFrame;
-	return Qk_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale;
-}
-
-/**
- * @func default_status_bar_height
- */
-float Display::default_status_bar_height() {
-	if (appDelegate && appDelegate.app) {
-		return appDelegate.app->display()->status_bar_height();
-	} else {
-		return 20;
-	}
-}
-
-/**
- * @func set_visible_status_bar(visible)
- */
-void Display::set_visible_status_bar(bool visible) {
-	if ( visible == appDelegate.visible_status_bar ) return;
-	appDelegate.visible_status_bar = visible;
-
-	dispatch_async(dispatch_get_main_queue(), ^{
-		//if ( visible ) {
-		//  [appDelegate.host setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
-		//} else {
-		//  [appDelegate.host setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
-		//}
-		[appDelegate refresh_status];
-
-		// TODO 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 ?
-		renderApple->resize(appDelegate.view.frame);
-
-		// TODO 绘图表面尺寸没有改变? 表示只是单纯状态栏改变? 这个改变也当成change通知给用户
-		_host->loop()->post(Cb([this](Cb::Data& e) {
-			Qk_Trigger(Change);
-		}));
-	});
-}
-
-/**
- * @func set_status_bar_text_color(color)
- */
-void Display::set_status_bar_style(StatusBarStyle style) {
-	UIStatusBarStyle style_2;
-	if ( style == STATUS_BAR_STYLE_WHITE ) {
-		style_2 = UIStatusBarStyleLightContent;
-	} else {
-		if (@available(iOS 13.0, *)) {
-			style_2 = UIStatusBarStyleDarkContent;
-		} else {
-			style_2 = UIStatusBarStyleDefault;
-		}
-	}
-	if ( appDelegate && appDelegate.status_bar_style != style_2 ) {
-		appDelegate.status_bar_style = style_2;
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[appDelegate refresh_status];
-		});
-	}
-}
-
-/**
- * @func request_fullscreen(fullscreen)
- */
-void Display::request_fullscreen(bool fullscreen) {
-	set_visible_status_bar(!fullscreen);
-}
-
-/**
- * @func orientation()
- */
-Orientation Display::orientation() {
-	Orientation r = ORIENTATION_INVALID;
-	switch ( appDelegate.host.statusBarOrientation ) {
-		case UIInterfaceOrientationPortrait:
-			r = ORIENTATION_PORTRAIT;
-			break;
-		case UIInterfaceOrientationPortraitUpsideDown:
-			r = ORIENTATION_REVERSE_PORTRAIT;
-			break;
-		case UIInterfaceOrientationLandscapeLeft:
-			r = ORIENTATION_REVERSE_LANDSCAPE;
-			break;
-		case UIInterfaceOrientationLandscapeRight:
-			r = ORIENTATION_LANDSCAPE;
-			break;
-		default:
-			r = ORIENTATION_INVALID;
-			break;
-	}
-	return r;
-}
-
-/**
- * @func set_orientation(orientation)
- */
-void Display::set_orientation(Orientation orientation) {
-	if ( appDelegate.setting_orientation != orientation ) {
-		appDelegate.setting_orientation = orientation;
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[appDelegate refresh_status];
-		});
-	}
-}
-
-extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
-	Application::runMain(argc, argv);
-	if ( app() ) {
-		@autoreleasepool {
-			UIApplicationMain(argc, argv, nil, NSStringFromClass(ApplicationDelegate.class));
-		}
-	}
-	return 0;
+void EventDispatch::set_ime_keyboard_spot_location(Vec2 location) {
+	// noop
 }

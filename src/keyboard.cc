@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./keyboard.h"
-#include "./app.inl"
+#include "./app.h"
 #include "./event.h"
 
 namespace qk {

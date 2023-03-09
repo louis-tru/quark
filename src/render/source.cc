@@ -267,7 +267,7 @@ namespace qk {
 		}
 	}
 
-	void ImageSourcePool::clear(bool full) {
+	void ImageSourcePool::clean(bool full) {
 		ScopeLock local(_Mutex);
 		// TODO ..
 	}

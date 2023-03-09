@@ -115,7 +115,7 @@
 			#
 			'app.h',
 			'app.cc',
-			'app.inl',
+			'app.h',
 			'bezier.h',
 			'bezier.cc',
 			'device.h',

@@ -33,7 +33,7 @@
 // typedef UIEvent AppleUIEvent;
 
 #import "../../util/loop.h"
-#import "../../app.inl"
+#import "../../app.h"
 #import "../../display.h"
 #import "../../event.h"
 #import "./apple_render.h"
@@ -50,7 +50,6 @@ typedef Display::StatusBarStyle StatusBarStyle;
 
 static ApplicationDelegate* appDelegate = nil;
 static RenderApple* renderApple = nil;
-static NSString* appDelegateName = @"";
 
 /**
  * @interface ApplicationOptions
@@ -122,8 +121,8 @@ static NSString* appDelegateName = @"";
 @implementation ApplicationDelegate
 
 	- (void)display_link_callback:(const CVTimeStamp*)outputTime {
-		if (self.app->is_loaded()) {
-			self.app->display()->render();
+		if (self.host->is_loaded()) {
+			self.host->display()->render();
 		}
 	}
 
@@ -140,10 +139,6 @@ static NSString* appDelegateName = @"";
 
 	- (void)resize {
 		[self resize_with: appDelegate.view.frame];
-	}
-
-	+ (void)set_application_delegate:(NSString*)name {
-		appDelegateName = name;
 	}
 
 	- (void)background {
@@ -199,7 +194,7 @@ static NSString* appDelegateName = @"";
 		Qk_ASSERT(!appDelegate);
 		appDelegate = self;
 		Qk_ASSERT(Application::shared());
-		_app = Application::shared();
+		_host = Application::shared();
 
 		// UIApplication* host = UIApplication.sharedApplication;
 
@@ -208,9 +203,9 @@ static NSString* appDelegateName = @"";
 			NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
 			NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
 		CGRect frame = screen.frame;
-		
-		ApplicationOptions* appOptions = [[ApplicationOptions alloc] init:_app->options()];
-		
+
+		ApplicationOptions* appOptions = [[ApplicationOptions alloc] init:_host->options()];
+
 		float scale = screen.backingScaleFactor;
 		float width = appOptions.width > 0 ? appOptions.width: frame.size.width / 2;
 		float height = appOptions.height > 0 ? appOptions.height: frame.size.height / 2;
@@ -244,7 +239,7 @@ static NSString* appDelegateName = @"";
 		//self.view.translatesAutoresizingMaskIntoConstraints = NO;
 		//self.view.wantsBestResolutionOpenGLSurface = YES;
 
-		//self.ime = [[OsxIMEHelprt alloc] initWithApplication:self.app];
+		//self.ime = [[OsxIMEHelprt alloc] initWithApplication:self.host];
 
 		[rootView addSubview:self.view];
 		// [view addSubview:self.ime];
@@ -352,8 +347,8 @@ void Application::open_url(cString& url) {
  * @func send_email
  */
 void Application::send_email(cString& recipient,
-																cString& subject,
-																cString& cc, cString& bcc, cString& body)
+														 cString& subject,
+														 cString& cc, cString& bcc, cString& body)
 {
 	// TODO 
 }
@@ -466,23 +461,13 @@ void Display::set_orientation(Orientation orientation) {
 }
 
 extern "C" Qk_EXPORT int main(int argc, Char* argv[]) {
-	/**************************************************/
-	/**************************************************/
-	/*************** Start UI Application ************/
-	/**************************************************/
-	/**************************************************/
-	AppInl::runMain(argc, argv);
+	Application::runMain(argc, argv);
 
 	if ( app() ) {
 		@autoreleasepool {
 			[UIApplication sharedApplication];
 			[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-			if ( [appDelegateName isEqual:@""] ) {
-				[UIApplication.sharedApplication setDelegate:[[ApplicationDelegate alloc] init]];
-			} else {
-				Class cls = NSClassFromString(appDelegateName);
-				[UIApplication.sharedApplication setDelegate:[[cls alloc] init]];
-			}
+			[UIApplication.sharedApplication setDelegate:[[ApplicationDelegate alloc] init]];
 			[UIApplication.sharedApplication run];
 		}
 	}

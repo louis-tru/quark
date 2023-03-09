@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "quark/util/loop.h"
-#include "quark/app.inl"
+#include "quark/app.h"
 #include "quark/event.h"
 #include "quark/display.h"
 #include "quark/util/loop.h"
@@ -63,6 +63,8 @@ namespace qk {
 			"pull_right",
 		};
 	#endif
+
+	void exit(int rc, bool forceExit);
 
 	/**
 	* @class UnixApplication
@@ -575,7 +577,7 @@ namespace qk {
 		void destroy() {
 			if (!is_exited()) {
 				_render_looper->stop();
-				qk::safeExit(0);
+				qk::exit(0, true);
 			}
 			XDestroyWindow(_dpy, _win); _win = 0;
 			XCloseDisplay(_dpy); _dpy = nullptr; // disconnect x display

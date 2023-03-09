@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./input.h"
-#include "../app.inl"
+#include "../app.h"
 #include "../pre_render.h"
 #include "../util/codec.h"
 #include "./textarea.h"
@@ -85,7 +85,8 @@ namespace qk {
 		void click_handle(UIEvent& evt) {
 			ClickEvent* e = static_cast<ClickEvent*>(&evt);
 			if ( _editing ) {
-				_inl_app(pre_render()->host())->ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
+				pre_render()->host()->dispatch()->
+					set_ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
 			} else {
 				if ( _flag == kFlag_Disable_Click_Find ) { // 禁用点击聚焦
 					_flag = kFlag_Normal;
@@ -714,7 +715,8 @@ namespace qk {
 			View::solve_marks(mark);
 
 			if (_editing) {
-				_inl_app(app())->ime_keyboard_spot_location(input_spot_location());
+				pre_render()->host()->dispatch()->
+					set_ime_keyboard_spot_location(input_spot_location());
 			}
 		} else {
 			View::solve_marks(mark);
@@ -960,7 +962,8 @@ namespace qk {
 		if (value != _type) {
 			_type = value;
 			if ( _editing ) {
-				_inl_app(pre_render()->host())->ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
+				pre_render()->host()->dispatch()->
+					set_ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
 			}
 		}
 	}
@@ -969,7 +972,8 @@ namespace qk {
 		if (value != _return_type) {
 			_return_type = value;
 			if ( _editing ) {
-				_inl_app(pre_render()->host())->ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
+				pre_render()->host()->dispatch()->
+					set_ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
 			}
 		}
 	}

@@ -53,10 +53,11 @@ namespace qk {
 		};
 		
 		ApplePCMPlayer()
-		: _queue(NULL)
-		, _wait_write_buffer_index(0)
-		, _wait_write_buffer_count(0)
-		, _channel_count(0), _sample_rate(0), _volume(1), _player(false), _flush(false) {
+			: _queue(NULL)
+			, _wait_write_buffer_index(0)
+			, _wait_write_buffer_count(0)
+			, _channel_count(0), _sample_rate(0), _volume(1), _player(false), _flush(false)
+		{
 			memset(_buffer_all, 0, sizeof(_buffer_all));
 			memset(_buffer_free, 0, sizeof(_buffer_free));
 		}

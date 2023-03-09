@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./event.h"
-#include "./app.inl"
+#include "./app.h"
 #include "./layout/root.h"
-#include "./layout/button.h"
+// #include "./layout/button.h"
 #include "./keyboard.h"
 #include "./pre_render.h"
 #include <math.h>
@@ -82,7 +82,8 @@ namespace qk {
 					view = view->parent();
 				} else {
 					if (evt.is_default()) {
-						if (evt.origin() != pre_render()->host()->focus_view())
+						auto app = pre_render()->host();
+						if (evt.origin() != app->dispatch()->focus_view())
 							view->focus(); // root
 					}
 					break;
@@ -118,11 +119,11 @@ namespace qk {
 	 */
 	bool View::focus() {
 		if ( is_focus() ) return true;
-		
-		auto app = pre_render()->host();
-		View* old = app->focus_view();
 
-		if ( !_inl_app(app)->set_focus_view(this) ) {
+		auto dispatch = _inl_app(pre_render()->host())->dispatch();
+		View* old = dispatch->focus_view();
+
+		if ( !dispatch->set_focus_view(this) ) {
 			return false;
 		}
 
@@ -286,7 +287,10 @@ namespace qk {
 		Vec2 _start_position, _position;
 	};
 
-	EventDispatch::EventDispatch(Application* app): _host(app), _text_input(nullptr) {
+	EventDispatch::EventDispatch(Application* app)
+		: _host(app)
+		, _text_input(nullptr), _focus_view(nullptr) 
+	{
 		_keyboard = KeyboardAdapter::create();
 		_keyboard->_host = this;
 		_mouse_h = new MouseHandle();
@@ -295,8 +299,28 @@ namespace qk {
 	EventDispatch::~EventDispatch() {
 		for (auto& i : _origin_touches)
 			delete i.value;
+		if ( _focus_view ) {
+			_focus_view->release();
+			_focus_view = nullptr;
+		}
 		Release(_keyboard);
 		delete _mouse_h;
+	}
+
+	bool EventDispatch::set_focus_view(View* view) {
+		if ( _focus_view != view ) {
+			if ( view->layout_depth() && view->can_become_focus() ) {
+				if ( _focus_view ) {
+					_focus_view->release(); // unref
+				}
+				_focus_view = view;
+				_focus_view->retain(); // strong ref
+				set_text_input(view->as_text_input());
+			} else {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	#define _loop static_cast<PostMessage*>(_host->loop())
@@ -742,7 +766,7 @@ namespace qk {
 
 	void EventDispatch::onKeyboard_down() {
 
-		View* view = _host->focus_view();
+		View* view = _focus_view;
 		if ( !view )
 			view = _host->root();
 
@@ -781,9 +805,9 @@ namespace qk {
 				if ( name == KEYCODE_ENTER ) {
 					_inl_view(view)->bubble_trigger(UIEvent_KeyEnter, **evt);
 				} else if ( name == KEYCODE_VOLUME_UP ) {
-					_inl_app(_host)->set_volume_up();
+					set_volume_up();
 				} else if ( name == KEYCODE_VOLUME_DOWN ) {
-					_inl_app(_host)->set_volume_down();
+					set_volume_down();
 				}
 				
 				int keypress_code = _keyboard->keypress();
@@ -800,14 +824,13 @@ namespace qk {
 				if ( evt->focus_move() ) {
 					evt->focus_move()->focus();
 				}
-				
 			} // if ( evt->is_default() ) {
 		} // if ( view )
 	}
 	
 	void EventDispatch::onKeyboard_up() {
 
-		View* view = _host->focus_view();
+		View* view = _focus_view;
 		if ( !view )
 			view = _host->root();
 
@@ -854,7 +877,7 @@ namespace qk {
 				_text_input->input_delete(count);
 				bool can_backspace = _text_input->input_can_backspace();
 				bool can_delete = _text_input->input_can_delete();
-				_inl_app(_host)->ime_keyboard_can_backspace(can_backspace, can_delete);
+				set_ime_keyboard_can_backspace(can_backspace, can_delete);
 			}
 		}), _loop);
 	}
@@ -899,20 +922,20 @@ namespace qk {
 		Qk_DEBUG("set_text_input");
 		if ( input != _text_input ) {
 			_text_input = input;
-			
+
 			if ( input ) {
-				_inl_app(_host)->ime_keyboard_open({
+				set_ime_keyboard_open({
 					true,
 					input->input_keyboard_type(),
 					input->input_keyboard_return_type(),
 					input->input_spot_location(),
 				});
 			} else {
-				_inl_app(_host)->ime_keyboard_close();
+				set_ime_keyboard_close();
 			}
 		} else {
 			if ( input ) {
-				_inl_app(_host)->ime_keyboard_open({
+				set_ime_keyboard_open({
 					false,
 					input->input_keyboard_type(),
 					input->input_keyboard_return_type(),

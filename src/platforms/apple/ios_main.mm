@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,98 +28,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__app_inl__
-#define __quark__app_inl__
+#import "./ios_app.h"
 
-#include "./app.h"
+using namespace qk;
 
-/**
- * @ns quark
- */
-
-namespace qk {
-
-	Qk_DEFINE_INLINE_MEMBERS(Application, Inl) {
-	public:
-		#define _inl_app(self) static_cast<AppInl*>(self)
-
-		struct KeyboardOptions {
-			bool               is_clear;
-			KeyboardType       type;
-			KeyboardReturnType return_type;
-			Vec2               spot_location;
-		};
-
-		void triggerLoad();
-		void triggerPause();
-		void triggerResume();
-		void triggerBackground();
-		void triggerForeground();
-		void triggerMemorywarning();
-		void triggerUnload();
-		
-		/**
-		* @func set_volume_up()
-		*/
-		void set_volume_up();
-
-		/**
-		* @func set_volume_down()
-		*/
-		void set_volume_down();
-		
-		/**
-		* @func set_root
-		*/
-		void set_root(Root* value) throw(Error);
-		
-		/**
-		* @func runMain
-		*/
-		inline static void runMain(int argc, Char* argv[]) {
-			Application::runMain(argc, argv);
+extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
+	Application::runMain(argc, argv);
+	if ( app() ) {
+		@autoreleasepool {
+			UIApplicationMain(argc, argv, nil, NSStringFromClass(QkApplicationDelegate.class));
 		}
-		
-		/**
-		* @func set_focus_view
-		*/
-		bool set_focus_view(View* view);
-		
-		/**
-		* @func dispatch
-		* */
-		inline EventDispatch* dispatch() { return _dispatch; }
-		
-		/**
-		* @func ime_keyboard_open
-		*/
-		void ime_keyboard_open(KeyboardOptions options);
-		
-		/**
-		* @func ime_keyboard_can_backspace
-		*/
-		void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
-		
-		/**
-		* @func ime_keyboard_close
-		*/
-		void ime_keyboard_close();
-		
-		/**
-		* @func ime_keyboard_spot_location
-		*/
-		void ime_keyboard_spot_location(Vec2 location);
-
-		/**
-		* @func onExit(code)
-		*/
-		void onProcessExitHandle(Event<>& e);
-	};
-
-	typedef Application::Inl AppInl;
-
-	void safeExit(int rc);
-
+	}
+	return 0;
 }
-
-#endif

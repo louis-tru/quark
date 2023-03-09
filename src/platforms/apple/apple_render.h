@@ -34,21 +34,18 @@
 #define __quark__ios_render__
 
 #include "../../util/macros.h"
-
 #if Qk_APPLE
-
 #include "../../render/render.h"
 #include "./apple_app.h"
 
 namespace qk {
 
-	class RenderApple {
+	class AppleRender {
 	public:
 		// Called on the rendering thread
-		virtual UIView*      init(CGRect rect) = 0;
-		virtual Render*      render() = 0;
-		bool                 resize(CGRect rect);
-		static  RenderApple* Make(Application* host);
+		virtual UIView* init(CGRect rect) = 0;
+		virtual Render* render() = 0;
+		bool            resize(CGRect rect);
 	};
 
 }

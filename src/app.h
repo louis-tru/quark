@@ -34,7 +34,6 @@
 #include "./util/util.h"
 #include "./util/event.h"
 #include "./util/loop.h"
-#include "./util/json.h"
 #include "./types.h"
 #include "./render/render.h"
 
@@ -123,13 +122,13 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(DefaultTextOptions*, default_text_options); // 默认文本设置
 		Qk_DEFINE_PROP_GET(Display*, display); // 当前显示端口
 		Qk_DEFINE_PROP_GET(Root*, root); // 根视图
-		Qk_DEFINE_PROP_GET(View*, focus_view); // 焦点视图
 		Qk_DEFINE_PROP_GET(RunLoop*, loop); // 运行消息循环
 		Qk_DEFINE_PROP_GET(ActionDirect*, action_direct); // 动作管理器
 		Qk_DEFINE_PROP_GET(PreRender*, pre_render); // 预渲染器
 		Qk_DEFINE_PROP_GET(Render*, render); // 渲染器
 		Qk_DEFINE_PROP_GET(FontPool*, font_pool); // 字体管理器
 		Qk_DEFINE_PROP_GET(ImageSourcePool*, img_pool); // 图片加载器
+		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); // event dispatch
 
 		/**
 		* @func clean 清理垃圾回收内存资源, all=true 清理全部资源
@@ -187,16 +186,20 @@ namespace qk {
 		static inline Application* shared() { return _shared; }
 
 	private:
+		void set_root(Root* value) throw(Error);
+		void handleExit(Event<>& e);
+
 		static Application*  _shared;   // 当前应用程序
 		Options        _opts;
 		KeepLoop*      _keep;
-		EventDispatch* _dispatch;
+		// inline EventDispatch* dispatch() { return _dispatch; }
 		RecursiveMutex _render_mutex;
 		uint64_t       _max_image_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 
 		friend class UILock;
+		friend class Root;
 		friend Application* app();
 		friend Display* display();
 		friend PreRender* pre_render();
@@ -209,5 +212,18 @@ namespace qk {
 
 	typedef Application::UILock UILock;
 
+	//@private head
+	Qk_DEFINE_INLINE_MEMBERS(Application, Inl) {
+	public:
+		#define _inl_app(self) static_cast<Application::Inl*>(self)
+		void triggerLoad();
+		void triggerUnload();
+		void triggerPause();
+		void triggerResume();
+		void triggerBackground();
+		void triggerForeground();
+		void triggerMemorywarning();
+	};
+	//@end
 }
 #endif

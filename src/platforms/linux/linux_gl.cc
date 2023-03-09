@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "quark/util/util.h"
-#include "quark/app.inl"
+#include "quark/app.h"
 #include "quark/display.h"
 #include "linux_gl.h"
 #include "native-glsl.h"

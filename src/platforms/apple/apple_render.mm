@@ -60,7 +60,7 @@
 
 namespace qk {
 
-	bool RenderApple::resize(CGRect rect) {
+	bool AppleRender::resize(CGRect rect) {
 #if Qk_iOS
 		float scale = UIScreen.mainScreen.scale;
 #else
@@ -86,10 +86,11 @@ namespace qk {
 
 	// ------------------- Metal ------------------
 
-	// template<class RenderIMPL>
-	class AppleMetalRender: public MetalRender, public RenderApple {
+#if Qk_ENABLE_METAL
+
+	class AppleMetalRender: public MetalRender, public AppleRender {
 	public:
-		AppleMetalRender(Application* host, bool raster): MetalRender(host, raster)
+		AppleMetalRender(Application* host): MetalRender(host)
 		{}
 		UIView* init(CGRect rect) override {
 			_view = [[MTKView alloc] initWithFrame:rect device:nil];
@@ -99,23 +100,25 @@ namespace qk {
 		Render* render() override { return this; }
 	};
 
+#endif
+
 	// ------------------- OpenGL ------------------
 
 #if Qk_ENABLE_GL
 
-	class AppleGLRender: public GLRender, public RenderApple {
+	class AppleGLRender: public GLRender, public AppleRender {
 	public:
-		static AppleGLRender* New(Application* host, bool raster) {
+		static AppleGLRender* New(Application* host) {
 			EAGLContext* ctx = [EAGLContext alloc];
 			if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
 				[EAGLContext setCurrentContext:ctx];
-				return new AppleGLRender(host, ctx, raster);
+				return new AppleGLRender(host, ctx);
 			}
 			return nullptr;
 		}
 
-		AppleGLRender(Application* host, EAGLContext* ctx, bool raster)
-			: GLRender(host, raster), _ctx(ctx) 
+		AppleGLRender(Application* host, EAGLContext* ctx)
+			: GLRender(host), _ctx(ctx) 
 		{
 			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 			// ctx.multiThreaded = NO;
@@ -162,42 +165,25 @@ namespace qk {
 
 #endif
 
-#ifndef Qk_ENABLE_GPU
-# define Qk_ENABLE_GPU 1
-#endif
-#ifndef Qk_ENABLE_METAL
-# define Qk_ENABLE_METAL 1
-#endif
-
-	RenderApple* RenderApple::Make(Application* host) {
+	Render* Render::Make(Application* host) {
 		RenderApple* r = nullptr;
 
-		if (Qk_ENABLE_GPU) {
-			if (@available(macOS 10.11, iOS 13.0, *)) {
-				if (Qk_ENABLE_METAL)
-					r = new AppleMetalRender(host, false);
-			}
-#if Qk_ENABLE_GL
-			if (!r) {
-				r = AppleGLRender::New(host, false);
-			}
-#endif
-		}
-
 		if (!r) {
+#if Qk_ENABLE_METAL
 			if (@available(macOS 10.11, iOS 13.0, *)) {
 				if (Qk_ENABLE_METAL)
-					r = new AppleMetalRender(host, true);
+					r = new AppleMetalRender(host);
 			}
+#endif
 #if Qk_ENABLE_GL
 			if (!r) {
-				r = AppleGLRender::New(host, true);
+				r = AppleGLRender::New(host);
 			}
 #endif
 		}
-
 		Qk_ASSERT(r);
-		return r;
+
+		return r->render();
 	}
 
 }

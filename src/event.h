@@ -257,9 +257,20 @@ namespace qk {
 	*/
 	class Qk_EXPORT EventDispatch: public Object {
 	public:
+		struct KeyboardOptions {
+			bool               is_clear;
+			KeyboardType       type;
+			KeyboardReturnType return_type;
+			Vec2               spot_location;
+		};
+
+		Qk_DEFINE_PROP_GET(Application*, host);
+		Qk_DEFINE_PROP_GET(KeyboardAdapter*, keyboard);
+		Qk_DEFINE_PROP(TextInput*, text_input);
+		Qk_DEFINE_PROP_GET(View*, focus_view); // 焦点视图
+
 		EventDispatch(Application* app);
 		virtual ~EventDispatch();
-
 		// handles
 		void onTouchstart(List<TouchPoint>&& touches);
 		void onTouchmove(List<TouchPoint>&& touches);
@@ -276,11 +287,14 @@ namespace qk {
 		// keyboard main loop call
 		void onKeyboard_down();
 		void onKeyboard_up();
-
-		Qk_DEFINE_PROP_GET(Application*, host);
-		Qk_DEFINE_PROP_GET(KeyboardAdapter*, keyboard);
-		Qk_DEFINE_PROP(TextInput*, text_input);
-
+		// setting state
+		void set_volume_up();
+		void set_volume_down();
+		void set_ime_keyboard_open(KeyboardOptions options);
+		void set_ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
+		void set_ime_keyboard_close();
+		void set_ime_keyboard_spot_location(Vec2 location);
+		bool set_focus_view(View* view);
 	private:
 		void touchstart_erase(View* view, List<TouchPoint>& in);
 		void touchstart(View* view, List<TouchPoint>& in);

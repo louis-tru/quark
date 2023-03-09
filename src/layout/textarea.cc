@@ -30,7 +30,7 @@
 
 #include "./textarea.h"
 #include "../display.h"
-#include "../app.inl"
+#include "../app.h"
 
 namespace qk {
 

@@ -34,7 +34,7 @@
 #include "./render/render.h"
 #include "./layout/root.h"
 #include "./display.h"
-#include "./app.inl"
+#include "./app.h"
 #include "./render/font/pool.h"
 #include "./render/source.h"
 #include "./pre_render.h"
@@ -89,18 +89,39 @@ namespace qk {
 		}
 	}
 
+	typedef Application::Inl AppInl;
 	typedef void (*CbFunc) (Cb::Data&, AppInl*);
 
 	void AppInl::triggerLoad() {
-		if (_is_loaded || !_keep)
-			return;
 		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) {
+			if (app->_is_loaded || !app->_keep)
+				return;
 			UILock lock(app);
 			if (!app->_is_loaded) {
 				app->_is_loaded = true;
 				app->Qk_Trigger(Load);
 			}
 		}, this));
+	}
+
+	void AppInl::triggerUnload() {
+		typedef Callback<RunLoop::PostSyncData> Cb;
+
+		_loop->post_sync(Cb([&](Cb::Data& d) {
+			if (_keep) {
+				if (_is_loaded) {
+					_is_loaded = false;
+					Qk_DEBUG("onUnload()");
+					Qk_Trigger(Unload);
+				}
+				// if (_keep) {
+				Thread::abort(_loop->thread_id());
+				Release(_keep); // stop loop
+				_keep = nullptr;
+				_loop = nullptr;
+			}
+			d.data->complete();
+		}));
 	}
 
 	void AppInl::triggerPause() {
@@ -124,61 +145,19 @@ namespace qk {
 		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
 	}
 
-	void AppInl::triggerUnload() {
-		if (!_keep) return;
-		typedef Callback<RunLoop::PostSyncData> Cb;
-
-		_loop->post_sync(Cb([&](Cb::Data& d) {
-			if (_is_loaded) {
-				_is_loaded = false;
-				Qk_DEBUG("onUnload()");
-				Qk_Trigger(Unload);
-			}
-			if (_keep) {
-				Thread::abort(_loop->thread_id());
-				Release(_keep); // stop loop
-				_keep = nullptr;
-				_loop = nullptr;
-			}
-			d.data->complete();
-		}));
-	}
-
-	void AppInl::onProcessExitHandle(Event<>& e) {
+	void Application::handleExit(Event<>& e) {
 		// int rc = static_cast<const Int32*>(e.data())->value;
-		triggerUnload();
+		_inl_app(this)->triggerUnload();
 		Qk_DEBUG("Application onExit");
 	}
 
-	/**
-	* @func set_root
-	*/
-	void AppInl::set_root(Root* value) throw(Error) {
+	void Application::set_root(Root* value) throw(Error) {
 		Qk_CHECK(!_root, "Root view already exists");
 		_root = value;
 		_root->retain();   // strong ref
-		set_focus_view(value);
+		_root->focus();
 	}
 
-	/**
-	* @func set_focus_view()
-	*/
-	bool AppInl::set_focus_view(View* view) {
-		if ( _focus_view != view ) {
-			if ( view->layout_depth() && view->can_become_focus() ) {
-				if ( _focus_view ) {
-					_focus_view->release(); // unref
-				}
-				_focus_view = view;
-				_focus_view->retain(); // strong ref
-				_dispatch->set_text_input(view->as_text_input());
-			} else {
-				return false;
-			}
-		}
-		return true;
-	}
-	
 	Application::Application(Options opts)
 		: Qk_Init_Event(Load)
 		, Qk_Init_Event(Unload)
@@ -191,8 +170,7 @@ namespace qk {
 		, _opts(opts)
 		, _loop(nullptr), _keep(nullptr)
 		, _render(nullptr), _display(nullptr)
-		, _root(nullptr), _focus_view(nullptr)
-		, _default_text_options(nullptr)
+		, _root(nullptr), _default_text_options(nullptr)
 		, _dispatch(nullptr), _action_direct(nullptr)
 		, _pre_render(nullptr), _font_pool(nullptr), _img_pool(nullptr)
 		, _max_image_memory_limit(512 * 1024 * 1024) // init 512MB
@@ -200,7 +178,7 @@ namespace qk {
 		Qk_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
 
-		Qk_On(SafeExit, &AppInl::onProcessExitHandle, _inl_app(this));
+		Qk_On(SafeExit, &Application::handleExit, this);
 		// init
 		_pre_render = new PreRender(this); Qk_DEBUG("new PreRender ok");
 		_display = NewRetain<Display>(this); Qk_DEBUG("NewRetain<Display> ok"); // strong ref
@@ -217,21 +195,17 @@ namespace qk {
 			_root->remove();
 			_root->release(); _root = nullptr;
 		}
-		if ( _focus_view ) {
-			_focus_view->release();
-			_focus_view = nullptr;
-		}
 		delete _default_text_options; _default_text_options = nullptr;
 		Release(_dispatch);      _dispatch = nullptr;
 		// Release(_action_direct); _action_direct = nullptr;
 		Release(_display);     _display = nullptr;
 		Release(_pre_render);  _pre_render = nullptr;
-		Release(dynamic_cast<Object*>(_render));      _render = nullptr;
-		Release(_keep);        _keep = nullptr; _loop = nullptr;
+		Release(dynamic_cast<Object*>(_render));   _render = nullptr;
+		Release(_keep);        _keep = nullptr;    _loop = nullptr;
 		Release(_font_pool);   _font_pool = nullptr;
 		Release(_img_pool);    _img_pool = nullptr;
 
-		Qk_Off(SafeExit, &AppInl::onProcessExitHandle, _inl_app(this));
+		Qk_Off(SafeExit, &Application::handleExit, this);
 
 		_shared = nullptr;
 	}
@@ -294,7 +268,7 @@ namespace qk {
 	*/
 	void Application::clean(bool all) {
 		_render->post_message(Cb([this, all](Cb::Data& e){
-			_img_pool->clear(all);
+			_img_pool->clean(all);
 		}));
 	}
 
@@ -328,7 +302,7 @@ namespace qk {
 			if (will_alloc_size + used_image_memory() <= _max_image_memory_limit) {
 				return true;
 			}
-			clear();
+			clean();
 			i++;
 		} while(i < 3);
 		

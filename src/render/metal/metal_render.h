@@ -52,7 +52,7 @@ namespace qk {
 		virtual void onBegin() = 0;
 		virtual void onSubmit() = 0;
 	protected:
-		MetalRender(Application* host, bool raster);
+		MetalRender(Application* host);
 		MTKView*            _view;
 		CAMetalLayer*       _layer;
 		id<MTLDevice>       _device;

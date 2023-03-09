@@ -30,7 +30,7 @@
 
 #include "./root.h"
 #include "../effect.h"
-#include "../app.inl"
+#include "../app.h"
 #include "../util/handle.h"
 #include "../display.h"
 #include "../render/render.h"
@@ -51,7 +51,7 @@ namespace qk {
 		r->mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		r->set_fill_color(Color(255, 255, 255, 255)); // 默认白色背景
 		r->mark_none(kRecursive_Transform);
-		_inl_app(app)->set_root(*r);
+		app->set_root(*r);
 		return r.collapse();
 	}
 

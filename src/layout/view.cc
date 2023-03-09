@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../app.inl"
+#include "../app.h"
 #include "./view.h"
 #include "../text_lines.h"
 #include "../pre_render.h"
@@ -828,7 +828,7 @@ namespace qk {
 	 * @func is_focus()
 	 */
 	bool View::is_focus() const {
-		return this == pre_render()->host()->focus_view();
+		return this == pre_render()->host()->dispatch()->focus_view();
 	}
 
 	/**

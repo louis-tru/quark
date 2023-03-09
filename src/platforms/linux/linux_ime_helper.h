@@ -28,14 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/app.inl"
+#include "quark/app.h"
 #include "quark/event.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
 namespace qk {
 
-	typedef AppInl::KeyboardOptions KeyboardOptions;
+	typedef EventDispatch::KeyboardOptions KeyboardOptions;
 
 	class LINUXIMEHelper {
 		public:

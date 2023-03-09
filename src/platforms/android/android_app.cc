@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "quark/util/loop.h"
-#include "quark/app.inl"
+#include "quark/app.h"
 #include "quark/event.h"
 #include "quark/display.h"
 #include "../linux/linux_gl.h"
@@ -595,24 +595,24 @@ namespace qk {
 	extern "C" {
 
 		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
-			_inl_app(app())->dispatch()->dispatch_ime_delete(count);
+			app()->dispatch()->dispatch_ime_delete(count);
 		}
 
 		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
-			_inl_app(app())->dispatch()->dispatch_ime_insert(JNI::jstring_to_string(text));
+			app()->dispatch()->dispatch_ime_insert(JNI::jstring_to_string(text));
 		}
 
 		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
-			_inl_app(app())->dispatch()->dispatch_ime_marked(JNI::jstring_to_string(text));
+			app()->dispatch()->dispatch_ime_marked(JNI::jstring_to_string(text));
 		}
 
 		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
-			_inl_app(app())->dispatch()->dispatch_ime_unmark(JNI::jstring_to_string(text));
+			app()->dispatch()->dispatch_ime_unmark(JNI::jstring_to_string(text));
 		}
 		
 		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
 			jint keycode, jboolean ascii, jboolean down, jint repeat, jint device, jint source) {
-			_inl_app(app())->dispatch()->keyboard_adapter()->
+			app()->dispatch()->keyboard_adapter()->
 				dispatch(keycode, ascii, down, repeat, device, source);
 		}
 

@@ -31,7 +31,7 @@
 #import "./ios_ime_helper.h"
 #import "../../util/util.h"
 #import "../../event.h"
-#import "../../app.inl"
+#import "../../app.h"
 
 using namespace qk;
 
@@ -97,7 +97,7 @@ using namespace qk;
 @end
 
 
-@interface IOSIMEHelprt()
+@interface QkiOSIMEHelprt()
 	{
 		@private
 		NSString* _marked_text;
@@ -110,7 +110,7 @@ using namespace qk;
 	}
 @end
 
-@implementation IOSIMEHelprt
+@implementation QkiOSIMEHelprt
 
 #pragma mark UITextInputTraits protocol
 @synthesize autocapitalizationType;

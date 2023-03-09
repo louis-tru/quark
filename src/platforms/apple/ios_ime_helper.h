@@ -31,7 +31,6 @@
 
 
 #include "quark/util/macros.h"
-
 #if Qk_iOS
 
 #import <UIKit/UIKit.h>
@@ -40,8 +39,8 @@
 
 using namespace qk;
 
-@interface IOSIMEHelprt: UIView<UITextInput>
-	- (id)initWithApplication:(Application*)app;
+@interface QkiOSIMEHelprt: UIView<UITextInput>
+	- (id)initWithApplication:(Application*)host;
 	- (void)open;
 	- (void)close;
 	- (void)clear;
