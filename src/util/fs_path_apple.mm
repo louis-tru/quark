@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,54 +28,46 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__os__android__api__
-#define __quark__os__android__api__
-
-#include "quark/util/util.h"
-
-#if Qk_ANDROID
-
-#include "quark/util/string.h"
+#include "./fs.h"
+#if Qk_APPLE
+#include <Foundation/Foundation.h>
+#if Qk_iOS
+# import <UIKit/UIKit.h>
+#else
+# import <AppKit/AppKit.h>
+#endif
 
 namespace qk {
 
+	String fs_executable() {
+		static cString path( fs_format([[[NSBundle mainBundle] executablePath] UTF8String]) );
+		return path;
+	}
+
+	String fs_documents(cString& child) {
+		static String path(
+			fs_format([NSSearchPathForDirectoriesInDomains(
+				NSDocumentDirectory,
+				NSUserDomainMask,
+				YES
+			) objectAtIndex:0].UTF8String)
+		);
+		return child.is_empty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());
+	}
+
+	String fs_temp(cString& child) {
+		static cString path( fs_format("%s", [NSTemporaryDirectory() UTF8String]) );
+		return child.is_empty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());;
+	}
+
 	/**
-	* @class API
-	*/
-	class API {
-	public:
-		static void ime_keyboard_open(bool clear, int type, int return_type);
-		static void ime_keyboard_can_backspace(bool can_backspace, bool can_delete);
-		static void ime_keyboard_close();
-		static void keep_screen(bool value);
-		static int  get_status_bar_height();
-		static void set_visible_status_bar(bool visible);
-		static void set_status_bar_style(int style);
-		static void request_fullscreen(bool fullscreen);
-		static int  get_orientation();
-		static void set_orientation(int orientation);
-		static float get_display_scale();
-		static bool is_screen_on();
-		static void set_volume_up();
-		static void set_volume_down();
-		static void open_url(cString& url);
-		static void send_email(cString& recipient,
-													cString& subject, cString& cc, cString& bcc, cString& body);
-		static String start_cmd();
-		static String version();
-		static String brand();
-		static String subsystem();
-		static int    network_status();
-		static bool   is_ac_power();
-		static bool   is_battery();
-		static float  battery_level();
-		static String language();
-		static uint64 available_memory();
-		static uint64 memory();
-		static uint64 used_memory();
-	};
+	 * Get the resoures dir
+	 */
+	String fs_resources(cString& child) {
+		static cString path( fs_format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
+		return child.is_empty()? path: fs_format("%s/%s", path.c_str(), child.c_str());
+	}
 
 }
 
-#endif
 #endif

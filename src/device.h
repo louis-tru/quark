@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, blue.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of blue.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,46 +25,30 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../fs.h"
-#include <Foundation/Foundation.h>
-#if Qk_iOS
-# import <UIKit/UIKit.h>
-#else
-# import <AppKit/AppKit.h>
-#endif
+#ifndef __quark__device__
+#define __quark__device__
+
+#include <quark/util/util.h>
+#include <quark/util/array.h>
 
 namespace qk {
-
-	String fs_executable() {
-		static cString path( fs_format([[[NSBundle mainBundle] executablePath] UTF8String]) );
-		return path;
-	}
-
-	String fs_documents(cString& child) {
-		static String path(
-			fs_format([NSSearchPathForDirectoriesInDomains(
-				NSDocumentDirectory,
-				NSUserDomainMask,
-				YES
-			) objectAtIndex:0].UTF8String)
-		);
-		return child.is_empty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());
-	}
-
-	String fs_temp(cString& child) {
-		static cString path( fs_format("%s", [NSTemporaryDirectory() UTF8String]) );
-		return child.is_empty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());;
-	}
-
-	/**
-	 * Get the resoures dir
-	 */
-	String fs_resources(cString& child) {
-		static cString path( fs_format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
-		return child.is_empty()? path: fs_format("%s/%s", path.c_str(), child.c_str());
-	}
-
+	Qk_EXPORT String device_version();
+	Qk_EXPORT String device_brand();
+	Qk_EXPORT String device_model();
+	Qk_EXPORT String device_info();
+	Qk_EXPORT const Array<String>& device_languages();
+	Qk_EXPORT bool  device_is_wifi();
+	Qk_EXPORT bool  device_is_mobile();
+	Qk_EXPORT int   device_network_status();
+	Qk_EXPORT bool  device_is_ac_power();
+	Qk_EXPORT bool  device_is_battery();
+	Qk_EXPORT float device_battery_level();
+	Qk_EXPORT uint64_t device_memory();
+	Qk_EXPORT uint64_t device_used_memory();
+	Qk_EXPORT uint64_t device_available_memory();
+	Qk_EXPORT float device_cpu_usage();
 }
+#endif

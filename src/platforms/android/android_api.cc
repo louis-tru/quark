@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/os/android/android_api.h>
-#include <quark/util/platforms/android_jni.h>
+#include "./android_api.h"
+#include "../../util/jni.h"
 
 namespace qk {
 
@@ -44,7 +44,7 @@ namespace qk {
 			//clazz_build_        = JNI::find_clazz("android.os.Build");
 			version_            = JNI::find_static_method(clazz_, "version", "()Ljava/lang/String;");
 			brand_              = JNI::find_static_method(clazz_, "brand", "()Ljava/lang/String;");
-			subsystem_          = JNI::find_static_method(clazz_, "subsystem", "()Ljava/lang/String;");
+			model_              = JNI::find_static_method(clazz_, "model", "()Ljava/lang/String;");
 			ime_keyboard_open_  = JNI::find_static_method(clazz_, "ime_keyboard_open", "(ZII)V");
 			ime_keyboard_can_backspace_ = JNI::find_static_method(clazz_, "ime_keyboard_can_backspace", "(ZZ)V");
 			ime_keyboard_close_ = JNI::find_static_method(clazz_, "ime_keyboard_close", "()V");
@@ -104,7 +104,7 @@ namespace qk {
 		jmethodID start_cmd_;
 		jmethodID version_;
 		jmethodID brand_;
-		jmethodID subsystem_;
+		jmethodID model_;
 		jmethodID network_status_;
 		jmethodID is_ac_power_;
 		jmethodID is_battery_;
@@ -214,9 +214,9 @@ namespace qk {
 		jobject obj = env->CallStaticObjectMethod(clazz_, api->brand_);
 		return JNI::jstring_to_string((jstring)obj, *env);
 	}
-	String API::subsystem() {
+	String API::model() {
 		ScopeENV env;
-		jobject obj = env->CallStaticObjectMethod(clazz_, api->subsystem_);
+		jobject obj = env->CallStaticObjectMethod(clazz_, api->model_);
 		return JNI::jstring_to_string((jstring)obj, *env);
 	}
 	int API::network_status() {

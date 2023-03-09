@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <android/api-level.h>
-#include "./android-jni.h"
-#include "./android-log.h"
+#if Qk_ANDROID
+
+#include "./jni.h"
 #include "./string.h"
 #include "./loop.h"
 
@@ -158,3 +158,5 @@ extern "C"
 		return JNI_VERSION_1_6;
 	}
 }
+
+#endif

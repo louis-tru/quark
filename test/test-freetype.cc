@@ -33,7 +33,7 @@
 #include <quark/util/dict.h>
 #include <quark/util/fs.h>
 #include <trial/fs.h>
-#include <quark/util/os.h>
+#include <quark/os/os.h>
 #include <trial/fs.h>
 
 #include <ft2build.h>
@@ -47,7 +47,7 @@
 
 //
 #include "quark/util/codec.h"
-#include "quark/texture.h"
+// #include "quark/texture.h"
 //#include "quark/image.h"
 //#include "quark/sprite.h"
 //#include "quark/box.h"
@@ -55,6 +55,8 @@
 //#include "quark/display.h"
 //#include "quark/root.h"
 //#include "quark/gl/gl.h"
+
+#include "quark/render/pixel.h"
 
 using namespace qk;
 
@@ -75,9 +77,9 @@ void each_fonts () {
 	//  String path0 = fs_format("%s/res/SF-UI", *fs_resources_dir());
 	String path0 = "/System/Library/Fonts";
 	
-	fs_each_sync(path0, Cb([&](CbData& d) {
+	fs_each_sync(path0, Callback<Dirent>([&](Callback<Dirent>::Data& d) {
 		
-		Dirent* ent = static_cast<Dirent*>(d.data);
+		auto ent = d.data;
 		
 		if ( ent->type == FTYPE_FILE ) {
 			
@@ -184,12 +186,12 @@ void each_glyph() {
 	uint32_t unicode = 0;
 	uint32_t count = 0;
 	
-	Qk_LOG("%s", Codec::encode(Encoding::utf8, String2((uint16_t*)&unicode, 1)).val() );
+	Qk_LOG("%s", codec_encode(Encoding::kUTF8_Encoding, String2((uint16_t*)&unicode, 1)).val() );
 	
 	do {
 		unicode = FT_Get_Next_Char(face, unicode, &glyph_index);
 		
-		Buffer data = Codec::encode(Encoding::utf8, String2((uint16_t*)&unicode, 1));
+		Buffer data = codec_encode(Encoding::kUTF8_Encoding, String2((uint16_t*)&unicode, 1));
 		
 		Qk_LOG("unicode:%d, glyph_index:%d, char:%s", unicode, glyph_index, *data);
 		count++;
@@ -273,9 +275,10 @@ void onload_f(Event<>& evt, void* user) {
 	FT_Bitmap bit = gl->bitmap;
 	
 	Qk_LOG("width:%d, height:%d", bit.width, bit.rows);
+
+	// int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown
 	
-	PixelData data(WeakBuffer((char*)bit.buffer, bit.width * bit.rows),
-								 bit.width, bit.rows, PixelData::ALPHA8);
+	Pixel data(PixelInfo(bit.width, bit.rows, kColor_Type_Alpha_8), WeakBuffer((char*)bit.buffer, bit.width * bit.rows));
 	
 	Root* r = New<Root>();
 	

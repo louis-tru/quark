@@ -77,10 +77,10 @@ namespace qk {
 		inline bool isNormalized() const { return _IsNormalized; }
 		// convert func
 		/**
-		 * @brief toPolygons() convert to polygons and use anti alias
+		 * @brief toPolygons() convert to polygons
 		 * @return {Array<Vec3>} points Vec3 { x, y, weight }[]
 		*/
-		Array<Vec3> getPolygons(int polySize = 3, bool antiAlias = false, float epsilon = 1.0) const;
+		Array<Vec2> getPolygons(int polySize = 3, float epsilon = 1.0) const;
 		Array<Vec2> getEdgeLines(float epsilon = 1.0) const;
 		// modification to stroke path
 		Path strokePath(float width, Join join, float offset = 0) const;

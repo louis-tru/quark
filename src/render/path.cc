@@ -191,11 +191,10 @@ namespace qk {
 		_verbs.push(kVerb_Close);
 	}
 
-	Array<Vec3> Path::getPolygons(int polySize, bool antiAlias, float epsilon) const {
+	Array<Vec2> Path::getPolygons(int polySize, float epsilon) const {
 		auto tess = tessNewTess(nullptr); // TESStesselator*
 		auto pts = (const Vec2*)*_pts;
-		Array<Vec3> polygons;
-		Array<Vec2> tmpV;
+		Array<Vec2> polygons,tmpV;
 		int len = 0;
 
 		for (auto verb: _verbs) {
@@ -247,7 +246,7 @@ namespace qk {
 			}
 		}
 
-		if (len > 1) { // closure
+		if (len > 1) { // close
 			tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
 		}
 
@@ -257,8 +256,7 @@ namespace qk {
 			const TESSindex* elems = tessGetElements(tess);
 			const Vec2* verts = (const Vec2*)tessGetVertices(tess);
 			for (int i = 0, len = nelems * polySize; i < len; i++) {
-				Vec2 vec = verts[*elems++];
-				polygons.push(Vec3(vec.x(), vec.y(), 1.0));
+				polygons.push(verts[*elems++]);
 			}
 		}
 

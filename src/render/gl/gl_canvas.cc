@@ -225,11 +225,11 @@ namespace qk {
 		// TODO ...
 	}
 
-	void GLCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
+	void GLCanvas::clipRect(const Rect& rect, ClipOp op) {
 		// TODO ...
 	}
 
-	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
+	void GLCanvas::clipPath(const Path& path, ClipOp op) {
 		// TODO ...
 	}
 
@@ -241,7 +241,7 @@ namespace qk {
 
 		bool antiAlias = paint.antiAlias && !_IsDeviceAntiAlias; // Anti-aliasing using software
 
-		Array<Vec3> polygons;
+		Array<Vec2> polygons;
 
 		if (_blendMode != paint.blendMode) {
 			setBlendMode(paint.blendMode); // switch blend mode
@@ -250,13 +250,13 @@ namespace qk {
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
-				polygons = path.getPolygons(3, antiAlias);
+				polygons = path.getPolygons(3);
 				break;
 			case Paint::kStroke_Style:
-				polygons = path.strokePath(paint.width, paint.join).getPolygons(3, antiAlias);
+				polygons = path.strokePath(paint.width, paint.join).getPolygons(3);
 				break;
 			case Paint::kStrokeAndFill_Style:
-				polygons = path.extendPath(paint.width * 0.5, paint.join).getPolygons(3, antiAlias);
+				polygons = path.extendPath(paint.width * 0.5, paint.join).getPolygons(3);
 				break;
 		}
 
@@ -271,14 +271,14 @@ namespace qk {
 		}
 	}
 
-	void GLCanvas::drawColor(const Array<Vec3>& triangles, const Paint& paint) {
+	void GLCanvas::drawColor(const Array<Vec2>& triangles, const Paint& paint) {
 		glUseProgram(_color.shader());
 		glUniform4fv(_color.color(), 1, paint.color.val);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, triangles.val());
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
 		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
 
-	void GLCanvas::drawGradient(const Array<Vec3>& triangles, const Paint& paint) {
+	void GLCanvas::drawGradient(const Array<Vec2>& triangles, const Paint& paint) {
 		const GradientColor *g = paint.gradientColor();
 		auto shader = paint.gradientType == Paint::kLinear_GradientType ? &_linear: &_radial;
 		glUseProgram(shader->shader());
@@ -286,11 +286,11 @@ namespace qk {
 		glUniform1i(shader->count(), g->colors.length());
 		glUniform4fv(shader->colors(), g->colors.length(), (const GLfloat*)g->colors.val());
 		glUniform1fv(shader->positions(), g->colors.length(), (const GLfloat*)g->positions.val());
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, triangles.val());
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
 		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
 
-	void GLCanvas::drawImage(const Array<Vec3>& triangles, const Paint& paint) {
+	void GLCanvas::drawImage(const Array<Vec2>& triangles, const Paint& paint) {
 		auto pixel = paint.bitmapPixel();
 		auto type = pixel->type();
 		auto shader = &_image;
@@ -315,7 +315,7 @@ namespace qk {
 			gl_use_texture(id, paint, i);
 		}
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, triangles.val());
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
 		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
 
@@ -435,7 +435,7 @@ namespace qk {
 		return id;
 	}
 
-	void GLCanvas::deleteTextures(const uint32_t *IDs, uint32_t count) {
+	void GLCanvas::deleteTextures(const GLuint *IDs, uint32_t count) {
 		glDeleteTextures(count, IDs);
 	}
 

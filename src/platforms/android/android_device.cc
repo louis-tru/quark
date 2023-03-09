@@ -28,51 +28,49 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../os.h"
+#include "../../device.h"
 #include "./android_api.h"
 
 namespace qk {
-	namespace os {
 
-		String version() {
-			return API::version();
-		}
-
-		String brand() {
-			return API::brand();
-		}
-
-		String subsystem() {
-			return API::subsystem();
-		}
-
-		int network_status() {
-			return API::network_status();
-		}
-
-		bool is_ac_power() {
-			return API::is_ac_power();
-		}
-
-		bool is_battery() {
-			return API::is_battery();
-		}
-
-		float battery_level() {
-			return API::battery_level();
-		}
-
-		uint64_t memory() {
-			return API::memory();
-		}
-
-		uint64_t used_memory() {
-			return API::used_memory();
-		}
-
-		uint64_t available_memory() {
-			return API::available_memory();
-		}
-
+	String device_version() {
+		return API::version();
 	}
+
+	String device_brand() {
+		return API::brand();
+	}
+
+	String device_model() {
+		return API::model();
+	}
+
+	int device_network_status() {
+		return API::network_status();
+	}
+
+	bool device_is_ac_power() {
+		return API::is_ac_power();
+	}
+
+	bool device_is_battery() {
+		return API::is_battery();
+	}
+
+	float device_battery_level() {
+		return API::battery_level();
+	}
+
+	uint64_t device_memory() {
+		return API::memory();
+	}
+
+	uint64_t device_used_memory() {
+		return API::used_memory();
+	}
+
+	uint64_t device_available_memory() {
+		return API::available_memory();
+	}
+
 }

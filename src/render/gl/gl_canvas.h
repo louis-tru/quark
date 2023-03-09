@@ -46,8 +46,8 @@ namespace qk {
 		virtual int  getSaveCount() const override;
 		virtual void restoreToCount(int saveCount) override;
 		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) override;
-		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
-		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
+		virtual void clipRect(const Rect& rect, ClipOp op) override;
+		virtual void clipPath(const Path& path, ClipOp op) override;
 		virtual void drawPaint(const Paint& paint) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
 		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
@@ -56,9 +56,9 @@ namespace qk {
 		GLuint       setTexture(cPixel *src, GLuint id, bool isGenerateMipmap);
 		void         deleteTextures(const GLuint *IDs, uint32_t count);
 	protected:
-		void drawColor(const Array<Vec3>& triangles, const Paint& paint);
-		void drawGradient(const Array<Vec3>& triangles, const Paint& paint);
-		void drawImage(const Array<Vec3>& triangles, const Paint& paint);
+		void drawColor(const Array<Vec2>& triangles, const Paint& paint);
+		void drawGradient(const Array<Vec2>& triangles, const Paint& paint);
+		void drawImage(const Array<Vec2>& triangles, const Paint& paint);
 		void setBlendMode(BlendMode blendMode);
 		// props
 		BlendMode _blendMode;

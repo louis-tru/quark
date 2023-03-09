@@ -6,11 +6,11 @@
 		'target_name': 'quark-util',
 		'type': 'static_library',
 		'dependencies': [
-			'src/util/minizip.gyp:minizip',
-			'deps/btree/btree.gyp:btree',
+			'deps/zlib/minizip.gyp:minizip',
+			'deps/libbptree/libbptree.gyp:btree',
 			'deps/libuv/libuv.gyp:libuv',
-			'deps/node/deps/openssl/openssl.gyp:openssl',
-			'deps/node/deps/http_parser/http_parser.gyp:http_parser',
+			'deps/openssl/openssl.gyp:openssl',
+			'deps/http_parser/http_parser.gyp:http_parser',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '../..' ],
@@ -19,9 +19,7 @@
 		'include_dirs': [
 			'../..',
 			'../../deps/rapidjson/include',
-			'../../deps/btree/include',
-			'../../deps/node/deps/zlib',
-			'../../deps/node/deps/zlib/contrib/minizip',
+			'../../deps/libbptree/include',
 		],
 		'sources': [
 			'../../Makefile',
@@ -86,20 +84,17 @@
 			'numbers.cc',
 			'hash.cc',
 			'log.cc',
+			'jni.h',
+			'jni.cc',
 		],
 		'conditions': [
 			['os=="android"', {
 				'conditions': [['<(android_api_level)<24', {
 					'defines!': [ '_FILE_OFFSET_BITS=64' ],
 				}]],
-				'sources':[
-					'platforms/android_jni.h',
-					'platforms/android_jni.cc',
-					'platforms/android_path.cc',
-				],
 				'link_settings': {
 					'libraries': [
-						'-latomic', 
+						'-latomic',
 						'-llog', 
 						'-landroid',
 						'-lz',
@@ -107,9 +102,6 @@
 				},
 			}],
 			['os=="linux"', {
-				'sources': [
-					'platforms/linux_path.cc',
-				],
 				'link_settings': {
 					'libraries': [
 						'-lz',
@@ -118,7 +110,7 @@
 			}],
 			['OS=="mac"', {
 				'sources': [
-					'platforms/apple_path.mm',
+					'platforms/fs_path_apple.mm',
 				],
 				'link_settings': {'libraries': [ '$(SDKROOT)/usr/lib/libz.tbd' ]},
 			}],

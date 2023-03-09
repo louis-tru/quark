@@ -77,9 +77,8 @@ def_opts('without-embed-bitcode', 1,
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
 def_opts('without-node', 0,     '--without-node disable node [{0}]');
 def_opts('more-log',     0,     '--more-log print more log message [{0}]');
-def_opts(['use-gl', 'gl'], isMac() ? 0 : 1,
+def_opts(['use-gl', 'gl'], isMac() ? 1 : 1,
 																'--enable-gl,-gl use opengl backend [{0}]');
-def_opts(['use-skia', 'skia'],1,'--use-skia,-skia use skia or fastuidraw backend [{0}]');
 
 function isMac() {
 	return get_OS(opts.os) == 'mac';
@@ -349,133 +348,6 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 	console.log(log.stdout.join('\n'));
 
 	return true;
-}
-
-function configure_skia(opts, variables) {
-	// https://skia.org/docs/user/build/
-	// python tools/git-sync-deps
-	// ./bin/gn gen out --ide=xcode --args='is_debug=false is_official_build=false is_component_build=false target_cpu="arm64" target_os="ios"'
-
-	/*
-	./bin/gn gen out
-	--sysroot="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator15.4.sdk"  \
-	--args='\
-		is_component_build=false   
-		target_cpu="arm64"   
-		skia_enable_skottie=false   
-		skia_use_gl=true   
-		skia_enable_flutter_defines=true   
-		skia_use_fonthost_mac=true      
-		is_debug=false    
-		is_official_build=true    
-		skia_use_system_libjpeg_turbo=false    
-		skia_use_system_libpng=false    
-		skia_use_system_libwebp=false    
-		skia_use_icu=false    
-		skia_use_system_expat=false       
-		target_os="ios"    
-		skia_use_metal=true    
-		xcode_sysroot="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator15.4.sdk"   
-		target_cxx="clang -mios-simulator-version-min=10.0 "   
-		target_cc="clang -mios-simulator-version-min=10.0 "   
-		target_link="clang++ -mios-simulator-version-min=10.0 "  '
-	*/
-
-	var os = opts.os;
-	var arch_name = variables.arch_name;
-	var source = __dirname + '/../deps/skia';
-	var cc_flags = ``;
-
-	var args0 = `--sysroot="${variables.build_sysroot}" `;
-	var args = `\
-		is_component_build=false \
-		target_cpu="${arch_name}" \
-		skia_enable_skottie=false \
-		skia_enable_flutter_defines=true \
-		skia_use_fonthost_mac=true \
-	`;
-
-	if (variables.use_gl) {
-		args += `skia_use_gl=true `
-	}
-
-	// args0 += `--target_cpu="x86_64" `
-
-	// if (variables.debug) {
-		// args += ` \
-			// is_debug=true \
-			// is_official_build=false \
-		// `;
-	// } else {
-	args += ` \
-		is_debug=false \
-		is_official_build=true \
-		skia_use_system_libjpeg_turbo=false \
-		skia_use_system_libpng=false \
-		skia_use_system_libwebp=false \
-		skia_use_icu=false \
-		skia_use_system_expat=false \
-	`;
-		//skia_use_system_harfbuzz=false \
-	// }
-
-	if (os == 'android') {
-		args0 += `--ndk="${opts.ndk_path}" `;
-		args += ` \
-			target_os="android" \
-		`;
-	} else if (os=='linux') {
-		args += ` \
-			target_os="linux" \
-		`;
-	} else if (os == 'ios') {
-		args += ` \
-			target_os="ios" \
-			skia_use_metal=true \
-			xcode_sysroot="${variables.build_sysroot}" \
-		`;
-		if (variables.emulator) {
-			cc_flags += `-mios-simulator-version-min=${variables.version_min} `
-		} else {
-			cc_flags += `-miphoneos-version-min=${variables.version_min} `
-		}
-	} else if (os == 'osx') {
-		// variables.cc
-		args += ` \
-			target_os="darwin" \
-			skia_use_metal=true \
-			xcode_sysroot="${variables.build_sysroot}" \
-		`;
-		cc_flags += `-mmacosx-version-min=${variables.version_min}`;
-	}
-
-	args += `
-		target_cxx="${variables.cxx} ${cc_flags}" \
-		target_cc="${variables.cc} ${cc_flags}" \
-		target_link="${variables.ld} ${cc_flags}" \
-	`;
-
-	console.log(`export PATH=${__dirname}:${variables.build_bin}:$PATH`);
-
-	var cmd = `cd ${source} && \
-		./bin/gn gen                                 out ${args0} --args='${args}' --ide=xcode && \
-		./bin/gn gen ${variables.output}/obj.target/skia ${args0} --args='${args}' --ide=json && \
-		./bin/gn gen ${variables.output}/obj.target/skia ${args0} --args='${args}' \
-	`;
-	cmd = cmd.replace(/\t/gm, ' ');
-
-	console.log(cmd);
-	var log = syscall(cmd);
-	console.error(log.stderr.join('\n'));
-	console.log(log.stdout.join('\n'));
-	// process.exit(0);
-
-	if (!fs.existsSync(`${variables.output}/obj.target/skia/skia`)) {
-		fs.rm_r_sync(`${variables.output}/obj.target/skia/skia`);
-		fs.symlinkSync(path.resolve(`${source}/include`), `${variables.output}/obj.target/skia/skia`);
-	}
-
-	require('./skia_gyp').gen_gyp(os, opts, variables);
 }
 
 function bs(a) {
@@ -1203,10 +1075,6 @@ async function configure() {
 		 }
 		}
 	}
-
-	// configure skia
-	if (opts.use_skia)
-		configure_skia(opts, variables, configuration, opts.clang);
 
 	// ------------------ output config.mk, config.gypi ------------------ 
 	

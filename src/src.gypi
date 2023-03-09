@@ -7,19 +7,20 @@
 			'..',
 			'../out',
 			'../deps/freetype/include',
-			'../deps/tess2/Include',
+			'../deps/libtess2/Include',
 			'../deps/tinyxml2',
 		],
 		'dependencies': [
 			'quark-util',
-			'deps/tess2/tess2.gyp:tess2', 
+			'deps/libtess2/libtess2.gyp:libtess2', 
 			'deps/freetype/freetype.gyp:freetype',
 			'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
+			'deps/libgif/libgif.gyp:libgif',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '..', '../out' ],
 			'xcode_settings': {
-			 # 'OTHER_LDFLAGS': '-all_load',
+				# 'OTHER_LDFLAGS': '-all_load',
 			},
 			'conditions': [
 				['cplusplus_exceptions==1', {
@@ -37,6 +38,7 @@
 			],
 		}, # direct_dependent_settings
 		'sources': [
+			# layout
 			'layout/box.h',
 			'layout/box.cc',
 			'layout/float.h',
@@ -66,112 +68,116 @@
 			'layout/view.cc',
 			'layout/button.h',
 			'layout/button.cc',
-			'render/font/pool.h',
-			'render/font/pool.cc',
-			'render/font/typeface.h',
-			'render/font/typeface.cc',
-			'render/font/style.h',
-			'render/font/style.cc',
-			'render/font/font.h',
-			'render/font/font.cc',
-			'render/font/metrics.h',
-			'render/font/familys.h',
-			'render/font/familys.cc',
-			'render/render.h',
-			'render/render.cc',
-			'render/pixel.h',
-			'render/pixel.cc',
-			'render/source.h',
-			'render/source.cc',
-			'render/source_hold.h',
-			'render/source_hold.cc',
-			'render/source_pool.h',
-			'render/source_pool.cc',
-			'render/path.h',
-			'render/path.cc',
-			'render/scaner.h',
-			'render/scaner.cc',
+			# render
 			'render/codec/codec.h',
 			'render/codec/codec.cc',
 			'render/codec/tga.cc',
-			'math.h',
-			'math.cc',
-			'bezier.h',
-			'bezier.cc',
+			'render/codec/gif.cc',
+			'render/codec/pvrtc.cc',
+			'render/font/familys.h',
+			'render/font/familys.cc',
+			'render/font/font.h',
+			'render/font/font.cc',
+			'render/font/metrics.h',
+			'render/font/pool.h',
+			'render/font/pool.cc',
+			'render/font/style.h',
+			'render/font/style.cc',
+			'render/font/typeface.h',
+			'render/font/typeface.cc',
+			'render/font/util.h',
+			'render/blend.h',
+			'render/canvas.h',
+			'render/canvas.cc',
+			'render/paint.h',
+			'render/paint.cc',
+			'render/path.h',
+			'render/path.cc',
+			'render/pixel.h',
+			'render/pixel.cc',
+			'render/render.h',
+			'render/render.cc',
+			# 'render/scaner.h',
+			# 'render/scaner.cc',
+			'render/source.h',
+			'render/source.cc',
+			# text
+			'text/text_blob.h',
+			'text/text_blob.cc',
+			'text/text_input.h',
+			'text/text_input.cc',
+			'text/text_lines.h',
+			'text/text_lines.cc',
+			'text/text_opts.cc',
+			'text/text_opts.h',
 			'media/media.h',
 			'media/media.cc',
-			'app.inl',
-			'pre_render.h',
-			'pre_render.cc',
+			#
 			'app.h',
 			'app.cc',
+			'app.inl',
+			'bezier.h',
+			'bezier.cc',
+			'device.h',
+			'device.cc',
 			'display.h',
 			'display.cc',
+			'effect.h',
+			'effect.cc',
 			'errno.h',
 			'event.h',
 			'event.cc',
 			'keyboard.h',
 			'keyboard.cc',
+			'math.h',
+			'math.cc',
+			'pre_render.h',
+			'pre_render.cc',
+			# 'property.h',
+			# 'property.cc',
 			'types.h',
-			'os/os.h',
-			'os/os.cc',
-			'effect.h',
-			'effect.cc',
-			'text_lines.cc',
-			'text_lines.h',
-			'text_opts.cc',
-			'text_opts.h',
-			'text_blob.cc',
-			'text_blob.h',
-			'text_input.h',
+			'version.h',
 		],
 		'conditions': [
-			['use_gl==1 or use_skia==0', { # use opengl
+			['use_gl==1', { # use opengl
 				'defines': [ 'Qk_ENABLE_GL=1' ],
 				'sources': [
-					'render/gl.h',
-					'render/gl.cc',
+					'render/gl/gl_canvas.h',
+					'render/gl/gl_canvas.cc',
+					'render/gl/gl_render.h',
+					'render/gl/gl_render.cc',
+					'render/gl/gl_shader.h',
+					'render/gl/gl_shader.cc',
 				],
 			}],
-			['use_skia==1', { # use skia
-				'defines': [ 'Qk_ENABLE_SKIA=1' ],
+			['use_metal==1', { # use metal
+				'defines': [ 'Qk_ENABLE_METAL=1' ],
+				'sources': [],
+			}],
+			['OS!="mac"', { # not apple mac
+				'dependencies': [
+					'deps/libjpeg/libjpeg.gyp:libjpeg',
+					'deps/libpng/libpng.gyp:libpng',
+					'deps/libwebp/libwebp.gyp:libwebp',
+				],
 				'sources': [
-					'render/skia/skia_canvas.h',
-					'render/skia/skia_canvas.cc',
-					'render/skia/skia_render.h',
-					'render/skia/skia_render.cc',
-					'render/skia/skia_source.cc',
+					'render/codec/jpeg.cc',
+					'render/codec/png.cc',
+					'render/codec/webp.cc',
 				],
-				'conditions': [
-					['OS=="mac" and project=="xcode"', {
-						'dependencies': [ 'out/skia.gyp:skia_gyp' ], # debug in xcode
-					}, {
-						'dependencies': [ 'skia' ],
-					}],
-					['use_gl==1', {
-						'sources': [
-							'render/skia/skia_gl.cc',
-						],
-					}],
-				],
-			}],
-			['use_skia==0', { # use fastuidraw
-				'defines': [ 'Qk_ENABLE_FASTUIDRAW=1' ],
 			}],
 			['os=="android"', {
 				'sources': [
-					'platforms/unix/unix_gl.h',
-					'platforms/unix/unix_gl.cc',
+					'platforms/linux/linux_gl.h',
+					'platforms/linux/linux_gl.cc',
 					'platforms/android/android_app.cc',
 					'platforms/android/android_keyboard.cc',
-					# 'os/android/org/quark/Activity.java',
-					# 'os/android/org/quark/API.java',
-					# 'os/android/org/quark/IMEHelper.java',
-					'os/android/android_api.h',
-					'os/android/android_api.cc',
-					'os/android/android_os.cc',
-					# 'render/vulkan.h',
-					# 'render/vulkan.cc',
+					# 'platforms/android/org/quark/Activity.java',
+					# 'platforms/android/org/quark/API.java',
+					# 'platforms/android/org/quark/IMEHelper.java',
+					'platforms/android/android_api.h',
+					'platforms/android/android_api.cc',
+					'platforms/android/android_device.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -181,46 +187,28 @@
 					],
 				},
 			}],
-			['OS!="mac"', {
-				'dependencies': [
-					# 'deps/libgif/libgif.gyp:libgif', 
-					# 'deps/libjpeg/libjpeg.gyp:libjpeg', 
-					# 'deps/libpng/libpng.gyp:libpng',
-					# 'deps/libwebp/libwebp.gyp:libwebp',
-				],
-				'sources': [
-					# 'render/codec/gif.cc',
-					# 'render/codec/jpeg.cc',
-					# 'render/codec/png.cc',
-					# 'render/codec/webp.cc',
-				],
-			}],
-			['OS=="mac"', {
+			['OS=="mac"', { # apple mac, osx ios
 				'dependencies': [
 					'deps/reachability/reachability.gyp:reachability',
 				],
 				'sources':[
+					'platforms/apple/apple_device.mm',
 					'platforms/apple/apple_app.h',
+					'platforms/apple/apple_image_codec.mm',
 					'platforms/apple/apple_keyboard.mm',
-					'platforms/apple/apple_render.mm',
 					'platforms/apple/apple_render.h',
-					'render/metal.h',
-					'render/metal.mm',
-					'render/skia/skia_metal.mm',
+					'platforms/apple/apple_render.mm',
 					'render/font/ct/ct_pool.cc',
 					'render/font/ct/ct_typeface.cc',
 					'render/font/ct/ct_typeface.h',
 					'render/font/ct/ct_util.cc',
 					'render/font/ct/ct_util.h',
-					'os/apple/apple_os.mm',
 				],
 				'link_settings': {
 					'libraries': [
-						# '$(SDKROOT)/usr/lib/libz.tbd',
 						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
 						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
 						'$(SDKROOT)/System/Library/Frameworks/MetalKit.framework',
-						
 					]
 				},
 			}],
@@ -252,13 +240,13 @@
 			}],
 			['os=="linux"', {
 				'sources': [
+					'platforms/linux/linux_device.cc',
 					'platforms/linux/linux_gl.h',
 					'platforms/linux/linux_gl.cc',
 					'platforms/linux/linux_app.cc',
 					'platforms/linux/linux_keyboard.cc',
 					'platforms/linux/linux_ime_helper.h',
 					'platforms/linux/linux_ime_helper.cc',
-					'os/linux/linux_os.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -294,7 +282,6 @@
 		'type': 'static_library', #<(output_type)
 		'dependencies': [
 			'quark',
-			'skia',
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 		],
 		'sources': [
@@ -333,60 +320,6 @@
 				],
 				'link_settings': { 
 					'libraries': [ '-lasound' ],
-				},
-			}],
-		],
-	},
-	{
-		'target_name': 'skia',
-		'type': 'none',
-		"direct_dependent_settings": {
-			"include_dirs": [
-				"<(output)/obj.target/skia",
-				"<(source)/deps/skia"
-			]
-		},
-		'sources': [],
-		'conditions': [
-			['OS=="mac" and project=="xcode"', { # use skia_gyp
-				'dependencies': [ 'out/skia.gyp:skia_gyp' ], # debug in xcode
-			}, { # use ninja build
-				'actions': [{
-					'action_name': 'skia_compile',
-					'inputs': [
-						'../out/<(output_name)/obj.target/skia/args.gn',
-					],
-					'outputs': [
-						'../out/<(output_name)/obj.target/skia/libskia.a',
-						'../out/<(output_name)/obj.target/skia/skia',
-						'../deps/skia',
-					],
-					'action': [
-						'<(tools)/build_skia.sh',
-						'<(output)/obj.target/skia',
-					],
-				}],
-				'link_settings': {
-					'libraries': [
-						'<(output)/obj.target/skia/libskia.a',
-					]
-				},
-			}],
-			# common
-			['os in "ios osx"', {
-				'link_settings': {
-					'libraries': [
-						'$(SDKROOT)/System/Library/Frameworks/CoreText.framework',
-						'$(SDKROOT)/System/Library/Frameworks/Metal.framework',
-					],
-				},
-			}],
-			['os=="android"', {
-				'link_settings': {
-				},
-			}],
-			['os=="linux"', {
-				'link_settings': {
 				},
 			}],
 		],

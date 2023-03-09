@@ -57,8 +57,8 @@ namespace qk {
 		virtual int  getSaveCount() const = 0;
 		virtual void restoreToCount(int saveCount) = 0;
 		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) = 0;
-		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) = 0;
-		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) = 0;
+		virtual void clipRect(const Rect& rect, ClipOp op) = 0;
+		virtual void clipPath(const Path& path, ClipOp op) = 0;
 		virtual void drawColor(const Color4f& color, BlendMode mode = kSrcOver_BlendMode);
 		virtual void drawPaint(const Paint& paint) = 0;
 		virtual void drawRect(const Rect& rect, const Paint& paint);

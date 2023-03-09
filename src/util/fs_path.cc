@@ -42,9 +42,7 @@ namespace qk {
 
 	String string_format(cChar* f, va_list arg);
 
-	// Path implementation
-
-	static String split_path(cString& path, bool basename) {
+	static String fs_split_path(cString& path, bool basename) {
 		String s = path;
 #if Qk_WIN
 			s = s.replace_all('\\', '/');
@@ -72,15 +70,15 @@ namespace qk {
 	}
 
 	String fs_basename(cString& path) {
-		return split_path(path, true);
+		return fs_split_path(path, true);
 	}
 
 	String fs_dirname(cString& path) {
-		return split_path(path, false);
+		return fs_split_path(path, false);
 	}
 
 	String fs_extname(cString& path) {
-		String s = split_path(path, true);
+		String s = fs_split_path(path, true);
 		int index = s.last_index_of(".");
 		if (index != -1) {
 			return s.substr(index);
@@ -310,3 +308,69 @@ namespace qk {
 	}
 
 }
+
+#if Qk_LINUX
+#include <sys/utsname.h>
+#include <stdlib.h>
+
+namespace qk {
+	static String executable_path, documents_path, temp_path, resources_path;
+
+	String fs_executable() {
+		if (executable_path.is_empty()) {
+			char dir[PATH_MAX] = { 0 };
+			int n = readlink("/proc/self/exe", dir, PATH_MAX);
+			executable_path = fs_format("%s", dir);
+		}
+		return executable_path;
+	}
+
+	String fs_documents(cString& child) {
+		if (documents_path.is_empty()) {
+			documents_path = fs_format("%s/%s", getenv("HOME"), "Documents");
+			fs_mkdir_p_sync(documents_path);
+		}
+		if ( child.is_empty() )
+			return documents_path;
+		return fs_format("%s/%s", *documents_path, *child);
+	}
+
+	String fs_temp(cString& child) {
+		if (temp_path.is_empty()) {
+			temp_path = fs_format("%s/%s", getenv("HOME"), ".cache");
+			fs_mkdir_p_sync(temp_path);
+		}
+		if (child.is_empty())
+			return temp_path;
+		return fs_format("%s/%s", *temp_path, *child);
+	}
+
+	String fs_resources(cString& child) {
+		if (resources_path.is_empty()) {
+			resources_path = fs_dirname(fs_executable());
+		}
+		if (child.is_empty())
+			return resources_path;
+		return fs_format("%s/%s", *resources_path, *child);
+	}
+
+}
+#endif
+
+#if Qk_ANDROID
+#include "./jni.h"
+
+extern "C" {
+
+	Qk_EXPORT void Java_org_quark_API_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
+		using namespace qk;
+		documents_path = JNI::jstring_to_string(files_dir);
+		temp_path = JNI::jstring_to_string(cache_dir);
+		resources_path = fs_format("zip://%s@/assets", JNI::jstring_to_string(package));
+		
+		char dir[PATH_MAX] = { 0 };
+		readlink("/proc/self/exe", dir, PATH_MAX);
+		executable_path = fs_format("%s", dir);
+	}
+}
+#endif

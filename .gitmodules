@@ -7,33 +7,18 @@
 [submodule "libs/quark"]
 	path = libs/quark
 	url = https://github.com/louis-tru/quark-ts.git
-[submodule "deps/v8-link"]
-	path = deps/v8-link
-	url = https://github.com/louis-tru/v8-link.git
 [submodule "deps/ffmpeg"]
 	path = deps/ffmpeg
 	url = https://github.com/louis-tru/ffmpeg.git
-[submodule "deps/node"]
-	path = deps/node
-	url = https://github.com/louis-tru/node.git
-[submodule "deps/btree"]
-	path = deps/btree
-	url = https://github.com/louis-tru/btree.git
+[submodule "deps/libbptree"]
+	path = deps/libbptree
+	url = https://github.com/louis-tru/libbptree.git
 [submodule "deps/libuv"]
 	path = deps/libuv
 	url = https://github.com/louis-tru/libuv.git
-[submodule "deps/v8"]
-	path = deps/v8
-	url = https://github.com/louis-tru/v8.git
-[submodule "deps/skia"]
-	path = deps/skia
-	url = https://github.com/louis-tru/skia.git
 [submodule "deps/freetype"]
 	path = deps/freetype
 	url = https://github.com/louis-tru/freetype.git
-[submodule "deps/fastuidraw"]
-	path = deps/fastuidraw
-	url = https://github.com/louis-tru/fastuidraw.git
 [submodule "deps/libgif"]
 	path = deps/libgif
 	url = https://github.com/louis-tru/libgif.git
@@ -52,9 +37,18 @@
 [submodule "deps/reachability"]
 	path = deps/reachability
 	url = https://github.com/louis-tru/reachability.git
-[submodule "deps/tess2"]
-	path = deps/tess2
-	url = https://github.com/louis-tru/tess2.git
+[submodule "deps/libtess2"]
+	path = deps/libtess2
+	url = https://github.com/louis-tru/libtess2.git
 [submodule "deps/tinyxml2"]
 	path = deps/tinyxml2
 	url = https://github.com/louis-tru/tinyxml2.git
+[submodule "deps/zlib"]
+	path = deps/zlib
+	url = https://github.com/louis-tru/zlib.git
+[submodule "deps/openssl"]
+	path = deps/openssl
+	url = https://github.com/louis-tru/openssl.git
+[submodule "deps/http_parser"]
+	path = deps/http_parser
+	url = https://github.com/louis-tru/http_parser.git

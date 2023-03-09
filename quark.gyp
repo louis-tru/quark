@@ -2,7 +2,6 @@
 	'includes': [
 		'src/util/util.gypi',
 		'src/src.gypi',
-		# 'quark/js/js.gypi',
 		'trial/trial.gypi',
 		'tools/default_target.gypi',
 	],
@@ -17,7 +16,7 @@
 
 	'variables': {
 		'more_log%': 0,
-		'quark_product_dir%': '<(output)/../noproj/product',
+		'quark_product_dir%': '<(output)/../qkmake/product',
 		'quark_product_so_subdir%': '<(os)/<(arch)',
 		'other_ldflags': [],
 		'conditions': [
@@ -31,7 +30,6 @@
 					'<(output)/obj.target/libquark.a',
 					'<(output)/obj.target/libquark-media.a',
 					# '<(output)/obj.target/libquark-js.a',
-					# '<(output)/obj.target/deps/node/libnode.a',
 					'-Wl,--no-whole-archive',
 				],
 			}],
@@ -41,7 +39,7 @@
 	'target_defaults': {
 		'conditions': [
 			['more_log==1', {
-				'defines': [ 'FX_MORE_LOG=1' ],
+				'defines': [ 'Qk_MORE_LOG=1' ],
 			}],
 		],
 		'direct_dependent_settings': {
@@ -57,7 +55,6 @@
 			'quark',
 			'quark-media',
 			# 'quark-js',
-			# 'quark-node',
 		],
 		'conditions': [
 			# output mac shared library for "quark.framework"
@@ -67,7 +64,7 @@
 					'variables': {
 						'embed_bitcode%': 0,
 						'use_v8_link%': 0,
-						'lib_v8_a%': [ 
+						'lib_v8_a%': [
 							'<(output)/libv8_base.a', 
 							'<(output)/libv8_libbase.a',
 							'<(output)/libv8_libsampler.a',
@@ -93,23 +90,21 @@
 						'<(output)/libminizip.a',
 						'<(output)/libreachability.a',
 						'<(output)/libtess2.a',
-						'<(output)/libft2.a',
+						'<(output)/libfreetype.a',
 						'<(output)/libtinyxml2.a',
 						'<(output)/obj.target/ffmpeg/libffmpeg.a',
-						'<(output)/libnghttp2.a',
-						'<(output)/libcares.a',
+						# '<(output)/libnghttp2.a',
+						# '<(output)/libcares.a',
 						'<(output)/libquark-utils.a',
 						'<(output)/libquark.a',
 						'<(output)/libquark-media.a',
 						# '<(output)/libquark-js.a',
-						# '<(output)/libnode.a',
 						'<@(lib_v8_a)',
 					],
 					'outputs': [
 						'<(output)/libquark.dylib',
-						# '<(output)/libquark-js.dylib',
 						# '<(output)/libquark-media.dylib',
-						# '<(output)/libquark-node.dylib',
+						# '<(output)/libquark-js.dylib',
 					],
 					'action': [ 
 						'sh', '-c', 
@@ -132,9 +127,8 @@
 					'destination': '<(quark_product_dir)/<(quark_product_so_subdir)',
 					'files': [
 						'<(output)/lib.target/libquark.so',
-						# '<(output)/lib.target/libquark-js.so',
 						# '<(output)/lib.target/libquark-media.so',
-						# '<(output)/lib.target/libquark-node.so',
+						# '<(output)/lib.target/libquark-js.so',
 					],
 				}], # copy libquark.so to product directory
 			}],

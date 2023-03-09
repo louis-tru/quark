@@ -220,7 +220,7 @@ public class API {
 		return Build.BRAND;
 	}
 
-	private static String subsystem() {
+	private static String model() {
 		return Build.MODEL;
 	}
 

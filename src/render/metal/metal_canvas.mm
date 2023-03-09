@@ -32,6 +32,10 @@
 
 namespace qk {
 
+	void MetalCanvas::setMatrix(const Mat& mat) {
+		// TODO ...
+	}
+
 	int  MetalCanvas::save() {
 		// TODO ...
 	}
@@ -52,42 +56,20 @@ namespace qk {
 		// TODO ...
 	}
 
-	void MetalCanvas::clipRect(const Rect& rect, ClipOp op, bool doAntiAlias) {
+	void MetalCanvas::clipRect(const Rect& rect, ClipOp op) {
 		// TODO ...
 	}
 
-	void MetalCanvas::clipPath(const Path& path, ClipOp op, bool doAntiAlias) {
-		// TODO ...
-	}
-
-	void MetalCanvas::drawColor(const Color4f& color, BlendMode mode) {
+	void MetalCanvas::clipPath(const Path& path, ClipOp op) {
 		// TODO ...
 	}
 
 	void MetalCanvas::drawPaint(const Paint& paint) {
-		// TODO ...
+
 	}
 
-	void MetalCanvas::drawRect(const Rect& rect, const Paint& paint) {
-		// TODO ...
-	}
+	void drawPath(const Path& path, const Paint& paint) {
 
-	void MetalCanvas::drawPath(const Path& path, const Paint& paint) {
-		// TODO ...
-	}
-
-	void MetalCanvas::drawOval(const Rect& oval, const Paint& paint) {
-		// TODO ...
-	}
-
-	void MetalCanvas::drawCircle(Vec2 center, float radius, const Paint& paint) {
-		// TODO ...
-	}
-
-	void MetalCanvas::drawArc(const Rect& oval, float startAngle, float sweepAngle,
-		bool useCenter, const Paint& paint)
-	{
-		// TODO ...
 	}
 
 	void MetalCanvas::drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,

@@ -31,7 +31,6 @@
 #include "quark/app.h"
 #include "quark/os/os.h"
 #include "quark/util/loop.h"
-#include "../deps/node/src/quark.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_layout

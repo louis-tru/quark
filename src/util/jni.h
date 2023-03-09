@@ -30,8 +30,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __quark__util__android_jni__
-#define __quark__util__android_jni__
+#ifndef __quark__util__jni__
+#define __quark__util__jni__
 
 #include "../macros.h"
 
@@ -45,13 +45,13 @@ namespace qk {
 	/**
 	* @class JNI
 	*/
-	class Qk_EXPORT JNI {
+	class JNI {
 	public:
 
 		/**
 		* @class ScopeENV
 		*/
-		class Qk_EXPORT ScopeENV {
+		class ScopeENV {
 			Qk_HIDDEN_ALL_COPY(ScopeENV);
 		public:
 			ScopeENV();
@@ -68,7 +68,7 @@ namespace qk {
 		/**
 		* @class MethodInfo
 		*/
-		class Qk_EXPORT MethodInfo {
+		class MethodInfo {
 		public:
 			MethodInfo(cChar* clazz, cChar* method, cChar* param_code, bool is_static = false);
 			MethodInfo(jclass clazz, cChar* method, cChar* param_code, bool is_static = false);
