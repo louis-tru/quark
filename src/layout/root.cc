@@ -40,19 +40,16 @@ namespace qk {
 
 	void __View_set_visible(View* self, bool val, uint32_t layout_depth);
 
-	Root* Root::create() throw(Error) {
-		auto app = qk::app();
-		Qk_CHECK(app, "Before you create a root, you need to create a Application");
-		Handle<Root> r = new Root();
-		r->set_layout_depth(1);
-		r->set_receive(1);
-		r->set_width({0, BoxSizeKind::MATCH});
-		r->set_height({0, BoxSizeKind::MATCH});
-		r->mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
-		r->set_fill_color(Color(255, 255, 255, 255)); // 默认白色背景
-		r->mark_none(kRecursive_Transform);
-		app->set_root(*r);
-		return r.collapse();
+	Root::Root(Application *host): Box(host) {}
+
+	void Root::reset() {
+		set_layout_depth(1);
+		set_receive(1);
+		set_width({0, BoxSizeKind::MATCH});
+		set_height({0, BoxSizeKind::MATCH});
+		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+		set_fill_color(Color(255, 255, 255, 255)); // 默认白色背景
+		mark_none(kRecursive_Transform);
 	}
 
 	void Root::onDisplayChange() {

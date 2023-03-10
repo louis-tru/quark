@@ -31,12 +31,11 @@
 #import "../../render/codec/codec.h"
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
-
 #if Qk_OSX
-# import <AppKit/AppKit.h>
-# define UIImage NSImage
+#import <AppKit/AppKit.h>
+#define UIImage NSImage
 #else
-# import <UIKit/UIKit.h>
+#import <UIKit/UIKit.h>
 #endif
 
 namespace qk {

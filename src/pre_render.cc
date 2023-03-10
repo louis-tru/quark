@@ -31,7 +31,7 @@
 #include "./pre_render.h"
 #include "./layout/layout.h"
 #include "./app.h"
-#include "./text_opts.h"
+#include "./text/text_opts.h"
 
 namespace qk {
 
@@ -188,14 +188,14 @@ namespace qk {
 	}
 
 	void PreRender::Task::register_task() {
-		if ( app() ) {
-			app()->pre_render()->add_task(this);
+		if ( shared_app() ) {
+			shared_app()->pre_render()->add_task(this);
 		}
 	}
 
 	void PreRender::Task::unregister_task() {
-		if ( app() ) {
-			app()->pre_render()->del_task(this);
+		if ( shared_app() ) {
+			shared_app()->pre_render()->del_task(this);
 		}
 	}
 

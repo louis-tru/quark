@@ -34,17 +34,14 @@
 
 namespace qk {
 
-	Layout::Layout(): Layout(qk::pre_render()) {
-	}
-
 	/**
 		* @constructors
 		*/
-	Layout::Layout(PreRender* pre)
+	Layout::Layout(App* host)
 		: _mark_index(-1)
 		, _layout_mark(kLayout_None)
 		, _layout_depth(0)
-		, _pre_render(pre)
+		, _pre_render(host->pre_render())
 	{
 		Qk_ASSERT(pre, "PreRender host cannot be null");
 	}

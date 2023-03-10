@@ -146,7 +146,7 @@ static RenderApple* renderApple = nil;
 			[self pause];
 			_is_background = YES;
 			Qk_DEBUG("onBackground");
-			_inl_app(_app)->triggerBackground();
+			Inl_Application(_app)->triggerBackground();
 		}
 	}
 
@@ -154,7 +154,7 @@ static RenderApple* renderApple = nil;
 		if (_loaded && _is_background) {
 			_is_background = NO;
 			Qk_DEBUG("onForeground");
-			_inl_app(_app)->triggerForeground();
+			Inl_Application(_app)->triggerForeground();
 			[self resume];
 		}
 	}
@@ -163,7 +163,7 @@ static RenderApple* renderApple = nil;
 		if (_loaded && !_is_pause) {
 			Qk_DEBUG("onPause");
 			_is_pause = YES;
-			_inl_app(_app)->triggerPause();
+			Inl_Application(_app)->triggerPause();
 		}
 	}
 
@@ -171,7 +171,7 @@ static RenderApple* renderApple = nil;
 		if (_loaded && _is_pause) {
 			Qk_DEBUG("onResume");
 			_is_pause = NO;
-			_inl_app(_app)->triggerResume();
+			Inl_Application(_app)->triggerResume();
 			[self resize];
 		}
 	}
@@ -183,7 +183,7 @@ static RenderApple* renderApple = nil;
 		// _app->render_loop()->post_sync(Cb([self, rect, context](Cb::Data& d) {
 		// 	gl_draw_context->initialize(self.glview, context);
 		// 	gl_draw_context->refresh_surface_size(rect);
-		// 	_inl_app(_app)->triggerLoad();
+		// 	Inl_Application(_app)->triggerLoad();
 		// 	_loaded = YES;
 		// 	d.data->complete();
 		// }));
@@ -260,11 +260,11 @@ static RenderApple* renderApple = nil;
 														multiplier:1
 														constant:0]];
 		
-		_app->display()->set_default_scale(UIScreen.mainScreen.backingScaleFactor);
+		_host->display()->set_default_scale(UIScreen.mainScreen.backingScaleFactor);
 
 		renderApple->resize(self.view.frame);
 
-		_inl_app(_app)->triggerLoad();
+		Inl_Application(_host)->triggerLoad();
 
 		// [self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
 		// 												forMode:NSDefaultRunLoopMode];
@@ -289,7 +289,7 @@ static RenderApple* renderApple = nil;
 
 	- (void)applicationWillTerminate:(NSNotification*)notification {
 		Qk_DEBUG("applicationWillTerminate");
-		_inl_app(_app)->triggerUnload();
+		Inl_Application(_app)->triggerUnload();
 	}
 
 	- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
@@ -461,15 +461,12 @@ void Display::set_orientation(Orientation orientation) {
 }
 
 extern "C" Qk_EXPORT int main(int argc, Char* argv[]) {
-	Application::runMain(argc, argv);
-
-	if ( app() ) {
-		@autoreleasepool {
-			[UIApplication sharedApplication];
-			[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-			[UIApplication.sharedApplication setDelegate:[[ApplicationDelegate alloc] init]];
-			[UIApplication.sharedApplication run];
-		}
+	@autoreleasepool {
+		Application::runMain(argc, argv);
+		[UIApplication sharedApplication];
+		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+		[UIApplication.sharedApplication setDelegate:[[QkApplicationDelegate alloc] init]];
+		[UIApplication.sharedApplication run];
 	}
 	return 0;
 }

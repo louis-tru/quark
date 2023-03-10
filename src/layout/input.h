@@ -32,10 +32,10 @@
 #define __quark__layout__input__
 
 #include "./box.h"
-#include "../text_blob.h"
-#include "../text_opts.h"
-#include "../text_lines.h"
-#include "../text_input.h"
+#include "../text/text_blob.h"
+#include "../text/text_opts.h"
+#include "../text/text_lines.h"
+#include "../text/text_input.h"
 #include "../pre_render.h"
 
 namespace qk {
@@ -44,7 +44,7 @@ namespace qk {
 		Qk_Define_View(Input);
 	public:
 		typedef ReferenceTraits Traits;
-		Input();
+		Input(App *host);
 		// define props
 		Qk_DEFINE_PROP(bool, security);
 		Qk_DEFINE_PROP(bool, readonly);

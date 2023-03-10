@@ -30,7 +30,7 @@
 
 #include "../app.h"
 #include "./view.h"
-#include "../text_lines.h"
+#include "../text/text_lines.h"
 #include "../pre_render.h"
 #include "./root.h"
 #include <math.h>
@@ -141,8 +141,9 @@ namespace qk {
 		return _transform;
 	}
 
-	View::View()
-		: _action(nullptr), _parent(nullptr)
+	View::View(Application *host)
+		: Notification<UIEvent, UIEventName, Layout>(host)
+		, _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
 		, _transform(nullptr), _opacity(1.0)
@@ -270,11 +271,6 @@ namespace qk {
 
 	bool View::is_allow_append_child() {
 		return true;
-	}
-
-	View* View::append_to(View* parent) {
-		parent->append(this);
-		return this;
 	}
 
 	/**

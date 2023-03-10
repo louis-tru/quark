@@ -78,11 +78,8 @@ void Display::set_visible_status_bar(bool visible) {
 		//  [__appDelegate.app setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
 		//}
 		[__appDelegate refresh_status];
-
-		auto render = dynamic_cast<AppleRender*>(__appDelegate.host->render());
-
 		// TODO 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 ?
-		render->resize(__appDelegate.view.frame);
+		[__appDelegate refresh_surface_region];
 
 		// TODO 绘图表面尺寸没有改变? 表示只是单纯状态栏改变? 这个改变也当成change通知给用户
 		__appDelegate.host->loop()->post(Cb([this](Cb::Data& e) {

@@ -85,9 +85,8 @@ extern QkApplicationDelegate *__appDelegate;
 				withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 	{
 		[coordinator animateAlongsideTransition:^(id context) {
-			auto render = dynamic_cast<AppleRender*>(self.appDelegate.host->render());
+			[self.appDelegate refresh_surface_region];
 
-			render->resize(self.appDelegate.view.frame);
 			Orientation orient = self.appDelegate.host->display()->orientation();
 			if (orient != self.appDelegate.current_orientation) {
 				self.appDelegate.current_orientation = orient;

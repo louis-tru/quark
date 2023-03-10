@@ -35,6 +35,8 @@
 
 namespace qk {
 
+	Image::Image(App *host): Box(host) {}
+
 	float Image::solve_layout_content_width(Size &parent_layout_size) {
 		auto result = Box::solve_layout_content_width(parent_layout_size);
 		auto src = source();

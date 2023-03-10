@@ -29,11 +29,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text.h"
-#include "../text_lines.h"
+#include "../text/text_lines.h"
 #include "../pre_render.h"
 #include "../app.h"
 
 namespace qk {
+
+	TextLayout::TextLayout(App *host): Box(host) {}
 
 	void TextLayout::set_text_align(TextAlign value) {
 		if(_text_align != value) {

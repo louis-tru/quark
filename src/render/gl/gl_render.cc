@@ -72,8 +72,8 @@ namespace qk {
 		return ok;
 	}
 
-	GLRender::GLRender(Application* host)
-		: Render(host)
+	GLRender::GLRender(Application* host, bool renderIsolate)
+		: Render(host, renderIsolate)
 		, _frame_buffer(0), _is_support_multisampled(false), _raster(false)
 	{
 		_is_support_multisampled = checkIsSupportMultisampled();

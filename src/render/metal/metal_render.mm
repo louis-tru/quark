@@ -47,8 +47,8 @@ template <typename T> static inline void CFSafeRelease(T obj) {
 
 namespace qk {
 
-	MetalRender::MetalRender(Application* host)
-		: Render(host)
+	MetalRender::MetalRender(Application* host, bool renderIsolate)
+		: Render(host, renderIsolate)
 		, _queue(nil), _device(nil)
 		, _view(nil), _layer(nil)
 		, _drawable(nil), _pipelineArchive(nil) {

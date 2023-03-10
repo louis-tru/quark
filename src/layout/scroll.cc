@@ -46,7 +46,7 @@ namespace qk {
 	public:
 
 		void triggerScroll() {
-			Sp<UIEvent> evt = New<UIEvent>(this);
+			Sp<UIEvent> evt = qk::New<UIEvent>(this);
 			Notification<UIEvent, UIEventName, Layout>::trigger(UIEvent_Scroll, **evt);
 		}
 
@@ -831,7 +831,7 @@ namespace qk {
 
 	// ------------------------ S c r o l l --------------------------
 
-	Scroll::Scroll(): FloatLayout(), BaseScroll(this)
+	Scroll::Scroll(App *host): FloatLayout(host), BaseScroll(this)
 	{
 		set_is_clip(true);
 	}

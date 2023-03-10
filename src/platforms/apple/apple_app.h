@@ -30,29 +30,37 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "quark/util/macros.h"
-#if Qk_iOS || Qk_OSX
-
-#import <quark/app.h>
-
+#if Qk_APPLE
+#import "../../app.h"
+#import "../../render/render.h"
 #if Qk_OSX
-	#import <AppKit/AppKit.h>
-	#define UIResponder NSResponder
-	#define UIApplicationDelegate NSApplicationDelegate
-	#define UIWindow NSWindow
-	#define UIKit NSView
-	#define UIView NSView
-	#define CGRect NSRect
-	#define UIApplication NSApplication
-	#define UIColor NSColor
-	#define UIScreen NSScreen
+#import <AppKit/AppKit.h>
+#define UIResponder NSResponder
+#define UIApplicationDelegate NSApplicationDelegate
+#define UIWindow NSWindow
+#define UIKit NSView
+#define UIView NSView
+#define CGRect NSRect
+#define UIApplication NSApplication
+#define UIColor NSColor
+#define UIScreen NSScreen
 #else
-	#import <UIKit/UIKit.h>
+#import <UIKit/UIKit.h>
 #endif
+
+class QkAppleRender {
+public:
+	// Called on the rendering thread
+	virtual UIView*     init_view(CGRect rect) = 0;
+	virtual qk::Render* render() = 0;
+};
 
 @class QkRootViewController;
 
 @interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
+	@property (assign, nonatomic, readonly) UIApplication* app; // strong
 	@property (assign, nonatomic, readonly) qk::Application* host;
+	@property (assign, nonatomic, readonly) QkAppleRender* render;
 	@property (strong, nonatomic, readonly) QkRootViewController* root_ctr;
 	@property (strong, nonatomic, readonly) UIWindow *window;
 @end

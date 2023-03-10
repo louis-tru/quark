@@ -212,7 +212,7 @@ namespace qk {
 		}
 
 		void run() {
-			_host = Inl_Application(app());
+			_host = Inl_Application(shared_app());
 			_dispatch = _host->dispatch();
 			_render_looper = new RenderLooper(_host);
 			_main_loop = _host->main_loop();
@@ -828,7 +828,7 @@ extern "C" Qk_EXPORT int main(int argc, Char* argv[]) {
 	/**************************************************/
 	AppInl::runMain(argc, argv);
 
-	if ( app() ) {
+	if ( shared_app() ) {
 		h->run();
 	}
 

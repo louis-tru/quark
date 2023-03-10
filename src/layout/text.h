@@ -32,8 +32,8 @@
 #define __quark__layout__text__
 
 #include "./box.h"
-#include "../text_opts.h"
-#include "../text_lines.h"
+#include "../text/text_opts.h"
+#include "../text/text_lines.h"
 
 namespace qk {
 
@@ -41,6 +41,7 @@ namespace qk {
 		Qk_Define_View(TextLayout);
 	public:
 		Qk_DEFINE_PROP(TextAlign, text_align);
+		TextLayout(App *host);
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void set_visible(bool val) override;

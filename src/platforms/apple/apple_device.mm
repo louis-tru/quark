@@ -33,11 +33,11 @@
 #import <quark/util/handle.h>
 #import <Foundation/Foundation.h>
 #if Qk_iOS
-# import <UIKit/UIKit.h>
+#import <UIKit/UIKit.h>
 #else
-# import <AppKit/AppKit.h>
-# import <IOKit/ps/IOPowerSources.h>
-# import <IOKit/ps/IOPSKeys.h>
+#import <AppKit/AppKit.h>
+#import <IOKit/ps/IOPowerSources.h>
+#import <IOKit/ps/IOPSKeys.h>
 #endif
 #import <mach/vm_statistics.h>
 #import <mach/mach_host.h>

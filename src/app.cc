@@ -40,29 +40,15 @@
 #include "./pre_render.h"
 #include "./layout/label.h"
 #include "./event.h"
+#include "./layout/root.h"
 
 Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
 Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;
 
 namespace qk {
-
 	typedef Application::Inl AppInl;
-
-	struct RunMain {
-		void wait() {
-			Lock lock(_thread_mutex);
-			_thread_cond.wait(lock);
-		}
-		void next() {
-			ScopeLock scope(_thread_mutex);
-			_thread_cond.notify_all();
-		}
-		Mutex     _thread_mutex;
-		Condition _thread_cond;
-	};
-
 	// thread helper
-	static auto *__run_main = new RunMain();
+	static auto __run_main_wait = new Thread::Wait();
 
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
@@ -89,7 +75,140 @@ namespace qk {
 		}
 	}
 
-	typedef Application::Inl AppInl;
+	Application::Application(RunLoop *loop, Options opts)
+		: Qk_Init_Event(Load)
+		, Qk_Init_Event(Unload)
+		, Qk_Init_Event(Background)
+		, Qk_Init_Event(Foreground)
+		, Qk_Init_Event(Pause)
+		, Qk_Init_Event(Resume)
+		, Qk_Init_Event(Memorywarning)
+		, _is_loaded(false)
+		, _opts(opts)
+		, _loop(loop), _keep(nullptr)
+		, _render(nullptr), _display(nullptr)
+		, _root(nullptr), _default_text_options(nullptr)
+		, _dispatch(nullptr), _action_direct(nullptr)
+		, _pre_render(nullptr), _font_pool(nullptr), _img_pool(nullptr)
+		, _max_image_memory_limit(512 * 1024 * 1024) // init 512MB
+	{
+		if (_shared)
+			Qk_FATAL("At the same time can only run a Application entity");
+		_shared = this;
+
+		Qk_On(SafeExit, &Application::handleExit, this);
+
+		// init
+		_pre_render = new PreRender(this); Qk_DEBUG("new PreRender ok");
+		_display = NewRetain<Display>(this); Qk_DEBUG("NewRetain<Display> ok"); // strong ref
+		_font_pool = FontPool::Make(this);
+		_img_pool = new ImageSourcePool(this);
+		_dispatch = new EventDispatch(this); Qk_DEBUG("new EventDispatch ok");
+		_default_text_options = new DefaultTextOptions(_font_pool);
+		// _action_direct = new ActionDirect(); Qk_DEBUG("new ActionDirect ok");
+		_render = Render::Make(this); Qk_DEBUG("Render::Make() ok");
+		_keep = _loop->keep_alive("Application::Application(), keep"); // keep loop
+
+		// init root
+		_root = new Root(this); Qk_DEBUG("new Root ok");
+		_root->reset();
+		_root->retain(); // strong ref
+		_root->focus();  // set focus
+
+		Qk_DEBUG("new Application ok");
+
+		__run_main_wait->notify_all(); // The external thread continues to run
+	}
+
+	Application::~Application() {
+		UILock lock(this);
+		_root->remove();
+		Release(_root);         _root = nullptr;
+		delete _default_text_options; _default_text_options = nullptr;
+		Release(_dispatch);     _dispatch = nullptr;
+		// Release(_action_direct); _action_direct = nullptr;
+		Release(_display);     _display = nullptr;
+		Release(_pre_render);  _pre_render = nullptr;
+		Release(dynamic_cast<Object*>(_render)); _render = nullptr;
+		Release(_keep);        _keep = nullptr;  _loop = nullptr;
+		Release(_font_pool);   _font_pool = nullptr;
+		Release(_img_pool);    _img_pool = nullptr;
+
+		Qk_Off(SafeExit, &Application::handleExit, this);
+
+		_shared = nullptr;
+	}
+
+	void Application::setMain(int (*main)(int, char**)) {
+		__f_gui_main = main;
+	}
+
+	void Application::runMain(int argc, char* argv[]) {
+		static std::atomic_int _is_run = 0;
+		Qk_ASSERT(!_is_run++, "Cannot multiple calls.");
+
+		struct Args { int argc; char** argv; } arg = { argc, argv };
+
+		// 创建一个新子工作线程.这个函数必须由main入口调用
+		Thread::create([](Thread& t, void* arg) {
+			auto args = (Args*)arg;
+			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
+			Qk_ASSERT( main, "No gui main");
+			int rc = main(args->argc, args->argv); // 运行这个自定gui入口函数
+			Qk_DEBUG("Application::runMain() Thread::create() Exit");
+			_is_run--;
+			__run_main_wait->notify_all();
+			qk::exit(rc); // if sub thread end then exit
+		}, &arg, "runMain");
+
+		// 在调用Application::Application()之前一直阻塞这个主线程
+		while (!_shared || !_shared->_keep) {
+			if (!_is_run)
+				break;
+			__run_main_wait->wait();
+		}
+	}
+
+	void Application::clean(bool all) {
+		_render->post_message(Cb([this, all](Cb::Data& e){
+			_img_pool->clean(all);
+		}));
+	}
+
+	uint64_t Application::max_image_memory_limit() const {
+		return _max_image_memory_limit;
+	}
+
+	void Application::set_max_image_memory_limit(uint64_t limit) {
+		_max_image_memory_limit = Qk_MAX(limit, 64 * 1024 * 1024);
+	}
+
+	uint64_t Application::used_image_memory() const {
+		return _img_pool->total_data_size();
+	}
+
+	bool Application::adjust_image_memory(uint64_t will_alloc_size) {
+		int i = 0;
+		do {
+			if (will_alloc_size + used_image_memory() <= _max_image_memory_limit) {
+				return true;
+			}
+			clean();
+			i++;
+		} while(i < 3);
+		
+		Qk_WARN("Adjust image memory fail");
+		
+		return false;
+	}
+
+	void Application::handleExit(Event<>& e) {
+		Qk_DEBUG("Application::handleExit(), rc=%d", static_cast<const Int32*>(e.data())->value);
+		Inl_Application(this)->triggerUnload();
+	}
+
+	// ------------------- A p p l i c a t i o n :: I n l -------------------
+
 	typedef void (*CbFunc) (Cb::Data&, AppInl*);
 
 	void AppInl::triggerLoad() {
@@ -111,7 +230,7 @@ namespace qk {
 			if (_keep) {
 				if (_is_loaded) {
 					_is_loaded = false;
-					Qk_DEBUG("onUnload()");
+					Qk_DEBUG("AppInl::onUnload()");
 					Qk_Trigger(Unload);
 				}
 				// if (_keep) {
@@ -143,172 +262,6 @@ namespace qk {
 	void AppInl::triggerMemorywarning() {
 		clean();
 		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
-	}
-
-	void Application::handleExit(Event<>& e) {
-		// int rc = static_cast<const Int32*>(e.data())->value;
-		_inl_app(this)->triggerUnload();
-		Qk_DEBUG("Application onExit");
-	}
-
-	void Application::set_root(Root* value) throw(Error) {
-		Qk_CHECK(!_root, "Root view already exists");
-		_root = value;
-		_root->retain();   // strong ref
-		_root->focus();
-	}
-
-	Application::Application(Options opts)
-		: Qk_Init_Event(Load)
-		, Qk_Init_Event(Unload)
-		, Qk_Init_Event(Background)
-		, Qk_Init_Event(Foreground)
-		, Qk_Init_Event(Pause)
-		, Qk_Init_Event(Resume)
-		, Qk_Init_Event(Memorywarning)
-		, _is_loaded(false)
-		, _opts(opts)
-		, _loop(nullptr), _keep(nullptr)
-		, _render(nullptr), _display(nullptr)
-		, _root(nullptr), _default_text_options(nullptr)
-		, _dispatch(nullptr), _action_direct(nullptr)
-		, _pre_render(nullptr), _font_pool(nullptr), _img_pool(nullptr)
-		, _max_image_memory_limit(512 * 1024 * 1024) // init 512MB
-	{
-		Qk_CHECK(!_shared, "At the same time can only run a Application entity");
-		_shared = this;
-
-		Qk_On(SafeExit, &Application::handleExit, this);
-		// init
-		_pre_render = new PreRender(this); Qk_DEBUG("new PreRender ok");
-		_display = NewRetain<Display>(this); Qk_DEBUG("NewRetain<Display> ok"); // strong ref
-		_font_pool = FontPool::Make(this);
-		_img_pool = new ImageSourcePool(this);
-		_dispatch = new EventDispatch(this); Qk_DEBUG("new EventDispatch ok");
-		_default_text_options = new DefaultTextOptions(_font_pool);
-		// _action_direct = new ActionDirect(); Qk_DEBUG("new ActionDirect ok");
-	}
-
-	Application::~Application() {
-		UILock lock(this);
-		if (_root) {
-			_root->remove();
-			_root->release(); _root = nullptr;
-		}
-		delete _default_text_options; _default_text_options = nullptr;
-		Release(_dispatch);      _dispatch = nullptr;
-		// Release(_action_direct); _action_direct = nullptr;
-		Release(_display);     _display = nullptr;
-		Release(_pre_render);  _pre_render = nullptr;
-		Release(dynamic_cast<Object*>(_render));   _render = nullptr;
-		Release(_keep);        _keep = nullptr;    _loop = nullptr;
-		Release(_font_pool);   _font_pool = nullptr;
-		Release(_img_pool);    _img_pool = nullptr;
-
-		Qk_Off(SafeExit, &Application::handleExit, this);
-
-		_shared = nullptr;
-	}
-
-	/**
-	* @func run() init and run
-	*/
-	void Application::run(bool is_loop) throw(Error) {
-		UILock lock(this);
-		if (!_keep) { // init
-			_render = Render::Make(this); Qk_DEBUG("Render::Make() ok");
-			_loop = RunLoop::current();
-			_keep = _loop->keep_alive("Application::run(), keep"); // 保持运行
-			__run_main->next(); // 外部线程继续运行
-		}
-		if (is_loop) { // run loop
-			lock.unlock();
-			_loop->run(); // run message loop
-		}
-	}
-
-	/**
-	* @func setMain()
-	*/
-	void Application::setMain(int (*main)(int, char**)) {
-		__f_gui_main = main;
-	}
-
-	/**
-	* @func runMain()
-	*/
-	void Application::runMain(int argc, char* argv[]) {
-		static std::atomic_int _is_run = 0;
-		Qk_ASSERT(!_is_run++, "Cannot multiple calls.");
-
-		struct Args { int argc; char** argv; } arg = { argc, argv };
-
-		// 创建一个新子工作线程.这个函数必须由main入口调用
-		Thread::create([](Thread& t, void* arg) {
-			auto args = (Args*)arg;
-			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
-			Qk_ASSERT( main, "No gui main");
-			int rc = main(args->argc, args->argv); // 运行这个自定gui入口函数
-			Qk_DEBUG("Application::runMain() Thread::create() Exit");
-			_is_run--;
-			__run_main->next();
-			qk::exit(rc); // if sub thread end then exit
-		}, &arg, "runMain");
-
-		// 在调用Application::run()之前一直阻塞这个主线程
-		while (!_shared || !_shared->_keep) {
-			if (!_is_run)
-				break;
-			__run_main->wait();
-		}
-	}
-
-	/**
-	* @func clean([full]) 清理不需要使用的资源
-	*/
-	void Application::clean(bool all) {
-		_render->post_message(Cb([this, all](Cb::Data& e){
-			_img_pool->clean(all);
-		}));
-	}
-
-	/**
-	* @func max_image_memory_limit()
-	*/
-	uint64_t Application::max_image_memory_limit() const {
-		return _max_image_memory_limit;
-	}
-	
-	/**
-	* @func set_max_image_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
-	*/
-	void Application::set_max_image_memory_limit(uint64_t limit) {
-		_max_image_memory_limit = Qk_MAX(limit, 64 * 1024 * 1024);
-	}
-	
-	/**
-	* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
-	*/
-	uint64_t Application::used_image_memory() const {
-		return _img_pool->total_data_size();
-	}
-
-	/**
-	* @func adjust_image_memory()
-	*/
-	bool Application::adjust_image_memory(uint64_t will_alloc_size) {
-		int i = 0;
-		do {
-			if (will_alloc_size + used_image_memory() <= _max_image_memory_limit) {
-				return true;
-			}
-			clean();
-			i++;
-		} while(i < 3);
-		
-		Qk_WARN("Adjust image memory fail");
-		
-		return false;
 	}
 
 }

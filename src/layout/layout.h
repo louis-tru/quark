@@ -38,6 +38,8 @@ namespace qk {
 	class PreRender;
 	class TextLines;
 	class TextConfig;
+	class Application;
+	typedef Application App;
 
 	/**
 		*
@@ -79,9 +81,7 @@ namespace qk {
 			bool wrap_x, wrap_y;
 		};
 
-		Layout();
-		Layout(PreRender* pre);
-
+		Layout(App* host);
 		virtual ~Layout();
 
 		/**

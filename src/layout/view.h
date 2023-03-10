@@ -60,10 +60,38 @@ namespace qk {
 	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
 		Qk_HIDDEN_ALL_COPY(View);
 	public:
-
-		View();
-
+		View(Application *host);
 		virtual ~View();
+
+		template<class T = View> inline T* New() {
+			return new T(pre_render()->host());
+		}
+
+		template<class T = View> inline T* prepend_new() {
+			return New<T>()->prepend_to<T>(this);
+		}
+
+		template<class T = View> inline T* append_new() {
+			return New<T>()->append_to<T>(this);
+		}
+
+		/**
+		 * Prepend subview to parent
+		 *
+		 * @func prepend_to(parent)
+		 */
+		template<class T = View> inline T* prepend_to(View* parent) {
+			parent->prepend(this); return static_cast<T*>(this);
+		}
+
+		/**
+		 * Append subview to parent
+		 *
+		 * @func append_to(parent)
+		 */
+		template<class T = View> inline T* append_to(View* parent) {
+			parent->append(this); return static_cast<T*>(this);
+		}
 
 		/**
 			*
@@ -96,13 +124,6 @@ namespace qk {
 			* @func append(child)
 			*/
 		void append(View* child);
-
-		/**
-		 * Append subview to parent
-		 *
-		 * @func append_to(parent)
-		 */
-		View* append_to(View* parent);
 
 		/**
 		 * 

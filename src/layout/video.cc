@@ -42,8 +42,9 @@ namespace qk {
 	typedef PreRender::Task::ID TaskID;
 	typedef Mediacodec_OutputBuffer OutputBuffer;
 
-	Video::Video()
-		: _source(NULL)
+	Video::Video(App *host)
+		: Image(host)
+		, _source(NULL)
 		, _audio(NULL)
 		, _video(NULL)
 		, _pcm(NULL)

@@ -67,6 +67,13 @@ namespace qk {
 	class Qk_EXPORT Thread {
 		Qk_HIDDEN_ALL_COPY(Thread);
 	public:
+		struct Wait {
+			Mutex     mutex;
+			Condition cond;
+			void wait();
+			void notify_one();
+			void notify_all();
+		};
 		// @members
 		typedef NonObjectTraits Traits;
 		typedef void (*Exec)(Thread& t, void* arg);
@@ -84,7 +91,7 @@ namespace qk {
 		static void pause(uint64_t timeoutUs = 0 /*小于1永久等待*/); // 暂停当前运行可以被`resume()`唤醒
 		static void resume(ThreadID id); // 恢复线程运行
 		static void abort(ThreadID id); // 中止运行信号
-		static void wait(ThreadID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
+		static void wait_for(ThreadID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
 	private:
 		Thread(Exec exec, cString& tag);
 		~Thread() = default;

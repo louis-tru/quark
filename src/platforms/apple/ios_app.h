@@ -31,7 +31,6 @@
 
 #include "quark/util/macros.h"
 #if Qk_iOS
-
 #import "./apple_app.h"
 #import "./apple_render.h"
 #import "./ios_ime_helper.h"
@@ -43,12 +42,11 @@
 		int  _fps;
 		Cb   _render_exec;
 	}
-	@property (strong, nonatomic) UIView* view;
-	@property (strong, nonatomic) QkiOSIMEHelprt* ime;
-	@property (strong, nonatomic) CADisplayLink* display_link;
-	@property (strong, nonatomic) UIApplication* app;
-	@property (strong, nonatomic) QkRootViewController* root_ctr;
+	@property (strong, nonatomic) QkRootViewController* root_ctr; // strong
 	@property (strong, nonatomic) UIWindow *window; // strong
+	@property (strong, nonatomic) UIView* view; // strong
+	@property (strong, nonatomic) QkiOSIMEHelprt* ime; // strong
+	@property (strong, nonatomic) CADisplayLink* display_link; // strong
 	@property (assign, nonatomic) Orientation setting_orientation;
 	@property (assign, nonatomic) Orientation current_orientation;
 	@property (assign, nonatomic) bool visible_status_bar;
@@ -56,6 +54,6 @@
 	@property (assign, atomic)    NSInteger render_task_count;
 
 	- (void)refresh_status;
+	- (void)refresh_surface_region;
 @end
-
 #endif

@@ -536,15 +536,16 @@ namespace qk {
 
 		void trigger_change() {
 			pre_render()->host()->loop()->post(Cb([this](Cb::Data& e){
-				Handle<UIEvent> evt = New<UIEvent>(this);
+				Handle<UIEvent> evt = qk::New<UIEvent>(this);
 				trigger(UIEvent_Change, **evt); // trigger event
 			}, this));
 		}
 
 	};
 
-	Input::Input()
-		: _security(false), _readonly(false)
+	Input::Input(App *host)
+		: Box(host)
+		, _security(false), _readonly(false)
 		, _text_align(TextAlign::LEFT)
 		, _type(KeyboardType::NORMAL)
 		, _return_type(KeyboardReturnType::NORMAL)

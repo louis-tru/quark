@@ -42,9 +42,9 @@ namespace qk {
 	class Qk_EXPORT Box: public View {
 		Qk_Define_View(Box);
 	public:
-		Box();
+		Box(App *host);
 		virtual ~Box();
-		
+
 		/**
 			*
 			* 设置布局对齐方式

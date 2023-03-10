@@ -148,7 +148,7 @@ namespace qk {
 	}
 
 	void Copying::onChange() {
-		auto app_ = app();
+		auto app_ = shared_app();
 		// Qk_ASSERT(app_, "Application needs to be initialized first");
 		if (app_) {
 			app_->pre_render()->mark_none();

@@ -494,6 +494,11 @@ namespace qk {
 		friend class  OnceShellListener;
 	};
 
+
+	// template<class T, typename... Args>
+	// inline T* New(Args... args) { return new T(args...); }
+
+
 	/**
 	* @class Notification
 	*/
@@ -510,8 +515,9 @@ namespace qk {
 		typedef EventNoticer<Event> Noticer;
 		typedef typename Noticer::ListenerFunc ListenerFunc;
 
-		inline Notification()
-			: _noticers(nullptr) {
+		template<typename... Args>
+		inline Notification(Args... args)
+			: Basic(args...), _noticers(nullptr) {
 		}
 		
 		virtual ~Notification() {

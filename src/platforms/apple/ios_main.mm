@@ -33,11 +33,9 @@
 using namespace qk;
 
 extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
-	Application::runMain(argc, argv);
-	if ( app() ) {
-		@autoreleasepool {
-			UIApplicationMain(argc, argv, nil, NSStringFromClass(QkApplicationDelegate.class));
-		}
+	@autoreleasepool {
+		Application::runMain(argc, argv);
+		UIApplicationMain(argc, argv, nil, NSStringFromClass(QkApplicationDelegate.class));
 	}
 	return 0;
 }

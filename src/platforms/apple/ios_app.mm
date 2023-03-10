@@ -50,11 +50,11 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 
 	static void render_exec_func(Cb::Data& evt, Object* ctx) {
 		__appDelegate.render_task_count--;
-		__appDelegate.app->display()->render();
+		__appDelegate.host->display()->render();
 	}
 
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
-		auto _ = self.app;
+		auto _ = self.host;
 		#if Qk_USE_DEFAULT_THREAD_RENDER
 			if (_->is_loaded()) {
 				if (_fps == 0) { // 3 = 15, 1 = 30
@@ -67,9 +67,9 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 		#else
 			if (self.render_task_count == 0) {
 				self.render_task_count++;
-				_->loop()->post(_render_exec);
+				_->render()->post_message(_render_exec);
 			} else {
-				Qk_DEBUG("miss frame");
+				Qk_DEBUG("display_link_callback: miss frame");
 			}
 		#endif
 	}
@@ -79,6 +79,15 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 			self.window.rootViewController = nil;
 			self.window.rootViewController = self.root_ctr;
 		}
+	}
+
+	- (void)refresh_surface_region {
+		// float scale = UIScreen.mainScreen.backingScaleFactor; // macos
+		float scale = UIScreen.mainScreen.scale;
+		CGRect rect = self.view.frame;
+		float x = rect.size.width * scale;
+		float y = rect.size.height * scale;
+		_host->display()->set_surface_region({ 0,0,x,y,x,y });
 	}
 
 	- (RootViewController*)root_ctr {
@@ -93,23 +102,19 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 		return _window;
 	}
 
-	- (void)resize {
-		auto render = dynamic_cast<AppleRender*>(self.host->render());
-		render->resize(__appDelegate.view.frame);
-	}
-
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
 		Qk_ASSERT(!__appDelegate);
 		__appDelegate = self;
 		Qk_ASSERT(Application::shared());
 		_host = Application::shared();
+		_app = app;
 
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];
 		_is_background = NO;
 		_render_exec = Cb(render_exec_func);
-		
-		self.host = app;
+		_render = dynamic_cast<QkAppleRender*>(_host->render());
+
 		self.render_task_count = 0;
 		self.setting_orientation = Orientation::ORIENTATION_USER;
 		self.current_orientation = Orientation::ORIENTATION_INVALID;
@@ -120,13 +125,12 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 																										selector:@selector(display_link_callback:)];
 		self.window.backgroundColor = [UIColor blackColor];
 		self.window.rootViewController = self.root_ctr;
-		
+
 		[self.window makeKeyAndVisible];
 		
 		UIView *rootView = self.window.rootViewController.view;
-		auto render = dynamic_cast<AppleRender*>(self.host->render());
 
-		self.view = render->init(rootView.bounds);
+		self.view = self.render->init_view(rootView.bounds);
 		self.view.contentScaleFactor = UIScreen.mainScreen.scale;
 		self.view.translatesAutoresizingMaskIntoConstraints = NO;
 		self.view.multipleTouchEnabled = YES;
@@ -152,12 +156,12 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 												attribute:NSLayoutAttributeHeight
 												multiplier:1
 												constant:0]];
-		
+
 		_host->display()->set_default_scale(UIScreen.mainScreen.scale);
 
-		render->resize(self.view.frame);
+		[self refresh_surface_region]; // set size
 
-		_inl_app(_host)->triggerLoad();
+		Inl_Application(_host)->triggerLoad();
 
 		[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
 														forMode:NSDefaultRunLoopMode];
@@ -166,36 +170,36 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(CGRect)frame {
 		if ( __appDelegate && !_is_background ) {
-			[self resize];
+			[self refresh_surface_region];
 		}
 	}
 
 	- (void)applicationWillResignActive:(UIApplication*) application {
-		_inl_app(_host)->triggerPause();
+		Inl_Application(_host)->triggerPause();
 	}
 
 	- (void)applicationDidBecomeActive:(UIApplication*) application {
-		_inl_app(_host)->triggerResume();
-		[self resize];
+		Inl_Application(_host)->triggerResume();
+		[self refresh_surface_region];
 	}
 
 	- (void)applicationDidEnterBackground:(UIApplication*) application {
 		_is_background = YES;
-		_inl_app(_host)->triggerBackground();
+		Inl_Application(_host)->triggerBackground();
 	}
 
 	- (void)applicationWillEnterForeground:(UIApplication*) application {
 		_is_background = NO;
-		_inl_app(_host)->triggerForeground();
+		Inl_Application(_host)->triggerForeground();
 	}
 
 	- (void)applicationDidReceiveMemoryWarning:(UIApplication*) application {
-		_inl_app(_host)->triggerMemorywarning();
+		Inl_Application(_host)->triggerMemorywarning();
 	}
 
 	- (void)applicationWillTerminate:(UIApplication*)application {
 		[self.display_link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-		_inl_app(_host)->triggerUnload();
+		Inl_Application(_host)->triggerUnload();
 	}
 
 	- (void) mailComposeController:(MFMailComposeViewController*)controller

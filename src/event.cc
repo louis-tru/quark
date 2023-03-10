@@ -120,7 +120,7 @@ namespace qk {
 	bool View::focus() {
 		if ( is_focus() ) return true;
 
-		auto dispatch = _inl_app(pre_render()->host())->dispatch();
+		auto dispatch = pre_render()->host()->dispatch();
 		View* old = dispatch->focus_view();
 
 		if ( !dispatch->set_focus_view(this) ) {

@@ -33,8 +33,8 @@
 #include "../display.h"
 #include "../render/render.h"
 #include "../pre_render.h"
-#include "../text_lines.h"
-#include "../text_opts.h"
+#include "../text/text_lines.h"
+#include "../text/text_opts.h"
 
 namespace qk {
 
@@ -144,8 +144,9 @@ namespace qk {
 	/**
 		* @constructors
 		*/
-	Box::Box()
-		: _layout_wrap_x(true), _layout_wrap_y(true), _is_radius(false), _is_clip(false)
+	Box::Box(App *host)
+		: View(host)
+		, _layout_wrap_x(true), _layout_wrap_y(true), _is_radius(false), _is_clip(false)
 		, _width{0, BoxSizeKind::WRAP}, _height{0, BoxSizeKind::WRAP} 
 		, _width_limit{0, BoxSizeKind::NONE}, _height_limit{0, BoxSizeKind::NONE}
 		, _origin_x{0, BoxOriginKind::PIXEL}, _origin_y{0, BoxOriginKind::PIXEL}
@@ -950,8 +951,11 @@ namespace qk {
 		auto& clip = pre_render()->host()->display()->clip_region();
 		auto  re   = screen_region_from_convex_quadrilateral(_vertex);
 
-		if (Qk_MAX( clip.y2, re.end.y() ) - Qk_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
-				Qk_MAX( clip.x2, re.end.x() ) - Qk_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width) {
+		if (Qk_MAX( clip.end.y(), re.end.y() ) - Qk_MIN( clip.origin.y(), re.origin.y() )
+					<= re.end.y() - re.origin.y() + clip.size.y() &&
+				Qk_MAX( clip.end.x(), re.end.x() ) - Qk_MIN( clip.origin.x(), re.origin.x() )
+					<= re.end.x() - re.origin.x() + clip.size.x()
+				) {
 			return true;
 		}
 

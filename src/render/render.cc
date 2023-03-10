@@ -28,6 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "../util/loop.h"
 #include "./render.h"
 #include "../app.h"
 #include <math.h>
@@ -43,16 +44,33 @@ namespace qk {
 		return Qk_MIN(n, 8);
 	}
 
-	Render::Render(Application* host)
+	Render::Render(Application* host, bool renderIsolate)
 		: _host(host)
 		, _opts(host->options().render)
+		, _canvas(nullptr)
+		, _renderIsolate(nullptr)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
 		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
 		_opts.stencilBits = integerExp(Qk_MIN(Qk_MAX(_opts.stencilBits, 8), 16));
+
+		if (renderIsolate) {
+			Thread::Wait wait;
+			Thread::create([this, &wait](Thread& t) {
+				auto loop = RunLoop::current();
+				_renderIsolate = loop->keep_alive("Render::Render() keep");
+				wait.notify_all();
+				loop->run(); // run loop
+			}, "Render::Render()");
+			wait.wait(); // wait start run isolate loop
+		}
 	}
 
 	Render::~Render() {
+		if (_renderIsolate) {
+			Thread::abort(_renderIsolate->host()->thread_id());
+			Release(_renderIsolate); _renderIsolate = nullptr;
+		}
 	}
 
 	void Render::activate(bool isActive) {

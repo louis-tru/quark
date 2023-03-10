@@ -103,7 +103,7 @@ using namespace qk;
 		NSString* _marked_text;
 		UITextInputStringTokenizer* _tokenizer;
 		BOOL _can_backspace;
-		AppInl* _app;
+		Application* _app;
 		uint16_t  _keyboard_up_keycode;
 		BOOL _clearing;
 		bool _has_open;
@@ -130,7 +130,7 @@ using namespace qk;
 @synthesize inputDelegate;
 @synthesize tokenizer;
 
-- (id)initWithApplication:(Application*)app {
+- (id)initWithApplication:(Application*)host {
 	self = [super initWithFrame:CGRectMake(0, -1000, 0, 0)];
 	if (self) {
 		self.autocapitalizationType = UITextAutocapitalizationTypeNone;
@@ -141,7 +141,7 @@ using namespace qk;
 		_marked_text = @"";
 		_tokenizer = [[UITextInputStringTokenizer alloc] initWithTextInput:self];
 		_can_backspace = NO;
-		_app = _inl_app(app);
+		_app = host;
 		_keyboard_up_keycode = 0;
 		_clearing = NO;
 		_has_open = NO;

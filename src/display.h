@@ -39,12 +39,10 @@
 #include "./util/loop.h"
 
 namespace qk {
-
 	class Application;
 
 	/**
-	* 提供的一些对显示与屏幕的常用方法属性与事件
-	* @class Display
+	* Provide some common method properties and events for display and screen
 	*/
 	class Qk_EXPORT Display: public Reference {
 		Qk_HIDDEN_ALL_COPY(Display);
@@ -70,9 +68,9 @@ namespace qk {
 				STATUS_BAR_STYLE_WHITE = 0,
 				STATUS_BAR_STYLE_BLACK,
 			};
-			
+
 			Display(Application* host);
-			
+
 			/**
 			* @destructor
 			*/
@@ -80,13 +78,13 @@ namespace qk {
 			
 			/**
 			* @thread main
-			* @event onchange 显示端口变化事件
+			* @event onChange show port change event
 			*/
 			Qk_Event(Change);
 
 			/**
 			* @thread main
-			* @event onorientation 屏幕方向发生改变触发
+			* @event onOrientation Triggered when the screen orientation changes
 			*/
 			Qk_Event(Orientation);
 			
@@ -208,7 +206,7 @@ namespace qk {
 			/**
 			 * @thread render
 			 */
-			void render(bool need = false/*force render*/); // call from render loop
+			void render(); // call from render loop
 			
 			/**
 			* @func default_atom_pixel
@@ -221,22 +219,22 @@ namespace qk {
 			static float default_status_bar_height();
 
 		private:
-		
 			void updateState();
 			void solve_next_frame();
 
 			// member data
 			Application*      _host;
-			Vec2              _set_size;  // 锁定视口的尺寸
-			Vec2              _size;       // 当前视口尺寸
-			float             _scale;   // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
+			Vec2              _set_size;  //!< Lock the size of the viewport
+			Vec2              _size;   //!< current viewport size
+			//!< display scale, the larger the value, the smaller the size and the less content displayed
+			float             _scale;
 			float             _atom_pixel;
 			float             _default_scale;
 			List<Cb>          _next_frame;
 			uint32_t          _fsp, _next_fsp;
 			int64_t           _next_fsp_time;
 			Array<RegionSize> _clip_region;
-			RegionSize        _surface_region;  /* 选择绘图表面有区域 */
+			RegionSize        _surface_region; //!< Select the area on the drawing surface
 	};
 
 }

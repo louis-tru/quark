@@ -35,6 +35,7 @@
 #include "./util/event.h"
 #include "./util/loop.h"
 #include "./types.h"
+#include "./pre_render.h"
 #include "./render/render.h"
 
 #define Qk_Main() \
@@ -43,9 +44,7 @@
 	int __f_main__(int argc, Char** argv)
 
 namespace qk {
-
 	class Display;
-	class PreRender;
 	class View;
 	class Root;
 	class EventDispatch;
@@ -55,12 +54,10 @@ namespace qk {
 	class ImageSourcePool;
 
 	/*
-	* 关于UI中的事件:
-	* UI中所有事件都在`main loop`触发，并且不锁定`UILock`，
-	* 所以添加事件监听器也必须在`main loop`。
+	* About events in UI:
+	* All events in the UI are triggered in the `main loop`, and are not thread-safe,
+	* So adding event listeners must also be in the `main loop`.
 	*/
-
-	Application* app();
 
 	/**
 	* @class Application
@@ -82,12 +79,12 @@ namespace qk {
 		Qk_Event(Memorywarning);
 
 		/**
-		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
-		* 那么在主线程调用任何UI-API函数必须加锁。
+		* Note: If `main loop` and `render loop` run in different threads,
+		* Then any UI-API function called in the main thread must be locked.
 		*/
 		class Qk_EXPORT UILock {
 		public:
-			UILock(Application* host = app());
+			UILock(Application* host = _shared);
 			~UILock();
 			void lock();
 			void unlock();
@@ -96,7 +93,7 @@ namespace qk {
 			bool _lock;
 		};
 
-		Application(Options opts = {});
+		Application(RunLoop *loop = RunLoop::current(), Options opts = {});
 
 		/**
 		* @destructor
@@ -104,12 +101,7 @@ namespace qk {
 		virtual ~Application();
 
 		/**
-		* @func run()
-		*/
-		void run(bool is_loop = false) throw(Error);
-
-		/**
-		* @func pending() 挂起应用进程
+		* @func pending() suspend ui application process
 		*/
 		void pending();
 
@@ -131,7 +123,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); // event dispatch
 
 		/**
-		* @func clean 清理垃圾回收内存资源, all=true 清理全部资源
+		 * Clean up garbage and recycle memory resources, all=true clean up all resources
 		*/
 		void clean(bool all = false);
 
@@ -141,12 +133,12 @@ namespace qk {
 		uint64_t max_image_memory_limit() const;
 
 		/**
-		* @func set_max_image_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
+		* Set the texture memory limit, which cannot be less than 64MB, and the default is 512MB.
 		*/
 		void set_max_image_memory_limit(uint64_t limit);
 
 		/**
-		* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
+		* The amount of memory used by the current texture data, including image textures and font textures
 		*/
 		uint64_t used_image_memory() const;
 
@@ -186,36 +178,28 @@ namespace qk {
 		static inline Application* shared() { return _shared; }
 
 	private:
-		void set_root(Root* value) throw(Error);
 		void handleExit(Event<>& e);
 
-		static Application*  _shared;   // 当前应用程序
+		static Application*  _shared;   // current shared application
 		Options        _opts;
 		KeepLoop*      _keep;
-		// inline EventDispatch* dispatch() { return _dispatch; }
 		RecursiveMutex _render_mutex;
-		uint64_t       _max_image_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
+		uint64_t       _max_image_memory_limit; // Texture memory limit, cannot be less than 64MB, the default is 512MB.
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 
 		friend class UILock;
-		friend class Root;
-		friend Application* app();
-		friend Display* display();
-		friend PreRender* pre_render();
 	};
 
-	inline Application* app() { return Application::_shared; }
-	inline Display* display() { return Application::_shared->_display; }
-	inline PreRender* pre_render() { return Application::_shared->_pre_render; }
-	inline Render* render() { return app()->render(); }
+	inline Application* shared_app() {
+		return Application::shared();
+	}
 
 	typedef Application::UILock UILock;
 
 	//@private head
 	Qk_DEFINE_INLINE_MEMBERS(Application, Inl) {
 	public:
-		#define _inl_app(self) static_cast<Application::Inl*>(self)
 		void triggerLoad();
 		void triggerUnload();
 		void triggerPause();

@@ -30,6 +30,7 @@ namespace qk {
 
 class ImageTest: public Image {
 public:
+	ImageTest(App *host): Image(host) {}
 
 	static SkRect MakeSkRectFrom(Box *host) {
 		auto begin = host->origin_value(); // begin
@@ -39,7 +40,7 @@ public:
 	}
 
 	virtual void accept(ViewVisitor *visitor) override {
-		if (app()->render()->visitor() != visitor) {
+		if (shared_app()->render()->visitor() != visitor) {
 			return visitor->visitImage(this);
 		}
 		auto render = static_cast<SkiaRender*>(visitor);
@@ -74,8 +75,8 @@ public:
 };
 
 void layout_text(Box* box) {
-	auto text = (TextLayout*)New<TextLayout>()->append_to(box);
-	auto labe = (Label*)     New<Label>()     ->append_to(text);
+	auto text = box->append_new<TextLayout>();
+	auto labe = text->append_new<Label>();
 
 	text->set_width({ 0, BoxSizeKind::MATCH });
 	text->set_height({ 0, BoxSizeKind::MATCH });
@@ -103,8 +104,7 @@ void layout_text(Box* box) {
 }
 
 void layout_scroll(Box *box) {
-	auto v = (Scroll*)New<Scroll>()->append_to(box);
-	
+	auto v = box->append_new<Scroll>();
 	//v->set_is_clip(false);
 	
 	v->set_width({ 200 });
@@ -118,43 +118,43 @@ void layout_scroll(Box *box) {
 	v->set_radius_left_bottom(5);
 	v->set_radius_right_bottom(5);
 
-	auto a = (Box*)New<Box>()->append_to(v);
+	auto a = v->append_new<Box>();
 	a->set_margin_top(10);
 	a->set_width({ 0, BoxSizeKind::MATCH });
 	a->set_height({ 100 });
 	a->set_fill_color(Color(255,0,0));
 
-	auto b = (Box*)New<Box>()->append_to(v);
+	auto b = v->append_new<Box>(v);
 	b->set_margin_top(10);
 	b->set_width({ 0, BoxSizeKind::MATCH });
 	b->set_height({ 100 });
 	b->set_fill_color(Color(0,255,0));
 
-	auto c = (Box*)New<Box>()->append_to(v);
+	auto c = v->append_new<Box>();
 	c->set_margin_top(10);
 	c->set_width({ 0.5, BoxSizeKind::RATIO });
 	c->set_height({ 100 });
 	c->set_fill_color(Color(0,0,255));
 
-	auto d = (Box*)New<Box>()->append_to(v);
+	auto d = v->append_new<Box>();
 	d->set_margin_top(10);
 	d->set_width({ 0.5, BoxSizeKind::RATIO });
 	d->set_height({ 100 });
 	d->set_fill_color(Color(0,255,255));
 
-	auto e = (Box*)New<Box>()->append_to(v);
+	auto e = v->append_new<Box>();
 	e->set_margin_top(10);
 	e->set_width({ 0, BoxSizeKind::MATCH });
 	e->set_height({ 100 });
 	e->set_fill_color(Color(0,255,0));
 
-	auto f = (Box*)New<Box>()->append_to(v);
+	auto f = v->append_new<Box>();
 	f->set_margin_top(10);
 	f->set_width({ 0, BoxSizeKind::MATCH });
 	f->set_height({ 100 });
 	f->set_fill_color(Color(0,0,255));
 	
-	auto g = (Box*)New<Box>()->append_to(v);
+	auto g = v->append_new<>Box>();
 	g->set_margin_top(10);
 	g->set_width({ 0, BoxSizeKind::MATCH });
 	g->set_height({ 100 });
@@ -163,7 +163,7 @@ void layout_scroll(Box *box) {
 }
 
 void layout_input(Box* box) {
-	auto input = (Textarea*)New<Textarea>()->append_to(box);
+	auto input = box->append_new<Textarea>();
 	//auto input = (Input*)New<Input>()->append_to(box);
 
 	input->set_width({ 200 });
@@ -188,13 +188,13 @@ void layout(Event<>& evt, Application* app) {
 	app->display()->set_status_bar_style(Display::STATUS_BAR_STYLE_BLACK);
 	app->default_text_options()->set_text_family({ app->font_pool()->getFFID("Helvetica, PingFang SC") });
 
-	auto r = Root::create();
-	//auto flex = (FlexLayout*)New<FlexLayout>()->append_to(r);
-	auto flex = (FlowLayout*)New<FlowLayout>()->append_to(r);
-	auto flow = (FlowLayout*)New<FlowLayout>()->append_to(r);
-	auto img  = (Image*)     New<Image>     ()->append_to(r);
-	auto img2 = (Image*)     New<ImageTest> ()->append_to(r);
-	
+	auto r = app->root();
+	//auto flex = r->append_new<FlexLayout>();
+	auto flex = r->append_new<FlowLayout>();
+	auto flow = r->append_new<FlowLayout>();
+	auto img  = r->append_new<Image>();
+	auto img2 = r->append_new<ImageTest>();
+
 	// layout_text(r);
 	layout_text(flow);
 	//layout_input(flex);
@@ -277,5 +277,5 @@ void layout(Event<>& evt, Application* app) {
 void test_layout(int argc, char **argv) {
 	Application app;
 	app.Qk_On(Load, layout, &app);
-	app.run(true);
+	app.loop()->run();
 }

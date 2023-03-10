@@ -184,7 +184,7 @@ namespace qk {
 			if ( application->_host == nullptr ) { // start gui
 				Application::runMain(0, nullptr); // run gui application
 
-				application->_host = Inl_Application(app());
+				application->_host = Inl_Application(shared_app());
 				application->_dispatch = application->_host->dispatch();
 				application->_render_looper = new RenderLooper(application->_host);
 
@@ -595,30 +595,30 @@ namespace qk {
 	extern "C" {
 
 		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
-			app()->dispatch()->dispatch_ime_delete(count);
+			shared_app()->dispatch()->dispatch_ime_delete(count);
 		}
 
 		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
-			app()->dispatch()->dispatch_ime_insert(JNI::jstring_to_string(text));
+			shared_app()->dispatch()->dispatch_ime_insert(JNI::jstring_to_string(text));
 		}
 
 		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
-			app()->dispatch()->dispatch_ime_marked(JNI::jstring_to_string(text));
+			shared_app()->dispatch()->dispatch_ime_marked(JNI::jstring_to_string(text));
 		}
 
 		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
-			app()->dispatch()->dispatch_ime_unmark(JNI::jstring_to_string(text));
+			shared_app()->dispatch()->dispatch_ime_unmark(JNI::jstring_to_string(text));
 		}
 		
 		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
 			jint keycode, jboolean ascii, jboolean down, jint repeat, jint device, jint source) {
-			app()->dispatch()->keyboard_adapter()->
+			shared_app()->dispatch()->keyboard_adapter()->
 				dispatch(keycode, ascii, down, repeat, device, source);
 		}
 
 		Qk_EXPORT void Java_org_quark_QuarkActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
-			application->host()->main_loop()->post(Cb([](Cb::Data& ev){
-				application->host()->display_port()->Qk_Trigger(change);
+			shared_app()->host()->main_loop()->post(Cb([](Cb::Data& ev) {
+				shared_app()->host()->display_port()->Qk_Trigger(change);
 			}));
 		}
 

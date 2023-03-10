@@ -152,8 +152,9 @@ namespace qk {
 		}
 	}
 
-	FlowLayout::FlowLayout()
-		: _wrap(Wrap::NO_WRAP)
+	FlowLayout::FlowLayout(App *host)
+		: FlexLayout(host)
+		, _wrap(Wrap::NO_WRAP)
 		, _wrap_align(WrapAlign::START)
 	{
 	}

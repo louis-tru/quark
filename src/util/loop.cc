@@ -106,25 +106,36 @@ namespace qk {
 				for ( auto& i: threads_id ) {
 					// 在这里等待这个线程的结束,这个时间默认为1秒钟
 					Qk_DEBUG("atexit_exec,join, %p", i);
-					wait(i, Qk_ATEXIT_WAIT_TIMEOUT); // wait 1s
+					wait_for(i, Qk_ATEXIT_WAIT_TIMEOUT); // wait 1s
 				}
 			}
 		}
 
 	};
 
+	void Thread::Wait::wait() {
+		Lock lock(mutex);
+		cond.wait(lock);
+	}
+	void Thread::Wait::notify_one() {
+		ScopeLock scope(mutex);
+		cond.notify_one();
+	}
+	void Thread::Wait::notify_all() {
+		ScopeLock scope(mutex);
+		cond.notify_all();
+	}
+
 	Thread::Thread(Exec exec, cString& tag)
 		: _abort(false)
 		, _loop(nullptr)
 		, _tag(tag)
 		, _exec(exec)
-	{
-	}
+	{}
 
 	ThreadID Thread::create(Exec exec, void* arg, cString& name) {
-		if ( __is_process_exit ) {
+		if ( __is_process_exit )
 			return ThreadID();
-		}
 		ScopeLock scope(*__threads_mutex);
 		Thread* thread = new Thread(exec, name);
 		
@@ -152,7 +163,7 @@ namespace qk {
 				__threads->erase(thread->id());
 			}
 		}, thread);
-		
+
 		thread->_id = tid_cast(tid);
 		__threads->set(thread->_id, thread);
 
@@ -209,7 +220,7 @@ namespace qk {
 		}
 	}
 
-	void Thread::wait(ThreadID id, uint64_t timeoutUs) {
+	void Thread::wait_for(ThreadID id, uint64_t timeoutUs) {
 		if (id == current_id()) {
 			Qk_DEBUG("Thread::wait(), cannot wait self thread");
 			return;
@@ -229,7 +240,7 @@ namespace qk {
 				} else {
 					signal.cond.wait(l); // permanent wait
 				}
-				Qk_DEBUG("Thread::wait(), end, %p, %s", id, *tag);
+				Qk_DEBUG("Thread::wait_for(), end, %p, %s", id, *tag);
 			}
 			lock.lock();
 			__wait_end_listens->erase(it);

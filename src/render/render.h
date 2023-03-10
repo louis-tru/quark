@@ -61,6 +61,7 @@ namespace qk {
 			ColorType   colorType;
 			int         msaaSampleCnt; // gpu msaa
 			int         stencilBits;   // gpu stencil
+			bool        renderIsolate;
 		};
 		static  Render* Make(Application* host);
 		virtual        ~Render();
@@ -88,10 +89,11 @@ namespace qk {
 		virtual void    visitFlowLayout(FlowLayout* flow) override;
 		virtual void    visitFlexLayout(FlexLayout* flex) override;
 	protected:
-		Render(Application *host);
+		Render(Application *host, bool renderIsolate);
 		Options       _opts;
 		Application  *_host;
 		Canvas       *_canvas;
+		KeepLoop     *_renderIsolate;
 	};
 
 }

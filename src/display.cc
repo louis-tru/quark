@@ -78,12 +78,6 @@ namespace qk {
 		_scale = (width + height) / (_size.x() + _size.y());
 		_atom_pixel = 1.0f / _scale;
 
-		// update root
-		Root* r = _host->root();
-		if (r) {
-			r->onDisplayChange();
-		}
-
 		// set default draw region
 		_clip_region.front() = {
 			Vec2{0, 0},
@@ -93,26 +87,11 @@ namespace qk {
 
 		lock.unlock();
 
-		_host->loop()->post(Cb([this](Cb::Data& e){
+		_host->loop()->post(Cb([this](Cb::Data& e) { // main loop call
+			_host->root()->onDisplayChange(); // update root
 			Qk_Trigger(Change); // 通知事件
 		}));
-
 		_host->render()->reload();
-	}
-	
-	/**
-	* @func solve_next_frame()
-	*/
-	void Display::solve_next_frame() {
-		if (_next_frame.length()) {
-			List<Cb>* cb = new List<Cb>(std::move(_next_frame));
-			_host->loop()->post(Cb([cb](Cb::Data& e) {
-				Handle<List<Cb>> handle(cb);
-				for ( auto& i : *cb ) {
-					i->resolve();
-				}
-			}));
-		}
 	}
 
 	void Display::set_size(float width, float height) {
@@ -133,15 +112,13 @@ namespace qk {
 	# define PRINT_RENDER_FRAME_TIME 0
 	#endif
 
-	void Display::render(bool need) {// 必须要渲染循环中调用
+	void Display::render() { // Must be called in the render loop
 		UILock lock(_host); // ui main local
 		Root* root = _host->root();
 		int64_t now_time = time_monotonic();
 		// _host->action_direct()->advance(now_time); // advance action TODO ...
-		
-		//need = true;
-		
-		if (root && (_host->pre_render()->solve(now_time) || need)) {
+
+		if (_host->pre_render()->solve(now_time)) {
 			if (now_time - _next_fsp_time >= 1e6) { // 1s
 				_fsp = _next_fsp;
 				_next_fsp = 0;
@@ -227,13 +204,24 @@ namespace qk {
 		_next_frame.push_back(cb);
 	}
 
+	void Display::solve_next_frame() {
+		if (_next_frame.length()) {
+			List<Cb>* cb = new List<Cb>(std::move(_next_frame));
+			_host->loop()->post(Cb([cb](Cb::Data& e) {
+				Handle<List<Cb>> handle(cb);
+				for ( auto& i : *cb ) {
+					i->resolve();
+				}
+			}));
+		}
+	}
+
 	void Display::set_default_scale(float value) {
 		UILock lock(_host);
 		_default_scale = value;
 	}
 
 	bool Display::set_surface_region(RegionSize region) {
-		bool ok = false;
 		if (region.size.x() != 0 && region.size.y() != 0) {
 			UILock lock(_host);
 			if (  _surface_region.origin.x() != region.origin.x()
@@ -244,13 +232,13 @@ namespace qk {
 				||	_surface_region.size.y() != region.size.y()
 			) {
 				_surface_region = region;
-				ok = true;
+				_host->render()->post_message(Cb([this](Cb::Data& e) {
+					updateState();
+				}));
+				return true;
 			}
 		}
-		if (ok) {
-			updateState();
-		}
-		return ok;
+		return false;
 	}
 
 }

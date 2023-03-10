@@ -35,6 +35,8 @@
 
 namespace qk {
 
+	Label::Label(App *host): View(host) {}
+
 	void Label::set_text_value(String val) {
 		if (_text_value != val) {
 			_text_value = std::move(val);

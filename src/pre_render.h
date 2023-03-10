@@ -32,15 +32,9 @@
 #ifndef __quark__pre_render__
 #define __quark__pre_render__
 
-#include "./util/util.h"
 #include "./util/list.h"
 
-/**
- * @ns quark
- */
-
 namespace qk {
-
 	class Application;
 	class Layout;
 
@@ -50,8 +44,7 @@ namespace qk {
 	class Qk_EXPORT PreRender: public Object {
 		Qk_HIDDEN_ALL_COPY(PreRender);
 	public:
-
-		PreRender(Application* host);
+		PreRender(Application *host);
 		virtual ~PreRender();
 
 		class Qk_EXPORT Task {
