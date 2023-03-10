@@ -28,7 +28,7 @@ check_osx=\
 
 .PHONY: $(FORWARD) ios android linux osx \
 	product install install-noproj \
-	help web doc watch all all_on_linux all_on_osx sync sync_skia
+	help web doc watch all all_on_linux all_on_osx sync
 
 .SECONDEXPANSION:
 
@@ -123,13 +123,9 @@ help:
 watch:
 	@./tools/sync_watch -h $(REMOTE_COMPILE_HOST)
 
-sync_skia:
-	@python deps/skia/tools/git-sync-deps
-
 sync: # init git submodule
 	@if [ ! -f test/android/app/app.iml ]; then \
 		cp test/android/app/.app.iml test/android/app/app.iml; \
 	fi
 	@git pull
 	@git submodule update --init --recursive
-	@if [ ! -d deps/skia/third_party/externals ]; then $(MAKE) sync_skia; fi
