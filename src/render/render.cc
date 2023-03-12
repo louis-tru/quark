@@ -44,21 +44,21 @@ namespace qk {
 		return Qk_MIN(n, 8);
 	}
 
-	Render::Render(Application* host, bool renderIsolate)
+	Render::Render(Application* host, bool independentThread)
 		: _host(host)
-		, _opts(host->options().render)
+		, _opts(host->options())
 		, _canvas(nullptr)
-		, _renderIsolate(nullptr)
+		, _renderLoop(nullptr)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
 		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
 		_opts.stencilBits = integerExp(Qk_MIN(Qk_MAX(_opts.stencilBits, 8), 16));
 
-		if (renderIsolate) {
+		if (independentThread) {
 			Thread::Wait wait;
 			Thread::create([this, &wait](Thread& t) {
 				auto loop = RunLoop::current();
-				_renderIsolate = loop->keep_alive("Render::Render() keep");
+				_renderLoop = loop->keep_alive("Render::Render() keep");
 				wait.notify_all();
 				loop->run(); // run loop
 			}, "Render::Render()");
@@ -67,9 +67,9 @@ namespace qk {
 	}
 
 	Render::~Render() {
-		if (_renderIsolate) {
-			Thread::abort(_renderIsolate->host()->thread_id());
-			Release(_renderIsolate); _renderIsolate = nullptr;
+		if (_renderLoop) {
+			Thread::abort(_renderLoop->host()->thread_id());
+			Release(_renderLoop); _renderLoop = nullptr;
 		}
 	}
 

@@ -36,8 +36,8 @@
 using namespace qk;
 
 uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
-	if (_renderIsolate) {
-		return _renderIsolate->loop()->post(cb, delay_us);
+	if (_renderLoop) {
+		return _renderLoop->loop()->post(cb, delay_us);
 	} else {
 #if Qk_USE_DEFAULT_THREAD_RENDER
 		auto core = cb.Handle::collapse();
@@ -67,7 +67,7 @@ uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
 
 class AppleMetalRender: public MetalRender, public QkAppleRender {
 public:
-	AppleMetalRender(Application* host, bool renderIsolate): MetalRender(host, renderIsolate)
+	AppleMetalRender(Application* host, bool independentThread): MetalRender(host, independentThread)
 	{}
 	UIView* init_view(CGRect rect) override {
 		_view = [[MTKView alloc] initWithFrame:rect device:nil];
@@ -101,17 +101,17 @@ public:
 
 class AppleGLRender: public GLRender, public QkAppleRender {
 public:
-	static AppleGLRender* New(Application* host, bool renderIsolate) {
+	static AppleGLRender* New(Application* host, bool independentThread) {
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
 			[EAGLContext setCurrentContext:ctx];
-			return new AppleGLRender(host, ctx, renderIsolate);
+			return new AppleGLRender(host, ctx, independentThread);
 		}
 		return nullptr;
 	}
 
-	AppleGLRender(Application* host, EAGLContext* ctx, bool renderIsolate)
-		: GLRender(host, renderIsolate), _ctx(ctx) 
+	AppleGLRender(Application* host, EAGLContext* ctx, bool independentThread)
+		: GLRender(host, independentThread), _ctx(ctx) 
 	{
 		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 		ctx.multiThreaded = NO;
@@ -168,21 +168,21 @@ private:
 
 Render* Render::Make(Application* host) {
 	QkRenderApple* r = nullptr;
-	bool renderIsolate = host->options().render.renderIsolate;
+	bool independentThread = host->options().render.independentThread;
 
-	if (renderIsolate) {
+	if (independentThread) {
 #if Qk_USE_DEFAULT_THREAD_RENDER
-		renderIsolate = false; // use default thread render
+		independentThread = false; // use default thread render
 #endif
 	}
 
 #if Qk_ENABLE_METAL
 	if (@available(macOS 10.11, iOS 13.0, *))
-		r = new AppleMetalRender(host, renderIsolate);
+		r = new AppleMetalRender(host, independentThread);
 #endif
 #if Qk_ENABLE_GL
 	if (!r)
-		r = AppleGLRender::New(host, renderIsolate);
+		r = AppleGLRender::New(host, independentThread);
 #endif
 	Qk_ASSERT(r);
 

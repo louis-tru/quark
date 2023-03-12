@@ -50,8 +50,7 @@
 
 class QkAppleRender {
 public:
-	// Called on the rendering thread
-	virtual UIView*     init_view(CGRect rect) = 0;
+	virtual UIView* init_view(CGRect rect) = 0;
 	virtual qk::Render* render() = 0;
 };
 

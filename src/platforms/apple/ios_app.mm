@@ -127,7 +127,7 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 		self.window.rootViewController = self.root_ctr;
 
 		[self.window makeKeyAndVisible];
-		
+
 		UIView *rootView = self.window.rootViewController.view;
 
 		self.view = self.render->init_view(rootView.bounds);

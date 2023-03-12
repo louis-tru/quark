@@ -65,9 +65,10 @@ namespace qk {
 	class Qk_EXPORT Application: public Object {
 		Qk_HIDDEN_ALL_COPY(Application);
 	public:
-
-		struct Options {
-			Render::Options render;
+		struct Options: Render::Options {
+			Rect   windowFrame;
+			String windowTitle;
+			Color  backgroundColor;
 		};
 
 		Qk_Event(Load);

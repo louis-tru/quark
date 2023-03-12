@@ -28,82 +28,27 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#import <MacTypes.h>
 #import <AppKit/AppKit.h>
-
 // typedef UIEvent AppleUIEvent;
-
 #import "../../util/loop.h"
 #import "../../app.h"
-#import "../../display.h"
 #import "../../event.h"
-#import "./apple_render.h"
-
-#import <MacTypes.h>
+#import "../../display.h"
+#import "./osx_app.h"
 
 using namespace qk;
 
-typedef Display::Orientation Orientation;
-typedef Display::StatusBarStyle StatusBarStyle;
+// ***************** Q k . A p p l i c a t i o n . D e l e g a t e *****************
 
-@class ApplicationOptions;
+typedef Display::Orientation Orientation;
+
+QkApplicationDelegate* __appDelegate = nil;
+
 @class OsxIMEHelprt;
 
-static ApplicationDelegate* appDelegate = nil;
-static RenderApple* renderApple = nil;
 
-/**
- * @interface ApplicationOptions
- */
-@interface ApplicationOptions: NSObject;
-	@property (assign, nonatomic) int x;
-	@property (assign, nonatomic) int y;
-	@property (assign, nonatomic) int width;
-	@property (assign, nonatomic) int height;
-	@property (strong, nonatomic) UIColor* background_color;
-	@property (assign, nonatomic) String title;
-@end
-
-@implementation ApplicationOptions
-
-	- (id)init:(cJSON&) options {
-		self = [super init];
-		if (!self) return self;
-		
-		self.x = -1;
-		self.y = -1;
-		self.width = -1;
-		self.height = -1;
-		self.background_color = [UIColor blackColor];
-		self.title = String();
-		
-		cJSON& o_x = options["x"];
-		cJSON& o_y = options["y"];
-		cJSON& o_w = options["width"];
-		cJSON& o_h = options["height"];
-		cJSON& o_b = options["background"];
-		cJSON& o_t = options["title"];
-		
-		if (o_w.is_uint32()) _width = Qk_MAX(1, o_w.to_uint32());
-		if (o_h.is_uint32()) _height = Qk_MAX(1, o_h.to_uint32());
-		if (o_x.is_uint32()) _x = o_x.to_uint32();
-		if (o_y.is_uint32()) _y = o_y.to_uint32();
-		if (o_t.is_string()) _title = o_t.to_string();
-		if (o_b.is_uint32()) {
-			FloatColor color = Color(o_b.to_uint32() << 8).to_float_color();
-			_background_color = [UIColor colorWithSRGBRed:color.r()
-																							green:color.g()
-																							blue:color.b()
-																							alpha:1];
-		}
-		return self;
-	}
-
-@end
-
-/**
- * @interface ApplicationDelegate
- */
-@interface ApplicationDelegate()<NSWindowDelegate>
+@interface QkApplicationDelegate()<NSWindowDelegate>
 	{
 		UIWindow*  _window;
 		BOOL       _is_background;
@@ -118,7 +63,7 @@ static RenderApple* renderApple = nil;
 	- (void)display_link_callback:(const CVTimeStamp*)outputTime;
 @end
 
-@implementation ApplicationDelegate
+@implementation QkApplicationDelegate
 
 	- (void)display_link_callback:(const CVTimeStamp*)outputTime {
 		if (self.host->is_loaded()) {
@@ -132,13 +77,13 @@ static RenderApple* renderApple = nil;
 
 	- (void)resize_with:(CGRect)rect {
 		if (_loaded) {
-			renderApple->resize(appDelegate.view.frame);
+			renderApple->resize(__appDelegate.view.frame);
 			Qk_DEBUG("refresh_surface_size, %f, %f", rect.size.width, rect.size.height);
 		}
 	}
 
 	- (void)resize {
-		[self resize_with: appDelegate.view.frame];
+		[self resize_with: __appDelegate.view.frame];
 	}
 
 	- (void)background {
@@ -191,28 +136,29 @@ static RenderApple* renderApple = nil;
 	}
 
 	- (void)applicationDidFinishLaunching:(NSNotification*) notification {
-		Qk_ASSERT(!appDelegate);
-		appDelegate = self;
+		Qk_ASSERT(!__appDelegate);
+		__appDelegate = self;
 		Qk_ASSERT(Application::shared());
 		_host = Application::shared();
 
-		// UIApplication* host = UIApplication.sharedApplication;
+		// UIApplication* app = UIApplication.sharedApplication;
 
-		UIScreen* screen = UIScreen.mainScreen;
+		_render = dynamic_cast<QkAppleRender*>(_host->render());
+
+		auto &opts = _host->options();
+
 		NSWindowStyleMask style = NSWindowStyleMaskBorderless |
 			NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
 			NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
-		CGRect frame = screen.frame;
-
-		ApplicationOptions* appOptions = [[ApplicationOptions alloc] init:_host->options()];
-
+		UIScreen* screen = UIScreen.mainScreen;
 		float scale = screen.backingScaleFactor;
-		float width = appOptions.width > 0 ? appOptions.width: frame.size.width / 2;
-		float height = appOptions.height > 0 ? appOptions.height: frame.size.height / 2;
-		float x = appOptions.x > 0 ? appOptions.x: (frame.size.width - width) / 2.0;
-		float y = appOptions.y > 0 ? appOptions.y: (frame.size.height - height) / 2.0;
+
+		float w = opts.size.x() > 0 ? opts.size.x(): screen.frame.size.width / 2;
+		float h = opts.size.y() > 0 ? opts.size.y(): screen.frame.size.height / 2;
+		float x = opts.origin.x() > 0 ? opts.origin.x(): (screen.frame.size.width - w) / 2.0;
+		float y = opts.origin.y() > 0 ? opts.origin.y(): (screen.frame.size.height - h) / 2.0;
 		
-		_window = [[UIWindow alloc] initWithContentRect:NSMakeRect(x, y, width, height)
+		_window = [[UIWindow alloc] initWithContentRect:NSMakeRect(x, y, w, h)
 																					styleMask:style
 																						backing:NSBackingStoreBuffered
 																							defer:NO
@@ -220,19 +166,24 @@ static RenderApple* renderApple = nil;
 		_is_background = YES;
 		_is_pause = YES;
 		_loaded = NO;
-		
+
+		Color4f color = opts.backgroundColor.to_color4f();
+
 		self.window.delegate = self;
-		self.window.backgroundColor = appOptions.background_color;
-		self.window.title = [NSString stringWithFormat:@"%s", *appOptions.title];
+		self.window.backgroundColor = [UIColor colorWithSRGBRed:color.r()
+																											green:color.g()
+																											blue:color.b()
+																											alpha:1];
+		self.window.title = [NSString stringWithFormat:@"%s", opts.windowTitle.c_str()];
 		[self.window makeKeyAndOrderFront:nil];
 		
-		if (appOptions.x < 0 && appOptions.y < 0) {
+		if (opts.x < 0 && opts.y < 0) {
 			[self.window center];
 		}
-		
-		UIView* rootView = self.window.contentView;
 
-		self.view = renderApple->init(rootView.bounds);
+		UIView *rootView = self.window.contentView;
+
+		self.view = _render->init_view(rootView.bounds);
 		//[self.view scaleUnitSquareToSize:NSMakeSize(scale, scale)];
 		self.view.layer.contentsScale = scale;
 		//self.view.contentScaleFactor = scale;
@@ -259,10 +210,10 @@ static RenderApple* renderApple = nil;
 														attribute:NSLayoutAttributeHeight
 														multiplier:1
 														constant:0]];
-		
-		_host->display()->set_default_scale(UIScreen.mainScreen.backingScaleFactor);
 
-		renderApple->resize(self.view.frame);
+		_host->display()->set_default_scale(scale);
+
+		// [self refresh_surface_region]; // set size
 
 		Inl_Application(_host)->triggerLoad();
 
@@ -324,28 +275,14 @@ static RenderApple* renderApple = nil;
 
 // ***************** A p p l i c a t i o n *****************
 
-Render* Render::Make(Application* host) {
-	renderApple = RenderApple::Make(host);
-	return renderApple->render();
-}
-
-/**
- * @func pending() 挂起应用进程
- */
 void Application::pending() {
 	// exit(0);
 }
 
-/**
- * @func open_url()
- */
 void Application::open_url(cString& url) {
 	// TODO
 }
 
-/**
- * @func send_email
- */
 void Application::send_email(cString& recipient,
 														 cString& subject,
 														 cString& cc, cString& bcc, cString& body)
@@ -353,120 +290,28 @@ void Application::send_email(cString& recipient,
 	// TODO 
 }
 
-/**
- * @func ime_keyboard_open
- */
-void AppInl::ime_keyboard_open(KeyboardOptions options) {
-	// TODO
-}
+// ***************** E v e n t . D i s p a t c h *****************
 
-/**
- * @func ime_keyboard_can_backspace
- */
-void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
-	// TODO
-}
-
-/**
- * @func ime_keyboard_close
- */
-void AppInl::ime_keyboard_close() {
-	// TODO
-}
-
-/**
- * @func ime_keyboard_spot_location
- */
-void AppInl::ime_keyboard_spot_location(Vec2 location) {
-	// TODO...
-}
-
-/**
- * @func set_volume_up()
- */
-void AppInl::set_volume_up() {
+void EventDispatch::set_volume_up() {
 	// TODO ..
 }
 
-/**
- * @func set_volume_down()
- */
-void AppInl::set_volume_down() {
+void EventDispatch::set_volume_down() {
 	// TODO ..
 }
 
-// ***************** D i s p l a y *****************
-
-/**
- * @func default_atom_pixel
- */
-float Display::default_atom_pixel() {
-	return 1.0 / UIScreen.mainScreen.backingScaleFactor;
+void EventDispatch::set_ime_keyboard_open(KeyboardOptions options) {
+	// TODO ..
 }
 
-/**
- * @func keep_screen(keep)
- */
-void Display::keep_screen(bool keep) {
-	// TODO
+void EventDispatch::set_ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
+	// TODO ..
 }
 
-/**
- * @func status_bar_height()
- */
-float Display::status_bar_height() {
-	return 0;
+void EventDispatch::set_ime_keyboard_close() {
+	// TODO ..
 }
 
-/**
- * @func default_status_bar_height
- */
-float Display::default_status_bar_height() {
-	return 0;
-}
-
-/**
- * @func set_visible_status_bar(visible)
- */
-void Display::set_visible_status_bar(bool visible) {
-	// TODO
-}
-
-/**
- * @func set_status_bar_text_color(color)
- */
-void Display::set_status_bar_style(StatusBarStyle style) {
-	// TODO
-}
-
-/**
- * @func request_fullscreen(fullscreen)
- */
-void Display::request_fullscreen(bool fullscreen) {
-	// TODO
-}
-
-/**
- * @func orientation()
- */
-Orientation Display::orientation() {
-	return ORIENTATION_INVALID;
-}
-
-/**
- * @func set_orientation(orientation)
- */
-void Display::set_orientation(Orientation orientation) {
+void EventDispatch::set_ime_keyboard_spot_location(Vec2 location) {
 	// noop
-}
-
-extern "C" Qk_EXPORT int main(int argc, Char* argv[]) {
-	@autoreleasepool {
-		Application::runMain(argc, argv);
-		[UIApplication sharedApplication];
-		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-		[UIApplication.sharedApplication setDelegate:[[QkApplicationDelegate alloc] init]];
-		[UIApplication.sharedApplication run];
-	}
-	return 0;
 }
