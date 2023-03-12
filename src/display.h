@@ -77,13 +77,11 @@ namespace qk {
 			virtual ~Display();
 			
 			/**
-			* @thread main
 			* @event onChange show port change event
 			*/
 			Qk_Event(Change);
 
 			/**
-			* @thread main
 			* @event onOrientation Triggered when the screen orientation changes
 			*/
 			Qk_Event(Orientation);
@@ -112,13 +110,13 @@ namespace qk {
 			void set_size(float width = 0, float height = 0);
 
 			/**
-			* @thread rebder
+			* @thread render
 			* @func push_clip_region
 			*/
 			void push_clip_region(Region value);
 			
 			/**
-			* @thread rebder
+			* @thread render
 			* @func pop_clip_region()
 			*/
 			void pop_clip_region();
@@ -136,7 +134,7 @@ namespace qk {
 			inline float atom_pixel() const { return _atom_pixel; }
 			
 			/**
-			* @func next_frame() 只能在主gui线程调用
+			* @func next_frame()
 			*/
 			void next_frame(cCb& cb);
 
@@ -181,27 +179,27 @@ namespace qk {
 			inline uint32_t fsp() const { return _fsp; }
 
 			/**
-			 * @func surface_size()
+			 * returns surface only display region and size
 			 */
 			inline Vec2 surface_size() const {
 				return _surface_region.end - _surface_region.origin;
 			}
 
 			/**
-			 * @func default_scale()
+			 * returns the default display scale
 			 */
 			inline float      default_scale() const { return _default_scale; }
 			inline RegionSize surface_region() const { return _surface_region; }
 
 			/**
-			 * @thread render
+			 * settings the display screen default pixel scale
 			 */
 			void set_default_scale(float value);
 
 			/**
-			 * @thread render
+			 * settings the display screen surface pixel region and size
 			 */
-			bool set_surface_region(RegionSize region); // call from render loop
+			bool set_surface_region(RegionSize region);
 
 			/**
 			 * @thread render

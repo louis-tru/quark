@@ -52,12 +52,7 @@ namespace qk {
 	Display::~Display() {
 	}
 
-	/**
-		* @thread render
-		*/
-	void Display::updateState() { // Called in render loop
-		UILock lock(_host);
-
+	void Display::updateState() { // Lock before calling
 		Vec2 size = surface_size();
 		float width = size.x();
 		float height = size.y();
@@ -85,13 +80,13 @@ namespace qk {
 			Vec2{_size.x(), _size.y()},
 		};
 
-		lock.unlock();
-
 		_host->loop()->post(Cb([this](Cb::Data& e) { // main loop call
-			_host->root()->onDisplayChange(); // update root
-			Qk_Trigger(Change); // 通知事件
+			Qk_Trigger(Change); // trigger display change
 		}));
-		_host->render()->reload();
+		_host->render()->post_message(Cb([this](Cb::Data& e) { // render loop call
+			_host->render()->reload();
+		}));
+		_host->root()->onDisplayChange(); // update root, Locked security call
 	}
 
 	void Display::set_size(float width, float height) {
@@ -99,12 +94,10 @@ namespace qk {
 			UILock lock(_host);
 			if (_set_size.x() != width || _set_size.y() != height) {
 				_set_size = { width, height };
-				_host->render()->post_message(Cb([this](Cb::Data& e) {
-					updateState();
-				}));
+				updateState();
 			}
 		} else {
-			Qk_WARN("Lock size value can not be less than zero\n");
+			Qk_DEBUG("Lock size value can not be less than zero\n");
 		}
 	}
 
@@ -232,9 +225,7 @@ namespace qk {
 				||	_surface_region.size.y() != region.size.y()
 			) {
 				_surface_region = region;
-				_host->render()->post_message(Cb([this](Cb::Data& e) {
-					updateState();
-				}));
+				updateState();
 				return true;
 			}
 		}
