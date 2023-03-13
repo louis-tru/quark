@@ -36,8 +36,6 @@ typedef UIEvent AppleUIEvent;
 
 using namespace qk;
 
-typedef Display::Orientation Orientation;
-
 extern QkApplicationDelegate *__appDelegate;
 
 @implementation QkRootViewController

@@ -42,8 +42,8 @@ uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
 #if Qk_USE_DEFAULT_THREAD_RENDER
 		auto core = cb.Handle::collapse();
 		dispatch_async(dispatch_get_main_queue(), ^{
-			Cb cb(core);
-			cb->resolve();
+			core->resolve();
+			core->release();
 		});
 		return 0;
 	#else
@@ -114,8 +114,7 @@ public:
 
 	AppleGLRender(Application* host, EAGLContext* ctx, bool independentThread)
 		: GLRender(host, independentThread), _ctx(ctx) 
-	{
-	}
+	{}
 
 	~AppleGLRender() {
 		[EAGLContext setCurrentContext:nullptr];

@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./apple_app.h"
+#import "./apple_host.h"
 #import "../../util/util.h"
 #import "../../event.h"
 #import "../../app.h"
@@ -100,13 +100,13 @@ using namespace qk;
 @interface QkiOSIMEHelprt: UIView<UITextInput,QkIMEHelprt>
 {
 	@private
-	NSString* _marked_text;
+	NSString*    _marked_text;
 	UITextInputStringTokenizer* _tokenizer;
-	BOOL _can_backspace;
-	Application* _app;
-	uint16_t  _keyboard_up_keycode;
-	BOOL _clearing;
-	bool _has_open;
+	Application* _host;
+	uint16_t     _keyboard_up_keycode;
+	BOOL         _can_backspace;
+	BOOL         _clearing;
+	bool         _has_open;
 }
 - (id)initIME:(Application*)host;
 - (void)open;
@@ -153,7 +153,7 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 			_marked_text = @"";
 			_tokenizer = [[UITextInputStringTokenizer alloc] initWithTextInput:self];
 			_can_backspace = NO;
-			_app = host;
+			_host = host;
 			_keyboard_up_keycode = 0;
 			_clearing = NO;
 			_has_open = NO;
@@ -284,23 +284,23 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 		if ( text.length == 1 && _marked_text.length == 0 ) {
 			uint16_t keycode = [text characterAtIndex:0];
 			if ( _keyboard_up_keycode == 0 ) {
-				_app->dispatch()->keyboard()->onDispatch(keycode, 1, true/*down*/, 0, -1, 0);
+				_host->dispatch()->keyboard()->onDispatch(keycode, 1, true/*down*/, 0, -1, 0);
 			} else {
 				Qk_ASSERT( keycode == _keyboard_up_keycode );
 			}
-			_app->dispatch()->onImeInsert([text UTF8String]);
-			_app->dispatch()->keyboard()->onDispatch(keycode, 1, false/*up*/, 0, -1, 0);
+			_host->dispatch()->onImeInsert([text UTF8String]);
+			_host->dispatch()->keyboard()->onDispatch(keycode, 1, false/*up*/, 0, -1, 0);
 			_keyboard_up_keycode = 0;
 		} else {
-			_app->dispatch()->onImeInsert([text UTF8String]);
+			_host->dispatch()->onImeInsert([text UTF8String]);
 		}
 	}
 
 	- (void)deleteBackward {
 		_keyboard_up_keycode = 0;
-		_app->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 1, 0, -1, 0);
-		_app->dispatch()->onImeDelete(-1);
-		_app->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 0, 0, -1, 0);
+		_host->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 1, 0, -1, 0);
+		_host->dispatch()->onImeDelete(-1);
+		_host->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 0, 0, -1, 0);
 	}
 
 	- (NSString*)textInRange:(UITextRange*)range {
@@ -334,10 +334,10 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 	- (void)setMarkedText:(NSString*)markedText selectedRange:(NSRange)selectedRange {
 		if ( !_clearing ) {
 			_marked_text = markedText;
-			_app->dispatch()->onImeMarked([_marked_text UTF8String]);
+			_host->dispatch()->onImeMarked([_marked_text UTF8String]);
 			
 			if ( _keyboard_up_keycode ) {
-				_app->dispatch()->keyboard()->onDispatch(_keyboard_up_keycode, 1, 0, 0, -1, 0);
+				_host->dispatch()->keyboard()->onDispatch(_keyboard_up_keycode, 1, 0, 0, -1, 0);
 				_keyboard_up_keycode = 0;
 			}
 		}
@@ -345,7 +345,7 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 
 	- (void)unmarkText {
 		if ( !_clearing ) {
-			_app->dispatch()->onImeUnmark([_marked_text UTF8String]);
+			_host->dispatch()->onImeUnmark([_marked_text UTF8String]);
 		}
 		_marked_text = @"";
 	}
@@ -445,7 +445,7 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 				
 				if ( ![text isEqualToString:_marked_text] ) {
 					_keyboard_up_keycode = keycode;
-					_app->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
+					_host->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
 				}
 			}
 		}

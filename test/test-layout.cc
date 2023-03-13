@@ -277,5 +277,5 @@ void layout(Event<>& evt, Application* app) {
 void test_layout(int argc, char **argv) {
 	Application app;
 	app.Qk_On(Load, layout, &app);
-	app.loop()->run();
+	app.run();
 }

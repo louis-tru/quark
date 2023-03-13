@@ -38,8 +38,6 @@ using namespace qk;
 
 // ***************** Q k . A p p l i c a t i o n . D e l e g a t e *****************
 
-typedef Display::Orientation Orientation;
-
 QkApplicationDelegate *__appDelegate = nil; // global object
 
 @implementation QkApplicationDelegate

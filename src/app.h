@@ -102,6 +102,11 @@ namespace qk {
 		virtual ~Application();
 
 		/**
+		 * start run application message loop
+		*/
+		void run();
+
+		/**
 		* @func pending() suspend ui application process
 		*/
 		void pending();

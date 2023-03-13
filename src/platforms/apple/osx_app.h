@@ -38,16 +38,11 @@
 
 @interface QkOsxApplicationDelegate()<NSWindowDelegate>
 	{
-		UIWindow*  _window;
 		BOOL       _is_background;
 		BOOL       _is_pause;
 		BOOL       _loaded;
 	}
-	@property (strong, nonatomic) UIView* surface_view;
-	@property (strong, nonatomic) QkIMEHelprt* ime;
-	@property (strong, nonatomic) UIApplication* host;
 	// @property (strong, nonatomic) CADisplayLink* display_link;
-	// @property (strong, nonatomic) RootViewController* root_ctr;
 	- (void)display_link_callback:(const CVTimeStamp*)outputTime;
 @end
 #endif

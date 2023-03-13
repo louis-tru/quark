@@ -107,7 +107,6 @@ namespace qk {
 		_default_text_options = new DefaultTextOptions(_font_pool);
 		// _action_direct = new ActionDirect(); Qk_DEBUG("new ActionDirect ok");
 		_render = Render::Make(this); Qk_DEBUG("Render::Make() ok");
-		_keep = _loop->keep_alive("Application::Application(), keep"); // keep loop
 
 		// init root
 		_root = new Root(this); Qk_DEBUG("new Root ok");
@@ -116,8 +115,6 @@ namespace qk {
 		_root->focus();  // set focus
 
 		Qk_DEBUG("new Application ok");
-
-		__run_main_wait->notify_all(); // The external thread continues to run
 	}
 
 	Application::~Application() {
@@ -139,6 +136,17 @@ namespace qk {
 		_shared = nullptr;
 	}
 
+	void Application::run() {
+		if (!_keep) {
+			_keep = _loop->keep_alive("Application::run(), keep"); // keep loop
+		}
+		__run_main_wait->notify_all(); // The external thread continues to run
+
+		if (!_loop->runing()) {
+			_loop->run(); // run message loop
+		}
+	}
+
 	void Application::setMain(int (*main)(int, char**)) {
 		__f_gui_main = main;
 	}
@@ -146,18 +154,18 @@ namespace qk {
 	void Application::runMain(int argc, char* argv[]) {
 		struct Args { int argc; char** argv; } arg = { argc, argv };
 
-		// 创建一个新子工作线程.这个函数必须由main入口调用
+		// Create a new child worker thread. This function must be called by the main entry
 		thread_fork([](Thread *t, void* arg) {
 			auto args = (Args*)arg;
 			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
 			Qk_ASSERT( main, "No gui main");
-			int rc = main(args->argc, args->argv); // 运行这个自定gui入口函数
+			int rc = main(args->argc, args->argv); // Run this custom gui entry function
 			Qk_DEBUG("Application::runMain() thread_fork() Exit");
 			thread_try_abort_and_exit(rc); // if sub thread end then exit
 			Qk_DEBUG("Application::runMain() thread_fork() Exit ok");
 		}, &arg, "runMain");
 
-		// 在调用Application::Application()之前一直阻塞这个主线程
+		// Block this main thread until calling Application::run()
 		while (!_shared || !_shared->_keep) {
 			__run_main_wait->wait();
 		}
