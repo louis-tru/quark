@@ -86,8 +86,8 @@ namespace qk {
 	Qk_EXPORT void     thread_wait_for(ThreadID id, uint64_t timeoutUs = 0);
 	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc);
 
-	Qk_EXPORT ThreadID        thread_current_id();
-	Qk_EXPORT const ThreadID* thread_current();
+	Qk_EXPORT ThreadID      thread_current_id();
+	Qk_EXPORT const Thread* thread_current();
 
 	Qk_EXPORT EventNoticer<>& onExit();
 
