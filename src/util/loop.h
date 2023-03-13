@@ -207,7 +207,6 @@ namespace qk {
 		virtual ~RunLoop();
 		
 		Qk_DEFINE_INLINE_CLASS(Inl);
-		Qk_DEFINE_INLINE_CLASS(Inl2);
 
 		friend class KeepLoop;
 		struct Queue {
