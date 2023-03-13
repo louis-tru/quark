@@ -56,7 +56,7 @@ namespace qk {
 
 		if (independentThread) {
 			Wait wait;
-			thread_fork([this, &wait](Thread* t) {
+			thread_fork([this, &wait]() {
 				auto loop = RunLoop::current();
 				_renderLoop = loop->keep_alive("Render::Render() keep");
 				wait.notify_all();

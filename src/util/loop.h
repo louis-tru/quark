@@ -74,15 +74,20 @@ namespace qk {
 		void notify_all();
 	};
 
-	Qk_EXPORT ThreadID thread_fork(void exec(Thread* t, void* arg), void* arg = nullptr, cString& tag = String());
-	Qk_EXPORT ThreadID thread_fork(std::function<void(Thread*)> func, cString& tag = String());
-	Qk_EXPORT ThreadID thread_current_id();
-	Qk_EXPORT void     thread_sleep(uint64_t timeoutUs = 0); // 休眠当前线程不能被唤醒
-	Qk_EXPORT void     thread_pause(uint64_t timeoutUs = 0 /*小于1永久等待*/); // 暂停当前运行可以被`resume()`唤醒
-	Qk_EXPORT void     thread_resume(ThreadID id); // resume thread running
-	Qk_EXPORT void     thread_abort(ThreadID id); // abort signal
-	Qk_EXPORT void     thread_wait_for(ThreadID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
+	Qk_EXPORT ThreadID thread_fork(void exec(void* arg), void* arg = nullptr, cString& tag = String());
+	Qk_EXPORT ThreadID thread_fork(std::function<void()> func, cString& tag = String());
+	//!< sleep The current thread cannot be awakened
+	Qk_EXPORT void     thread_sleep(uint64_t timeoutUs = 0);
+	//!< Pause the current operation can be awakened by 'resume()'
+	Qk_EXPORT void     thread_pause(uint64_t timeoutUs = 0 /*Less than 1 permanent wait*/);
+	Qk_EXPORT void     thread_resume(ThreadID id); //!< resume thread running
+	Qk_EXPORT void     thread_abort(ThreadID id); //!< abort signal
+	//!< Wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
+	Qk_EXPORT void     thread_wait_for(ThreadID id, uint64_t timeoutUs = 0);
 	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc);
+
+	Qk_EXPORT ThreadID        thread_current_id();
+	Qk_EXPORT const ThreadID* thread_current();
 
 	Qk_EXPORT EventNoticer<>& onExit();
 

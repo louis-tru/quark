@@ -155,7 +155,7 @@ namespace qk {
 		struct Args { int argc; char** argv; } arg = { argc, argv };
 
 		// Create a new child worker thread. This function must be called by the main entry
-		thread_fork([](Thread *t, void* arg) {
+		thread_fork([](void* arg) {
 			auto args = (Args*)arg;
 			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
 			Qk_ASSERT( main, "No gui main");

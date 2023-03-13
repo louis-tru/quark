@@ -60,9 +60,10 @@ namespace qk {
 			ParallelWorking* self;
 			Func func;
 		};
-		auto id = thread_fork([](Thread* t, void* arg) {
+		auto id = thread_fork([](void* arg) {
 			Handle<Tmp> tmp = (Tmp*)arg;
-			tmp->func(t);
+			auto t = thread_current();
+			tmp->func();
 			ScopeLock scope(tmp->self->_mutex2);
 			tmp->self->_childs.erase(t->id);
 		}, new Tmp, name);
@@ -152,7 +153,7 @@ namespace qk {
 			return thread_current_id() == _thread_id;
 		}
 
-		bool is_continue(Thread* t) {
+		bool is_continue(const Thread* t) {
 			ScopeLock scope(_mutex);
 			if (!t->abort) {
 				/* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
@@ -175,7 +176,8 @@ namespace qk {
 			if (_loop)
 				return _loop;
 
-			thread_fork([](Thread* t, void* arg) {
+			thread_fork([](void* arg) {
+				auto t = thread_current();
 				auto self = (BackendLoop*)arg;
 				self->_mutex.lock();
 				self->_thread_id = t->id;

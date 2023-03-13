@@ -121,11 +121,15 @@ namespace qk {
 		return std::this_thread::get_id();
 	}
 
-	static Thread_INL* thread_current() {
+	const Thread* thread_current() {
+		return reinterpret_cast<const Thread*>(pthread_getspecific(__specific_key));
+	}
+
+	static Thread_INL* thread_current_inl() {
 		return reinterpret_cast<Thread_INL*>(pthread_getspecific(__specific_key));
 	}
 
-	ThreadID thread_fork(void (*exec)(Thread* t, void* arg), void* arg, cString& name) {
+	ThreadID thread_fork(void (*exec)(void* arg), void* arg, cString& name) {
 		if ( __is_process_exit != 0 )
 			return ThreadID();
 		ScopeLock scope(*__threads_mutex);
@@ -139,7 +143,7 @@ namespace qk {
 #endif
 			thread_set_specific_data(thread);
 			if ( !thread->abort ) {
-				thread->_exec(thread, arg);
+				thread->_exec(arg);
 				thread->abort = true;
 			}
 			{
@@ -162,13 +166,13 @@ namespace qk {
 		return thread->id;
 	}
 
-	typedef std::function<void(Thread*)> ForkFunc;
+	typedef std::function<void()> ForkFunc;
 
 	ThreadID thread_fork(ForkFunc func, cString& name) {
 		auto funcp = new ForkFunc(func);
-		return thread_fork([](Thread* t, void* arg) {
+		return thread_fork([](void* arg) {
 			std::unique_ptr<ForkFunc> f( (ForkFunc*)arg );
-			return (*f)(t);
+			(*f)();
 		}, funcp, name);
 	}
 
@@ -177,7 +181,7 @@ namespace qk {
 	}
 
 	void thread_pause(uint64_t timeoutUs) {
-		auto cur = thread_current();
+		auto cur = thread_current_inl();
 		Qk_ASSERT(cur, "Cannot find current qk::Thread handle, use Thread::sleep()");
 
 		Lock lock(cur->_mutex);
@@ -580,12 +584,12 @@ namespace qk {
 	 * @func current() 获取当前线程消息队列
 	 */
 	RunLoop* RunLoop::current() {
-		auto t = thread_current();
+		auto t = thread_current_inl();
 		if (!t) {
 			Qk_WARN("Can't get thread specific data");
 			return nullptr;
 		}
-		auto loop = static_cast<Thread_INL*>(t)->_loop;
+		auto loop = t->_loop;
 		if (!loop) {
 			ScopeLock scope(*__threads_mutex);
 			if (__first_loop) {

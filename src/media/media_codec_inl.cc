@@ -314,7 +314,7 @@ namespace qk {
 		return info;
 	}
 
-#define ABORT() { if (!t.is_abort()) trigger_error(e); return 0; }
+#define ABORT() { if (!t->abort) trigger_error(e); return; }
 
 	/**
 	* @func start
@@ -339,7 +339,8 @@ namespace qk {
 		
 		String uri = fs_fallback_c(_uri.href());
 
-		spawn_child([this, uri](Thread& t) {
+		spawn_child([this, uri]() {
+			auto t = thread_current();
 			
 			AVFormatContext* fmt_ctx = nullptr;
 			
@@ -413,7 +414,6 @@ namespace qk {
 			
 			read_stream(t, fmt_ctx, uri, bit_rate_index);
 
-			return 0;
 		}, "ffmpeg_read_source");
 	}
 
@@ -628,7 +628,7 @@ namespace qk {
 	/**
 	* @func read_stream
 	* */
-	void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint32_t bit_rate_index) {
+	void Inl::read_stream(const Thread* t, AVFormatContext* fmt_ctx, cString& uri, uint32_t bit_rate_index) {
 		
 		Array<double> tbns;
 		
@@ -655,7 +655,7 @@ namespace qk {
 		TAG1:
 			sleep = 0;
 
-			if (t.is_abort()) {
+			if (t->abort) {
 				Qk_DEBUG("read_frame() abort break;"); break;
 			}
 
