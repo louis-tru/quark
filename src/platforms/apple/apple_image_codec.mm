@@ -59,13 +59,13 @@ namespace qk {
 				int height = (int)CGImageGetHeight(image);
 				int pixel_size = width * height * 4;
 
-				CGImageAlphaInfo info = kCGImageAlphaLast | kCGBitmapByteOrder32Big;
+				CGImageAlphaInfo cginfo = CGImageAlphaInfo(kCGImageAlphaLast | kCGBitmapByteOrder32Big);
 				// info = CGImageGetAlphaInfo(image);
 
 				auto pixel_data = Buffer::alloc(pixel_size);
 				color_space = CGColorSpaceCreateDeviceRGB();
 				CGContextRef ctx =
-				CGBitmapContextCreate(*pixel_data, width, height, 8, width * 4, color_space, info);
+				CGBitmapContextCreate(*pixel_data, width, height, 8, width * 4, color_space, cginfo);
 				CGContextDrawImage(ctx, CGRectMake(0, 0, width, height), image);
 				CGContextRelease(ctx);
 				CFRelease(color_space);

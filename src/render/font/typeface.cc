@@ -109,7 +109,7 @@ namespace qk {
 			return it->value;
 		Path path;
 		onGetPath(glyph, &path);
-		_paths.set(glyph, path.normalized());
+		_paths.set(glyph, path.normalizedPath());
 		return _paths[glyph];
 	}
 

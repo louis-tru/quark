@@ -231,8 +231,6 @@ namespace qk {
 			do {
 				XNextEvent(_dpy, &event);
 
-				if (is_exited()) break;
-
 				resolved_queue(); // resolved message queue
 
 				if (XFilterEvent(&event, None)) continue;
@@ -575,10 +573,8 @@ namespace qk {
 		}
 
 		void destroy() {
-			if (!is_exited()) {
-				_render_looper->stop();
-				qk::exit(0, true);
-			}
+			_render_looper->stop();
+			thread_try_abort_and_exit(0);
 			XDestroyWindow(_dpy, _win); _win = 0;
 			XCloseDisplay(_dpy); _dpy = nullptr; // disconnect x display
 			Qk_DEBUG("UnixApplication Exit");

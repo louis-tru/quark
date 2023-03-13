@@ -37,7 +37,7 @@ using namespace qk;
 
 uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
 	if (_renderLoop) {
-		return _renderLoop->loop()->post(cb, delay_us);
+		return _renderLoop->post(cb, delay_us);
 	} else {
 #if Qk_USE_DEFAULT_THREAD_RENDER
 		auto core = cb.Handle::collapse();
@@ -69,7 +69,7 @@ class AppleMetalRender: public MetalRender, public QkAppleRender {
 public:
 	AppleMetalRender(Application* host, bool independentThread): MetalRender(host, independentThread)
 	{}
-	UIView* init_view(CGRect rect) override {
+	UIView* make_surface_view(CGRect rect) override {
 		_view = [[MTKView alloc] initWithFrame:rect device:nil];
 		_view.layer.opaque = YES;
 		return _view;
@@ -105,6 +105,8 @@ public:
 		EAGLContext* ctx = [EAGLContext alloc];
 		if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
 			[EAGLContext setCurrentContext:ctx];
+			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
+			ctx.multiThreaded = NO;
 			return new AppleGLRender(host, ctx, independentThread);
 		}
 		return nullptr;
@@ -113,8 +115,6 @@ public:
 	AppleGLRender(Application* host, EAGLContext* ctx, bool independentThread)
 		: GLRender(host, independentThread), _ctx(ctx) 
 	{
-		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
-		ctx.multiThreaded = NO;
 	}
 
 	~AppleGLRender() {
@@ -134,7 +134,7 @@ public:
 		[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
 	}
 
-	UIView* init_view(CGRect rect) override {
+	UIView* make_surface_view(CGRect rect) override {
 		[EAGLContext setCurrentContext:_ctx];
 		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 1");
 
@@ -167,8 +167,8 @@ private:
 #endif
 
 Render* Render::Make(Application* host) {
-	QkRenderApple* r = nullptr;
-	bool independentThread = host->options().render.independentThread;
+	QkAppleRender* r = nullptr;
+	bool independentThread = host->options().independentThread;
 
 	if (independentThread) {
 #if Qk_USE_DEFAULT_THREAD_RENDER

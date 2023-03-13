@@ -111,7 +111,7 @@ void Display::request_fullscreen(bool fullscreen) {
 	set_visible_status_bar(!fullscreen);
 }
 
-Orientation Display::orientation() {
+Display::Orientation Display::orientation() {
 	Orientation r = ORIENTATION_INVALID;
 	switch ( __appDelegate.app.statusBarOrientation ) {
 		case UIInterfaceOrientationPortrait:

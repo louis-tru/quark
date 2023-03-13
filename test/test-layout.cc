@@ -1,12 +1,9 @@
 
 #include <stdio.h>
-#include <skia/core/SkImage.h>
-#include <skia/core/SkSurface.h>
-#include <skia/core/SkCanvas.h>
 #include <quark/app.h>
 #include <quark/layout/root.h>
 #include <quark/render/render.h>
-#include <quark/render/skia/skia_render.h>
+//#include <quark/render/skia/skia_render.h>
 #include <quark/layout/flow.h>
 #include <quark/layout/image.h>
 #include <quark/layout/label.h>
@@ -18,60 +15,63 @@
 #include <quark/util/fs.h>
 #include <quark/render/font/pool.h>
 #include <vector>
-#include <skia/core/SkFont.h>
-#include <skia/core/SkMaskFilter.h>
-#include <skia/effects/SkDashPathEffect.h>
+//#include <skia/core/SkImage.h>
+//#include <skia/core/SkSurface.h>
+//#include <skia/core/SkCanvas.h>
+//#include <skia/core/SkFont.h>
+//#include <skia/core/SkMaskFilter.h>
+//#include <skia/effects/SkDashPathEffect.h>
 
 using namespace qk;
 
-namespace qk {
-	SkImage* CastSkImage(ImageSource* img);
-}
+//namespace qk {
+//	SkImage* CastSkImage(ImageSource* img);
+//}
 
 class ImageTest: public Image {
 public:
 	ImageTest(App *host): Image(host) {}
 
-	static SkRect MakeSkRectFrom(Box *host) {
-		auto begin = host->origin_value(); // begin
-		auto end = host->client_size() - begin; // end
-		SkRect _rect_inside = {-begin.x(), -begin.y(), end.x(), end.y()};
-		return _rect_inside;
-	}
+//	static SkRect MakeSkRectFrom(Box *host) {
+//		auto begin = host->origin_value(); // begin
+//		auto end = host->client_size() - begin; // end
+//		SkRect _rect_inside = {-begin.x(), -begin.y(), end.x(), end.y()};
+//		return _rect_inside;
+//	}
 
-	virtual void accept(ViewVisitor *visitor) override {
-		if (shared_app()->render()->visitor() != visitor) {
-			return visitor->visitImage(this);
-		}
-		auto render = static_cast<SkiaRender*>(visitor);
-		auto src = source();
-
-		render->solveBox(this, src && src->ready() ? [](SkiaRender* render, Box* box, int &clip) {
-			Image* v = static_cast<Image*>(box);
-			auto img = CastSkImage(v->source());
-			auto canvas = render->getCanvas();
-			auto rect = MakeSkRectFrom(box);
-			SkPaint paint;
-			paint.setAlpha(200);
-			canvas->drawImageRect(img, rect, SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest), &paint);
-
-			auto img2 = img;//img->makeTextureImage(render()->direct(), GrMipmapped::kYes);
-			/*
-			canvas->drawImageRect(img, SkRect::MakeXYWH(10, 10, 145, 110),
-														SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone));
-			canvas->drawImageRect(img, SkRect::MakeXYWH(160, 10, 145, 110),
-														SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest));
-			canvas->drawImageRect(img2, SkRect::MakeXYWH(10, 140, 145, 110),
-														SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone));
-			canvas->drawImageRect(img2, SkRect::MakeXYWH(160, 140, 145, 110),
-														SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear));
-			*/
-		}: nullptr);
-		
-		auto r = app()->root();
-		auto fill = static_cast<FillGradientLinear*>(static_cast<Box*>(r->first())->fill());
-		fill->set_angle(fill->angle() + 2);
-	}
+//	virtual void accept(ViewVisitor *visitor) override {
+//		if (shared_app()->render()->visitor() != visitor) {
+//			return visitor->visitImage(this);
+//		}
+//		auto render = static_cast<SkiaRender*>(visitor);
+//		auto src = source();
+//
+//		render->solveBox(this, src && src->ready() ? [](SkiaRender* render, Box* box, int &clip) {
+//			Image* v = static_cast<Image*>(box);
+//			auto img = CastSkImage(v->source());
+//			auto canvas = render->getCanvas();
+//			auto rect = MakeSkRectFrom(box);
+//			SkPaint paint;
+//			paint.setAlpha(200);
+//			canvas->drawImageRect(img, rect, SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest), &paint);
+//
+//			auto img2 = img;//img->makeTextureImage(render()->direct(), GrMipmapped::kYes);
+//			/*
+//			canvas->drawImageRect(img, SkRect::MakeXYWH(10, 10, 145, 110),
+//														SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone));
+//			canvas->drawImageRect(img, SkRect::MakeXYWH(160, 10, 145, 110),
+//														SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest));
+//			canvas->drawImageRect(img2, SkRect::MakeXYWH(10, 140, 145, 110),
+//														SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone));
+//			canvas->drawImageRect(img2, SkRect::MakeXYWH(160, 140, 145, 110),
+//														SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear));
+//			*/
+//		}: nullptr);
+//
+//		auto r = app()->root();
+//		auto fill = static_cast<FillGradientLinear*>(static_cast<Box*>(r->first())->fill());
+//		fill->set_angle(fill->angle() + 2);
+//	}
 };
 
 void layout_text(Box* box) {
@@ -124,7 +124,7 @@ void layout_scroll(Box *box) {
 	a->set_height({ 100 });
 	a->set_fill_color(Color(255,0,0));
 
-	auto b = v->append_new<Box>(v);
+	auto b = v->append_new<Box>();
 	b->set_margin_top(10);
 	b->set_width({ 0, BoxSizeKind::MATCH });
 	b->set_height({ 100 });
@@ -154,7 +154,7 @@ void layout_scroll(Box *box) {
 	f->set_height({ 100 });
 	f->set_fill_color(Color(0,0,255));
 	
-	auto g = v->append_new<>Box>();
+	auto g = v->append_new<Box>();
 	g->set_margin_top(10);
 	g->set_width({ 0, BoxSizeKind::MATCH });
 	g->set_height({ 100 });

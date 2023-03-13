@@ -32,7 +32,7 @@
 
 using namespace qk;
 
-static void message_cb(CbData& ev, RunLoop* loop) {
+static void message_cb(Cb::Data& ev, RunLoop* loop) {
 	static int i = 0;
 	Qk_LOG("message_cb, %d", i++);
 }
@@ -40,9 +40,9 @@ static void message_cb(CbData& ev, RunLoop* loop) {
 void test_loop(int argc, char **argv) {
 	RunLoop* loop = RunLoop::current();
 	KeepLoop* keep = loop->keep_alive("test_loop");
-	Thread::create([&](Thread& e) {
+	thread_fork([&](Thread *e) {
 		for ( int i = 0; i < 5; i++) {
-			Thread::sleep(1e6);
+			thread_sleep(1e6);
 			loop->post(Cb(message_cb, loop));
 		}
 		delete keep;
@@ -51,13 +51,13 @@ void test_loop(int argc, char **argv) {
 	
 	loop->run(10e6);
 	
-	int id = loop->work(Cb([&](CbData& e){
+	int id = loop->work(Cb([&](Cb::Data& e){
 		for (int i = 0; i < 5; i++) {
-			Thread::sleep(1e6);
+			thread_sleep(1e6);
 			Qk_LOG("Exec work");
 			loop->post(Cb(message_cb, loop));
 		}
-	}), Cb([](CbData& e){
+	}), Cb([](Cb::Data& e){
 		Qk_LOG("Done");
 	}));
 	

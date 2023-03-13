@@ -48,7 +48,7 @@ Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;
 namespace qk {
 	typedef Application::Inl AppInl;
 	// thread helper
-	static auto __run_main_wait = new Thread::Wait();
+	static auto __run_main_wait = new Wait;
 
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
@@ -96,7 +96,7 @@ namespace qk {
 			Qk_FATAL("At the same time can only run a Application entity");
 		_shared = this;
 
-		Qk_On(SafeExit, &Application::handleExit, this);
+		Qk_On(Exit, &Application::handleExit, this);
 
 		// init
 		_pre_render = new PreRender(this); Qk_DEBUG("new PreRender ok");
@@ -134,7 +134,7 @@ namespace qk {
 		Release(_font_pool);   _font_pool = nullptr;
 		Release(_img_pool);    _img_pool = nullptr;
 
-		Qk_Off(SafeExit, &Application::handleExit, this);
+		Qk_Off(Exit, &Application::handleExit, this);
 
 		_shared = nullptr;
 	}
@@ -144,27 +144,21 @@ namespace qk {
 	}
 
 	void Application::runMain(int argc, char* argv[]) {
-		static std::atomic_int _is_run = 0;
-		Qk_ASSERT(!_is_run++, "Cannot multiple calls.");
-
 		struct Args { int argc; char** argv; } arg = { argc, argv };
 
 		// 创建一个新子工作线程.这个函数必须由main入口调用
-		Thread::create([](Thread& t, void* arg) {
+		thread_fork([](Thread *t, void* arg) {
 			auto args = (Args*)arg;
 			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
 			Qk_ASSERT( main, "No gui main");
 			int rc = main(args->argc, args->argv); // 运行这个自定gui入口函数
-			Qk_DEBUG("Application::runMain() Thread::create() Exit");
-			_is_run--;
-			__run_main_wait->notify_all();
-			qk::exit(rc); // if sub thread end then exit
+			Qk_DEBUG("Application::runMain() thread_fork() Exit");
+			thread_try_abort_and_exit(rc); // if sub thread end then exit
+			Qk_DEBUG("Application::runMain() thread_fork() Exit ok");
 		}, &arg, "runMain");
 
 		// 在调用Application::Application()之前一直阻塞这个主线程
 		while (!_shared || !_shared->_keep) {
-			if (!_is_run)
-				break;
 			__run_main_wait->wait();
 		}
 	}
@@ -233,8 +227,7 @@ namespace qk {
 					Qk_DEBUG("AppInl::onUnload()");
 					Qk_Trigger(Unload);
 				}
-				// if (_keep) {
-				Thread::abort(_loop->thread_id());
+				thread_abort(_loop->thread_id());
 				Release(_keep); // stop loop
 				_keep = nullptr;
 				_loop = nullptr;

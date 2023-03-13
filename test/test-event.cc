@@ -38,7 +38,7 @@ using namespace qk;
 
 void test_event(int argc, char **argv) {
 	
-	EventNoticer<Event<void, int>> onTest("Test");
+	EventNoticer<Event<void, int>> onTest;
 	
 	onTest.on([](Event<void, int>& evt) {
 		Qk_LOG("data:%d", evt.data());

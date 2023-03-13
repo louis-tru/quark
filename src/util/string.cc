@@ -375,10 +375,10 @@ namespace qk {
 	String _Str::join(bool (*it)(void* data, String* out), cString& sp, void* data) {
 		String tmp;
 		Array<String> strs;
-		int total = 0, i = 0;
+		int total = 0;
 
 		while (it(data, &tmp)) {
-			if (++i && sp.length()) {
+			if (strs.length() && sp.length()) {
 				total += sp.length();
 				strs.push(sp);
 			}

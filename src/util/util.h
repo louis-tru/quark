@@ -57,7 +57,5 @@ namespace qk {
 	Qk_EXPORT int64_t time_monotonic();
 	Qk_EXPORT String platform();
 	Qk_EXPORT String version();
-	Qk_EXPORT void exit(int rc, bool force = 0); // call sys exit
-	Qk_EXPORT bool is_exited();
 }
 #endif

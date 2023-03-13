@@ -87,6 +87,8 @@ namespace qk {
 			}
 		}
 	}
+
+	void tga_read_gray_data_black(uint8_t** in, uint8_t** out, int bytes, int alpha);
 	
 	// RLE 灰度图
 	void tga_parse_gray_rle(uint8_t* in, uint8_t* out, int bytes, int pixex_size, int alpha) {

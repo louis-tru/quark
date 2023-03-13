@@ -71,7 +71,7 @@ namespace qk {
 
 		// "new" method alloc can call，Otherwise, fatal exception will be caused
 		virtual void release() {
-			_sender = _origin = _data = nullptr;
+			_sender = 0; _origin = 0; _data = 0;
 			Object::release();
 		}
 	private:
@@ -430,7 +430,6 @@ namespace qk {
 		}
 
 		inline void get_listener() {
-			Qk_ASSERT(!_name.is_empty());
 			if (_listener == nullptr) {
 				_listener = new List<LWrap>();
 			}

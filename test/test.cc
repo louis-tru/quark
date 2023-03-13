@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "quark/app.h"
-#include "quark/os/os.h"
 #include "quark/util/loop.h"
 
 #ifndef TEST_FUNC_NAME

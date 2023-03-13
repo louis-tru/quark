@@ -42,7 +42,7 @@ class AsyncFileRead: public File, public File::Delegate {
 	
 	virtual ~AsyncFileRead() {
 		Qk_LOG("Delete");
-		fs_read_file(fs_resources("res/bg.svg"), Cb([](CbData& evt) {
+		fs_read_file(fs_resources("res/bg.svg"), Cb([](Cb::Data& evt) {
 			if ( evt.error ) {
 				Qk_LOG("ERR, %s", evt.error->message().c_str());
 			} else {

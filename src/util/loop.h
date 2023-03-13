@@ -48,7 +48,6 @@ typedef struct uv_async_s uv_async_t;
 typedef struct uv_timer_s uv_timer_t;
 
 namespace qk {
-
 	class RunLoop;
 	class KeepLoop;
 
@@ -61,52 +60,31 @@ namespace qk {
 
 	template<> Qk_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
 
-	/**
-	 * @class Thread
-	 */
-	class Qk_EXPORT Thread {
-		Qk_HIDDEN_ALL_COPY(Thread);
-	public:
-		struct Wait {
-			Mutex     mutex;
-			Condition cond;
-			void wait();
-			void notify_one();
-			void notify_all();
-		};
-		// @members
-		typedef NonObjectTraits Traits;
-		typedef void (*Exec)(Thread& t, void* arg);
-		typedef std::function<void(Thread&)> Func;
-		inline bool is_abort() const { return _abort; }
-		inline ThreadID id() const { return _id; }
-		inline RunLoop* loop() const { return _loop; }
-		inline String tag() const { return _tag; }
-		// @static
-		static ThreadID create(Exec exec, void* arg = nullptr, cString& tag = String());
-		static ThreadID create(Func func, cString& tag = String());
-		static ThreadID current_id();
-		static Thread*  current();
-		static void sleep(uint64_t timeoutUs = 0); // 休眠当前线程不能被唤醒
-		static void pause(uint64_t timeoutUs = 0 /*小于1永久等待*/); // 暂停当前运行可以被`resume()`唤醒
-		static void resume(ThreadID id); // 恢复线程运行
-		static void abort(ThreadID id); // 中止运行信号
-		static void wait_for(ThreadID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
-	private:
-		Thread(Exec exec, cString& tag);
-		~Thread() = default;
-		Qk_DEFINE_INLINE_CLASS(Inl);
-		ThreadID    _id;
-		RunLoop*    _loop;
-		String      _tag;
-		bool        _abort;
-		Mutex       _mutex;
-		Condition   _cond;
-		Exec        _exec;
-		friend class RunLoop;
+	struct Thread {
+		ThreadID    id;
+		String      tag;
+		bool        abort;
 	};
 
-	Qk_EXPORT EventNoticer<>& onSafeExit();
+	struct Wait {
+		Mutex     mutex;
+		Condition cond;
+		void wait();
+		void notify_one();
+		void notify_all();
+	};
+
+	Qk_EXPORT ThreadID thread_fork(void exec(Thread* t, void* arg), void* arg = nullptr, cString& tag = String());
+	Qk_EXPORT ThreadID thread_fork(std::function<void(Thread*)> func, cString& tag = String());
+	Qk_EXPORT ThreadID thread_current_id();
+	Qk_EXPORT void     thread_sleep(uint64_t timeoutUs = 0); // 休眠当前线程不能被唤醒
+	Qk_EXPORT void     thread_pause(uint64_t timeoutUs = 0 /*小于1永久等待*/); // 暂停当前运行可以被`resume()`唤醒
+	Qk_EXPORT void     thread_resume(ThreadID id); // resume thread running
+	Qk_EXPORT void     thread_abort(ThreadID id); // abort signal
+	Qk_EXPORT void     thread_wait_for(ThreadID id, uint64_t timeoutUs = 0 /*小于1永久等待*/); // 等待目标`id`线程结束
+	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc);
+
+	Qk_EXPORT EventNoticer<>& onExit();
 
 	/**
 	* @class PostMessage

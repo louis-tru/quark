@@ -634,24 +634,24 @@ bool Typeface_Mac::onGetPath(GlyphID glyph, Path *path) const {
 		switch (element->type) {
 			case kCGPathElementMoveToPoint:
 				ctx->fCurrent = points[0];
-				self.move_to(Vec2(points[0].x, points[0].y));
+				self.moveTo(Vec2(points[0].x, points[0].y));
 				break;
 			case kCGPathElementAddLineToPoint:
 				if (ctx->currentIsNot(points[0])) {
-					self.line_to(Vec2(points[0].x, -points[0].y));
+					self.lineTo(Vec2(points[0].x, -points[0].y));
 				}
 				break;
 			case kCGPathElementAddQuadCurveToPoint:
 				if (ctx->currentIsNot(points[0]) || ctx->currentIsNot(points[1])) {
-					self.quad_to(Vec2(points[0].x, -points[0].y), Vec2(points[1].x, -points[1].y));
+					self.quadTo(Vec2(points[0].x, -points[0].y), Vec2(points[1].x, -points[1].y));
 				}
 				break;
 			case kCGPathElementAddCurveToPoint:
 				if (ctx->currentIsNot(points[0]) ||
 						ctx->currentIsNot(points[1]) || ctx->currentIsNot(points[2]))
 				{
-					self.cubic_to(Vec2(points[0].x, -points[0].y),
-												Vec2(points[1].x, -points[1].y), Vec2(points[2].x, -points[2].y));
+					self.cubicTo(Vec2(points[0].x, -points[0].y),
+											 Vec2(points[1].x, -points[1].y), Vec2(points[2].x, -points[2].y));
 				}
 				break;
 			case kCGPathElementCloseSubpath:
@@ -745,8 +745,11 @@ float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<
 	//auto path = fs_documents("test.tga");
 	//auto write = fs_write_file_sync(path, *data, data.size());
 	//Qk_DEBUG("#Typeface_Mac#onGetImage,write:%d,%s", write, path.c_str());
+	
+	Array<Pixel> pixs;
+	pixs.push(std::move(pix));
 
-	*imgOut = new ImageSource(std::move(pix));
+	*imgOut = new ImageSource(std::move(pixs));
 	
 	return top;
 }

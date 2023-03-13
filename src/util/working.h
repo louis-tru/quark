@@ -44,7 +44,7 @@ namespace qk {
 	class ParallelWorking: public Object {
 		Qk_HIDDEN_ALL_COPY(ParallelWorking);
 	public:
-		typedef Thread::Func Func;
+		typedef std::function<void(Thread*)> Func;
 		ParallelWorking();
 		ParallelWorking(RunLoop* loop);
 		virtual ~ParallelWorking();

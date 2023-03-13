@@ -74,9 +74,8 @@ def_opts('without-visibility-hidden', 0,
 def_opts('suffix', '',          '--suffix=VAL Compile directory suffix [{0}]');
 def_opts('without-embed-bitcode', 1,
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
-def_opts('more-log',     0,     '--more-log print more log message [{0}]');
-def_opts(['use-gl', 'gl'], isMac() ? 1 : 1,
-																'--enable-gl,-gl use opengl backend [{0}]');
+def_opts('more-log',       0,   '--more-log print more log message [{0}]');
+def_opts(['use-gl', 'gl'], 1,   '--enable-gl,-gl use opengl backend [{0}]');
 
 function isMac() {
 	return get_OS(opts.os) == 'mac';
@@ -617,7 +616,6 @@ async function configure() {
 			use_system_zlib: bi(os.match(/^(android|linux|ios|osx)$/)),
 			media: opts.media,
 			use_gl: opts.use_gl ? 1: 0,
-			use_skia: opts.use_skia ? 1: 0,
 			version_min: '',
 			source: path.resolve(__dirname, '..'),
 			output_name: '',

@@ -29,30 +29,26 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/util/macros.h"
+#include "../../util/macros.h"
 #if Qk_iOS
 #import "./apple_app.h"
-#import "./apple_render.h"
-#import "./ios_ime_helper.h"
+#import "../../display.h"
 #import <MessageUI/MFMailComposeViewController.h>
 
 @interface QkApplicationDelegate()<MFMailComposeViewControllerDelegate>
 	{
-		BOOL _is_background;
-		int  _fps;
-		Cb   _render_exec;
+		BOOL   _is_background;
+		int    _fps;
+		qk::Cb _render_exec;
 	}
-	@property (strong, nonatomic) QkRootViewController* root_ctr; // strong
-	@property (strong, nonatomic) UIWindow *window; // strong
-	@property (strong, nonatomic) UIView* view; // strong
-	@property (strong, nonatomic) QkiOSIMEHelprt* ime; // strong
 	@property (strong, nonatomic) CADisplayLink* display_link; // strong
-	@property (assign, nonatomic) Orientation setting_orientation;
-	@property (assign, nonatomic) Orientation current_orientation;
-	@property (assign, nonatomic) bool visible_status_bar;
-	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
 	@property (assign, atomic)    NSInteger render_task_count;
 
+	@property (assign, nonatomic) qk::Display::Orientation setting_orientation;
+	@property (assign, nonatomic) qk::Display::Orientation current_orientation;
+	@property (assign, nonatomic) bool visible_status_bar;
+	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
+	
 	- (void)refresh_status;
 	- (void)refresh_surface_region;
 @end

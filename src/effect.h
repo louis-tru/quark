@@ -38,8 +38,6 @@
 
 namespace qk {
 
-	class SkiaRender;
-
 	/**
 	* @class Copying, Single linked list struct
 	*/
@@ -86,7 +84,7 @@ namespace qk {
 		inline Fill* set_next(Fill* value) { Copying::set_next(value); return this; }
 	};
 
-	class Qk_EXPORT FillImage: public Fill, public SourceHold {
+	class Qk_EXPORT FillImage: public Fill, public ImageSourceHolder {
 	public:
 		struct Init {
 			String src;
@@ -131,7 +129,6 @@ namespace qk {
 		void setRadian();
 		float   _radian;
 		uint8_t _quadrant;
-		friend class SkiaRender;
 	};
 
 	class Qk_EXPORT FillGradientRadial: public FillGradient {

@@ -29,31 +29,25 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/util/macros.h"
+#include "../../util/macros.h"
 #if Qk_OSX
 #import "./apple_app.h"
 #import "./apple_render.h"
 #import "./ios_ime_helper.h"
 #import <MessageUI/MFMailComposeViewController.h>
 
-@interface QkApplicationDelegate()<MFMailComposeViewControllerDelegate>
+@interface QkOsxApplicationDelegate()<NSWindowDelegate>
 	{
-		BOOL _is_background;
-		int  _fps;
-		Cb   _render_exec;
+		UIWindow*  _window;
+		BOOL       _is_background;
+		BOOL       _is_pause;
+		BOOL       _loaded;
 	}
-	@property (strong, nonatomic) QkRootViewController* root_ctr; // strong
-	@property (strong, nonatomic) UIWindow *window; // strong
-	@property (strong, nonatomic) UIView* view; // strong
-	@property (strong, nonatomic) QkiOSIMEHelprt* ime; // strong
-	@property (strong, nonatomic) CADisplayLink* display_link; // strong
-	@property (assign, nonatomic) Orientation setting_orientation;
-	@property (assign, nonatomic) Orientation current_orientation;
-	@property (assign, nonatomic) bool visible_status_bar;
-	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
-	@property (assign, atomic)    NSInteger render_task_count;
-
-	- (void)refresh_status;
-	- (void)refresh_surface_region;
+	@property (strong, nonatomic) UIView* surface_view;
+	@property (strong, nonatomic) QkIMEHelprt* ime;
+	@property (strong, nonatomic) UIApplication* host;
+	// @property (strong, nonatomic) CADisplayLink* display_link;
+	// @property (strong, nonatomic) RootViewController* root_ctr;
+	- (void)display_link_callback:(const CVTimeStamp*)outputTime;
 @end
 #endif

@@ -81,7 +81,7 @@ namespace qk {
 		if (!langs_) {
 			langs_ = new language_t;
 #if Qk_iOS
-			get_languages_apple(langs_->langs);
+			device_get_languages_apple(langs_->langs);
 #elif Qk_ANDROID
 			langs_->langs.push(API::language());
 #elif Qk_LINUX

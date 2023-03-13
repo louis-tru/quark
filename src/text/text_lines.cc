@@ -28,14 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./display.h"
-#include "./pre_render.h"
-#include "./app.h"
-#include "./layout/view.h"
+#include "../display.h"
+#include "../pre_render.h"
+#include "../app.h"
+#include "../layout/view.h"
+#include "../render/font/familys.h"
 #include "./text_lines.h"
 #include "./text_opts.h"
 #include "./text_blob.h"
-#include "./render/font/familys.h"
 
 namespace qk {
 
@@ -243,8 +243,10 @@ namespace qk {
 
 			auto re = View::screen_region_from_convex_quadrilateral(vertex);
 
-			if (Qk_MAX( clip.y2, re.end.y() ) - Qk_MIN( clip.y, re.origin.y() ) <= re.end.y() - re.origin.y() + clip.height &&
-					Qk_MAX( clip.x2, re.end.x() ) - Qk_MIN( clip.x, re.origin.x() ) <= re.end.x() - re.origin.x() + clip.width
+			if (Qk_MAX( clip.end.y(), re.end.y() ) - Qk_MIN( clip.origin.y(), re.origin.y() )
+						<= re.end.y() - re.origin.y() + clip.size.y() &&
+					Qk_MAX( clip.end.x(), re.end.x() ) - Qk_MIN( clip.origin.x(), re.origin.x() )
+						<= re.end.x() - re.origin.x() + clip.size.x()
 			) {
 				line.visible_region = true;
 				_visible_region = true;

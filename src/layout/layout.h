@@ -31,11 +31,10 @@
 #ifndef __quark__layout__layout__
 #define __quark__layout__layout__
 
-#include "../util/object.h"
 #include "../types.h"
+#include "../pre_render.h"
 
 namespace qk {
-	class PreRender;
 	class TextLines;
 	class TextConfig;
 	class Application;

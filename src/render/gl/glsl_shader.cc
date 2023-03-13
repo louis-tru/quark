@@ -90,7 +90,7 @@ namespace qk {
 
 		glBindAttribLocation(program, _vertex_in = 0, "vertex_in");
 
-		GLuint *store = static_cast<GLuint*>(((void*)(this)) + sizeof(GLSLShader));
+		GLuint *store = reinterpret_cast<GLuint*>(this + 1);
 		GLuint index = 1;
 		for (auto &i: attrs) {
 			if (!i.is_empty()) {

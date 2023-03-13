@@ -187,7 +187,7 @@ namespace qk {
 		}
 		
 		void log(cString2& msg) {
-			Console::instance()->log(*Coder::encode(kUTF8_Encoding, msg), "\n");
+			Console::instance()->log(*codec_encode(kUTF8_Encoding, msg), "\n");
 		}
 
 		void log(cChar* format, ...) {

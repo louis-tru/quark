@@ -239,7 +239,7 @@ void test_ssl(int argc, char **argv) {
 	// BIO_new_socket(int sock, int close_flag)
 	
 	while( SSL_connect(ssl) == 0 ) {
-		Thread::sleep(1e4);
+		thread_sleep(1e4);
 	}
 	
 	// send an encrypted message

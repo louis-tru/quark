@@ -33,6 +33,7 @@
 #define __quark__pre_render__
 
 #include "./util/list.h"
+#include "./util/array.h"
 
 namespace qk {
 	class Application;

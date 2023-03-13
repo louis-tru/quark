@@ -12,7 +12,7 @@
 		],
 		'dependencies': [
 			'quark-util',
-			'deps/libtess2/libtess2.gyp:libtess2', 
+			'deps/libtess2/libtess2.gyp:libtess2',
 			'deps/freetype/freetype.gyp:freetype',
 			'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
 			'deps/libgif/libgif.gyp:libgif',
@@ -105,7 +105,6 @@
 			'text/text_blob.h',
 			'text/text_blob.cc',
 			'text/text_input.h',
-			'text/text_input.cc',
 			'text/text_lines.h',
 			'text/text_lines.cc',
 			'text/text_opts.cc',
@@ -146,13 +145,18 @@
 					'render/gl/gl_canvas.cc',
 					'render/gl/gl_render.h',
 					'render/gl/gl_render.cc',
-					'render/gl/gl_shader.h',
-					'render/gl/gl_shader.cc',
+					'render/gl/glsl_shader.h',
+					'render/gl/glsl_shader.cc',
 				],
 			}],
-			['use_metal==1', { # use metal
+			['OS=="mac" and use_gl==0', { # use metal
 				'defines': [ 'Qk_ENABLE_METAL=1' ],
-				'sources': [],
+				'sources': [
+					'render/metal/metal_canvas.h',
+					'render/metal/metal_canvas.mm',
+					'render/metal/metal_render.h',
+					'render/metal/metal_render.mm',
+				],
 			}],
 			['OS!="mac"', { # not apple mac
 				'dependencies': [
@@ -192,11 +196,10 @@
 					'deps/reachability/reachability.gyp:reachability',
 				],
 				'sources':[
-					'platforms/apple/apple_device.mm',
 					'platforms/apple/apple_app.h',
+					'platforms/apple/apple_device.mm',
 					'platforms/apple/apple_image_codec.mm',
 					'platforms/apple/apple_keyboard.mm',
-					'platforms/apple/apple_render.h',
 					'platforms/apple/apple_render.mm',
 					'render/font/ct/ct_pool.cc',
 					'render/font/ct/ct_typeface.cc',
@@ -214,21 +217,25 @@
 			}],
 			['os=="ios"', {
 				'sources':[
-					'platforms/ios/ios_app.mm',
-					'platforms/ios/ios_ime_helper.h',
-					'platforms/ios/ios_ime_helper.mm',
+					'platforms/apple/ios_app.h',
+					'platforms/apple/ios_app.mm',
+					'platforms/apple/ios_ctr.mm',
+					'platforms/apple/ios_display.mm',
+					'platforms/apple/ios_ime_helper.mm',
+					'platforms/apple/ios_main.mm',
 				],
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
 						'$(SDKROOT)/System/Library/Frameworks/MessageUI.framework',
+						'$(SDKROOT)/System/Library/Frameworks/CoreText.framework',
 					]
 				},
 			}],
 			['os=="osx"', {
 				'sources': [
-					'platforms/osx/osx_app.mm',
+					'platforms/apple/osx_app.mm',
 				],
 				'link_settings': {
 					'libraries': [

@@ -16,36 +16,36 @@
 
 struct QkOTTableOS2_V0 {
 	Qk_OT_USHORT version;
-	//SkOTTableOS2_VA::VERSION and SkOTTableOS2_V0::VERSION are both 0.
+	//QkOTTableOS2_VA::VERSION and QkOTTableOS2_V0::VERSION are both 0.
 	//The only way to differentiate these two versions is by the size of the table.
-	static const Qk_OT_USHORT VERSION = SkTEndian_SwapBE16(0);
+	static const Qk_OT_USHORT VERSION = QkEndian_SwapBE16(0);
 
 	Qk_OT_SHORT xAvgCharWidth;
 	struct WeightClass {
 		enum Value : Qk_OT_USHORT {
-			Thin = SkTEndian_SwapBE16(100),
-			ExtraLight = SkTEndian_SwapBE16(200),
-			Light = SkTEndian_SwapBE16(300),
-			Normal = SkTEndian_SwapBE16(400),
-			Medium = SkTEndian_SwapBE16(500),
-			SemiBold = SkTEndian_SwapBE16(600),
-			Bold = SkTEndian_SwapBE16(700),
-			ExtraBold = SkTEndian_SwapBE16(800),
-			Black = SkTEndian_SwapBE16(900),
+			Thin = QkEndian_SwapBE16(100),
+			ExtraLight = QkEndian_SwapBE16(200),
+			Light = QkEndian_SwapBE16(300),
+			Normal = QkEndian_SwapBE16(400),
+			Medium = QkEndian_SwapBE16(500),
+			SemiBold = QkEndian_SwapBE16(600),
+			Bold = QkEndian_SwapBE16(700),
+			ExtraBold = QkEndian_SwapBE16(800),
+			Black = QkEndian_SwapBE16(900),
 		};
 		Qk_OT_USHORT value;
 	} usWeightClass;
 	struct WidthClass {
 		enum Value : Qk_OT_USHORT {
-			UltraCondensed = SkTEndian_SwapBE16(1),
-			ExtraCondensed = SkTEndian_SwapBE16(2),
-			Condensed = SkTEndian_SwapBE16(3),
-			SemiCondensed = SkTEndian_SwapBE16(4),
-			Medium = SkTEndian_SwapBE16(5),
-			SemiExpanded = SkTEndian_SwapBE16(6),
-			Expanded = SkTEndian_SwapBE16(7),
-			ExtraExpanded = SkTEndian_SwapBE16(8),
-			UltraExpanded = SkTEndian_SwapBE16(9),
+			UltraCondensed = QkEndian_SwapBE16(1),
+			ExtraCondensed = QkEndian_SwapBE16(2),
+			Condensed = QkEndian_SwapBE16(3),
+			SemiCondensed = QkEndian_SwapBE16(4),
+			Medium = QkEndian_SwapBE16(5),
+			SemiExpanded = QkEndian_SwapBE16(6),
+			Expanded = QkEndian_SwapBE16(7),
+			ExtraExpanded = QkEndian_SwapBE16(8),
+			UltraExpanded = QkEndian_SwapBE16(9),
 		} value;
 	} usWidthClass;
 	union Type {
@@ -73,9 +73,9 @@ struct QkOTTableOS2_V0 {
 		} field;
 		struct Raw {
 			static const Qk_OT_USHORT Installable = 0;
-			static const Qk_OT_USHORT RestrictedMask = SkOTSetUSHORTBit<1>::value;
-			static const Qk_OT_USHORT PreviewPrintMask = SkOTSetUSHORTBit<2>::value;
-			static const Qk_OT_USHORT EditableMask = SkOTSetUSHORTBit<3>::value;
+			static const Qk_OT_USHORT RestrictedMask = QkOTSetUSHORTBit<1>::value;
+			static const Qk_OT_USHORT PreviewPrintMask = QkOTSetUSHORTBit<2>::value;
+			static const Qk_OT_USHORT EditableMask = QkOTSetUSHORTBit<3>::value;
 			Qk_OT_USHORT value;
 		} raw;
 	} fsType;
@@ -117,13 +117,13 @@ struct QkOTTableOS2_V0 {
 				Reserved07)
 		} field;
 		struct Raw {
-			static const Qk_OT_USHORT ItalicMask = SkOTSetUSHORTBit<0>::value;
-			static const Qk_OT_USHORT UnderscoreMask = SkOTSetUSHORTBit<1>::value;
-			static const Qk_OT_USHORT NegativeMask = SkOTSetUSHORTBit<2>::value;
-			static const Qk_OT_USHORT OutlinedMask = SkOTSetUSHORTBit<3>::value;
-			static const Qk_OT_USHORT StrikeoutMask = SkOTSetUSHORTBit<4>::value;
-			static const Qk_OT_USHORT BoldMask = SkOTSetUSHORTBit<5>::value;
-			static const Qk_OT_USHORT RegularMask = SkOTSetUSHORTBit<6>::value;
+			static const Qk_OT_USHORT ItalicMask = QkOTSetUSHORTBit<0>::value;
+			static const Qk_OT_USHORT UnderscoreMask = QkOTSetUSHORTBit<1>::value;
+			static const Qk_OT_USHORT NegativeMask = QkOTSetUSHORTBit<2>::value;
+			static const Qk_OT_USHORT OutlinedMask = QkOTSetUSHORTBit<3>::value;
+			static const Qk_OT_USHORT StrikeoutMask = QkOTSetUSHORTBit<4>::value;
+			static const Qk_OT_USHORT BoldMask = QkOTSetUSHORTBit<5>::value;
+			static const Qk_OT_USHORT RegularMask = QkOTSetUSHORTBit<6>::value;
 			Qk_OT_USHORT value;
 		} raw;
 	} fsSelection;

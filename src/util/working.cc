@@ -60,11 +60,11 @@ namespace qk {
 			ParallelWorking* self;
 			Func func;
 		};
-		auto id = Thread::create([](Thread& t, void* arg) {
+		auto id = thread_fork([](Thread* t, void* arg) {
 			Handle<Tmp> tmp = (Tmp*)arg;
 			tmp->func(t);
 			ScopeLock scope(tmp->self->_mutex2);
-			tmp->self->_childs.erase(t.id());
+			tmp->self->_childs.erase(t->id);
 		}, new Tmp, name);
 		_childs[id] = 1;
 		return id;
@@ -81,10 +81,10 @@ namespace qk {
 				childs = _childs;
 			}
 			for (auto& i : childs) {
-				Thread::abort(i.key);
+				thread_abort(i.key);
 			}
 			for (auto& i : childs) {
-				Thread::wait(i.key);
+				thread_wait_for(i.key);
 			}
 			Qk_DEBUG("ParallelWorking::abort_child() ok, count: %d", childs.length());
 		} else {
@@ -93,8 +93,8 @@ namespace qk {
 				Qk_ASSERT(_childs.find(id) != _childs.end(),
 					"Only subthreads belonging to \"ParallelWorking\" can be aborted");
 			}
-			Thread::abort(id);
-			Thread::wait(id);
+			thread_abort(id);
+			thread_wait_for(id);
 			Qk_DEBUG("ParallelWorking::abort_child(id) ok");
 		}
 	}
@@ -106,12 +106,12 @@ namespace qk {
 		ScopeLock scope(_mutex2);
 		if ( id == ThreadID() ) {
 			for (auto& i : _childs) {
-				Thread::resume(i.key);
+				thread_resume(i.key);
 			}
 		} else {
 			Qk_ASSERT(_childs.find(id) != _childs.end(),
 				"Only subthreads belonging to \"ParallelWorking\" can be resume");
-			Thread::resume(id);
+			thread_resume(id);
 		}
 	}
 
@@ -149,19 +149,19 @@ namespace qk {
 		inline BackendLoop(): _loop(nullptr) {}
 		
 		inline bool has_current_thread() {
-			return Thread::current_id() == _thread_id;
+			return thread_current_id() == _thread_id;
 		}
 
-		bool is_continue(Thread& t) {
+		bool is_continue(Thread* t) {
 			ScopeLock scope(_mutex);
-			if (!t.is_abort()) {
+			if (!t->abort) {
 				/* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
 				* 200毫秒后没有向队列发送新消息结束线程
 				* * *
 				* 这里休眠200毫秒给外部线程足够时间往队列发送消息
 				*/
-				Thread::sleep(2e5);
-				if ( _loop->is_alive() && !t.is_abort() ) {
+				thread_sleep(2e5);
+				if ( _loop->is_alive() && !t->abort ) {
 					return true; // 继续运行
 				}
 			}
@@ -172,15 +172,13 @@ namespace qk {
 		
 		RunLoop* loop() {
 			Lock lock(_mutex);
-			if (is_exited())
-				return nullptr;
 			if (_loop)
 				return _loop;
-			
-			Thread::create([](Thread& t, void* arg) {
+
+			thread_fork([](Thread* t, void* arg) {
 				auto self = (BackendLoop*)arg;
 				self->_mutex.lock();
-				self->_thread_id = t.id();
+				self->_thread_id = t->id;
 				self->_loop = RunLoop::current();
 				self->_cond.notify_all(); // call wait ok
 				self->_mutex.unlock();

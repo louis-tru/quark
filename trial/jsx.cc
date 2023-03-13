@@ -2548,7 +2548,7 @@ namespace qk {
 					if (!basename.is_empty()) {
 						append(S.CONST); // const
 						append(S.SPACE); //
-						append(Coder::decode_to_uint16(kUTF8_Encoding, basename)); // identifier
+						append(codec_decode_to_uint16(kUTF8_Encoding, basename)); // identifier
 						append(S.SPACE); //
 						append(S.ASSIGN); // =
 					}
@@ -2920,7 +2920,7 @@ namespace qk {
 		}
 		
 		Buffer to_utf8_string(cString2 s) {
-			return Coder::encode(kUTF8_Encoding, s);
+			return codec_encode(kUTF8_Encoding, s);
 		}
 		
 		inline void error() {

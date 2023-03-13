@@ -50,22 +50,34 @@
 
 class QkAppleRender {
 public:
-	virtual UIView* init_view(CGRect rect) = 0;
+	virtual UIView* make_surface_view(CGRect rect) = 0;
 	virtual qk::Render* render() = 0;
 };
 
-@class QkRootViewController;
-
-@interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
-	@property (assign, nonatomic, readonly) UIApplication* app; // strong
-	@property (assign, nonatomic, readonly) qk::Application* host;
-	@property (assign, nonatomic, readonly) QkAppleRender* render;
-	@property (strong, nonatomic, readonly) QkRootViewController* root_ctr;
-	@property (strong, nonatomic, readonly) UIWindow *window;
+@protocol QkIMEHelprt<NSObject>
+	- (void)open;
+	- (void)close;
+	- (void)clear;
+	- (void)set_keyboard_can_backspace:(bool)can_backspace
+													can_delete:(bool)can_delete;
+	- (void)set_keyboard_type:(qk::KeyboardType)type;
+	- (void)set_keyboard_return_type:(qk::KeyboardReturnType)type;
+	- (UIView*) view; // only ios return view
 @end
 
+id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host);
+
 @interface QkRootViewController: UIViewController
-	@property (weak, nonatomic, readonly) QkApplicationDelegate* appDelegate;
+@end
+
+@interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
+	@property (assign, nonatomic, readonly) UIApplication *app; // strong
+	@property (assign, nonatomic, readonly) qk::Application *host;
+	@property (assign, nonatomic, readonly) QkAppleRender *render;
+	@property (strong, nonatomic) QkRootViewController *root_ctr;
+	@property (strong, nonatomic) UIWindow *window;
+	@property (strong, nonatomic) UIView *surface_view; // strong
+	@property (strong, nonatomic) id<QkIMEHelprt> ime; // strong
 @end
 
 #endif

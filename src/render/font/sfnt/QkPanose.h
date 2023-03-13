@@ -8,7 +8,7 @@
 #ifndef QkPanose_DEFINED
 #define QkPanose_DEFINED
 
-#include "src/sfnt/SkOTTableTypes.h"
+#include "../util.h"
 
 #pragma pack(push, 1)
 

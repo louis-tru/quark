@@ -43,8 +43,8 @@ namespace qk {
 
 		switch (paint.tileMode) {
 			case Paint::kClamp_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 				break;
 			case Paint::kRepeat_TileMode:
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -71,6 +71,7 @@ namespace qk {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 				break;
 			case Paint::kDecal_TileMode: // no repeat
+				// GL_CLAMP_TO_BORDER
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 				break;
@@ -104,14 +105,14 @@ namespace qk {
 		case kColor_Type_Alpha_8: return GL_ALPHA;
 		case kColor_Type_RGB_565: return GL_RGB;
 		case kColor_Type_RGBA_4444: return GL_RGBA;
-		case kColor_Type_RGB_444X: return GL_RGB;
+		case kColor_Type_RGB_444X: return GL_RGBA;//GL_RGB;
 		case kColor_Type_RGBA_8888: return GL_RGBA;
-		case kColor_Type_RGB_888X: return GL_RGB;
+		case kColor_Type_RGB_888X: return GL_RGBA;//GL_RGB;
 		case kColor_Type_BGRA_8888: return GL_BGRA;
 		case kColor_Type_RGBA_1010102: return GL_RGBA;
 		case kColor_Type_BGRA_1010102: return GL_BGRA;
-		case kColor_Type_RGB_101010X: return GL_RGB;
-		case kColor_Type_BGR_101010X: return GL_BGR;
+		case kColor_Type_RGB_101010X: return GL_RGBA; // GL_RGB
+		case kColor_Type_BGR_101010X: return GL_BGRA; // GL_BGR;
 		case kColor_Type_RGB_888: return GL_RGB;
 		case kColor_Type_RGBA_5551: return GL_RGBA;
 		case kColor_Type_Luminance_8: return GL_LUMINANCE;
@@ -149,6 +150,7 @@ namespace qk {
 			case kColor_Type_RGB_565: return GL_UNSIGNED_SHORT_5_6_5;
 			case kColor_Type_RGBA_4444: return GL_UNSIGNED_SHORT_4_4_4_4;
 			case kColor_Type_RGB_444X: return GL_UNSIGNED_SHORT_4_4_4_4;
+#if Qk_OSX
 			case kColor_Type_RGBA_8888: return GL_UNSIGNED_INT_8_8_8_8;
 			case kColor_Type_RGB_888X: return GL_UNSIGNED_INT_8_8_8_8;
 			case kColor_Type_BGRA_8888: return GL_UNSIGNED_INT_8_8_8_8;
@@ -156,6 +158,15 @@ namespace qk {
 			case kColor_Type_BGRA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
 			case kColor_Type_RGB_101010X: return GL_UNSIGNED_INT_10_10_10_2;
 			case kColor_Type_BGR_101010X: return GL_UNSIGNED_INT_10_10_10_2;
+#else
+			case kColor_Type_RGBA_8888: return GL_UNSIGNED_BYTE;
+			case kColor_Type_RGB_888X: return GL_UNSIGNED_BYTE;
+			case kColor_Type_BGRA_8888: return GL_UNSIGNED_BYTE;
+			case kColor_Type_RGBA_1010102: return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kColor_Type_BGRA_1010102: return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kColor_Type_RGB_101010X: return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kColor_Type_BGR_101010X: return GL_UNSIGNED_INT_2_10_10_10_REV;
+#endif
 			case kColor_Type_RGB_888: return GL_UNSIGNED_BYTE;
 			case kColor_Type_RGBA_5551: return GL_UNSIGNED_SHORT_5_5_5_1;
 			default: return GL_UNSIGNED_BYTE;
@@ -392,7 +403,7 @@ namespace qk {
 
 		ColorType type = src->type();
 		GLint internalformat = get_gl_texture_pixel_format(type);
-		Qk_ASSERT(format);
+		Qk_ASSERT(internalformat);
 
 		if (!internalformat)
 			return 0;
@@ -426,7 +437,7 @@ namespace qk {
 			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, internalformat,
 									src->width(),
 									src->height(), 0/*border*/, internalformat/*format*/,
-									get_gl_texture_data_format(type), *src->body());
+									get_gl_texture_data_format(type)/*type*/, *src->body());
 			if (isGenerateMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}

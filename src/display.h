@@ -48,7 +48,8 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(Display);
 		public:
 
-			struct RegionSize: Region {
+			struct RegionSize/*: Region*/ {
+				Vec2 origin,end;
 				Vec2 size; // full surface
 			};
 

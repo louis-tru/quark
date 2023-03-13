@@ -43,7 +43,6 @@ namespace qk {
 
 	#define Qk_Define_View(N) \
 	public: \
-		friend class SkiaRender; \
 		virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
 
 	class Action;
@@ -68,11 +67,11 @@ namespace qk {
 		}
 
 		template<class T = View> inline T* prepend_new() {
-			return New<T>()->prepend_to<T>(this);
+			return New<T>()->template prepend_to<T>(this);
 		}
 
 		template<class T = View> inline T* append_new() {
-			return New<T>()->append_to<T>(this);
+			return New<T>()->template append_to<T>(this);
 		}
 
 		/**

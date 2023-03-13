@@ -55,8 +55,8 @@ namespace qk {
 		_opts.stencilBits = integerExp(Qk_MIN(Qk_MAX(_opts.stencilBits, 8), 16));
 
 		if (independentThread) {
-			Thread::Wait wait;
-			Thread::create([this, &wait](Thread& t) {
+			Wait wait;
+			thread_fork([this, &wait](Thread* t) {
 				auto loop = RunLoop::current();
 				_renderLoop = loop->keep_alive("Render::Render() keep");
 				wait.notify_all();
@@ -68,7 +68,7 @@ namespace qk {
 
 	Render::~Render() {
 		if (_renderLoop) {
-			Thread::abort(_renderLoop->host()->thread_id());
+			thread_abort(_renderLoop->host()->thread_id());
 			Release(_renderLoop); _renderLoop = nullptr;
 		}
 	}

@@ -42,10 +42,6 @@ typedef Display::Orientation Orientation;
 
 QkApplicationDelegate *__appDelegate = nil; // global object
 
-@interface QkRootViewController()
-	@property (weak, nonatomic) QkApplicationDelegate* appDelegate;
-@end
-
 @implementation QkApplicationDelegate
 
 	static void render_exec_func(Cb::Data& evt, Object* ctx) {
@@ -84,15 +80,15 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 	- (void)refresh_surface_region {
 		// float scale = UIScreen.mainScreen.backingScaleFactor; // macos
 		float scale = UIScreen.mainScreen.scale;
-		CGRect rect = self.view.frame;
+		CGRect rect = self.surface_view.frame;
 		float x = rect.size.width * scale;
 		float y = rect.size.height * scale;
-		_host->display()->set_surface_region({ 0,0,x,y,x,y });
+		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} });
 	}
 
-	- (RootViewController*)root_ctr {
+	- (QkRootViewController*)root_ctr {
 		if (!_root_ctr) // singleton mode
-			self.root_ctr = [[RootViewController alloc] init];
+			self.root_ctr = [[QkRootViewController alloc] init];
 		return _root_ctr;
 	}
 
@@ -116,11 +112,12 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 		_render = dynamic_cast<QkAppleRender*>(_host->render());
 
 		self.render_task_count = 0;
+
 		self.setting_orientation = Orientation::ORIENTATION_USER;
 		self.current_orientation = Orientation::ORIENTATION_INVALID;
 		self.visible_status_bar = YES;
 		self.status_bar_style = UIStatusBarStyleDefault;
-		self.root_ctr.appDelegate = self;
+
 		self.display_link = [CADisplayLink displayLinkWithTarget:self
 																										selector:@selector(display_link_callback:)];
 		self.window.backgroundColor = [UIColor blackColor];
@@ -130,18 +127,18 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 
 		UIView *rootView = self.window.rootViewController.view;
 
-		self.view = self.render->init_view(rootView.bounds);
-		self.view.contentScaleFactor = UIScreen.mainScreen.scale;
-		self.view.translatesAutoresizingMaskIntoConstraints = NO;
-		self.view.multipleTouchEnabled = YES;
-		self.view.userInteractionEnabled = YES;
+		self.surface_view = self.render->make_surface_view(rootView.bounds);
+		self.surface_view.contentScaleFactor = UIScreen.mainScreen.scale;
+		self.surface_view.translatesAutoresizingMaskIntoConstraints = NO;
+		self.surface_view.multipleTouchEnabled = YES;
+		self.surface_view.userInteractionEnabled = YES;
 
-		self.ime = [[IOSIMEHelprt alloc] initWithApplication:self.host];
+		self.ime = qk_ime_helper_new(_host);
 
-		[rootView addSubview:self.view];
-		[rootView addSubview:self.ime];
+		[rootView addSubview:self.surface_view];
+		[rootView addSubview:self.ime.view];
 		[rootView addConstraint:[NSLayoutConstraint
-												constraintWithItem:self.view
+												constraintWithItem:self.surface_view
 												attribute:NSLayoutAttributeWidth
 												relatedBy:NSLayoutRelationEqual
 												toItem:rootView
@@ -149,7 +146,7 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 												multiplier:1
 												constant:0]];
 		[rootView addConstraint:[NSLayoutConstraint
-												constraintWithItem:self.view
+												constraintWithItem:self.surface_view
 												attribute:NSLayoutAttributeHeight
 												relatedBy:NSLayoutRelationEqual
 												toItem:rootView

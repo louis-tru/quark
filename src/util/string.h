@@ -508,7 +508,7 @@ namespace qk {
 		IteratorConst it[] = { begin(), end() };
 		return _Str::join([](void* data, String* out) -> bool {
 			 auto it = static_cast<IteratorConst*>(data);
-			 return it[0] == it[1] ? false: ((*out = _Str::to_string(*(++(it[0])))), true);
+			 return it[0] == it[1] ? false: ((*out = _Str::to_string(*it[0]++)), true);
 		}, sp, it);
 	}
 

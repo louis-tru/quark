@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text_opts.h"
-#include "./layout/layout.h"
-#include "./render/font/pool.h"
+#include "../layout/layout.h"
+#include "../render/font/pool.h"
 
 namespace qk {
 
