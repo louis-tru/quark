@@ -78,12 +78,11 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 	}
 
 	- (void)refresh_surface_region {
-		// float scale = UIScreen.mainScreen.backingScaleFactor; // macos
 		float scale = UIScreen.mainScreen.scale;
 		CGRect rect = self.surface_view.frame;
 		float x = rect.size.width * scale;
 		float y = rect.size.height * scale;
-		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} });
+		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} }, scale);
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
@@ -143,8 +142,6 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 												attribute:NSLayoutAttributeHeight
 												multiplier:1
 												constant:0]];
-
-		_host->display()->set_default_scale(UIScreen.mainScreen.scale);
 
 		[self refresh_surface_region]; // set size
 
