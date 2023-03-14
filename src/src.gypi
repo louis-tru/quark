@@ -223,6 +223,7 @@
 					'platforms/apple/ios_display.mm',
 					'platforms/apple/ios_ime_helper.mm',
 					'platforms/apple/ios_main.mm',
+					'platforms/apple/ios_render.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -235,7 +236,12 @@
 			}],
 			['os=="osx"', {
 				'sources': [
+					'platforms/apple/osx_app.h',
 					'platforms/apple/osx_app.mm',
+					'platforms/apple/osx_display.mm',
+					'platforms/apple/osx_ime_helper.mm',
+					'platforms/apple/osx_main.mm',
+					'platforms/apple/osx_render.mm',
 				],
 				'link_settings': {
 					'libraries': [

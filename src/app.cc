@@ -144,6 +144,7 @@ namespace qk {
 
 		if (!_loop->runing()) {
 			_loop->run(); // run message loop
+			Qk_DEBUG("_loop->run() end");
 		}
 	}
 
@@ -238,7 +239,6 @@ namespace qk {
 				thread_abort(_loop->thread_id());
 				Release(_keep); // stop loop
 				_keep = nullptr;
-				_loop = nullptr;
 			}
 			d.data->complete();
 		}));

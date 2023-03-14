@@ -69,6 +69,10 @@ namespace qk {
 					break;
 			}
 		}
+		
+		if (version.index_of("Metal ") != -1)
+			ok = true;
+		
 		return ok;
 	}
 
@@ -155,7 +159,8 @@ namespace qk {
 			}
 			// Test the framebuffer for completeness.
 			if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
-				_IsDeviceAntiAlias = true;
+				if ( MSAA > 1 )
+					_IsDeviceAntiAlias = true;
 				break;
 			} else if ( MSAA > 1 ) {
 				_opts.msaaSampleCnt >>= 1;

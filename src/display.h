@@ -193,14 +193,15 @@ namespace qk {
 			inline RegionSize surface_region() const { return _surface_region; }
 
 			/**
-			 * settings the display screen default pixel scale
-			 */
-			void set_default_scale(float value);
-
-			/**
 			 * settings the display screen surface pixel region and size
 			 */
-			bool set_surface_region(RegionSize region);
+			bool set_surface_region(RegionSize region, float defaultScale);
+
+			/**
+			 * pre render
+			 * @thread render
+			 */
+			bool pre_render(); // call from render loop
 
 			/**
 			 * @thread render

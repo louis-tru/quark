@@ -426,7 +426,11 @@ namespace qk {
 		}
 
 		void post_sync(Callback<RunLoop::PostSyncData> cb, uint32_t group, uint64_t delay_us) {
-			Qk_ASSERT(!_thread->abort, "RunLoop::post_sync, _thread->is_abort() == true");
+			//Qk_ASSERT(!_thread->abort, "RunLoop::post_sync, _thread->is_abort() == true");
+			if (_thread->abort) {
+				Qk_DEBUG("RunLoop::post_sync, _thread->is_abort() == true");
+				return;
+			}
 
 			struct Data: public RunLoop::PostSyncData {
 				virtual void complete() {

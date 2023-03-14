@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,14 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../../util/macros.h"
-#if Qk_OSX
 #import "./apple_app.h"
+#import "../../util/util.h"
+#import "../../event.h"
+#import "../../app.h"
 
-@interface QkApplicationDelegate()<NSWindowDelegate>
-	{
-		BOOL       _is_background;
-		BOOL       _is_pause;
-	}
-@end
-#endif
+using namespace qk;
+
+id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
+	return nil;
+}

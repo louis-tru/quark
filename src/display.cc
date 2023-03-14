@@ -42,6 +42,7 @@ namespace qk {
 		, _set_size()
 		, _size(), _scale(1)
 		, _atom_pixel(1)
+		, _default_scale(0)
 		, _fsp(0)
 		, _next_fsp(0)
 		, _next_fsp_time(0), _surface_region()
@@ -105,50 +106,53 @@ namespace qk {
 	# define PRINT_RENDER_FRAME_TIME 0
 	#endif
 
+	bool Display::pre_render() {
+		UILock lock(_host); // ui main local
+		int64_t now_time = time_monotonic();
+		// _host->action_direct()->advance(now_time); // advance action TODO ...
+		bool ok = _host->pre_render()->solve(now_time);
+		solve_next_frame();
+		return ok;
+	}
+
 	void Display::render() { // Must be called in the render loop
 		UILock lock(_host); // ui main local
 		Root* root = _host->root();
 		int64_t now_time = time_monotonic();
-		// _host->action_direct()->advance(now_time); // advance action TODO ...
 
-		if (_host->pre_render()->solve(now_time)) {
-			if (now_time - _next_fsp_time >= 1e6) { // 1s
-				_fsp = _next_fsp;
-				_next_fsp = 0;
-				_next_fsp_time = now_time;
-				Qk_DEBUG("fps: %d", _fsp);
-			}
-			_next_fsp++;
-
-			auto render = _host->render();
-
-			render->begin(); // ready render
-			root->accept(render); // 开始绘图
-			solve_next_frame();
-
-			#if DEBUG && PRINT_RENDER_FRAME_TIME
-				int64_t st = time_micro();
-			#endif
-			/*
-			* swapBuffers()非常耗时,渲染线程长时间占用`UILock`会柱塞主线程。
-			* 所以这里释放`UILock`commit()主要是绘图相关的函数调用,
-			* 如果能够确保绘图函数的调用都在渲染线程,那就不会有安全问题。
-			*/
-			lock.unlock(); //
-
-			render->submit(); // commit render cmd
-
-			#if DEBUG && PRINT_RENDER_FRAME_TIME
-				int64_t ts2 = (time_micro() - st) / 1e3;
-				if (ts2 > 16) {
-					Qk_LOG("ts: %ld -------------- ", ts2);
-				} else {
-					Qk_LOG("ts: %ld", ts2);
-				}
-			#endif
-		} else {
-			solve_next_frame();
+		if (now_time - _next_fsp_time >= 1e6) { // 1s
+			_fsp = _next_fsp;
+			_next_fsp = 0;
+			_next_fsp_time = now_time;
+			Qk_DEBUG("fps: %d", _fsp);
 		}
+		_next_fsp++;
+
+		auto render = _host->render();
+
+		render->begin(); // ready render
+		root->accept(render); // 开始绘图
+
+		#if DEBUG && PRINT_RENDER_FRAME_TIME
+			int64_t st = time_micro();
+		#endif
+		/*
+		* swapBuffers()非常耗时,渲染线程长时间占用`UILock`会柱塞主线程。
+		* 所以这里释放`UILock`commit()主要是绘图相关的函数调用,
+		* 如果能够确保绘图函数的调用都在渲染线程,那就不会有安全问题。
+		*/
+		lock.unlock(); //
+
+		render->submit(); // commit render cmd
+
+		#if DEBUG && PRINT_RENDER_FRAME_TIME
+			int64_t ts2 = (time_micro() - st) / 1e3;
+			if (ts2 > 16) {
+				Qk_LOG("ts: %ld -------------- ", ts2);
+			} else {
+				Qk_LOG("ts: %ld", ts2);
+			}
+		#endif
 	}
 
 	void Display::push_clip_region(Region clip) {
@@ -200,7 +204,8 @@ namespace qk {
 	void Display::solve_next_frame() {
 		if (_next_frame.length()) {
 			List<Cb>* cb = new List<Cb>(std::move(_next_frame));
-			_host->loop()->post(Cb([cb](Cb::Data& e) {
+			_host->loop()->post(Cb([this, cb](Cb::Data& e) {
+				UILock lock(_host);
 				Handle<List<Cb>> handle(cb);
 				for ( auto& i : *cb ) {
 					i->resolve();
@@ -209,13 +214,8 @@ namespace qk {
 		}
 	}
 
-	void Display::set_default_scale(float value) {
-		UILock lock(_host);
-		_default_scale = value;
-	}
-
-	bool Display::set_surface_region(RegionSize region) {
-		if (region.size.x() != 0 && region.size.y() != 0) {
+	bool Display::set_surface_region(RegionSize region, float defaultScale) {
+		if (region.size.x() != 0 && region.size.y() != 0 && defaultScale != 0) {
 			UILock lock(_host);
 			if (  _surface_region.origin.x() != region.origin.x()
 				||	_surface_region.origin.y() != region.origin.y()
@@ -223,8 +223,10 @@ namespace qk {
 				||	_surface_region.end.y() != region.end.y()
 				||	_surface_region.size.x() != region.size.x()
 				||	_surface_region.size.y() != region.size.y()
+				||  _default_scale != defaultScale
 			) {
 				_surface_region = region;
+				_default_scale = defaultScale;
 				updateState();
 				return true;
 			}

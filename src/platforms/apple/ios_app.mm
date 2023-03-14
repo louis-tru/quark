@@ -44,7 +44,8 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 
 	static void render_exec_func(Cb::Data& evt, Object* ctx) {
 		__appDelegate.render_task_count--;
-		__appDelegate.host->display()->render();
+		if (__appDelegate.host->display()->pre_render())
+			__appDelegate.host->display()->render();
 	}
 
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
@@ -52,7 +53,8 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 		#if Qk_USE_DEFAULT_THREAD_RENDER
 			if (_->is_loaded()) {
 				if (_fps == 0) { // 3 = 15, 1 = 30
-					_->display()->render();
+					if (_->display()->pre_render())
+						_->display()->render();
 					_fps = 0;
 				} else {
 					_fps++;
@@ -84,30 +86,18 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} });
 	}
 
-	- (QkRootViewController*)root_ctr {
-		if (!_root_ctr) // singleton mode
-			self.root_ctr = [[QkRootViewController alloc] init];
-		return _root_ctr;
-	}
-
-	- (UIWindow*)window {
-		if (!_window) // singleton mode
-			self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-		return _window;
-	}
-
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
 		Qk_ASSERT(!__appDelegate);
-		__appDelegate = self;
 		Qk_ASSERT(Application::shared());
+		__appDelegate = self;
 		_host = Application::shared();
 		_app = app;
+		_render = dynamic_cast<QkAppleRender*>(_host->render());
 
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];
 		_is_background = NO;
 		_render_exec = Cb(render_exec_func);
-		_render = dynamic_cast<QkAppleRender*>(_host->render());
 
 		self.render_task_count = 0;
 
@@ -118,6 +108,8 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 
 		self.display_link = [CADisplayLink displayLinkWithTarget:self
 																										selector:@selector(display_link_callback:)];
+		self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+		self.root_ctr = [[QkRootViewController alloc] init];
 		self.window.backgroundColor = [UIColor blackColor];
 		self.window.rootViewController = self.root_ctr;
 

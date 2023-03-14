@@ -468,8 +468,7 @@ namespace qk {
 			if ( _noticers ) {
 				for (auto& i: *_noticers)
 					delete i.value;
-				delete _noticers;
-				_noticers = nullptr;
+				Release(_noticers); _noticers = nullptr;
 			}
 		}
 

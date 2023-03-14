@@ -49,8 +49,7 @@ typedef qk::Display::Orientation Orientation;
 	@property (assign, nonatomic) Orientation current_orientation;
 	@property (assign, nonatomic) bool        visible_status_bar;
 	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
-
+	// methods
 	- (void)refresh_status;
-	- (void)refresh_surface_region;
 @end
 #endif

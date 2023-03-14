@@ -47,8 +47,14 @@ namespace qk {
 		return shader_handle;
 	}
 
-	static const String vertexHeader("\n\
-		#version 300 es\n\
+#if Qk_OSX
+#define Qk_GL_Version "330"
+#else // ios es
+#define Qk_GL_Version "300 es"
+#endif
+
+	static const String vertexHeader(String::format("\n\
+		#version %s\n\
 		uniform mat4  root_matrix;\n\
 		/*uniform float view_matrix[6];*/\n\
 		layout (std140) uniform ubo {\n\
@@ -61,13 +67,13 @@ namespace qk {
 									view_matrix[1], view_matrix[4], 0.0, 0.0,\n\
 									0.0,            0.0,            1.0, 0.0,\n\
 									view_matrix[2], view_matrix[5], 0.0, 1.0);\n\
-		}*/"
-	);
+		}*/\n\
+	", Qk_GL_Version));
 
-	static const String fragmentHeader("\n\
-		#version 300 es\n\
+	static const String fragmentHeader(String::format("\n\
+		#version %s\n\
 		out lowp vec4 color_o;\n\
-	");
+	", Qk_GL_Version));
 
 	GLSLShader::GLSLShader(): _shader(0) {
 	}

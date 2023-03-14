@@ -44,6 +44,7 @@
 #define UIApplication NSApplication
 #define UIColor NSColor
 #define UIScreen NSScreen
+#define UIViewController NSViewController
 #else
 #import <UIKit/UIKit.h>
 #endif
@@ -78,6 +79,8 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host);
 	@property (strong, nonatomic) UIWindow *window;
 	@property (strong, nonatomic) UIView *surface_view; // strong
 	@property (strong, nonatomic) id<QkIMEHelprt> ime; // strong
+	// methods
+	- (void)refresh_surface_region;
 @end
 
 #endif

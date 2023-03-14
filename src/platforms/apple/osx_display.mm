@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./ios_app.h"
+#import "./osx_app.h"
 #import "../../display.h"
 
 using namespace qk;
@@ -91,7 +91,7 @@ void Display::request_fullscreen(bool fullscreen) {
 /**
  * @func orientation()
  */
-Orientation Display::orientation() {
+Display::Orientation Display::orientation() {
 	return ORIENTATION_INVALID;
 }
 
