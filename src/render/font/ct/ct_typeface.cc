@@ -593,7 +593,7 @@ void Typeface_Mac::onGetGlyph(GlyphID id, FontGlyphMetrics* glyph) const {
 			Vec2(cgBounds.size.width, cgBounds.size.height),
 		};
 		
-		Qk_DEBUG("#Typeface_Mac#onGetGlyph,f%", bounds.origin.x());
+		Qk_DEBUG("#Typeface_Mac#onGetGlyph,%f", bounds.origin.x());
 	}
 
 	glyph->left = bounds.origin.x();

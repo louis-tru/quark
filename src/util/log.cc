@@ -71,150 +71,174 @@ namespace qk {
 
 	String string_format(cChar* f, va_list arg);
 
-	static Console* _default_console = nullptr;
+	static Log* _shared_log = nullptr;
 
-	void Console::log(cChar* str, cChar* feed) {
+	Log::~Log() {}
+
+	void Log::log(cChar* log, cChar* end) {
 #if Qk_ANDROID
-			__android_log_print(ANDROID_LOG_INFO, "LOG ", "%s%s", str.c_str(), feed ? feed: "");
+			__android_log_print(ANDROID_LOG_INFO, "LOG ", "%s%s", log.c_str(), end ? end: "");
 #else
-			printf("%s%s", str, feed ? feed: "");
+			printf("%s%s", log, end ? end: "");
 #endif
 	}
 
-	void Console::warn(cChar* str, cChar* feed) {
+	void Log::warn(cChar* log, cChar* end) {
 #if Qk_ANDROID
-			__android_log_print(ANDROID_LOG_WARN, "WARN", "%s%s", str.c_str(), feed ? feed: "");
+			__android_log_print(ANDROID_LOG_WARN, "WARN", "%s%s", log.c_str(), end ? end: "");
 #else
-			printf("%s%s", str, feed ? feed: "");
+			printf("%s%s", log, end ? end: "");
 #endif
 	}
 
-	void Console::error(cChar* str, cChar* feed) {
+	void Log::error(cChar* log, cChar* end) {
 #if Qk_ANDROID
-			__android_log_print(ANDROID_LOG_ERROR, "ERR ", "%s%s", str.c_str(), feed ? feed: "");
+			__android_log_print(ANDROID_LOG_ERROR, "ERR ", "%s%s", log.c_str(), end ? end: "");
 #else
-			fprintf(f_stderr, "%s%s", str, feed ? feed: "");
+			fprintf(f_stderr, "%s%s", log, end ? end: "");
 #endif
 	}
 
-	void Console::clear() {
-		fflush(stdout);
-		fflush(f_stderr);
+	void Log::fflush() {
+		::fflush(stdout);
+		::fflush(f_stderr);
 	}
 
-	void Console::set_as_default() {
-		if (_default_console != this) {
-			delete _default_console;
-			_default_console = this;
+	void Log::set_shared(Log *log) {
+		if (_shared_log != log) {
+			delete _shared_log;
+			_shared_log = log;
 		}
 	}
 
-	Console* Console::instance() {
-		if (!_default_console) {
-			New<Console>()->set_as_default();
+	Log* Log::shared() {
+		if (!_shared_log) {
+			set_shared(New<Log>());
 		}
-		return _default_console;
+		return _shared_log;
 	}
 
-	namespace console {
+	void Log::print(Type t, cChar *msg, ...) {
+		Qk_STRING_FORMAT(msg, str);
+		switch(t) {
+			case kLog: log(str.c_str()); break;
+			case kWarn: warn(str.c_str()); break;
+			default: error(str.c_str()); break;
+		}
+	}
 
-		void log(int8_t msg) {
-			Console::instance()->log( String::format("%u\n", msg).c_str() );
+	void Log::println(Type t, cChar *msg, ...) {
+		Qk_STRING_FORMAT(msg, str);
+		switch(t) {
+			case kLog: log(str.c_str(), "\n"); break;
+			case kWarn: warn(str.c_str(), "\n"); break;
+			default: error(str.c_str(), "\n"); break;
 		}
-		
-		void log(uint8_t msg) {
-			Console::instance()->log( String::format("%u\n", msg).c_str() );
-		}
+	}
 
-		void log(int16_t msg) {
-			Console::instance()->log( String::format("%d\n", msg).c_str() );
-		}
+	void log_print(cChar *format, ...) {
+		Qk_STRING_FORMAT(format, str);
+		Log::shared()->log(str.c_str());
+	}
 
-		void log(uint16_t  msg) {
-			Console::instance()->log( String::format("%u\n", msg).c_str() );
-		}
+	void log_println(cChar* format, ...) {
+		Qk_STRING_FORMAT(format, str);
+		Log::shared()->log(str.c_str(), "\n");
+	}
 
-		void log(int32_t msg) {
-			Console::instance()->log( String::format("%d\n", msg).c_str() );
-		}
-		
-		void log(uint32_t msg) {
-			Console::instance()->log( String::format("%u\n", msg).c_str() );
-		}
-
-		void log(float msg) {
-			Console::instance()->log( String::format("%f\n", msg).c_str() );
-		}
-
-		void log(double msg) {
-			Console::instance()->log( String::format("%lf\n", msg).c_str() );
-		}
-
-		void log(int64_t msg) {
-			#if Qk_ARCH_64BIT
-				Console::instance()->log( String::format("%ld\n", msg).c_str() );
-			#else
-				Console::instance()->log( String::format("%lld\n", msg).c_str() );
-			#endif
-		}
-
-		void log(uint64_t msg) {
-#if Qk_ARCH_64BIT
-				Console::instance()->log( String::format("%lu\n", msg).c_str() );
-#else
-				Console::instance()->log( String::format("%llu\n", msg).c_str() );
-#endif
-		}
-
-		void log(size_t msg) {
-#if Qk_ARCH_64BIT
-				Console::instance()->log( String::format("%lu\n", msg).c_str() );
-#else
-				Console::instance()->log( String::format("%llu\n", msg).c_str() );
-#endif
-		}
-
-		void log(bool msg) {
-			Console::instance()->log( msg ? "true\n": "false\n" );
-		}
-
-		void log(cString& msg) {
-			Console::instance()->log(msg.c_str(), "\n");
-		}
+	void log_println(int8_t msg) {
+		Log::shared()->println(Log::kLog, "%u", msg);
+	}
 	
-		void log(cBuffer& buf) {
-			Console::instance()->log(*buf, "\n");
-		}
-		
-		void log(cString2& msg) {
-			Console::instance()->log(*codec_encode(kUTF8_Encoding, msg), "\n");
-		}
+	void log_println(uint8_t msg) {
+		Log::shared()->println(Log::kLog, "%u", msg );
+	}
 
-		void log(cChar* format, ...) {
-			Qk_STRING_FORMAT(format, str);
-			Console::instance()->log(str.c_str(), "\n");
-		}
-		
-		void warn(cChar* format, ...) {
-			Qk_STRING_FORMAT(format, str);
-			Console::instance()->warn(str.c_str(), "\n");
-		}
-		
-		void error(cChar* format, ...) {
-			Qk_STRING_FORMAT(format, str);
-			Console::instance()->error(str.c_str(), "\n");
-		}
-		
-		void error(const Error& err) {
-			auto str = String::format("Error: %d \n message:\n\t%s\n", err.code(), err.message().c_str());
-			Console::instance()->error(str.c_str());
-		}
+	void log_println(int16_t msg) {
+		Log::shared()->println(Log::kLog, "%d", msg );
+	}
 
+	void log_println(uint16_t  msg) {
+		Log::shared()->println(Log::kLog, "%u", msg );
+	}
+
+	void log_println(int32_t msg) {
+		Log::shared()->println(Log::kLog, "%d", msg );
+	}
+	
+	void log_println(uint32_t msg) {
+		Log::shared()->println(Log::kLog, "%u", msg );
+	}
+
+	void log_println(float msg) {
+		Log::shared()->println(Log::kLog, "%f", msg );
+	}
+
+	void log_println(double msg) {
+		Log::shared()->println(Log::kLog, "%lf", msg );
+	}
+
+	void log_println(int64_t msg) {
+#if Qk_ARCH_64BIT
+		Log::shared()->println(Log::kLog, "%ld", msg );
+#else
+		Log::shared()->println(Log::kLog, "%lld", msg );
+#endif
+	}
+
+	void log_println(uint64_t msg) {
+#if Qk_ARCH_64BIT
+		Log::shared()->println(Log::kLog, "%lu", msg );
+#else
+		Log::shared()->println(Log::kLog, "%llu", msg );
+#endif
+	}
+
+	void log_println(size_t msg) {
+#if Qk_ARCH_64BIT
+		Log::shared()->println(Log::kLog, "%lu", msg );
+#else
+		Log::shared()->println(Log::kLog, "%llu", msg );
+#endif
+	}
+
+	void log_println(bool msg) {
+		Log::shared()->log( msg ? "true\n": "false\n" );
+	}
+
+	void log_println(cString& msg) {
+		Log::shared()->log(msg.c_str(), "\n");
+	}
+
+	void log_println(cBuffer& buf) {
+		Log::shared()->log(*buf, "\n");
+	}
+	
+	void log_println(cString2& msg) {
+		Log::shared()->log(*codec_encode(kUTF8_Encoding, msg), "\n");
+	}
+
+	void log_println_warn(cChar* format, ...) {
+		Qk_STRING_FORMAT(format, str);
+		Log::shared()->warn(str.c_str(), "\n");
+	}
+
+	void log_println_error(cChar* format, ...) {
+		Qk_STRING_FORMAT(format, str);
+		Log::shared()->error(str.c_str(), "\n");
+	}
+	
+	void log_println_error(const Error& err) {
+		Log::shared()->print(Log::kError, "Error: %d \n message:\n\t%s\n", err.code(), err.message().c_str() );
+	}
+
+	void log_fflush() {
+		Log::shared()->fflush();
 	}
 
 	static void report_error(cChar* format, ...) {
 		Qk_STRING_FORMAT(format, str);
-		printf("%s", str.c_str());
+		Log::shared()->log(str.c_str());
 	}
 
 	// Attempts to dump a backtrace (if supported).
@@ -229,7 +253,7 @@ namespace qk {
 				for (int i = 1; i < size; ++i) {
 					report_error("%2d: ", i);
 					Dl_info info;
-					Char* demangled = NULL;
+					char* demangled = NULL;
 					if (!dladdr(trace[i], &info) || !info.dli_sname) {
 						report_error("%p\n", trace[i]);
 					} else if ((demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, 0))) {
@@ -264,15 +288,15 @@ namespace qk {
 	}
 
 	void fatal(cChar* file, uint32_t line, cChar* func, cChar* msg, ...) {
-		Console::instance()->clear();
+		Log::shared()->fflush();
 		if (msg) {
 			Qk_STRING_FORMAT(msg, str);
-			Console::instance()->error("\n\n\n");
-			Console::instance()->error(str.c_str(), "\n");
+			_shared_log->error("\n\n\n");
+			_shared_log->error(str.c_str(), "\n");
 		}
 		report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
 		dump_backtrace();
-		Console::instance()->clear();
+		_shared_log->fflush();
 
 		IMMEDIATE_CRASH();
 	}

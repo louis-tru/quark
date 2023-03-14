@@ -212,7 +212,7 @@ namespace qk {
 			0.0,    0.0,    1.0, 0.0,
 			mat[2], mat[5], 0.0, 1.0
 		};
-		// glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
+		//glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, mat4);
 	}
 

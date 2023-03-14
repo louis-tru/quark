@@ -169,7 +169,7 @@ namespace qk {
 			virtual bool is_on_func_listener() { return true; }
 			virtual void call(Event& evt) { _listener(evt); }
 			inline bool equals(int id) { return id == _id; }
-			protected:
+		protected:
 			ListenerFunc _listener;
 			int          _id;
 		};
@@ -229,53 +229,39 @@ namespace qk {
 		}
 
 		template<class Scope>
-		void on(void (Scope::*listener)(Event&), Scope* scope) throw(Error) {
-			get_listener();
-			assert2(listener, scope);
-			_listener->push_back( { new OnListener<Scope>(this, listener, scope) } );
-		}
-
-		template <class Data>
-		void on( void (*listener)(Event&, Data*), Data* data = nullptr) throw(Error) {
-			get_listener();
-			assert_static(listener, data);
-			_listener->push_back( { new OnStaticListener<Data>(this, listener, data) } );
-		}
-
-		void on( ListenerFunc listener, int id = 0) {
-			get_listener();
-			_listener->push_back( { new OnLambdaFunctionListener(this, std::move(listener), id) } );
-		}
-
-		void on(EventNoticer* shell) throw(Error) {
-			get_listener();
-			assert_shell(shell);
-			_listener->push_back( { new OnShellListener(this, shell) } );
+		void on(void (Scope::*listener)(Event&), Scope* scope) {
+			get_listener()->push_back( { new OnListener<Scope>(this, listener, scope) } );
 		}
 
 		template<class Scope>
-		void once(void (Scope::*listener)(Event&), Scope* scope) throw(Error) {
-			get_listener();
-			assert2(listener, scope);
-			_listener->push_back( { new OnceListener<Scope>(this, listener, scope) } );
+		void once(void (Scope::*listener)(Event&), Scope* scope) {
+			get_listener()->push_back( { new OnceListener<Scope>(this, listener, scope) } );
 		}
-		
+
 		template <class Data>
-		void once( void (*listener)(Event&, Data*), Data* data = nullptr) throw(Error) {
-			get_listener();
-			assert_static(listener, data);
-			_listener->push_back( { new OnceStaticListener<Data>(this, listener, data) } );
+		void on( void (*listener)(Event&, Data*), Data* data = nullptr) {
+			get_listener()->push_back( { new OnStaticListener<Data>(this, listener, data) } );
 		}
-		
+
+		template <class Data>
+		void once( void (*listener)(Event&, Data*), Data* data = nullptr) {
+			get_listener()->push_back( { new OnceStaticListener<Data>(this, listener, data) } );
+		}
+
+		void on( ListenerFunc listener, int id = 0) {
+			get_listener()->push_back( { new OnLambdaFunctionListener(this, std::move(listener), id) } );
+		}
+
 		void once( ListenerFunc listener, int id = 0) {
-			get_listener();
-			_listener->push_back( { new OnceLambdaFunctionListener(this, std::move(listener), id) } );
+			get_listener()->push_back( { new OnceLambdaFunctionListener(this, std::move(listener), id) } );
 		}
-		
-		void once(EventNoticer* shell) throw(Error) {
-			get_listener();
-			assert_shell(shell);
-			_listener->push_back( { new OnceShellListener(this, shell) } );
+
+		void on(EventNoticer* shell) {
+			get_listener()->push_back( { new OnShellListener(this, shell) } );
+		}
+
+		void once(EventNoticer* shell) {
+			get_listener()->push_back( { new OnceShellListener(this, shell) } );
 		}
 
 		template<class Scope>
@@ -314,7 +300,6 @@ namespace qk {
 					if ( i.value && i->is_on_static_listener() &&
 							static_cast<OnListener2*>(i.value)->equals(listener) ) {
 						i.del();
-						break;
 					}
 				}
 			}
@@ -429,10 +414,16 @@ namespace qk {
 			reinterpret_cast<Ev*>(&evt)->_sender = _sender;
 		}
 
-		inline void get_listener() {
-			if (_listener == nullptr) {
+		struct LWrap {
+			Listener* value;
+			Listener* operator->() { return value; }
+			void del() { delete value; value = nullptr; }
+		};
+
+		inline List<LWrap>* get_listener() {
+			if (!_listener)
 				_listener = new List<LWrap>();
-			}
+			return _listener;
 		}
 		
 		void off2(Listener* listener) {
@@ -443,48 +434,6 @@ namespace qk {
 				}
 			}
 		}
-		
-		template<class Scope>
-		void assert2(void (Scope::*listener)(Event&), Scope* scope) throw(Error) {
-			typedef OnListener<Scope> OnListener2;
-			for ( auto& i : *_listener ) {
-				if ( i.value && i->is_on_listener() ) {
-					Qk_CHECK( !(static_cast<OnListener2*>(i.value)->equals( listener ) &&
-											static_cast<OnListener2*>(i.value)->equals( scope )),
-											ERR_DUPLICATE_LISTENER,
-											"Noticers have been added over the letter");
-				}
-			}
-		}
-		
-		template<class Data>
-		void assert_static(void (*listener)(Event&, Data*), Data* data) throw(Error) {
-			typedef OnStaticListener<Data> OnStaticListener2;
-			for ( auto& i : *_listener ) {
-				if ( i.value && i->is_on_static_listener() ) {
-					Qk_CHECK( !(static_cast<OnStaticListener2*>(i.value)->equals( listener ) &&
-											static_cast<OnStaticListener2*>(i.value)->equals( data )),
-											ERR_DUPLICATE_LISTENER,
-											"Noticers have been added over the letter");
-				}
-			}
-		}
-		
-		void assert_shell(EventNoticer* shell) throw(Error) {
-			for ( auto& i : *_listener ) {
-				if ( i.value && i->is_on_shell_listener() ) {
-					Qk_CHECK( !static_cast<OnShellListener*>(i.value)->equals( shell ),
-										ERR_DUPLICATE_LISTENER,
-										"Noticers have been added over the letter");
-				}
-			}
-		}
-
-		struct LWrap {
-			Listener* value;
-			Listener* operator->() { return value; }
-			void del() { delete value; value = nullptr; }
-		};
 
 		Sender       *_sender;
 		List<LWrap>  *_listener;
@@ -492,10 +441,6 @@ namespace qk {
 		friend class  OnShellListener;
 		friend class  OnceShellListener;
 	};
-
-
-	// template<class T, typename... Args>
-	// inline T* New(Args... args) { return new T(args...); }
 
 
 	/**

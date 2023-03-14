@@ -35,45 +35,45 @@
 #include "./string.h"
 
 namespace qk {
-
 	class Error;
 
-	/**
-	* @class Console # util log
-	*/
-	class Qk_EXPORT Console {
+	class Qk_EXPORT Log {
 	public:
+		enum Type {
+			kLog,kWarn,kError
+		};
 		typedef NonObjectTraits Traits;
-		virtual ~Console() = default;
-		virtual void log(cChar* log, cChar* feed = nullptr);
-		virtual void warn(cChar* log, cChar* feed = nullptr);
-		virtual void error(cChar* log, cChar* feed = nullptr);
-		virtual void clear();
-		void set_as_default();
-		static Console* instance();
+		virtual ~Log();
+		virtual void log(cChar* log, cChar* end = nullptr);
+		virtual void warn(cChar* log, cChar* end = nullptr);
+		virtual void error(cChar* log, cChar* end = nullptr);
+		virtual void fflush();
+		static  void set_shared(Log *c);
+		static  Log* shared();
+		void         print(Type t, cChar*, ...);
+		void         println(Type t, cChar*, ...);
 	};
 
-	namespace console {
-		Qk_EXPORT void log(int8_t s);
-		Qk_EXPORT void log(uint8_t s);
-		Qk_EXPORT void log(int16_t s);
-		Qk_EXPORT void log(uint16_t s);
-		Qk_EXPORT void log(int32_t s);
-		Qk_EXPORT void log(uint32_t s);
-		Qk_EXPORT void log(float s);
-		Qk_EXPORT void log(double);
-		Qk_EXPORT void log(int64_t);
-		Qk_EXPORT void log(uint64_t);
-		Qk_EXPORT void log(size_t);
-		Qk_EXPORT void log(bool);
-		Qk_EXPORT void log(cString&);
-		Qk_EXPORT void log(cBuffer&);
-		Qk_EXPORT void log(cString2&);
-		Qk_EXPORT void log(cChar*, ...);
-		Qk_EXPORT void warn(cChar*, ...);
-		Qk_EXPORT void error(cChar*, ...);
-		Qk_EXPORT void error(const Error&);
-	}
-
+	Qk_EXPORT void log_print(cChar*, ...);
+	Qk_EXPORT void log_println(cChar*, ...);
+	Qk_EXPORT void log_println(int8_t s);
+	Qk_EXPORT void log_println(uint8_t s);
+	Qk_EXPORT void log_println(int16_t s);
+	Qk_EXPORT void log_println(uint16_t s);
+	Qk_EXPORT void log_println(int32_t s);
+	Qk_EXPORT void log_println(uint32_t s);
+	Qk_EXPORT void log_println(float s);
+	Qk_EXPORT void log_println(double);
+	Qk_EXPORT void log_println(int64_t);
+	Qk_EXPORT void log_println(uint64_t);
+	Qk_EXPORT void log_println(size_t);
+	Qk_EXPORT void log_println(bool);
+	Qk_EXPORT void log_println(cString&);
+	Qk_EXPORT void log_println(cBuffer&);
+	Qk_EXPORT void log_println(cString2&);
+	Qk_EXPORT void log_println_warn(cChar*, ...);
+	Qk_EXPORT void log_println_error(cChar*, ...);
+	Qk_EXPORT void log_println_error(const Error&);
+	Qk_EXPORT void log_fflush();
 }
 #endif

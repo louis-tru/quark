@@ -49,7 +49,7 @@ namespace qk {
 		RunLoop*    _loop;
 		Mutex       _mutex;
 		Condition   _cond;
-		void        (*_exec)(Thread* t, void* arg);
+		void        (*_exec)(void* arg);
 	};
 
 	struct ListenSignal {
@@ -87,7 +87,7 @@ namespace qk {
 		return *reinterpret_cast<ThreadID*>(&id);
 	}
 
-	static Thread_INL* Thread_INL_init(Thread_INL *t, void (*exec)(Thread* t, void* arg), cString& tag)
+	static Thread_INL* Thread_INL_init(Thread_INL *t, void (*exec)(void* arg), cString& tag)
 	{
 		t->tag = tag;
 		t->abort = false;
