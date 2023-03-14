@@ -51,14 +51,12 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 	- (void)display_link_callback:(CADisplayLink*)displayLink {
 		auto _ = self.host;
 		#if Qk_USE_DEFAULT_THREAD_RENDER
-			if (_->is_loaded()) {
-				if (_fps == 0) { // 3 = 15, 1 = 30
-					if (_->display()->pre_render())
-						_->display()->render();
-					_fps = 0;
-				} else {
-					_fps++;
-				}
+			if (_fps == 0) { // 3 = 15, 1 = 30
+				if (_->display()->pre_render())
+					_->display()->render();
+				_fps = 0;
+			} else {
+				_fps++;
 			}
 		#else
 			if (self.render_task_count == 0) {
@@ -146,6 +144,7 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 		[self refresh_surface_region]; // set size
 
 		Inl_Application(_host)->triggerLoad();
+		Qk_DEBUG("application,triggerLoad");
 
 		[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
 														forMode:NSDefaultRunLoopMode];
@@ -160,36 +159,43 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 
 	- (void)applicationWillResignActive:(UIApplication*) application {
 		Inl_Application(_host)->triggerPause();
+		Qk_DEBUG("applicationWillResignActive,triggerPause");
 	}
 
 	- (void)applicationDidBecomeActive:(UIApplication*) application {
 		Inl_Application(_host)->triggerResume();
 		[self refresh_surface_region];
+		Qk_DEBUG("applicationDidBecomeActive,triggerResume");
 	}
 
 	- (void)applicationDidEnterBackground:(UIApplication*) application {
 		_is_background = YES;
 		Inl_Application(_host)->triggerBackground();
+		Qk_DEBUG("applicationDidEnterBackground,triggerBackground");
 	}
 
 	- (void)applicationWillEnterForeground:(UIApplication*) application {
 		_is_background = NO;
 		Inl_Application(_host)->triggerForeground();
+		Qk_DEBUG("applicationWillEnterForeground,triggerForeground");
 	}
 
 	- (void)applicationDidReceiveMemoryWarning:(UIApplication*) application {
 		Inl_Application(_host)->triggerMemorywarning();
+		Qk_DEBUG("applicationDidReceiveMemoryWarning,triggerMemorywarning");
 	}
 
 	- (void)applicationWillTerminate:(UIApplication*)application {
 		[self.display_link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 		Inl_Application(_host)->triggerUnload();
+		Qk_DEBUG("applicationWillTerminate,triggerUnload");
 	}
 
 	- (void) mailComposeController:(MFMailComposeViewController*)controller
 						didFinishWithResult:(MFMailComposeResult)result
 													error:(NSError*)error {
 		[controller dismissViewControllerAnimated:YES completion:nil];
+		Qk_DEBUG("mailComposeController");
 	}
 
 @end

@@ -262,7 +262,7 @@ void layout(Event<>& evt, Application* app) {
 	img2->set_width({0, BoxSizeKind::MATCH });
 	img2->set_layout_align(Align::CENTER);
 	
-	Qk_DEBUG("%s, %p\n", "ok skia", app);
+	Qk_DEBUG("%s, %p\n", "ok test layout", app);
 	Qk_DEBUG("Object size %d", sizeof(Object));
 	Qk_DEBUG("Reference size %d", sizeof(Reference));
 	Qk_DEBUG("Layout size %d", sizeof(Layout));

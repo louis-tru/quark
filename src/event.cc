@@ -555,6 +555,7 @@ namespace qk {
 	}
 
 	void EventDispatch::onTouchend(List<TouchPoint>&& list) {
+		Qk_DEBUG("onTouchend x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
 			touchend(*evt.data, UIEvent_TouchEnd);
@@ -562,6 +563,7 @@ namespace qk {
 	}
 
 	void EventDispatch::onTouchcancel(List<TouchPoint>&& list) {
+		Qk_DEBUG("onTouchcancel x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
 			touchend(*evt.data, UIEvent_TouchCancel);
