@@ -170,10 +170,7 @@ namespace qk {
 			: _sender(sender), _listener(nullptr) {}
 
 		~EventNoticer() {
-			if (_listener) {
-				off();
-				Release(_listener);
-			}
+			off2(true);
 		}
 
 		inline Sender* sender() const { return _sender; }
@@ -221,9 +218,9 @@ namespace qk {
 		template<class Scope>
 		void off( void (Scope::*listener)(Event&), Scope* scope) {
 			if (_listener) {
-				this->lock();
+				this->lock(); auto l = _listener;
 				typedef OnListener<Scope> OnListener2;
-				for ( auto &i : *_listener ) {
+				for ( auto &i : *l ) {
 					if( i &&
 							(!listener || static_cast<OnListener2*>(i)->equals(listener)) &&
 							(!scope    || static_cast<OnListener2*>(i)->equals(scope)) ) {
@@ -237,21 +234,11 @@ namespace qk {
 
 		void off(int id) {
 			if (_listener) {
-				this->lock();
-				for ( auto &i : *_listener ) {
+				this->lock(); auto l = _listener;
+				for ( auto &i : *l ) {
 					if ( i && static_cast<OnLambdaFunctionListener*>(i)->equals(id) ) {
 						delete i; i = nullptr;
 					}
-				}
-				this->unlock();
-			}
-		}
-
-		void off() {
-			if (_listener) {
-				this->lock();
-				for ( auto &i : *_listener ) {
-					delete i; i = nullptr;
 				}
 				this->unlock();
 			}
@@ -301,6 +288,10 @@ namespace qk {
 			off((void (Object::*)(Event&))shell, nullptr);
 		}
 
+		void off() {
+			off2(false);
+		}
+
 		void trigger() {
 			if (_listener) {
 				Event evt;
@@ -317,18 +308,18 @@ namespace qk {
 
 		void trigger(Event& evt) {
 			if (_listener) {
-				this->lock();
-				if (_listener->length()) {
+				this->lock(); auto /*register c++17*/ l = _listener;
+				if (l->length()) {
 					set_event(evt);
-					for (auto i = _listener->begin(); i != _listener->end(); ) {
+					for (auto i = l->begin(); i != l->end(); ) {
 						auto j = i++;
 						auto listener = *j;
 						if ( listener ) {
 							listener->call(evt);
 							if (listener->once())
-								_listener->erase(j);
+								l->erase(j);
 						} else {
-							_listener->erase(j);
+							l->erase(j);
 						}
 					}
 				}
@@ -342,6 +333,19 @@ namespace qk {
 			reinterpret_cast<Ev*>(&evt)->_sender = _sender;
 		}
 
+		void off2(bool destroy) {
+			if (_listener) {
+				this->lock(); auto l = _listener;
+				for ( auto &i : *l ) {
+					delete i; i = nullptr;
+				}
+				if (destroy) {
+					Release(l); _listener = nullptr;
+				}
+				this->unlock();
+			}
+		}
+
 		inline void add_listener(Listener *l) {
 			this->lock();
 			if (!_listener)
@@ -351,7 +355,7 @@ namespace qk {
 		}
 
 		Sender          *_sender;
-		List<Listener*> *_listener;
+		List<Listener*> * volatile _listener;
 
 		friend class  OnShellListener;
 	};
