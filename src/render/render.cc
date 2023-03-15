@@ -62,7 +62,7 @@ namespace qk {
 				wait.notify_all();
 				loop->run(); // run loop
 			}, "Render::Render()");
-			wait.wait(); // wait start run isolate loop
+			wait.wait_for(); // wait start run isolate loop
 		}
 	}
 

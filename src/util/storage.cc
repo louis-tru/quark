@@ -30,6 +30,7 @@
 
 #include "./storage.h"
 #include "./fs.h"
+#include "./event.h"
 #include <bptree.h>
 
 namespace qk {
@@ -55,7 +56,7 @@ namespace qk {
 			int r = bp_open(&_db, fs_fallback_c(get_db_filename()));
 			if ( r == BP_OK ) {
 				if (_has_initialize++ == 0)
-					atexit(storage_close);
+					Qk_On(Exit, [](Event<>& e) { storage_close(); });
 			} else {
 				_db = nullptr;
 			}

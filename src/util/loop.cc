@@ -45,30 +45,26 @@ namespace qk {
 		return *reinterpret_cast<const uint32_t*>(&key);
 	}
 
-	struct Thread_INL: Thread {
+	struct Thread_INL: Thread, Wait {
 		RunLoop*    _loop;
-		Mutex       _mutex;
-		Condition   _cond;
+		List<Wait*> _wait_ends; // external wait thread end
 		void        (*_exec)(void* arg);
-	};
-
-	struct ListenSignal {
-		Thread_INL *thread;
-		Mutex mutex;
-		Condition cond;
 	};
 
 	static RunLoop *__first_loop = nullptr;
 	static Mutex *__threads_mutex = nullptr;
 	static Dict<ThreadID, Thread_INL*> *__threads = nullptr;
-	static List<ListenSignal*> *__wait_end_listens = nullptr;
 	static pthread_key_t __specific_key = 0;
 	static std::atomic_int __is_process_exit(0);
-	static EventNoticer<> *__on_process_safe_exit = nullptr;
+	static EventNoticer<Event<>, Mutex> *__on_process_safe_exit = nullptr;
 
-	void Wait::wait() {
+	void Wait::wait_for(uint64_t timeoutUs) {
 		Lock lock(mutex);
-		cond.wait(lock);
+		if (timeoutUs) {
+			cond.wait_for(lock, std::chrono::microseconds(timeoutUs));
+		} else {
+			cond.wait(lock);
+		}
 	}
 
 	void Wait::notify_one() {
@@ -83,14 +79,10 @@ namespace qk {
 
 	// --------------------------------- T H R E A D ---------------------------------
 
-	static ThreadID tid_cast(uv_thread_t id) {
-		return *reinterpret_cast<ThreadID*>(&id);
-	}
-
 	static Thread_INL* Thread_INL_init(Thread_INL *t, void (*exec)(void* arg), cString& tag)
 	{
 		t->tag = tag;
-		t->abort = false;
+		t->abort = 0;
 		t->_loop = nullptr;
 		t->_exec = exec;
 		return t;
@@ -105,16 +97,6 @@ namespace qk {
 	static void thread_set_specific_data(Thread* thread) {
 		Qk_ASSERT(!pthread_getspecific(__specific_key));
 		pthread_setspecific(__specific_key, thread);
-	}
-
-	static void thread_resume_inl(Thread_INL* t, bool abort = 0) {
-		ScopeLock scope(t->_mutex);
-		if (abort) {
-			if (t->_loop)
-				t->_loop->stop();
-			t->abort = true;
-		}
-		t->_cond.notify_one(); // resume sleep status
 	}
 
 	ThreadID thread_current_id() {
@@ -132,11 +114,10 @@ namespace qk {
 	ThreadID thread_fork(void (*exec)(void* arg), void* arg, cString& name) {
 		if ( __is_process_exit != 0 )
 			return ThreadID();
-		ScopeLock scope(*__threads_mutex);
 		Thread_INL* thread = Thread_INL_init(new Thread_INL, exec, name);
 
-		uv_thread_t tid;
-		uv_thread_create(&tid, [](void* arg) {
+		ThreadID id;
+		uv_thread_create((uv_thread_t*)&id, [](void* arg) {
 			auto thread = (Thread_INL*)arg;
 #if Qk_ANDROID
 			JNI::ScopeENV scope;
@@ -144,26 +125,29 @@ namespace qk {
 			thread_set_specific_data(thread);
 			if ( !thread->abort ) {
 				thread->_exec(arg);
-				thread->abort = true;
 			}
-			{
+			{ // delete global handle
 				ScopeLock scope(*__threads_mutex);
-				Qk_DEBUG("Thread end ..., %s", *thread->tag);
-				for (auto& i : *__wait_end_listens) {
-					if (i->thread == thread) {
-						ScopeLock scope(i->mutex);
-						i->cond.notify_one();
-					}
-				}
-				Qk_DEBUG("Thread end  ok, %s", thread->tag.c_str());
 				__threads->erase(thread->id);
+			}
+			{ // notify wait
+				ScopeLock scope(thread->mutex);
+				if (!thread->abort)
+					thread->abort = -3; // abort
+				Qk_DEBUG("Thread end ..., %s", thread->tag.c_str());
+				for (auto& i : thread->_wait_ends)
+					i->notify_one();
+				Qk_DEBUG("Thread end  ok, %s", thread->tag.c_str());
 			}
 		}, thread);
 
-		thread->id = tid_cast(tid);
-		__threads->set(thread->id, thread);
-
-		return thread->id;
+		if (id != ThreadID()) {
+			ScopeLock scope(*__threads_mutex);
+			__threads->set(thread->id = id, thread);
+		} else { // fail
+			delete thread;
+		}
+		return id;
 	}
 
 	typedef std::function<void()> ForkFunc;
@@ -181,35 +165,31 @@ namespace qk {
 	}
 
 	void thread_pause(uint64_t timeoutUs) {
-		auto cur = thread_current_inl();
-		Qk_ASSERT(cur, "Cannot find current qk::Thread handle, use Thread::sleep()");
-
-		Lock lock(cur->_mutex);
-		if ( !cur->abort ) {
-			if (timeoutUs) {
-				cur->_cond.wait_for(lock, std::chrono::microseconds(timeoutUs));
-			} else {
-				cur->_cond.wait(lock); // wait
-			}
-		} else {
-			Qk_WARN("Thread aborted, cannot wait");
-		}
+		auto t = thread_current_inl();
+		Qk_ASSERT(t, "Cannot find current qk::Thread handle, use Thread::sleep()");
+		t->wait_for(timeoutUs);
 	}
 
-	void thread_resume(ThreadID id) {
+	static void thread_resume_inl(Thread_INL *t, int abort) {
+		ScopeLock scope(t->mutex);
+		if (abort) {
+			if (t->_loop)
+				t->_loop->stop();
+			t->abort = abort;
+		}
+		t->cond.notify_one(); // resume sleep status
+	}
+
+	void thread_resume(ThreadID id, int abort) {
 		ScopeLock lock(*__threads_mutex);
 		auto i = __threads->find(id);
 		if ( i != __threads->end() ) {
-			thread_resume_inl(i->value, false); // resume sleep status
+			thread_resume_inl(i->value, abort); // resume sleep status
 		}
 	}
 
 	void thread_abort(ThreadID id) {
-		ScopeLock lock(*__threads_mutex);
-		auto i = __threads->find(id);
-		if ( i != __threads->end() ) {
-			thread_resume_inl(i->value, true); // resume sleep status
-		}
+		thread_resume(id, -1);
 	}
 
 	void thread_wait_for(ThreadID id, uint64_t timeoutUs) {
@@ -220,28 +200,23 @@ namespace qk {
 		Lock lock(*__threads_mutex);
 		auto i = __threads->find(id);
 		if ( i != __threads->end() ) {
-			ListenSignal signal = { i->value };
-			auto it = __wait_end_listens->push_back(&signal);
-			{ //
-				Lock l(signal.mutex);
-				lock.unlock();
-				String &tag = i->value->tag;
-				Qk_DEBUG("thread_wait_for(), ..., %p, %s", id, *tag);
-				if (timeoutUs) {
-					signal.cond.wait_for(l, std::chrono::microseconds(timeoutUs)); // wait
-				} else {
-					signal.cond.wait(l); // permanent wait
-				}
-				Qk_DEBUG("thread_wait_for(), end, %p, %s", id, *tag);
-			}
-			lock.lock();
-			__wait_end_listens->erase(it);
+			i->value->mutex.lock();
+			lock.unlock();
+			Wait wait;
+			auto &tag = i->value->tag;
+			auto it = i->value->_wait_ends.push_back(&wait);
+			i->value->mutex.unlock();
+			Qk_DEBUG("thread_wait_for(), ..., %p, %s", id, *tag);
+			wait.wait_for(timeoutUs); // permanent wait
+			Qk_DEBUG("thread_wait_for(), end, %p, %s", id, *tag);
 		}
 	}
 
-	static void thread_try_abort_and_exit_inl(int rc, bool call_exit) {
+	static void thread_try_abort_all(int rc) {
 		if (__is_process_exit++)
 			return; // exit
+
+		Array<ThreadID> threads_id;
 
 		Qk_DEBUG("thread_try_abort_and_exit_inl(), 0");
 		Event<> ev(Int32(rc), nullptr, rc);
@@ -249,13 +224,12 @@ namespace qk {
 		rc = ev.return_value;
 		Qk_DEBUG("thread_try_abort_and_exit_inl(), 1");
 
-		Array<ThreadID> threads_id;
 		{
 			ScopeLock scope(*__threads_mutex);
 			Qk_DEBUG("threads count, %d", __threads->length());
 			for ( auto& i : *__threads ) {
 				Qk_DEBUG("thread_try_abort_and_exit_inl,tag, %p, %s", i.value->id, *i.value->tag);
-				thread_resume_inl(i.value, true); // resume sleep status and abort
+				thread_resume_inl(i.value, -2); // resume sleep status and abort
 				threads_id.push(i.value->id);
 			}
 		}
@@ -266,17 +240,16 @@ namespace qk {
 		}
 
 		Qk_DEBUG("thread_try_abort_and_exit_inl() 2");
+	}
 
-		if (call_exit) {
+	void thread_try_abort_and_exit(int rc) {
+		if (!__is_process_exit) {
+			thread_try_abort_all(rc);
 			::exit(rc);
 		}
 	}
 
-	void thread_try_abort_and_exit(int rc) {
-		thread_try_abort_and_exit_inl(rc, true);
-	}
-
-	EventNoticer<>& onExit() {
+	EventNoticer<Event<>, Mutex>& onExit() {
 		return *__on_process_safe_exit;
 	}
 
@@ -284,14 +257,15 @@ namespace qk {
 		Qk_DEBUG("thread_init_once");
 		__threads = new Dict<ThreadID, Thread_INL*>();
 		__threads_mutex = new Mutex();
-		__wait_end_listens = new List<ListenSignal*>();
-		__on_process_safe_exit = new EventNoticer<>(nullptr);
-		atexit([](){ thread_try_abort_and_exit_inl(0, false); });
+		__on_process_safe_exit = new EventNoticer<Event<>, Mutex>(nullptr);
+		//Qk_DEBUG("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
+		//Qk_DEBUG("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
+		atexit([](){ thread_try_abort_all(0); });
 		int err = pthread_key_create(&__specific_key, thread_destructor);
 		Qk_ASSERT(err == 0);
 	}
 
-	// --------------------- RunLoop ---------------------
+	// --------------------- R u n L o o p ---------------------
 
 	Qk_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
 		#define _inl(self) static_cast<RunLoop::Inl*>(self)
@@ -324,7 +298,7 @@ namespace qk {
 		}
 
 		void after_resolve_queue(int64_t timeout_ms) {
-			if (_uv_loop->stop_flag != 0 /*|| _thread->abort*/) { // 循环停止标志
+			if (_uv_loop->stop_flag != 0) { // 循环停止标志
 				close_uv_req_handles();
 			}
 			else if (timeout_ms == -1) { // -1 end loop, 没有更多需要处理的工作
@@ -426,9 +400,9 @@ namespace qk {
 		}
 
 		void post_sync(Callback<RunLoop::PostSyncData> cb, uint32_t group, uint64_t delay_us) {
-			//Qk_ASSERT(!_thread->abort, "RunLoop::post_sync, _thread->is_abort() == true");
+			//Qk_ASSERT(!_thread->abort, "RunLoop::post_sync, _thread->abort != 0");
 			if (_thread->abort) {
-				Qk_DEBUG("RunLoop::post_sync, _thread->is_abort() == true");
+				Qk_DEBUG("RunLoop::post_sync, _thread->abort != 0");
 				return;
 			}
 
@@ -523,7 +497,7 @@ namespace qk {
 		}
 	};
 
-		void RunLoop::Inl::stop_after_print_message() {
+	void RunLoop::Inl::stop_after_print_message() {
 		ScopeLock lock(_mutex);
 		for (auto& i: _keeps) {
 			Qk_DEBUG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
@@ -663,7 +637,7 @@ namespace qk {
 	 */
 	uint32_t RunLoop::work(Cb cb, Cb done, cString& name) {
 		if (_thread->abort) {
-			Qk_DEBUG("RunLoop::work, _thread->is_abort() == true");
+			Qk_DEBUG("RunLoop::work, _thread->abort != 0");
 			return 0;
 		}
 
@@ -734,7 +708,7 @@ namespace qk {
 			return;
 		}
 		if (_thread->abort) {
-			Qk_DEBUG("cannot run RunLoop, _thread->is_abort() == true");
+			Qk_DEBUG("cannot run RunLoop, _thread->abort != 0");
 			return;
 		}
 

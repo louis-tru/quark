@@ -61,15 +61,15 @@ namespace qk {
 	template<> Qk_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
 
 	struct Thread {
-		ThreadID    id;
-		String      tag;
-		bool        abort;
+		ThreadID id;
+		int      abort; // abort signal
+		String   tag;
 	};
 
 	struct Wait {
 		Mutex     mutex;
 		Condition cond;
-		void wait();
+		void wait_for(uint64_t timeoutUs = 0);
 		void notify_one();
 		void notify_all();
 	};
@@ -80,16 +80,16 @@ namespace qk {
 	Qk_EXPORT void     thread_sleep(uint64_t timeoutUs = 0);
 	//!< Pause the current operation can be awakened by 'resume()'
 	Qk_EXPORT void     thread_pause(uint64_t timeoutUs = 0 /*Less than 1 permanent wait*/);
-	Qk_EXPORT void     thread_resume(ThreadID id); //!< resume thread running
-	Qk_EXPORT void     thread_abort(ThreadID id); //!< abort signal
+	Qk_EXPORT void     thread_resume(ThreadID id, int abort = 0); //!< resume thread running and send abort signal
+	Qk_EXPORT void     thread_abort(ThreadID id); //!< send abort, signal=-1
 	//!< Wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
 	Qk_EXPORT void     thread_wait_for(ThreadID id, uint64_t timeoutUs = 0);
-	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc);
+	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc); //!< try abort, signal=-2
 
 	Qk_EXPORT ThreadID      thread_current_id();
 	Qk_EXPORT const Thread* thread_current();
 
-	Qk_EXPORT EventNoticer<>& onExit();
+	Qk_EXPORT EventNoticer<Event<>, Mutex>& onExit();
 
 	/**
 	* @class PostMessage
@@ -107,12 +107,12 @@ namespace qk {
 	public:
 		
 		/**
-		* @func runing()
+		 * @method runing()
 		*/
 		bool runing() const;
 		
 		/**
-		* @func is_alive
+		 * @method is_alive
 		*/
 		bool is_alive() const;
 		
@@ -130,12 +130,14 @@ namespace qk {
 		};
 
 		/**
-		* @func post_sync(cb) TODO: 线程循环调用导致锁死
+		 * Synchronously post a message callback to the run loop
+		 *
+		 * @note Circular calls by the same thread lead to deadlock
 		*/
 		void post_sync(Callback<PostSyncData> cb);
 
 		/**
-		* @overwrite
+		 * @overwrite
 		*/
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0);
 		
@@ -145,20 +147,22 @@ namespace qk {
 		void cancel(uint32_t id);
 		
 		/**
-		* @func run() 运行消息循环
-		* @arg [timeout=0] {int64_t} 超时时间(微妙us),等于0没有新消息立即结束
+		 * Running the message loop
+		 * @arg [timeout=0] {uint64_t} Timeout (subtle us), when it is equal to 0, no new message will end immediately
 		*/
 		void run(uint64_t timeout = 0);
 		
 		/**
-		* @func stop() 停止循环
-		* TODO 同由其在多线程中调用时,调用前请确保`RunLoop`句柄是否还有效,
-		*   并且确保`KeepLoop`都已释放,`RunLoop`在销毁时会检查`keep_count`
+		 * Stop running message loop
+		 *
+		 * @note When calling from multiple threads, please make sure that the `RunLoop` handle is still valid
+		 * before calling, and make sure that `KeepLoop` has been released,
+		 * and `keep_count` will be checked when `RunLoop` is destroyed
 		*/
 		void stop();
 
 		/**
-		* @func work(cb[,done[,name]])
+		 * @method work(cb[,done[,name]])
 		*/
 		uint32_t work(Cb cb, Cb done = 0, cString& name = String());
 		
@@ -168,46 +172,55 @@ namespace qk {
 		void cancel_work(uint32_t id);
 
 		/**
-		* 保持run状态并返回一个代理对像,只要不删除`KeepLoop`或调用`stop()`消息队列会一直保持run状态
-		* @func keep_alive(declear)
-		* @arg name {cString&} 名称
-		* @arg [clean=true] {bool} KeepLoop 释放时是否清理由keekloop发起并未完成的`post`消息
+		 * Keep the running state and return a proxy object, as long as you don't delete `KeepLoop` or call `stop()`,
+		 * the message queue will always remain in the running state
+		 *
+		 * @arg name {cString&} alias
+		 * @arg [clean=true] {bool} Whether to clean up the unfinished `post` message initiated by keekloop when releasing
 		*/
 		KeepLoop* keep_alive(cString& name = String(), bool clean = true);
 
 		/**
-		* @func uv_loop()
+		 * Returns the libuv C library uv loop object for current run loop
 		*/
 		inline uv_loop_t* uv_loop() { return _uv_loop; }
-
-		/**
-		* @func thread_id()
-		*/
-		inline ThreadID thread_id() const { return _tid; }
 		
 		/**
-		* @func current() 获取当前线程消息队列
+		 * Returns the thread id for run loop
+		 */
+		inline ThreadID thread_id() const { return _tid; }
+
+		/**
+		 * Returns the thread object for run loop
+		 */
+		inline const Thread* thread() const { return _thread; }
+		
+		/**
+		 * Returns the run loop for current thrend
 		*/
 		static RunLoop* current();
 		
 		/**
-		* @func is_current() 是否为当前`loop`
+		 * is it the current run loop
 		*/
 		static bool is_current(RunLoop* loop);
 		
 		/**
-		* Be careful with thread safety. It's best to ensure that `current()` has been invoked first.
-		* @func first()
+		 * Returns the process first main run loop
+		 *
+		 * @note Be careful with thread safety. It's best to ensure that `current()` has been invoked first.
 		*/
 		static RunLoop* first();
 
 	private:
 		/**
-		* @constructor 私有构造每个线程只能创建一个通过`current()`来获取当前实体
+		 * @note Privately construct each thread,
+		 * only one can be created and the current entity can be obtained through `RunLoop::current()`
+		 * @constructor
 		*/
 		RunLoop(Thread* t, uv_loop_t* uv);
 		/**
-		* @destructor
+		 * @destructor
 		*/
 		virtual ~RunLoop();
 		
@@ -233,42 +246,43 @@ namespace qk {
 	};
 
 	/**
-	* 这个对像能保持RunLoop的循环不自动终止,除非调用`RunLoop::stop()`
-	* @class KeepLoop
-	*/
+	 * This object keeps the RunLoop loop from automatically terminating unless `RunLoop::stop()` is called
+	 *
+	 * @class KeepLoop
+	 */
 	class Qk_EXPORT KeepLoop: public Object, public PostMessage {
 		Qk_HIDDEN_ALL_COPY(KeepLoop);
 	public:
 		Qk_DEFAULT_ALLOCATOR();
 		/**
-		* @destructor `destructor_clear=true`时会取消通过它`post`的所有消息
+		 * @destructor `destructor_clear=true` will cancel all messages `post` through it
 		*/
 		virtual ~KeepLoop();
 		/**
-		* @func post_message(cb[,delay_us])
+		 * @func post_message(cb[,delay_us])
 		*/
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0);
 		/**
-		* @func post(cb[,delay_us])
+		 * @method post(cb[,delay_us])
 		*/
 		uint32_t post(Cb cb, uint64_t delay_us = 0);
 		/**
-		* @func cancel_all() 取消之前`post`的所有消息
+		 * @method cancel_all() Cancel all messages from the previous `post`
 		*/
 		void cancel_all();
 		/**
-		* @func cancel(id)
+		 * @method cancel(id)
 		*/
 		void cancel(uint32_t id);
 		/**
-		* @func host() 如果目标线程已经结束会返回`nullptr`
+		 * @method host() Returns `nullptr` if the target thread has ended
 		*/
 		inline RunLoop* host() { return _loop; }
 
 	private:
 		typedef List<KeepLoop*>::Iterator Iterator;
 		/**
-		* @constructor `declear=true`时表示析构时会进行清理
+		* @constructor `declear=true` means that it will be cleaned up when it is destructed
 		*/
 		KeepLoop(cString& name, bool destructor_clean);
 		RunLoop*  _loop;

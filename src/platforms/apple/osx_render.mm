@@ -140,17 +140,17 @@ private:
 
 QkAppleRender* makeAppleGLRender(Application* host, bool independentThread) {
 	NSOpenGLPixelFormatAttribute attrs[] = {
-		NSOpenGLPFANoRecovery,
-		NSOpenGLPFAAccelerated,
-		NSOpenGLPFAColorSize, 24,
+		NSOpenGLPFANoRecovery, // 禁用所有故障恢复系统
+		NSOpenGLPFAAccelerated, // 选择硬件加速渲染器
+		NSOpenGLPFAColorSize, 24, // 颜色缓冲位数
 		// NSOpenGLPFADoubleBuffer,   // 双缓冲
-		//NSOpenGLPFADepthSize, 24,  // 深度缓冲位深
+		// NSOpenGLPFADepthSize, 24,  // 深度缓冲位深
 		// NSOpenGLPFAStencilSize, 8, // 模板缓冲位深
-		//NSOpenGLPFAMultisample,    // 多重采样
-		//NSOpenGLPFASampleBuffers, (NSOpenGLPixelFormatAttribute)1, //多重采样buffer
-		//NSOpenGLPFASamples, (NSOpenGLPixelFormatAttribute)4, // 多重采样数
+		// NSOpenGLPFAMultisample,    // 多重采样
+		// NSOpenGLPFASampleBuffers, (NSOpenGLPixelFormatAttribute)1, //多重采样buffer
+		// NSOpenGLPFASamples, (NSOpenGLPixelFormatAttribute)4, // 多重采样数
 		NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core, // OpenGL4.1
-		//NSOpenGLPFAAllRenderers, NSOpenGLPFAOffScreen, NSOpenGLPFAAllowOfflineRenderers, 0
+		//NSOpenGLPFAAllRenderers,NSOpenGLPFAOffScreen,NSOpenGLPFAAllowOfflineRenderers, 0
 		0
 	};
 	auto format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];

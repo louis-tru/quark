@@ -168,7 +168,7 @@ namespace qk {
 
 		// Block this main thread until calling Application::run()
 		while (!_shared || !_shared->_keep) {
-			__run_main_wait->wait();
+			__run_main_wait->wait_for();
 		}
 	}
 
@@ -236,7 +236,7 @@ namespace qk {
 					Qk_DEBUG("AppInl::onUnload()");
 					Qk_Trigger(Unload);
 				}
-				thread_abort(_loop->thread_id());
+				thread_abort(_loop->thread_id()); // abort Signal
 				Release(_keep); // stop loop
 				_keep = nullptr;
 			}

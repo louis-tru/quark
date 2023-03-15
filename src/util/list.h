@@ -49,7 +49,7 @@ namespace qk {
 			Node* next() const { return _next; }
 			T&       data() { return *reinterpret_cast<Data*>((&_next) + 1); }
 			const T& data() const { return *reinterpret_cast<const Data*>((&_next) + 1); }
-			private:
+		private:
 			friend class List;
 			Node *_prev, *_next;
 		};
