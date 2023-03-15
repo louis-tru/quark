@@ -258,8 +258,8 @@ namespace qk {
 		__threads = new Dict<ThreadID, Thread_INL*>();
 		__threads_mutex = new Mutex();
 		__on_process_safe_exit = new EventNoticer<Event<>, Mutex>(nullptr);
-		//Qk_DEBUG("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
-		//Qk_DEBUG("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
+		Qk_DEBUG("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
+		Qk_DEBUG("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
 		atexit([](){ thread_try_abort_all(0); });
 		int err = pthread_key_create(&__specific_key, thread_destructor);
 		Qk_ASSERT(err == 0);

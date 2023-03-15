@@ -87,9 +87,55 @@ namespace qk {
 		ReturnValue return_value;
 	};
 
+	class Qk_EXPORT EventNoticerBasic {
+		Qk_HIDDEN_ALL_COPY(EventNoticerBasic);
+	public:
+		typedef void (Object::*ListenerFunc)(Object& evt);
+		typedef void (*StaticListenerFunc)(Object& evt, void* data);
+		typedef std::function<void(Object&)> OnLambdaListenerFunc;
+
+		class Qk_EXPORT Listener {
+		public:
+			Listener(uint32_t hash, bool once);
+			virtual ~Listener();
+			inline uint32_t hash_code() const { return _hash; }
+			inline bool once() const { return _once; }
+			virtual void call(Object& evt) = 0;
+			virtual bool match(ListenerFunc l, void* ctx);
+			virtual bool match(StaticListenerFunc l, void* ctx);
+		protected:
+			uint32_t  _hash;
+			bool      _once;
+		};
+		// make listener
+		static Listener* MakeListener(ListenerFunc l, void* ctx, bool once);
+		static Listener* MakeStaticListener(StaticListenerFunc l, Object* ctx, bool once);
+		static Listener* MakeLambdaListener(OnLambdaListenerFunc& l, uint32_t hash, bool once);
+		static Listener* MakeShellListener(void *host_sender, EventNoticerBasic* shell, bool once);
+
+		EventNoticerBasic(void *sender);
+		virtual ~EventNoticerBasic();
+		int count() const;
+		void off_listener(ListenerFunc l, void* ctx);
+		void off_listener(ListenerFunc l);
+		void off_static(StaticListenerFunc l, void* ctx);
+		void off_static(StaticListenerFunc l);
+		void off_for_ctx(void *ctx);
+		void off_shell(EventNoticerBasic* shell);
+		void off(uint32_t hash);
+		void off(); // off all
+		void trigger_event(Object& event);
+		void add_listener(Listener *l);
+	protected:
+		virtual void lock(); // thread safe lock
+		virtual void unlock();
+		void off2(bool destroy);
+		void            *_sender;
+		List<Listener*> * volatile _listener;
+	};
+
 	template<class Event, class Lock>
-	class EventNoticer: public Lock {
-		Qk_HIDDEN_ALL_COPY(EventNoticer);
+	class EventNoticer: public EventNoticerBasic, public Lock {
 	public:
 		typedef Event EventType;
 		typedef typename Event::SendData        SendData;
@@ -97,267 +143,102 @@ namespace qk {
 		typedef typename Event::Sender          Sender;
 		typedef typename Event::Origin          Origin;
 		typedef typename Event::ReturnValue     ReturnValue;
-		typedef std::function<void(Event&)>     ListenerFunc;
-
-		class Listener {
-		public:
-			inline Listener(EventNoticer* noticer, bool once)
-				: _noticer(noticer), _once(once) {}
-			virtual ~Listener() {}
-			virtual void call(Event& evt) = 0;
-			inline EventNoticer* host() { return _noticer; }
-			inline bool once() { return _once; }
-		protected:
-			EventNoticer* _noticer;
-			bool          _once;
-		};
-
-		// On
-		template<class Scope> class OnListener: public Listener {
-		public:
-			typedef void (Scope::*ListenerFunc)(Event& evt);
-			inline OnListener(EventNoticer* noticer, ListenerFunc listener, Scope* scope, bool once)
-				: Listener(noticer,once), _listener(listener), _scope(scope) {}
-			virtual void call(Event& evt) { (_scope->*_listener)(evt); }
-			inline bool equals(ListenerFunc listener) { return _listener == listener; }
-			inline bool equals(Scope* scope) { return _scope == scope; }
-		protected:
-			ListenerFunc _listener;
-			Scope       *_scope;
-		};
-
-		// STATIC
-		template<class Data> class OnStaticListener: public Listener {
-		public:
-			typedef void (*ListenerFunc)(Event& evt, Data* data);
-			inline OnStaticListener(EventNoticer* noticer, ListenerFunc listener, Data* data, bool once)
-				: Listener(noticer,once), _listener(listener), _data(data) {}
-			virtual void call(Event& evt) { _listener(evt, _data); }
-			inline bool equals(ListenerFunc listener) { return _listener == listener; }
-			inline bool equals(Data* data) { return _data == data; }
-		protected:
-			ListenerFunc _listener;
-			Data*        _data;
-		};
-		
-		// Function
-		class OnLambdaFunctionListener: public Listener {
-		public:
-			inline OnLambdaFunctionListener(EventNoticer* noticer, ListenerFunc&& listener, int id, bool once)
-				: Listener(noticer,once), _listener(std::move(listener)), _id(id) {}
-			virtual void call(Event& evt) { _listener(evt); }
-			inline bool equals(int id) { return id == _id; }
-		protected:
-			ListenerFunc _listener;
-			int          _id;
-		};
-
-		// SHELL
-		class OnShellListener: public Listener {
-		public:
-			inline OnShellListener(EventNoticer* noticer, EventNoticer* shell, bool once)
-				: Listener(noticer,once), _shell(shell) {}
-			virtual void call(Event& evt) {
-				this->_shell->trigger(evt);
-				this->_noticer->set_event(evt);
-			}
-			inline bool equals(EventNoticer* shell) { return _shell == shell; }
-		protected:
-			EventNoticer* _shell;
-		};
 		
 		EventNoticer(Sender *sender = nullptr)
-			: _sender(sender), _listener(nullptr) {}
+			: EventNoticerBasic(sender) {}
 
-		~EventNoticer() {
-			off2(true);
+		inline Sender* sender() const { return static_cast<Sender*>(_sender); }
+
+		template<class Ctx>
+		void on(void (Ctx::*listener)(Event&), Ctx* ctx) {
+			add_listener(MakeListener((ListenerFunc)listener, ctx, 0));
 		}
 
-		inline Sender* sender() const { return _sender; }
-
-		inline int count() const {
-			return _listener ? (int)_listener->length() : 0;
+		template<class Ctx>
+		void once(void (Ctx::*listener)(Event&), Ctx* ctx) {
+			add_listener(MakeListener((ListenerFunc)listener, ctx, 1));
 		}
 
-		template<class Scope>
-		void on(void (Scope::*listener)(Event&), Scope* scope) {
-			add_listener(new OnListener<Scope>(this, listener, scope, 0));
+		template <class Ctx>
+		void on( void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
+			add_listener(MakeStaticListener((StaticListenerFunc)listener, ctx, 0));
 		}
 
-		template<class Scope>
-		void once(void (Scope::*listener)(Event&), Scope* scope) {
-			add_listener(new OnListener<Scope>(this, listener, scope, 1));
+		template <class Ctx>
+		void once( void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
+			add_listener(MakeStaticListener((StaticListenerFunc)listener, ctx, 1));
 		}
 
-		template <class Data>
-		void on( void (*listener)(Event&, Data*), Data* data = nullptr) {
-			add_listener(new OnStaticListener<Data>(this, listener, data, 0));
+		void on( std::function<void(Event&)> listener, int hash = 0) {
+			add_listener(MakeLambdaListener(*(OnLambdaListenerFunc*)(&listener), hash, 0));
 		}
 
-		template <class Data>
-		void once( void (*listener)(Event&, Data*), Data* data = nullptr) {
-			add_listener(new OnStaticListener<Data>(this, listener, data, 1));
+		void once( std::function<void(Event&)> listener, int hash = 0) {
+			add_listener(MakeLambdaListener(*(OnLambdaListenerFunc*)(&listener), hash, 1));
 		}
 
-		void on( ListenerFunc listener, int id = 0) {
-			add_listener(new OnLambdaFunctionListener(this, std::move(listener), id, 0));
+		void on(EventNoticer *shell) {
+			add_listener(MakeShellListener(_sender, shell, 0));
 		}
 
-		void once( ListenerFunc listener, int id = 0) {
-			add_listener(new OnLambdaFunctionListener(this, std::move(listener), id, 1));
+		void once(EventNoticer *shell) {
+			add_listener(MakeShellListener(_sender, shell, 1));
 		}
 
-		void on(EventNoticer* shell) {
-			add_listener(new OnShellListener(this, shell, 0));
+		template<class Ctx>
+		void off( void (Ctx::*listener)(Event&), Ctx* ctx) {
+			off_listener((ListenerFunc)listener, ctx);
 		}
 
-		void once(EventNoticer* shell) {
-			add_listener(new OnShellListener(this, shell, 1));
+		template<class Ctx>
+		void off( void (Ctx::*listener)(Event&) ) {
+			off_listener((ListenerFunc)listener);
 		}
 
-		template<class Scope>
-		void off( void (Scope::*listener)(Event&), Scope* scope) {
-			if (_listener) {
-				this->lock(); auto l = _listener;
-				typedef OnListener<Scope> OnListener2;
-				for ( auto &i : *l ) {
-					if( i &&
-							(!listener || static_cast<OnListener2*>(i)->equals(listener)) &&
-							(!scope    || static_cast<OnListener2*>(i)->equals(scope)) ) {
-						delete i; i = nullptr;
-						break;
-					}
-				}
-				this->unlock();
-			}
-		}
-
-		void off(int id) {
-			if (_listener) {
-				this->lock(); auto l = _listener;
-				for ( auto &i : *l ) {
-					if ( i && static_cast<OnLambdaFunctionListener*>(i)->equals(id) ) {
-						delete i; i = nullptr;
-					}
-				}
-				this->unlock();
-			}
-		}
-
-		template<class Scope>
-		void off( void (Scope::*listener)(Event&) ) {
-			off(listener, nullptr);
-		}
-
-		template<class Scope>
-		void off(Scope* scope) {
-			off((void (Object::*)(Event&))nullptr, scope);
+		template<class Ctx>
+		void off(Ctx* ctx) {
+			off_for_ctx(ctx);
 		}
 		
-		template<class Data>
-		void off( void (*listener)(Event&, Data*) ) {
-			off(listener, nullptr);
+		template<class Ctx>
+		void off( void (*listener)(Event&, Ctx*) ) {
+			off_static((StaticListenerFunc)listener);
 		}
 
-		template<class Data>
-		void off( void (*listener)(Event&, Data*), Data* data) {
-			/*if (_listener) {
-				typedef OnStaticListener<Data> OnListener2;
-				for ( auto &i : *_listener ) {
-					if ( i &&
-							static_cast<OnListener2*>(i)->equals(listener) &&
-							static_cast<OnListener2*>(i)->equals(data) ) {
-						delete i; i = nullptr;
-						break;
-					}
-				}
-			}*/
-			off((void (Data::*)(Event&))listener, data);
+		template<class Ctx>
+		void off( void (*listener)(Event&, Ctx*), Ctx* ctx) {
+			off_static((StaticListenerFunc)listener, ctx);
 		}
 		
 		void off(EventNoticer* shell) {
-			/*if (_listener) {
-				for ( auto &i : *_listener ) {
-					if ( i && static_cast<OnShellListener*>(i)->equals(shell) )
-					{ //
-						delete i; i = nullptr;
-						break;
-					}
-				}
-			}*/
-			off((void (Object::*)(Event&))shell, nullptr);
-		}
-
-		void off() {
-			off2(false);
+			off_shell(shell);
 		}
 
 		void trigger() {
 			if (_listener) {
 				Event evt;
-				trigger(evt);
+				trigger_event(evt);
 			}
 		}
 
 		void trigger(cSendData& data) {
 			if (_listener) {
 				Event evt(data);
-				trigger(evt);
+				trigger_event(evt);
 			}
 		}
-
-		void trigger(Event& evt) {
-			if (_listener) {
-				this->lock(); auto /*register c++17*/ l = _listener;
-				if (l->length()) {
-					set_event(evt);
-					for (auto i = l->begin(); i != l->end(); ) {
-						auto j = i++;
-						auto listener = *j;
-						if ( listener ) {
-							listener->call(evt);
-							if (listener->once())
-								l->erase(j);
-						} else {
-							l->erase(j);
-						}
-					}
-				}
-				this->unlock();
-			}
+		
+		void trigger(Event& event) {
+			trigger_event(event);
 		}
-
-	private:
-		inline void set_event(Event& evt) {
-			struct Ev: public Object { void *_sender; };
-			reinterpret_cast<Ev*>(&evt)->_sender = _sender;
+		
+	protected:
+		virtual void lock() override {
+			Lock::lock();
 		}
-
-		void off2(bool destroy) {
-			if (_listener) {
-				this->lock(); auto l = _listener;
-				for ( auto &i : *l ) {
-					delete i; i = nullptr;
-				}
-				if (destroy) {
-					Release(l); _listener = nullptr;
-				}
-				this->unlock();
-			}
+		virtual void unlock() override {
+			Lock::unlock();
 		}
-
-		inline void add_listener(Listener *l) {
-			this->lock();
-			if (!_listener)
-				_listener = new List<Listener*>;
-			_listener->push_back(l);
-			this->unlock();
-		}
-
-		Sender          *_sender;
-		List<Listener*> * volatile _listener;
-
-		friend class  OnShellListener;
 	};
 
 	/**
@@ -374,7 +255,7 @@ namespace qk {
 		typedef Event               EventType;
 		typedef Name                NameType;
 		typedef EventNoticer<Event> Noticer;
-		typedef typename Noticer::ListenerFunc ListenerFunc;
+		typedef EventNoticerBasic   _B;
 
 		template<typename... Args>
 		inline Notification(Args... args)
@@ -400,9 +281,8 @@ namespace qk {
 		}
 
 		bool has_noticer(const Name& name) const {
-			if ( _noticers != nullptr ) {
+			if ( _noticers != nullptr )
 				return _noticers->find(name) != _noticers->end();
-			}
 			return false;
 		}
 		
@@ -421,72 +301,55 @@ namespace qk {
 		*/
 		virtual void trigger_listener_change(const Name& name, int count, int change) {}
 		
-		template<class Scope>
+		inline void add_event_listener(const Name& name, _B::Listener *l) {
+			auto del = get_noticer_no_null(name);
+			del->add_listener(l);
+			trigger_listener_change(name, del->count(), 1);
+		}
+
+		template<class Ctx>
 		inline void add_event_listener(const Name& name,
-									void (Scope::*listener)(Event&),
-									Scope* scope) {
-			auto del = get_noticer_no_null(name);
-			del->on(listener, scope);
-			trigger_listener_change(name, del->count(), 1);
+									void (Ctx::*listener)(Event&), Ctx* ctx) {
+			add_event_listener(name, _B::MakeListener((_B::ListenerFunc)listener, ctx, 0));
 		}
 		
-		template<class Scope>
+		template<class Ctx>
 		inline void add_event_listener_once(const Name& name,
-										void (Scope::*listener)(Event&),
-										Scope* scope) {
-			auto del = get_noticer_no_null(name);
-			del->once(listener, scope);
-			trigger_listener_change(name, del->count(), 1);
+										void (Ctx::*listener)(Event&), Ctx* ctx) {
+			add_event_listener(name, _B::MakeListener((_B::ListenerFunc)listener, ctx, 1));
 		}
 		
-		template<class Data>
+		template<class Ctx>
 		inline void add_event_listener(const Name& name,
-									void (*listener)(Event&, Data*),
-									Data* data = nullptr) {
-			auto del = get_noticer_no_null(name);
-			del->once(listener, data);
-			trigger_listener_change(name, del->count(), 1);
+									void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
+			add_event_listener(name, _B::MakeListener((_B::StaticListenerFunc)listener, ctx, 0));
 		}
 		
-		template<class Data>
+		template<class Ctx>
 		inline void add_event_listener_once(const Name& name,
-										void (*listener)(Event&, Data*),
-										Data* data = nullptr) {
-			auto del = get_noticer_no_null(name);
-			del->once(listener, data);
-			trigger_listener_change(name, del->count(), 1);
+										void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
+			add_event_listener(name, _B::MakeListener((_B::StaticListenerFunc)listener, ctx, 1));
 		}
 		
-		inline void add_event_listener( const Name& name, ListenerFunc listener, int id = 0) {
-			auto del = get_noticer_no_null(name);
-			del->on(listener, id);
-			trigger_listener_change(name, del->count(), 1);
+		inline void add_event_listener( const Name& name, std::function<void(Event&)> listener, uint32_t hash = 0) {
+			add_event_listener(name, _B::MakeLambdaListener(*(_B::OnLambdaListenerFunc*)(&listener), hash, 0));
 		}
 		
-		inline void add_event_listener_once( const Name& name, ListenerFunc listener, int id = 0) {
-			auto del = get_noticer_no_null(name);
-			del->once(listener, id);
-			trigger_listener_change(name, del->count(), 1);
+		inline void add_event_listener_once( const Name& name, std::function<void(Event&)> listener, uint32_t hash = 0) {
+			add_event_listener(name, _B::MakeLambdaListener(*(_B::OnLambdaListenerFunc*)(&listener), hash, 1));
 		}
 		
 		inline void add_event_listener(const Name& name, Noticer* shell) {
-			auto del = get_noticer_no_null(name);
-			del->on(shell);
-			trigger_listener_change(name, del->count(), 1);
+			add_event_listener(name, _B::MakeShellListener(this, shell, 0));
 		}
-		
-		/**
-		* 添加一个侦听器,只侦听一次,后被卸载
-		*/
+
 		inline void add_event_listener_once(const Name& name, Noticer* shell) {
-			auto del = get_noticer_no_null(name);
-			del->once(shell);
-			trigger_listener_change(name, del->count(), 1);
+			add_event_listener(name, _B::MakeShellListener(this, shell, 1));
 		}
 		
-		template<class Scope>
+		template<class Ctx>
 		inline void remove_event_listener(const Name& name,
-										void (Scope::*listener)(Event&)
+										void (Ctx::*listener)(Event&)
 										) {
 			auto del = get_noticer(name);
 			if (del) {
@@ -495,19 +358,19 @@ namespace qk {
 			}
 		}
 		
-		template<class Scope>
+		template<class Ctx>
 		inline void remove_event_listener(const Name& name,
-										void (Scope::*listener)(Event&), Scope* scope) {
+										void (Ctx::*listener)(Event&), Ctx* ctx) {
 			auto del = get_noticer(name);
 			if (del) {
-				del->off(listener, scope);
+				del->off(listener, ctx);
 				trigger_listener_change(name, del->count(), -1);
 			}
 		}
 		
-		template<class Data>
+		template<class Ctx>
 		inline void remove_event_listener(const Name& name,
-											void (*listener)(Event&, Data*)
+											void (*listener)(Event&, Ctx*)
 										) {
 			auto del = get_noticer(name);
 			if (del) {
@@ -516,50 +379,22 @@ namespace qk {
 			}
 		}
 		
-		template<class Data>
+		template<class Ctx>
 		inline void remove_event_listener(const Name& name,
-										void (*listener)(Event&, Data*),
-										Data* data) {
+										void (*listener)(Event&, Ctx*),
+										Ctx* ctx) {
 			auto del = get_noticer(name);
 			if (del) {
-				del->off(listener, data);
+				del->off(listener, ctx);
 				trigger_listener_change(name, del->count(), -1);
 			}
 		}
 		
-		/**
-		* @func off
-		*/
-		inline void remove_event_listener(const Name& name, int id) {
+		inline void remove_event_listener(const Name& name, uint32_t hash) {
 			auto del = get_noticer(name);
 			if (del) {
-				del->off(id);
+				del->off(hash);
 				trigger_listener_change(name, del->count(), -1);
-			}
-		}
-		
-		/**
-		* @func off
-		*/
-		inline void remove_event_listener(int id) {
-			if (_noticers) {
-				for ( auto& i : *_noticers ) {
-					i.value.off(id);
-					trigger_listener_change(i.key, i.value.count(), -1);
-				}
-			}
-		}
-		
-		/**
-		* 卸载这个范围里的所有侦听器
-		*/
-		template<class Scope> 
-		inline void remove_event_listener(Scope* scope) {
-			if (_noticers) {
-				for ( auto& i : *_noticers ) {
-					i.value.off(scope);
-					trigger_listener_change(i.ket, i.value.count(), -1);
-				}
 			}
 		}
 		
@@ -568,6 +403,25 @@ namespace qk {
 			if (del) {
 				del->off(shell);
 				trigger_listener_change(name, del->count(), -1);
+			}
+		}
+		
+		template<class Ctx>
+		inline void remove_event_listener(Ctx* ctx) {
+			if (_noticers) {
+				for ( auto& i : *_noticers ) {
+					i.value.off(ctx);
+					trigger_listener_change(i.ket, i.value.count(), -1);
+				}
+			}
+		}
+
+		inline void remove_event_listener(uint32_t hash) {
+			if (_noticers) {
+				for ( auto& i : *_noticers ) {
+					i.value.off(hash);
+					trigger_listener_change(i.key, i.value.count(), -1);
+				}
 			}
 		}
 		

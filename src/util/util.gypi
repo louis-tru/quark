@@ -41,6 +41,7 @@
 			'codec.h',
 			'error.h',
 			'event.h',
+			'event.cc',
 			'handle.h',
 			'hash.h',
 			'json.h',
