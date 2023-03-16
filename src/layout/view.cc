@@ -864,7 +864,7 @@ namespace qk {
 	/**
 		* @overwrite
 		*/
-	void View::trigger_listener_change(const NameType& name, int count, int change) {
+	void View::trigger_listener_change(uint32_t name, int count, int change) {
 		if ( change > 0 ) {
 			_receive = true; // bind event auto open option
 		}

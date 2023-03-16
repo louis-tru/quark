@@ -62,8 +62,8 @@ namespace qk {
 
 	struct Thread {
 		ThreadID id;
-		int      abort; // abort signal
 		String   tag;
+		int      abort; // abort signal
 	};
 
 	struct Wait {

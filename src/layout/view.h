@@ -191,7 +191,7 @@ namespace qk {
 		/**
 		 * @overwrite
 		 */
-		virtual void trigger_listener_change(const NameType& name, int count, int change) override;
+		virtual void trigger_listener_change(uint32_t name, int count, int change) override;
 
 		/**
 		 * @func has_child(child)

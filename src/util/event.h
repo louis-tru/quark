@@ -96,21 +96,21 @@ namespace qk {
 
 		class Qk_EXPORT Listener {
 		public:
-			Listener(uint32_t hash, bool once);
+			Listener(uint32_t id, bool once);
 			virtual ~Listener();
-			inline uint32_t hash_code() const { return _hash; }
+			inline uint32_t id() const { return _id; }
 			inline bool once() const { return _once; }
 			virtual void call(Object& evt) = 0;
 			virtual bool match(ListenerFunc l, void* ctx);
 			virtual bool match(StaticListenerFunc l, void* ctx);
 		protected:
-			uint32_t  _hash;
+			uint32_t  _id;
 			bool      _once;
 		};
 		// make listener
 		static Listener* MakeListener(ListenerFunc l, void* ctx, bool once);
 		static Listener* MakeStaticListener(StaticListenerFunc l, Object* ctx, bool once);
-		static Listener* MakeLambdaListener(OnLambdaListenerFunc& l, uint32_t hash, bool once);
+		static Listener* MakeLambdaListener(OnLambdaListenerFunc& l, uint32_t id, bool once);
 		static Listener* MakeShellListener(void *host_sender, EventNoticerBasic* shell, bool once);
 
 		EventNoticerBasic(void *sender);
@@ -122,7 +122,7 @@ namespace qk {
 		void off_static(StaticListenerFunc l);
 		void off_for_ctx(void *ctx);
 		void off_shell(EventNoticerBasic* shell);
-		void off(uint32_t hash);
+		void off(uint32_t id);
 		void off(); // off all
 		void trigger_event(Object& event);
 		void add_listener(Listener *l);
@@ -132,6 +132,41 @@ namespace qk {
 		void off2(bool destroy);
 		void            *_sender;
 		List<Listener*> * volatile _listener;
+	};
+
+	class Qk_EXPORT NotificationBasic {
+	public:
+		typedef EventNoticerBasic Basic;
+		NotificationBasic();
+		virtual ~NotificationBasic();
+		Basic* get_noticer(uint32_t name, bool no_null = 0);
+		bool has_noticer(uint32_t name) const;
+		bool is_noticer_none() const;
+		/**
+		 * Listener changes will be notified to this function, such as adding and deleting event listeners
+		 * @arg name {const Type&} hash code for name
+		*/
+		virtual void trigger_listener_change(uint32_t name, int count, int change);
+		// get notification message sender
+		virtual void* event_noticer_sender();
+		//!< add event listener
+		void add_event_listener(uint32_t name, Basic::Listener *l);
+		//!< remove event listener
+		void remove_event_listener(uint32_t name, void (Object::*listener)(Object&));
+		void remove_event_listener(uint32_t name, void (Object::*listener)(Object&), void *ctx);
+		void remove_event_listener_static(uint32_t name, void (*listener)(Object&, void*));
+		void remove_event_listener_static(uint32_t name, void (*listener)(Object&, void*), void* ctx);
+		void remove_event_listener_for_id(uint32_t name, uint32_t id);
+		void remove_event_listener_shell(uint32_t name, Basic *shell);
+		void remove_event_listener_for_ctx(void* ctx);
+		void remove_event_listener_for_id(uint32_t id);
+	protected:
+		// Uninstall all listening functions on the specified event name
+		void remove_event_listener_for_name(uint32_t name);
+		// Uninstall all listening functions
+		void remove_event_listener();
+
+		Dict<uint32_t, Basic*>* _noticers;
 	};
 
 	template<class Event, class Lock>
@@ -169,12 +204,12 @@ namespace qk {
 			add_listener(MakeStaticListener((StaticListenerFunc)listener, ctx, 1));
 		}
 
-		void on( std::function<void(Event&)> listener, int hash = 0) {
-			add_listener(MakeLambdaListener(*(OnLambdaListenerFunc*)(&listener), hash, 0));
+		void on( std::function<void(Event&)> listener, uint32_t id = 0) {
+			add_listener(MakeLambdaListener(*(OnLambdaListenerFunc*)(&listener), id, 0));
 		}
 
-		void once( std::function<void(Event&)> listener, int hash = 0) {
-			add_listener(MakeLambdaListener(*(OnLambdaListenerFunc*)(&listener), hash, 1));
+		void once( std::function<void(Event&)> listener, uint32_t id = 0) {
+			add_listener(MakeLambdaListener(*(OnLambdaListenerFunc*)(&listener), id, 1));
 		}
 
 		void on(EventNoticer *shell) {
@@ -241,260 +276,130 @@ namespace qk {
 		}
 	};
 
-	/**
-	* @class Notification
-	*/
-	template<
-		class Event = Event<>,
-		class Name  = String,
-		class Basic = Object
-	>
-	class Notification: public Basic {
+	template<class Event = Event<>, class Name  = String, class Base = Object>
+	class Notification: public Base, public NotificationBasic {
 		Qk_HIDDEN_ALL_COPY(Notification);
 	public:
 		typedef Event               EventType;
 		typedef Name                NameType;
 		typedef EventNoticer<Event> Noticer;
-		typedef EventNoticerBasic   _B;
 
 		template<typename... Args>
-		inline Notification(Args... args)
-			: Basic(args...), _noticers(nullptr) {
+		Notification(Args... args): Base(args...) {}
+
+		virtual void* event_noticer_sender() override {
+			return this;
 		}
 
-		virtual ~Notification() {
-			if ( _noticers ) {
-				for (auto& i: *_noticers)
-					delete i.value;
-				Release(_noticers); _noticers = nullptr;
-			}
-		}
-
-		Noticer* get_noticer(const Name& name) const {
-			if ( _noticers != nullptr ) {
-				auto it = _noticers->find(name);
-				if (it != _noticers->end()) {
-					return it->value;
-				}
-			}
-			return nullptr;
+		Noticer* get_noticer(const Name& name) {
+			return static_cast<Noticer*>(NotificationBasic::get_noticer(name.hash_code(), 0));
 		}
 
 		bool has_noticer(const Name& name) const {
-			if ( _noticers != nullptr )
-				return _noticers->find(name) != _noticers->end();
-			return false;
+			return NotificationBasic::has_noticer(name.hash_code());
 		}
 		
-		/**
-		* 是否没有任何事件
-		* @ret {bool}
-		*/
-		inline bool is_noticer_none() const {
-			return _noticers == nullptr || _noticers->size() == 0;
-		}
-		
-		/**
-		* 侦听器变化会通知到该函数,比如添加删除事件侦听器
-		* @arg name {const Type&}
-		* @arg count {int}
-		*/
-		virtual void trigger_listener_change(const Name& name, int count, int change) {}
-		
-		inline void add_event_listener(const Name& name, _B::Listener *l) {
-			auto del = get_noticer_no_null(name);
-			del->add_listener(l);
-			trigger_listener_change(name, del->count(), 1);
+		void add_event_listener(const Name& name, Basic::Listener *l) {
+			NotificationBasic::add_event_listener(name.hash_code(), l);
 		}
 
 		template<class Ctx>
-		inline void add_event_listener(const Name& name,
-									void (Ctx::*listener)(Event&), Ctx* ctx) {
-			add_event_listener(name, _B::MakeListener((_B::ListenerFunc)listener, ctx, 0));
-		}
-		
-		template<class Ctx>
-		inline void add_event_listener_once(const Name& name,
-										void (Ctx::*listener)(Event&), Ctx* ctx) {
-			add_event_listener(name, _B::MakeListener((_B::ListenerFunc)listener, ctx, 1));
-		}
-		
-		template<class Ctx>
-		inline void add_event_listener(const Name& name,
-									void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
-			add_event_listener(name, _B::MakeListener((_B::StaticListenerFunc)listener, ctx, 0));
-		}
-		
-		template<class Ctx>
-		inline void add_event_listener_once(const Name& name,
-										void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
-			add_event_listener(name, _B::MakeListener((_B::StaticListenerFunc)listener, ctx, 1));
-		}
-		
-		inline void add_event_listener( const Name& name, std::function<void(Event&)> listener, uint32_t hash = 0) {
-			add_event_listener(name, _B::MakeLambdaListener(*(_B::OnLambdaListenerFunc*)(&listener), hash, 0));
-		}
-		
-		inline void add_event_listener_once( const Name& name, std::function<void(Event&)> listener, uint32_t hash = 0) {
-			add_event_listener(name, _B::MakeLambdaListener(*(_B::OnLambdaListenerFunc*)(&listener), hash, 1));
-		}
-		
-		inline void add_event_listener(const Name& name, Noticer* shell) {
-			add_event_listener(name, _B::MakeShellListener(this, shell, 0));
+		void add_event_listener(const Name& name, void (Ctx::*listener)(Event&), Ctx* ctx) {
+			add_event_listener(name, Basic::MakeListener((Basic::ListenerFunc)listener, ctx, 0));
 		}
 
-		inline void add_event_listener_once(const Name& name, Noticer* shell) {
-			add_event_listener(name, _B::MakeShellListener(this, shell, 1));
+		template<class Ctx>
+		void add_event_listener_once(const Name& name, void (Ctx::*listener)(Event&), Ctx* ctx) {
+			add_event_listener(name, Basic::MakeListener((Basic::ListenerFunc)listener, ctx, 1));
 		}
 		
 		template<class Ctx>
-		inline void remove_event_listener(const Name& name,
-										void (Ctx::*listener)(Event&)
-										) {
-			auto del = get_noticer(name);
-			if (del) {
-				del->off(listener);
-				trigger_listener_change(name, del->count(), -1);
-			}
+		void add_event_listener(const Name& name, void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
+			add_event_listener(name, Basic::MakeStaticListener((Basic::StaticListenerFunc)listener, ctx, 0));
 		}
 		
 		template<class Ctx>
-		inline void remove_event_listener(const Name& name,
-										void (Ctx::*listener)(Event&), Ctx* ctx) {
-			auto del = get_noticer(name);
-			if (del) {
-				del->off(listener, ctx);
-				trigger_listener_change(name, del->count(), -1);
-			}
+		void add_event_listener_once(const Name& name, void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
+			add_event_listener(name, Basic::MakeStaticListener((Basic::StaticListenerFunc)listener, ctx, 1));
 		}
 		
-		template<class Ctx>
-		inline void remove_event_listener(const Name& name,
-											void (*listener)(Event&, Ctx*)
-										) {
-			auto del = get_noticer(name);
-			if (del) {
-				del->off(listener);
-				trigger_listener_change(name, del->count(), -1);
-			}
+		void add_event_listener( const Name& name, std::function<void(Event&)> listener, uint32_t id = 0) {
+			add_event_listener(name, Basic::MakeLambdaListener(*(Basic::OnLambdaListenerFunc*)(&listener), id, 0));
 		}
 		
-		template<class Ctx>
-		inline void remove_event_listener(const Name& name,
-										void (*listener)(Event&, Ctx*),
-										Ctx* ctx) {
-			auto del = get_noticer(name);
-			if (del) {
-				del->off(listener, ctx);
-				trigger_listener_change(name, del->count(), -1);
-			}
+		void add_event_listener_once( const Name& name, std::function<void(Event&)> listener, uint32_t id = 0) {
+			add_event_listener(name, Basic::MakeLambdaListener(*(Basic::OnLambdaListenerFunc*)(&listener), id, 1));
 		}
 		
-		inline void remove_event_listener(const Name& name, uint32_t hash) {
-			auto del = get_noticer(name);
-			if (del) {
-				del->off(hash);
-				trigger_listener_change(name, del->count(), -1);
-			}
-		}
-		
-		inline void remove_event_listener(const Name& name, Noticer* shell) {
-			auto del = get_noticer(name);
-			if (del) {
-				del->off(shell);
-				trigger_listener_change(name, del->count(), -1);
-			}
-		}
-		
-		template<class Ctx>
-		inline void remove_event_listener(Ctx* ctx) {
-			if (_noticers) {
-				for ( auto& i : *_noticers ) {
-					i.value.off(ctx);
-					trigger_listener_change(i.ket, i.value.count(), -1);
-				}
-			}
+		void add_event_listener(const Name& name, Noticer* shell) {
+			add_event_listener(name, Basic::MakeShellListener(this, shell, 0));
 		}
 
-		inline void remove_event_listener(uint32_t hash) {
-			if (_noticers) {
-				for ( auto& i : *_noticers ) {
-					i.value.off(hash);
-					trigger_listener_change(i.key, i.value.count(), -1);
-				}
-			}
+		void add_event_listener_once(const Name& name, Noticer* shell) {
+			add_event_listener(name, Basic::MakeShellListener(this, shell, 1));
+		}
+		
+		template<class Ctx>
+		void remove_event_listener(const Name& name, void (Ctx::*listener)(Event&)) {
+			remove_event_listener(name.hash_code(), (Basic::ListenerFunc)listener);
+		}
+		
+		template<class Ctx>
+		inline void remove_event_listener(const Name& name, void (Ctx::*listener)(Event&), Ctx* ctx) {
+			remove_event_listener(name.hash_code(), (Basic::ListenerFunc)listener, ctx);
+		}
+
+		template<class Ctx>
+		inline void remove_event_listener(const Name& name, void (*listener)(Event&, Ctx*)) {
+			remove_event_listener_static(name.hash_code(), (Basic::StaticListenerFunc)listener);
+		}
+		
+		template<class Ctx>
+		inline void remove_event_listener(const Name& name, void (*listener)(Event&, Ctx*), Ctx* ctx) {
+			remove_event_listener_static(name.hash_code(), (Basic::StaticListenerFunc)listener, ctx);
+		}
+		
+		void remove_event_listener(const Name& name, uint32_t id) {
+			remove_event_listener_for_id(name.hash_code(), id);
+		}
+		
+		void remove_event_listener(const Name& name, Noticer* shell) {
+			remove_event_listener_shell(name.hash_code(), shell);
+		}
+		
+		template<class Ctx>
+		void remove_event_listener(Ctx* ctx) {
+			remove_event_listener_for_ctx(ctx);
+		}
+
+		void remove_event_listener(uint32_t id) {
+			remove_event_listener_for_id(id);
 		}
 		
 	protected:
-		/**
-		* 卸载指定事件名称上的全部侦听函数
-		*/
-		inline void remove_event_listener(const Name& name) {
+
+		// Uninstall all listening functions on the specified event name
+		void remove_event_listener(const Name& name) {
+			remove_event_listener_for_name(name.hash_code());
+		}
+
+		void trigger(const Name& name) {
 			auto del = get_noticer(name);
-			if (del) {
-				del->off();
-				trigger_listener_change(name, del->count(), -1);
-			}
+			if (del)
+				del->trigger();
 		}
 
-		/**
-		* 卸载全部侦听函数
-		*/
-		inline void remove_event_listener() {
-			if (_noticers) {
-				for ( auto i : *_noticers ) {
-					i.value.off();
-					trigger_listener_change(i.key, i.value.count(), -1);
-				}
-			}
-		}
-
-		/**
-		* 触发事件
-		* @arg name {const Key&}
-		* NOTE: 这个方法能创建默认事件数据
-		*/
-		inline void trigger(const Name& name) {
+		void trigger(const Name& name, typename Noticer::cSendData& data) {
 			auto del = get_noticer(name);
-			if (del) del->trigger();
+			if (del)
+				del->trigger(data);
 		}
 
-		/*
-		* 触发事件
-		* @arg name {const Key&}
-		* @arg evt {cSendData&}
-		*/
-		inline void trigger(const Name& name, typename Noticer::cSendData& data) {
+		void trigger(const Name& name, Event& evt) {
 			auto del = get_noticer(name);
-			if (del) del->trigger(data);
+			if (del)
+				del->trigger(evt);
 		}
-
-		/*
-		* 触发事件
-		* @arg name {const Key&}
-		* @arg evt {Event&}
-		*/
-		inline void trigger(const Name& name, Event& evt) {
-			auto del = get_noticer(name);
-			if (del) del->trigger(evt);
-		}
-
-	private:
-		typedef Dict<Name, Noticer*> Noticers;
-
-		Noticer* get_noticer_no_null(const Name& name) {
-			if (_noticers == nullptr) {
-				_noticers = new Noticers();
-			}
-			auto it = _noticers->find(name);
-			if (it != _noticers->end()) {
-				return it->value;
-			} else {
-				return _noticers->set(name, new Noticer(static_cast<typename Noticer::Sender*>(this)));
-			}
-		}
-
-		Noticers* _noticers;
 	};
 
 }
