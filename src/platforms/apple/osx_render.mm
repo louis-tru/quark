@@ -64,8 +64,6 @@ class AppleGLRender;
 									displayTime:(const CVTimeStamp *)timeStamp {
 		// CGLLockContext(context.CGLContextObj);
 		// CGLUnlockContext(context.CGLContextObj);
-		//glClearColor(1, 1, 0, 1);
-		//glClear(GL_COLOR_BUFFER_BIT);
 		self.host->display()->render();
 	}
 @end
@@ -104,8 +102,13 @@ public:
 		GLRender::onRenderbufferStorage(target);
 	}
 
-	void onSwapBuffers() override {
-		[_ctx flushBuffer];
+	void begin() override {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _aa_tex, 0);
+	}
+
+	void presentRenderbuffer() override {
+		//glFlushRenderAPPLE();
+		//[_ctx flushBuffer];
 	}
 
 	UIView* make_surface_view(CGRect rect) override {
@@ -116,7 +119,7 @@ public:
 			[_ctx makeCurrentContext];
 			Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 2");
 		}));
-		
+
 		_view = [[GLView alloc] initWithFrame:rect];
 		// Enable retina-support
 		_view.wantsBestResolutionOpenGLSurface = YES;
@@ -125,6 +128,10 @@ public:
 		_layer = (GLLayer*)_view.layer;
 		_layer.ctx = _ctx;
 		_layer.host = _host;
+		// _layer.shouldRasterize = YES;
+		_ctx.view = _view;
+		//[_ctx setFullScreen];
+
 		return _view;
 	}
 
@@ -142,7 +149,7 @@ QkAppleRender* makeAppleGLRender(Application* host, bool independentThread) {
 	NSOpenGLPixelFormatAttribute attrs[] = {
 		NSOpenGLPFANoRecovery, // 禁用所有故障恢复系统
 		NSOpenGLPFAAccelerated, // 选择硬件加速渲染器
-		NSOpenGLPFAColorSize, 24, // 颜色缓冲位数
+		// NSOpenGLPFAColorSize, 24, // 颜色缓冲位数
 		// NSOpenGLPFADoubleBuffer,   // 双缓冲
 		// NSOpenGLPFADepthSize, 24,  // 深度缓冲位深
 		// NSOpenGLPFAStencilSize, 8, // 模板缓冲位深
@@ -150,7 +157,9 @@ QkAppleRender* makeAppleGLRender(Application* host, bool independentThread) {
 		// NSOpenGLPFASampleBuffers, (NSOpenGLPixelFormatAttribute)1, //多重采样buffer
 		// NSOpenGLPFASamples, (NSOpenGLPixelFormatAttribute)4, // 多重采样数
 		NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core, // OpenGL4.1
-		//NSOpenGLPFAAllRenderers,NSOpenGLPFAOffScreen,NSOpenGLPFAAllowOfflineRenderers, 0
+		//NSOpenGLPFAAllRenderers, // 从所有可用的渲染器中选择
+		//NSOpenGLPFAOffScreen,
+		//NSOpenGLPFAAllowOfflineRenderers, // 允许离屏渲染
 		0
 	};
 	auto format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];

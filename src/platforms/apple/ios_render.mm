@@ -63,11 +63,12 @@ public:
 		}
 	}
 
-	void onSwapBuffers() override {
+	void presentRenderbuffer() override {
+		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 		// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 		// you present its contents by making it the current renderbuffer
 		// and calling the presentRenderbuffer: method on your rendering context.
-		[_ctx presentRenderbuffer:GL_FRAMEBUFFER];
+		[_ctx presentRenderbuffer:GL_RENDERBUFFER];
 	}
 
 	UIView* make_surface_view(CGRect rect) override {
@@ -86,6 +87,7 @@ public:
 			kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8
 		};
 		_layer.opaque = YES;
+		//_layer.presentsWithTransaction = YES; // sync or async draw
 		//_layer.contentsGravity = kCAGravityTopLeft;
 
 		return _view;

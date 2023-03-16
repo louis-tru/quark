@@ -44,13 +44,13 @@ namespace qk {
 		virtual void begin() override;
 		virtual void submit() override;
 		virtual void onRenderbufferStorage(GLuint target);
-		virtual void onSwapBuffers() = 0;
+		virtual void presentRenderbuffer() = 0;
 		virtual GLuint setTexture(cPixel *src, GLuint id) override;
 		virtual void deleteTextures(const GLuint *IDs, GLuint count) override;
 	protected:
 		GLRender(Application* host, bool independentThread);
-		GLuint _render_buffer, _frame_buffer;
-		GLuint _msaa_render_buffer, _msaa_frame_buffer;
+		GLuint _frame_buffer,_render_buffer,_stencil_buffer,_aa_tex;
+		GLuint _msaa_frame_buffer,_msaa_render_buffer;
 		bool _is_support_multisampled, _raster;
 	};
 

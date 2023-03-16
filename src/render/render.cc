@@ -32,6 +32,7 @@
 #include "./render.h"
 #include "../app.h"
 #include <math.h>
+#include "./gl/gl_render.h"
 
 namespace qk {
 
@@ -118,6 +119,8 @@ namespace qk {
 
 	void Render::visitRoot(Root* root) {
 		// TODO ...
+		glClearColor(1, 1, 0, 1);
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
 	void Render::visitFloatLayout(FloatLayout* flow) {

@@ -44,8 +44,8 @@ namespace qk {
 		virtual int  getSaveCount() const override;
 		virtual void restoreToCount(int saveCount) override;
 		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) override;
-		virtual void clipRect(const Rect& rect, ClipOp op) override;
-		virtual void clipPath(const Path& path, ClipOp op) override;
+		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
+		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
 		virtual void drawPaint(const Paint& paint) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
 		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,

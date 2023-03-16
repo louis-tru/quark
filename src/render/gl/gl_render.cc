@@ -60,16 +60,15 @@ namespace qk {
 			int idx = version.index_of(s);
 			if (idx != -1) {
 				int num = version.substr(idx + 10, 1).to_number<int>();
-				if (num > 2) {
+				if (num > 2)
 					ok = true;
-				} else {
+				else
 					ok = extensions.index_of( "multisample" ) != -1;
-				}
 				if (ok)
 					break;
 			}
 		}
-		
+
 		if (version.index_of("Metal ") != -1)
 			ok = true;
 		
@@ -85,10 +84,12 @@ namespace qk {
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(1, &_frame_buffer);
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-		glGenRenderbuffers(1, &_render_buffer);
+		glGenRenderbuffers(2, &_render_buffer); // _render_buffer, _stencil_buffer
 		// Create multisample buffers
 		glGenFramebuffers(1, &_msaa_frame_buffer);
 		glGenRenderbuffers(1, &_msaa_render_buffer);
+		// create anti alias texture
+		glGenTextures(1, &_aa_tex);
 
 		glEnable(GL_BLEND);
 		setBlendMode(kSrcOver_BlendMode);
@@ -116,16 +117,17 @@ namespace qk {
 	}
 
 	GLRender::~GLRender() {
-		glDeleteRenderbuffers(1, &_render_buffer);
 		glDeleteFramebuffers(1, &_frame_buffer);
+		glDeleteRenderbuffers(2, &_render_buffer); // _render_buffer, _stencil_buffer
 		glDeleteFramebuffers(1, &_msaa_render_buffer);
 		glDeleteRenderbuffers(1, &_msaa_frame_buffer);
+		glDeleteTextures(1, &_aa_tex);
 	}
 
 	void GLRender::onRenderbufferStorage(GLuint target) {
 		auto region = _host->display()->surface_region();
 		int w = region.size.x(), h = region.size.y();
-		::glRenderbufferStorage(target, glPixelInternalFormat(_opts.colorType), w, h);
+		glRenderbufferStorage(target, glPixelInternalFormat(_opts.colorType), w, h);
 	}
 
 	void GLRender::reload() {
@@ -143,11 +145,29 @@ namespace qk {
 
 		glViewport(0, 0, width, height);
 
+		// uint32_t glPixelInternalFormat(_opts.colorType)
+		
+		//const GLenum attachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+		//glDrawBuffers(2, attachments);
+
 		// --------------------- Init render and frame buffers ---------------------
 		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
 		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 		onRenderbufferStorage(GL_RENDERBUFFER); // create main buffer storage
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, _stencil_buffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencil_buffer);
+		// anti alias texture
+		//glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, _aa_tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _aa_tex, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		do {
 			int MSAA = _opts.msaaSampleCnt;
@@ -192,7 +212,6 @@ namespace qk {
 	}
 
 	void GLRender::begin() {
-		// noop
 	}
 
 	void GLRender::submit() {
@@ -207,16 +226,14 @@ namespace qk {
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
 #endif
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			// glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
-			onSwapBuffers();
+			presentRenderbuffer();
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
-			// glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer);
 		} else {
 #if !Qk_OSX
 			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
 #endif
-			onSwapBuffers();
+			presentRenderbuffer();
 		}
 	}
 

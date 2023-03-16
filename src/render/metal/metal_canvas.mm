@@ -56,11 +56,11 @@ namespace qk {
 		// TODO ...
 	}
 
-	void MetalCanvas::clipRect(const Rect& rect, ClipOp op) {
+	void MetalCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
 		// TODO ...
 	}
 
-	void MetalCanvas::clipPath(const Path& path, ClipOp op) {
+	void MetalCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
 		// TODO ...
 	}
 
