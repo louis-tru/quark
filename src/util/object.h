@@ -96,8 +96,8 @@ namespace qk {
 		virtual bool retain();
 		virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
 		virtual ArrayString<char, MemoryAllocator> to_string() const;
-		static void* operator new(std::size_t size);
-		static void* operator new(std::size_t size, void* p);
+		static void* operator new(size_t size);
+		static void* operator new(size_t size, void* p);
 		static void  operator delete(void* p);
 		static void set_object_allocator(
 			void* (*alloc)(size_t size) = nullptr,

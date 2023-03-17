@@ -54,7 +54,7 @@ namespace qk {
 	/**
 		* The basic elements of UI tree
 		*
-		* @class View
+	 * @class View
 		*/
 	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
 		Qk_HIDDEN_ALL_COPY(View);
@@ -77,7 +77,7 @@ namespace qk {
 		/**
 		 * Prepend subview to parent
 		 *
-		 * @func prepend_to(parent)
+		 * @method prepend_to(parent)
 		 */
 		template<class T = View> inline T* prepend_to(View* parent) {
 			parent->prepend(this); return static_cast<T*>(this);
@@ -86,7 +86,7 @@ namespace qk {
 		/**
 		 * Append subview to parent
 		 *
-		 * @func append_to(parent)
+		 * @method append_to(parent)
 		 */
 		template<class T = View> inline T* append_to(View* parent) {
 			parent->append(this); return static_cast<T*>(this);
@@ -96,7 +96,7 @@ namespace qk {
 			*
 			* Add a sibling view to the front
 			*
-			* @func before(view)
+			* @method before(view)
 			*/
 		void before(View* view);
 
@@ -104,7 +104,7 @@ namespace qk {
 			*
 			* Add a sibling view to the back
 			*
-			* @func after(view)
+			* @method after(view)
 			*/
 		void after(View* view);
 
@@ -112,7 +112,7 @@ namespace qk {
 			* 
 			* Append subview to front
 			* 
-			* @func prepend(child)
+			* @method prepend(child)
 			*/
 		void prepend(View* child);
 
@@ -120,7 +120,7 @@ namespace qk {
 			*
 			* Append subview to end
 			*
-			* @func append(child)
+			* @method append(child)
 			*/
 		void append(View* child);
 
@@ -128,64 +128,64 @@ namespace qk {
 		 * 
 		 * Returns is can allow append child view
 		 * 
-		 * @func is_allow_append_child()
+		 * @method is_allow_append_child()
 		*/
 		virtual bool is_allow_append_child();
 
 		/**
-			*
-			* Remove and destroy self
-			* 
-			* @func remove()
-			*/
+		 *
+		 * Remove and destroy self
+		 *
+		 * @method remove()
+		 */
 		virtual void remove();
 
 		/**
-			*
-			* remove all subview
-			*
-			* @func remove_all_child()
-			*/
+		 *
+		 * remove all subview
+		 *
+		 * @method remove_all_child()
+		 */
 		virtual void remove_all_child();
 
 		/**
-			* 
-			* Setting the visibility properties the view object
-			*
-			* @func set_visible(val)
-			*/
+		 *
+		 * Setting the visibility properties the view object
+		 *
+		 * @method set_visible(val)
+		 */
 		virtual void set_visible(bool val);
 
 		/**
-			* 
-			* focus keyboard
-			*
-			* @func focus()
-			*/
+		 *
+		 * focus keyboard
+		 *
+		 * @method focus()
+		 */
 		bool focus();
 		
 		/**
-			*
-			* Unfocus keyboard
-			*
-			* @func blur()
-			*/
+		 *
+		 * Unfocus keyboard
+		 *
+		 * @method blur()
+		 */
 		bool blur();
 
 		/**
-			*
-			* Can it be the focus
-			* 
-			* @func can_become_focus()
-			*/
+		 *
+		 * Can it be the focus
+		 *
+		 * @method can_become_focus()
+		 */
 		virtual bool can_become_focus();
 
 		/**
-			*
-			* is clip render the view
-			* 
-			* @func clip()
-			*/
+		 *
+		 * is clip render the view
+		 *
+		 * @method clip()
+		 */
 		virtual bool clip();
 
 		/**
@@ -194,34 +194,34 @@ namespace qk {
 		virtual void trigger_listener_change(uint32_t name, int count, int change) override;
 
 		/**
-		 * @func has_child(child)
+		 * @method has_child(child)
 		 */
 		bool has_child(View* child);
 
 		/**
-			* 
-			* Returns layout transformation matrix of the object view
-			* 
-			* Mat(layout_offset + transform_origin? + translate + parent->layout_offset_inside, scale, rotate, skew)
-			* 
-			* @func layout_matrix()
-			*/
+		 *
+		 * Returns layout transformation matrix of the object view
+		 *
+		 * Mat(layout_offset + transform_origin? + translate + parent->layout_offset_inside, scale, rotate, skew)
+		 *
+		 * @method layout_matrix()
+		 */
 		virtual Mat layout_matrix();
 
 		/**
-			* 
-			* Returns final transformation matrix of the view layout
-			*
-			* parent.matrix * layout_matrix
-			* 
-			* @func matrix()
-			*/
+		 *
+		 * Returns final transformation matrix of the view layout
+		 *
+		 * parent.matrix * layout_matrix
+		 *
+		 * @method matrix()
+		 */
 		inline const Mat& matrix() const {
 			return _matrix;
 		}
 
 		/**
-		 * @func solve_marks(mark)
+		 * @method solve_marks(mark)
 		*/
 		virtual void solve_marks(uint32_t mark);
 
@@ -229,22 +229,24 @@ namespace qk {
 		 * 
 		 * returns view position in the screen
 		 * 
-		 * @func screen_position()
+		 * @method screen_position()
 		*/
 		virtual Vec2 position();
 
 		/**
-			* @func solve_visible_region()
+			* @method solve_visible_region()
 			*/
 		virtual bool solve_visible_region();
 
 		/**
-		* @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
+		 * Overlap test, test whether the point on the screen overlaps with the view
+		 * @method overlap_test
 		*/
 		virtual bool overlap_test(Vec2 point);
 		
 		/**
-		 * @func accept() 定义访问接收器
+		 * define access receiver
+		 * @method accept()
 		 */
 		virtual void accept(ViewVisitor *visitor);
 
@@ -252,7 +254,7 @@ namespace qk {
 		 * 
 		 * Returns text input object
 		 * 
-		 * @func as_text_input()
+		 * @method as_text_input()
 		*/
 		virtual TextInput* as_text_input();
 
@@ -260,22 +262,22 @@ namespace qk {
 		 * 
 		 * Returns button object
 		 * 
-		 * @func as_buttn()
+		 * @method as_buttn()
 		*/
 		virtual Button* as_button();
 
 		/**
-		* @func overlap_test_from_convex_quadrilateral
+		* @method overlap_test_from_convex_quadrilateral
 		*/
 		static bool overlap_test_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4], Vec2 point);
 		
 		/**
-		* @func screen_rect_from_convex_quadrilateral
+		 * @method screen_rect_from_convex_quadrilateral
 		*/
 		static Rect screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
 		
 		/**
-		* @func screen_region_from_convex_quadrilateral
+		 * @method screen_region_from_convex_quadrilateral
 		*/
 		static Region screen_region_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
 
@@ -290,8 +292,8 @@ namespace qk {
 
 	protected:
 		/**
-			* @func set_parent(parent) setting parent view
-			*/
+		 * @method set_parent(parent) setting parent view
+		 */
 		virtual void set_parent(View* parent);
 
 		struct Transform {

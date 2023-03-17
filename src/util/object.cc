@@ -146,7 +146,7 @@ namespace qk {
 		object_allocator_release(this);
 	}
 
-	void* Object::operator new(std::size_t size) {
+	void* Object::operator new(size_t size) {
 #if Qk_MEMORY_TRACE_MARK
 			void* p = object_allocator_alloc(size);
 			((Object*)p)->mark_index_ = 123456;
@@ -156,8 +156,7 @@ namespace qk {
 #endif
 	}
 
-	void* Object::operator new(std::size_t size, void* p) {
-		// std::size_t s;
+	void* Object::operator new(size_t size, void* p) {
 		return p;
 	}
 

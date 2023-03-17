@@ -44,7 +44,7 @@ namespace qk {
 	class API_AVAILABLE(ios(13.0)) MetalRender: public Render {
 	public:
 		virtual ~MetalRender();
-		virtual void reload() override;
+		virtual void reload(Vec2 size, Mat4& root) override;
 		virtual void begin() override;
 		virtual void submit() override;
 		virtual void activate(bool isActive) override;

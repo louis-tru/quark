@@ -63,8 +63,8 @@ class AppleGLRender;
 								 forLayerTime:(CFTimeInterval)timeInterval
 									displayTime:(const CVTimeStamp *)timeStamp {
 		// CGLLockContext(context.CGLContextObj);
-		// CGLUnlockContext(context.CGLContextObj);
 		self.host->display()->render();
+		// CGLUnlockContext(context.CGLContextObj);
 	}
 @end
 
@@ -98,23 +98,14 @@ public:
 		[NSOpenGLContext clearCurrentContext];
 	}
 
-	void onRenderbufferStorage(uint32_t target) override {
-		GLRender::onRenderbufferStorage(target);
+	void renderbufferStorage(GLuint target) {
 	}
 
 	void begin() override {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _aa_tex, 0);
 	}
 
-	void presentRenderbuffer() override {
-		//glFlushRenderAPPLE();
-		//[_ctx flushBuffer];
-	}
-
 	UIView* make_surface_view(CGRect rect) override {
-		[_ctx makeCurrentContext];
-		Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 1");
-
 		post_message(Cb([this](Cb::Data& e) { // set current context from render loop
 			[_ctx makeCurrentContext];
 			Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 2");
@@ -130,7 +121,7 @@ public:
 		_layer.host = _host;
 		// _layer.shouldRasterize = YES;
 		_ctx.view = _view;
-		//[_ctx setFullScreen];
+		[_ctx setFullScreen];
 
 		return _view;
 	}
@@ -147,19 +138,19 @@ private:
 
 QkAppleRender* makeAppleGLRender(Application* host, bool independentThread) {
 	NSOpenGLPixelFormatAttribute attrs[] = {
-		NSOpenGLPFANoRecovery, // 禁用所有故障恢复系统
-		NSOpenGLPFAAccelerated, // 选择硬件加速渲染器
-		// NSOpenGLPFAColorSize, 24, // 颜色缓冲位数
-		// NSOpenGLPFADoubleBuffer,   // 双缓冲
-		// NSOpenGLPFADepthSize, 24,  // 深度缓冲位深
-		// NSOpenGLPFAStencilSize, 8, // 模板缓冲位深
-		// NSOpenGLPFAMultisample,    // 多重采样
-		// NSOpenGLPFASampleBuffers, (NSOpenGLPixelFormatAttribute)1, //多重采样buffer
-		// NSOpenGLPFASamples, (NSOpenGLPixelFormatAttribute)4, // 多重采样数
+		NSOpenGLPFANoRecovery, // Disable all failover systems
+		NSOpenGLPFAAccelerated, // Choose a hardware accelerated renderer
+		NSOpenGLPFADoubleBuffer, // use double buffering
+		//NSOpenGLPFAColorSize, 24,  // color buffer bits
+		//NSOpenGLPFADepthSize, 24,  // Depth Buffer Bit Depth
+		//NSOpenGLPFAStencilSize, 8, // Stencil buffer bit depth
+		//NSOpenGLPFAMultisample,    // use multisampling
+		//NSOpenGLPFASampleBuffers, (NSOpenGLPixelFormatAttribute)1, // Number of multisampled buffers to use
+		//NSOpenGLPFASamples, (NSOpenGLPixelFormatAttribute)4, // number of multisamples
+		//NSOpenGLPFAAllRenderers, // Choose from all available renderers
+		//NSOpenGLPFAOffScreen, //
+		//NSOpenGLPFAAllowOfflineRenderers, // Allow off-screen rendering
 		NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core, // OpenGL4.1
-		//NSOpenGLPFAAllRenderers, // 从所有可用的渲染器中选择
-		//NSOpenGLPFAOffScreen,
-		//NSOpenGLPFAAllowOfflineRenderers, // 允许离屏渲染
 		0
 	};
 	auto format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];

@@ -84,7 +84,7 @@ namespace qk {
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(1, &_frame_buffer);
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-		glGenRenderbuffers(2, &_render_buffer); // _render_buffer, _stencil_buffer
+		glGenRenderbuffers(3, &_render_buffer); // _render_buffer,_stencil_buffer,_depth_buffer
 		// Create multisample buffers
 		glGenFramebuffers(1, &_msaa_frame_buffer);
 		glGenRenderbuffers(1, &_msaa_render_buffer);
@@ -114,51 +114,84 @@ namespace qk {
 			// new raster canvas
 		}
 		_canvas = this;
+		
+		if (!_is_support_multisampled || _raster) {
+			_opts.msaaSampleCnt = 0;
+		}
 	}
 
 	GLRender::~GLRender() {
 		glDeleteFramebuffers(1, &_frame_buffer);
-		glDeleteRenderbuffers(2, &_render_buffer); // _render_buffer, _stencil_buffer
+		glDeleteRenderbuffers(3, &_render_buffer); // _render_buffer, _stencil_buffer,_depth_buffer
 		glDeleteFramebuffers(1, &_msaa_render_buffer);
 		glDeleteRenderbuffers(1, &_msaa_frame_buffer);
 		glDeleteTextures(1, &_aa_tex);
 	}
 
-	void GLRender::onRenderbufferStorage(GLuint target) {
-		auto region = _host->display()->surface_region();
-		int w = region.size.x(), h = region.size.y();
-		glRenderbufferStorage(target, glPixelInternalFormat(_opts.colorType), w, h);
+	Object* GLRender::asObject() {
+		return this;
 	}
 
-	void GLRender::reload() {
-		if (!_is_support_multisampled || _raster) {
-			_opts.msaaSampleCnt = 0;
-		}
-
-		auto region = _host->display()->surface_region();
-
-		int width = region.size.x();
-		int height = region.size.y();
+	void GLRender::reload(Vec2 size, Mat4& root) {
+		int width = size.x();
+		int height = size.y();
 
 		Qk_ASSERT(width, "Invalid viewport size width");
 		Qk_ASSERT(height, "Invalid viewport size height");
 
 		glViewport(0, 0, width, height);
 
-		// uint32_t glPixelInternalFormat(_opts.colorType)
-		
-		//const GLenum attachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-		//glDrawBuffers(2, attachments);
+		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer); // bind frame buffer
+		setRenderBuffer(width, height);
 
-		// --------------------- Init render and frame buffers ---------------------
-		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+		if (_opts.msaaSampleCnt > 1) {
+			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
+
+			do { // enable multisampling
+				setMSAABuffer(width, height, _opts.msaaSampleCnt);
+				// Test the framebuffer for completeness.
+				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
+					if ( _opts.msaaSampleCnt > 1 )
+						_IsDeviceMsaa = true;
+					break;
+				}
+				_opts.msaaSampleCnt >>= 1;
+			} while (_opts.msaaSampleCnt > 1);
+		}
+	
+		setStencilBuffer(width, height);
+
+		if (_opts.msaaSampleCnt <= 1) {
+			setAntiAlias(width, height);
+		}
+
+		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
+			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+		}
+
+		setRootMatrix(root);
+	}
+
+	void GLRender::setRenderBuffer(int width, int height) {
 		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
-		onRenderbufferStorage(GL_RENDERBUFFER); // create main buffer storage
+		glRenderbufferStorage(GL_RENDERBUFFER, glPixelInternalFormat(_opts.colorType), width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
+	}
+
+	void GLRender::setStencilBuffer(int width, int height) { // set clip stencil buffer
 		glBindRenderbuffer(GL_RENDERBUFFER, _stencil_buffer);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencil_buffer);
-		// anti alias texture
+	}
+
+	void GLRender::setMSAABuffer(int width, int height, int sample) {
+		glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render buffer
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, sample, glPixelInternalFormat(_opts.colorType), width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaa_render_buffer);
+	}
+
+	void GLRender::setAntiAlias(int width, int height) {
+		// set anti alias texture buffer
 		//glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, _aa_tex);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
@@ -166,48 +199,29 @@ namespace qk {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _aa_tex, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _aa_tex, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		// set depth buffer
+		glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depth_buffer);
+	}
 
-		do {
-			int MSAA = _opts.msaaSampleCnt;
-			if ( MSAA > 1 ) { // 启用多重采样
-				glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
-				glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render buffer
-				glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAA, glPixelInternalFormat(_opts.colorType), width, height);
-				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaa_render_buffer);
-			}
-			// Test the framebuffer for completeness.
-			if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
-				if ( MSAA > 1 )
-					_IsDeviceAntiAlias = true;
-				break;
-			} else if ( MSAA > 1 ) {
-				_opts.msaaSampleCnt >>= 1;
-			} else {
-				Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
-			}
-		} while(1);
-
+	void GLRender::setRootMatrix(Mat4& root) {
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
+		int width, height;
+#if DEBUG
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
-
-		// ---------------------------------------------------------------
+#endif
 
 		// update all shader root matrix
-		auto scale = _host->display()->scale();
-		Vec2 start = Vec2(-region.origin.x() / scale, -region.origin.y() / scale);
-		Vec2 end   = Vec2(region.size.x() / scale + start.x(), region.size.y() / scale + start.y());
-		auto matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
-		// root_matrix.transpose();
-
 		for (auto shader: _shaders) {
 			glUseProgram(shader->shader());
-			glUniformMatrix4fv( shader->root_matrix(), 1, GL_TRUE, matrix.val );
+			glUniformMatrix4fv( shader->root_matrix(), 1, GL_TRUE, root.val );
 		}
 	}
 
@@ -236,6 +250,8 @@ namespace qk {
 			presentRenderbuffer();
 		}
 	}
+
+	void GLRender::presentRenderbuffer() {}
 
 	GLuint GLRender::setTexture(cPixel *src, GLuint id) {
 		return GLCanvas::setTexture(src, id, true);

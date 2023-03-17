@@ -31,7 +31,6 @@
 #import "./apple_app.h"
 #import "../../display.h"
 #import "../../render/gl/gl_render.h"
-#import "../../render/metal/metal_render.h"
 
 using namespace qk;
 
@@ -57,10 +56,10 @@ public:
 		[EAGLContext setCurrentContext:nullptr];
 	}
 
-	void onRenderbufferStorage(uint32_t target) override {
-		if (! [_ctx renderbufferStorage:target fromDrawable:_layer] ) {
-			Qk_FATAL();
-		}
+	void setRenderBuffer(int width, int height) override {
+		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
+		[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 	}
 
 	void presentRenderbuffer() override {

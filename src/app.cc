@@ -107,7 +107,7 @@ namespace qk {
 		_default_text_options = new DefaultTextOptions(_font_pool);
 		// _action_direct = new ActionDirect(); Qk_DEBUG("new ActionDirect ok");
 		_render = Render::Make(this); Qk_DEBUG("Render::Make() ok");
-
+		
 		// init root
 		_root = new Root(this); Qk_DEBUG("new Root ok");
 		_root->reset();
@@ -119,6 +119,9 @@ namespace qk {
 
 	Application::~Application() {
 		UILock lock(this);
+
+		Qk_Off(Exit, &Application::handleExit, this);
+
 		_root->remove();
 		Release(_root);         _root = nullptr;
 		delete _default_text_options; _default_text_options = nullptr;
@@ -126,12 +129,10 @@ namespace qk {
 		// Release(_action_direct); _action_direct = nullptr;
 		Release(_display);     _display = nullptr;
 		Release(_pre_render);  _pre_render = nullptr;
-		Release(dynamic_cast<Object*>(_render)); _render = nullptr;
+		Release(_render->asObject()); _render = nullptr;
 		Release(_keep);        _keep = nullptr;  _loop = nullptr;
 		Release(_font_pool);   _font_pool = nullptr;
 		Release(_img_pool);    _img_pool = nullptr;
-
-		Qk_Off(Exit, &Application::handleExit, this);
 
 		_shared = nullptr;
 	}
@@ -228,6 +229,7 @@ namespace qk {
 
 	void AppInl::triggerUnload() {
 		typedef Callback<RunLoop::PostSyncData> Cb;
+		if (!_loop) return; // Block access after object is deleted
 
 		_loop->post_sync(Cb([&](Cb::Data& d) {
 			if (_keep) {

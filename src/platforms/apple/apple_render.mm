@@ -31,7 +31,6 @@
 #import "./apple_app.h"
 #import "../../display.h"
 #import "../../render/gl/gl_render.h"
-#import "../../render/metal/metal_render.h"
 
 using namespace qk;
 
@@ -59,6 +58,8 @@ uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
 
 // ------------------- Metal ------------------
 #if Qk_ENABLE_METAL
+#import "../../render/metal/metal_render.h"
+
 @interface MTView: UIView
 @end
 
@@ -108,7 +109,7 @@ Render* Render::Make(Application* host) {
 	if (!r)
 		r = makeAppleGLRender(host, independentThread);
 #endif
-	Qk_ASSERT(r);
+	Qk_ASSERT(r, "create render object fail");
 
 	return r->render();
 }

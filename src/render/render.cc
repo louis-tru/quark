@@ -36,11 +36,11 @@
 
 namespace qk {
 
-	static inline uint32_t integerExp(uint32_t n) {
+	static uint32_t integerExp(uint32_t n) {
 		return (uint32_t) powf(2, floor(log2(n)));
 	}
 
-	static inline uint32_t massSample(uint32_t n) {
+	static uint32_t massSample(uint32_t n) {
 		n = integerExp(n);
 		return Qk_MIN(n, 8);
 	}
@@ -118,9 +118,15 @@ namespace qk {
 	}
 
 	void Render::visitRoot(Root* root) {
-		// TODO ...
-		glClearColor(1, 1, 0, 1);
+		glClearColor(1, 1, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		Paint paint;
+		paint.color = Color4f(1, 0, 1, 0.5);
+
+		//_canvas->setMatrix(Mat(2,0,100,0,2,0));
+
+		_canvas->drawRect(Rect{ Vec2(0,0), Vec2(100,100) }, paint);
 	}
 
 	void Render::visitFloatLayout(FloatLayout* flow) {

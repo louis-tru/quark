@@ -57,7 +57,6 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_GET(GLuint, shader);
 		Qk_DEFINE_PROP_GET(GLuint, root_matrix);
-		Qk_DEFINE_PROP_GET(GLuint, view_matrix);
 		Qk_DEFINE_PROP_GET(GLuint, vertex_in); // glEnableVertexAttribArray
 		virtual void build() = 0;
 	protected:
@@ -65,7 +64,7 @@ namespace qk {
 		void compile(
 			cChar* name,
 			cChar* vertexShader, cChar* fragmentShader,
-			cChar* attributes, cChar* uniforms
+			cChar* attributes, cChar* uniforms, GLuint *storeLocation
 		);
 	};
 
@@ -81,6 +80,8 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(GLuint, coord);
 		Qk_DEFINE_PROP_GET(GLuint, image);
 		virtual void build() override;
+		friend class GLSLImageYUV420P;
+		friend class GLSLImageYUV420SP;
 	};
 
 	class GLSLImageYUV420P: public GLSLImage {

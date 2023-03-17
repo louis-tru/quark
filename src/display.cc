@@ -50,24 +50,23 @@ namespace qk {
 		_clip_region.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 	}
 
-	Display::~Display() {
-	}
+	Display::~Display() {}
 
 	void Display::updateState() { // Lock before calling
 		Vec2 size = surface_size();
 		float width = size.x();
 		float height = size.y();
 
-		if (_set_size.x() == 0 && _set_size.y() == 0) { // 使用系统默认的最合适的尺寸
+		if (_set_size.x() == 0 && _set_size.y() == 0) { // Use the system default most suitable size
 			_size = { width / _default_scale, height / _default_scale };
 		}
-		else if (_set_size.x() != 0) { // 锁定宽度
+		else if (_set_size.x() != 0) { // lock width
 			_size = { _set_size.x(), _set_size.x() / width * height };
 		}
-		else if (_set_size.y() != 0) { // 锁定高度
+		else if (_set_size.y() != 0) { // lock height
 			_size = { _set_size.y() / height * width, _set_size.y() };
 		}
-		else { // 使用系统默认的最合适的尺寸
+		else { // Use the system default most suitable size
 			_size = { width / _default_scale, height / _default_scale };
 		}
 
@@ -85,7 +84,13 @@ namespace qk {
 			Qk_Trigger(Change); // trigger display change
 		}));
 		_host->render()->post_message(Cb([this](Cb::Data& e) { // render loop call
-			_host->render()->reload();
+			auto region = _surface_region;
+			auto scale = _host->display()->scale();
+			Vec2 start = Vec2(-region.origin.x() / scale, -region.origin.y() / scale);
+			Vec2 end   = Vec2(region.size.x() / scale + start.x(), region.size.y() / scale + start.y());
+			auto matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
+			// root_matrix.transpose();
+			_host->render()->reload(region.size, matrix);
 		}));
 		_host->root()->onDisplayChange(); // update root, Locked security call
 	}
@@ -102,22 +107,21 @@ namespace qk {
 		}
 	}
 
-	#ifndef PRINT_RENDER_FRAME_TIME
-	# define PRINT_RENDER_FRAME_TIME 0
-	#endif
+#ifndef PRINT_RENDER_FRAME_TIME
+# define PRINT_RENDER_FRAME_TIME 0
+#endif
 
 	bool Display::pre_render() {
 		UILock lock(_host); // ui main local
 		int64_t now_time = time_monotonic();
-		// _host->action_direct()->advance(now_time); // advance action TODO ...
-		bool ok = _host->pre_render()->solve(now_time);
+		// _host->action_direct()->advance(now_time); // advance action
+		bool isUpdate = _host->pre_render()->solve(now_time);
 		solve_next_frame();
-		return ok;
+		return isUpdate;
 	}
 
 	void Display::render() { // Must be called in the render loop
 		UILock lock(_host); // ui main local
-		Root* root = _host->root();
 		int64_t now_time = time_monotonic();
 
 		if (now_time - _next_fsp_time >= 1e6) { // 1s
@@ -128,31 +132,29 @@ namespace qk {
 		}
 		_next_fsp++;
 
-		auto render = _host->render();
+		_host->render()->begin(); // ready render
+		_host->root()->accept(_host->render()); // start drawing
 
-		render->begin(); // ready render
-		root->accept(render); // 开始绘图
-
-		#if DEBUG && PRINT_RENDER_FRAME_TIME
-			int64_t st = time_micro();
-		#endif
+#if DEBUG && PRINT_RENDER_FRAME_TIME
+		int64_t st = time_micro();
+#endif
 		/*
-		* swapBuffers()非常耗时,渲染线程长时间占用`UILock`会柱塞主线程。
-		* 所以这里释放`UILock`commit()主要是绘图相关的函数调用,
-		* 如果能够确保绘图函数的调用都在渲染线程,那就不会有安全问题。
-		*/
+		 * submit() is very time-consuming, and the rendering thread occupying `UILock` for a long time will plunge the main thread.
+		 * So the release of `UILock`submit() here is mainly a function call related to drawing,
+		 * If you can ensure that the drawing function calls are all in the rendering thread, then there will be no security issues.
+		 */
 		lock.unlock(); //
 
-		render->submit(); // commit render cmd
+		_host->render()->submit(); // commit render cmd
 
-		#if DEBUG && PRINT_RENDER_FRAME_TIME
-			int64_t ts2 = (time_micro() - st) / 1e3;
-			if (ts2 > 16) {
-				Qk_LOG("ts: %ld -------------- ", ts2);
-			} else {
-				Qk_LOG("ts: %ld", ts2);
-			}
-		#endif
+#if DEBUG && PRINT_RENDER_FRAME_TIME
+		int64_t ts2 = (time_micro() - st) / 1e3;
+		if (ts2 > 16) {
+			Qk_LOG("ts: %ld -------------- ", ts2);
+		} else {
+			Qk_LOG("ts: %ld", ts2);
+		}
+#endif
 	}
 
 	void Display::push_clip_region(Region clip) {
@@ -161,15 +163,15 @@ namespace qk {
 		};
 		RegionSize dre = _clip_region.back();
 			
-		// 计算一个交集区域
+		// Compute an intersection area
 			
 		float x, x2, y, y2;
 		
-		y = dre.end.y() > re.end.y() ? re.end.y() : dre.end.y(); // 选择一个小的
-		y2 = dre.origin.y() > re.origin.y() ? dre.origin.y() : re.origin.y(); // 选择一个大的
-		x = dre.end.x() > re.end.x() ? re.end.x() : dre.end.x(); // 选择一个小的
-		x2 = dre.origin.x() > re.origin.x() ? dre.origin.x() : re.origin.x(); // 选择一个大的
-		
+		y = dre.end.y() > re.end.y() ? re.end.y() : dre.end.y(); // choose a small
+		y2 = dre.origin.y() > re.origin.y() ? dre.origin.y() : re.origin.y(); // choose a large
+		x = dre.end.x() > re.end.x() ? re.end.x() : dre.end.x(); // choose a small
+		x2 = dre.origin.x() > re.origin.x() ? dre.origin.x() : re.origin.x(); // choose a large
+
 		if ( x > x2 ) {
 			re.origin.set_x(x2);
 			re.end.set_x(x);

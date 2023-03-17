@@ -65,10 +65,11 @@ namespace qk {
 		};
 		static  Render* Make(Application* host);
 		virtual        ~Render();
-		virtual void    reload() = 0;
+		virtual void    reload(Vec2 size, Mat4& root) = 0;
 		virtual void    begin() = 0;
 		virtual void    submit() = 0;
 		virtual void    activate(bool isActive);
+		virtual Object* asObject() = 0;
 		inline  Canvas* getCanvas() { return _canvas; }
 		inline  Application* host() { return _host; }
 		// @overwrite class PostMessage

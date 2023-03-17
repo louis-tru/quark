@@ -167,10 +167,8 @@ namespace qk {
 	template <typename T> struct MColor: public MVec<T, 4> {
 		inline MColor(){}
 		inline MColor(T r, T g, T b, T a) {
-			this->val[0] = b;
-			this->val[1] = g;
-			this->val[2] = r;
-			this->val[3] = a;
+			this->val[0] = r; this->val[1] = g;
+			this->val[2] = b; this->val[3] = a;
 		}
 		inline T b() const { return this->val[0]; }
 		inline T g() const { return this->val[1]; }
@@ -182,44 +180,33 @@ namespace qk {
 		inline void a(T value) { this->val[3] = value; }
 	};
 
-	/**
-	* @class Color4f
-	*/
 	struct Qk_EXPORT Color4f: public MColor<float> {
-		inline Color4f(): MColor<float>(0, 0, 0, 1) {}
-		inline Color4f(float r, float g, float b): MColor<float>(r, g, b, 1) { }
-		inline Color4f(float r, float g, float b, float a): MColor<float>(r, g, b, a) { }
+		Color4f(): MColor<float>(0, 0, 0, 1) {}
+		Color4f(float r, float g, float b)
+			: MColor<float>(r, g, b, 1) {}
+		Color4f(float r, float g, float b, float a)
+			: MColor<float>(r, g, b, a) {}
 		bool operator==(const Color4f& color) const;
-		inline bool operator!=(const Color4f& color) const { return ! operator==(color); }
+		bool operator!=(const Color4f& color) const;
 	};
 
-	/**
-	* @class Color
-	*/
 	struct Qk_EXPORT Color: public MColor<uint8_t> {
-		Color(uint32_t argb);
-		inline Color(): MColor<uint8_t>(0, 0, 0, 255) {}
-		inline Color(uint8_t r, uint8_t g, uint8_t b): MColor<uint8_t>(r, g, b, 255) {}
-		inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): MColor<uint8_t>(r, g, b, a) {}
+		static Color from(uint32_t color); //! ignore endianness, small end data as a,b,g,r
+		static Color from_abgr(uint32_t abgr); //! high => low as a,b,g,r
+		static Color from_rgba(uint32_t rgba); //! high => low as r,g,b,a
+		Color(): MColor<uint8_t>(0, 0, 0, 255) {}
+		Color(uint8_t r, uint8_t g, uint8_t b)
+			: MColor<uint8_t>(r, g, b, 255) {}
+		Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+			: MColor<uint8_t>(r, g, b, a) {}
 		bool operator==(Color color) const;
-		inline bool operator!=(Color color) const { return ! operator==(color); }
-		inline Color4f to_color4f() const {
-			return Color4f(r() * (1 / 255.0f), g() * (1 / 255.0f), b() * (1 / 255.0f), a() * (1 / 255.0f));
-		}
-		inline uint32_t to_uint32_argb() const { // small end data
-			return *reinterpret_cast<const uint32_t*>(this->val);
-		}
-		inline uint32_t to_uint32_xrgb() const {
-			return to_uint32_argb() | 0xff000000;
-		}
-		inline static Color from(uint32_t colorArgb) {
-			return *((Color*)&colorArgb); // small end data
-		}
+		bool operator!=(Color color) const;
+		Color4f  to_color4f() const;
+		uint32_t to_uint32() const; //! ignore endianness, small end data as a,b,g,r
+		uint32_t to_uint32_abgr() const; //! high => low as a,b,g,r
+		uint32_t to_uint32_rgba() const; //! high => low as r,g,b,a
 	};
 
-	/**
-	* @class Mat
-	*/
 	struct Qk_EXPORT Mat: public MVec<float, 6> {
 		inline Mat(): Mat(1) {}
 		Mat(float value);
@@ -297,15 +284,12 @@ namespace qk {
 		Vec2 operator*(const Vec2& b) const;
 		
 		/**
-		* @func multiplication 矩阵乘法
+		* @func mul 矩阵乘法
 		*/
-		void multiplication(const Mat& b, Mat& output) const;
+		void mul(const Mat& b, Mat& output) const;
 		
 	};
 
-	/**
-	* @class Mat4
-	*/
 	struct Qk_EXPORT Mat4: public MVec<float, 16> {
 		inline Mat4(): Mat4(1) {}
 		Mat4(float value);
@@ -418,7 +402,7 @@ namespace qk {
 		/**
 		* 矩阵乘法
 		*/
-		void multiplication(const Mat4& b, Mat4& output) const;
+		void mul(const Mat4& b, Mat4& output) const;
 		
 		/**
 		* @func transpose 转置矩阵

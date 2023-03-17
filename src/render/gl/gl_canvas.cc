@@ -96,7 +96,7 @@ namespace qk {
 
 	GLCanvas::GLCanvas()
 		: _blendMode(kClear_BlendMode)
-		, _IsDeviceAntiAlias(false)
+		, _IsDeviceMsaa(false)
 		, _texTmp{0,0,0}
 		, _linear(Paint::kLinear_GradientType)
 		, _radial(Paint::kRadial_GradientType)
@@ -104,7 +104,7 @@ namespace qk {
 	{
 		glGenBuffers(1, &_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, NULL, GL_DYNAMIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 32, NULL, GL_DYNAMIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _ubo);
 
 		for (auto shader: _shaders) {
@@ -122,8 +122,10 @@ namespace qk {
 		glUseProgram(_yuv420sp.shader());
 		glUniform1i(_yuv420sp.image(), 0);
 		glUniform1i(_yuv420sp.image_uv(), 1);
-
+		
 		glUseProgram(0);
+		
+		setMatrix(Mat()); // init matrix
 	}
 
 	void GLCanvas::setMatrix(const Mat& mat) {
@@ -133,7 +135,6 @@ namespace qk {
 			0.0,    0.0,    1.0, 0.0,
 			mat[2], mat[5], 0.0, 1.0
 		};
-		//glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, mat4);
 	}
 
@@ -176,7 +177,7 @@ namespace qk {
 
 	void GLCanvas::drawPath(const Path& path, const Paint& paint) {
 
-		bool antiAlias = paint.antiAlias && !_IsDeviceAntiAlias; // Anti-aliasing using software
+		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 
 		Array<Vec2> polygons;
 
@@ -213,6 +214,17 @@ namespace qk {
 		glUniform4fv(_color.color(), 1, paint.color.val);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
 		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
+
+//		float triangles_[] = {
+//			0,0,
+//			1,0,
+//			0,1,
+//			0,1,
+//			1,1,
+//			1,0,
+//		};
+		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles_);
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	void GLCanvas::drawGradient(const Array<Vec2>& triangles, const Paint& paint) {

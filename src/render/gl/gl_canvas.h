@@ -62,8 +62,8 @@ namespace qk {
 		void setBlendMode(BlendMode blendMode);
 		// props
 		BlendMode _blendMode;
-		bool      _IsDeviceAntiAlias; // device anti alias, msaa
-		GLuint    _ubo, _texTmp[3];
+		bool      _IsDeviceMsaa; // device anti alias, msaa
+		GLuint    _ubo, _texTmp[3]; // ubo => view matrix
 		GLSLColor _color;
 		GLSLImage _image;
 		GLSLImageYUV420P _yuv420p;

@@ -40,19 +40,23 @@ namespace qk {
 	class GLRender: public GLCanvas, public Render {
 	public:
 		virtual ~GLRender();
-		virtual void reload() override;
+		virtual Object* asObject() override;
+		virtual void reload(Vec2 size, Mat4& root) override;
 		virtual void begin() override;
 		virtual void submit() override;
-		virtual void onRenderbufferStorage(GLuint target);
-		virtual void presentRenderbuffer() = 0;
+		virtual void presentRenderbuffer();
 		virtual GLuint setTexture(cPixel *src, GLuint id) override;
 		virtual void deleteTextures(const GLuint *IDs, GLuint count) override;
 	protected:
 		GLRender(Application* host, bool independentThread);
-		GLuint _frame_buffer,_render_buffer,_stencil_buffer,_aa_tex;
+		virtual void setRenderBuffer(int width, int height);
+		virtual void setStencilBuffer(int width, int height);
+		virtual void setMSAABuffer(int width, int height, int sample);
+		virtual void setAntiAlias(int width, int height);
+		void setRootMatrix(Mat4& root);
+		GLuint _frame_buffer,_render_buffer,_stencil_buffer,_depth_buffer,_aa_tex;
 		GLuint _msaa_frame_buffer,_msaa_render_buffer;
 		bool _is_support_multisampled, _raster;
 	};
-
 }
 #endif

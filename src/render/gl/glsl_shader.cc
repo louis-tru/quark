@@ -55,24 +55,17 @@ namespace qk {
 
 	static const String vertexHeader(String::format("\n\
 		#version %s\n\
+		#define matrix root_matrix * view_matrix\n\
 		uniform mat4  root_matrix;\n\
-		/*uniform float view_matrix[6];*/\n\
 		layout (std140) uniform ubo {\n\
 			mat4  view_matrix;\n\
 		};\n\
-		#define matrix root_matrix * view_matrix\n\
 		in      vec2  vertex_in;\n\
-		/*mat4 v_matrix() {\n\
-			return mat4(view_matrix[0], view_matrix[3], 0.0, 0.0,\n\
-									view_matrix[1], view_matrix[4], 0.0, 0.0,\n\
-									0.0,            0.0,            1.0, 0.0,\n\
-									view_matrix[2], view_matrix[5], 0.0, 1.0);\n\
-		}*/\n\
 	", Qk_GL_Version));
 
 	static const String fragmentHeader(String::format("\n\
 		#version %s\n\
-		out lowp vec4 color_o;\n\
+		layout(location=0) out lowp vec4 color_o;\n\
 	", Qk_GL_Version));
 
 	GLSLShader::GLSLShader(): _shader(0) {
@@ -80,7 +73,7 @@ namespace qk {
 
 	void GLSLShader::compile(
 		cChar* name, cChar* vertexShader, cChar* fragmentShader,
-		cChar* _attrs, cChar* _uniforms)
+		cChar* _attrs, cChar* _uniforms, GLuint *storeLocation)
 	{
 		Qk_ASSERT(!_shader);
 		GLuint vertex_handle =
@@ -91,17 +84,20 @@ namespace qk {
 		glAttachShader(program, vertex_handle);
 		glAttachShader(program, fragment_handle);
 
-		auto attrs = String(_attrs).split(',');
-		auto uniforms = String(_uniforms).split(',');
+		GLint status; // query status
 
-		glBindAttribLocation(program, _vertex_in = 0, "vertex_in");
+		auto attrs = String(_attrs).split(",");
+		auto uniforms = String(_uniforms).split(",");
+		
+		Qk_DEBUG("sizeof(GLSLShader) %d,%d,%d", sizeof(GLSLShader), sizeof(GLSLColor), sizeof(GLSLImage));
 
-		GLuint *store = reinterpret_cast<GLuint*>(this + 1);
-		GLuint index = 1;
+		// bind attrib Location
+		GLuint attrIdx = 0;
+		glBindAttribLocation(program, _vertex_in = attrIdx++, "vertex_in");
 		for (auto &i: attrs) {
 			if (!i.is_empty()) {
-				glBindAttribLocation(program, *store = index++, i.c_str());
-				store++;
+				glBindAttribLocation(program, *storeLocation = attrIdx++, i.c_str());
+				storeLocation++;
 			}
 		}
 
@@ -109,26 +105,28 @@ namespace qk {
 		glDeleteShader(vertex_handle);
 		glDeleteShader(fragment_handle);
 
-		GLint ok;
-		glGetProgramiv(program, GL_LINK_STATUS, &ok);
-
-		if (ok != GL_TRUE) {
+		if ((glGetProgramiv(program, GL_LINK_STATUS, &status), status) != GL_TRUE) {
 			char log[256] = { 0 };
-			glGetProgramInfoLog(program, 255, &ok, log);
+			glGetProgramInfoLog(program, 255, &status, log);
 			Qk_FATAL("Link shader error, %s\n\n%s", name, log);
 		}
 
+		// Get uniform block and bind index
+		GLuint ubo = glGetUniformBlockIndex(program, "ubo");
+		glUniformBlockBinding(program, ubo, 0); // bind uniform block index as zero
+#if DEBUG
+		GLint bufferSize;
+		glGetActiveUniformBlockiv(program, ubo, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
+		Qk_ASSERT(bufferSize == 64);
+#endif
+
+		// Get Uniform Location index value
 		_root_matrix = glGetUniformLocation(program, "root_matrix");
 		// _view_matrix = glGetUniformLocation(program, "view_matrix");
-		GLuint ubo = glGetUniformBlockIndex(program, "ubo");
-		glUniformBlockBinding(program, ubo, 0);
-		//GLint bufferSize;
-		//glGetActiveUniformBlockiv(program, _view_matrix, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
-
 		for (auto &i: uniforms) {
 			if (!i.is_empty()) {
-				*store = glGetUniformLocation(program, i.c_str());
-				store++;
+				*storeLocation = glGetUniformLocation(program, i.c_str());
+				storeLocation++;
 			}
 		}
 
@@ -154,7 +152,7 @@ namespace qk {
 				color_o = color_f;\n\
 			}\n\
 		",
-		"", "color");
+		"", "color", &_color);
 	}
 
 	static const char *v_image_shader = "\n\
@@ -179,7 +177,7 @@ namespace qk {
 				color_o = texture(image, coord_f) * vec4(1.0, 1.0, 1.0, opacity_f);\n\
 			}\n\
 		",
-		"", "opacity,coord,image");
+		"", "opacity,coord,image", &_opacity);
 	}
 
 	void GLSLImageYUV420P::build() {
@@ -200,7 +198,7 @@ namespace qk {
 												opacity_f);\n\
 			}\n\
 		",
-		"", "opacity,coord,image,image_u,image_v");
+		"", "opacity,coord,image,image_u,image_v", &_opacity);
 	}
 
 	void GLSLImageYUV420SP::build() {
@@ -220,7 +218,7 @@ namespace qk {
 												opacity_f);\n\
 			}\n\
 		",
-		"", "opacity,coord,image,image_uv");
+		"", "opacity,coord,image,image_uv", &_opacity);
 	}
 
 	void GLSLGradient::build() {
@@ -271,7 +269,7 @@ namespace qk {
 			\
 			}\n\
 		",
-		"", "range,count,colors,positions");
+		"", "range,count,colors,positions", &_range);
 	}
 
 }

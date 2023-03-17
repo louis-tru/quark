@@ -65,7 +65,7 @@ namespace qk {
 	}
 
 	/**
-	* @func remove_all_child_()
+	* @method remove_all_child_()
 	*/
 	void View::remove_all_child_() {
 		while (_first) {
@@ -74,7 +74,7 @@ namespace qk {
 	}
 
 	/**
-	* @func clear() Cleaning up associated view information
+	* @method clear() Cleaning up associated view information
 	*/
 	void View::clear() {
 		if (_parent) {
@@ -130,7 +130,7 @@ namespace qk {
 		* 
 		* get transform single entity pointer
 		* 
-		* @func transform()
+		* @method transform()
 		*/
 	View::Transform* View::transform_obj() {
 		if (!_transform) {
@@ -165,7 +165,7 @@ namespace qk {
 		*
 		* Add a sibling view to the front
 		*
-		* @func before(view)
+		* @method before(view)
 		*/
 	void View::before(View* view) {
 		if (_parent) {
@@ -190,7 +190,7 @@ namespace qk {
 		*
 		* Add a sibling view to the back
 		*
-		* @func after(view)
+		* @method after(view)
 		*/
 	void View::after(View* view) {
 		if (_parent) {
@@ -215,7 +215,7 @@ namespace qk {
 		* 
 		* Append subview to front
 		* 
-		* @func prepend(child)
+		* @method prepend(child)
 		*/
 	void View::prepend(View* child) {
 		if (!is_allow_append_child()) {
@@ -244,7 +244,7 @@ namespace qk {
 		*
 		* Append subview to end
 		*
-		* @func append(child)
+		* @method append(child)
 		*/
 	void View::append(View* child) {
 		if (!is_allow_append_child()) {
@@ -277,7 +277,7 @@ namespace qk {
 		*
 		* Remove and destroy self
 		* 
-		* @func remove()
+		* @method remove()
 		*/
 	void View::remove() {
 		if (_parent) {
@@ -301,7 +301,7 @@ namespace qk {
 		*
 		* remove all subview
 		*
-		* @func remove_all_child()
+		* @method remove_all_child()
 		*/
 	void View::remove_all_child() {
 		remove_all_child_();
@@ -311,7 +311,7 @@ namespace qk {
 		*
 		* Setting parent parent view
 		*
-		* @func set_parent(parent)
+		* @method set_parent(parent)
 		*/
 	void View::set_parent(View* parent) {
 		// clear parent
@@ -340,7 +340,7 @@ namespace qk {
 		* 
 		* Setting the visibility properties the view object
 		*
-		* @func set_visible(val)
+		* @method set_visible(val)
 		*/
 	void View::set_visible(bool val) {
 		if (_visible != val) {
@@ -357,7 +357,7 @@ namespace qk {
 		* 
 		* Sets whether the view needs to receive or handle event thlines from the system
 		*
-		* @func set_receive()
+		* @method set_receive()
 		*/
 	void View::set_receive(bool val) {
 		_receive = val;
@@ -368,7 +368,7 @@ namespace qk {
 	/**
 		* Set the `action` properties of the view object
 		*
-		* @func set_action()
+		* @method set_action()
 		*/
 	void View::set_action(Action* val) {
 		if (_action != val) {
@@ -387,7 +387,7 @@ namespace qk {
 	/**
 		* Returns matrix displacement for the view
 		*
-		* @func translate
+		* @method translate
 		*/
 	Vec2 View::translate() const {
 		return _transform ? _transform->translate: Vec2();
@@ -396,7 +396,7 @@ namespace qk {
 	/**
 		* Returns the Matrix scaling
 		*
-		* @func scale()
+		* @method scale()
 		*/
 	Vec2 View::scale() const {
 		return _transform ? _transform->scale: Vec2(1);
@@ -405,7 +405,7 @@ namespace qk {
 	/**
 		* Returns the Matrix skew
 		*
-		* @func skew()
+		* @method skew()
 		*/
 	Vec2 View::skew() const {
 		return _transform ? _transform->skew: Vec2();
@@ -414,7 +414,7 @@ namespace qk {
 	/**
 		* Returns the z-axis rotation of the matrix
 		*
-		* @func rotate()
+		* @method rotate()
 		*/
 	float View::rotate() const {
 		return _transform ? _transform->rotate: 0;
@@ -423,7 +423,7 @@ namespace qk {
 	/**
 		* Set the matrix `translate` properties of the view object
 		*
-		* @func set_translate(val)
+		* @method set_translate(val)
 		*/
 	void View::set_translate(Vec2 val) {
 		if (translate() != val) {
@@ -435,7 +435,7 @@ namespace qk {
 	/**
 		* Set the matrix `scale` properties of the view object
 		*
-		* @func set_scale(val)
+		* @method set_scale(val)
 		*/
 	void View::set_scale(Vec2 val) {
 		if (scale() != val) {
@@ -447,7 +447,7 @@ namespace qk {
 	/**
 		* Set the matrix `skew` properties of the view object
 		*
-		* @func set_skew(val)
+		* @method set_skew(val)
 		*/
 	void View::set_skew(Vec2 val) {
 		if (skew() != val) {
@@ -459,7 +459,7 @@ namespace qk {
 	/**
 		* Set the z-axis  matrix `rotate` properties of the view object
 		*
-		* @func set_rotate(val)
+		* @method set_rotate(val)
 		*/
 	void View::set_rotate(float val) {
 		if (rotate() != val) {
@@ -472,7 +472,7 @@ namespace qk {
 		* 
 		* Returns x-axis matrix displacement for the view
 		*
-		* @func x()
+		* @method x()
 		*/
 	float View::x() const { return translate()[0]; }
 
@@ -480,7 +480,7 @@ namespace qk {
 		* 
 		* Returns y-axis matrix displacement for the view
 		*
-		* @func y()
+		* @method y()
 		*/
 	float View::y() const { return translate()[1]; }
 
@@ -488,7 +488,7 @@ namespace qk {
 		* 
 		* Returns x-axis matrix scaling for the view
 		*
-		* @func scale_x()
+		* @method scale_x()
 		*/
 	float View::scale_x() const { return scale()[0]; }
 
@@ -496,7 +496,7 @@ namespace qk {
 		* 
 		* Returns y-axis matrix scaling for the view
 		*
-		* @func scale_y()
+		* @method scale_y()
 		*/
 	float View::scale_y() const { return scale()[1]; }
 
@@ -504,7 +504,7 @@ namespace qk {
 		* 
 		* Returns x-axis matrix skew for the view
 		*
-		* @func skew_x()
+		* @method skew_x()
 		*/
 	float View::skew_x() const { return skew()[0]; }
 
@@ -512,7 +512,7 @@ namespace qk {
 		* 
 		* Returns y-axis matrix skew for the view
 		*
-		* @func skew_y()
+		* @method skew_y()
 		*/
 	float View::skew_y() const { return skew()[1]; }
 
@@ -520,7 +520,7 @@ namespace qk {
 		* 
 		* Setting x-axis matrix displacement for the view
 		*
-		* @func set_x(val)
+		* @method set_x(val)
 		*/
 	void View::set_x(float val) {
 		if (translate().x() != val) {
@@ -533,7 +533,7 @@ namespace qk {
 		* 
 		* Setting y-axis matrix displacement for the view
 		*
-		* @func set_y(val)
+		* @method set_y(val)
 		*/
 	void View::set_y(float val) {
 		if (translate().y() != val) {
@@ -546,7 +546,7 @@ namespace qk {
 		* 
 		* Returns x-axis matrix scaling for the view
 		*
-		* @func set_scale_x(val)
+		* @method set_scale_x(val)
 		*/
 	void View::set_scale_x(float val) {
 		if (scale().x() != val) {
@@ -559,7 +559,7 @@ namespace qk {
 		* 
 		* Returns y-axis matrix scaling for the view
 		*
-		* @func set_scale_y(val)
+		* @method set_scale_y(val)
 		*/
 	void View::set_scale_y(float val) {
 		if (scale().y() != val) {
@@ -572,7 +572,7 @@ namespace qk {
 		* 
 		* Returns x-axis matrix skew for the view
 		*
-		* @func set_skew_x(val)
+		* @method set_skew_x(val)
 		*/
 	void View::set_skew_x(float val) {
 		if (skew().x() != val) {
@@ -585,7 +585,7 @@ namespace qk {
 		* 
 		* Returns y-axis matrix skew for the view
 		*
-		* @func set_skew_y(val)
+		* @method set_skew_y(val)
 		*/
 	void View::set_skew_y(float val) {
 		if (skew().y() != val) {
@@ -597,7 +597,7 @@ namespace qk {
 	/**
 		* Set the `opacity` properties of the view object
 		*
-		* @func set_opacity(val)
+		* @method set_opacity(val)
 		*/
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
@@ -614,7 +614,7 @@ namespace qk {
 		* 
 		* Mat(layout_offset + transform_origin + translate + parent->layout_offset_inside, scale, rotate, skew)
 		* 
-		* @func layout_matrix()
+		* @method layout_matrix()
 		*/
 	Mat View::layout_matrix() {
 		if (_transform) {
@@ -669,7 +669,7 @@ namespace qk {
 		if (mark & kRecursive_Transform) { // update transform matrix
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
 			if (_parent) {
-				_parent->matrix().multiplication(layout_matrix(), _matrix);
+				_parent->matrix().mul(layout_matrix(), _matrix);
 			} else {
 				_matrix = layout_matrix();
 			}
@@ -692,7 +692,7 @@ namespace qk {
 	}
 
 	/**
-	* @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
+	* @method overlap_test Overlap test, test whether the point on the screen overlaps with the view
 	*/
 	bool View::overlap_test(Vec2 point) {
 		return false;
@@ -752,7 +752,7 @@ namespace qk {
 	}
 
 	/**
-	* @func screen_rect_from_convex_quadrilateral
+	* @method screen_rect_from_convex_quadrilateral
 	*/
 	Rect View::screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]) {
 		Region re = screen_region_from_convex_quadrilateral(quadrilateral_vertex);
@@ -760,7 +760,7 @@ namespace qk {
 	}
 
 	/**
-	* @func screen_region_from_convex_quadrilateral
+	* @method screen_region_from_convex_quadrilateral
 	*/
 	Region View::screen_region_from_convex_quadrilateral(Vec2* quadrilateral_vertex) {
 		#define A quadrilateral_vertex[0]
@@ -810,7 +810,7 @@ namespace qk {
 	}
 
 	/**
-	 * @func set_is_focus(value)
+	 * @method set_is_focus(value)
 	 */
 	void View::set_is_focus(bool value) {
 		if ( value ) {
@@ -821,7 +821,7 @@ namespace qk {
 	}
 
 	/**
-	 * @func is_focus()
+	 * @method is_focus()
 	 */
 	bool View::is_focus() const {
 		return this == pre_render()->host()->dispatch()->focus_view();
@@ -831,14 +831,14 @@ namespace qk {
 	 *
 	 * Can it be the focus
 	 * 
-	 * @func can_become_focus()
+	 * @method can_become_focus()
 	 */
 	bool View::can_become_focus() {
 		return false;
 	}
 
 	/**
-	 * @func blur()
+	 * @method blur()
 	 */
 	bool View::blur() {
 		if ( is_focus() ) {
@@ -855,7 +855,7 @@ namespace qk {
 		*
 		* is clip render the view
 		* 
-		* @func clip()
+		* @method clip()
 		*/
 	bool View::clip() {
 		return false;
@@ -871,7 +871,7 @@ namespace qk {
 	}
 
 	/**
-		* @func has_child(child)
+		* @method has_child(child)
 		*/
 	bool View::has_child(View *child) {
 		if ( child ) {

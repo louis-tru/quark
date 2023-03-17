@@ -55,21 +55,75 @@ namespace qk {
 		return color.r() == r() && color.g() == g() &&  color.b() == b() &&  color.a() == a();
 	}
 
-	static inline uint8_t getPartColor(int color, int offset) {
-		return (color >> offset) & 0xff;
-	}
-
-	Color::Color(uint32_t argb)
-	: MColor<uint8_t>(getPartColor(argb, 16),
-									getPartColor(argb, 8),
-									getPartColor(argb, 0),
-									getPartColor(argb, 24))
-	{
-		
+	bool Color4f::operator!=(const Color4f& color) const {
+		return ! operator==(color);
 	}
 
 	bool Color::operator==(Color color) const {
 		return *reinterpret_cast<const int*>(&color) == *reinterpret_cast<const int*>(this);
+	}
+
+	bool Color::operator!=(Color color) const {
+		return *reinterpret_cast<const int*>(&color) != *reinterpret_cast<const int*>(this);
+	}
+
+	Color4f Color::to_color4f() const {
+		// create indexed table
+		return Color4f(r() * (1 / 255.0f),
+									 g() * (1 / 255.0f),
+									 b() * (1 / 255.0f),
+									 a() * (1 / 255.0f)
+								);
+	}
+
+	union {
+		struct { char is_small_end,_[3]; }; int b;
+	} constexpr test_small { .b=1 };
+
+	Color Color::from(uint32_t color) { // ignore endianness
+		return *reinterpret_cast<Color*>(&color);
+	}
+
+	uint32_t swap_bit_form_uint32_t(uint32_t i) {
+		return
+			((i >> 24) & 0x000000ff) |
+			((i >> 8)  & 0x0000ff00) |
+			((i << 8)  & 0x00ff0000) |
+			((i << 24) & 0xff000000);
+	}
+
+	Color Color::from_rgba(uint32_t rgba) { // high => low as r,g,b,a
+		if (test_small.is_small_end) {
+			rgba = swap_bit_form_uint32_t(rgba);
+		}
+		return *reinterpret_cast<Color*>(&rgba);
+	}
+
+	Color Color::from_abgr(uint32_t abgr) { // high => low as a,b,g,r
+		if (!test_small.is_small_end) {
+			abgr = swap_bit_form_uint32_t(abgr);
+		}
+		return *reinterpret_cast<Color*>(&abgr);
+	}
+
+	uint32_t Color::to_uint32() const {// small end data as a,b,g,r
+		return *reinterpret_cast<const uint32_t*>(this);
+	}
+
+	uint32_t Color::to_uint32_rgba() const {
+		uint32_t rbga = *reinterpret_cast<const uint32_t*>(this);
+		if (test_small.is_small_end) {
+			rbga = swap_bit_form_uint32_t(rbga);
+		}
+		return rbga;
+	}
+
+	uint32_t Color::to_uint32_abgr() const {
+		uint32_t abgr = *reinterpret_cast<const uint32_t*>(this);
+		if (!test_small.is_small_end) {
+			abgr = swap_bit_form_uint32_t(abgr);
+		}
+		return abgr;
 	}
 
 	Mat::Mat(float value) {
@@ -237,7 +291,7 @@ namespace qk {
 
 	Mat Mat::operator*(const Mat& b) const {
 		Mat output;
-		multiplication(b, output);
+		mul(b, output);
 		return output;
 	}
 
@@ -261,11 +315,11 @@ namespace qk {
 	}
 
 	/**
-	* @func multiplication # 矩阵乘法
+	* @func mul # 矩阵乘法
 	* @arg b {const Mat&}
 	* @arg output {Mat&}
 	*/
-	void Mat::multiplication(const Mat& b, Mat& output) const {
+	void Mat::mul(const Mat& b, Mat& output) const {
 		/*
 		[ a1, b1, c1 ]   [ a2, b2, c2 ]
 		[ d1, e1, f1 ] * [ d2, e2, f2 ]
@@ -663,7 +717,7 @@ namespace qk {
 
 	Mat4 Mat4::operator*(const Mat4& b) const {
 		Mat4 output;
-		multiplication(b, output);
+		mul(b, output);
 		return output;
 	}
 
@@ -690,11 +744,11 @@ namespace qk {
 	}
 
 	/**
-	* @func multiplication # 矩阵乘法
+	* @func mul # 矩阵乘法
 	* @arg b {const Mat4&} b
 	* @arg output {Mat4&} output
 	*/
-	void Mat4::multiplication(const Mat4& b, Mat4& output) const {
+	void Mat4::mul(const Mat4& b, Mat4& output) const {
 		/*
 		[ a1, b1, c1, d1 ]   [ a2, b2, c2, d2 ]
 		[ e1, f1, g1, h1 ]   [ e2, f2, g2, h2 ]
