@@ -44,18 +44,19 @@ namespace qk {
 		virtual void reload(Vec2 size, Mat4& root) override;
 		virtual void begin() override;
 		virtual void submit() override;
-		virtual void presentRenderbuffer();
+		virtual void present() = 0;
 		virtual GLuint setTexture(cPixel *src, GLuint id) override;
 		virtual void deleteTextures(const GLuint *IDs, GLuint count) override;
 	protected:
 		GLRender(Application* host, bool independentThread);
 		virtual void setRenderBuffer(int width, int height);
-		virtual void setStencilBuffer(int width, int height);
-		virtual void setMSAABuffer(int width, int height, int sample);
+		virtual void setStencilBuffer(int width, int height, int MSAASample);
+		virtual void setMSAABuffer(int width, int height, int MSAASample);
 		virtual void setAntiAlias(int width, int height);
 		void setRootMatrix(Mat4& root);
-		GLuint _frame_buffer,_render_buffer,_stencil_buffer,_depth_buffer,_aa_tex;
-		GLuint _msaa_frame_buffer,_msaa_render_buffer;
+		GLuint _frame_buffer,_msaa_frame_buffer;
+		GLuint _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer;
+		GLuint _aa_tex;
 		bool _is_support_multisampled, _raster;
 	};
 }

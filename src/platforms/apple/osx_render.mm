@@ -47,24 +47,24 @@ class AppleGLRender;
 
 @implementation GLLayer
 	- (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask {
-		return self.ctx.pixelFormat;
+		return _ctx.pixelFormat;
 	}
 	- (NSOpenGLContext*)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat {
-		return self.ctx;
+		return _ctx;
 	}
 	- (BOOL)canDrawInOpenGLContext:(NSOpenGLContext *)context
 										 pixelFormat:(NSOpenGLPixelFormat *)pixelFormat
 										forLayerTime:(CFTimeInterval)timeInterval
 										 displayTime:(const CVTimeStamp *)timeStamp {
-		return self.host->display()->pre_render();
+		return _host->display()->pre_render();
 	}
 	- (void)drawInOpenGLContext:(NSOpenGLContext *)context
 									pixelFormat:(NSOpenGLPixelFormat *)pixelFormat
 								 forLayerTime:(CFTimeInterval)timeInterval
 									displayTime:(const CVTimeStamp *)timeStamp {
-		// CGLLockContext(context.CGLContextObj);
-		self.host->display()->render();
-		// CGLUnlockContext(context.CGLContextObj);
+		//CGLLockContext(context.CGLContextObj);
+		_host->display()->render();
+		//CGLUnlockContext(context.CGLContextObj);
 	}
 @end
 
@@ -97,12 +97,15 @@ public:
 	~AppleGLRender() {
 		[NSOpenGLContext clearCurrentContext];
 	}
-
-	void renderbufferStorage(GLuint target) {
+	void setAntiAlias(int width, int height) override {
 	}
 
 	void begin() override {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _aa_tex, 0);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _aa_tex, 0);
+	}
+
+	void present() override {
+		[_ctx flushBuffer];
 	}
 
 	UIView* make_surface_view(CGRect rect) override {

@@ -48,7 +48,6 @@ namespace qk {
 	bool checkIsSupportMultisampled() {
 		String extensions = (const char*)glGetString(GL_EXTENSIONS);
 		String version = (const char*)glGetString(GL_VERSION);
-
 		bool ok = false;
 
 		Qk_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
@@ -82,12 +81,9 @@ namespace qk {
 		_is_support_multisampled = checkIsSupportMultisampled();
 
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
-		glGenFramebuffers(1, &_frame_buffer);
+		glGenFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-		glGenRenderbuffers(3, &_render_buffer); // _render_buffer,_stencil_buffer,_depth_buffer
-		// Create multisample buffers
-		glGenFramebuffers(1, &_msaa_frame_buffer);
-		glGenRenderbuffers(1, &_msaa_render_buffer);
+		glGenRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
 		// create anti alias texture
 		glGenTextures(1, &_aa_tex);
 
@@ -121,10 +117,8 @@ namespace qk {
 	}
 
 	GLRender::~GLRender() {
-		glDeleteFramebuffers(1, &_frame_buffer);
-		glDeleteRenderbuffers(3, &_render_buffer); // _render_buffer, _stencil_buffer,_depth_buffer
-		glDeleteFramebuffers(1, &_msaa_render_buffer);
-		glDeleteRenderbuffers(1, &_msaa_frame_buffer);
+		glDeleteFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
+		glDeleteRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
 		glDeleteTextures(1, &_aa_tex);
 	}
 
@@ -158,12 +152,13 @@ namespace qk {
 				_opts.msaaSampleCnt >>= 1;
 			} while (_opts.msaaSampleCnt > 1);
 		}
-	
-		setStencilBuffer(width, height);
 
 		if (_opts.msaaSampleCnt <= 1) {
+			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
 			setAntiAlias(width, height);
 		}
+
+		setStencilBuffer(width, height, _opts.msaaSampleCnt);
 
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
 			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
@@ -178,15 +173,19 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 	}
 
-	void GLRender::setStencilBuffer(int width, int height) { // set clip stencil buffer
+	void GLRender::setStencilBuffer(int width, int height, int MSAASample) { // set clip stencil buffer
 		glBindRenderbuffer(GL_RENDERBUFFER, _stencil_buffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
+		if (MSAASample > 1) {
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, GL_STENCIL_INDEX8, width, height);
+		} else {
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
+		}
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencil_buffer);
 	}
 
-	void GLRender::setMSAABuffer(int width, int height, int sample) {
+	void GLRender::setMSAABuffer(int width, int height, int MSAASample) {
 		glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render buffer
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, sample, glPixelInternalFormat(_opts.colorType), width, height);
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, glPixelInternalFormat(_opts.colorType), width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaa_render_buffer);
 	}
 
@@ -210,8 +209,8 @@ namespace qk {
 	void GLRender::setRootMatrix(Mat4& root) {
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-		int width, height;
 #if DEBUG
+		int width, height;
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
@@ -240,18 +239,16 @@ namespace qk {
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
 #endif
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			presentRenderbuffer();
+			present();
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
 		} else {
 #if !Qk_OSX
 			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
 #endif
-			presentRenderbuffer();
+			present();
 		}
 	}
-
-	void GLRender::presentRenderbuffer() {}
 
 	GLuint GLRender::setTexture(cPixel *src, GLuint id) {
 		return GLCanvas::setTexture(src, id, true);

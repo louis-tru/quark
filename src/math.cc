@@ -86,10 +86,10 @@ namespace qk {
 
 	uint32_t swap_bit_form_uint32_t(uint32_t i) {
 		return
-			((i >> 24) & 0x000000ff) |
+			((i >> 24)) |
 			((i >> 8)  & 0x0000ff00) |
 			((i << 8)  & 0x00ff0000) |
-			((i << 24) & 0xff000000);
+			((i << 24));
 	}
 
 	Color Color::from_rgba(uint32_t rgba) { // high => low as r,g,b,a

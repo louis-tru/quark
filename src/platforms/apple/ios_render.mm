@@ -55,6 +55,9 @@ public:
 	~AppleGLRender() {
 		[EAGLContext setCurrentContext:nullptr];
 	}
+	
+	void setAntiAlias(int width, int height) override {
+	}
 
 	void setRenderBuffer(int width, int height) override {
 		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
@@ -62,7 +65,7 @@ public:
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 	}
 
-	void presentRenderbuffer() override {
+	void present() override {
 		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 		// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 		// you present its contents by making it the current renderbuffer
