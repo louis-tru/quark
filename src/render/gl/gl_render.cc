@@ -76,7 +76,9 @@ namespace qk {
 
 	GLRender::GLRender(Application* host, bool independentThread)
 		: Render(host, independentThread)
-		, _frame_buffer(0), _is_support_multisampled(false), _raster(false)
+		, _frame_buffer(0), _msaa_frame_buffer(0)
+		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0),_aa_tex(0)
+		,_is_support_multisampled(false), _raster(false)
 	{
 		_is_support_multisampled = checkIsSupportMultisampled();
 
@@ -93,8 +95,8 @@ namespace qk {
 		glClearStencil(0);
 		glStencilMask(0xffffffff);
 
-		glDisable(GL_DEPTH);
-		glDisable(GL_STENCIL);
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_DEPTH_TEST);
 
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
@@ -159,6 +161,9 @@ namespace qk {
 		}
 
 		setStencilBuffer(width, height, _opts.msaaSampleCnt);
+
+		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0 };
+		glDrawBuffers(1, buffers);
 
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
 			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));

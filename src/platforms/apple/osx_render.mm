@@ -62,9 +62,9 @@ class AppleGLRender;
 									pixelFormat:(NSOpenGLPixelFormat *)pixelFormat
 								 forLayerTime:(CFTimeInterval)timeInterval
 									displayTime:(const CVTimeStamp *)timeStamp {
-		//CGLLockContext(context.CGLContextObj);
+		CGLLockContext(context.CGLContextObj);
 		_host->display()->render();
-		//CGLUnlockContext(context.CGLContextObj);
+		CGLUnlockContext(context.CGLContextObj);
 	}
 @end
 
@@ -97,14 +97,20 @@ public:
 	~AppleGLRender() {
 		[NSOpenGLContext clearCurrentContext];
 	}
+
+	void setRenderBuffer(int width, int height) override {
+	}
+
 	void setAntiAlias(int width, int height) override {
 	}
 
 	void begin() override {
-		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _aa_tex, 0);
+		//glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _aa_tex, 0);
 	}
-
+	
 	void present() override {
+		//glFlush();
 		[_ctx flushBuffer];
 	}
 
@@ -123,7 +129,7 @@ public:
 		_layer.ctx = _ctx;
 		_layer.host = _host;
 		// _layer.shouldRasterize = YES;
-		_ctx.view = _view;
+		[_ctx setView:_view];
 		[_ctx setFullScreen];
 
 		return _view;
@@ -141,9 +147,9 @@ private:
 
 QkAppleRender* makeAppleGLRender(Application* host, bool independentThread) {
 	NSOpenGLPixelFormatAttribute attrs[] = {
-		NSOpenGLPFANoRecovery, // Disable all failover systems
-		NSOpenGLPFAAccelerated, // Choose a hardware accelerated renderer
-		NSOpenGLPFADoubleBuffer, // use double buffering
+		//NSOpenGLPFANoRecovery, // Disable all failover systems
+		//NSOpenGLPFAAccelerated, // Choose a hardware accelerated renderer
+		//NSOpenGLPFADoubleBuffer, // use double buffering
 		//NSOpenGLPFAColorSize, 24,  // color buffer bits
 		//NSOpenGLPFADepthSize, 24,  // Depth Buffer Bit Depth
 		//NSOpenGLPFAStencilSize, 8, // Stencil buffer bit depth

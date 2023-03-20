@@ -38,6 +38,7 @@
 # include <OpenGLES/ES3/gl.h>
 # include <OpenGLES/ES3/glext.h>
 #elif Qk_OSX
+#define GL_SILENCE_DEPRECATION 1
 # include <OpenGL/gl.h>
 # include <OpenGL/gl3.h>
 # include <OpenGL/gl3ext.h>

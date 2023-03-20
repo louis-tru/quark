@@ -212,19 +212,19 @@ namespace qk {
 	void GLCanvas::drawColor(const Array<Vec2>& triangles, const Paint& paint) {
 		glUseProgram(_color.shader());
 		glUniform4fv(_color.color(), 1, paint.color.val);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
-		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
+		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
+		//glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 
-//		float triangles_[] = {
-//			0,0,
-//			1,0,
-//			0,1,
-//			0,1,
-//			1,1,
-//			1,0,
-//		};
-		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles_);
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
+		float triangles_[] = {
+			0,0,
+			1,0,
+			0,1,
+			0,1,
+			1,1,
+			1,0,
+		};
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles_);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	void GLCanvas::drawGradient(const Array<Vec2>& triangles, const Paint& paint) {

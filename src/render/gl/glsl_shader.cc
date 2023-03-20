@@ -56,7 +56,7 @@ namespace qk {
 	static const String vertexHeader(String::format("\n\
 		#version %s\n\
 		#define matrix root_matrix * view_matrix\n\
-		uniform mat4  root_matrix;\n\
+		uniform mat4 root_matrix;\n\
 		layout (std140) uniform ubo {\n\
 			mat4  view_matrix;\n\
 		};\n\
