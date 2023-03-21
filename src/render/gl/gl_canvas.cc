@@ -215,7 +215,7 @@ namespace qk {
 		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
 		//glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 
-		float triangles_[] = {
+		/*float triangles_[] = {
 			0,0,
 			1,0,
 			0,1,
@@ -224,7 +224,26 @@ namespace qk {
 			1,0,
 		};
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles_);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, 0, 6);*/
+
+		float triangles_[] = {
+			0,0,
+			1,0,
+			0,1,
+		};
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles_);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		//glLineWidth(2);
+		//glDrawArrays(GL_LINE_LOOP, 0, 3);
+		
+//		uint8_t pixels[] = {
+//			255,0,0,255, 255,0,0,255, 255,0,0,255, 255,0,0,255,
+//			255,0,0,255, 255,0,0,255, 255,0,0,255, 255,0,0,255,
+//			255,0,0,255, 255,0,0,255, 255,0,0,255, 255,0,0,255,
+//			255,0,0,255, 255,0,0,255, 255,0,0,255, 255,0,0,255,
+//		};
+//
+//		glDrawPixels(4, 4, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
 	}
 
 	void GLCanvas::drawGradient(const Array<Vec2>& triangles, const Paint& paint) {

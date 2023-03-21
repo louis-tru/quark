@@ -48,7 +48,7 @@ namespace qk {
 	}
 
 #if Qk_OSX
-#define Qk_GL_Version "330"
+#define Qk_GL_Version "330 core"
 #else // ios es
 #define Qk_GL_Version "300 es"
 #endif
@@ -88,7 +88,7 @@ namespace qk {
 
 		auto attrs = String(_attrs).split(",");
 		auto uniforms = String(_uniforms).split(",");
-		
+
 		Qk_DEBUG("sizeof(GLSLShader) %d,%d,%d", sizeof(GLSLShader), sizeof(GLSLColor), sizeof(GLSLImage));
 
 		// bind attrib Location
@@ -104,7 +104,7 @@ namespace qk {
 		glLinkProgram(program);
 		glDeleteShader(vertex_handle);
 		glDeleteShader(fragment_handle);
-
+		
 		if ((glGetProgramiv(program, GL_LINK_STATUS, &status), status) != GL_TRUE) {
 			char log[256] = { 0 };
 			glGetProgramInfoLog(program, 255, &status, log);
@@ -119,7 +119,7 @@ namespace qk {
 		glGetActiveUniformBlockiv(program, ubo, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
 		Qk_ASSERT(bufferSize == 64);
 #endif
-
+		
 		// Get Uniform Location index value
 		_root_matrix = glGetUniformLocation(program, "root_matrix");
 		// _view_matrix = glGetUniformLocation(program, "view_matrix");
@@ -138,19 +138,25 @@ namespace qk {
 
 	void GLSLColor::build() {
 		compile("color shader",
-		"\n\
-			uniform vec4  color;\n\
-			out     vec4  color_f;\n\
-			void main() {\n\
-				color_f = color;\n\
-				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\n\
-			}\n\
+		"\
+			uniform vec4  color;\
+			out     vec4  color_f;\
+			void main() {\
+				/*color_f = color;*/\
+				/*gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);*/\
+				if (gl_VertexID == 0)\
+					gl_Position = vec4(-1.0,-1.0,0.0,1.0);\
+				else if (gl_VertexID == 1)\
+					gl_Position = vec4(1.0,-1.0,0.0,1.0);\
+				else if (gl_VertexID == 2)\
+					gl_Position = vec4(0.0,1.0,0.0,1.0);\
+			}\
 		",
-		"\n\
-			in lowp vec4 color_f;\n\
-			void main() {\n\
-				color_o = color_f;\n\
-			}\n\
+		"\
+			in lowp vec4 color_f;\
+			void main() {\
+				color_o = vec4(1.0,0.0,0.0,1.0)/*color_f*/;\
+			}\
 		",
 		"", "color", &_color);
 	}

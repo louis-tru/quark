@@ -94,6 +94,7 @@ namespace qk {
 
 		glClearStencil(0);
 		glStencilMask(0xffffffff);
+		glColorMask(1,1,1,1);
 
 		glDisable(GL_STENCIL_TEST);
 		glDisable(GL_DEPTH_TEST);
@@ -212,15 +213,17 @@ namespace qk {
 	}
 
 	void GLRender::setRootMatrix(Mat4& root) {
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
 #if DEBUG
 		int width, height;
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+		Qk_ASSERT(width, "Invalid Renderbuffer size width");
+		Qk_ASSERT(height, "Invalid Renderbuffer size height");
 #endif
+		
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		// update all shader root matrix
 		for (auto shader: _shaders) {
@@ -237,8 +240,9 @@ namespace qk {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
 			auto region = _host->display()->surface_region();
-			glBlitFramebuffer(0, 0, region.size.x(), region.size.y(),
-												0, 0, region.size.x(), region.size.y(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			auto w = region.size.x(), h = region.size.x();
+			glBlitFramebuffer(0, 0, w, h,
+												0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #if !Qk_OSX
 			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
