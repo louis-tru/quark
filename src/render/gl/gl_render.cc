@@ -46,29 +46,33 @@ namespace qk {
 	}
 
 	bool checkIsSupportMultisampled() {
-		String extensions = (const char*)glGetString(GL_EXTENSIONS);
-		String version = (const char*)glGetString(GL_VERSION);
+    String VENDOR = (const char*)glGetString(GL_VENDOR);
+    String RENDERER = (const char*)glGetString(GL_RENDERER);
+		String VERSION = (const char*)glGetString(GL_VERSION);
+    String EXTENSIONS = (const char*)glGetString(GL_EXTENSIONS);
 		bool ok = false;
 
-		Qk_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
-		Qk_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
-		Qk_DEBUG("OGL Info: %s", *version);
-		Qk_DEBUG("OGL Info: %s", *extensions);
+		Qk_DEBUG("OGL VENDOR: %s", *VENDOR);
+		Qk_DEBUG("OGL RENDERER: %s", *RENDERER);
+		Qk_DEBUG("OGL VERSION: %s", *VERSION);
+		Qk_DEBUG("OGL EXTENSIONS: %s", *EXTENSIONS);
+    
+    String str = VENDOR +  " " + RENDERER + " " + VERSION + " " + EXTENSIONS;
 
-		for (auto s : {"OpenGL ES ", "OpenGL "}) {
-			int idx = version.index_of(s);
+		for (auto s : {"OpenGL ES ", "OpenGL Engine ", "OpenGL "}) {
+			int idx = str.index_of(s);
 			if (idx != -1) {
-				int num = version.substr(idx + 10, 1).to_number<int>();
+				int num = str.substr(idx + strlen(s), 1).trim().to_number<int>();
 				if (num > 2)
 					ok = true;
 				else
-					ok = extensions.index_of( "multisample" ) != -1;
+					ok = str.index_of( "multisample" ) != -1;
 				if (ok)
 					break;
 			}
 		}
 
-		if (version.index_of("Metal ") != -1)
+		if (!ok && str.index_of("Metal ") != -1)
 			ok = true;
 		
 		return ok;

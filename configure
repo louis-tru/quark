@@ -40,7 +40,7 @@ if [ ! -f libs/somes/out/somes/package.json ]; then
 fi
 
 # build libs/qkmake
-if [ ! -f libs/qkmake/out/qkmake/package.json ]; then
+if [ ! -f libs/qkmake/out/qkmake/.build ]; then
 	cd libs/qkmake
 	npm i
 	rm -rf node_modules/somes
@@ -49,6 +49,7 @@ if [ ! -f libs/qkmake/out/qkmake/package.json ]; then
 	cd ..
 	npm run build
 	cd ../..
+	echo '' > libs/qkmake/out/qkmake/.build
 fi
 
 if   [ ! -d tools/node_modules/somes ] \

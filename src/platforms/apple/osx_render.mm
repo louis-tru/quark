@@ -40,7 +40,7 @@ extern QkApplicationDelegate* __appDelegate;
 #if Qk_ENABLE_GL && Qk_OSX
 class AppleGLRender;
 
-#define QK_USE_NSOpenGLView 0
+#define QK_USE_NSOpenGLView 1
 
 @interface GLView
 #if QK_USE_NSOpenGLView
@@ -171,7 +171,7 @@ public:
 
 	void begin() override {
 		//[_ctx update];
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
 		//glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _aa_tex, 0);
@@ -239,7 +239,7 @@ QkAppleRender* makeAppleGLRender(Application* host, bool independentThread) {
 		NSOpenGLPFAAccelerated, // Choose a hardware accelerated renderer
 		NSOpenGLPFAClosestPolicy,
 		NSOpenGLPFADoubleBuffer, // use double buffering
-		NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core, // OpenGL4.1
+		NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core, // OpenGL4.1
 		NSOpenGLPFAColorSize, 24,  // color buffer bits
 		NSOpenGLPFAAlphaSize, 8,   // alpha buffer size
 		NSOpenGLPFADepthSize, 0,  // Depth Buffer Bit Depth

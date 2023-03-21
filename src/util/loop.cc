@@ -145,7 +145,8 @@ namespace qk {
 			ScopeLock scope(*__threads_mutex);
 			__threads->set(thread->id = id, thread);
 		} else { // fail
-			delete thread;
+      Qk_FATAL("id != ThreadID()");
+			// delete thread;
 		}
 		return id;
 	}
