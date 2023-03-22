@@ -103,8 +103,8 @@ namespace qk {
 	}
 
 	void Render::visitRoot(Root* root) {
-		//glClearColor(0, 0, 0, 1);
-		//glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(1, 1, 1, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
 
 		auto size = _host->display()->size();
 

@@ -115,9 +115,13 @@ namespace qk {
 		if ( __is_process_exit != 0 )
 			return ThreadID();
 		Thread_INL* thread = Thread_INL_init(new Thread_INL, exec, name);
+    ScopeLock scope(*__threads_mutex);
 
 		ThreadID id;
 		uv_thread_create((uv_thread_t*)&id, [](void* arg) {
+      { // wait thread_fork main call return
+        ScopeLock scope(*__threads_mutex);
+      }
 			auto thread = (Thread_INL*)arg;
 #if Qk_ANDROID
 			JNI::ScopeENV scope;
@@ -142,7 +146,6 @@ namespace qk {
 		}, thread);
 
 		if (id != ThreadID()) {
-			ScopeLock scope(*__threads_mutex);
 			__threads->set(thread->id = id, thread);
 		} else { // fail
       Qk_FATAL("id != ThreadID()");
@@ -521,6 +524,7 @@ namespace qk {
 		, _timeout(0)
 		, _record_timeout(0)
 	{
+    Qk_ASSERT(_tid != ThreadID());
 		Qk_ASSERT(!static_cast<Thread_INL*>(t)->_loop);
 		// set run loop
 		static_cast<Thread_INL*>(t)->_loop = this;

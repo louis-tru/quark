@@ -75,7 +75,7 @@ namespace qk {
 		}
 	}
 
-	Application::Application(RunLoop *loop, Options opts)
+	Application::Application(Options opts, RunLoop *loop)
 		: Qk_Init_Event(Load)
 		, Qk_Init_Event(Unload)
 		, Qk_Init_Event(Background)

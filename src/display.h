@@ -219,7 +219,7 @@ namespace qk {
 		static float default_status_bar_height();
 
 	private:
-		void updateState();
+		void updateState(void *lock);
 		void solve_next_frame();
 
 		// member data

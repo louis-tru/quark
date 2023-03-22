@@ -62,6 +62,7 @@ class AppleGLRender;
 	- (void) update {
 		[super update];
 		__appDelegate.render->refresh_surface_region();
+    Qk_DEBUG("NSOpenGLView::update");
 	}
 	- (void) prepareOpenGL {
 		[super prepareOpenGL];
@@ -98,9 +99,9 @@ class AppleGLRender;
 		}
 
 		if (v.host->display()->pre_render()) {
-			[v.ctx makeCurrentContext];
-			Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 3");
 			CGLLockContext(v.ctx.CGLContextObj);
+      [v.ctx makeCurrentContext];
+      Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 3");
 			v.host->display()->render();
 			CGLUnlockContext(v.ctx.CGLContextObj);
 		}
@@ -143,9 +144,9 @@ public:
 	 float x = size.width * scale;
 	 float y = size.height * scale;
 		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} }, scale);
- }
+  }
 	
-	void reload(int w, int h, Mat4 &root) override {
+  void reload(int w, int h, Mat4 &root) override {
 		CGLLockContext(_ctx.CGLContextObj);
 		glViewport(0, 0, w, h);
 
@@ -166,7 +167,7 @@ public:
 
 	void submit() override {
 		glFlush();
-		//[_ctx flushBuffer]; // swap double buffer
+		[_ctx flushBuffer]; // swap double buffer
 	}
 
 	UIView* make_surface_view(CGRect rect) override {

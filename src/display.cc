@@ -52,7 +52,8 @@ namespace qk {
 
 	Display::~Display() {}
 
-	void Display::updateState() { // Lock before calling
+	void Display::updateState(void *lock) { // Lock before calling
+    auto _lock = static_cast<UILock*>(lock);
 		Vec2 size = surface_size();
 		float width = size.x();
 		float height = size.y();
@@ -83,15 +84,20 @@ namespace qk {
 		_host->loop()->post(Cb([this](Cb::Data& e) { // main loop call
 			Qk_Trigger(Change); // trigger display change
 		}));
-		_host->root()->onDisplayChange(); // update root, Locked security call
+    
+    auto region = _surface_region;
+    Vec2 start = Vec2(-region.origin.x() / _scale, -region.origin.y() / _scale);
+    Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
+    auto matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
+    // root_matrix.transpose();
+    _lock->unlock();
+    _host->render()->reload(region.size.x(), region.size.y(), matrix);
 
-		auto region = _surface_region;
-		auto scale = _host->display()->scale();
-		Vec2 start = Vec2(-region.origin.x() / scale, -region.origin.y() / scale);
-		Vec2 end   = Vec2(region.size.x() / scale + start.x(), region.size.y() / scale + start.y());
-		auto matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
-		// root_matrix.transpose();
-		_host->render()->reload(region.size.x(), region.size.y(), matrix);
+    // update root, Locked security call
+    _lock->lock();
+    _host->root()->onDisplayChange();
+    
+    Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
 	}
 
 	void Display::set_size(float width, float height) {
@@ -99,7 +105,7 @@ namespace qk {
 			UILock lock(_host);
 			if (_set_size.x() != width || _set_size.y() != height) {
 				_set_size = { width, height };
-				updateState();
+				updateState(&lock);
 			}
 		} else {
 			Qk_DEBUG("Lock size value can not be less than zero\n");
@@ -123,6 +129,8 @@ namespace qk {
 	void Display::render() { // Must be called in the render loop
 		UILock lock(_host); // ui main local
 		int64_t now_time = time_monotonic();
+    
+    Qk_DEBUG("Display::render()");
 
 		if (now_time - _next_fsp_time >= 1e6) { // 1s
 			_fsp = _next_fsp;
@@ -220,6 +228,7 @@ namespace qk {
 
 	bool Display::set_surface_region(RegionSize region, float defaultScale) {
 		if (region.size.x() != 0 && region.size.y() != 0 && defaultScale != 0) {
+      Qk_DEBUG("Display::set_surface_region");
 			UILock lock(_host);
 			if (  _surface_region.origin.x() != region.origin.x()
 				||	_surface_region.origin.y() != region.origin.y()
@@ -231,10 +240,12 @@ namespace qk {
 			) {
 				_surface_region = region;
 				_default_scale = defaultScale;
-				updateState();
+        updateState(&lock);
 				return true;
-			}
-		}
+      } else {
+        _host->root()->onDisplayChange();
+      }
+    }
 		return false;
 	}
 

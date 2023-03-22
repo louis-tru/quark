@@ -93,7 +93,7 @@ namespace qk {
 			bool _lock;
 		};
 
-		Application(RunLoop *loop = RunLoop::current(), Options opts = {});
+		Application(Options opts = {}, RunLoop *loop = RunLoop::current());
 
 		/**
 		 * @method ~Application()

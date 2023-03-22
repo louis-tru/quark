@@ -451,6 +451,7 @@ namespace qk {
 	}
 
 	ArrayStringBase::ArrayStringBase(): _val({.s={{0},0}}) {
+    //Qk_DEBUG("Empty str");
 	} // empty
 	
 	ArrayStringBase::ArrayStringBase(const ArrayStringBase& str): _val(str._val)
