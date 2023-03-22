@@ -128,7 +128,7 @@ namespace qk {
 
 		paint.color = Color4f(0, 0, 1, 0.5);
 
-		_canvas->drawPath(Path::Circle(Vec2(300), 5), paint);
+		_canvas->drawPath(Path::Circle(Vec2(300), 100), paint);
 	}
 
 	void Render::visitFloatLayout(FloatLayout* flow) {
