@@ -207,8 +207,8 @@ namespace qk {
 				case kVerb_Move:
 					if (len > 1) {
 						tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
-						len = 1;
 					}
+					len = 1;
 					tmpV.push(*pts++);
 					break;
 				case kVerb_Line:
@@ -417,19 +417,34 @@ namespace qk {
 		return Path();
 	}
 
+	static float sqrt_sqrtf(int i) {
+		static Array<float> num;
+		if (!num.length()) {
+			num.extend(5001);
+			uint64_t t = qk::time_monotonic();
+			for (int i = 0; i < 5001; i++)
+				num[i] = sqrtf(sqrtf(float(i)));
+			Qk_DEBUG("sqrt_sqrtf, %ld", qk::time_monotonic() - t);
+		}
+		if (i > 5000) {
+			return num[5000] * i * 0.0002; // 5000.0
+		}
+		return num[i];
+	}
+
 	int Path::getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon) {
 		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2();
 
 		// calculate triangle area by point cross multiplication
 
 		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x()) + (C.x()*A.y() - C.y()*A.x());
-		float S = S_ABC * 0.5 * epsilon;
+		float S_2 = S_ABC * epsilon; // *0.5
 
-		if (S < 10000.0) { // < 100^2
-			constexpr float count = (16.0 - 2.0) / 10000.0;
-			return int(S * count) + 2;
+		if (S_2 < 5000.0) {
+			constexpr float count = 24.0 / 8.408964152537145;
+			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
 		} else {
-			return 16;
+			return 24;
 		}
 	}
 
@@ -449,13 +464,14 @@ namespace qk {
 
 		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x());// + (C.x()*A.y() - C.y()*A.x());
 		float S_CDA = (C.x()*D.y() - C.y()*D.x()) + (D.x()*A.y() - D.y()*A.x());// + (A.x()*C.y() - A.y()*C.x());
-		float S = (S_ABC + S_CDA) * 0.5 * epsilon;
+		float S_2 = (S_ABC + S_CDA) * epsilon; // S = S_2 * 0.5
 
-		if (S < 10000.0) { // < 100^2
-			constexpr float count = (20.0 - 2.0) / 10000.0;
-			return int(S * count) + 2;
+		if (S_2 < 5000.0) { // circle radius < 80
+			constexpr float count = 30.0 / 8.408964152537145;//sqrtf(sqrtf(5000.0));
+			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
+			return i;
 		} else {
-			return 20;
+			return 30.0;
 		}
 	}
 

@@ -42,45 +42,11 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 
 @implementation QkApplicationDelegate
 
-	static void render_exec_func(Cb::Data& evt, Object* ctx) {
-		__appDelegate.render_task_count--;
-		if (__appDelegate.host->display()->pre_render())
-			__appDelegate.host->display()->render();
-	}
-
-	- (void)display_link_callback:(CADisplayLink*)displayLink {
-		auto _ = self.host;
-		#if Qk_USE_DEFAULT_THREAD_RENDER
-			if (_fps == 0) { // 3 = 15, 1 = 30
-				if (_->display()->pre_render())
-					_->display()->render();
-				_fps = 0;
-			} else {
-				_fps++;
-			}
-		#else
-			if (self.render_task_count == 0) {
-				self.render_task_count++;
-				_->render()->post_message(_render_exec);
-			} else {
-				Qk_DEBUG("display_link_callback: miss frame");
-			}
-		#endif
-	}
-
 	- (void)refresh_status {
 		if ( self.window.rootViewController == self.root_ctr ) {
 			self.window.rootViewController = nil;
 			self.window.rootViewController = self.root_ctr;
 		}
-	}
-
-	- (void)refresh_surface_region {
-		float scale = UIScreen.mainScreen.scale;
-		CGRect rect = self.surface_view.frame;
-		float x = rect.size.width * scale;
-		float y = rect.size.height * scale;
-		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} }, scale);
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
@@ -94,17 +60,12 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];
 		_is_background = NO;
-		_render_exec = Cb(render_exec_func);
-
-		self.render_task_count = 0;
 
 		self.setting_orientation = Orientation::ORIENTATION_USER;
 		self.current_orientation = Orientation::ORIENTATION_INVALID;
 		self.visible_status_bar = YES;
 		self.status_bar_style = UIStatusBarStyleDefault;
 
-		self.display_link = [CADisplayLink displayLinkWithTarget:self
-																										selector:@selector(display_link_callback:)];
 		self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 		self.root_ctr = [[QkRootViewController alloc] init];
 		self.window.backgroundColor = [UIColor blackColor];
@@ -141,19 +102,17 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 												multiplier:1
 												constant:0]];
 
-		[self refresh_surface_region]; // set size
+		self.render->refresh_surface_region(); // set size
 
 		Inl_Application(_host)->triggerLoad();
 		Qk_DEBUG("application,triggerLoad");
 
-		[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
-														forMode:NSDefaultRunLoopMode];
 		return YES;
 	}
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(CGRect)frame {
 		if ( __appDelegate && !_is_background ) {
-			[self refresh_surface_region];
+			self.render->refresh_surface_region(); // set size
 		}
 	}
 
@@ -164,7 +123,7 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 
 	- (void)applicationDidBecomeActive:(UIApplication*) application {
 		Inl_Application(_host)->triggerResume();
-		[self refresh_surface_region];
+		self.render->refresh_surface_region(); // set size
 		Qk_DEBUG("applicationDidBecomeActive,triggerResume");
 	}
 
@@ -186,7 +145,6 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 	}
 
 	- (void)applicationWillTerminate:(UIApplication*)application {
-		[self.display_link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 		Inl_Application(_host)->triggerUnload();
 		Qk_DEBUG("applicationWillTerminate,triggerUnload");
 	}

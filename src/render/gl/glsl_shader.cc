@@ -68,12 +68,12 @@ namespace qk {
 		layout(location=0) out lowp vec4 color_o;\n\
 	", Qk_GL_Version));
 
-	GLSLShader::GLSLShader(): _shader(0) {
+	GLSLShader::GLSLShader(): _shader(0), _vao(0), _vbo(0) {
 	}
 
 	void GLSLShader::compile(
 		cChar* name, cChar* vertexShader, cChar* fragmentShader,
-		cChar* _attrs, cChar* _uniforms, GLuint *storeLocation)
+		const Array<Attr> &attributes, cChar* _uniforms, GLuint *storeLocation)
 	{
 		Qk_ASSERT(!_shader);
 		GLuint vertex_handle =
@@ -86,19 +86,14 @@ namespace qk {
 
 		GLint status; // query status
 
-		auto attrs = String(_attrs).split(",");
-		auto uniforms = String(_uniforms).split(",");
-
 		Qk_DEBUG("sizeof(GLSLShader) %d,%d,%d", sizeof(GLSLShader), sizeof(GLSLColor), sizeof(GLSLImage));
 
 		// bind attrib Location
 		GLuint attrIdx = 0;
+		GLuint *store = storeLocation;
 		glBindAttribLocation(program, _vertex_in = attrIdx++, "vertex_in");
-		for (auto &i: attrs) {
-			if (!i.is_empty()) {
-				glBindAttribLocation(program, *storeLocation = attrIdx++, i.c_str());
-				storeLocation++;
-			}
+		for (auto &i: attributes) {
+			glBindAttribLocation(program, *store++ = attrIdx++, i.name);
 		}
 
 		glLinkProgram(program);
@@ -123,17 +118,39 @@ namespace qk {
 		// Get Uniform Location index value
 		_root_matrix = glGetUniformLocation(program, "root_matrix");
 		// _view_matrix = glGetUniformLocation(program, "view_matrix");
-		for (auto &i: uniforms) {
+		for (auto &i: String(_uniforms).split(",")) {
 			if (!i.is_empty()) {
-				*storeLocation = glGetUniformLocation(program, i.c_str());
-				storeLocation++;
+				*store++ = glGetUniformLocation(program, i.c_str());
 			}
 		}
 
 		glUseProgram(program);
+
+		glGenVertexArrays(1, &_vao);
+		glGenBuffers(1, &_vbo);
+		glBindVertexArray(_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+
+		glVertexAttribPointer(_vertex_in, 2, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(_vertex_in);
 
+		for (auto &i: attributes) {
+			GLuint local = *storeLocation++;
+			glVertexAttribPointer(local, i.size, i.type, GL_FALSE, i.stride, i.pointer);
+			glEnableVertexAttribArray(local);
+		}
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 		_shader = program;
+	}
+
+	void GLSLShader::use(GLsizeiptr size, const GLvoid* data) {
+		glUseProgram(_shader);
+		glBindVertexArray(_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
 	}
 
 	void GLSLColor::build() {
@@ -142,23 +159,17 @@ namespace qk {
 			uniform vec4  color;\
 			out     vec4  color_f;\
 			void main() {\
-				/*color_f = color;*/\
-				/*gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);*/\
-				if (gl_VertexID == 0)\
-					gl_Position = vec4(-1.0,-1.0,0.0,1.0);\
-				else if (gl_VertexID == 1)\
-					gl_Position = vec4(1.0,-1.0,0.0,1.0);\
-				else if (gl_VertexID == 2)\
-					gl_Position = vec4(0.0,1.0,0.0,1.0);\
+				color_f = color;\
+				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
 			}\
 		",
 		"\
 			in lowp vec4 color_f;\
 			void main() {\
-				color_o = vec4(1.0,0.0,0.0,1.0)/*color_f*/;\
+				color_o = color_f;\
 			}\
 		",
-		"", "color", &_color);
+		{}, "color", &_color);
 	}
 
 	static const char *v_image_shader = "\n\
@@ -183,7 +194,7 @@ namespace qk {
 				color_o = texture(image, coord_f) * vec4(1.0, 1.0, 1.0, opacity_f);\n\
 			}\n\
 		",
-		"", "opacity,coord,image", &_opacity);
+		{}, "opacity,coord,image", &_opacity);
 	}
 
 	void GLSLImageYUV420P::build() {
@@ -204,7 +215,7 @@ namespace qk {
 												opacity_f);\n\
 			}\n\
 		",
-		"", "opacity,coord,image,image_u,image_v", &_opacity);
+		{}, "opacity,coord,image,image_u,image_v", &_opacity);
 	}
 
 	void GLSLImageYUV420SP::build() {
@@ -224,7 +235,7 @@ namespace qk {
 												opacity_f);\n\
 			}\n\
 		",
-		"", "opacity,coord,image,image_uv", &_opacity);
+		{}, "opacity,coord,image,image_uv", &_opacity);
 	}
 
 	void GLSLGradient::build() {
@@ -275,7 +286,7 @@ namespace qk {
 			\
 			}\n\
 		",
-		"", "range,count,colors,positions", &_range);
+		{}, "range,count,colors,positions", &_range);
 	}
 
 }

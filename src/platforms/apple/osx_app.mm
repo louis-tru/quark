@@ -45,17 +45,6 @@ QkApplicationDelegate* __appDelegate = nil;
 
 @implementation QkApplicationDelegate
 
-	- (void)refresh_surface_region:(CGRect)rect {
-		float scale = self.window.backingScaleFactor;
-		float x = rect.size.width * scale;
-		float y = rect.size.height * scale;
-		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} }, scale);
-	}
-
-	- (void)refresh_surface_region {
-		[self refresh_surface_region: self.surface_view.frame];
-	}
-
 	- (void)applicationDidFinishLaunching:(NSNotification*) notification {
 		Qk_ASSERT(!__appDelegate);
 		Qk_ASSERT(Application::shared());
@@ -89,7 +78,7 @@ QkApplicationDelegate* __appDelegate = nil;
 																							styleMask:style
 																								backing:NSBackingStoreBuffered
 																									defer:NO
-																								 screen:nil];
+																								 screen:screen];
 		self.root_ctr = nil; // nil
 		self.window.backgroundColor = [UIColor colorWithSRGBRed:color.r()
 																											green:color.g()
@@ -99,7 +88,7 @@ QkApplicationDelegate* __appDelegate = nil;
 		self.window.delegate = self;
 
 		[self.window makeKeyAndOrderFront:nil];
-		
+
 		if (opts.windowFrame.origin.x() < 0 && opts.windowFrame.origin.y() < 0) {
 			[self.window center];
 		}
@@ -143,7 +132,7 @@ QkApplicationDelegate* __appDelegate = nil;
 		if (!_is_pause) return;
 		_is_pause = NO;
 		Inl_Application(_host)->triggerResume();
-		[self refresh_surface_region];
+		self.render->refresh_surface_region();
 		Qk_DEBUG("applicationDidBecomeActive, triggerResume");
 	}
 
@@ -177,7 +166,6 @@ QkApplicationDelegate* __appDelegate = nil;
 	}
 
 	- (NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)size {
-		[self refresh_surface_region: NSMakeRect(0, 0, size.width, size.height)];
 		return size;
 	}
 

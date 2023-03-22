@@ -35,25 +35,17 @@
 using namespace qk;
 
 uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
-	if (_renderLoop) {
-		return _renderLoop->post(cb, delay_us);
+	auto main = dispatch_get_main_queue();
+	if (main == dispatch_get_current_queue()) {
+		cb->resolve();
 	} else {
-#if Qk_USE_DEFAULT_THREAD_RENDER || Qk_OSX
-		auto main = dispatch_get_main_queue();
-		if (main == dispatch_get_current_queue()) {
-			cb->resolve();
-		} else {
-			auto core = cb.Handle::collapse();
-			dispatch_async(main, ^{
-				core->resolve();
-				core->release();
-			});
-		}
-		return 0;
-#else
-		return _host->loop()->post(cb, delay_us);
-#endif
+		auto core = cb.Handle::collapse();
+		dispatch_async(main, ^{
+			core->resolve();
+			core->release();
+		});
 	}
+	return 0;
 }
 
 // ------------------- Metal ------------------
@@ -73,7 +65,7 @@ uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
 
 class AppleMetalRender: public MetalRender, public QkAppleRender {
 public:
-	AppleMetalRender(Application* host, bool independentThread): MetalRender(host, independentThread)
+	AppleMetalRender(Application* host): MetalRender(hos)
 	{}
 	UIView* make_surface_view(CGRect rect) override {
 		_view = [[MTKView alloc] initWithFrame:rect device:nil];
@@ -88,26 +80,19 @@ public:
 
 // ------------------- OpenGL ------------------
 #if Qk_ENABLE_GL
-QkAppleRender* makeAppleGLRender(Application* host, bool independentThread);
+QkAppleRender* makeAppleGLRender(Application* host);
 #endif
 
 Render* Render::Make(Application* host) {
 	QkAppleRender* r = nullptr;
-	bool independentThread = host->options().independentThread;
-
-	if (independentThread) {
-#if Qk_USE_DEFAULT_THREAD_RENDER || Qk_OSX
-		independentThread = false; // use default thread render
-#endif
-	}
 
 #if Qk_ENABLE_METAL
 	if (@available(macOS 10.11, iOS 13.0, *))
-		r = new AppleMetalRender(host, independentThread);
+		r = new AppleMetalRender(host);
 #endif
 #if Qk_ENABLE_GL
 	if (!r)
-		r = makeAppleGLRender(host, independentThread);
+		r = makeAppleGLRender(host);
 #endif
 	Qk_ASSERT(r, "create render object fail");
 

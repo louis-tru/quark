@@ -39,10 +39,6 @@
 #include "./source.h"
 #include "./canvas.h"
 
-#ifndef Qk_USE_DEFAULT_THREAD_RENDER
-#define Qk_USE_DEFAULT_THREAD_RENDER 1
-#endif
-
 namespace qk {
 	class Application;
 
@@ -60,12 +56,10 @@ namespace qk {
 		struct Options {
 			ColorType   colorType;
 			int         msaaSampleCnt; // gpu msaa
-			int         stencilBits;   // gpu stencil
-			bool        independentThread; // independent render thread
 		};
 		static  Render* Make(Application* host);
 		virtual        ~Render();
-		virtual void    reload(Vec2 size, Mat4& root) = 0;
+		virtual void    reload(int w, int h, Mat4 &root) = 0;
 		virtual void    begin() = 0;
 		virtual void    submit() = 0;
 		virtual void    activate(bool isActive);
@@ -90,11 +84,10 @@ namespace qk {
 		virtual void    visitFlowLayout(FlowLayout* flow) override;
 		virtual void    visitFlexLayout(FlexLayout* flex) override;
 	protected:
-		Render(Application *host, bool independentThread);
+		Render(Application *host);
 		Options       _opts;
 		Application  *_host;
 		Canvas       *_canvas;
-		KeepLoop     *_renderLoop;
 	};
 
 }

@@ -33,6 +33,7 @@
 #include "../app.h"
 #include <math.h>
 #include "./gl/gl_render.h"
+#include "../display.h"
 
 namespace qk {
 
@@ -45,33 +46,17 @@ namespace qk {
 		return Qk_MIN(n, 8);
 	}
 
-	Render::Render(Application* host, bool independentThread)
+	Render::Render(Application* host)
 		: _host(host)
 		, _opts(host->options())
 		, _canvas(nullptr)
-		, _renderLoop(nullptr)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
 		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
-		_opts.stencilBits = integerExp(Qk_MIN(Qk_MAX(_opts.stencilBits, 8), 16));
-
-		if (independentThread) {
-			Wait wait;
-			thread_fork([this, &wait]() {
-				auto loop = RunLoop::current();
-				_renderLoop = loop->keep_alive("Render::Render() keep");
-				wait.notify_all();
-				loop->run(); // run loop
-			}, "Render::Render()");
-			wait.wait_for(); // wait start run isolate loop
-		}
+		//_opts.stencilBits = integerExp(Qk_MIN(Qk_MAX(_opts.stencilBits, 8), 16));
 	}
 
 	Render::~Render() {
-		if (_renderLoop) {
-			thread_abort(_renderLoop->host()->thread_id());
-			Release(_renderLoop); _renderLoop = nullptr;
-		}
 	}
 
 	void Render::activate(bool isActive) {
@@ -118,15 +103,32 @@ namespace qk {
 	}
 
 	void Render::visitRoot(Root* root) {
-		glClearColor(1, 1, 1, 1);
-		glClear(GL_COLOR_BUFFER_BIT);
+		//glClearColor(0, 0, 0, 1);
+		//glClear(GL_COLOR_BUFFER_BIT);
+
+		auto size = _host->display()->size();
 
 		Paint paint;
 		paint.color = Color4f(1, 0, 1, 0.5);
 
-		//_canvas->setMatrix(Mat(2,0,100,0,2,0));
+		_canvas->drawRect(Rect{ Vec2(0,0), size*0.5 }, paint);
+		
+		paint.color = Color4f(1, 1, 0, 0.5);
+		
+		Path path(   Vec2(0, size.y()) );
+		path.lineTo( size );
+		path.lineTo( Vec2(size.x()*0.5, 0) );
 
-		_canvas->drawRect(Rect{ Vec2(0,0), Vec2(100,100) }, paint);
+		path.moveTo( Vec2(100, 100) );
+		path.lineTo( Vec2(100, 200) );
+		path.lineTo( Vec2(200, 200) );
+		path.close();
+
+		_canvas->drawPath(path, paint);
+
+		paint.color = Color4f(0, 0, 1, 0.5);
+
+		_canvas->drawPath(Path::Circle(Vec2(300), 5), paint);
 	}
 
 	void Render::visitFloatLayout(FloatLayout* flow) {

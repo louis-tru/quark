@@ -83,16 +83,15 @@ namespace qk {
 		_host->loop()->post(Cb([this](Cb::Data& e) { // main loop call
 			Qk_Trigger(Change); // trigger display change
 		}));
-		_host->render()->post_message(Cb([this](Cb::Data& e) { // render loop call
-			auto region = _surface_region;
-			auto scale = _host->display()->scale();
-			Vec2 start = Vec2(-region.origin.x() / scale, -region.origin.y() / scale);
-			Vec2 end   = Vec2(region.size.x() / scale + start.x(), region.size.y() / scale + start.y());
-			auto matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
-			// root_matrix.transpose();
-			_host->render()->reload(region.size, matrix);
-		}));
 		_host->root()->onDisplayChange(); // update root, Locked security call
+
+		auto region = _surface_region;
+		auto scale = _host->display()->scale();
+		Vec2 start = Vec2(-region.origin.x() / scale, -region.origin.y() / scale);
+		Vec2 end   = Vec2(region.size.x() / scale + start.x(), region.size.y() / scale + start.y());
+		auto matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
+		// root_matrix.transpose();
+		_host->render()->reload(region.size.x(), region.size.y(), matrix);
 	}
 
 	void Display::set_size(float width, float height) {
@@ -115,9 +114,10 @@ namespace qk {
 		UILock lock(_host); // ui main local
 		int64_t now_time = time_monotonic();
 		// _host->action_direct()->advance(now_time); // advance action
-		bool isUpdate = _host->pre_render()->solve(now_time);
+		if (_host->pre_render()->solve(now_time))
+			return true;
 		solve_next_frame();
-		return isUpdate;
+		return false;
 	}
 
 	void Display::render() { // Must be called in the render loop
@@ -134,6 +134,8 @@ namespace qk {
 
 		_host->render()->begin(); // ready render
 		_host->root()->accept(_host->render()); // start drawing
+
+		solve_next_frame(); // solve frame
 
 #if DEBUG && PRINT_RENDER_FRAME_TIME
 		int64_t st = time_micro();

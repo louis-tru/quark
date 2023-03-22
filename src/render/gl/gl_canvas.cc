@@ -124,7 +124,7 @@ namespace qk {
 		glUniform1i(_yuv420sp.image_uv(), 1);
 		
 		glUseProgram(0);
-		
+
 		setMatrix(Mat()); // init matrix
 	}
 
@@ -210,40 +210,9 @@ namespace qk {
 	}
 
 	void GLCanvas::drawColor(const Array<Vec2>& triangles, const Paint& paint) {
-		glUseProgram(_color.shader());
+		_color.use(sizeof(Vec2) * triangles.length(), *triangles);
 		glUniform4fv(_color.color(), 1, paint.color.val);
-		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
-		//glDrawArrays(GL_TRIANGLES, 0, triangles.length());
-
-		/*float triangles_[] = {
-			0,0,
-			1,0,
-			0,1,
-			0,1,
-			1,1,
-			1,0,
-		};
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles_);
-		glDrawArrays(GL_TRIANGLES, 0, 6);*/
-
-		float triangles_[] = {
-			0,0,
-			1,0,
-			0,1,
-		};
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles_);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		//glLineWidth(2);
-		//glDrawArrays(GL_LINE_LOOP, 0, 3);
-		
-//		uint8_t pixels[] = {
-//			255,0,0,255, 255,0,0,255, 255,0,0,255, 255,0,0,255,
-//			255,0,0,255, 255,0,0,255, 255,0,0,255, 255,0,0,255,
-//			255,0,0,255, 255,0,0,255, 255,0,0,255, 255,0,0,255,
-//			255,0,0,255, 255,0,0,255, 255,0,0,255, 255,0,0,255,
-//		};
-//
-//		glDrawPixels(4, 4, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
 
 	void GLCanvas::drawGradient(const Array<Vec2>& triangles, const Paint& paint) {
@@ -385,6 +354,10 @@ namespace qk {
 
 	static GLint get_gl_texture_pixel_format(ColorType type) {
 #if Qk_APPLE
+#if Qk_OSX
+#define GL_LUMINANCE                      0x1909
+#define GL_LUMINANCE_ALPHA                0x190A
+#endif
 	switch (type) {
 		case kColor_Type_Alpha_8: return GL_ALPHA;
 		case kColor_Type_RGB_565: return GL_RGB;

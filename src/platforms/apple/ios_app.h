@@ -39,12 +39,8 @@ typedef qk::Display::Orientation Orientation;
 
 @interface QkApplicationDelegate()<MFMailComposeViewControllerDelegate>
 	{
-		BOOL   _is_background;
-		int    _fps;
-		qk::Cb _render_exec;
+		BOOL _is_background;
 	}
-	@property (strong, nonatomic) CADisplayLink* display_link; // strong
-	@property (assign, atomic)    NSInteger   render_task_count;
 	@property (assign, nonatomic) Orientation setting_orientation;
 	@property (assign, nonatomic) Orientation current_orientation;
 	@property (assign, nonatomic) bool        visible_status_bar;

@@ -35,8 +35,8 @@
 
 @interface QkApplicationDelegate()<NSWindowDelegate>
 	{
-		BOOL       _is_background;
-		BOOL       _is_pause;
+		BOOL _is_background;
+		BOOL _is_pause;
 	}
 @end
 #endif

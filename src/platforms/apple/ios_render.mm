@@ -37,26 +37,72 @@ using namespace qk;
 // ------------------- OpenGL ------------------
 #if Qk_ENABLE_GL && Qk_iOS
 
+extern QkApplicationDelegate *__appDelegate;
+
 @interface GLView: UIView
+{
+	CADisplayLink *_display_link;
+}
 @end
 
 @implementation GLView
-+ (Class)layerClass {
-	return CAEAGLLayer.class;
-}
+
+	+ (Class) layerClass {
+		return CAEAGLLayer.class;
+	}
+
+	- (id) initWithFrame:(CGRect)frame {
+		self = [super initWithFrame:frame];
+		if (self) {
+			_display_link = [CADisplayLink displayLinkWithTarget:self
+																									selector:@selector(display:)];
+			[_display_link addToRunLoop:[NSRunLoop mainRunLoop]
+													forMode:NSDefaultRunLoopMode];
+		}
+		return self;
+	}
+
+	- (void) display:(CADisplayLink*)displayLink {
+		 auto _ = __appDelegate.host;
+		 static int _fps = 0;
+		 if (_fps == 0) { // 3 = 15, 1 = 30
+			 if (_->display()->pre_render())
+				 _->display()->render();
+			 _fps = 0;
+		 } else {
+			 _fps++;
+		 }
+	 }
+
+	- (void) stopDisplay {
+		[_display_link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+	}
+
 @end
 
 class AppleGLRender: public GLRender, public QkAppleRender {
 public:
-	AppleGLRender(Application* host, EAGLContext* ctx, bool independentThread)
-		: GLRender(host, independentThread), _ctx(ctx)
+	AppleGLRender(Application* host, EAGLContext* ctx)
+		: GLRender(host), _ctx(ctx)
 	{}
 
 	~AppleGLRender() {
+		[_view stopDisplay];
 		[EAGLContext setCurrentContext:nullptr];
+	}
+
+	void refresh_surface_region() override {
+		float scale = UIScreen.mainScreen.scale;
+		CGSize size = _view.frame.size;
+		float x = size.width * scale;
+		float y = size.height * scale;
+		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} }, scale);
 	}
 	
 	void setAntiAlias(int width, int height) override {
+	}
+	
+	void setDepthBuffer(int width, int height) override {
 	}
 
 	void setRenderBuffer(int width, int height) override {
@@ -65,7 +111,30 @@ public:
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 	}
 
-	void present() override {
+	void begin() override {
+		if (_IsDeviceMsaa) {
+			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
+		} else {
+			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+		}
+	}
+
+	void submit() override {
+		if (_IsDeviceMsaa) {
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
+			auto region = _host->display()->surface_region();
+			auto w = region.size.x(), h = region.size.x();
+			glBlitFramebuffer(0, 0, w, h,
+												0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
+			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
+			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+		} else {
+			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
+			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
+		}
+
 		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 		// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 		// you present its contents by making it the current renderbuffer
@@ -75,12 +144,7 @@ public:
 
 	UIView* make_surface_view(CGRect rect) override {
 		[EAGLContext setCurrentContext:_ctx];
-		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 1");
-
-		post_message(Cb([this](Cb::Data& e) { // set current context from render loop
-			[EAGLContext setCurrentContext:_ctx];
-			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 2");
-		}));
+		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 2");
 
 		_view = [[GLView alloc] initWithFrame:rect];
 		_layer = (CAEAGLLayer*)_view.layer;
@@ -105,13 +169,13 @@ private:
 	GLView      *_view;
 };
 
-QkAppleRender* makeAppleGLRender(Application* host, bool independentThread) {
+QkAppleRender* makeAppleGLRender(Application* host) {
 	EAGLContext* ctx = [EAGLContext alloc];
 	if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
 		[EAGLContext setCurrentContext:ctx];
 		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 		ctx.multiThreaded = NO;
-		return new AppleGLRender(host, ctx, independentThread);
+		return new AppleGLRender(host, ctx);
 	}
 	return nullptr;
 }

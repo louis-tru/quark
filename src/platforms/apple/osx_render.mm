@@ -40,50 +40,18 @@ extern QkApplicationDelegate* __appDelegate;
 #if Qk_ENABLE_GL && Qk_OSX
 class AppleGLRender;
 
-#define QK_USE_NSOpenGLView 0
-
-@interface GLView
-#if QK_USE_NSOpenGLView
-:NSOpenGLView
-#else
-:UIView
-#endif
+@interface GLView: NSOpenGLView
 {
 	CVDisplayLinkRef _display_link;
+	List<Cb>         _message;
+	Mutex            _mutex;
 }
 @property (assign, nonatomic) qk::Application *host;
 @property (assign, nonatomic) NSOpenGLContext *ctx;
 @end
 
-@interface GLLayer: NSOpenGLLayer
-@end
-
-@implementation GLLayer
-	- (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask {
-		return ((GLView*)self.view).ctx.pixelFormat;
-	}
-	- (NSOpenGLContext*)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat {
-		return ((GLView*)self.view).ctx;
-	}
-	- (BOOL)canDrawInOpenGLContext:(NSOpenGLContext *)context
-										 pixelFormat:(NSOpenGLPixelFormat *)pixelFormat
-										forLayerTime:(CFTimeInterval)timeInterval
-										 displayTime:(const CVTimeStamp *)timeStamp {
-		return ((GLView*)self.view).host->display()->pre_render();
-	}
-	- (void)drawInOpenGLContext:(NSOpenGLContext *)context
-									pixelFormat:(NSOpenGLPixelFormat *)pixelFormat
-								 forLayerTime:(CFTimeInterval)timeInterval
-									displayTime:(const CVTimeStamp *)timeStamp {
-		CGLLockContext(context.CGLContextObj);
-		((GLView*)self.view).host->display()->render();
-		CGLUnlockContext(context.CGLContextObj);
-	}
-@end
-
 @implementation GLView
 
-#if QK_USE_NSOpenGLView
 	- (id) initWithFrame:(CGRect)frameRect shareContext:(NSOpenGLContext*)context {
 		if( (self = [super initWithFrame:frameRect pixelFormat:nil]) ) {
 			_ctx = context;
@@ -93,9 +61,7 @@ class AppleGLRender;
 	}
 	- (void) update {
 		[super update];
-	}
-	- (void) reshape {
-		[super reshape];
+		__appDelegate.render->refresh_surface_region();
 	}
 	- (void) prepareOpenGL {
 		[super prepareOpenGL];
@@ -113,7 +79,6 @@ class AppleGLRender;
 		// Activate the display link
 		CVDisplayLinkStart(_display_link);
 	}
-
 	static CVReturn display_link_callback(CVDisplayLinkRef displayLink,
 																				const CVTimeStamp* now,
 																				const CVTimeStamp* outputTime,
@@ -122,10 +87,19 @@ class AppleGLRender;
 																				void* view)
 	{
 		auto v = (__bridge GLView*)view;
-		
+		{ //
+			ScopeLock lock(v->_mutex);
+			if (v->_message.length()) {
+				List<Cb> msg(std::move(v->_message));
+				for ( auto& i : msg ) {
+					i->resolve();
+				}
+			}
+		}
+
 		if (v.host->display()->pre_render()) {
 			[v.ctx makeCurrentContext];
-			Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
+			Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 3");
 			CGLLockContext(v.ctx.CGLContextObj);
 			v.host->display()->render();
 			CGLUnlockContext(v.ctx.CGLContextObj);
@@ -133,73 +107,73 @@ class AppleGLRender;
 		return kCVReturnSuccess;
 	}
 
-#else
-	- (CALayer *)makeBackingLayer {
-		auto layer = [[GLLayer alloc] init];
-		// Layer should render when size changes.
-		layer.needsDisplayOnBoundsChange = YES;
-		// The layer should continuously call canDrawInOpenGLContext
-		layer.asynchronous = YES;
-		layer.shouldRasterize = YES;
-		return layer;
+	-(void) stopDisplay {
+		CVDisplayLinkStop(_display_link);
 	}
-#endif
-	- (void) viewDidChangeBackingProperties {
-		[super viewDidChangeBackingProperties];
-		// Need to propagate information about retina resolution
-		self.layer.contentsScale = self.window.backingScaleFactor;
-		[__appDelegate refresh_surface_region];
+
+	- (uint32_t) post_message:(Cb) cb delay_us:(uint64_t)delay_us {
+		ScopeLock lock(_mutex);
+		_message.push_back(cb);
 	}
 
 @end
 
 class AppleGLRender: public GLRender, public QkAppleRender {
 public:
-	AppleGLRender(Application* host, NSOpenGLContext *ctx, bool independentThread)
-		: GLRender(host, independentThread), _ctx(ctx)
+	AppleGLRender(Application* host, NSOpenGLContext *ctx)
+		: GLRender(host), _ctx(ctx)
 	{}
 
 	~AppleGLRender() {
+		[_view stopDisplay];
 		[NSOpenGLContext clearCurrentContext];
 	}
 
-	void setRenderBuffer(int width, int height) override {
+	Render* render() override {
+		return this;
 	}
 
-	void setAntiAlias(int width, int height) override {
+	uint32_t post_message(Cb cb, uint64_t delay_us) override {
+		return [_view post_message:cb delay_us:delay_us];
+	}
+
+	void refresh_surface_region() override {
+	 CGSize size = _view.frame.size;
+	 float scale = _view.window.backingScaleFactor;
+	 float x = size.width * scale;
+	 float y = size.height * scale;
+		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} }, scale);
+ }
+	
+	void reload(int w, int h, Mat4 &root) override {
+		CGLLockContext(_ctx.CGLContextObj);
+		glViewport(0, 0, w, h);
+
+		if (!_IsDeviceMsaa) { // no device msaa
+			glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
+			setAntiAlias(w, h);
+		}
+		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(_IsDeviceMsaa ? 1: 2, buffers);
+
+		setRootMatrix(root);
+		CGLUnlockContext(_ctx.CGLContextObj);
 	}
 
 	void begin() override {
-		//[_ctx update];
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-		//glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
-		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _aa_tex, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void present() override {
+	void submit() override {
 		glFlush();
-
-//		glBindFramebuffer(GL_READ_FRAMEBUFFER, _frame_buffer);
-//		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-//		auto region = _host->display()->surface_region();
-//		auto w = region.size.x(), h = region.size.x();
-//		glBlitFramebuffer(0, 0, w, h,
-//											0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		[_ctx flushBuffer];
+		//[_ctx flushBuffer]; // swap double buffer
 	}
 
 	UIView* make_surface_view(CGRect rect) override {
-		post_message(Cb([this](Cb::Data& e) { // set current context from render loop
-			[_ctx makeCurrentContext];
-			Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 2");
-		}));
+		[_ctx makeCurrentContext];
+		Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 2");
 
-#if QK_USE_NSOpenGLView
 		_view = [[GLView alloc] initWithFrame:rect shareContext:_ctx];
-#else
-		_view = [[GLView alloc] initWithFrame:rect];
-#endif
 		_view.host = _host;
 		_view.ctx = _ctx;
 		_view.wantsBestResolutionOpenGLSurface = YES; // Enable retina-support
@@ -208,14 +182,17 @@ public:
 		_ctx.view = _view;
 		//[_ctx setFullScreen];
 
-		GLint swapInterval = 1/*fDisplayParams.fDisableVsync*/ ? 0 : 1;
+		GLint swapInterval = 1; // enable vsync
 		[_ctx setValues:&swapInterval forParameter:NSOpenGLCPSwapInterval];
 
-		return _view;
-	}
+		GLint sampleCount;
+		[_ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
+		
+		if (sampleCount > 1) {
+			_IsDeviceMsaa = true;
+		}
 
-	Render* render() override {
-		return this;
+		return _view;
 	}
 
 private:
@@ -223,7 +200,7 @@ private:
 	NSOpenGLContext   *_ctx;
 };
 
-QkAppleRender* makeAppleGLRender(Application* host, bool independentThread) {
+QkAppleRender* makeAppleGLRender(Application* host) {
 	
 	//	generate the GL display mask for all displays
 	CGDirectDisplayID		dspys[10];
@@ -235,36 +212,47 @@ QkAppleRender* makeAppleGLRender(Application* host, bool independentThread) {
 			glDisplayMask = glDisplayMask | CGDisplayIDToOpenGLDisplayMask(dspys[i]);
 	}
 	
-	NSOpenGLPixelFormatAttribute attrs[] = {
-		NSOpenGLPFAAccelerated, // Choose a hardware accelerated renderer
-		NSOpenGLPFAClosestPolicy,
-		NSOpenGLPFADoubleBuffer, // use double buffering
-		NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core, // OpenGL4.1
-		NSOpenGLPFAColorSize, 24,  // color buffer bits
-		NSOpenGLPFAAlphaSize, 8,   // alpha buffer size
-		NSOpenGLPFADepthSize, 0,  // Depth Buffer Bit Depth
-		NSOpenGLPFAStencilSize, 8, // Stencil buffer bit depth
-		NSOpenGLPFAMultisample, 0, // use multisampling and Number of multisampled buffers to use
-		//NSOpenGLPFASamples, (NSOpenGLPixelFormatAttribute)4, // number of multisamples
-		NSOpenGLPFANoRecovery, // Disable all failover systems
-		NSOpenGLPFAScreenMask, glDisplayMask,
-		//NSOpenGLPFAAllRenderers, // Choose from all available renderers
-		//NSOpenGLPFAOffScreen, //
-		//NSOpenGLPFAAllowOfflineRenderers, // Allow off-screen rendering
-		0
+	uint32_t MSAA = host->options().msaaSampleCnt;
+	uint32_t i = 0;
+	NSOpenGLPixelFormatAttribute attrs[32] = {0};
+	
+	attrs[i++] = NSOpenGLPFAAccelerated; // Choose a hardware accelerated renderer
+	attrs[i++] = NSOpenGLPFAClosestPolicy;
+	//attrs[i++] = NSOpenGLPFADoubleBuffer; // use double buffering
+	attrs[i++] = NSOpenGLPFAOpenGLProfile; // OpenGL version
+	attrs[i++] = NSOpenGLProfileVersion3_2Core; // OpenGL3.2
+	//attrs[i++] = NSOpenGLPFAColorSize; attrs[i++] = 24u; // color buffer bits
+	//attrs[i++] = NSOpenGLPFAAlphaSize; attrs[i++] = 8u; // alpha buffer size
+	attrs[i++] = NSOpenGLPFAStencilSize; attrs[i++] = 8u; // Stencil buffer bit depth
+	attrs[i++] = NSOpenGLPFANoRecovery; // Disable all failover systems
+	attrs[i++] = NSOpenGLPFAScreenMask; attrs[i++] = glDisplayMask; // display
+	//attrs[i++] = NSOpenGLPFAAllRenderers; // Choose from all available renderers
+	//attrs[i++] = NSOpenGLPFAOffScreen;
+	//attrs[i++] = NSOpenGLPFAAllowOfflineRenderers; // Allow off-screen rendering
+	attrs[i++] = NSOpenGLPFADepthSize; attrs[i++] = 24u;//MSAA <= 1 ? 24u: 0u; // number of multi sample buffers
+
+	if (MSAA > 1) { // use msaa
+		attrs[i++] = NSOpenGLPFAMultisample; // choose multisampling
+		attrs[i++] = NSOpenGLPFASampleBuffers; attrs[i++] = 1u; // number of multi sample buffers
+		attrs[i++] = NSOpenGLPFASamples; attrs[i++] = MSAA; // number of multisamples
 	};
+
 	auto format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
 	auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
 
 	[ctx makeCurrentContext];
 	Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
-	
+
 	//GLint stencilBits;
 	//[ctx.pixelFormat getValues:&stencilBits forAttribute:NSOpenGLPFAStencilSize forVirtualScreen:0];
 	//GLint sampleCount;
 	//[ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
 	
-	return new AppleGLRender(host, ctx, independentThread);
+	CGLLockContext(ctx.CGLContextObj);
+	auto render = new AppleGLRender(host, ctx);
+	CGLUnlockContext(ctx.CGLContextObj);
+
+	return render;
 }
 
 #endif

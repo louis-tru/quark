@@ -39,7 +39,6 @@
 # include <OpenGLES/ES3/glext.h>
 #elif Qk_OSX
 #define GL_SILENCE_DEPRECATION 1
-# include <OpenGL/gl.h>
 # include <OpenGL/gl3.h>
 # include <OpenGL/gl3ext.h>
 #elif Qk_ANDROID || Qk_LINUX
@@ -56,16 +55,27 @@ namespace qk {
 
 	class GLSLShader: public Object {
 	public:
+		struct Attr {
+			cChar *name;
+			GLint size;
+			GLenum type;
+			GLsizei stride;
+			const GLvoid *pointer;
+		};
 		Qk_DEFINE_PROP_GET(GLuint, shader);
 		Qk_DEFINE_PROP_GET(GLuint, root_matrix);
-		Qk_DEFINE_PROP_GET(GLuint, vertex_in); // glEnableVertexAttribArray
+		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
+		Qk_DEFINE_PROP_GET(GLuint, vao);
+		Qk_DEFINE_PROP_GET(GLuint, vbo);
 		virtual void build() = 0;
+		void use(GLsizeiptr size, const GLvoid* data);
 	protected:
 		GLSLShader();
 		void compile(
 			cChar* name,
 			cChar* vertexShader, cChar* fragmentShader,
-			cChar* attributes, cChar* uniforms, GLuint *storeLocation
+			const Array<Attr> &attributes,
+			cChar* uniforms, GLuint *storeLocation
 		);
 	};
 

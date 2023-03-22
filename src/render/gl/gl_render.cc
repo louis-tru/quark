@@ -46,36 +46,38 @@ namespace qk {
 	}
 
 	bool checkIsSupportMultisampled() {
-		String extensions = (const char*)glGetString(GL_EXTENSIONS);
+		String VENDOR = (const char*)glGetString(GL_VENDOR);
+		String RENDERER = (const char*)glGetString(GL_RENDERER);
 		String version = (const char*)glGetString(GL_VERSION);
-		bool ok = false;
+		String extensions = (const char*)glGetString(GL_EXTENSIONS);
 
-		Qk_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
-		Qk_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
-		Qk_DEBUG("OGL Info: %s", *version);
-		Qk_DEBUG("OGL Info: %s", *extensions);
+		Qk_DEBUG("OGL VENDOR: %s", *VENDOR);
+		Qk_DEBUG("OGL RENDERER: %s", *RENDERER);
+		Qk_DEBUG("OGL VERSION: %s", *version);
+		Qk_DEBUG("OGL EXTENSIONS: %s", *extensions);
+		
+		String str = String::format("%s %s %s %s", *VENDOR, *RENDERER, *version, *extensions);
 
-		for (auto s : {"OpenGL ES ", "OpenGL "}) {
-			int idx = version.index_of(s);
+		for (auto s : {"OpenGL ES", "OpenGL", "OpenGL Entity"}) {
+			int idx = str.index_of(s);
 			if (idx != -1) {
-				int num = version.substr(idx + 10, 1).to_number<int>();
+				int num = str.substr(idx + strlen(s)).trim().substr(0,1).to_number<int>();
 				if (num > 2)
-					ok = true;
-				else
-					ok = extensions.index_of( "multisample" ) != -1;
-				if (ok)
-					break;
+					return true;
+				else if (extensions.index_of( "multisample" ) != -1)
+					return false;
 			}
 		}
 
-		if (version.index_of("Metal ") != -1)
-			ok = true;
+		if (version.index_of("Metal") != -1) {
+			return true;
+		}
 		
-		return ok;
+		return false;
 	}
 
-	GLRender::GLRender(Application* host, bool independentThread)
-		: Render(host, independentThread)
+	GLRender::GLRender(Application* host)
+		: Render(host)
 		, _frame_buffer(0), _msaa_frame_buffer(0)
 		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0),_aa_tex(0)
 		,_is_support_multisampled(false), _raster(false)
@@ -129,10 +131,7 @@ namespace qk {
 		return this;
 	}
 
-	void GLRender::reload(Vec2 size, Mat4& root) {
-		int width = size.x();
-		int height = size.y();
-
+	void GLRender::reload(int width, int height, Mat4& root) {
 		Qk_ASSERT(width, "Invalid viewport size width");
 		Qk_ASSERT(height, "Invalid viewport size height");
 
@@ -141,7 +140,7 @@ namespace qk {
 		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer); // bind frame buffer
 		setRenderBuffer(width, height);
 
-		if (_opts.msaaSampleCnt > 1) {
+		if (_opts.msaaSampleCnt > 1 && !_IsDeviceMsaa) {
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
 
 			do { // enable multisampling
@@ -156,15 +155,16 @@ namespace qk {
 			} while (_opts.msaaSampleCnt > 1);
 		}
 
-		if (_opts.msaaSampleCnt <= 1) {
+		if (!_IsDeviceMsaa) { // no device msaa
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
 			setAntiAlias(width, height);
+			setDepthBuffer(width, height);
 		}
 
 		setStencilBuffer(width, height, _opts.msaaSampleCnt);
 
-		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0 };
-		glDrawBuffers(1, buffers);
+		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(_IsDeviceMsaa ? 1: 2, buffers);
 
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
 			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
@@ -197,15 +197,18 @@ namespace qk {
 
 	void GLRender::setAntiAlias(int width, int height) {
 		// set anti alias texture buffer
-		//glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE31);
 		glBindTexture(GL_TEXTURE_2D, _aa_tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width * 2, height * 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _aa_tex, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		// glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	void GLRender::setDepthBuffer(int width, int height) {
 		// set depth buffer
 		glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
@@ -219,43 +222,13 @@ namespace qk {
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
-		Qk_ASSERT(width, "Invalid Renderbuffer size width");
-		Qk_ASSERT(height, "Invalid Renderbuffer size height");
 #endif
-		
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		// update all shader root matrix
 		for (auto shader: _shaders) {
 			glUseProgram(shader->shader());
 			glUniformMatrix4fv( shader->root_matrix(), 1, GL_TRUE, root.val );
-		}
-	}
-
-	void GLRender::begin() {
-	}
-
-	void GLRender::submit() {
-		if (_opts.msaaSampleCnt > 1) {
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
-			auto region = _host->display()->surface_region();
-			auto w = region.size.x(), h = region.size.x();
-			glBlitFramebuffer(0, 0, w, h,
-												0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-#if !Qk_OSX
-			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
-#endif
-			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			present();
-			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
-		} else {
-#if !Qk_OSX
-			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
-#endif
-			present();
 		}
 	}
 

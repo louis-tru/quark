@@ -41,18 +41,16 @@ namespace qk {
 	public:
 		virtual ~GLRender();
 		virtual Object* asObject() override;
-		virtual void reload(Vec2 size, Mat4& root) override;
-		virtual void begin() override;
-		virtual void submit() override;
-		virtual void present() = 0;
+		virtual void reload(int w, int h, Mat4& root) override;
 		virtual GLuint setTexture(cPixel *src, GLuint id) override;
 		virtual void deleteTextures(const GLuint *IDs, GLuint count) override;
 	protected:
-		GLRender(Application* host, bool independentThread);
+		GLRender(Application* host);
 		virtual void setRenderBuffer(int width, int height);
 		virtual void setStencilBuffer(int width, int height, int MSAASample);
 		virtual void setMSAABuffer(int width, int height, int MSAASample);
 		virtual void setAntiAlias(int width, int height);
+		virtual void setDepthBuffer(int width, int height);
 		void setRootMatrix(Mat4& root);
 		GLuint _frame_buffer,_msaa_frame_buffer;
 		GLuint _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer;

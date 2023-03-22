@@ -53,6 +53,7 @@ class QkAppleRender {
 public:
 	virtual UIView* make_surface_view(CGRect rect) = 0;
 	virtual qk::Render* render() = 0;
+	virtual void refresh_surface_region() = 0;
 };
 
 @protocol QkIMEHelprt<NSObject>
@@ -79,8 +80,6 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host);
 	@property (strong, nonatomic) UIWindow *window;
 	@property (strong, nonatomic) UIView *surface_view; // strong
 	@property (strong, nonatomic) id<QkIMEHelprt> ime; // strong
-	// methods
-	- (void)refresh_surface_region;
 @end
 
 #endif
