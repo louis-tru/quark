@@ -39,13 +39,13 @@ namespace qk {
 
 	class Qk_EXPORT FontStyle {
 	public:
-		constexpr FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
+		/*constexpr */FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
 			(Int32::limit(int(weight), int(TextWeight::INHERIT), int(TextWeight::ExtraBlack))) +
 			(Int32::limit(int(width), int(TextWidth::UltraCondensed), int(TextWidth::UltraExpanded)) << 16) +
 			(Int32::limit(int(slant) - 1, 0, 2) << 24)
 		) {}
 
-		constexpr FontStyle(): FontStyle{TextWeight::DEFAULT, TextWidth::DEFAULT, TextSlant::NORMAL} {}
+    FontStyle(): FontStyle{TextWeight::DEFAULT, TextWidth::DEFAULT, TextSlant::NORMAL} {}
 
 		bool operator==(const FontStyle& rhs) const {
 			return _value == rhs._value;
@@ -56,16 +56,16 @@ namespace qk {
 		TextSlant slant() const { return TextSlant(((_value >> 24) & 0xFF) + 1); }
 		inline int32_t value() const { return _value; }
 
-		static constexpr FontStyle Normal() {
+		static FontStyle Normal() {
 			return FontStyle(TextWeight::DEFAULT, TextWidth::DEFAULT, TextSlant::DEFAULT);
 		}
-		static constexpr FontStyle Bold() {
+		static FontStyle Bold() {
 			return FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::DEFAULT);
 		}
-		static constexpr FontStyle Italic() {
+		static FontStyle Italic() {
 			return FontStyle(TextWeight::DEFAULT, TextWidth::DEFAULT, TextSlant::ITALIC );
 		}
-		static constexpr FontStyle BoldItalic() {
+		static FontStyle BoldItalic() {
 			return FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::ITALIC );
 		}
 
