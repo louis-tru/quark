@@ -46,67 +46,68 @@ namespace qk {
 		return Qk_MIN(n, 8);
 	}
 
-	Render::Render(Application* host)
-		: _host(host)
-		, _opts(host->options())
+	RenderDevice::RenderDevice(Options opts, Delegate *delegate)
+		: _opts(opts)
 		, _canvas(nullptr)
+		, _delegate(delegate)
+		, _default_scale(1)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
 		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
 		//_opts.stencilBits = integerExp(Qk_MIN(Qk_MAX(_opts.stencilBits, 8), 16));
 	}
 
-	Render::~Render() {
+	RenderDevice::~RenderDevice() {
 	}
 
-	void Render::activate(bool isActive) {
+	void RenderDevice::activate(bool isActive) {
 	}
 
-	void Render::visitView(View* v) {
+	void RenderDevice::visitView(View* v) {
 		// TODO ...
 	}
 
-	void Render::visitBox(Box* box) {
+	void RenderDevice::visitBox(Box* box) {
 		// TODO ...
 	}
 
-	void Render::visitImage(Image* image) {
+	void RenderDevice::visitImage(Image* image) {
 		// TODO ...
 	}
 
-	void Render::visitVideo(Video* video) {
+	void RenderDevice::visitVideo(Video* video) {
 		// TODO ...
 	}
 
-	void Render::visitScroll(Scroll* scroll) {
+	void RenderDevice::visitScroll(Scroll* scroll) {
 		// TODO ...
 	}
 
-	void Render::visitInput(Input* input) {
+	void RenderDevice::visitInput(Input* input) {
 		// TODO ...
 	}
 
-	void Render::visitTextarea(Textarea* textarea) {
+	void RenderDevice::visitTextarea(Textarea* textarea) {
 		// TODO ...
 	}
 
-	void Render::visitButton(Button* btn) {
+	void RenderDevice::visitButton(Button* btn) {
 		// TODO ...
 	}
 
-	void Render::visitTextLayout(TextLayout* text) {
+	void RenderDevice::visitTextLayout(TextLayout* text) {
 		// TODO ...
 	}
 
-	void Render::visitLabel(Label* label) {
+	void RenderDevice::visitLabel(Label* label) {
 		// TODO ...
 	}
 
-	void Render::visitRoot(Root* root) {
-    glClearColor(1, 1, 1, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+	void RenderDevice::visitRoot(Root* root) {
+		_canvas->clearColor(Color4f(1,0,0));
+		//_canvas->drawColor(Color4f(1,0,0));
 
-		auto size = _host->display()->size();
+		auto size = shared_app()->display()->size();
 
 		Paint paint;
 		paint.color = Color4f(1, 0, 1, 0.5);
@@ -129,17 +130,33 @@ namespace qk {
 		paint.color = Color4f(0, 0, 1, 0.5);
 
 		_canvas->drawPath(Path::Circle(Vec2(300), 100), paint);
+		
+		paint.color = Color4f(1, 0, 0, 0.8);
+		
+		_canvas->drawPath(Path::Oval({Vec2(200, 100), Vec2(100, 200)}), paint);
+		
+		paint.color = Color4f(0, 1, 0, 0.8);
+		
+		_canvas->drawPath(Path::Arc({Vec2(400, 100), Vec2(200, 100)}, 0, 4.5, 1), paint);
+		
+		paint.color = Color4f(1, 0, 1, 0.8);
+		
+		_canvas->drawPath(Path::Arc({Vec2(450, 250), Vec2(200, 100)}, 4.5, 4, 0), paint);
+		
+		paint.color = Color4f(0, 0, 0, 0.8);
+		
+		_canvas->drawPath(Path::Arc({Vec2(450, 300), Vec2(100, 200)}, 3, 4, 1), paint);
 	}
 
-	void Render::visitFloatLayout(FloatLayout* flow) {
+	void RenderDevice::visitFloatLayout(FloatLayout* flow) {
 		// TODO ...
 	}
 
-	void Render::visitFlowLayout(FlowLayout* flow) {
+	void RenderDevice::visitFlowLayout(FlowLayout* flow) {
 		// TODO ...
 	}
 
-	void Render::visitFlexLayout(FlexLayout* flex) {
+	void RenderDevice::visitFlexLayout(FlexLayout* flex) {
 		// TODO ...
 	}
 

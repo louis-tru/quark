@@ -51,16 +51,19 @@ namespace qk {
 			kDifference_ClipOp,
 			kIntersect_ClipOp,
 		};
-		virtual void setMatrix(const Mat& mat) = 0;
 		virtual int  save() = 0;
-		virtual void restore() = 0;
+		virtual void restore(uint32_t count = 1) = 0;
 		virtual int  getSaveCount() const = 0;
-		virtual void restoreToCount(int saveCount) = 0;
-		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) = 0;
+		virtual const Mat& getMatrix() const = 0;
+		virtual void setMatrix(const Mat& mat) = 0;
+		virtual void translate(float x, float y) = 0;
+		virtual void scale(float x, float y) = 0;
+		virtual void rotate(float z) = 0; // arc rotation
+		virtual bool readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) = 0;
 		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) = 0;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) = 0;
-		virtual void drawColor(const Color4f& color, BlendMode mode = kSrcOver_BlendMode);
-		virtual void drawPaint(const Paint& paint) = 0;
+		virtual void clearColor(const Color4f& color) = 0;
+		virtual void drawColor(const Color4f& color, BlendMode mode = kSrcOver_BlendMode) = 0;
 		virtual void drawRect(const Rect& rect, const Paint& paint);
 		virtual void drawPath(const Path& path, const Paint& paint) = 0;
 		virtual void drawOval(const Rect& oval, const Paint& paint);

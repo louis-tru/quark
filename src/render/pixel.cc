@@ -75,7 +75,7 @@ namespace qk {
 			case kColor_Type_YUV420P_U_8: return 1;
 			case kColor_Type_YUV420SP_Y_8: return 1;
 			case kColor_Type_YUV420SP_UV_88: return 2;
-			default: return 1;
+			default: return 0; // Invalid is compressed format
 		}
 	}
 

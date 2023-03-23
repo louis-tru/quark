@@ -38,7 +38,6 @@ extern QkApplicationDelegate* __appDelegate;
 
 // ------------------- OpenGL ------------------
 #if Qk_ENABLE_GL && Qk_OSX
-class AppleGLRender;
 
 @interface GLView: NSOpenGLView
 {
@@ -46,7 +45,7 @@ class AppleGLRender;
 	List<Cb>         _message;
 	Mutex            _mutex;
 }
-@property (assign, nonatomic) qk::Application *host;
+@property (assign, nonatomic) qk::Render *render;
 @property (assign, nonatomic) NSOpenGLContext *ctx;
 @end
 
@@ -61,7 +60,8 @@ class AppleGLRender;
 	}
 	- (void) update {
 		[super update];
-		__appDelegate.render->refresh_surface_region();
+		if (self.render)
+			self.render->reload();
     Qk_DEBUG("NSOpenGLView::update");
 	}
 	- (void) prepareOpenGL {
@@ -88,23 +88,40 @@ class AppleGLRender;
 																				void* view)
 	{
 		auto v = (__bridge GLView*)view;
+		auto lock = [&]() {
+			CGLLockContext(v.ctx.CGLContextObj);
+			[v.ctx makeCurrentContext];
+			Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 3");
+		};
+		auto unlock = [&](){
+			CGLUnlockContext(v.ctx.CGLContextObj);
+		};
+
+		List<Cb> msg;
 		{ //
-			ScopeLock lock(v->_mutex);
-			if (v->_message.length()) {
-				List<Cb> msg(std::move(v->_message));
-				for ( auto& i : msg ) {
-					i->resolve();
-				}
-			}
+			v->_mutex.lock();
+			if (v->_message.length())
+				msg = std::move(v->_message);
+			v->_mutex.unlock();
+		}
+		
+		auto del = v.render->delegate();
+
+		if (msg.length()) {
+			lock();
+			for ( auto& i : msg )
+				i->resolve();
+			
+			if (del->onRenderDevicePreDisplay())
+				del->onRenderDeviceDisplay();
+			unlock();
+		}
+		else if (del->onRenderDevicePreDisplay()) {
+			lock();
+			del->onRenderDeviceDisplay();
+			unlock();
 		}
 
-		if (v.host->display()->pre_render()) {
-			CGLLockContext(v.ctx.CGLContextObj);
-      [v.ctx makeCurrentContext];
-      Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 3");
-			v.host->display()->render();
-			CGLUnlockContext(v.ctx.CGLContextObj);
-		}
 		return kCVReturnSuccess;
 	}
 
@@ -121,13 +138,12 @@ class AppleGLRender;
 
 class AppleGLRender: public GLRender, public QkAppleRender {
 public:
-	AppleGLRender(Application* host, NSOpenGLContext *ctx)
-		: GLRender(host), _ctx(ctx)
+	AppleGLRender(Options opts, NSOpenGLContext *ctx, Delegate *delegate)
+		: GLRender(opts, delegate), _ctx(ctx)
 	{}
 
 	~AppleGLRender() {
 		[_view stopDisplay];
-		[NSOpenGLContext clearCurrentContext];
 	}
 
 	Render* render() override {
@@ -138,28 +154,43 @@ public:
 		return [_view post_message:cb delay_us:delay_us];
 	}
 
-	void refresh_surface_region() override {
-	 CGSize size = _view.frame.size;
-	 float scale = _view.window.backingScaleFactor;
-	 float x = size.width * scale;
-	 float y = size.height * scale;
-		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} }, scale);
-  }
-	
-  void reload(int w, int h, Mat4 &root) override {
+	Vec2 getSurfaceSize() override {
+		CGSize size = _view.frame.size;
+		_default_scale = _view.window.backingScaleFactor;
+		float w = size.width * _default_scale;
+		float h = size.height * _default_scale;
+		_surface_size = Vec2(w,h);
+		return _surface_size;
+	}
+
+	float getDefaultScale() override {
+		_default_scale = _view.window.backingScaleFactor;
+		return _default_scale;
+	}
+
+	void reload() override {
+		auto size = getSurfaceSize();
+		Mat4 mat;
+		if (!_delegate->onRenderDeviceReload({ Vec2{0,0},size}, size, _default_scale, &mat))
+			return;
+
 		CGLLockContext(_ctx.CGLContextObj);
-		glViewport(0, 0, w, h);
+		[_ctx makeCurrentContext];
+
+		glViewport(0, 0, size.x(), size.y());
 
 		if (!_IsDeviceMsaa) { // no device msaa
 			glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
-			setAntiAlias(w, h);
+			setAntiAlias(size.x(), size.y());
 		}
 		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 		glDrawBuffers(_IsDeviceMsaa ? 1: 2, buffers);
+		
+		setRootMatrix(mat);
 
-		setRootMatrix(root);
+		[NSOpenGLContext clearCurrentContext]; // clear ctx
 		CGLUnlockContext(_ctx.CGLContextObj);
-	}
+  }
 
 	void begin() override {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -171,11 +202,10 @@ public:
 	}
 
 	UIView* make_surface_view(CGRect rect) override {
-		[_ctx makeCurrentContext];
-		Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 2");
+		Qk_ASSERT(!_view);
 
 		_view = [[GLView alloc] initWithFrame:rect shareContext:_ctx];
-		_view.host = _host;
+		_view.render = this;
 		_view.ctx = _ctx;
 		_view.wantsBestResolutionOpenGLSurface = YES; // Enable retina-support
 		_view.wantsLayer = YES; // Enable layer-backed drawing of view
@@ -201,8 +231,8 @@ private:
 	NSOpenGLContext   *_ctx;
 };
 
-QkAppleRender* makeAppleGLRender(Application* host) {
-	
+QkAppleRender* qk_make_apple_gl_render(Render::Options opts, Render::Delegate *delegate) {
+
 	//	generate the GL display mask for all displays
 	CGDirectDisplayID		dspys[10];
 	CGDisplayCount			count = 0;
@@ -213,7 +243,7 @@ QkAppleRender* makeAppleGLRender(Application* host) {
 			glDisplayMask = glDisplayMask | CGDisplayIDToOpenGLDisplayMask(dspys[i]);
 	}
 	
-	uint32_t MSAA = host->options().msaaSampleCnt;
+	uint32_t MSAA = opts.msaaSampleCnt;
 	uint32_t i = 0;
 	NSOpenGLPixelFormatAttribute attrs[32] = {0};
 	
@@ -240,18 +270,22 @@ QkAppleRender* makeAppleGLRender(Application* host) {
 
 	auto format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
 	auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
-
-	[ctx makeCurrentContext];
-	Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
+	auto prev = NSOpenGLContext.currentContext;
 
 	//GLint stencilBits;
 	//[ctx.pixelFormat getValues:&stencilBits forAttribute:NSOpenGLPFAStencilSize forVirtualScreen:0];
 	//GLint sampleCount;
 	//[ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
-	
+
 	CGLLockContext(ctx.CGLContextObj);
-	auto render = new AppleGLRender(host, ctx);
+	[ctx makeCurrentContext];
+	Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
+	auto render = new AppleGLRender(opts, ctx, delegate);
 	CGLUnlockContext(ctx.CGLContextObj);
+	[NSOpenGLContext clearCurrentContext]; // clear ctx
+
+	if (prev)
+		[prev makeCurrentContext];
 
 	return render;
 }

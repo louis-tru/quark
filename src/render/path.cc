@@ -130,8 +130,8 @@ namespace qk {
 
 	void Path::arcTo(const qk::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
 
-		float rx = r.size.x() / 2.0f;
-		float ry = r.size.y() / 2.0f;
+		float rx = r.size.x() * 0.5f;
+		float ry = r.size.y() * 0.5f;
 		float cx = r.origin.x() + rx;
 		float cy = r.origin.y() + ry;
 
@@ -154,20 +154,22 @@ namespace qk {
 			moveTo(start);
 		}
 
-		for (int i = 0; i < n; i++) {
+		for (int i = 0, j = n; i < j; i++) {
 			startAngle -= sweep;
 			float x3 = cosf(startAngle);
 			float y3 = sinf(startAngle);
-			float x1 = x0 - magic * y0;
-			float y1 = y0 + magic * x0;
-			float x2 = x3 + magic * y3;
-			float y2 = y3 - magic * x3;
+			float x1 = x0 + magic * y0;
+			float y1 = y0 - magic * x0;
+			float x2 = x3 - magic * y3;
+			float y2 = y3 + magic * x3;
 			float pts[] = {
 				x1 * rx + cx, y1 * ry + cy, // p1
 				x2 * rx + cx, y2 * ry + cy, // p2
 				x3 * rx + cx, y3 * ry + cy  // p3
 			};
 			cubicTo2(pts);
+			x0 = x3;
+			y0 = y3;
 		}
 
 		if (useCenter) {
@@ -438,13 +440,13 @@ namespace qk {
 		// calculate triangle area by point cross multiplication
 
 		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x()) + (C.x()*A.y() - C.y()*A.x());
-		float S_2 = S_ABC * epsilon; // *0.5
+		float S_2 = abs(S_ABC); // *0.5
 
 		if (S_2 < 5000.0) {
-			constexpr float count = 24.0 / 8.408964152537145;
-			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
+			constexpr float count = 22.0 / 8.408964152537145;
+			int i = Uint32::max(sqrt_sqrtf(S_2) * count * epsilon, 2);
 		} else {
-			return 24;
+			return 22;
 		}
 	}
 
@@ -464,14 +466,14 @@ namespace qk {
 
 		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x());// + (C.x()*A.y() - C.y()*A.x());
 		float S_CDA = (C.x()*D.y() - C.y()*D.x()) + (D.x()*A.y() - D.y()*A.x());// + (A.x()*C.y() - A.y()*C.x());
-		float S_2 = (S_ABC + S_CDA) * epsilon; // S = S_2 * 0.5
+		float S_2 = abs(S_ABC + S_CDA); // S = S_2 * 0.5
 
 		if (S_2 < 5000.0) { // circle radius < 80
 			constexpr float count = 30.0 / 8.408964152537145;//sqrtf(sqrtf(5000.0));
-			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
+			int i = Uint32::max(sqrt_sqrtf(S_2) * count * epsilon, 2);
 			return i;
 		} else {
-			return 30.0;
+			return 30;
 		}
 	}
 

@@ -37,6 +37,7 @@
 #include "./types.h"
 #include "./util/cb.h"
 #include "./util/loop.h"
+#include "./render/render.h"
 
 namespace qk {
 	class Application;
@@ -44,7 +45,7 @@ namespace qk {
 	/**
 	 * @class Display Provide some common method properties and events for display and screen
 	*/
-	class Qk_EXPORT Display: public Reference {
+	class Qk_EXPORT Display: public Reference, public RenderDevice::Delegate {
 		Qk_HIDDEN_ALL_COPY(Display);
 	public:
 
@@ -198,17 +199,6 @@ namespace qk {
 		bool set_surface_region(RegionSize region, float defaultScale);
 
 		/**
-		 * pre render
-		 * @thread render
-		 */
-		bool pre_render(); //!< call from render loop
-
-		/**
-		 * @thread render
-		 */
-		void render(); //!< call from render loop
-		
-		/**
 		 * @method default_atom_pixel
 		*/
 		static float default_atom_pixel();
@@ -219,12 +209,16 @@ namespace qk {
 		static float default_status_bar_height();
 
 	private:
-		void updateState(void *lock);
+		void updateState(void *lock, Mat4 *mat);
 		void solve_next_frame();
+		bool onRenderDeviceReload(Region region, Vec2 size,
+															float defaultScale, Mat4 *mat) override;
+		bool onRenderDevicePreDisplay() override;
+		void onRenderDeviceDisplay() override;
 
 		// member data
 		Application*      _host;
-		Vec2              _set_size;  //!< Lock the size of the viewport
+		Vec2              _lock_size;  //!< Lock the size of the viewport
 		Vec2              _size;   //!< current viewport size
 		//!< display scale, the larger the value, the smaller the size and the less content displayed
 		float             _scale;
@@ -235,6 +229,7 @@ namespace qk {
 		int64_t           _next_fsp_time;
 		Array<RegionSize> _clip_region;
 		RegionSize        _surface_region; //!< Select the area on the drawing surface
+		bool              _lock_size_mark;
 	};
 
 }

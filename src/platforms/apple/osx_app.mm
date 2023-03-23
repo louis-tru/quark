@@ -132,7 +132,7 @@ QkApplicationDelegate* __appDelegate = nil;
 		if (!_is_pause) return;
 		_is_pause = NO;
 		Inl_Application(_host)->triggerResume();
-		self.render->refresh_surface_region();
+		_host->render()->reload();
 		Qk_DEBUG("applicationDidBecomeActive, triggerResume");
 	}
 
@@ -171,8 +171,8 @@ QkApplicationDelegate* __appDelegate = nil;
 
 	- (void)windowDidMiniaturize:(NSNotification*)notification {
 		if (_is_background) return;
-		[self applicationWillResignActive:notification];
 		_is_background = YES;
+		[self applicationWillResignActive:notification];
 		Inl_Application(_host)->triggerBackground();
 		Qk_DEBUG("windowDidMiniaturize, triggerBackground");
 	}

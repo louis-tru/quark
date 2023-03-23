@@ -79,6 +79,12 @@ namespace qk {
 		);
 	};
 
+	class GLSLClear: public GLSLShader {
+	public:
+		Qk_DEFINE_PROP_GET(GLuint, color);
+		virtual void build() override;
+	};
+
 	class GLSLColor: public GLSLShader {
 	public:
 		Qk_DEFINE_PROP_GET(GLuint, color);

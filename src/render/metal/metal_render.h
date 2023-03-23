@@ -52,7 +52,7 @@ namespace qk {
 		virtual void onBegin() = 0;
 		virtual void onSubmit() = 0;
 	protected:
-		MetalRender(Application* host, bool renderIsolate);
+		MetalRender(Options opts, Delegate *delegate);
 		MTKView*            _view;
 		CAMetalLayer*       _layer;
 		id<MTLDevice>       _device;

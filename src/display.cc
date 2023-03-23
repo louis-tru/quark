@@ -34,38 +34,42 @@
 #include "./layout/root.h"
 #include "./render/render.h"
 
+#ifndef PRINT_RENDER_FRAME_TIME
+# define PRINT_RENDER_FRAME_TIME 0
+#endif
+
 namespace qk {
 
 	Display::Display(Application* host)
 		: Qk_Init_Event(Change), Qk_Init_Event(Orientation)
 		, _host(host)
-		, _set_size()
+		, _lock_size()
 		, _size(), _scale(1)
 		, _atom_pixel(1)
 		, _default_scale(0)
 		, _fsp(0)
 		, _next_fsp(0)
-		, _next_fsp_time(0), _surface_region()
+		, _next_fsp_time(0), _surface_region(), _lock_size_mark(false)
 	{
 		_clip_region.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 	}
 
 	Display::~Display() {}
 
-	void Display::updateState(void *lock) { // Lock before calling
+	void Display::updateState(void *lock, Mat4 *mat) { // Lock before calling
     auto _lock = static_cast<UILock*>(lock);
 		Vec2 size = surface_size();
 		float width = size.x();
 		float height = size.y();
 
-		if (_set_size.x() == 0 && _set_size.y() == 0) { // Use the system default most suitable size
+		if (_lock_size.x() == 0 && _lock_size.y() == 0) { // Use the system default most suitable size
 			_size = { width / _default_scale, height / _default_scale };
 		}
-		else if (_set_size.x() != 0) { // lock width
-			_size = { _set_size.x(), _set_size.x() / width * height };
+		else if (_lock_size.x() != 0) { // lock width
+			_size = { _lock_size.x(), _lock_size.x() / width * height };
 		}
-		else if (_set_size.y() != 0) { // lock height
-			_size = { _set_size.y() / height * width, _set_size.y() };
+		else if (_lock_size.y() != 0) { // lock height
+			_size = { _lock_size.y() / height * width, _lock_size.y() };
 		}
 		else { // Use the system default most suitable size
 			_size = { width / _default_scale, height / _default_scale };
@@ -88,13 +92,8 @@ namespace qk {
     auto region = _surface_region;
     Vec2 start = Vec2(-region.origin.x() / _scale, -region.origin.y() / _scale);
     Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
-    auto matrix = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
-    // root_matrix.transpose();
-    _lock->unlock();
-    _host->render()->reload(region.size.x(), region.size.y(), matrix);
+    *mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
-    // update root, Locked security call
-    _lock->lock();
     _host->root()->onDisplayChange();
     
     Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
@@ -103,68 +102,14 @@ namespace qk {
 	void Display::set_size(float width, float height) {
 		if (width >= 0.0 && height >= 0.0) {
 			UILock lock(_host);
-			if (_set_size.x() != width || _set_size.y() != height) {
-				_set_size = { width, height };
-				updateState(&lock);
+			if (_lock_size.x() != width || _lock_size.y() != height) {
+				_lock_size = { width, height };
+				_lock_size_mark = true;
+				_host->render()->reload();
 			}
 		} else {
 			Qk_DEBUG("Lock size value can not be less than zero\n");
 		}
-	}
-
-#ifndef PRINT_RENDER_FRAME_TIME
-# define PRINT_RENDER_FRAME_TIME 0
-#endif
-
-	bool Display::pre_render() {
-		UILock lock(_host); // ui main local
-		int64_t now_time = time_monotonic();
-		// _host->action_direct()->advance(now_time); // advance action
-		if (_host->pre_render()->solve(now_time))
-			return true;
-		solve_next_frame();
-		return false;
-	}
-
-	void Display::render() { // Must be called in the render loop
-		UILock lock(_host); // ui main local
-		int64_t now_time = time_monotonic();
-    
-    Qk_DEBUG("Display::render()");
-
-		if (now_time - _next_fsp_time >= 1e6) { // 1s
-			_fsp = _next_fsp;
-			_next_fsp = 0;
-			_next_fsp_time = now_time;
-			Qk_DEBUG("fps: %d", _fsp);
-		}
-		_next_fsp++;
-
-		_host->render()->begin(); // ready render
-		_host->root()->accept(_host->render()); // start drawing
-
-		solve_next_frame(); // solve frame
-
-#if DEBUG && PRINT_RENDER_FRAME_TIME
-		int64_t st = time_micro();
-#endif
-		/*
-		 * submit() is very time-consuming, and the rendering thread occupying `UILock` for a long time will plunge the main thread.
-		 * So the release of `UILock`submit() here is mainly a function call related to drawing,
-		 * If you can ensure that the drawing function calls are all in the rendering thread, then there will be no security issues.
-		 */
-		lock.unlock(); //
-
-		_host->render()->submit(); // commit render cmd
-
-#if DEBUG && PRINT_RENDER_FRAME_TIME
-		int64_t ts2 = (time_micro() - st) / 1e3;
-		if (ts2 > 16) {
-			Qk_LOG("ts: %ld -------------- ", ts2);
-		} else {
-			Qk_LOG("ts: %ld", ts2);
-		}
-#endif
 	}
 
 	void Display::push_clip_region(Region clip) {
@@ -226,27 +171,77 @@ namespace qk {
 		}
 	}
 
-	bool Display::set_surface_region(RegionSize region, float defaultScale) {
-		if (region.size.x() != 0 && region.size.y() != 0 && defaultScale != 0) {
-      Qk_DEBUG("Display::set_surface_region");
+	bool Display::onRenderDeviceReload(Region region, Vec2 size, float defaultScale, Mat4 *mat) {
+		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
+			Qk_DEBUG("Display::onDeviceReload");
 			UILock lock(_host);
-			if (  _surface_region.origin.x() != region.origin.x()
+			if ( _lock_size_mark
+			  || _surface_region.origin.x() != region.origin.x()
 				||	_surface_region.origin.y() != region.origin.y()
 				||	_surface_region.end.x() != region.end.x()
 				||	_surface_region.end.y() != region.end.y()
-				||	_surface_region.size.x() != region.size.x()
-				||	_surface_region.size.y() != region.size.y()
+				||	_surface_region.size.x() != size.x()
+				||	_surface_region.size.y() != size.y()
 				||  _default_scale != defaultScale
 			) {
-				_surface_region = region;
+				_surface_region = { region.origin, region.end, size };
 				_default_scale = defaultScale;
-        updateState(&lock);
+				updateState(&lock, mat);
 				return true;
-      } else {
-        _host->root()->onDisplayChange();
-      }
-    }
+			} else {
+				_host->root()->onDisplayChange();
+			}
+		}
 		return false;
+	}
+
+	bool Display::onRenderDevicePreDisplay() {
+		UILock lock(_host); // ui main local
+		if (_host->pre_render()->solve())
+			return true;
+		solve_next_frame();
+		return false;
+	}
+
+	void Display::onRenderDeviceDisplay() {
+		UILock lock(_host); // ui main local
+		int64_t now_time = time_monotonic();
+		
+		Qk_DEBUG("Display::render()");
+
+		if (now_time - _next_fsp_time >= 1e6) { // 1s
+			_fsp = _next_fsp;
+			_next_fsp = 0;
+			_next_fsp_time = now_time;
+			Qk_DEBUG("fps: %d", _fsp);
+		}
+		_next_fsp++;
+
+		_host->render()->begin(); // ready render
+		_host->root()->accept(_host->render()); // start drawing
+
+		solve_next_frame(); // solve frame
+
+#if DEBUG && PRINT_RENDER_FRAME_TIME
+		int64_t st = time_micro();
+#endif
+		/*
+		 * submit() is very time-consuming, and the rendering thread occupying `UILock` for a long time will plunge the main thread.
+		 * So the release of `UILock`submit() here is mainly a function call related to drawing,
+		 * If you can ensure that the drawing function calls are all in the rendering thread, then there will be no security issues.
+		 */
+		lock.unlock(); //
+
+		_host->render()->submit(); // commit render cmd
+
+#if DEBUG && PRINT_RENDER_FRAME_TIME
+		int64_t ts2 = (time_micro() - st) / 1e3;
+		if (ts2 > 16) {
+			Qk_LOG("ts: %ld -------------- ", ts2);
+		} else {
+			Qk_LOG("ts: %ld", ts2);
+		}
+#endif
 	}
 
 }

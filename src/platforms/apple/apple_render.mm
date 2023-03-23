@@ -65,7 +65,7 @@ uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
 
 class AppleMetalRender: public MetalRender, public QkAppleRender {
 public:
-	AppleMetalRender(Application* host): MetalRender(hos)
+	AppleMetalRender(Options opts, Delegate *delegate): MetalRender(opts,delegate)
 	{}
 	UIView* make_surface_view(CGRect rect) override {
 		_view = [[MTKView alloc] initWithFrame:rect device:nil];
@@ -78,23 +78,25 @@ public:
 };
 #endif
 
-// ------------------- OpenGL ------------------
-#if Qk_ENABLE_GL
-QkAppleRender* makeAppleGLRender(Application* host);
-#endif
 
-Render* Render::Make(Application* host) {
+QkAppleRender* qk_make_apple_gl_render(Render::Options opts, Render::Delegate *delegate);
+
+QkAppleRender* qk_make_apple_render(Render::Options opts, Render::Delegate *delegate) {
 	QkAppleRender* r = nullptr;
 
 #if Qk_ENABLE_METAL
 	if (@available(macOS 10.11, iOS 13.0, *))
-		r = new AppleMetalRender(host);
+		r = new AppleMetalRender(opts,delegate);
 #endif
 #if Qk_ENABLE_GL
 	if (!r)
-		r = makeAppleGLRender(host);
+		r = qk_make_apple_gl_render(opts,delegate);
 #endif
 	Qk_ASSERT(r, "create render object fail");
 
-	return r->render();
+	return r;
+}
+
+Render* Render::Make(Options opts, Delegate *delegate) {
+	return qk_make_apple_render(opts, delegate)->render();
 }

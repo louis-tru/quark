@@ -40,8 +40,8 @@ namespace qk {
 	class Layout;
 
 	/**
-	* @class PreRender 预渲染
-	*/
+	 * @class PreRender
+	 */
 	class Qk_EXPORT PreRender: public Object {
 		Qk_HIDDEN_ALL_COPY(PreRender);
 	public:
@@ -54,7 +54,7 @@ namespace qk {
 			inline Task(): _task_timeout(0) {}
 			virtual ~Task();
 			virtual bool run_task(int64_t sys_time) = 0;
-			void register_task();
+			void register_task(/*PreRender *pre*/);
 			void unregister_task();
 			inline bool is_register_task() const { return _task_id != ID(); }
 			// define props
@@ -65,13 +65,14 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Application*, host);
 
 		/**
-			* @func solve 解决预先渲染问题,如果需要更新视图返回true
-			*/
-		bool solve(int64_t now_time);
+		 * Solve the pre-rendering problem, return true if the view needs to be updated
+		 * @method solve()
+		 */
+		bool solve();
 
 		/**
-			* @func mark
-			*/
+		 * @method mark
+		 */
 		void mark(Layout *layout, uint32_t depth);
 		void delete_mark(Layout *layout, uint32_t depth);
 		void mark_none();
@@ -84,7 +85,7 @@ namespace qk {
 		// member data
 		int32_t _mark_total;
 		List<Task*>  _tasks;
-		Array<Array<Layout*>> _marks; // 被标记的视图
+		Array<Array<Layout*>> _marks; // marked view
 		bool _is_render;
 	};
 

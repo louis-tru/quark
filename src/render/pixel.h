@@ -135,7 +135,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, texture); // gpu texture id
 
 		/**
-		* @func pixel_bit_size()
+		 * @method pixel_bit_size()
 		*/
 		static uint32_t bytes_per_pixel(ColorType type);
 
@@ -150,7 +150,7 @@ namespace qk {
 		Pixel& operator=(Pixel&& pixel);
 
 		/**
-		* Returns image data body
+		 * Returns image data body
 		*/
 		inline  WeakBuffer& body() { return _body; }
 		inline cWeakBuffer& body() const { return _body; }

@@ -76,8 +76,8 @@ namespace qk {
 		return false;
 	}
 
-	GLRender::GLRender(Application* host)
-		: Render(host)
+	GLRender::GLRender(Options opts, Delegate *delegate)
+		: Render(opts, delegate)
 		, _frame_buffer(0), _msaa_frame_buffer(0)
 		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0),_aa_tex(0)
 		,_is_support_multisampled(false), _raster(false)
@@ -91,16 +91,6 @@ namespace qk {
 		// create anti alias texture
 		glGenTextures(1, &_aa_tex);
 
-		glEnable(GL_BLEND);
-		setBlendMode(kSrcOver_BlendMode);
-
-		glClearStencil(0);
-		glStencilMask(0xffffffff);
-		glColorMask(1,1,1,1);
-
-		glDisable(GL_STENCIL_TEST);
-		glDisable(GL_DEPTH_TEST);
-
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
 				_opts.colorType = kColor_Type_RGBA_8888; break;
@@ -112,10 +102,11 @@ namespace qk {
 		}
 
 		if (_raster) {
-			// new raster canvas
+			// TODO new raster canvas
+		} else {
+			_canvas = this;
 		}
-		_canvas = this;
-		
+
 		if (!_is_support_multisampled || _raster) {
 			_opts.msaaSampleCnt = 0;
 		}
@@ -131,20 +122,27 @@ namespace qk {
 		return this;
 	}
 
-	void GLRender::reload(int width, int height, Mat4& root) {
-		Qk_ASSERT(width, "Invalid viewport size width");
-		Qk_ASSERT(height, "Invalid viewport size height");
+	void GLRender::reload() {
+		auto size = getSurfaceSize();
+		Mat4 mat;
+		if (!_delegate->onRenderDeviceReload({Vec2{0,0},size}, size, getDefaultScale(), &mat))
+			return;
 
-		glViewport(0, 0, width, height);
+		auto w = size.x(), h = size.y();
+
+		Qk_ASSERT(w, "Invalid viewport size width");
+		Qk_ASSERT(h, "Invalid viewport size height");
+
+		glViewport(0, 0, w, h);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer); // bind frame buffer
-		setRenderBuffer(width, height);
+		setRenderBuffer(w, h);
 
 		if (_opts.msaaSampleCnt > 1 && !_IsDeviceMsaa) {
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
 
 			do { // enable multisampling
-				setMSAABuffer(width, height, _opts.msaaSampleCnt);
+				setMSAABuffer(w, h, _opts.msaaSampleCnt);
 				// Test the framebuffer for completeness.
 				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
 					if ( _opts.msaaSampleCnt > 1 )
@@ -157,11 +155,11 @@ namespace qk {
 
 		if (!_IsDeviceMsaa) { // no device msaa
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			setAntiAlias(width, height);
-			setDepthBuffer(width, height);
+			setAntiAlias(w, h);
+			setDepthBuffer(w, h);
 		}
 
-		setStencilBuffer(width, height, _opts.msaaSampleCnt);
+		setStencilBuffer(w, h, _opts.msaaSampleCnt);
 
 		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 		glDrawBuffers(_IsDeviceMsaa ? 1: 2, buffers);
@@ -170,7 +168,7 @@ namespace qk {
 			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
 		}
 
-		setRootMatrix(root);
+		setRootMatrix(mat);
 	}
 
 	void GLRender::setRenderBuffer(int width, int height) {

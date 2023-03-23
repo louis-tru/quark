@@ -73,7 +73,7 @@ namespace qk {
 
 	void GLSLShader::compile(
 		cChar* name, cChar* vertexShader, cChar* fragmentShader,
-		const Array<Attr> &attributes, cChar* _uniforms, GLuint *storeLocation)
+		const Array<Attr> &attributes, cChar* uniforms, GLuint *storeLocation)
 	{
 		Qk_ASSERT(!_shader);
 		GLuint vertex_handle =
@@ -118,7 +118,7 @@ namespace qk {
 		// Get Uniform Location index value
 		_root_matrix = glGetUniformLocation(program, "root_matrix");
 		// _view_matrix = glGetUniformLocation(program, "view_matrix");
-		for (auto &i: String(_uniforms).split(",")) {
+		for (auto &i: String(uniforms).split(",")) {
 			if (!i.is_empty()) {
 				*store++ = glGetUniformLocation(program, i.c_str());
 			}
@@ -153,87 +153,97 @@ namespace qk {
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
 	}
 
-	void GLSLColor::build() {
-		compile("color shader",
+	void GLSLClear::build() {
+		compile("clear shader",
 		"\
-			uniform vec4  color;\
-			out     vec4  color_f;\
 			void main() {\
-				color_f = color;\
-				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
+				gl_Position = vec4(vertex_in.xy, 0.0, 1.0);\
 			}\
 		",
 		"\
-			in lowp vec4 color_f;\
+			uniform vec4  color;\
 			void main() {\
-				color_o = color_f;\
+				color_o = color;\
 			}\
 		",
 		{}, "color", &_color);
 	}
 
-	static const char *v_image_shader = "\n\
-		uniform   float     opacity;\n\
-		uniform   vec4      coord;//offset,scale\n\
-		out       float     opacity_f;\n\
-		out       vec2      coord_f;\n\
-		void main() {\n\
-			opacity_f = opacity;\n\
-			coord_f = (vertex_in.xy - coord.xy) * coord.zw;\n\
-			gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\n\
-		}\n\
+	void GLSLColor::build() {
+		compile("color shader",
+		"\
+			void main() {\
+				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
+			}\
+		",
+		"\
+			uniform vec4  color;\
+			void main() {\
+				color_o = color;\
+			}\
+		",
+		{}, "color", &_color);
+	}
+
+	static const char *v_image_shader = "\
+		uniform   vec4      coord;/*offset,scale*/\
+		out       vec2      coord_f;\
+		void main() {\
+			coord_f = (vertex_in.xy - coord.xy) * coord.zw;\
+			gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
+		}\
 	";
 
 	void GLSLImage::build() {
 		compile("image shader", v_image_shader,
-		"\n\
-			in lowp   float     opacity_f;\n\
-			in lowp   vec2      coord_f;\n\
-			uniform   sampler2D image;\n\
-			void main() {\n\
-				color_o = texture(image, coord_f) * vec4(1.0, 1.0, 1.0, opacity_f);\n\
-			}\n\
+		"\
+			in lowp   vec2      coord_f;\
+			uniform   float     opacity;\
+			uniform   sampler2D image;\
+			void main() {\
+				color_o = texture(image, coord_f) * vec4(1.0, 1.0, 1.0, opacity);\
+			}\
 		",
 		{}, "opacity,coord,image", &_opacity);
 	}
 
 	void GLSLImageYUV420P::build() {
 		compile("yuv420p shader", v_image_shader,
-		"\n\
-			in lowp   float     opacity_f;\n\
-			in lowp   vec2      coord_f;\n\
-			uniform   sampler2D image;\n\
-			uniform   sampler2D image_u;\n\
-			uniform   sampler2D image_v;\n\
-			void main() {\n\
-				lowp float y = texture(image, coord_f).r;\n\
-				lowp float u = texture(image_u, coord_f).r;\n\
-				lowp float v = texture(image_v, coord_f).r;\n\
-				color_o = vec4( y + 1.4075 * (v - 0.5),\n\
-												y - 0.3455 * (u - 0.5) - 0.7169 * (v - 0.5),\n\
-												y + 1.779  * (u - 0.5),\n\
-												opacity_f);\n\
-			}\n\
+		"\
+			in lowp   vec2      coord_f;\
+			uniform   float     opacity;\
+			uniform   sampler2D image;\
+			uniform   sampler2D image_u;\
+			uniform   sampler2D image_v;\
+			void main() {\
+				lowp float y = texture(image, coord_f).r;\
+				lowp float u = texture(image_u, coord_f).r;\
+				lowp float v = texture(image_v, coord_f).r;\
+				color_o = vec4( y + 1.4075 * (v - 0.5),\
+												y - 0.3455 * (u - 0.5) - 0.7169 * (v - 0.5),\
+												y + 1.779  * (u - 0.5),\
+												opacity);\
+			}\
 		",
 		{}, "opacity,coord,image,image_u,image_v", &_opacity);
 	}
 
 	void GLSLImageYUV420SP::build() {
 		compile("yuv420sp shader", v_image_shader,
-		"\n\
-			in lowp   float     opacity_f;\n\
-			in lowp   vec2      coord_f;\n\
-			uniform   sampler2D image;\n\
-			uniform   sampler2D image_uv;\n\
-			void main() {\n\
-				lowp float y = texture(image, coord_f).r;\n\
-				lowp float u = texture(image_uv, coord_f).r;\n\
-				lowp float v = texture(image_uv, coord_f).a;\n\
-				color_o = vec4( y + 1.4075 * (v - 0.5),\n\
-												y - 0.3455 * (u - 0.5) - 0.7169 * (v - 0.5),\n\
-												y + 1.779  * (u - 0.5),\n\
-												opacity_f);\n\
-			}\n\
+		"\
+			in lowp   vec2      coord_f;\
+			uniform   float     opacity;\
+			uniform   sampler2D image;\
+			uniform   sampler2D image_uv;\
+			void main() {\
+				lowp float y = texture(image, coord_f).r;\
+				lowp float u = texture(image_uv, coord_f).r;\
+				lowp float v = texture(image_uv, coord_f).a;\
+				color_o = vec4( y + 1.4075 * (v - 0.5),\
+												y - 0.3455 * (u - 0.5) - 0.7169 * (v - 0.5),\
+												y + 1.779  * (u - 0.5),\
+												opacity);\
+			}\
 		",
 		{}, "opacity,coord,image,image_uv", &_opacity);
 	}
@@ -242,49 +252,48 @@ namespace qk {
 
 		const char *v_shader = _type == Paint::kLinear_GradientType ?
 		// kLinear
-		"\n\
-			uniform   vec4      range;//start/end range for rect\n\
-			out       float     position_f;\n\
-			void main() {\n\
-				vec2 ao = range.zw     - range.xy;\n\
-				vec2 bo = vertex_in.xy - range.xy;\n\
-				position_f = clamp(dot(ao,bo) / dot(ao,ao), 0.0, 1.0);\n\
-				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\n\
-			}\n\
+		"\
+			uniform   vec4      range;/*start/end range for rect*/\
+			out       float     position_f;\
+			void main() {\
+				vec2 ao = range.zw     - range.xy;\
+				vec2 bo = vertex_in.xy - range.xy;\
+				position_f = clamp(dot(ao,bo) / dot(ao,ao), 0.0, 1.0);\
+				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
+			}\
 		":
 		// kRadial
-		"\n\
-			uniform   vec4      range;//center/radius for circle\n\
-			out       float     position_f;\n\
-			void main() {\n\
-				position_f = min(1.0, length((vertex_in.xy-range.xy)/range.zw));\n\
-				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\n\
-			}\n\
+		"\
+			uniform   vec4      range;/*center/radius for circle*/\
+			out       float     position_f;\
+			void main() {\
+				position_f = min(1.0, length((vertex_in.xy-range.xy)/range.zw));\
+				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
+			}\
 		";
 
 		compile("gradient shader", v_shader,
-		"\n\
-			in      lowp float     position_f;\n\
-			uniform      int       count;\n\
-			uniform lowp vec4      colors[256];//max 256 color points\n\
-			uniform lowp float     positions[256];\n\
-			void main() {\n\
-				int s = 0;\n\
-				int e = count-1;\n\
-				while (s+1 < e) {// dichotomy search color value\n\
-					int idx = (e - s) / 2 + s;\n\
-					if (position_f > positions[idx]) {\n\
-						s = idx;\n\
-					} else if (position_f < positions[idx]) {\n\
-						e = idx;\n\
-					} else { \n\
-						s = idx; e = idx+1; break; \n\
-					}\n\
-				}\n\
-				lowp float w = (position_f - positions[s]) / (positions[e] - positions[s]);\n\
-				color_o = mix(colors[s], colors[e], w);\n\
-			\
-			}\n\
+		"\
+			in      lowp float     position_f;\
+			uniform      int       count;\
+			uniform lowp vec4      colors[256];/*max 256 color points*/\
+			uniform lowp float     positions[256];\
+			void main() {\
+				int s = 0;\
+				int e = count-1;\
+				while (s+1 < e) {/*dichotomy search color value*/\
+					int idx = (e - s) / 2 + s;\
+					if (position_f > positions[idx]) {\
+						s = idx;\
+					} else if (position_f < positions[idx]) {\
+						e = idx;\
+					} else { \
+						s = idx; e = idx+1; break;\
+					}\
+				}\
+				lowp float w = (position_f - positions[s]) / (positions[e] - positions[s]);\
+				color_o = mix(colors[s], colors[e], w);\
+			}\
 		",
 		{}, "range,count,colors,positions", &_range);
 	}

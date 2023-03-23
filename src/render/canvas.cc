@@ -32,12 +32,6 @@
 
 namespace qk {
 
-	void Canvas::drawColor(const Color4f& color, BlendMode mode) {
-		Paint paint { .color = color };
-		paint.blendMode = mode;
-		drawPaint(paint);
-	}
-
 	void Canvas::drawRect(const Rect& rect, const Paint& paint) {
 		drawPath(Path::Rect(rect), paint);
 	}

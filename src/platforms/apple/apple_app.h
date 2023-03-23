@@ -53,7 +53,6 @@ class QkAppleRender {
 public:
 	virtual UIView* make_surface_view(CGRect rect) = 0;
 	virtual qk::Render* render() = 0;
-	virtual void refresh_surface_region() = 0;
 };
 
 @protocol QkIMEHelprt<NSObject>
@@ -66,6 +65,8 @@ public:
 	- (void)set_keyboard_return_type:(qk::KeyboardReturnType)type;
 	- (UIView*) view; // only ios return view
 @end
+
+QkAppleRender* qk_make_apple_render(qk::Render::Options opts, qk::Render::Delegate *delegate);
 
 id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host);
 

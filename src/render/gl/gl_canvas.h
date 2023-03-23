@@ -40,15 +40,19 @@ namespace qk {
 	class GLCanvas: public Canvas {
 	public:
 		GLCanvas();
-		virtual void setMatrix(const Mat& mat) override;
 		virtual int  save() override;
-		virtual void restore() override;
+		virtual void restore(uint32_t count) override;
 		virtual int  getSaveCount() const override;
-		virtual void restoreToCount(int saveCount) override;
-		virtual bool readPixels(Pixel* dstPixels, int srcX, int srcY) override;
+		virtual const Mat& getMatrix() const override;
+		virtual void setMatrix(const Mat& mat) override;
+		virtual void translate(float x, float y) override;
+		virtual void scale(float x, float y) override;
+		virtual void rotate(float z) override;
+		virtual bool readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) override;
 		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
-		virtual void drawPaint(const Paint& paint) override;
+		virtual void clearColor(const Color4f& color) override;
+		virtual void drawColor(const Color4f& color, BlendMode mode) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
 		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
 			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) override;
@@ -60,16 +64,28 @@ namespace qk {
 		void drawGradient(const Array<Vec2>& triangles, const Paint& paint);
 		void drawImage(const Array<Vec2>& triangles, const Paint& paint);
 		void setBlendMode(BlendMode blendMode);
+		void setGLMatrixBuffer(const Mat& mat);
 		// props
-		BlendMode _blendMode;
+		struct State {
+			struct Clip {
+				Path path; ClipOp op;
+			};
+			Array<Clip> clips;
+			Mat         matrix;
+		};
 		bool      _IsDeviceMsaa; // device anti alias, msaa
+		bool      _Is_STENCIL_TEST; // is enable stencil test
+		bool      _Is_Depeh_Test; // is enable Depeh test
+		BlendMode _blendMode;
 		GLuint    _ubo, _texTmp[3]; // ubo => view matrix
+		Array<State> _state;
+		GLSLClear _clear;
 		GLSLColor _color;
 		GLSLImage _image;
 		GLSLImageYUV420P _yuv420p;
 		GLSLImageYUV420SP _yuv420sp;
 		GLSLGradient _linear,_radial;
-		GLSLShader  *_shaders[6];
+		GLSLShader  *_shaders[7];
 	};
 
 }

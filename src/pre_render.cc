@@ -35,9 +35,6 @@
 
 namespace qk {
 
-	/**
-	* @func add_task
-	*/
 	void PreRender::add_task(Task* task) {
 		if ( task->task_id() == Task::ID() ) {
 			Task::ID id = _tasks.push_back(task);
@@ -45,9 +42,6 @@ namespace qk {
 		}
 	}
 
-	/**
-	* @func del_task
-	*/
 	void PreRender::del_task(Task* task) {
 		Task::ID id = task->task_id();
 		if ( id != Task::ID() ) {
@@ -98,27 +92,21 @@ namespace qk {
 		_is_render = true;
 	}
 
-	/**
-	* @constructor
-	*/
 	PreRender::PreRender(Application* host)
 		: _host(host)
 		, _mark_total(0)
 		, _marks(0)
 		, _is_render(false)
-	{
-	}
+	{}
+
+	PreRender::~PreRender() {}
 
 	/**
-	* @destructor
-	*/
-	PreRender::~PreRender() {
-	}
-
-	/**
-	* 解决标记需要更新的视图
-	*/
-	bool PreRender::solve(int64_t now_time) {
+	 * Work around flagging views that need to be updated
+	 */
+	bool PreRender::solve() {
+		int64_t now_time = time_monotonic();
+		// _host->action_direct()->advance(now_time); // advance action
 
 		if ( _tasks.length() ) { // solve task
 			auto i = _tasks.begin(), end = _tasks.end();

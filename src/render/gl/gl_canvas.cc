@@ -32,6 +32,85 @@
 
 namespace qk {
 
+	static GLint get_gl_texture_pixel_format(ColorType type) {
+#if Qk_APPLE
+#if Qk_OSX
+#define GL_LUMINANCE                      0x1909
+#define GL_LUMINANCE_ALPHA                0x190A
+#endif
+	switch (type) {
+		case kColor_Type_Alpha_8: return GL_ALPHA;
+		case kColor_Type_RGB_565: return GL_RGB;
+		case kColor_Type_RGBA_4444: return GL_RGBA;
+		case kColor_Type_RGB_444X: return GL_RGBA;//GL_RGB;
+		case kColor_Type_RGBA_8888: return GL_RGBA;
+		case kColor_Type_RGB_888X: return GL_RGBA;//GL_RGB;
+		case kColor_Type_BGRA_8888: return GL_BGRA;
+		case kColor_Type_RGBA_1010102: return GL_RGBA;
+		case kColor_Type_BGRA_1010102: return GL_BGRA;
+		case kColor_Type_RGB_101010X: return GL_RGBA; // GL_RGB
+		case kColor_Type_BGR_101010X: return GL_BGRA; // GL_BGR;
+		case kColor_Type_RGB_888: return GL_RGB;
+		case kColor_Type_RGBA_5551: return GL_RGBA;
+		case kColor_Type_Luminance_8: return GL_LUMINANCE;
+		case kColor_Type_Luminance_Alpha_88: return GL_LUMINANCE_ALPHA;
+		// case kColor_Type_SDF_Float: return GL_RGBA;
+		case kColor_Type_YUV420P_Y_8: return GL_LUMINANCE;
+		// case kColor_Type_YUV420P_V_8:
+		case kColor_Type_YUV420P_U_8: return GL_LUMINANCE;
+		case kColor_Type_YUV420SP_Y_8: return GL_LUMINANCE;
+		case kColor_Type_YUV420SP_UV_88: return GL_LUMINANCE_ALPHA;
+#if Qk_iOS // ios
+			// compressd texture
+		case kColor_Type_PVRTCI_2BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+		case kColor_Type_PVRTCI_2BPP_RGBA:
+		case kColor_Type_PVRTCII_2BPP: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+		case kColor_Type_PVRTCI_4BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+		case kColor_Type_PVRTCI_4BPP_RGBA:
+		case kColor_Type_PVRTCII_4BPP: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+		case kColor_Type_ETC1:
+		case kColor_Type_ETC2_RGB: return GL_COMPRESSED_RGB8_ETC2;
+		case kColor_Type_ETC2_RGB_A1:
+		case kColor_Type_ETC2_RGBA: return GL_COMPRESSED_RGBA8_ETC2_EAC;
+#endif
+		default: return 0;
+	}
+#endif
+
+#if Qk_LINUX
+		return 0;
+#endif
+	}
+
+	static GLint get_gl_texture_data_format(ColorType format) {
+		switch (format) {
+			case kColor_Type_Alpha_8: return GL_UNSIGNED_BYTE;
+			case kColor_Type_RGB_565: return GL_UNSIGNED_SHORT_5_6_5;
+			case kColor_Type_RGBA_4444: return GL_UNSIGNED_SHORT_4_4_4_4;
+			case kColor_Type_RGB_444X: return GL_UNSIGNED_SHORT_4_4_4_4;
+#if Qk_OSX
+			case kColor_Type_RGBA_8888: return GL_UNSIGNED_INT_8_8_8_8;
+			case kColor_Type_RGB_888X: return GL_UNSIGNED_INT_8_8_8_8;
+			case kColor_Type_BGRA_8888: return GL_UNSIGNED_INT_8_8_8_8;
+			case kColor_Type_RGBA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
+			case kColor_Type_BGRA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
+			case kColor_Type_RGB_101010X: return GL_UNSIGNED_INT_10_10_10_2;
+			case kColor_Type_BGR_101010X: return GL_UNSIGNED_INT_10_10_10_2;
+#else
+			case kColor_Type_RGBA_8888: return GL_UNSIGNED_BYTE;
+			case kColor_Type_RGB_888X: return GL_UNSIGNED_BYTE;
+			case kColor_Type_BGRA_8888: return GL_UNSIGNED_BYTE;
+			case kColor_Type_RGBA_1010102: return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kColor_Type_BGRA_1010102: return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kColor_Type_RGB_101010X: return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kColor_Type_BGR_101010X: return GL_UNSIGNED_INT_2_10_10_10_REV;
+#endif
+			case kColor_Type_RGB_888: return GL_UNSIGNED_BYTE;
+			case kColor_Type_RGBA_5551: return GL_UNSIGNED_SHORT_5_5_5_1;
+			default: return GL_UNSIGNED_BYTE;
+		}
+	}
+
 	static void gl_use_texture(GLuint id, const Paint& paint, uint32_t slot) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, id);
@@ -95,12 +174,12 @@ namespace qk {
 	}
 
 	GLCanvas::GLCanvas()
-		: _blendMode(kClear_BlendMode)
-		, _IsDeviceMsaa(false)
+		: _IsDeviceMsaa(false), _Is_STENCIL_TEST(false), _Is_Depeh_Test(false)
+		, _blendMode(kClear_BlendMode)
 		, _texTmp{0,0,0}
 		, _linear(Paint::kLinear_GradientType)
 		, _radial(Paint::kRadial_GradientType)
-		, _shaders{&_color, &_image, &_yuv420p, &_yuv420sp, &_linear, &_radial}
+		, _shaders{&_clear, &_color, &_image, &_yuv420p, &_yuv420sp, &_linear, &_radial}
 	{
 		glGenBuffers(1, &_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
@@ -125,10 +204,53 @@ namespace qk {
 		
 		glUseProgram(0);
 
-		setMatrix(Mat()); // init matrix
+		_state.push({ .matrix=Mat() }); // init state
+
+		setMatrix(_state.back().matrix); // init shader matrix
+
+		// enable and disable test function
+
+		glEnable(GL_BLEND);
+		setBlendMode(kSrcOver_BlendMode); // set default color blend mode
+
+		glClearStencil(0);
+		glStencilMask(0xffffffff);
+		glColorMask(1,1,1,1);
+
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_DEPTH_TEST);
 	}
 
-	void GLCanvas::setMatrix(const Mat& mat) {
+	int GLCanvas::save() {
+		_state.push(_state.back());
+	}
+
+	void GLCanvas::restore(uint32_t count) {
+		if (!count || _state.length() == 1)
+			return;
+
+		count = Uint32::min(count, _state.length() - 1);
+		_state.pop(count);
+
+		auto &cur = _state.back();
+
+		setGLMatrixBuffer(cur.matrix);
+		
+		for (auto &clip: cur.clips) {
+			// TODO ...
+			// restore
+		}
+	}
+
+	int GLCanvas::getSaveCount() const {
+		return _state.length() - 1;
+	}
+
+	const Mat& GLCanvas::getMatrix() const {
+		return _state.back().matrix;
+	}
+
+	void GLCanvas::setGLMatrixBuffer(const Mat& mat) {
 		float mat4[16] = {
 			mat[0], mat[3], 0.0, 0.0,
 			mat[1], mat[4], 0.0, 0.0,
@@ -138,41 +260,67 @@ namespace qk {
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, mat4);
 	}
 
-	int  GLCanvas::save() {
-		// TODO ...
+	void GLCanvas::setMatrix(const Mat& mat) {
+		_state.back().matrix = mat;
+		setGLMatrixBuffer(mat);
 	}
 
-	void GLCanvas::restore() {
-		// TODO ...
+	void GLCanvas::translate(float x, float y) {
+		_state.back().matrix.translate(x, y);
+		setGLMatrixBuffer(_state.back().matrix);
 	}
 
-	int  GLCanvas::getSaveCount() const {
-		// TODO ...
+	void GLCanvas::scale(float x, float y) {
+		_state.back().matrix.scale(x, y);
+		setGLMatrixBuffer(_state.back().matrix);
 	}
 
-	void GLCanvas::restoreToCount(int saveCount) {
-		// TODO ...
+	void GLCanvas::rotate(float z) {
+		_state.back().matrix.rotatea(z);
+		setGLMatrixBuffer(_state.back().matrix);
 	}
 
-	bool GLCanvas::readPixels(Pixel* dstPixels, int srcX, int srcY) {
-		// TODO ...
+	bool GLCanvas::readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) {
+		GLenum format = get_gl_texture_pixel_format(dst->type());
+		GLenum type = get_gl_texture_data_format(dst->type());
+		if (format && dst->size() == dst->body().size()) {
+			glReadPixels(srcX, srcY, dst->width(), dst->height(), format, type, *dst->body());
+			return true;
+		}
+		return false;
 	}
 
 	void GLCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
-		// TODO ...
+		glEnable(GL_STENCIL_TEST); // enable stencil test
+		glStencilFunc(GL_ALWAYS, 1, 0xFF); // All passed the test
+		glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE); // set to new value
+		
 	}
 
 	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
 		Array<Vec2> triangles = path.getPolygons(3);
-
 		glUseProgram(_color.shader());
 		// glUniform4fv(_color.color(), 1, paint.color.val);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
 		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
 
-	void GLCanvas::drawPaint(const Paint& paint) {
-		// TODO ...
+	void GLCanvas::clearColor(const Color4f& color) {
+		glClearColor(color.r(), color.g(), color.b(), color.a());
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+
+	void GLCanvas::drawColor(const Color4f& color, BlendMode mode) {
+		if (_blendMode != mode) {
+			setBlendMode(mode); // switch blend mode
+		}
+		float data[] = {
+			-1,1,  1,1,
+			-1,-1, 1,-1,
+		};
+		_clear.use(sizeof(float) * 8, data);
+		glUniform4fv(_clear.color(), 1, color.val);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 
 	void GLCanvas::drawPath(const Path& path, const Paint& paint) {
@@ -210,7 +358,7 @@ namespace qk {
 	}
 
 	void GLCanvas::drawColor(const Array<Vec2>& triangles, const Paint& paint) {
-		_color.use(sizeof(Vec2) * triangles.length(), *triangles);
+		_color.use(triangles.size(), *triangles);
 		glUniform4fv(_color.color(), 1, paint.color.val);
 		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
 	}
@@ -321,85 +469,6 @@ namespace qk {
 		}
 
 		_blendMode = blendMode;
-	}
-
-	static GLint get_gl_texture_data_format(ColorType format) {
-		switch (format) {
-			case kColor_Type_Alpha_8: return GL_UNSIGNED_BYTE;
-			case kColor_Type_RGB_565: return GL_UNSIGNED_SHORT_5_6_5;
-			case kColor_Type_RGBA_4444: return GL_UNSIGNED_SHORT_4_4_4_4;
-			case kColor_Type_RGB_444X: return GL_UNSIGNED_SHORT_4_4_4_4;
-#if Qk_OSX
-			case kColor_Type_RGBA_8888: return GL_UNSIGNED_INT_8_8_8_8;
-			case kColor_Type_RGB_888X: return GL_UNSIGNED_INT_8_8_8_8;
-			case kColor_Type_BGRA_8888: return GL_UNSIGNED_INT_8_8_8_8;
-			case kColor_Type_RGBA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
-			case kColor_Type_BGRA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
-			case kColor_Type_RGB_101010X: return GL_UNSIGNED_INT_10_10_10_2;
-			case kColor_Type_BGR_101010X: return GL_UNSIGNED_INT_10_10_10_2;
-#else
-			case kColor_Type_RGBA_8888: return GL_UNSIGNED_BYTE;
-			case kColor_Type_RGB_888X: return GL_UNSIGNED_BYTE;
-			case kColor_Type_BGRA_8888: return GL_UNSIGNED_BYTE;
-			case kColor_Type_RGBA_1010102: return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kColor_Type_BGRA_1010102: return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kColor_Type_RGB_101010X: return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kColor_Type_BGR_101010X: return GL_UNSIGNED_INT_2_10_10_10_REV;
-#endif
-			case kColor_Type_RGB_888: return GL_UNSIGNED_BYTE;
-			case kColor_Type_RGBA_5551: return GL_UNSIGNED_SHORT_5_5_5_1;
-			default: return GL_UNSIGNED_BYTE;
-		}
-	}
-
-	static GLint get_gl_texture_pixel_format(ColorType type) {
-#if Qk_APPLE
-#if Qk_OSX
-#define GL_LUMINANCE                      0x1909
-#define GL_LUMINANCE_ALPHA                0x190A
-#endif
-	switch (type) {
-		case kColor_Type_Alpha_8: return GL_ALPHA;
-		case kColor_Type_RGB_565: return GL_RGB;
-		case kColor_Type_RGBA_4444: return GL_RGBA;
-		case kColor_Type_RGB_444X: return GL_RGBA;//GL_RGB;
-		case kColor_Type_RGBA_8888: return GL_RGBA;
-		case kColor_Type_RGB_888X: return GL_RGBA;//GL_RGB;
-		case kColor_Type_BGRA_8888: return GL_BGRA;
-		case kColor_Type_RGBA_1010102: return GL_RGBA;
-		case kColor_Type_BGRA_1010102: return GL_BGRA;
-		case kColor_Type_RGB_101010X: return GL_RGBA; // GL_RGB
-		case kColor_Type_BGR_101010X: return GL_BGRA; // GL_BGR;
-		case kColor_Type_RGB_888: return GL_RGB;
-		case kColor_Type_RGBA_5551: return GL_RGBA;
-		case kColor_Type_Luminance_8: return GL_LUMINANCE;
-		case kColor_Type_Luminance_Alpha_88: return GL_LUMINANCE_ALPHA;
-		// case kColor_Type_SDF_Float: return GL_RGBA;
-		case kColor_Type_YUV420P_Y_8: return GL_LUMINANCE;
-		// case kColor_Type_YUV420P_V_8:
-		case kColor_Type_YUV420P_U_8: return GL_LUMINANCE;
-		case kColor_Type_YUV420SP_Y_8: return GL_LUMINANCE;
-		case kColor_Type_YUV420SP_UV_88: return GL_LUMINANCE_ALPHA;
-#if Qk_iOS // ios
-			// compressd texture
-		case kColor_Type_PVRTCI_2BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
-		case kColor_Type_PVRTCI_2BPP_RGBA:
-		case kColor_Type_PVRTCII_2BPP: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
-		case kColor_Type_PVRTCI_4BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
-		case kColor_Type_PVRTCI_4BPP_RGBA:
-		case kColor_Type_PVRTCII_4BPP: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
-		case kColor_Type_ETC1:
-		case kColor_Type_ETC2_RGB: return GL_COMPRESSED_RGB8_ETC2;
-		case kColor_Type_ETC2_RGB_A1:
-		case kColor_Type_ETC2_RGBA: return GL_COMPRESSED_RGBA8_ETC2_EAC;
-#endif
-		default: return 0;
-	}
-#endif
-
-#if Qk_LINUX
-		return 0;
-#endif
 	}
 
 	uint32_t GLCanvas::setTexture(cPixel* src, GLuint id, bool isGenerateMipmap) {

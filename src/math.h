@@ -170,13 +170,13 @@ namespace qk {
 			this->val[0] = r; this->val[1] = g;
 			this->val[2] = b; this->val[3] = a;
 		}
-		inline T b() const { return this->val[0]; }
+		inline T r() const { return this->val[0]; }
 		inline T g() const { return this->val[1]; }
-		inline T r() const { return this->val[2]; }
+		inline T b() const { return this->val[2]; }
 		inline T a() const { return this->val[3]; }
-		inline void b(T value) { this->val[0] = value; }
+		inline void r(T value) { this->val[0] = value; }
 		inline void g(T value) { this->val[1] = value; }
-		inline void r(T value) { this->val[2] = value; }
+		inline void b(T value) { this->val[2] = value; }
 		inline void a(T value) { this->val[3] = value; }
 	};
 
