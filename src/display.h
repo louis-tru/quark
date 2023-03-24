@@ -45,7 +45,7 @@ namespace qk {
 	/**
 	 * @class Display Provide some common method properties and events for display and screen
 	*/
-	class Qk_EXPORT Display: public Reference, public RenderDevice::Delegate {
+	class Qk_EXPORT Display: public Reference, public RenderBackend::Delegate {
 		Qk_HIDDEN_ALL_COPY(Display);
 	public:
 
@@ -211,10 +211,10 @@ namespace qk {
 	private:
 		void updateState(void *lock, Mat4 *mat);
 		void solve_next_frame();
-		bool onRenderDeviceReload(Region region, Vec2 size,
-															float defaultScale, Mat4 *mat) override;
-		bool onRenderDevicePreDisplay() override;
-		void onRenderDeviceDisplay() override;
+		bool onRenderBackendReload(Region region, Vec2 size,
+															 float defaultScale, Mat4 *mat) override;
+		bool onRenderBackendPreDisplay() override;
+		void onRenderBackendDisplay() override;
 
 		// member data
 		Application*      _host;

@@ -49,9 +49,9 @@ namespace qk {
 	};
 
 	/**
-	 * @class Render drawing device backend
+	 * @class RenderBackend drawing device backend
 	 */
-	class Qk_EXPORT RenderDevice: public BackendDevice, public ViewVisitor {
+	class Qk_EXPORT RenderBackend: public BackendDevice, public ViewVisitor {
 	public:
 		struct Options {
 			ColorType   colorType;
@@ -59,13 +59,13 @@ namespace qk {
 		};
 		class Delegate {
 		public:
-			virtual bool onRenderDeviceReload(Region region, Vec2 size,
+			virtual bool onRenderBackendReload(Region region, Vec2 size,
 																				float defaultScale, Mat4 *mat) = 0;
-			virtual bool onRenderDevicePreDisplay() = 0;
-			virtual void onRenderDeviceDisplay() = 0;
+			virtual bool onRenderBackendPreDisplay() = 0;
+			virtual void onRenderBackendDisplay() = 0;
 		};
-		static  RenderDevice* Make(Options opts, Delegate *delegate);
-		virtual        ~RenderDevice();
+		static  RenderBackend* Make(Options opts, Delegate *delegate);
+		virtual        ~RenderBackend();
 		virtual void    reload() = 0; // surface size and scale change
 		virtual void    begin() = 0; // start render task
 		virtual void    submit() = 0; // submit render task
@@ -96,7 +96,7 @@ namespace qk {
 	protected:
 		virtual Vec2    getSurfaceSize() = 0;
 		virtual float   getDefaultScale() = 0;
-		RenderDevice(Options opts, Delegate *delegate);
+		RenderBackend(Options opts, Delegate *delegate);
 		Options       _opts;
 		Canvas       *_canvas; // default canvas
 		Delegate     *_delegate;
@@ -104,7 +104,7 @@ namespace qk {
 		float         _default_scale;
 	};
 
-	typedef RenderDevice Render;
+	typedef RenderBackend Render;
 
 }
 #endif

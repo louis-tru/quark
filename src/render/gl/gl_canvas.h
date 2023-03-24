@@ -37,9 +37,11 @@
 
 namespace qk {
 
+	class GLRender; // gl render backend
 	class GLCanvas: public Canvas {
 	public:
-		GLCanvas();
+		GLCanvas(GLRender *backend);
+		virtual ~GLCanvas();
 		virtual int  save() override;
 		virtual void restore(uint32_t count) override;
 		virtual int  getSaveCount() const override;
@@ -49,7 +51,6 @@ namespace qk {
 		virtual void scale(float x, float y) override;
 		virtual void rotate(float z) override;
 		virtual bool readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) override;
-		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
 		virtual void clearColor(const Color4f& color) override;
 		virtual void drawColor(const Color4f& color, BlendMode mode) override;
@@ -57,35 +58,33 @@ namespace qk {
 		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
 			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) override;
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) override;
-		GLuint       setTexture(cPixel *src, GLuint id, bool isGenerateMipmap);
-		void         deleteTextures(const GLuint *IDs, uint32_t count);
 	protected:
-		void drawColor(const Array<Vec2>& triangles, const Paint& paint);
-		void drawGradient(const Array<Vec2>& triangles, const Paint& paint);
-		void drawImage(const Array<Vec2>& triangles, const Paint& paint);
+		void drawColor(const Array<Vec2>& vertex, const Paint& paint);
+		void drawGradient(const Array<Vec2>& vertex, const Paint& paint);
+		void drawImage(const Array<Vec2>& vertex, const Paint& paint);
 		void setBlendMode(BlendMode blendMode);
-		void setGLMatrixBuffer(const Mat& mat);
+		void setMatrixBuffer(const Mat& mat);
+		void setRootMatrixBuffer(Mat4& root);
 		// props
 		struct State {
 			struct Clip {
-				Path path; ClipOp op;
+				Array<Vec2> vertex; ClipOp op;
 			};
 			Array<Clip> clips;
 			Mat         matrix;
 		};
+		GLRender *_backend;
 		bool      _IsDeviceMsaa; // device anti alias, msaa
-		bool      _Is_STENCIL_TEST; // is enable stencil test
-		bool      _Is_Depeh_Test; // is enable Depeh test
+		GLuint    _stencil_ref;
 		BlendMode _blendMode;
-		GLuint    _ubo, _texTmp[3]; // ubo => view matrix
+		GLuint    _ubo, _texTmp[3]; // ubo => root,view matrix
+		State    *_curState;
 		Array<State> _state;
-		GLSLClear _clear;
-		GLSLColor _color;
-		GLSLImage _image;
-		GLSLImageYUV420P _yuv420p;
-		GLSLImageYUV420SP _yuv420sp;
-		GLSLGradient _linear,_radial;
-		GLSLShader  *_shaders[7];
+		// define buffers
+		GLuint _frame_buffer,_msaa_frame_buffer;
+		GLuint _render_buffer,_msaa_render_buffer,
+					 _stencil_buffer,_depth_buffer;
+		GLuint _aa_tex;
 	};
 
 }

@@ -31,10 +31,13 @@
 #include "../../app.h"
 #include "../../display.h"
 #include "./gl_render.h"
+#include "./gl_canvas.h"
 
 namespace qk {
 
-	uint32_t glPixelInternalFormat(ColorType type) {
+	uint32_t gl_set_texture(cPixel* src, GLuint id, bool isGenerateMipmap);
+
+	uint32_t gl_pixel_internal_format(ColorType type) {
 		switch (type) {
 			case kColor_Type_RGB_565: return GL_RGB565;
 			case kColor_Type_RGBA_8888: return GL_RGBA8;
@@ -45,7 +48,7 @@ namespace qk {
 		}
 	}
 
-	bool checkIsSupportMultisampled() {
+	bool glIsSupportMultisampled() {
 		String VENDOR = (const char*)glGetString(GL_VENDOR);
 		String RENDERER = (const char*)glGetString(GL_RENDERER);
 		String version = (const char*)glGetString(GL_VERSION);
@@ -55,7 +58,7 @@ namespace qk {
 		Qk_DEBUG("OGL RENDERER: %s", *RENDERER);
 		Qk_DEBUG("OGL VERSION: %s", *version);
 		Qk_DEBUG("OGL EXTENSIONS: %s", *extensions);
-		
+
 		String str = String::format("%s %s %s %s", *VENDOR, *RENDERER, *version, *extensions);
 
 		for (auto s : {"OpenGL ES", "OpenGL", "OpenGL Entity"}) {
@@ -69,28 +72,16 @@ namespace qk {
 			}
 		}
 
-		if (version.index_of("Metal") != -1) {
-			return true;
-		}
-		
-		return false;
+		return version.index_of("Metal") != -1;
 	}
 
 	GLRender::GLRender(Options opts, Delegate *delegate)
-		: Render(opts, delegate)
-		, _frame_buffer(0), _msaa_frame_buffer(0)
-		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0),_aa_tex(0)
-		,_is_support_multisampled(false), _raster(false)
+		: GLCanvas(this), Render(opts, delegate)
+		, _Is_Support_Multisampled(glIsSupportMultisampled())
+		, _linear(Paint::kLinear_GradientType)
+		, _radial(Paint::kRadial_GradientType)
+		, _shaders{&_clear, &_color, &_image, &_yuv420p, &_yuv420sp, &_linear, &_radial}
 	{
-		_is_support_multisampled = checkIsSupportMultisampled();
-
-		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
-		glGenFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
-		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-		glGenRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
-		// create anti alias texture
-		glGenTextures(1, &_aa_tex);
-
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
 				_opts.colorType = kColor_Type_RGBA_8888; break;
@@ -101,22 +92,38 @@ namespace qk {
 			default: break;
 		}
 
-		if (_raster) {
-			// TODO new raster canvas
-		} else {
-			_canvas = this;
+		for (auto shader: _shaders) {
+			shader->build();
 		}
 
-		if (!_is_support_multisampled || _raster) {
+		glUseProgram(_image.shader());
+		glUniform1i(_image.image(), 0);
+
+		glUseProgram(_yuv420p.shader());
+		glUniform1i(_yuv420p.image(), 0);
+		glUniform1i(_yuv420p.image_u(), 1);
+		glUniform1i(_yuv420p.image_v(), 2);
+
+		glUseProgram(_yuv420sp.shader());
+		glUniform1i(_yuv420sp.image(), 0);
+		glUniform1i(_yuv420sp.image_uv(), 1);
+		
+		glUseProgram(0);
+
+		_canvas = this; // set default canvas
+
+		if (!_Is_Support_Multisampled) {
 			_opts.msaaSampleCnt = 0;
 		}
+		// enable and disable test function
+		glStencilMask(0xFFFFFFFF);
+		glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
+		glDisable(GL_STENCIL_TEST); // disable stencil test
+		glDisable(GL_DEPTH_TEST); // disable depth test
+		glEnable(GL_BLEND); // enable color blend
 	}
 
-	GLRender::~GLRender() {
-		glDeleteFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
-		glDeleteRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
-		glDeleteTextures(1, &_aa_tex);
-	}
+	GLRender::~GLRender() {}
 
 	Object* GLRender::asObject() {
 		return this;
@@ -125,7 +132,7 @@ namespace qk {
 	void GLRender::reload() {
 		auto size = getSurfaceSize();
 		Mat4 mat;
-		if (!_delegate->onRenderDeviceReload({Vec2{0,0},size}, size, getDefaultScale(), &mat))
+		if (!_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale(), &mat))
 			return;
 
 		auto w = size.x(), h = size.y();
@@ -168,12 +175,21 @@ namespace qk {
 			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
 		}
 
-		setRootMatrix(mat);
+#if DEBUG
+		int width, height;
+		// Retrieve the height and width of the color renderbuffer.
+		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
+		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
+		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+#endif
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		setRootMatrixBuffer(mat);
 	}
 
 	void GLRender::setRenderBuffer(int width, int height) {
 		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, glPixelInternalFormat(_opts.colorType), width, height);
+		glRenderbufferStorage(GL_RENDERBUFFER, gl_pixel_internal_format(_opts.colorType), width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 	}
 
@@ -189,7 +205,7 @@ namespace qk {
 
 	void GLRender::setMSAABuffer(int width, int height, int MSAASample) {
 		glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render buffer
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, glPixelInternalFormat(_opts.colorType), width, height);
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, gl_pixel_internal_format(_opts.colorType), width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaa_render_buffer);
 	}
 
@@ -213,29 +229,12 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depth_buffer);
 	}
 
-	void GLRender::setRootMatrix(Mat4& root) {
-#if DEBUG
-		int width, height;
-		// Retrieve the height and width of the color renderbuffer.
-		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
-		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
-#endif
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-		// update all shader root matrix
-		for (auto shader: _shaders) {
-			glUseProgram(shader->shader());
-			glUniformMatrix4fv( shader->root_matrix(), 1, GL_TRUE, root.val );
-		}
+	GLuint GLRender::setTexture(cPixel *src, uint32_t id) {
+		return gl_set_texture(src, id, true);
 	}
 
-	GLuint GLRender::setTexture(cPixel *src, GLuint id) {
-		return GLCanvas::setTexture(src, id, true);
-	}
-
-	void GLRender::deleteTextures(const GLuint *IDs, GLuint count) {
-		GLCanvas::deleteTextures(IDs, count);
+	void GLRender::deleteTextures(const uint32_t *IDs, uint32_t count) {
+		glDeleteTextures(count, IDs);
 	}
 
 }

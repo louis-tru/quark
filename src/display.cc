@@ -171,7 +171,7 @@ namespace qk {
 		}
 	}
 
-	bool Display::onRenderDeviceReload(Region region, Vec2 size, float defaultScale, Mat4 *mat) {
+	bool Display::onRenderBackendReload(Region region, Vec2 size, float defaultScale, Mat4 *mat) {
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
 			Qk_DEBUG("Display::onDeviceReload");
 			UILock lock(_host);
@@ -195,7 +195,7 @@ namespace qk {
 		return false;
 	}
 
-	bool Display::onRenderDevicePreDisplay() {
+	bool Display::onRenderBackendPreDisplay() {
 		UILock lock(_host); // ui main local
 		if (_host->pre_render()->solve())
 			return true;
@@ -203,7 +203,7 @@ namespace qk {
 		return false;
 	}
 
-	void Display::onRenderDeviceDisplay() {
+	void Display::onRenderBackendDisplay() {
 		UILock lock(_host); // ui main local
 		int64_t now_time = time_monotonic();
 		

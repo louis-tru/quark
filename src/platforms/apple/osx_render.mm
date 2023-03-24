@@ -112,13 +112,13 @@ extern QkApplicationDelegate* __appDelegate;
 			for ( auto& i : msg )
 				i->resolve();
 			
-			if (del->onRenderDevicePreDisplay())
-				del->onRenderDeviceDisplay();
+			if (del->onRenderBackendPreDisplay())
+				del->onRenderBackendDisplay();
 			unlock();
 		}
-		else if (del->onRenderDevicePreDisplay()) {
+		else if (del->onRenderBackendPreDisplay()) {
 			lock();
-			del->onRenderDeviceDisplay();
+			del->onRenderBackendDisplay();
 			unlock();
 		}
 
@@ -171,7 +171,7 @@ public:
 	void reload() override {
 		auto size = getSurfaceSize();
 		Mat4 mat;
-		if (!_delegate->onRenderDeviceReload({ Vec2{0,0},size}, size, _default_scale, &mat))
+		if (!_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _default_scale, &mat))
 			return;
 
 		CGLLockContext(_ctx.CGLContextObj);
@@ -186,7 +186,9 @@ public:
 		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 		glDrawBuffers(_IsDeviceMsaa ? 1: 2, buffers);
 		
-		setRootMatrix(mat);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		setRootMatrixBuffer(mat);
 
 		[NSOpenGLContext clearCurrentContext]; // clear ctx
 		CGLUnlockContext(_ctx.CGLContextObj);

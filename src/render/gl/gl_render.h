@@ -37,13 +37,13 @@
 
 namespace qk {
 
-	class GLRender: public GLCanvas, public Render {
+	class GLRender: public GLCanvas, public RenderBackend {
 	public:
 		virtual ~GLRender();
 		virtual Object* asObject() override;
 		virtual void reload() override;
-		virtual GLuint setTexture(cPixel *src, GLuint id) override;
-		virtual void deleteTextures(const GLuint *IDs, GLuint count) override;
+		virtual uint32_t setTexture(cPixel *src, uint32_t id) override;
+		virtual void deleteTextures(const uint32_t *IDs, uint32_t count) override;
 	protected:
 		GLRender(Options opts, Delegate *delegate);
 		virtual void setRenderBuffer(int width, int height);
@@ -51,11 +51,17 @@ namespace qk {
 		virtual void setMSAABuffer(int width, int height, int MSAASample);
 		virtual void setAntiAlias(int width, int height);
 		virtual void setDepthBuffer(int width, int height);
-		void setRootMatrix(Mat4& root);
-		GLuint _frame_buffer,_msaa_frame_buffer;
-		GLuint _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer;
-		GLuint _aa_tex;
-		bool _is_support_multisampled, _raster;
+		// define props
+		bool _Is_Support_Multisampled;
+		// shader
+		GLSLClear _clear;
+		GLSLColor _color;
+		GLSLImage _image;
+		GLSLImageYUV420P _yuv420p;
+		GLSLImageYUV420SP _yuv420sp;
+		GLSLGradient _linear,_radial;
+		GLSLShader  *_shaders[7];
+		friend class GLCanvas;
 	};
 }
 #endif

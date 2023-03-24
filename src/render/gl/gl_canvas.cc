@@ -29,52 +29,53 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./gl_canvas.h"
+#include "./gl_render.h"
 
 namespace qk {
 
-	static GLint get_gl_texture_pixel_format(ColorType type) {
+	static GLint gl_get_texture_pixel_format(ColorType type) {
 #if Qk_APPLE
 #if Qk_OSX
 #define GL_LUMINANCE                      0x1909
 #define GL_LUMINANCE_ALPHA                0x190A
 #endif
-	switch (type) {
-		case kColor_Type_Alpha_8: return GL_ALPHA;
-		case kColor_Type_RGB_565: return GL_RGB;
-		case kColor_Type_RGBA_4444: return GL_RGBA;
-		case kColor_Type_RGB_444X: return GL_RGBA;//GL_RGB;
-		case kColor_Type_RGBA_8888: return GL_RGBA;
-		case kColor_Type_RGB_888X: return GL_RGBA;//GL_RGB;
-		case kColor_Type_BGRA_8888: return GL_BGRA;
-		case kColor_Type_RGBA_1010102: return GL_RGBA;
-		case kColor_Type_BGRA_1010102: return GL_BGRA;
-		case kColor_Type_RGB_101010X: return GL_RGBA; // GL_RGB
-		case kColor_Type_BGR_101010X: return GL_BGRA; // GL_BGR;
-		case kColor_Type_RGB_888: return GL_RGB;
-		case kColor_Type_RGBA_5551: return GL_RGBA;
-		case kColor_Type_Luminance_8: return GL_LUMINANCE;
-		case kColor_Type_Luminance_Alpha_88: return GL_LUMINANCE_ALPHA;
-		// case kColor_Type_SDF_Float: return GL_RGBA;
-		case kColor_Type_YUV420P_Y_8: return GL_LUMINANCE;
-		// case kColor_Type_YUV420P_V_8:
-		case kColor_Type_YUV420P_U_8: return GL_LUMINANCE;
-		case kColor_Type_YUV420SP_Y_8: return GL_LUMINANCE;
-		case kColor_Type_YUV420SP_UV_88: return GL_LUMINANCE_ALPHA;
+		switch (type) {
+			case kColor_Type_Alpha_8: return GL_ALPHA;
+			case kColor_Type_RGB_565: return GL_RGB;
+			case kColor_Type_RGBA_4444: return GL_RGBA;
+			case kColor_Type_RGB_444X: return GL_RGBA;//GL_RGB;
+			case kColor_Type_RGBA_8888: return GL_RGBA;
+			case kColor_Type_RGB_888X: return GL_RGBA;//GL_RGB;
+			case kColor_Type_BGRA_8888: return GL_BGRA;
+			case kColor_Type_RGBA_1010102: return GL_RGBA;
+			case kColor_Type_BGRA_1010102: return GL_BGRA;
+			case kColor_Type_RGB_101010X: return GL_RGBA; // GL_RGB
+			case kColor_Type_BGR_101010X: return GL_BGRA; // GL_BGR;
+			case kColor_Type_RGB_888: return GL_RGB;
+			case kColor_Type_RGBA_5551: return GL_RGBA;
+			case kColor_Type_Luminance_8: return GL_LUMINANCE;
+			case kColor_Type_Luminance_Alpha_88: return GL_LUMINANCE_ALPHA;
+			// case kColor_Type_SDF_Float: return GL_RGBA;
+			case kColor_Type_YUV420P_Y_8: return GL_LUMINANCE;
+			// case kColor_Type_YUV420P_V_8:
+			case kColor_Type_YUV420P_U_8: return GL_LUMINANCE;
+			case kColor_Type_YUV420SP_Y_8: return GL_LUMINANCE;
+			case kColor_Type_YUV420SP_UV_88: return GL_LUMINANCE_ALPHA;
 #if Qk_iOS // ios
-			// compressd texture
-		case kColor_Type_PVRTCI_2BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
-		case kColor_Type_PVRTCI_2BPP_RGBA:
-		case kColor_Type_PVRTCII_2BPP: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
-		case kColor_Type_PVRTCI_4BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
-		case kColor_Type_PVRTCI_4BPP_RGBA:
-		case kColor_Type_PVRTCII_4BPP: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
-		case kColor_Type_ETC1:
-		case kColor_Type_ETC2_RGB: return GL_COMPRESSED_RGB8_ETC2;
-		case kColor_Type_ETC2_RGB_A1:
-		case kColor_Type_ETC2_RGBA: return GL_COMPRESSED_RGBA8_ETC2_EAC;
+				// compressd texture
+			case kColor_Type_PVRTCI_2BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+			case kColor_Type_PVRTCI_2BPP_RGBA:
+			case kColor_Type_PVRTCII_2BPP: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+			case kColor_Type_PVRTCI_4BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+			case kColor_Type_PVRTCI_4BPP_RGBA:
+			case kColor_Type_PVRTCII_4BPP: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+			case kColor_Type_ETC1:
+			case kColor_Type_ETC2_RGB: return GL_COMPRESSED_RGB8_ETC2;
+			case kColor_Type_ETC2_RGB_A1:
+			case kColor_Type_ETC2_RGBA: return GL_COMPRESSED_RGBA8_ETC2_EAC;
 #endif
-		default: return 0;
-	}
+			default: return 0;
+		}
 #endif
 
 #if Qk_LINUX
@@ -82,7 +83,7 @@ namespace qk {
 #endif
 	}
 
-	static GLint get_gl_texture_data_format(ColorType format) {
+	static GLint gl_get_texture_data_format(ColorType format) {
 		switch (format) {
 			case kColor_Type_Alpha_8: return GL_UNSIGNED_BYTE;
 			case kColor_Type_RGB_565: return GL_UNSIGNED_SHORT_5_6_5;
@@ -109,6 +110,55 @@ namespace qk {
 			case kColor_Type_RGBA_5551: return GL_UNSIGNED_SHORT_5_5_5_1;
 			default: return GL_UNSIGNED_BYTE;
 		}
+	}
+
+	uint32_t gl_set_texture(cPixel* src, GLuint id, bool isGenerateMipmap) {
+		if ( src->body().length() == 0 )
+			return 0;
+
+		ColorType type = src->type();
+		GLint internalformat = gl_get_texture_pixel_format(type);
+		Qk_ASSERT(internalformat);
+
+		if (!internalformat)
+			return 0;
+
+		if (!id) {
+			glGenTextures(1, &id);
+		}
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, id);
+
+#if defined(GL_EXT_texture_filter_anisotropic) && GL_EXT_texture_filter_anisotropic == 1
+		//  GLfloat largest;
+		//  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest);
+		//  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
+#endif
+
+		glPixelStorei(GL_UNPACK_ALIGNMENT, Pixel::bytes_per_pixel(type));
+		// GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT 
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+		if ( type >= kColor_Type_PVRTCI_2BPP_RGB ) {
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_level - 1);
+			glCompressedTexImage2D(GL_TEXTURE_2D, 0/*level*/, internalformat,
+														src->width(),
+														src->height(), 0/*border*/, src->body().length(), *src->body());
+		} else {
+			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, internalformat,
+									src->width(),
+									src->height(), 0/*border*/, internalformat/*format*/,
+									gl_get_texture_data_format(type)/*type*/, *src->body());
+			if (isGenerateMipmap) {
+				glGenerateMipmap(GL_TEXTURE_2D);
+			}
+		}
+
+		return id;
 	}
 
 	static void gl_use_texture(GLuint id, const Paint& paint, uint32_t slot) {
@@ -173,56 +223,45 @@ namespace qk {
 		}
 	}
 
-	GLCanvas::GLCanvas()
-		: _IsDeviceMsaa(false), _Is_STENCIL_TEST(false), _Is_Depeh_Test(false)
+	GLCanvas::GLCanvas(GLRender *backend)
+		: _backend(backend)
+		, _IsDeviceMsaa(false)
+		, _stencil_ref(0)
 		, _blendMode(kClear_BlendMode)
 		, _texTmp{0,0,0}
-		, _linear(Paint::kLinear_GradientType)
-		, _radial(Paint::kRadial_GradientType)
-		, _shaders{&_clear, &_color, &_image, &_yuv420p, &_yuv420sp, &_linear, &_radial}
+		, _curState(nullptr)
+		, _frame_buffer(0), _msaa_frame_buffer(0)
+		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0),_aa_tex(0)
 	{
 		glGenBuffers(1, &_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 32, NULL, GL_DYNAMIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _ubo);
 
-		for (auto shader: _shaders) {
-			shader->build();
-		}
-
-		glUseProgram(_image.shader());
-		glUniform1i(_image.image(), 0);
-
-		glUseProgram(_yuv420p.shader());
-		glUniform1i(_yuv420p.image(), 0);
-		glUniform1i(_yuv420p.image_u(), 1);
-		glUniform1i(_yuv420p.image_v(), 2);
-
-		glUseProgram(_yuv420sp.shader());
-		glUniform1i(_yuv420sp.image(), 0);
-		glUniform1i(_yuv420sp.image_uv(), 1);
-		
-		glUseProgram(0);
+		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
+		glGenFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
+		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
+		glGenRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
+		// create anti alias texture
+		glGenTextures(1, &_aa_tex);
 
 		_state.push({ .matrix=Mat() }); // init state
+		_curState = &_state.back();
 
-		setMatrix(_state.back().matrix); // init shader matrix
+		setMatrix(_curState->matrix); // init shader matrix
 
-		// enable and disable test function
-
-		glEnable(GL_BLEND);
 		setBlendMode(kSrcOver_BlendMode); // set default color blend mode
+	}
 
-		glClearStencil(0);
-		glStencilMask(0xffffffff);
-		glColorMask(1,1,1,1);
-
-		glDisable(GL_STENCIL_TEST);
-		glDisable(GL_DEPTH_TEST);
+	GLCanvas::~GLCanvas() {
+		glDeleteFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
+		glDeleteRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
+		glDeleteTextures(1, &_aa_tex);
 	}
 
 	int GLCanvas::save() {
 		_state.push(_state.back());
+		_curState = &_state.back();
 	}
 
 	void GLCanvas::restore(uint32_t count) {
@@ -234,7 +273,7 @@ namespace qk {
 
 		auto &cur = _state.back();
 
-		setGLMatrixBuffer(cur.matrix);
+		setMatrixBuffer(cur.matrix);
 		
 		for (auto &clip: cur.clips) {
 			// TODO ...
@@ -247,42 +286,50 @@ namespace qk {
 	}
 
 	const Mat& GLCanvas::getMatrix() const {
-		return _state.back().matrix;
+		return _curState->matrix;
 	}
 
-	void GLCanvas::setGLMatrixBuffer(const Mat& mat) {
+	void GLCanvas::setRootMatrixBuffer(Mat4& root) {
+		// update all shader root matrix
+		root.transpose();
+		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, root.val);
+	}
+
+	void GLCanvas::setMatrixBuffer(const Mat& mat) {
 		float mat4[16] = {
 			mat[0], mat[3], 0.0, 0.0,
 			mat[1], mat[4], 0.0, 0.0,
 			0.0,    0.0,    1.0, 0.0,
 			mat[2], mat[5], 0.0, 1.0
 		};
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, mat4);
+		//glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, mat4);
 	}
 
 	void GLCanvas::setMatrix(const Mat& mat) {
-		_state.back().matrix = mat;
-		setGLMatrixBuffer(mat);
+		_curState->matrix = mat;
+		setMatrixBuffer(mat);
 	}
 
 	void GLCanvas::translate(float x, float y) {
-		_state.back().matrix.translate(x, y);
-		setGLMatrixBuffer(_state.back().matrix);
+		_curState->matrix.translate(x, y);
+		setMatrixBuffer(_curState->matrix);
 	}
 
 	void GLCanvas::scale(float x, float y) {
-		_state.back().matrix.scale(x, y);
-		setGLMatrixBuffer(_state.back().matrix);
+		_curState->matrix.scale(x, y);
+		setMatrixBuffer(_curState->matrix);
 	}
 
 	void GLCanvas::rotate(float z) {
-		_state.back().matrix.rotatea(z);
-		setGLMatrixBuffer(_state.back().matrix);
+		_curState->matrix.rotatea(z);
+		setMatrixBuffer(_curState->matrix);
 	}
 
 	bool GLCanvas::readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) {
-		GLenum format = get_gl_texture_pixel_format(dst->type());
-		GLenum type = get_gl_texture_data_format(dst->type());
+		GLenum format = gl_get_texture_pixel_format(dst->type());
+		GLenum type = gl_get_texture_data_format(dst->type());
 		if (format && dst->size() == dst->body().size()) {
 			glReadPixels(srcX, srcY, dst->width(), dst->height(), format, type, *dst->body());
 			return true;
@@ -290,19 +337,37 @@ namespace qk {
 		return false;
 	}
 
-	void GLCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
-		glEnable(GL_STENCIL_TEST); // enable stencil test
-		glStencilFunc(GL_ALWAYS, 1, 0xFF); // All passed the test
-		glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE); // set to new value
-		
-	}
-
 	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
-		Array<Vec2> triangles = path.getPolygons(3);
-		glUseProgram(_color.shader());
-		// glUniform4fv(_color.color(), 1, paint.color.val);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
-		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
+		if (_stencil_ref == 0) { // start enable stencil test
+			_stencil_ref++;
+			glClearStencil(_stencil_ref);
+			glClear(GL_STENCIL_BUFFER_BIT); // clear stencil
+			glEnable(GL_STENCIL_TEST); // enable stencil test
+			glStencilFunc(GL_LEQUAL, _stencil_ref, 0xFFFFFFFF); // Equality passes the test
+		}
+
+		if (op == kIntersect_ClipOp) {
+			glStencilOp(GL_KEEP, GL_INCR, GL_INCR); // Test success adds 1
+		} else {
+			glStencilOp(GL_KEEP, GL_DECR, GL_DECR); // Test success decr 1
+		}
+
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // disable color
+		auto vertex = path.getPolygons(3);
+		_backend->_color.use(vertex.size(), *vertex);
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length()); // draw test
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // enable color
+
+		if (op == kIntersect_ClipOp) {
+			glStencilFunc(GL_LEQUAL, ++_stencil_ref, 0xFFFFFFFF); // ref add 1
+		} else {
+			// TODO ...
+		}
+		
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
+
+		// save clip state
+		_curState->clips.push({std::move(vertex), op});
 	}
 
 	void GLCanvas::clearColor(const Color4f& color) {
@@ -318,8 +383,8 @@ namespace qk {
 			-1,1,  1,1,
 			-1,-1, 1,-1,
 		};
-		_clear.use(sizeof(float) * 8, data);
-		glUniform4fv(_clear.color(), 1, color.val);
+		_backend->_clear.use(sizeof(float) * 8, data);
+		glUniform4fv(_backend->_clear.color(), 1, color.val);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 
@@ -327,7 +392,7 @@ namespace qk {
 
 		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 
-		Array<Vec2> polygons;
+		Array<Vec2> vertex;
 
 		if (_blendMode != paint.blendMode) {
 			setBlendMode(paint.blendMode); // switch blend mode
@@ -336,56 +401,57 @@ namespace qk {
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
-				polygons = path.getPolygons(3);
+				vertex = path.getPolygons(3);
 				break;
 			case Paint::kStroke_Style:
-				polygons = path.strokePath(paint.width, paint.join).getPolygons(3);
+				vertex = path.strokePath(paint.width, paint.join).getPolygons(3);
 				break;
 			case Paint::kStrokeAndFill_Style:
-				polygons = path.extendPath(paint.width * 0.5, paint.join).getPolygons(3);
+				vertex = path.extendPath(paint.width * 0.5, paint.join).getPolygons(3);
 				break;
 		}
 
 		// fill polygons
 		switch (paint.type) {
 			case Paint::kColor_Type:
-				drawColor(polygons, paint); break;
+				drawColor(vertex, paint); break;
 			case Paint::kGradient_Type:
-				drawGradient(polygons, paint); break;
+				drawGradient(vertex, paint); break;
 			case Paint::kBitmap_Type:
-				drawImage(polygons, paint); break;
+				drawImage(vertex, paint); break;
 		}
 	}
 
-	void GLCanvas::drawColor(const Array<Vec2>& triangles, const Paint& paint) {
-		_color.use(triangles.size(), *triangles);
-		glUniform4fv(_color.color(), 1, paint.color.val);
-		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
+	void GLCanvas::drawColor(const Array<Vec2>& vertex, const Paint& paint) {
+		_backend->_color.use(vertex.size(), *vertex);
+		glUniform4fv(_backend->_color.color(), 1, paint.color.val);
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 
-	void GLCanvas::drawGradient(const Array<Vec2>& triangles, const Paint& paint) {
+	void GLCanvas::drawGradient(const Array<Vec2>& vertex, const Paint& paint) {
 		const GradientColor *g = paint.gradientColor();
-		auto shader = paint.gradientType == Paint::kLinear_GradientType ? &_linear: &_radial;
+		auto shader = paint.gradientType == Paint::kLinear_GradientType ?
+			&_backend->_linear: &_backend->_radial;
 		glUseProgram(shader->shader());
 		glUniform4fv(shader->range(), 1, paint.color.val);
 		glUniform1i(shader->count(), g->colors.length());
 		glUniform4fv(shader->colors(), g->colors.length(), (const GLfloat*)g->colors.val());
 		glUniform1fv(shader->positions(), g->colors.length(), (const GLfloat*)g->positions.val());
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
-		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vertex.val());
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 
-	void GLCanvas::drawImage(const Array<Vec2>& triangles, const Paint& paint) {
+	void GLCanvas::drawImage(const Array<Vec2>& vertex, const Paint& paint) {
 		auto pixel = paint.bitmapPixel();
 		auto type = pixel->type();
-		auto shader = &_image;
+		auto shader = &_backend->_image;
 		auto texCount = 1;
 
 		if (type == kColor_Type_YUV420P_Y_8) {
-			shader = &_yuv420p;
+			shader = &_backend->_yuv420p;
 			texCount = 3;
 		} else if (type == kColor_Type_YUV420SP_Y_8) {
-			shader = &_yuv420sp;
+			shader = &_backend->_yuv420sp;
 			texCount = 2;
 		}
 
@@ -395,13 +461,13 @@ namespace qk {
 
 		for (int i = 0; i < texCount; i++) {
 			auto id = pixel[i].texture();
-			if (!id || (id = setTexture(pixel+i, _texTmp[i], true)))
+			if (!id || (id = gl_set_texture(pixel+i, _texTmp[i], true)))
 				_texTmp[i] = id;
 			gl_use_texture(id, paint, i);
 		}
 
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, triangles.val());
-		glDrawArrays(GL_TRIANGLES, 0, triangles.length());
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vertex.val());
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 
 	void GLCanvas::drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
@@ -469,59 +535,6 @@ namespace qk {
 		}
 
 		_blendMode = blendMode;
-	}
-
-	uint32_t GLCanvas::setTexture(cPixel* src, GLuint id, bool isGenerateMipmap) {
-		if ( src->body().length() == 0 )
-			return 0;
-
-		ColorType type = src->type();
-		GLint internalformat = get_gl_texture_pixel_format(type);
-		Qk_ASSERT(internalformat);
-
-		if (!internalformat)
-			return 0;
-
-		if (!id) {
-			glGenTextures(1, &id);
-		}
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, id);
-
-#if defined(GL_EXT_texture_filter_anisotropic) && GL_EXT_texture_filter_anisotropic == 1
-		//  GLfloat largest;
-		//  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest);
-		//  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
-#endif
-
-		glPixelStorei(GL_UNPACK_ALIGNMENT, Pixel::bytes_per_pixel(type));
-		// GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT 
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-		if ( type >= kColor_Type_PVRTCI_2BPP_RGB ) {
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_level - 1);
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0/*level*/, internalformat,
-														src->width(),
-														src->height(), 0/*border*/, src->body().length(), *src->body());
-		} else {
-			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, internalformat,
-									src->width(),
-									src->height(), 0/*border*/, internalformat/*format*/,
-									get_gl_texture_data_format(type)/*type*/, *src->body());
-			if (isGenerateMipmap) {
-				glGenerateMipmap(GL_TEXTURE_2D);
-			}
-		}
-
-		return id;
-	}
-
-	void GLCanvas::deleteTextures(const GLuint *IDs, uint32_t count) {
-		glDeleteTextures(count, IDs);
 	}
 
 }

@@ -63,7 +63,6 @@ namespace qk {
 			const GLvoid *pointer;
 		};
 		Qk_DEFINE_PROP_GET(GLuint, shader);
-		Qk_DEFINE_PROP_GET(GLuint, root_matrix);
 		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
 		Qk_DEFINE_PROP_GET(GLuint, vao);
 		Qk_DEFINE_PROP_GET(GLuint, vbo);

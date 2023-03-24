@@ -46,7 +46,7 @@ namespace qk {
 		return Qk_MIN(n, 8);
 	}
 
-	RenderDevice::RenderDevice(Options opts, Delegate *delegate)
+	RenderBackend::RenderBackend(Options opts, Delegate *delegate)
 		: _opts(opts)
 		, _canvas(nullptr)
 		, _delegate(delegate)
@@ -54,56 +54,54 @@ namespace qk {
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
 		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
-		//_opts.stencilBits = integerExp(Qk_MIN(Qk_MAX(_opts.stencilBits, 8), 16));
 	}
 
-	RenderDevice::~RenderDevice() {
+	RenderBackend::~RenderBackend() {}
+
+	void RenderBackend::activate(bool isActive) {
 	}
 
-	void RenderDevice::activate(bool isActive) {
-	}
-
-	void RenderDevice::visitView(View* v) {
+	void RenderBackend::visitView(View* v) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitBox(Box* box) {
+	void RenderBackend::visitBox(Box* box) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitImage(Image* image) {
+	void RenderBackend::visitImage(Image* image) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitVideo(Video* video) {
+	void RenderBackend::visitVideo(Video* video) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitScroll(Scroll* scroll) {
+	void RenderBackend::visitScroll(Scroll* scroll) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitInput(Input* input) {
+	void RenderBackend::visitInput(Input* input) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitTextarea(Textarea* textarea) {
+	void RenderBackend::visitTextarea(Textarea* textarea) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitButton(Button* btn) {
+	void RenderBackend::visitButton(Button* btn) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitTextLayout(TextLayout* text) {
+	void RenderBackend::visitTextLayout(TextLayout* text) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitLabel(Label* label) {
+	void RenderBackend::visitLabel(Label* label) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitRoot(Root* root) {
+	void RenderBackend::visitRoot(Root* root) {
 		_canvas->clearColor(Color4f(1,0,0));
 		//_canvas->drawColor(Color4f(1,0,0));
 
@@ -148,15 +146,15 @@ namespace qk {
 		_canvas->drawPath(Path::Arc({Vec2(450, 300), Vec2(100, 200)}, 3, 4, 1), paint);
 	}
 
-	void RenderDevice::visitFloatLayout(FloatLayout* flow) {
+	void RenderBackend::visitFloatLayout(FloatLayout* flow) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitFlowLayout(FlowLayout* flow) {
+	void RenderBackend::visitFlowLayout(FlowLayout* flow) {
 		// TODO ...
 	}
 
-	void RenderDevice::visitFlexLayout(FlexLayout* flex) {
+	void RenderBackend::visitFlexLayout(FlexLayout* flex) {
 		// TODO ...
 	}
 

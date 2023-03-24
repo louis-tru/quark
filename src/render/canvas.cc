@@ -32,6 +32,10 @@
 
 namespace qk {
 
+	void Canvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
+		clipPath(Path::Rect(rect), op, antiAlias);
+	}
+
 	void Canvas::drawRect(const Rect& rect, const Paint& paint) {
 		drawPath(Path::Rect(rect), paint);
 	}

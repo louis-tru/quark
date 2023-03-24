@@ -56,16 +56,16 @@ namespace qk {
 	static const String vertexHeader(String::format("\n\
 		#version %s\n\
 		#define matrix root_matrix * view_matrix\n\
-		uniform mat4 root_matrix;\n\
-		layout (std140) uniform ubo {\n\
-			mat4  view_matrix;\n\
-		};\n\
-		in      vec2  vertex_in;\n\
+		layout (std140) uniform ubo {\
+			mat4  root_matrix;\
+			mat4  view_matrix;\
+		};\
+		in      vec2  vertex_in;\
 	", Qk_GL_Version));
 
-	static const String fragmentHeader(String::format("\n\
+	static const String fragmentHeader(String::format("\
 		#version %s\n\
-		layout(location=0) out lowp vec4 color_o;\n\
+		layout(location=0) out lowp vec4 color_o;\
 	", Qk_GL_Version));
 
 	GLSLShader::GLSLShader(): _shader(0), _vao(0), _vbo(0) {
@@ -112,12 +112,10 @@ namespace qk {
 #if DEBUG
 		GLint bufferSize;
 		glGetActiveUniformBlockiv(program, ubo, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
-		Qk_ASSERT(bufferSize == 64);
+		Qk_ASSERT(bufferSize == 128);
 #endif
 		
 		// Get Uniform Location index value
-		_root_matrix = glGetUniformLocation(program, "root_matrix");
-		// _view_matrix = glGetUniformLocation(program, "view_matrix");
 		for (auto &i: String(uniforms).split(",")) {
 			if (!i.is_empty()) {
 				*store++ = glGetUniformLocation(program, i.c_str());
