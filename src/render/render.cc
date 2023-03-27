@@ -112,7 +112,11 @@ namespace qk {
 		Rect rect{ size*0.2*0.5, size*0.8 };
 		//paint0.setLinearGradient(&g, rect.origin, rect.origin+rect.size);
 		paint0.setRadialGradient(&g, rect.origin + rect.size*0.5, rect.size*0.5);
+		
+		_canvas->save();
+		_canvas->setMatrix(_canvas->getMatrix() * Mat(Vec2(100,-50), Vec2(0.8, 0.8), -0.2, Vec2(0.3,0)));
 		_canvas->drawRect(rect, paint0);
+		_canvas->restore();
 
 		// -------- clip ------
 		_canvas->save();

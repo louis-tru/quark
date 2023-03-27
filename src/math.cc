@@ -148,11 +148,11 @@ namespace qk {
 		memcpy(val, values, sizeof(float) * length);
 	}
 
-	Mat::Mat(Vec2 translate, Vec2 scale, float rotate_z, Vec2 skew) {
-		if (rotate_z) {
-			rotate_z  *= Qk_PI_RATIO_180; //
-			float cz  = cosf(rotate_z);
-			float sz  = sinf(rotate_z);
+	Mat::Mat(Vec2 translate, Vec2 scale, float rotatea, Vec2 skewa) {
+		if (rotatea) {
+			//rotate_z  *= Qk_PI_RATIO_180; //
+			float cz  = cosf(rotatea);
+			float sz  = sinf(rotatea);
 			val[0] = cz * scale[0];
 			val[1] = sz * scale[1];
 			val[3] = -sz * scale[0];
@@ -168,8 +168,8 @@ namespace qk {
 		val[2] = translate[0];
 		val[5] = translate[1];
 
-		if (skew[0] != 0.0f || skew[1] != 0.0f) {
-			Mat::skew(skew[0], skew[1]);
+		if (skewa[0] != 0.0f || skewa[1] != 0.0f) {
+			Mat::skewa(skewa[0], skewa[1]);
 		}
 	}
 

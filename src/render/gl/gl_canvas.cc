@@ -501,14 +501,15 @@ namespace qk {
 	}
 
 	void GLCanvas::drawGradient(const Array<Vec2>& vertex, const Paint& paint) {
-		const GradientColor *g = paint.gradientColor();
-		auto shader = paint.gradientType == Paint::kLinear_GradientType ?
-			&_backend->_linear: &_backend->_radial;
+		auto g = paint.gradientColor();
+		auto shader = paint.gradientType ==
+			Paint::kRadial_GradientType ? &_backend->_radial: &_backend->_linear;
+		auto count = Qk_MIN(g->colors.length(), 256);
 		shader->use(vertex.size(), *vertex);
 		glUniform4fv(shader->range(), 1, paint.color.val);
-		glUniform1i(shader->count(), g->colors.length());
-		glUniform4fv(shader->colors(), g->colors.length(), (const GLfloat*)g->colors.val());
-		glUniform1fv(shader->positions(), g->colors.length(), (const GLfloat*)g->positions.val());
+		glUniform1i(shader->count(), count);
+		glUniform4fv(shader->colors(), count, (const GLfloat*)g->colors.val());
+		glUniform1fv(shader->positions(), count, (const GLfloat*)g->positions.val());
 		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 

@@ -60,7 +60,7 @@ namespace qk {
 		class Delegate {
 		public:
 			virtual bool onRenderBackendReload(Region region, Vec2 size,
-																				float defaultScale, Mat4 *mat) = 0;
+																				float defaultScale, Mat4 *surfaceMat) = 0;
 			virtual bool onRenderBackendPreDisplay() = 0;
 			virtual void onRenderBackendDisplay() = 0;
 		};
@@ -100,7 +100,7 @@ namespace qk {
 		Options       _opts;
 		Canvas       *_canvas; // default canvas
 		Delegate     *_delegate;
-		Vec2          _surface_size;
+		Vec2          _surface_size; // recommend default surface scale
 		float         _default_scale;
 	};
 

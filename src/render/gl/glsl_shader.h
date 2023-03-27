@@ -120,13 +120,16 @@ namespace qk {
 
 	class GLSLGradient: public GLSLShader {
 	public:
-		typedef Paint::GradientType GradientType;
-		GLSLGradient(GradientType type): _type(type) {}
 		Qk_DEFINE_PROP_GET(GLuint, range); // vertex uniform value
 		Qk_DEFINE_PROP_GET(GLuint, count); // fragment uniform value
 		Qk_DEFINE_PROP_GET(GLuint, colors);
 		Qk_DEFINE_PROP_GET(GLuint, positions);
-		Qk_DEFINE_PROP_GET(GradientType, type);
+		virtual void build() override;
+		friend class GLSLGradientRadial;
+	};
+	
+	class GLSLGradientRadial: public GLSLGradient {
+	public:
 		virtual void build() override;
 	};
 

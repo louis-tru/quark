@@ -212,7 +212,7 @@ namespace qk {
 		Mat(float value);
 		Mat(float m0, float m1, float m2, float m3, float m4, float m5);
 		Mat(const float* values, int length = 6);
-		Mat(Vec2 translate, Vec2 scale, float rotate_z, Vec2 skew);
+		Mat(Vec2 translate, Vec2 scale, float rotatea, Vec2 skewa);
 		inline float m0() const { return val[0]; }
 		inline float m1() const { return val[1]; }
 		inline float m2() const { return val[2]; }

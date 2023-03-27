@@ -265,29 +265,18 @@ namespace qk {
 	}
 
 	void GLSLGradient::build() {
-
-		const char *v_shader = _type == Paint::kLinear_GradientType ?
-		// kLinear
-		"\
+		compile("gradient shader", "\
 			uniform   vec4      range;/*start/end range for rect*/\
-			out       float     position_f;\
+			out       float     indexed_f;\
 			void main() {\
 				vec2 ao = range.zw     - range.xy;\
 				vec2 bo = vertex_in.xy - range.xy;\
-				position_f = clamp(dot(ao,bo) / dot(ao,ao), 0.0, 1.0);\
+				/*indexed_f = clamp(dot(ao,bo) / dot(ao,ao), 0.0, 1.0);*/\
+				indexed_f = dot(ao,bo) / dot(ao,ao);\
 				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
 			}\
-		":
-		// kRadial
-		"\
-			void main() {\
-				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
-			}\
-		";
-		
-		const char *f_shader = _type == Paint::kLinear_GradientType ?
-		"\
-			in      lowp float     position_f;\
+		", "\
+			in      lowp float     indexed_f;\
 			uniform      int       count;\
 			uniform lowp vec4      colors[256];/*max 256 color points*/\
 			uniform lowp float     positions[256];\
@@ -296,43 +285,51 @@ namespace qk {
 				int e = count-1;\
 				while (s+1 < e) {/*dichotomy search color value*/\
 					int idx = (e - s) / 2 + s;\
-					if (position_f > positions[idx]) {\
+					if (indexed_f > positions[idx]) {\
 						s = idx;\
-					} else if (position_f < positions[idx]) {\
+					} else if (indexed_f < positions[idx]) {\
 						e = idx;\
 					} else { \
 						s = idx; e = idx+1; break;\
 					}\
 				}\
-				lowp float w = (position_f - positions[s]) / (positions[e] - positions[s]);\
+				lowp float w = (indexed_f - positions[s]) / (positions[e] - positions[s]);\
 				color_o = mix(colors[s], colors[e], w);\
 			}\
-		":
-		"\
+		", {}, "range,count,colors,positions", &_range);
+	}
+	
+	void GLSLGradientRadial::build() {
+		compile("gradient shader", "\
+			out       vec2     position_f;\
+			void main() {\
+				position_f = vertex_in.xy;\
+				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
+			}\
+		", "\
 			uniform      vec4      range;/*center/radius for circle*/\
 			uniform      int       count;\
 			uniform lowp vec4      colors[256];/*max 256 color points*/\
 			uniform lowp float     positions[256];\
+			in      lowp vec2      position_f;\
 			void main() {\
-				lowp float position_f = min(1.0, length(((0.5*gl_FragCoord).xy-range.xy)/range.zw));\
+				lowp float indexed_f = length((position_f-range.xy)/range.zw);\
 				int s = 0;\
 				int e = count-1;\
 				while (s+1 < e) {/*dichotomy search color value*/\
 					int idx = (e - s) / 2 + s;\
-					if (position_f > positions[idx]) {\
+					if (indexed_f > positions[idx]) {\
 						s = idx;\
-					} else if (position_f < positions[idx]) {\
+					} else if (indexed_f < positions[idx]) {\
 						e = idx;\
 					} else { \
 						s = idx; e = idx+1; break;\
 					}\
 				}\
-				lowp float w = (position_f - positions[s]) / (positions[e] - positions[s]);\
+				lowp float w = (indexed_f - positions[s]) / (positions[e] - positions[s]);\
 				color_o = mix(colors[s], colors[e], w);\
 			}\
-		";
-
-		compile("gradient shader", v_shader, f_shader, {}, "range,count,colors,positions", &_range);
+		", {}, "range,count,colors,positions", &_range);
 	}
 
 }

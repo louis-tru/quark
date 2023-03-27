@@ -212,7 +212,7 @@ namespace qk {
 		void updateState(void *lock, Mat4 *mat);
 		void solve_next_frame();
 		bool onRenderBackendReload(Region region, Vec2 size,
-															 float defaultScale, Mat4 *mat) override;
+															 float defaultScale, Mat4 *surfaceMat) override;
 		bool onRenderBackendPreDisplay() override;
 		void onRenderBackendDisplay() override;
 

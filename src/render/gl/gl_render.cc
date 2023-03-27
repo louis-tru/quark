@@ -78,8 +78,6 @@ namespace qk {
 	GLRender::GLRender(Options opts, Delegate *delegate)
 		: GLCanvas(this), Render(opts, delegate)
 		, _Is_Support_Multisampled(glIsSupportMultisampled())
-		, _linear(Paint::kLinear_GradientType)
-		, _radial(Paint::kRadial_GradientType)
 		, _shaders{&_clear, &_clip, &_color, &_image, &_yuv420p, &_yuv420sp, &_linear, &_radial}
 	{
 		switch(_opts.colorType) {

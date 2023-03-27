@@ -56,7 +56,7 @@ namespace qk {
 
 	Display::~Display() {}
 
-	void Display::updateState(void *lock, Mat4 *mat) { // Lock before calling
+	void Display::updateState(void *lock, Mat4 *surfaceMat) { // Lock before calling
     auto _lock = static_cast<UILock*>(lock);
 		Vec2 size = surface_size();
 		float width = size.x();
@@ -92,7 +92,7 @@ namespace qk {
     auto region = _surface_region;
     Vec2 start = Vec2(-region.origin.x() / _scale, -region.origin.y() / _scale);
     Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
-    *mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
+    *surfaceMat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
     _host->root()->onDisplayChange();
 
