@@ -35,6 +35,7 @@
 #include "../bezier.h"
 #include "../util/array.h"
 #include "./paint.h"
+#include "../util/hash.h"
 
 namespace qk {
 
@@ -75,6 +76,7 @@ namespace qk {
 		inline uint32_t ptsLen() const { return _pts.length() >> 1; }
 		inline uint32_t verbsLen() const { return _verbs.length(); }
 		inline bool isNormalized() const { return _IsNormalized; }
+		inline uint64_t hashCode() const { return _hash.hash_code(); }
 		// convert func
 		/**
 		 * @brief toPolygons() convert to polygons
@@ -102,6 +104,7 @@ namespace qk {
 		void cubicTo2(float *p);
 		Array<float> _pts;
 		Array<uint8_t> _verbs;
+		SimpleHash _hash;
 		bool _IsNormalized;
 	};
 

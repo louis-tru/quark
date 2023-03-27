@@ -65,6 +65,11 @@ namespace qk {
 
 	static const String fragmentHeader(String::format("\
 		#version %s\n\
+		#define matrix root_matrix * view_matrix\n\
+		layout (std140) uniform ubo {\
+			mat4  root_matrix;\
+			mat4  view_matrix;\
+		};\
 		layout(location=0) out lowp vec4 color_o;\
 	", Qk_GL_Version));
 
@@ -183,6 +188,19 @@ namespace qk {
 		{}, "color", &_color);
 	}
 
+	void GLSLClip::build() {
+		compile("clip shader",
+		"\
+			void main() {\
+				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
+			}\
+		",
+		"\
+			void main() {}\
+		",
+		{}, "", nullptr);
+	}
+
 	static const char *v_image_shader = "\
 		uniform   vec4      coord;/*offset,scale*/\
 		out       vec2      coord_f;\
@@ -262,15 +280,12 @@ namespace qk {
 		":
 		// kRadial
 		"\
-			uniform   vec4      range;/*center/radius for circle*/\
-			out       float     position_f;\
 			void main() {\
-				position_f = min(1.0, length((vertex_in.xy-range.xy)/range.zw));\
 				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
 			}\
 		";
-
-		compile("gradient shader", v_shader,
+		
+		const char *f_shader = _type == Paint::kLinear_GradientType ?
 		"\
 			in      lowp float     position_f;\
 			uniform      int       count;\
@@ -292,8 +307,32 @@ namespace qk {
 				lowp float w = (position_f - positions[s]) / (positions[e] - positions[s]);\
 				color_o = mix(colors[s], colors[e], w);\
 			}\
-		",
-		{}, "range,count,colors,positions", &_range);
+		":
+		"\
+			uniform      vec4      range;/*center/radius for circle*/\
+			uniform      int       count;\
+			uniform lowp vec4      colors[256];/*max 256 color points*/\
+			uniform lowp float     positions[256];\
+			void main() {\
+				lowp float position_f = min(1.0, length(((0.5*gl_FragCoord).xy-range.xy)/range.zw));\
+				int s = 0;\
+				int e = count-1;\
+				while (s+1 < e) {/*dichotomy search color value*/\
+					int idx = (e - s) / 2 + s;\
+					if (position_f > positions[idx]) {\
+						s = idx;\
+					} else if (position_f < positions[idx]) {\
+						e = idx;\
+					} else { \
+						s = idx; e = idx+1; break;\
+					}\
+				}\
+				lowp float w = (position_f - positions[s]) / (positions[e] - positions[s]);\
+				color_o = mix(colors[s], colors[e], w);\
+			}\
+		";
+
+		compile("gradient shader", v_shader, f_shader, {}, "range,count,colors,positions", &_range);
 	}
 
 }

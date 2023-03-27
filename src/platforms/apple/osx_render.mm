@@ -104,14 +104,14 @@ extern QkApplicationDelegate* __appDelegate;
 				msg = std::move(v->_message);
 			v->_mutex.unlock();
 		}
-		
+
 		auto del = v.render->delegate();
 
 		if (msg.length()) {
 			lock();
 			for ( auto& i : msg )
 				i->resolve();
-			
+
 			if (del->onRenderBackendPreDisplay())
 				del->onRenderBackendDisplay();
 			unlock();
@@ -178,17 +178,16 @@ public:
 		[_ctx makeCurrentContext];
 
 		glViewport(0, 0, size.x(), size.y());
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
 
 		if (!_IsDeviceMsaa) { // no device msaa
-			glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
 			setAntiAlias(size.x(), size.y());
 		}
 		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 		glDrawBuffers(_IsDeviceMsaa ? 1: 2, buffers);
-		
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		setRootMatrixBuffer(mat);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		[NSOpenGLContext clearCurrentContext]; // clear ctx
 		CGLUnlockContext(_ctx.CGLContextObj);

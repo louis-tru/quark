@@ -95,7 +95,7 @@ namespace qk {
     *mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
     _host->root()->onDisplayChange();
-    
+
     Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
 	}
 

@@ -36,15 +36,15 @@
 
 namespace qk {
 
-	class Qk_EXPORT SimpleHash: public Object {
+	class Qk_EXPORT SimpleHash {
 		uint64_t _hash;
 	public:
 		inline SimpleHash(): _hash(5381) {}
-		inline uint64_t hash_code() { return _hash; }
-		inline void clear() { _hash = 5381; }
-		void   update(const void* data, uint32_t len);
-		void   update(cString& str);
-		String digest();
+		uint64_t hash_code() const { return _hash; }
+		void     clear();
+		void     update(const void* data, uint32_t len);
+		void     update(cString& str);
+		String   digest();
 	};
 
 	Qk_EXPORT uint64_t hash_code(const void* data, uint32_t len);

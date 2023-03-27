@@ -226,7 +226,7 @@ namespace qk {
 	GLCanvas::GLCanvas(GLRender *backend)
 		: _backend(backend)
 		, _IsDeviceMsaa(false)
-		, _stencil_ref(0)
+		, _stencil_ref(0), _stencil_ref_decr(0)
 		, _blendMode(kClear_BlendMode)
 		, _texTmp{0,0,0}
 		, _curState(nullptr)
@@ -260,7 +260,7 @@ namespace qk {
 	}
 
 	int GLCanvas::save() {
-		_state.push(_state.back());
+		_state.push({ _state.back().matrix });
 		_curState = &_state.back();
 	}
 
@@ -268,16 +268,47 @@ namespace qk {
 		if (!count || _state.length() == 1)
 			return;
 
+		int clipOp = -1;
+
 		count = Uint32::min(count, _state.length() - 1);
-		_state.pop(count);
 
-		auto &cur = _state.back();
+		while (count > 0) {
+			auto &state = _state.back();
+			for (auto &clip: state.clips) {
+				// restore clip
+				if (clipOp == -1)
+					glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
 
-		setMatrixBuffer(cur.matrix);
-		
-		for (auto &clip: cur.clips) {
-			// TODO ...
-			// restore
+				if (clip.op == kDifference_ClipOp) {
+					_stencil_ref_decr++;
+					Qk_ASSERT(_stencil_ref_decr <= 127);
+					if (clipOp != kDifference_ClipOp) {
+						clipOp = kDifference_ClipOp;
+						glStencilOp(GL_KEEP, GL_INCR, GL_INCR); // Test success adds 1
+					}
+				} else {
+					_stencil_ref--;
+					Qk_ASSERT(_stencil_ref >= 127);
+					if (clipOp != kIntersect_ClipOp) {
+						clipOp = kIntersect_ClipOp;
+						glStencilOp(GL_KEEP, GL_DECR, GL_DECR); // Test success decr 1
+					}
+				}
+
+				_backend->_clip.use(clip.vertex.size(), *clip.vertex);
+				glDrawArrays(GL_TRIANGLES, 0, clip.vertex.length()); // draw test
+			}
+			_curState = &_state.pop().back();
+			setMatrixBuffer(_curState->matrix);
+			count--;
+		}
+
+		if (isStencilRefDefaultValue()) {
+			glDisable(GL_STENCIL_TEST); // disable stencil test
+		}
+		else if (clipOp != -1) {
+			glStencilFunc(GL_LEQUAL, _stencil_ref, 0xFFFFFFFF); // Equality passes the test
+			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 		}
 	}
 
@@ -289,11 +320,31 @@ namespace qk {
 		return _curState->matrix;
 	}
 
+	bool GLCanvas::isStencilRefDefaultValue() {
+		return _stencil_ref == 127 && _stencil_ref_decr == 127;
+	}
+
 	void GLCanvas::setRootMatrixBuffer(Mat4& root) {
 		// update all shader root matrix
 		root.transpose();
 		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, root.val);
+
+		// restore clip stencil
+		glClear(GL_STENCIL_BUFFER_BIT);
+
+		if (_stencil_ref != 0 && !isStencilRefDefaultValue()) {
+			_stencil_ref = _stencil_ref_decr = 127;
+
+			for (int i = 0; i < _state.length(); i++) {
+				_curState = &_state[i];
+				setMatrixBuffer(_curState->matrix);
+
+				for (auto &clip: _curState->clips) {
+					drawClip(&clip);
+				}
+			}
+		}
 	}
 
 	void GLCanvas::setMatrixBuffer(const Mat& mat) {
@@ -330,69 +381,90 @@ namespace qk {
 	bool GLCanvas::readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) {
 		GLenum format = gl_get_texture_pixel_format(dst->type());
 		GLenum type = gl_get_texture_data_format(dst->type());
-		if (format && dst->size() == dst->body().size()) {
-			glReadPixels(srcX, srcY, dst->width(), dst->height(), format, type, *dst->body());
-			return true;
-		}
-		return false;
+		if (format && dst->size() != dst->body().size())
+			return false;
+		glReadPixels(srcX, srcY, dst->width(), dst->height(), format, type, *dst->body());
+		return true;
 	}
 
 	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
 		if (_stencil_ref == 0) { // start enable stencil test
-			_stencil_ref++;
-			glClearStencil(_stencil_ref);
+			_stencil_ref = _stencil_ref_decr = 127;
 			glClear(GL_STENCIL_BUFFER_BIT); // clear stencil
+		}
+		if (isStencilRefDefaultValue()) {
 			glEnable(GL_STENCIL_TEST); // enable stencil test
-			glStencilFunc(GL_LEQUAL, _stencil_ref, 0xFFFFFFFF); // Equality passes the test
 		}
 
-		if (op == kIntersect_ClipOp) {
-			glStencilOp(GL_KEEP, GL_INCR, GL_INCR); // Test success adds 1
-		} else {
+		Clip clip{_backend->getPathPolygonsCache(path), op, antiAlias};
+
+		if (drawClip(&clip)) {
+			// save clip state
+			_curState->clips.push(std::move(clip));
+		}
+	}
+
+	bool GLCanvas::drawClip(Clip *clip) {
+		// ignore anti alias
+
+		if (clip->op == kDifference_ClipOp) {
+			if (_stencil_ref_decr == 0) {
+				Qk_WARN(" stencil ref decr value exceeds limit 0");
+				return false;
+			}
+			_stencil_ref_decr--;
 			glStencilOp(GL_KEEP, GL_DECR, GL_DECR); // Test success decr 1
-		}
-
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // disable color
-		auto vertex = path.getPolygons(3);
-		_backend->_color.use(vertex.size(), *vertex);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.length()); // draw test
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // enable color
-
-		if (op == kIntersect_ClipOp) {
-			glStencilFunc(GL_LEQUAL, ++_stencil_ref, 0xFFFFFFFF); // ref add 1
 		} else {
-			// TODO ...
+			if (_stencil_ref == 255) {
+				Qk_WARN(" stencil ref value exceeds limit 255");
+				return false;
+			}
+			_stencil_ref++;
+			glStencilOp(GL_KEEP, GL_INCR, GL_INCR); // Test success adds 1
 		}
-		
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
+	
+		glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
 
-		// save clip state
-		_curState->clips.push({std::move(vertex), op});
+		_backend->_clip.use(clip->vertex.size(), *clip->vertex);
+		glDrawArrays(GL_TRIANGLES, 0, clip->vertex.length()); // draw test
+		
+		glStencilFunc(GL_LEQUAL, _stencil_ref, 0xFFFFFFFF); // Equality passes the test
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
+	
+		return true;
 	}
 
 	void GLCanvas::clearColor(const Color4f& color) {
 		glClearColor(color.r(), color.g(), color.b(), color.a());
-		glClear(GL_COLOR_BUFFER_BIT);
+		if (isStencilRefDefaultValue()) {
+			glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		} else {
+			glClear(GL_COLOR_BUFFER_BIT);
+		}
 	}
 
 	void GLCanvas::drawColor(const Color4f& color, BlendMode mode) {
-		if (_blendMode != mode) {
-			setBlendMode(mode); // switch blend mode
+		if (mode == kSrc_BlendMode) {
+			clearColor(color);
+		} else {
+			if (_blendMode != mode) {
+				setBlendMode(mode); // switch blend mode
+			}
+			float data[] = {
+				-1,1,  1,1,
+				-1,-1, 1,-1,
+			};
+			_backend->_clear.use(sizeof(float) * 8, data);
+			glUniform4fv(_backend->_clear.color(), 1, color.val);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
-		float data[] = {
-			-1,1,  1,1,
-			-1,-1, 1,-1,
-		};
-		_backend->_clear.use(sizeof(float) * 8, data);
-		glUniform4fv(_backend->_clear.color(), 1, color.val);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 
 	void GLCanvas::drawPath(const Path& path, const Paint& paint) {
 
 		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 
-		Array<Vec2> vertex;
+		Array<Vec2> *vertex;
 
 		if (_blendMode != paint.blendMode) {
 			setBlendMode(paint.blendMode); // switch blend mode
@@ -401,24 +473,24 @@ namespace qk {
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
-				vertex = path.getPolygons(3);
+				vertex = &_backend->getPathPolygonsCache(path);
 				break;
 			case Paint::kStroke_Style:
-				vertex = path.strokePath(paint.width, paint.join).getPolygons(3);
+				vertex = &_backend->getPathPolygonsCache(path.strokePath(paint.width, paint.join));
 				break;
 			case Paint::kStrokeAndFill_Style:
-				vertex = path.extendPath(paint.width * 0.5, paint.join).getPolygons(3);
+				vertex = &_backend->getPathPolygonsCache(path.extendPath(paint.width * 0.5, paint.join));
 				break;
 		}
 
 		// fill polygons
 		switch (paint.type) {
 			case Paint::kColor_Type:
-				drawColor(vertex, paint); break;
+				drawColor(*vertex, paint); break;
 			case Paint::kGradient_Type:
-				drawGradient(vertex, paint); break;
+				drawGradient(*vertex, paint); break;
 			case Paint::kBitmap_Type:
-				drawImage(vertex, paint); break;
+				drawImage(*vertex, paint); break;
 		}
 	}
 
@@ -432,12 +504,11 @@ namespace qk {
 		const GradientColor *g = paint.gradientColor();
 		auto shader = paint.gradientType == Paint::kLinear_GradientType ?
 			&_backend->_linear: &_backend->_radial;
-		glUseProgram(shader->shader());
+		shader->use(vertex.size(), *vertex);
 		glUniform4fv(shader->range(), 1, paint.color.val);
 		glUniform1i(shader->count(), g->colors.length());
 		glUniform4fv(shader->colors(), g->colors.length(), (const GLfloat*)g->colors.val());
 		glUniform1fv(shader->positions(), g->colors.length(), (const GLfloat*)g->positions.val());
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vertex.val());
 		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 

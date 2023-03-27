@@ -40,6 +40,8 @@ namespace qk {
 			_hash += (_hash << 5) + ((cChar*)data)[len];
 	}
 
+	void SimpleHash::clear() { _hash = 5381; }
+
 	void SimpleHash::update(cString& str) {
 		update(str.c_str(), str.length());
 	}

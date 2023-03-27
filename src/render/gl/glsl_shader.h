@@ -84,6 +84,11 @@ namespace qk {
 		virtual void build() override;
 	};
 
+	class GLSLClip: public GLSLShader {
+	public:
+		virtual void build() override;
+	};
+
 	class GLSLColor: public GLSLShader {
 	public:
 		Qk_DEFINE_PROP_GET(GLuint, color);

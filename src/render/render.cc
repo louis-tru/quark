@@ -106,14 +106,34 @@ namespace qk {
 		//_canvas->drawColor(Color4f(1,0,0));
 
 		auto size = shared_app()->display()->size();
+		
+		Paint paint0;
+		GradientColor g{{Color4f(1,0,1), Color4f(0,1,0), Color4f(0,0,1)}, {0,0.5,1}};
+		Rect rect{ size*0.2*0.5, size*0.8 };
+		//paint0.setLinearGradient(&g, rect.origin, rect.origin+rect.size);
+		paint0.setRadialGradient(&g, rect.origin + rect.size*0.5, rect.size*0.5);
+		_canvas->drawRect(rect, paint0);
+
+		// -------- clip ------
+		_canvas->save();
+		_canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 0);
 
 		Paint paint;
 		paint.color = Color4f(1, 0, 1, 0.5);
 
-		_canvas->drawRect(Rect{ Vec2(0,0), size*0.5 }, paint);
-		
+		paint.color = Color4f(0, 0, 1, 0.5);
+		_canvas->drawPath(Path::Circle(Vec2(300), 100), paint);
+
+		paint.color = Color4f(1, 0, 0, 0.8);
+		_canvas->drawPath(Path::Oval({Vec2(200, 100), Vec2(100, 200)}), paint);
+
+		// -------- clip ------
+		_canvas->save();
+		_canvas->clipPath(Path::Circle(size*0.5, 100), Canvas::kDifference_ClipOp, 0);
+
+
 		paint.color = Color4f(1, 1, 0, 0.5);
-		
+
 		Path path(   Vec2(0, size.y()) );
 		path.lineTo( size );
 		path.lineTo( Vec2(size.x()*0.5, 0) );
@@ -122,28 +142,18 @@ namespace qk {
 		path.lineTo( Vec2(100, 200) );
 		path.lineTo( Vec2(200, 200) );
 		path.close();
-
 		_canvas->drawPath(path, paint);
 
-		paint.color = Color4f(0, 0, 1, 0.5);
-
-		_canvas->drawPath(Path::Circle(Vec2(300), 100), paint);
-		
-		paint.color = Color4f(1, 0, 0, 0.8);
-		
-		_canvas->drawPath(Path::Oval({Vec2(200, 100), Vec2(100, 200)}), paint);
-		
 		paint.color = Color4f(0, 1, 0, 0.8);
-		
 		_canvas->drawPath(Path::Arc({Vec2(400, 100), Vec2(200, 100)}, 0, 4.5, 1), paint);
-		
+
 		paint.color = Color4f(1, 0, 1, 0.8);
-		
 		_canvas->drawPath(Path::Arc({Vec2(450, 250), Vec2(200, 100)}, 4.5, 4, 0), paint);
-		
+
 		paint.color = Color4f(0, 0, 0, 0.8);
-		
 		_canvas->drawPath(Path::Arc({Vec2(450, 300), Vec2(100, 200)}, 3, 4, 1), paint);
+
+		_canvas->restore(2);
 	}
 
 	void RenderBackend::visitFloatLayout(FloatLayout* flow) {

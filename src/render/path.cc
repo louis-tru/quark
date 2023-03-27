@@ -77,12 +77,14 @@ namespace qk {
 		// _pts.push(to.x()); _pts.push(to.y());
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Move);
+		_hash.update(&to, sizeof(float) * 2);
 	}
 
 	void Path::lineTo(Vec2 to) {
 		// _pts.push(to);
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Line);
+		_hash.update(&to, sizeof(float) * 2);
 	}
 
 	void Path::quadTo(Vec2 control, Vec2 to) {
@@ -90,17 +92,19 @@ namespace qk {
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Quad);
 		_IsNormalized = false;
+		_hash.update((&_pts.back()) - 4, sizeof(float) * 4);
 	}
 
 	void Path::cubicTo(Vec2 control1, Vec2 control2, Vec2 to) {
 		//_pts.push(control1[0]); _pts.push(control1[1]);
 		//_pts.push(control2[0]); _pts.push(control2[1]);
 		//_pts.push(to[0]); _pts.push(to[1]);
-		_pts.write(control1.val, -1, 6);
+		_pts.write(control1.val, -1, 2);
 		_pts.write(control2.val, -1, 2);
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Cubic);
 		_IsNormalized = false;
+		_hash.update((&_pts.back()) - 6, sizeof(float) * 6);
 	}
 
 	constexpr float magicCircle = 0.551915024494f; // 0.552284749831f
@@ -181,12 +185,14 @@ namespace qk {
 		_pts.write(p, -1, 4);
 		_verbs.push(kVerb_Quad);
 		_IsNormalized = false;
+		_hash.update(p, sizeof(float) * 4);
 	}
 
 	void Path::cubicTo2(float *p) {
 		_pts.write(p, -1, 6);
 		_verbs.push(kVerb_Cubic);
 		_IsNormalized = false;
+		_hash.update(p, sizeof(float) * 6);
 	}
 
 	void Path::close() {

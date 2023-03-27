@@ -65,17 +65,21 @@ namespace qk {
 		void setBlendMode(BlendMode blendMode);
 		void setMatrixBuffer(const Mat& mat);
 		void setRootMatrixBuffer(Mat4& root);
+		bool isStencilRefDefaultValue();
 		// props
+		struct Clip {
+			Array<Vec2> vertex;
+			ClipOp op;
+			bool antiAlias;
+		};
+		bool drawClip(Clip *clip);
 		struct State {
-			struct Clip {
-				Array<Vec2> vertex; ClipOp op;
-			};
-			Array<Clip> clips;
 			Mat         matrix;
+			Array<Clip> clips;
 		};
 		GLRender *_backend;
 		bool      _IsDeviceMsaa; // device anti alias, msaa
-		GLuint    _stencil_ref;
+		GLuint    _stencil_ref, _stencil_ref_decr;
 		BlendMode _blendMode;
 		GLuint    _ubo, _texTmp[3]; // ubo => root,view matrix
 		State    *_curState;

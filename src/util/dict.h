@@ -439,6 +439,9 @@ namespace qk {
 			}
 			node = node->_conflict;
 		}
+		_length++;
+		optimize_();
+		index = hash % _capacity;
 		// insert new key
 		node = (Node*)A::alloc(sizeof(Node) + sizeof(Pair));
 		node->hash_code = hash;
@@ -446,7 +449,6 @@ namespace qk {
 		link_(_end._prev, node);
 		link_(node, &_end);
 		_indexed[index] = node;
-		_length++;
 		*data = &node->data();
 		return true;
 	}

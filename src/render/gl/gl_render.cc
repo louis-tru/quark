@@ -80,7 +80,7 @@ namespace qk {
 		, _Is_Support_Multisampled(glIsSupportMultisampled())
 		, _linear(Paint::kLinear_GradientType)
 		, _radial(Paint::kRadial_GradientType)
-		, _shaders{&_clear, &_color, &_image, &_yuv420p, &_yuv420sp, &_linear, &_radial}
+		, _shaders{&_clear, &_clip, &_color, &_image, &_yuv420p, &_yuv420sp, &_linear, &_radial}
 	{
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
@@ -116,6 +116,7 @@ namespace qk {
 			_opts.msaaSampleCnt = 0;
 		}
 		// enable and disable test function
+		glClearStencil(127);
 		glStencilMask(0xFFFFFFFF);
 		glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
 		glDisable(GL_STENCIL_TEST); // disable stencil test
@@ -182,9 +183,9 @@ namespace qk {
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		setRootMatrixBuffer(mat);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
 	void GLRender::setRenderBuffer(int width, int height) {
@@ -227,6 +228,17 @@ namespace qk {
 		glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depth_buffer);
+	}
+
+	Array<Vec2>& GLRender::getPathPolygonsCache(const Path &path) {
+		auto hash = path.hashCode();
+		auto it = _pathPolygonsCache.find(hash);
+		if (it != _pathPolygonsCache.end()) {
+			return it->value;
+		}
+		if (_pathPolygonsCache.length() >= 65535)
+			_pathPolygonsCache.clear();
+		return _pathPolygonsCache.set(hash, path.getPolygons(3));
 	}
 
 	GLuint GLRender::setTexture(cPixel *src, uint32_t id) {
