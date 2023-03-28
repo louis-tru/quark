@@ -101,7 +101,7 @@ namespace qk {
 		// init
 		_pre_render = new PreRender(this); Qk_DEBUG("new PreRender ok");
 		_display = NewRetain<Display>(this); Qk_DEBUG("NewRetain<Display> ok"); // strong ref
-		_font_pool = FontPool::Make(this);
+		_font_pool = FontPool::Make();
 		_img_pool = new ImageSourcePool(this);
 		_dispatch = new EventDispatch(this); Qk_DEBUG("new EventDispatch ok");
 		_default_text_options = new DefaultTextOptions(_font_pool);

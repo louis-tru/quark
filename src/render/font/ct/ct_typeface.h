@@ -67,9 +67,10 @@ protected:
 	size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const override;
 	void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const override;
 	void onGetMetrics(FontMetrics* metrics) const override;
-	void onGetGlyph(GlyphID glyph, FontGlyphMetrics* metrics) const override;
+	void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) const override;
 	bool onGetPath(GlyphID glyph, Path *path) const override;
-	float onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) override;
+	float onGetImage(const Array<GlyphID>& glyphs, float fontSize, float scale,
+									 const Array<Vec2> *positions, Sp<ImageSource> *imgOut) override;
 private:
 	QkUniqueCFRef<CTFontRef> ctFont(float fontSize) const;
 	QkUniqueCFRef<CGColorSpaceRef> fRGBSpace;

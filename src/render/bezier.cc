@@ -41,7 +41,7 @@ namespace qk {
 	QuadraticBezier::QuadraticBezier(Vec2 p0, Vec2 p1, Vec2 p2): _p0(p0), _p1(p1), _p2(p2) { }
 
 	/**
-	* @func sample_curve_x
+	* @method sample_curve_x
 	*/
 	float QuadraticBezier::sample_curve_x(float t) const {
 		float t2 = 1 - t;
@@ -49,7 +49,7 @@ namespace qk {
 	}
 
 	/**
-	* @func sample_curve_y
+	* @method sample_curve_y
 	*/
 	float QuadraticBezier::sample_curve_y(float t) const {
 		float t2 = 1 - t;
@@ -57,7 +57,7 @@ namespace qk {
 	}
 
 	/**
-	* @func compute_bezier_points
+	* @method compute_bezier_points
 	*/
 	void QuadraticBezier::sample_curve_points(uint32_t sample_count, float* out) const {
 		sample_count--;
@@ -76,7 +76,7 @@ namespace qk {
 	}
 
 	/**
-	* @func sample_curve_points
+	* @method sample_curve_points
 	*/
 	Array<Vec2> QuadraticBezier::sample_curve_points(uint32_t sample_count) const {
 		Array<Vec2> rev(sample_count);
@@ -96,7 +96,7 @@ namespace qk {
 	}
 
 	/**
-	* @func compute_bezier_points
+	* @method compute_bezier_points
 	*/
 	void CubicBezier::sample_curve_points(uint32_t sample_count, float* out) const {
 		sample_count--;
@@ -112,7 +112,7 @@ namespace qk {
 	}
 
 	/**
-	* @func sample_curve_points
+	* @method sample_curve_points
 	*/
 	Array<Vec2> CubicBezier::sample_curve_points(uint32_t sample_count) const {
 		Array<Vec2> rev(sample_count);
@@ -155,7 +155,7 @@ namespace qk {
 	}
 
 	/**
-	* @func defalut_solve_curve_x # Given an x value, find a parametric value it came from.
+	* @method defalut_solve_curve_x # Given an x value, find a parametric value it came from.
 	* 通过x值迭代逼近查找t值
 	*/
 	float FixedCubicBezier::solve_t(float x, float epsilon) const {

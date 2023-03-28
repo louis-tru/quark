@@ -551,57 +551,6 @@ static inline bool QkCGRectIsEmpty(const CGRect& rect) {
 	return rect.size.width <= 0 || rect.size.height <= 0;
 }
 
-void Typeface_Mac::onGetGlyph(GlyphID id, FontGlyphMetrics* glyph) const {
-	if (nullptr == glyph)
-		return;
-
-	auto font = ctFont(64.0);
-	CTFontRef fontRef = font.get();
-
-	const CGGlyph cgGlyph = (CGGlyph) id;
-
-	// The following block produces cgAdvance in CG units (pixels, y up).
-	CGSize cgAdvance;
-	CTFontGetAdvancesForGlyphs(fontRef, kCTFontOrientationHorizontal,
-															&cgGlyph, &cgAdvance, 1);
-	// cgAdvance = CGSizeApplyAffineTransform(cgAdvance, fTransform);
-	glyph->advanceX =  static_cast<float>(cgAdvance.width);
-	glyph->advanceY = -static_cast<float>(cgAdvance.height);
-
-	// The following produces skBounds in SkGlyph units (pixels, y down),
-	// or returns early if skBounds would be empty.
-	qk::Rect bounds;
-
-	// Glyphs are always drawn from the horizontal origin. The caller must manually use the result
-	// of CTFontGetVerticalTranslationsForGlyphs to calculate where to draw the glyph for vertical
-	// glyphs. As a result, always get the horizontal bounds of a glyph and translate it if the
-	// glyph is vertical. This avoids any diagreement between the various means of retrieving
-	// vertical metrics.
-	{
-		// CTFontGetBoundingRectsForGlyphs produces cgBounds in CG units (pixels, y up).
-		CGRect cgBounds;
-		CTFontGetBoundingRectsForGlyphs(fontRef, kCTFontOrientationHorizontal, &cgGlyph, &cgBounds, 1);
-		// cgBounds = CGRectApplyAffineTransform(cgBounds, fTransform);
-
-		if (QkCGRectIsEmpty(cgBounds)) {
-			return;
-		}
-
-		// Convert cgBounds to SkGlyph units (pixels, y down).
-		bounds = {
-			Vec2(cgBounds.origin.x, -cgBounds.origin.y - cgBounds.size.height),
-			Vec2(cgBounds.size.width, cgBounds.size.height),
-		};
-		
-		Qk_DEBUG("#Typeface_Mac#onGetGlyph,%f", bounds.origin.x());
-	}
-
-	glyph->left = bounds.origin.x();
-	glyph->top = bounds.origin.y();
-	glyph->width = bounds.size.x();
-	glyph->height = bounds.size.y();
-}
-
 bool Typeface_Mac::onGetPath(GlyphID glyph, Path *path) const {
 	if (nullptr == path) {
 		return false;
@@ -666,7 +615,48 @@ bool Typeface_Mac::onGetPath(GlyphID glyph, Path *path) const {
 	return true;
 }
 
-float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) {
+void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) const {
+	if (nullptr == glyph)
+		return;
+
+	auto font = ctFont(64.0);
+	CTFontRef fontRef = font.get();
+
+	const CGGlyph cgGlyph = (CGGlyph) id;
+
+	// The following block produces cgAdvance in CG units (pixels, y up).
+	CGSize cgAdvance;
+	CTFontGetAdvancesForGlyphs(fontRef, kCTFontOrientationHorizontal,
+															&cgGlyph, &cgAdvance, 1);
+	// cgAdvance = CGSizeApplyAffineTransform(cgAdvance, fTransform);
+	glyph->advanceX =  static_cast<float>(cgAdvance.width);
+	glyph->advanceY = -static_cast<float>(cgAdvance.height);
+
+	// Glyphs are always drawn from the horizontal origin. The caller must manually use the result
+	// of CTFontGetVerticalTranslationsForGlyphs to calculate where to draw the glyph for vertical
+	// glyphs. As a result, always get the horizontal bounds of a glyph and translate it if the
+	// glyph is vertical. This avoids any diagreement between the various means of retrieving
+	// vertical metrics.
+
+	// CTFontGetBoundingRectsForGlyphs produces cgBounds in CG units (pixels, y up).
+	CGRect cgBounds;
+	CTFontGetBoundingRectsForGlyphs(fontRef, kCTFontOrientationHorizontal, &cgGlyph, &cgBounds, 1);
+	// cgBounds = CGRectApplyAffineTransform(cgBounds, fTransform);
+
+	if (QkCGRectIsEmpty(cgBounds)) {
+		return;
+	}
+
+	glyph->left = cgBounds.origin.x;
+	glyph->top = -cgBounds.size.height - cgBounds.origin.y;
+	glyph->width = cgBounds.size.width;
+	glyph->height = cgBounds.size.height;
+	
+	Qk_DEBUG("#Typeface_Mac::onGetGlyphMetrics,%f", cgBounds.origin.x);
+}
+
+float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, float scale,
+															 const Array<Vec2> *positions, Sp<ImageSource> *imgOut) {
 
 	if (!fRGBSpace) {
 		//It doesn't appear to matter what color space is specified.
@@ -674,6 +664,8 @@ float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<
 		//and subpixel antialiased text is always g=2.0.
 		fRGBSpace.reset(CGColorSpaceCreateDeviceRGB());
 	}
+	
+	// TODO scale, positions ...
 
 	auto font = ctFont(fontSize);
 	CTFontRef fontRef = font.get();
@@ -695,16 +687,17 @@ float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<
 	for (int i = 0; i < glyphs.length(); i++) {
 		drawPoints[i].x = width_f;
 		drawPoints[i].y = -cgBounds[i].origin.y;
-		Qk_DEBUG("#Typeface_Mac#onGetImage,bounds, left:%f, top:%f, width:%f, height:%f | advanceX:%f",
+		width_f += cgAdvance[i].width;
+
+		Qk_DEBUG("#Typeface_Mac::onGetImage,bounds, left:%f, top:%f, width:%f, height:%f | advanceX:%f",
 			cgBounds[i].origin.x, cgBounds[i].origin.y,
 			cgBounds[i].size.width, cgBounds[i].size.height, cgAdvance[i].width);
-		width_f += cgAdvance[i].width;
 	}
 
 	int width = ceilf(width_f + cgBounds.back().origin.x);
 	int height = ceilf(bounds.size.height);
-	
-	Qk_DEBUG("#Typeface_Mac#onGetImage,bounds[i].origin.y=%f,top=%f,height=%d", bounds.origin.y, top, height);
+
+	Qk_DEBUG("#Typeface_Mac::onGetImage,bounds[i].origin.y=%f,top=%f,height=%d", bounds.origin.y, top, height);
 
 	int rowBytes = width * sizeof(uint32_t);
 	Buffer image = Buffer::alloc(rowBytes * height);
@@ -750,6 +743,6 @@ float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<
 	pixs.push(std::move(pix));
 
 	*imgOut = new ImageSource(std::move(pixs));
-	
+
 	return top;
 }

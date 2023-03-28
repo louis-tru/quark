@@ -209,10 +209,10 @@ namespace qk {
 		static float default_status_bar_height();
 
 	private:
-		void updateState(void *lock, Mat4 *mat);
+		void updateState(void *lock, Mat4 *mat, Vec2* scale);
 		void solve_next_frame();
 		bool onRenderBackendReload(Region region, Vec2 size,
-															 float defaultScale, Mat4 *surfaceMat) override;
+															 float defaultScale, Mat4 *mat, Vec2 *scale) override;
 		bool onRenderBackendPreDisplay() override;
 		void onRenderBackendDisplay() override;
 

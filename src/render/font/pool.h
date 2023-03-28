@@ -42,13 +42,12 @@ namespace qk {
 	class Qk_EXPORT FontPool: public Object {
 		Qk_HIDDEN_ALL_COPY(FontPool);
 	public:
-		static FontPool* Make(Application* host);
+		static FontPool* Make();
 		// define ptops
 		Qk_DEFINE_PROP_ACC_GET(int32_t, countFamilies);
 		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, second);
 		Qk_DEFINE_PROP_GET(Sp<Typeface>, last, NoConst);
 		Qk_DEFINE_PROP_GET(GlyphID, last_65533);
-		Qk_DEFINE_PROP_GET(Application*, host);
 		// methods
 		FFID getFFID(cString& familys = String());
 		FFID getFFID(const Array<String>& familys);
@@ -57,7 +56,7 @@ namespace qk {
 		Sp<Typeface> match(cString& familyName, FontStyle style) const;
 		Sp<Typeface> matchCharacter(cString& familyName, FontStyle, Unichar character) const;
 	protected:
-		FontPool(Application* host);
+		FontPool();
 		void initialize();
 		virtual int onCountFamilies() const = 0;
 		virtual String onGetFamilyName(int index) const = 0;

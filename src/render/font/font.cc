@@ -45,23 +45,25 @@ namespace qk {
 		}
 	}
 
-	Array<float> FontGlyphs::getOffset(float origin) {
+	Array<Vec2> FontGlyphs::getHorizontalOffset(Vec2 origin) {
 		if (!_glyphs.length())
-			return Array<float>({0});
+			return Array<Vec2>({origin});
 
-		const float scale = _fontSize / 64.0;
+		constexpr float _1_64 = 1.0 / 64.0;
+		const float scale = _fontSize * _1_64;
 		const bool isScale = scale != 1.0;
 
-		Array<float> result(_glyphs.length() + 1);
-		float loc = origin;
-		float* cursor = *result;
+		Array<Vec2> result(_glyphs.length() + 1);
+		float locX = origin.x();
+		float locY = origin.y();
+		Vec2 *cursor = *result;
 		GlyphID *src = *_glyphs;
 		GlyphID *end = src + result.length();
 
 		while (src != end) {
-			auto& glyph = _typeface->getGlyph(*src);
-			*cursor++ = loc;
-			loc += (isScale? glyph.advanceX * scale: glyph.advanceX);
+			auto& glyph = _typeface->getGlyphMetrics(*src);
+			*cursor++ = Vec2(locX, locY);
+			locX += (isScale? glyph.advanceX * scale: glyph.advanceX);
 			src++;
 		}
 		return std::move(result);

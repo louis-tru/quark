@@ -34,10 +34,11 @@
 #define __ftr__render_render__
 
 #include "../util/json.h"
-#include "../math.h"
 #include "../layout/view.h"
+#include "./math.h"
 #include "./source.h"
 #include "./canvas.h"
+#include "./font/pool.h"
 
 namespace qk {
 	class Application;
@@ -60,7 +61,7 @@ namespace qk {
 		class Delegate {
 		public:
 			virtual bool onRenderBackendReload(Region region, Vec2 size,
-																				float defaultScale, Mat4 *surfaceMat) = 0;
+								float defaultScale, Mat4 *surfaceMat, Vec2* surfaceScale) = 0;
 			virtual bool onRenderBackendPreDisplay() = 0;
 			virtual void onRenderBackendDisplay() = 0;
 		};
@@ -71,13 +72,13 @@ namespace qk {
 		virtual void    submit() = 0; // submit render task
 		virtual void    activate(bool isActive);
 		virtual Object* asObject() = 0;
-		// default canvas object
-		inline  Canvas* getCanvas() { return _canvas; }
+		inline  Canvas* getCanvas() { return _canvas; } // default canvas object
 		inline  Vec2    surfaceSize() { return _surface_size; }
 		inline  float   defaultScale() { return _default_scale; }
 		inline  Delegate* delegate() { return _delegate; }
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
+		Array<Vec2>&    getPathPolygonsCache(const Path &path);
 		// @overwrite class ViewVisitor
 		virtual void    visitView(View* v) override;
 		virtual void    visitBox(Box* box) override;
@@ -96,12 +97,13 @@ namespace qk {
 	protected:
 		virtual Vec2    getSurfaceSize() = 0;
 		virtual float   getDefaultScale() = 0;
-		RenderBackend(Options opts, Delegate *delegate);
+		RenderBackend(Options opts);
 		Options       _opts;
 		Canvas       *_canvas; // default canvas
 		Delegate     *_delegate;
 		Vec2          _surface_size; // recommend default surface scale
 		float         _default_scale;
+		Dict<uint64_t, Array<Vec2>> _pathPolygonsCache;
 	};
 
 	typedef RenderBackend Render;

@@ -93,12 +93,12 @@ namespace qk {
 		return id;
 	}
 
-	const FontGlyphMetrics& Typeface::getGlyph(GlyphID glyph) {
+	const FontGlyphMetrics& Typeface::getGlyphMetrics(GlyphID glyph) {
 		auto it = _glyphs.find(glyph);
 		if (it != _glyphs.end())
 			return it->value;
 		FontGlyphMetrics fontGlyph;
-		onGetGlyph(glyph, &fontGlyph);
+		onGetGlyphMetrics(glyph, &fontGlyph);
 		_glyphs.set(glyph, fontGlyph);
 		return _glyphs[glyph];
 	}
@@ -158,7 +158,8 @@ namespace qk {
 		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
 	}
 
-	float Typeface::getImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) {
-		return onGetImage(glyphs, fontSize, imgOut);
+	float Typeface::getImage(const Array<GlyphID>& glyphs, float fontSize, float scale,
+													 const Array<Vec2> *positions, Sp<ImageSource> *imgOut) {
+		return onGetImage(glyphs, fontSize, scale, positions, imgOut);
 	}
 }

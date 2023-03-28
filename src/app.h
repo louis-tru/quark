@@ -116,15 +116,15 @@ namespace qk {
 		inline const Options& options() const { return _opts; }
 
 		Qk_DEFINE_PROP_GET(bool, is_loaded);
-		Qk_DEFINE_PROP_GET(DefaultTextOptions*, default_text_options); //! 默认文本设置
-		Qk_DEFINE_PROP_GET(Display*, display); //! 当前显示端口
-		Qk_DEFINE_PROP_GET(Root*, root); //! 根视图
-		Qk_DEFINE_PROP_GET(RunLoop*, loop); //! 运行消息循环
-		Qk_DEFINE_PROP_GET(ActionDirect*, action_direct); //! 动作管理器
-		Qk_DEFINE_PROP_GET(PreRender*, pre_render); //! 预渲染器
-		Qk_DEFINE_PROP_GET(Render*, render); //! 渲染器
-		Qk_DEFINE_PROP_GET(FontPool*, font_pool); //! 字体管理器
-		Qk_DEFINE_PROP_GET(ImageSourcePool*, img_pool); //! 图片加载器
+		Qk_DEFINE_PROP_GET(DefaultTextOptions*, default_text_options); //! default font settings
+		Qk_DEFINE_PROP_GET(Display*, display); //! current display window
+		Qk_DEFINE_PROP_GET(Root*, root); //! root view
+		Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
+		Qk_DEFINE_PROP_GET(ActionDirect*, action_direct); //! action direct  manage
+		Qk_DEFINE_PROP_GET(PreRender*, pre_render); //! pre-renderer
+		Qk_DEFINE_PROP_GET(Render*, render); //! renderer
+		Qk_DEFINE_PROP_GET(FontPool*, font_pool); //! font and font familys manage
+		Qk_DEFINE_PROP_GET(ImageSourcePool*, img_pool); //! image loader and image cache
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
 
 		/**

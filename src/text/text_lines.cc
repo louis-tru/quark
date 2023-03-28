@@ -94,7 +94,7 @@ namespace qk {
 		_pre_width = 0;
 		
 		for (auto &blob: _preBlob) {
-			_pre_width += blob.offset.back() - blob.offset.front();
+			_pre_width += blob.offset.back().x() - blob.offset.front().x();
 		}
 		if (_pre_width) {
 			_trim_start = false;
@@ -288,16 +288,16 @@ namespace qk {
 		}
 	}
 
-	void TextLines::add_text_blob(PreTextBlob blob, const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre) {
+	void TextLines::add_text_blob(PreTextBlob pre, const Array<GlyphID>& glyphs, const Array<Vec2>& offset, bool is_pre) {
 		if (is_pre) {
 			if (glyphs.length()) {
-				blob.glyphs = glyphs.copy();
-				blob.offset = offset.copy();
-				_preBlob.push(std::move(blob));
+				pre.glyphs = glyphs.copy();
+				pre.offset = offset.copy();
+				_preBlob.push(std::move(pre));
 			}
 		} else {
 			finish_text_blob_pre(); // finish pre
-			add_text_blob(blob, glyphs, offset);
+			add_text_blob(pre, glyphs, offset);
 		}
 	}
 	
@@ -318,40 +318,36 @@ namespace qk {
 		}
 	}
 	
-	void TextLines::add_text_blob(PreTextBlob& blob, const Array<GlyphID>& glyphs, const Array<float>& offset) {
+	void TextLines::add_text_blob(PreTextBlob& pre, const Array<GlyphID>& glyphs, const Array<Vec2>& offset) {
 		if (glyphs.length() == 0)
 			return;
 
 		auto line = _last->line;
-		if (blob.blob->length()) {
-			auto& last = blob.blob->back();
+		if (pre.blob->length()) {
+			auto& last = pre.blob->back();
 			// merge glyphs
-			if (last.line == line && last.offset.back().x() == offset.front()) {
+			if (last.line == line && last.offset.back().x() == offset.front().x()) {
 				last.glyphs.write(glyphs);
 				// last.offset.write(offset, -1, -1, 1);
 				for (int i = 1; i < offset.length(); i++)
-					last.offset.push(Vec2(offset[i], 0));
+					last.offset.push(offset[i]);
 				_last->width = last.origin + last.offset.back().x();
 				return;
 			}
 		}
 
 		FontMetricsBase metrics;
-		auto height = blob.typeface->getMetrics(&metrics, blob.text_size);
+		auto height = pre.typeface->getMetrics(&metrics, pre.text_size);
 		auto ascent = -metrics.fAscent;
-		auto origin = _last->width - offset[0];
+		auto origin = _last->width - offset[0].x();
 
-		Array<Vec2> offset2(offset.length());
-		for (int i = 0; i < offset.length(); i++)
-			offset2[i] = Vec2(offset[i], 0);
-
-		blob.blob->push({
-			blob.typeface, glyphs.copy(), std::move(offset2),
-			ascent, height, origin, line, blob.index_of_unichar
+		pre.blob->push({
+			pre.typeface, glyphs.copy(), offset,
+			ascent, height, origin, line, pre.index_of_unichar
 		});
-		_last->width = origin + offset.back();
+		_last->width = origin + offset.back().x();
 
-		set_metrics(&metrics, blob.line_height);
+		set_metrics(&metrics, pre.line_height);
 	}
 
 	void TextLines::set_pre_width(float value) {

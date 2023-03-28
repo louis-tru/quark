@@ -381,7 +381,7 @@ namespace qk {
 	bool GLCanvas::readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) {
 		GLenum format = gl_get_texture_pixel_format(dst->type());
 		GLenum type = gl_get_texture_data_format(dst->type());
-		if (format && dst->size() != dst->body().size())
+		if (format && dst->bytes() != dst->body().size())
 			return false;
 		glReadPixels(srcX, srcY, dst->width(), dst->height(), format, type, *dst->body());
 		return true;
@@ -542,14 +542,44 @@ namespace qk {
 		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 
-	void GLCanvas::drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
-		Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) 
+	void GLCanvas::drawGlyphs(const Array<GlyphID>& glyphs, Vec2 origin,
+		const Array<Vec2> *positions, float fontSize, Typeface *typeface, const Paint &paint)
 	{
-		// TODO ...
+		float scale = Float::max(_curState->matrix.val[0], _curState->matrix.val[4])
+								* Float::max(_surfaceScale[0], _surfaceScale[1]);
+
+		Sp<ImageSource> image;
+		float top = typeface->getImage(glyphs, fontSize, scale, positions, &image);
+
+		Paint p(paint);
+
+		auto &pix = image->pixels().front();
+		auto scale_1 = 1.0 / scale;
+
+		Vec2 dst_start(origin.x(), origin.y() + top * scale_1);
+		Vec2 dst_size(scale_1 * pix.width(), scale_1 * pix.height());
+
+		p.setBitmapPixel(&pix, {dst_start, dst_size});
+
+		// TODO ..
 	}
 
-	void GLCanvas::drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) {
+	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
 		// TODO ...
+		//		struct {
+		//			Sp<Typeface>    typeface;
+		//			Array<GlyphID>  glyphs;
+		//			Array<Vec2>     offset;
+		//			float           ascent; // 当前blob基线距离文本顶部
+		//			float           height; // 当前blob高度
+		//			float           origin; // x-axis offset origin start
+		//			uint32_t        line;   // line number
+		//			uint32_t        index;  // blob index in unichar glyphs
+		//			Sp<ImageSource> image;  // image cache
+		//			Sp<Path>        path;   // path cache
+		//			SizeLevel       level;
+		//		};
+		
 	}
 
 	void GLCanvas::setBlendMode(BlendMode blendMode) {

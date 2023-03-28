@@ -138,8 +138,8 @@ extern QkApplicationDelegate* __appDelegate;
 
 class AppleGLRender: public GLRender, public QkAppleRender {
 public:
-	AppleGLRender(Options opts, NSOpenGLContext *ctx, Delegate *delegate)
-		: GLRender(opts, delegate), _ctx(ctx)
+	AppleGLRender(Options opts, NSOpenGLContext *ctx)
+		: GLRender(opts), _ctx(ctx)
 	{}
 
 	~AppleGLRender() {
@@ -171,7 +171,7 @@ public:
 	void reload() override {
 		auto size = getSurfaceSize();
 		Mat4 mat;
-		if (!_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _default_scale, &mat))
+		if (!_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _default_scale, &mat, &_surfaceScale))
 			return;
 
 		CGLLockContext(_ctx.CGLContextObj);
@@ -232,7 +232,7 @@ private:
 	NSOpenGLContext   *_ctx;
 };
 
-QkAppleRender* qk_make_apple_gl_render(Render::Options opts, Render::Delegate *delegate) {
+QkAppleRender* qk_make_apple_gl_render(Render::Options opts) {
 
 	//	generate the GL display mask for all displays
 	CGDirectDisplayID		dspys[10];
@@ -281,7 +281,7 @@ QkAppleRender* qk_make_apple_gl_render(Render::Options opts, Render::Delegate *d
 	CGLLockContext(ctx.CGLContextObj);
 	[ctx makeCurrentContext];
 	Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
-	auto render = new AppleGLRender(opts, ctx, delegate);
+	auto render = new AppleGLRender(opts,ctx);
 	CGLUnlockContext(ctx.CGLContextObj);
 	[NSOpenGLContext clearCurrentContext]; // clear ctx
 

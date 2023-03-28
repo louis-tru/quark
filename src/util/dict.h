@@ -146,7 +146,7 @@ namespace qk {
 		Node* link_(Node* prev, Node* next);
 		Node* node_(IteratorConst it);
 
-		Node** _indexed;
+		Node** _nodes;
 		Node   _end; // { _prev = last, _next = first }
 		uint32_t  _length;
 		uint32_t  _capacity;
@@ -200,7 +200,7 @@ namespace qk {
 	Dict<K, V, C, A>& Dict<K, V, C, A>::operator=(Dict&& dict) {
 		clear();
 		if (dict._length) {
-			fill_(dict._indexed, dict._end._next, dict._end._prev, dict._length, dict._capacity);
+			fill_(dict._nodes, dict._end._next, dict._end._prev, dict._length, dict._capacity);
 			dict.init_();
 		}
 		return *this;
@@ -225,7 +225,7 @@ namespace qk {
 	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::find(const K& key) const {
 		if (_length) {
 			auto hash = C::hash_code(key);
-			auto node = _indexed[hash % _capacity];
+			auto node = _nodes[hash % _capacity];
 			while (node) {
 				if (node->hash_code == hash)
 					return IteratorConst(node);
@@ -247,7 +247,7 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A>
 	uint32_t Dict<K, V, C, A>::count(const K& key) const {
-		return _length && _indexed[C::hash_code(key) % _capacity] ? 1/*TODO use 1*/: 0;
+		return _length && _nodes[C::hash_code(key) % _capacity] ? 1/*TODO use 1*/: 0;
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -377,8 +377,8 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::clear() {
 		erase(IteratorConst(_end._next), IteratorConst(&_end));
-		A::free(_indexed);
-		_indexed = nullptr;
+		A::free(_nodes);
+		_nodes = nullptr;
 		_capacity = 0;
 	}
 
@@ -416,7 +416,7 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::fill_(Node** indexed, Node* first, Node* last, uint32_t len, uint32_t capacity) {
-		_indexed = indexed;
+		_nodes = indexed;
 		_end._prev = last;
 		_end._next = first;
 		_length = len;
@@ -426,12 +426,12 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::get_(const K& key, Pair** data) {
 		if (!_capacity) {
-			_indexed = (Node**)A::aalloc(_indexed, 1, &_capacity, sizeof(Node*));
-			::memset(_indexed, 0, sizeof(Node*) * _capacity);
+			_nodes = (Node**)A::aalloc(_nodes, 1, &_capacity, sizeof(Node*));
+			::memset(_nodes, 0, sizeof(Node*) * _capacity);
 		}
 		auto hash = C::hash_code(key);
 		auto index = hash % _capacity;
-		auto node = _indexed[index];
+		auto node = _nodes[index];
 		while (node) {
 			if (node->hash_code == hash) {
 				*data = &node->data();
@@ -445,10 +445,10 @@ namespace qk {
 		// insert new key
 		node = (Node*)A::alloc(sizeof(Node) + sizeof(Pair));
 		node->hash_code = hash;
-		node->_conflict = _indexed[index];
+		node->_conflict = _nodes[index];
 		link_(_end._prev, node);
 		link_(node, &_end);
-		_indexed[index] = node;
+		_nodes[index] = node;
 		*data = &node->data();
 		return true;
 	}
@@ -456,9 +456,9 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::erase_(Node* node) {
 		auto index = node->hash_code % _capacity;
-		auto begin = _indexed[index];
+		auto begin = _nodes[index];
 		if (begin == node) {
-			_indexed[index] = node->_conflict;
+			_nodes[index] = node->_conflict;
 		} else {
 			while (begin->_conflict != node)
 				begin = begin->_conflict;
@@ -472,13 +472,13 @@ namespace qk {
 	void Dict<K, V, C, A>::optimize_() {
 		auto scale = float(_length) / float(_capacity);
 		if (scale > 0.7 || (scale < 0.2 && _capacity > Qk_MIN_CAPACITY)) {
-			_indexed = (Node**)A::aalloc(_indexed, uint32_t(_length / 0.7) , &_capacity, sizeof(Node*));
-			::memset(_indexed, 0, sizeof(Node*) * _capacity);
+			_nodes = (Node**)A::aalloc(_nodes, uint32_t(_length / 0.7) , &_capacity, sizeof(Node*));
+			::memset(_nodes, 0, sizeof(Node*) * _capacity);
 			auto node = _end._next;
 			while (node != &_end) {
 				auto index = node->hash_code % _capacity;
-				node->_conflict = _indexed[index];
-				_indexed[index] = node;
+				node->_conflict = _nodes[index];
+				_nodes[index] = node;
 				node = node->_next;
 			}
 		}

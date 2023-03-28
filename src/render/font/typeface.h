@@ -53,16 +53,17 @@ namespace qk {
 		size_t getTableSize(FontTableTag) const;
 		int getUnitsPerEm() const;
 		String getFamilyName() const;
-		bool getPostScriptName(String* name) const;
+		bool getPostScriptName(String *name) const;
 		void unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const;
 		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
 		GlyphID unicharToGlyph(Unichar unichar) const;
-		const FontGlyphMetrics& getGlyph(GlyphID glyph); // returns the font glyph metrics in 64 px
+		const FontGlyphMetrics& getGlyphMetrics(GlyphID glyph); // returns the font glyph metrics in 64 px
 		const Path& getPath(GlyphID glyph); // returns the path of glyph in 64 px
-		float getMetrics(FontMetrics* metrics, float fontSize);
-		float getMetrics(FontMetricsBase* metrics, float fontSize);
+		float getMetrics(FontMetrics *metrics, float fontSize);
+		float getMetrics(FontMetricsBase *metrics, float fontSize);
 		// get image source object from out param and return top to baseline value for image text
-		float getImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut);
+		float getImage(const Array<GlyphID> &glyphs, float fontSize, float scale,
+									 const Array<Vec2> *positions, Sp<ImageSource> *imgOut);
 	protected:
 		Typeface(FontStyle fs);
 		void setFontStyle(FontStyle style) { _fontStyle = style; }
@@ -74,9 +75,10 @@ namespace qk {
 		virtual size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const = 0;
 		virtual void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const = 0;
 		virtual void onGetMetrics(FontMetrics* metrics) const = 0;
-		virtual void onGetGlyph(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
+		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
 		virtual bool onGetPath(GlyphID glyph, Path *path) const = 0;
-		virtual float onGetImage(const Array<GlyphID>& glyphs, float fontSize, Sp<ImageSource> *imgOut) = 0;
+		virtual float onGetImage(const Array<GlyphID>& glyphs, float fontSize, float scale,
+														 const Array<Vec2> *positions, Sp<ImageSource> *imgOut) = 0;
 	private:
 		FontMetrics _metrics;
 		Dict<GlyphID, FontGlyphMetrics> _glyphs;

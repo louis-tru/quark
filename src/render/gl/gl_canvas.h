@@ -55,9 +55,9 @@ namespace qk {
 		virtual void clearColor(const Color4f& color) override;
 		virtual void drawColor(const Color4f& color, BlendMode mode) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
-		virtual void drawGlyphs(const Array<GlyphID>& glyphs, const Array<Vec2>& positions,
-			Vec2 origin, float fontSize, Typeface* typeface, const Paint& paint) override;
-		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float floatSize, const Paint& paint) override;
+		virtual void drawGlyphs(const Array<GlyphID>& glyphs, Vec2 origin,
+				const Array<Vec2> *positions, float fontSize, Typeface *typeface, const Paint &paint) override;
+		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 	protected:
 		void drawColor(const Array<Vec2>& vertex, const Paint& paint);
 		void drawGradient(const Array<Vec2>& vertex, const Paint& paint);
@@ -89,6 +89,7 @@ namespace qk {
 		GLuint _render_buffer,_msaa_render_buffer,
 					 _stencil_buffer,_depth_buffer;
 		GLuint _aa_tex;
+		Vec2   _surfaceScale;
 	};
 
 }

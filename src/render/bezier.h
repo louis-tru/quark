@@ -28,11 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__math__bezier__
-#define __quark__math__bezier__
+#ifndef __quark_render_bezier__
+#define __quark_render_bezier__
 
 #include "./math.h"
-#include "./util/array.h"
 
 namespace qk {
 
@@ -57,22 +56,22 @@ namespace qk {
 		QuadraticBezier(Vec2 p0, Vec2 p1, Vec2 p2);
 		
 		/**
-		* @func sample_curve_x
+		* @method sample_curve_x
 		*/
 		float sample_curve_x(float t) const;
 		
 		/**
-		* @func sample_curve_y
+		* @method sample_curve_y
 		*/
 		float sample_curve_y(float t) const;
 		
 		/**
-		* @func compute_bezier_points
+		* @method compute_bezier_points
 		*/
 		void sample_curve_points(uint32_t sample_count, float* out) const;
 		
 		/**
-		* @func sample_curve_points
+		* @method sample_curve_points
 		*/
 		Array<Vec2> sample_curve_points(uint32_t sample_count) const;
 	};
@@ -101,7 +100,7 @@ namespace qk {
 		CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3);
 			
 		/**
-		* @func sample_curve_x
+		* @method sample_curve_x
 		*/
 		inline float sample_curve_x(float t) const {
 			// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
@@ -109,19 +108,19 @@ namespace qk {
 		}
 		
 		/**
-		* @func sample_curve_y
+		* @method sample_curve_y
 		*/
 		inline float sample_curve_y(float t) const {
 			return ((ay * t + by) * t + cy) * t + _p0.y();
 		}
 		
 		/**
-		* @func compute_bezier_points
+		* @method compute_bezier_points
 		*/
 		void sample_curve_points(uint32_t sample_count, float* out) const;
 		
 		/**
-		* @func sample_curve_points
+		* @method sample_curve_points
 		*/
 		Array<Vec2> sample_curve_points(uint32_t sample_count) const;
 
@@ -156,19 +155,19 @@ namespace qk {
 		{}
 
 		/**
-		* @func sample_curve_derivative_x
+		* @method sample_curve_derivative_x
 		*/
 		inline float sample_curve_derivative_x(float t) const {
 			return (3.0 * ax * t + 2.0 * bx) * t + cx;
 		}
 		
 		/**
-		* @func solve_t Given an x value, find a parametric value it came from.
+		* @method solve_t Given an x value, find a parametric value it came from.
 		*/
 		float solve_t(float x, float epsilon) const;
 		
 		/**
-		* @func solve
+		* @method solve
 		*/
 		inline float solve_y(float x, float epsilon) const {
 			return (this->*_solve_y)(x, epsilon);

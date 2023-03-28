@@ -42,7 +42,7 @@ namespace qk {
 		return _width * Pixel::bytes_per_pixel(_type);
 	}
 
-	uint32_t PixelInfo::size() const {
+	uint32_t PixelInfo::bytes() const {
 		uint32_t rowbytes = _width * Pixel::bytes_per_pixel(_type);
 		return rowbytes * _height;
 	}

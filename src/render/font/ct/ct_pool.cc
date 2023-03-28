@@ -260,8 +260,8 @@ class QkFontPool_Mac : public FontPool {
 	}
 
 public:
-	QkFontPool_Mac(Application* host, CTFontCollectionRef fontCollection)
-		: FontPool(host)
+	QkFontPool_Mac(CTFontCollectionRef fontCollection)
+		: FontPool()
 		, fNames(fontCollection ? QkCopyAvailableFontFamilyNames(fontCollection)
 														: QkCTFontManagerCopyAvailableFontFamilyNames())
 		, fCount(fNames ? int(CFArrayGetCount(fNames.get())) : 0)
@@ -328,6 +328,6 @@ protected:
 
 };
 
-qk::FontPool* qk::FontPool::Make(Application* host) {
-	return new QkFontPool_Mac(host, nullptr);
+qk::FontPool* qk::FontPool::Make() {
+	return new QkFontPool_Mac(nullptr);
 }

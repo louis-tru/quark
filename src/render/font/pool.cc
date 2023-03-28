@@ -36,10 +36,7 @@ namespace qk {
 
 	// ---------------------- F o n t . P o o l --------------------------
 
-	FontPool::FontPool(Application* host)
-		: _host(host)
-		, _last_65533(0)
-	{}
+	FontPool::FontPool(): _last_65533(0) {}
 
 	void FontPool::initialize() {
 		FontStyle style; // default style

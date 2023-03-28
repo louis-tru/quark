@@ -56,7 +56,7 @@ namespace qk {
 
 	Display::~Display() {}
 
-	void Display::updateState(void *lock, Mat4 *surfaceMat) { // Lock before calling
+	void Display::updateState(void *lock, Mat4 *surfaceMat, Vec2* surfaceScale) { // Lock before calling
     auto _lock = static_cast<UILock*>(lock);
 		Vec2 size = surface_size();
 		float width = size.x();
@@ -93,6 +93,7 @@ namespace qk {
     Vec2 start = Vec2(-region.origin.x() / _scale, -region.origin.y() / _scale);
     Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
     *surfaceMat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
+		*surfaceScale = Vec2(_scale);
 
     _host->root()->onDisplayChange();
 
@@ -171,7 +172,7 @@ namespace qk {
 		}
 	}
 
-	bool Display::onRenderBackendReload(Region region, Vec2 size, float defaultScale, Mat4 *mat) {
+	bool Display::onRenderBackendReload(Region region, Vec2 size, float defaultScale, Mat4 *mat, Vec2 *scale) {
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
 			Qk_DEBUG("Display::onDeviceReload");
 			UILock lock(_host);
@@ -186,7 +187,7 @@ namespace qk {
 			) {
 				_surface_region = { region.origin, region.end, size };
 				_default_scale = defaultScale;
-				updateState(&lock, mat);
+				updateState(&lock, mat, scale);
 				return true;
 			} else {
 				_host->root()->onDisplayChange();

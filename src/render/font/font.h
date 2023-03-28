@@ -39,7 +39,7 @@ namespace qk {
 	public:
 		FontGlyphs(Typeface *typeface, float fontSize, const GlyphID glyphs[], uint32_t count);
 		Qk_DEFINE_PROP(float, fontSize);
-		Array<float> getOffset(float origin = 0);
+		Array<Vec2> getHorizontalOffset(Vec2 origin = Vec2());
 		inline Typeface* typeface() { return *_typeface; }
 		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
 	private:

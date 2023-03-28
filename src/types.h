@@ -32,7 +32,7 @@
 #define __quark__types__
 
 #include "./util/util.h"
-#include "./math.h"
+#include "./render/math.h"
 
 namespace qk {
 

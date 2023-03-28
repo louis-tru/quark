@@ -71,7 +71,7 @@ namespace qk {
 		Array<Vec2>     offset;
 		float           ascent; // 当前blob基线距离文本顶部
 		float           height; // 当前blob高度
-		float           origin; // offset origin start
+		float           origin; // x-axis offset origin start
 		uint32_t        line;   // line number
 		uint32_t        index;  // blob index in unichar glyphs
 		Sp<ImageSource> image;  // image cache

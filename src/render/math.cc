@@ -28,14 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-//#include <arm/endian.h>
 #include <string.h>
 #include <math.h>
 #include "./math.h"
 
 #define Qk_ARRAY_NO_IMPL 1
 
-#include "./util/array.cc"
+#include "../util/array.cc"
 
 namespace qk {
 
@@ -315,7 +314,7 @@ namespace qk {
 	}
 
 	/**
-	* @func mul # 矩阵乘法
+	* @method mul # 矩阵乘法
 	* @arg b {const Mat&}
 	* @arg output {Mat&}
 	*/
@@ -744,7 +743,7 @@ namespace qk {
 	}
 
 	/**
-	* @func mul # 矩阵乘法
+	* @method mul # 矩阵乘法
 	* @arg b {const Mat4&} b
 	* @arg output {Mat4&} output
 	*/

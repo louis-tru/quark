@@ -124,7 +124,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(ColorType, type); //!< bitmap pixel color type
 		Qk_DEFINE_PROP_GET(AlphaType, alphaType); //!< is premultiplied by alpha
 		uint32_t rowbytes() const;
-		uint32_t size() const;
+		uint32_t bytes() const;
 	};
 
 	/**

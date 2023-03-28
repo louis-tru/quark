@@ -46,10 +46,10 @@ namespace qk {
 		return Qk_MIN(n, 8);
 	}
 
-	RenderBackend::RenderBackend(Options opts, Delegate *delegate)
+	RenderBackend::RenderBackend(Options opts)
 		: _opts(opts)
 		, _canvas(nullptr)
-		, _delegate(delegate)
+		, _delegate(nullptr)
 		, _default_scale(1)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
@@ -60,6 +60,18 @@ namespace qk {
 
 	void RenderBackend::activate(bool isActive) {
 	}
+
+	Array<Vec2>& RenderBackend::getPathPolygonsCache(const Path &path) {
+		auto hash = path.hashCode();
+		auto it = _pathPolygonsCache.find(hash);
+		if (it != _pathPolygonsCache.end()) {
+			return it->value;
+		}
+		if (_pathPolygonsCache.length() >= 65535)
+			_pathPolygonsCache.clear();
+		return _pathPolygonsCache.set(hash, path.getPolygons(3));
+	}
+
 
 	void RenderBackend::visitView(View* v) {
 		// TODO ...
@@ -158,6 +170,12 @@ namespace qk {
 		_canvas->drawPath(Path::Arc({Vec2(450, 300), Vec2(100, 200)}, 3, 4, 1), paint);
 
 		_canvas->restore(2);
+		
+		auto pool = shared_app()->font_pool();
+
+		FontGlyphs fg = std::move(pool->getFFID()->makeFontGlyphs({26970,23398}, FontStyle(), 64).front());
+
+		auto offset = fg.getHorizontalOffset();
 	}
 
 	void RenderBackend::visitFloatLayout(FloatLayout* flow) {

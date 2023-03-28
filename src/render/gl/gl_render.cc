@@ -75,8 +75,8 @@ namespace qk {
 		return version.index_of("Metal") != -1;
 	}
 
-	GLRender::GLRender(Options opts, Delegate *delegate)
-		: GLCanvas(this), Render(opts, delegate)
+	GLRender::GLRender(Options opts)
+		: GLCanvas(this), Render(opts)
 		, _Is_Support_Multisampled(glIsSupportMultisampled())
 		, _shaders{&_clear, &_clip, &_color, &_image, &_yuv420p, &_yuv420sp, &_linear, &_radial}
 	{
@@ -131,7 +131,7 @@ namespace qk {
 	void GLRender::reload() {
 		auto size = getSurfaceSize();
 		Mat4 mat;
-		if (!_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale(), &mat))
+		if (!_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale(), &mat, &_surfaceScale))
 			return;
 
 		auto w = size.x(), h = size.y();
@@ -226,17 +226,6 @@ namespace qk {
 		glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depth_buffer);
-	}
-
-	Array<Vec2>& GLRender::getPathPolygonsCache(const Path &path) {
-		auto hash = path.hashCode();
-		auto it = _pathPolygonsCache.find(hash);
-		if (it != _pathPolygonsCache.end()) {
-			return it->value;
-		}
-		if (_pathPolygonsCache.length() >= 65535)
-			_pathPolygonsCache.clear();
-		return _pathPolygonsCache.set(hash, path.getPolygons(3));
 	}
 
 	GLuint GLRender::setTexture(cPixel *src, uint32_t id) {

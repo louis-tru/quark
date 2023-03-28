@@ -30,8 +30,8 @@
 
 #include "tesselator.h"
 #include "./path.h"
+#include "./bezier.h"
 #include "../util/handle.h"
-#include "../bezier.h"
 #include <math.h>
 
 namespace qk {

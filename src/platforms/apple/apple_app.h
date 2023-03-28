@@ -66,8 +66,7 @@ public:
 	- (UIView*) view; // only ios return view
 @end
 
-QkAppleRender* qk_make_apple_render(qk::Render::Options opts, qk::Render::Delegate *delegate);
-
+QkAppleRender* qk_make_apple_render(qk::Render::Options opts);
 id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host);
 
 @interface QkRootViewController: UIViewController

@@ -58,7 +58,7 @@ namespace qk {
 			uint32_t        index_of_unichar;
 			Array<TextBlob> *blob;
 			Array<GlyphID>  glyphs;
-			Array<float>    offset;
+			Array<Vec2>     offset;
 		};
 
 		// defines props
@@ -83,7 +83,7 @@ namespace qk {
 		void set_metrics(FontMetricsBase *metrics, float line_height);
 		void set_metrics(TextOptions *opts);
 		void add_layout(Layout* layout);
-		void add_text_blob(PreTextBlob blob, const Array<GlyphID>& glyphs, const Array<float>& offset, bool is_pre);
+		void add_text_blob(PreTextBlob pre, const Array<GlyphID>& glyphs, const Array<Vec2>& offset, bool is_pre);
 		void solve_visible_region();
 		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
 		inline uint32_t length() const { return _lines.length(); }
@@ -93,7 +93,7 @@ namespace qk {
 	private:
 		void finish_line(); // finish line
 		void clear();
-		void add_text_blob(PreTextBlob& blob, const Array<GlyphID>& glyphs, const Array<float>& offset);
+		void add_text_blob(PreTextBlob& pre, const Array<GlyphID>& glyphs, const Array<Vec2>& offset);
 		void add_text_blob_empty(TextBlobBuilder* builder, uint32_t index_of_unichar);
 		Array<Line> _lines;
 		Array<Array<Layout*>> _preLayout;

@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -32,7 +31,7 @@
 #ifndef __quark_render_paint__
 #define __quark_render_paint__
 
-#include "../math.h"
+#include "./math.h"
 #include "./source.h"
 #include "./blend.h"
 
@@ -118,8 +117,8 @@ namespace qk {
 			return reinterpret_cast<cPixel*>(image);
 		}
 
-		void setBitmapPixel(cPixel *image, const Rect& dest, const Rect& src);
-		void setBitmapPixel(cPixel *image, const Rect& dest); // src = {Vec2(0,0),Vec2(w,h)}
+		void setBitmapPixel(cPixel *image, const Rect &dest, const Rect &src);
+		void setBitmapPixel(cPixel *image, const Rect &dest); // src = {Vec2(0,0),Vec2(w,h)}
 		void setLinearGradient(const GradientColor *colors, Vec2 start, Vec2 end);
 		void setRadialGradient(const GradientColor *colors, Vec2 center, Vec2 radius);
 

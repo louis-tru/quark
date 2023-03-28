@@ -309,7 +309,7 @@ namespace qk {
 		uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL)
 	{
 		auto& glyphs = fg.glyphs();
-		auto  offset = fg.getOffset();
+		auto  offset = fg.getHorizontalOffset();
 		bool  line_head = _lines->last()->width == 0.0;
 		auto  text_size = _opts->text_size().value;
 		auto  line_height = _opts->text_line_height().value;
@@ -325,7 +325,7 @@ namespace qk {
 		auto skip = [&]() {
 			if (_lines->trim_start()) {
 				start = j = skip_space(unichar, _lines, j, len);
-				origin = -offset[j];
+				origin = -offset[j].x();
 			}
 		};
 		
@@ -333,7 +333,7 @@ namespace qk {
 
 		for (; j < len; j++) {
 			auto sym = unicode_to_symbol(unichar[j]);
-			auto x = origin + offset[j + 1];
+			auto x = origin + offset[j + 1].x();
 			auto overflow = x > limitX;
 
 			// check word end
@@ -382,7 +382,7 @@ namespace qk {
 					line = _lines->last();
 					line_head = true;
 					start = j;
-					origin = _lines->pre_width() - offset[j];
+					origin = _lines->pre_width() - offset[j].x();
 				}
 			} else {
 				_lines->set_pre_width(x);
@@ -402,7 +402,7 @@ namespace qk {
 	// BREAK_ALL 以字符为单位行空间不足换行
 	void TextBlobBuilder::as_break_all(FontGlyphs &fg, Unichar *unichar, uint32_t index) {
 		auto& glyphs = fg.glyphs();
-		auto  offset = fg.getOffset();
+		auto  offset = fg.getHorizontalOffset();
 		auto  text_size = _opts->text_size().value;
 		auto  line_height = _opts->text_line_height().value;
 		auto  line = _lines->last();
@@ -418,7 +418,7 @@ namespace qk {
 			if (_lines->trim_start()) {
 				j = skip_space(unichar, _lines, j, len);
 				start = j;
-				origin = -offset[j];
+				origin = -offset[j].x();
 			}
 		};
 		
@@ -426,7 +426,7 @@ namespace qk {
 
 		for (; j < len; j++) {
 			// check wrap overflow new line
-			auto x = origin + offset[j + 1];
+			auto x = origin + offset[j + 1].x();
 			if (x > limitX) {
 				_lines->add_text_blob(
 					{fg.typeface(), text_size, line_height, index + start, _blob},
@@ -435,7 +435,7 @@ namespace qk {
 				_lines->push(_opts, true); // new row
 				line = _lines->last();
 				start = j;
-				origin = -offset[j];
+				origin = -offset[j].x();
 			} else {
 				_lines->set_pre_width(x);
 			}
@@ -451,7 +451,7 @@ namespace qk {
 
 	void TextBlobBuilder::as_no_auto_wrap(FontGlyphs &fg, uint32_t index) {
 		auto origin = _lines->pre_width();
-		auto offset = fg.getOffset();
+		auto offset = fg.getHorizontalOffset();
 		auto overflow = _opts->text_overflow_value();
 		auto limitX = _lines->host_size().x();
 		auto text_size = _opts->text_size().value;
@@ -464,13 +464,13 @@ namespace qk {
 			// ELLIPSIS,        /* 剪切并显示省略号 */
 			// ELLIPSIS_CENTER, /* 剪切并居中显示省略号 */
 
-			int overflow_val = origin + offset.back() - limitX;
+			int overflow_val = origin + offset.back().x() - limitX;
 			if (overflow_val > 0) {
 				int len = fg.glyphs().length();
 
 				if (overflow == TextOverflow::CLIP) {
 					for (int j = 0; j < len; j++) {
-						float x = origin + offset[j + 1];
+						float x = origin + offset[j + 1].x();
 						if (x > limitX) {
 							// discard overflow part
 							_lines->add_text_blob(
@@ -485,14 +485,14 @@ namespace qk {
 
 					Array<Unichar> uinchar({46,46,46});
 					auto& ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), text_size)[0];
-					auto ellipsis_offset = ellipsis.getOffset();
+					auto ellipsis_offset = ellipsis.getHorizontalOffset();
 					auto ellipsis_width = ellipsis_offset.back();
-					auto limit2 = limitX - ellipsis_width;
+					auto limit2 = limitX - ellipsis_width.x();
 
 					if (limit2 >= 0) {
 						uint32_t j = 0;
 						for (; j < len; j++) {
-							float x = origin + offset[j + 1];
+							float x = origin + offset[j + 1].x();
 							if (x > limit2) {
 								if (j) {
 									_lines->add_text_blob(
@@ -509,12 +509,12 @@ namespace qk {
 							{ellipsis.typeface(), text_size, line_height, j, _blob},
 							ellipsis.glyphs(), ellipsis_offset, false
 						);
-						_blob->back().origin = limitX - ellipsis_width; // align right
+						_blob->back().origin = limitX - ellipsis_width.x(); // align right
 						_lines->set_pre_width(limitX);
 
 					} else { // limit2 < 0.0, only add ellipsis
 						for (int j = 0; j < 3; j++) {
-							float x = origin + offset[j + 1];
+							float x = origin + offset[j + 1].x();
 							if (x > limitX) {
 								_lines->add_text_blob(
 									{ellipsis.typeface(), text_size, line_height, index, _blob},
@@ -533,7 +533,7 @@ namespace qk {
 		}
 
 		_lines->add_text_blob({fg.typeface(), text_size, line_height, index, _blob}, fg.glyphs(), offset, false);
-		_lines->set_pre_width(origin + offset.back());
+		_lines->set_pre_width(origin + offset.back().x());
 	}
 
 }

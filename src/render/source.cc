@@ -113,8 +113,8 @@ namespace qk {
 		* 
 		* mark as gpu texture
 		*
-		* @func mark_as_texture_unsafe()
-		*/
+	 * @method mark_as_texture_unsafe()
+	 */
 	Sp<ImageSource> ImageSource::mark_as_texture_unsafe(BackendDevice *device) const {
 		if (!device && _device)
 			return nullptr;
@@ -125,8 +125,8 @@ namespace qk {
 	}
 
 	/**
-		* @func load() async load source and decode
-		*/
+	 * @method load() async load source and decode
+	 */
 	bool ImageSource::load() {
 		if (_state & kSTATE_LOAD_COMPLETE)
 			return true;
@@ -184,8 +184,8 @@ namespace qk {
 	}
 
 	/**
-		* @func unload() delete load and ready
-		*/
+	 * @method unload() delete load and ready
+	 */
 	void ImageSource::unload() {
 		RunLoop::first()->post(Cb([this](auto e) {
 			_Unload();
@@ -200,10 +200,12 @@ namespace qk {
 
 		if (_device) {
 			Array<uint32_t> IDs;
-			for (auto &pix: _pixels)
+			for (auto &pix: _pixels) {
 				IDs.push(pix.texture());
+			}
 			auto device = _device;
 			_device = nullptr;
+
 			device->post_message(Cb([device,IDs](Cb::Data& data) {
 				device->deleteTextures(IDs.val(), IDs.length());
 			}));
@@ -219,10 +221,10 @@ namespace qk {
 		auto it = _sources.find(id);
 		if (it != _sources.end()) {
 			auto info = evt.sender()->info();
-			int ch = int(info.size()) - int(it->value.size);
+			int ch = int(info.bytes()) - int(it->value.size);
 			if (ch != 0) {
 				_total_data_size += ch; // change
-				it->value.size = info.size();
+				it->value.size = info.bytes();
 			}
 		}
 	}
@@ -250,8 +252,8 @@ namespace qk {
 		ImageSource* source = new ImageSource(_uri);
 		source->Qk_On(State, &ImageSourcePool::handleSourceState, this);
 		auto info = source->info();
-		_sources.set(id, { info.size(), source });
-		_total_data_size += info.size();
+		_sources.set(id, { info.bytes(), source });
+		_total_data_size += info.bytes();
 
 		return source;
 	}

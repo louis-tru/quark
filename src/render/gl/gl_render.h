@@ -45,16 +45,14 @@ namespace qk {
 		virtual uint32_t setTexture(cPixel *src, uint32_t id) override;
 		virtual void deleteTextures(const uint32_t *IDs, uint32_t count) override;
 	protected:
-		GLRender(Options opts, Delegate *delegate);
+		GLRender(Options opts);
 		virtual void setRenderBuffer(int width, int height);
 		virtual void setStencilBuffer(int width, int height, int MSAASample);
 		virtual void setMSAABuffer(int width, int height, int MSAASample);
 		virtual void setAntiAlias(int width, int height);
 		virtual void setDepthBuffer(int width, int height);
-		Array<Vec2>& getPathPolygonsCache(const Path &path);
 		// define props
 		bool _Is_Support_Multisampled;
-		Dict<uint64_t, Array<Vec2>> _pathPolygonsCache;
 		// shader
 		GLSLClear _clear;
 		GLSLColor _color;
@@ -65,7 +63,6 @@ namespace qk {
 		GLSLGradient _linear;
 		GLSLGradientRadial _radial;
 		GLSLShader  *_shaders[8];
-		
 		friend class GLCanvas;
 	};
 }

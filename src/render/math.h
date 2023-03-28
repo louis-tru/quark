@@ -28,16 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__math__
-#define __quark__math__
+#ifndef __quark_render_math__
+#define __quark_render_math__
 
-#include "./util/util.h"
-#include "./util/array.h"
+#include "../util/util.h"
+#include "../util/array.h"
 
 #define Qk_PI 3.1415926535898f                   // PI
 #define Qk_PI2 1.5707963267949f                  // PI / 2
 #define Qk_PI_RATIO_180  0.017453292519943f      // PI / 180
-#define Qk_180_RATIO_PI 57.29577951308232f       // 180 / PI
 
 namespace qk {
 
@@ -227,33 +226,33 @@ namespace qk {
 		inline void m5(float value) { val[5] = value; }
 		
 		/**
-		* @func translate 平移
+		* @method translate 平移
 		*/
 		void translate(float x, float y);
 		void translate_x(float x);
 		void translate_y(float y);
 		
 		/**
-		* @func scale 缩放
+		* @method scale 缩放
 		*/
 		void scale(float x, float y);
 		void scale_x(float x);
 		void scale_y(float y);
 		
 		/**
-		* @func rotate 通过角度旋转
+		* @method rotate 通过角度旋转
 		*/
 		inline void rotate(float z) {
 			rotatea(z * Qk_PI_RATIO_180);
 		}
 		
 		/**
-		* @func rotatea 通过弧度旋转
+		* @method rotatea 通过弧度旋转
 		*/
 		void rotatea(float rotate);
 		
 		/**
-		* @func skew 通过角度歪斜变形
+		* @method skew 通过角度歪斜变形
 		*/
 		void skew(float x, float y) {
 			skewa(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180);
@@ -262,29 +261,29 @@ namespace qk {
 		void skew_y(float y) { skewa_y(y * Qk_PI_RATIO_180); }
 		
 		/**
-		* @func skewa 通过弧度歪斜变形
+		* @method skewa 通过弧度歪斜变形
 		*/
 		void skewa(float x, float y);
 		void skewa_x(float x);
 		void skewa_y(float y);
 		
 		/**
-		* @func operator* 矩阵乘法,返回新的4*4矩阵
+		* @method operator* 矩阵乘法,返回新的4*4矩阵
 		*/
 		Mat operator*(const Mat& b) const;
 		
 		/**
-		* @func operator*= 矩阵乘法,相乘后赋值给自己,并返回自引用
+		* @method operator*= 矩阵乘法,相乘后赋值给自己,并返回自引用
 		*/
 		Mat& operator*=(const Mat& b);
 		
 		/**
-		* @func operator* 与向量乘法,向量做为列向量使用
+		* @method operator* 与向量乘法,向量做为列向量使用
 		*/
 		Vec2 operator*(const Vec2& b) const;
 		
 		/**
-		* @func mul 矩阵乘法
+		* @method mul 矩阵乘法
 		*/
 		void mul(const Mat& b, Mat& output) const;
 		
@@ -333,7 +332,7 @@ namespace qk {
 		inline void m15(float value) { val[15] = value; }
 		
 		/**
-		* @func translate 平移
+		* @method translate 平移
 		*/
 		void translate(float x, float y, float z);
 		void translate_x(float x);
@@ -341,7 +340,7 @@ namespace qk {
 		void translate_z(float z);
 		
 		/**
-		* @func scale 缩放
+		* @method scale 缩放
 		*/
 		void scale(float x, float y, float z);
 		void scale_x(float x);
@@ -349,7 +348,7 @@ namespace qk {
 		void scale_z(float z);
 		
 		/**
-		* @func rotate 通过角度旋转
+		* @method rotate 通过角度旋转
 		*/
 		inline void rotate(float x, float y, float z) {
 			rotatea(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180, z * Qk_PI_RATIO_180);
@@ -359,7 +358,7 @@ namespace qk {
 		inline void rotate_z(float z) { rotatea_z(z * Qk_PI_RATIO_180); }
 		
 		/**
-		* @func rotatea 通过弧度旋转
+		* @method rotatea 通过弧度旋转
 		*/
 		void rotatea(float x, float y, float z);
 		void rotatea_x(float x);
@@ -367,7 +366,7 @@ namespace qk {
 		void rotatea_z(float z);
 		
 		/**
-		* @func skew 通过角度歪斜变形
+		* @method skew 通过角度歪斜变形
 		*/
 		void skew(float x, float y, float z) {
 			skewa(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180, z * Qk_PI_RATIO_180);
@@ -377,7 +376,7 @@ namespace qk {
 		void skew_z(float z) { skewa_z(z * Qk_PI_RATIO_180); }
 		
 		/**
-		* @func skewa 通过弧度歪斜变形
+		* @method skewa 通过弧度歪斜变形
 		*/
 		void skewa(float x, float y, float z);
 		void skewa_x(float x);
@@ -385,17 +384,17 @@ namespace qk {
 		void skewa_z(float z);
 		
 		/**
-		* @func operator* 矩阵乘法,返回新的4*4矩阵
+		* @method operator* 矩阵乘法,返回新的4*4矩阵
 		*/
 		Mat4 operator*(const Mat4& b) const;
 		
 		/**
-		* @func operator*= # 矩阵乘法,相乘后赋值给自己,并返回自引用
+		* @method operator*= # 矩阵乘法,相乘后赋值给自己,并返回自引用
 		*/
 		Mat4& operator*=(const Mat4& b);
 		
 		/**
-		* @func operator* 与向量乘法,向量做为列向量使用
+		* @method operator* 与向量乘法,向量做为列向量使用
 		*/
 		Vec4 operator*(const Vec4& vec) const;
 		
@@ -405,17 +404,17 @@ namespace qk {
 		void mul(const Mat4& b, Mat4& output) const;
 		
 		/**
-		* @func transpose 转置矩阵
+		* @method transpose 转置矩阵
 		*/
 		void transpose();
 		
 		/**
-		* @func frustum 创建一个透视平截头体矩阵
+		* @method frustum 创建一个透视平截头体矩阵
 		*/
 		static Mat4 frustum(float left, float right, float top, float bottom, float near, float far);
 		
 		/**
-		* @func ortho 创建一个正交投影矩阵
+		* @method ortho 创建一个正交投影矩阵
 		*/
 		static Mat4 ortho(float left, float right, float top, float bottom, float near, float far);
 	};

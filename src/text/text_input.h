@@ -37,8 +37,8 @@
 namespace qk {
 
 	/**
-	* @class TextInput protocol
-	*/
+	 * @class TextInput protocol
+	 */
 	class Qk_EXPORT TextInput: public Protocol {
 	public:
 		virtual void input_delete(int count) = 0;

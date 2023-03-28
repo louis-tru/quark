@@ -32,7 +32,7 @@
 #define __quark__render__path__
 
 #include "../types.h"
-#include "../bezier.h"
+#include "../render/bezier.h"
 #include "../util/array.h"
 #include "./paint.h"
 #include "../util/hash.h"

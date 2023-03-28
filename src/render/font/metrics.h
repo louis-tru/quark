@@ -77,7 +77,7 @@ namespace qk {
 
 	struct FontGlyphMetrics {
 		// The offset from the glyphs origin on the baseline to the top left of the glyph mask.
-		float left, top;
+		float left, top; // bearingX, bearingY
 		// The width and height of the glyph mask.
 		float width, height;
 		// The advance for this glyph.
