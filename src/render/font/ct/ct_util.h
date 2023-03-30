@@ -42,6 +42,7 @@
 #endif
 
 #include "../../../util/util.h"
+#include "../../../util/handle.h"
 #include "../util.h"
 
 using namespace qk;

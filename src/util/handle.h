@@ -74,9 +74,12 @@ namespace qk {
 		inline T* operator->() { return _data; }
 		inline T* operator*() { return _data; }
 		inline T* value() { return _data; }
+		inline T* get() { return _data; }
+		// const
 		inline const T* operator->() const { return _data; }
 		inline const T* operator*() const { return _data; }
 		inline const T* value() const { return _data; }
+		inline const T* get() const { return _data; }
 
 		/**
 		 * @func is_null() Is null data available ?

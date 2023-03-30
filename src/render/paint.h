@@ -48,6 +48,7 @@ namespace qk {
 			kColor_Type,          //!< set to color paint type
 			kGradient_Type,       //!< set to gradient paint type
 			kBitmap_Type,         //!< set to bitmap image paint type
+			kBitmapMask_Type,     //!<  set to bitmap image mask paint type
 		};
 
 		enum Style {
@@ -73,16 +74,8 @@ namespace qk {
 			kClamp_TileMode,
 			//!< Repeat the shader's image horizontally and vertically.
 			kRepeat_TileMode,
-			//!< Repeat the shader's image horizontally.
-			kRepeat_X_TileMode,
-			//!< Repeat the shader's image vertically.
-			kRepeat_Y_TileMode,
 			//!< Repeat the shader's image horizontally and vertically, alternating mirror images so that adjacent images always seam.
 			kMirror_TileMode,
-			//!< Repeat the shader's image horizontally, alternating mirror images so that adjacent images always seam.
-			kMirror_X_TileMode,
-			//!< Repeat the shader's image vertically, alternating mirror images so that adjacent images always seam.
-			kMirror_Y_TileMode,
 			//!< Only draw within the original domain, return transparent-black everywhere else.
 			kDecal_TileMode,
 		};
@@ -103,19 +96,12 @@ namespace qk {
 			kRadial_GradientType,  //!< radial gradient type
 		};
 
-		inline Vec2 bitmapOffset() const { return Vec2(color[0], color[1]); }
-		inline Vec2 bitmapScale() const { return Vec2(color[2], color[3]); }
-		inline Vec2 linearStart() const { return Vec2(color[0], color[1]); }
-		inline Vec2 linearEnd() const { return Vec2(color[2], color[3]); }
-		inline Vec2 radialCenter() const { return Vec2(color[0], color[1]); }
-		inline Vec2 radialRadius() const { return Vec2(color[2], color[3]); }
-
-		inline const GradientColor* gradientColor() const {
-			return reinterpret_cast<const GradientColor*>(image);
-		}
-		inline const BitmapPixel* bitmapPixel() const {
-			return reinterpret_cast<cPixel*>(image);
-		}
+		inline Vec2 bitmapOffset() const { return region.origin; }
+		inline Vec2 bitmapScale() const { return region.end; }
+		inline Vec2 linearStart() const { return Vec2(color[0],color[1]); }
+		inline Vec2 linearEnd() const { return Vec2(color[2],color[3]); }
+		inline Vec2 radialCenter() const { return Vec2(color[0],color[1]); }
+		inline Vec2 radialRadius() const { return Vec2(color[2],color[3]); }
 
 		void setBitmapPixel(cPixel *image, const Rect &dest, const Rect &src);
 		void setBitmapPixel(cPixel *image, const Rect &dest); // src = {Vec2(0,0),Vec2(w,h)}
@@ -129,11 +115,12 @@ namespace qk {
 				(kSrcOver_BlendMode << 4) | // 6 bits
 				(kButt_Cap << 10) | // 2 bits
 				(kMiter_Join << 12) | // 2 bits
-				(kClamp_TileMode << 14) | // 3 bits
-				(kNearest_FilterMode << 17) | // 1 bits
-				(kNone_MipmapMode << 18) | // 2 bits
-				(kLinear_GradientType << 20) | // 1 bits
-				(1 << 21) | // 1 bits, default antiAlias = true
+				(kClamp_TileMode << 14) | // 2 bits
+				(kClamp_TileMode << 16) | // 2 bits
+				(kNearest_FilterMode << 18) | // 1 bits
+				(kNone_MipmapMode << 19) | // 2 bits
+				(kLinear_GradientType << 21) | // 1 bits
+				(1 << 22) | // 1 bits, default antiAlias = true
 				0
 			);
 			struct {
@@ -142,20 +129,26 @@ namespace qk {
 				BlendMode     blendMode: 6; // default kSrcOver_BlendMode
 				Cap           cap: 2;// default kButt_Cap;
 				Join          join : 2;// default kMiter_Join;
-				TileMode      tileMode: 3; // default kClamp_TileMode
+				TileMode      tileModeX: 2; // default kClamp_TileMode
+				TileMode      tileModeY: 2; // default kClamp_TileMode
 				FilterMode    filterMode: 1;// default kNearest_FilterMode, image source filter mode
 				MipmapMode    mipmapMode: 2;// default kNone_MipmapMode, image source mipmap mode
 				GradientType  gradientType: 1;// default kLinear_GradientType, gradient color type
 				bool          antiAlias : 1;// default true;
-				unsigned      padding : 10;
+				unsigned      padding : 9;
 			};
 		}; // size 32bit
 
-		float             opacity; // bitmap opacity
-		// color or bitmap uv coord or start/end or center/radius for gradient color range
-		Color4f           color;
-		const void       *image; // bitmap or gradient color, weak ref
-		float             width; // stroke width
+		// stroke width
+		float                width;
+		// color or bitmap opacity or gradient color start/end center/radius
+		Color4f              color;
+		// bitmap uv coord
+		Region               region;
+		// bitmap, weak ref
+		const BitmapPixel   *image;
+		// gradient color, weak ref
+		const GradientColor *gradient;
 	};
 
 }

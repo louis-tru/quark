@@ -49,7 +49,7 @@ namespace qk {
 	}
 
 	ImageSource::ImageSource(Array<Pixel>&& pixels): Qk_Init_Event(State)
-		, _uri(String("mem://").append(random()))
+		, _uri(String::format("mem://%d", random()))
 		, _state(kSTATE_NONE)
 		, _load_id(0), _device(nullptr)
 	{
@@ -66,9 +66,7 @@ namespace qk {
 		if (_state & kSTATE_LOADING)
 			return false;
 
-		uint32_t rowbytes = _info.width() * Pixel::bytes_per_pixel(_info.type());
-		uint32_t size = rowbytes * _info.height();
-		Qk_ASSERT(size == _pixels[0].body().length(), "pixel size no match");
+		Qk_ASSERT(!_pixels.length() || _info.bytes() == _pixels[0].body().length(), "old pixel bytes size no match");
 
 		if (_device) {
 			Qk_ASSERT(_device == device, "device no match");
@@ -80,13 +78,23 @@ namespace qk {
 			uint32_t i = 0;
 			uint32_t old_len = _pixels.length();
 
+			static auto bollback = [](
+				BackendDevice *device,
+				int idx, Array<Pixel> &old, Array<Pixel> &pixels
+			) {
+				for (int j = 0; j < idx; j++) {
+					if (old[j]._texture == 0 && pixels[j]._texture != 0) {
+						device->deleteTextures(&pixels[j]._texture, 1); // RollBACK
+						pixels[j]._texture = 0;
+					}
+				}
+			};
+
 			while (i < pixels.length()) {
 				auto &pix = pixels[i];
 				auto id = device->setTexture(&pix, i < old_len ? _pixels[i]._texture: 0);
 				if (id == 0) {
-					for (int j = 0; j < i; j++)
-						if (_pixels[i]._texture == 0 && pixels[j]._texture != 0)
-							device->deleteTextures(&pixels[j]._texture, 1); // RollBACK
+					bollback(device, i, _pixels, pixels);
 					return false;
 				}
 				pix = PixelInfo(pix); // clear memory pixel data

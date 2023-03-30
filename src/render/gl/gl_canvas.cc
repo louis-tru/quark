@@ -112,7 +112,121 @@ namespace qk {
 		}
 	}
 
-	uint32_t gl_set_texture(cPixel* src, GLuint id, bool isGenerateMipmap) {
+	static void gl_set_blend_mode(BlendMode blendMode) {
+
+		switch (blendMode) {
+			case kClear_BlendMode:         //!< r = 0
+				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kSrc_BlendMode:           //!< r = s
+				glBlendFunc(GL_ONE, GL_ZERO);
+				break;
+			case kDst_BlendMode:           //!< r = d
+				glBlendFunc(GL_ZERO, GL_ONE);
+				break;
+			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
+				/** [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] */
+				// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kDstOver_BlendMode:       //!< r = (1-da)*s + d
+				/** [Sa + (1 - Sa)*Da, Rc = Dc + (1 - Da)*Sc] */
+				// glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
+				glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+				break;
+			case kSrcIn_BlendMode:         //!< r = da*s
+				glBlendFunc(GL_DST_ALPHA, GL_ZERO);
+				break;
+			case kDstIn_BlendMode:         //!< r = sa*d
+				glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
+				break;
+			case kSrcOut_BlendMode:        //!< r = (1-da)*s
+				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ZERO);
+				break;
+			case kDstOut_BlendMode:        //!< r = (1-sa)*d
+				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kSrcATop_BlendMode:       //!< r = da*s + (1-sa)*d
+				glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kDstATop_BlendMode:       //!< r = (1-da)*s + sa*d
+				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_SRC_ALPHA);
+				break;
+			case kXor_BlendMode:           //!< r = (1-da)*s + (1-sa)*d
+				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kPlus_BlendMode:          //!< r = min(s + d, 1)
+				glBlendFunc(GL_ONE, GL_ONE);
+				break;
+			case kModulate_BlendMode:      //!< r = s*d
+				glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+				break;
+			case kScreen_BlendMode:        //!< r = s + d - s*d
+				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+				break;
+		}
+	}
+
+	static void gl_bind_texture(GLuint id, uint32_t slot, const Paint& paint) {
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, id);
+
+		// TODO set texture cacne ...
+
+		switch (paint.tileModeX) {
+			case Paint::kClamp_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				break;
+			case Paint::kRepeat_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				break;
+			case Paint::kMirror_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+				break;
+			case Paint::kDecal_TileMode: // no repeat
+				// GL_CLAMP_TO_BORDER
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				break;
+		}
+		
+		switch (paint.tileModeY) {
+			case Paint::kClamp_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				break;
+			case Paint::kRepeat_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				break;
+			case Paint::kMirror_TileMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+				break;
+			case Paint::kDecal_TileMode: // no repeat
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				break;
+		}
+
+		switch (paint.filterMode) {
+			case Paint::kNearest_FilterMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				break;
+			case Paint::kLinear_FilterMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				break;
+		}
+
+		switch (paint.mipmapMode) {
+			case Paint::kNone_MipmapMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+				break;
+			case Paint::kNearest_MipmapMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+				break;
+			case Paint::kLinear_MipmapMode:
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				break;
+		}
+	}
+
+	uint32_t gl_gen_texture(cPixel* src, GLuint id, bool isGenerateMipmap) {
 		if ( src->body().length() == 0 )
 			return 0;
 
@@ -159,68 +273,6 @@ namespace qk {
 		}
 
 		return id;
-	}
-
-	static void gl_use_texture(GLuint id, const Paint& paint, uint32_t slot) {
-		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, id);
-
-		switch (paint.tileMode) {
-			case Paint::kClamp_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				break;
-			case Paint::kRepeat_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-				break;
-			case Paint::kRepeat_X_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				break;
-			case Paint::kRepeat_Y_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-				break;
-			case Paint::kMirror_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-				break;
-			case Paint::kMirror_X_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				break;
-			case Paint::kMirror_Y_TileMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-				break;
-			case Paint::kDecal_TileMode: // no repeat
-				// GL_CLAMP_TO_BORDER
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				break;
-		}
-
-		switch (paint.filterMode) {
-			case Paint::kNearest_FilterMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				break;
-			case Paint::kLinear_FilterMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				break;
-		}
-
-		switch (paint.mipmapMode) {
-			case Paint::kNone_MipmapMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-				break;
-			case Paint::kNearest_MipmapMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-				break;
-			case Paint::kLinear_MipmapMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				break;
-		}
 	}
 
 	GLCanvas::GLCanvas(GLRender *backend)
@@ -443,7 +495,7 @@ namespace qk {
 		}
 	}
 
-	void GLCanvas::drawColor(const Color4f& color, BlendMode mode) {
+	void GLCanvas::drawColor(const Color4f &color, BlendMode mode) {
 		if (mode == kSrc_BlendMode) {
 			clearColor(color);
 		} else {
@@ -455,12 +507,12 @@ namespace qk {
 				-1,-1, 1,-1,
 			};
 			_backend->_clear.use(sizeof(float) * 8, data);
-			glUniform4fv(_backend->_clear.color(), 1, color.val);
+			glUniform4fv(_backend->_clear.color, 1, color.val);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 	}
 
-	void GLCanvas::drawPath(const Path& path, const Paint& paint) {
+	void GLCanvas::drawPath(const Path &path, const Paint &paint) {
 
 		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 
@@ -491,32 +543,34 @@ namespace qk {
 				drawGradient(*vertex, paint); break;
 			case Paint::kBitmap_Type:
 				drawImage(*vertex, paint); break;
+			case Paint::kBitmapMask_Type:
+				drawImageMask(*vertex, paint); break;
 		}
 	}
 
-	void GLCanvas::drawColor(const Array<Vec2>& vertex, const Paint& paint) {
+	void GLCanvas::drawColor(const Array<Vec2> &vertex, const Paint &paint) {
 		_backend->_color.use(vertex.size(), *vertex);
-		glUniform4fv(_backend->_color.color(), 1, paint.color.val);
+		glUniform4fv(_backend->_color.color, 1, paint.color.val);
 		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 
-	void GLCanvas::drawGradient(const Array<Vec2>& vertex, const Paint& paint) {
-		auto g = paint.gradientColor();
+	void GLCanvas::drawGradient(const Array<Vec2> &vertex, const Paint &paint) {
+		auto g = paint.gradient;
 		auto shader = paint.gradientType ==
 			Paint::kRadial_GradientType ? &_backend->_radial: &_backend->_linear;
 		auto count = Qk_MIN(g->colors.length(), 256);
 		shader->use(vertex.size(), *vertex);
-		glUniform4fv(shader->range(), 1, paint.color.val);
-		glUniform1i(shader->count(), count);
-		glUniform4fv(shader->colors(), count, (const GLfloat*)g->colors.val());
-		glUniform1fv(shader->positions(), count, (const GLfloat*)g->positions.val());
+		glUniform4fv(shader->range, 1, paint.color.val);
+		glUniform1i(shader->count, count);
+		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors.val());
+		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions.val());
 		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 
-	void GLCanvas::drawImage(const Array<Vec2>& vertex, const Paint& paint) {
-		auto pixel = paint.bitmapPixel();
-		auto type = pixel->type();
+	void GLCanvas::drawImage(const Array<Vec2> &vertex, const Paint &paint) {
 		auto shader = &_backend->_image;
+		auto pixel = paint.image;
+		auto type = pixel->type();
 		auto texCount = 1;
 
 		if (type == kColor_Type_YUV420P_Y_8) {
@@ -527,41 +581,76 @@ namespace qk {
 			texCount = 2;
 		}
 
-		glUseProgram(shader->shader());
-		glUniform1f(shader->opacity(), paint.opacity);
-		glUniform4fv(shader->coord(), 1, paint.color.val);
-
 		for (int i = 0; i < texCount; i++) {
 			auto id = pixel[i].texture();
-			if (!id || (id = gl_set_texture(pixel+i, _texTmp[i], true)))
+			if (!id) {
+				id = gl_gen_texture(pixel+i, _texTmp[i], true);
+				if (!id) {
+					Qk_DEBUG("gl_set_texture fail");
+					return;
+				}
 				_texTmp[i] = id;
-			gl_use_texture(id, paint, i);
+			}
+			gl_bind_texture(id, i, paint);
 		}
 
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vertex.val());
+		shader->use(vertex.size(), *vertex);
+		glUniform1f(shader->opacity, paint.color.a());
+		glUniform4fv(shader->coord, 1, paint.region.origin.val);
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+	}
+	
+	void GLCanvas::drawImageMask(const Array<Vec2> &vertex, const Paint &paint) {
+		auto shader = &_backend->_imageMask;
+		auto pixel = paint.image;
+		auto type = pixel->type();
+		auto id = pixel->texture();
+
+		if (!id) {
+			id = gl_gen_texture(pixel, _texTmp[0], true);
+			if (!id) {
+				Qk_DEBUG("gl_set_texture fail");
+				return;
+			}
+			_texTmp[0] = id;
+		}
+		gl_bind_texture(id, 0, paint);
+		
+		shader->use(vertex.size(), *vertex);
+		glUniform4fv(shader->color, 1, paint.color.val);
+		glUniform4fv(shader->coord, 1, paint.region.origin.val);
 		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 
-	void GLCanvas::drawGlyphs(const Array<GlyphID>& glyphs, Vec2 origin,
-		const Array<Vec2> *positions, float fontSize, Typeface *typeface, const Paint &paint)
+	void GLCanvas::drawGlyphs(const Array<GlyphID> &glyphs, Vec2 origin,
+		const Array<Vec2> *positions, float fontSize, Typeface *tf, const Paint &paint)
 	{
-		float scale = Float::max(_curState->matrix.val[0], _curState->matrix.val[4])
+		float scale = Float::max(_curState->matrix[0], _curState->matrix[4])
 								* Float::max(_surfaceScale[0], _surfaceScale[1]);
 
 		Sp<ImageSource> image;
-		float top = typeface->getImage(glyphs, fontSize, scale, positions, &image);
+		float top = tf->getImage(glyphs, fontSize, scale, positions, &image);
 
 		Paint p(paint);
 
 		auto &pix = image->pixels().front();
 		auto scale_1 = 1.0 / scale;
 
-		Vec2 dst_start(origin.x(), origin.y() + top * scale_1);
-		Vec2 dst_size(scale_1 * pix.width(), scale_1 * pix.height());
+		Vec2 dst_start(origin.x(), origin.y()/* + top * scale_1*/);
+		Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
 
 		p.setBitmapPixel(&pix, {dst_start, dst_size});
+		p.type = Paint::kBitmapMask_Type;
 
-		// TODO ..
+		Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
+		Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
+
+		Array<Vec2> vertex{
+			dst_start, v1, v2,
+			v2, dst_start + dst_size, v1,
+		};
+
+		drawImageMask(vertex, p);
 	}
 
 	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
@@ -583,59 +672,7 @@ namespace qk {
 	}
 
 	void GLCanvas::setBlendMode(BlendMode blendMode) {
-
-		switch (blendMode) {
-			case kClear_BlendMode:         //!< r = 0
-				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
-				break;
-			case kSrc_BlendMode:           //!< r = s
-				glBlendFunc(GL_ONE, GL_ZERO);
-				break;
-			case kDst_BlendMode:           //!< r = d
-				glBlendFunc(GL_ZERO, GL_ONE);
-				break;
-			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
-				/** [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] */
-				// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-				break;
-			case kDstOver_BlendMode:       //!< r = (1-da)*s + d
-				/** [Sa + (1 - Sa)*Da, Rc = Dc + (1 - Da)*Sc] */
-				// glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
-				glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-				break;
-			case kSrcIn_BlendMode:         //!< r = da*s
-				glBlendFunc(GL_DST_ALPHA, GL_ZERO);
-				break;
-			case kDstIn_BlendMode:         //!< r = sa*d
-				glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
-				break;
-			case kSrcOut_BlendMode:        //!< r = (1-da)*s
-				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ZERO);
-				break;
-			case kDstOut_BlendMode:        //!< r = (1-sa)*d
-				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
-				break;
-			case kSrcATop_BlendMode:       //!< r = da*s + (1-sa)*d
-				glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				break;
-			case kDstATop_BlendMode:       //!< r = (1-da)*s + sa*d
-				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_SRC_ALPHA);
-				break;
-			case kXor_BlendMode:           //!< r = (1-da)*s + (1-sa)*d
-				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				break;
-			case kPlus_BlendMode:          //!< r = min(s + d, 1)
-				glBlendFunc(GL_ONE, GL_ONE);
-				break;
-			case kModulate_BlendMode:      //!< r = s*d
-				glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-				break;
-			case kScreen_BlendMode:        //!< r = s + d - s*d
-				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
-				break;
-		}
-
+		gl_set_blend_mode(blendMode);
 		_blendMode = blendMode;
 	}
 

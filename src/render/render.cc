@@ -173,9 +173,12 @@ namespace qk {
 		
 		auto pool = shared_app()->font_pool();
 
-		FontGlyphs fg = std::move(pool->getFFID()->makeFontGlyphs({26970,23398}, FontStyle(), 64).front());
+		auto stype = FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::NORMAL);
+		FontGlyphs fg = std::move(pool->getFFID()->makeFontGlyphs({26970,23398,25991}, stype, 64).front());
 
-		auto offset = fg.getHorizontalOffset();
+		paint.color = Color4f(1,1,0);
+		
+		_canvas->drawGlyphs(fg.glyphs(), Vec2(0,0), nullptr, 36, fg.typeface(), paint);
 	}
 
 	void RenderBackend::visitFloatLayout(FloatLayout* flow) {

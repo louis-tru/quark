@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	uint32_t gl_set_texture(cPixel* src, GLuint id, bool isGenerateMipmap);
+	uint32_t gl_gen_texture(cPixel* src, GLuint id, bool isGenerateMipmap);
 
 	uint32_t gl_pixel_internal_format(ColorType type) {
 		switch (type) {
@@ -78,7 +78,7 @@ namespace qk {
 	GLRender::GLRender(Options opts)
 		: GLCanvas(this), Render(opts)
 		, _Is_Support_Multisampled(glIsSupportMultisampled())
-		, _shaders{&_clear, &_clip, &_color, &_image, &_yuv420p, &_yuv420sp, &_linear, &_radial}
+		, _shaders{&_clear, &_clip, &_color, &_image, &_imageMask, &_yuv420p, &_yuv420sp, &_linear, &_radial}
 	{
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
@@ -94,17 +94,18 @@ namespace qk {
 			shader->build();
 		}
 
-		glUseProgram(_image.shader());
-		glUniform1i(_image.image(), 0);
+		glUseProgram(_image.shader);
+		glUniform1i(_image.image, 0);
+		glUniform1i(_imageMask.image, 0);
 
-		glUseProgram(_yuv420p.shader());
-		glUniform1i(_yuv420p.image(), 0);
-		glUniform1i(_yuv420p.image_u(), 1);
-		glUniform1i(_yuv420p.image_v(), 2);
+		glUseProgram(_yuv420p.shader);
+		glUniform1i(_yuv420p.image, 0);
+		glUniform1i(_yuv420p.image_u, 1);
+		glUniform1i(_yuv420p.image_v, 2);
 
-		glUseProgram(_yuv420sp.shader());
-		glUniform1i(_yuv420sp.image(), 0);
-		glUniform1i(_yuv420sp.image_uv(), 1);
+		glUseProgram(_yuv420sp.shader);
+		glUniform1i(_yuv420sp.image, 0);
+		glUniform1i(_yuv420sp.image_uv, 1);
 		
 		glUseProgram(0);
 
@@ -229,7 +230,7 @@ namespace qk {
 	}
 
 	GLuint GLRender::setTexture(cPixel *src, uint32_t id) {
-		return gl_set_texture(src, id, true);
+		return gl_gen_texture(src, id, true);
 	}
 
 	void GLRender::deleteTextures(const uint32_t *IDs, uint32_t count) {

@@ -53,84 +53,55 @@
 
 namespace qk {
 
-	class GLSLShader: public Object {
-	public:
-		struct Attr {
-			cChar *name;
-			GLint size;
-			GLenum type;
-			GLsizei stride;
-			const GLvoid *pointer;
-		};
-		Qk_DEFINE_PROP_GET(GLuint, shader);
-		Qk_DEFINE_PROP_GET(GLuint, vertex_in);
-		Qk_DEFINE_PROP_GET(GLuint, vao);
-		Qk_DEFINE_PROP_GET(GLuint, vbo);
-		virtual void build() = 0;
+	struct GLSLShader {
+		GLuint shader, vertex_in, vao, vbo;
 		void use(GLsizeiptr size, const GLvoid* data);
-	protected:
-		GLSLShader();
-		void compile(
-			cChar* name,
-			cChar* vertexShader, cChar* fragmentShader,
-			const Array<Attr> &attributes,
-			cChar* uniforms, GLuint *storeLocation
-		);
+		virtual void build() = 0;
 	};
 
-	class GLSLClear: public GLSLShader {
-	public:
-		Qk_DEFINE_PROP_GET(GLuint, color);
-		virtual void build() override;
+	struct GLSLClear: GLSLShader {
+		GLuint color;
+		virtual void build();
 	};
 
-	class GLSLClip: public GLSLShader {
-	public:
-		virtual void build() override;
+	struct GLSLClip: GLSLShader {
+		virtual void build();
 	};
 
-	class GLSLColor: public GLSLShader {
-	public:
-		Qk_DEFINE_PROP_GET(GLuint, color);
-		virtual void build() override;
+	struct GLSLColor: GLSLShader {
+		GLuint color;
+		virtual void build();
 	};
 
-	class GLSLImage: public GLSLShader {
-	public:
-		Qk_DEFINE_PROP_GET(GLuint, opacity);
-		Qk_DEFINE_PROP_GET(GLuint, coord);
-		Qk_DEFINE_PROP_GET(GLuint, image);
-		virtual void build() override;
-		friend class GLSLImageYUV420P;
-		friend class GLSLImageYUV420SP;
+	struct GLSLImage: GLSLShader {
+		GLuint opacity, coord, image;
+		virtual void build();
 	};
 
-	class GLSLImageYUV420P: public GLSLImage {
-	public:
-		Qk_DEFINE_PROP_GET(GLuint, image_u);
-		Qk_DEFINE_PROP_GET(GLuint, image_v);
-		virtual void build() override;
+	struct GLSLImageMaskColor: GLSLImage {
+		GLuint color;
+		virtual void build();
 	};
 
-	class GLSLImageYUV420SP: public GLSLImage {
-	public:
-		Qk_DEFINE_PROP_GET(GLuint, image_uv);
-		virtual void build() override;
+	struct GLSLImageYUV420P: GLSLImage {
+		GLuint image_u,image_v;
+		virtual void build();
 	};
 
-	class GLSLGradient: public GLSLShader {
-	public:
-		Qk_DEFINE_PROP_GET(GLuint, range); // vertex uniform value
-		Qk_DEFINE_PROP_GET(GLuint, count); // fragment uniform value
-		Qk_DEFINE_PROP_GET(GLuint, colors);
-		Qk_DEFINE_PROP_GET(GLuint, positions);
-		virtual void build() override;
-		friend class GLSLGradientRadial;
+	struct GLSLImageYUV420SP: GLSLImage {
+		GLuint image_uv;
+		virtual void build();
+	};
+
+	struct GLSLGradient: GLSLShader {
+		GLuint range; // vertex uniform value
+		GLuint count; // fragment uniform value
+		GLuint colors,positions;
+		virtual void build();
 	};
 	
-	class GLSLGradientRadial: public GLSLGradient {
-	public:
-		virtual void build() override;
+	struct GLSLGradientRadial: GLSLGradient {
+		virtual void build();
 	};
 
 }

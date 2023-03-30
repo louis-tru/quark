@@ -148,8 +148,7 @@ namespace qk {
 	/**
 	* @class ObjectTraits
 	*/
-	class ObjectTraits {
-	public:
+	struct ObjectTraits {
 		inline static bool Retain(Object* obj) { return obj ? obj->retain(): 0; }
 		inline static void Release(Object* obj) { if (obj) obj->release(); }
 		static constexpr bool is_reference = false;
@@ -159,16 +158,14 @@ namespace qk {
 	/**
 	* @class ReferenceTraits
 	*/
-	class ReferenceTraits: public ObjectTraits {
-	public:
+	struct ReferenceTraits: ObjectTraits {
 		static constexpr bool is_reference = true;
 	};
 
 	/**
 	* @class ProtocolTraits
 	*/
-	class ProtocolTraits {
-	public:
+	struct ProtocolTraits {
 		template<class T> inline static bool Retain(T* obj) {
 			return obj ? obj->to_object()->retain() : 0;
 		}
@@ -181,10 +178,9 @@ namespace qk {
 	typedef ProtocolTraits InterfaceTraits;
 
 	/**
-	* @class NonObjectTraits
-	*/
-	class NonObjectTraits {
-	public:
+	 * @class NonObjectTraits
+	 */
+	struct NonObjectTraits {
 		template<class T> inline static bool Retain(T* obj) {
 			/* Non referential pairs need not be Retain */ return 0;
 		}

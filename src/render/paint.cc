@@ -36,13 +36,13 @@ namespace qk {
 		type = kBitmap_Type;
 		image = _image;
 		Vec2 scale(dest.size.x() / src.size.x(), dest.size.y() / src.size.y());
-		*reinterpret_cast<Rect*>(&color) = {
+		region = {
 			Vec2(
 				src.origin.x() * scale.x() - dest.origin.x(),
 				src.origin.y() * scale.y() - dest.origin.y()
 			),
-			// shader scale
-			Vec2(scale.x() / float(_image->width()), scale.y() / float(_image->height())),
+			// shader tex scale
+			Vec2(1.0 / scale.x() / _image->width(), 1.0 / scale.y() / _image->height()),
 		};
 	}
 
@@ -53,14 +53,14 @@ namespace qk {
 	void Paint::setLinearGradient(const GradientColor *colors, Vec2 start, Vec2 end) {
 		type = kGradient_Type;
 		gradientType = kLinear_GradientType;
-		image = colors; // weak ref
+		gradient = colors; // weak ref
 		*reinterpret_cast<Rect*>(&color) = { start, end };
 	}
 
 	void Paint::setRadialGradient(const GradientColor *colors, Vec2 center, Vec2 radius) {
 		type = kGradient_Type;
 		gradientType = kRadial_GradientType;
-		image = colors; // weak ref
+		gradient = colors; // weak ref
 		*reinterpret_cast<Rect*>(&color) = { center, radius };
 	}
 

@@ -293,7 +293,7 @@ protected:
 																				Unichar character) const override {
 		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familyName, style);
 		QkUniqueCFRef<CTFontRef> familyFont(CTFontCreateWithFontDescriptor(desc.get(), 0, nullptr));
-
+		
 		// kCFStringEncodingUTF32 is BE unless there is a BOM.
 		// Since there is no machine endian option, explicitly state machine endian.
 #ifdef Qk_CPU_LENDIAN

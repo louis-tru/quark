@@ -79,8 +79,8 @@ namespace qk {
 		ImageSource(Array<Pixel>&& pixels);
 
 		/**
-			* @destructor
-			*/
+		 * @destructor
+		 */
 		virtual ~ImageSource();
 
 		/**
@@ -106,7 +106,7 @@ namespace qk {
 		Sp<ImageSource> mark_as_texture_unsafe(BackendDevice *device) const;
 
 		/**
-		 * @func load() async load source and decode
+		 * @method load() async load source and decode
 		 */
 		bool load();
 

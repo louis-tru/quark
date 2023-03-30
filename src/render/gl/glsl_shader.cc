@@ -72,15 +72,21 @@ namespace qk {
 		};\
 		layout(location=0) out lowp vec4 color_o;\
 	", Qk_GL_Version));
+	
 
-	GLSLShader::GLSLShader(): _shader(0), _vao(0), _vbo(0) {
-	}
+	struct ShaderAttr {
+		cChar *name;
+		GLint size;
+		GLenum type;
+		GLsizei stride;
+		const GLvoid *pointer;
+	};
 
-	void GLSLShader::compile(
-		cChar* name, cChar* vertexShader, cChar* fragmentShader,
-		const Array<Attr> &attributes, cChar* uniforms, GLuint *storeLocation)
+	static void compile_link_shader(
+		GLSLShader *s,
+		cChar *name, cChar *vertexShader, cChar *fragmentShader,
+		const Array<ShaderAttr> &attributes, cChar *uniforms, GLuint *storeLocation)
 	{
-		Qk_ASSERT(!_shader);
 		GLuint vertex_handle =
 			compile_shader(name, (vertexHeader + vertexShader).c_str(), GL_VERTEX_SHADER);
 		GLuint fragment_handle =
@@ -96,7 +102,7 @@ namespace qk {
 		// bind attrib Location
 		GLuint attrIdx = 0;
 		GLuint *store = storeLocation;
-		glBindAttribLocation(program, _vertex_in = attrIdx++, "vertex_in");
+		glBindAttribLocation(program, s->vertex_in = attrIdx++, "vertex_in");
 		for (auto &i: attributes) {
 			glBindAttribLocation(program, *store++ = attrIdx++, i.name);
 		}
@@ -129,13 +135,13 @@ namespace qk {
 
 		glUseProgram(program);
 
-		glGenVertexArrays(1, &_vao);
-		glGenBuffers(1, &_vbo);
-		glBindVertexArray(_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+		glGenVertexArrays(1, &s->vao);
+		glGenBuffers(1, &s->vbo);
+		glBindVertexArray(s->vao);
+		glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
 
-		glVertexAttribPointer(_vertex_in, 2, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(_vertex_in);
+		glVertexAttribPointer(s->vertex_in, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(s->vertex_in);
 
 		for (auto &i: attributes) {
 			GLuint local = *storeLocation++;
@@ -146,18 +152,18 @@ namespace qk {
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		_shader = program;
+		s->shader = program;
 	}
 
 	void GLSLShader::use(GLsizeiptr size, const GLvoid* data) {
-		glUseProgram(_shader);
-		glBindVertexArray(_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+		glUseProgram(shader);
+		glBindVertexArray(vao);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
 	}
 
 	void GLSLClear::build() {
-		compile("clear shader",
+		compile_link_shader(this, "clear shader",
 		"\
 			void main() {\
 				gl_Position = vec4(vertex_in.xy, 0.0, 1.0);\
@@ -169,27 +175,11 @@ namespace qk {
 				color_o = color;\
 			}\
 		",
-		{}, "color", &_color);
-	}
-
-	void GLSLColor::build() {
-		compile("color shader",
-		"\
-			void main() {\
-				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
-			}\
-		",
-		"\
-			uniform vec4  color;\
-			void main() {\
-				color_o = color;\
-			}\
-		",
-		{}, "color", &_color);
+		{}, "color", &color);
 	}
 
 	void GLSLClip::build() {
-		compile("clip shader",
+		compile_link_shader(this, "clip shader",
 		"\
 			void main() {\
 				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
@@ -201,17 +191,33 @@ namespace qk {
 		{}, "", nullptr);
 	}
 
+	void GLSLColor::build() {
+		compile_link_shader(this, "color shader",
+		"\
+			void main() {\
+				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
+			}\
+		",
+		"\
+			uniform vec4  color;\
+			void main() {\
+				color_o = color;\
+			}\
+		",
+		{}, "color", &color);
+	}
+
 	static const char *v_image_shader = "\
 		uniform   vec4      coord;/*offset,scale*/\
 		out       vec2      coord_f;\
 		void main() {\
-			coord_f = (vertex_in.xy - coord.xy) * coord.zw;\
+			coord_f = (coord.xy + vertex_in.xy) * coord.zw;\
 			gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
 		}\
 	";
 
 	void GLSLImage::build() {
-		compile("image shader", v_image_shader,
+		compile_link_shader(this, "image shader", v_image_shader,
 		"\
 			in lowp   vec2      coord_f;\
 			uniform   float     opacity;\
@@ -220,11 +226,25 @@ namespace qk {
 				color_o = texture(image, coord_f) * vec4(1.0, 1.0, 1.0, opacity);\
 			}\
 		",
-		{}, "opacity,coord,image", &_opacity);
+		{}, "coord,opacity,image", &opacity);
+	}
+	
+	void GLSLImageMaskColor::build() {
+		compile_link_shader(this, "image mask color shader", v_image_shader,
+		"\
+			in lowp   vec2      coord_f;\
+			uniform   float     opacity;\
+			uniform   sampler2D image;\
+			uniform   vec4      color;\
+			void main() {\
+				color_o = color * vec4(1.0,1.0,1.0, texture(image, coord_f).a);\
+			}\
+		",
+		{}, "opacity,coord,image,color", &opacity);
 	}
 
 	void GLSLImageYUV420P::build() {
-		compile("yuv420p shader", v_image_shader,
+		compile_link_shader(this, "yuv420p shader", v_image_shader,
 		"\
 			in lowp   vec2      coord_f;\
 			uniform   float     opacity;\
@@ -241,11 +261,11 @@ namespace qk {
 												opacity);\
 			}\
 		",
-		{}, "opacity,coord,image,image_u,image_v", &_opacity);
+		{}, "opacity,coord,image,image_u,image_v", &opacity);
 	}
 
 	void GLSLImageYUV420SP::build() {
-		compile("yuv420sp shader", v_image_shader,
+		compile_link_shader(this, "yuv420sp shader", v_image_shader,
 		"\
 			in lowp   vec2      coord_f;\
 			uniform   float     opacity;\
@@ -261,11 +281,11 @@ namespace qk {
 												opacity);\
 			}\
 		",
-		{}, "opacity,coord,image,image_uv", &_opacity);
+		{}, "opacity,coord,image,image_uv", &opacity);
 	}
 
 	void GLSLGradient::build() {
-		compile("gradient shader", "\
+		compile_link_shader(this, "gradient shader", "\
 			uniform   vec4      range;/*start/end range for rect*/\
 			out       float     indexed_f;\
 			void main() {\
@@ -296,11 +316,11 @@ namespace qk {
 				lowp float w = (indexed_f - positions[s]) / (positions[e] - positions[s]);\
 				color_o = mix(colors[s], colors[e], w);\
 			}\
-		", {}, "range,count,colors,positions", &_range);
+		", {}, "range,count,colors,positions", &range);
 	}
 	
 	void GLSLGradientRadial::build() {
-		compile("gradient shader", "\
+		compile_link_shader(this, "gradient shader", "\
 			out       vec2     position_f;\
 			void main() {\
 				position_f = vertex_in.xy;\
@@ -329,7 +349,7 @@ namespace qk {
 				lowp float w = (indexed_f - positions[s]) / (positions[e] - positions[s]);\
 				color_o = mix(colors[s], colors[e], w);\
 			}\
-		", {}, "range,count,colors,positions", &_range);
+		", {}, "range,count,colors,positions", &range);
 	}
 
 }

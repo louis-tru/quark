@@ -455,9 +455,11 @@ void Typeface_Mac::onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyph
 }
 
 QkUniqueCFRef<CTFontRef> Typeface_Mac::ctFont(float fontSize) const {
-	if (fontSize != CTFontGetSize(fFontRef.get())) {
+	auto size = CTFontGetSize(fFontRef.get());
+	if (fontSize != size) {
 		return QkUniqueCFRef<CTFontRef>(CTFontCreateCopyWithAttributes(fFontRef.get(), fontSize, nullptr, nullptr));
 	} else {
+		CFRetain(fFontRef.get());
 		return QkUniqueCFRef<CTFontRef>(fFontRef.get());
 	}
 }
@@ -667,7 +669,7 @@ float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, flo
 	
 	// TODO scale, positions ...
 
-	auto font = ctFont(fontSize);
+	auto font = ctFont(fontSize * scale);
 	CTFontRef fontRef = font.get();
 
 	const CGGlyph* cgGlyph = (const CGGlyph*) *glyphs;
@@ -704,10 +706,9 @@ float Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize, flo
 
 	memset(*image, 0, image.length()); // reset storage
 
-	const CGImageAlphaInfo alpha = kCGImageAlphaPremultipliedFirst;
-	//const CGImageAlphaInfo alpha = kCGImageAlphaNoneSkipFirst;
-	const CGBitmapInfo bitmapInfo = kCGBitmapByteOrder32Host | (CGBitmapInfo)alpha;
-	
+	const CGImageAlphaInfo alpha = kCGImageAlphaPremultipliedLast;
+	const CGBitmapInfo bitmapInfo = kCGBitmapByteOrder32Host | alpha;
+
 	QkUniqueCFRef<CGContextRef> fCG(
 		CGBitmapContextCreate(*image, width, height, 8, rowBytes, fRGBSpace.get(), bitmapInfo));
 

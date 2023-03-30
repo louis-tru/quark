@@ -59,7 +59,8 @@ namespace qk {
 				int height = (int)CGImageGetHeight(image);
 				int pixel_size = width * height * 4;
 
-				CGImageAlphaInfo cginfo = CGImageAlphaInfo(kCGImageAlphaLast | kCGBitmapByteOrder32Big);
+				const CGImageAlphaInfo alpha = kCGImageAlphaLast;
+				const CGBitmapInfo cginfo = kCGBitmapByteOrder32Host | alpha;
 				// info = CGImageGetAlphaInfo(image);
 
 				auto pixel_data = Buffer::alloc(pixel_size);

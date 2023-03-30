@@ -62,6 +62,7 @@ namespace qk {
 		void drawColor(const Array<Vec2>& vertex, const Paint& paint);
 		void drawGradient(const Array<Vec2>& vertex, const Paint& paint);
 		void drawImage(const Array<Vec2>& vertex, const Paint& paint);
+		void drawImageMask(const Array<Vec2>& vertex, const Paint& paint);
 		void setBlendMode(BlendMode blendMode);
 		void setMatrixBuffer(const Mat& mat);
 		void setRootMatrixBuffer(Mat4& root);

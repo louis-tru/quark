@@ -66,10 +66,10 @@ namespace qk {
 		kColor_Type_Luminance_8 = kColor_Type_Gray_8,
 		kColor_Type_Luminance_Alpha_88,
 		kColor_Type_SDF_Float, //! signed distance function
-		kColor_Type_YUV420P_Y_8,
+		kColor_Type_YUV420P_Y_8,  // YUV420P
 		kColor_Type_YUV420P_U_8,
 		kColor_Type_YUV420P_V_8 = kColor_Type_YUV420P_U_8,
-		kColor_Type_YUV420SP_Y_8,
+		kColor_Type_YUV420SP_Y_8, // YUV420SP
 		kColor_Type_YUV420SP_UV_88,
 		// Compressed package for pvrtc
 		kColor_Type_PVRTCI_2BPP_RGB,
@@ -128,8 +128,8 @@ namespace qk {
 	};
 
 	/**
-	* @class Pixel
-	*/
+	 * @class Pixel
+	 */
 	class Qk_EXPORT Pixel: public PixelInfo {
 	public:
 		Qk_DEFINE_PROP_GET(uint32_t, texture); // gpu texture id

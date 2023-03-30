@@ -94,14 +94,14 @@ namespace qk {
 		, _body(std::move(pixel._body)) {
 	}
 
-	Pixel::Pixel(const PixelInfo& info, Buffer body)
-		: PixelInfo(info)
+	Pixel::Pixel(const PixelInfo& info, Buffer body): PixelInfo(info)
+		, _texture(0)
 		, _hold(body)
 		, _body(*_hold, _hold.length()) {
 	}
 
-	Pixel::Pixel(const PixelInfo& info, cWeakBuffer& body)
-		: PixelInfo(info)
+	Pixel::Pixel(const PixelInfo& info, cWeakBuffer& body): PixelInfo(info)
+		, _texture(0)
 		, _hold()
 		, _body(body) {
 	}

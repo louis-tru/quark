@@ -55,14 +55,15 @@ namespace qk {
 		bool _Is_Support_Multisampled;
 		// shader
 		GLSLClear _clear;
-		GLSLColor _color;
 		GLSLClip  _clip;
+		GLSLColor _color;
 		GLSLImage _image;
+		GLSLImageMaskColor _imageMask;
 		GLSLImageYUV420P _yuv420p;
 		GLSLImageYUV420SP _yuv420sp;
 		GLSLGradient _linear;
 		GLSLGradientRadial _radial;
-		GLSLShader  *_shaders[8];
+		GLSLShader  *_shaders[9];
 		friend class GLCanvas;
 	};
 }
