@@ -55,8 +55,8 @@ namespace qk {
 		virtual void clearColor(const Color4f& color) override;
 		virtual void drawColor(const Color4f& color, BlendMode mode) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
-		virtual void drawGlyphs(const Array<GlyphID>& glyphs, Vec2 origin,
-				const Array<Vec2> *positions, float fontSize, Typeface *typeface, const Paint &paint) override;
+		virtual float drawGlyphs(const Array<GlyphID>& glyphs, Vec2 origin,
+				float fontSize, Typeface *typeface, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 	protected:
 		void drawColor(const Array<Vec2>& vertex, const Paint& paint);

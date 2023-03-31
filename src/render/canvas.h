@@ -68,8 +68,8 @@ namespace qk {
 		virtual void drawPath(const Path& path, const Paint& paint) = 0;
 		virtual void drawOval(const Rect& oval, const Paint& paint);
 		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
-		virtual void drawGlyphs(const Array<GlyphID>& glyphs, Vec2 origin,
-			const Array<Vec2> *positions, float fontSize, Typeface* typeface, const Paint& paint) = 0;
+		virtual float drawGlyphs(const Array<GlyphID>& glyphs, Vec2 origin,
+				float fontSize, Typeface* tf, const Paint& paint) = 0;
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float fontSize, const Paint& paint) = 0;
 	protected:
 		Canvas() = default;

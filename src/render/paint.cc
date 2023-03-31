@@ -32,9 +32,9 @@
 
 namespace qk {
 
-	void Paint::setBitmapPixel(cPixel *_image, const Rect& dest, const Rect& src) {
+	void Paint::setBitmapPixel(cPixel *image, const Rect& dest, const Rect& src) {
 		type = kBitmap_Type;
-		image = _image;
+		this->image = image;
 		Vec2 scale(dest.size.x() / src.size.x(), dest.size.y() / src.size.y());
 		region = {
 			Vec2(
@@ -42,7 +42,7 @@ namespace qk {
 				src.origin.y() * scale.y() - dest.origin.y()
 			),
 			// shader tex scale
-			Vec2(1.0 / scale.x() / _image->width(), 1.0 / scale.y() / _image->height()),
+			Vec2(1.0 / scale.x() / image->width(), 1.0 / scale.y() / image->height()),
 		};
 	}
 

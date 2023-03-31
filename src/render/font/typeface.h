@@ -62,8 +62,8 @@ namespace qk {
 		float getMetrics(FontMetrics *metrics, float fontSize);
 		float getMetrics(FontMetricsBase *metrics, float fontSize);
 		// get image source object from out param and return top to baseline value for image text
-		float getImage(const Array<GlyphID> &glyphs, float fontSize, float scale,
-									 const Array<Vec2> *positions, Sp<ImageSource> *imgOut);
+		Vec2 getImage(const Array<GlyphID> &glyphs, float fontSize,
+				const Rect *bound, const Array<Vec2> *offset, Pixel *imgOut);
 	protected:
 		Typeface(FontStyle fs);
 		void setFontStyle(FontStyle style) { _fontStyle = style; }
@@ -77,8 +77,8 @@ namespace qk {
 		virtual void onGetMetrics(FontMetrics* metrics) const = 0;
 		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
 		virtual bool onGetPath(GlyphID glyph, Path *path) const = 0;
-		virtual float onGetImage(const Array<GlyphID>& glyphs, float fontSize, float scale,
-														 const Array<Vec2> *positions, Sp<ImageSource> *imgOut) = 0;
+		virtual Vec2 onGetImage(const Array<GlyphID> &glyphs, float fontSize,
+				const Rect *bound, const Array<Vec2> *offset, Pixel *imgOut) = 0;
 	private:
 		FontMetrics _metrics;
 		Dict<GlyphID, FontGlyphMetrics> _glyphs;

@@ -57,8 +57,8 @@ namespace qk {
 		#version %s\n\
 		#define matrix root_matrix * view_matrix\n\
 		layout (std140) uniform ubo {\
-			mat4  root_matrix;\
-			mat4  view_matrix;\
+			/*mediump*/ mat4  root_matrix;\
+			/*mediump*/ mat4  view_matrix;\
 		};\
 		in      vec2  vertex_in;\
 	", Qk_GL_Version));
@@ -66,10 +66,10 @@ namespace qk {
 	static const String fragmentHeader(String::format("\
 		#version %s\n\
 		#define matrix root_matrix * view_matrix\n\
-		layout (std140) uniform ubo {\
-			mat4  root_matrix;\
-			mat4  view_matrix;\
-		};\
+		/*layout (std140) uniform ubo {\
+			mediump mat4 root_matrix;\
+			mediump mat4 view_matrix;\
+		};*/\
 		layout(location=0) out lowp vec4 color_o;\
 	", Qk_GL_Version));
 	
@@ -170,7 +170,7 @@ namespace qk {
 			}\
 		",
 		"\
-			uniform vec4  color;\
+			uniform lowp vec4  color;\
 			void main() {\
 				color_o = color;\
 			}\
@@ -199,7 +199,7 @@ namespace qk {
 			}\
 		",
 		"\
-			uniform vec4  color;\
+			uniform lowp vec4  color;\
 			void main() {\
 				color_o = color;\
 			}\
@@ -219,9 +219,9 @@ namespace qk {
 	void GLSLImage::build() {
 		compile_link_shader(this, "image shader", v_image_shader,
 		"\
-			in lowp   vec2      coord_f;\
-			uniform   float     opacity;\
-			uniform   sampler2D image;\
+			in      lowp  vec2      coord_f;\
+			uniform lowp  float     opacity;\
+			uniform       sampler2D image;\
 			void main() {\
 				color_o = texture(image, coord_f) * vec4(1.0, 1.0, 1.0, opacity);\
 			}\
@@ -232,12 +232,12 @@ namespace qk {
 	void GLSLImageMaskColor::build() {
 		compile_link_shader(this, "image mask color shader", v_image_shader,
 		"\
-			in lowp   vec2      coord_f;\
-			uniform   float     opacity;\
-			uniform   sampler2D image;\
-			uniform   vec4      color;\
+			in      lowp  vec2      coord_f;\
+			uniform lowp  float     opacity;\
+			uniform       sampler2D image;\
+			uniform lowp  vec4      color;\
 			void main() {\
-				color_o = color * vec4(1.0,1.0,1.0, texture(image, coord_f).a);\
+				color_o = color * vec4(1.0,1.0,1.0,texture(image, coord_f).a + 0.1);\
 			}\
 		",
 		{}, "opacity,coord,image,color", &opacity);
@@ -246,11 +246,11 @@ namespace qk {
 	void GLSLImageYUV420P::build() {
 		compile_link_shader(this, "yuv420p shader", v_image_shader,
 		"\
-			in lowp   vec2      coord_f;\
-			uniform   float     opacity;\
-			uniform   sampler2D image;\
-			uniform   sampler2D image_u;\
-			uniform   sampler2D image_v;\
+			in      lowp  vec2      coord_f;\
+			uniform lowp  float     opacity;\
+			uniform       sampler2D image;\
+			uniform       sampler2D image_u;\
+			uniform       sampler2D image_v;\
 			void main() {\
 				lowp float y = texture(image, coord_f).r;\
 				lowp float u = texture(image_u, coord_f).r;\
@@ -267,10 +267,10 @@ namespace qk {
 	void GLSLImageYUV420SP::build() {
 		compile_link_shader(this, "yuv420sp shader", v_image_shader,
 		"\
-			in lowp   vec2      coord_f;\
-			uniform   float     opacity;\
-			uniform   sampler2D image;\
-			uniform   sampler2D image_uv;\
+			in      lowp  vec2      coord_f;\
+			uniform lowp  float     opacity;\
+			uniform       sampler2D image;\
+			uniform       sampler2D image_uv;\
 			void main() {\
 				lowp float y = texture(image, coord_f).r;\
 				lowp float u = texture(image_uv, coord_f).r;\
@@ -327,7 +327,7 @@ namespace qk {
 				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
 			}\
 		", "\
-			uniform      vec4      range;/*center/radius for circle*/\
+			uniform lowp vec4      range;/*center/radius for circle*/\
 			uniform      int       count;\
 			uniform lowp vec4      colors[256];/*max 256 color points*/\
 			uniform lowp float     positions[256];\

@@ -107,6 +107,8 @@ namespace qk {
 			Qk_ASSERT(index < _length, "Array access violation.");
 			return _val[index];
 		}
+		inline       T& get(uint32_t index) { return operator[](index); }
+		inline const T& get(uint32_t index) const { return operator[](index); }
 		inline       T* operator*()       { return _val; }
 		inline const T* operator*() const { return _val; }
 		inline       T* val      ()       { return _val; }

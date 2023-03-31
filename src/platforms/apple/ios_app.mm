@@ -102,7 +102,7 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 												multiplier:1
 												constant:0]];
 
-		self.render->refresh_surface_region(); // set size
+		self.host->render()->reload(); // set size
 
 		Inl_Application(_host)->triggerLoad();
 		Qk_DEBUG("application,triggerLoad");
@@ -112,7 +112,7 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(CGRect)frame {
 		if ( __appDelegate && !_is_background ) {
-			self.render->refresh_surface_region(); // set size
+			self.host->render()->reload(); // set size
 		}
 	}
 
@@ -123,7 +123,7 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 
 	- (void)applicationDidBecomeActive:(UIApplication*) application {
 		Inl_Application(_host)->triggerResume();
-		self.render->refresh_surface_region(); // set size
+		self.host->render()->reload(); // set size
 		Qk_DEBUG("applicationDidBecomeActive,triggerResume");
 	}
 

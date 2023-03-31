@@ -232,37 +232,37 @@ namespace qk {
 		int pixex_size = width * height;
 		int out_size = pixex_size * bytes;
 		Buffer out = Buffer::alloc(out_size);
-		uint8_t* out_ = (uint8_t*)out.val();
-		uint8_t* in_ = ((uint8_t*)data.val()) + sizeof(TGAHeader) + header->idlength;
+		uint8_t* out_p = (uint8_t*)out.val();
+		uint8_t* in_p = ((uint8_t*)data.val()) + sizeof(TGAHeader) + header->idlength;
 		
 		switch ( code ) {
 			case 2:  // RGB
 			case 10: // RLE RGB
 				if ( code == 2 ) { // RGB
 					for ( int i = 0; i < pixex_size; i++ ) {
-						(func)(&in_, &out_, alpha);
+						func(&in_p, &out_p, alpha);
 					}
-				}
-				else {  // RLE RGB
-					tga_parse_rgb_rle(in_, out_, bytes, pixex_size, func, alpha);
+				} else {  // RLE RGB
+					tga_parse_rgb_rle(in_p, out_p, bytes, pixex_size, func, alpha);
 				}
 				break;
 			case 3:  // GRAY
 				for (int i = 0; i < pixex_size; i++) {
-					out_[0] = in_[0];
-					out_[1] = alpha ? in_[1] : 255;
-					in_ += bytes; out_ += bytes;
+					out_p[0] = in_p[0];
+					out_p[1] = alpha ? in_p[1] : 255;
+					in_p  += bytes;
+					out_p += bytes;
 				}
 				break;
 			case 11: // RLE GRAY
-				tga_parse_gray_rle(in_, out_, bytes, pixex_size, alpha);
+				tga_parse_gray_rle(in_p, out_p, bytes, pixex_size, alpha);
 				break;
 			default:
 				Qk_DEBUG("Parse tga image error, data type code undefined");
 				return false;
 		}
 		
-		// 表示像素是从底部开始的,需要调个头
+		// Indicates that the pixel starts from the bottom and needs to be adjusted
 		if ( ! (header->image_descriptor & 0x20) ) {
 		// BOTTOM_LEFT
 			out = tga_flip_vertical(*out, width, height, bytes);
@@ -272,13 +272,14 @@ namespace qk {
 		return true;
 	}
 
-	Buffer img_tga_encode(cPixel& pixel_data) {
-		
-		if (pixel_data.type() == kColor_Type_RGBA_8888) {
-		
-			int size = sizeof(TGAHeader) + pixel_data.width() * pixel_data.height() * 4;
-			
-			Buffer ret_data = Buffer::alloc(size);
+	Buffer img_tga_encode(cPixel& pixel) {
+		auto type = pixel.type();
+		auto pix = &pixel;
+
+		if (pix->type() == kColor_Type_RGBA_8888 ||
+			type == kColor_Type_Alpha_8 || type == kColor_Type_Luminance_8
+		) {
+			auto ret_data = Buffer::alloc(sizeof(TGAHeader) + pix->width() * pix->height() * 4);
 
 			TGAHeader header;
 			header.idlength = 0;
@@ -289,42 +290,53 @@ namespace qk {
 			header.color_map_depth = 0;
 			header.x_origin = 0;
 			header.y_origin = 0;
-			header.width = pixel_data.width();
-			header.height = pixel_data.height();
+			header.width = pix->width();
+			header.height = pix->height();
 			header.bits_per_pixel = 32;
 			header.image_descriptor =  0x08 | 0x20; //alpha flag | top-left flag
-			
-			memcpy(*ret_data, &header, sizeof(TGAHeader));
-			
-			cBuffer& pixel_data_d = pixel_data.body();
-			int pixels = pixel_data_d.length() / 4;
-			const uint8_t* src = (const uint8_t*)*pixel_data_d;
-			uint8_t* dest = (uint8_t*)*ret_data + sizeof(TGAHeader);
 
-			// 写入BGRA数据
-			if ( pixel_data.alphaType() == kAlphaType_Premul ) {
-				for (int i = 0; i < pixels; i++) {
-					float alpha = src[3] / 255;
-					dest[2] = src[0] / alpha;
-					dest[1] = src[1] / alpha;
-					dest[0] = src[2] / alpha;
-					dest[3] = src[3];
+			memcpy(*ret_data, &header, sizeof(TGAHeader));
+
+			auto pixels = pix->width() * pix->height();
+			auto src  = (const uint8_t*)pix->body().val();
+			auto dest = (uint8_t*)*ret_data + sizeof(TGAHeader);
+
+			if (pix->type() != kColor_Type_RGBA_8888) {
+				for ( int i = 0; i < pixels; i++ ) {
+					dest[2] = 0;
+					dest[1] = 0;
+					dest[0] = 0;
+					dest[3] = *src;
 					dest += 4;
-					src += 4;
+					src ++;
 				}
 			} else {
-				for ( int i = 0; i < pixels; i++ ) {
-					dest[2] = src[0];
-					dest[1] = src[1];
-					dest[0] = src[2];
-					dest[3] = src[3];
-					dest += 4;
-					src += 4;
+				// 写入BGRA数据
+				if ( pix->alphaType() == kAlphaType_Premul ) {
+					for (int i = 0; i < pixels; i++) {
+						float alpha = src[3] / 255;
+						dest[2] = src[0] / alpha;
+						dest[1] = src[1] / alpha;
+						dest[0] = src[2] / alpha;
+						dest[3] = src[3];
+						dest += 4;
+						src += 4;
+					}
+				} else {
+					for ( int i = 0; i < pixels; i++ ) {
+						dest[2] = src[0];
+						dest[1] = src[1];
+						dest[0] = src[2];
+						dest[3] = src[3];
+						dest += 4;
+						src += 4;
+					}
 				}
 			}
-			return ret_data;
+			return std::move(ret_data);
 		}
-		Qk_DEBUG("Pixel data: Invalid data, required for RGBA 8888 format");
+
+		Qk_DEBUG("Pixel data: Invalid data, required for RGBA_8888 and Alpha_8 and Luminance_8 format");
 		return Buffer();
 	}
 

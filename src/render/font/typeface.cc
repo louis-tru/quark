@@ -95,8 +95,9 @@ namespace qk {
 
 	const FontGlyphMetrics& Typeface::getGlyphMetrics(GlyphID glyph) {
 		auto it = _glyphs.find(glyph);
-		if (it != _glyphs.end())
+		if (it != _glyphs.end()) {
 			return it->value;
+		}
 		FontGlyphMetrics fontGlyph;
 		onGetGlyphMetrics(glyph, &fontGlyph);
 		_glyphs.set(glyph, fontGlyph);
@@ -158,8 +159,9 @@ namespace qk {
 		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
 	}
 
-	float Typeface::getImage(const Array<GlyphID>& glyphs, float fontSize, float scale,
-													 const Array<Vec2> *positions, Sp<ImageSource> *imgOut) {
-		return onGetImage(glyphs, fontSize, scale, positions, imgOut);
+	Vec2 Typeface::getImage(const Array<GlyphID>& glyphs, float fontSize,
+			const Rect *bounds, const Array<Vec2> *offset, Pixel *imgOut)
+	{
+		return onGetImage(glyphs, fontSize, bounds, offset, imgOut);
 	}
 }

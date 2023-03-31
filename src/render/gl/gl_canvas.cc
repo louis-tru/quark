@@ -479,10 +479,10 @@ namespace qk {
 
 		_backend->_clip.use(clip->vertex.size(), *clip->vertex);
 		glDrawArrays(GL_TRIANGLES, 0, clip->vertex.length()); // draw test
-		
+
 		glStencilFunc(GL_LEQUAL, _stencil_ref, 0xFFFFFFFF); // Equality passes the test
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
-	
+
 		return true;
 	}
 
@@ -622,25 +622,22 @@ namespace qk {
 		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 
-	void GLCanvas::drawGlyphs(const Array<GlyphID> &glyphs, Vec2 origin,
-		const Array<Vec2> *positions, float fontSize, Typeface *tf, const Paint &paint)
+	float GLCanvas::drawGlyphs(const Array<GlyphID> &glyphs, Vec2 origin,
+			float fontSize, Typeface *tf, const Paint &paint)
 	{
-		float scale = Float::max(_curState->matrix[0], _curState->matrix[4])
-								* Float::max(_surfaceScale[0], _surfaceScale[1]);
-
-		Sp<ImageSource> image;
-		float top = tf->getImage(glyphs, fontSize, scale, positions, &image);
-
 		Paint p(paint);
+		Pixel pix;
+		float s_scale = Float::max(_surfaceScale[0], _surfaceScale[1]);
+		float scale = Float::max(_curState->matrix[0], _curState->matrix[4]) * s_scale;
 
-		auto &pix = image->pixels().front();
+		auto bound = tf->getImage(glyphs, fontSize * scale, nullptr, nullptr, &pix);
 		auto scale_1 = 1.0 / scale;
 
-		Vec2 dst_start(origin.x(), origin.y()/* + top * scale_1*/);
+		// default use baseline align
+		Vec2 dst_start(origin.x(), origin.y() - bound.y() * scale_1);
 		Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
 
 		p.setBitmapPixel(&pix, {dst_start, dst_size});
-		p.type = Paint::kBitmapMask_Type;
 
 		Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
 		Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
@@ -651,6 +648,8 @@ namespace qk {
 		};
 
 		drawImageMask(vertex, p);
+
+		return scale_1 * bound.x();
 	}
 
 	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {

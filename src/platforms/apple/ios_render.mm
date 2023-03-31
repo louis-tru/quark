@@ -43,6 +43,7 @@ extern QkApplicationDelegate *__appDelegate;
 {
 	CADisplayLink *_display_link;
 }
+@property (assign, nonatomic) qk::Render *render;
 @end
 
 @implementation GLView
@@ -63,11 +64,14 @@ extern QkApplicationDelegate *__appDelegate;
 	}
 
 	- (void) display:(CADisplayLink*)displayLink {
-		 auto _ = __appDelegate.host;
+		 // auto _ = __appDelegate.host;
 		 static int _fps = 0;
 		 if (_fps == 0) { // 3 = 15, 1 = 30
-			 if (_->display()->pre_render())
-				 _->display()->render();
+			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 2");
+
+			auto del = self.render->delegate();
+			 if (del->onRenderBackendPreDisplay())
+				 del->onRenderBackendDisplay();
 			 _fps = 0;
 		 } else {
 			 _fps++;
@@ -82,8 +86,8 @@ extern QkApplicationDelegate *__appDelegate;
 
 class AppleGLRender: public GLRender, public QkAppleRender {
 public:
-	AppleGLRender(Application* host, EAGLContext* ctx)
-		: GLRender(host), _ctx(ctx)
+	AppleGLRender(Options opts, EAGLContext* ctx)
+		: GLRender(opts), _ctx(ctx)
 	{}
 
 	~AppleGLRender() {
@@ -91,13 +95,20 @@ public:
 		[EAGLContext setCurrentContext:nullptr];
 	}
 
-	void refresh_surface_region() override {
-		float scale = UIScreen.mainScreen.scale;
+	Vec2 getSurfaceSize() override {
 		CGSize size = _view.frame.size;
-		float x = size.width * scale;
-		float y = size.height * scale;
-		_host->display()->set_surface_region({ Vec2{0,0},Vec2{x,y},Vec2{x,y} }, scale);
+		_default_scale = UIScreen.mainScreen.scale;
+		float w = size.width * _default_scale;
+		float h = size.height * _default_scale;
+		_surface_size = Vec2(w, h);
+		return _surface_size;
 	}
+
+	float getDefaultScale() override {
+		_default_scale = UIScreen.mainScreen.scale;
+		return _default_scale;
+	}
+
 	
 	void setAntiAlias(int width, int height) override {
 	}
@@ -123,8 +134,8 @@ public:
 		if (_IsDeviceMsaa) {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
-			auto region = _host->display()->surface_region();
-			auto w = region.size.x(), h = region.size.x();
+
+			auto w = _surface_size.x(), h = _surface_size.y();
 			glBlitFramebuffer(0, 0, w, h,
 												0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
@@ -147,6 +158,7 @@ public:
 		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 2");
 
 		_view = [[GLView alloc] initWithFrame:rect];
+		_view.render = this;
 		_layer = (CAEAGLLayer*)_view.layer;
 		_layer.drawableProperties = @{
 			kEAGLDrawablePropertyRetainedBacking : @NO,
@@ -169,13 +181,13 @@ private:
 	GLView      *_view;
 };
 
-QkAppleRender* makeAppleGLRender(Application* host) {
+QkAppleRender* qk_make_apple_gl_render(Render::Options opts) {
 	EAGLContext* ctx = [EAGLContext alloc];
 	if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
 		[EAGLContext setCurrentContext:ctx];
 		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 		ctx.multiThreaded = NO;
-		return new AppleGLRender(host, ctx);
+		return new AppleGLRender(opts, ctx);
 	}
 	return nullptr;
 }

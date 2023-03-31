@@ -114,18 +114,18 @@ namespace qk {
 	}
 
 	void RenderBackend::visitRoot(Root* root) {
-		_canvas->clearColor(Color4f(1,0,0));
+		_canvas->clearColor(Color4f(1,1,1));
 		//_canvas->drawColor(Color4f(1,0,0));
+		Paint paint0, paint;
 
 		auto size = shared_app()->display()->size();
 		
-		Paint paint0;
 		GradientColor g{{Color4f(1,0,1), Color4f(0,1,0), Color4f(0,0,1)}, {0,0.5,1}};
 		Rect rect{ size*0.2*0.5, size*0.8 };
 		//paint0.setLinearGradient(&g, rect.origin, rect.origin+rect.size);
 		paint0.setRadialGradient(&g, rect.origin + rect.size*0.5, rect.size*0.5);
 		
-		_canvas->save();
+		_canvas->save(); 
 		_canvas->setMatrix(_canvas->getMatrix() * Mat(Vec2(100,-50), Vec2(0.8, 0.8), -0.2, Vec2(0.3,0)));
 		_canvas->drawRect(rect, paint0);
 		_canvas->restore();
@@ -134,7 +134,6 @@ namespace qk {
 		_canvas->save();
 		_canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 0);
 
-		Paint paint;
 		paint.color = Color4f(1, 0, 1, 0.5);
 
 		paint.color = Color4f(0, 0, 1, 0.5);
@@ -171,14 +170,19 @@ namespace qk {
 
 		_canvas->restore(2);
 		
-		auto pool = shared_app()->font_pool();
-
-		auto stype = FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::NORMAL);
-		FontGlyphs fg = std::move(pool->getFFID()->makeFontGlyphs({26970,23398,25991}, stype, 64).front());
-
-		paint.color = Color4f(1,1,0);
+		paint.color = Color4f(0,0,0);
 		
-		_canvas->drawGlyphs(fg.glyphs(), Vec2(0,0), nullptr, 36, fg.typeface(), paint);
+		auto pool = shared_app()->font_pool();
+		auto stype = FontStyle(TextWeight::DEFAULT, TextWidth::DEFAULT, TextSlant::NORMAL);
+		auto fgs = pool->getFFID()->makeFontGlyphs({
+			65,72,103,75,114,26970,112,23398,106,25991,65,72,103,
+		}, stype, 64);
+
+		Vec2 offset(0,60);
+
+		for (auto &fg: fgs) {
+			offset[0] += ceilf(_canvas->drawGlyphs(fg.glyphs(), offset, 32, fg.typeface(), paint));
+		}
 	}
 
 	void RenderBackend::visitFloatLayout(FloatLayout* flow) {
