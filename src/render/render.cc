@@ -173,9 +173,9 @@ namespace qk {
 		paint.color = Color4f(0,0,0);
 		
 		auto pool = shared_app()->font_pool();
-		auto stype = FontStyle(TextWeight::DEFAULT, TextWidth::DEFAULT, TextSlant::NORMAL);
+		auto stype = FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::NORMAL);
 		auto fgs = pool->getFFID()->makeFontGlyphs({
-			65,72,103,75,114,26970,112,23398,106,25991,65,72,103,
+			65,72,103,75,114,26970,23398,25991,112,106,65,72,103,
 		}, stype, 64);
 
 		Vec2 offset(0,60);

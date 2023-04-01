@@ -45,7 +45,7 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_GET(FontStyle, fontStyle);
 		bool isBold() const { return _fontStyle.weight() >= TextWeight::SEMIBOLD; }
-		bool isItalic() const { return _fontStyle.slant() != TextSlant::DEFAULT; }
+		bool isItalic() const { return _fontStyle.slant() >= TextSlant::ITALIC; }
 		int countGlyphs() const;
 		int countTables() const;
 		int getTableTags(FontTableTag tags[]) const;
@@ -62,8 +62,7 @@ namespace qk {
 		float getMetrics(FontMetrics *metrics, float fontSize);
 		float getMetrics(FontMetricsBase *metrics, float fontSize);
 		// get image source object from out param and return top to baseline value for image text
-		Vec2 getImage(const Array<GlyphID> &glyphs, float fontSize,
-				const Rect *bound, const Array<Vec2> *offset, Pixel *imgOut);
+		Vec2  getImage(const Array<GlyphID> &glyphs, float fontSize, const Array<Vec2> *offset, Pixel *imgOut);
 	protected:
 		Typeface(FontStyle fs);
 		void setFontStyle(FontStyle style) { _fontStyle = style; }
@@ -77,8 +76,7 @@ namespace qk {
 		virtual void onGetMetrics(FontMetrics* metrics) const = 0;
 		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
 		virtual bool onGetPath(GlyphID glyph, Path *path) const = 0;
-		virtual Vec2 onGetImage(const Array<GlyphID> &glyphs, float fontSize,
-				const Rect *bound, const Array<Vec2> *offset, Pixel *imgOut) = 0;
+		virtual Vec2 onGetImage(const Array<GlyphID> &glyphs, float fontSize, const Array<Vec2> *offset, Pixel *imgOut) = 0;
 	private:
 		FontMetrics _metrics;
 		Dict<GlyphID, FontGlyphMetrics> _glyphs;

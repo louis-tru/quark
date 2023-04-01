@@ -86,10 +86,10 @@ namespace qk {
 		void add_text_blob(PreTextBlob pre, const Array<GlyphID>& glyphs, const Array<Vec2>& offset, bool is_pre);
 		void solve_visible_region();
 		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
-		inline uint32_t length() const { return _lines.length(); }
-		inline float max_height() const { return _last->end_y; }
-		inline Line& operator[](uint32_t idx) { return _lines[idx]; }
-		inline Line& line(uint32_t idx) { return _lines[idx]; }
+		uint32_t length() const { return _lines.length(); }
+		float max_height() const { return _last->end_y; }
+		Line& operator[](uint32_t idx) { return _lines[idx]; }
+		Line& line(uint32_t idx) { return _lines[idx]; }
 	private:
 		void finish_line(); // finish line
 		void clear();

@@ -599,7 +599,7 @@ namespace qk {
 		glUniform4fv(shader->coord, 1, paint.region.origin.val);
 		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
-	
+
 	void GLCanvas::drawImageMask(const Array<Vec2> &vertex, const Paint &paint) {
 		auto shader = &_backend->_imageMask;
 		auto pixel = paint.image;
@@ -630,7 +630,7 @@ namespace qk {
 		float s_scale = Float::max(_surfaceScale[0], _surfaceScale[1]);
 		float scale = Float::max(_curState->matrix[0], _curState->matrix[4]) * s_scale;
 
-		auto bound = tf->getImage(glyphs, fontSize * scale, nullptr, nullptr, &pix);
+		auto bound = tf->getImage(glyphs, fontSize * scale, nullptr, &pix);
 		auto scale_1 = 1.0 / scale;
 
 		// default use baseline align

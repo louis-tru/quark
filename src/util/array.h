@@ -75,18 +75,18 @@ namespace qk {
 		virtual ~Array() { clear(); }
 
 		/**
-		 * @func size 获取数据占用内存大小
+		 * @method size() Get the memory size occupied by the data
 		 */
 		inline uint32_t size() const { return _length * sizeof(T); }
 
 		/**
-		* @func is_null() Is null data available?
+		 * @method is_null() Is null data available?
 		*/
 		inline bool is_null() const { return _length == 0; }
 
 		/**
-			* @func is_weak() is weak array buffer object
-			*/
+		 * @method is_weak() is weak array buffer object
+		 */
 		inline bool is_weak() const { return _capacity < 0; }
 
 		inline uint32_t length() const { return _length; }
@@ -124,51 +124,52 @@ namespace qk {
 		T&       back() { return _val[_length - 1]; }
 
 		/**
-		* @func write()
-		* @arg src 
-		* @arg to {int=-1} 当前数组开始写入的位置,-1从结尾开始写入
-		* @arg size_src {int=-1} 需要写入项目数量,超过要写入数组的长度自动取写入数组长度,-1写入全部
-		* @arg form_src {int=0} 从要写入src数组的form位置开始读取数据
-		* @ret {uint32_t} 返回写入数据量
+		 * @method write() write data items
+		 * @arg src  source data items
+		 * @arg to {int=-1} The position where the current array starts to be written, -1 starts to write from the end
+		 * @arg size_src {int=-1} The number of items that need to be written, if the length of the array to be written
+		 * 	exceeds the length of the array to be written, the length of the written array is automatically taken, and -1 is written to all
+		 * @arg form_src {int=0} Start reading data from the form position to be written to the src array
+		 * @return {uint32_t} Returns the amount of data written
 		*/
 		template<typename A2>
 		uint32_t write(const Array<T, A2>& src, int to = -1, int size_src = -1, uint32_t form_src = 0);
 		uint32_t write(const T* src, int to, uint32_t size_src);
 
 		/**
-			* @func concat() use right value move mode concat buffer 
-			*/
+		 * @method concat() use right value move mode concat buffer
+		 */
 		template<typename A2>
 		Array& concat(Array<T, A2>&& arr);
 
 		/**
-		 * @slice() weak copy array buffer
+		 * @method slice() weak copy array buffer
 		 */
 		ArrayWeak<T, A> slice(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
 
 		/**
-		 * @func copy() strong copy array buffer
+		 * @method copy() strong copy array buffer
 		 */
 		ArrayBuffer<T, A> copy(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
 
 		/**
-		* @func collapse, discard data ownership
+		 * @method collapse, discard data ownership
 		*/
 		T* collapse();
 
 		/**
-		* @func collapse string, discard data ownership
+		 * @method collapse string, discard data ownership
 		*/
 		ArrayString<T, A> collapse_string();
 
 		/**
-		* @func to vector
+		 * @method to vector
 		*/
 		std::vector<T> vector() const;
 
 		/**
-			* @func join() to string
-			*/
+		 * @method join() to string
+		 */
 		String join(cString& sp) const;
 		
 		/**
@@ -177,12 +178,12 @@ namespace qk {
 		virtual String to_string() const;
 
 		/**
-		* @func clear() clear data
+		 * @method clear() clear data
 		*/
 		void clear();
 		
 		/**
-		* @func realloc reset realloc length
+		 * @method realloc reset realloc length
 		*/
 		void realloc(uint32_t capacity);
 
@@ -190,7 +191,7 @@ namespace qk {
 		 *
 		 * Expand the length, call the default constructor, can only increase, can not reduce
 		 *
-		 * @func extend()
+		 * @method extend()
 		 */
 		void extend(uint32_t length, uint32_t capacity = 0);
 
@@ -198,31 +199,31 @@ namespace qk {
 		 *
 		 * reverse array list
 		 *
-		 * @func reverse()
+		 * @method reverse()
 		 */
 		Array& reverse();
 
 		/**
-		 * @func reduce()
+		 * @method reduce()
 		 * @line https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
 		*/
 		template<typename S, typename C = void>
 		S reduce(void (*cb)(S& total, const T& item, uint32_t i, C* ctx), S initialValue, C* ctx = nullptr) const;
 
 	protected:
-		// constructors
+		/** @constructors */
 		Array(uint32_t length, int32_t capacity, T* data); // greedy constructors
 		Array(uint32_t length, uint32_t capacity); // new array buffer from length
 
 		/**
-			* @func concat_() concat multiple array buffer
-			*/
+		 * @method concat_() concat multiple array buffer
+		 */
 		Array& concat_(T* src, uint32_t src_length);
 
 		/**
-		* @func realloc auro realloc
-		* @arg realloc_ {uint32_t}
-		*/
+		 * @method release realloc auro realloc
+		 * @arg realloc_ {uint32_t}
+		 */
 		void realloc_(uint32_t capacity);
 
 		struct Sham { T _item; }; // Used to call data destructors
@@ -251,7 +252,7 @@ namespace qk {
 		ArrayBuffer& operator=(const ArrayBuffer& arr) = delete;
 
 		/**
-		 * @func from() greedy new Array from ...
+		 * @method from() greedy new Array from ...
 		 */
 		static inline ArrayBuffer from(T* data, uint32_t length, uint32_t capacity = 0) {
 			return ArrayBuffer<T, A>(length, Qk_MAX(capacity, length), data);
@@ -408,7 +409,7 @@ namespace qk {
 		if (_length > j) {
 			do {
 				_length--;
-				reinterpret_cast<Sham*>(_val + _length)->~Sham(); // 释放
+				reinterpret_cast<Sham*>(_val + _length)->~Sham(); // release
 			} while (_length > j);
 			realloc_(_length);
 		}
@@ -427,9 +428,6 @@ namespace qk {
 		return 0;
 	}
 
-	/**
-	* @func write
-	*/
 	template<typename T, typename A>
 	uint32_t Array<T, A>::write(const T* src, int to, uint32_t size_src) {
 		if (size_src) {
@@ -442,7 +440,7 @@ namespace qk {
 			
 			for (int i = to; i < end; i++) {
 				if (i < old_len) {
-					reinterpret_cast<Sham*>(to_)->~Sham(); // 先释放原对像
+					reinterpret_cast<Sham*>(to_)->~Sham(); // release old object first
 				}
 				new(to_) T(*src);
 				to_++; src++;
@@ -459,7 +457,7 @@ namespace qk {
 			T* end = _val + _length;
 			T* to = end - src_length;
 			while (to < end) {
-				new(to) T(std::move(*src)); // 调用移动构造
+				new(to) T(std::move(*src)); // call move constructor
 				src++; to++;
 			}
 		}
@@ -529,7 +527,7 @@ namespace qk {
 				T* i = _val;
 				T* end = i + _length;
 				while (i < end)
-					reinterpret_cast<Sham*>(i++)->~Sham(); // 释放
+					reinterpret_cast<Sham*>(i++)->~Sham(); // release
 				A::free(_val); /* free */
 				_capacity = 0;
 			}
@@ -545,7 +543,7 @@ namespace qk {
 			T* i = _val + capacity;
 			T* end = i + _length;
 			while (i < end)
-				reinterpret_cast<Sham*>(i++)->~Sham(); // 释放
+				reinterpret_cast<Sham*>(i++)->~Sham(); // release
 			_length = capacity;
 		}
 		realloc_(capacity);
@@ -556,12 +554,7 @@ namespace qk {
 	void Array<T, A>::extend(uint32_t length, uint32_t capacity) {
 		if (length > _length) {
 			realloc_(Qk_MAX(length, capacity));
-			T* begin = _val + _length;
-			T* end = _val + length;
-			while (begin < end) {
-				new(begin) T; // 调用默认构造
-				begin++;
-			}
+			new(_val + _length) T[length - _length];
 			_length = length;
 		}
 	}

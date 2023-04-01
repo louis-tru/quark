@@ -658,7 +658,7 @@ void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) const 
 }
 
 Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize,
-		const qk::Rect *bound, const Array<Vec2> *offset, Pixel *imgOut)
+		const Array<Vec2> *offset, Pixel *imgOut)
 {
 	if (!fRGBSpace) {
 		//It doesn't appear to matter what color space is specified.
@@ -673,6 +673,7 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize,
 	const CGGlyph* cgGlyph = (const CGGlyph*) *glyphs;
 	
 	Array<CGPoint> drawPoints(glyphs.length());
+	Array<CGRect>  cgBounds(glyphs.length());
 	Array<CGSize>  cgAdvance;
 
 	if (!offset) {
@@ -680,15 +681,9 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize,
 		CTFontGetAdvancesForGlyphs(
 			fontRef, kCTFontOrientationHorizontal, cgGlyph, *cgAdvance, glyphs.length());
 	}
-	// Array<CGRect>  cgBounds(glyphs.length());
-	CGRect cgBound = bound ?
-		CGRectMake(
-			bound->origin.x(), -bound->origin.y(),
-			bound->size.x(), bound->size.y()
-		) :
-		CTFontGetBoundingRectsForGlyphs(
-			fontRef, kCTFontOrientationHorizontal, cgGlyph, nullptr, glyphs.length()
-		);
+	CGRect cgBound = CTFontGetBoundingRectsForGlyphs(
+		fontRef, kCTFontOrientationHorizontal, cgGlyph, *cgBounds, glyphs.length()
+	);
 
 	float top = cgBound.size.height + cgBound.origin.y;
 	float width_f = 0;// AHgj
@@ -709,9 +704,9 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize,
 		//	cgBounds[i].size.width, cgBounds[i].size.height, cgAdvance[i].width);
 	}
 
-	uint32_t width = ceilf(width_f /*+ cgBounds.back().origin.x*/);
+	uint32_t width = ceilf(width_f + cgBounds.back().origin.x/* ITALIC compensate */);
 	uint32_t height = ceilf(cgBound.size.height);
-	
+
 	//width = powf(2, ceil(log2(width)));
 	//height = powf(2, ceil(log2(height)));
 
@@ -753,7 +748,7 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize,
 	/*auto data = Buffer::alloc(width * height);
 	auto src = image.val() + 3;
 	auto dst = data.val(), end = dst + data.length();
-	
+
 	while (dst < end) {
 		*dst = *src;
 		dst++; src += 4;

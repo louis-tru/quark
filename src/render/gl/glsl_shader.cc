@@ -237,7 +237,7 @@ namespace qk {
 			uniform       sampler2D image;\
 			uniform lowp  vec4      color;\
 			void main() {\
-				color_o = color * vec4(1.0,1.0,1.0,texture(image, coord_f).a + 0.1);\
+				color_o = color * vec4(1.0,1.0,1.0,texture(image, coord_f).a);\
 			}\
 		",
 		{}, "opacity,coord,image,color", &opacity);
