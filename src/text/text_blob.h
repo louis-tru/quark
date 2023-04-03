@@ -32,10 +32,11 @@
 #ifndef __quark_textblob__
 #define __quark_textblob__
 
-#include "../render/font/familys.h"
+#include "../render/font/font.h"
 #include "../render/source.h"
 #include "./text_lines.h"
 #include "./text_opts.h"
+#include "../render/canvas.h"
 
 namespace qk {
 
@@ -48,35 +49,13 @@ namespace qk {
 	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
 
 	struct TextBlob {
-		/**
-		 * @enum SizeLevel font size level
-		 */
-		enum SizeLevel {
-			LEVEL_0,        //  0 Invalid
-			LEVEL_10,       //  0-10
-			LEVEL_12,       // 10-12
-			LEVEL_14,       // 12-14
-			LEVEL_16,       // 14-16
-			LEVEL_18,       // 16-18
-			LEVEL_20,       // 18-20
-			LEVEL_26,       // 20-26
-			LEVEL_32,       // 26-32
-			LEVEL_64,       // 32-64
-			LEVEL_128,      // 64-128
-			LEVEL_256,      // 128-256
-			LEVEL_PATH,     // >256
-		};
-		Sp<Typeface>    typeface;
-		Array<GlyphID>  glyphs;
-		Array<Vec2>     offset;
+		Canvas::TextBlob core; // glyphs + cache
+		// -------------------------------------------
 		float           ascent; // 当前blob基线距离文本顶部
 		float           height; // 当前blob高度
 		float           origin; // x-axis offset origin start
 		uint32_t        line;   // line number
 		uint32_t        index;  // blob index in unichar glyphs
-		Sp<ImageSource> image;  // image cache
-		Sp<Path>        path;   // path cache
-		SizeLevel       level;
 	};
 
 	class Qk_EXPORT TextBlobBuilder {

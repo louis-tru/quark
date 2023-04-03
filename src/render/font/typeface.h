@@ -57,12 +57,14 @@ namespace qk {
 		void unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const;
 		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
 		GlyphID unicharToGlyph(Unichar unichar) const;
-		const FontGlyphMetrics& getGlyphMetrics(GlyphID glyph); // returns the font glyph metrics in 64 px
+		// non const methods
 		const Path& getPath(GlyphID glyph); // returns the path of glyph in 64 px
+		const FontGlyphMetrics& getGlyphMetrics(GlyphID glyph); // returns the font glyph metrics in 64 px
 		float getMetrics(FontMetrics *metrics, float fontSize);
 		float getMetrics(FontMetricsBase *metrics, float fontSize);
 		// get image source object from out param and return top to baseline value for image text
-		Vec2  getImage(const Array<GlyphID> &glyphs, float fontSize, const Array<Vec2> *offset, Pixel *imgOut);
+		Vec2  getImage(const Array<GlyphID> &glyphs,
+			float fontSize, const Array<Vec2> *offset, Sp<ImageSource> *imgOut);
 	protected:
 		Typeface(FontStyle fs);
 		void setFontStyle(FontStyle style) { _fontStyle = style; }
@@ -76,9 +78,10 @@ namespace qk {
 		virtual void onGetMetrics(FontMetrics* metrics) const = 0;
 		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
 		virtual bool onGetPath(GlyphID glyph, Path *path) const = 0;
-		virtual Vec2 onGetImage(const Array<GlyphID> &glyphs, float fontSize, const Array<Vec2> *offset, Pixel *imgOut) = 0;
+		virtual Vec2 onGetImage(const Array<GlyphID> &glyphs,
+			float fontSize, const Array<Vec2> *offset, Sp<ImageSource> *imgOut) = 0;
 	private:
-		FontMetrics _metrics;
+		FontMetrics  _metrics;
 		Dict<GlyphID, FontGlyphMetrics> _glyphs;
 		Dict<GlyphID, Path> _paths;
 	};

@@ -284,6 +284,7 @@ namespace qk {
 		, _curState(nullptr)
 		, _frame_buffer(0), _msaa_frame_buffer(0)
 		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0),_aa_tex(0)
+		, _surfaceScale(1,1), _surfaceScaleF1(1), _transfromScale(1), _Scale(1)
 	{
 		glGenBuffers(1, &_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
@@ -397,6 +398,10 @@ namespace qk {
 				}
 			}
 		}
+
+		_surfaceScaleF1 = Float::max(_surfaceScale[0], _surfaceScale[1]);
+		_transfromScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
+		_Scale = _transfromScale * _surfaceScaleF1;
 	}
 
 	void GLCanvas::setMatrixBuffer(const Mat& mat) {
@@ -408,6 +413,9 @@ namespace qk {
 		};
 		//glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, mat4);
+
+		_transfromScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
+		_Scale = _transfromScale * _surfaceScaleF1;
 	}
 
 	void GLCanvas::setMatrix(const Mat& mat) {
@@ -622,19 +630,41 @@ namespace qk {
 		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 	}
 
-	float GLCanvas::drawGlyphs(const Array<GlyphID> &glyphs, Vec2 origin,
-			float fontSize, Typeface *tf, const Paint &paint)
+	float GLCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint)
 	{
-		Paint p(paint);
-		Pixel pix;
-		float s_scale = Float::max(_surfaceScale[0], _surfaceScale[1]);
-		float scale = Float::max(_curState->matrix[0], _curState->matrix[4]) * s_scale;
+		Sp<ImageSource> img;
+		auto tf = glyphs.typeface();
+		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _Scale, offset, &img);
+		auto scale_1 = drawTextImage(*img, bound.y(), _Scale, origin, paint);
+		return scale_1 * bound.x();
+	}
 
-		auto bound = tf->getImage(glyphs, fontSize * scale, nullptr, &pix);
+	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
+		fontSize *= _transfromScale;
+		auto levelSize = get_level_font_size(fontSize);
+		auto levelScale = fontSize / levelSize;
+		auto imageFontSize = levelSize * _surfaceScaleF1;
+
+		if (imageFontSize == 0.0)
+			return;
+
+		if (blob->imageFontSize != imageFontSize || !blob->image) {
+			auto tf = blob->typeface;
+			auto offset = blob->offset.length() == blob->glyphs.length() ? &blob->offset: NULL;
+			blob->imageBound = tf->getImage(blob->glyphs,imageFontSize, offset, &blob->image);
+			blob->image->mark_as_texture_unsafe(_backend);
+		}
+
+		drawTextImage(*blob->image, blob->imageBound.y(), _Scale * levelScale, origin, paint);
+	}
+
+	float GLCanvas::drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {
+		auto &pix = textImg->pixels().front();
 		auto scale_1 = 1.0 / scale;
+		Paint p(paint);
 
 		// default use baseline align
-		Vec2 dst_start(origin.x(), origin.y() - bound.y() * scale_1);
+		Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
 		Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
 
 		p.setBitmapPixel(&pix, {dst_start, dst_size});
@@ -643,31 +673,13 @@ namespace qk {
 		Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
 
 		Array<Vec2> vertex{
-			dst_start, v1, v2,
-			v2, dst_start + dst_size, v1,
+			dst_start, v1,                   v2,
+			v2,        dst_start + dst_size, v1,
 		};
 
 		drawImageMask(vertex, p);
 
-		return scale_1 * bound.x();
-	}
-
-	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
-		// TODO ...
-		//		struct {
-		//			Sp<Typeface>    typeface;
-		//			Array<GlyphID>  glyphs;
-		//			Array<Vec2>     offset;
-		//			float           ascent; // 当前blob基线距离文本顶部
-		//			float           height; // 当前blob高度
-		//			float           origin; // x-axis offset origin start
-		//			uint32_t        line;   // line number
-		//			uint32_t        index;  // blob index in unichar glyphs
-		//			Sp<ImageSource> image;  // image cache
-		//			Sp<Path>        path;   // path cache
-		//			SizeLevel       level;
-		//		};
-		
+		return scale_1;
 	}
 
 	void GLCanvas::setBlendMode(BlendMode blendMode) {

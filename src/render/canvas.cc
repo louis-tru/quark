@@ -32,6 +32,43 @@
 
 namespace qk {
 
+	float get_level_font_size(float fontSize) {
+		if (fontSize <= 0) {
+			 return 0;
+		}
+		if (fontSize <= 10) {
+			return 10;
+		}
+		if (fontSize <= 12) {
+			return 12;
+		}
+		if (fontSize <= 14) {
+			return 14;
+		}
+		if (fontSize <= 16) {
+			return 16;
+		}
+		if (fontSize <= 18) {
+			return 18;
+		}
+		if (fontSize <= 20) {
+			return 20;
+		}
+		if (fontSize <= 26) {
+			return 26;
+		}
+		if (fontSize <= 32) {
+			return 32;
+		}
+		if (fontSize <= 46) {
+			return 64;
+		}
+		if (fontSize <= 128) {
+			return 128;
+		}
+		return 256;
+	}
+
 	void Canvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
 		clipPath(Path::Rect(rect), op, antiAlias);
 	}

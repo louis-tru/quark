@@ -339,14 +339,14 @@ namespace qk {
 						auto cell = &_blob[j];
 						if ( cell->line == _cursor_linenum ) {
 							if ( int(cell->index) <= cursor ) {
-								float x = cell->origin + cell->offset[Qk_MIN(cursor - cell->index, cell->glyphs.length())].x();
+								float x = cell->origin + cell->core.offset[Qk_MIN(cursor - cell->index, cell->core.glyphs.length())].x();
 								x += _lines->line(cell->line).origin;
 								point.set_x(pos.x() + offset.x() + x);
 								break;
 							}
 						} else {
 							cell = &_blob[j+1];
-							float x = cell->origin + cell->offset.front().x();
+							float x = cell->origin + cell->core.offset.front().x();
 							x += _lines->line(cell->line).origin;
 							point.set_x(pos.x() + offset.x() + x);
 							break;
@@ -420,16 +420,16 @@ namespace qk {
 				if ( x <= offset_start ) { // 行开始位置
 					_cursor = _blob[cell_begin].index;
 				} else if ( x >= offset_start + line->width ) { // 行结束位置
-					_cursor = _blob[cell_end].index + _blob[cell_end].glyphs.length(); // end_action
+					_cursor = _blob[cell_end].index + _blob[cell_end].core.glyphs.length(); // end_action
 				} else {
 					// 通过在cells中查询光标位置
 					for ( int i = cell_begin; i <= cell_end; i++ ) {
 						auto& cell = _blob[i];
 						float offset_s = offset_start + cell.origin;
-						float offset0 = offset_s + cell.offset.front().x();
+						float offset0 = offset_s + cell.core.offset.front().x();
 
-						for ( int j = 1, l = cell.offset.length(); j < l; j++ ) {
-							float offset = offset_s + cell.offset[j].x();
+						for ( int j = 1, l = cell.core.offset.length(); j < l; j++ ) {
+							float offset = offset_s + cell.core.offset[j].x();
 							
 							if ( (offset0 <= x && x <= offset) || (offset <= x && x <= offset0) ) {
 								if ( fabs(x - offset0) < fabs(x - offset) ) {
@@ -744,7 +744,7 @@ namespace qk {
 			for ( int i = 0; i < _blob.length(); i++ ) {
 				auto &it  = _blob[i];
 				auto index = it.index;
-				auto end = index + it.glyphs.length();
+				auto end = index + it.core.glyphs.length();
 				if (_cursor >= index && _cursor <= end) {
 					blob = &it; break;
 				} else if (i + 1 < _blob.length()) {
@@ -762,10 +762,10 @@ namespace qk {
 			if ( blob && _text_value_u4.length() ) { // set cursor pos
 				auto idx = _cursor - blob->index;
 				float offset = 0;
-				if (idx < blob->offset.length()) {
-					offset = blob->offset[idx].x();
-				} else if (blob->offset.length()) {
-					offset = blob->offset.back().x();
+				if (idx < blob->core.offset.length()) {
+					offset = blob->core.offset[idx].x();
+				} else if (blob->core.offset.length()) {
+					offset = blob->core.offset.back().x();
 				}
 				_cursor_linenum = blob->line;
 				line = &_lines->line(_cursor_linenum);

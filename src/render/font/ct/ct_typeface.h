@@ -70,7 +70,7 @@ protected:
 	void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) const override;
 	bool onGetPath(GlyphID glyph, Path *path) const override;
 	Vec2 onGetImage(const Array<GlyphID>& glyphs, float fontSize,
-			const Array<Vec2> *offset, Pixel *imgOut) override;
+		const Array<Vec2> *offset, Sp<ImageSource> *imgOut) override;
 private:
 	QkUniqueCFRef<CTFontRef> ctFont(float fontSize) const;
 	QkUniqueCFRef<CGColorSpaceRef> fRGBSpace;

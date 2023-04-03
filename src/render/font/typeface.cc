@@ -93,6 +93,16 @@ namespace qk {
 		return id;
 	}
 
+	const Path& Typeface::getPath(GlyphID glyph) {
+		auto it = _paths.find(glyph);
+		if (it != _paths.end())
+			return it->value;
+		Path path;
+		onGetPath(glyph, &path);
+		_paths.set(glyph, path.normalizedPath());
+		return _paths[glyph];
+	}
+
 	const FontGlyphMetrics& Typeface::getGlyphMetrics(GlyphID glyph) {
 		auto it = _glyphs.find(glyph);
 		if (it != _glyphs.end()) {
@@ -102,16 +112,6 @@ namespace qk {
 		onGetGlyphMetrics(glyph, &fontGlyph);
 		_glyphs.set(glyph, fontGlyph);
 		return _glyphs[glyph];
-	}
-
-	const Path& Typeface::getPath(GlyphID glyph) {
-		auto it = _paths.find(glyph);
-		if (it != _paths.end())
-			return it->value;
-		Path path;
-		onGetPath(glyph, &path);
-		_paths.set(glyph, path.normalizedPath());
-		return _paths[glyph];
 	}
 
 	float Typeface::getMetrics(FontMetrics* metrics, float fontSize) {
@@ -160,7 +160,7 @@ namespace qk {
 	}
 
 	Vec2 Typeface::getImage(const Array<GlyphID>& glyphs, float fontSize,
-			const Array<Vec2> *offset, Pixel *imgOut)
+			const Array<Vec2> *offset, Sp<ImageSource> *imgOut)
 	{
 		return onGetImage(glyphs, fontSize, offset, imgOut);
 	}

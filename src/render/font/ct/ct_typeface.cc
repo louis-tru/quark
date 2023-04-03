@@ -657,8 +657,8 @@ void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) const 
 	Qk_DEBUG("#Typeface_Mac::onGetGlyphMetrics,%f", cgBounds.origin.x);
 }
 
-Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize,
-		const Array<Vec2> *offset, Pixel *imgOut)
+Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
+	float fontSize, const Array<Vec2> *offset, Sp<ImageSource> *imgOut)
 {
 	if (!fRGBSpace) {
 		//It doesn't appear to matter what color space is specified.
@@ -670,7 +670,7 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize,
 	auto font = ctFont(fontSize);
 	CTFontRef fontRef = font.get();
 
-	const CGGlyph* cgGlyph = (const CGGlyph*) *glyphs;
+	const CGGlyph* cgGlyph = (const CGGlyph*) glyphs.val();
 	
 	Array<CGPoint> drawPoints(glyphs.length());
 	Array<CGRect>  cgBounds(glyphs.length());
@@ -754,7 +754,10 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs, float fontSize,
 		dst++; src += 4;
 	}*/
 
-	*imgOut = Pixel(PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul), image);
+	Array<Pixel> pixs;
+	pixs.push(Pixel(PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul), image));
+
+	*imgOut = new ImageSource(std::move(pixs));
 
 	//auto data = img_tga_encode(*imgOut);
 	//auto path = fs_documents("test.tga");

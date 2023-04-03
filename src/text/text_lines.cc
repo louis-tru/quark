@@ -32,7 +32,7 @@
 #include "../pre_render.h"
 #include "../app.h"
 #include "../layout/view.h"
-#include "../render/font/familys.h"
+#include "../render/font/font.h"
 #include "./text_lines.h"
 #include "./text_opts.h"
 #include "./text_blob.h"
@@ -275,7 +275,7 @@ namespace qk {
 
 		for (int i = 0, len = blob->length(); i < len; i++) {
 			auto &item = (*blob)[i];
-			if (item.glyphs.length() == 0) continue;
+			if (item.core.glyphs.length() == 0) continue;
 			auto &line = this->line(item.line);
 			if (line.visible_region) {
 				is_break = true;
@@ -284,7 +284,7 @@ namespace qk {
 				if (is_break) break;
 			}
 			Qk_DEBUG("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
-				item.origin, item.line, item.glyphs.length(), line.visible_region);
+				item.origin, item.line, item.core.glyphs.length(), line.visible_region);
 		}
 	}
 
@@ -312,7 +312,7 @@ namespace qk {
 			auto origin = _last->width;
 
 			_blob->push({
-				tf, Array<GlyphID>(), Array<Vec2>(),
+				{tf},
 				ascent, height, _last->width, _last->line, index_of_unichar
 			});
 		}
@@ -326,12 +326,12 @@ namespace qk {
 		if (pre.blob->length()) {
 			auto& last = pre.blob->back();
 			// merge glyphs
-			if (last.line == line && last.offset.back().x() == offset.front().x()) {
-				last.glyphs.write(glyphs);
+			if (last.line == line && last.core.offset.back().x() == offset.front().x()) {
+				last.core.glyphs.write(glyphs);
 				// last.offset.write(offset, -1, -1, 1);
 				for (int i = 1; i < offset.length(); i++)
-					last.offset.push(offset[i]);
-				_last->width = last.origin + last.offset.back().x();
+					last.core.offset.push(offset[i]);
+				_last->width = last.origin + last.core.offset.back().x();
 				return;
 			}
 		}
@@ -342,7 +342,7 @@ namespace qk {
 		auto origin = _last->width - offset[0].x();
 
 		pre.blob->push({
-			pre.typeface, glyphs.copy(), offset,
+			{pre.typeface, glyphs.copy(), offset},
 			ascent, height, origin, line, pre.index_of_unichar
 		});
 		_last->width = origin + offset.back().x();

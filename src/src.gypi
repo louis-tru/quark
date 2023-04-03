@@ -74,8 +74,6 @@
 			'render/codec/tga.cc',
 			'render/codec/gif.cc',
 			'render/codec/pvrtc.cc',
-			'render/font/familys.h',
-			'render/font/familys.cc',
 			'render/font/font.h',
 			'render/font/font.cc',
 			'render/font/metrics.h',

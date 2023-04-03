@@ -36,10 +36,11 @@
 #include "./path.h"
 #include "./pixel.h"
 #include "./paint.h"
-#include "./font/metrics.h"
-#include "../text/text_blob.h"
+#include "./font/font.h"
 
 namespace qk {
+
+	Qk_EXPORT float get_level_font_size(float fontSize);
 
 	/**
 	 * @class Canvas base abstract type, define all draw apis
@@ -50,6 +51,16 @@ namespace qk {
 		enum ClipOp {
 			kDifference_ClipOp,
 			kIntersect_ClipOp,
+		};
+		struct TextBlob {
+			Sp<Typeface>    typeface;
+			Array<GlyphID>  glyphs;
+			Array<Vec2>     offset;
+			// ------------ image cache items ------------
+			Sp<ImageSource> image;  // image cache
+			float           imageFontSize; // current image cache font size
+			Vec2            imageBound; // image bound cache
+			// -------------------------------------------
 		};
 		virtual int  save() = 0;
 		virtual void restore(uint32_t count = 1) = 0;
@@ -68,8 +79,8 @@ namespace qk {
 		virtual void drawPath(const Path& path, const Paint& paint) = 0;
 		virtual void drawOval(const Rect& oval, const Paint& paint);
 		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
-		virtual float drawGlyphs(const Array<GlyphID>& glyphs, Vec2 origin,
-				float fontSize, Typeface* tf, const Paint& paint) = 0;
+		virtual float drawGlyphs(const FontGlyphs &glyphs,
+			Vec2 origin, const Array<Vec2> *offset, const Paint& paint) = 0;
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float fontSize, const Paint& paint) = 0;
 	protected:
 		Canvas() = default;

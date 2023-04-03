@@ -55,14 +55,17 @@ namespace qk {
 		virtual void clearColor(const Color4f& color) override;
 		virtual void drawColor(const Color4f& color, BlendMode mode) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
-		virtual float drawGlyphs(const Array<GlyphID>& glyphs, Vec2 origin,
-				float fontSize, Typeface *typeface, const Paint &paint) override;
-		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
+		virtual float drawGlyphs(const FontGlyphs &glyphs,
+			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
+		virtual void drawTextBlob(TextBlob *blob, Vec2 origin,
+			float fontSize, const Paint &paint) override;
 	protected:
 		void drawColor(const Array<Vec2>& vertex, const Paint& paint);
 		void drawGradient(const Array<Vec2>& vertex, const Paint& paint);
 		void drawImage(const Array<Vec2>& vertex, const Paint& paint);
 		void drawImageMask(const Array<Vec2>& vertex, const Paint& paint);
+		float drawTextImage(ImageSource *textImg,
+			float imgTop, float scale, Vec2 origin, const Paint &paint);
 		void setBlendMode(BlendMode blendMode);
 		void setMatrixBuffer(const Mat& mat);
 		void setRootMatrixBuffer(Mat4& root);
@@ -91,6 +94,9 @@ namespace qk {
 					 _stencil_buffer,_depth_buffer;
 		GLuint _aa_tex;
 		Vec2   _surfaceScale;
+		float  _surfaceScaleF1
+			, _transfromScale
+			, _Scale; // surface scale * transfrom scale
 	};
 
 }

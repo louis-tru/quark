@@ -28,12 +28,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../util/loop.h"
-#include "./render.h"
-#include "../app.h"
 #include <math.h>
-#include "./gl/gl_render.h"
+#include "../util/loop.h"
+#include "../util/codec.h"
+#include "../app.h"
 #include "../display.h"
+#include "./render.h"
+#include "./gl/gl_render.h"
+
+// layout
+#include "../layout/root.h"
 
 namespace qk {
 
@@ -169,19 +173,18 @@ namespace qk {
 		_canvas->drawPath(Path::Arc({Vec2(450, 300), Vec2(100, 200)}, 3, 4, 1), paint);
 
 		_canvas->restore(2);
-		
+
 		paint.color = Color4f(0,0,0);
-		
-		auto pool = shared_app()->font_pool();
+
 		auto stype = FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::NORMAL);
-		auto fgs = pool->getFFID()->makeFontGlyphs({
-			65,72,103,75,114,26970,23398,25991,112,106,65,72,103,
-		}, stype, 64);
+		auto pool = root->pre_render()->host()->font_pool();
+		auto unicode = codec_decode_to_uint32(kUTF8_Encoding, "A 你好 HgKr向日葵pjAH");
+		auto fgs = pool->getFFID()->makeFontGlyphs(unicode, stype, 64);
 
 		Vec2 offset(0,60);
 
 		for (auto &fg: fgs) {
-			offset[0] += ceilf(_canvas->drawGlyphs(fg.glyphs(), offset, 32, fg.typeface(), paint));
+			offset[0] += ceilf(_canvas->drawGlyphs(fg, offset, NULL, paint));
 		}
 	}
 

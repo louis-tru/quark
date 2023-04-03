@@ -37,7 +37,7 @@
 namespace qk {
 
 	/**
-	* @class Handle
+	 * @class Handle
 	*/
 	template<class T, class T2 = typename T::Traits> class Handle {
 		//! Copy constructor is not permitted.
@@ -82,14 +82,14 @@ namespace qk {
 		inline const T* get() const { return _data; }
 
 		/**
-		 * @func is_null() Is null data available ?
+		 * @method is_null() Is null data available ?
 		 */
 		inline bool is_null() const {
 			return _data == nullptr;
 		}
 		
 		/**
-		 * @func collapse() Unbinding data, loss of data management, and data removal
+		 * @method collapse() Unbinding data, loss of data management, and data removal
 		 *
 		 */
 		inline T* collapse() {
@@ -114,7 +114,7 @@ namespace qk {
 	template <class T, class T2 = typename T::Traits> using Sp = Handle<T, T2>;
 
 	/**
-	* @class CPointer
+	 * @class CPointer
 	*/
 	template<typename T> class CPointer {
 	public:
