@@ -53,26 +53,25 @@ namespace qk {
 #define Qk_GL_Version "300 es"
 #endif
 
-	static const String vertexHeader(String::format("\n\
-		#version %s\n\
+	static const String vertexHeader("#version " Qk_GL_Version
+	"\n\
 		#define matrix root_matrix * view_matrix\n\
 		layout (std140) uniform ubo {\
 			/*mediump*/ mat4  root_matrix;\
 			/*mediump*/ mat4  view_matrix;\
 		};\
 		in      vec2  vertex_in;\
-	", Qk_GL_Version));
+	");
 
-	static const String fragmentHeader(String::format("\
-		#version %s\n\
+	static const String fragmentHeader("#version " Qk_GL_Version
+	"\n\
 		#define matrix root_matrix * view_matrix\n\
 		/*layout (std140) uniform ubo {\
 			mediump mat4 root_matrix;\
 			mediump mat4 view_matrix;\
 		};*/\
 		layout(location=0) out lowp vec4 color_o;\
-	", Qk_GL_Version));
-	
+	");
 
 	struct ShaderAttr {
 		cChar *name;

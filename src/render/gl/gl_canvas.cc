@@ -284,7 +284,7 @@ namespace qk {
 		, _curState(nullptr)
 		, _frame_buffer(0), _msaa_frame_buffer(0)
 		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0),_aa_tex(0)
-		, _surfaceScale(1,1), _surfaceScaleF1(1), _transfromScale(1), _Scale(1)
+		, _surfaceScale(1,1), _surfaceScalef1(1), _transfromScale(1), _Scale(1)
 	{
 		glGenBuffers(1, &_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
@@ -399,9 +399,9 @@ namespace qk {
 			}
 		}
 
-		_surfaceScaleF1 = Float::max(_surfaceScale[0], _surfaceScale[1]);
+		_surfaceScalef1 = Float::max(_surfaceScale[0], _surfaceScale[1]);
 		_transfromScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
-		_Scale = _transfromScale * _surfaceScaleF1;
+		_Scale = _transfromScale * _surfaceScalef1;
 	}
 
 	void GLCanvas::setMatrixBuffer(const Mat& mat) {
@@ -415,7 +415,7 @@ namespace qk {
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, mat4);
 
 		_transfromScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
-		_Scale = _transfromScale * _surfaceScaleF1;
+		_Scale = _transfromScale * _surfaceScalef1;
 	}
 
 	void GLCanvas::setMatrix(const Mat& mat) {
@@ -520,15 +520,42 @@ namespace qk {
 		}
 	}
 
+	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
+		if (_blendMode != paint.blendMode) {
+			setBlendMode(paint.blendMode); // switch blend mode
+		}
+
+		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa;
+
+		Vec2 v1(rect.origin.x() + rect.size.x(), rect.origin.y());
+		Vec2 v2(rect.origin.x(), rect.origin.y() + rect.size.y());
+
+		Array<Vec2> vertex{
+			rect.origin, v1,                      v2,
+			v2,          rect.origin + rect.size, v1,
+		};
+
+		// fill polygons
+		switch (paint.type) {
+			case Paint::kColor_Type:
+				drawColor(vertex, paint); break;
+			case Paint::kGradient_Type:
+				drawGradient(vertex, paint); break;
+			case Paint::kBitmap_Type:
+				drawImage(vertex, paint); break;
+			case Paint::kBitmapMask_Type:
+				drawImageMask(vertex, paint); break;
+		}
+	}
+
 	void GLCanvas::drawPath(const Path &path, const Paint &paint) {
+		if (_blendMode != paint.blendMode) {
+			setBlendMode(paint.blendMode); // switch blend mode
+		}
 
 		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 
 		Array<Vec2> *vertex;
-
-		if (_blendMode != paint.blendMode) {
-			setBlendMode(paint.blendMode); // switch blend mode
-		}
 
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
@@ -643,7 +670,7 @@ namespace qk {
 		fontSize *= _transfromScale;
 		auto levelSize = get_level_font_size(fontSize);
 		auto levelScale = fontSize / levelSize;
-		auto imageFontSize = levelSize * _surfaceScaleF1;
+		auto imageFontSize = levelSize * _surfaceScalef1;
 
 		if (imageFontSize == 0.0)
 			return;

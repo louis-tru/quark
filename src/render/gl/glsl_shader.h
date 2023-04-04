@@ -49,13 +49,11 @@
 # error "The operating system does not support"
 #endif
 
-#include "../paint.h"
-
 namespace qk {
 
 	struct GLSLShader {
 		GLuint shader, vertex_in, vao, vbo;
-		void use(GLsizeiptr size, const GLvoid* data);
+		void         use(GLsizeiptr size, const GLvoid* data);
 		virtual void build() = 0;
 	};
 
