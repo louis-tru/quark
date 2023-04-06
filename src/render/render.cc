@@ -67,15 +67,30 @@ namespace qk {
 
 	Array<Vec2>& RenderBackend::getPathPolygonsCache(const Path &path) {
 		auto hash = path.hashCode();
-		auto it = _pathPolygonsCache.find(hash);
-		if (it != _pathPolygonsCache.end()) {
+		auto it = _PathPolygonsCache.find(hash);
+		if (it != _PathPolygonsCache.end()) {
 			return it->value;
 		}
-		if (_pathPolygonsCache.length() >= 65535)
-			_pathPolygonsCache.clear();
-		return _pathPolygonsCache.set(hash, path.getPolygons(3));
+		if (_PathPolygonsCache.length() >= 1024)
+			_PathPolygonsCache.clear();
+		return _PathPolygonsCache.set(hash, path.getPolygons(3));
 	}
 
+	Array<Vec2>& RenderBackend::getPathStrokesCache(
+		const Path &path, float width, Paint::Join join, float offset)
+	{
+		auto hash = path.hashCode();
+		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&offset;
+		hash += (hash << 5) + hash_part + join;
+		auto it = _PathStrokesCache.find(hash);
+		if (it != _PathStrokesCache.end()) {
+			return it->value;
+		}
+		if (_PathStrokesCache.length() >= 1024)
+			_PathStrokesCache.clear();
+		return _PathStrokesCache
+			.set(hash, path.strokePath(width, join, offset).getPolygons(3));
+	}
 
 	void RenderBackend::visitView(View* v) {
 		// TODO ...
@@ -136,7 +151,7 @@ namespace qk {
 
 		// -------- clip ------
 		_canvas->save();
-		_canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 0);
+		//_canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 0);
 
 		paint.color = Color4f(1, 0, 1, 0.5);
 
@@ -148,7 +163,7 @@ namespace qk {
 
 		// -------- clip ------
 		_canvas->save();
-		_canvas->clipPath(Path::Circle(size*0.5, 100), Canvas::kDifference_ClipOp, 0);
+		//_canvas->clipPath(Path::Circle(size*0.5, 100), Canvas::kDifference_ClipOp, 0);
 
 
 		paint.color = Color4f(1, 1, 0, 0.5);

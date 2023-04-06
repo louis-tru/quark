@@ -519,33 +519,26 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 	}
+	
+	void test_color_fill_aa_lines(GLSLColor &color, const Path &path, const Paint &paint) {
+		Array<Vec2> vertex = path.getPolygons(3);
 
-	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
-		if (_blendMode != paint.blendMode) {
-			setBlendMode(paint.blendMode); // switch blend mode
-		}
+		color.use(vertex.size(), *vertex);
+		glUniform4fv(color.color, 1, paint.color.val);
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 
-		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa;
+		Array<Vec2> lines = path.getEdgeLines();
 
-		Vec2 v1(rect.origin.x() + rect.size.x(), rect.origin.y());
-		Vec2 v2(rect.origin.x(), rect.origin.y() + rect.size.y());
+		color.use(lines.size(), *lines);
 
-		Array<Vec2> vertex{
-			rect.origin, v1,                      v2,
-			v2,          rect.origin + rect.size, v1,
-		};
+		//glUniform4fv(color.color, 1, Color4f(0,0,0).val);
 
-		// fill polygons
-		switch (paint.type) {
-			case Paint::kColor_Type:
-				drawColor(vertex, paint); break;
-			case Paint::kGradient_Type:
-				drawGradient(vertex, paint); break;
-			case Paint::kBitmap_Type:
-				drawImage(vertex, paint); break;
-			case Paint::kBitmapMask_Type:
-				drawImageMask(vertex, paint); break;
-		}
+#if Qk_OSX
+		glEnable(GL_LINE_SMOOTH);
+#endif
+
+		glLineWidth(10);
+		glDrawArrays(GL_LINES, 0, lines.length());
 	}
 
 	void GLCanvas::drawPath(const Path &path, const Paint &paint) {
@@ -555,31 +548,40 @@ namespace qk {
 
 		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 
-		Array<Vec2> *vertex;
+		Array<Vec2> *fill = NULL, *stroke = NULL;
 
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
-				vertex = &_backend->getPathPolygonsCache(path);
+				fill = &_backend->getPathPolygonsCache(path);
 				break;
 			case Paint::kStroke_Style:
-				vertex = &_backend->getPathPolygonsCache(path.strokePath(paint.width, paint.join));
+				stroke = &_backend->getPathStrokesCache(path, paint.width, paint.join, 0);
 				break;
 			case Paint::kStrokeAndFill_Style:
-				vertex = &_backend->getPathPolygonsCache(path.extendPath(paint.width * 0.5, paint.join));
+				fill = &_backend->getPathPolygonsCache(path);
+				stroke = &_backend->getPathStrokesCache(path, paint.width, paint.join, 0);
 				break;
 		}
 
-		// fill polygons
-		switch (paint.type) {
-			case Paint::kColor_Type:
-				drawColor(*vertex, paint); break;
-			case Paint::kGradient_Type:
-				drawGradient(*vertex, paint); break;
-			case Paint::kBitmap_Type:
-				drawImage(*vertex, paint); break;
-			case Paint::kBitmapMask_Type:
-				drawImageMask(*vertex, paint); break;
+		if (fill) {
+			// fill polygons
+			switch (paint.type) {
+				case Paint::kColor_Type:
+					//drawColor(*fill, paint);
+					test_color_fill_aa_lines(_backend->_color, path, paint);
+					break;
+				case Paint::kGradient_Type:
+					drawGradient(*fill, paint); break;
+				case Paint::kBitmap_Type:
+					drawImage(*fill, paint); break;
+				case Paint::kBitmapMask_Type:
+					drawImageMask(*fill, paint); break;
+			}
+		}
+		
+		if (stroke) {
+			// TODO ...
 		}
 	}
 

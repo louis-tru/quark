@@ -87,15 +87,13 @@ namespace qk {
 		// modification to stroke path
 		Path strokePath(float width, Join join, float offset = 0) const;
 		// Expand or shrink path
-		Path extendPath(float width, Join join) const;
+		Path extendPath(float width) const;
 		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
 		Path normalizedPath(float epsilon = 1.0) const; // normal
 		// matrix transfrom
 		void transfrom(const Mat& matrix);
 		// scale transfrom
 		void scale(Vec2 scale);
-		// clip path
-		Path clip(const Path& path) const;
 		// estimate sample rate
 		static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon = 1.0);
 		static int getCubicBezierSample(const CubicBezier& curve, float epsilon = 1.0);

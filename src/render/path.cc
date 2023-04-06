@@ -260,11 +260,15 @@ namespace qk {
 
 		// Convert to convex contour vertex data
 		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 2, 0) ) {
+
 			const int nelems = tessGetElementCount(tess);
 			const TESSindex* elems = tessGetElements(tess);
 			const Vec2* verts = (const Vec2*)tessGetVertices(tess);
-			for (int i = 0, len = nelems * polySize; i < len; i++) {
-				polygons.push(verts[*elems++]);
+
+			polygons.extend(nelems * polySize);
+
+			for (int i = 0; i < polygons.length(); i++) {
+				polygons[i] = verts[*elems++];
 			}
 		}
 
@@ -338,7 +342,7 @@ namespace qk {
 		return *this;
 	}
 
-	Path Path::extendPath(float width, Join join) const {
+	Path Path::extendPath(float width) const {
 		// TODO ...
 		return *this;
 	}
@@ -348,7 +352,7 @@ namespace qk {
 			return *this; // copy self
 
 		Path line;
-		auto pts = ((const Vec2*)*_pts);
+		auto pts = ((const Vec2*)_pts.val());
 		bool isZeor = true;
 
 		for (auto verb: _verbs) {
@@ -366,9 +370,10 @@ namespace qk {
 				case kVerb_Quad: { // quadratic bezier
 					if (isZeor)
 						line.moveTo(Vec2());
-					QuadraticBezier bezier(line._pts.back(), pts[0], pts[1]);
+					QuadraticBezier bezier(pts[-1], pts[0], pts[1]);
 					pts+=2;
 					int sample = Path::getQuadraticBezierSample(bezier, epsilon) - 1;
+					// |0|1| = sample = 3
 					line._pts.extend(line._pts.length() + sample * 2);
 					bezier.sample_curve_points(sample+1, &line._pts[line._pts.length() - (sample+1) * 2]);
 					line._verbs.extend(line._verbs.length() + sample);
@@ -379,9 +384,10 @@ namespace qk {
 				case kVerb_Cubic: { // cubic bezier
 					if (isZeor)
 						line.moveTo(Vec2());
-					CubicBezier bezier(line._pts.back(), pts[0], pts[1], pts[2]);
+					CubicBezier bezier(pts[-1], pts[0], pts[1], pts[2]);
 					pts+=3;
 					int sample = Path::getCubicBezierSample(bezier, epsilon) - 1;
+					// |0|1| = sample = 3
 					line._pts.extend(line._pts.length() + sample * 2);
 					bezier.sample_curve_points(sample+1, &line._pts[line._pts.length() - (sample+1) * 2]);
 					line._verbs.extend(line._verbs.length() + sample);
@@ -416,13 +422,6 @@ namespace qk {
 			pts[1] *= scale[1];
 			pts += 2;
 		}
-	}
-
-	Path Path::clip(const Path& path) const {
-		// TODO ...
-		auto path0 = path.normalizedPath();
-		auto path1 = normalizedPath();
-		return Path();
 	}
 
 	static float sqrt_sqrtf(int i) {

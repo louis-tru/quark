@@ -60,6 +60,7 @@ namespace qk {
 	* @method compute_bezier_points
 	*/
 	void QuadraticBezier::sample_curve_points(uint32_t sample_count, float* out) const {
+		// |0|1| = sample_count = 3
 		sample_count--;
 		reinterpret_cast<Vec2*>(out)[0] = _p0; out += 2;
 		float dt = 1.0 / sample_count;
@@ -99,6 +100,7 @@ namespace qk {
 	* @method compute_bezier_points
 	*/
 	void CubicBezier::sample_curve_points(uint32_t sample_count, float* out) const {
+		// |0|1| = sample_count = 3
 		sample_count--;
 		reinterpret_cast<Vec2*>(out)[0] = _p0; out += 2;
 		float dt = 1.0 / sample_count;

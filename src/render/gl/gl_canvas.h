@@ -54,7 +54,6 @@ namespace qk {
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
 		virtual void clearColor(const Color4f& color) override;
 		virtual void drawColor(const Color4f& color, BlendMode mode) override;
-		virtual void drawRect(const Rect& rect, const Paint& paint) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;

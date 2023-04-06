@@ -42,18 +42,15 @@ namespace qk {
 
 	template <typename T, int LEN> struct MVec {
 		T val[LEN];
-		inline MVec() {}
-		inline MVec(T value) {
-			for (int i = 0; i < LEN; i++)
-				val[i] = value;
-		}
 		inline T operator[](int index) const { return val[index]; }
 		inline T& operator[](int index) { return val[index]; }
 	};
 
 	template <typename T> struct MVec2: public MVec<T, 2> {
-		inline MVec2(): MVec<T, 2>(0) {}
-		inline MVec2(T f): MVec<T, 2>(f) {}
+		inline MVec2(): MVec2(0) {}
+		inline MVec2(T f) {
+			this->val[0] = f; this->val[1] = f;
+		}
 		inline MVec2(T a, T b) {
 			this->val[0] = a; this->val[1] = b;
 		}
@@ -97,8 +94,10 @@ namespace qk {
 	};
 
 	template <typename T> struct MVec3: public MVec<T, 3> {
-		inline MVec3(): MVec<T, 3>(0) {}
-		inline MVec3(T f): MVec<T, 3>(f) {}
+		inline MVec3(): MVec3(0) {}
+		inline MVec3(T f) {
+			this->val[0] = f; this->val[1] = f; this->val[2] = f;
+		}
 		inline MVec3(T a, T b, T c) {
 			this->val[0] = a; this->val[1] = b; this->val[2] = c;
 		}
@@ -117,8 +116,10 @@ namespace qk {
 	};
 
 	template <typename T> struct MVec4: public MVec<T, 4> {
-		inline MVec4(): MVec<T, 4>(0) {}
-		inline MVec4(T f): MVec<T, 4>(f) {}
+		inline MVec4(): MVec4(0) {}
+		inline MVec4(T f) {
+			this->val[0] = f; this->val[1] = f; this->val[2] = f; this->val[3] = f;
+		}
 		inline MVec4(T a, T b, T c, T d) {
 			this->val[0] = a; this->val[1] = b; this->val[2] = c; this->val[3] = d;
 		}
@@ -166,8 +167,7 @@ namespace qk {
 	template <typename T> struct MColor: public MVec<T, 4> {
 		inline MColor(){}
 		inline MColor(T r, T g, T b, T a) {
-			this->val[0] = r; this->val[1] = g;
-			this->val[2] = b; this->val[3] = a;
+			this->val[0] = r; this->val[1] = g; this->val[2] = b; this->val[3] = a;
 		}
 		inline T r() const { return this->val[0]; }
 		inline T g() const { return this->val[1]; }
