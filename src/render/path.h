@@ -79,11 +79,17 @@ namespace qk {
 		inline uint64_t hashCode() const { return _hash.hash_code(); }
 		// convert func
 		/**
-		 * @brief toPolygons() convert to polygons
-		 * @return {Array<Vec3>} points Vec3 { x, y, weight }[]
+		 * @brief getPolygons() convert to polygons
+		 * @return {Array<Vec2>} points Vec2 { x, y }[]
 		*/
 		Array<Vec2> getPolygons(int polySize = 3, float epsilon = 1.0) const;
+		/**
+		 * @brief getPolygonsAndGirth() convert to polygons and girth
+		 * @return {Array<Vec2>} points Vec2 { x, y, girth, girth offset }[]
+		*/
+		Array<Vec4> getPolygonsAndGirth(int polySize = 3, float epsilon = 1.0) const;
 		Array<Vec2> getEdgeLines(float epsilon = 1.0) const;
+		Array<Vec4> getEdgeLinesAndGirth(float epsilon = 1.0) const;
 		// modification to stroke path
 		Path strokePath(float width, Join join, float offset = 0) const;
 		// Expand or shrink path

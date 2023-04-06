@@ -336,6 +336,14 @@ namespace qk {
 
 		return edges;
 	}
+	
+	Array<Vec4> Path::getPolygonsAndGirth(int polySize, float epsilon) const {
+		// TODO ...
+	}
+	
+	Array<Vec4> Path::getEdgeLinesAndGirth(float epsilon) const {
+		// TODO ...
+	}
 
 	Path Path::strokePath(float width, Join join, float offset) const {
 		// TODO ...
@@ -429,8 +437,9 @@ namespace qk {
 		if (!num.length()) {
 			num.extend(5001);
 			uint64_t t = qk::time_monotonic();
-			for (int i = 0; i < 5001; i++)
+			for (int i = 0; i < 5001; i++) {
 				num[i] = sqrtf(sqrtf(float(i)));
+			}
 			Qk_DEBUG("sqrt_sqrtf, %ld", qk::time_monotonic() - t);
 		}
 		if (i > 5000) {

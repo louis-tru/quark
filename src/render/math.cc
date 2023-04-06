@@ -39,6 +39,38 @@
 namespace qk {
 
 	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Vec2);
+	
+	float math_invSqrt(float x) {
+#if Qk_Soft_Sqrt
+		float xhalf = 0.5 * x;
+		int i = *(int*)&x; // get bits for floating value
+		i = 0x5f3759df - (i >> 1); // gives initial guess
+		//i = 0x5f375a86 - (i >> 1); // gives initial guess
+		x = *(float*)&i; // convert bits back to float
+		x = x * (1.5 - xhalf * x * x); // Newton step
+		return x;
+#else
+		return 1.0/sqrtf(x);
+#endif
+	}
+	
+	float math_sqrt(float x) {
+#if Qk_Soft_Sqrt
+#if Qk_Fast_Sqrt_High
+		float xhalf = 0.5 * x;
+		int i = *(int*)&x; // get bits for floating value
+		i = 0x5f3759df - (i >> 1); // gives initial guess
+    float y = *(float*)&i;
+    y = y * (1.5 - xhalf * y * y); // Newton step
+    y = y * (1.5 - xhalf * y * y);
+    return x * y;
+#else
+    return 1.0 / math_invSqrt(x);
+#endif
+#else
+		return sqrtf(x);
+#endif
+	}
 
 	template<>
 	float MVec2<float>::distance(MVec2<float> point) const {

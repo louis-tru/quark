@@ -212,81 +212,24 @@ namespace qk {
 		Mat(float m0, float m1, float m2, float m3, float m4, float m5);
 		Mat(const float* values, int length = 6);
 		Mat(Vec2 translate, Vec2 scale, float rotatea, Vec2 skewa);
-		inline float m0() const { return val[0]; }
-		inline float m1() const { return val[1]; }
-		inline float m2() const { return val[2]; }
-		inline float m3() const { return val[3]; }
-		inline float m4() const { return val[4]; }
-		inline float m5() const { return val[5]; }
-		inline void m0(float value) { val[0] = value; }
-		inline void m1(float value) { val[1] = value; }
-		inline void m2(float value) { val[2] = value; }
-		inline void m3(float value) { val[3] = value; }
-		inline void m4(float value) { val[4] = value; }
-		inline void m5(float value) { val[5] = value; }
-		
-		/**
-		* @method translate 平移
-		*/
 		void translate(float x, float y);
 		void translate_x(float x);
 		void translate_y(float y);
-		
-		/**
-		* @method scale 缩放
-		*/
 		void scale(float x, float y);
 		void scale_x(float x);
 		void scale_y(float y);
-		
-		/**
-		* @method rotate 通过角度旋转
-		*/
-		inline void rotate(float z) {
-			rotatea(z * Qk_PI_RATIO_180);
-		}
-		
-		/**
-		* @method rotatea 通过弧度旋转
-		*/
+		inline void rotate(float z) { rotatea(z * Qk_PI_RATIO_180); }
 		void rotatea(float rotate);
-		
-		/**
-		* @method skew 通过角度歪斜变形
-		*/
-		void skew(float x, float y) {
-			skewa(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180);
-		}
+		void skew(float x, float y) { skewa(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180); }
 		void skew_x(float x) { skewa_x(x * Qk_PI_RATIO_180); }
 		void skew_y(float y) { skewa_y(y * Qk_PI_RATIO_180); }
-		
-		/**
-		* @method skewa 通过弧度歪斜变形
-		*/
 		void skewa(float x, float y);
 		void skewa_x(float x);
 		void skewa_y(float y);
-		
-		/**
-		* @method operator* 矩阵乘法,返回新的4*4矩阵
-		*/
 		Mat operator*(const Mat& b) const;
-		
-		/**
-		* @method operator*= 矩阵乘法,相乘后赋值给自己,并返回自引用
-		*/
 		Mat& operator*=(const Mat& b);
-		
-		/**
-		* @method operator* 与向量乘法,向量做为列向量使用
-		*/
 		Vec2 operator*(const Vec2& b) const;
-		
-		/**
-		* @method mul 矩阵乘法
-		*/
 		void mul(const Mat& b, Mat& output) const;
-		
 	};
 
 	struct Qk_EXPORT Mat4: public MVec<float, 16> {
@@ -298,76 +241,29 @@ namespace qk {
 				float m12, float m13, float m14, float m15);
 		Mat4(const float* values, int length = 16);
 		Mat4(Mat mat);
-		inline float m0() const { return val[0]; }
-		inline float m1() const { return val[1]; }
-		inline float m2() const { return val[2]; }
-		inline float m3() const { return val[3]; }
-		inline float m4() const { return val[4]; }
-		inline float m5() const { return val[5]; }
-		inline float m6() const { return val[6]; }
-		inline float m7() const { return val[7]; }
-		inline float m8() const { return val[8]; }
-		inline float m9() const { return val[9]; }
-		inline float m10() const { return val[10]; }
-		inline float m11() const { return val[11]; }
-		inline float m12() const { return val[12]; }
-		inline float m13() const { return val[13]; }
-		inline float m14() const { return val[14]; }
-		inline float m15() const { return val[15]; }
-		inline void m0(float value) { val[0] = value; }
-		inline void m1(float value) { val[1] = value; }
-		inline void m2(float value) { val[2] = value; }
-		inline void m3(float value) { val[3] = value; }
-		inline void m4(float value) { val[4] = value; }
-		inline void m5(float value) { val[5] = value; }
-		inline void m6(float value) { val[6] = value; }
-		inline void m7(float value) { val[7] = value; }
-		inline void m8(float value) { val[8] = value; }
-		inline void m9(float value) { val[9] = value; }
-		inline void m10(float value) { val[10] = value; }
-		inline void m11(float value) { val[11] = value; }
-		inline void m12(float value) { val[12] = value; }
-		inline void m13(float value) { val[13] = value; }
-		inline void m14(float value) { val[14] = value; }
-		inline void m15(float value) { val[15] = value; }
-		
-		/**
-		* @method translate 平移
-		*/
+
 		void translate(float x, float y, float z);
 		void translate_x(float x);
 		void translate_y(float y);
 		void translate_z(float z);
 		
-		/**
-		* @method scale 缩放
-		*/
 		void scale(float x, float y, float z);
 		void scale_x(float x);
 		void scale_y(float y);
 		void scale_z(float z);
-		
-		/**
-		* @method rotate 通过角度旋转
-		*/
+
 		inline void rotate(float x, float y, float z) {
 			rotatea(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180, z * Qk_PI_RATIO_180);
 		}
 		inline void rotate_x(float x) { rotatea_x(x * Qk_PI_RATIO_180); }
 		inline void rotate_y(float y) { rotatea_y(y * Qk_PI_RATIO_180); }
 		inline void rotate_z(float z) { rotatea_z(z * Qk_PI_RATIO_180); }
-		
-		/**
-		* @method rotatea 通过弧度旋转
-		*/
+
 		void rotatea(float x, float y, float z);
 		void rotatea_x(float x);
 		void rotatea_y(float y);
 		void rotatea_z(float z);
-		
-		/**
-		* @method skew 通过角度歪斜变形
-		*/
+
 		void skew(float x, float y, float z) {
 			skewa(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180, z * Qk_PI_RATIO_180);
 		}
@@ -375,51 +271,31 @@ namespace qk {
 		void skew_y(float y) { skewa_y(y * Qk_PI_RATIO_180); }
 		void skew_z(float z) { skewa_z(z * Qk_PI_RATIO_180); }
 		
-		/**
-		* @method skewa 通过弧度歪斜变形
-		*/
 		void skewa(float x, float y, float z);
 		void skewa_x(float x);
 		void skewa_y(float y);
 		void skewa_z(float z);
-		
-		/**
-		* @method operator* 矩阵乘法,返回新的4*4矩阵
-		*/
+
 		Mat4 operator*(const Mat4& b) const;
-		
-		/**
-		* @method operator*= # 矩阵乘法,相乘后赋值给自己,并返回自引用
-		*/
 		Mat4& operator*=(const Mat4& b);
-		
-		/**
-		* @method operator* 与向量乘法,向量做为列向量使用
-		*/
 		Vec4 operator*(const Vec4& vec) const;
-		
-		/**
-		* 矩阵乘法
-		*/
 		void mul(const Mat4& b, Mat4& output) const;
-		
-		/**
-		* @method transpose 转置矩阵
-		*/
 		void transpose();
 		
 		/**
-		* @method frustum 创建一个透视平截头体矩阵
-		*/
+		 * @method frustum Create a perspective frustum matrix
+		 */
 		static Mat4 frustum(float left, float right, float top, float bottom, float near, float far);
 		
 		/**
-		* @method ortho 创建一个正交投影矩阵
-		*/
+		 * @method ortho Create an orthogonal projection matrix
+		 */
 		static Mat4 ortho(float left, float right, float top, float bottom, float near, float far);
 	};
 
 	Qk_DEF_ARRAY_SPECIAL(Vec2);
 
+	Qk_EXPORT float math_invSqrt(float x); // 1/sqrt(x)
+	Qk_EXPORT float math_sqrt(float x);
 }
 #endif
