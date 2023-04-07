@@ -89,14 +89,16 @@ namespace qk {
 		inline void set_x(T v) { this->val[0] = v; }
 		inline void set_y(T v) { this->val[1] = v; }
 
-		float distance(MVec2 point) const;
-		float diagonal() const;
+		float distance() const;
 	};
 
 	template <typename T> struct MVec3: public MVec<T, 3> {
 		inline MVec3(): MVec3(0) {}
 		inline MVec3(T f) {
 			this->val[0] = f; this->val[1] = f; this->val[2] = f;
+		}
+		inline MVec3(MVec2<T> vec2, T f) {
+			this->val[0] = vec2[0]; this->val[1] = vec2[1]; this->val[2] = f;
 		}
 		inline MVec3(T a, T b, T c) {
 			this->val[0] = a; this->val[1] = b; this->val[2] = c;
@@ -110,6 +112,8 @@ namespace qk {
 		inline T x() const { return this->val[0]; }
 		inline T y() const { return this->val[1]; }
 		inline T z() const { return this->val[2]; }
+		inline const MVec2<T>& xy() const { return *(const MVec2<T>*)(this); }
+		inline const MVec2<T>& yz() const { return *(const MVec2<T>*)(this->val[1]); }
 		inline void set_x(T v) { this->val[0] = v; }
 		inline void set_y(T v) { this->val[1] = v; }
 		inline void set_z(T v) { this->val[2] = v; }
@@ -139,8 +143,7 @@ namespace qk {
 		inline void set_w(T v) { this->val[4] = v; }
 	};
 
-	template<> float MVec2<float>::distance(MVec2<float> point) const;
-	template<> float MVec2<float>::diagonal() const;
+	template<> float MVec2<float>::distance() const;
 
 	typedef MVec2<float> Vec2;
 	typedef MVec3<float> Vec3;

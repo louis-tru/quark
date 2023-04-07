@@ -53,7 +53,7 @@ namespace qk {
 #define Qk_GL_Version "300 es"
 #endif
 
-	static const String vertexHeader("#version " Qk_GL_Version
+	static cString vertexHeader("#version " Qk_GL_Version
 	"\n\
 		#define matrix root_matrix * view_matrix\n\
 		layout (std140) uniform ubo {\
@@ -63,7 +63,7 @@ namespace qk {
 		in      vec2  vertex_in;\
 	");
 
-	static const String fragmentHeader("#version " Qk_GL_Version
+	static cString fragmentHeader("#version " Qk_GL_Version
 	"\n\
 		#define matrix root_matrix * view_matrix\n\
 		/*layout (std140) uniform ubo {\
@@ -77,14 +77,13 @@ namespace qk {
 		cChar *name;
 		GLint size;
 		GLenum type;
-		GLsizei stride;
 		const GLvoid *pointer;
 	};
 
 	static void compile_link_shader(
 		GLSLShader *s,
 		cChar *name, cChar *vertexShader, cChar *fragmentShader,
-		const Array<ShaderAttr> &attributes, cChar *uniforms, GLuint *storeLocation)
+		const Array<ShaderAttr> &attributes, cChar *uniforms, GLsizei stride = sizeof(float) * 2)
 	{
 		GLuint vertex_handle =
 			compile_shader(name, (vertexHeader + vertexShader).c_str(), GL_VERTEX_SHADER);
@@ -97,6 +96,8 @@ namespace qk {
 		GLint status; // query status
 
 		Qk_DEBUG("sizeof(GLSLShader) %d,%d,%d", sizeof(GLSLShader), sizeof(GLSLColor), sizeof(GLSLImage));
+		
+		GLuint *storeLocation = &s->vertex_in + 1;
 
 		// bind attrib Location
 		GLuint attrIdx = 0;
@@ -139,12 +140,12 @@ namespace qk {
 		glBindVertexArray(s->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
 
-		glVertexAttribPointer(s->vertex_in, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glVertexAttribPointer(s->vertex_in, 2, GL_FLOAT, GL_FALSE, stride, 0);
 		glEnableVertexAttribArray(s->vertex_in);
 
 		for (auto &i: attributes) {
 			GLuint local = *storeLocation++;
-			glVertexAttribPointer(local, i.size, i.type, GL_FALSE, i.stride, i.pointer);
+			glVertexAttribPointer(local, i.size, i.type, GL_FALSE, stride, i.pointer);
 			glEnableVertexAttribArray(local);
 		}
 
@@ -174,7 +175,7 @@ namespace qk {
 				color_o = color;\
 			}\
 		",
-		{}, "color", &color);
+		{}, "color");
 	}
 
 	void GLSLClip::build() {
@@ -187,7 +188,7 @@ namespace qk {
 		"\
 			void main() {}\
 		",
-		{}, "", nullptr);
+		{}, "");
 	}
 
 	void GLSLColor::build() {
@@ -203,7 +204,27 @@ namespace qk {
 				color_o = color;\
 			}\
 		",
-		{}, "color", &color);
+		{}, "color");
+	}
+	
+	void GLSLColorStroke::build() {
+		compile_link_shader(this, "color stroke shader",
+		"\
+			in      float girth_in;\
+			out     float girth_f;\
+			void main() {\
+				girth_f = girth_in;\
+				gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);\
+			}\
+		",
+		"\
+			in      lowp float girth_f;\
+			uniform lowp vec4  color;\
+			void main() {\
+				color_o = color;\
+			}\
+		",
+		{{"girth_in",1,GL_FLOAT,(void*)(sizeof(float)*2)}}, "color", sizeof(float)*3);
 	}
 
 	static const char *v_image_shader = "\
@@ -225,7 +246,7 @@ namespace qk {
 				color_o = texture(image, coord_f) * vec4(1.0, 1.0, 1.0, opacity);\
 			}\
 		",
-		{}, "coord,opacity,image", &opacity);
+		{}, "coord,opacity,image");
 	}
 	
 	void GLSLImageMaskColor::build() {
@@ -239,7 +260,7 @@ namespace qk {
 				color_o = color * vec4(1.0,1.0,1.0,texture(image, coord_f).a);\
 			}\
 		",
-		{}, "opacity,coord,image,color", &opacity);
+		{}, "opacity,coord,image,color");
 	}
 
 	void GLSLImageYUV420P::build() {
@@ -260,7 +281,7 @@ namespace qk {
 												opacity);\
 			}\
 		",
-		{}, "opacity,coord,image,image_u,image_v", &opacity);
+		{}, "opacity,coord,image,image_u,image_v");
 	}
 
 	void GLSLImageYUV420SP::build() {
@@ -280,7 +301,7 @@ namespace qk {
 												opacity);\
 			}\
 		",
-		{}, "opacity,coord,image,image_uv", &opacity);
+		{}, "opacity,coord,image,image_uv");
 	}
 
 	void GLSLGradient::build() {
@@ -315,7 +336,7 @@ namespace qk {
 				lowp float w = (indexed_f - positions[s]) / (positions[e] - positions[s]);\
 				color_o = mix(colors[s], colors[e], w);\
 			}\
-		", {}, "range,count,colors,positions", &range);
+		", {}, "range,count,colors,positions");
 	}
 	
 	void GLSLGradientRadial::build() {
@@ -348,7 +369,7 @@ namespace qk {
 				lowp float w = (indexed_f - positions[s]) / (positions[e] - positions[s]);\
 				color_o = mix(colors[s], colors[e], w);\
 			}\
-		", {}, "range,count,colors,positions", &range);
+		", {}, "range,count,colors,positions");
 	}
 
 }

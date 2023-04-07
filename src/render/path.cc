@@ -200,12 +200,14 @@ namespace qk {
 	}
 
 	Array<Vec2> Path::getPolygons(int polySize, float epsilon) const {
+		Path tmp;
+		const Path *self = _IsNormalized ? this: &(tmp = normalizedPath());
 		auto tess = tessNewTess(nullptr); // TESStesselator*
-		auto pts = (const Vec2*)*_pts;
+		auto pts = (const Vec2*)*self->_pts;
 		Array<Vec2> polygons,tmpV;
 		int len = 0;
 
-		for (auto verb: _verbs) {
+		for (auto verb: self->_verbs) {
 			if (len == 0 && verb != kVerb_Move) {
 				tmpV.push(Vec2(0)); // use Vec2(0,0) start point
 				len++;
@@ -245,6 +247,7 @@ namespace qk {
 					break;
 				}
 				default: // close
+					Qk_ASSERT(verb == kVerb_Close);
 					if (len) {
 						tmpV.push(tmpV[tmpV.length() - len++]);
 						tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
@@ -336,12 +339,105 @@ namespace qk {
 
 		return edges;
 	}
-	
-	Array<Vec4> Path::getPolygonsAndGirth(int polySize, float epsilon) const {
-		// TODO ...
+
+	Array<Vec3> Path::getPolygonsAndGirth(int polySize, float epsilon) const {
+		auto tess = tessNewTess(nullptr); // TESStesselator*
+		auto pts = (const Vec2*)*_pts;
+		Array<Vec3> polygons,tmpV;
+		int len = 0;
+
+		for (auto verb: _verbs) {
+			if (len == 0 && verb != kVerb_Move) {
+				tmpV.push(Vec3(0)); // use Vec3(0) start point
+				len++;
+			}
+
+			switch(verb) {
+				case kVerb_Move:
+					if (len > 1) {
+						tessAddContour(tess, 3, (float*)&tmpV[tmpV.length() - len], sizeof(Vec3), len);
+					}
+					len = 1;
+					tmpV.push(Vec3(*pts++, 0));
+					break;
+				case kVerb_Line: {
+					auto prev = tmpV.back();
+					auto d = (prev.xy() - (*pts)).distance();
+					tmpV.push(Vec3(*pts++, prev.z() + d));
+					len++;
+					break;
+				}
+				case kVerb_Quad: { // quadratic
+					// Qk_DEBUG("conicTo:%f,%f|%f,%f", pts[0].x(), pts[0].y(), pts[1].x(), to[1].y());
+					QuadraticBezier bezier(tmpV.back().xy(), pts[0], pts[1]);
+					pts += 2;
+					int sample = Path::getQuadraticBezierSample(bezier, epsilon);
+					tmpV.extend(tmpV.length() + sample - 1);
+					auto vertex = &tmpV[tmpV.length() - sample];
+
+					bezier.sample_curve_points(sample, (float*)vertex, 3);
+
+					for( uint32_t i = 1; i < sample; i++) {
+						vertex[1][2] = (vertex->xy() - vertex[1].xy()).distance() + vertex->z();
+						vertex++;
+					}
+					len += sample - 1;
+					break;
+				}
+				case kVerb_Cubic: { // cubic
+					//  Qk_DEBUG("cubicTo:%f,%f|%f,%f|%f,%f",
+					//           pts[0].x(), pts[0].y(), pts[1].x(), to[1].y(), pts[2].x(), to[2].y());
+					CubicBezier bezier(tmpV.back().xy(), pts[0], pts[1], pts[2]);
+					pts += 3;
+					int sample = Path::getCubicBezierSample(bezier, epsilon);
+					tmpV.extend(tmpV.length() + sample - 1);
+					auto vertex = &tmpV[tmpV.length() - sample];
+
+					bezier.sample_curve_points(sample, (float*)vertex, 3);
+
+					for( uint32_t i = 1; i < sample; i++) {
+						vertex[1][2] = (vertex->xy() - vertex[1].xy()).distance() + vertex->z();
+						vertex++;
+					}
+					len += sample - 1;
+					break;
+				}
+				default: // close
+					if (len) { // add close point
+						auto &vertex = tmpV[tmpV.length() - len++]; // begin vec
+						auto &prev = tmpV.back();
+						tmpV.push(Vec3(vertex.xy(), (prev.xy() - vertex.xy()).distance() + prev.z()));
+						tessAddContour(tess, 3, (float*)&vertex, sizeof(Vec3), len);
+						len = 0;
+					}
+					break;
+			}
+		}
+
+		if (len > 1) { // close, auto add close point with tess ?
+			tessAddContour(tess, 3, (float*)&tmpV[tmpV.length() - len], sizeof(Vec3), len);
+		}
+
+		// Convert to convex contour vertex data
+		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 3, 0) ) {
+
+			const int nelems = tessGetElementCount(tess);
+			const TESSindex* elems = tessGetElements(tess);
+			const Vec3* verts = (const Vec3*)tessGetVertices(tess);
+
+			polygons.extend(nelems * polySize);
+
+			for (int i = 0; i < polygons.length(); i++) {
+				polygons[i] = verts[*elems++];
+			}
+		}
+
+		tessDeleteTess(tess);
+
+		return std::move(polygons);
 	}
 	
-	Array<Vec4> Path::getEdgeLinesAndGirth(float epsilon) const {
+	Array<Vec3> Path::getEdgeLinesAndGirth(float epsilon) const {
 		// TODO ...
 	}
 

@@ -44,7 +44,7 @@ namespace qk {
 	* @method sample_curve_x
 	*/
 	float QuadraticBezier::sample_curve_x(float t) const {
-		float t2 = 1 - t;
+		float t2 = 1.0 - t;
 		return t2 * t2 * _p0.x() + 2 * t * t2 * _p1.x() + t * t * _p2.x();
 	}
 
@@ -52,26 +52,27 @@ namespace qk {
 	* @method sample_curve_y
 	*/
 	float QuadraticBezier::sample_curve_y(float t) const {
-		float t2 = 1 - t;
+		float t2 = 1.0 - t;
 		return t2 * t2 * _p0.y() + 2 * t * t2 * _p1.y() + t * t * _p2.y();
 	}
 
 	/**
 	* @method compute_bezier_points
 	*/
-	void QuadraticBezier::sample_curve_points(uint32_t sample_count, float* out) const {
+	void QuadraticBezier::sample_curve_points(uint32_t sample_count, float* out, int stride) const {
 		// |0|1| = sample_count = 3
 		sample_count--;
 		reinterpret_cast<Vec2*>(out)[0] = _p0; out += 2;
 		float dt = 1.0 / sample_count;
 		for( uint32_t i = 1; i < sample_count; i++) {
-			float t  = i * dt; float t2 = 1.0 - t;
+			float t  = i * dt;
+			float t2 = 1.0 - t;
 			float t3 = t2 * t2;    // t'^2
 			float t4 = t * t2 * 2; // 2tt'
 			float t5 = t * t;      // t^2
 			out[0]  = t3 * _p0.x() + t4 * _p1.x() + t5 * _p2.x(); // x
 			out[1]  = t3 * _p0.y() + t4 * _p1.y() + t5 * _p2.y(); // y
-			out += 2;
+			out += stride;
 		}
 		reinterpret_cast<Vec2*>(out)[0] = _p2;
 	}
@@ -99,7 +100,7 @@ namespace qk {
 	/**
 	* @method compute_bezier_points
 	*/
-	void CubicBezier::sample_curve_points(uint32_t sample_count, float* out) const {
+	void CubicBezier::sample_curve_points(uint32_t sample_count, float* out, int stride) const {
 		// |0|1| = sample_count = 3
 		sample_count--;
 		reinterpret_cast<Vec2*>(out)[0] = _p0; out += 2;
@@ -108,7 +109,7 @@ namespace qk {
 			float t = i * dt;
 			out[0] = sample_curve_x(t);
 			out[1] = sample_curve_y(t);
-			out += 2;
+			out += stride;
 		}
 		reinterpret_cast<Vec2*>(out)[0] = _p3;
 	}

@@ -73,13 +73,9 @@ namespace qk {
 	}
 
 	template<>
-	float MVec2<float>::distance(MVec2<float> point) const {
-		return sqrtf( powf(val[0] - point[0], 2) + powf(val[1] - point[1], 2) );
-	}
-
-	template<>
-	float MVec2<float>::diagonal() const {
-		return sqrtf( powf(val[0], 2) + powf(val[1], 2) );
+	float MVec2<float>::distance() const {
+		return sqrtf( val[0] * val[0] + val[1] * val[1] );
+		//return sqrtf( powf(val[0], 2) + powf(val[1], 2) );
 	}
 
 	bool Color4f::operator==(const Color4f& color) const {

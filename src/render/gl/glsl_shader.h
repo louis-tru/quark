@@ -52,7 +52,7 @@
 namespace qk {
 
 	struct GLSLShader {
-		GLuint shader, vertex_in, vao, vbo;
+		GLuint shader, vao, vbo, vertex_in;
 		void         use(GLsizeiptr size, const GLvoid* data);
 		virtual void build() = 0;
 	};
@@ -67,6 +67,12 @@ namespace qk {
 	};
 
 	struct GLSLColor: GLSLShader {
+		GLuint color;
+		virtual void build();
+	};
+
+	struct GLSLColorStroke: GLSLShader {
+		GLuint girth_in; // attr
 		GLuint color;
 		virtual void build();
 	};
