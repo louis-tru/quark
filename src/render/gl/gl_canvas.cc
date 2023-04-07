@@ -519,19 +519,21 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 	}
-	
-	void test_color_fill_aa_lines(GLSLColor &color, const Path &path, const Paint &paint) {
-		Array<Vec2> vertex = path.getPolygons(3);
 
+	void test_color_fill_aa_lines(
+		GLSLColor &color,
+		GLSLColorStroke &colorStroke, const Path &path, const Paint &paint
+	) {
+		Array<Vec2> vertex = path.getPolygons(3);
 		color.use(vertex.size(), *vertex);
 		glUniform4fv(color.color, 1, paint.color.val);
 		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 
-		Array<Vec2> lines = path.getEdgeLines();
+		Array<Vec3> lines = path.getEdgeLines(true);
 
-		color.use(lines.size(), *lines);
-
-		//glUniform4fv(color.color, 1, Color4f(0,0,0).val);
+		colorStroke.use(lines.size(), *lines);
+		glUniform4fv(colorStroke.color, 1, paint.color.val);
+		//glUniform4fv(colorStroke.color, 1, Color4f(0,0,0).val);
 
 #if Qk_OSX
 		glEnable(GL_LINE_SMOOTH);
@@ -569,7 +571,7 @@ namespace qk {
 			switch (paint.type) {
 				case Paint::kColor_Type:
 					//drawColor(*fill, paint);
-					test_color_fill_aa_lines(_backend->_color, path, paint);
+					test_color_fill_aa_lines(_backend->_color, _backend->_colorStroke, path, paint);
 					break;
 				case Paint::kGradient_Type:
 					drawGradient(*fill, paint); break;

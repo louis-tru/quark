@@ -63,7 +63,8 @@ namespace qk {
 		GLSLImageYUV420SP _yuv420sp;
 		GLSLGradient _linear;
 		GLSLGradientRadial _radial;
-		GLSLShader  *_shaders[9];
+		GLSLColorStroke _colorStroke;
+		GLSLShader  *_shaders[10];
 		friend class GLCanvas;
 	};
 }

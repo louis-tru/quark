@@ -78,7 +78,10 @@ namespace qk {
 	GLRender::GLRender(Options opts)
 		: GLCanvas(this), Render(opts)
 		, _Is_Support_Multisampled(glIsSupportMultisampled())
-		, _shaders{&_clear, &_clip, &_color, &_image, &_imageMask, &_yuv420p, &_yuv420sp, &_linear, &_radial}
+		, _shaders{
+			&_clear, &_clip, &_color, &_image, &_imageMask, &_yuv420p,
+			&_yuv420sp, &_linear, &_radial, &_colorStroke
+		}
 	{
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:

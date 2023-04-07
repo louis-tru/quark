@@ -84,16 +84,14 @@ namespace qk {
 		*/
 		Array<Vec2> getPolygons(int polySize = 3, float epsilon = 1.0) const;
 		/**
-		 * @brief getPolygonsAndGirth() convert to polygons and girth
-		 * @return {Array<Vec3>} points Vec3 { x, y, girth offset }[]
+		 * @brief getEdgeLines() convert to edge lines
+		 * @arg close {bool} is auto close lines
+		 * @arg girth {bool} returns girth offset
+		 * @return {Array<Vec3>} points Vec3 { x, y,girth offset }[]
 		*/
-		Array<Vec3> getPolygonsAndGirth(int polySize = 3, float epsilon = 1.0) const;
-		Array<Vec2> getEdgeLines(float epsilon = 1.0) const;
-		Array<Vec3> getEdgeLinesAndGirth(float epsilon = 1.0) const;
+		Array<Vec3> getEdgeLines(bool close, bool girth = false, float epsilon = 1.0) const;
 		// modification to stroke path
 		Path strokePath(float width, Join join, float offset = 0) const;
-		// Expand or shrink path
-		Path extendPath(float width) const;
 		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
 		Path normalizedPath(float epsilon = 1.0) const; // normal
 		// matrix transfrom
@@ -104,6 +102,7 @@ namespace qk {
 		static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon = 1.0);
 		static int getCubicBezierSample(const CubicBezier& curve, float epsilon = 1.0);
 	private:
+		Path* normalized(Path *out, bool updateHash, float epsilon) const;
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
 		Array<float> _pts;

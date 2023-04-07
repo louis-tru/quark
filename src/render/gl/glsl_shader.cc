@@ -338,7 +338,7 @@ namespace qk {
 			}\
 		", {}, "range,count,colors,positions");
 	}
-	
+
 	void GLSLGradientRadial::build() {
 		compile_link_shader(this, "gradient shader", "\
 			out       vec2     position_f;\

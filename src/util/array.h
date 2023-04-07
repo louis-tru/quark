@@ -203,13 +203,6 @@ namespace qk {
 		 */
 		Array& reverse();
 
-		/**
-		 * @method reduce()
-		 * @line https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
-		*/
-		template<typename S, typename C = void>
-		S reduce(void (*cb)(S& total, const T& item, uint32_t i, C* ctx), S initialValue, C* ctx = nullptr) const;
-
 	protected:
 		/** @constructors */
 		Array(uint32_t length, int32_t capacity, T* data); // greedy constructors
@@ -563,14 +556,6 @@ namespace qk {
 	Array<T, A>& Array<T, A>::reverse() {
 		Array<char, MemoryAllocator>::_Reverse(_val, sizeof(T), _length);
 		return *this;
-	}
-
-	template<typename T, typename A>
-	template<typename S, typename C>
-	S Array<T, A>::reduce(void (*cb)(S& total, const T& item, uint32_t i, C* ctx), S initialValue, C* ctx) const {
-		for (int i = 0; i < _length; i++)
-			cb(initialValue, _val[i], i, ctx);
-		return std::move(initialValue);
 	}
 
 	template<typename T, typename A>

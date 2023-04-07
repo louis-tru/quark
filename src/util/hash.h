@@ -44,6 +44,7 @@ namespace qk {
 		void     clear();
 		void     update(const void* data, uint32_t len);
 		void     update(cString& str);
+		void     update(uint32_t *data, uint32_t len);
 		String   digest();
 	};
 

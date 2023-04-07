@@ -39,6 +39,11 @@ namespace qk {
 		while (len--)
 			_hash += (_hash << 5) + ((cChar*)data)[len];
 	}
+	
+	void SimpleHash::update(uint32_t *data, uint32_t len) {
+		while (len--)
+			_hash += (_hash << 5) + data[len];
+	}
 
 	void SimpleHash::clear() { _hash = 5381; }
 

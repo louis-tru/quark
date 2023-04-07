@@ -168,7 +168,7 @@ namespace qk {
 
 		paint.color = Color4f(1, 1, 0, 0.5);
 
-		Path path(   Vec2(0, size.y()) );
+		Path path(   Vec2(0, size.y() - 10) );
 		path.lineTo( size );
 		path.lineTo( Vec2(size.x()*0.5, 0) );
 
