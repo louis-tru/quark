@@ -411,7 +411,9 @@ namespace qk {
 		static Array<float> num;
 		if (!num.length()) {
 			num.extend(5001);
+#if DEBUG
 			uint64_t t = qk::time_monotonic();
+#endif
 			for (int i = 0; i < 5001; i++) {
 				num[i] = sqrtf(sqrtf(float(i)));
 			}
