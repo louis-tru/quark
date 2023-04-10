@@ -70,19 +70,19 @@ namespace qk {
 	}
 
 	void Canvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
-		clipPath(Path::Rect(rect), op, antiAlias);
+		clipPath(Path::MakeRect(rect), op, antiAlias);
 	}
 
 	void Canvas::drawRect(const Rect& rect, const Paint& paint) {
-		drawPath(Path::Rect(rect), paint);
+		drawPath(Path::MakeRect(rect), paint);
 	}
 
 	void Canvas::drawOval(const Rect& oval, const Paint& paint) {
-		drawPath(Path::Oval(oval), paint);
+		drawPath(Path::MakeOval(oval), paint);
 	}
 
 	void Canvas::drawCircle(Vec2 center, float radius, const Paint& paint) {
-		drawPath(Path::Circle(center, radius), paint);
+		drawPath(Path::MakeCircle(center, radius), paint);
 	}
 
 }

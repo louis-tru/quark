@@ -207,8 +207,8 @@ namespace qk {
 		{}, "color");
 	}
 	
-	void GLSLColorStroke::build() {
-		compile_link_shader(this, "color stroke shader",
+	void GLSLColorDotted::build() {
+		compile_link_shader(this, "color dotted shader",
 		"\
 			in      float girth_in;\
 			out     float girth_f;\

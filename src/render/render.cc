@@ -65,23 +65,24 @@ namespace qk {
 	void RenderBackend::activate(bool isActive) {
 	}
 
-	Array<Vec2>& RenderBackend::getPathPolygonsCache(const Path &path) {
-		auto hash = path.hashCode();
+	Array<float>& RenderBackend::getPathPolygonsCache(const Path &path, bool isExt) {
+		auto hash = path.hashCode() << 1 | isExt;
 		auto it = _PathPolygonsCache.find(hash);
 		if (it != _PathPolygonsCache.end()) {
 			return it->value;
 		}
 		if (_PathPolygonsCache.length() >= 1024)
 			_PathPolygonsCache.clear();
-		return _PathPolygonsCache.set(hash, path.getPolygons(3));
+		return _PathPolygonsCache.set(hash, path.getPolygons(3, 1, isExt));
 	}
 
-	Array<Vec2>& RenderBackend::getPathStrokesCache(
-		const Path &path, float width, Paint::Join join, float offset)
+	Array<float>& RenderBackend::getPathStrokesCache(
+		const Path &path, float width, Paint::Join join, float offset, bool isExt)
 	{
 		auto hash = path.hashCode();
 		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&offset;
 		hash += (hash << 5) + hash_part + join;
+		hash = (hash << 1) | isExt;
 		auto it = _PathStrokesCache.find(hash);
 		if (it != _PathStrokesCache.end()) {
 			return it->value;
@@ -89,7 +90,7 @@ namespace qk {
 		if (_PathStrokesCache.length() >= 1024)
 			_PathStrokesCache.clear();
 		return _PathStrokesCache
-			.set(hash, path.strokePath(width, join, offset).getPolygons(3));
+			.set(hash, path.strokePath(width, join, offset).getPolygons(3, 1, isExt));
 	}
 
 	void RenderBackend::visitView(View* v) {
@@ -156,10 +157,10 @@ namespace qk {
 		paint.color = Color4f(1, 0, 1, 0.5);
 
 		paint.color = Color4f(0, 0, 1, 0.5);
-		_canvas->drawPath(Path::Circle(Vec2(300), 100), paint);
+		_canvas->drawPath(Path::MakeCircle(Vec2(300), 100), paint);
 
 		paint.color = Color4f(1, 0, 0, 0.8);
-		_canvas->drawPath(Path::Oval({Vec2(200, 100), Vec2(100, 200)}), paint);
+		_canvas->drawPath(Path::MakeOval({Vec2(200, 100), Vec2(100, 200)}), paint);
 
 		// -------- clip ------
 		_canvas->save();
@@ -179,13 +180,13 @@ namespace qk {
 		_canvas->drawPath(path, paint);
 
 		paint.color = Color4f(0, 1, 0, 0.8);
-		_canvas->drawPath(Path::Arc({Vec2(400, 100), Vec2(200, 100)}, 0, 4.5, 1), paint);
+		_canvas->drawPath(Path::MakeArc({Vec2(400, 100), Vec2(200, 100)}, 0, 4.5, 1), paint);
 
 		paint.color = Color4f(1, 0, 1, 0.8);
-		_canvas->drawPath(Path::Arc({Vec2(450, 250), Vec2(200, 100)}, 4.5, 4, 0), paint);
+		_canvas->drawPath(Path::MakeArc({Vec2(450, 250), Vec2(200, 100)}, 4.5, 4, 0), paint);
 
 		paint.color = Color4f(0, 0, 0, 0.8);
-		_canvas->drawPath(Path::Arc({Vec2(450, 300), Vec2(100, 200)}, 3, 4, 1), paint);
+		_canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, 3, 4, 1), paint);
 
 		_canvas->restore(2);
 

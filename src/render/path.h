@@ -54,10 +54,13 @@ namespace qk {
 			kInside_StrokeMode,
 		};
 		typedef Paint::Join Join;
-		static Path Oval(const Rect& rect);
-		static Path Arc (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
-		static Path Rect(const Rect& rect);
-		static Path Circle(Vec2 center, float radius);
+		static Path MakeOval(const Rect& rect);
+		static Path MakeArc (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
+		static Path MakeRect(const Rect& rect);
+		static Path MakeCircle(Vec2 center, float radius);
+		static Path MakeRRect(const Rect& rect,
+			Vec2 borderRadiusLeftTop, Vec2 borderRadiusRightTop,
+			Vec2 borderRadiusLeftBottom, Vec2 borderRadiusRightBottom);
 		Path();
 		Path(Vec2 move);
 		Path(Vec2* pts, int len, PathVerb* verbs, int verbsLen);
@@ -66,30 +69,52 @@ namespace qk {
 		void lineTo(Vec2 to);
 		void quadTo(Vec2 control, Vec2 to);
 		void cubicTo(Vec2 control1, Vec2 control2, Vec2 to);
-		void ovalTo(const qk::Rect& rect);
-		void rectTo(const qk::Rect& rect);
-		void arcTo (const qk::Rect& rect, float startAngle, float sweepAngle, bool useCenter);
+		void ovalTo(const Rect& rect);
+		void rectTo(const Rect& rect);
+		void arcTo (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		void close(); // close line
 		// point ptr
-		inline const Vec2* pts() const { return (Vec2*)*_pts; }
-		inline const PathVerb* verbs() const { return (PathVerb*)*_verbs; }
+		inline const Vec2* pts() const { return (const Vec2*)*_pts; }
+		inline const PathVerb* verbs() const { return (const PathVerb*)*_verbs; }
 		inline uint32_t ptsLen() const { return _pts.length() >> 1; }
 		inline uint32_t verbsLen() const { return _verbs.length(); }
 		inline bool isNormalized() const { return _IsNormalized; }
 		inline uint64_t hashCode() const { return _hash.hash_code(); }
+		inline const Array<float> &extData() const { return _ptsExt; }
+		/**
+		 * @brief extData.length == ptsLen
+		 * @method setExtData() set points extend data
+		 */
+		void setExtData(Array<float> &&extData);
+
 		// convert func
 		/**
-		 * @brief getPolygons() convert to polygons
-		 * @return {Array<Vec2>} points Vec2 { x, y }[]
-		*/
-		Array<Vec2> getPolygons(int polySize = 3, float epsilon = 1.0) const;
-		/**
-		 * @brief getEdgeLines() convert to edge lines
+		 * @method getEdgeLines() convert to edge lines
 		 * @arg close {bool} is auto close lines
-		 * @arg girth {bool} returns girth offset
-		 * @return {Array<Vec3>} points Vec3 { x, y,girth offset }[]
+		 * @return {Array<Vec2>} points { x, y }[]
 		*/
-		Array<Vec3> getEdgeLines(bool close, bool girth = false, float epsilon = 1.0) const;
+		Array<Vec2> getEdgeLines(bool close, float epsilon = 1.0) const;
+
+		/**
+		 * @method getEdgeLinesAndGirth() convert to edge lines and girth offset
+		 * @arg close {bool} is auto close lines
+		 * @return {Array<Vec3>} points point { x, y, length }[]
+		*/
+		Array<Vec3> getEdgeLinesAndLength(bool close, float epsilon = 1.0) const;
+
+		/**
+		 * @method getPolygons() convert to polygons
+		 * @return {Array<float>} points point { x, y, extData? }[]
+		*/
+		Array<float> getPolygons(int polySize = 3, float epsilon = 1.0, bool isExt = false) const;
+
+		/**
+		 * @method getPolygonsFromOutline() convert to polygons and girth offset from outline path
+		 * @return {Array<Vec3>} points { x, y,length? }[]
+		 */
+		Array<float> getPolygonsFromOutline(float width, Join join,
+			int polySize = 3, float epsilon = 1.0, float offset = 0, bool isLen = false) const;
+
 		// modification to stroke path
 		Path strokePath(float width, Join join, float offset = 0) const;
 		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
@@ -105,7 +130,8 @@ namespace qk {
 		Path* normalized(Path *out, bool updateHash, float epsilon) const;
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
-		Array<float> _pts;
+		Array<float> _pts; // Vec2 {x,y}
+		Array<float> _ptsExt; //
 		Array<uint8_t> _verbs;
 		SimpleHash _hash;
 		bool _IsNormalized;

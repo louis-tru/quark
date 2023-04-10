@@ -36,29 +36,38 @@
 
 namespace qk {
 
-	Path Path::Oval(const qk::Rect& r) {
+	Path Path::MakeOval(const Rect& r) {
 		Path path;
 		path.ovalTo(r);
 		path.close();
 		return std::move(path);
 	}
 
-	Path Path::Arc(const qk::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
+	Path Path::MakeArc(const Rect& r, float startAngle, float sweepAngle, bool useCenter) {
 		Path path;
 		path.arcTo(r, startAngle, sweepAngle, useCenter);
 		path.close();
 		return std::move(path);
 	}
 
-	Path Path::Rect(const qk::Rect& r) {
+	Path Path::MakeRect(const qk::Rect& r) {
 		Path path;
 		path.rectTo(r);
 		path.close();
 		return std::move(path);
 	}
 
-	Path Path::Circle(Vec2 center, float radius) {
-		return Oval({ Vec2(center.x() - radius, center.y() - radius), Vec2(radius) * 2 });
+	Path Path::MakeCircle(Vec2 center, float radius) {
+		return MakeOval({ Vec2(center.x() - radius, center.y() - radius), Vec2(radius) * 2 });
+	}
+
+	Path Path::MakeRRect(const Rect& rect,
+		Vec2 borderRadiusLeftTop, Vec2 borderRadiusRightTop,
+		Vec2 borderRadiusLeftBottom, Vec2 borderRadiusRightBottom)
+	{
+		Path path;
+		// TODO ...
+		return std::move(path);
 	}
 
 	Path::Path(Vec2 move): _IsNormalized(true) {
@@ -199,14 +208,116 @@ namespace qk {
 	void Path::close() {
 		_verbs.push(kVerb_Close);
 	}
+	
+	void Path::setExtData(Array<float> &&extData) {
+		// TODO ...
+	}
 
-	Array<Vec2> Path::getPolygons(int polySize, float epsilon) const {
+	Array<Vec2> Path::getEdgeLines(bool close, float epsilon) const {
+		Path tmp;
+		const Path *self = _IsNormalized ? this: normalized(&tmp, false,epsilon);
+		Array<Vec2> edges;
+		auto pts = (const Vec2*)*self->_pts;
+		int  len = 0;
+		Vec2 prev;
+
+		auto closeLine = [&]() {
+		if (len) {
+				auto vertex = edges[edges.length() - len];
+				edges.push(prev);
+				edges.push(vertex);
+			}
+		};
+
+		for (auto verb: self->_verbs) {
+			switch(verb) {
+				case kVerb_Move:
+					if (close) {
+						closeLine();
+					}
+					prev = *pts++;
+					len = 0;
+					break;
+				case kVerb_Line: {
+					edges.push(prev);
+					prev = *pts++;
+					edges.push(prev); // edge 0
+					len+=2;
+					break;
+				}
+				default: // close
+					Qk_ASSERT(verb == kVerb_Close);
+					closeLine(); // add close edge line
+					prev = Vec2();
+					len = 0;
+					break;
+			}
+		}
+
+		if (close) {
+			closeLine();
+		}
+		
+		return std::move(edges);
+	}
+
+	Array<Vec3> Path::getEdgeLinesAndLength(bool close, float epsilon) const {
+		Path tmp;
+		const Path *self = _IsNormalized ? this: normalized(&tmp, false,epsilon);
+		Array<Vec3> edges;
+		auto pts = (const Vec2*)*self->_pts;
+		int  len = 0;
+		Vec3 prev;
+		
+		auto closeLine = [&]() {
+			if (len) {
+				auto vertex = edges[edges.length() - len].xy();
+				edges.push(prev);
+				edges.push(Vec3(vertex, (vertex - prev.xy()).distance() + prev.z()));
+			}
+		};
+
+		for (auto verb: self->_verbs) {
+			switch(verb) {
+				case kVerb_Move:
+					if (close) {
+						closeLine();
+					}
+					prev = Vec3(*pts++, 0);
+					len = 0;
+					break;
+				case kVerb_Line: {
+					edges.push(prev);
+					prev = Vec3(*pts, (prev.xy() - *pts).distance() + prev.z());
+					edges.push(prev); // edge 0
+					pts++;
+					len+=2;
+					break;
+				}
+				default: // close
+					Qk_ASSERT(verb == kVerb_Close);
+					closeLine(); // add close edge line
+					prev = Vec3();
+					len = 0;
+					break;
+			}
+		}
+		
+		if (close) {
+			closeLine();
+		}
+		
+		return std::move(edges);
+	}
+
+	Array<float> Path::getPolygons(int polySize, float epsilon, bool isExt) const {
 		Path tmp;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, false,epsilon);
 		auto tess = tessNewTess(nullptr); // TESStesselator*
 		auto pts = (const Vec2*)*self->_pts;
 		int len = 0;
-		Array<Vec2> polygons,tmpV;
+		Array<float> polygons;
+		Array<Vec2> tmpV;
 
 		for (auto verb: self->_verbs) {
 			switch(verb) {
@@ -244,62 +355,77 @@ namespace qk {
 			const TESSindex* elems = tessGetElements(tess);
 			const Vec2* verts = (const Vec2*)tessGetVertices(tess);
 
-			polygons.extend(nelems * polySize);
+			polygons.extend(nelems * polySize * 2);
 
-			for (int i = 0; i < polygons.length(); i++) {
-				polygons[i] = verts[*elems++];
+			for (int i = 0; i < polygons.length(); i+=2) {
+				// polygons[i] = verts[*elems++];
+				*reinterpret_cast<Vec2*>(polygons.val() + i) = verts[*elems++];
 			}
 		}
 
 		tessDeleteTess(tess);
-
 		return std::move(polygons);
 	}
+	
+	Array<float> Path::getPolygonsFromOutline(float width, Join join,
+			int polySize, float epsilon, float offset, bool isLen
+	) const {
+		// TODO ...
 
-	Array<Vec3> Path::getEdgeLines(bool close, bool girth, float epsilon) const {
 		Path tmp;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, false,epsilon);
-		Array<Vec3> edges;
+		auto tess = tessNewTess(nullptr); // TESStesselator*
 		auto pts = (const Vec2*)*self->_pts;
-		int  len = 0;
-		Vec3 prev;
-		
-		auto closeLine = [&]() {
-			auto vertex = edges[edges.length() - len].xy();
-			edges.push(prev);
-			edges.push(Vec3(vertex, girth ? (vertex - prev.xy()).distance() + prev.z(): 0));
-		};
+		int len = 0;
+		Array<float> polygons;
+		Array<Vec3> tmpV;
 
 		for (auto verb: self->_verbs) {
 			switch(verb) {
 				case kVerb_Move:
-					if (len && close)
-						closeLine();
-					prev = Vec3(*pts++, 0);
-					len = 0;
+					if (len > 1) { // auto close
+						tessAddContour(tess, 3, (float*)&tmpV[tmpV.length() - len], sizeof(Vec3), len);
+					}
+					tmpV.push(Vec3(*pts++, 0)); len = 1;
 					break;
-				case kVerb_Line: {
-					edges.push(prev);
-					prev = Vec3(*pts, girth ? (prev.xy() - *pts).distance() + prev.z(): 0);
-					edges.push(prev); // edge 0
-					pts++;
-					len+=2;
+				case kVerb_Line:
+					if (len == 0) {
+						tmpV.push(Vec3(0)); len=1; // use Vec2(0,0) start point
+					}
+					tmpV.push(Vec3(*pts++, 0)); len++;
 					break;
-				}
 				default: // close
 					Qk_ASSERT(verb == kVerb_Close);
-					if (len) // add close edge line
-						closeLine();
-					prev = Vec3();
-					len = 0;
+					if (len) {
+						tmpV.push(tmpV[tmpV.length() - len++]);
+						tessAddContour(tess, 3, (float*)&tmpV[tmpV.length() - len], sizeof(Vec3), len);
+						len = 0;
+					}
 					break;
 			}
 		}
-		
-		if (len && close)
-			closeLine();
 
-		return edges;
+		if (len > 1) { // auto close
+			tessAddContour(tess, 3, (float*)&tmpV[tmpV.length() - len], sizeof(Vec3), len);
+		}
+
+		// Convert to convex contour vertex data
+		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 3, 0) ) {
+
+			const int nelems = tessGetElementCount(tess);
+			const TESSindex* elems = tessGetElements(tess);
+			const Vec3* verts = (const Vec3*)tessGetVertices(tess);
+
+			polygons.extend(nelems * polySize * 3);
+
+			for (int i = 0; i < polygons.length(); i+=3) {
+				// polygons[i] = verts[*elems++];
+				*reinterpret_cast<Vec3*>(polygons.val() + i) = verts[*elems++];
+			}
+		}
+		
+		tessDeleteTess(tess);
+		return std::move(polygons);
 	}
 
 	Path Path::strokePath(float width, Join join, float offset) const {

@@ -80,7 +80,7 @@ namespace qk {
 		, _Is_Support_Multisampled(glIsSupportMultisampled())
 		, _shaders{
 			&_clear, &_clip, &_color, &_image, &_imageMask, &_yuv420p,
-			&_yuv420sp, &_linear, &_radial, &_colorStroke
+			&_yuv420sp, &_linear, &_radial, &_colorDotted
 		}
 	{
 		switch(_opts.colorType) {

@@ -71,7 +71,7 @@ namespace qk {
 		virtual void build();
 	};
 
-	struct GLSLColorStroke: GLSLShader {
+	struct GLSLColorDotted: GLSLShader {
 		GLuint girth_in; // attr
 		GLuint color;
 		virtual void build();

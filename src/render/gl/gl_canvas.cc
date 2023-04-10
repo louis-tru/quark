@@ -456,7 +456,7 @@ namespace qk {
 			glEnable(GL_STENCIL_TEST); // enable stencil test
 		}
 
-		Clip clip{_backend->getPathPolygonsCache(path), op, antiAlias};
+		Clip clip{_backend->getPathPolygonsCache(path, false), op, antiAlias};
 
 		if (drawClip(&clip)) {
 			// save clip state
@@ -486,7 +486,7 @@ namespace qk {
 		glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
 
 		_backend->_clip.use(clip->vertex.size(), *clip->vertex);
-		glDrawArrays(GL_TRIANGLES, 0, clip->vertex.length()); // draw test
+		glDrawArrays(GL_TRIANGLES, 0, clip->vertex.length() >> 1); // draw test
 
 		glStencilFunc(GL_LEQUAL, _stencil_ref, 0xFFFFFFFF); // Equality passes the test
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
@@ -522,17 +522,20 @@ namespace qk {
 
 	void test_color_fill_aa_lines(
 		GLSLColor &color,
-		GLSLColorStroke &colorStroke, const Path &path, const Paint &paint
+		GLSLColorDotted &colorDotted, const Path &path, const Paint &paint
 	) {
-		Array<Vec2> vertex = path.getPolygons(3);
+		Array<float> vertex = path.getPolygons(3);
 		color.use(vertex.size(), *vertex);
 		glUniform4fv(color.color, 1, paint.color.val);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length() >> 1);
+		
+		Array<Vec2> lines = path.getEdgeLines(true);
+		color.use(lines.size(), *lines);
 
-		Array<Vec3> lines = path.getEdgeLines(true);
+		//Array<Vec3> lines = path.getEdgeLinesAndGirth(true);
 
-		colorStroke.use(lines.size(), *lines);
-		glUniform4fv(colorStroke.color, 1, paint.color.val);
+		//colorStroke.use(lines.size(), *lines);
+		//glUniform4fv(colorStroke.color, 1, paint.color.val);
 		//glUniform4fv(colorStroke.color, 1, Color4f(0,0,0).val);
 
 #if Qk_OSX
@@ -550,7 +553,7 @@ namespace qk {
 
 		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 
-		Array<Vec2> *fill = NULL, *stroke = NULL;
+		Array<float> *fill = NULL, *stroke = NULL;
 
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
@@ -571,7 +574,7 @@ namespace qk {
 			switch (paint.type) {
 				case Paint::kColor_Type:
 					//drawColor(*fill, paint);
-					test_color_fill_aa_lines(_backend->_color, _backend->_colorStroke, path, paint);
+					test_color_fill_aa_lines(_backend->_color, _backend->_colorDotted, path, paint);
 					break;
 				case Paint::kGradient_Type:
 					drawGradient(*fill, paint); break;
@@ -587,13 +590,13 @@ namespace qk {
 		}
 	}
 
-	void GLCanvas::drawColor(const Array<Vec2> &vertex, const Paint &paint) {
+	void GLCanvas::drawColor(const Array<float> &vertex, const Paint &paint) {
 		_backend->_color.use(vertex.size(), *vertex);
 		glUniform4fv(_backend->_color.color, 1, paint.color.val);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length() >> 1);
 	}
 
-	void GLCanvas::drawGradient(const Array<Vec2> &vertex, const Paint &paint) {
+	void GLCanvas::drawGradient(const Array<float> &vertex, const Paint &paint) {
 		auto g = paint.gradient;
 		auto shader = paint.gradientType ==
 			Paint::kRadial_GradientType ? &_backend->_radial: &_backend->_linear;
@@ -603,10 +606,10 @@ namespace qk {
 		glUniform1i(shader->count, count);
 		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors.val());
 		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions.val());
-		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length() >> 1);
 	}
 
-	void GLCanvas::drawImage(const Array<Vec2> &vertex, const Paint &paint) {
+	void GLCanvas::drawImage(const Array<float> &vertex, const Paint &paint) {
 		auto shader = &_backend->_image;
 		auto pixel = paint.image;
 		auto type = pixel->type();
@@ -636,10 +639,10 @@ namespace qk {
 		shader->use(vertex.size(), *vertex);
 		glUniform1f(shader->opacity, paint.color.a());
 		glUniform4fv(shader->coord, 1, paint.region.origin.val);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length() >> 1);
 	}
 
-	void GLCanvas::drawImageMask(const Array<Vec2> &vertex, const Paint &paint) {
+	void GLCanvas::drawImageMask(const Array<float> &vertex, const Paint &paint) {
 		auto shader = &_backend->_imageMask;
 		auto pixel = paint.image;
 		auto type = pixel->type();
@@ -658,7 +661,7 @@ namespace qk {
 		shader->use(vertex.size(), *vertex);
 		glUniform4fv(shader->color, 1, paint.color.val);
 		glUniform4fv(shader->coord, 1, paint.region.origin.val);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length() >> 1);
 	}
 
 	float GLCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint)
@@ -702,10 +705,17 @@ namespace qk {
 
 		Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
 		Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
+		Vec2 v3(dst_start + dst_size);
 
-		Array<Vec2> vertex{
-			dst_start, v1,                   v2,
-			v2,        dst_start + dst_size, v1,
+		Array<float> vertex{
+			// triangle 0
+			dst_start[0],dst_start[1],
+			v1[0],v1[1],
+			v2[0],v2[1],
+			// triangle 1
+			v2[0],v2[1],
+			v3[0],v3[1],
+			v1[0],v1[1],
 		};
 
 		drawImageMask(vertex, p);
