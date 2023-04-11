@@ -48,22 +48,21 @@ namespace qk {
 			kVerb_Cubic, // Cubic bezier
 			kVerb_Close, // close
 		};
-		enum StrokeMode {
-			kCenter_StrokeMode,
-			kOutside_StrokeMode,
-			kInside_StrokeMode,
-		};
 		typedef Paint::Join Join;
 		static Path MakeOval(const Rect& rect);
 		static Path MakeArc (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		static Path MakeRect(const Rect& rect);
 		static Path MakeCircle(Vec2 center, float radius);
-		static Path MakeRRect(const Rect& rect,
+		static Path MakeRRect(
+			const Rect& rect,
 			Vec2 borderRadiusLeftTop, Vec2 borderRadiusRightTop,
-			Vec2 borderRadiusLeftBottom, Vec2 borderRadiusRightBottom);
+			Vec2 borderRadiusRightBottom, Vec2 borderRadiusLeftBottom);
+		static Path MakeRRectOutline(
+			const Rect& outside, const Rect &inside,
+			Vec2 borderRadiusLeftTop, Vec2 borderRadiusRightTop,
+			Vec2 borderRadiusRightBottom, Vec2 borderRadiusLeftBottom);
 		Path();
 		Path(Vec2 move);
-		Path(Vec2* pts, int len, PathVerb* verbs, int verbsLen);
 		// add path points
 		void moveTo(Vec2 to);
 		void lineTo(Vec2 to);
@@ -130,6 +129,7 @@ namespace qk {
 		Path* normalized(Path *out, bool updateHash, float epsilon) const;
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
+		void startTo(Vec2 p);
 		Array<float> _pts; // Vec2 {x,y}
 		Array<float> _ptsExt; //
 		Array<uint8_t> _verbs;

@@ -61,23 +61,71 @@ namespace qk {
 		return MakeOval({ Vec2(center.x() - radius, center.y() - radius), Vec2(radius) * 2 });
 	}
 
-	Path Path::MakeRRect(const Rect& rect,
-		Vec2 borderRadiusLeftTop, Vec2 borderRadiusRightTop,
-		Vec2 borderRadiusLeftBottom, Vec2 borderRadiusRightBottom)
+	void setRrectOutline(Path &path,
+		const Rect& outside, const Rect *inside, Vec2 a, Vec2 b, Vec2 c, Vec2 d)
+	{
+		auto arc = [&](Vec2 origin, Vec2 r, Vec2 dir, float startAngle, float sweepAngle) {
+			if (r.x() != 0 && r.y() != 0) {
+				Vec2 s = r*2;
+				path.arcTo({origin+s*dir, s}, startAngle, sweepAngle, false);
+			} else {
+				path.moveTo(origin);
+			}
+		};
+
+		Vec2 origin = outside.origin;
+		Vec2 end = origin + outside.size;
+
+		arc(origin, a, Vec2(0), Qk_PI, -Qk_PI2); // left-top
+		arc({end.x(), origin.y()}, b, Vec2(-1,0), Qk_PI2, -Qk_PI2); // right-top
+		arc(end, c, Vec2(-1), 0, -Qk_PI2); // right-bottom
+		arc({origin.x(), end.y()}, d, Vec2(0,-1), -Qk_PI2, -Qk_PI2); // left-bottom
+
+		path.close();
+
+		if (!inside)
+			return;
+
+		Vec2 inside_origin = inside->origin;
+		Vec2 inside_end = inside_origin + inside->size;
+
+		float top = inside_origin.y() - origin.y();
+		float right = end.x() - inside_end.x();
+		float bottom = end.y() - inside_end.y();
+		float left = inside_origin.x() - origin.x();
+
+		origin = inside_origin;
+		end = inside_end;
+
+		a = { Float::max(a.x() - left, 0.0), Float::max(a.y() - top, 0.0) };
+		b = { Float::max(b.x() - right, 0.0), Float::max(b.y() - top, 0.0) };
+		c = { Float::max(c.x() - right, 0.0), Float::max(c.y() - bottom, 0.0) };
+		d = { Float::max(d.x() - left, 0.0), Float::max(d.y() - bottom, 0.0) };
+
+		arc(origin, a, Vec2(0), Qk_PI2, Qk_PI2); // left-top
+		arc({origin.x(), end.y()}, d, Vec2(0,-1), Qk_PI, Qk_PI2); // left-bottom
+		arc(end, c, Vec2(-1), -Qk_PI2, Qk_PI2); // right-bottom
+		arc({end.x(), origin.y()}, b, Vec2(-1,0), 0, Qk_PI2); // right-top
+
+		path.close();
+	}
+
+	Path Path::MakeRRect(const Rect& rect, Vec2 a, Vec2 b, Vec2 c, Vec2 d)
 	{
 		Path path;
-		// TODO ...
+		setRrectOutline(path, rect, NULL, a, b, c, d);
 		return std::move(path);
 	}
 
+	Path Path::MakeRRectOutline(
+		const Rect& outside, const Rect &inside, Vec2 a, Vec2 b, Vec2 c, Vec2 d) {
+		Path path;
+		setRrectOutline(path, outside, &inside, a, b, c, d);
+		return std::move(path);
+	}
+	
 	Path::Path(Vec2 move): _IsNormalized(true) {
 		moveTo(move);
-	}
-
-	Path::Path(Vec2* pts, int len, PathVerb* verbs, int verbsLen): _IsNormalized(false) {
-		// Qk_ASSERT(verbs[0] == kVerb_Move);
-		_pts.write((float*)pts, -1, len * 2);
-		_verbs.write((uint8_t*)verbs, -1, verbsLen);
 	}
 
 	Path::Path(): _IsNormalized(true) {}
@@ -119,21 +167,21 @@ namespace qk {
 
 	constexpr float magicCircle = 0.551915024494f; // 0.552284749831f
 
-	void Path::ovalTo(const qk::Rect& r) {
+	void Path::ovalTo(const Rect& r) {
 		float w = r.size.x(), h = r.size.y();
 		float x = r.origin.x(), y = r.origin.y();
 		float x2 = x + w / 2, y2 = y + h / 2;
 		float x3 = x + w, y3 = y + h;
 		float cx = w / 2 * magicCircle, cy = h / 2 * magicCircle;
-		moveTo(Vec2(x2, y));
+		startTo(Vec2(x2, y));
 		float a[] = {x2 + cx, y, x3, y2 - cy, x3, y2}; cubicTo2(a); // top,right
 		float b[] = {x3, y2 + cy, x2 + cx, y3, x2, y3}; cubicTo2(b); // right,bottom
 		float c[] = {x2 - cx, y3, x, y2 + cy, x, y2}; cubicTo2(c); // bottom,left
 		float d[] = {x, y2 - cy, x2 - cx, y, x2, y}; cubicTo2(d); // left,top
 	}
 
-	void Path::rectTo(const qk::Rect& r) {
-		moveTo(r.origin);
+	void Path::rectTo(const Rect& r) {
+		startTo(r.origin);
 		float x2 = r.origin.x() + r.size.x();
 		float y2 = r.origin.y() + r.size.y();
 		lineTo(Vec2(x2, r.origin.y()));
@@ -142,7 +190,7 @@ namespace qk {
 		lineTo(r.origin); // origin point
 	}
 
-	void Path::arcTo(const qk::Rect& r, float startAngle, float sweepAngle, bool useCenter) {
+	void Path::arcTo(const Rect& r, float startAngle, float sweepAngle, bool useCenter) {
 
 		float rx = r.size.x() * 0.5f;
 		float ry = r.size.y() * 0.5f;
@@ -151,8 +199,10 @@ namespace qk {
 
 		float n = ceilf(abs(sweepAngle) / Qk_PI2);
 		float sweep = sweepAngle / n;
-		float magic = abs(sweep) == Qk_PI2 ? 
-			magicCircle: tanf(sweep / 4.0f) * 1.3333333333333333f/*4.0 / 3.0*/;
+		float magic =
+			sweep == Qk_PI2 ? magicCircle:
+			sweep == -Qk_PI2 ? -magicCircle:
+			tanf(sweep / 4.0f) * 1.3333333333333333f/*4.0 / 3.0*/;
 
 		startAngle = -startAngle;
 
@@ -162,10 +212,10 @@ namespace qk {
 		Vec2 start(x0 * rx + cx, y0 * ry + cy);
 
 		if (useCenter) {
-			moveTo(Vec2(cx, cy));
+			startTo(Vec2(cx, cy));
 			lineTo(start);
 		} else {
-			moveTo(start);
+			startTo(start);
 		}
 
 		for (int i = 0, j = n; i < j; i++) {
@@ -203,6 +253,15 @@ namespace qk {
 		_verbs.push(kVerb_Cubic);
 		_IsNormalized = false;
 		_hash.update((uint32_t*)p, 6);
+	}
+	
+	void Path::startTo(Vec2 p) {
+		if (_verbs.length() && _verbs.back() != kVerb_Close) {
+			if (*(Vec2*) (_pts.val() + _pts.length() - 2) != p)
+				lineTo(p);
+		} else {
+			moveTo(p);
+		}
 	}
 
 	void Path::close() {
@@ -273,7 +332,7 @@ namespace qk {
 			if (len) {
 				auto vertex = edges[edges.length() - len].xy();
 				edges.push(prev);
-				edges.push(Vec3(vertex, (vertex - prev.xy()).distance() + prev.z()));
+				edges.push(Vec3(vertex, (vertex - prev.xy()).length() + prev.z()));
 			}
 		};
 
@@ -288,7 +347,7 @@ namespace qk {
 					break;
 				case kVerb_Line: {
 					edges.push(prev);
-					prev = Vec3(*pts, (prev.xy() - *pts).distance() + prev.z());
+					prev = Vec3(*pts, (prev.xy() - *pts).length() + prev.z());
 					edges.push(prev); // edge 0
 					pts++;
 					len+=2;
@@ -427,10 +486,27 @@ namespace qk {
 		tessDeleteTess(tess);
 		return std::move(polygons);
 	}
+	
+	Vec2 vertexNormal(const Vec2& point, const Vec2& previousPoint, const Vec2& nextPoint, bool ccw) {
+		
+	}
 
 	Path Path::strokePath(float width, Join join, float offset) const {
 		Path tmp;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, false, 1);
+		
+		for (auto verb: self->_verbs) {
+			switch(verb) {
+				case kVerb_Move:
+					
+					break;
+				case kVerb_Line:
+					break;
+				default: // close
+					Qk_ASSERT(verb == kVerb_Close);
+					break;
+			}
+		}
 
 		// TODO ...
 		return *this;

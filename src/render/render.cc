@@ -194,7 +194,7 @@ namespace qk {
 
 		auto stype = FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::NORMAL);
 		auto pool = root->pre_render()->host()->font_pool();
-		auto unicode = codec_decode_to_uint32(kUTF8_Encoding, "A 你好 HgKr向日葵pjAH");
+		auto unicode = codec_decode_to_uint32(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
 		auto fgs = pool->getFFID()->makeFontGlyphs(unicode, stype, 64);
 
 		Vec2 offset(0,60);
@@ -202,6 +202,12 @@ namespace qk {
 		for (auto &fg: fgs) {
 			offset[0] += ceilf(_canvas->drawGlyphs(fg, offset, NULL, paint));
 		}
+
+		paint.color = Color4f(0, 0, 0);
+		_canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, 50, 80, 50, 80), paint);
+
+		paint.color = Color4f(0, 1, 1);
+		_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, 50, 80, 50, 80), paint);
 	}
 
 	void RenderBackend::visitFloatLayout(FloatLayout* flow) {

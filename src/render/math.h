@@ -89,8 +89,16 @@ namespace qk {
 		inline void set_x(T v) { this->val[0] = v; }
 		inline void set_y(T v) { this->val[1] = v; }
 
-		float distance() const;
+		float length() const;
+		MVec2 normalized() const;
+		MVec2 rotate90(bool ccw) const;
+		MVec2 normal(const MVec2& prev, const MVec2& next, bool ccw) const;
 	};
+
+	template<> float        MVec2<float>::length() const;
+	template<> MVec2<float> MVec2<float>::normalized() const;
+	template<> MVec2<float> MVec2<float>::rotate90(bool ccw) const;
+	template<> MVec2<float> MVec2<float>::normal(const MVec2& prev, const MVec2& next, bool ccw) const;
 
 	template <typename T> struct MVec3: public MVec<T, 3> {
 		inline MVec3(): MVec3(0) {}
@@ -142,8 +150,6 @@ namespace qk {
 		inline void set_z(T v) { this->val[2] = v; }
 		inline void set_w(T v) { this->val[4] = v; }
 	};
-
-	template<> float MVec2<float>::distance() const;
 
 	typedef MVec2<float> Vec2;
 	typedef MVec3<float> Vec3;
