@@ -76,9 +76,13 @@ namespace qk {
 		return sqrtf( val[0] * val[0] + val[1] * val[1] );
 	}
 
+	template<> float MVec2<float>::dot(const MVec2& b) const {
+		return x() * b.x() + y() * b.y();
+	}
+
 	template<> MVec2<float> MVec2<float>::normalized() const {
 		const float len = length();
-		return {val[0] / len/*cos*/, val[1] / len/*sin*/};
+		return {val[0] / len, val[1] / len};
 	}
 
 	template<> MVec2<float> MVec2<float>::rotate90(bool ccw) const {
@@ -204,11 +208,10 @@ namespace qk {
 		memcpy(val, values, sizeof(float) * length);
 	}
 
-	Mat::Mat(Vec2 translate, Vec2 scale, float rotatea, Vec2 skewa) {
-		if (rotatea) {
-			//rotate_z  *= Qk_PI_RATIO_180; //
-			float cz  = cosf(rotatea);
-			float sz  = sinf(rotatea);
+	Mat::Mat(Vec2 translate, Vec2 scale, float rotate, Vec2 skew) {
+		if (rotate) {
+			float cz  = cosf(rotate);
+			float sz  = sinf(rotate);
 			val[0] = cz * scale[0];
 			val[1] = sz * scale[1];
 			val[3] = -sz * scale[0];
@@ -224,8 +227,8 @@ namespace qk {
 		val[2] = translate[0];
 		val[5] = translate[1];
 
-		if (skewa[0] != 0.0f || skewa[1] != 0.0f) {
-			Mat::skewa(skewa[0], skewa[1]);
+		if (skew[0] != 0.0f || skew[1] != 0.0f) {
+			Mat::skew(skew[0], skew[1]);
 		}
 	}
 
@@ -291,7 +294,7 @@ namespace qk {
 		val[4] *= y;
 	}
 
-	void Mat::rotatea(float z) {
+	void Mat::rotate(float z) {
 		/*
 		[ a, b, c ]   [ cos(z),  sin(z), 0 ]
 		[ d, e, f ]   [-sin(z),  cos(z), 0 ]
@@ -307,7 +310,7 @@ namespace qk {
 		val[3] = d;
 	}
 
-	void Mat::skewa(float x, float y){
+	void Mat::skew(float x, float y){
 		/*
 		| a, b, c |   |  1,       tan(x),  0 |
 		| d, e, f | * |  tan(y),  1,       0 |
@@ -323,7 +326,7 @@ namespace qk {
 		val[3] = d;
 	}
 
-	void Mat::skewa_x(float x){
+	void Mat::skew_x(float x){
 		/*
 		| a, b, c |   |  1,  tan(x),  0 |
 		| d, e, f | * |  0,  1,       0 |
@@ -334,7 +337,7 @@ namespace qk {
 		val[4] += val[3] * tx;
 	}
 
-	void Mat::skewa_y(float y){
+	void Mat::skew_y(float y){
 		/*
 		| a, b, c |   |  1,       0,  0 |
 		| d, e, f | * |  tan(y),  1,  0 |
@@ -546,7 +549,7 @@ namespace qk {
 		val[10] *= z;
 	}
 
-	void Mat4::rotatea(float x, float y, float z) {
+	void Mat4::rotate(float x, float y, float z) {
 		
 		// ZXY
 		/*
@@ -607,7 +610,7 @@ namespace qk {
 		val[10] = k;
 	}
 
-	void Mat4::rotatea_x(float x) {
+	void Mat4::rotate_x(float x) {
 		/*
 		[ a, b, c, d ]   [ 1,  0,      0,      0 ]
 		[ e, f, g, h ]   [ 0,  cos(x), sin(x), 0 ]
@@ -631,7 +634,7 @@ namespace qk {
 		val[9] = j;
 	}
 
-	void Mat4::rotatea_y(float y) {
+	void Mat4::rotate_y(float y) {
 		/*
 		[ a, b, c, d ]   [ cos(y), 0, -sin(y), 0 ]
 		[ e, f, g, h ]   [ 0,      1, 0,       0 ]
@@ -654,7 +657,7 @@ namespace qk {
 		val[8] = i;
 	}
 
-	void Mat4::rotatea_z(float z) {
+	void Mat4::rotate_z(float z) {
 		/*
 		[ a, b, c, d ]   [ cos(z),  sin(z), 0, 0 ]
 		[ e, f, g, h ]   [-sin(z),  cos(z), 0, 0 ]
@@ -677,7 +680,7 @@ namespace qk {
 		val[8] = i;
 	}
 
-	void Mat4::skewa(float x, float y, float z) {
+	void Mat4::skew(float x, float y, float z) {
 		
 		float tx = tanf(x);
 		float ty = tanf(y);
@@ -713,7 +716,7 @@ namespace qk {
 		val[10] = k;
 	}
 
-	void Mat4::skewa_x(float x) {
+	void Mat4::skew_x(float x) {
 		
 		/*
 		| a, b, c, d |   |  1,  tan(x),   tan(x),  0 |
@@ -733,7 +736,7 @@ namespace qk {
 		val[10] += val[8] * tx;
 	}
 
-	void Mat4::skewa_y(float y) {
+	void Mat4::skew_y(float y) {
 		/*
 		| a, b, c, d |   |  1,       0,        0,            0 |
 		| e, f, g, h |   |  tan(y),  1,        tan(y),       0 |
@@ -752,7 +755,7 @@ namespace qk {
 		val[10] += val[9] * ty;
 	}
 
-	void Mat4::skewa_z(float z) {
+	void Mat4::skew_z(float z) {
 		/*
 		| a, b, c, d |   |  1,       0,              0,       0 |
 		| e, f, g, h |   |  0,       1,              0,       0 |

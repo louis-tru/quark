@@ -82,20 +82,21 @@ namespace qk {
 		inline MVec2<T>& operator/=(const MVec2& b) {
 			this->val[0] /= b[0]; this->val[1] /= b[1]; return *this;
 		}
-		inline bool is_zero() const { return this->val[0] == 0 || this->val[1] == 0; }
-
 		inline T x() const { return this->val[0]; }
 		inline T y() const { return this->val[1]; }
 		inline void set_x(T v) { this->val[0] = v; }
 		inline void set_y(T v) { this->val[1] = v; }
 
 		float length() const;
+		float dot(const MVec2& b) const;
 		MVec2 normalized() const;
 		MVec2 rotate90(bool ccw) const;
+		// vertex normal
 		MVec2 normal(const MVec2& prev, const MVec2& next, bool ccw) const;
 	};
 
 	template<> float        MVec2<float>::length() const;
+	template<> float        MVec2<float>::dot(const MVec2& b) const;
 	template<> MVec2<float> MVec2<float>::normalized() const;
 	template<> MVec2<float> MVec2<float>::rotate90(bool ccw) const;
 	template<> MVec2<float> MVec2<float>::normal(const MVec2& prev, const MVec2& next, bool ccw) const;
@@ -154,9 +155,9 @@ namespace qk {
 	typedef MVec2<float> Vec2;
 	typedef MVec3<float> Vec3;
 	typedef MVec4<float> Vec4;
-	typedef MVec2<int> Vec2i;
-	typedef MVec3<int> Vec3i;
-	typedef MVec4<int> Vec4i;
+	typedef MVec2<int>   Vec2i;
+	typedef MVec3<int>   Vec3i;
+	typedef MVec4<int>   Vec4i;
 
 	// rect
 	template<typename T> struct MRect {
@@ -220,22 +221,18 @@ namespace qk {
 		Mat(float value);
 		Mat(float m0, float m1, float m2, float m3, float m4, float m5);
 		Mat(const float* values, int length = 6);
-		Mat(Vec2 translate, Vec2 scale, float rotatea, Vec2 skewa);
+		Mat(Vec2 translate, Vec2 scale, float rotate, Vec2 skew);
 		void translate(float x, float y);
 		void translate_x(float x);
 		void translate_y(float y);
 		void scale(float x, float y);
 		void scale_x(float x);
 		void scale_y(float y);
-		inline void rotate(float z) { rotatea(z * Qk_PI_RATIO_180); }
-		void rotatea(float rotate);
-		void skew(float x, float y) { skewa(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180); }
-		void skew_x(float x) { skewa_x(x * Qk_PI_RATIO_180); }
-		void skew_y(float y) { skewa_y(y * Qk_PI_RATIO_180); }
-		void skewa(float x, float y);
-		void skewa_x(float x);
-		void skewa_y(float y);
-		Mat operator*(const Mat& b) const;
+		void rotate(float rotate);
+		void skew(float x, float y);
+		void skew_x(float x);
+		void skew_y(float y);
+		Mat  operator*(const Mat& b) const;
 		Mat& operator*=(const Mat& b);
 		Vec2 operator*(const Vec2& b) const;
 		void mul(const Mat& b, Mat& output) const;
@@ -261,29 +258,15 @@ namespace qk {
 		void scale_y(float y);
 		void scale_z(float z);
 
-		inline void rotate(float x, float y, float z) {
-			rotatea(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180, z * Qk_PI_RATIO_180);
-		}
-		inline void rotate_x(float x) { rotatea_x(x * Qk_PI_RATIO_180); }
-		inline void rotate_y(float y) { rotatea_y(y * Qk_PI_RATIO_180); }
-		inline void rotate_z(float z) { rotatea_z(z * Qk_PI_RATIO_180); }
+		void rotate(float x, float y, float z);
+		void rotate_x(float x);
+		void rotate_y(float y);
+		void rotate_z(float z);
 
-		void rotatea(float x, float y, float z);
-		void rotatea_x(float x);
-		void rotatea_y(float y);
-		void rotatea_z(float z);
-
-		void skew(float x, float y, float z) {
-			skewa(x * Qk_PI_RATIO_180, y * Qk_PI_RATIO_180, z * Qk_PI_RATIO_180);
-		}
-		void skew_x(float x) { skewa_x(x * Qk_PI_RATIO_180); }
-		void skew_y(float y) { skewa_y(y * Qk_PI_RATIO_180); }
-		void skew_z(float z) { skewa_z(z * Qk_PI_RATIO_180); }
-		
-		void skewa(float x, float y, float z);
-		void skewa_x(float x);
-		void skewa_y(float y);
-		void skewa_z(float z);
+		void skew(float x, float y, float z);
+		void skew_x(float x);
+		void skew_y(float y);
+		void skew_z(float z);
 
 		Mat4 operator*(const Mat4& b) const;
 		Mat4& operator*=(const Mat4& b);

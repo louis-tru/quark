@@ -434,7 +434,7 @@ namespace qk {
 	}
 
 	void GLCanvas::rotate(float z) {
-		_curState->matrix.rotatea(z);
+		_curState->matrix.rotate(z);
 		setMatrixBuffer(_curState->matrix);
 	}
 

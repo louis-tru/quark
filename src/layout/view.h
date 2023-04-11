@@ -297,8 +297,7 @@ namespace qk {
 		virtual void set_parent(View* parent);
 
 		struct Transform {
-			Vec2 translate, scale, skew; // 平移向量, 缩放向量, 倾斜向量
-			float rotate; // z轴旋转角度值
+			Vec2 translate, scale, skew; float rotate; // 平移向量, 缩放向量, 倾斜向量, z轴旋转弧度
 		};
 		Transform *_transform; // 矩阵变换
 		Mat        _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
@@ -306,14 +305,14 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_ACC(Vec2, translate); // matrix displacement for the view
 		Qk_DEFINE_PROP_ACC(Vec2, scale); // Matrix scaling
-		Qk_DEFINE_PROP_ACC(Vec2, skew); // Matrix skew
-		Qk_DEFINE_PROP_ACC(float, rotate); // z-axis rotation of the matrix
+		Qk_DEFINE_PROP_ACC(Vec2, skew); // Matrix skew, (radian)
+		Qk_DEFINE_PROP_ACC(float, rotate); // z-axis rotation of the matrix, (radian)
 		Qk_DEFINE_PROP_ACC(float, x); // x-axis matrix displacement for the view
 		Qk_DEFINE_PROP_ACC(float, y); // y-axis matrix displacement for the view
 		Qk_DEFINE_PROP_ACC(float, scale_x); // x-axis matrix scaling for the view
 		Qk_DEFINE_PROP_ACC(float, scale_y); // y-axis matrix scaling for the view
-		Qk_DEFINE_PROP_ACC(float, skew_x); // x-axis matrix skew for the view
-		Qk_DEFINE_PROP_ACC(float, skew_y); // y-axis matrix skew for the view
+		Qk_DEFINE_PROP_ACC(float, skew_x); // x-axis matrix skew for the view, (radian)
+		Qk_DEFINE_PROP_ACC(float, skew_y); // y-axis matrix skew for the view, (radian)
 		Qk_DEFINE_PROP_ACC(bool,  is_focus); // keyboard focus view
 		// the objects that automatically adjust view properties
 		Qk_DEFINE_PROP(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
@@ -341,7 +340,7 @@ namespace qk {
 		void clear_layout_depth(); //  clear layout depth
 		void set_layout_depth_(uint32_t depth); // settings depth
 		// get transform instance
-		Transform* transform_obj();
+		Transform* transform_p();
 
 		// friend class
 		friend class SkiaRender;
