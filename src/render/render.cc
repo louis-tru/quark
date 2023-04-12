@@ -164,8 +164,7 @@ namespace qk {
 
 		// -------- clip ------
 		_canvas->save();
-		//_canvas->clipPath(Path::Circle(size*0.5, 100), Canvas::kDifference_ClipOp, 0);
-
+		//_canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kDifference_ClipOp, 0);
 
 		paint.color = Color4f(1, 1, 0, 0.5);
 
@@ -186,7 +185,7 @@ namespace qk {
 		_canvas->drawPath(Path::MakeArc({Vec2(450, 250), Vec2(200, 100)}, 4.5, 4, 0), paint);
 
 		paint.color = Color4f(0, 0, 0, 0.8);
-		_canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, 3, 4, 1), paint);
+		_canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI2, Qk_PI2+Qk_PI, 1), paint);
 
 		_canvas->restore(2);
 

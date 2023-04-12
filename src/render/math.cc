@@ -73,7 +73,12 @@ namespace qk {
 	}
 
 	template<> float MVec2<float>::length() const {
-		return sqrtf( val[0] * val[0] + val[1] * val[1] );
+		if (val[0] == 0)
+			return abs(val[1]);
+		else if (val[1] == 0)
+			return abs(val[0]);
+		else
+			return sqrtf( val[0] * val[0] + val[1] * val[1] );
 	}
 
 	template<> float MVec2<float>::dot(const MVec2& b) const {
@@ -86,29 +91,30 @@ namespace qk {
 	}
 
 	template<> MVec2<float> MVec2<float>::rotate90(bool ccw) const {
-		return ccw ? Vec2{val[1], -val[0]}: Vec2{-val[1], val[0]};
+		return ccw ? Vec2{-val[1], val[0]}: Vec2{val[1], -val[0]};
 	}
 
-	template<> MVec2<float> MVec2<float>::normal(const MVec2& prev, const MVec2& next, bool ccw) const {
-		if (prev.x() == -1.0f && prev.y() == -1.0f)
-		{
-			const Vec2 toNext = Vec2(next.x() - x(), next.y() - y()).normalized();
+	template<> MVec2<float> MVec2<float>::normalline(const MVec2 *prev, const MVec2 *next, bool ccw) const {
+		if (!prev) {
+			const Vec2 toNext = Vec2(next->x() - x(), next->y() - y()).normalized();
 			return toNext.rotate90(ccw);//.normalized();
 		}
-
-		if (next.x() == -1.0f && next.y() == -1.0f)
-		{
-			const Vec2 fromPrev = Vec2(x() - prev.x(), y() - prev.y()).normalized();
+		if (!next) {
+			const Vec2 fromPrev = Vec2(x() - prev->x(), y() - prev->y()).normalized();
 			return fromPrev.rotate90(ccw);//.normalized();
 		}
 
-		const Vec2 toNext   = Vec2(next.x() - x(), next.y() - y()).normalized();
-		const Vec2 fromPrev = Vec2(x() - prev.x(), y() - prev.y()).normalized();
+		const Vec2 toNext   = Vec2(next->x() - x(), next->y() - y()).normalized();
+		const Vec2 fromPrev = Vec2(x() - prev->x(), y() - prev->y()).normalized();
 
 		const Vec2 toNextNormal       = toNext.rotate90(ccw);
 		const Vec2 fromPreviousNormal = fromPrev.rotate90(ccw);
 
 		return (toNextNormal + fromPreviousNormal);//.normalized();
+	}
+
+	template<> float MVec2<float>::MVec2<float>::angle(const MVec2& b) const {
+		return acosf(dot(b) / length() / b.length());
 	}
 
 	bool Color4f::operator==(const Color4f& color) const {
@@ -803,9 +809,9 @@ namespace qk {
 	}
 
 	/**
-	* @method mul # 矩阵乘法
-	* @arg b {const Mat4&} b
-	* @arg output {Mat4&} output
+	 * @method mul # 矩阵乘法
+	 * @arg b {const Mat4&} b
+	 * @arg output {Mat4&} output
 	*/
 	void Mat4::mul(const Mat4& b, Mat4& output) const {
 		/*

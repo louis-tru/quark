@@ -86,20 +86,34 @@ namespace qk {
 		inline T y() const { return this->val[1]; }
 		inline void set_x(T v) { this->val[0] = v; }
 		inline void set_y(T v) { this->val[1] = v; }
-
+		inline void is_zero() const {
+			this->val[0] == 0 && this->val[1] == 0;
+		}
+		/**
+		 * @method length() returns vector length
+		 */
 		float length() const;
 		float dot(const MVec2& b) const;
 		MVec2 normalized() const;
-		MVec2 rotate90(bool ccw) const;
-		// vertex normal
-		MVec2 normal(const MVec2& prev, const MVec2& next, bool ccw) const;
+		/**
+		 * @method rotate90() Default to use Cartesian coordinate system
+		 */
+		MVec2 rotate90(bool ccw/*counter clock wise*/) const;
+		/**
+		 * Default to use Cartesian coordinate system
+		 * @method normal() Default clockwise direction inward, screen coordinates outward
+		 * @arg ccw {bool} if ccw=true then clockwise direction outward
+		 */
+		MVec2 normalline(const MVec2 *prev, const MVec2 *next, bool ccw) const;
+		float angle(const MVec2& b) const;
 	};
 
 	template<> float        MVec2<float>::length() const;
 	template<> float        MVec2<float>::dot(const MVec2& b) const;
 	template<> MVec2<float> MVec2<float>::normalized() const;
 	template<> MVec2<float> MVec2<float>::rotate90(bool ccw) const;
-	template<> MVec2<float> MVec2<float>::normal(const MVec2& prev, const MVec2& next, bool ccw) const;
+	template<> MVec2<float> MVec2<float>::normalline(const MVec2 *prev, const MVec2 *next, bool ccw) const;
+	template<> float        MVec2<float>::angle(const MVec2& b) const;
 
 	template <typename T> struct MVec3: public MVec<T, 3> {
 		inline MVec3(): MVec3(0) {}

@@ -445,7 +445,7 @@ namespace qk {
 					if (len > 1) { // auto close
 						tessAddContour(tess, 3, (float*)&tmpV[tmpV.length() - len], sizeof(Vec3), len);
 					}
-					tmpV.push(Vec3(*pts++, 0)); len = 1;
+					tmpV.push(Vec3(*pts++, 0)); len=1;
 					break;
 				case kVerb_Line:
 					if (len == 0) {
@@ -487,10 +487,6 @@ namespace qk {
 		return std::move(polygons);
 	}
 	
-	Vec2 vertexNormal(const Vec2& point, const Vec2& previousPoint, const Vec2& nextPoint, bool ccw) {
-		
-	}
-
 	Path Path::strokePath(float width, Join join, float offset) const {
 		Path tmp;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, false, 1);
@@ -498,9 +494,12 @@ namespace qk {
 		for (auto verb: self->_verbs) {
 			switch(verb) {
 				case kVerb_Move:
-					
 					break;
 				case kVerb_Line:
+					break;
+				case kVerb_Quad:
+					break;
+				case kVerb_Cubic:
 					break;
 				default: // close
 					Qk_ASSERT(verb == kVerb_Close);
