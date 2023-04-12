@@ -207,6 +207,8 @@ namespace qk {
 
 		paint.color = Color4f(0, 1, 1);
 		_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, 50, 80, 50, 80), paint);
+		
+		Qk_DEBUG("%d", sizeof(signed long));
 	}
 
 	void RenderBackend::visitFloatLayout(FloatLayout* flow) {
