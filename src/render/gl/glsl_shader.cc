@@ -206,7 +206,7 @@ namespace qk {
 		",
 		{}, "color");
 	}
-	
+
 	void GLSLColorDotted::build() {
 		compile_link_shader(this, "color dotted shader",
 		"\

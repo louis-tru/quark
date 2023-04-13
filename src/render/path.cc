@@ -36,9 +36,9 @@
 
 namespace qk {
 
-	Path Path::MakeOval(const Rect& r) {
+	Path Path::MakeOval(const Rect& r, bool ccw) {
 		Path path;
-		path.ovalTo(r);
+		path.ovalTo(r, ccw);
 		path.close();
 		return std::move(path);
 	}
@@ -50,19 +50,19 @@ namespace qk {
 		return std::move(path);
 	}
 
-	Path Path::MakeRect(const qk::Rect& r) {
+	Path Path::MakeRect(const Rect& r, bool ccw) {
 		Path path;
-		path.rectTo(r);
+		path.rectTo(r,ccw);
 		path.close();
 		return std::move(path);
 	}
 
-	Path Path::MakeCircle(Vec2 center, float radius) {
-		return MakeOval({ Vec2(center.x() - radius, center.y() - radius), Vec2(radius) * 2 });
+	Path Path::MakeCircle(Vec2 center, float radius, bool ccw) {
+		return MakeOval({ Vec2(center.x() - radius, center.y() - radius), Vec2(radius) * 2 }, ccw);
 	}
 
 	void setRrectOutline(Path &path,
-		const Rect& outside, const Rect *inside, Vec2 a, Vec2 b, Vec2 c, Vec2 d)
+		const Rect& outside, const Rect *inside, const Path::BorderRadius& br)
 	{
 		auto arc = [&](Vec2 origin, Vec2 r, Vec2 dir, float startAngle, float sweepAngle) {
 			if (r.x() != 0 && r.y() != 0) {
@@ -73,9 +73,14 @@ namespace qk {
 			}
 		};
 
+		Vec2 a = br.leftTop;
+		Vec2 b = br.rightTop;
+		Vec2 c = br.rightBottom;
+		Vec2 d = br.leftBottom;
 		Vec2 origin = outside.origin;
 		Vec2 end = origin + outside.size;
 
+		// cw
 		arc(origin, a, Vec2(0), Qk_PI, -Qk_PI2); // left-top
 		arc({end.x(), origin.y()}, b, Vec2(-1,0), Qk_PI2, -Qk_PI2); // right-top
 		arc(end, c, Vec2(-1), 0, -Qk_PI2); // right-bottom
@@ -102,6 +107,7 @@ namespace qk {
 		c = { Float::max(c.x() - right, 0.0), Float::max(c.y() - bottom, 0.0) };
 		d = { Float::max(d.x() - left, 0.0), Float::max(d.y() - bottom, 0.0) };
 
+		// ccw
 		arc(origin, a, Vec2(0), Qk_PI2, Qk_PI2); // left-top
 		arc({origin.x(), end.y()}, d, Vec2(0,-1), Qk_PI, Qk_PI2); // left-bottom
 		arc(end, c, Vec2(-1), -Qk_PI2, Qk_PI2); // right-bottom
@@ -110,20 +116,52 @@ namespace qk {
 		path.close();
 	}
 
-	Path Path::MakeRRect(const Rect& rect, Vec2 a, Vec2 b, Vec2 c, Vec2 d)
+	Path Path::MakeRRect(const Rect& rect, const BorderRadius& br)
 	{
 		Path path;
-		setRrectOutline(path, rect, NULL, a, b, c, d);
+		setRrectOutline(path, rect, NULL, br);
 		return std::move(path);
 	}
 
 	Path Path::MakeRRectOutline(
-		const Rect& outside, const Rect &inside, Vec2 a, Vec2 b, Vec2 c, Vec2 d) {
+		const Rect& outside, const Rect &inside, const BorderRadius& br) {
 		Path path;
-		setRrectOutline(path, outside, &inside, a, b, c, d);
+		setRrectOutline(path, outside, &inside, br);
+		// TODO ... add ext data
+		// Array<float> extData(20);
+		
 		return std::move(path);
 	}
 	
+	Path Path::MakeRectOutline(const Rect &outside, const Rect &inside) {
+		Path path;
+		path.rectTo(outside);
+		path.close();
+		path.rectTo(inside, true);
+		path.close();
+
+		Array<float> extData(10);
+		Vec2 end = outside.size + outside.origin;
+
+		// outside
+		float length = 0;
+		extData[0] = length; // left/top
+		extData[1] = (length+=end.x()); // right/top
+		extData[2] = (length+=end.y()); // right/bottom
+		extData[3] = (length+=end.x()); // left/bottom
+		extData[4] = (length+=end.y()); // left/top
+		// inside
+		extData[5] = length; // left/top
+		extData[6] = (length-=end.y()); // left/bottom
+		extData[7] = (length-=end.x()); // right/bottom
+		extData[8] = (length-=end.y()); // right/top
+		extData[9] = (length-=end.x()); // left/top
+
+		path.setExtData(std::move(extData));
+
+		return std::move(path);
+	}
+
 	Path::Path(Vec2 move): _IsNormalized(true) {
 		moveTo(move);
 	}
@@ -167,27 +205,41 @@ namespace qk {
 
 	constexpr float magicCircle = 0.551915024494f; // 0.552284749831f
 
-	void Path::ovalTo(const Rect& r) {
+	void Path::ovalTo(const Rect& r, bool ccw) {
 		float w = r.size.x(), h = r.size.y();
 		float x = r.origin.x(), y = r.origin.y();
-		float x2 = x + w / 2, y2 = y + h / 2;
+		float x2 = x + w * 0.5, y2 = y + h * 0.5;
 		float x3 = x + w, y3 = y + h;
-		float cx = w / 2 * magicCircle, cy = h / 2 * magicCircle;
-		startTo(Vec2(x2, y));
-		float a[] = {x2 + cx, y, x3, y2 - cy, x3, y2}; cubicTo2(a); // top,right
-		float b[] = {x3, y2 + cy, x2 + cx, y3, x2, y3}; cubicTo2(b); // right,bottom
-		float c[] = {x2 - cx, y3, x, y2 + cy, x, y2}; cubicTo2(c); // bottom,left
-		float d[] = {x, y2 - cy, x2 - cx, y, x2, y}; cubicTo2(d); // left,top
+		float cx = w * 0.5 * magicCircle, cy = h * 0.5 * magicCircle;
+		startTo(Vec2(x2, y)); // center,top
+
+		if (ccw) {
+			float d[] = {x2 - cx, y, x, y2 - cy, x, y2}; cubicTo2(d); // left,top
+			float c[] = {x, y2 + cy, x2 - cx, y3, x2, y3}; cubicTo2(c); // bottom,left
+			float b[] = {x2 + cx, y3, x3, y2 + cy, x3, y2}; cubicTo2(b); // right,bottom
+			float a[] = {x3, y2 - cy, x2 + cx, y, x2, y}; cubicTo2(a); // top,right
+		} else {
+			float a[] = {x2 + cx, y, x3, y2 - cy, x3, y2}; cubicTo2(a); // top,right
+			float b[] = {x3, y2 + cy, x2 + cx, y3, x2, y3}; cubicTo2(b); // right,bottom
+			float c[] = {x2 - cx, y3, x, y2 + cy, x, y2}; cubicTo2(c); // bottom,left
+			float d[] = {x, y2 - cy, x2 - cx, y, x2, y}; cubicTo2(d); // left,top
+		}
 	}
 
-	void Path::rectTo(const Rect& r) {
+	void Path::rectTo(const Rect& r, bool ccw) {
 		startTo(r.origin);
 		float x2 = r.origin.x() + r.size.x();
 		float y2 = r.origin.y() + r.size.y();
-		lineTo(Vec2(x2, r.origin.y()));
-		lineTo(Vec2(x2, y2));
-		lineTo(Vec2(r.origin.x(), y2));
-		lineTo(r.origin); // origin point
+		if (ccw) {
+			lineTo(Vec2(r.origin.x(), y2)); // bottom left
+			lineTo(Vec2(x2, y2)); // bottom right
+			lineTo(Vec2(x2, r.origin.y())); // top right
+		} else {
+			lineTo(Vec2(x2, r.origin.y())); // top right
+			lineTo(Vec2(x2, y2)); // bottom right
+			lineTo(Vec2(r.origin.x(), y2)); // bottom left
+		}
+		lineTo(r.origin); // top left, origin point
 	}
 
 	void Path::arcTo(const Rect& r, float startAngle, float sweepAngle, bool useCenter) {
@@ -269,7 +321,7 @@ namespace qk {
 	}
 	
 	void Path::setExtData(Array<float> &&extData) {
-		// TODO ...
+		_ptsExt = std::move(extData);
 	}
 
 	Array<Vec2> Path::getEdgeLines(bool close, float epsilon) const {
@@ -313,55 +365,6 @@ namespace qk {
 			}
 		}
 
-		if (close) {
-			closeLine();
-		}
-		
-		return std::move(edges);
-	}
-
-	Array<Vec3> Path::getEdgeLinesAndLength(bool close, float epsilon) const {
-		Path tmp;
-		const Path *self = _IsNormalized ? this: normalized(&tmp, false,epsilon);
-		Array<Vec3> edges;
-		auto pts = (const Vec2*)*self->_pts;
-		int  len = 0;
-		Vec3 prev;
-		
-		auto closeLine = [&]() {
-			if (len) {
-				auto vertex = edges[edges.length() - len].xy();
-				edges.push(prev);
-				edges.push(Vec3(vertex, (vertex - prev.xy()).length() + prev.z()));
-			}
-		};
-
-		for (auto verb: self->_verbs) {
-			switch(verb) {
-				case kVerb_Move:
-					if (close) {
-						closeLine();
-					}
-					prev = Vec3(*pts++, 0);
-					len = 0;
-					break;
-				case kVerb_Line: {
-					edges.push(prev);
-					prev = Vec3(*pts, (prev.xy() - *pts).length() + prev.z());
-					edges.push(prev); // edge 0
-					pts++;
-					len+=2;
-					break;
-				}
-				default: // close
-					Qk_ASSERT(verb == kVerb_Close);
-					closeLine(); // add close edge line
-					prev = Vec3();
-					len = 0;
-					break;
-			}
-		}
-		
 		if (close) {
 			closeLine();
 		}
@@ -425,88 +428,14 @@ namespace qk {
 		tessDeleteTess(tess);
 		return std::move(polygons);
 	}
-	
-	Array<float> Path::getPolygonsFromOutline(float width, Join join,
-			int polySize, float epsilon, float offset, bool isLen
-	) const {
-		// TODO ...
 
-		Path tmp;
-		const Path *self = _IsNormalized ? this: normalized(&tmp, false,epsilon);
-		auto tess = tessNewTess(nullptr); // TESStesselator*
-		auto pts = (const Vec2*)*self->_pts;
-		int len = 0;
-		Array<float> polygons;
-		Array<Vec3> tmpV;
-
-		for (auto verb: self->_verbs) {
-			switch(verb) {
-				case kVerb_Move:
-					if (len > 1) { // auto close
-						tessAddContour(tess, 3, (float*)&tmpV[tmpV.length() - len], sizeof(Vec3), len);
-					}
-					tmpV.push(Vec3(*pts++, 0)); len=1;
-					break;
-				case kVerb_Line:
-					if (len == 0) {
-						tmpV.push(Vec3(0)); len=1; // use Vec2(0,0) start point
-					}
-					tmpV.push(Vec3(*pts++, 0)); len++;
-					break;
-				default: // close
-					Qk_ASSERT(verb == kVerb_Close);
-					if (len) {
-						tmpV.push(tmpV[tmpV.length() - len++]);
-						tessAddContour(tess, 3, (float*)&tmpV[tmpV.length() - len], sizeof(Vec3), len);
-						len = 0;
-					}
-					break;
-			}
-		}
-
-		if (len > 1) { // auto close
-			tessAddContour(tess, 3, (float*)&tmpV[tmpV.length() - len], sizeof(Vec3), len);
-		}
-
-		// Convert to convex contour vertex data
-		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 3, 0) ) {
-
-			const int nelems = tessGetElementCount(tess);
-			const TESSindex* elems = tessGetElements(tess);
-			const Vec3* verts = (const Vec3*)tessGetVertices(tess);
-
-			polygons.extend(nelems * polySize * 3);
-
-			for (int i = 0; i < polygons.length(); i+=3) {
-				// polygons[i] = verts[*elems++];
-				*reinterpret_cast<Vec3*>(polygons.val() + i) = verts[*elems++];
-			}
-		}
-		
-		tessDeleteTess(tess);
-		return std::move(polygons);
-	}
-	
-	Path Path::strokePath(float width, Join join, float offset) const {
+	Path Path::dashPath(float offset, float phase, float interval) const {
 		Path tmp;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, false, 1);
-		
-		for (auto verb: self->_verbs) {
-			switch(verb) {
-				case kVerb_Move:
-					break;
-				case kVerb_Line:
-					break;
-				case kVerb_Quad:
-					break;
-				case kVerb_Cubic:
-					break;
-				default: // close
-					Qk_ASSERT(verb == kVerb_Close);
-					break;
-			}
-		}
-
+		// TODO ...
+	}
+	
+	Path Path::strokePath(float width, Cap cap, Join join, float offset) const {
 		// TODO ...
 		return *this;
 	}

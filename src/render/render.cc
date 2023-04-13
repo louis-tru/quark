@@ -65,24 +65,23 @@ namespace qk {
 	void RenderBackend::activate(bool isActive) {
 	}
 
-	Array<float>& RenderBackend::getPathPolygonsCache(const Path &path, bool isExt) {
-		auto hash = path.hashCode() << 1 | isExt;
+	Array<float>& RenderBackend::getPathPolygonsCache(const Path &path) {
+		auto hash = path.hashCode();
 		auto it = _PathPolygonsCache.find(hash);
 		if (it != _PathPolygonsCache.end()) {
 			return it->value;
 		}
 		if (_PathPolygonsCache.length() >= 1024)
 			_PathPolygonsCache.clear();
-		return _PathPolygonsCache.set(hash, path.getPolygons(3, 1, isExt));
+		return _PathPolygonsCache.set(hash, path.getPolygons(3, 1));
 	}
 
 	Array<float>& RenderBackend::getPathStrokesCache(
-		const Path &path, float width, Paint::Join join, float offset, bool isExt)
+		const Path &path, float width, Paint::Join join, float offset)
 	{
 		auto hash = path.hashCode();
 		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&offset;
 		hash += (hash << 5) + hash_part + join;
-		hash = (hash << 1) | isExt;
 		auto it = _PathStrokesCache.find(hash);
 		if (it != _PathStrokesCache.end()) {
 			return it->value;
@@ -90,7 +89,7 @@ namespace qk {
 		if (_PathStrokesCache.length() >= 1024)
 			_PathStrokesCache.clear();
 		return _PathStrokesCache
-			.set(hash, path.strokePath(width, join, offset).getPolygons(3, 1, isExt));
+			.set(hash, path.strokePath(width, Paint::kButt_Cap, join, offset).getPolygons(3, 1));
 	}
 
 	void RenderBackend::visitView(View* v) {
@@ -203,11 +202,11 @@ namespace qk {
 		}
 
 		paint.color = Color4f(0, 0, 0);
-		_canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, 50, 80, 50, 80), paint);
+		_canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
 
 		paint.color = Color4f(0, 1, 1);
-		_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, 50, 80, 50, 80), paint);
-		
+		_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
+
 		Qk_DEBUG("%d", sizeof(signed long));
 	}
 

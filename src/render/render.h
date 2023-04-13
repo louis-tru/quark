@@ -78,9 +78,9 @@ namespace qk {
 		inline  Delegate* delegate() { return _delegate; }
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
-		Array<float>&    getPathPolygonsCache(const Path &path, bool isExt = false);
+		Array<float>&    getPathPolygonsCache(const Path &path);
 		Array<float>&    getPathStrokesCache(
-			const Path &path, float width, Paint::Join join, float offset, bool isExt = false);
+			const Path &path, float width, Paint::Join join, float offset);
 		// @overwrite class ViewVisitor
 		virtual void    visitView(View* v) override;
 		virtual void    visitBox(Box* box) override;

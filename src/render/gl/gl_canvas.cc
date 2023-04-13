@@ -456,7 +456,7 @@ namespace qk {
 			glEnable(GL_STENCIL_TEST); // enable stencil test
 		}
 
-		Clip clip{_backend->getPathPolygonsCache(path, false), op, antiAlias};
+		Clip clip{_backend->getPathPolygonsCache(path), op, antiAlias};
 
 		if (drawClip(&clip)) {
 			// save clip state
