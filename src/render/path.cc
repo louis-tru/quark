@@ -61,7 +61,7 @@ namespace qk {
 		return MakeOval({ Vec2(center.x() - radius, center.y() - radius), Vec2(radius) * 2 }, ccw);
 	}
 
-	void setRrectOutline(Path &path,
+	void setRRect(Path &path,
 		const Rect& outside, const Rect *inside, const Path::BorderRadius& br)
 	{
 		auto arc = [&](Vec2 origin, Vec2 r, Vec2 dir, float startAngle, float sweepAngle) {
@@ -69,7 +69,12 @@ namespace qk {
 				Vec2 s = r*2;
 				path.arcTo({origin+s*dir, s}, startAngle, sweepAngle, false);
 			} else {
-				path.moveTo(origin);
+				auto len = path.verbsLen();
+				if (len && path.verbs()[len] != Path::kVerb_Close) {
+					path.lineTo(origin);
+				} else {
+					path.moveTo(origin);
+				}
 			}
 		};
 
@@ -94,18 +99,18 @@ namespace qk {
 		Vec2 inside_origin = inside->origin;
 		Vec2 inside_end = inside_origin + inside->size;
 
-		float top = inside_origin.y() - origin.y();
-		float right = end.x() - inside_end.x();
+		float top    = inside_origin.y() - origin.y();
+		float right  = end.x() - inside_end.x();
 		float bottom = end.y() - inside_end.y();
-		float left = inside_origin.x() - origin.x();
+		float left   = inside_origin.x() - origin.x();
 
 		origin = inside_origin;
-		end = inside_end;
+		end    = inside_end;
 
-		a = { Float::max(a.x() - left, 0.0), Float::max(a.y() - top, 0.0) };
-		b = { Float::max(b.x() - right, 0.0), Float::max(b.y() - top, 0.0) };
-		c = { Float::max(c.x() - right, 0.0), Float::max(c.y() - bottom, 0.0) };
-		d = { Float::max(d.x() - left, 0.0), Float::max(d.y() - bottom, 0.0) };
+		a = { Float::max(a.x() - left, 0.0), Float::max(a.y() - top, 0.0) }; // left/top
+		b = { Float::max(b.x() - right, 0.0), Float::max(b.y() - top, 0.0) }; // left/bottom
+		c = { Float::max(c.x() - right, 0.0), Float::max(c.y() - bottom, 0.0) }; // right/bottom
+		d = { Float::max(d.x() - left, 0.0), Float::max(d.y() - bottom, 0.0) }; // right/top
 
 		// ccw
 		arc(origin, a, Vec2(0), Qk_PI2, Qk_PI2); // left-top
@@ -119,46 +124,13 @@ namespace qk {
 	Path Path::MakeRRect(const Rect& rect, const BorderRadius& br)
 	{
 		Path path;
-		setRrectOutline(path, rect, NULL, br);
+		setRRect(path, rect, NULL, br);
 		return std::move(path);
 	}
 
-	Path Path::MakeRRectOutline(
-		const Rect& outside, const Rect &inside, const BorderRadius& br) {
+	Path Path::MakeRRectOutline(const Rect& outside, const Rect &inside, const BorderRadius &br) {
 		Path path;
-		setRrectOutline(path, outside, &inside, br);
-		// TODO ... add ext data
-		// Array<float> extData(20);
-		
-		return std::move(path);
-	}
-	
-	Path Path::MakeRectOutline(const Rect &outside, const Rect &inside) {
-		Path path;
-		path.rectTo(outside);
-		path.close();
-		path.rectTo(inside, true);
-		path.close();
-
-		Array<float> extData(10);
-		Vec2 end = outside.size + outside.origin;
-
-		// outside
-		float length = 0;
-		extData[0] = length; // left/top
-		extData[1] = (length+=end.x()); // right/top
-		extData[2] = (length+=end.y()); // right/bottom
-		extData[3] = (length+=end.x()); // left/bottom
-		extData[4] = (length+=end.y()); // left/top
-		// inside
-		extData[5] = length; // left/top
-		extData[6] = (length-=end.y()); // left/bottom
-		extData[7] = (length-=end.x()); // right/bottom
-		extData[8] = (length-=end.y()); // right/top
-		extData[9] = (length-=end.x()); // left/top
-
-		path.setExtData(std::move(extData));
-
+		setRRect(path, outside, &inside, br);
 		return std::move(path);
 	}
 
@@ -319,10 +291,6 @@ namespace qk {
 	void Path::close() {
 		_verbs.push(kVerb_Close);
 	}
-	
-	void Path::setExtData(Array<float> &&extData) {
-		_ptsExt = std::move(extData);
-	}
 
 	Array<Vec2> Path::getEdgeLines(bool close, float epsilon) const {
 		Path tmp;
@@ -372,43 +340,49 @@ namespace qk {
 		return std::move(edges);
 	}
 
-	Array<float> Path::getPolygons(int polySize, float epsilon, bool isExt) const {
-		Path tmp;
-		const Path *self = _IsNormalized ? this: normalized(&tmp, false,epsilon);
+	Array<Vec2> Path::getVertexsFromPaths(const Path *paths, int pathsLen, int polySize, float epsilon) {
 		auto tess = tessNewTess(nullptr); // TESStesselator*
-		auto pts = (const Vec2*)*self->_pts;
-		int len = 0;
-		Array<float> polygons;
-		Array<Vec2> tmpV;
+		
+		for (int i = 0; i < pathsLen; i++) {
+			Path tmp;
+			const Path *self = paths[i]._IsNormalized ?
+				paths+i: paths[i].normalized(&tmp, false, epsilon);
 
-		for (auto verb: self->_verbs) {
-			switch(verb) {
-				case kVerb_Move:
-					if (len > 1) { // auto close
-						tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
-					}
-					tmpV.push(*pts++); len = 1;
-					break;
-				case kVerb_Line:
-					if (len == 0) {
-						tmpV.push(Vec2(0)); len=1; // use Vec2(0,0) start point
-					}
-					tmpV.push(*pts++); len++;
-					break;
-				default: // close
-					Qk_ASSERT(verb == kVerb_Close);
-					if (len) {
-						tmpV.push(tmpV[tmpV.length() - len++]);
-						tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
-						len = 0;
-					}
-					break;
+			auto pts = (const Vec2*)*self->_pts;
+			int len = 0;
+			Array<Vec2> tmpV;
+
+			for (auto verb: self->_verbs) {
+				switch(verb) {
+					case kVerb_Move:
+						if (len > 1) { // auto close
+							tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
+						}
+						tmpV.push(*pts++); len = 1;
+						break;
+					case kVerb_Line:
+						if (len == 0) {
+							tmpV.push(Vec2(0)); len=1; // use Vec2(0,0) start point
+						}
+						tmpV.push(*pts++); len++;
+						break;
+					default: // close
+						Qk_ASSERT(verb == kVerb_Close);
+						if (len) {
+							tmpV.push(tmpV[tmpV.length() - len++]);
+							tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
+							len = 0;
+						}
+						break;
+				}
+			}
+
+			if (len > 1) { // auto close
+				tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
 			}
 		}
-
-		if (len > 1) { // auto close
-			tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
-		}
+		
+		Array<Vec2> vertexs;
 
 		// Convert to convex contour vertex data
 		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 2, 0) ) {
@@ -417,16 +391,15 @@ namespace qk {
 			const TESSindex* elems = tessGetElements(tess);
 			const Vec2* verts = (const Vec2*)tessGetVertices(tess);
 
-			polygons.extend(nelems * polySize * 2);
+			vertexs.extend(nelems * polySize);
 
-			for (int i = 0; i < polygons.length(); i+=2) {
-				// polygons[i] = verts[*elems++];
-				*reinterpret_cast<Vec2*>(polygons.val() + i) = verts[*elems++];
+			for (int i = 0; i < vertexs.length(); i++) {
+				vertexs[i] = verts[*elems++];
 			}
 		}
 
 		tessDeleteTess(tess);
-		return std::move(polygons);
+		return std::move(vertexs);
 	}
 
 	Path Path::dashPath(float offset, float phase, float interval) const {
@@ -597,5 +570,64 @@ namespace qk {
 			return 30;
 		}
 	}
+	
+	// ------------------- R e c t . O u t l i n e . P a t h -------------------
+	
+	RectPath RectPath::MakeRect(const Rect &rect) {
+		RectPath path;
+		// TODO ...
+
+		std::move(MakeRect);
+	}
+
+	RectPath RectPath::MakeRRect(const Rect &rect, const Path::BorderRadius &br) {
+		RectPath path;
+		// TODO ...
+
+		std::move(path);
+	}
+
+	RectOutlinePath RectOutlinePath::MakeRRectOutline(
+		const Rect& outside, const Rect &inside, const Path::BorderRadius& br) {
+		RectOutlinePath path;
+		// TODO ..
+
+		std::move(path);
+	}
+
+	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &outside, const Rect &inside) {
+		RectOutlinePath path;
+
+		Path &op = path.outside;
+		Path &ip = path.inside;
+		Array<float> &vertex = path.vertex;
+		
+		// TODO ...
+
+		// contain outline length offset and width offset and border direction
+		// of ext data item
+
+		Vec2 outside_origin = outside.origin;
+		Vec2 outside_end = outside_origin + outside.size;
+
+		/* rect outline border
+			 __________________
+			|\ ______________ /|
+			| |              | |
+			| |              | |
+			| |______________| |
+			|/________________\|
+		*/
+
+		op.startTo(outside_origin); // top left
+		op.lineTo(Vec2(outside_end.x(), outside_origin.y())); // top right
+		op.lineTo(outside_end); // bottom right
+		op.lineTo(Vec2(outside_origin.x(), outside_end.y())); // bottom left
+		op.lineTo(outside_origin); // top left, origin point
+		op.close();
+		
+		std::move(path);
+	}
+
 
 }

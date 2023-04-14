@@ -66,7 +66,7 @@ namespace qk {
 		float sample_curve_y(float t) const;
 
 		/**
-		* @method compute_bezier_points
+		 * @method compute_bezier_points
 		*/
 		void sample_curve_points(uint32_t sample_count, float* out, int stride = 2) const;
 
@@ -90,12 +90,12 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Vec2, p3);
 
 		/**
-		* @constructor
+		 * @constructor
 		*/
 		inline CubicBezier() {}
 		
 		/**
-		* @constructor
+		 * @constructor
 		*/
 		CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3);
 			
@@ -137,18 +137,18 @@ namespace qk {
 	public:
 		
 		/**
-		* @constructor
+		 * @constructor
 		*/
 		FixedCubicBezier();
 		
 		/**
-		* Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
-		* @constructor
+		 * Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
+		 * @constructor
 		*/
 		FixedCubicBezier(Vec2 p1, Vec2 p2);
 		
 		/**
-		* @constructor
+		 * @constructor
 		*/
 		inline FixedCubicBezier(float p1x, float p1y, float p2x, float p2y)
 			: FixedCubicBezier(Vec2(p1x, p1y), Vec2(p2x, p2y))
@@ -167,12 +167,12 @@ namespace qk {
 		float solve_t(float x, float epsilon) const;
 		
 		/**
-		* @method solve
+		 * @method solve_y
 		*/
 		inline float solve_y(float x, float epsilon) const {
 			return (this->*_solve_y)(x, epsilon);
 		}
-		
+
 	private:
 		
 		typedef float (FixedCubicBezier::*Solve)(float x, float epsilon) const;

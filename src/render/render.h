@@ -78,8 +78,8 @@ namespace qk {
 		inline  Delegate* delegate() { return _delegate; }
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
-		Array<float>&    getPathPolygonsCache(const Path &path);
-		Array<float>&    getPathStrokesCache(
+		Array<Vec2>&     getPathVertexsCache(const Path &path);
+		Array<Vec2>&     getPathStrokesCache(
 			const Path &path, float width, Paint::Join join, float offset);
 		// @overwrite class ViewVisitor
 		virtual void    visitView(View* v) override;
@@ -105,8 +105,8 @@ namespace qk {
 		Delegate     *_delegate;
 		Vec2          _surface_size; // recommend default surface scale
 		float         _default_scale;
-		Dict<uint64_t, Array<float>> _PathPolygonsCache;
-		Dict<uint64_t, Array<float>> _PathStrokesCache;
+		Dict<uint64_t, Array<Vec2>> _PathVertexsCache; // path hash => vertexs
+		Dict<uint64_t, Array<Vec2>> _PathStrokesCache; // path hash => stroke vertexs
 	};
 
 	typedef RenderBackend Render;

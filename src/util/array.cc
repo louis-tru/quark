@@ -132,7 +132,7 @@ namespace qk {
 			while (i < len2) {
 				char* src = _src + (i * size);
 				char* dest = _src + ((len - i - 1) * size);
-				memcpy(tmp, src, size);
+				memcpy(tmp, src, size); // swap data
 				memcpy(src, dest, size);
 				memcpy(dest, tmp, size);
 				i++;

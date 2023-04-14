@@ -42,17 +42,15 @@ namespace qk {
 	class Qk_EXPORT Path: public Object {
 	public:
 		enum PathVerb: uint8_t {
-			kVerb_Move = 0, // move
+			kVerb_Move,  // move
 			kVerb_Line,  // straight line
 			kVerb_Quad,  // quadratic bezier
 			kVerb_Cubic, // Cubic bezier
 			kVerb_Close, // close
 		};
 		struct BorderRadius {
-			Vec2 leftTop;
-			Vec2 rightTop;
-			Vec2 rightBottom;
-			Vec2 leftBottom;
+			Vec2 leftTop,     rightTop;
+			Vec2 rightBottom, leftBottom;
 		};
 		typedef Paint::Join Join;
 		typedef Paint::Cap  Cap;
@@ -61,9 +59,7 @@ namespace qk {
 		static Path MakeRect(const Rect& rect, bool ccw = false);
 		static Path MakeCircle(Vec2 center, float radius, bool ccw = false);
 		static Path MakeRRect(const Rect& rect, const BorderRadius &br);
-		static Path MakeRRectOutline(
-			const Rect &outside, const Rect &inside, const BorderRadius &br);
-		static Path MakeRectOutline(const Rect &outside, const Rect &inside);
+		static Path MakeRRectOutline(const Rect& outside, const Rect &inside, const BorderRadius &br);
 		Path();
 		Path(Vec2 move);
 		// add path points
@@ -75,6 +71,7 @@ namespace qk {
 		void rectTo(const Rect& rect, bool ccw = false);
 		void arcTo (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		void close(); // close line
+		void startTo(Vec2 p); // call move to or line to
 		// point ptr
 		inline const Vec2* pts() const { return (const Vec2*)*_pts; }
 		inline const PathVerb* verbs() const { return (const PathVerb*)*_verbs; }
@@ -82,12 +79,6 @@ namespace qk {
 		inline uint32_t verbsLen() const { return _verbs.length(); }
 		inline bool isNormalized() const { return _IsNormalized; }
 		inline uint64_t hashCode() const { return _hash.hash_code(); }
-		inline const Array<float> &extData() const { return _ptsExt; }
-		/**
-		 * @brief extData.length == ptsLen
-		 * @method setExtData()
-		 */
-		void setExtData(Array<float>&& extData);
 
 		// convert func
 		/**
@@ -98,10 +89,12 @@ namespace qk {
 		Array<Vec2> getEdgeLines(bool close, float epsilon = 1.0) const;
 
 		/**
-		 * @method getPolygons() convert to polygons
-		 * @return {Array<float>} points point { x, y, extData? }[]
+		 * @method getVertexs() Convert to fixed size polygon vertices
+		 * @return {Array<Vec2>} points point { x, y }[]
 		*/
-		Array<float> getPolygons(int polySize = 3, float epsilon = 1.0, bool isExt = false) const;
+		inline Array<Vec2> getVertexs(int polySize = 3, float epsilon = 1.0) const {
+			return getVertexsFromPaths(this, 1, polySize, epsilon);
+		}
 
 		/**
 		 * @method dashPath() returns the dash path
@@ -117,18 +110,37 @@ namespace qk {
 		// scale transfrom
 		void scale(Vec2 scale);
 		// estimate sample rate
-		static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon = 1.0);
-		static int getCubicBezierSample(const CubicBezier& curve, float epsilon = 1.0);
+		static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon);
+		static int getCubicBezierSample(const CubicBezier& curve, float epsilon);
+		static Array<Vec2> getVertexsFromPaths(const Path *paths, int pathsLen, int polySize, float epsilon);
 	private:
 		Path* normalized(Path *out, bool updateHash, float epsilon) const;
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
-		void startTo(Vec2 p);
 		Array<float> _pts; // Vec2 {x,y}
-		Array<float> _ptsExt; //
 		Array<uint8_t> _verbs;
 		SimpleHash _hash;
 		bool _IsNormalized;
+	};
+
+	// Optimizing rect vertex generation algorithm
+	struct Qk_EXPORT RectPath {
+		Path        path;
+		Array<Vec2> vertex; // triangle vertex {x,y}[3]
+		static RectPath MakeRect(const Rect& rect);
+		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &br);
+	};
+
+	// Optimizing rect outline vertex generation algorithm
+	struct Qk_EXPORT RectOutlinePath {
+		Path         outside,inside;
+		// triangle vertex items {
+		//   x,y,length-offset,width-offset,border-direction
+	  // }[3]
+		Array<float> vertex; // triangle vertex
+		static RectOutlinePath MakeRectOutline(const Rect &outside, const Rect &inside);
+		static RectOutlinePath MakeRRectOutline(
+			const Rect &outside, const Rect &inside, const Path::BorderRadius &br);
 	};
 
 }

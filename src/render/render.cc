@@ -65,18 +65,18 @@ namespace qk {
 	void RenderBackend::activate(bool isActive) {
 	}
 
-	Array<float>& RenderBackend::getPathPolygonsCache(const Path &path) {
+	Array<Vec2>& RenderBackend::getPathVertexsCache(const Path &path) {
 		auto hash = path.hashCode();
-		auto it = _PathPolygonsCache.find(hash);
-		if (it != _PathPolygonsCache.end()) {
+		auto it = _PathVertexsCache.find(hash);
+		if (it != _PathVertexsCache.end()) {
 			return it->value;
 		}
-		if (_PathPolygonsCache.length() >= 1024)
-			_PathPolygonsCache.clear();
-		return _PathPolygonsCache.set(hash, path.getPolygons(3, 1));
+		if (_PathVertexsCache.length() >= 1024)
+			_PathVertexsCache.clear();
+		return _PathVertexsCache.set(hash, path.getVertexs(3, 1));
 	}
 
-	Array<float>& RenderBackend::getPathStrokesCache(
+	Array<Vec2>& RenderBackend::getPathStrokesCache(
 		const Path &path, float width, Paint::Join join, float offset)
 	{
 		auto hash = path.hashCode();
@@ -89,7 +89,7 @@ namespace qk {
 		if (_PathStrokesCache.length() >= 1024)
 			_PathStrokesCache.clear();
 		return _PathStrokesCache
-			.set(hash, path.strokePath(width, Paint::kButt_Cap, join, offset).getPolygons(3, 1));
+			.set(hash, path.strokePath(width, Paint::kButt_Cap, join, offset).getVertexs(3, 1));
 	}
 
 	void RenderBackend::visitView(View* v) {
@@ -165,41 +165,41 @@ namespace qk {
 		_canvas->save();
 		//_canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kDifference_ClipOp, 0);
 
-		paint.color = Color4f(1, 1, 0, 0.5);
-
-		Path path(   Vec2(0, size.y() - 10) );
-		path.lineTo( size );
-		path.lineTo( Vec2(size.x()*0.5, 0) );
-
-		path.moveTo( Vec2(100, 100) );
-		path.lineTo( Vec2(100, 200) );
-		path.lineTo( Vec2(200, 200) );
-		path.close();
-		_canvas->drawPath(path, paint);
-
-		paint.color = Color4f(0, 1, 0, 0.8);
-		_canvas->drawPath(Path::MakeArc({Vec2(400, 100), Vec2(200, 100)}, 0, 4.5, 1), paint);
-
-		paint.color = Color4f(1, 0, 1, 0.8);
-		_canvas->drawPath(Path::MakeArc({Vec2(450, 250), Vec2(200, 100)}, 4.5, 4, 0), paint);
-
-		paint.color = Color4f(0, 0, 0, 0.8);
-		_canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI2, Qk_PI2+Qk_PI, 1), paint);
-
-		_canvas->restore(2);
-
-		paint.color = Color4f(0,0,0);
-
-		auto stype = FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::NORMAL);
-		auto pool = root->pre_render()->host()->font_pool();
-		auto unicode = codec_decode_to_uint32(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
-		auto fgs = pool->getFFID()->makeFontGlyphs(unicode, stype, 64);
-
-		Vec2 offset(0,60);
-
-		for (auto &fg: fgs) {
-			offset[0] += ceilf(_canvas->drawGlyphs(fg, offset, NULL, paint));
-		}
+//		paint.color = Color4f(1, 1, 0, 0.5);
+//
+//		Path path(   Vec2(0, size.y() - 10) );
+//		path.lineTo( size );
+//		path.lineTo( Vec2(size.x()*0.5, 0) );
+//
+//		path.moveTo( Vec2(100, 100) );
+//		path.lineTo( Vec2(100, 200) );
+//		path.lineTo( Vec2(200, 200) );
+//		path.close();
+//		_canvas->drawPath(path, paint);
+//
+//		paint.color = Color4f(0, 1, 0, 0.8);
+//		_canvas->drawPath(Path::MakeArc({Vec2(400, 100), Vec2(200, 100)}, 0, 4.5, 1), paint);
+//
+//		paint.color = Color4f(1, 0, 1, 0.8);
+//		_canvas->drawPath(Path::MakeArc({Vec2(450, 250), Vec2(200, 100)}, 4.5, 4, 0), paint);
+//
+//		paint.color = Color4f(0, 0, 0, 0.8);
+//		_canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI2, Qk_PI2+Qk_PI, 1), paint);
+//
+//		_canvas->restore(2);
+//
+//		paint.color = Color4f(0,0,0);
+//
+//		auto stype = FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::NORMAL);
+//		auto pool = root->pre_render()->host()->font_pool();
+//		auto unicode = codec_decode_to_uint32(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
+//		auto fgs = pool->getFFID()->makeFontGlyphs(unicode, stype, 64);
+//
+//		Vec2 offset(0,60);
+//
+//		for (auto &fg: fgs) {
+//			offset[0] += ceilf(_canvas->drawGlyphs(fg, offset, NULL, paint));
+//		}
 
 		paint.color = Color4f(0, 0, 0);
 		_canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);

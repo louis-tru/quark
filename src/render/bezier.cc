@@ -36,12 +36,12 @@ namespace qk {
 	// 德卡斯特里奥算法
 
 	/**
-	* @constructor
+	 * @constructor
 	*/
 	QuadraticBezier::QuadraticBezier(Vec2 p0, Vec2 p1, Vec2 p2): _p0(p0), _p1(p1), _p2(p2) { }
 
 	/**
-	* @method sample_curve_x
+	 * @method sample_curve_x
 	*/
 	float QuadraticBezier::sample_curve_x(float t) const {
 		float t2 = 1.0 - t;
@@ -49,7 +49,7 @@ namespace qk {
 	}
 
 	/**
-	* @method sample_curve_y
+	 * @method sample_curve_y
 	*/
 	float QuadraticBezier::sample_curve_y(float t) const {
 		float t2 = 1.0 - t;
@@ -57,7 +57,7 @@ namespace qk {
 	}
 
 	/**
-	* @method compute_bezier_points
+	 * @method compute_bezier_points
 	*/
 	void QuadraticBezier::sample_curve_points(uint32_t sample_count, float* out, int stride) const {
 		// |0|1| = sample_count = 3
@@ -78,7 +78,7 @@ namespace qk {
 	}
 
 	/**
-	* @method sample_curve_points
+	 * @method sample_curve_points
 	*/
 	Array<Vec2> QuadraticBezier::sample_curve_points(uint32_t sample_count) const {
 		Array<Vec2> rev(sample_count);
@@ -98,7 +98,7 @@ namespace qk {
 	}
 
 	/**
-	* @method compute_bezier_points
+	 * @method compute_bezier_points
 	*/
 	void CubicBezier::sample_curve_points(uint32_t sample_count, float* out, int stride) const {
 		// |0|1| = sample_count = 3
@@ -115,7 +115,7 @@ namespace qk {
 	}
 
 	/**
-	* @method sample_curve_points
+	 * @method sample_curve_points
 	*/
 	Array<Vec2> CubicBezier::sample_curve_points(uint32_t sample_count) const {
 		Array<Vec2> rev(sample_count);
@@ -124,7 +124,7 @@ namespace qk {
 	}
 
 	/**
-	* @class FixedCubicBezier::Inl
+	 * @class FixedCubicBezier::Inl
 	*/
 	class FixedCubicBezier::Inl: public FixedCubicBezier {
 	public:
@@ -137,7 +137,7 @@ namespace qk {
 	};
 
 	/**
-	* @constructor
+	 * @constructor
 	*/
 	FixedCubicBezier::FixedCubicBezier()
 		: CubicBezier(Vec2(0, 0), Vec2(0, 0), Vec2(1, 1), Vec2(1, 1))
@@ -145,8 +145,8 @@ namespace qk {
 	{}
 
 	/**
-	* Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
-	* @constructor
+	 * Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
+	 * @constructor
 	*/
 	FixedCubicBezier::FixedCubicBezier(Vec2 p1, Vec2 p2)
 		: CubicBezier(Vec2(0, 0), p1, p2, Vec2(1, 1))
@@ -158,8 +158,8 @@ namespace qk {
 	}
 
 	/**
-	* @method defalut_solve_curve_x # Given an x value, find a parametric value it came from.
-	* 通过x值迭代逼近查找t值
+	 * @method defalut_solve_curve_x # Given an x value, find a parametric value it came from.
+	 * 通过x值迭代逼近查找t值
 	*/
 	float FixedCubicBezier::solve_t(float x, float epsilon) const {
 		float t0,t1,t2,x2,d2;

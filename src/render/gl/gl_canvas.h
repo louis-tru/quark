@@ -60,10 +60,10 @@ namespace qk {
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin,
 			float fontSize, const Paint &paint) override;
 	protected:
-		void drawColor(const Array<float>& vertex_vec2, const Paint& paint);
-		void drawGradient(const Array<float>& vertex_vec2, const Paint& paint);
-		void drawImage(const Array<float>& vertex_vec2, const Paint& paint);
-		void drawImageMask(const Array<float>& vertex_vec2, const Paint& paint);
+		void drawColor(const Array<Vec2>& vertex, const Paint& paint);
+		void drawGradient(const Array<Vec2>& vertex, const Paint& paint);
+		void drawImage(const Array<Vec2>& vertex, const Paint& paint);
+		void drawImageMask(const Array<Vec2>& vertex, const Paint& paint);
 		float drawTextImage(ImageSource *textImg,
 			float imgTop, float scale, Vec2 origin, const Paint &paint);
 
@@ -73,7 +73,7 @@ namespace qk {
 		bool isStencilRefDefaultValue();
 		// props
 		struct Clip {
-			Array<float> vertex; // vec2[]
+			Array<Vec2> vertex;
 			ClipOp op;
 			bool antiAlias;
 		};
