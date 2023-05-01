@@ -125,19 +125,23 @@ namespace qk {
 
 	// Optimizing rect vertex generation algorithm
 	struct Qk_EXPORT RectPath {
-		Path        path;
 		Array<Vec2> vertex; // triangle vertex {x,y}[3]
+		Path        path;
+		inline uint64_t hashCode() const { return path.hashCode(); }
 		static RectPath MakeRect(const Rect& rect);
 		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &br);
 	};
 
 	// Optimizing rect outline vertex generation algorithm
 	struct Qk_EXPORT RectOutlinePath {
-		Path         outside,inside;
 		// triangle vertex items {
 		//   x,y,length-offset,width-offset,border-direction
 	  // }[3]
 		Array<float> vertex; // triangle vertex
+		Path         outside,inside;
+		inline uint64_t hashCode() const {
+			return (outside.hashCode() << 32) | (inside.hashCode() & 0xFFFFFFFF);
+		}
 		static RectOutlinePath MakeRectOutline(const Rect &outside, const Rect &inside);
 		static RectOutlinePath MakeRRectOutline(
 			const Rect &outside, const Rect &inside, const Path::BorderRadius &br);

@@ -113,8 +113,8 @@ namespace qk {
 		return (toNextNormal + fromPreviousNormal);//.normalized();
 	}
 
-	template<> float MVec2<float>::MVec2<float>::angle(const MVec2& b) const {
-		return acosf(dot(b) / length() / b.length());
+	template<> float MVec2<float>::angle(const MVec2& b) const {
+		return acosf(dot(b) / (length() * b.length()));
 	}
 
 	bool Color4f::operator==(const Color4f& color) const {

@@ -61,7 +61,7 @@ namespace qk {
 		return MakeOval({ Vec2(center.x() - radius, center.y() - radius), Vec2(radius) * 2 }, ccw);
 	}
 
-	void setRRect(Path &path,
+	static void setRRect(Path &path,
 		const Rect& outside, const Rect *inside, const Path::BorderRadius& br)
 	{
 		auto arc = [&](Vec2 origin, Vec2 r, Vec2 dir, float startAngle, float sweepAngle) {
@@ -573,61 +573,152 @@ namespace qk {
 	
 	// ------------------- R e c t . O u t l i n e . P a t h -------------------
 	
-	RectPath RectPath::MakeRect(const Rect &rect) {
-		RectPath path;
-		// TODO ...
+	RectPath RectPath::MakeRect(const Rect &r) {
+		RectPath rect;
+		float x2 = r.origin.x() + r.size.x();
+		float y2 = r.origin.y() + r.size.y();
+		// path
+		rect.path.moveTo(r.origin);
+		rect.path.lineTo(Vec2(x2, r.origin.y())); // top right
+		rect.path.lineTo(Vec2(x2, y2)); // bottom right
+		rect.path.lineTo(Vec2(r.origin.x(), y2)); // bottom left
+		rect.path.close(); // top left, origin point
+		// vertex
+		rect.vertex.extend(6);
+		rect.vertex[0] = r.origin;
+		rect.vertex[1] = Vec2(x2, r.origin.y());
+		rect.vertex[2] = Vec2(x2, y2);
+		rect.vertex[3] = Vec2(x2, y2);
+		rect.vertex[4] = Vec2(r.origin.x(), y2);
+		rect.vertex[5] = r.origin;
 
-		std::move(MakeRect);
+		return std::move(rect);
 	}
 
-	RectPath RectPath::MakeRRect(const Rect &rect, const Path::BorderRadius &br) {
-		RectPath path;
+	RectPath RectPath::MakeRRect(const Rect &r, const Path::BorderRadius &br) {
+		RectPath rect;
 		// TODO ...
+		std::move(rect);
+	}
 
-		std::move(path);
+	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &o, const Rect &i) {
+		RectOutlinePath rect;
+		// contain outline length offset and width offset and border direction
+		// of ext data item
+
+		// TODO ... check cache
+		//
+		const float o_x = o.origin.x(),o_y = o.origin.y();
+		const float i_x = i.origin.x(), i_y = i.origin.y();
+		const float o_x2 = o_x + o.size.x(), o_y2 = o_y + o.size.y();
+		const float i_x2 = i_x + i.size.x(),  i_y2 = i_y + i.size.y();
+
+		// outside path
+		rect.outside.moveTo(o.origin);
+		rect.outside.lineTo(Vec2(o_x2, o_y)); // top right
+		rect.outside.lineTo(Vec2(o_x2, o_y2)); // bottom right
+		rect.outside.lineTo(Vec2(o_x, o_y2)); // bottom left
+		rect.outside.close(); // top left, origin point
+		// inside path,ccw
+		rect.inside.moveTo(i.origin);
+		rect.inside.lineTo(Vec2(i_x, i_y2)); // bottom left
+		rect.inside.lineTo(Vec2(i_x2, i_y2)); // bottom right
+		rect.inside.lineTo(Vec2(i_x2, i_y)); // top right
+		rect.inside.close(); // top left, origin point
+
+		/* rect outline border
+			 _.______________._
+			|\|______________|/|
+			|-|              |-|
+			| |              | |
+			|_|______________|_|
+			|/|______________|\|
+		*/
+		//
+		const float border[4] = {
+			i_y  - o_y, // top
+			o_x2 - i_x2, // right
+			o_y2 - i_y2, // bottom
+			i_x  - o_x, // left
+		};
+		float offset_length = 0; // length-offset
+
+		auto build = [](Array<float> *out,
+			float border[3], float v[12], // vertex
+			float offset_length, float inside_length, float direction
+		) {
+			if (border[0] > 0) { // if left > 0 then add triangle top,left
+				const float src[15] = {
+					// {x,y,length-offset,width-offset,border-direction}
+					v[0], v[1], offset_length,             0, direction, // vertex 0
+					v[2], v[3], offset_length + border[0], 0, direction, // vertex 1
+					v[4], v[5], offset_length + border[0], 1, direction, // vertex 2
+				};
+				out->write(src, -1, 15);
+				offset_length += border[0];
+			}
+			{
+				const float src[30] = {
+					// {x,y,length-offset,width-offset,border-direction}
+					v[2], v[3], offset_length,              0, direction, // vertex 0
+					v[4], v[5], offset_length + inside_length, 0, direction, // vertex 1
+					v[8], v[9], offset_length + inside_length, 1, direction, // vertex 2
+					v[8], v[9], offset_length + inside_length, 1, direction, // vertex 3
+					v[10],v[11],offset_length,              1, direction, // vertex 4
+					v[2], v[3], offset_length,              0, direction, // vertex 5
+				};
+				out->write(src, -1, 30);
+				offset_length += inside_length;
+			}
+			if (border[2] > 1) {
+				const float src[15] = {
+					// {x,y,length-offset,width-offset,border-direction}
+					v[4], v[5], offset_length,              0, direction, // vertex 0
+					v[6], v[7], offset_length + border[2],  0, direction, // vertex 1
+					v[8], v[9], offset_length,              1, direction, // vertex 2
+				};
+				out->write(src, -1, 15);
+				offset_length += border[2];
+			}
+		};
+
+		//._.______________._.
+		// \|______________|/
+		if (border[0] > 0) { // vertex,top
+			float b[3] = {border[3],border[0],border[1]};
+			float v[12] = {o_x,o_y,i_x,o_y,i_x2,o_y,o_x2,o_y,i_x2,i_y,i_x,i_y};
+			build(&rect.vertex, b, v, offset_length, i.size.x(), 0);
+		}
+		offset_length = o.size.x();
+
+		if (border[1] > 0) { // vertex,right
+			float b[3] = {border[0],border[1],border[2]};
+			float v[12] = {o_x2,o_y,o_x2,i_y,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y};
+			build(&rect.vertex, b, v, offset_length, i.size.y(), 1);
+		}
+		offset_length += o.size.y();
+
+		if (border[2] > 0) { // vertex,bottom
+			float b[3] = {border[1],border[2],border[3]};
+			float v[12] = {o_x2,o_y2,i_x2,o_y2,i_x,o_y2,o_x,o_y2,i_x,i_y2,i_x,i_y};
+			build(&rect.vertex, b, v, offset_length, i.size.x(), 2);
+		}
+		offset_length += o.size.x();
+
+		if (border[3] > 0) { // vertex,left
+			float b[3] = {border[2],border[3],border[0]};
+			float v[12] = {o_x,o_y2,o_x,i_y2,o_x,i_y,o_x,o_y,i_x,i_y,i_x,i_y2};
+			build(&rect.vertex, b, v, offset_length, i.size.y(), 3);
+		}
+
+		return std::move(rect);
 	}
 
 	RectOutlinePath RectOutlinePath::MakeRRectOutline(
 		const Rect& outside, const Rect &inside, const Path::BorderRadius& br) {
-		RectOutlinePath path;
+		RectOutlinePath rect;
 		// TODO ..
-
-		std::move(path);
+		return std::move(rect);
 	}
-
-	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &outside, const Rect &inside) {
-		RectOutlinePath path;
-
-		Path &op = path.outside;
-		Path &ip = path.inside;
-		Array<float> &vertex = path.vertex;
-		
-		// TODO ...
-
-		// contain outline length offset and width offset and border direction
-		// of ext data item
-
-		Vec2 outside_origin = outside.origin;
-		Vec2 outside_end = outside_origin + outside.size;
-
-		/* rect outline border
-			 __________________
-			|\ ______________ /|
-			| |              | |
-			| |              | |
-			| |______________| |
-			|/________________\|
-		*/
-
-		op.startTo(outside_origin); // top left
-		op.lineTo(Vec2(outside_end.x(), outside_origin.y())); // top right
-		op.lineTo(outside_end); // bottom right
-		op.lineTo(Vec2(outside_origin.x(), outside_end.y())); // bottom left
-		op.lineTo(outside_origin); // top left, origin point
-		op.close();
-		
-		std::move(path);
-	}
-
 
 }
