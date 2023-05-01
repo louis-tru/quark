@@ -570,9 +570,20 @@ namespace qk {
 			return 30;
 		}
 	}
-	
+
+	static int getSampleFromRect(Vec2 rect, float epsilon) {
+		float S_2 = rect.x() * rect.y() * 0.5; // width * height
+		if (S_2 < 5000.0) { // circle radius < 80
+			constexpr float count = 30.0 / 8.408964152537145;//sqrtf(sqrtf(5000.0));
+			int i = Uint32::max(sqrt_sqrtf(S_2) * count * epsilon, 2);
+			return i;
+		} else {
+			return 30;
+		}
+	}
+
 	// ------------------- R e c t . O u t l i n e . P a t h -------------------
-	
+
 	RectPath RectPath::MakeRect(const Rect &r) {
 		RectPath rect;
 		float x2 = r.origin.x() + r.size.x();
@@ -597,7 +608,19 @@ namespace qk {
 
 	RectPath RectPath::MakeRRect(const Rect &r, const Path::BorderRadius &br) {
 		RectPath rect;
-		// TODO ...
+		// TODO ... check cache
+		//
+		float x1 = r.origin.x(),    y1 = r.origin.x();
+		float x2 = x1 + r.size.x(), y2 = y1 + r.size.y();
+		float x_5 = r.size.x() * 0.5, y_5 = r.size.y() * 0.5;
+
+		Vec2 leftTop = Vec2(Float::min(br.leftTop.x(), x_5), Float::min(br.leftTop.y(), y_5));
+		Vec2 rightTop = Vec2(Float::min(br.rightTop.x(), x_5), Float::min(br.rightTop.y(), y_5));
+		Vec2 rightBottom = Vec2(Float::min(br.rightBottom.x(), x_5), Float::min(br.rightBottom.y(), y_5));
+		Vec2 leftBottom = Vec2(Float::min(br.leftBottom.x(), x_5), Float::min(br.leftBottom.y(), y_5));
+
+
+		
 		std::move(rect);
 	}
 
@@ -715,7 +738,8 @@ namespace qk {
 	}
 
 	RectOutlinePath RectOutlinePath::MakeRRectOutline(
-		const Rect& outside, const Rect &inside, const Path::BorderRadius& br) {
+		const Rect& o, const Rect &i, const Path::BorderRadius& b
+	) {
 		RectOutlinePath rect;
 		// TODO ..
 		return std::move(rect);
