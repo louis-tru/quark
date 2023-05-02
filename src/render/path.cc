@@ -608,8 +608,7 @@ namespace qk {
 
 	RectPath RectPath::MakeRRect(const Rect &r, const Path::BorderRadius &br) {
 		RectPath rect;
-		// TODO ... check cache
-		//
+
 		float x1 = r.origin.x(),    y1 = r.origin.x();
 		float x2 = x1 + r.size.x(), y2 = y1 + r.size.y();
 		float x_5 = r.size.x() * 0.5, y_5 = r.size.y() * 0.5;
@@ -619,9 +618,66 @@ namespace qk {
 		Vec2 rightBottom = Vec2(Float::min(br.rightBottom.x(), x_5), Float::min(br.rightBottom.y(), y_5));
 		Vec2 leftBottom = Vec2(Float::min(br.leftBottom.x(), x_5), Float::min(br.leftBottom.y(), y_5));
 
+		rect.path.moveTo(Vec2(x1, leftTop.is_zero_or() ? y1 + leftTop.y(): y1));
 
-		
-		std::move(rect);
+		auto build = [](
+			RectPath *out, Vec2 point, Vec2 point_next,
+			Vec2 radius, Vec2 radius_next, float startAngle, float startAngle_next
+		) {
+			bool is_zero = radius.is_zero_or();
+			bool is_zero_next = radius_next.is_zero_or();
+			Vec2 center(point + radius);
+
+			if (!is_zero) {
+				Vec2 start(cosf(startAngle) * radius.x(), sinf(startAngle) * -radius.y());
+				int  sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
+				float angleStep = -Qk_PI2 / (sample - 1);
+				// start
+				out->path.lineTo(start);
+				out->vertex.push(center);
+				out->vertex.push(start);
+
+				startAngle += angleStep; // start from 1
+
+				for (int i = 1; i < sample; i++) {
+					const Vec2 p = Vec2(cosf(startAngle) * radius.x(), sinf(startAngle) * -radius.y());
+					out->path.lineTo(p);
+					const Vec2 vertex[3] = { p,center,p };
+					out->vertex.write(vertex, -1, 3); // add triangle vertex
+					startAngle += angleStep;
+				}
+			} else {
+				out->path.lineTo(point);
+			}
+
+			if (!is_zero_next) {
+				Vec2 start_next(
+					cosf(startAngle_next) * radius_next.x(), sinf(startAngle_next) * -radius_next.y()
+				);
+				if (is_zero) {
+					Vec2 vertex[4] = {start_next,start_next,point_next + radius_next, center};
+					out->vertex.write(vertex, -1, 4);
+				} else {
+					Vec2 vertex[3] = {point,start_next,point_next + radius_next};
+					out->vertex.write(vertex, -1, 3);
+				}
+			} else if (is_zero) {
+				out->vertex.push(point_next);
+			}
+
+			return is_zero ? center: point;
+		};
+
+		Vec2 a = build(&rect, Vec2(x1, y1), Vec2(x2, y1), leftTop, rightTop, Qk_PI, Qk_PI2);
+		Vec2 b = build(&rect, Vec2(x2, y1), Vec2(x2, y2), rightTop, rightBottom, Qk_PI2, 0);
+		Vec2 c = build(&rect, Vec2(x2, y2), Vec2(x1, y2), rightBottom, leftBottom, 0, -Qk_PI2);
+		Vec2 d = build(&rect, Vec2(x1, x2), Vec2(x1, y1), leftBottom, leftTop, -Qk_PI2, Qk_PI);
+
+		Vec2 vertex[6] = { a,b,c,c,d,a };
+		rect.vertex.write(vertex, -1, 6);
+		rect.path.close();
+
+		return std::move(rect);
 	}
 
 	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &o, const Rect &i) {
@@ -629,8 +685,6 @@ namespace qk {
 		// contain outline length offset and width offset and border direction
 		// of ext data item
 
-		// TODO ... check cache
-		//
 		const float o_x = o.origin.x(),o_y = o.origin.y();
 		const float i_x = i.origin.x(), i_y = i.origin.y();
 		const float o_x2 = o_x + o.size.x(), o_y2 = o_y + o.size.y();
@@ -650,7 +704,7 @@ namespace qk {
 		rect.inside.close(); // top left, origin point
 
 		/* rect outline border
-			 _.______________._
+			._.______________._.
 			|\|______________|/|
 			|-|              |-|
 			| |              | |

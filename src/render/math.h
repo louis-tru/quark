@@ -86,8 +86,11 @@ namespace qk {
 		inline T y() const { return this->val[1]; }
 		inline void set_x(T v) { this->val[0] = v; }
 		inline void set_y(T v) { this->val[1] = v; }
-		inline void is_zero() const {
-			this->val[0] == 0 && this->val[1] == 0;
+		inline bool is_zero() const {
+			return this->val[0] == 0 && this->val[1] == 0;
+		}
+		inline bool is_zero_or() const {
+			return this->val[0] == 0 || this->val[1] == 0;
 		}
 		/**
 		 * @method length() returns vector length
