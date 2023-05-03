@@ -685,22 +685,22 @@ namespace qk {
 		// contain outline length offset and width offset and border direction
 		// of ext data item
 
-		const float o_x = o.origin.x(),o_y = o.origin.y();
-		const float i_x = i.origin.x(), i_y = i.origin.y();
-		const float o_x2 = o_x + o.size.x(), o_y2 = o_y + o.size.y();
-		const float i_x2 = i_x + i.size.x(),  i_y2 = i_y + i.size.y();
+		const float o_x1 = o.origin.x(),o_y1 = o.origin.y();
+		const float i_x1 = i.origin.x(), i_y1 = i.origin.y();
+		const float o_x2 = o_x1 + o.size.x(), o_y2 = o_y1 + o.size.y();
+		const float i_x2 = i_x1 + i.size.x(), i_y2 = i_y1 + i.size.y();
 
 		// outside path
 		rect.outside.moveTo(o.origin);
-		rect.outside.lineTo(Vec2(o_x2, o_y)); // top right
+		rect.outside.lineTo(Vec2(o_x2, o_y1)); // top right
 		rect.outside.lineTo(Vec2(o_x2, o_y2)); // bottom right
-		rect.outside.lineTo(Vec2(o_x, o_y2)); // bottom left
+		rect.outside.lineTo(Vec2(o_x1, o_y2)); // bottom left
 		rect.outside.close(); // top left, origin point
 		// inside path,ccw
 		rect.inside.moveTo(i.origin);
-		rect.inside.lineTo(Vec2(i_x, i_y2)); // bottom left
+		rect.inside.lineTo(Vec2(i_x1, i_y2)); // bottom left
 		rect.inside.lineTo(Vec2(i_x2, i_y2)); // bottom right
-		rect.inside.lineTo(Vec2(i_x2, i_y)); // top right
+		rect.inside.lineTo(Vec2(i_x2, i_y1)); // top right
 		rect.inside.close(); // top left, origin point
 
 		/* rect outline border
@@ -713,10 +713,10 @@ namespace qk {
 		*/
 		//
 		const float border[4] = {
-			i_y  - o_y, // top
+			i_y1  - o_y1, // top
 			o_x2 - i_x2, // right
 			o_y2 - i_y2, // bottom
-			i_x  - o_x, // left
+			i_x1 - o_x1, // left
 		};
 		float offset_length = 0; // length-offset
 
@@ -763,28 +763,28 @@ namespace qk {
 		// \|______________|/
 		if (border[0] > 0) { // vertex,top
 			float b[3] = {border[3],border[0],border[1]};
-			float v[12] = {o_x,o_y,i_x,o_y,i_x2,o_y,o_x2,o_y,i_x2,i_y,i_x,i_y};
+			float v[12] = {o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1};
 			build(&rect.vertex, b, v, offset_length, i.size.x(), 0);
 		}
 		offset_length = o.size.x();
 
 		if (border[1] > 0) { // vertex,right
 			float b[3] = {border[0],border[1],border[2]};
-			float v[12] = {o_x2,o_y,o_x2,i_y,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y};
+			float v[12] = {o_x2,o_y1,o_x2,i_y1,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y1};
 			build(&rect.vertex, b, v, offset_length, i.size.y(), 1);
 		}
 		offset_length += o.size.y();
 
 		if (border[2] > 0) { // vertex,bottom
 			float b[3] = {border[1],border[2],border[3]};
-			float v[12] = {o_x2,o_y2,i_x2,o_y2,i_x,o_y2,o_x,o_y2,i_x,i_y2,i_x,i_y};
+			float v[12] = {o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x1,i_y1};
 			build(&rect.vertex, b, v, offset_length, i.size.x(), 2);
 		}
 		offset_length += o.size.x();
 
 		if (border[3] > 0) { // vertex,left
 			float b[3] = {border[2],border[3],border[0]};
-			float v[12] = {o_x,o_y2,o_x,i_y2,o_x,i_y,o_x,o_y,i_x,i_y,i_x,i_y2};
+			float v[12] = {o_x1,o_y2,o_x1,i_y2,o_x1,i_y1,o_x1,o_y1,i_x1,i_y1,i_x1,i_y2};
 			build(&rect.vertex, b, v, offset_length, i.size.y(), 3);
 		}
 
@@ -795,7 +795,35 @@ namespace qk {
 		const Rect& o, const Rect &i, const Path::BorderRadius& b
 	) {
 		RectOutlinePath rect;
-		// TODO ..
+
+		const float o_x1 = o.origin.x(), o_y1 = o.origin.y();
+		const float i_x1 = i.origin.x(), i_y1 = i.origin.y();
+		const float o_x2 = o_x1 + o.size.x(), o_y2 = o_y1 + o.size.y();
+		const float i_x2 = i_x1 + i.size.x(), i_y2 = i_y1 + i.size.y();
+
+		/* rect outline border
+			._.______________._.
+			|\|______________|/|
+			|-|              |-|
+			| |              | |
+			|_|______________|_|
+			|/|______________|\|
+		*/
+		const float border[4] = {
+			i_y1 - o_y1, // top
+			o_x2 - i_x2, // right
+			o_y2 - i_y2, // bottom
+			i_x1 - o_x1, // left
+		};
+		float offset_length = 0; // length-offset
+
+		auto build = [](Array<float> *out,
+			float border[3], float v[12], // vertex
+			float offset_length, float inside_length, float direction
+		) {
+			// TODO ...
+		};
+
 		return std::move(rect);
 	}
 
