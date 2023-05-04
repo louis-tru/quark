@@ -290,17 +290,10 @@ namespace qk {
 		*/
 	enum class KeyboardType: uint8_t {
 		NORMAL,
-		ASCII,
-		NUMBER,
-		URL,
-		NUMBER_PAD,
-		PHONE,
-		NAME_PHONE,
-		EMAIL,
-		DECIMAL,
-		TWITTER,
-		SEARCH,
-		ASCII_NUMBER,
+		ASCII,NUMBER,URL,
+		NUMBER_PAD,PHONE,NAME_PHONE,
+		EMAIL,DECIMAL,TWITTER,
+		SEARCH,ASCII_NUMBER,
 	};
 
 	/**
@@ -308,15 +301,9 @@ namespace qk {
 	*/		
 	enum class KeyboardReturnType: uint8_t {
 		NORMAL,
-		GO,
-		JOIN,
-		NEXT,
-		ROUTE,
-		SEARCH,
-		SEND,
-		DONE,
-		EMERGENCY,
-		CONTINUE,
+		GO,JOIN,NEXT,
+		ROUTE,SEARCH,SEND,
+		DONE,EMERGENCY,CONTINUE,
 	};
 
 	enum class FindDirection: uint8_t {
@@ -327,14 +314,9 @@ namespace qk {
 	* @enum BorderStyle
 	*/
 	enum class BorderStyle: uint8_t {
-		SOLID,
-		DASHED,
-		DOTTED,
-		DOUBLE,
-		GROOVE,
-		INSET,
-		OUTSET,
-		RIDGE,
+		SOLID,DASHED,DOTTED,
+		DOUBLE,GROOVE,INSET,
+		OUTSET,RIDGE,
 	};
 
 }
