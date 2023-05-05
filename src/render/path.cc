@@ -821,12 +821,19 @@ namespace qk {
 		*/
 		auto build = [](
 			Array<float> *out,
-			const float border[3], const float v[12], const Vec2 radius[2],
+			const float border[3], const Vec2 v[6], const Vec2 radius[2],
 			float offset_length, float inside_length, float direction
 		) {
 			if (border[1] <= 0) return offset_length + inside_length;
 
+			const bool  isZero_a   = radius[0].is_zero_or();
+			const bool  isZero_b   = radius[1].is_zero_or();
 			const float startAngle = Qk_PI2 - (direction * Qk_PI2);
+
+			if (isZero_a) { // 
+				Vec2 center(v[0] + radius[0]);
+				
+			}
 
 			if (border[0] > 0) { // if left > 0 then add triangle top,left
 				// \|
@@ -834,9 +841,9 @@ namespace qk {
 				float angle = startAngle - sweepAngle;
 				const float src[15] = {
 					// {x,y,length-offset,width-offset,border-direction}
-					v[0], v[1], offset_length,             0, direction, // vertex 0
-					v[2], v[3], offset_length + border[0], 0, direction, // vertex 1
-					v[4], v[5], offset_length + border[0], 1, direction, // vertex 2
+					v[0].x(), v[0].y(), offset_length,             0, direction, // vertex 0
+					v[1].x(), v[1].y(), offset_length + border[0], 0, direction, // vertex 1
+					v[2].x(), v[2].y(), offset_length + border[0], 1, direction, // vertex 2
 				};
 				out->write(src, -1, 15);
 				offset_length += border[0];
@@ -844,30 +851,30 @@ namespace qk {
 			{
 				// .______________.
 				// |______________|
-				const float src[30] = {
+				const float src[30] = { //
 					// {x,y,length-offset,width-offset,border-direction}
-					v[2], v[3], offset_length,              0, direction, // vertex 0
-					v[4], v[5], offset_length + inside_length, 0, direction, // vertex 1
-					v[8], v[9], offset_length + inside_length, 1, direction, // vertex 2
-					v[8], v[9], offset_length + inside_length, 1, direction, // vertex 3
-					v[10],v[11],offset_length,              1, direction, // vertex 4
-					v[2], v[3], offset_length,              0, direction, // vertex 5
+					v[1].x(), v[1].y(), offset_length,              0, direction, // vertex 0
+					v[2].x(), v[2].y(), offset_length + inside_length, 0, direction, // vertex 1
+					v[4].x(), v[4].y(), offset_length + inside_length, 1, direction, // vertex 2
+					v[4].x(), v[4].y(), offset_length + inside_length, 1, direction, // vertex 3
+					v[5].x(), v[5].y(), offset_length,              1, direction, // vertex 4
+					v[1].x(), v[1].y(), offset_length,              0, direction, // vertex 5
 				};
 				out->write(src, -1, 30);
 				offset_length += inside_length;
 			}
-			if (border[2] > 1) {
-				// |/
-				const float sweepAngle = border[0] / (border[0] + border[1]) * -Qk_PI2;
-				const float src[15] = {
-					// {x,y,length-offset,width-offset,border-direction}
-					v[4], v[5], offset_length,              0, direction, // vertex 0
-					v[6], v[7], offset_length + border[2],  0, direction, // vertex 1
-					v[8], v[9], offset_length,              1, direction, // vertex 2
-				};
-				out->write(src, -1, 15);
-				offset_length += border[2];
-			}
+			// if (border[2] > 1) {
+			// 	// |/
+			// 	const float sweepAngle = border[0] / (border[0] + border[1]) * -Qk_PI2;
+			// 	const float src[15] = {
+			// 		// {x,y,length-offset,width-offset,border-direction}
+			// 		v[4], v[5], offset_length,              0, direction, // vertex 0
+			// 		v[6], v[7], offset_length + border[2],  0, direction, // vertex 1
+			// 		v[8], v[9], offset_length,              1, direction, // vertex 2
+			// 	};
+			// 	out->write(src, -1, 15);
+			// 	offset_length += border[2];
+			// }
 
 			return offset_length;
 		};
@@ -889,16 +896,17 @@ namespace qk {
 		const Vec2 radius[5] = {
 			leftTop,rightTop,rightBottom,leftBottom,leftTop
 		};
+		const Vec2 *vertex_p = reinterpret_cast<const Vec2*>(vertex);
 
 		float offset_length = 0; // length-offset
 
 		for (int j = 0; j < 4; j++) {
 			offset_length = build(
-				&rect.vertex, border + j,
-				vertex + (j*12),
+				&rect.vertex, border + j, vertex_p,
 				radius + j, 
 				offset_length, j % 2 ? i.size.y(): i.size.x(), j
 			);
+			vertex_p+=6;
 		}
 
 		return std::move(rect);
