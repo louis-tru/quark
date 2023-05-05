@@ -606,17 +606,17 @@ namespace qk {
 		return std::move(rect);
 	}
 
-	RectPath RectPath::MakeRRect(const Rect &r, const Path::BorderRadius &br) {
+	RectPath RectPath::MakeRRect(const Rect &r, const Path::BorderRadius &b) {
 		RectPath rect;
 
-		float x1 = r.origin.x(),    y1 = r.origin.x();
-		float x2 = x1 + r.size.x(), y2 = y1 + r.size.y();
-		float x_5 = r.size.x() * 0.5, y_5 = r.size.y() * 0.5;
+		const float x1 = r.origin.x(),    y1 = r.origin.x();
+		const float x2 = x1 + r.size.x(), y2 = y1 + r.size.y();
+		const float x_5 = r.size.x() * 0.5, y_5 = r.size.y() * 0.5;
 
-		Vec2 leftTop = Vec2(Float::min(br.leftTop.x(), x_5), Float::min(br.leftTop.y(), y_5));
-		Vec2 rightTop = Vec2(Float::min(br.rightTop.x(), x_5), Float::min(br.rightTop.y(), y_5));
-		Vec2 rightBottom = Vec2(Float::min(br.rightBottom.x(), x_5), Float::min(br.rightBottom.y(), y_5));
-		Vec2 leftBottom = Vec2(Float::min(br.leftBottom.x(), x_5), Float::min(br.leftBottom.y(), y_5));
+		const Vec2 leftTop = Vec2(Float::min(b.leftTop.x(), x_5), Float::min(b.leftTop.y(), y_5));
+		const Vec2 rightTop = Vec2(Float::min(b.rightTop.x(), x_5), Float::min(b.rightTop.y(), y_5));
+		const Vec2 rightBottom = Vec2(Float::min(b.rightBottom.x(), x_5), Float::min(b.rightBottom.y(), y_5));
+		const Vec2 leftBottom = Vec2(Float::min(b.leftBottom.x(), x_5), Float::min(b.leftBottom.y(), y_5));
 
 		rect.path.moveTo(Vec2(x1, leftTop.is_zero_or() ? y1 + leftTop.y(): y1));
 
@@ -669,11 +669,11 @@ namespace qk {
 		};
 
 		Vec2 a = build(&rect, Vec2(x1, y1), Vec2(x2, y1), leftTop, rightTop, Qk_PI, Qk_PI2);
-		Vec2 b = build(&rect, Vec2(x2, y1), Vec2(x2, y2), rightTop, rightBottom, Qk_PI2, 0);
+		Vec2 b_ = build(&rect, Vec2(x2, y1), Vec2(x2, y2), rightTop, rightBottom, Qk_PI2, 0);
 		Vec2 c = build(&rect, Vec2(x2, y2), Vec2(x1, y2), rightBottom, leftBottom, 0, -Qk_PI2);
 		Vec2 d = build(&rect, Vec2(x1, x2), Vec2(x1, y1), leftBottom, leftTop, -Qk_PI2, Qk_PI);
 
-		Vec2 vertex[6] = { a,b,c,c,d,a };
+		Vec2 vertex[6] = { a,b_,c,c,d,a };
 		rect.vertex.write(vertex, -1, 6);
 		rect.path.close();
 
@@ -685,8 +685,8 @@ namespace qk {
 		// contain outline length offset and width offset and border direction
 		// of ext data item
 
-		const float o_x1 = o.origin.x(),o_y1 = o.origin.y();
-		const float i_x1 = i.origin.x(), i_y1 = i.origin.y();
+		const float o_x1 = o.origin.x(),      o_y1 = o.origin.y();
+		const float i_x1 = i.origin.x(),      i_y1 = i.origin.y();
 		const float o_x2 = o_x1 + o.size.x(), o_y2 = o_y1 + o.size.y();
 		const float i_x2 = i_x1 + i.size.x(), i_y2 = i_y1 + i.size.y();
 
@@ -718,12 +718,16 @@ namespace qk {
 			o_y2 - i_y2, // bottom
 			i_x1 - o_x1, // left
 		};
-		float offset_length = 0; // length-offset
 
-		auto build = [](Array<float> *out,
-			float border[3], float v[12], // vertex
+		//._.______________._.
+		// \|______________|/
+		auto build = [](
+			Array<float> *out,
+			const float border[3], const float v[12], // vertex
 			float offset_length, float inside_length, float direction
 		) {
+			if (border[1] <= 0) return offset_length + inside_length;
+
 			if (border[0] > 0) { // if left > 0 then add triangle top,left
 				const float src[15] = {
 					// {x,y,length-offset,width-offset,border-direction}
@@ -757,49 +761,55 @@ namespace qk {
 				out->write(src, -1, 15);
 				offset_length += border[2];
 			}
+
+			return offset_length;
 		};
 
-		//._.______________._.
-		// \|______________|/
-		if (border[0] > 0) { // vertex,top
-			float b[3] = {border[3],border[0],border[1]};
-			float v[12] = {o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1};
-			build(&rect.vertex, b, v, offset_length, i.size.x(), 0);
-		}
-		offset_length = o.size.x();
+		const float border[6] = {
+			i_x1 - o_x1, // left
+			i_y1 - o_y1, // top
+			o_x2 - i_x2, // right
+			o_y2 - i_y2, // bottom
+			i_x1 - o_x1, // left
+			i_y1 - o_y1, // top
+		};
+		const float vertex[48] = {
+			o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1,// vertex,right
+			o_x2,o_y1,o_x2,i_y1,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y1,// vertex,right
+			o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x1,i_y1,// vertex,bottom
+			o_x1,o_y2,o_x1,i_y2,o_x1,i_y1,o_x1,o_y1,i_x1,i_y1,i_x1,i_y2,// vertex,left
+		};
 
-		if (border[1] > 0) { // vertex,right
-			float b[3] = {border[0],border[1],border[2]};
-			float v[12] = {o_x2,o_y1,o_x2,i_y1,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y1};
-			build(&rect.vertex, b, v, offset_length, i.size.y(), 1);
-		}
-		offset_length += o.size.y();
+		float offset_length = 0; // length-offset
 
-		if (border[2] > 0) { // vertex,bottom
-			float b[3] = {border[1],border[2],border[3]};
-			float v[12] = {o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x1,i_y1};
-			build(&rect.vertex, b, v, offset_length, i.size.x(), 2);
-		}
-		offset_length += o.size.x();
-
-		if (border[3] > 0) { // vertex,left
-			float b[3] = {border[2],border[3],border[0]};
-			float v[12] = {o_x1,o_y2,o_x1,i_y2,o_x1,i_y1,o_x1,o_y1,i_x1,i_y1,i_x1,i_y2};
-			build(&rect.vertex, b, v, offset_length, i.size.y(), 3);
+		for (int j = 0; j < 4; j++) {
+			offset_length = build(
+				&rect.vertex, border + j,
+				vertex + (j*12),
+				offset_length, j % 2 ? i.size.y(): i.size.x(), j
+			);
 		}
 
 		return std::move(rect);
 	}
 
 	RectOutlinePath RectOutlinePath::MakeRRectOutline(
-		const Rect& o, const Rect &i, const Path::BorderRadius& b
+		const Rect& o, const Rect &i, const Path::BorderRadius &b
 	) {
 		RectOutlinePath rect;
+		// contain outline length offset and width offset and border direction
+		// of ext data item
 
-		const float o_x1 = o.origin.x(), o_y1 = o.origin.y();
-		const float i_x1 = i.origin.x(), i_y1 = i.origin.y();
+		const float o_x1 = o.origin.x(),      o_y1 = o.origin.y();
+		const float i_x1 = i.origin.x(),      i_y1 = i.origin.y();
 		const float o_x2 = o_x1 + o.size.x(), o_y2 = o_y1 + o.size.y();
 		const float i_x2 = i_x1 + i.size.x(), i_y2 = i_y1 + i.size.y();
+		const float x_5  = o.size.x() * 0.5,  y_5  = o.size.y() * 0.5;
+
+		const Vec2 leftTop = Vec2(Float::min(b.leftTop.x(), x_5), Float::min(b.leftTop.y(), y_5));
+		const Vec2 rightTop = Vec2(Float::min(b.rightTop.x(), x_5), Float::min(b.rightTop.y(), y_5));
+		const Vec2 rightBottom = Vec2(Float::min(b.rightBottom.x(), x_5), Float::min(b.rightBottom.y(), y_5));
+		const Vec2 leftBottom = Vec2(Float::min(b.leftBottom.x(), x_5), Float::min(b.leftBottom.y(), y_5));
 
 		/* rect outline border
 			._.______________._.
@@ -809,20 +819,87 @@ namespace qk {
 			|_|______________|_|
 			|/|______________|\|
 		*/
-		const float border[4] = {
+		auto build = [](
+			Array<float> *out,
+			const float border[3], const float v[12], const Vec2 radius[2],
+			float offset_length, float inside_length, float direction
+		) {
+			if (border[1] <= 0) return offset_length + inside_length;
+
+			const float startAngle = Qk_PI2 - (direction * Qk_PI2);
+
+			if (border[0] > 0) { // if left > 0 then add triangle top,left
+				// \|
+				const float sweepAngle = border[0] / (border[0] + border[1]) * Qk_PI2;
+				float angle = startAngle - sweepAngle;
+				const float src[15] = {
+					// {x,y,length-offset,width-offset,border-direction}
+					v[0], v[1], offset_length,             0, direction, // vertex 0
+					v[2], v[3], offset_length + border[0], 0, direction, // vertex 1
+					v[4], v[5], offset_length + border[0], 1, direction, // vertex 2
+				};
+				out->write(src, -1, 15);
+				offset_length += border[0];
+			}
+			{
+				// .______________.
+				// |______________|
+				const float src[30] = {
+					// {x,y,length-offset,width-offset,border-direction}
+					v[2], v[3], offset_length,              0, direction, // vertex 0
+					v[4], v[5], offset_length + inside_length, 0, direction, // vertex 1
+					v[8], v[9], offset_length + inside_length, 1, direction, // vertex 2
+					v[8], v[9], offset_length + inside_length, 1, direction, // vertex 3
+					v[10],v[11],offset_length,              1, direction, // vertex 4
+					v[2], v[3], offset_length,              0, direction, // vertex 5
+				};
+				out->write(src, -1, 30);
+				offset_length += inside_length;
+			}
+			if (border[2] > 1) {
+				// |/
+				const float sweepAngle = border[0] / (border[0] + border[1]) * -Qk_PI2;
+				const float src[15] = {
+					// {x,y,length-offset,width-offset,border-direction}
+					v[4], v[5], offset_length,              0, direction, // vertex 0
+					v[6], v[7], offset_length + border[2],  0, direction, // vertex 1
+					v[8], v[9], offset_length,              1, direction, // vertex 2
+				};
+				out->write(src, -1, 15);
+				offset_length += border[2];
+			}
+
+			return offset_length;
+		};
+
+		const float border[6] = {
+			i_x1 - o_x1, // left
 			i_y1 - o_y1, // top
 			o_x2 - i_x2, // right
 			o_y2 - i_y2, // bottom
 			i_x1 - o_x1, // left
+			i_y1 - o_y1, // top
 		};
+		const float vertex[48] = {
+			o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1,// vertex,right
+			o_x2,o_y1,o_x2,i_y1,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y1,// vertex,right
+			o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x1,i_y1,// vertex,bottom
+			o_x1,o_y2,o_x1,i_y2,o_x1,i_y1,o_x1,o_y1,i_x1,i_y1,i_x1,i_y2,// vertex,left
+		};
+		const Vec2 radius[5] = {
+			leftTop,rightTop,rightBottom,leftBottom,leftTop
+		};
+
 		float offset_length = 0; // length-offset
 
-		auto build = [](Array<float> *out,
-			float border[3], float v[12], // vertex
-			float offset_length, float inside_length, float direction
-		) {
-			// TODO ...
-		};
+		for (int j = 0; j < 4; j++) {
+			offset_length = build(
+				&rect.vertex, border + j,
+				vertex + (j*12),
+				radius + j, 
+				offset_length, j % 2 ? i.size.y(): i.size.x(), j
+			);
+		}
 
 		return std::move(rect);
 	}
