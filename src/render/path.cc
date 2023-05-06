@@ -713,7 +713,7 @@ namespace qk {
 		*/
 		//
 		const float border[4] = {
-			i_y1  - o_y1, // top
+			i_y1 - o_y1, // top
 			o_x2 - i_x2, // right
 			o_y2 - i_y2, // bottom
 			i_x1 - o_x1, // left
@@ -723,7 +723,7 @@ namespace qk {
 		// \|______________|/
 		auto build = [](
 			Array<float> *out,
-			const float border[3], const float v[12], // vertex
+			const float border[3], const Vec2 v[6], // vertex
 			float offset_length, float inside_length, float direction
 		) {
 			if (border[1] <= 0) return offset_length + inside_length;
@@ -731,9 +731,9 @@ namespace qk {
 			if (border[0] > 0) { // if left > 0 then add triangle top,left
 				const float src[15] = {
 					// {x,y,length-offset,width-offset,border-direction}
-					v[0], v[1], offset_length,             0, direction, // vertex 0
-					v[2], v[3], offset_length + border[0], 0, direction, // vertex 1
-					v[4], v[5], offset_length + border[0], 1, direction, // vertex 2
+					v[0].x(), v[0].y(), offset_length,             0, direction, // vertex 0
+					v[1].x(), v[1].y(), offset_length + border[0], 0, direction, // vertex 1
+					v[5].x(), v[5].y(), offset_length + border[0], 1, direction, // vertex 2
 				};
 				out->write(src, -1, 15);
 				offset_length += border[0];
@@ -741,12 +741,12 @@ namespace qk {
 			{
 				const float src[30] = {
 					// {x,y,length-offset,width-offset,border-direction}
-					v[2], v[3], offset_length,              0, direction, // vertex 0
-					v[4], v[5], offset_length + inside_length, 0, direction, // vertex 1
-					v[8], v[9], offset_length + inside_length, 1, direction, // vertex 2
-					v[8], v[9], offset_length + inside_length, 1, direction, // vertex 3
-					v[10],v[11],offset_length,              1, direction, // vertex 4
-					v[2], v[3], offset_length,              0, direction, // vertex 5
+					v[1].x(), v[1].y(), offset_length,                 0, direction, // vertex 0
+					v[2].x(), v[2].y(), offset_length + inside_length, 0, direction, // vertex 1
+					v[5].x(), v[5].y(), offset_length + inside_length, 1, direction, // vertex 2
+					v[4].x(), v[4].y(), offset_length + inside_length, 1, direction, // vertex 3
+					v[5].x(), v[5].y(), offset_length,                 1, direction, // vertex 4
+					v[1].x(), v[1].y(), offset_length,                 0, direction, // vertex 5
 				};
 				out->write(src, -1, 30);
 				offset_length += inside_length;
@@ -754,9 +754,9 @@ namespace qk {
 			if (border[2] > 1) {
 				const float src[15] = {
 					// {x,y,length-offset,width-offset,border-direction}
-					v[4], v[5], offset_length,              0, direction, // vertex 0
-					v[6], v[7], offset_length + border[2],  0, direction, // vertex 1
-					v[8], v[9], offset_length,              1, direction, // vertex 2
+					v[2].x(), v[2].y(), offset_length,              0, direction, // vertex 0
+					v[3].x(), v[3].y(), offset_length + border[2],  0, direction, // vertex 1
+					v[4].x(), v[4].y(), offset_length,              1, direction, // vertex 2
 				};
 				out->write(src, -1, 15);
 				offset_length += border[2];
@@ -779,15 +779,17 @@ namespace qk {
 			o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x1,i_y1,// vertex,bottom
 			o_x1,o_y2,o_x1,i_y2,o_x1,i_y1,o_x1,o_y1,i_x1,i_y1,i_x1,i_y2,// vertex,left
 		};
+		const Vec2 *vertex_p = reinterpret_cast<const Vec2*>(vertex);
 
 		float offset_length = 0; // length-offset
 
 		for (int j = 0; j < 4; j++) {
 			offset_length = build(
 				&rect.vertex, border + j,
-				vertex + (j*12),
+				vertex_p,
 				offset_length, j % 2 ? i.size.y(): i.size.x(), j
 			);
+			vertex_p+=6;
 		}
 
 		return std::move(rect);
@@ -812,12 +814,20 @@ namespace qk {
 		const Vec2 leftBottom = Vec2(Float::min(b.leftBottom.x(), x_5), Float::min(b.leftBottom.y(), y_5));
 
 		/* rect outline border
-			._.______________._.
-			|\|______________|/|
-			|-|              |-|
-			| |              | |
-			|_|______________|_|
-			|/|______________|\|
+			.__._.______________________.____.
+			| /| |                      |   /|
+			|/_o_|                      |  / |
+			|__|_|______________________|_/__|
+			|    |                      |    |
+			|    |                      |    |
+			|    |                      |    |
+			|    |                      |    |
+			|    |                o_____|____|
+			|    |                |    /|   /|
+			|    |                |   / |  / |
+			|__o_|________________|__/__| /  |
+			|\ | |                | /    /   |
+			|_\|_|________________|/____/____|
 		*/
 		auto build = [](
 			Array<float> *out,
@@ -830,8 +840,11 @@ namespace qk {
 			const bool  isZero_b   = radius[1].is_zero_or();
 			const float startAngle = Qk_PI2 - (direction * Qk_PI2);
 
-			if (isZero_a) { // 
+			if (isZero_a) { // zero
+				
+			} else if (border[0] > 0) { // not zero
 				Vec2 center(v[0] + radius[0]);
+			} else { // radius equal zero and left border equal zero
 				
 			}
 
@@ -853,12 +866,12 @@ namespace qk {
 				// |______________|
 				const float src[30] = { //
 					// {x,y,length-offset,width-offset,border-direction}
-					v[1].x(), v[1].y(), offset_length,              0, direction, // vertex 0
+					v[1].x(), v[1].y(), offset_length,                 0, direction, // vertex 0
 					v[2].x(), v[2].y(), offset_length + inside_length, 0, direction, // vertex 1
 					v[4].x(), v[4].y(), offset_length + inside_length, 1, direction, // vertex 2
 					v[4].x(), v[4].y(), offset_length + inside_length, 1, direction, // vertex 3
-					v[5].x(), v[5].y(), offset_length,              1, direction, // vertex 4
-					v[1].x(), v[1].y(), offset_length,              0, direction, // vertex 5
+					v[5].x(), v[5].y(), offset_length,                 1, direction, // vertex 4
+					v[1].x(), v[1].y(), offset_length,                 0, direction, // vertex 5
 				};
 				out->write(src, -1, 30);
 				offset_length += inside_length;
@@ -879,6 +892,9 @@ namespace qk {
 			return offset_length;
 		};
 
+		const Vec2 radius[5] = {
+			leftTop,rightTop,rightBottom,leftBottom,leftTop
+		};
 		const float border[6] = {
 			i_x1 - o_x1, // left
 			i_y1 - o_y1, // top
@@ -892,9 +908,6 @@ namespace qk {
 			o_x2,o_y1,o_x2,i_y1,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y1,// vertex,right
 			o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x1,i_y1,// vertex,bottom
 			o_x1,o_y2,o_x1,i_y2,o_x1,i_y1,o_x1,o_y1,i_x1,i_y1,i_x1,i_y2,// vertex,left
-		};
-		const Vec2 radius[5] = {
-			leftTop,rightTop,rightBottom,leftBottom,leftTop
 		};
 		const Vec2 *vertex_p = reinterpret_cast<const Vec2*>(vertex);
 
