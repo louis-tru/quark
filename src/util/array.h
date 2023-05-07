@@ -107,8 +107,10 @@ namespace qk {
 			Qk_ASSERT(index < _length, "Array access violation.");
 			return _val[index];
 		}
-		inline       T& get(uint32_t index) { return operator[](index); }
-		inline const T& get(uint32_t index) const { return operator[](index); }
+		inline       T& indexAt(uint32_t index) { return operator[](index); }
+		inline const T& indexAt(uint32_t index) const { return operator[](index); }
+		inline       T& lastIndexAt(uint32_t index) { return operator[](_length - 1 - index); }
+		inline const T& lastIndexAt(uint32_t index) const { return operator[](_length - 1 - index); }
 		inline       T* operator*()       { return _val; }
 		inline const T* operator*() const { return _val; }
 		inline       T* val      ()       { return _val; }
@@ -119,9 +121,9 @@ namespace qk {
 		Array& pop (uint32_t count = 1);
 
 		const T& front() const { return _val[0]; }
-		const T& back() const { return _val[_length - 1]; }
+		const T& back()  const { return _val[_length - 1]; }
 		T&       front() { return _val[0]; }
-		T&       back() { return _val[_length - 1]; }
+		T&       back()  { return _val[_length - 1]; }
 
 		/**
 		 * @method write() write data items
