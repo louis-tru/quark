@@ -606,81 +606,75 @@ namespace qk {
 		return std::move(rect);
 	}
 
-	RectPath RectPath::MakeRRect(const Rect &r, const Path::BorderRadius &b) {
-		RectPath rect;
+	RectPath RectPath::MakeRRect(const Rect &rect, const Path::BorderRadius &r) {
+		RectPath path;
 
-		const float x1 = r.origin.x(),    y1 = r.origin.x();
-		const float x2 = x1 + r.size.x(), y2 = y1 + r.size.y();
-		const float x_5 = r.size.x() * 0.5, y_5 = r.size.y() * 0.5;
+		const float x1 = rect.origin.x(),    y1 = rect.origin.x();
+		const float x2 = x1 + rect.size.x(), y2 = y1 + rect.size.y();
+		const float x_5 = rect.size.x() * 0.5, y_5 = rect.size.y() * 0.5;
 
-		const Vec2 leftTop = Vec2(Float::min(b.leftTop.x(), x_5), Float::min(b.leftTop.y(), y_5));
-		const Vec2 rightTop = Vec2(Float::min(b.rightTop.x(), x_5), Float::min(b.rightTop.y(), y_5));
-		const Vec2 rightBottom = Vec2(Float::min(b.rightBottom.x(), x_5), Float::min(b.rightBottom.y(), y_5));
-		const Vec2 leftBottom = Vec2(Float::min(b.leftBottom.x(), x_5), Float::min(b.leftBottom.y(), y_5));
+		const Vec2 leftTop = Vec2(Float::min(r.leftTop.x(), x_5), Float::min(r.leftTop.y(), y_5));
+		const Vec2 rightTop = Vec2(-Float::min(r.rightTop.x(), x_5), Float::min(r.rightTop.y(), y_5));
+		const Vec2 rightBottom = Vec2(-Float::min(r.rightBottom.x(), x_5), -Float::min(r.rightBottom.y(), y_5));
+		const Vec2 leftBottom = Vec2(Float::min(r.leftBottom.x(), x_5), -Float::min(r.leftBottom.y(), y_5));
 
-		rect.path.moveTo(Vec2(x1, leftTop.is_zero_or() ? y1 + leftTop.y(): y1));
+		path.path.moveTo(Vec2(x1, leftTop.is_zero_or() ? y1: y1 + leftTop.y()));
 
 		auto build = [](
-			RectPath *out, Vec2 point, Vec2 point_next,
-			Vec2 radius, Vec2 radius_next, float startAngle, float startAngle_next
+			RectPath *out, Vec2 v, Vec2 v2,
+			Vec2 radius, Vec2 radius2, float startAngle
 		) {
-			bool is_zero = radius.is_zero_or();
-			bool is_zero_next = radius_next.is_zero_or();
-			Vec2 c(point + radius);
+			bool is_zero  = radius.is_zero_or();
+			bool is_zero2 = radius2.is_zero_or();
+			const Vec2 c(v + radius);
 
 			if (!is_zero) {
-				Vec2 start(cosf(startAngle) * radius.x(), sinf(startAngle) * -radius.y());
-				int  sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
+				int   sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
 				float angleStep = -Qk_PI2 / (sample - 1);
-				// start
-				out->path.lineTo(start);
-				out->vertex.push(c);
-				out->vertex.push(start);
+				float angle = startAngle + Qk_PI2;
 
-				startAngle += angleStep; // start from 1
-
-				for (int i = 1; i < sample; i++) {
-					const Vec2 p = Vec2(
-						c.x() + cosf(startAngle) * radius.x(),
-						c.x() + sinf(startAngle) * -radius.y()
+				for (int i = 0; i < sample; i++) {
+					const Vec2 p(
+						c.x() - cosf(angle) * radius.x(), c.x() + sinf(angle) * radius.y()
 					);
+					const Vec2 src[3] = { p,c,p };
+					out->vertex.write(src, -1, i == 0 ? 2: 3); // add triangle vertex
 					out->path.lineTo(p);
-					const Vec2 vertex[3] = { p,c,p };
-					out->vertex.write(vertex, -1, 3); // add triangle vertex
-					startAngle += angleStep;
+					angle += angleStep;
 				}
 			} else {
-				out->path.lineTo(point);
+				out->path.lineTo(v);
 			}
 
-			if (!is_zero_next) {
-				Vec2 start_next(
-					cosf(startAngle_next) * radius_next.x(), sinf(startAngle_next) * -radius_next.y()
+			if (!is_zero2) { // no zero
+				const Vec2 c2(v2 + radius2);
+				const Vec2 p(
+					c2.x() - cosf(startAngle) * radius2.x(), c2.y () + sinf(startAngle) * radius2.y()
 				);
-				if (is_zero) {
-					Vec2 vertex[4] = {start_next,start_next,point_next + radius_next, c};
-					out->vertex.write(vertex, -1, 4);
+				if (!is_zero) { // no zero
+					const Vec2 src[4] = {p,p,c2,c};
+					out->vertex.write(src, -1, 4);
 				} else {
-					Vec2 vertex[3] = {point,start_next,point_next + radius_next};
-					out->vertex.write(vertex, -1, 3);
+					const Vec2 src[3] = {v,p,c2};
+					out->vertex.write(src, -1, 3);
 				}
-			} else if (is_zero) {
-				out->vertex.push(point_next);
+			} else if (!is_zero) { // v != zero and v2 == zero
+				out->vertex.push(v2);
 			}
 
-			return is_zero ? c: point;
+			return c;
 		};
 
-		Vec2 a = build(&rect, Vec2(x1, y1), Vec2(x2, y1), leftTop, rightTop, Qk_PI, Qk_PI2);
-		Vec2 b_ = build(&rect, Vec2(x2, y1), Vec2(x2, y2), rightTop, rightBottom, Qk_PI2, 0);
-		Vec2 c = build(&rect, Vec2(x2, y2), Vec2(x1, y2), rightBottom, leftBottom, 0, -Qk_PI2);
-		Vec2 d = build(&rect, Vec2(x1, x2), Vec2(x1, y1), leftBottom, leftTop, -Qk_PI2, Qk_PI);
+		Vec2 a = build(&path, Vec2(x1, y1), Vec2(x2, y1), leftTop, rightTop, Qk_PI2);
+		Vec2 b = build(&path, Vec2(x2, y1), Vec2(x2, y2), rightTop, rightBottom, 0);
+		Vec2 c = build(&path, Vec2(x2, y2), Vec2(x1, y2), rightBottom, leftBottom, -Qk_PI2);
+		Vec2 d = build(&path, Vec2(x1, x2), Vec2(x1, y1), leftBottom, leftTop, Qk_PI);
 
-		Vec2 vertex[6] = { a,b_,c,c,d,a };
-		rect.vertex.write(vertex, -1, 6);
-		rect.path.close();
+		const Vec2 src[6] = { a,b,c,c,d,a };
+		path.vertex.write(src, -1, 6);
+		path.path.close();
 
-		return std::move(rect);
+		return std::move(path);
 	}
 
 	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &o, const Rect &i) {
@@ -714,60 +708,6 @@ namespace qk {
 			|_|______________|_|
 			|/|______________|\|
 		*/
-		//
-		const float border[4] = {
-			i_y1 - o_y1, // top
-			o_x2 - i_x2, // right
-			o_y2 - i_y2, // bottom
-			i_x1 - o_x1, // left
-		};
-
-		//._.______________._.
-		// \|______________|/
-		auto build = [](
-			Array<float> *out,
-			const float border[3], const Vec2 v[6], // vertex
-			float offset_length, float inside_length, float direction
-		) {
-			if (border[1] <= 0) return offset_length + inside_length;
-
-			if (border[0] > 0) { // if left > 0 then add triangle top,left
-				const float src[15] = {
-					// {x,y,length-offset,width-offset,border-direction}
-					v[0].x(), v[0].y(), offset_length,             0, direction, // vertex 0
-					v[1].x(), v[1].y(), offset_length + border[0], 0, direction, // vertex 1
-					v[5].x(), v[5].y(), offset_length + border[0], 1, direction, // vertex 2
-				};
-				out->write(src, -1, 15);
-				offset_length += border[0];
-			}
-			{
-				const float src[30] = {
-					// {x,y,length-offset,width-offset,border-direction}
-					v[1].x(), v[1].y(), offset_length,                 0, direction, // vertex 0
-					v[2].x(), v[2].y(), offset_length + inside_length, 0, direction, // vertex 1
-					v[5].x(), v[5].y(), offset_length + inside_length, 1, direction, // vertex 2
-					v[4].x(), v[4].y(), offset_length + inside_length, 1, direction, // vertex 3
-					v[5].x(), v[5].y(), offset_length,                 1, direction, // vertex 4
-					v[1].x(), v[1].y(), offset_length,                 0, direction, // vertex 5
-				};
-				out->write(src, -1, 30);
-				offset_length += inside_length;
-			}
-			if (border[2] > 1) {
-				const float src[15] = {
-					// {x,y,length-offset,width-offset,border-direction}
-					v[2].x(), v[2].y(), offset_length,              0, direction, // vertex 0
-					v[3].x(), v[3].y(), offset_length + border[2],  0, direction, // vertex 1
-					v[4].x(), v[4].y(), offset_length,              1, direction, // vertex 2
-				};
-				out->write(src, -1, 15);
-				offset_length += border[2];
-			}
-
-			return offset_length;
-		};
-
 		const float border[6] = {
 			i_x1 - o_x1, // left
 			i_y1 - o_y1, // top
@@ -784,18 +724,338 @@ namespace qk {
 		};
 		const Vec2 *vertex_p = reinterpret_cast<const Vec2*>(vertex);
 
-		float offset_length = 0; // length-offset
+
+		//._.______________._.
+		// \|______________|/
+		auto build = [](
+			Array<float> *out,
+			const float border[3], const Vec2 v[6], // vertex
+			float offset, float inside_border_length, float direction
+		) {
+			if (border[1] <= 0) return offset + inside_border_length;
+
+			if (border[0] > 0) { // if left > 0 then add triangle top,left
+				const float src[15] = {
+					// {x,y,length-offset,width-offset,border-direction}
+					v[0].x(), v[0].y(), offset,             0, direction, // vertex 0
+					v[1].x(), v[1].y(), offset + border[0], 0, direction, // vertex 1
+					v[5].x(), v[5].y(), offset + border[0], 1, direction, // vertex 2
+				};
+				out->write(src, -1, 15);
+				offset += border[0];
+			}
+			{
+				const float src[30] = {
+					// {x,y,length-offset,width-offset,border-direction}
+					v[1].x(), v[1].y(), offset,                        0, direction, // vertex 0
+					v[2].x(), v[2].y(), offset + inside_border_length, 0, direction, // vertex 1
+					v[5].x(), v[5].y(), offset + inside_border_length, 1, direction, // vertex 2
+					v[4].x(), v[4].y(), offset + inside_border_length, 1, direction, // vertex 3
+					v[5].x(), v[5].y(), offset,                        1, direction, // vertex 4
+					v[1].x(), v[1].y(), offset,                        0, direction, // vertex 5
+				};
+				out->write(src, -1, 30);
+				offset += inside_border_length;
+			}
+			if (border[2] > 1) {
+				const float src[15] = {
+					// {x,y,length-offset,width-offset,border-direction}
+					v[2].x(), v[2].y(), offset,              0, direction, // vertex 0
+					v[3].x(), v[3].y(), offset + border[2],  0, direction, // vertex 1
+					v[4].x(), v[4].y(), offset,              1, direction, // vertex 2
+				};
+				out->write(src, -1, 15);
+				offset += border[2];
+			}
+
+			return offset;
+		};
+
+		float offset = 0; // length-offset
 
 		for (int j = 0; j < 4; j++) {
-			offset_length = build(
+			offset = build(
 				&rect.vertex, border + j,
 				vertex_p,
-				offset_length, j % 2 ? i.size.y(): i.size.x(), j
+				offset, j % 2 ? i.size.y(): i.size.x(), j
 			);
 			vertex_p+=6;
 		}
 
 		return std::move(rect);
+	}
+
+	static float MakeRRectOutlinePart(
+		RectOutlinePath *out,
+		const float border[3], const Vec2 v[6],
+		const Vec2  radius[2], const Vec2 radius_inside[2],
+		const float inside_radius_overflow[2],
+		float offset, float inside_border_length, float direction
+	) {
+		// no border
+		if (border[1] <= 0) return offset + inside_border_length;
+
+		/* rect outline border
+			0=A,1=B,5=C
+			0____1______________________2____3
+			| /| |                      |  / |
+			|/_|_|                      | /  |
+			|__|_5______________________4/___|
+			|    |                      |    |
+			|    |                      |    |
+			|    |                      |    |
+			|    |                      |    |
+			|    |                 _____|____|
+			|    |                |    /|   /|
+			|    |                |   / |  / |
+			|____|________________|__/__| /  |
+			|\ | |                | /    /   |
+			|_\|_|________________|/____/____|
+		*/
+		const int   axis = int(direction) % 2; // axis == 0 then is horizontal
+		const float startAngle = Qk_PI2 - (direction * Qk_PI2);
+		const float averageRadius_a = (radius[0].x() + radius[0].y()) * 0.5;
+		const float averageRadius_b = (radius[1].x() + radius[1].y()) * 0.5;
+		const float overflow_a = inside_radius_overflow[0];
+		const float overflow_b = inside_radius_overflow[1];
+		const bool  is_overflow_a = overflow_a > 0;
+		const bool  is_overflow_b = overflow_b > 0;
+
+		Vec2 v1 = v[1], v5 = v[5]; // inside radius v1 and v5 point, prev point a
+		Vec2 v2 = v[2], v4 = v[4]; // inside radius v2 and v4 point, prev point b
+
+		// ----------------------------- make left radius -----------------------------
+		if (!radius[0].is_zero_or()) { // radius not zero
+			Vec2 c(v[0] + radius[0]);
+
+			float angleRatio = border[1] / (border[0] + border[1]);
+			int   sample = getSampleFromRect(radius[0], 1, 0.5 * angleRatio);
+			// |0|1| = sample = 3
+			float sweepAngle = angleRatio * Qk_PI2; // make angle size
+			float angleStep = -sweepAngle / (sample - 1);
+			float angleStepLen = angleStep * averageRadius_a;
+			float angleLen = angleStepLen * (sample - 1);
+			float angle = startAngle + sweepAngle; // start from 0
+
+			auto lineTo = [](Path &path, Vec2 p) { path.ptsLen() ? path.lineTo(p): path.moveTo(p); };
+
+			if (radius_inside[0].is_zero_or()) { // no inside radius
+				const float offset_v5 = angleLen + (
+					!is_overflow_a ? -overflow_a: // no overflow
+					atanf(overflow_a/border[1]) * averageRadius_a // overflow
+				);
+				for (int i = 0; i < sample; i++) {
+					const Vec2 p = Vec2(
+						c.x() - cosf(angle) * radius[0].x(), c.x() + sinf(angle) * radius[0].y()
+					);
+					const float src[15] = {
+						// {x,y,length-offset,width-offset,border-direction}
+						p.x(),  p.y(),  offset,    0, direction, // vertex outside
+						v5.x(), v5.y(), offset_v5, 1, direction, // vertex inside
+						p.x(),  p.y(),  offset,    0, direction, // vertex outside
+					};
+					out->vertex.write(src, -1, i == 0 ? 10: 15); // add triangle vertex
+					lineTo(out->outside, p);
+					angle += angleStep;
+					offset += angleStepLen;
+				}
+				out->inside.startTo(v5);
+
+				if (is_overflow_a) {
+					// update v1 and v5 point
+					v1 = Vec2(out->vertex.lastIndexAt(4), out->vertex.lastIndexAt(3));
+					v5[axis] = v1[axis];
+					inside_border_length -= overflow_a;
+					const float src[15] = {
+						v5.x(), v5.y(), offset, 1, direction, // vertex inside
+					};
+					out->vertex.write(src, -1, 5); // add triangle end vertex
+					out->inside.lineTo(v5);
+				} else {
+					offset -= overflow_a;
+					const float src[5] = {
+						v1.x(), v1.y(), offset, 0, direction, // vertex outside
+					};
+					out->vertex.write(src, -1, 5); // add triangle end vertex
+					out->outside.lineTo(v1);
+				}
+			} else {
+				for (int i = 1; i <= sample; i++) {
+					const float x = cosf(angle), y = sinf(angle);
+					const Vec2 p[2] = {
+						{c.x() - x * radius       [0].x(), c.y() + y * radius       [0].y()}, // outside
+						{c.x() - x * radius_inside[0].x(), c.y() + y * radius_inside[0].y()}, // inside
+					};
+					const float src[30] = {
+						// triangle 0 complete
+						p[1].x(), p[1].y(), offset, 1, direction, // vertex inside
+						// triangle 1
+						v1.x(),   v1.y(), offset - angleStepLen, 0, direction, // vertex outside
+						p[0].x(), p[0].y(), offset, 0, direction, // vertex outside
+						p[1].x(), p[1].y(), offset, 1, direction, // vertex inside
+						// start next triangle 0
+						p[1].x(), p[1].y(), offset, 1, direction, // vertex inside
+						p[0].x(), p[0].y(), offset, 0, direction, // vertex outside
+					};
+
+					v1 = {p[0].x(), p[0].y()};
+					v5 = {p[1].x(), p[1].y()};
+
+					if (i == 1) {
+						out->vertex.write(src+20, -1, 10);
+					} else if (i == sample) {
+						out->vertex.write(src, -1, 20);
+					} else {
+						out->vertex.write(src, -1, 30);
+					}
+					lineTo(out->outside, p[0]);
+					lineTo(out->inside, p[1]);
+					angle += angleStep;
+					offset += angleStepLen;
+				}
+				inside_border_length -= overflow_a;
+			}
+		}
+		else if (border[0] > 0) { // not zero
+			const float src[15] = {
+				v5.x(),   v5.y(),   offset, 1, direction, // vertex inside
+				v[0].x(), v[0].y(), offset, 0, direction, // vertex outside
+				v1.x(),   v1.y(),   offset, 0, direction, // vertex outside
+			};
+			out->outside.startTo(v[0]);
+			out->outside.lineTo(v1);
+			out->inside.lineTo(v5);
+			offset += border[0];
+		}
+		else { // radius equal zero and left border equal zero
+			out->outside.startTo(v1);
+			out->inside.startTo(v5);
+		}
+
+		if (is_overflow_b) { // update v2 and v4 point
+			v2[axis] += direction < 2 ? -overflow_b: overflow_b;
+			v4[axis] = v2[axis];
+			inside_border_length -= overflow_b;
+		}
+
+		// ----------------------------- make center rect -----------------------------
+		{
+			const float src[30] = {
+				v5.x(), v5.y(), offset, 1, direction, // vertex inside
+				v1.x(), v1.y(), offset, 0, direction, // vertex outside
+				v2.x(), v2.y(), offset + inside_border_length, 0, direction, // vertex outside
+				v2.x(), v2.y(), offset + inside_border_length, 0, direction, // vertex outside
+				v4.x(), v4.y(), offset + inside_border_length, 1, direction, // vertex inside
+				v5.x(), v5.y(), offset, 1, direction, // vertex inside
+			};
+			out->vertex.write(src, -1, 30); // add triangle end vertex
+			out->outside.lineTo(v2);
+			out->inside.lineTo(v4);
+			offset += inside_border_length;
+		}
+
+		// ----------------------------- make right radius -----------------------------
+		if (!radius[1].is_zero_or()) { // outside radius no zero
+			Vec2 c(v[3] + radius[1]);
+
+			float angleRatio = border[1] / (border[2] + border[1]);
+			int   sample = getSampleFromRect(radius[1], 1, 0.5 * angleRatio);
+			// |0|1| = sample = 3
+			float sweepAngle = angleRatio * Qk_PI2; // make angle size
+			float angleStep = -sweepAngle / (sample - 1);
+			float angleStepLen = angleStep * averageRadius_b;
+			float angleLen = angleStepLen * (sample - 1);
+			float angle = startAngle; // start from 0
+
+			if (radius_inside[1].is_zero_or()) { // no inside radius
+				float offset_v4 = offset;
+
+				if (is_overflow_b) {
+					offset_v4 = offset + overflow_b;
+					const float src[15] = {
+						v4.x(),   v4.y(),   offset, 1, direction, // vertex inside
+						v2.x(),   v2.y(),   offset, 0, direction, // vertex outside
+						v[4].x(), v[4].y(), offset_v4, 1, direction, // vertex inside
+					};
+					out->vertex.write(src, -1, 15); // add triangle end vertex
+					out->inside.lineTo(v[4]);
+					v4 = v[4];
+				} else {
+					Vec2 v2_(v2);
+					v2_[axis] -= overflow_b;
+					const float src[15] = {
+						v4.x(),   v4.y(),   offset, 1, direction, // vertex inside
+						v2.x(),   v2.y(),   offset, 0, direction, // vertex outside
+						v2_.x(),  v2_.y(),  offset, 0, direction, // vertex outside
+					};
+					out->vertex.write(src, -1, 15); // add triangle end vertex
+					out->outside.lineTo(v2_);
+					offset -= overflow_b;
+				}
+				
+				for (int i = 1; i <= sample; i++) {
+					const Vec2 p = Vec2(
+						c.x() - cosf(angle) * radius[0].x(), c.x() + sinf(angle) * radius[0].y()
+					);
+					const float src[15] = {
+						// {x,y,length-offset,width-offset,border-direction}
+						p.x(),  p.y(),  offset,    0, direction, // vertex outside
+						v4.x(), v4.y(), offset_v4, 1, direction, // vertex inside
+						p.x(),  p.y(),  offset,    0, direction, // vertex outside
+					};
+					out->vertex.write(src, -1, i == 1 ? 10: i == sample ? 5: 15); // add triangle vertex
+					out->outside.lineTo(p);
+					angle += angleStep;
+					offset += angleStepLen;
+				}
+			} else {
+				for (int i = 1; i <= sample; i++) {
+					const float x = cosf(angle), y = sinf(angle);
+					const Vec2 p[2] = {
+						{c.x() - x * radius       [0].x(), c.y() + y * radius       [0].y()}, // outside
+						{c.x() - x * radius_inside[0].x(), c.y() + y * radius_inside[0].y()}, // inside
+					};
+					const float src[30] = {
+						// triangle 0 complete
+						p[1].x(), p[1].y(), offset, 1, direction, // vertex inside
+						// triangle 1
+						v2.x(),   v2.y(),   offset - angleStepLen, 0, direction, // vertex outside
+						p[0].x(), p[0].y(), offset, 0, direction, // vertex outside
+						p[1].x(), p[1].y(), offset, 1, direction, // vertex inside
+						// start next triangle 0
+						p[1].x(), p[1].y(), offset, 1, direction, // vertex inside
+						p[0].x(), p[0].y(), offset, 0, direction, // vertex outside
+					};
+
+					v2 = {p[0].x(), p[0].y()};
+					v4 = {p[1].x(), p[1].y()};
+
+					if (i == 1) {
+						out->vertex.write(src+20, -1, 10);
+					} else if (i == sample) {
+						out->vertex.write(src, -1, 20);
+					} else {
+						out->vertex.write(src, -1, 30);
+					}
+					out->outside.lineTo(p[0]);
+					out->inside.lineTo(p[1]);
+					angle += angleStep;
+					offset += angleStepLen;
+				}
+				// inside_border_length -= overflow_b;
+			}
+		} else if (border[2] > 0) {
+			const float src[15] = {
+				v4.x(),   v4.y(),   offset, 1, direction, // vertex inside
+				v2.x(),   v2.y(),   offset, 0, direction, // vertex outside
+				v[3].x(), v[3].y(), offset + border[2], 0, direction, // vertex outside
+			};
+			out->outside.lineTo(v[3]);
+			out->inside.lineTo(v5);
+			offset += border[2];
+		}
+
+		return offset;
 	}
 
 	RectOutlinePath RectOutlinePath::MakeRRectOutline(
@@ -854,219 +1114,10 @@ namespace qk {
 		const Vec2 *vertex_p = reinterpret_cast<const Vec2*>(vertex);
 		const float *inside_radius_overflow_p = inside_radius_overflow;
 
-		/* rect outline border
-			0____1______________________2____3
-			| /| |                      |  / |
-			|/_|_|                      | /  |
-			|__|_5______________________4/___|
-			|    |                      |    |
-			|    |                      |    |
-			|    |                      |    |
-			|    |                      |    |
-			|    |                 _____|____|
-			|    |                |    /|   /|
-			|    |                |   / |  / |
-			|____|________________|__/__| /  |
-			|\ | |                | /    /   |
-			|_\|_|________________|/____/____|
-		*/
-		auto build = [](
-			RectOutlinePath *out,
-			const float border[3], const Vec2 v[6],
-			const Vec2  radius[2], const Vec2 radius_inside[2],
-			const float inside_radius_overflow[2],
-			float offset, float inside_border_length, float direction
-		) {
-			if (border[1] <= 0) // no border
-				return offset + inside_border_length;
-
-			const int   axis = int(direction) % 2; // axis == 0 then is horizontal
-			const float startAngle = Qk_PI2 - (direction * Qk_PI2);
-			const float averageRadius_a = (radius[0].x() + radius[0].y()) * 0.5;
-			const float averageRadius_b = (radius[1].x() + radius[1].y()) * 0.5;
-			const bool  is_overflow_a = inside_radius_overflow[0] > 0;
-			const bool  is_overflow_b = inside_radius_overflow[1] > 0;
-
-			Vec2 v1 = v[1], v5 = v[5]; // inside radius v1 and v5 point
-			Vec2 v2 = v[2], v4 = v[4]; // inside radius v2 and v4 point
-
-			if (!radius[0].is_zero_or()) { // radius not zero
-				Vec2 c(v[0] + radius[0]);
-
-				float angleRatio = border[1] / (border[0] + border[1]);
-				int   sample = getSampleFromRect(radius[0], 1, 0.5 * angleRatio);
-				// |0|1| = sample = 3
-				float sweepAngle = angleRatio * Qk_PI2; // make angle size
-				float angleStep = -sweepAngle / (sample - 1);
-				float angleStepLen = angleStep * averageRadius_a;
-				float angleLen = angleStepLen * (sample - 1);
-				float angle = startAngle + sweepAngle; // start from 0
-
-				if (radius_inside[0].is_zero_or()) { // no inside radius
-					const float v5_offset = angleLen + (
-						!is_overflow_a ? -inside_radius_overflow[0]: // no overflow
-						atanf(inside_radius_overflow[0]/border[1]) * averageRadius_a // overflow
-					);
-					for (int i = 0; i < sample; i++) {
-						const Vec2 p = Vec2(
-							c.x() - cosf(angle) * radius[0].x(),
-							c.x() + sinf(angle) * radius[0].y()
-						);
-						const float src[15] = {
-							// {x,y,length-offset,width-offset,border-direction}
-							p.x(),  p.y(),  offset,    0, direction, // vertex outside
-							v5.x(), v5.y(), v5_offset, 1, direction, // vertex inside
-							p.x(),  p.y(),  offset,    0, direction, // vertex outside
-						};
-						out->vertex.write(src, -1, i == 0 ? 10: 15); // add triangle vertex
-						out->outside.lineTo(p);
-						angle += angleStep;
-						offset += angleStepLen;
-					}
-					out->inside.lineTo(v5);
-
-					if (is_overflow_a) {
-						// update v1 and v5 point
-						v1 = Vec2(out->vertex.lastIndexAt(4), out->vertex.lastIndexAt(3));
-						v5[axis] = v1[axis];
-						const float src[15] = {
-							v5.x(), v5.y(), offset, 1, direction, // vertex inside
-							v5.x(), v5.y(), offset, 1, direction, // vertex inside
-							v1.x(), v1.y(), offset, 0, direction, // vertex outside
-						};
-						out->vertex.write(src, -1, 5); // add triangle end vertex
-						out->inside.lineTo(v5);
-					} else {
-						offset -= inside_radius_overflow[0];
-						const float src[15] = {
-							v1.x(), v1.y(), offset, 0, direction, // vertex outside
-							v5.x(), v5.y(), offset, 1, direction, // vertex inside
-							v1.x(), v1.y(), offset, 0, direction, // vertex outside
-						};
-						out->vertex.write(src, -1, 15); // add triangle end vertex
-						out->outside.lineTo(v1);
-					}
-				} else {
-					for (int i = 0; i < sample; i++) {
-						const float x = cosf(angle), y = sinf(angle);
-						const Vec2 p[2] = {
-							{c.x() - x * radius       [0].x(), c.y() + y * radius       [0].y()}, // outside
-							{c.x() - x * radius_inside[0].x(), c.y() + y * radius_inside[0].y()}, // inside
-						};
-						if (i == 0) {
-							const float src[10] = {
-								p[1].x(), p[1].y(), offset, 1, direction, // vertex inside
-								p[0].x(), p[0].y(), offset, 0, direction, // vertex outside
-							};
-							out->vertex.write(src, -1, 10); // add triangle vertex
-						} else {
-							Vec2 pp(out->vertex.lastIndexAt(4), out->vertex.lastIndexAt(3)); // prev vertex outside
-							const float src[30] = {
-								// triangle 0 complete
-								p[1].x(), p[1].y(), offset, 1, direction, // vertex inside
-								// triangle 1
-								pp.x(),   pp.y(),   offset - angleStepLen, 0, direction, // vertex outside
-								p[0].x(), p[0].y(), offset, 0, direction, // vertex outside
-								p[1].x(), p[1].y(), offset, 1, direction, // vertex inside
-								// start next triangle 0
-								p[1].x(), p[1].y(), offset, 1, direction, // vertex inside
-								p[0].x(), p[0].y(), offset, 0, direction, // vertex outside
-							};
-							out->vertex.write(src, -1, 30);
-						}
-						out->outside.lineTo(p[0]);
-						out->outside.lineTo(p[1]);
-						angle += angleStep;
-						offset += angleStepLen;
-					}
-				}
-			} else if (border[0] > 0) { // not zero
-				const float src[15] = {
-					v5.x(),   v5.y(),   offset, 1, direction, // vertex inside
-					v[0].x(), v[0].y(), offset, 0, direction, // vertex outside
-					v1.x(),   v1.y(),   offset, 0, direction, // vertex outside
-				};
-				out->outside.lineTo(v[0]);
-				out->outside.lineTo(v1);
-				out->inside.lineTo(v5);
-				offset += border[0];
-			} else { // radius equal zero and left border equal zero
-				out->outside.lineTo(v1);
-				out->inside.lineTo(v5);
-			}
-
-			if (!radius[1].is_zero_or()) {
-				Vec2 c(v[3] + radius[1]);
-
-				float angleRatio = border[1] / (border[2] + border[1]);
-				int   sample = getSampleFromRect(radius[1], 1, 0.5 * angleRatio);
-				// |0|1| = sample = 3
-				float sweepAngle = angleRatio * Qk_PI2; // make angle size
-				float angleStep = -sweepAngle / (sample - 1);
-				float angleStepLen = angleStep * averageRadius_b;
-				float angleLen = angleStepLen * (sample - 1);
-				float angle = startAngle; // start from 0
-
-				if (radius_inside[1].is_zero_or()) { // no inside radius
-					const float v5_offset = angleLen + (
-						!is_overflow_a ? -inside_radius_overflow[0]: // no overflow
-						atanf(inside_radius_overflow[0]/border[1]) * averageRadius_a // overflow
-					);
-					for (int i = 0; i < sample; i++) {
-						const Vec2 p = Vec2(
-							c.x() - cosf(angle) * radius[0].x(),
-							c.x() + sinf(angle) * radius[0].y()
-						);
-						const float src[15] = {
-							// {x,y,length-offset,width-offset,border-direction}
-							p.x(),  p.y(),  offset,    0, direction, // vertex outside
-							v5.x(), v5.y(), v5_offset, 1, direction, // vertex inside
-							p.x(),  p.y(),  offset,    0, direction, // vertex outside
-						};
-						out->vertex.write(src, -1, i == 0 ? 10: 15); // add triangle vertex
-						out->outside.lineTo(p);
-						angle += angleStep;
-						offset += angleStepLen;
-					}
-					out->inside.lineTo(v5);
-
-					if (is_overflow_a) {
-						// update v1 and v5 point
-						v1 = Vec2(out->vertex.lastIndexAt(4), out->vertex.lastIndexAt(3));
-						v5[axis] = v1[axis];
-						const float src[15] = {
-							v5.x(), v5.y(), offset, 1, direction, // vertex inside
-							v5.x(), v5.y(), offset, 1, direction, // vertex inside
-							v1.x(), v1.y(), offset, 0, direction, // vertex outside
-						};
-						out->vertex.write(src, -1, 5); // add triangle end vertex
-						out->inside.lineTo(v5);
-					} else {
-						offset -= inside_radius_overflow[0];
-						const float src[15] = {
-							v1.x(), v1.y(), offset, 0, direction, // vertex outside
-							v5.x(), v5.y(), offset, 1, direction, // vertex inside
-							v1.x(), v1.y(), offset, 0, direction, // vertex outside
-						};
-						out->vertex.write(src, -1, 15); // add triangle end vertex
-						out->outside.lineTo(v1);
-					}
-				} else {
-
-				}
-			} else if (border[2] > 0) {
-
-			} else {
-
-			}
-
-			return offset;
-		};
-
 		float offset = 0; // length-offset
 
 		for (int j = 0; j < 4; j++) {
-			offset = build(
+			offset = MakeRRectOutlinePart(
 				&rect, border + j, vertex_p,
 				radius + j, radius + j + 5, inside_radius_overflow_p,
 				offset, j % 2 ? i.size.y(): i.size.x(), j
