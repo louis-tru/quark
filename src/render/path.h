@@ -129,7 +129,7 @@ namespace qk {
 		Array<Vec2> vertex; // triangle vertex {x,y}[3]
 		inline uint64_t hashCode() const { return path.hashCode(); }
 		static RectPath MakeRect(const Rect& rect);
-		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &br);
+		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &r);
 	};
 
 	// Optimizing rect outline vertex generation algorithm
@@ -144,7 +144,7 @@ namespace qk {
 		}
 		static RectOutlinePath MakeRectOutline(const Rect &outside, const Rect &inside);
 		static RectOutlinePath MakeRRectOutline(
-			const Rect &outside, const Rect &inside, const Path::BorderRadius &br);
+			const Rect &outside, const Rect &inside, const Path::BorderRadius &r);
 	};
 
 }
