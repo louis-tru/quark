@@ -915,8 +915,7 @@ namespace qk {
 				}
 				inside_border_length -= overflow_a;
 			}
-		}
-		else if (border[0] > 0) { // not zero
+		} else if (border[0] > 0) { // not zero
 			const float src[15] = {
 				v5.x(),   v5.y(),   offset, 1, direction, // vertex inside
 				v[0].x(), v[0].y(), offset, 0, direction, // vertex outside
@@ -926,8 +925,7 @@ namespace qk {
 			out->outside.lineTo(v1);
 			out->inside.lineTo(v5);
 			offset += border[0];
-		}
-		else { // radius equal zero and left border equal zero
+		} else { // radius equal zero and left border equal zero
 			out->outside.startTo(v1);
 			out->inside.startTo(v5);
 		}
