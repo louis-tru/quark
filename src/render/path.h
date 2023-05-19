@@ -58,8 +58,8 @@ namespace qk {
 		static Path MakeArc (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		static Path MakeRect(const Rect& rect, bool ccw = false);
 		static Path MakeCircle(Vec2 center, float radius, bool ccw = false);
-		static Path MakeRRect(const Rect& rect, const BorderRadius &br);
-		static Path MakeRRectOutline(const Rect& outside, const Rect &inside, const BorderRadius &br);
+		static Path MakeRRect(const Rect& rect, const BorderRadius &radius);
+		static Path MakeRRectOutline(const Rect& outside, const Rect &inside, const BorderRadius &radius);
 		Path();
 		Path(Vec2 move);
 		// add path points
@@ -129,7 +129,7 @@ namespace qk {
 		Array<Vec2> vertex; // triangle vertex {x,y}[3]
 		inline uint64_t hashCode() const { return path.hashCode(); }
 		static RectPath MakeRect(const Rect& rect);
-		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &r);
+		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &radius);
 	};
 
 	// Optimizing rect outline vertex generation algorithm
@@ -144,7 +144,7 @@ namespace qk {
 		}
 		static RectOutlinePath MakeRectOutline(const Rect &outside, const Rect &inside);
 		static RectOutlinePath MakeRRectOutline(
-			const Rect &outside, const Rect &inside, const Path::BorderRadius &r);
+			const Rect &outside, const Rect &inside, const Path::BorderRadius &radius);
 	};
 
 }
