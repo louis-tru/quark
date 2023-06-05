@@ -311,9 +311,8 @@ namespace qk {
 		for (auto verb: self->_verbs) {
 			switch(verb) {
 				case kVerb_Move:
-					if (close) {
+					if (close)
 						closeLine();
-					}
 					prev = *pts++;
 					len = 0;
 					break;
@@ -402,12 +401,50 @@ namespace qk {
 		return std::move(vertexs);
 	}
 
-	Path Path::dashPath(float offset, float phase, float interval) const {
-		Path tmp;
+	Path Path::dashPath(float *phases, int phases_count) const {
+		Path tmp, out;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, false, 1);
-		// TODO ...
+		auto pts = (const Vec2*)*self->_pts;
+		int  phases_idx = -1;
+		bool isEmpty;
+		Vec2 move, prev;
+
+		auto nextPhase = [&]() {
+			phases_idx = (phases_idx + 1) % phases_count;
+			float phase = phases[phases_idx];
+			Qk_ASSERT(phase != 0, "#Path.dashPath.nextPhase() assert phase != 0");
+			isEmpty = phase < 0;
+			return abs(phase);
+		};
+
+		float phase = nextPhase();
+
+		auto lintTo = [&](Vec2 to) {
+			// TODO ...
+		};
+
+		for (auto verb: self->_verbs) {
+			switch (verb) {
+				case kVerb_Move:
+					move = prev = *pts++;
+					break;
+				case kVerb_Line:
+					lintTo(*pts);
+					prev = *pts++;
+					break;
+				default:
+					Qk_ASSERT(verb == kVerb_Close);
+					if (prev != move) {
+						lintTo(move);
+					}
+					move = prev = Vec2();
+					break;
+			}
+		}
+
+		return std::move(out);
 	}
-	
+
 	Path Path::strokePath(float width, Cap cap, Join join, float offset) const {
 		// TODO ...
 		return *this;

@@ -99,7 +99,7 @@ namespace qk {
 		/**
 		 * @method dashPath() returns the dash path
 		*/
-		Path dashPath(float offset, float phase, float interval) const;
+		Path dashPath(float *phases, int phases_count) const;
 
 		// modification to stroke path
 		Path strokePath(float width, Cap cap, Join join, float offset = 0) const;
@@ -137,7 +137,7 @@ namespace qk {
 		Path         outside,inside;
 		// triangle vertex items {
 		//   x,y,length-offset,width-offset,border-direction
-	  // }[3]
+		// }[3]
 		Array<float> vertex; // triangle vertex
 		inline uint64_t hashCode() const {
 			return (outside.hashCode() << 32) | (inside.hashCode() & 0xFFFFFFFF);
