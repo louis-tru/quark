@@ -40,191 +40,173 @@
 
 namespace qk {
 
-	template <typename T, int LEN> struct MVec {
-		T val[LEN];
-		inline T operator[](int index) const { return val[index]; }
-		inline T& operator[](int index) { return val[index]; }
-	};
+	template <typename T, int LEN> struct Qk_EXPORT Vec {
+		inline Vec(): Vec(0) {}
+		inline Vec(T f) {
+			for (int i = 0; i < LEN; i++) val[i] = f;
+		}
+		inline Vec(T a, T b) {
+			val[0] = a; val[1] = b;
+		}
+		inline Vec(T a, T b, T c) {
+			val[0] = a; val[1] = b; val[2] = c;
+		}
+		inline Vec(T a, T b, T c, T d) {
+			val[0] = a; val[1] = b; val[2] = c; val[3] = d;
+		}
+		inline Vec(Vec<T, 2> vec2, T f) {
+			val[0] = vec2[0]; val[1] = vec2[1]; val[2] = f;
+		}
 
-	template <typename T> struct MVec2: public MVec<T, 2> {
-		inline MVec2(): MVec2(0) {}
-		inline MVec2(T f) {
-			this->val[0] = f; this->val[1] = f;
+		// ------------------------------------------
+		inline T operator[](int index) const {
+			return val[index];
 		}
-		inline MVec2(T a, T b) {
-			this->val[0] = a; this->val[1] = b;
+		inline T& operator[](int index) {
+			return val[index];
 		}
-		inline bool operator==(const MVec2& b) const {
-			return this->val[0] == b.val[0] && this->val[1] == b.val[1];
+		inline bool operator==(const Vec& b) const {
+			for (int i = 0; i < LEN; i++)
+				if (val[i] != b.val[i]) return false;
+			return true;
 		}
-		inline bool operator!=(const MVec2& b) const { return !operator==(b); }
-		inline MVec2<T> operator-(const MVec2& b) const {
-			return MVec2<T>(this->val[0] - b[0], this->val[1] - b[1]);
+		inline bool operator!=(const Vec& b) const {
+			return !operator==(b);
 		}
-		inline MVec2<T> operator+(const MVec2& b) const {
-			return MVec2<T>(this->val[0] + b[0], this->val[1] + b[1]);
+
+		// ------------------------------------------
+		inline Vec operator+(const Vec& b) const {
+			Vec c(*this);
+			for (int i = 0; i < LEN; i++) c.val[i] += b.val[i]; return c;
 		}
-		inline MVec2<T> operator*(const MVec2& b) const {
-			return MVec2<T>(this->val[0] * b[0], this->val[1] * b[1]);
+		inline Vec operator-(const Vec& b) const {
+			Vec c(*this);
+			for (int i = 0; i < LEN; i++) c.val[i] -= b.val[i]; return c;
 		}
-		inline MVec2<T> operator/(const MVec2& b) const {
-			return MVec2<T>(this->val[0] / b[0], this->val[1] / b[1]);
+		inline Vec operator*(const Vec& b) const {
+			Vec c(*this);
+			for (int i = 0; i < LEN; i++) c.val[i] *= b.val[i]; return c;
 		}
-		inline MVec2<T>& operator-=(const MVec2& b) {
-			this->val[0] -= b[0]; this->val[1] -= b[1]; return *this;
+		inline Vec operator/(const Vec& b) const {
+			Vec c(*this);
+			for (int i = 0; i < LEN; i++) c.val[i] /= b.val[i]; return c;
 		}
-		inline MVec2<T>& operator+=(const MVec2& b) {
-			this->val[0] += b[0]; this->val[1] += b[1]; return *this;
+		// ------------------------------------------
+		inline Vec& operator+=(const Vec& b) {
+			for (int i = 0; i < LEN; i++) val[i] += b.val[i]; return *this;
 		}
-		inline MVec2<T>& operator*=(const MVec2& b) {
-			this->val[0] *= b[0]; this->val[1] *= b[1]; return *this;
+		inline Vec& operator-=(const Vec& b) {
+			for (int i = 0; i < LEN; i++) val[i] -= b.val[i]; return *this;
 		}
-		inline MVec2<T>& operator/=(const MVec2& b) {
-			this->val[0] /= b[0]; this->val[1] /= b[1]; return *this;
+		inline Vec& operator*=(const Vec& b) {
+			for (int i = 0; i < LEN; i++) val[i] *= b.val[i]; return *this;
 		}
-		inline T x() const { return this->val[0]; }
-		inline T y() const { return this->val[1]; }
-		inline void set_x(T v) { this->val[0] = v; }
-		inline void set_y(T v) { this->val[1] = v; }
+		inline Vec& operator/=(const Vec& b) {
+			for (int i = 0; i < LEN; i++) val[i] /= b.val[i]; return *this;
+		}
+
+		// ------------------------------------------
+		inline T x() const { return val[0]; }
+		inline T y() const { return val[1]; }
+		inline T z() const { return val[2]; }
+		inline T w() const { return val[3]; }
+
+		inline T r() const { return val[0]; }
+		inline T g() const { return val[1]; }
+		inline T b() const { return val[2]; }
+		inline T a() const { return val[3]; }
+
+		inline void set_x(T v) { val[0] = v; }
+		inline void set_y(T v) { val[1] = v; }
+		inline void set_z(T v) { val[2] = v; }
+		inline void set_w(T v) { val[3] = v; }
+
+		inline void set_r(T v) { val[0] = v; }
+		inline void set_g(T v) { val[1] = v; }
+		inline void set_b(T v) { val[2] = v; }
+		inline void set_a(T v) { val[3] = v; }
+
+		// ------------------------------------------
 		inline bool is_zero() const {
-			return this->val[0] == 0 && this->val[1] == 0;
+			for (int i = 0; i < LEN; i++) if (val[i] != 0) return false;
+			return true;
 		}
 		inline bool is_zero_or() const {
-			return this->val[0] == 0 || this->val[1] == 0;
+			for (int i = 0; i < LEN; i++) if (val[i] == 0) return true;
+			return false;
 		}
 		/**
 		 * @method length() returns vector length
 		 */
 		float length() const;
-		float dot(const MVec2& b) const;
-		MVec2 normalized() const;
+		float dot(const Vec& b) const;
+		Vec   normalized() const;
 		/**
-		 * @method rotate90() Default to use Cartesian coordinate system
+		 * @method rotate90z() Default to use Cartesian coordinate system
 		 */
-		MVec2 rotate90(bool ccw/*counter clock wise*/) const;
+		Vec   rotate90z(bool ccw/*counter clock wise*/) const;
 		/**
 		 * Default to use Cartesian coordinate system
 		 * @method normal() Default clockwise direction inward, screen coordinates outward
 		 * @arg ccw {bool} if ccw=true then clockwise direction outward
 		 */
-		MVec2 normalline(const MVec2 *prev, const MVec2 *next, bool ccw) const;
-		float angle(const MVec2& b) const;
+		Vec   normalline(const Vec *prev, const Vec *next, bool ccw) const;
+		float angle(const Vec& b) const;
+
+		// ------------------------------------------
+		T val[LEN];
 	};
 
-	template<> float        MVec2<float>::length() const;
-	template<> float        MVec2<float>::dot(const MVec2& b) const;
-	template<> MVec2<float> MVec2<float>::normalized() const;
-	template<> MVec2<float> MVec2<float>::rotate90(bool ccw) const;
-	template<> MVec2<float> MVec2<float>::normalline(const MVec2 *prev, const MVec2 *next, bool ccw) const;
-	template<> float        MVec2<float>::angle(const MVec2& b) const;
+	template<>               Vec<float,2>::Vec(float f);
+	template<>               Vec<int,2>::Vec(int f);
+	template<> bool          Vec<float,2>::is_zero() const;
+	template<> bool          Vec<float,2>::is_zero_or() const;
+	template<> float         Vec<float,2>::length() const;
+	template<> float         Vec<float,2>::dot(const Vec& b) const;
+	template<> Vec<float,2>  Vec<float,2>::normalized() const;
+	template<> Vec<float,2>  Vec<float,2>::rotate90z(bool ccw) const;
+	template<> Vec<float,2>  Vec<float,2>::normalline(const Vec *prev, const Vec *next, bool ccw) const;
+	template<> float         Vec<float,2>::angle(const Vec& b) const;
+	template<> bool          Vec<float,2>::operator==(const Vec& b) const;
+	template<> bool          Vec<int,2>::operator==(const Vec& b) const;
 
-	template <typename T> struct MVec3: public MVec<T, 3> {
-		inline MVec3(): MVec3(0) {}
-		inline MVec3(T f) {
-			this->val[0] = f; this->val[1] = f; this->val[2] = f;
-		}
-		inline MVec3(MVec2<T> vec2, T f) {
-			this->val[0] = vec2[0]; this->val[1] = vec2[1]; this->val[2] = f;
-		}
-		inline MVec3(T a, T b, T c) {
-			this->val[0] = a; this->val[1] = b; this->val[2] = c;
-		}
-		inline bool operator==(const MVec3& b) const {
-			return this->val[0] == b.val[0] &&
-				this->val[1] == b.val[1] && this->val[2] == b.val[2];
-		}
-		inline bool operator!=(const MVec3& b) const { return !operator==(b); }
+	template<typename T> 
+	struct                   MRect { T origin,size; }; // rect
+	template<typename T> 
+	struct                   MRegion { T origin,end;}; // region
 
-		inline T x() const { return this->val[0]; }
-		inline T y() const { return this->val[1]; }
-		inline T z() const { return this->val[2]; }
-		inline const MVec2<T>& xy() const { return *(const MVec2<T>*)(this); }
-		inline const MVec2<T>& yz() const { return *(const MVec2<T>*)(this->val[1]); }
-		inline void set_x(T v) { this->val[0] = v; }
-		inline void set_y(T v) { this->val[1] = v; }
-		inline void set_z(T v) { this->val[2] = v; }
-	};
+	// typedef vec
+	typedef Vec<float,2>     Vec2;
+	typedef Vec<float,3>     Vec3;
+	typedef Vec<float,4>     Vec4;
+	typedef Vec<int,2>       iVec2;
+	typedef Vec<int,3>       iVec3;
+	typedef Vec<int,4>       iVec4;
+	// typedef rect
+	typedef MRect<Vec2>      Rect;
+	typedef MRegion<Vec2>    Region;
+	typedef MRect<iVec2>     iRect;
+	typedef MRegion<iVec2>   iRegion;
 
-	template <typename T> struct MVec4: public MVec<T, 4> {
-		inline MVec4(): MVec4(0) {}
-		inline MVec4(T f) {
-			this->val[0] = f; this->val[1] = f; this->val[2] = f; this->val[3] = f;
-		}
-		inline MVec4(T a, T b, T c, T d) {
-			this->val[0] = a; this->val[1] = b; this->val[2] = c; this->val[3] = d;
-		}
-		inline bool operator==(const MVec4& b) const {
-			return  this->val[0] == b.val[0] && this->val[1] == b.val[1] &&
-							this->val[2] == b.val[2] && this->val[3] == b.val[3];
-		}
-		inline bool operator!=(const MVec4& b) const { return !operator==(b); }
-
-		inline T x() const { return this->val[0]; }
-		inline T y() const { return this->val[1]; }
-		inline T z() const { return this->val[2]; }
-		inline T w() const { return this->val[3]; }
-		inline void set_x(T v) { this->val[0] = v; }
-		inline void set_y(T v) { this->val[1] = v; }
-		inline void set_z(T v) { this->val[2] = v; }
-		inline void set_w(T v) { this->val[4] = v; }
-	};
-
-	typedef MVec2<float> Vec2;
-	typedef MVec3<float> Vec3;
-	typedef MVec4<float> Vec4;
-	typedef MVec2<int>   Vec2i;
-	typedef MVec3<int>   Vec3i;
-	typedef MVec4<int>   Vec4i;
-
-	// rect
-	template<typename T> struct MRect {
-		T origin,size;
-	};
-
-	template<typename T> struct MRegion {
-		T origin,end;
-	};
-
-	// rect int
-	typedef MRect<Vec2>    Rect;
-	typedef MRegion<Vec2>  Region;
-	typedef MRect<Vec2i>   Recti;
-	typedef MRegion<Vec2i> Regioni;
-
-	template <typename T> struct MColor: public MVec<T, 4> {
-		inline MColor(){}
-		inline MColor(T r, T g, T b, T a) {
-			this->val[0] = r; this->val[1] = g; this->val[2] = b; this->val[3] = a;
-		}
-		inline T r() const { return this->val[0]; }
-		inline T g() const { return this->val[1]; }
-		inline T b() const { return this->val[2]; }
-		inline T a() const { return this->val[3]; }
-		inline void r(T value) { this->val[0] = value; }
-		inline void g(T value) { this->val[1] = value; }
-		inline void b(T value) { this->val[2] = value; }
-		inline void a(T value) { this->val[3] = value; }
-	};
-
-	struct Qk_EXPORT Color4f: public MColor<float> {
-		Color4f(): MColor<float>(0, 0, 0, 1) {}
+	struct Qk_EXPORT Color4f: Vec<float, 4> {
+		Color4f(): Vec<float, 4>(0, 0, 0, 1) {}
 		Color4f(float r, float g, float b)
-			: MColor<float>(r, g, b, 1) {}
+			: Vec<float, 4>(r, g, b, 1) {}
 		Color4f(float r, float g, float b, float a)
-			: MColor<float>(r, g, b, a) {}
+			: Vec<float, 4>(r, g, b, a) {}
 		bool operator==(const Color4f& color) const;
 		bool operator!=(const Color4f& color) const;
 	};
 
-	struct Qk_EXPORT Color: public MColor<uint8_t> {
+	struct Qk_EXPORT Color: Vec<uint8_t, 4> {
 		static Color from(uint32_t color); //! ignore endianness, small end data as a,b,g,r
 		static Color from_abgr(uint32_t abgr); //! high => low as a,b,g,r
 		static Color from_rgba(uint32_t rgba); //! high => low as r,g,b,a
-		Color(): MColor<uint8_t>(0, 0, 0, 255) {}
+		Color(): Vec<uint8_t, 4>(0, 0, 0, 255) {}
 		Color(uint8_t r, uint8_t g, uint8_t b)
-			: MColor<uint8_t>(r, g, b, 255) {}
+			: Vec<uint8_t, 4>(r, g, b, 255) {}
 		Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-			: MColor<uint8_t>(r, g, b, a) {}
+			: Vec<uint8_t, 4>(r, g, b, a) {}
 		bool operator==(Color color) const;
 		bool operator!=(Color color) const;
 		Color4f  to_color4f() const;
@@ -233,7 +215,7 @@ namespace qk {
 		uint32_t to_uint32_rgba() const; //! high => low as r,g,b,a
 	};
 
-	struct Qk_EXPORT Mat: public MVec<float, 6> {
+	struct Qk_EXPORT Mat: Vec<float, 6> {
 		inline Mat(): Mat(1) {}
 		Mat(float value);
 		Mat(float m0, float m1, float m2, float m3, float m4, float m5);
@@ -255,7 +237,7 @@ namespace qk {
 		void mul(const Mat& b, Mat& output) const;
 	};
 
-	struct Qk_EXPORT Mat4: public MVec<float, 16> {
+	struct Qk_EXPORT Mat4: Vec<float, 16> {
 		inline Mat4(): Mat4(1) {}
 		Mat4(float value);
 		Mat4(float m0, float m1, float m2, float m3,

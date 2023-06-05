@@ -60,19 +60,33 @@ namespace qk {
 		float xhalf = 0.5 * x;
 		int i = *(int*)&x; // get bits for floating value
 		i = 0x5f3759df - (i >> 1); // gives initial guess
-    float y = *(float*)&i;
-    y = y * (1.5 - xhalf * y * y); // Newton step
-    y = y * (1.5 - xhalf * y * y);
-    return x * y;
+		float y = *(float*)&i;
+		y = y * (1.5 - xhalf * y * y); // Newton step
+		y = y * (1.5 - xhalf * y * y);
+		return x * y;
 #else
-    return 1.0 / math_invSqrt(x);
+		return 1.0 / math_invSqrt(x);
 #endif
 #else
 		return sqrtf(x);
 #endif
 	}
 
-	template<> float MVec2<float>::length() const {
+	template <> Vec<float,2>::Vec(float f): Vec(f,f) {
+	}
+
+	template <> Vec<int,2>::Vec(int f): Vec(f,f) {
+	}
+
+	template <> bool Vec<float,2>::is_zero() const {
+		return val[0] == 0 && val[1] == 0;
+	}
+
+	template <> bool Vec<float,2>::is_zero_or() const {
+		return val[0] == 0 || val[1] == 0;
+	}
+
+	template<> float Vec<float,2>::length() const {
 		if (val[0] == 0)
 			return abs(val[1]);
 		else if (val[1] == 0)
@@ -81,40 +95,48 @@ namespace qk {
 			return sqrtf( val[0] * val[0] + val[1] * val[1] );
 	}
 
-	template<> float MVec2<float>::dot(const MVec2& b) const {
+	template<> float Vec<float,2>::dot(const Vec& b) const {
 		return x() * b.x() + y() * b.y();
 	}
 
-	template<> MVec2<float> MVec2<float>::normalized() const {
+	template<> Vec<float,2> Vec<float,2>::normalized() const {
 		const float len = length();
 		return {val[0] / len, val[1] / len};
 	}
 
-	template<> MVec2<float> MVec2<float>::rotate90(bool ccw) const {
+	template<> Vec<float,2> Vec<float,2>::rotate90z(bool ccw) const {
 		return ccw ? Vec2{-val[1], val[0]}: Vec2{val[1], -val[0]};
 	}
 
-	template<> MVec2<float> MVec2<float>::normalline(const MVec2 *prev, const MVec2 *next, bool ccw) const {
+	template<> Vec<float,2> Vec<float,2>::normalline(const Vec *prev, const Vec *next, bool ccw) const {
 		if (!prev) {
 			const Vec2 toNext = Vec2(next->x() - x(), next->y() - y()).normalized();
-			return toNext.rotate90(ccw);//.normalized();
+			return toNext.rotate90z(ccw);//.normalized();
 		}
 		if (!next) {
 			const Vec2 fromPrev = Vec2(x() - prev->x(), y() - prev->y()).normalized();
-			return fromPrev.rotate90(ccw);//.normalized();
+			return fromPrev.rotate90z(ccw);//.normalized();
 		}
 
 		const Vec2 toNext   = Vec2(next->x() - x(), next->y() - y()).normalized();
 		const Vec2 fromPrev = Vec2(x() - prev->x(), y() - prev->y()).normalized();
 
-		const Vec2 toNextNormal       = toNext.rotate90(ccw);
-		const Vec2 fromPreviousNormal = fromPrev.rotate90(ccw);
+		const Vec2 toNextNormal       = toNext.rotate90z(ccw);
+		const Vec2 fromPreviousNormal = fromPrev.rotate90z(ccw);
 
 		return (toNextNormal + fromPreviousNormal);//.normalized();
 	}
 
-	template<> float MVec2<float>::angle(const MVec2& b) const {
+	template<> float Vec<float,2>::angle(const Vec& b) const {
 		return acosf(dot(b) / (length() * b.length()));
+	}
+
+	template<> bool Vec<float,2>::operator==(const Vec& b) const {
+		return val[0] == b.val[0] && val[1] == b.val[1];
+	}
+
+	template<> bool Vec<int,2>::operator==(const Vec& b) const {
+		return val[0] == b.val[0] && val[1] == b.val[1];
 	}
 
 	bool Color4f::operator==(const Color4f& color) const {
