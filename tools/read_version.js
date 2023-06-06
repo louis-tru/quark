@@ -56,9 +56,9 @@ function update_quark_version() {
 	var vers = read_quark_version().join('.');
 	[
 		__dirname + '/../libs/quark/out/quark/package.json',
-		__dirname + '/../libs/noproj/out/noproj/package.json',
+		__dirname + '/../libs/qkmake/out/qkmake/package.json',
 		__dirname + '/../libs/quark/package.json',
-		__dirname + '/../libs/noproj/package.json',
+		__dirname + '/../libs/qkmake/package.json',
 	].forEach(e=>{
 		var json = fs.readFileSync(e, 'utf-8');
 		json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);

@@ -31,7 +31,7 @@
 
 var fs = require('somes/fs');
 var path = require('path');
-var marked_html = require('noproj/marked/html');
+var marked_html = require('qkmake/marked/html');
 var read_quark_version = require('./read_version').read_quark_version;
 var argv = process.argv.slice(2);
 var template = null;
@@ -93,6 +93,6 @@ function each_dir(src, target) {
 }
 
 fs.mkdir_p_sync(output);
-fs.cp_sync(require.resolve('noproj') + '/../marked/assets', output + '/assets');
+fs.cp_sync(require.resolve('qkmake') + '/../marked/assets', output + '/assets');
 
 each_dir('', output);

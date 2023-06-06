@@ -3,7 +3,7 @@
 set -e
 
 CWD=`pwd`
-PRODUCT_DIR="out/noproj/product"
+PRODUCT_DIR="out/qkmake/product"
 BUILD_ALL=$1
 BUILD_V8=$2
 

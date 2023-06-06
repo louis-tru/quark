@@ -401,45 +401,68 @@ namespace qk {
 		return std::move(vertexs);
 	}
 
-	Path Path::dashPath(float *phases, int phases_count) const {
+	Path Path::dashPath(float *stage_p, int stage_count) const {
 		Path tmp, out;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, false, 1);
 		auto pts = (const Vec2*)*self->_pts;
-		int  phases_idx = -1;
-		bool isEmpty;
-		Vec2 move, prev;
+		int  stage_idx = -1;
+		bool useStage = false; // no empty
+		Vec2 move, from;
+		float stage = 0;
 
-		auto nextPhase = [&]() {
-			phases_idx = (phases_idx + 1) % phases_count;
-			float phase = phases[phases_idx];
-			Qk_ASSERT(phase != 0, "#Path.dashPath.nextPhase() assert phase != 0");
-			isEmpty = phase < 0;
-			return abs(phase);
+		auto nextStage = [&]() {
+			stage_idx = (stage_idx + 1) % stage_count;
+			stage = stage_p[stage_idx];
+			Qk_ASSERT(stage != 0, "#Path.dashPath.nextStage() assert stage != 0");
+			useStage = stage > 0;
+			if (!useStage) { // empty
+				stage = -stage;
+			}
 		};
 
-		float phase = nextPhase();
-
 		auto lineTo = [&](Vec2 to) {
-			// TODO ...
+			auto  source = from;
+			auto  point = to - from;
+			float len = point.length(), useLen = 0;
+
+			while (len > useLen) {
+				if (useStage) {
+					out.lineTo(from);
+				}
+				if (stage == 0) {
+					nextStage();
+					if (useStage) {
+						out.moveTo(from);
+					}
+				}
+				float use = Float::min(len - useLen, stage);
+				useLen += use; stage -= use;
+				from = source + point * Vec2(useLen / len);
+			}
 		};
 
 		for (auto verb: self->_verbs) {
 			switch (verb) {
 				case kVerb_Move:
-					move = prev = *pts++;
+					move = from = *pts++;
 					break;
 				case kVerb_Line:
 					lineTo(*pts);
-					prev = *pts++;
+					from = *pts++;
 					break;
 				default:
 					Qk_ASSERT(verb == kVerb_Close);
-					if (prev != move) {
+					if (from != move) {
 						lineTo(move);
 					}
-					move = prev = Vec2();
+					move = from = Vec2();
 					break;
 			}
+		}
+
+		if (out.verbsLen()) {
+			if (useStage)
+				out.lineTo(from);
 		}
 
 		return std::move(out);

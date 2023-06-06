@@ -36,7 +36,7 @@ var read_version = require('./read_version');
 
 var args = process.argv.slice(2);
 var root = path.resolve(__dirname, '..');
-var target = args[0] ? path.resolve(args[0]) : root + '/out/noproj';
+var target = args[0] ? path.resolve(args[0]) : root + '/out/qkmake';
 var include = target + '/product/include';
 
 fs.rm_r_sync(include);
@@ -50,10 +50,10 @@ read_version.update_quark_version();
 execSync(`cd ${root}/libs/quark && npm run build`);
 fs.cp_sync(root + '/libs/quark/out/@types', target + '/product/@types');
 
-// build noproj
-execSync(`cd ${root}/libs/noproj && npm run build`);
-fs.cp_sync(root + '/libs/noproj/out/noproj', target, {ignore_hide:0,symlink: 0});
-fs.cp_sync(root + '/libs/noproj/gyp', target + '/gyp', {ignore_hide:1,replace:0});
+// build qkmake
+execSync(`cd ${root}/libs/qkmake && npm run build`);
+fs.cp_sync(root + '/libs/qkmake/out/qkmake', target, {ignore_hide:0,symlink: 0});
+fs.cp_sync(root + '/libs/qkmake/gyp', target + '/gyp', {ignore_hide:1,replace:0});
 
 fs.chmodSync(target + '/gyp/gyp', 0755);
 fs.chmodSync(target + '/shell.js', 0755);

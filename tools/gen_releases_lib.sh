@@ -14,7 +14,7 @@ fi
 
 mkdir -p releases
 
-cd noproj/product
+cd qkmake/product
 
 tar cfvz ../../releases/ios.tar.gz ios
 tar cfvz ../../releases/android.tar.gz android
@@ -26,7 +26,7 @@ cd ../..
 
 mkdir -p linux-ubuntu.x64.Release.shared/bin
 mkdir -p linux-ubuntu.x64.Release.shared/lib
-cp -rf noproj/product/include linux-ubuntu.x64.Release.shared
+cp -rf qkmake/product/include linux-ubuntu.x64.Release.shared
 scp $host:~/quark/out/linux-ubuntu.x64.Release.shared/quark          linux-ubuntu.x64.Release.shared/bin
 scp $host:~/quark/out/linux-ubuntu.x64.Release.shared/lib.target/* linux-ubuntu.x64.Release.shared/lib
 tar cfvz releases/linux-ubuntu.x64.Release.shared.tar.gz \
@@ -35,7 +35,7 @@ tar cfvz releases/linux-ubuntu.x64.Release.shared.tar.gz \
 
 mkdir -p linux-ubuntu.armv7.Release.shared/bin
 mkdir -p linux-ubuntu.armv7.Release.shared/lib
-cp -rf noproj/product/include linux-ubuntu.armv7.Release.shared
+cp -rf qkmake/product/include linux-ubuntu.armv7.Release.shared
 scp $host:~/quark/out/linux-ubuntu.armv7.Release.shared/quark          linux-ubuntu.armv7.Release.shared/bin
 scp $host:~/quark/out/linux-ubuntu.armv7.Release.shared/lib.target/* linux-ubuntu.armv7.Release.shared/lib
 tar cfvz releases/linux-ubuntu.armv7.Release.shared.tar.gz \
@@ -45,13 +45,13 @@ tar cfvz releases/linux-ubuntu.armv7.Release.shared.tar.gz \
 # linux ubuntu
 
 mkdir -p linux-ubuntu.x64.Release/bin
-cp -rf noproj/product/include linux-ubuntu.x64.Release
+cp -rf qkmake/product/include linux-ubuntu.x64.Release
 scp $host:~/quark/out/linux-ubuntu.x64.Release/quark linux-ubuntu.x64.Release/bin
 tar cfvz releases/linux-ubuntu.x64.Release.tar.gz \
 	linux-ubuntu.x64.Release/bin linux-ubuntu.x64.Release/include
 
 mkdir -p linux-ubuntu.armv7.Release/bin
-cp -rf noproj/product/include linux-ubuntu.armv7.Release
+cp -rf qkmake/product/include linux-ubuntu.armv7.Release
 scp $host:~/quark/out/linux-ubuntu.armv7.Release/quark linux-ubuntu.armv7.Release/bin
 tar cfvz releases/linux-ubuntu.armv7.Release.tar.gz \
 	linux-ubuntu.armv7.Release/bin linux-ubuntu.armv7.Release/include

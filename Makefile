@@ -2,8 +2,8 @@
 HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE           ?= node
 ANDROID_JAR     = out/android.classs.quark.jar
-FPROJ           = ./libs/noproj
-FPROJ_OUT       = out/noproj
+QKMAKE          = ./libs/qkmake
+QKMAKE_OUT      = out/qkmake
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
 ifneq ($(USER),root)
@@ -27,8 +27,8 @@ check_osx=\
 	fi
 
 .PHONY: $(FORWARD) ios android linux osx \
-	product install install-noproj \
-	help web doc watch all all_on_linux all_on_osx sync
+	product install install-qkmake \
+	help web doc watch all _host_linux _host_osx sync
 
 .SECONDEXPANSION:
 
@@ -37,15 +37,15 @@ check_osx=\
 product:
 	@$(MAKE) ios
 	@$(MAKE) android
-	@$(NODE) ./tools/cp-noproj.js
+	@$(NODE) ./tools/cp-qkmake.js
 
 install: product
-	@$(MAKE) install-noproj
+	@$(MAKE) install-qkmake
 
-install-noproj:
-	@$(NODE) ./tools/cp-noproj.js
-	@cd $(FPROJ_OUT) && npm i -f
-	@cd $(FPROJ_OUT) && $(SUDO) npm i -g
+install-qkmake:
+	@$(NODE) ./tools/cp-qkmake.js
+	@cd $(QKMAKE_OUT) && npm i -f
+	@cd $(QKMAKE_OUT) && $(SUDO) npm i -g
 
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
@@ -58,7 +58,7 @@ ios:
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build # simulator
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy v8 debug
-	@./tools/gen_apple_frameworks.sh $(FPROJ_OUT) ios
+	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) ios
 
 # build all android platform and output to product dir
 android:
@@ -81,16 +81,18 @@ osx:
 
 all:
 	@if [ "$(HOST_OS)" = "osx" ]; then \
-		$(MAKE) all_on_osx; \
+		$(MAKE) _host_osx; \
 	elif [ "$(HOST_OS)" = "linux" ]; then \
-		$(MAKE) all_on_linux; \
+		$(MAKE) _host_linux; \
 	else \
 		echo Unsupported current System "$(HOST_OS)"; \
 	fi
 
-all_on_osx:
+# build all on osx
+_host_osx:
 	@$(MAKE) android
 	@$(MAKE) ios
+	@$(MAKE) osx
 	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=x86                    && $(MAKE) build
@@ -98,7 +100,8 @@ all_on_osx:
 	@./configure --os=android --arch=arm                    && $(MAKE) build
 	@./configure --os=android --arch=arm64                  && $(MAKE) build
 
-all_on_linux:
+# build all on linex os
+_host_linux:
 	@$(MAKE) android
 	@$(MAKE) linux
 	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
