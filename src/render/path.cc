@@ -419,7 +419,7 @@ namespace qk {
 
 		float phase = nextPhase();
 
-		auto lintTo = [&](Vec2 to) {
+		auto lineTo = [&](Vec2 to) {
 			// TODO ...
 		};
 
@@ -429,13 +429,13 @@ namespace qk {
 					move = prev = *pts++;
 					break;
 				case kVerb_Line:
-					lintTo(*pts);
+					lineTo(*pts);
 					prev = *pts++;
 					break;
 				default:
 					Qk_ASSERT(verb == kVerb_Close);
 					if (prev != move) {
-						lintTo(move);
+						lineTo(move);
 					}
 					move = prev = Vec2();
 					break;
