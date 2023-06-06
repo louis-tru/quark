@@ -102,7 +102,7 @@ namespace qk {
 		Path dashPath(float *stage, int stage_count) const;
 
 		// modification to stroke path
-		Path strokePath(float width, Cap cap, Join join, float offset = 0) const;
+		Path strokePath(float width, Cap cap, Join join, float miter_limit = 0) const;
 		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
 		Path normalizedPath(float epsilon = 1.0) const; // normal
 		// matrix transfrom

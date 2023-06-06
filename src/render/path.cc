@@ -33,6 +33,9 @@
 #include "./bezier.h"
 #include "../util/handle.h"
 #include <math.h>
+extern "C" {
+#include "./ft/ft_stroke.h"
+}
 
 namespace qk {
 
@@ -420,8 +423,8 @@ namespace qk {
 			}
 		};
 
-		auto lineTo = [&](Vec2 to) {
-			auto  source = from;
+		auto lineTo = [&](Vec2 from, Vec2 to) {
+			auto  start = from;
 			auto  point = to - from;
 			float len = point.length(), useLen = 0;
 
@@ -437,7 +440,7 @@ namespace qk {
 				}
 				float use = Float::min(len - useLen, stage);
 				useLen += use; stage -= use;
-				from = source + point * Vec2(useLen / len);
+				from = start + point * Vec2(useLen / len);
 			}
 		};
 
@@ -447,29 +450,40 @@ namespace qk {
 					move = from = *pts++;
 					break;
 				case kVerb_Line:
-					lineTo(*pts);
+					lineTo(from, *pts);
 					from = *pts++;
 					break;
 				default:
 					Qk_ASSERT(verb == kVerb_Close);
 					if (from != move) {
-						lineTo(move);
+						lineTo(from, move);
 					}
 					move = from = Vec2();
 					break;
 			}
 		}
 
-		if (out.verbsLen()) {
-			if (useStage)
-				out.lineTo(from);
+		if (out.verbsLen() && useStage) {
+			out.lineTo(from);
 		}
 
 		return std::move(out);
 	}
 
-	Path Path::strokePath(float width, Cap cap, Join join, float offset) const {
-		// TODO ...
+	Path Path::strokePath(float width, Cap cap, Join join, float miter_limit) const {
+		Qk_FT_Stroker stroker;
+		Qk_FT_Stroker_LineCap ft_cap = Qk_FT_Stroker_LineCap(cap);
+		Qk_FT_Stroker_LineJoin ft_join =
+			Join::kMiter_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_MITER: 
+			Join::kRound_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_ROUND: 
+			Qk_FT_STROKER_LINEJOIN_BEVEL;
+
+		Qk_FT_Stroker_New(&stroker);
+		Qk_FT_Stroker_Set(stroker, Qk_FT_Fixed(0), ft_cap, ft_join, Qk_FT_Fixed(width * 32));
+
+
+		Qk_FT_Stroker_Done(stroker);
+
 		return *this;
 	}
 
