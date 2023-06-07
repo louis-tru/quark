@@ -64,6 +64,7 @@ CXX_SOURCES = \
 	../src/render/bezier.cc \
 	../src/render/math.cc \
 	../src/render/path.cc \
+	../src/render/ft/ft_path.cc \
 
 # deps/tess
 C_SOURCES += \
@@ -74,6 +75,8 @@ C_SOURCES += \
 	../deps/libtess2/Source/priorityq.c \
 	../deps/libtess2/Source/sweep.c \
 	../deps/libtess2/Source/tess.c \
+	../src/render/ft/ft_math.c \
+	../src/render/ft/ft_stroke.c \
 
 # ---------------------------- Platform ----------------------------
 
