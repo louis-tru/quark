@@ -481,8 +481,8 @@ namespace qk {
 		Qk_ASSERT(err);
 		Qk_FT_Stroker_Set(stroker, Qk_FT_Fixed(0), ft_cap, ft_join, Qk_FT_Fixed(width * 32));
 
-		auto parse_outline = qk_ft_outline_convert(this);
-		err = Qk_FT_Stroker_ParseOutline(stroker, parse_outline);
+		auto from_outline = qk_ft_outline_convert(this);
+		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);
 		Qk_ASSERT(err);
 
 		Qk_FT_UInt anum_points, anum_contours;
@@ -490,13 +490,13 @@ namespace qk {
 		Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
 		Qk_ASSERT(err);
 
-		auto outline = qk_ft_outline_create(anum_points, anum_contours);
+		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
 		Path out;
-		err = qk_ft_path_convert(outline, &out);
+		err = qk_ft_path_convert(to_outline, &out);
 		Qk_ASSERT(err);
 
-		qk_ft_outline_destroy(parse_outline);
-		qk_ft_outline_destroy(outline);
+		qk_ft_outline_destroy(from_outline);
+		qk_ft_outline_destroy(to_outline);
 		Qk_FT_Stroker_Done(stroker);
 
 		return std::move(out);
