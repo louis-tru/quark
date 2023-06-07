@@ -26,8 +26,8 @@ void qk_ft_outline_destroy(Qk_FT_Outline* ft)
 
 static void qk_ft_outline_move_to(Qk_FT_Outline* ft, Vec2 p)
 {
-	ft->points[ft->n_points].x = FT_COORD(p.x());
-	ft->points[ft->n_points].y = FT_COORD(p.y());
+	ft->points[ft->n_points].x = FT_1616(p.x());
+	ft->points[ft->n_points].y = FT_1616(p.y());
 	ft->tags[ft->n_points] = Qk_FT_CURVE_TAG_ON;
 	if(ft->n_points)
 	{
@@ -41,39 +41,39 @@ static void qk_ft_outline_move_to(Qk_FT_Outline* ft, Vec2 p)
 
 static void qk_ft_outline_line_to(Qk_FT_Outline* ft, Vec2 p)
 {
-	ft->points[ft->n_points].x = FT_COORD(p.x());
-	ft->points[ft->n_points].y = FT_COORD(p.y());
+	ft->points[ft->n_points].x = FT_1616(p.x());
+	ft->points[ft->n_points].y = FT_1616(p.y());
 	ft->tags[ft->n_points] = Qk_FT_CURVE_TAG_ON;
 	ft->n_points++;
 }
 
 static void qk_ft_outline_cubic_to(Qk_FT_Outline* ft, Vec2 p1, Vec2 p2, Vec2 p3)
 {
-	ft->points[ft->n_points].x = FT_COORD(p1.x());
-	ft->points[ft->n_points].y = FT_COORD(p1.y());
+	ft->points[ft->n_points].x = FT_1616(p1.x());
+	ft->points[ft->n_points].y = FT_1616(p1.y());
 	ft->tags[ft->n_points] = Qk_FT_CURVE_TAG_CUBIC;
 	ft->n_points++;
 
-	ft->points[ft->n_points].x = FT_COORD(p2.x());
-	ft->points[ft->n_points].y = FT_COORD(p2.y());
+	ft->points[ft->n_points].x = FT_1616(p2.x());
+	ft->points[ft->n_points].y = FT_1616(p2.y());
 	ft->tags[ft->n_points] = Qk_FT_CURVE_TAG_CUBIC;
 	ft->n_points++;
 
-	ft->points[ft->n_points].x = FT_COORD(p3.x());
-	ft->points[ft->n_points].y = FT_COORD(p3.y());
+	ft->points[ft->n_points].x = FT_1616(p3.x());
+	ft->points[ft->n_points].y = FT_1616(p3.y());
 	ft->tags[ft->n_points] = Qk_FT_CURVE_TAG_ON;
 	ft->n_points++;
 }
 
 static void qk_ft_outline_conic_to(Qk_FT_Outline* ft, Vec2 p1, Vec2 p2)
 {
-	ft->points[ft->n_points].x = FT_COORD(p1.x());
-	ft->points[ft->n_points].y = FT_COORD(p1.y());
+	ft->points[ft->n_points].x = FT_1616(p1.x());
+	ft->points[ft->n_points].y = FT_1616(p1.y());
 	ft->tags[ft->n_points] = Qk_FT_CURVE_TAG_CONIC;
 	ft->n_points++;
 
-	ft->points[ft->n_points].x = FT_COORD(p2.x());
-	ft->points[ft->n_points].y = FT_COORD(p2.y());
+	ft->points[ft->n_points].x = FT_1616(p2.x());
+	ft->points[ft->n_points].y = FT_1616(p2.y());
 	ft->tags[ft->n_points] = Qk_FT_CURVE_TAG_CONIC;
 	ft->n_points++;
 }

@@ -479,7 +479,7 @@ namespace qk {
 
 		err = Qk_FT_Stroker_New(&stroker);
 		Qk_ASSERT(err);
-		Qk_FT_Stroker_Set(stroker, FT_COORD(width * 0.5), ft_cap, ft_join, FT_COORD(miter_limit));
+		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miter_limit));
 
 		auto from_outline = qk_ft_outline_convert(this);
 		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);

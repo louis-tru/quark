@@ -5,8 +5,10 @@ extern "C" {
 }
 #include "../path.h"
 
-#define FT_COORD(x) (Qk_FT_Pos)((x) * 64)
-#define FT_COORD_F(x) (float(x) * 0.015625f)
+// convert to 16.16 fixed-point pixel
+#define FT_1616(x) (Qk_FT_Pos)((x) * 64)
+// 16.16 fixed-point pixel convert to float
+#define FT_1616_F(x) (float(x) * 0.015625f)
 
 Qk_FT_Outline* qk_ft_outline_create(int points, int contours);
 void           qk_ft_outline_destroy(Qk_FT_Outline* ft);
