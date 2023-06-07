@@ -491,6 +491,7 @@ namespace qk {
 		Qk_ASSERT(err);
 
 		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
+		Qk_FT_Stroker_Export(stroker, to_outline);
 		Path out;
 		err = qk_ft_path_convert(to_outline, &out);
 		Qk_ASSERT(err);
