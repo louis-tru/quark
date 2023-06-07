@@ -3,9 +3,6 @@
 
 using namespace qk;
 
-#define FT_COORD(x) (Qk_FT_Pos)((x) * 64)
-#define FT_COORD_F(x) (float(x) * 0.015625f)
-
 Qk_FT_Outline* qk_ft_outline_create(int points, int contours)
 {
 	Qk_FT_Outline* ft = (Qk_FT_Outline*)malloc(sizeof(Qk_FT_Outline));
