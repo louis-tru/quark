@@ -33,9 +33,7 @@
 #include "./bezier.h"
 #include "../util/handle.h"
 #include <math.h>
-extern "C" {
-#include "./ft/ft_stroke.h"
-}
+#include "./ft/ft_path.h";
 
 namespace qk {
 
@@ -477,14 +475,31 @@ namespace qk {
 			Join::kMiter_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_MITER: 
 			Join::kRound_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_ROUND: 
 			Qk_FT_STROKER_LINEJOIN_BEVEL;
+		Qk_FT_Error err;
 
-		Qk_FT_Stroker_New(&stroker);
+		err = Qk_FT_Stroker_New(&stroker);
+		Qk_ASSERT(err);
 		Qk_FT_Stroker_Set(stroker, Qk_FT_Fixed(0), ft_cap, ft_join, Qk_FT_Fixed(width * 32));
 
+		auto parse_outline = qk_ft_outline_convert(this);
+		err = Qk_FT_Stroker_ParseOutline(stroker, parse_outline);
+		Qk_ASSERT(err);
 
+		Qk_FT_UInt anum_points, anum_contours;
+		err =
+		Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
+		Qk_ASSERT(err);
+
+		auto outline = qk_ft_outline_create(anum_points, anum_contours);
+		Path out;
+		err = qk_ft_path_convert(outline, &out);
+		Qk_ASSERT(err);
+
+		qk_ft_outline_destroy(parse_outline);
+		qk_ft_outline_destroy(outline);
 		Qk_FT_Stroker_Done(stroker);
 
-		return *this;
+		return std::move(out);
 	}
 
 	Path Path::normalizedPath(float epsilon) const {
