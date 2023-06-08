@@ -477,6 +477,9 @@ namespace qk {
 			Qk_FT_STROKER_LINEJOIN_BEVEL;
 		Qk_FT_Error err;
 
+		if (miter_limit == 0)
+			miter_limit = 1024;
+
 		err = Qk_FT_Stroker_New(&stroker);
 		Qk_ASSERT(err);
 		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miter_limit));
