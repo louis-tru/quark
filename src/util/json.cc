@@ -303,7 +303,7 @@ namespace qk {
 	int JSON::to_int()         const { return reinterpret_cast<CRValue*>(this)->GetInt(); }
 	int64_t JSON::to_int64()   const { return reinterpret_cast<CRValue*>(this)->GetInt64(); }
 	String JSON::to_string()   const {
-		return std::move(String(reinterpret_cast<CRValue*>(this)->GetString(), string_length()));
+		return String(reinterpret_cast<CRValue*>(this)->GetString(), string_length());
 	}
 	uint32_t JSON::to_uint32()       const { return reinterpret_cast<CRValue*>(this)->GetUint(); }
 	uint64_t JSON::to_uint64()   const { return reinterpret_cast<CRValue*>(this)->GetUint64(); }
@@ -412,7 +412,7 @@ namespace qk {
 		rapidjson::StringBuffer buffer;
 		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 		reinterpret_cast<CRValue*>(&json)->Accept(writer);
-		return std::move(String(buffer.GetString(), uint32_t(buffer.GetSize())));
+		return String(buffer.GetString(), uint32_t(buffer.GetSize()));
 	}
 
 	JSON& JSON::ext(JSON& o, JSON& extd) {

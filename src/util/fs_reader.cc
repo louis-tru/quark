@@ -293,7 +293,7 @@ namespace qk {
 					break;
 				}
 			}
-			return std::move(rv);
+			Qk_ReturnLocal(rv);
 		}
 
 		String format(cString& path) {

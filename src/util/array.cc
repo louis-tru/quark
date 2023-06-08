@@ -50,7 +50,7 @@ namespace qk {
 			std::vector<T> r(_length); \
 			if (_length) \
 				memcpy(r.data(), _val, sizeof(T) * _length); \
-			return std::move(r); \
+			Qk_ReturnLocal(r); \
 		} \
 		\
 		template<> Array<T, A>& Array<T, A>::concat_(T* src, uint32_t src_length) { \

@@ -33,7 +33,7 @@
 #include "./bezier.h"
 #include "../util/handle.h"
 #include <math.h>
-#include "./ft/ft_path.h";
+#include "./ft/ft_path.h"
 
 namespace qk {
 
@@ -41,21 +41,21 @@ namespace qk {
 		Path path;
 		path.ovalTo(r, ccw);
 		path.close();
-		return std::move(path);
+		Qk_ReturnLocal(path);
 	}
 
 	Path Path::MakeArc(const Rect& r, float startAngle, float sweepAngle, bool useCenter) {
 		Path path;
 		path.arcTo(r, startAngle, sweepAngle, useCenter);
 		path.close();
-		return std::move(path);
+		Qk_ReturnLocal(path);
 	}
 
 	Path Path::MakeRect(const Rect& r, bool ccw) {
 		Path path;
 		path.rectTo(r,ccw);
 		path.close();
-		return std::move(path);
+		Qk_ReturnLocal(path);
 	}
 
 	Path Path::MakeCircle(Vec2 center, float radius, bool ccw) {
@@ -126,13 +126,13 @@ namespace qk {
 	{
 		Path path;
 		setRRect(path, rect, NULL, br);
-		return std::move(path);
+		Qk_ReturnLocal(path);
 	}
 
 	Path Path::MakeRRectOutline(const Rect& outside, const Rect &inside, const BorderRadius &br) {
 		Path path;
 		setRRect(path, outside, &inside, br);
-		return std::move(path);
+		Qk_ReturnLocal(path);
 	}
 
 	Path::Path(Vec2 move): _IsNormalized(true) {
@@ -337,7 +337,7 @@ namespace qk {
 			closeLine();
 		}
 		
-		return std::move(edges);
+		Qk_ReturnLocal(edges);
 	}
 
 	Array<Vec2> Path::getVertexsFromPaths(const Path *paths, int pathsLen, int polySize, float epsilon) {
@@ -399,7 +399,7 @@ namespace qk {
 		}
 
 		tessDeleteTess(tess);
-		return std::move(vertexs);
+		Qk_ReturnLocal(vertexs);
 	}
 
 	Path Path::dashPath(float *stage_p, int stage_count) const {
@@ -465,7 +465,7 @@ namespace qk {
 			out.lineTo(from);
 		}
 
-		return std::move(out);
+		Qk_ReturnLocal(out);
 	}
 
 	Path Path::strokePath(float width, Cap cap, Join join, float miter_limit) const {
@@ -503,7 +503,7 @@ namespace qk {
 		qk_ft_outline_destroy(to_outline);
 		Qk_FT_Stroker_Done(stroker);
 
-		return std::move(out);
+		Qk_ReturnLocal(out);
 	}
 
 	Path Path::normalizedPath(float epsilon) const {
@@ -511,7 +511,7 @@ namespace qk {
 			return *this; // copy self
 		Path line;
 		normalized(&line, true, epsilon);
-		return std::move(line);
+		Qk_ReturnLocal(line);
 	}
 
 	Path* Path::normalized(Path *out, bool updateHash, float epsilon) const {
@@ -632,6 +632,7 @@ namespace qk {
 		if (S_2 < 5000.0) {
 			constexpr float count = 22.0 / 8.408964152537145;
 			int i = Uint32::max(sqrt_sqrtf(S_2) * count * epsilon, 2);
+			return i;
 		} else {
 			return 22;
 		}
@@ -696,7 +697,7 @@ namespace qk {
 		rect.vertex[4] = Vec2(r.origin.x(), y2);
 		rect.vertex[5] = r.origin;
 
-		return std::move(rect);
+		Qk_ReturnLocal(rect);
 	}
 
 	RectPath RectPath::MakeRRect(const Rect &rect, const Path::BorderRadius &r) {
@@ -767,7 +768,7 @@ namespace qk {
 		path.vertex.write(src, -1, 6);
 		path.path.close();
 
-		return std::move(path);
+		Qk_ReturnLocal(path);
 	}
 
 	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &o, const Rect &i) {
@@ -875,7 +876,7 @@ namespace qk {
 			vertex_p+=6;
 		}
 
-		return std::move(rect);
+		Qk_ReturnLocal(rect);
 	}
 
 	static float MakeRRectOutlinePart(
@@ -1014,6 +1015,7 @@ namespace qk {
 				v[0].x(), v[0].y(), offset, 0, direction, // vertex outside
 				v1.x(),   v1.y(),   offset, 0, direction, // vertex outside
 			};
+			out->vertex.write(src, -1, 15); // add triangle end vertex
 			out->outside.startTo(v[0]);
 			out->outside.lineTo(v1);
 			out->inside.lineTo(v5);
@@ -1055,7 +1057,7 @@ namespace qk {
 			float sweepAngle = angleRatio * Qk_PI2; // make angle size
 			float angleStep = -sweepAngle / (sample - 1);
 			float angleStepLen = angleStep * averageRadius_b;
-			float angleLen = angleStepLen * (sample - 1);
+			//float angleLen = angleStepLen * (sample - 1);
 			float angle = startAngle; // start from 0
 
 			if (radius_inside[1].is_zero_or()) { // no inside radius
@@ -1141,6 +1143,7 @@ namespace qk {
 				v2.x(),   v2.y(),   offset, 0, direction, // vertex outside
 				v[3].x(), v[3].y(), offset + border[2], 0, direction, // vertex outside
 			};
+			out->vertex.write(src, -1, 15); // add triangle end vertex
 			out->outside.lineTo(v[3]);
 			out->inside.lineTo(v5);
 			offset += border[2];
@@ -1217,7 +1220,7 @@ namespace qk {
 			inside_radius_overflow_p+=2;
 		}
 
-		return std::move(rect);
+		Qk_ReturnLocal(rect);
 	}
 
 }

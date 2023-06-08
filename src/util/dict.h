@@ -255,7 +255,7 @@ namespace qk {
 		Array<K> ls;
 		for (auto& i: *this)
 			ls.push(i.key);
-		return std::move(ls);
+		Qk_ReturnLocal(ls);
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -263,7 +263,7 @@ namespace qk {
 		Array<K> ls;
 		for (auto& i: *this)
 			ls.push(i.value);
-		return std::move(ls);
+		Qk_ReturnLocal(ls);
 	}
 	
 	template<typename K, typename V, typename C, typename A>

@@ -55,9 +55,9 @@ namespace qk {
 
 	// -------------------------------------------------------
 
-	class ObjectTraits;
-	class ReferenceTraits;
-	class ProtocolTraits;
+	struct ObjectTraits;
+	struct ReferenceTraits;
+	struct ProtocolTraits;
 
 	struct MemoryAllocator {
 		static void* alloc(uint32_t size);

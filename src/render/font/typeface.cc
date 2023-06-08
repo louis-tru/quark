@@ -82,7 +82,7 @@ namespace qk {
 		if (unichar.length() > 0) {
 			Array<GlyphID> result(unichar.length());
 			onCharsToGlyphs(*unichar, unichar.length(), *result);
-			return std::move(result);
+			Qk_ReturnLocal(result);
 		}
 		return Array<GlyphID>();
 	}

@@ -70,7 +70,7 @@ namespace qk {
 		}
 		*dst = Vec2(x, y);
 		
-		return std::move(arr);
+		Qk_ReturnLocal(arr);
 	}
 
 	// -------------------- F o n t . F a m i l y s --------------------
@@ -167,7 +167,7 @@ namespace qk {
 			FontGlyphsBuilder builder = { matchs(style), fontSize, _pool };
 			auto glyphs = builder.tfs[0]->unicharsToGlyphs(unichars);
 			builder.make(*unichars, *glyphs, glyphs.length(), 0);
-			return std::move(builder.result);
+			Qk_ReturnLocal(builder.result);
 		} else {
 			return Array<FontGlyphs>();
 		}

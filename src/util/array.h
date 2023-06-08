@@ -491,7 +491,7 @@ namespace qk {
 				new(to) T(*src);
 				to++; src++;
 			}
-			return std::move(arr);
+			Qk_ReturnLocal(arr);
 		}
 		return ArrayBuffer<T, A>();
 	}
@@ -512,7 +512,7 @@ namespace qk {
 		std::vector<T> r;
 		for (auto& i: *this)
 			r.push_back(i);
-		return std::move(r);
+		Qk_ReturnLocal(r);
 	}
 
 	template<typename T, typename A>

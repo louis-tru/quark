@@ -333,7 +333,7 @@ namespace qk {
 					}
 				}
 			}
-			return std::move(ret_data);
+			Qk_ReturnLocal(ret_data);
 		}
 
 		Qk_DEBUG("Pixel data: Invalid data, required for RGBA_8888 and Alpha_8 and Luminance_8 format");
