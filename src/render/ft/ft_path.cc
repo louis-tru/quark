@@ -144,21 +144,32 @@ Qk_FT_Error qk_ft_path_convert(Qk_FT_Outline* outline, Path *out)
 	auto tags = outline->tags;
 
 	for (int c = 0, i = 0; c < outline->n_contours; c++) {
-		Qk_ASSERT(tags[i] == Qk_FT_CURVE_TAG_ON);
-		out->moveTo(FT_Vec2(pts[i]));
-		i++;
+		if (outline->contours_flag[c] == 1) { // move
+			//Qk_DEBUG("tags[i] = %d, %d, %d, %d", i, tags[i], contours[c], outline->contours_flag[c]);
+			Qk_ASSERT(tags[i] == Qk_FT_CURVE_TAG_ON);
+			out->moveTo(FT_Vec2(pts[i]));
+			i++;
+		}
 
 		while (i <= contours[c]) {
 			switch (tags[i]) {
 				case Qk_FT_CURVE_TAG_ON: // line to
-					out->lineTo(FT_Vec2(pts[i]));
+					//Qk_DEBUG("Qk_FT_CURVE_TAG_ON, %d", i);
+					if (out->ptsLen())
+						out->lineTo(FT_Vec2(pts[i]));
+					else
+						out->moveTo(FT_Vec2(pts[i]));
 					i++;
 					break;
 				case Qk_FT_CURVE_TAG_CONIC:
+					Qk_ASSERT(i > 0);
+					//Qk_DEBUG("Qk_FT_CURVE_TAG_CONIC, %d", i);
 					out->quadTo(FT_Vec2(pts[i]), FT_Vec2(pts[i+1]));
 					i+=2;
 					break;
 				case Qk_FT_CURVE_TAG_CUBIC:
+					Qk_ASSERT(i > 0);
+					//Qk_DEBUG("Qk_FT_CURVE_TAG_CUBIC, %d, %d, %d, %d", i, tags[i], tags[i+1], tags[i+2]);
 					out->cubicTo(FT_Vec2(pts[i]), FT_Vec2(pts[i+1]), FT_Vec2(pts[i+2]));
 					i+=3;
 					break;

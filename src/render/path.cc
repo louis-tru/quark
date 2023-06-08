@@ -481,23 +481,23 @@ namespace qk {
 			miter_limit = 1024;
 
 		err = Qk_FT_Stroker_New(&stroker);
-		Qk_ASSERT(err);
+		Qk_ASSERT(err==0);
 		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miter_limit));
 
 		auto from_outline = qk_ft_outline_convert(this);
 		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);
-		Qk_ASSERT(err);
+		Qk_ASSERT(err==0);
 
 		Qk_FT_UInt anum_points, anum_contours;
 		err =
 		Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
-		Qk_ASSERT(err);
+		Qk_ASSERT(err==0);
 
 		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
 		Qk_FT_Stroker_Export(stroker, to_outline);
 		Path out;
 		err = qk_ft_path_convert(to_outline, &out);
-		Qk_ASSERT(err);
+		Qk_ASSERT(err==0);
 
 		qk_ft_outline_destroy(from_outline);
 		qk_ft_outline_destroy(to_outline);
