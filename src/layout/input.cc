@@ -283,7 +283,7 @@ namespace qk {
 			return location;
 		}
 
-		Vec2i is_auto_find_is_required(Vec2 point) {
+		iVec2 is_auto_find_is_required(Vec2 point) {
 			auto pos = get_position();
 			auto size = content_size();
 
@@ -305,7 +305,7 @@ namespace qk {
 				y = 1; // bottom
 			}
 
-			return Vec2i(x, y);
+			return iVec2(x, y);
 		}
 
 		void auto_selectd() {

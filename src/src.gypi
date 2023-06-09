@@ -89,6 +89,8 @@
 			'render/ft/ft_math.c',
 			'render/ft/ft_stroke.h',
 			'render/ft/ft_stroke.c',
+			'render/ft/ft_path.h',
+			'render/ft/ft_path.cc',
 			# 'render/ft/ft_raster.h',
 			# 'render/ft/ft_raster.c',
 			'render/blend.h',

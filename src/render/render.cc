@@ -217,7 +217,12 @@ namespace qk {
 		paint.color = Color4f(0, 1, 1);
 		_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 
-		Qk_DEBUG("%d", sizeof(signed long));
+		// Qk_DEBUG("%d", sizeof(signed long));
+
+		paint.color = Color4f(0, 0, 0);
+		paint.style = Paint::kStroke_Style;
+		paint.width = 4;
+		_canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
 	}
 
 	void RenderBackend::visitFloatLayout(FloatLayout* flow) {

@@ -167,7 +167,7 @@ namespace qk {
 			FontGlyphsBuilder builder = { matchs(style), fontSize, _pool };
 			auto glyphs = builder.tfs[0]->unicharsToGlyphs(unichars);
 			builder.make(*unichars, *glyphs, glyphs.length(), 0);
-			Qk_ReturnLocal(builder.result);
+			return std::move(builder.result);
 		} else {
 			return Array<FontGlyphs>();
 		}
