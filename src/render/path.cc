@@ -295,7 +295,7 @@ namespace qk {
 
 	Array<Vec2> Path::getEdgeLines(bool close, float epsilon) const {
 		Path tmp;
-		const Path *self = _IsNormalized ? this: normalized(&tmp, false,epsilon);
+		const Path *self = _IsNormalized ? this: normalized(&tmp,epsilon,false);
 		Array<Vec2> edges;
 		auto pts = (const Vec2*)*self->_pts;
 		int  len = 0;
@@ -317,13 +317,12 @@ namespace qk {
 					prev = *pts++;
 					len = 0;
 					break;
-				case kVerb_Line: {
+				case kVerb_Line:
 					edges.push(prev);
 					prev = *pts++;
 					edges.push(prev); // edge 0
 					len+=2;
 					break;
-				}
 				default: // close
 					Qk_ASSERT(verb == kVerb_Close);
 					closeLine(); // add close edge line
@@ -346,7 +345,7 @@ namespace qk {
 		for (int i = 0; i < pathsLen; i++) {
 			Path tmp;
 			const Path *self = paths[i]._IsNormalized ?
-				paths+i: paths[i].normalized(&tmp, false, epsilon);
+				paths+i: paths[i].normalized(&tmp, epsilon,false);
 
 			auto pts = (const Vec2*)*self->_pts;
 			int len = 0;
@@ -404,7 +403,7 @@ namespace qk {
 
 	Path Path::dashPath(float *stage_p, int stage_count) const {
 		Path tmp, out;
-		const Path *self = _IsNormalized ? this: normalized(&tmp, false, 1);
+		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
 		auto pts = (const Vec2*)*self->_pts;
 		int  stage_idx = -1;
 		bool useStage = false; // no empty
@@ -510,11 +509,11 @@ namespace qk {
 		if (_IsNormalized)
 			return *this; // copy self
 		Path line;
-		normalized(&line, true, epsilon);
+		normalized(&line, epsilon, true);
 		Qk_ReturnLocal(line);
 	}
 
-	Path* Path::normalized(Path *out, bool updateHash, float epsilon) const {
+	Path* Path::normalized(Path *out, float epsilon, bool updateHash) const {
 		Path &line = *out;
 		auto pts = ((const Vec2*)_pts.val());
 		bool isZeor = true;

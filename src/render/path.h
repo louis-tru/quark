@@ -115,7 +115,7 @@ namespace qk {
 		static int getCubicBezierSample(const CubicBezier& curve, float epsilon);
 		static Array<Vec2> getVertexsFromPaths(const Path *paths, int pathsLen, int polySize, float epsilon);
 	private:
-		Path* normalized(Path *out, bool updateHash, float epsilon) const;
+		Path* normalized(Path *out, float epsilon, bool updateHash) const;
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
 		Array<float> _pts; // Vec2 {x,y}

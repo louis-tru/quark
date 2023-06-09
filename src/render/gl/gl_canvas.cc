@@ -554,7 +554,7 @@ namespace qk {
 
 		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 
-		Array<Vec2> *fill = NULL, *stroke = NULL;
+		const Array<Vec2> *fill = NULL, *stroke = NULL;
 
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
@@ -562,16 +562,15 @@ namespace qk {
 				fill = &_backend->getPathVertexsCache(path);
 				break;
 			case Paint::kStroke_Style:
-				stroke = &_backend->getPathStrokesCache(path, paint.width, paint.join, 0);
+				stroke = &_backend->getStrokePathVertexsCache(path, paint.width, paint.cap, paint.join);
 				break;
 			case Paint::kStrokeAndFill_Style:
-				fill = &_backend->getPathVertexsCache(path);
-				stroke = &_backend->getPathStrokesCache(path, paint.width, paint.join, 0);
+				fill   = &_backend->getPathVertexsCache(path);
+				stroke = &_backend->getStrokePathVertexsCache(path, paint.width, paint.cap, paint.join);
 				break;
 		}
 
 		if (fill) {
-			// fill polygons
 			switch (paint.type) {
 				case Paint::kColor_Type:
 					//drawColor(*fill, paint);
@@ -585,9 +584,18 @@ namespace qk {
 					drawImageMask(*fill, paint); break;
 			}
 		}
-		
+
 		if (stroke) {
-			// TODO ...
+			switch (paint.type) {
+				case Paint::kColor_Type:
+					drawColor(*stroke, paint); break;
+				case Paint::kGradient_Type:
+					drawGradient(*stroke, paint); break;
+				case Paint::kBitmap_Type:
+					drawImage(*stroke, paint); break;
+				case Paint::kBitmapMask_Type:
+					drawImageMask(*stroke, paint); break;
+			}
 		}
 	}
 

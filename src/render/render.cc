@@ -65,23 +65,23 @@ namespace qk {
 	void RenderBackend::activate(bool isActive) {
 	}
 
-	Array<Vec2>& RenderBackend::getPathVertexsCache(const Path &path) {
+	const Array<Vec2>& RenderBackend::getPathVertexsCache(const Path &path) {
 		auto hash = path.hashCode();
 		auto it = _PathVertexsCache.find(hash);
-		if (it != _PathVertexsCache.end()) {
-			return it->value;
-		}
+		if (it != _PathVertexsCache.end()) return it->value;
+
 		if (_PathVertexsCache.length() >= 1024)
 			_PathVertexsCache.clear();
 		return _PathVertexsCache.set(hash, path.getVertexs(3, 1));
 	}
 
-	Array<Vec2>& RenderBackend::getPathStrokesCache(
-		const Path &path, float width, Paint::Join join, float offset)
+	const Array<Vec2>& RenderBackend::getStrokePathVertexsCache(
+		const Path &path, float width, Path::Cap cap, Path::Join join, float miter_limit)
 	{
 		auto hash = path.hashCode();
-		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&offset;
-		hash += (hash << 5) + hash_part + join;
+		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&miter_limit;
+		hash += (hash << 5) + hash_part + ((cap << 2) | join);
+
 		auto it = _PathStrokesCache.find(hash);
 		if (it != _PathStrokesCache.end()) {
 			return it->value;
@@ -89,7 +89,17 @@ namespace qk {
 		if (_PathStrokesCache.length() >= 1024)
 			_PathStrokesCache.clear();
 		return _PathStrokesCache
-			.set(hash, path.strokePath(width, Paint::kButt_Cap, join, offset).getVertexs(3, 1));
+			.set(hash, path.strokePath(width, cap, join, miter_limit).getVertexs(3, 1));
+	}
+
+	const Path& RenderBackend::getNormalizedPathCache(const Path &path) {
+		auto hash = path.hashCode();
+		auto it = _PathNormalizedCache.find(hash);
+		if (it != _PathNormalizedCache.end()) return it->value;
+
+		if (_PathNormalizedCache.length() >= 1024)
+			_PathNormalizedCache.clear();
+		return _PathNormalizedCache.set(hash, path.normalizedPath());
 	}
 
 	void RenderBackend::visitView(View* v) {
