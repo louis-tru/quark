@@ -64,19 +64,19 @@ extern QkApplicationDelegate *__appDelegate;
 	}
 
 	- (void) display:(CADisplayLink*)displayLink {
-		 // auto _ = __appDelegate.host;
-		 static int _fps = 0;
-		 if (_fps == 0) { // 3 = 15, 1 = 30
+		// auto _ = __appDelegate.host;
+		static int _fps = 0;
+		if (_fps == 0) { // 3 = 15, 1 = 30
 			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 2");
 
 			auto del = self.render->delegate();
-			 if (del->onRenderBackendPreDisplay())
-				 del->onRenderBackendDisplay();
-			 _fps = 0;
-		 } else {
-			 _fps++;
-		 }
-	 }
+			if (del->onRenderBackendPreDisplay())
+				del->onRenderBackendDisplay();
+			_fps = 0;
+		} else {
+			_fps++;
+		}
+	}
 
 	- (void) stopDisplay {
 		[_display_link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];

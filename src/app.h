@@ -201,6 +201,7 @@ namespace qk {
 	}
 
 	typedef Application::UILock UILock;
+	typedef Application App;
 
 	//@private head
 	Qk_DEFINE_INLINE_MEMBERS(Application, Inl) {
