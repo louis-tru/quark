@@ -64,9 +64,9 @@ namespace qk {
 	static void setRRect(Path &path,
 		const Rect& outside, const Rect *inside, const Path::BorderRadius& br)
 	{
-		auto arc = [&](Vec2 origin, Vec2 r, Vec2 dir, float startAngle, float sweepAngle) {
-			if (r.x() != 0 && r.y() != 0) {
-				Vec2 s = r*2;
+		auto arc = [&](Vec2 origin, Vec2 radius, Vec2 dir, float startAngle, float sweepAngle) {
+			if (radius.x() != 0 && radius.y() != 0) {
+				Vec2 s = radius*2;
 				path.arcTo({origin+s*dir, s}, startAngle, sweepAngle, false);
 			} else {
 				auto len = path.verbsLen();
