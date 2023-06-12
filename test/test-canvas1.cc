@@ -29,7 +29,7 @@ public:
 		
 		float stage[] = {10.471975511965978,-31.41592653589793};
 		auto dash = circle.dashPath(stage, 2);
-		auto stroke = dash.strokePath(10, Paint::kRound_Cap);
+		auto stroke = dash.strokePath(10, Paint::kButt_Cap);
 		_canvas->drawPath(stroke, paint);
 
 		paint.color = Color4f(0, 0, 0);
