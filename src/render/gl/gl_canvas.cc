@@ -538,6 +538,8 @@ namespace qk {
 		//colorStroke.use(lines.size(), *lines);
 		//glUniform4fv(colorStroke.color, 1, paint.color.val);
 		//glUniform4fv(colorStroke.color, 1, Color4f(0,0,0).val);
+		
+		//glUniform4fv(color.color, 1,  Color4f(0,0,0).val);
 
 #if Qk_OSX
 		glEnable(GL_LINE_SMOOTH);

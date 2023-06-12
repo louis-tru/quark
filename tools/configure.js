@@ -880,7 +880,6 @@ async function configure() {
 				return;
 			}
 			console.warn();
-			console.warn('******************** Unrealized MacOSX Protform ********************');
 		}
 
 		var XCODEDIR = syscall('xcode-select --print-path').first;
