@@ -55,7 +55,7 @@ namespace qk {
 		typedef Paint::Join Join;
 		typedef Paint::Cap  Cap;
 		static Path MakeOval(const Rect& rect, bool ccw = false);
-		static Path MakeArc (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
+		static Path MakeArc (const Rect& rect, float startAngle, float sweepAngle, bool useCenter, bool close = true);
 		static Path MakeRect(const Rect& rect, bool ccw = false);
 		static Path MakeCircle(Vec2 center, float radius, bool ccw = false);
 		static Path MakeRRect(const Rect& rect, const BorderRadius &radius);
@@ -83,10 +83,9 @@ namespace qk {
 		// convert func
 		/**
 		 * @method getEdgeLines() convert to edge lines
-		 * @arg close {bool} is auto close lines
 		 * @return {Array<Vec2>} points { x, y }[]
 		*/
-		Array<Vec2> getEdgeLines(bool close, float epsilon = 1.0) const;
+		Array<Vec2> getEdgeLines(float epsilon = 1.0) const;
 
 		/**
 		 * @method getVertexs() Convert to fixed size polygon vertices

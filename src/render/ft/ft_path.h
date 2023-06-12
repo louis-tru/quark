@@ -6,9 +6,9 @@ extern "C" {
 #include "../path.h"
 
 // convert to 16.16 fixed-point pixel
-#define FT_1616(x) (Qk_FT_Pos)((x) * 64)
+#define FT_1616(x) (Qk_FT_Pos)((x) * 256.0)
 // 16.16 fixed-point pixel convert to float
-#define FT_1616_F(x) (float(x) * 0.015625f)
+#define FT_1616_F(x) (float(x) * 0.00390625)
 
 Qk_FT_Outline* qk_ft_outline_create(int points, int contours);
 void           qk_ft_outline_destroy(Qk_FT_Outline* ft);

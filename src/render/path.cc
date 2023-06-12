@@ -40,21 +40,20 @@ namespace qk {
 	Path Path::MakeOval(const Rect& r, bool ccw) {
 		Path path;
 		path.ovalTo(r, ccw);
-		path.close();
 		Qk_ReturnLocal(path);
 	}
 
-	Path Path::MakeArc(const Rect& r, float startAngle, float sweepAngle, bool useCenter) {
+	Path Path::MakeArc(const Rect& r, float startAngle, float sweepAngle, bool useCenter, bool close) {
 		Path path;
 		path.arcTo(r, startAngle, sweepAngle, useCenter);
-		path.close();
+		if (close)
+			path.close();
 		Qk_ReturnLocal(path);
 	}
 
 	Path Path::MakeRect(const Rect& r, bool ccw) {
 		Path path;
 		path.rectTo(r,ccw);
-		path.close();
 		Qk_ReturnLocal(path);
 	}
 
@@ -293,47 +292,33 @@ namespace qk {
 		_verbs.push(kVerb_Close);
 	}
 
-	Array<Vec2> Path::getEdgeLines(bool close, float epsilon) const {
+	Array<Vec2> Path::getEdgeLines(float epsilon) const {
 		Path tmp;
 		const Path *self = _IsNormalized ? this: normalized(&tmp,epsilon,false);
 		Array<Vec2> edges;
 		auto pts = (const Vec2*)*self->_pts;
 		int  len = 0;
-		Vec2 prev;
-
-		auto closeLine = [&]() {
-		if (len) {
-				auto vertex = edges[edges.length() - len];
-				edges.push(prev);
-				edges.push(vertex);
-			}
-		};
+		Vec2 move,from;
 
 		for (auto verb: self->_verbs) {
 			switch(verb) {
 				case kVerb_Move:
-					if (close)
-						closeLine();
-					prev = *pts++;
-					len = 0;
+					move = from = *pts++;
 					break;
 				case kVerb_Line:
-					edges.push(prev);
-					prev = *pts++;
-					edges.push(prev); // edge 0
-					len+=2;
+					edges.push(from);
+					from = *pts++;
+					edges.push(from); // edge 0
 					break;
 				default: // close
 					Qk_ASSERT(verb == kVerb_Close);
-					closeLine(); // add close edge line
-					prev = Vec2();
-					len = 0;
+					if (move != from) { // close path
+						edges.push(from);
+						edges.push(move);
+					}
+					move = from = Vec2();
 					break;
 			}
-		}
-
-		if (close) {
-			closeLine();
 		}
 		
 		Qk_ReturnLocal(edges);
@@ -441,8 +426,8 @@ namespace qk {
 			}
 		};
 
-		for (auto verb: self->_verbs) {
-			switch (verb) {
+		for (int i = 0, len = self->_verbs.length(); i < len;) {
+			switch (self->_verbs[i++]) {
 				case kVerb_Move:
 					move = from = *pts++;
 					break;
@@ -450,13 +435,14 @@ namespace qk {
 					lineTo(from, *pts);
 					from = *pts++;
 					break;
-				default:
-					Qk_ASSERT(verb == kVerb_Close);
-					if (from != move) {
+				case kVerb_Close:
+					if (from != move)
 						lineTo(from, move);
-					}
-					move = from = Vec2();
+					if (i < len)
+						move = from = Vec2();
 					break;
+				default:
+					Qk_FATAL("Path::dashPath");
 			}
 		}
 
@@ -482,8 +468,11 @@ namespace qk {
 		err = Qk_FT_Stroker_New(&stroker);
 		Qk_ASSERT(err==0);
 		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miter_limit));
+		
+		 Path tmp;
+		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
 
-		auto from_outline = qk_ft_outline_convert(this);
+		auto from_outline = qk_ft_outline_convert(self);
 		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);
 		Qk_ASSERT(err==0);
 
@@ -494,6 +483,7 @@ namespace qk {
 
 		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
 		Qk_FT_Stroker_Export(stroker, to_outline);
+
 		Path out;
 		err = qk_ft_path_convert(to_outline, &out);
 		Qk_ASSERT(err==0);
@@ -540,7 +530,7 @@ namespace qk {
 				case kVerb_Quad: { // quadratic bezier
 					if (isZeor)
 						add(Vec2(), kVerb_Move);
-					QuadraticBezier bezier(pts[-1], pts[0], pts[1]);
+					QuadraticBezier bezier(isZeor ? Vec2(): pts[-1], pts[0], pts[1]);
 					pts+=2;
 					int sample = Path::getQuadraticBezierSample(bezier, epsilon) - 1;
 					// |0|1| = sample = 3
@@ -558,7 +548,7 @@ namespace qk {
 				case kVerb_Cubic: { // cubic bezier
 					if (isZeor)
 						add(Vec2(), kVerb_Move);
-					CubicBezier bezier(pts[-1], pts[0], pts[1], pts[2]);
+					CubicBezier bezier(isZeor ? Vec2(): pts[-1], pts[0], pts[1], pts[2]);
 					pts+=3;
 					int sample = Path::getCubicBezierSample(bezier, epsilon) - 1;
 					// |0|1| = sample = 3

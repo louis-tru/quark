@@ -527,10 +527,10 @@ namespace qk {
 		Array<Vec2> vertex = path.getVertexs(3);
 		color.use(vertex.size(), *vertex);
 		glUniform4fv(color.color, 1, paint.color.val);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		//glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		//glDrawArrays(GL_LINES, 0, vertex.length());
 
-		Array<Vec2> lines = path.getEdgeLines(true);
+		Array<Vec2> lines = path.getEdgeLines();
 		color.use(lines.size(), *lines);
 
 		//Array<Vec3> lines = path.getEdgeLinesAndGirth(true);
@@ -543,7 +543,7 @@ namespace qk {
 		glEnable(GL_LINE_SMOOTH);
 #endif
 
-		glLineWidth(10);
+		glLineWidth(1);
 		glDrawArrays(GL_LINES, 0, lines.length());
 	}
 
