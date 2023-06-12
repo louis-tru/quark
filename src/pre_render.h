@@ -51,15 +51,15 @@ namespace qk {
 		class Qk_EXPORT Task {
 		public:
 			typedef List<Task*>::Iterator ID;
-			inline Task(): _task_timeout(0) {}
+			Task(): _task_timeout(0) {}
 			virtual ~Task();
 			virtual bool run_task(int64_t sys_time) = 0;
-			void register_task(/*PreRender *pre*/);
-			void unregister_task();
 			inline bool is_register_task() const { return _task_id != ID(); }
 			// define props
-			Qk_DEFINE_PROP(ID, task_id);
+			Qk_DEFINE_PROP_GET(ID, task_id);
+			Qk_DEFINE_PROP_GET(PreRender*, pre);
 			Qk_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
+			friend class PreRender;
 		};
 
 		Qk_DEFINE_PROP_GET(Application*, host);
@@ -76,10 +76,10 @@ namespace qk {
 		void mark(Layout *layout, uint32_t depth);
 		void delete_mark(Layout *layout, uint32_t depth);
 		void mark_none();
+		void addtask(Task* task);
+		void untask(Task* task);
 
 	private:
-		void add_task(Task* task);
-		void del_task(Task* task);
 		void solve_mark();
 
 		// member data

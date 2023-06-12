@@ -57,7 +57,7 @@ namespace qk {
 	Display::~Display() {}
 
 	void Display::updateState(void *lock, Mat4 *surfaceMat, Vec2* surfaceScale) { // Lock before calling
-    auto _lock = static_cast<UILock*>(lock);
+		auto _lock = static_cast<UILock*>(lock);
 		Vec2 size = surface_size();
 		float width = size.x();
 		float height = size.y();
@@ -88,16 +88,16 @@ namespace qk {
 		_host->loop()->post(Cb([this](Cb::Data& e) { // main loop call
 			Qk_Trigger(Change); // trigger display change
 		}));
-    
-    auto region = _surface_region;
-    Vec2 start = Vec2(-region.origin.x() / _scale, -region.origin.y() / _scale);
-    Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
-    *surfaceMat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
+		
+		auto region = _surface_region;
+		Vec2 start = Vec2(-region.origin.x() / _scale, -region.origin.y() / _scale);
+		Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
+		*surfaceMat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 		*surfaceScale = Vec2(_scale);
 
-    _host->root()->onDisplayChange();
+		_host->root()->onDisplayChange();
 
-    Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
+		Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
 	}
 
 	void Display::set_size(float width, float height) {
@@ -177,7 +177,7 @@ namespace qk {
 			Qk_DEBUG("Display::onDeviceReload");
 			UILock lock(_host);
 			if ( _lock_size_mark
-			  || _surface_region.origin.x() != region.origin.x()
+				|| _surface_region.origin.x() != region.origin.x()
 				||	_surface_region.origin.y() != region.origin.y()
 				||	_surface_region.end.x() != region.end.x()
 				||	_surface_region.end.y() != region.end.y()

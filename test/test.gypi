@@ -55,6 +55,7 @@
 				'test-json.cc',
 				'test-jsx.cc',
 				'test-layout.cc',
+				'test-canvas.cc',
 				'test-linux-input-2.cc',
 				'test-linux-input.cc',
 				'test-list.cc',

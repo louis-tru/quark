@@ -35,9 +35,10 @@
 #include "../display.h"
 #include "./render.h"
 #include "./gl/gl_render.h"
-
 // layout
 #include "../layout/root.h"
+
+#define Qk_ENABLE_DRAW 1
 
 namespace qk {
 
@@ -55,6 +56,7 @@ namespace qk {
 		, _canvas(nullptr)
 		, _delegate(nullptr)
 		, _default_scale(1)
+		, _alpha(1), _mark_recursive(0)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
 		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
@@ -102,8 +104,29 @@ namespace qk {
 		return _PathNormalizedCache.set(hash, path.normalizedPath());
 	}
 
-	void RenderBackend::visitView(View* v) {
-		// TODO ...
+	void RenderBackend::visitView(View* view) {
+		// visit child
+		auto v = view->_first;
+		if (v) {
+			float alphaCurr = _alpha;
+			uint32_t markCurr = _mark_recursive;
+			do {
+				if (v->_visible) {
+					uint32_t mark = markCurr | v->layout_mark(); // inherit recursive
+					if (mark) {
+						v->solve_marks(mark);
+						_mark_recursive = mark & Layout::kRecursive_Mark;
+					}
+					if (v->_visible_region && v->_opacity > 0) {
+						_alpha = alphaCurr * v->_opacity;
+						v->accept(this);
+					}
+				}
+				v = v->_next;
+			} while(v);
+			_alpha = alphaCurr;
+			_mark_recursive = markCurr;
+		}
 	}
 
 	void RenderBackend::visitBox(Box* box) {
@@ -142,87 +165,29 @@ namespace qk {
 		// TODO ...
 	}
 
-	void RenderBackend::visitRoot(Root* root) {
-		_canvas->clearColor(Color4f(1,1,1));
-		//_canvas->drawColor(Color4f(1,0,0));
-		Paint paint0, paint;
+	void RenderBackend::visitRoot(Root* v) {
+		if (v->_visible) {
+			uint32_t mark = v->layout_mark();
+			if (mark) {
+				v->solve_marks(mark);
+				_mark_recursive = mark & Layout::kRecursive_Mark;
+			}
 
-		auto size = shared_app()->display()->size();
-		
-		GradientColor g{{Color4f(1,0,1), Color4f(0,1,0), Color4f(0,0,1)}, {0,0.5,1}};
-		Rect rect{ size*0.2*0.5, size*0.8 };
-		//paint0.setLinearGradient(&g, rect.origin, rect.origin+rect.size);
-		paint0.setRadialGradient(&g, rect.origin + rect.size*0.5, rect.size*0.5);
-		
-		_canvas->save(); 
-		_canvas->setMatrix(_canvas->getMatrix() * Mat(Vec2(100,-50), Vec2(0.8, 0.8), -0.2, Vec2(0.3,0)));
-		_canvas->drawRect(rect, paint0);
-		_canvas->restore();
-
-		// -------- clip ------
-		_canvas->save();
-		//_canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 0);
-
-		paint.color = Color4f(1, 0, 1, 0.5);
-
-		paint.color = Color4f(0, 0, 1, 0.5);
-		_canvas->drawPath(Path::MakeCircle(Vec2(300), 100), paint);
-
-		paint.color = Color4f(1, 0, 0, 0.8);
-		_canvas->drawPath(Path::MakeOval({Vec2(200, 100), Vec2(100, 200)}), paint);
-
-		// -------- clip ------
-		_canvas->save();
-		//_canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kDifference_ClipOp, 0);
-
-//		paint.color = Color4f(1, 1, 0, 0.5);
-//
-//		Path path(   Vec2(0, size.y() - 10) );
-//		path.lineTo( size );
-//		path.lineTo( Vec2(size.x()*0.5, 0) );
-//
-//		path.moveTo( Vec2(100, 100) );
-//		path.lineTo( Vec2(100, 200) );
-//		path.lineTo( Vec2(200, 200) );
-//		path.close();
-//		_canvas->drawPath(path, paint);
-//
-//		paint.color = Color4f(0, 1, 0, 0.8);
-//		_canvas->drawPath(Path::MakeArc({Vec2(400, 100), Vec2(200, 100)}, 0, 4.5, 1), paint);
-//
-//		paint.color = Color4f(1, 0, 1, 0.8);
-//		_canvas->drawPath(Path::MakeArc({Vec2(450, 250), Vec2(200, 100)}, 4.5, 4, 0), paint);
-//
-//		paint.color = Color4f(0, 0, 0, 0.8);
-//		_canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI2, Qk_PI2+Qk_PI, 1), paint);
-//
-//		_canvas->restore(2);
-//
-//		paint.color = Color4f(0,0,0);
-//
-//		auto stype = FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::NORMAL);
-//		auto pool = root->pre_render()->host()->font_pool();
-//		auto unicode = codec_decode_to_uint32(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
-//		auto fgs = pool->getFFID()->makeFontGlyphs(unicode, stype, 64);
-//
-//		Vec2 offset(0,60);
-//
-//		for (auto &fg: fgs) {
-//			offset[0] += ceilf(_canvas->drawGlyphs(fg, offset, NULL, paint));
-//		}
-
-		paint.color = Color4f(0, 0, 0);
-		_canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
-
-		paint.color = Color4f(0, 1, 1);
-		_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
-
-		// Qk_DEBUG("%d", sizeof(signed long));
-
-		paint.color = Color4f(0, 0, 0);
-		paint.style = Paint::kStroke_Style;
-		paint.width = 4;
-		_canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
+			//if (v->_visible_region && v->_opacity > 0) {
+				// solveBox(v, [](SkiaRender* render, Box* box, int &clip) {
+				// 	if (Qk_ENABLE_DRAW)
+				// 		render->_canvas->clear(box->_fill_color.to_uint32_xrgb());
+				// 	render->solveFill(box, box->_fill, Color::from(0));
+				// });
+				//if (Qk_ENABLE_DRAW) _canvas->clearColor(Color4f(0,0,0));
+			//} else {
+				//if (Qk_ENABLE_DRAW) _canvas->clearColor(Color4f(0,0,0));
+			//}
+			
+			visitView(v);
+			
+			_mark_recursive = 0;
+		}
 	}
 
 	void RenderBackend::visitFloatLayout(FloatLayout* flow) {

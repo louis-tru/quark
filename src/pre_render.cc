@@ -35,17 +35,19 @@
 
 namespace qk {
 
-	void PreRender::add_task(Task* task) {
+	void PreRender::addtask(Task* task) {
 		if ( task->task_id() == Task::ID() ) {
 			Task::ID id = _tasks.push_back(task);
-			task->set_task_id( id );
+			task->_task_id = id;
+			task->_pre = this;
 		}
 	}
 
-	void PreRender::del_task(Task* task) {
+	void PreRender::untask(Task* task) {
 		Task::ID id = task->task_id();
 		if ( id != Task::ID() ) {
-			(*id)->set_task_id( Task::ID() );
+			(*id)->_pre = nullptr;
+			(*id)->_task_id = Task::ID();
 			(*id) = nullptr;
 		}
 	}
@@ -164,27 +166,12 @@ namespace qk {
 	}
 
 	PreRender::Task::~Task() {
-		unregister_task();
-	}
-
-	void PreRender::Task::set_task_id(ID id) {
-		_task_id = id;
+		if (_pre) {
+			_pre->untask(this);
+		}
 	}
 
 	void PreRender::Task::set_task_timeout(int64_t timeout_us) {
 		_task_timeout = timeout_us;
 	}
-
-	void PreRender::Task::register_task() {
-		if ( shared_app() ) {
-			shared_app()->pre_render()->add_task(this);
-		}
-	}
-
-	void PreRender::Task::unregister_task() {
-		if ( shared_app() ) {
-			shared_app()->pre_render()->del_task(this);
-		}
-	}
-
 }

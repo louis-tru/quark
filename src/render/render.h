@@ -119,6 +119,8 @@ namespace qk {
 		Delegate     *_delegate;
 		Vec2          _surface_size; // recommend default surface scale
 		float         _default_scale;
+		float         _alpha;
+		uint32_t      _mark_recursive;
 		Dict<uint64_t, Array<Vec2>> _PathVertexsCache, _PathStrokesCache; // path hash => vertexs
 		Dict<uint64_t, Path>        _PathNormalizedCache; // path hash => path
 	};

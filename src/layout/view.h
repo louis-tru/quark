@@ -46,7 +46,7 @@ namespace qk {
 		virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
 
 	class Action;
-	class SkiaRender;
+	class RenderBackend;
 	class TextInput;
 
 	Qk_DEFINE_VISITOR(View, Qk_Each_View);
@@ -343,7 +343,7 @@ namespace qk {
 		Transform* transform_p();
 
 		// friend class
-		friend class SkiaRender;
+		friend class RenderBackend;
 	};
 
 }

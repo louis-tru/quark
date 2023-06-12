@@ -275,9 +275,9 @@ void layout(Event<>& evt, Application* app) {
 }
 
 void test_layout(int argc, char **argv) {
-  Application::Options opts;
-  opts.msaaSampleCnt = 0;
-  Application app(opts);
+	Application::Options opts;
+	opts.msaaSampleCnt = 0;
+	Application app(opts);
 	app.Qk_On(Load, layout, &app);
 	app.run();
 }

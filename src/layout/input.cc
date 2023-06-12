@@ -146,7 +146,7 @@ namespace qk {
 			_cursor_twinkle_status = 0;
 			_flag = kFlag_Normal;
 			mark_none(kInput_Status);
-			register_task();
+			pre_render()->addtask(this);
 		}
 
 		void blur_handle(UIEvent& evt) {
@@ -157,7 +157,7 @@ namespace qk {
 			} else {
 				mark_none(kInput_Status);
 			}
-			unregister_task();
+			pre_render()->untask(this);
 		}
 
 		Vec2 get_position() {

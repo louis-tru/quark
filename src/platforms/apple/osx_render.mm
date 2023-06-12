@@ -106,20 +106,24 @@ extern QkApplicationDelegate* __appDelegate;
 		}
 
 		auto del = v.render->delegate();
+		auto isRender = del->onRenderBackendPreDisplay();
 
 		if (msg.length()) {
 			lock();
-			for ( auto& i : msg )
+			for ( auto& i : msg ) {
 				i->resolve();
-
-			if (del->onRenderBackendPreDisplay())
+			}
+			if (isRender) {
 				del->onRenderBackendDisplay();
+			}
 			unlock();
 		}
-		else if (del->onRenderBackendPreDisplay()) {
-			lock();
-			del->onRenderBackendDisplay();
-			unlock();
+		else {
+			if (isRender) {
+				lock();
+				del->onRenderBackendDisplay();
+				unlock();
+			}
 		}
 
 		return kCVReturnSuccess;
