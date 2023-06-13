@@ -164,13 +164,12 @@ Qk_FT_Error qk_ft_path_convert(Qk_FT_Outline* outline, Path *out)
 					out->lineTo(FT_Vec2(pts[i]));
 					i++;
 					break;
-				case Qk_FT_CURVE_TAG_CONIC: {
+				case Qk_FT_CURVE_TAG_CONIC:
 					Qk_ASSERT(i > 0);
 					out->quadTo(FT_Vec2(pts[i]), i+1<=end ? FT_Vec2(pts[i+1]): move);
 					i += i+1<=end? 1: 2;
 					break;
-				}
-				case Qk_FT_CURVE_TAG_CUBIC: {
+				case Qk_FT_CURVE_TAG_CUBIC:
 					Qk_ASSERT(i > 0);
 					//Qk_DEBUG("Qk_FT_CURVE_TAG_CUBIC, i: %d, xy:%d %d, xy1:%d %d, xy2:%d %d", i,
 					//	pts[i].x, pts[i].y, pts[i+1].x, pts[i+1].y, to.x, to.y
@@ -178,7 +177,6 @@ Qk_FT_Error qk_ft_path_convert(Qk_FT_Outline* outline, Path *out)
 					out->cubicTo(FT_Vec2(pts[i]), FT_Vec2(pts[i+1]), i+2<=end ? FT_Vec2(pts[i+2]): move);
 					i += i+2<=end? 2: 3;
 					break;
-				}
 				default:
 					Qk_FATAL("qk_ft_path_convert");
 					break;

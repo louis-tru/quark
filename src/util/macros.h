@@ -410,13 +410,13 @@
 	void set_##name (type val); \
 	Qk_DEFINE_PROP_GET(type, name, ##__VA_ARGS__) \
 
-#define Qk_DEFINE_CLASS(Name) class Name;
-#define Qk_DEFINE_VISITOR_VISIT(N) virtual void visit##N(N *v) = 0;
+#define __Qk_DEFINE_CLASS(Name) class Name;
+#define __Qk_DEFINE_VISITOR_VISIT(N) virtual void visit##N(N *v) = 0;
 #define Qk_DEFINE_VISITOR(Name, Each) \
-	Each(Qk_DEFINE_CLASS); \
+	Each(__Qk_DEFINE_CLASS); \
 	class Name##Visitor { \
 	public: \
-		Each(Qk_DEFINE_VISITOR_VISIT); \
+		Each(__Qk_DEFINE_VISITOR_VISIT) \
 }
 
 // Helper macros end

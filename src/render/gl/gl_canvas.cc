@@ -527,7 +527,7 @@ namespace qk {
 		Array<Vec2> vertex = path.getVertexs(3);
 		color.use(vertex.size(), *vertex);
 		glUniform4fv(color.color, 1, paint.color.val);
-		//glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		//glDrawArrays(GL_LINES, 0, vertex.length());
 
 		Array<Vec2> lines = path.getEdgeLines();
@@ -539,7 +539,7 @@ namespace qk {
 		//glUniform4fv(colorStroke.color, 1, paint.color.val);
 		//glUniform4fv(colorStroke.color, 1, Color4f(0,0,0).val);
 		
-		//glUniform4fv(color.color, 1,  Color4f(0,0,0).val);
+		//glUniform4fv(color.color, 1,  Color4f(1,0,0,0.7).val);
 
 #if Qk_OSX
 		glEnable(GL_LINE_SMOOTH);
@@ -584,6 +584,10 @@ namespace qk {
 					drawImage(*fill, paint); break;
 				case Paint::kBitmapMask_Type:
 					drawImageMask(*fill, paint); break;
+			}
+
+			if (antiAlias) {
+				// aa
 			}
 		}
 

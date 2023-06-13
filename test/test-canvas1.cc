@@ -30,20 +30,20 @@ public:
 		paint.color = Color4f(1, 0, 0);
 		auto circle = Path::MakeCircle(size/2, 105);
 		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
-		
+
 		//float stage[] = {10.471975511965978,-31.41592653589793};
 		float stage[] = {11,-11};
 		auto dash = circle.dashPath(stage, 2);
 		auto stroke = dash.strokePath(10, Paint::kButt_Cap);
 		_canvas->drawPath(stroke, paint);
 
-		paint.color = Color4f(0, 0, 1, 1);
+		paint.color = Color4f(0, 0, 0);
 		//paint.width = 1;
 		//paint.style = Paint::kStroke_Style;
 		//_canvas->drawPath(dash, paint);
 		_canvas->translate(220, 0);
 		_canvas->drawPath(circle, paint);
-		
+
 		_canvas->restore();
 	}
 };
