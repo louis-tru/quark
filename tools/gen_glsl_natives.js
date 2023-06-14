@@ -237,7 +237,7 @@ function main() {
 	write(hpp,
 		'#ifndef __gl_shader_natives_' + now,
 		'#define __gl_shader_natives_' + now,
-		'#include "quark/render/gl/gl_shader.h"',
+		'#include "gl_shader.h"',
 		'namespace qk {',
 		'#pragma pack(push,4)',
 	);
