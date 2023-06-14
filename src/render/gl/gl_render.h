@@ -44,6 +44,7 @@ namespace qk {
 		virtual void reload() override;
 		virtual uint32_t setTexture(cPixel *src, uint32_t id) override;
 		virtual void deleteTextures(const uint32_t *IDs, uint32_t count) override;
+		inline  GLSLShader* shader(uint32_t i) { return _shaders[i]; }
 	protected:
 		GLRender(Options opts);
 		virtual void setRenderBuffer(int width, int height);
@@ -58,12 +59,12 @@ namespace qk {
 		GLSLClip  _clip;
 		GLSLColor _color;
 		GLSLImage _image;
-		GLSLImageMaskColor _imageMask;
-		GLSLImageYUV420P _yuv420p;
-		GLSLImageYUV420SP _yuv420sp;
+		GLSLImageMask _imageMask;
+		GLSLYuv420p _yuv420p;
+		GLSLYuv420sp _yuv420sp;
 		GLSLGradient _linear;
-		GLSLGradientRadial _radial;
-		GLSLColorDotted _colorDotted;
+		GLSLRadial _radial;
+		GLSLDotted _colorDotted;
 		GLSLShader  *_shaders[10];
 		friend class GLCanvas;
 	};

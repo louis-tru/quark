@@ -2,6 +2,7 @@
 #include <quark/app.h>
 #include <quark/render/paint.h>
 #include <quark/render/render.h>
+#include <quark/render/gl/gl_render.h>
 #include <quark/layout/root.h>
 #include <quark/display.h>
 
@@ -12,7 +13,8 @@ public:
 	TestCanvas1(App *host): Box(host) {}
 
 	void accept(ViewVisitor *visitor) override {
-		auto _canvas = static_cast<Render*>(visitor)->getCanvas();
+		auto render = static_cast<GLRender*>(visitor);
+		auto _canvas = render->getCanvas();
 		_canvas->save();
 		_canvas->translate(-110, 0);
 

@@ -49,64 +49,31 @@
 # error "The operating system does not support"
 #endif
 
+#if Qk_OSX
+#define Qk_GL_Version "330 core"
+#else // ios es
+#define Qk_GL_Version "300 es"
+#endif
+
 namespace qk {
 
+	struct GLShaderAttr {
+		const char *name;
+		GLint size;
+		GLenum type;
+		GLsizei stride;
+	};
+
 	struct GLSLShader {
-		GLuint shader, vao, vbo, vertex_in;
+		GLuint shader, vao, vbo;
 		void         use(GLsizeiptr size, const GLvoid* data);
 		virtual void build() = 0;
 	};
 
-	struct GLSLClear: GLSLShader {
-		GLuint color;
-		virtual void build();
-	};
-
-	struct GLSLClip: GLSLShader {
-		virtual void build();
-	};
-
-	struct GLSLColor: GLSLShader {
-		GLuint color;
-		virtual void build();
-	};
-
-	struct GLSLColorDotted: GLSLShader {
-		GLuint girth_in; // attr
-		GLuint color;
-		virtual void build();
-	};
-
-	struct GLSLImage: GLSLShader {
-		GLuint opacity, coord, image;
-		virtual void build();
-	};
-
-	struct GLSLImageMaskColor: GLSLImage {
-		GLuint color;
-		virtual void build();
-	};
-
-	struct GLSLImageYUV420P: GLSLImage {
-		GLuint image_u,image_v;
-		virtual void build();
-	};
-
-	struct GLSLImageYUV420SP: GLSLImage {
-		GLuint image_uv;
-		virtual void build();
-	};
-
-	struct GLSLGradient: GLSLShader {
-		GLuint range; // vertex uniform value
-		GLuint count; // fragment uniform value
-		GLuint colors,positions;
-		virtual void build();
-	};
-	
-	struct GLSLGradientRadial: GLSLGradient {
-		virtual void build();
-	};
+	void gl_compile_link_shader(
+		GLSLShader *s,
+		cChar *name, cString& vertexShader, cString& fragmentShader,
+		const Array<GLShaderAttr> &attributes, cChar *uniforms);
 
 }
 

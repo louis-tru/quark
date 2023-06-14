@@ -22,3 +22,5 @@ deps/bplus
 src/render/font.bk
 deps/glyphy*
 test/math/test
+src/render/gl/glsl_shaders.h
+src/render/gl/glsl_shaders.cc

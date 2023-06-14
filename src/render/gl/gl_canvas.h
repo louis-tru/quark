@@ -33,7 +33,7 @@
 #define __quark_render_gl_glcanvas__
 
 #include "../canvas.h"
-#include "./glsl_shader.h"
+#include "./glsl_shaders.h"
 
 namespace qk {
 

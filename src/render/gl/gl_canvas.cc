@@ -522,7 +522,7 @@ namespace qk {
 
 	void test_color_fill_aa_lines(
 		GLSLColor &color,
-		GLSLColorDotted &colorDotted, const Path &path, const Paint &paint
+		GLSLDotted &colorDotted, const Path &path, const Paint &paint
 	) {
 		Array<Vec2> vertex = path.getVertexs(3);
 		color.use(vertex.size(), *vertex);
@@ -614,7 +614,8 @@ namespace qk {
 	void GLCanvas::drawGradient(const Array<Vec2> &vertex, const Paint &paint) {
 		auto g = paint.gradient;
 		auto shader = paint.gradientType ==
-			Paint::kRadial_GradientType ? &_backend->_radial: &_backend->_linear;
+			Paint::kRadial_GradientType ? &_backend->_radial:
+			static_cast<GLSLRadial*>(static_cast<GLSLShader*>(&_backend->_linear));
 		auto count = Qk_MIN(g->colors.length(), 256);
 		shader->use(vertex.size(), *vertex);
 		glUniform4fv(shader->range, 1, paint.color.val);
@@ -631,10 +632,10 @@ namespace qk {
 		auto texCount = 1;
 
 		if (type == kColor_Type_YUV420P_Y_8) {
-			shader = &_backend->_yuv420p;
+			shader = static_cast<GLSLImage*>(static_cast<GLSLShader*>(&_backend->_yuv420p));
 			texCount = 3;
 		} else if (type == kColor_Type_YUV420SP_Y_8) {
-			shader = &_backend->_yuv420sp;
+			shader = static_cast<GLSLImage*>(static_cast<GLSLShader*>(&_backend->_yuv420sp));
 			texCount = 2;
 		}
 
