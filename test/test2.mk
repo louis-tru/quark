@@ -99,7 +99,7 @@ ifeq ($(OSX),1)
 		-fobjc-link-runtime \
 		-stdlib=libc++ \
 		-framework AppKit -framework OpenGL -framework CoreVideo
-	SOURCES += test2-opengl.mm
+	CXX_SOURCES += test2-opengl.mm
 endif
 
 # --------------------------------------------------------------------

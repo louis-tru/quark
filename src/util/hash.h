@@ -36,10 +36,10 @@
 
 namespace qk {
 
-	class Qk_EXPORT SimpleHash {
+	class Qk_EXPORT Hash5381 {
 		uint64_t _hash;
 	public:
-		inline SimpleHash(): _hash(5381) {}
+		inline Hash5381(): _hash(5381) {}
 		uint64_t hash_code() const { return _hash; }
 		void     clear();
 		void     update(const void* data, uint32_t len);

@@ -35,23 +35,23 @@ namespace qk {
 	static cChar* I64BIT_TABLE =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 
-	void SimpleHash::update(const void* data, uint32_t len) {
+	void Hash5381::update(const void* data, uint32_t len) {
 		while (len--)
 			_hash += (_hash << 5) + ((cChar*)data)[len];
 	}
 	
-	void SimpleHash::update(uint32_t *data, uint32_t len) {
+	void Hash5381::update(uint32_t *data, uint32_t len) {
 		while (len--)
 			_hash += (_hash << 5) + data[len];
 	}
 
-	void SimpleHash::clear() { _hash = 5381; }
+	void Hash5381::clear() { _hash = 5381; }
 
-	void SimpleHash::update(cString& str) {
+	void Hash5381::update(cString& str) {
 		update(str.c_str(), str.length());
 	}
 	
-	String SimpleHash::digest() {
+	String Hash5381::digest() {
 		String rev;
 		do {
 			rev.append(I64BIT_TABLE[_hash & 0x3F]);
@@ -61,13 +61,13 @@ namespace qk {
 	}
 
 	uint64_t hash_code(const void* data, uint32_t len) {
-		SimpleHash hash;
+		Hash5381 hash;
 		hash.update(data, len);
 		return hash.hash_code();
 	}
 
 	String hash(const void* data, uint32_t len) {
-		SimpleHash hash;
+		Hash5381 hash;
 		hash.update((cChar*)data, len);
 		return hash.digest();
 	}

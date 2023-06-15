@@ -386,7 +386,7 @@ namespace qk {
 		Qk_ReturnLocal(vertexs);
 	}
 
-	Path Path::dashPath(float *stage_p, int stage_count) const {
+	Path Path::dashPath(float *stage_p, int stageCount) const {
 		Path tmp, out;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
 		auto pts = (const Vec2*)*self->_pts;
@@ -396,7 +396,7 @@ namespace qk {
 		float stage = 0;
 
 		auto nextStage = [&]() {
-			stage_idx = (stage_idx + 1) % stage_count;
+			stage_idx = (stage_idx + 1) % stageCount;
 			stage = stage_p[stage_idx];
 			Qk_ASSERT(stage != 0, "#Path.dashPath.nextStage() assert stage != 0");
 			useStage = stage > 0;
@@ -453,7 +453,7 @@ namespace qk {
 		Qk_ReturnLocal(out);
 	}
 
-	Path Path::strokePath(float width, Cap cap, Join join, float miter_limit) const {
+	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
 		Qk_FT_Stroker stroker;
 		Qk_FT_Stroker_LineCap ft_cap = Qk_FT_Stroker_LineCap(cap);
 		Qk_FT_Stroker_LineJoin ft_join =
@@ -462,12 +462,12 @@ namespace qk {
 			Qk_FT_STROKER_LINEJOIN_BEVEL;
 		Qk_FT_Error err;
 
-		if (miter_limit == 0)
-			miter_limit = 1024;
+		if (miterLimit == 0)
+			miterLimit = 1024;
 
 		err = Qk_FT_Stroker_New(&stroker);
 		Qk_ASSERT(err==0);
-		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miter_limit));
+		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miterLimit));
 		
 		 Path tmp;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);

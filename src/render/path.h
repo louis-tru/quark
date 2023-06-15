@@ -98,11 +98,12 @@ namespace qk {
 		/**
 		 * @method dashPath() returns the dash path
 		*/
-		Path dashPath(float *stage, int stage_count) const;
+		Path dashPath(float *stage, int stageCount) const;
 
 		// modification to stroke path
 		Path strokePath(float width,
-			Cap cap = Cap::kButt_Cap, Join join = Join::kMiter_Join, float miter_limit = 0) const;
+			Cap cap = Cap::kButt_Cap, Join join = Join::kMiter_Join, float miterLimit = 0) const;
+
 		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
 		Path normalizedPath(float epsilon = 1.0) const; // normal
 		// matrix transfrom
@@ -119,7 +120,7 @@ namespace qk {
 		void cubicTo2(float *p);
 		Array<float> _pts; // Vec2 {x,y}
 		Array<uint8_t> _verbs;
-		SimpleHash _hash;
+		Hash5381 _hash;
 		bool _IsNormalized;
 	};
 

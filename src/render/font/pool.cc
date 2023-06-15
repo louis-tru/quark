@@ -62,7 +62,7 @@ namespace qk {
 
 	FFID FontPool::getFFID(const Array<String>& familys) {
 		Array<String> newFamilys;
-		SimpleHash hash;
+		Hash5381 hash;
 
 		for (auto& i: familys) {
 			String s = i.trim();

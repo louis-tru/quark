@@ -139,7 +139,7 @@ namespace qk {
 			};
 		}; // size 32bit
 
-		float                width; // stroke width or dash path width
+		float                width; // stroke width
 		// color or bitmap opacity or gradient color start/end center/radius
 		Color4f              color;
 		// bitmap uv coord

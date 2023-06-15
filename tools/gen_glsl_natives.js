@@ -239,7 +239,7 @@ function main() {
 		'#define __gl_shader_natives_' + now,
 		'#include "gl_shader.h"',
 		'namespace qk {',
-		'#pragma pack(push,4)',
+		// '#pragma pack(push,4)',
 	);
 
 	write(cpp,
@@ -252,7 +252,7 @@ function main() {
 		resolve_glsl(name, vert, frag, hpp, cpp);
 	}
 
-	write(hpp, '#pragma pack(pop)');
+	// write(hpp, '#pragma pack(pop)');
 	write(hpp, '}', '#endif'); // end
 	write(cpp, '}'); // end
 
