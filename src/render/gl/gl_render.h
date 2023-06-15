@@ -62,7 +62,7 @@ namespace qk {
 		GLSLImageMask _imageMask;
 		GLSLYuv420p _yuv420p;
 		GLSLYuv420sp _yuv420sp;
-		GLSLGradient _linear;
+		GLSLLinear _linear;
 		GLSLRadial _radial;
 		GLSLDotted _colorDotted;
 		GLSLShader  *_shaders[10];
