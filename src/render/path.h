@@ -98,7 +98,7 @@ namespace qk {
 		/**
 		 * @method dashPath() returns the dash path
 		*/
-		Path dashPath(float *stage, int stageCount) const;
+		Path dashPath(float *stage, int stageCount, float offset = 0) const;
 
 		// modification to stroke path
 		Path strokePath(float width,

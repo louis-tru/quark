@@ -36,12 +36,13 @@
 namespace qk {
 
 	// Bezier curve formula of order N
-	// F(t) = E(i=0,n) P_i(1-t)^(n-i)t^i, t<-|0,1|
+	// F(t) = P_0(1-t)^n + P_nt^n + Σ(i=1,n-1) P_i(1-t)^(n-i) t^i, t∈[0,1]
 
 	/**
-	* @class QuadraticBezier 二次贝塞尔曲线
+	* @class QuadraticBezier quadratic Bezier curve
 	*
-	* F(t) = A(1-t)^2 + B2t(1-t) + Ct^2, t<-|0,1|
+	* F(t) = P_0(1-t)^2 t^0 + 2P_1(1-t)t^1 + P_2(1-t)^0 t^2, t∈[0,1]
+	* F(t) = P_0(1-t)^2     + 2P_1(1-t)t   + P_2t^2        , t∈[0,1]
 	*/
 	class Qk_EXPORT QuadraticBezier {
 	public:
@@ -77,9 +78,10 @@ namespace qk {
 	};
 
 	/**
-	* @class CubicBezier 三次贝塞尔曲线
+	* @class CubicBezier cubic bezier curve
 	*
-	* F(t) = A(1-t)^3 + B3t(1-t)^2 + C3t^2(1-t) + D3t, t<-|0,1|
+	* F(t) = P_0(1-t)^3 t^0 + 3P_1(1-t)^2 t^1 + 3P_2(1-t)^1 t^2 + P_3(1-t)^0 t^3, t∈[0,1]
+	* F(t) = P_0(1-t)^3     + 3P_1(1-t)^2 t   + 3P_2(1-t)t^2    + P_3t^3        , t∈[0,1]
 	*/
 	class Qk_EXPORT CubicBezier {
 	public:

@@ -33,7 +33,7 @@
 
 namespace qk {
 
-	// 德卡斯特里奥算法
+	// De Casteljau's algorithm
 
 	/**
 	 * @constructor
@@ -158,8 +158,7 @@ namespace qk {
 	}
 
 	/**
-	 * @method defalut_solve_curve_x # Given an x value, find a parametric value it came from.
-	 * 通过x值迭代逼近查找t值
+	 * @method defalut_solve_curve_x Given an x value, find a parametric value it came from.
 	*/
 	float FixedCubicBezier::solve_t(float x, float epsilon) const {
 		float t0,t1,t2,x2,d2;

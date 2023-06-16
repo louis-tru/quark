@@ -34,8 +34,8 @@ public:
 		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
 
 		//float stage[] = {10.471975511965978,-31.41592653589793};
-		float stage[] = {11,-11};
-		auto dash = circle.dashPath(stage, 2);
+		float stage[] = {11,11};
+		auto dash = circle.dashPath(stage, 2, -12);
 		auto stroke = dash.strokePath(10, Paint::kButt_Cap);
 		_canvas->drawPath(stroke, paint);
 

@@ -310,14 +310,15 @@ namespace qk {
 					from = *pts++;
 					edges.push(from); // edge 0
 					break;
-				default: // close
-					Qk_ASSERT(verb == kVerb_Close);
+				case kVerb_Close: // close
+					//Qk_ASSERT(verb == kVerb_Close);
 					if (move != from) { // close path
 						edges.push(from);
 						edges.push(move);
 					}
 					move = from = Vec2();
 					break;
+				default: Qk_FATAL("Path::getEdgeLines");
 			}
 		}
 		
@@ -350,14 +351,15 @@ namespace qk {
 						}
 						tmpV.push(*pts++); len++;
 						break;
-					default: // close
-						Qk_ASSERT(verb == kVerb_Close);
+					case kVerb_Close: // close
+						// Qk_ASSERT(verb == kVerb_Close);
 						if (len) {
 							tmpV.push(tmpV[tmpV.length() - len++]);
 							tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
 							len = 0;
 						}
 						break;
+					default: Qk_FATAL("Path::getVertexsFromPaths");
 				}
 			}
 
@@ -386,24 +388,42 @@ namespace qk {
 		Qk_ReturnLocal(vertexs);
 	}
 
-	Path Path::dashPath(float *stage_p, int stageCount) const {
+	Path Path::dashPath(float *stageP, int stageCount, float offset) const {
 		Path tmp, out;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
 		auto pts = (const Vec2*)*self->_pts;
-		int  stage_idx = -1;
+		int  stageIdx = -1;
 		bool useStage = false; // no empty
 		Vec2 move, from;
 		float stage = 0;
 
 		auto nextStage = [&]() {
-			stage_idx = (stage_idx + 1) % stageCount;
-			stage = stage_p[stage_idx];
-			Qk_ASSERT(stage != 0, "#Path.dashPath.nextStage() assert stage != 0");
-			useStage = stage > 0;
-			if (!useStage) { // empty
-				stage = -stage;
-			}
+			stageIdx = (stageIdx + 1) % stageCount;
+			stage = stageP[stageIdx];
+			Qk_ASSERT(stage > 0, "#Path.dashPath.nextStage() assert stage > 0");
+			useStage = !useStage;
 		};
+
+		if (offset != 0) {
+			int step = -1; // back
+			if (offset < 0) {// advance
+				offset = -offset;
+				step = 1;
+			} else { // back
+				stageIdx = 0;
+			}
+			do {
+				stageIdx = (stageIdx + step + stageCount) % stageCount;
+				stage = stageP[stageIdx];
+				auto use = Float::min(offset, stage);
+				stage -= use;
+				offset -= use;
+			} while (offset > 0);
+
+			if (step == -1) { // back
+				stage = stageP[stageIdx] - stage;
+			}
+		}
 
 		auto lineTo = [&](Vec2 from, Vec2 to) {
 			auto  start = from;
@@ -411,14 +431,10 @@ namespace qk {
 			float len = point.length(), useLen = 0;
 
 			while (len > useLen) {
-				if (useStage) {
-					out.lineTo(from);
-				}
+				if (useStage) out.lineTo(from);
 				if (stage == 0) {
 					nextStage();
-					if (useStage) {
-						out.moveTo(from);
-					}
+					if (useStage) out.moveTo(from);
 				}
 				float use = Float::min(len - useLen, stage);
 				useLen += use; stage -= use;
@@ -441,8 +457,7 @@ namespace qk {
 					if (i < len)
 						move = from = Vec2();
 					break;
-				default:
-					Qk_FATAL("Path::dashPath");
+				default: Qk_FATAL("Path::dashPath");
 			}
 		}
 
@@ -507,7 +522,7 @@ namespace qk {
 		Path &line = *out;
 		auto pts = ((const Vec2*)_pts.val());
 		bool isZeor = true;
-		
+
 		auto add = [&](Vec2 to, PathVerb verb) {
 			line._pts.write(to.val, -1, 2);
 			line._verbs.push(verb);
