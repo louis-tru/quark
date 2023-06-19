@@ -22,7 +22,7 @@ int test2_render_path(int argc, char *argv[]) {
 
 	Qk_LOG("----------------------------------------------------");
 
-	float stage[] = { 3,-5 };
+	float stage[] = { 3,5 };
 
 	auto dashPath = path.dashPath(stage,2);
 
