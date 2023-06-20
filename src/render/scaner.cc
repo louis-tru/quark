@@ -39,13 +39,13 @@ namespace qk {
 	{
 		scale *= 65536;
 
-		Array<Vec2i> edges;
+		Array<iVec2> edges;
 		Path path2(path);
 		path2.scale(Vec2(scale));
 
 		//int i = 0;
 		for (auto edge: path2.getEdgeLines()) {
-			edges.push(Vec2i(edge.x(), edge.y()));
+			edges.push(iVec2(edge.x(), edge.y()));
 			//if (i++ % 2 == 0)
 			//Qk_DEBUG("Edge, %f, %f", edge.x() / 65536, edge.y() / 65536);
 		}
@@ -60,7 +60,7 @@ namespace qk {
 		}
 		
 		for (int i = 0; i < edges.length(); i+=2) {
-			Vec2i p1 = edges[i], p2 = edges[i + 1];
+			iVec2 p1 = edges[i], p2 = edges[i + 1];
 			int y1 = p1.y() >> 16, y2 = p2.y() >> 16;
 			//int y1 = roundf(p1.y() / 65536.0f), y2 = roundf(p2.y() / 65536.0f);
 			int d = p1.y() - p2.y();
@@ -262,9 +262,9 @@ namespace qk {
 		// end check new edge
 	}
 
-	void XLineScaner::clip(Array<Vec2i>& edges, Rect rect) {
-		Vec2i clipOrigin = Vec2i(rect.origin.x(), rect.origin.y());
-		Vec2i clipEnd = clipOrigin + Vec2i(rect.size.x(), rect.size.y());
+	void XLineScaner::clip(Array<iVec2>& edges, Rect rect) {
+		iVec2 clipOrigin = iVec2(rect.origin.x(), rect.origin.y());
+		iVec2 clipEnd = clipOrigin + iVec2(rect.size.x(), rect.size.y());
 		// TODO ...
 	}
 

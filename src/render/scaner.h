@@ -48,7 +48,7 @@ namespace qk {
 		void scan_polygon(ScanCb cb, void* ctx);
 		void scan_convex_polygon(ScanCb cb, void* ctx);
 		void check_new_edges(int y);
-		void clip(Array<Vec2i>& edges, Rect clip);
+		void clip(Array<iVec2>& edges, Rect clip);
 		struct Edge {
 			int32_t min_y, max_y;
 			int32_t x, incr_x;

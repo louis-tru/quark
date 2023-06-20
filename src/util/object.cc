@@ -49,7 +49,7 @@ namespace qk {
 	void* MemoryAllocator::aalloc(void* val, uint32_t size, uint32_t* size_out, uint32_t size_of) {
 		if ( size ) {
 			size = Qk_MAX(Qk_MIN_CAPACITY, size);
-			if ( size > *size_out || size < *size_out / 4.0 ) {
+			if ( size > *size_out || size < (*size_out >> 2) ) {
 				size = powf(2, ceil(log2(size)));
 				*size_out = size;
 				val = val ? ::realloc(val, size_of * size) : ::malloc(size_of * size);
