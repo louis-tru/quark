@@ -79,8 +79,15 @@ namespace qk {
 		if (miterLimit == 0)
 			miterLimit = 1024;
 
-		Path tmp;
+		Path tmp, left, right;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
+
+		/*
+			1.使用不超过法线边界原则延伸边界
+			2.使用完全边界延伸法
+		*/
+
+		// 法线、垂线
 
 		for (auto verb: self->_verbs) {
 			switch(verb) {
