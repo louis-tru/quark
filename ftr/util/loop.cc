@@ -867,13 +867,14 @@ KeepLoop* RunLoop::keep_alive_current(cString& name, bool declear) {
 /**
  * @func next_tick
  */
-void RunLoop::next_tick(cCb& cb) throw(Error) {
+int RunLoop::next_tick(cCb& cb) {
 	RunLoop* loop = RunLoop::current();
 	if ( loop ) {
 		loop->post(cb);
-	} else { // 没有消息队列 post to io loop
-		FX_THROW(ERR_NOT_RUN_LOOP, "Unable to obtain thread io run loop");
+		return 0;
 	}
+	// No message queue, post to io loop
+	return 1;
 }
 
 /**

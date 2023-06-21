@@ -303,6 +303,7 @@ public:
 		}
 	}
 	
+	// draw background color and clip
 	void draw_begin_clip(Box* v) {
 		// build stencil test value and background color draw
 		

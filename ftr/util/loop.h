@@ -203,7 +203,7 @@ class FX_EXPORT RunLoop: public Object, public PostMessage {
 	/**
 	 * @func next_tick
 	 */
-	static void next_tick(cCb& cb) throw(Error);
+	static int next_tick(cCb& cb);
 	
 	/**
 	 * Be careful with thread safety. It's best to ensure that `current()` has been invoked first.

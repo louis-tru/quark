@@ -169,6 +169,7 @@ uint GLDraw::gen_texture(uint origin_texture, uint width, uint height) {
 	GLuint frame_buffer;
 	glGenFramebuffers(1, &frame_buffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+
 	glGenTextures(1, &handle);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, handle);
@@ -177,6 +178,7 @@ uint GLDraw::gen_texture(uint origin_texture, uint width, uint height) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, handle, 0);
 	
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {

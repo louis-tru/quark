@@ -123,7 +123,7 @@ void GLDrawProxy::commit_render() {
 			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
 		}
 	}
-	
+
 	// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 	// you present its contents by making it the current renderbuffer
 	// and calling the presentRenderbuffer: method on your rendering context.
