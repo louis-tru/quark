@@ -11,7 +11,7 @@ quark is a cross-platform (Android/iOS) front-end development framework. The cor
 |--|--|--|
 
 
-Build source and install noproj
+Build source and install qkmake
 ===============
 
 1. Build must dependent `Xcode` / `JDK` / `Android-SDK` / `NDK` / `python` / `nodejs` / `yasm`.
@@ -20,15 +20,15 @@ Build source and install noproj
 
 3. Pull dependent librarys, execute `make pull`.
 
-Compile and install noproj, execute `make` or `make install`, It takes a long time.
+Compile and install qkmake, execute `make` or `make install`, It takes a long time.
 
-use noproj tools create project.
+use qkmake tools create project.
 
 first create an empty file directory, then execute in the directory
 
-`noproj init`
+`qkmake init`
 
-export ios xcode project `noproj export ios`
+export ios xcode project `qkmake export ios`
 
 
 [`Simple Examples`](https://github.com/louis-tru/quark/tree/master/docs/README.md)
