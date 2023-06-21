@@ -28,85 +28,51 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./storage.h"
-#include "./fs.h"
-#include "./event.h"
-#include <BPtree.h>
+#include "./path.h"
+#include "./ft/ft_path.h"
 
 namespace qk {
 
-	#define _db _storage_db
-	#define assert_r(c) Qk_ASSERT(c == BP_OK)
+	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
+		Qk_FT_Stroker stroker;
+		Qk_FT_Stroker_LineCap ft_cap = Qk_FT_Stroker_LineCap(cap);
+		Qk_FT_Stroker_LineJoin ft_join =
+			Join::kMiter_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_MITER: 
+			Join::kRound_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_ROUND: 
+			Qk_FT_STROKER_LINEJOIN_BEVEL;
+		Qk_FT_Error err;
 
-	static bp_db_t* _storage_db = nullptr;
-	static int64_t _has_initialize = 0;
+		if (miterLimit == 0)
+			miterLimit = 1024;
 
-	static String get_db_filename() {
-		return fs_temp(".storage.bp");
-	}
+		err = Qk_FT_Stroker_New(&stroker);
+		Qk_ASSERT(err==0);
+		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miterLimit));
+		
+		 Path tmp;
+		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
 
-	static void storage_close() {
-		bp_db_t* __db = _storage_db;
-		_db = nullptr;
-		if ( __db ) bp_close(__db);
-	}
+		auto from_outline = qk_ft_outline_convert(self);
+		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);
+		Qk_ASSERT(err==0);
 
-	static void storage_open() {
-		if ( _storage_db == nullptr ) {
-			int r = bp_open(&_db, fs_fallback_c(get_db_filename()));
-			if ( r == BP_OK ) {
-				if (_has_initialize++ == 0)
-					Qk_On(Exit, [](Event<>& e) { storage_close(); });
-			} else {
-				_db = nullptr;
-			}
-		}
-	}
+		Qk_FT_UInt anum_points, anum_contours;
+		err =
+		Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
+		Qk_ASSERT(err==0);
 
-	String storage_get(cString& name) {
-		storage_open();
-		String result;
-		if ( _db ) {
-			bp_key_t key = { name.length(), (Char*)name.c_str() };
-			bp_key_t val;
-			if (bp_get(_db, &key, &val) == BP_OK) {
-				result = Buffer::from(val.value, val.length);
-			}
-		}
-		return result;
-	}
+		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
+		Qk_FT_Stroker_Export(stroker, to_outline);
 
-	void storage_set(cString& name, cString& value) {
-		storage_open();
-		if ( _db ) {
-			bp_key_t   key = { name.length(), (Char*)name.c_str() };
-			bp_value_t val = { value.length(), (Char*)value.c_str() };
-			int r = bp_set(_db, &key, &val); assert_r(r);
-		}
-	}
+		Path out;
+		err = qk_ft_path_convert(to_outline, &out);
+		Qk_ASSERT(err==0);
 
-	void storage_delete(cString& name) {
-		storage_open();
-		if ( _db ) {
-			bp_key_t key = { name.length(), (Char*)name.c_str() };
-			int r = bp_remove(_db, &key); assert_r(r);
-		}
-	}
+		qk_ft_outline_destroy(from_outline);
+		qk_ft_outline_destroy(to_outline);
+		Qk_FT_Stroker_Done(stroker);
 
-	void storage_clear() {
-		if ( !_db ) {
-			auto f = get_db_filename();
-			if (fs_is_file_sync(f)) {
-				fs_unlink_sync(f);
-			}
-		} else {
-			storage_close();
-			fs_unlink_sync(get_db_filename());
-		}
-	}
-
-	void storage_transaction(Cb cb) {
-		async_callback(cb);
+		Qk_ReturnLocal(out);
 	}
 
 }

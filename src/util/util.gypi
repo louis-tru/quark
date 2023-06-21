@@ -7,7 +7,7 @@
 		'type': 'static_library',
 		'dependencies': [
 			'deps/zlib/minizip.gyp:minizip',
-			'deps/libbptree/libbptree.gyp:libbptree',
+			'deps/libBPtree/libBPtree.gyp:libBPtree',
 			'deps/libuv/libuv.gyp:libuv',
 			'deps/openssl/openssl.gyp:openssl',
 			'deps/http_parser/http_parser.gyp:http_parser',
@@ -19,7 +19,7 @@
 		'include_dirs': [
 			'../..',
 			'../../deps/rapidjson/include',
-			'../../deps/libbptree/include',
+			'../../deps/libBPtree/include',
 		],
 		'sources': [
 			'../../Makefile',

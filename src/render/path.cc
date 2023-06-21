@@ -33,7 +33,6 @@
 #include "./bezier.h"
 #include "../util/handle.h"
 #include <math.h>
-#include "./ft/ft_path.h"
 
 namespace qk {
 
@@ -464,48 +463,6 @@ namespace qk {
 		if (out.verbsLen() && useStage) {
 			out.lineTo(from);
 		}
-
-		Qk_ReturnLocal(out);
-	}
-
-	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
-		Qk_FT_Stroker stroker;
-		Qk_FT_Stroker_LineCap ft_cap = Qk_FT_Stroker_LineCap(cap);
-		Qk_FT_Stroker_LineJoin ft_join =
-			Join::kMiter_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_MITER: 
-			Join::kRound_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_ROUND: 
-			Qk_FT_STROKER_LINEJOIN_BEVEL;
-		Qk_FT_Error err;
-
-		if (miterLimit == 0)
-			miterLimit = 1024;
-
-		err = Qk_FT_Stroker_New(&stroker);
-		Qk_ASSERT(err==0);
-		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miterLimit));
-		
-		 Path tmp;
-		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
-
-		auto from_outline = qk_ft_outline_convert(self);
-		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);
-		Qk_ASSERT(err==0);
-
-		Qk_FT_UInt anum_points, anum_contours;
-		err =
-		Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
-		Qk_ASSERT(err==0);
-
-		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
-		Qk_FT_Stroker_Export(stroker, to_outline);
-
-		Path out;
-		err = qk_ft_path_convert(to_outline, &out);
-		Qk_ASSERT(err==0);
-
-		qk_ft_outline_destroy(from_outline);
-		qk_ft_outline_destroy(to_outline);
-		Qk_FT_Stroker_Done(stroker);
 
 		Qk_ReturnLocal(out);
 	}

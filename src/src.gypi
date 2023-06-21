@@ -100,6 +100,7 @@
 			'render/paint.cc',
 			'render/path.h',
 			'render/path.cc',
+			'render/stroke.cc',
 			'render/pixel.h',
 			'render/pixel.cc',
 			'render/render.h',
