@@ -49,7 +49,7 @@ namespace qk {
 		Qk_ASSERT(err==0);
 		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miterLimit));
 		
-		 Path tmp;
+		Path tmp;
 		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
 
 		auto from_outline = qk_ft_outline_convert(self);
@@ -73,6 +73,27 @@ namespace qk {
 		Qk_FT_Stroker_Done(stroker);
 
 		Qk_ReturnLocal(out);
+	}
+
+	Path Path::stroke(float width, Cap cap, Join join, float miterLimit) const {
+		if (miterLimit == 0)
+			miterLimit = 1024;
+
+		Path tmp;
+		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
+
+		for (auto verb: self->_verbs) {
+			switch(verb) {
+				case kVerb_Move:
+					break;
+				case kVerb_Line:
+					break;
+				case kVerb_Close: // close
+					break;
+				default: Qk_FATAL("Path::strokePath");
+			}
+		}
+
 	}
 
 }

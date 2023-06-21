@@ -64,6 +64,7 @@ CXX_SOURCES = \
 	../src/render/bezier.cc \
 	../src/render/math.cc \
 	../src/render/path.cc \
+	../src/render/stroke.cc \
 	../src/render/ft/ft_path.cc \
 
 # deps/tess
