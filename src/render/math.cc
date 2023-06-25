@@ -505,7 +505,8 @@ namespace qk {
 	}
 
 	Mat4::Mat4(float value) {
-		memset(this->val, 0, sizeof(float) * 16);
+		constexpr float src = 0;
+		memset_pattern4(val, &src, 16);
 		val[0] = value;
 		val[5] = value;
 		val[10] = value;
@@ -542,14 +543,24 @@ namespace qk {
 	}
 
 	Mat4::Mat4(Mat mat) {
-		memset(this->val, 0, sizeof(float) * 16);
 		val[0] = mat[0];
 		val[1] = mat[1];
+		val[2] = 0;
 		val[3] = mat[2];
+		//
 		val[4] = mat[3];
 		val[5] = mat[4];
+		val[6] = 0;
 		val[7] = mat[5];
+		//
+		val[8] = 0;
+		val[9] = 0;
 		val[10] = 1;
+		val[11] = 0;
+		//
+		val[12] = 0;
+		val[13] = 0;
+		val[14] = 0;
 		val[15] = 1;
 	}
 
@@ -953,30 +964,15 @@ namespace qk {
 		[ i,j,k,l ]
 		[ m,n,o,p ]
 		*/
-		float
-		tmp = val[1];
-		val[1] = val[4];
-		val[4] = tmp;
-		//
-		tmp = val[2];
-		val[2] = val[8];
-		val[8] = tmp;
-		//
-		tmp = val[3];
-		val[3] = val[12];
-		val[12] = tmp;
-		//
-		tmp = val[6];
-		val[6] = val[9];
-		val[9] = tmp;
-		//
-		tmp = val[7];
-		val[7] = val[13];
-		val[13] = tmp;
-		//
-		tmp = val[11];
-		val[11] = val[14];
-		val[14] = tmp;
+		float tmp;
+		#define Qk_Swap(a,b) tmp = a; a = b; b = tmp
+
+		Qk_Swap(val[1], val[4]);
+		Qk_Swap(val[2], val[8]);
+		Qk_Swap(val[3], val[12]);
+		Qk_Swap(val[6], val[9]);
+		Qk_Swap(val[7], val[13]);
+		Qk_Swap(val[11], val[14]);
 	}
 
 	Mat4 Mat4::frustum(float left, float right, float top, float bottom, float near, float far) {
