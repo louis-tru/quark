@@ -72,21 +72,55 @@ namespace qk {
 #endif
 	}
 
-	template <> Vec<float,2>::Vec(float f): Vec(f,f) {
+	template<> Vec<int,2>::Vec(int f): Vec(f,f) {
 	}
-
-	template <> Vec<int,2>::Vec(int f): Vec(f,f) {
+	template<> bool Vec<int,2>::operator==(const Vec& b) const {
+		return val[0] == b.val[0] && val[1] == b.val[1];
 	}
-
-	template <> bool Vec<float,2>::is_zero() const {
+	template<> bool Vec<float,2>::is_zero() const {
 		return val[0] == 0 && val[1] == 0;
 	}
-
-	template <> bool Vec<float,2>::is_zero_or() const {
+	template<> bool Vec<float,2>::is_zero_axis() const {
 		return val[0] == 0 || val[1] == 0;
 	}
 
-	template<> float Vec<float,2>::length() const {
+	// ------------------------------------------
+
+	Vec2::Vec2() {
+		val[0] = 0; val[1] = 0;
+	}
+	Vec2::Vec2(float f) {
+		val[0] = f; val[1] = f;
+	}
+	Vec2::Vec2(float a, float b) {
+		val[0] = a; val[1] = b;
+	}
+	Vec2 Vec2::operator+(const Vec<float,2>& b) const {
+		return Vec2(val[0] + b[0], val[1] + b[1]);
+	}
+	Vec2 Vec2::operator-(const Vec<float,2>& b) const {
+		return Vec2(val[0] - b[0], val[1] - b[1]);
+	}
+	Vec2 Vec2::operator*(const Vec<float,2>& b) const {
+		return Vec2(val[0] * b[0], val[1] * b[1]);
+	}
+	Vec2 Vec2::operator/(const Vec<float,2>& b) const {
+		return Vec2(val[0] / b[0], val[1] / b[1]);
+	}
+	Vec2& Vec2:: operator+=(const Vec<float,2>& b) {
+		val[0] += b[0]; val[1] += b[1]; return *this;
+	}
+	Vec2& Vec2:: operator-=(const Vec<float,2>& b) {
+		val[0] -= b[0]; val[1] -= b[1]; return *this;
+	}
+	Vec2& Vec2:: operator*=(const Vec<float,2>& b) {
+		val[0] *= b[0]; val[1] *= b[1]; return *this;
+	}
+	Vec2& Vec2:: operator/=(const Vec<float,2>& b) {
+		val[0] /= b[0]; val[1] /= b[1]; return *this;
+	}
+
+	float Vec2::length() const {
 		if (val[0] == 0)
 			return abs(val[1]);
 		else if (val[1] == 0)
@@ -95,20 +129,24 @@ namespace qk {
 			return sqrtf( val[0] * val[0] + val[1] * val[1] );
 	}
 
-	template<> float Vec<float,2>::dot(const Vec& b) const {
-		return x() * b.x() + y() * b.y();
+	float Vec2::dot(const Vec<float,2>& b) const {
+		return val[0] * b.val[0] + val[1] * b.val[1];
 	}
 
-	template<> Vec<float,2> Vec<float,2>::normalized() const {
+	Vec3 Vec2::det(const Vec<float,2>& b,const Vec<float,2>& c) const {
+		return Vec3(val[0], b.val[0], c.val[0]).det(Vec3(val[1], b.val[1], c.val[1]));
+	}
+
+	Vec2 Vec2::normalized() const {
 		const float len = length();
 		return {val[0] / len, val[1] / len};
 	}
 
-	template<> Vec<float,2> Vec<float,2>::rotate90z(bool ccw) const {
+	Vec2 Vec2::rotate90z(bool ccw) const {
 		return ccw ? Vec2{-val[1], val[0]}: Vec2{val[1], -val[0]};
 	}
 
-	template<> Vec<float,2> Vec<float,2>::normalline(const Vec *prev, const Vec *next, bool ccw) const {
+	Vec2 Vec2::normalline(const Vec2 *prev, const Vec2 *next, bool ccw) const {
 		if (!prev) {
 			const Vec2 toNext = Vec2(next->x() - x(), next->y() - y()).normalized();
 			return toNext.rotate90z(ccw);//.normalized();
@@ -127,17 +165,63 @@ namespace qk {
 		return (toNextNormal + fromPreviousNormal);//.normalized();
 	}
 
-	template<> float Vec<float,2>::angle(const Vec& b) const {
+	float Vec2::angle(const Vec2& b) const {
 		return acosf(dot(b) / (length() * b.length()));
 	}
 
-	template<> bool Vec<float,2>::operator==(const Vec& b) const {
-		return val[0] == b.val[0] && val[1] == b.val[1];
+	// ------------------------------------------
+
+	Vec3::Vec3() {
+		val[0] = 0; val[1] = 0;; val[2] = 0;
+	}
+	Vec3::Vec3(float f) {
+		val[0] = f; val[1] = f; val[2] = f;
+	}
+	Vec3::Vec3(float a, float b, float c) {
+		val[0] = a; val[1] = b; val[2] = c;
+	}
+	Vec3 Vec3::operator+(const Vec<float,3>& b) const {
+		return Vec3(val[0] + b[0], val[1] + b[1], val[1] + b[2]);
+	}
+	Vec3 Vec3::operator-(const Vec<float,3>& b) const {
+		return Vec3(val[0] - b[0], val[1] - b[1], val[1] - b[2]);
+	}
+	Vec3 Vec3::operator*(const Vec<float,3>& b) const {
+		return Vec3(val[0] * b[0], val[1] * b[1], val[1] * b[2]);
+	}
+	Vec3 Vec3::operator/(const Vec<float,3>& b) const {
+		return Vec3(val[0] / b[0], val[1] / b[1], val[1] / b[2]);
+	}
+	Vec3& Vec3:: operator+=(const Vec<float,3>& b) {
+		val[0] += b[0]; val[1] += b[1]; val[1] += b[2]; return *this;
+	}
+	Vec3& Vec3:: operator-=(const Vec<float,3>& b) {
+		val[0] -= b[0]; val[1] -= b[1]; val[1] -= b[2]; return *this;
+	}
+	Vec3& Vec3:: operator*=(const Vec<float,3>& b) {
+		val[0] *= b[0]; val[1] *= b[1]; val[1] *= b[2]; return *this;
+	}
+	Vec3& Vec3:: operator/=(const Vec<float,3>& b) {
+		val[0] /= b[0]; val[1] /= b[1]; val[1] /= b[2]; return *this;
 	}
 
-	template<> bool Vec<int,2>::operator==(const Vec& b) const {
-		return val[0] == b.val[0] && val[1] == b.val[1];
+	float Vec3::length() const {
+		return sqrtf( val[0] * val[0] + val[1] * val[1] + val[2] * val[2] );
 	}
+	float Vec3::dot(const Vec<float,3>& b) const {
+		// a->.b->=|a->||b->|cos(ab)
+		return val[0] * b.val[0] + val[1] * b.val[1] + val[2] * b.val[2];
+	}
+	Vec3  Vec3::det(const Vec<float,3>& b) const {
+		// a->xb->=|a->||b->|sin(ab)=|c->|
+		return Vec3(
+			y()*b.z()-b.y()*z(), // x
+			z()*b.x()-b.z()*x(), // y
+			x()*b.y()-b.x()*y()  // z
+		);
+	}
+
+	// ------------------------------------------
 
 	bool Color4f::operator==(const Color4f& color) const {
 		return color.r() == r() && color.g() == g() &&  color.b() == b() &&  color.a() == a();

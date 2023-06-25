@@ -673,14 +673,14 @@ namespace qk {
 		const Vec2 rightBottom = Vec2(-Float::min(r.rightBottom.x(), x_5), -Float::min(r.rightBottom.y(), y_5));
 		const Vec2 leftBottom = Vec2(Float::min(r.leftBottom.x(), x_5), -Float::min(r.leftBottom.y(), y_5));
 
-		path.path.moveTo(Vec2(x1, leftTop.is_zero_or() ? y1: y1 + leftTop.y()));
+		path.path.moveTo(Vec2(x1, leftTop.is_zero_axis() ? y1: y1 + leftTop.y()));
 
 		auto build = [](
 			RectPath *out, Vec2 v, Vec2 v2,
 			Vec2 radius, Vec2 radius2, float startAngle
 		) {
-			bool is_zero  = radius.is_zero_or();
-			bool is_zero2 = radius2.is_zero_or();
+			bool is_zero  = radius.is_zero_axis();
+			bool is_zero2 = radius2.is_zero_axis();
 			const Vec2 c(v + radius);
 
 			if (!is_zero) {
@@ -880,7 +880,7 @@ namespace qk {
 		Vec2 v2 = v[2], v4 = v[4]; // inside radius v2 and v4 point, prev point b
 
 		// ----------------------------- make left radius -----------------------------
-		if (!radius[0].is_zero_or()) { // radius not zero
+		if (!radius[0].is_zero_axis()) { // radius not zero
 			Vec2 c(v[0] + radius[0]);
 
 			float angleRatio = border[1] / (border[0] + border[1]);
@@ -894,7 +894,7 @@ namespace qk {
 
 			auto lineTo = [](Path &path, Vec2 p) { path.ptsLen() ? path.lineTo(p): path.moveTo(p); };
 
-			if (radius_inside[0].is_zero_or()) { // no inside radius
+			if (radius_inside[0].is_zero_axis()) { // no inside radius
 				const float offset_v5 = angleLen + (
 					!is_overflow_a ? -overflow_a: // no overflow
 					atanf(overflow_a/border[1]) * averageRadius_a // overflow
@@ -1009,7 +1009,7 @@ namespace qk {
 		}
 
 		// ----------------------------- make right radius -----------------------------
-		if (!radius[1].is_zero_or()) { // outside radius no zero
+		if (!radius[1].is_zero_axis()) { // outside radius no zero
 			Vec2 c(v[3] + radius[1]);
 
 			float angleRatio = border[1] / (border[2] + border[1]);
@@ -1021,7 +1021,7 @@ namespace qk {
 			//float angleLen = angleStepLen * (sample - 1);
 			float angle = startAngle; // start from 0
 
-			if (radius_inside[1].is_zero_or()) { // no inside radius
+			if (radius_inside[1].is_zero_axis()) { // no inside radius
 				float offset_v4 = offset;
 
 				if (is_overflow_b) {

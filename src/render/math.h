@@ -41,6 +41,7 @@
 namespace qk {
 
 	template <typename T, int LEN> struct Qk_EXPORT Vec {
+		T val[LEN];
 		inline Vec(): Vec(0) {}
 		inline Vec(T f) {
 			for (int i = 0; i < LEN; i++) val[i] = f;
@@ -126,67 +127,101 @@ namespace qk {
 		inline void set_b(T v) { val[2] = v; }
 		inline void set_a(T v) { val[3] = v; }
 
-		// ------------------------------------------
 		inline bool is_zero() const {
 			for (int i = 0; i < LEN; i++) if (val[i] != 0) return false;
 			return true;
 		}
-		inline bool is_zero_or() const {
+		inline bool is_zero_axis() const {
 			for (int i = 0; i < LEN; i++) if (val[i] == 0) return true;
 			return false;
 		}
+		template<typename M>
+		inline const M& as() const {
+			return *static_cast<const M*>(this);
+		}
+	};
+
+	struct Vec3;
+	template<>      Vec<int,2>::Vec(int f);
+	template<> bool Vec<int,2>::operator==(const Vec& b) const;
+	template<> bool Vec<float,2>::is_zero() const;
+	template<> bool Vec<float,2>::is_zero_axis() const;
+
+	// ------------------------------------------
+
+	struct Qk_EXPORT Vec2: Vec<float,2> {
+	#define Qk_Default_Vec_Operator(N,T,L) \
+		N(); \
+		N(float f); \
+		N  operator+(const Vec<T,L>& b) const; \
+		N  operator-(const Vec<T,L>& b) const; \
+		N  operator*(const Vec<T,L>& b) const; \
+		N  operator/(const Vec<T,L>& b) const; \
+		N& operator+=(const Vec<T,L>& b); \
+		N& operator-=(const Vec<T,L>& b); \
+		N& operator*=(const Vec<T,L>& b); \
+		N& operator/=(const Vec<T,L>& b)
+
+		Qk_Default_Vec_Operator(Vec2,float,2);
+
+		Vec2(float a, float b);
+
 		/**
-		 * @method length() returns vector length
+		 * @method length() returns vector length 
 		 */
 		float length() const;
-		float dot(const Vec& b) const;
-		Vec   normalized() const;
+		/**
+		 * @method dot() returns vector inner product
+		*/
+		float dot(const Vec<float,2>& b) const;
+		/**
+		 * @method det() returns vector outer product
+		*/
+		Vec3 det(const Vec<float,2>& b, const Vec<float,2>& c) const;
+		/**
+		 * @method dot() returns normalized vector
+		*/
+		Vec2  normalized() const;
 		/**
 		 * @method rotate90z() Default to use Cartesian coordinate system
 		 */
-		Vec   rotate90z(bool ccw/*counter clock wise*/) const;
+		Vec2  rotate90z(bool ccw/*counter clock wise*/) const;
 		/**
 		 * Default to use Cartesian coordinate system
 		 * @method normal() Default clockwise direction inward, screen coordinates outward
 		 * @arg ccw {bool} if ccw=true then clockwise direction outward
 		 */
-		Vec   normalline(const Vec *prev, const Vec *next, bool ccw) const;
-		float angle(const Vec& b) const;
-
-		// ------------------------------------------
-		T val[LEN];
+		Vec2  normalline(const Vec2 *prev, const Vec2 *next, bool ccw) const;
+		/**
+		 * @method angle() return vector angle
+		*/
+		float angle(const Vec2& b) const;
 	};
 
-	template<>               Vec<float,2>::Vec(float f);
-	template<>               Vec<int,2>::Vec(int f);
-	template<> bool          Vec<float,2>::is_zero() const;
-	template<> bool          Vec<float,2>::is_zero_or() const;
-	template<> float         Vec<float,2>::length() const;
-	template<> float         Vec<float,2>::dot(const Vec& b) const;
-	template<> Vec<float,2>  Vec<float,2>::normalized() const;
-	template<> Vec<float,2>  Vec<float,2>::rotate90z(bool ccw) const;
-	template<> Vec<float,2>  Vec<float,2>::normalline(const Vec *prev, const Vec *next, bool ccw) const;
-	template<> float         Vec<float,2>::angle(const Vec& b) const;
-	template<> bool          Vec<float,2>::operator==(const Vec& b) const;
-	template<> bool          Vec<int,2>::operator==(const Vec& b) const;
+	struct Qk_EXPORT Vec3: Vec<float,3> {
+		Qk_Default_Vec_Operator(Vec3,float,3);
+	#undef Qk_Default_Vec_Operator;
+		Vec3(float a, float b, float c);
+		float length() const;
+		float dot(const Vec<float,3>& b) const;
+		Vec3  det(const Vec<float,3>& b) const;
+	};
 
-	template<typename T> 
-	struct                   MRect { T origin,size; }; // rect
-	template<typename T> 
-	struct                   MRegion { T origin,end;}; // region
+	// ------------------------------------------
 
-	// typedef vec
-	typedef Vec<float,2>     Vec2;
-	typedef Vec<float,3>     Vec3;
-	typedef Vec<float,4>     Vec4;
+	template<typename T> struct MRect { T origin,size; }; // rect
+	template<typename T> struct MRegion { T origin,end;}; // region
+
+	typedef Vec<float,4>     Vec4; // typedef vec
 	typedef Vec<int,2>       iVec2;
 	typedef Vec<int,3>       iVec3;
 	typedef Vec<int,4>       iVec4;
-	// typedef rect
-	typedef MRect<Vec2>      Rect;
+	typedef MRect<Vec2>      Rect; // typedef rect
 	typedef MRegion<Vec2>    Region;
 	typedef MRect<iVec2>     iRect;
 	typedef MRegion<iVec2>   iRegion;
+
+	// ------------------------------------------
 
 	struct Qk_EXPORT Color4f: Vec<float, 4> {
 		Color4f(): Vec<float, 4>(0, 0, 0, 1) {}
