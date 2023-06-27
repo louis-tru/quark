@@ -33,108 +33,56 @@
 
 //  ----------------------------- Compiling environment -----------------------------
 
-#define Qk_HAS_CPP __cplusplus
-
-#ifdef __EXCEPTIONS
-# define Qk_EXCEPTIONS_SUPPORT 1
-#else
-# define Qk_EXCEPTIONS_SUPPORT 0
-#endif
+#define Qk_CPP __cplusplus
+#define Qk_EXCEPTIONS __EXCEPTIONS
 
 #ifndef NULL
 # define NULL 0
 #endif
 
-#define Qk_GNUC          0
-#define Qk_CLANG         0
-#define Qk_MSC           0
-#define Qk_ARCH_X86      0
-#define Qk_ARCH_ARM      0
-#define Qk_ARCH_MIPS     0
-#define Qk_ARCH_MIPS64   0
-#define Qk_ARCH_IA32     0
-#define Qk_ARCH_X64      0
-#define Qk_ARCH_ARM64    0
-#define Qk_ARCH_ARMV7    0
-#define Qk_ARCH_32BIT    0
-#define Qk_ARCH_64BIT    0
-#define Qk_APPLE         0
-#define Qk_POSIX         0
-#define Qk_UNIX          0
-#define Qk_LINUX         0
-#define Qk_BSD           0
-#define Qk_CYGWIN        0
-#define Qk_NACL          0
-#define Qk_iOS           0
-#define Qk_OSX           0
-#define Qk_ANDROID       0
-#define Qk_WIN           0
-#define Qk_QNX           0
-
 #if defined(__GNUC__)
-# undef Qk_GNUC
 # define Qk_GNUC       1
 #endif
 
 #if defined(__clang__)
-# undef Qk_CLANG
 # define Qk_CLANG       1
 #endif
 
 #if defined(_MSC_VER)
-# undef Qk_MSC
 # define Qk_MSC       1
 #endif
 
 #if defined(_M_X64) || defined(__x86_64__)
-# undef Qk_ARCH_X86
 # define Qk_ARCH_X86        1
 # if defined(__native_client__)
-#   undef Qk_ARCH_IA32
 #   define Qk_ARCH_IA32     1
-#   undef Qk_ARCH_32BIT
 #   define Qk_ARCH_32BIT    1
 # else // else __native_client__
-#   undef Qk_ARCH_X64
 #   define Qk_ARCH_X64      1
-#   undef Qk_ARCH_64BIT
 #   define Qk_ARCH_64BIT    1
 # endif  // __native_client__
 
 #elif defined(_M_IX86) || defined(__i386__)
-# undef Qk_ARCH_X86
 # define Qk_ARCH_X86        1
-# undef Qk_ARCH_IA32
 # define Qk_ARCH_IA32       1
-# undef Qk_ARCH_32BIT
 # define Qk_ARCH_32BIT      1
 
 #elif defined(__arm64__) || defined(__AARCH64EL__)
-# undef Qk_ARCH_ARM
 # define Qk_ARCH_ARM        1
-# undef Qk_ARCH_ARM64
 # define Qk_ARCH_ARM64      1
-# undef Qk_ARCH_64BIT
 # define Qk_ARCH_64BIT      1
 
 #elif defined(__ARMEL__)
-# undef Qk_ARCH_ARM
 # define Qk_ARCH_ARM        1
-# undef Qk_ARCH_32BIT
 # define Qk_ARCH_32BIT      1
 
 #elif defined(__mips64)
-# undef Qk_ARCH_MIPS
 # define Qk_ARCH_MIPS       1
-# undef Qk_ARCH_MIPS64
 # define Qk_ARCH_MIPS64     1
-# undef Qk_ARCH_64BIT
 # define Qk_ARCH_64BIT      1
 
 #elif defined(__MIPSEL__)
-# undef Qk_ARCH_MIPS
 # define Qk_ARCH_MIPS       1
-# undef Qk_ARCH_32BIT
 # define Qk_ARCH_32BIT      1
 
 #else
@@ -142,97 +90,70 @@
 #endif
 
 #if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7__)
-# undef Qk_ARCH_ARMV7
 # define Qk_ARCH_ARMV7  1
 #endif
 
 #if defined(__sun)
-# undef Qk_BSD
 # define Qk_BSD        1
-# undef Qk_UNIX
 # define Qk_UNIX       1
 #endif
 
 #if defined(__OpenBSD__) || defined(__NetBSD__) || \
 		defined(__FreeBSD__) || defined(__DragonFly__)
-# undef Qk_POSIX
 # define Qk_POSIX      1
-# undef Qk_BSD
 # define Qk_BSD        1
-# undef Qk_UNIX
 # define Qk_UNIX       1
 #endif
 
 #if defined(__APPLE__)
 # include <TargetConditionals.h>
-# undef Qk_APPLE
 # define Qk_APPLE      1
-# undef Qk_POSIX
 # define Qk_POSIX      1
-# undef Qk_BSD
 # define Qk_BSD        1
-# undef Qk_UNIX
 # define Qk_UNIX       1
 #endif
 
 #if defined(__CYGWIN__)
-# undef Qk_CYGWIN
 # define Qk_CYGWIN     1
-# undef Qk_POSIX
 # define Qk_POSIX      1
 #endif
 
 #if defined(__unix__)
-# undef Qk_UNIX
 # define Qk_UNIX       1
 #endif
 
 #if defined(__linux__)
-# undef Qk_LINUX
 # define Qk_LINUX      1
-# undef Qk_POSIX
 # define Qk_POSIX      1
-# undef Qk_UNIX
 # define Qk_UNIX       1
 #endif
 
 #if defined(__native_client__)
-# undef Qk_NACL
 # define Qk_NACL       1
-# undef Qk_POSIX
 # define Qk_POSIX      1
 #endif
 
 #if TARGET_OS_IPHONE
-# undef Qk_iOS
 # define Qk_iOS        1
 #endif
 
 #if TARGET_OS_MAC && !TARGET_OS_IPHONE
-# undef Qk_OSX
 # define Qk_OSX        1
 #endif
 
 #if defined(__ANDROID__)
-# undef Qk_ANDROID
 # define Qk_ANDROID    1
-# undef Qk_POSIX
 # define Qk_POSIX      1
-# undef Qk_LINUX
 # define Qk_LINUX      1
-# undef Qk_UNIX
 # define Qk_UNIX       1
 #endif
 
 #if defined(_WINDOWS) || defined(_MSC_VER)
-# undef Qk_WIN
 # define Qk_WIN        1
 #endif
 
 #if defined(__QNXNTO__)
-# undef Qk_POSIX
 # define Qk_POSIX 1
-# undef Qk_QNX
 # define Qk_QNX 1
 #endif
 

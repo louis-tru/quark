@@ -35,7 +35,8 @@
 #include "../util/array.h"
 
 #define Qk_PI 3.1415926535898f                   // PI
-#define Qk_PI2 1.5707963267949f                  // PI / 2
+#define Qk_PI_2 6.2831853071796f                 // PI * 2
+#define Qk_PI_2_1 1.5707963267949f               // PI / 2
 #define Qk_PI_RATIO_180  0.017453292519943f      // PI / 180
 
 namespace qk {
@@ -167,35 +168,46 @@ namespace qk {
 		Vec2(float a, float b);
 
 		/**
-		 * @method length() returns vector length 
+		 * @method length() returns vector length
 		 */
 		float length() const;
+
 		/**
 		 * @method dot() returns vector inner product
 		*/
-		float dot(const Vec<float,2>& b) const;
+		float dot(const Vec<float,2> b) const;
+
 		/**
 		 * @method det() returns vector outer product
 		*/
-		Vec3 det(const Vec<float,2>& b, const Vec<float,2>& c) const;
+		Vec3 det(const Vec<float,2> b, const Vec<float,2> c) const;
+
 		/**
 		 * @method dot() returns normalized vector
 		*/
 		Vec2  normalized() const;
+
 		/**
 		 * @method rotate90z() Default to use Cartesian coordinate system
 		 */
 		Vec2  rotate90z(bool ccw/*counter clock wise*/) const;
+
 		/**
 		 * Default to use Cartesian coordinate system
 		 * @method normal() Default clockwise direction inward, screen coordinates outward
-		 * @arg ccw {bool} if ccw=true then clockwise direction outward
+		 * @arg ccw {bool} if ccw=true then counterclockwise direction outward
 		 */
 		Vec2  normalline(const Vec2 *prev, const Vec2 *next, bool ccw) const;
+
 		/**
 		 * @method angle() return vector angle
 		*/
-		float angle(const Vec2& b) const;
+		float angle() const;
+
+		/**
+		 * @method angleTo(to) return vector angle
+		 */
+		float angleTo(const Vec2 to, bool ccw) const;
 	};
 
 	struct Qk_EXPORT Vec3: Vec<float,3> {

@@ -34,7 +34,7 @@
 #include "./string.h"
 #include "./errno.h"
 
-#if !Qk_EXCEPTIONS_SUPPORT
+#if !Qk_EXCEPTIONS
 	#error Exceptions must be turned on
 #endif
 

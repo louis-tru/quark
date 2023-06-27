@@ -126,11 +126,11 @@ namespace qk {
 			return sqrtf( val[0] * val[0] + val[1] * val[1] );
 	}
 
-	float Vec2::dot(const Vec<float,2>& b) const {
+	float Vec2::dot(const Vec<float,2> b) const {
 		return val[0] * b.val[0] + val[1] * b.val[1];
 	}
 
-	Vec3 Vec2::det(const Vec<float,2>& b,const Vec<float,2>& c) const {
+	Vec3 Vec2::det(const Vec<float,2> b,const Vec<float,2> c) const {
 		return Vec3(val[0], b.val[0], c.val[0]).det(Vec3(val[1], b.val[1], c.val[1]));
 	}
 
@@ -162,8 +162,35 @@ namespace qk {
 		return (toNextNormal + fromPreviousNormal);//.normalized();
 	}
 
-	float Vec2::angle(const Vec2& b) const {
-		return acosf(dot(b) / (length() * b.length()));
+	float Vec2::angle() const {
+		if (val[0] > 0) { // x > 0
+			float a = atanf(val[1]/val[0]);
+			if (a < 0)
+				a += Qk_PI_2;
+			return a;
+		}
+		else if (val[0] < 0) { // x < 0
+			return atanf(val[1]/val[0]) + Qk_PI;
+		}
+		// x == 0
+		if (val[1] > 0) { // y > 0
+			return Qk_PI_2_1;
+		} if (val[1] < 0) { // y < 0
+			return Qk_PI_2_1 + Qk_PI;
+		} else { // y == 0
+			return 0;
+		}
+	}
+
+	float Vec2::angleTo(Vec2 to, bool ccw) const {
+		float a = ccw ?
+			to.angle() - angle():
+			angle() - to.angle();
+		if (a < 0) {
+			a += Qk_PI_2;
+		}
+		return a;
+		// return acosf(dot(to) / (length() * to.length()));
 	}
 
 	// ------------------------------------------
@@ -175,28 +202,28 @@ namespace qk {
 	Vec3::Vec3(float a, float b, float c): Vec(a,b,c) {
 	}
 	Vec3 Vec3::operator+(const Vec<float,3>& b) const {
-		return Vec3(val[0] + b.val[0], val[1] + b.val[1], val[1] + b.val[2]);
+		return Vec3(val[0] + b.val[0], val[1] + b.val[1], val[2] + b.val[2]);
 	}
 	Vec3 Vec3::operator-(const Vec<float,3>& b) const {
-		return Vec3(val[0] - b.val[0], val[1] - b.val[1], val[1] - b.val[2]);
+		return Vec3(val[0] - b.val[0], val[1] - b.val[1], val[2] - b.val[2]);
 	}
 	Vec3 Vec3::operator*(const Vec<float,3>& b) const {
-		return Vec3(val[0] * b.val[0], val[1] * b.val[1], val[1] * b.val[2]);
+		return Vec3(val[0] * b.val[0], val[1] * b.val[1], val[2] * b.val[2]);
 	}
 	Vec3 Vec3::operator/(const Vec<float,3>& b) const {
-		return Vec3(val[0] / b.val[0], val[1] / b.val[1], val[1] / b.val[2]);
+		return Vec3(val[0] / b.val[0], val[1] / b.val[1], val[2] / b.val[2]);
 	}
 	Vec3& Vec3:: operator+=(const Vec<float,3>& b) {
-		val[0] += b.val[0]; val[1] += b.val[1]; val[1] += b.val[2]; return *this;
+		val[0] += b.val[0]; val[1] += b.val[1]; val[2] += b.val[2]; return *this;
 	}
 	Vec3& Vec3:: operator-=(const Vec<float,3>& b) {
-		val[0] -= b.val[0]; val[1] -= b.val[1]; val[1] -= b.val[2]; return *this;
+		val[0] -= b.val[0]; val[1] -= b.val[1]; val[2] -= b.val[2]; return *this;
 	}
 	Vec3& Vec3:: operator*=(const Vec<float,3>& b) {
-		val[0] *= b.val[0]; val[1] *= b.val[1]; val[1] *= b.val[2]; return *this;
+		val[0] *= b.val[0]; val[1] *= b.val[1]; val[2] *= b.val[2]; return *this;
 	}
 	Vec3& Vec3:: operator/=(const Vec<float,3>& b) {
-		val[0] /= b.val[0]; val[1] /= b.val[1]; val[1] /= b.val[2]; return *this;
+		val[0] /= b.val[0]; val[1] /= b.val[1]; val[2] /= b.val[2]; return *this;
 	}
 
 	float Vec3::length() const {
