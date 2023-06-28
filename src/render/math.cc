@@ -262,10 +262,11 @@ namespace qk {
 
 	Color4f Color::to_color4f() const {
 		// create indexed table
-		return Color4f(r() * (1 / 255.0f),
-									 g() * (1 / 255.0f),
-									 b() * (1 / 255.0f),
-									 a() * (1 / 255.0f)
+		constexpr float scale = 1 / 255.0f;
+		return Color4f(r() * scale,
+									 g() * scale,
+									 b() * scale,
+									 a() * scale
 								);
 	}
 

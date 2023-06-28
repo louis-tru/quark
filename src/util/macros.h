@@ -192,10 +192,8 @@
 #define Qk_UNREACHABLE(...)      Qk_FATAL("Unreachable code, %s", ##__VA_ARGS__)
 #define Qk_MIN(A, B)          ((A) < (B) ? (A) : (B))
 #define Qk_MAX(A, B)          ((A) > (B) ? (A) : (B))
-// move local right value
-#define Qk_MoveLocal(x)       (x)
 // return and move local
-#define Qk_ReturnLocal(x)     return Qk_MoveLocal(x)
+#define Qk_ReturnLocal(x)     return (x)
 
 #ifndef DEBUG
 #define DEBUG 0

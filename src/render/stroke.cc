@@ -57,8 +57,7 @@ namespace qk {
 		Qk_ASSERT(err==0);
 
 		Qk_FT_UInt anum_points, anum_contours;
-		err =
-		Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
+		err = Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
 		Qk_ASSERT(err==0);
 
 		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
@@ -77,30 +76,88 @@ namespace qk {
 
 	Path Path::stroke(float width, Cap cap, Join join, float miterLimit) const {
 		if (miterLimit == 0)
-			miterLimit = 1024;
+			miterLimit = 1024.0;
 
-		Path tmp, left, right;
-		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
+		width *= 0.5;
+
+		Vec2 s(width, width);
+
+		Path tmp, out;
+		Array<Vec2> right;
+		auto self = _IsNormalized ? this: normalized(&tmp, 1,false);
+		auto pts_ = (const Vec2*)self->_pts.val();
+		int  size = 0;
 
 		/*
-			1.使用不超过法线边界原则延伸边界
-			2.使用完全边界延伸法
+			1.未闭合路径产生一条封闭路径
+			2.已闭合路径产生两条封闭路径
 		*/
 
-		// 法线、垂线
+		auto add = [&](const Vec2 *prev, const Vec2 *from, const Vec2 *to) {
+			auto l = from
+				->normalline(prev, to, false)
+				.normalized() * s;
+			
+			if (right.length()) {
+				out.lineTo(l);
+			} else {
+				out.moveTo(l);
+			}
+			right.push({ -1 * l[0], -1 * l[1] });
+		};
+
+		auto subpath = [&](const Vec2 *pts, int size, bool close) {
+			if (size > 1) { // size > 1
+				bool isClose = close && size > 2;
+
+				if (isClose) {
+					add(pts+size-1, pts, pts+1);
+				} else { // no close
+					add(NULL, pts, pts+1);
+				}
+				pts++;
+
+				for (int i = 1; i < size-1; i++) {
+					add(pts-1, pts, pts+1);
+					pts++;
+				}
+
+				if (isClose) {
+					add(pts-1, pts, pts-size+1);
+				} else { // no close
+					add(pts-1, pts, NULL);
+				}
+
+				if (close) {
+					out.close();
+				}
+
+				// right.reverse();
+			}
+			pts_ += size;
+			right.clear();
+		};
 
 		for (auto verb: self->_verbs) {
 			switch(verb) {
 				case kVerb_Move:
+					subpath(pts_, size, false);
+					size = 1;
 					break;
 				case kVerb_Line:
+					size++;
 					break;
 				case kVerb_Close: // close
+					subpath(pts_, size, true);
+					size = 0;
 					break;
 				default: Qk_FATAL("Path::strokePath");
 			}
 		}
 
+		subpath(pts_, size, false);
+
+		Qk_ReturnLocal(out);
 	}
 
 }

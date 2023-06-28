@@ -55,11 +55,13 @@ namespace qk {
 		typedef Paint::Join Join;
 		typedef Paint::Cap  Cap;
 		static Path MakeOval(const Rect& rect, bool ccw = false);
-		static Path MakeArc (const Rect& rect, float startAngle, float sweepAngle, bool useCenter, bool close = true);
+		static Path MakeArc (const Rect& rect, float startAngle,
+													float sweepAngle, bool useCenter, bool close = true);
 		static Path MakeRect(const Rect& rect, bool ccw = false);
 		static Path MakeCircle(Vec2 center, float radius, bool ccw = false);
 		static Path MakeRRect(const Rect& rect, const BorderRadius &radius);
-		static Path MakeRRectOutline(const Rect& outside, const Rect &inside, const BorderRadius &radius);
+		static Path MakeRRectOutline(const Rect& outside,
+																	const Rect &inside, const BorderRadius &radius);
 		Path();
 		Path(Vec2 move);
 		// add path points
@@ -72,6 +74,7 @@ namespace qk {
 		void arcTo (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		void close(); // close line
 		void startTo(Vec2 p); // call move to or line to
+		void concat(const Path& path);
 		// point ptr
 		inline const Vec2* pts() const { return (const Vec2*)*_pts; }
 		inline const PathVerb* verbs() const { return (const PathVerb*)*_verbs; }
@@ -113,7 +116,8 @@ namespace qk {
 		// estimate sample rate
 		static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon);
 		static int getCubicBezierSample(const CubicBezier& curve, float epsilon);
-		static Array<Vec2> getVertexsFromPaths(const Path *paths, int pathsLen, int polySize, float epsilon);
+		static Array<Vec2> getVertexsFromPaths(const Path *paths,
+																					int pathsLen, int polySize, float epsilon);
 	private:
 		Path* normalized(Path *out, float epsilon, bool updateHash) const;
 		Path stroke(float width, Cap cap, Join join, float miterLimit) const;

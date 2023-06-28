@@ -85,10 +85,10 @@ namespace qk {
 		Vec2 end = origin + outside.size;
 
 		// cw
-		arc(origin, a, Vec2(0), Qk_PI, -Qk_PI2); // left-top
-		arc({end.x(), origin.y()}, b, Vec2(-1,0), Qk_PI2, -Qk_PI2); // right-top
-		arc(end, c, Vec2(-1), 0, -Qk_PI2); // right-bottom
-		arc({origin.x(), end.y()}, d, Vec2(0,-1), -Qk_PI2, -Qk_PI2); // left-bottom
+		arc(origin, a, Vec2(0), Qk_PI, -Qk_PI_2_1); // left-top
+		arc({end.x(), origin.y()}, b, Vec2(-1,0), Qk_PI_2_1, -Qk_PI_2_1); // right-top
+		arc(end, c, Vec2(-1), 0, -Qk_PI_2_1); // right-bottom
+		arc({origin.x(), end.y()}, d, Vec2(0,-1), -Qk_PI_2_1, -Qk_PI_2_1); // left-bottom
 
 		path.close();
 
@@ -112,10 +112,10 @@ namespace qk {
 		d = { Float::max(d.x() - left, 0.0), Float::max(d.y() - bottom, 0.0) }; // right/top
 
 		// ccw
-		arc(origin, a, Vec2(0), Qk_PI2, Qk_PI2); // left-top
-		arc({origin.x(), end.y()}, d, Vec2(0,-1), Qk_PI, Qk_PI2); // left-bottom
-		arc(end, c, Vec2(-1), -Qk_PI2, Qk_PI2); // right-bottom
-		arc({end.x(), origin.y()}, b, Vec2(-1,0), 0, Qk_PI2); // right-top
+		arc(origin, a, Vec2(0), Qk_PI_2_1, Qk_PI_2_1); // left-top
+		arc({origin.x(), end.y()}, d, Vec2(0,-1), Qk_PI, Qk_PI_2_1); // left-bottom
+		arc(end, c, Vec2(-1), -Qk_PI_2_1, Qk_PI_2_1); // right-bottom
+		arc({end.x(), origin.y()}, b, Vec2(-1,0), 0, Qk_PI_2_1); // right-top
 
 		path.close();
 	}
@@ -220,11 +220,11 @@ namespace qk {
 		float cx = r.origin.x() + rx;
 		float cy = r.origin.y() + ry;
 
-		float n = ceilf(abs(sweepAngle) / Qk_PI2);
+		float n = ceilf(abs(sweepAngle) / Qk_PI_2_1);
 		float sweep = sweepAngle / n;
 		float magic =
-			sweep == Qk_PI2 ? magicCircle:
-			sweep == -Qk_PI2 ? -magicCircle:
+			sweep == Qk_PI_2_1 ? magicCircle:
+			sweep == -Qk_PI_2_1 ? -magicCircle:
 			tanf(sweep / 4.0f) * 1.3333333333333333f/*4.0 / 3.0*/;
 
 		startAngle = -startAngle;
@@ -289,6 +289,10 @@ namespace qk {
 
 	void Path::close() {
 		_verbs.push(kVerb_Close);
+	}
+
+	void Path::concat(const Path& path) {
+		// TODO ...
 	}
 
 	Array<Vec2> Path::getEdgeLines(float epsilon) const {
@@ -685,8 +689,8 @@ namespace qk {
 
 			if (!is_zero) {
 				int   sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
-				float angleStep = -Qk_PI2 / (sample - 1);
-				float angle = startAngle + Qk_PI2;
+				float angleStep = -Qk_PI_2_1 / (sample - 1);
+				float angle = startAngle + Qk_PI_2_1;
 
 				for (int i = 0; i < sample; i++) {
 					const Vec2 p(
@@ -720,9 +724,9 @@ namespace qk {
 			return c;
 		};
 
-		Vec2 a = build(&path, Vec2(x1, y1), Vec2(x2, y1), leftTop, rightTop, Qk_PI2);
+		Vec2 a = build(&path, Vec2(x1, y1), Vec2(x2, y1), leftTop, rightTop, Qk_PI_2_1);
 		Vec2 b = build(&path, Vec2(x2, y1), Vec2(x2, y2), rightTop, rightBottom, 0);
-		Vec2 c = build(&path, Vec2(x2, y2), Vec2(x1, y2), rightBottom, leftBottom, -Qk_PI2);
+		Vec2 c = build(&path, Vec2(x2, y2), Vec2(x1, y2), rightBottom, leftBottom, -Qk_PI_2_1);
 		Vec2 d = build(&path, Vec2(x1, x2), Vec2(x1, y1), leftBottom, leftTop, Qk_PI);
 
 		const Vec2 src[6] = { a,b,c,c,d,a };
@@ -868,7 +872,7 @@ namespace qk {
 			|_\|_|________________|/____/____|
 		*/
 		const int   axis = int(direction) % 2; // axis == 0 then is horizontal
-		const float startAngle = Qk_PI2 - (direction * Qk_PI2);
+		const float startAngle = Qk_PI_2_1 - (direction * Qk_PI_2_1);
 		const float averageRadius_a = (radius[0].x() + radius[0].y()) * 0.5;
 		const float averageRadius_b = (radius[1].x() + radius[1].y()) * 0.5;
 		const float overflow_a = inside_radius_overflow[0];
@@ -886,7 +890,7 @@ namespace qk {
 			float angleRatio = border[1] / (border[0] + border[1]);
 			int   sample = getSampleFromRect(radius[0], 1, 0.5 * angleRatio);
 			// |0|1| = sample = 3
-			float sweepAngle = angleRatio * Qk_PI2; // make angle size
+			float sweepAngle = angleRatio * Qk_PI_2_1; // make angle size
 			float angleStep = -sweepAngle / (sample - 1);
 			float angleStepLen = angleStep * averageRadius_a;
 			float angleLen = angleStepLen * (sample - 1);
@@ -1015,7 +1019,7 @@ namespace qk {
 			float angleRatio = border[1] / (border[2] + border[1]);
 			int   sample = getSampleFromRect(radius[1], 1, 0.5 * angleRatio);
 			// |0|1| = sample = 3
-			float sweepAngle = angleRatio * Qk_PI2; // make angle size
+			float sweepAngle = angleRatio * Qk_PI_2_1; // make angle size
 			float angleStep = -sweepAngle / (sample - 1);
 			float angleStepLen = angleStep * averageRadius_b;
 			//float angleLen = angleStepLen * (sample - 1);
