@@ -74,13 +74,17 @@ namespace qk {
 		Qk_ReturnLocal(out);
 	}
 
+	Array<Vec3> Path::getAntiAliasStrokeTriangles(float epsilon) {
+		// TODO ...
+	}
+
 	Path Path::stroke(float width, Cap cap, Join join, float miterLimit) const {
 		if (miterLimit == 0)
 			miterLimit = 1024.0;
 
 		width *= 0.5;
 
-		Vec2 s(width, width);
+		Vec2 scale(width, width);
 
 		Path tmp, out;
 		Array<Vec2> right;
@@ -96,7 +100,7 @@ namespace qk {
 		auto add = [&](const Vec2 *prev, const Vec2 *from, const Vec2 *to) {
 			auto l = from
 				->normalline(prev, to, false)
-				.normalized() * s;
+				.normalized() * scale;
 			
 			if (right.length()) {
 				out.lineTo(l);

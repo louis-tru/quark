@@ -74,7 +74,7 @@ namespace qk {
 
 		if (_PathVertexsCache.length() >= 1024)
 			_PathVertexsCache.clear();
-		return _PathVertexsCache.set(hash, path.getVertexs(3, 1));
+		return _PathVertexsCache.set(hash, path.getTriangles(1));
 	}
 
 	const Array<Vec2>& RenderBackend::getStrokePathVertexsCache(
@@ -91,7 +91,7 @@ namespace qk {
 		if (_PathStrokesCache.length() >= 1024)
 			_PathStrokesCache.clear();
 		return _PathStrokesCache
-			.set(hash, path.strokePath(width, cap, join, miter_limit).getVertexs(3, 1));
+			.set(hash, path.strokePath(width, cap, join, miter_limit).getTriangles(1));
 	}
 
 	const Path& RenderBackend::getNormalizedPathCache(const Path &path) {

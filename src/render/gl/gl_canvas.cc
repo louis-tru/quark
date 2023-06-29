@@ -524,7 +524,7 @@ namespace qk {
 		GLSLColor &color,
 		GLSLDotted &colorDotted, const Path &path, const Paint &paint
 	) {
-		Array<Vec2> vertex = path.getVertexs(3);
+		Array<Vec2> vertex = path.getTriangles();
 		color.use(vertex.size(), *vertex);
 		glUniform4fv(color.color, 1, paint.color.val);
 		//glDrawArrays(GL_TRIANGLES, 0, vertex.length());
@@ -539,7 +539,7 @@ namespace qk {
 		//glUniform4fv(colorStroke.color, 1, paint.color.val);
 		//glUniform4fv(colorStroke.color, 1, Color4f(0,0,0).val);
 		
-		//glUniform4fv(color.color, 1,  Color4f(1,0,0,0.7).val);
+		//glUniform4fv(color.color, 1,  Color4f(0,0,1,0.7).val);
 
 #if Qk_OSX
 		glEnable(GL_LINE_SMOOTH);

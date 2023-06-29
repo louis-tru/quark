@@ -117,15 +117,6 @@ namespace qk {
 		val[0] /= b.val[0]; val[1] /= b.val[1]; return *this;
 	}
 
-	float Vec2::length() const {
-		if (val[0] == 0)
-			return abs(val[1]);
-		else if (val[1] == 0)
-			return abs(val[0]);
-		else
-			return sqrtf( val[0] * val[0] + val[1] * val[1] );
-	}
-
 	float Vec2::dot(const Vec<float,2> b) const {
 		return val[0] * b.val[0] + val[1] * b.val[1];
 	}
@@ -134,9 +125,13 @@ namespace qk {
 		return Vec3(val[0], b.val[0], c.val[0]).det(Vec3(val[1], b.val[1], c.val[1]));
 	}
 
-	Vec2 Vec2::normalized() const {
-		const float len = length();
-		return {val[0] / len, val[1] / len};
+	float Vec2::length() const {
+		if (val[0] == 0)
+			return abs(val[1]);
+		else if (val[1] == 0)
+			return abs(val[0]);
+		else
+			return sqrtf( val[0] * val[0] + val[1] * val[1] );
 	}
 
 	Vec2 Vec2::rotate90z(bool ccw) const {
@@ -160,6 +155,16 @@ namespace qk {
 		const Vec2 fromPreviousNormal = fromPrev.rotate90z(ccw);
 
 		return (toNextNormal + fromPreviousNormal);//.normalized();
+	}
+
+	Vec2 Vec2::normalized() const {
+		if (val[0] == 0) {
+			return { 0.0, val[1] == 0.0?0.0f:1.0f };
+		} else if (val[1] == 0) {
+			return { 1.0, 0.0 };
+		}
+		const float len = sqrtf( val[0] * val[0] + val[1] * val[1] );
+		return {val[0] / len, val[1] / len};
 	}
 
 	float Vec2::angle() const {

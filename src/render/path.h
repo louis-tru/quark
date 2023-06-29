@@ -74,7 +74,6 @@ namespace qk {
 		void arcTo (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		void close(); // close line
 		void startTo(Vec2 p); // call move to or line to
-		void concat(const Path& path);
 		// point ptr
 		inline const Vec2* pts() const { return (const Vec2*)*_pts; }
 		inline const PathVerb* verbs() const { return (const PathVerb*)*_verbs; }
@@ -91,12 +90,16 @@ namespace qk {
 		Array<Vec2> getEdgeLines(float epsilon = 1.0) const;
 
 		/**
-		 * @method getVertexs() Convert to fixed size polygon vertices
-		 * @return {Array<Vec2>} points point { x, y }[]
+		 * @method getTriangles() Convert to fixed size polygon vertices
+		 * @return {Array<Vec2>} points { x, y }[]
 		*/
-		inline Array<Vec2> getVertexs(int polySize = 3, float epsilon = 1.0) const {
-			return getVertexsFromPaths(this, 1, polySize, epsilon);
-		}
+		Array<Vec2> getTriangles(float epsilon = 1.0) const;
+
+		/**
+		 * @method getAntiAliasStrokeTriangles() returns anti alias stroke triangle vertices
+		 * @return {Array<Vec3>} points { x, y, sdf value for anti alias stroke }[]
+		*/
+		Array<Vec3> getAntiAliasStrokeTriangles(float epsilon = 1.0);
 
 		/**
 		 * @method dashPath() returns the dash path
@@ -116,8 +119,8 @@ namespace qk {
 		// estimate sample rate
 		static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon);
 		static int getCubicBezierSample(const CubicBezier& curve, float epsilon);
-		static Array<Vec2> getVertexsFromPaths(const Path *paths,
-																					int pathsLen, int polySize, float epsilon);
+		static Array<Vec2> getPolygonsFromPaths(const Path *paths,
+																						int pathsLen, int polySize, float epsilon);
 	private:
 		Path* normalized(Path *out, float epsilon, bool updateHash) const;
 		Path stroke(float width, Cap cap, Join join, float miterLimit) const;

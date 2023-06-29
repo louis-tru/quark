@@ -291,10 +291,6 @@ namespace qk {
 		_verbs.push(kVerb_Close);
 	}
 
-	void Path::concat(const Path& path) {
-		// TODO ...
-	}
-
 	Array<Vec2> Path::getEdgeLines(float epsilon) const {
 		Path tmp;
 		const Path *self = _IsNormalized ? this: normalized(&tmp,epsilon,false);
@@ -328,7 +324,11 @@ namespace qk {
 		Qk_ReturnLocal(edges);
 	}
 
-	Array<Vec2> Path::getVertexsFromPaths(const Path *paths, int pathsLen, int polySize, float epsilon) {
+	Array<Vec2> Path::getTriangles(float epsilon) const {
+		return getPolygonsFromPaths(this, 1, 3, epsilon);
+	}
+
+	Array<Vec2> Path::getPolygonsFromPaths(const Path *paths, int pathsLen, int polySize, float epsilon) {
 		auto tess = tessNewTess(nullptr); // TESStesselator*
 		
 		for (int i = 0; i < pathsLen; i++) {
