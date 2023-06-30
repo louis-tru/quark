@@ -31,6 +31,10 @@
 #include "./path.h"
 #include "./ft/ft_path.h"
 
+#define Qk_USE_FT_STROKE 0
+
+#if Qk_USE_FT_STROKE
+
 namespace qk {
 
 	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
@@ -73,70 +77,92 @@ namespace qk {
 
 		Qk_ReturnLocal(out);
 	}
+}
+
+#endif
+
+namespace qk {
 
 	Array<Vec3> Path::getAntiAliasStrokeTriangles(float epsilon) {
 		// TODO ...
 	}
 
-	Path Path::stroke(float width, Cap cap, Join join, float miterLimit) const {
+#if !Qk_USE_FT_STROKE
+
+	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
 		if (miterLimit == 0)
 			miterLimit = 1024.0;
 
 		width *= 0.5;
 
-		Vec2 scale(width, width);
-
 		Path tmp, out;
 		Array<Vec2> right;
-		auto self = _IsNormalized ? this: normalized(&tmp, 1,false);
+		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
 		auto pts_ = (const Vec2*)self->_pts.val();
 		int  size = 0;
 
 		/*
-			1.未闭合路径产生一条封闭路径
-			2.已闭合路径产生两条封闭路径
+			1.An unclosed path produces a closed path
+			2.closed path produces two closed paths
 		*/
 
-		auto add = [&](const Vec2 *prev, const Vec2 *from, const Vec2 *to) {
-			auto l = from
-				->normalline(prev, to, false)
-				.normalized() * scale;
-			
-			if (right.length()) {
-				out.lineTo(l);
+		auto add = [&](const Vec2 *prev, Vec2 from, const Vec2 *to) {
+			auto nline = from.normalline(prev, to); // get normal line
+
+			if (!prev || !to) {
+				nline *= Vec2(width);
 			} else {
-				out.moveTo(l);
+				float angle = nline.angleTo(*prev - from);
+				if (angle == 0) {
+					nline = Vec2();
+				} else {
+					float len = width / sinf(angle);
+					nline *= Vec2(Float::min(len, miterLimit));
+				}
 			}
-			right.push({ -1 * l[0], -1 * l[1] });
+
+			Vec2 l(from + nline);
+			Vec2 r(from.x()-nline.x(), from.y()-nline.y());
+
+			right.length()?
+				out.lineTo(l): out.moveTo(l);
+			right.push(r);
 		};
 
 		auto subpath = [&](const Vec2 *pts, int size, bool close) {
 			if (size > 1) { // size > 1
-				bool isClose = close && size > 2;
+				close = close && size > 2;
 
-				if (isClose) {
-					add(pts+size-1, pts, pts+1);
+				if (close) {
+					add(pts+size-1, *pts, pts+1);
 				} else { // no close
-					add(NULL, pts, pts+1);
+					add(NULL, *pts, pts+1);
 				}
 				pts++;
 
 				for (int i = 1; i < size-1; i++) {
-					add(pts-1, pts, pts+1);
+					add(pts-1, *pts, pts+1);
 					pts++;
 				}
 
-				if (isClose) {
-					add(pts-1, pts, pts-size+1);
+				if (close) {
+					add(pts-1, *pts, pts-size+1);
 				} else { // no close
-					add(pts-1, pts, NULL);
+					add(pts-1, *pts, NULL);
 				}
 
 				if (close) {
 					out.close();
+					out.moveTo(right.lastIndexAt(0));
+				} else {
+					out.lineTo(right.lastIndexAt(0));
 				}
 
-				// right.reverse();
+				for (int i = right.length() - 2; i >= 0; i--) {
+					out.lineTo(right[i]);
+				}
+
+				out.close();
 			}
 			pts_ += size;
 			right.clear();
@@ -163,5 +189,7 @@ namespace qk {
 
 		Qk_ReturnLocal(out);
 	}
+
+#endif
 
 }

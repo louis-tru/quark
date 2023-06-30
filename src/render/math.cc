@@ -134,37 +134,39 @@ namespace qk {
 			return sqrtf( val[0] * val[0] + val[1] * val[1] );
 	}
 
-	Vec2 Vec2::rotate90z(bool ccw) const {
-		return ccw ? Vec2{-val[1], val[0]}: Vec2{val[1], -val[0]};
+	Vec2 Vec2::rotate90z() const {
+		return Vec2{val[1], -val[0]};
 	}
 
-	Vec2 Vec2::normalline(const Vec2 *prev, const Vec2 *next, bool ccw) const {
-		if (!prev) {
-			const Vec2 toNext = Vec2(next->x() - x(), next->y() - y()).normalized();
-			return toNext.rotate90z(ccw);//.normalized();
-		}
-		if (!next) {
-			const Vec2 fromPrev = Vec2(x() - prev->x(), y() - prev->y()).normalized();
-			return fromPrev.rotate90z(ccw);//.normalized();
-		}
-
-		const Vec2 toNext   = Vec2(next->x() - x(), next->y() - y()).normalized();
-		const Vec2 fromPrev = Vec2(x() - prev->x(), y() - prev->y()).normalized();
-
-		const Vec2 toNextNormal       = toNext.rotate90z(ccw);
-		const Vec2 fromPreviousNormal = fromPrev.rotate90z(ccw);
-
-		return (toNextNormal + fromPreviousNormal);//.normalized();
+	Vec2 Vec2::rotate270z() const { // ccw rotate 90
+		return Vec2{-val[1], val[0]};
 	}
 
 	Vec2 Vec2::normalized() const {
 		if (val[0] == 0) {
-			return { 0.0, val[1] == 0.0?0.0f:1.0f };
+			return {
+				0.0, val[1] == 0.0 ? 0.0f: val[1] < 0.0f ? -1.0f: 1.0f
+			};
 		} else if (val[1] == 0) {
-			return { 1.0, 0.0 };
+			return {
+				val[0] < 0.0 ? -1.0f: 1.0f, 0.0f
+			};
 		}
-		const float len = sqrtf( val[0] * val[0] + val[1] * val[1] );
+		const float len = sqrtf(val[0] * val[0] + val[1] * val[1]);
 		return {val[0] / len, val[1] / len};
+	}
+
+	Vec2 Vec2::normalline(const Vec2 *prev, const Vec2 *next) const {
+		if (!prev) {
+			return Vec2(next->x() - x(), next->y() - y()).normalized().rotate90z();
+		}
+		if (!next) {
+			return Vec2(x() - prev->x(), y() - prev->y()).normalized().rotate90z();
+		}
+		Vec2 toNext   = Vec2(next->x() - x(), next->y() - y()).normalized().rotate90z();
+		Vec2 fromPrev = Vec2(x() - prev->x(), y() - prev->y()).normalized().rotate90z();
+
+		return (toNext + fromPrev).normalized();
 	}
 
 	float Vec2::angle() const {
@@ -187,13 +189,10 @@ namespace qk {
 		}
 	}
 
-	float Vec2::angleTo(Vec2 to, bool ccw) const {
-		float a = ccw ?
-			to.angle() - angle():
-			angle() - to.angle();
-		if (a < 0) {
-			a += Qk_PI_2;
-		}
+	float Vec2::angleTo(Vec2 to) const {
+		float a = angle() - to.angle();
+		// if (a < 0)
+			// a += Qk_PI_2;
 		return a;
 		// return acosf(dot(to) / (length() * to.length()));
 	}

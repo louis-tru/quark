@@ -291,6 +291,14 @@ namespace qk {
 		_verbs.push(kVerb_Close);
 	}
 
+	void Path::concat(const Path& path) {
+		_verbs.write(path._verbs);
+		_pts.write(path._pts);
+		const uint64_t hash = path.hashCode();
+		_hash.update(&hash, sizeof(uint64_t));
+		_IsNormalized = _IsNormalized && path._IsNormalized;
+	}
+
 	Array<Vec2> Path::getEdgeLines(float epsilon) const {
 		Path tmp;
 		const Path *self = _IsNormalized ? this: normalized(&tmp,epsilon,false);

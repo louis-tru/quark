@@ -30,22 +30,23 @@ public:
 		//_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 
 		paint.color = Color4f(1, 0, 0);
-		auto circle = Path::MakeCircle(size/2, 110);
+		auto circle = Path::MakeCircle(size/2, 105);
 		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
 		circle.close();
 
 		//float stage[] = {10.471975511965978,-31.41592653589793};
 		float stage[] = {11,11};
 		auto dash = circle.dashPath(stage, 2, -12);
-		Path p(Vec2{});// = circle.dashPath(stage, 2, -12);
+		Path z(Vec2{});// = circle.dashPath(stage, 2, -12);
 
-		p.lineTo(Vec2(100,0));
-		p.lineTo(Vec2(0,100));
-		p.lineTo(Vec2(100,100));
-		//p.close();
-		p.transfrom(Mat(1,0,size.x()/2-100,0,1,size.y()/2-50));
+		z.lineTo(Vec2(100,0));
+		z.lineTo(Vec2(0,100));
+		z.lineTo(Vec2(100,100));
+		//z.close();
+		//z.transfrom(Mat(-1,0,0,0,-1,0));
+		z.transfrom(Mat(1,0,size.x()/2-100,0,1,size.y()/2-50));
 
-		auto stroke = p.strokePath(90, Paint::kButt_Cap);
+		auto stroke = z.strokePath(10, Paint::kButt_Cap);
 		_canvas->drawPath(stroke, paint);
 
 		paint.color = Color4f(0, 0, 0);

@@ -190,14 +190,18 @@ namespace qk {
 		/**
 		 * @method rotate90z() Default to use Cartesian coordinate system
 		 */
-		Vec2  rotate90z(bool ccw/*counter clock wise*/) const;
+		Vec2  rotate90z() const;
+
+		/**
+		 * @method rotate270z() Default to use Cartesian coordinate system
+		 */
+		Vec2  rotate270z() const;
 
 		/**
 		 * Default to use Cartesian coordinate system
 		 * @method normal() Default clockwise direction inward, screen coordinates outward
-		 * @arg ccw {bool} if ccw=true then counterclockwise direction outward
 		 */
-		Vec2  normalline(const Vec2 *prev, const Vec2 *next, bool ccw) const;
+		Vec2  normalline(const Vec2 *prev, const Vec2 *next) const;
 
 		/**
 		 * @method angle() return vector angle
@@ -207,7 +211,7 @@ namespace qk {
 		/**
 		 * @method angleTo(to) return vector angle
 		 */
-		float angleTo(const Vec2 to, bool ccw) const;
+		float angleTo(const Vec2 to) const;
 	};
 
 	struct Qk_EXPORT Vec3: Vec<float,3> {

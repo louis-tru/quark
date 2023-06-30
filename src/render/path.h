@@ -74,6 +74,7 @@ namespace qk {
 		void arcTo (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		void close(); // close line
 		void startTo(Vec2 p); // call move to or line to
+		void concat(const Path& path);
 		// point ptr
 		inline const Vec2* pts() const { return (const Vec2*)*_pts; }
 		inline const PathVerb* verbs() const { return (const PathVerb*)*_verbs; }
@@ -123,7 +124,6 @@ namespace qk {
 																						int pathsLen, int polySize, float epsilon);
 	private:
 		Path* normalized(Path *out, float epsilon, bool updateHash) const;
-		Path stroke(float width, Cap cap, Join join, float miterLimit) const;
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
 		Array<float> _pts; // Vec2 {x,y}
