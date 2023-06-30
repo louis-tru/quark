@@ -193,7 +193,7 @@ namespace qk {
 		Vec2  rotate90z() const;
 
 		/**
-		 * @method rotate270z() Default to use Cartesian coordinate system
+		 * @method rotate270z() ccw rotate 90
 		 */
 		Vec2  rotate270z() const;
 
