@@ -142,23 +142,24 @@ namespace qk {
 				return;
 			}
 
-			float angle = nline.angleTo(Vec2(-fromPrev[0],-fromPrev[1]));
-			float len = width / sinf(angle);
+			float angle    = nline.angle();
+			float angleLen = angle - Vec2(-fromPrev[0],-fromPrev[1]).angle();
+			float len = width / sinf(angleLen);
 
-			if (angle < 0)
-				angle += Qk_PI_2;
+			if (angleLen < 0)
+				angleLen += Qk_PI_2;
 
 			switch (join) {
 				case Join::kMiter_Join: { // extends to miter limit
 
 					if (len > miterLimit) {
 						float lenL = len - miterLimit;
-						float y = tanf(angle) * lenL;
+						float y = tanf(angleLen) * lenL;
 						auto a = nline.rotate90z() * y;
 						auto nLineL = nline * miterLimit;
 						nline *= len;
 
-						if (angle > Qk_PI_2_1) {
+						if (angleLen > Qk_PI_2_1) {
 							Qk_StartTo(from + nLineL - a, from - nline);
 							left.lineTo(from + nLineL + a);
 						} else {
@@ -170,38 +171,38 @@ namespace qk {
 						nline *= len;
 						Qk_StartTo(from + nline, from - nline);
 					}
-					break;
+					return;
 				}
 				case Join::kRound_Join: {// adds circle
 					auto a = fromPrev90 * width;
 					auto b = toNext90 * width;
-
 					nline *= len;
 
-					if (angle > Qk_PI_2_1) {
-						Qk_StartTo(from + a, from - nline);
-						left.lineTo(from + b);
+					if (angleLen > Qk_PI_2_1) {
+						//Qk_StartTo(from + a, from - nline);
+						// left.lineTo(from + b);
+						angleLen -= Qk_PI_2_1;
+						left.arcTo({from-width,Vec2(width*2)}, angle-angleLen+Qk_PI, -angleLen*2, false);
+						right.startTo(from - nline);
 					} else {
-						Qk_StartTo(from + nline, from - a);
-						right.lineTo(from - b);
+						//Qk_StartTo(from + nline, from - a);
+						//right.lineTo(from - b);
+						left.startTo(from + nline);
+						right.arcTo({from-width,Vec2(width*2)}, angle-angleLen+Qk_PI, angleLen*2, false);
 					}
-
 					return;
 				}
 				default: {// connects outside edges
 					auto a = fromPrev90 * width;
 					auto b = toNext90 * width;
-
 					nline *= len;
-
-					if (angle > Qk_PI_2_1) {
+					if (angleLen > Qk_PI_2_1) {
 						Qk_StartTo(from + a, from - nline);
 						left.lineTo(from + b);
 					} else {
 						Qk_StartTo(from + nline, from - a);
 						right.lineTo(from - b);
 					}
-					return;
 				}
 			}
 			#undef Qk_StartTo
@@ -221,20 +222,18 @@ namespace qk {
 				auto verbs = right.verbs();
 				auto pts = right.pts() + right.ptsLen() - 1;
 
-				if (close) {
+				if (close)
 					left.close();
-					left.moveTo(*pts);
-				} else {
-					left.lineTo(*pts);
-				}
-				pts--;
 
-				for (int i = right.verbsLen() - 2; i >= 0; i--) {
+				for (int i = right.verbsLen() - 1; i >= 0; i--) {
 					if (verbs[i] == kVerb_Cubic) {
-						left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
+						Qk_ASSERT(verbs[i-1] == kVerb_Line || verbs[i-1] == kVerb_Move);
+						left.startTo(*pts);
+						left.cubicTo(pts[-1], pts[-2], pts[-3]); pts-=4;
+						i--;
 					} else {
 						Qk_ASSERT(verbs[i] == kVerb_Line || verbs[i] == kVerb_Move);
-						left.lineTo(*pts--);
+						left.startTo(*pts--);
 					}
 				}
 
