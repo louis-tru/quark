@@ -30,6 +30,7 @@
 
 #include "./path.h"
 #include "./ft/ft_path.h"
+#include <math.h>
 
 #define Qk_USE_FT_STROKE 0
 
@@ -91,12 +92,11 @@ namespace qk {
 
 	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
 		if (miterLimit == 0)
-			miterLimit = 1024.0;
+			miterLimit = 8;//1024.0;
 
 		width *= 0.5;
 
-		Path tmp, out;
-		Array<Vec2> right;
+		Path tmp, left, right;
 		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
 		auto pts_ = (const Vec2*)self->_pts.val();
 		int  size = 0;
@@ -106,66 +106,142 @@ namespace qk {
 			2.closed path produces two closed paths
 		*/
 
-		auto add = [&](const Vec2 *prev, Vec2 from, const Vec2 *to) {
-			auto nline = from.normalline(prev, to); // get normal line
+		#define Qk_StartTo(l,r) \
+			right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
 
-			if (!prev || !to) {
-				nline *= Vec2(width);
-			} else {
-				float angle = nline.angleTo(*prev - from);
-				if (angle == 0) {
-					nline = Vec2();
-				} else {
-					float len = width / sinf(angle);
-					nline *= Vec2(Float::min(len, miterLimit));
+		auto add = [&](const Vec2 *prev, Vec2 from, const Vec2 *next) {
+
+			if (!prev || !next) {
+				auto nline = from.normalline(prev, next); // normal line
+				nline *= width;
+
+				switch (cap) {
+					case Cap::kButt_Cap: // no stroke extension
+						break;
+					case Cap::kRound_Cap: //adds circle
+						break;
+					default: // adds square
+						break;
 				}
+
+				Qk_StartTo(from + nline, from - nline);
+				return;
 			}
 
-			Vec2 l(from + nline);
-			Vec2 r(from.x()-nline.x(), from.y()-nline.y());
+			Vec2 toFrom = *next - from;
+			Vec2 fromPrev = from - *prev;
+			Vec2 toNext90   = toFrom.rotate90z().normalized();
+			Vec2 fromPrev90 = fromPrev.rotate90z().normalized();
+			Vec2 nline = (toNext90 + fromPrev90).normalized(); // normal line
 
-			right.length()?
-				out.lineTo(l): out.moveTo(l);
-			right.push(r);
+			if (nline.is_zero()) {
+				nline = fromPrev90 * width;
+				Qk_StartTo(from + nline, from - nline);
+				left.lineTo(from - nline);
+				right.lineTo(from + nline);
+				return;
+			}
+
+			float angle = nline.angleTo(Vec2(-fromPrev[0],-fromPrev[1]));
+			float len = width / sinf(angle);
+
+			if (angle < 0)
+				angle += Qk_PI_2;
+
+			switch (join) {
+				case Join::kMiter_Join: { // extends to miter limit
+
+					if (len > miterLimit) {
+						float lenL = len - miterLimit;
+						float y = tanf(angle) * lenL;
+						auto a = nline.rotate90z() * y;
+						auto nLineL = nline * miterLimit;
+						nline *= len;
+
+						if (angle > Qk_PI_2_1) {
+							Qk_StartTo(from + nLineL - a, from - nline);
+							left.lineTo(from + nLineL + a);
+						} else {
+							Qk_StartTo(from + nline, from - nLineL + a);
+							right.lineTo(from - nLineL - a);
+						}
+
+					} else {
+						nline *= len;
+						Qk_StartTo(from + nline, from - nline);
+					}
+					break;
+				}
+				case Join::kRound_Join: {// adds circle
+					auto a = fromPrev90 * width;
+					auto b = toNext90 * width;
+
+					nline *= len;
+
+					if (angle > Qk_PI_2_1) {
+						Qk_StartTo(from + a, from - nline);
+						left.lineTo(from + b);
+					} else {
+						Qk_StartTo(from + nline, from - a);
+						right.lineTo(from - b);
+					}
+
+					return;
+				}
+				default: {// connects outside edges
+					auto a = fromPrev90 * width;
+					auto b = toNext90 * width;
+
+					nline *= len;
+
+					if (angle > Qk_PI_2_1) {
+						Qk_StartTo(from + a, from - nline);
+						left.lineTo(from + b);
+					} else {
+						Qk_StartTo(from + nline, from - a);
+						right.lineTo(from - b);
+					}
+					return;
+				}
+			}
+			#undef Qk_StartTo
 		};
 
 		auto subpath = [&](const Vec2 *pts, int size, bool close) {
 			if (size > 1) { // size > 1
 				close = close && size > 2;
 
-				if (close) {
-					add(pts+size-1, *pts, pts+1);
-				} else { // no close
-					add(NULL, *pts, pts+1);
-				}
-				pts++;
+				add(close ? pts+size-1: NULL, *pts, pts+1); pts++;
 
-				for (int i = 1; i < size-1; i++) {
+				for (int i = 1; i < size-1; i++, pts++) {
 					add(pts-1, *pts, pts+1);
-					pts++;
 				}
+				add(pts-1, *pts, close? pts-size+1: NULL);
+
+				auto verbs = right.verbs();
+				auto pts = right.pts() + right.ptsLen() - 1;
 
 				if (close) {
-					add(pts-1, *pts, pts-size+1);
-				} else { // no close
-					add(pts-1, *pts, NULL);
-				}
-
-				if (close) {
-					out.close();
-					out.moveTo(right.lastIndexAt(0));
+					left.close();
+					left.moveTo(*pts);
 				} else {
-					out.lineTo(right.lastIndexAt(0));
+					left.lineTo(*pts);
+				}
+				pts--;
+
+				for (int i = right.verbsLen() - 2; i >= 0; i--) {
+					if (verbs[i] == kVerb_Cubic) {
+						left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
+					} else {
+						Qk_ASSERT(verbs[i] == kVerb_Line || verbs[i] == kVerb_Move);
+						left.lineTo(*pts--);
+					}
 				}
 
-				for (int i = right.length() - 2; i >= 0; i--) {
-					out.lineTo(right[i]);
-				}
-
-				out.close();
+				left.close();
 			}
 			pts_ += size;
-			right.clear();
+			right = Path(); // clear right path
 		};
 
 		for (auto verb: self->_verbs) {
@@ -187,7 +263,7 @@ namespace qk {
 
 		subpath(pts_, size, false);
 
-		Qk_ReturnLocal(out);
+		Qk_ReturnLocal(left);
 	}
 
 #endif

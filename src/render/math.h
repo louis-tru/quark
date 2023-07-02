@@ -157,10 +157,12 @@ namespace qk {
 		N  operator+(const Vec<T,L>& b) const; \
 		N  operator-(const Vec<T,L>& b) const; \
 		N  operator*(const Vec<T,L>& b) const; \
+		N  operator*(T b) const; \
 		N  operator/(const Vec<T,L>& b) const; \
 		N& operator+=(const Vec<T,L>& b); \
 		N& operator-=(const Vec<T,L>& b); \
 		N& operator*=(const Vec<T,L>& b); \
+		N& operator*=(T b); \
 		N& operator/=(const Vec<T,L>& b)
 
 		Qk_Default_Vec_Operator(Vec2,float,2);

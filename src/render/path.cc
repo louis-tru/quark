@@ -280,8 +280,8 @@ namespace qk {
 	
 	void Path::startTo(Vec2 p) {
 		if (_verbs.length() && _verbs.back() != kVerb_Close) {
-			if (*(Vec2*) (_pts.val() + _pts.length() - 2) != p)
-				lineTo(p);
+			//if (*(Vec2*) (_pts.val() + _pts.length() - 2) != p)
+			lineTo(p);
 		} else {
 			moveTo(p);
 		}
