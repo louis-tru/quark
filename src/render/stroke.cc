@@ -147,8 +147,8 @@ namespace qk {
 						return;
 					}
 					default: {// adds square
-						auto ext = prev?nline.rotate270z():nline.rotate90z();
-						Qk_addTo(from + nline + ext, from - nline + ext);
+						from += prev? nline.rotate270z(): nline.rotate90z();
+						Qk_addTo(from + nline, from - nline);
 						return;
 					}
 				}
