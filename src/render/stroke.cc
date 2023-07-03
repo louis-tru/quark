@@ -34,9 +34,33 @@
 
 #define Qk_USE_FT_STROKE 0
 
-#if Qk_USE_FT_STROKE
-
 namespace qk {
+
+	static void Path_reverse_concat(Path &left, const Path &right) {
+		auto verbs = right.verbs();
+		auto pts = right.pts() + right.ptsLen() - 1;
+
+		for (int i = right.verbsLen() - 1; i >= 0; i--) {
+			if (verbs[i] == Path::kVerb_Cubic) {
+				left.addTo(*pts); pts--;
+				do {
+					left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
+					i--;
+				} while(verbs[i] == Path::kVerb_Cubic);
+			} else if (verbs[i] == Path::kVerb_Close) {
+				// ignore
+			} else {
+				Qk_ASSERT(verbs[i] == Path::kVerb_Line || verbs[i] == Path::kVerb_Move);
+				left.addTo(*pts--);
+			}
+		}
+	}
+
+	Array<Vec3> Path::getAntiAliasStrokeTriangles(float epsilon) {
+		// TODO ...
+	}
+
+#if Qk_USE_FT_STROKE
 
 	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
 		Qk_FT_Stroker stroker;
@@ -80,35 +104,7 @@ namespace qk {
 	}
 }
 
-#endif
-
-namespace qk {
-
-	static void Path_reverse_concat(Path &left, const Path &right) {
-		auto verbs = right.verbs();
-		auto pts = right.pts() + right.ptsLen() - 1;
-
-		for (int i = right.verbsLen() - 1; i >= 0; i--) {
-			if (verbs[i] == Path::kVerb_Cubic) {
-				left.addTo(*pts); pts--;
-				do {
-					left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
-					i--;
-				} while(verbs[i] == Path::kVerb_Cubic);
-			} else if (verbs[i] == Path::kVerb_Close) {
-				// ignore
-			} else {
-				Qk_ASSERT(verbs[i] == Path::kVerb_Line || verbs[i] == Path::kVerb_Move);
-				left.addTo(*pts--);
-			}
-		}
-	}
-
-	Array<Vec3> Path::getAntiAliasStrokeTriangles(float epsilon) {
-		// TODO ...
-	}
-
-#if !Qk_USE_FT_STROKE
+#else
 
 	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
 		if (miterLimit == 0)
