@@ -122,7 +122,7 @@ namespace qk {
 
 		auto add = [&](const Vec2 *prev, Vec2 from, const Vec2 *next) {
 			#define Qk_addTo(l,r) \
-				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
+				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.movegitaTo(l), right.moveTo(r))
 
 			if (!prev || !next) {
 				auto nline = from.normalline(prev, next); // normal line
@@ -261,7 +261,7 @@ namespace qk {
 						pts1[size++] = pts0[-1];
 					break;
 				case Path::kVerb_Close: // close
-					subpath(pts1, size, true);
+					subpath(pts1, *pts1 == pts1[size-1] ? size - 1: size, true); // exclude duplicates
 					size = 0;
 					break;
 				default: Qk_FATAL("Path::strokePath");
