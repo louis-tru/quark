@@ -527,7 +527,7 @@ namespace qk {
 		Array<Vec2> vertex = path.getTriangles();
 		color.use(vertex.size(), *vertex);
 		glUniform4fv(color.color, 1, paint.color.val);
-		//glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		//glDrawArrays(GL_LINES, 0, vertex.length());
 
 		Array<Vec2> lines = path.getEdgeLines();

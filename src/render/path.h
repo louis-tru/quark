@@ -73,7 +73,7 @@ namespace qk {
 		void rectTo(const Rect& rect, bool ccw = false);
 		void arcTo (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		void close(); // close line
-		void startTo(Vec2 p); // call move to or line to
+		void addTo(Vec2 p); // call move to or line to
 		void concat(const Path& path);
 		// point ptr
 		inline const Vec2* pts() const { return (const Vec2*)*_pts; }

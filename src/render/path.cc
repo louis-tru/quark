@@ -182,7 +182,7 @@ namespace qk {
 		float x2 = x + w * 0.5, y2 = y + h * 0.5;
 		float x3 = x + w, y3 = y + h;
 		float cx = w * 0.5 * magicCircle, cy = h * 0.5 * magicCircle;
-		startTo(Vec2(x2, y)); // center,top
+		addTo(Vec2(x2, y)); // center,top
 
 		if (ccw) {
 			float d[] = {x2 - cx, y, x, y2 - cy, x, y2}; cubicTo2(d); // left,top
@@ -198,7 +198,7 @@ namespace qk {
 	}
 
 	void Path::rectTo(const Rect& r, bool ccw) {
-		startTo(r.origin);
+		addTo(r.origin);
 		float x2 = r.origin.x() + r.size.x();
 		float y2 = r.origin.y() + r.size.y();
 		if (ccw) {
@@ -235,10 +235,10 @@ namespace qk {
 		Vec2 start(x0 * rx + cx, y0 * ry + cy);
 
 		if (useCenter) {
-			startTo(Vec2(cx, cy));
+			addTo(Vec2(cx, cy));
 			lineTo(start);
 		} else {
-			startTo(start);
+			addTo(start);
 		}
 
 		for (int i = 0, j = n; i < j; i++) {
@@ -278,7 +278,7 @@ namespace qk {
 		_hash.update((uint32_t*)p, 6);
 	}
 	
-	void Path::startTo(Vec2 p) {
+	void Path::addTo(Vec2 p) {
 		if (_verbs.length() && _verbs.back() != kVerb_Close) {
 			//if (*(Vec2*) (_pts.val() + _pts.length() - 2) != p)
 			lineTo(p);
@@ -926,7 +926,7 @@ namespace qk {
 					angle += angleStep;
 					offset += angleStepLen;
 				}
-				out->inside.startTo(v5);
+				out->inside.addTo(v5);
 
 				if (is_overflow_a) {
 					// update v1 and v5 point
@@ -989,13 +989,13 @@ namespace qk {
 				v1.x(),   v1.y(),   offset, 0, direction, // vertex outside
 			};
 			out->vertex.write(src, -1, 15); // add triangle end vertex
-			out->outside.startTo(v[0]);
+			out->outside.addTo(v[0]);
 			out->outside.lineTo(v1);
 			out->inside.lineTo(v5);
 			offset += border[0];
 		} else { // radius equal zero and left border equal zero
-			out->outside.startTo(v1);
-			out->inside.startTo(v5);
+			out->outside.addTo(v1);
+			out->inside.addTo(v5);
 		}
 
 		if (is_overflow_b) { // update v2 and v4 point

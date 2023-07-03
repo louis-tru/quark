@@ -90,42 +90,119 @@ namespace qk {
 
 #if !Qk_USE_FT_STROKE
 
-	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
-		if (miterLimit == 0)
-			miterLimit = 8;//1024.0;
+	class StrokeParse {
+	public:
+		StrokeParse(const Path *path, float width, Path::Cap cap, Path::Join join, float miterLimit)
+			: path(path), width(width*0.5), miterLimit(Float::min(miterLimit,1024)),cap(cap),join(join) {
+		}
 
-		width *= 0.5;
+		Path exec() {
+			auto pts_ = path->pts();
+			int  size = 0;
+			/*
+				1.An unclosed path produces a closed path
+				2.closed path produces two closed paths
+			*/
+			auto verbs = path->verbs();
 
-		Path tmp, left, right;
-		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
-		auto pts_ = (const Vec2*)self->_pts.val();
-		int  size = 0;
+			for (int i = 0, l = path->verbsLen(); i < l; i++) {
+				switch(verbs[i]) {
+					case Path::kVerb_Move:
+						subpath(pts_, size, false);
+						pts_ += size;
+						size = 1;
+						break;
+					case Path::kVerb_Line:
+						size++;
+						break;
+					case Path::kVerb_Close: // close
+						subpath(pts_, size, true);
+						pts_ += size;
+						size = 0;
+						break;
+					default: Qk_FATAL("Path::strokePath");
+				}
+			}
 
-		/*
-			1.An unclosed path produces a closed path
-			2.closed path produces two closed paths
-		*/
+			subpath(pts_, size, false);
 
-		#define Qk_StartTo(l,r) \
-			right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
+			return std::move(left);
+		}
 
-		auto add = [&](const Vec2 *prev, Vec2 from, const Vec2 *next) {
+		static void path_reverse_concat(Path &left, const Path &right) {
+			auto verbs = right.verbs();
+			auto pts = right.pts() + right.ptsLen() - 1;
+
+			for (int i = right.verbsLen() - 1; i >= 0; i--) {
+				if (verbs[i] == Path::kVerb_Cubic) {
+					left.addTo(*pts); pts--;
+					do {
+						left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
+						i--;
+					} while(verbs[i] == Path::kVerb_Cubic);
+				} else if (verbs[i] == Path::kVerb_Close) {
+					// ignore
+				} else {
+					Qk_ASSERT(verbs[i] == Path::kVerb_Line || verbs[i] == Path::kVerb_Move);
+					left.addTo(*pts--);
+				}
+			}
+		}
+
+		void subpath(const Vec2 *pts, int size, bool close) {
+			if (size > 1) { // size > 1
+				close = close && size > 2;
+
+				add_stroke_point(close ? pts+size-1: NULL, *pts, pts+1); pts++;
+
+				for (int i = 1; i < size-1; i++, pts++) {
+					add_stroke_point(pts-1, *pts, pts+1);
+				}
+				add_stroke_point(pts-1, *pts, close? pts-size+1: NULL);
+
+				if (close)
+					left.close();
+
+				path_reverse_concat(left, right);
+
+				left.close();
+			}
+			right = Path(); // clear right path
+		}
+
+		void add_stroke_point(const Vec2 *prev, Vec2 from, const Vec2 *next) {
+			#define Qk_addTo(l,r) \
+				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
+
+			auto width = this->width;
+			auto &left = this->left;
+			auto &right = this->right;
 
 			if (!prev || !next) {
 				auto nline = from.normalline(prev, next); // normal line
 				nline *= width;
 
 				switch (cap) {
-					case Cap::kButt_Cap: // no stroke extension
-						break;
-					case Cap::kRound_Cap: //adds circle
-						break;
-					default: // adds square
-						break;
+					case Path::Cap::kButt_Cap: // no stroke extension
+						Qk_addTo(from + nline, from - nline);
+						return;
+					case Path::Cap::kRound_Cap: { //adds circle
+						float angle = nline.angle();
+						if (prev) {
+							left.arcTo({from-width,width*2}, -angle, -Qk_PI, false);
+							right.addTo(from - nline);
+						} else {
+							left.addTo(from + nline);
+							right.arcTo({from-width,width*2}, -angle, Qk_PI, false);
+						}
+						return;
+					}
+					default: {// adds square
+						auto ext = prev?nline.rotate270z():nline.rotate90z();
+						Qk_addTo(from + nline + ext, from - nline + ext);
+						return;
+					}
 				}
-
-				Qk_StartTo(from + nline, from - nline);
-				return;
 			}
 
 			Vec2 toFrom = *next - from;
@@ -136,7 +213,7 @@ namespace qk {
 
 			if (nline.is_zero()) {
 				nline = fromPrev90 * width;
-				Qk_StartTo(from + nline, from - nline);
+				Qk_addTo(from + nline, from - nline);
 				left.lineTo(from - nline);
 				right.lineTo(from + nline);
 				return;
@@ -150,8 +227,7 @@ namespace qk {
 				angleLen += Qk_PI_2;
 
 			switch (join) {
-				case Join::kMiter_Join: { // extends to miter limit
-
+				case Path::Join::kMiter_Join: { // extends to miter limit
 					if (len > miterLimit) {
 						float lenL = len - miterLimit;
 						float y = tanf(angleLen) * lenL;
@@ -160,35 +236,30 @@ namespace qk {
 						nline *= len;
 
 						if (angleLen > Qk_PI_2_1) {
-							Qk_StartTo(from + nLineL - a, from - nline);
+							Qk_addTo(from + nLineL - a, from - nline);
 							left.lineTo(from + nLineL + a);
 						} else {
-							Qk_StartTo(from + nline, from - nLineL + a);
+							Qk_addTo(from + nline, from - nLineL + a);
 							right.lineTo(from - nLineL - a);
 						}
-
 					} else {
 						nline *= len;
-						Qk_StartTo(from + nline, from - nline);
+						Qk_addTo(from + nline, from - nline);
 					}
 					return;
 				}
-				case Join::kRound_Join: {// adds circle
+				case Path::Join::kRound_Join: {// adds circle
 					auto a = fromPrev90 * width;
 					auto b = toNext90 * width;
 					nline *= len;
-
 					if (angleLen > Qk_PI_2_1) {
-						//Qk_StartTo(from + a, from - nline);
-						// left.lineTo(from + b);
-						angleLen -= Qk_PI_2_1;
-						left.arcTo({from-width,Vec2(width*2)}, angle-angleLen+Qk_PI, -angleLen*2, false);
-						right.startTo(from - nline);
+						angleLen = Qk_PI_2_1 - Qk_PI + angleLen;
+						left.arcTo({from-width,Vec2(width*2)}, Qk_PI_2-angle+angleLen, -angleLen*2, false);
+						right.addTo(from - nline);
 					} else {
-						//Qk_StartTo(from + nline, from - a);
-						//right.lineTo(from - b);
-						left.startTo(from + nline);
-						right.arcTo({from-width,Vec2(width*2)}, angle-angleLen+Qk_PI, angleLen*2, false);
+						angleLen = Qk_PI_2_1 - angleLen;
+						left.addTo(from + nline);
+						right.arcTo({from-width,Vec2(width*2)}, Qk_PI-angle-angleLen, angleLen*2, false);
 					}
 					return;
 				}
@@ -197,72 +268,35 @@ namespace qk {
 					auto b = toNext90 * width;
 					nline *= len;
 					if (angleLen > Qk_PI_2_1) {
-						Qk_StartTo(from + a, from - nline);
+						Qk_addTo(from + a, from - nline);
 						left.lineTo(from + b);
 					} else {
-						Qk_StartTo(from + nline, from - a);
+						Qk_addTo(from + nline, from - a);
 						right.lineTo(from - b);
 					}
 				}
 			}
-			#undef Qk_StartTo
-		};
-
-		auto subpath = [&](const Vec2 *pts, int size, bool close) {
-			if (size > 1) { // size > 1
-				close = close && size > 2;
-
-				add(close ? pts+size-1: NULL, *pts, pts+1); pts++;
-
-				for (int i = 1; i < size-1; i++, pts++) {
-					add(pts-1, *pts, pts+1);
-				}
-				add(pts-1, *pts, close? pts-size+1: NULL);
-
-				auto verbs = right.verbs();
-				auto pts = right.pts() + right.ptsLen() - 1;
-
-				if (close)
-					left.close();
-
-				for (int i = right.verbsLen() - 1; i >= 0; i--) {
-					if (verbs[i] == kVerb_Cubic) {
-						Qk_ASSERT(verbs[i-1] == kVerb_Line || verbs[i-1] == kVerb_Move);
-						left.startTo(*pts);
-						left.cubicTo(pts[-1], pts[-2], pts[-3]); pts-=4;
-						i--;
-					} else {
-						Qk_ASSERT(verbs[i] == kVerb_Line || verbs[i] == kVerb_Move);
-						left.startTo(*pts--);
-					}
-				}
-
-				left.close();
-			}
-			pts_ += size;
-			right = Path(); // clear right path
-		};
-
-		for (auto verb: self->_verbs) {
-			switch(verb) {
-				case kVerb_Move:
-					subpath(pts_, size, false);
-					size = 1;
-					break;
-				case kVerb_Line:
-					size++;
-					break;
-				case kVerb_Close: // close
-					subpath(pts_, size, true);
-					size = 0;
-					break;
-				default: Qk_FATAL("Path::strokePath");
-			}
+			#undef Qk_addTo
 		}
 
-		subpath(pts_, size, false);
+	private:
+		Path left,right;
+		const Path *path;
+		float width,miterLimit;
+		Path::Cap cap;
+		Path::Join join;
+	};
 
-		Qk_ReturnLocal(left);
+	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
+		if (miterLimit == 0)
+			miterLimit = 1024.0;
+
+		Path tmp;
+		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
+
+		StrokeParse parse(self, width, cap, join, miterLimit);
+
+		Qk_ReturnLocal(parse.exec());
 	}
 
 #endif
