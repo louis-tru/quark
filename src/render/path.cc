@@ -63,6 +63,9 @@ namespace qk {
 	static void setRRect(Path &path,
 		const Rect& outside, const Rect *inside, const Path::BorderRadius& br)
 	{
+		if (outside.size.is_zero()) return;
+		if (inside && inside->size.is_zero()) return;
+
 		auto arc = [&](Vec2 origin, Vec2 radius, Vec2 dir, float startAngle, float sweepAngle) {
 			if (radius.x() != 0 && radius.y() != 0) {
 				Vec2 s = radius*2;
@@ -147,7 +150,8 @@ namespace qk {
 	}
 
 	void Path::lineTo(Vec2 to) {
-		// _pts.push(to);
+		//if (_pts.length() && *(uint64_t*)&_pts.lastIndexAt(1) == *(uint64_t*)to.val)
+		//	return;
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Line);
 		_hash.update((uint32_t*)&to, 2);
@@ -177,6 +181,8 @@ namespace qk {
 	constexpr float magicCircle = 0.551915024494f; // 0.552284749831f
 
 	void Path::ovalTo(const Rect& r, bool ccw) {
+		if (r.size.is_zero()) return;
+
 		float w = r.size.x(), h = r.size.y();
 		float x = r.origin.x(), y = r.origin.y();
 		float x2 = x + w * 0.5, y2 = y + h * 0.5;
@@ -198,6 +204,8 @@ namespace qk {
 	}
 
 	void Path::rectTo(const Rect& r, bool ccw) {
+		if (r.size.is_zero()) return;
+
 		addTo(r.origin);
 		float x2 = r.origin.x() + r.size.x();
 		float y2 = r.origin.y() + r.size.y();
@@ -214,6 +222,8 @@ namespace qk {
 	}
 
 	void Path::arcTo(const Rect& r, float startAngle, float sweepAngle, bool useCenter) {
+		if (r.size.is_zero()) return;
+		if (sweepAngle == 0) return;
 
 		float rx = r.size.x() * 0.5f;
 		float ry = r.size.y() * 0.5f;

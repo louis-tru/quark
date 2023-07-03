@@ -115,8 +115,6 @@ namespace qk {
 		Path tmp,left,right;
 		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
 
-		auto pts_ = (const Vec2*)self->_pts.val();
-		int  size = 0;
 		/*
 			1.An unclosed path produces a closed path
 			2.closed path produces two closed paths
@@ -197,8 +195,6 @@ namespace qk {
 					return;
 				}
 				case Path::Join::kRound_Join: {// adds circle
-					auto a = fromPrev90 * width;
-					auto b = toNext90 * width;
 					nline *= len;
 					if (angleLen > Qk_PI_2_1) {
 						angleLen = Qk_PI_2_1 - Qk_PI + angleLen;
@@ -248,26 +244,31 @@ namespace qk {
 			right = Path(); // clear right path
 		};
 
+		Array<Vec2> pts(self->ptsLen());
+		auto pts0 = self->pts();
+		auto pts1 = pts.val();
+		int  size = 0;
+
 		for (auto verb: self->_verbs) {
 			switch(verb) {
 				case Path::kVerb_Move:
-					subpath(pts_, size, false);
-					pts_ += size;
+					subpath(pts1, size, false);
+					pts1[0] = *pts0++;
 					size = 1;
 					break;
 				case Path::kVerb_Line:
-					size++;
+					if (pts1[size-1] != *pts0++) // exclude duplicates
+						pts1[size++] = pts0[-1];
 					break;
 				case Path::kVerb_Close: // close
-					subpath(pts_, size, true);
-					pts_ += size;
+					subpath(pts1, size, true);
 					size = 0;
 					break;
 				default: Qk_FATAL("Path::strokePath");
 			}
 		}
 
-		subpath(pts_, size, false);
+		subpath(pts1, size, false);
 
 		Qk_ReturnLocal(left);
 	}
