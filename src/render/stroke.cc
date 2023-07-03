@@ -84,99 +84,52 @@ namespace qk {
 
 namespace qk {
 
+	static void Path_reverse_concat(Path &left, const Path &right) {
+		auto verbs = right.verbs();
+		auto pts = right.pts() + right.ptsLen() - 1;
+
+		for (int i = right.verbsLen() - 1; i >= 0; i--) {
+			if (verbs[i] == Path::kVerb_Cubic) {
+				left.addTo(*pts); pts--;
+				do {
+					left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
+					i--;
+				} while(verbs[i] == Path::kVerb_Cubic);
+			} else if (verbs[i] == Path::kVerb_Close) {
+				// ignore
+			} else {
+				Qk_ASSERT(verbs[i] == Path::kVerb_Line || verbs[i] == Path::kVerb_Move);
+				left.addTo(*pts--);
+			}
+		}
+	}
+
 	Array<Vec3> Path::getAntiAliasStrokeTriangles(float epsilon) {
 		// TODO ...
 	}
 
 #if !Qk_USE_FT_STROKE
 
-	class StrokeParse {
-	public:
-		StrokeParse(const Path *path, float width, Path::Cap cap, Path::Join join, float miterLimit)
-			: path(path), width(width*0.5), miterLimit(Float::min(miterLimit,1024)),cap(cap),join(join) {
-		}
+	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
+		if (miterLimit == 0)
+			miterLimit = 1024.0;
 
-		Path exec() {
-			auto pts_ = path->pts();
-			int  size = 0;
-			/*
-				1.An unclosed path produces a closed path
-				2.closed path produces two closed paths
-			*/
-			auto verbs = path->verbs();
+		miterLimit = Float::min(miterLimit, 1024);
+		width *= 0.5;
 
-			for (int i = 0, l = path->verbsLen(); i < l; i++) {
-				switch(verbs[i]) {
-					case Path::kVerb_Move:
-						subpath(pts_, size, false);
-						pts_ += size;
-						size = 1;
-						break;
-					case Path::kVerb_Line:
-						size++;
-						break;
-					case Path::kVerb_Close: // close
-						subpath(pts_, size, true);
-						pts_ += size;
-						size = 0;
-						break;
-					default: Qk_FATAL("Path::strokePath");
-				}
-			}
+		Path tmp,left,right;
+		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
 
-			subpath(pts_, size, false);
+		auto pts_ = (const Vec2*)self->_pts.val();
+		int  size = 0;
+		/*
+			1.An unclosed path produces a closed path
+			2.closed path produces two closed paths
+		*/
 
-			return std::move(left);
-		}
-
-		static void path_reverse_concat(Path &left, const Path &right) {
-			auto verbs = right.verbs();
-			auto pts = right.pts() + right.ptsLen() - 1;
-
-			for (int i = right.verbsLen() - 1; i >= 0; i--) {
-				if (verbs[i] == Path::kVerb_Cubic) {
-					left.addTo(*pts); pts--;
-					do {
-						left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
-						i--;
-					} while(verbs[i] == Path::kVerb_Cubic);
-				} else if (verbs[i] == Path::kVerb_Close) {
-					// ignore
-				} else {
-					Qk_ASSERT(verbs[i] == Path::kVerb_Line || verbs[i] == Path::kVerb_Move);
-					left.addTo(*pts--);
-				}
-			}
-		}
-
-		void subpath(const Vec2 *pts, int size, bool close) {
-			if (size > 1) { // size > 1
-				close = close && size > 2;
-
-				add_stroke_point(close ? pts+size-1: NULL, *pts, pts+1); pts++;
-
-				for (int i = 1; i < size-1; i++, pts++) {
-					add_stroke_point(pts-1, *pts, pts+1);
-				}
-				add_stroke_point(pts-1, *pts, close? pts-size+1: NULL);
-
-				if (close)
-					left.close();
-
-				path_reverse_concat(left, right);
-
-				left.close();
-			}
-			right = Path(); // clear right path
-		}
-
-		void add_stroke_point(const Vec2 *prev, Vec2 from, const Vec2 *next) {
+		auto add = [&](const Vec2 *prev, Vec2 from, const Vec2 *next) {
 			#define Qk_addTo(l,r) \
 				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
-
-			auto width = this->width;
-			auto &left = this->left;
-			auto &right = this->right;
 
 			if (!prev || !next) {
 				auto nline = from.normalline(prev, next); // normal line
@@ -277,26 +230,51 @@ namespace qk {
 				}
 			}
 			#undef Qk_addTo
+		};
+
+		auto subpath = [&](const Vec2 *pts, int size, bool close) {
+			if (size > 1) { // size > 1
+				close = close && size > 2;
+
+				add(close ? pts+size-1: NULL, *pts, pts+1); pts++;
+
+				for (int i = 1; i < size-1; i++, pts++) {
+					add(pts-1, *pts, pts+1);
+				}
+				add(pts-1, *pts, close? pts-size+1: NULL);
+
+				if (close)
+					left.close();
+
+				Path_reverse_concat(left, right);
+
+				left.close();
+			}
+			right = Path(); // clear right path
+		};
+
+		for (auto verb: self->_verbs) {
+			switch(verb) {
+				case Path::kVerb_Move:
+					subpath(pts_, size, false);
+					pts_ += size;
+					size = 1;
+					break;
+				case Path::kVerb_Line:
+					size++;
+					break;
+				case Path::kVerb_Close: // close
+					subpath(pts_, size, true);
+					pts_ += size;
+					size = 0;
+					break;
+				default: Qk_FATAL("Path::strokePath");
+			}
 		}
 
-	private:
-		Path left,right;
-		const Path *path;
-		float width,miterLimit;
-		Path::Cap cap;
-		Path::Join join;
-	};
+		subpath(pts_, size, false);
 
-	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
-		if (miterLimit == 0)
-			miterLimit = 1024.0;
-
-		Path tmp;
-		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
-
-		StrokeParse parse(self, width, cap, join, miterLimit);
-
-		Qk_ReturnLocal(parse.exec());
+		Qk_ReturnLocal(left);
 	}
 
 #endif
