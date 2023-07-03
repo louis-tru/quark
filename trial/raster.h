@@ -29,12 +29,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __ftr__render__scaner__
-#define __ftr__render__scaner__
+#ifndef __ftr__render__raster__
+#define __ftr__render__raster__
 
-#include "../util/util.h"
-#include "../types.h"
-#include "./path.h"
+#include "quark/util/util.h"
+#include "quark/types.h"
+#include "quark/render/path.h"
 
 namespace qk {
 

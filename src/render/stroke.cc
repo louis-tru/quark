@@ -102,7 +102,6 @@ namespace qk {
 
 		Qk_ReturnLocal(out);
 	}
-}
 
 #else
 

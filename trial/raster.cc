@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./scaner.h"
+#include "./raster.h"
 #include <math.h>
 
 namespace qk {
