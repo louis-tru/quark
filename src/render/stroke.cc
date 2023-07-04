@@ -122,7 +122,7 @@ namespace qk {
 
 		auto add = [&](const Vec2 *prev, Vec2 from, const Vec2 *next) {
 			#define Qk_addTo(l,r) \
-				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.movegitaTo(l), right.moveTo(r))
+				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
 
 			if (!prev || !next) {
 				auto nline = from.normalline(prev, next); // normal line
