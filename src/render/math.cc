@@ -190,7 +190,7 @@ namespace qk {
 			return Qk_PI_2_1;
 		} if (val[1] < 0) { // y < 0
 			return Qk_PI_2_1 + Qk_PI;
-		} else { // y == 0
+		} else { // y equal 0 and x equal 0
 			return 0;
 		}
 	}

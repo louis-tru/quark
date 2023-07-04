@@ -36,7 +36,56 @@
 
 namespace qk {
 
-	static void Path_reverse_concat(Path &left, const Path &right) {
+	typedef void AddPoint(const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx);
+	typedef void AfterDone(bool close, void *ctx);
+
+	static void each_subpath(const Path *self, AddPoint add, AfterDone after, bool close, void *ctx) {
+
+		auto subpath = [&](const Vec2 *pts, int size, bool close) {
+			if (size > 1) { // size > 1
+				close = close && size > 2;
+
+				add(close ? pts+size-1: NULL, *pts, pts+1, ctx); pts++;
+
+				for (int i = 1; i < size-1; i++, pts++) {
+					add(pts-1, *pts, pts+1, ctx);
+				}
+				add(pts-1, *pts, close? pts-size+1: NULL, ctx);
+
+				after(close, ctx);
+			}
+		};
+
+		Array<Vec2> pts(self->ptsLen());
+		auto pts0 = self->pts();
+		auto pts1 = pts.val();
+		int  size = 0;
+
+		auto verbs = self->verbs();
+
+		for (int i = 0, l = self->verbsLen(); i < l; i++) {
+			switch(verbs[i]) {
+				case Path::kVerb_Move:
+					subpath(pts1, size, close);
+					pts1[0] = *pts0++;
+					size = 1;
+					break;
+				case Path::kVerb_Line:
+					if (pts1[size-1] != *pts0++) // exclude duplicates
+						pts1[size++] = pts0[-1];
+					break;
+				case Path::kVerb_Close: // close
+					subpath(pts1, *pts1 == pts1[size-1] ? size - 1: size, true); // exclude duplicates
+					size = 0;
+					break;
+				default: Qk_FATAL("Path::strokePath");
+			}
+		}
+
+		subpath(pts1, size, close);
+	}
+
+	static void reverse_concat_path(Path &left, const Path &right) {
 		auto verbs = right.verbs();
 		auto pts = right.pts() + right.ptsLen() - 1;
 
@@ -56,8 +105,38 @@ namespace qk {
 		}
 	}
 
+	/**
+	 * @method getAntiAliasStrokeTriangles() returns anti alias stroke triangle vertices
+	 * @return {Array<Vec3>} points { x, y, sdf value for anti alias stroke }[]
+	*/
 	Array<Vec3> Path::getAntiAliasStrokeTriangles(float epsilon) {
-		// TODO ...
+		Path tmp;
+		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
+		Array<Vec3> out;
+
+		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx) {
+			auto nline = from.normalline(prev, next); // normal line
+
+			if (nline.is_zero()) {
+				// nline = fromPrev90 * width;
+				// Qk_addTo(from + nline, from - nline);
+				// left.lineTo(from - nline);
+				// right.lineTo(from + nline);
+				return;
+			}
+
+			auto angleLen = nline.angleTo(*prev - from);
+			auto len = 0.5 / sinf(angleLen);
+
+			nline *= len;
+
+			//
+
+		}, [](bool close, void *ctx) {
+			// TODO ...
+		}, true, NULL);
+
+		Qk_ReturnLocal(out);
 	}
 
 #if Qk_USE_FT_STROKE
@@ -105,6 +184,7 @@ namespace qk {
 
 #else
 
+	// modification to stroke path
 	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
 		if (miterLimit == 0)
 			miterLimit = 1024.0;
@@ -112,23 +192,34 @@ namespace qk {
 		miterLimit = Float::min(miterLimit, 1024);
 		width *= 0.5;
 
-		Path tmp,left,right;
+		Path tmp,out;
 		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
+
+		struct Ctx {
+			float width,miterLimit;
+			Cap cap; Join join;
+			Path *left,right;
+		} ctx = { width, miterLimit, cap, join, &out };
 
 		/*
 			1.An unclosed path produces a closed path
 			2.closed path produces two closed paths
 		*/
 
-		auto add = [&](const Vec2 *prev, Vec2 from, const Vec2 *next) {
+		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx) {
 			#define Qk_addTo(l,r) \
 				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
 
+			auto _ = (Ctx*)ctx;
+			auto &left = *_->left;
+			auto &right = _->right;
+			auto width = _->width;
+
 			if (!prev || !next) {
 				auto nline = from.normalline(prev, next); // normal line
-				nline *= width;
+				nline *= _->width;
 
-				switch (cap) {
+				switch (_->cap) {
 					case Path::Cap::kButt_Cap: // no stroke extension
 						Qk_addTo(from + nline, from - nline);
 						return;
@@ -172,13 +263,13 @@ namespace qk {
 			if (angleLen < 0)
 				angleLen += Qk_PI_2;
 
-			switch (join) {
+			switch (_->join) {
 				case Path::Join::kMiter_Join: { // extends to miter limit
-					if (len > miterLimit) {
-						float lenL = len - miterLimit;
+					if (len > _->miterLimit) {
+						float lenL = len - _->miterLimit;
 						float y = tanf(angleLen) * lenL;
 						auto a = nline.rotate90z() * y;
-						auto nLineL = nline * miterLimit;
+						auto nLineL = nline * _->miterLimit;
 						nline *= len;
 
 						if (angleLen > Qk_PI_2_1) {
@@ -221,56 +312,16 @@ namespace qk {
 				}
 			}
 			#undef Qk_addTo
-		};
+		}, [](bool close, void *ctx) {
+			auto _ = (Ctx*)ctx;
+			if (close)
+				_->left->close();
+			reverse_concat_path(*_->left, _->right);
+			_->left->close();
+			_->right = Path(); // clear right path
+		}, false, &ctx);
 
-		auto subpath = [&](const Vec2 *pts, int size, bool close) {
-			if (size > 1) { // size > 1
-				close = close && size > 2;
-
-				add(close ? pts+size-1: NULL, *pts, pts+1); pts++;
-
-				for (int i = 1; i < size-1; i++, pts++) {
-					add(pts-1, *pts, pts+1);
-				}
-				add(pts-1, *pts, close? pts-size+1: NULL);
-
-				if (close)
-					left.close();
-
-				Path_reverse_concat(left, right);
-
-				left.close();
-			}
-			right = Path(); // clear right path
-		};
-
-		Array<Vec2> pts(self->ptsLen());
-		auto pts0 = self->pts();
-		auto pts1 = pts.val();
-		int  size = 0;
-
-		for (auto verb: self->_verbs) {
-			switch(verb) {
-				case Path::kVerb_Move:
-					subpath(pts1, size, false);
-					pts1[0] = *pts0++;
-					size = 1;
-					break;
-				case Path::kVerb_Line:
-					if (pts1[size-1] != *pts0++) // exclude duplicates
-						pts1[size++] = pts0[-1];
-					break;
-				case Path::kVerb_Close: // close
-					subpath(pts1, *pts1 == pts1[size-1] ? size - 1: size, true); // exclude duplicates
-					size = 0;
-					break;
-				default: Qk_FATAL("Path::strokePath");
-			}
-		}
-
-		subpath(pts1, size, false);
-
-		Qk_ReturnLocal(left);
+		Qk_ReturnLocal(out);
 	}
 
 #endif
