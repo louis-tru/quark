@@ -108,7 +108,7 @@ Action* GroupAction::operator[](uint32_t index) {
 void GroupAction::append(Action* action) throw(Error) {
 	Qk_ASSERT(action);
 	_inl_action(action)->set_parent(this);
-	_actions.push_back(action);
+	_actions.pushBack(action);
 	_actions_index.clear();
 }
 

@@ -37,7 +37,7 @@ namespace qk {
 
 	void PreRender::addtask(Task* task) {
 		if ( task->task_id() == Task::ID() ) {
-			Task::ID id = _tasks.push_back(task);
+			Task::ID id = _tasks.pushBack(task);
 			task->_task_id = id;
 			task->_pre = this;
 		}

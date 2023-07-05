@@ -33,13 +33,12 @@
 
 #include "./object.h"
 #include "./iterator.h"
-#include <initializer_list>
 #include <vector>
 
 namespace qk {
 
 	template<typename T = char, typename A = MemoryAllocator> class Array;
-	template<typename T = char, typename A = MemoryAllocator> class ArrayBuffer;
+	template<typename T = char, typename A = MemoryAllocator> class ArrayBuffer; // array no copy
 	template<typename T = char, typename A = MemoryAllocator> class ArrayWeak;
 
 	typedef       ArrayBuffer<char>     Buffer; // Array No Copy

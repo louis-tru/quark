@@ -120,7 +120,7 @@ namespace qk {
 				if ( i.value() ) {
 					obj->mark_index_ = new_mark_objects.length();
 					new_mark_objects.push(obj);
-					rv.push_back(obj);
+					rv.pushBack(obj);
 				}
 			}
 			

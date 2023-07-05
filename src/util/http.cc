@@ -452,7 +452,7 @@ namespace qk {
 								content_length += multipart_boundary_start.length();
 								content_length += _form.headers.length();
 								content_length += 2; // end
-								_multipart_form_data.push_back(_form);
+								_multipart_form_data.pushBack(_form);
 							}
 							
 							header["Content-Length"] = content_length;
@@ -594,7 +594,7 @@ namespace qk {
 					_socket->write(string_header_end.copy().collapse()); // \r\n
 					_upload_file->release(); // release file
 					_upload_file = nullptr;
-					_multipart_form_data.pop_front();
+					_multipart_form_data.popFront();
 					buffer.realloc(BUFFER_SIZE);
 					_multipart_form_buffer = buffer;
 					send_multipart_form_data();
@@ -624,7 +624,7 @@ namespace qk {
 						_multipart_form_buffer.realloc(form.data.length());
 						_socket->write(_multipart_form_buffer, 1);
 						_socket->write(string_header_end.copy().collapse());
-						_multipart_form_data.pop_front();
+						_multipart_form_data.popFront();
 					}
 				} else {
 					_socket->write(string_header_end.copy().collapse()); // end send data, wait http response
@@ -729,7 +729,7 @@ namespace qk {
 					if ( conn ) {
 						conn->_use = true;
 					} else {
-						_connect_req.push_back(req); // wait
+						_connect_req.pushBack(req); // wait
 					}
 				}
 				if (conn) {
@@ -781,7 +781,7 @@ namespace qk {
 															 req.port,
 															 req.uri_type == URI_HTTPS,
 															 req.client->loop());
-						conn->_id = _pool.push_back(conn);
+						conn->_id = _pool.pushBack(conn);
 					}
 				}
 				return conn;

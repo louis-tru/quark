@@ -33,8 +33,6 @@
 
 #include "./object.h"
 #include "./iterator.h"
-#include <initializer_list>
-#include <utility>
 
 namespace qk {
 
@@ -46,8 +44,8 @@ namespace qk {
 	public:
 		struct Node {
 			typedef T     Data;
-			Node* prev() const { return _prev; }
-			Node* next() const { return _next; }
+			Node*    prev() const { return _prev; }
+			Node*    next() const { return _next; }
 			T&       data() { return *reinterpret_cast<Data*>((&_next) + 1); }
 			const T& data() const { return *reinterpret_cast<const Data*>((&_next) + 1); }
 		private:
@@ -64,37 +62,37 @@ namespace qk {
 
 		virtual ~List();
 
-		List& operator=(const List&);
-		List& operator=(List&&);
+		List&    operator=(const List&);
+		List&    operator=(List&&);
 
-		Iterator push_back(const T& item);
-		Iterator push_back(T&& item);
-		Iterator push_front(const T& item);
-		Iterator push_front(T&& item);
+		Iterator pushBack(const T& item);
+		Iterator pushBack(T&& item);
+		Iterator pushFront(const T& item);
+		Iterator pushFront(T&& item);
 
-		void splice(IteratorConst it, List& ls);
-		void splice(IteratorConst it, List& ls, IteratorConst first, IteratorConst end);
+		void     splice(IteratorConst it, List& ls);
+		void     splice(IteratorConst it, List& ls, IteratorConst first, IteratorConst end);
 
-		void pop_back();
-		void pop_front();
+		void     popBack();
+		void     popFront();
 		
 		Iterator insert(IteratorConst after, const T& item); // insert front
 		Iterator insert(IteratorConst after, T&& item); // insert front
 
-		Iterator erase(IteratorConst it);
-		void erase(IteratorConst first, IteratorConst end);
-		void clear();
+		Iterator erase(IteratorConst it); // erase item and return next iterator
+		void     erase(IteratorConst first, IteratorConst end);
+		void     clear();
 
 		const T& front() const;
 		const T& back() const;
 		T&       front();
 		T&       back();
 
-		Iterator      indexed(IteratorConst it, int offset = 0);
-		IteratorConst indexed(IteratorConst it, int offset = 0) const;
+		Iterator      offsetAt(IteratorConst it, int offset = 0);
+		IteratorConst offsetAt(IteratorConst it, int offset = 0) const;
 
-		String join(cString& sp) const;
-		
+		String        join(cString& sp) const;
+
 		// overwrite
 		virtual String toString() const;
 
@@ -102,8 +100,7 @@ namespace qk {
 		IteratorConst end() const;
 		Iterator      begin();
 		Iterator      end();
-
-		uint32_t length() const;
+		uint32_t      length() const;
 		
 	private:
 		void init_();
@@ -129,7 +126,7 @@ namespace qk {
 	{
 		init_();
 		for (auto& i: list) {
-			push_back(i);
+			pushBack(i);
 		}
 	}
 
@@ -149,7 +146,7 @@ namespace qk {
 	{
 		init_();
 		for ( auto i : list ) {
-			push_back(std::move(i));
+			pushBack(std::move(i));
 		}
 	}
 
@@ -162,7 +159,7 @@ namespace qk {
 	List<T, A>& List<T, A>::operator=(const List& ls) { // copy
 		clear();
 		for (auto& i: ls) {
-			push_back(i);
+			pushBack(i);
 		}
 		return *this;
 	}
@@ -176,22 +173,22 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	typename List<T, A>::Iterator List<T, A>::push_back(const T& item) {
+	typename List<T, A>::Iterator List<T, A>::pushBack(const T& item) {
 		return insert(IteratorConst(&_end), item);
 	}
 
 	template<typename T, typename A>
-	typename List<T, A>::Iterator List<T, A>::push_back(T&& item) {
+	typename List<T, A>::Iterator List<T, A>::pushBack(T&& item) {
 		return insert(IteratorConst(&_end), std::move(item));
 	}
 
 	template<typename T, typename A>
-	typename List<T, A>::Iterator List<T, A>::push_front(const T& item) {
+	typename List<T, A>::Iterator List<T, A>::pushFront(const T& item) {
 		return insert(IteratorConst(_end._next), item);
 	}
 
 	template<typename T, typename A>
-	typename List<T, A>::Iterator List<T, A>::push_front(T&& item) {
+	typename List<T, A>::Iterator List<T, A>::pushFront(T&& item) {
 		return insert(IteratorConst(_end._next), std::move(item));
 	}
 
@@ -221,13 +218,13 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	void List<T, A>::pop_back() {
+	void List<T, A>::popBack() {
 		if (_length)
 			erase(IteratorConst(_end._prev));
 	}
 
 	template<typename T, typename A>
-	void List<T, A>::pop_front() {
+	void List<T, A>::popFront() {
 		if (_length)
 			erase(IteratorConst(_end._next));
 	}
@@ -312,7 +309,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	typename List<T, A>::Iterator
-	List<T, A>::indexed(IteratorConst it, int offset) {
+	List<T, A>::offsetAt(IteratorConst it, int offset) {
 		auto node = node_(it);
 		if (offset > 0) {
 			while (offset--) node = node->_next;
@@ -324,7 +321,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	typename List<T, A>::IteratorConst
-	List<T, A>::indexed(IteratorConst it, int offset) const {
+	List<T, A>::offsetAt(IteratorConst it, int offset) const {
 		return const_cast<List*>(*this)->indexed(it, offset);
 	}
 

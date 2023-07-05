@@ -159,7 +159,7 @@ void Action::Inl::add_view(View* view) throw(Error) {
 	} else {
 		bind_view(view);
 	}
-	_views.push_back({view});
+	_views.pushBack({view});
 }
 
 void Action::Inl::del_view(View* view) {

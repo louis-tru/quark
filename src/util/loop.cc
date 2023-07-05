@@ -208,7 +208,7 @@ namespace qk {
 			lock.unlock();
 			Wait wait;
 			auto &tag = i->value->tag;
-			auto it = i->value->_wait_ends.push_back(&wait);
+			auto it = i->value->_wait_ends.pushBack(&wait);
 			i->value->mutex.unlock();
 			Qk_DEBUG("thread_wait_for(), ..., %p, %s", id, *tag);
 			wait.wait_for(timeoutUs); // permanent wait
@@ -395,9 +395,9 @@ namespace qk {
 			uint32_t id = getId32();
 			if (delay_us) {
 				int64_t time = time_monotonic() + delay_us;
-				_queue.push_back({ id, group, time, exec });
+				_queue.pushBack({ id, group, time, exec });
 			} else {
-				_queue.push_back({ id, group, 0, exec });
+				_queue.pushBack({ id, group, 0, exec });
 			}
 			activate(); // 通知继续
 			return id;
@@ -433,7 +433,7 @@ namespace qk {
 			Lock lock(_mutex);
 
 			if (!isCur) {
-				_queue.push_back({
+				_queue.pushBack({
 					0, group, 0,
 					Cb([cb, datap, this](Cb::Data& e) {
 						cb->resolve(datap);
@@ -658,7 +658,7 @@ namespace qk {
 			int r = uv_queue_work(_uv_loop, &work->uv_req,
 														Work::uv_work_cb, Work::uv_after_work_cb);
 			Qk_ASSERT(!r);
-			work->it = _works.push_back(work);
+			work->it = _works.pushBack(work);
 		}));
 
 		return work->id;
@@ -766,7 +766,7 @@ namespace qk {
 	KeepLoop* RunLoop::keep_alive(cString& name, bool clean) {
 		ScopeLock lock(_mutex);
 		auto keep = new KeepLoop(name, clean);
-		keep->_id = _keeps.push_back(keep);
+		keep->_id = _keeps.pushBack(keep);
 		keep->_loop = this;
 		return keep;
 	}

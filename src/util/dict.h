@@ -77,11 +77,11 @@ namespace qk {
 			Key   key;
 			Value value;
 		};
-		
+
 		struct Node {
 			typedef Dict::Pair Data;
-			Node* prev() const { return _prev; }
-			Node* next() const { return _next; }
+			Node*       prev() const { return _prev; }
+			Node*       next() const { return _next; }
 			Data&       data() { return *reinterpret_cast<Data*>((&_conflict) + 1); }
 			const Data& data() const { return *reinterpret_cast<const Data*>((&_conflict) + 1); }
 		private:
@@ -98,58 +98,55 @@ namespace qk {
 		Dict(const Dict& dict);
 		Dict(std::initializer_list<Pair>&& list);
 
-		virtual ~Dict();
+		virtual       ~Dict();
 
-		Dict& operator=(const Dict& value);
-		Dict& operator=(Dict&& value);
+		Dict&         operator=(const Dict& value);
+		Dict&         operator=(Dict&& value);
 
-		const Value& operator[](const Key& key) const;
-		Value&       operator[](const Key& key);
-		Value&       operator[](Key&& key);
+		const Value&  operator[](const Key& key) const;
+		Value&        operator[](const Key& key);
+		Value&        operator[](Key&& key);
 
 		IteratorConst find(const Key& key) const;
-		Iterator find(const Key& key);
+		Iterator      find(const Key& key);
 
-		bool     has(const Key& key) const;
-		uint32_t count(const Key& key) const;
+		bool          has(const Key& key) const;
+		uint32_t      count(const Key& key) const;
 
-		Array<Key>   keys() const;
-		Array<Value> values() const;
+		Array<Key>    keys() const;
+		Array<Value>  values() const;
 
-		const Value& get(const Key& key) const throw(Error);
-		Value&       get(const Key& key);
-		Value&       get(Key&& key);
+		Value&        get(const Key& key);
+		Value&        get(Key&& key);
+		Value&        set(const Key& key, const Value& value);
+		Value&        set(const Key& key, Value&& value);
+		Value&        set(Key&& key, const Value& value);
+		Value&        set(Key&& key, Value&& value);
 
-		Value& set(const Key& key, const Value& value);
-		Value& set(const Key& key, Value&& value);
-		Value& set(Key&& key, const Value& value);
-		Value& set(Key&& key, Value&& value);
+		Iterator      erase(IteratorConst it);
+		void          erase(IteratorConst first, IteratorConst end);
+		bool          erase(const Key& key);
+		void          clear();
 
-		Iterator erase(IteratorConst it);
-		void erase(IteratorConst first, IteratorConst end);
-		bool erase(const Key& key);
-		void clear();
+		uint32_t      length() const;
 
 		IteratorConst begin() const;
 		IteratorConst end() const;
-		Iterator begin();
-		Iterator end();
-
-		uint32_t length() const;
+		Iterator      begin();
+		Iterator      end();
 
 	private:
 		void init_();
 		void fill_(Node** indexed, Node* first, Node* last, uint32_t len, uint32_t capacity);
-		bool get_(const Key& key, Pair** data);
+		bool make(const Key& key, Pair** data);
 		void erase_(Node* node);
 		void optimize_();
 		Node* link_(Node* prev, Node* next);
 		Node* node_(IteratorConst it);
 
-		Node** _nodes;
-		Node   _end; // { _prev = last, _next = first }
-		uint32_t  _length;
-		uint32_t  _capacity;
+		Node**    _nodes;
+		Node      _end; // { _prev = last, _next = first }
+		uint32_t  _length, _capacity;
 	};
 
 	// -----------------------------------------------------------------
@@ -265,18 +262,11 @@ namespace qk {
 			ls.push(i.value);
 		Qk_ReturnLocal(ls);
 	}
-	
-	template<typename K, typename V, typename C, typename A>
-	const V& Dict<K, V, C, A>::get(const K& key) const throw(Error) {
-		auto it = find(key);
-		Qk_CHECK(it != IteratorConst(&_end), "Could not find key for dict");
-		return it->value;
-	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::get(const K& key) {
 		Pair* pair;
-		if (get_(key, &pair)) {
+		if (make(key, &pair)) {
 			new(&pair->key) K(key);
 			new(&pair->value) V();
 		}
@@ -296,7 +286,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(const K& key, const V& value) {
 		Pair* pair;
-		if (get_(key, &pair)) {
+		if (make(key, &pair)) {
 			new(&pair->key) K(key); new(&pair->value) V(value);
 		} else {
 			pair->value = value;
@@ -307,7 +297,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(const K& key, V&& value) {
 		Pair* pair;
-		if (get_(key, &pair)) {
+		if (make(key, &pair)) {
 			new(&pair->key) K(key);
 			new(&pair->value) V(std::move(value));
 		} else {
@@ -319,7 +309,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(K&& key, const V& value) {
 		Pair* pair;
-		if (get_(key, &pair)) {
+		if (make(key, &pair)) {
 			new(&pair->key) K(std::move(key)); new(&pair->value) V(value);
 		} else {
 			pair->value = value;
@@ -330,7 +320,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(K&& key, V&& value) {
 		Pair* pair;
-		if (get_(key, &pair)) {
+		if (make(key, &pair)) {
 			new(&pair->key) K(std::move(key)); new(&pair->value) V(std::move(value));
 		} else {
 			pair->value = std::move(value);
@@ -424,7 +414,7 @@ namespace qk {
 	}
 	
 	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::get_(const K& key, Pair** data) {
+	bool Dict<K, V, C, A>::make(const K& key, Pair** data) {
 		if (!_capacity) {
 			A::aalloc((void**)&_nodes, 1, &_capacity, sizeof(Node*));
 			::memset(_nodes, 0, sizeof(Node*) * _capacity);

@@ -41,7 +41,7 @@ static void push_all_scope(StyleSheetsScope* self, View* scope) {
 
 StyleSheetsScope::StyleSheetsScope(View* scope) {
 	auto wrap = _style_sheets_map[root_styles()] = { root_styles(), 1 };
-	_style_sheets.push_back({ &wrap, 1 });
+	_style_sheets.pushBack({ &wrap, 1 });
 	push_all_scope(this, scope);
 	Qk_DEBUG("use StyleSheetsScope");
 }
@@ -59,10 +59,10 @@ void StyleSheetsScope::push_scope(View* scope) {
 				wrap = &it->value;
 				wrap->ref++;
 			}
-			_style_sheets.push_back({ wrap, wrap->ref });
+			_style_sheets.pushBack({ wrap, wrap->ref });
 		}
 	}
-	_scopes.push_back(scope);
+	_scopes.pushBack(scope);
 }
 
 void StyleSheetsScope::pop_scope() {

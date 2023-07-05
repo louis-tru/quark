@@ -162,7 +162,7 @@ namespace qk {
 				}
 			}
 		}
-		m_search_paths.push_back(new FileSearch::SearchPath(str));
+		m_search_paths.pushBack(new FileSearch::SearchPath(str));
 	}
 
 	void FileSearch::add_zip_search_path(cString& zip_path, cString& path) {
@@ -185,7 +185,7 @@ namespace qk {
 				}
 			}
 		}
-		m_search_paths.push_back(new FileSearch::ZipInSearchPath(_zip_path, _path));
+		m_search_paths.pushBack(new FileSearch::ZipInSearchPath(_zip_path, _path));
 	}
 
 	/**

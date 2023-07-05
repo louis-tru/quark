@@ -32,6 +32,7 @@
 #define __quark__util__object__
 
 #include "./macros.h"
+#include <utility>
 #include <atomic>
 
 #ifndef Qk_MEMORY_TRACE_MARK

@@ -156,7 +156,7 @@ namespace qk {
 
 	void Display::next_frame(cCb& cb) {
 		UILock lock(_host);
-		_next_frame.push_back(cb);
+		_next_frame.pushBack(cb);
 	}
 
 	void Display::solve_next_frame() {

@@ -135,7 +135,7 @@ extern QkApplicationDelegate* __appDelegate;
 
 	- (uint32_t) post_message:(Cb) cb delay_us:(uint64_t)delay_us {
 		ScopeLock lock(_mutex);
-		_message.push_back(cb);
+		_message.pushBack(cb);
 	}
 
 @end

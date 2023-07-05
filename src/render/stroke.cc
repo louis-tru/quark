@@ -88,7 +88,9 @@ namespace qk {
 	typedef void BeforeAdding(bool close, int size, void *ctx);
 	typedef void AfterDone(bool close, int size, void *ctx);
 
-	static void each_subpath(const Path *self, AddPoint add, BeforeAdding before, AfterDone after, bool close, void *ctx) {
+	static void each_subpath(const Path *self, AddPoint add, 
+		BeforeAdding before, AfterDone after, bool close, void *ctx
+	) {
 
 		auto subpath = [&](const Vec2 *pts, int size, bool close) {
 			if (size > 1) { // size > 1
