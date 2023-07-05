@@ -253,7 +253,7 @@ namespace qk {
 				int res = uv_fs_close(_keep->host()->uv_loop(), &req, _fd, nullptr); // sync
 				Qk_ASSERT( res == 0 );
 			}
-			Release(_keep); _keep = nullptr;
+			delete _keep; _keep = nullptr;
 			clear_writeing();
 		}
 		

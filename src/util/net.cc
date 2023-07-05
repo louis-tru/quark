@@ -96,7 +96,7 @@ namespace qk {
 		virtual ~Inl() {
 			Qk_ASSERT(!_is_open);
 			Qk_ASSERT(!_uv_handle);
-			Release(_keep); _keep = nullptr;
+			delete _keep; _keep = nullptr;
 		}
 		
 		class UVHandle {

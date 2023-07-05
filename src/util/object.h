@@ -45,11 +45,6 @@
 
 namespace qk {
 
-#define Qk_DEFAULT_ALLOCATOR() \
-	static void* operator new(std::size_t size) { return ::operator new(size); } \
-	static void  operator delete(void* p) { ::operator delete(p); } \
-	virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this; }
-
 #ifndef Qk_MIN_CAPACITY
 # define Qk_MIN_CAPACITY (8)
 #endif
@@ -115,6 +110,10 @@ namespace qk {
 #else
 		virtual ~Object() = default;
 #endif
+		// Use the following method to override to restore the default call
+		// virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this; }
+		// static void* operator new(std::size_t size) { return ::operator new(size); }
+		// static void  operator delete(void* p) { ::operator delete(p); }
 	};
 
 	/**

@@ -47,7 +47,7 @@ namespace qk {
 	*/
 	ParallelWorking::~ParallelWorking() {
 		abort_child();
-		Release(_proxy); _proxy = nullptr;
+		delete _proxy; _proxy = nullptr;
 	}
 
 	/**

@@ -250,10 +250,9 @@ namespace qk {
 	 *
 	 * @class KeepLoop
 	 */
-	class Qk_EXPORT KeepLoop: public Object, public PostMessage {
+	class Qk_EXPORT KeepLoop: public PostMessage {
 		Qk_HIDDEN_ALL_COPY(KeepLoop);
 	public:
-		Qk_DEFAULT_ALLOCATOR();
 		/**
 		 * @destructor `destructor_clear=true` will cancel all messages `post` through it
 		*/

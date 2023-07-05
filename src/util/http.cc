@@ -124,7 +124,7 @@ namespace qk {
 			Qk_ASSERT(!_connect);
 			Qk_ASSERT(!_cache_reader);
 			Qk_ASSERT(!_file_writer);
-			Release(_keep); _keep = nullptr;
+			delete _keep; _keep = nullptr;
 		}
 		
 		inline RunLoop* loop() { return _keep->host(); }
