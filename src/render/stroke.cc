@@ -234,9 +234,7 @@ namespace qk {
 			auto width = _->width;
 
 			if (!prev || !next) {
-				auto nline = from.normalline(prev, next); // normal line
-				nline *= _->width;
-
+				auto nline = from.normalline(prev, next) * width; // normal line
 				switch (_->cap) {
 					case Path::Cap::kButt_Cap: // no stroke extension
 						Qk_addTo(from + nline, from - nline);
