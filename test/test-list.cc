@@ -60,7 +60,7 @@ void test_list(int argc, char **argv) {
 	
 	String str2(str);
 	
-	Qk_LOG(str2.to_string());
+	Qk_LOG(str2.toString());
 	Qk_LOG(str2.copy().collapse());
 	
 	for (auto i = ls.begin(), end = ls.end(); i != end; i++) {

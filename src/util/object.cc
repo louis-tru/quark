@@ -166,7 +166,7 @@ namespace qk {
 		Qk_UNREACHABLE("Modify to `Release(obj)`");
 	}
 
-	void Object::set_object_allocator(
+	void Object::setAllocator(
 		void* (*alloc)(size_t size),
 		void (*release)(Object* obj), void (*retain)(Object* obj)
 	) {

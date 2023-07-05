@@ -395,7 +395,7 @@ namespace qk {
 		return String(std::move(buff));
 	}
 	
-	String Object::to_string() const {
+	String Object::toString() const {
 		static String str("[object]");
 		return str;
 	}

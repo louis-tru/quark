@@ -2526,7 +2526,7 @@ namespace qk {
 				} else { // import 'test_gui.jsx';   ---->>>>    import * as test_gui from 'test_gui.jsx';
 					// find identifier
 					String2 path = str.substr(1, str.length() - 2).trim();
-					String basename = fs_basename(path.to_string());
+					String basename = fs_basename(path.toString());
 					int i = basename.lastIndexOf('.');
 					if (i != -1) {
 						basename = basename.substr(0, i);
@@ -2769,7 +2769,7 @@ namespace qk {
 				append(S.COMMA);  // ,
 				
 				if (attrs.find(attribute_name) != attrs.end()) {
-					error(String("Xml Syntax error, attribute repeat: ") + attribute_name.to_string());
+					error(String("Xml Syntax error, attribute repeat: ") + attribute_name.toString());
 				}
 				attrs.set(attribute_name, 1);
 				

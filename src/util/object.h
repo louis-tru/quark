@@ -96,13 +96,13 @@ namespace qk {
 		virtual bool is_reference() const;
 		virtual bool retain();
 		virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
-		virtual ArrayString<char, MemoryAllocator> to_string() const;
+		virtual ArrayString<char, MemoryAllocator> toString() const;
 		static void* operator new(size_t size);
 		static void* operator new(size_t size, void* p);
 		static void  operator delete(void* p);
-		static void set_object_allocator(
+		static void setAllocator(
 			void* (*alloc)(size_t size) = nullptr,
-			void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
+			void  (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
 		);
 #if Qk_MEMORY_TRACE_MARK
 		static std::vector<Object*> mark_objects();
