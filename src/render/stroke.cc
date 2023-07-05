@@ -84,23 +84,28 @@ namespace qk {
 
 namespace qk {
 
-	typedef void AddPoint(const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx);
+	typedef void AddPoint(const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx);
+	typedef void BeforeAdding(bool close, int size, void *ctx);
 	typedef void AfterDone(bool close, int size, void *ctx);
 
-	static void each_subpath(const Path *self, AddPoint add, AfterDone after, bool close, void *ctx) {
+	static void each_subpath(const Path *self, AddPoint add, BeforeAdding before, AfterDone after, bool close, void *ctx) {
 
 		auto subpath = [&](const Vec2 *pts, int size, bool close) {
 			if (size > 1) { // size > 1
 				close = close && size > 2;
 
-				add(close ? pts+size-1: NULL, *pts, pts+1, 0, ctx); pts++;
+				if (before)
+					before(close, size, ctx);
+
+				add(close ? pts+size-1: NULL, *pts, pts+1, ctx); pts++;
 
 				for (int i = 1; i < size-1; i++, pts++) {
-					add(pts-1, *pts, pts+1, i, ctx);
+					add(pts-1, *pts, pts+1, ctx);
 				}
-				add(pts-1, *pts, close? pts-size+1: NULL, size-1, ctx);
+				add(pts-1, *pts, close? pts-size+1: NULL, ctx);
 
-				after(close, size, ctx);
+				if (after)
+					after(close, size, ctx);
 			}
 		};
 
@@ -154,34 +159,42 @@ namespace qk {
 	}
 
 	/**
-	 * @method getAntiAliasStrokeTriangles() returns anti alias stroke triangle vertices
+	 * @method getAntiAliasStrokeTriangleStrip() returns anti alias stroke triangle vertices
 	 * @return {Array<Vec3>} points { x, y, sdf value for anti alias stroke }[]
 	*/
-	Array<Vec3> Path::getAntiAliasStrokeTriangles(float epsilon) {
+	Array<Vec3> Path::getAntiAliasStrokeTriangleStrip(float epsilon) {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
 		Array<Vec3> out;
+		struct Ctx { Array<Vec3> *out; Vec3 *ptr; } ctx = { &out };
 
-		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
+		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx) {
 			auto nline = from.normalline(prev, next); // normal line
-			Array<Vec3> *out = (Array<Vec3>*)ctx;
+			auto _ = (Ctx*)ctx;
 
 			if (nline.is_zero()) {
-				return;
+				auto fromPrev = from - *prev;
+				nline = fromPrev.rotate90z().normalized() * 0.5;
+			} else {
+				auto angleLen = nline.angleTo(*prev - from);
+				auto len = 0.5 / sinf(angleLen);
+				nline *= len;
 			}
-
-			auto angleLen = nline.angleTo(*prev - from);
-			auto len = 0.5 / sinf(angleLen);
-
-			nline *= len;
-
-			//from + nline, from - nline
-
-			//out->push(Vec3(from + nline, 1));
-			//out->push(Vec3(from - nline, -1));
-
-		}, [](bool close, int size, void *ctx) {
-			// TODO ...
+			*(_->ptr++) = Vec3(from + nline, 0.5);
+			*(_->ptr++) = Vec3(from + nline, -0.5);
+		},
+		[](bool close, int size, void *ctx) {
+			auto _ = (Ctx*)ctx;
+			auto len = _->out->length();
+			_->out->extend(len + size + 1);
+			_->ptr = _->out->val() + len;
+		},
+		[](bool close, int size, void *ctx) {
+			auto _ = (Ctx*)ctx;
+			auto a = _->ptr + size - 1,
+					 b = _->ptr + size - 2;
+			*(_->ptr++) = *a;
+			*(_->ptr++) = *b;
 		}, true, &out);
 
 		Qk_ReturnLocal(out);
@@ -197,11 +210,6 @@ namespace qk {
 		miterLimit = Float::min(miterLimit, 1024);
 		width *= 0.5;
 
-		Array<Vec3> v;
-
-		v.push(Vec3());
-		v.push(Vec3(1,1,1));
-
 		Path tmp,out;
 		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
 
@@ -216,7 +224,7 @@ namespace qk {
 			2.closed path produces two closed paths
 		*/
 
-		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
+		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx) {
 			#define Qk_addTo(l,r) \
 				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
 
@@ -322,7 +330,7 @@ namespace qk {
 				}
 			}
 			#undef Qk_addTo
-		}, [](bool close, int size, void *ctx) {
+		}, NULL, [](bool close, int size, void *ctx) {
 			auto _ = (Ctx*)ctx;
 			if (close)
 				_->left->close();

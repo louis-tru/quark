@@ -97,10 +97,10 @@ namespace qk {
 		Array<Vec2> getTriangles(float epsilon = 1.0) const;
 
 		/**
-		 * @method getAntiAliasStrokeTriangles() returns anti alias stroke triangle vertices
+		 * @method getAntiAliasStrokeTriangleStrip() returns anti alias stroke triangle vertices
 		 * @return {Array<Vec3>} points { x, y, sdf value for anti alias stroke }[]
 		*/
-		Array<Vec3> getAntiAliasStrokeTriangles(float epsilon = 1.0);
+		Array<Vec3> getAntiAliasStrokeTriangleStrip(float epsilon = 1.0);
 
 		/**
 		 * @method dashPath() returns the dash path

@@ -56,10 +56,6 @@ namespace qk {
 		inline Vec(T a, T b, T c, T d) {
 			val[0] = a; val[1] = b; val[2] = c; val[3] = d;
 		}
-		inline Vec(Vec<T, 2> vec2, T f) {
-			val[0] = vec2[0]; val[1] = vec2[1]; val[2] = f;
-		}
-
 		// ------------------------------------------
 		inline T operator[](int index) const {
 			return val[index];
@@ -220,6 +216,8 @@ namespace qk {
 		Qk_Default_Vec_Operator(Vec3,float,3);
 	#undef Qk_Default_Vec_Operator;
 		Vec3(float a, float b, float c);
+		Vec3(const Vec<float, 2> &vec2, float f);
+		Vec3(float f, const Vec<float, 2> &vec2);
 		float length() const;
 		float dot(const Vec<float,3>& b) const;
 		Vec3  det(const Vec<float,3>& b) const;

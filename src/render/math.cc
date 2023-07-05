@@ -211,6 +211,10 @@ namespace qk {
 	}
 	Vec3::Vec3(float a, float b, float c): Vec(a,b,c) {
 	}
+	Vec3::Vec3(const Vec<float, 2> &vec2, float f): Vec(vec2.val[0],vec2.val[1],f) {
+	}
+	Vec3::Vec3(float f, const Vec<float, 2> &vec2): Vec(f,vec2.val[0],vec2.val[1]) {
+	}
 	Vec3 Vec3::operator+(const Vec<float,3>& b) const {
 		return Vec3(val[0] + b.val[0], val[1] + b.val[1], val[2] + b.val[2]);
 	}
