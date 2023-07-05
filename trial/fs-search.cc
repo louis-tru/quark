@@ -126,7 +126,7 @@ namespace qk {
 		cString& res = fs_resources();
 		
 		if (fs_is_local_zip(res)) { // zip pkg
-			int i = res.index_of("@/");
+			int i = res.indexOf("@/");
 			if (i != -1) {
 				add_zip_search_path(/*zip://*/res.substring(6, i), res.substr(i + 2));
 			} else if (res[res.length() - 1] == '@') {
@@ -232,7 +232,7 @@ namespace qk {
 
 	String FileSearch::get_absolute_path(cString& path) const {
 		
-		if (path.is_empty()) {
+		if (path.isEmpty()) {
 			Qk_WARN("SEARCH", "Search path cannot be a empty and null");
 			return String();
 		}
@@ -244,7 +244,7 @@ namespace qk {
 		auto it = m_search_paths.begin();
 		auto end = m_search_paths.end();
 		
-		if (path.substr(0, 7).lower_case().index_of("zip:///") == 0) {
+		if (path.substr(0, 7).lowerCase().indexOf("zip:///") == 0) {
 			
 			String path_s = path.substr(7);
 			Array<String> ls = path_s.split("@/");
@@ -275,12 +275,12 @@ namespace qk {
 	}
 
 	bool FileSearch::exists(cString& path) const {
-		return !get_absolute_path(path).is_empty();
+		return !get_absolute_path(path).isEmpty();
 	}
 
 	Buffer FileSearch::read(cString& path) const {
 		
-		if (path.is_empty()) {
+		if (path.isEmpty()) {
 			return Buffer();
 		}
 		
@@ -291,7 +291,7 @@ namespace qk {
 			
 			auto it = m_search_paths.begin();
 			auto end = m_search_paths.end();
-			if (path.substr(0, 7).lower_case().index_of("zip:///") == 0) { // zip pkg inner file
+			if (path.substr(0, 7).lowerCase().indexOf("zip:///") == 0) { // zip pkg inner file
 				
 				String path_s = path.substr(7);
 				Array<String> ls = path_s.split("@/");

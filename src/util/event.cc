@@ -47,18 +47,18 @@ namespace qk {
 		struct S {
 			ListenerFunc listener; void* ctx;
 		} s = {listener,ctx};
-		return qk::hash_code(&s, sizeof(S)) % Uint32::limit_max;
+		return qk::hashCode(&s, sizeof(S)) % Uint32::limit_max;
 	}
 
 	uint32_t ev_hash_code(StaticListenerFunc listener, void* ctx) {
 		struct S {
 			StaticListenerFunc listener; void* ctx;
 		} s = {listener,ctx};
-		return qk::hash_code(&s, sizeof(S)) % Uint32::limit_max;
+		return qk::hashCode(&s, sizeof(S)) % Uint32::limit_max;
 	}
 
 	uint32_t ev_hash_code(Basic* shell) {
-		return qk::hash_code(&shell, sizeof(Basic*)) % Uint32::limit_max;
+		return qk::hashCode(&shell, sizeof(Basic*)) % Uint32::limit_max;
 	}
 
 	bool Listener::match(ListenerFunc l, void* ctx) {

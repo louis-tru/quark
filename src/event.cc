@@ -156,7 +156,7 @@ namespace qk {
 	}());
 
 	UIEventName::UIEventName(cString& name, uint32_t category, uint32_t flag)
-		: _to_string(name), _hash_code((uint32_t)name.hash_code()), _category(category), _flag(flag)
+		: _to_string(name), _hashCode((uint32_t)name.hashCode()), _category(category), _flag(flag)
 	{}
 
 	UIEvent::UIEvent(View* origin)

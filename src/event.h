@@ -129,12 +129,12 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(String, to_string);
 		Qk_DEFINE_PROP_GET(uint32_t, category);
 		Qk_DEFINE_PROP_GET(uint32_t, flag);
-		Qk_DEFINE_PROP_GET(uint32_t, hash_code);
-		inline bool equals(const UIEventName& v) const { return v.hash_code() == _hash_code; }
-		inline bool operator==(const UIEventName& v) const { return v._hash_code == _hash_code; }
-		inline bool operator!=(const UIEventName& v) const { return v._hash_code != _hash_code; }
-		inline bool operator>(const UIEventName& v) const { return _hash_code > v._hash_code; }
-		inline bool operator<(const UIEventName& v) const { return _hash_code < v._hash_code; }
+		Qk_DEFINE_PROP_GET(uint32_t, hashCode);
+		inline bool equals(const UIEventName& v) const { return v.hashCode() == _hashCode; }
+		inline bool operator==(const UIEventName& v) const { return v._hashCode == _hashCode; }
+		inline bool operator!=(const UIEventName& v) const { return v._hashCode != _hashCode; }
+		inline bool operator>(const UIEventName& v) const { return _hashCode > v._hashCode; }
+		inline bool operator<(const UIEventName& v) const { return _hashCode < v._hashCode; }
 	};
 
 	// event names string => UIEventName

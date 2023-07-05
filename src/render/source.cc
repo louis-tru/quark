@@ -44,7 +44,7 @@ namespace qk {
 		, _state(kSTATE_NONE)
 		, _load_id(0), _device(nullptr)
 	{
-		if (!uri.is_empty())
+		if (!uri.isEmpty())
 			_uri = fs_reader()->format(uri);
 	}
 
@@ -141,7 +141,7 @@ namespace qk {
 		if (_state & (kSTATE_LOADING | kSTATE_LOAD_ERROR | kSTATE_DECODE_ERROR))
 			return false;
 
-		if (_uri.is_empty()) // empty uri
+		if (_uri.isEmpty()) // empty uri
 			return false;
 
 		RunLoop::first()->post(Cb([this](auto e) {
@@ -225,7 +225,7 @@ namespace qk {
 
 	void ImageSourcePool::handleSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		ScopeLock locl(_Mutex);
-		auto id = evt.sender()->uri().hash_code();
+		auto id = evt.sender()->uri().hashCode();
 		auto it = _sources.find(id);
 		if (it != _sources.end()) {
 			auto info = evt.sender()->info();
@@ -249,7 +249,7 @@ namespace qk {
 	ImageSource* ImageSourcePool::get(cString& uri) {
 		ScopeLock local(_Mutex);
 		String _uri = fs_reader()->format(uri);
-		uint64_t id = _uri.hash_code();
+		uint64_t id = _uri.hashCode();
 
 		// find image source by path
 		auto it = _sources.find(id);
@@ -269,7 +269,7 @@ namespace qk {
 	void ImageSourcePool::remove(cString& uri) {
 		ScopeLock local(_Mutex);
 		String _uri = fs_reader()->format(uri);
-		auto it = _sources.find(_uri.hash_code());
+		auto it = _sources.find(_uri.hashCode());
 		if (it != _sources.end()) {
 			it->value.source->Qk_Off(State, &ImageSourcePool::handleSourceState, this);
 			_sources.erase(it);

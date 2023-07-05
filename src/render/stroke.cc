@@ -29,15 +29,63 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./path.h"
-#include "./ft/ft_path.h"
 #include <math.h>
-
 #define Qk_USE_FT_STROKE 0
+
+#if Qk_USE_FT_STROKE
+#include "./ft/ft_path.h"
 
 namespace qk {
 
-	typedef void AddPoint(const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx);
-	typedef void AfterDone(bool close, void *ctx);
+	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
+		Qk_FT_Stroker stroker;
+		Qk_FT_Stroker_LineCap ft_cap = Qk_FT_Stroker_LineCap(cap);
+		Qk_FT_Stroker_LineJoin ft_join =
+			Join::kMiter_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_MITER: 
+			Join::kRound_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_ROUND: 
+			Qk_FT_STROKER_LINEJOIN_BEVEL;
+		Qk_FT_Error err;
+
+		if (miterLimit == 0)
+			miterLimit = 1024;
+
+		err = Qk_FT_Stroker_New(&stroker);
+		Qk_ASSERT(err==0);
+		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miterLimit));
+		
+		Path tmp;
+		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
+
+		auto from_outline = qk_ft_outline_convert(self);
+		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);
+		Qk_ASSERT(err==0);
+
+		Qk_FT_UInt anum_points, anum_contours;
+		err = Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
+		Qk_ASSERT(err==0);
+
+		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
+		Qk_FT_Stroker_Export(stroker, to_outline);
+
+		Path out;
+		err = qk_ft_path_convert(to_outline, &out);
+		Qk_ASSERT(err==0);
+
+		qk_ft_outline_destroy(from_outline);
+		qk_ft_outline_destroy(to_outline);
+		Qk_FT_Stroker_Done(stroker);
+
+		Qk_ReturnLocal(out);
+	}
+
+}
+
+#endif
+
+namespace qk {
+
+	typedef void AddPoint(const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx);
+	typedef void AfterDone(bool close, int size, void *ctx);
 
 	static void each_subpath(const Path *self, AddPoint add, AfterDone after, bool close, void *ctx) {
 
@@ -45,14 +93,14 @@ namespace qk {
 			if (size > 1) { // size > 1
 				close = close && size > 2;
 
-				add(close ? pts+size-1: NULL, *pts, pts+1, ctx); pts++;
+				add(close ? pts+size-1: NULL, *pts, pts+1, 0, ctx); pts++;
 
 				for (int i = 1; i < size-1; i++, pts++) {
-					add(pts-1, *pts, pts+1, ctx);
+					add(pts-1, *pts, pts+1, i, ctx);
 				}
-				add(pts-1, *pts, close? pts-size+1: NULL, ctx);
+				add(pts-1, *pts, close? pts-size+1: NULL, size-1, ctx);
 
-				after(close, ctx);
+				after(close, size, ctx);
 			}
 		};
 
@@ -114,14 +162,11 @@ namespace qk {
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
 		Array<Vec3> out;
 
-		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx) {
+		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			auto nline = from.normalline(prev, next); // normal line
+			Array<Vec3> *out = (Array<Vec3>*)ctx;
 
 			if (nline.is_zero()) {
-				// nline = fromPrev90 * width;
-				// Qk_addTo(from + nline, from - nline);
-				// left.lineTo(from - nline);
-				// right.lineTo(from + nline);
 				return;
 			}
 
@@ -130,59 +175,19 @@ namespace qk {
 
 			nline *= len;
 
-			//
+			//from + nline, from - nline
 
-		}, [](bool close, void *ctx) {
+			//out->push(Vec3(from + nline, 1));
+			//out->push(Vec3(from - nline, -1));
+
+		}, [](bool close, int size, void *ctx) {
 			// TODO ...
-		}, true, NULL);
+		}, true, &out);
 
 		Qk_ReturnLocal(out);
 	}
 
-#if Qk_USE_FT_STROKE
-
-	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
-		Qk_FT_Stroker stroker;
-		Qk_FT_Stroker_LineCap ft_cap = Qk_FT_Stroker_LineCap(cap);
-		Qk_FT_Stroker_LineJoin ft_join =
-			Join::kMiter_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_MITER: 
-			Join::kRound_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_ROUND: 
-			Qk_FT_STROKER_LINEJOIN_BEVEL;
-		Qk_FT_Error err;
-
-		if (miterLimit == 0)
-			miterLimit = 1024;
-
-		err = Qk_FT_Stroker_New(&stroker);
-		Qk_ASSERT(err==0);
-		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miterLimit));
-		
-		Path tmp;
-		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
-
-		auto from_outline = qk_ft_outline_convert(self);
-		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);
-		Qk_ASSERT(err==0);
-
-		Qk_FT_UInt anum_points, anum_contours;
-		err = Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
-		Qk_ASSERT(err==0);
-
-		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
-		Qk_FT_Stroker_Export(stroker, to_outline);
-
-		Path out;
-		err = qk_ft_path_convert(to_outline, &out);
-		Qk_ASSERT(err==0);
-
-		qk_ft_outline_destroy(from_outline);
-		qk_ft_outline_destroy(to_outline);
-		Qk_FT_Stroker_Done(stroker);
-
-		Qk_ReturnLocal(out);
-	}
-
-#else
+#if !Qk_USE_FT_STROKE
 
 	// modification to stroke path
 	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
@@ -191,6 +196,11 @@ namespace qk {
 
 		miterLimit = Float::min(miterLimit, 1024);
 		width *= 0.5;
+
+		Array<Vec3> v;
+
+		v.push(Vec3());
+		v.push(Vec3(1,1,1));
 
 		Path tmp,out;
 		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
@@ -206,7 +216,7 @@ namespace qk {
 			2.closed path produces two closed paths
 		*/
 
-		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx) {
+		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			#define Qk_addTo(l,r) \
 				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
 
@@ -312,7 +322,7 @@ namespace qk {
 				}
 			}
 			#undef Qk_addTo
-		}, [](bool close, void *ctx) {
+		}, [](bool close, int size, void *ctx) {
 			auto _ = (Ctx*)ctx;
 			if (close)
 				_->left->close();

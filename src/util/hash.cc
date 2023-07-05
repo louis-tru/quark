@@ -60,10 +60,10 @@ namespace qk {
 		return rev;
 	}
 
-	uint64_t hash_code(const void* data, uint32_t len) {
+	uint64_t hashCode(const void* data, uint32_t len) {
 		Hash5381 hash;
 		hash.update(data, len);
-		return hash.hash_code();
+		return hash.hashCode();
 	}
 
 	String hash(const void* data, uint32_t len) {

@@ -431,5 +431,5 @@ String QkStringFromCFString(CFStringRef src) {
 
 	CFStringGetCString(src, *buf, length, kCFStringEncodingUTF8);
 
-	return buf.collapse_string();
+	return buf.collapseString();
 }

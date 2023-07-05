@@ -40,7 +40,7 @@ namespace qk {
 		uint64_t _hash;
 	public:
 		inline Hash5381(): _hash(5381) {}
-		uint64_t hash_code() const { return _hash; }
+		uint64_t hashCode() const { return _hash; }
 		void     clear();
 		void     update(const void* data, uint32_t len);
 		void     update(cString& str);
@@ -48,7 +48,7 @@ namespace qk {
 		String   digest();
 	};
 
-	Qk_EXPORT uint64_t hash_code(const void* data, uint32_t len);
+	Qk_EXPORT uint64_t hashCode(const void* data, uint32_t len);
 	Qk_EXPORT String hash(const void* data, uint32_t len);
 	Qk_EXPORT String hash(cString& str);
 }

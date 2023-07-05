@@ -292,15 +292,15 @@ namespace qk {
 		}
 
 		Noticer* get_noticer(const Name& name) {
-			return static_cast<Noticer*>(NotificationBasic::get_noticer(name.hash_code(), 0));
+			return static_cast<Noticer*>(NotificationBasic::get_noticer(name.hashCode(), 0));
 		}
 
 		bool has_noticer(const Name& name) const {
-			return NotificationBasic::has_noticer(name.hash_code());
+			return NotificationBasic::has_noticer(name.hashCode());
 		}
 		
 		void add_event_listener(const Name& name, Basic::Listener *l) {
-			NotificationBasic::add_event_listener(name.hash_code(), l);
+			NotificationBasic::add_event_listener(name.hashCode(), l);
 		}
 
 		template<class Ctx>
@@ -341,30 +341,30 @@ namespace qk {
 		
 		template<class Ctx>
 		void remove_event_listener(const Name& name, void (Ctx::*listener)(Event&)) {
-			remove_event_listener(name.hash_code(), (Basic::ListenerFunc)listener);
+			remove_event_listener(name.hashCode(), (Basic::ListenerFunc)listener);
 		}
 		
 		template<class Ctx>
 		inline void remove_event_listener(const Name& name, void (Ctx::*listener)(Event&), Ctx* ctx) {
-			remove_event_listener(name.hash_code(), (Basic::ListenerFunc)listener, ctx);
+			remove_event_listener(name.hashCode(), (Basic::ListenerFunc)listener, ctx);
 		}
 
 		template<class Ctx>
 		inline void remove_event_listener(const Name& name, void (*listener)(Event&, Ctx*)) {
-			remove_event_listener_static(name.hash_code(), (Basic::StaticListenerFunc)listener);
+			remove_event_listener_static(name.hashCode(), (Basic::StaticListenerFunc)listener);
 		}
 		
 		template<class Ctx>
 		inline void remove_event_listener(const Name& name, void (*listener)(Event&, Ctx*), Ctx* ctx) {
-			remove_event_listener_static(name.hash_code(), (Basic::StaticListenerFunc)listener, ctx);
+			remove_event_listener_static(name.hashCode(), (Basic::StaticListenerFunc)listener, ctx);
 		}
 		
 		void remove_event_listener(const Name& name, uint32_t id) {
-			remove_event_listener_for_id(name.hash_code(), id);
+			remove_event_listener_for_id(name.hashCode(), id);
 		}
 		
 		void remove_event_listener(const Name& name, Noticer* shell) {
-			remove_event_listener_shell(name.hash_code(), shell);
+			remove_event_listener_shell(name.hashCode(), shell);
 		}
 		
 		template<class Ctx>
@@ -380,7 +380,7 @@ namespace qk {
 
 		// Uninstall all listening functions on the specified event name
 		void remove_event_listener(const Name& name) {
-			remove_event_listener_for_name(name.hash_code());
+			remove_event_listener_for_name(name.hashCode());
 		}
 
 		void trigger(const Name& name) {

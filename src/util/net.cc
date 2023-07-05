@@ -289,7 +289,7 @@ namespace qk {
 			Qk_ASSERT(_is_opening == false);
 			Qk_ASSERT(_uv_handle == nullptr);
 			
-			if ( _remote_ip.is_empty() ) {
+			if ( _remote_ip.isEmpty() ) {
 				sockaddr_in sockaddr;
 				sockaddr_in6 sockaddr6;
 				Char dst[64];
@@ -336,7 +336,7 @@ namespace qk {
 				}
 			}
 			
-			if ( !_remote_ip.is_empty() ) {
+			if ( !_remote_ip.isEmpty() ) {
 				_uv_handle = new UVHandle(this, uv_loop());
 				Qk_ASSERT(_uv_tcp == nullptr);
 				Qk_ASSERT(_uv_timer == nullptr);
@@ -431,7 +431,7 @@ namespace qk {
 		
 		static void read_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 			Inl* self = static_cast<UVHandle*>(handle->data)->host;
-			if ( self->_read_buffer.is_null() ) {
+			if ( self->_read_buffer.isNull() ) {
 				self->_read_buffer = Buffer::alloc( Qk_MIN(65536, uint32_t(suggested_size)) );
 			}
 			buf->base = *self->_read_buffer;
@@ -505,7 +505,7 @@ namespace qk {
 		
 		static void set_ssl_cacert(cString& ca_content) {
 			
-			if (ca_content.is_empty()) {
+			if (ca_content.isEmpty()) {
 				Qk_ERR("%s", "set_ssl_cacert() fail, ca_content is empty string"); return;
 			}
 

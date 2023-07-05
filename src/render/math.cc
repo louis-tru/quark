@@ -37,8 +37,8 @@
 #include "../util/array.cc"
 
 namespace qk {
-
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Vec2);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Vec2,0);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Vec3,0);
 	
 	float math_invSqrt(float x) {
 #if Qk_Soft_Sqrt

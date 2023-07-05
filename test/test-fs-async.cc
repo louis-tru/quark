@@ -46,7 +46,7 @@ class AsyncFileRead: public File, public File::Delegate {
 			if ( evt.error ) {
 				Qk_LOG("ERR, %s", evt.error->message().c_str());
 			} else {
-				Qk_LOG( static_cast<Buffer*>(evt.data)->collapse_string() );
+				Qk_LOG( static_cast<Buffer*>(evt.data)->collapseString() );
 			}
 			RunLoop::current()->stop();
 		}));
@@ -66,7 +66,7 @@ class AsyncFileRead: public File, public File::Delegate {
 	}
 	virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
 		if ( buffer.length() ) {
-			Qk_LOG( buffer.collapse_string() );
+			Qk_LOG( buffer.collapseString() );
 			read(buffer, 1024); // read
 		} else {
 			// read end

@@ -240,7 +240,7 @@ namespace qk {
 			static int on_status(http_parser* parser, cChar *at, size_t length) {
 				//g_debug("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint32_t(length)).c());
 				Connect* self = static_cast<Connect*>(parser->data);
-				int status_code = String(at - 4, 3).to_number<uint32_t>();
+				int status_code = String(at - 4, 3).toNumber<uint32_t>();
 				if (status_code == 200) {
 					self->_client->_write_cache_flag = 2; // set write cache flag
 				}
@@ -254,7 +254,7 @@ namespace qk {
 			
 			static int on_header_field(http_parser* parser, cChar *at, size_t length) {
 				//g_debug("http response parser on_header_field, %s", String(at, uint32_t(length)).c());
-				static_cast<Connect*>(parser->data)->_header_field = String(at, uint32_t(length)).lower_case();
+				static_cast<Connect*>(parser->data)->_header_field = String(at, uint32_t(length)).lowerCase();
 				return 0;
 			}
 			
@@ -279,7 +279,7 @@ namespace qk {
 				Connect* self = static_cast<Connect*>(parser->data);
 				Client* cli = self->_client;
 				if ( self->_header.has("content-length") ) {
-					cli->_download_total = self->_header["content-length"].to_number<int64_t>();
+					cli->_download_total = self->_header["content-length"].toNumber<int64_t>();
 				}
 				self->init_gzip_parser();
 				cli->trigger_http_header(cli->_status_code, std::move(self->_header), 0);
@@ -295,10 +295,10 @@ namespace qk {
 					_z_strm.avail_in = 0;
 					
 					String encoding = _header["content-encoding"];
-					if ( encoding.index_of("gzip") != -1 ) {
+					if ( encoding.indexOf("gzip") != -1 ) {
 						_z_gzip = 2;
 						inflateInit2(&_z_strm, 47);
-					} else if ( encoding.index_of("deflate") != -1 ) {
+					} else if ( encoding.indexOf("deflate") != -1 ) {
 						_z_gzip = 1;
 						inflateInit(&_z_strm);
 					}
@@ -376,7 +376,7 @@ namespace qk {
 				if ( !header.has("DNT") )             header["DNT"] = "1";
 				// if ( !header.has("Accept-Language") ) header["Accept-Language"] = languages();
 				
-				if ( !_client->_username.is_empty() && !_client->_password.is_empty() ) {
+				if ( !_client->_username.isEmpty() && !_client->_password.isEmpty() ) {
 					String s = _client->_username + ':' + _client->_password;
 					header["Authorization"] = codec_encode(kBase64_Encoding, s);
 				}
@@ -386,7 +386,7 @@ namespace qk {
 					String cookies = http_get_all_cookie_string(_client->_uri.domain(),
 																														_client->_uri.pathname(),
 																														_client->_uri.type() == URI_HTTPS);
-					if ( !cookies.is_empty() ) {
+					if ( !cookies.isEmpty() ) {
 						header["Cookie"] = cookies;
 					}
 				}
@@ -394,10 +394,10 @@ namespace qk {
 				if ( _client->_cache_reader ) {
 					String last_modified = _client->_cache_reader->header()["last-modified"];
 					String etag = _client->_cache_reader->header()["etag"];
-					if ( !last_modified.is_empty() )  {
+					if ( !last_modified.isEmpty() )  {
 						header["If-Modified-Since"] = std::move(last_modified);
 					}
-					if ( !etag.is_empty() ) {
+					if ( !etag.isEmpty() ) {
 						header["If-None-Match"] = std::move(etag);
 					}
 				}
@@ -703,7 +703,7 @@ namespace qk {
 			void get_connect(Client* client, Cb cb) {
 				Qk_ASSERT(client);
 				Qk_ASSERT(!client->_uri.is_null());
-				Qk_ASSERT(!client->_uri.hostname().is_empty());
+				Qk_ASSERT(!client->_uri.hostname().isEmpty());
 				Qk_ASSERT(client->_uri.type() == URI_HTTP || client->_uri.type() == URI_HTTPS);
 				
 				uint16_t  port = client->_uri.port();
@@ -901,7 +901,7 @@ namespace qk {
 						 */
 						
 						for ( int i = 0; ; ) {
-							int j = str.index_of(s, i);
+							int j = str.indexOf(s, i);
 							if ( j != -1 && j != 0 ) {
 								if ( j == i ) { // parse header end
 									_parse_header = false;
@@ -916,7 +916,7 @@ namespace qk {
 									} else {
 										// Qk_LOG("Read -- %ld, %ld, %s", expires, sys::time(), *_header.get("expires"));
 										if (parse_time(_header["last-modified"]) > 0 ||
-												!_header["etag"].is_empty()
+												!_header["etag"].isEmpty()
 										) {
 											_client->send_http();
 										} else {
@@ -926,10 +926,10 @@ namespace qk {
 									// parse header end
 									break;
 								} else {
-									int k = str.index_of(s2, i);
+									int k = str.indexOf(s2, i);
 									if ( k != -1 && k - i > 1 && j - k > 2 ) {
 										// Qk_LOG("  %s:-> %s", str.substring(i, k).lower_case().c(), str.substring(k + 2, j).c());
-										_header[str.substring(i, k).lower_case()] = str.substring(k + 2, j);
+										_header[str.substring(i, k).lowerCase()] = str.substring(k + 2, j);
 									}
 								}
 							} else {
@@ -999,15 +999,15 @@ namespace qk {
 		}
 
 		static String convert_to_expires(cString& cache_control) {
-			if ( !cache_control.is_empty() ) {
-				int i = cache_control.index_of(string_max_age);
+			if ( !cache_control.isEmpty() ) {
+				int i = cache_control.indexOf(string_max_age);
 				if ( i != -1 && i + string_max_age.length() < cache_control.length() ) {
-					int j = cache_control.index_of(',', i);
+					int j = cache_control.indexOf(',', i);
 					String max_age = j != -1
 					? cache_control.substring(i + string_max_age.length(), j)
 					: cache_control.substring(i + string_max_age.length());
 					
-					int64_t num = max_age.trim().to_number<int64_t>();
+					int64_t num = max_age.trim().toNumber<int64_t>();
 					if ( num > 0 ) {
 						return gmt_time_string( time_second() + num );
 					}
@@ -1045,7 +1045,7 @@ namespace qk {
 					if ( r_header.has("cache-control") ) {
 						String expires = convert_to_expires(r_header["cache-control"]);
 						// Qk_LOG("FileWriter -- %s", *expires);
-						if ( !expires.is_empty() ) {
+						if ( !expires.isEmpty() ) {
 							r_header["expires"] = expires;
 						}
 					}
@@ -1084,7 +1084,7 @@ namespace qk {
 					auto& r_header = _client->response_header();
 
 					for ( auto& i : r_header ) {
-						if (!i.value.is_empty() && i.key != "cache-control") {
+						if (!i.value.isEmpty() && i.key != "cache-control") {
 							header += i.key;
 							header += string_colon;
 							if (i.key == "expires") {
@@ -1244,7 +1244,7 @@ namespace qk {
 				}
 			}
 
-			if ( !_save_path.is_empty() ) {
+			if ( !_save_path.isEmpty() ) {
 				if ( !_file_writer ) {
 					new FileWriter(this, _save_path, 0, loop());
 				}
@@ -1271,12 +1271,12 @@ namespace qk {
 				if ( _status_code == 304) {
 					if (_cache_reader) {
 						String expires = convert_to_expires(_response_header["cache-control"]);
-						if (expires.is_empty()) {
+						if (expires.isEmpty()) {
 							expires = _response_header["expires"];
 						}
 						_response_header = std::move(_cache_reader->header());
 
-						if (!expires.is_empty() && expires != _response_header["expires"]) {
+						if (!expires.isEmpty() && expires != _response_header["expires"]) {
 							// 重新设置 expires
 							_write_cache_flag = 1; // rewrite response header
 							_response_header["expires"] = expires;
@@ -1389,9 +1389,9 @@ namespace qk {
 			_pause = false;
 			_url_no_cache_arg = false;
 			_cache_path = http_cache_path() + '/' +
-				hash_code(_uri.href().c_str(), _uri.href().length());
+				hashCode(_uri.href().c_str(), _uri.href().length());
 			
-			int i = _uri.search().index_of("__no_cache");
+			int i = _uri.search().indexOf("__no_cache");
 			if ( i != -1 && _uri.search()[i+9] != '=' ) {
 				_url_no_cache_arg = true;
 			}

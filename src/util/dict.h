@@ -40,29 +40,29 @@
 namespace qk {
 
 	template<typename T> struct Compare {
-		static uint64_t hash_code(const T& key) {
-			return key.hash_code();
+		static uint64_t hashCode(const T& key) {
+			return key.hashCode();
 		}
 	};
 
 	template<typename T> struct Compare<T*> {
 		typedef T* Type;
-		static uint64_t hash_code(const Type& key) {
+		static uint64_t hashCode(const Type& key) {
 			return (uint64_t)key;
 		}
 	};
 	
-	template<> Qk_EXPORT uint64_t Compare<char>::hash_code(const char& key);
-	template<> Qk_EXPORT uint64_t Compare<uint8_t>::hash_code(const uint8_t& key);
-	template<> Qk_EXPORT uint64_t Compare<int16_t>::hash_code(const int16_t& key);
-	template<> Qk_EXPORT uint64_t Compare<uint16_t>::hash_code(const uint16_t& key);
-	template<> Qk_EXPORT uint64_t Compare<int32_t>::hash_code(const int32_t& key);
-	template<> Qk_EXPORT uint64_t Compare<uint32_t>::hash_code(const uint32_t& key);
-	template<> Qk_EXPORT uint64_t Compare<int64_t>::hash_code(const int64_t& key);
-	template<> Qk_EXPORT uint64_t Compare<uint64_t>::hash_code(const uint64_t& key);
-	template<> Qk_EXPORT uint64_t Compare<float>::hash_code(const float& key);
-	template<> Qk_EXPORT uint64_t Compare<double>::hash_code(const double& key);
-	template<> Qk_EXPORT uint64_t Compare<bool>::hash_code(const bool& key);
+	template<> Qk_EXPORT uint64_t Compare<char>::hashCode(const char& key);
+	template<> Qk_EXPORT uint64_t Compare<uint8_t>::hashCode(const uint8_t& key);
+	template<> Qk_EXPORT uint64_t Compare<int16_t>::hashCode(const int16_t& key);
+	template<> Qk_EXPORT uint64_t Compare<uint16_t>::hashCode(const uint16_t& key);
+	template<> Qk_EXPORT uint64_t Compare<int32_t>::hashCode(const int32_t& key);
+	template<> Qk_EXPORT uint64_t Compare<uint32_t>::hashCode(const uint32_t& key);
+	template<> Qk_EXPORT uint64_t Compare<int64_t>::hashCode(const int64_t& key);
+	template<> Qk_EXPORT uint64_t Compare<uint64_t>::hashCode(const uint64_t& key);
+	template<> Qk_EXPORT uint64_t Compare<float>::hashCode(const float& key);
+	template<> Qk_EXPORT uint64_t Compare<double>::hashCode(const double& key);
+	template<> Qk_EXPORT uint64_t Compare<bool>::hashCode(const bool& key);
 
 	/**
 	 * @class Dict hash table
@@ -86,7 +86,7 @@ namespace qk {
 			const Data& data() const { return *reinterpret_cast<const Data*>((&_conflict) + 1); }
 		private:
 			friend class Dict;
-			uint64_t hash_code;
+			uint64_t hashCode;
 			Node *_prev, *_next, *_conflict;
 		};
 
@@ -224,10 +224,10 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::find(const K& key) const {
 		if (_length) {
-			auto hash = C::hash_code(key);
+			auto hash = C::hashCode(key);
 			auto node = _nodes[hash % _capacity];
 			while (node) {
-				if (node->hash_code == hash)
+				if (node->hashCode == hash)
 					return IteratorConst(node);
 				node = node->_conflict;
 			}
@@ -247,7 +247,7 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A>
 	uint32_t Dict<K, V, C, A>::count(const K& key) const {
-		return _length && _nodes[C::hash_code(key) % _capacity] ? 1/*TODO use 1*/: 0;
+		return _length && _nodes[C::hashCode(key) % _capacity] ? 1/*TODO use 1*/: 0;
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -409,7 +409,7 @@ namespace qk {
 	
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::init_() {
-		_end.hash_code = 0;
+		_end.hashCode = 0;
 		_end._conflict = nullptr;
 		fill_(nullptr, &_end, &_end, 0, 0);
 	}
@@ -426,14 +426,14 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::get_(const K& key, Pair** data) {
 		if (!_capacity) {
-			_nodes = (Node**)A::aalloc(_nodes, 1, &_capacity, sizeof(Node*));
+			A::aalloc((void**)&_nodes, 1, &_capacity, sizeof(Node*));
 			::memset(_nodes, 0, sizeof(Node*) * _capacity);
 		}
-		auto hash = C::hash_code(key);
+		auto hash = C::hashCode(key);
 		auto index = hash % _capacity;
 		auto node = _nodes[index];
 		while (node) {
-			if (node->hash_code == hash) {
+			if (node->hashCode == hash) {
 				*data = &node->data();
 				return false;
 			}
@@ -444,7 +444,7 @@ namespace qk {
 		index = hash % _capacity;
 		// insert new key
 		node = (Node*)A::alloc(sizeof(Node) + sizeof(Pair));
-		node->hash_code = hash;
+		node->hashCode = hash;
 		node->_conflict = _nodes[index];
 		link_(_end._prev, node);
 		link_(node, &_end);
@@ -455,7 +455,7 @@ namespace qk {
 	
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::erase_(Node* node) {
-		auto index = node->hash_code % _capacity;
+		auto index = node->hashCode % _capacity;
 		auto begin = _nodes[index];
 		if (begin == node) {
 			_nodes[index] = node->_conflict;
@@ -472,11 +472,11 @@ namespace qk {
 	void Dict<K, V, C, A>::optimize_() {
 		auto scale = float(_length) / float(_capacity);
 		if (scale > 0.7 || (scale < 0.2 && _capacity > Qk_MIN_CAPACITY)) {
-			_nodes = (Node**)A::aalloc(_nodes, uint32_t(_length / 0.7) , &_capacity, sizeof(Node*));
+			A::aalloc((void**)&_nodes, uint32_t(_length / 0.7) , &_capacity, sizeof(Node*));
 			::memset(_nodes, 0, sizeof(Node*) * _capacity);
 			auto node = _end._next;
 			while (node != &_end) {
-				auto index = node->hash_code % _capacity;
+				auto index = node->hashCode % _capacity;
 				node->_conflict = _nodes[index];
 				_nodes[index] = node;
 				node = node->_next;

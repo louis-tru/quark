@@ -32,16 +32,16 @@
 
 namespace qk {
 
-	template<> uint64_t Compare<char>::hash_code(const char& key) { return key; }
-	template<> uint64_t Compare<uint8_t>::hash_code(const uint8_t& key) { return key; }
-	template<> uint64_t Compare<int16_t>::hash_code(const int16_t& key) { return key; }
-	template<> uint64_t Compare<uint16_t>::hash_code(const uint16_t& key) { return key; }
-	template<> uint64_t Compare<int32_t>::hash_code(const int32_t& key) { return key; }
-	template<> uint64_t Compare<uint32_t>::hash_code(const uint32_t& key) { return key; }
-	template<> uint64_t Compare<int64_t>::hash_code(const int64_t& key) { return key; }
-	template<> uint64_t Compare<uint64_t>::hash_code(const uint64_t& key) { return key; }
-	template<> uint64_t Compare<float>::hash_code(const float& key) { return *reinterpret_cast<const uint32_t*>(&key); }
-	template<> uint64_t Compare<double>::hash_code(const double& key) { return *reinterpret_cast<const uint64_t*>(&key); }
-	template<> uint64_t Compare<bool>::hash_code(const bool& key) { return key; }
+	template<> uint64_t Compare<char>::hashCode(const char& key) { return key; }
+	template<> uint64_t Compare<uint8_t>::hashCode(const uint8_t& key) { return key; }
+	template<> uint64_t Compare<int16_t>::hashCode(const int16_t& key) { return key; }
+	template<> uint64_t Compare<uint16_t>::hashCode(const uint16_t& key) { return key; }
+	template<> uint64_t Compare<int32_t>::hashCode(const int32_t& key) { return key; }
+	template<> uint64_t Compare<uint32_t>::hashCode(const uint32_t& key) { return key; }
+	template<> uint64_t Compare<int64_t>::hashCode(const int64_t& key) { return key; }
+	template<> uint64_t Compare<uint64_t>::hashCode(const uint64_t& key) { return key; }
+	template<> uint64_t Compare<float>::hashCode(const float& key) { return *reinterpret_cast<const uint32_t*>(&key); }
+	template<> uint64_t Compare<double>::hashCode(const double& key) { return *reinterpret_cast<const uint64_t*>(&key); }
+	template<> uint64_t Compare<bool>::hashCode(const bool& key) { return key; }
 
 }

@@ -81,7 +81,7 @@ namespace qk {
 		inline uint32_t ptsLen() const { return _pts.length() >> 1; }
 		inline uint32_t verbsLen() const { return _verbs.length(); }
 		inline bool isNormalized() const { return _IsNormalized; }
-		inline uint64_t hashCode() const { return _hash.hash_code(); }
+		inline uint64_t hashCode() const { return _hash.hashCode(); }
 
 		// convert func
 		/**

@@ -63,7 +63,7 @@
 		qk::js::Worker::registerModule(#name, cls::binding, __FILE__); \
 	}
 
-#define JS_TYPEID(t) (typeid(t).hash_code())
+#define JS_TYPEID(t) (typeid(t).hashCode())
 #define JS_ATTACH(args) if (WrapObject::attach(args)) return
 
 #define JS_TYPE_CHECK(T, S)  \

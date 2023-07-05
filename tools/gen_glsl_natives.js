@@ -156,7 +156,7 @@ function resolve_code_ast(input, hpp, cpp) {
 	// write(hpp, `const cString& ${call};`);
 	write(cpp, `const cString& ${call} {`,
 		`	static String c;`,
-		`	if (c.is_empty()) {`,
+		`	if (c.isEmpty()) {`,
 			isFrag||isVert?`		c+="#version " Qk_GL_Version "\\n";`:'',
 			isFrag ? `		c+="#define Qk_SHAFER_FRAG\\n";`:'',
 			include.map(e=>(`		c+=${e.call};`)),

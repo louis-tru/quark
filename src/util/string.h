@@ -47,8 +47,8 @@ namespace qk {
 	
 	class Qk_EXPORT ArrayStringBase: public Object {
 	public:
-		typedef void* (*AAlloc)(void* val, uint32_t, uint32_t*, uint32_t size_of);
-		typedef void  (*Free)(void* ptr);
+		typedef void (*AAlloc)(void** val, uint32_t, uint32_t*, uint32_t sizeOf);
+		typedef void (*Free)(void* ptr);
 		static constexpr char MAX_SHORT_LEN = 32;
 		struct ShortStr { char val[36]; char length; };
 		struct LongStr {
@@ -101,13 +101,13 @@ namespace qk {
 		ArrayString(double i);
 
 		virtual ~ArrayString();
-		virtual String to_string() const;
+		virtual String toString() const;
 		/**
 		 * @func format string
 		 */
 		static ArrayString format(cChar* format, ...);
 
-		inline bool  is_empty() const;
+		inline bool  isEmpty() const;
 		inline const T* c_str() const;
 		inline const T* operator*() const;
 
@@ -138,7 +138,7 @@ namespace qk {
 		ArrayString& append(const ArrayString& s); // operator+=
 		ArrayString& append(const T s); // operator+=
 		// get string hash code
-		uint64_t hash_code() const;
+		uint64_t hashCode() const;
 		// collapse to array buffer
 		ArrayBuffer<T, A> collapse();
 		ArrayString<T, A> copy() const;
@@ -159,27 +159,27 @@ namespace qk {
 
 		// trim
 		ArrayString trim() const;
-		ArrayString trim_left() const;
-		ArrayString trim_right() const;
+		ArrayString trimLeft() const;
+		ArrayString trimRight() const;
 		// substr
 		ArrayString substr(uint32_t start, uint32_t length = 0x7FFFFFFF) const;
 		ArrayString substring(uint32_t start, uint32_t end = 0x7FFFFFFF) const;
 		// upper, lower
-		ArrayString& upper_case(); // change current this string
-		ArrayString& lower_case(); // change current this string
-		ArrayString  to_upper_case() const; // create new string
-		ArrayString  to_lower_case() const; // create new string
+		ArrayString& upperCase(); // change current this string
+		ArrayString& lowerCase(); // change current this string
+		ArrayString  toUpperCase() const; // create new string
+		ArrayString  toLowerCase() const; // create new string
 		// index_of
-		int index_of(const ArrayString& s, uint32_t start = 0) const;
-		int last_index_of(const ArrayString& s, uint32_t start = 0x7FFFFFFF) const;
+		int indexOf(const ArrayString& s, uint32_t start = 0) const;
+		int lastIndexOf(const ArrayString& s, uint32_t start = 0x7FFFFFFF) const;
 		// replace
 		ArrayString replace(const ArrayString& s, const ArrayString& rep) const;
-		ArrayString replace_all(const ArrayString& s, const ArrayString& rep) const;
+		ArrayString replaceAll(const ArrayString& s, const ArrayString& rep) const;
 		// split
 		Array<ArrayString> split(const ArrayString& sp) const;
 		// to number
-		template<typename T2> T2   to_number()        const;
-		template<typename T2> bool to_number(T2* out) const;
+		template<typename T2> T2   toNumber()        const;
+		template<typename T2> bool toNumber(T2* out) const;
 	private:
 		template<typename T2> void number_(T2 i);
 		T* val();
@@ -196,7 +196,7 @@ namespace qk {
 		// static methods
 		typedef char T;
 		typedef void* (*Alloc)(uint32_t);
-		typedef void* (*AAlloc)(void*, uint32_t, uint32_t*, uint32_t);
+		typedef void  (*AAlloc)(void**, uint32_t, uint32_t*, uint32_t);
 
 		struct Size { uint32_t len; uint32_t capacity; };
 		static cChar ws[8];
@@ -223,16 +223,16 @@ namespace qk {
 		static void* format(Size* size, int size_of, Alloc alloc, double i);
 		class Iterator { public: virtual bool next(String* out) = 0; };
 		static String join(bool (*iterator)(void* data, String* out), cString& sp, void* data);
-		static String to_string(const void* ptr, uint32_t len, int size_of);
+		static String toString(const void* ptr, uint32_t len, int size_of);
 		template<typename T>
-		static String to_string(const T& t) {
+		static String toString(const T& t) {
 			return _To<T, has_object_type<T>::isObj>::call(t);
 		}
 		template<typename T, bool isObj> struct _To {
 			static String call(const T& t) { return String("[unknown]"); }
 		};
 		template<typename T> struct _To<T, true> {
-			static String call(const T& t) { return t.to_string(); }
+			static String call(const T& t) { return t.toString(); }
 		};
 		template<typename T> struct _To<T*, false> {
 			typedef T* Type;
@@ -375,7 +375,7 @@ namespace qk {
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	bool ArrayString<T, A>::is_empty() const { return size() == 0; }
+	bool ArrayString<T, A>::isEmpty() const { return size() == 0; }
 	
 	template <typename T, typename A>
 	T ArrayString<T, A>::operator[](uint32_t index) const { return c_str()[index]; }
@@ -469,11 +469,11 @@ namespace qk {
 		return append(&s, 1);
 	}
 
-	uint64_t hash_code(const void* data, uint32_t len);
+	uint64_t hashCode(const void* data, uint32_t len);
 
 	template <typename T, typename A>
-	uint64_t ArrayString<T, A>::hash_code() const {
-		return qk::hash_code(c_str(), length() * sizeof(T));
+	uint64_t ArrayString<T, A>::hashCode() const {
+		return qk::hashCode(c_str(), length() * sizeof(T));
 	}
 
 	template <typename T, typename A>
@@ -489,15 +489,15 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	String ArrayString<T, A>::to_string() const {
-		return _Str::to_string(c_str(), length(), sizeof(T));
+	String ArrayString<T, A>::toString() const {
+		return _Str::toString(c_str(), length(), sizeof(T));
 	}
 	
 	template <> Qk_EXPORT
-	String ArrayString<>::to_string() const;
+	String ArrayString<>::toString() const;
 
 	template <typename T, typename A>
-	ArrayString<T, A> Array<T, A>::collapse_string() {
+	ArrayString<T, A> Array<T, A>::collapseString() {
 		return ArrayString<T, A>(std::move(*this));
 	}
 
@@ -508,7 +508,7 @@ namespace qk {
 		IteratorConst it[] = { begin(), end() };
 		return _Str::join([](void* data, String* out) -> bool {
 			 auto it = static_cast<IteratorConst*>(data);
-			 return it[0] == it[1] ? false: ((*out = _Str::to_string(*it[0]++)), true);
+			 return it[0] == it[1] ? false: ((*out = _Str::toString(*it[0]++)), true);
 		}, sp, it);
 	}
 
@@ -517,17 +517,17 @@ namespace qk {
 		IteratorConst it[] = { begin(), end() };
 		return _Str::join([](void* data, String* out) -> bool {
 			 auto it = static_cast<IteratorConst*>(data);
-			 return it[0] == it[1] ? false: ((*out = _Str::to_string(*(++(it[0])))), true);
+			 return it[0] == it[1] ? false: ((*out = _Str::toString(*(++(it[0])))), true);
 		}, sp, it);
 	}
 
 	template<typename T, typename A>
-	String Array<T, A>::to_string() const {
+	String Array<T, A>::toString() const {
 		return join(String());
 	}
 
 	template<typename T, typename A>
-	String List<T, A>::to_string() const {
+	String List<T, A>::toString() const {
 		return join(String());
 	}
 
@@ -592,7 +592,7 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::trim_left() const {
+	ArrayString<T, A> ArrayString<T, A>::trimLeft() const {
 		const T* _val = c_str();
 		auto len = length();
 		for (uint32_t start = 0; start < len; start++) {
@@ -608,7 +608,7 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::trim_right() const {
+	ArrayString<T, A> ArrayString<T, A>::trimRight() const {
 		const T* _val = c_str();
 		auto len = length();
 		for (uint32_t end = len; end > 0; end--) {
@@ -638,7 +638,7 @@ namespace qk {
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	ArrayString<T, A>&  ArrayString<T, A>::upper_case() {
+	ArrayString<T, A>&  ArrayString<T, A>::upperCase() {
 		T* s = (T*)realloc(length(), &A::aalloc, &A::free, sizeof(T));
 		for (uint32_t i = 0, len = length(); i < len; i++, s++) {
 			*s = _Str::toupper(*s);
@@ -647,7 +647,7 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>&  ArrayString<T, A>::lower_case() {
+	ArrayString<T, A>&  ArrayString<T, A>::lowerCase() {
 		T* s = (T*)realloc(length(), &A::aalloc, &A::free, sizeof(T));
 		for (uint32_t i = 0, len = length(); i < len; i++, s++)
 			*s = _Str::tolower(*s);
@@ -655,24 +655,24 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::to_upper_case() const {
-		return ArrayString(*this).upper_case();
+	ArrayString<T, A> ArrayString<T, A>::toUpperCase() const {
+		return ArrayString(*this).upperCase();
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::to_lower_case() const {
-		return ArrayString(*this).upper_case();
+	ArrayString<T, A> ArrayString<T, A>::toLowerCase() const {
+		return ArrayString(*this).upperCase();
 	}
 
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	int ArrayString<T, A>::index_of(const ArrayString& s, uint32_t start) const {
+	int ArrayString<T, A>::indexOf(const ArrayString& s, uint32_t start) const {
 		return _Str::index_of(c_str(), length(), s.c_str(), s.length(), start, sizeof(T));
 	}
 
 	template <typename T, typename A>
-	int ArrayString<T, A>::last_index_of(const ArrayString& s, uint32_t start) const {
+	int ArrayString<T, A>::lastIndexOf(const ArrayString& s, uint32_t start) const {
 		return _Str::last_index_of(c_str(), length(), s.c_str(), s.length(), start, sizeof(T));
 	}
 
@@ -691,7 +691,7 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::replace_all(const ArrayString& s, const ArrayString& rep) const {
+	ArrayString<T, A> ArrayString<T, A>::replaceAll(const ArrayString& s, const ArrayString& rep) const {
 		ArrayString r;
 		uint32_t len, capacity;
 		T* val = (T*)_Str::replace(
@@ -711,7 +711,7 @@ namespace qk {
 		int splen = sp.length();
 		int prev = 0;
 		int index = 0;
-		while ((index = index_of(sp, prev)) != -1) {
+		while ((index = indexOf(sp, prev)) != -1) {
 			// printf("A,index=%d,prev=%d\n", index, prev);
 			r.push(substring(prev, index));
 			prev = index + splen;
@@ -724,7 +724,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	template<typename T2>
-	T2 ArrayString<T, A>::to_number() const {
+	T2 ArrayString<T, A>::toNumber() const {
 		T2 o;
 		_Str::to_number(c_str(), sizeof(T), length(), &o);
 		return o;
@@ -732,7 +732,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	template<typename T2>
-	bool ArrayString<T, A>::to_number(T2* o) const {
+	bool ArrayString<T, A>::toNumber(T2* o) const {
 		return _Str::to_number(c_str(), sizeof(T), length(), o);
 	}
 
@@ -742,7 +742,7 @@ namespace std {
 	template<typename T, typename A>
 	struct hash<qk::ArrayString<T, A>> {
 		size_t operator()(const qk::ArrayString<T, A>& val) const {
-			return val.hash_code();
+			return val.hashCode();
 		}
 	};
 }

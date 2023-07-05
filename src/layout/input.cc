@@ -478,7 +478,7 @@ namespace qk {
 			String s = text;
 			if ( !is_multiline() ) {
 				if ( s.length() > 1 ) {
-					s = s.replace_all('\n', String());
+					s = s.replaceAll('\n', String());
 				} else if ( s.length() == 1 ) {
 					if ( s[0] == '\n' )
 						return String4();

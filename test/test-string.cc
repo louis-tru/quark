@@ -97,10 +97,10 @@ void test_string (int argc, char **argv) {
 	String utf8_1 = codec_encode(kUTF8_Encoding, ucs2); // 编码
 	String utf8_2 = codec_encode(kUTF8_Encoding, ucs4);
 	
-	Qk_LOG(ucs2.hash_code() % 10);
-	Qk_LOG(ucs4.hash_code() % 10);
-	Qk_LOG(utf8_1.hash_code() % 10);
-	Qk_LOG(utf8_2.hash_code() % 10);
+	Qk_LOG(ucs2.hashCode() % 10);
+	Qk_LOG(ucs4.hashCode() % 10);
+	Qk_LOG(utf8_1.hashCode() % 10);
+	Qk_LOG(utf8_2.hashCode() % 10);
 	
 	Qk_LOG(ucs2[0]);
 	Qk_LOG(ucs2[1]);

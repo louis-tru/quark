@@ -338,6 +338,7 @@ namespace qk {
 	};
 
 	Qk_DEF_ARRAY_SPECIAL(Vec2);
+	Qk_DEF_ARRAY_SPECIAL(Vec3);
 
 	Qk_EXPORT float math_invSqrt(float x); // 1/sqrt(x)
 	Qk_EXPORT float math_sqrt(float x);

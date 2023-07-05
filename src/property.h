@@ -105,7 +105,7 @@ namespace qk {
 #undef fx_def_enum
 	};
 
-	template<> uint64_t Compare<PropertyName>::hash_code(const PropertyName& key) { return key; }
+	template<> uint64_t Compare<PropertyName>::hashCode(const PropertyName& key) { return key; }
 
 	/**
 	 * @class PropertysAccessor

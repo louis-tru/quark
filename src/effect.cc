@@ -170,7 +170,7 @@ namespace qk {
 		, _position_y(init.position_y)
 		, _repeat(init.repeat)
 	{
-		if (!src.is_empty()) {
+		if (!src.isEmpty()) {
 			set_src(src);
 		}
 	}

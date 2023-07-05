@@ -58,7 +58,7 @@ namespace qk {
 	typedef std::unique_lock<Mutex> Lock;
 	typedef std::condition_variable Condition;
 
-	template<> Qk_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
+	template<> Qk_EXPORT uint64_t Compare<ThreadID>::hashCode(const ThreadID& key);
 
 	struct Thread {
 		ThreadID id;

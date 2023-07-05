@@ -82,12 +82,12 @@ namespace qk {
 		/**
 		 * @method is_null() Is null data available?
 		*/
-		inline bool is_null() const { return _length == 0; }
+		inline bool isNull() const { return _length == 0; }
 
 		/**
-		 * @method is_weak() is weak array buffer object
+		 * @method isWeak() is weak array buffer object
 		 */
-		inline bool is_weak() const { return _capacity < 0; }
+		inline bool isWeak() const { return _capacity < 0; }
 
 		inline uint32_t length() const { return _length; }
 		inline int32_t  capacity() const { return _capacity; }
@@ -162,7 +162,7 @@ namespace qk {
 		/**
 		 * @method collapse string, discard data ownership
 		*/
-		ArrayString<T, A> collapse_string();
+		ArrayString<T, A> collapseString();
 
 		/**
 		 * @method to vector
@@ -175,9 +175,9 @@ namespace qk {
 		String join(cString& sp) const;
 		
 		/**
-		 * @func joto_stringin() to_string
+		 * @func toString() to_string
 		 */
-		virtual String to_string() const;
+		virtual String toString() const;
 
 		/**
 		 * @method clear() clear data
@@ -367,7 +367,7 @@ namespace qk {
 			clear();
 			_length = arr._length;
 			_val = arr._val;
-			if (!is_weak()) {
+			if (!isWeak()) {
 				_capacity = arr._capacity;
 				arr._length = 0;
 				arr._capacity = 0;
@@ -379,21 +379,19 @@ namespace qk {
 	
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::operator=(const Array& arr) {
-		return operator=(is_weak() ? arr.slice(): arr.copy());
+		return operator=(isWeak() ? arr.slice(): arr.copy());
 	}
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::push(const T& item) {
-		_length++;
-		realloc_(_length);
+		realloc_(++_length);
 		new(_val + _length - 1) T(item);
 		return *this;
 	}
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::push(T&& item) {
-		_length++;
-		realloc_(_length);
+		realloc_(++_length);
 		new(_val + _length - 1) T(std::move(item));
 		return *this;
 	}
@@ -498,7 +496,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	T* Array<T, A>::collapse() {
-		if (is_weak())
+		if (isWeak())
 			return nullptr;
 		T* r = _val;
 		_capacity = 0;
@@ -518,12 +516,12 @@ namespace qk {
 	template<typename T, typename A>
 	void Array<T, A>::clear() {
 		if (_val) {
-			if (!is_weak()) {
+			if (!isWeak()) {
 				T* i = _val;
 				T* end = i + _length;
 				while (i < end)
 					reinterpret_cast<Sham*>(i++)->~Sham(); // release
-				A::free(_val); /* free */
+				A::free(_val); // free
 				_capacity = 0;
 			}
 			_length = 0;
@@ -533,7 +531,6 @@ namespace qk {
 
 	template<typename T, typename A>
 	void Array<T, A>::realloc(uint32_t capacity) {
-		Qk_ASSERT(!is_weak(), "the weak holder cannot be changed");
 		if (capacity < _length) { // clear Partial data
 			T* i = _val + capacity;
 			T* end = i + _length;
@@ -542,7 +539,6 @@ namespace qk {
 			_length = capacity;
 		}
 		realloc_(capacity);
-		// return std::move(*this);
 	}
 
 	template<typename T, typename A>
@@ -562,8 +558,8 @@ namespace qk {
 
 	template<typename T, typename A>
 	void Array<T, A>::realloc_(uint32_t capacity) {
-		Qk_ASSERT(!is_weak(), "the weak holder cannot be changed");
-		_val = (T*)A::aalloc(_val, capacity, (uint32_t*)&_capacity, sizeof(T));
+		Qk_STRICT_ASSERT(_capacity >= 0, "the weak holder cannot be changed");
+		A::aalloc((void**)&_val, capacity, (uint32_t*)&_capacity, sizeof(T));
 	}
 
 	template<> Qk_EXPORT

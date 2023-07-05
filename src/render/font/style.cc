@@ -32,7 +32,7 @@
 
 namespace qk {
 
-	template<> uint64_t Compare<FontStyle>::hash_code(const FontStyle& key) {
+	template<> uint64_t Compare<FontStyle>::hashCode(const FontStyle& key) {
 		return key.value();
 	}
 }

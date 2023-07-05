@@ -76,7 +76,7 @@ class WrapSimpleHash: public WrapObject {
 	static void hashCode(FunctionCall args) {
 		JS_WORKER(args);
 		JS_SELF(SimpleHash);
-		JS_RETURN( self->hash_code() );
+		JS_RETURN( self->hashCode() );
 	}
 	
 	static void update(FunctionCall args) {
@@ -128,7 +128,7 @@ class WrapSimpleHash: public WrapObject {
 class NativeUtil {
 	public:
 
-	static SimpleHash get_hash_code(FunctionCall args) {
+	static SimpleHash get_hashCode(FunctionCall args) {
 		JS_WORKER(args);
 		SimpleHash hash;
 		String2 str = args[0]->ToString2Value(worker);
@@ -141,7 +141,7 @@ class NativeUtil {
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			JS_THROW_ERR("Bad argument");
 		}
-		JS_RETURN( get_hash_code(args).hash_code() );
+		JS_RETURN( get_hashCode(args).hashCode() );
 	}
 	
 	static void hash(FunctionCall args) {
@@ -149,7 +149,7 @@ class NativeUtil {
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			JS_THROW_ERR("Bad argument");
 		}
-		JS_RETURN( get_hash_code(args).digest() );
+		JS_RETURN( get_hashCode(args).digest() );
 	}
 	
 	static void version(FunctionCall args) {

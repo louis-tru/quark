@@ -765,7 +765,7 @@ namespace qk {
 			{ "ucs2", kUCS2_Encoding },
 			{ "ucs4", kUCS4_Encoding },
 		});
-		auto i = encodings_dict.find(encoding.to_lower_case());
+		auto i = encodings_dict.find(encoding.toLowerCase());
 		return i == encodings_dict.end() ? Encoding::kInvalid_Encoding : i->value;
 	}
 

@@ -108,7 +108,7 @@ namespace qk {
 		r.append('.');
 		auto domains = domain.split('.');
 		for (int i = domains.length() - 1; i > -1; i--) {
-			if (!domains[i].is_empty()) {
+			if (!domains[i].isEmpty()) {
 				r.append(domains[i]);
 				r.append('.');
 			}
@@ -119,7 +119,7 @@ namespace qk {
 	static String get_storage_key(cString& domain, cString& name, cString& path, bool secure) {
 		String r = get_storage_key_prefix(secure, domain);
 
-		if (!path.is_empty()) {
+		if (!path.isEmpty()) {
 			if (path[0] != '/')
 				r.append('/');
 			r.append(path);
@@ -227,18 +227,18 @@ namespace qk {
 			Dict<String, String> options;
 			
 			for ( auto& i : expression.split("; ") ) {
-				int j = i.index_of('=');
+				int j = i.indexOf('=');
 				if ( j != -1 ) {
-					if ( name.is_empty() ) {
+					if ( name.isEmpty() ) {
 						name = i.substr(0, j);
 						value = i.substr(j + 1);
 					} else {
-						options[i.substr(0, j).copy().lower_case()] = i.substr(j + 1);
+						options[i.substr(0, j).copy().lowerCase()] = i.substr(j + 1);
 					}
 				}
 			}
 			
-			if ( name.is_empty() ) {
+			if ( name.isEmpty() ) {
 				return;
 			}
 			
@@ -249,7 +249,7 @@ namespace qk {
 			
 			if ( it != end ) {
 				String new_domain = it->value;
-				if ( domain_.index_of(new_domain) == -1 ) {
+				if ( domain_.indexOf(new_domain) == -1 ) {
 					return; // Illegal operation
 				} else {
 					domain_ = new_domain;
@@ -263,7 +263,7 @@ namespace qk {
 			
 			it = options.find(MAX_AGE);
 			if ( it != end ) {
-				expires = it->value.to_number<int64_t>() * 1e6 + time_micro();
+				expires = it->value.toNumber<int64_t>() * 1e6 + time_micro();
 			} else {
 				it = options.find(EXPIRES);
 				if ( it != end ) {
@@ -330,7 +330,7 @@ namespace qk {
 				struct tmp_data_t {
 					DictSS *result;
 					String path;
-				} _tmp = { &result, path.is_empty() ? String('/'): String(path) };
+				} _tmp = { &result, path.isEmpty() ? String('/'): String(path) };
 
 				r = bp_get_filtered_range(_db, &start, &end, [](void* arg, const bp_key_t *key) {
 					auto path = &reinterpret_cast<tmp_data_t*>(arg)->path;

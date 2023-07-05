@@ -40,12 +40,12 @@ namespace qk {
 			[](void* arg) -> Object* {
 				return AudioPlayer::create(arg ? *(String*)arg: String());
 			},
-			typeid(AudioPlayer).hash_code(),
+			typeid(AudioPlayer).hashCode(),
 		};
 
 		static module_info_t video = {
 			[](void* arg) -> Object* { return nullptr;/*new Video();*/ },
-			0,//typeid(Video).hash_code(),
+			0,//typeid(Video).hashCode(),
 		};
 
 		module_audio_player = &audio_player;

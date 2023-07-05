@@ -51,12 +51,12 @@ static Dict<int, String> pseudo_class_table2([]() {
 
 CSSName::CSSName(const Array<String>& classs)
 	: _name(String('.').append(classs.join(".")))
-	, _hash((uint32_t)_name.hash_code())
+	, _hash((uint32_t)_name.hashCode())
 {
 }
 CSSName::CSSName(cString& n)
 : _name(n)
-, _hash((uint32_t)n.hash_code()) {
+, _hash((uint32_t)n.hashCode()) {
 }
 
 StyleSheets* StyleSheets::Inl::find1(uint32_t hash) {

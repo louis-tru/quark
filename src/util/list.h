@@ -96,7 +96,7 @@ namespace qk {
 		String join(cString& sp) const;
 		
 		// overwrite
-		virtual String to_string() const;
+		virtual String toString() const;
 
 		IteratorConst begin() const;
 		IteratorConst end() const;

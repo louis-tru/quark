@@ -62,17 +62,17 @@ namespace qk {
 		String str = String::format("%s %s %s %s", *VENDOR, *RENDERER, *version, *extensions);
 
 		for (auto s : {"OpenGL ES", "OpenGL", "OpenGL Entity"}) {
-			int idx = str.index_of(s);
+			int idx = str.indexOf(s);
 			if (idx != -1) {
-				int num = str.substr(idx + strlen(s)).trim().substr(0,1).to_number<int>();
+				int num = str.substr(idx + strlen(s)).trim().substr(0,1).toNumber<int>();
 				if (num > 2)
 					return true;
-				else if (extensions.index_of( "multisample" ) != -1)
+				else if (extensions.indexOf( "multisample" ) != -1)
 					return false;
 			}
 		}
 
-		return version.index_of("Metal") != -1;
+		return version.indexOf("Metal") != -1;
 	}
 
 	GLRender::GLRender(Options opts)

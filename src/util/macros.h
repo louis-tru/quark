@@ -168,14 +168,11 @@
 # define Qk_MEMORY_TRACE_MARK 1
 #endif
 
-#ifndef Qk_STRICT_ASSERT
-# define  Qk_STRICT_ASSERT 0
-#endif
-
-#if DEBUG || Qk_STRICT_ASSERT
-# define Qk_ASSERT(cond, ...) if(!(cond)) qk::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#define Qk_STRICT_ASSERT(cond, ...) if(!(cond)) qk::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#if DEBUG
+# define Qk_ASSERT Qk_STRICT_ASSERT
 #else
-# define Qk_ASSERT(cond, ...) ((void)0)
+# define Qk_ASSERT(cond, ...)
 #endif
 
 #define Qk_DEFINE_INLINE_CLASS(Inl) public: class Inl; friend class Inl; private:

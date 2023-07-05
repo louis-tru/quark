@@ -103,9 +103,9 @@ namespace qk {
 		}
 
 		String zip_path(cString& path) {
-			if (path.is_empty())
+			if (path.isEmpty())
 				return String();
-			int i = path.index_of(SEPARATOR);
+			int i = path.indexOf(SEPARATOR);
 			if (i != -1)
 				return path.substr(0, i);
 			if (path[path.length() - 1] == SEPARATOR[0])
@@ -168,7 +168,7 @@ namespace qk {
 					break;
 				case ZIP: {
 					String zip = zip_path(path);
-					if ( zip.is_empty() ) {
+					if ( zip.isEmpty() ) {
 						async_reject(cb, Error(ERR_INVALID_FILE_PATH, "Invalid file path, \"%s\"", *path), RunLoop::current());
 					} else {
 						RunLoop* loop = RunLoop::current();
@@ -217,7 +217,7 @@ namespace qk {
 					break;
 				case ZIP: {
 					String zip = zip_path(path);
-					Qk_CHECK(!zip.is_empty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
+					Qk_CHECK(!zip.isEmpty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
 					
 					ScopeLock lock(zip_mutex_);
 					
@@ -257,7 +257,7 @@ namespace qk {
 					return false;
 				case ZIP: {
 					String zip = zip_path(path);
-					if ( !zip.is_empty() ) {
+					if ( !zip.isEmpty() ) {
 						Qk_ERROR_IGNORE({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
@@ -282,7 +282,7 @@ namespace qk {
 					rv = fs_readdir_sync(path);
 				case ZIP: {
 					String zip = zip_path(path);
-					if ( !zip.is_empty() ) {
+					if ( !zip.isEmpty() ) {
 						Qk_ERROR_IGNORE({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
@@ -302,16 +302,16 @@ namespace qk {
 				default:
 				case ZIP:
 				case FILE: return fs_format("%s", *path);
-				case HTTP: index = path.index_of('/', 8); break;
-				case HTTPS:index = path.index_of('/', 9); break;
-				case FTP:  index = path.index_of('/', 7); break;
-				case FTPS: index = path.index_of('/', 8); break;
+				case HTTP: index = path.indexOf('/', 8); break;
+				case HTTPS:index = path.indexOf('/', 9); break;
+				case FTP:  index = path.indexOf('/', 7); break;
+				case FTPS: index = path.indexOf('/', 8); break;
 			}
 			if (index == -1) {
 				return path;
 			}
 			String s = inl_format_part_path(path.substr(index));
-			if (s.is_empty()) {
+			if (s.isEmpty()) {
 				return path.substr(0, index);
 			} else {
 				return path.substr(0, index + 1) + s;

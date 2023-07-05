@@ -66,24 +66,24 @@ namespace qk {
 
 		for (auto& i: familys) {
 			String s = i.trim();
-			if ( !s.is_empty() ) {
+			if ( !s.isEmpty() ) {
 				newFamilys.push(s);
 				hash.update(s);
 			}
 		}
 
-		auto it = _FFIDs.find(hash.hash_code());
+		auto it = _FFIDs.find(hash.hashCode());
 		if (it != _FFIDs.end()) {
 			return it->value.value();
 		}
 
 		FFID id = new FontFamilys(this, newFamilys);
-		_FFIDs[ hash.hash_code() ] = id;
+		_FFIDs[ hash.hashCode() ] = id;
 		return id;
 	}
 
 	FFID FontPool::getFFID(cString& familys) {
-		if ( familys.is_empty() )
+		if ( familys.isEmpty() )
 			return getFFID(Array<String>());
 		else
 			return getFFID(familys.split(","));
@@ -115,7 +115,7 @@ namespace qk {
 	}
 	
 	Sp<Typeface> FontPool::match(cString& familyName, FontStyle style) const {
-		if (familyName.is_empty()) {
+		if (familyName.isEmpty()) {
 			return onMatchFamilyStyle(nullptr, style);
 		}
 		// find register font family
@@ -131,7 +131,7 @@ namespace qk {
 
 	Sp<Typeface> FontPool::matchCharacter(cString& familyName, FontStyle style,
 																		 Unichar character) const {
-		cChar* c_familyName = familyName.is_empty() ? nullptr: familyName.c_str();
+		cChar* c_familyName = familyName.isEmpty() ? nullptr: familyName.c_str();
 		return onMatchFamilyStyleCharacter(c_familyName, style, character);
 	}
 

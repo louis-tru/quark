@@ -46,21 +46,23 @@ namespace qk {
 		return ::realloc(ptr, size);
 	}
 
-	void* MemoryAllocator::aalloc(void* val, uint32_t size, uint32_t* size_out, uint32_t size_of) {
-		if ( size ) {
+	void MemoryAllocator::aalloc(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf) {
+		uint32_t capacity = *sizeOut;
+		if ( size > capacity ) {
 			size = Qk_MAX(Qk_MIN_CAPACITY, size);
-			if ( size > *size_out || size < (*size_out >> 2) ) {
-				size = powf(2, ceil(log2(size)));
-				*size_out = size;
-				val = val ? ::realloc(val, size_of * size) : ::malloc(size_of * size);
-				Qk_ASSERT(val);
-			}
-		} else {
-			*size_out = 0;
-			::free(val);
-			val = nullptr;
+			size = powf(2, ceilf(log2f(size)));
+			*sizeOut = size;
+			*ptrOut = *ptrOut ? ::realloc(*ptrOut, sizeOf * size) : ::malloc(sizeOf * size);
+			Qk_ASSERT(*ptrOut);
+		} else if ( size > Qk_MIN_CAPACITY && size < (capacity >> 2) ) { // > 8
+			capacity >>= 1;
+			size = powf(2, ceilf(log2f(size)));
+			size <<= 1;
+			size = Qk_MIN(size, capacity);
+			*sizeOut = size;
+			*ptrOut = ::realloc(*ptrOut, sizeOf * size);
+			Qk_ASSERT(*ptrOut);
 		}
-		return val;
 	}
 
 	static void* default_object_alloc(size_t size) {

@@ -77,7 +77,7 @@ int test_jsx(int argc, char* argv[]) {
 		error("Bad argument. cannot find %s", *src);
 	}
 	
-	String extname = fs_extname(src).lower_case();
+	String extname = fs_extname(src).lowerCase();
 		
 	String2 in;
 	Buffer out;

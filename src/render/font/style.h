@@ -73,7 +73,7 @@ namespace qk {
 		int32_t _value;
 	};
 
-	template<> Qk_EXPORT uint64_t Compare<FontStyle>::hash_code(const FontStyle& key);
+	template<> Qk_EXPORT uint64_t Compare<FontStyle>::hashCode(const FontStyle& key);
 
 }
 #endif

@@ -89,7 +89,7 @@ namespace qk {
 		\
 		template<> void Array<T, A>::clear() { \
 			if (_val) { \
-				if (!is_weak()) { \
+				if (!isWeak()) { \
 					A::free(_val); /* free */ \
 					_capacity = 0; \
 				} \
@@ -99,7 +99,7 @@ namespace qk {
 		} \
 		\
 		template<> void Array<T, A>::realloc(uint32_t capacity) { \
-			Qk_ASSERT(!is_weak(), "the weak holder cannot be changed"); \
+			/*Qk_ASSERT(!isWeak(), "the weak holder cannot be changed");*/ \
 			if (capacity < _length) { /* clear Partial data */ \
 				_length = capacity;\
 			} \
@@ -118,8 +118,8 @@ namespace qk {
 			return ArrayBuffer<T, A>();\
 		} \
 
-	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T) \
-		Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, MemoryAllocator, 1)
+	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, APPEND_ZERO) \
+		Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, MemoryAllocator, APPEND_ZERO)
 	
 
 #ifndef Qk_ARRAY_NO_IMPL
@@ -141,16 +141,16 @@ namespace qk {
 		}
 	}
 	
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(unsigned char);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16_t);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16_t);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int32_t);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint32_t);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64_t);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64_t);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char,1);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(unsigned char,1);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16_t,1);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16_t,1);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int32_t,1);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint32_t,1);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64_t,1);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64_t,1);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float,1);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double,1);
 #endif
 
 }
