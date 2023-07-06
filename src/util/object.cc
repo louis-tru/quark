@@ -136,7 +136,7 @@ namespace qk {
 
 #endif
 
-	bool Object::is_reference() const {
+	bool Object::isReference() const {
 		return false;
 	}
 
@@ -210,12 +210,13 @@ namespace qk {
 
 	void Reference::release() {
 		Qk_ASSERT(_ref_count >= 0);
-		if ( --_ref_count <= 0 ) { // 当引用记数小宇等于0释放
+		// Released when the reference count is less than or equal to 0
+		if ( --_ref_count <= 0 ) {
 			object_allocator_release(this);
 		}
 	}
 
-	bool Reference::is_reference() const {
+	bool Reference::isReference() const {
 		return true;
 	}
 

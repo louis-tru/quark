@@ -951,7 +951,7 @@ namespace qk {
 		return _return_type;
 	}
 
-	Object* Input::to_object() {
+	Object* Input::toObject() {
 		return this;
 	}
 

@@ -70,11 +70,10 @@ namespace qk {
 
 	template<typename T>
 	struct has_object_type {
-		typedef char Non[1];
-		typedef char Obj[2];
+		typedef char Non[1]; typedef char Obj[2];
 		typedef char Ref[3];
-		template<typename C> static Obj& test(typename C::IsObjectCheck*);
-		template<typename C> static Ref& test(typename C::IsReferenceCheck*);
+		template<typename C> static Obj& test(typename C::__has_object_type);
+		template<typename C> static Ref& test(typename C::__has_ref_type);
 		template<typename> static Non& test(...);
 		static const int type = sizeof(test<T>(0)) / sizeof(char) - 1;
 		static const bool isObj = sizeof(test<T>(0)) / sizeof(char) > 1;
@@ -87,8 +86,7 @@ namespace qk {
 	class Qk_EXPORT Object {
 	public:
 		typedef ObjectTraits Traits;
-		typedef Object IsObjectCheck;
-		virtual bool is_reference() const;
+		virtual bool isReference() const;
 		virtual bool retain();
 		virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
 		virtual ArrayString<char, MemoryAllocator> toString() const;
@@ -99,6 +97,7 @@ namespace qk {
 			void* (*alloc)(size_t size) = nullptr,
 			void  (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
 		);
+		typedef void* __has_object_type;
 #if Qk_MEMORY_TRACE_MARK
 		static std::vector<Object*> mark_objects();
 		static int mark_objects_count();
@@ -111,7 +110,7 @@ namespace qk {
 		virtual ~Object() = default;
 #endif
 		// Use the following method to override to restore the default call
-		// virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this; }
+		// virtual void release() { static_assert(!Traits::isReference, ""); ::delete this; }
 		// static void* operator new(std::size_t size) { return ::operator new(size); }
 		// static void  operator delete(void* p) { ::operator delete(p); }
 	};
@@ -120,29 +119,29 @@ namespace qk {
 	* @class Reference
 	*/
 	class Qk_EXPORT Reference: public Object {
-		typedef Reference IsObjectCheck;
 	public:
 		typedef ReferenceTraits Traits;
-		typedef Reference IsReferenceCheck;
 		inline Reference(): _ref_count(0) {}
 		inline Reference(const Reference& ref): _ref_count(0) {}
 		inline Reference& operator=(const Reference& ref) { return *this; }
 		virtual ~Reference();
 		virtual bool retain();
 		virtual void release();
-		virtual bool is_reference() const;
-		inline int ref_count() const { return _ref_count; }
+		virtual bool isReference() const;
+		inline int refCount() const { return _ref_count; }
+		typedef void* __has_ref_type; private:
+		typedef void* __has_object_type;
 	protected:
 		std::atomic_int _ref_count;
 	};
 
 	/**
-	* @class Protocol
+	* @class Protocol protocol base
 	*/
 	class Protocol {
 	public:
 		typedef ProtocolTraits Traits;
-		virtual Object* to_object() = 0;
+		virtual Object* toObject() = 0;
 	};
 
 	/**
@@ -151,15 +150,15 @@ namespace qk {
 	struct ObjectTraits {
 		inline static bool Retain(Object* obj) { return obj ? obj->retain(): 0; }
 		inline static void Release(Object* obj) { if (obj) obj->release(); }
-		static constexpr bool is_reference = false;
-		static constexpr bool is_object = true;
+		static constexpr bool isReference = false;
+		static constexpr bool isObject = true;
 	};
 
 	/**
 	* @class ReferenceTraits
 	*/
 	struct ReferenceTraits: ObjectTraits {
-		static constexpr bool is_reference = true;
+		static constexpr bool isReference = true;
 	};
 
 	/**
@@ -167,12 +166,12 @@ namespace qk {
 	*/
 	struct ProtocolTraits {
 		template<class T> inline static bool Retain(T* obj) {
-			return obj ? obj->to_object()->retain() : 0;
+			return obj ? obj->toObject()->retain() : 0;
 		}
 		template<class T> inline static void Release(T* obj) {
-			if (obj) obj->to_object()->release();
+			if (obj) obj->toObject()->release();
 		}
-		static constexpr bool is_reference = false;
+		static constexpr bool isReference = false;
 	};
 
 	typedef ProtocolTraits InterfaceTraits;
@@ -185,7 +184,7 @@ namespace qk {
 			/* Non referential pairs need not be Retain */ return 0;
 		}
 		template<class T> inline static void Release(T* obj) { delete obj; }
-		static constexpr bool is_reference = false;
+		static constexpr bool isReference = false;
 	};
 
 	Qk_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);

@@ -64,12 +64,12 @@ namespace qk {
 	class CallbackCoreIMPL: public CallbackCore<D, E> {
 	public:
 		inline CallbackCoreIMPL(T* ctx): _ctx(ctx) {
-			if ( T::Traits::is_reference ) {
+			if ( T::Traits::isReference ) {
 				T::Traits::Retain(_ctx);
 			}
 		}
 		virtual ~CallbackCoreIMPL() {
-			if ( T::Traits::is_reference ) {
+			if ( T::Traits::isReference ) {
 				T::Traits::Release(_ctx);
 			}
 		}

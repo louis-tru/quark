@@ -131,7 +131,7 @@ namespace qk {
 		if (_holder_mode == M_DISABLE) {
 			return false;
 		} else if (_holder_mode == M_INDEPENDENT) {
-			if (ref_count() > 0) {
+			if (refCount() > 0) {
 				return false;
 			}
 		}

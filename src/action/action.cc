@@ -217,7 +217,7 @@ Action::~Action() {
 * @overwrite
 */
 void Action::release() {
-	if (ref_count() == 1) {
+	if (refCount() == 1) {
 		clear();
 	}
 	Reference::release();

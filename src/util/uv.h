@@ -49,10 +49,10 @@ namespace qk {
 		inline UVRequestWrap(Context* ctx, Callback<CbData> cb = 0, Data data = Data())
 		: _ctx(ctx), _cb(cb), _data(std::move(data)) {
 			_req.data = this;
-			if (Context::Traits::is_reference) Retain(_ctx);
+			if (Context::Traits::isReference) Retain(_ctx);
 		}
 		virtual ~UVRequestWrap() {
-			if (Context::Traits::is_reference) Release(_ctx);
+			if (Context::Traits::isReference) Release(_ctx);
 		}
 		static inline UVRequestWrap* cast(uv_req* req) {
 			return (UVRequestWrap*)req->data;

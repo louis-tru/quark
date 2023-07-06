@@ -83,7 +83,7 @@ namespace qk {
 		virtual Vec2 input_spot_location() override;
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
-		virtual Object* to_object() override;
+		virtual Object* toObject() override;
 	protected:
 		Vec2 layout_typesetting_input_text();
 		void refresh_cursor_screen_position();

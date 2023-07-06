@@ -170,46 +170,13 @@ namespace qk {
 		ArrayIterator end_array();
 		ArrayIteratorConst begin_array() const;
 		ArrayIteratorConst end_array() const;
-		
-		/**
-		* 把JSON格式的字符串转换为Json对像
-		* @param  {cString&} json_str
-		* @return {JSON}
-		*/
+
 		static JSON parse(cString& json_str) throw(Error);
 		static JSON parse(cBuffer& json_str) throw(Error);
-		
-		/**
-		* 把Json对像转换为字符串
-		* @param  {JSON} json
-		* @return {String}
-		*/
 		static String stringify(cJSON& json);
-		
-		/**
-		* 扩展
-		* @param {JSON&} o
-		* @param {cJSON&} extd
-		* @return {JSON&}
-		*/
 		static JSON& ext(JSON& o, JSON& extd);
-		
-		/**
-		* 创建一个Object类型的JSON数据
-		* @return {JSON}
-		*/
 		static JSON object();
-		
-		/**
-		* 创建一个Array类型的JSON数据
-		* @return {JSON}
-		*/
 		static JSON array();
-		
-		/**
-		* 创建一个null类型的JSON数据
-		* @return {JSON}
-		*/
 		static JSON null();
 		
 	private:

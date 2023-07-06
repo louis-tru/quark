@@ -47,7 +47,7 @@ namespace qk {
 	public:
 		typedef ObjectTraits Traits;
 
-		virtual Object* to_object() { return this; }
+		virtual Object* toObject() { return this; }
 
 		UnixPCMPlayer()
 			: _pcm(NULL)

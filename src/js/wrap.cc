@@ -92,8 +92,8 @@ void WrapObject::init2(FunctionCall args) {
 		record_wrap_count++; 
 		record_strong_count++;
 	#endif 
-	if (!self()->is_reference() || /* non reference */
-			static_cast<Reference*>(self())->ref_count() <= 0) {
+	if (!self()->isReference() || /* non reference */
+			static_cast<Reference*>(self())->refCount() <= 0) {
 		_inl_wrap(this)->make_weak();
 	}
 	initialize();
@@ -144,8 +144,8 @@ bool WrapObject::setPrivateData(Object* data, bool trusteeship) {
 	if (p) {
 		set(worker()->strs()->__native_private_data(), p->that());
 		if (trusteeship) {
-			if (!data->is_reference() || /* non reference */
-					static_cast<Reference*>(data)->ref_count() <= 0) {
+			if (!data->isReference() || /* non reference */
+					static_cast<Reference*>(data)->refCount() <= 0) {
 				_inl_wrap(static_cast<WrapObject*>(p))->make_weak();
 			}
 		}

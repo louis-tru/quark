@@ -115,7 +115,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 	public:
 		typedef ObjectTraits Traits;
 
-		virtual Object* to_object() { return this; }
+		virtual Object* toObject() { return this; }
 
 		AndroidAudioTrack()
 		: _sample_rate(0)

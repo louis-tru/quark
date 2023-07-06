@@ -138,7 +138,7 @@ namespace qk {
 	private:
 		void init_();
 		void fill_(Node** indexed, Node* first, Node* last, uint32_t len, uint32_t capacity);
-		bool make(const Key& key, Pair** data);
+		bool make_(const Key& key, Pair** data);
 		void erase_(Node* node);
 		void optimize_();
 		Node* link_(Node* prev, Node* next);
@@ -150,7 +150,6 @@ namespace qk {
 	};
 
 	// -----------------------------------------------------------------
-	
 
 	template<typename K, typename V, typename C, typename A>
 	Dict<K, V, C, A>::Dict() {
@@ -266,7 +265,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::get(const K& key) {
 		Pair* pair;
-		if (make(key, &pair)) {
+		if (make_(key, &pair)) {
 			new(&pair->key) K(key);
 			new(&pair->value) V();
 		}
@@ -286,7 +285,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(const K& key, const V& value) {
 		Pair* pair;
-		if (make(key, &pair)) {
+		if (make_(key, &pair)) {
 			new(&pair->key) K(key); new(&pair->value) V(value);
 		} else {
 			pair->value = value;
@@ -297,7 +296,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(const K& key, V&& value) {
 		Pair* pair;
-		if (make(key, &pair)) {
+		if (make_(key, &pair)) {
 			new(&pair->key) K(key);
 			new(&pair->value) V(std::move(value));
 		} else {
@@ -309,7 +308,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(K&& key, const V& value) {
 		Pair* pair;
-		if (make(key, &pair)) {
+		if (make_(key, &pair)) {
 			new(&pair->key) K(std::move(key)); new(&pair->value) V(value);
 		} else {
 			pair->value = value;
@@ -320,7 +319,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(K&& key, V&& value) {
 		Pair* pair;
-		if (make(key, &pair)) {
+		if (make_(key, &pair)) {
 			new(&pair->key) K(std::move(key)); new(&pair->value) V(std::move(value));
 		} else {
 			pair->value = std::move(value);
@@ -414,7 +413,7 @@ namespace qk {
 	}
 	
 	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::make(const K& key, Pair** data) {
+	bool Dict<K, V, C, A>::make_(const K& key, Pair** data) {
 		if (!_capacity) {
 			A::aalloc((void**)&_nodes, 1, &_capacity, sizeof(Node*));
 			::memset(_nodes, 0, sizeof(Node*) * _capacity);

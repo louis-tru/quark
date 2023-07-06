@@ -861,7 +861,7 @@ protected:
 	static Wrap<O>* New(FunctionCall args, O* object) {
 		static_assert(sizeof(W) == sizeof(WrapObject),
 									"Derived wrap class pairs cannot declare data members");
-		static_assert(O::Traits::is_object, "Must be object");
+		static_assert(O::Traits::isObject, "Must be object");
 		auto wrap = new(reinterpret_cast<WrapObject*>(object) - 1) W();
 		wrap->init2(args);
 		return static_cast<js::Wrap<O>*>(static_cast<WrapObject*>(wrap));
