@@ -554,7 +554,7 @@ namespace qk {
 		if (_blendMode != paint.blendMode) {
 			setBlendMode(paint.blendMode); // switch blend mode
 		}
-		auto path = _backend->getNormalizedPathCache(path_);
+		auto &path = _backend->getNormalizedPathCache(path_);
 
 		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 
