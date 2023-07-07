@@ -34,6 +34,7 @@
 #define __quark_render_gl_glsl_shader__
 
 #include "../../util/util.h"
+#include "../math.h"
 
 #if Qk_iOS
 # include <OpenGLES/ES3/gl.h>
@@ -68,6 +69,7 @@ namespace qk {
 	struct GLSLShader {
 		GLuint shader, vao, vbo;
 		void         use(GLsizeiptr size, const GLvoid* data);
+		void         use(const GLsizeiptr size[], const GLvoid *data[], int count);
 		virtual void build() = 0;
 	};
 

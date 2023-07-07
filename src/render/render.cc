@@ -67,38 +67,43 @@ namespace qk {
 	void RenderBackend::activate(bool isActive) {
 	}
 
-	const Array<Vec2>& RenderBackend::getPathVertexsCache(const Path &path) {
+	const Array<Vec2>& RenderBackend::getPathTrianglesCache(const Path &path) {
 		auto hash = path.hashCode();
-		auto it = _PathVertexsCache.find(hash);
-		if (it != _PathVertexsCache.end()) return it->value;
-
-		if (_PathVertexsCache.length() >= 1024)
-			_PathVertexsCache.clear();
-		return _PathVertexsCache.set(hash, path.getTriangles(1));
+		const Array<Vec2> *out;
+		if (_PathTrianglesCache.get(hash, out)) return *out;
+		if (_PathTrianglesCache.length() >= 1024)
+			_PathTrianglesCache.clear();
+		return _PathTrianglesCache.set(hash, path.getTriangles(1));
 	}
 
-	const Array<Vec2>& RenderBackend::getStrokePathVertexsCache(
-		const Path &path, float width, Path::Cap cap, Path::Join join, float miter_limit)
+	const Array<Vec2>& RenderBackend::getStrokePathTrianglesCache(
+		const Path &path, float width, Path::Cap cap, Path::Join join, float miterLimit)
 	{
 		auto hash = path.hashCode();
-		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&miter_limit;
+		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&miterLimit;
 		hash += (hash << 5) + hash_part + ((cap << 2) | join);
+		const Array<Vec2> *out;
+		if (_StrokePathTrianglesCache.get(hash, out)) return *out;
+		if (_StrokePathTrianglesCache.length() >= 1024)
+			_StrokePathTrianglesCache.clear();
+		return _StrokePathTrianglesCache
+			.set(hash, path.strokePath(width, cap, join, miterLimit).getTriangles(1));
+	}
 
-		auto it = _PathStrokesCache.find(hash);
-		if (it != _PathStrokesCache.end()) {
-			return it->value;
-		}
-		if (_PathStrokesCache.length() >= 1024)
-			_PathStrokesCache.clear();
-		return _PathStrokesCache
-			.set(hash, path.strokePath(width, cap, join, miter_limit).getTriangles(1));
+	const Array<Vec3>& RenderBackend::getAntiAliasStrokeTriangleStripCache(const Path &path) {
+		auto hash = path.hashCode();
+		const Array<Vec3> *out;
+		if (_AntiAliasStrokeTriangleStripCache.get(hash, out)) return *out;
+		if (_AntiAliasStrokeTriangleStripCache.length() >= 1024)
+			_AntiAliasStrokeTriangleStripCache.clear();
+		return _AntiAliasStrokeTriangleStripCache.set(hash, path.getAntiAliasStrokeTriangleStrip(1));
 	}
 
 	const Path& RenderBackend::getNormalizedPathCache(const Path &path) {
+		if (path.isNormalized()) return path;
 		auto hash = path.hashCode();
-		auto it = _PathNormalizedCache.find(hash);
-		if (it != _PathNormalizedCache.end()) return it->value;
-
+		const Path *out;
+		if (_PathNormalizedCache.get(hash, out)) return *out;
 		if (_PathNormalizedCache.length() >= 1024)
 			_PathNormalizedCache.clear();
 		return _PathNormalizedCache.set(hash, path.normalizedPath());

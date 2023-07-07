@@ -78,18 +78,19 @@ namespace qk {
 		inline  Delegate* delegate() { return _delegate; }
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
-
 		/**
-		 * @dev get path vertexs from cache
+		 * @dev get path triangles from cache
 		*/
-		const Array<Vec2>& getPathVertexsCache(const Path &path);
-
+		const Array<Vec2>& getPathTrianglesCache(const Path &path);
 		/**
-		 * @dev get stroke path vertexs from cache
+		 * @dev get stroke path triangles from cache
 		*/
-		const Array<Vec2>& getStrokePathVertexsCache(const Path &path,
-			float width, Path::Cap cap, Path::Join join, float miter_limit = 0);
-
+		const Array<Vec2>& getStrokePathTrianglesCache(const Path &path,
+			float width, Path::Cap cap, Path::Join join, float miterLimit = 0);
+		/**
+		 * @dev get anti alias stroke path triangle strip cache
+		*/
+		const Array<Vec3>& getAntiAliasStrokeTriangleStripCache(const Path &path);
 		/**
 		 * @dev get normalized path from cache
 		 */
@@ -121,7 +122,8 @@ namespace qk {
 		float         _default_scale;
 		float         _alpha;
 		uint32_t      _mark_recursive;
-		Dict<uint64_t, Array<Vec2>> _PathVertexsCache, _PathStrokesCache; // path hash => vertexs
+		Dict<uint64_t, Array<Vec2>> _PathTrianglesCache, _StrokePathTrianglesCache; // path hash => triangles
+		Dict<uint64_t, Array<Vec3>> _AntiAliasStrokeTriangleStripCache; // path hash => aa triangles strip
 		Dict<uint64_t, Path>        _PathNormalizedCache; // path hash => path
 	};
 

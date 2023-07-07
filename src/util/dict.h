@@ -103,7 +103,6 @@ namespace qk {
 		Dict&         operator=(const Dict& value);
 		Dict&         operator=(Dict&& value);
 
-		const Value&  operator[](const Key& key) const;
 		Value&        operator[](const Key& key);
 		Value&        operator[](Key&& key);
 
@@ -116,6 +115,7 @@ namespace qk {
 		Array<Key>    keys() const;
 		Array<Value>  values() const;
 
+		bool          get(const Key& key, const Value* &out) const;
 		Value&        get(const Key& key);
 		Value&        get(Key&& key);
 		Value&        set(const Key& key, const Value& value);
@@ -143,6 +143,7 @@ namespace qk {
 		void optimize_();
 		Node* link_(Node* prev, Node* next);
 		Node* node_(IteratorConst it);
+		const Node* find_(const Key& key) const;
 
 		Node**    _nodes;
 		Node      _end; // { _prev = last, _next = first }
@@ -203,11 +204,6 @@ namespace qk {
 	}
 
 	template<typename K, typename V, typename C, typename A>
-	const V& Dict<K, V, C, A>::operator[](const K& key) const {
-		return get(key);
-	}
-
-	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::operator[](const K& key) {
 		return get(key);
 	}
@@ -218,27 +214,32 @@ namespace qk {
 	}
 
 	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::find(const K& key) const {
+	const typename Dict<K, V, C, A>::Node* Dict<K, V, C, A>::find_(const K& key) const {
 		if (_length) {
 			auto hash = C::hashCode(key);
 			auto node = _nodes[hash % _capacity];
 			while (node) {
 				if (node->hashCode == hash)
-					return IteratorConst(node);
+					return node;
 				node = node->_conflict;
 			}
 		}
-		return IteratorConst(&_end);
+		return &_end;
+	}
+
+	template<typename K, typename V, typename C, typename A>
+	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::find(const K& key) const {
+		return IteratorConst(find_(key));
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::find(const K& key) {
-		return Iterator(const_cast<Node*>(((const Dict*)this)->find(key).ptr()));
+		return Iterator(const_cast<Node*>(find_(key)));
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::has(const K& key) const {
-		return find(key) != IteratorConst(&_end);
+		return find_(key) != &_end;
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -260,6 +261,14 @@ namespace qk {
 		for (auto& i: *this)
 			ls.push(i.value);
 		Qk_ReturnLocal(ls);
+	}
+
+	template<typename K, typename V, typename C, typename A>
+	bool Dict<K, V, C, A>::get(const K& k, const V* &out) const {
+		auto node = find_(k);
+		if (node == &_end) return false;
+		out = &node->data().value;
+		return true;
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -329,8 +338,8 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::erase(const K& key) {
-		auto it = find(key);
-		return it == end() ? false: (erase(it), true);
+		auto node = find_(key);
+		return node == &_end ? false: (erase(IteratorConst(node)), true);
 	}
 
 	template<typename K, typename V, typename C, typename A>

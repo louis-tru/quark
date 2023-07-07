@@ -162,7 +162,7 @@ namespace qk {
 	 * @method getAntiAliasStrokeTriangleStrip() returns anti alias stroke triangle vertices
 	 * @return {Array<Vec3>} points { x, y, sdf value for anti alias stroke }[]
 	*/
-	Array<Vec3> Path::getAntiAliasStrokeTriangleStrip(float epsilon) {
+	Array<Vec3> Path::getAntiAliasStrokeTriangleStrip(float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
 		Array<Vec3> out;

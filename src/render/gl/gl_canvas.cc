@@ -456,7 +456,7 @@ namespace qk {
 			glEnable(GL_STENCIL_TEST); // enable stencil test
 		}
 
-		Clip clip{_backend->getPathVertexsCache(path), op, antiAlias};
+		Clip clip{_backend->getPathTrianglesCache(path), op, antiAlias};
 
 		if (drawClip(&clip)) {
 			// save clip state
@@ -550,10 +550,11 @@ namespace qk {
 		//glDrawArrays(GL_LINE_STRIP, 0, p.ptsLen());
 	}
 
-	void GLCanvas::drawPath(const Path &path, const Paint &paint) {
+	void GLCanvas::drawPath(const Path &path_, const Paint &paint) {
 		if (_blendMode != paint.blendMode) {
 			setBlendMode(paint.blendMode); // switch blend mode
 		}
+		auto path = _backend->getNormalizedPathCache(path_);
 
 		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 
@@ -562,22 +563,22 @@ namespace qk {
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
-				fill = &_backend->getPathVertexsCache(path);
+				fill = &_backend->getPathTrianglesCache(path);
 				break;
 			case Paint::kStroke_Style:
-				stroke = &_backend->getStrokePathVertexsCache(path, paint.width, paint.cap, paint.join);
+				stroke = &_backend->getStrokePathTrianglesCache(path, paint.width, paint.cap, paint.join);
 				break;
 			case Paint::kStrokeAndFill_Style:
-				fill   = &_backend->getPathVertexsCache(path);
-				stroke = &_backend->getStrokePathVertexsCache(path, paint.width, paint.cap, paint.join);
+				fill   = &_backend->getPathTrianglesCache(path);
+				stroke = &_backend->getStrokePathTrianglesCache(path, paint.width, paint.cap, paint.join);
 				break;
 		}
 
 		if (fill) {
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					//drawColor(*fill, paint);
-					test_color_fill_aa_lines(_backend->_color, _backend->_colorDotted, path, paint);
+					drawColor(*fill, paint);
+					// test_color_fill_aa_lines(_backend->_color, _backend->_colorDotted, path, paint);
 					break;
 				case Paint::kGradient_Type:
 					drawGradient(*fill, paint); break;
@@ -602,6 +603,10 @@ namespace qk {
 					drawImage(*stroke, paint); break;
 				case Paint::kBitmapMask_Type:
 					drawImageMask(*stroke, paint); break;
+			}
+
+			if (antiAlias) {
+				// aa
 			}
 		}
 	}
