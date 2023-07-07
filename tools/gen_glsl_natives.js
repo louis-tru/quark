@@ -71,7 +71,14 @@ function readcode(input) {
 
 function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 	// find uniform and attribute
-	var reg = /^\s*(?:layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s+)?(uniform|attribute|in)\s+((lowp|mediump|highp)\s+)?(int|float|vec2|vec3|vec4|mat2|mat3|mat4|sampler2D)\s+([a-zA-Z0-9\_]+)\s*(\[\s*(\d+)\s*\])?;\s*$/mg;
+	// var reg = /^\s*(?:layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s+)?(uniform|attribute|in)\s+((lowp|mediump|highp)\s+)?(int|float|vec2|vec3|vec4|mat2|mat3|mat4|sampler2D)\s+([a-zA-Z0-9\_]+)\s*(\[\s*(\d+)\s*\])?;\s*$/mg;
+	var reg = new RegExp(
+		'^\\s*(?:layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s+)?'+
+		'(uniform|attribute|in)\\s+((lowp|mediump|highp)\\s+)?'+
+		'(int|float|vec2|vec3|vec4|mat2|mat3|mat4|sampler2D)'+
+		'\\s+([a-zA-Z0-9\\_]+)\\s*(\\[\\s*(\\d+)\\s*\\])?;\\s*$'
+		,'mg'
+	);
 	var mat = reg.exec(code);
 
 	while ( mat ) {

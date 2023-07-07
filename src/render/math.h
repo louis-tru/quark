@@ -147,19 +147,20 @@ namespace qk {
 	// ------------------------------------------
 
 	struct Qk_EXPORT Vec2: Vec<float,2> {
-	#define Qk_Default_Vec_Operator(N,T,L) \
-		N(); \
-		N(float f); \
-		N  operator+(const Vec<T,L>& b) const; \
-		N  operator-(const Vec<T,L>& b) const; \
-		N  operator*(const Vec<T,L>& b) const; \
-		N  operator*(T b) const; \
-		N  operator/(const Vec<T,L>& b) const; \
-		N& operator+=(const Vec<T,L>& b); \
-		N& operator-=(const Vec<T,L>& b); \
-		N& operator*=(const Vec<T,L>& b); \
-		N& operator*=(T b); \
-		N& operator/=(const Vec<T,L>& b)
+
+		#define Qk_Default_Vec_Operator(Name,T,Len) \
+			Name(); \
+			Name(float f); \
+			Name  operator+(const Vec<T,Len>& b) const; \
+			Name  operator-(const Vec<T,Len>& b) const; \
+			Name  operator*(const Vec<T,Len>& b) const; \
+			Name  operator*(T b) const; \
+			Name  operator/(const Vec<T,Len>& b) const; \
+			Name& operator+=(const Vec<T,Len>& b); \
+			Name& operator-=(const Vec<T,Len>& b); \
+			Name& operator*=(const Vec<T,Len>& b); \
+			Name& operator*=(T b); \
+			Name& operator/=(const Vec<T,Len>& b)
 
 		Qk_Default_Vec_Operator(Vec2,float,2);
 
@@ -214,7 +215,6 @@ namespace qk {
 
 	struct Qk_EXPORT Vec3: Vec<float,3> {
 		Qk_Default_Vec_Operator(Vec3,float,3);
-	#undef Qk_Default_Vec_Operator;
 		Vec3(float a, float b, float c);
 		Vec3(const Vec<float, 2> &vec2, float f);
 		Vec3(float f, const Vec<float, 2> &vec2);
@@ -222,6 +222,8 @@ namespace qk {
 		float dot(const Vec<float,3>& b) const;
 		Vec3  det(const Vec<float,3>& b) const;
 	};
+
+	#undef Qk_Default_Vec_Operator;
 
 	// ------------------------------------------
 

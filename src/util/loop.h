@@ -284,6 +284,7 @@ namespace qk {
 		* @constructor `declear=true` means that it will be cleaned up when it is destructed
 		*/
 		KeepLoop(cString& name, bool destructor_clean);
+
 		RunLoop*  _loop;
 		uint32_t  _group;
 		Iterator  _id;

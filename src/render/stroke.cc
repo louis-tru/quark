@@ -91,7 +91,6 @@ namespace qk {
 	static void each_subpath(const Path *self, AddPoint add, 
 		BeforeAdding before, AfterDone after, bool close, void *ctx
 	) {
-
 		auto subpath = [&](const Vec2 *pts, int size, bool close) {
 			if (size > 1) { // size > 1
 				close = close && size > 2;
@@ -115,7 +114,6 @@ namespace qk {
 		auto pts0 = self->pts();
 		auto pts1 = pts.val();
 		int  size = 0;
-
 		auto verbs = self->verbs();
 
 		for (int i = 0, l = self->verbsLen(); i < l; i++) {
@@ -306,7 +304,7 @@ namespace qk {
 				case Path::Join::kRound_Join: {// adds circle
 					nline *= len;
 					if (angleLen > Qk_PI_2_1) {
-						angleLen = Qk_PI_2_1 - Qk_PI + angleLen;
+						angleLen = angleLen - Qk_PI_2_1;
 						left.arcTo({from-width,Vec2(width*2)}, Qk_PI_2-angle+angleLen, -angleLen*2, false);
 						right.addTo(from - nline);
 					} else {

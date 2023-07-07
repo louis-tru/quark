@@ -60,10 +60,11 @@ namespace qk {
 		static Path MakeRect(const Rect& rect, bool ccw = false);
 		static Path MakeCircle(Vec2 center, float radius, bool ccw = false);
 		static Path MakeRRect(const Rect& rect, const BorderRadius &radius);
-		static Path MakeRRectOutline(const Rect& outside,
-																	const Rect &inside, const BorderRadius &radius);
+		static Path MakeRRectOutline(const Rect &outside,
+																 const Rect &inside, const BorderRadius &radius);
 		Path();
 		Path(Vec2 move);
+
 		// add path points
 		void moveTo(Vec2 to);
 		void lineTo(Vec2 to);
@@ -75,6 +76,7 @@ namespace qk {
 		void close(); // close line
 		void addTo(Vec2 p); // call move to or line to
 		void concat(const Path& path);
+
 		// point ptr
 		inline const Vec2* pts() const { return (const Vec2*)*_pts; }
 		inline const PathVerb* verbs() const { return (const PathVerb*)*_verbs; }
