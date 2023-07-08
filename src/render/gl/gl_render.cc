@@ -79,7 +79,7 @@ namespace qk {
 		: GLCanvas(this), Render(opts)
 		, _Is_Support_Multisampled(glIsSupportMultisampled())
 		, _shaders{
-			&_clear, &_clip, &_color, &_image, &_imageMask, &_yuv420p,
+			&_clear, &_clip, &_color, &_image, &_colorMask, &_yuv420p,
 			&_yuv420sp, &_linear, &_radial, &_colorDotted
 		}
 	{
@@ -99,7 +99,9 @@ namespace qk {
 
 		glUseProgram(_image.shader);
 		glUniform1i(_image.image, 0);
-		glUniform1i(_imageMask.image, 0);
+
+		glUseProgram(_colorMask.shader);
+		glUniform1i(_colorMask.image, 0);
 
 		glUseProgram(_yuv420p.shader);
 		glUniform1i(_yuv420p.image, 0);

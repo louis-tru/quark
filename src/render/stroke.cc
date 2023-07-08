@@ -186,7 +186,7 @@ namespace qk {
 		[](bool close, int size, void *ctx) {
 			auto _ = (Ctx*)ctx;
 			auto len = _->out->length();
-			_->out->extend(len + size + 1);
+			_->out->extend(len + (size << 1) + 2);
 			_->ptr = _->out->val() + len;
 		},
 		[](bool close, int size, void *ctx) {
@@ -195,7 +195,7 @@ namespace qk {
 					 b = _->ptr + size - 2;
 			*(_->ptr++) = *a;
 			*(_->ptr++) = *b;
-		}, true, &out);
+		}, true, &ctx);
 
 		Qk_ReturnLocal(out);
 	}

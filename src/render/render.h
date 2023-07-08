@@ -83,18 +83,19 @@ namespace qk {
 		*/
 		const Array<Vec2>& getPathTrianglesCache(const Path &path);
 		/**
-		 * @dev get stroke path triangles from cache
-		*/
-		const Array<Vec2>& getStrokePathTrianglesCache(const Path &path,
-			float width, Path::Cap cap, Path::Join join, float miterLimit = 0);
-		/**
-		 * @dev get anti alias stroke path triangle strip cache
+		 * @dev get anti alias sdf stroke path triangle strip cache
 		*/
 		const Array<Vec3>& getAntiAliasStrokeTriangleStripCache(const Path &path);
 		/**
+		 * @dev get stroke path from cache
+		 */
+		const Path& getStrokePathCache(const Path &path,
+			float width, Path::Cap cap, Path::Join join, float miterLimit = 0);
+
+		/**
 		 * @dev get normalized path from cache
 		 */
-		const Path&     getNormalizedPathCache(const Path &path);
+		const Path& getNormalizedPathCache(const Path &path);
 
 		// @overwrite class ViewVisitor
 		virtual void    visitView(View* v) override;
@@ -122,9 +123,9 @@ namespace qk {
 		float         _default_scale;
 		float         _alpha;
 		uint32_t      _mark_recursive;
-		Dict<uint64_t, Array<Vec2>> _PathTrianglesCache, _StrokePathTrianglesCache; // path hash => triangles
+		Dict<uint64_t, Array<Vec2>> _PathTrianglesCache; // path hash => triangles
 		Dict<uint64_t, Array<Vec3>> _AntiAliasStrokeTriangleStripCache; // path hash => aa triangles strip
-		Dict<uint64_t, Path>        _PathNormalizedCache; // path hash => path
+		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
 	};
 
 	typedef RenderBackend Render;

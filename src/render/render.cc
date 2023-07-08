@@ -76,18 +76,18 @@ namespace qk {
 		return _PathTrianglesCache.set(hash, path.getTriangles(1));
 	}
 
-	const Array<Vec2>& RenderBackend::getStrokePathTrianglesCache(
-		const Path &path, float width, Path::Cap cap, Path::Join join, float miterLimit)
+	const Path& RenderBackend::getStrokePathCache(
+		const Path &path, float width, Path::Cap cap, Path::Join join, float miterLimit) 
 	{
 		auto hash = path.hashCode();
 		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&miterLimit;
 		hash += (hash << 5) + hash_part + ((cap << 2) | join);
-		const Array<Vec2> *out;
-		if (_StrokePathTrianglesCache.get(hash, out)) return *out;
-		if (_StrokePathTrianglesCache.length() >= 1024)
-			_StrokePathTrianglesCache.clear();
-		return _StrokePathTrianglesCache
-			.set(hash, path.strokePath(width, cap, join, miterLimit).getTriangles(1));
+		const Path *out;
+		if (_StrokePathCache.get(hash, out)) return *out;
+		if (_StrokePathCache.length() >= 1024)
+			_StrokePathCache.clear();
+		auto stroke = path.strokePath(width,cap,join,miterLimit);
+		return _StrokePathCache.set(hash, stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath());
 	}
 
 	const Array<Vec3>& RenderBackend::getAntiAliasStrokeTriangleStripCache(const Path &path) {
@@ -103,10 +103,10 @@ namespace qk {
 		if (path.isNormalized()) return path;
 		auto hash = path.hashCode();
 		const Path *out;
-		if (_PathNormalizedCache.get(hash, out)) return *out;
-		if (_PathNormalizedCache.length() >= 1024)
-			_PathNormalizedCache.clear();
-		return _PathNormalizedCache.set(hash, path.normalizedPath());
+		if (_NormalizedPathCache.get(hash, out)) return *out;
+		if (_NormalizedPathCache.length() >= 1024)
+			_NormalizedPathCache.clear();
+		return _NormalizedPathCache.set(hash, path.normalizedPath());
 	}
 
 	void RenderBackend::visitView(View* view) {

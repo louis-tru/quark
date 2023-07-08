@@ -61,10 +61,12 @@ namespace qk {
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin,
 			float fontSize, const Paint &paint) override;
 	protected:
-		void drawColor(const Array<Vec2>& vertex, const Paint& paint);
-		void drawGradient(const Array<Vec2>& vertex, const Paint& paint);
-		void drawImage(const Array<Vec2>& vertex, const Paint& paint);
-		void drawImageMask(const Array<Vec2>& vertex, const Paint& paint);
+		void fillPath(const Path &path, const Paint &paint, bool antiAlias);
+		void drawColor(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
+		void drawGradient(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
+		void drawImage(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
+		void drawImageMask(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
+		void drawColorSDF(const Array<Vec3> &vertexSdf, const Paint& paint, GLenum mode);
 		float drawTextImage(ImageSource *textImg,
 			float imgTop, float scale, Vec2 origin, const Paint &paint);
 
