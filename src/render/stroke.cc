@@ -77,7 +77,6 @@ namespace qk {
 
 		Qk_ReturnLocal(out);
 	}
-
 }
 
 #endif
@@ -88,7 +87,7 @@ namespace qk {
 	typedef void BeforeAdding(bool close, int size, void *ctx);
 	typedef void AfterDone(bool close, int size, void *ctx);
 
-	static void each_subpath(const Path *self, AddPoint add, 
+	static void stroke_exec(const Path *self, AddPoint add, 
 		BeforeAdding before, AfterDone after, bool close, void *ctx
 	) {
 		auto subpath = [&](const Vec2 *pts, int size, bool close) {
@@ -144,6 +143,7 @@ namespace qk {
 		subpath(pts1, size, close);
 	}
 
+	// concat paths, left += reverse(right)
 	static void reverse_concat_path(Path &left, const Path &right) {
 		auto verbs = right.verbs();
 		auto pts = right.pts() + right.ptsLen() - 1;
@@ -166,19 +166,19 @@ namespace qk {
 	}
 
 	/**
-	 * @method getAntiAliasStrokeTriangleStrip() returns anti alias stroke triangle vertices
-	 * @return {Array<Vec3>} points { x, y, sdf value for anti alias stroke }[]
+	 * @method getSDFStrokeTriangleStrip() returns sdf stroke triangle vertices
+	 * @return {Array<Vec3>} points { x, y, sdf value renge 0.5 to -0.5 }[]
 	*/
-	Array<Vec3> Path::getAntiAliasStrokeTriangleStrip(float width, float epsilon) const {
+	Array<Vec3> Path::getSDFStrokeTriangleStrip(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
-		
+
 		width *= 1.2;
 
 		Array<Vec3> out;
 		struct Ctx { float width; bool fixStrip; Array<Vec3> *out; Vec3 *ptr; } ctx = { width, false, &out };
 
-		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
+		stroke_exec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			auto nline = from.normalline(prev, next); // normal line
 			auto _ = (Ctx*)ctx;
 
@@ -190,7 +190,7 @@ namespace qk {
 				auto len = _->width / sinf(angleLen);
 				nline *= len;
 			}
-			
+
 			if (idx == 0 && _->fixStrip ) {
 				// fix multiple subpath triangle strip error
 				auto a = _->ptr - 1;
@@ -245,7 +245,7 @@ namespace qk {
 			2.closed path produces two closed paths
 		*/
 
-		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
+		stroke_exec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			#define Qk_addTo(l,r) \
 				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
 
@@ -351,9 +351,10 @@ namespace qk {
 			#undef Qk_addTo
 		}, NULL, [](bool close, int size, void *ctx) {
 			auto _ = (Ctx*)ctx;
-			if (close)
+			if (close) {
 				_->left->close();
-			reverse_concat_path(*_->left, _->right);
+			}
+			reverse_concat_path(*_->left, _->right); // concat paths, left += reverse(right)
 			_->left->close();
 			_->right = Path(); // clear right path
 		}, false, &ctx);

@@ -90,15 +90,15 @@ namespace qk {
 		return _StrokePathCache.set(hash, stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath());
 	}
 
-	const Array<Vec3>& RenderBackend::getAntiAliasStrokeTriangleStripCache(const Path &path, float scale) {
+	const Array<Vec3>& RenderBackend::getSDFStrokeTriangleStripCache(const Path &path, float scale) {
 		auto hash = path.hashCode();
 		hash += (hash << 5) + *(int32_t*)&scale;
 		const Array<Vec3> *out;
-		if (_AntiAliasStrokeTriangleStripCache.get(hash, out)) return *out;
-		if (_AntiAliasStrokeTriangleStripCache.length() >= 1024)
-			_AntiAliasStrokeTriangleStripCache.clear();
-		return _AntiAliasStrokeTriangleStripCache.set(hash,
-			path.getAntiAliasStrokeTriangleStrip(1/scale, 1)
+		if (_SDFStrokeTriangleStripCache.get(hash, out)) return *out;
+		if (_SDFStrokeTriangleStripCache.length() >= 1024)
+			_SDFStrokeTriangleStripCache.clear();
+		return _SDFStrokeTriangleStripCache.set(hash,
+			path.getSDFStrokeTriangleStrip(1/scale, 1)
 		);
 	}
 

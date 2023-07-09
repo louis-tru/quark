@@ -583,31 +583,33 @@ namespace qk {
 				//test_color_fill_aa_lines(_backend->_color, _backend->_colorDotted, path, paint);
 				break;
 			case Paint::kGradient_Type:
-				drawGradient(triangles, paint, GL_TRIANGLES); break;
+				drawGradient(triangles, paint, GL_TRIANGLES);
+				break;
 			case Paint::kBitmap_Type:
-				drawImage(triangles, paint, GL_TRIANGLES); break;
+				drawImage(triangles, paint, GL_TRIANGLES);
+				break;
 			case Paint::kBitmapMask_Type:
-				drawImageMask(triangles, paint, GL_TRIANGLES); break;
+				drawImageMask(triangles, paint, GL_TRIANGLES);
 				break;
 		}
 
 		if (antiAlias) {
 			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
-			//auto &strip = _backend->getAntiAliasStrokeTriangleStripCache(newPath, _Scale);
-			auto &strip = _backend->getAntiAliasStrokeTriangleStripCache(path, _Scale);
+			//auto &strip = _backend->getSDFStrokeTriangleStripCache(newPath, _Scale);
+			auto &strip = _backend->getSDFStrokeTriangleStripCache(path, _Scale);
 			// Qk_DEBUG("%p", &strip);
 			switch (paint.type) {
 				case Paint::kColor_Type:
 					drawColorSDF(strip, paint, GL_TRIANGLE_STRIP);
 					break;
 				case Paint::kGradient_Type:
-					// drawGradient(triangles, paint, GL_TRIANGLES);
+					drawGradientSDF(strip, paint, GL_TRIANGLE_STRIP);
 					break;
 				case Paint::kBitmap_Type:
-					// drawImage(triangles, paint, GL_TRIANGLES);
+					drawImageSDF(strip, paint, GL_TRIANGLE_STRIP);
 					break;
 				case Paint::kBitmapMask_Type:
-					// drawImageMask(triangles, paint, GL_TRIANGLES);
+					drawImageMaskSDF(strip, paint, GL_TRIANGLE_STRIP);
 					break;
 			}
 		}
@@ -621,10 +623,10 @@ namespace qk {
 		glDrawArrays(mode, 0, vertex.length());
 	}
 	
-	void GLCanvas::drawColorSDF(const Array<Vec3> &vertexSdf, const Paint& paint, GLenum mode) {
-		_backend->_colorSdf.use(vertexSdf.size(), *vertexSdf);
+	void GLCanvas::drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode) {
+		_backend->_colorSdf.use(vertex.size(), *vertex);
 		glUniform4fv(_backend->_colorSdf.color, 1, paint.color.val);
-		glDrawArrays(mode, 0, vertexSdf.length());
+		glDrawArrays(mode, 0, vertex.length());
 	}
 
 	void GLCanvas::drawGradient(const Array<Vec2> &vertex, const Paint &paint, GLenum mode) {
@@ -632,6 +634,20 @@ namespace qk {
 		auto shader = paint.gradientType ==
 			Paint::kRadial_GradientType ? &_backend->_radial:
 			static_cast<GLSLColorRadial*>(static_cast<GLSLShader*>(&_backend->_linear));
+		auto count = Qk_MIN(g->colors.length(), 256);
+		shader->use(vertex.size(), *vertex);
+		glUniform4fv(shader->range, 1, paint.color.val);
+		glUniform1i(shader->count, count);
+		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors.val());
+		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions.val());
+		glDrawArrays(mode, 0, vertex.length());
+	}
+
+	void GLCanvas::drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode) {
+		auto g = paint.gradient;
+		auto shader = paint.gradientType ==
+			Paint::kRadial_GradientType ? &_backend->_radialSdf:
+			static_cast<GLSLColorRadialSdf*>(static_cast<GLSLShader*>(&_backend->_linearSdf));
 		auto count = Qk_MIN(g->colors.length(), 256);
 		shader->use(vertex.size(), *vertex);
 		glUniform4fv(shader->range, 1, paint.color.val);
@@ -660,8 +676,7 @@ namespace qk {
 			if (!id) {
 				id = gl_gen_texture(pixel+i, _texTmp[i], true);
 				if (!id) {
-					Qk_DEBUG("drawImage(),gl_set_texture() fail");
-					return;
+					Qk_DEBUG("drawImage(),gl_set_texture() fail"); return;
 				}
 				_texTmp[i] = id;
 			}
@@ -674,22 +689,40 @@ namespace qk {
 		glDrawArrays(mode, 0, vertex.length());
 	}
 
+	void GLCanvas::drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode) {
+		auto shader = &_backend->_imageSdf;
+		auto type = paint.image->type();
+		if (type == kColor_Type_YUV420P_Y_8 || type == kColor_Type_YUV420SP_Y_8) {
+			return; // ignore
+		}
+		shader->use(vertex.size(), *vertex);
+		glUniform1f(shader->opacity, paint.color.a());
+		glUniform4fv(shader->coord, 1, paint.region.origin.val);
+		glDrawArrays(mode, 0, vertex.length());
+	}
+
 	void GLCanvas::drawImageMask(const Array<Vec2> &vertex, const Paint &paint, GLenum mode) {
 		auto shader = &_backend->_colorMask;
 		auto pixel = paint.image;
-		auto type = pixel->type();
 		auto id = pixel->texture();
 
 		if (!id) {
 			id = gl_gen_texture(pixel, _texTmp[0], true);
 			if (!id) {
-				Qk_DEBUG("drawImageMask(),gl_set_texture() fail");
-				return;
+				Qk_DEBUG("drawImageMask(),gl_set_texture() fail"); return;
 			}
 			_texTmp[0] = id;
 		}
 		gl_bind_texture(id, 0, paint);
-		
+
+		shader->use(vertex.size(), *vertex);
+		glUniform4fv(shader->color, 1, paint.color.val);
+		glUniform4fv(shader->coord, 1, paint.region.origin.val);
+		glDrawArrays(mode, 0, vertex.length());
+	}
+
+	void GLCanvas::drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode) {
+		auto shader = &_backend->_colorMaskSdf;
 		shader->use(vertex.size(), *vertex);
 		glUniform4fv(shader->color, 1, paint.color.val);
 		glUniform4fv(shader->coord, 1, paint.region.origin.val);

@@ -83,9 +83,9 @@ namespace qk {
 		*/
 		const Array<Vec2>& getPathTrianglesCache(const Path &path);
 		/**
-		 * @dev get anti alias sdf stroke path triangle strip cache
+		 * @dev get sdf stroke path triangle strip cache
 		*/
-		const Array<Vec3>& getAntiAliasStrokeTriangleStripCache(const Path &path, float scale);
+		const Array<Vec3>& getSDFStrokeTriangleStripCache(const Path &path, float scale);
 		/**
 		 * @dev get stroke path from cache
 		 */
@@ -124,7 +124,7 @@ namespace qk {
 		float         _alpha;
 		uint32_t      _mark_recursive;
 		Dict<uint64_t, Array<Vec2>> _PathTrianglesCache; // path hash => triangles
-		Dict<uint64_t, Array<Vec3>> _AntiAliasStrokeTriangleStripCache; // path hash => aa triangles strip
+		Dict<uint64_t, Array<Vec3>> _SDFStrokeTriangleStripCache; // path hash => aa triangles strip
 		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
 	};
 
