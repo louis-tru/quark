@@ -102,7 +102,7 @@ namespace qk {
 		 * @method getAntiAliasStrokeTriangleStrip() returns anti alias stroke triangle sdf vertices
 		 * @return {Array<Vec3>} points { x, y, sdf value for anti alias stroke }[]
 		*/
-		Array<Vec3> getAntiAliasStrokeTriangleStrip(float epsilon = 1.0) const;
+		Array<Vec3> getAntiAliasStrokeTriangleStrip(float width, float epsilon = 1.0) const;
 
 		/**
 		 * @method dashPath() returns the dash path

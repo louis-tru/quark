@@ -84,7 +84,7 @@ namespace qk {
 
 namespace qk {
 
-	typedef void AddPoint(const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx);
+	typedef void AddPoint(const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx);
 	typedef void BeforeAdding(bool close, int size, void *ctx);
 	typedef void AfterDone(bool close, int size, void *ctx);
 
@@ -93,17 +93,23 @@ namespace qk {
 	) {
 		auto subpath = [&](const Vec2 *pts, int size, bool close) {
 			if (size > 1) { // size > 1
-				close = close && size > 2;
+
+				if (close) {
+					if (*pts == pts[size-1]) { // exclude duplicates
+						size--;
+					}
+					close = size > 2;
+				}
 
 				if (before)
 					before(close, size, ctx);
 
-				add(close ? pts+size-1: NULL, *pts, pts+1, ctx); pts++;
+				add(close ? pts+size-1: NULL, *pts, pts+1, 0, ctx); pts++;
 
 				for (int i = 1; i < size-1; i++, pts++) {
-					add(pts-1, *pts, pts+1, ctx);
+					add(pts-1, *pts, pts+1, i, ctx);
 				}
-				add(pts-1, *pts, close? pts-size+1: NULL, ctx);
+				add(pts-1, *pts, close? pts-size+1: NULL, size-1, ctx);
 
 				if (after)
 					after(close, size, ctx);
@@ -128,7 +134,7 @@ namespace qk {
 						pts1[size++] = pts0[-1];
 					break;
 				case Path::kVerb_Close: // close
-					subpath(pts1, *pts1 == pts1[size-1] ? size - 1: size, true); // exclude duplicates
+					subpath(pts1, size, true); // exclude duplicates
 					size = 0;
 					break;
 				default: Qk_FATAL("Path::strokePath");
@@ -151,6 +157,7 @@ namespace qk {
 				} while(verbs[i] == Path::kVerb_Cubic);
 			} else if (verbs[i] == Path::kVerb_Close) {
 				// ignore
+				//Qk_DEBUG("Close");
 			} else {
 				Qk_ASSERT(verbs[i] == Path::kVerb_Line || verbs[i] == Path::kVerb_Move);
 				left.addTo(*pts--);
@@ -162,37 +169,51 @@ namespace qk {
 	 * @method getAntiAliasStrokeTriangleStrip() returns anti alias stroke triangle vertices
 	 * @return {Array<Vec3>} points { x, y, sdf value for anti alias stroke }[]
 	*/
-	Array<Vec3> Path::getAntiAliasStrokeTriangleStrip(float epsilon) const {
+	Array<Vec3> Path::getAntiAliasStrokeTriangleStrip(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
-		Array<Vec3> out;
-		struct Ctx { Array<Vec3> *out; Vec3 *ptr; } ctx = { &out };
+		
+		width *= 1.2;
 
-		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx) {
+		Array<Vec3> out;
+		struct Ctx { float width; bool fixStrip; Array<Vec3> *out; Vec3 *ptr; } ctx = { width, false, &out };
+
+		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			auto nline = from.normalline(prev, next); // normal line
 			auto _ = (Ctx*)ctx;
 
 			if (nline.is_zero()) {
 				auto fromPrev = from - *prev;
-				nline = fromPrev.rotate90z().normalized() * 0.5;
+				nline = fromPrev.rotate90z().normalized() * _->width;
 			} else {
 				auto angleLen = nline.angleTo(*prev - from);
-				auto len = 0.5 / sinf(angleLen);
+				auto len = _->width / sinf(angleLen);
 				nline *= len;
 			}
+			
+			if (idx == 0 && _->fixStrip ) {
+				// fix multiple subpath triangle strip error
+				auto a = _->ptr - 1;
+				*(_->ptr++) = *a;
+				*(_->ptr++) = Vec3(from + nline, 0.5);
+			}
 			*(_->ptr++) = Vec3(from + nline, 0.5);
-			*(_->ptr++) = Vec3(from + nline, -0.5);
+			*(_->ptr++) = Vec3(from - nline, -0.5);
 		},
 		[](bool close, int size, void *ctx) {
 			auto _ = (Ctx*)ctx;
 			auto len = _->out->length();
-			_->out->extend(len + (size << 1) + 2);
+			size = (size << 1) + 2;
+			if (len) {
+				size += 2;
+				_->fixStrip = true;
+			}
+			_->out->extend(len + size);
 			_->ptr = _->out->val() + len;
 		},
 		[](bool close, int size, void *ctx) {
 			auto _ = (Ctx*)ctx;
-			auto a = _->ptr + size - 1,
-					 b = _->ptr + size - 2;
+			auto a = _->ptr - (size << 1), b = a + 1;
 			*(_->ptr++) = *a;
 			*(_->ptr++) = *b;
 		}, true, &ctx);
@@ -224,7 +245,7 @@ namespace qk {
 			2.closed path produces two closed paths
 		*/
 
-		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, void *ctx) {
+		each_subpath(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			#define Qk_addTo(l,r) \
 				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
 

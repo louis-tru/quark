@@ -80,7 +80,8 @@ namespace qk {
 		, _Is_Support_Multisampled(glIsSupportMultisampled())
 		, _shaders{
 			&_clear, &_clip, &_color, &_image, &_colorMask, &_yuv420p,
-			&_yuv420sp, &_linear, &_radial, &_colorDotted
+			&_yuv420sp, &_linear, &_radial, &_colorDotted,
+			&_colorSdf, &_colorMaskSdf, &_linearSdf, &_radialSdf,&_imageSdf,
 		}
 	{
 		switch(_opts.colorType) {
@@ -111,6 +112,10 @@ namespace qk {
 		glUseProgram(_yuv420sp.shader);
 		glUniform1i(_yuv420sp.image, 0);
 		glUniform1i(_yuv420sp.image_uv, 1);
+
+		glUseProgram(_colorMaskSdf.shader);
+		glUniform1i(_colorMaskSdf.image, 0);
+
 		
 		glUseProgram(0);
 
@@ -131,6 +136,9 @@ namespace qk {
 	GLRender::~GLRender() {}
 
 	Object* GLRender::asObject() {
+	const char* s = "aa"
+	"bb"
+	"cc";
 		return this;
 	}
 

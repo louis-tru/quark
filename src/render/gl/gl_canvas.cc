@@ -521,13 +521,13 @@ namespace qk {
 	}
 
 	void test_color_fill_aa_lines(
-		GLSLColorNormal &color,
+		GLSLColor &color,
 		GLSLColorDotted &colorDotted, const Path &path, const Paint &paint
 	) {
 		Array<Vec2> vertex = path.getTriangles();
 		color.use(vertex.size(), *vertex);
 		glUniform4fv(color.color, 1, paint.color.val);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		// glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		//glDrawArrays(GL_LINES, 0, vertex.length());
 
 		Array<Vec2> lines = path.getEdgeLines();
@@ -575,11 +575,12 @@ namespace qk {
 
 	void GLCanvas::fillPath(const Path &path, const Paint &paint, bool antiAlias) {
 		Qk_ASSERT(path.isNormalized());
+
 		auto &triangles = _backend->getPathTrianglesCache(path);
 		switch (paint.type) {
 			case Paint::kColor_Type:
 				drawColor(triangles, paint, GL_TRIANGLES);
-				// test_color_fill_aa_lines(_backend->_color, _backend->_colorDotted, path, paint);
+				//test_color_fill_aa_lines(_backend->_color, _backend->_colorDotted, path, paint);
 				break;
 			case Paint::kGradient_Type:
 				drawGradient(triangles, paint, GL_TRIANGLES); break;
@@ -587,10 +588,13 @@ namespace qk {
 				drawImage(triangles, paint, GL_TRIANGLES); break;
 			case Paint::kBitmapMask_Type:
 				drawImageMask(triangles, paint, GL_TRIANGLES); break;
+				break;
 		}
 
 		if (antiAlias) {
-			auto &strip = _backend->getAntiAliasStrokeTriangleStripCache(path);
+			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
+			//auto &strip = _backend->getAntiAliasStrokeTriangleStripCache(newPath, _Scale);
+			auto &strip = _backend->getAntiAliasStrokeTriangleStripCache(path, _Scale);
 			// Qk_DEBUG("%p", &strip);
 			switch (paint.type) {
 				case Paint::kColor_Type:
@@ -618,7 +622,9 @@ namespace qk {
 	}
 	
 	void GLCanvas::drawColorSDF(const Array<Vec3> &vertexSdf, const Paint& paint, GLenum mode) {
-		// TODO ...
+		_backend->_colorSdf.use(vertexSdf.size(), *vertexSdf);
+		glUniform4fv(_backend->_colorSdf.color, 1, paint.color.val);
+		glDrawArrays(mode, 0, vertexSdf.length());
 	}
 
 	void GLCanvas::drawGradient(const Array<Vec2> &vertex, const Paint &paint, GLenum mode) {
@@ -642,10 +648,10 @@ namespace qk {
 		auto texCount = 1;
 
 		if (type == kColor_Type_YUV420P_Y_8) {
-			shader = static_cast<GLSLImageNormal*>(static_cast<GLSLShader*>(&_backend->_yuv420p));
+			shader = static_cast<GLSLImage*>(static_cast<GLSLShader*>(&_backend->_yuv420p));
 			texCount = 3;
 		} else if (type == kColor_Type_YUV420SP_Y_8) {
-			shader = static_cast<GLSLImageNormal*>(static_cast<GLSLShader*>(&_backend->_yuv420sp));
+			shader = static_cast<GLSLImage*>(static_cast<GLSLShader*>(&_backend->_yuv420sp));
 			texCount = 2;
 		}
 

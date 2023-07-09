@@ -610,11 +610,11 @@ namespace qk {
 		// calculate triangle area by point cross multiplication
 
 		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x()) + (C.x()*A.y() - C.y()*A.x());
-		float S_2 = abs(S_ABC); // *0.5
+		float S_2 = abs(S_ABC) * epsilon; // *0.5
 
 		if (S_2 < 5000.0) {
 			constexpr float count = 22.0 / 8.408964152537145;
-			int i = Uint32::max(sqrt_sqrtf(S_2) * count * epsilon, 2);
+			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
 			return i;
 		} else {
 			return 22;
@@ -637,11 +637,11 @@ namespace qk {
 
 		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x());// + (C.x()*A.y() - C.y()*A.x());
 		float S_CDA = (C.x()*D.y() - C.y()*D.x()) + (D.x()*A.y() - D.y()*A.x());// + (A.x()*C.y() - A.y()*C.x());
-		float S_2 = abs(S_ABC + S_CDA); // S = S_2 * 0.5
+		float S_2 = abs(S_ABC + S_CDA) * epsilon; // S = S_2 * 0.5
 
 		if (S_2 < 5000.0) { // circle radius < 80
 			constexpr float count = 30.0 / 8.408964152537145;//sqrtf(sqrtf(5000.0));
-			int i = Uint32::max(sqrt_sqrtf(S_2) * count * epsilon, 2);
+			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
 			return i;
 		} else {
 			return 30;
@@ -649,10 +649,10 @@ namespace qk {
 	}
 
 	static int getSampleFromRect(Vec2 rect, float epsilon, float ratio = 0.5) {
-		float S_2 = abs(rect.x() * rect.y() * ratio); // width * height
+		float S_2 = abs(rect.x() * rect.y() * ratio) * epsilon; // width * height
 		if (S_2 < 5000.0) { // circle radius < 80
 			constexpr float count = 30.0 / 8.408964152537145;//sqrtf(sqrtf(5000.0));
-			int i = Uint32::max(sqrt_sqrtf(S_2) * count * epsilon, 2);
+			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
 			return i;
 		} else {
 			return 30;

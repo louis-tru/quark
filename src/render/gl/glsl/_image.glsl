@@ -1,4 +1,3 @@
-#include "_util.glsl"
 
 uniform   vec4      coord;/*offset,scale*/
 out       vec2      coord_f;

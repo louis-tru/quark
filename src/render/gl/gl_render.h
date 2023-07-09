@@ -58,15 +58,20 @@ namespace qk {
 		// shader
 		GLSLClear _clear;
 		GLSLClip  _clip;
-		GLSLColorNormal _color;
+		GLSLColor _color;
 		GLSLColorMask _colorMask;
 		GLSLColorLinear _linear;
 		GLSLColorRadial _radial;
 		GLSLColorDotted _colorDotted;
-		GLSLImageNormal _image;
+		GLSLImage _image;
 		GLSLImageYuv420p _yuv420p;
 		GLSLImageYuv420sp _yuv420sp;
-		GLSLShader  *_shaders[10];
+		GLSLColorSdf _colorSdf;
+		GLSLColorMaskSdf _colorMaskSdf;
+		GLSLColorLinearSdf _linearSdf;
+		GLSLColorRadialSdf _radialSdf;
+		GLSLImageSdf _imageSdf;
+		GLSLShader  *_shaders[15];
 		friend class GLCanvas;
 	};
 }

@@ -1,1 +1,0 @@
-#include "_image_sdf.glsl"

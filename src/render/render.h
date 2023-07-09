@@ -85,7 +85,7 @@ namespace qk {
 		/**
 		 * @dev get anti alias sdf stroke path triangle strip cache
 		*/
-		const Array<Vec3>& getAntiAliasStrokeTriangleStripCache(const Path &path);
+		const Array<Vec3>& getAntiAliasStrokeTriangleStripCache(const Path &path, float scale);
 		/**
 		 * @dev get stroke path from cache
 		 */

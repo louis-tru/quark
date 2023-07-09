@@ -1,9 +1,12 @@
-#include "_util.glsl"
+#vert
+#import "_image.glsl"
 
+#frag
 in      lowp  vec2      coord_f;
 uniform lowp  float     opacity;
 uniform       sampler2D image;
 uniform       sampler2D image_uv;
+
 void main() {
 	lowp float y = texture(image, coord_f).r;
 	lowp float u = texture(image_uv, coord_f).r;

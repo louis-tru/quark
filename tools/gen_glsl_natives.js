@@ -71,7 +71,10 @@ function readcode(input) {
 
 function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 	// find uniform and attribute
-	// var reg = /^\s*(?:layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s+)?(uniform|attribute|in)\s+((lowp|mediump|highp)\s+)?(int|float|vec2|vec3|vec4|mat2|mat3|mat4|sampler2D)\s+([a-zA-Z0-9\_]+)\s*(\[\s*(\d+)\s*\])?;\s*$/mg;
+	// var reg = /^\s*(?:layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s+)?
+	// (uniform|attribute|in)\s+((lowp|mediump|highp)\s+)?
+	// (int|float|vec2|vec3|vec4|mat2|mat3|mat4|sampler2D)
+	// \s+([a-zA-Z0-9\_]+)\s*(\[\s*(\d+)\s*\])?;\s*$/mg;
 	var reg = new RegExp(
 		'^\\s*(?:layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s+)?'+
 		'(uniform|attribute|in)\\s+((lowp|mediump|highp)\\s+)?'+
@@ -128,11 +131,30 @@ function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 const all_asts = {};
 
 function resolve_code_ast(input, hpp, cpp) {
-	if (all_asts[input]) return all_asts[input];
+	let ast = all_asts[input];
+	if (!ast) {
+		let name = path.basename(input).replace(/[\-\.]/gm, '_');
+		let dir = path.dirname(input);
+		let codestr = readcode(input);
+		ast = resolve_code_ast_from_codestr(name, dir, codestr, 0,0,hpp, cpp);
+		all_asts[input] = ast;
+	}
+	return ast;
+}
 
-	let name = path.basename(input).replace(/[\-\.]/gm, '_');
-	let include = [];
+function get_import_all(Import, importAll, set) {
+	for (let i of Import) {
+		if (!set.has(i.name)) {
+			set.add(i.name);
+			get_import_all(i.import, importAll, set);
+			importAll.push(i);
+		}
+	}
+}
 
+function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, hpp, cpp) {
+	let Import = [];
+	let import_all = [];
 	let attributes = [
 		// struct ShaderAttr {
 		// 	const char *name;
@@ -144,58 +166,82 @@ function resolve_code_ast(input, hpp, cpp) {
 	let uniforms = []
 	var uniform_blocks = [];
 	let call = `get_${name}()`; // get_color_vert_code_glsl();
-
 	// get__util_glsl
 
-	let source = readcode(input).replace(/^#include\s+"([^"]+)"/gm, function(_,a) {
-		let inp = path.resolve(path.dirname(input), a);
-		include.push(resolve_code_ast(inp,hpp,cpp));
+	let source = codestr.replace(/^#import\s+"([^"]+)"/gm, function(_,a) {
+		let imp = path.resolve(dirname, a);
+		Import.push(resolve_code_ast(imp,hpp,cpp));
 		return '';
 	}).replace(/^\s+/mg, '').replace(/#version\s+300(\s+es)?/, '');
 
-	// let source_len = Buffer.byteLength(source);
+	let source_len = Buffer.byteLength(source);
 
 	find_uniforms_attributes(source, uniforms, uniform_blocks, attributes);
 
-	let isVert = name.indexOf('_vert_glsl') != -1;
-	let isFrag = name.indexOf('_frag_glsl') != -1;
+	get_import_all(Import, import_all, new Set);
 
 	// write(hpp, `const cString& ${call};`);
-	write(cpp, `const cString& ${call} {`,
-		`	static String c;`,
-		`	if (c.isEmpty()) {`,
-			isFrag||isVert?`		c+="#version " Qk_GL_Version "\\n";`:'',
-			isFrag ? `		c+="#define Qk_SHAFER_FRAG\\n";`:'',
-			include.map(e=>(`		c+=${e.call};`)),
-			`		c+="${source.replace(/\n/gm, '\\n\\\n')}\\n";`,
-		`	}`,
-		`	return c;`,
-	'}',
-	);
+	if (isFrag || isVert) {
+		write(cpp, `const cString& ${call} {`,
+			`	static String c;`,
+			`	if (c.isEmpty()) {`,
+				`		c+="#version " Qk_GL_Version "\\n";`,
+				isFrag ? `		c+="#define Qk_SHAFER_FRAG\\n";`:'',
+				import_all.map(e=>(`		c.append(${e.call});`)),
+				`		c.append("${source.replace(/\n/gm, '\\n\\\n')}",${source_len});`,
+			`	}`,
+			`	return c;`,
+		'}',
+		);
+	} else {
+		write(cpp, `const char* ${call} {`,
+			`const char* c = "${source.replace(/\n/gm, '\\n\\\n')}";`,
+			`return c;`,
+		'}',
+		);
+	}
+
+	if (!isFrag && !isVert) {
+		call += ',' + source_len;
+	}
 
 	let ast = {
-		include,
+		name,
+		import: Import,
+		import_all,
 		source: source,
 		call: call,
-		attributes_all: include.reduce((a,i)=>(a.push(...i.attributes_all),a), []).concat(attributes),
 		attributes, // []
-		uniforms_all: include.reduce((a,i)=>(a.push(...i.uniforms_all),a), []).concat(uniforms),
 		uniforms, // string[]
 		uniform_blocks,
 	};
 
-	return (all_asts[input] = ast);
+	return ast;
 }
 
-function resolve_glsl(name, vert, frag, hpp, cpp) {
+function resolve_glsl(name, input, hpp, cpp) {
 	console.log(`gen-glsl ${name}`);
 
-	let vert_code = resolve_code_ast(path.resolve(vert), hpp, cpp);
-	let frag_code = resolve_code_ast(path.resolve(frag), hpp, cpp);
+	let pathname = path.resolve(input);
+	let dir = path.dirname(pathname);
+	let codestr = readcode(pathname);
+	let [vertstr, fragstr] = codestr.split(/^#frag/gm);
+
+	vertstr = vertstr.replace(/^#vert/gm, '');
+	vertstr = '#import "_util.glsl"\n' + vertstr;
+	fragstr = '#import "_util.glsl"\n' + fragstr;
+
+	let vert_ast = resolve_code_ast_from_codestr(name+'_vert', dir, vertstr, 1, 0, hpp, cpp);
+	let frag_ast = resolve_code_ast_from_codestr(name+'_ftag', dir, fragstr, 0, 1, hpp, cpp);
 	let set = {};
-	let attributes = vert_code.attributes_all;
-	let uniforms = vert_code.uniforms_all
-		.concat(frag_code.uniforms_all).filter(e=>(set[e] ? 0: (set[e]=1,1)));
+
+	let attributes = vert_ast.import_all
+		.reduce((a,i)=>(a.push(...i.attributes),a), []).concat(vert_ast.attributes);
+
+	let uniforms_ = vert_ast.import_all.concat(frag_ast.import_all)
+		.reduce((a,i)=>(a.push(...i.uniforms),a), []).concat(vert_ast.uniforms,frag_ast.uniforms);
+
+	let uniforms = uniforms_.filter(e=>(set[e] ? 0: (set[e]=1,1)));
 	let className = `GLSL${name[0].toUpperCase()}${name.substring(1)}`;
 
 	write(hpp, `struct ${className}: GLSLShader {`,
@@ -208,7 +254,7 @@ function resolve_glsl(name, vert, frag, hpp, cpp) {
 
 	write(cpp, `void ${className}::build() {`,
 		`	gl_compile_link_shader(this, "${name}",`,
-		`	${vert_code.call},${frag_code.call},`,
+		`	${vert_ast.call},${frag_ast.call},`,
 		'	{',
 			attributes.map(e=>`		{"${e.name}",${e.size},${e.type},${e.stride}},`),
 		'	},',
@@ -228,15 +274,10 @@ function main() {
 	var pair_inputs = {};
 
 	inputs.forEach(function(input) {
-		var mat = input.match(/[\/\\](_)?([^\/\\]+)\.(vert|frag)\.glsl$/i);
-		if ( mat && !mat[1] ) {
-			var filename = mat[2];
-			var vert = mat[3] == 'vert';
-			var it = pair_inputs[filename];
-			if (!it) {
-				pair_inputs[filename] = it = { filename };
-			}
-			it[vert?'vert':'frag'] = input;
+		var mat = input.match(/[\/\\]([a-z][^\/\\]+)\.glsl$/i);
+		if ( mat ) {
+			var name = mat[1];
+			pair_inputs[name] = {name,input}
 		}
 	});
 
@@ -254,9 +295,9 @@ function main() {
 		'namespace qk {',
 	);
 
-	for (let {vert,frag,filename} of Object.values(pair_inputs)) {
-		let name = filename.replace(/[\-_](.)/gm, (_,b)=>b.toUpperCase());
-		resolve_glsl(name, vert, frag, hpp, cpp);
+	for (let {name,input} of Object.values(pair_inputs)) {
+		name = name.replace(/[\-_](.)/gm, (_,b)=>b.toUpperCase());
+		resolve_glsl(name, input, hpp, cpp);
 	}
 
 	// write(hpp, '#pragma pack(pop)');
