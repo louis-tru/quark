@@ -587,7 +587,7 @@ namespace qk {
 		auto &triangles = _backend->getPathTrianglesCache(path);
 		switch (paint.type) {
 			case Paint::kColor_Type:
-				//drawColor(triangles, paint, GL_TRIANGLES);
+				drawColor(triangles, paint, GL_TRIANGLES);
 				//test_color_fill_aa_lines(_backend->_color, _backend->_colorDotted, path, paint);
 				break;
 			case Paint::kGradient_Type:
@@ -605,7 +605,7 @@ namespace qk {
 			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
 			//auto &strip = _backend->getSDFStrokeTriangleStripCache(newPath, _Scale);
 			auto &strip = _backend->getSDFStrokeTriangleStripCache(path, 1.2/_Scale);
-			constexpr float sdf_range[2] = {0.5,-0.25};
+			constexpr float sdf_range[2] = {0.5,0-0.25};
 			// Qk_DEBUG("%p", &strip);
 			switch (paint.type) {
 				case Paint::kColor_Type:
