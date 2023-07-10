@@ -55,6 +55,7 @@ namespace qk {
 		virtual void setDepthBuffer(int width, int height);
 		// define props
 		bool _Is_Support_Multisampled;
+		GLuint _default_vbo;
 		// shader
 		GLSLClear _clear;
 		GLSLClip  _clip;

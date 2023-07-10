@@ -126,35 +126,16 @@ namespace qk {
 		s->shader = program;
 	}
 
+	void GLSLShader::use() {
+		glUseProgram(shader);
+		glBindVertexArray(vao);
+	}
+
 	void GLSLShader::use(GLsizeiptr size, const GLvoid* data) {
 		glUseProgram(shader);
 		glBindVertexArray(vao);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
-	}
-
-	void GLSLShader::use(const GLsizeiptr size[], const GLvoid *data[], int count) {
-		glUseProgram(shader);
-		glBindVertexArray(vao);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-		if (count == 1) {
-			glBufferData(GL_ARRAY_BUFFER, size[0], data[0], GL_DYNAMIC_DRAW);
-			return;
-		}
-
-		GLsizeiptr totalSize = 0;
-		for (int i = 0; i < count; i++) {
-			totalSize += size[i];
-		}
-		glBufferData(GL_ARRAY_BUFFER, totalSize, NULL, GL_DYNAMIC_DRAW);
-
-		GLintptr offset = 0;
-		for (int i = 0; i < count; i++) {
-			const GLsizeiptr curSzie = size[i];
-			glBufferSubData(GL_ARRAY_BUFFER, offset, curSzie, data[i]);
-			offset += curSzie;
-		}
 	}
 
 }

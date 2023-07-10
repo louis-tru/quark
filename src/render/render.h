@@ -85,7 +85,7 @@ namespace qk {
 		/**
 		 * @dev get sdf stroke path triangle strip cache
 		*/
-		const Array<Vec3>& getSDFStrokeTriangleStripCache(const Path &path, float scale);
+		const Array<Vec3>& getSDFStrokeTriangleStripCache(const Path &path, float width);
 		/**
 		 * @dev get stroke path from cache
 		 */

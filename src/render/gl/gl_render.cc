@@ -78,6 +78,7 @@ namespace qk {
 	GLRender::GLRender(Options opts)
 		: GLCanvas(this), Render(opts)
 		, _Is_Support_Multisampled(glIsSupportMultisampled())
+		, _default_vbo(0)
 		, _shaders{
 			&_clear, &_clip, &_color, &_image, &_colorMask, &_yuv420p,
 			&_yuv420sp, &_linear, &_radial, &_colorDotted,
@@ -93,6 +94,8 @@ namespace qk {
 				_opts.colorType = kColor_Type_RGB_101010X; break;
 			default: break;
 		}
+
+		glGenBuffers(1, &_default_vbo);
 
 		for (auto shader: _shaders) {
 			shader->build();
@@ -133,7 +136,8 @@ namespace qk {
 		glEnable(GL_BLEND); // enable color blend
 	}
 
-	GLRender::~GLRender() {}
+	GLRender::~GLRender() {
+	}
 
 	Object* GLRender::asObject() {
 	const char* s = "aa"

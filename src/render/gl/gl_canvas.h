@@ -67,10 +67,10 @@ namespace qk {
 		void drawImage(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		void drawImageMask(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		// draw sdf
-		void drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode);
-		void drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode);
-		void drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode);
-		void drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode);
+		void drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]);
+		void drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]);
+		void drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]);
+		void drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]);
 
 		float drawTextImage(ImageSource *textImg,
 			float imgTop, float scale, Vec2 origin, const Paint &paint);

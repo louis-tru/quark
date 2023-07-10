@@ -172,11 +172,8 @@ namespace qk {
 	Array<Vec3> Path::getSDFStrokeTriangleStrip(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
-
-		width *= 1.2;
-
 		Array<Vec3> out;
-		struct Ctx { float width; bool fixStrip; Array<Vec3> *out; Vec3 *ptr; } ctx = { width, false, &out };
+		struct Ctx { Array<Vec3> *out; Vec3 *ptr; float width; bool fixStrip; } ctx = { &out,0,width,0 };
 
 		stroke_exec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			auto nline = from.normalline(prev, next); // normal line
@@ -203,7 +200,9 @@ namespace qk {
 		[](bool close, int size, void *ctx) {
 			auto _ = (Ctx*)ctx;
 			auto len = _->out->length();
-			size = (size << 1) + 2;
+			size <<= 1;
+			if (close)
+				size += 2;
 			if (len) {
 				size += 2;
 				_->fixStrip = true;
@@ -212,11 +211,13 @@ namespace qk {
 			_->ptr = _->out->val() + len;
 		},
 		[](bool close, int size, void *ctx) {
-			auto _ = (Ctx*)ctx;
-			auto a = _->ptr - (size << 1), b = a + 1;
-			*(_->ptr++) = *a;
-			*(_->ptr++) = *b;
-		}, true, &ctx);
+			if (close) {
+				auto _ = (Ctx*)ctx;
+				auto a = _->ptr - (size << 1), b = a + 1;
+				*(_->ptr++) = *a;
+				*(_->ptr++) = *b;
+			}
+		}, false, &ctx);
 
 		Qk_ReturnLocal(out);
 	}

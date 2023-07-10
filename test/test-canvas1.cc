@@ -30,8 +30,8 @@ public:
 		//_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 
 		paint.color = Color4f(1, 0, 0);
-		 auto circle = Path::MakeCircle(size/2, 105, false);
-		// auto circle = Path::MakeArc({size/2-105,210}, Qk_PI_2_1 / 2, -Qk_PI - Qk_PI_2_1, true);
+		//auto circle = Path::MakeCircle(size/2, 105, false);
+		auto circle = Path::MakeArc({size/2-105,210}, Qk_PI_2_1 / 2, -Qk_PI - Qk_PI_2_1, true);
 		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
 		circle.close();
 
