@@ -604,8 +604,8 @@ namespace qk {
 		if (antiAlias) {
 			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
 			//auto &strip = _backend->getSDFStrokeTriangleStripCache(newPath, _Scale);
-			auto &strip = _backend->getSDFStrokeTriangleStripCache(path, 1.2/_Scale);
-			constexpr float sdf_range[2] = {0.5,0-0.25};
+			auto &strip = _backend->getSDFStrokeTriangleStripCache(path, 1 /*2.4px*/ /_Scale);
+			constexpr float sdf_range[2] = {0.5,-0.25};
 			// Qk_DEBUG("%p", &strip);
 			switch (paint.type) {
 				case Paint::kColor_Type:
