@@ -51,7 +51,7 @@ public:
 		//z.transfrom(Mat(-1,0,0,0,1,0));
 		z.transfrom(Mat(1,0,size.x()/2-100,0,1,size.y()/2-50));
 
-		auto stroke = z.strokePath(0.1, Paint::kRound_Cap, Paint::kRound_Join);
+		auto stroke = z.strokePath(10, Paint::kRound_Cap, Paint::kRound_Join);
 		_canvas->drawPath(stroke, paint);
 
 		paint.color = Color4f(0, 0, 0);

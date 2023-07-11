@@ -604,8 +604,8 @@ namespace qk {
 		if (antiAlias) {
 			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
 			//auto &strip = _backend->getSDFStrokeTriangleStripCache(newPath, _Scale);
-			auto &strip = _backend->getSDFStrokeTriangleStripCache(path, 1 /*2.4px*/ /_Scale);
-			constexpr float sdf_range[2] = {0.5,-0.25};
+			auto &strip = _backend->getSDFStrokeTriangleStripCache(path, 1.2 /*2.4px*/ /_Scale);
+			constexpr float sdf_range[3] = {0.5,-0.25,0};
 			// Qk_DEBUG("%p", &strip);
 			switch (paint.type) {
 				case Paint::kColor_Type:
@@ -631,10 +631,10 @@ namespace qk {
 		glUniform4fv(_backend->_color.color, 1, paint.color.val);
 		glDrawArrays(mode, 0, vertex.length());
 	}
-	
+
 	void GLCanvas::drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]) {
 		_backend->_colorSdf.use(vertex.size(), *vertex);
-		glUniform1fv(_backend->_colorSdf.sdf_range, 2, range);
+		glUniform1fv(_backend->_colorSdf.sdf_range, 3, range);
 		glUniform4fv(_backend->_colorSdf.color, 1, paint.color.val);
 		glDrawArrays(mode, 0, vertex.length());
 	}
@@ -653,7 +653,7 @@ namespace qk {
 		glDrawArrays(mode, 0, vertex.length());
 	}
 
-	void GLCanvas::drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]) {
+	void GLCanvas::drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]) {
 		auto g = paint.gradient;
 		auto shader = paint.gradientType ==
 			Paint::kRadial_GradientType ? &_backend->_radialSdf:
@@ -661,7 +661,7 @@ namespace qk {
 		auto count = Qk_MIN(g->colors.length(), 256);
 		shader->use(vertex.size(), *vertex);
 		glUniform1fv(shader->sdf_range, 2, range);
-		glUniform4fv(shader->range, 1, paint.color.val);
+		glUniform4fv(shader->range, 3, paint.color.val);
 		glUniform1i(shader->count, count);
 		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors.val());
 		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions.val());
@@ -700,14 +700,14 @@ namespace qk {
 		glDrawArrays(mode, 0, vertex.length());
 	}
 
-	void GLCanvas::drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]) {
+	void GLCanvas::drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]) {
 		auto shader = &_backend->_imageSdf;
 		auto type = paint.image->type();
 		if (type == kColor_Type_YUV420P_Y_8 || type == kColor_Type_YUV420SP_Y_8) {
 			return; // ignore
 		}
 		shader->use(vertex.size(), *vertex);
-		glUniform1fv(shader->sdf_range, 2, range);
+		glUniform1fv(shader->sdf_range, 3, range);
 		glUniform1f(shader->opacity, paint.color.a());
 		glUniform4fv(shader->coord, 1, paint.region.origin.val);
 		glDrawArrays(mode, 0, vertex.length());
@@ -733,10 +733,10 @@ namespace qk {
 		glDrawArrays(mode, 0, vertex.length());
 	}
 
-	void GLCanvas::drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]) {
+	void GLCanvas::drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]) {
 		auto shader = &_backend->_colorMaskSdf;
 		shader->use(vertex.size(), *vertex);
-		glUniform1fv(shader->sdf_range, 2, range);
+		glUniform1fv(shader->sdf_range, 3, range);
 		glUniform4fv(shader->color, 1, paint.color.val);
 		glUniform4fv(shader->coord, 1, paint.region.origin.val);
 		glDrawArrays(mode, 0, vertex.length());

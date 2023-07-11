@@ -40,8 +40,6 @@
 
 namespace qk {
 
-	Qk_EXPORT float get_level_font_size(float fontSize);
-
 	/**
 	 * @class Canvas base abstract type, define all draw apis
 	 */
@@ -75,8 +73,9 @@ namespace qk {
 		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias);
 		virtual void clearColor(const Color4f& color) = 0;
 		virtual void drawColor(const Color4f& color, BlendMode mode = kSrcOver_BlendMode) = 0;
-		virtual void drawRect(const Rect& rect, const Paint& paint);
 		virtual void drawPath(const Path& path, const Paint& paint) = 0;
+		virtual void drawRect(const Rect& rect, const Paint& paint);
+		virtual void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint);
 		virtual void drawOval(const Rect& oval, const Paint& paint);
 		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
@@ -85,6 +84,8 @@ namespace qk {
 	protected:
 		Canvas() = default;
 	};
+
+	Qk_EXPORT float get_level_font_size(float fontSize);
 
 }
 

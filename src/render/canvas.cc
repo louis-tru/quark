@@ -32,6 +32,28 @@
 
 namespace qk {
 
+	void Canvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
+		clipPath(Path::MakeRect(rect), op, antiAlias);
+	}
+
+	void Canvas::drawRect(const Rect& rect, const Paint& paint) {
+		drawPath(Path::MakeRect(rect), paint);
+	}
+
+	void Canvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
+		drawPath(Path::MakeRRect(rect, radius), paint);
+	}
+
+	void Canvas::drawOval(const Rect& oval, const Paint& paint) {
+		drawPath(Path::MakeOval(oval), paint);
+	}
+
+	void Canvas::drawCircle(Vec2 center, float radius, const Paint& paint) {
+		drawPath(Path::MakeCircle(center, radius), paint);
+	}
+
+	// ---------------------------------------------------------------------
+
 	float get_level_font_size(float fontSize) {
 		if (fontSize <= 0) {
 			 return 0;
@@ -67,22 +89,6 @@ namespace qk {
 			return 128;
 		}
 		return 256;
-	}
-
-	void Canvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
-		clipPath(Path::MakeRect(rect), op, antiAlias);
-	}
-
-	void Canvas::drawRect(const Rect& rect, const Paint& paint) {
-		drawPath(Path::MakeRect(rect), paint);
-	}
-
-	void Canvas::drawOval(const Rect& oval, const Paint& paint) {
-		drawPath(Path::MakeOval(oval), paint);
-	}
-
-	void Canvas::drawCircle(Vec2 center, float radius, const Paint& paint) {
-		drawPath(Path::MakeCircle(center, radius), paint);
 	}
 
 }

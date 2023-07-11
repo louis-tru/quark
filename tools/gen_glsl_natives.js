@@ -244,11 +244,11 @@ function resolve_glsl(name, input, hpp, cpp) {
 	let uniforms = uniforms_.filter(e=>(set[e] ? 0: (set[e]=1,1)));
 	let className = `GLSL${name[0].toUpperCase()}${name.substring(1)}`;
 
-	write(hpp, `struct ${className}: GLSLShader {`,
-		attributes.length ? `	GLuint ${attributes.map(e=>e.name).join(',')};`: '',
-		uniforms.length ? `	GLuint ${uniforms.join(',')};`: '',
-		`	virtual void build();`,
-	`};`);
+	write(hpp, `	struct ${className}: GLSLShader {`,
+		attributes.length ? `		GLuint ${attributes.map(e=>e.name).join(',')}; // uniforms`: '',
+		uniforms.length ? `		GLuint ${uniforms.join(',')}; // attributes`: '',
+		`		virtual void build();`,
+	`	};`);
 
 	// { {"girth_in",1,GL_FLOAT,(void*)(sizeof(float)*2)} }
 

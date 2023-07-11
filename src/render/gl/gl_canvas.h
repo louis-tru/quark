@@ -58,8 +58,7 @@ namespace qk {
 		virtual void drawPath(const Path& path, const Paint& paint) override;
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
-		virtual void drawTextBlob(TextBlob *blob, Vec2 origin,
-			float fontSize, const Paint &paint) override;
+		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 	protected:
 		void fillPath(const Path &path, const Paint &paint, bool antiAlias);
 		void drawColor(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
@@ -67,13 +66,11 @@ namespace qk {
 		void drawImage(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		void drawImageMask(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		// draw sdf
-		void drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]);
-		void drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]);
-		void drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]);
-		void drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]);
-
-		float drawTextImage(ImageSource *textImg,
-			float imgTop, float scale, Vec2 origin, const Paint &paint);
+		void drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
+		void drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
+		void drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
+		void drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
+		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint);
 
 		void setBlendMode(BlendMode blendMode);
 		void setMatrixBuffer(const Mat& mat);
@@ -103,8 +100,7 @@ namespace qk {
 					 _stencil_buffer,_depth_buffer;
 		GLuint _aa_tex;
 		Vec2   _surfaceScale;
-		float  _surfaceScalef1
-			, _transfromScale
+		float  _surfaceScalef1, _transfromScale
 			, _Scale; // surface scale * transfrom scale
 	};
 

@@ -87,7 +87,7 @@ namespace qk {
 		if (_StrokePathCache.length() >= 1024)
 			_StrokePathCache.clear();
 		auto stroke = path.strokePath(width,cap,join,miterLimit);
-		return _StrokePathCache.set(hash, stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath());
+		return _StrokePathCache.set(hash, stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath(1));
 	}
 
 	const Array<Vec3>& RenderBackend::getSDFStrokeTriangleStripCache(const Path &path, float width) {
@@ -97,9 +97,7 @@ namespace qk {
 		if (_SDFStrokeTriangleStripCache.get(hash, out)) return *out;
 		if (_SDFStrokeTriangleStripCache.length() >= 1024)
 			_SDFStrokeTriangleStripCache.clear();
-		return _SDFStrokeTriangleStripCache.set(hash,
-			path.getSDFStrokeTriangleStrip(width, 1)
-		);
+		return _SDFStrokeTriangleStripCache.set(hash, path.getSDFStrokeTriangleStrip(width, 1));
 	}
 
 	const Path& RenderBackend::getNormalizedPathCache(const Path &path) {
@@ -109,7 +107,7 @@ namespace qk {
 		if (_NormalizedPathCache.get(hash, out)) return *out;
 		if (_NormalizedPathCache.length() >= 1024)
 			_NormalizedPathCache.clear();
-		return _NormalizedPathCache.set(hash, path.normalizedPath());
+		return _NormalizedPathCache.set(hash, path.normalizedPath(1));
 	}
 
 	void RenderBackend::visitView(View* view) {

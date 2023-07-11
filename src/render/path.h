@@ -137,7 +137,7 @@ namespace qk {
 	// Optimizing rect vertex generation algorithm
 	struct Qk_EXPORT RectPath {
 		Path        path;
-		Array<Vec2> vertex; // triangle vertex {x,y}[3]
+		Array<Vec2> vertex; // triangle vertex {x,y}[2]
 		inline uint64_t hashCode() const { return path.hashCode(); }
 		static RectPath MakeRect(const Rect& rect);
 		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &radius);
