@@ -113,7 +113,6 @@ namespace qk {
 	}
 
 	static void gl_set_blend_mode(BlendMode blendMode) {
-
 		switch (blendMode) {
 			case kClear_BlendMode:         //!< r = 0
 				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
@@ -275,14 +274,6 @@ namespace qk {
 		return id;
 	}
 
-	static void gl_bind_buffer(
-		GLuint buffer, GLsizeiptr size, const GLvoid* data,
-		GLenum target = GL_ARRAY_BUFFER, GLenum usage = GL_ARRAY_BUFFER
-	) {
-		glBindBuffer(target, buffer);
-		glBufferData(target, size, data, usage);
-	}
-
 	GLCanvas::GLCanvas(GLRender *backend)
 		: _backend(backend)
 		, _IsDeviceMsaa(false)
@@ -291,7 +282,7 @@ namespace qk {
 		, _texTmp{0,0,0}
 		, _curState(nullptr)
 		, _frame_buffer(0), _msaa_frame_buffer(0)
-		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0),_aa_tex(0)
+		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0)
 		, _surfaceScale(1,1), _surfaceScalef1(1), _transfromScale(1), _Scale(1)
 	{
 		glGenBuffers(1, &_ubo);
@@ -303,8 +294,6 @@ namespace qk {
 		glGenFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
 		glGenRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
-		// create anti alias texture
-		glGenTextures(1, &_aa_tex);
 
 		_state.push({ .matrix=Mat() }); // init state
 		_curState = &_state.back();
@@ -317,7 +306,6 @@ namespace qk {
 	GLCanvas::~GLCanvas() {
 		glDeleteFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
 		glDeleteRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
-		glDeleteTextures(1, &_aa_tex);
 	}
 
 	int GLCanvas::save() {
@@ -410,6 +398,7 @@ namespace qk {
 		_surfaceScalef1 = Float::max(_surfaceScale[0], _surfaceScale[1]);
 		_transfromScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
 		_Scale = _transfromScale * _surfaceScalef1;
+		_UnitPixel = 2 / _Scale;
 	}
 
 	void GLCanvas::setMatrixBuffer(const Mat& mat) {
@@ -424,6 +413,7 @@ namespace qk {
 
 		_transfromScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
 		_Scale = _transfromScale * _surfaceScalef1;
+		_UnitPixel = 2 / _Scale;
 	}
 
 	void GLCanvas::setMatrix(const Mat& mat) {
@@ -515,9 +505,8 @@ namespace qk {
 		if (mode == kSrc_BlendMode) {
 			clearColor(color);
 		} else {
-			if (_blendMode != mode) {
-				setBlendMode(mode); // switch blend mode
-			}
+			setBlendMode(mode); // switch blend mode
+
 			float data[] = {
 				-1,1,  1,1,
 				-1,-1, 1,-1,
@@ -559,9 +548,8 @@ namespace qk {
 	}
 
 	void GLCanvas::drawPath(const Path &path_, const Paint &paint) {
-		if (_blendMode != paint.blendMode) {
-			setBlendMode(paint.blendMode); // switch blend mode
-		}
+		setBlendMode(paint.blendMode); // switch blend mode
+
 		bool antiAlias = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 		auto path = &_backend->getNormalizedPathCache(path_);
 
@@ -572,12 +560,23 @@ namespace qk {
 				break;
 			case Paint::kStrokeAndFill_Style:
 				fillPath(*path, paint, antiAlias);
-			case Paint::kStroke_Style:
-				fillPath(
-					_backend->getStrokePathCache(*path, paint.width, paint.cap, paint.join),
-					paint, antiAlias
-				);
+			case Paint::kStroke_Style: {
+				if (antiAlias) {
+					auto width = paint.width - _UnitPixel;
+					if (width > 0) {
+						fillPath(_backend->getStrokePathCache(*path, width, paint.cap, paint.join), paint, true);
+					} else {
+						// 5*5=25, 0.75
+						width /= _UnitPixel; // range: -1 => 0
+						width = powf(width*10, 3) * 0.006; // (width*10)^3 * 0.006
+						const float sdf_range[3] = {0.5, width-0.25f, 0};
+						drawAAStrokeSDF(*path, paint, sdf_range);
+					}
+				} else {
+					fillPath(_backend->getStrokePathCache(*path, paint.width, paint.cap, paint.join), paint, false);
+				}
 				break;
+			}
 		}
 	}
 
@@ -602,25 +601,30 @@ namespace qk {
 		}
 
 		if (antiAlias) {
-			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
-			//auto &strip = _backend->getSDFStrokeTriangleStripCache(newPath, _Scale);
-			auto &strip = _backend->getSDFStrokeTriangleStripCache(path, 1.2 /*2.4px*/ /_Scale);
 			constexpr float sdf_range[3] = {0.5,-0.25,0};
-			// Qk_DEBUG("%p", &strip);
-			switch (paint.type) {
-				case Paint::kColor_Type:
-					drawColorSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
-					break;
-				case Paint::kGradient_Type:
-					drawGradientSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
-					break;
-				case Paint::kBitmap_Type:
-					drawImageSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
-					break;
-				case Paint::kBitmapMask_Type:
-					drawImageMaskSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
-					break;
-			}
+			drawAAStrokeSDF(path, paint, sdf_range);
+		}
+	}
+
+	void GLCanvas::drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3]) {
+		//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
+		//auto &strip = _backend->getSDFStrokeTriangleStripCache(newPath, _Scale);
+		// _UnitPixel*0.6=1.2/_Scale, 2.4px
+		auto &strip = _backend->getSDFStrokeTriangleStripCache(path, _UnitPixel*0.6);
+		// Qk_DEBUG("%p", &strip);
+		switch (paint.type) {
+			case Paint::kColor_Type:
+				drawColorSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
+				break;
+			case Paint::kGradient_Type:
+				drawGradientSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
+				break;
+			case Paint::kBitmap_Type:
+				drawImageSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
+				break;
+			case Paint::kBitmapMask_Type:
+				drawImageMaskSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
+				break;
 		}
 	}
 
@@ -746,6 +750,8 @@ namespace qk {
 
 	float GLCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint)
 	{
+		setBlendMode(paint.blendMode); // switch blend mode
+
 		Sp<ImageSource> img;
 		auto tf = glyphs.typeface();
 		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _Scale, offset, &img);
@@ -754,6 +760,8 @@ namespace qk {
 	}
 
 	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
+		setBlendMode(paint.blendMode); // switch blend mode
+
 		fontSize *= _transfromScale;
 		auto levelSize = get_level_font_size(fontSize);
 		auto levelScale = fontSize / levelSize;
@@ -804,8 +812,9 @@ namespace qk {
 	}
 
 	void GLCanvas::setBlendMode(BlendMode blendMode) {
-		gl_set_blend_mode(blendMode);
-		_blendMode = blendMode;
+		if (_blendMode != blendMode) {
+			gl_set_blend_mode(blendMode);
+			_blendMode = blendMode;
+		}
 	}
-
 }

@@ -66,6 +66,7 @@ namespace qk {
 		void drawImage(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		void drawImageMask(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		// draw sdf
+		void drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3]);
 		void drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		void drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		void drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
@@ -79,8 +80,8 @@ namespace qk {
 		// props
 		struct Clip {
 			Array<Vec2> vertex;
-			ClipOp op;
-			bool antiAlias;
+			ClipOp      op;
+			bool        antiAlias;
 		};
 		bool drawClip(Clip *clip);
 		struct State {
@@ -98,10 +99,9 @@ namespace qk {
 		GLuint _frame_buffer,_msaa_frame_buffer;
 		GLuint _render_buffer,_msaa_render_buffer,
 					 _stencil_buffer,_depth_buffer;
-		GLuint _aa_tex;
 		Vec2   _surfaceScale;
 		float  _surfaceScalef1, _transfromScale
-			, _Scale; // surface scale * transfrom scale
+			, _Scale, _UnitPixel; // surface scale * transfrom scale, _UnitPixel = 2 / _Scale
 	};
 
 }

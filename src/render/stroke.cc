@@ -182,10 +182,12 @@ namespace qk {
 			if (nline.is_zero()) {
 				auto fromPrev = from - *prev;
 				nline = fromPrev.rotate90z().normalized() * _->width;
-			} else {
+			} else if (prev) {
 				auto angleLen = nline.angleTo(*prev - from);
 				auto len = _->width / sinf(angleLen);
 				nline *= len;
+			} else {
+				nline *= _->width;
 			}
 
 			if (idx == 0 && _->fixStrip ) {

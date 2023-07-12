@@ -49,13 +49,11 @@ namespace qk {
 	protected:
 		GLRender(Options opts);
 		virtual void setRenderBuffer(int width, int height);
-		virtual void setStencilBuffer(int width, int height, int MSAASample);
 		virtual void setMSAABuffer(int width, int height, int MSAASample);
-		virtual void setAntiAlias(int width, int height);
-		virtual void setDepthBuffer(int width, int height);
+		virtual void setStencilBuffer(int width, int height, int MSAASample);
+		virtual void setDepthBuffer(int width, int height, int MSAASample);
 		// define props
 		bool _Is_Support_Multisampled;
-		GLuint _default_vbo;
 		// shader
 		GLSLClear _clear;
 		GLSLClip  _clip;

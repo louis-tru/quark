@@ -109,11 +109,7 @@ public:
 		return _default_scale;
 	}
 
-	
-	void setAntiAlias(int width, int height) override {
-	}
-	
-	void setDepthBuffer(int width, int height) override {
+	void setDepthBuffer(int width, int height, int MSAASample) override {
 	}
 
 	void setRenderBuffer(int width, int height) override {

@@ -78,7 +78,6 @@ namespace qk {
 	GLRender::GLRender(Options opts)
 		: GLCanvas(this), Render(opts)
 		, _Is_Support_Multisampled(glIsSupportMultisampled())
-		, _default_vbo(0)
 		, _shaders{
 			&_clear, &_clip, &_color, &_image, &_colorMask, &_yuv420p,
 			&_yuv420sp, &_linear, &_radial, &_colorDotted,
@@ -94,8 +93,6 @@ namespace qk {
 				_opts.colorType = kColor_Type_RGB_101010X; break;
 			default: break;
 		}
-
-		glGenBuffers(1, &_default_vbo);
 
 		for (auto shader: _shaders) {
 			shader->build();
@@ -119,7 +116,6 @@ namespace qk {
 		glUseProgram(_colorMaskSdf.shader);
 		glUniform1i(_colorMaskSdf.image, 0);
 
-		
 		glUseProgram(0);
 
 		_canvas = this; // set default canvas
@@ -140,9 +136,6 @@ namespace qk {
 	}
 
 	Object* GLRender::asObject() {
-	const char* s = "aa"
-	"bb"
-	"cc";
 		return this;
 	}
 
@@ -179,14 +172,14 @@ namespace qk {
 
 		if (!_IsDeviceMsaa) { // no device msaa
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			setAntiAlias(w, h);
-			setDepthBuffer(w, h);
+			setDepthBuffer(w, h, _opts.msaaSampleCnt);
+			//glEnable(GL_DEPTH_TEST); // enable depth test
 		}
 
 		setStencilBuffer(w, h, _opts.msaaSampleCnt);
 
-		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-		glDrawBuffers(_IsDeviceMsaa ? 1: 2, buffers);
+		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0 };
+		glDrawBuffers(1, buffers);
 
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
 			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
@@ -210,38 +203,24 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 	}
 
-	void GLRender::setStencilBuffer(int width, int height, int MSAASample) { // set clip stencil buffer
-		glBindRenderbuffer(GL_RENDERBUFFER, _stencil_buffer);
-		if (MSAASample > 1) {
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, GL_STENCIL_INDEX8, width, height);
-		} else {
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
-		}
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencil_buffer);
-	}
-
 	void GLRender::setMSAABuffer(int width, int height, int MSAASample) {
 		glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render buffer
 		glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, gl_pixel_internal_format(_opts.colorType), width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaa_render_buffer);
 	}
 
-	void GLRender::setAntiAlias(int width, int height) {
-		// set anti alias texture buffer
-		glActiveTexture(GL_TEXTURE31);
-		glBindTexture(GL_TEXTURE_2D, _aa_tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width * 2, height * 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _aa_tex, 0);
-		// glBindTexture(GL_TEXTURE_2D, 0);
+	void GLRender::setStencilBuffer(int width, int height, int MSAASample) { // set clip stencil buffer
+		glBindRenderbuffer(GL_RENDERBUFFER, _stencil_buffer);
+		MSAASample > 1?
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, GL_STENCIL_INDEX8, width, height):
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencil_buffer);
 	}
 
-	void GLRender::setDepthBuffer(int width, int height) {
-		// set depth buffer
-		glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer);
+	void GLRender::setDepthBuffer(int width, int height, int MSAASample) {
+		glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer); // set depth buffer
+		MSAASample > 1 ?
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, GL_DEPTH_COMPONENT24, width, height):
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depth_buffer);
 	}

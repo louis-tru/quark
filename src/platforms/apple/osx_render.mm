@@ -185,10 +185,11 @@ public:
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
 
 		if (!_IsDeviceMsaa) { // no device msaa
-			setAntiAlias(size.x(), size.y());
+			// glEnable(GL_DEPTH_TEST); // enable depth test
 		}
-		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-		glDrawBuffers(_IsDeviceMsaa ? 1: 2, buffers);
+
+		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0 };
+		glDrawBuffers(1, buffers);
 
 		setRootMatrixBuffer(mat);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
