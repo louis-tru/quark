@@ -72,10 +72,11 @@ namespace qk {
 		void drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		void drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint);
-
+		// setting status
 		void setBlendMode(BlendMode blendMode);
 		void setMatrixBuffer(const Mat& mat);
 		void setRootMatrixBuffer(Mat4& root);
+		void setTexturePixel(const Pixel *pixel, int slot, const Paint &paint);
 		bool isStencilRefDefaultValue();
 		// props
 		struct Clip {

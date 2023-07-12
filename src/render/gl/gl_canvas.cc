@@ -365,6 +365,18 @@ namespace qk {
 		return _state.length() - 1;
 	}
 
+	void GLCanvas::setTexturePixel(const Pixel *pixel, int slot, const Paint &paint) {
+		auto id = pixel->texture();
+		if (!id) {
+			id = gl_gen_texture(pixel, _texTmp[slot], true);
+			if (!id) {
+				Qk_DEBUG("setTexturePixel() fail"); return;
+			}
+			_texTmp[slot] = id;
+		}
+		gl_bind_texture(id, slot, paint);
+	}
+
 	const Mat& GLCanvas::getMatrix() const {
 		return _curState->matrix;
 	}
@@ -628,18 +640,11 @@ namespace qk {
 		}
 	}
 
-	// ------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------
 
 	void GLCanvas::drawColor(const Array<Vec2> &vertex, const Paint &paint, GLenum mode) {
 		_backend->_color.use(vertex.size(), *vertex);
 		glUniform4fv(_backend->_color.color, 1, paint.color.val);
-		glDrawArrays(mode, 0, vertex.length());
-	}
-
-	void GLCanvas::drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]) {
-		_backend->_colorSdf.use(vertex.size(), *vertex);
-		glUniform1fv(_backend->_colorSdf.sdf_range, 3, range);
-		glUniform4fv(_backend->_colorSdf.color, 1, paint.color.val);
 		glDrawArrays(mode, 0, vertex.length());
 	}
 
@@ -651,21 +656,6 @@ namespace qk {
 		auto count = Qk_MIN(g->colors.length(), 256);
 		shader->use(vertex.size(), *vertex);
 		glUniform4fv(shader->range, 1, paint.color.val);
-		glUniform1i(shader->count, count);
-		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors.val());
-		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions.val());
-		glDrawArrays(mode, 0, vertex.length());
-	}
-
-	void GLCanvas::drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]) {
-		auto g = paint.gradient;
-		auto shader = paint.gradientType ==
-			Paint::kRadial_GradientType ? &_backend->_radialSdf:
-			static_cast<GLSLColorRadialSdf*>(static_cast<GLSLShader*>(&_backend->_linearSdf));
-		auto count = Qk_MIN(g->colors.length(), 256);
-		shader->use(vertex.size(), *vertex);
-		glUniform1fv(shader->sdf_range, 2, range);
-		glUniform4fv(shader->range, 3, paint.color.val);
 		glUniform1i(shader->count, count);
 		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors.val());
 		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions.val());
@@ -685,22 +675,45 @@ namespace qk {
 			shader = static_cast<GLSLImage*>(static_cast<GLSLShader*>(&_backend->_yuv420sp));
 			texCount = 2;
 		}
-
 		for (int i = 0; i < texCount; i++) {
-			auto id = pixel[i].texture();
-			if (!id) {
-				id = gl_gen_texture(pixel+i, _texTmp[i], true);
-				if (!id) {
-					Qk_DEBUG("drawImage(),gl_set_texture() fail"); return;
-				}
-				_texTmp[i] = id;
-			}
-			gl_bind_texture(id, i, paint);
+			setTexturePixel(pixel + i, i, paint);
 		}
-
 		shader->use(vertex.size(), *vertex);
 		glUniform1f(shader->opacity, paint.color.a());
 		glUniform4fv(shader->coord, 1, paint.region.origin.val);
+		glDrawArrays(mode, 0, vertex.length());
+	}
+
+	void GLCanvas::drawImageMask(const Array<Vec2> &vertex, const Paint &paint, GLenum mode) {
+		auto shader = &_backend->_colorMask;
+		setTexturePixel(paint.image, 0, paint);
+		shader->use(vertex.size(), *vertex);
+		glUniform4fv(shader->color, 1, paint.color.val);
+		glUniform4fv(shader->coord, 1, paint.region.origin.val);
+		glDrawArrays(mode, 0, vertex.length());
+	}
+
+	// ----------------------------------------------------------------------------------------
+
+	void GLCanvas::drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]) {
+		_backend->_colorSdf.use(vertex.size(), *vertex);
+		glUniform1fv(_backend->_colorSdf.sdf_range, 3, range);
+		glUniform4fv(_backend->_colorSdf.color, 1, paint.color.val);
+		glDrawArrays(mode, 0, vertex.length());
+	}
+
+	void GLCanvas::drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]) {
+		auto g = paint.gradient;
+		auto shader = paint.gradientType ==
+			Paint::kRadial_GradientType ? &_backend->_radialSdf:
+			static_cast<GLSLColorRadialSdf*>(static_cast<GLSLShader*>(&_backend->_linearSdf));
+		auto count = Qk_MIN(g->colors.length(), 256);
+		shader->use(vertex.size(), *vertex);
+		glUniform1fv(shader->sdf_range, 2, range);
+		glUniform4fv(shader->range, 3, paint.color.val);
+		glUniform1i(shader->count, count);
+		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors.val());
+		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions.val());
 		glDrawArrays(mode, 0, vertex.length());
 	}
 
@@ -710,6 +723,7 @@ namespace qk {
 		if (type == kColor_Type_YUV420P_Y_8 || type == kColor_Type_YUV420SP_Y_8) {
 			return; // ignore
 		}
+		//setTexturePixel(paint.image, 0, paint);
 		shader->use(vertex.size(), *vertex);
 		glUniform1fv(shader->sdf_range, 3, range);
 		glUniform1f(shader->opacity, paint.color.a());
@@ -717,28 +731,9 @@ namespace qk {
 		glDrawArrays(mode, 0, vertex.length());
 	}
 
-	void GLCanvas::drawImageMask(const Array<Vec2> &vertex, const Paint &paint, GLenum mode) {
-		auto shader = &_backend->_colorMask;
-		auto pixel = paint.image;
-		auto id = pixel->texture();
-
-		if (!id) {
-			id = gl_gen_texture(pixel, _texTmp[0], true);
-			if (!id) {
-				Qk_DEBUG("drawImageMask(),gl_set_texture() fail"); return;
-			}
-			_texTmp[0] = id;
-		}
-		gl_bind_texture(id, 0, paint);
-
-		shader->use(vertex.size(), *vertex);
-		glUniform4fv(shader->color, 1, paint.color.val);
-		glUniform4fv(shader->coord, 1, paint.region.origin.val);
-		glDrawArrays(mode, 0, vertex.length());
-	}
-
 	void GLCanvas::drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]) {
 		auto shader = &_backend->_colorMaskSdf;
+		//setTexturePixel(paint.image, 0, paint);
 		shader->use(vertex.size(), *vertex);
 		glUniform1fv(shader->sdf_range, 3, range);
 		glUniform4fv(shader->color, 1, paint.color.val);
@@ -746,7 +741,7 @@ namespace qk {
 		glDrawArrays(mode, 0, vertex.length());
 	}
 
-	// ------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------
 
 	float GLCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint)
 	{
