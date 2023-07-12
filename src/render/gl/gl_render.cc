@@ -94,35 +94,37 @@ namespace qk {
 			default: break;
 		}
 
-		for (auto shader: _shaders) {
-			shader->build();
-		}
-
-		glUseProgram(_image.shader);
-		glUniform1i(_image.image, 0);
-
-		glUseProgram(_colorMask.shader);
-		glUniform1i(_colorMask.image, 0);
-
-		glUseProgram(_yuv420p.shader);
-		glUniform1i(_yuv420p.image, 0);
-		glUniform1i(_yuv420p.image_u, 1);
-		glUniform1i(_yuv420p.image_v, 2);
-
-		glUseProgram(_yuv420sp.shader);
-		glUniform1i(_yuv420sp.image, 0);
-		glUniform1i(_yuv420sp.image_uv, 1);
-
-		glUseProgram(_colorMaskSdf.shader);
-		glUniform1i(_colorMaskSdf.image, 0);
-
-		glUseProgram(0);
-
 		_canvas = this; // set default canvas
 
 		if (!_Is_Support_Multisampled) {
 			_opts.msaaSampleCnt = 0;
 		}
+
+		// compile the shader
+		for (auto shader: _shaders) {
+			shader->build();
+		}
+
+		glUseProgram(_image.shader);
+		glUniform1i(_image.image, 0); // set texture slot
+
+		glUseProgram(_colorMask.shader);
+		glUniform1i(_colorMask.image, 0); // set texture slot
+
+		glUseProgram(_yuv420p.shader);
+		glUniform1i(_yuv420p.image, 0); // set texture slot
+		glUniform1i(_yuv420p.image_u, 1);
+		glUniform1i(_yuv420p.image_v, 2);
+
+		glUseProgram(_yuv420sp.shader);
+		glUniform1i(_yuv420sp.image, 0); // set texture slot
+		glUniform1i(_yuv420sp.image_uv, 1);
+
+		glUseProgram(_colorMaskSdf.shader);
+		glUniform1i(_colorMaskSdf.image, 0); // set texture slot
+
+		glUseProgram(0);
+
 		// enable and disable test function
 		glClearStencil(127);
 		glStencilMask(0xFFFFFFFF);

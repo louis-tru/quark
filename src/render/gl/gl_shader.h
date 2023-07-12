@@ -68,8 +68,7 @@ namespace qk {
 
 	struct GLSLShader {
 		GLuint shader, vao, vbo;
-		void         use();
-		void         use(GLsizeiptr size, const GLvoid* data);
+		void use(GLsizeiptr size, const GLvoid* data);
 		virtual void build() = 0;
 	};
 

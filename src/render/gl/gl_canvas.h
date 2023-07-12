@@ -75,7 +75,7 @@ namespace qk {
 		// setting status
 		void setBlendMode(BlendMode blendMode);
 		void setMatrixBuffer(const Mat& mat);
-		void setRootMatrixBuffer(Mat4& root);
+		void setRootMatrixBuffer(const Mat4& root);
 		void setTexturePixel(const Pixel *pixel, int slot, const Paint &paint);
 		bool isStencilRefDefaultValue();
 		// props
@@ -93,7 +93,7 @@ namespace qk {
 		bool      _IsDeviceMsaa; // device anti alias, msaa
 		GLuint    _stencil_ref, _stencil_ref_decr;
 		BlendMode _blendMode;
-		GLuint    _ubo, _texTmp[3]; // ubo => root,view matrix
+		GLuint    _mat_ubo, _texTmp[3]; // mat_ubo => root,view matrix
 		State    *_curState;
 		Array<State> _state;
 		// define buffers

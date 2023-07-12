@@ -304,7 +304,7 @@ namespace qk {
 		void translate_x(float x);
 		void translate_y(float y);
 		void translate_z(float z);
-		
+
 		void scale(float x, float y, float z);
 		void scale_x(float x);
 		void scale_y(float y);
@@ -324,13 +324,13 @@ namespace qk {
 		Mat4& operator*=(const Mat4& b);
 		Vec4 operator*(const Vec4& vec) const;
 		void mul(const Mat4& b, Mat4& output) const;
-		void transpose();
-		
+		Mat4 transpose() const;
+
 		/**
 		 * @method frustum Create a perspective frustum matrix
 		 */
 		static Mat4 frustum(float left, float right, float top, float bottom, float near, float far);
-		
+
 		/**
 		 * @method ortho Create an orthogonal projection matrix
 		 */

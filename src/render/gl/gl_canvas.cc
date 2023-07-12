@@ -285,10 +285,10 @@ namespace qk {
 		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0)
 		, _surfaceScale(1,1), _surfaceScalef1(1), _transfromScale(1), _Scale(1)
 	{
-		glGenBuffers(1, &_ubo);
-		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
+		glGenBuffers(1, &_mat_ubo);
+		glBindBuffer(GL_UNIFORM_BUFFER, _mat_ubo);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 32, NULL, GL_DYNAMIC_DRAW);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _ubo);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _mat_ubo);
 
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
@@ -385,11 +385,11 @@ namespace qk {
 		return _stencil_ref == 127 && _stencil_ref_decr == 127;
 	}
 
-	void GLCanvas::setRootMatrixBuffer(Mat4& root) {
+	void GLCanvas::setRootMatrixBuffer(const Mat4& root) {
 		// update all shader root matrix
-		root.transpose();
-		glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, root.val);
+		auto m4x4 = root.transpose(); // transpose matrix
+		glBindBuffer(GL_UNIFORM_BUFFER, _mat_ubo);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, m4x4.val);
 
 		// restore clip stencil
 		glClear(GL_STENCIL_BUFFER_BIT);
@@ -409,23 +409,26 @@ namespace qk {
 
 		_surfaceScalef1 = Float::max(_surfaceScale[0], _surfaceScale[1]);
 		_transfromScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
-		_Scale = _transfromScale * _surfaceScalef1;
+		_Scale = _surfaceScalef1 * _transfromScale;
 		_UnitPixel = 2 / _Scale;
 	}
 
 	void GLCanvas::setMatrixBuffer(const Mat& mat) {
-		float mat4[16] = {
+		const float m4x4[16] = {
 			mat[0], mat[3], 0.0, 0.0,
 			mat[1], mat[4], 0.0, 0.0,
 			0.0,    0.0,    1.0, 0.0,
 			mat[2], mat[5], 0.0, 1.0
-		};
-		//glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
-		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, mat4);
+		}; // transpose matrix
+		glBindBuffer(GL_UNIFORM_BUFFER, _mat_ubo);
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, m4x4);
 
-		_transfromScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
-		_Scale = _transfromScale * _surfaceScalef1;
-		_UnitPixel = 2 / _Scale;
+		auto mScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
+		if (_transfromScale != mScale) {
+			_transfromScale = mScale;
+			_Scale = _surfaceScalef1 * _transfromScale;
+			_UnitPixel = 2 / _Scale;
+		}
 	}
 
 	void GLCanvas::setMatrix(const Mat& mat) {

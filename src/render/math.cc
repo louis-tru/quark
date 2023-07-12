@@ -1005,22 +1005,14 @@ namespace qk {
 		_v[15] = _a[12]*_b[3] + _a[13]*_b[7] + _a[14]*_b[11] + _a[15]*_b[15];
 	}
 
-	void Mat4::transpose() {
-		/*
-		[ a,b,c,d ]
-		[ e,f,g,h ]
-		[ i,j,k,l ]
-		[ m,n,o,p ]
-		*/
-		float tmp;
-		#define Qk_Swap(a,b) tmp = a; a = b; b = tmp
-
-		Qk_Swap(val[1], val[4]);
-		Qk_Swap(val[2], val[8]);
-		Qk_Swap(val[3], val[12]);
-		Qk_Swap(val[6], val[9]);
-		Qk_Swap(val[7], val[13]);
-		Qk_Swap(val[11], val[14]);
+	Mat4 Mat4::transpose() const {
+		float mat4[16] = {
+			val[0],val[4],val[8],val[12],
+			val[1],val[5],val[9],val[13],
+			val[2],val[6],val[10],val[14],
+			val[3],val[7],val[11],val[15],
+		};
+		return *reinterpret_cast<Mat4*>(mat4);
 	}
 
 	Mat4 Mat4::frustum(float left, float right, float top, float bottom, float near, float far) {

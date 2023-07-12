@@ -85,7 +85,7 @@ namespace qk {
 		}
 
 		// Get uniform block and bind index
-		GLuint ubo = glGetUniformBlockIndex(program, "ubo");
+		GLuint ubo = glGetUniformBlockIndex(program, "mat_ubo");
 		glUniformBlockBinding(program, ubo, 0); // bind uniform block index as zero
 #if DEBUG
 		GLint bufferSize;
@@ -124,11 +124,6 @@ namespace qk {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		s->shader = program;
-	}
-
-	void GLSLShader::use() {
-		glUseProgram(shader);
-		glBindVertexArray(vao);
 	}
 
 	void GLSLShader::use(GLsizeiptr size, const GLvoid* data) {

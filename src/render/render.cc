@@ -110,6 +110,8 @@ namespace qk {
 		return _NormalizedPathCache.set(hash, path.normalizedPath(1));
 	}
 
+	// --------------------------------------------------------------------------
+
 	void RenderBackend::visitView(View* view) {
 		// visit child
 		auto v = view->_first;
