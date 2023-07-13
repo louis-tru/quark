@@ -92,7 +92,7 @@ namespace qk {
 
 			while (i < pixels.length()) {
 				auto &pix = pixels[i];
-				auto id = device->setTexture(&pix, i < old_len ? _pixels[i]._texture: 0);
+				auto id = device->makeTexture(&pix, i < old_len ? _pixels[i]._texture: 0);
 				if (id == 0) {
 					bollback(device, i, _pixels, pixels);
 					return false;

@@ -45,7 +45,7 @@ namespace qk {
 
 	class BackendDevice: public PostMessage {
 	public:
-		virtual uint32_t setTexture(cPixel *src, uint32_t id) = 0;
+		virtual uint32_t makeTexture(cPixel *src, uint32_t id) = 0;
 		virtual void deleteTextures(const uint32_t *IDs, uint32_t count) = 0;
 	};
 

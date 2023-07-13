@@ -73,10 +73,8 @@ namespace qk {
 		void drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint);
 		// setting status
-		void setBlendMode(BlendMode blendMode);
 		void setMatrixBuffer(const Mat& mat);
 		void setRootMatrixBuffer(const Mat4& root);
-		void setTexturePixel(const Pixel *pixel, int slot, const Paint &paint);
 		bool isStencilRefDefaultValue();
 		// props
 		struct Clip {
@@ -90,16 +88,11 @@ namespace qk {
 			Array<Clip> clips;
 		};
 		GLRender *_backend;
-		bool      _IsDeviceMsaa; // device anti alias, msaa
 		GLuint    _stencil_ref, _stencil_ref_decr;
-		BlendMode _blendMode;
 		GLuint    _mat_ubo, _texTmp[3]; // mat_ubo => root,view matrix
 		State    *_curState;
 		Array<State> _state;
 		// define buffers
-		GLuint _frame_buffer,_msaa_frame_buffer;
-		GLuint _render_buffer,_msaa_render_buffer,
-					 _stencil_buffer,_depth_buffer;
 		Vec2   _surfaceScale;
 		float  _surfaceScalef1, _transfromScale
 			, _Scale, _UnitPixel; // surface scale * transfrom scale, _UnitPixel = 2 / _Scale

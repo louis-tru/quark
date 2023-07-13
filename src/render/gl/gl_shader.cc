@@ -86,13 +86,13 @@ namespace qk {
 
 		// Get uniform block and bind index
 		GLuint ubo = glGetUniformBlockIndex(program, "mat_ubo");
-		glUniformBlockBinding(program, ubo, 0); // bind uniform block index as zero
+		glUniformBlockBinding(program, ubo, 0); // binding = 0 uniform block index as zero
 #if DEBUG
 		GLint bufferSize;
 		glGetActiveUniformBlockiv(program, ubo, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
 		Qk_ASSERT(bufferSize == 128);
 #endif
-		
+
 		// Get Uniform Location index value
 		for (auto &i: String(uniforms).split(",")) {
 			if (!i.isEmpty()) {

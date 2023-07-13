@@ -43,7 +43,7 @@ namespace qk {
 		virtual ~GLRender();
 		virtual Object* asObject() override;
 		virtual void reload() override;
-		virtual uint32_t setTexture(cPixel *src, uint32_t id) override;
+		virtual uint32_t makeTexture(cPixel *src, uint32_t id) override;
 		virtual void deleteTextures(const uint32_t *IDs, uint32_t count) override;
 		inline  GLSLShader* shader(uint32_t i) { return _shaders[i]; }
 	protected:
@@ -52,8 +52,14 @@ namespace qk {
 		virtual void setMSAABuffer(int width, int height, int MSAASample);
 		virtual void setStencilBuffer(int width, int height, int MSAASample);
 		virtual void setDepthBuffer(int width, int height, int MSAASample);
+		void setBlendMode(BlendMode blendMode);
+		void setTexture(cPixel *pixel, int slot, const Paint &paint);
 		// define props
 		bool _Is_Support_Multisampled;
+		bool _IsDeviceMsaa; // device anti alias, msaa
+		BlendMode _blendMode;
+		GLuint _frame_buffer,_msaa_frame_buffer;
+		GLuint _render_buffer,_msaa_render_buffer, _stencil_buffer,_depth_buffer;
 		// shader
 		GLSLClear _clear;
 		GLSLClip  _clip;
