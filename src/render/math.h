@@ -223,7 +223,7 @@ namespace qk {
 		Vec3  det(const Vec<float,3>& b) const;
 	};
 
-	#undef Qk_Default_Vec_Operator;
+	#undef Qk_Default_Vec_Operator
 
 	// ------------------------------------------
 

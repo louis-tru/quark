@@ -149,14 +149,14 @@ namespace qk {
 
 	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
 		Dict<String, UIEventName> r;
-#define Qk_FUN(NAME, C, F) r.set(UIEvent_##NAME.to_string(), UIEvent_##NAME);
+#define Qk_FUN(NAME, C, F) r.set(UIEvent_##NAME.toString(), UIEvent_##NAME);
 		Qk_UI_Events(Qk_FUN)
 #undef Qk_FUN
 		return r;
 	}());
 
 	UIEventName::UIEventName(cString& name, uint32_t category, uint32_t flag)
-		: _to_string(name), _hashCode((uint32_t)name.hashCode()), _category(category), _flag(flag)
+		: _toString(name), _hashCode((uint32_t)name.hashCode()), _category(category), _flag(flag)
 	{}
 
 	UIEvent::UIEvent(View* origin)

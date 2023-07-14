@@ -126,7 +126,7 @@ namespace qk {
 	class Qk_EXPORT UIEventName {
 	public:
 		UIEventName(cString& name, uint32_t category, uint32_t flag);
-		Qk_DEFINE_PROP_GET(String, to_string);
+		Qk_DEFINE_PROP_GET(String, toString);
 		Qk_DEFINE_PROP_GET(uint32_t, category);
 		Qk_DEFINE_PROP_GET(uint32_t, flag);
 		Qk_DEFINE_PROP_GET(uint32_t, hashCode);

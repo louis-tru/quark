@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,6 +27,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+
+// @private head
 
 #ifndef __quark_render_canvas__
 #define __quark_render_canvas__
@@ -84,8 +85,6 @@ namespace qk {
 	protected:
 		Canvas() = default;
 	};
-
-	Qk_EXPORT float get_level_font_size(float fontSize);
 
 }
 

@@ -44,10 +44,10 @@ void test_template() {
 	int i = has_object_type<D>::type;
 	Qk_LOG(i);
 	
-	Qk_LOG(_Str::to_string(&a));
-	Qk_LOG(_Str::to_string(s));
-	Qk_LOG(_Str::to_string(c));
-	Qk_LOG(_Str::to_string(d));
+	Qk_LOG(_Str::toString(&a));
+	Qk_LOG(_Str::toString(s));
+	Qk_LOG(_Str::toString(c));
+	Qk_LOG(_Str::toString(d));
 
 }
 

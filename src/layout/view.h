@@ -43,6 +43,7 @@ namespace qk {
 
 	#define Qk_Define_View(N) \
 	public: \
+		friend class RenderBackend; \
 		virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
 
 	class Action;

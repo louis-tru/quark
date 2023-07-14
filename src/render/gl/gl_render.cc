@@ -307,20 +307,20 @@ namespace qk {
 		Qk_DEBUG("OGL VERSION: %s", *version);
 		Qk_DEBUG("OGL EXTENSIONS: %s", *extensions);
 
-		String str = String::format("%s %s %s %s", *VENDOR, *RENDERER, *version, *extensions);
+		auto str = String::format("%s %s %s %s", *VENDOR, *RENDERER, *version, *extensions);
 
 		for (auto s : {"OpenGL ES", "OpenGL", "OpenGL Entity"}) {
 			int idx = str.indexOf(s);
-			if (idx != -1) {
+			if (idx >= 0) {
 				int num = str.substr(idx + strlen(s)).trim().substr(0,1).toNumber<int>();
 				if (num > 2)
 					return true;
-				else if (extensions.indexOf( "multisample" ) != -1)
+				else if (extensions.indexOf( "multisample" ) >= 0)
 					return false;
 			}
 		}
 
-		return version.indexOf("Metal") != -1;
+		return version.indexOf("Metal") >= 0;
 	}
 
 	GLRender::GLRender(Options opts)

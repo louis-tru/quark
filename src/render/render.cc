@@ -35,8 +35,8 @@
 #include "../display.h"
 #include "./render.h"
 #include "./gl/gl_render.h"
-// layout
 #include "../layout/root.h"
+#include "../filter.h"
 
 #define Qk_ENABLE_DRAW 1
 
@@ -56,7 +56,7 @@ namespace qk {
 		, _canvas(nullptr)
 		, _delegate(nullptr)
 		, _default_scale(1)
-		, _alpha(1), _mark_recursive(0)
+		, _opacity(1), _mark_recursive(0)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
 		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
@@ -112,12 +112,64 @@ namespace qk {
 
 	// --------------------------------------------------------------------------
 
+	void RenderBackend::solveBox(Box* box) {
+		_canvas->setMatrix(box->matrix());
+		if (box->_fill_color.a()) {
+		}
+		solveFilter(box);
+		solveBorder(box);
+		afterSolveBox(box);
+	}
+
+	void RenderBackend::afterSolveBox(Box* box) {
+		if (box->_first) {
+			if (box->_is_clip) {
+				// _canvas->clipPath(); // clip
+				Render::visitView(box);
+				// _canvas->restore(); // cancel clip
+			} else {
+				Render::visitView(box);
+			}
+		}
+	}
+
+	void RenderBackend::solveFilter(Box *box) {
+		auto filter = box->filter();
+		while(filter) {
+			switch(filter->type()) {
+				case Filter::M_IMAGE: // fill
+					//solveFillImage(box, static_cast<FillImage*>(fill));
+					break;
+				case Filter::M_GRADIENT_Linear: // fill
+					//solveFillGradientLinear(box, static_cast<FillGradientLinear*>(fill));
+					break;
+				case Filter::M_GRADIENT_Radial: // fill
+					//solveFillGradientRadial(box, static_cast<FillGradientRadial*>(fill));
+					break;
+				case Filter:: M_SHADOW: // effect
+					break;
+				case Filter::M_BLUR: // effect
+					break;
+				default: break;
+			}
+			filter = filter->next();
+		}
+	}
+
+	void RenderBackend::solveBorder(Box *box) {
+		if (box->_border) {
+			//
+		}
+	}
+
+	// --------------------------------------------------------------------------
+
 	void RenderBackend::visitView(View* view) {
 		// visit child
 		auto v = view->_first;
 		if (v) {
-			float alphaCurr = _alpha;
-			uint32_t markCurr = _mark_recursive;
+			auto opacityCurr = _opacity;
+			auto markCurr = _mark_recursive;
 			do {
 				if (v->_visible) {
 					uint32_t mark = markCurr | v->layout_mark(); // inherit recursive
@@ -125,14 +177,14 @@ namespace qk {
 						v->solve_marks(mark);
 						_mark_recursive = mark & Layout::kRecursive_Mark;
 					}
-					if (v->_visible_region && v->_opacity > 0) {
-						_alpha = alphaCurr * v->_opacity;
+					if (v->_visible_region && v->_opacity) {
+						_opacity = opacityCurr * v->_opacity;
 						v->accept(this);
 					}
 				}
 				v = v->_next;
 			} while(v);
-			_alpha = alphaCurr;
+			_opacity = opacityCurr;
 			_mark_recursive = markCurr;
 		}
 	}
@@ -181,19 +233,16 @@ namespace qk {
 				_mark_recursive = mark & Layout::kRecursive_Mark;
 			}
 
-			//if (v->_visible_region && v->_opacity > 0) {
-				// solveBox(v, [](SkiaRender* render, Box* box, int &clip) {
-				// 	if (Qk_ENABLE_DRAW)
-				// 		render->_canvas->clear(box->_fill_color.to_uint32_xrgb());
-				// 	render->solveFill(box, box->_fill, Color::from(0));
-				// });
-				//if (Qk_ENABLE_DRAW) _canvas->clearColor(Color4f(0,0,0));
-			//} else {
-				//if (Qk_ENABLE_DRAW) _canvas->clearColor(Color4f(0,0,0));
-			//}
-			
-			visitView(v);
-			
+			if (v->_visible_region && v->_opacity != 0) {
+				_canvas->setMatrix(v->matrix());
+				_canvas->clearColor(v->_fill_color.to_color4f());
+				solveFilter(v);
+				solveBorder(v);
+				afterSolveBox(v);
+			} else {
+				_canvas->clearColor(Color4f(0,0,0,0));
+			}
+
 			_mark_recursive = 0;
 		}
 	}

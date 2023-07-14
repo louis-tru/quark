@@ -41,5 +41,11 @@ int test2_sys(int argc, char *argv[]) {
 	printf("version:%s\n", utsn.version);
 	printf("machine:%s\n", utsn.machine);
 
+	const float a = 0;
+
+	if (a) {
+		printf("const float a = 0 \n");
+	}
+
 	return 0;
 }

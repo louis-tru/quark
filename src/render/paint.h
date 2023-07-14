@@ -103,8 +103,8 @@ namespace qk {
 		inline Vec2 radialCenter() const { return Vec2(color[0],color[1]); }
 		inline Vec2 radialRadius() const { return Vec2(color[2],color[3]); }
 
-		void setBitmapPixel(cPixel *image, const Rect &dest, const Rect &src);
-		void setBitmapPixel(cPixel *image, const Rect &dest); // src = {Vec2(0,0),Vec2(w,h)}
+		void setImage(cPixel *image, const Rect &dest, const Rect &src);
+		void setImage(cPixel *image, const Rect &dest); // src = {Vec2(0,0),Vec2(w,h)}
 		void setLinearGradient(const GradientColor *colors, Vec2 start, Vec2 end);
 		void setRadialGradient(const GradientColor *colors, Vec2 center, Vec2 radius);
 
@@ -144,7 +144,7 @@ namespace qk {
 		Color4f              color;
 		// bitmap uv coord
 		Region               region;
-		// bitmap, weak ref
+		// bitmap image, weak ref
 		const BitmapPixel   *image;
 		// gradient color, weak ref
 		const GradientColor *gradient;

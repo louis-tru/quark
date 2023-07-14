@@ -155,7 +155,8 @@ namespace qk {
 		}
 		static RectOutlinePath MakeRectOutline(const Rect &outside, const Rect &inside);
 		static RectOutlinePath MakeRRectOutline(
-			const Rect &outside, const Rect &inside, const Path::BorderRadius &radius);
+			const Rect &outside, const Rect &inside, const Path::BorderRadius &radius
+		);
 	};
 
 }

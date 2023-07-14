@@ -42,6 +42,7 @@
 
 namespace qk {
 	class Application;
+	class Filter;
 
 	class BackendDevice: public PostMessage {
 	public:
@@ -113,15 +114,19 @@ namespace qk {
 		virtual void    visitFlowLayout(FlowLayout* flow) override;
 		virtual void    visitFlexLayout(FlexLayout* flex) override;
 	protected:
+		RenderBackend(Options opts);
 		virtual Vec2    getSurfaceSize() = 0;
 		virtual float   getDefaultScale() = 0;
-		RenderBackend(Options opts);
+		void            solveBox(Box* box);
+		void            afterSolveBox(Box* box);
+		void            solveFilter(Box *box);
+		void            solveBorder(Box *box);
 		Options       _opts;
 		Canvas       *_canvas; // default canvas
 		Delegate     *_delegate;
 		Vec2          _surface_size; // recommend default surface scale
 		float         _default_scale;
-		float         _alpha;
+		float         _opacity;
 		uint32_t      _mark_recursive;
 		Dict<uint64_t, Array<Vec2>> _PathTrianglesCache; // path hash => triangles
 		Dict<uint64_t, Array<Vec3>> _SDFStrokeTriangleStripCache; // path hash => aa triangles strip

@@ -35,14 +35,14 @@ class Test {
 
 
 template<typename T> struct Compare {
-	static uint64_t hash_code(const T& key) {
-		return key.hash_code();
+	static uint64_t hashCode(const T& key) {
+		return key.hashCode();
 	}
 };
 
 template<typename T> struct Compare<T*> {
 	typedef T* Type;
-	static uint64_t hash_code(const Type& key) {
+	static uint64_t hashCode(const Type& key) {
 		return (uint64_t)key;
 	}
 };
@@ -51,8 +51,8 @@ template<class T, typename C = Compare<T>>
 class Map {
 	public:
 	Map(T t): _t(t) {}
-	uint64_t hash_code() {
-		return C::hash_code(_t);
+	uint64_t hashCode() {
+		return C::hashCode(_t);
 	}
 	private:
 	T _t;
@@ -65,8 +65,8 @@ int test2_vector(int argc, char *argv[]) {
 	Map<Test*> map(&t);
 	Map<String> map2("AA");
 	
-	uint64_t h = map.hash_code();
-	uint64_t h2 = map2.hash_code();
+	uint64_t h = map.hashCode();
+	uint64_t h2 = map2.hashCode();
 	
 	printf("%d, %llu， %llu \n", t.b()->b(), h, h2);
 
@@ -128,8 +128,8 @@ int test2_list2(int argc, char *argv[]) {
 	
 	auto id = ID();
 	auto id2 = l3.end();
-	l3.push_back("A");
-	l3.push_front("B");
+	l3.pushBack("A");
+	l3.pushFront("B");
 	auto id3 = l3.end();
 	
 	auto id4 = l3.begin();

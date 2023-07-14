@@ -32,7 +32,7 @@
 #define __quark__layout__box__
 
 #include "./view.h"
-#include "../effect.h"
+#include "../filter.h"
 
 namespace qk {
 
@@ -149,8 +149,7 @@ namespace qk {
 		Qk_DEFINE_PROP(float, radius_right_bottom);
 		Qk_DEFINE_PROP(float, radius_left_bottom);
 		Qk_DEFINE_PROP(Color, fill_color); // fill color
-		Qk_DEFINE_PROP(Fill*, fill); // fill, image|gradient
-		Qk_DEFINE_PROP(Effect*, effect); // effect, shadow
+		Qk_DEFINE_PROP(Filter*, filter); // filter, image|gradient|shadow|blur
 		Qk_DEFINE_PROP_ACC(Color, border_color_top); // border_color
 		Qk_DEFINE_PROP_ACC(Color, border_color_right);
 		Qk_DEFINE_PROP_ACC(Color, border_color_bottom);

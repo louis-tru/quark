@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__effect__
-#define __quark__effect__
+#ifndef __quark__filter__
+#define __quark__filter__
 
 #include "./types.h"
 #include "./render/source.h"
@@ -39,10 +39,10 @@
 namespace qk {
 
 	/**
-	* @class Copying, Single linked list struct
+	* @class Filter, Single linked list struct
 	*/
-	class Qk_EXPORT Copying: public Reference {
-		Qk_HIDDEN_ALL_COPY(Copying);
+	class Qk_EXPORT Filter: public Reference {
+		Qk_HIDDEN_ALL_COPY(Filter);
 	public:
 		enum Type {
 			M_INVALID,
@@ -57,34 +57,22 @@ namespace qk {
 			M_SHARED,
 			M_DISABLE,
 		};
-		Copying();
-		virtual ~Copying();
+		Filter();
+		virtual ~Filter();
 		virtual Type type() const = 0;
-		virtual Copying* copy(Copying* to) = 0;
+		virtual Filter* copy(Filter* to) = 0;
 		virtual bool retain() override;
-		static Copying* assign(Copying* left, Copying* right);
+		static Filter* assign(Filter* left, Filter* right);
 		Qk_DEFINE_PROP(HolderMode, holder_mode); // holder mode
+		Qk_DEFINE_PROP(Filter*, next);
 	protected:
-		static Copying* assign2(Copying* left, Copying* right);
+		static Filter* assign2(Filter* left, Filter* right);
 		void onChange();
-		bool check_loop_reference(Copying* value);
-		void set_next2(Copying* value);
-		Qk_DEFINE_PROP(Copying*, next);
+		bool check_loop_reference(Filter* value);
+		void set_next2(Filter* value);
 	};
 
-	class Effect: public Copying {
-	public:
-		inline Effect* next() { return static_cast<Effect*>(Copying::next()); }
-		inline Effect* set_next(Effect* value) { Copying::set_next(value); return this; }
-	};
-
-	class Fill: public Copying {
-	public:
-		inline Fill* next() { return static_cast<Fill*>(Copying::next()); }
-		inline Fill* set_next(Fill* value) { Copying::set_next(value); return this; }
-	};
-
-	class Qk_EXPORT FillImage: public Fill, public ImageSourceHolder {
+	class Qk_EXPORT FillImage: public Filter, public ImageSourceHolder {
 	public:
 		struct Init {
 			String src;
@@ -99,13 +87,13 @@ namespace qk {
 		Qk_DEFINE_PROP(FillPosition, position_x);
 		Qk_DEFINE_PROP(FillPosition, position_y);
 		Qk_DEFINE_PROP(Repeat, repeat);
-		virtual Type     type() const override;
-		virtual Copying* copy(Copying* to) override;
+		virtual Type    type() const override;
+		virtual Filter* copy(Filter* to) override;
 		static bool  compute_size(FillSize size, float host, float& out);
 		static float compute_position(FillPosition pos, float host, float size);
 	};
 
-	class FillGradient: public Fill {
+	class FillGradient: public Filter {
 	public:
 		FillGradient(const Array<float>& pos, const Array<Color>& colors);
 		virtual ~FillGradient();
@@ -123,8 +111,8 @@ namespace qk {
 	public:
 		FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors);
 		Qk_DEFINE_PROP(float, angle);
-		virtual Type     type() const override;
-		virtual Copying* copy(Copying* to) override;
+		virtual Type    type() const override;
+		virtual Filter* copy(Filter* to) override;
 	private:
 		void setRadian();
 		float   _radian;
@@ -134,18 +122,18 @@ namespace qk {
 	class Qk_EXPORT FillGradientRadial: public FillGradient {
 	public:
 		FillGradientRadial(const Array<float>& pos, const Array<Color>& colors);
-		virtual Type     type() const override;
-		virtual Copying* copy(Copying* to) override;
+		virtual Type    type() const override;
+		virtual Filter* copy(Filter* to) override;
 	};
 
-	class Qk_EXPORT BoxShadow: public Effect {
+	class Qk_EXPORT BoxShadow: public Filter {
 	public:
 		BoxShadow();
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
 		Qk_DEFINE_PROP(Shadow, value);
-		virtual Type     type() const override;
-		virtual Copying* copy(Copying* to) override;
+		virtual Type    type() const override;
+		virtual Filter* copy(Filter* to) override;
 	};
 
 }

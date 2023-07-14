@@ -33,6 +33,7 @@
 
 namespace qk {
 
+	float get_level_font_size(float fontSize);
 	bool gl_read_pixels(Pixel* dst, uint32_t srcX, uint32_t srcY);
 
 	GLCanvas::GLCanvas(GLRender *backend)
@@ -53,7 +54,10 @@ namespace qk {
 		setMatrix(_curState->matrix); // init shader matrix
 	}
 
-	GLCanvas::~GLCanvas() {}
+	GLCanvas::~GLCanvas() {
+		glDeleteBuffers(1, &_mat_ubo);
+		glDeleteTextures(3, _texTmp);
+	}
 
 	int GLCanvas::save() {
 		_state.push({ _state.back().matrix });
@@ -198,7 +202,6 @@ namespace qk {
 		if (isStencilRefDefaultValue()) {
 			glEnable(GL_STENCIL_TEST); // enable stencil test
 		}
-
 		Clip clip{_backend->getPathTrianglesCache(path), op, antiAlias};
 
 		if (drawClip(&clip)) {
@@ -211,15 +214,13 @@ namespace qk {
 		// ignore anti alias
 		if (clip->op == kDifference_ClipOp) {
 			if (_stencil_ref_decr == 0) {
-				Qk_WARN(" stencil ref decr value exceeds limit 0");
-				return false;
+				Qk_WARN(" stencil ref decr value exceeds limit 0"); return false;
 			}
 			_stencil_ref_decr--;
 			glStencilOp(GL_KEEP, GL_DECR, GL_DECR); // Test success decr 1
 		} else {
 			if (_stencil_ref == 255) {
-				Qk_WARN(" stencil ref value exceeds limit 255");
-				return false;
+				Qk_WARN(" stencil ref value exceeds limit 255"); return false;
 			}
 			_stencil_ref++;
 			glStencilOp(GL_KEEP, GL_INCR, GL_INCR); // Test success adds 1
@@ -495,7 +496,7 @@ namespace qk {
 		if (imageFontSize == 0.0)
 			return;
 
-		if (blob->imageFontSize != imageFontSize || !blob->image) {
+		if (blob->imageFontSize != imageFontSize || !blob->image) { // fill text bolb
 			auto tf = blob->typeface;
 			auto offset = blob->offset.length() == blob->glyphs.length() ? &blob->offset: NULL;
 			blob->imageBound = tf->getImage(blob->glyphs,imageFontSize, offset, &blob->image);
@@ -514,7 +515,7 @@ namespace qk {
 		Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
 		Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
 
-		p.setBitmapPixel(&pix, {dst_start, dst_size});
+		p.setImage(&pix, {dst_start, dst_size});
 
 		Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
 		Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());

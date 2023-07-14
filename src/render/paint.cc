@@ -32,7 +32,7 @@
 
 namespace qk {
 
-	void Paint::setBitmapPixel(cPixel *image, const Rect& dest, const Rect& src) {
+	void Paint::setImage(cPixel *image, const Rect& dest, const Rect& src) {
 		type = kBitmap_Type;
 		this->image = image;
 		Vec2 scale(dest.size.x() / src.size.x(), dest.size.y() / src.size.y());
@@ -46,8 +46,8 @@ namespace qk {
 		};
 	}
 
-	void Paint::setBitmapPixel(cPixel *image, const Rect& dest) {
-		setBitmapPixel(image, dest, { Vec2(0,0), Vec2(image->width(), image->height()) });
+	void Paint::setImage(cPixel *image, const Rect& dest) {
+		setImage(image, dest, { Vec2(0,0), Vec2(image->width(), image->height()) });
 	}
 
 	void Paint::setLinearGradient(const GradientColor *colors, Vec2 start, Vec2 end) {

@@ -157,15 +157,14 @@ namespace qk {
 		, _radius_left_top(0), _radius_right_top(0)
 		, _radius_right_bottom(0), _radius_left_bottom(0)
 		, _fill_color(Color::from(0))
-		, _fill(nullptr)
-		, _effect(nullptr)
+		, _filter(nullptr)
 		, _layout_weight(0), _layout_align(Align::AUTO)
 		, _border(nullptr)
 	{
 	}
 
 	Box::~Box() {
-		Release(_fill); _fill = nullptr;
+		Release(_filter); _filter = nullptr;
 		::free(_border); _border = nullptr;
 	}
 
@@ -516,16 +515,9 @@ namespace qk {
 		}
 	}
 
-	void Box::set_fill(Fill* val) {
-		if (_fill != val) {
-			_fill = static_cast<Fill*>(Copying::assign(_fill, val));
-			mark_none();
-		}
-	}
-
-	void Box::set_effect(Effect* val) {
-		if (_effect != val) {
-			_effect = static_cast<Effect*>(Copying::assign(_effect, val));
+	void Box::set_filter(Filter* val) {
+		if (_filter != val) {
+			_filter = Filter::assign(_filter, val);
 			mark_none();
 		}
 	}

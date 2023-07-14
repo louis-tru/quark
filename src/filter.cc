@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./app.h"
-#include "./effect.h"
+#include "./filter.h"
 #include "./pre_render.h"
 #include "./layout/box.h"
 #include "./render/source.h"
@@ -38,7 +38,7 @@
 
 namespace qk {
 
-	bool Copying::check_loop_reference(Copying* value) {
+	bool Filter::check_loop_reference(Filter* value) {
 		if (value) {
 			auto v = value;
 			do {
@@ -51,7 +51,7 @@ namespace qk {
 		return false;
 	}
 
-	Copying* Copying::assign2(Copying* left, Copying* right) {
+	Filter* Filter::assign2(Filter* left, Filter* right) {
 		if (right) {
 			if (left == right) {
 				return left;
@@ -81,20 +81,20 @@ namespace qk {
 		}
 	}
 
-	Copying::Copying()
+	Filter::Filter()
 		: _next(nullptr)
 		, _holder_mode(M_INDEPENDENT)
 	{
 	}
 
-	Copying::~Copying() {
+	Filter::~Filter() {
 		if (_next) {
 			_next->release();
 			_next = nullptr;
 		}
 	}
 
-	void Copying::set_next2(Copying* value) {
+	void Filter::set_next2(Filter* value) {
 		_next = assign(_next, value);
 		if (_next) {
 			_next->set_holder_mode(_holder_mode);
@@ -102,7 +102,7 @@ namespace qk {
 		onChange();
 	}
 
-	void Copying::set_next(Copying* value) {
+	void Filter::set_next(Filter* value) {
 		if (value != _next) {
 			if (check_loop_reference(value)) {
 				Qk_ERR("Box background loop reference error");
@@ -114,7 +114,7 @@ namespace qk {
 		}
 	}
 
-	Copying* Copying::assign(Copying* left, Copying* right) {
+	Filter* Filter::assign(Filter* left, Filter* right) {
 		if (left == right) {
 			return left;
 		} else {
@@ -127,7 +127,7 @@ namespace qk {
 		}
 	}
 
-	bool Copying::retain() {
+	bool Filter::retain() {
 		if (_holder_mode == M_DISABLE) {
 			return false;
 		} else if (_holder_mode == M_INDEPENDENT) {
@@ -138,7 +138,7 @@ namespace qk {
 		return Reference::retain();
 	}
 
-	void Copying::set_holder_mode(HolderMode mode) {
+	void Filter::set_holder_mode(HolderMode mode) {
 		if (_holder_mode != mode) {
 			_holder_mode = mode;
 			if (_next) {
@@ -147,7 +147,7 @@ namespace qk {
 		}
 	}
 
-	void Copying::onChange() {
+	void Filter::onChange() {
 		auto app_ = shared_app();
 		// Qk_ASSERT(app_, "Application needs to be initialized first");
 		if (app_) {
@@ -155,10 +155,10 @@ namespace qk {
 		}
 	}
 
-	Copying::Type FillImage::type() const { return M_IMAGE; }
-	Copying::Type FillGradientLinear::type() const { return M_GRADIENT_Linear; }
-	Copying::Type FillGradientRadial::type() const { return M_GRADIENT_Radial; }
-	Copying::Type BoxShadow::type() const { return M_SHADOW; }
+	Filter::Type FillImage::type() const { return M_IMAGE; }
+	Filter::Type FillGradientLinear::type() const { return M_GRADIENT_Linear; }
+	Filter::Type FillGradientRadial::type() const { return M_GRADIENT_Radial; }
+	Filter::Type BoxShadow::type() const { return M_SHADOW; }
 
 	// ------------------------------ F i l l . I m a g e ------------------------------
 
@@ -175,7 +175,7 @@ namespace qk {
 		}
 	}
 
-	Copying* FillImage::copy(Copying* to) {
+	Filter* FillImage::copy(Filter* to) {
 		auto target = (to && to->type() == M_IMAGE) ?
 				static_cast<FillImage*>(to) : new FillImage();
 		target->set_next2(next());
@@ -290,7 +290,7 @@ namespace qk {
 		}
 	}
 
-	Copying* FillGradientLinear::copy(Copying* to) {
+	Filter* FillGradientLinear::copy(Filter* to) {
 		auto target = (to && to->type() == M_GRADIENT_Linear) ?
 			static_cast<FillGradientLinear*>(to) : new FillGradientLinear(
 				_angle, positions(), colors()
@@ -301,7 +301,7 @@ namespace qk {
 		return target;
 	}
 
-	Copying* FillGradientRadial::copy(Copying* to) {
+	Filter* FillGradientRadial::copy(Filter* to) {
 		auto target = (to && to->type() == M_GRADIENT_Radial) ?
 			static_cast<FillGradientRadial*>(to) : new FillGradientRadial(
 				positions(), colors()
@@ -316,7 +316,7 @@ namespace qk {
 	BoxShadow::BoxShadow(Shadow value): _value(value) {}
 	BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
 
-	Copying* BoxShadow::copy(Copying* to) {
+	Filter* BoxShadow::copy(Filter* to) {
 		auto target = (to && to->type() == M_SHADOW) ?
 			static_cast<BoxShadow*>(to): new BoxShadow();
 		target->set_next2(next());

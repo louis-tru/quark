@@ -143,12 +143,12 @@ void test_str2() {
 		String s(sv.copy());
 		s.split("A");
 		s.replace("A", "K");
-		s.replace_all("A", "V");
+		s.replaceAll("A", "V");
 		cout
 		<< endl
 		<< "length:" << sv.length() << endl
-		<< sv.index_of("B") << endl
-		<< sv.last_index_of("B") << endl
+		<< sv.indexOf("B") << endl
+		<< sv.lastIndexOf("B") << endl
 		<< endl;
 	}
 

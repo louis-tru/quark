@@ -80,7 +80,7 @@ namespace qk {
 		struct Clip {
 			Array<Vec2> vertex;
 			ClipOp      op;
-			bool        antiAlias;
+			bool        aa; // anti alias
 		};
 		bool drawClip(Clip *clip);
 		struct State {
