@@ -10,9 +10,9 @@
 [submodule "deps/ffmpeg"]
 	path = deps/ffmpeg
 	url = https://github.com/louis-tru/ffmpeg.git
-[submodule "deps/libBPtree"]
-	path = deps/libBPtree
-	url = https://github.com/louis-tru/libBPtree.git
+[submodule "deps/libbptree"]
+	path = deps/libbptree
+	url = https://github.com/louis-tru/libbptree.git
 [submodule "deps/libuv"]
 	path = deps/libuv
 	url = https://github.com/louis-tru/libuv.git
