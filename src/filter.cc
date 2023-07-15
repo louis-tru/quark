@@ -51,7 +51,7 @@ namespace qk {
 		return false;
 	}
 
-	Filter* Filter::assign2(Filter* left, Filter* right) {
+	Filter* Filter::assign_no_check(Filter* left, Filter* right) {
 		if (right) {
 			if (left == right) {
 				return left;
@@ -94,20 +94,20 @@ namespace qk {
 		}
 	}
 
-	void Filter::set_next2(Filter* value) {
-		_next = assign(_next, value);
+	void Filter::set_next_no_check(Filter* value) {
+		_next = assign_no_check(_next, value);
 		if (_next) {
 			_next->set_holder_mode(_holder_mode);
 		}
 		onChange();
 	}
 
-	void Filter::set_next(Filter* value) {
+	void Filter::set_next_check(Filter* value) {
 		if (value != _next) {
 			if (check_loop_reference(value)) {
 				Qk_ERR("Box background loop reference error");
 			} else {
-				set_next2(value);
+				set_next_no_check(value);
 			}
 		} else {
 			onChange();
@@ -115,15 +115,15 @@ namespace qk {
 	}
 
 	Filter* Filter::assign(Filter* left, Filter* right) {
-		if (left == right) {
-			return left;
-		} else {
+		if (left != right) {
 			if (left && right && left->check_loop_reference(right->_next)) {
 				Qk_ERR("Box background loop reference error");
 				return left;
 			} else {
-				return assign2(left, right);
+				return assign_no_check(left, right);
 			}
+		} else {
+			return left;
 		}
 	}
 
@@ -160,6 +160,19 @@ namespace qk {
 	Filter::Type FillGradientRadial::type() const { return M_GRADIENT_Radial; }
 	Filter::Type BoxShadow::type() const { return M_SHADOW; }
 
+	Fill* Fill::next() const {
+		return static_cast<Fill*>(_next);
+	}
+	void Fill::set_next(Fill* fill) {
+		_next = fill;
+	}
+	BoxShadow* BoxShadow::next() const {
+		return static_cast<BoxShadow*>(_next);
+	}
+	void BoxShadow::set_next(BoxShadow* fill) {
+		_next = fill;
+	}
+
 	// ------------------------------ F i l l . I m a g e ------------------------------
 
 	FillImage::FillImage(): _repeat(Repeat::REPEAT) {}
@@ -178,7 +191,7 @@ namespace qk {
 	Filter* FillImage::copy(Filter* to) {
 		auto target = (to && to->type() == M_IMAGE) ?
 				static_cast<FillImage*>(to) : new FillImage();
-		target->set_next2(next());
+		target->set_next_no_check(next());
 		target->_repeat = _repeat;
 		target->_position_x = _position_x;
 		target->_position_y = _position_y;
@@ -295,7 +308,7 @@ namespace qk {
 			static_cast<FillGradientLinear*>(to) : new FillGradientLinear(
 				_angle, positions(), colors()
 			);
-		target->set_next2(next());
+		target->set_next_no_check(next());
 		target->_radian = _radian;
 		target->_quadrant = _quadrant;
 		return target;
@@ -306,7 +319,7 @@ namespace qk {
 			static_cast<FillGradientRadial*>(to) : new FillGradientRadial(
 				positions(), colors()
 			);
-		target->set_next2(next());
+		target->set_next_no_check(next());
 		return target;
 	}
 
@@ -319,7 +332,7 @@ namespace qk {
 	Filter* BoxShadow::copy(Filter* to) {
 		auto target = (to && to->type() == M_SHADOW) ?
 			static_cast<BoxShadow*>(to): new BoxShadow();
-		target->set_next2(next());
+		target->set_next_no_check(next());
 		target->_value = _value;
 		return target;
 	}

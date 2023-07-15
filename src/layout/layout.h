@@ -76,7 +76,6 @@ namespace qk {
 		// layout size
 		struct Size {
 			Vec2 layout_size, content_size;
-			// Vec2 layout_min_size, layout_max_size; ??
 			bool wrap_x, wrap_y;
 		};
 
@@ -263,9 +262,8 @@ namespace qk {
 		/* 
 		* @field layout_mark
 		*
-		* 这些标记后的视图会在开始帧绘制前进行更新.
-		*  需要这些标记的原因主要是为了最大程度的节省性能开销,因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
-		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到需要帧渲染时统一进行更新.
+		* 标记后的视图会在开始帧绘制前进行更新.
+		* 运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
 		*/
 		Qk_DEFINE_PROP_GET(uint32_t, layout_mark);
 		/*

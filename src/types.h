@@ -319,5 +319,12 @@ namespace qk {
 		OUTSET,RIDGE,
 	};
 
+	// box border value
+	struct BoxBorder {
+		Color       color;
+		float       width;
+		BorderStyle style;
+	};
+
 }
 #endif

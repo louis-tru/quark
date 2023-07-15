@@ -139,6 +139,8 @@ namespace qk {
 	};
 
 	struct Vec3;
+	template<>      Vec<float,6>::Vec();
+	template<>      Vec<float,16>::Vec();
 	template<>      Vec<int,2>::Vec(int f);
 	template<> bool Vec<int,2>::operator==(const Vec& b) const;
 	template<> bool Vec<float,2>::is_zero() const;

@@ -37,6 +37,10 @@
 #include "./gl/gl_render.h"
 #include "../layout/root.h"
 #include "../filter.h"
+#include "../layout/image.h"
+#include "../layout/flex.h"
+#include "../layout/float.h"
+#include "../layout/flow.h"
 
 #define Qk_ENABLE_DRAW 1
 
@@ -112,58 +116,6 @@ namespace qk {
 
 	// --------------------------------------------------------------------------
 
-	void RenderBackend::solveBox(Box* box) {
-		_canvas->setMatrix(box->matrix());
-		if (box->_fill_color.a()) {
-		}
-		solveFilter(box);
-		solveBorder(box);
-		afterSolveBox(box);
-	}
-
-	void RenderBackend::afterSolveBox(Box* box) {
-		if (box->_first) {
-			if (box->_is_clip) {
-				// _canvas->clipPath(); // clip
-				Render::visitView(box);
-				// _canvas->restore(); // cancel clip
-			} else {
-				Render::visitView(box);
-			}
-		}
-	}
-
-	void RenderBackend::solveFilter(Box *box) {
-		auto filter = box->filter();
-		while(filter) {
-			switch(filter->type()) {
-				case Filter::M_IMAGE: // fill
-					//solveFillImage(box, static_cast<FillImage*>(fill));
-					break;
-				case Filter::M_GRADIENT_Linear: // fill
-					//solveFillGradientLinear(box, static_cast<FillGradientLinear*>(fill));
-					break;
-				case Filter::M_GRADIENT_Radial: // fill
-					//solveFillGradientRadial(box, static_cast<FillGradientRadial*>(fill));
-					break;
-				case Filter:: M_SHADOW: // effect
-					break;
-				case Filter::M_BLUR: // effect
-					break;
-				default: break;
-			}
-			filter = filter->next();
-		}
-	}
-
-	void RenderBackend::solveBorder(Box *box) {
-		if (box->_border) {
-			//
-		}
-	}
-
-	// --------------------------------------------------------------------------
-
 	void RenderBackend::visitView(View* view) {
 		// visit child
 		auto v = view->_first;
@@ -190,11 +142,32 @@ namespace qk {
 	}
 
 	void RenderBackend::visitBox(Box* box) {
-		// TODO ...
+		_canvas->setMatrix(box->matrix());
+		const RectPath *outside = nullptr;
+		if (box->_background_color.a())
+			drawBoxColor(box, outside);
+		if (box->background())
+			drawBoxFill(box, outside);
+		if (box->box_shadow())
+			drawBoxShadow(box, outside);
+		if (box->_border)
+			drawBoxBorder(box);
+		drawBoxEnd(box);
 	}
 
-	void RenderBackend::visitImage(Image* image) {
-		// TODO ...
+	void RenderBackend::visitImage(Image* v) {
+		_canvas->setMatrix(v->matrix());
+		const RectPath *outside = nullptr;
+		if (v->_background_color.a())
+			drawBoxColor(v, outside);
+		if (v->background())
+			drawBoxFill(v, outside);
+		// TODO ... image
+		if (v->box_shadow())
+			drawBoxShadow(v, outside);
+		if (v->_border)
+			drawBoxBorder(v);
+		drawBoxEnd(v);
 	}
 
 	void RenderBackend::visitVideo(Video* video) {
@@ -232,31 +205,81 @@ namespace qk {
 				v->solve_marks(mark);
 				_mark_recursive = mark & Layout::kRecursive_Mark;
 			}
-
 			if (v->_visible_region && v->_opacity != 0) {
 				_canvas->setMatrix(v->matrix());
-				_canvas->clearColor(v->_fill_color.to_color4f());
-				solveFilter(v);
-				solveBorder(v);
-				afterSolveBox(v);
+				_canvas->clearColor(v->_background_color.to_color4f());
+				const RectPath *outside = nullptr;
+				if (v->background())
+					drawBoxFill(v, outside);
+				if (v->box_shadow())
+					drawBoxShadow(v, outside);
+				if (v->_border)
+					drawBoxBorder(v);
+				drawBoxEnd(v);
 			} else {
 				_canvas->clearColor(Color4f(0,0,0,0));
 			}
-
 			_mark_recursive = 0;
 		}
 	}
 
-	void RenderBackend::visitFloatLayout(FloatLayout* flow) {
-		// TODO ...
+	void RenderBackend::visitFloatLayout(FloatLayout* box) {
+		RenderBackend::visitBox(box);
 	}
 
 	void RenderBackend::visitFlowLayout(FlowLayout* flow) {
-		// TODO ...
+		RenderBackend::visitBox(flow);
 	}
 
 	void RenderBackend::visitFlexLayout(FlexLayout* flex) {
+		RenderBackend::visitBox(flex);
+	}
+
+	// --------------------------------------------------------------------------
+
+	void RenderBackend::drawBoxColor(Box *box, const RectPath *&outside) {
 		// TODO ...
+	}
+
+	void RenderBackend::drawBoxFill(Box *box, const RectPath *&outside) {
+		auto fill = box->background();
+		do {
+			switch(fill->type()) {
+				case Filter::M_IMAGE: // fill
+					break;
+				case Filter::M_GRADIENT_Linear: // fill
+					break;
+				case Filter::M_GRADIENT_Radial: // fill
+					break;
+			}
+			fill = fill->next();
+		} while(fill);
+	}
+
+	void RenderBackend::drawBoxShadow(Box *box, const RectPath *&outside) {
+		auto shadow = box->box_shadow();
+		do {
+			if (shadow->type() == Filter::M_SHADOW) {
+			}
+			shadow = shadow->next();
+		} while(shadow);
+	}
+
+	void RenderBackend::drawBoxBorder(Box *box) {
+		// TODO: RectOutlinePath
+	}
+
+	void RenderBackend::drawBoxEnd(Box *box) {
+		if (box->_is_clip) {
+			if (box->_first) {
+				// TODO: RectPath inside
+				// _canvas->clipPath(); // clip
+				Render::visitView(box);
+				// _canvas->restore(); // cancel clip
+			}
+		} else {
+			Render::visitView(box);
+		}
 	}
 
 }

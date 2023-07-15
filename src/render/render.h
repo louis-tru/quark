@@ -99,28 +99,30 @@ namespace qk {
 		const Path& getNormalizedPathCache(const Path &path);
 
 		// @overwrite class ViewVisitor
-		virtual void    visitView(View* v) override;
-		virtual void    visitBox(Box* box) override;
-		virtual void    visitImage(Image* image) override;
-		virtual void    visitVideo(Video* video) override;
-		virtual void    visitScroll(Scroll* scroll) override;
-		virtual void    visitInput(Input* input) override;
-		virtual void    visitTextarea(Textarea* textarea) override;
-		virtual void    visitButton(Button* btn) override;
-		virtual void    visitTextLayout(TextLayout* text) override;
-		virtual void    visitLabel(Label* label) override;
-		virtual void    visitRoot(Root* root) override;
-		virtual void    visitFloatLayout(FloatLayout* flow) override;
-		virtual void    visitFlowLayout(FlowLayout* flow) override;
-		virtual void    visitFlexLayout(FlexLayout* flex) override;
+		virtual void  visitView(View* v) override;
+		virtual void  visitBox(Box* box) override;
+		virtual void  visitImage(Image* image) override;
+		virtual void  visitVideo(Video* video) override;
+		virtual void  visitScroll(Scroll* scroll) override;
+		virtual void  visitInput(Input* input) override;
+		virtual void  visitTextarea(Textarea* textarea) override;
+		virtual void  visitButton(Button* btn) override;
+		virtual void  visitTextLayout(TextLayout* text) override;
+		virtual void  visitLabel(Label* label) override;
+		virtual void  visitRoot(Root* root) override;
+		virtual void  visitFloatLayout(FloatLayout* flow) override;
+		virtual void  visitFlowLayout(FlowLayout* flow) override;
+		virtual void  visitFlexLayout(FlexLayout* flex) override;
+	private:
+		void          drawBoxColor(Box *box, const RectPath *&outside);
+		void          drawBoxFill(Box *box, const RectPath *&outside);
+		void          drawBoxShadow(Box *box, const RectPath *&outside);
+		void          drawBoxBorder(Box *box);
+		void          drawBoxEnd(Box *box);
 	protected:
 		RenderBackend(Options opts);
-		virtual Vec2    getSurfaceSize() = 0;
-		virtual float   getDefaultScale() = 0;
-		void            solveBox(Box* box);
-		void            afterSolveBox(Box* box);
-		void            solveFilter(Box *box);
-		void            solveBorder(Box *box);
+		virtual Vec2  getSurfaceSize() = 0;
+		virtual float getDefaultScale() = 0;
 		Options       _opts;
 		Canvas       *_canvas; // default canvas
 		Delegate     *_delegate;

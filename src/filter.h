@@ -51,6 +51,7 @@ namespace qk {
 			M_GRADIENT_Radial,
 			M_SHADOW,
 			M_BLUR,
+			M_BACKDROP_BLUR,
 		};
 		enum HolderMode {
 			M_INDEPENDENT,
@@ -64,15 +65,21 @@ namespace qk {
 		virtual bool retain() override;
 		static Filter* assign(Filter* left, Filter* right);
 		Qk_DEFINE_PROP(HolderMode, holder_mode); // holder mode
-		Qk_DEFINE_PROP(Filter*, next);
 	protected:
-		static Filter* assign2(Filter* left, Filter* right);
+		static Filter* assign_no_check(Filter* left, Filter* right);
 		void onChange();
 		bool check_loop_reference(Filter* value);
-		void set_next2(Filter* value);
+		void set_next_check(Filter* value);
+		void set_next_no_check(Filter* value);
+		Filter* _next;
 	};
 
-	class Qk_EXPORT FillImage: public Filter, public ImageSourceHolder {
+	class Qk_EXPORT Fill: public Filter {
+	public:
+		Qk_DEFINE_PROP_ACC(Fill*, next);
+	};
+
+	class Qk_EXPORT FillImage: public Fill, public ImageSourceHolder {
 	public:
 		struct Init {
 			String src;
@@ -93,7 +100,7 @@ namespace qk {
 		static float compute_position(FillPosition pos, float host, float size);
 	};
 
-	class FillGradient: public Filter {
+	class Qk_EXPORT FillGradient: public Fill {
 	public:
 		FillGradient(const Array<float>& pos, const Array<Color>& colors);
 		virtual ~FillGradient();
@@ -132,6 +139,7 @@ namespace qk {
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
 		Qk_DEFINE_PROP(Shadow, value);
+		Qk_DEFINE_PROP_ACC(BoxShadow*, next);
 		virtual Type    type() const override;
 		virtual Filter* copy(Filter* to) override;
 	};

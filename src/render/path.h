@@ -138,7 +138,6 @@ namespace qk {
 	struct Qk_EXPORT RectPath {
 		Path        path;
 		Array<Vec2> vertex; // triangle vertex {x,y}[2]
-		inline uint64_t hashCode() const { return path.hashCode(); }
 		static RectPath MakeRect(const Rect& rect);
 		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &radius);
 	};
@@ -150,9 +149,6 @@ namespace qk {
 		//   x,y,length-offset,width-offset,border-direction
 		// }[3]
 		Array<float> vertex; // triangle vertex
-		inline uint64_t hashCode() const {
-			return (outside.hashCode() << 32) | (inside.hashCode() & 0xFFFFFFFF);
-		}
 		static RectOutlinePath MakeRectOutline(const Rect &outside, const Rect &inside);
 		static RectOutlinePath MakeRRectOutline(
 			const Rect &outside, const Rect &inside, const Path::BorderRadius &radius

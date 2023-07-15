@@ -48,7 +48,7 @@ namespace qk {
 		set_width({0, BoxSizeKind::MATCH});
 		set_height({0, BoxSizeKind::MATCH});
 		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
-		set_fill_color(Color(255, 255, 255, 255)); // 默认白色背景
+		set_background_color(Color(255, 255, 255, 255)); // 默认白色背景
 		mark_none(kRecursive_Transform);
 	}
 
@@ -70,8 +70,12 @@ namespace qk {
 
 			xy += Vec2(margin_left() + margin_right(), margin_top() + margin_bottom());
 			xy += Vec2(padding_left() + padding_right(), padding_top() + padding_bottom());
-			if (_border)
-				xy += Vec2(_border->width_left + _border->width_right, _border->width_top + _border->width_bottom);
+			if (_border) {
+				xy += Vec2(
+					_border[3].width + _border[1].width, // left + right
+					_border[0].width + _border[2].width // top + bottom
+				);
+			}
 
 			set_layout_size(xy, &size.wrap_x, false);
 		}

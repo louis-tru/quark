@@ -843,8 +843,8 @@ namespace qk {
 			padding_top() - origin.y() - scroll_y()
 		);
 		if (_border) {
-			offset.val[0] += _border->width_left;
-			offset.val[1] += _border->width_top;
+			offset.val[0] += _border[3].width; // left
+			offset.val[1] += _border[0].width; // top
 		}
 		return offset;
 	}

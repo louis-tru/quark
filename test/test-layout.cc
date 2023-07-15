@@ -87,7 +87,7 @@ void layout_text(Box* box) {
 	//text->set_text_line_height({16});
 	text->set_text_background_color({ Color(0,255,0) });
 
-	text->set_fill_color(Color(255,0,0,255));
+	text->set_background_color(Color(255,0,0,255));
 	text->set_text_align(TextAlign::CENTER);
 	//text->set_text_family({ app()->font_pool()->getFFID("Helvetica, PingFang SC") });
 	text->set_padding_top(20);
@@ -112,7 +112,7 @@ void layout_scroll(Box *box) {
 	v->set_padding_left(10);
 	v->set_padding_right(10);
 	v->set_padding_bottom(10);
-	v->set_fill_color(Color(255,255,255));
+	v->set_background_color(Color(255,255,255));
 	v->set_radius_left_top(5);
 	v->set_radius_right_top(5);
 	v->set_radius_left_bottom(5);
@@ -122,43 +122,43 @@ void layout_scroll(Box *box) {
 	a->set_margin_top(10);
 	a->set_width({ 0, BoxSizeKind::MATCH });
 	a->set_height({ 100 });
-	a->set_fill_color(Color(255,0,0));
+	a->set_background_color(Color(255,0,0));
 
 	auto b = v->append_new<Box>();
 	b->set_margin_top(10);
 	b->set_width({ 0, BoxSizeKind::MATCH });
 	b->set_height({ 100 });
-	b->set_fill_color(Color(0,255,0));
+	b->set_background_color(Color(0,255,0));
 
 	auto c = v->append_new<Box>();
 	c->set_margin_top(10);
 	c->set_width({ 0.5, BoxSizeKind::RATIO });
 	c->set_height({ 100 });
-	c->set_fill_color(Color(0,0,255));
+	c->set_background_color(Color(0,0,255));
 
 	auto d = v->append_new<Box>();
 	d->set_margin_top(10);
 	d->set_width({ 0.5, BoxSizeKind::RATIO });
 	d->set_height({ 100 });
-	d->set_fill_color(Color(0,255,255));
+	d->set_background_color(Color(0,255,255));
 
 	auto e = v->append_new<Box>();
 	e->set_margin_top(10);
 	e->set_width({ 0, BoxSizeKind::MATCH });
 	e->set_height({ 100 });
-	e->set_fill_color(Color(0,255,0));
+	e->set_background_color(Color(0,255,0));
 
 	auto f = v->append_new<Box>();
 	f->set_margin_top(10);
 	f->set_width({ 0, BoxSizeKind::MATCH });
 	f->set_height({ 100 });
-	f->set_fill_color(Color(0,0,255));
+	f->set_background_color(Color(0,0,255));
 	
 	auto g = v->append_new<Box>();
 	g->set_margin_top(10);
 	g->set_width({ 0, BoxSizeKind::MATCH });
 	g->set_height({ 100 });
-	g->set_fill_color(Color(255,0,255));
+	g->set_background_color(Color(255,0,255));
 	
 }
 
@@ -168,7 +168,7 @@ void layout_input(Box* box) {
 
 	input->set_width({ 200 });
 	input->set_height({ 150 });
-	input->set_fill_color(Color(255,255,255));
+	input->set_background_color(Color(255,255,255));
 	// input->set_text_line_height({ 40 });
 	input->set_text_align(TextAlign::CENTER);
 	//input->set_text_align(TextAlign::RIGHT);
@@ -200,15 +200,17 @@ void layout(Event<>& evt, Application* app) {
 	//layout_input(flex);
 	layout_scroll(flex);
 
-	flex->set_fill_color(Color(255,0,0,255));
+	flex->set_background_color(Color(255,0,0,255));
 	//flex->set_fill(New<FillImage>(fs_resources("bench/img/21.jpeg"), FillImage::Init{
 	//	.size_x={100, FillSizeType::PIXEL},
 	// 	.position_x={0, FillPositionType::CENTER},
 	// 	.position_y={0, FillPositionType::CENTER},
 	//}));
 	//flex->set_fill(new FillGradientRadial({ 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 0, 255, 255), Color(0, 255, 255, 255) }));
-	flex->set_fill(new FillGradientLinear(0, { 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) }));
-	flex->set_effect(New<BoxShadow>(10, 10, 5, Color(0,0,0,255)));
+	flex->set_background(new FillGradientLinear(0, { 0, 0.5, 1 },
+		{ Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) })
+	);
+	flex->set_box_shadow(New<BoxShadow>(10, 10, 5, Color(0,0,0,255)));
 	//flex->set_effect(New<BoxShadow>(10, 10, 5, Color(255,0,0,255)));
 	flex->set_width({ 0, BoxSizeKind::MATCH });
 	flex->set_height({ 180, BoxSizeKind::PIXEL });
@@ -239,7 +241,7 @@ void layout(Event<>& evt, Application* app) {
 	//
 	flow->set_width({ 50, BoxSizeKind::PIXEL });
 	flow->set_height({ 50, BoxSizeKind::PIXEL });
-	flow->set_fill_color(Color(0,0,255,255));
+	flow->set_background_color(Color(0,0,255,255));
 	flow->set_layout_align(Align::LEFT_BOTTOM);
 	flow->set_margin_left(10);
 	flow->set_margin_top(10);
@@ -250,7 +252,7 @@ void layout(Event<>& evt, Application* app) {
 	img->set_height({ 50, BoxSizeKind::PIXEL });
 	img->set_layout_align(Align::RIGHT_BOTTOM);
 	img->set_src(fs_resources("bench/img2/21.jpeg"));
-	img->set_fill_color(Color(255,0,0,255));
+	img->set_background_color(Color(255,0,0,255));
 	img->set_margin_left(10);
 	img->set_margin_top(10);
 	img->set_margin_right(10);

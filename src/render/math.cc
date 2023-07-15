@@ -72,6 +72,8 @@ namespace qk {
 #endif
 	}
 
+	template<>      Vec<float,6>::Vec() {}
+	template<>      Vec<float,16>::Vec() {}
 	template<> Vec<int,2>::Vec(int f): Vec(f,f) {
 	}
 	template<> bool Vec<int,2>::operator==(const Vec& b) const {

@@ -59,7 +59,7 @@ namespace qk {
 				} else { // use wrap
 					result = ps - _margin_left - _margin_right - _padding_left - _padding_right;
 					if (_border)
-						result -= (_border->width_left + _border->width_right);
+						result -= (_border[3].width + _border[1].width); // left + right
 					result = Number<float>::max(result, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
@@ -105,7 +105,7 @@ namespace qk {
 				} else { // use wrap
 					result = ps - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
 					if (_border)
-						result -= (_border->width_left + _border->width_right);
+						result -= (_border[3].width + _border[1].width); // left + right
 					result = Number<float>::max(result, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
@@ -146,7 +146,7 @@ namespace qk {
 		*/
 	Box::Box(App *host)
 		: View(host)
-		, _layout_wrap_x(true), _layout_wrap_y(true), _is_radius(false), _is_clip(false)
+		, _layout_wrap_x(true), _layout_wrap_y(true), _is_clip(false)
 		, _width{0, BoxSizeKind::WRAP}, _height{0, BoxSizeKind::WRAP} 
 		, _width_limit{0, BoxSizeKind::NONE}, _height_limit{0, BoxSizeKind::NONE}
 		, _origin_x{0, BoxOriginKind::PIXEL}, _origin_y{0, BoxOriginKind::PIXEL}
@@ -156,15 +156,17 @@ namespace qk {
 		, _padding_bottom(0), _padding_left(0)
 		, _radius_left_top(0), _radius_right_top(0)
 		, _radius_right_bottom(0), _radius_left_bottom(0)
-		, _fill_color(Color::from(0))
-		, _filter(nullptr)
+		, _background_color(Color::from(0))
+		, _background(nullptr)
+		, _box_shadow(nullptr)
 		, _layout_weight(0), _layout_align(Align::AUTO)
 		, _border(nullptr)
 	{
 	}
 
 	Box::~Box() {
-		Release(_filter); _filter = nullptr;
+		Release(_background); _background = nullptr;
+		Release(_box_shadow); _box_shadow = nullptr;
 		::free(_border); _border = nullptr;
 	}
 
@@ -314,9 +316,6 @@ namespace qk {
 	void Box::set_radius_left_top(float val) {
 		if (val >= 0.0 && _radius_left_top != val) {
 			_radius_left_top = val;
-			_is_radius = 
-				*reinterpret_cast<uint64_t*>(&_radius_left_top) | 
-				*reinterpret_cast<uint64_t*>(&_radius_right_bottom);
 			mark_none();
 		}
 	}
@@ -324,9 +323,6 @@ namespace qk {
 	void Box::set_radius_right_top(float val) {
 		if (val >= 0.0 && _radius_right_top != val) {
 			_radius_right_top = val;
-			_is_radius = 
-				*reinterpret_cast<uint64_t*>(&_radius_left_top) | 
-				*reinterpret_cast<uint64_t*>(&_radius_right_bottom);
 			mark_none();
 		}
 	}
@@ -334,9 +330,6 @@ namespace qk {
 	void Box::set_radius_right_bottom(float val) {
 		if (val >= 0.0 && _radius_right_bottom != val) {
 			_radius_right_bottom = val;
-			_is_radius = 
-				*reinterpret_cast<uint64_t*>(&_radius_left_top) | 
-				*reinterpret_cast<uint64_t*>(&_radius_right_bottom);
 			mark_none();
 		}
 	}
@@ -344,180 +337,183 @@ namespace qk {
 	void Box::set_radius_left_bottom(float val) {
 		if (val >= 0.0 && _radius_left_bottom != val) {
 			_radius_left_bottom = val;
-			_is_radius = 
-				*reinterpret_cast<uint64_t*>(&_radius_left_top) | 
-				*reinterpret_cast<uint64_t*>(&_radius_right_bottom);
 			mark_none();
 		}
 	}
 
-	Color Box::border_color_top() const {
-		return _border ? _border->color_top: Color::from(0);
-	}
-
-	Color Box::border_color_right() const {
-		return _border ? _border->color_right: Color::from(0);
-	}
-
-	Color Box::border_color_bottom() const {
-		return _border ? _border->color_bottom: Color::from(0);
-	}
-
-	Color Box::border_color_left() const {
-		return _border ? _border->color_left: Color::from(0);
-	}
-
-	float Box::border_width_top() const {
-		return _border ? _border->width_top: 0;
-	} // border_widrh
-
-	float Box::border_width_right() const {
-		return _border ? _border->width_right: 0;
-	}
-
-	float Box::border_width_bottom() const {
-		return _border ? _border->width_bottom: 0;
-	}
-
-	float Box::border_width_left() const {
-		return _border ? _border->width_left: 0;
-	}
-
-	BorderStyle Box::border_style_top() const {
-		return _border ? _border->style_top: BorderStyle::SOLID;
-	} // border_style
-
-	BorderStyle Box::border_style_right() const {
-		return _border ? _border->style_right: BorderStyle::SOLID;
-	}
-
-	BorderStyle Box::border_style_bottom() const {
-		return _border ? _border->style_bottom: BorderStyle::SOLID;
-	}
-
-	BorderStyle Box::border_style_left() const {
-		return _border ? _border->style_left: BorderStyle::SOLID;
-	}
-
-	// set border
-
-	void Box::alloc_border() {
+	// alloc border memory
+	static void alloc_border(BoxBorder*& _border) {
 		if (!_border) {
-			_border = (Border*)::malloc(sizeof(Border));
-			::memset(_border, 0, sizeof(Border));
+			_border = (BoxBorder*)::malloc(sizeof(BoxBorder)*4);
+			::memset(_border, 0, sizeof(BoxBorder) * 4);
 		}
 	}
 
+	Color Box::border_color_top() const {
+		return _border ? _border[0].color: Color::from(0);
+	}
+
+	Color Box::border_color_right() const {
+		return _border ? _border[1].color: Color::from(0);
+	}
+
+	Color Box::border_color_bottom() const {
+		return _border ? _border[2].color: Color::from(0);
+	}
+
+	Color Box::border_color_left() const {
+		return _border ? _border[3].color: Color::from(0);
+	}
+
+	float Box::border_width_top() const {
+		return _border ? _border[0].width: 0;
+	} // border_widrh
+
+	float Box::border_width_right() const {
+		return _border ? _border[1].width: 0;
+	}
+
+	float Box::border_width_bottom() const {
+		return _border ? _border[2].width: 0;
+	}
+
+	float Box::border_width_left() const {
+		return _border ? _border[3].width: 0;
+	}
+
+	BorderStyle Box::border_style_top() const {
+		return _border ? _border[0].style: BorderStyle::SOLID;
+	} // border_style
+
+	BorderStyle Box::border_style_right() const {
+		return _border ? _border[1].style: BorderStyle::SOLID;
+	}
+
+	BorderStyle Box::border_style_bottom() const {
+		return _border ? _border[2].style: BorderStyle::SOLID;
+	}
+
+	BorderStyle Box::border_style_left() const {
+		return _border ? _border[3].style: BorderStyle::SOLID;
+	}
+
 	void Box::set_border_color_top(Color val) {
-		alloc_border();
-		if (_border->color_top != val) {
-			_border->color_top = val;
+		alloc_border(_border);
+		if (_border[0].color != val) {
+			_border[0].color = val;
 			mark_none();
 		}
 	}
 
 	void Box::set_border_color_right(Color val) {
-		alloc_border();
-		if (_border->color_right != val) {
-			_border->color_right = val;
+		alloc_border(_border);
+		if (_border[1].color != val) {
+			_border[1].color = val;
 			mark_none();
 		}
 	}
 
 	void Box::set_border_color_bottom(Color val) {
-		alloc_border();
-		if (_border->color_bottom != val) {
-			_border->color_bottom = val;
+		alloc_border(_border);
+		if (_border[2].color != val) {
+			_border[2].color = val;
 			mark_none();
 		}
 	}
 
 	void Box::set_border_color_left(Color val) {
-		alloc_border();
-		if (_border->color_left != val) {
-			_border->color_left = val;
+		alloc_border(_border);
+		if (_border[3].color != val) {
+			_border[3].color = val;
 			mark_none();
 		}
 	}
 
 	void Box::set_border_width_top(float val) {
-		alloc_border();
+		alloc_border(_border);
 		val = Qk_MAX(0, val);
-		if (_border->width_top != val) {
-			_border->width_top = val;
+		if (_border[0].width != val) {
+			_border[0].width = val;
 			mark_layout_size(kLayout_Size_Height);
 		}
 	} // border_widrh
 
 	void Box::set_border_width_right(float val) {
-		alloc_border();
+		alloc_border(_border);
 		val = Qk_MAX(0, val);
-		if (_border->width_right != val) {
-			_border->width_right = val;
+		if (_border[1].width != val) {
+			_border[1].width = val;
 			mark_layout_size(kLayout_Size_Width);
 		}
 	}
 
 	void Box::set_border_width_bottom(float val) {
-		alloc_border();
+		alloc_border(_border);
 		val = Qk_MAX(0, val);
-		if (_border->width_bottom != val) {
-			_border->width_bottom = val;
+		if (_border[2].width != val) {
+			_border[2].width = val;
 			mark_layout_size(kLayout_Size_Height);
 		}
 	}
 
 	void Box::set_border_width_left(float val) {
-		alloc_border();
+		alloc_border(_border);
 		val = Qk_MAX(0, val);
-		if (_border->width_left != val) {
-			_border->width_left = val;
+		if (_border[3].width != val) {
+			_border[3].width = val;
 			mark_layout_size(kLayout_Size_Width);
 		}
 	}
 
 	void Box::set_border_style_top(BorderStyle val) {
-		alloc_border();
-		if (_border->style_top != val) {
-			_border->style_top = val;
+		alloc_border(_border);
+		if (_border[0].style != val) {
+			_border[0].style = val;
 			mark_none();
 		}
 	} // border_style
 
 	void Box::set_border_style_right(BorderStyle val) {
-		alloc_border();
-		if (_border->style_right != val) {
-			_border->style_right = val;
+		alloc_border(_border);
+		if (_border[1].style != val) {
+			_border[1].style = val;
 			mark_none();
 		}
 	}
 
 	void Box::set_border_style_bottom(BorderStyle val) {
-		alloc_border();
-		if (_border->style_bottom != val) {
-			_border->style_bottom = val;
+		alloc_border(_border);
+		if (_border[2].style != val) {
+			_border[2].style = val;
 			mark_none();
 		}
 	}
 
 	void Box::set_border_style_left(BorderStyle val) {
-		alloc_border();
-		if (_border->style_left != val) {
-			_border->style_left = val;
+		alloc_border(_border);
+		if (_border[3].style != val) {
+			_border[3].style = val;
 			mark_none();
 		}
 	}
 
-	void Box::set_fill_color(Color color) {
-		if (_fill_color != color) {
-			_fill_color = color;
+	void Box::set_background_color(Color color) {
+		if (_background_color != color) {
+			_background_color = color;
 			mark_none();
 		}
 	}
 
-	void Box::set_filter(Filter* val) {
-		if (_filter != val) {
-			_filter = Filter::assign(_filter, val);
+	void Box::set_background(Fill* val) {
+		if (_background != val) {
+			_background = static_cast<Fill*>(Filter::assign(_background, val));
+			mark_none();
+		}
+	}
+
+	void Box::set_box_shadow(BoxShadow* val) {
+		if (_box_shadow != val) {
+			_box_shadow = static_cast<BoxShadow*>(Filter::assign(_background, val));
 			mark_none();
 		}
 	}
@@ -545,7 +541,7 @@ namespace qk {
 					}
 					_client_size.set_x(_padding_left + _padding_right + val);
 					if (_border)
-						_client_size.val[0] += _border->width_left + _border->width_right;
+						_client_size.val[0] += _border[3].width + _border[1].width; // left + right
 
 					float x = _margin_left + _margin_right + _client_size.x();
 					if (_layout_size.x() != x) {
@@ -564,7 +560,7 @@ namespace qk {
 					}
 					_client_size.set_y(_padding_top + _padding_bottom + val);
 					if (_border)
-						_client_size.val[1] += _border->width_top + _border->width_bottom;
+						_client_size.val[1] += _border[0].width + _border[2].width; // top + bottom
 
 					float y = _margin_top + _margin_bottom + _client_size.y();
 					if (_layout_size.y() != y) {
@@ -697,8 +693,8 @@ namespace qk {
 		auto bp_x = _padding_left + _padding_right;
 		auto bp_y = _padding_left + _padding_right;
 		if (_border) {
-			bp_x += _border->width_left + _border->width_right;
-			bp_y += _border->width_top + _border->width_bottom;
+			bp_x += _border[3].width + _border[1].width; // left + right
+			bp_y += _border[0].width + _border[2].width; // top + bottom
 		}
 		auto mbp_x = _margin_left + _margin_right + bp_x;
 		auto mbp_y = _margin_top + _margin_bottom + bp_y;
@@ -743,8 +739,8 @@ namespace qk {
 		_client_size = Vec2(content_size.x() + _padding_left + _padding_right,
 												content_size.y() + _padding_top + _padding_bottom);
 		if (_border) {
-			_client_size.val[0] += _border->width_left + _border->width_right;
-			_client_size.val[1] += _border->width_top + _border->width_bottom;
+			_client_size.val[0] += _border[3].width + _border[1].width; // left + right
+			_client_size.val[1] += _border[0].width + _border[2].width; // top + bottom
 		}
 		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
 												_margin_top + _margin_bottom + _client_size.y());
@@ -768,8 +764,8 @@ namespace qk {
 		size.layout_size.set_x(_margin_left + _padding_left + size.content_size.x() + _padding_right + _margin_right);
 		size.layout_size.set_y(_margin_top + _padding_top + size.content_size.y() + _padding_bottom + _margin_bottom);
 		if (_border) {
-			size.layout_size.val[0] += _border->width_left + _border->width_right;
-			size.layout_size.val[1] += _border->width_top + _border->width_bottom;
+			size.layout_size.val[0] += _border[3].width + _border[1].width; // left + right
+			size.layout_size.val[1] += _border[0].width + _border[2].width; // top + bottom
 		}
 		return size;
 	}
@@ -806,8 +802,8 @@ namespace qk {
 		// return Vec2(-_margin_left, -_margin_top) - _transform_origin;
 		Vec2 offset(_padding_left - _origin_value.val[0], _padding_top - _origin_value.val[1]);
 		if (_border) {
-			offset.val[0] += _border->width_left;
-			offset.val[1] += _border->width_top;
+			offset.val[0] += _border[3].width; // left
+			offset.val[1] += _border[0].width; // top
 		}
 		return offset;
 	}
