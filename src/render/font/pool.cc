@@ -68,7 +68,7 @@ namespace qk {
 			String s = i.trim();
 			if ( !s.isEmpty() ) {
 				newFamilys.push(s);
-				hash.update(s);
+				hash.updatestr(s);
 			}
 		}
 

@@ -330,6 +330,7 @@ namespace qk {
 		, _blendMode(kClear_BlendMode)
 		, _frame_buffer(0), _msaa_frame_buffer(0)
 		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0)
+		, _texTmp{0,0,0}
 		, _shaders{
 			&_clear, &_clip, &_color, &_image, &_colorMask, &_yuv420p,
 			&_yuv420sp, &_linear, &_radial, &_colorDotted,
@@ -395,6 +396,7 @@ namespace qk {
 	GLRender::~GLRender() {
 		glDeleteFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
 		glDeleteRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
+		glDeleteTextures(3, _texTmp);
 	}
 
 	Object* GLRender::asObject() {

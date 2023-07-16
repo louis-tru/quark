@@ -67,9 +67,7 @@ namespace qk {
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 	private:
-		struct Clip;
 		void clip(const Array<Vec2> &vertex, ClipOp op, bool aa);
-		bool drawClip(Clip *clip);
 		void fillRect(const RectPath &rect, const Paint &paint, bool aa);
 		void fillPath(const Path &path, const Paint &paint, bool aa);
 		void fill(const Array<Vec2> &vertex, const Paint &paint);
@@ -89,25 +87,26 @@ namespace qk {
 		bool isStencilRefDefaultValue();
 	protected:
 		void setRootMatrixBuffer(const Mat4& root); // set root matrix
+		Vec2   _surfaceScale;
+	private:
 		// props
 		struct Clip {
 			Array<Vec2> vertex;
 			ClipOp      op;
 			bool        aa; // anti alias
 		};
+		bool   drawClip(Clip *clip);
 		struct State {
 			Mat         matrix;
 			Array<Clip> clips;
 		};
 		GLRender *_backend;
-		GLuint    _stencil_ref, _stencil_ref_decr;
-		GLuint    _mat_ubo, _texTmp[3]; // mat_ubo => root,view matrix
 		State    *_curState;
 		Array<State> _state;
-		// define buffers
-		Vec2   _surfaceScale;
-		float  _surfaceScalef1, _transfromScale
-			, _Scale, _UnitPixel; // surface scale * transfrom scale, _UnitPixel = 2 / _Scale
+		GLuint _stencil_ref, _stencil_ref_decr;
+		GLuint _mat_ubo; // mat_ubo => root,view matrix
+		float  _surfaceScalef1, _transfromScale;
+		float  _Scale, _UnitPixel; // surface scale * transfrom scale, _UnitPixel = 2 / _Scale
 	};
 
 }

@@ -122,10 +122,10 @@ namespace qk {
 		virtual void  visitFlowLayout(FlowLayout* flow) override;
 		virtual void  visitFlexLayout(FlexLayout* flex) override;
 	private:
-		virtual void  drawBoxColor(Box *box, const RectPath *&outside);
-		virtual void  drawBoxFill(Box *box, const RectPath *&outside);
-		virtual void  drawBoxShadow(Box *box, const RectPath *&outside);
-		virtual void  drawBoxBorder(Box *box);
+		void  drawBoxColor(Box *box, const RectPath *&outside);
+		void  drawBoxFill(Box *box, const RectPath *&outside);
+		void  drawBoxShadow(Box *box, const RectPath *&outside);
+		void  drawBoxBorder(Box *box);
 		void          drawBoxEnd(Box *box);
 		const RectPath* makeOutsideRectPath(Box *box, const RectPath *&out);
 	protected:

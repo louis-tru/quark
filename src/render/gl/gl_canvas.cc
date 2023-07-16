@@ -39,7 +39,6 @@ namespace qk {
 	GLCanvas::GLCanvas(GLRender *backend)
 		: _backend(backend)
 		, _stencil_ref(0), _stencil_ref_decr(0)
-		, _texTmp{0,0,0}
 		, _curState(nullptr)
 		, _surfaceScale(1,1), _surfaceScalef1(1), _transfromScale(1), _Scale(1)
 	{
@@ -56,7 +55,6 @@ namespace qk {
 
 	GLCanvas::~GLCanvas() {
 		glDeleteBuffers(1, &_mat_ubo);
-		glDeleteTextures(3, _texTmp);
 	}
 
 	int GLCanvas::save() {
