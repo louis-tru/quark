@@ -53,36 +53,48 @@ namespace qk {
 		virtual void rotate(float z) override;
 		virtual bool readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) override;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
+		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
+		virtual void clipRectPath(const RectPath& rect, ClipOp op, bool antiAlias) override;
 		virtual void clearColor(const Color4f& color) override;
 		virtual void drawColor(const Color4f& color, BlendMode mode) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
+		virtual void drawRect(const Rect& rect, const Paint& paint) override;
+		virtual void drawRRect(const Rect& rect,
+			const Path::BorderRadius &radius, const Paint& paint) override;
+		virtual void drawRectPath(const RectPath& rect, const Paint& paint) override;
+		virtual void drawRectPathColor(const RectPath& rect, const Color4f &color, BlendMode mode) override;
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
-	protected:
-		void fillPath(const Path &path, const Paint &paint, bool antiAlias);
+	private:
+		struct Clip;
+		void clip(const Array<Vec2> &vertex, ClipOp op, bool aa);
+		bool drawClip(Clip *clip);
+		void fillRect(const RectPath &rect, const Paint &paint, bool aa);
+		void fillPath(const Path &path, const Paint &paint, bool aa);
+		void fill(const Array<Vec2> &vertex, const Paint &paint);
+		void drawStroke(const Path &path, const Paint& paint, bool aa);
 		void drawColor(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		void drawGradient(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		void drawImage(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		void drawImageMask(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		// draw sdf
 		void drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3]);
-		void drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
+		void drawColorSDF(const Array<Vec3> &vertex, const Color4f &color, GLenum mode, const float range[3]);
 		void drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		void drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		void drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint);
-		// setting status
-		void setMatrixBuffer(const Mat& mat);
-		void setRootMatrixBuffer(const Mat4& root);
+		void setMatrixBuffer(const Mat& mat); // set view matrix
 		bool isStencilRefDefaultValue();
+	protected:
+		void setRootMatrixBuffer(const Mat4& root); // set root matrix
 		// props
 		struct Clip {
 			Array<Vec2> vertex;
 			ClipOp      op;
 			bool        aa; // anti alias
 		};
-		bool drawClip(Clip *clip);
 		struct State {
 			Mat         matrix;
 			Array<Clip> clips;

@@ -194,7 +194,7 @@ namespace qk {
 		return gl_read_pixels(dst, srcX, srcY);
 	}
 
-	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
+	void GLCanvas::clip(const Array<Vec2> &vertex, ClipOp op, bool antiAlias) {
 		if (_stencil_ref == 0) { // start enable stencil test
 			_stencil_ref = _stencil_ref_decr = 127;
 			glClear(GL_STENCIL_BUFFER_BIT); // clear stencil
@@ -202,12 +202,24 @@ namespace qk {
 		if (isStencilRefDefaultValue()) {
 			glEnable(GL_STENCIL_TEST); // enable stencil test
 		}
-		Clip clip{_backend->getPathTrianglesCache(path), op, antiAlias};
+		Clip clip{vertex, op, antiAlias};
 
 		if (drawClip(&clip)) {
 			// save clip state
 			_curState->clips.push(std::move(clip));
 		}
+	}
+
+	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
+		clip(_backend->getPathTriangles(path), op, antiAlias);
+	}
+
+	void GLCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
+		clip(_backend->getRectPath(rect).vertex, op, antiAlias);
+	}
+
+	void GLCanvas::clipRectPath(const RectPath& rect, ClipOp op, bool antiAlias) {
+		clip(rect.vertex, op, antiAlias);
 	}
 
 	bool GLCanvas::drawClip(Clip *clip) {
@@ -290,11 +302,53 @@ namespace qk {
 		//glDrawArrays(GL_LINE_STRIP, 0, p.ptsLen());
 	}
 
+	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
+		drawRectPath(_backend->getRectPath(rect), paint);
+	}
+
+	void GLCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
+		drawRectPath(_backend->getRRectPath(rect,radius), paint);
+	}
+
+	void GLCanvas::drawRectPath(const RectPath& rect, const Paint& paint) {
+		_backend->setBlendMode(paint.blendMode); // switch blend mode
+
+		bool antiAlias = paint.antiAlias && !_backend->_IsDeviceMsaa; // Anti-aliasing using software
+
+		// gen stroke path and fill path and polygons
+		switch (paint.style) {
+			case Paint::kFill_Style:
+				fillRect(rect, paint, antiAlias);
+				break;
+			case Paint::kStrokeAndFill_Style:
+				fillRect(rect, paint, antiAlias);
+			case Paint::kStroke_Style: {
+				drawStroke(rect.path, paint, antiAlias);
+				break;
+			}
+		}
+	}
+
+	constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
+
+	void GLCanvas::drawRectPathColor(const RectPath& rect, const Color4f &color, BlendMode mode) {
+		_backend->setBlendMode(mode); // switch blend mode
+		bool antiAlias = !_backend->_IsDeviceMsaa; // Anti-aliasing using software
+		_backend->_color.use(rect.vertex.size(), *rect.vertex);
+		//auto color4f = color.to_color4f_alpha(alpha);
+		glUniform4fv(_backend->_color.color, 1, color.val);
+		glDrawArrays(GL_TRIANGLES, 0, rect.vertex.length());
+		if (antiAlias) {
+			auto &strip = _backend->getSDFStrokeTriangleStrip(rect.path, _UnitPixel*0.6);
+			drawColorSDF(strip, color, GL_TRIANGLE_STRIP, aa_sdf_range);
+		}
+	}
+
 	void GLCanvas::drawPath(const Path &path_, const Paint &paint) {
 		_backend->setBlendMode(paint.blendMode); // switch blend mode
 
 		bool antiAlias = paint.antiAlias && !_backend->_IsDeviceMsaa; // Anti-aliasing using software
-		auto path = &_backend->getNormalizedPathCache(path_);
+		auto path = &_backend->getNormalizedPath(path_);
 
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
@@ -304,48 +358,60 @@ namespace qk {
 			case Paint::kStrokeAndFill_Style:
 				fillPath(*path, paint, antiAlias);
 			case Paint::kStroke_Style: {
-				if (antiAlias) {
-					auto width = paint.width - _UnitPixel;
-					if (width > 0) {
-						fillPath(_backend->getStrokePathCache(*path, width, paint.cap, paint.join), paint, true);
-					} else {
-						// 5*5=25, 0.75
-						width /= _UnitPixel; // range: -1 => 0
-						width = powf(width*10, 3) * 0.006; // (width*10)^3 * 0.006
-						const float sdf_range[3] = {0.5, width-0.25f, 0};
-						drawAAStrokeSDF(*path, paint, sdf_range);
-					}
-				} else {
-					fillPath(_backend->getStrokePathCache(*path, paint.width, paint.cap, paint.join), paint, false);
-				}
+				drawStroke(*path, paint, antiAlias);
 				break;
 			}
 		}
 	}
 
-	void GLCanvas::fillPath(const Path &path, const Paint &paint, bool antiAlias) {
-		Qk_ASSERT(path.isNormalized());
+	void GLCanvas::fillRect(const RectPath &rect, const Paint &paint, bool aa) {
+		Qk_ASSERT(rect.path.isNormalized());
+		fill(rect.vertex, paint);
+		if (aa) {
+			drawAAStrokeSDF(rect.path, paint, aa_sdf_range);
+		}
+	}
 
-		auto &triangles = _backend->getPathTrianglesCache(path);
+	void GLCanvas::fillPath(const Path &path, const Paint &paint, bool aa) {
+		Qk_ASSERT(path.isNormalized());
+		fill(_backend->getPathTriangles(path), paint);
+		if (aa) {
+			drawAAStrokeSDF(path, paint, aa_sdf_range);
+		}
+	}
+
+	void GLCanvas::fill(const Array<Vec2> &vertex, const Paint &paint) {
 		switch (paint.type) {
 			case Paint::kColor_Type:
-				drawColor(triangles, paint, GL_TRIANGLES);
+				drawColor(vertex, paint, GL_TRIANGLES);
 				//test_color_fill_aa_lines(_backend->_color, _backend->_colorDotted, path, paint);
 				break;
 			case Paint::kGradient_Type:
-				drawGradient(triangles, paint, GL_TRIANGLES);
+				drawGradient(vertex, paint, GL_TRIANGLES);
 				break;
 			case Paint::kBitmap_Type:
-				drawImage(triangles, paint, GL_TRIANGLES);
+				drawImage(vertex, paint, GL_TRIANGLES);
 				break;
 			case Paint::kBitmapMask_Type:
-				drawImageMask(triangles, paint, GL_TRIANGLES);
+				drawImageMask(vertex, paint, GL_TRIANGLES);
 				break;
 		}
+	}
 
-		if (antiAlias) {
-			constexpr float sdf_range[3] = {0.5,-0.25,0};
-			drawAAStrokeSDF(path, paint, sdf_range);
+	void GLCanvas::drawStroke(const Path &path, const Paint& paint, bool aa) {
+		if (aa) {
+			auto width = paint.width - _UnitPixel;
+			if (width > 0) {
+				fillPath(_backend->getStrokePath(path, width, paint.cap, paint.join), paint, true);
+			} else {
+				// 5*5=25, 0.75
+				width /= _UnitPixel; // range: -1 => 0
+				width = powf(width*10, 3) * 0.006; // (width*10)^3 * 0.006
+				const float stroke_sdf_range[3] = {0.5, width-0.25f, 0};
+				drawAAStrokeSDF(path, paint, stroke_sdf_range);
+			}
+		} else {
+			fillPath(_backend->getStrokePath(path, paint.width, paint.cap, paint.join), paint, false);
 		}
 	}
 
@@ -353,11 +419,11 @@ namespace qk {
 		//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
 		//auto &strip = _backend->getSDFStrokeTriangleStripCache(newPath, _Scale);
 		// _UnitPixel*0.6=1.2/_Scale, 2.4px
-		auto &strip = _backend->getSDFStrokeTriangleStripCache(path, _UnitPixel*0.6);
+		auto &strip = _backend->getSDFStrokeTriangleStrip(path, _UnitPixel*0.6);
 		// Qk_DEBUG("%p", &strip);
 		switch (paint.type) {
 			case Paint::kColor_Type:
-				drawColorSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
+				drawColorSDF(strip, paint.color, GL_TRIANGLE_STRIP, sdf_range);
 				break;
 			case Paint::kGradient_Type:
 				drawGradientSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
@@ -426,10 +492,10 @@ namespace qk {
 
 	// ----------------------------------------------------------------------------------------
 
-	void GLCanvas::drawColorSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[2]) {
+	void GLCanvas::drawColorSDF(const Array<Vec3> &vertex, const Color4f &color, GLenum mode, const float range[3]) {
 		_backend->_colorSdf.use(vertex.size(), *vertex);
 		glUniform1fv(_backend->_colorSdf.sdf_range, 3, range);
-		glUniform4fv(_backend->_colorSdf.color, 1, paint.color.val);
+		glUniform4fv(_backend->_colorSdf.color, 1, color.val);
 		glDrawArrays(mode, 0, vertex.length());
 	}
 

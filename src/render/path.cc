@@ -701,11 +701,11 @@ namespace qk {
 			RectPath *out, Vec2 v, Vec2 v2,
 			Vec2 radius, Vec2 radius2, float startAngle
 		) {
-			bool is_zero  = radius.is_zero_axis();
-			bool is_zero2 = radius2.is_zero_axis();
+			bool is_zero_l  = radius.is_zero_axis();
+			bool is_zero_r = radius2.is_zero_axis();
 			const Vec2 c(v + radius);
 
-			if (!is_zero) {
+			if (!is_zero_l) {
 				int   sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
 				float angleStep = -Qk_PI_2_1 / (sample - 1);
 				float angle = startAngle + Qk_PI_2_1;
@@ -723,19 +723,19 @@ namespace qk {
 				out->path.lineTo(v);
 			}
 
-			if (!is_zero2) { // no zero
+			if (!is_zero_r) { // no zero
 				const Vec2 c2(v2 + radius2);
 				const Vec2 p(
 					c2.x() - cosf(startAngle) * radius2.x(), c2.y () + sinf(startAngle) * radius2.y()
 				);
-				if (!is_zero) { // no zero
+				if (!is_zero_l) { // no zero
 					const Vec2 src[4] = {p,p,c2,c};
 					out->vertex.write(src, -1, 4);
 				} else {
 					const Vec2 src[3] = {v,p,c2};
 					out->vertex.write(src, -1, 3);
 				}
-			} else if (!is_zero) { // v != zero and v2 == zero
+			} else if (!is_zero_l) { // v != zero and v2 == zero
 				out->vertex.push(v2);
 			}
 

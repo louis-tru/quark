@@ -42,8 +42,6 @@
 #include "../layout/float.h"
 #include "../layout/flow.h"
 
-#define Qk_ENABLE_DRAW 1
-
 namespace qk {
 
 	static uint32_t integerExp(uint32_t n) {
@@ -71,7 +69,7 @@ namespace qk {
 	void RenderBackend::activate(bool isActive) {
 	}
 
-	const Array<Vec2>& RenderBackend::getPathTrianglesCache(const Path &path) {
+	const Array<Vec2>& RenderBackend::getPathTriangles(const Path &path) {
 		auto hash = path.hashCode();
 		const Array<Vec2> *out;
 		if (_PathTrianglesCache.get(hash, out)) return *out;
@@ -80,7 +78,7 @@ namespace qk {
 		return _PathTrianglesCache.set(hash, path.getTriangles(1));
 	}
 
-	const Path& RenderBackend::getStrokePathCache(
+	const Path& RenderBackend::getStrokePath(
 		const Path &path, float width, Path::Cap cap, Path::Join join, float miterLimit) 
 	{
 		auto hash = path.hashCode();
@@ -94,7 +92,7 @@ namespace qk {
 		return _StrokePathCache.set(hash, stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath(1));
 	}
 
-	const Array<Vec3>& RenderBackend::getSDFStrokeTriangleStripCache(const Path &path, float width) {
+	const Array<Vec3>& RenderBackend::getSDFStrokeTriangleStrip(const Path &path, float width) {
 		auto hash = path.hashCode();
 		hash += (hash << 5) + *(int32_t*)&width;
 		const Array<Vec3> *out;
@@ -104,7 +102,7 @@ namespace qk {
 		return _SDFStrokeTriangleStripCache.set(hash, path.getSDFStrokeTriangleStrip(width, 1));
 	}
 
-	const Path& RenderBackend::getNormalizedPathCache(const Path &path) {
+	const Path& RenderBackend::getNormalizedPath(const Path &path) {
 		if (path.isNormalized()) return path;
 		auto hash = path.hashCode();
 		const Path *out;
@@ -112,6 +110,50 @@ namespace qk {
 		if (_NormalizedPathCache.length() >= 1024)
 			_NormalizedPathCache.clear();
 		return _NormalizedPathCache.set(hash, path.normalizedPath(1));
+	}
+
+	const RectPath& RenderBackend::getRectPath(const Rect &rect) {
+		Hash5381 hash;
+		hash.updatefv4(rect.origin.val);
+		const RectPath *out;
+		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
+		if (_RectPathCache.length() >= 1024)
+			_RectPathCache.clear();
+		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
+	}
+
+	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const float radius[4]) {
+		Hash5381 hash;
+		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(radius);
+
+		const RectPath *out;
+		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
+
+		if (_RectPathCache.length() >= 1024)
+			_RectPathCache.clear();
+
+		if (radius[0] == 0 && radius[0] == radius[1] &&
+			radius[1] == radius[2] && radius[2] == radius[3])
+		{
+			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
+		} else {
+			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, {
+				radius[0],radius[1],radius[2],radius[3]
+			}));
+		}
+	}
+
+	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const Path::BorderRadius &radius) {
+		Hash5381 hash;
+		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(radius.leftTop.val);
+		hash.updatefv4(radius.rightBottom.val);
+		const RectPath *out;
+		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
+		if (_RectPathCache.length() >= 1024)
+			_RectPathCache.clear();
+		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, radius));
 	}
 
 	// --------------------------------------------------------------------------
@@ -238,15 +280,29 @@ namespace qk {
 	// --------------------------------------------------------------------------
 
 	void RenderBackend::drawBoxColor(Box *box, const RectPath *&outside) {
-		// TODO ...
+		auto rect = makeOutsideRectPath(box, outside);
+		_canvas->drawRectPathColor(*rect,
+			box->_background_color.to_color4f_alpha(_opacity), kSrcOver_BlendMode
+		);
 	}
 
 	void RenderBackend::drawBoxFill(Box *box, const RectPath *&outside) {
+		auto rect = makeOutsideRectPath(box, outside);
 		auto fill = box->background();
 		do {
 			switch(fill->type()) {
-				case Filter::M_IMAGE: // fill
+				case Filter::M_IMAGE: {// fill
+					auto img = static_cast<FillImage*>(fill);
+					auto src = img->source();
+					if (src && src->load()) {
+						auto pix = src->pixels().val();
+						Paint paint;
+						paint.type = Paint::kBitmap_Type;
+						paint.color.set_a(_opacity);
+						paint.setImage(pix, {-box->_origin_value, box->_client_size});
+					}
 					break;
+				}
 				case Filter::M_GRADIENT_Linear: // fill
 					break;
 				case Filter::M_GRADIENT_Radial: // fill
@@ -280,6 +336,13 @@ namespace qk {
 		} else {
 			Render::visitView(box);
 		}
+	}
+
+	const RectPath* RenderBackend::makeOutsideRectPath(Box *box, const RectPath *&out) {
+		if (!out) {
+			out = &getRRectPath({-box->_origin_value, box->_client_size}, &box->_radius_left_top);
+		}
+		return out;
 	}
 
 }

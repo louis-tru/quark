@@ -37,20 +37,48 @@ namespace qk {
 
 	void Hash5381::update(const void* data, uint32_t len) {
 		while (len--)
-			_hash += (_hash << 5) + ((cChar*)data)[len];
+			_hash += (_hash << 5) + ((const uint8_t*)data)[len];
 	}
-	
-	void Hash5381::update(uint32_t *data, uint32_t len) {
+
+	void Hash5381::updateu8v(uint8_t *data, uint32_t len) {
 		while (len--)
 			_hash += (_hash << 5) + data[len];
 	}
 
-	void Hash5381::clear() { _hash = 5381; }
+	void Hash5381::updateu16v(uint16_t *data, uint32_t len) {
+		while (len--)
+			_hash += (_hash << 5) + data[len];
+	}
 
-	void Hash5381::update(cString& str) {
+	void Hash5381::updateu32v(uint32_t *data, uint32_t len) {
+		while (len--)
+			_hash += (_hash << 5) + data[len];
+	}
+
+	void Hash5381::updateu64v(uint64_t *data, uint32_t len) {
+		while (len--)
+			_hash += (_hash << 5) + data[len];
+	}
+
+	void Hash5381::updateu64(uint64_t data) {
+		_hash += (_hash << 5) + data;
+	}
+
+	void Hash5381::updatefv2(const float data[2]) {
+		_hash += (_hash << 5) + *reinterpret_cast<const uint64_t*>(data);
+	}
+
+	void Hash5381::updatefv4(const float data[4]) {
+		_hash += (_hash << 5) + *reinterpret_cast<const uint64_t*>(data);
+		_hash += (_hash << 5) + *reinterpret_cast<const uint64_t*>(data+2);
+	}
+
+	void Hash5381::updatestr(cString& str) {
 		update(str.c_str(), str.length());
 	}
-	
+
+	void Hash5381::clear() { _hash = 5381; }
+
 	String Hash5381::digest() {
 		String rev;
 		do {

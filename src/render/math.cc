@@ -100,6 +100,9 @@ namespace qk {
 	Vec2 Vec2::operator-(const Vec<float,2>& b) const {
 		return Vec2(val[0] - b.val[0], val[1] - b.val[1]);
 	}
+	Vec2 Vec2::operator-() const {
+		return Vec2(-val[0], -val[1]);
+	}
 	Vec2 Vec2::operator*(const Vec<float,2>& b) const {
 		return Vec2(val[0] * b.val[0], val[1] * b.val[1]);
 	}
@@ -223,6 +226,9 @@ namespace qk {
 	Vec3 Vec3::operator-(const Vec<float,3>& b) const {
 		return Vec3(val[0] - b.val[0], val[1] - b.val[1], val[2] - b.val[2]);
 	}
+	Vec3 Vec3::operator-() const {
+		return Vec3(-val[0], -val[1], -val[2]);
+	}
 	Vec3 Vec3::operator*(const Vec<float,3>& b) const {
 		return Vec3(val[0] * b.val[0], val[1] * b.val[1], val[2] * b.val[2]);
 	}
@@ -289,6 +295,15 @@ namespace qk {
 									 g() * scale,
 									 b() * scale,
 									 a() * scale
+								);
+	}
+
+	Color4f Color::to_color4f_alpha(float alpha) const {
+		constexpr float scale = 1 / 255.0f;
+		return Color4f(r() * scale,
+									 g() * scale,
+									 b() * scale,
+									 a() * scale * alpha
 								);
 	}
 

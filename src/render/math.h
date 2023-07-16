@@ -155,6 +155,7 @@ namespace qk {
 			Name(float f); \
 			Name  operator+(const Vec<T,Len>& b) const; \
 			Name  operator-(const Vec<T,Len>& b) const; \
+			Name  operator-() const; \
 			Name  operator*(const Vec<T,Len>& b) const; \
 			Name  operator*(T b) const; \
 			Name  operator/(const Vec<T,Len>& b) const; \
@@ -265,6 +266,7 @@ namespace qk {
 		bool operator==(Color color) const;
 		bool operator!=(Color color) const;
 		Color4f  to_color4f() const;
+		Color4f  to_color4f_alpha(float alpha) const;
 		uint32_t to_uint32() const; //! ignore endianness, small end data as a,b,g,r
 		uint32_t to_uint32_abgr() const; //! high => low as a,b,g,r
 		uint32_t to_uint32_rgba() const; //! high => low as r,g,b,a

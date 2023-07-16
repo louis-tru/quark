@@ -42,7 +42,8 @@ namespace qk {
 				src.origin.y() * scale.y() - dest.origin.y()
 			),
 			// shader tex scale
-			Vec2(1.0 / scale.x() / image->width(), 1.0 / scale.y() / image->height()),
+			//Vec2(1.0 / scale.x() / image->width(), 1.0 / scale.y() / image->height()),
+			Vec2(1.0 / (scale.x() * image->width()), 1.0 / (scale.y() * image->height())),
 		};
 	}
 

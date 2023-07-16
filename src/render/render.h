@@ -79,24 +79,32 @@ namespace qk {
 		inline  Delegate* delegate() { return _delegate; }
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
+
 		/**
-		 * @dev get path triangles from cache
+		 * @dev get path triangles cache
 		*/
-		const Array<Vec2>& getPathTrianglesCache(const Path &path);
+		const Array<Vec2>& getPathTriangles(const Path &path);
 		/**
 		 * @dev get sdf stroke path triangle strip cache
 		*/
-		const Array<Vec3>& getSDFStrokeTriangleStripCache(const Path &path, float width);
+		const Array<Vec3>& getSDFStrokeTriangleStrip(const Path &path, float width);
 		/**
-		 * @dev get stroke path from cache
+		 * @dev get stroke path cache
 		 */
-		const Path& getStrokePathCache(const Path &path,
+		const Path& getStrokePath(const Path &path,
 			float width, Path::Cap cap, Path::Join join, float miterLimit = 0);
 
 		/**
-		 * @dev get normalized path from cache
+		 * @dev get normalized path cache
 		 */
-		const Path& getNormalizedPathCache(const Path &path);
+		const Path& getNormalizedPath(const Path &path);
+
+		/**
+		 * @dev get radius rect path cache
+		 */
+		const RectPath& getRectPath(const Rect &rect);
+		const RectPath& getRRectPath(const Rect &rect, const float radius[4]);
+		const RectPath& getRRectPath(const Rect &rect, const Path::BorderRadius &radius);
 
 		// @overwrite class ViewVisitor
 		virtual void  visitView(View* v) override;
@@ -114,11 +122,12 @@ namespace qk {
 		virtual void  visitFlowLayout(FlowLayout* flow) override;
 		virtual void  visitFlexLayout(FlexLayout* flex) override;
 	private:
-		void          drawBoxColor(Box *box, const RectPath *&outside);
-		void          drawBoxFill(Box *box, const RectPath *&outside);
-		void          drawBoxShadow(Box *box, const RectPath *&outside);
-		void          drawBoxBorder(Box *box);
+		virtual void  drawBoxColor(Box *box, const RectPath *&outside);
+		virtual void  drawBoxFill(Box *box, const RectPath *&outside);
+		virtual void  drawBoxShadow(Box *box, const RectPath *&outside);
+		virtual void  drawBoxBorder(Box *box);
 		void          drawBoxEnd(Box *box);
+		const RectPath* makeOutsideRectPath(Box *box, const RectPath *&out);
 	protected:
 		RenderBackend(Options opts);
 		virtual Vec2  getSurfaceSize() = 0;
@@ -133,6 +142,7 @@ namespace qk {
 		Dict<uint64_t, Array<Vec2>> _PathTrianglesCache; // path hash => triangles
 		Dict<uint64_t, Array<Vec3>> _SDFStrokeTriangleStripCache; // path hash => aa triangles strip
 		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
+		Dict<uint64_t, RectPath> _RectPathCache; // rect hash => rect path
 	};
 
 	typedef RenderBackend Render;

@@ -40,12 +40,19 @@ namespace qk {
 		uint64_t _hash;
 	public:
 		inline Hash5381(): _hash(5381) {}
+		inline Hash5381(uint64_t hash): _hash(hash) {}
 		uint64_t hashCode() const { return _hash; }
-		void     clear();
-		void     update(const void* data, uint32_t len);
-		void     update(cString& str);
-		void     update(uint32_t *data, uint32_t len);
-		String   digest();
+		void   clear();
+		void   update(const void* data, uint32_t len);
+		void   updatestr(cString& str);
+		void   updateu8v(uint8_t *data, uint32_t len);
+		void   updateu16v(uint16_t *data, uint32_t len);
+		void   updateu32v(uint32_t *data, uint32_t len);
+		void   updateu64v(uint64_t *data, uint32_t len);
+		void   updateu64(uint64_t data);
+		void   updatefv2(const float data[2]);
+		void   updatefv4(const float data[4]);
+		String digest();
 	};
 
 	Qk_EXPORT uint64_t hashCode(const void* data, uint32_t len);

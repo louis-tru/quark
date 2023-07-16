@@ -46,13 +46,13 @@ namespace qk {
 		virtual uint32_t makeTexture(cPixel *src, uint32_t id) override;
 		virtual void deleteTextures(const uint32_t *IDs, uint32_t count) override;
 		inline  GLSLShader* shader(uint32_t i) { return _shaders[i]; }
+		void setBlendMode(BlendMode blendMode);
 	protected:
 		GLRender(Options opts);
 		virtual void setRenderBuffer(int width, int height);
 		virtual void setMSAABuffer(int width, int height, int MSAASample);
 		virtual void setStencilBuffer(int width, int height, int MSAASample);
 		virtual void setDepthBuffer(int width, int height, int MSAASample);
-		void setBlendMode(BlendMode blendMode);
 		void setTexture(cPixel *pixel, int slot, const Paint &paint);
 		// define props
 		bool _Is_Support_Multisampled;
