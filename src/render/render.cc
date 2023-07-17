@@ -87,7 +87,7 @@ namespace qk {
 						box->_border[0].width,box->_border[1].width,
 						box->_border[2].width,box->_border[3].width,
 					};
-					out = &getInsideRRectPath(rect, &box->_radius_left_top, border);
+					out = &getRRectPath(rect, &box->_radius_left_top, border);
 				} else {
 					out = &getRRectPath({-box->_origin_value, box->_client_size}, &box->_radius_left_top);
 				}
@@ -353,20 +353,20 @@ namespace qk {
 		}
 	}
 
-	const RectPath& RenderBackend::getInsideRRectPath(const Rect &rect, const float radius[4], const float border[4]) {
+	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const float radius[4], const float radius_diff[4]) {
 		Hash5381 hash;
 		hash.updatefv4(rect.origin.val);
 		hash.updatefv4(radius);
-		hash.updatefv4(border);
+		hash.updatefv4(radius_diff);
 		const RectPath *out;
 		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
 		if (_RectPathCache.length() >= 1024)
 			_RectPathCache.clear();
 		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, {
-			{Float::max(radius[0]-border[3],0), Float::max(radius[0]-border[0],0)},
-			{Float::max(radius[1]-border[1],0), Float::max(radius[1]-border[0],0)},
-			{Float::max(radius[2]-border[1],0), Float::max(radius[2]-border[2],0)},
-			{Float::max(radius[3]-border[3],0), Float::max(radius[3]-border[2],0)},
+			{Float::max(radius[0]-radius_diff[3],0), Float::max(radius[0]-radius_diff[0],0)},
+			{Float::max(radius[1]-radius_diff[1],0), Float::max(radius[1]-radius_diff[0],0)},
+			{Float::max(radius[2]-radius_diff[1],0), Float::max(radius[2]-radius_diff[2],0)},
+			{Float::max(radius[3]-radius_diff[3],0), Float::max(radius[3]-radius_diff[2],0)},
 		}));
 	}
 

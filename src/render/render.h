@@ -104,8 +104,8 @@ namespace qk {
 		 */
 		const RectPath& getRectPath(const Rect &rect);
 		const RectPath& getRRectPath(const Rect &rect, const float radius[4]);
+		const RectPath& getRRectPath(const Rect &rect, const float radius[4], const float radius_diff[4]);
 		const RectPath& getRRectPath(const Rect &rect, const Path::BorderRadius &radius);
-		const RectPath& getInsideRRectPath(const Rect &rect, const float radius[4], const float border[4]);
 
 		// @overwrite class ViewVisitor
 		virtual void  visitView(View* v) override;
