@@ -1,5 +1,5 @@
 #vert
-uniform   vec4      range;/*start/end range for rect*/
+uniform   vec4      range;/*origin/end range for rect*/
 out       float     indexed_f;
 void main() {
 	vec2 ao = range.zw     - range.xy;
@@ -12,6 +12,7 @@ void main() {
 #frag
 in      lowp float     indexed_f;
 uniform      int       count;
+uniform lowp float     opacity;
 uniform lowp vec4      colors[256];/*max 256 color points*/
 uniform lowp float     positions[256];
 void main() {
@@ -28,5 +29,6 @@ void main() {
 		}
 	}
 	lowp float w = (indexed_f - positions[s]) / (positions[e] - positions[s]);
-	fragColor = mix(colors[s], colors[e], w);
+	lowp vec4  color = mix(colors[s], colors[e], w);
+	fragColor = vec4(color.rgb, color.a * opacity);;
 }

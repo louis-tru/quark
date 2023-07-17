@@ -448,12 +448,13 @@ namespace qk {
 		auto shader = paint.gradientType ==
 			Paint::kRadial_GradientType ? &_backend->_radial:
 			static_cast<GLSLColorRadial*>(static_cast<GLSLShader*>(&_backend->_linear));
-		auto count = Qk_MIN(g->colors.length(), 256);
+		auto count = Qk_MIN(g->colors->length(), 256);
 		shader->use(vertex.size(), *vertex);
-		glUniform4fv(shader->range, 1, paint.color.val);
+		glUniform1f(shader->opacity, paint.color.a());
+		glUniform4fv(shader->range, 1, g->origin.val);
 		glUniform1i(shader->count, count);
-		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors.val());
-		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions.val());
+		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors->val());
+		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions->val());
 		glDrawArrays(mode, 0, vertex.length());
 	}
 
@@ -502,13 +503,14 @@ namespace qk {
 		auto shader = paint.gradientType ==
 			Paint::kRadial_GradientType ? &_backend->_radialSdf:
 			static_cast<GLSLColorRadialSdf*>(static_cast<GLSLShader*>(&_backend->_linearSdf));
-		auto count = Qk_MIN(g->colors.length(), 256);
+		auto count = Qk_MIN(g->colors->length(), 256);
 		shader->use(vertex.size(), *vertex);
+		glUniform1f(shader->opacity, paint.color.a());
 		glUniform1fv(shader->sdf_range, 2, range);
-		glUniform4fv(shader->range, 3, paint.color.val);
+		glUniform4fv(shader->range, 1, g->origin.val);
 		glUniform1i(shader->count, count);
-		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors.val());
-		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions.val());
+		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors->val());
+		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions->val());
 		glDrawArrays(mode, 0, vertex.length());
 	}
 

@@ -105,25 +105,25 @@ namespace qk {
 		FillGradient(const Array<float>& pos, const Array<Color>& colors);
 		virtual ~FillGradient();
 		inline const Array<float>& positions() const { return _pos; }
-		inline const Array<Color>& colors() const { return *reinterpret_cast<const Array<Color>*>(&_colors); }
-		inline const Array<uint32_t>& colors_argb_uint32_t() const { return _colors; }
+		inline const Array<Color4f>& colors() const { return _colors; }
 		void set_positions(const Array<float>& pos);
 		void set_colors(const Array<Color>& colors);
-	private:
+		void set_colors4f(const Array<Color4f>& colors);
+	protected:
 		Array<float>    _pos;
-		Array<uint32_t> _colors;
+		Array<Color4f> _colors;
 	};
 
 	class Qk_EXPORT FillGradientLinear: public FillGradient {
 	public:
 		FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors);
 		Qk_DEFINE_PROP(float, angle);
+		Qk_DEFINE_PROP_GET(float, radian);
+		Qk_DEFINE_PROP_GET(uint8_t, quadrant);
 		virtual Type    type() const override;
 		virtual Filter* copy(Filter* to) override;
 	private:
 		void setRadian();
-		float   _radian;
-		uint8_t _quadrant;
 	};
 
 	class Qk_EXPORT FillGradientRadial: public FillGradient {

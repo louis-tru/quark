@@ -381,22 +381,6 @@ namespace qk {
 		return _border ? _border[3].width: 0;
 	}
 
-	BorderStyle Box::border_style_top() const {
-		return _border ? _border[0].style: BorderStyle::SOLID;
-	} // border_style
-
-	BorderStyle Box::border_style_right() const {
-		return _border ? _border[1].style: BorderStyle::SOLID;
-	}
-
-	BorderStyle Box::border_style_bottom() const {
-		return _border ? _border[2].style: BorderStyle::SOLID;
-	}
-
-	BorderStyle Box::border_style_left() const {
-		return _border ? _border[3].style: BorderStyle::SOLID;
-	}
-
 	void Box::set_border_color_top(Color val) {
 		alloc_border(_border);
 		if (_border[0].color != val) {
@@ -462,38 +446,6 @@ namespace qk {
 		if (_border[3].width != val) {
 			_border[3].width = val;
 			mark_layout_size(kLayout_Size_Width);
-		}
-	}
-
-	void Box::set_border_style_top(BorderStyle val) {
-		alloc_border(_border);
-		if (_border[0].style != val) {
-			_border[0].style = val;
-			mark_none();
-		}
-	} // border_style
-
-	void Box::set_border_style_right(BorderStyle val) {
-		alloc_border(_border);
-		if (_border[1].style != val) {
-			_border[1].style = val;
-			mark_none();
-		}
-	}
-
-	void Box::set_border_style_bottom(BorderStyle val) {
-		alloc_border(_border);
-		if (_border[2].style != val) {
-			_border[2].style = val;
-			mark_none();
-		}
-	}
-
-	void Box::set_border_style_left(BorderStyle val) {
-		alloc_border(_border);
-		if (_border[3].style != val) {
-			_border[3].style = val;
-			mark_none();
 		}
 	}
 

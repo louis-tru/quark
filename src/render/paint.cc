@@ -32,6 +32,10 @@
 
 namespace qk {
 
+	void Paint::setImage(cPixel *image, const Rect& dest) {
+		setImage(image, dest, { Vec2(0,0), Vec2(image->width(), image->height()) });
+	}
+
 	void Paint::setImage(cPixel *image, const Rect& dest, const Rect& src) {
 		type = kBitmap_Type;
 		this->image = image;
@@ -47,35 +51,24 @@ namespace qk {
 		};
 	}
 
-	void Paint::setImage(cPixel *image, const Rect& dest) {
-		setImage(image, dest, { Vec2(0,0), Vec2(image->width(), image->height()) });
-	}
-
-	void Paint::setLinearGradient(const GradientColor *colors, Vec2 start, Vec2 end) {
+	void Paint::setGradient(GradientType gtype, const Gradient *_gradient) {
 		type = kGradient_Type;
-		gradientType = kLinear_GradientType;
-		gradient = colors; // weak ref
-		*reinterpret_cast<Rect*>(&color) = { start, end };
-	}
-
-	void Paint::setRadialGradient(const GradientColor *colors, Vec2 center, Vec2 radius) {
-		type = kGradient_Type;
-		gradientType = kRadial_GradientType;
-		gradient = colors; // weak ref
-		*reinterpret_cast<Rect*>(&color) = { center, radius };
+		gradientType = gtype;
+		gradient = _gradient; // weak ref
 	}
 
 	// -------------------------------------------------------
 
 	void test() {
 		Paint paint;
-		paint.type = Paint::kGradient_Type;
 		paint.style = Paint::kFill_Style;
 		paint.antiAlias = true;
 
-		GradientColor colors{{Color4f(0,0,0),Color4f(1,1,1)}, {0,0.5,1}};
+		Array<Color4f> colors{Color4f(0,0,0),Color4f(1,1,1)};
+		Array<float>   pos{0,0.5,1};
+		Gradient       gr{&colors, &pos, Vec2{0,0}, Vec2{1,1}};
 
-		paint.setLinearGradient(&colors, {0,0}, {1,1});
+		paint.setGradient(Paint::kLinear_GradientType, &gr);
 	}
 
 }

@@ -30,8 +30,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __ftr__render_render__
-#define __ftr__render_render__
+#ifndef __quark__render_render__
+#define __quark__render_render__
 
 #include "../util/json.h"
 #include "../layout/view.h"
@@ -104,6 +104,7 @@ namespace qk {
 		 */
 		const RectPath& getRectPath(const Rect &rect);
 		const RectPath& getRRectPath(const Rect &rect, const float radius[4]);
+		const RectPath& getRRectPath(const Rect &rect, const float radius[4], const float border[4]);
 		const RectPath& getRRectPath(const Rect &rect, const Path::BorderRadius &radius);
 
 		// @overwrite class ViewVisitor
@@ -121,13 +122,7 @@ namespace qk {
 		virtual void  visitFloatLayout(FloatLayout* flow) override;
 		virtual void  visitFlowLayout(FlowLayout* flow) override;
 		virtual void  visitFlexLayout(FlexLayout* flex) override;
-	private:
-		void  drawBoxColor(Box *box, const RectPath *&outside);
-		void  drawBoxFill(Box *box, const RectPath *&outside);
-		void  drawBoxShadow(Box *box, const RectPath *&outside);
-		void  drawBoxBorder(Box *box);
-		void          drawBoxEnd(Box *box);
-		const RectPath* makeOutsideRectPath(Box *box, const RectPath *&out);
+
 	protected:
 		RenderBackend(Options opts);
 		virtual Vec2  getSurfaceSize() = 0;
@@ -143,6 +138,8 @@ namespace qk {
 		Dict<uint64_t, Array<Vec3>> _SDFStrokeTriangleStripCache; // path hash => aa triangles strip
 		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
 		Dict<uint64_t, RectPath> _RectPathCache; // rect hash => rect path
+
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	typedef RenderBackend Render;

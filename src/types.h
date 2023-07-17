@@ -310,20 +310,10 @@ namespace qk {
 		NONE, LEFT, TOP, RIGHT, BOTTOM
 	};
 
-	/**
-	* @enum BorderStyle
-	*/
-	enum class BorderStyle: uint8_t {
-		SOLID,DASHED,DOTTED,
-		DOUBLE,GROOVE,INSET,
-		OUTSET,RIDGE,
-	};
-
 	// box border value
 	struct BoxBorder {
-		Color       color;
-		float       width;
-		BorderStyle style;
+		Color color;
+		float width;
 	};
 
 }

@@ -72,7 +72,7 @@ namespace qk {
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
 		virtual Vec2 layout_offset() override;
-		virtual Size layout_size() override;
+		virtual Size layout_size() override; // context size + padding + border + margin
 		virtual Size layout_raw_size(Size parent_content_size) override;
 		/*
 		* 这里定义项目的放大与缩小比例，默认为0，即如果存在剩余空间，不放大也不缩小 
@@ -157,14 +157,10 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(float,      border_width_right);
 		Qk_DEFINE_PROP_ACC(float,      border_width_bottom);
 		Qk_DEFINE_PROP_ACC(float,      border_width_left);
-		Qk_DEFINE_PROP_ACC(BorderStyle,border_style_top); // border_style
-		Qk_DEFINE_PROP_ACC(BorderStyle,border_style_right);
-		Qk_DEFINE_PROP_ACC(BorderStyle,border_style_bottom);
-		Qk_DEFINE_PROP_ACC(BorderStyle,border_style_left);
 		// Start the matrix transform from this origin point start.
 		// with border as the starting point.
 		Qk_DEFINE_PROP_GET(Vec2,       origin_value);
-		Qk_DEFINE_PROP_GET(Vec2,       content_size); // width,height / size
+		Qk_DEFINE_PROP_GET(Vec2,       content_size); // width,height, no include padding
 		Qk_DEFINE_PROP_GET(Vec2,       client_size); // border + padding + content
 
 	protected:

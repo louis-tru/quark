@@ -54,12 +54,14 @@ namespace qk {
 		virtual void setStencilBuffer(int width, int height, int MSAASample);
 		virtual void setDepthBuffer(int width, int height, int MSAASample);
 		void setTexture(cPixel *pixel, int slot, const Paint &paint);
+
+		friend class GLCanvas;
 		// define props
 		bool _Is_Support_Multisampled;
 		bool _IsDeviceMsaa; // device anti alias, msaa
 		BlendMode _blendMode;
 		GLuint _frame_buffer,_msaa_frame_buffer;
-		GLuint _render_buffer,_msaa_render_buffer, _stencil_buffer,_depth_buffer;
+		GLuint _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer;
 		GLuint _texTmp[3];
 		// shader
 		GLSLClear _clear;
@@ -78,7 +80,6 @@ namespace qk {
 		GLSLColorRadialSdf _radialSdf;
 		GLSLImageSdf _imageSdf;
 		GLSLShader  *_shaders[15];
-		friend class GLCanvas;
 	};
 }
 #endif

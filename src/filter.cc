@@ -260,9 +260,17 @@ namespace qk {
 
 	// ------------------------------ F i l l . G r a d i e n t ------------------------------
 
+	static Array<Color4f> to_color4f(const Array<Color>& colors) {
+		Array<Color4f> _colors(colors.length());
+		for (int i = 0, l = colors.length(); i <  l; i++) {
+			_colors[i] = colors[i].to_color4f();
+		}
+		Qk_ReturnLocal(_colors);
+	}
+
 	FillGradient::FillGradient(const Array<float>& pos, const Array<Color>& colors)
 		: _pos(pos)
-		, _colors(*reinterpret_cast<const Array<uint32_t>*>(&colors))
+		, _colors(to_color4f(colors))
 	{
 	}
 
@@ -274,7 +282,12 @@ namespace qk {
 	}
 
 	void FillGradient::set_colors(const Array<Color>& colors) {
-		_colors = *reinterpret_cast<const Array<uint32_t>*>(&colors);
+		_colors = std::move(to_color4f(colors));
+		onChange();
+	}
+
+	void FillGradient::set_colors4f(const Array<Color4f>& colors) {
+		_colors = colors;
 		onChange();
 	}
 
@@ -304,10 +317,13 @@ namespace qk {
 	}
 
 	Filter* FillGradientLinear::copy(Filter* to) {
-		auto target = (to && to->type() == M_GRADIENT_Linear) ?
-			static_cast<FillGradientLinear*>(to) : new FillGradientLinear(
-				_angle, positions(), colors()
-			);
+		FillGradientLinear *target;
+		if (to && to->type() == M_GRADIENT_Linear) {
+			target = static_cast<FillGradientLinear*>(to);
+		} else {
+			target = new FillGradientLinear(_angle, positions(), {});
+			target->set_colors4f(colors());
+		}
 		target->set_next_no_check(next());
 		target->_radian = _radian;
 		target->_quadrant = _quadrant;
@@ -315,10 +331,13 @@ namespace qk {
 	}
 
 	Filter* FillGradientRadial::copy(Filter* to) {
-		auto target = (to && to->type() == M_GRADIENT_Radial) ?
-			static_cast<FillGradientRadial*>(to) : new FillGradientRadial(
-				positions(), colors()
-			);
+		FillGradientRadial *target;
+		if (to && to->type() == M_GRADIENT_Radial) {
+			target = static_cast<FillGradientRadial*>(to);
+		} else {
+			target = new FillGradientRadial(positions(), {});
+			target->set_colors4f(colors());
+		}
 		target->set_next_no_check(next());
 		return target;
 	}

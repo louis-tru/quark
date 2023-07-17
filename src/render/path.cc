@@ -661,30 +661,30 @@ namespace qk {
 
 	// ------------------- R e c t . O u t l i n e . P a t h -------------------
 
-	RectPath RectPath::MakeRect(const Rect &r) {
-		RectPath rect;
-		float x2 = r.origin.x() + r.size.x();
-		float y2 = r.origin.y() + r.size.y();
+	RectPath RectPath::MakeRect(const Rect &rect) {
+		RectPath out{rect};
+		float x2 = rect.origin.x() + rect.size.x();
+		float y2 = rect.origin.y() + rect.size.y();
 		// path
-		rect.path.moveTo(r.origin);
-		rect.path.lineTo(Vec2(x2, r.origin.y())); // top right
-		rect.path.lineTo(Vec2(x2, y2)); // bottom right
-		rect.path.lineTo(Vec2(r.origin.x(), y2)); // bottom left
-		rect.path.close(); // top left, origin point
+		out.path.moveTo(rect.origin);
+		out.path.lineTo(Vec2(x2, rect.origin.y())); // top right
+		out.path.lineTo(Vec2(x2, y2)); // bottom right
+		out.path.lineTo(Vec2(rect.origin.x(), y2)); // bottom left
+		out.path.close(); // top left, origin point
 		// vertex
-		rect.vertex.extend(6);
-		rect.vertex[0] = r.origin;
-		rect.vertex[1] = Vec2(x2, r.origin.y());
-		rect.vertex[2] = Vec2(x2, y2);
-		rect.vertex[3] = Vec2(x2, y2);
-		rect.vertex[4] = Vec2(r.origin.x(), y2);
-		rect.vertex[5] = r.origin;
+		out.vertex.extend(6);
+		out.vertex[0] = rect.origin;
+		out.vertex[1] = Vec2(x2, rect.origin.y());
+		out.vertex[2] = Vec2(x2, y2);
+		out.vertex[3] = Vec2(x2, y2);
+		out.vertex[4] = Vec2(rect.origin.x(), y2);
+		out.vertex[5] = rect.origin;
 
-		Qk_ReturnLocal(rect);
+		Qk_ReturnLocal(out);
 	}
 
 	RectPath RectPath::MakeRRect(const Rect &rect, const Path::BorderRadius &r) {
-		RectPath path;
+		RectPath out{rect};
 
 		const float x1 = rect.origin.x(),    y1 = rect.origin.x();
 		const float x2 = x1 + rect.size.x(), y2 = y1 + rect.size.y();
@@ -695,7 +695,7 @@ namespace qk {
 		const Vec2 rightBottom = Vec2(-Float::min(r.rightBottom.x(), x_5), -Float::min(r.rightBottom.y(), y_5));
 		const Vec2 leftBottom = Vec2(Float::min(r.leftBottom.x(), x_5), -Float::min(r.leftBottom.y(), y_5));
 
-		path.path.moveTo(Vec2(x1, leftTop.is_zero_axis() ? y1: y1 + leftTop.y()));
+		out.path.moveTo(Vec2(x1, leftTop.is_zero_axis() ? y1: y1 + leftTop.y()));
 
 		auto build = [](
 			RectPath *out, Vec2 v, Vec2 v2,
@@ -742,16 +742,16 @@ namespace qk {
 			return c;
 		};
 
-		Vec2 a = build(&path, Vec2(x1, y1), Vec2(x2, y1), leftTop, rightTop, Qk_PI_2_1);
-		Vec2 b = build(&path, Vec2(x2, y1), Vec2(x2, y2), rightTop, rightBottom, 0);
-		Vec2 c = build(&path, Vec2(x2, y2), Vec2(x1, y2), rightBottom, leftBottom, -Qk_PI_2_1);
-		Vec2 d = build(&path, Vec2(x1, x2), Vec2(x1, y1), leftBottom, leftTop, Qk_PI);
+		Vec2 a = build(&out, Vec2(x1, y1), Vec2(x2, y1), leftTop, rightTop, Qk_PI_2_1);
+		Vec2 b = build(&out, Vec2(x2, y1), Vec2(x2, y2), rightTop, rightBottom, 0);
+		Vec2 c = build(&out, Vec2(x2, y2), Vec2(x1, y2), rightBottom, leftBottom, -Qk_PI_2_1);
+		Vec2 d = build(&out, Vec2(x1, x2), Vec2(x1, y1), leftBottom, leftTop, Qk_PI);
 
 		const Vec2 src[6] = { a,b,c,c,d,a };
-		path.vertex.write(src, -1, 6);
-		path.path.close();
+		out.vertex.write(src, -1, 6);
+		out.path.close();
 
-		Qk_ReturnLocal(path);
+		Qk_ReturnLocal(out);
 	}
 
 	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &o, const Rect &i) {

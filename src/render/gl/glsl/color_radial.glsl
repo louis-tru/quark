@@ -8,6 +8,7 @@ void main() {
 #frag
 uniform lowp vec4   range;/*center/radius for circle*/
 uniform      int    count;
+uniform lowp float  opacity;
 uniform lowp vec4   colors[256];/*max 256 color points*/
 uniform lowp float  positions[256];
 in      lowp vec2   position_f;
@@ -27,5 +28,6 @@ void main() {
 		}
 	}
 	lowp float w = (indexed_f - positions[s]) / (positions[e] - positions[s]);
-	fragColor = mix(colors[s], colors[e], w);
+	lowp vec4  color = mix(colors[s], colors[e], w);
+	fragColor = vec4(color.rgb, color.a * opacity);;
 }

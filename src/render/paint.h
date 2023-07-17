@@ -37,9 +37,13 @@
 
 namespace qk {
 
-	struct GradientColor {
-		Array<Color4f> colors;
-		Array<float>   positions;
+	struct Gradient {
+		const Array<Color4f> *colors;
+		const Array<float>   *positions;
+		Vec2 origin;
+		union {
+			Vec2 end,radius;
+		};
 	};
 
 	struct Paint {
@@ -96,17 +100,9 @@ namespace qk {
 			kRadial_GradientType,  //!< radial gradient type
 		};
 
-		inline Vec2 bitmapOffset() const { return region.origin; }
-		inline Vec2 bitmapScale() const { return region.end; }
-		inline Vec2 linearStart() const { return Vec2(color[0],color[1]); }
-		inline Vec2 linearEnd() const { return Vec2(color[2],color[3]); }
-		inline Vec2 radialCenter() const { return Vec2(color[0],color[1]); }
-		inline Vec2 radialRadius() const { return Vec2(color[2],color[3]); }
-
-		void setImage(cPixel *image, const Rect &dest, const Rect &src);
 		void setImage(cPixel *image, const Rect &dest); // src = {Vec2(0,0),Vec2(w,h)}
-		void setLinearGradient(const GradientColor *colors, Vec2 start, Vec2 end);
-		void setRadialGradient(const GradientColor *colors, Vec2 center, Vec2 radius);
+		void setImage(cPixel *image, const Rect &dest, const Rect &src);
+		void setGradient(GradientType type, const Gradient *gradient);
 
 		union {
 			uint32_t        bitfields = (
@@ -140,14 +136,10 @@ namespace qk {
 		}; // size 32bit
 
 		float                width; // stroke width
-		// color or bitmap opacity or gradient color start/end center/radius
-		Color4f              color;
-		// bitmap uv coord
-		Region               region;
-		// bitmap image, weak ref
-		const BitmapPixel   *image;
-		// gradient color, weak ref
-		const GradientColor *gradient;
+		Color4f              color; // color or image alpha or gradient alpha
+		Region               region; // bitmap uv coord
+		const BitmapPixel   *image; // bitmap image, weak ref
+		const Gradient      *gradient; // gradient color, weak ref
 	};
 
 }

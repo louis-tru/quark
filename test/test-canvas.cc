@@ -25,10 +25,12 @@ public:
 
 		auto size = shared_app()->display()->size();
 		
-		GradientColor g{{Color4f(1,0,1), Color4f(0,1,0), Color4f(0,0,1)}, {0,0.5,1}};
-		Rect rect{ size*0.2*0.5, size*0.8 };
+		Array<Color4f> colors{Color4f(1,0,1), Color4f(0,1,0), Color4f(0,0,1)};
+		Array<float>   pos{0,0.5,1};
+		Rect           rect{ size*0.2*0.5, size*0.8 };
+		Gradient       g{&colors, &pos, rect.origin + rect.size*0.5, rect.size*0.5};
 		//paint0.setLinearGradient(&g, rect.origin, rect.origin+rect.size);
-		paint0.setRadialGradient(&g, rect.origin + rect.size*0.5, rect.size*0.5);
+		paint0.setGradient(Paint::kRadial_GradientType, &g);
 		
 		_canvas->save();
 		_canvas->setMatrix(_canvas->getMatrix() * Mat(Vec2(100,-50), Vec2(0.8, 0.8), -0.2, Vec2(0.3,0)));
