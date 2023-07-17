@@ -37,30 +37,30 @@ namespace qk {
 
 	void Hash5381::update(const void* data, uint32_t len) {
 		while (len--)
-			_hash += (_hash << 5) + ((const uint8_t*)data)[len];
+			_hash += (_hash << 5) + reinterpret_cast<const uint8_t*>(data)[len];
 	}
 
-	void Hash5381::updateu8v(uint8_t *data, uint32_t len) {
+	void Hash5381::updateu8v(const uint8_t *data, uint32_t len) {
 		while (len--)
 			_hash += (_hash << 5) + data[len];
 	}
 
-	void Hash5381::updateu16v(uint16_t *data, uint32_t len) {
+	void Hash5381::updateu16v(const uint16_t *data, uint32_t len) {
 		while (len--)
 			_hash += (_hash << 5) + data[len];
 	}
 
-	void Hash5381::updateu32v(uint32_t *data, uint32_t len) {
+	void Hash5381::updateu32v(const uint32_t *data, uint32_t len) {
 		while (len--)
 			_hash += (_hash << 5) + data[len];
 	}
 
-	void Hash5381::updateu64v(uint64_t *data, uint32_t len) {
+	void Hash5381::updateu64v(const uint64_t *data, uint32_t len) {
 		while (len--)
 			_hash += (_hash << 5) + data[len];
 	}
 
-	void Hash5381::updateu64(uint64_t data) {
+	void Hash5381::updateu64(const uint64_t data) {
 		_hash += (_hash << 5) + data;
 	}
 
