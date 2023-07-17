@@ -104,7 +104,7 @@ namespace qk {
 
 		void drawBoxFill(Box *box, const RectPath *&outside) {
 			auto rect = makeOutsideRectPath(box, outside);
-			auto fill = box->background();
+			auto fill = box->_background;
 			do {
 				switch(fill->type()) {
 					case Filter::M_IMAGE:// fill
@@ -253,6 +253,7 @@ namespace qk {
 			if (box->_is_clip) {
 				if (box->_first) {
 					_this->makeInsideRectPath(box, inside);
+					_canvas->save();
 					_canvas->clipRectPath(*inside, Canvas::kIntersect_ClipOp, true); // clip
 					Render::visitView(box);
 					_canvas->restore(); // cancel clip
@@ -414,9 +415,9 @@ namespace qk {
 		const RectPath *outside = nullptr;
 		if (box->_background_color.a())
 			_this->drawBoxColor(box, outside);
-		if (box->background())
+		if (box->_background)
 			_this->drawBoxFill(box, outside);
-		if (box->box_shadow())
+		if (box->_box_shadow)
 			_this->drawBoxShadow(box, outside);
 		if (box->_border)
 			_this->drawBoxBorder(box);
@@ -430,7 +431,7 @@ namespace qk {
 		const RectPath *inside = nullptr;
 		if (v->_background_color.a())
 			_this->drawBoxColor(v, outside);
-		if (v->background())
+		if (v->_background)
 			_this->drawBoxFill(v, outside);
 
 		auto src = v->source();
@@ -449,7 +450,7 @@ namespace qk {
 			paint.setImage(src->pixels().val(), { origin, inside->rect.size });
 			_canvas->drawRectPath(*inside, paint);
 		}
-		if (v->box_shadow())
+		if (v->_box_shadow)
 			_this->drawBoxShadow(v, outside);
 		if (v->_border)
 			_this->drawBoxBorder(v);
@@ -507,9 +508,9 @@ namespace qk {
 				_canvas->setMatrix(v->matrix());
 				_canvas->clearColor(v->_background_color.to_color4f());
 				const RectPath *outside = nullptr;
-				if (v->background())
+				if (v->_background)
 					_this->drawBoxFill(v, outside);
-				if (v->box_shadow())
+				if (v->_box_shadow)
 					_this->drawBoxShadow(v, outside);
 				if (v->_border)
 					_this->drawBoxBorder(v);
