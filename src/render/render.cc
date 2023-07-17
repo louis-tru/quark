@@ -87,7 +87,7 @@ namespace qk {
 						box->_border[0].width,box->_border[1].width,
 						box->_border[2].width,box->_border[3].width,
 					};
-					out = &getRRectPath(rect, &box->_radius_left_top, border);
+					out = &getInsideRRectPath(rect, &box->_radius_left_top, border);
 				} else {
 					out = &getRRectPath({-box->_origin_value, box->_client_size}, &box->_radius_left_top);
 				}
@@ -353,7 +353,7 @@ namespace qk {
 		}
 	}
 
-	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const float radius[4], const float border[4]) {
+	const RectPath& RenderBackend::getInsideRRectPath(const Rect &rect, const float radius[4], const float border[4]) {
 		Hash5381 hash;
 		hash.updatefv4(rect.origin.val);
 		hash.updatefv4(radius);
