@@ -242,11 +242,14 @@ namespace qk {
 		auto id = evt.sender()->uri().hashCode();
 		auto it = _sources.find(id);
 		if (it != _sources.end()) {
-			auto info = evt.sender()->info();
-			int ch = int(info.bytes()) - int(it->value.size);
-			if (ch != 0) {
-				_total_data_size += ch; // change
-				it->value.size = info.bytes();
+			if (*evt.data() == ImageSource::kSTATE_LOAD_COMPLETE) {
+				auto info = evt.sender()->info();
+				int ch = int(info.bytes()) - int(it->value.bytes);
+				if (ch != 0) {
+					_total_data_size += ch; // change
+					it->value.bytes = info.bytes();
+					it->value.time = time_micro();
+				}
 			}
 		}
 	}
@@ -270,14 +273,20 @@ namespace qk {
 		if ( it != _sources.end() ) {
 			return it->value.source.value();
 		}
-
 		ImageSource* source = new ImageSource(_uri);
 		source->Qk_On(State, &ImageSourcePool::handleSourceState, this);
 		auto info = source->info();
-		_sources.set(id, { info.bytes(), source });
+		_sources.set(id, { source, info.bytes(), 0 });
 		_total_data_size += info.bytes();
 
 		return source;
+	}
+
+	ImageSource* ImageSourcePool::load(cString& uri) {
+		auto s = get(uri);
+		if (s)
+			s->load();
+		return s;
 	}
 
 	void ImageSourcePool::remove(cString& uri) {
@@ -287,13 +296,27 @@ namespace qk {
 		if (it != _sources.end()) {
 			it->value.source->Qk_Off(State, &ImageSourcePool::handleSourceState, this);
 			_sources.erase(it);
-			_total_data_size -= it->value.size;
+			_total_data_size -= it->value.bytes;
 		}
 	}
 
-	void ImageSourcePool::clean(bool full) {
+	void ImageSourcePool::clean(bool all) {
 		ScopeLock local(_Mutex);
-		// TODO ..
+		if (all) {
+			for (auto &i: _sources) {
+				if (i.value.source->state() & (
+						ImageSource::kSTATE_LOADING | ImageSource::kSTATE_LOAD_COMPLETE
+					)
+				) {
+					i.value.source->unload();
+					_total_data_size -= i.value.bytes;
+					i.value.bytes = 0;
+					i.value.time = 0;
+				}
+			}
+		} else {
+			// sort by time asc and size desc
+		}
 	}
 
 	// -------------------- I m a g e . S o u r c e . H o l d e r --------------------

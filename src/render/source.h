@@ -180,7 +180,6 @@ namespace qk {
 	class Qk_EXPORT ImageSourcePool: public Object {
 		Qk_HIDDEN_ALL_COPY(ImageSourcePool);
 	public:
-
 		/**
 		 * @constructor
 		 */
@@ -202,21 +201,27 @@ namespace qk {
 		ImageSource* get(cString& uri);
 
 		/**
+		 * @method load(uri) load and return image source by uri 
+		 */
+		ImageSource* load(cString& uri);
+
+		/**
 		 * @method remove(id) remove image source member
 		 */
 		void remove(cString& uri);
 
 		/**
-			* @method clean(full?: bool) clean memory
+			* @method clean(all?: bool) clean memory
 			*/
-		void clean(bool full = false);
+		void clean(bool all = false);
 
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 
 		struct Member {
-			uint32_t        size;
 			Sp<ImageSource> source;
+			uint32_t bytes; // image size
+			int64_t time; // load time
 		};
 		Dict<uint64_t, Member> _sources;
 		uint64_t _total_data_size; /* 当前数据占用memory总容量 */
