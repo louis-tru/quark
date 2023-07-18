@@ -35,14 +35,9 @@
 #include <utility>
 #include <atomic>
 
-#ifndef Qk_MEMORY_TRACE_MARK
-# define Qk_MEMORY_TRACE_MARK 0
-#endif
-
 #if Qk_MEMORY_TRACE_MARK
 # include <vector>
 #endif
-
 namespace qk {
 
 #ifndef Qk_MIN_CAPACITY

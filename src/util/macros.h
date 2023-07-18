@@ -33,9 +33,6 @@
 
 //  ----------------------------- Compiling environment -----------------------------
 
-#define Qk_CPP __cplusplus
-#define Qk_EXCEPTIONS __EXCEPTIONS
-
 #ifndef NULL
 # define NULL 0
 #endif
@@ -159,15 +156,6 @@
 
 // ----------------------------- Compiling environment end -----------------------------
 
-#ifndef Qk_MORE_LOG
-# define Qk_MORE_LOG 0
-#endif
-
-#if Qk_MORE_LOG
-# undef  Qk_MEMORY_TRACE_MARK
-# define Qk_MEMORY_TRACE_MARK 1
-#endif
-
 #define Qk_STRICT_ASSERT(cond, ...) if(!(cond)) qk::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #if DEBUG
 # define Qk_ASSERT Qk_STRICT_ASSERT
@@ -185,21 +173,17 @@
 #define Qk_WARN(msg, ...)     qk::log_println_warn(msg, ##__VA_ARGS__)
 #define Qk_ERR(msg, ...)      qk::log_println_error(msg, ##__VA_ARGS__)
 #define Qk_FATAL(...)         qk::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define Qk_UNIMPLEMENTED(...)    Qk_FATAL("Unimplemented code, %s", ##__VA_ARGS__)
-#define Qk_UNREACHABLE(...)      Qk_FATAL("Unreachable code, %s", ##__VA_ARGS__)
+#define Qk_UNIMPLEMENTED(...) Qk_FATAL("Unimplemented code, %s", ##__VA_ARGS__)
+#define Qk_UNREACHABLE(...)   Qk_FATAL("Unreachable code, %s", ##__VA_ARGS__)
 #define Qk_MIN(A, B)          ((A) < (B) ? (A) : (B))
 #define Qk_MAX(A, B)          ((A) > (B) ? (A) : (B))
 // return and move local
 #define Qk_ReturnLocal(x)     return (x)
 
-#ifndef DEBUG
-#define DEBUG 0
-#endif
-
-#if DEBUG || Qk_MORE_LOG
+#if DEBUG
 # define Qk_DEBUG Qk_LOG
 #else
-# define Qk_DEBUG(msg, ...) ((void)0)
+# define Qk_DEBUG(msg, ...)  ((void)0)
 #endif
 
 // ------------------------------------------------------------------
@@ -220,16 +204,66 @@
 #endif
 
 #if Qk_CLANG
-# define Qk_HAS_ATTRIBUTE_ALWAYS_INLINE (__has_attribute(always_inline))
-# define Qk_HAS_ATTRIBUTE_VISIBILITY (__has_attribute(visibility))
+# define __Qk_HAS_ATTRIBUTE_ALWAYS_INLINE (__has_attribute(always_inline))
+# define __Qk_HAS_ATTRIBUTE_VISIBILITY (__has_attribute(visibility))
 #elif Qk_GNUC
 // always_inline is available in gcc 4.0 but not very reliable until 4.4.
 // Works around "sorry, unimplemented: inlining failed" build errors with
 // older compilers.
-# define Qk_HAS_ATTRIBUTE_ALWAYS_INLINE (N_GNUC_PREREQ(4, 4, 0))
-# define Qk_HAS_ATTRIBUTE_VISIBILITY (N_GNUC_PREREQ(4, 3, 0))
+# define __Qk_HAS_ATTRIBUTE_ALWAYS_INLINE (Qk_GNUC_PREREQ(4, 4, 0))
+# define __Qk_HAS_ATTRIBUTE_VISIBILITY (Qk_GNUC_PREREQ(4, 3, 0))
 #elif Qk_MSC
-# define Qk_HAS_FORCE_INLINE 1
+# define __Qk_HAS_FORCE_INLINE 1
+#endif
+
+// ------------------------------------------------------------------
+
+#if Qk_MSC
+	#ifdef Qk_BUILDING_SHARED
+	# define Qk_EXPORT __declspec(dllexport)
+	#elif Qk_USING_SHARED
+	# define Qk_EXPORT __declspec(dllimport)
+	#else
+	# define Qk_EXPORT
+	#endif  // Qk_BUILDING_SHARED
+#else  // Qk_MSC
+	// Setup for Linux shared library export.
+	#if __Qk_HAS_ATTRIBUTE_VISIBILITY
+	# ifdef Qk_BUILDING_SHARED
+	#  define Qk_EXPORT __attribute__((visibility("default")))
+	# else
+	#  define Qk_EXPORT
+	# endif
+	#else
+	# define Qk_EXPORT
+	#endif
+#endif // Qk_MSC
+
+// A macro used to make better inlining. Don't bother for debug builds.
+//
+#if __Qk_HAS_ATTRIBUTE_ALWAYS_INLINE && !DEBUG
+# define Qk_INLINE inline __attribute__((always_inline))
+#elif __Qk_HAS_FORCE_INLINE && !DEBUG
+# define Qk_INLINE __forceinline
+#else
+# define Qk_INLINE inline
+#endif
+#undef __Qk_HAS_ATTRIBUTE_ALWAYS_INLINE
+#undef __Qk_HAS_FORCE_INLINE
+#undef __Qk_HAS_ATTRIBUTE_VISIBILITY
+
+// ------------------------------------------------------------------
+
+#if Qk_MSC
+	#pragma section(".CRT$XCU", read)
+	# define Qk_INIT_BLOCK(fn)	\
+	extern void __cdecl fn(void);	\
+	__declspec(dllexport, allocate(".CRT$XCU"))	\
+	void (__cdecl*fn##_)(void) = fn;	\
+	extern void __cdecl fn(void)
+#else // Qk_MSC
+	# define Qk_INIT_BLOCK(fn)	\
+	extern __attribute__((constructor)) void __##fn(void)
 #endif
 
 #if !defined(Qk_CPU_BENDIAN) && !defined(Qk_CPU_LENDIAN)
@@ -250,54 +284,6 @@
 		#define Qk_CPU_LENDIAN 1
 	#endif
 #endif
-
-// ------------------------------------------------------------------
-
-#if Qk_MSC
-	#ifdef Qk_BUILDING_SHARED
-	# define Qk_EXPORT __declspec(dllexport)
-	#elif Qk_USING_SHARED
-	# define Qk_EXPORT __declspec(dllimport)
-	#else
-	# define Qk_EXPORT
-	#endif  // Qk_BUILDING_SHARED
-#else  // Qk_MSC
-	// Setup for Linux shared library export.
-	#if Qk_HAS_ATTRIBUTE_VISIBILITY
-	# ifdef Qk_BUILDING_SHARED
-	#  define Qk_EXPORT __attribute__((visibility("default")))
-	# else
-	#  define Qk_EXPORT
-	# endif
-	#else
-	# define Qk_EXPORT
-	#endif
-#endif // Qk_MSC
-
-
-#if Qk_MSC
-	#pragma section(".CRT$XCU", read)
-	# define Qk_INIT_BLOCK(fn)	\
-	extern void __cdecl fn(void);	\
-	__declspec(dllexport, allocate(".CRT$XCU"))	\
-	void (__cdecl*fn##_)(void) = fn;	\
-	extern void __cdecl fn(void)
-#else // Qk_MSC
-	# define Qk_INIT_BLOCK(fn)	\
-	extern __attribute__((constructor)) void __##fn(void)
-#endif
-
-// A macro used to make better inlining. Don't bother for debug builds.
-//
-#if Qk_HAS_ATTRIBUTE_ALWAYS_INLINE && !DEBUG
-# define Qk_INLINE inline __attribute__((always_inline))
-#elif Qk_HAS_FORCE_INLINE && !DEBUG
-# define Qk_INLINE __forceinline
-#else
-# define Qk_INLINE inline
-#endif
-#undef Qk_HAS_ATTRIBUTE_ALWAYS_INLINE
-#undef Qk_HAS_FORCE_INLINE
 
 #define Qk_HIDDEN_COPY_CONSTRUCTOR(T)  private: T(const T& t) = delete;
 #define Qk_HIDDEN_ASSIGN_OPERATOR(T)   private: T& operator=(const T& t) = delete;

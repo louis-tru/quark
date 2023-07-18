@@ -8,11 +8,14 @@
 
 using namespace qk;
 
+constexpr unsigned int u32 = 1;
+
 class TestCanvas1: public Box {
 public:
 	TestCanvas1(App *host): Box(host) {}
 
 	void accept(ViewVisitor *visitor) override {
+
 		auto render = static_cast<GLRender*>(visitor);
 		auto _canvas = render->getCanvas();
 		_canvas->save();
