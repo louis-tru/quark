@@ -122,6 +122,8 @@ namespace qk {
 			auto src = fill->source();
 			if (!src || !src->load()) return;
 
+			src->mark_as_texture_unsafe(this); // mark texure
+
 			auto pix = src->pixels().val();
 			auto src_w = src->width(), src_h = src->height();
 			auto cli = box->_client_size;
@@ -436,6 +438,7 @@ namespace qk {
 
 		auto src = v->source();
 		if (src && src->load()) {
+			src->mark_as_texture_unsafe(this);
 			_this->makeInsideRectPath(v, inside);
 			auto origin = inside->rect.origin - v->_origin_value;
 			if (v->_border) {

@@ -181,8 +181,6 @@ namespace qk {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, id);
 
-		// TODO set texture cacne ...
-
 		switch (paint.tileModeX) {
 			case Paint::kClamp_TileMode:
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -198,7 +196,7 @@ namespace qk {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				break;
 		}
-		
+
 		switch (paint.tileModeY) {
 			case Paint::kClamp_TileMode:
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

@@ -92,18 +92,31 @@ namespace qk {
 		 * @method reload_unsafe()
 		 * @param pixels bitmap pixels
 		 * @param device mark as texture
+		 * @thread rendering thread
 		*/
 		bool reload_unsafe(Array<Pixel>&& pixels, BackendDevice *device = nullptr);
 
 		/**
 		 *
-		 * mark as gpu texture and return a new image source object after success
+		 * copy as gpu texture and return a new image source object after success
+		 * 
+		 * Note: To be called in the rendering thread
+		 *
+		 * @method copy_as_texture_unsafe()
+		 * @thread rendering thread
+		 */
+		Sp<ImageSource> copy_as_texture_unsafe(BackendDevice *device) const;
+
+		/**
+		 *
+		 * mark as gpu texture and and return success or failure
 		 * 
 		 * Note: To be called in the rendering thread
 		 *
 		 * @method mark_as_texture_unsafe()
+		 * @thread rendering thread
 		 */
-		Sp<ImageSource> mark_as_texture_unsafe(BackendDevice *device) const;
+		bool mark_as_texture_unsafe(BackendDevice *device);
 
 		/**
 		 * @method load() async load source and decode

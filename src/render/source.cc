@@ -69,7 +69,7 @@ namespace qk {
 		Qk_ASSERT(!_pixels.length() || _info.bytes() == _pixels[0].body().length(), "old pixel bytes size no match");
 
 		if (_device) {
-			Qk_ASSERT(_device == device, "device no match");
+			Qk_STRICT_ASSERT(_device == device, "backend render device no match");
 		} else {
 			device = _device;
 		}
@@ -102,9 +102,9 @@ namespace qk {
 				i++;
 			}
 
-			if (i < old_len) {
+			if (_device && i < old_len) {
 				do
-					device->deleteTextures(&_pixels[i]._texture, 1);
+					_device->deleteTextures(&_pixels[i]._texture, 1);
 				while(++i < old_len);
 			}
 		}
@@ -119,17 +119,31 @@ namespace qk {
 
 	/**
 		* 
-		* mark as gpu texture
+		* copy as gpu texture
 		*
-	 * @method mark_as_texture_unsafe()
+	 * @method copy_as_texture_unsafe()
 	 */
-	Sp<ImageSource> ImageSource::mark_as_texture_unsafe(BackendDevice *device) const {
+	Sp<ImageSource> ImageSource::copy_as_texture_unsafe(BackendDevice *device) const {
 		if (!device && _device)
 			return nullptr;
 		auto src = new ImageSource();
 		src->_uri = _uri;
 		src->reload_unsafe(Array<Pixel>(_pixels), device);
 		return src;
+	}
+
+	/**
+		* 
+		* mark as gpu texture
+		*
+	 * @method mark_as_texture_unsafe()
+	 */
+	bool ImageSource::mark_as_texture_unsafe(BackendDevice *device) {
+		if (_device)
+			return true;
+		if (!device)
+			return false;
+		return reload_unsafe(Array<Pixel>(_pixels), device);
 	}
 
 	/**
@@ -207,15 +221,15 @@ namespace qk {
 		_load_id = 0;
 
 		if (_device) {
-			Array<uint32_t> IDs;
+			Array<uint32_t> ids;
 			for (auto &pix: _pixels) {
-				IDs.push(pix.texture());
+				ids.push(pix.texture());
 			}
 			auto device = _device;
 			_device = nullptr;
 
-			device->post_message(Cb([device,IDs](Cb::Data& data) {
-				device->deleteTextures(IDs.val(), IDs.length());
+			device->post_message(Cb([device,ids](Cb::Data& data) {
+				device->deleteTextures(ids.val(), ids.length());
 			}));
 		}
 		_pixels.clear();
