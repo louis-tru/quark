@@ -83,11 +83,11 @@ namespace qk {
 			if (!out) {
 				if (box->_border) {
 					auto rect = insideRect(box);
-					const float border[4] = {
+					const float radius_lessen[4] = {
 						box->_border[0].width,box->_border[1].width,
 						box->_border[2].width,box->_border[3].width,
 					};
-					out = &getRRectPath(rect, &box->_radius_left_top, border);
+					out = &getRRectPath(rect, &box->_radius_left_top, radius_lessen);
 				} else {
 					out = &getRRectPath({-box->_origin_value, box->_client_size}, &box->_radius_left_top);
 				}
@@ -287,8 +287,7 @@ namespace qk {
 		auto hash = path.hashCode();
 		const Array<Vec2> *out;
 		if (_PathTrianglesCache.get(hash, out)) return *out;
-		if (_PathTrianglesCache.length() >= 1024)
-			_PathTrianglesCache.clear();
+		if (_PathTrianglesCache.length() >= 1024) _PathTrianglesCache.clear();
 		return _PathTrianglesCache.set(hash, path.getTriangles(1));
 	}
 
@@ -300,8 +299,7 @@ namespace qk {
 		hash += (hash << 5) + hash_part + ((cap << 2) | join);
 		const Path *out;
 		if (_StrokePathCache.get(hash, out)) return *out;
-		if (_StrokePathCache.length() >= 1024)
-			_StrokePathCache.clear();
+		if (_StrokePathCache.length() >= 1024) _StrokePathCache.clear();
 		auto stroke = path.strokePath(width,cap,join,miterLimit);
 		return _StrokePathCache.set(hash, stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath(1));
 	}
@@ -311,8 +309,7 @@ namespace qk {
 		hash += (hash << 5) + *(int32_t*)&width;
 		const Array<Vec3> *out;
 		if (_SDFStrokeTriangleStripCache.get(hash, out)) return *out;
-		if (_SDFStrokeTriangleStripCache.length() >= 1024)
-			_SDFStrokeTriangleStripCache.clear();
+		if (_SDFStrokeTriangleStripCache.length() >= 1024) _SDFStrokeTriangleStripCache.clear();
 		return _SDFStrokeTriangleStripCache.set(hash, path.getSDFStrokeTriangleStrip(width, 1));
 	}
 
@@ -321,8 +318,7 @@ namespace qk {
 		auto hash = path.hashCode();
 		const Path *out;
 		if (_NormalizedPathCache.get(hash, out)) return *out;
-		if (_NormalizedPathCache.length() >= 1024)
-			_NormalizedPathCache.clear();
+		if (_NormalizedPathCache.length() >= 1024) _NormalizedPathCache.clear();
 		return _NormalizedPathCache.set(hash, path.normalizedPath(1));
 	}
 
@@ -331,8 +327,7 @@ namespace qk {
 		hash.updatefv4(rect.origin.val);
 		const RectPath *out;
 		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
-		if (_RectPathCache.length() >= 1024)
-			_RectPathCache.clear();
+		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
 		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
 	}
 
@@ -342,11 +337,9 @@ namespace qk {
 		hash.updatefv4(radius);
 		const RectPath *out;
 		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
-		if (_RectPathCache.length() >= 1024)
-			_RectPathCache.clear();
+		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
 
-		if (radius[0] == 0 && radius[0] == radius[1] &&
-			radius[1] == radius[2] && radius[2] == radius[3])
+		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
 		{
 			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
 		} else {
@@ -356,20 +349,19 @@ namespace qk {
 		}
 	}
 
-	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const float radius[4], const float radius_diff[4]) {
+	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const float radius[4], const float radius_lessen[4]) {
 		Hash5381 hash;
 		hash.updatefv4(rect.origin.val);
 		hash.updatefv4(radius);
-		hash.updatefv4(radius_diff);
+		hash.updatefv4(radius_lessen);
 		const RectPath *out;
 		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
-		if (_RectPathCache.length() >= 1024)
-			_RectPathCache.clear();
+		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
 		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, {
-			{Float::max(radius[0]-radius_diff[3],0), Float::max(radius[0]-radius_diff[0],0)},
-			{Float::max(radius[1]-radius_diff[1],0), Float::max(radius[1]-radius_diff[0],0)},
-			{Float::max(radius[2]-radius_diff[1],0), Float::max(radius[2]-radius_diff[2],0)},
-			{Float::max(radius[3]-radius_diff[3],0), Float::max(radius[3]-radius_diff[2],0)},
+			{radius[0]-radius_lessen[3], radius[0]-radius_lessen[0]},
+			{radius[1]-radius_lessen[1], radius[1]-radius_lessen[0]},
+			{radius[2]-radius_lessen[1], radius[2]-radius_lessen[2]},
+			{radius[3]-radius_lessen[3], radius[3]-radius_lessen[2]},
 		}));
 	}
 
@@ -380,9 +372,41 @@ namespace qk {
 		hash.updatefv4(radius.rightBottom.val);
 		const RectPath *out;
 		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
-		if (_RectPathCache.length() >= 1024)
-			_RectPathCache.clear();
+		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
 		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, radius));
+	}
+
+	const RectOutlinePath& RenderBackend::getRectOutlinePath(const Rect &outside, const Rect &inside) {
+		Hash5381 hash;
+		hash.updatefv4(outside.origin.val);
+		hash.updatefv4(inside.origin.val);
+		const RectOutlinePath *out;
+		if (_RectOutlinePathCache.get(hash.hashCode(), out)) return *out;
+		if (_RectOutlinePathCache.length() >= 1024) _RectOutlinePathCache.clear();
+		return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(outside, inside));
+	}
+
+	const RectOutlinePath& RenderBackend::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]) {
+		Hash5381 hash;
+		hash.updatefv4(border);
+		hash.updatefv4(radius);
+
+		const RectOutlinePath *out;
+		if (_RectOutlinePathCache.get(hash.hashCode(), out)) return *out;
+		if (_RectOutlinePathCache.length() >= 1024) _RectOutlinePathCache.clear();
+
+		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
+		{
+			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, {
+				rect.origin + Vec2{border[3],border[0]},
+				rect.size - Vec2{border[3]+border[1],border[0]+border[2]}
+			}));
+		} else {
+			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, {
+				rect.origin + Vec2{border[3],border[0]},
+				rect.size - Vec2{border[3]+border[1],border[0]+border[2]}
+			}, { radius[0],radius[1],radius[2],radius[3] }));
+		}
 	}
 
 	// --------------------------------------------------------------------------

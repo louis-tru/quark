@@ -73,6 +73,7 @@ namespace qk {
 		void ovalTo(const Rect& rect, bool ccw = false);
 		void rectTo(const Rect& rect, bool ccw = false);
 		void arcTo (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
+		void arcTo (const Vec2& center, const Vec2& radius, float startAngle, float sweepAngle, bool useCenter);
 		void close(); // close line
 		void addTo(Vec2 p); // call move to or line to
 		void concat(const Path& path);
@@ -145,11 +146,8 @@ namespace qk {
 
 	// Optimizing rect outline vertex generation algorithm
 	struct Qk_EXPORT RectOutlinePath {
-		Path         outside,inside;
-		// triangle vertex items {
-		//   x,y,length-offset,width-offset,border-direction
-		// }[3]
-		Array<float> vertex; // triangle vertex
+		Path        path[4];
+		Array<Vec2> vertex[4]; // top,right,bottom,left
 		static RectOutlinePath MakeRectOutline(const Rect &outside, const Rect &inside);
 		static RectOutlinePath MakeRRectOutline(
 			const Rect &outside, const Rect &inside, const Path::BorderRadius &radius

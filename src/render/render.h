@@ -104,8 +104,14 @@ namespace qk {
 		 */
 		const RectPath& getRectPath(const Rect &rect);
 		const RectPath& getRRectPath(const Rect &rect, const float radius[4]);
-		const RectPath& getRRectPath(const Rect &rect, const float radius[4], const float radius_diff[4]);
+		const RectPath& getRRectPath(const Rect &rect, const float radius[4], const float radius_lessen[4]);
 		const RectPath& getRRectPath(const Rect &rect, const Path::BorderRadius &radius);
+
+		/**
+		 * @dev get radius rect outline path cache
+		 */
+		const RectOutlinePath& getRectOutlinePath(const Rect &outside, const Rect &inside);
+		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]);
 
 		// @overwrite class ViewVisitor
 		virtual void  visitView(View* v) override;
@@ -138,6 +144,7 @@ namespace qk {
 		Dict<uint64_t, Array<Vec3>> _SDFStrokeTriangleStripCache; // path hash => aa triangles strip
 		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
 		Dict<uint64_t, RectPath> _RectPathCache; // rect hash => rect path
+		Dict<uint64_t, RectOutlinePath> _RectOutlinePathCache; // rect hash => rect outline path
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
