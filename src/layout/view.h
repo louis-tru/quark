@@ -43,11 +43,11 @@ namespace qk {
 
 	#define Qk_Define_View(N) \
 	public: \
-		friend class RenderBackend; \
+		friend class ViewRender; \
 		virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
 
 	class Action;
-	class RenderBackend;
+	class ViewRender;
 	class TextInput;
 
 	Qk_DEFINE_VISITOR(View, Qk_Each_View);
@@ -344,7 +344,7 @@ namespace qk {
 		Transform* transform_p();
 
 		// friend class
-		friend class RenderBackend;
+		friend class ViewRender;
 	};
 
 }

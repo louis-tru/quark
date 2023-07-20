@@ -15,7 +15,7 @@ public:
 	TestCanvas(App *host): Box(host) {}
 
 	virtual void accept(ViewVisitor *visitor) override {
-		if (pre_render()->host()->render() != visitor) return visitor->visitBox(this);
+		// if (pre_render()->host()->render() != visitor) return visitor->visitBox(this);
 
 		auto _canvas = shared_app()->render()->getCanvas();
 

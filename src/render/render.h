@@ -34,15 +34,12 @@
 #define __quark__render_render__
 
 #include "../util/json.h"
-#include "../layout/view.h"
 #include "./math.h"
 #include "./source.h"
 #include "./canvas.h"
 #include "./font/pool.h"
 
 namespace qk {
-	class Application;
-	class Filter;
 
 	class BackendDevice: public PostMessage {
 	public:
@@ -53,7 +50,7 @@ namespace qk {
 	/**
 	 * @class RenderBackend drawing device backend
 	 */
-	class Qk_EXPORT RenderBackend: public BackendDevice, public ViewVisitor {
+	class Qk_EXPORT RenderBackend: public BackendDevice {
 	public:
 		struct Options {
 			ColorType   colorType;
@@ -113,22 +110,6 @@ namespace qk {
 		const RectOutlinePath& getRectOutlinePath(const Rect &outside, const Rect &inside);
 		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]);
 
-		// @overwrite class ViewVisitor
-		virtual void  visitView(View* v) override;
-		virtual void  visitBox(Box* box) override;
-		virtual void  visitImage(Image* image) override;
-		virtual void  visitVideo(Video* video) override;
-		virtual void  visitScroll(Scroll* scroll) override;
-		virtual void  visitInput(Input* input) override;
-		virtual void  visitTextarea(Textarea* textarea) override;
-		virtual void  visitButton(Button* btn) override;
-		virtual void  visitTextLayout(TextLayout* text) override;
-		virtual void  visitLabel(Label* label) override;
-		virtual void  visitRoot(Root* root) override;
-		virtual void  visitFloatLayout(FloatLayout* flow) override;
-		virtual void  visitFlowLayout(FlowLayout* flow) override;
-		virtual void  visitFlexLayout(FlexLayout* flex) override;
-
 	protected:
 		RenderBackend(Options opts);
 		virtual Vec2  getSurfaceSize() = 0;
@@ -138,18 +119,13 @@ namespace qk {
 		Delegate     *_delegate;
 		Vec2          _surface_size; // recommend default surface scale
 		float         _default_scale;
-		float         _opacity;
-		uint32_t      _mark_recursive;
 		Dict<uint64_t, Array<Vec2>> _PathTrianglesCache; // path hash => triangles
 		Dict<uint64_t, Array<Vec3>> _SDFStrokeTriangleStripCache; // path hash => aa triangles strip
 		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
 		Dict<uint64_t, RectPath> _RectPathCache; // rect hash => rect path
 		Dict<uint64_t, RectOutlinePath> _RectOutlinePathCache; // rect hash => rect outline path
-
-		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	typedef RenderBackend Render;
-
 }
 #endif

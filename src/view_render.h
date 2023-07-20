@@ -33,16 +33,16 @@
 #ifndef __quark__view_render__
 #define __quark__view_render__
 
-#include "../layout/view.h"
+#include "./layout/view.h"
+#include "./render/render.h"
+#include "./display.h"
 
 namespace qk {
 
-	/**
-	 * @class ViewRender
-	 */
 	class Qk_EXPORT ViewRender: public Object, public ViewVisitor {
 		Qk_HIDDEN_ALL_COPY(ViewRender);
 	public:
+		ViewRender(Display *display);
 		// @overwrite class ViewVisitor
 		virtual void  visitView(View* v) override;
 		virtual void  visitBox(Box* box) override;
@@ -58,6 +58,15 @@ namespace qk {
 		virtual void  visitFloatLayout(FloatLayout* flow) override;
 		virtual void  visitFlowLayout(FlowLayout* flow) override;
 		virtual void  visitFlexLayout(FlexLayout* flex) override;
+		// props
+		Qk_DEFINE_PROP(Render*, render);
+	private:
+		Display      *_display;
+		Canvas       *_canvas;
+		float         _opacity;
+		uint32_t      _mark_recursive;
+
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

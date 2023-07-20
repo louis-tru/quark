@@ -33,6 +33,7 @@
 #include "./pre_render.h"
 #include "./layout/root.h"
 #include "./render/render.h"
+#include "./view_render.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
 # define PRINT_RENDER_FRAME_TIME 0
@@ -43,6 +44,7 @@ namespace qk {
 	Display::Display(Application* host)
 		: Qk_Init_Event(Change), Qk_Init_Event(Orientation)
 		, _host(host)
+		, _view_render(nullptr)
 		, _lock_size()
 		, _size(), _scale(1)
 		, _atom_pixel(1)
@@ -52,9 +54,12 @@ namespace qk {
 		, _next_fsp_time(0), _surface_region(), _lock_size_mark(false)
 	{
 		_clip_region.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
+		_view_render = new ViewRender(this);
 	}
 
-	Display::~Display() {}
+	Display::~Display() {
+		Release(_view_render); _view_render = nullptr;
+	}
 
 	void Display::updateState(void *lock, Mat4 *surfaceMat, Vec2* surfaceScale) { // Lock before calling
 		auto _lock = static_cast<UILock*>(lock);
@@ -96,11 +101,14 @@ namespace qk {
 		*surfaceScale = Vec2(_scale);
 
 		_host->root()->onDisplayChange();
+		_view_render->set_render(_host->render());
 
 		Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
 	}
 
-	void Display::set_size(float width, float height) {
+	void Display::set_size(Vec2 size) {
+		float width = size.x();
+		float height = size.y();
 		if (width >= 0.0 && height >= 0.0) {
 			UILock lock(_host);
 			if (_lock_size.x() != width || _lock_size.y() != height) {
@@ -219,7 +227,7 @@ namespace qk {
 		_next_fsp++;
 
 		_host->render()->begin(); // ready render
-		_host->root()->accept(_host->render()); // start drawing
+		_host->root()->accept(_view_render); // start drawing
 
 		solve_next_frame(); // solve frame
 

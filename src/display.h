@@ -41,6 +41,7 @@
 
 namespace qk {
 	class Application;
+	class ViewRender;
 
 	/**
 	 * @class Display Provide some common method properties and events for display and screen
@@ -87,29 +88,6 @@ namespace qk {
 		 * @event onOrientation Triggered when the screen orientation changes
 		*/
 		Qk_Event(Orientation);
-		
-		/**
-		* @method size 当前视口尺寸
-		*/
-		inline Vec2 size() const { return _size; }
-		
-		/**
-		 * @method scale_value
-		 */
-		inline float scale() const { return _scale; }
-
-		/**
-		* @method set_size()
-		*
-		* width与height都设置为0时自动设置系统默认显示尺寸
-		*
-		* 设置视口为一个固定的逻辑尺寸,这个值改变时会触发change事件
-		*
-		* 同时只能指定一个项目,同时指定宽度与高度不生效
-		* 如果设置为非零表示锁定尺寸,不管display_size怎样变化对于视图这个值永远保持不变
-		*
-		*/
-		void set_size(float width = 0, float height = 0);
 
 		/**
 		* @thread render
@@ -130,11 +108,6 @@ namespace qk {
 			return _clip_region.back();
 		}
 
-		/**
-		* @method atom_pixel
-		*/
-		inline float atom_pixel() const { return _atom_pixel; }
-		
 		/**
 		* @method next_frame()
 		*/
@@ -174,11 +147,6 @@ namespace qk {
 		 * @method set_orientation(orientation)
 		*/
 		void set_orientation(Orientation orientation);
-		
-		/**
-		 * @method fsp()
-		*/
-		inline uint32_t fsp() const { return _fsp; }
 
 		/**
 		 * returns surface only display region and size
@@ -186,12 +154,6 @@ namespace qk {
 		inline Vec2 surface_size() const {
 			return _surface_region.end - _surface_region.origin;
 		}
-
-		/**
-		 * returns the default display scale
-		 */
-		inline float      default_scale() const { return _default_scale; }
-		inline RegionSize surface_region() const { return _surface_region; }
 
 		/**
 		 * settings the display screen surface pixel region and size
@@ -208,6 +170,25 @@ namespace qk {
 		*/
 		static float default_status_bar_height();
 
+		// props
+		/**
+		*
+		* Vec2,width与height都设置为0时自动设置系统默认显示尺寸
+		*
+		* 设置视口为一个固定的逻辑尺寸,这个值改变时会触发change事件
+		*
+		* 同时只能指定一个项目,同时指定宽度与高度不生效
+		* 如果设置为非零表示锁定尺寸,不管display_size怎样变化对于视图这个值永远保持不变
+		*/
+		Qk_DEFINE_PROP(Vec2, size); //!< current viewport size
+		//!< display scale, the larger the value, the smaller the size and the less content displayed
+		Qk_DEFINE_PROP_GET(float, scale);
+		Qk_DEFINE_PROP_GET(float, default_scale); //!< default display scale
+		Qk_DEFINE_PROP_GET(RegionSize, surface_region); //!< Select the area on the drawing surface
+		Qk_DEFINE_PROP_GET(uint32_t, fsp); //!< current fsp
+		Qk_DEFINE_PROP_GET(uint32_t, atom_pixel); // atom pixel size
+		Qk_DEFINE_PROP_GET(ViewRender*, view_render);
+
 	private:
 		void updateState(void *lock, Mat4 *mat, Vec2* scale);
 		void solve_next_frame();
@@ -217,18 +198,12 @@ namespace qk {
 		void onRenderBackendDisplay() override;
 
 		// member data
-		Application*      _host;
+		Application      *_host;
 		Vec2              _lock_size;  //!< Lock the size of the viewport
-		Vec2              _size;   //!< current viewport size
-		//!< display scale, the larger the value, the smaller the size and the less content displayed
-		float             _scale;
-		float             _atom_pixel;
-		float             _default_scale;
 		List<Cb>          _next_frame;
-		uint32_t          _fsp, _next_fsp;
+		uint32_t          _next_fsp;
 		int64_t           _next_fsp_time;
 		Array<RegionSize> _clip_region;
-		RegionSize        _surface_region; //!< Select the area on the drawing surface
 		bool              _lock_size_mark;
 	};
 

@@ -113,6 +113,8 @@
 			# 'render/scaner.cc',
 			'render/source.h',
 			'render/source.cc',
+			'view_render.h',
+			'view_render.cc',
 			# text
 			'text/text_blob.h',
 			'text/text_blob.cc',

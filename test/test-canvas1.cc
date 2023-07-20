@@ -16,8 +16,7 @@ public:
 
 	void accept(ViewVisitor *visitor) override {
 
-		auto render = static_cast<GLRender*>(visitor);
-		auto _canvas = render->getCanvas();
+		auto _canvas = shared_app()->render()->getCanvas();
 		_canvas->save();
 		_canvas->translate(-115, 0);
 

@@ -40,7 +40,6 @@
 #include "./pre_render.h"
 #include "./layout/label.h"
 #include "./event.h"
-#include "./layout/root.h"
 
 Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
 Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;
@@ -107,7 +106,7 @@ namespace qk {
 		_default_text_options = new DefaultTextOptions(_font_pool);
 		// _action_direct = new ActionDirect(); Qk_DEBUG("new ActionDirect ok");
 		_render = Render::Make(_opts, _display); Qk_DEBUG("Render::Make() ok");
-		
+
 		// init root
 		_root = new Root(this); Qk_DEBUG("new Root ok");
 		_root->reset();
