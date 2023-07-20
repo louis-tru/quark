@@ -71,7 +71,7 @@ namespace qk {
 		virtual void rotate(float z) = 0; // arc rotation
 		virtual bool readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) = 0;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) = 0;
-		virtual void clipPathv(const Pathv& rect, ClipOp op, bool antiAlias) = 0;
+		virtual void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) = 0;
 		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias);
 		virtual void clearColor(const Color4f& color) = 0;
 		virtual void drawColor(const Color4f& color, BlendMode mode = kSrcOver_BlendMode) = 0;
