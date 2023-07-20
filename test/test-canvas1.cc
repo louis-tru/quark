@@ -1,8 +1,6 @@
 
 #include <quark/app.h>
-#include <quark/render/paint.h>
 #include <quark/render/render.h>
-#include <quark/render/gl/gl_render.h>
 #include <quark/layout/root.h>
 #include <quark/display.h>
 

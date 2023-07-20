@@ -109,8 +109,6 @@
 			'render/bezier.cc',
 			'render/math.h',
 			'render/math.cc',
-			# 'render/scaner.h',
-			# 'render/scaner.cc',
 			'render/source.h',
 			'render/source.cc',
 			'view_render.h',

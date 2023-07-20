@@ -153,36 +153,38 @@ namespace qk {
 		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, radius));
 	}
 
-	const RectOutlinePath& RenderBackend::getRectOutlinePath(const Rect &outside, const Rect &inside) {
-		Hash5381 hash;
-		hash.updatefv4(outside.origin.val);
-		hash.updatefv4(inside.origin.val);
-		const RectOutlinePath *out;
-		if (_RectOutlinePathCache.get(hash.hashCode(), out)) return *out;
-		if (_RectOutlinePathCache.length() >= 1024) _RectOutlinePathCache.clear();
-		return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(outside, inside));
-	}
-
-	const RectOutlinePath& RenderBackend::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]) {
+	const RectOutlinePath& RenderBackend::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4], bool antiAlias) {
 		Hash5381 hash;
 		hash.updatefv4(border);
 		hash.updatefv4(radius);
-
+		auto up = getAAUnitPixel();
+		if (antiAlias) {
+			hash.updatef(up);
+		}
 		const RectOutlinePath *out;
 		if (_RectOutlinePathCache.get(hash.hashCode(), out)) return *out;
 		if (_RectOutlinePathCache.length() >= 1024) _RectOutlinePathCache.clear();
 
+		auto oR{rect};
+		Rect iR{
+			rect.origin + Vec2{border[3],border[0]},
+			rect.size - Vec2{border[3]+border[1],border[0]+border[2]}
+		};
+		if (antiAlias) { // anti alias compensate
+			auto up2_1 = up * 0.5;
+			iR.origin -= up2_1;
+			iR.size += up;
+			oR.origin += up2_1;
+			oR.size -= up;
+		}
+
 		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
 		{
-			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, {
-				rect.origin + Vec2{border[3],border[0]},
-				rect.size - Vec2{border[3]+border[1],border[0]+border[2]}
-			}));
+			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(oR, iR));
 		} else {
-			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, {
-				rect.origin + Vec2{border[3],border[0]},
-				rect.size - Vec2{border[3]+border[1],border[0]+border[2]}
-			}, { radius[0],radius[1],radius[2],radius[3] }));
+			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRRectOutline(oR, iR, {
+				radius[0],radius[1],radius[2],radius[3] 
+			}));
 		}
 	}
 

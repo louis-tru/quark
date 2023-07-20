@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./util/loop.h"
-#include "./util/working.h"
 #include "./util/http.h"
 #include "./render/render.h"
 #include "./layout/root.h"
@@ -105,7 +104,8 @@ namespace qk {
 		_dispatch = new EventDispatch(this); Qk_DEBUG("new EventDispatch ok");
 		_default_text_options = new DefaultTextOptions(_font_pool);
 		// _action_direct = new ActionDirect(); Qk_DEBUG("new ActionDirect ok");
-		_render = Render::Make(_opts, _display); Qk_DEBUG("Render::Make() ok");
+		_render = Render::Make({ _opts.colorType, _opts.msaaSampleCnt }, _display);
+		Qk_DEBUG("Render::Make() ok");
 
 		// init root
 		_root = new Root(this); Qk_DEBUG("new Root ok");

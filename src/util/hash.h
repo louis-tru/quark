@@ -50,6 +50,7 @@ namespace qk {
 		void   updateu32v(const uint32_t *data, uint32_t len);
 		void   updateu64v(const uint64_t *data, uint32_t len);
 		void   updateu64(const uint64_t data);
+		void   updatef(float data);
 		void   updatefv2(const float data[2]);
 		void   updatefv4(const float data[4]);
 		String digest();

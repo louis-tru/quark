@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
 
 #ifndef __quark__render_render__
 #define __quark__render_render__
@@ -49,6 +49,7 @@ namespace qk {
 
 	/**
 	 * @class RenderBackend drawing device backend
+	 * @thread render
 	 */
 	class Qk_EXPORT RenderBackend: public BackendDevice {
 	public:
@@ -63,17 +64,20 @@ namespace qk {
 			virtual bool onRenderBackendPreDisplay() = 0;
 			virtual void onRenderBackendDisplay() = 0;
 		};
+
 		static  RenderBackend* Make(Options opts, Delegate *delegate);
 		virtual        ~RenderBackend();
 		virtual void    reload() = 0; // surface size and scale change
 		virtual void    begin() = 0; // start render task
 		virtual void    submit() = 0; // submit render task
 		virtual void    activate(bool isActive);
+		virtual float   getAAUnitPixel() = 0; // get anti alias unit pixel size
 		virtual Object* asObject() = 0;
 		inline  Canvas* getCanvas() { return _canvas; } // default canvas object
 		inline  Vec2    surfaceSize() { return _surface_size; }
 		inline  float   defaultScale() { return _default_scale; }
 		inline  Delegate* delegate() { return _delegate; }
+
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
 
@@ -97,18 +101,41 @@ namespace qk {
 		const Path& getNormalizedPath(const Path &path);
 
 		/**
-		 * @dev get radius rect path cache
+		 * @dev get rect path cache
 		 */
 		const RectPath& getRectPath(const Rect &rect);
+
+		/**
+		 * @dev get radius rect path cache
+		 * @param rect {Rect} rect
+		 * @param radius {float[4]} border radius leftTop,rightTop,rightBottom,leftBottom
+		*/
 		const RectPath& getRRectPath(const Rect &rect, const float radius[4]);
-		const RectPath& getRRectPath(const Rect &rect, const float radius[4], const float radius_lessen[4]);
+
+		/**
+		 * @dev get radius rect path cache
+		 * @param rect {Rect} rect
+		 * @param radius {float[4]} border radius leftTop,rightTop,rightBottom,leftBottom
+		 * @param radius_lessen_by_Border {float[4]} radius = radius - border. top,right,bottom,left
+		*/
+		const RectPath& getRRectPath(const Rect &rect, const float radius[4], const float radius_lessen_by_Border[4]);
+
+		/**
+		 * @dev get radius rect path cache
+		 * @param rect {Rect} rect
+		 * @param radius {BorderRadius} border radius
+		*/
 		const RectPath& getRRectPath(const Rect &rect, const Path::BorderRadius &radius);
 
 		/**
 		 * @dev get radius rect outline path cache
+		 * @param rect {Rect} outside border rect
+		 * @param border {float[4]} inside border width top,right,bottom,left
+		 * @param radius {float[4]} outside border radius leftTop,rightTop,rightBottom,leftBottom
+		 * @param antiAlias {bool} anti alias compensate
 		 */
-		const RectOutlinePath& getRectOutlinePath(const Rect &outside, const Rect &inside);
-		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]);
+		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4],
+			const float radius[4], bool antiAlias);
 
 	protected:
 		RenderBackend(Options opts);

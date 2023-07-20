@@ -1,4 +1,3 @@
-//@private
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,6 +27,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+
+//@private head
 
 #ifndef __quark__font__util__
 #define __quark__font__util__

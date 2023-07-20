@@ -53,24 +53,25 @@ namespace qk {
 		virtual void rotate(float z) override;
 		virtual bool readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) override;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
+		virtual void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) override;
 		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
-		virtual void clipRectPath(const RectPath& rect, ClipOp op, bool antiAlias) override;
 		virtual void clearColor(const Color4f& color) override;
 		virtual void drawColor(const Color4f& color, BlendMode mode) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
+		virtual void drawPathv(const Pathv& path, const Paint& paint) override;
+		virtual void drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) override;
 		virtual void drawRect(const Rect& rect, const Paint& paint) override;
 		virtual void drawRRect(const Rect& rect,
 			const Path::BorderRadius &radius, const Paint& paint) override;
-		virtual void drawRectPath(const RectPath& rect, const Paint& paint) override;
-		virtual void drawRectPathColor(const RectPath& rect, const Color4f &color, BlendMode mode) override;
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 	private:
-		void clip(const Array<Vec2> &vertex, ClipOp op, bool aa);
-		void fillRect(const RectPath &rect, const Paint &paint, bool aa);
+		void clipV(const Array<Vec2> &vertex, ClipOp op, bool aa);
+		void fillPathV(const Pathv &path, const Paint &paint, bool aa);
 		void fillPath(const Path &path, const Paint &paint, bool aa);
-		void fill(const Array<Vec2> &vertex, const Paint &paint);
+		void fillV(const Array<Vec2> &vertex, const Paint &paint);
+		
 		void drawStroke(const Path &path, const Paint& paint, bool aa);
 		void drawColor(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		void drawGradient(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
@@ -87,7 +88,9 @@ namespace qk {
 		bool isStencilRefDefaultValue();
 	protected:
 		void setRootMatrixBuffer(const Mat4& root); // set root matrix
+		float  _surfaceScalef1, _transfromScale;
 		Vec2   _surfaceScale;
+		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
 	private:
 		// props
 		struct Clip {
@@ -95,18 +98,16 @@ namespace qk {
 			ClipOp      op;
 			bool        aa; // anti alias
 		};
-		bool   drawClip(Clip *clip);
 		struct State {
 			Mat         matrix;
 			Array<Clip> clips;
 		};
+		bool drawClip(Clip *clip);
+		Array<State> _state;
 		GLRender *_backend;
 		State    *_curState;
-		Array<State> _state;
 		GLuint _stencil_ref, _stencil_ref_decr;
 		GLuint _mat_ubo; // mat_ubo => root,view matrix
-		float  _surfaceScalef1, _transfromScale;
-		float  _Scale, _UnitPixel; // surface scale * transfrom scale, _UnitPixel = 2 / _Scale
 	};
 
 }

@@ -40,7 +40,7 @@ namespace qk {
 		: _backend(backend)
 		, _stencil_ref(0), _stencil_ref_decr(0)
 		, _curState(nullptr)
-		, _surfaceScale(1,1), _surfaceScalef1(1), _transfromScale(1), _Scale(1)
+		, _surfaceScale(1,1), _surfaceScalef1(1), _transfromScale(1), _scale(1)
 	{
 		glGenBuffers(1, &_mat_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, _mat_ubo);
@@ -146,8 +146,8 @@ namespace qk {
 
 		_surfaceScalef1 = Float::max(_surfaceScale[0], _surfaceScale[1]);
 		_transfromScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
-		_Scale = _surfaceScalef1 * _transfromScale;
-		_UnitPixel = 2 / _Scale;
+		_scale = _surfaceScalef1 * _transfromScale;
+		_unitPixel = 2 / _scale;
 	}
 
 	void GLCanvas::setMatrixBuffer(const Mat& mat) {
@@ -163,8 +163,8 @@ namespace qk {
 		auto mScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
 		if (_transfromScale != mScale) {
 			_transfromScale = mScale;
-			_Scale = _surfaceScalef1 * _transfromScale;
-			_UnitPixel = 2 / _Scale;
+			_scale = _surfaceScalef1 * _transfromScale;
+			_unitPixel = 2 / _scale;
 		}
 	}
 
@@ -192,7 +192,7 @@ namespace qk {
 		return gl_read_pixels(dst, srcX, srcY);
 	}
 
-	void GLCanvas::clip(const Array<Vec2> &vertex, ClipOp op, bool antiAlias) {
+	void GLCanvas::clipV(const Array<Vec2> &vertex, ClipOp op, bool antiAlias) {
 		if (_stencil_ref == 0) { // start enable stencil test
 			_stencil_ref = _stencil_ref_decr = 127;
 			glClear(GL_STENCIL_BUFFER_BIT); // clear stencil
@@ -209,15 +209,15 @@ namespace qk {
 	}
 
 	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
-		clip(_backend->getPathTriangles(path), op, antiAlias);
+		clipV(_backend->getPathTriangles(path), op, antiAlias);
 	}
 
 	void GLCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
-		clip(_backend->getRectPath(rect).vertex, op, antiAlias);
+		clipV(_backend->getRectPath(rect).path.vertex, op, antiAlias);
 	}
 
-	void GLCanvas::clipRectPath(const RectPath& rect, ClipOp op, bool antiAlias) {
-		clip(rect.vertex, op, antiAlias);
+	void GLCanvas::clipPathv(const Pathv& path, ClipOp op, bool antiAlias) {
+		clipV(path.vertex, op, antiAlias);
 	}
 
 	bool GLCanvas::drawClip(Clip *clip) {
@@ -301,43 +301,24 @@ namespace qk {
 	}
 
 	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
-		drawRectPath(_backend->getRectPath(rect), paint);
+		drawPathv(_backend->getRectPath(rect).path, paint);
 	}
 
 	void GLCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
-		drawRectPath(_backend->getRRectPath(rect,radius), paint);
-	}
-
-	void GLCanvas::drawRectPath(const RectPath& rect, const Paint& paint) {
-		_backend->setBlendMode(paint.blendMode); // switch blend mode
-
-		bool antiAlias = paint.antiAlias && !_backend->_IsDeviceMsaa; // Anti-aliasing using software
-
-		// gen stroke path and fill path and polygons
-		switch (paint.style) {
-			case Paint::kFill_Style:
-				fillRect(rect, paint, antiAlias);
-				break;
-			case Paint::kStrokeAndFill_Style:
-				fillRect(rect, paint, antiAlias);
-			case Paint::kStroke_Style: {
-				drawStroke(rect.path, paint, antiAlias);
-				break;
-			}
-		}
+		drawPathv(_backend->getRRectPath(rect,radius).path, paint);
 	}
 
 	constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
 
-	void GLCanvas::drawRectPathColor(const RectPath& rect, const Color4f &color, BlendMode mode) {
+	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
 		_backend->setBlendMode(mode); // switch blend mode
 		bool antiAlias = !_backend->_IsDeviceMsaa; // Anti-aliasing using software
-		_backend->_color.use(rect.vertex.size(), *rect.vertex);
+		_backend->_color.use(path.vertex.size(), *path.vertex);
 		//auto color4f = color.to_color4f_alpha(alpha);
 		glUniform4fv(_backend->_color.color, 1, color.val);
-		glDrawArrays(GL_TRIANGLES, 0, rect.vertex.length());
+		glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
 		if (antiAlias) {
-			auto &strip = _backend->getSDFStrokeTriangleStrip(rect.path, _UnitPixel*0.6);
+			auto &strip = _backend->getSDFStrokeTriangleStrip(path.path, _unitPixel*0.6);
 			drawColorSDF(strip, color, GL_TRIANGLE_STRIP, aa_sdf_range);
 		}
 	}
@@ -362,23 +343,41 @@ namespace qk {
 		}
 	}
 
-	void GLCanvas::fillRect(const RectPath &rect, const Paint &paint, bool aa) {
-		Qk_ASSERT(rect.path.isNormalized());
-		fill(rect.vertex, paint);
+	void GLCanvas::drawPathv(const Pathv& path, const Paint& paint) {
+		_backend->setBlendMode(paint.blendMode); // switch blend mode
+
+		bool antiAlias = paint.antiAlias && !_backend->_IsDeviceMsaa; // Anti-aliasing using software
+		// gen stroke path and fill path and polygons
+		switch (paint.style) {
+			case Paint::kFill_Style:
+				fillPathV(path, paint, antiAlias);
+				break;
+			case Paint::kStrokeAndFill_Style:
+				fillPathV(path, paint, antiAlias);
+			case Paint::kStroke_Style: {
+				drawStroke(path.path, paint, antiAlias);
+				break;
+			}
+		}
+	}
+
+	void GLCanvas::fillPathV(const Pathv &path, const Paint &paint, bool aa) {
+		Qk_ASSERT(path.path.isNormalized());
+		fillV(path.vertex, paint);
 		if (aa) {
-			drawAAStrokeSDF(rect.path, paint, aa_sdf_range);
+			drawAAStrokeSDF(path.path, paint, aa_sdf_range);
 		}
 	}
 
 	void GLCanvas::fillPath(const Path &path, const Paint &paint, bool aa) {
 		Qk_ASSERT(path.isNormalized());
-		fill(_backend->getPathTriangles(path), paint);
+		fillV(_backend->getPathTriangles(path), paint);
 		if (aa) {
 			drawAAStrokeSDF(path, paint, aa_sdf_range);
 		}
 	}
 
-	void GLCanvas::fill(const Array<Vec2> &vertex, const Paint &paint) {
+	void GLCanvas::fillV(const Array<Vec2> &vertex, const Paint &paint) {
 		switch (paint.type) {
 			case Paint::kColor_Type:
 				drawColor(vertex, paint, GL_TRIANGLES);
@@ -398,12 +397,12 @@ namespace qk {
 
 	void GLCanvas::drawStroke(const Path &path, const Paint& paint, bool aa) {
 		if (aa) {
-			auto width = paint.width - _UnitPixel;
+			auto width = paint.width - _unitPixel;
 			if (width > 0) {
 				fillPath(_backend->getStrokePath(path, width, paint.cap, paint.join), paint, true);
 			} else {
 				// 5*5=25, 0.75
-				width /= _UnitPixel; // range: -1 => 0
+				width /= _unitPixel; // range: -1 => 0
 				width = powf(width*10, 3) * 0.006; // (width*10)^3 * 0.006
 				const float stroke_sdf_range[3] = {0.5, width-0.25f, 0};
 				drawAAStrokeSDF(path, paint, stroke_sdf_range);
@@ -417,7 +416,7 @@ namespace qk {
 		//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
 		//auto &strip = _backend->getSDFStrokeTriangleStripCache(newPath, _Scale);
 		// _UnitPixel*0.6=1.2/_Scale, 2.4px
-		auto &strip = _backend->getSDFStrokeTriangleStrip(path, _UnitPixel*0.6);
+		auto &strip = _backend->getSDFStrokeTriangleStrip(path, _unitPixel*0.6);
 		// Qk_DEBUG("%p", &strip);
 		switch (paint.type) {
 			case Paint::kColor_Type:
@@ -546,8 +545,8 @@ namespace qk {
 
 		Sp<ImageSource> img;
 		auto tf = glyphs.typeface();
-		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _Scale, offset, &img);
-		auto scale_1 = drawTextImage(*img, bound.y(), _Scale, origin, paint);
+		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _scale, offset, &img);
+		auto scale_1 = drawTextImage(*img, bound.y(), _scale, origin, paint);
 		return scale_1 * bound.x();
 	}
 
@@ -569,7 +568,7 @@ namespace qk {
 			blob->image->mark_as_texture_unsafe(_backend);
 		}
 
-		drawTextImage(*blob->image, blob->imageBound.y(), _Scale * levelScale, origin, paint);
+		drawTextImage(*blob->image, blob->imageBound.y(), _scale * levelScale, origin, paint);
 	}
 
 	float GLCanvas::drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {

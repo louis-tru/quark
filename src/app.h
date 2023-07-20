@@ -36,7 +36,7 @@
 #include "./util/loop.h"
 #include "./types.h"
 #include "./pre_render.h"
-#include "./render/render.h"
+#include "./render/pixel.h"
 
 #define Qk_Main() \
 	int __f_main__(int, Char**); \
@@ -45,13 +45,13 @@
 
 namespace qk {
 	class Display;
-	class View;
 	class Root;
 	class EventDispatch;
 	class ActionDirect;
 	class DefaultTextOptions;
 	class FontPool;
 	class ImageSourcePool;
+	class RenderBackend;
 
 	/**
 	 *
@@ -64,10 +64,12 @@ namespace qk {
 	class Qk_EXPORT Application: public Object {
 		Qk_HIDDEN_ALL_COPY(Application);
 	public:
-		struct Options: Render::Options {
-			Rect   windowFrame;
-			String windowTitle;
-			Color  backgroundColor;
+		struct Options {
+			ColorType   colorType;
+			uint32_t    msaaSampleCnt; // gpu msaa
+			Rect        windowFrame;
+			String      windowTitle;
+			Color       backgroundColor;
 		};
 
 		Qk_Event(Load);
@@ -122,7 +124,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
 		Qk_DEFINE_PROP_GET(ActionDirect*, action_direct); //! action direct  manage
 		Qk_DEFINE_PROP_GET(PreRender*, pre_render); //! pre-renderer
-		Qk_DEFINE_PROP_GET(Render*, render); //! renderer
+		Qk_DEFINE_PROP_GET(RenderBackend*, render); //! renderer
 		Qk_DEFINE_PROP_GET(FontPool*, font_pool); //! font and font familys manage
 		Qk_DEFINE_PROP_GET(ImageSourcePool*, img_pool); //! image loader and image cache
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch

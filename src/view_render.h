@@ -65,7 +65,6 @@ namespace qk {
 		Canvas       *_canvas;
 		float         _opacity;
 		uint32_t      _mark_recursive;
-
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 

@@ -221,8 +221,8 @@ namespace qk {
 		lineTo(r.origin); // top left, origin point
 	}
 
-	void Path::arcTo(const Vec2& center, const Vec2& radius, float startAngle, float sweepAngle, bool useCenter) {
-		if (radius.is_zero_axis()) return;
+	void Path::arcTo(Vec2 center, Vec2 radius, float startAngle, float sweepAngle, bool useCenter) {
+		if (radius.is_zero()) return;
 		if (sweepAngle == 0) return;
 
 		float rx = radius.x();
@@ -667,29 +667,31 @@ namespace qk {
 	// ------------------- R e c t . O u t l i n e . P a t h -------------------
 
 	RectPath RectPath::MakeRect(const Rect &rect) {
-		RectPath out{rect};
+		RectPath out;
+		out.rect = rect;
 		float x2 = rect.origin.x() + rect.size.x();
 		float y2 = rect.origin.y() + rect.size.y();
 		// path
-		out.path.moveTo(rect.origin);
-		out.path.lineTo(Vec2(x2, rect.origin.y())); // top right
-		out.path.lineTo(Vec2(x2, y2)); // bottom right
-		out.path.lineTo(Vec2(rect.origin.x(), y2)); // bottom left
-		out.path.close(); // top left, origin point
+		out.path.path.moveTo(rect.origin);
+		out.path.path.lineTo(Vec2(x2, rect.origin.y())); // top right
+		out.path.path.lineTo(Vec2(x2, y2)); // bottom right
+		out.path.path.lineTo(Vec2(rect.origin.x(), y2)); // bottom left
+		out.path.path.close(); // top left, origin point
 		// vertex
-		out.vertex.extend(6);
-		out.vertex[0] = rect.origin;
-		out.vertex[1] = Vec2(x2, rect.origin.y());
-		out.vertex[2] = Vec2(x2, y2);
-		out.vertex[3] = Vec2(x2, y2);
-		out.vertex[4] = Vec2(rect.origin.x(), y2);
-		out.vertex[5] = rect.origin;
+		out.path.vertex.extend(6);
+		out.path.vertex[0] = rect.origin;
+		out.path.vertex[1] = Vec2(x2, rect.origin.y());
+		out.path.vertex[2] = Vec2(x2, y2);
+		out.path.vertex[3] = Vec2(x2, y2);
+		out.path.vertex[4] = Vec2(rect.origin.x(), y2);
+		out.path.vertex[5] = rect.origin;
 
 		Qk_ReturnLocal(out);
 	}
 
 	RectPath RectPath::MakeRRect(const Rect &rect, const Path::BorderRadius &r) {
-		RectPath out{rect};
+		RectPath out;
+		out.rect = rect;
 
 		const float x1 = rect.origin.x(),    y1 = rect.origin.x();
 		const float x2 = x1 + rect.size.x(), y2 = y1 + rect.size.y();
@@ -700,7 +702,7 @@ namespace qk {
 		const Vec2 rightBottom = Vec2(-Float::min(r.rightBottom.x(), x_5), -Float::min(r.rightBottom.y(), y_5));
 		const Vec2 leftBottom = Vec2(Float::min(r.leftBottom.x(), x_5), -Float::min(r.leftBottom.y(), y_5));
 
-		out.path.moveTo(Vec2(x1, leftTop.is_zero_axis() ? y1: y1 + leftTop.y()));
+		out.path.path.moveTo(Vec2(x1, leftTop.is_zero_axis() ? y1: y1 + leftTop.y()));
 
 		auto build = [](RectPath *out, Vec2 v, Vec2 v2, Vec2 radius, Vec2 radius2, float startAngle) {
 			bool no_zero1  = radius[0] > 0 && radius[1] > 0;
@@ -715,12 +717,12 @@ namespace qk {
 				for (int i = 0; i < sample; i++) {
 					const Vec2 p(c.x() - cosf(angle) * radius.x(), c.x() + sinf(angle) * radius.y());
 					const Vec2 src[3] = { p,c,p };
-					out->vertex.write(src, -1, i == 0 ? 2: 3); // add triangle vertex
-					out->path.lineTo(p);
+					out->path.vertex.write(src, -1, i == 0 ? 2: 3); // add triangle vertex
+					out->path.path.lineTo(p);
 					angle += angleStep;
 				}
 			} else {
-				out->path.lineTo(v);
+				out->path.path.lineTo(v);
 			}
 
 			if (no_zero2) { // no zero
@@ -728,13 +730,13 @@ namespace qk {
 				const Vec2 p(c2.x() - cosf(startAngle) * radius2.x(), c2.y () + sinf(startAngle) * radius2.y());
 				if (no_zero1) { // no zero
 					const Vec2 src[4] = {p,p,c2,c};
-					out->vertex.write(src, -1, 4);
+					out->path.vertex.write(src, -1, 4);
 				} else {
 					const Vec2 src[3] = {v,p,c2};
-					out->vertex.write(src, -1, 3);
+					out->path.vertex.write(src, -1, 3);
 				}
 			} else if (no_zero1) { // v != zero and v2 == zero
-				out->vertex.push(v2);
+				out->path.vertex.push(v2);
 			}
 
 			return c;
@@ -746,8 +748,8 @@ namespace qk {
 		Vec2 d = build(&out, Vec2(x1, x2), Vec2(x1, y1), leftBottom, leftTop, Qk_PI);
 
 		const Vec2 src[6] = { a,b,c,c,d,a };
-		out.vertex.write(src, -1, 6);
-		out.path.close();
+		out.path.vertex.write(src, -1, 6);
+		out.path.path.close();
 
 		Qk_ReturnLocal(out);
 	}
@@ -781,29 +783,24 @@ namespace qk {
 
 		//._.______________._.
 		// \|______________|/
-		auto build = [](Path *out_path, Array<Vec2> *out_vertex, const float border[3], const Vec2 v[6]) {
-			if (border[1] <= 0) return;
-			if (border[0] > 0) { // if left > 0 then add triangle top,left
-				const Vec2 src[3] = {v[0],v[1],v[5]}; // outside,outside,inside
-				out_vertex->write(src, -1, 3);
+		auto build = [](PathVertex *out, const float border[3], const Vec2 v[6]) {
+			if (border[1] > 0) {
+				// outside,outside,inside,inside,inside,outside
+				const Vec2 src[6] = {v[0],v[3],v[5],v[4],v[5],v[3]};
+				out->vertex.write(src, -1, 6);
+				out->path.moveTo(v[0]);
+				out->path.lineTo(v[3]);
+				out->path.lineTo(v[4]);
+				out->path.lineTo(v[5]);
+				out->path.close();
+			} else {
+				out->path.moveTo(v[1]);
+				out->path.lineTo(v[2]);
 			}
-			{ // outside,outside,inside,inside,inside,outside
-				const Vec2 src[6] = {v[1],v[2],v[5],v[4],v[5],v[1]};
-				out_vertex->write(src, -1, 6);
-			}
-			if (border[2] > 1) {
-				const Vec2 src[15] = {v[2],v[3],v[4]};// outside,outside,inside
-				out_vertex->write(src, -1, 3);
-			}
-			out_path->moveTo(v[0]);
-			out_path->lineTo(v[3]);
-			out_path->lineTo(v[4]);
-			out_path->lineTo(v[5]);
-			out_path->close();
 		};
 
 		for (int j = 0; j < 4; j++) {
-			build(rect.path+j, rect.vertex+j, border+j, vertex);
+			build(&rect.left+j,  border+j, vertex);
 			vertex+=6;
 		}
 
@@ -859,10 +856,11 @@ namespace qk {
 		//._.______________._.
 		// \|______________|/
 		auto build = [](
+			Pathv *out,
 			const float border[3], const Vec2 v[6],
 			const Vec2 radius[2], const Vec2 radius_i[2], const Vec2 center[2], float startAngle
 		) {
-			Path path;
+			Path &path = out->path;
 			auto sweep1 = border[1]/(border[0]+border[1]) * Qk_PI_2_1;
 			auto sweep2 = border[2]/(border[2]+border[1]) * Qk_PI_2_1;
 
@@ -876,6 +874,8 @@ namespace qk {
 			} else {
 				path.arcTo(center[1],radius[1], startAngle, -sweep2, false);
 			}
+			if (border[1] <= 0) return;
+
 			if (radius_i[1].x() > 0 && radius_i[1].y() > 0) { // radius
 				path.arcTo(center[1],radius_i[1], startAngle - sweep2, sweep2, false);
 			} else {
@@ -886,22 +886,18 @@ namespace qk {
 			} else {
 				path.lineTo(v[5]);
 			}
-
 			path.close();
 
-			if (path.isNormalized()) {
-				Qk_ReturnLocal(path);
-			} else {
-				return path.normalizedPath();
+			if (!path.isNormalized()) {
+				out->path = path.normalizedPath();
 			}
+			out->vertex = out->path.getTriangles();
 		};
 
 		float angle = Qk_PI_2_1;
 		for (int j = 0; j < 4; j++) {
-			if (border[j+1] != 0) {
-				rect.path[j] = build(border+j, vertex, R+j, iR+j, center+j, angle);
-				rect.vertex[j] = rect.path[j].getTriangles();
-			}
+			auto path = &rect.left + j;
+			build(&rect.left + j, border+j, vertex, R+j, iR+j, center+j, angle);
 			vertex+=6;
 			angle -= Qk_PI_2_1;
 		}

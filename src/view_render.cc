@@ -28,9 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "./render/render.h"
+#include "./filter.h"
 #include "./view_render.h"
 #include "./layout/root.h"
-#include "./filter.h"
 #include "./layout/image.h"
 #include "./layout/flex.h"
 #include "./layout/float.h"
@@ -58,13 +59,13 @@ namespace qk {
 			return rect;
 		}
 
-		const RectPath* makeOutsideRectPath(Box *box, const RectPath *&out) {
+		const RectPath* getOutsideRectPath(Box *box, const RectPath *&out) {
 			if (!out)
 				out = &_render->getRRectPath({-box->_origin_value, box->_client_size}, &box->_radius_left_top);
 			return out;
 		}
 
-		const RectPath* makeInsideRectPath(Box *box, const RectPath *&out) {
+		const RectPath* getInsideRectPath(Box *box, const RectPath *&out) {
 			if (!out) {
 				if (box->_border) {
 					auto rect = insideRect(box);
@@ -81,14 +82,14 @@ namespace qk {
 		}
 
 		void drawBoxColor(Box *box, const RectPath *&outside) {
-			auto rect = makeOutsideRectPath(box, outside);
-			_canvas->drawRectPathColor(*rect,
+			auto rect = getOutsideRectPath(box, outside);
+			_canvas->drawPathvColor(rect->path,
 				box->_background_color.to_color4f_alpha(_opacity), kSrcOver_BlendMode
 			);
 		}
 
 		void drawBoxFill(Box *box, const RectPath *&outside) {
-			auto rect = makeOutsideRectPath(box, outside);
+			auto rect = getOutsideRectPath(box, outside);
 			auto fill = box->_background;
 			do {
 				switch(fill->type()) {
@@ -157,7 +158,7 @@ namespace qk {
 			paint.filterMode = Paint::kLinear_FilterMode;
 			paint.mipmapMode = Paint::kNearest_MipmapMode;
 
-			_canvas->drawRectPath(*rect, paint);
+			_canvas->drawPathv(rect->path, paint);
 		}
 
 		void drawBoxFillLinear(Box *box, FillGradientLinear *fill, const RectPath *rect) {
@@ -207,7 +208,7 @@ namespace qk {
 			Gradient g{&fill->colors(), &fill->positions(), pts[0], pts[1]};
 			paint.setGradient(Paint::kLinear_GradientType, &g);
 
-			_canvas->drawRectPath(*rect, paint);
+			_canvas->drawPathv(rect->path, paint);
 		}
 
 		void drawBoxFillRadial(Box *box, FillGradientRadial *fill, const RectPath *rect) {
@@ -220,13 +221,14 @@ namespace qk {
 			paint.color.set_a(_opacity);
 			Gradient g{&fill->colors(), &fill->positions(), center, radius};
 			paint.setGradient(Paint::kLinear_GradientType, &g);
-			_canvas->drawRectPath(*rect, paint);
+			_canvas->drawPathv(rect->path, paint);
 		}
 
 		void drawBoxShadow(Box *box, const RectPath *&outside) {
 			auto shadow = box->box_shadow();
 			do {
 				if (shadow->type() == Filter::M_SHADOW) {
+					// TODO ...
 				}
 				shadow = shadow->next();
 			} while(shadow);
@@ -237,16 +239,32 @@ namespace qk {
 				box->_border[0].width,box->_border[1].width,
 				box->_border[2].width,box->_border[3].width,
 			};
-			auto outline = _render->getRRectOutlinePath({-box->_origin_value, box->_client_size}, border, &box->_radius_left_top);
-			// outline
+			auto outline = _render->getRRectOutlinePath(
+				{-box->_origin_value, box->_client_size}, border, &box->_radius_left_top, true);
+
+			Paint stroke;
+			stroke.style = Paint::kStroke_Style;
+
+			for (int i = 0; i < 4; i++) {
+				if (border[i] > 0) { // top
+					auto pv = &outline.top + i;
+					if (pv->vertex.length()) {
+						_canvas->drawPathvColor(*pv, box->_border[i].color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+					} else { // stroke
+						stroke.color = box->_border[i].color.to_color4f_alpha(_opacity);
+						stroke.width = border[i];
+						_canvas->drawPath(pv->path, stroke);
+					}
+				}
+			}
 		}
 
 		void drawBoxEnd(Box *box, const RectPath *inside = nullptr) {
 			if (box->_is_clip) {
 				if (box->_first) {
-					_this->makeInsideRectPath(box, inside);
+					getInsideRectPath(box, inside);
 					_canvas->save();
-					_canvas->clipRectPath(*inside, Canvas::kIntersect_ClipOp, true); // clip
+					_canvas->clipPathv(inside->path, Canvas::kIntersect_ClipOp, true); // clip
 					ViewRender::visitView(box);
 					_canvas->restore(); // cancel clip
 				}
@@ -323,7 +341,7 @@ namespace qk {
 		auto src = v->source();
 		if (src && src->load()) {
 			src->mark_as_texture_unsafe(_render);
-			_this->makeInsideRectPath(v, inside);
+			_this->getInsideRectPath(v, inside);
 			auto origin = inside->rect.origin - v->_origin_value;
 			if (v->_border) {
 				origin += Vec2{v->_border[3].width,v->_border[0].width};
@@ -335,7 +353,7 @@ namespace qk {
 			paint.filterMode = Paint::kLinear_FilterMode;
 			paint.mipmapMode = Paint::kNearest_MipmapMode;
 			paint.setImage(src->pixels().val(), { origin, inside->rect.size });
-			_canvas->drawRectPath(*inside, paint);
+			_canvas->drawPathv(inside->path, paint);
 		}
 		if (v->_box_shadow)
 			_this->drawBoxShadow(v, outside);

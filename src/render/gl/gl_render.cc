@@ -491,6 +491,10 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depth_buffer);
 	}
 
+	float GLRender::getAAUnitPixel() {
+		return _unitPixel;
+	}
+
 	GLuint GLRender::makeTexture(cPixel *src, uint32_t id) {
 		return gl_gen_texture(src, id, true);
 	}
