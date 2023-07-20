@@ -136,11 +136,10 @@ namespace qk {
 	};
 
 	// Combination of paths and triangle vertices
-	struct PathVertex {
+	struct Pathv {
 		Path        path;
 		Array<Vec2> vertex; // triangle vertex {x,y}[2]
 	};
-	typedef PathVertex Pathv;
 
 	// Optimizing rect vertex generation algorithm
 	struct Qk_EXPORT RectPath {
