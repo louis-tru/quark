@@ -128,6 +128,7 @@ namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(BaseScroll, Inl) {
 	public:
+		#define _this _inl(this)
 		#define _inl(self) static_cast<BaseScroll::Inl*>(static_cast<BaseScroll*>(self))
 
 		struct Momentum {
@@ -674,19 +675,19 @@ namespace qk {
 		, _lock_h(false), _lock_v(false)
 	{
 		// bind touch event
-		host->add_event_listener(UIEvent_TouchStart, &Inl::touch_start_handle, _inl(this));
-		host->add_event_listener(UIEvent_TouchMove, &Inl::touch_move_handle, _inl(this));
-		host->add_event_listener(UIEvent_TouchEnd, &Inl::touch_end_handle, _inl(this));
-		host->add_event_listener(UIEvent_TouchCancel, &Inl::touch_end_handle, _inl(this));
+		host->add_event_listener(UIEvent_TouchStart, &Inl::touch_start_handle, _this);
+		host->add_event_listener(UIEvent_TouchMove, &Inl::touch_move_handle, _this);
+		host->add_event_listener(UIEvent_TouchEnd, &Inl::touch_end_handle, _this);
+		host->add_event_listener(UIEvent_TouchCancel, &Inl::touch_end_handle, _this);
 		// bind mouse event
-		host->add_event_listener(UIEvent_MouseDown, &Inl::mouse_down_handle, _inl(this));
-		host->add_event_listener(UIEvent_MouseMove, &Inl::mouse_move_handle, _inl(this));
-		host->add_event_listener(UIEvent_MouseUp, &Inl::mouse_up_handle, _inl(this));
+		host->add_event_listener(UIEvent_MouseDown, &Inl::mouse_down_handle, _this);
+		host->add_event_listener(UIEvent_MouseMove, &Inl::mouse_move_handle, _this);
+		host->add_event_listener(UIEvent_MouseUp, &Inl::mouse_up_handle, _this);
 		// Qk_DEBUG("BaseScroll: %d", sizeof(BaseScroll));
 	}
 
 	BaseScroll::~BaseScroll() {
-		_inl(this)->termination_all_task();
+		_this->termination_all_task();
 		if ( _scroll_curve != &ease_out ) {
 			delete _scroll_curve;
 		}
@@ -698,9 +699,9 @@ namespace qk {
 
 	void BaseScroll::scroll_to(Vec2 value, uint64_t duration, cCurve& curve) {
 		_scroll_raw = Vec2(-value.x(), -value.y());
-		Vec2 scroll = _inl(this)->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
+		Vec2 scroll = _this->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
 		if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
-			_inl(this)->scroll_to_valid_scroll(scroll, duration, curve);
+			_this->scroll_to_valid_scroll(scroll, duration, curve);
 		}
 		_host->mark_none(View::kScroll);
 	}
@@ -710,20 +711,20 @@ namespace qk {
 			scroll_to(value, _scroll_duration, *_scroll_curve);
 		} else {
 			_scroll_raw = Vec2(-value.x(), -value.y());
-			_scroll = _inl(this)->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
+			_scroll = _this->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
 			_host->mark_none();
 		}
 	}
 
 	void BaseScroll::set_scroll_x(float value) {
 		_scroll_raw.set_x(-value);
-		_scroll = _inl(this)->catch_valid_scroll( Vec2(-value, _scroll_raw.y()) );
+		_scroll = _this->catch_valid_scroll( Vec2(-value, _scroll_raw.y()) );
 		_host->mark_none(View::kScroll);
 	}
 
 	void BaseScroll::set_scroll_y(float value) {
 		_scroll_raw.set_y(-value);
-		_scroll = _inl(this)->catch_valid_scroll( Vec2(_scroll_raw.x(), -value) );
+		_scroll = _this->catch_valid_scroll( Vec2(_scroll_raw.x(), -value) );
 		_host->mark_none(View::kScroll);
 	}
 
@@ -788,7 +789,7 @@ namespace qk {
 	}
 
 	void BaseScroll::terminate() {
-		_inl(this)->termination_recovery(0);
+		_this->termination_recovery(0);
 	}
 
 	void BaseScroll::set_scroll_curve(cCurve* value) {
@@ -799,7 +800,7 @@ namespace qk {
 
 	void BaseScroll::set_scroll_size(Vec2 size) {
 		if (_scroll_size != size) {
-			_inl(this)->immediate_end_all_task(); // change size immediate task
+			_this->immediate_end_all_task(); // change size immediate task
 			_scroll_size = size;
 		}
 		auto content_size = _host->content_size();
@@ -819,9 +820,9 @@ namespace qk {
 
 	void BaseScroll::solve(uint32_t mark) {
 		if ( mark & View::kScroll ) {
-			if ( !_moved && !_inl(this)->is_task() ) {
+			if ( !_moved && !_this->is_task() ) {
 				// fix scroll value
-				_scroll = _inl(this)->catch_valid_scroll(_scroll_raw);
+				_scroll = _this->catch_valid_scroll(_scroll_raw);
 				_scroll_raw = _scroll;
 			}
 			_host->unmark(View::kScroll);

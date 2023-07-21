@@ -278,16 +278,16 @@ namespace qk {
 		Mat(float m0, float m1, float m2, float m3, float m4, float m5);
 		Mat(const float* values, int length = 6);
 		Mat(Vec2 translate, Vec2 scale, float rotate, Vec2 skew);
-		void translate(float x, float y);
-		void translate_x(float x);
-		void translate_y(float y);
-		void scale(float x, float y);
-		void scale_x(float x);
-		void scale_y(float y);
-		void rotate(float rotate);
-		void skew(float x, float y);
-		void skew_x(float x);
-		void skew_y(float y);
+		Mat& translate(Vec2 v);
+		Mat& translate_x(float x);
+		Mat& translate_y(float y);
+		Mat& scale(Vec2 v);
+		Mat& scale_x(float x);
+		Mat& scale_y(float y);
+		Mat& rotate(float rotate);
+		Mat& skew(Vec2 v);
+		Mat& skew_x(float x);
+		Mat& skew_y(float y);
 		Mat  operator*(const Mat& b) const;
 		Mat& operator*=(const Mat& b);
 		Vec2 operator*(const Vec2& b) const;
@@ -304,25 +304,25 @@ namespace qk {
 		Mat4(const float* values, int length = 16);
 		Mat4(Mat mat);
 
-		void translate(float x, float y, float z);
-		void translate_x(float x);
-		void translate_y(float y);
-		void translate_z(float z);
+		Mat4& translate(Vec3 v);
+		Mat4& translate_x(float x);
+		Mat4& translate_y(float y);
+		Mat4& translate_z(float z);
 
-		void scale(float x, float y, float z);
-		void scale_x(float x);
-		void scale_y(float y);
-		void scale_z(float z);
+		Mat4& scale(Vec3 v);
+		Mat4& scale_x(float x);
+		Mat4& scale_y(float y);
+		Mat4& scale_z(float z);
 
-		void rotate(float x, float y, float z);
-		void rotate_x(float x);
-		void rotate_y(float y);
-		void rotate_z(float z);
+		Mat4& rotate(Vec3 v);
+		Mat4& rotate_x(float x);
+		Mat4& rotate_y(float y);
+		Mat4& rotate_z(float z);
 
-		void skew(float x, float y, float z);
-		void skew_x(float x);
-		void skew_y(float y);
-		void skew_z(float z);
+		Mat4& skew(Vec3 v);
+		Mat4& skew_x(float x);
+		Mat4& skew_y(float y);
+		Mat4& skew_z(float z);
 
 		Mat4 operator*(const Mat4& b) const;
 		Mat4& operator*=(const Mat4& b);

@@ -399,21 +399,21 @@ namespace qk {
 		val[5] = translate[1];
 
 		if (skew[0] != 0.0f || skew[1] != 0.0f) {
-			Mat::skew(skew[0], skew[1]);
+			Mat::skew(skew);
 		}
 	}
 
-	void Mat::translate(float x, float y) {
+	Mat& Mat::translate(Vec2 v) {
 		/*
 		[ a, b, c ]   [ 1, 0, x ]
 		[ d, e, f ] * [ 0, 1, y ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-		val[2] += val[0] * x + val[1] * y;
-		val[5] += val[3] * x + val[4] * y;
+		val[2] += val[0] * v.val[0] + val[1] * v.val[1];
+		val[5] += val[3] * v.val[0] + val[4] * v.val[1];
 	}
 
-	void Mat::translate_x(float x) {
+	Mat& Mat::translate_x(float x) {
 		/*
 		[ a, b, c ]   [ 1, 0, x ]
 		[ e, f, g ] * [ 0, 1, 0 ]
@@ -421,9 +421,10 @@ namespace qk {
 		*/
 		val[2] += val[0] * x;
 		val[5] += val[3] * x;
+		return *this;
 	}
 
-	void Mat::translate_y(float y) {
+	Mat& Mat::translate_y(float y) {
 		/*
 		[ a, b, c ]   [ 1, 0, 0 ]
 		[ e, f, g ] * [ 0, 1, y ]
@@ -431,21 +432,23 @@ namespace qk {
 		*/
 		val[2] += val[1] * y;
 		val[5] += val[4] * y;
+		return *this;
 	}
 
-	void Mat::scale(float x, float y) {
+	Mat& Mat::scale(Vec2 v) {
 		/*
 		[ a, b, c ]   [ x, 0, 0 ]
 		[ d, e, f ] * [ 0, y, 0 ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-		val[0] *= x;
-		val[3] *= x;
-		val[1] *= y;
-		val[4] *= y;
+		val[0] *= v.val[0];
+		val[3] *= v.val[0];
+		val[1] *= v.val[1];
+		val[4] *= v.val[1];
+		return *this;
 	}
 
-	void Mat::scale_x(float x) {
+	Mat& Mat::scale_x(float x) {
 		/*
 		[ a, b, c ]   [ x, 0, 0 ]
 		[ d, e, f ] * [ 0, 1, 0 ]
@@ -453,9 +456,10 @@ namespace qk {
 		*/
 		val[0] *= x;
 		val[3] *= x;
+		return *this;
 	}
 
-	void Mat::scale_y(float y) {
+	Mat& Mat::scale_y(float y) {
 		/*
 		[ a, b, c ]   [ 1, 0, 0 ]
 		[ d, e, f ] * [ 0, y, 0 ]
@@ -463,9 +467,10 @@ namespace qk {
 		*/
 		val[1] *= y;
 		val[4] *= y;
+		return *this;
 	}
 
-	void Mat::rotate(float z) {
+	Mat& Mat::rotate(float z) {
 		/*
 		[ a, b, c ]   [ cos(z),  sin(z), 0 ]
 		[ d, e, f ]   [-sin(z),  cos(z), 0 ]
@@ -479,25 +484,27 @@ namespace qk {
 		val[4] = val[3] * sz + val[4] * cz;
 		val[0] = a;
 		val[3] = d;
+		return *this;
 	}
 
-	void Mat::skew(float x, float y){
+	Mat& Mat::skew(Vec2 v){
 		/*
 		| a, b, c |   |  1,       tan(x),  0 |
 		| d, e, f | * |  tan(y),  1,       0 |
 		| 0, 0, 1 |   |  0,       0,       1 |
 		*/
-		float tx  = tanf(x);
-		float ty  = tanf(y);
+		float tx  = tanf(v.val[0]);
+		float ty  = tanf(v.val[1]);
 		float a   = val[0] + val[1] * ty;
 		float d   = val[3] + val[4] * ty;
 		val[1] += val[0] * tx;
 		val[4] += val[3] * tx;
 		val[0] = a;
 		val[3] = d;
+		return *this;
 	}
 
-	void Mat::skew_x(float x){
+	Mat& Mat::skew_x(float x){
 		/*
 		| a, b, c |   |  1,  tan(x),  0 |
 		| d, e, f | * |  0,  1,       0 |
@@ -506,9 +513,10 @@ namespace qk {
 		float tx = tanf(x);
 		val[1] += val[0] * tx;
 		val[4] += val[3] * tx;
+		return *this;
 	}
 
-	void Mat::skew_y(float y){
+	Mat& Mat::skew_y(float y){
 		/*
 		| a, b, c |   |  1,       0,  0 |
 		| d, e, f | * |  tan(y),  1,  0 |
@@ -517,6 +525,7 @@ namespace qk {
 		float ty = tanf(y);
 		val[0] += val[1] * ty;
 		val[3] += val[4] * ty;
+		return *this;
 	}
 
 	Mat Mat::operator*(const Mat& b) const {
@@ -629,19 +638,20 @@ namespace qk {
 		val[15] = 1;
 	}
 
-	void Mat4::translate(float x, float y, float z) {
+	Mat4& Mat4::translate(Vec3 v) {
 		/*
 		[ a, b, c, d ]   [ 1, 0, 0, x ]
 		[ e, f, g, h ]   [ 0, 1, 0, y ]
 		[ i, j, k, l ] * [ 0, 0, 1, z ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, 1 ]
 		*/
-		val[3] += val[0] * x + val[1] * y + val[2] * z;
-		val[7] += val[4] * x + val[5] * y + val[6] * z;
-		val[11] += val[8] * x + val[9] * y + val[10] * z;
+		val[3] += val[0] * v.x() + val[1] * v.y() + val[2] * v.z();
+		val[7] += val[4] * v.x() + val[5] * v.y() + val[6] * v.z();
+		val[11] += val[8] * v.x() + val[9] * v.y() + val[10] * v.z();
+		return *this;
 	}
 
-	void Mat4::translate_x(float x) {
+	Mat4& Mat4::translate_x(float x) {
 		/*
 		[ a, b, c, d ]   [ 1, 0, 0, x ]
 		[ e, f, g, h ]   [ 0, 1, 0, 0 ]
@@ -651,9 +661,10 @@ namespace qk {
 		val[3] += val[0] * x;
 		val[7] += val[4] * x;
 		val[11] += val[8] * x;
+		return *this;
 	}
 
-	void Mat4::translate_y(float y) {
+	Mat4& Mat4::translate_y(float y) {
 		/*
 		[ a, b, c, d ]   [ 1, 0, 0, 0 ]
 		[ e, f, g, h ]   [ 0, 1, 0, y ]
@@ -663,9 +674,10 @@ namespace qk {
 		val[3] += val[1] * y;
 		val[7] += val[5] * y;
 		val[11] += val[9] * y;
+		return *this;
 	}
 
-	void Mat4::translate_z(float z) {
+	Mat4& Mat4::translate_z(float z) {
 		/*
 		[ a, b, c, d ]   [ 1, 0, 0, 0 ]
 		[ e, f, g, h ]   [ 0, 1, 0, 0 ]
@@ -675,27 +687,29 @@ namespace qk {
 		val[3] += val[2] * z;
 		val[7] += val[6] * z;
 		val[11] += val[10] * z;
+		return *this;
 	}
 
-	void Mat4::scale(float x, float y, float z) {
+	Mat4& Mat4::scale(Vec3 v) {
 		/*
 		[ a, b, c, d ]   [ x, 0, 0, 0 ]
 		[ e, f, g, h ]   [ 0, y, 0, 0 ]
 		[ i, j, k, l ] * [ 0, 0, z, 0 ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, 1 ]
 		*/
-		val[0] *= x;
-		val[4] *= x;
-		val[8] *= x;
-		val[1] *= y;
-		val[5] *= y;
-		val[9] *= y;
-		val[2] *= z;
-		val[6] *= z;
-		val[10] *= z;
+		val[0] *= v.x();
+		val[4] *= v.x();
+		val[8] *= v.x();
+		val[1] *= v.y();
+		val[5] *= v.y();
+		val[9] *= v.y();
+		val[2] *= v.z();
+		val[6] *= v.z();
+		val[10] *= v.z();
+		return *this;
 	}
 
-	void Mat4::scale_x(float x) {
+	Mat4& Mat4::scale_x(float x) {
 		/*
 		[ a, b, c, d ]   [ x, 0, 0, 0 ]
 		[ e, f, g, h ]   [ 0, 1, 0, 0 ]
@@ -707,7 +721,7 @@ namespace qk {
 		val[8] *= x;
 	}
 
-	void Mat4::scale_y(float y) {
+	Mat4& Mat4::scale_y(float y) {
 		/*
 		[ a, b, c, d ]   [ 1, 0, 0, 0 ]
 		[ e, f, g, h ]   [ 0, y, 0, 0 ]
@@ -719,7 +733,7 @@ namespace qk {
 		val[9] *= y;
 	}
 
-	void Mat4::scale_z(float z) {
+	Mat4& Mat4::scale_z(float z) {
 		/*
 		[ a, b, c, d ]   [ 1, 0, 0, 0 ]
 		[ e, f, g, h ]   [ 0, 1, 0, 0 ]
@@ -731,7 +745,7 @@ namespace qk {
 		val[10] *= z;
 	}
 
-	void Mat4::rotate(float x, float y, float z) {
+	Mat4& Mat4::rotate(Vec3 v) {
 		
 		// ZXY
 		/*
@@ -749,12 +763,12 @@ namespace qk {
 		| 0, 0, 0, 1 |   |  0,      0,               0,              1 |
 		*/
 
-		float cx = cosf(x);
-		float sx = sinf(x);
-		float cy = cosf(-y);
-		float sy = sinf(-y);
-		float cz = cosf(z);
-		float sz = sinf(z);
+		float cx = cosf(v.x());
+		float sx = sinf(v.x());
+		float cy = cosf(-v.y());
+		float sy = sinf(-v.y());
+		float cz = cosf(v.z());
+		float sz = sinf(v.z());
 
 		// use ZXY
 		float m0 = cy * cz + sx * sy * sz;
@@ -790,9 +804,10 @@ namespace qk {
 		val[2] = c;
 		val[6] = g;
 		val[10] = k;
+		return *this;
 	}
 
-	void Mat4::rotate_x(float x) {
+	Mat4& Mat4::rotate_x(float x) {
 		/*
 		[ a, b, c, d ]   [ 1,  0,      0,      0 ]
 		[ e, f, g, h ]   [ 0,  cos(x), sin(x), 0 ]
@@ -814,9 +829,10 @@ namespace qk {
 		val[1] = b;
 		val[5] = f;
 		val[9] = j;
+		return *this;
 	}
 
-	void Mat4::rotate_y(float y) {
+	Mat4& Mat4::rotate_y(float y) {
 		/*
 		[ a, b, c, d ]   [ cos(y), 0, -sin(y), 0 ]
 		[ e, f, g, h ]   [ 0,      1, 0,       0 ]
@@ -837,9 +853,10 @@ namespace qk {
 		val[0] = a;
 		val[4] = e;
 		val[8] = i;
+		return *this;
 	}
 
-	void Mat4::rotate_z(float z) {
+	Mat4& Mat4::rotate_z(float z) {
 		/*
 		[ a, b, c, d ]   [ cos(z),  sin(z), 0, 0 ]
 		[ e, f, g, h ]   [-sin(z),  cos(z), 0, 0 ]
@@ -860,13 +877,14 @@ namespace qk {
 		val[0] = a;
 		val[4] = e;
 		val[8] = i;
+		return *this;
 	}
 
-	void Mat4::skew(float x, float y, float z) {
+	Mat4& Mat4::skew(Vec3 v) {
 		
-		float tx = tanf(x);
-		float ty = tanf(y);
-		float tz = tanf(z);
+		float tx = tanf(v.x());
+		float ty = tanf(v.y());
+		float tz = tanf(v.z());
 		
 		/*
 		| a, b, c, d |   |  1,       tan(x),   tan(x),  0 |
@@ -896,9 +914,11 @@ namespace qk {
 		val[2] = c;
 		val[6] = g;
 		val[10] = k;
+
+		return *this;
 	}
 
-	void Mat4::skew_x(float x) {
+	Mat4& Mat4::skew_x(float x) {
 		
 		/*
 		| a, b, c, d |   |  1,  tan(x),   tan(x),  0 |
@@ -916,9 +936,11 @@ namespace qk {
 		val[2] += val[0] * tx;
 		val[6] += val[4] * tx;
 		val[10] += val[8] * tx;
+
+		return *this;
 	}
 
-	void Mat4::skew_y(float y) {
+	Mat4& Mat4::skew_y(float y) {
 		/*
 		| a, b, c, d |   |  1,       0,        0,            0 |
 		| e, f, g, h |   |  tan(y),  1,        tan(y),       0 |
@@ -935,9 +957,11 @@ namespace qk {
 		val[2] += val[1] * ty;
 		val[6] += val[5] * ty;
 		val[10] += val[9] * ty;
+
+		return *this;
 	}
 
-	void Mat4::skew_z(float z) {
+	Mat4& Mat4::skew_z(float z) {
 		/*
 		| a, b, c, d |   |  1,       0,              0,       0 |
 		| e, f, g, h |   |  0,       1,              0,       0 |
@@ -954,6 +978,8 @@ namespace qk {
 		val[1] += val[2] * tz;
 		val[5] += val[6] * tz;
 		val[9] += val[10] * tz;
+
+		return *this;
 	}
 
 	Mat4 Mat4::operator*(const Mat4& b) const {

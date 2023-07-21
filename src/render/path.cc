@@ -783,7 +783,7 @@ namespace qk {
 
 		//._.______________._.
 		// \|______________|/
-		auto build = [](PathVertex *out, const float border[3], const Vec2 v[6]) {
+		auto build = [](Pathv *out, const float border[3], const Vec2 v[6]) {
 			if (border[1] > 0) {
 				// outside,outside,inside,inside,inside,outside
 				const Vec2 src[6] = {v[0],v[3],v[5],v[4],v[5],v[3]};

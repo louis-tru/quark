@@ -60,18 +60,18 @@ namespace qk {
 		Qk_DEFINE_PROP(float, scrollbar_margin);
 		Qk_DEFINE_PROP(uint64_t, scroll_duration);
 		Qk_DEFINE_PROP(cCurve*, scroll_curve);
-		// constructor
-		BaseScroll(Box *host);
-		virtual ~BaseScroll();
 		// define methods
 		void scroll_to(Vec2 value, uint64_t duration);
 		void scroll_to(Vec2 value, uint64_t duration, cCurve& curve);
 		void terminate();
 	protected:
+		BaseScroll(Box *host);
+		~BaseScroll();
 		void set_scroll_size(Vec2 size);
 		void solve(uint32_t mark);
 	private:
 		class ScrollBox;
+		friend class ViewRender;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
 
@@ -86,8 +86,6 @@ namespace qk {
 		bool _moved;               // 受外力移动中
 		bool _scroll_h, _scroll_v; // 是否已激活水平与垂直滚动
 		bool _lock_h, _lock_v;
-
-		friend class SkiaRender;
 	};
 
 	class Qk_EXPORT Scroll: public FloatLayout, public BaseScroll {

@@ -84,6 +84,9 @@ namespace qk {
 		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint& paint) = 0;
+		/**
+		 * @dev drawTextBlob Draw with text baseline aligned
+		*/
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float fontSize, const Paint& paint) = 0;
 	protected:
 		Canvas() = default;

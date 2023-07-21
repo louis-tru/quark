@@ -174,12 +174,12 @@ namespace qk {
 	}
 
 	void GLCanvas::translate(float x, float y) {
-		_curState->matrix.translate(x, y);
+		_curState->matrix.translate({x, y});
 		setMatrixBuffer(_curState->matrix);
 	}
 
 	void GLCanvas::scale(float x, float y) {
-		_curState->matrix.scale(x, y);
+		_curState->matrix.scale({x, y});
 		setMatrixBuffer(_curState->matrix);
 	}
 
@@ -546,6 +546,7 @@ namespace qk {
 		Sp<ImageSource> img;
 		auto tf = glyphs.typeface();
 		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _scale, offset, &img);
+		img->mark_as_texture_unsafe(_backend);
 		auto scale_1 = drawTextImage(*img, bound.y(), _scale, origin, paint);
 		return scale_1 * bound.x();
 	}
