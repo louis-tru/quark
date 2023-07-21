@@ -528,6 +528,8 @@ namespace qk {
 				}
 			} // if (v->text_color().value.a())
 		}
+		
+		ViewRender::visitView(v);
 	}
 
 	void ViewRender::visitTextarea(Textarea* textarea) {
