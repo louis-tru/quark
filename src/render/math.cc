@@ -411,6 +411,7 @@ namespace qk {
 		*/
 		val[2] += val[0] * v.val[0] + val[1] * v.val[1];
 		val[5] += val[3] * v.val[0] + val[4] * v.val[1];
+		return *this;
 	}
 
 	Mat& Mat::translate_x(float x) {
