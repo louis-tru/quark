@@ -227,23 +227,16 @@ namespace qk {
 	}
 
 	void Path::arcTo(Vec2 center, Vec2 radius, float startAngle, float sweepAngle, bool useCenter) {
-		if (radius.is_zero()) return;
-		if (sweepAngle == 0) return;
-
-		float rx = radius.x();
-		float ry = radius.y();
 		float cx = center.x();
 		float cy = center.y();
 
-		float n = ceilf(abs(sweepAngle) / Qk_PI_2_1);
-		float sweep = sweepAngle / n;
-		float magic =
-			sweep == Qk_PI_2_1 ? magicCircle:
-			sweep == -Qk_PI_2_1 ? -magicCircle:
-			tanf(sweep / 4.0f) * 1.3333333333333333f/*4.0 / 3.0*/;
-
+		if (radius.is_zero()) {
+			addTo(Vec2(cx, cy));
+			return;
+		}
 		startAngle = -startAngle;
-
+		float rx = radius.x();
+		float ry = radius.y();
 		float x0 = cosf(startAngle);
 		float y0 = sinf(startAngle);
 
@@ -255,6 +248,17 @@ namespace qk {
 		} else {
 			addTo(start);
 		}
+
+		if (sweepAngle == 0) {
+			return;
+		}
+
+		float n = ceilf(abs(sweepAngle) / Qk_PI_2_1);
+		float sweep = sweepAngle / n;
+		float magic =
+			sweep == Qk_PI_2_1 ? magicCircle:
+			sweep == -Qk_PI_2_1 ? -magicCircle:
+			tanf(sweep / 4.0f) * 1.3333333333333333f/*4.0 / 3.0*/;
 
 		for (int i = 0, j = n; i < j; i++) {
 			startAngle -= sweep;
@@ -380,12 +384,13 @@ namespace qk {
 						if (len == 0) {
 							tmpV.push(Vec2(0)); len=1; // use Vec2(0,0) start point
 						}
-						tmpV.push(*pts++); len++;
+						tmpV.push(*pts++);
+						len++;
 						break;
 					case kVerb_Close: // close
 						// Qk_ASSERT(verb == kVerb_Close);
 						if (len) {
-							tmpV.push(tmpV[tmpV.length() - len++]);
+							// tmpV.push(tmpV[tmpV.length() - len++]);
 							tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
 							len = 0;
 						}
@@ -398,7 +403,7 @@ namespace qk {
 				tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
 			}
 		}
-		
+
 		Array<Vec2> vertexs;
 
 		// Convert to convex contour vertex data
@@ -698,62 +703,60 @@ namespace qk {
 		RectPath out;
 		out.rect = rect;
 
-		const float x1 = rect.origin.x(),    y1 = rect.origin.x();
+		const float x1 = rect.origin.x(),    y1 = rect.origin.y();
 		const float x2 = x1 + rect.size.x(), y2 = y1 + rect.size.y();
 		const float x_5 = rect.size.x() * 0.5, y_5 = rect.size.y() * 0.5;
 
-		const Vec2 leftTop = Vec2(Float::min(r.leftTop.x(), x_5), Float::min(r.leftTop.y(), y_5));
-		const Vec2 rightTop = Vec2(-Float::min(r.rightTop.x(), x_5), Float::min(r.rightTop.y(), y_5));
-		const Vec2 rightBottom = Vec2(-Float::min(r.rightBottom.x(), x_5), -Float::min(r.rightBottom.y(), y_5));
-		const Vec2 leftBottom = Vec2(Float::min(r.leftBottom.x(), x_5), -Float::min(r.leftBottom.y(), y_5));
+		const Vec2 lt = Vec2(Float::min(r.leftTop.x(), x_5), Float::min(r.leftTop.y(), y_5));
+		const Vec2 rt = Vec2(Float::min(r.rightTop.x(), x_5), Float::min(r.rightTop.y(), y_5));
+		const Vec2 rb = Vec2(Float::min(r.rightBottom.x(), x_5), Float::min(r.rightBottom.y(), y_5));
+		const Vec2 lb = Vec2(Float::min(r.leftBottom.x(), x_5), Float::min(r.leftBottom.y(), y_5));
 
-		out.path.path.moveTo(Vec2(x1, leftTop.is_zero_axis() ? y1: y1 + leftTop.y()));
+		auto build = [](RectPath *out, const Vec2 c, Vec2 radius, Vec2 v, Vec2 v2, float startAngle) {
+			bool noZero = radius[0] > 0 && radius[1] > 0;
 
-		auto build = [](RectPath *out, Vec2 v, Vec2 v2, Vec2 radius, Vec2 radius2, float startAngle) {
-			bool no_zero1  = radius[0] > 0 && radius[1] > 0;
-			bool no_zero2 = radius2[0] > 0 && radius2[1] > 0;
-			const Vec2 c(v + radius);
-
-			if (no_zero1) {
-				int   sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
-				float angleStep = -Qk_PI_2_1 / (sample - 1);
+			if (noZero) {
+				const int   sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
+				const float angleStep = -Qk_PI_2_1 / (sample - 1);
 				float angle = startAngle + Qk_PI_2_1;
+				const Vec2 start(
+					c.x() + cosf(angle) * radius.x(),
+					c.y() - sinf(angle) * radius.y()
+				);
+				out->path.vertex.push(start);
+				out->path.path.addTo(start);
 
-				for (int i = 0; i < sample; i++) {
-					const Vec2 p(c.x() - cosf(angle) * radius.x(), c.x() + sinf(angle) * radius.y());
-					const Vec2 src[3] = { p,c,p };
-					out->path.vertex.write(src, -1, i == 0 ? 2: 3); // add triangle vertex
+				for (int i = 1; i < sample; i++) {
+					const Vec2 p(
+						c.x() + cosf(angle) * radius.x(),
+						c.y() - sinf(angle) * radius.y()
+					);
+					const Vec2 src[3] = { p,start,p };
+					out->path.vertex.write(src, -1, 3); // add triangle vertex
 					out->path.path.lineTo(p);
 					angle += angleStep;
 				}
+				const Vec2 src[2] = { v2,start };
+				out->path.vertex.write(src, -1, 2);
 			} else {
-				out->path.path.lineTo(v);
+				out->path.path.addTo(v);
 			}
-
-			if (no_zero2) { // no zero
-				const Vec2 c2(v2 + radius2);
-				const Vec2 p(c2.x() - cosf(startAngle) * radius2.x(), c2.y () + sinf(startAngle) * radius2.y());
-				if (no_zero1) { // no zero
-					const Vec2 src[4] = {p,p,c2,c};
-					out->path.vertex.write(src, -1, 4);
-				} else {
-					const Vec2 src[3] = {v,p,c2};
-					out->path.vertex.write(src, -1, 3);
-				}
-			} else if (no_zero1) { // v != zero and v2 == zero
-				out->path.vertex.push(v2);
-			}
-
-			return c;
 		};
 
-		Vec2 a = build(&out, Vec2(x1, y1), Vec2(x2, y1), leftTop, rightTop, Qk_PI_2_1);
-		Vec2 b = build(&out, Vec2(x2, y1), Vec2(x2, y2), rightTop, rightBottom, 0);
-		Vec2 c = build(&out, Vec2(x2, y2), Vec2(x1, y2), rightBottom, leftBottom, -Qk_PI_2_1);
-		Vec2 d = build(&out, Vec2(x1, x2), Vec2(x1, y1), leftBottom, leftTop, Qk_PI);
+		const Vec2 v2[6] = {
+			{x2-rt.x(),y1}, // 0,1,2
+			{x2,y2-rb.y()},
+			{x1+lb.x(),y2},
+			{x1,y1+lt.y()}, // 3,0,2
+			{x2-rt.x(),y1},
+			{x1+lb.x(),y2},
+		};
+		build(&out, {x1+lt.x(),y1+lt.y()},  lt, {x1,y1}, v2[0], Qk_PI_2_1);
+		build(&out, {x2-rt.x(), y1+rt.y()}, rt, {x2,y1}, v2[1], 0);
+		build(&out, {x2-rb.x(), y2-rb.y()}, rb, {x2,y2}, v2[2], -Qk_PI_2_1);
+		build(&out, {x1+lb.x(), y2-lb.y()}, lb, {x1,y2}, v2[3], Qk_PI);
 
-		const Vec2 src[6] = { a,b,c,c,d,a };
-		out.path.vertex.write(src, -1, 6);
+		out.path.vertex.write(v2, -1, 6); // inl quadrilateral
 		out.path.path.close();
 
 		Qk_ReturnLocal(out);
@@ -776,7 +779,7 @@ namespace qk {
 		const float i_x2 = i_x1 + i.size.x(), i_y2 = i_y1 + i.size.y();
 
 		const float border[6] = { // left,top,right,bottom,left,top
-			i_x1 - o_x1, i_y1 - o_y1, o_x2 - i_x2, o_y2 - i_y2, i_x1 - o_x1, i_y1 - o_y1,
+			i_x1-o_x1, i_y1-o_y1, o_x2-i_x2, o_y2-i_y2, i_x1-o_x1, i_y1-o_y1,
 		};
 		const float vertexfv[48] = {
 			o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1,// vertex,top
@@ -822,8 +825,8 @@ namespace qk {
 		const float o_x2 = o_x1 + o.size.x(), o_y2 = o_y1 + o.size.y();
 		const float i_x2 = i_x1 + i.size.x(), i_y2 = i_y1 + i.size.y();
 		// border width
-		const float border[6] = { // left,top,right,bottom,left,top
-			o_x1-i_x1, o_y1-i_y1, i_x2-o_x2, i_y2-o_y2, o_x1-i_x1, o_y1-i_y1,
+		float border[6] = { // left,top,right,bottom,left,top
+			Float::max(i_x1-o_x1,0), Float::max(i_y1-o_y1,0), Float::max(o_x2-i_x2,0), Float::max(o_y2-i_y2,0),
 		};
 		const float vertexfv[48] = {
 			o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1,// vertex,top
@@ -857,6 +860,8 @@ namespace qk {
 		R[4] = R[0];
 		iR[4] = iR[0];
 		center[4] = center[0];
+		border[4] = border[0];
+		border[5] = border[1];
 
 		//._.______________._.
 		// \|______________|/
@@ -866,8 +871,16 @@ namespace qk {
 			const Vec2 radius[2], const Vec2 radius_i[2], const Vec2 center[2], float startAngle
 		) {
 			Path &path = out->path;
+
+			if (border[1] == 0) {
+				Vec2 xy(cosf(-startAngle), sinf(-startAngle));
+				path.moveTo(center[0] + xy * radius[0]);
+				path.lineTo(center[1] + xy * radius[1]);
+				return;
+			}
+
 			auto sweep1 = border[1]/(border[0]+border[1]) * Qk_PI_2_1;
-			auto sweep2 = border[2]/(border[2]+border[1]) * Qk_PI_2_1;
+			auto sweep2 = border[1]/(border[2]+border[1]) * Qk_PI_2_1;
 
 			if (radius[0].is_zero_axis()) {
 				path.moveTo(v[0]);
@@ -879,8 +892,6 @@ namespace qk {
 			} else {
 				path.arcTo(center[1],radius[1], startAngle, -sweep2, false);
 			}
-			if (border[1] <= 0) return;
-
 			if (radius_i[1].x() > 0 && radius_i[1].y() > 0) { // radius
 				path.arcTo(center[1],radius_i[1], startAngle - sweep2, sweep2, false);
 			} else {

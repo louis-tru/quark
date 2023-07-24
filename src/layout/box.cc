@@ -465,7 +465,7 @@ namespace qk {
 
 	void Box::set_box_shadow(BoxShadow* val) {
 		if (_box_shadow != val) {
-			_box_shadow = static_cast<BoxShadow*>(Filter::assign(_background, val));
+			_box_shadow = static_cast<BoxShadow*>(Filter::assign(_box_shadow, val));
 			mark_none();
 		}
 	}

@@ -317,6 +317,7 @@ namespace qk {
 		//auto color4f = color.to_color4f_alpha(alpha);
 		glUniform4fv(_backend->_color.color, 1, color.val);
 		glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
+		// glDrawArrays(GL_LINES, 0, path.vertex.length());
 		if (antiAlias) {
 			auto &strip = _backend->getSDFStrokeTriangleStrip(path.path, _unitPixel*0.6);
 			drawColorSDF(strip, color, GL_TRIANGLE_STRIP, aa_sdf_range);

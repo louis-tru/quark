@@ -132,10 +132,10 @@ namespace qk {
 		 * @param rect {Rect} outside border rect
 		 * @param border {float[4]} inside border width top,right,bottom,left
 		 * @param radius {float[4]} outside border radius leftTop,rightTop,rightBottom,leftBottom
-		 * @param antiAlias {bool} anti alias compensate
+		 * @param fixAA {bool} anti alias compensate
 		 */
 		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4],
-			const float radius[4], bool antiAlias);
+			const float radius[4], bool fixAA);
 
 	protected:
 		RenderBackend(Options opts);

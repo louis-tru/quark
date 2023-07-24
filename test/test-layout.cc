@@ -196,19 +196,19 @@ void layout(Event<>& evt, Application* app) {
 	auto img2 = r->append_new<ImageTest>();
 
 	// layout_text(r);
-	layout_text(flow);
-	//layout_input(flex);
-	layout_scroll(flex);
+	//layout_text(flow);
+	// layout_input(flex);
+	//layout_scroll(flex);
 
-	flex->set_background_color(Color(255,0,0,255));
+	// flex->set_background_color(Color(255,0,0,255));
 	//flex->set_fill(New<FillImage>(fs_resources("bench/img/21.jpeg"), FillImage::Init{
 	//	.size_x={100, FillSizeType::PIXEL},
 	// 	.position_x={0, FillPositionType::CENTER},
 	// 	.position_y={0, FillPositionType::CENTER},
 	//}));
 	//flex->set_fill(new FillGradientRadial({ 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 0, 255, 255), Color(0, 255, 255, 255) }));
-	// flex->set_background(new FillGradientLinear(0, { 0, 0.5, 1 },
-	// 	{ Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) })
+	// flex->set_background(new FillGradientRadial({ 0, 0.5, 1 },
+	// 	{ Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 0, 255) })
 	// );
 	flex->set_box_shadow(New<BoxShadow>(10, 10, 5, Color(0,0,0,255)));
 	//flex->set_effect(New<BoxShadow>(10, 10, 5, Color(255,0,0,255)));
@@ -218,27 +218,33 @@ void layout(Event<>& evt, Application* app) {
 	flex->set_margin_top(10);
 	flex->set_margin_right(10);
 	flex->set_margin_bottom(20);
+
 	flex->set_padding_left(20);
 	flex->set_padding_top(20);
 	flex->set_padding_right(20);
 	flex->set_padding_bottom(20);
+
 	flex->set_radius_left_top(40);
 	flex->set_radius_right_top(20);
 	flex->set_radius_right_bottom(40);
 	flex->set_radius_left_bottom(40);
-	flex->set_border_width_top(10);
+
+	flex->set_border_width_top(1);
 	flex->set_border_width_right(20);
-	flex->set_border_width_bottom(10);
+	flex->set_border_width_bottom(1);
 	flex->set_border_width_left(20);
-	flex->set_border_color_top(Color(0,0,255,255));
-	flex->set_border_color_right(Color(0,0,255,255));
-	flex->set_border_color_bottom(Color(0,0,255,255));
-	flex->set_border_color_left(Color(0,0,255,255));
+
+	flex->set_border_color_top(Color(255,0,0,255));
+	flex->set_border_color_right(Color(255,0,0,255));
+	flex->set_border_color_bottom(Color(255,0,0,255));
+	flex->set_border_color_left(Color(255,0,0,255));
+
 	//flex->set_opacity(0.5);
 	//flex->set_rotate(10);
 	//flex->set_skew(Vec2(0,1));
 	//flex->set_translate(Vec2(100, 0));
 	//
+	return;
 	flow->set_width({ 50, BoxSizeKind::PIXEL });
 	flow->set_height({ 50, BoxSizeKind::PIXEL });
 	flow->set_background_color(Color(0,0,255,255));

@@ -154,13 +154,13 @@ namespace qk {
 		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, radius));
 	}
 
-	const RectOutlinePath& RenderBackend::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4], bool antiAlias) {
+	const RectOutlinePath& RenderBackend::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4], bool fixAA) {
 		Hash5381 hash;
+		hash.updatefv4(rect.origin.val);
 		hash.updatefv4(border);
 		hash.updatefv4(radius);
-		auto up = getAAUnitPixel();
-		if (antiAlias) {
-			hash.updatef(up);
+		if (fixAA) {
+			hash.updatef(getAAUnitPixel());
 		}
 		const RectOutlinePath *out;
 		if (_RectOutlinePathCache.get(hash.hashCode(), out)) return *out;
@@ -171,7 +171,8 @@ namespace qk {
 			rect.origin + Vec2{border[3],border[0]},
 			rect.size - Vec2{border[3]+border[1],border[0]+border[2]}
 		};
-		if (antiAlias) { // anti alias compensate
+		if (fixAA) { // anti alias compensate
+			auto up = getAAUnitPixel();
 			auto up2_1 = up * 0.5;
 			iR.origin -= up2_1;
 			iR.size += up;
