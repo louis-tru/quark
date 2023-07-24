@@ -167,24 +167,22 @@ namespace qk {
 		if (_RectOutlinePathCache.length() >= 1024) _RectOutlinePathCache.clear();
 
 		auto oR{rect};
-		Rect iR{
-			rect.origin + Vec2{border[3],border[0]},
-			rect.size - Vec2{border[3]+border[1],border[0]+border[2]}
-		};
+		float Bo[4]{border[0],border[1],border[2],border[3]};
 		if (fixAA) { // anti alias compensate
 			auto up = getAAUnitPixel();
-			auto up2_1 = up * 0.5;
-			iR.origin -= up2_1;
-			iR.size += up;
-			oR.origin += up2_1;
+			oR.origin += (up * 0.5);
 			oR.size -= up;
+			Bo[0] -= up;
+			Bo[1] -= up;
+			Bo[2] -= up;
+			Bo[3] -= up;
 		}
 
 		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
 		{
-			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(oR, iR));
+			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(oR, Bo));
 		} else {
-			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRRectOutline(oR, iR, {
+			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRRectOutline(oR, Bo, {
 				radius[0],radius[1],radius[2],radius[3] 
 			}));
 		}

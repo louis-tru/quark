@@ -677,8 +677,7 @@ namespace qk {
 	// ------------------- R e c t . O u t l i n e . P a t h -------------------
 
 	RectPath RectPath::MakeRect(const Rect &rect) {
-		RectPath out;
-		out.rect = rect;
+		RectPath out{.rect=rect};
 		float x2 = rect.origin.x() + rect.size.x();
 		float y2 = rect.origin.y() + rect.size.y();
 		// path
@@ -700,36 +699,34 @@ namespace qk {
 	}
 
 	RectPath RectPath::MakeRRect(const Rect &rect, const Path::BorderRadius &r) {
-		RectPath out;
-		out.rect = rect;
+		RectPath out{.rect=rect};
 
 		const float x1 = rect.origin.x(),    y1 = rect.origin.y();
 		const float x2 = x1 + rect.size.x(), y2 = y1 + rect.size.y();
 		const float x_5 = rect.size.x() * 0.5, y_5 = rect.size.y() * 0.5;
 
-		const Vec2 lt = Vec2(Float::min(r.leftTop.x(), x_5), Float::min(r.leftTop.y(), y_5));
-		const Vec2 rt = Vec2(Float::min(r.rightTop.x(), x_5), Float::min(r.rightTop.y(), y_5));
-		const Vec2 rb = Vec2(Float::min(r.rightBottom.x(), x_5), Float::min(r.rightBottom.y(), y_5));
-		const Vec2 lb = Vec2(Float::min(r.leftBottom.x(), x_5), Float::min(r.leftBottom.y(), y_5));
+		const Vec2 lt(Qk_MIN(r.leftTop.x(), x_5), Qk_MIN(r.leftTop.y(), y_5));
+		const Vec2 rt(Qk_MIN(r.rightTop.x(), x_5), Qk_MIN(r.rightTop.y(), y_5));
+		const Vec2 rb(Qk_MIN(r.rightBottom.x(), x_5), Qk_MIN(r.rightBottom.y(), y_5));
+		const Vec2 lb(Qk_MIN(r.leftBottom.x(), x_5), Qk_MIN(r.leftBottom.y(), y_5));
 
-		auto build = [](RectPath *out, const Vec2 c, Vec2 radius, Vec2 v, Vec2 v2, float startAngle) {
-			bool noZero = radius[0] > 0 && radius[1] > 0;
-
-			if (noZero) {
+		auto build = [](RectPath *out, Vec2 center, Vec2 radius, Vec2 v, Vec2 v2, float startAngle) {
+			if (radius[0] > 0 && radius[1] > 0) { // no zero
 				const int   sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
 				const float angleStep = -Qk_PI_2_1 / (sample - 1);
 				float angle = startAngle + Qk_PI_2_1;
+				center += v;
 				const Vec2 start(
-					c.x() + cosf(angle) * radius.x(),
-					c.y() - sinf(angle) * radius.y()
+					center.x() + cosf(angle) * radius.x(),
+					center.y() - sinf(angle) * radius.y()
 				);
 				out->path.vertex.push(start);
 				out->path.path.addTo(start);
 
 				for (int i = 1; i < sample; i++) {
 					const Vec2 p(
-						c.x() + cosf(angle) * radius.x(),
-						c.y() - sinf(angle) * radius.y()
+						center.x() + cosf(angle) * radius.x(),
+						center.y() - sinf(angle) * radius.y()
 					);
 					const Vec2 src[3] = { p,start,p };
 					out->path.vertex.write(src, -1, 3); // add triangle vertex
@@ -751,10 +748,10 @@ namespace qk {
 			{x2-rt.x(),y1},
 			{x1+lb.x(),y2},
 		};
-		build(&out, {x1+lt.x(),y1+lt.y()},  lt, {x1,y1}, v2[0], Qk_PI_2_1);
-		build(&out, {x2-rt.x(), y1+rt.y()}, rt, {x2,y1}, v2[1], 0);
-		build(&out, {x2-rb.x(), y2-rb.y()}, rb, {x2,y2}, v2[2], -Qk_PI_2_1);
-		build(&out, {x1+lb.x(), y2-lb.y()}, lb, {x1,y2}, v2[3], Qk_PI);
+		build(&out, {lt.x(), lt.y()}, lt, {x1,y1}, v2[0], Qk_PI_2_1);
+		build(&out, {-rt.x(), rt.y()}, rt, {x2,y1}, v2[1], 0);
+		build(&out, {-rb.x(), -rb.y()}, rb, {x2,y2}, v2[2], -Qk_PI_2_1);
+		build(&out, {lb.x(), -lb.y()}, lb, {x1,y2}, v2[3], Qk_PI);
 
 		out.path.vertex.write(v2, -1, 6); // inl quadrilateral
 		out.path.path.close();
@@ -762,25 +759,14 @@ namespace qk {
 		Qk_ReturnLocal(out);
 	}
 
-	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &o, const Rect &i) {
-		RectOutlinePath rect;
+	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &rect, const float border[4]) {
+		RectOutlinePath outline;
 
-		/* rect outline border
-			._.______________._.
-			|\|______________|/|
-			|-|              |-|
-			| |              | |
-			|_|______________|_|
-			|/|______________|\|
-		*/
-		const float o_x1 = o.origin.x(),      o_y1 = o.origin.y();
-		const float i_x1 = i.origin.x(),      i_y1 = i.origin.y();
-		const float o_x2 = o_x1 + o.size.x(), o_y2 = o_y1 + o.size.y();
-		const float i_x2 = i_x1 + i.size.x(), i_y2 = i_y1 + i.size.y();
+		const float o_x1 = rect.origin.x(),      o_y1 = rect.origin.y();
+		const float i_x1 = o_x1 + border[3],     i_y1 = o_y1 + border[0];
+		const float o_x2 = o_x1 + rect.size.x(), o_y2 = o_y1 + rect.size.y();
+		const float i_x2 = o_x2 - border[1],     i_y2 = o_y2 - border[2];
 
-		const float border[6] = { // left,top,right,bottom,left,top
-			i_x1-o_x1, i_y1-o_y1, o_x2-i_x2, o_y2-i_y2, i_x1-o_x1, i_y1-o_y1,
-		};
 		const float vertexfv[48] = {
 			o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1,// vertex,top
 			o_x2,o_y1,o_x2,i_y1,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y1,// vertex,right
@@ -791,8 +777,8 @@ namespace qk {
 
 		//._.______________._.
 		// \|______________|/
-		auto build = [](Pathv *out, const float border[3], const Vec2 v[6]) {
-			if (border[1] > 0) {
+		auto build = [](Pathv *out, const float border, const Vec2 v[6]) {
+			if (border > 0) {
 				// outside,outside,inside,inside,inside,outside
 				const Vec2 src[6] = {v[0],v[3],v[5],v[4],v[5],v[3]};
 				out->vertex.write(src, -1, 6);
@@ -808,26 +794,23 @@ namespace qk {
 		};
 
 		for (int j = 0; j < 4; j++) {
-			build(&rect.top+j,  border+j, vertex);
+			build(&outline.top+j,  border[j], vertex);
 			vertex+=6;
 		}
 
-		Qk_ReturnLocal(rect);
+		Qk_ReturnLocal(outline);
 	}
 
 	RectOutlinePath RectOutlinePath::MakeRRectOutline(
-		const Rect& o, const Rect &i, const Path::BorderRadius &r
+		const Rect& rect, const float border[4], const Path::BorderRadius &r
 	) {
-		RectOutlinePath rect;
+		RectOutlinePath outline;
 
-		const float o_x1 = o.origin.x(),      o_y1 = o.origin.y();
-		const float i_x1 = i.origin.x(),      i_y1 = i.origin.y();
-		const float o_x2 = o_x1 + o.size.x(), o_y2 = o_y1 + o.size.y();
-		const float i_x2 = i_x1 + i.size.x(), i_y2 = i_y1 + i.size.y();
-		// border width
-		float border[6] = { // left,top,right,bottom,left,top
-			Float::max(i_x1-o_x1,0), Float::max(i_y1-o_y1,0), Float::max(o_x2-i_x2,0), Float::max(o_y2-i_y2,0),
-		};
+		const float o_x1 = rect.origin.x(),      o_y1 = rect.origin.y();
+		const float i_x1 = o_x1 + border[3],     i_y1 = o_y1 + border[0];
+		const float o_x2 = o_x1 + rect.size.x(), o_y2 = o_y1 + rect.size.y();
+		const float i_x2 = o_x2 - border[1],     i_y2 = o_y2 - border[2];
+
 		const float vertexfv[48] = {
 			o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1,// vertex,top
 			o_x2,o_y1,o_x2,i_y1,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y1,// vertex,right
@@ -836,32 +819,37 @@ namespace qk {
 		};
 		const Vec2 *vertex = reinterpret_cast<const Vec2*>(vertexfv);
 
-		const float x_5  = o.size.x() * 0.5,  y_5  = o.size.y() * 0.5;
-		// outside radius
-		Vec2 R[5] = {
-			Vec2(Float::min(r.leftTop.x(), x_5), Float::min(r.leftTop.y(), y_5)), // left top
-			Vec2(Float::min(r.rightTop.x(), x_5), Float::min(r.rightTop.y(), y_5)),
-			Vec2(Float::min(r.rightBottom.x(), x_5), Float::min(r.rightBottom.y(), y_5)),
-			Vec2(Float::min(r.leftBottom.x(), x_5), Float::min(r.leftBottom.y(), y_5)),
-		};
-		// inside radius
-		Vec2 iR[5] = {
-			Vec2(R[0].x() - border[0], R[0].y() - border[1]), // left top
-			Vec2(R[1].x() - border[2], R[1].y() - border[1]),
-			Vec2(R[2].x() - border[2], R[2].y() - border[3]), Vec2(R[3].x() - border[0], R[3].y() - border[3]),
-		};
-		// center
-		Vec2 center[5] = {
-			{o_x1+R[0].x(),o_y1+R[0].y()}, // leftTop
-			{o_x2-R[1].x(),o_y1+R[1].y()},
-			{o_x2-R[2].x(),o_y2-R[2].y()}, {o_x1+R[3].x(),o_y2-R[3].y()},
+		// border width
+		float Bo[6] = { // left,top,right,bottom,left,top
+			Qk_MAX(border[3],0), Qk_MAX(border[0],0), Qk_MAX(border[1],0), Qk_MAX(border[2],0),
 		};
 
-		R[4] = R[0];
+		const float x_5  = rect.size.x() * 0.5,  y_5  = rect.size.y() * 0.5;
+		// outside radius
+		Vec2 oR[5]{
+			{Qk_MIN(r.leftTop.x(), x_5), Qk_MIN(r.leftTop.y(), y_5)}, // left top
+			{Qk_MIN(r.rightTop.x(), x_5), Qk_MIN(r.rightTop.y(), y_5)},
+			{Qk_MIN(r.rightBottom.x(), x_5), Qk_MIN(r.rightBottom.y(), y_5)},
+			{Qk_MIN(r.leftBottom.x(), x_5), Qk_MIN(r.leftBottom.y(), y_5)},
+		};
+		// inside radius
+		Vec2 iR[5]{
+			{oR[0].x() - Bo[0], oR[0].y() - Bo[1]}, // left top
+			{oR[1].x() - Bo[2], oR[1].y() - Bo[1]},
+			{oR[2].x() - Bo[2], oR[2].y() - Bo[3]}, {oR[3].x() - Bo[0], oR[3].y() - Bo[3]},
+		};
+		// center
+		Vec2 Ce[5] = {
+			{o_x1+oR[0].x(),o_y1+oR[0].y()}, // leftTop
+			{o_x2-oR[1].x(),o_y1+oR[1].y()},
+			{o_x2-oR[2].x(),o_y2-oR[2].y()}, {o_x1+oR[3].x(),o_y2-oR[3].y()},
+		};
+
+		oR[4] = oR[0];
 		iR[4] = iR[0];
-		center[4] = center[0];
-		border[4] = border[0];
-		border[5] = border[1];
+		Ce[4] = Ce[0];
+		Bo[4] = Bo[0];
+		Bo[5] = Bo[1];
 
 		//._.______________._.
 		// \|______________|/
@@ -912,12 +900,12 @@ namespace qk {
 
 		float angle = Qk_PI_2_1;
 		for (int j = 0; j < 4; j++) {
-			build(&rect.top + j, border+j, vertex, R+j, iR+j, center+j, angle);
+			build(&outline.top + j, Bo+j, vertex, oR+j, iR+j, Ce+j, angle);
 			vertex+=6;
 			angle -= Qk_PI_2_1;
 		}
 
-		Qk_ReturnLocal(rect);
+		Qk_ReturnLocal(outline);
 	}
 
 }

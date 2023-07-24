@@ -152,9 +152,9 @@ namespace qk {
 	// Optimizing rect outline vertex generation algorithm
 	struct Qk_EXPORT RectOutlinePath {
 		Pathv top,right,bottom,left;
-		static RectOutlinePath MakeRectOutline(const Rect &outside, const Rect &inside);
+		static RectOutlinePath MakeRectOutline(const Rect &rect, const float border[4]);
 		static RectOutlinePath MakeRRectOutline(
-			const Rect &outside, const Rect &inside, const Path::BorderRadius &radius
+			const Rect &rect, const float border[4], const Path::BorderRadius &radius
 		);
 	};
 
