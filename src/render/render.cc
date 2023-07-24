@@ -84,6 +84,7 @@ namespace qk {
 	const Array<Vec3>& RenderBackend::getSDFStrokeTriangleStrip(const Path &path, float width) {
 		auto hash = path.hashCode();
 		hash += (hash << 5) + *(int32_t*)&width;
+		//Qk_DEBUG("getSDFStrokeTriangleStrip, %lu", hash);
 		const Array<Vec3> *out;
 		if (_SDFStrokeTriangleStripCache.get(hash, out)) return *out;
 		if (_SDFStrokeTriangleStripCache.length() >= 1024) _SDFStrokeTriangleStripCache.clear();

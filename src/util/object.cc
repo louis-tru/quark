@@ -51,16 +51,16 @@ namespace qk {
 		if ( size > capacity ) {
 			size = Qk_MAX(Qk_MIN_CAPACITY, size);
 			size = powf(2, ceilf(log2f(size)));
-			*sizeOut = size;
 			*ptrOut = *ptrOut ? ::realloc(*ptrOut, sizeOf * size) : ::malloc(sizeOf * size);
+			*sizeOut = size;
 			Qk_ASSERT(*ptrOut);
 		} else if ( size > Qk_MIN_CAPACITY && size < (capacity >> 2) ) { // > 8
 			capacity >>= 1;
 			size = powf(2, ceilf(log2f(size)));
 			size <<= 1;
 			size = Qk_MIN(size, capacity);
-			*sizeOut = size;
 			*ptrOut = ::realloc(*ptrOut, sizeOf * size);
+			*sizeOut = size;
 			Qk_ASSERT(*ptrOut);
 		}
 	}

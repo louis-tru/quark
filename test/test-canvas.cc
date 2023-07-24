@@ -83,10 +83,10 @@ public:
 		auto unicode = codec_decode_to_uint32(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
 		auto fgs = pool->getFFID()->makeFontGlyphs(unicode, stype, 64);
 
-		Vec2 offset(0,60);
+		Vec2 origin(10,60);
 
 		for (auto &fg: fgs) {
-			offset[0] += ceilf(_canvas->drawGlyphs(fg, offset, NULL, paint));
+			origin[0] += ceilf(_canvas->drawGlyphs(fg, origin, NULL, paint)) + 10;
 		}
 
 		paint.color = Color4f(0, 0, 0);

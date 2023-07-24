@@ -425,7 +425,7 @@ namespace qk {
 		auto lines = *v->_lines;
 		auto offset = v->input_text_offset() + Vec2(v->_padding_left, v->_padding_top);
 		auto twinkle = v->_editing && v->_cursor_twinkle_status;
-		auto visible = v->_blob_visible.length() != 0;
+		auto visible = v->_blob_visible.length() > 0;
 		auto clip = v->_is_clip && (visible || twinkle);
 
 		if (clip) {
@@ -468,11 +468,9 @@ namespace qk {
 				Paint paint;
 				paint.color = v->text_color().value.to_color4f_alpha(_opacity);
 				for (auto i: v->_blob_visible) {
-					for (auto i: v->_blob_visible) {
-						auto &blob = v->_blob[i];
-						auto &line = lines->line(blob.line);
-						_canvas->drawTextBlob(&blob.core, {line.origin + blob.origin, line.baseline}, size, paint);
-					}
+					auto &blob = v->_blob[i];
+					auto &line = lines->line(blob.line);
+					_canvas->drawTextBlob(&blob.core, {line.origin + blob.origin, line.baseline}, size, paint);
 				}
 			} // if (color.a())
 		}

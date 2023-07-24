@@ -146,7 +146,7 @@ namespace qk {
 		// _pts.push(to.x()); _pts.push(to.y());
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Move);
-		_hash.update((uint32_t*)&to, 2);
+		_hash.updatefv2(to.val);
 	}
 
 	void Path::lineTo(Vec2 to) {
@@ -154,7 +154,7 @@ namespace qk {
 		//	return;
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Line);
-		_hash.update((uint32_t*)&to, 2);
+		_hash.updatefv2(to.val);
 	}
 
 	void Path::quadTo(Vec2 control, Vec2 to) {
@@ -163,7 +163,9 @@ namespace qk {
 		_verbs.push(kVerb_Quad);
 		_IsNormalized = false;
 		// _hash.update((&_pts.back()) - 4, sizeof(float) * 4);
-		_hash.update((uint32_t*)(&_pts.back()) - 4, 4);
+		//_hash.update((uint32_t*)(&_pts.back()) - 4, 4);
+		_hash.updatefv2(control.val);
+		_hash.updatefv2(to.val);
 	}
 
 	void Path::cubicTo(Vec2 control1, Vec2 control2, Vec2 to) {
@@ -175,7 +177,10 @@ namespace qk {
 		_pts.write(to.val, -1, 2);
 		_verbs.push(kVerb_Cubic);
 		_IsNormalized = false;
-		_hash.update((uint32_t*)(&_pts.back()) - 6, 6);
+		// _hash.update((uint32_t*)(&_pts.back()) - 6, 6);
+		_hash.updatefv2(control1.val);
+		_hash.updatefv2(control2.val);
+		_hash.updatefv2(to.val);
 	}
 
 	constexpr float magicCircle = 0.551915024494f; // 0.552284749831f
@@ -800,7 +805,7 @@ namespace qk {
 		};
 
 		for (int j = 0; j < 4; j++) {
-			build(&rect.left+j,  border+j, vertex);
+			build(&rect.top+j,  border+j, vertex);
 			vertex+=6;
 		}
 
@@ -896,8 +901,7 @@ namespace qk {
 
 		float angle = Qk_PI_2_1;
 		for (int j = 0; j < 4; j++) {
-			auto path = &rect.left + j;
-			build(&rect.left + j, border+j, vertex, R+j, iR+j, center+j, angle);
+			build(&rect.top + j, border+j, vertex, R+j, iR+j, center+j, angle);
 			vertex+=6;
 			angle -= Qk_PI_2_1;
 		}

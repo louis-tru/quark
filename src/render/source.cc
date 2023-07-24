@@ -67,9 +67,10 @@ namespace qk {
 			return false;
 
 		Qk_ASSERT(!_pixels.length() || _info.bytes() == _pixels[0].body().length(), "old pixel bytes size no match");
-
-		if (_device) {
-			Qk_STRICT_ASSERT(_device == device, "backend render device no match");
+		
+		if (device) {
+			if (_device)
+				Qk_STRICT_ASSERT(_device == device, "backend render device no match");
 		} else {
 			device = _device;
 		}
@@ -217,9 +218,11 @@ namespace qk {
 
 	void ImageSource::_Unload() {
 		_state = State( _state & ~(kSTATE_LOADING | kSTATE_LOAD_COMPLETE) );
-		fs_reader()->abort(_load_id); // cancel load and ready
-		_load_id = 0;
 
+		if (_load_id) {
+			fs_reader()->abort(_load_id); // cancel load and ready
+			_load_id = 0;
+		}
 		if (_device) {
 			Array<uint32_t> ids;
 			for (auto &pix: _pixels) {

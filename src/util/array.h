@@ -578,7 +578,7 @@ namespace qk {
 		Qk_DEF_ARRAY_SPECIAL_(T, MemoryAllocator)
 
 	Qk_DEF_ARRAY_SPECIAL(char);
-	Qk_DEF_ARRAY_SPECIAL(unsigned char);
+	Qk_DEF_ARRAY_SPECIAL(uint8_t);
 	Qk_DEF_ARRAY_SPECIAL(int16_t);
 	Qk_DEF_ARRAY_SPECIAL(uint16_t);
 	Qk_DEF_ARRAY_SPECIAL(int32_t);

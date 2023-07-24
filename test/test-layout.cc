@@ -207,9 +207,9 @@ void layout(Event<>& evt, Application* app) {
 	// 	.position_y={0, FillPositionType::CENTER},
 	//}));
 	//flex->set_fill(new FillGradientRadial({ 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 0, 255, 255), Color(0, 255, 255, 255) }));
-	flex->set_background(new FillGradientLinear(0, { 0, 0.5, 1 },
-		{ Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) })
-	);
+	// flex->set_background(new FillGradientLinear(0, { 0, 0.5, 1 },
+	// 	{ Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 255, 255) })
+	// );
 	flex->set_box_shadow(New<BoxShadow>(10, 10, 5, Color(0,0,0,255)));
 	//flex->set_effect(New<BoxShadow>(10, 10, 5, Color(255,0,0,255)));
 	flex->set_width({ 0, BoxSizeKind::MATCH });
