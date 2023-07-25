@@ -309,6 +309,7 @@ namespace qk {
 	}
 
 	constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
+	constexpr float aa_sdf_width = 0.5;
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
 		if (path.vertex.length()) {
@@ -320,7 +321,8 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
 			//glDrawArrays(GL_LINES, 0, path.vertex.length());
 			if (antiAlias) {
-				auto &strip = _backend->getSDFStrokeTriangleStrip(path.path, _unitPixel*0.6);
+				auto &strip = _backend->getSDFStrokeTriangleStrip(path.path, _unitPixel*aa_sdf_width);
+				//_backend->setBlendMode(kSrc_BlendMode); // switch blend mode
 				drawColorSDF(strip, color, GL_TRIANGLE_STRIP, aa_sdf_range);
 			}
 		}
@@ -369,7 +371,7 @@ namespace qk {
 			Qk_ASSERT(path.path.isNormalized());
 			fillV(path.vertex, paint);
 			if (aa) {
-				drawAAStrokeSDF(path.path, paint, aa_sdf_range, 0.6);
+				drawAAStrokeSDF(path.path, paint, aa_sdf_range, aa_sdf_width);
 			}
 		}
 	}
@@ -380,7 +382,7 @@ namespace qk {
 		if (tr.length()) {
 			fillV(tr, paint);
 			if (aa) {
-				drawAAStrokeSDF(path, paint, aa_sdf_range, 0.6);
+				drawAAStrokeSDF(path, paint, aa_sdf_range, aa_sdf_width);
 			}
 		}
 	}
@@ -405,26 +407,26 @@ namespace qk {
 
 	void GLCanvas::drawStroke(const Path &path, const Paint& paint, bool aa) {
 		if (aa) {
-			auto width = paint.width - _unitPixel;
+			auto width = paint.width - _unitPixel * 0.45f;
 			if (width > 0) {
 				fillPath(_backend->getStrokePath(path, width, paint.cap, paint.join), paint, true);
 			} else {
 				// 5*5=25, 0.75
-				width /= _unitPixel; // range: -1 => 0
+				width /= (_unitPixel * 0.65f); // range: -1 => 0
 				width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.006
 				const float stroke_sdf_range[3] = {0.5, width/*-0.25f*/, 0};
-				drawAAStrokeSDF(path, paint, stroke_sdf_range, 0.6);
+				drawAAStrokeSDF(path, paint, stroke_sdf_range, aa_sdf_width);
 			}
 		} else {
 			fillPath(_backend->getStrokePath(path, paint.width, paint.cap, paint.join), paint, false);
 		}
 	}
 
-	void GLCanvas::drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3], float width) {
+	void GLCanvas::drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3], float sdf_width) {
 		//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
 		//auto &strip = _backend->getSDFStrokeTriangleStripCache(newPath, _Scale);
 		// _UnitPixel*0.6=1.2/_Scale, 2.4px
-		auto &strip = _backend->getSDFStrokeTriangleStrip(path, _unitPixel*width);
+		auto &strip = _backend->getSDFStrokeTriangleStrip(path, _unitPixel*sdf_width);
 		// Qk_DEBUG("%p", &strip);
 		switch (paint.type) {
 			case Paint::kColor_Type:

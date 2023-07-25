@@ -52,12 +52,10 @@ namespace qk {
 		Rect insideRect(Box* box) {
 			Rect rect{-box->_origin_value, box->_client_size};
 			if (box->_border) {
-				// auto fixAA = _render->getAAUnitPixel();
-				// auto fixAA_2 = fixAA * 0.5;
-				rect.origin[0] += box->_border[3].width;// - fixAA_2; // left
-				rect.origin[1] += box->_border[0].width;// - fixAA_2; // top
-				rect.size[0] -= (box->_border[3].width + box->_border[1].width/* - fixAA*/); // left + right
-				rect.size[1] -= (box->_border[0].width + box->_border[2].width/* - fixAA*/); // top + bottom
+				rect.origin[0] += box->_border[3].width; // left
+				rect.origin[1] += box->_border[0].width;// top
+				rect.size[0] -= (box->_border[3].width + box->_border[1].width); // left + right
+				rect.size[1] -= (box->_border[0].width + box->_border[2].width); // top + bottom
 			}
 			return rect;
 		}
@@ -84,8 +82,8 @@ namespace qk {
 			return out;
 		}
 
-		void drawBoxColor(Box *box, const RectPath *&inside) {
-			auto rect = getInsideRectPath(box, inside);
+		void drawBoxColor(Box *box, const RectPath *&outside) {
+			auto rect = getOutsideRectPath(box, outside);
 			_canvas->drawPathvColor(rect->path,
 				box->_background_color.to_color4f_alpha(_opacity), kSrcOver_BlendMode
 			);
@@ -95,8 +93,8 @@ namespace qk {
 			// _canvas->drawPathv(rect->path, paint);
 		}
 
-		void drawBoxFill(Box *box, const RectPath *&inside) {
-			auto rect = getInsideRectPath(box, inside);
+		void drawBoxFill(Box *box, const RectPath *&outside) {
+			auto rect = getOutsideRectPath(box, outside);
 			auto fill = box->_background;
 			do {
 				switch(fill->type()) {
@@ -112,7 +110,7 @@ namespace qk {
 			} while(fill);
 		}
 
-		void drawBoxFillImage(Box *box, FillImage *fill, const RectPath *inside) {
+		void drawBoxFillImage(Box *box, FillImage *fill, const RectPath *outside) {
 			auto src = fill->source();
 			if (!src || !src->load()) return;
 
@@ -166,10 +164,10 @@ namespace qk {
 			paint.filterMode = Paint::kLinear_FilterMode;
 			paint.mipmapMode = Paint::kNearest_MipmapMode;
 
-			_canvas->drawPathv(inside->path, paint);
+			_canvas->drawPathv(outside->path, paint);
 		}
 
-		void drawBoxFillLinear(Box *box, FillGradientLinear *fill, const RectPath *inside) {
+		void drawBoxFillLinear(Box *box, FillGradientLinear *fill, const RectPath *outside) {
 			auto &colors = fill->colors();
 			auto &pos = fill->positions();
 			auto R = fill->radian();
@@ -184,7 +182,7 @@ namespace qk {
 			p0x = cosθR * d
 			p0y = sinθR * d
 			*/
-			auto _rect_inside = inside->rect;
+			auto _rect_inside = insideRect(box);
 			float w = _rect_inside.size.x();
 			float h = _rect_inside.size.y();
 			float a = h * 0.5;
@@ -216,20 +214,20 @@ namespace qk {
 			Gradient g{&fill->colors(), &fill->positions(), pts[0], pts[1]};
 			paint.setGradient(Paint::kLinear_GradientType, &g);
 
-			_canvas->drawPathv(inside->path, paint);
+			_canvas->drawPathv(outside->path, paint);
 		}
 
-		void drawBoxFillRadial(Box *box, FillGradientRadial *fill, const RectPath *inside) {
+		void drawBoxFillRadial(Box *box, FillGradientRadial *fill, const RectPath *outside) {
 			auto &colors = fill->colors();
 			auto &pos = fill->positions();
-			auto _rect_inside = inside->rect;
+			auto _rect_inside = insideRect(box);
 			Vec2 radius{_rect_inside.size.x() * 0.5f, _rect_inside.size.y() * 0.5f};
 			Vec2 center = _rect_inside.origin + radius;
 			Paint paint;
 			paint.color.set_a(_opacity);
 			Gradient g{&fill->colors(), &fill->positions(), center, radius};
 			paint.setGradient(Paint::kRadial_GradientType, &g);
-			_canvas->drawPathv(inside->path, paint);
+			_canvas->drawPathv(outside->path, paint);
 		}
 
 		void drawBoxShadow(Box *box, const RectPath *outside = nullptr) {
@@ -362,26 +360,27 @@ namespace qk {
 
 	void ViewRender::visitBox(Box* box) {
 		_canvas->setMatrix(box->matrix());
-		const RectPath *inside = nullptr;
+		const RectPath *outside = nullptr;
 		if (box->_background_color.a())
-			_this->drawBoxColor(box, inside);
+			_this->drawBoxColor(box, outside);
 		if (box->_background)
-			_this->drawBoxFill(box, inside);
+			_this->drawBoxFill(box, outside);
 		if (box->_box_shadow)
-			_this->drawBoxShadow(box);
+			_this->drawBoxShadow(box, outside);
 		if (box->_border)
 			_this->drawBoxBorder(box);
-		_this->drawBoxEnd(box, inside);
+		_this->drawBoxEnd(box);
 	}
 
 	void ViewRender::visitImage(Image* v) {
 		_canvas->setMatrix(v->matrix());
 
+		const RectPath *outside = nullptr;
 		const RectPath *inside = nullptr;
 		if (v->_background_color.a())
-			_this->drawBoxColor(v, inside);
+			_this->drawBoxColor(v, outside);
 		if (v->_background)
-			_this->drawBoxFill(v, inside);
+			_this->drawBoxFill(v, outside);
 
 		auto src = v->source();
 		if (src && src->load()) {
@@ -398,7 +397,7 @@ namespace qk {
 			paint.filterMode = Paint::kLinear_FilterMode;
 			paint.mipmapMode = Paint::kNearest_MipmapMode;
 			paint.setImage(src->pixels().val(), { origin, inside->rect.size });
-			_canvas->drawPathv(inside->path, paint);
+			_canvas->drawPathv(outside->path, paint);
 		}
 		if (v->_box_shadow)
 			_this->drawBoxShadow(v);
@@ -418,13 +417,14 @@ namespace qk {
 
 	void ViewRender::visitInput(Input* v) {
 		_canvas->setMatrix(v->matrix());
-		const RectPath *inside = nullptr;
+		const RectPath *outside = nullptr;
+
 		if (v->_background_color.a())
-			_this->drawBoxColor(v, inside);
+			_this->drawBoxColor(v, outside);
 		if (v->_background)
-			_this->drawBoxFill(v, inside);
+			_this->drawBoxFill(v, outside);
 		if (v->_box_shadow)
-			_this->drawBoxShadow(v);
+			_this->drawBoxShadow(v, outside);
 		if (v->_border)
 			_this->drawBoxBorder(v);
 
@@ -435,6 +435,7 @@ namespace qk {
 		auto clip = v->_is_clip && (visible || twinkle);
 
 		if (clip) {
+			const RectPath *inside = nullptr;
 			_this->getInsideRectPath(v, inside);
 			_canvas->save();
 			_canvas->clipPathv(inside->path, Canvas::kIntersect_ClipOp, true); // clip
@@ -569,11 +570,11 @@ namespace qk {
 			if (v->_visible_region && v->_opacity != 0) {
 				_canvas->setMatrix(v->matrix());
 				_canvas->clearColor(v->_background_color.to_color4f());
-				const RectPath *inside = nullptr;
+				const RectPath *outside = nullptr;
 				if (v->_background)
-					_this->drawBoxFill(v, inside);
+					_this->drawBoxFill(v, outside);
 				if (v->_box_shadow)
-					_this->drawBoxShadow(v, inside);
+					_this->drawBoxShadow(v, outside);
 				if (v->_border)
 					_this->drawBoxBorder(v);
 				_this->drawBoxEnd(v);

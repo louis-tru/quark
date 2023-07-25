@@ -135,12 +135,18 @@ namespace qk {
 		const RectPath *out;
 		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
 		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
-		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, {
-			{radius[0]-radius_lessen[3], radius[0]-radius_lessen[0]},
-			{radius[1]-radius_lessen[1], radius[1]-radius_lessen[0]},
-			{radius[2]-radius_lessen[1], radius[2]-radius_lessen[2]},
-			{radius[3]-radius_lessen[3], radius[3]-radius_lessen[2]},
-		}));
+		
+		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
+		{
+			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
+		} else {
+			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, {
+				{radius[0]-radius_lessen[3], radius[0]-radius_lessen[0]},
+				{radius[1]-radius_lessen[1], radius[1]-radius_lessen[0]},
+				{radius[2]-radius_lessen[1], radius[2]-radius_lessen[2]},
+				{radius[3]-radius_lessen[3], radius[3]-radius_lessen[2]},
+			}));
+		}
 	}
 
 	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const Path::BorderRadius &radius) {
@@ -169,7 +175,7 @@ namespace qk {
 		auto oR{rect};
 		float Bo[4]{border[0],border[1],border[2],border[3]};
 		if (fixAA) { // anti alias compensate
-			auto up = getAAUnitPixel();
+			auto up = getAAUnitPixel() * 0; // fix aa sdf stroke
 			oR.origin += (up * 0.5);
 			oR.size -= up;
 			Bo[0] -= up;

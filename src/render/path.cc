@@ -762,11 +762,16 @@ namespace qk {
 
 	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &rect, const float border[4]) {
 		RectOutlinePath outline;
+		
+		// border width
+		float Bo[4] = { // top,right,bottom,left
+			Qk_MAX(border[0],0), Qk_MAX(border[1],0), Qk_MAX(border[2],0),Qk_MAX(border[3],0)
+		};
 
 		float o_x1 = rect.origin.x(),      o_y1 = rect.origin.y();
-		float i_x1 = o_x1 + border[3],     i_y1 = o_y1 + border[0];
+		float i_x1 = o_x1 + Bo[3],         i_y1 = o_y1 + Bo[0];
 		float o_x2 = o_x1 + rect.size.x(), o_y2 = o_y1 + rect.size.y();
-		float i_x2 = o_x2 - border[1],     i_y2 = o_y2 - border[2];
+		float i_x2 = o_x2 - Bo[1],         i_y2 = o_y2 - Bo[2];
 
 		float vertexfv[48] = {
 			o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1,// vertex,top
@@ -806,11 +811,18 @@ namespace qk {
 		const Rect& rect, const float border[4], const Path::BorderRadius &r
 	) {
 		RectOutlinePath outline;
+		
+		// border width
+		float Bo[6] = { // left,top,right,bottom,left,top
+			Qk_MAX(border[3],0), Qk_MAX(border[0],0), Qk_MAX(border[1],0), Qk_MAX(border[2],0),
+		};
+		Bo[4] = Bo[0];
+		Bo[5] = Bo[1];
 
 		float o_x1 = rect.origin.x(),      o_y1 = rect.origin.y();
-		float i_x1 = o_x1 + border[3],     i_y1 = o_y1 + border[0];
+		float i_x1 = o_x1 + Bo[4],         i_y1 = o_y1 + Bo[1];
 		float o_x2 = o_x1 + rect.size.x(), o_y2 = o_y1 + rect.size.y();
-		float i_x2 = o_x2 - border[1],     i_y2 = o_y2 - border[2];
+		float i_x2 = o_x2 - Bo[2],         i_y2 = o_y2 - Bo[3];
 		float x_5  = rect.size.x() * 0.5,  y_5  = rect.size.y() * 0.5;
 
 		float vertexfv[48] = {
@@ -821,10 +833,6 @@ namespace qk {
 		};
 		Vec2 *vertex = reinterpret_cast<Vec2*>(vertexfv);
 
-		// border width
-		float Bo[6] = { // left,top,right,bottom,left,top
-			Qk_MAX(border[3],0), Qk_MAX(border[0],0), Qk_MAX(border[1],0), Qk_MAX(border[2],0),
-		};
 		// outside radius
 		Vec2 oR[5]{
 			{Qk_MIN(r.leftTop.x(), x_5), Qk_MIN(r.leftTop.y(), y_5)}, // left top
@@ -848,8 +856,6 @@ namespace qk {
 		oR[4] = oR[0];
 		iR[4] = iR[0];
 		Ce[4] = Ce[0];
-		Bo[4] = Bo[0];
-		Bo[5] = Bo[1];
 
 		/* rect outline border
 			0=A,1=B,5=C
@@ -874,12 +880,14 @@ namespace qk {
 			const Vec2 radius[2], const Vec2 radius_i[2], const Vec2 center[2], float startAngle
 		) {
 			auto &path = out->path;
-			auto noZeroBorder = border[1] != 0; // border is zero
+			auto noZeroB = border[1] != 0; // border is zero
 			Array<Vec2> path2;
 			Vec2 lastV;
+			auto isRadiusZeroL = radius[0].is_zero_axis();
+			auto isRadiusZeroR = radius[1].is_zero_axis();
 
-			if (radius[0].is_zero_axis()) { // radius is zero
-				if (noZeroBorder) {
+			if (isRadiusZeroL) { // radius is zero
+				if (noZeroB) {
 					Vec2 src[]{v[0],v[5]}; // outside,inside
 					out->vertex.write(src, -1, 2);
 					path2.push(v[5]);
@@ -889,8 +897,6 @@ namespace qk {
 				auto borderSum = border[0] + border[1];
 				auto sweep = borderSum == 0 ? (Qk_PI_2_1 * 0.5): border[1] / borderSum * Qk_PI_2_1;
 				int  sample = getSampleFromRect(radius[0], 1); // |0|1| = sample = 3
-				if (!noZeroBorder)
-					sweep += 0.0003; // fix aa sdf stroke error
 				float angleStep = -sweep / (sample - 1);
 				float angle = startAngle + sweep;
 				bool isRadiusI = radius_i[0].x() > 0 && radius_i[0].y() > 0;
@@ -899,7 +905,7 @@ namespace qk {
 					Vec2 xy(cosf(angle), -sinf(angle));
 					Vec2 v0 = xy * radius[0] + center[0];
 
-					if (noZeroBorder) {
+					if (noZeroB) {
 						if (i == 0) {
 							Vec2 v1 = isRadiusI ? xy * radius_i[0] + center[0]: v[5];
 							Vec2 src[]{v0,v1}; // outside,inside
@@ -922,8 +928,8 @@ namespace qk {
 				}
 			}
 		
-			if (radius[1].is_zero_axis()) { // radius is zero
-				if (noZeroBorder) {
+			if (isRadiusZeroR) { // radius is zero
+				if (noZeroB) {
 					Vec2 src[]{v[3],v[3],out->vertex.back(),v[4]}; // outside,outside,inside,inside
 					out->vertex.write(src, -1, 4);
 					path2.push(v[4]);
@@ -933,8 +939,6 @@ namespace qk {
 				auto borderSum = border[2] + border[1];
 				auto sweep = borderSum == 0 ? (Qk_PI_2_1 * 0.5): border[1] / borderSum * Qk_PI_2_1;
 				int  sample = getSampleFromRect(radius[1], 1); // |0|1| = sample = 3
-				if (!noZeroBorder)
-					sweep += 0.0003; // fix aa sdf stroke error
 				float angleStep = -sweep / (sample - 1);
 				float angle = startAngle;
 				bool isRadiusI = radius_i[1].x() > 0 && radius_i[1].y() > 0;
@@ -943,7 +947,7 @@ namespace qk {
 					Vec2 xy(cosf(angle), -sinf(angle));
 					Vec2 v0 = xy * radius[1] + center[1], v1;
 
-					if (noZeroBorder) {
+					if (noZeroB) {
 						if (isRadiusI) {
 							v1 = xy * radius_i[1] + center[1];
 							RadiusI:
@@ -952,7 +956,7 @@ namespace qk {
 							out->vertex.write(src, -1, 6);
 							path2.push(v1);
 							lastV = v1;
-							Qk_DEBUG("v0: %f %f, v1: %f %f", v0[0], v0[1], v1[0], v1[1]);
+							//Qk_DEBUG("v0: %f %f, v1: %f %f", v0[0], v0[1], v1[0], v1[1]);
 							//Qk_DEBUG("ro: %f %f, ri: %f %f", radius[1][0], radius[1][1], radius_i[1][0], radius_i[1][1]);
 						} else { // inside radius is zero
 							if (i == 0) {
@@ -965,18 +969,18 @@ namespace qk {
 					path.lineTo(v0);
 					angle += angleStep;
 				}
+
+				out->vertex.pop(2); // delete invalid vertices
 			}
 			
-			if (noZeroBorder) {
-				out->vertex.pop(2); // delete invalid vertices
-
-				if (border[2] < 0.1) // fix aa sdf stroke error
+			if (noZeroB) {
+				if (border[2] < 0.1 && !isRadiusZeroR) // fix aa sdf stroke error
 					path.moveTo(path2.back());
 
-				for (int i = path2.length() - 2; i >= 0; i--)
+				for (int i = path2.length() - 1; i >= 0; i--)
 					path.lineTo(path2[i]);
 
-				if (border[0] > 0.1) // fix aa sdf stroke error
+				if (border[0] > 0.1 || isRadiusZeroL) // fix aa sdf stroke error
 					path.lineTo(*path.pts()); // equivalent to close
 			}
 		};
