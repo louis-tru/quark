@@ -311,16 +311,18 @@ namespace qk {
 	constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
-		_backend->setBlendMode(mode); // switch blend mode
-		bool antiAlias = !_backend->_IsDeviceMsaa; // Anti-aliasing using software
-		_backend->_color.use(path.vertex.size(), *path.vertex);
-		//auto color4f = color.to_color4f_alpha(alpha);
-		glUniform4fv(_backend->_color.color, 1, color.val);
-		glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
-		// glDrawArrays(GL_LINES, 0, path.vertex.length());
-		if (antiAlias) {
-			auto &strip = _backend->getSDFStrokeTriangleStrip(path.path, _unitPixel*0.6);
-			drawColorSDF(strip, color, GL_TRIANGLE_STRIP, aa_sdf_range);
+		if (path.vertex.length()) {
+			_backend->setBlendMode(mode); // switch blend mode
+			bool antiAlias = !_backend->_IsDeviceMsaa; // Anti-aliasing using software
+			_backend->_color.use(path.vertex.size(), *path.vertex);
+			//auto color4f = color.to_color4f_alpha(alpha);
+			glUniform4fv(_backend->_color.color, 1, color.val);
+			glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
+			//glDrawArrays(GL_LINES, 0, path.vertex.length());
+			if (antiAlias) {
+				auto &strip = _backend->getSDFStrokeTriangleStrip(path.path, _unitPixel*0.6);
+				drawColorSDF(strip, color, GL_TRIANGLE_STRIP, aa_sdf_range);
+			}
 		}
 	}
 
@@ -363,18 +365,23 @@ namespace qk {
 	}
 
 	void GLCanvas::fillPathV(const Pathv &path, const Paint &paint, bool aa) {
-		Qk_ASSERT(path.path.isNormalized());
-		fillV(path.vertex, paint);
-		if (aa) {
-			drawAAStrokeSDF(path.path, paint, aa_sdf_range);
+		if (path.vertex.length()) {
+			Qk_ASSERT(path.path.isNormalized());
+			fillV(path.vertex, paint);
+			if (aa) {
+				drawAAStrokeSDF(path.path, paint, aa_sdf_range, 0.6);
+			}
 		}
 	}
 
 	void GLCanvas::fillPath(const Path &path, const Paint &paint, bool aa) {
 		Qk_ASSERT(path.isNormalized());
-		fillV(_backend->getPathTriangles(path), paint);
-		if (aa) {
-			drawAAStrokeSDF(path, paint, aa_sdf_range);
+		auto &tr = _backend->getPathTriangles(path);
+		if (tr.length()) {
+			fillV(tr, paint);
+			if (aa) {
+				drawAAStrokeSDF(path, paint, aa_sdf_range, 0.6);
+			}
 		}
 	}
 
@@ -404,20 +411,20 @@ namespace qk {
 			} else {
 				// 5*5=25, 0.75
 				width /= _unitPixel; // range: -1 => 0
-				width = powf(width*10, 3) * 0.006; // (width*10)^3 * 0.006
-				const float stroke_sdf_range[3] = {0.5, width-0.25f, 0};
-				drawAAStrokeSDF(path, paint, stroke_sdf_range);
+				width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.006
+				const float stroke_sdf_range[3] = {0.5, width/*-0.25f*/, 0};
+				drawAAStrokeSDF(path, paint, stroke_sdf_range, 0.6);
 			}
 		} else {
 			fillPath(_backend->getStrokePath(path, paint.width, paint.cap, paint.join), paint, false);
 		}
 	}
 
-	void GLCanvas::drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3]) {
+	void GLCanvas::drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3], float width) {
 		//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
 		//auto &strip = _backend->getSDFStrokeTriangleStripCache(newPath, _Scale);
 		// _UnitPixel*0.6=1.2/_Scale, 2.4px
-		auto &strip = _backend->getSDFStrokeTriangleStrip(path, _unitPixel*0.6);
+		auto &strip = _backend->getSDFStrokeTriangleStrip(path, _unitPixel*width);
 		// Qk_DEBUG("%p", &strip);
 		switch (paint.type) {
 			case Paint::kColor_Type:

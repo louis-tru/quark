@@ -78,7 +78,7 @@ namespace qk {
 		void drawImage(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		void drawImageMask(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
 		// draw sdf
-		void drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3]);
+		void drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3], float width);
 		void drawColorSDF(const Array<Vec3> &vertex, const Color4f &color, GLenum mode, const float range[3]);
 		void drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		void drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);

@@ -75,7 +75,6 @@ namespace qk {
 		void arcTo (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
 		void arcTo (Vec2 center, Vec2 radius, float startAngle, float sweepAngle, bool useCenter);
 		void close(); // close line
-		void addTo(Vec2 p); // call move to or line to
 		void concat(const Path& path);
 
 		// point ptr

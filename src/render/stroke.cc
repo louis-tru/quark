@@ -92,7 +92,6 @@ namespace qk {
 	) {
 		auto subpath = [&](const Vec2 *pts, int size, bool close) {
 			if (size > 1) { // size > 1
-
 				if (close) {
 					if (*pts == pts[size-1]) { // exclude duplicates
 						size--;
@@ -123,17 +122,19 @@ namespace qk {
 
 		for (int i = 0, l = self->verbsLen(); i < l; i++) {
 			switch(verbs[i]) {
+				case Path::kVerb_Line:
+					if (size != 0) {
+						if (pts1[size-1] != *pts0++) // exclude duplicates
+							pts1[size++] = pts0[-1];
+						break;
+					}
 				case Path::kVerb_Move:
 					subpath(pts1, size, close);
 					pts1[0] = *pts0++;
 					size = 1;
 					break;
-				case Path::kVerb_Line:
-					if (pts1[size-1] != *pts0++) // exclude duplicates
-						pts1[size++] = pts0[-1];
-					break;
 				case Path::kVerb_Close: // close
-					subpath(pts1, size, true); // exclude duplicates
+					subpath(pts1, size, true);
 					size = 0;
 					break;
 				default: Qk_FATAL("Path::strokePath");
@@ -150,7 +151,7 @@ namespace qk {
 
 		for (int i = right.verbsLen() - 1; i >= 0; i--) {
 			if (verbs[i] == Path::kVerb_Cubic) {
-				left.addTo(*pts); pts--;
+				left.lineTo(*pts); pts--;
 				do {
 					left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
 					i--;
@@ -160,7 +161,7 @@ namespace qk {
 				//Qk_DEBUG("Close");
 			} else {
 				Qk_ASSERT(verbs[i] == Path::kVerb_Line || verbs[i] == Path::kVerb_Move);
-				left.addTo(*pts--);
+				left.lineTo(*pts--);
 			}
 		}
 	}
@@ -186,6 +187,7 @@ namespace qk {
 				auto angleLen = nline.angleTo(*prev - from);
 				auto len = _->width / sinf(angleLen);
 				nline *= len;
+				// nline *= _->width;
 			} else {
 				nline *= _->width;
 			}
@@ -250,7 +252,7 @@ namespace qk {
 
 		stroke_exec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			#define Qk_addTo(l,r) \
-				right.ptsLen() ? (left.lineTo(l),right.lineTo(r)): (left.moveTo(l), right.moveTo(r))
+				left.lineTo(l),right.lineTo(r)
 
 			auto _ = (Ctx*)ctx;
 			auto &left = *_->left;
@@ -267,9 +269,9 @@ namespace qk {
 						float angle = nline.angle();
 						if (prev) {
 							left.arcTo({from-width,width*2}, -angle, -Qk_PI, false);
-							right.addTo(from - nline);
+							right.lineTo(from - nline);
 						} else {
-							left.addTo(from + nline);
+							left.lineTo(from + nline);
 							right.arcTo({from-width,width*2}, -angle, Qk_PI, false);
 						}
 						return;
@@ -330,10 +332,10 @@ namespace qk {
 					if (angleLen > Qk_PI_2_1) {
 						angleLen = angleLen - Qk_PI_2_1;
 						left.arcTo({from-width,Vec2(width*2)}, Qk_PI_2-angle+angleLen, -angleLen*2, false);
-						right.addTo(from - nline);
+						right.lineTo(from - nline);
 					} else {
 						angleLen = Qk_PI_2_1 - angleLen;
-						left.addTo(from + nline);
+						left.lineTo(from + nline);
 						right.arcTo({from-width,Vec2(width*2)}, Qk_PI-angle-angleLen, angleLen*2, false);
 					}
 					return;

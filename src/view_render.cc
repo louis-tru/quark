@@ -52,12 +52,12 @@ namespace qk {
 		Rect insideRect(Box* box) {
 			Rect rect{-box->_origin_value, box->_client_size};
 			if (box->_border) {
-				auto fixAA = _render->getAAUnitPixel();
-				auto fixAA_2 = fixAA * 0.5;
-				rect.origin[0] += box->_border[3].width - fixAA_2; // left
-				rect.origin[1] += box->_border[0].width - fixAA_2; // top
-				rect.size[0] -= (box->_border[3].width + box->_border[1].width - fixAA); // left + right
-				rect.size[1] -= (box->_border[0].width + box->_border[2].width - fixAA); // top + bottom
+				// auto fixAA = _render->getAAUnitPixel();
+				// auto fixAA_2 = fixAA * 0.5;
+				rect.origin[0] += box->_border[3].width;// - fixAA_2; // left
+				rect.origin[1] += box->_border[0].width;// - fixAA_2; // top
+				rect.size[0] -= (box->_border[3].width + box->_border[1].width/* - fixAA*/); // left + right
+				rect.size[1] -= (box->_border[0].width + box->_border[2].width/* - fixAA*/); // top + bottom
 			}
 			return rect;
 		}
