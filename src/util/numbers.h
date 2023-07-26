@@ -60,7 +60,7 @@ namespace qk {
 			return a < b ? a: b;
 		}
 		static inline T limit(T x, T min, T max) {
-			return Number::max(min, Number::min(x, max));
+			return x < min ? min: x > max ? max: x;
 		}
 	};
 

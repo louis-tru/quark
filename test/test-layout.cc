@@ -200,7 +200,7 @@ void layout(Event<>& evt, Application* app) {
 	// layout_input(flex);
 	//layout_scroll(flex);
 
-	flex->set_background_color(Color(0,0,0,255));
+	//flex->set_background_color(Color(0,0,0,255));
 	//flex->set_fill(New<FillImage>(fs_resources("bench/img/21.jpeg"), FillImage::Init{
 	//	.size_x={100, FillSizeType::PIXEL},
 	// 	.position_x={0, FillPositionType::CENTER},
@@ -208,7 +208,7 @@ void layout(Event<>& evt, Application* app) {
 	//}));
 	//flex->set_fill(new FillGradientRadial({ 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 0, 255, 255), Color(0, 255, 255, 255) }));
 	flex->set_background(new FillGradientRadial({ 0, 0.5, 1 },
-		{ Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 0, 255) })
+		{ Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 0,0) })
 	);
 	flex->set_box_shadow(New<BoxShadow>(10, 10, 5, Color(0,0,0,255)));
 	//flex->set_effect(New<BoxShadow>(10, 10, 5, Color(255,0,0,255)));
@@ -229,15 +229,15 @@ void layout(Event<>& evt, Application* app) {
 	flex->set_radius_right_bottom(80);
 	flex->set_radius_left_bottom(40);
 
-	flex->set_border_width_top(100);
+	flex->set_border_width_top(20);
 	flex->set_border_width_right(10);
 	flex->set_border_width_bottom(0);
 	flex->set_border_width_left(20);
 
-	flex->set_border_color_top(Color(0,0,255,100));
-	flex->set_border_color_right(Color(255,0,100,100));
-	flex->set_border_color_bottom(Color(0,255,100,100));
-	flex->set_border_color_left(Color(255,0,255,100));
+	flex->set_border_color_top(Color(0,0,255,255));
+	flex->set_border_color_right(Color(255,0,100,255));
+	flex->set_border_color_bottom(Color(0,255,100,255));
+	flex->set_border_color_left(Color(255,0,255,255));
 
 	//flex->set_opacity(0.5);
 	//flex->set_rotate(10);

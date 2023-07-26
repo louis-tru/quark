@@ -720,40 +720,39 @@ namespace qk {
 		|\       /      1
 		|__2____________|
 		*/
-		Vec2 vertex[6] = {
-			{x2-rt.x(),y1}, {x2,y2-rb.y()}, {x1+lb.x(),y2}, // 0,1,2
-			{x1,y1+lt.y()}, {x2-rt.x(),y1}, {x1+lb.x(),y2}, // 3,0,2
+		Vec2 vertex[6] = { // 0,3,2,1,0,2
+			{x2-Qk_MAX(rt.x(),0),y1}, // 0
+			{x1,y1+lt.y()}, // 3
+			{x1+lb.x(),y2}, // 2
+			{x2,y2-rb.y()}, // 1
 		};
+		vertex[4] = vertex[0];
 
-		auto build = [](RectPath *out, Vec2 center, Vec2 radius, Vec2 v, Vec2 v2, float startAngle) {
+		auto build = [](RectPath *out, Vec2 center, Vec2 radius, Vec2 v, Vec2 *v2, float angle) {
 			if (radius[0] > 0 && radius[1] > 0) { // no zero
 				int   sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
-				float angleStep = -Qk_PI_2_1 / (sample - 1);
-				float angle = startAngle + Qk_PI_2_1;
+				float angleStep = Qk_PI_2_1 / (sample - 1);
 				center += v;
-				Vec2 start(center.x() + cosf(angle) * radius.x(), center.y() - sinf(angle) * radius.y());
-				out->path.vertex.push(start);
-				out->path.path.lineTo(start);
-				angle += angleStep;
-
-				for (int i = 1; i < sample; i++) {
+				auto p0 = *v2;
+				for (int i = 0; i < sample; i++) {
 					Vec2 p(center.x() + cosf(angle) * radius.x(), center.y() - sinf(angle) * radius.y());
-					Vec2 src[3] = { p,start,p };
-					out->path.vertex.write(src, -1, 3); // add triangle vertex
+					Vec2 src[3] = { p,p0,p };
+					out->path.vertex.write(src, -1, i==0?1:3); // add triangle vertex
 					out->path.path.lineTo(p);
 					angle += angleStep;
 				}
-				Vec2 src[2] = { v2,start };
-				out->path.vertex.write(src, -1, 2);
+				out->path.vertex.pop();
 			} else {
+				v2[1] = v; // fix next border vertex
 				out->path.path.lineTo(v);
 			}
 		};
 
-		build(&out, {lt.x(), lt.y()}, lt, {x1,y1}, vertex[0], Qk_PI_2_1);
-		build(&out, {-rt.x(), rt.y()}, rt, {x2,y1}, vertex[1], 0);
-		build(&out, {-rb.x(), -rb.y()}, rb, {x2,y2}, vertex[2], -Qk_PI_2_1);
-		build(&out, {lb.x(), -lb.y()}, lb, {x1,y2}, vertex[3], Qk_PI);
+		build(&out, {lt.x(), lt.y()}, lt, {x1,y1}, vertex + 0, Qk_PI_2_1); // top
+		build(&out, {lb.x(), -lb.y()}, lb, {x1,y2}, vertex + 1, Qk_PI); // left
+		build(&out, {-rb.x(),-rb.y()}, rb, {x2,y2}, vertex + 2, -Qk_PI_2_1); // bottom
+		build(&out, {-rt.x(), rt.y()}, rt, {x2,y1}, vertex + 3, 0); // right
+		vertex[5] = vertex[2];
 
 		out.path.vertex.write(vertex, -1, 6); // inl quadrilateral
 		out.path.path.close();
@@ -775,17 +774,19 @@ namespace qk {
 			o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x1,i_y1,// vertex,bottom
 			o_x1,o_y2,o_x1,i_y2,o_x1,i_y1,o_x1,o_y1,i_x1,i_y1,i_x1,i_y2,// vertex,left
 		};
-		Vec2 *vertex = reinterpret_cast<Vec2*>(vertexfv);
+		Vec2 *v = reinterpret_cast<Vec2*>(vertexfv);
 
 		//._.______________._.
 		// \|______________|/
-		auto build = [](Pathv *out, const float border, const Vec2 v[6]) {
-			if (border > 0) {
+		for (int j = 0; j < 4; j++) {
+			auto out = &outline.top+j;
+			if (border[j] > 0) {
 				out->path.moveTo(v[0]);
 				out->path.lineTo(v[3]);
+				out->path.moveTo(v[3]); // TODO: fix aa sdf stroke error
 				out->path.lineTo(v[4]);
 				out->path.lineTo(v[5]);
-				out->path.close();
+				out->path.lineTo(v[0]);
 				// outside,outside,inside,inside,inside,outside
 				Vec2 src[6] = {v[0],v[3],v[5],v[4],v[5],v[3]};
 				out->vertex.write(src, -1, 6);
@@ -793,11 +794,7 @@ namespace qk {
 				out->path.moveTo(v[1]);
 				out->path.lineTo(v[2]);
 			}
-		};
-
-		for (int j = 0; j < 4; j++) {
-			build(&outline.top+j,  border[j], vertex);
-			vertex+=12;
+			v+=6;
 		}
 
 		Qk_ReturnLocal(outline);
@@ -884,6 +881,7 @@ namespace qk {
 					Vec2 src[]{v[0],v[5]}; // outside,inside
 					out->vertex.write(src, -1, 2);
 					path2.push(v[5]);
+					lastV = v[5];
 				}
 				path.moveTo(v[0]);
 			} else {
