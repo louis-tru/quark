@@ -571,7 +571,6 @@ namespace qk {
 				BoxData data;
 				_canvas->setMatrix(v->matrix());
 				_canvas->clearColor(v->_background_color.to_color4f());
-				const RectPath *inside = nullptr;
 				if (v->_background)
 					_this->drawBoxFill(v, data);
 				if (v->_box_shadow)
