@@ -72,8 +72,8 @@ namespace qk {
 			xy += Vec2(padding_left() + padding_right(), padding_top() + padding_bottom());
 			if (_border) {
 				xy += Vec2(
-					_border[3].width + _border[1].width, // left + right
-					_border[0].width + _border[2].width // top + bottom
+					_border->width[3] + _border->width[1], // left + right
+					_border->width[0] + _border->width[2] // top + bottom
 				);
 			}
 

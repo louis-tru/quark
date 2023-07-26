@@ -135,7 +135,9 @@ namespace qk {
 		const RectPath *out;
 		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
 		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
-		
+
+		// return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
+
 		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
 		{
 			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
@@ -160,36 +162,21 @@ namespace qk {
 		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, radius));
 	}
 
-	const RectOutlinePath& RenderBackend::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4], bool fixAA) {
+	const RectOutlinePath& RenderBackend::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]) {
 		Hash5381 hash;
 		hash.updatefv4(rect.origin.val);
 		hash.updatefv4(border);
 		hash.updatefv4(radius);
-		if (fixAA) {
-			hash.updatef(getAAUnitPixel());
-		}
 		const RectOutlinePath *out;
 		if (_RectOutlinePathCache.get(hash.hashCode(), out)) return *out;
 		if (_RectOutlinePathCache.length() >= 1024) _RectOutlinePathCache.clear();
 
-		auto oR{rect};
-		float Bo[4]{border[0],border[1],border[2],border[3]};
-		if (fixAA) { // anti alias compensate
-			auto up = getAAUnitPixel() * 0; // fix aa sdf stroke
-			oR.origin += (up * 0.5);
-			oR.size -= up;
-			Bo[0] -= up;
-			Bo[1] -= up;
-			Bo[2] -= up;
-			Bo[3] -= up;
-		}
-
 		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
 		{
-			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(oR, Bo));
+			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, border));
 		} else {
-			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRRectOutline(oR, Bo, {
-				radius[0],radius[1],radius[2],radius[3] 
+			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, border, {
+				radius[0],radius[1],radius[2],radius[3]
 			}));
 		}
 	}

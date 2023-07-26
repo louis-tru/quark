@@ -491,7 +491,7 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depth_buffer);
 	}
 
-	float GLRender::getAAUnitPixel() {
+	float GLRender::getUnitPixel() {
 		return _unitPixel;
 	}
 

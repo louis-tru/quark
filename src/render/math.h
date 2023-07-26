@@ -155,10 +155,13 @@ namespace qk {
 			Name(float f); \
 			Name  operator+(const Vec<T,Len>& b) const; \
 			Name  operator-(const Vec<T,Len>& b) const; \
-			Name  operator-() const; \
 			Name  operator*(const Vec<T,Len>& b) const; \
-			Name  operator*(T b) const; \
 			Name  operator/(const Vec<T,Len>& b) const; \
+			Name  operator-() const; \
+			Name  operator+(T b) const; \
+			Name  operator-(T b) const; \
+			Name  operator*(T b) const; \
+			Name  operator/(T b) const; \
 			Name& operator+=(const Vec<T,Len>& b); \
 			Name& operator-=(const Vec<T,Len>& b); \
 			Name& operator*=(const Vec<T,Len>& b); \

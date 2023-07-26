@@ -59,7 +59,7 @@ namespace qk {
 				} else { // use wrap
 					result = ps - _margin_left - _margin_right - _padding_left - _padding_right;
 					if (_border)
-						result -= (_border[3].width + _border[1].width); // left + right
+						result -= (_border->width[3] + _border->width[1]); // left + right
 					result = Number<float>::max(result, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
@@ -105,7 +105,7 @@ namespace qk {
 				} else { // use wrap
 					result = ps - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
 					if (_border)
-						result -= (_border[3].width + _border[1].width); // left + right
+						result -= (_border->width[3] + _border->width[1]); // left + right
 					result = Number<float>::max(result, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
@@ -344,71 +344,71 @@ namespace qk {
 	// alloc border memory
 	static void alloc_border(BoxBorder*& _border) {
 		if (!_border) {
-			_border = (BoxBorder*)::malloc(sizeof(BoxBorder)*4);
-			::memset(_border, 0, sizeof(BoxBorder) * 4);
+			_border = (BoxBorder*)::malloc(sizeof(BoxBorder));
+			::memset(_border, 0, sizeof(BoxBorder));
 		}
 	}
 
 	Color Box::border_color_top() const {
-		return _border ? _border[0].color: Color::from(0);
+		return _border ? _border->color[0]: Color::from(0);
 	}
 
 	Color Box::border_color_right() const {
-		return _border ? _border[1].color: Color::from(0);
+		return _border ? _border->color[1]: Color::from(0);
 	}
 
 	Color Box::border_color_bottom() const {
-		return _border ? _border[2].color: Color::from(0);
+		return _border ? _border->color[2]: Color::from(0);
 	}
 
 	Color Box::border_color_left() const {
-		return _border ? _border[3].color: Color::from(0);
+		return _border ? _border->color[3]: Color::from(0);
 	}
 
 	float Box::border_width_top() const {
-		return _border ? _border[0].width: 0;
+		return _border ? _border->width[0]: 0;
 	} // border_widrh
 
 	float Box::border_width_right() const {
-		return _border ? _border[1].width: 0;
+		return _border ? _border->width[1]: 0;
 	}
 
 	float Box::border_width_bottom() const {
-		return _border ? _border[2].width: 0;
+		return _border ? _border->width[2]: 0;
 	}
 
 	float Box::border_width_left() const {
-		return _border ? _border[3].width: 0;
+		return _border ? _border->width[3]: 0;
 	}
 
 	void Box::set_border_color_top(Color val) {
 		alloc_border(_border);
-		if (_border[0].color != val) {
-			_border[0].color = val;
+		if (_border->color[0] != val) {
+			_border->color[0] = val;
 			mark_none();
 		}
 	}
 
 	void Box::set_border_color_right(Color val) {
 		alloc_border(_border);
-		if (_border[1].color != val) {
-			_border[1].color = val;
+		if (_border->color[1] != val) {
+			_border->color[1] = val;
 			mark_none();
 		}
 	}
 
 	void Box::set_border_color_bottom(Color val) {
 		alloc_border(_border);
-		if (_border[2].color != val) {
-			_border[2].color = val;
+		if (_border->color[2] != val) {
+			_border->color[2] = val;
 			mark_none();
 		}
 	}
 
 	void Box::set_border_color_left(Color val) {
 		alloc_border(_border);
-		if (_border[3].color != val) {
-			_border[3].color = val;
+		if (_border->color[3] != val) {
+			_border->color[3] = val;
 			mark_none();
 		}
 	}
@@ -416,8 +416,11 @@ namespace qk {
 	void Box::set_border_width_top(float val) {
 		alloc_border(_border);
 		val = Qk_MAX(0, val);
-		if (_border[0].width != val) {
-			_border[0].width = val;
+		if (_border->width[0] != val) {
+			_border->width[0] = val;
+			// fix aa sdf stroke for view render
+			val -= (2.0f * 0.45f / pre_render()->host()->display()->scale());
+			_border->_fix_width[0] = Qk_MAX(0, val);
 			mark_layout_size(kLayout_Size_Height);
 		}
 	} // border_widrh
@@ -425,8 +428,11 @@ namespace qk {
 	void Box::set_border_width_right(float val) {
 		alloc_border(_border);
 		val = Qk_MAX(0, val);
-		if (_border[1].width != val) {
-			_border[1].width = val;
+		if (_border->width[1] != val) {
+			_border->width[1] = val;
+			// fix aa sdf stroke for view render
+			val -= (2.0f * 0.45f / pre_render()->host()->display()->scale());
+			_border->_fix_width[1] = Qk_MAX(0, val);
 			mark_layout_size(kLayout_Size_Width);
 		}
 	}
@@ -434,8 +440,11 @@ namespace qk {
 	void Box::set_border_width_bottom(float val) {
 		alloc_border(_border);
 		val = Qk_MAX(0, val);
-		if (_border[2].width != val) {
-			_border[2].width = val;
+		if (_border->width[2] != val) {
+			_border->width[2] = val;
+			// fix aa sdf stroke for view render
+			val -= (2.0f * 0.45f / pre_render()->host()->display()->scale());
+			_border->_fix_width[2] = Qk_MAX(0, val);
 			mark_layout_size(kLayout_Size_Height);
 		}
 	}
@@ -443,8 +452,11 @@ namespace qk {
 	void Box::set_border_width_left(float val) {
 		alloc_border(_border);
 		val = Qk_MAX(0, val);
-		if (_border[3].width != val) {
-			_border[3].width = val;
+		if (_border->width[3] != val) {
+			_border->width[3] = val;
+			// fix aa sdf stroke for view render
+			val -= (2.0f * 0.45f / pre_render()->host()->display()->scale());
+			_border->_fix_width[3] = Qk_MAX(0, val);
 			mark_layout_size(kLayout_Size_Width);
 		}
 	}
@@ -493,7 +505,7 @@ namespace qk {
 					}
 					_client_size.set_x(_padding_left + _padding_right + val);
 					if (_border)
-						_client_size.val[0] += _border[3].width + _border[1].width; // left + right
+						_client_size.val[0] += _border->width[3] + _border->width[1]; // left + right
 
 					float x = _margin_left + _margin_right + _client_size.x();
 					if (_layout_size.x() != x) {
@@ -512,7 +524,7 @@ namespace qk {
 					}
 					_client_size.set_y(_padding_top + _padding_bottom + val);
 					if (_border)
-						_client_size.val[1] += _border[0].width + _border[2].width; // top + bottom
+						_client_size.val[1] += _border->width[0] + _border->width[2]; // top + bottom
 
 					float y = _margin_top + _margin_bottom + _client_size.y();
 					if (_layout_size.y() != y) {
@@ -645,8 +657,8 @@ namespace qk {
 		auto bp_x = _padding_left + _padding_right;
 		auto bp_y = _padding_left + _padding_right;
 		if (_border) {
-			bp_x += _border[3].width + _border[1].width; // left + right
-			bp_y += _border[0].width + _border[2].width; // top + bottom
+			bp_x += _border->width[3] + _border->width[1]; // left + right
+			bp_y += _border->width[0] + _border->width[2]; // top + bottom
 		}
 		auto mbp_x = _margin_left + _margin_right + bp_x;
 		auto mbp_y = _margin_top + _margin_bottom + bp_y;
@@ -691,8 +703,8 @@ namespace qk {
 		_client_size = Vec2(content_size.x() + _padding_left + _padding_right,
 												content_size.y() + _padding_top + _padding_bottom);
 		if (_border) {
-			_client_size.val[0] += _border[3].width + _border[1].width; // left + right
-			_client_size.val[1] += _border[0].width + _border[2].width; // top + bottom
+			_client_size.val[0] += _border->width[3] + _border->width[1]; // left + right
+			_client_size.val[1] += _border->width[0] + _border->width[2]; // top + bottom
 		}
 		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
 												_margin_top + _margin_bottom + _client_size.y());
@@ -716,8 +728,8 @@ namespace qk {
 		size.layout_size.set_x(_margin_left + _padding_left + size.content_size.x() + _padding_right + _margin_right);
 		size.layout_size.set_y(_margin_top + _padding_top + size.content_size.y() + _padding_bottom + _margin_bottom);
 		if (_border) {
-			size.layout_size.val[0] += _border[3].width + _border[1].width; // left + right
-			size.layout_size.val[1] += _border[0].width + _border[2].width; // top + bottom
+			size.layout_size.val[0] += _border->width[3] + _border->width[1]; // left + right
+			size.layout_size.val[1] += _border->width[0] + _border->width[2]; // top + bottom
 		}
 		return size;
 	}
@@ -754,8 +766,8 @@ namespace qk {
 		// return Vec2(-_margin_left, -_margin_top) - _transform_origin;
 		Vec2 offset(_padding_left - _origin_value.val[0], _padding_top - _origin_value.val[1]);
 		if (_border) {
-			offset.val[0] += _border[3].width; // left
-			offset.val[1] += _border[0].width; // top
+			offset.val[0] += _border->width[3]; // left
+			offset.val[1] += _border->width[0]; // top
 		}
 		return offset;
 	}

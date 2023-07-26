@@ -415,7 +415,7 @@ namespace qk {
 				width /= (_unitPixel * 0.65f); // range: -1 => 0
 				width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.006
 				const float stroke_sdf_range[3] = {0.5, width/*-0.25f*/, 0};
-				drawAAStrokeSDF(path, paint, stroke_sdf_range, aa_sdf_width);
+				drawAAStrokeSDF(path, paint, stroke_sdf_range, 0.5);
 			}
 		} else {
 			fillPath(_backend->getStrokePath(path, paint.width, paint.cap, paint.join), paint, false);

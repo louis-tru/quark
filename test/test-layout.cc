@@ -207,17 +207,17 @@ void layout(Event<>& evt, Application* app) {
 	// 	.position_y={0, FillPositionType::CENTER},
 	//}));
 	//flex->set_fill(new FillGradientRadial({ 0, 0.5, 1 }, { Color(255, 0, 0, 255), Color(0, 0, 255, 255), Color(0, 255, 255, 255) }));
-	//flex->set_background(new FillGradientRadial({ 0, 0.5, 1 },
-	//	{ Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 0, 255) })
-	//);
+	flex->set_background(new FillGradientRadial({ 0, 0.5, 1 },
+		{ Color(255, 0, 0, 255), Color(0, 255, 0, 255), Color(0, 0, 0, 255) })
+	);
 	flex->set_box_shadow(New<BoxShadow>(10, 10, 5, Color(0,0,0,255)));
 	//flex->set_effect(New<BoxShadow>(10, 10, 5, Color(255,0,0,255)));
 	flex->set_width({ 0, BoxSizeKind::MATCH });
 	flex->set_height({ 180, BoxSizeKind::PIXEL });
-	flex->set_margin_left(10);
+	flex->set_margin_left(11.5);
 	flex->set_margin_top(10);
-	flex->set_margin_right(10);
-	flex->set_margin_bottom(20);
+	flex->set_margin_right(11.5);
+	// flex->set_margin_bottom(20);
 
 	flex->set_padding_left(20);
 	flex->set_padding_top(20);
@@ -229,32 +229,32 @@ void layout(Event<>& evt, Application* app) {
 	flex->set_radius_right_bottom(80);
 	flex->set_radius_left_bottom(40);
 
-	flex->set_border_width_top(10);
-	flex->set_border_width_right(0);
+	flex->set_border_width_top(100);
+	flex->set_border_width_right(10);
 	flex->set_border_width_bottom(0);
-	flex->set_border_width_left(0);
+	flex->set_border_width_left(20);
 
-	flex->set_border_color_top(Color(0,0,0,255));
-	flex->set_border_color_right(Color(0,0,100,100));
-	flex->set_border_color_bottom(Color(0,0,100,100));
-	flex->set_border_color_left(Color(255,255,255,255));
+	flex->set_border_color_top(Color(0,0,255,100));
+	flex->set_border_color_right(Color(255,0,100,100));
+	flex->set_border_color_bottom(Color(0,255,100,100));
+	flex->set_border_color_left(Color(255,0,255,100));
 
 	//flex->set_opacity(0.5);
 	//flex->set_rotate(10);
 	//flex->set_skew(Vec2(0,1));
 	//flex->set_translate(Vec2(100, 0));
 	//
-	return;
-	flow->set_width({ 50, BoxSizeKind::PIXEL });
-	flow->set_height({ 50, BoxSizeKind::PIXEL });
-	flow->set_background_color(Color(0,0,255,255));
+	flow->set_width({ 50, BoxSizeKind::MATCH });
+	flow->set_height({ 20, BoxSizeKind::PIXEL });
+	flow->set_background_color(Color(0,0,0,255));
 	flow->set_layout_align(Align::LEFT_BOTTOM);
 	flow->set_margin_left(10);
-	flow->set_margin_top(10);
+	flow->set_margin_top(340);
 	flow->set_margin_right(10);
 	flow->set_margin_bottom(10);
 	flow->set_padding_left(50);
 	//
+	return;
 	img->set_height({ 50, BoxSizeKind::PIXEL });
 	img->set_layout_align(Align::RIGHT_BOTTOM);
 	img->set_src(fs_resources("bench/img2/21.jpeg"));

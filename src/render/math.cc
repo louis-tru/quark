@@ -100,18 +100,30 @@ namespace qk {
 	Vec2 Vec2::operator-(const Vec<float,2>& b) const {
 		return Vec2(val[0] - b.val[0], val[1] - b.val[1]);
 	}
-	Vec2 Vec2::operator-() const {
-		return Vec2(-val[0], -val[1]);
-	}
 	Vec2 Vec2::operator*(const Vec<float,2>& b) const {
 		return Vec2(val[0] * b.val[0], val[1] * b.val[1]);
-	}
-	Vec2 Vec2::operator*(float b) const {
-		return Vec2(val[0] * b, val[1] * b);
 	}
 	Vec2 Vec2::operator/(const Vec<float,2>& b) const {
 		return Vec2(val[0] / b.val[0], val[1] / b.val[1]);
 	}
+
+	Vec2 Vec2::operator+(float b) const {
+		return Vec2(val[0] + b, val[1] + b);
+	}
+	Vec2 Vec2::operator-(float b) const {
+		return Vec2(val[0] - b, val[1] - b);
+	}
+	Vec2 Vec2::operator*(float b) const {
+		return Vec2(val[0] * b, val[1] * b);
+	}
+	Vec2 Vec2::operator/(float b) const {
+		return Vec2(val[0] / b, val[1] / b);
+	}
+
+	Vec2 Vec2::operator-() const {
+		return Vec2(-val[0], -val[1]);
+	}
+
 	Vec2& Vec2:: operator+=(const Vec<float,2>& b) {
 		val[0] += b.val[0]; val[1] += b.val[1]; return *this;
 	}
@@ -226,18 +238,30 @@ namespace qk {
 	Vec3 Vec3::operator-(const Vec<float,3>& b) const {
 		return Vec3(val[0] - b.val[0], val[1] - b.val[1], val[2] - b.val[2]);
 	}
-	Vec3 Vec3::operator-() const {
-		return Vec3(-val[0], -val[1], -val[2]);
-	}
 	Vec3 Vec3::operator*(const Vec<float,3>& b) const {
 		return Vec3(val[0] * b.val[0], val[1] * b.val[1], val[2] * b.val[2]);
-	}
-	Vec3 Vec3::operator*(float b) const {
-		return Vec3(val[0] * b, val[1] * b, val[2] * b);
 	}
 	Vec3 Vec3::operator/(const Vec<float,3>& b) const {
 		return Vec3(val[0] / b.val[0], val[1] / b.val[1], val[2] / b.val[2]);
 	}
+
+	Vec3 Vec3::operator+(float b) const {
+		return Vec3(val[0] + b, val[1] + b, val[2] + b);
+	}
+	Vec3 Vec3::operator-(float b) const {
+		return Vec3(val[0] - b, val[1] - b, val[2] - b);
+	}
+	Vec3 Vec3::operator*(float b) const {
+		return Vec3(val[0] * b, val[1] * b, val[2] * b);
+	}
+	Vec3 Vec3::operator/(float b) const {
+		return Vec3(val[0] / b, val[1] / b, val[2] / b);
+	}
+
+	Vec3 Vec3::operator-() const {
+		return Vec3(-val[0], -val[1], -val[2]);
+	}
+
 	Vec3& Vec3:: operator+=(const Vec<float,3>& b) {
 		val[0] += b.val[0]; val[1] += b.val[1]; val[2] += b.val[2]; return *this;
 	}

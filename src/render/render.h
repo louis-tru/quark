@@ -71,7 +71,7 @@ namespace qk {
 		virtual void    begin() = 0; // start render task
 		virtual void    submit() = 0; // submit render task
 		virtual void    activate(bool isActive);
-		virtual float   getAAUnitPixel() = 0; // get anti alias unit pixel size
+		virtual float   getUnitPixel() = 0; // get surface unit pixel size
 		virtual Object* asObject() = 0;
 		inline  Canvas* getCanvas() { return _canvas; } // default canvas object
 		inline  Vec2    surfaceSize() { return _surface_size; }
@@ -132,10 +132,8 @@ namespace qk {
 		 * @param rect {Rect} outside border rect
 		 * @param border {float[4]} inside border width top,right,bottom,left
 		 * @param radius {float[4]} outside border radius leftTop,rightTop,rightBottom,leftBottom
-		 * @param fixAA {bool} anti alias compensate
 		 */
-		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4],
-			const float radius[4], bool fixAA);
+		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]);
 
 	protected:
 		RenderBackend(Options opts);

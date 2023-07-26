@@ -166,8 +166,8 @@ namespace qk {
 				padding_top() - origin_value()[1]
 			);
 			if (_border) {
-				point[0] += _border[3].width; // left
-				point[1] += _border[0].width; // top
+				point[0] += _border->width[3]; // left
+				point[1] += _border->width[0]; // top
 			}
 			return matrix() * point;
 		}
@@ -271,8 +271,8 @@ namespace qk {
 			y += padding_top();
 
 			if (_border) {
-				x += _border[3].width; // left
-				y += _border[0].width; // top
+				x += _border->width[3]; // left
+				y += _border->width[0]; // top
 			}
 
 			Vec2 cursor_offset(x - origin.x(), y - origin.y());
@@ -1032,8 +1032,8 @@ namespace qk {
 			padding_top()  - origin.y() + text_offset.y()
 		);
 		if (_border) {
-			offset.val[0] += _border[3].width; // left
-			offset.val[1] += _border[0].width; // top
+			offset.val[0] += _border->width[3]; // left
+			offset.val[1] += _border->width[0]; // top
 		}
 		return offset;
 	}
