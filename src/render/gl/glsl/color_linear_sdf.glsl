@@ -16,11 +16,11 @@ void main() {
 #frag
 in      lowp float     sdf_f;
 in      lowp float     indexed_f;
-uniform lowp float     sdf_range[3]; // range -0.5 => 0, sdf increase
 uniform      int       count;
 uniform lowp float     opacity;
 uniform lowp vec4      colors[256];/*max 256 color points*/
 uniform lowp float     positions[256];
+uniform lowp float     sdf_range[3]; // range -0.5 => 0, sdf increase
 
 void main() {
 	int s = 0;

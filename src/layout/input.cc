@@ -546,9 +546,9 @@ namespace qk {
 	Input::Input(App *host)
 		: Box(host)
 		, _security(false), _readonly(false)
-		, _text_align(TextAlign::LEFT)
-		, _type(KeyboardType::NORMAL)
-		, _return_type(KeyboardReturnType::NORMAL)
+		, _text_align(TextAlign::kLeft)
+		, _type(KeyboardType::kNormal)
+		, _return_type(KeyboardReturnType::kNormal)
 		, _placeholder_color(150, 150, 150)
 		, _cursor_color(0x43,0x95,0xff) //#4395ff
 		, _max_length(0)
@@ -561,7 +561,7 @@ namespace qk {
 	{
 		set_is_clip(true);
 		set_receive(true);
-		set_text_word_break(TextWordBreak::BREAK_WORD);
+		set_text_word_break(TextWordBreak::kBreakWord);
 		// bind events
 		add_event_listener(UIEvent_Click, &Inl::click_handle, Inl_Input(this));
 		add_event_listener(UIEvent_TouchStart, &Inl::touchstart_handle, Inl_Input(this));
@@ -774,9 +774,9 @@ namespace qk {
 				switch ( _text_align ) {
 					default:
 						_cursor_x = 0; break;
-					case TextAlign::CENTER:
+					case TextAlign::kCenter:
 						_cursor_x = final_width / 2; break;
-					case TextAlign::RIGHT:
+					case TextAlign::kRight:
 						_cursor_x = final_width; break;
 				}
 				_cursor_linenum = _lines->last()->line;
@@ -822,9 +822,9 @@ namespace qk {
 				switch ( _text_align ) {
 					default:
 						offset = text_offset.x(); break;
-					case TextAlign::CENTER:
+					case TextAlign::kCenter:
 						offset = text_offset.x() + (final_width - max_width) / 2.0; break;
-					case TextAlign::RIGHT:
+					case TextAlign::kRight:
 						offset = text_offset.x() + final_width - max_width; break;
 				}
 

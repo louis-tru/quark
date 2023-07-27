@@ -48,7 +48,7 @@ namespace qk {
 		if (first()) {
 			float max_main = 0;
 			float total_cross = 0;
-			bool wrap_reverse = _wrap == Wrap::WRAP_REVERSE;
+			bool wrap_reverse = _wrap == Wrap::kWrapReverse;
 
 			struct Line {
 				struct Item {
@@ -105,7 +105,7 @@ namespace qk {
 			float cross_space = 0, cross_offset = 0;
 
 			if (!is_wrap_cross) {
-				if (WrapAlign::STRETCH == _wrap_align) {
+				if (WrapAlign::kStretch == _wrap_align) {
 					cross_overflow_item = lines.length() ? cross_overflow / lines.length() : 0;
 				} else {
 					cross_offset = parse_align_space(
@@ -124,12 +124,12 @@ namespace qk {
 					auto v = j.v;
 					auto align = v->layout_align();
 					float cross_offset_item = cross_offset;
-					switch (align == Align::AUTO ? _cross_align: CrossAlign(int(align) - 1)) {
+					switch (align == Align::kAuto ? _cross_align: CrossAlign(int(align) - 1)) {
 						default:
-						case CrossAlign::START: break; // 与交叉轴内的起点对齐
-						case CrossAlign::CENTER: // 与交叉轴内的中点对齐
+						case CrossAlign::kStart: break; // 与交叉轴内的起点对齐
+						case CrossAlign::kCenter: // 与交叉轴内的中点对齐
 							cross_offset_item += ((cross - (is_horizontal ? s.y(): s.x())) * .5); break;
-						case CrossAlign::END: // 与交叉轴内的终点对齐
+						case CrossAlign::kEnd: // 与交叉轴内的终点对齐
 							cross_offset_item += (cross - (is_horizontal ? s.y(): s.x())); break;
 					}
 					if (is_horizontal) {
@@ -154,8 +154,8 @@ namespace qk {
 
 	FlowLayout::FlowLayout(App *host)
 		: FlexLayout(host)
-		, _wrap(Wrap::NO_WRAP)
-		, _wrap_align(WrapAlign::START)
+		, _wrap(Wrap::kNoWrap)
+		, _wrap_align(WrapAlign::kStart)
 	{
 	}
 
@@ -183,8 +183,8 @@ namespace qk {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return true; // continue iteration
 
-			if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) { // ROW
-				if (layout_wrap_x() && _wrap == Wrap::NO_WRAP) { // no wrap, single-line
+			if (_direction == Direction::kRow || _direction == Direction::kRowReverse) { // ROW
+				if (layout_wrap_x() && _wrap == Wrap::kNoWrap) { // no wrap, single-line
 					/*
 						|-------------....------------|
 						|          width=WRAP         |
@@ -194,7 +194,7 @@ namespace qk {
 						|                             |
 						|-------------....------------|
 					*/
-					layout_typesetting_auto_impl(true, _direction == Direction::ROW_REVERSE);
+					layout_typesetting_auto_impl(true, _direction == Direction::kRowReverse);
 				} else { // wrap, multi-line
 					/*
 						|-----------------------------|
@@ -214,10 +214,10 @@ namespace qk {
 						|   --- --- ---         ---   |
 						|-----------------------------|
 					*/
-					layout_typesetting_wrap<true>(_direction == Direction::ROW_REVERSE);
+					layout_typesetting_wrap<true>(_direction == Direction::kRowReverse);
 				}
 			} else { // COLUMN
-				if (layout_wrap_y() && _wrap == Wrap::NO_WRAP) { // no wrap, single-line
+				if (layout_wrap_y() && _wrap == Wrap::kNoWrap) { // no wrap, single-line
 					/*
 						|-----------|
 						|height=WRAP|
@@ -236,7 +236,7 @@ namespace qk {
 						|    ---    |
 						|-----------|
 					*/
-					layout_typesetting_auto_impl(false, _direction == Direction::COLUMN_REVERSE);
+					layout_typesetting_auto_impl(false, _direction == Direction::kColumnReverse);
 				} else { // wrap, multi-line
 					/*
 						|-----------------------------|
@@ -256,7 +256,7 @@ namespace qk {
 						|   --- --- ---         ---   |
 						|-----------------------------|
 					*/
-					layout_typesetting_wrap<false>(_direction == Direction::COLUMN_REVERSE);
+					layout_typesetting_wrap<false>(_direction == Direction::kColumnReverse);
 				}
 			}
 

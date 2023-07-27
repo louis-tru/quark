@@ -63,9 +63,9 @@ namespace qk {
 				switch ( _text_align ) {
 					default:
 						_input_text_offset_x = 0; break;
-					case TextAlign::CENTER:
+					case TextAlign::kCenter:
 						_input_text_offset_x = (max_width - final_width) / 2.0; break;
-					case TextAlign::RIGHT:
+					case TextAlign::kRight:
 						_input_text_offset_x = max_width - final_width; break;
 				}
 			}

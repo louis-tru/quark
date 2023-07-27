@@ -780,13 +780,13 @@ namespace qk {
 			if (btn) {
 				FindDirection dir;
 				switch ( name ) {
-					case KEYCODE_LEFT: dir = FindDirection::LEFT; break;  // left
-					case KEYCODE_UP: dir = FindDirection::TOP; break;     // top
-					case KEYCODE_RIGHT: dir = FindDirection::RIGHT; break; // right
-					case KEYCODE_DOWN: dir = FindDirection::BOTTOM; break; // bottom
-					default: dir = FindDirection::NONE; break;
+					case KEYCODE_LEFT: dir = FindDirection::kLeft; break;  // left
+					case KEYCODE_UP: dir = FindDirection::kTop; break;     // top
+					case KEYCODE_RIGHT: dir = FindDirection::kRight; break; // right
+					case KEYCODE_DOWN: dir = FindDirection::kBottom; break; // bottom
+					default: dir = FindDirection::kNone; break;
 				}
-				if ( dir != FindDirection::NONE ) {
+				if ( dir != FindDirection::kNone ) {
 					focus_move = btn->next_button(dir);
 				}
 			}

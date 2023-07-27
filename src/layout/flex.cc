@@ -37,20 +37,20 @@ namespace qk {
 
 		switch (align) {
 			default: break;
-			case ItemsAlign::START: // 左对齐
+			case ItemsAlign::kStart: // 左对齐
 				if (is_reverse) {
 					offset_x = overflow;
 				}
 				break;
-			case ItemsAlign::CENTER: // 居中
+			case ItemsAlign::kCenter: // 居中
 				offset_x =  overflow * .5;
 				break;
-			case ItemsAlign::END: // 右对齐
+			case ItemsAlign::kEnd: // 右对齐
 				if (!is_reverse) {
 					offset_x = overflow;
 				}
 				break;
-			case ItemsAlign::SPACE_BETWEEN: // 两端对齐，项目之间的间隔都相等
+			case ItemsAlign::kSpaceBetween: // 两端对齐，项目之间的间隔都相等
 				if (overflow > 0) {
 					space = overflow / (count - 1);
 				} else {
@@ -59,7 +59,7 @@ namespace qk {
 					}
 				}
 				break;
-			case ItemsAlign::SPACE_AROUND: // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
+			case ItemsAlign::kSpaceAround: // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
 				if (overflow > 0) {
 					space = overflow / count;
 					offset_x = space * .5;
@@ -67,7 +67,7 @@ namespace qk {
 					offset_x = overflow * .5;
 				}
 				break;
-			case ItemsAlign::SPACE_EVENLY: // 每个项目两侧的间隔相等,这包括边框的间距
+			case ItemsAlign::kSpaceEvenly: // 每个项目两侧的间隔相等,这包括边框的间距
 				if (overflow > 0) {
 					offset_x = space = overflow / (count + 1);
 				} else {
@@ -109,12 +109,12 @@ namespace qk {
 				auto size = v->layout_size().layout_size;
 				auto align = v->layout_align();
 				float offset_cross = 0;
-				switch (align == Align::AUTO ? _cross_align: CrossAlign(int(align) - 1)) {
+				switch (align == Align::kAuto ? _cross_align: CrossAlign(int(align) - 1)) {
 					default:
-					case CrossAlign::START: break; // 与交叉轴内的起点对齐
-					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
+					case CrossAlign::kStart: break; // 与交叉轴内的起点对齐
+					case CrossAlign::kCenter: // 与交叉轴内的中点对齐
 						offset_cross = (max_cross - (is_horizontal ? size.y(): size.x())) * .5; break;
-					case CrossAlign::END: // 与交叉轴内的终点对齐
+					case CrossAlign::kEnd: // 与交叉轴内的终点对齐
 						offset_cross = max_cross - (is_horizontal ? size.y(): size.x()); break;
 				}
 				if (is_horizontal) {
@@ -195,12 +195,12 @@ namespace qk {
 				auto v = i.v;
 				auto align = v->layout_align();
 				float offset_cross = 0;
-				switch (align == Align::AUTO ? _cross_align: CrossAlign(int(align) - 1)) {
+				switch (align == Align::kAuto ? _cross_align: CrossAlign(int(align) - 1)) {
 					default:
-					case CrossAlign::START: break; // 与交叉轴内的起点对齐
-					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
+					case CrossAlign::kStart: break; // 与交叉轴内的起点对齐
+					case CrossAlign::kCenter: // 与交叉轴内的中点对齐
 						offset_cross = (cross_size - size.y()) * .5; break;
-					case CrossAlign::END: // 与交叉轴内的终点对齐
+					case CrossAlign::kEnd: // 与交叉轴内的终点对齐
 						offset_cross = cross_size - size.y(); break;
 				}
 				if (weight_total == 0) {
@@ -232,9 +232,9 @@ namespace qk {
 
 	FlexLayout::FlexLayout(App *host)
 		: Box(host)
-		, _direction(Direction::ROW)
-		, _items_align(ItemsAlign::START)
-		, _cross_align(CrossAlign::START)
+		, _direction(Direction::kRow)
+		, _items_align(ItemsAlign::kStart)
+		, _cross_align(CrossAlign::kStart)
 		, _is_lock_child(false)
 	{
 	}
@@ -265,7 +265,7 @@ namespace qk {
 
 		if (parent()->is_lock_child_layout_size()) { // parent lock
 			is_lock_child = true;
-		} else if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) {
+		} else if (_direction == Direction::kRow || _direction == Direction::kRowReverse) {
 			if (!layout_wrap_x()) is_lock_child = true; // Explicit size x, no Line feed
 		} else {
 			if (!layout_wrap_y()) is_lock_child = true; // Explicit size y, no Line feed
@@ -310,7 +310,7 @@ namespace qk {
 			}
 
 			// flex lock child
-			if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) { // ROW horizontal flex layout
+			if (_direction == Direction::kRow || _direction == Direction::kRowReverse) { // ROW horizontal flex layout
 				/*
 					|-------------------------------|
 					| width=Explicit                |
@@ -320,7 +320,7 @@ namespace qk {
 					|                               |
 					|-------------------------------|
 				*/
-				layout_typesetting_flex<true>(_direction == Direction::ROW_REVERSE); // flex horizontal
+				layout_typesetting_flex<true>(_direction == Direction::kRowReverse); // flex horizontal
 			} else { // COLUMN vertical flex layout
 				/*
 					|--------------------------------|
@@ -340,7 +340,7 @@ namespace qk {
 					|              ---               |
 					|--------------------------------|
 				*/
-				layout_typesetting_flex<false>(_direction == Direction::COLUMN_REVERSE); // flex vertical
+				layout_typesetting_flex<false>(_direction == Direction::kColumnReverse); // flex vertical
 			}
 
 			unmark(kLayout_Typesetting);
@@ -358,7 +358,7 @@ namespace qk {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return true; // continue iteration
 
-			if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) { // ROW
+			if (_direction == Direction::kRow || _direction == Direction::kRowReverse) { // ROW
 				if (!layout_wrap_x()) // no wrap, flex layout must be handled in forward iteration
 					return true; // layout_forward()
 				/*
@@ -371,7 +371,7 @@ namespace qk {
 					|-------------....------------|
 				*/
 				// auto horizontal layout
-				layout_typesetting_auto<true>(_direction == Direction::ROW_REVERSE);
+				layout_typesetting_auto<true>(_direction == Direction::kRowReverse);
 			} else { // COLUMN
 				if (layout_wrap_y()) // no wrap, flex layout must be handled in forward iteration
 					return true; // layout_forward()
@@ -394,7 +394,7 @@ namespace qk {
 					|-----------|
 				*/
 				// auto vertical layout
-				layout_typesetting_auto<false>(_direction == Direction::COLUMN_REVERSE);
+				layout_typesetting_auto<false>(_direction == Direction::kColumnReverse);
 			}
 
 			unmark(kLayout_Typesetting);

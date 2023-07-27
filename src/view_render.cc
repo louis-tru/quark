@@ -107,11 +107,11 @@ namespace qk {
 			auto fill = box->_background;
 			do {
 				switch(fill->type()) {
-					case Filter::M_IMAGE:// fill
+					case Filter::kImage:// fill
 						drawBoxFillImage(box, static_cast<FillImage*>(fill), data); break;
-					case Filter::M_GRADIENT_Linear: // fill
+					case Filter::kGradientLinear: // fill
 						drawBoxFillLinear(box, static_cast<FillGradientLinear*>(fill), data); break;
-					case Filter::M_GRADIENT_Radial: // fill
+					case Filter::kGradientRadial: // fill
 						drawBoxFillRadial(box, static_cast<FillGradientRadial*>(fill), data); break;
 					default: break;
 				}
@@ -157,16 +157,16 @@ namespace qk {
 			paint.color.set_a(_opacity);
 
 			switch(fill->repeat()) {
-				case Repeat::REPEAT:
+				case Repeat::kRepeat:
 					paint.tileModeX = Paint::kRepeat_TileMode;
 					paint.tileModeY = Paint::kRepeat_TileMode; break;
-				case Repeat::REPEAT_X:
+				case Repeat::kRepeatX:
 					paint.tileModeX = Paint::kRepeat_TileMode;
 					paint.tileModeY = Paint::kDecal_TileMode; break;
-				case Repeat::REPEAT_Y:
+				case Repeat::kRepeatY:
 					paint.tileModeX = Paint::kDecal_TileMode;
 					paint.tileModeY = Paint::kRepeat_TileMode; break;
-				case Repeat::NO_REPEAT:
+				case Repeat::kRepeatNo:
 					paint.tileModeX = Paint::kDecal_TileMode;
 					paint.tileModeY = Paint::kDecal_TileMode; break;
 			}
@@ -242,7 +242,7 @@ namespace qk {
 		void drawBoxShadow(Box *box, BoxData &data) {
 			auto shadow = box->box_shadow();
 			do {
-				if (shadow->type() == Filter::M_SHADOW) {
+				if (shadow->type() == Filter::kShadow) {
 					// TODO ...
 				}
 				shadow = shadow->next();

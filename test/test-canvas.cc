@@ -78,7 +78,7 @@ public:
 
 		paint.color = Color4f(0,0,0);
 
-		auto stype = FontStyle(TextWeight::BOLD, TextWidth::DEFAULT, TextSlant::NORMAL);
+		auto stype = FontStyle(TextWeight::kBold, TextWidth::kDefault, TextSlant::kNormal);
 		auto pool = shared_app()->font_pool();
 		auto unicode = codec_decode_to_uint32(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
 		auto fgs = pool->getFFID()->makeFontGlyphs(unicode, stype, 64);
@@ -108,8 +108,8 @@ void test_canvas(int argc, char **argv) {
 	App app;
 	// layout
 	auto t = (new TestCanvas(&app))->append_to<Box>(app.root());
-	t->set_width({ 0, BoxSizeKind::MATCH });
-	t->set_height({ 0, BoxSizeKind::MATCH });
+	t->set_width({ 0, SizeKind::kMatch });
+	t->set_height({ 0, SizeKind::kMatch });
 	// layout end
 	app.run();
 }

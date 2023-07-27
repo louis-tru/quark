@@ -209,6 +209,7 @@
 					'platforms/apple/apple_image_codec.mm',
 					'platforms/apple/apple_keyboard.mm',
 					'platforms/apple/apple_render.mm',
+					'platforms/apple/apple_util.h',
 					'render/font/ct/ct_pool.cc',
 					'render/font/ct/ct_typeface.cc',
 					'render/font/ct/ct_typeface.h',

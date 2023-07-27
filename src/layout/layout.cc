@@ -70,7 +70,7 @@ namespace qk {
 		* @func layout_align()
 		*/
 	Align Layout::layout_align() {
-		return Align::AUTO;
+		return Align::kAuto;
 	}
 
 	/**

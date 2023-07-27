@@ -299,7 +299,7 @@ FontStyle QkCTFontDescriptorGetSkFontStyle(CTFontDescriptorRef desc, bool fromDa
 
 	return FontStyle((TextWeight)ct_weight_to_fontstyle(weight, fromDataProvider),
 										(TextWidth)ct_width_to_fontstyle(width),
-										slant ? TextSlant::ITALIC: TextSlant::DEFAULT);
+										slant ? TextSlant::kItalic: TextSlant::kDefault);
 }
 
 

@@ -175,10 +175,10 @@ namespace qk {
 		// 	PRE_WRAP,      /* 保留所有空白,使用自动wrap */
 		// 	PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
 
-		if (space == TextWhiteSpace::PRE || space == TextWhiteSpace::PRE_WRAP) { // 保留所有空白
+		if (space == TextWhiteSpace::kPre || space == TextWhiteSpace::kPreWrap) { // 保留所有空白
 			is_merge_space = false;
 			is_merge_line_feed = false;
-		} else if (space == TextWhiteSpace::PRE_LINE) { // 保留换行符
+		} else if (space == TextWhiteSpace::kPreLine) { // 保留换行符
 			is_merge_line_feed = false;
 		}
 
@@ -239,8 +239,8 @@ namespace qk {
 		// };
 
 		if (_disable_auto_wrap || _lines->no_wrap() || // 不使用自动wrap
-				text_white_space == TextWhiteSpace::NO_WRAP ||
-				text_white_space == TextWhiteSpace::PRE
+				text_white_space == TextWhiteSpace::kNoWrap ||
+				text_white_space == TextWhiteSpace::kPre
 		) { // 不使用自动wrap
 			is_auto_wrap = false;
 		}
@@ -272,13 +272,13 @@ namespace qk {
 				if (is_auto_wrap) {
 					switch (text_word_break) {
 						default:
-						case TextWordBreak::NORMAL:
+						case TextWordBreak::kNormal:
 							as_normal(fg, unichar, index_of_unichar, false, false); break;
-						case TextWordBreak::BREAK_WORD:
+						case TextWordBreak::kBreakWord:
 							as_normal(fg, unichar, index_of_unichar, true, false); break;
-						case TextWordBreak::BREAK_ALL:
+						case TextWordBreak::kBreakAll:
 							as_break_all(fg, unichar, index_of_unichar); break;
-						case TextWordBreak::KEEP_ALL:
+						case TextWordBreak::kKeepAll:
 							as_normal(fg, unichar, index_of_unichar, false, true); break;
 					}
 					unichar += fg.glyphs().length();
@@ -457,7 +457,7 @@ namespace qk {
 		auto text_size = _opts->text_size().value;
 		auto line_height = _opts->text_line_height().value;
 		
-		if (!_disable_overflow && overflow != TextOverflow::NORMAL && !_lines->no_wrap()) {
+		if (!_disable_overflow && overflow != TextOverflow::kNormal && !_lines->no_wrap()) {
 			if (origin >= limitX) return; // skip
 
 			// CLIP,            /* 剪切 */
@@ -468,7 +468,7 @@ namespace qk {
 			if (overflow_val > 0) {
 				int len = fg.glyphs().length();
 
-				if (overflow == TextOverflow::CLIP) {
+				if (overflow == TextOverflow::kClip) {
 					for (int j = 0; j < len; j++) {
 						float x = origin + offset[j + 1].x();
 						if (x > limitX) {

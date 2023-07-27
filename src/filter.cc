@@ -83,7 +83,7 @@ namespace qk {
 
 	Filter::Filter()
 		: _next(nullptr)
-		, _holder_mode(M_INDEPENDENT)
+		, _holder_mode(kIdependent)
 	{
 	}
 
@@ -128,9 +128,9 @@ namespace qk {
 	}
 
 	bool Filter::retain() {
-		if (_holder_mode == M_DISABLE) {
+		if (_holder_mode == kDisable) {
 			return false;
-		} else if (_holder_mode == M_INDEPENDENT) {
+		} else if (_holder_mode == kIdependent) {
 			if (refCount() > 0) {
 				return false;
 			}
@@ -155,27 +155,29 @@ namespace qk {
 		}
 	}
 
-	Filter::Type FillImage::type() const { return M_IMAGE; }
-	Filter::Type FillGradientLinear::type() const { return M_GRADIENT_Linear; }
-	Filter::Type FillGradientRadial::type() const { return M_GRADIENT_Radial; }
-	Filter::Type BoxShadow::type() const { return M_SHADOW; }
+	Filter::Type FillImage::type() const { return kImage; }
+	Filter::Type FillGradientLinear::type() const { return kGradientLinear; }
+	Filter::Type FillGradientRadial::type() const { return kGradientRadial; }
+	Filter::Type BoxShadow::type() const { return kShadow; }
 
 	Fill* Fill::next() const {
 		return static_cast<Fill*>(_next);
 	}
-	void Fill::set_next(Fill* fill) {
-		_next = fill;
+	Fill* Fill::set_next(Fill* fill) {
+		set_next_check(fill);
+		return static_cast<Fill*>(_next);
 	}
 	BoxShadow* BoxShadow::next() const {
 		return static_cast<BoxShadow*>(_next);
 	}
-	void BoxShadow::set_next(BoxShadow* fill) {
-		_next = fill;
+	BoxShadow* BoxShadow::set_next(BoxShadow* shadow) {
+		set_next_check(shadow);
+		return static_cast<BoxShadow*>(_next);
 	}
 
 	// ------------------------------ F i l l . I m a g e ------------------------------
 
-	FillImage::FillImage(): _repeat(Repeat::REPEAT) {}
+	FillImage::FillImage(): _repeat(Repeat::kRepeat) {}
 	FillImage::FillImage(cString& src, Init init)
 		: _size_x(init.size_x)
 		, _size_y(init.size_y)
@@ -189,7 +191,7 @@ namespace qk {
 	}
 
 	Filter* FillImage::copy(Filter* to) {
-		auto target = (to && to->type() == M_IMAGE) ?
+		auto target = (to && to->type() == kImage) ?
 				static_cast<FillImage*>(to) : new FillImage();
 		target->set_next_no_check(next());
 		target->_repeat = _repeat;
@@ -239,8 +241,8 @@ namespace qk {
 	bool FillImage::compute_size(FillSize size, float host, float& out) {
 		switch (size.kind) {
 			default: return false; // AUTO
-			case FillSizeKind::PIXEL: out = size.value; break;
-			case FillSizeKind::RATIO: out = size.value * host; break;
+			case FillSizeKind::kPixel: out = size.value; break;
+			case FillSizeKind::kRatio: out = size.value * host; break;
 		}
 		return true;
 	}
@@ -250,10 +252,10 @@ namespace qk {
 		switch (pos.kind) {
 			default: break;
 			//case FillPositionType::START: out = 0; break;
-			case FillPositionKind::PIXEL: out = pos.value; break;
-			case FillPositionKind::RATIO: out = pos.value * host; break;
-			case FillPositionKind::END: out = host - size; break;
-			case FillPositionKind::CENTER: out = (host - size) / 2; break;
+			case FillPositionKind::kPixel: out = pos.value; break;
+			case FillPositionKind::kRatio: out = pos.value * host; break;
+			case FillPositionKind::kEnd: out = host - size; break;
+			case FillPositionKind::kCenter: out = (host - size) / 2; break;
 		}
 		return out;
 	}
@@ -318,7 +320,7 @@ namespace qk {
 
 	Filter* FillGradientLinear::copy(Filter* to) {
 		FillGradientLinear *target;
-		if (to && to->type() == M_GRADIENT_Linear) {
+		if (to && to->type() == kGradientLinear) {
 			target = static_cast<FillGradientLinear*>(to);
 		} else {
 			target = new FillGradientLinear(_angle, positions(), {});
@@ -332,7 +334,7 @@ namespace qk {
 
 	Filter* FillGradientRadial::copy(Filter* to) {
 		FillGradientRadial *target;
-		if (to && to->type() == M_GRADIENT_Radial) {
+		if (to && to->type() == kGradientRadial) {
 			target = static_cast<FillGradientRadial*>(to);
 		} else {
 			target = new FillGradientRadial(positions(), {});
@@ -349,7 +351,7 @@ namespace qk {
 	BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
 
 	Filter* BoxShadow::copy(Filter* to) {
-		auto target = (to && to->type() == M_SHADOW) ?
+		auto target = (to && to->type() == kShadow) ?
 			static_cast<BoxShadow*>(to): new BoxShadow();
 		target->set_next_no_check(next());
 		target->_value = _value;

@@ -91,14 +91,14 @@ namespace qk {
 
 	void Label::set_layout_offset(Vec2 val) {
 		auto size = parent()->layout_size().content_size;
-		Sp<TextLines> lines = new TextLines(this, TextAlign::LEFT, size, false); // use left align
+		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
 		layout_text(*lines, pre_render()->host()->default_text_options());
 		lines->finish();
 		mark_none(kRecursive_Transform);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 size) {
-		Sp<TextLines> lines = new TextLines(this, TextAlign::LEFT, size, false); // use left align
+		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
 		layout_text(*lines, pre_render()->host()->default_text_options());
 		lines->finish();
 		mark_none(kRecursive_Transform);

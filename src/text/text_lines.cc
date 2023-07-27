@@ -114,12 +114,12 @@ namespace qk {
 		for (auto layout: _preLayout.back()) {
 			auto height = layout->layout_size().layout_size.y();
 			switch (layout->layout_align()) {
-				case Align::START:
+				case Align::kStart:
 					set_metrics(top, height - bottom); break;
-				case Align::CENTER:
+				case Align::kCenter:
 					height = (height - top - bottom) / 2;
 					set_metrics(height + top, height + bottom); break;
-				case Align::END:
+				case Align::kEnd:
 					set_metrics(height - bottom, bottom); break;
 				default:
 					set_metrics(height, 0); break;
@@ -135,9 +135,9 @@ namespace qk {
 
 		for (auto &line: _lines) {
 			switch(_text_align) {
-				case TextAlign::LEFT: break;
-				case TextAlign::CENTER: line.origin = (width - line.width) / 2; break;
-				case TextAlign::RIGHT:  line.origin = width - line.width; break;
+				case TextAlign::kLeft: break;
+				case TextAlign::kCenter: line.origin = (width - line.width) / 2; break;
+				case TextAlign::kRight:  line.origin = width - line.width; break;
 			}
 			if ( line.origin < _min_origin) {
 				_min_origin = line.origin;
@@ -152,11 +152,11 @@ namespace qk {
 				float y;
 
 				switch (layout->layout_align()) {
-					case Align::START:
+					case Align::kStart:
 						y = _last->baseline - top; break;
-					case Align::CENTER:
+					case Align::kCenter:
 						y = _last->baseline - (size_y + top - bottom) / 2; break;
-					case Align::END:
+					case Align::kEnd:
 						y = _last->baseline - size_y + bottom; break;
 					default:
 						y = _last->baseline - size_y; break;

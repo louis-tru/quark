@@ -94,14 +94,6 @@ template <typename T, size_t N> char (&QkArrayCountHelper(T (&array)[N]))[N];
 	#define QkEndian_SwapBE32(n)    (n)
 #endif
 
-// TODO: when C++17 the language is available, use template <auto P>
-template <typename T, T* P> struct QkFunctionWrapper {
-	template <typename... Args>
-	auto operator()(Args&&... args) const -> decltype(P(std::forward<Args>(args)...)) {
-		return P(std::forward<Args>(args)...);
-	}
-};
-
 static inline constexpr uint16_t QkEndianSwap16(uint16_t value) {
 	return static_cast<uint16_t>((value >> 8) | ((value & 0xFF) << 8));
 }

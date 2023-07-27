@@ -1,6 +1,7 @@
 #vert
 uniform   vec4      range;/*origin/end range for rect*/
 out       float     indexed_f;
+
 void main() {
 	vec2 ao = range.zw     - range.xy;
 	vec2 bo = vertex_in.xy - range.xy;
@@ -15,6 +16,7 @@ uniform      int       count;
 uniform lowp float     opacity;
 uniform lowp vec4      colors[256];/*max 256 color points*/
 uniform lowp float     positions[256];
+
 void main() {
 	int s = 0;
 	int e = count-1;

@@ -44,8 +44,8 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(Typeface);
 	public:
 		Qk_DEFINE_PROP_GET(FontStyle, fontStyle);
-		bool isBold() const { return _fontStyle.weight() >= TextWeight::SEMIBOLD; }
-		bool isItalic() const { return _fontStyle.slant() >= TextSlant::ITALIC; }
+		bool isBold() const { return _fontStyle.weight() >= TextWeight::kSemibold; }
+		bool isItalic() const { return _fontStyle.slant() >= TextSlant::kItalic; }
 		int countGlyphs() const;
 		int countTables() const;
 		int getTableTags(FontTableTag tags[]) const;

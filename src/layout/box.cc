@@ -45,15 +45,15 @@ namespace qk {
 
 		switch (_width.kind) {
 			default: // NONE /* none default wrap content */
-			case BoxSizeKind::WRAP: /* 包裹内容 wrap content */
+			case BoxSizeKind::kWrap: /* 包裹内容 wrap content */
 				*is_wrap_in_out = true;
 				result = 0; // invalid wrap width
 				break;
-			case BoxSizeKind::PIXEL: /* 明确值 value px */
+			case BoxSizeKind::kPixel: /* 明确值 value px */
 				*is_wrap_in_out = false;
 				result = _width.value;
 				break;
-			case BoxSizeKind::MATCH: /* 匹配父视图 match parent */
+			case BoxSizeKind::kMatch: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -64,7 +64,7 @@ namespace qk {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeKind::RATIO: /* 百分比 value % */
+			case BoxSizeKind::kRatio: /* 百分比 value % */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -72,7 +72,7 @@ namespace qk {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeKind::MINUS: /* 减法(parent-value) value ! */
+			case BoxSizeKind::kMinus: /* 减法(parent-value) value ! */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -91,15 +91,15 @@ namespace qk {
 
 		switch (_height.kind) {
 			default: // NONE /* none default wrap content */
-			case BoxSizeKind::WRAP: /* 包裹内容 wrap content */
+			case BoxSizeKind::kWrap: /* 包裹内容 wrap content */
 				*is_wrap_in_out = true;
 				result = 0; // invalid wrap height
 				break;
-			case BoxSizeKind::PIXEL: /* 明确值 value px */
+			case BoxSizeKind::kPixel: /* 明确值 value px */
 				*is_wrap_in_out = false;
 				result = _height.value;
 				break;
-			case BoxSizeKind::MATCH: /* 匹配父视图 match parent */
+			case BoxSizeKind::kMatch: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -110,7 +110,7 @@ namespace qk {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeKind::RATIO: /* 百分比 value % */
+			case BoxSizeKind::kRatio: /* 百分比 value % */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -118,7 +118,7 @@ namespace qk {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeKind::MINUS: /* 减法(parent-value) value ! */
+			case BoxSizeKind::kMinus: /* 减法(parent-value) value ! */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -147,9 +147,9 @@ namespace qk {
 	Box::Box(App *host)
 		: View(host)
 		, _layout_wrap_x(true), _layout_wrap_y(true), _is_clip(false)
-		, _width{0, BoxSizeKind::WRAP}, _height{0, BoxSizeKind::WRAP} 
-		, _width_limit{0, BoxSizeKind::NONE}, _height_limit{0, BoxSizeKind::NONE}
-		, _origin_x{0, BoxOriginKind::PIXEL}, _origin_y{0, BoxOriginKind::PIXEL}
+		, _width{0, BoxSizeKind::kWrap}, _height{0, BoxSizeKind::kWrap}
+		, _width_limit{0, BoxSizeKind::kNone}, _height_limit{0, BoxSizeKind::kNone}
+		, _origin_x{0, BoxOriginKind::kPixel}, _origin_y{0, BoxOriginKind::kPixel}
 		, _margin_top(0), _margin_right(0)
 		, _margin_bottom(0), _margin_left(0)
 		, _padding_top(0), _padding_right(0)
@@ -159,7 +159,7 @@ namespace qk {
 		, _background_color(Color::from(0))
 		, _background(nullptr)
 		, _box_shadow(nullptr)
-		, _layout_weight(0), _layout_align(Align::AUTO)
+		, _layout_weight(0), _layout_align(Align::kAuto)
 		, _border(nullptr)
 	{
 	}
@@ -591,15 +591,15 @@ namespace qk {
 
 		switch (_origin_x.kind) {
 			default:
-			case BoxOriginKind::AUTO:  _origin_value.set_x(_client_size.x() * 0.5); break; // center
-			case BoxOriginKind::PIXEL: _origin_value.set_x(_origin_x.value); break;
-			case BoxOriginKind::RATIO: _origin_value.set_x(_client_size.x() * _origin_x.value); break;
+			case BoxOriginKind::kAuto:  _origin_value.set_x(_client_size.x() * 0.5); break; // center
+			case BoxOriginKind::kPixel: _origin_value.set_x(_origin_x.value); break;
+			case BoxOriginKind::kRatio: _origin_value.set_x(_client_size.x() * _origin_x.value); break;
 		}
 		switch (_origin_y.kind) {
 			default:
-			case BoxOriginKind::AUTO:  _origin_value.set_y(_client_size.y() * 0.5); break; // center
-			case BoxOriginKind::PIXEL: _origin_value.set_y(_origin_y.value); break;
-			case BoxOriginKind::RATIO: _origin_value.set_y(_client_size.y() * _origin_y.value); break;
+			case BoxOriginKind::kAuto:  _origin_value.set_y(_client_size.y() * 0.5); break; // center
+			case BoxOriginKind::kPixel: _origin_value.set_y(_origin_y.value); break;
+			case BoxOriginKind::kRatio: _origin_value.set_y(_client_size.y() * _origin_y.value); break;
 		}
 
 		unmark(kTransform_Origin);
@@ -618,8 +618,8 @@ namespace qk {
 		auto origin = lines->pre_width();
 
 		if (lines->no_wrap() || // 容器没有固定宽度
-				text_white_space == TextWhiteSpace::NO_WRAP ||
-				text_white_space == TextWhiteSpace::PRE
+				text_white_space == TextWhiteSpace::kNoWrap ||
+				text_white_space == TextWhiteSpace::kPre
 		) { // 不使用自动wrap
 			is_auto_wrap = false;
 		}
@@ -812,36 +812,36 @@ namespace qk {
 
 		switch(_layout_align) {
 			default:
-			case Align::LEFT_TOP: // left top
+			case Align::kLeftTop: // left top
 				break;
-			case Align::CENTER_TOP: // center top
+			case Align::kCenterTop: // center top
 				offset = Vec2((size.x() - _layout_size.x()) * .5, 0);
 				break;
-			case Align::RIGHT_TOP: // right top
+			case Align::kRightTop: // right top
 				offset = Vec2(size.x() - _layout_size.x(), 0);
 				break;
-			case Align::LEFT_CENTER: // left center
+			case Align::kLeftCenter: // left center
 				offset = Vec2(0, (size.y() - _layout_size.y()) * .5);
 				break;
-			case Align::CENTER_CENTER: // center center
+			case Align::kCenterCenter: // center center
 				offset = Vec2(
 					(size.x() - _layout_size.x()) * .5,
 					(size.y() - _layout_size.y()) * .5);
 				break;
-			case Align::RIGHT_CENTER: // right center
+			case Align::kRightCenter: // right center
 				offset = Vec2(
 					(size.x() - _layout_size.x()),
 					(size.y() - _layout_size.y()) * .5);
 				break;
-			case Align::LEFT_BOTTOM: // left bottom
+			case Align::kLeftBottom: // left bottom
 				offset = Vec2(0, (size.y() - _layout_size.y()));
 				break;
-			case Align::CENTER_BOTTOM: // center bottom
+			case Align::kCenterBottom: // center bottom
 				offset = Vec2(
 					(size.x() - _layout_size.x()) * .5,
 					(size.y() - _layout_size.y()));
 				break;
-			case Align::RIGHT_BOTTOM: // right bottom
+			case Align::kRightBottom: // right bottom
 				offset = Vec2(
 					(size.x() - _layout_size.x()),
 					(size.y() - _layout_size.y()));

@@ -28,52 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__font__style__
-#define __quark__font__style__
+//@private head
 
-#include "../../util/numbers.h"
-#include "../../util/dict.h"
-#include "../../types.h"
+#ifndef __quark__platforms__apple_util__
+#define __quark__platforms__apple_util__
 
-namespace qk {
+#include "../../util/util.h"
+#include <CoreFoundation/CoreFoundation.h>
 
-	class Qk_EXPORT FontStyle {
-	public:
-		/*constexpr */FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
-			(Int32::limit(int(weight), int(TextWeight::kInherit), int(TextWeight::kExtraBlack))) +
-			(Int32::limit(int(width), int(TextWidth::kUltraCondensed), int(TextWidth::kUltraExpanded)) << 16) +
-			(Int32::limit(int(slant) - 1, 0, 2) << 24)
-		) {}
+using namespace qk;
 
-    FontStyle(): FontStyle{TextWeight::kDefault, TextWidth::kDefault, TextSlant::kNormal} {}
+// TODO: when C++17 the language is available, use template <auto P>
+template <typename T, T* P> struct QkFunctionWrapper {
+	template <typename... Args>
+	auto operator()(Args&&... args) const -> decltype(P(std::forward<Args>(args)...)) {
+		return P(std::forward<Args>(args)...);
+	}
+};
 
-		bool operator==(const FontStyle& rhs) const {
-			return _value == rhs._value;
-		}
+template <typename CFRef> using QkUniqueCFRef =
+		std::unique_ptr<std::remove_pointer_t<CFRef>,
+										QkFunctionWrapper<decltype(CFRelease), CFRelease>>;
 
-		TextWeight weight() const { return TextWeight(_value & 0xFFFF); }
-		TextWidth width() const { return TextWidth((_value >> 16) & 0xFF); }
-		TextSlant slant() const { return TextSlant(((_value >> 24) & 0xFF) + 1); }
-		inline int32_t value() const { return _value; }
+/** Assumes src and dst are not nullptr. */
+String QkStringFromCFString(CFStringRef src);
 
-		static FontStyle Normal() {
-			return FontStyle(TextWeight::kDefault, TextWidth::kDefault, TextSlant::kDefault);
-		}
-		static FontStyle Bold() {
-			return FontStyle(TextWeight::kBold, TextWidth::kDefault, TextSlant::kDefault);
-		}
-		static FontStyle Italic() {
-			return FontStyle(TextWeight::kDefault, TextWidth::kDefault, TextSlant::kItalic );
-		}
-		static FontStyle BoldItalic() {
-			return FontStyle(TextWeight::kBold, TextWidth::kDefault, TextSlant::kItalic );
-		}
-
-	private:
-		int32_t _value;
-	};
-
-	template<> Qk_EXPORT uint64_t Compare<FontStyle>::hashCode(const FontStyle& key);
-
-}
 #endif

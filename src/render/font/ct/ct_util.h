@@ -31,6 +31,7 @@
 #ifndef __quark__font__ct_util__
 #define __quark__font__ct_util__
 
+#include "../../../util/util.h"
 #if Qk_OSX
 # include <ApplicationServices/ApplicationServices.h>
 #endif
@@ -40,10 +41,7 @@
 # include <CoreGraphics/CoreGraphics.h>
 # include <CoreFoundation/CoreFoundation.h>
 #endif
-
-#include "../../../util/util.h"
-#include "../../../util/handle.h"
-#include "../util.h"
+#include "../../../platforms/apple/apple_util.h"
 
 using namespace qk;
 
@@ -75,14 +73,5 @@ QkCTFontWeightMapping& QkCTFontGetNSFontWeightMapping();
  *  These values are valid for fonts created from data only.
  */
 QkCTFontWeightMapping& QkCTFontGetDataFontWeightMapping();
-
-// -------------------------------------------------------------------------------------
-
-template <typename CFRef> using QkUniqueCFRef =
-		std::unique_ptr<std::remove_pointer_t<CFRef>,
-										QkFunctionWrapper<decltype(CFRelease), CFRelease>>;
-
-/** Assumes src and dst are not nullptr. */
-String QkStringFromCFString(CFStringRef src);
 
 #endif

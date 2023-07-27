@@ -84,13 +84,13 @@ namespace qk {
 					}
 
 					switch (v->layout_align()) {
-						case Align::AUTO:
-						case Align::LEFT_TOP:
-						case Align::LEFT_CENTER:
-						case Align::LEFT_BOTTOM:
-						case Align::CENTER_TOP:
-						case Align::CENTER_CENTER:
-						case Align::CENTER_BOTTOM: // left
+						case Align::kAuto:
+						case Align::kLeftTop:
+						case Align::kLeftCenter:
+						case Align::kLeftBottom:
+						case Align::kCenterTop:
+						case Align::kCenterCenter:
+						case Align::kCenterBottom: // left
 							v->set_layout_offset(Vec2(offset_left, offset_y));
 							offset_left += size.x();
 							break;

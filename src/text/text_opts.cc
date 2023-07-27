@@ -35,18 +35,18 @@
 namespace qk {
 
 	TextOptions::TextOptions()
-		: _text_weight(TextWeight::INHERIT)
-		, _text_slant(TextSlant::INHERIT)
-		, _text_decoration(TextDecoration::INHERIT)
-		, _text_overflow(TextOverflow::INHERIT)
-		, _text_white_space(TextWhiteSpace::INHERIT)
-		, _text_word_break(TextWordBreak::INHERIT)
-		, _text_size{ .kind=TextValueKind::INHERIT }
-		, _text_background_color{ .kind=TextValueKind::INHERIT }
-		, _text_color{ .kind=TextValueKind::INHERIT }
-		, _text_shadow{ .kind=TextValueKind::INHERIT }
-		, _text_line_height{ .kind=TextValueKind::INHERIT }
-		, _text_family{ .kind=TextValueKind::INHERIT }
+		: _text_weight(TextWeight::kInherit)
+		, _text_slant(TextSlant::kInherit)
+		, _text_decoration(TextDecoration::kInherit)
+		, _text_overflow(TextOverflow::kInherit)
+		, _text_white_space(TextWhiteSpace::kInherit)
+		, _text_word_break(TextWordBreak::kInherit)
+		, _text_size{ .kind=TextValueKind::kInherit }
+		, _text_background_color{ .kind=TextValueKind::kInherit }
+		, _text_color{ .kind=TextValueKind::kInherit }
+		, _text_shadow{ .kind=TextValueKind::kInherit }
+		, _text_line_height{ .kind=TextValueKind::kInherit }
+		, _text_family{ .kind=TextValueKind::kInherit }
 		, _text_flags(0xffffffff)
 	{
 	}
@@ -154,20 +154,20 @@ namespace qk {
 	}
 
 	FontStyle TextOptions::font_style() const {
-		return {_text_weight_value, TextWidth::DEFAULT, _text_slant_value};
+		return {_text_weight_value, TextWidth::kDefault, _text_slant_value};
 	}
 
 	// ---------------- T e x t . C o n f i g ----------------
 
 #define Qk_DEFINE_COMPUTE_TEXT_OPTIONS(Type, name, flag) \
-	if (_opts->_##name == Type::INHERIT) { \
+	if (_opts->_##name == Type::kInherit) { \
 		_opts->_##name##_value = _base->_opts->_##name##_value; \
 	}
 
 #define Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Type, name, flag, Default) \
-	if (_opts->_##name.kind == TextValueKind::INHERIT) {  \
+	if (_opts->_##name.kind == TextValueKind::kInherit) {  \
 		_opts->_##name.value = _base->_opts->_##name.value; \
-	} else if (_opts->_##name.kind == TextValueKind::DEFAULT) { \
+	} else if (_opts->_##name.kind == TextValueKind::kDefault) { \
 		_opts->_##name.value = Default; \
 	}
 
@@ -201,18 +201,18 @@ namespace qk {
 	public:
 		DefaultTextConfig(FontPool *pool): TextConfig(new TextOptions(), nullptr) {
 			auto opts = this->opts();
-			opts->set_text_weight(TextWeight::DEFAULT);
-			opts->set_text_slant(TextSlant::DEFAULT);
-			opts->set_text_decoration(TextDecoration::DEFAULT);
-			opts->set_text_overflow(TextOverflow::DEFAULT);
-			opts->set_text_white_space(TextWhiteSpace::DEFAULT);
-			opts->set_text_word_break(TextWordBreak::DEFAULT);
-			opts->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::VALUE});
-			opts->set_text_color({Color(0, 0, 0), TextValueKind::VALUE});
-			opts->set_text_size({16, TextValueKind::VALUE});
-			opts->set_text_line_height({0, TextValueKind::DEFAULT});
-			opts->set_text_family({pool->getFFID(), TextValueKind::VALUE});
-			opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::VALUE});
+			opts->set_text_weight(TextWeight::kDefault);
+			opts->set_text_slant(TextSlant::kDefault);
+			opts->set_text_decoration(TextDecoration::kDefault);
+			opts->set_text_overflow(TextOverflow::kDefault);
+			opts->set_text_white_space(TextWhiteSpace::kDefault);
+			opts->set_text_word_break(TextWordBreak::kDefault);
+			opts->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::kValue});
+			opts->set_text_color({Color(0, 0, 0), TextValueKind::kValue});
+			opts->set_text_size({16, TextValueKind::kValue});
+			opts->set_text_line_height({0, TextValueKind::kDefault});
+			opts->set_text_family({pool->getFFID(), TextValueKind::kValue});
+			opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::kValue});
 		}
 	};
 

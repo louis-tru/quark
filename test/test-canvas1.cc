@@ -75,8 +75,8 @@ void test_canvas1(int argc, char **argv) {
 	App app;
 	// layout
 	auto t = (new TestCanvas1(&app))->append_to<Box>(app.root());
-	t->set_width({ 0, BoxSizeKind::MATCH });
-	t->set_height({ 0, BoxSizeKind::MATCH });
+	t->set_width({ 0, SizeKind::kMatch });
+	t->set_height({ 0, SizeKind::kMatch });
 	// layout end
 	app.run();
 }

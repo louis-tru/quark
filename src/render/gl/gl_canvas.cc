@@ -309,7 +309,7 @@ namespace qk {
 	}
 
 	constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
-	constexpr float aa_sdf_width = 0.6;
+	constexpr float aa_sdf_width = 0.5;
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
 		if (path.vertex.length()) {
@@ -465,6 +465,7 @@ namespace qk {
 		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors->val());
 		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions->val());
 		glDrawArrays(mode, 0, vertex.length());
+		// glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.length());
 	}
 
 	void GLCanvas::drawImage(const Array<Vec2> &vertex, const Paint &paint, GLenum mode) {
@@ -515,7 +516,7 @@ namespace qk {
 		auto count = Qk_MIN(g->colors->length(), 256);
 		shader->use(vertex.size(), *vertex);
 		glUniform1f(shader->opacity, paint.color.a());
-		glUniform1fv(shader->sdf_range, 2, range);
+		glUniform1fv(shader->sdf_range, 3, range);
 		glUniform4fv(shader->range, 1, g->origin.val);
 		glUniform1i(shader->count, count);
 		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors->val());

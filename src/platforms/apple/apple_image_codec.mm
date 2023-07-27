@@ -37,71 +37,99 @@
 #else
 #import <UIKit/UIKit.h>
 #endif
+#include "./apple_util.h"
 
 namespace qk {
 
 	bool apple_img_decode(cBuffer& data, Array<Pixel> *out) {
-
-		NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
+		NSData* nsData = [NSData dataWithBytesNoCopy:(void*)*data
 																					length:data.length()
 																		freeWhenDone:NO];
-		UIImage* img = [[UIImage alloc] initWithData:nsdata];
-	#if Qk_OSX
+		UIImage* img = [[UIImage alloc] initWithData:nsData];
+		CGColorSpaceRef space;
+
+#if Qk_OSX
 		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
-	#else 
+#else
 		CGImageRef image = [img CGImage];
-	#endif
+#endif
+		if (!image) return false;
+		if (!(space = CGImageGetColorSpace(image))) return false;
 
-		if (image) {
-			CGColorSpaceRef color_space = CGImageGetColorSpace(image);
-			if (color_space) {
-				int width = (int)CGImageGetWidth(image);
-				int height = (int)CGImageGetHeight(image);
-				int pixel_size = width * height * 4;
+		int width = (int)CGImageGetWidth(image);
+		int height = (int)CGImageGetHeight(image);
+		int pixel_size = width * height * 4;
 
-				const CGImageAlphaInfo alpha = kCGImageAlphaLast;
-				const CGBitmapInfo cginfo = kCGBitmapByteOrder32Host | alpha;
-				// info = CGImageGetAlphaInfo(image);
+		ColorType colorType;
+		AlphaType alphaType;
+		CGImageAlphaInfo cgAlpha;
+		QkUniqueCFRef<CGColorSpaceRef> spaceHold;
 
-				auto pixel_data = Buffer::alloc(pixel_size);
-				color_space = CGColorSpaceCreateDeviceRGB();
-				CGContextRef ctx =
-				CGBitmapContextCreate(*pixel_data, width, height, 8, width * 4, color_space, cginfo);
-				CGContextDrawImage(ctx, CGRectMake(0, 0, width, height), image);
-				CGContextRelease(ctx);
-				CFRelease(color_space);
-
-				PixelInfo info(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul);
-
-				out->push(Pixel(info, pixel_data));
-
-				return true;
-			}
+		switch (CGImageGetAlphaInfo(image)) {
+			case kCGImageAlphaPremultipliedLast:
+			case kCGImageAlphaPremultipliedFirst:
+			case kCGImageAlphaLast:
+			case kCGImageAlphaFirst:
+				colorType = kColor_Type_RGBA_8888;
+				alphaType = kAlphaType_Premul;
+				cgAlpha = kCGImageAlphaPremultipliedLast;
+				break;
+			default:
+				colorType = kColor_Type_RGB_888X;
+				alphaType = kAlphaType_Unpremul;
+				cgAlpha = kCGImageAlphaNoneSkipLast;
+				space = CGColorSpaceCreateDeviceRGB(); // create rgb
+				spaceHold.reset(space);
+				break;
 		}
 
-		return false;
+		CGBitmapInfo cgInfo = kCGBitmapByteOrder32Host | cgAlpha;
+		auto pixel = Buffer::alloc(pixel_size);
+
+		QkUniqueCFRef<CGContextRef> ctx(
+			CGBitmapContextCreate(*pixel, width, height, 8, width * 4, space, cgInfo)
+		);
+		CGContextDrawImage(ctx.get(), CGRectMake(0, 0, width, height), image);
+
+		PixelInfo info(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul);
+		out->push(Pixel(info, pixel));
+
+		return true;
 	}
 
 	bool apple_img_test(cBuffer& data, PixelInfo* out) {
 		
-		NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
+		NSData* nsData = [NSData dataWithBytesNoCopy:(void*)*data
 																					length:data.length()
 																		freeWhenDone:NO];
-		UIImage* img = [[UIImage alloc] initWithData:nsdata];
+		UIImage* img = [[UIImage alloc] initWithData:nsData];
 	#if Qk_OSX
 		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
 	#else
 		CGImageRef image = [img CGImage];
 	#endif
-		
-		if (!image)
-			return false;
+		if (!image) return false;
 
 		int width = (int)CGImageGetWidth(image);
 		int height = (int)CGImageGetHeight(image);
+		ColorType colorType;
+		AlphaType alphaType;
 
-		*out = PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul);
+		switch (CGImageGetAlphaInfo(image)) {
+			case kCGImageAlphaPremultipliedLast:
+			case kCGImageAlphaPremultipliedFirst:
+			case kCGImageAlphaLast:
+			case kCGImageAlphaFirst:
+				colorType = kColor_Type_RGBA_8888;
+				alphaType = kAlphaType_Premul;
+				break;
+			default:
+				colorType = kColor_Type_RGB_888X;
+				alphaType = kAlphaType_Unpremul;
+				break;
+		}
 
+		*out = PixelInfo(width, height, colorType, alphaType);
 		return true;
 	}
 

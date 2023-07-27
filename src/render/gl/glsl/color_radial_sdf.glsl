@@ -2,6 +2,7 @@
 in        float     sdf_in; // signed distance field
 out       float     sdf_f;
 out       vec2      position_f;
+
 void main() {
 	sdf_f = sdf_in;
 	position_f = vertex_in.xy;

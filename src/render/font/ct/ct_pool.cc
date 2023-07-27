@@ -95,10 +95,10 @@ static QkUniqueCFRef<CTFontDescriptorRef> create_descriptor(const char familyNam
 	// kCTFontSymbolicTrait is set.
 	if (QkGetCoreTextVersion() < kSkiaLocalCTVersionNumber10_14) {
 		CTFontSymbolicTraits ctFontTraits = 0;
-		if (style.weight() >= TextWeight::BOLD) {
+		if (style.weight() >= TextWeight::kBold) {
 			ctFontTraits |= kCTFontBoldTrait;
 		}
-		if (style.slant() != TextSlant::DEFAULT) {
+		if (style.slant() != TextSlant::kDefault) {
 			ctFontTraits |= kCTFontItalicTrait;
 		}
 		QkUniqueCFRef<CFNumberRef> cfFontTraits(
@@ -126,7 +126,7 @@ static QkUniqueCFRef<CTFontDescriptorRef> create_descriptor(const char familyNam
 	// macOS 15 behaves badly when kCTFontSlantTrait is set.
 	if (QkGetCoreTextVersion() != kSkiaLocalCTVersionNumber10_15) {
 			
-		CGFloat ctSlant = style.slant() == TextSlant::DEFAULT ? 0 : 1;
+		CGFloat ctSlant = style.slant() == TextSlant::kDefault ? 0 : 1;
 		QkUniqueCFRef<CFNumberRef> cfFontSlant(
 						CFNumberCreate(kCFAllocatorDefault, kCFNumberCGFloatType, &ctSlant));
 		if (cfFontSlant) {

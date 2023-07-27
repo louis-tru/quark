@@ -45,18 +45,18 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(Filter);
 	public:
 		enum Type {
-			M_INVALID,
-			M_IMAGE,
-			M_GRADIENT_Linear,
-			M_GRADIENT_Radial,
-			M_SHADOW,
-			M_BLUR,
-			M_BACKDROP_BLUR,
+			kInvalid,
+			kImage,
+			kGradientLinear,
+			kGradientRadial,
+			kShadow,
+			kBlur,
+			kBackdropBlur,
 		};
 		enum HolderMode {
-			M_INDEPENDENT,
-			M_SHARED,
-			M_DISABLE,
+			kIdependent,
+			kShared,
+			kDisable,
 		};
 		Filter();
 		virtual ~Filter();
@@ -76,13 +76,13 @@ namespace qk {
 
 	class Qk_EXPORT Fill: public Filter {
 	public:
-		Qk_DEFINE_PROP_ACC(Fill*, next);
+		Fill* next() const;
+		Fill* set_next(Fill*);
 	};
 
 	class Qk_EXPORT FillImage: public Fill, public ImageSourceHolder {
 	public:
 		struct Init {
-			String src;
 			FillSize size_x, size_y;
 			FillPosition position_x, position_y;
 			Repeat repeat;
@@ -139,7 +139,8 @@ namespace qk {
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
 		Qk_DEFINE_PROP(Shadow, value);
-		Qk_DEFINE_PROP_ACC(BoxShadow*, next);
+		BoxShadow* next() const;
+		BoxShadow* set_next(BoxShadow*);
 		virtual Type    type() const override;
 		virtual Filter* copy(Filter* to) override;
 	};

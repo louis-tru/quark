@@ -45,8 +45,8 @@ namespace qk {
 	void Root::reset() {
 		set_layout_depth(1);
 		set_receive(1);
-		set_width({0, BoxSizeKind::MATCH});
-		set_height({0, BoxSizeKind::MATCH});
+		set_width({0, BoxSizeKind::kMatch});
+		set_height({0, BoxSizeKind::kMatch});
 		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		set_background_color(Color(255, 255, 255, 255)); // 默认白色背景
 		mark_none(kRecursive_Transform);
