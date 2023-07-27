@@ -388,17 +388,13 @@ namespace qk {
 		if (src && src->load()) {
 			src->mark_as_texture_unsafe(_render);
 			_this->getInsideRectPath(v, data);
-			auto origin = data.inside->rect.origin - v->_origin_value;
-			if (v->_border) {
-				origin += Vec2{v->_border->width[3],v->_border->width[0]};
-			}
 			Paint paint;
 			paint.color.set_a(_opacity);
 			paint.tileModeX = Paint::kDecal_TileMode;
 			paint.tileModeY = Paint::kDecal_TileMode;
 			paint.filterMode = Paint::kLinear_FilterMode;
 			paint.mipmapMode = Paint::kNearest_MipmapMode;
-			paint.setImage(src->pixels().val(), { origin, data.inside->rect.size });
+			paint.setImage(src->pixels().val(), data.inside->rect);
 			_canvas->drawPathv(data.inside->path, paint);
 		}
 		if (v->_box_shadow)

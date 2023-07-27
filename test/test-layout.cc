@@ -168,7 +168,7 @@ void layout(Event<>& evt, Application* app) {
 	auto r = app->root();
 	auto flex = r->append_new<FlexLayout>();
 	auto flow = r->append_new<FlowLayout>();
-	auto img  = r->append_new<Image>();
+	//auto img  = r->append_new<Image>();
 	auto img2 = r->append_new<TestImage>();
 
 	//layout_text(r);
@@ -177,12 +177,12 @@ void layout(Event<>& evt, Application* app) {
 	//layout_scroll(flex);
 
 	flex->set_background(
-		 (new FillImage(fs_resources("bench/img/21.jpeg"), {
-		 	.size_x={100, FillSizeKind::kPixel},
-		 	.position_x={0, FillPositionKind::kCenter},
-		 	.position_y={0, FillPositionKind::kCenter},
-		 }))
-		 //->set_next(
+		(new FillImage(fs_resources("bench/img/21.jpeg"), {
+			.size_x={100, FillSizeKind::kPixel},
+			.position_x={0, FillPositionKind::kCenter},
+			.position_y={0, FillPositionKind::kCenter},
+		}))
+		//->set_next(
 		// (new FillGradientRadial({0,0.5,1}, {{255,0,0,255},{0,0,255,255},{0,255,255,255}}))
 		// ->set_next(
 		//	new FillGradientLinear(0, {0,0.5,1}, {{255,0,0,255},{0,0,255,255},{0,255,255,255}})
@@ -233,17 +233,17 @@ void layout(Event<>& evt, Application* app) {
 	flow->set_margin_right(10);
 	flow->set_margin_bottom(10);
 	flow->set_padding_left(50);
-	//
-	img->set_height({ 50, SizeKind::kPixel });
-	img->set_layout_align(Align::kRightBottom);
-	img->set_src(fs_resources("bench/img2/21.jpeg"));
-	img->set_background_color({255,0,0,255});
-	img->set_margin_left(10);
-	img->set_margin_top(10);
-	img->set_margin_right(10);
-	img->set_margin_bottom(10);
-	img->set_padding_left(50);
-	//img->set_rotate(45);
+	// //
+	// img->set_height({ 50, SizeKind::kPixel });
+	// img->set_layout_align(Align::kRightBottom);
+	// //img->set_src(fs_resources("bench/img2/21.jpeg"));
+	// img->set_background_color({255,0,0,255});
+	// img->set_margin_left(10);
+	// img->set_margin_top(10);
+	// img->set_margin_right(10);
+	// img->set_margin_bottom(10);
+	// img->set_padding_left(50);
+	// //img->set_rotate(45);
 	//
 	img2->set_src(fs_resources("bench/img/99.jpeg"));
 	img2->set_width({0, SizeKind::kMatch });
@@ -251,8 +251,15 @@ void layout(Event<>& evt, Application* app) {
 	img2->set_margin_left(10);
 	img2->set_margin_top(10);
 	img2->set_margin_right(10);
-	//img2->set_rotate(45);
-	
+	img2->set_rotate(45);
+	img2->set_origin_x({0.5,OriginKind::kRatio});
+	img2->set_origin_y({0.5,OriginKind::kRatio});
+	img2->set_border_width_right(10);
+	img2->set_border_width_left(10);
+	img2->set_border_color_right({255,0,100,255});
+	img2->set_border_color_left({255,0,255,255});
+
+
 	Qk_DEBUG("%s, %p\n", "ok test layout", app);
 	Qk_DEBUG("Object size %d", sizeof(Object));
 	Qk_DEBUG("Reference size %d", sizeof(Reference));
