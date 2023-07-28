@@ -40,9 +40,7 @@ namespace qk {
 
 	class PostMessage;
 
-	template<
-		class D, class E = Error
-	>
+	template<class D, class E = Error>
 	struct CallbackData {
 		E* error;
 		D* data;
@@ -54,10 +52,22 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(CallbackCore);
 	public:
 		inline CallbackCore() {}
+		inline int call(E* e, D* d) const { 
+			CallbackData<D, E> evt = { e,d,0 };
+			call(evt);
+			return evt.rc;
+		}
+		inline int resolve(D* d = nullptr) const { 
+			CallbackData<D, E> evt = { 0,d,0 };
+			call(evt);
+			return evt.rc;
+		}
+		inline int reject(E* e) const {
+			CallbackData<D, E> evt = { e,0,0 };
+			call(evt);
+			return evt.rc;
+		}
 		virtual void call(CallbackData<D, E>& evt) const = 0;
-		inline  int  call(E* e, D* d) const { CallbackData<D, E> evt = { e,d,0 }; call(evt); return evt.rc; }
-		inline  int  resolve(D* d = nullptr) const { CallbackData<D, E> evt = { 0,d,0 }; call(evt); return evt.rc; }
-		inline  int  reject(E* e) const { CallbackData<D, E> evt = { e,0,0 }; call(evt); return evt.rc; }
 	};
 
 	template<class T, class D, class E>
