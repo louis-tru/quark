@@ -716,6 +716,7 @@ namespace qk {
 		*/
 		Vec2 vertex[6] = { // 0,3,2,1,0,2
 			{r.rightTop[0]>0 && r.rightTop[1]>0 ? x2-r.rightTop.x(): x2,y1}, // 0
+			//{x2-r.rightTop.x(),y1}, // 0
 			{x1,y1+r.leftTop.y()}, // 3
 			{x1+r.leftBottom.x(),y2}, // 2
 			{x2,y2-r.rightBottom.y()}, // 1
@@ -745,7 +746,7 @@ namespace qk {
 		build(&out, {1    }, r.leftTop,     {x1,y1}, vertex + 0, Qk_PI_2_1); // top
 		build(&out, {1, -1}, r.leftBottom,  {x1,y2}, vertex + 1, Qk_PI); // left
 		build(&out, {-1   }, r.rightBottom, {x2,y2}, vertex + 2, -Qk_PI_2_1); // bottom
-		build(&out, {-1, 1}, r.leftTop,     {x2,y1}, vertex + 3, 0); // right
+		build(&out, {-1, 1}, r.rightTop,    {x2,y1}, vertex + 3, 0); // right
 		vertex[5] = vertex[2];
 
 		out.path.vertex.write(vertex, -1, 6); // inl quadrilateral

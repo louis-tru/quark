@@ -465,7 +465,8 @@ namespace qk {
 		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors->val());
 		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions->val());
 		glDrawArrays(mode, 0, vertex.length());
-		// glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.length());
+		//glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.length());
+		//glDrawArrays(GL_LINES, 0, vertex.length());
 	}
 
 	void GLCanvas::drawImage(const Array<Vec2> &vertex, const Paint &paint, GLenum mode) {
