@@ -177,15 +177,15 @@ void layout(Event<>& evt, Application* app) {
 	//layout_scroll(flex);
 
 	flex->set_background(
-		(new FillImage(fs_resources("bench/img/21.jpeg"), {
-			.size_x={100, FillSizeKind::kPixel},
-			.position_x={0, FillPositionKind::kCenter},
-			.position_y={0, FillPositionKind::kCenter},
-		}))
+		//(new FillImage(fs_resources("bench/img/99.jpeg"), {
+		//	.size_x={100, FillSizeKind::kPixel},
+		//	.position_x={0, FillPositionKind::kCenter},
+		//	.position_y={0, FillPositionKind::kCenter},
+		//}))
 		//->set_next(
 		// (new FillGradientRadial({0,0.5,1}, {{255,0,0,255},{0,0,255,255},{0,255,255,255}}))
 		// ->set_next(
-		//	new FillGradientLinear(0, {0,0.5,1}, {{255,0,0,255},{0,0,255,255},{0,255,255,255}})
+			new FillGradientLinear(0, {0,0.5,1}, {{255,0,0,255},{0,0,255,255},{0,255,255,255}})
 			// 0
 		// )
 		// )
@@ -209,17 +209,17 @@ void layout(Event<>& evt, Application* app) {
 	flex->set_radius_right_bottom(80);
 	flex->set_radius_left_bottom(40);
 
-	flex->set_border_width_top(20);
+	flex->set_border_width_top(40);
 	flex->set_border_width_right(10);
 	flex->set_border_width_bottom(0);
-	flex->set_border_width_left(20);
+	flex->set_border_width_left(40);
 
 	flex->set_border_color_top({0,0,255,255});
 	flex->set_border_color_right({255,0,100,255});
 	flex->set_border_color_bottom({0,255,100,255});
 	flex->set_border_color_left({255,0,255,255});
 
-	//flex->set_opacity(0.5);
+	//flex->set_opacity(0.8);
 	//flex->set_rotate(10);
 	//flex->set_skew(Vec2(0,1));
 	//flex->set_translate(Vec2(100, 0));
@@ -245,20 +245,25 @@ void layout(Event<>& evt, Application* app) {
 	// img->set_padding_left(50);
 	// //img->set_rotate(45);
 	//
-	img2->set_src(fs_resources("bench/img/99.jpeg"));
+	//img2->set_src(fs_resources("bench/img/21.jpeg"));
 	img2->set_width({0, SizeKind::kMatch });
+	//img2->set_height({0, SizeKind::kMatch });
 	img2->set_layout_align(Align::kCenter);
-	img2->set_margin_left(10);
-	img2->set_margin_top(10);
-	img2->set_margin_right(10);
-	img2->set_rotate(45);
+	img2->set_margin_left(100);
+	img2->set_margin_top(30);
+	img2->set_margin_right(100);
+	img2->set_rotate(2);
 	img2->set_origin_x({0.5,OriginKind::kRatio});
 	img2->set_origin_y({0.5,OriginKind::kRatio});
-	img2->set_border_width_right(10);
-	img2->set_border_width_left(10);
+	//img2->set_border_width_right(10);
+	//img2->set_border_width_left(10);
+	//img2->set_border_width_top(10);
+	//img2->set_border_width_bottom(10);
 	img2->set_border_color_right({255,0,100,255});
 	img2->set_border_color_left({255,0,255,255});
-
+	img2->set_border_color_top({255,0,100,255});
+	img2->set_border_color_bottom({255,0,255,255});
+	// img2->set_radius_right_bottom(5);
 
 	Qk_DEBUG("%s, %p\n", "ok test layout", app);
 	Qk_DEBUG("Object size %d", sizeof(Object));

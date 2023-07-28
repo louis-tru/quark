@@ -706,12 +706,6 @@ namespace qk {
 
 		float x1 = rect.origin.x(),      y1 = rect.origin.y();
 		float x2 = x1 + rect.size.x(),   y2 = y1 + rect.size.y();
-		float x_5 = rect.size.x() * 0.5f,y_5 = rect.size.y() * 0.5f;
-
-		Vec2 lt(Qk_MIN(r.leftTop.x(), x_5), Qk_MIN(r.leftTop.y(), y_5));
-		Vec2 rt(Qk_MIN(r.rightTop.x(), x_5), Qk_MIN(r.rightTop.y(), y_5));
-		Vec2 rb(Qk_MIN(r.rightBottom.x(), x_5), Qk_MIN(r.rightBottom.y(), y_5));
-		Vec2 lb(Qk_MIN(r.leftBottom.x(), x_5), Qk_MIN(r.leftBottom.y(), y_5));
 
 		/* vertex approximate location
 		 ____________0__
@@ -721,18 +715,18 @@ namespace qk {
 		|__2____________|
 		*/
 		Vec2 vertex[6] = { // 0,3,2,1,0,2
-			{rt[0]>0 && rt[1]>0 ? x2-rt.x(): x2,y1}, // 0
-			{x1,y1+lt.y()}, // 3
-			{x1+lb.x(),y2}, // 2
-			{x2,y2-rb.y()}, // 1
+			{r.rightTop[0]>0 && r.rightTop[1]>0 ? x2-r.rightTop.x(): x2,y1}, // 0
+			{x1,y1+r.leftTop.y()}, // 3
+			{x1+r.leftBottom.x(),y2}, // 2
+			{x2,y2-r.rightBottom.y()}, // 1
 		};
 		vertex[4] = vertex[0];
 
 		auto build = [](RectPath *out, Vec2 center, Vec2 radius, Vec2 v, Vec2 *v2, float angle) {
 			if (radius[0] > 0 && radius[1] > 0) { // no zero
+				center = center * radius + v;
 				int   sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
 				float angleStep = Qk_PI_2_1 / (sample - 1);
-				center += v;
 				auto p0 = *v2;
 				for (int i = 0; i < sample; i++) {
 					Vec2 p(center.x() + cosf(angle) * radius.x(), center.y() - sinf(angle) * radius.y());
@@ -748,10 +742,10 @@ namespace qk {
 			}
 		};
 
-		build(&out, {lt.x(), lt.y()}, lt, {x1,y1}, vertex + 0, Qk_PI_2_1); // top
-		build(&out, {lb.x(), -lb.y()}, lb, {x1,y2}, vertex + 1, Qk_PI); // left
-		build(&out, {-rb.x(),-rb.y()}, rb, {x2,y2}, vertex + 2, -Qk_PI_2_1); // bottom
-		build(&out, {-rt.x(), rt.y()}, rt, {x2,y1}, vertex + 3, 0); // right
+		build(&out, {1    }, r.leftTop,     {x1,y1}, vertex + 0, Qk_PI_2_1); // top
+		build(&out, {1, -1}, r.leftBottom,  {x1,y2}, vertex + 1, Qk_PI); // left
+		build(&out, {-1   }, r.rightBottom, {x2,y2}, vertex + 2, -Qk_PI_2_1); // bottom
+		build(&out, {-1, 1}, r.leftTop,     {x2,y1}, vertex + 3, 0); // right
 		vertex[5] = vertex[2];
 
 		out.path.vertex.write(vertex, -1, 6); // inl quadrilateral
@@ -771,7 +765,7 @@ namespace qk {
 		float vertexfv[48] = {
 			o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1,// vertex,top
 			o_x2,o_y1,o_x2,i_y1,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y1,// vertex,right
-			o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x1,i_y1,// vertex,bottom
+			o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x2,i_y2,// vertex,bottom
 			o_x1,o_y2,o_x1,i_y2,o_x1,i_y1,o_x1,o_y1,i_x1,i_y1,i_x1,i_y2,// vertex,left
 		};
 		Vec2 *v = reinterpret_cast<Vec2*>(vertexfv);
@@ -809,12 +803,11 @@ namespace qk {
 		float i_x1 = o_x1 + border[3],     i_y1 = o_y1 + border[0];
 		float o_x2 = o_x1 + rect.size.x(), o_y2 = o_y1 + rect.size.y();
 		float i_x2 = o_x2 - border[1],     i_y2 = o_y2 - border[2];
-		float x_5  = rect.size.x() * 0.5,  y_5  = rect.size.y() * 0.5;
 
 		float vertexfv[48] = {
 			o_x1,o_y1,i_x1,o_y1,i_x2,o_y1,o_x2,o_y1,i_x2,i_y1,i_x1,i_y1,// vertex,top
 			o_x2,o_y1,o_x2,i_y1,o_x2,i_y2,o_x2,o_y2,i_x2,i_y2,i_x2,i_y1,// vertex,right
-			o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x1,i_y1,// vertex,bottom
+			o_x2,o_y2,i_x2,o_y2,i_x1,o_y2,o_x1,o_y2,i_x1,i_y2,i_x2,i_y2,// vertex,bottom
 			o_x1,o_y2,o_x1,i_y2,o_x1,i_y1,o_x1,o_y1,i_x1,i_y1,i_x1,i_y2,// vertex,left
 		};
 		Vec2 *vertex = reinterpret_cast<Vec2*>(vertexfv);
@@ -823,28 +816,20 @@ namespace qk {
 		float Bo[6] = { // left,top,right,bottom,left,top
 			border[3], border[0], border[1], border[2], border[3], border[0],
 		};
-		// outside radius
-		Vec2 oR[5]{
-			{Qk_MIN(r.leftTop.x(), x_5), Qk_MIN(r.leftTop.y(), y_5)}, // left top
-			{Qk_MIN(r.rightTop.x(), x_5), Qk_MIN(r.rightTop.y(), y_5)},
-			{Qk_MIN(r.rightBottom.x(), x_5), Qk_MIN(r.rightBottom.y(), y_5)},
-			{Qk_MIN(r.leftBottom.x(), x_5), Qk_MIN(r.leftBottom.y(), y_5)},
-		};
+		Vec2 oR[5]{r.leftTop,r.rightTop,r.rightBottom,r.leftBottom,r.leftTop};
 		// inside radius
 		Vec2 iR[5]{
 			{oR[0].x() - Bo[0], oR[0].y() - Bo[1]}, // left top
 			{oR[1].x() - Bo[2], oR[1].y() - Bo[1]},
 			{oR[2].x() - Bo[2], oR[2].y() - Bo[3]}, {oR[3].x() - Bo[0], oR[3].y() - Bo[3]},
 		};
+		iR[4] = iR[0];
 		// center
 		Vec2 Ce[5] = {
 			{o_x1+oR[0].x(),o_y1+oR[0].y()}, // leftTop
 			{o_x2-oR[1].x(),o_y1+oR[1].y()},
 			{o_x2-oR[2].x(),o_y2-oR[2].y()}, {o_x1+oR[3].x(),o_y2-oR[3].y()},
 		};
-
-		oR[4] = oR[0];
-		iR[4] = iR[0];
 		Ce[4] = Ce[0];
 
 		/* rect outline border

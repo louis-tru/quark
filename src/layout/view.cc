@@ -402,7 +402,7 @@ namespace qk {
 		* @method skew()
 		*/
 	Vec2 View::skew() const {
-		return _transform ? _transform->skew: Vec2();
+		return _transform ? _transform->skew * 57.29577951308232f: Vec2();
 	}
 
 	/**
@@ -411,7 +411,7 @@ namespace qk {
 		* @method rotate()
 		*/
 	float View::rotate() const {
-		return _transform ? _transform->rotate: 0;
+		return _transform ? _transform->rotate * 57.29577951308232f: 0;
 	}
 
 	/**
@@ -444,7 +444,8 @@ namespace qk {
 		* @method set_skew(val)
 		*/
 	void View::set_skew(Vec2 val) {
-		if (skew() != val) {
+		val *= Qk_PI_RATIO_180;
+		if (!_transform || _transform->skew != val) {
 			transform_p()->skew = val;
 			mark_none(kRecursive_Transform); // mark transform
 		}
@@ -456,7 +457,8 @@ namespace qk {
 		* @method set_rotate(val)
 		*/
 	void View::set_rotate(float val) {
-		if (rotate() != val) {
+		val *= Qk_PI_RATIO_180;
+		if (!_transform || _transform->rotate != val) {
 			transform_p()->rotate = val;
 			mark_none(kRecursive_Transform); // mark transform
 		}
@@ -615,7 +617,8 @@ namespace qk {
 			return Mat(
 				layout_offset() + _transform->translate + _parent->layout_offset_inside(), // translate
 				_transform->scale,
-				-_transform->rotate, _transform->skew
+				-_transform->rotate,
+				_transform->skew
 			);
 		} else {
 			Vec2 translate = layout_offset() + _parent->layout_offset_inside();

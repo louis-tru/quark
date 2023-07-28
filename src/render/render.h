@@ -108,27 +108,29 @@ namespace qk {
 		/**
 		 * @dev get radius rect path cache
 		 * @param rect {Rect} rect
-		 * @param radius {float[4]} border radius leftTop,rightTop,rightBottom,leftBottom
-		*/
-		const RectPath& getRRectPath(const Rect &rect, const float radius[4]);
-
-		/**
-		 * @dev get radius rect path cache
-		 * @param rect {Rect} rect
-		 * @param radius {float[4]} border radius leftTop,rightTop,rightBottom,leftBottom
-		 * @param radius_lessen_by_Border {float[4]} radius = radius - border. top,right,bottom,left
-		*/
-		const RectPath& getRRectPath(const Rect &rect, const float radius[4], const float radius_lessen_by_Border[4]);
-
-		/**
-		 * @dev get radius rect path cache
-		 * @param rect {Rect} rect
 		 * @param radius {BorderRadius} border radius
 		*/
 		const RectPath& getRRectPath(const Rect &rect, const Path::BorderRadius &radius);
 
 		/**
-		 * @dev get radius rect outline path cache
+		 * @dev get radius rect path cache from hash code
+		*/
+		const RectPath* getRRectPathFromHash(uint64_t hash);
+
+		/**
+		 * @dev set radius rect path cache from hash code
+		*/
+		const RectPath& setRRectPathFromHash(uint64_t hash, RectPath&& rect);
+
+		/**
+		 * @dev get radius rect path cache and limit radius size
+		 * @param rect {Rect} rect
+		 * @param radius {float[4]} border radius leftTop,rightTop,rightBottom,leftBottom
+		*/
+		const RectPath& getRRectPath(const Rect &rect, const float radius[4]);
+
+		/**
+		 * @dev get radius rect outline path cache and limit radius size
 		 * @param rect {Rect} outside border rect
 		 * @param border {float[4]} inside border width top,right,bottom,left
 		 * @param radius {float[4]} outside border radius leftTop,rightTop,rightBottom,leftBottom

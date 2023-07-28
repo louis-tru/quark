@@ -495,7 +495,8 @@ namespace qk {
 			if (!Parent->is_lock_child_layout_size()) {
 				auto size = Parent->layout_size();
 
-				if (mark & kLayout_Size_Width) {
+				if (mark & kLayout_Size_Width)
+				{
 					auto val = solve_layout_content_width(size);
 					if (val != _content_size.x() || _layout_wrap_x != size.wrap_x) {
 						_content_size.set_x(val);
@@ -514,7 +515,8 @@ namespace qk {
 					}
 				}
 
-				if (mark & kLayout_Size_Height) {
+				if (mark & kLayout_Size_Height)
+				{
 					auto val = solve_layout_content_height(size);
 					if (val != _content_size.y() || _layout_wrap_y != size.wrap_y) {
 						_content_size.set_y(val);

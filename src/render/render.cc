@@ -109,6 +109,17 @@ namespace qk {
 		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
 	}
 
+	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const Path::BorderRadius &radius) {
+		Hash5381 hash;
+		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(radius.leftTop.val);
+		hash.updatefv4(radius.rightBottom.val);
+		const RectPath *out;
+		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
+		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
+		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, radius));
+	}
+
 	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const float radius[4]) {
 		Hash5381 hash;
 		hash.updatefv4(rect.origin.val);
@@ -121,45 +132,24 @@ namespace qk {
 		{
 			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
 		} else {
-			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, {
-				radius[0],radius[1],radius[2],radius[3]
-			}));
+			float xy_0_5 = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
+			Path::BorderRadius Br{
+				Qk_MIN(radius[0], xy_0_5), Qk_MIN(radius[1], xy_0_5),
+				Qk_MIN(radius[2], xy_0_5), Qk_MIN(radius[3], xy_0_5),
+			};
+			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, Br));
 		}
 	}
 
-	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const float radius[4], const float radius_lessen[4]) {
-		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
-		hash.updatefv4(radius);
-		hash.updatefv4(radius_lessen);
-		const RectPath *out;
-		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
-		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
-
-		// return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
-
-		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
-		{
-			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
-		} else {
-			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, {
-				{radius[0]-radius_lessen[3], radius[0]-radius_lessen[0]},
-				{radius[1]-radius_lessen[1], radius[1]-radius_lessen[0]},
-				{radius[2]-radius_lessen[1], radius[2]-radius_lessen[2]},
-				{radius[3]-radius_lessen[3], radius[3]-radius_lessen[2]},
-			}));
-		}
+	const RectPath* RenderBackend::getRRectPathFromHash(uint64_t hash) {
+		const RectPath *out = nullptr;
+		_RectPathCache.get(hash, out);
+		return out;
 	}
 
-	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const Path::BorderRadius &radius) {
-		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
-		hash.updatefv4(radius.leftTop.val);
-		hash.updatefv4(radius.rightBottom.val);
-		const RectPath *out;
-		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
+	const RectPath& RenderBackend::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
 		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
-		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, radius));
+		return _RectPathCache.set(hash, std::move(rect));
 	}
 
 	const RectOutlinePath& RenderBackend::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]) {
@@ -175,9 +165,12 @@ namespace qk {
 		{
 			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, border));
 		} else {
-			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, border, {
-				radius[0],radius[1],radius[2],radius[3]
-			}));
+			float xy_0_5 = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
+			Path::BorderRadius Br{
+				{Qk_MIN(radius[0],xy_0_5)}, {Qk_MIN(radius[1],xy_0_5)},
+				{Qk_MIN(radius[2],xy_0_5)}, {Qk_MIN(radius[3],xy_0_5)},
+			};
+			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, border, Br));
 		}
 	}
 

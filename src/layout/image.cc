@@ -36,6 +36,13 @@
 namespace qk {
 
 	Image::Image(App *host): Box(host) {}
+	
+	bool Image::layout_forward(uint32_t mark) {
+		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
+			mark |= (kLayout_Size_Width | kLayout_Size_Height);
+		}
+		return Box::layout_forward(mark);
+	}
 
 	float Image::solve_layout_content_width(Size &parent_layout_size) {
 		auto result = Box::solve_layout_content_width(parent_layout_size);

@@ -65,18 +65,42 @@ namespace qk {
 		}
 
 		void getInsideRectPath(Box *box, BoxData &out) {
-			if (!out.inside) {
+			if (out.inside) return;
+			if (box->_border) {
 				auto rect = getRect(box);
-				if (box->_border) {
-					auto border = box->_border->_fix_width;
+				auto radius = &box->_radius_left_top;
+				auto border = box->_border->_fix_width;
+				Hash5381 hash;
+				hash.updatefv4(rect.origin.val);
+				hash.updatefv4(radius);
+				hash.updatefv4(border);
+
+				out.inside = _render->getRRectPathFromHash(hash.hashCode());
+				if (!out.inside) {
+					float xy_0_5    = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 					rect.origin[0] += border[3]; // left
 					rect.origin[1] += border[0]; // top
-					rect.size[0] -= (border[3] + border[1]); // left + right
-					rect.size[1] -= (border[0] + border[2]); // top + bottom
-					out.inside = &_render->getRRectPath(rect, &box->_radius_left_top, box->_border->width);
-				} else {
-					out.inside = &_render->getRRectPath(rect, &box->_radius_left_top);
+					rect.size[0]   -= (border[3] + border[1]); // left + right
+					rect.size[1]   -= (border[0] + border[2]); // top + bottom
+
+					//Qk_DEBUG("getInsideRectPath have border");
+
+					if (*reinterpret_cast<const uint64_t*>(radius) == 0 &&
+							*reinterpret_cast<const uint64_t*>(radius+2) == 0
+					) {
+						_render->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
+					} else {
+						float lt = Qk_MIN(radius[0],xy_0_5), rt = Qk_MIN(radius[1],xy_0_5);
+						float rb = Qk_MIN(radius[2],xy_0_5), lb = Qk_MIN(radius[3],xy_0_5);
+						Path::BorderRadius Br{
+							{lt-border[3], lt-border[0]}, {rt-border[1], rt-border[0]},
+							{rb-border[1], rb-border[2]}, {lb-border[3], lb-border[2]},
+						};
+						out.inside = &_render->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, Br));
+					}
 				}
+			} else {
+				out.inside = &_render->getRRectPath(getRect(box), &box->_radius_left_top);
 			}
 		}
 
@@ -388,6 +412,8 @@ namespace qk {
 		if (src && src->load()) {
 			src->mark_as_texture_unsafe(_render);
 			_this->getInsideRectPath(v, data);
+			//auto cli = v->client_size();
+			//Qk_DEBUG("--- w %f, h %f, s: %f", cli.x(), cli.y(), cli.x()/cli.y());
 			Paint paint;
 			paint.color.set_a(_opacity);
 			paint.tileModeX = Paint::kDecal_TileMode;

@@ -40,6 +40,7 @@ namespace qk {
 		Qk_Define_View(Image);
 	public:
 		Image(App *host);
+		virtual bool layout_forward(uint32_t mark) override;
 	protected:
 		virtual float solve_layout_content_width(Size &parent_layout_size) override;
 		virtual float solve_layout_content_height(Size &parent_layout_size) override;

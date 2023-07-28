@@ -307,13 +307,13 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(Vec2, translate); // matrix displacement for the view
 		Qk_DEFINE_PROP_ACC(Vec2, scale); // Matrix scaling
 		Qk_DEFINE_PROP_ACC(Vec2, skew); // Matrix skew, (radian)
-		Qk_DEFINE_PROP_ACC(float, rotate); // z-axis rotation of the matrix, (radian)
+		Qk_DEFINE_PROP_ACC(float, rotate); // z-axis rotation of the matrix
 		Qk_DEFINE_PROP_ACC(float, x); // x-axis matrix displacement for the view
 		Qk_DEFINE_PROP_ACC(float, y); // y-axis matrix displacement for the view
 		Qk_DEFINE_PROP_ACC(float, scale_x); // x-axis matrix scaling for the view
 		Qk_DEFINE_PROP_ACC(float, scale_y); // y-axis matrix scaling for the view
-		Qk_DEFINE_PROP_ACC(float, skew_x); // x-axis matrix skew for the view, (radian)
-		Qk_DEFINE_PROP_ACC(float, skew_y); // y-axis matrix skew for the view, (radian)
+		Qk_DEFINE_PROP_ACC(float, skew_x); // x-axis matrix skew for the view
+		Qk_DEFINE_PROP_ACC(float, skew_y); // y-axis matrix skew for the view
 		Qk_DEFINE_PROP_ACC(bool,  is_focus); // keyboard focus view
 		// the objects that automatically adjust view properties
 		Qk_DEFINE_PROP(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果

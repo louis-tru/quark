@@ -309,7 +309,7 @@ namespace qk {
 	}
 
 	constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
-	constexpr float aa_sdf_width = 0.5;
+	constexpr float aa_sdf_width = 0.6;
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
 		if (path.vertex.length()) {
