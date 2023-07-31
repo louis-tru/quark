@@ -31,7 +31,7 @@
 #include "./storage.h"
 #include "./fs.h"
 #include "./event.h"
-#include <BPtree.h>
+#include <bptree.h>
 
 namespace qk {
 

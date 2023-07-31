@@ -32,7 +32,7 @@
 #include "./fs.h"
 #include "./json.h"
 #include "./loop.h"
-#include <BPtree.h>
+#include <bptree.h>
 #include <vector>
 
 namespace qk {
