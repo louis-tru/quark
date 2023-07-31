@@ -307,7 +307,6 @@
 					'render/gl/glsl/clip.glsl',
 					'render/gl/glsl/color.glsl',
 					'render/gl/glsl/color_mask.glsl',
-					'render/gl/glsl/color_dotted.glsl',
 					'render/gl/glsl/color_linear.glsl',
 					'render/gl/glsl/color_radial.glsl',
 					'render/gl/glsl/color_sdf.glsl',

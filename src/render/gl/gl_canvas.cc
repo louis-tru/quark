@@ -309,7 +309,7 @@ namespace qk {
 	}
 
 	constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
-	constexpr float aa_sdf_width = 0.6;
+	constexpr float aa_sdf_width = 20;
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
 		if (path.vertex.length()) {
@@ -318,7 +318,7 @@ namespace qk {
 			_backend->_color.use(path.vertex.size(), *path.vertex);
 			//auto color4f = color.to_color4f_alpha(alpha);
 			glUniform4fv(_backend->_color.color, 1, color.val);
-			glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
+			//glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
 			//glDrawArrays(GL_LINES, 0, path.vertex.length());
 			if (antiAlias) {
 				auto &strip = _backend->getSDFStrokeTriangleStrip(path.path, _unitPixel*aa_sdf_width);
@@ -507,6 +507,7 @@ namespace qk {
 		glUniform1fv(_backend->_colorSdf.sdf_range, 3, range);
 		glUniform4fv(_backend->_colorSdf.color, 1, color.val);
 		glDrawArrays(mode, 0, vertex.length());
+		//glDrawArrays(GL_LINE_STRIP, 0, vertex.length());
 	}
 
 	void GLCanvas::drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]) {
@@ -523,6 +524,7 @@ namespace qk {
 		glUniform4fv(shader->colors, count, (const GLfloat*)g->colors->val());
 		glUniform1fv(shader->positions, count, (const GLfloat*)g->positions->val());
 		glDrawArrays(mode, 0, vertex.length());
+		//glDrawArrays(GL_LINE_STRIP, 0, vertex.length());
 	}
 
 	void GLCanvas::drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]) {

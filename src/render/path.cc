@@ -324,19 +324,16 @@ namespace qk {
 
 		for (auto verb: self->_verbs) {
 			switch(verb) {
-				case kVerb_Move:
-					move = from = *pts++;
-					isZero = false;
-					break;
 				case kVerb_Line:
-					if (isZero) {
-						move = from = *pts++;
-						isZero = false;
-					} else {
+					if (!isZero) {
 						edges.push(from);
 						from = *pts++;
 						edges.push(from); // edge 0
+						break;
 					}
+				case kVerb_Move:
+					move = from = *pts++;
+					isZero = false;
 					break;
 				case kVerb_Close: // close
 					//Qk_ASSERT(verb == kVerb_Close);
@@ -356,16 +353,11 @@ namespace qk {
 	}
 
 	Array<Vec2> Path::getTriangles(float epsilon) const {
-		return getPolygonsFromPaths(this, 1, 3, epsilon);
-	}
-
-	Array<Vec2> Path::getPolygonsFromPaths(const Path *paths, int pathsLen, int polySize, float epsilon) {
+		const int polySize = 3;
 		auto tess = tessNewTess(nullptr); // TESStesselator*
-		
-		for (int i = 0; i < pathsLen; i++) {
+		{ //
 			Path tmp;
-			const Path *self = paths[i]._IsNormalized ?
-				paths+i: paths[i].normalized(&tmp, epsilon,false);
+			const Path *self = _IsNormalized ? this: normalized(&tmp, epsilon,false);
 
 			auto pts = (const Vec2*)*self->_pts;
 			int len = 0;
@@ -397,14 +389,12 @@ namespace qk {
 					default: Qk_FATAL("Path::getVertexsFromPaths");
 				}
 			}
-
 			if (len > 1) { // auto close
 				tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
 			}
 		}
 
 		Array<Vec2> vertexs;
-
 		// Convert to convex contour vertex data
 		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 2, 0) ) {
 
@@ -480,18 +470,15 @@ namespace qk {
 
 		for (auto verb: self->_verbs) {
 			switch (verb) {
+				case kVerb_Line:
+					if (!isZero) {
+						lineTo(from, *pts);
+						from = *pts++;
+						break;
+					}
 				case kVerb_Move:
 					move = from = *pts++;
 					isZero = false;
-					break;
-				case kVerb_Line:
-					if (isZero) {
-						move = from = *pts++;
-						isZero = false;
-					} else {
-						lineTo(from, *pts);
-						from = *pts++;
-					}
 					break;
 				case kVerb_Close:
 					if (!isZero) {
@@ -517,6 +504,29 @@ namespace qk {
 		normalized(&line, epsilon, true);
 		Qk_ReturnLocal(line);
 	}
+
+	void Path::transfrom(const Mat& matrix) {
+		float* pts = *_pts;
+		float* e = pts + _pts.length();
+		while (pts < e) {
+			*((Vec2*)pts) = matrix * (*(Vec2*)pts);
+			pts += 2;
+		}
+	}
+
+	void Path::scale(Vec2 scale) {
+		float* pts = *_pts;
+		float* e = pts + _pts.length();
+		while (pts < e) {
+			pts[0] *= scale[0];
+			pts[1] *= scale[1];
+			pts += 2;
+		}
+	}
+
+	// estimate sample rate
+	static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon);
+	static int getCubicBezierSample(const CubicBezier& curve, float epsilon);
 
 	Path* Path::normalized(Path *out, float epsilon, bool updateHash) const {
 		Path &line = *out;
@@ -544,7 +554,7 @@ namespace qk {
 						add(Vec2(), kVerb_Move);
 					QuadraticBezier bezier(isZeor ? Vec2(): pts[-1], pts[0], pts[1]);
 					pts+=2;
-					int sample = Path::getQuadraticBezierSample(bezier, epsilon) - 1;
+					int sample = getQuadraticBezierSample(bezier, epsilon) - 1;
 					// |0|1| = sample = 3
 					int sampleSize  = sample * 2;
 					line._pts.extend(line._pts.length() + sampleSize);
@@ -562,7 +572,7 @@ namespace qk {
 						add(Vec2(), kVerb_Move);
 					CubicBezier bezier(isZeor ? Vec2(): pts[-1], pts[0], pts[1], pts[2]);
 					pts+=3;
-					int sample = Path::getCubicBezierSample(bezier, epsilon) - 1;
+					int sample = getCubicBezierSample(bezier, epsilon) - 1;
 					// |0|1| = sample = 3
 					int sampleSize = sample * 2;
 					line._pts.extend(line._pts.length() + sampleSize);
@@ -585,25 +595,6 @@ namespace qk {
 		return out;
 	}
 
-	void Path::transfrom(const Mat& matrix) {
-		float* pts = *_pts;
-		float* e = pts + _pts.length();
-		while (pts < e) {
-			*((Vec2*)pts) = matrix * (*(Vec2*)pts);
-			pts += 2;
-		}
-	}
-
-	void Path::scale(Vec2 scale) {
-		float* pts = *_pts;
-		float* e = pts + _pts.length();
-		while (pts < e) {
-			pts[0] *= scale[0];
-			pts[1] *= scale[1];
-			pts += 2;
-		}
-	}
-
 	static float sqrt_sqrtf(int i) {
 		static Array<float> num;
 		if (!num.length()) {
@@ -622,9 +613,8 @@ namespace qk {
 		return num[i];
 	}
 
-	int Path::getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon) {
+	static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon) {
 		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2();
-
 		// calculate triangle area by point cross multiplication
 
 		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x()) + (C.x()*A.y() - C.y()*A.x());
@@ -639,7 +629,7 @@ namespace qk {
 		}
 	}
 
-	int Path::getCubicBezierSample(const CubicBezier& curve, float epsilon) {
+	static int getCubicBezierSample(const CubicBezier& curve, float epsilon) {
 		/*
 		function get_cubic_bezier_sample(A, B, C, D, epsilon = 1) {
 			let S_ABC = (A.x*B.y - A.y*B.x) + (B.x*C.y - B.y*C.x);
@@ -650,7 +640,6 @@ namespace qk {
 		console.log(get_cubic_bezier_sample({x:0,y:0}, {x:10,y:0}, {x:10,y:10}, {x:0,y:10}));
 		*/
 		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2(), D = curve.p3();
-
 		// calculate the area of two triangles by point cross multiplication
 
 		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x());// + (C.x()*A.y() - C.y()*A.x());
@@ -666,8 +655,11 @@ namespace qk {
 		}
 	}
 
-	static int getSampleFromRect(Vec2 rect, float epsilon, float ratio = 0.5) {
-		float S_2 = abs(rect.x() * rect.y() * ratio) * epsilon; // width * height
+	/**
+	 * @param radian {float} maximum PI/2
+	*/
+	static int getRadianSample(Vec2 radius, float radian) {
+		float S_2 = abs(radius.x() * radius.y() * radian * 0.25); // width * height
 		if (S_2 < 5000.0) { // circle radius < 80
 			constexpr float count = 30.0 / 8.408964152537145;//sqrtf(sqrtf(5000.0));
 			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
@@ -726,7 +718,7 @@ namespace qk {
 		auto build = [](RectPath *out, Vec2 center, Vec2 radius, Vec2 v, Vec2 *v2, float angle) {
 			if (radius[0] > 0 && radius[1] > 0) { // no zero
 				center = center * radius + v;
-				int   sample = getSampleFromRect(radius, 1); // |0|1| = sample = 3
+				int   sample = getRadianSample(radius, Qk_PI_2_1); // |0|1| = sample = 3
 				float angleStep = Qk_PI_2_1 / (sample - 1);
 				auto p0 = *v2;
 				for (int i = 0; i < sample; i++) {
@@ -775,7 +767,7 @@ namespace qk {
 		// \|______________|/
 		for (int j = 0; j < 4; j++) {
 			auto out = &outline.top+j;
-			if (border[j] > 0) {
+			if (border[j] > 0) { // have border
 				out->path.moveTo(v[0]);
 				out->path.lineTo(v[3]);
 				out->path.moveTo(v[3]); // TODO: fix aa sdf stroke error
@@ -856,14 +848,14 @@ namespace qk {
 			const Vec2 radius[2], const Vec2 radius_i[2], const Vec2 center[2], float startAngle
 		) {
 			auto &path = out->path;
-			auto noZeroB = border[1] != 0; // border is zero
+			auto isBorder = border[1] != 0; // border is zero
 			Array<Vec2> path2;
 			Vec2 lastV;
 			auto isRadiusZeroL = radius[0].is_zero_axis();
 			auto isRadiusZeroR = radius[1].is_zero_axis();
 
 			if (isRadiusZeroL) { // radius is zero
-				if (noZeroB) {
+				if (isBorder) {
 					Vec2 src[]{v[0],v[5]}; // outside,inside
 					out->vertex.write(src, -1, 2);
 					path2.push(v[5]);
@@ -873,7 +865,7 @@ namespace qk {
 			} else {
 				auto borderSum = border[0] + border[1];
 				auto sweep = borderSum == 0 ? (Qk_PI_2_1 * 0.5): border[1] / borderSum * Qk_PI_2_1;
-				int  sample = getSampleFromRect(radius[0], 1); // |0|1| = sample = 3
+				int  sample = getRadianSample(radius[0], sweep); // |0|1| = sample = 3
 				float angleStep = -sweep / (sample - 1);
 				float angle = startAngle + sweep;
 				bool isRadiusI = radius_i[0].x() > 0 && radius_i[0].y() > 0;
@@ -882,7 +874,7 @@ namespace qk {
 					Vec2 xy(cosf(angle), -sinf(angle));
 					Vec2 v0 = xy * radius[0] + center[0];
 
-					if (noZeroB) {
+					if (isBorder) {
 						if (i == 0) {
 							Vec2 v1 = isRadiusI ? xy * radius_i[0] + center[0]: v[5];
 							Vec2 src[]{v0,v1}; // outside,inside
@@ -906,8 +898,8 @@ namespace qk {
 			}
 		
 			if (isRadiusZeroR) { // radius is zero
-				if (noZeroB) {
-					Vec2 src[]{v[3],v[3],out->vertex.back(),v[4]}; // outside,outside,inside,inside
+				if (isBorder) {
+					Vec2 src[]{v[3],v[3],lastV,v[4]}; // outside,outside,inside,inside
 					out->vertex.write(src, -1, 4);
 					path2.push(v[4]);
 				}
@@ -915,7 +907,7 @@ namespace qk {
 			} else {
 				auto borderSum = border[2] + border[1];
 				auto sweep = borderSum == 0 ? (Qk_PI_2_1 * 0.5): border[1] / borderSum * Qk_PI_2_1;
-				int  sample = getSampleFromRect(radius[1], 1); // |0|1| = sample = 3
+				int  sample = getRadianSample(radius[1], sweep); // |0|1| = sample = 3
 				float angleStep = -sweep / (sample - 1);
 				float angle = startAngle;
 				bool isRadiusI = radius_i[1].x() > 0 && radius_i[1].y() > 0;
@@ -924,7 +916,7 @@ namespace qk {
 					Vec2 xy(cosf(angle), -sinf(angle));
 					Vec2 v0 = xy * radius[1] + center[1], v1;
 
-					if (noZeroB) {
+					if (isBorder) {
 						if (isRadiusI) {
 							v1 = xy * radius_i[1] + center[1];
 							RadiusI:
@@ -950,7 +942,7 @@ namespace qk {
 				out->vertex.pop(2); // delete invalid vertices
 			}
 			
-			if (noZeroB) {
+			if (isBorder) {
 				if (border[2] < 0.1 && !isRadiusZeroR) // fix aa sdf stroke error
 					path.moveTo(path2.back());
 

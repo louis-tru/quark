@@ -185,12 +185,12 @@ void layout(Event<>& evt, Application* app) {
 		//->set_next(
 		// (new FillGradientRadial({0,0.5,1}, {{255,0,0,255},{0,0,255,255},{0,255,255,255}}))
 		// ->set_next(
-			new FillGradientLinear(0, {0,0.5,1}, {{255,0,0,255},{0,0,255,255},{0,255,255,255}})
-			// 0
+		//new FillGradientLinear(0, {0,0.5,1}, {{255,0,0,255},{0,0,255,255},{0,255,255,255}})
+			0
 		// )
 		// )
 	);
-	// flex->set_background_color({0,0,0,255});
+	flex->set_background_color({0,0,0,255});
 	// flex->set_box_shadow(new BoxShadow(10, 10, 5, {0,0,0,255}));
 	flex->set_width({ 0, SizeKind::kMatch });
 	flex->set_height({ 180, SizeKind::kPixel });

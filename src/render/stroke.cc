@@ -98,7 +98,6 @@ namespace qk {
 					}
 					close = size > 2;
 				}
-
 				if (before)
 					before(close, size, ctx);
 
@@ -251,8 +250,7 @@ namespace qk {
 		*/
 
 		stroke_exec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
-			#define Qk_addTo(l,r) \
-				left.lineTo(l),right.lineTo(r)
+			#define Qk_addTo(l,r) left.lineTo(l),right.lineTo(r)
 
 			auto _ = (Ctx*)ctx;
 			auto &left = *_->left;
@@ -306,10 +304,29 @@ namespace qk {
 				angleLen += Qk_PI_2;
 
 			switch (_->join) {
+				case Path::Join::kRound_Join: {// adds circle
+					if (angleLen > Qk_PI_2_1) { // outside
+						auto aLen = angleLen - Qk_PI_2_1;
+						if (aLen > 0.075f) { // > 0.075 radian
+							nline *= len;
+							left .arcTo(from, width, Qk_PI_2-angle+aLen, -aLen*2, false);
+							right.lineTo(from - nline);
+							return;
+						} // else goto kMiter_Join:
+					} else { // inside
+						auto aLen = Qk_PI_2_1 - angleLen;
+						if (aLen > 0.075f) { // > 0.075f radian
+							nline *= len;
+							left .lineTo(from + nline);
+							right.arcTo(from, width, Qk_PI-angle-aLen, aLen*2, false);
+							return;
+						} // else goto kMiter_Join:
+					}
+				}
 				case Path::Join::kMiter_Join: { // extends to miter limit
-					if (len > _->miterLimit) {
-						float lenL = len - _->miterLimit;
-						float y = tanf(angleLen) * lenL;
+					if (len > _->miterLimit) { // > miter limit or default 1024
+						auto lenL = len - _->miterLimit;
+						auto y = tanf(angleLen) * lenL;
 						auto a = nline.rotate90z() * y;
 						auto nLineL = nline * _->miterLimit;
 						nline *= len;
@@ -324,19 +341,6 @@ namespace qk {
 					} else {
 						nline *= len;
 						Qk_addTo(from + nline, from - nline);
-					}
-					return;
-				}
-				case Path::Join::kRound_Join: {// adds circle
-					nline *= len;
-					if (angleLen > Qk_PI_2_1) {
-						angleLen = angleLen - Qk_PI_2_1;
-						left.arcTo({from-width,Vec2(width*2)}, Qk_PI_2-angle+angleLen, -angleLen*2, false);
-						right.lineTo(from - nline);
-					} else {
-						angleLen = Qk_PI_2_1 - angleLen;
-						left.lineTo(from + nline);
-						right.arcTo({from-width,Vec2(width*2)}, Qk_PI-angle-angleLen, angleLen*2, false);
 					}
 					return;
 				}

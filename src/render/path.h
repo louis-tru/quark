@@ -119,11 +119,6 @@ namespace qk {
 		void transfrom(const Mat& matrix);
 		// scale transfrom
 		void scale(Vec2 scale);
-		// estimate sample rate
-		static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon);
-		static int getCubicBezierSample(const CubicBezier& curve, float epsilon);
-		static Array<Vec2> getPolygonsFromPaths(const Path *paths,
-																						int pathsLen, int polySize, float epsilon);
 	private:
 		Path* normalized(Path *out, float epsilon, bool updateHash) const;
 		void quadTo2(float *p);

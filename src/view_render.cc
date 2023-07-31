@@ -92,6 +92,7 @@ namespace qk {
 					} else {
 						float lt = Qk_MIN(radius[0],xy_0_5), rt = Qk_MIN(radius[1],xy_0_5);
 						float rb = Qk_MIN(radius[2],xy_0_5), lb = Qk_MIN(radius[3],xy_0_5);
+						auto border = box->_border->width;
 						Path::BorderRadius Br{
 							{lt-border[3], lt-border[0]}, {rt-border[1], rt-border[0]},
 							{rb-border[1], rb-border[2]}, {lb-border[3], lb-border[2]},
@@ -283,11 +284,11 @@ namespace qk {
 				if (border->width[i] > 0) { // top
 					auto pv = &data.outline->top + i;
 					if (pv->vertex.length()) {
-						_canvas->drawPathvColor(*pv, border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+						//_canvas->drawPathvColor(*pv, border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 					} else { // stroke
 						stroke.color = border->color[i].to_color4f_alpha(_opacity);
 						stroke.width = border->width[i];
-						_canvas->drawPath(pv->path, stroke);
+						//_canvas->drawPath(pv->path, stroke);
 					}
 				}
 			}
