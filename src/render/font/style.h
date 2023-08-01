@@ -40,9 +40,9 @@ namespace qk {
 	class Qk_EXPORT FontStyle {
 	public:
 		/*constexpr */FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
-			(Int32::limit(int(weight), int(TextWeight::kInherit), int(TextWeight::kExtraBlack))) +
-			(Int32::limit(int(width), int(TextWidth::kUltraCondensed), int(TextWidth::kUltraExpanded)) << 16) +
-			(Int32::limit(int(slant) - 1, 0, 2) << 24)
+			(Int32::clamp(int(weight), int(TextWeight::kInherit), int(TextWeight::kExtraBlack))) +
+			(Int32::clamp(int(width), int(TextWidth::kUltraCondensed), int(TextWidth::kUltraExpanded)) << 16) +
+			(Int32::clamp(int(slant) - 1, 0, 2) << 24)
 		) {}
 
     FontStyle(): FontStyle{TextWeight::kDefault, TextWidth::kDefault, TextSlant::kNormal} {}

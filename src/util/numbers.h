@@ -59,7 +59,7 @@ namespace qk {
 		static inline T min(T a, T b) {
 			return a < b ? a: b;
 		}
-		static inline T limit(T x, T min, T max) {
+		static inline T clamp(T x, T min, T max) {
 			return x < min ? min: x > max ? max: x;
 		}
 	};
