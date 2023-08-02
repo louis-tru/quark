@@ -308,7 +308,8 @@ namespace qk {
 		drawPathv(_backend->getRRectPath(rect,radius).path, paint);
 	}
 
-	constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
+	//constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
+	constexpr float aa_sdf_range[3] = {1,0,0.5};
 	constexpr float aa_sdf_width = 20;
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {

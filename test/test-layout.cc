@@ -226,12 +226,12 @@ void layout(Event<>& evt, Application* app) {
 	//
 	flow->set_width({ 50, SizeKind::kPixel });
 	flow->set_height({ 50, SizeKind::kPixel });
-	flow->set_background_color({0,0,255,255});
+	flow->set_background_color({0,0,0,255});
 	flow->set_layout_align(Align::kLeftBottom);
-	flow->set_margin_left(10);
+	flow->set_margin_left(30);
 	flow->set_margin_top(340);
 	flow->set_margin_right(10);
-	flow->set_margin_bottom(10);
+	flow->set_margin_bottom(30);
 	flow->set_padding_left(50);
 	// //
 	// img->set_height({ 50, SizeKind::kPixel });
