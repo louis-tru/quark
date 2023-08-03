@@ -71,7 +71,6 @@ namespace qk {
 		GLSLColorMask _colorMask;
 		GLSLColorLinear _linear;
 		GLSLColorRadial _radial;
-		GLSLColorDotted _colorDotted;
 		GLSLImage _image;
 		GLSLImageYuv420p _yuv420p;
 		GLSLImageYuv420sp _yuv420sp;
@@ -80,7 +79,7 @@ namespace qk {
 		GLSLColorLinearSdf _linearSdf;
 		GLSLColorRadialSdf _radialSdf;
 		GLSLImageSdf _imageSdf;
-		GLSLShader  *_shaders[15];
+		GLSLShader  *_shaders[14];
 	};
 }
 #endif

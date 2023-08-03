@@ -271,8 +271,7 @@ namespace qk {
 	}
 
 	void test_color_fill_aa_lines(
-		GLSLColor &color,
-		GLSLColorDotted &colorDotted, const Path &path, const Paint &paint
+		GLSLColor &color, const Path &path, const Paint &paint
 	) {
 		Array<Vec2> vertex = path.getTriangles();
 		color.use(vertex.size(), *vertex);
@@ -389,10 +388,11 @@ namespace qk {
 	}
 
 	void GLCanvas::fillV(const Array<Vec2> &vertex, const Paint &paint) {
+		// __m128 tt;
 		switch (paint.type) {
 			case Paint::kColor_Type:
 				drawColor(vertex, paint, GL_TRIANGLES);
-				//test_color_fill_aa_lines(_backend->_color, _backend->_colorDotted, path, paint);
+				//test_color_fill_aa_lines(_backend->_color, path, paint);
 				break;
 			case Paint::kGradient_Type:
 				drawGradient(vertex, paint, GL_TRIANGLES);

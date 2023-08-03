@@ -335,7 +335,7 @@ namespace qk {
 		, _texTmp{0,0,0}
 		, _shaders{
 			&_clear, &_clip, &_color, &_image, &_colorMask, &_yuv420p,
-			&_yuv420sp, &_linear, &_radial, &_colorDotted,
+			&_yuv420sp, &_linear, &_radial,
 			&_colorSdf, &_colorMaskSdf, &_linearSdf, &_radialSdf,&_imageSdf,
 		}
 	{
