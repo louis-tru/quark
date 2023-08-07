@@ -124,20 +124,27 @@ namespace qk {
 		return Vec2(-val[0], -val[1]);
 	}
 
-	Vec2& Vec2:: operator+=(const Vec<float,2>& b) {
+	Vec2& Vec2::operator+=(const Vec<float,2>& b) {
 		val[0] += b.val[0]; val[1] += b.val[1]; return *this;
 	}
-	Vec2& Vec2:: operator-=(const Vec<float,2>& b) {
+	Vec2& Vec2::operator-=(const Vec<float,2>& b) {
 		val[0] -= b.val[0]; val[1] -= b.val[1]; return *this;
 	}
-	Vec2& Vec2:: operator*=(const Vec<float,2>& b) {
+	Vec2& Vec2::operator*=(const Vec<float,2>& b) {
 		val[0] *= b.val[0]; val[1] *= b.val[1]; return *this;
 	}
-	Vec2& Vec2:: operator*=(float b) {
+	Vec2& Vec2::operator*=(float b) {
 		val[0] *= b; val[1] *= b; return *this;
 	}
-	Vec2& Vec2:: operator/=(const Vec<float,2>& b) {
+	Vec2& Vec2::operator/=(const Vec<float,2>& b) {
 		val[0] /= b.val[0]; val[1] /= b.val[1]; return *this;
+	}
+
+	bool  Vec2::operator==(const Vec<float,2>& b) const {
+		return *reinterpret_cast<const double*>(val) == *reinterpret_cast<const double*>(b.val);
+	}
+	bool  Vec2::operator!=(const Vec<float,2>& b) const {
+		return *reinterpret_cast<const double*>(val) != *reinterpret_cast<const double*>(b.val);
 	}
 
 	float Vec2::dot(const Vec<float,2> b) const {
@@ -262,20 +269,27 @@ namespace qk {
 		return Vec3(-val[0], -val[1], -val[2]);
 	}
 
-	Vec3& Vec3:: operator+=(const Vec<float,3>& b) {
+	Vec3& Vec3::operator+=(const Vec<float,3>& b) {
 		val[0] += b.val[0]; val[1] += b.val[1]; val[2] += b.val[2]; return *this;
 	}
-	Vec3& Vec3:: operator-=(const Vec<float,3>& b) {
+	Vec3& Vec3::operator-=(const Vec<float,3>& b) {
 		val[0] -= b.val[0]; val[1] -= b.val[1]; val[2] -= b.val[2]; return *this;
 	}
-	Vec3& Vec3:: operator*=(const Vec<float,3>& b) {
+	Vec3& Vec3::operator*=(const Vec<float,3>& b) {
 		val[0] *= b.val[0]; val[1] *= b.val[1]; val[2] *= b.val[2]; return *this;
 	}
-	Vec3& Vec3:: operator*=(float b) {
+	Vec3& Vec3::operator*=(float b) {
 		val[0] *= b; val[1] *= b; val[2] *= b; return *this;
 	}
-	Vec3& Vec3:: operator/=(const Vec<float,3>& b) {
+	Vec3& Vec3::operator/=(const Vec<float,3>& b) {
 		val[0] /= b.val[0]; val[1] /= b.val[1]; val[2] /= b.val[2]; return *this;
+	}
+
+	bool  Vec3::operator==(const Vec<float,3>& b) const {
+		return *reinterpret_cast<const double*>(val) == *reinterpret_cast<const double*>(b.val) && val[2] == b.val[2];
+	}
+	bool  Vec3::operator!=(const Vec<float,3>& b) const {
+		return *reinterpret_cast<const double*>(val) != *reinterpret_cast<const double*>(b.val) || val[2] != b.val[2];
 	}
 
 	float Vec3::length() const {

@@ -292,14 +292,20 @@ namespace qk {
 		_pts.write(p, -1, 4);
 		_verbs.push(kVerb_Quad);
 		_IsNormalized = false;
-		_hash.update((uint32_t*)p, 4);
+		// _hash.updateu32v((uint32_t*)p, 4);
+		// _hash.updateu32v((uint32_t*)p, 4);
+		_hash.updatefv2(p);
+		_hash.updatefv2(p+2);
 	}
 
 	void Path::cubicTo2(float *p) {
 		_pts.write(p, -1, 6);
 		_verbs.push(kVerb_Cubic);
 		_IsNormalized = false;
-		_hash.update((uint32_t*)p, 6);
+		//_hash.update((uint32_t*)p, 6);
+		_hash.updatefv2(p);
+		_hash.updatefv2(p+2);
+		_hash.updatefv2(p+3);
 	}
 
 	void Path::close() {
@@ -309,8 +315,7 @@ namespace qk {
 	void Path::concat(const Path& path) {
 		_verbs.write(path._verbs);
 		_pts.write(path._pts);
-		const uint64_t hash = path.hashCode();
-		_hash.update(&hash, sizeof(uint64_t));
+		_hash.updateu64(path.hashCode());
 		_IsNormalized = _IsNormalized && path._IsNormalized;
 	}
 
@@ -537,7 +542,8 @@ namespace qk {
 			line._pts.write(to.val, -1, 2);
 			line._verbs.push(verb);
 			if (updateHash)
-				line._hash.update((uint32_t*)&to, 2);
+				//line._hash.update((uint32_t*)&to, 2);
+				line._hash.updatefv2(to.val);
 		};
 
 		for (auto verb: _verbs) {
@@ -561,7 +567,8 @@ namespace qk {
 					auto points = &line._pts[line._pts.length() - sampleSize];
 					bezier.sample_curve_points(sample+1, points - 2);
 					if (updateHash)
-						line._hash.update((uint32_t*)points, sampleSize); // update hash
+						//line._hash.update((uint32_t*)points, sampleSize); // update hash
+						line._hash.updateu64v((uint64_t*)points, sample); // update hash
 					line._verbs.extend(line._verbs.length() + sample);
 					memset(line._verbs.val() + (line._verbs.length() - sample), kVerb_Line, sample);
 					isZeor = false;
@@ -579,7 +586,8 @@ namespace qk {
 					auto points = &line._pts[line._pts.length() - sampleSize];
 					bezier.sample_curve_points(sample+1, points - 2);
 					if (updateHash)
-						line._hash.update((uint32_t*)points, sampleSize); // update hash
+						//line._hash.update((uint32_t*)points, sampleSize); // update hash
+						line._hash.updateu64v((uint64_t*)points, sample); // update hash
 					line._verbs.extend(line._verbs.length() + sample);
 					memset(line._verbs.val() + (line._verbs.length() - sample), kVerb_Line, sample);
 					isZeor = false;

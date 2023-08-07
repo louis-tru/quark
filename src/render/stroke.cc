@@ -83,66 +83,6 @@ namespace qk {
 
 namespace qk {
 
-	typedef void AddPoint(const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx);
-	typedef void BeforeAdding(bool close, int size, void *ctx);
-	typedef void AfterDone(bool close, int size, void *ctx);
-
-	static void stroke_exec(const Path *self, AddPoint add, 
-		BeforeAdding before, AfterDone after, bool close, void *ctx
-	) {
-		auto subpath = [&](const Vec2 *pts, int size, bool close) {
-			if (size > 1) { // size > 1
-				if (close) {
-					if (*pts == pts[size-1]) { // exclude duplicates
-						size--;
-					}
-					close = size > 2;
-				}
-				if (before)
-					before(close, size, ctx);
-
-				add(close ? pts+size-1: NULL, *pts, pts+1, 0, ctx); pts++;
-
-				for (int i = 1; i < size-1; i++, pts++) {
-					add(pts-1, *pts, pts+1, i, ctx);
-				}
-				add(pts-1, *pts, close? pts-size+1: NULL, size-1, ctx);
-
-				if (after)
-					after(close, size, ctx);
-			}
-		};
-
-		Array<Vec2> pts(self->ptsLen());
-		auto pts0 = self->pts();
-		auto pts1 = pts.val();
-		int  size = 0;
-		auto verbs = self->verbs();
-
-		for (int i = 0, l = self->verbsLen(); i < l; i++) {
-			switch(verbs[i]) {
-				case Path::kVerb_Line:
-					if (size != 0) {
-						if (pts1[size-1] != *pts0++) // exclude duplicates
-							pts1[size++] = pts0[-1];
-						break;
-					}
-				case Path::kVerb_Move:
-					subpath(pts1, size, close);
-					pts1[0] = *pts0++;
-					size = 1;
-					break;
-				case Path::kVerb_Close: // close
-					subpath(pts1, size, true);
-					size = 0;
-					break;
-				default: Qk_FATAL("Path::strokePath");
-			}
-		}
-
-		subpath(pts1, size, close);
-	}
-
 	// concat paths, left += reverse(right)
 	static void reverse_concat_path(Path &left, const Path &right) {
 		auto verbs = right.verbs();
@@ -163,6 +103,71 @@ namespace qk {
 				left.lineTo(*pts--);
 			}
 		}
+	}
+
+	typedef void AddPoint(const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx);
+	typedef void BeforeAdding(bool close, int size, int subpath, void *ctx);
+	typedef void AfterDone(bool close, int size, int subpath, void *ctx);
+
+	static void stroke_exec(
+		const Path *self, AddPoint add,
+		BeforeAdding before, AfterDone after, bool closeAll, void *ctx
+	) {
+		int subpath = 0;
+		auto addSubpath = [&](const Vec2 *pts, int size, bool close) {
+			if (size > 1) { // size > 1
+				if (close) { // close path
+					if (*pts == pts[size-1]) { // start == end, exclude duplicates
+						size--;
+					}
+					close = size > 2; // Must have at least 3 vertices
+				}
+				if (before) {
+					before(close, size, subpath, ctx);
+				}
+
+				add(close ? pts+size-1: NULL, *pts, pts+1, 0, ctx); pts++;
+
+				for (int i = 1, l = size-1; i < l; i++, pts++) {
+					add(pts-1, *pts, pts+1, i, ctx);
+				}
+				add(pts-1, *pts, close? pts-size+1: NULL, size-1, ctx);
+
+				if (after) {
+					after(close, size, subpath, ctx);
+				}
+				subpath++;
+			}
+		};
+
+		Array<Vec2> pts(self->ptsLen());
+		auto pts0 = self->pts();
+		auto pts1 = pts.val();
+		int  size = 0;
+		auto verbs = self->verbs();
+
+		for (int i = 0, l = self->verbsLen(); i < l; i++) {
+			switch(verbs[i]) {
+				case Path::kVerb_Line:
+					if (size != 0) {
+						if (pts1[size-1] != *pts0++) // exclude duplicates
+							pts1[size++] = pts0[-1];
+						break;
+					}
+				case Path::kVerb_Move:
+					addSubpath(pts1, size, closeAll);
+					pts1[0] = *pts0++;
+					size = 1;
+					break;
+				case Path::kVerb_Close: // close
+					addSubpath(pts1, size, true);
+					size = 0;
+					break;
+				default: Qk_FATAL("Path::strokePath");
+			}
+		}
+
+		addSubpath(pts1, size, closeAll);
 	}
 
 	/**
@@ -186,39 +191,36 @@ namespace qk {
 				auto angleLen = nline.angleTo(*prev - from);
 				auto len = _->width / sinf(angleLen);
 				nline *= len;
-				// nline *= _->width;
 			} else {
 				nline *= _->width;
-			}
-
-			if (idx == 0 && _->fixStrip ) {
-				// fix multiple subpath triangle strip error
-				auto a = _->ptr - 1;
-				*(_->ptr++) = *a;
-				*(_->ptr++) = Vec3(from + nline, 0.5);
 			}
 			*(_->ptr++) = Vec3(from + nline, 0.5);
 			*(_->ptr++) = Vec3(from - nline, -0.5);
 		},
-		[](bool close, int size, void *ctx) {
-			auto _ = (Ctx*)ctx;
+		[](bool close, int size, int subpath, void *ctx) {
+			auto _ = static_cast<Ctx*>(ctx);
 			auto len = _->out->length();
 			size <<= 1;
 			if (close)
 				size += 2;
-			if (len) {
-				size += 2;
-				_->fixStrip = true;
+			if (subpath) {
+				// fix multiple subpath triangle strip error, step 0
+				len += 2;
 			}
-			_->out->extend(len + size);
+			_->out->extend(len + size); // alloc memory space
 			_->ptr = _->out->val() + len;
 		},
-		[](bool close, int size, void *ctx) {
+		[](bool close, int size, int subpath, void *ctx) {
+			auto _ = static_cast<Ctx*>(ctx);
+			auto a = _->ptr - (size << 1);
+			if (subpath) {
+				// fix multiple subpath triangle strip error, step 1
+				a[-2] = a[-3]; // copy pevious
+				a[-1] = a[0]; // copy next
+			}
 			if (close) {
-				auto _ = (Ctx*)ctx;
-				auto a = _->ptr - (size << 1), b = a + 1;
-				*(_->ptr++) = *a;
-				*(_->ptr++) = *b;
+				*(_->ptr++) = a[0];
+				*(_->ptr++) = a[1];
 			}
 		}, false, &ctx);
 
@@ -257,7 +259,7 @@ namespace qk {
 			auto &right = _->right;
 			auto width = _->width;
 
-			if (!prev || !next) {
+			if (prev == NULL || next == NULL) { // prev == null or next == null
 				auto nline = from.normalline(prev, next) * width; // normal line
 				switch (_->cap) {
 					case Path::Cap::kButt_Cap: // no stroke extension
@@ -358,13 +360,13 @@ namespace qk {
 				}
 			}
 			#undef Qk_addTo
-		}, NULL, [](bool close, int size, void *ctx) {
-			auto _ = (Ctx*)ctx;
+		}, NULL, [](bool close, int size, int subpath, void *ctx) {
+			auto _ = static_cast<Ctx*>(ctx);
 			if (close) {
 				_->left->close();
 			}
 			reverse_concat_path(*_->left, _->right); // concat paths, left += reverse(right)
-			_->left->close();
+			_->left->close(); // close path
 			_->right = Path(); // clear right path
 		}, false, &ctx);
 

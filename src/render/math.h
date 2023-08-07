@@ -149,10 +149,9 @@ namespace qk {
 	// ------------------------------------------
 
 	struct Qk_EXPORT Vec2: Vec<float,2> {
-
 		#define Qk_Default_Vec_Operator(Name,T,Len) \
 			Name(); \
-			Name(float f); \
+			Name(T f); \
 			Name  operator+(const Vec<T,Len>& b) const; \
 			Name  operator-(const Vec<T,Len>& b) const; \
 			Name  operator*(const Vec<T,Len>& b) const; \
@@ -166,7 +165,9 @@ namespace qk {
 			Name& operator-=(const Vec<T,Len>& b); \
 			Name& operator*=(const Vec<T,Len>& b); \
 			Name& operator*=(T b); \
-			Name& operator/=(const Vec<T,Len>& b)
+			Name& operator/=(const Vec<T,Len>& b);\
+			bool  operator==(const Vec<T,Len>& b) const; \
+			bool  operator!=(const Vec<T,Len>& b) const
 
 		Qk_Default_Vec_Operator(Vec2,float,2);
 

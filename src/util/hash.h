@@ -45,7 +45,6 @@ namespace qk {
 		void   clear();
 		void   update(const void* data, uint32_t len);
 		void   updatestr(cString& str);
-		void   updateu8v(const uint8_t *data, uint32_t len);
 		void   updateu16v(const uint16_t *data, uint32_t len);
 		void   updateu32v(const uint32_t *data, uint32_t len);
 		void   updateu64v(const uint64_t *data, uint32_t len);
