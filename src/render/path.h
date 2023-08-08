@@ -60,8 +60,7 @@ namespace qk {
 		static Path MakeRect(const Rect& rect, bool ccw = false);
 		static Path MakeCircle(Vec2 center, float radius, bool ccw = false);
 		static Path MakeRRect(const Rect& rect, const BorderRadius &radius);
-		static Path MakeRRectOutline(const Rect &outside,
-																 const Rect &inside, const BorderRadius &radius);
+		static Path MakeRRectOutline(const Rect &outside, const Rect &inside, const BorderRadius &radius);
 		Path();
 		Path(Vec2 move);
 
@@ -141,6 +140,8 @@ namespace qk {
 		Rect   rect;
 		static RectPath MakeRect(const Rect& rect);
 		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &radius);
+		static Array<Vec3> getSDFStrokeTriangleStrip(
+			const Rect& rect, const Path::BorderRadius &radius, float width);
 	};
 
 	// Optimizing rect outline vertex generation algorithm

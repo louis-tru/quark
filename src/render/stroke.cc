@@ -84,7 +84,7 @@ namespace qk {
 namespace qk {
 
 	// concat paths, left += reverse(right)
-	static void reverse_concat_path(Path &left, const Path &right) {
+	static void reverseConcatPath(Path &left, const Path &right) {
 		auto verbs = right.verbs();
 		auto pts = right.pts() + right.ptsLen() - 1;
 
@@ -109,7 +109,7 @@ namespace qk {
 	typedef void BeforeAdding(bool close, int size, int subpath, void *ctx);
 	typedef void AfterDone(bool close, int size, int subpath, void *ctx);
 
-	static void stroke_exec(
+	static void strokeExec(
 		const Path *self, AddPoint add,
 		BeforeAdding before, AfterDone after, bool closeAll, void *ctx
 	) {
@@ -180,7 +180,7 @@ namespace qk {
 		Array<Vec3> out;
 		struct Ctx { Array<Vec3> *out; Vec3 *ptr; float width; bool fixStrip; } ctx = { &out,0,width,0 };
 
-		stroke_exec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
+		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			auto nline = from.normalline(prev, next); // normal line
 			auto _ = (Ctx*)ctx;
 
@@ -194,8 +194,8 @@ namespace qk {
 			} else {
 				nline *= _->width;
 			}
-			*(_->ptr++) = Vec3(from + nline, 0.5);
-			*(_->ptr++) = Vec3(from - nline, -0.5);
+			*(_->ptr++) = Vec3(from + nline, -0.5);
+			*(_->ptr++) = Vec3(from - nline, 0.5);
 		},
 		[](bool close, int size, int subpath, void *ctx) {
 			auto _ = static_cast<Ctx*>(ctx);
@@ -227,6 +227,13 @@ namespace qk {
 		Qk_ReturnLocal(out);
 	}
 
+	// Optimizing rect sdf generation algorithm
+	Array<Vec3> RectPath::getSDFStrokeTriangleStrip(const Rect& rect, const Path::BorderRadius &radius, float width) {
+		Array<Vec3> out;
+
+		Qk_ReturnLocal(out);
+	}
+
 #if !Qk_USE_FT_STROKE
 
 	// modification to stroke path
@@ -251,7 +258,7 @@ namespace qk {
 			2.closed path produces two closed paths
 		*/
 
-		stroke_exec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
+		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			#define Qk_addTo(l,r) left.lineTo(l),right.lineTo(r)
 
 			auto _ = (Ctx*)ctx;
@@ -286,7 +293,7 @@ namespace qk {
 
 			Vec2 toFrom = *next - from;
 			Vec2 fromPrev = from - *prev;
-			Vec2 toNext90   = toFrom.rotate90z().normalized();
+			Vec2 toNext90 = toFrom.rotate90z().normalized();
 			Vec2 fromPrev90 = fromPrev.rotate90z().normalized();
 			Vec2 nline = (toNext90 + fromPrev90).normalized(); // normal line
 
@@ -365,7 +372,7 @@ namespace qk {
 			if (close) {
 				_->left->close();
 			}
-			reverse_concat_path(*_->left, _->right); // concat paths, left += reverse(right)
+			reverseConcatPath(*_->left, _->right); // concat paths, left += reverse(right)
 			_->left->close(); // close path
 			_->right = Path(); // clear right path
 		}, false, &ctx);
