@@ -109,7 +109,7 @@ namespace qk {
 
 		/**
 		 *
-		 * mark as gpu texture and and return success or failure
+		 * mark as gpu texture and return success or failure
 		 * 
 		 * Note: To be called in the rendering thread
 		 *
