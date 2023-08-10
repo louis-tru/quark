@@ -140,8 +140,6 @@ namespace qk {
 		Rect   rect;
 		static RectPath MakeRect(const Rect& rect);
 		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &radius);
-		static Array<Vec3> getSDFStrokeTriangleStrip(
-			const Rect& rect, const Path::BorderRadius &radius, float width);
 	};
 
 	// Optimizing rect outline vertex generation algorithm

@@ -227,13 +227,6 @@ namespace qk {
 		Qk_ReturnLocal(out);
 	}
 
-	// Optimizing rect sdf generation algorithm
-	Array<Vec3> RectPath::getSDFStrokeTriangleStrip(const Rect& rect, const Path::BorderRadius &radius, float width) {
-		Array<Vec3> out;
-
-		Qk_ReturnLocal(out);
-	}
-
 #if !Qk_USE_FT_STROKE
 
 	// modification to stroke path
