@@ -3,6 +3,7 @@
 // https://blog.ivank.net/fastest-gaussian-blur.html
 // https://elynxsdk.free.fr/ext-docs/Blur/Fast_box_blur.pdf
 // https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
+// https://www.shadertoy.com/view/WtKfD3
 
 void main() {
 	gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);
