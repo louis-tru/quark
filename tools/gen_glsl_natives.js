@@ -245,8 +245,8 @@ function resolve_glsl(name, input, hpp, cpp) {
 	let className = `GLSL${name[0].toUpperCase()}${name.substring(1)}`;
 
 	write(hpp, `	struct ${className}: GLSLShader {`,
-		attributes.length ? `		GLuint ${attributes.map(e=>e.name).join(',')}; // uniforms`: '',
-		uniforms.length ? `		GLuint ${uniforms.join(',')}; // attributes`: '',
+		attributes.length ? `		GLuint ${attributes.map(e=>e.name).join(',')}; // attributes`: '',
+		uniforms.length ? `		GLuint ${uniforms.join(',')}; // uniforms`: '',
 		`		virtual void build();`,
 	`	};`);
 
