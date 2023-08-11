@@ -101,7 +101,7 @@ namespace qk {
 			count--;
 		}
 
-		if (isStencilRefDefaultValue()) {
+		if (!isStencilTest()) {
 			glDisable(GL_STENCIL_TEST); // disable stencil test
 		}
 		else if (clipOp != -1) {
@@ -118,8 +118,8 @@ namespace qk {
 		return _curState->matrix;
 	}
 
-	bool GLCanvas::isStencilRefDefaultValue() {
-		return _stencil_ref == 127 && _stencil_ref_decr == 127;
+	bool GLCanvas::isStencilTest() {
+		return _stencil_ref != 127 || _stencil_ref_decr != 127;
 	}
 
 	void GLCanvas::setRootMatrixBuffer(const Mat4& root) {
@@ -127,23 +127,18 @@ namespace qk {
 		auto m4x4 = root.transpose(); // transpose matrix
 		glBindBuffer(GL_UNIFORM_BUFFER, _mat_ubo);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, m4x4.val);
+		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
 
-		// restore clip stencil
-		glClear(GL_STENCIL_BUFFER_BIT);
-
-		if (_stencil_ref != 0 && !isStencilRefDefaultValue()) {
+		if (isStencilTest()) { // current is have clips, restore clip stencil
 			_stencil_ref = _stencil_ref_decr = 127;
-
 			for (int i = 0; i < _state.length(); i++) {
 				_curState = &_state[i];
 				setMatrixBuffer(_curState->matrix);
-
 				for (auto &clip: _curState->clips) {
 					drawClip(&clip);
 				}
 			}
 		}
-
 		_surfaceScalef1 = Float::max(_surfaceScale[0], _surfaceScale[1]);
 		_transfromScale = Float::max(_curState->matrix[0], _curState->matrix[4]);
 		_scale = _surfaceScalef1 * _transfromScale;
@@ -193,15 +188,10 @@ namespace qk {
 	}
 
 	void GLCanvas::clipV(const Array<Vec2> &vertex, ClipOp op, bool antiAlias) {
-		if (_stencil_ref == 0) { // start enable stencil test
-			_stencil_ref = _stencil_ref_decr = 127;
-			glClear(GL_STENCIL_BUFFER_BIT); // clear stencil
-		}
-		if (isStencilRefDefaultValue()) {
+		if (!isStencilTest()) {
 			glEnable(GL_STENCIL_TEST); // enable stencil test
 		}
 		Clip clip{vertex, op, antiAlias};
-
 		if (drawClip(&clip)) {
 			// save clip state
 			_curState->clips.push(std::move(clip));
@@ -247,11 +237,11 @@ namespace qk {
 
 	void GLCanvas::clearColor(const Color4f& color) {
 		glClearColor(color.r(), color.g(), color.b(), color.a());
-		if (isStencilRefDefaultValue()) {
-			glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		} else {
-			glClear(GL_COLOR_BUFFER_BIT);
+		GLbitfield mask = GL_COLOR_BUFFER_BIT;
+		if (!_backend->_IsDeviceMsaa) { // enable depth test shader anti alias
+			mask |= GL_DEPTH_BUFFER_BIT;
 		}
+		glClear(mask);
 	}
 
 	void GLCanvas::drawColor(const Color4f &color, BlendMode mode) {
@@ -307,9 +297,10 @@ namespace qk {
 		drawPathv(_backend->getRRectPath(rect,radius).path, paint);
 	}
 
-	//constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
-	constexpr float aa_sdf_range[3] = {1,0,0.5};
-	constexpr float aa_sdf_width = 20;
+	constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
+	constexpr float aa_sdf_width = 0.6;
+	// constexpr float aa_sdf_range[3] = {1,0,0}; // test
+	// constexpr float aa_sdf_width = 4; // test
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
 		if (path.vertex.length()) {
@@ -318,7 +309,7 @@ namespace qk {
 			_backend->_color.use(path.vertex.size(), *path.vertex);
 			//auto color4f = color.to_color4f_alpha(alpha);
 			glUniform4fv(_backend->_color.color, 1, color.val);
-			//glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
+			glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
 			//glDrawArrays(GL_LINES, 0, path.vertex.length());
 			if (antiAlias) {
 				auto &strip = _backend->getSDFStrokeTriangleStrip(path.path, _unitPixel*aa_sdf_width);
@@ -508,7 +499,7 @@ namespace qk {
 		glUniform1fv(_backend->_colorSdf.sdf_range, 3, range);
 		glUniform4fv(_backend->_colorSdf.color, 1, color.val);
 		glDrawArrays(mode, 0, vertex.length());
-		//glDrawArrays(GL_LINE_STRIP, 0, vertex.length());
+		// glDrawArrays(GL_LINE_STRIP, 0, vertex.length());
 	}
 
 	void GLCanvas::drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]) {

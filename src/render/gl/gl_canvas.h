@@ -85,7 +85,7 @@ namespace qk {
 		void drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint);
 		void setMatrixBuffer(const Mat& mat); // set view matrix
-		bool isStencilRefDefaultValue();
+		bool isStencilTest();
 	protected:
 		void setRootMatrixBuffer(const Mat4& root); // set root matrix
 		float  _surfaceScalef1, _transfromScale;

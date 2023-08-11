@@ -205,6 +205,9 @@ namespace qk {
 
 		/**
 		 * Default to use Cartesian coordinate system
+		 * 
+		 * Returns zero when the previous is on the same side and on the same line as the next
+		 * 
 		 * @method normal() Default clockwise direction inward, screen coordinates outward
 		 */
 		Vec2  normalline(const Vec2 *prev, const Vec2 *next) const;

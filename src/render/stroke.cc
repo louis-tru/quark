@@ -125,7 +125,6 @@ namespace qk {
 				if (before) {
 					before(close, size, subpath, ctx);
 				}
-
 				add(close ? pts+size-1: NULL, *pts, pts+1, 0, ctx); pts++;
 
 				for (int i = 1, l = size-1; i < l; i++, pts++) {
@@ -174,6 +173,10 @@ namespace qk {
 	 * @method getSDFStrokeTriangleStrip() returns sdf stroke triangle vertices
 	 * @return {Array<Vec3>} points { x, y, sdf value renge 0.5 to -0.5 }[]
 	*/
+#if 1
+	// using offset vertex normals mode
+	// TODO: When the included angle is extremely small, the normal will be shifted too much, 
+	//       which will cause the image to appear glitchy
 	Array<Vec3> Path::getSDFStrokeTriangleStrip(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
@@ -181,21 +184,22 @@ namespace qk {
 		struct Ctx { Array<Vec3> *out; Vec3 *ptr; float width; bool fixStrip; } ctx = { &out,0,width,0 };
 
 		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
-			auto nline = from.normalline(prev, next); // normal line
+			auto normals = from.normalline(prev, next); // normal line
 			auto _ = (Ctx*)ctx;
 
-			if (nline.is_zero()) {
+			if (prev == NULL || next == NULL) { // prev == null or next == null
+				normals *= _->width;
+			} else if (normals.is_zero()) {
+				// Returns zero when the previous is on the same side and on the same line as the next
 				auto fromPrev = from - *prev;
-				nline = fromPrev.rotate90z().normalized() * _->width;
-			} else if (prev) {
-				auto angleLen = nline.angleTo(*prev - from);
-				auto len = _->width / sinf(angleLen);
-				nline *= len;
+				normals = fromPrev.rotate90z().normalized() * _->width;
 			} else {
-				nline *= _->width;
+				auto angleLen = normals.angleTo(*prev - from);
+				auto len = _->width / sinf(angleLen);
+				normals *= len;
 			}
-			*(_->ptr++) = Vec3(from + nline, -0.5);
-			*(_->ptr++) = Vec3(from - nline, 0.5);
+			*(_->ptr++) = Vec3(from + normals, -0.5);
+			*(_->ptr++) = Vec3(from - normals, 0.5);
 		},
 		[](bool close, int size, int subpath, void *ctx) {
 			auto _ = static_cast<Ctx*>(ctx);
@@ -226,6 +230,58 @@ namespace qk {
 
 		Qk_ReturnLocal(out);
 	}
+#else
+	// use line segment stroke mode, experimental method
+	Array<Vec3> Path::getSDFStrokeTriangleStrip(float width, float epsilon) const {
+		Path tmp;
+		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
+		Array<Vec3> out;
+		struct Ctx { Array<Vec3> *out; Vec3 *ptr; float width; bool fixStrip; } ctx = { &out,0,width,0 };
+
+		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
+			auto _ = (Ctx*)ctx;
+			if (prev) {
+				auto normals = (from - (*prev)).rotate90z().normalized() * _->width;
+				*(_->ptr++) = Vec3(from + normals, -0.5);
+				*(_->ptr++) = Vec3(from - normals, 0.5);
+			}
+			if (next) {
+				auto normals = ((*next) - from).rotate90z().normalized() * _->width;
+				*(_->ptr++) = Vec3(from + normals, -0.5);
+				*(_->ptr++) = Vec3(from - normals, 0.5);
+			}
+		},
+		[](bool close, int size, int subpath, void *ctx) {
+			auto _ = static_cast<Ctx*>(ctx);
+			auto len = _->out->length();
+			size = (size << 2) - 4;
+			if (close)
+				size += 6;
+			if (subpath) {
+				// fix multiple subpath triangle strip error, step 0
+				len += 2;
+			}
+			_->out->extend(len + size); // alloc memory space
+			_->ptr = _->out->val() + len;
+		},
+		[](bool close, int size, int subpath, void *ctx) {
+			auto _ = static_cast<Ctx*>(ctx);
+			auto a = _->ptr - ((size << 2) - 4);
+			if (close) {
+				a -= 4;
+				*(_->ptr++) = a[0];
+				*(_->ptr++) = a[1];
+			}
+			if (subpath) {
+				// fix multiple subpath triangle strip error, step 1
+				a[-2] = a[-3]; // copy pevious
+				a[-1] = a[0]; // copy next
+			}
+		}, false, &ctx);
+
+		Qk_ReturnLocal(out);
+	}
+#endif
 
 #if !Qk_USE_FT_STROKE
 
@@ -260,45 +316,48 @@ namespace qk {
 			auto width = _->width;
 
 			if (prev == NULL || next == NULL) { // prev == null or next == null
-				auto nline = from.normalline(prev, next) * width; // normal line
+				auto normals = from.normalline(prev, next) * width; // normal line
 				switch (_->cap) {
 					case Path::Cap::kButt_Cap: // no stroke extension
-						Qk_addTo(from + nline, from - nline);
+						Qk_addTo(from + normals, from - normals);
 						return;
 					case Path::Cap::kRound_Cap: { //adds circle
-						float angle = nline.angle();
+						float angle = normals.angle();
 						if (prev) {
 							left.arcTo({from-width,width*2}, -angle, -Qk_PI, false);
-							right.lineTo(from - nline);
+							right.lineTo(from - normals);
 						} else {
-							left.lineTo(from + nline);
+							left.lineTo(from + normals);
 							right.arcTo({from-width,width*2}, -angle, Qk_PI, false);
 						}
 						return;
 					}
 					default: {// adds square
-						from += prev? nline.rotate270z(): nline.rotate90z();
-						Qk_addTo(from + nline, from - nline);
+						from += prev? normals.rotate270z(): normals.rotate90z();
+						Qk_addTo(from + normals, from - normals);
 						return;
 					}
 				}
 			}
 
+			// Calculate normals
 			Vec2 toFrom = *next - from;
 			Vec2 fromPrev = from - *prev;
 			Vec2 toNext90 = toFrom.rotate90z().normalized();
 			Vec2 fromPrev90 = fromPrev.rotate90z().normalized();
-			Vec2 nline = (toNext90 + fromPrev90).normalized(); // normal line
+			Vec2 normals = (toNext90 + fromPrev90).normalized(); // normal line
+			// Calculate normals end
 
-			if (nline.is_zero()) {
-				nline = fromPrev90 * width;
-				Qk_addTo(from + nline, from - nline);
-				left.lineTo(from - nline);
-				right.lineTo(from + nline);
+			// Returns zero when the previous is on the same side and on the same line as the next
+			if (normals.is_zero()) {
+				normals = fromPrev90 * width;
+				Qk_addTo(from + normals, from - normals);
+				left.lineTo(from - normals);
+				right.lineTo(from + normals);
 				return;
 			}
 
-			float angle    = nline.angle();
+			float angle    = normals.angle();
 			float angleLen = angle - Vec2(-fromPrev[0],-fromPrev[1]).angle();
 			float len = width / sinf(angleLen);
 
@@ -310,16 +369,16 @@ namespace qk {
 					if (angleLen > Qk_PI_2_1) { // outside
 						auto aLen = angleLen - Qk_PI_2_1;
 						if (aLen > 0.075f) { // > 0.075 radian
-							nline *= len;
+							normals *= len;
 							left .arcTo(from, width, Qk_PI_2-angle+aLen, -aLen*2, false);
-							right.lineTo(from - nline);
+							right.lineTo(from - normals);
 							return;
 						} // else goto kMiter_Join:
 					} else { // inside
 						auto aLen = Qk_PI_2_1 - angleLen;
 						if (aLen > 0.075f) { // > 0.075f radian
-							nline *= len;
-							left .lineTo(from + nline);
+							normals *= len;
+							left .lineTo(from + normals);
 							right.arcTo(from, width, Qk_PI-angle-aLen, aLen*2, false);
 							return;
 						} // else goto kMiter_Join:
@@ -329,32 +388,32 @@ namespace qk {
 					if (len > _->miterLimit) { // > miter limit or default 1024
 						auto lenL = len - _->miterLimit;
 						auto y = tanf(angleLen) * lenL;
-						auto a = nline.rotate90z() * y;
-						auto nLineL = nline * _->miterLimit;
-						nline *= len;
+						auto a = normals.rotate90z() * y;
+						auto normalsL = normals * _->miterLimit;
+						normals *= len;
 
 						if (angleLen > Qk_PI_2_1) {
-							Qk_addTo(from + nLineL - a, from - nline);
-							left.lineTo(from + nLineL + a);
+							Qk_addTo(from + normalsL - a, from - normals);
+							left.lineTo(from + normalsL + a);
 						} else {
-							Qk_addTo(from + nline, from - nLineL + a);
-							right.lineTo(from - nLineL - a);
+							Qk_addTo(from + normals, from - normalsL + a);
+							right.lineTo(from - normalsL - a);
 						}
 					} else {
-						nline *= len;
-						Qk_addTo(from + nline, from - nline);
+						normals *= len;
+						Qk_addTo(from + normals, from - normals);
 					}
 					return;
 				}
 				default: {// connects outside edges
 					auto a = fromPrev90 * width;
 					auto b = toNext90 * width;
-					nline *= len;
+					normals *= len;
 					if (angleLen > Qk_PI_2_1) {
-						Qk_addTo(from + a, from - nline);
+						Qk_addTo(from + a, from - normals);
 						left.lineTo(from + b);
 					} else {
-						Qk_addTo(from + nline, from - a);
+						Qk_addTo(from + normals, from - a);
 						right.lineTo(from - b);
 					}
 				}

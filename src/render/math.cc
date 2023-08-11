@@ -173,17 +173,20 @@ namespace qk {
 	}
 
 	Vec2 Vec2::normalized() const {
-		if (val[0] == 0) {
+		if (val[0] == 0.0f) {
+			if (val[1] == 0.0f) {
+				return {0.0f,0.0f}; // invalid value
+			}
 			return {
-				0.0, val[1] == 0.0 ? 0.0f: val[1] < 0.0f ? -1.0f: 1.0f
+				0.0f, val[1] < 0.0f ? -1.0f: 1.0f
 			};
-		} else if (val[1] == 0) {
+		} else if (val[1] == 0.0f) {
 			return {
-				val[0] < 0.0 ? -1.0f: 1.0f, 0.0f
+				val[0] < 0.0f ? -1.0f: 1.0f, 0.0f
 			};
 		}
-		const float len = sqrtf(val[0] * val[0] + val[1] * val[1]);
-		return {val[0] / len, val[1] / len};
+		float len = sqrtf(val[0] * val[0] + val[1] * val[1]);
+		return { val[0] / len, val[1] / len };
 	}
 
 	Vec2 Vec2::normalline(const Vec2 *prev, const Vec2 *next) const {
@@ -196,6 +199,7 @@ namespace qk {
 		Vec2 toNext   = Vec2(next->x() - x(), next->y() - y()).normalized().rotate90z();
 		Vec2 fromPrev = Vec2(x() - prev->x(), y() - prev->y()).normalized().rotate90z();
 
+		// Returns zero when the previous is on the same side and on the same line as the next
 		return (toNext + fromPrev).normalized();
 	}
 

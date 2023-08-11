@@ -284,11 +284,11 @@ namespace qk {
 				if (border->width[i] > 0) { // top
 					auto pv = &data.outline->top + i;
 					if (pv->vertex.length()) {
-						//_canvas->drawPathvColor(*pv, border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+						_canvas->drawPathvColor(*pv, border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 					} else { // stroke
 						stroke.color = border->color[i].to_color4f_alpha(_opacity);
 						stroke.width = border->width[i];
-						//_canvas->drawPath(pv->path, stroke);
+						_canvas->drawPath(pv->path, stroke);
 					}
 				}
 			}

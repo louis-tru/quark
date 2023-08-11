@@ -185,7 +185,7 @@ public:
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
 
 		if (!_IsDeviceMsaa) { // no device msaa
-			// glEnable(GL_DEPTH_TEST); // enable depth test
+			glEnable(GL_DEPTH_TEST); // enable depth test
 		}
 
 		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0 };

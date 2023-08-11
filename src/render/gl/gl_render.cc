@@ -386,13 +386,17 @@ namespace qk {
 
 		glUseProgram(0);
 
+		glEnable(GL_BLEND); // enable color blend
 		// enable and disable test function
 		glClearStencil(127);
 		glStencilMask(0xFFFFFFFF);
 		glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
 		glDisable(GL_STENCIL_TEST); // disable stencil test
+		// set depth test
 		glDisable(GL_DEPTH_TEST); // disable depth test
-		glEnable(GL_BLEND); // enable color blend
+		// glEnable(GL_DEPTH_TEST); // enable depth test
+		glDepthFunc(GL_GREATER);
+		glClearDepth(0.0f); // set depth clear value
 	}
 
 	GLRender::~GLRender() {
@@ -439,7 +443,7 @@ namespace qk {
 		if (!_IsDeviceMsaa) { // no device msaa
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
 			setDepthBuffer(w, h, _opts.msaaSampleCnt);
-			//glEnable(GL_DEPTH_TEST); // enable depth test
+			glEnable(GL_DEPTH_TEST); // enable depth test
 		}
 
 		setStencilBuffer(w, h, _opts.msaaSampleCnt);

@@ -29,9 +29,9 @@ public:
 		paint.color = Color4f(0, 1, 1);
 		//_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 
-		paint.color = Color4f(1, 0, 0);
+		paint.color = Color4f(1, 0, 0, 0.5);
 		//auto circle = Path::MakeCircle(size/2, 105, false);
-		auto circle = Path::MakeArc({size/2-105,210}, Qk_PI_2_1 / 2, -Qk_PI - Qk_PI_2_1, true);
+		auto circle = Path::MakeArc({size/2-105,210}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
 		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
 		circle.close();
 
@@ -55,8 +55,8 @@ public:
 		//_canvas->drawPath(stroke, paint);
 		paint.style = Paint::kStroke_Style;
 		paint.width = 10;
-		paint.cap = Paint::kRound_Cap;
-		paint.join = Paint::kRound_Join;
+		//paint.cap = Paint::kRound_Cap;
+		//paint.join = Paint::kRound_Join;
 		_canvas->drawPath(z, paint);
 
 		paint.style = Paint::kFill_Style;
@@ -64,7 +64,7 @@ public:
 		//paint.width = 1;
 		//paint.style = Paint::kStroke_Style;
 		//_canvas->drawPath(dash, paint);
-		_canvas->translate(230, 0);
+		_canvas->translate(70, 0);
 		_canvas->drawPath(circle, paint);
 
 		_canvas->restore();
