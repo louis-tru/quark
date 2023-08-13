@@ -29,7 +29,7 @@ public:
 		paint.color = Color4f(0, 1, 1);
 		//_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 
-		paint.color = Color4f(1, 0, 0, 0.5);
+		paint.color = Color4f(1, 0, 0, 0.3);
 		//auto circle = Path::MakeCircle(size/2, 105, false);
 		auto circle = Path::MakeArc({size/2-105,210}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
 		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
@@ -65,7 +65,7 @@ public:
 		//paint.style = Paint::kStroke_Style;
 		//_canvas->drawPath(dash, paint);
 		_canvas->translate(70, 0);
-		_canvas->drawPath(circle, paint);
+		//_canvas->drawPath(circle, paint);
 
 		_canvas->restore();
 	}

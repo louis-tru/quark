@@ -121,17 +121,15 @@ namespace qk {
 		}
 
 		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		s->shader = program;
 	}
 
 	void GLSLShader::use(GLsizeiptr size, const GLvoid* data) {
-		glUseProgram(shader);
-		glBindVertexArray(vao);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
-		//glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
+		glBindVertexArray(vao);
+		glUseProgram(shader);
 	}
 
 }

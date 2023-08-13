@@ -101,7 +101,7 @@ namespace qk {
 			count--;
 		}
 
-		if (!isStencilTest()) {
+		if (!isStencilTest()) { // not stencil test
 			glDisable(GL_STENCIL_TEST); // disable stencil test
 		}
 		else if (clipOp != -1) {
@@ -229,6 +229,7 @@ namespace qk {
 		glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
 		_backend->_clip.use(clip->vertex.size(), *clip->vertex);
 		glDrawArrays(GL_TRIANGLES, 0, clip->vertex.length() >> 1); // draw test
+		// draw anti alias alpha..
 		glStencilFunc(GL_LEQUAL, _stencil_ref, 0xFFFFFFFF); // Equality passes the test
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 
@@ -237,11 +238,7 @@ namespace qk {
 
 	void GLCanvas::clearColor(const Color4f& color) {
 		glClearColor(color.r(), color.g(), color.b(), color.a());
-		GLbitfield mask = GL_COLOR_BUFFER_BIT;
-		if (!_backend->_IsDeviceMsaa) { // enable depth test shader anti alias
-			mask |= GL_DEPTH_BUFFER_BIT;
-		}
-		glClear(mask);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void GLCanvas::drawColor(const Color4f &color, BlendMode mode) {

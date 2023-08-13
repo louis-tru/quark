@@ -5,4 +5,5 @@ void main() {
 
 #frag
 void main() {
+	// only stencil test
 }

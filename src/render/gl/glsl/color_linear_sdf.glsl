@@ -1,6 +1,6 @@
 #vert
-uniform   vec4      range;/*start/end range for rect*/
 in        float     sdf_in; // signed distance field
+uniform   vec4      range;/*start/end range for rect*/
 out       float     sdf_f;
 out       float     indexed_f;
 

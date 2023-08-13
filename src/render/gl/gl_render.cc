@@ -393,9 +393,9 @@ namespace qk {
 		glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 		// set depth test
-		glDisable(GL_DEPTH_TEST); // disable depth test
-		// glEnable(GL_DEPTH_TEST); // enable depth test
-		glDepthFunc(GL_GREATER);
+		//glDisable(GL_DEPTH_TEST); // disable depth test
+		glEnable(GL_DEPTH_TEST); // enable depth test
+		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
 		glClearDepth(0.0f); // set depth clear value
 	}
 
@@ -442,10 +442,8 @@ namespace qk {
 
 		if (!_IsDeviceMsaa) { // no device msaa
 			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-			setDepthBuffer(w, h, _opts.msaaSampleCnt);
-			glEnable(GL_DEPTH_TEST); // enable depth test
 		}
-
+		setDepthBuffer(w, h, _opts.msaaSampleCnt);
 		setStencilBuffer(w, h, _opts.msaaSampleCnt);
 
 		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0 };

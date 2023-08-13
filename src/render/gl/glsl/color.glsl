@@ -5,6 +5,7 @@ void main() {
 
 #frag
 uniform lowp vec4 color;
+
 void main() {
 	fragColor = color;
 }
