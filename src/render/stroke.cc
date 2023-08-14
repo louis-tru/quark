@@ -177,11 +177,11 @@ namespace qk {
 	// using offset vertex normals mode
 	// TODO: When the included angle is extremely small, the normal will be shifted too much, 
 	//       which will cause the image to appear glitchy
-	Array<Vec3> Path::getSDFStrokeTriangleStrip(float width, float epsilon) const {
+	VertexData Path::getSDFStrokeTriangleStrip(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
-		Array<Vec3> out;
-		struct Ctx { Array<Vec3> *out; Vec3 *ptr; float width; bool fixStrip; } ctx = { &out,0,width,0 };
+		VertexData out;
+		struct Ctx { Array<float> *out; Vec3 *ptr; float width; bool fixStrip; } ctx = { &out.vertex,0,width,0 };
 
 		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			auto normals = from.normalline(prev, next); // normal line
@@ -211,8 +211,8 @@ namespace qk {
 				// fix multiple subpath triangle strip error, step 0
 				len += 2;
 			}
-			_->out->extend(len + size); // alloc memory space
-			_->ptr = _->out->val() + len;
+			_->out->extend((len + size) * 3); // alloc memory space
+			_->ptr = reinterpret_cast<Vec3*>(_->out->val()) + len;
 		},
 		[](bool close, int size, int subpath, void *ctx) {
 			auto _ = static_cast<Ctx*>(ctx);
@@ -227,6 +227,11 @@ namespace qk {
 				*(_->ptr++) = a[1];
 			}
 		}, false, &ctx);
+
+		out.vao = 0;
+		out.vbo = 0;
+		out.items = 3;
+		out.count = out.vertex.length() / 3;
 
 		Qk_ReturnLocal(out);
 	}

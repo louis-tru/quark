@@ -41,17 +41,11 @@
 
 namespace qk {
 
-	class BackendDevice: public PostMessage {
-	public:
-		virtual uint32_t makeTexture(cPixel *src, uint32_t id) = 0;
-		virtual void deleteTextures(const uint32_t *IDs, uint32_t count) = 0;
-	};
-
 	/**
 	 * @class RenderBackend drawing device backend
 	 * @thread render
 	 */
-	class Qk_EXPORT RenderBackend: public BackendDevice {
+	class Qk_EXPORT RenderBackend: public PostMessage {
 	public:
 		struct Options {
 			ColorType   colorType;
@@ -77,28 +71,56 @@ namespace qk {
 		inline  Vec2    surfaceSize() { return _surface_size; }
 		inline  float   defaultScale() { return _default_scale; }
 		inline  Delegate* delegate() { return _delegate; }
+		virtual uint32_t makeTexture(cPixel *src, uint32_t id) = 0;
+		virtual void    deleteTextures(const uint32_t *ids, uint32_t count) = 0;
+		virtual void    makeVertexData(VertexData *data) = 0;
+		virtual void    deleteVertexData(const VertexData &data) = 0;
+		virtual void    copyVertexData(const VertexData &src, VertexData *dest) = 0;
 
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
 
 		/**
-		 * @dev get path triangles cache
-		*/
-		const Array<Vec2>& getPathTriangles(const Path &path);
-		/**
-		 * @dev get sdf stroke path triangle strip cache
-		*/
-		const Array<Vec3>& getSDFStrokeTriangleStrip(const Path &path, float width);
+		 * @dev get normalized path cache
+		 */
+		const Path& getNormalizedPath(const Path &path);
+
 		/**
 		 * @dev get stroke path cache
 		 */
 		const Path& getStrokePath(const Path &path,
-			float width, Path::Cap cap, Path::Join join, float miterLimit = 0);
+			float width, Path::Cap cap, Path::Join join, float miterLimit
+		);
 
 		/**
-		 * @dev get normalized path cache
-		 */
-		const Path& getNormalizedPath(const Path &path);
+		 * @dev get path triangles cache
+		*/
+		const VertexData& getPathTriangles(const Path &path);
+
+		/**
+		 * @dev get sdf stroke path triangle strip cache
+		*/
+		const VertexData& getSDFStrokeTriangleStrip(const Path &path, float width);
+
+		/**
+		 * @dev get radius rect path cache from hash code
+		*/
+		const RectPath* getRRectPathFromHash(uint64_t hash);
+
+		/**
+		 * @dev set radius rect path cache from hash code
+		*/
+		const RectPath& setRRectPathFromHash(uint64_t hash, RectPath&& rect);
+
+		/**
+		 * @dev get radius rect outline path cache from hash code
+		*/
+		const RectOutlinePath* getRRectOutlinePathFromHash(uint64_t hash);
+
+		/**
+		 * @dev set rect outline path cache from hash code
+		*/
+		const RectOutlinePath& setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline);
 
 		/**
 		 * @dev get rect path cache
@@ -111,16 +133,6 @@ namespace qk {
 		 * @param radius {BorderRadius} border radius
 		*/
 		const RectPath& getRRectPath(const Rect &rect, const Path::BorderRadius &radius);
-
-		/**
-		 * @dev get radius rect path cache from hash code
-		*/
-		const RectPath* getRRectPathFromHash(uint64_t hash);
-
-		/**
-		 * @dev set radius rect path cache from hash code
-		*/
-		const RectPath& setRRectPathFromHash(uint64_t hash, RectPath&& rect);
 
 		/**
 		 * @dev get radius rect path cache and limit radius size
@@ -146,9 +158,9 @@ namespace qk {
 		Delegate     *_delegate;
 		Vec2          _surface_size; // recommend default surface scale
 		float         _default_scale;
-		Dict<uint64_t, Array<Vec2>> _PathTrianglesCache; // path hash => triangles
-		Dict<uint64_t, Array<Vec3>> _SDFStrokeTriangleStripCache; // path hash => aa triangles strip
 		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
+		Dict<uint64_t, VertexData> _PathTrianglesCache; // path hash => triangles
+		Dict<uint64_t, VertexData> _SDFStrokeTriangleStripCache; // path hash => aa triangles strip
 		Dict<uint64_t, RectPath> _RectPathCache; // rect hash => rect path
 		Dict<uint64_t, RectOutlinePath> _RectOutlinePathCache; // rect hash => rect outline path
 	};

@@ -505,6 +505,53 @@ namespace qk {
 		glDeleteTextures(count, IDs);
 	}
 
+	static void setVertexAttribPointer(VertexData *data) {
+		glBindVertexArray(data->vao);
+		if (data->items == 2) {
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, (const GLvoid*)0); // xy
+			glEnableVertexAttribArray(0);
+		} else { // sdf vertex
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*3, (const GLvoid*)0); // xy
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float)*3, (const GLvoid*)(sizeof(float)*2)); // sdf
+			glEnableVertexAttribArray(1);
+		}
+		data->vertex.clear(); // clear cpu memory data
+		glBindVertexArray(0);
+	}
+
+	void GLRender::makeVertexData(VertexData *data) {
+		if (!data->vao && data->vertex.length()) {
+			glGenVertexArrays(1, &data->vao);
+			glGenBuffers(1, &data->vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, data->vbo);
+			glBufferData(GL_ARRAY_BUFFER, data->vertex.size(), *data->vertex, GL_STATIC_DRAW);
+			setVertexAttribPointer(data);
+		}
+	}
+
+	void GLRender::deleteVertexData(const VertexData &data) {
+		if (data.vao)
+			glDeleteVertexArrays(1, &data.vao);
+		if (data.vbo)
+			glDeleteBuffers(1, &data.vbo);
+	}
+
+	void GLRender::copyVertexData(const VertexData &src, VertexData *dest) {
+		if (src.vao && src.count) {
+			dest->count = src.count;
+			dest->items = src.items;
+			auto size = src.count * src.items * sizeof(float);
+			glGenVertexArrays(1, &dest->vao);
+			glGenBuffers(1, &dest->vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, dest->vbo);
+			glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
+			glBindBuffer(GL_COPY_READ_BUFFER, src.vbo);
+			glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, 0, size);
+			setVertexAttribPointer(dest);
+		}
+	}
+
 	void GLRender::setBlendMode(BlendMode blendMode) {
 		if (_blendMode != blendMode) {
 			gl_set_blend_mode(blendMode);

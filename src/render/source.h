@@ -39,7 +39,7 @@
 
 namespace qk {
 	class Application;
-	class BackendDevice;
+	class RenderBackend;
 
 	/**
 	* @class ImageSource
@@ -94,7 +94,7 @@ namespace qk {
 		 * @param device mark as texture
 		 * @thread rendering thread
 		*/
-		bool reload_unsafe(Array<Pixel>&& pixels, BackendDevice *device = nullptr);
+		bool reload_unsafe(Array<Pixel>&& pixels, RenderBackend *render = nullptr);
 
 		/**
 		 *
@@ -105,7 +105,7 @@ namespace qk {
 		 * @method copy_as_texture_unsafe()
 		 * @thread rendering thread
 		 */
-		Sp<ImageSource> copy_as_texture_unsafe(BackendDevice *device) const;
+		Sp<ImageSource> copy_as_texture_unsafe(RenderBackend *render) const;
 
 		/**
 		 *
@@ -116,7 +116,7 @@ namespace qk {
 		 * @method mark_as_texture_unsafe()
 		 * @thread rendering thread
 		 */
-		bool mark_as_texture_unsafe(BackendDevice *device);
+		bool mark_as_texture_unsafe(RenderBackend *render);
 
 		/**
 		 * @method load() async load source and decode
@@ -161,7 +161,7 @@ namespace qk {
 		/**
 		 * @method is_texture() Whether to mark as texture
 		*/
-		inline bool is_texture() const { return _device; }
+		inline bool is_texture() const { return _render; }
 
 	private:
 		void _Decode(Buffer& data);
@@ -169,7 +169,7 @@ namespace qk {
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
 		uint32_t     _load_id;
-		BackendDevice *_device; // weak ref
+		RenderBackend *_render; // weak ref
 		friend class ImageSourcePool;
 	};
 

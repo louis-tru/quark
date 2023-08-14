@@ -42,7 +42,7 @@ namespace qk {
 
 	ImageSource::ImageSource(cString& uri): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _load_id(0), _device(nullptr)
+		, _load_id(0), _render(nullptr)
 	{
 		if (!uri.isEmpty())
 			_uri = fs_reader()->format(uri);
@@ -51,7 +51,7 @@ namespace qk {
 	ImageSource::ImageSource(Array<Pixel>&& pixels): Qk_Init_Event(State)
 		, _uri(String::format("mem://%d", random()))
 		, _state(kSTATE_NONE)
-		, _load_id(0), _device(nullptr)
+		, _load_id(0), _render(nullptr)
 	{
 		reload_unsafe(std::move(pixels));
 	}
@@ -60,7 +60,7 @@ namespace qk {
 		_Unload();
 	}
 
-	bool ImageSource::reload_unsafe(Array<Pixel>&& pixels, BackendDevice *device) {
+	bool ImageSource::reload_unsafe(Array<Pixel>&& pixels, RenderBackend *render) {
 		if (!pixels.length())
 			return false;
 		if (_state & kSTATE_LOADING)
@@ -68,24 +68,24 @@ namespace qk {
 
 		Qk_ASSERT(!_pixels.length() || _info.bytes() == _pixels[0].body().length(), "old pixel bytes size no match");
 		
-		if (device) {
-			if (_device)
-				Qk_STRICT_ASSERT(_device == device, "backend render device no match");
+		if (render) {
+			if (_render)
+				Qk_STRICT_ASSERT(_render == render, "backend render device no match");
 		} else {
-			device = _device;
+			render = _render;
 		}
 
-		if (device) { // mark as texture
+		if (render) { // mark as texture
 			uint32_t i = 0;
 			uint32_t old_len = _pixels.length();
 
 			static auto bollback = [](
-				BackendDevice *device,
+				RenderBackend *render,
 				int idx, Array<Pixel> &old, Array<Pixel> &pixels
 			) {
 				for (int j = 0; j < idx; j++) {
 					if (old[j]._texture == 0 && pixels[j]._texture != 0) {
-						device->deleteTextures(&pixels[j]._texture, 1); // RollBACK
+						render->deleteTextures(&pixels[j]._texture, 1); // RollBACK
 						pixels[j]._texture = 0;
 					}
 				}
@@ -93,9 +93,9 @@ namespace qk {
 
 			while (i < pixels.length()) {
 				auto &pix = pixels[i];
-				auto id = device->makeTexture(&pix, i < old_len ? _pixels[i]._texture: 0);
+				auto id = render->makeTexture(&pix, i < old_len ? _pixels[i]._texture: 0);
 				if (id == 0) {
-					bollback(device, i, _pixels, pixels);
+					bollback(render, i, _pixels, pixels);
 					return false;
 				}
 				pix = PixelInfo(pix); // clear memory pixel data
@@ -103,9 +103,9 @@ namespace qk {
 				i++;
 			}
 
-			if (_device && i < old_len) {
+			if (_render && i < old_len) {
 				do
-					_device->deleteTextures(&_pixels[i]._texture, 1);
+					_render->deleteTextures(&_pixels[i]._texture, 1);
 				while(++i < old_len);
 			}
 		}
@@ -113,7 +113,7 @@ namespace qk {
 		_info = pixels[0];
 		_state = kSTATE_LOAD_COMPLETE;
 		_pixels = std::move(pixels);
-		_device = device;
+		_render = render;
 
 		return true;
 	}
@@ -124,12 +124,12 @@ namespace qk {
 		*
 	 * @method copy_as_texture_unsafe()
 	 */
-	Sp<ImageSource> ImageSource::copy_as_texture_unsafe(BackendDevice *device) const {
-		if (!device && _device)
+	Sp<ImageSource> ImageSource::copy_as_texture_unsafe(RenderBackend *render) const {
+		if (!render && _render)
 			return nullptr;
 		auto src = new ImageSource();
 		src->_uri = _uri;
-		src->reload_unsafe(Array<Pixel>(_pixels), device);
+		src->reload_unsafe(Array<Pixel>(_pixels), render);
 		return src;
 	}
 
@@ -139,12 +139,12 @@ namespace qk {
 		*
 	 * @method mark_as_texture_unsafe()
 	 */
-	bool ImageSource::mark_as_texture_unsafe(BackendDevice *device) {
-		if (_device)
+	bool ImageSource::mark_as_texture_unsafe(RenderBackend *render) {
+		if (_render)
 			return true;
-		if (!device)
+		if (!render)
 			return false;
-		return reload_unsafe(Array<Pixel>(_pixels), device);
+		return reload_unsafe(Array<Pixel>(_pixels), render);
 	}
 
 	/**
@@ -223,16 +223,16 @@ namespace qk {
 			fs_reader()->abort(_load_id); // cancel load and ready
 			_load_id = 0;
 		}
-		if (_device) {
+		if (_render) {
 			Array<uint32_t> ids;
 			for (auto &pix: _pixels) {
 				ids.push(pix.texture());
 			}
-			auto device = _device;
-			_device = nullptr;
+			auto render = _render;
+			_render = nullptr;
 
-			device->post_message(Cb([device,ids](Cb::Data& data) {
-				device->deleteTextures(ids.val(), ids.length());
+			render->post_message(Cb([render,ids](Cb::Data& data) {
+				render->deleteTextures(ids.val(), ids.length());
 			}));
 		}
 		_pixels.clear();

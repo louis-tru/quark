@@ -39,6 +39,13 @@
 
 namespace qk {
 
+	// triangle vertices or gpu vertex buffer
+	struct VertexData {
+		Array<float> vertex; // triangle vertex {x,y,sdf?}
+		uint32_t     count,items; // vertex count, vertex items = 2 or 3
+		uint32_t     vao,vbo; // gpu data buffer
+	};
+
 	class Qk_EXPORT Path: public Object {
 	public:
 		enum PathVerb: uint8_t {
@@ -93,15 +100,15 @@ namespace qk {
 
 		/**
 		 * @method getTriangles() Convert to fixed size polygon vertices
-		 * @return {Array<Vec2>} points { x, y }[]
+		 * @return {Array<Vec2>} vertex points { x, y }[]
 		*/
-		Array<Vec2> getTriangles(float epsilon = 1.0) const;
+		VertexData getTriangles(float epsilon = 1.0) const;
 
 		/**
 		 * @method getSDFStrokeTriangleStrip() returns sdf stroke triangle vertices
-		 * @return {Array<Vec3>} points { x, y, sdf value renge 0.5 to -0.5 }[]
+		 * @return {Array<Vec3>} vertex points { x, y, sdf value renge 0.5 to -0.5 }[]
 		*/
-		Array<Vec3> getSDFStrokeTriangleStrip(float width, float epsilon = 1.0) const;
+		VertexData getSDFStrokeTriangleStrip(float width, float epsilon = 1.0) const;
 
 		/**
 		 * @method dashPath() returns the dash path
@@ -128,15 +135,13 @@ namespace qk {
 		bool _IsNormalized;
 	};
 
-	// Combination of paths and triangle vertices
-	struct Pathv {
-		Path        path;
-		Array<Vec2> vertex; // triangle vertex {x,y}[2]
+	// combination of paths and 
+	struct Pathv: VertexData {
+		Path path;
 	};
 
 	// Optimizing rect vertex generation algorithm
-	struct Qk_EXPORT RectPath {
-		Pathv  path;
+	struct Qk_EXPORT RectPath: Pathv {
 		Rect   rect;
 		static RectPath MakeRect(const Rect& rect);
 		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &radius);

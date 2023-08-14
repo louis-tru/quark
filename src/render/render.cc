@@ -60,12 +60,13 @@ namespace qk {
 	void RenderBackend::activate(bool isActive) {
 	}
 
-	const Array<Vec2>& RenderBackend::getPathTriangles(const Path &path) {
+	const Path& RenderBackend::getNormalizedPath(const Path &path) {
+		if (path.isNormalized()) return path;
 		auto hash = path.hashCode();
-		const Array<Vec2> *out;
-		if (_PathTrianglesCache.get(hash, out)) return *out;
-		if (_PathTrianglesCache.length() >= 1024) _PathTrianglesCache.clear();
-		return _PathTrianglesCache.set(hash, path.getTriangles(1));
+		const Path *out;
+		if (_NormalizedPathCache.get(hash, out)) return *out;
+		if (_NormalizedPathCache.length() >= 1024) _NormalizedPathCache.clear();
+		return _NormalizedPathCache.set(hash, path.normalizedPath(1));
 	}
 
 	const Path& RenderBackend::getStrokePath(
@@ -81,64 +82,34 @@ namespace qk {
 		return _StrokePathCache.set(hash, stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath(1));
 	}
 
-	const Array<Vec3>& RenderBackend::getSDFStrokeTriangleStrip(const Path &path, float width) {
+	const VertexData& RenderBackend::getPathTriangles(const Path &path) {
+		auto hash = path.hashCode();
+		const VertexData *out;
+		if (_PathTrianglesCache.get(hash, out)) return *out;
+		if (_PathTrianglesCache.length() >= 1024) {
+			for (auto &i: _PathTrianglesCache)
+				deleteVertexData(i.value);
+			_PathTrianglesCache.clear();
+		}
+		auto data = path.getTriangles(1);
+		makeVertexData(&data);
+		return _PathTrianglesCache.set(hash, std::move(data));
+	}
+
+	const VertexData& RenderBackend::getSDFStrokeTriangleStrip(const Path &path, float width) {
 		auto hash = path.hashCode();
 		hash += (hash << 5) + *(int32_t*)&width;
 		//Qk_DEBUG("getSDFStrokeTriangleStrip, %lu", hash);
-		const Array<Vec3> *out;
+		const VertexData *out;
 		if (_SDFStrokeTriangleStripCache.get(hash, out)) return *out;
-		if (_SDFStrokeTriangleStripCache.length() >= 1024) _SDFStrokeTriangleStripCache.clear();
-		return _SDFStrokeTriangleStripCache.set(hash, path.getSDFStrokeTriangleStrip(width, 1));
-	}
-
-	const Path& RenderBackend::getNormalizedPath(const Path &path) {
-		if (path.isNormalized()) return path;
-		auto hash = path.hashCode();
-		const Path *out;
-		if (_NormalizedPathCache.get(hash, out)) return *out;
-		if (_NormalizedPathCache.length() >= 1024) _NormalizedPathCache.clear();
-		return _NormalizedPathCache.set(hash, path.normalizedPath(1));
-	}
-
-	const RectPath& RenderBackend::getRectPath(const Rect &rect) {
-		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
-		const RectPath *out;
-		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
-		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
-		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
-	}
-
-	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const Path::BorderRadius &radius) {
-		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
-		hash.updatefv4(radius.leftTop.val);
-		hash.updatefv4(radius.rightBottom.val);
-		const RectPath *out;
-		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
-		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
-		return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, radius));
-	}
-
-	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const float radius[4]) {
-		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
-		hash.updatefv4(radius);
-		const RectPath *out;
-		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
-		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
-
-		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
-		{
-			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRect(rect));
-		} else {
-			float xy_0_5 = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
-			Path::BorderRadius Br{
-				Qk_MIN(radius[0], xy_0_5), Qk_MIN(radius[1], xy_0_5),
-				Qk_MIN(radius[2], xy_0_5), Qk_MIN(radius[3], xy_0_5),
-			};
-			return _RectPathCache.set(hash.hashCode(), RectPath::MakeRRect(rect, Br));
+		if (_SDFStrokeTriangleStripCache.length() >= 1024) {
+			for (auto &i: _SDFStrokeTriangleStripCache)
+				deleteVertexData(i.value);
+			_SDFStrokeTriangleStripCache.clear();
 		}
+		auto data = path.getSDFStrokeTriangleStrip(width, 1);
+		makeVertexData(&data);
+		return _SDFStrokeTriangleStripCache.set(hash, std::move(data));
 	}
 
 	const RectPath* RenderBackend::getRRectPathFromHash(uint64_t hash) {
@@ -148,8 +119,74 @@ namespace qk {
 	}
 
 	const RectPath& RenderBackend::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
-		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
+		if (_RectPathCache.length() >= 1024) {
+			for (auto &i: _RectPathCache)
+				deleteVertexData(i.value);
+			_RectPathCache.clear();
+		}
+		makeVertexData(&rect);
 		return _RectPathCache.set(hash, std::move(rect));
+	}
+
+	const RectOutlinePath* RenderBackend::getRRectOutlinePathFromHash(uint64_t hash) {
+		const RectOutlinePath *out = nullptr;
+		_RectOutlinePathCache.get(hash, out);
+		return out;
+	}
+
+	const RectOutlinePath& RenderBackend::setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline) {
+		if (_RectOutlinePathCache.length() >= 1024) {
+			for (auto &i: _RectOutlinePathCache) {
+				deleteVertexData(i.value.top);
+				deleteVertexData(i.value.right);
+				deleteVertexData(i.value.bottom);
+				deleteVertexData(i.value.left);
+			}
+			_RectPathCache.clear();
+		}
+		makeVertexData(&outline.top);
+		makeVertexData(&outline.right);
+		makeVertexData(&outline.bottom);
+		makeVertexData(&outline.left);
+		return _RectOutlinePathCache.set(hash, std::move(outline));
+	}
+
+	const RectPath& RenderBackend::getRectPath(const Rect &rect) {
+		Hash5381 hash;
+		hash.updatefv4(rect.origin.val);
+		const RectPath *out;
+		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
+		return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
+	}
+
+	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const Path::BorderRadius &radius) {
+		Hash5381 hash;
+		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(radius.leftTop.val);
+		hash.updatefv4(radius.rightBottom.val);
+		const RectPath *out;
+		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
+		return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, radius));
+	}
+
+	const RectPath& RenderBackend::getRRectPath(const Rect &rect, const float radius[4]) {
+		Hash5381 hash;
+		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(radius);
+		const RectPath *out;
+		if (_RectPathCache.get(hash.hashCode(), out)) return *out;
+
+		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
+		{
+			return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
+		} else {
+			float xy_0_5 = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
+			Path::BorderRadius Br{
+				Qk_MIN(radius[0], xy_0_5), Qk_MIN(radius[1], xy_0_5),
+				Qk_MIN(radius[2], xy_0_5), Qk_MIN(radius[3], xy_0_5),
+			};
+			return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, Br));
+		}
 	}
 
 	const RectOutlinePath& RenderBackend::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]) {
@@ -159,18 +196,17 @@ namespace qk {
 		hash.updatefv4(radius);
 		const RectOutlinePath *out;
 		if (_RectOutlinePathCache.get(hash.hashCode(), out)) return *out;
-		if (_RectOutlinePathCache.length() >= 1024) _RectOutlinePathCache.clear();
 
 		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
 		{
-			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, border));
+				return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, border));
 		} else {
 			float xy_0_5 = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 			Path::BorderRadius Br{
 				{Qk_MIN(radius[0],xy_0_5)}, {Qk_MIN(radius[1],xy_0_5)},
 				{Qk_MIN(radius[2],xy_0_5)}, {Qk_MIN(radius[3],xy_0_5)},
 			};
-			return _RectOutlinePathCache.set(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, border, Br));
+			return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, border, Br));
 		}
 	}
 

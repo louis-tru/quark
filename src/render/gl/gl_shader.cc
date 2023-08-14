@@ -30,6 +30,7 @@
 
 #include "./gl_shader.h"
 #include "./glsl_shaders.h"
+#include "../path.h"
 
 namespace qk {
 
@@ -129,6 +130,11 @@ namespace qk {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
 		glBindVertexArray(vao);
+		glUseProgram(shader);
+	}
+
+	void GLSLShader::use(const VertexData& data) {
+		glBindVertexArray(data.vao);
 		glUseProgram(shader);
 	}
 

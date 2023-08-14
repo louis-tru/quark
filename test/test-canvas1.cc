@@ -65,7 +65,7 @@ public:
 		//paint.style = Paint::kStroke_Style;
 		//_canvas->drawPath(dash, paint);
 		_canvas->translate(70, 0);
-		//_canvas->drawPath(circle, paint);
+		_canvas->drawPath(circle, paint);
 
 		_canvas->restore();
 	}

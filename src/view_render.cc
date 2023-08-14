@@ -88,7 +88,7 @@ namespace qk {
 					if (*reinterpret_cast<const uint64_t*>(radius) == 0 &&
 							*reinterpret_cast<const uint64_t*>(radius+2) == 0
 					) {
-						_render->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
+						out.inside = &_render->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 					} else {
 						float lt = Qk_MIN(radius[0],xy_0_5), rt = Qk_MIN(radius[1],xy_0_5);
 						float rb = Qk_MIN(radius[2],xy_0_5), lb = Qk_MIN(radius[3],xy_0_5);
@@ -118,7 +118,7 @@ namespace qk {
 
 		void drawBoxColor(Box *box, BoxData &data) {
 			getInsideRectPath(box, data);
-			_canvas->drawPathvColor(data.inside->path,
+			_canvas->drawPathvColor(*data.inside,
 				box->_background_color.to_color4f_alpha(_opacity), kSrcOver_BlendMode
 			);
 			// Paint paint;
@@ -198,7 +198,7 @@ namespace qk {
 			paint.filterMode = Paint::kLinear_FilterMode;
 			paint.mipmapMode = Paint::kNearest_MipmapMode;
 
-			_canvas->drawPathv(data.inside->path, paint);
+			_canvas->drawPathv(*data.inside, paint);
 		}
 
 		void drawBoxFillLinear(Box *box, FillGradientLinear *fill, BoxData &data) {
@@ -248,7 +248,7 @@ namespace qk {
 			Gradient g{&fill->colors(), &fill->positions(), pts[0], pts[1]};
 			paint.setGradient(Paint::kLinear_GradientType, &g);
 
-			_canvas->drawPathv(data.inside->path, paint);
+			_canvas->drawPathv(*data.inside, paint);
 		}
 
 		void drawBoxFillRadial(Box *box, FillGradientRadial *fill, BoxData &data) {
@@ -261,7 +261,7 @@ namespace qk {
 			paint.color.set_a(_opacity);
 			Gradient g{&fill->colors(), &fill->positions(), center, radius};
 			paint.setGradient(Paint::kRadial_GradientType, &g);
-			_canvas->drawPathv(data.inside->path, paint);
+			_canvas->drawPathv(*data.inside, paint);
 		}
 
 		void drawBoxShadow(Box *box, BoxData &data) {
@@ -299,7 +299,7 @@ namespace qk {
 				if (box->_first) {
 					getInsideRectPath(box, data);
 					_canvas->save();
-					_canvas->clipPathv(data.inside->path, Canvas::kIntersect_ClipOp, true); // clip
+					_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
 					ViewRender::visitView(box);
 					_canvas->restore(); // cancel clip
 				}
@@ -323,25 +323,23 @@ namespace qk {
 				}
 
 				if ( v->_scrollbar_h ) { // draw horizontal scrollbar
+					float radius[] = {width,width,width,width};
 					auto &rect = _render->getRRectPath({
 						{-origin.x(), size.y() - width - margin - origin.y()},
 						{v->_scrollbar_position_h.val[1], width}
-					}, {
-						width,width,width,width
-					});
+					}, radius);
 					_canvas->setMatrix(Mat(b->_matrix).translate_x(v->_scrollbar_position_h.val[0]));
-					_canvas->drawPathvColor(rect.path, color, kSrcOver_BlendMode);
+					_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 				}
 
 				if ( v->_scrollbar_v ) { // draw vertical scrollbar
+					float radius[] = {width,width,width,width};
 					auto &rect = _render->getRRectPath({
 						{size.x() - width - margin - origin.x(), -origin.y()},
 						{width, v->_scrollbar_position_v.val[1]}
-					}, {
-						width,width,width,width
-					});
+					}, radius);
 					_canvas->setMatrix(Mat(b->_matrix).translate_y(v->_scrollbar_position_v.val[0]));
-					_canvas->drawPathvColor(rect.path, color, kSrcOver_BlendMode);
+					_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 				}
 			}
 		}
@@ -422,7 +420,7 @@ namespace qk {
 			paint.filterMode = Paint::kLinear_FilterMode;
 			paint.mipmapMode = Paint::kNearest_MipmapMode;
 			paint.setImage(src->pixels().val(), data.inside->rect);
-			_canvas->drawPathv(data.inside->path, paint);
+			_canvas->drawPathv(*data.inside, paint);
 		}
 		if (v->_box_shadow)
 			_this->drawBoxShadow(v, data);
@@ -461,7 +459,7 @@ namespace qk {
 		if (clip) {
 			_this->getInsideRectPath(v, data);
 			_canvas->save();
-			_canvas->clipPathv(data.inside->path, Canvas::kIntersect_ClipOp, true); // clip
+			_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
 		}
 
 		if (visible) {
@@ -471,7 +469,7 @@ namespace qk {
 				auto y = offset.y() + line.baseline - blob.ascent;
 				auto offset_x = blob.core.offset.front().x();
 				auto &rect = _render->getRectPath({{x + offset_x, y},{blob.core.offset.back().x(), blob.height}});
-				_canvas->drawPathvColor(rect.path, color, kSrcOver_BlendMode);
+				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 			};
 
 			// draw text background
@@ -510,7 +508,7 @@ namespace qk {
 			auto x = offset.x() + v->_cursor_x - 1;
 			auto y = offset.y() + line.baseline - v->_text_ascent - 1;
 			auto &rect = _render->getRectPath({{x, y},{2,v->_text_height+2}});
-			_canvas->drawPathvColor(rect.path, v->cursor_color().to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+			_canvas->drawPathvColor(rect, v->cursor_color().to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 		}
 
 		if (clip) {
@@ -540,7 +538,7 @@ namespace qk {
 						{line.origin + blob.origin + offset_x, line.baseline - blob.ascent},
 						{blob.core.offset.back().x()-offset_x, blob.height},
 					});
-					_canvas->drawPathvColor(rect.path, color, kSrcOver_BlendMode);
+					_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 				}
 			}
 			

@@ -357,7 +357,7 @@ namespace qk {
 		Qk_ReturnLocal(edges);
 	}
 
-	Array<Vec2> Path::getTriangles(float epsilon) const {
+	VertexData Path::getTriangles(float epsilon) const {
 		const int polySize = 3;
 		auto tess = tessNewTess(nullptr); // TESStesselator*
 		{ //
@@ -399,23 +399,27 @@ namespace qk {
 			}
 		}
 
-		Array<Vec2> vertexs;
+		VertexData out;
 		// Convert to convex contour vertex data
 		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 2, 0) ) {
-
 			const int nelems = tessGetElementCount(tess);
 			const TESSindex* elems = tessGetElements(tess);
 			const Vec2* verts = (const Vec2*)tessGetVertices(tess);
 
-			vertexs.extend(nelems * polySize);
+			out.vertex.extend(nelems * polySize * 2);
 
-			for (int i = 0; i < vertexs.length(); i++) {
-				vertexs[i] = verts[*elems++];
+			for (int i = 0, l = out.vertex.length() >> 1; i < l; i++) {
+				reinterpret_cast<Vec2*>(*out.vertex)[i] = verts[*elems++];
 			}
 		}
 
+		out.vao = 0;
+		out.vbo = 0;
+		out.items = 2;
+		out.count = out.vertex.length() >> 1;
+
 		tessDeleteTess(tess);
-		Qk_ReturnLocal(vertexs);
+		Qk_ReturnLocal(out);
 	}
 
 	Path Path::dashPath(float *stageP, int stageCount, float offset) const {
@@ -680,29 +684,37 @@ namespace qk {
 	// ------------------- R e c t . O u t l i n e . P a t h -------------------
 
 	RectPath RectPath::MakeRect(const Rect &rect) {
-		RectPath out{.rect=rect};
+		RectPath out;
+		out.vao = 0;
+		out.vbo = 0;
+		out.rect = rect;
 		float x2 = rect.origin.x() + rect.size.x();
 		float y2 = rect.origin.y() + rect.size.y();
 		// path
-		out.path.path.moveTo(rect.origin);
-		out.path.path.lineTo(Vec2(x2, rect.origin.y())); // top right
-		out.path.path.lineTo(Vec2(x2, y2)); // bottom right
-		out.path.path.lineTo(Vec2(rect.origin.x(), y2)); // bottom left
-		out.path.path.close(); // top left, origin point
+		out.path.moveTo(rect.origin);
+		out.path.lineTo(Vec2(x2, rect.origin.y())); // top right
+		out.path.lineTo(Vec2(x2, y2)); // bottom right
+		out.path.lineTo(Vec2(rect.origin.x(), y2)); // bottom left
+		out.path.close(); // top left, origin point
 		// vertex
-		out.path.vertex.extend(6);
-		out.path.vertex[0] = rect.origin;
-		out.path.vertex[1] = Vec2(x2, rect.origin.y());
-		out.path.vertex[2] = Vec2(x2, y2);
-		out.path.vertex[3] = Vec2(x2, y2);
-		out.path.vertex[4] = Vec2(rect.origin.x(), y2);
-		out.path.vertex[5] = rect.origin;
+		out.vertex.extend(12);
+		*reinterpret_cast<Vec2*>(out.vertex + 0) = rect.origin;
+		*reinterpret_cast<Vec2*>(out.vertex + 2) = Vec2(x2, rect.origin.y());
+		*reinterpret_cast<Vec2*>(out.vertex + 4) = Vec2(x2, y2);
+		*reinterpret_cast<Vec2*>(out.vertex + 6) = Vec2(x2, y2);
+		*reinterpret_cast<Vec2*>(out.vertex + 8) = Vec2(rect.origin.x(), y2);
+		*reinterpret_cast<Vec2*>(out.vertex + 10) = rect.origin;
+		out.count = 6;
+		out.items = 2;
 
 		Qk_ReturnLocal(out);
 	}
 
 	RectPath RectPath::MakeRRect(const Rect &rect, const Path::BorderRadius &r) {
-		RectPath out{.rect=rect};
+		RectPath out;
+		out.vao = 0;
+		out.vbo = 0;
+		out.rect = rect;
 
 		float x1 = rect.origin.x(),      y1 = rect.origin.y();
 		float x2 = x1 + rect.size.x(),   y2 = y1 + rect.size.y();
@@ -731,15 +743,15 @@ namespace qk {
 				auto p0 = *v2;
 				for (int i = 0; i < sample; i++) {
 					Vec2 p(center.x() + cosf(angle) * radius.x(), center.y() - sinf(angle) * radius.y());
-					Vec2 src[3] = { p,p0,p };
-					out->path.vertex.write(src, -1, i==0?1:3); // add triangle vertex
-					out->path.path.lineTo(p);
+					Vec2 src[] = { p,p0,p };
+					out->vertex.write(src->val, -1, i==0?2:6); // add triangle vertex
+					out->path.lineTo(p);
 					angle += angleStep;
 				}
-				out->path.vertex.pop();
+				out->vertex.pop();
 			} else {
 				v2[1] = v; // fix next border vertex
-				out->path.path.lineTo(v);
+				out->path.lineTo(v);
 			}
 		};
 
@@ -749,8 +761,10 @@ namespace qk {
 		build(&out, {-1, 1}, r.rightTop,    {x2,y1}, vertex + 3, 0); // right
 		vertex[5] = vertex[2];
 
-		out.path.vertex.write(vertex, -1, 6); // inl quadrilateral
-		out.path.path.close();
+		out.vertex.write(vertex->val, -1, 12); // inl quadrilateral
+		out.path.close();
+		out.items = 2;
+		out.count = out.vertex.length() >> 1;
 
 		Qk_ReturnLocal(out);
 	}
@@ -775,6 +789,10 @@ namespace qk {
 		// \|______________|/
 		for (int j = 0; j < 4; j++) {
 			auto out = &outline.top+j;
+			out->vao = 0;
+			out->vbo = 0;
+			out->count = 0;
+			out->items = 2;
 			if (border[j] > 0) { // have border
 				out->path.moveTo(v[0]);
 				out->path.lineTo(v[3]);
@@ -784,7 +802,8 @@ namespace qk {
 				out->path.lineTo(v[0]);
 				// outside,outside,inside,inside,inside,outside
 				Vec2 src[6] = {v[0],v[3],v[5],v[4],v[5],v[3]};
-				out->vertex.write(src, -1, 6);
+				out->vertex.write(src->val, -1, 12);
+				out->count = 6;
 			} else {
 				out->path.moveTo(v[1]);
 				out->path.lineTo(v[2]);
@@ -865,7 +884,7 @@ namespace qk {
 			if (isRadiusZeroL) { // radius is zero
 				if (isBorder) {
 					Vec2 src[]{v[0],v[5]}; // outside,inside
-					out->vertex.write(src, -1, 2);
+					out->vertex.write(src->val, -1, 4);
 					path2.push(v[5]);
 					lastV = v[5];
 				}
@@ -886,18 +905,18 @@ namespace qk {
 						if (i == 0) {
 							Vec2 v1 = isRadiusI ? xy * radius_i[0] + center[0]: v[5];
 							Vec2 src[]{v0,v1}; // outside,inside
-							out->vertex.write(src, -1, 2);
+							out->vertex.write(src->val, -1, 4);
 							path2.push(v1);
 							lastV = v1;
 						} else if (isRadiusI) {
 							Vec2 v1 = xy * radius_i[0] + center[0];
 							Vec2 src[]{v0,lastV,v1,v0,v0,v1};
-							out->vertex.write(src, -1, 6);
+							out->vertex.write(src->val, -1, 12);
 							path2.push(v1);
 							lastV = v1;
 						} else { // inside radius is zero
 							Vec2 src[]{v0,v0,v[5]}; // outside,outside,inside
-							out->vertex.write(src, -1, 3);
+							out->vertex.write(src->val, -1, 6);
 						}
 					}
 					path.lineTo(v0);
@@ -908,7 +927,7 @@ namespace qk {
 			if (isRadiusZeroR) { // radius is zero
 				if (isBorder) {
 					Vec2 src[]{v[3],v[3],lastV,v[4]}; // outside,outside,inside,inside
-					out->vertex.write(src, -1, 4);
+					out->vertex.write(src->val, -1, 8);
 					path2.push(v[4]);
 				}
 				path.lineTo(v[3]);
@@ -930,7 +949,7 @@ namespace qk {
 							RadiusI:
 							// outside,inside,inside,outside,outside,inside
 							Vec2 src[]{v0,lastV,v1,v0,v0,v1};
-							out->vertex.write(src, -1, 6);
+							out->vertex.write(src->val, -1, 12);
 							path2.push(v1);
 							lastV = v1;
 							//Qk_DEBUG("v0: %f %f, v1: %f %f", v0[0], v0[1], v1[0], v1[1]);
@@ -940,7 +959,7 @@ namespace qk {
 								v1 = v[4]; goto RadiusI;
 							}
 							Vec2 src[]{v0,v0,v[4]}; // outside,outside,inside
-							out->vertex.write(src, -1, 3);
+							out->vertex.write(src->val, -1, 6);
 						}
 					}
 					path.lineTo(v0);
@@ -960,6 +979,11 @@ namespace qk {
 				if (border[0] > 0.1 || isRadiusZeroL) // fix aa sdf stroke error
 					path.lineTo(*path.pts()); // equivalent to close
 			}
+
+			out->vao = 0;
+			out->vbo = 0;
+			out->items = 2;
+			out->count = out->vertex.length() >> 1;
 		};
 
 		float angle = Qk_PI_2_1;

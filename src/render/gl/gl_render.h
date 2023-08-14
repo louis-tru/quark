@@ -44,7 +44,10 @@ namespace qk {
 		virtual Object* asObject() override;
 		virtual void reload() override;
 		virtual uint32_t makeTexture(cPixel *src, uint32_t id) override;
-		virtual void deleteTextures(const uint32_t *IDs, uint32_t count) override;
+		virtual void deleteTextures(const uint32_t *ids, uint32_t count) override;
+		virtual void makeVertexData(VertexData *data) override;
+		virtual void deleteVertexData(const VertexData &data) override;
+		virtual void copyVertexData(const VertexData &src, VertexData *dest) override;
 		virtual float getUnitPixel() override;
 		inline  GLSLShader* shader(uint32_t i) { return _shaders[i]; }
 		void setBlendMode(BlendMode blendMode);

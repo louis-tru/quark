@@ -59,6 +59,7 @@
 
 namespace qk {
 
+	struct VertexData;
 	struct GLShaderAttr {
 		const char *name;
 		GLint size;
@@ -69,6 +70,7 @@ namespace qk {
 	struct GLSLShader {
 		GLuint shader, vao, vbo;
 		void use(GLsizeiptr size, const GLvoid* data);
+		void use(const VertexData& data);
 		virtual void build() = 0;
 	};
 

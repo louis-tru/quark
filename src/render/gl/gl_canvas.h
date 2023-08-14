@@ -67,22 +67,22 @@ namespace qk {
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 	private:
-		void clipV(const Array<Vec2> &vertex, ClipOp op, bool aa);
-		void fillPathV(const Pathv &path, const Paint &paint, bool aa);
+		void clipv(const Path &path, const VertexData &vertex, ClipOp op, bool aa);
 		void fillPath(const Path &path, const Paint &paint, bool aa);
-		void fillV(const Array<Vec2> &vertex, const Paint &paint);
-		
+		void fillPathv(const Pathv &path, const Paint &paint, bool aa);
+		void fillv(const VertexData &vertex, const Paint &paint);
+
 		void drawStroke(const Path &path, const Paint& paint, bool aa);
-		void drawColor(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
-		void drawGradient(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
-		void drawImage(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
-		void drawImageMask(const Array<Vec2> &vertex, const Paint& paint, GLenum mode);
+		void drawColor(const VertexData &vertex, const Paint& paint, GLenum mode);
+		void drawGradient(const VertexData &vertex, const Paint& paint, GLenum mode);
+		void drawImage(const VertexData &vertex, const Paint& paint, GLenum mode);
+		void drawImageMask(const VertexData &vertex, const Paint& paint, GLenum mode);
 		// draw sdf
 		void drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3], float sdf_width);
-		void drawColorSDF(const Array<Vec3> &vertex, const Color4f &color, GLenum mode, const float range[3]);
-		void drawGradientSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
-		void drawImageSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
-		void drawImageMaskSDF(const Array<Vec3> &vertex, const Paint& paint, GLenum mode, const float range[3]);
+		void drawColorSDF(const VertexData &vertex, const Color4f &color, GLenum mode, const float range[3]);
+		void drawGradientSDF(const VertexData &vertex, const Paint& paint, GLenum mode, const float range[3]);
+		void drawImageSDF(const VertexData &vertex, const Paint& paint, GLenum mode, const float range[3]);
+		void drawImageMaskSDF(const VertexData &vertex, const Paint& paint, GLenum mode, const float range[3]);
 		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint);
 		void setMatrixBuffer(const Mat& mat); // set view matrix
 		bool isStencilTest();
@@ -94,15 +94,15 @@ namespace qk {
 	private:
 		// props
 		struct Clip {
-			Array<Vec2> vertex;
-			ClipOp      op;
-			bool        aa; // anti alias
+			Pathv        path;
+			ClipOp       op;
+			bool         aa; // anti alias
 		};
 		struct State {
 			Mat         matrix;
 			Array<Clip> clips;
 		};
-		bool drawClip(Clip *clip);
+		bool drawClip(Clip &clip);
 		Array<State> _state;
 		GLRender *_backend;
 		State    *_curState;
