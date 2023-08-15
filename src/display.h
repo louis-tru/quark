@@ -191,7 +191,7 @@ namespace qk {
 
 	private:
 		void updateState(void *lock, Mat4 *mat, Vec2* scale);
-		void solve_next_frame();
+		void solveNextFrame();
 		bool onRenderBackendReload(Region region, Vec2 size,
 															 float defaultScale, Mat4 *mat, Vec2 *scale) override;
 		bool onRenderBackendPreDisplay() override;

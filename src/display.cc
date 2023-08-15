@@ -167,7 +167,7 @@ namespace qk {
 		_next_frame.pushBack(cb);
 	}
 
-	void Display::solve_next_frame() {
+	void Display::solveNextFrame() {
 		if (_next_frame.length()) {
 			List<Cb>* cb = new List<Cb>(std::move(_next_frame));
 			_host->loop()->post(Cb([this, cb](Cb::Data& e) {
@@ -208,7 +208,7 @@ namespace qk {
 		UILock lock(_host); // ui main local
 		if (_host->pre_render()->solve())
 			return true;
-		solve_next_frame();
+		solveNextFrame();
 		return false;
 	}
 
@@ -229,7 +229,7 @@ namespace qk {
 		_host->render()->begin(); // ready render
 		_host->root()->accept(_view_render); // start drawing
 
-		solve_next_frame(); // solve frame
+		solveNextFrame(); // solve frame
 
 #if DEBUG && PRINT_RENDER_FRAME_TIME
 		int64_t st = time_micro();
