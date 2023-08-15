@@ -62,7 +62,7 @@ namespace qk {
 		BlendMode _blendMode;
 		GLuint _frame_buffer,_msaa_frame_buffer;
 		GLuint _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer;
-		GLuint _texTmp[3];
+		GLuint _tex_buffer[3]; // temp texture buffers
 		GLCanvas _mainCanvas; // main canvas
 		GLSLClear _clear; // shader
 		GLSLClip  _clip;

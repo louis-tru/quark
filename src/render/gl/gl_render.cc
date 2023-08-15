@@ -332,7 +332,7 @@ namespace qk {
 		, _blendMode(kClear_BlendMode)
 		, _frame_buffer(0), _msaa_frame_buffer(0)
 		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0)
-		, _texTmp{0,0,0}
+		, _tex_buffer{0,0,0}
 		, _mainCanvas(this)
 		, _shaders{
 			&_clear, &_clip, &_color, &_image, &_colorMask, &_yuv420p,
@@ -403,7 +403,7 @@ namespace qk {
 	GLRender::~GLRender() {
 		glDeleteFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
 		glDeleteRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
-		glDeleteTextures(3, _texTmp);
+		glDeleteTextures(3, _tex_buffer);
 	}
 
 	void GLRender::reload() {
@@ -556,11 +556,11 @@ namespace qk {
 	void GLRender::setTexture(cPixel *pixel, int slot, const Paint &paint) {
 		auto id = pixel->texture();
 		if (!id) {
-			id = gl_gen_texture(pixel, _texTmp[slot], true);
+			id = gl_gen_texture(pixel, _tex_buffer[slot], true);
 			if (!id) {
 				Qk_DEBUG("setTexturePixel() fail"); return;
 			}
-			_texTmp[slot] = id;
+			_tex_buffer[slot] = id;
 		}
 		gl_set_texture(id, slot, paint);
 	}
