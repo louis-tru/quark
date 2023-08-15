@@ -49,7 +49,7 @@ namespace qk {
 		: _opts(opts)
 		, _canvas(nullptr)
 		, _delegate(nullptr)
-		, _default_scale(1)
+		, _defaultScale(1)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
 		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);

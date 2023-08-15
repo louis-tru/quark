@@ -45,7 +45,7 @@ namespace qk {
 	 * @class RenderBackend drawing device backend
 	 * @thread render
 	 */
-	class Qk_EXPORT RenderBackend: public PostMessage {
+	class Qk_EXPORT RenderBackend: public Object, public PostMessage {
 	public:
 		struct Options {
 			ColorType   colorType;
@@ -65,11 +65,9 @@ namespace qk {
 		virtual void    begin() = 0; // start render task
 		virtual void    submit() = 0; // submit render task
 		virtual void    activate(bool isActive);
-		virtual float   getUnitPixel() = 0; // get surface unit pixel size
-		virtual Object* asObject() = 0;
 		inline  Canvas* getCanvas() { return _canvas; } // default canvas object
-		inline  Vec2    surfaceSize() { return _surface_size; }
-		inline  float   defaultScale() { return _default_scale; }
+		inline  Vec2    surfaceSize() { return _surfaceSize; }
+		inline  float   defaultScale() { return _defaultScale; }
 		inline  Delegate* delegate() { return _delegate; }
 		virtual uint32_t makeTexture(cPixel *src, uint32_t id) = 0;
 		virtual void    deleteTextures(const uint32_t *ids, uint32_t count) = 0;
@@ -156,8 +154,8 @@ namespace qk {
 		Options       _opts;
 		Canvas       *_canvas; // default canvas
 		Delegate     *_delegate;
-		Vec2          _surface_size; // recommend default surface scale
-		float         _default_scale;
+		Vec2          _surfaceSize; // current surface size
+		float         _defaultScale; // recommend default surface scale
 		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
 		Dict<uint64_t, VertexData> _PathTrianglesCache; // path hash => triangles
 		Dict<uint64_t, VertexData> _SDFStrokeTriangleStripCache; // path hash => aa triangles strip

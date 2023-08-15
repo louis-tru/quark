@@ -160,22 +160,23 @@ public:
 
 	Vec2 getSurfaceSize() override {
 		CGSize size = _view.frame.size;
-		_default_scale = _view.window.backingScaleFactor;
-		float w = size.width * _default_scale;
-		float h = size.height * _default_scale;
-		_surface_size = Vec2(w,h);
-		return _surface_size;
+		_defaultScale = _view.window.backingScaleFactor;
+		float w = size.width * _defaultScale;
+		float h = size.height * _defaultScale;
+		_surfaceSize = Vec2(w,h);
+		return _surfaceSize;
 	}
 
 	float getDefaultScale() override {
-		_default_scale = _view.window.backingScaleFactor;
-		return _default_scale;
+		_defaultScale = _view.window.backingScaleFactor;
+		return _defaultScale;
 	}
 
 	void reload() override {
 		auto size = getSurfaceSize();
 		Mat4 mat;
-		if (!_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _default_scale, &mat, &_surfaceScale))
+		Vec2 surfaceScale;
+		if (!_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _defaultScale, &mat, &surfaceScale))
 			return;
 
 		CGLLockContext(_ctx.CGLContextObj);
@@ -187,7 +188,7 @@ public:
 		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0 };
 		glDrawBuffers(1, buffers);
 
-		setRootMatrixBuffer(mat);
+		_mainCanvas.setRootMatrix(mat, surfaceScale);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		[NSOpenGLContext clearCurrentContext]; // clear ctx
@@ -224,7 +225,6 @@ public:
 		if (sampleCount > 1) {
 			_IsDeviceMsaa = true;
 		}
-
 		return _view;
 	}
 

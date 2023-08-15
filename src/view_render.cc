@@ -57,7 +57,7 @@ namespace qk {
 
 		Rect getRect(Box* box) {
 			// auto fix = _render->getUnitPixel() * 0.225f; // fix aa sdf stroke
-			auto fix = 2.0f * 0.225f / _display->scale();// fix aa sdf stroke
+			auto fix = 2.0f / _display->scale() * 0.225f;// fix aa sdf stroke
 			return {
 				Vec2{fix}-box->_origin_value,
 				box->_client_size-(fix+fix),

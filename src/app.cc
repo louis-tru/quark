@@ -128,7 +128,7 @@ namespace qk {
 		// Release(_action_direct); _action_direct = nullptr;
 		Release(_display);     _display = nullptr;
 		Release(_pre_render);  _pre_render = nullptr;
-		Release(_render->asObject()); _render = nullptr;
+		Release(_render);      _render = nullptr;
 		delete _keep;          _keep = nullptr;  _loop = nullptr;
 		Release(_font_pool);   _font_pool = nullptr;
 		Release(_img_pool);    _img_pool = nullptr;

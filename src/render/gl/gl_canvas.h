@@ -41,7 +41,7 @@ namespace qk {
 	class GLRender; // gl render backend
 	class GLCanvas: public Canvas {
 	public:
-		GLCanvas(GLRender *backend);
+		GLCanvas(GLRender *render);
 		virtual ~GLCanvas();
 		virtual int  save() override;
 		virtual void restore(uint32_t count) override;
@@ -66,48 +66,26 @@ namespace qk {
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
+		void setRootMatrix(const Mat4& root, Vec2 surfaceScale); // set root matrix
 	private:
-		void clipv(const Path &path, const VertexData &vertex, ClipOp op, bool aa);
-		void fillPath(const Path &path, const Paint &paint, bool aa);
-		void fillPathv(const Pathv &path, const Paint &paint, bool aa);
-		void fillv(const VertexData &vertex, const Paint &paint);
-
-		void drawStroke(const Path &path, const Paint& paint, bool aa);
-		void drawColor(const VertexData &vertex, const Paint& paint, GLenum mode);
-		void drawGradient(const VertexData &vertex, const Paint& paint, GLenum mode);
-		void drawImage(const VertexData &vertex, const Paint& paint, GLenum mode);
-		void drawImageMask(const VertexData &vertex, const Paint& paint, GLenum mode);
-		// draw sdf
-		void drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3], float sdf_width);
-		void drawColorSDF(const VertexData &vertex, const Color4f &color, GLenum mode, const float range[3]);
-		void drawGradientSDF(const VertexData &vertex, const Paint& paint, GLenum mode, const float range[3]);
-		void drawImageSDF(const VertexData &vertex, const Paint& paint, GLenum mode, const float range[3]);
-		void drawImageMaskSDF(const VertexData &vertex, const Paint& paint, GLenum mode, const float range[3]);
-		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint);
-		void setMatrixBuffer(const Mat& mat); // set view matrix
-		bool isStencilTest();
-	protected:
-		void setRootMatrixBuffer(const Mat4& root); // set root matrix
-		float  _surfaceScalef1, _transfromScale;
-		Vec2   _surfaceScale;
-		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
-	private:
-		// props
+		// define props
 		struct Clip {
-			Pathv        path;
-			ClipOp       op;
-			bool         aa; // anti alias
+			Pathv path;
+			ClipOp op;
+			bool aa; // anti alias
 		};
 		struct State {
-			Mat         matrix;
+			Mat matrix;
 			Array<Clip> clips;
 		};
-		bool drawClip(Clip &clip);
-		Array<State> _state;
-		GLRender *_backend;
-		State    *_curState;
-		GLuint _stencil_ref, _stencil_ref_decr;
-		GLuint _mat_ubo; // mat_ubo => root,view matrix
+		Array<State> _stateStack;
+		GLRender *_render;
+		State    *_state;
+		GLuint _stencilRef, _stencilRefDecr;
+		GLuint _matUbo; // matUBO => root,view matrix
+		float  _surfaceScale, _transfromScale;
+		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

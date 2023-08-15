@@ -326,13 +326,14 @@ namespace qk {
 	}
 
 	GLRender::GLRender(Options opts)
-		: GLCanvas(this), Render(opts)
-		, _Is_Support_Multisampled(gl_is_support_multisampled())
+		: Render(opts)
+		, _IsSupportMultisampled(gl_is_support_multisampled())
 		, _IsDeviceMsaa(false)
 		, _blendMode(kClear_BlendMode)
 		, _frame_buffer(0), _msaa_frame_buffer(0)
 		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0)
 		, _texTmp{0,0,0}
+		, _mainCanvas(this)
 		, _shaders{
 			&_clear, &_clip, &_color, &_image, &_colorMask, &_yuv420p,
 			&_yuv420sp, &_linear, &_radial,
@@ -349,10 +350,10 @@ namespace qk {
 			default: break;
 		}
 
-		if (!_Is_Support_Multisampled) {
+		if (!_IsSupportMultisampled) {
 			_opts.msaaSampleCnt = 0;
 		}
-		_canvas = this; // set default canvas
+		_canvas = &_mainCanvas; // set default canvas
 
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
@@ -405,14 +406,11 @@ namespace qk {
 		glDeleteTextures(3, _texTmp);
 	}
 
-	Object* GLRender::asObject() {
-		return this;
-	}
-
 	void GLRender::reload() {
 		auto size = getSurfaceSize();
 		Mat4 mat;
-		if (!_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale(), &mat, &_surfaceScale))
+		Vec2 surfaceScale;
+		if (!_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale(), &mat, &surfaceScale))
 			return;
 
 		auto w = size.x(), h = size.y();
@@ -461,7 +459,7 @@ namespace qk {
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
 
-		setRootMatrixBuffer(mat);
+		_mainCanvas.setRootMatrix(mat, surfaceScale);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
@@ -493,11 +491,7 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depth_buffer);
 	}
 
-	float GLRender::getUnitPixel() {
-		return _unitPixel;
-	}
-
-	GLuint GLRender::makeTexture(cPixel *src, uint32_t id) {
+	uint32_t GLRender::makeTexture(cPixel *src, uint32_t id) {
 		return gl_gen_texture(src, id, true);
 	}
 
@@ -525,7 +519,7 @@ namespace qk {
 			glGenVertexArrays(1, &data->vao);
 			glGenBuffers(1, &data->vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, data->vbo);
-			glBufferData(GL_ARRAY_BUFFER, data->vertex.size(), *data->vertex, GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, data->vertex.size(), *data->vertex, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
 			setVertexAttribPointer(data);
 		}
 	}
@@ -545,7 +539,7 @@ namespace qk {
 			glGenVertexArrays(1, &dest->vao);
 			glGenBuffers(1, &dest->vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, dest->vbo);
-			glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
 			glBindBuffer(GL_COPY_READ_BUFFER, src.vbo);
 			glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, 0, size);
 			setVertexAttribPointer(dest);

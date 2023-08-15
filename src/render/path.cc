@@ -698,12 +698,12 @@ namespace qk {
 		out.path.close(); // top left, origin point
 		// vertex
 		out.vertex.extend(12);
-		*reinterpret_cast<Vec2*>(out.vertex + 0) = rect.origin;
-		*reinterpret_cast<Vec2*>(out.vertex + 2) = Vec2(x2, rect.origin.y());
-		*reinterpret_cast<Vec2*>(out.vertex + 4) = Vec2(x2, y2);
-		*reinterpret_cast<Vec2*>(out.vertex + 6) = Vec2(x2, y2);
-		*reinterpret_cast<Vec2*>(out.vertex + 8) = Vec2(rect.origin.x(), y2);
-		*reinterpret_cast<Vec2*>(out.vertex + 10) = rect.origin;
+		*reinterpret_cast<Vec2*>(*out.vertex + 0) = rect.origin;
+		*reinterpret_cast<Vec2*>(*out.vertex + 2) = Vec2(x2, rect.origin.y());
+		*reinterpret_cast<Vec2*>(*out.vertex + 4) = Vec2(x2, y2);
+		*reinterpret_cast<Vec2*>(*out.vertex + 6) = Vec2(x2, y2);
+		*reinterpret_cast<Vec2*>(*out.vertex + 8) = Vec2(rect.origin.x(), y2);
+		*reinterpret_cast<Vec2*>(*out.vertex + 10) = rect.origin;
 		out.count = 6;
 		out.items = 2;
 
