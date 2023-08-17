@@ -127,7 +127,9 @@ namespace qk {
 			glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
 			_render->_clip.use(clip.path);
 			glDrawArrays(GL_TRIANGLES, 0, clip.path.count); // draw test
-			// draw anti alias alpha..
+			if (clip.aa) {
+				// draw anti alias alpha..
+			}
 			glStencilFunc(GL_LEQUAL, _stencilRef, 0xFFFFFFFF); // Equality passes the test
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 

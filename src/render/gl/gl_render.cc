@@ -182,13 +182,13 @@ namespace qk {
 		glBindTexture(GL_TEXTURE_2D, id);
 
 		switch (paint.tileModeX) {
-			case Paint::kClamp_TileMode:
+			case Paint::kClamp_TileMode: // border repeat
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				break;
-			case Paint::kRepeat_TileMode:
+			case Paint::kRepeat_TileMode: // repeat
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 				break;
-			case Paint::kMirror_TileMode:
+			case Paint::kMirror_TileMode: // mirror repeat
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 				break;
 			case Paint::kDecal_TileMode: // no repeat
@@ -330,9 +330,10 @@ namespace qk {
 		, _IsSupportMultisampled(gl_is_support_multisampled())
 		, _IsDeviceMsaa(false)
 		, _blendMode(kClear_BlendMode)
-		, _frame_buffer(0), _msaa_frame_buffer(0)
-		, _render_buffer(0), _msaa_render_buffer(0), _stencil_buffer(0), _depth_buffer(0)
-		, _tex_buffer{0,0,0}
+		, _frameBuffer(0), _msaaFrameBuffer(0)
+		, _renderBuffer(0), _msaaRenderBuffer(0), _stencilBuffer(0), _depthBuffer(0)
+		, _texAABuffer(0)
+		, _texBuffer{0,0,0}
 		, _mainCanvas(this)
 		, _shaders{
 			&_clear, &_clip, &_color, &_image, &_colorMask, &_yuv420p,
@@ -356,9 +357,11 @@ namespace qk {
 		_canvas = &_mainCanvas; // set default canvas
 
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
-		glGenFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
+		glGenFramebuffers(2, &_frameBuffer); // _frame_buffer,_msaa_frame_buffer
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-		glGenRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
+		glGenRenderbuffers(4, &_renderBuffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
+		// Create aa texture buffer
+		glGenTextures(1, &_texAABuffer); // _texAABuffer
 
 		setBlendMode(kSrcOver_BlendMode); // set default color blend mode
 
@@ -401,9 +404,9 @@ namespace qk {
 	}
 
 	GLRender::~GLRender() {
-		glDeleteFramebuffers(2, &_frame_buffer); // _frame_buffer,_msaa_frame_buffer
-		glDeleteRenderbuffers(4, &_render_buffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
-		glDeleteTextures(3, _tex_buffer);
+		glDeleteFramebuffers(2, &_frameBuffer); // _frameBuffer,_msaaFrameBuffer
+		glDeleteRenderbuffers(4, &_renderBuffer); // _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer
+		glDeleteTextures(4, &_texAABuffer); // _texAABuffer, _texBuffer
 	}
 
 	void GLRender::reload() {
@@ -420,14 +423,14 @@ namespace qk {
 
 		glViewport(0, 0, w, h);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer); // bind frame buffer
-		setRenderBuffer(w, h);
+		glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer); // bind frame buffer
+		setMainRenderBuffer(w, h);
 
 		if (_opts.msaaSampleCnt > 1 && !_IsDeviceMsaa) {
-			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
+			glBindFramebuffer(GL_FRAMEBUFFER, _msaaFrameBuffer);
 
 			do { // enable multisampling
-				setMSAABuffer(w, h, _opts.msaaSampleCnt);
+				setMSAARenderBuffer(w, h, _opts.msaaSampleCnt);
 				// Test the framebuffer for completeness.
 				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
 					if ( _opts.msaaSampleCnt > 1 )
@@ -439,10 +442,9 @@ namespace qk {
 		}
 
 		if (!_IsDeviceMsaa) { // no device msaa
-			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+			glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
 		}
-		setDepthBuffer(w, h, _opts.msaaSampleCnt);
-		setStencilBuffer(w, h, _opts.msaaSampleCnt);
+		setBuffers(w, h, _opts.msaaSampleCnt);
 
 		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0 };
 		glDrawBuffers(1, buffers);
@@ -463,40 +465,52 @@ namespace qk {
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
-	void GLRender::setRenderBuffer(int width, int height) {
-		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
+	void GLRender::setMainRenderBuffer(int width, int height) {
+		glBindRenderbuffer(GL_RENDERBUFFER, _renderBuffer);
 		glRenderbufferStorage(GL_RENDERBUFFER, gl_pixel_internal_format(_opts.colorType), width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _renderBuffer);
 	}
 
-	void GLRender::setMSAABuffer(int width, int height, int MSAASample) {
-		glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render buffer
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, gl_pixel_internal_format(_opts.colorType), width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaa_render_buffer);
+	void GLRender::setMSAARenderBuffer(int width, int height, int msaaSample) {
+		glBindRenderbuffer(GL_RENDERBUFFER, _msaaRenderBuffer); // render buffer
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, gl_pixel_internal_format(_opts.colorType), width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaaRenderBuffer);
 	}
 
-	void GLRender::setStencilBuffer(int width, int height, int MSAASample) { // set clip stencil buffer
-		glBindRenderbuffer(GL_RENDERBUFFER, _stencil_buffer);
-		MSAASample > 1?
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, GL_STENCIL_INDEX8, width, height):
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencil_buffer);
-	}
-
-	void GLRender::setDepthBuffer(int width, int height, int MSAASample) {
-		glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer); // set depth buffer
-		MSAASample > 1 ?
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAASample, GL_DEPTH_COMPONENT24, width, height):
+	void GLRender::setBuffers(int width, int height, int msaaSample) { // set buffers
+		// depth buffer
+		glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer); // set depth buffer
+		msaaSample > 1 ?
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, GL_DEPTH_COMPONENT24, width, height):
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depth_buffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthBuffer);
+		// clip stencil buffer
+		glBindRenderbuffer(GL_RENDERBUFFER, _stencilBuffer);
+		msaaSample > 1?
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, GL_STENCIL_INDEX8, width, height):
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilBuffer);
+
+		// clip anti alias buffer
+		if (msaaSample <= 1) {
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, _texAABuffer);
+			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, GL_ALPHA/*internalformat*/,
+									width, height, 0/*border*/, GL_ALPHA/*format*/, GL_UNSIGNED_BYTE/*type*/, nullptr);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, _texAABuffer, 0);
+		}
 	}
 
 	uint32_t GLRender::makeTexture(cPixel *src, uint32_t id) {
 		return gl_gen_texture(src, id, true);
 	}
 
-	void GLRender::deleteTextures(const uint32_t *IDs, uint32_t count) {
-		glDeleteTextures(count, IDs);
+	void GLRender::deleteTextures(const uint32_t *ids, uint32_t count) {
+		glDeleteTextures(count, ids);
 	}
 
 	static void setVertexAttribPointer(VertexData *data) {
@@ -556,11 +570,11 @@ namespace qk {
 	void GLRender::setTexture(cPixel *pixel, int slot, const Paint &paint) {
 		auto id = pixel->texture();
 		if (!id) {
-			id = gl_gen_texture(pixel, _tex_buffer[slot], true);
+			id = gl_gen_texture(pixel, _texBuffer[slot], true);
 			if (!id) {
 				Qk_DEBUG("setTexturePixel() fail"); return;
 			}
-			_tex_buffer[slot] = id;
+			_texBuffer[slot] = id;
 		}
 		gl_set_texture(id, slot, paint);
 	}

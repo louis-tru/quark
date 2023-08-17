@@ -50,19 +50,19 @@ namespace qk {
 		void         setBlendMode(BlendMode blendMode);
 	protected:
 		GLRender(Options opts);
-		virtual void setRenderBuffer(int width, int height);
-		virtual void setMSAABuffer(int width, int height, int MSAASample);
-		virtual void setStencilBuffer(int width, int height, int MSAASample);
-		virtual void setDepthBuffer(int width, int height, int MSAASample);
+		virtual void setMainRenderBuffer(int width, int height);
+		virtual void setMSAARenderBuffer(int width, int height, int msaaSample);
+		virtual void setBuffers(int width, int height, int msaaSample);
 		void         setTexture(cPixel *pixel, int slot, const Paint &paint);
 		friend class GLCanvas;
 		// --------------- define props ---------------
 		bool _IsSupportMultisampled;
 		bool _IsDeviceMsaa; // device anti alias, msaa
 		BlendMode _blendMode;
-		GLuint _frame_buffer,_msaa_frame_buffer;
-		GLuint _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer;
-		GLuint _tex_buffer[3]; // temp texture buffers
+		GLuint _frameBuffer,_msaaFrameBuffer;
+		GLuint _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer;
+		GLuint _texAABuffer; // aa texture buffer
+		GLuint _texBuffer[3]; // temp texture buffers
 		GLCanvas _mainCanvas; // main canvas
 		GLSLClear _clear; // shader
 		GLSLClip  _clip;
