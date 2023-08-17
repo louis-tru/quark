@@ -42,7 +42,7 @@ namespace qk {
 	// triangle vertices or gpu vertex buffer
 	struct VertexData {
 		Array<float> vertex; // triangle vertex {x,y,sdf?}
-		uint32_t     count,items; // vertex count, vertex items = 2 or 3
+		uint32_t     count,items; // vertex count, vertex items = 2 or 3 sdf
 		uint32_t     vao,vbo; // gpu data buffer
 	};
 
@@ -100,13 +100,13 @@ namespace qk {
 
 		/**
 		 * @method getTriangles() Convert to fixed size polygon vertices
-		 * @return {Array<Vec2>} vertex points { x, y }[]
+		 * @return {VertexData} vertex points { x, y }[]
 		*/
 		VertexData getTriangles(float epsilon = 1.0) const;
 
 		/**
 		 * @method getSDFStrokeTriangleStrip() returns sdf stroke triangle vertices
-		 * @return {Array<Vec3>} vertex points { x, y, sdf value renge 0.5 to -0.5 }[]
+		 * @return {VertexData} vertex points { x, y, sdf value renge 0.5 to -0.5 }[]
 		*/
 		VertexData getSDFStrokeTriangleStrip(float width, float epsilon = 1.0) const;
 

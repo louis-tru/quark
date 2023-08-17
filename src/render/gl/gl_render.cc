@@ -501,10 +501,10 @@ namespace qk {
 
 	static void setVertexAttribPointer(VertexData *data) {
 		glBindVertexArray(data->vao);
-		if (data->items == 2) {
+		if (data->items == 2) { // vec2 vertex
 			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, (const GLvoid*)0); // xy
 			glEnableVertexAttribArray(0);
-		} else { // sdf vertex
+		} else { // vec3 sdf vertex
 			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*3, (const GLvoid*)0); // xy
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float)*3, (const GLvoid*)(sizeof(float)*2)); // sdf
