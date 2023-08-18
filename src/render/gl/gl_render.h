@@ -52,7 +52,8 @@ namespace qk {
 		GLRender(Options opts);
 		virtual void setMainRenderBuffer(int width, int height);
 		virtual void setMSAARenderBuffer(int width, int height, int msaaSample);
-		virtual void setBuffers(int width, int height, int msaaSample);
+		virtual void setDepthStencilBuffer(int width, int height, int msaaSample);
+		virtual void setClipAABuffer(int width, int height, int msaaSample);
 		void         setTexture(cPixel *pixel, int slot, const Paint &paint);
 		friend class GLCanvas;
 		// --------------- define props ---------------
@@ -61,9 +62,11 @@ namespace qk {
 		BlendMode _blendMode;
 		GLuint _frameBuffer,_msaaFrameBuffer;
 		GLuint _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer;
-		GLuint _texAABuffer; // aa texture buffer
+		GLuint _clipAAAlphaBuffer; // aa texture buffer
 		GLuint _texBuffer[3]; // temp texture buffers
-		GLCanvas _mainCanvas; // main canvas
+		GLuint _uboData; // uboData => root,view matrix
+		uint16_t _zDepth;
+		GLCanvas _glcanvas; // main canvas
 		GLSLClear _clear; // shader
 		GLSLClip  _clip;
 		GLSLColor _color;

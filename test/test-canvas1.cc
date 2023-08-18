@@ -72,7 +72,7 @@ public:
 };
 
 void test_canvas1(int argc, char **argv) {
-	App app;
+	App app({.windowFrame={{0,0}, {400,400}}});
 	// layout
 	auto t = (new TestCanvas1(&app))->append_to<Box>(app.root());
 	t->set_width({ 0, SizeKind::kMatch });

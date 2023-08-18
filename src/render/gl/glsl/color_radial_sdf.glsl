@@ -5,8 +5,8 @@ out       vec2      position_f;
 
 void main() {
 	sdf_f = sdf_in;
-	position_f = vertex_in.xy;
-	gl_Position = matrix * vec4(vertex_in.xy, 0.0, 1.0);
+	position_f = vertexIn.xy;
+	gl_Position = matrix * vec4(vertexIn.xy, depth, 1.0);
 }
 
 #frag

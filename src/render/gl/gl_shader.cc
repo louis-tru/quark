@@ -78,7 +78,7 @@ namespace qk {
 		glLinkProgram(program);
 		glDeleteShader(vertex_handle);
 		glDeleteShader(fragment_handle);
-		
+
 		if ((glGetProgramiv(program, GL_LINK_STATUS, &status), status) != GL_TRUE) {
 			char log[256] = { 0 };
 			glGetProgramInfoLog(program, 255, &status, log);
@@ -86,7 +86,7 @@ namespace qk {
 		}
 
 		// Get uniform block and bind index
-		GLuint ubo = glGetUniformBlockIndex(program, "mat_ubo");
+		GLuint ubo = glGetUniformBlockIndex(program, "uboData");
 		glUniformBlockBinding(program, ubo, 0); // binding = 0 uniform block index as zero
 #if DEBUG
 		GLint bufferSize;

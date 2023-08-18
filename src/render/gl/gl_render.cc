@@ -332,9 +332,10 @@ namespace qk {
 		, _blendMode(kClear_BlendMode)
 		, _frameBuffer(0), _msaaFrameBuffer(0)
 		, _renderBuffer(0), _msaaRenderBuffer(0), _stencilBuffer(0), _depthBuffer(0)
-		, _texAABuffer(0)
+		, _clipAAAlphaBuffer(0)
 		, _texBuffer{0,0,0}
-		, _mainCanvas(this)
+		, _zDepth(0)
+		, _glcanvas(this)
 		, _shaders{
 			&_clear, &_clip, &_color, &_image, &_colorMask, &_yuv420p,
 			&_yuv420sp, &_linear, &_radial,
@@ -354,16 +355,19 @@ namespace qk {
 		if (!_IsSupportMultisampled) {
 			_opts.msaaSampleCnt = 0;
 		}
-		_canvas = &_mainCanvas; // set default canvas
+		_canvas = &_glcanvas; // set default canvas
 
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(2, &_frameBuffer); // _frame_buffer,_msaa_frame_buffer
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
 		glGenRenderbuffers(4, &_renderBuffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
 		// Create aa texture buffer
-		glGenTextures(1, &_texAABuffer); // _texAABuffer
+		glGenTextures(1, &_clipAAAlphaBuffer); // _clipAlphaBuffer
 
-		setBlendMode(kSrcOver_BlendMode); // set default color blend mode
+		glGenBuffers(1, &_uboData);
+		glBindBuffer(GL_UNIFORM_BUFFER, _uboData);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 32, NULL, GL_STATIC_DRAW);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _uboData);
 
 		// compile the shader
 		for (auto shader: _shaders) {
@@ -388,25 +392,29 @@ namespace qk {
 		glUseProgram(_colorMaskSdf.shader);
 		glUniform1i(_colorMaskSdf.image, 0); // set texture slot
 
+		glUseProgram(_clip.shader);
+		glUniform1i(_clip.aaalpha, 15); // set texture slot
+
 		glUseProgram(0);
 
 		glEnable(GL_BLEND); // enable color blend
+		setBlendMode(kSrcOver_BlendMode); // set default color blend mode
 		// enable and disable test function
 		glClearStencil(127);
 		glStencilMask(0xFFFFFFFF);
 		glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 		// set depth test
-		//glDisable(GL_DEPTH_TEST); // disable depth test
 		glEnable(GL_DEPTH_TEST); // enable depth test
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
-		glClearDepth(0.0f); // set depth clear value
+		glClearDepth(0.0f); // set depth clear value to -1.0
 	}
 
 	GLRender::~GLRender() {
 		glDeleteFramebuffers(2, &_frameBuffer); // _frameBuffer,_msaaFrameBuffer
 		glDeleteRenderbuffers(4, &_renderBuffer); // _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer
-		glDeleteTextures(4, &_texAABuffer); // _texAABuffer, _texBuffer
+		glDeleteTextures(4, &_clipAAAlphaBuffer); // _clipAAAlphaBuffer, _texBuffer
+		glDeleteBuffers(1, &_uboData);
 	}
 
 	void GLRender::reload() {
@@ -444,10 +452,11 @@ namespace qk {
 		if (!_IsDeviceMsaa) { // no device msaa
 			glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
 		}
-		setBuffers(w, h, _opts.msaaSampleCnt);
+		setDepthStencilBuffer(w, h, _opts.msaaSampleCnt);
+		setClipAABuffer(w, h, _opts.msaaSampleCnt);
 
-		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0 };
-		glDrawBuffers(1, buffers);
+		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, buffers);
 
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
 			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
@@ -461,7 +470,7 @@ namespace qk {
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
 
-		_mainCanvas.setRootMatrix(mat, surfaceScale);
+		_glcanvas.setRootMatrix(mat, surfaceScale);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
@@ -477,7 +486,7 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaaRenderBuffer);
 	}
 
-	void GLRender::setBuffers(int width, int height, int msaaSample) { // set buffers
+	void GLRender::setDepthStencilBuffer(int width, int height, int msaaSample) { // set buffers
 		// depth buffer
 		glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer); // set depth buffer
 		msaaSample > 1 ?
@@ -490,18 +499,20 @@ namespace qk {
 		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, GL_STENCIL_INDEX8, width, height):
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilBuffer);
+	}
 
+	void GLRender::setClipAABuffer(int width, int height, int msaaSample) {
 		// clip anti alias buffer
 		if (msaaSample <= 1) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, _texAABuffer);
+			glActiveTexture(GL_TEXTURE15); // 15 only use on aa alpha
+			glBindTexture(GL_TEXTURE_2D, _clipAAAlphaBuffer);
 			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, GL_ALPHA/*internalformat*/,
 									width, height, 0/*border*/, GL_ALPHA/*format*/, GL_UNSIGNED_BYTE/*type*/, nullptr);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, _texAABuffer, 0);
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, _clipAAAlphaBuffer, 0);
 		}
 	}
 

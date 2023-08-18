@@ -1,15 +1,19 @@
 #version 300 es
 
-#define matrix (root_matrix * view_matrix)
+#define matrix (rootMatrix * viewMatrix)
+//#define depth (zDepth * 0.0000152587890625) // zDepth / 65536
+#define depth zDepth
 
-layout (std140) uniform mat_ubo { // std430?
+layout (std140) uniform uboData { // std430?, binding=0
 	/*mediump*/
-	mat4  root_matrix;
-	mat4  view_matrix;
+	mat4  rootMatrix;
+	mat4  viewMatrix;
 };
 
 #ifndef Qk_SHAFER_FRAG
-in      vec2  vertex_in;
+//layout(location=0) in      vec2  vertexIn;
+in      vec2  vertexIn;
+uniform float zDepth;
 #else
 layout(location=0) out lowp vec4 fragColor;
 #endif

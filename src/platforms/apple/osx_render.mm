@@ -27,6 +27,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * ***** END LICENSE BLOCK ***** */
+ 
+#define GL_SILENCE_DEPRECATION
 
 #import "./apple_app.h"
 #import "../../display.h"
@@ -185,15 +187,14 @@ public:
 		glViewport(0, 0, size.x(), size.y());
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
 
-		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0 };
-		glDrawBuffers(1, buffers);
+		setClipAABuffer(size.x(), size.y(), _opts.msaaSampleCnt);
 
-		_mainCanvas.setRootMatrix(mat, surfaceScale);
+		_glcanvas.setRootMatrix(mat, surfaceScale);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		[NSOpenGLContext clearCurrentContext]; // clear ctx
 		CGLUnlockContext(_ctx.CGLContextObj);
-  }
+	}
 
 	void begin() override {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -225,6 +226,7 @@ public:
 		if (sampleCount > 1) {
 			_IsDeviceMsaa = true;
 		}
+		_opts.msaaSampleCnt = sampleCount;
 		return _view;
 	}
 

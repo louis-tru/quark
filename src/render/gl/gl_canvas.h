@@ -82,7 +82,6 @@ namespace qk {
 		GLRender *_render;
 		State    *_state;
 		GLuint _stencilRef, _stencilRefDecr;
-		GLuint _matUbo; // matUBO => root,view matrix
 		float  _surfaceScale, _transfromScale;
 		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
 		Qk_DEFINE_INLINE_CLASS(Inl);
