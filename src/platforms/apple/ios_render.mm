@@ -41,7 +41,7 @@ extern QkApplicationDelegate *__appDelegate;
 
 @interface GLView: UIView
 {
-	CADisplayLink *_display_link;
+	CADisplayLink *_displayLink;
 }
 @property (assign, nonatomic) qk::Render *render;
 @end
@@ -55,23 +55,19 @@ extern QkApplicationDelegate *__appDelegate;
 	- (id) initWithFrame:(CGRect)frame {
 		self = [super initWithFrame:frame];
 		if (self) {
-			_display_link = [CADisplayLink displayLinkWithTarget:self
+			_displayLink = [CADisplayLink displayLinkWithTarget:self
 																									selector:@selector(display:)];
-			[_display_link addToRunLoop:[NSRunLoop mainRunLoop]
+			[_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
 													forMode:NSDefaultRunLoopMode];
 		}
 		return self;
 	}
 
 	- (void) display:(CADisplayLink*)displayLink {
-		// auto _ = __appDelegate.host;
 		static int _fps = 0;
 		if (_fps == 0) { // 3 = 15, 1 = 30
 			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 2");
-
-			auto del = self.render->delegate();
-			if (del->onRenderBackendPreDisplay())
-				del->onRenderBackendDisplay();
+			self.render->delegate()->onRenderBackendDisplay();
 			_fps = 0;
 		} else {
 			_fps++;
@@ -79,7 +75,7 @@ extern QkApplicationDelegate *__appDelegate;
 	}
 
 	- (void) stopDisplay {
-		[_display_link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+		[_displayLink removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 	}
 
 @end
@@ -109,7 +105,7 @@ public:
 		return _default_scale;
 	}
 
-	void setDepthBuffer(int width, int height, int MSAASample) override {
+	void setDepthBuffer(int width, int height, int msaaSample) override {
 	}
 
 	void setRenderBuffer(int width, int height) override {

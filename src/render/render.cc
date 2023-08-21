@@ -52,7 +52,7 @@ namespace qk {
 		, _defaultScale(1)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
-		_opts.msaaSampleCnt = massSample(_opts.msaaSampleCnt);
+		_opts.msaa = massSample(_opts.msaa);
 	}
 
 	RenderBackend::~RenderBackend() {}

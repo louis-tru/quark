@@ -32,6 +32,14 @@
 
 namespace qk {
 
+	struct Thread {
+		int         abort; // abort signal of run loop
+		ThreadID    id;
+		String      tag;
+	};
+
+	const Thread* thread_current();
+
 	/**
 	* @constructor
 	*/
@@ -62,10 +70,10 @@ namespace qk {
 		};
 		auto id = thread_fork([](void* arg) {
 			Handle<Tmp> tmp = (Tmp*)arg;
-			auto t = thread_current();
+			auto id = thread_current_id();
 			tmp->func();
 			ScopeLock scope(tmp->self->_mutex2);
-			tmp->self->_childs.erase(t->id);
+			tmp->self->_childs.erase(id);
 		}, new Tmp, name);
 		_childs[id] = 1;
 		return id;

@@ -204,25 +204,21 @@ namespace qk {
 		return false;
 	}
 
-	bool Display::onRenderBackendPreDisplay() {
-		UILock lock(_host); // ui main local
-		if (_host->pre_render()->solve())
-			return true;
-		solveNextFrame();
-		return false;
-	}
-
 	void Display::onRenderBackendDisplay() {
 		UILock lock(_host); // ui main local
+
+		if (!_host->pre_render()->solve()) {
+			solveNextFrame();
+			return;
+		}
 		int64_t now_time = time_monotonic();
-		
-		Qk_DEBUG("Display::render()");
+		// Qk_DEBUG("Display::render()");
 
 		if (now_time - _next_fsp_time >= 1e6) { // 1s
 			_fsp = _next_fsp;
 			_next_fsp = 0;
 			_next_fsp_time = now_time;
-			Qk_DEBUG("fps: %d", _fsp);
+			Qk_LOG("fps: %d", _fsp);
 		}
 		_next_fsp++;
 

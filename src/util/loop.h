@@ -60,12 +60,7 @@ namespace qk {
 
 	template<> Qk_EXPORT uint64_t Compare<ThreadID>::hashCode(const ThreadID& key);
 
-	struct Thread {
-		ThreadID id;
-		String   tag;
-		int      abort; // abort signal
-	};
-
+	struct Thread;
 	struct Wait {
 		Mutex     mutex;
 		Condition cond;
@@ -81,13 +76,12 @@ namespace qk {
 	//!< Pause the current operation can be awakened by 'resume()'
 	Qk_EXPORT void     thread_pause(uint64_t timeoutUs = 0 /*Less than 1 permanent wait*/);
 	Qk_EXPORT void     thread_resume(ThreadID id, int abort = 0); //!< resume thread running and send abort signal
-	Qk_EXPORT void     thread_abort(ThreadID id); //!< send abort, signal=-1
+	Qk_EXPORT void     thread_abort(ThreadID id); //!< send abort to run loop, signal=-1
 	//!< Wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
 	Qk_EXPORT void     thread_wait_for(ThreadID id, uint64_t timeoutUs = 0);
-	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc); //!< try abort, signal=-2
+	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc); //!< try abort run loop, signal=-2
 
-	Qk_EXPORT ThreadID      thread_current_id();
-	Qk_EXPORT const Thread* thread_current();
+	Qk_EXPORT ThreadID thread_current_id();
 
 	Qk_EXPORT EventNoticer<Event<>, Mutex>& onExit();
 
@@ -193,7 +187,7 @@ namespace qk {
 		/**
 		 * Returns the thread object for run loop
 		 */
-		inline const Thread* thread() const { return _thread; }
+		// inline const Thread* thread() const { return _thread; }
 		
 		/**
 		 * Returns the run loop for current thrend

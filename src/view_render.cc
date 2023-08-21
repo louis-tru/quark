@@ -582,7 +582,7 @@ namespace qk {
 	}
 
 	void ViewRender::visitRoot(Root* v) {
-		if (v->_visible) {
+		if (_canvas && v->_visible) {
 			uint32_t mark = v->layout_mark();
 			if (mark) {
 				v->solve_marks(mark);

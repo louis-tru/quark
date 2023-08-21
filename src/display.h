@@ -194,7 +194,6 @@ namespace qk {
 		void solveNextFrame();
 		bool onRenderBackendReload(Region region, Vec2 size,
 															 float defaultScale, Mat4 *mat, Vec2 *scale) override;
-		bool onRenderBackendPreDisplay() override;
 		void onRenderBackendDisplay() override;
 
 		// member data

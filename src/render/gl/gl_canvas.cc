@@ -228,7 +228,10 @@ namespace qk {
 		// ----------------------------------------------------------------------------------------
 
 		void drawColor(const VertexData &vertex, const Paint &paint, GLenum mode) {
-			_render->_color.use(vertex);
+			glBindVertexArray(vertex.vao);
+			//glUseProgram(_render->_colorSdf.shader);//test
+			glUseProgram(_render->_color.shader);
+			//_render->_color.use(vertex);
 			glUniform1f(_render->_color.zDepth, zDepth());
 			glUniform4fv(_render->_color.color, 1, paint.color.val);
 			glDrawArrays(mode, 0, vertex.count);
@@ -557,7 +560,7 @@ namespace qk {
 			//auto color4f = color.to_color4f_alpha(alpha);
 			glUniform1f(_render->_color.zDepth, _this->zDepth());
 			glUniform4fv(_render->_color.color, 1, color.val);
-			glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
+			glDrawArrays(GL_TRIANGLES, 0, path.count);
 			//glDrawArrays(GL_LINES, 0, path.vertex.length());
 			if (aa) {
 				auto &strip = _render->getSDFStrokeTriangleStrip(path.path, _unitPixel*aa_sdf_width);

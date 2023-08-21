@@ -45,10 +45,17 @@ namespace qk {
 		return *reinterpret_cast<const uint32_t*>(&key);
 	}
 
+	struct Thread {
+		int      abort; // abort signal of run loop
+		ThreadID id;
+		String   tag;
+	};
+
 	struct Thread_INL: Thread, Wait {
 		RunLoop*    _loop;
 		List<Wait*> _wait_ends; // external wait thread end
 		void        (*_exec)(void* arg);
+		void        *_arg;
 	};
 
 	static RunLoop *__first_loop = nullptr;
@@ -79,12 +86,15 @@ namespace qk {
 
 	// --------------------------------- T H R E A D ---------------------------------
 
-	static Thread_INL* Thread_INL_init(Thread_INL *t, void (*exec)(void* arg), cString& tag)
-	{
+	static Thread_INL* Thread_INL_init(
+		Thread_INL *t, cString& tag, void *arg,
+		void (*exec)(void* arg)
+	) {
 		t->tag = tag;
 		t->abort = 0;
 		t->_loop = nullptr;
 		t->_exec = exec;
+		t->_arg = arg;
 		return t;
 	}
 
@@ -111,24 +121,24 @@ namespace qk {
 		return reinterpret_cast<Thread_INL*>(pthread_getspecific(__specific_key));
 	}
 
-	ThreadID thread_fork(void (*exec)(void* arg), void* arg, cString& name) {
+	ThreadID thread_fork(void (*exec)(void* arg), void* arg, cString& tag) {
 		if ( __is_process_exit != 0 )
 			return ThreadID();
-		Thread_INL* thread = Thread_INL_init(new Thread_INL, exec, name);
-    ScopeLock scope(*__threads_mutex);
+		Thread_INL* thread = Thread_INL_init(new Thread_INL, tag, arg, exec);
+		ScopeLock scope(*__threads_mutex);
 
 		ThreadID id;
-		uv_thread_create((uv_thread_t*)&id, [](void* arg) {
-      { // wait thread_fork main call return
-        ScopeLock scope(*__threads_mutex);
-      }
-			auto thread = (Thread_INL*)arg;
+		uv_thread_create((uv_thread_t*)&id, [](void* t) {
+			{ // wait thread_fork main call return
+				ScopeLock scope(*__threads_mutex);
+			}
+			auto thread = (Thread_INL*)t;
 #if Qk_ANDROID
 			JNI::ScopeENV scope;
 #endif
 			thread_set_specific_data(thread);
 			if ( !thread->abort ) {
-				thread->_exec(arg);
+				thread->_exec(thread->_arg);
 			}
 			{ // delete global handle
 				ScopeLock scope(*__threads_mutex);
@@ -148,7 +158,7 @@ namespace qk {
 		if (id != ThreadID()) {
 			__threads->set(thread->id = id, thread);
 		} else { // fail
-      Qk_FATAL("id != ThreadID()");
+			Qk_FATAL("id != ThreadID()");
 			// delete thread;
 		}
 		return id;
@@ -156,12 +166,12 @@ namespace qk {
 
 	typedef std::function<void()> ForkFunc;
 
-	ThreadID thread_fork(ForkFunc func, cString& name) {
+	ThreadID thread_fork(ForkFunc func, cString& tag) {
 		auto funcp = new ForkFunc(func);
 		return thread_fork([](void* arg) {
 			std::unique_ptr<ForkFunc> f( (ForkFunc*)arg );
 			(*f)();
-		}, funcp, name);
+		}, funcp, tag);
 	}
 
 	void thread_sleep(uint64_t timeoutUs) {

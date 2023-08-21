@@ -49,16 +49,17 @@ namespace qk {
 	public:
 		struct Options {
 			ColorType   colorType;
-			uint32_t    msaaSampleCnt; // gpu msaa
+			uint16_t    msaa; // gpu msaa
+			uint16_t    fps; // if fps is 0 then use vSync, else limit fps value
 		};
 		class Delegate {
 		public:
 			virtual bool onRenderBackendReload(Region region, Vec2 size,
 								float defaultScale, Mat4 *surfaceMat, Vec2* surfaceScale) = 0;
-			virtual bool onRenderBackendPreDisplay() = 0;
 			virtual void onRenderBackendDisplay() = 0;
 		};
 
+		inline const Options& options() const { return _opts; }
 		static  RenderBackend* Make(Options opts, Delegate *delegate);
 		virtual        ~RenderBackend();
 		virtual void    reload() = 0; // surface size and scale change

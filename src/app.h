@@ -66,7 +66,8 @@ namespace qk {
 	public:
 		struct Options {
 			ColorType   colorType;
-			uint32_t    msaaSampleCnt; // gpu msaa
+			uint16_t    msaa; // gpu msaa count
+			uint16_t    fps;
 			Rect        windowFrame;
 			String      windowTitle;
 			Color       backgroundColor;

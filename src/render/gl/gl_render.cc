@@ -353,7 +353,7 @@ namespace qk {
 		}
 
 		if (!_IsSupportMultisampled) {
-			_opts.msaaSampleCnt = 0;
+			_opts.msaa = 0;
 		}
 		_canvas = &_glcanvas; // set default canvas
 
@@ -395,7 +395,7 @@ namespace qk {
 		glUseProgram(_clip.shader);
 		glUniform1i(_clip.aaalpha, 15); // set texture slot
 
-		glUseProgram(0);
+		glUseProgram(_color.shader); // test
 
 		glEnable(GL_BLEND); // enable color blend
 		setBlendMode(kSrcOver_BlendMode); // set default color blend mode
@@ -406,6 +406,7 @@ namespace qk {
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 		// set depth test
 		glEnable(GL_DEPTH_TEST); // enable depth test
+		// glDisable(GL_DEPTH_TEST); // dissable depth test
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
 		glClearDepth(0.0f); // set depth clear value to -1.0
 	}
@@ -434,26 +435,26 @@ namespace qk {
 		glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer); // bind frame buffer
 		setMainRenderBuffer(w, h);
 
-		if (_opts.msaaSampleCnt > 1 && !_IsDeviceMsaa) {
+		if (_opts.msaa > 1 && !_IsDeviceMsaa) {
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaaFrameBuffer);
 
 			do { // enable multisampling
-				setMSAARenderBuffer(w, h, _opts.msaaSampleCnt);
+				setMSAARenderBuffer(w, h, _opts.msaa);
 				// Test the framebuffer for completeness.
 				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
-					if ( _opts.msaaSampleCnt > 1 )
+					if ( _opts.msaa > 1 )
 						_IsDeviceMsaa = true;
 					break;
 				}
-				_opts.msaaSampleCnt >>= 1;
-			} while (_opts.msaaSampleCnt > 1);
+				_opts.msaa >>= 1;
+			} while (_opts.msaa > 1);
 		}
 
 		if (!_IsDeviceMsaa) { // no device msaa
 			glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
 		}
-		setDepthStencilBuffer(w, h, _opts.msaaSampleCnt);
-		setClipAABuffer(w, h, _opts.msaaSampleCnt);
+		setDepthStencilBuffer(w, h, _opts.msaa);
+		setClipAABuffer(w, h, _opts.msaa);
 
 		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
 		glDrawBuffers(2, buffers);

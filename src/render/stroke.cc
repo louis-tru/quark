@@ -203,7 +203,7 @@ namespace qk {
 		},
 		[](bool close, int size, int subpath, void *ctx) {
 			auto _ = static_cast<Ctx*>(ctx);
-			auto len = _->out->length();
+			auto len = _->out->length() / 3;
 			size <<= 1;
 			if (close)
 				size += 2;
