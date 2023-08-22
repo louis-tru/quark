@@ -88,7 +88,7 @@ namespace qk {
 				0.0,    0.0,    1.0, 0.0,
 				mat[2], mat[5], 0.0, 1.0
 			}; // transpose matrix
-			glBindBuffer(GL_UNIFORM_BUFFER, _render->_uboData);
+			glBindBuffer(GL_UNIFORM_BUFFER, _render->_matrixBlock);
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, m4x4);
 
 			auto mScale = Float::max(_state->matrix[0], _state->matrix[4]);
@@ -456,7 +456,7 @@ namespace qk {
 	void GLCanvas::setRootMatrix(const Mat4& root, Vec2 surfaceScale) {
 		// update all shader root matrix
 		auto m4x4 = root.transpose(); // transpose matrix
-		glBindBuffer(GL_UNIFORM_BUFFER, _render->_uboData);
+		glBindBuffer(GL_UNIFORM_BUFFER, _render->_matrixBlock);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, m4x4.val);
 		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
 

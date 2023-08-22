@@ -7,6 +7,8 @@ uniform lowp  float     opacity;
 uniform       sampler2D image;
 
 void main() {
-	fragColor = texture(image, coord_f) * vec4(1.0, 1.0, 1.0, opacity);
+	fragColor = texture(image, coord_f);
+	fragColor.a = fragColor.a * opacity;
+	//fragColor = texture(image, coord_f) * vec4(1.0, 1.0, 1.0, opacity);
 	//fragColor = vec4(coord_f.x, coord_f.y, 1, opacity);
 }

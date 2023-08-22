@@ -8,5 +8,5 @@ uniform       sampler2D image;
 uniform lowp  vec4      color;
 
 void main() {
-	fragColor = color * vec4(1.0,1.0,1.0,texture(image, coord_f).a);
+	fragColor = vec4(color.rgb, color.a * texture(image, coord_f).a);
 }

@@ -364,10 +364,11 @@ namespace qk {
 		// Create aa texture buffer
 		glGenTextures(1, &_clipAAAlphaBuffer); // _clipAlphaBuffer
 
-		glGenBuffers(1, &_uboData);
-		glBindBuffer(GL_UNIFORM_BUFFER, _uboData);
+		glGenBuffers(1, &_matrixBlock);
+		glBindBuffer(GL_UNIFORM_BUFFER, _matrixBlock);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _matrixBlock);
+		// glBindBufferRange(GL_UNIFORM_BUFFER, 0, _matrixBlock, 0, sizeof(float) * 32);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 32, NULL, GL_STATIC_DRAW);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _uboData);
 
 		// compile the shader
 		for (auto shader: _shaders) {
@@ -415,7 +416,7 @@ namespace qk {
 		glDeleteFramebuffers(2, &_frameBuffer); // _frameBuffer,_msaaFrameBuffer
 		glDeleteRenderbuffers(4, &_renderBuffer); // _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer
 		glDeleteTextures(4, &_clipAAAlphaBuffer); // _clipAAAlphaBuffer, _texBuffer
-		glDeleteBuffers(1, &_uboData);
+		glDeleteBuffers(1, &_matrixBlock);
 	}
 
 	void GLRender::reload() {

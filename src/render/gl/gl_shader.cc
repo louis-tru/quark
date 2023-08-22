@@ -86,7 +86,7 @@ namespace qk {
 		}
 
 		// Get uniform block and bind index
-		GLuint ubo = glGetUniformBlockIndex(program, "uboData");
+		GLuint ubo = glGetUniformBlockIndex(program, "matrixBlock");
 		glUniformBlockBinding(program, ubo, 0); // binding = 0 uniform block index as zero
 #if DEBUG
 		GLint bufferSize;

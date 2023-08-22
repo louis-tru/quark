@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
  
-#define GL_SILENCE_DEPRECATION
+// #define GL_SILENCE_DEPRECATION
 
 #import "./apple_app.h"
 #import "../../display.h"

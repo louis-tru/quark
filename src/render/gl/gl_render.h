@@ -64,7 +64,7 @@ namespace qk {
 		GLuint _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer;
 		GLuint _clipAAAlphaBuffer; // aa texture buffer
 		GLuint _texBuffer[3]; // temp texture buffers
-		GLuint _uboData; // uboData => root,view matrix
+		GLuint _matrixBlock; // matrixBlock => root,view matrix
 		uint16_t _zDepth;
 		GLCanvas _glcanvas; // main canvas
 		GLSLClear _clear; // shader
