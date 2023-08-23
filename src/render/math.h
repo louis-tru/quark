@@ -260,6 +260,7 @@ namespace qk {
 			: Vec<float, 4>(r, g, b, a) {}
 		bool operator==(const Color4f& color) const;
 		bool operator!=(const Color4f& color) const;
+		Color4f to_color4f_alpha(float alpha) const;
 	};
 
 	struct Qk_EXPORT Color: Vec<uint8_t, 4> {

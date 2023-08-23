@@ -101,7 +101,7 @@ namespace qk {
 		 * @method getAAFuzzTriangle() returns fuzz value stroke triangle vertices
 		 * @return {Array<Vec3>} vertex points { x, y, aa fuzz stroke value renge 1 to 0 to -1 }[]
 		*/
-		Array<Vec3> getAAFuzzTriangle(float width, float epsilon = 1.0, float minLimit = 0.0) const;
+		Array<Vec3> getAAFuzzTriangle(float width, float epsilon = 1.0) const;
 
 		/**
 		 * @method dashPath() returns the dash path

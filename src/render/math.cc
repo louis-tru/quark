@@ -326,6 +326,10 @@ namespace qk {
 		return ! operator==(color);
 	}
 
+	Color4f Color4f::to_color4f_alpha(float alpha) const {
+		return Color4f(r(), g(), b(), a() * alpha);
+	}
+
 	bool Color::operator==(Color color) const {
 		return *reinterpret_cast<const int*>(&color) == *reinterpret_cast<const int*>(this);
 	}

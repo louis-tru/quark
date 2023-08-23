@@ -177,7 +177,7 @@ namespace qk {
 	// using offset vertex normals mode
 	// TODO: When the included angle is extremely small, the normal will be shifted too much, 
 	//       which will cause the image to appear glitchy
-	Array<Vec3> Path::getAAFuzzTriangle(float width, float epsilon, float minLimit) const {
+	Array<Vec3> Path::getAAFuzzTriangle(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
 		Array<Vec3> out;
@@ -198,8 +198,8 @@ namespace qk {
 				auto len = _->width / sinf(angleLen);
 				normals *= len;
 			}
-			*(_->ptr++) = Vec3(from + normals, -0.5);
-			*(_->ptr++) = Vec3(from - normals, 0.5);
+			*(_->ptr++) = Vec3(from + normals, -1);
+			*(_->ptr++) = Vec3(from - normals, 1);
 		},
 		[](bool close, int size, int subpath, void *ctx) {
 			auto _ = static_cast<Ctx*>(ctx);
@@ -242,13 +242,13 @@ namespace qk {
 			auto _ = (Ctx*)ctx;
 			if (prev) {
 				auto normals = (from - (*prev)).rotate90z().normalized() * _->width;
-				*(_->ptr++) = Vec3(from + normals, -0.5);
-				*(_->ptr++) = Vec3(from - normals, 0.5);
+				*(_->ptr++) = Vec3(from + normals, -1);
+				*(_->ptr++) = Vec3(from - normals, 1);
 			}
 			if (next) {
 				auto normals = ((*next) - from).rotate90z().normalized() * _->width;
-				*(_->ptr++) = Vec3(from + normals, -0.5);
-				*(_->ptr++) = Vec3(from - normals, 0.5);
+				*(_->ptr++) = Vec3(from + normals, -1);
+				*(_->ptr++) = Vec3(from - normals, 1);
 			}
 		},
 		[](bool close, int size, int subpath, void *ctx) {
