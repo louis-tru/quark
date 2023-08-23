@@ -13,16 +13,16 @@ void main() {
 
 #frag
 in      lowp float     indexed;
-uniform      int       count;
+uniform lowp int       count;
 uniform lowp float     opacity;
 uniform lowp vec4      colors[256];/*max 256 color points*/
 uniform lowp float     positions[256];
 
 void main() {
-	int s = 0;
-	int e = count-1;
+	lowp int s = 0;
+	lowp int e = count-1;
 	while (s+1 < e) {/*dichotomy search color value*/
-		int idx = (e - s) / 2 + s;
+		lowp int idx = (e - s) / 2 + s;
 		if (indexed > positions[idx]) {
 			s = idx;
 		} else if (indexed < positions[idx]) {

@@ -177,7 +177,7 @@ namespace qk {
 	// using offset vertex normals mode
 	// TODO: When the included angle is extremely small, the normal will be shifted too much, 
 	//       which will cause the image to appear glitchy
-	Array<Vec3> Path::getAAFuzzTriangle(float width, float epsilon) const {
+	Array<Vec3> Path::getAAFuzzStrokeTriangle(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
 		Array<Vec3> out;
@@ -212,7 +212,7 @@ namespace qk {
 				len += 2;
 			}
 			_->out->extend(len + size); // alloc memory space
-			_->ptr = reinterpret_cast<Vec3*>(_->out->val()) + len;
+			_->ptr = _->out->val() + len;
 		},
 		[](bool close, int size, int subpath, void *ctx) {
 			auto _ = static_cast<Ctx*>(ctx);
@@ -232,7 +232,7 @@ namespace qk {
 	}
 #else
 	// use line segment stroke mode, experimental method
-	Array<Vec3> Path::getFuzzStrokeTriangle(float width, float epsilon) const {
+	Array<Vec3> Path::getAAFuzzStrokeTriangle(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
 		Array<Vec3> out;

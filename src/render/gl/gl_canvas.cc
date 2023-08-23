@@ -63,10 +63,8 @@ namespace qk {
 		//glDrawArrays(GL_LINE_STRIP, 0, p.ptsLen());
 	}
 
-	constexpr float aa_fuzz_alpha = 0.666666f;
+	constexpr float aa_fuzz_weight = 0.666666;
 	constexpr float aa_fuzz_width = 0.6;
-	// constexpr float aa_sdf_range[3] = {1,0,0}; // test
-	// constexpr float aa_sdf_width = 4; // test
 
 	Qk_DEFINE_INLINE_MEMBERS(GLCanvas, Inl) {
 	public:
@@ -149,7 +147,7 @@ namespace qk {
 				Qk_ASSERT(path.path.isNormalized());
 				fillv(path.vertex, paint);
 				if (aa) {
-					drawAAFuzzStroke(path.path, paint, aa_fuzz_alpha, aa_fuzz_width);
+					drawAAFuzzStroke(path.path, paint, aa_fuzz_weight, aa_fuzz_width);
 				}
 				_render->_zDepth++;
 			}
@@ -161,7 +159,7 @@ namespace qk {
 			if (vertex.length()) {
 				fillv(vertex, paint);
 				if (aa) {
-					drawAAFuzzStroke(path, paint, aa_fuzz_alpha, aa_fuzz_width);
+					drawAAFuzzStroke(path, paint, aa_fuzz_weight, aa_fuzz_width);
 				}
 			}
 			_render->_zDepth++;
@@ -202,24 +200,24 @@ namespace qk {
 			}
 		}
 
-		void drawAAFuzzStroke(const Path& path, const Paint& paint, float aaFuzzAlpha, float aaFuzzWidth) {
+		void drawAAFuzzStroke(const Path& path, const Paint& paint, float aaFuzzWeight, float aaFuzzWidth) {
 			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
 			//auto &vertex = _render->getSDFStrokeTriangleStripCache(newPath, _Scale);
 			// _UnitPixel*0.6=1.2/_Scale, 2.4px
-			auto &vertex = _render->getAAFuzzTriangle(path, _unitPixel*aaFuzzWidth);
+			auto &vertex = _render->getAAFuzzStrokeTriangle(path, _unitPixel*aaFuzzWidth);
 			// Qk_DEBUG("%p", &vertex);
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					drawColor(vertex, paint, aaFuzzAlpha);
+					drawColor(vertex, paint, aaFuzzWeight);
 					break;
 				case Paint::kGradient_Type:
-					drawGradient(vertex, paint, paint.color.a() * aaFuzzAlpha);
+					drawGradient(vertex, paint, aaFuzzWeight * paint.color.a());
 					break;
 				case Paint::kBitmap_Type:
-					drawImage(vertex, paint, paint.color.a() * aaFuzzAlpha);
+					drawImage(vertex, paint, aaFuzzWeight * paint.color.a());
 					break;
 				case Paint::kBitmapMask_Type:
-					drawImageMask(vertex, paint, aaFuzzAlpha);
+					drawImageMask(vertex, paint, aaFuzzWeight);
 					break;
 			}
 		}
@@ -506,10 +504,10 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
 			//glDrawArrays(GL_LINES, 0, path.vertex.length());
 			if (aa) {
-				auto &vertex = _render->getAAFuzzTriangle(path.path, _unitPixel*aa_fuzz_width);
+				auto &vertex = _render->getAAFuzzStrokeTriangle(path.path, _unitPixel*aa_fuzz_width);
 				//_render->setBlendMode(kSrc_BlendMode); // switch blend mode
 				_render->_color.use(vertex.size(), vertex.val());
-				glUniform4fv(_render->_color.color, 1, color.to_color4f_alpha(aa_fuzz_alpha).val);
+				glUniform4fv(_render->_color.color, 1, color.to_color4f_alpha(aa_fuzz_weight).val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 			}
 			_render->_zDepth++;

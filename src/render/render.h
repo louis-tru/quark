@@ -96,7 +96,7 @@ namespace qk {
 		/**
 		 * @dev get aa fuzz stroke path triangle cache
 		*/
-		const Array<Vec3>& getAAFuzzTriangle(const Path &path, float width);
+		const Array<Vec3>& getAAFuzzStrokeTriangle(const Path &path, float width);
 
 		/**
 		 * @dev get radius rect path cache from hash code
@@ -156,7 +156,7 @@ namespace qk {
 		float         _defaultScale; // recommend default surface scale
 		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
 		Dict<uint64_t, Array<Vec3>> _PathTrianglesCache; // path hash => triangles
-		Dict<uint64_t, Array<Vec3>> _AAFuzzTriangleCache; // path hash => aa fuzz stroke triangles
+		Dict<uint64_t, Array<Vec3>> _AAFuzzStrokeTriangleCache; // path hash => aa fuzz stroke triangles
 		Dict<uint64_t, RectPath> _RectPathCache; // rect hash => rect path
 		Dict<uint64_t, RectOutlinePath> _RectOutlinePathCache; // rect hash => rect outline path
 	};

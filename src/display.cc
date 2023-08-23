@@ -218,7 +218,7 @@ namespace qk {
 			_fsp = _next_fsp;
 			_next_fsp = 0;
 			_next_fsp_time = now_time;
-			Qk_LOG("fps: %d", _fsp);
+			Qk_DEBUG("fps: %d", _fsp);
 		}
 		_next_fsp++;
 

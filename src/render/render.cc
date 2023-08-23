@@ -92,16 +92,16 @@ namespace qk {
 		return _PathTrianglesCache.set(hash, path.getTriangles(1));
 	}
 
-	const Array<Vec3>& RenderBackend::getAAFuzzTriangle(const Path &path, float width) {
+	const Array<Vec3>& RenderBackend::getAAFuzzStrokeTriangle(const Path &path, float width) {
 		auto hash = path.hashCode();
 		hash += (hash << 5) + *(int32_t*)&width;
 		//Qk_DEBUG("getAAFuzzTriangle, %lu", hash);
 		const Array<Vec3> *out;
-		if (_AAFuzzTriangleCache.get(hash, out)) return *out;
-		if (_AAFuzzTriangleCache.length() >= 1024) {
-			_AAFuzzTriangleCache.clear();
+		if (_AAFuzzStrokeTriangleCache.get(hash, out)) return *out;
+		if (_AAFuzzStrokeTriangleCache.length() >= 1024) {
+			_AAFuzzStrokeTriangleCache.clear();
 		}
-		return _AAFuzzTriangleCache.set(hash, path.getAAFuzzTriangle(width, 1));
+		return _AAFuzzStrokeTriangleCache.set(hash, path.getAAFuzzStrokeTriangle(width, 1));
 	}
 
 	const RectPath* RenderBackend::getRRectPathFromHash(uint64_t hash) {
