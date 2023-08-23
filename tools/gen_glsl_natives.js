@@ -66,7 +66,7 @@ function write(fp) {
 function readcode(input) {
 	return fs.readFileSync(input).toString('utf8')
 		.replace(/\/\/.*$/mg, '')
-		.replace(/\/\*.*?\*\/$/mg, '');
+		.replace(/\/\*.*?\*\//mg, '');
 }
 
 function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
@@ -78,7 +78,7 @@ function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 	var reg = new RegExp(
 		'^\\s*(?:layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s+)?'+
 		'(uniform|attribute|in)\\s+((lowp|mediump|highp)\\s+)?'+
-		'(int|float|vec2|vec3|vec4|mat2|mat3|mat4|sampler2D)'+
+		'(int|uint|float|vec2|vec3|vec4|mat2|mat3|mat4|sampler2D)'+
 		'\\s+([a-zA-Z0-9\\_]+)\\s*(\\[\\s*(\\d+)\\s*\\])?;\\s*$'
 		,'mg'
 	);
@@ -90,9 +90,10 @@ function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 		let arr = mat[8];
 		if (mat[2] == 'uniform') {
 			uniforms.push(name);
-		} else { // attribute | in
+		} else if (name.substring(name.length - 2) == 'In') { // attribute | in
 			let typeSize = {
 				int: [1,'GL_INT','int'],
+				uint: [1,'GL_UNSIGNED_INT','uint32_t'],
 				float: [1,'GL_FLOAT','float'],
 				vec2: [2,'GL_FLOAT','float'],
 				vec3: [3,'GL_FLOAT','float'],
@@ -225,11 +226,11 @@ function resolve_glsl(name, input, hpp, cpp) {
 	let pathname = path.resolve(input);
 	let dir = path.dirname(pathname);
 	let codestr = readcode(pathname);
-	let [vertstr, fragstr] = codestr.split(/^#frag/gm);
+	let [first, fragstr] = codestr.split(/^#frag/gm);
+	let [util, vertstr] = first.split(/^#vert/gm);
 
-	vertstr = vertstr.replace(/^#vert/gm, '');
-	vertstr = '#import "_util.glsl"\n' + vertstr;
-	fragstr = '#import "_util.glsl"\n' + fragstr;
+	vertstr = '#import "_util.glsl"\n' + util + vertstr;
+	fragstr = '#import "_util.glsl"\n' + util + fragstr;
 
 	let vert_ast = resolve_code_ast_from_codestr(name+'_vert', dir, vertstr, 1, 0, hpp, cpp);
 	let frag_ast = resolve_code_ast_from_codestr(name+'_ftag', dir, fragstr, 0, 1, hpp, cpp);

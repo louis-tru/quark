@@ -133,9 +133,4 @@ namespace qk {
 		glUseProgram(shader);
 	}
 
-	void GLSLShader::use(const VertexData& data) {
-		glBindVertexArray(data.vao);
-		glUseProgram(shader);
-	}
-
 }

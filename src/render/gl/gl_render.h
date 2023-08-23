@@ -44,9 +44,6 @@ namespace qk {
 		virtual void reload() override;
 		virtual uint32_t makeTexture(cPixel *src, uint32_t id) override;
 		virtual void deleteTextures(const uint32_t *ids, uint32_t count) override;
-		virtual void makeVertexData(VertexData *data) override;
-		virtual void deleteVertexData(const VertexData &data) override;
-		virtual void copyVertexData(const VertexData &src, VertexData *dest) override;
 		void         setBlendMode(BlendMode blendMode);
 	protected:
 		GLRender(Options opts);
@@ -70,18 +67,14 @@ namespace qk {
 		GLSLClear _clear; // shader
 		GLSLClip  _clip;
 		GLSLColor _color;
+		GLSLGeneric _generic;
 		GLSLColorMask _colorMask;
 		GLSLColorLinear _linear;
 		GLSLColorRadial _radial;
 		GLSLImage _image;
 		GLSLImageYuv420p _yuv420p;
 		GLSLImageYuv420sp _yuv420sp;
-		GLSLColorSdf _colorSdf;
-		GLSLColorMaskSdf _colorMaskSdf;
-		GLSLColorLinearSdf _linearSdf;
-		GLSLColorRadialSdf _radialSdf;
-		GLSLImageSdf _imageSdf;
-		GLSLShader  *_shaders[14];
+		GLSLShader  *_shaders[10];
 		// --------------------------------------------
 	};
 }

@@ -82,34 +82,26 @@ namespace qk {
 		return _StrokePathCache.set(hash, stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath(1));
 	}
 
-	const VertexData& RenderBackend::getPathTriangles(const Path &path) {
+	const Array<Vec3>& RenderBackend::getPathTriangles(const Path &path) {
 		auto hash = path.hashCode();
-		const VertexData *out;
+		const Array<Vec3> *out;
 		if (_PathTrianglesCache.get(hash, out)) return *out;
 		if (_PathTrianglesCache.length() >= 1024) {
-			for (auto &i: _PathTrianglesCache)
-				deleteVertexData(i.value);
 			_PathTrianglesCache.clear();
 		}
-		auto data = path.getTriangles(1);
-		makeVertexData(&data);
-		return _PathTrianglesCache.set(hash, std::move(data));
+		return _PathTrianglesCache.set(hash, path.getTriangles(1));
 	}
 
-	const VertexData& RenderBackend::getSDFStrokeTriangleStrip(const Path &path, float width) {
+	const Array<Vec3>& RenderBackend::getAAFuzzTriangle(const Path &path, float width) {
 		auto hash = path.hashCode();
 		hash += (hash << 5) + *(int32_t*)&width;
-		//Qk_DEBUG("getSDFStrokeTriangleStrip, %lu", hash);
-		const VertexData *out;
-		if (_SDFStrokeTriangleStripCache.get(hash, out)) return *out;
-		if (_SDFStrokeTriangleStripCache.length() >= 1024) {
-			for (auto &i: _SDFStrokeTriangleStripCache)
-				deleteVertexData(i.value);
-			_SDFStrokeTriangleStripCache.clear();
+		//Qk_DEBUG("getAAFuzzTriangle, %lu", hash);
+		const Array<Vec3> *out;
+		if (_AAFuzzTriangleCache.get(hash, out)) return *out;
+		if (_AAFuzzTriangleCache.length() >= 1024) {
+			_AAFuzzTriangleCache.clear();
 		}
-		auto data = path.getSDFStrokeTriangleStrip(width, 1);
-		makeVertexData(&data);
-		return _SDFStrokeTriangleStripCache.set(hash, std::move(data));
+		return _AAFuzzTriangleCache.set(hash, path.getAAFuzzTriangle(width, 1));
 	}
 
 	const RectPath* RenderBackend::getRRectPathFromHash(uint64_t hash) {
@@ -119,12 +111,7 @@ namespace qk {
 	}
 
 	const RectPath& RenderBackend::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
-		if (_RectPathCache.length() >= 1024) {
-			for (auto &i: _RectPathCache)
-				deleteVertexData(i.value);
-			_RectPathCache.clear();
-		}
-		makeVertexData(&rect);
+		if (_RectPathCache.length() >= 1024) _RectPathCache.clear();
 		return _RectPathCache.set(hash, std::move(rect));
 	}
 
@@ -136,18 +123,8 @@ namespace qk {
 
 	const RectOutlinePath& RenderBackend::setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline) {
 		if (_RectOutlinePathCache.length() >= 1024) {
-			for (auto &i: _RectOutlinePathCache) {
-				deleteVertexData(i.value.top);
-				deleteVertexData(i.value.right);
-				deleteVertexData(i.value.bottom);
-				deleteVertexData(i.value.left);
-			}
 			_RectPathCache.clear();
 		}
-		makeVertexData(&outline.top);
-		makeVertexData(&outline.right);
-		makeVertexData(&outline.bottom);
-		makeVertexData(&outline.left);
 		return _RectOutlinePathCache.set(hash, std::move(outline));
 	}
 

@@ -177,11 +177,11 @@ namespace qk {
 	// using offset vertex normals mode
 	// TODO: When the included angle is extremely small, the normal will be shifted too much, 
 	//       which will cause the image to appear glitchy
-	VertexData Path::getSDFStrokeTriangleStrip(float width, float epsilon) const {
+	Array<Vec3> Path::getAAFuzzTriangle(float width, float epsilon, float minLimit) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
-		VertexData out;
-		struct Ctx { Array<float> *out; Vec3 *ptr; float width; bool fixStrip; } ctx = { &out.vertex,0,width,0 };
+		Array<Vec3> out;
+		struct Ctx { Array<Vec3> *out; Vec3 *ptr; float width; bool fixStrip; } ctx = { &out,0,width,0 };
 
 		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			auto normals = from.normalline(prev, next); // normal line
@@ -203,7 +203,7 @@ namespace qk {
 		},
 		[](bool close, int size, int subpath, void *ctx) {
 			auto _ = static_cast<Ctx*>(ctx);
-			auto len = _->out->length() / 3;
+			auto len = _->out->length();
 			size <<= 1;
 			if (close)
 				size += 2;
@@ -211,7 +211,7 @@ namespace qk {
 				// fix multiple subpath triangle strip error, step 0
 				len += 2;
 			}
-			_->out->extend((len + size) * 3); // alloc memory space
+			_->out->extend(len + size); // alloc memory space
 			_->ptr = reinterpret_cast<Vec3*>(_->out->val()) + len;
 		},
 		[](bool close, int size, int subpath, void *ctx) {
@@ -228,16 +228,11 @@ namespace qk {
 			}
 		}, false, &ctx);
 
-		out.vao = 0;
-		out.vbo = 0;
-		out.items = 3;
-		out.count = out.vertex.length() / 3;
-
 		Qk_ReturnLocal(out);
 	}
 #else
 	// use line segment stroke mode, experimental method
-	Array<Vec3> Path::getSDFStrokeTriangleStrip(float width, float epsilon) const {
+	Array<Vec3> Path::getFuzzStrokeTriangle(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
 		Array<Vec3> out;

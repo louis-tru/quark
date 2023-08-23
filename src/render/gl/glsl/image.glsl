@@ -2,13 +2,12 @@
 #import "_image.glsl"
 
 #frag
-in      lowp  vec2      coord_f;
+in      lowp  vec2      coordF;
 uniform lowp  float     opacity;
 uniform       sampler2D image;
 
 void main() {
-	fragColor = texture(image, coord_f);
-	fragColor.a = fragColor.a * opacity;
-	//fragColor = texture(image, coord_f) * vec4(1.0, 1.0, 1.0, opacity);
-	//fragColor = vec4(coord_f.x, coord_f.y, 1, opacity);
+	lowp float aaalpha = 1.0 - abs(aafuzz);
+	fragColor = texture(image, coordF);
+	fragColor.a = fragColor.a * opacity * aaalpha;
 }

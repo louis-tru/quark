@@ -56,8 +56,8 @@ namespace qk {
 		#define _inl(self) static_cast<ViewRender::Inl*>(self)
 
 		Rect getRect(Box* box) {
-			// auto fix = _render->getUnitPixel() * 0.225f; // fix aa sdf stroke
-			auto fix = 2.0f / _display->scale() * 0.225f;// fix aa sdf stroke
+			// auto fix = _render->getUnitPixel() * 0.225f; // fix aa stroke width
+			auto fix = 2.0f / _display->scale() * 0.225f;// fix aa stroke width
 			return {
 				Vec2{fix}-box->_origin_value,
 				box->_client_size-(fix+fix),

@@ -1,20 +1,15 @@
 #vert
-layout (std140) uniform colorOptsBlock {
-	vec4 color1[4096]; // 64kb
-};
-
-const int type = 0;
-
 void main() {
-	if (type == 1) { // image or color mask
-		// coord_f = (coord.xy + vertexIn.xy) * coord.zw;
-	}
-	gl_Position = matrix * vec4(vertexIn.xy, depth, 1.0);
+	// gl_InstanceID, gl_VertexID
+	aafuzz = aafuzzIn;
+	gl_Position = matrix * vec4(vertexIn.xy, zDepth, 1.0);
 }
 
 #frag
 uniform lowp vec4 color;
-
 void main() {
-	fragColor = color;
+	// fuzz value range: 1 => 0, alpha range: 0 => 1
+	// lowp float aaalpha = smoothstep(1.0, aaFuzzLimit, abs(aafuzz));
+	lowp float aaalpha = 1.0 - abs(aafuzz);
+	fragColor = vec4(color.rgb, color.a * aaalpha);
 }

@@ -92,6 +92,8 @@ namespace qk {
 	}
 	Vec2::Vec2(float f): Vec(f,f) {
 	}
+	Vec2::Vec2(const Vec<float,2>& v): Vec(v) {
+	}
 	Vec2::Vec2(float a, float b): Vec(a,b) {
 	}
 	Vec2 Vec2::operator+(const Vec<float,2>& b) const {
@@ -236,6 +238,8 @@ namespace qk {
 	Vec3::Vec3(): Vec(0,0,0) {
 	}
 	Vec3::Vec3(float f): Vec(f,f,f) {
+	}
+	Vec3::Vec3(const Vec<float,3>& v): Vec(v) {
 	}
 	Vec3::Vec3(float a, float b, float c): Vec(a,b,c) {
 	}

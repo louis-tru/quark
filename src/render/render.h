@@ -72,9 +72,6 @@ namespace qk {
 		inline  Delegate* delegate() { return _delegate; }
 		virtual uint32_t makeTexture(cPixel *src, uint32_t id) = 0;
 		virtual void    deleteTextures(const uint32_t *ids, uint32_t count) = 0;
-		virtual void    makeVertexData(VertexData *data) = 0;
-		virtual void    deleteVertexData(const VertexData &data) = 0;
-		virtual void    copyVertexData(const VertexData &src, VertexData *dest) = 0;
 
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
@@ -94,12 +91,12 @@ namespace qk {
 		/**
 		 * @dev get path triangles cache
 		*/
-		const VertexData& getPathTriangles(const Path &path);
+		const Array<Vec3>& getPathTriangles(const Path &path);
 
 		/**
-		 * @dev get sdf stroke path triangle strip cache
+		 * @dev get aa fuzz stroke path triangle cache
 		*/
-		const VertexData& getSDFStrokeTriangleStrip(const Path &path, float width);
+		const Array<Vec3>& getAAFuzzTriangle(const Path &path, float width);
 
 		/**
 		 * @dev get radius rect path cache from hash code
@@ -158,8 +155,8 @@ namespace qk {
 		Vec2          _surfaceSize; // current surface size
 		float         _defaultScale; // recommend default surface scale
 		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
-		Dict<uint64_t, VertexData> _PathTrianglesCache; // path hash => triangles
-		Dict<uint64_t, VertexData> _SDFStrokeTriangleStripCache; // path hash => aa triangles strip
+		Dict<uint64_t, Array<Vec3>> _PathTrianglesCache; // path hash => triangles
+		Dict<uint64_t, Array<Vec3>> _AAFuzzTriangleCache; // path hash => aa fuzz stroke triangles
 		Dict<uint64_t, RectPath> _RectPathCache; // rect hash => rect path
 		Dict<uint64_t, RectOutlinePath> _RectOutlinePathCache; // rect hash => rect outline path
 	};

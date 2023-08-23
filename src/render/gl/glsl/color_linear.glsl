@@ -1,17 +1,18 @@
 #vert
 uniform   vec4      range;/*origin/end range for rect*/
-out       float     indexed_f;
+out       float     indexed;
 
 void main() {
 	vec2 ao = range.zw    - range.xy;
 	vec2 bo = vertexIn.xy - range.xy;
-	/*indexed_f = clamp(dot(ao,bo) / dot(ao,ao), 0.0, 1.0);*/
-	indexed_f = dot(ao,bo) / dot(ao,ao);
-	gl_Position = matrix * vec4(vertexIn.xy, depth, 1.0);
+	/*indexed = clamp(dot(ao,bo) / dot(ao,ao), 0.0, 1.0);*/
+	indexed = dot(ao,bo) / dot(ao,ao);
+	aafuzz = aafuzzIn;
+	gl_Position = matrix * vec4(vertexIn.xy, zDepth, 1.0);
 }
 
 #frag
-in      lowp float     indexed_f;
+in      lowp float     indexed;
 uniform      int       count;
 uniform lowp float     opacity;
 uniform lowp vec4      colors[256];/*max 256 color points*/
@@ -22,15 +23,16 @@ void main() {
 	int e = count-1;
 	while (s+1 < e) {/*dichotomy search color value*/
 		int idx = (e - s) / 2 + s;
-		if (indexed_f > positions[idx]) {
+		if (indexed > positions[idx]) {
 			s = idx;
-		} else if (indexed_f < positions[idx]) {
+		} else if (indexed < positions[idx]) {
 			e = idx;
 		} else {
 			s = idx; e = idx+1; break;
 		}
 	}
-	lowp float w = (indexed_f - positions[s]) / (positions[e] - positions[s]);
+	lowp float w = (indexed - positions[s]) / (positions[e] - positions[s]);
 	lowp vec4  color = mix(colors[s], colors[e], w);
-	fragColor = vec4(color.rgb, color.a * opacity);;
+	lowp float aaalpha = 1.0 - abs(aafuzz);
+	fragColor = vec4(color.rgb, color.a * opacity * aaalpha);
 }

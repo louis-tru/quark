@@ -40,7 +40,7 @@ namespace qk {
 		GLSLColor &color, const Path &path, const Paint &paint
 	) {
 		auto vertex = path.getTriangles();
-		color.use(vertex);
+		color.use(vertex.size(), *vertex);
 		glUniform4fv(color.color, 1, paint.color.val);
 		// glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		//glDrawArrays(GL_LINES, 0, vertex.length());
@@ -63,8 +63,8 @@ namespace qk {
 		//glDrawArrays(GL_LINE_STRIP, 0, p.ptsLen());
 	}
 
-	constexpr float aa_sdf_range[3] = {0.5,-0.25,0};
-	constexpr float aa_sdf_width = 0.6;
+	constexpr float aa_fuzz_limit = -0.25;
+	constexpr float aa_fuzz_width = 0.6;
 	// constexpr float aa_sdf_range[3] = {1,0,0}; // test
 	// constexpr float aa_sdf_width = 4; // test
 
@@ -99,14 +99,15 @@ namespace qk {
 			}
 		}
 
-		// const Path &path, const VertexData &vertex
-		void clipv(const Path &path, const VertexData& vertex, ClipOp op, bool antiAlias) {
+		void clipv(const Path &path, const Array<Vec3> &vertex, ClipOp op, bool antiAlias) {
 			if (!isStencilTest()) {
 				glEnable(GL_STENCIL_TEST); // enable stencil test
 			}
-			Clip clip{.op=op,.aa=antiAlias&&!_render->_IsDeviceMsaa};
-			clip.path.path = path;
-			_render->copyVertexData(vertex, &clip.path);
+			Clip clip{
+				.op=op,
+				.aa=antiAlias&&!_render->_IsDeviceMsaa,
+				.path={vertex,path}
+			};
 			if (drawClip(clip)) { // save clip state
 				_state->clips.push(std::move(clip));
 			}
@@ -134,8 +135,8 @@ namespace qk {
 				// draw anti alias alpha
 				// drawAAStrokeSDF(path.path, paint, aa_sdf_range, aa_sdf_width);
 			} else {
-				_render->_clip.use(clip.path);
-				glDrawArrays(GL_TRIANGLES, 0, clip.path.count); // draw test
+				_render->_clip.use(clip.path.vertex.size(), clip.path.vertex.val());
+				glDrawArrays(GL_TRIANGLES, 0, clip.path.vertex.length()); // draw test
 			}
 			glStencilFunc(GL_LEQUAL, _stencilRef, 0xFFFFFFFF); // Equality passes the test
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
@@ -146,9 +147,9 @@ namespace qk {
 		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
 			if (path.vertex.length()) {
 				Qk_ASSERT(path.path.isNormalized());
-				fillv(path, paint);
+				fillv(path.vertex, paint);
 				if (aa) {
-					drawAAStrokeSDF(path.path, paint, aa_sdf_range, aa_sdf_width);
+					drawAAFuzzStroke(path.path, paint, aa_fuzz_limit, aa_fuzz_width);
 				}
 				_render->_zDepth++;
 			}
@@ -157,30 +158,30 @@ namespace qk {
 		void fillPath(const Path &path, const Paint &paint, bool aa) {
 			Qk_ASSERT(path.isNormalized());
 			auto &vertex = _render->getPathTriangles(path);
-			if (vertex.vao) {
+			if (vertex.length()) {
 				fillv(vertex, paint);
 				if (aa) {
-					drawAAStrokeSDF(path, paint, aa_sdf_range, aa_sdf_width);
+					drawAAFuzzStroke(path, paint, aa_fuzz_limit, aa_fuzz_width);
 				}
 			}
 			_render->_zDepth++;
 		}
 
-		void fillv(const VertexData &vertex, const Paint &paint) {
+		void fillv(const Array<Vec3> &vertex, const Paint &paint) {
 			// __m128 tt;
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					drawColor(vertex, paint, GL_TRIANGLES);
+					drawColor(vertex, paint);
 					//test_color_fill_aa_lines(_render->_color, path, paint);
 					break;
 				case Paint::kGradient_Type:
-					drawGradient(vertex, paint, GL_TRIANGLES);
+					drawGradient(vertex, paint);
 					break;
 				case Paint::kBitmap_Type:
-					drawImage(vertex, paint, GL_TRIANGLES);
+					drawImage(vertex, paint);
 					break;
 				case Paint::kBitmapMask_Type:
-					drawImageMask(vertex, paint, GL_TRIANGLES);
+					drawImageMask(vertex, paint);
 					break;
 			}
 		}
@@ -194,8 +195,7 @@ namespace qk {
 					// 5*5=25, 0.75
 					width /= (_unitPixel * 0.65f); // range: -1 => 0
 					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.006
-					const float stroke_sdf_range[3] = {0.5, width/*-0.25f*/, 0};
-					drawAAStrokeSDF(path, paint, stroke_sdf_range, 0.5);
+					drawAAFuzzStroke(path, paint, width/*-0.25f*/, 0.5);
 					_render->_zDepth++;
 				}
 			} else {
@@ -203,59 +203,59 @@ namespace qk {
 			}
 		}
 
-		void drawAAStrokeSDF(const Path& path, const Paint& paint, const float sdf_range[3], float sdf_width) {
+		void drawAAFuzzStroke(const Path& path, const Paint& paint, float aaFuzzLimit, float aaFuzzWidth) {
 			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
-			//auto &strip = _render->getSDFStrokeTriangleStripCache(newPath, _Scale);
+			//auto &vertex = _render->getSDFStrokeTriangleStripCache(newPath, _Scale);
 			// _UnitPixel*0.6=1.2/_Scale, 2.4px
-			auto &strip = _render->getSDFStrokeTriangleStrip(path, _unitPixel*sdf_width);
-			// Qk_DEBUG("%p", &strip);
+			auto &vertex = _render->getAAFuzzTriangle(path, _unitPixel*aaFuzzWidth);
+			// Qk_DEBUG("%p", &vertex);
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					drawColorSDF(strip, paint.color, GL_TRIANGLE_STRIP, sdf_range);
+					//drawColorSDF(vertex, paint.color, aaFuzzLimit);
 					break;
 				case Paint::kGradient_Type:
-					drawGradientSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
+					//drawGradientSDF(vertex, paint, aaFuzzLimit);
 					break;
 				case Paint::kBitmap_Type:
-					drawImageSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
+					//drawImageSDF(vertex, paint, aaFuzzLimit);
 					break;
 				case Paint::kBitmapMask_Type:
-					drawImageMaskSDF(strip, paint, GL_TRIANGLE_STRIP, sdf_range);
+					//drawImageMaskSDF(vertex, paint, aaFuzzLimit);
 					break;
 			}
 		}
 
 		// ----------------------------------------------------------------------------------------
 
-		void drawColor(const VertexData &vertex, const Paint &paint, GLenum mode) {
-			glBindVertexArray(vertex.vao);
+		void drawColor(const Array<Vec3> &vertex, const Paint &paint) {
+			// glBindVertexArray(vertex.vao);
 			//glUseProgram(_render->_colorSdf.shader);//test
-			glUseProgram(_render->_color.shader);
-			//_render->_color.use(vertex);
+			// glUseProgram(_render->_color.shader);
+			_render->_color.use(vertex.size(), vertex.val());
 			glUniform1f(_render->_color.zDepth, zDepth());
 			glUniform4fv(_render->_color.color, 1, paint.color.val);
-			glDrawArrays(mode, 0, vertex.count);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		}
 
-		void drawGradient(const VertexData &vertex, const Paint &paint, GLenum mode) {
+		void drawGradient(const Array<Vec3> &vertex, const Paint &paint) {
 			auto g = paint.gradient;
 			auto shader = paint.gradientType ==
 				Paint::kRadial_GradientType ? &_render->_radial:
 				static_cast<GLSLColorRadial*>(static_cast<GLSLShader*>(&_render->_linear));
 			auto count = Qk_MIN(g->colors->length(), 256);
-			shader->use(vertex);
+			shader->use(vertex.size(), vertex.val());
 			glUniform1f(shader->zDepth, zDepth());
 			glUniform1f(shader->opacity, paint.color.a());
 			glUniform4fv(shader->range, 1, g->origin.val);
 			glUniform1i(shader->count, count);
 			glUniform4fv(shader->colors, count, (const GLfloat*)g->colors->val());
 			glUniform1fv(shader->positions, count, (const GLfloat*)g->positions->val());
-			glDrawArrays(mode, 0, vertex.count);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 			//glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.length());
 			//glDrawArrays(GL_LINES, 0, vertex.length());
 		}
 
-		void drawImage(const VertexData &vertex, const Paint &paint, GLenum mode) {
+		void drawImage(const Array<Vec3> &vertex, const Paint &paint) {
 			auto shader = &_render->_image;
 			auto pixel = paint.image;
 			auto type = pixel->type();
@@ -271,76 +271,21 @@ namespace qk {
 			for (int i = 0; i < texCount; i++) {
 				_render->setTexture(pixel + i, i, paint);
 			}
-			shader->use(vertex);
+			shader->use(vertex.size(), vertex.val());
 			glUniform1f(shader->zDepth, zDepth());
 			glUniform1f(shader->opacity, paint.color.a());
 			glUniform4fv(shader->coord, 1, paint.region.origin.val);
-			glDrawArrays(mode, 0, vertex.count);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		}
 
-		void drawImageMask(const VertexData &vertex, const Paint &paint, GLenum mode) {
+		void drawImageMask(const Array<Vec3> &vertex, const Paint &paint) {
 			auto shader = &_render->_colorMask;
 			_render->setTexture(paint.image, 0, paint);
-			shader->use(vertex);
+			shader->use(vertex.size(), vertex.val());
 			glUniform1f(shader->zDepth, zDepth());
 			glUniform4fv(shader->color, 1, paint.color.val);
 			glUniform4fv(shader->coord, 1, paint.region.origin.val);
-			glDrawArrays(mode, 0, vertex.count);
-		}
-
-		// ----------------------------------------------------------------------------------------
-
-		void drawColorSDF(const VertexData &vertex, const Color4f &color, GLenum mode, const float range[3]) {
-			_render->_colorSdf.use(vertex);
-			glUniform1f(_render->_colorSdf.zDepth, zDepth());
-			glUniform1fv(_render->_colorSdf.sdf_range, 3, range);
-			glUniform4fv(_render->_colorSdf.color, 1, color.val);
-			glDrawArrays(mode, 0, vertex.count);
-			// glDrawArrays(GL_LINE_STRIP, 0, vertex.length());
-		}
-
-		void drawGradientSDF(const VertexData &vertex, const Paint& paint, GLenum mode, const float range[3]) {
-			auto g = paint.gradient;
-			auto shader = paint.gradientType ==
-				Paint::kRadial_GradientType ? &_render->_radialSdf:
-				static_cast<GLSLColorRadialSdf*>(static_cast<GLSLShader*>(&_render->_linearSdf));
-			auto count = Qk_MIN(g->colors->length(), 256);
-			shader->use(vertex);
-			glUniform1f(shader->zDepth, zDepth());
-			glUniform1f(shader->opacity, paint.color.a());
-			glUniform1fv(shader->sdf_range, 3, range);
-			glUniform4fv(shader->range, 1, g->origin.val);
-			glUniform1i(shader->count, count);
-			glUniform4fv(shader->colors, count, (const GLfloat*)g->colors->val());
-			glUniform1fv(shader->positions, count, (const GLfloat*)g->positions->val());
-			glDrawArrays(mode, 0, vertex.count);
-			//glDrawArrays(GL_LINE_STRIP, 0, vertex.length());
-		}
-
-		void drawImageSDF(const VertexData &vertex, const Paint& paint, GLenum mode, const float range[3]) {
-			auto shader = &_render->_imageSdf;
-			auto type = paint.image->type();
-			if (type == kColor_Type_YUV420P_Y_8 || type == kColor_Type_YUV420SP_Y_8) {
-				return; // ignore
-			}
-			//setTexturePixel(paint.image, 0, paint);
-			shader->use(vertex);
-			glUniform1f(shader->sdf_range, zDepth());
-			glUniform1fv(shader->sdf_range, 3, range);
-			glUniform1f(shader->opacity, paint.color.a());
-			glUniform4fv(shader->coord, 1, paint.region.origin.val);
-			glDrawArrays(mode, 0, vertex.count);
-		}
-
-		void drawImageMaskSDF(const VertexData &vertex, const Paint& paint, GLenum mode, const float range[3]) {
-			auto shader = &_render->_colorMaskSdf;
-			//setTexturePixel(paint.image, 0, paint);
-			shader->use(vertex);
-			glUniform1f(shader->sdf_range, zDepth());
-			glUniform1fv(shader->sdf_range, 3, range);
-			glUniform4fv(shader->color, 1, paint.color.val);
-			glUniform4fv(shader->coord, 1, paint.region.origin.val);
-			glDrawArrays(mode, 0, vertex.count);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		}
 
 		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {
@@ -369,7 +314,7 @@ namespace qk {
 			// 	v1,
 			// };
 
-			drawImageMask(_render->getRectPath({dst_start, dst_size}), p, GL_TRIANGLES);
+			drawImageMask(_render->getRectPath({dst_start, dst_size}).vertex, p);
 
 			_render->_zDepth++;
 
@@ -427,9 +372,8 @@ namespace qk {
 						glStencilOp(GL_KEEP, GL_DECR, GL_DECR); // Test success decr 1
 					}
 				}
-				_render->_clip.use(clip.path);
-				glDrawArrays(GL_TRIANGLES, 0, clip.path.count); // draw test
-				_render->deleteVertexData(clip.path);
+				_render->_clip.use(clip.path.vertex.size(), clip.path.vertex.val());
+				glDrawArrays(GL_TRIANGLES, 0, clip.path.vertex.length()); // draw test
 			}
 			_state = &_stateStack.pop().back();
 			_this->setMatrixBuffer(_state->matrix);
@@ -509,12 +453,12 @@ namespace qk {
 	}
 
 	void GLCanvas::clipPathv(const Pathv& path, ClipOp op, bool antiAlias) {
-		_this->clipv(path.path, path, op, antiAlias);
+		_this->clipv(path.path, path.vertex, op, antiAlias);
 	}
 
 	void GLCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
-		auto& path = _render->getRectPath(rect);
-		_this->clipv(path.path, path, op, antiAlias);
+		auto &path = _render->getRectPath(rect);
+		_this->clipv(path.path, path.vertex, op, antiAlias);
 	}
 
 	void GLCanvas::clearColor(const Color4f& color) {
@@ -556,16 +500,17 @@ namespace qk {
 		if (path.vertex.length()) {
 			bool aa = !_render->_IsDeviceMsaa; // Anti-aliasing using software
 			_render->setBlendMode(mode); // switch blend mode
-			_render->_color.use(path);
+			_render->_color.use(path.vertex.size(), path.vertex.val());
 			//auto color4f = color.to_color4f_alpha(alpha);
 			glUniform1f(_render->_color.zDepth, _this->zDepth());
 			glUniform4fv(_render->_color.color, 1, color.val);
-			glDrawArrays(GL_TRIANGLES, 0, path.count);
+			glDrawArrays(GL_TRIANGLES, 0, path.vertex.length());
 			//glDrawArrays(GL_LINES, 0, path.vertex.length());
 			if (aa) {
-				auto &strip = _render->getSDFStrokeTriangleStrip(path.path, _unitPixel*aa_sdf_width);
+				auto &vertex = _render->getAAFuzzTriangle(path.path, _unitPixel*aa_fuzz_width);
 				//_render->setBlendMode(kSrc_BlendMode); // switch blend mode
-				_this->drawColorSDF(strip, color, GL_TRIANGLE_STRIP, aa_sdf_range);
+				_render->_color.use(vertex.size(), vertex.val());
+				glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 			}
 			_render->_zDepth++;
 		}

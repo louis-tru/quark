@@ -39,13 +39,6 @@
 
 namespace qk {
 
-	// triangle vertices or gpu vertex buffer
-	struct VertexData {
-		Array<float> vertex; // triangle vertex {x,y,sdf?}
-		uint32_t     count,items; // vertex count, vertex items = 2 or 3 sdf
-		uint32_t     vao,vbo; // gpu data buffer
-	};
-
 	class Qk_EXPORT Path: public Object {
 	public:
 		enum PathVerb: uint8_t {
@@ -100,15 +93,15 @@ namespace qk {
 
 		/**
 		 * @method getTriangles() Convert to fixed size polygon vertices
-		 * @return {VertexData} vertex points { x, y }[]
+		 * @return {Array<Vec3>} vertex points { x, y, 0.0 }[]
 		*/
-		VertexData getTriangles(float epsilon = 1.0) const;
+		Array<Vec3> getTriangles(float epsilon = 1.0) const;
 
 		/**
-		 * @method getSDFStrokeTriangleStrip() returns sdf stroke triangle vertices
-		 * @return {VertexData} vertex points { x, y, sdf value renge 0.5 to -0.5 }[]
+		 * @method getAAFuzzTriangle() returns fuzz value stroke triangle vertices
+		 * @return {Array<Vec3>} vertex points { x, y, aa fuzz stroke value renge 1 to 0 to -1 }[]
 		*/
-		VertexData getSDFStrokeTriangleStrip(float width, float epsilon = 1.0) const;
+		Array<Vec3> getAAFuzzTriangle(float width, float epsilon = 1.0, float minLimit = 0.0) const;
 
 		/**
 		 * @method dashPath() returns the dash path
@@ -135,9 +128,10 @@ namespace qk {
 		bool _IsNormalized;
 	};
 
-	// combination of paths and 
-	struct Pathv: VertexData {
-		Path path;
+	// combination of paths and triangle vertices
+	struct Pathv {
+		Array<Vec3> vertex; // triangle vertex {x,y,aafuzz}
+		Path        path;
 	};
 
 	// Optimizing rect vertex generation algorithm
