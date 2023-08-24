@@ -170,18 +170,22 @@ namespace qk {
 	}
 
 	/**
+	 * using offset vertex normals mode
+	 * TODO: When the included angle is extremely small, the normal will be shifted too much, 
+	 *       which will cause the image to appear glitchy
 	 * @method getSDFStrokeTriangleStrip() returns sdf stroke triangle vertices
 	 * @return {Array<Vec3>} points { x, y, sdf value renge 0.5 to -0.5 }[]
 	*/
-#if 1
-	// using offset vertex normals mode
-	// TODO: When the included angle is extremely small, the normal will be shifted too much, 
-	//       which will cause the image to appear glitchy
 	Array<Vec3> Path::getAAFuzzStrokeTriangle(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
 		Array<Vec3> out;
-		struct Ctx { Array<Vec3> *out; Vec3 *ptr; float width; bool fixStrip; } ctx = { &out,0,width,0 };
+		struct Ctx {
+			Array<Vec3> *out;
+			Vec3        *ptr;
+			float       width;
+			Vec3        prev_a, prev_b;
+		} ctx = { &out,0,width,0 };
 
 		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			auto normals = from.normalline(prev, next); // normal line
@@ -198,90 +202,40 @@ namespace qk {
 				auto len = _->width / sinf(angleLen);
 				normals *= len;
 			}
-			*(_->ptr++) = Vec3(from + normals, -1);
-			*(_->ptr++) = Vec3(from - normals, 1);
+			Vec3 a(from + normals, -1), b(from - normals, 1);
+			if (idx) {
+				*(_->ptr++) = _->prev_b;
+				*(_->ptr++) = _->prev_a;
+				*(_->ptr++) = a;
+				*(_->ptr++) = a;
+				*(_->ptr++) = b;
+				*(_->ptr++) = _->prev_b;
+			}
+			_->prev_a = a;
+			_->prev_b = b;
 		},
 		[](bool close, int size, int subpath, void *ctx) {
 			auto _ = static_cast<Ctx*>(ctx);
 			auto len = _->out->length();
-			size <<= 1;
-			if (close)
-				size += 2;
-			if (subpath) {
-				// fix multiple subpath triangle strip error, step 0
-				len += 2;
-			}
+			size = (close ? size: size - 1) * 6;
 			_->out->extend(len + size); // alloc memory space
 			_->ptr = _->out->val() + len;
 		},
 		[](bool close, int size, int subpath, void *ctx) {
-			auto _ = static_cast<Ctx*>(ctx);
-			auto a = _->ptr - (size << 1);
-			if (subpath) {
-				// fix multiple subpath triangle strip error, step 1
-				a[-2] = a[-3]; // copy pevious
-				a[-1] = a[0]; // copy next
-			}
 			if (close) {
-				*(_->ptr++) = a[0];
-				*(_->ptr++) = a[1];
+				auto _ = static_cast<Ctx*>(ctx);
+				auto b = _->ptr - (size * 6 - 6), a = b + 1;
+				*(_->ptr++) = _->prev_b;
+				*(_->ptr++) = _->prev_a;
+				*(_->ptr++) = *a;
+				*(_->ptr++) = *a;
+				*(_->ptr++) = *b;
+				*(_->ptr++) = _->prev_b;
 			}
 		}, false, &ctx);
 
 		Qk_ReturnLocal(out);
 	}
-#else
-	// use line segment stroke mode, experimental method
-	Array<Vec3> Path::getAAFuzzStrokeTriangle(float width, float epsilon) const {
-		Path tmp;
-		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
-		Array<Vec3> out;
-		struct Ctx { Array<Vec3> *out; Vec3 *ptr; float width; bool fixStrip; } ctx = { &out,0,width,0 };
-
-		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
-			auto _ = (Ctx*)ctx;
-			if (prev) {
-				auto normals = (from - (*prev)).rotate90z().normalized() * _->width;
-				*(_->ptr++) = Vec3(from + normals, -1);
-				*(_->ptr++) = Vec3(from - normals, 1);
-			}
-			if (next) {
-				auto normals = ((*next) - from).rotate90z().normalized() * _->width;
-				*(_->ptr++) = Vec3(from + normals, -1);
-				*(_->ptr++) = Vec3(from - normals, 1);
-			}
-		},
-		[](bool close, int size, int subpath, void *ctx) {
-			auto _ = static_cast<Ctx*>(ctx);
-			auto len = _->out->length();
-			size = (size << 2) - 4;
-			if (close)
-				size += 6;
-			if (subpath) {
-				// fix multiple subpath triangle strip error, step 0
-				len += 2;
-			}
-			_->out->extend(len + size); // alloc memory space
-			_->ptr = _->out->val() + len;
-		},
-		[](bool close, int size, int subpath, void *ctx) {
-			auto _ = static_cast<Ctx*>(ctx);
-			auto a = _->ptr - ((size << 2) - 4);
-			if (close) {
-				a -= 4;
-				*(_->ptr++) = a[0];
-				*(_->ptr++) = a[1];
-			}
-			if (subpath) {
-				// fix multiple subpath triangle strip error, step 1
-				a[-2] = a[-3]; // copy pevious
-				a[-1] = a[0]; // copy next
-			}
-		}, false, &ctx);
-
-		Qk_ReturnLocal(out);
-	}
-#endif
 
 #if !Qk_USE_FT_STROKE
 

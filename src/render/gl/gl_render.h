@@ -72,9 +72,7 @@ namespace qk {
 		GLSLColorLinear _linear;
 		GLSLColorRadial _radial;
 		GLSLImage _image;
-		GLSLImageYuv420p _yuv420p;
-		GLSLImageYuv420sp _yuv420sp;
-		GLSLShader  *_shaders[10];
+		GLSLShader  *_shaders[8];
 		// --------------------------------------------
 	};
 }

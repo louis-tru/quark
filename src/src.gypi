@@ -310,8 +310,6 @@
 					'render/gl/glsl/color_radial.glsl',
 					'render/gl/glsl/color_mask.glsl',
 					'render/gl/glsl/image.glsl',
-					'render/gl/glsl/image_yuv420p.glsl',
-					'render/gl/glsl/image_yuv420sp.glsl',
 				],
 				'outputs': [
 					'render/gl/glsl_shaders.h',

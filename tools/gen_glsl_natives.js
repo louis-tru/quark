@@ -66,7 +66,8 @@ function write(fp) {
 function readcode(input) {
 	return fs.readFileSync(input).toString('utf8')
 		.replace(/\/\/.*$/mg, '')
-		.replace(/\/\*.*?\*\//mg, '');
+		.replace(/\/\*.*?\*\//mg, '')
+		.replace(/\\/mg, '\\\\');
 }
 
 function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {

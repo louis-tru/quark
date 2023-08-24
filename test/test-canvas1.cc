@@ -57,7 +57,7 @@ public:
 		paint.width = 10;
 		//paint.cap = Paint::kRound_Cap;
 		//paint.join = Paint::kRound_Join;
-		//_canvas->drawPath(z, paint);
+		// _canvas->drawPath(z, paint);
 
 		paint.style = Paint::kFill_Style;
 		paint.color = Color4f(0, 0, 0);
@@ -65,10 +65,9 @@ public:
 		//paint.style = Paint::kStroke_Style;
 		//_canvas->drawPath(dash, paint);
 		_canvas->translate(70, 0);
-		//_canvas->drawPath(circle, paint);
+		// _canvas->drawPath(circle, paint);
 
 		paint.antiAlias = false;
-
 		//circle = Path::MakeRect({size/2-105,210});
 
 		for (int i = 0; i < 100000; i++) {

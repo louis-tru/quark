@@ -468,9 +468,9 @@ namespace qk {
 	
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::optimize_() {
-		auto scale = float(_length) / float(_capacity);
+		auto scale = float(_length) / _capacity;
 		if (scale > 0.7 || (scale < 0.2 && _capacity > Qk_MIN_CAPACITY)) {
-			A::aalloc((void**)&_nodes, uint32_t(_length / 0.7) , &_capacity, sizeof(Node*));
+			A::aalloc((void**)&_nodes, uint32_t(_length * 1.43) , &_capacity, sizeof(Node*));
 			::memset(_nodes, 0, sizeof(Node*) * _capacity);
 			auto node = _end._next;
 			while (node != &_end) {

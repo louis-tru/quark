@@ -63,8 +63,8 @@ namespace qk {
 		//glDrawArrays(GL_LINE_STRIP, 0, p.ptsLen());
 	}
 
-	constexpr float aa_fuzz_weight = 0.666666;
-	constexpr float aa_fuzz_width = 0.6;
+	constexpr float aa_fuzz_weight = 0.9;
+	constexpr float aa_fuzz_width = 0.5;
 
 	Qk_DEFINE_INLINE_MEMBERS(GLCanvas, Inl) {
 	public:
@@ -101,7 +101,7 @@ namespace qk {
 			if (!isStencilTest()) {
 				glEnable(GL_STENCIL_TEST); // enable stencil test
 			}
-			Clip clip{
+			GLC_State::Clip clip{
 				.op=op,
 				.aa=antiAlias&&!_render->_IsDeviceMsaa,
 				.path={vertex,path}
@@ -111,7 +111,7 @@ namespace qk {
 			}
 		}
 
-		bool drawClip(Clip &clip) {
+		bool drawClip(GLC_State::Clip &clip) {
 			// ignore anti alias
 			if (clip.op == kDifference_ClipOp) {
 				if (_stencilRefDecr == 0) {
@@ -166,21 +166,16 @@ namespace qk {
 		}
 
 		void fillv(const Array<Vec3> &vertex, const Paint &paint) {
-			// __m128 tt;
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					drawColor(vertex, paint, 1);
 					//test_color_fill_aa_lines(_render->_color, path, paint);
-					break;
+					drawColor(vertex, paint, 1); break;
 				case Paint::kGradient_Type:
-					drawGradient(vertex, paint, paint.color.a());
-					break;
+					drawGradient(vertex, paint, paint.color.a()); break;
 				case Paint::kBitmap_Type:
-					drawImage(vertex, paint, paint.color.a());
-					break;
+					drawImage(vertex, paint, paint.color.a()); break;
 				case Paint::kBitmapMask_Type:
-					drawImageMask(vertex, paint, 1);
-					break;
+					drawImageMask(vertex, paint, 1); break;
 			}
 		}
 
@@ -208,29 +203,74 @@ namespace qk {
 			// Qk_DEBUG("%p", &vertex);
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					drawColor(vertex, paint, aaFuzzWeight);
-					break;
+					drawColor(vertex, paint, aaFuzzWeight); break;
 				case Paint::kGradient_Type:
-					drawGradient(vertex, paint, aaFuzzWeight * paint.color.a());
-					break;
+					drawGradient(vertex, paint, aaFuzzWeight * paint.color.a()); break;
 				case Paint::kBitmap_Type:
-					drawImage(vertex, paint, aaFuzzWeight * paint.color.a());
-					break;
+					drawImage(vertex, paint, aaFuzzWeight * paint.color.a()); break;
 				case Paint::kBitmapMask_Type:
-					drawImageMask(vertex, paint, aaFuzzWeight);
-					break;
+					drawImageMask(vertex, paint, aaFuzzWeight); break;
 			}
+		}
+
+		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {
+			auto &pix = textImg->pixels().front();
+			auto scale_1 = 1.0 / scale;
+			Paint p(paint);
+
+			// default use baseline align
+			Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
+			Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
+
+			p.setImage(&pix, {dst_start, dst_size});
+
+			Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
+			Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
+			Vec2 v3(dst_start + dst_size);
+			Array<Vec3> vertex{
+				dst_start, v1, v2, // triangle 0
+				v2, v3, v1, // triangle 1
+			};
+			// _render->getRectPath({dst_start, dst_size}).vertex;
+			drawImageMask(vertex, p, 1);
+			_render->_zDepth++;
+
+			return scale_1;
 		}
 
 		// ----------------------------------------------------------------------------------------
 
 		void drawColor(const Array<Vec3> &vertex, const Paint &paint, float alpha) {
-			// glBindVertexArray(vertex.vao);
-			//glUseProgram(_render->_colorSdf.shader);//test
-			// glUseProgram(_render->_color.shader);
 			_render->_color.use(vertex.size(), vertex.val());
 			glUniform1f(_render->_color.zDepth, zDepth());
 			glUniform4f(_render->_color.color, paint.color[0], paint.color[1], paint.color[2], paint.color[3]*alpha);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		}
+
+		void drawImage(const Array<Vec3> &vertex, const Paint &paint, float opacity) {
+			auto shader = &_render->_image;
+			auto pixel = paint.image;
+			auto type = pixel->type();
+			auto texCount = type == kColor_Type_YUV420P_Y_8 ? 3:
+											type == kColor_Type_YUV420SP_Y_8 ? 2: 1;
+			for (int i = 0; i < texCount; i++) {
+				_render->setTexture(pixel + i, i, paint);
+			}
+			shader->use(vertex.size(), vertex.val());
+			glUniform1f(shader->zDepth, zDepth());
+			glUniform1i(shader->format, texCount - 1);
+			glUniform1f(shader->opacity, opacity);
+			glUniform4fv(shader->coord, 1, paint.region.origin.val);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		}
+
+		void drawImageMask(const Array<Vec3> &vertex, const Paint &paint, float alpha) {
+			auto shader = &_render->_colorMask;
+			_render->setTexture(paint.image, 0, paint);
+			shader->use(vertex.size(), vertex.val());
+			glUniform1f(shader->zDepth, zDepth());
+			glUniform4f(shader->color, paint.color[0], paint.color[1], paint.color[2], paint.color[3]*alpha);
+			glUniform4fv(shader->coord, 1, paint.region.origin.val);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		}
 
@@ -252,71 +292,6 @@ namespace qk {
 			//glDrawArrays(GL_LINES, 0, vertex.length());
 		}
 
-		void drawImage(const Array<Vec3> &vertex, const Paint &paint, float opacity) {
-			auto shader = &_render->_image;
-			auto pixel = paint.image;
-			auto type = pixel->type();
-			auto texCount = 1;
-
-			if (type == kColor_Type_YUV420P_Y_8) {
-				shader = static_cast<GLSLImage*>(static_cast<GLSLShader*>(&_render->_yuv420p));
-				texCount = 3;
-			} else if (type == kColor_Type_YUV420SP_Y_8) {
-				shader = static_cast<GLSLImage*>(static_cast<GLSLShader*>(&_render->_yuv420sp));
-				texCount = 2;
-			}
-			for (int i = 0; i < texCount; i++) {
-				_render->setTexture(pixel + i, i, paint);
-			}
-			shader->use(vertex.size(), vertex.val());
-			glUniform1f(shader->zDepth, zDepth());
-			glUniform1f(shader->opacity, opacity);
-			glUniform4fv(shader->coord, 1, paint.region.origin.val);
-			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
-		}
-
-		void drawImageMask(const Array<Vec3> &vertex, const Paint &paint, float alpha) {
-			auto shader = &_render->_colorMask;
-			_render->setTexture(paint.image, 0, paint);
-			shader->use(vertex.size(), vertex.val());
-			glUniform1f(shader->zDepth, zDepth());
-			glUniform4f(shader->color, paint.color[0], paint.color[1], paint.color[2], paint.color[3]*alpha);
-			glUniform4fv(shader->coord, 1, paint.region.origin.val);
-			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
-		}
-
-		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {
-			auto &pix = textImg->pixels().front();
-			auto scale_1 = 1.0 / scale;
-			Paint p(paint);
-
-			// default use baseline align
-			Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
-			Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
-
-			p.setImage(&pix, {dst_start, dst_size});
-
-			// Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
-			// Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
-			// Vec2 v3(dst_start + dst_size);
-
-			// Array<Vec2> vertex{
-			// 	// triangle 0
-			// 	dst_start,
-			// 	v1,
-			// 	v2,
-			// 	// triangle 1
-			// 	v2,
-			// 	v3,
-			// 	v1,
-			// };
-
-			drawImageMask(_render->getRectPath({dst_start, dst_size}).vertex, p, 1);
-
-			_render->_zDepth++;
-
-			return scale_1;
-		}
 	};
 
 	// ----------------------------------------------------------------------------------------
@@ -523,13 +498,11 @@ namespace qk {
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
-				_this->fillPath(*path, paint, aa);
-				break;
+				_this->fillPath(*path, paint, aa); break;
 			case Paint::kStrokeAndFill_Style:
 				_this->fillPath(*path, paint, aa);
 			case Paint::kStroke_Style: {
-				_this->strokePath(*path, paint, aa);
-				break;
+				_this->strokePath(*path, paint, aa); break;
 			}
 		}
 	}
@@ -541,13 +514,11 @@ namespace qk {
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
-				_this->fillPathv(path, paint, aa);
-				break;
+				_this->fillPathv(path, paint, aa); break;
 			case Paint::kStrokeAndFill_Style:
 				_this->fillPathv(path, paint, aa);
 			case Paint::kStroke_Style: {
-				_this->strokePath(path.path, paint, aa);
-				break;
+				_this->strokePath(path.path, paint, aa); break;
 			}
 		}
 	}

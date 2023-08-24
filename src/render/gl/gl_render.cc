@@ -337,8 +337,7 @@ namespace qk {
 		, _zDepth(0)
 		, _glcanvas(this)
 		, _shaders{
-			&_clear, &_clip, &_color, &_generic, &_image, &_colorMask, &_yuv420p,
-			&_yuv420sp, &_linear, &_radial,
+			&_clear, &_clip, &_color, &_generic, &_image, &_colorMask, &_linear, &_radial,
 		}
 	{
 		switch(_opts.colorType) {
@@ -376,18 +375,11 @@ namespace qk {
 
 		glUseProgram(_image.shader);
 		glUniform1i(_image.image, 0); // set texture slot
+		glUniform1i(_image.image_u, 1);
+		glUniform1i(_image.image_v, 2);
 
 		glUseProgram(_colorMask.shader);
 		glUniform1i(_colorMask.image, 0); // set texture slot
-
-		glUseProgram(_yuv420p.shader);
-		glUniform1i(_yuv420p.image, 0); // set texture slot
-		glUniform1i(_yuv420p.image_u, 1);
-		glUniform1i(_yuv420p.image_v, 2);
-
-		glUseProgram(_yuv420sp.shader);
-		glUniform1i(_yuv420sp.image, 0); // set texture slot
-		glUniform1i(_yuv420sp.image_uv, 1);
 
 		glUseProgram(_clip.shader);
 		glUniform1i(_clip.aaalpha, 15); // set texture slot
@@ -403,7 +395,6 @@ namespace qk {
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 		// set depth test
 		glEnable(GL_DEPTH_TEST); // enable depth test
-		// glDisable(GL_DEPTH_TEST); // dissable depth test
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
 		glClearDepth(0.0f); // set depth clear value to -1.0
 	}

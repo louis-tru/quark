@@ -38,12 +38,12 @@
 namespace qk {
 
 	struct Gradient {
-		const Array<Color4f> *colors;
-		const Array<float>   *positions;
 		Vec2 origin;
 		union {
 			Vec2 end,radius;
 		};
+		const Array<Color4f> *colors;
+		const Array<float>   *positions;
 	};
 
 	struct Paint {

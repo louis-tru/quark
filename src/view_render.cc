@@ -245,7 +245,7 @@ namespace qk {
 			}
 			Paint paint;
 			paint.color.set_a(_opacity);
-			Gradient g{&fill->colors(), &fill->positions(), pts[0], pts[1]};
+			Gradient g{pts[0], pts[1], &fill->colors(), &fill->positions()};
 			paint.setGradient(Paint::kLinear_GradientType, &g);
 
 			_canvas->drawPathv(*data.inside, paint);
@@ -259,7 +259,7 @@ namespace qk {
 			Vec2 center = _rect_inside.origin + radius;
 			Paint paint;
 			paint.color.set_a(_opacity);
-			Gradient g{&fill->colors(), &fill->positions(), center, radius};
+			Gradient g{center, radius, &fill->colors(), &fill->positions()};
 			paint.setGradient(Paint::kRadial_GradientType, &g);
 			_canvas->drawPathv(*data.inside, paint);
 		}

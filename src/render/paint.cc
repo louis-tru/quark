@@ -66,7 +66,7 @@ namespace qk {
 
 		Array<Color4f> colors{Color4f(0,0,0),Color4f(1,1,1)};
 		Array<float>   pos{0,0.5,1};
-		Gradient       gr{&colors, &pos, Vec2{0,0}, Vec2{1,1}};
+		Gradient       gr{Vec2{0,0}, Vec2{1,1}, &colors, &pos};
 
 		paint.setGradient(Paint::kLinear_GradientType, &gr);
 	}
