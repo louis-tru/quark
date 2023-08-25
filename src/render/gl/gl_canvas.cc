@@ -233,17 +233,18 @@ namespace qk {
 		}
 
 		GLC_GenericeCmd* getGenericeCmd() {
-			if (_cmd->type != kGenerice_GLC_CmdType)
-				return newGenericeCmd(128);
-			auto gcmd = static_cast<GLC_GenericeCmd*>(_cmd);
-			if (gcmd->subcmd == gcmd->options.length()) {
-				if (gcmd->subcmd < 1024) {
-					gcmd->options.extend(gcmd->subcmd + 128);
-				} else {
-					return newGenericeCmd(128);
+			if (_cmd->type == kGenerice_GLC_CmdType) {
+				auto gcmd = static_cast<GLC_GenericeCmd*>(_cmd);
+				if (gcmd->subcmd == gcmd->options.length()) {
+					if (gcmd->subcmd < 1024) {
+						gcmd->options.extend(gcmd->subcmd + 128);
+					} else {
+						return newGenericeCmd(128);
+					}
 				}
+				return gcmd;
 			}
-			return gcmd;
+			return newGenericeCmd(128);
 		}
 
 		void drawColor(const Array<Vec3> &vertex, const Color4f &color) {
