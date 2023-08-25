@@ -13,7 +13,7 @@ layout (std140/*std430?,binding=0*/) uniform matrixBlock {
 /*layout(location=0)*/in    vec2  vertexIn;
 in                          float aafuzzIn; // anti alias fuzz
 out                         float aafuzz;
-uniform                     float zDepth;
+uniform                     float depth;
 #else
 in                     lowp float aafuzz;
 layout(location=0) out lowp vec4  fragColor;

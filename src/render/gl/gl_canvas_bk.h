@@ -37,7 +37,6 @@
 #include "./glsl_shaders.h"
 
 namespace qk {
-	// -------------------------------------------------------------
 
 	struct GLC_State { // gl canvas state
 		struct Clip { // gl canvas clip
@@ -48,69 +47,6 @@ namespace qk {
 		Mat         matrix;
 		Array<Clip> clips;
 	};
-
-	// -------------------------------------------------------------
-
-	enum GLC_CmdType { // gl canvas cmd type
-		kMatrix_GLC_CmdType,
-		kBlendMode_GLC_CmdType,
-		kClear_GLC_CmdType,
-		kClip_GLC_CmdType, // draw cmd
-		kImage_GLC_CmdType,
-		kRadial_GLC_CmdType,
-		kLinear_GLC_CmdType,
-		kGenerice_GLC_CmdType,
-	};
-	struct GLC_Cmd: public Object { GLC_CmdType type; };
-	struct GLC_MatrixCmd: GLC_Cmd { Mat matrix; };
-	struct GLC_BlendModeCmd: GLC_Cmd { BlendMode mode; };
-	struct GLC_ClearCmd: GLC_Cmd { Color4f color; };
-	struct GLC_DrawCmd: GLC_Cmd { Array<Vec3> vertex; float depth; };
-
-	struct GLC_ClipCmd: GLC_DrawCmd {
-		Path             path;
-		Canvas::ClipOp   op;
-		bool             aa,revoke;
-	};
-
-	struct GLC_ImageCmd: GLC_DrawCmd {
-		enum Format {
-			kRGB_Format, // 1 texure
-			kYUV420SP_Format, // 2 texure
-			kYUV420P_Format, // 3 texure
-		};
-		Region          coord;/*offset,scale*/
-		float           opacity;
-		Format          format;
-		Sp<ImageSource> image; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
-	};
-
-	struct GLC_GradientCmd: GLC_DrawCmd {
-		Vec2            range[2];
-		int             count;
-		float           opacity;
-		Array<Color4f>  colors;
-		Array<float>    positions;
-	};
-
-	struct GLC_GenericeCmd: GLC_DrawCmd {
-		enum OptionType {
-			kColor,kColorMask,kImage,
-		};
-		struct Option { // subcmd option
-			int     flags; // type: flags & 3, image: flags >> 2 sampler2D index
-			float   depth; // depth
-			Mat     matrix; // 2d mat2x3
-			Color4f color;  // color
-			Region  coord;  // image coord, offset,scale
-		};
-		int                    subcmd; // subcmd count
-		Array<int>             optidxs; // vertex option index
-		Array<Option>          options; // subcmd options data
-		Array<Sp<ImageSource>> images; // image source
-	};
-
-	// -------------------------------------------------------------
 
 	class GLRender; // gl render backend
 	class GLCanvas: public Canvas {
@@ -143,10 +79,8 @@ namespace qk {
 		void setRootMatrix(const Mat4& root, Vec2 surfaceScale); // set root matrix
 	private:
 		// define props
-		Array<Sp<GLC_Cmd>> _drawCmds;
 		Array<GLC_State> _stateStack;
 		GLC_State    *_state;
-		GLC_Cmd      *_cmd; // last cmd
 		GLRender     *_render;
 		GLuint _stencilRef, _stencilRefDecr;
 		float  _surfaceScale, _transfromScale;

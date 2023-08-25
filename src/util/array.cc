@@ -37,11 +37,11 @@ namespace qk {
 
 	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, A, APPEND_ZERO) \
 		\
-		template<> void Array<T, A>::extend(uint32_t length, uint32_t capacity) \
+		template<> void Array<T, A>::extend(uint32_t length) \
 		{ \
 			if (length > _length) {  \
 				_length = length; \
-				realloc_(Qk_MAX(_length + APPEND_ZERO, capacity)); \
+				realloc_(_length + APPEND_ZERO); \
 				if (APPEND_ZERO) _val[_length] = 0; \
 			}\
 		}\
@@ -103,7 +103,7 @@ namespace qk {
 			if (capacity < _length) { /* clear Partial data */ \
 				_length = capacity;\
 			} \
-			realloc_(capacity + 1); \
+			realloc_(capacity + APPEND_ZERO); \
 			if (APPEND_ZERO) _val[_length] = 0; \
 		} \
 		\

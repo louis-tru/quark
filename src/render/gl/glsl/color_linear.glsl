@@ -8,7 +8,7 @@ void main() {
 	/*indexed = clamp(dot(ao,bo) / dot(ao,ao), 0.0, 1.0);*/
 	indexed = dot(ao,bo) / dot(ao,ao);
 	aafuzz = aafuzzIn;
-	gl_Position = matrix * vec4(vertexIn.xy, zDepth, 1.0);
+	gl_Position = matrix * vec4(vertexIn.xy, depth, 1.0);
 }
 
 #frag

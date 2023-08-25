@@ -194,7 +194,7 @@ namespace qk {
 		 *
 		 * @method extend()
 		 */
-		void extend(uint32_t length, uint32_t capacity = 0);
+		void extend(uint32_t length);
 
 		/**
 		 *
@@ -352,7 +352,8 @@ namespace qk {
 	Array<T, A>::Array(uint32_t length, uint32_t capacity)
 		: _length(0), _capacity(0), _val(nullptr)
 	{
-		extend(length, capacity);
+		extend(length);
+		realloc_(Qk_MAX(length, capacity));
 	}
 
 	template<typename T, typename A>
@@ -541,9 +542,9 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	void Array<T, A>::extend(uint32_t length, uint32_t capacity) {
+	void Array<T, A>::extend(uint32_t length) {
 		if (length > _length) {
-			realloc_(Qk_MAX(length, capacity));
+			realloc_(length);
 			new(_val + _length) T[length - _length];
 			_length = length;
 		}
@@ -565,7 +566,7 @@ namespace qk {
 	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len);
 
 	#define Qk_DEF_ARRAY_SPECIAL_(T, A) \
-		template<> Qk_EXPORT void              Array<T, A>::extend(uint32_t length, uint32_t capacity); \
+		template<> Qk_EXPORT void              Array<T, A>::extend(uint32_t length); \
 		template<> Qk_EXPORT std::vector<T>    Array<T, A>::vector() const; \
 		template<> Qk_EXPORT Array<T, A>&      Array<T, A>::concat_(T* src, uint32_t src_length); \
 		template<> Qk_EXPORT uint32_t          Array<T, A>::write(const T* src, int to, uint32_t size); \

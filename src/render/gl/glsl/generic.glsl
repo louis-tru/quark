@@ -2,7 +2,7 @@
 layout (std140) uniform optsBlock {
 	struct Option {
 		int flags; // type: flags & 0xf + image: flags >> 4 sampler2D index
-		float zDepth;
+		float depth;
 		float m0,m1,m2,m3,m4,m5; // 2d mat2x3
 		vec4  color; // color
 		vec4  coord; // image coord
@@ -29,7 +29,7 @@ void main() {
 		image = opt.flags >> 2;
 		coord = (opt.coord.xy + vertexIn.xy) * opt.coord.zw;
 	}
-	gl_Position = _matrix * vec4(vertexIn.xy, opt.zDepth, 1.0);
+	gl_Position = _matrix * vec4(vertexIn.xy, opt.depth, 1.0);
 }
 
 #frag

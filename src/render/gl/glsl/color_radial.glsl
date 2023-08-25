@@ -3,7 +3,7 @@ out       vec2      position;
 void main() {
 	aafuzz = aafuzzIn;
 	position = vertexIn.xy;
-	gl_Position = matrix * vec4(vertexIn.xy, zDepth, 1.0);
+	gl_Position = matrix * vec4(vertexIn.xy, depth, 1.0);
 }
 
 #frag

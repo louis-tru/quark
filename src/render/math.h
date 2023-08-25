@@ -152,7 +152,6 @@ namespace qk {
 		#define Qk_Default_Vec_Operator(Name,T,Len) \
 			Name(); \
 			Name(T f); \
-			Name(const Vec<T,Len>& v); \
 			Name  operator+(const Vec<T,Len>& b) const; \
 			Name  operator-(const Vec<T,Len>& b) const; \
 			Name  operator*(const Vec<T,Len>& b) const; \

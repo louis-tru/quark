@@ -28,7 +28,7 @@ public:
 		Array<Color4f> colors{Color4f(1,0,1), Color4f(0,1,0), Color4f(0,0,1)};
 		Array<float>   pos{0,0.5,1};
 		Rect           rect{ size*0.2*0.5, size*0.8 };
-		Gradient       g{&colors, &pos, rect.origin + rect.size*0.5, rect.size*0.5};
+		Gradient       g{rect.origin+rect.size*0.5, rect.size*0.5,&colors, &pos};
 		//paint0.setLinearGradient(&g, rect.origin, rect.origin+rect.size);
 		paint0.setGradient(Paint::kRadial_GradientType, &g);
 		

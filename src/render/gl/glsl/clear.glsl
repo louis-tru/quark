@@ -1,6 +1,6 @@
 #vert
 void main() {
-	gl_Position = vec4(vertexIn.xy, zDepth, 1.0);
+	gl_Position = vec4(vertexIn.xy, depth, 1.0);
 }
 
 #frag
