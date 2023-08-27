@@ -517,8 +517,7 @@ namespace qk {
 	void Array<T, A>::clear() {
 		if (_val) {
 			if (!isWeak()) {
-				T* i = _val;
-				T* end = i + _length;
+				T *i = _val, *end = i + _length;
 				while (i < end)
 					reinterpret_cast<Sham*>(i++)->~Sham(); // release
 				A::free(_val); // free

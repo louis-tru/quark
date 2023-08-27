@@ -100,7 +100,7 @@ namespace qk {
 
 		inline void release() {
 			Traits::Release(_data);
-			_data = nullptr;
+			//_data = nullptr;
 		}
 		
 	private:

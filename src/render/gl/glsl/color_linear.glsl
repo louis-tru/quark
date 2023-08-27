@@ -14,7 +14,7 @@ void main() {
 #frag
 in      lowp float     indexed;
 uniform lowp int       count;
-uniform lowp float     opacity;
+uniform lowp float     alpha;
 uniform lowp vec4      colors[256];/*max 256 color points*/
 uniform lowp float     positions[256];
 
@@ -34,5 +34,5 @@ void main() {
 	lowp float w = (indexed - positions[s]) / (positions[e] - positions[s]);
 	lowp vec4  color = mix(colors[s], colors[e], w);
 	lowp float aaalpha = 1.0 - abs(aafuzz);
-	fragColor = vec4(color.rgb, color.a * opacity * aaalpha);
+	fragColor = vec4(color.rgb, color.a * alpha * aaalpha);
 }

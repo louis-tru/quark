@@ -37,7 +37,7 @@ flat   in lowp int  type;
 flat   in lowp int  optidx;
 flat   in lowp int  image; // sampler2D index
 smooth in lowp vec2 coord;
-uniform   sampler2D images[16];
+uniform   sampler2D images[Qk_GL_MAX_TEXTURE_IMAGE_UNITS];
 
 void main() {
 	lowp float aaalpha = 1.0 - abs(aafuzz);

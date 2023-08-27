@@ -35,6 +35,8 @@
 
 namespace qk {
 
+	String GL_MaxTextureImageUnits_Str;
+
 	GLint gl_get_texture_pixel_format(ColorType type) {
 #if Qk_APPLE
 #if Qk_OSX
@@ -177,59 +179,59 @@ namespace qk {
 		return id;
 	}
 
-	void gl_set_texture(GLuint id, uint32_t slot, const Paint& paint) {
+	void gl_set_texture(GLuint id, uint32_t slot, const ImagePaint* paint) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, id);
 
-		switch (paint.tileModeX) {
-			case Paint::kClamp_TileMode: // border repeat
+		switch (paint->tileModeX) {
+			case ImagePaint::kClamp_TileMode: // border repeat
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				break;
-			case Paint::kRepeat_TileMode: // repeat
+			case ImagePaint::kRepeat_TileMode: // repeat
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 				break;
-			case Paint::kMirror_TileMode: // mirror repeat
+			case ImagePaint::kMirror_TileMode: // mirror repeat
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 				break;
-			case Paint::kDecal_TileMode: // no repeat
+			case ImagePaint::kDecal_TileMode: // no repeat
 				//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				break;
 		}
 
-		switch (paint.tileModeY) {
-			case Paint::kClamp_TileMode:
+		switch (paint->tileModeY) {
+			case ImagePaint::kClamp_TileMode: // border repeat
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 				break;
-			case Paint::kRepeat_TileMode:
+			case ImagePaint::kRepeat_TileMode: // repeat
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 				break;
-			case Paint::kMirror_TileMode:
+			case ImagePaint::kMirror_TileMode: // mirror repeat
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 				break;
-			case Paint::kDecal_TileMode: // no repeat
+			case ImagePaint::kDecal_TileMode: // no repeat
 				//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 				break;
 		}
 
-		switch (paint.filterMode) {
-			case Paint::kNearest_FilterMode:
+		switch (paint->filterMode) {
+			case ImagePaint::kNearest_FilterMode:
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				break;
-			case Paint::kLinear_FilterMode:
+			case ImagePaint::kLinear_FilterMode:
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				break;
 		}
 
-		switch (paint.mipmapMode) {
-			case Paint::kNone_MipmapMode:
+		switch (paint->mipmapMode) {
+			case ImagePaint::kNone_MipmapMode:
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 				break;
-			case Paint::kNearest_MipmapMode:
+			case ImagePaint::kNearest_MipmapMode:
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 				break;
-			case Paint::kLinear_MipmapMode:
+			case ImagePaint::kLinear_MipmapMode:
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				break;
 		}
@@ -367,6 +369,12 @@ namespace qk {
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _matrixBlock);
 		// glBindBufferRange(GL_UNIFORM_BUFFER, 0, _matrixBlock, 0, sizeof(float) * 32);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 32, NULL, GL_STATIC_DRAW);
+		// get consts
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_maxTextureSize);
+		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &_maxTextureBufferSize);
+		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_maxTextureImageUnits);
+		_maxTextureImageUnits -= 1; // aaalpha
+		GL_MaxTextureImageUnits_Str = _maxTextureImageUnits;
 
 		// compile the shader
 		for (auto shader: _shaders) {
@@ -529,7 +537,7 @@ namespace qk {
 			}
 			_texBuffer[slot] = id;
 		}
-		gl_set_texture(id, slot, paint);
+		gl_set_texture(id, slot, paint.image);
 	}
 
 }

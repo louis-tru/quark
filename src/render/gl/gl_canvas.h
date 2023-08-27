@@ -52,6 +52,7 @@ namespace qk {
 	// -------------------------------------------------------------
 
 	enum GLC_CmdType { // gl canvas cmd type
+		kEmpty_GLC_CmdType, // empty cmd
 		kMatrix_GLC_CmdType,
 		kBlendMode_GLC_CmdType,
 		kClear_GLC_CmdType,
@@ -61,7 +62,10 @@ namespace qk {
 		kLinear_GLC_CmdType,
 		kGenerice_GLC_CmdType,
 	};
-	struct GLC_Cmd: public Object { GLC_CmdType type; };
+	struct GLC_Cmd { // Cmd list
+		GLC_CmdType type;
+		GLC_Cmd *next; // next cmd
+	};
 	struct GLC_MatrixCmd: GLC_Cmd { Mat matrix; };
 	struct GLC_BlendModeCmd: GLC_Cmd { BlendMode mode; };
 	struct GLC_ClearCmd: GLC_Cmd { Color4f color; };
@@ -73,27 +77,25 @@ namespace qk {
 		bool             aa,revoke;
 	};
 
+	struct GLC_GradientCmd: GLC_DrawCmd {
+		float            alpha;
+		GradientPaint    paint;
+	};
+
 	struct GLC_ImageCmd: GLC_DrawCmd {
+		~GLC_ImageCmd();
 		enum Format {
 			kRGB_Format, // 1 texure
 			kYUV420SP_Format, // 2 texure
 			kYUV420P_Format, // 3 texure
 		};
-		Region          coord;/*offset,scale*/
-		float           opacity;
+		float           alpha;
 		Format          format;
-		Sp<ImageSource> image; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
-	};
-
-	struct GLC_GradientCmd: GLC_DrawCmd {
-		Vec2            range[2];
-		int             count;
-		float           opacity;
-		Array<Color4f>  colors;
-		Array<float>    positions;
+		ImagePaint      paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
 	};
 
 	struct GLC_GenericeCmd: GLC_DrawCmd {
+		~GLC_GenericeCmd();
 		enum OptionType {
 			kColor,kColorMask,kImage,
 		};
@@ -105,9 +107,10 @@ namespace qk {
 			Region  coord;  // image coord, offset,scale
 		};
 		int                    subcmd; // subcmd count
+		int                    images; // images count
 		Array<int>             optidxs; // vertex option index
 		Array<Option>          options; // subcmd options data
-		Array<Sp<ImageSource>> images; // image source
+		ImagePaintBase         image; // image source
 	};
 
 	// -------------------------------------------------------------
@@ -143,10 +146,10 @@ namespace qk {
 		void setRootMatrix(const Mat4& root, Vec2 surfaceScale); // set root matrix
 	private:
 		// define props
-		Array<Sp<GLC_Cmd>> _drawCmds;
 		Array<GLC_State> _stateStack;
 		GLC_State    *_state;
-		GLC_Cmd      *_cmd; // last cmd
+		GLC_Cmd       _cmd; // cmd list begin
+		GLC_Cmd      *_cmdEnd; // cmd list end
 		GLRender     *_render;
 		GLuint _stencilRef, _stencilRefDecr;
 		float  _surfaceScale, _transfromScale;

@@ -150,7 +150,7 @@ namespace qk {
 
 			src->mark_as_texture_unsafe(_render); // mark texure
 
-			auto pix = src->pixels().val();
+			//auto pix = src->pixels().val();
 			auto src_w = src->width(), src_h = src->height();
 			auto cli = box->_client_size;
 			auto dw = cli.x(), dh = cli.y();
@@ -177,28 +177,30 @@ namespace qk {
 				y += box->_border->width[0]; // top
 			}
 
-			Paint paint;
-			paint.setImage(pix, {{x,y}, {w,h}});
-			paint.color.set_a(_opacity);
+			Paint paint0;
+			ImagePaint paint;
+			paint.setImage(src, {{x,y}, {w,h}});
+			paint0.image = &paint;
+			paint0.color.set_a(_opacity);
 
 			switch(fill->repeat()) {
 				case Repeat::kRepeat:
-					paint.tileModeX = Paint::kRepeat_TileMode;
-					paint.tileModeY = Paint::kRepeat_TileMode; break;
+					paint.tileModeX = ImagePaint::kRepeat_TileMode;
+					paint.tileModeY = ImagePaint::kRepeat_TileMode; break;
 				case Repeat::kRepeatX:
-					paint.tileModeX = Paint::kRepeat_TileMode;
-					paint.tileModeY = Paint::kDecal_TileMode; break;
+					paint.tileModeX = ImagePaint::kRepeat_TileMode;
+					paint.tileModeY = ImagePaint::kDecal_TileMode; break;
 				case Repeat::kRepeatY:
-					paint.tileModeX = Paint::kDecal_TileMode;
-					paint.tileModeY = Paint::kRepeat_TileMode; break;
+					paint.tileModeX = ImagePaint::kDecal_TileMode;
+					paint.tileModeY = ImagePaint::kRepeat_TileMode; break;
 				case Repeat::kRepeatNo:
-					paint.tileModeX = Paint::kDecal_TileMode;
-					paint.tileModeY = Paint::kDecal_TileMode; break;
+					paint.tileModeX = ImagePaint::kDecal_TileMode;
+					paint.tileModeY = ImagePaint::kDecal_TileMode; break;
 			}
-			paint.filterMode = Paint::kLinear_FilterMode;
-			paint.mipmapMode = Paint::kNearest_MipmapMode;
+			paint.filterMode = ImagePaint::kLinear_FilterMode;
+			paint.mipmapMode = ImagePaint::kNearest_MipmapMode;
 
-			_canvas->drawPathv(*data.inside, paint);
+			_canvas->drawPathv(*data.inside, paint0);
 		}
 
 		void drawBoxFillLinear(Box *box, FillGradientLinear *fill, BoxData &data) {
@@ -245,8 +247,11 @@ namespace qk {
 			}
 			Paint paint;
 			paint.color.set_a(_opacity);
-			Gradient g{pts[0], pts[1], &fill->colors(), &fill->positions()};
-			paint.setGradient(Paint::kLinear_GradientType, &g);
+			GradientPaint g{
+				GradientPaint::kLinear_Type, pts[0], pts[1], fill->colors().length(),
+				fill->colors().val(), fill->positions().val()
+			};
+			paint.gradient = &g;
 
 			_canvas->drawPathv(*data.inside, paint);
 		}
@@ -259,8 +264,11 @@ namespace qk {
 			Vec2 center = _rect_inside.origin + radius;
 			Paint paint;
 			paint.color.set_a(_opacity);
-			Gradient g{center, radius, &fill->colors(), &fill->positions()};
-			paint.setGradient(Paint::kRadial_GradientType, &g);
+			GradientPaint g{
+				GradientPaint::kRadial_Type, center, radius, fill->colors().length(),
+				fill->colors().val(), fill->positions().val()
+			};
+			paint.gradient = &g;
 			_canvas->drawPathv(*data.inside, paint);
 		}
 
@@ -413,14 +421,16 @@ namespace qk {
 			_this->getInsideRectPath(v, data);
 			//auto cli = v->client_size();
 			//Qk_DEBUG("--- w %f, h %f, s: %f", cli.x(), cli.y(), cli.x()/cli.y());
-			Paint paint;
-			paint.color.set_a(_opacity);
-			paint.tileModeX = Paint::kDecal_TileMode;
-			paint.tileModeY = Paint::kDecal_TileMode;
-			paint.filterMode = Paint::kLinear_FilterMode;
-			paint.mipmapMode = Paint::kNearest_MipmapMode;
-			paint.setImage(src->pixels().val(), data.inside->rect);
-			_canvas->drawPathv(*data.inside, paint);
+			Paint p0;
+			ImagePaint paint;
+			p0.image = &paint;
+			p0.color.set_a(_opacity);
+			paint.tileModeX = ImagePaint::kDecal_TileMode;
+			paint.tileModeY = ImagePaint::kDecal_TileMode;
+			paint.filterMode = ImagePaint::kLinear_FilterMode;
+			paint.mipmapMode = ImagePaint::kNearest_MipmapMode;
+			paint.setImage(src, data.inside->rect);
+			_canvas->drawPathv(*data.inside, p0);
 		}
 		if (v->_box_shadow)
 			_this->drawBoxShadow(v, data);

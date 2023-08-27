@@ -3,7 +3,6 @@
 
 #frag
 in      lowp  vec2      coordF;
-uniform lowp  float     opacity;
 uniform       sampler2D image;
 uniform lowp  vec4      color;
 

@@ -32,15 +32,10 @@
 
 namespace qk {
 
-	void Paint::setImage(cPixel *image, const Rect& dest) {
-		setImage(image, dest, { Vec2(0,0), Vec2(image->width(), image->height()) });
-	}
-
-	void Paint::setImage(cPixel *image, const Rect& dest, const Rect& src) {
-		type = kBitmap_Type;
-		this->image = image;
+	void ImagePaint::setImage(ImageSource *image, const Rect& dest, const Rect& src) {
+		this->source = image;
 		Vec2 scale(dest.size.x() / src.size.x(), dest.size.y() / src.size.y());
-		region = {
+		coord = {
 			Vec2(
 				src.origin.x() * scale.x() - dest.origin.x(),
 				src.origin.y() * scale.y() - dest.origin.y()
@@ -49,12 +44,6 @@ namespace qk {
 			//Vec2(1.0 / scale.x() / image->width(), 1.0 / scale.y() / image->height()),
 			Vec2(1.0 / (scale.x() * image->width()), 1.0 / (scale.y() * image->height())),
 		};
-	}
-
-	void Paint::setGradient(GradientType gtype, const Gradient *_gradient) {
-		type = kGradient_Type;
-		gradientType = gtype;
-		gradient = _gradient; // weak ref
 	}
 
 	// -------------------------------------------------------
@@ -66,9 +55,13 @@ namespace qk {
 
 		Array<Color4f> colors{Color4f(0,0,0),Color4f(1,1,1)};
 		Array<float>   pos{0,0.5,1};
-		Gradient       gr{Vec2{0,0}, Vec2{1,1}, &colors, &pos};
+		GradientPaint  gr{
+			GradientPaint::kLinear_Type, Vec2{0,0}, Vec2{1,1},
+			colors.length(), colors.val(), pos.val()
+		};
 
-		paint.setGradient(Paint::kLinear_GradientType, &gr);
+		paint.type = Paint::kGradient_Type;
+		paint.gradient = &gr;
 	}
 
 }

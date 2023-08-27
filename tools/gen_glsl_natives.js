@@ -188,7 +188,7 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 			`	static String c;`,
 			`	if (c.isEmpty()) {`,
 				`		c+="#version " Qk_GL_Version "\\n";`,
-				isFrag ? `		c+="#define Qk_SHAFER_FRAG\\n";`:'',
+				isFrag ? `		c+="\\n#define Qk_SHAFER_FRAG\\n";`:'',
 				import_all.map(e=>(`		c.append(${e.call});`)),
 				`		c.append("${source.replace(/\n/gm, '\\n\\\n')}",${source_len});`,
 			`	}`,
@@ -196,15 +196,24 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 		'}',
 		);
 	} else {
-		write(cpp, `const char* ${call} {`,
-			`const char* c = "${source.replace(/\n/gm, '\\n\\\n')}";`,
-			`return c;`,
-		'}',
-		);
-	}
-
-	if (!isFrag && !isVert) {
-		call += ',' + source_len;
+		if (name == '_util_glsl') {
+			write(cpp, `cString& ${call} {`,
+				`	static String c;`,
+				`	if (c.isEmpty()) {`,
+					`		c+="#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS ";c+=GL_MaxTextureImageUnits_Str;`,
+					`		c.append("\\n${source.replace(/\n/gm, '\\n\\\n')}",${source_len+1});`,
+					`		c+="\\n";`,
+				`} return c;`,
+			'}',
+			);
+		} else {
+			write(cpp, `const char* ${call} {`,
+				`const char* c = "${source.replace(/\n/gm, '\\n\\\n')}";`,
+				`return c;`,
+			'}',
+			);
+			call += ',' + source_len;
+		}
 	}
 
 	let ast = {
@@ -295,6 +304,7 @@ function main() {
 	write(cpp,
 		`#include "./${path.basename(output_h)}"`,
 		'namespace qk {',
+		'extern String GL_MaxTextureImageUnits_Str;'
 	);
 
 	for (let {name,input} of Object.values(pair_inputs)) {

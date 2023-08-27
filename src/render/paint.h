@@ -37,13 +37,67 @@
 
 namespace qk {
 
-	struct Gradient {
-		Vec2 origin;
-		union {
-			Vec2 end,radius;
+	struct GradientPaint {
+		enum Type {
+			kLinear_Type,  //!< linear gradient type
+			kRadial_Type,  //!< radial gradient type
 		};
-		const Array<Color4f> *colors;
-		const Array<float>   *positions;
+		Type type; // gradient color type
+		Vec2 origin,endOrRadius;
+		uint32_t       count;
+		const Color4f *colors;
+		const float   *positions;
+	};
+
+	struct ImagePaintBase {
+		enum TileMode {
+			//!< Replicate the edge color if the shader draws outside of its original bounds.
+			kClamp_TileMode,
+			//!< Repeat the shader's image horizontally and vertically.
+			kRepeat_TileMode,
+			//!< Repeat the shader's image horizontally and vertically, alternating mirror images so that adjacent images always seam.
+			kMirror_TileMode,
+			//!< Only draw within the original domain, return transparent-black everywhere else.
+			kDecal_TileMode,
+		};
+
+		enum FilterMode {
+			kNearest_FilterMode,   //!< single sample point (nearest neighbor)
+			kLinear_FilterMode,    //!< interporate between 2x2 sample points (bilinear interpolation)
+		};
+
+		enum MipmapMode {
+			kNone_MipmapMode,      //!< ignore mipmap levels, sample from the "base"
+			kNearest_MipmapMode,   //!< sample from the nearest level
+			kLinear_MipmapMode,    //!< interpolate between the two nearest levels
+		};
+
+		union {
+			uint32_t bitfields = (
+				(kClamp_TileMode << 8) | // 2 bits
+				(kClamp_TileMode << 10) | // 2 bits
+				(kNone_MipmapMode << 12) | // 2 bits
+				(kNearest_FilterMode << 14) | // 1 bits
+				0
+			);
+			struct {
+				uint8_t       offset: 8; // default zero, image source pixel index offset
+				TileMode      tileModeX: 2; // default kClamp_TileMode
+				TileMode      tileModeY: 2; // default kClamp_TileMode
+				MipmapMode    mipmapMode: 2;// default kNone_MipmapMode, image source mipmap mode
+				FilterMode    filterMode: 1;// default kNearest_FilterMode, image source filter mode
+				unsigned      padding: 17;
+			};
+		}; // size 32bit
+		ImageSource      *source; // image source, weak ref
+	};
+
+	struct ImagePaint: ImagePaintBase {
+		void setImage(ImageSource *image, const Rect &dest, const Rect &src);
+		void setImage(ImageSource *image, const Rect &dest) {
+			setImage(image, dest, { Vec2(0,0), Vec2(image->width(), image->height()) });
+		}
+		Region            coord; // bitmap uv coord
 	};
 
 	struct Paint {
@@ -73,73 +127,31 @@ namespace qk {
 			kBevel_Join,          //!< connects outside edges
 		};
 
-		enum TileMode {
-			//!< Replicate the edge color if the shader draws outside of its original bounds.
-			kClamp_TileMode,
-			//!< Repeat the shader's image horizontally and vertically.
-			kRepeat_TileMode,
-			//!< Repeat the shader's image horizontally and vertically, alternating mirror images so that adjacent images always seam.
-			kMirror_TileMode,
-			//!< Only draw within the original domain, return transparent-black everywhere else.
-			kDecal_TileMode,
-		};
-
-		enum FilterMode {
-			kNearest_FilterMode,   //!< single sample point (nearest neighbor)
-			kLinear_FilterMode,    //!< interporate between 2x2 sample points (bilinear interpolation)
-		};
-
-		enum MipmapMode {
-			kNone_MipmapMode,      //!< ignore mipmap levels, sample from the "base"
-			kNearest_MipmapMode,   //!< sample from the nearest level
-			kLinear_MipmapMode,    //!< interpolate between the two nearest levels
-		};
-
-		enum GradientType {
-			kLinear_GradientType,  //!< linear gradient type
-			kRadial_GradientType,  //!< radial gradient type
-		};
-
-		void setImage(cPixel *image, const Rect &dest); // src = {Vec2(0,0),Vec2(w,h)}
-		void setImage(cPixel *image, const Rect &dest, const Rect &src);
-		void setGradient(GradientType type, const Gradient *gradient);
-
 		union {
 			uint32_t        bitfields = (
 				(kColor_Type << 0) | // 2 bits
 				(kFill_Style << 2) | // 2 bits
-				(kSrcOver_BlendMode << 4) | // 6 bits
-				(kButt_Cap << 10) | // 2 bits
-				(kMiter_Join << 12) | // 2 bits
-				(kClamp_TileMode << 14) | // 2 bits
-				(kClamp_TileMode << 16) | // 2 bits
-				(kNearest_FilterMode << 18) | // 1 bits
-				(kNone_MipmapMode << 19) | // 2 bits
-				(kLinear_GradientType << 21) | // 1 bits
-				(1 << 22) | // 1 bits, default antiAlias = true
+				(kButt_Cap << 4) | // 2 bits
+				(kMiter_Join << 6) | // 2 bits
+				(kSrcOver_BlendMode << 8) | // 6 bits
+				(1 << 14) | // 2 bits, default antiAlias = true
 				0
 			);
 			struct {
 				Type          type: 2;// default kColor_Type;
 				Style         style : 2;// default kFill_Style;
-				BlendMode     blendMode: 6; // default kSrcOver_BlendMode
 				Cap           cap: 2;// default kButt_Cap;
-				Join          join : 2;// default kMiter_Join;
-				TileMode      tileModeX: 2; // default kClamp_TileMode
-				TileMode      tileModeY: 2; // default kClamp_TileMode
-				FilterMode    filterMode: 1;// default kNearest_FilterMode, image source filter mode
-				MipmapMode    mipmapMode: 2;// default kNone_MipmapMode, image source mipmap mode
-				GradientType  gradientType: 1;// default kLinear_GradientType, gradient color type
-				bool          antiAlias : 1;// default true;
-				unsigned      padding : 9;
+				Join          join: 2;// default kMiter_Join;
+				BlendMode     blendMode: 6; // default kSrcOver_BlendMode
+				bool          antiAlias: 2;// default true;
+				bool          padding: 16;
 			};
 		}; // size 32bit
 
-		float                width; // stroke width
-		Color4f              color; // color or image alpha or gradient alpha
-		Region               region; // bitmap uv coord
-		const BitmapPixel   *image; // bitmap image, weak ref
-		const Gradient      *gradient; // gradient color, weak ref
+		float              width; // stroke width
+		Color4f            color; // color
+		ImagePaint        *image; // image source, weak ref
+		GradientPaint     *gradient; // gradient color, weak ref
 	};
 
 }

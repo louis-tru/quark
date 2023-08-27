@@ -48,6 +48,25 @@ namespace qk {
 		}
 	}
 
+	static void __test__() {
+		Region a;
+		Region b = a;
+		Vec2 va;
+		Vec2 vb = va;
+		Color4f ca;
+		Color4f cb = ca;
+	}
+
+	GLC_ImageCmd::~GLC_ImageCmd() {
+		paint.source->release();
+	}
+
+	GLC_GenericeCmd::~GLC_GenericeCmd() {
+		for (auto i = 0; i < images; i++) {
+			(&image)[i].source->release();
+		}
+	}
+
 	Qk_DEFINE_INLINE_MEMBERS(GLCanvas, Inl) {
 	public:
 		#define _this _inl(this)
@@ -197,13 +216,12 @@ namespace qk {
 		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {
 			auto &pix = textImg->pixels().front();
 			auto scale_1 = 1.0 / scale;
-			Paint p(paint);
-
+			ImagePaint p;
 			// default use baseline align
 			Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
 			Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
 
-			p.setImage(&pix, {dst_start, dst_size});
+			p.setImage(textImg, {dst_start, dst_size});
 
 			Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
 			Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
@@ -213,7 +231,11 @@ namespace qk {
 				v2, v3, v1, // triangle 1
 			};
 			// _render->getRectPath({dst_start, dst_size}).vertex;
-			drawImageMask(vertex, p, 1);
+			
+			Paint p0(paint);
+			p0.image = &p;
+
+			drawImageMask(vertex, p0, 1);
 			_render->_zDepth++;
 
 			return scale_1;
@@ -221,92 +243,125 @@ namespace qk {
 
 		// ----------------------------------------------------------------------------------------
 
-		GLC_GenericeCmd* newGenericeCmd(int extend) {
-			auto gcmd = new GLC_GenericeCmd;
-			gcmd->options.extend(extend);
-			gcmd->subcmd = 0;
-			gcmd->type = kGenerice_GLC_CmdType;
-			gcmd->depth = 0;
-			_cmd = gcmd;
-			_drawCmds.push(gcmd);
-			return gcmd;
+		GLC_GenericeCmd* newGenericeCmd() {
+			auto mem = malloc(sizeof(GLC_GenericeCmd) +
+				sizeof(ImagePaintBase) * (_render->_maxTextureImageUnits - 1)
+			);
+			auto cmd = new(mem) GLC_GenericeCmd;
+			cmd->options.extend(128);
+			cmd->subcmd = 0;
+			cmd->images = 0;
+			cmd->type = kGenerice_GLC_CmdType;
+			// cmd->depth = 0;
+			cmd->next = nullptr;
+			_cmdEnd->next = cmd;
+			_cmdEnd = cmd;
+			return cmd;
 		}
 
 		GLC_GenericeCmd* getGenericeCmd() {
-			if (_cmd->type == kGenerice_GLC_CmdType) {
-				auto gcmd = static_cast<GLC_GenericeCmd*>(_cmd);
-				if (gcmd->subcmd == gcmd->options.length()) {
-					if (gcmd->subcmd < 1024) {
-						gcmd->options.extend(gcmd->subcmd + 128);
+			if (_cmdEnd->type == kGenerice_GLC_CmdType) {
+				auto cmd = static_cast<GLC_GenericeCmd*>(_cmdEnd);
+				if (cmd->subcmd == cmd->options.length()) {
+					if (cmd->subcmd == 1024) {
+						return newGenericeCmd();
 					} else {
-						return newGenericeCmd(128);
+						cmd->options.extend(cmd->subcmd + 128);
 					}
 				}
-				return gcmd;
+				return cmd;
 			}
-			return newGenericeCmd(128);
+			return newGenericeCmd();
 		}
 
-		void drawColor(const Array<Vec3> &vertex, const Color4f &color) {
+		int addGenericeSubcmd(GLC_GenericeCmd* cmd, int flags,
+			const Array<Vec3> &vertex, const Color4f &color, const Region &coord
+		) {
 			// add new subcmd
-			auto gcmd = getGenericeCmd();
-			auto optinx = gcmd->subcmd++;
+			auto optinx = cmd->subcmd++;
 			auto vertexLen = vertex.length();
-			gcmd->vertex.write(*vertex, -1, vertexLen); // copy vertex data
-			gcmd->optidxs.extend(gcmd->vertex.length());
+ 			// setting vertex option data
+			cmd->options[optinx] = {
+				.flags  = flags,           .depth = zDepth(),
+				.matrix = _state->matrix,  .color = color,
+				.coord  = coord,
+			};
+			cmd->vertex.write(*vertex, -1, vertexLen); // copy vertex data
+			cmd->optidxs.extend(cmd->vertex.length());
 			// set vertex option index
-			memset_pattern4(&gcmd->optidxs.back() - vertexLen, &optinx, vertexLen);
-
-			gcmd->options[optinx] = {
-				.flags  = GLC_GenericeCmd::kColor, .depth = zDepth(),
-				.matrix = _state->matrix,          .color = color,
-				.coord  = ZeroRegion,
-			}; // setting vertex option data
+			memset_pattern4(&cmd->optidxs.back() - vertexLen, &optinx, vertexLen);
+			return optinx;
 		}
 
-		void drawImage(const Array<Vec3> &vertex, const Paint &paint, float opacity) {
-			auto shader = &_render->_image;
-			auto pixel = paint.image;
-			auto type = pixel->type();
+		inline void drawColor(const Array<Vec3> &vertex, const Color4f &color) {
+			addGenericeSubcmd(getGenericeCmd(), GLC_GenericeCmd::kColor, vertex, color, ZeroRegion);
+		}
+
+		void drawImage(const Array<Vec3> &vertex, const Paint &paint, float alpha) {
+			auto img = paint.image;
+			auto type = img->source->type();
 			auto texCount = type == kColor_Type_YUV420P_Y_8 ? 3:
 											type == kColor_Type_YUV420SP_Y_8 ? 2: 1;
-			for (int i = 0; i < texCount; i++) {
-				_render->setTexture(pixel + i, i, paint);
+			if (texCount == 1) { // use generice cmd
+				auto cmd = getGenericeCmd();
+				if (cmd->images == _render->_maxTextureImageUnits)
+					cmd = newGenericeCmd();
+				auto optinx = addGenericeSubcmd(
+					cmd, GLC_GenericeCmd::kImage, vertex, Color4f(0,0,0,alpha), paint.image->coord
+				);
+				auto cmd = static_cast<GLC_GenericeCmd*>(_cmdEnd);
+				(&cmd->image)[cmd->images++] = *paint.image;
+				cmd->options[optinx].flags |= cmd->images << 2;
+				paint.image->source->retain(); // retain source image ref
+			} else {
+				// TODO check matrix change ..
+				auto cmd = new GLC_ImageCmd;
+				cmd->type = kImage_GLC_CmdType;
+				cmd->alpha = paint.color.a();
+				cmd->format = GLC_ImageCmd::Format(texCount - 1);
+				cmd->paint = *img;
+				img->source->retain(); // retain source image ref
+				cmd->next = nullptr;
+				_cmdEnd->next = cmd;
+				_cmdEnd = cmd;
 			}
-			shader->use(vertex.size(), vertex.val());
-			glUniform1f(shader->depth, zDepth());
-			glUniform1i(shader->format, texCount - 1);
-			glUniform1f(shader->opacity, opacity);
-			glUniform4fv(shader->coord, 1, paint.region.origin.val);
-			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		}
 
 		void drawImageMask(const Array<Vec3> &vertex, const Paint &paint, float alpha) {
-			auto shader = &_render->_colorMask;
-			_render->setTexture(paint.image, 0, paint);
-			shader->use(vertex.size(), vertex.val());
-			glUniform1f(shader->depth, zDepth());
-			glUniform4f(shader->color, paint.color[0], paint.color[1], paint.color[2], paint.color[3]*alpha);
-			glUniform4fv(shader->coord, 1, paint.region.origin.val);
-			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+			auto cmd = getGenericeCmd();
+			if (cmd->images == _render->_maxTextureImageUnits)
+				cmd = newGenericeCmd();
+			auto color = paint.color.to_color4f_alpha(alpha);
+			auto optinx = addGenericeSubcmd(
+				cmd, GLC_GenericeCmd::kColorMask, vertex, color, paint.image->coord
+			);
+			auto cmd = static_cast<GLC_GenericeCmd*>(_cmdEnd);
+			(&cmd->image)[cmd->images++] = *paint.image;
+			cmd->options[optinx].flags |= cmd->images << 2;
+			paint.image->source->retain(); // retain source image ref
 		}
 
-		void drawGradient(const Array<Vec3> &vertex, const Paint &paint, float opacity) {
+		void drawGradient(const Array<Vec3> &vertex, const Paint &paint, float alpha) {
+			// TODO check matrix change ..
 			auto g = paint.gradient;
-			auto shader = paint.gradientType ==
-				Paint::kRadial_GradientType ? &_render->_radial:
-				static_cast<GLSLColorRadial*>(static_cast<GLSLShader*>(&_render->_linear));
-			auto count = Qk_MIN(g->colors->length(), 256);
-			shader->use(vertex.size(), vertex.val());
-			glUniform1f(shader->depth, zDepth());
-			glUniform1f(shader->opacity, opacity);
-			glUniform4fv(shader->range, 1, g->origin.val);
-			glUniform1i(shader->count, count);
-			glUniform4fv(shader->colors, count, (const GLfloat*)g->colors->val());
-			glUniform1fv(shader->positions, count, (const GLfloat*)g->positions->val());
-			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
-			//glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.length());
-			//glDrawArrays(GL_LINES, 0, vertex.length());
+			auto colors = sizeof(Color4f) * g->count;
+			auto positions = sizeof(float) * g->count;
+			auto cmdSize = sizeof(GLC_GradientCmd);
+			auto mem = (char*)malloc(cmdSize + colors + positions);
+			auto cmd = new(mem) GLC_GradientCmd;
+			auto colors_p = reinterpret_cast<Color4f*>(mem + cmdSize);
+			auto positions_p = reinterpret_cast<float*>(mem + cmdSize + colors);
+
+			memcpy(colors_p, g->colors, colors); // copy colors
+			memcpy(positions_p, g->positions, positions); // copy positions
+			cmd->type = kGenerice_GLC_CmdType;
+			cmd->alpha = alpha;
+			cmd->paint = *g;
+			cmd->paint.colors = colors_p;
+			cmd->paint.positions = positions_p;
+			cmd->next = nullptr;
+			_cmdEnd->next = cmd;
+			_cmdEnd = cmd;
 		}
 
 	};
@@ -317,12 +372,14 @@ namespace qk {
 		: _render(render)
 		, _stencilRef(0), _stencilRefDecr(0)
 		, _state(nullptr)
+		, _cmd{ kEmpty_GLC_CmdType, nullptr }
 		, _surfaceScale(1), _transfromScale(1), _scale(1)
 	{
-		_this->newGenericeCmd(0); // init first cmd
+		_cmdEnd = &_cmd;
 		_stateStack.push({ .matrix=Mat() }); // init state
 		_state = &_stateStack.back();
 		setMatrix(_state->matrix); // init shader matrix
+		__test__();
 	}
 
 	GLCanvas::~GLCanvas() {
