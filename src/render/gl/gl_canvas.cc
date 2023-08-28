@@ -40,23 +40,6 @@ namespace qk {
 	constexpr float aa_fuzz_weight = 0.9;
 	constexpr float aa_fuzz_width = 0.5;
 
-	template<>
-	void Array<GLC_GenericeCmd::Option>::extend(uint32_t length) {
-		if (length > _length) {
-			realloc_(length);
-			_length = length;
-		}
-	}
-
-	static void __test__() {
-		Region a;
-		Region b = a;
-		Vec2 va;
-		Vec2 vb = va;
-		Color4f ca;
-		Color4f cb = ca;
-	}
-
 	GLC_ImageCmd::~GLC_ImageCmd() {
 		paint.source->release();
 	}
@@ -65,6 +48,39 @@ namespace qk {
 		for (auto i = 0; i < images; i++) {
 			(&image)[i].source->release();
 		}
+	}
+
+	GLC_CmdPack::GLC_CmdPack(): gc_vertexsIdx(0), gc_optsIdx(0) {
+		cmdSize = sizeof(GLC_Cmd);
+		cmdCapacity = 1024;
+		cmd = (GLC_Cmd*)malloc(1024);
+		cmd->size = cmdSize;
+		gc_vertexs.push({(Vec3*)malloc(65535 * sizeof(Vec3)),0,65535});
+		gc_optidxs.push({(int*)malloc(65535 * sizeof(int)),0,65535});
+		gc_opts.push({(GCOpt*)malloc(1024 * sizeof(GCOpt)),0,1024});
+	}
+
+	GLC_CmdPack::~GLC_CmdPack() {
+		for (auto &i: gc_vertexs) free(i.val);
+		for (auto &i: gc_optidxs) free(i.val);
+		for (auto &i: gc_opts) free(i.val);
+		free(cmd);
+	}
+
+	GLC_Cmd* GLC_CmdPack::allocCmd(uint32_t size) {
+		auto newSize = cmdSize + size;
+		if (newSize > cmdCapacity) {
+			cmdCapacity <<= 1;
+			cmd = (GLC_Cmd*)realloc(cmd, cmdCapacity);
+		}
+		GLC_Cmd* newCmd = (GLC_Cmd*)(((char*)cmd) + cmdSize);
+		newCmd->size = size;
+		cmdSize = newSize;
+		return newCmd;
+	}
+
+	GLC_GenericeCmd* GLC_CmdPack::newGenericeCmd() {
+		// TODO ...
 	}
 
 	Qk_DEFINE_INLINE_MEMBERS(GLCanvas, Inl) {
@@ -77,7 +93,11 @@ namespace qk {
 		}
 
 		float zDepth() {
-			return _render->_zDepth * 0.0000152587890625f; // zDepth / 65536
+			return _render->_zDepth;
+		}
+
+		void zDepthNext() {
+			_render->_zDepth += 0.000000125f; // 1/8000000
 		}
 
 		void setMatrixBuffer(const Mat& mat) {
@@ -315,15 +335,12 @@ namespace qk {
 				paint.image->source->retain(); // retain source image ref
 			} else {
 				// TODO check matrix change ..
-				auto cmd = new GLC_ImageCmd;
+				auto cmd = new(_cmdPack->allocCmd(sizeof(GLC_ImageCmd))) GLC_ImageCmd;
 				cmd->type = kImage_GLC_CmdType;
 				cmd->alpha = paint.color.a();
 				cmd->format = GLC_ImageCmd::Format(texCount - 1);
 				cmd->paint = *img;
 				img->source->retain(); // retain source image ref
-				cmd->next = nullptr;
-				_cmdEnd->next = cmd;
-				_cmdEnd = cmd;
 			}
 		}
 
@@ -347,21 +364,19 @@ namespace qk {
 			auto colors = sizeof(Color4f) * g->count;
 			auto positions = sizeof(float) * g->count;
 			auto cmdSize = sizeof(GLC_GradientCmd);
-			auto mem = (char*)malloc(cmdSize + colors + positions);
-			auto cmd = new(mem) GLC_GradientCmd;
-			auto colors_p = reinterpret_cast<Color4f*>(mem + cmdSize);
-			auto positions_p = reinterpret_cast<float*>(mem + cmdSize + colors);
-
+			auto cmd = new(_cmdPack->allocCmd(cmdSize + colors + positions)) GLC_GradientCmd;
+			auto cmdp = (char*)cmd;
+			auto colors_p = reinterpret_cast<Color4f*>(cmdp + cmdSize);
+			auto positions_p = reinterpret_cast<float*>(cmdp + cmdSize + colors);
 			memcpy(colors_p, g->colors, colors); // copy colors
 			memcpy(positions_p, g->positions, positions); // copy positions
 			cmd->type = kGenerice_GLC_CmdType;
+			cmd->vertex.write(*vertex, -1, vertex.length());
+			cmd->depth = zDepth();
 			cmd->alpha = alpha;
 			cmd->paint = *g;
 			cmd->paint.colors = colors_p;
 			cmd->paint.positions = positions_p;
-			cmd->next = nullptr;
-			_cmdEnd->next = cmd;
-			_cmdEnd = cmd;
 		}
 
 	};
@@ -372,14 +387,12 @@ namespace qk {
 		: _render(render)
 		, _stencilRef(0), _stencilRefDecr(0)
 		, _state(nullptr)
-		, _cmd{ kEmpty_GLC_CmdType, nullptr }
 		, _surfaceScale(1), _transfromScale(1), _scale(1)
 	{
-		_cmdEnd = &_cmd;
+		_cmdPack = _cmdPacks;
 		_stateStack.push({ .matrix=Mat() }); // init state
 		_state = &_stateStack.back();
 		setMatrix(_state->matrix); // init shader matrix
-		__test__();
 	}
 
 	GLCanvas::~GLCanvas() {

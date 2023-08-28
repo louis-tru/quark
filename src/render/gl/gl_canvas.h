@@ -62,40 +62,41 @@ namespace qk {
 		kLinear_GLC_CmdType,
 		kGenerice_GLC_CmdType,
 	};
+
 	struct GLC_Cmd { // Cmd list
 		GLC_CmdType type;
-		GLC_Cmd *next; // next cmd
+		uint32_t    size; // cmd size
 	};
 	struct GLC_MatrixCmd: GLC_Cmd { Mat matrix; };
 	struct GLC_BlendModeCmd: GLC_Cmd { BlendMode mode; };
 	struct GLC_ClearCmd: GLC_Cmd { Color4f color; };
-	struct GLC_DrawCmd: GLC_Cmd { Array<Vec3> vertex; float depth; };
+	struct GLC_DrawCmd: GLC_Cmd { Array<Vec3>  vertex; float depth; };
 
 	struct GLC_ClipCmd: GLC_DrawCmd {
-		Path             path;
-		Canvas::ClipOp   op;
-		bool             aa,revoke;
+		Path           path;
+		Canvas::ClipOp op;
+		bool           aa,revoke;
 	};
 
 	struct GLC_GradientCmd: GLC_DrawCmd {
-		float            alpha;
-		GradientPaint    paint;
+		float          alpha;
+		GradientPaint  paint;
 	};
 
 	struct GLC_ImageCmd: GLC_DrawCmd {
-		~GLC_ImageCmd();
 		enum Format {
 			kRGB_Format, // 1 texure
 			kYUV420SP_Format, // 2 texure
 			kYUV420P_Format, // 3 texure
 		};
-		float           alpha;
-		Format          format;
-		ImagePaint      paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
+		float          depth;
+		float          alpha;
+		Format         format;
+		ImagePaint     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
+		~GLC_ImageCmd();
 	};
 
-	struct GLC_GenericeCmd: GLC_DrawCmd {
-		~GLC_GenericeCmd();
+	struct GLC_GenericeCmd: GLC_Cmd {
 		enum OptionType {
 			kColor,kColorMask,kImage,
 		};
@@ -106,11 +107,35 @@ namespace qk {
 			Color4f color;  // color
 			Region  coord;  // image coord, offset,scale
 		};
-		int                    subcmd; // subcmd count
-		int                    images; // images count
-		Array<int>             optidxs; // vertex option index
-		Array<Option>          options; // subcmd options data
-		ImagePaintBase         image; // image source
+		template<typename T> struct MemBlock {
+			T       *val;
+			uint32_t useLen,capacity;
+		};
+		MemBlock<int>  *optidxsMem;
+		MemBlock<Vec3> *vertexsMem;
+		MemBlock<Option> *optsMem;
+		Vec3           *vertexs;
+		int            *optidxs; // vertex option index
+		Option         *opts; // subcmd options data
+		int            subcmd; // subcmd count
+		int            images; // images count
+		ImagePaintBase image; // image source
+		~GLC_GenericeCmd();
+	};
+
+	struct GLC_CmdPack {
+		typedef GLC_GenericeCmd::Option GCOpt;
+		template <typename T> using MemBlock = GLC_GenericeCmd::MemBlock<T>;
+		Array<MemBlock<Vec3>> gc_vertexs;
+		Array<MemBlock<int>>  gc_optidxs;
+		Array<MemBlock<GCOpt>> gc_opts;
+		uint32_t gc_vertexsIdx, gc_optsIdx;
+		uint32_t cmdSize, cmdCapacity;
+		GLC_Cmd *cmd;
+		         GLC_CmdPack();
+		        ~GLC_CmdPack();
+		GLC_Cmd* allocCmd(uint32_t size);
+		GLC_GenericeCmd* newGenericeCmd();
 	};
 
 	// -------------------------------------------------------------
@@ -148,8 +173,8 @@ namespace qk {
 		// define props
 		Array<GLC_State> _stateStack;
 		GLC_State    *_state;
-		GLC_Cmd       _cmd; // cmd list begin
-		GLC_Cmd      *_cmdEnd; // cmd list end
+		GLC_CmdPack   _cmdPacks[2];
+		GLC_CmdPack  *_cmdPack;
 		GLRender     *_render;
 		GLuint _stencilRef, _stencilRefDecr;
 		float  _surfaceScale, _transfromScale;
