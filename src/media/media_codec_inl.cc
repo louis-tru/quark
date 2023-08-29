@@ -357,7 +357,7 @@ namespace qk {
 				ABORT();
 			}
 			
-			CPointer<AVFormatContext> clear(fmt_ctx, [](AVFormatContext *fmt_ctx) {
+			CPointerHold<AVFormatContext> clear(fmt_ctx, [](AVFormatContext *fmt_ctx) {
 				avformat_close_input(&fmt_ctx);
 				Qk_DEBUG("free ffmpeg AVFormatContext");
 			});

@@ -271,7 +271,7 @@ namespace qk {
 			return false;
 		}
 		
-		CPointer<void> clear(unzp, [](unzFile unzp) {
+		CPointerHold<void> clear(unzp, [](unzFile unzp) {
 			if ( unzClose((unzFile) unzp) != UNZ_OK ) {
 				//Qk_ERR("Cannot close file ZipReader, %s", _path.c_str());
 			}

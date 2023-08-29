@@ -37,7 +37,7 @@
 #include "./glsl_shaders.h"
 
 namespace qk {
-	// -------------------------------------------------------------
+	class GLRender; // gl render backend
 
 	struct GLC_State { // gl canvas state
 		struct Clip { // gl canvas clip
@@ -54,10 +54,10 @@ namespace qk {
 	enum GLC_CmdType { // gl canvas cmd type
 		kEmpty_GLC_CmdType, // empty cmd
 		kMatrix_GLC_CmdType,
-		kBlendMode_GLC_CmdType,
+		kBlend_GLC_CmdType,
 		kClear_GLC_CmdType,
-		kClip_GLC_CmdType, // draw cmd
-		kImage_GLC_CmdType,
+		kClip_GLC_CmdType,
+		kImage_GLC_CmdType, // draw cmd
 		kRadial_GLC_CmdType,
 		kLinear_GLC_CmdType,
 		kGenerice_GLC_CmdType,
@@ -67,15 +67,18 @@ namespace qk {
 		GLC_CmdType type;
 		uint32_t    size; // cmd size
 	};
+	struct GLC_DrawCmd: GLC_Cmd { Array<Vec3> vertex; float depth; };
 	struct GLC_MatrixCmd: GLC_Cmd { Mat matrix; };
-	struct GLC_BlendModeCmd: GLC_Cmd { BlendMode mode; };
-	struct GLC_ClearCmd: GLC_Cmd { Color4f color; };
-	struct GLC_DrawCmd: GLC_Cmd { Array<Vec3>  vertex; float depth; };
+	struct GLC_BlendCmd: GLC_Cmd { BlendMode mode; };
 
-	struct GLC_ClipCmd: GLC_DrawCmd {
-		Path           path;
-		Canvas::ClipOp op;
-		bool           aa,revoke;
+	struct GLC_ClearCmd: GLC_DrawCmd {
+		Color4f        color;
+	};
+
+	struct GLC_ClipCmd: GLC_Cmd {
+		float          depth;
+		bool           revoke;
+		GLC_State::Clip clip;
 	};
 
 	struct GLC_GradientCmd: GLC_DrawCmd {
@@ -89,7 +92,6 @@ namespace qk {
 			kYUV420SP_Format, // 2 texure
 			kYUV420P_Format, // 3 texure
 		};
-		float          depth;
 		float          alpha;
 		Format         format;
 		ImagePaint     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
@@ -107,13 +109,6 @@ namespace qk {
 			Color4f color;  // color
 			Region  coord;  // image coord, offset,scale
 		};
-		template<typename T> struct MemBlock {
-			T       *val;
-			uint32_t useLen,capacity;
-		};
-		MemBlock<int>  *optidxsMem;
-		MemBlock<Vec3> *vertexsMem;
-		MemBlock<Option> *optsMem;
 		Vec3           *vertexs;
 		int            *optidxs; // vertex option index
 		Option         *opts; // subcmd options data
@@ -125,13 +120,21 @@ namespace qk {
 
 	struct GLC_CmdPack {
 		typedef GLC_GenericeCmd::Option GCOpt;
-		template <typename T> using MemBlock = GLC_GenericeCmd::MemBlock<T>;
-		Array<MemBlock<Vec3>> gc_vertexs;
-		Array<MemBlock<int>>  gc_optidxs;
-		Array<MemBlock<GCOpt>> gc_opts;
-		uint32_t gc_vertexsIdx, gc_optsIdx;
-		uint32_t cmdSize, cmdCapacity;
-		GLC_Cmd *cmd;
+		template<class T>
+		struct MemBlock {
+			T       *val;
+			uint32_t size,capacity;
+		};
+		template<class T>
+		struct ArrayMemBlock {
+			Array<MemBlock<T>> blocks;
+			MemBlock<T>       *current;
+			uint32_t           index;
+		};
+		ArrayMemBlock<Vec3>  vertexsBlocks; // GLC_GenericeCmd vertex storage
+		ArrayMemBlock<int>   optidxsBlocks; //
+		ArrayMemBlock<GCOpt> optsBlocks; //
+		MemBlock<GLC_Cmd> cmd;
 		         GLC_CmdPack();
 		        ~GLC_CmdPack();
 		GLC_Cmd* allocCmd(uint32_t size);
@@ -140,8 +143,18 @@ namespace qk {
 
 	// -------------------------------------------------------------
 
-	class GLRender; // gl render backend
 	class GLCanvas: public Canvas {
+		Qk_DEFINE_INLINE_CLASS(Inl);
+		Array<GLC_State> _stateStack;
+		GLC_State    *_state;
+		GLC_CmdPack   _cmdPacks[2];
+		GLC_CmdPack  *_cmdPack;
+		GLRender     *_render;
+		float  _zDepth;
+		float  _surfaceScale, _transfromScale;
+		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
+		bool   _chMatrix;
+		BlendMode _blendMode;
 	public:
 		GLCanvas(GLRender *render);
 		virtual ~GLCanvas();
@@ -169,17 +182,6 @@ namespace qk {
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 		void setRootMatrix(const Mat4& root, Vec2 surfaceScale); // set root matrix
-	private:
-		// define props
-		Array<GLC_State> _stateStack;
-		GLC_State    *_state;
-		GLC_CmdPack   _cmdPacks[2];
-		GLC_CmdPack  *_cmdPack;
-		GLRender     *_render;
-		GLuint _stencilRef, _stencilRefDecr;
-		float  _surfaceScale, _transfromScale;
-		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
-		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

@@ -36,6 +36,7 @@
 namespace qk {
 
 	String GL_MaxTextureImageUnits_Str;
+	uint32_t GL_MaxTextureImageUnits;
 
 	GLint gl_get_texture_pixel_format(ColorType type) {
 #if Qk_APPLE
@@ -374,6 +375,7 @@ namespace qk {
 		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &_maxTextureBufferSize);
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_maxTextureImageUnits);
 		_maxTextureImageUnits -= 1; // aaalpha
+		GL_MaxTextureImageUnits = _maxTextureImageUnits;
 		GL_MaxTextureImageUnits_Str = _maxTextureImageUnits;
 
 		// compile the shader

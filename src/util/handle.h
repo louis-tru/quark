@@ -114,13 +114,13 @@ namespace qk {
 	template <class T, class T2 = typename T::Traits> using Sp = Handle<T, T2>;
 
 	/**
-	 * @class CPointer
+	 * @class CPointerHold
 	*/
-	template<typename T> class CPointer {
+	template<typename T> class CPointerHold {
 	public:
 		typedef std::function<void(T*)> Destroy;
-		CPointer(T* ptr, Destroy destroy): _destroy(destroy) {}
-		~CPointer() { _destroy(_ptr); }
+		CPointerHold(T* ptr, Destroy destroy): _destroy(destroy) {}
+		~CPointerHold() { _destroy(_ptr); }
 		inline void collapse() { _destroy = [](T*p){}; }
 		inline operator bool() const { return _ptr != nullptr; }
 		inline T* operator->() { return _ptr; }

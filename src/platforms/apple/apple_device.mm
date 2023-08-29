@@ -113,7 +113,7 @@ namespace qk {
 	bool device_is_ac_power() {
 		CFTypeRef blob = IOPSCopyPowerSourcesInfo();
 		CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
-		CPointer<void> clear(nullptr, [=](void* _) {
+		CPointerHold<void> clear(nullptr, [=](void* _) {
 			CFRelease(blob);
 			CFRelease(sources);
 		});
@@ -151,7 +151,7 @@ namespace qk {
 		//Returns a CFArray of Power Source handles, each of type CFTypeRef.
 		CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
 		//Returns the number of values currently in an array.
-		CPointer<void> clear(nullptr, [=](void* _) {
+		CPointerHold<void> clear(nullptr, [=](void* _) {
 			CFRelease(blob);
 			CFRelease(sources);
 		});

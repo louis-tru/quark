@@ -53,7 +53,7 @@ namespace qk {
 		if ( ! gif )
 			return false;
 		
-		CPointer<GifFileType> scope(gif, [](GifFileType* gif) {
+		CPointerHold<GifFileType> scope(gif, [](GifFileType* gif) {
 			DGifCloseFile(gif, NULL);
 		});
 

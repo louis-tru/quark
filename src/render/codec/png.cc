@@ -47,7 +47,7 @@ namespace qk {
 	bool img_png_decode(cBuffer& data, Array<Pixel> *rv) {
 		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 		
-		CPointer<png_struct> scope(png, [](png_structp png) {
+		CPointerHold<png_struct> scope(png, [](png_structp png) {
 			png_destroy_read_struct(&png, NULL, NULL);
 		});
 
@@ -119,7 +119,7 @@ namespace qk {
 	bool img_png_test(cBuffer& data, PixelInfo *out) {
 		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 		
-		CPointer<png_struct> scope(png, [](png_structp png) {
+		CPointerHold<png_struct> scope(png, [](png_structp png) {
 			png_destroy_read_struct(&png, NULL, NULL);
 		});
 

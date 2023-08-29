@@ -103,7 +103,7 @@ namespace qk {
 		jpeg.client_data = &client_data;
 		jpeg_create_decompress(&jpeg);
 		
-		CPointer<jpeg_decompress_struct> clear(&jpeg, [](jpeg_decompress_struct *jpeg) {
+		CPointerHold<jpeg_decompress_struct> clear(&jpeg, [](jpeg_decompress_struct *jpeg) {
 			jpeg_destroy_decompress(jpeg);
 		});
 
