@@ -84,14 +84,14 @@ namespace qk {
 
 	Pixel::Pixel(cPixel& pixel): PixelInfo(pixel)
 		, _texture(pixel._texture)
-		, _hold()
-		, _body(pixel._body) {
+		, _hold(pixel._body.copy())
+		, _body(*_hold, _hold.length()) {
 	}
 
 	Pixel::Pixel(Pixel&& pixel): PixelInfo(pixel)
 		, _texture(pixel._texture)
 		, _hold(pixel._hold)
-		, _body(std::move(pixel._body)) {
+		, _body(pixel._body) {
 	}
 
 	Pixel::Pixel(const PixelInfo& info, Buffer body): PixelInfo(info)
@@ -105,19 +105,19 @@ namespace qk {
 		, _hold()
 		, _body(body) {
 	}
-	
+
 	Pixel& Pixel::operator=(cPixel& pixel) {
 		PixelInfo::operator=(pixel);
 		_texture = pixel._texture;
-		_hold = Buffer();
-		_body = pixel._body;
+		_hold = pixel._body.copy();
+		_body = WeakBuffer(*_hold, _hold.length());
 		return *this;
 	}
 
 	Pixel& Pixel::operator=(Pixel&& pixel) {
 		PixelInfo::operator=(pixel);
 		_texture = pixel._texture;
-		_hold = pixel._hold;
+		_hold = pixel._hold; // move
 		_body = pixel._body;
 		return *this;
 	}

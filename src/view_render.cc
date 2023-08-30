@@ -148,7 +148,7 @@ namespace qk {
 			auto src = fill->source();
 			if (!src || !src->load()) return;
 
-			src->mark_as_texture_unsafe(_render); // mark texure
+			src->mark_as_texture(_render); // mark texure
 
 			//auto pix = src->pixels().val();
 			auto src_w = src->width(), src_h = src->height();
@@ -417,7 +417,7 @@ namespace qk {
 
 		auto src = v->source();
 		if (src && src->load()) {
-			src->mark_as_texture_unsafe(_render);
+			src->mark_as_texture(_render);
 			_this->getInsideRectPath(v, data);
 			//auto cli = v->client_size();
 			//Qk_DEBUG("--- w %f, h %f, s: %f", cli.x(), cli.y(), cli.x()/cli.y());

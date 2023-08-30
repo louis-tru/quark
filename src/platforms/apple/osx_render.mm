@@ -145,9 +145,13 @@ extern QkApplicationDelegate* __appDelegate;
 	}
 
 	- (uint32_t) post_message:(Cb) cb delay_us:(uint64_t)delayUs {
-		_mutexMsg.lock();
-		_message.pushBack(cb);
-		_mutexMsg.unlock();
+		if (_isLockRender) {
+			cb->resolve();
+		} else {
+			_mutexMsg.lock();
+			_message.pushBack(cb);
+			_mutexMsg.unlock();
+		}
 	}
 
 @end

@@ -401,6 +401,10 @@ namespace qk {
 				Qk_DEBUG("RunLoop::post, _thread->is_abort() == true");
 				return 0;
 			}
+			if (!delay_us && _tid == thread_current_id()) { //is current
+				exec->release();
+				return 0;
+			}
 			ScopeLock lock(_mutex);
 			uint32_t id = getId32();
 			if (delay_us) {
@@ -419,7 +423,6 @@ namespace qk {
 				Qk_DEBUG("RunLoop::post_sync, _thread->abort != 0");
 				return;
 			}
-
 			struct Data: public RunLoop::PostSyncData {
 				virtual void complete() {
 					ScopeLock scope(inl->_mutex);

@@ -53,21 +53,21 @@ namespace qk {
 		, _state(kSTATE_NONE)
 		, _load_id(0), _render(nullptr)
 	{
-		reload_unsafe(std::move(pixels));
+		reload(std::move(pixels));
 	}
 
 	ImageSource::~ImageSource() {
-		_Unload();
+		_Unload(true);
 	}
 
-	bool ImageSource::reload_unsafe(Array<Pixel>&& pixels, RenderBackend *render) {
-		if (!pixels.length())
+	bool ImageSource::reload(Array<Pixel>&& pixels_, RenderBackend *render) {
+		if (!pixels_.length())
 			return false;
 		if (_state & kSTATE_LOADING)
 			return false;
 
 		Qk_ASSERT(!_pixels.length() || _info.bytes() == _pixels[0].body().length(), "old pixel bytes size no match");
-		
+
 		if (render) {
 			if (_render)
 				Qk_STRICT_ASSERT(_render == render, "backend render device no match");
@@ -75,28 +75,41 @@ namespace qk {
 			render = _render;
 		}
 
-		if (render) { // mark as texture
+		_state = kSTATE_LOAD_COMPLETE;
+		_info = pixels_[0];
+		_render = render;
+
+		if (!render) {
+			_pixels = std::move(pixels_);
+			return true;
+		}
+
+		// set gpu texture
+		auto pixels = new Array<Pixel>(std::move(pixels_));
+
+		static auto bollback = [](
+			RenderBackend *render,
+			int idx, Array<Pixel> &old, Array<Pixel> &pixels
+		) {
+			for (int j = 0; j < idx; j++) {
+				if (old[j]._texture == 0 && pixels[j]._texture != 0) {
+					render->deleteTextures(&pixels[j]._texture, 1); // RollBACK
+					pixels[j]._texture = 0;
+				}
+			}
+		};
+
+		render->post_message(Cb([this,pixels,render](Cb::Data& data) {
+			Sp<Array<Pixel>> hold(pixels);
 			uint32_t i = 0;
 			uint32_t old_len = _pixels.length();
 
-			static auto bollback = [](
-				RenderBackend *render,
-				int idx, Array<Pixel> &old, Array<Pixel> &pixels
-			) {
-				for (int j = 0; j < idx; j++) {
-					if (old[j]._texture == 0 && pixels[j]._texture != 0) {
-						render->deleteTextures(&pixels[j]._texture, 1); // RollBACK
-						pixels[j]._texture = 0;
-					}
-				}
-			};
-
-			while (i < pixels.length()) {
-				auto &pix = pixels[i];
+			while (i < pixels->length()) {
+				auto &pix = pixels->indexAt(i);
 				auto id = render->makeTexture(&pix, i < old_len ? _pixels[i]._texture: 0);
 				if (id == 0) {
-					bollback(render, i, _pixels, pixels);
-					return false;
+					bollback(render, i, _pixels, *pixels);
+					return; // make fail
 				}
 				pix = PixelInfo(pix); // clear memory pixel data
 				pix._texture = id;
@@ -108,12 +121,9 @@ namespace qk {
 					_render->deleteTextures(&_pixels[i]._texture, 1);
 				while(++i < old_len);
 			}
-		}
 
-		_info = pixels[0];
-		_state = kSTATE_LOAD_COMPLETE;
-		_pixels = std::move(pixels);
-		_render = render;
+			_pixels = std::move(*pixels);
+		}, this));
 
 		return true;
 	}
@@ -122,14 +132,14 @@ namespace qk {
 		* 
 		* copy as gpu texture
 		*
-	 * @method copy_as_texture_unsafe()
+	 * @method copy_as_texture()
 	 */
-	Sp<ImageSource> ImageSource::copy_as_texture_unsafe(RenderBackend *render) const {
+	Sp<ImageSource> ImageSource::copy_as_texture(RenderBackend *render) const {
 		if (!render && _render)
 			return nullptr;
 		auto src = new ImageSource();
 		src->_uri = _uri;
-		src->reload_unsafe(Array<Pixel>(_pixels), render);
+		src->reload(Array<Pixel>(_pixels), render); // copy pixels
 		return src;
 	}
 
@@ -137,14 +147,14 @@ namespace qk {
 		* 
 		* mark as gpu texture
 		*
-	 * @method mark_as_texture_unsafe()
+	 * @method mark_as_texture()
 	 */
-	bool ImageSource::mark_as_texture_unsafe(RenderBackend *render) {
+	bool ImageSource::mark_as_texture(RenderBackend *render) {
 		if (_render)
 			return true;
 		if (!render)
 			return false;
-		return reload_unsafe(Array<Pixel>(_pixels), render);
+		return reload(std::move(_pixels), render);
 	}
 
 	/**
@@ -159,7 +169,7 @@ namespace qk {
 		if (_uri.isEmpty()) // empty uri
 			return false;
 
-		RunLoop::first()->post(Cb([this](auto e) {
+		current_loop()->post(Cb([this](auto e) {
 			if (_state & kSTATE_LOADING)
 				return;
 			_state = State(_state | kSTATE_LOADING);
@@ -175,6 +185,7 @@ namespace qk {
 						_Decode(*static_cast<Buffer*>(e.data));
 					}
 				}
+				_load_id = 0;
 			}, this));
 		}, this));
 
@@ -189,14 +200,13 @@ namespace qk {
 		};
 		auto ctx = new Ctx{false, data};
 
-		RunLoop::first()->work(Cb([this, ctx](Cb::Data& e) {
+		current_loop()->work(Cb([this, ctx](Cb::Data& e) {
 			ctx->isComplete = img_decode(ctx->data, &ctx->pixels);
 		}), Cb([this, ctx](Cb::Data& e) {
 			if (_state & kSTATE_LOADING) {
 				if (ctx->isComplete) { // decode image complete
 					_state = State((_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
-					_info = ctx->pixels[0];
-					_pixels = std::move(ctx->pixels);
+					reload(std::move(ctx->pixels));
 				} else { // decode fail
 					_state = State((_state | kSTATE_DECODE_ERROR)  & ~kSTATE_LOADING);
 				}
@@ -210,31 +220,43 @@ namespace qk {
 	 * @method unload() delete load and ready
 	 */
 	void ImageSource::unload() {
-		RunLoop::first()->post(Cb([this](auto e) {
-			_Unload();
+		current_loop()->post(Cb([this](auto e) {
+			_Unload(false);
 			Qk_Trigger(State, _state);
 		}, this));
 	}
 
-	void ImageSource::_Unload() {
+	void ImageSource::_Unload(bool isDestroy) {
 		_state = State( _state & ~(kSTATE_LOADING | kSTATE_LOAD_COMPLETE) );
 
 		if (_load_id) {
 			fs_reader()->abort(_load_id); // cancel load and ready
 			_load_id = 0;
 		}
-		if (_render) {
-			Array<uint32_t> ids;
-			for (auto &pix: _pixels) {
-				ids.push(pix.texture());
-			}
+		if (_render) { // as texture
 			auto render = _render;
 			_render = nullptr;
 
-			render->post_message(Cb([render,ids](Cb::Data& data) {
-				render->deleteTextures(ids.val(), ids.length());
-			}));
+			if (isDestroy) {
+				Array<uint32_t> ids; // copy ids
+				for (auto &i: _pixels) {
+					if (i._texture)
+						ids.push(i._texture);
+				}
+				render->post_message(Cb([render,ids](Cb::Data& data) {
+					render->deleteTextures(ids.val(), ids.length());
+				}));
+			} else {
+				render->post_message(Cb([render,this](Cb::Data& data) {
+					for (auto &i: _pixels) {
+						if (i._texture)
+							render->deleteTextures(&i._texture, 1);
+					}
+					_pixels.clear();
+				}, this));
+			}
 		}
+
 		_pixels.clear();
 	}
 

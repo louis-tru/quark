@@ -287,5 +287,12 @@ namespace qk {
 		friend class RunLoop;
 	};
 
+	inline RunLoop* current_loop() {
+		return RunLoop::current();
+	}
+
+	inline RunLoop* first_loop() {
+		return RunLoop::first();
+	}
 }
 #endif

@@ -140,14 +140,14 @@ namespace qk {
 		static uint32_t bytes_per_pixel(ColorType type);
 
 		Pixel();
-		Pixel(cPixel& data);
-		Pixel(Pixel&& data);
-		Pixel(cPixelInfo& info, Buffer body);
-		Pixel(cPixelInfo& info, cWeakBuffer& body = WeakBuffer());
+		Pixel(cPixel& data); // copy
+		Pixel(Pixel&& data); // move
+		Pixel(cPixelInfo& info, Buffer body); // move body
+		Pixel(cPixelInfo& info, cWeakBuffer& body = WeakBuffer()); // weak ref
 
 		// operator=
-		Pixel& operator=(cPixel& pixel);
-		Pixel& operator=(Pixel&& pixel);
+		Pixel& operator=(cPixel& pixel); // copy
+		Pixel& operator=(Pixel&& pixel); // move
 
 		/**
 		 * Returns image data body

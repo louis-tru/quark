@@ -84,39 +84,27 @@ namespace qk {
 		virtual ~ImageSource();
 
 		/**
-		 * 
-		 * unsafe mode reload pixels and no trigger state event
-		 * 
-		 * Note: To be called in the rendering thread
-		 * 
-		 * @method reload_unsafe()
+		 * @method reload()
 		 * @param pixels bitmap pixels
 		 * @param device mark as texture
-		 * @thread rendering thread
 		*/
-		bool reload_unsafe(Array<Pixel>&& pixels, RenderBackend *render = nullptr);
+		bool reload(Array<Pixel>&& pixels, RenderBackend *render = nullptr);
 
 		/**
 		 *
 		 * copy as gpu texture and return a new image source object after success
-		 * 
-		 * Note: To be called in the rendering thread
 		 *
-		 * @method copy_as_texture_unsafe()
-		 * @thread rendering thread
+		 * @method copy_as_texture()
 		 */
-		Sp<ImageSource> copy_as_texture_unsafe(RenderBackend *render) const;
+		Sp<ImageSource> copy_as_texture(RenderBackend *render) const;
 
 		/**
 		 *
 		 * mark as gpu texture and return success or failure
-		 * 
-		 * Note: To be called in the rendering thread
 		 *
-		 * @method mark_as_texture_unsafe()
-		 * @thread rendering thread
+		 * @method mark_as_texture()
 		 */
-		bool mark_as_texture_unsafe(RenderBackend *render);
+		bool mark_as_texture(RenderBackend *render);
 
 		/**
 		 * @method load() async load source and decode
@@ -165,7 +153,7 @@ namespace qk {
 
 	private:
 		void _Decode(Buffer& data);
-		void _Unload();
+		void _Unload(bool isDestroy);
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
 		uint32_t     _load_id;

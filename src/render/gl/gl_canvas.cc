@@ -618,7 +618,7 @@ namespace qk {
 		Sp<ImageSource> img;
 		auto tf = glyphs.typeface();
 		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _scale, offset, &img);
-		img->mark_as_texture_unsafe(_render);
+		img->mark_as_texture(_render);
 		auto scale_1 = _this->drawTextImage(*img, bound.y(), _scale, origin, paint);
 		return scale_1 * bound.x();
 	}
@@ -638,7 +638,7 @@ namespace qk {
 			auto tf = blob->typeface;
 			auto offset = blob->offset.length() == blob->glyphs.length() ? &blob->offset: NULL;
 			blob->imageBound = tf->getImage(blob->glyphs,imageFontSize, offset, &blob->image);
-			blob->image->mark_as_texture_unsafe(_render);
+			blob->image->mark_as_texture(_render);
 		}
 
 		_this->drawTextImage(*blob->image, blob->imageBound.y(), _scale * levelScale, origin, paint);
