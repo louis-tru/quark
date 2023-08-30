@@ -92,7 +92,7 @@ namespace qk {
 		if (_uri.isEmpty()) // empty uri
 			return false;
 
-		_loop->post(Cb([this](auto e) {
+		_loop->post(Cb([this](auto &e) {
 			if (_state & kSTATE_LOADING)
 				return;
 			_state = State(_state | kSTATE_LOADING);
@@ -150,7 +150,7 @@ namespace qk {
 	 * @method unload() delete load and ready
 	 */
 	void ImageSource::unload() {
-		_loop->post(Cb([this](auto e) {
+		_loop->post(Cb([this](auto& e) {
 			_Unload(false);
 			Qk_Trigger(State, _state);
 		}, this));
