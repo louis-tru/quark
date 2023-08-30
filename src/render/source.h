@@ -42,8 +42,8 @@ namespace qk {
 	class RenderBackend;
 
 	/**
-	* @class ImageSource
-	*/
+	 * @class ImageSource
+	 */
 	class Qk_EXPORT ImageSource: public Reference {
 		Qk_HIDDEN_ALL_COPY(ImageSource);
 	public:
@@ -84,29 +84,6 @@ namespace qk {
 		virtual ~ImageSource();
 
 		/**
-		 * @method reload()
-		 * @param pixels bitmap pixels
-		 * @param device mark as texture
-		*/
-		bool reload(Array<Pixel>&& pixels, RenderBackend *render = nullptr);
-
-		/**
-		 *
-		 * copy as gpu texture and return a new image source object after success
-		 *
-		 * @method copy_as_texture()
-		 */
-		Sp<ImageSource> copy_as_texture(RenderBackend *render) const;
-
-		/**
-		 *
-		 * mark as gpu texture and return success or failure
-		 *
-		 * @method mark_as_texture()
-		 */
-		bool mark_as_texture(RenderBackend *render);
-
-		/**
 		 * @method load() async load source and decode
 		 */
 		bool load();
@@ -115,6 +92,21 @@ namespace qk {
 		 * @method unload() delete load and decode ready
 		 */
 		void unload();
+
+		/**
+		 * @method reload()
+		 * 
+		 * @param pixels bitmap pixels
+		*/
+		void reload(Array<Pixel>&& pixels);
+
+		/**
+		 *
+		 * mark as gpu texture and return success or failure
+		 *
+		 * @method mark_as_texture()
+		 */
+		bool mark_as_texture(RenderBackend *render);
 
 		/**
 		 * @method is_loaded() is ready draw image
@@ -157,7 +149,8 @@ namespace qk {
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
 		uint32_t     _load_id;
-		RenderBackend *_render; // weak ref
+		RenderBackend *_render; // weak ref, texture mark
+		RunLoop       *_loop;
 		friend class ImageSourcePool;
 	};
 

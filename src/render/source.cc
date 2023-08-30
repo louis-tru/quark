@@ -42,7 +42,7 @@ namespace qk {
 
 	ImageSource::ImageSource(cString& uri): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _load_id(0), _render(nullptr)
+		, _load_id(0), _render(nullptr), _loop(current_loop())
 	{
 		if (!uri.isEmpty())
 			_uri = fs_reader()->format(uri);
@@ -51,96 +51,17 @@ namespace qk {
 	ImageSource::ImageSource(Array<Pixel>&& pixels): Qk_Init_Event(State)
 		, _uri(String::format("mem://%d", random()))
 		, _state(kSTATE_NONE)
-		, _load_id(0), _render(nullptr)
+		, _load_id(0), _render(nullptr), _loop(current_loop())
 	{
-		reload(std::move(pixels));
+		if (pixels.length()) {
+			_state = kSTATE_LOAD_COMPLETE;
+			_info = pixels[0];
+			_pixels = std::move(pixels);
+		}
 	}
 
 	ImageSource::~ImageSource() {
 		_Unload(true);
-	}
-
-	bool ImageSource::reload(Array<Pixel>&& pixels_, RenderBackend *render) {
-		if (!pixels_.length())
-			return false;
-		if (_state & kSTATE_LOADING)
-			return false;
-
-		Qk_ASSERT(!_pixels.length() || _info.bytes() == _pixels[0].body().length(), "old pixel bytes size no match");
-
-		if (render) {
-			if (_render)
-				Qk_STRICT_ASSERT(_render == render, "backend render device no match");
-		} else {
-			render = _render;
-		}
-
-		_state = kSTATE_LOAD_COMPLETE;
-		_info = pixels_[0];
-		_render = render;
-
-		if (!render) {
-			_pixels = std::move(pixels_);
-			return true;
-		}
-
-		// set gpu texture
-		auto pixels = new Array<Pixel>(std::move(pixels_));
-
-		static auto bollback = [](
-			RenderBackend *render,
-			int idx, Array<Pixel> &old, Array<Pixel> &pixels
-		) {
-			for (int j = 0; j < idx; j++) {
-				if (old[j]._texture == 0 && pixels[j]._texture != 0) {
-					render->deleteTextures(&pixels[j]._texture, 1); // RollBACK
-					pixels[j]._texture = 0;
-				}
-			}
-		};
-
-		render->post_message(Cb([this,pixels,render](Cb::Data& data) {
-			Sp<Array<Pixel>> hold(pixels);
-			uint32_t i = 0;
-			uint32_t old_len = _pixels.length();
-
-			while (i < pixels->length()) {
-				auto &pix = pixels->indexAt(i);
-				auto id = render->makeTexture(&pix, i < old_len ? _pixels[i]._texture: 0);
-				if (id == 0) {
-					bollback(render, i, _pixels, *pixels);
-					return; // make fail
-				}
-				pix = PixelInfo(pix); // clear memory pixel data
-				pix._texture = id;
-				i++;
-			}
-
-			if (_render && i < old_len) {
-				do
-					_render->deleteTextures(&_pixels[i]._texture, 1);
-				while(++i < old_len);
-			}
-
-			_pixels = std::move(*pixels);
-		}, this));
-
-		return true;
-	}
-
-	/**
-		* 
-		* copy as gpu texture
-		*
-	 * @method copy_as_texture()
-	 */
-	Sp<ImageSource> ImageSource::copy_as_texture(RenderBackend *render) const {
-		if (!render && _render)
-			return nullptr;
-		auto src = new ImageSource();
-		src->_uri = _uri;
-		src->reload(Array<Pixel>(_pixels), render); // copy pixels
-		return src;
 	}
 
 	/**
@@ -154,7 +75,9 @@ namespace qk {
 			return true;
 		if (!render)
 			return false;
-		return reload(std::move(_pixels), render);
+		_render = render;
+		reload(std::move(_pixels));
+		return true;
 	}
 
 	/**
@@ -169,13 +92,13 @@ namespace qk {
 		if (_uri.isEmpty()) // empty uri
 			return false;
 
-		current_loop()->post(Cb([this](auto e) {
+		_loop->post(Cb([this](auto e) {
 			if (_state & kSTATE_LOADING)
 				return;
 			_state = State(_state | kSTATE_LOADING);
 			Qk_Trigger(State, _state); // trigger
 
-			_load_id = fs_reader()->read_file(_uri, Cb([this](Cb::Data& e) { // read data
+			_load_id = fs_reader()->read_file(_uri, Cb([this](auto& e) { // read data
 				if (_state & kSTATE_LOADING) {
 					if (e.error) {
 						_state = State((_state | kSTATE_LOAD_ERROR) & ~kSTATE_LOADING);
@@ -200,13 +123,20 @@ namespace qk {
 		};
 		auto ctx = new Ctx{false, data};
 
-		current_loop()->work(Cb([this, ctx](Cb::Data& e) {
+		_loop->work(Cb([this, ctx](auto& e) {
 			ctx->isComplete = img_decode(ctx->data, &ctx->pixels);
-		}), Cb([this, ctx](Cb::Data& e) {
+		}), Cb([this, ctx](auto& e) {
 			if (_state & kSTATE_LOADING) {
 				if (ctx->isComplete) { // decode image complete
-					_state = State((_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
-					reload(std::move(ctx->pixels));
+					auto state = State((_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
+					if (_render) {
+						_state = state;
+						reload(std::move(ctx->pixels));
+					} else {
+						_info = ctx->pixels[0];
+						_pixels = std::move(ctx->pixels);
+						_state = state;
+					}
 				} else { // decode fail
 					_state = State((_state | kSTATE_DECODE_ERROR)  & ~kSTATE_LOADING);
 				}
@@ -220,7 +150,7 @@ namespace qk {
 	 * @method unload() delete load and ready
 	 */
 	void ImageSource::unload() {
-		current_loop()->post(Cb([this](auto e) {
+		_loop->post(Cb([this](auto e) {
 			_Unload(false);
 			Qk_Trigger(State, _state);
 		}, this));
@@ -233,9 +163,8 @@ namespace qk {
 			fs_reader()->abort(_load_id); // cancel load and ready
 			_load_id = 0;
 		}
-		if (_render) { // as texture
+		if (_render) { // as texture, Must be processed in the rendering thread
 			auto render = _render;
-			_render = nullptr;
 
 			if (isDestroy) {
 				Array<uint32_t> ids; // copy ids
@@ -243,11 +172,12 @@ namespace qk {
 					if (i._texture)
 						ids.push(i._texture);
 				}
-				render->post_message(Cb([render,ids](Cb::Data& data) {
+				render->post_message(Cb([render,ids](auto& data) {
 					render->deleteTextures(ids.val(), ids.length());
 				}));
-			} else {
-				render->post_message(Cb([render,this](Cb::Data& data) {
+			}
+			else {
+				render->post_message(Cb([render,this](auto& data) { 
 					for (auto &i: _pixels) {
 						if (i._texture)
 							render->deleteTextures(&i._texture, 1);
@@ -255,9 +185,71 @@ namespace qk {
 					_pixels.clear();
 				}, this));
 			}
+		} else {
+			_pixels.clear();
+		}
+	}
+
+	void ImageSource::reload(Array<Pixel>&& pixels_) {
+		if (!pixels_.length() || _state & kSTATE_LOADING)
+			return;
+
+		_state = kSTATE_LOAD_COMPLETE;
+		_info = pixels_[0];
+
+		auto pixels = new Array<Pixel>(std::move(pixels_));
+
+		if (!_render) {
+			// Must be changed by the same thread
+			_loop->post(Cb([this,pixels](auto& e){
+				Sp<Array<Pixel>> hold(pixels);
+				_state = kSTATE_LOAD_COMPLETE; // Reset to ensure it is valid
+				_info = pixels->indexAt(0);
+				_pixels = std::move(*pixels);
+			}, this));
+			return;
 		}
 
-		_pixels.clear();
+		static auto bollback = [](
+			RenderBackend *render,
+			int idx, Array<Pixel> &old, Array<Pixel> &pixels
+		) {
+			for (int j = 0; j < idx; j++) {
+				if (old[j]._texture == 0 && pixels[j]._texture != 0) {
+					render->deleteTextures(&pixels[j]._texture, 1); // RollBACK
+					pixels[j]._texture = 0;
+				}
+			}
+		};
+
+		// set gpu texture, Must be processed in the rendering thread
+		_render->post_message(Cb([this,pixels](auto& data) {
+			Sp<Array<Pixel>> hold(pixels);
+			uint32_t i = 0;
+			uint32_t old_len = _pixels.length();
+
+			while (i < pixels->length()) {
+				auto &pix = pixels->indexAt(i);
+				auto id = _render->makeTexture(&pix, i < old_len ? _pixels[i]._texture: 0);
+				if (id == 0) {
+					bollback(_render, i, _pixels, *pixels);
+					return; // make fail
+				}
+				pix = PixelInfo(pix); // clear memory pixel data
+				pix._texture = id;
+				i++;
+			}
+
+			if (_render && i < old_len) {
+				do
+					_render->deleteTextures(&_pixels[i]._texture, 1);
+				while(++i < old_len);
+			}
+
+			_state = kSTATE_LOAD_COMPLETE; // Reset to ensure it is valid
+			_info = pixels->indexAt(0);
+			_pixels = std::move(*pixels);
+		}, this));
 	}
 
 	// -------------------- I m a g e . S o u r c e . P o o l --------------------
