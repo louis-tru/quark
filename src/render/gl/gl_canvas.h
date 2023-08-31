@@ -109,8 +109,7 @@ namespace qk {
 			Color4f color;  // color
 			Region  coord;  // image coord, offset,scale
 		};
-		Vec4           *vertexs;
-		// int            *optidxs; // vertex option index
+		Vec4           *vertexs; // vertex data + option index
 		Option         *opts; // subcmd options data
 		int            subcmd; // subcmd count
 		int            images; // images count
@@ -132,7 +131,6 @@ namespace qk {
 			uint32_t           index;
 		};
 		ArrayMemBlock<Vec4>  vertexsBlocks; // GLC_GenericeCmd vertex storage
-		// ArrayMemBlock<int>   optidxsBlocks; //
 		ArrayMemBlock<GCOpt> optsBlocks; //
 		MemBlock<GLC_Cmd> cmd;
 		GLC_Cmd          *lastCmd;

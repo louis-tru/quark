@@ -67,16 +67,11 @@ namespace qk {
 		vertexsBlocks.blocks.push({
 			(Vec4*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec4)),0,Qk_GCmdVertexsMemBlockCapacity
 		});
-		vertexsBlocks.current = vertexsBlocks.blocks.val();
-		vertexsBlocks.index = 0;
-		// optidxsBlocks.blocks.push({
-		// 	(int*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(int)),0,Qk_GCmdVertexsMemBlockCapacity
-		// });
-		// optidxsBlocks.current = optidxsBlocks.blocks.val();
-		// optidxsBlocks.index = 0;
 		optsBlocks.blocks.push({
 			(GCOpt*)malloc(Qk_GCmdOptMemBlockCapacity * sizeof(GCOpt)),0,Qk_GCmdOptMemBlockCapacity
 		});
+		vertexsBlocks.current = vertexsBlocks.blocks.val();
+		vertexsBlocks.index = 0;
 		optsBlocks.current = optsBlocks.blocks.val();
 		optsBlocks.index = 0;
 	}
@@ -107,7 +102,6 @@ namespace qk {
 		cmd->type = kGenerice_GLC_CmdType;
 
 		auto vertexs = vertexsBlocks.current;
-		// auto optidxs = optidxsBlocks.current;
 		auto opts    = optsBlocks.current;
 
 		if (vertexs->size == Qk_GCmdVertexsMemBlockCapacity) {
@@ -115,12 +109,8 @@ namespace qk {
 				vertexsBlocks.blocks.push({
 					(Vec4*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec4)),0,Qk_GCmdVertexsMemBlockCapacity
 				});
-				// optidxsBlocks.blocks.push({
-				// 	(int*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(int)),0,Qk_GCmdVertexsMemBlockCapacity
-				// });
 			}
 			vertexsBlocks.current = vertexs = vertexsBlocks.blocks.val() + vertexsBlocks.index;
-			// optidxsBlocks.current = optidxs = optidxsBlocks.blocks.val() + vertexsBlocks.index;
 		}
 
 		if (opts->size == Qk_GCmdOptMemBlockCapacity) {
@@ -133,7 +123,6 @@ namespace qk {
 		}
 
 		cmd->vertexs = vertexs->val + vertexs->size;
-		// cmd->optidxs = optidxs->val + vertexs->size;
 		cmd->opts    = opts->val    + opts->size;
 		cmd->subcmd = 0;
 		cmd->images = 0;
@@ -331,13 +320,16 @@ namespace qk {
 			auto p = vertexs->val + prevSize;
 			auto p_1 = p + cpLen;
 
-			// memcpy(p, cpSrc, sizeof(Vec4) * cpLen);
+			//memcpy(p, cpSrc, sizeof(Vec4) * cpLen);
 
 			// copy vertex data
 			while (p < p_1) {
 #if DEBUG
-				*p = *((Vec4*)(cpSrc));
-				p->val[3] = subcmd;
+				*p = *((Vec4*)(cpSrc)); //p->val[3] = subcmd;
+				p++,cpSrc++;
+				*p = *((Vec4*)(cpSrc)); //p->val[3] = subcmd;
+				p++,cpSrc++;
+				*p = *((Vec4*)(cpSrc)); p->val[3] = subcmd;
 				p++,cpSrc++;
 #else
 				*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};

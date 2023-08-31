@@ -543,14 +543,12 @@ namespace qk {
 		auto cmdPack = _glcanvas._cmdPackSubmit;
 
 		cmdPack->vertexsBlocks.current = cmdPack->vertexsBlocks.blocks.val();
-//		cmdPack->optidxsBlocks.current = cmdPack->optidxsBlocks.blocks.val();
 		cmdPack->optsBlocks.current = cmdPack->optsBlocks.blocks.val();
 		cmdPack->cmd.size = sizeof(GLC_Cmd);
 		cmdPack->lastCmd = cmdPack->cmd.val;
 
 		for (int i = cmdPack->vertexsBlocks.index; i >= 0; i--) {
 			cmdPack->vertexsBlocks.blocks[i].size = 0;
-//			cmdPack->optidxsBlocks.blocks[i].size = 0;
 		}
 		for (int i = cmdPack->optsBlocks.index; i >= 0; i--) {
 			cmdPack->optsBlocks.blocks[i].size = 0;
