@@ -104,7 +104,7 @@ namespace qk {
 		_dispatch = new EventDispatch(this); Qk_DEBUG("new EventDispatch ok");
 		_default_text_options = new DefaultTextOptions(_font_pool);
 		// _action_direct = new ActionDirect(); Qk_DEBUG("new ActionDirect ok");
-		_render = Render::Make({ _opts.colorType, _opts.msaa, _opts.fps }, _display);
+		_render = Render::Make({ _opts.colorType, _opts.msaa, _opts.fps, false }, _display);
 		Qk_DEBUG("Render::Make() ok");
 
 		// init root

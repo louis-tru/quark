@@ -31,10 +31,12 @@
 #include "./gl_canvas.h"
 #include "./gl_render.h"
 
+#define Qk_GL_USE_CMD_PACK 1
+#define Qk_GCmdOptionCapacity 1024
+#define Qk_GCmdVertexsMemBlockCapacity 65535
+#define Qk_GCmdOptMemBlockCapacity 16384
+
 namespace qk {
-	#define Qk_GCmdOptionCapacity 1024
-	#define Qk_GCmdVertexsMemBlockCapacity 65535
-	#define Qk_GCmdOptMemBlockCapacity 16384
 
 	float get_level_font_size(float fontSize);
 	bool  gl_read_pixels(Pixel* dst, uint32_t srcX, uint32_t srcY);
@@ -63,15 +65,15 @@ namespace qk {
 		cmd.val->type = kEmpty_GLC_CmdType;
 		lastCmd = cmd.val;
 		vertexsBlocks.blocks.push({
-			(Vec3*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec3)),0,Qk_GCmdVertexsMemBlockCapacity
+			(Vec4*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec4)),0,Qk_GCmdVertexsMemBlockCapacity
 		});
 		vertexsBlocks.current = vertexsBlocks.blocks.val();
 		vertexsBlocks.index = 0;
-		optidxsBlocks.blocks.push({
-			(int*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(int)),0,Qk_GCmdVertexsMemBlockCapacity
-		});
-		optidxsBlocks.current = optidxsBlocks.blocks.val();
-		optidxsBlocks.index = 0;
+		// optidxsBlocks.blocks.push({
+		// 	(int*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(int)),0,Qk_GCmdVertexsMemBlockCapacity
+		// });
+		// optidxsBlocks.current = optidxsBlocks.blocks.val();
+		// optidxsBlocks.index = 0;
 		optsBlocks.blocks.push({
 			(GCOpt*)malloc(Qk_GCmdOptMemBlockCapacity * sizeof(GCOpt)),0,Qk_GCmdOptMemBlockCapacity
 		});
@@ -81,7 +83,7 @@ namespace qk {
 
 	GLC_CmdPack::~GLC_CmdPack() {
 		for (auto &i: vertexsBlocks.blocks) free(i.val);
-		for (auto &i: optidxsBlocks.blocks) free(i.val);
+		// for (auto &i: optidxsBlocks.blocks) free(i.val);
 		for (auto &i: optsBlocks.blocks) free(i.val);
 		free(cmd.val);
 	}
@@ -105,20 +107,20 @@ namespace qk {
 		cmd->type = kGenerice_GLC_CmdType;
 
 		auto vertexs = vertexsBlocks.current;
-		auto optidxs = optidxsBlocks.current;
+		// auto optidxs = optidxsBlocks.current;
 		auto opts    = optsBlocks.current;
 
 		if (vertexs->size == Qk_GCmdVertexsMemBlockCapacity) {
 			if (++vertexsBlocks.index == vertexsBlocks.blocks.length()) {
 				vertexsBlocks.blocks.push({
-					(Vec3*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec3)),0,Qk_GCmdVertexsMemBlockCapacity
+					(Vec4*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec4)),0,Qk_GCmdVertexsMemBlockCapacity
 				});
-				optidxsBlocks.blocks.push({
-					(int*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(int)),0,Qk_GCmdVertexsMemBlockCapacity
-				});
+				// optidxsBlocks.blocks.push({
+				// 	(int*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(int)),0,Qk_GCmdVertexsMemBlockCapacity
+				// });
 			}
 			vertexsBlocks.current = vertexs = vertexsBlocks.blocks.val() + vertexsBlocks.index;
-			optidxsBlocks.current = optidxs = optidxsBlocks.blocks.val() + vertexsBlocks.index;
+			// optidxsBlocks.current = optidxs = optidxsBlocks.blocks.val() + vertexsBlocks.index;
 		}
 
 		if (opts->size == Qk_GCmdOptMemBlockCapacity) {
@@ -131,7 +133,7 @@ namespace qk {
 		}
 
 		cmd->vertexs = vertexs->val + vertexs->size;
-		cmd->optidxs = optidxs->val + vertexs->size;
+		// cmd->optidxs = optidxs->val + vertexs->size;
 		cmd->opts    = opts->val    + opts->size;
 		cmd->subcmd = 0;
 		cmd->images = 0;
@@ -266,6 +268,8 @@ namespace qk {
 
 		// ----------------------------------------------------------------------------------------
 
+#if Qk_GL_USE_CMD_PACK
+
 		void setMetrixCmd() {
 			if (_chMatrix) {
 				auto cmd = (GLC_MatrixCmd*)_cmdPack->allocCmd(sizeof(GLC_MatrixCmd));
@@ -275,12 +279,12 @@ namespace qk {
 			}
 		}
 
-		void setBlendMode(BlendMode blendMode) {
-			if (_blendMode != blendMode) {
+		void setBlendMode(BlendMode mode) {
+			if (_blendMode != mode) {
 				auto cmd = (GLC_BlendCmd*)_cmdPack->allocCmd(sizeof(GLC_BlendCmd));
 				cmd->type = kBlend_GLC_CmdType;
-				cmd->mode = blendMode;
-				_blendMode = blendMode;
+				cmd->mode = mode;
+				_blendMode = mode;
 			}
 		}
 
@@ -308,28 +312,44 @@ namespace qk {
 			};
 			auto vertexs = _cmdPack->vertexsBlocks.current;
 			auto prevSize = vertexs->size;
-			int  len = Qk_GCmdVertexsMemBlockCapacity - prevSize;
+			int  cpLen = Qk_GCmdVertexsMemBlockCapacity - prevSize;
+			auto cpSrc = vertex;
+			int32_t retv = 0;
 
 			_cmdPack->optsBlocks.current->size++;
 
-			if (len < vertexLen) { // not enough space
+			if (cpLen < vertexLen) { // not enough space
 				vertexs->size = Qk_GCmdVertexsMemBlockCapacity;
-				// copy vertex data
-				memcpy(vertexs->val + prevSize, vertex, len);
-				// set vertex option index
-				memset_pattern4(_cmdPack->optidxsBlocks.current->val + prevSize, &cmd->subcmd, len);
-
-				vertex += len;
-				return vertexLen - len;
+				vertex += cpLen;
+				retv = vertexLen - cpLen;
 			} else {
 				vertexs->size = prevSize + vertexLen;
-				// copy vertex data
-				memcpy(vertexs->val + prevSize, vertex, vertexLen);
-				// set vertex option index
-				memset_pattern4(_cmdPack->optidxsBlocks.current->val + prevSize, &cmd->subcmd, vertexLen);
-
-				return 0;
+				cpLen = vertexLen;
 			}
+
+			const float subcmd = *((float*)&cmd->subcmd);
+			auto p = vertexs->val + prevSize;
+			auto p_1 = p + cpLen;
+
+			// memcpy(p, cpSrc, sizeof(Vec4) * cpLen);
+
+			// copy vertex data
+			while (p < p_1) {
+#if DEBUG
+				*p = *((Vec4*)(cpSrc));
+				p->val[3] = subcmd;
+				p++,cpSrc++;
+#else
+				*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
+				p++,cpSrc++;
+				*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
+				p++,cpSrc++;
+				*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
+				p++,cpSrc++;
+#endif
+			}
+
+			return retv;
 		}
 
 		void drawColor(const Array<Vec3> &vertex, const Color4f &color) {
@@ -422,11 +442,98 @@ namespace qk {
 			cmd->revoke = revoke;
 		}
 
+#else
+
+		// ----------------------------------------------------------------------------------------
+
+		void setMetrixCmd() {
+			if (_chMatrix) {
+				auto &mat = _state->matrix;
+				const float m4x4[16] = {
+					mat[0], mat[3], 0.0, 0.0,
+					mat[1], mat[4], 0.0, 0.0,
+					0.0,    0.0,    1.0, 0.0,
+					mat[2], mat[5], 0.0, 1.0
+				}; // transpose matrix
+				glBindBuffer(GL_UNIFORM_BUFFER, _render->_matrixBlock);
+				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, m4x4);
+				_chMatrix = false;
+			}
+		}
+
+		void setBlendMode(BlendMode mode) {
+			if (_blendMode != mode) {
+				_render->setBlendMode(mode);
+			}
+		}
+
+		void drawColor(const Array<Vec3> &vertex, const Color4f &color) {
+			setMetrixCmd();
+			_render->_color.use(vertex.size(), vertex.val());
+			glUniform1f(_render->_color.depth, _zDepth);
+			glUniform4fv(_render->_color.color, 1, color.val);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		}
+
+		void drawImage(const Array<Vec3> &vertex, const Paint &paint, float alpha) {
+			setMetrixCmd(); // check matrix change
+			auto shader = &_render->_image;
+			auto pixel = paint.image->source;
+			auto type = pixel->type();
+			auto texCount = type == kColor_Type_YUV420P_Y_8 ? 3:
+											type == kColor_Type_YUV420SP_Y_8 ? 2: 1;
+			for (int i = 0; i < texCount; i++) {
+				_render->setTexture(pixel->pixels().val() + i, i, paint);
+			}
+			shader->use(vertex.size(), vertex.val());
+			glUniform1f(shader->depth, _zDepth);
+			glUniform1i(shader->format, texCount - 1);
+			glUniform1f(shader->opacity, alpha);
+			glUniform4fv(shader->coord, 1, paint.image->coord.origin.val);
+			glUniform1i(shader->format, GLC_ImageCmd::Format(texCount - 1));
+			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		}
+
+		void drawImageMask(const Array<Vec3> &vertex, const Paint &paint, float alpha) {
+			setMetrixCmd(); // check matrix change
+			auto shader = &_render->_colorMask;
+			_render->setTexture(paint.image->source->pixels().val(), 0, paint);
+			shader->use(vertex.size(), vertex.val());
+			glUniform1f(shader->depth, _zDepth);
+			glUniform4f(shader->color, paint.color[0], paint.color[1], paint.color[2], paint.color[3]*alpha);
+			glUniform4fv(shader->coord, 1, paint.image->coord.origin.val);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+		}
+
+		void drawGradient(const Array<Vec3> &vertex, const Paint &paint, float alpha) {
+			setMetrixCmd(); // check matrix change
+			auto g = paint.gradient;
+			auto shader = paint.gradient->type ==
+				GradientPaint::kRadial_Type ? &_render->_radial:
+				static_cast<GLSLColorRadial*>(static_cast<GLSLShader*>(&_render->_linear));
+			auto count = g->count;
+			shader->use(vertex.size(), vertex.val());
+			glUniform1f(shader->depth, _zDepth);
+			glUniform1f(shader->alpha, alpha);
+			glUniform4fv(shader->range, 1, g->origin.val);
+			glUniform1i(shader->count, count);
+			glUniform4fv(shader->colors, count, (const GLfloat*)g->colors);
+			glUniform1fv(shader->positions, count, (const GLfloat*)g->positions);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
+			//glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.length());
+			//glDrawArrays(GL_LINES, 0, vertex.length());
+		}
+
+		void drawClip(GLC_State::Clip &clip, bool revoke) {
+		}
+
+#endif
+
 	};
 
 	// ----------------------------------------------------------------------------------------
 
-	GLCanvas::GLCanvas(GLRender *render)
+	GLCanvas::GLCanvas(GLRender *render, bool isMultiThreading)
 		: _render(render)
 		, _zDepth(0)
 		, _state(nullptr)
@@ -434,7 +541,7 @@ namespace qk {
 		, _blendMode(kClear_BlendMode)
 	{
 		_cmdPack = _cmdPacks;
-		_cmdPackSubmit = _cmdPacks + 1;
+		_cmdPackSubmit = _cmdPacks + (isMultiThreading ? 1: 0);
 		_stateStack.push({ .matrix=Mat() }); // init state
 		_state = &_stateStack.back();
 		setMatrix(_state->matrix); // init shader matrix
@@ -443,11 +550,14 @@ namespace qk {
 	GLCanvas::~GLCanvas() {}
 
 	void GLCanvas::submit() {
-		// _mutex.lock();
-		// auto swap = _cmdPackSubmit;
-		// _cmdPackSubmit = _cmdPack;
-		// _cmdPack = swap;
-		// _mutex.unlock();
+#if Qk_GL_USE_CMD_PACK
+		_mutex.lock();
+		auto swap = _cmdPackSubmit;
+		_cmdPackSubmit = _cmdPack;
+		_cmdPack = swap;
+		_mutex.unlock();
+#else
+#endif
 	}
 
 	int GLCanvas::save() {
@@ -550,7 +660,8 @@ namespace qk {
 	}
 
 	void GLCanvas::drawColor(const Color4f &color, BlendMode mode) {
-		auto isBlend = mode != kSrc_BlendMode || color.a() == 1;
+		auto isBlend = mode != kSrc_BlendMode || color.a() != 1;
+#if Qk_GL_USE_CMD_PACK
 		if (isBlend) {
 			_this->setBlendMode(mode);
 		}
@@ -569,6 +680,29 @@ namespace qk {
 		} else {
 			_zDepth = 0;
 		}
+#else
+		if (isBlend) {
+			_this->setBlendMode(mode);
+			float data[] = {
+				-1,1,/*left top*/1,1,/*right top*/
+				-1,-1, /*left bottom*/1,-1, /*right bottom*/
+			};
+			_render->setBlendMode(mode); // switch blend mode
+			_render->_clear.use(sizeof(float) * 8, data);
+			glUniform1f(_render->_color.depth, _zDepth);
+			glUniform4fv(_render->_clear.color, 1, color.val);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			_render->_zDepth++;
+		} else {
+			_zDepth = 0.0f;
+			glClearBufferfv(GL_DEPTH, 0, &_zDepth); // clear GL_COLOR_ATTACHMENT0
+			glClearBufferfv(GL_COLOR, 0, color.val);
+			// glClearColor(color.r(), color.g(), color.b(), color.a());
+			// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			// drawColor(color, kSrcOver_BlendMode);
+			_zDepth = 0;
+		}
+#endif
 	}
 
 	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {

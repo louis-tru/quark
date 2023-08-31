@@ -180,7 +180,7 @@
 // return and move local
 #define Qk_ReturnLocal(x)     return (x)
 
-#if DEBUG
+#if DEBUG || Qk_MoreLOG
 # define Qk_DEBUG Qk_LOG
 #else
 # define Qk_DEBUG(msg, ...)  ((void)0)

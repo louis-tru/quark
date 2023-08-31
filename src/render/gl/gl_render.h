@@ -57,7 +57,6 @@ namespace qk {
 		// --------------- define props ---------------
 		bool _IsSupportMultisampled;
 		bool _IsDeviceMsaa; // device anti alias, msaa
-		BlendMode _blendMode;
 		GLuint _frameBuffer,_msaaFrameBuffer;
 		GLuint _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer;
 		GLuint _clipAAAlphaBuffer; // aa texture buffer

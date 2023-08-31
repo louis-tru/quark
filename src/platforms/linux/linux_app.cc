@@ -52,7 +52,7 @@ namespace qk {
 	static GLDrawProxy* gl_draw_context = nullptr;
 	typedef Display::Orientation Orientation;
 
-	#if DEBUG || Qk_MORE_LOG
+	#if DEBUG || Qk_MoreLOG
 		cChar* MOUSE_KEYS[] = {
 			"left",
 			"second (or middle)",

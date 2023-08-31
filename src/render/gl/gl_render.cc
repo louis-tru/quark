@@ -332,13 +332,12 @@ namespace qk {
 		: Render(opts)
 		, _IsSupportMultisampled(gl_is_support_multisampled())
 		, _IsDeviceMsaa(false)
-		, _blendMode(kClear_BlendMode)
 		, _frameBuffer(0), _msaaFrameBuffer(0)
 		, _renderBuffer(0), _msaaRenderBuffer(0), _stencilBuffer(0), _depthBuffer(0)
 		, _clipAAAlphaBuffer(0)
 		, _texBuffer{0,0,0}
 		, _zDepth(0)
-		, _glcanvas(this)
+		, _glcanvas(this, opts.isMultiThreading)
 		, _shaders{
 			&_clear, &_clip, &_color, &_generic, &_image, &_colorMask, &_linear, &_radial,
 		}
@@ -524,10 +523,7 @@ namespace qk {
 	}
 
 	void GLRender::setBlendMode(BlendMode blendMode) {
-		if (_blendMode != blendMode) {
-			gl_set_blend_mode(blendMode);
-			_blendMode = blendMode;
-		}
+		gl_set_blend_mode(blendMode);
 	}
 
 	void GLRender::setTexture(cPixel *pixel, int slot, const Paint &paint) {
@@ -544,18 +540,17 @@ namespace qk {
 
 	void GLRender::flushBuffer() {
 		_glcanvas._mutex.lock();
-		//auto cmdPack = _glcanvas._cmdPackSubmit;
-		auto cmdPack = _glcanvas._cmdPack;
+		auto cmdPack = _glcanvas._cmdPackSubmit;
 
 		cmdPack->vertexsBlocks.current = cmdPack->vertexsBlocks.blocks.val();
-		cmdPack->optidxsBlocks.current = cmdPack->optidxsBlocks.blocks.val();
+//		cmdPack->optidxsBlocks.current = cmdPack->optidxsBlocks.blocks.val();
 		cmdPack->optsBlocks.current = cmdPack->optsBlocks.blocks.val();
 		cmdPack->cmd.size = sizeof(GLC_Cmd);
 		cmdPack->lastCmd = cmdPack->cmd.val;
 
 		for (int i = cmdPack->vertexsBlocks.index; i >= 0; i--) {
 			cmdPack->vertexsBlocks.blocks[i].size = 0;
-			cmdPack->optidxsBlocks.blocks[i].size = 0;
+//			cmdPack->optidxsBlocks.blocks[i].size = 0;
 		}
 		for (int i = cmdPack->optsBlocks.index; i >= 0; i--) {
 			cmdPack->optsBlocks.blocks[i].size = 0;

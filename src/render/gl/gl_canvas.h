@@ -109,8 +109,8 @@ namespace qk {
 			Color4f color;  // color
 			Region  coord;  // image coord, offset,scale
 		};
-		Vec3           *vertexs;
-		int            *optidxs; // vertex option index
+		Vec4           *vertexs;
+		// int            *optidxs; // vertex option index
 		Option         *opts; // subcmd options data
 		int            subcmd; // subcmd count
 		int            images; // images count
@@ -131,8 +131,8 @@ namespace qk {
 			MemBlock<T>       *current;
 			uint32_t           index;
 		};
-		ArrayMemBlock<Vec3>  vertexsBlocks; // GLC_GenericeCmd vertex storage
-		ArrayMemBlock<int>   optidxsBlocks; //
+		ArrayMemBlock<Vec4>  vertexsBlocks; // GLC_GenericeCmd vertex storage
+		// ArrayMemBlock<int>   optidxsBlocks; //
 		ArrayMemBlock<GCOpt> optsBlocks; //
 		MemBlock<GLC_Cmd> cmd;
 		GLC_Cmd          *lastCmd;
@@ -146,7 +146,7 @@ namespace qk {
 
 	class GLCanvas: public Canvas {
 	public:
-		GLCanvas(GLRender *render);
+		GLCanvas(GLRender *render, bool isMultiThreading);
 		virtual ~GLCanvas();
 		virtual int  save() override;
 		virtual void restore(uint32_t count) override;
@@ -186,8 +186,8 @@ namespace qk {
 		bool   _chMatrix;
 		BlendMode _blendMode;
 		Mutex  _mutex; // submit swap mutex
-		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class GLRender;
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

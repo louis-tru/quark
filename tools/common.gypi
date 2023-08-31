@@ -41,6 +41,7 @@
 		'without_embed_bitcode%': 0,
 		'cross_compiling%': 0,
 		'emulator%': 0,
+		'more_Log%': 1,
 
 		############################# dependents set ##################
 		
@@ -370,6 +371,7 @@
 			},{
 				'defines': [ 'USE_JSC=0' ],
 			}],
+			['more_log==1',{ 'defines': [ 'Qk_MoreLOG=1' ]}],
 		],
 		'target_conditions': [
 			# shared all public symbol

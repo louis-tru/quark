@@ -67,10 +67,10 @@ public:
 		_canvas->translate(70, 0);
 		// _canvas->drawPath(circle, paint);
 
-		paint.antiAlias = false;
-		//circle = Path::MakeRect({size/2-105,210});
+		// paint.antiAlias = false;
+		// circle = Path::MakeRect({size/2-105,210});
 
-		for (int i = 0; i < 1000000; i++) {
+		for (int i = 0; i < 100000; i++) {
 			_canvas->drawPath(circle, paint);
 		}
 

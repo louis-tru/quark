@@ -15,7 +15,6 @@
 	],
 
 	'variables': {
-		'more_log%': 0,
 		'quark_product_dir%': '<(output)/../qkmake/product',
 		'quark_product_so_subdir%': '<(os)/<(arch)',
 		'other_ldflags': [],
@@ -37,11 +36,6 @@
 	},
 
 	'target_defaults': {
-		'conditions': [
-			['more_log==1', {
-				'defines': [ 'Qk_MORE_LOG=1' ],
-			}],
-		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '.' ],
 		},
