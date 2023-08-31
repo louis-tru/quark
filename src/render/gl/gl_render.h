@@ -52,6 +52,7 @@ namespace qk {
 		virtual void setDepthStencilBuffer(int width, int height, int msaaSample);
 		virtual void setClipAABuffer(int width, int height, int msaaSample);
 		void         setTexture(cPixel *pixel, int slot, const Paint &paint);
+		void         flushBuffer();
 		friend class GLCanvas;
 		// --------------- define props ---------------
 		bool _IsSupportMultisampled;

@@ -216,6 +216,7 @@ public:
 	}
 
 	void submit() override {
+		flushBuffer();
 		glFlush(); // glFenceSync, glWaitSync
 		[_ctx flushBuffer]; // swap double buffer, glFinish
 		[_view unlockRender];

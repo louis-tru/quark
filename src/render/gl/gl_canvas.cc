@@ -60,6 +60,8 @@ namespace qk {
 		cmd.capacity = 65536;
 		cmd.val = (GLC_Cmd*)malloc(65536);
 		cmd.val->size = cmd.size;
+		cmd.val->type = kEmpty_GLC_CmdType;
+		lastCmd = cmd.val;
 		vertexsBlocks.blocks.push({
 			(Vec3*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec3)),0,Qk_GCmdVertexsMemBlockCapacity
 		});
@@ -90,10 +92,10 @@ namespace qk {
 			cmd.capacity <<= 1;
 			cmd.val = (GLC_Cmd*)realloc(cmd.val, cmd.capacity);
 		}
-		GLC_Cmd* newCmd = (GLC_Cmd*)(((char*)cmd.val) + cmd.size);
-		newCmd->size = size;
+		lastCmd = (GLC_Cmd*)(((char*)cmd.val) + cmd.size);
+		lastCmd->size = size;
 		cmd.size = newSize;
-		return newCmd;
+		return lastCmd;
 	}
 
 	GLC_GenericeCmd* GLC_CmdPack::newGenericeCmd() {
@@ -104,7 +106,7 @@ namespace qk {
 
 		auto vertexs = vertexsBlocks.current;
 		auto optidxs = optidxsBlocks.current;
-		auto opts = optsBlocks.current;
+		auto opts    = optsBlocks.current;
 
 		if (vertexs->size == Qk_GCmdVertexsMemBlockCapacity) {
 			if (++vertexsBlocks.index == vertexsBlocks.blocks.length()) {
@@ -115,8 +117,8 @@ namespace qk {
 					(int*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(int)),0,Qk_GCmdVertexsMemBlockCapacity
 				});
 			}
-			vertexsBlocks.current = vertexsBlocks.blocks.val() + vertexsBlocks.index;
-			optidxsBlocks.current = optidxsBlocks.blocks.val() + ++optidxsBlocks.index;
+			vertexsBlocks.current = vertexs = vertexsBlocks.blocks.val() + vertexsBlocks.index;
+			optidxsBlocks.current = optidxs = optidxsBlocks.blocks.val() + vertexsBlocks.index;
 		}
 
 		if (opts->size == Qk_GCmdOptMemBlockCapacity) {
@@ -125,12 +127,12 @@ namespace qk {
 					(GCOpt*)malloc(Qk_GCmdOptMemBlockCapacity * sizeof(GCOpt)),0,Qk_GCmdOptMemBlockCapacity
 				});
 			}
-			optsBlocks.current = optsBlocks.blocks.val() + optsBlocks.index;
+			optsBlocks.current = opts = optsBlocks.blocks.val() + optsBlocks.index;
 		}
 
 		cmd->vertexs = vertexs->val + vertexs->size;
-		cmd->optidxs = optidxs->val + optidxs->size;
-		cmd->opts = opts->val + opts->size;
+		cmd->optidxs = optidxs->val + vertexs->size;
+		cmd->opts    = opts->val    + opts->size;
 		cmd->subcmd = 0;
 		cmd->images = 0;
 
@@ -283,10 +285,11 @@ namespace qk {
 		}
 
 		GLC_GenericeCmd* getGenericeCmd() {
-			auto cmd = (GLC_GenericeCmd*)_cmdPack->cmd.val;
+			auto cmd = (GLC_GenericeCmd*)_cmdPack->lastCmd;
 			if (cmd->type == kGenerice_GLC_CmdType) {
 				if (_cmdPack->vertexsBlocks.current->size != Qk_GCmdVertexsMemBlockCapacity &&
-					cmd->subcmd != Qk_GCmdOptionCapacity
+						_cmdPack->optsBlocks.current->size    != Qk_GCmdOptMemBlockCapacity &&
+						cmd->subcmd != Qk_GCmdOptionCapacity
 				) {
 					return cmd;
 				}
@@ -306,6 +309,8 @@ namespace qk {
 			auto vertexs = _cmdPack->vertexsBlocks.current;
 			auto prevSize = vertexs->size;
 			int  len = Qk_GCmdVertexsMemBlockCapacity - prevSize;
+
+			_cmdPack->optsBlocks.current->size++;
 
 			if (len < vertexLen) { // not enough space
 				vertexs->size = Qk_GCmdVertexsMemBlockCapacity;
@@ -429,12 +434,21 @@ namespace qk {
 		, _blendMode(kClear_BlendMode)
 	{
 		_cmdPack = _cmdPacks;
+		_cmdPackSubmit = _cmdPacks + 1;
 		_stateStack.push({ .matrix=Mat() }); // init state
 		_state = &_stateStack.back();
 		setMatrix(_state->matrix); // init shader matrix
 	}
 
 	GLCanvas::~GLCanvas() {}
+
+	void GLCanvas::submit() {
+		// _mutex.lock();
+		// auto swap = _cmdPackSubmit;
+		// _cmdPackSubmit = _cmdPack;
+		// _cmdPack = swap;
+		// _mutex.unlock();
+	}
 
 	int GLCanvas::save() {
 		_stateStack.push({ _stateStack.back() });

@@ -211,10 +211,10 @@ namespace qk {
 			solveNextFrame();
 			return;
 		}
-		int64_t now_time = time_monotonic();
+		int64_t now_time = time_second();
 		// Qk_DEBUG("Display::render()");
 
-		if (now_time - _next_fsp_time >= 1e6) { // 1s
+		if (now_time - _next_fsp_time >= 1) { // 1s
 			_fsp = _next_fsp;
 			_next_fsp = 0;
 			_next_fsp_time = now_time;
@@ -237,6 +237,7 @@ namespace qk {
 		 */
 		lock.unlock(); //
 
+		_host->render()->getCanvas()->submit();
 		_host->render()->submit(); // commit render cmd
 
 #if DEBUG && PRINT_RENDER_FRAME_TIME

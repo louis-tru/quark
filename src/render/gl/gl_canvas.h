@@ -135,6 +135,7 @@ namespace qk {
 		ArrayMemBlock<int>   optidxsBlocks; //
 		ArrayMemBlock<GCOpt> optsBlocks; //
 		MemBlock<GLC_Cmd> cmd;
+		GLC_Cmd          *lastCmd;
 		         GLC_CmdPack();
 		        ~GLC_CmdPack();
 		GLC_Cmd* allocCmd(uint32_t size);
@@ -171,18 +172,22 @@ namespace qk {
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 		void setRootMatrix(const Mat4& root, Vec2 surfaceScale); // set root matrix
+		virtual void submit() override;
 	private:
 		Array<GLC_State> _stateStack;
 		GLC_State    *_state;
 		GLC_CmdPack   _cmdPacks[2];
 		GLC_CmdPack  *_cmdPack;
+		GLC_CmdPack  *_cmdPackSubmit;
 		GLRender     *_render;
 		float  _zDepth;
 		float  _surfaceScale, _transfromScale;
 		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
 		bool   _chMatrix;
 		BlendMode _blendMode;
+		Mutex  _mutex; // submit swap mutex
 		Qk_DEFINE_INLINE_CLASS(Inl);
+		friend class GLRender;
 	};
 
 }

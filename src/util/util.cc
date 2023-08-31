@@ -67,31 +67,9 @@ int clock_gettime2(clockid_t id, struct timespec *tspec) {
 			/* only CLOCK_MONOTOIC and CLOCK_REALTIME clocks supported */
 			return -1;
 	}
-	
-	if (retval) {
-		return retval;
-	}
 	tspec->tv_sec = mts.tv_sec;
 	tspec->tv_nsec = mts.tv_nsec;
-	return 0;
-	
-	if (id == CLOCK_MONOTONIC) {
-		retval = clock_get_time(clock_monotonic, &mts);
-		if (retval != 0) {
-			return retval;
-		}
-	} else if (id == CLOCK_REALTIME) {
-		retval = clock_get_time(clock_realtime, &mts);
-		if (retval != 0) {
-			return retval;
-		}
-	} else {
-		/* only CLOCK_MONOTOIC and CLOCK_REALTIME clocks supported */
-		return -1;
-	}
-	tspec->tv_sec = mts.tv_sec;
-	tspec->tv_nsec = mts.tv_nsec;
-	return 0;
+	return retval;
 }
 
 #endif
@@ -179,14 +157,14 @@ namespace qk {
 	int64_t time_micro() {
 		timespec now;
 		int rc = clock_gettime(CLOCK_REALTIME, &now);
-		int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
+		int64_t r = now.tv_sec * 1000000 + now.tv_nsec * 0.001;
 		return r;
 	}
 
 	int64_t time_monotonic() {
 		timespec now;
 		int rc = clock_gettime(CLOCK_MONOTONIC, &now);
-		int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
+		int64_t r = now.tv_sec * 1000000 + now.tv_nsec * 0.001;
 		return r;
 	}
 

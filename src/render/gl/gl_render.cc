@@ -542,4 +542,29 @@ namespace qk {
 		gl_set_texture(id, slot, paint.image);
 	}
 
+	void GLRender::flushBuffer() {
+		_glcanvas._mutex.lock();
+		//auto cmdPack = _glcanvas._cmdPackSubmit;
+		auto cmdPack = _glcanvas._cmdPack;
+
+		cmdPack->vertexsBlocks.current = cmdPack->vertexsBlocks.blocks.val();
+		cmdPack->optidxsBlocks.current = cmdPack->optidxsBlocks.blocks.val();
+		cmdPack->optsBlocks.current = cmdPack->optsBlocks.blocks.val();
+		cmdPack->cmd.size = sizeof(GLC_Cmd);
+		cmdPack->lastCmd = cmdPack->cmd.val;
+
+		for (int i = cmdPack->vertexsBlocks.index; i >= 0; i--) {
+			cmdPack->vertexsBlocks.blocks[i].size = 0;
+			cmdPack->optidxsBlocks.blocks[i].size = 0;
+		}
+		for (int i = cmdPack->optsBlocks.index; i >= 0; i--) {
+			cmdPack->optsBlocks.blocks[i].size = 0;
+		}
+
+		cmdPack->vertexsBlocks.index = 0;
+		cmdPack->optsBlocks.index = 0;
+
+		_glcanvas._mutex.unlock();
+	}
+
 }
