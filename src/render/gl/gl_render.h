@@ -40,33 +40,36 @@ namespace qk {
 
 	class GLRender: public RenderBackend {
 	public:
-		virtual ~GLRender();
-		virtual void reload() override;
+		virtual          ~GLRender();
+		virtual void     reload() override;
 		virtual uint32_t makeTexture(cPixel *src, uint32_t id) override;
-		virtual void deleteTextures(const uint32_t *ids, uint32_t count) override;
-		void         setBlendMode(BlendMode blendMode);
+		virtual void     deleteTextures(const uint32_t *ids, uint32_t count) override;
+		inline  bool     isDeviceMsaa() const { return _IsDeviceMsaa; }
+		void             setTexture(cPixel *pixel, int slot, const ImagePaintBase *paint);
+		void             setBlendMode(BlendMode mode);
 	protected:
 		GLRender(Options opts);
 		virtual void setMainRenderBuffer(int width, int height);
 		virtual void setMSAARenderBuffer(int width, int height, int msaaSample);
 		virtual void setDepthStencilBuffer(int width, int height, int msaaSample);
 		virtual void setClipAABuffer(int width, int height, int msaaSample);
-		void         setTexture(cPixel *pixel, int slot, const Paint &paint);
-		void         flushBuffer();
+		void         setRootMatrix(const Mat4& root);
 		friend class GLCanvas;
 		// --------------- define props ---------------
 		bool _IsSupportMultisampled;
 		bool _IsDeviceMsaa; // device anti alias, msaa
+		BlendMode _blendMode;
 		GLuint _frameBuffer,_msaaFrameBuffer;
 		GLuint _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer;
 		GLuint _clipAAAlphaBuffer; // aa texture buffer
 		GLuint _texBuffer[3]; // temp texture buffers
-		GLuint _matrixBlock; // matrixBlock => root,view matrix
+		GLuint _rootMatrixBlock,_viewMatrixBlock; // matrixBlock => root view matrix
+		GLuint _optsBlock; // generic optsBlock
 		GLint  _maxTextureSize;
 		GLint  _maxTextureBufferSize;
 		GLint  _maxTextureImageUnits;
 		float  _zDepth;
-		GLCanvas _glcanvas; // main canvas
+		GLCanvas _glCanvas; // main canvas
 		GLSLClear _clear; // shader
 		GLSLClip  _clip;
 		GLSLColor _color;

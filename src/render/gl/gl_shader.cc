@@ -85,13 +85,16 @@ namespace qk {
 			Qk_FATAL("Link shader error, %s\n\n%s", name, log);
 		}
 
-		// Get uniform block and bind index
-		GLuint ubo = glGetUniformBlockIndex(program, "matrixBlock");
-		glUniformBlockBinding(program, ubo, 0); // binding = 0 uniform block index as zero
+		// binding = 0 uniform block index as 0
+		glUniformBlockBinding(program, glGetUniformBlockIndex(program, "rootMatrixBlock"), 0);
+		// binding = 0 uniform block index as 1
+		glUniformBlockBinding(program, glGetUniformBlockIndex(program, "viewMatrixBlock"), 1);
 #if DEBUG
+		// Get uniform block and bind index
+		GLuint ubo = glGetUniformBlockIndex(program, "rootMatrixBlock");
 		GLint bufferSize;
 		glGetActiveUniformBlockiv(program, ubo, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
-		Qk_ASSERT(bufferSize == 128);
+		Qk_ASSERT(bufferSize == 64);
 #endif
 
 		// Get Uniform Location index value

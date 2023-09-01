@@ -180,7 +180,7 @@ namespace qk {
 		return id;
 	}
 
-	void gl_set_texture(GLuint id, uint32_t slot, const ImagePaint* paint) {
+	void gl_set_texture(GLuint id, uint32_t slot, const ImagePaintBase* paint) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, id);
 
@@ -337,7 +337,7 @@ namespace qk {
 		, _clipAAAlphaBuffer(0)
 		, _texBuffer{0,0,0}
 		, _zDepth(0)
-		, _glcanvas(this, opts.isMultiThreading)
+		, _glCanvas(this, opts.isMultiThreading)
 		, _shaders{
 			&_clear, &_clip, &_color, &_generic, &_image, &_colorMask, &_linear, &_radial,
 		}
@@ -355,7 +355,7 @@ namespace qk {
 		if (!_IsSupportMultisampled) {
 			_opts.msaa = 0;
 		}
-		_canvas = &_glcanvas; // set default canvas
+		_canvas = &_glCanvas; // set default canvas
 
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(2, &_frameBuffer); // _frame_buffer,_msaa_frame_buffer
@@ -364,11 +364,19 @@ namespace qk {
 		// Create aa texture buffer
 		glGenTextures(1, &_clipAAAlphaBuffer); // _clipAlphaBuffer
 
-		glGenBuffers(1, &_matrixBlock);
-		glBindBuffer(GL_UNIFORM_BUFFER, _matrixBlock);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _matrixBlock);
-		// glBindBufferRange(GL_UNIFORM_BUFFER, 0, _matrixBlock, 0, sizeof(float) * 32);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 32, NULL, GL_STATIC_DRAW);
+		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
+		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _rootMatrixBlock);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, NULL, GL_DYNAMIC_DRAW);
+		// _viewMatrixBlock
+		glBindBuffer(GL_UNIFORM_BUFFER, _viewMatrixBlock);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 1, _viewMatrixBlock);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, NULL, GL_DYNAMIC_DRAW);
+		// _optsBlock
+		glBindBuffer(GL_UNIFORM_BUFFER, _optsBlock);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 2, _optsBlock);
+		glBufferData(GL_UNIFORM_BUFFER, 65536, NULL, GL_DYNAMIC_DRAW);
+
 		// get consts
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_maxTextureSize);
 		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &_maxTextureBufferSize);
@@ -381,7 +389,6 @@ namespace qk {
 		for (auto shader: _shaders) {
 			shader->build();
 		}
-
 		glUseProgram(_image.shader);
 		glUniform1i(_image.image, 0); // set texture slot
 		glUniform1i(_image.image_u, 1);
@@ -393,7 +400,11 @@ namespace qk {
 		glUseProgram(_clip.shader);
 		glUniform1i(_clip.aaalpha, 15); // set texture slot
 
-		glUseProgram(_color.shader); // test
+		glUseProgram(_generic.shader);
+		GLuint optsBlock = glGetUniformBlockIndex(_generic.shader, "optsBlock");
+		glUniformBlockBinding(_generic.shader, optsBlock, 2); // binding = 2
+		glBindBuffer(GL_ARRAY_BUFFER, _generic.vbo);
+		glBufferData(GL_ARRAY_BUFFER, Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec4), NULL, GL_DYNAMIC_DRAW);
 
 		glEnable(GL_BLEND); // enable color blend
 		setBlendMode(kSrcOver_BlendMode); // set default color blend mode
@@ -403,7 +414,7 @@ namespace qk {
 		glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 		// set depth test
-		glEnable(GL_DEPTH_TEST); // enable depth test
+		//glEnable(GL_DEPTH_TEST); // enable depth test
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
 		glClearDepth(0.0f); // set depth clear value to -1.0
 	}
@@ -412,7 +423,7 @@ namespace qk {
 		glDeleteFramebuffers(2, &_frameBuffer); // _frameBuffer,_msaaFrameBuffer
 		glDeleteRenderbuffers(4, &_renderBuffer); // _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer
 		glDeleteTextures(4, &_clipAAAlphaBuffer); // _clipAAAlphaBuffer, _texBuffer
-		glDeleteBuffers(1, &_matrixBlock);
+		glDeleteBuffers(3, &_rootMatrixBlock); // _rootMatrixBlock, _viewMatrixBlock, _optsBlock
 	}
 
 	void GLRender::reload() {
@@ -468,8 +479,23 @@ namespace qk {
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
 
-		_glcanvas.setRootMatrix(mat, surfaceScale);
+		_glCanvas.onSurfaceReload(surfaceScale);
+		setRootMatrix(mat);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	}
+
+	void GLRender::setRootMatrix(const Mat4& root) {
+		// update shader root matrix and clear all save state
+		auto m4x4 = root.transpose(); // transpose matrix
+		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4.val, GL_DYNAMIC_DRAW);
+		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
+		glDisable(GL_STENCIL_TEST); // disable stencil test
+
+		if (!_IsDeviceMsaa) { // clear clip aa buffer
+			const float color[] = {0.0f,0.0f,0.0f,0.0f};
+			glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
+		}
 	}
 
 	void GLRender::setMainRenderBuffer(int width, int height) {
@@ -522,11 +548,7 @@ namespace qk {
 		glDeleteTextures(count, ids);
 	}
 
-	void GLRender::setBlendMode(BlendMode blendMode) {
-		gl_set_blend_mode(blendMode);
-	}
-
-	void GLRender::setTexture(cPixel *pixel, int slot, const Paint &paint) {
+	void GLRender::setTexture(cPixel *pixel, int slot, const ImagePaintBase *paint) {
 		auto id = pixel->texture();
 		if (!id) {
 			id = gl_gen_texture(pixel, _texBuffer[slot], true);
@@ -535,29 +557,12 @@ namespace qk {
 			}
 			_texBuffer[slot] = id;
 		}
-		gl_set_texture(id, slot, paint.image);
+		gl_set_texture(id, slot, paint);
 	}
 
-	void GLRender::flushBuffer() {
-		_glcanvas._mutex.lock();
-		auto cmdPack = _glcanvas._cmdPackSubmit;
-
-		cmdPack->vertexsBlocks.current = cmdPack->vertexsBlocks.blocks.val();
-		cmdPack->optsBlocks.current = cmdPack->optsBlocks.blocks.val();
-		cmdPack->cmd.size = sizeof(GLC_Cmd);
-		cmdPack->lastCmd = cmdPack->cmd.val;
-
-		for (int i = cmdPack->vertexsBlocks.index; i >= 0; i--) {
-			cmdPack->vertexsBlocks.blocks[i].size = 0;
-		}
-		for (int i = cmdPack->optsBlocks.index; i >= 0; i--) {
-			cmdPack->optsBlocks.blocks[i].size = 0;
-		}
-
-		cmdPack->vertexsBlocks.index = 0;
-		cmdPack->optsBlocks.index = 0;
-
-		_glcanvas._mutex.unlock();
+	void GLRender::setBlendMode(BlendMode mode) {
+		_blendMode = mode;
+		gl_set_blend_mode(mode);
 	}
 
 }

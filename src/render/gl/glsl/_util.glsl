@@ -3,9 +3,11 @@
 #define matrix (rootMatrix * viewMatrix)
 
 // global shared data
-layout (std140/*std430?,binding=0*/) uniform matrixBlock {
+layout (std140/*std430?,binding=0*/) uniform rootMatrixBlock {
 	/*mediump*/
 	mat4  rootMatrix;
+};
+layout (std140) uniform viewMatrixBlock {
 	mat4  viewMatrix;
 };
 

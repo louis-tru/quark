@@ -237,7 +237,7 @@ namespace qk {
 		 */
 		lock.unlock(); //
 
-		_host->render()->getCanvas()->submit();
+		_host->render()->getCanvas()->swapBuffer();
 		_host->render()->submit(); // commit render cmd
 
 #if DEBUG && PRINT_RENDER_FRAME_TIME

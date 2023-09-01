@@ -39,15 +39,33 @@ flat   in lowp int  image; // sampler2D index
 smooth in lowp vec2 coord;
 uniform   sampler2D images[Qk_GL_MAX_TEXTURE_IMAGE_UNITS];
 
+uniform  lowp vec4 color2;
+
 void main() {
 	lowp float aaalpha = 1.0 - abs(aafuzz);
-	if (type == 0) { // color
+	// switch (type) {
+	// 	case 0: // color
+	// 		fragColor = opts[optidx].color;
+	// 		fragColor.a *= aaalpha;
+	// 	break;
+	// 	case 1:
+	// 		fragColor = opts[optidx].color;
+	// 		fragColor.a *= texture(images[image], coord).a * aaalpha;
+	// 		break;
+	// 	default:
+	// 		fragColor = texture(images[image], coord);
+	// 		fragColor.a *= opts[optidx].color.a * aaalpha;
+	// 		break;
+	// }
+	if (type == 0) {
 		fragColor = opts[optidx].color;
 		fragColor.a *= aaalpha;
-	} else if (type == 1) { //  color mask
+	}
+	else if (type == 1) { //  color mask
 		fragColor = opts[optidx].color;
 		fragColor.a *= texture(images[image], coord).a * aaalpha;
-	} else { // image
+	} 
+	else { // image
 		fragColor = texture(images[image], coord);
 		fragColor.a *= opts[optidx].color.a * aaalpha;
 	}

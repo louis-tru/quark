@@ -84,7 +84,7 @@ namespace qk {
 		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint& paint) = 0;
-		virtual void submit() = 0;
+		virtual void swapBuffer() = 0;
 		/**
 		 * @dev drawTextBlob Draw with text baseline aligned
 		*/

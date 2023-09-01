@@ -36,6 +36,11 @@
 #include "../canvas.h"
 #include "./glsl_shaders.h"
 
+#define Qk_GL_USE_CMD_PACK 1
+#define Qk_GCmdOptionCapacity 1024
+#define Qk_GCmdVertexsMemBlockCapacity (65535)
+#define Qk_GCmdOptMemBlockCapacity 16384
+
 namespace qk {
 	class GLRender; // gl render backend
 
@@ -49,6 +54,7 @@ namespace qk {
 		Array<Clip> clips;
 	};
 
+#if Qk_GL_USE_CMD_PACK
 	// -------------------------------------------------------------
 
 	enum GLC_CmdType { // gl canvas cmd type
@@ -58,8 +64,7 @@ namespace qk {
 		kClear_GLC_CmdType,
 		kClip_GLC_CmdType,
 		kImage_GLC_CmdType, // draw cmd
-		kRadial_GLC_CmdType,
-		kLinear_GLC_CmdType,
+		kGradient_GLC_CmdType,
 		kGenerice_GLC_CmdType,
 	};
 
@@ -71,8 +76,10 @@ namespace qk {
 	struct GLC_MatrixCmd: GLC_Cmd { Mat matrix; };
 	struct GLC_BlendCmd: GLC_Cmd { BlendMode mode; };
 
-	struct GLC_ClearCmd: GLC_DrawCmd {
+	struct GLC_ClearCmd: GLC_Cmd {
+		float          depth;
 		Color4f        color;
+		bool           isBlend;
 	};
 
 	struct GLC_ClipCmd: GLC_Cmd {
@@ -111,6 +118,7 @@ namespace qk {
 		};
 		Vec4           *vertexs; // vertex data + option index
 		Option         *opts; // subcmd options data
+		uint32_t       vertexsSize; // vertex data size
 		int            subcmd; // subcmd count
 		int            images; // images count
 		ImagePaintBase image; // image source
@@ -132,15 +140,17 @@ namespace qk {
 		};
 		ArrayMemBlock<Vec4>  vertexsBlocks; // GLC_GenericeCmd vertex storage
 		ArrayMemBlock<GCOpt> optsBlocks; //
-		MemBlock<GLC_Cmd> cmd;
+		MemBlock<GLC_Cmd> cmds;
 		GLC_Cmd          *lastCmd;
 		         GLC_CmdPack();
 		        ~GLC_CmdPack();
 		GLC_Cmd* allocCmd(uint32_t size);
 		GLC_GenericeCmd* newGenericeCmd();
+		void     clear();
 	};
 
 	// -------------------------------------------------------------
+#endif
 
 	class GLCanvas: public Canvas {
 	public:
@@ -169,22 +179,24 @@ namespace qk {
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
-		void setRootMatrix(const Mat4& root, Vec2 surfaceScale); // set root matrix
-		virtual void submit() override;
+		virtual void swapBuffer() override; // swap gl cmd
+		void         flushBuffer(); // commit gl cmd, only can rendering thread call
+		void         onSurfaceReload(Vec2 surfaceScale); // surface reload
 	private:
 		Array<GLC_State> _stateStack;
 		GLC_State    *_state;
-		GLC_CmdPack   _cmdPacks[2];
+#if Qk_GL_USE_CMD_PACK
 		GLC_CmdPack  *_cmdPack;
-		GLC_CmdPack  *_cmdPackSubmit;
+		GLC_CmdPack  *_cmdPackFront;
+#endif
 		GLRender     *_render;
 		float  _zDepth;
 		float  _surfaceScale, _transfromScale;
 		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
 		bool   _chMatrix;
+		bool   _isMultiThreading;
 		BlendMode _blendMode;
 		Mutex  _mutex; // submit swap mutex
-		friend class GLRender;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 

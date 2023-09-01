@@ -203,7 +203,9 @@ public:
 
 		setClipAABuffer(size.x(), size.y(), _opts.msaa);
 
-		_glcanvas.setRootMatrix(mat, surfaceScale);
+		_glCanvas.onSurfaceReload(surfaceScale);
+
+		setRootMatrix(mat);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		[NSOpenGLContext clearCurrentContext]; // clear ctx
@@ -216,7 +218,7 @@ public:
 	}
 
 	void submit() override {
-		flushBuffer();
+		_glCanvas.flushBuffer(); // commit gl cmd
 		glFlush(); // glFenceSync, glWaitSync
 		[_ctx flushBuffer]; // swap double buffer, glFinish
 		[_view unlockRender];

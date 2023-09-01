@@ -70,7 +70,7 @@ public:
 		// paint.antiAlias = false;
 		// circle = Path::MakeRect({size/2-105,210});
 
-		for (int i = 0; i < 100000; i++) {
+		for (int i = 0; i < 10000; i++) {
 			_canvas->drawPath(circle, paint);
 		}
 
@@ -81,7 +81,7 @@ public:
 };
 
 void test_canvas1(int argc, char **argv) {
-	App app({.fps=0xff, .windowFrame={{0,0}, {400,400}}});
+	App app({.fps=0x0, .windowFrame={{0,0}, {400,400}}});
 	// layout
 	auto t = (new TestCanvas1(&app))->append_to<Box>(app.root());
 	t->set_width({ 0, SizeKind::kMatch });
