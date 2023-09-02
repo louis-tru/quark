@@ -1,7 +1,11 @@
 
 layout (std140) uniform optsBlock {
 	struct Option {
-		int flags; // type: flags & 0xf + image: flags >> 4 sampler2D index
+		// flags:
+		// type = flags & 0xf
+		// image = flags >> 2 & 0xff, image sampler2D index
+		// optidx = flags >> 8
+		int   flags;
 		float depth;
 		float m0,m1,m2,m3,m4,m5; // 2d mat2x3
 		vec4  color; // color
@@ -10,63 +14,40 @@ layout (std140) uniform optsBlock {
 };
 
 #vert
-in         int   optidxIn; // options index form uniform optsBlock
-flat   out int   type;
-flat   out int   optidx;
-flat   out int   image;
-smooth out vec2  coord;
+in           int   optidxIn; // options index form uniform optsBlock
+smooth   out float flags;
+smooth   out vec2  coord;
 
-#define _vmatrix mat4(opt.m0, opt.m3, 0.0, 0.0, \
-	opt.m1, opt.m4, 0.0, 0.0,   0.0, 0.0, 1.0, 0.0,   opt.m2, opt.m5, 0.0, 1.0)
+#define _vmatrix mat4(\
+	opt.m0, opt.m3, 0.0, 0.0, \
+	opt.m1, opt.m4, 0.0, 0.0,   \
+	0.0,    0.0,    1.0, 0.0,   \
+	opt.m2, opt.m5, depth, 1.0)
 #define _matrix (rootMatrix * _vmatrix)
 
 void main() {
 	Option opt = opts[optidxIn];
 	aafuzz = aafuzzIn;
-	optidx = optidxIn;
-	type = opt.flags & 3;
-	if (type != 0) {
-		image = opt.flags >> 2;
+	flags = float(opt.flags);
+	if ((opt.flags & 3) != 0) {
 		coord = (opt.coord.xy + vertexIn.xy) * opt.coord.zw;
 	}
 	gl_Position = _matrix * vec4(vertexIn.xy, opt.depth, 1.0);
 }
 
 #frag
-flat   in lowp int  type;
-flat   in lowp int  optidx;
-flat   in lowp int  image; // sampler2D index
+// flat   in lowp float  flags;
+smooth in lowp float flags;
 smooth in lowp vec2 coord;
 uniform   sampler2D images[Qk_GL_MAX_TEXTURE_IMAGE_UNITS];
 
-uniform  lowp vec4 color2;
-
 void main() {
 	lowp float aaalpha = 1.0 - abs(aafuzz);
-	// switch (type) {
-	// 	case 0: // color
-	// 		fragColor = opts[optidx].color;
-	// 		fragColor.a *= aaalpha;
-	// 	break;
-	// 	case 1:
-	// 		fragColor = opts[optidx].color;
-	// 		fragColor.a *= texture(images[image], coord).a * aaalpha;
-	// 		break;
-	// 	default:
-	// 		fragColor = texture(images[image], coord);
-	// 		fragColor.a *= opts[optidx].color.a * aaalpha;
-	// 		break;
-	// }
-	if (type == 0) {
-		fragColor = opts[optidx].color;
-		fragColor.a *= aaalpha;
+	lowp int _flags = int(flags);
+	if ((_flags & 3) == 0) { // color
+		fragColor = opts[_flags >> 8].color;
+	} else { //  color mask or image
+		fragColor = opts[_flags >> 8].color * texture(images[(_flags >> 2) & 0xff], coord);
 	}
-	else if (type == 1) { //  color mask
-		fragColor = opts[optidx].color;
-		fragColor.a *= texture(images[image], coord).a * aaalpha;
-	} 
-	else { // image
-		fragColor = texture(images[image], coord);
-		fragColor.a *= opts[optidx].color.a * aaalpha;
-	}
+	fragColor.a = aaalpha;
 }

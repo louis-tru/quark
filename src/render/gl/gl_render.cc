@@ -367,15 +367,12 @@ namespace qk {
 		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
 		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _rootMatrixBlock);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, NULL, GL_DYNAMIC_DRAW);
 		// _viewMatrixBlock
 		glBindBuffer(GL_UNIFORM_BUFFER, _viewMatrixBlock);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, _viewMatrixBlock);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, NULL, GL_DYNAMIC_DRAW);
 		// _optsBlock
 		glBindBuffer(GL_UNIFORM_BUFFER, _optsBlock);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 2, _optsBlock);
-		glBufferData(GL_UNIFORM_BUFFER, 65536, NULL, GL_DYNAMIC_DRAW);
 
 		// get consts
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_maxTextureSize);
@@ -414,7 +411,8 @@ namespace qk {
 		glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 		// set depth test
-		//glEnable(GL_DEPTH_TEST); // enable depth test
+		glEnable(GL_DEPTH_TEST); // enable depth test
+		// glDisable(GL_DEPTH_TEST);
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
 		glClearDepth(0.0f); // set depth clear value to -1.0
 	}

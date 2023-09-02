@@ -1,0 +1,46 @@
+
+#include <quark/app.h>
+#include <quark/render/render.h>
+#include <quark/layout/root.h>
+#include <quark/display.h>
+
+using namespace qk;
+
+constexpr unsigned int u32 = 1;
+
+class TestCanvas2: public Box {
+public:
+	TestCanvas2(App *host): Box(host) {}
+
+	void accept(ViewVisitor *visitor) override {
+		auto app = pre_render()->host();
+		auto canvas = app->render()->getCanvas();
+		auto size = app->display()->size();
+
+		Paint paint;
+		paint.color = Color4f(0, 0, 0, 0.3);
+		//auto circle = Path::MakeCircle(size/2, 105, false);
+		auto circle = Path::MakeArc({size/2-150,300}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
+		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
+		circle.close();
+
+		// paint.antiAlias = false;
+		// circle = Path::MakeRect({size/2-105,210});
+
+		for (int i = 0; i < 10000; i++) {
+			canvas->drawPath(circle, paint);
+		}
+
+		mark_none(kLayout_None);
+	}
+};
+
+void test_canvas2(int argc, char **argv) {
+	App app({.fps=0x1, .windowFrame={{0,0}, {400,400}}});
+	// layout
+	auto t = (new TestCanvas2(&app))->append_to<Box>(app.root());
+	t->set_width({ 0, SizeKind::kMatch });
+	t->set_height({ 0, SizeKind::kMatch });
+	// layout end
+	app.run();
+}

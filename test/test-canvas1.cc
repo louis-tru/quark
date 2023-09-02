@@ -14,20 +14,20 @@ public:
 
 	void accept(ViewVisitor *visitor) override {
 
-		auto _canvas = shared_app()->render()->getCanvas();
-		_canvas->save();
-		_canvas->translate(-115, 0);
+		auto canvas = shared_app()->render()->getCanvas();
+		canvas->save();
+		canvas->translate(-115, 0);
 
-		_canvas->clearColor(Color4f(1,1,1));
+		canvas->clearColor(Color4f(1,1,1));
 		auto size = pre_render()->host()->display()->size();
 
 		Paint paint;
 
 		paint.color = Color4f(0, 0, 0);
-		//_canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
+		//canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
 
 		paint.color = Color4f(0, 1, 1);
-		//_canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
+		//canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 
 		paint.color = Color4f(1, 0, 0, 0.3);
 		//auto circle = Path::MakeCircle(size/2, 105, false);
@@ -52,29 +52,26 @@ public:
 		z.transfrom(Mat(1,0,size.x()/2-100,0,1,size.y()/2-50));
 
 		//auto stroke = z.strokePath(10, Paint::kRound_Cap, Paint::kRound_Join);
-		//_canvas->drawPath(stroke, paint);
+		//canvas->drawPath(stroke, paint);
 		paint.style = Paint::kStroke_Style;
 		paint.width = 10;
 		//paint.cap = Paint::kRound_Cap;
 		//paint.join = Paint::kRound_Join;
-		// _canvas->drawPath(z, paint);
+		// canvas->drawPath(z, paint);
 
 		paint.style = Paint::kFill_Style;
 		paint.color = Color4f(0, 0, 0);
 		//paint.width = 1;
 		//paint.style = Paint::kStroke_Style;
-		//_canvas->drawPath(dash, paint);
-		_canvas->translate(70, 0);
-		// _canvas->drawPath(circle, paint);
+		//canvas->drawPath(dash, paint);
+		canvas->translate(70, 0);
+		// canvas->drawPath(circle, paint);
 
 		// paint.antiAlias = false;
 		// circle = Path::MakeRect({size/2-105,210});
 
-		for (int i = 0; i < 10000; i++) {
-			_canvas->drawPath(circle, paint);
-		}
-
-		_canvas->restore();
+		canvas->drawPath(circle, paint);
+		canvas->restore();
 
 		mark_none(kLayout_None);
 	}

@@ -233,13 +233,14 @@ namespace qk {
 		}
 
 		int32_t addGenericeSubcmd(
-			GLC_GenericeCmd* cmd, int flags,
+			GLC_GenericeCmd* cmd,
+			GLC_GenericeCmd::OptionType type,
 			const Vec3 *&vertex, int32_t vertexLen, const Color4f &color, const Region &coord
 		) {
  			// setting vertex option data
 			cmd->opts[cmd->subcmd] = {
-				.flags  = flags,           .depth = _zDepth,
-				.matrix = _state->matrix,  .color = color,
+				.flags  = type | (cmd->subcmd << 8), .depth = _zDepth,
+				.matrix = _state->matrix,            .color = color,
 				.coord  = coord,
 			};
 			auto vertexs = _cmdPack->vertexsBlocks.current;
@@ -382,7 +383,6 @@ namespace qk {
 			cmd->color = color;
 			cmd->depth = _zDepth;
 			cmd->isBlend = isBlend;
-
 			if (isBlend) { // draw color
 				zDepthNext();
 			} else { // clear color
@@ -397,12 +397,19 @@ namespace qk {
 				_blendMode = mode;
 			}
 		}
+		void clearColor4f(const Color4f &color, bool isBlend) {
+			clearColor4fCall(_zDepth, color, isBlend);
+			if (isBlend) {
+				zDepthNext();
+			} else {
+				_zDepth = 0;
+			}
+		}
 		#define drawColor4f(...) drawColor4fCall(_zDepth, ##__VA_ARGS__)
 		#define drawImage(...) drawImageCall(_zDepth, ##__VA_ARGS__)
 		#define drawImageMask(...) drawImageMaskCall(_zDepth, ##__VA_ARGS__)
 		#define drawGradient(...) drawGradientCall(_zDepth, ##__VA_ARGS__)
 		#define drawClip(...) drawClipCall(_zDepth, ##__VA_ARGS__)
-		#define clearColor4f(...) clearColor4fCall(_zDepth, ##__VA_ARGS__)
 #endif
 
 		// ----------------------------------------------------------------------------------------
@@ -523,7 +530,9 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		}
 
-		void drawImageCall(float depth, const Array<Vec3> &vertex, const ImagePaintBase *paint, const Region& coord, float alpha) {
+		void drawImageCall(float depth, const Array<Vec3> &vertex,
+			const ImagePaintBase *paint, const Region& coord, float alpha
+		) {
 			auto shader = &_render->_image;
 			auto pixel = paint->source;
 			auto type = pixel->type();
@@ -638,59 +647,61 @@ namespace qk {
 		auto cmdPack = _cmdPackFront;
 		auto cmd = cmdPack->cmds.val;
 		_this->setMetrixUnifromBuffer(_state->matrix);
+		
+		if (cmd != cmdPack->lastCmd) {
 
-		do {
-			cmd = (GLC_Cmd*)(((char*)cmd) + cmd->size); // skip first empty
-			switch (cmd->type) {
-				case kMatrix_GLC_CmdType:
-					_this->setMetrixUnifromBuffer(((GLC_MatrixCmd*)cmd)->matrix);
-					break;
-				case kBlend_GLC_CmdType:
-					_render->setBlendMode(((GLC_BlendCmd*)cmd)->mode);
-					break;
-				case kClear_GLC_CmdType: {
-					auto cmd1 = (GLC_ClearCmd*)cmd;
-					_this->clearColor4fCall(cmd1->depth, cmd1->color, cmd1->isBlend);
-					cmd1->~GLC_ClearCmd();
-					break;
+			do {
+				Qk_ASSERT(cmd->size);
+				cmd = (GLC_Cmd*)(((char*)cmd) + cmd->size); // skip first empty
+				switch (cmd->type) {
+					case kMatrix_GLC_CmdType:
+						_this->setMetrixUnifromBuffer(((GLC_MatrixCmd*)cmd)->matrix);
+						break;
+					case kBlend_GLC_CmdType:
+						_render->setBlendMode(((GLC_BlendCmd*)cmd)->mode);
+						break;
+					case kClear_GLC_CmdType: {
+						auto cmd1 = (GLC_ClearCmd*)cmd;
+						_this->clearColor4fCall(cmd1->depth, cmd1->color, cmd1->isBlend);
+						cmd1->~GLC_ClearCmd();
+						break;
+					}
+					case kClip_GLC_CmdType: {
+						auto cmd1 = (GLC_ClipCmd*)cmd;
+						_this->drawClipCall(cmd1->depth, cmd1->clip, cmd1->revoke);
+						cmd1->~GLC_ClipCmd();
+						break;
+					}
+					case kImage_GLC_CmdType: {
+						auto cmd1 = (GLC_ImageCmd*)cmd;
+						_this->drawImageCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->paint.coord, cmd1->alpha);
+						cmd1->~GLC_ImageCmd();
+						break;
+					}
+					case kGradient_GLC_CmdType: {
+						auto cmd1 = (GLC_GradientCmd*)cmd;
+						_this->drawGradientCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->alpha);
+						((GLC_GradientCmd*)cmd)->~GLC_GradientCmd();
+						break;
+					}
+					case kGenerice_GLC_CmdType: {
+						auto cmd1 = (GLC_GenericeCmd*)cmd;
+						glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
+						glBufferData(GL_UNIFORM_BUFFER, sizeof(GLC_GenericeCmd::Option) * cmd1->subcmd, cmd1->opts, GL_DYNAMIC_DRAW);
+						glBindBuffer(GL_ARRAY_BUFFER, _render->_generic.vbo);
+						glBufferData(GL_ARRAY_BUFFER, cmd1->vertexsSize * sizeof(Vec4), cmd1->vertexs, GL_DYNAMIC_DRAW);
+						glBindVertexArray(_render->_generic.vao);
+						glUseProgram(_render->_generic.shader);
+						glUniform1f(_render->_generic.depth, _render->_zDepth);
+						// _render->_generic.use(cmd1->vertexsSize * sizeof(Vec4), cmd1->vertexs);
+						glDrawArrays(GL_TRIANGLES, 0, cmd1->vertexsSize);
+						cmd1->~GLC_GenericeCmd();
+						break;
+					}
+					default: break;
 				}
-				case kClip_GLC_CmdType: {
-					auto cmd1 = (GLC_ClipCmd*)cmd;
-					_this->drawClipCall(cmd1->depth, cmd1->clip, cmd1->revoke);
-					cmd1->~GLC_ClipCmd();
-					break;
-				}
-				case kImage_GLC_CmdType: {
-					auto cmd1 = (GLC_ImageCmd*)cmd;
-					_this->drawImageCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->paint.coord, cmd1->alpha);
-					cmd1->~GLC_ImageCmd();
-					break;
-				}
-				case kGradient_GLC_CmdType: {
-					auto cmd1 = (GLC_GradientCmd*)cmd;
-					_this->drawGradientCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->alpha);
-					((GLC_GradientCmd*)cmd)->~GLC_GradientCmd();
-					break;
-				}
-				case kGenerice_GLC_CmdType: {
-					auto cmd1 = (GLC_GenericeCmd*)cmd;
-					glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
-					// glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GLC_GenericeCmd::Option) * cmd1->subcmd, cmd1->opts);
-					glBufferData(GL_UNIFORM_BUFFER, sizeof(GLC_GenericeCmd::Option) * cmd1->subcmd, cmd1->opts, GL_STREAM_DRAW);
-					glBindBuffer(GL_ARRAY_BUFFER, _render->_generic.vbo);
-					// glBufferSubData(GL_ARRAY_BUFFER, 0, cmd1->vertexsSize * sizeof(Vec4), cmd1->vertexs);
-					glBufferData(GL_ARRAY_BUFFER, cmd1->vertexsSize * sizeof(Vec4), cmd1->vertexs, GL_STREAM_DRAW);
-					glBindVertexArray(_render->_generic.vao);
-					glUseProgram(_render->_generic.shader);
-					glUniform4f(_render->_generic.color2, 1.0,0,0,1.0);
-					// _render->_generic.use(cmd1->vertexsSize * sizeof(Vec4), cmd1->vertexs);
-					glDrawArrays(GL_TRIANGLES, 0, cmd1->vertexsSize);
-					cmd1->~GLC_GenericeCmd();
-					break;
-				}
-				default: break;
-			}
-		} while(cmd != cmdPack->lastCmd);
+			} while(cmd != cmdPack->lastCmd);
+		}
 
 		cmdPack->vertexsBlocks.current = cmdPack->vertexsBlocks.blocks.val();
 		cmdPack->optsBlocks.current = cmdPack->optsBlocks.blocks.val();

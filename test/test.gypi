@@ -57,6 +57,7 @@
 				'test-layout.cc',
 				'test-canvas.cc',
 				'test-canvas1.cc',
+				'test-canvas2.cc',
 				'test-linux-input-2.cc',
 				'test-linux-input.cc',
 				'test-list.cc',
