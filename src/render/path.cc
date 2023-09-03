@@ -357,7 +357,7 @@ namespace qk {
 		Qk_ReturnLocal(edges);
 	}
 
-	Array<Vec3> Path::getTriangles(float epsilon) const {
+	VertexData Path::getTriangles(float epsilon) const {
 		int polySize = 3;
 		auto tess = tessNewTess(nullptr); // TESStesselator*
 
@@ -400,7 +400,7 @@ namespace qk {
 			}
 		}
 
-		Array<Vec3> out;
+		VertexData out;
 
 		// Convert to convex contour vertex data
 		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 2, 0) ) {
@@ -408,10 +408,10 @@ namespace qk {
 			const TESSindex* elems = tessGetElements(tess);
 			const Vec2* verts = (const Vec2*)tessGetVertices(tess);
 
-			out.extend(nelems * polySize);
+			out.vertex.extend(nelems * polySize);
 
-			for (int i = 0, l = out.length(); i < l; i++) {
-				out[i] = { verts[*elems++], 0.0 };
+			for (int i = 0, l = out.vertex.length(); i < l; i++) {
+				out.vertex[i] = { verts[*elems++], 0.0 };
 			}
 		}
 
@@ -682,6 +682,7 @@ namespace qk {
 
 	RectPath RectPath::MakeRect(const Rect &rect) {
 		RectPath out;
+		out.id = 0;
 		out.rect = rect;
 		float x2 = rect.origin.x() + rect.size.x();
 		float y2 = rect.origin.y() + rect.size.y();
@@ -705,6 +706,7 @@ namespace qk {
 
 	RectPath RectPath::MakeRRect(const Rect &rect, const Path::BorderRadius &r) {
 		RectPath out;
+		out.id = 0;
 		out.rect = rect;
 
 		float x1 = rect.origin.x(),      y1 = rect.origin.y();
@@ -760,7 +762,11 @@ namespace qk {
 
 	RectOutlinePath RectOutlinePath::MakeRectOutline(const Rect &rect, const float border[4]) {
 		RectOutlinePath outline;
-		
+		outline.top.id = 0;
+		outline.right.id = 0;
+		outline.bottom.id = 0;
+		outline.left.id = 0;
+
 		float o_x1 = rect.origin.x(),      o_y1 = rect.origin.y();
 		float i_x1 = o_x1 + border[3],     i_y1 = o_y1 + border[0];
 		float o_x2 = o_x1 + rect.size.x(), o_y2 = o_y1 + rect.size.y();
@@ -802,6 +808,10 @@ namespace qk {
 		const Rect& rect, const float border[4], const Path::BorderRadius &r
 	) {
 		RectOutlinePath outline;
+		outline.top.id = 0;
+		outline.right.id = 0;
+		outline.bottom.id = 0;
+		outline.left.id = 0;
 
 		float o_x1 = rect.origin.x(),      o_y1 = rect.origin.y();
 		float i_x1 = o_x1 + border[3],     i_y1 = o_y1 + border[0];

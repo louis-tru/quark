@@ -77,75 +77,6 @@ namespace qk {
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
 
-		/**
-		 * @dev get normalized path cache
-		 */
-		const Path& getNormalizedPath(const Path &path);
-
-		/**
-		 * @dev get stroke path cache
-		 */
-		const Path& getStrokePath(const Path &path,
-			float width, Path::Cap cap, Path::Join join, float miterLimit
-		);
-
-		/**
-		 * @dev get path triangles cache
-		*/
-		const Array<Vec3>& getPathTriangles(const Path &path);
-
-		/**
-		 * @dev get aa fuzz stroke path triangle cache
-		*/
-		const Array<Vec3>& getAAFuzzStrokeTriangle(const Path &path, float width);
-
-		/**
-		 * @dev get radius rect path cache from hash code
-		*/
-		const RectPath* getRRectPathFromHash(uint64_t hash);
-
-		/**
-		 * @dev set radius rect path cache from hash code
-		*/
-		const RectPath& setRRectPathFromHash(uint64_t hash, RectPath&& rect);
-
-		/**
-		 * @dev get radius rect outline path cache from hash code
-		*/
-		const RectOutlinePath* getRRectOutlinePathFromHash(uint64_t hash);
-
-		/**
-		 * @dev set rect outline path cache from hash code
-		*/
-		const RectOutlinePath& setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline);
-
-		/**
-		 * @dev get rect path cache
-		 */
-		const RectPath& getRectPath(const Rect &rect);
-
-		/**
-		 * @dev get radius rect path cache
-		 * @param rect {Rect} rect
-		 * @param radius {BorderRadius} border radius
-		*/
-		const RectPath& getRRectPath(const Rect &rect, const Path::BorderRadius &radius);
-
-		/**
-		 * @dev get radius rect path cache and limit radius size
-		 * @param rect {Rect} rect
-		 * @param radius {float[4]} border radius leftTop,rightTop,rightBottom,leftBottom
-		*/
-		const RectPath& getRRectPath(const Rect &rect, const float radius[4]);
-
-		/**
-		 * @dev get radius rect outline path cache and limit radius size
-		 * @param rect {Rect} outside border rect
-		 * @param border {float[4]} inside border width top,right,bottom,left
-		 * @param radius {float[4]} outside border radius leftTop,rightTop,rightBottom,leftBottom
-		 */
-		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]);
-
 	protected:
 		RenderBackend(Options opts);
 		virtual Vec2  getSurfaceSize() = 0;
@@ -155,11 +86,6 @@ namespace qk {
 		Delegate     *_delegate;
 		Vec2          _surfaceSize; // current surface size
 		float         _defaultScale; // recommend default surface scale
-		Dict<uint64_t, Path> _NormalizedPathCache, _StrokePathCache; // path hash => path
-		Dict<uint64_t, Array<Vec3>> _PathTrianglesCache; // path hash => triangles
-		Dict<uint64_t, Array<Vec3>> _AAFuzzStrokeTriangleCache; // path hash => aa fuzz stroke triangles
-		Dict<uint64_t, RectPath> _RectPathCache; // rect hash => rect path
-		Dict<uint64_t, RectOutlinePath> _RectOutlinePathCache; // rect hash => rect outline path
 	};
 
 	typedef RenderBackend Render;

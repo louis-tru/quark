@@ -10,5 +10,6 @@ uniform lowp vec4 color;
 void main() {
 	// fuzz value range: 1 => 0, alpha range: 0 => 1
 	lowp float aaalpha = 1.0 - abs(aafuzz);
-	fragColor = vec4(color.rgb, color.a * aaalpha);
+	fragColor = color;
+	fragColor.a *= aaalpha;
 }

@@ -75,7 +75,7 @@ namespace qk {
 				hash.updatefv4(radius);
 				hash.updatefv4(border);
 
-				out.inside = _render->getRRectPathFromHash(hash.hashCode());
+				out.inside = _cache->getRRectPathFromHash(hash.hashCode());
 				if (!out.inside) {
 					float xy_0_5    = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 					rect.origin[0] += border[3]; // left
@@ -88,7 +88,7 @@ namespace qk {
 					if (*reinterpret_cast<const uint64_t*>(radius) == 0 &&
 							*reinterpret_cast<const uint64_t*>(radius+2) == 0
 					) {
-						out.inside = &_render->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
+						out.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 					} else {
 						float lt = Qk_MIN(radius[0],xy_0_5), rt = Qk_MIN(radius[1],xy_0_5);
 						float rb = Qk_MIN(radius[2],xy_0_5), lb = Qk_MIN(radius[3],xy_0_5);
@@ -97,22 +97,22 @@ namespace qk {
 							{lt-border[3], lt-border[0]}, {rt-border[1], rt-border[0]},
 							{rb-border[1], rb-border[2]}, {lb-border[3], lb-border[2]},
 						};
-						out.inside = &_render->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, Br));
+						out.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, Br));
 					}
 				}
 			} else {
-				out.inside = &_render->getRRectPath(getRect(box), &box->_radius_left_top);
+				out.inside = &_cache->getRRectPath(getRect(box), &box->_radius_left_top);
 			}
 		}
 
 		void getOutsideRectPath(Box *box, BoxData &out) {
 			if (!out.outside)
-				out.outside = &_render->getRRectPath(getRect(box), &box->_radius_left_top);
+				out.outside = &_cache->getRRectPath(getRect(box), &box->_radius_left_top);
 		}
 
 		void getRRectOutlinePath(Box *box, BoxData &out) {
 			if (!out.outline) {
-				out.outline = &_render->getRRectOutlinePath(getRect(box), box->_border->_fix_width, &box->_radius_left_top);
+				out.outline = &_cache->getRRectOutlinePath(getRect(box), box->_border->_fix_width, &box->_radius_left_top);
 			}
 		}
 
@@ -332,7 +332,7 @@ namespace qk {
 
 				if ( v->_scrollbar_h ) { // draw horizontal scrollbar
 					float radius[] = {width,width,width,width};
-					auto &rect = _render->getRRectPath({
+					auto &rect = _cache->getRRectPath({
 						{-origin.x(), size.y() - width - margin - origin.y()},
 						{v->_scrollbar_position_h.val[1], width}
 					}, radius);
@@ -342,7 +342,7 @@ namespace qk {
 
 				if ( v->_scrollbar_v ) { // draw vertical scrollbar
 					float radius[] = {width,width,width,width};
-					auto &rect = _render->getRRectPath({
+					auto &rect = _cache->getRRectPath({
 						{size.x() - width - margin - origin.x(), -origin.y()},
 						{width, v->_scrollbar_position_v.val[1]}
 					}, radius);
@@ -358,6 +358,7 @@ namespace qk {
 
 	ViewRender::ViewRender(Display *display)
 		: _render(nullptr), _canvas(nullptr)
+		, _cache(nullptr)
 		, _display(display)
 		, _opacity(1), _mark_recursive(0)
 	{
@@ -366,6 +367,7 @@ namespace qk {
 	void ViewRender::set_render(Render *render) {
 		_render = render;
 		_canvas = render->getCanvas();
+		_cache = _canvas->gtePathvCache();
 	}
 
 	void ViewRender::visitView(View* view) {
@@ -478,7 +480,7 @@ namespace qk {
 				auto x = offset.x() + line.origin + blob.origin;
 				auto y = offset.y() + line.baseline - blob.ascent;
 				auto offset_x = blob.core.offset.front().x();
-				auto &rect = _render->getRectPath({{x + offset_x, y},{blob.core.offset.back().x(), blob.height}});
+				auto &rect = _cache->getRectPath({{x + offset_x, y},{blob.core.offset.back().x(), blob.height}});
 				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 			};
 
@@ -517,7 +519,7 @@ namespace qk {
 			auto &line = lines->line(v->_cursor_linenum);
 			auto x = offset.x() + v->_cursor_x - 1;
 			auto y = offset.y() + line.baseline - v->_text_ascent - 1;
-			auto &rect = _render->getRectPath({{x, y},{2,v->_text_height+2}});
+			auto &rect = _cache->getRectPath({{x, y},{2,v->_text_height+2}});
 			_canvas->drawPathvColor(rect, v->cursor_color().to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 		}
 
@@ -544,7 +546,7 @@ namespace qk {
 					auto &blob = v->_blob[i];
 					auto &line = lines->line(blob.line);
 					auto offset_x = blob.core.offset.front().x();
-					auto &rect = _render->getRectPath({
+					auto &rect = _cache->getRectPath({
 						{line.origin + blob.origin + offset_x, line.baseline - blob.ascent},
 						{blob.core.offset.back().x()-offset_x, blob.height},
 					});

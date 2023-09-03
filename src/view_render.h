@@ -63,6 +63,7 @@ namespace qk {
 	private:
 		Display      *_display;
 		Canvas       *_canvas;
+		PathvCache   *_cache;
 		float         _opacity;
 		uint32_t      _mark_recursive;
 		Qk_DEFINE_INLINE_CLASS(Inl);

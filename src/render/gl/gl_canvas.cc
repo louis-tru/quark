@@ -42,126 +42,6 @@ namespace qk {
 	constexpr float aa_fuzz_weight = 0.9;
 	constexpr float aa_fuzz_width = 0.5;
 
-#if Qk_GL_USE_CMD_PACK
-
-	GLC_ImageCmd::~GLC_ImageCmd() {
-		paint.source->release();
-	}
-
-	GLC_GenericeCmd::~GLC_GenericeCmd() {
-		for (auto i = 0; i < images; i++) {
-			(&image)[i].source->release();
-		}
-	}
-
-	GLC_CmdPack::GLC_CmdPack()
-	{
-		cmds.size = sizeof(GLC_Cmd);
-		cmds.capacity = 65536;
-		cmds.val = (GLC_Cmd*)malloc(65536);
-		cmds.val->size = cmds.size;
-		cmds.val->type = kEmpty_GLC_CmdType;
-		lastCmd = cmds.val;
-		vertexsBlocks.blocks.push({
-			(Vec4*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec4)),0,Qk_GCmdVertexsMemBlockCapacity
-		});
-		optsBlocks.blocks.push({
-			(GCOpt*)malloc(Qk_GCmdOptMemBlockCapacity * sizeof(GCOpt)),0,Qk_GCmdOptMemBlockCapacity
-		});
-		vertexsBlocks.current = vertexsBlocks.blocks.val();
-		vertexsBlocks.index = 0;
-		optsBlocks.current = optsBlocks.blocks.val();
-		optsBlocks.index = 0;
-	}
-
-	GLC_CmdPack::~GLC_CmdPack() {
-		for (auto &i: vertexsBlocks.blocks)
-			free(i.val);
-		for (auto &i: optsBlocks.blocks)
-			free(i.val);
-		clear();
-		free(cmds.val);
-	}
-
-	void GLC_CmdPack::clear() {
-		auto cmd = cmds.val;
-
-		while (cmd != lastCmd) {
-			switch (cmd->type) {
-				case kClear_GLC_CmdType:
-					((GLC_ClearCmd*)cmd)->~GLC_ClearCmd();
-					break;
-				case kClip_GLC_CmdType:
-					((GLC_ClipCmd*)cmd)->~GLC_ClipCmd();
-					break;
-				case kImage_GLC_CmdType:
-					((GLC_ImageCmd*)cmd)->~GLC_ImageCmd();
-					break;
-				case kGradient_GLC_CmdType:
-					((GLC_GradientCmd*)cmd)->~GLC_GradientCmd();
-					break;
-				case kGenerice_GLC_CmdType:
-					((GLC_GenericeCmd*)cmd)->~GLC_GenericeCmd();
-					break;
-				default: break;
-			}
-			cmd = (GLC_Cmd*)(((char*)cmd) + cmd->size);
-		}
-
-		lastCmd = cmds.val;
-		cmds.size = lastCmd->size;
-	}
-
-	GLC_Cmd* GLC_CmdPack::allocCmd(uint32_t size) {
-		auto newSize = cmds.size + size;
-		if (newSize > cmds.capacity) {
-			cmds.capacity <<= 1;
-			cmds.val = (GLC_Cmd*)realloc(cmds.val, cmds.capacity);
-		}
-		lastCmd = (GLC_Cmd*)(((char*)cmds.val) + cmds.size);
-		lastCmd->size = size;
-		cmds.size = newSize;
-		return lastCmd;
-	}
-
-	GLC_GenericeCmd* GLC_CmdPack::newGenericeCmd() {
-		auto cmd = (GLC_GenericeCmd*)allocCmd(
-			sizeof(GLC_GenericeCmd) + sizeof(ImagePaintBase) * (GL_MaxTextureImageUnits - 1)
-		);
-		cmd->type = kGenerice_GLC_CmdType;
-
-		auto vertexs = vertexsBlocks.current;
-		auto opts    = optsBlocks.current;
-
-		if (vertexs->size == Qk_GCmdVertexsMemBlockCapacity) {
-			if (++vertexsBlocks.index == vertexsBlocks.blocks.length()) {
-				vertexsBlocks.blocks.push({
-					(Vec4*)malloc(Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec4)),0,Qk_GCmdVertexsMemBlockCapacity
-				});
-			}
-			vertexsBlocks.current = vertexs = vertexsBlocks.blocks.val() + vertexsBlocks.index;
-		}
-
-		if (opts->size == Qk_GCmdOptMemBlockCapacity) {
-			if (++optsBlocks.index == optsBlocks.blocks.length()) {
-				optsBlocks.blocks.push({
-					(GCOpt*)malloc(Qk_GCmdOptMemBlockCapacity * sizeof(GCOpt)),0,Qk_GCmdOptMemBlockCapacity
-				});
-			}
-			optsBlocks.current = opts = optsBlocks.blocks.val() + optsBlocks.index;
-		}
-
-		cmd->vertexs = vertexs->val + vertexs->size;
-		cmd->opts    = opts->val    + opts->size;
-		cmd->subcmd = 0;
-		cmd->images = 0;
-		cmd->vertexsSize = 0;
-
-		return cmd;
-	}
-
-#endif
-
 	Qk_DEFINE_INLINE_MEMBERS(GLCanvas, Inl) {
 	public:
 		#define _this _inl(this)
@@ -219,134 +99,91 @@ namespace qk {
 			}
 		}
 
-		GLC_GenericeCmd* getGenericeCmd() {
-			auto cmd = (GLC_GenericeCmd*)_cmdPack->lastCmd;
-			if (cmd->type == kGenerice_GLC_CmdType) {
-				if (_cmdPack->vertexsBlocks.current->size != Qk_GCmdVertexsMemBlockCapacity &&
-						_cmdPack->optsBlocks.current->size    != Qk_GCmdOptMemBlockCapacity &&
-						cmd->subcmd != Qk_GCmdOptionCapacity
-				) {
-					return cmd;
-				}
-			}
-			return _cmdPack->newGenericeCmd();
-		}
-
-		int32_t addGenericeSubcmd(
-			GLC_GenericeCmd* cmd,
-			GLC_GenericeCmd::OptionType type,
-			const Vec3 *&vertex, int32_t vertexLen, const Color4f &color, const Region &coord
-		) {
- 			// setting vertex option data
-			cmd->opts[cmd->subcmd] = {
-				.flags  = type | (cmd->subcmd << 8), .depth = _zDepth,
-				.matrix = _state->matrix,            .color = color,
-				.coord  = coord,
-			};
-			auto vertexs = _cmdPack->vertexsBlocks.current;
-			auto prevSize = vertexs->size;
-			int  cpLen = Qk_GCmdVertexsMemBlockCapacity - prevSize;
-			auto cpSrc = vertex;
-			int32_t retv = 0;
-
-			_cmdPack->optsBlocks.current->size++;
-
-			if (cpLen < vertexLen) { // not enough space
-				vertexs->size = Qk_GCmdVertexsMemBlockCapacity;
-				vertex += cpLen;
-				retv = vertexLen - cpLen;
-			} else {
-				vertexs->size = prevSize + vertexLen;
-				cpLen = vertexLen;
-			}
-
-			const float subcmd = *((float*)&cmd->subcmd);
-			auto p = vertexs->val + prevSize;
-			auto p_1 = p + cpLen;
-
-			//memcpy(p, cpSrc, sizeof(Vec4) * cpLen);
-
-			// copy vertex data
-			while (p < p_1) {
-#if DEBUG
-				*p = *((Vec4*)(cpSrc)); p->val[3] = subcmd;
-				p++,cpSrc++;
-				*p = *((Vec4*)(cpSrc)); p->val[3] = subcmd;
-				p++,cpSrc++;
-				*p = *((Vec4*)(cpSrc)); p->val[3] = subcmd;
-				p++,cpSrc++;
-#else
-				*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
-				p++,cpSrc++;
-				*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
-				p++,cpSrc++;
-				*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
-				p++,cpSrc++;
-#endif
-			}
-			cmd->vertexsSize += cpLen;
-
-			return retv;
-		}
-
+#if 1
 		void drawColor4f(const Array<Vec3> &vertex, const Color4f &color) {
 			auto vertexp = vertex.val();
 			auto vertexLen = vertex.length();
 			do {
-				auto cmd = getGenericeCmd();
-				vertexLen = addGenericeSubcmd(cmd,
-					GLC_GenericeCmd::kColor, vertexp, vertexLen, color, ZeroRegion
-				);
+				auto cmd = _cmdPack->getMColorCmd();
+				// setting vertex option data
+				cmd->opts[cmd->subcmd] = {
+					.flags  = 0,              .depth = _zDepth,
+					.matrix = _state->matrix, .color = color,
+				};
+				auto vertexs = _cmdPack->vertexBlocks.current;
+				auto prevSize = vertexs->size;
+				int  cpLen = Qk_MCCmd_VertexBlock_Capacity - prevSize;
+				auto cpSrc = vertexp;
+
+				_cmdPack->optionBlocks.current->size++;
+
+				if (cpLen < vertexLen) { // not enough space
+					vertexs->size = Qk_MCCmd_VertexBlock_Capacity;
+					vertexp += cpLen;
+					vertexLen -= cpLen;
+				} else {
+					vertexs->size = prevSize + vertexLen;
+					cpLen = vertexLen;
+					vertexLen = 0;
+				}
+
+				const float subcmd = *((float*)&cmd->subcmd);
+				auto p = vertexs->val + prevSize;
+				auto p_1 = p + cpLen;
+
+				// copy vertex data
+				while (p < p_1) {
+#if DEBUG
+					*p = *((Vec4*)(cpSrc)); p->val[3] = subcmd;
+					p++,cpSrc++;
+					*p = *((Vec4*)(cpSrc)); p->val[3] = subcmd;
+					p++,cpSrc++;
+					*p = *((Vec4*)(cpSrc)); p->val[3] = subcmd;
+					p++,cpSrc++;
+#else
+					*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
+					p++,cpSrc++;
+					*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
+					p++,cpSrc++;
+					*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
+					p++,cpSrc++;
+#endif
+				}
+				cmd->vCount += cpLen;
 				cmd->subcmd++;
 			} while(vertexLen);
 		}
+#else
+		void drawColor4f(const Array<Vec3> &vertex, const Color4f &color) {
+			setMetrixCmd(); // check matrix change
+			auto cmd = new(_cmdPack->allocCmd(sizeof(GLC_ColorCmd))) GLC_ColorCmd;
+			cmd->type = kColor_GLC_CmdType;
+			cmd->vertex.write(*vertex, -1, vertex.length());
+			cmd->depth = _zDepth;
+			cmd->color = color;
+		}
+#endif
 
-		void drawImage(const Array<Vec3> &vertex, const ImagePaint *paint, const Region &coord, float alpha) {
-			auto type = paint->source->type();
-			auto texCount = type == kColor_Type_YUV420P_Y_8 ? 3:
-											type == kColor_Type_YUV420SP_Y_8 ? 2: 1;
-			if (texCount == 1) { // use generice cmd
-				auto vertexp = vertex.val();
-				auto vertexLen = vertex.length();
-				do {
-					auto cmd = getGenericeCmd();
-					if (cmd->images == GL_MaxTextureImageUnits)
-						cmd = _cmdPack->newGenericeCmd();
-					vertexLen = addGenericeSubcmd(
-						cmd, GLC_GenericeCmd::kImage,
-						vertexp, vertexLen, Color4f(0,0,0,alpha), coord
-					);
-					(&cmd->image)[cmd->images++] = *paint;
-					cmd->opts[cmd->subcmd++].flags |= cmd->images << 2;
-					paint->source->retain(); // retain source image ref
-				} while(vertexLen);
-			} else {
-				setMetrixCmd(); // check matrix change
-				auto cmd = new(_cmdPack->allocCmd(sizeof(GLC_ImageCmd))) GLC_ImageCmd;
-				cmd->type = kImage_GLC_CmdType;
-				cmd->depth = _zDepth;
-				cmd->alpha = alpha;
-				cmd->format = GLC_ImageCmd::Format(texCount - 1);
-				cmd->paint = *paint;
-				paint->source->retain(); // retain source image ref
-			}
+		void drawImage(const Array<Vec3> &vertex, const ImagePaint *paint, float alpha) {
+			setMetrixCmd(); // check matrix change
+			auto cmd = new(_cmdPack->allocCmd(sizeof(GLC_ImageCmd))) GLC_ImageCmd;
+			cmd->type = kImage_GLC_CmdType;
+			cmd->vertex.write(*vertex, -1, vertex.length());
+			cmd->depth = _zDepth;
+			cmd->alpha = alpha;
+			cmd->paint = *paint;
+			paint->source->retain(); // retain source image ref
 		}
 
-		void drawImageMask(const Array<Vec3> &vertex, const Paint &paint, float alpha) {
-			auto vertexp = vertex.val();
-			auto vertexLen = vertex.length();
-			do {
-				auto cmd = getGenericeCmd();
-				if (cmd->images == GL_MaxTextureImageUnits)
-					cmd = _cmdPack->newGenericeCmd();
-				vertexLen = addGenericeSubcmd(
-					cmd, GLC_GenericeCmd::kColorMask, vertexp, vertexLen,
-					paint.color.to_color4f_alpha(alpha), paint.image->coord
-				);
-				(&cmd->image)[cmd->images++] = *paint.image;
-				cmd->opts[cmd->subcmd++].flags |= cmd->images << 2;
-				paint.image->source->retain(); // retain source image ref
-			} while(vertexLen);
+		void drawImageMask(const Array<Vec3> &vertex, const ImagePaint *paint, const Color4f &color) {
+			setMetrixCmd(); // check matrix change
+			auto cmd = new(_cmdPack->allocCmd(sizeof(GLC_ImageMaskCmd))) GLC_ImageMaskCmd;
+			cmd->type = kImageMask_GLC_CmdType;
+			cmd->vertex.write(*vertex, -1, vertex.length());
+			cmd->depth = _zDepth;
+			cmd->color = color;
+			cmd->paint = *paint;
+			paint->source->retain(); // retain source image ref
 		}
 
 		void drawGradient(const Array<Vec3> &vertex, const GradientPaint *paint, float alpha) {
@@ -370,6 +207,7 @@ namespace qk {
 		}
 
 		void drawClip(GLC_State::Clip &clip, bool revoke) {
+			// setMetrixCmd(); // check matrix change
 			auto cmd = new(_cmdPack->allocCmd(sizeof(GLC_ClipCmd))) GLC_ClipCmd;
 			cmd->type = kClip_GLC_CmdType;
 			cmd->clip = clip;
@@ -383,11 +221,6 @@ namespace qk {
 			cmd->color = color;
 			cmd->depth = _zDepth;
 			cmd->isBlend = isBlend;
-			if (isBlend) { // draw color
-				zDepthNext();
-			} else { // clear color
-				_zDepth = 0; // set z depth state
-			}
 		}
 
 #else
@@ -397,129 +230,13 @@ namespace qk {
 				_blendMode = mode;
 			}
 		}
-		void clearColor4f(const Color4f &color, bool isBlend) {
-			clearColor4fCall(_zDepth, color, isBlend);
-			if (isBlend) {
-				zDepthNext();
-			} else {
-				_zDepth = 0;
-			}
-		}
 		#define drawColor4f(...) drawColor4fCall(_zDepth, ##__VA_ARGS__)
 		#define drawImage(...) drawImageCall(_zDepth, ##__VA_ARGS__)
 		#define drawImageMask(...) drawImageMaskCall(_zDepth, ##__VA_ARGS__)
 		#define drawGradient(...) drawGradientCall(_zDepth, ##__VA_ARGS__)
 		#define drawClip(...) drawClipCall(_zDepth, ##__VA_ARGS__)
+		#define clearColor4f(...) clearColor4fCall(_zDepth, ##__VA_ARGS__)
 #endif
-
-		// ----------------------------------------------------------------------------------------
-
-		void clipv(const Path &path, const Array<Vec3> &vertex, ClipOp op, bool antiAlias) {
-			GLC_State::Clip clip{
-				.op=op,
-				.aa=antiAlias&&!_render->_IsDeviceMsaa,
-				.path={vertex,path}
-			};
-			drawClip(clip, false);
-			_state->clips.push(std::move(clip));
-		}
-
-		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
-			if (path.vertex.length()) {
-				Qk_ASSERT(path.path.isNormalized());
-				fillv(path.vertex, paint);
-				if (aa) {
-					drawAAFuzzStroke(path.path, paint, aa_fuzz_weight, aa_fuzz_width);
-				}
-				zDepthNext();
-			}
-		}
-
-		void fillPath(const Path &path, const Paint &paint, bool aa) {
-			Qk_ASSERT(path.isNormalized());
-			auto &vertex = _render->getPathTriangles(path);
-			if (vertex.length()) {
-				fillv(vertex, paint);
-				if (aa) {
-					drawAAFuzzStroke(path, paint, aa_fuzz_weight, aa_fuzz_width);
-				}
-			}
-			zDepthNext();
-		}
-
-		void fillv(const Array<Vec3> &vertex, const Paint &paint) {
-			switch (paint.type) {
-				case Paint::kColor_Type:
-					drawColor4f(vertex, paint.color); break;
-				case Paint::kGradient_Type:
-					drawGradient(vertex, paint.gradient, paint.color.a()); break;
-				case Paint::kBitmap_Type:
-					drawImage(vertex, paint.image, paint.image->coord, paint.color.a()); break;
-				case Paint::kBitmapMask_Type:
-					drawImageMask(vertex, paint, 1); break;
-			}
-		}
-
-		void strokePath(const Path &path, const Paint& paint, bool aa) {
-			if (aa) {
-				auto width = paint.width - _unitPixel * 0.45f;
-				if (width > 0) {
-					fillPath(_render->getStrokePath(path, width, paint.cap, paint.join,0), paint, true);
-				} else {
-					width /= (_unitPixel * 0.65f); // range: -1 => 0
-					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.006
-					drawAAFuzzStroke(path, paint, 0.5 / (0.5 - width), 0.5);
-					zDepthNext();
-				}
-			} else {
-				fillPath(_render->getStrokePath(path, paint.width, paint.cap, paint.join,0), paint, false);
-			}
-		}
-
-		void drawAAFuzzStroke(const Path& path, const Paint& paint, float aaFuzzWeight, float aaFuzzWidth) {
-			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
-			//auto &vertex = _render->getSDFStrokeTriangleStripCache(newPath, _Scale);
-			// _UnitPixel*0.6=1.2/_Scale, 2.4px
-			auto &vertex = _render->getAAFuzzStrokeTriangle(path, _unitPixel*aaFuzzWidth);
-			// Qk_DEBUG("%p", &vertex);
-			switch (paint.type) {
-				case Paint::kColor_Type:
-					drawColor4f(vertex, paint.color.to_color4f_alpha(aaFuzzWeight)); break;
-				case Paint::kGradient_Type:
-					drawGradient(vertex, paint.gradient, aaFuzzWeight * paint.color.a()); break;
-				case Paint::kBitmap_Type:
-					drawImage(vertex, paint.image, paint.image->coord, aaFuzzWeight * paint.color.a()); break;
-				case Paint::kBitmapMask_Type:
-					drawImageMask(vertex, paint, aaFuzzWeight); break;
-			}
-		}
-
-		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {
-			auto &pix = textImg->pixels().front();
-			auto scale_1 = 1.0 / scale;
-			ImagePaint p;
-			// default use baseline align
-			Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
-			Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
-
-			p.setImage(textImg, {dst_start, dst_size});
-
-			Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
-			Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
-			Vec2 v3(dst_start + dst_size);
-			Array<Vec3> vertex{
-				dst_start, v1, v2, // triangle 0
-				v2, v3, v1, // triangle 1
-			};
-			
-			Paint p0(paint);
-			p0.image = &p;
-
-			drawImageMask(vertex, p0, 1);
-			zDepthNext();
-
-			return scale_1;
-		}
 
 		// ----------------------------------------------------------------------------------------
 
@@ -530,33 +247,37 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		}
 
-		void drawImageCall(float depth, const Array<Vec3> &vertex,
-			const ImagePaintBase *paint, const Region& coord, float alpha
-		) {
+		void drawImageCall(float depth, const Array<Vec3> &vertex, const ImagePaint *paint, float alpha) {
 			auto shader = &_render->_image;
-			auto pixel = paint->source;
-			auto type = pixel->type();
-			auto texCount = type == kColor_Type_YUV420P_Y_8 ? 3:
-											type == kColor_Type_YUV420SP_Y_8 ? 2: 1;
-			for (int i = 0; i < texCount; i++) {
-				_render->setTexture(pixel->pixels().val() + i, i, paint);
+			auto src = paint->source;
+			if (kColor_Type_YUV420P_Y_8 == src->type()) { // yuv420p or yuv420sp
+				auto shader = (GLSLImage*)&_render->_imageYuv;
+				shader->use(vertex.size(), vertex.val());
+				_render->setTexture(src->pixels().val() + 1, 1, paint);
+
+				if (src->pixels()[1].type() == kColor_Type_YUV420P_U_8) { // yuv420p
+					glUniform1i(_render->_imageYuv.format, 1);
+					_render->setTexture(src->pixels().val() + 2, 2, paint);
+				} else { // yuv420sp
+					glUniform1i(_render->_imageYuv.format, 0);
+				}
+			} else {
+				shader->use(vertex.size(), vertex.val());
 			}
-			shader->use(vertex.size(), vertex.val());
+			_render->setTexture(src->pixels().val(), 0, paint);
 			glUniform1f(shader->depth, _render->_zDepth + depth);
-			glUniform1i(shader->format, texCount - 1);
 			glUniform1f(shader->opacity, alpha);
-			glUniform4fv(shader->coord, 1, coord.origin.val);
-			glUniform1i(shader->format, texCount - 1);
+			glUniform4fv(shader->coord, 1, paint->coord.origin.val);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		}
 
-		void drawImageMaskCall(float depth, const Array<Vec3> &vertex, const Paint &paint, float alpha) {
-			auto shader = &_render->_colorMask;
-			_render->setTexture(paint.image->source->pixels().val(), 0, paint.image);
+		void drawImageMaskCall(float depth, const Array<Vec3> &vertex, const ImagePaint *paint, const Color4f &color) {
+			auto shader = &_render->_imageMask;
+			_render->setTexture(paint->source->pixels().val(), 0, paint);
 			shader->use(vertex.size(), vertex.val());
 			glUniform1f(shader->depth, _render->_zDepth + depth);
-			glUniform4f(shader->color, paint.color[0], paint.color[1], paint.color[2], paint.color[3]*alpha);
-			glUniform4fv(shader->coord, 1, paint.image->coord.origin.val);
+			glUniform4fv(shader->color, 1, color.val);
+			glUniform4fv(shader->coord, 1, paint->coord.origin.val);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 		}
 
@@ -575,6 +296,10 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLES, 0, vertex.length());
 			//glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.length());
 			//glDrawArrays(GL_LINES, 0, vertex.length());
+		}
+
+		void drawClipCall(float depth, GLC_State::Clip &clip, bool revoke) {
+			// TODO ..
 		}
 
 		void clearColor4fCall(float depth, const Color4f &color, bool isBlend) {
@@ -596,13 +321,120 @@ namespace qk {
 			}
 		}
 
-		void drawClipCall(float depth, GLC_State::Clip &clip, bool revoke) {
-			// TODO ..
+		// ----------------------------------------------------------------------------------------
+
+		void clipv(const Path &path, const Array<Vec3> &vertex, ClipOp op, bool antiAlias) {
+			GLC_State::Clip clip{
+				.op=op,
+				.aa=antiAlias&&!_render->_IsDeviceMsaa,
+			};
+			// TODO .. copy pathv and gpu vertex data
+			clip.path.id = 0;
+			clip.path.vertex = vertex;
+			clip.path.path = path;
+			drawClip(clip, false);
+			_state->clips.push(std::move(clip));
 		}
+
+		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
+			if (path.vertex.length()) {
+				Qk_ASSERT(path.path.isNormalized());
+				fillv(path.vertex, paint);
+				if (aa) {
+					drawAAFuzzStroke(path.path, paint, aa_fuzz_weight, aa_fuzz_width);
+				}
+				zDepthNext();
+			}
+		}
+
+		void fillPath(const Path &path, const Paint &paint, bool aa) {
+			Qk_ASSERT(path.isNormalized());
+			auto &vertex = _cache->getPathTriangles(path);
+			if (vertex.length()) {
+				fillv(vertex, paint);
+				if (aa) {
+					drawAAFuzzStroke(path, paint, aa_fuzz_weight, aa_fuzz_width);
+				}
+			}
+			zDepthNext();
+		}
+
+		void fillv(const Array<Vec3> &vertex, const Paint &paint) {
+			switch (paint.type) {
+				case Paint::kColor_Type:
+					drawColor4f(vertex, paint.color); break;
+				case Paint::kGradient_Type:
+					drawGradient(vertex, paint.gradient, paint.color.a()); break;
+				case Paint::kBitmap_Type:
+					drawImage(vertex, paint.image, paint.color.a()); break;
+				case Paint::kBitmapMask_Type:
+					drawImageMask(vertex, paint.image, paint.color); break;
+			}
+		}
+
+		void strokePath(const Path &path, const Paint& paint, bool aa) {
+			if (aa) {
+				auto width = paint.width - _unitPixel * 0.45f;
+				if (width > 0) {
+					fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, true);
+				} else {
+					width /= (_unitPixel * 0.65f); // range: -1 => 0
+					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.006
+					drawAAFuzzStroke(path, paint, 0.5 / (0.5 - width), 0.5);
+					zDepthNext();
+				}
+			} else {
+				fillPath(_cache->getStrokePath(path, paint.width, paint.cap, paint.join,0), paint, false);
+			}
+		}
+
+		void drawAAFuzzStroke(const Path& path, const Paint& paint, float aaFuzzWeight, float aaFuzzWidth) {
+			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
+			//auto &vertex = _render->getSDFStrokeTriangleStripCache(newPath, _Scale);
+			// _UnitPixel*0.6=1.2/_Scale, 2.4px
+			auto &vertex = _cache->getAAFuzzStrokeTriangle(path, _unitPixel*aaFuzzWidth);
+			// Qk_DEBUG("%p", &vertex);
+			switch (paint.type) {
+				case Paint::kColor_Type:
+					drawColor4f(vertex, paint.color.to_color4f_alpha(aaFuzzWeight)); break;
+				case Paint::kGradient_Type:
+					drawGradient(vertex, paint.gradient, aaFuzzWeight * paint.color.a()); break;
+				case Paint::kBitmap_Type:
+					drawImage(vertex, paint.image, aaFuzzWeight * paint.color.a()); break;
+				case Paint::kBitmapMask_Type:
+					drawImageMask(vertex, paint.image, paint.color.to_color4f_alpha(aaFuzzWeight)); break;
+			}
+		}
+
+		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {
+			auto &pix = textImg->pixels().front();
+			auto scale_1 = 1.0 / scale;
+			ImagePaint p;
+			// default use baseline align
+			Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
+			Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
+
+			p.setImage(textImg, {dst_start, dst_size});
+
+			Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
+			Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
+			Vec2 v3(dst_start + dst_size);
+			Array<Vec3> vertex{
+				dst_start, v1, v2, // triangle 0
+				v2, v3, v1, // triangle 1
+			};
+
+			drawImageMask(vertex, &p, paint.color);
+			zDepthNext();
+
+			return scale_1;
+		}
+
 	};
 
 	GLCanvas::GLCanvas(GLRender *render, bool isMultiThreading)
 		: _render(render)
+		, _cache(new PathvCache(render))
 		, _zDepth(0)
 		, _state(nullptr)
 		, _surfaceScale(1), _transfromScale(1), _scale(1), _chMatrix(true)
@@ -625,6 +457,7 @@ namespace qk {
 			delete _cmdPackFront;
 		_cmdPack = _cmdPackFront = nullptr;
 #endif
+		Release(_cache); _cache = nullptr;
 	}
 
 	void GLCanvas::swapBuffer() {
@@ -646,76 +479,90 @@ namespace qk {
 		}
 		auto cmdPack = _cmdPackFront;
 		auto cmd = cmdPack->cmds.val;
+		cmdPack->allocCmd(sizeof(GLC_Cmd))->type = kEmpty_GLC_CmdType;
 		_this->setMetrixUnifromBuffer(_state->matrix);
-		
-		if (cmd != cmdPack->lastCmd) {
 
-			do {
-				Qk_ASSERT(cmd->size);
-				cmd = (GLC_Cmd*)(((char*)cmd) + cmd->size); // skip first empty
-				switch (cmd->type) {
-					case kMatrix_GLC_CmdType:
-						_this->setMetrixUnifromBuffer(((GLC_MatrixCmd*)cmd)->matrix);
-						break;
-					case kBlend_GLC_CmdType:
-						_render->setBlendMode(((GLC_BlendCmd*)cmd)->mode);
-						break;
-					case kClear_GLC_CmdType: {
-						auto cmd1 = (GLC_ClearCmd*)cmd;
-						_this->clearColor4fCall(cmd1->depth, cmd1->color, cmd1->isBlend);
-						cmd1->~GLC_ClearCmd();
-						break;
-					}
-					case kClip_GLC_CmdType: {
-						auto cmd1 = (GLC_ClipCmd*)cmd;
-						_this->drawClipCall(cmd1->depth, cmd1->clip, cmd1->revoke);
-						cmd1->~GLC_ClipCmd();
-						break;
-					}
-					case kImage_GLC_CmdType: {
-						auto cmd1 = (GLC_ImageCmd*)cmd;
-						_this->drawImageCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->paint.coord, cmd1->alpha);
-						cmd1->~GLC_ImageCmd();
-						break;
-					}
-					case kGradient_GLC_CmdType: {
-						auto cmd1 = (GLC_GradientCmd*)cmd;
-						_this->drawGradientCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->alpha);
-						((GLC_GradientCmd*)cmd)->~GLC_GradientCmd();
-						break;
-					}
-					case kGenerice_GLC_CmdType: {
-						auto cmd1 = (GLC_GenericeCmd*)cmd;
-						glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
-						glBufferData(GL_UNIFORM_BUFFER, sizeof(GLC_GenericeCmd::Option) * cmd1->subcmd, cmd1->opts, GL_DYNAMIC_DRAW);
-						glBindBuffer(GL_ARRAY_BUFFER, _render->_generic.vbo);
-						glBufferData(GL_ARRAY_BUFFER, cmd1->vertexsSize * sizeof(Vec4), cmd1->vertexs, GL_DYNAMIC_DRAW);
-						glBindVertexArray(_render->_generic.vao);
-						glUseProgram(_render->_generic.shader);
-						glUniform1f(_render->_generic.depth, _render->_zDepth);
-						// _render->_generic.use(cmd1->vertexsSize * sizeof(Vec4), cmd1->vertexs);
-						glDrawArrays(GL_TRIANGLES, 0, cmd1->vertexsSize);
-						cmd1->~GLC_GenericeCmd();
-						break;
-					}
-					default: break;
+		int count = 0;
+
+		while(cmd != cmdPack->lastCmd) {
+			count++;
+			Qk_ASSERT(cmd->size);
+			cmd = (GLC_Cmd*)(((char*)cmd) + cmd->size); // skip first empty
+			switch (cmd->type) {
+				case kMatrix_GLC_CmdType:
+					_this->setMetrixUnifromBuffer(((GLC_MatrixCmd*)cmd)->matrix);
+					break;
+				case kBlend_GLC_CmdType:
+					_render->setBlendMode(((GLC_BlendCmd*)cmd)->mode);
+					break;
+				case kClear_GLC_CmdType: {
+					auto cmd1 = (GLC_ClearCmd*)cmd;
+					_this->clearColor4fCall(cmd1->depth, cmd1->color, cmd1->isBlend);
+					cmd1->~GLC_ClearCmd();
+					break;
 				}
-			} while(cmd != cmdPack->lastCmd);
+				case kClip_GLC_CmdType: {
+					auto cmd1 = (GLC_ClipCmd*)cmd;
+					_this->drawClipCall(cmd1->depth, cmd1->clip, cmd1->revoke);
+					cmd1->~GLC_ClipCmd();
+					break;
+				}
+				case kColor_GLC_CmdType: {
+					auto cmd1 = (GLC_ColorCmd*)cmd;
+					_this->drawColor4fCall(cmd1->depth, cmd1->vertex, cmd1->color);
+					cmd1->~GLC_ColorCmd();
+					break;
+				}
+				case kImage_GLC_CmdType: {
+					auto cmd1 = (GLC_ImageCmd*)cmd;
+					_this->drawImageCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->alpha);
+					cmd1->~GLC_ImageCmd();
+					break;
+				}
+				case kImageMask_GLC_CmdType: {
+					auto cmd1 = (GLC_ImageMaskCmd*)cmd;
+					_this->drawImageMaskCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->color);
+					cmd1->~GLC_ImageMaskCmd();
+					break;
+				}
+				case kGradient_GLC_CmdType: {
+					auto cmd1 = (GLC_GradientCmd*)cmd;
+					_this->drawGradientCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->alpha);
+					((GLC_GradientCmd*)cmd)->~GLC_GradientCmd();
+					break;
+				}
+				case kMultiColor_GLC_CmdType: {
+					auto cmd1 = (GLC_MultiColorCmd*)cmd;
+					glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
+					glBufferData(GL_UNIFORM_BUFFER,
+						sizeof(GLC_MultiColorCmd::Option) * cmd1->subcmd, cmd1->opts, GL_DYNAMIC_DRAW);
+					glBindBuffer(GL_ARRAY_BUFFER, _render->_color1.vbo);
+					glBufferData(GL_ARRAY_BUFFER, cmd1->vCount * sizeof(Vec4), cmd1->vertex, GL_DYNAMIC_DRAW);
+					glBindVertexArray(_render->_color1.vao);
+					glUseProgram(_render->_color1.shader);
+					glUniform1f(_render->_color1.depth, _render->_zDepth);
+					glDrawArrays(GL_TRIANGLES, 0, cmd1->vCount);
+					break;
+				}
+				default: break;
+			}
 		}
 
-		cmdPack->vertexsBlocks.current = cmdPack->vertexsBlocks.blocks.val();
-		cmdPack->optsBlocks.current = cmdPack->optsBlocks.blocks.val();
+		// Qk_DEBUG("Draw Call count, %d", count);
+
+		cmdPack->vertexBlocks.current = cmdPack->vertexBlocks.blocks.val();
+		cmdPack->optionBlocks.current = cmdPack->optionBlocks.blocks.val();
 		cmdPack->cmds.size = sizeof(GLC_Cmd);
 		cmdPack->lastCmd = cmdPack->cmds.val;
 
-		for (int i = cmdPack->vertexsBlocks.index; i >= 0; i--) {
-			cmdPack->vertexsBlocks.blocks[i].size = 0;
+		for (int i = cmdPack->vertexBlocks.index; i >= 0; i--) {
+			cmdPack->vertexBlocks.blocks[i].size = 0;
 		}
-		for (int i = cmdPack->optsBlocks.index; i >= 0; i--) {
-			cmdPack->optsBlocks.blocks[i].size = 0;
+		for (int i = cmdPack->optionBlocks.index; i >= 0; i--) {
+			cmdPack->optionBlocks.blocks[i].size = 0;
 		}
-		cmdPack->vertexsBlocks.index = 0;
-		cmdPack->optsBlocks.index = 0;
+		cmdPack->vertexBlocks.index = 0;
+		cmdPack->optionBlocks.index = 0;
 
 		if (_isMultiThreading) {
 			_mutex.unlock();
@@ -766,6 +613,10 @@ namespace qk {
 		_unitPixel = 2 / _scale;
 	}
 
+	PathvCache* GLCanvas::gtePathvCache() {
+		return _cache;
+	}
+
 	void GLCanvas::setMatrix(const Mat& mat) {
 		_state->matrix = mat;
 		_this->setMatrixInl(mat);
@@ -791,7 +642,7 @@ namespace qk {
 	}
 
 	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
-		_this->clipv(path, _render->getPathTriangles(path), op, antiAlias);
+		_this->clipv(path, _cache->getPathTriangles(path), op, antiAlias);
 	}
 
 	void GLCanvas::clipPathv(const Pathv& path, ClipOp op, bool antiAlias) {
@@ -799,28 +650,33 @@ namespace qk {
 	}
 
 	void GLCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
-		auto &path = _render->getRectPath(rect);
+		auto &path = _cache->getRectPath(rect);
 		_this->clipv(path.path, path.vertex, op, antiAlias);
 	}
 
 	void GLCanvas::clearColor(const Color4f& color) {
 		_this->clearColor4f(color, false);
+		_zDepth = 0; // set z depth state
 	}
 
 	void GLCanvas::drawColor(const Color4f &color, BlendMode mode) {
 		auto isBlend = mode != kSrc_BlendMode || color.a() != 1;
-		if (isBlend) {
+		if (isBlend) { // draw color
 			_this->setBlendMode(mode); // switch blend mode
+			_this->clearColor4f(color, isBlend);
+			_this->zDepthNext();
+		} else { // clear color
+			_this->clearColor4f(color, isBlend);
+			_zDepth = 0; // set z depth state
 		}
-		_this->clearColor4f(color, isBlend);
 	}
 
 	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
-		drawPathv(_render->getRectPath(rect), paint);
+		drawPathv(_cache->getRectPath(rect), paint);
 	}
 
 	void GLCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
-		drawPathv(_render->getRRectPath(rect,radius), paint);
+		drawPathv(_cache->getRRectPath(rect,radius), paint);
 	}
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
@@ -828,7 +684,7 @@ namespace qk {
 			_this->setBlendMode(mode); // switch blend mode
 			_this->drawColor4f(path.vertex, color);
 			if (!_render->_IsDeviceMsaa) { // Anti-aliasing using software
-				auto &vertex = _render->getAAFuzzStrokeTriangle(path.path, _unitPixel*aa_fuzz_width);
+				auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _unitPixel*aa_fuzz_width);
 				_this->drawColor4f(vertex, color.to_color4f_alpha(aa_fuzz_weight));
 			}
 			_this->zDepthNext();
@@ -839,7 +695,7 @@ namespace qk {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
 
 		bool aa = paint.antiAlias && !_render->_IsDeviceMsaa; // Anti-aliasing using software
-		auto path = &_render->getNormalizedPath(path_);
+		auto path = &_cache->getNormalizedPath(path_);
 
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {

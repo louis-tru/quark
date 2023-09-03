@@ -33,124 +33,10 @@
 #ifndef __quark_render_gl_glcanvas__
 #define __quark_render_gl_glcanvas__
 
-#include "../canvas.h"
+#include "./gl_cmd.h"
 #include "./glsl_shaders.h"
 
-#define Qk_GL_USE_CMD_PACK 1
-#define Qk_GCmdOptionCapacity 1024
-#define Qk_GCmdVertexsMemBlockCapacity (65535)
-#define Qk_GCmdOptMemBlockCapacity 16384
-
 namespace qk {
-	class GLRender; // gl render backend
-
-	struct GLC_State { // gl canvas state
-		struct Clip { // gl canvas clip
-			Pathv           path;
-			Canvas::ClipOp  op;
-			bool            aa; // anti alias
-		};
-		Mat         matrix;
-		Array<Clip> clips;
-	};
-
-#if Qk_GL_USE_CMD_PACK
-	// -------------------------------------------------------------
-
-	enum GLC_CmdType { // gl canvas cmd type
-		kEmpty_GLC_CmdType, // empty cmd
-		kMatrix_GLC_CmdType,
-		kBlend_GLC_CmdType,
-		kClear_GLC_CmdType,
-		kClip_GLC_CmdType,
-		kImage_GLC_CmdType, // draw cmd
-		kGradient_GLC_CmdType,
-		kGenerice_GLC_CmdType,
-	};
-
-	struct GLC_Cmd { // Cmd list
-		GLC_CmdType type;
-		uint32_t    size; // cmd size
-	};
-	struct GLC_DrawCmd: GLC_Cmd { Array<Vec3> vertex; float depth; };
-	struct GLC_MatrixCmd: GLC_Cmd { Mat matrix; };
-	struct GLC_BlendCmd: GLC_Cmd { BlendMode mode; };
-
-	struct GLC_ClearCmd: GLC_Cmd {
-		float          depth;
-		Color4f        color;
-		bool           isBlend;
-	};
-
-	struct GLC_ClipCmd: GLC_Cmd {
-		float          depth;
-		bool           revoke;
-		GLC_State::Clip clip;
-	};
-
-	struct GLC_GradientCmd: GLC_DrawCmd {
-		float          alpha;
-		GradientPaint  paint;
-	};
-
-	struct GLC_ImageCmd: GLC_DrawCmd {
-		enum Format {
-			kRGB_Format, // 1 texure
-			kYUV420SP_Format, // 2 texure
-			kYUV420P_Format, // 3 texure
-		};
-		float          alpha;
-		Format         format;
-		ImagePaint     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
-		~GLC_ImageCmd();
-	};
-
-	struct GLC_GenericeCmd: GLC_Cmd {
-		enum OptionType {
-			kColor,kColorMask,kImage,
-		};
-		struct Option { // subcmd option
-			int     flags; // type: flags & 3, image: flags >> 2 sampler2D index
-			float   depth; // depth
-			Mat     matrix; // 2d mat2x3
-			Color4f color;  // color
-			Region  coord;  // image coord, offset,scale
-		};
-		Vec4           *vertexs; // vertex data + option index
-		Option         *opts; // subcmd options data
-		uint32_t       vertexsSize; // vertex data size
-		int            subcmd; // subcmd count
-		int            images; // images count
-		ImagePaintBase image; // image source
-		~GLC_GenericeCmd();
-	};
-
-	struct GLC_CmdPack {
-		typedef GLC_GenericeCmd::Option GCOpt;
-		template<class T>
-		struct MemBlock {
-			T       *val;
-			uint32_t size,capacity;
-		};
-		template<class T>
-		struct ArrayMemBlock {
-			Array<MemBlock<T>> blocks;
-			MemBlock<T>       *current;
-			uint32_t           index;
-		};
-		ArrayMemBlock<Vec4>  vertexsBlocks; // GLC_GenericeCmd vertex storage
-		ArrayMemBlock<GCOpt> optsBlocks; //
-		MemBlock<GLC_Cmd> cmds;
-		GLC_Cmd          *lastCmd;
-		         GLC_CmdPack();
-		        ~GLC_CmdPack();
-		GLC_Cmd* allocCmd(uint32_t size);
-		GLC_GenericeCmd* newGenericeCmd();
-		void     clear();
-	};
-
-	// -------------------------------------------------------------
-#endif
 
 	class GLCanvas: public Canvas {
 	public:
@@ -179,9 +65,10 @@ namespace qk {
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
-		virtual void swapBuffer() override; // swap gl cmd
+		virtual void swapBuffer() override; // swap gl cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call
 		void         onSurfaceReload(Vec2 surfaceScale); // surface reload
+		virtual PathvCache* gtePathvCache() override;
 	private:
 		Array<GLC_State> _stateStack;
 		GLC_State    *_state;
@@ -190,6 +77,7 @@ namespace qk {
 		GLC_CmdPack  *_cmdPackFront;
 #endif
 		GLRender     *_render;
+		PathvCache   *_cache;
 		float  _zDepth;
 		float  _surfaceScale, _transfromScale;
 		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale

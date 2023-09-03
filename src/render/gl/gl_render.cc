@@ -61,10 +61,10 @@ namespace qk {
 			case kColor_Type_Luminance_8: return GL_LUMINANCE;
 			case kColor_Type_Luminance_Alpha_88: return GL_LUMINANCE_ALPHA;
 			// case kColor_Type_SDF_Float: return GL_RGBA;
+			// case kColor_Type_YUV420SP_Y_8:
 			case kColor_Type_YUV420P_Y_8: return GL_LUMINANCE;
 			// case kColor_Type_YUV420P_V_8:
 			case kColor_Type_YUV420P_U_8: return GL_LUMINANCE;
-			case kColor_Type_YUV420SP_Y_8: return GL_LUMINANCE;
 			case kColor_Type_YUV420SP_UV_88: return GL_LUMINANCE_ALPHA;
 #if Qk_iOS // ios
 				// compressd texture
@@ -339,7 +339,7 @@ namespace qk {
 		, _zDepth(0)
 		, _glCanvas(this, opts.isMultiThreading)
 		, _shaders{
-			&_clear, &_clip, &_color, &_generic, &_image, &_colorMask, &_linear, &_radial,
+			&_clear, &_clip, &_color, &_color1, &_image, &_imageMask, &_linear, &_radial, &_imageYuv
 		}
 	{
 		switch(_opts.colorType) {
@@ -388,20 +388,21 @@ namespace qk {
 		}
 		glUseProgram(_image.shader);
 		glUniform1i(_image.image, 0); // set texture slot
-		glUniform1i(_image.image_u, 1);
-		glUniform1i(_image.image_v, 2);
 
-		glUseProgram(_colorMask.shader);
-		glUniform1i(_colorMask.image, 0); // set texture slot
+		glUseProgram(_imageYuv.shader);
+		glUniform1i(_imageYuv.image, 0); // set texture slot
+		glUniform1i(_imageYuv.image_u, 1);
+		glUniform1i(_imageYuv.image_v, 2);
+
+		glUseProgram(_imageMask.shader);
+		glUniform1i(_imageMask.image, 0); // set texture slot
 
 		glUseProgram(_clip.shader);
-		glUniform1i(_clip.aaalpha, 15); // set texture slot
+		glUniform1i(_clip.aaalpha, _maxTextureImageUnits); // set texture slot
 
-		glUseProgram(_generic.shader);
-		GLuint optsBlock = glGetUniformBlockIndex(_generic.shader, "optsBlock");
-		glUniformBlockBinding(_generic.shader, optsBlock, 2); // binding = 2
-		glBindBuffer(GL_ARRAY_BUFFER, _generic.vbo);
-		glBufferData(GL_ARRAY_BUFFER, Qk_GCmdVertexsMemBlockCapacity * sizeof(Vec4), NULL, GL_DYNAMIC_DRAW);
+		glUseProgram(_color1.shader);
+		GLuint optsBlock = glGetUniformBlockIndex(_color1.shader, "optsBlock");
+		glUniformBlockBinding(_color1.shader, optsBlock, 2); // binding = 2
 
 		glEnable(GL_BLEND); // enable color blend
 		setBlendMode(kSrcOver_BlendMode); // set default color blend mode
@@ -486,7 +487,7 @@ namespace qk {
 		// update shader root matrix and clear all save state
 		auto m4x4 = root.transpose(); // transpose matrix
 		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4.val, GL_DYNAMIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4.val, GL_STREAM_DRAW);
 		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 

@@ -24,7 +24,7 @@ public:
 		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
 		circle.close();
 
-		// paint.antiAlias = false;
+		paint.antiAlias = false;
 		// circle = Path::MakeRect({size/2-105,210});
 
 		for (int i = 0; i < 10000; i++) {

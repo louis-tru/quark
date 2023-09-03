@@ -39,6 +39,11 @@
 
 namespace qk {
 
+	struct VertexData {
+		size_t      id; // id of pathv cache object
+		Array<Vec3> vertex; // triangle vertex {x,y,aafuzz}
+	};
+
 	class Qk_EXPORT Path: public Object {
 	public:
 		enum PathVerb: uint8_t {
@@ -93,15 +98,15 @@ namespace qk {
 
 		/**
 		 * @method getTriangles() Convert to fixed size polygon vertices
-		 * @return {Array<Vec3>} vertex points { x, y, 0.0 }[]
+		 * @return {VertexData} { .vertex={ x, y, 0.0 }[] }
 		*/
-		Array<Vec3> getTriangles(float epsilon = 1.0) const;
+		VertexData getTriangles(float epsilon = 1.0) const;
 
 		/**
 		 * @method getAAFuzzStrokeTriangle() returns aa fuzz value stroke triangle vertices
-		 * @return {Array<Vec3>} vertex points { x, y, aa fuzz value renge 1 to -1 }[]
+		 * @return {VertexData} {.vertex={ x, y, aa fuzz value renge 1 to -1 }[]}
 		*/
-		Array<Vec3> getAAFuzzStrokeTriangle(float width, float epsilon = 1.0) const;
+		VertexData getAAFuzzStrokeTriangle(float width, float epsilon = 1.0) const;
 
 		/**
 		 * @method dashPath() returns the dash path
@@ -129,8 +134,7 @@ namespace qk {
 	};
 
 	// combination of paths and triangle vertices
-	struct Pathv {
-		Array<Vec3> vertex; // triangle vertex {x,y,aafuzz}
+	struct Pathv: VertexData {
 		Path        path;
 	};
 

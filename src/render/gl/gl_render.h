@@ -73,12 +73,13 @@ namespace qk {
 		GLSLClear _clear; // shader
 		GLSLClip  _clip;
 		GLSLColor _color;
-		GLSLGeneric _generic;
-		GLSLColorMask _colorMask;
+		GLSLColor1 _color1;
 		GLSLColorLinear _linear;
 		GLSLColorRadial _radial;
 		GLSLImage _image;
-		GLSLShader  *_shaders[8];
+		GLSLImageMask _imageMask;
+		GLSLImageYuv _imageYuv;
+		GLSLShader  *_shaders[9];
 		// --------------------------------------------
 	};
 }

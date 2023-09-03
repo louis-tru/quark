@@ -38,6 +38,7 @@
 #include "./pixel.h"
 #include "./paint.h"
 #include "./font/font.h"
+#include "./pathv_cache.h"
 
 namespace qk {
 
@@ -89,6 +90,7 @@ namespace qk {
 		 * @dev drawTextBlob Draw with text baseline aligned
 		*/
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float fontSize, const Paint& paint) = 0;
+		virtual PathvCache* gtePathvCache() = 0;
 	protected:
 		Canvas() = default;
 	};

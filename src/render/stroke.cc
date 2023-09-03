@@ -176,16 +176,16 @@ namespace qk {
 	 * @method getSDFStrokeTriangleStrip() returns sdf stroke triangle vertices
 	 * @return {Array<Vec3>} points { x, y, sdf value renge 0.5 to -0.5 }[]
 	*/
-	Array<Vec3> Path::getAAFuzzStrokeTriangle(float width, float epsilon) const {
+	VertexData Path::getAAFuzzStrokeTriangle(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
-		Array<Vec3> out;
+		VertexData out{0};
 		struct Ctx {
 			Array<Vec3> *out;
 			Vec3        *ptr;
 			float       width;
 			Vec3        prev_a, prev_b;
-		} ctx = { &out,0,width,0 };
+		} ctx = { &out.vertex,0,width,0 };
 
 		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
 			auto normals = from.normalline(prev, next); // normal line
