@@ -32,6 +32,23 @@
 
 namespace qk {
 
+	template<>
+	void Dict<uint64_t, Path*, Compare<uint64_t>, MemoryAllocator>::
+	erase(IteratorConst f, IteratorConst e) {
+	}
+	template<>
+	void Dict<uint64_t, PathvCache::GpuBuffer<VertexData>*, Compare<uint64_t>, MemoryAllocator>::
+	erase(IteratorConst f, IteratorConst e) {
+	}
+	template<>
+	void Dict<uint64_t, PathvCache::GpuBuffer<RectPath>*, Compare<uint64_t>, MemoryAllocator>::
+	erase(IteratorConst f, IteratorConst e) {
+	}
+	template<>
+	void Dict<uint64_t, PathvCache::GpuBuffer<RectOutlinePath,4>*, Compare<uint64_t>, MemoryAllocator>::
+	erase(IteratorConst f, IteratorConst e) {
+	}
+
 	PathvCache::PathvCache(RenderBackend *render): _render(render) {}
 	PathvCache::~PathvCache() {
 	}
@@ -41,7 +58,7 @@ namespace qk {
 		auto hash = path.hashCode();
 		Path *const *out;
 		if (_NormalizedPathCache.get(hash, out)) return **out;
-		if (_NormalizedPathCache.length() >= 1024) _NormalizedPathCache.clear(); // TODO ... release data
+		// if (_NormalizedPathCache.length() >= 1024) _NormalizedPathCache.clear(); // TODO ... release data
 		return *_NormalizedPathCache.set(hash, new Path(path.normalizedPath(1)));
 	}
 
@@ -53,7 +70,7 @@ namespace qk {
 		hash += (hash << 5) + hash_part + ((cap << 2) | join);
 		Path *const*out;
 		if (_StrokePathCache.get(hash, out)) **out;
-		if (_StrokePathCache.length() >= 1024) _StrokePathCache.clear(); // TODO ... release data
+		// if (_StrokePathCache.length() >= 1024) _StrokePathCache.clear(); // TODO ... release data
 		auto stroke = path.strokePath(width,cap,join,miterLimit);
 		return *_StrokePathCache.set(hash,
 			new Path(stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath(1))
@@ -64,9 +81,9 @@ namespace qk {
 		auto hash = path.hashCode();
 		GpuBuffer<VertexData> *const*out;
 		if (_PathTrianglesCache.get(hash, out)) return (*out)->base;
-		if (_PathTrianglesCache.length() >= 1024) { // TODO ... release data
-			_PathTrianglesCache.clear();
-		}
+		// if (_PathTrianglesCache.length() >= 1024) { // TODO ... release data
+		// 	_PathTrianglesCache.clear();
+		// }
 		auto gb = new GpuBuffer<VertexData>{{size_t(this),path.getTriangles(1).vertex},0,0};
 		return _PathTrianglesCache.set(hash, gb)->base;
 	}
@@ -77,24 +94,24 @@ namespace qk {
 		//Qk_DEBUG("getAAFuzzTriangle, %lu", hash);
 		GpuBuffer<VertexData> *const *out;
 		if (_AAFuzzStrokeTriangleCache.get(hash, out)) return (*out)->base;
-		if (_AAFuzzStrokeTriangleCache.length() >= 1024) { // TODO ... release data
-			_AAFuzzStrokeTriangleCache.clear();
-		}
+		// if (_AAFuzzStrokeTriangleCache.length() >= 1024) { // TODO ... release data
+		// 	_AAFuzzStrokeTriangleCache.clear();
+		// }
 		auto gb = new GpuBuffer<VertexData>{{size_t(this),path.getAAFuzzStrokeTriangle(width, 1).vertex},0,0};
 		return _AAFuzzStrokeTriangleCache.set(hash, gb)->base;
 	}
 
 	const RectPath& PathvCache::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
-		if (_RectPathCache.length() >= 1024) _RectPathCache.clear(); // TODO ... release data
+		// if (_RectPathCache.length() >= 1024) _RectPathCache.clear(); // TODO ... release data
 		rect.id = size_t(this);
 		auto gb = new GpuBuffer<RectPath>{std::move(rect),0,0};
 		return _RectPathCache.set(hash, gb)->base;
 	}
 
 	const RectOutlinePath& PathvCache::setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline) {
-		if (_RectOutlinePathCache.length() >= 1024) {
-			_RectPathCache.clear(); // TODO ... release data
-		}
+		// if (_RectOutlinePathCache.length() >= 1024) {
+		// 	_RectPathCache.clear(); // TODO ... release data
+		// }
 		outline.top.id = size_t(this);
 		outline.right.id = size_t(this);
 		outline.bottom.id = size_t(this);

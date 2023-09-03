@@ -40,10 +40,10 @@ namespace qk
 	class Qk_EXPORT PathvCache: public Object {
 		Qk_HIDDEN_ALL_COPY(PathvCache);
 	public:
-		template<class T, int Num = 1>
+		template<class T, int N = 1>
 		struct GpuBuffer {
 			T        base;
-			uint32_t vbo[Num],vao[Num];
+			uint32_t vao[N],vbo[N];
 		};
 
 		PathvCache(RenderBackend *render);
