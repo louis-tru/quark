@@ -172,9 +172,9 @@ namespace qk {
 		}
 	}
 
-	void Application::clean(bool all) {
+	void Application::clear(bool all) {
 		_render->post_message(Cb([this, all](Cb::Data& e){
-			_img_pool->clean(all);
+			_img_pool->clear(all);
 		}));
 	}
 
@@ -196,7 +196,7 @@ namespace qk {
 			if (will_alloc_size + used_image_memory() <= _max_image_memory_limit) {
 				return true;
 			}
-			clean();
+			clear();
 			i++;
 		} while(i < 3);
 		
@@ -262,7 +262,7 @@ namespace qk {
 	}
 
 	void AppInl::triggerMemorywarning() {
-		clean();
+		clear();
 		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
 	}
 

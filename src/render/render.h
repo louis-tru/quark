@@ -73,6 +73,8 @@ namespace qk {
 		inline  Delegate* delegate() { return _delegate; }
 		virtual uint32_t makeTexture(cPixel *src, uint32_t id) = 0;
 		virtual void    deleteTextures(const uint32_t *ids, uint32_t count) = 0;
+		virtual void    makeVertexData(VertexData::ID *id) = 0;
+		virtual void    deleteVertexData(VertexData::ID *id) = 0;
 
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;

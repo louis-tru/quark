@@ -34,11 +34,10 @@
 #define __quark_render_canvas__
 
 #include "../util/util.h"
-#include "./path.h"
+#include "./pathv_cache.h"
 #include "./pixel.h"
 #include "./paint.h"
 #include "./font/font.h"
-#include "./pathv_cache.h"
 
 namespace qk {
 

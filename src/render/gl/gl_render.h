@@ -44,6 +44,8 @@ namespace qk {
 		virtual void     reload() override;
 		virtual uint32_t makeTexture(cPixel *src, uint32_t id) override;
 		virtual void     deleteTextures(const uint32_t *ids, uint32_t count) override;
+		virtual void     makeVertexData(VertexData::ID *id) override;
+		virtual void     deleteVertexData(VertexData::ID *id) override;
 		inline  bool     isDeviceMsaa() const { return _IsDeviceMsaa; }
 		void             setTexture(cPixel *pixel, int slot, const ImagePaintBase *paint);
 		void             setBlendMode(BlendMode mode);
@@ -55,6 +57,7 @@ namespace qk {
 		virtual void setClipAABuffer(int width, int height, int msaaSample);
 		void         setRootMatrix(const Mat4& root);
 		friend class GLCanvas;
+		friend class GLC_CmdPack;
 		// --------------- define props ---------------
 		bool _IsSupportMultisampled;
 		bool _IsDeviceMsaa; // device anti alias, msaa

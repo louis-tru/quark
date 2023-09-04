@@ -400,7 +400,7 @@ namespace qk {
 			}
 		}
 
-		VertexData out;
+		VertexData out{0,0};
 
 		// Convert to convex contour vertex data
 		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 2, 0) ) {
@@ -408,14 +408,16 @@ namespace qk {
 			const TESSindex* elems = tessGetElements(tess);
 			const Vec2* verts = (const Vec2*)tessGetVertices(tess);
 
-			out.vertex.extend(nelems * polySize);
+			out.vCount = nelems * polySize;
+			out.vertex.extend(out.vCount);
 
-			for (int i = 0, l = out.vertex.length(); i < l; i++) {
+			for (int i = 0; i < out.vCount; i++) {
 				out.vertex[i] = { verts[*elems++], 0.0 };
 			}
 		}
 
 		tessDeleteTess(tess);
+
 		Qk_ReturnLocal(out);
 	}
 
@@ -692,14 +694,16 @@ namespace qk {
 		out.path.lineTo(Vec2(x2, y2)); // bottom right
 		out.path.lineTo(Vec2(rect.origin.x(), y2)); // bottom left
 		out.path.close(); // top left, origin point
-		// vertex
+		out.vCount = 6;
 		out.vertex.extend(6);
-		*reinterpret_cast<Vec3*>(*out.vertex + 0) = {rect.origin, 0.0};
-		*reinterpret_cast<Vec3*>(*out.vertex + 1) = {x2, rect.origin.y(), 0.0};
-		*reinterpret_cast<Vec3*>(*out.vertex + 2) = {x2, y2, 0.0};
-		*reinterpret_cast<Vec3*>(*out.vertex + 3) = {x2, y2, 0.0};
-		*reinterpret_cast<Vec3*>(*out.vertex + 4) = {rect.origin.x(), y2, 0.0};
-		*reinterpret_cast<Vec3*>(*out.vertex + 5) = {rect.origin, 0.0};
+		auto vertex = out.vertex.val();
+
+		vertex[0] = {rect.origin, 0.0};
+		vertex[1] = {x2, rect.origin.y(), 0.0};
+		vertex[2] = {x2, y2, 0.0};
+		vertex[3] = {x2, y2, 0.0};
+		vertex[4] = {rect.origin.x(), y2, 0.0};
+		vertex[5] = {rect.origin, 0.0};
 
 		Qk_ReturnLocal(out);
 	}
@@ -756,6 +760,7 @@ namespace qk {
 
 		out.vertex.write(vertex, -1, 6); // inl quadrilateral
 		out.path.close();
+		out.vCount = out.vertex.length();
 
 		Qk_ReturnLocal(out);
 	}
@@ -794,7 +799,9 @@ namespace qk {
 				// outside,outside,inside,inside,inside,outside
 				Vec3 src[6] = {v[0],v[3],v[5],v[4],v[5],v[3]};
 				out->vertex.write(src, -1, 6);
+				out->vCount = 6;
 			} else {
+				out->vCount = 0;
 				out->path.moveTo(v[1]);
 				out->path.lineTo(v[2]);
 			}
@@ -977,9 +984,11 @@ namespace qk {
 
 		float angle = Qk_PI_2_1;
 		for (int j = 0; j < 4; j++) {
-			build(&outline.top + j, Bo+j, vertex, oR+j, iR+j, Ce+j, angle);
+			auto out = &outline.top + j;
+			build(out, Bo+j, vertex, oR+j, iR+j, Ce+j, angle);
 			vertex+=6;
 			angle -= Qk_PI_2_1;
+			out->vCount = out->vertex.length();
 		}
 
 		Qk_ReturnLocal(outline);

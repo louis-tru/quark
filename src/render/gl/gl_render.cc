@@ -547,6 +547,33 @@ namespace qk {
 		glDeleteTextures(count, ids);
 	}
 
+	void GLRender::makeVertexData(VertexData::ID *id) {
+		if (!id->vao) {
+			auto &vertex = id->ref->vertex;
+			glGenVertexArrays(1, &id->vao);
+			glGenBuffers(1, &id->vbo);
+			glBindVertexArray(id->vao);
+			glBindBuffer(GL_ARRAY_BUFFER, id->vbo);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)0);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)sizeof(Vec2));
+			glEnableVertexAttribArray(1);
+			glBufferData(GL_ARRAY_BUFFER, vertex.size(), vertex.val(), GL_STREAM_DRAW);
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			vertex.clear(); // clear memory data
+		}
+	}
+
+	void GLRender::deleteVertexData(VertexData::ID *id) {
+		if (id->vao) {
+			glDeleteVertexArrays(1, &id->vao);
+			glDeleteBuffers(1, &id->vbo);
+			id->vao = 0;
+			id->vbo = 0;
+		}
+	}
+
 	void GLRender::setTexture(cPixel *pixel, int slot, const ImagePaintBase *paint) {
 		auto id = pixel->texture();
 		if (!id) {

@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./pathv_cache.h"
+#include "./render.h"
 
 namespace qk {
 
@@ -49,8 +50,14 @@ namespace qk {
 	erase(IteratorConst f, IteratorConst e) {
 	}
 
-	PathvCache::PathvCache(RenderBackend *render): _render(render) {}
+	PathvCache::PathvCache(RenderBackend *render): _render(render), _lowMemoryWarning(false) {}
 	PathvCache::~PathvCache() {
+		Qk_STRICT_ASSERT(_NormalizedPathCache.length() == 0);
+		Qk_STRICT_ASSERT(_StrokePathCache.length() == 0);
+		Qk_STRICT_ASSERT(_PathTrianglesCache.length() == 0);
+		Qk_STRICT_ASSERT(_AAFuzzStrokeTriangleCache.length() == 0);
+		Qk_STRICT_ASSERT(_RectPathCache.length() == 0);
+		Qk_STRICT_ASSERT(_RectOutlinePathCache.length() == 0);
 	}
 
 	const Path& PathvCache::getNormalizedPath(const Path &path) {
@@ -81,10 +88,10 @@ namespace qk {
 		auto hash = path.hashCode();
 		GpuBuffer<VertexData> *const*out;
 		if (_PathTrianglesCache.get(hash, out)) return (*out)->base;
-		// if (_PathTrianglesCache.length() >= 1024) { // TODO ... release data
-		// 	_PathTrianglesCache.clear();
-		// }
-		auto gb = new GpuBuffer<VertexData>{{size_t(this),path.getTriangles(1).vertex},0,0};
+		// if (_PathTrianglesCache.length() >= 1024) _PathTrianglesCache.clear(); // TODO ... release data
+		auto gb = new GpuBuffer<VertexData>{path.getTriangles(1),{{this,0,0,0}}};
+		gb->base.id = gb->id;
+		gb->id->ref = &gb->base;
 		return _PathTrianglesCache.set(hash, gb)->base;
 	}
 
@@ -94,29 +101,31 @@ namespace qk {
 		//Qk_DEBUG("getAAFuzzTriangle, %lu", hash);
 		GpuBuffer<VertexData> *const *out;
 		if (_AAFuzzStrokeTriangleCache.get(hash, out)) return (*out)->base;
-		// if (_AAFuzzStrokeTriangleCache.length() >= 1024) { // TODO ... release data
-		// 	_AAFuzzStrokeTriangleCache.clear();
-		// }
-		auto gb = new GpuBuffer<VertexData>{{size_t(this),path.getAAFuzzStrokeTriangle(width, 1).vertex},0,0};
+		// if (_AAFuzzStrokeTriangleCache.length() >= 1024) _AAFuzzStrokeTriangleCache.clear();// TODO ... release data
+		auto gb = new GpuBuffer<VertexData>{path.getAAFuzzStrokeTriangle(width, 1),{{this,0,0,0}}};
+		gb->base.id = gb->id;
+		gb->id->ref = &gb->base;
 		return _AAFuzzStrokeTriangleCache.set(hash, gb)->base;
 	}
 
 	const RectPath& PathvCache::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
 		// if (_RectPathCache.length() >= 1024) _RectPathCache.clear(); // TODO ... release data
-		rect.id = size_t(this);
-		auto gb = new GpuBuffer<RectPath>{std::move(rect),0,0};
+		auto gb = new GpuBuffer<RectPath>{std::move(rect),{{this,0,0,0}}};
+		gb->base.id = gb->id;
 		return _RectPathCache.set(hash, gb)->base;
 	}
 
 	const RectOutlinePath& PathvCache::setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline) {
-		// if (_RectOutlinePathCache.length() >= 1024) {
-		// 	_RectPathCache.clear(); // TODO ... release data
-		// }
-		outline.top.id = size_t(this);
-		outline.right.id = size_t(this);
-		outline.bottom.id = size_t(this);
-		outline.left.id = size_t(this);
-		auto gb = new GpuBuffer<RectOutlinePath,4>{std::move(outline),{0,0,0,0},{0,0,0,0}};
+		// if (_RectOutlinePathCache.length() >= 1024) _RectPathCache.clear(); // TODO ... release data
+		auto gb = new GpuBuffer<RectOutlinePath,4>{std::move(outline),{{this,0,0,0},{this,0,0,0},{this,0,0,0},{this,0,0,0}}};
+		gb->base.top.id = gb->id;
+		gb->base.right.id = gb->id+1;
+		gb->base.bottom.id = gb->id+2;
+		gb->base.left.id = gb->id+3;
+		gb->id[0].ref = &gb->base.top;
+		gb->id[1].ref = &gb->base.right;
+		gb->id[2].ref = &gb->base.bottom;
+		gb->id[3].ref = &gb->base.left;
 		return _RectOutlinePathCache.set(hash, gb)->base;
 	}
 
@@ -166,9 +175,7 @@ namespace qk {
 				Qk_MIN(radius[0], xy_0_5), Qk_MIN(radius[1], xy_0_5),
 				Qk_MIN(radius[2], xy_0_5), Qk_MIN(radius[3], xy_0_5),
 			};
-			auto rectv = RectPath::MakeRRect(rect, Br);
-			rectv.id = size_t(this);
-			return setRRectPathFromHash(hash.hashCode(), std::move(rectv));
+			return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, Br));
 		}
 	}
 
@@ -191,6 +198,27 @@ namespace qk {
 			};
 			return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, border, Br));
 		}
+	}
+
+	bool PathvCache::setGpuBufferData(const VertexData::ID *vertexInThisCache) {
+		if (vertexInThisCache) {
+			if (vertexInThisCache->vao) {
+				return true;
+			} else if (vertexInThisCache->host == this) {
+				_render->makeVertexData(const_cast<VertexData::ID*>(vertexInThisCache));
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void PathvCache::onLowMemoryWarning() {
+		// TODO ...
+		_lowMemoryWarning = true;
+	}
+
+	void PathvCache::clear(bool all) {
+		// TODO ...
 	}
 
 }

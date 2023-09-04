@@ -40,8 +40,10 @@
 namespace qk {
 
 	struct VertexData {
-		size_t      id; // id of pathv cache object
-		Array<Vec3> vertex; // triangle vertex {x,y,aafuzz}
+		struct ID;
+		const  ID   *id; // id of pathv cache object
+		uint32_t    vCount; // vertex count
+		Array<Vec3> vertex; // hold pointer triangle vertex {x,y,aafuzz}
 	};
 
 	class Qk_EXPORT Path: public Object {

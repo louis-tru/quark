@@ -192,9 +192,9 @@ namespace qk {
 		void remove(cString& uri);
 
 		/**
-			* @method clean(all?: bool) clean memory
+			* @method clear(all?: bool) clean memory
 			*/
-		void clean(bool all = false);
+		void clear(bool all = false);
 
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);

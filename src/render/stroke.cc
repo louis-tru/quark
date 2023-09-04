@@ -234,6 +234,8 @@ namespace qk {
 			}
 		}, false, &ctx);
 
+		out.vCount = out.vertex.length();
+
 		Qk_ReturnLocal(out);
 	}
 

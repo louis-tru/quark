@@ -32,18 +32,25 @@
 #define __quark__render__pathv_cache__
 
 #include "./path.h"
-#include "./render.h"
 
 namespace qk
 {
+	class RenderBackend;
+	class PathvCache;
+	struct VertexData::ID {
+		PathvCache  *host;
+		VertexData  *ref;
+		uint32_t    vao,vbo; // gpu buffer
+	};
+
 	// paths and gpu vertices data caching
 	class Qk_EXPORT PathvCache: public Object {
 		Qk_HIDDEN_ALL_COPY(PathvCache);
 	public:
 		template<class T, int N = 1>
 		struct GpuBuffer {
-			T        base;
-			uint32_t vao[N],vbo[N];
+			T              base;
+			VertexData::ID id[N];
 		};
 
 		PathvCache(RenderBackend *render);
@@ -118,7 +125,28 @@ namespace qk
 		 */
 		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]);
 
+		/**
+		 * @dev If the incoming data belongs to the self updated data to the GPU, and update the id
+		 * @note that this function can only be called on the rendering thread
+		 * @returns {bool} Returns true if data is successfully set to GPU
+		 * @thread gpu render thread
+		*/
+		bool setGpuBufferData(const VertexData::ID *vertexInThisCache);
+
+		/**
+		 * @dev Called by the system when memory is low
+		*/
+		void onLowMemoryWarning();
+
+		/**
+		 * @dev clear cache data
+		 * @note Must be called in a worker thread,
+		 *  these methods are called on the same thread as `getRRectOutlinePath()`
+		*/
+		void clear(bool all = false);
+
 	private:
+		bool          _lowMemoryWarning;
 		RenderBackend *_render;
 		Dict<uint64_t, Path*> _NormalizedPathCache, _StrokePathCache; // path hash => path
 		Dict<uint64_t, GpuBuffer<VertexData>*> _PathTrianglesCache; // path hash => triangles

@@ -33,10 +33,22 @@
 #ifndef __quark_render_gl_glcanvas__
 #define __quark_render_gl_glcanvas__
 
-#include "./gl_cmd.h"
+#include "../canvas.h"
 #include "./glsl_shaders.h"
 
 namespace qk {
+	struct GLC_State { // gl canvas state
+		struct Clip { // gl canvas clip
+			Pathv           path;
+			Canvas::ClipOp  op;
+			bool            aa; // anti alias
+		};
+		Mat         matrix;
+		Array<Clip> clips;
+	};
+
+	class GLRender; // gl render backend
+	class GLC_CmdPack;
 
 	class GLCanvas: public Canvas {
 	public:
@@ -72,20 +84,18 @@ namespace qk {
 	private:
 		Array<GLC_State> _stateStack;
 		GLC_State    *_state;
-#if Qk_GL_USE_CMD_PACK
 		GLC_CmdPack  *_cmdPack;
 		GLC_CmdPack  *_cmdPackFront;
-#endif
 		GLRender     *_render;
 		PathvCache   *_cache;
 		float  _zDepth;
 		float  _surfaceScale, _transfromScale;
 		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
-		bool   _chMatrix;
+		bool   _chMatrix; // matrix change state
 		bool   _isMultiThreading;
-		BlendMode _blendMode;
 		Mutex  _mutex; // submit swap mutex
 		Qk_DEFINE_INLINE_CLASS(Inl);
+		friend class GLC_CmdPack;
 	};
 
 }

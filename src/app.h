@@ -133,7 +133,7 @@ namespace qk {
 		/**
 		 * Clean up garbage and recycle memory resources, all=true clean up all resources
 		*/
-		void clean(bool all = false);
+		void clear(bool all = false);
 
 		/**
 		 * @method max_image_memory_limit()
