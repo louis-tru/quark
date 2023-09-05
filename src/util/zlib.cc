@@ -72,7 +72,7 @@ namespace qk {
 			strm.next_out = (uint8_t*)*tmp;
 			strm.avail_out = tmp.length();
 			deflate(&strm, Z_FINISH);
-			rev.write(tmp, rev.length(), tmp.length() - strm.avail_out);
+			rev.write(tmp.val(), tmp.length() - strm.avail_out);
 		} while(strm.avail_out == 0);
 		
 		deflateEnd(&strm);
@@ -99,7 +99,7 @@ namespace qk {
 			strm.next_out = (uint8_t*)*tmp;
 			strm.avail_out = tmp.length();
 			inflate(&strm, Z_FINISH);
-			rev.write(tmp, rev.length(), tmp.length() - strm.avail_out);
+			rev.write(tmp.val(), tmp.length() - strm.avail_out);
 		} while(strm.avail_out == 0);
 		
 		inflateEnd(&strm);

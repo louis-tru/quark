@@ -65,7 +65,7 @@ namespace qk {
 			return *this; \
 		} \
 		\
-		template<> uint32_t Array<T, A>::write(const T* src, int to, uint32_t size) { \
+		template<> uint32_t Array<T, A>::write(const T* src, uint32_t size, int to) { \
 			if (size) { \
 				if ( to == -1 ) to = _length; \
 				_length = Qk_MAX(to + size, _length); \
@@ -107,20 +107,14 @@ namespace qk {
 			if (APPEND_ZERO) _val[_length] = 0; \
 		} \
 		\
-		template<> ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const { \
-			end = Qk_MIN(end, _length); \
-			if (start < end) { \
-				ArrayBuffer<T, A> arr(end - start, end - start + APPEND_ZERO); \
-				memcpy((void*)arr.val(), _val + start, arr.length() * sizeof(T)); \
-				if (APPEND_ZERO) (*arr)[arr.length()] = 0; \
-				return arr; \
-			} \
-			return ArrayBuffer<T, A>();\
+		template<> void Array<T, A>::copy_(T** val, int *capacity, uint32_t start, uint32_t len) const { \
+			A::aalloc((void**)val, len+APPEND_ZERO, (uint32_t*)capacity, sizeof(T));\
+			memcpy(*val, _val + start, len * sizeof(T)); \
+			if (APPEND_ZERO) (*val)[len] = 0; \
 		} \
 
 	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, APPEND_ZERO) \
 		Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, MemoryAllocator, APPEND_ZERO)
-	
 
 #ifndef Qk_ARRAY_NO_IMPL
 	template<> void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {

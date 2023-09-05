@@ -61,8 +61,8 @@ namespace qk {
 		uint32_t    size; // cmd size
 	};
 	struct GLC_DrawCmd: GLC_Cmd {
-		const VertexData *vertex;
-		float            depth;
+		VertexData     vertex;
+		float          depth;
 	};
 	struct GLC_MatrixCmd: GLC_Cmd { Mat matrix; };
 	struct GLC_BlendCmd: GLC_Cmd { BlendMode mode; };
@@ -73,28 +73,28 @@ namespace qk {
 		bool           isBlend;
 	};
 
-	struct GLC_ClipCmd: GLC_Cmd {
+	struct GLC_ClipCmd: GLC_Cmd { //!
+		GLC_State::Clip clip;
 		float          depth;
 		bool           revoke;
-		GLC_State::Clip clip;
 	};
 
-	struct GLC_ColorCmd: GLC_DrawCmd {
+	struct GLC_ColorCmd: GLC_DrawCmd { //!
 		Color4f        color;
 	};
 
-	struct GLC_GradientCmd: GLC_DrawCmd {
+	struct GLC_GradientCmd: GLC_DrawCmd { //!
 		float          alpha;
 		GradientPaint  paint;
 	};
 
-	struct GLC_ImageCmd: GLC_DrawCmd {
+	struct GLC_ImageCmd: GLC_DrawCmd { //!
 		float          alpha;
 		ImagePaint     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
 		~GLC_ImageCmd();
 	};
 
-	struct GLC_ImageMaskCmd: GLC_DrawCmd {
+	struct GLC_ImageMaskCmd: GLC_DrawCmd { //!
 		Color4f        color;
 		ImagePaint     paint;
 		~GLC_ImageMaskCmd();
@@ -102,10 +102,10 @@ namespace qk {
 
 	struct GLC_MultiColorCmd: GLC_Cmd {
 		struct Option { // subcmd option
-			int     flags; // reserve
-			float   depth; // depth
-			Mat     matrix; // 2d mat2x3
-			Color4f color;  // color
+			int          flags; // reserve
+			float        depth; // depth
+			Mat          matrix; // 2d mat2x3
+			Color4f      color;  // color
 		};
 		Vec4           *vertex; // vertex + option index
 		Option         *opts;  // subcmd option
@@ -118,7 +118,7 @@ namespace qk {
 	public:
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();
-		GLC_Cmd* allocCmd(uint32_t size);
+		GLC_Cmd*           allocCmd(uint32_t size);
 		GLC_MultiColorCmd* newMColorCmd();
 		GLC_MultiColorCmd* getMColorCmd();
 		void clear();
@@ -131,21 +131,19 @@ namespace qk {
 		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha);
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color);
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha);
-		void drawClip(GLC_State::Clip &clip, bool revoke);
+		void drawClip(const GLC_State::Clip &clip, bool revoke);
 		void clearColor4f(const Color4f &color, bool isBlend);
 		void drawColor4fCall(float depth, const VertexData &vertex, const Color4f &color); // call gl api
 		void drawImageCall(float depth, const VertexData &vertex, const ImagePaint *paint, float alpha);
 		void drawImageMaskCall(float depth, const VertexData &vertex, const ImagePaint *paint, const Color4f &color);
 		void drawGradientCall(float depth, const VertexData &vertex, const GradientPaint *paint, float alpha);
-		void drawClipCall(float depth, GLC_State::Clip &clip, bool revoke);
+		void drawClipCall(float depth, const GLC_State::Clip &clip, bool revoke);
 		void clearColor4fCall(float depth, const Color4f &color, bool isBlend);
 	private:
-		// ---------------
 		typedef GLC_MultiColorCmd::Option MCOpt;
 		template<class T>
 		struct MemBlock {
-			T       *val;
-			uint32_t size,capacity;
+			T *val; uint32_t size,capacity;
 		};
 		template<class T>
 		struct ArrayMemBlock {

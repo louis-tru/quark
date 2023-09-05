@@ -332,6 +332,7 @@ namespace qk {
 		: Render(opts)
 		, _IsSupportMultisampled(gl_is_support_multisampled())
 		, _IsDeviceMsaa(false)
+		, _stencilRef(0), _stencilRefDecr(0)
 		, _frameBuffer(0), _msaaFrameBuffer(0)
 		, _renderBuffer(0), _msaaRenderBuffer(0), _stencilBuffer(0), _depthBuffer(0)
 		, _clipAAAlphaBuffer(0)

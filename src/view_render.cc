@@ -291,7 +291,7 @@ namespace qk {
 			for (int i = 0; i < 4; i++) {
 				if (border->width[i] > 0) { // top
 					auto pv = &data.outline->top + i;
-					if (pv->vertex.length()) {
+					if (pv->vCount) {
 						_canvas->drawPathvColor(*pv, border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 					} else { // stroke
 						stroke.color = border->color[i].to_color4f_alpha(_opacity);

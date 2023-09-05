@@ -306,23 +306,20 @@ namespace qk {
 			}
 			
 			int gzip_inflate(cChar* data, uint32_t len, Buffer& out) {
-				static auto _z_strm_buff = Buffer::alloc(16384); // 16k
-				
+				auto _z_strm_buff = Buffer::alloc(16384); // 16k
 				int r = 0;
-				
 				_z_strm.next_in = (uint8_t*)data;
 				_z_strm.avail_in = len;
 				do {
 					_z_strm.next_out = (uint8_t*)*_z_strm_buff;
 					_z_strm.avail_out = _z_strm_buff.length();
 					r = inflate(&_z_strm, Z_NO_FLUSH);
-					out.write(_z_strm_buff, -1, _z_strm_buff.length() - _z_strm.avail_out);
+					out.write(_z_strm_buff.val(), _z_strm_buff.length() - _z_strm.avail_out);
 				} while(_z_strm.avail_out == 0);
 				
 				if ( r == Z_STREAM_END ) {
 					inflateEnd(&_z_strm);
 				}
-				
 				return r;
 			}
 			
@@ -461,10 +458,10 @@ namespace qk {
 							
 							for ( auto& i : _client->_post_form_data ) {
 								String value = inl__uri_encode(i.value.data);
-								_client->_post_data.write(i.key.c_str(), -1, i.key.length());
-								_client->_post_data.write("=", -1, 1);
-								_client->_post_data.write(*value, -1, value.length());
-								_client->_post_data.write("&", -1, 1);
+								_client->_post_data.write(i.key.c_str(), i.key.length());
+								_client->_post_data.write("=", 1);
+								_client->_post_data.write(*value, value.length());
+								_client->_post_data.write("&", 1);
 								_client->_upload_total += i.key.length() + value.length() + 2;
 							}
 							header["Content-Length"] = _client->_upload_total;
@@ -1101,7 +1098,7 @@ namespace qk {
 						}
 					}
 					header += string_header_end;
-					_file->write( header.collapse(), _write_flag == 1 ? 0: -1, 2 ); // header write
+					_file->write( header.collapse(), 2, _write_flag == 1 ? 0: -1); // header write
 				} else {
 					_ready = true;
 					_write_count++;
@@ -1159,7 +1156,7 @@ namespace qk {
 						}
 						_file->write(buffer);
 					} else {
-						_buffer.write(buffer);
+						_buffer.write(buffer.val(), buffer.length());
 						_client->read_pause();
 					}
 				} else { // no file write task

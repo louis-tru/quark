@@ -81,6 +81,12 @@ namespace qk {
 				case kClip_GLC_CmdType:
 					((GLC_ClipCmd*)cmd)->~GLC_ClipCmd();
 					break;
+				case kColor_GLC_CmdType:
+					((GLC_ColorCmd*)cmd)->~GLC_ColorCmd();
+					break;
+				case kGradient_GLC_CmdType:
+					((GLC_GradientCmd*)cmd)->~GLC_GradientCmd();
+					break;
 				case kImage_GLC_CmdType:
 					((GLC_ImageCmd*)cmd)->~GLC_ImageCmd();
 					break;
@@ -244,7 +250,7 @@ namespace qk {
 				setMetrix(); // check matrix change
 				auto cmd = new(allocCmd(sizeof(GLC_ColorCmd))) GLC_ColorCmd;
 				cmd->type = kColor_GLC_CmdType;
-				cmd->vertex = &vertex;
+				cmd->vertex = vertex;
 				cmd->depth = _canvas->_zDepth;
 				cmd->color = color;
 			}
@@ -254,7 +260,7 @@ namespace qk {
 			setMetrix(); // check matrix change
 			auto cmd = new(allocCmd(sizeof(GLC_ImageCmd))) GLC_ImageCmd;
 			cmd->type = kImage_GLC_CmdType;
-			cmd->vertex = &vertex;
+			cmd->vertex = vertex;
 			cmd->depth = _canvas->_zDepth;
 			cmd->alpha = alpha;
 			cmd->paint = *paint;
@@ -265,7 +271,7 @@ namespace qk {
 			setMetrix(); // check matrix change
 			auto cmd = new(allocCmd(sizeof(GLC_ImageMaskCmd))) GLC_ImageMaskCmd;
 			cmd->type = kImageMask_GLC_CmdType;
-			cmd->vertex = &vertex;
+			cmd->vertex = vertex;
 			cmd->depth = _canvas->_zDepth;
 			cmd->color = color;
 			cmd->paint = *paint;
@@ -284,7 +290,7 @@ namespace qk {
 			memcpy(colors, paint->colors, colorsSize); // copy colors
 			memcpy(positions, paint->positions, positionsSize); // copy positions
 			cmd->type = kGradient_GLC_CmdType;
-			cmd->vertex = &vertex;
+			cmd->vertex = vertex;
 			cmd->depth = _canvas->_zDepth;
 			cmd->alpha = alpha;
 			cmd->paint = *paint;
@@ -292,11 +298,11 @@ namespace qk {
 			cmd->paint.positions = positions;
 		}
 
-		void GLC_CmdPack::drawClip(GLC_State::Clip &clip, bool revoke) {
+		void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, bool revoke) {
 			setMetrix(); // check matrix change
 			auto cmd = new(allocCmd(sizeof(GLC_ClipCmd))) GLC_ClipCmd;
 			cmd->type = kClip_GLC_CmdType;
-			cmd->clip = clip;
+			cmd->clip = clip; // copy clip
 			cmd->depth = _canvas->_zDepth;
 			cmd->revoke = revoke;
 		}
@@ -328,7 +334,7 @@ namespace qk {
 		void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha) {
 			drawGradientCall(_canvas->_zDepth, vertex, paint, alpha);
 		}
-		void GLC_CmdPack::drawClip(GLC_State::Clip &clip, bool revoke) {
+		void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, bool revoke) {
 			drawClipCall(_canvas->_zDepth, clip, revoke);
 		}
 		void GLC_CmdPack::clearColor4f(const Color4f &color, bool isBlend) {
@@ -404,8 +410,31 @@ namespace qk {
 		//glDrawArrays(GL_LINES, 0, vertex.length());
 	}
 
-	void GLC_CmdPack::drawClipCall(float depth, GLC_State::Clip &clip, bool revoke) {
-		// TODO ..
+	void GLC_CmdPack::drawClipCall(float depth, const GLC_State::Clip &clip, bool revoke) {
+		if (clip.op == Canvas::kDifference_ClipOp) {
+			if (_render->_stencilRefDecr == 0) {
+				Qk_WARN(" stencil ref decr value exceeds limit 0"); return;
+			}
+			_render->_stencilRefDecr--;
+			glStencilOp(GL_KEEP, GL_DECR, GL_DECR); // Test success decr 1
+		} else { // kIntersect_ClipOp
+			if (_render->_stencilRef == 255) {
+				Qk_WARN(" stencil ref value exceeds limit 255"); return;
+			}
+			_render->_stencilRef++;
+			glStencilOp(GL_KEEP, GL_INCR, GL_INCR); // Test success adds 1
+		}
+
+		glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
+		{
+			_render->_clip.use(clip.vertex.vertex.size(), clip.vertex.vertex.val());
+			glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
+		}
+		if (clip.aafuzz.vCount) { // aa
+			// draw anti alias alpha
+		}
+		glStencilFunc(GL_LEQUAL, _render->_stencilRef, 0xFFFFFFFF); // Equality passes the test
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 	}
 
 	void GLC_CmdPack::clearColor4fCall(float depth, const Color4f &color, bool isBlend) {
@@ -461,24 +490,24 @@ namespace qk {
 				}
 				case kColor_GLC_CmdType: {
 					auto cmd1 = (GLC_ColorCmd*)cmd;
-					_this->drawColor4fCall(cmd1->depth, *cmd1->vertex, cmd1->color);
+					_this->drawColor4fCall(cmd1->depth, cmd1->vertex, cmd1->color);
 					break;
 				}
 				case kImage_GLC_CmdType: {
 					auto cmd1 = (GLC_ImageCmd*)cmd;
-					_this->drawImageCall(cmd1->depth, *cmd1->vertex, &cmd1->paint, cmd1->alpha);
+					_this->drawImageCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->alpha);
 					cmd1->~GLC_ImageCmd();
 					break;
 				}
 				case kImageMask_GLC_CmdType: {
 					auto cmd1 = (GLC_ImageMaskCmd*)cmd;
-					_this->drawImageMaskCall(cmd1->depth, *cmd1->vertex, &cmd1->paint, cmd1->color);
+					_this->drawImageMaskCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->color);
 					cmd1->~GLC_ImageMaskCmd();
 					break;
 				}
 				case kGradient_GLC_CmdType: {
 					auto cmd1 = (GLC_GradientCmd*)cmd;
-					_this->drawGradientCall(cmd1->depth, *cmd1->vertex, &cmd1->paint, cmd1->alpha);
+					_this->drawGradientCall(cmd1->depth, cmd1->vertex, &cmd1->paint, cmd1->alpha);
 					break;
 				}
 				case kMultiColor_GLC_CmdType: {

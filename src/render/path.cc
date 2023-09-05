@@ -144,7 +144,7 @@ namespace qk {
 
 	void Path::moveTo(Vec2 to) {
 		// _pts.push(to.x()); _pts.push(to.y());
-		_pts.write(to.val, -1, 2);
+		_pts.write(to.val, 2);
 		_verbs.push(kVerb_Move);
 		_hash.updatefv2(to.val);
 	}
@@ -152,14 +152,14 @@ namespace qk {
 	void Path::lineTo(Vec2 to) {
 		//if (_pts.length() && *(uint64_t*)&_pts.lastIndexAt(1) == *(uint64_t*)to.val)
 		//	return;
-		_pts.write(to.val, -1, 2);
+		_pts.write(to.val, 2);
 		_verbs.push(kVerb_Line);
 		_hash.updatefv2(to.val);
 	}
 
 	void Path::quadTo(Vec2 control, Vec2 to) {
-		_pts.write(control.val, -1, 2);
-		_pts.write(to.val, -1, 2);
+		_pts.write(control.val, 2);
+		_pts.write(to.val, 2);
 		_verbs.push(kVerb_Quad);
 		_IsNormalized = false;
 		// _hash.update((&_pts.back()) - 4, sizeof(float) * 4);
@@ -172,9 +172,9 @@ namespace qk {
 		//_pts.push(control1[0]); _pts.push(control1[1]);
 		//_pts.push(control2[0]); _pts.push(control2[1]);
 		//_pts.push(to[0]); _pts.push(to[1]);
-		_pts.write(control1.val, -1, 2);
-		_pts.write(control2.val, -1, 2);
-		_pts.write(to.val, -1, 2);
+		_pts.write(control1.val, 2);
+		_pts.write(control2.val, 2);
+		_pts.write(to.val, 2);
 		_verbs.push(kVerb_Cubic);
 		_IsNormalized = false;
 		// _hash.update((uint32_t*)(&_pts.back()) - 6, 6);
@@ -289,7 +289,7 @@ namespace qk {
 	}
 
 	void Path::quadTo2(float *p) {
-		_pts.write(p, -1, 4);
+		_pts.write(p, 4);
 		_verbs.push(kVerb_Quad);
 		_IsNormalized = false;
 		// _hash.updateu32v((uint32_t*)p, 4);
@@ -299,7 +299,7 @@ namespace qk {
 	}
 
 	void Path::cubicTo2(float *p) {
-		_pts.write(p, -1, 6);
+		_pts.write(p, 6);
 		_verbs.push(kVerb_Cubic);
 		_IsNormalized = false;
 		//_hash.update((uint32_t*)p, 6);
@@ -313,8 +313,8 @@ namespace qk {
 	}
 
 	void Path::concat(const Path& path) {
-		_verbs.write(path._verbs);
-		_pts.write(path._pts);
+		_verbs.write(path._verbs.val(), path._verbs.length());
+		_pts.write(path._pts.val(), path._pts.length());
 		_hash.updateu64(path.hashCode());
 		_IsNormalized = _IsNormalized && path._IsNormalized;
 	}
@@ -542,7 +542,7 @@ namespace qk {
 		bool isZeor = true;
 
 		auto add = [&](Vec2 to, PathVerb verb) {
-			line._pts.write(to.val, -1, 2);
+			line._pts.write(to.val, 2);
 			line._verbs.push(verb);
 			if (updateHash)
 				//line._hash.update((uint32_t*)&to, 2);
@@ -741,7 +741,7 @@ namespace qk {
 				for (int i = 0; i < sample; i++) {
 					Vec3 p(center.x() + cosf(angle) * radius.x(), center.y() - sinf(angle) * radius.y(), 0.0);
 					Vec3 src[] = { p,p0,p };
-					out->vertex.write(src, -1, i==0?1:3); // add triangle vertex
+					out->vertex.write(src, i==0?1:3); // add triangle vertex
 					out->path.lineTo({p[0],p[1]});
 					angle += angleStep;
 				}
@@ -758,7 +758,7 @@ namespace qk {
 		build(&out, {-1, 1}, r.rightTop,    {x2,y1}, vertex + 3, 0); // right
 		vertex[5] = vertex[2];
 
-		out.vertex.write(vertex, -1, 6); // inl quadrilateral
+		out.vertex.write(vertex, 6); // inl quadrilateral
 		out.path.close();
 		out.vCount = out.vertex.length();
 
@@ -798,7 +798,7 @@ namespace qk {
 				out->path.lineTo(v[0]);
 				// outside,outside,inside,inside,inside,outside
 				Vec3 src[6] = {v[0],v[3],v[5],v[4],v[5],v[3]};
-				out->vertex.write(src, -1, 6);
+				out->vertex.write(src, 6);
 				out->vCount = 6;
 			} else {
 				out->vCount = 0;
@@ -885,7 +885,7 @@ namespace qk {
 			if (isRadiusZeroL) { // radius is zero
 				if (isBorder) {
 					Vec3 src[]{{v[0],0.0},{v[5],0.0}}; // outside,inside
-					out->vertex.write(src, -1, 2);
+					out->vertex.write(src, 2);
 					path2.push(v[5]);
 					lastV = v[5];
 				}
@@ -906,18 +906,18 @@ namespace qk {
 						if (i == 0) {
 							Vec2 v1 = isRadiusI ? xy * radius_i[0] + center[0]: v[5];
 							Vec3 src[]{v0,v1}; // outside,inside
-							out->vertex.write(src, -1, 2);
+							out->vertex.write(src, 2);
 							path2.push(v1);
 							lastV = v1;
 						} else if (isRadiusI) {
 							Vec2 v1 = xy * radius_i[0] + center[0];
 							Vec3 src[]{v0,lastV,v1,v0,v0,v1};
-							out->vertex.write(src, -1, 6);
+							out->vertex.write(src, 6);
 							path2.push(v1);
 							lastV = v1;
 						} else { // inside radius is zero
 							Vec3 src[]{v0,v0,v[5]}; // outside,outside,inside
-							out->vertex.write(src, -1, 3);
+							out->vertex.write(src, 3);
 						}
 					}
 					path.lineTo(v0);
@@ -928,7 +928,7 @@ namespace qk {
 			if (isRadiusZeroR) { // radius is zero
 				if (isBorder) {
 					Vec3 src[]{v[3],v[3],lastV,v[4]}; // outside,outside,inside,inside
-					out->vertex.write(src, -1, 4);
+					out->vertex.write(src, 4);
 					path2.push(v[4]);
 				}
 				path.lineTo(v[3]);
@@ -950,7 +950,7 @@ namespace qk {
 							RadiusI:
 							// outside,inside,inside,outside,outside,inside
 							Vec3 src[]{v0,lastV,v1,v0,v0,v1};
-							out->vertex.write(src, -1, 6);
+							out->vertex.write(src, 6);
 							path2.push(v1);
 							lastV = v1;
 							//Qk_DEBUG("v0: %f %f, v1: %f %f", v0[0], v0[1], v1[0], v1[1]);
@@ -960,7 +960,7 @@ namespace qk {
 								v1 = v[4]; goto RadiusI;
 							}
 							Vec3 src[]{v0,v0,v[4]}; // outside,outside,inside
-							out->vertex.write(src, -1, 3);
+							out->vertex.write(src, 3);
 						}
 					}
 					path.lineTo(v0);

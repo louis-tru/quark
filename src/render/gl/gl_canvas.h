@@ -39,9 +39,10 @@
 namespace qk {
 	struct GLC_State { // gl canvas state
 		struct Clip { // gl canvas clip
-			Pathv           path;
+			Mat             matrix;
+			VertexData      vertex,aafuzz;
+			Path            path;
 			Canvas::ClipOp  op;
-			bool            aa; // anti alias
 		};
 		Mat         matrix;
 		Array<Clip> clips;

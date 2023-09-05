@@ -56,11 +56,10 @@ namespace qk {
 		typedef A     Alloc;
 		// constructors
 		Array();
-		Array(Array& arr);  // right value copy constructors
 		Array(Array&& arr); // right value copy constructors
+		Array(const Array& arr);
 		Array(const std::initializer_list<T>& list);
 		Array(const std::vector<T>& list);
-		Array(const Array& arr);
 		Array(uint32_t length);
 
 		typedef SimpleIterator<T,       T> Iterator;
@@ -93,7 +92,6 @@ namespace qk {
 
 		inline operator bool() const { return _length != 0; }
 		// operator=
-		Array& operator=(Array& arr);
 		Array& operator=(Array&& arr);
 		Array& operator=(const Array& arr);
 
@@ -127,15 +125,11 @@ namespace qk {
 		/**
 		 * @method write() write data items
 		 * @arg src  source data items
+		 * @arg size_src {int=-1} The number of items that need to be written
 		 * @arg to {int=-1} The position where the current array starts to be written, -1 starts to write from the end
-		 * @arg size_src {int=-1} The number of items that need to be written, if the length of the array to be written
-		 * 	exceeds the length of the array to be written, the length of the written array is automatically taken, and -1 is written to all
-		 * @arg form_src {int=0} Start reading data from the form position to be written to the src array
 		 * @return {uint32_t} Returns the amount of data written
 		*/
-		template<typename A2>
-		uint32_t write(const Array<T, A2>& src, int to = -1, int size_src = -1, uint32_t form_src = 0);
-		uint32_t write(const T* src, int to, uint32_t size_src);
+		uint32_t write(const T* src, uint32_t size_src, int to = -1);
 
 		/**
 		 * @method concat() use right value move mode concat buffer
@@ -219,6 +213,11 @@ namespace qk {
 		 * @arg realloc_ {uint32_t}
 		 */
 		void realloc_(uint32_t capacity);
+
+		/**
+		 * @method copy data and output data pointer and capacity
+		*/
+		void copy_(T** val, int *capacity, uint32_t start, uint32_t len) const;
 
 		struct Sham { T _item; }; // Used to call data destructors
 
@@ -312,31 +311,31 @@ namespace qk {
 	{}
 
 	template<typename T, typename A>
-	Array<T, A>::Array(Array& arr): Array(arr.copy())//Array(std::move(arr))
-	{}
-
-	template<typename T, typename A>
 	Array<T, A>::Array(Array&& arr): _length(0), _capacity(0), _val(nullptr)
 	{
-		operator=(std::move(arr));
+		if (arr._length)
+			operator=(std::move(arr));
 	}
 
 	template<typename T, typename A>
-	Array<T, A>::Array(const Array& arr): Array(arr.copy())
-	{}
+	Array<T, A>::Array(const Array& arr): _length(arr._length), _capacity(0), _val(nullptr)
+	{
+		if (_length)
+			arr.copy_(&_val, &_capacity, 0, _length);
+	}
 	
 	template<typename T, typename A>
 	Array<T, A>::Array(const std::initializer_list<T>& list)
 		: _length(0), _capacity(0), _val(nullptr)
 	{
-		write(list.begin(), 0, (uint32_t)list.size());
+		write(list.begin(), (uint32_t)list.size());
 	}
 
 	template<typename T, typename A>
 	Array<T, A>::Array(const std::vector<T>& list)
 		: _length(0), _capacity(0), _val(nullptr)
 	{
-		write(list.data(), 0, (uint32_t)list.size());
+		write(list.data(), (uint32_t)list.size());
 	}
 
 	template<typename T, typename A>
@@ -357,20 +356,19 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	Array<T, A>& Array<T, A>::operator=(Array& arr) {
-		return operator=(std::move(arr));
-	}
-
-	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::operator=(Array&& arr) {
 		if ( arr._val != _val ) {
-			clear();
-			_length = arr._length;
-			_val = arr._val;
-			if (!isWeak()) {
+			if (isWeak()) {
+				_length = arr._length;
+				_val = arr._val;
+			} else {
+				clear();
 				_capacity = arr._capacity;
+				_length = arr._length;
+				_val = arr._val;
+				if (arr._capacity != -1)
+					arr._capacity = 0;
 				arr._length = 0;
-				arr._capacity = 0;
 				arr._val = nullptr;
 			}
 		}
@@ -379,7 +377,19 @@ namespace qk {
 	
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::operator=(const Array& arr) {
-		return operator=(isWeak() ? arr.slice(): arr.copy());
+		if (arr._val != _val) {
+			if (isWeak()) {
+				_length = arr._length;
+				_val = arr._val;
+			} else {
+				clear();
+				if (arr._length) {
+					_length = arr._length;
+					arr.copy_(&_val, &_capacity, 0, _length);
+				}
+			}
+		}
+		return *this;
 	}
 
 	template<typename T, typename A>
@@ -410,19 +420,7 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	template<typename A2>
-	uint32_t Array<T, A>::write(
-		const Array<T, A2>& arr, int to, int size_src, uint32_t form_src)
-	{
-		int s = Qk_MIN(arr._length - form_src, size_src < 0 ? arr._length : size_src);
-		if (s > 0) {
-			return write(arr._val + form_src, to, s);
-		}
-		return 0;
-	}
-
-	template<typename T, typename A>
-	uint32_t Array<T, A>::write(const T* src, int to, uint32_t size_src) {
+	uint32_t Array<T, A>::write(const T* src, uint32_t size_src, int to) {
 		if (size_src) {
 			if ( to == -1 ) to = _length;
 			uint32_t old_len = _length;
@@ -447,12 +445,11 @@ namespace qk {
 		if (src_length) {
 			_length += src_length;
 			realloc_(_length);
-			T* end = _val + _length;
-			T* to = end - src_length;
-			while (to < end) {
+			T* end = _val + _length, *to = end - src_length;
+			do {
 				new(to) T(std::move(*src)); // call move constructor
 				src++; to++;
-			}
+			} while (to < end);
 		}
 		return *this;
 	}
@@ -481,17 +478,21 @@ namespace qk {
 		if (start < end) {
 			ArrayBuffer<T, A> arr;
 			arr._length = end - start;
-			arr.realloc_(arr._length);
-			T* to = arr._val;
-			T* e = to + arr._length;
-			const T* src = _val + start;
-			while (to < e) {
-				new(to) T(*src);
-				to++; src++;
-			}
+			copy_(&arr._val, &arr._capacity, start, arr._length);
 			Qk_ReturnLocal(arr);
 		}
 		return ArrayBuffer<T, A>();
+	}
+
+	template<typename T, typename A>
+	void Array<T, A>::copy_(T** val, int *capacity, uint32_t start, uint32_t len) const {
+		A::aalloc((void**)val, len, (uint32_t*)capacity, sizeof(T));
+		T* to = *val, *e = to + len;
+		const T* src = _val + start;
+		do {
+			new(to) T(*src);
+			to++; src++;
+		} while(to < e);
 	}
 
 	template<typename T, typename A>
@@ -565,14 +566,14 @@ namespace qk {
 	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len);
 
 	#define Qk_DEF_ARRAY_SPECIAL_(T, A) \
-		template<> Qk_EXPORT void              Array<T, A>::extend(uint32_t length); \
-		template<> Qk_EXPORT std::vector<T>    Array<T, A>::vector() const; \
-		template<> Qk_EXPORT Array<T, A>&      Array<T, A>::concat_(T* src, uint32_t src_length); \
-		template<> Qk_EXPORT uint32_t          Array<T, A>::write(const T* src, int to, uint32_t size); \
-		template<> Qk_EXPORT Array<T, A>&      Array<T, A>::pop(uint32_t count); \
-		template<> Qk_EXPORT void              Array<T, A>::clear(); \
-		template<> Qk_EXPORT void              Array<T, A>::realloc(uint32_t capacity); \
-		template<> Qk_EXPORT ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const \
+		template<> Qk_EXPORT void            Array<T, A>::extend(uint32_t length); \
+		template<> Qk_EXPORT std::vector<T>  Array<T, A>::vector() const; \
+		template<> Qk_EXPORT Array<T, A>&    Array<T, A>::concat_(T* src, uint32_t src_length); \
+		template<> Qk_EXPORT uint32_t        Array<T, A>::write(const T* src, uint32_t size, int to); \
+		template<> Qk_EXPORT Array<T, A>&    Array<T, A>::pop(uint32_t count); \
+		template<> Qk_EXPORT void            Array<T, A>::clear(); \
+		template<> Qk_EXPORT void            Array<T, A>::realloc(uint32_t capacity); \
+		template<> Qk_EXPORT void            Array<T, A>::copy_(T** val, int *capacity, uint32_t start, uint32_t len) const \
 
 	#define Qk_DEF_ARRAY_SPECIAL(T) \
 		Qk_DEF_ARRAY_SPECIAL_(T, MemoryAllocator)

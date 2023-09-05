@@ -69,16 +69,28 @@ namespace qk {
 
 		void clipv(const Path &path, const VertexData &vertex, ClipOp op, bool antiAlias) {
 			GLC_State::Clip clip{
+				.matrix=_state->matrix,
+				.path=path,
 				.op=op,
-				.aa=antiAlias&&!_render->_IsDeviceMsaa,
 			};
-			// TODO .. copy pathv and gpu vertex data ?
-			clip.path.id = 0;
-			clip.path.vCount = vertex.vCount;
-			clip.path.vertex = vertex.vertex;
-			clip.path.path = path;
-			_cmdPack->drawClip(clip, false);
-			_state->clips.push(std::move(clip));
+			if (vertex.vertex.val()) { // copy vertex data
+				clip.vertex = vertex;
+			} else if (path.verbsLen()) {
+				clip.vertex = _cache->getPathTriangles(path);
+				if (!clip.vertex.vertex.val()) {
+					clip.vertex = path.getTriangles();
+				}
+			}
+			if (clip.vertex.vCount) {
+				if (antiAlias && !_render->_IsDeviceMsaa) {
+					clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_unitPixel*aa_fuzz_width);
+					if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
+						clip.aafuzz = path.getAAFuzzStrokeTriangle(_unitPixel*aa_fuzz_width);
+					}
+				}
+				_cmdPack->drawClip(clip, false);
+				_state->clips.push(std::move(clip));
+			}
 		}
 
 		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
@@ -161,14 +173,14 @@ namespace qk {
 
 			p.setImage(textImg, {dst_start, dst_size});
 
-			// Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
-			// Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
-			// Vec2 v3(dst_start + dst_size);
-			// VertexData vertex{0,6,{
-			// 	dst_start, v1, v2, // triangle 0
-			// 	v2, v3, v1, // triangle 1
-			// }};
-			auto &vertex = _cache->getRectPath({dst_start,dst_size});
+			Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
+			Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
+			Vec2 v3(dst_start + dst_size);
+			VertexData vertex{0,6,{
+				dst_start, v1, v2, // triangle 0
+				v2, v3, v1, // triangle 1
+			}};
+			// auto &vertex = _cache->getRectPath({dst_start,dst_size});
 
 			_cmdPack->drawImageMask(vertex, &p, paint.color);
 			zDepthNext();
@@ -232,6 +244,7 @@ namespace qk {
 				auto &state = _stateStack.back();
 				for (auto &clip: state.clips) {
 					_cmdPack->drawClip(clip, true);
+					// _this->setMatrixInl(clip.matrix); // ????
 				}
 				_state = &_stateStack.pop().back();
 				count--;

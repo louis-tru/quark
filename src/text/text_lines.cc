@@ -327,8 +327,8 @@ namespace qk {
 			auto& last = pre.blob->back();
 			// merge glyphs
 			if (last.line == line && last.core.offset.back().x() == offset.front().x()) {
-				last.core.glyphs.write(glyphs);
-				// last.offset.write(offset, -1, -1, 1);
+				last.core.glyphs.write(glyphs.val(), glyphs.length());
+				// last.offset.write(offset.val()+1, offset.length() - 1);
 				for (int i = 1; i < offset.length(); i++)
 					last.core.offset.push(offset[i]);
 				_last->width = last.origin + last.core.offset.back().x();
