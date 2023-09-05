@@ -89,6 +89,7 @@ namespace qk {
 		GLC_CmdPack  *_cmdPackFront;
 		GLRender     *_render;
 		PathvCache   *_cache;
+		GLuint _stencilRef, _stencilRefDecr;
 		float  _zDepth;
 		float  _surfaceScale, _transfromScale;
 		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale

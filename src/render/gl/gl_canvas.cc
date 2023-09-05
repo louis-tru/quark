@@ -193,6 +193,7 @@ namespace qk {
 	GLCanvas::GLCanvas(GLRender *render, bool isMultiThreading)
 		: _render(render)
 		, _cache(new PathvCache(render))
+		, _stencilRef(0), _stencilRefDecr(0)
 		, _zDepth(0)
 		, _state(nullptr)
 		, _surfaceScale(1), _transfromScale(1), _scale(1), _chMatrix(true)

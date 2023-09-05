@@ -412,16 +412,16 @@ namespace qk {
 
 	void GLC_CmdPack::drawClipCall(float depth, const GLC_State::Clip &clip, bool revoke) {
 		if (clip.op == Canvas::kDifference_ClipOp) {
-			if (_render->_stencilRefDecr == 0) {
+			if (_canvas->_stencilRefDecr == 0) {
 				Qk_WARN(" stencil ref decr value exceeds limit 0"); return;
 			}
-			_render->_stencilRefDecr--;
+			_canvas->_stencilRefDecr--;
 			glStencilOp(GL_KEEP, GL_DECR, GL_DECR); // Test success decr 1
 		} else { // kIntersect_ClipOp
-			if (_render->_stencilRef == 255) {
+			if (_canvas->_stencilRef == 255) {
 				Qk_WARN(" stencil ref value exceeds limit 255"); return;
 			}
-			_render->_stencilRef++;
+			_canvas->_stencilRef++;
 			glStencilOp(GL_KEEP, GL_INCR, GL_INCR); // Test success adds 1
 		}
 
@@ -433,7 +433,7 @@ namespace qk {
 		if (clip.aafuzz.vCount) { // aa
 			// draw anti alias alpha
 		}
-		glStencilFunc(GL_LEQUAL, _render->_stencilRef, 0xFFFFFFFF); // Equality passes the test
+		glStencilFunc(GL_LEQUAL, _canvas->_stencilRef, 0xFFFFFFFF); // Equality passes the test
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 	}
 
