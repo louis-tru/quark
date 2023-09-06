@@ -69,9 +69,9 @@ extern QkApplicationDelegate* __appDelegate;
 		return self;
 	}
 	- (void) update {
-		[super update];
 		_render->reload();
-		Qk_DEBUG("NSOpenGLView::update");
+		[super update];
+		//Qk_DEBUG("NSOpenGLView::update");
 	}
 	- (void) prepareOpenGL {
 		[super prepareOpenGL];

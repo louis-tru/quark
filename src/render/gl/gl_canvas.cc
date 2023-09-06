@@ -301,18 +301,11 @@ namespace qk {
 	}
 
 	void GLCanvas::onSurfaceReload(const Mat4& root, Vec2 surfaceScale) {
+		_mutex.lock();
 		// update shader root matrix and clear all save state
 		_rootMatrix = root.transpose(); // transpose matrix
 		glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _rootMatrix.val, GL_STREAM_DRAW);
-
-		// clear state all
-		_stateStack.clear();
-		_stateStack.push({ .matrix=Mat() }); // init state
-		_state = &_stateStack.back();
-		_stencilRef = _stencilRefDecr = 127;
-		_isClipState = false; // clear clip state
-
 		if (!_render->_IsDeviceMsaa) { // clear clip aa buffer
 			float color[] = {0.0f,0.0f,0.0f,0.0f};
 			glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
@@ -320,11 +313,18 @@ namespace qk {
 		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 
+		// clear state all
+		_stateStack.clear();
+		_stateStack.push({ .matrix=Mat() }); // init state
+		_state = &_stateStack.back();
+		_stencilRef = _stencilRefDecr = 127;
+		_isClipState = false; // clear clip state
 		// set surface scale
 		_surfaceScale = Float::max(surfaceScale[0], surfaceScale[1]);
 		_transfromScale = Float::max(_state->matrix[0], _state->matrix[4]);
 		_scale = _surfaceScale * _transfromScale;
 		_unitPixel = 2 / _scale;
+		_mutex.unlock();
 	}
 
 	PathvCache* GLCanvas::gtePathvCache() {
