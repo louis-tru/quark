@@ -32,7 +32,7 @@
 #include <math.h>
 #include "./math.h"
 
-#define Qk_ARRAY_NO_IMPL 1
+#define Qk_ARRAY_SKIP_DEFAULT_IMPL 1
 
 #include "../util/array.cc"
 

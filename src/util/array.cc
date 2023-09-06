@@ -116,7 +116,7 @@ namespace qk {
 	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, APPEND_ZERO) \
 		Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, MemoryAllocator, APPEND_ZERO)
 
-#ifndef Qk_ARRAY_NO_IMPL
+#ifndef Qk_ARRAY_SKIP_DEFAULT_IMPL
 	template<> void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {
 		if (len > 1) {
 			char* _src = (char*)src;
