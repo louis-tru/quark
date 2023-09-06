@@ -40,7 +40,7 @@
 # include <OpenGLES/ES3/gl.h>
 # include <OpenGLES/ES3/glext.h>
 #elif Qk_OSX
-# define GL_SILENCE_DEPRECATION 1
+# define GL_SILENCE_DEPRECATION
 # include <OpenGL/gl3.h>
 # include <OpenGL/gl3ext.h>
 #elif Qk_ANDROID || Qk_LINUX
