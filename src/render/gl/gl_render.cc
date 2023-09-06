@@ -477,23 +477,8 @@ namespace qk {
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
 
-		_glCanvas.onSurfaceReload(surfaceScale);
-		setRootMatrix(mat);
+		_glCanvas.onSurfaceReload(mat, surfaceScale);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	}
-
-	void GLRender::setRootMatrix(const Mat4& root) {
-		// update shader root matrix and clear all save state
-		auto m4x4 = root.transpose(); // transpose matrix
-		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4.val, GL_STREAM_DRAW);
-		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
-		glDisable(GL_STENCIL_TEST); // disable stencil test
-
-		if (!_IsDeviceMsaa) { // clear clip aa buffer
-			const float color[] = {0.0f,0.0f,0.0f,0.0f};
-			glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
-		}
 	}
 
 	void GLRender::setMainRenderBuffer(int width, int height) {

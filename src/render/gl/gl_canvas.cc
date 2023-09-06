@@ -67,6 +67,13 @@ namespace qk {
 			}
 		}
 
+		void setBlendMode(BlendMode mode) {
+			if (_blendMode != mode) {
+				_blendMode = mode;
+				_cmdPack->setBlendMode(mode);
+			}
+		}
+
 		void clipv(const Path &path, const VertexData &vertex, ClipOp op, bool antiAlias) {
 			GLC_State::Clip clip{
 				.matrix=_state->matrix, .path=path, .op=op,
@@ -107,6 +114,7 @@ namespace qk {
 
 			_cmdPack->drawClip(clip, _stencilRef, false);
 			_state->clips.push(std::move(clip));
+			zDepthNext();
 		}
 
 		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
@@ -212,7 +220,9 @@ namespace qk {
 		, _stencilRef(0), _stencilRefDecr(0)
 		, _zDepth(0)
 		, _state(nullptr)
-		, _surfaceScale(1), _transfromScale(1), _scale(1), _chMatrix(true)
+		, _surfaceScale(1), _transfromScale(1), _scale(1)
+		, _rootMatrix()
+		, _blendMode(kSrcOver_BlendMode), _chMatrix(true)
 		, _isMultiThreading(isMultiThreading), _isClipState(false)
 	{
 		_cmdPack = new GLC_CmdPack(render, this);
@@ -247,8 +257,9 @@ namespace qk {
 	}
 
 	int GLCanvas::save() {
-		_stateStack.push({ _stateStack.back() });
+		_stateStack.push({ .matrix=_stateStack.back().matrix });
 		_state = &_stateStack.back();
+		return _stateStack.length();
 	}
 
 	void GLCanvas::restore(uint32_t count) {
@@ -267,6 +278,7 @@ namespace qk {
 					}
 					_this->setMatrixInl(clip.matrix);
 					_cmdPack->drawClip(clip, _stencilRef, true);
+					_this->zDepthNext();
 				}
 				_state = &_stateStack.pop().back();
 				count--;
@@ -276,7 +288,6 @@ namespace qk {
 				_isClipState = false;
 				_cmdPack->switchState(GL_STENCIL_TEST, false); // disable stencil test
 			}
-
 			_this->setMatrixInl(_state->matrix);
 		}
 	}
@@ -289,7 +300,12 @@ namespace qk {
 		return _state->matrix;
 	}
 
-	void GLCanvas::onSurfaceReload(Vec2 surfaceScale) {
+	void GLCanvas::onSurfaceReload(const Mat4& root, Vec2 surfaceScale) {
+		// update shader root matrix and clear all save state
+		_rootMatrix = root.transpose(); // transpose matrix
+		glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _rootMatrix.val, GL_STREAM_DRAW);
+
 		// clear state all
 		_stateStack.clear();
 		_stateStack.push({ .matrix=Mat() }); // init state
@@ -302,6 +318,7 @@ namespace qk {
 			glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
 		}
 		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
+		glDisable(GL_STENCIL_TEST); // disable stencil test
 
 		// set surface scale
 		_surfaceScale = Float::max(surfaceScale[0], surfaceScale[1]);
@@ -357,9 +374,9 @@ namespace qk {
 	}
 
 	void GLCanvas::drawColor(const Color4f &color, BlendMode mode) {
-		auto isBlend = mode != kSrc_BlendMode || color.a() != 1;
+		auto isBlend = mode != kSrc_BlendMode;// || color.a() != 1;
 		if (isBlend) { // draw color
-			_cmdPack->setBlendMode(mode); // switch blend mode
+			_this->setBlendMode(mode); // switch blend mode
 			_cmdPack->clearColor4f(color, isBlend);
 			_this->zDepthNext();
 		} else { // clear color
@@ -378,7 +395,7 @@ namespace qk {
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
 		if (path.vCount) {
-			_cmdPack->setBlendMode(mode); // switch blend mode
+			_this->setBlendMode(mode); // switch blend mode
 			_cmdPack->drawColor4f(path, color);
 			if (!_render->_IsDeviceMsaa) { // Anti-aliasing using software
 				auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _unitPixel*aa_fuzz_width);
@@ -389,7 +406,7 @@ namespace qk {
 	}
 
 	void GLCanvas::drawPath(const Path &path_, const Paint &paint) {
-		_cmdPack->setBlendMode(paint.blendMode); // switch blend mode
+		_this->setBlendMode(paint.blendMode); // switch blend mode
 
 		bool aa = paint.antiAlias && !_render->_IsDeviceMsaa; // Anti-aliasing using software
 		auto path = &_cache->getNormalizedPath(path_);
@@ -407,7 +424,7 @@ namespace qk {
 	}
 
 	void GLCanvas::drawPathv(const Pathv& path, const Paint& paint) {
-		_cmdPack->setBlendMode(paint.blendMode); // switch blend mode
+		_this->setBlendMode(paint.blendMode); // switch blend mode
 
 		bool aa = paint.antiAlias && !_render->_IsDeviceMsaa; // Anti-aliasing using software
 		// gen stroke path and fill path and polygons
@@ -424,7 +441,7 @@ namespace qk {
 
 	float GLCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint)
 	{
-		_cmdPack->setBlendMode(paint.blendMode); // switch blend mode
+		_this->setBlendMode(paint.blendMode); // switch blend mode
 
 		Sp<ImageSource> img;
 		auto tf = glyphs.typeface();
@@ -435,7 +452,7 @@ namespace qk {
 	}
 
 	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
-		_cmdPack->setBlendMode(paint.blendMode); // switch blend mode
+		_this->setBlendMode(paint.blendMode); // switch blend mode
 
 		fontSize *= _transfromScale;
 		auto levelSize = get_level_font_size(fontSize);

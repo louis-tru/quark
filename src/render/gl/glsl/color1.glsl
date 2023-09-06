@@ -33,5 +33,5 @@ void main() {
 	// fuzz value range: 1 => 0, alpha range: 0 => 1
 	lowp float aaalpha = 1.0 - abs(aafuzz);
 	fragColor = color;
-	fragColor.a = aaalpha;
+	fragColor.a *= aaalpha;
 }

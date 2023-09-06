@@ -196,19 +196,17 @@ public:
 			return;
 
 		CGLLockContext(_ctx.CGLContextObj);
-		[_ctx makeCurrentContext];
+		//[_ctx makeCurrentContext];
 
 		glViewport(0, 0, size.x(), size.y());
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
 
 		setClipAABuffer(size.x(), size.y(), _opts.msaa);
 
-		_glCanvas.onSurfaceReload(surfaceScale);
-
-		setRootMatrix(mat);
+		_glCanvas.onSurfaceReload(mat, surfaceScale);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-		[NSOpenGLContext clearCurrentContext]; // clear ctx
+		// [NSOpenGLContext clearCurrentContext]; // clear ctx
 		CGLUnlockContext(_ctx.CGLContextObj);
 	}
 
@@ -231,6 +229,7 @@ public:
 		_view.wantsBestResolutionOpenGLSurface = YES; // Enable retina-support
 		_view.wantsLayer = YES; // Enable layer-backed drawing of view
 
+		[_ctx makeCurrentContext];
 		_ctx.view = _view;
 		//[_ctx setFullScreen];
 
@@ -239,7 +238,7 @@ public:
 
 		GLint sampleCount;
 		[_ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
-		
+
 		if (sampleCount > 1) {
 			_IsDeviceMsaa = true;
 		}

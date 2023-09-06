@@ -81,11 +81,11 @@ namespace qk {
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 		virtual void swapBuffer() override; // swap gl cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call
-		void         onSurfaceReload(Vec2 surfaceScale); // surface reload
+		void         onSurfaceReload(const Mat4& root, Vec2 surfaceScale); // surface reload
 		virtual PathvCache* gtePathvCache() override;
 	private:
-		Array<GLC_State> _stateStack;
-		GLC_State    *_state;
+		Array<GLC_State> _stateStack; // state
+		GLC_State    *_state; // state
 		GLC_CmdPack  *_cmdPack;
 		GLC_CmdPack  *_cmdPackFront;
 		GLRender     *_render;
@@ -94,6 +94,8 @@ namespace qk {
 		float  _zDepth;
 		float  _surfaceScale, _transfromScale;
 		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
+		Mat4   _rootMatrix;
+		BlendMode _blendMode; // blend mode state
 		bool   _chMatrix; // matrix change state
 		bool   _isMultiThreading, _isClipState;
 		Mutex  _mutex; // submit swap mutex

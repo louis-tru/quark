@@ -36,10 +36,7 @@
 #include "./glsl_shaders.h"
 #include "./gl_canvas.h"
 
-#define Qk_USE_GLC_CMD_QUEUE 1
-#define Qk_MCCmd_Option_Capacity 1024
-#define Qk_MCCmd_VertexBlock_Capacity 65535
-#define Qk_MCCmd_OptBlock_Capacity 16384
+#define Qk_USE_GLC_CMD_QUEUE 0
 
 namespace qk {
 
@@ -131,11 +128,8 @@ namespace qk {
 		Cmd*           allocCmd(uint32_t size);
 		MultiColorCmd* newMColorCmd();
 		MultiColorCmd* getMColorCmd();
-		void clear();
 		void flush();
 		void setMetrixUnifromBuffer(const Mat &mat);
-		void setMetrix();
-		void useShader(GLSLShader *shader, const VertexData &vertex);
 		void setBlendMode(BlendMode mode);
 		void switchState(GLenum id, bool value);
 		void drawColor4f(const VertexData &vertex, const Color4f &color); // add cmd
@@ -152,6 +146,10 @@ namespace qk {
 		void drawGradientCall(float depth, const VertexData &vertex, const GradientPaint *paint, float alpha);
 		void drawClipCall(float depth, const GLC_State::Clip &clip, uint32_t ref, bool revoke);
 		void clearColor4fCall(float depth, const Color4f &color, bool isBlend);
+		void clear(); //
+		void checkMetrix();
+		void useShader(GLSLShader *shader, const VertexData &vertex);
+
 		typedef MultiColorCmd::Option MCOpt;
 		template<class T>
 		struct MemBlock {
@@ -165,12 +163,11 @@ namespace qk {
 		};
 		ArrayMemBlock<Vec4>  vertexBlocks; // vertex storage
 		ArrayMemBlock<MCOpt> optionBlocks; //
-		MemBlock<Cmd>    cmds;
-		Cmd              *lastCmd;
-		GLRender         *_render;
-		GLCanvas         *_canvas;
-		PathvCache       *_cache;
-		BlendMode        _blendMode;
+		MemBlock<Cmd>        cmds; // cmd queue
+		Cmd                  *lastCmd;
+		GLRender             *_render;
+		GLCanvas             *_canvas;
+		PathvCache           *_cache;
 	};
 
 }

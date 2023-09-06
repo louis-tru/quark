@@ -55,7 +55,6 @@ namespace qk {
 		virtual void setMSAARenderBuffer(int width, int height, int msaaSample);
 		virtual void setDepthStencilBuffer(int width, int height, int msaaSample);
 		virtual void setClipAABuffer(int width, int height, int msaaSample);
-		void         setRootMatrix(const Mat4& root);
 		friend class GLCanvas;
 		friend class GLC_CmdPack;
 		// --------------- define props ---------------

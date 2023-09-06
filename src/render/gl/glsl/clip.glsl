@@ -10,6 +10,6 @@ layout(location=1) out lowp vec4 aaalphaOut; // clip anti alias alpha
 
 void main() {
 	// only stencil test
-	aaalphaOut = color;
-	aaalphaOut.a *= texelFetch(aaalpha, ivec2(gl_FragCoord.xy), 0).a;
+	//aaalphaOut = color;
+	//aaalphaOut.a *= texelFetch(aaalpha, ivec2(gl_FragCoord.xy), 0).a;
 }

@@ -112,6 +112,7 @@ namespace qk {
 		// if (_RectPathCache.length() >= 1024) _RectPathCache.clear(); // TODO ... release data
 		auto gb = new GpuBuffer<RectPath>{std::move(rect),{{this,0,0,0}}};
 		gb->base.id = gb->id;
+		gb->id->ref = &gb->base;
 		return _RectPathCache.set(hash, gb)->base;
 	}
 
