@@ -73,6 +73,12 @@ extern QkApplicationDelegate* __appDelegate;
 		[super update];
 		//Qk_DEBUG("NSOpenGLView::update");
 	}
+
+	// -(void)reshape {
+	// 	_render->reload();
+	// 	[super reshape];
+	// }
+
 	- (void) prepareOpenGL {
 		[super prepareOpenGL];
 		if (_render->options().fps == 0) {
