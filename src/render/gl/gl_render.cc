@@ -413,7 +413,6 @@ namespace qk {
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 		// set depth test
 		glEnable(GL_DEPTH_TEST); // enable depth test
-		// glDisable(GL_DEPTH_TEST);
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
 		glClearDepth(0.0f); // set depth clear value to -1.0
 	}

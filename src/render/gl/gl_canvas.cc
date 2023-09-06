@@ -39,9 +39,9 @@ namespace qk {
 	void  gl_set_blend_mode(BlendMode blendMode);
 
 	extern uint32_t GL_MaxTextureImageUnits;
-	const    static Region ZeroRegion;
-	constexpr float aa_fuzz_weight = 0.9;
-	constexpr float aa_fuzz_width = 0.5;
+	extern const  Region ZeroRegion;
+	extern const  float  aa_fuzz_weight = 0.9;
+	extern const  float  aa_fuzz_width = 0.5;
 
 	Qk_DEFINE_INLINE_MEMBERS(GLCanvas, Inl) {
 	public:
@@ -69,9 +69,7 @@ namespace qk {
 
 		void clipv(const Path &path, const VertexData &vertex, ClipOp op, bool antiAlias) {
 			GLC_State::Clip clip{
-				.matrix=_state->matrix,
-				.path=path,
-				.op=op,
+				.matrix=_state->matrix, .path=path, .op=op,
 			};
 			if (vertex.vertex.val()) { // copy vertex data
 				clip.vertex = vertex;
@@ -81,16 +79,34 @@ namespace qk {
 					clip.vertex = path.getTriangles();
 				}
 			}
-			if (clip.vertex.vCount) {
-				if (antiAlias && !_render->_IsDeviceMsaa) {
-					clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_unitPixel*aa_fuzz_width);
-					if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
-						clip.aafuzz = path.getAAFuzzStrokeTriangle(_unitPixel*aa_fuzz_width);
-					}
+			if (clip.vertex.vCount == 0) return;
+
+			if (antiAlias && !_render->_IsDeviceMsaa) {
+				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_unitPixel*aa_fuzz_width);
+				if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
+					clip.aafuzz = path.getAAFuzzStrokeTriangle(_unitPixel*aa_fuzz_width);
 				}
-				_cmdPack->drawClip(clip, false);
-				_state->clips.push(std::move(clip));
 			}
+
+			if (!_isClipState) {
+				_isClipState = true;
+				_cmdPack->switchState(GL_STENCIL_TEST, true); // enable stencil test
+			}
+
+			if (clip.op == kDifference_ClipOp) {
+				if (_stencilRefDecr == 0) {
+					Qk_WARN(" clip stencil ref decr value exceeds limit 0"); return;
+				}
+				_stencilRefDecr--;
+			} else {
+				if (_stencilRef == 255) {
+					Qk_WARN(" clip stencil ref value exceeds limit 255"); return;
+				}
+				_stencilRef++;
+			}
+
+			_cmdPack->drawClip(clip, _stencilRef, false);
+			_state->clips.push(std::move(clip));
 		}
 
 		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
@@ -197,7 +213,7 @@ namespace qk {
 		, _zDepth(0)
 		, _state(nullptr)
 		, _surfaceScale(1), _transfromScale(1), _scale(1), _chMatrix(true)
-		, _isMultiThreading(isMultiThreading)
+		, _isMultiThreading(isMultiThreading), _isClipState(false)
 	{
 		_cmdPack = new GLC_CmdPack(render, this);
 		_cmdPackFront = isMultiThreading ? new GLC_CmdPack(render, this): _cmdPack;
@@ -244,12 +260,23 @@ namespace qk {
 			do {
 				auto &state = _stateStack.back();
 				for (auto &clip: state.clips) {
-					_cmdPack->drawClip(clip, true);
-					// _this->setMatrixInl(clip.matrix); // ????
+					if (clip.op == kDifference_ClipOp) {
+						_stencilRefDecr++;
+					} else {
+						_stencilRef--;
+					}
+					_this->setMatrixInl(clip.matrix);
+					_cmdPack->drawClip(clip, _stencilRef, true);
 				}
 				_state = &_stateStack.pop().back();
 				count--;
 			} while (count > 0);
+
+			if (_stencilRef == 127 && _stencilRefDecr == 127) { // not stencil test
+				_isClipState = false;
+				_cmdPack->switchState(GL_STENCIL_TEST, false); // disable stencil test
+			}
+
 			_this->setMatrixInl(_state->matrix);
 		}
 	}
@@ -267,6 +294,15 @@ namespace qk {
 		_stateStack.clear();
 		_stateStack.push({ .matrix=Mat() }); // init state
 		_state = &_stateStack.back();
+		_stencilRef = _stencilRefDecr = 127;
+		_isClipState = false; // clear clip state
+
+		if (!_render->_IsDeviceMsaa) { // clear clip aa buffer
+			float color[] = {0.0f,0.0f,0.0f,0.0f};
+			glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
+		}
+		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
+
 		// set surface scale
 		_surfaceScale = Float::max(surfaceScale[0], surfaceScale[1]);
 		_transfromScale = Float::max(_state->matrix[0], _state->matrix[4]);

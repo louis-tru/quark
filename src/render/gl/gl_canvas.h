@@ -37,6 +37,7 @@
 #include "./glsl_shaders.h"
 
 namespace qk {
+
 	struct GLC_State { // gl canvas state
 		struct Clip { // gl canvas clip
 			Mat             matrix;
@@ -89,12 +90,12 @@ namespace qk {
 		GLC_CmdPack  *_cmdPackFront;
 		GLRender     *_render;
 		PathvCache   *_cache;
-		GLuint _stencilRef, _stencilRefDecr;
+		GLuint _stencilRef, _stencilRefDecr; // stencil clip state
 		float  _zDepth;
 		float  _surfaceScale, _transfromScale;
 		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
 		bool   _chMatrix; // matrix change state
-		bool   _isMultiThreading;
+		bool   _isMultiThreading, _isClipState;
 		Mutex  _mutex; // submit swap mutex
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class GLC_CmdPack;
