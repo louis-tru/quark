@@ -80,7 +80,7 @@ namespace qk {
 
 		struct SwitchCmd: Cmd {
 			GLenum         id;
-			bool           value;
+			bool           isEnable;
 		};
 
 		struct ClipCmd: Cmd { //!
@@ -131,7 +131,7 @@ namespace qk {
 		void flush();
 		void setMetrixUnifromBuffer(const Mat &mat);
 		void setBlendMode(BlendMode mode);
-		void switchState(GLenum id, bool value);
+		void switchState(GLenum id, bool isEnable);
 		void drawColor4f(const VertexData &vertex, const Color4f &color); // add cmd
 		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha);
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color);
@@ -139,7 +139,7 @@ namespace qk {
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
 		void clearColor4f(const Color4f &color, bool isBlend);
 	private:
-		void switchStateCall(GLenum id, bool value);
+		void switchStateCall(GLenum id, bool isEnable);
 		void drawColor4fCall(float depth, const VertexData &vertex, const Color4f &color); // call gl api
 		void drawImageCall(float depth, const VertexData &vertex, const ImagePaint *paint, float alpha);
 		void drawImageMaskCall(float depth, const VertexData &vertex, const ImagePaint *paint, const Color4f &color);

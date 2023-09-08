@@ -682,15 +682,15 @@ namespace qk {
 		
 		inline Token        token()             { return current_->token; }
 		inline Location     location()          { return current_->location; }
-		inline String2&  string_space()      { return current_->string_space; }
-		inline String2&  string_value()      { return current_->string_value; }
+		inline String2&     string_space()      { return current_->string_space; }
+		inline String2&     string_value()      { return current_->string_value; }
 		inline bool         has_scape_before()  { return current_->before_scape; }
 		inline bool         before_line_feed()  { return current_->before_line_feed; }
 		inline Token        prev()              { return prev_; }
 		inline Token        peek()              { return next_->token; }
 		inline Location     next_location()     { return next_->location; }
-		inline String2&  next_string_space() { return next_->string_space; }
-		inline String2&  next_string_value() { return next_->string_value; }
+		inline String2&     next_string_space() { return next_->string_space; }
+		inline String2&     next_string_value() { return next_->string_value; }
 		inline bool         next_before_line_feed() { return next_->before_line_feed; }
 		inline bool         has_scape_before_next() { return next_->before_scape; }
 		

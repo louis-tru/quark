@@ -208,7 +208,7 @@ namespace qk {
 			auto cmd = (SwitchCmd*)allocCmd(sizeof(SwitchCmd));
 			cmd->type = kSwitch_CmdType;
 			cmd->id = id;
-			cmd->value = value;
+			cmd->isEnable = isEnable;
 		}
 
 		void GLC_CmdPack::drawColor4f(const VertexData &vertex, const Color4f &color) {
@@ -372,8 +372,8 @@ namespace qk {
 		}
 	}
 		
-	void GLC_CmdPack::switchStateCall(GLenum id, bool value) {
-		if (value)
+	void GLC_CmdPack::switchStateCall(GLenum id, bool isEnable) {
+		if (isEnable)
 			glEnable(id);
 		else
 			glDisable(id);
