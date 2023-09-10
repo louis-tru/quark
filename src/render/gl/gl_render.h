@@ -74,6 +74,7 @@ namespace qk {
 		GLCanvas _glCanvas; // main canvas
 		GLSLClear _clear; // shader
 		GLSLClip  _clip;
+		GLSLClipAa  _clipaa;
 		GLSLColor _color;
 		GLSLColor1 _color1;
 		GLSLColorLinear _linear;
@@ -81,7 +82,7 @@ namespace qk {
 		GLSLImage _image;
 		GLSLImageMask _imageMask;
 		GLSLImageYuv _imageYuv;
-		GLSLShader  *_shaders[9];
+		GLSLShader  *_shaders[10];
 		// --------------------------------------------
 	};
 }

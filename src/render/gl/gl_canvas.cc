@@ -223,7 +223,8 @@ namespace qk {
 		, _surfaceScale(1), _transfromScale(1), _scale(1)
 		, _rootMatrix()
 		, _blendMode(kSrcOver_BlendMode), _chMatrix(true)
-		, _isMultiThreading(isMultiThreading), _isClipState(false)
+		, _isMultiThreading(isMultiThreading)
+		, _isClipState(false)
 	{
 		_cmdPack = new GLC_CmdPack(render, this);
 		_cmdPackFront = isMultiThreading ? new GLC_CmdPack(render, this): _cmdPack;
@@ -307,7 +308,7 @@ namespace qk {
 		glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _rootMatrix.val, GL_STREAM_DRAW);
 		if (!_render->_IsDeviceMsaa) { // clear clip aa buffer
-			float color[] = {0.0f,0.0f,0.0f,0.0f};
+			float color[] = {1.0f,1.0f,1.0f,1.0f};
 			glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
 		}
 		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
@@ -369,7 +370,7 @@ namespace qk {
 	}
 
 	void GLCanvas::clearColor(const Color4f& color) {
-		_cmdPack->clearColor4f(color, false);
+		_cmdPack->clearColor4f(color, true); // clear color/clip/depth
 		_zDepth = 0; // set z depth state
 	}
 
@@ -377,11 +378,10 @@ namespace qk {
 		auto isBlend = mode != kSrc_BlendMode;// || color.a() != 1;
 		if (isBlend) { // draw color
 			_this->setBlendMode(mode); // switch blend mode
-			_cmdPack->clearColor4f(color, isBlend);
+			_cmdPack->clearColor4f(color, false);
 			_this->zDepthNext();
 		} else { // clear color
-			_cmdPack->clearColor4f(color, isBlend);
-			_zDepth = 0; // set z depth state
+			clearColor(color);
 		}
 	}
 

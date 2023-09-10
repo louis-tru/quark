@@ -75,7 +75,7 @@ namespace qk {
 		struct ClearCmd: Cmd {
 			float          depth;
 			Color4f        color;
-			bool           isBlend;
+			bool           full;
 		};
 
 		struct SwitchCmd: Cmd {
@@ -137,7 +137,7 @@ namespace qk {
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color);
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
-		void clearColor4f(const Color4f &color, bool isBlend);
+		void clearColor4f(const Color4f &color, bool full);
 	private:
 		void switchStateCall(GLenum id, bool isEnable);
 		void drawColor4fCall(float depth, const VertexData &vertex, const Color4f &color); // call gl api
@@ -145,7 +145,7 @@ namespace qk {
 		void drawImageMaskCall(float depth, const VertexData &vertex, const ImagePaint *paint, const Color4f &color);
 		void drawGradientCall(float depth, const VertexData &vertex, const GradientPaint *paint, float alpha);
 		void drawClipCall(float depth, const GLC_State::Clip &clip, uint32_t ref, bool revoke);
-		void clearColor4fCall(float depth, const Color4f &color, bool isBlend);
+		void clearColor4fCall(float depth, const Color4f &color, bool full);
 		void clear(); //
 		void checkMetrix();
 		void useShader(GLSLShader *shader, const VertexData &vertex);

@@ -97,7 +97,7 @@ namespace qk {
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
 		bool   _chMatrix; // matrix change state
-		bool   _isMultiThreading, _isClipState;
+		bool   _isMultiThreading, _isClipState; // clip state
 		Mutex  _mutex; // submit swap mutex
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class GLC_CmdPack;

@@ -326,12 +326,12 @@ namespace qk {
 			cmd->revoke = revoke;
 		}
 
-		void GLC_CmdPack::clearColor4f(const Color4f &color, bool isBlend) {
+		void GLC_CmdPack::clearColor4f(const Color4f &color, bool full) {
 			auto cmd = new(allocCmd(sizeof(ClearCmd))) ClearCmd;
 			cmd->type = kClear_CmdType;
 			cmd->color = color;
 			cmd->depth = _canvas->_zDepth;
-			cmd->isBlend = isBlend;
+			cmd->full = full;
 		}
 
 #else
@@ -356,8 +356,8 @@ namespace qk {
 		void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke) {
 			drawClipCall(_canvas->_zDepth, clip, ref, revoke);
 		}
-		void GLC_CmdPack::clearColor4f(const Color4f &color, bool isBlend) {
-			clearColor4fCall(_canvas->_zDepth, color, isBlend);
+		void GLC_CmdPack::clearColor4f(const Color4f &color, bool full) {
+			clearColor4fCall(_canvas->_zDepth, color, full);
 		}
 #endif
 
@@ -373,10 +373,7 @@ namespace qk {
 	}
 		
 	void GLC_CmdPack::switchStateCall(GLenum id, bool isEnable) {
-		if (isEnable)
-			glEnable(id);
-		else
-			glDisable(id);
+		isEnable ? glEnable(id): glDisable(id);
 	}
 
 	void GLC_CmdPack::drawColor4fCall(float depth, const VertexData &vertex, const Color4f &color) {
@@ -441,27 +438,32 @@ namespace qk {
 			(clip.op == Canvas::kDifference_ClipOp ? GL_INCR: GL_DECR):
 			(clip.op == Canvas::kDifference_ClipOp ? GL_DECR: GL_INCR);
 
-		// zfail
-		glStencilOp(GL_KEEP, GL_KEEP, zpass); // test success op
+		glStencilOp(GL_KEEP/*fail*/, GL_KEEP/*zfail*/, zpass); // test success op
 		glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
 
 		_render->_clip.use(clip.vertex.vertex.size(), clip.vertex.vertex.val());
 		glUniform1f(_render->_clip.depth, _render->_zDepth + depth);
-		glUniform4f(_render->_clip.color, 1,1,1,1);
 		glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
 
 		if (clip.aafuzz.vCount) { // draw anti alias alpha
-			//_render->_clip.use(clip.aafuzz.vertex.size(), clip.aafuzz.vertex.val());
-			//glUniform4f(_render->_clip.color, 1,1,1,aa_fuzz_weight);
-			//glDrawArrays(GL_TRIANGLES, 0, clip.aafuzz.vCount); // draw test
+			// _render->_clipaa.use(clip.aafuzz.vertex.size(), clip.aafuzz.vertex.val());
+			// glUniform1f(_render->_clipaa.depth, _render->_zDepth + depth);
+			// glUniform1f(_render->_clipaa.aafuzzWeight, aa_fuzz_weight);
+			// glDrawArrays(GL_TRIANGLES, 0, clip.aafuzz.vCount); // draw test
 		}
+		// TODO fix aafuzz border ..
 
 		glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 	}
 
-	void GLC_CmdPack::clearColor4fCall(float depth, const Color4f &color, bool isBlend) {
-		if (isBlend) {
+	void GLC_CmdPack::clearColor4fCall(float depth, const Color4f &color, bool full) {
+		if (full) {
+			glClearBufferfv(GL_DEPTH, 0, &_render->_zDepth); // clear GL_COLOR_ATTACHMENT0
+			glClearBufferfv(GL_COLOR, 0, color.val);
+			// glClearColor(color.r(), color.g(), color.b(), color.a());
+			// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		} else {
 			float data[] = {
 				-1,1,0,/*left top*/1,1,0,/*right top*/
 				-1,-1,0, /*left bottom*/1,-1,0, /*right bottom*/
@@ -470,12 +472,6 @@ namespace qk {
 			glUniform1f(_render->_clear.depth, _render->_zDepth + depth);
 			glUniform4fv(_render->_clear.color, 1, color.val);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		} else {
-			glClearBufferfv(GL_DEPTH, 0, &_render->_zDepth); // clear GL_COLOR_ATTACHMENT0
-			glClearBufferfv(GL_COLOR, 0, color.val);
-			// glClearColor(color.r(), color.g(), color.b(), color.a());
-			// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			// drawColor(color, kSrcOver_BlendMode);
 		}
 	}
 
@@ -503,7 +499,7 @@ namespace qk {
 					break;
 				case kClear_CmdType: {
 					auto cmd1 = (ClearCmd*)cmd;
-					clearColor4fCall(cmd1->depth, cmd1->color, cmd1->isBlend);
+					clearColor4fCall(cmd1->depth, cmd1->color, cmd1->full);
 					break;
 				}
 				case kClip_CmdType: {
