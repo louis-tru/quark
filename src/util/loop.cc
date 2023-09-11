@@ -402,7 +402,7 @@ namespace qk {
 				return 0;
 			}
 			if (!delay_us && _tid == thread_current_id()) { //is current
-				exec->release();
+				exec->resolve();
 				return 0;
 			}
 			ScopeLock lock(_mutex);
