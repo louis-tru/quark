@@ -73,8 +73,10 @@ namespace qk {
 		float  _zDepth;
 		GLCanvas _glCanvas; // main canvas
 		GLSLClear _clear; // shader
-		GLSLClip  _clip;
+		GLSLClipTest _clipTest;
+		GLSLClipFill _clipFill;
 		GLSLClipAa  _clipaa;
+		GLSLClipAaRevoke _clipaaRevoke;
 		GLSLColor _color;
 		GLSLColor1 _color1;
 		GLSLColorLinear _linear;
@@ -82,7 +84,7 @@ namespace qk {
 		GLSLImage _image;
 		GLSLImageMask _imageMask;
 		GLSLImageYuv _imageYuv;
-		GLSLShader  *_shaders[10];
+		GLSLShader  *_shaders[12];
 		// --------------------------------------------
 	};
 }

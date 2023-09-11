@@ -377,6 +377,7 @@ namespace qk {
 	}
 
 	void GLC_CmdPack::drawColor4fCall(float depth, const VertexData &vertex, const Color4f &color) {
+		// _render->setBlendMode(kSrc_BlendMode);
 		useShader(&_render->_color, vertex);
 		glUniform1f(_render->_color.depth, _render->_zDepth + depth);
 		glUniform4fv(_render->_color.color, 1, color.val);
@@ -434,27 +435,52 @@ namespace qk {
 	}
 
 	void GLC_CmdPack::drawClipCall(float depth, const GLC_State::Clip &clip, uint32_t ref, bool revoke) {
-		GLenum zpass = revoke ?
-			(clip.op == Canvas::kDifference_ClipOp ? GL_INCR: GL_DECR):
-			(clip.op == Canvas::kDifference_ClipOp ? GL_DECR: GL_INCR);
+		depth += _render->_zDepth;
 
-		glStencilOp(GL_KEEP/*fail*/, GL_KEEP/*zfail*/, zpass); // test success op
-		glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
+		auto clipAa = [](GLRender *_render, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C) {
+			auto chMode = _render->_blendMode;
+			if (chMode != kSrc_BlendMode)
+				_render->setBlendMode(kSrc_BlendMode);
+			auto shader = revoke ? (GLSLClipAa*)&_render->_clipaaRevoke: &_render->_clipaa;
+			float aafuzzWeight = W;//* 0.1f;
+			shader->use(clip.aafuzz.vertex.size(), clip.aafuzz.vertex.val());
+			glUniform1f(shader->depth, depth);
+			glUniform1f(shader->aafuzzWeight, aafuzzWeight);
+			//glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W
+			glUniform1f(shader->aafuzzConst, C);
+			glUniform1f(shader->depth, depth);
+			glDrawArrays(GL_TRIANGLES, 0, clip.aafuzz.vCount); // draw test
+			if (chMode != kSrc_BlendMode)
+				_render->setBlendMode(chMode);
+		};
 
-		_render->_clip.use(clip.vertex.vertex.size(), clip.vertex.vertex.val());
-		glUniform1f(_render->_clip.depth, _render->_zDepth + depth);
-		glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
+		if (clip.op == Canvas::kDifference_ClipOp) { // difference clip
+			glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
+			glStencilOp(GL_KEEP/*fail*/, GL_KEEP/*zfail*/, revoke ? GL_INCR: GL_DECR/*zpass*/); // test success op
+			_render->_clipTest.use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
+			glUniform1f(_render->_clipTest.depth, depth);
+			glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
 
-		if (clip.aafuzz.vCount) { // draw anti alias alpha
-			// _render->_clipaa.use(clip.aafuzz.vertex.size(), clip.aafuzz.vertex.val());
-			// glUniform1f(_render->_clipaa.depth, _render->_zDepth + depth);
-			// glUniform1f(_render->_clipaa.aafuzzWeight, aa_fuzz_weight);
-			// glDrawArrays(GL_TRIANGLES, 0, clip.aafuzz.vCount); // draw test
+			if (clip.aafuzz.vCount) { // draw anti alias alpha
+				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
+				glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
+				clipAa(_render, depth, clip, revoke, aa_fuzz_weight, 0);
+				return;
+			}
+		} else { // intersect clip
+			auto shader = 0/*ref == 128 && !revoke*/ ?
+				(GLSLClipTest*)&_render->_clipFill: &_render->_clipTest; // init fill
+			glStencilOp(GL_KEEP, GL_KEEP, revoke ? GL_DECR: GL_INCR); // test success op
+			// shader->use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
+			// glUniform1f(shader->depth, depth);
+			// glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
+
+			if (clip.aafuzz.vCount) { // draw anti alias alpha
+				clipAa(_render, depth, clip, revoke, -aa_fuzz_weight, -1);
+			}
 		}
-		// TODO fix aafuzz border ..
-
-		glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
+		glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
 	}
 
 	void GLC_CmdPack::clearColor4fCall(float depth, const Color4f &color, bool full) {
@@ -492,7 +518,7 @@ namespace qk {
 					setMetrixUnifromBuffer(((MatrixCmd*)cmd)->matrix);
 					break;
 				case kBlend_CmdType:
-					setBlendMode(((BlendCmd*)cmd)->mode);
+					_render->setBlendMode(((BlendCmd*)cmd)->mode);
 					break;
 				case kSwitch_CmdType:
 					switchStateCall(((SwitchCmd*)cmd)->id, ((SwitchCmd*)cmd)->value);

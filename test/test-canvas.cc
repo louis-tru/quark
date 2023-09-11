@@ -25,7 +25,7 @@ public:
 
 		// -------- clip ------
 		canvas->save();
-		canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+		// canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 
 		{ // gradient
 			Paint paint;
@@ -54,7 +54,8 @@ public:
 
 		// -------- clip ------
 		// canvas->save();
-		canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kDifference_ClipOp, 1);
+		//canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kDifference_ClipOp, 1);
+		canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kIntersect_ClipOp, 1);
 
 		{ // polygon
 			paint.color = Color4f(0, 0, 0, 0.8);
@@ -93,15 +94,15 @@ public:
 		}
 
 		{ // outline
-			paint.color = Color4f(0, 0, 0);
-			canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
-			paint.color = Color4f(0, 1, 1);
-			canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
-			Qk_DEBUG("%d", sizeof(signed long));
-			paint.color = Color4f(0, 0, 0);
-			paint.style = Paint::kStroke_Style;
-			paint.width = 4;
-			canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
+			// paint.color = Color4f(0, 0, 0);
+			// canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
+			// paint.color = Color4f(0, 1, 1);
+			// canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
+			// Qk_DEBUG("%d", sizeof(signed long));
+			// paint.color = Color4f(0, 0, 0);
+			// paint.style = Paint::kStroke_Style;
+			// paint.width = 4;
+			// canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
 		}
 	}
 };

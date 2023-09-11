@@ -18,7 +18,7 @@ public:
 		canvas->save();
 		canvas->translate(-115, 0);
 
-		canvas->clearColor(Color4f(1,1,1));
+		canvas->clearColor(Color4f(0,0,1));
 		auto size = pre_render()->host()->display()->size();
 
 		Paint paint;
@@ -26,8 +26,8 @@ public:
 		paint.color = Color4f(0, 0, 0);
 		//canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
 
-		paint.color = Color4f(0, 1, 1);
-		//canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
+		paint.color = Color4f(0, 0.5, 0.5, 0.1);
+		canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 
 		paint.color = Color4f(1, 0, 0, 0.3);
 		//auto circle = Path::MakeCircle(size/2, 105, false);
@@ -68,6 +68,7 @@ public:
 		// canvas->drawPath(circle, paint);
 
 		// paint.antiAlias = false;
+		paint.color = Color4f(0.5,0.5,0.5,0.5);
 		// circle = Path::MakeRect({size/2-105,210});
 
 		canvas->drawPath(circle, paint);

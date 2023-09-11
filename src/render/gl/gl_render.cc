@@ -41,7 +41,7 @@ namespace qk {
 	GLint gl_get_texture_pixel_format(ColorType type) {
 #if Qk_APPLE
 #if Qk_OSX
-#define GL_LUMINANCE                      0x1909
+#define GL_LUMINANCE                      GL_RED
 #define GL_LUMINANCE_ALPHA                0x190A
 #endif
 		switch (type) {
@@ -240,24 +240,27 @@ namespace qk {
 
 	void gl_set_blend_mode(BlendMode blendMode) {
 		switch (blendMode) {
-			case kClear_BlendMode:         //!< r = 0
+			case kClear_BlendMode:         //!< r = 0 + (1-sa)*d
+				// glBlendFunc (sfactor, dfactor)
 				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 			case kSrc_BlendMode:           //!< r = s
 				glBlendFunc(GL_ONE, GL_ZERO);
+				// glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ZERO, GL_ZERO);
 				break;
 			case kDst_BlendMode:           //!< r = d
 				glBlendFunc(GL_ZERO, GL_ONE);
 				break;
 			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
 				/** [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] */
-				// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				// glBlendFuncSeparate (sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha)
+				//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 			case kDstOver_BlendMode:       //!< r = (1-da)*s + d
 				/** [Sa + (1 - Sa)*Da, Rc = Dc + (1 - Da)*Sc] */
-				// glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
-				glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
+				//glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
 				break;
 			case kSrcIn_BlendMode:         //!< r = da*s
 				glBlendFunc(GL_DST_ALPHA, GL_ZERO);
@@ -339,7 +342,7 @@ namespace qk {
 		, _zDepth(0)
 		, _glCanvas(this, opts.isMultiThreading)
 		, _shaders{
-			&_clear, &_clip, &_clipaa, &_color, &_color1, &_image, &_imageMask, &_linear, &_radial, &_imageYuv
+			&_clear, &_clipTest, &_clipFill, &_clipaa, &_clipaaRevoke, &_color, &_color1, &_image, &_imageMask, &_linear, &_radial, &_imageYuv
 		}
 	{
 		switch(_opts.colorType) {
@@ -399,6 +402,10 @@ namespace qk {
 
 		glUseProgram(_clipaa.shader);
 		glUniform1i(_clipaa.aaclip, _maxTextureImageUnits); // set texture slot
+		glUseProgram(_clipaaRevoke.shader);
+		glUniform1i(_clipaaRevoke.aaclip, _maxTextureImageUnits); // set texture slot
+		glUseProgram(_color.shader);
+		glUniform1i(_color.aaclip, _maxTextureImageUnits); // set texture slot
 
 		glUseProgram(_color1.shader);
 		GLuint optsBlock = glGetUniformBlockIndex(_color1.shader, "optsBlock");
@@ -513,13 +520,14 @@ namespace qk {
 		if (msaaSample <= 1) {
 			glActiveTexture(GL_TEXTURE0 + _maxTextureImageUnits); // 15 only use on aa alpha
 			glBindTexture(GL_TEXTURE_2D, _clipAAAlphaBuffer);
-			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, GL_ALPHA/*internalformat*/,
-									width, height, 0/*border*/, GL_ALPHA/*format*/, GL_UNSIGNED_BYTE/*type*/, nullptr);
+			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, GL_RGBA/*internalformat*/,
+									width, height, 0/*border*/, GL_RGBA/*format*/, GL_UNSIGNED_BYTE/*type*/, nullptr); // GL_UNSIGNED_INT_8_8_8_8
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, _clipAAAlphaBuffer, 0);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _clipAAAlphaBuffer, 0);
 		}
 	}
 

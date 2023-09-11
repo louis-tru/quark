@@ -209,6 +209,9 @@ public:
 
 		setClipAABuffer(size.x(), size.y(), _opts.msaa);
 
+		// const GLenum buffers[]{ GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
+		// glDrawBuffers(2, buffers);
+
 		_glCanvas.onSurfaceReload(mat, surfaceScale);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 

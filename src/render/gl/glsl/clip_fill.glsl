@@ -1,0 +1,11 @@
+#vert
+void main() {
+	gl_Position = matrix * vec4(vertexIn.xy, depth, 1.0);
+}
+
+#frag
+layout(location=1) out lowp vec4 aaclipOut; // clip anti alias alpha
+
+void main() {
+	aaclipOut = vec4(1.0,1.0,1.0,1.0);
+}

@@ -89,7 +89,7 @@ namespace qk {
 			if (clip.vertex.vCount == 0) return;
 
 			if (antiAlias && !_render->_IsDeviceMsaa) {
-				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_unitPixel*aa_fuzz_width);
+				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_unitPixel*10/*aa_fuzz_width*/);
 				if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
 					clip.aafuzz = path.getAAFuzzStrokeTriangle(_unitPixel*aa_fuzz_width);
 				}
@@ -271,7 +271,8 @@ namespace qk {
 		if (count > 0) {
 			do {
 				auto &state = _stateStack.back();
-				for (auto &clip: state.clips) {
+				for (int i = state.clips.length() - 1; i >= 0; i--) {
+					auto &clip = state.clips[i];
 					if (clip.op == kDifference_ClipOp) {
 						_stencilRefDecr++;
 					} else {
