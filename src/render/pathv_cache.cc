@@ -76,7 +76,7 @@ namespace qk {
 		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&miterLimit;
 		hash += (hash << 5) + hash_part + ((cap << 2) | join);
 		Path *const*out;
-		if (_StrokePathCache.get(hash, out)) **out;
+		if (_StrokePathCache.get(hash, out)) return **out;
 		// if (_StrokePathCache.length() >= 1024) _StrokePathCache.clear(); // TODO ... release data
 		auto stroke = path.strokePath(width,cap,join,miterLimit);
 		return *_StrokePathCache.set(hash,
