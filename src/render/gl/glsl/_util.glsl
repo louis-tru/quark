@@ -18,5 +18,6 @@ out                         float aafuzz;
 uniform                     float depth;
 #else
 in                     lowp float aafuzz;
+uniform  sampler2D                aaclip; // anti alias clip texture buffer
 layout(location=0) out lowp vec4  fragColor;
 #endif

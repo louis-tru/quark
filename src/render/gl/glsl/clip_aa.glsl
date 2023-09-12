@@ -7,8 +7,7 @@ void main() {
 #frag
 uniform                float     aafuzzWeight;
 uniform                float     aafuzzConst;
-uniform                sampler2D aaclip;
-layout(location=1) out lowp vec4 aaclipOut; // clip anti alias alpha
+layout(location=1) out lowp vec4 aaclipOut; // output anti alias clip texture buffer
 
 void main() {
 	//
@@ -22,7 +21,10 @@ void main() {
 	// C'   = C + C1/W
 	// F = C'.W + Fuzz.W
 	lowp float alpha = (aafuzzConst + abs(aafuzz)) * aafuzzWeight;
-	lowp float clip = texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).a;
-	// aaclipOut = vec4(1.0,1.0,1.0,clip * alpha);
-	aaclipOut = vec4(1.0,0.0,0.0,1.0);
+	lowp float clip = texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r;
+#ifdef Qk_SHAFER_AACLIP_REVOKE
+	aaclipOut = vec4(clip / alpha);
+#else
+	aaclipOut = vec4(clip * alpha);
+#endif
 }

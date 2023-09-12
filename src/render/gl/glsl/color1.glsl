@@ -33,5 +33,10 @@ void main() {
 	// fuzz value range: 1 => 0, alpha range: 0 => 1
 	lowp float aaalpha = 1.0 - abs(aafuzz);
 	fragColor = color;
+
+#ifdef Qk_SHAFER_AACLIP
+	fragColor.a *= aaalpha * smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
+#else
 	fragColor.a *= aaalpha;
+#endif
 }

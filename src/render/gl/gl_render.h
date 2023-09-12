@@ -51,6 +51,7 @@ namespace qk {
 		void             setBlendMode(BlendMode mode);
 	protected:
 		GLRender(Options opts);
+		virtual void setBuffers();
 		virtual void setMainRenderBuffer(int width, int height);
 		virtual void setMSAARenderBuffer(int width, int height, int msaaSample);
 		virtual void setDepthStencilBuffer(int width, int height, int msaaSample);
@@ -74,7 +75,6 @@ namespace qk {
 		GLCanvas _glCanvas; // main canvas
 		GLSLClear _clear; // shader
 		GLSLClipTest _clipTest;
-		GLSLClipFill _clipFill;
 		GLSLClipAa  _clipaa;
 		GLSLClipAaRevoke _clipaaRevoke;
 		GLSLColor _color;
@@ -84,7 +84,7 @@ namespace qk {
 		GLSLImage _image;
 		GLSLImageMask _imageMask;
 		GLSLImageYuv _imageYuv;
-		GLSLShader  *_shaders[12];
+		GLSLShader  *_shaders[11];
 		// --------------------------------------------
 	};
 }

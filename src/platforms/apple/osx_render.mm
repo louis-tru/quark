@@ -202,32 +202,34 @@ public:
 			return;
 
 		CGLLockContext(_ctx.CGLContextObj);
-		//[_ctx makeCurrentContext];
 
-		glViewport(0, 0, size.x(), size.y());
-		glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
-
-		setClipAABuffer(size.x(), size.y(), _opts.msaa);
-
+		// glViewport(0, 0, size.x(), size.y());
+		// glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
+		// setClipAABuffer(size.x(), size.y(), _opts.msaa);
 		// const GLenum buffers[]{ GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
 		// glDrawBuffers(2, buffers);
+		// _glCanvas.onSurfaceReload(mat, surfaceScale);
 
+		setBuffers();
 		_glCanvas.onSurfaceReload(mat, surfaceScale);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-		// [NSOpenGLContext clearCurrentContext]; // clear ctx
 		CGLUnlockContext(_ctx.CGLContextObj);
 	}
 
 	void begin() override {
 		[_view lockRender];
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer); // bind frame buffer
 	}
 
 	void submit() override {
-		_glCanvas.flushBuffer(); // commit gl cmd
-		glFlush(); // glFenceSync, glWaitSync
-		[_ctx flushBuffer]; // swap double buffer, glFinish
+		_glCanvas.flushBuffer(); // commit gl canvas cmd
+		// copy pixels to default color buffer
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		auto w = _surfaceSize.x(), h = _surfaceSize.y();
+		glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		// flush gl buffer
+		glFlush(); // glFinish, glFenceSync, glWaitSync
+		[_ctx flushBuffer]; // swap double buffer
 		[_view unlockRender];
 	}
 
@@ -283,38 +285,41 @@ QkAppleRender* qk_make_apple_gl_render(Render::Options opts) {
 	attrs[i++] = NSOpenGLProfileVersion3_2Core; // OpenGL3.2
 	//attrs[i++] = NSOpenGLPFAColorSize; attrs[i++] = 24u; // color buffer bits
 	//attrs[i++] = NSOpenGLPFAAlphaSize; attrs[i++] = 8u; // alpha buffer size
-	attrs[i++] = NSOpenGLPFAStencilSize; attrs[i++] = 8u; // Stencil buffer bit depth
+	//attrs[i++] = NSOpenGLPFAStencilSize; attrs[i++] = 8u; // Stencil buffer bit depth
 	attrs[i++] = NSOpenGLPFANoRecovery; // Disable all failover systems
 	attrs[i++] = NSOpenGLPFAScreenMask; attrs[i++] = glDisplayMask; // display
 	//attrs[i++] = NSOpenGLPFAAllRenderers; // Choose from all available renderers
 	//attrs[i++] = NSOpenGLPFAOffScreen;
 	//attrs[i++] = NSOpenGLPFAAllowOfflineRenderers; // Allow off-screen rendering
-	attrs[i++] = NSOpenGLPFADepthSize; attrs[i++] = 24u;//MSAA <= 1 ? 24u: 0u; // number of multi sample buffers
-
-	if (MSAA > 1) { // use msaa
-		attrs[i++] = NSOpenGLPFAMultisample; // choose multisampling
-		attrs[i++] = NSOpenGLPFASampleBuffers; attrs[i++] = 1u; // number of multi sample buffers
-		attrs[i++] = NSOpenGLPFASamples; attrs[i++] = MSAA; // number of multisamples
-	};
-
+	//attrs[i++] = NSOpenGLPFADepthSize; attrs[i++] = 24u;//MSAA <= 1 ? 24u: 0u; // number of multi sample buffers
+	//if (MSAA > 1) { // use msaa
+	//	attrs[i++] = NSOpenGLPFAMultisample; // choose multisampling
+	//	attrs[i++] = NSOpenGLPFASampleBuffers; attrs[i++] = 1u; // number of multi sample buffers
+	//	attrs[i++] = NSOpenGLPFASamples; attrs[i++] = MSAA; // number of multisamples
+	//};
 	auto format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
 	auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
-	auto prev = NSOpenGLContext.currentContext;
+	auto prevCtx = NSOpenGLContext.currentContext;
 
-	//GLint stencilBits;
-	//[ctx.pixelFormat getValues:&stencilBits forAttribute:NSOpenGLPFAStencilSize forVirtualScreen:0];
-	//GLint sampleCount;
-	//[ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
+#if DEBUG
+	GLint stencilBits;
+	[ctx.pixelFormat getValues:&stencilBits forAttribute:NSOpenGLPFAStencilSize forVirtualScreen:0];
+	GLint depthSize;
+	[ctx.pixelFormat getValues:&depthSize forAttribute:NSOpenGLPFADepthSize forVirtualScreen:0];
+	GLint sampleCount;
+	[ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
+	Qk_DEBUG("stencilBits:%d,depthSize:%d,sampleCount:%d", stencilBits, depthSize, sampleCount);
+#endif
 
-	CGLLockContext(ctx.CGLContextObj);
+//	CGLLockContext(ctx.CGLContextObj);
 	[ctx makeCurrentContext];
 	Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
 	auto render = new AppleGLRender(opts,ctx);
 	CGLUnlockContext(ctx.CGLContextObj);
 	[NSOpenGLContext clearCurrentContext]; // clear ctx
 
-	if (prev)
-		[prev makeCurrentContext];
+	if (prevCtx)
+		[prevCtx makeCurrentContext];
 
 	return render;
 }

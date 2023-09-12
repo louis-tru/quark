@@ -25,7 +25,7 @@ public:
 
 		// -------- clip ------
 		canvas->save();
-		// canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+		canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 
 		{ // gradient
 			Paint paint;
@@ -53,9 +53,8 @@ public:
 		}
 
 		// -------- clip ------
-		// canvas->save();
-		//canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kDifference_ClipOp, 1);
-		canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kIntersect_ClipOp, 1);
+		canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kDifference_ClipOp, 1);
+		// canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kIntersect_ClipOp, 1);
 
 		{ // polygon
 			paint.color = Color4f(0, 0, 0, 0.8);
@@ -104,6 +103,8 @@ public:
 			// paint.width = 4;
 			// canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
 		}
+
+		mark_none(kLayout_None);
 	}
 };
 

@@ -342,7 +342,7 @@ namespace qk {
 		, _zDepth(0)
 		, _glCanvas(this, opts.isMultiThreading)
 		, _shaders{
-			&_clear, &_clipTest, &_clipFill, &_clipaa, &_clipaaRevoke, &_color, &_color1, &_image, &_imageMask, &_linear, &_radial, &_imageYuv
+			&_clear, &_clipTest, &_clipaa, &_clipaaRevoke, &_color, &_color1, &_image, &_imageMask, &_linear, &_radial, &_imageYuv
 		}
 	{
 		switch(_opts.colorType) {
@@ -435,9 +435,14 @@ namespace qk {
 		auto size = getSurfaceSize();
 		Mat4 mat;
 		Vec2 surfaceScale;
-		if (!_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale(), &mat, &surfaceScale))
+		if (_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale(), &mat, &surfaceScale))
 			return;
+		setBuffers();
+		_glCanvas.onSurfaceReload(mat, surfaceScale);
+	}
 
+	void GLRender::setBuffers() {
+		auto size = getSurfaceSize();
 		auto w = size.x(), h = size.y();
 
 		Qk_ASSERT(w, "Invalid viewport size width");
@@ -483,9 +488,7 @@ namespace qk {
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
-
-		_glCanvas.onSurfaceReload(mat, surfaceScale);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
 	void GLRender::setMainRenderBuffer(int width, int height) {
@@ -520,8 +523,8 @@ namespace qk {
 		if (msaaSample <= 1) {
 			glActiveTexture(GL_TEXTURE0 + _maxTextureImageUnits); // 15 only use on aa alpha
 			glBindTexture(GL_TEXTURE_2D, _clipAAAlphaBuffer);
-			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, GL_RGBA/*internalformat*/,
-									width, height, 0/*border*/, GL_RGBA/*format*/, GL_UNSIGNED_BYTE/*type*/, nullptr); // GL_UNSIGNED_INT_8_8_8_8
+			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, GL_LUMINANCE/*internalformat*/,
+									width, height, 0/*border*/, GL_LUMINANCE/*format*/, GL_UNSIGNED_BYTE/*type*/, nullptr); // GL_LUMINANCE
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

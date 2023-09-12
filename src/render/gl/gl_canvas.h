@@ -47,6 +47,7 @@ namespace qk {
 		};
 		Mat         matrix;
 		Array<Clip> clips;
+		uint32_t    aaclip; // Is there a aa clip area
 	};
 
 	class GLRender; // gl render backend

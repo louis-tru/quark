@@ -64,6 +64,7 @@ namespace qk {
 		struct DrawCmd: Cmd {
 			VertexData     vertex;
 			float          depth;
+			bool           aaclip;
 		};
 		struct MatrixCmd: Cmd {
 			Mat            matrix;
@@ -122,6 +123,7 @@ namespace qk {
 			Option         *opts;  // subcmd option
 			uint32_t       vCount; // vertex count
 			int            subcmd; // subcmd count
+			uint32_t       aaclip;
 		};
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();
@@ -140,10 +142,10 @@ namespace qk {
 		void clearColor4f(const Color4f &color, bool full);
 	private:
 		void switchStateCall(GLenum id, bool isEnable);
-		void drawColor4fCall(float depth, const VertexData &vertex, const Color4f &color); // call gl api
-		void drawImageCall(float depth, const VertexData &vertex, const ImagePaint *paint, float alpha);
-		void drawImageMaskCall(float depth, const VertexData &vertex, const ImagePaint *paint, const Color4f &color);
-		void drawGradientCall(float depth, const VertexData &vertex, const GradientPaint *paint, float alpha);
+		void drawColor4fCall(float depth, bool aaclip, const VertexData &vertex, const Color4f &color); // call gl api
+		void drawImageCall(float depth, bool aaclip, const VertexData &vertex, const ImagePaint *paint, float alpha);
+		void drawImageMaskCall(float depth, bool aaclip, const VertexData &vertex, const ImagePaint *paint, const Color4f &color);
+		void drawGradientCall(float depth, bool aaclip, const VertexData &vertex, const GradientPaint *paint, float alpha);
 		void drawClipCall(float depth, const GLC_State::Clip &clip, uint32_t ref, bool revoke);
 		void clearColor4fCall(float depth, const Color4f &color, bool full);
 		void clear(); //

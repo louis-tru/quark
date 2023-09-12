@@ -89,10 +89,11 @@ namespace qk {
 			if (clip.vertex.vCount == 0) return;
 
 			if (antiAlias && !_render->_IsDeviceMsaa) {
-				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_unitPixel*10/*aa_fuzz_width*/);
+				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_unitPixel*aa_fuzz_width);
 				if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
 					clip.aafuzz = path.getAAFuzzStrokeTriangle(_unitPixel*aa_fuzz_width);
 				}
+				_state->aaclip++;
 			}
 
 			if (!_isClipState) {
@@ -228,7 +229,7 @@ namespace qk {
 	{
 		_cmdPack = new GLC_CmdPack(render, this);
 		_cmdPackFront = isMultiThreading ? new GLC_CmdPack(render, this): _cmdPack;
-		_stateStack.push({ .matrix=Mat() }); // init state
+		_stateStack.push({ .matrix=Mat(), .aaclip=0 }); // init state
 		_state = &_stateStack.back();
 		setMatrix(_state->matrix); // init shader matrix
 	}
@@ -258,7 +259,8 @@ namespace qk {
 	}
 
 	int GLCanvas::save() {
-		_stateStack.push({ .matrix=_stateStack.back().matrix });
+		auto &state = _stateStack.back();
+		_stateStack.push({ .matrix=state.matrix,.aaclip=state.aaclip });
 		_state = &_stateStack.back();
 		return _stateStack.length();
 	}
@@ -270,9 +272,8 @@ namespace qk {
 
 		if (count > 0) {
 			do {
-				auto &state = _stateStack.back();
-				for (int i = state.clips.length() - 1; i >= 0; i--) {
-					auto &clip = state.clips[i];
+				for (int i = _state->clips.length() - 1; i >= 0; i--) {
+					auto &clip = _state->clips[i];
 					if (clip.op == kDifference_ClipOp) {
 						_stencilRefDecr++;
 					} else {
@@ -286,7 +287,7 @@ namespace qk {
 				count--;
 			} while (count > 0);
 
-			if (_stencilRef == 127 && _stencilRefDecr == 127) { // not stencil test
+			if (_isClipState && _stencilRef == 127 && _stencilRefDecr == 127) { // not stencil test
 				_isClipState = false;
 				_cmdPack->switchState(GL_STENCIL_TEST, false); // disable stencil test
 			}
@@ -311,6 +312,12 @@ namespace qk {
 		if (!_render->_IsDeviceMsaa) { // clear clip aa buffer
 			float color[] = {1.0f,1.0f,1.0f,1.0f};
 			glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
+#if Qk_OSX
+			// ensure clip texture clear can be executed correctly in sequence
+			glFlushRenderAPPLE();
+#else
+			glFlush();
+#endif
 		}
 		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
 		glDisable(GL_STENCIL_TEST); // disable stencil test

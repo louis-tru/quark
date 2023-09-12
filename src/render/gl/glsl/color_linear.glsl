@@ -31,8 +31,13 @@ void main() {
 			s = idx; e = idx+1; break;
 		}
 	}
-	lowp float w = (indexed - positions[s]) / (positions[e] - positions[s]);
-	lowp vec4  color = mix(colors[s], colors[e], w);
 	lowp float aaalpha = 1.0 - abs(aafuzz);
-	fragColor = vec4(color.rgb, color.a * alpha * aaalpha);
+	lowp float w = (indexed - positions[s]) / (positions[e] - positions[s]);
+	fragColor = mix(colors[s], colors[e], w);
+
+#ifdef Qk_SHAFER_AACLIP
+	fragColor.a *= aaalpha * alpha * smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
+#else
+	fragColor.a *= aaalpha * alpha;
+#endif
 }
