@@ -71,7 +71,6 @@ namespace qk {
 		GLint  _maxTextureSize;
 		GLint  _maxTextureBufferSize;
 		GLint  _maxTextureImageUnits;
-		float  _zDepth;
 		GLCanvas _glCanvas; // main canvas
 		GLSLClear _clear; // shader
 		GLSLClipTest _clipTest;

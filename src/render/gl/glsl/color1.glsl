@@ -16,7 +16,7 @@ smooth   out vec4  color;
 	opt.m0, opt.m3, 0.0, 0.0, \
 	opt.m1, opt.m4, 0.0, 0.0, \
 	0.0,    0.0,    1.0, 0.0, \
-	opt.m2, opt.m5, depth, 1.0)
+	opt.m2, opt.m5, 0.0, 1.0)
 #define _matrix (rootMatrix * _vmatrix)
 
 void main() {

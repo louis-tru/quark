@@ -378,8 +378,8 @@ namespace qk {
 	}
 
 	void GLCanvas::clearColor(const Color4f& color) {
-		_cmdPack->clearColor4f(color, true); // clear color/clip/depth
 		_zDepth = 0; // set z depth state
+		_cmdPack->clearColor4f(color, true); // clear color/clip/depth
 	}
 
 	void GLCanvas::drawColor(const Color4f &color, BlendMode mode) {

@@ -189,7 +189,6 @@ namespace qk {
 	}
 
 #if Qk_USE_GLC_CMD_QUEUE
-
 		void GLC_CmdPack::checkMetrix() {
 			if (_canvas->_chMatrix) {
 				auto cmd = (MatrixCmd*)allocCmd(sizeof(MatrixCmd));
@@ -213,58 +212,7 @@ namespace qk {
 		}
 
 		void GLC_CmdPack::drawColor4f(const VertexData &vertex, const Color4f &color) {
-			if ( vertex.vertex.length() ) {
-				auto vertexp = vertex.vertex.val();
-				auto vertexLen = vertex.vCount;
-				do {
-					auto cmd = getMColorCmd();
-					cmd->opts[cmd->subcmd] = { // setting vertex option data
-						.flags  = 0,                       .depth = _canvas->_zDepth,
-						.matrix = _canvas->_state->matrix, .color = color,
-					};
-					auto vertexs = vertexBlocks.current;
-					auto prevSize = vertexs->size;
-					int  cpLen = Qk_MCCmd_VertexBlock_Capacity - prevSize;
-					auto cpSrc = vertexp;
-
-					optionBlocks.current->size++;
-
-					if (cpLen < vertexLen) { // not enough space
-						vertexs->size = Qk_MCCmd_VertexBlock_Capacity;
-						vertexp += cpLen;
-						vertexLen -= cpLen;
-					} else {
-						vertexs->size = prevSize + vertexLen;
-						cpLen = vertexLen;
-						vertexLen = 0;
-					}
-
-					const float subcmd = *((float*)&cmd->subcmd);
-					auto p = vertexs->val + prevSize;
-					auto p_1 = p + cpLen;
-
-					// copy vertex data
-					while (p < p_1) {
-#if DEBUG
-						*p = *((Vec4*)(cpSrc)); p->val[3] = subcmd;
-						p++,cpSrc++;
-						*p = *((Vec4*)(cpSrc)); p->val[3] = subcmd;
-						p++,cpSrc++;
-						*p = *((Vec4*)(cpSrc)); p->val[3] = subcmd;
-						p++,cpSrc++;
-#else
-						*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
-						p++,cpSrc++;
-						*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
-						p++,cpSrc++;
-						*p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd};
-						p++,cpSrc++;
-#endif
-					}
-					cmd->vCount += cpLen;
-					cmd->subcmd++;
-				} while(vertexLen);
-			} else {
+			if ( !vertex.vertex.length() ) {
 				checkMetrix(); // check matrix change
 				auto cmd = new(allocCmd(sizeof(ColorCmd))) ColorCmd;
 				cmd->type = kColor_CmdType;
@@ -272,7 +220,55 @@ namespace qk {
 				cmd->depth = _canvas->_zDepth;
 				cmd->aaclip = _canvas->_state->aaclip;
 				cmd->color = color;
+				return;
 			}
+
+			// add multi color subcmd
+			auto vertexp = vertex.vertex.val();
+			auto vertexLen = vertex.vCount;
+			do {
+				auto cmd = getMColorCmd();
+				cmd->opts[cmd->subcmd] = { // setting vertex option data
+					.flags  = 0,                       .depth = _canvas->_zDepth,
+					.matrix = _canvas->_state->matrix, .color = color,
+				};
+				auto vertexs = vertexBlocks.current;
+				auto prevSize = vertexs->size;
+				int  cpLen = Qk_MCCmd_VertexBlock_Capacity - prevSize;
+				auto cpSrc = vertexp;
+
+				optionBlocks.current->size++;
+
+				if (cpLen < vertexLen) { // not enough space
+					vertexs->size = Qk_MCCmd_VertexBlock_Capacity;
+					vertexp += cpLen;
+					vertexLen -= cpLen;
+				} else {
+					vertexs->size = prevSize + vertexLen;
+					cpLen = vertexLen;
+					vertexLen = 0;
+				}
+
+				const float subcmd = *((float*)&cmd->subcmd);
+				auto p = vertexs->val + prevSize;
+				auto p_1 = p + cpLen;
+
+				// copy vertex data
+				while (p < p_1) {
+#if DEBUG
+					#define Qk_CopyVec() *p = *((Vec4*)(cpSrc)); p->val[3] = subcmd; p++,cpSrc++
+#else
+					#define Qk_CopyVec() *p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd}; p++,cpSrc++
+#endif
+					Qk_CopyVec();
+					Qk_CopyVec();
+					Qk_CopyVec();
+					Qk_CopyVec();
+					#undef Qk_CopyVec
+				}
+				cmd->vCount += cpLen;
+				cmd->subcmd++;
+			} while(vertexLen);
 		}
 
 		void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha) {
@@ -382,7 +378,7 @@ namespace qk {
 
 	void GLC_CmdPack::drawColor4fCall(float depth, bool aaclip, const VertexData &vertex, const Color4f &color) {
 		useShader(&_render->_color, vertex);
-		glUniform1f(_render->_color.depth, _render->_zDepth + depth);
+		glUniform1f(_render->_color.depth, depth);
 		glUniform4fv(_render->_color.color, 1, color.val);
 		glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 	}
@@ -404,7 +400,7 @@ namespace qk {
 			useShader(shader, vertex);
 		}
 		_render->setTexture(src->pixels().val(), 0, paint);
-		glUniform1f(shader->depth, _render->_zDepth + depth);
+		glUniform1f(shader->depth, depth);
 		glUniform1f(shader->alpha, alpha);
 		glUniform4fv(shader->coord, 1, paint->coord.origin.val);
 		glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
@@ -414,7 +410,7 @@ namespace qk {
 		auto shader = &_render->_imageMask;
 		_render->setTexture(paint->source->pixels().val(), 0, paint);
 		useShader(shader, vertex);
-		glUniform1f(shader->depth, _render->_zDepth + depth);
+		glUniform1f(shader->depth, depth);
 		glUniform4fv(shader->color, 1, color.val);
 		glUniform4fv(shader->coord, 1, paint->coord.origin.val);
 		glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
@@ -426,7 +422,7 @@ namespace qk {
 			static_cast<GLSLColorRadial*>(static_cast<GLSLShader*>(&_render->_linear));
 		auto count = paint->count;
 		useShader(shader, vertex);
-		glUniform1f(shader->depth, _render->_zDepth + depth);
+		glUniform1f(shader->depth, depth);
 		glUniform1f(shader->alpha, alpha);
 		glUniform4fv(shader->range, 1, paint->origin.val);
 		glUniform1i(shader->count, count);
@@ -438,7 +434,6 @@ namespace qk {
 	}
 
 	void GLC_CmdPack::drawClipCall(float depth, const GLC_State::Clip &clip, uint32_t ref, bool revoke) {
-		depth += _render->_zDepth;
 
 		auto aaClip = [](GLRender *_render, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C) {
 			auto chMode = _render->_blendMode;
@@ -495,8 +490,8 @@ namespace qk {
 
 	void GLC_CmdPack::clearColor4fCall(float depth, const Color4f &color, bool full) {
 		if (full) {
-			glClearBufferfv(GL_DEPTH, 0, &_render->_zDepth); // clear GL_COLOR_ATTACHMENT0
-			glClearBufferfv(GL_COLOR, 0, color.val);
+			glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
+			glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
 			// glClearColor(color.r(), color.g(), color.b(), color.a());
 			// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		} else {
@@ -505,7 +500,7 @@ namespace qk {
 				-1,-1,0, /*left bottom*/1,-1,0, /*right bottom*/
 			};
 			_render->_clear.use(sizeof(float) * 12, data);
-			glUniform1f(_render->_clear.depth, _render->_zDepth + depth);
+			glUniform1f(_render->_clear.depth, depth);
 			glUniform4fv(_render->_clear.color, 1, color.val);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
@@ -575,7 +570,6 @@ namespace qk {
 					glBufferData(GL_ARRAY_BUFFER, cmd1->vCount * sizeof(Vec4), cmd1->vertex, GL_DYNAMIC_DRAW);
 					glBindVertexArray(_render->_color1.vao);
 					glUseProgram(_render->_color1.shader);
-					glUniform1f(_render->_color1.depth, _render->_zDepth);
 					glDrawArrays(GL_TRIANGLES, 0, cmd1->vCount);
 					break;
 				}

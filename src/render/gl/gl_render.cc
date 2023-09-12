@@ -339,7 +339,6 @@ namespace qk {
 		, _renderBuffer(0), _msaaRenderBuffer(0), _stencilBuffer(0), _depthBuffer(0)
 		, _clipAAAlphaBuffer(0)
 		, _texBuffer{0,0,0}
-		, _zDepth(0)
 		, _glCanvas(this, opts.isMultiThreading)
 		, _shaders{
 			&_clear, &_clipTest, &_clipaa, &_clipaaRevoke, &_color, &_color1, &_image, &_imageMask, &_linear, &_radial, &_imageYuv
