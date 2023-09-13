@@ -121,7 +121,7 @@ namespace qk {
 		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
 			if (path.vCount) {
 				Qk_ASSERT(path.path.isNormalized());
-				fillv(path, paint, false);
+				fillv(path, paint);
 				if (aa) {
 					drawAAFuzzStroke(path.path, paint, aa_fuzz_weight, aa_fuzz_width);
 				}
@@ -133,7 +133,7 @@ namespace qk {
 			Qk_ASSERT(path.isNormalized());
 			auto &vertex = _cache->getPathTriangles(path);
 			if (vertex.vCount) {
-				fillv(vertex, paint, false);
+				fillv(vertex, paint);
 				if (aa) {
 					drawAAFuzzStroke(path, paint, aa_fuzz_weight, aa_fuzz_width);
 				}
@@ -141,16 +141,16 @@ namespace qk {
 			zDepthNext();
 		}
 
-		void fillv(const VertexData &vertex, const Paint &paint, bool aafuzz) {
+		void fillv(const VertexData &vertex, const Paint &paint) {
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					_cmdPack->drawColor4f(vertex, paint.color, aafuzz); break;
+					_cmdPack->drawColor4f(vertex, paint.color, false); break;
 				case Paint::kGradient_Type:
-					_cmdPack->drawGradient(vertex, paint.gradient, paint.color.a(), aafuzz); break;
+					_cmdPack->drawGradient(vertex, paint.gradient, paint.color.a(), false); break;
 				case Paint::kBitmap_Type:
-					_cmdPack->drawImage(vertex, paint.image, paint.color.a(), aafuzz); break;
+					_cmdPack->drawImage(vertex, paint.image, paint.color.a(), false); break;
 				case Paint::kBitmapMask_Type:
-					_cmdPack->drawImageMask(vertex, paint.image, paint.color, aafuzz); break;
+					_cmdPack->drawImageMask(vertex, paint.image, paint.color, false); break;
 			}
 		}
 
