@@ -70,12 +70,12 @@ namespace qk {
 	struct GLSLShader {
 		GLuint shader, vao, vbo;
 		void use(GLsizeiptr size, const GLvoid* data);
-		virtual void build() = 0;
+		virtual void build(cChar* name, cChar *macros) = 0;
 	};
 
 	void gl_compile_link_shader(
 		GLSLShader *s,
-		cChar *name, cString& vertexShader, cString& fragmentShader,
+		cChar *name, cChar* macros, cString& vertexShader, cString& fragmentShader,
 		const Array<GLShaderAttr> &attributes, cChar *uniforms);
 
 }

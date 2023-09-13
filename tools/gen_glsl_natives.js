@@ -55,8 +55,8 @@ function write(fp) {
 		if (Array.isArray(arg)) {
 			write(fp, ...arg);
 		} else {
-			if (arguments[i]) {
-				fs.writeSync(fp, arguments[i], 'utf-8');
+			if (arg) {
+				fs.writeSync(fp, arg, 'utf-8');
 				fs.writeSync(fp, '\n', 'utf-8');
 			}
 		}
@@ -144,12 +144,13 @@ function resolve_code_ast(input, hpp, cpp) {
 	return ast;
 }
 
-function get_import_all(Import, importAll, set) {
+function get_import_all(Import, {if_flags,import_all}, set) {
 	for (let i of Import) {
 		if (!set.has(i.name)) {
 			set.add(i.name);
-			get_import_all(i.import, importAll, set);
-			importAll.push(i);
+			get_import_all(i.import, {if_flags,import_all}, set);
+			import_all.push(i);
+			if_flags.push(...i.if_flags);
 		}
 	}
 }
@@ -165,6 +166,7 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 		//  GLsizei stride;
 		// };
 	];
+	let if_flags = [];
 	let uniforms = []
 	var uniform_blocks = [];
 	let call = `get_${name}()`; // get_color_vert_code_glsl();
@@ -177,18 +179,21 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 	}).replace(/^\s+/mg, '').replace(/#version\s+300(\s+es)?/, '');
 
 	let source_len = Buffer.byteLength(source);
+	let if_reg = / Qk_SHAFER_IF_FLAGS_([a-z\_]+)/igm,if_m;
+	// query if flags
+	while (if_m = if_reg.exec(source)) {
+		if_flags.push(if_m[1]);
+	}
 
 	find_uniforms_attributes(source, uniforms, uniform_blocks, attributes);
 
-	get_import_all(Import, import_all, new Set);
+	get_import_all(Import, {if_flags,import_all}, new Set);
 
 	// write(hpp, `const cString& ${call};`);
 	if (isFrag || isVert) {
 		write(cpp, `const cString& ${call} {`,
 			`	static String c;`,
 			`	if (c.isEmpty()) {`,
-				`		c+="#version " Qk_GL_Version "\\n";`,
-				isFrag ? `		c+="\\n#define Qk_SHAFER_FRAG\\n";`:'',
 				import_all.map(e=>(`		c.append(${e.call});`)),
 				`		c.append("${source.replace(/\n/gm, '\\n\\\n')}",${source_len});`,
 			`	}`,
@@ -196,24 +201,12 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 		'}',
 		);
 	} else {
-		if (name == '_util_glsl') {
-			write(cpp, `cString& ${call} {`,
-				`	static String c;`,
-				`	if (c.isEmpty()) {`,
-					`		c+="#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS ";c+=GL_MaxTextureImageUnits_Str;`,
-					`		c.append("\\n${source.replace(/\n/gm, '\\n\\\n')}",${source_len+1});`,
-					`		c+="\\n";`,
-				`} return c;`,
-			'}',
-			);
-		} else {
-			write(cpp, `const char* ${call} {`,
-				`const char* c = "${source.replace(/\n/gm, '\\n\\\n')}";`,
-				`return c;`,
-			'}',
-			);
-			call += ',' + source_len;
-		}
+		write(cpp, `const char* ${call} {`,
+			`const char* c = "${source.replace(/\n/gm, '\\n\\\n')}";`,
+			`return c;`,
+		'}',
+		);
+		call += ',' + source_len;
 	}
 
 	let ast = {
@@ -225,6 +218,7 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 		attributes, // []
 		uniforms, // string[]
 		uniform_blocks,
+		if_flags,
 	};
 
 	return ast;
@@ -252,19 +246,22 @@ function resolve_glsl(name, input, hpp, cpp) {
 	let uniforms_ = vert_ast.import_all.concat(frag_ast.import_all)
 		.reduce((a,i)=>(a.push(...i.uniforms),a), []).concat(vert_ast.uniforms,frag_ast.uniforms);
 
+	let if_flags = vert_ast.if_flags.concat(frag_ast.if_flags)
+		.reduce((a,i)=>((a.indexOf(i)==-1?a.push(i):void 0),a), []);
+
 	let uniforms = uniforms_.filter(e=>(set[e] ? 0: (set[e]=1,1)));
 	let className = `GLSL${name[0].toUpperCase()}${name.substring(1)}`;
 
 	write(hpp, `	struct ${className}: GLSLShader {`,
 		attributes.length ? `		GLuint ${attributes.map(e=>e.name).join(',')}; // attributes`: '',
 		uniforms.length ? `		GLuint ${uniforms.join(',')}; // uniforms`: '',
-		`		virtual void build();`,
+		`		virtual void build(const char* name, const char *macros);`,
 	`	};`);
 
 	// { {"girth_in",1,GL_FLOAT,(void*)(sizeof(float)*2)} }
 
-	write(cpp, `void ${className}::build() {`,
-		`	gl_compile_link_shader(this, "${name}",`,
+	write(cpp, `void ${className}::build(const char* name, const char * macros) {`,
+		`	gl_compile_link_shader(this, name,macros,`,
 		`	${vert_ast.call},${frag_ast.call},`,
 		'	{',
 			attributes.map(e=>`		{"${e.name}",${e.size},${e.type},${e.stride}},`),
@@ -272,6 +269,16 @@ function resolve_glsl(name, input, hpp, cpp) {
 		`	"${uniforms.join(',')}");`,
 		'}'
 	);
+
+	return {
+		name,
+		className,
+		vert_ast,
+		frag_ast,
+		attributes,
+		uniforms,
+		if_flags,
+	};
 }
 
 function main() {
@@ -283,6 +290,7 @@ function main() {
 	var hpp = fs.openSync(output_h, 'w');
 	var cpp = fs.openSync(output_cc, 'w');
 	var pair_inputs = {};
+	var glslAll = [];
 
 	inputs.forEach(function(input) {
 		var mat = input.match(/[\/\\]([a-z][^\/\\]+)\.glsl$/i);
@@ -309,12 +317,39 @@ function main() {
 
 	for (let {name,input} of Object.values(pair_inputs)) {
 		name = name.replace(/[\-_](.)/gm, (_,b)=>b.toUpperCase());
-		resolve_glsl(name, input, hpp, cpp);
+		glslAll.push(resolve_glsl(name, input, hpp, cpp));
 	}
+
+	write(hpp, '	struct GLSLShaders {');
+	write(cpp, 'void GLSLShaders::buildAll() {');
+
+	for (let glsl of glslAll) {
+		write(cpp, `	${glsl.name}.build("${glsl.name}", "");`);
+
+		let names = [glsl.name];
+		if (glsl.if_flags.length) {
+			for (let if_f of glsl.if_flags) {
+				let name = glsl.name + '_' + if_f;
+				names.push(name);
+				write(cpp, `	${glsl.name}_${if_f}.build("${name}","#define Qk_SHAFER_IF_FLAGS_${if_f}\\n");`);
+			}
+			if (glsl.if_flags.length > 1) {
+				let name = glsl.name + '_' + glsl.if_flags.join('_');
+				names.push(name);
+				write(cpp, `	${name}.build("${name}","${glsl.if_flags.map(e=>`#define Qk_SHAFER_IF_FLAGS_${e}\\n`).join('')}");`);
+			}
+		}
+		write(hpp, '		' + glsl.className + ' ' + names.join(',') + ';');
+	}
+
+	write(hpp,
+		'		void buildAll();',
+		'	};'
+	);
 
 	// write(hpp, '#pragma pack(pop)');
 	write(hpp, '}', '#endif'); // end
-	write(cpp, '}'); // end
+	write(cpp, '}}'); // end
 
 	fs.closeSync(hpp);
 	fs.closeSync(cpp);

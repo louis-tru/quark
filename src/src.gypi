@@ -309,7 +309,6 @@
 					'render/gl/glsl/clear.glsl',
 					'render/gl/glsl/clip_test.glsl',
 					'render/gl/glsl/clip_aa.glsl',
-					'render/gl/glsl/clip_aa_revoke.glsl',
 					'render/gl/glsl/color1.glsl',
 					'render/gl/glsl/color.glsl',
 					'render/gl/glsl/color_linear.glsl',

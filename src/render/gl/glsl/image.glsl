@@ -7,12 +7,15 @@ uniform   lowp float     alpha;
 uniform        sampler2D image;   // y
 
 void main() {
-	lowp float aaalpha = 1.0 - abs(aafuzz);
 	fragColor = texture(image, coord_f);
 
-#ifdef Qk_SHAFER_AACLIP
-	fragColor.a *= alpha * aaalpha * smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
+#ifdef Qk_SHAFER_IF_FLAGS_AAFUZZ
+	fragColor.a *= alpha * (1.0 - abs(aafuzz));
 #else
-	fragColor.a *= alpha * aaalpha;
+	fragColor.a *= alpha;
+#endif
+
+#ifdef Qk_SHAFER_IF_FLAGS_AACLIP
+	fragColor.a *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
 #endif
 }

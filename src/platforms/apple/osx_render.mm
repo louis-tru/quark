@@ -68,16 +68,14 @@ extern QkApplicationDelegate* __appDelegate;
 		}
 		return self;
 	}
+
 	- (void) update {
 		_render->reload();
 		[super update];
 		//Qk_DEBUG("NSOpenGLView::update");
 	}
 
-	// -(void)reshape {
-	// 	_render->reload();
-	// 	[super reshape];
-	// }
+	-(void)reshape {}
 
 	- (void) prepareOpenGL {
 		[super prepareOpenGL];
@@ -101,6 +99,7 @@ extern QkApplicationDelegate* __appDelegate;
 			}, (__bridge void*)self, "renderDisplay");
 		}
 	}
+
 	- (void) lockRender {
 		if (!_isLockRender) {
 			_isLockRender = true;
@@ -109,12 +108,14 @@ extern QkApplicationDelegate* __appDelegate;
 			Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 3");
 		}
 	}
+
 	- (void) unlockRender {
 		if (_isLockRender) {
 			_isLockRender = false;
 			CGLUnlockContext(_ctx.CGLContextObj);
 		}
 	}
+
 	- (void) renderDisplay {
 		List<Cb> msg;
 		if (_message.length()) { //
@@ -200,16 +201,7 @@ public:
 		Vec2 surfaceScale;
 		if (!_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _defaultScale, &mat, &surfaceScale))
 			return;
-
 		CGLLockContext(_ctx.CGLContextObj);
-
-		// glViewport(0, 0, size.x(), size.y());
-		// glBindFramebuffer(GL_FRAMEBUFFER, 0); // default frame buffer
-		// setClipAABuffer(size.x(), size.y(), _opts.msaa);
-		// const GLenum buffers[]{ GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
-		// glDrawBuffers(2, buffers);
-		// _glCanvas.onSurfaceReload(mat, surfaceScale);
-
 		setBuffers();
 		_glCanvas.onSurfaceReload(mat, surfaceScale);
 		CGLUnlockContext(_ctx.CGLContextObj);
@@ -217,7 +209,6 @@ public:
 
 	void begin() override {
 		[_view lockRender];
-		// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer); // bind frame buffer
 	}
 
@@ -245,7 +236,7 @@ public:
 		//[_ctx setFullScreen];
 
 		GLint swapInterval = 1; // enable vsync
-		[_ctx setValues:&swapInterval forParameter:NSOpenGLCPSwapInterval];
+		[_ctx setValues:&swapInterval forParameter:NSOpenGLContextParameterSwapInterval];//NSOpenGLCPSwapInterval
 
 		GLint sampleCount;
 		[_ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
@@ -263,7 +254,6 @@ private:
 };
 
 QkAppleRender* qk_make_apple_gl_render(Render::Options opts) {
-
 	//	generate the GL display mask for all displays
 	CGDirectDisplayID		dspys[10];
 	CGDisplayCount			count = 0;
@@ -311,7 +301,7 @@ QkAppleRender* qk_make_apple_gl_render(Render::Options opts) {
 	Qk_DEBUG("stencilBits:%d,depthSize:%d,sampleCount:%d", stencilBits, depthSize, sampleCount);
 #endif
 
-//	CGLLockContext(ctx.CGLContextObj);
+	CGLLockContext(ctx.CGLContextObj);
 	[ctx makeCurrentContext];
 	Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
 	auto render = new AppleGLRender(opts,ctx);

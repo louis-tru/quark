@@ -36,7 +36,7 @@
 #include "./glsl_shaders.h"
 #include "./gl_canvas.h"
 
-#define Qk_USE_GLC_CMD_QUEUE 0
+#define Qk_USE_GLC_CMD_QUEUE 1
 
 namespace qk {
 
@@ -64,7 +64,7 @@ namespace qk {
 		struct DrawCmd: Cmd {
 			VertexData     vertex;
 			float          depth;
-			bool           aaclip;
+			bool           aafuzz,aaclip;
 		};
 		struct MatrixCmd: Cmd {
 			Mat            matrix;
@@ -134,20 +134,20 @@ namespace qk {
 		void setMetrixUnifromBuffer(const Mat &mat);
 		void setBlendMode(BlendMode mode);
 		void switchState(GLenum id, bool isEnable);
-		void drawColor4f(const VertexData &vertex, const Color4f &color); // add cmd
-		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha);
-		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color);
-		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha);
+		void drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz); // add cmd
+		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz);
+		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
+		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
 		void clearColor4f(const Color4f &color, bool full);
 	private:
 		void switchStateCall(GLenum id, bool isEnable);
-		void drawColor4fCall(float depth, bool aaclip, const VertexData &vertex, const Color4f &color); // call gl api
-		void drawImageCall(float depth, bool aaclip, const VertexData &vertex, const ImagePaint *paint, float alpha);
-		void drawImageMaskCall(float depth, bool aaclip, const VertexData &vertex, const ImagePaint *paint, const Color4f &color);
-		void drawGradientCall(float depth, bool aaclip, const VertexData &vertex, const GradientPaint *paint, float alpha);
-		void drawClipCall(float depth, const GLC_State::Clip &clip, uint32_t ref, bool revoke);
-		void clearColor4fCall(float depth, const Color4f &color, bool full);
+		void drawColor4fCall(const VertexData &vertex, const Color4f &color, bool aafuzz, bool aaclip, float depth); // call gl api
+		void drawImageCall(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz, bool aaclip, float depth);
+		void drawImageMaskCall(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth);
+		void drawGradientCall(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz, bool aaclip, float depth);
+		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, bool revoke, float depth);
+		void clearColor4fCall(const Color4f &color, bool full, float depth);
 		void clear(); //
 		void checkMetrix();
 		void useShader(GLSLShader *shader, const VertexData &vertex);

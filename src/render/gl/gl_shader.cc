@@ -34,6 +34,9 @@
 
 namespace qk {
 
+	extern String GL_MaxTextureImageUnits_GLSL_Macros;
+	extern uint32_t GL_MaxTextureImageUnits;
+
 	static GLuint compile_shader(cChar* name, const GLchar* code, GLenum shader_type) {
 		GLuint shader_handle = glCreateShader(shader_type);
 		GLint code_len = (GLint)strlen(code);
@@ -51,13 +54,24 @@ namespace qk {
 
 	void gl_compile_link_shader(
 		GLSLShader *s,
-		cChar *name, cString& vertexShader, cString& fragmentShader,
+		cChar *name, cChar* macros,
+		cString& vertexShader, cString& fragmentShader,
 		const Array<GLShaderAttr> &attributes, cChar *uniforms)
 	{
+		String vertexCode("#version " Qk_GL_Version "\n");
+		String fragmentCode("#version " Qk_GL_Version "\n#define Qk_SHAFER_FRAG\n");
+
+		vertexCode += GL_MaxTextureImageUnits_GLSL_Macros;
+		fragmentCode += GL_MaxTextureImageUnits_GLSL_Macros;
+		vertexCode += macros;
+		fragmentCode += macros;
+		vertexCode += vertexShader;
+		fragmentCode += fragmentShader;
+
 		GLuint vertex_handle =
-			compile_shader(name, vertexShader.c_str(), GL_VERTEX_SHADER);
+			compile_shader(name, vertexCode.c_str(), GL_VERTEX_SHADER);
 		GLuint fragment_handle =
-			compile_shader(name, fragmentShader.c_str(), GL_FRAGMENT_SHADER);
+			compile_shader(name, fragmentCode.c_str(), GL_FRAGMENT_SHADER);
 		GLuint program = glCreateProgram();
 		glAttachShader(program, vertex_handle);
 		glAttachShader(program, fragment_handle);
@@ -123,7 +137,7 @@ namespace qk {
 			glEnableVertexAttribArray(local);
 			pointer += i.stride;
 		}
-
+		glUniform1i(glGetUniformLocation(program, "aaclip"), GL_MaxTextureImageUnits); // set texture slot
 		glBindVertexArray(0);
 
 		s->shader = program;

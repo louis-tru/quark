@@ -41,7 +41,7 @@ namespace qk {
 	extern uint32_t GL_MaxTextureImageUnits;
 	extern const  Region ZeroRegion;
 	extern const  float  aa_fuzz_weight = 0.9;
-	extern const  float  aa_fuzz_width = 0.5;
+	extern const  float  aa_fuzz_width = 0.6;
 
 	Qk_DEFINE_INLINE_MEMBERS(GLCanvas, Inl) {
 	public:
@@ -121,7 +121,7 @@ namespace qk {
 		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
 			if (path.vCount) {
 				Qk_ASSERT(path.path.isNormalized());
-				fillv(path, paint);
+				fillv(path, paint, false);
 				if (aa) {
 					drawAAFuzzStroke(path.path, paint, aa_fuzz_weight, aa_fuzz_width);
 				}
@@ -133,7 +133,7 @@ namespace qk {
 			Qk_ASSERT(path.isNormalized());
 			auto &vertex = _cache->getPathTriangles(path);
 			if (vertex.vCount) {
-				fillv(vertex, paint);
+				fillv(vertex, paint, false);
 				if (aa) {
 					drawAAFuzzStroke(path, paint, aa_fuzz_weight, aa_fuzz_width);
 				}
@@ -141,16 +141,16 @@ namespace qk {
 			zDepthNext();
 		}
 
-		void fillv(const VertexData &vertex, const Paint &paint) {
+		void fillv(const VertexData &vertex, const Paint &paint, bool aafuzz) {
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					_cmdPack->drawColor4f(vertex, paint.color); break;
+					_cmdPack->drawColor4f(vertex, paint.color, aafuzz); break;
 				case Paint::kGradient_Type:
-					_cmdPack->drawGradient(vertex, paint.gradient, paint.color.a()); break;
+					_cmdPack->drawGradient(vertex, paint.gradient, paint.color.a(), aafuzz); break;
 				case Paint::kBitmap_Type:
-					_cmdPack->drawImage(vertex, paint.image, paint.color.a()); break;
+					_cmdPack->drawImage(vertex, paint.image, paint.color.a(), aafuzz); break;
 				case Paint::kBitmapMask_Type:
-					_cmdPack->drawImageMask(vertex, paint.image, paint.color); break;
+					_cmdPack->drawImageMask(vertex, paint.image, paint.color, aafuzz); break;
 			}
 		}
 
@@ -178,13 +178,13 @@ namespace qk {
 			// Qk_DEBUG("%p", &vertex);
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					_cmdPack->drawColor4f(vertex, paint.color.to_color4f_alpha(aaFuzzWeight)); break;
+					_cmdPack->drawColor4f(vertex, paint.color.to_color4f_alpha(aaFuzzWeight), true); break;
 				case Paint::kGradient_Type:
-					_cmdPack->drawGradient(vertex, paint.gradient, aaFuzzWeight * paint.color.a()); break;
+					_cmdPack->drawGradient(vertex, paint.gradient, aaFuzzWeight * paint.color.a(), true); break;
 				case Paint::kBitmap_Type:
-					_cmdPack->drawImage(vertex, paint.image, aaFuzzWeight * paint.color.a()); break;
+					_cmdPack->drawImage(vertex, paint.image, aaFuzzWeight * paint.color.a(), true); break;
 				case Paint::kBitmapMask_Type:
-					_cmdPack->drawImageMask(vertex, paint.image, paint.color.to_color4f_alpha(aaFuzzWeight)); break;
+					_cmdPack->drawImageMask(vertex, paint.image, paint.color.to_color4f_alpha(aaFuzzWeight), true); break;
 			}
 		}
 
@@ -207,7 +207,7 @@ namespace qk {
 			}};
 			// auto &vertex = _cache->getRectPath({dst_start,dst_size});
 
-			_cmdPack->drawImageMask(vertex, &p, paint.color);
+			_cmdPack->drawImageMask(vertex, &p, paint.color, false);
 			zDepthNext();
 
 			return scale_1;
@@ -404,10 +404,10 @@ namespace qk {
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
 		if (path.vCount) {
 			_this->setBlendMode(mode); // switch blend mode
-			_cmdPack->drawColor4f(path, color);
+			_cmdPack->drawColor4f(path, color, false);
 			if (!_render->_IsDeviceMsaa) { // Anti-aliasing using software
 				auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _unitPixel*aa_fuzz_width);
-				_cmdPack->drawColor4f(vertex, color.to_color4f_alpha(aa_fuzz_weight));
+				_cmdPack->drawColor4f(vertex, color.to_color4f_alpha(aa_fuzz_weight), true);
 			}
 			_this->zDepthNext();
 		}

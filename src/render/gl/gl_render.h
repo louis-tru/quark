@@ -72,18 +72,7 @@ namespace qk {
 		GLint  _maxTextureBufferSize;
 		GLint  _maxTextureImageUnits;
 		GLCanvas _glCanvas; // main canvas
-		GLSLClear _clear; // shader
-		GLSLClipTest _clipTest;
-		GLSLClipAa  _clipaa;
-		GLSLClipAaRevoke _clipaaRevoke;
-		GLSLColor _color;
-		GLSLColor1 _color1;
-		GLSLColorLinear _linear;
-		GLSLColorRadial _radial;
-		GLSLImage _image;
-		GLSLImageMask _imageMask;
-		GLSLImageYuv _imageYuv;
-		GLSLShader  *_shaders[11];
+		GLSLShaders _shaders;
 		// --------------------------------------------
 	};
 }

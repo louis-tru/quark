@@ -35,8 +35,8 @@
 
 namespace qk {
 
-	String GL_MaxTextureImageUnits_Str;
-	uint32_t GL_MaxTextureImageUnits;
+	String GL_MaxTextureImageUnits_GLSL_Macros;
+	uint32_t GL_MaxTextureImageUnits = 0;
 
 	GLint gl_get_texture_pixel_format(ColorType type) {
 #if Qk_APPLE
@@ -340,9 +340,6 @@ namespace qk {
 		, _clipAAAlphaBuffer(0)
 		, _texBuffer{0,0,0}
 		, _glCanvas(this, opts.isMultiThreading)
-		, _shaders{
-			&_clear, &_clipTest, &_clipaa, &_clipaaRevoke, &_color, &_color1, &_image, &_imageMask, &_linear, &_radial, &_imageYuv
-		}
 	{
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
@@ -381,34 +378,39 @@ namespace qk {
 		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &_maxTextureBufferSize);
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_maxTextureImageUnits);
 		_maxTextureImageUnits -= 1; // aaalpha
-		GL_MaxTextureImageUnits = _maxTextureImageUnits;
-		GL_MaxTextureImageUnits_Str = _maxTextureImageUnits;
 
-		// compile the shader
-		for (auto shader: _shaders) {
-			shader->build();
+		if (!GL_MaxTextureImageUnits) {
+			GL_MaxTextureImageUnits_GLSL_Macros = 
+				String("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS ") + _maxTextureImageUnits + "\n";
+			GL_MaxTextureImageUnits = _maxTextureImageUnits;
 		}
-		glUseProgram(_image.shader);
-		glUniform1i(_image.image, 0); // set texture slot
 
-		glUseProgram(_imageYuv.shader);
-		glUniform1i(_imageYuv.image, 0); // set texture slot
-		glUniform1i(_imageYuv.image_u, 1);
-		glUniform1i(_imageYuv.image_v, 2);
+#if DEBUG || QK_MoreLog
+		int64_t st = time_micro();
+		_shaders.buildAll(); // compile all shaders
+		Qk_DEBUG("shaders.buildAll time: %ld (micro s)", time_micro() - st);
+#else
+		_shaders.buildAll();
+#endif
 
-		glUseProgram(_imageMask.shader);
-		glUniform1i(_imageMask.image, 0); // set texture slot
-
-		glUseProgram(_clipaa.shader);
-		glUniform1i(_clipaa.aaclip, _maxTextureImageUnits); // set texture slot
-		glUseProgram(_clipaaRevoke.shader);
-		glUniform1i(_clipaaRevoke.aaclip, _maxTextureImageUnits); // set texture slot
-		glUseProgram(_color.shader);
-		glUniform1i(_color.aaclip, _maxTextureImageUnits); // set texture slot
-
-		glUseProgram(_color1.shader);
-		GLuint optsBlock = glGetUniformBlockIndex(_color1.shader, "optsBlock");
-		glUniformBlockBinding(_color1.shader, optsBlock, 2); // binding = 2
+		// settings shader
+		for (auto s = &_shaders.image, e = s + 4; s < e; s++) {
+			glUseProgram(s->shader);
+			glUniform1i(s->image, 0); // set texture slot
+		}
+		for (auto s = &_shaders.imageMask, e = s + 4; s < e; s++) {
+			glUseProgram(s->shader);
+			glUniform1i(s->image, 0); // set texture slot
+		}
+		for (auto s = &_shaders.imageYuv, e = s + 4; s < e; s++) {
+			glUseProgram(s->shader);
+			glUniform1i(s->image, 0); // set texture slot
+			glUniform1i(s->image_u, 1);
+			glUniform1i(s->image_v, 2);
+		}
+		for (auto s = &_shaders.color1, e = s + 2; s < e; s++) {
+			glUniformBlockBinding(s->shader, glGetUniformBlockIndex(s->shader, "optsBlock"), 2); // binding = 2
+		}
 
 		glEnable(GL_BLEND); // enable color blend
 		setBlendMode(kSrcOver_BlendMode); // set default color blend mode

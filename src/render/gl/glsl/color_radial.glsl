@@ -28,13 +28,16 @@ void main() {
 			s = idx; e = idx+1; break;
 		}
 	}
-	lowp float aaalpha = 1.0 - abs(aafuzz);
 	lowp float w = (indexed - positions[s]) / (positions[e] - positions[s]);
 	fragColor = mix(colors[s], colors[e], w);
 
-#ifdef Qk_SHAFER_AACLIP
-	fragColor.a *= aaalpha * alpha * smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
+#ifdef Qk_SHAFER_IF_FLAGS_AAFUZZ
+	fragColor.a *= alpha * (1.0 - abs(aafuzz));
 #else
-	fragColor.a *= aaalpha * alpha;
+	fragColor.a *= alpha;
+#endif
+
+#ifdef Qk_SHAFER_IF_FLAGS_AACLIP
+	fragColor.a *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
 #endif
 }
