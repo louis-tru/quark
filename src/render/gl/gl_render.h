@@ -46,7 +46,7 @@ namespace qk {
 		virtual void     deleteTextures(const uint32_t *ids, uint32_t count) override;
 		virtual void     makeVertexData(VertexData::ID *id) override;
 		virtual void     deleteVertexData(VertexData::ID *id) override;
-		void             setTexture(cPixel *pixel, int slot, const ImagePaintBase *paint);
+		void             setTexture(cPixel *pixel, int slot, const ImagePaint *paint);
 		void             setBlendMode(BlendMode mode);
 	protected:
 		GLRender(Options opts);

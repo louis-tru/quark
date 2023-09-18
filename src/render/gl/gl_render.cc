@@ -180,7 +180,7 @@ namespace qk {
 		return id;
 	}
 
-	void gl_set_texture(GLuint id, uint32_t slot, const ImagePaintBase* paint) {
+	void gl_set_texture(GLuint id, uint32_t slot, const ImagePaint* paint) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, id);
 
@@ -505,7 +505,7 @@ namespace qk {
 		}
 	}
 
-	void GLRender::setTexture(cPixel *pixel, int slot, const ImagePaintBase *paint) {
+	void GLRender::setTexture(cPixel *pixel, int slot, const ImagePaint *paint) {
 		auto id = pixel->texture();
 		if (!id) {
 			id = gl_gen_texture(pixel, _texBuffer[slot], true);

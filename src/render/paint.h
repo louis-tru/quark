@@ -49,7 +49,7 @@ namespace qk {
 		const float   *positions;
 	};
 
-	struct ImagePaintBase {
+	struct ImagePaint {
 		enum TileMode {
 			//!< Replicate the edge color if the shader draws outside of its original bounds.
 			kClamp_TileMode,
@@ -89,14 +89,12 @@ namespace qk {
 				unsigned      padding: 17;
 			};
 		}; // size 32bit
-		ImageSource      *source; // image source, weak ref
-	};
 
-	struct ImagePaint: ImagePaintBase {
 		void setImage(ImageSource *image, const Rect &dest, const Rect &src);
 		void setImage(ImageSource *image, const Rect &dest) {
 			setImage(image, dest, { Vec2(0,0), Vec2(image->width(), image->height()) });
 		}
+		ImageSource      *source; // image source, weak ref
 		Region            coord; // bitmap uv coord
 	};
 
@@ -152,6 +150,7 @@ namespace qk {
 		Color4f            color; // color
 		ImagePaint        *image; // image source, weak ref
 		GradientPaint     *gradient; // gradient color, weak ref
+		// Filter            *blur; // blur
 	};
 
 }
