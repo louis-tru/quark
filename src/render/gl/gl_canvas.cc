@@ -35,8 +35,12 @@
 namespace qk {
 
 	float get_level_font_size(float fontSize);
-	bool  gl_read_pixels(Pixel* dst, uint32_t srcX, uint32_t srcY);
-	void  gl_set_blend_mode(BlendMode blendMode);
+	bool gl_read_pixels(Pixel* dst, uint32_t srcX, uint32_t srcY);
+	void gl_set_blend_mode(BlendMode blendMode);
+	void gl_setMainRenderBuffer(GLuint buff, ColorType type, Vec2 size);
+	void gl_setMSAARenderBuffer(GLuint buff, ColorType type, Vec2 size, int msaaSample);
+	void gl_setDepthStencilBuffer(GLuint depth, GLuint stencil, Vec2 size, int msaaSample);
+	void gl_setClipAABuffer(GLuint buff, Vec2 size, int msaaSample);
 
 	extern uint32_t GL_MaxTextureImageUnits;
 	extern const  Region ZeroRegion;
@@ -88,7 +92,7 @@ namespace qk {
 			}
 			if (clip.vertex.vCount == 0) return;
 
-			if (antiAlias && !_render->_IsDeviceMsaa) {
+			if (antiAlias && !_IsDeviceMsaa) {
 				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_unitPixel*aa_fuzz_width);
 				if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
 					clip.aafuzz = path.getAAFuzzStrokeTriangle(_unitPixel*aa_fuzz_width);
@@ -218,6 +222,9 @@ namespace qk {
 	GLCanvas::GLCanvas(GLRender *render, bool isMultiThreading)
 		: _render(render)
 		, _cache(new PathvCache(render))
+		, _frameBuffer(0), _msaaFrameBuffer(0)
+		, _renderBuffer(0), _msaaRenderBuffer(0), _stencilBuffer(0), _depthBuffer(0)
+		, _clipAAAlphaBuffer(0)
 		, _stencilRef(0), _stencilRefDecr(0)
 		, _zDepth(0)
 		, _state(nullptr)
@@ -226,7 +233,16 @@ namespace qk {
 		, _blendMode(kSrcOver_BlendMode), _chMatrix(true)
 		, _isMultiThreading(isMultiThreading)
 		, _isClipState(false)
+		, _IsDeviceMsaa(false)
 	{
+
+		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
+		glGenFramebuffers(2, &_frameBuffer); // _frame_buffer,_msaa_frame_buffer
+		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
+		glGenRenderbuffers(4, &_renderBuffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
+		// Create aa texture buffer
+		glGenTextures(1, &_clipAAAlphaBuffer); // _clipAlphaBuffer
+
 		_cmdPack = new GLC_CmdPack(render, this);
 		_cmdPackFront = isMultiThreading ? new GLC_CmdPack(render, this): _cmdPack;
 		_stateStack.push({ .matrix=Mat(), .aaclip=0 }); // init state
@@ -240,21 +256,25 @@ namespace qk {
 			delete _cmdPackFront;
 		_cmdPack = _cmdPackFront = nullptr;
 		Release(_cache); _cache = nullptr;
+
+		glDeleteFramebuffers(2, &_frameBuffer); // _frameBuffer,_msaaFrameBuffer
+		glDeleteRenderbuffers(4, &_renderBuffer); // _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer
+		glDeleteTextures(4, &_clipAAAlphaBuffer); // _clipAAAlphaBuffer, _texBuffer
 	}
 
 	void GLCanvas::swapBuffer() {
 		if (_isMultiThreading) {
 			_mutex.lock();
-			auto front = _cmdPackFront;
+			auto pack = _cmdPackFront;
 			_cmdPackFront = _cmdPack;
-			_cmdPack = front;
+			_cmdPack = pack;
 			_mutex.unlock();
 		}
 	}
 
 	void GLCanvas::flushBuffer() { // only can rendering thread call
 		_mutex.lock();
-		_cmdPackFront->flush();
+		_cmdPackFront->flush(); // commit gl cmd
 		_mutex.unlock();
 	}
 
@@ -303,13 +323,14 @@ namespace qk {
 		return _state->matrix;
 	}
 
-	void GLCanvas::onSurfaceReload(const Mat4& root, Vec2 surfaceScale) {
+	void GLCanvas::onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size) {
+		setBuffers(size); // set buffers
 		_mutex.lock();
 		// update shader root matrix and clear all save state
 		_rootMatrix = root.transpose(); // transpose matrix
 		glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _rootMatrix.val, GL_STREAM_DRAW);
-		if (!_render->_IsDeviceMsaa) { // clear clip aa buffer
+		if (!_IsDeviceMsaa) { // clear clip aa buffer
 			float color[] = {1.0f,1.0f,1.0f,1.0f};
 			glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
 #if Qk_OSX
@@ -405,7 +426,7 @@ namespace qk {
 		if (path.vCount) {
 			_this->setBlendMode(mode); // switch blend mode
 			_cmdPack->drawColor4f(path, color, false);
-			if (!_render->_IsDeviceMsaa) { // Anti-aliasing using software
+			if (!_IsDeviceMsaa) { // Anti-aliasing using software
 				auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _unitPixel*aa_fuzz_width);
 				_cmdPack->drawColor4f(vertex, color.to_color4f_alpha(aa_fuzz_weight), true);
 			}
@@ -416,7 +437,7 @@ namespace qk {
 	void GLCanvas::drawPath(const Path &path_, const Paint &paint) {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
 
-		bool aa = paint.antiAlias && !_render->_IsDeviceMsaa; // Anti-aliasing using software
+		bool aa = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 		auto path = &_cache->getNormalizedPath(path_);
 
 		// gen stroke path and fill path and polygons
@@ -434,7 +455,7 @@ namespace qk {
 	void GLCanvas::drawPathv(const Pathv& path, const Paint& paint) {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
 
-		bool aa = paint.antiAlias && !_render->_IsDeviceMsaa; // Anti-aliasing using software
+		bool aa = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
@@ -478,6 +499,60 @@ namespace qk {
 		}
 
 		_this->drawTextImage(*blob->image, blob->imageBound.y(), _scale * levelScale, origin, paint);
+	}
+
+	// --------------------------------------------------------
+
+	void GLCanvas::setBuffers(Vec2 size) {
+		auto w = size[0], h = size[1];
+		auto type = _render->_opts.colorType;
+		auto msaaCnt = _render->_opts.msaa;
+
+		Qk_ASSERT(w, "Invalid viewport size width");
+		Qk_ASSERT(h, "Invalid viewport size height");
+
+		glViewport(0, 0, w, h);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer); // bind frame buffer
+		gl_setMainRenderBuffer(_renderBuffer, type, size);
+
+		if (msaaCnt > 1) {
+			_IsDeviceMsaa = false;
+			glBindFramebuffer(GL_FRAMEBUFFER, _msaaFrameBuffer);
+
+			do { // enable multisampling
+				gl_setMSAARenderBuffer(_msaaRenderBuffer, type, size, msaaCnt);
+				// Test the framebuffer for completeness.
+				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
+					if ( msaaCnt > 1 )
+						_IsDeviceMsaa = true;
+					break;
+				}
+				msaaCnt >>= 1;
+			} while (msaaCnt > 1);
+		}
+
+		if (!_IsDeviceMsaa) { // no device msaa
+			glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+		}
+		gl_setDepthStencilBuffer(_depthBuffer, _stencilBuffer, size, msaaCnt);
+		gl_setClipAABuffer(_clipAAAlphaBuffer, size, msaaCnt);
+
+		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, buffers);
+
+		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
+			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+		}
+
+#if DEBUG
+		int width, height;
+		// Retrieve the height and width of the color renderbuffer.
+		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
+		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
+		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+#endif
+		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
 }

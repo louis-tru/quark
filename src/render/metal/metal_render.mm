@@ -78,15 +78,15 @@ namespace qk {
 			_queue = CFSafeRetain([_device newCommandQueue]);
 			Qk_ASSERT(_device);
 
-			if (_opts.msaaSampleCnt > 1) {
-				while (![_device supportsTextureSampleCount:_opts.msaaSampleCnt])
-					_opts.msaaSampleCnt /= 2;
+			if (_opts.msaa > 1) {
+				while (![_device supportsTextureSampleCount:_opts.msaa])
+					_opts.msaa /= 2;
 			}
 			
 			if (_view) {
 				_view.device = _device;
 				_view.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
-				// _view.sampleCount = _opts.msaaSampleCnt;
+				// _view.sampleCount = _opts.msaa;
 			}
 
 			if (@available(iOS 13.0, *)) {
@@ -141,7 +141,7 @@ namespace qk {
 		//test(_drawable, cmd);
 
 		//id<MTLTexture> mttex = ((__bridge id<CAMetalDrawable>)_drawable).texture;
-		//Qk_DEBUG("sampleCount, %d, %d", mttex.sampleCount, _opts.msaaSampleCnt);
+		//Qk_DEBUG("sampleCount, %d, %d", mttex.sampleCount, _opts.msaa);
 
 		[cmd presentDrawable:_drawable];
 		[cmd commit];

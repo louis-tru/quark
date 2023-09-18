@@ -46,25 +46,15 @@ namespace qk {
 		virtual void     deleteTextures(const uint32_t *ids, uint32_t count) override;
 		virtual void     makeVertexData(VertexData::ID *id) override;
 		virtual void     deleteVertexData(VertexData::ID *id) override;
-		inline  bool     isDeviceMsaa() const { return _IsDeviceMsaa; }
 		void             setTexture(cPixel *pixel, int slot, const ImagePaintBase *paint);
 		void             setBlendMode(BlendMode mode);
 	protected:
 		GLRender(Options opts);
-		virtual void setBuffers();
-		virtual void setMainRenderBuffer(int width, int height);
-		virtual void setMSAARenderBuffer(int width, int height, int msaaSample);
-		virtual void setDepthStencilBuffer(int width, int height, int msaaSample);
-		virtual void setClipAABuffer(int width, int height, int msaaSample);
 		friend class GLCanvas;
 		friend class GLC_CmdPack;
 		// --------------- define props ---------------
 		bool _IsSupportMultisampled;
-		bool _IsDeviceMsaa; // device anti alias, msaa
 		BlendMode _blendMode;
-		GLuint _frameBuffer,_msaaFrameBuffer;
-		GLuint _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer;
-		GLuint _clipAAAlphaBuffer; // aa texture buffer
 		GLuint _texBuffer[3]; // temp texture buffers
 		GLuint _rootMatrixBlock,_viewMatrixBlock; // matrixBlock => root view matrix
 		GLuint _optsBlock; // generic optsBlock

@@ -33,6 +33,7 @@
 #import "./apple_app.h"
 #import "../../display.h"
 #import "../../render/gl/gl_render.h"
+#import "../../render/gl/gl_cmd.h"
 
 using namespace qk;
 
@@ -202,14 +203,14 @@ public:
 		if (!_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _defaultScale, &mat, &surfaceScale))
 			return;
 		CGLLockContext(_ctx.CGLContextObj);
-		setBuffers();
-		_glCanvas.onSurfaceReload(mat, surfaceScale);
+		_glCanvas.onSurfaceReload(mat, surfaceScale, size);
 		CGLUnlockContext(_ctx.CGLContextObj);
 	}
 
 	void begin() override {
 		[_view lockRender];
-		glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer); // bind frame buffer
+		// _glCanvas->_frameBuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 1); // bind frame buffer for main canvas
 	}
 
 	void submit() override {
@@ -238,13 +239,9 @@ public:
 		GLint swapInterval = 1; // enable vsync
 		[_ctx setValues:&swapInterval forParameter:NSOpenGLContextParameterSwapInterval];//NSOpenGLCPSwapInterval
 
-		GLint sampleCount;
+		GLint sampleCount; // read msaa cnt
 		[_ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
 
-		if (sampleCount > 1) {
-			_IsDeviceMsaa = true;
-		}
-		_opts.msaa = sampleCount;
 		return _view;
 	}
 

@@ -82,15 +82,20 @@ namespace qk {
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 		virtual void swapBuffer() override; // swap gl cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call
-		void         onSurfaceReload(const Mat4& root, Vec2 surfaceScale); // surface reload
 		virtual PathvCache* gtePathvCache() override;
+		void         onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size); // surface reload
 	private:
+		virtual void setBuffers(Vec2 size);
+		// define props
 		Array<GLC_State> _stateStack; // state
 		GLC_State    *_state; // state
 		GLC_CmdPack  *_cmdPack;
 		GLC_CmdPack  *_cmdPackFront;
 		GLRender     *_render;
 		PathvCache   *_cache;
+		GLuint _frameBuffer,_msaaFrameBuffer;
+		GLuint _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer;
+		GLuint _clipAAAlphaBuffer; // aa texture buffer
 		GLuint _stencilRef, _stencilRefDecr; // stencil clip state
 		float  _zDepth;
 		float  _surfaceScale, _transfromScale;
@@ -99,6 +104,7 @@ namespace qk {
 		BlendMode _blendMode; // blend mode state
 		bool   _chMatrix; // matrix change state
 		bool   _isMultiThreading, _isClipState; // clip state
+		bool _IsDeviceMsaa; // device anti alias, msaa
 		Mutex  _mutex; // submit swap mutex
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class GLC_CmdPack;

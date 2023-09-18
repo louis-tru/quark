@@ -331,13 +331,52 @@ namespace qk {
 		return version.indexOf("Metal") >= 0;
 	}
 
+	void gl_setMainRenderBuffer(GLuint buff, ColorType type, Vec2 size) {
+		glBindRenderbuffer(GL_RENDERBUFFER, buff);
+		glRenderbufferStorage(GL_RENDERBUFFER, gl_pixel_internal_format(type), size[0], size[1]);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, buff);
+	}
+
+	void gl_setMSAARenderBuffer(GLuint buff, ColorType type, Vec2 size, int msaaSample) {
+		glBindRenderbuffer(GL_RENDERBUFFER, buff); // render buffer
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, gl_pixel_internal_format(type), size[0], size[1]);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, buff);
+	}
+
+	void gl_setDepthStencilBuffer(GLuint depth, GLuint stencil, Vec2 size, int msaaSample) { // set buffers
+		// depth buffer
+		glBindRenderbuffer(GL_RENDERBUFFER, depth); // set depth buffer
+		msaaSample > 1 ?
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, GL_DEPTH_COMPONENT24, size[0], size[1]):
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size[0], size[1]);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth);
+		// clip stencil buffer
+		glBindRenderbuffer(GL_RENDERBUFFER, stencil);
+		msaaSample > 1?
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, GL_STENCIL_INDEX8, size[0], size[1]):
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, size[0], size[1]);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencil);
+	}
+
+	void gl_setClipAABuffer(GLuint buff, Vec2 size, int msaaSample) {
+		// clip anti alias buffer
+		if (msaaSample <= 1) {
+			glActiveTexture(GL_TEXTURE0 + GL_MaxTextureImageUnits); // 15 only use on aa alpha
+			glBindTexture(GL_TEXTURE_2D, buff);
+			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, GL_LUMINANCE/*internalformat*/,
+									size[0], size[1], 0/*border*/, GL_LUMINANCE/*format*/, GL_UNSIGNED_BYTE/*type*/, nullptr); // GL_LUMINANCE
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, buff, 0);
+		}
+	}
+
 	GLRender::GLRender(Options opts)
 		: Render(opts)
 		, _IsSupportMultisampled(gl_is_support_multisampled())
-		, _IsDeviceMsaa(false)
-		, _frameBuffer(0), _msaaFrameBuffer(0)
-		, _renderBuffer(0), _msaaRenderBuffer(0), _stencilBuffer(0), _depthBuffer(0)
-		, _clipAAAlphaBuffer(0)
 		, _texBuffer{0,0,0}
 		, _glCanvas(this, opts.isMultiThreading)
 	{
@@ -355,13 +394,6 @@ namespace qk {
 			_opts.msaa = 0;
 		}
 		_canvas = &_glCanvas; // set default canvas
-
-		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
-		glGenFramebuffers(2, &_frameBuffer); // _frame_buffer,_msaa_frame_buffer
-		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-		glGenRenderbuffers(4, &_renderBuffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
-		// Create aa texture buffer
-		glGenTextures(1, &_clipAAAlphaBuffer); // _clipAlphaBuffer
 
 		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
 		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
@@ -426,9 +458,6 @@ namespace qk {
 	}
 
 	GLRender::~GLRender() {
-		glDeleteFramebuffers(2, &_frameBuffer); // _frameBuffer,_msaaFrameBuffer
-		glDeleteRenderbuffers(4, &_renderBuffer); // _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer
-		glDeleteTextures(4, &_clipAAAlphaBuffer); // _clipAAAlphaBuffer, _texBuffer
 		glDeleteBuffers(3, &_rootMatrixBlock); // _rootMatrixBlock, _viewMatrixBlock, _optsBlock
 	}
 
@@ -438,101 +467,7 @@ namespace qk {
 		Vec2 surfaceScale;
 		if (_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale(), &mat, &surfaceScale))
 			return;
-		setBuffers();
-		_glCanvas.onSurfaceReload(mat, surfaceScale);
-	}
-
-	void GLRender::setBuffers() {
-		auto size = getSurfaceSize();
-		auto w = size.x(), h = size.y();
-
-		Qk_ASSERT(w, "Invalid viewport size width");
-		Qk_ASSERT(h, "Invalid viewport size height");
-
-		glViewport(0, 0, w, h);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer); // bind frame buffer
-		setMainRenderBuffer(w, h);
-
-		if (_opts.msaa > 1 && !_IsDeviceMsaa) {
-			glBindFramebuffer(GL_FRAMEBUFFER, _msaaFrameBuffer);
-
-			do { // enable multisampling
-				setMSAARenderBuffer(w, h, _opts.msaa);
-				// Test the framebuffer for completeness.
-				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
-					if ( _opts.msaa > 1 )
-						_IsDeviceMsaa = true;
-					break;
-				}
-				_opts.msaa >>= 1;
-			} while (_opts.msaa > 1);
-		}
-
-		if (!_IsDeviceMsaa) { // no device msaa
-			glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
-		}
-		setDepthStencilBuffer(w, h, _opts.msaa);
-		setClipAABuffer(w, h, _opts.msaa);
-
-		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
-		glDrawBuffers(2, buffers);
-
-		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
-		}
-
-#if DEBUG
-		int width, height;
-		// Retrieve the height and width of the color renderbuffer.
-		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
-		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
-#endif
-		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	}
-
-	void GLRender::setMainRenderBuffer(int width, int height) {
-		glBindRenderbuffer(GL_RENDERBUFFER, _renderBuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, gl_pixel_internal_format(_opts.colorType), width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _renderBuffer);
-	}
-
-	void GLRender::setMSAARenderBuffer(int width, int height, int msaaSample) {
-		glBindRenderbuffer(GL_RENDERBUFFER, _msaaRenderBuffer); // render buffer
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, gl_pixel_internal_format(_opts.colorType), width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaaRenderBuffer);
-	}
-
-	void GLRender::setDepthStencilBuffer(int width, int height, int msaaSample) { // set buffers
-		// depth buffer
-		glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer); // set depth buffer
-		msaaSample > 1 ?
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, GL_DEPTH_COMPONENT24, width, height):
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthBuffer);
-		// clip stencil buffer
-		glBindRenderbuffer(GL_RENDERBUFFER, _stencilBuffer);
-		msaaSample > 1?
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, GL_STENCIL_INDEX8, width, height):
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilBuffer);
-	}
-
-	void GLRender::setClipAABuffer(int width, int height, int msaaSample) {
-		// clip anti alias buffer
-		if (msaaSample <= 1) {
-			glActiveTexture(GL_TEXTURE0 + _maxTextureImageUnits); // 15 only use on aa alpha
-			glBindTexture(GL_TEXTURE_2D, _clipAAAlphaBuffer);
-			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, GL_LUMINANCE/*internalformat*/,
-									width, height, 0/*border*/, GL_LUMINANCE/*format*/, GL_UNSIGNED_BYTE/*type*/, nullptr); // GL_LUMINANCE
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _clipAAAlphaBuffer, 0);
-		}
+		_glCanvas.onSurfaceReload(mat, surfaceScale, size);
 	}
 
 	uint32_t GLRender::makeTexture(cPixel *src, uint32_t id) {
