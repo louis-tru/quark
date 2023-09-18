@@ -24,7 +24,7 @@ public:
 		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
 		circle.close();
 
-		paint.antiAlias = false;
+		// paint.antiAlias = false;
 		canvas->save();
 		canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kIntersect_ClipOp, 1);
 
