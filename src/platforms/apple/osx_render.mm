@@ -210,7 +210,8 @@ public:
 	void begin() override {
 		[_view lockRender];
 		// _glCanvas->_frameBuffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 1); // bind frame buffer for main canvas
+		// bind frame buffer for main canvas
+		glBindFramebuffer(GL_FRAMEBUFFER, _glCanvas.isDeviceMsaa() ? 2: 1);
 	}
 
 	void submit() override {

@@ -84,6 +84,7 @@ namespace qk {
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call
 		virtual PathvCache* gtePathvCache() override;
 		void         onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size); // surface reload
+		inline bool  isDeviceMsaa() const { return _IsDeviceMsaa; }
 	private:
 		virtual void setBuffers(Vec2 size);
 		// define props

@@ -63,7 +63,6 @@ namespace qk {
 			_cmdPack->setMetrixUnifromBuffer(mat);
 #endif
 			auto mScale = Float::max(mat[0], mat[4]);
-			// auto mScale = Float::max(_state->matrix[0], _state->matrix[4]);
 			if (_transfromScale != mScale) {
 				_transfromScale = mScale;
 				_scale = _surfaceScale * _transfromScale;
@@ -382,7 +381,8 @@ namespace qk {
 	}
 
 	bool GLCanvas::readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) {
-		return gl_read_pixels(dst, srcX, srcY);
+		//return gl_read_pixels(dst, srcX, srcY);
+		return false;
 	}
 
 	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
@@ -517,19 +517,15 @@ namespace qk {
 		gl_setMainRenderBuffer(_renderBuffer, type, size);
 
 		if (msaaCnt > 1) {
-			_IsDeviceMsaa = false;
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaaFrameBuffer);
-
 			do { // enable multisampling
 				gl_setMSAARenderBuffer(_msaaRenderBuffer, type, size, msaaCnt);
 				// Test the framebuffer for completeness.
-				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE ) {
-					if ( msaaCnt > 1 )
-						_IsDeviceMsaa = true;
+				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE )
 					break;
-				}
 				msaaCnt >>= 1;
 			} while (msaaCnt > 1);
+			_IsDeviceMsaa = msaaCnt > 1;
 		}
 
 		if (!_IsDeviceMsaa) { // no device msaa

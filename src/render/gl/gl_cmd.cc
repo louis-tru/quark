@@ -467,7 +467,7 @@ namespace qk {
 			auto chMode = _render->_blendMode;
 			if (chMode != kSrc_BlendMode)
 				_render->setBlendMode(kSrc_BlendMode);
-			auto shader = revoke ? (GLSLClipAa*)&_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
+			auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
 			float aafuzzWeight = W * 0.1f;
 			// float aafuzzWeight = W;
 			shader->use(clip.aafuzz.vertex.size(), clip.aafuzz.vertex.val());
@@ -556,48 +556,48 @@ namespace qk {
 					switchStateCall(((SwitchCmd*)cmd)->id, ((SwitchCmd*)cmd)->isEnable);
 					break;
 				case kClear_CmdType: {
-					auto cmd1 = (ClearCmd*)cmd;
-					clearColor4fCall(cmd1->color, cmd1->full, cmd1->depth);
+					auto c = (ClearCmd*)cmd;
+					clearColor4fCall(c->color, c->full, c->depth);
 					break;
 				}
 				case kClip_CmdType: {
-					auto cmd1 = (ClipCmd*)cmd;
-					drawClipCall(cmd1->clip, cmd1->ref, cmd1->revoke, cmd1->depth);
-					cmd1->~ClipCmd();
+					auto c = (ClipCmd*)cmd;
+					drawClipCall(c->clip, c->ref, c->revoke, c->depth);
+					c->~ClipCmd();
 					break;
 				}
 				case kColor_CmdType: {
-					auto cmd1 = (ColorCmd*)cmd;
-					drawColor4fCall(cmd1->vertex, cmd1->color, cmd1->aafuzz, cmd1->aaclip, cmd1->depth);
+					auto c = (ColorCmd*)cmd;
+					drawColor4fCall(c->vertex, c->color, c->aafuzz, c->aaclip, c->depth);
 					break;
 				}
 				case kImage_CmdType: {
-					auto cmd1 = (ImageCmd*)cmd;
-					drawImageCall(cmd1->vertex, &cmd1->paint, cmd1->alpha, cmd1->aafuzz, cmd1->aaclip, cmd1->depth);
-					cmd1->~ImageCmd();
+					auto c = (ImageCmd*)cmd;
+					drawImageCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
+					c->~ImageCmd();
 					break;
 				}
 				case kImageMask_CmdType: {
-					auto cmd1 = (ImageMaskCmd*)cmd;
-					drawImageMaskCall(cmd1->vertex, &cmd1->paint, cmd1->color, cmd1->aafuzz, cmd1->aaclip, cmd1->depth);
-					cmd1->~ImageMaskCmd();
+					auto c = (ImageMaskCmd*)cmd;
+					drawImageMaskCall(c->vertex, &c->paint, c->color, c->aafuzz, c->aaclip, c->depth);
+					c->~ImageMaskCmd();
 					break;
 				}
 				case kGradient_CmdType: {
-					auto cmd1 = (GradientCmd*)cmd;
-					drawGradientCall(cmd1->vertex, &cmd1->paint, cmd1->alpha, cmd1->aafuzz, cmd1->aaclip, cmd1->depth);
+					auto c = (GradientCmd*)cmd;
+					drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
 					break;
 				}
 				case kMultiColor_CmdType: {
-					auto cmd1 = (MultiColorCmd*)cmd;
-					auto s = cmd1->aaclip ? &_render->_shaders.color1_AACLIP: &_render->_shaders.color1;
+					auto c = (MultiColorCmd*)cmd;
+					auto s = c->aaclip ? &_render->_shaders.color1_AACLIP: &_render->_shaders.color1;
 					glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
-					glBufferData(GL_UNIFORM_BUFFER, sizeof(MultiColorCmd::Option) * cmd1->subcmd, cmd1->opts, GL_DYNAMIC_DRAW);
+					glBufferData(GL_UNIFORM_BUFFER, sizeof(MultiColorCmd::Option) * c->subcmd, c->opts, GL_DYNAMIC_DRAW);
 					glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
-					glBufferData(GL_ARRAY_BUFFER, cmd1->vCount * sizeof(Vec4), cmd1->vertex, GL_DYNAMIC_DRAW);
+					glBufferData(GL_ARRAY_BUFFER, c->vCount * sizeof(Vec4), c->vertex, GL_DYNAMIC_DRAW);
 					glBindVertexArray(s->vao);
 					glUseProgram(s->shader);
-					glDrawArrays(GL_TRIANGLES, 0, cmd1->vCount);
+					glDrawArrays(GL_TRIANGLES, 0, c->vCount);
 					break;
 				}
 				default: break;
