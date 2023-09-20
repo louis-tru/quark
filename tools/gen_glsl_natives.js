@@ -179,7 +179,7 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 	}).replace(/^\s+/mg, '').replace(/#version\s+300(\s+es)?/, '');
 
 	let source_len = Buffer.byteLength(source);
-	let if_reg = / Qk_SHAFER_IF_FLAGS_([a-z\_]+)/igm,if_m;
+	let if_reg = / Qk_SHAFER_IF_FLAGS_([a-z0-9\_]+)/igm,if_m;
 	// query if flags
 	while (if_m = if_reg.exec(source)) {
 		if_flags.push(if_m[1]);

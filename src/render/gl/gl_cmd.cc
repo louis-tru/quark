@@ -440,12 +440,12 @@ namespace qk {
 		auto count = paint->count;
 
 		if (paint->type == GradientPaint::kRadial_Type) {
-			s = aafuzz ? 
-				aaclip ? &_render->_shaders.colorRadial_AAFUZZ_AACLIP: &_render->_shaders.colorRadial_AAFUZZ:
+			s = count == 2 ?
+				aaclip ? &_render->_shaders.colorRadial_COUNT2_AACLIP: &_render->_shaders.colorRadial_COUNT2:
 				aaclip ? &_render->_shaders.colorRadial_AACLIP: &_render->_shaders.colorRadial;
 		} else {
-			s = (GLSLColorRadial*)(aafuzz ? 
-				aaclip ? &_render->_shaders.colorLinear_AAFUZZ_AACLIP: &_render->_shaders.colorLinear_AAFUZZ:
+			s = (GLSLColorRadial*)(count == 2 ?
+				aaclip ? &_render->_shaders.colorLinear_COUNT2_AACLIP: &_render->_shaders.colorLinear_COUNT2:
 				aaclip ? &_render->_shaders.colorLinear_AACLIP: &_render->_shaders.colorLinear);
 		}
 
