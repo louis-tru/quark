@@ -72,7 +72,7 @@ snd_pcm_sframes_t snd_pcm_writei(snd_pcm_t *pcm, const void *buffer, snd_pcm_ufr
 它的最后一个参数是snd_pcm_uframes_t,不像系统read write都是字节数,两者是不一样的。
 这个size=buffer_size/(采样位数/8*声道数)
 */
-
+ 
 void ffmpeg_fmt_to_alsa_fmt(AVCodecContext *pCodecCtx, snd_pcm_t *pcm, snd_pcm_hw_params_t *params)
 {
 	switch (pCodecCtx->sample_fmt) {
