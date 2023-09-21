@@ -142,10 +142,14 @@ namespace qk {
 		void clearColor4f(const Color4f &color, bool full);
 	private:
 		void switchStateCall(GLenum id, bool isEnable);
-		void drawColor4fCall(const VertexData &vertex, const Color4f &color, bool aafuzz, bool aaclip, float depth); // call gl api
-		void drawImageCall(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz, bool aaclip, float depth);
-		void drawImageMaskCall(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth);
-		void drawGradientCall(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz, bool aaclip, float depth);
+		void drawColor4fCall(const VertexData &vertex,
+			const Color4f &color, bool aafuzz, bool aaclip, float depth); // call gl api
+		void drawImageCall(const VertexData &vertex,
+			const ImagePaint *paint, float alpha, bool aafuzz, bool aaclip, float depth);
+		void drawImageMaskCall(const VertexData &vertex,
+			const ImagePaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth);
+		void drawGradientCall(const VertexData &vertex,
+			const GradientPaint *paint, float alpha, bool aafuzz, bool aaclip, float depth);
 		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, bool revoke, float depth);
 		void clearColor4fCall(const Color4f &color, bool full, float depth);
 		void clear(); //

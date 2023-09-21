@@ -150,7 +150,7 @@ namespace qk {
 		Color4f            color; // color
 		ImagePaint        *image; // image source, weak ref
 		GradientPaint     *gradient; // gradient color, weak ref
-		// Filter            *blur; // blur
+		// Filter            *filter; // filter
 	};
 
 }

@@ -380,7 +380,9 @@ namespace qk {
 		isEnable ? glEnable(id): glDisable(id);
 	}
 
-	void GLC_CmdPack::drawColor4fCall(const VertexData &vertex, const Color4f &color, bool aafuzz, bool aaclip, float depth) {
+	void GLC_CmdPack::drawColor4fCall(const VertexData &vertex,
+		const Color4f &color, bool aafuzz, bool aaclip, float depth
+	) {
 		auto s = aafuzz ? 
 			aaclip ? &_render->_shaders.color_AAFUZZ_AACLIP: &_render->_shaders.color_AAFUZZ:
 			aaclip ? &_render->_shaders.color_AACLIP: &_render->_shaders.color;
@@ -390,7 +392,9 @@ namespace qk {
 		glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 	}
 
-	void GLC_CmdPack::drawImageCall(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz, bool aaclip, float depth) {
+	void GLC_CmdPack::drawImageCall(const VertexData &vertex,
+		const ImagePaint *paint, float alpha, bool aafuzz, bool aaclip, float depth
+	) {
 		GLSLImage *s;
 		auto src = paint->source;
 
@@ -423,7 +427,9 @@ namespace qk {
 		glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 	}
 
-	void GLC_CmdPack::drawImageMaskCall(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth) {
+	void GLC_CmdPack::drawImageMaskCall(const VertexData &vertex,
+		const ImagePaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth
+	) {
 		auto s = aafuzz ? 
 			aaclip ? &_render->_shaders.imageMask_AAFUZZ_AACLIP: &_render->_shaders.imageMask_AAFUZZ:
 			aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
@@ -435,7 +441,9 @@ namespace qk {
 		glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 	}
 
-	void GLC_CmdPack::drawGradientCall(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz, bool aaclip, float depth) {
+	void GLC_CmdPack::drawGradientCall(const VertexData &vertex, 
+		const GradientPaint *paint, float alpha, bool aafuzz, bool aaclip, float depth
+	) {
 		GLSLColorRadial *s;
 		auto count = paint->count;
 
