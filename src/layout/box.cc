@@ -468,16 +468,16 @@ namespace qk {
 		}
 	}
 
-	void Box::set_background(Fill* val) {
+	void Box::set_background(BoxFill* val) {
 		if (_background != val) {
-			_background = static_cast<Fill*>(Filter::assign(_background, val));
+			_background = static_cast<BoxFill*>(BoxFilter::assign(_background, val));
 			mark_none();
 		}
 	}
 
 	void Box::set_box_shadow(BoxShadow* val) {
 		if (_box_shadow != val) {
-			_box_shadow = static_cast<BoxShadow*>(Filter::assign(_box_shadow, val));
+			_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign(_box_shadow, val));
 			mark_none();
 		}
 	}

@@ -38,7 +38,7 @@
 
 namespace qk {
 
-	bool Filter::check_loop_reference(Filter* value) {
+	bool BoxFilter::check_loop_reference(BoxFilter* value) {
 		if (value) {
 			auto v = value;
 			do {
@@ -51,7 +51,7 @@ namespace qk {
 		return false;
 	}
 
-	Filter* Filter::assign_no_check(Filter* left, Filter* right) {
+	BoxFilter* BoxFilter::assign_no_check(BoxFilter* left, BoxFilter* right) {
 		if (right) {
 			if (left == right) {
 				return left;
@@ -81,20 +81,20 @@ namespace qk {
 		}
 	}
 
-	Filter::Filter()
+	BoxFilter::BoxFilter()
 		: _next(nullptr)
 		, _holder_mode(kIdependent)
 	{
 	}
 
-	Filter::~Filter() {
+	BoxFilter::~BoxFilter() {
 		if (_next) {
 			_next->release();
 			_next = nullptr;
 		}
 	}
 
-	void Filter::set_next_no_check(Filter* value) {
+	void BoxFilter::set_next_no_check(BoxFilter* value) {
 		_next = assign_no_check(_next, value);
 		if (_next) {
 			_next->set_holder_mode(_holder_mode);
@@ -102,7 +102,7 @@ namespace qk {
 		onChange();
 	}
 
-	void Filter::set_next_check(Filter* value) {
+	void BoxFilter::set_next_check(BoxFilter* value) {
 		if (value != _next) {
 			if (check_loop_reference(value)) {
 				Qk_ERR("Box background loop reference error");
@@ -114,7 +114,7 @@ namespace qk {
 		}
 	}
 
-	Filter* Filter::assign(Filter* left, Filter* right) {
+	BoxFilter* BoxFilter::assign(BoxFilter* left, BoxFilter* right) {
 		if (left != right) {
 			if (left && right && left->check_loop_reference(right->_next)) {
 				Qk_ERR("Box background loop reference error");
@@ -127,7 +127,7 @@ namespace qk {
 		}
 	}
 
-	bool Filter::retain() {
+	bool BoxFilter::retain() {
 		if (_holder_mode == kDisable) {
 			return false;
 		} else if (_holder_mode == kIdependent) {
@@ -138,7 +138,7 @@ namespace qk {
 		return Reference::retain();
 	}
 
-	void Filter::set_holder_mode(HolderMode mode) {
+	void BoxFilter::set_holder_mode(HolderMode mode) {
 		if (_holder_mode != mode) {
 			_holder_mode = mode;
 			if (_next) {
@@ -147,7 +147,7 @@ namespace qk {
 		}
 	}
 
-	void Filter::onChange() {
+	void BoxFilter::onChange() {
 		auto app_ = shared_app();
 		// Qk_ASSERT(app_, "Application needs to be initialized first");
 		if (app_) {
@@ -155,17 +155,17 @@ namespace qk {
 		}
 	}
 
-	Filter::Type FillImage::type() const { return kImage; }
-	Filter::Type FillGradientLinear::type() const { return kGradientLinear; }
-	Filter::Type FillGradientRadial::type() const { return kGradientRadial; }
-	Filter::Type BoxShadow::type() const { return kShadow; }
+	BoxFilter::Type FillImage::type() const { return kImage; }
+	BoxFilter::Type FillGradientLinear::type() const { return kGradientLinear; }
+	BoxFilter::Type FillGradientRadial::type() const { return kGradientRadial; }
+	BoxFilter::Type BoxShadow::type() const { return kShadow; }
 
-	Fill* Fill::next() const {
-		return static_cast<Fill*>(_next);
+	BoxFill* BoxFill::next() const {
+		return static_cast<BoxFill*>(_next);
 	}
-	Fill* Fill::set_next(Fill* fill) {
+	BoxFill* BoxFill::set_next(BoxFill* fill) {
 		set_next_check(fill);
-		return static_cast<Fill*>(_next);
+		return static_cast<BoxFill*>(_next);
 	}
 	BoxShadow* BoxShadow::next() const {
 		return static_cast<BoxShadow*>(_next);
@@ -190,7 +190,7 @@ namespace qk {
 		}
 	}
 
-	Filter* FillImage::copy(Filter* to) {
+	BoxFilter* FillImage::copy(BoxFilter* to) {
 		auto target = (to && to->type() == kImage) ?
 				static_cast<FillImage*>(to) : new FillImage();
 		target->set_next_no_check(next());
@@ -318,7 +318,7 @@ namespace qk {
 		}
 	}
 
-	Filter* FillGradientLinear::copy(Filter* to) {
+	BoxFilter* FillGradientLinear::copy(BoxFilter* to) {
 		FillGradientLinear *target;
 		if (to && to->type() == kGradientLinear) {
 			target = static_cast<FillGradientLinear*>(to);
@@ -332,7 +332,7 @@ namespace qk {
 		return target;
 	}
 
-	Filter* FillGradientRadial::copy(Filter* to) {
+	BoxFilter* FillGradientRadial::copy(BoxFilter* to) {
 		FillGradientRadial *target;
 		if (to && to->type() == kGradientRadial) {
 			target = static_cast<FillGradientRadial*>(to);
@@ -350,7 +350,7 @@ namespace qk {
 	BoxShadow::BoxShadow(Shadow value): _value(value) {}
 	BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
 
-	Filter* BoxShadow::copy(Filter* to) {
+	BoxFilter* BoxShadow::copy(BoxFilter* to) {
 		auto target = (to && to->type() == kShadow) ?
 			static_cast<BoxShadow*>(to): new BoxShadow();
 		target->set_next_no_check(next());

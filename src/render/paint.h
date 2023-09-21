@@ -98,6 +98,15 @@ namespace qk {
 		Region            coord; // bitmap uv coord
 	};
 
+	struct PaintFilter {
+		enum Type {
+			kBlur_Type, //!< blur type
+			kBackdropBlur_Type, //!< backdrop blur type
+		};
+		Type  type; //!< paint filter type
+		float value;
+	};
+
 	struct Paint {
 
 		enum Type {
@@ -150,7 +159,7 @@ namespace qk {
 		Color4f            color; // color
 		ImagePaint        *image; // image source, weak ref
 		GradientPaint     *gradient; // gradient color, weak ref
-		// Filter            *filter; // filter
+		PaintFilter       *filter = nullptr; // filter
 	};
 
 }

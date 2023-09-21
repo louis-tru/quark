@@ -132,11 +132,11 @@ namespace qk {
 			auto fill = box->_background;
 			do {
 				switch(fill->type()) {
-					case Filter::kImage:// fill
+					case BoxFilter::kImage:// fill
 						drawBoxFillImage(box, static_cast<FillImage*>(fill), data); break;
-					case Filter::kGradientLinear: // fill
+					case BoxFilter::kGradientLinear: // fill
 						drawBoxFillLinear(box, static_cast<FillGradientLinear*>(fill), data); break;
-					case Filter::kGradientRadial: // fill
+					case BoxFilter::kGradientRadial: // fill
 						drawBoxFillRadial(box, static_cast<FillGradientRadial*>(fill), data); break;
 					default: break;
 				}
@@ -275,7 +275,7 @@ namespace qk {
 		void drawBoxShadow(Box *box, BoxData &data) {
 			auto shadow = box->box_shadow();
 			do {
-				if (shadow->type() == Filter::kShadow) {
+				if (shadow->type() == BoxFilter::kShadow) {
 					// TODO ...
 				}
 				shadow = shadow->next();

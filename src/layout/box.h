@@ -147,7 +147,7 @@ namespace qk {
 		Qk_DEFINE_PROP    (float,      radius_right_bottom);
 		Qk_DEFINE_PROP    (float,      radius_left_bottom);
 		Qk_DEFINE_PROP    (Color,      background_color); // fill background color
-		Qk_DEFINE_PROP    (Fill*,      background); // fill background, image|gradient
+		Qk_DEFINE_PROP    (BoxFill*,   background); // fill background, image|gradient
 		Qk_DEFINE_PROP    (BoxShadow*, box_shadow); // box shadow, shadow
 		Qk_DEFINE_PROP_ACC(Color,      border_color_top); // border_color
 		Qk_DEFINE_PROP_ACC(Color,      border_color_right);

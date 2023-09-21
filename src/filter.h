@@ -39,10 +39,10 @@
 namespace qk {
 
 	/**
-	* @class Filter, Single linked list struct
+	* @class Box Filter, Single linked list struct
 	*/
-	class Qk_EXPORT Filter: public Reference {
-		Qk_HIDDEN_ALL_COPY(Filter);
+	class Qk_EXPORT BoxFilter: public Reference {
+		Qk_HIDDEN_ALL_COPY(BoxFilter);
 	public:
 		enum Type {
 			kInvalid,
@@ -58,29 +58,30 @@ namespace qk {
 			kShared,
 			kDisable,
 		};
-		Filter();
-		virtual ~Filter();
-		virtual Type type() const = 0;
-		virtual Filter* copy(Filter* to) = 0;
-		virtual bool retain() override;
-		static Filter* assign(Filter* left, Filter* right);
+		BoxFilter();
+		virtual ~BoxFilter();
+		virtual Type       type() const = 0;
+		virtual BoxFilter* copy(BoxFilter* to) = 0;
+		virtual bool       retain() override;
+		static  BoxFilter* assign(BoxFilter* left, BoxFilter* right);
 		Qk_DEFINE_PROP(HolderMode, holder_mode); // holder mode
 	protected:
-		static Filter* assign_no_check(Filter* left, Filter* right);
+		static BoxFilter* assign_no_check(BoxFilter* left, BoxFilter* right);
 		void onChange();
-		bool check_loop_reference(Filter* value);
-		void set_next_check(Filter* value);
-		void set_next_no_check(Filter* value);
-		Filter* _next;
+		bool check_loop_reference(BoxFilter* value);
+		void set_next_check(BoxFilter* value);
+		void set_next_no_check(BoxFilter* value);
+		BoxFilter* _next;
 	};
 
-	class Qk_EXPORT Fill: public Filter {
+	// box fill, background
+	class Qk_EXPORT BoxFill: public BoxFilter {
 	public:
-		Fill* next() const;
-		Fill* set_next(Fill*);
+		BoxFill* next() const;
+		BoxFill* set_next(BoxFill*);
 	};
 
-	class Qk_EXPORT FillImage: public Fill, public ImageSourceHolder {
+	class Qk_EXPORT FillImage: public BoxFill, public ImageSourceHolder {
 	public:
 		struct Init {
 			FillSize size_x, size_y;
@@ -94,13 +95,13 @@ namespace qk {
 		Qk_DEFINE_PROP(FillPosition, position_x);
 		Qk_DEFINE_PROP(FillPosition, position_y);
 		Qk_DEFINE_PROP(Repeat, repeat);
-		virtual Type    type() const override;
-		virtual Filter* copy(Filter* to) override;
+		virtual Type       type() const override;
+		virtual BoxFilter* copy(BoxFilter* to) override;
 		static bool  compute_size(FillSize size, float host, float& out);
 		static float compute_position(FillPosition pos, float host, float size);
 	};
 
-	class Qk_EXPORT FillGradient: public Fill {
+	class Qk_EXPORT FillGradient: public BoxFill {
 	public:
 		FillGradient(const Array<float>& pos, const Array<Color>& colors);
 		virtual ~FillGradient();
@@ -120,8 +121,8 @@ namespace qk {
 		Qk_DEFINE_PROP(float, angle);
 		Qk_DEFINE_PROP_GET(float, radian);
 		Qk_DEFINE_PROP_GET(uint8_t, quadrant);
-		virtual Type    type() const override;
-		virtual Filter* copy(Filter* to) override;
+		virtual Type       type() const override;
+		virtual BoxFilter* copy(BoxFilter* to) override;
 	private:
 		void setRadian();
 	};
@@ -129,11 +130,12 @@ namespace qk {
 	class Qk_EXPORT FillGradientRadial: public FillGradient {
 	public:
 		FillGradientRadial(const Array<float>& pos, const Array<Color>& colors);
-		virtual Type    type() const override;
-		virtual Filter* copy(Filter* to) override;
+		virtual Type       type() const override;
+		virtual BoxFilter* copy(BoxFilter* to) override;
 	};
 
-	class Qk_EXPORT BoxShadow: public Filter {
+	// box shadow
+	class Qk_EXPORT BoxShadow: public BoxFilter {
 	public:
 		BoxShadow();
 		BoxShadow(Shadow value);
@@ -141,8 +143,8 @@ namespace qk {
 		Qk_DEFINE_PROP(Shadow, value);
 		BoxShadow* next() const;
 		BoxShadow* set_next(BoxShadow*);
-		virtual Type    type() const override;
-		virtual Filter* copy(Filter* to) override;
+		virtual Type       type() const override;
+		virtual BoxFilter* copy(BoxFilter* to) override;
 	};
 
 }
