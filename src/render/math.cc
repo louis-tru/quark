@@ -32,6 +32,10 @@
 #include <math.h>
 #include "./math.h"
 
+#if Qk_ARCH_ARM
+#include <arm_neon.h>
+#endif
+
 #define Qk_ARRAY_SKIP_DEFAULT_IMPL 1
 
 #include "../util/array.cc"
@@ -226,10 +230,7 @@ namespace qk {
 	}
 
 	float Vec2::angleTo(Vec2 to) const {
-		float a = angle() - to.angle();
-		// if (a < 0)
-			// a += Qk_PI_2;
-		return a;
+		return angle() - to.angle();
 		// return acosf(dot(to) / (length() * to.length()));
 	}
 
@@ -239,8 +240,6 @@ namespace qk {
 	}
 	Vec3::Vec3(float f): Vec(f,f,f) {
 	}
-	// Vec3::Vec3(const Vec<float,3>& v): Vec(v) {
-	// }
 	Vec3::Vec3(float a, float b, float c): Vec(a,b,c) {
 	}
 	Vec3::Vec3(const Vec<float, 2> &vec2, float f): Vec(vec2.val[0],vec2.val[1],f) {
@@ -598,10 +597,21 @@ namespace qk {
 		*/
 		const float* _a = val;
 		const float* _b = b.val;
+#if Qk_ARCH_ARM
+		float32x4_t p0 = {_a[0],_a[1],_a[3],_a[4]};
+		float32x4_t p1 = {_b[0],_b[1],_b[0],_b[1]};
+		float32x4_t p3 = vmulq_f32(p0, p1); // *
+		float32x2_t p4 = {p3[0],p3[2]};
+		float32x2_t p5 = {p3[1],p3[3]};
+		float32x2_t p6 = {_a[2],_a[5]};
+		float32x2_t p8 = vadd_f32(vadd_f32(p4, p5), p6); // +
+		return Vec2(p8[0],p8[1]);
+#else
 		return Vec2(
 			_a[0] * _b[0] + _a[1] * _b[1] + _a[2],
 			_a[3] * _b[0] + _a[4] * _b[1] + _a[5]
 		);
+#endif
 	}
 
 	/**

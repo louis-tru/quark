@@ -104,7 +104,7 @@ namespace qk {
 			kBackdropBlur_Type, //!< backdrop blur type
 		};
 		Type  type; //!< paint filter type
-		float value;
+		float value; //!< blur value
 	};
 
 	struct Paint {
@@ -155,8 +155,8 @@ namespace qk {
 			};
 		}; // size 32bit
 
-		float              width; // stroke width
-		Color4f            color; // color
+		float             width; // stroke width
+		Color4f           color; // color
 		ImagePaint        *image; // image source, weak ref
 		GradientPaint     *gradient; // gradient color, weak ref
 		PaintFilter       *filter = nullptr; // filter

@@ -53,7 +53,7 @@ def_opts('arm-neon', arm(),     '--arm-neon     enable arm neno [{0}]');
 def_opts('arm-vfp', opts.arch == 'arm64' ? 'vfpv4': 
 										(opts.arch == 'arm' ? (opts.armv7 || opts.armv7s ? 'vfpv3' : 'vfpv2'): 'none'),
 																'--arm-vfp=VAL  enable arm vfp options vfpv2/vfpv3/vfpv4/none [{0}]');
-def_opts('arm-fpu', opts.arm_neon ? 'neon': opts.arm_vfp, 
+def_opts('arm-fpu', opts.arm_neon ? 'neon': opts.arm_vfp,
 																'--arm-fpu=VAL  enable arm fpu [{0}]');
 def_opts(['emulator', 'em'], 0, '--emulator,-em enable the emulator [{0}]');
 def_opts('clang', isMac() ? 1 : 0, 
