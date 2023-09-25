@@ -212,7 +212,54 @@ namespace qk {
 		}
 
 		void GLC_CmdPack::drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz) {
-			if ( !vertex.vertex.length() ) {
+			if ( vertex.vertex.length() ) { // length != 0
+				// add multi color subcmd
+				auto vertexp = vertex.vertex.val();
+				auto vertexLen = vertex.vCount;
+				do {
+					auto cmd = getMColorCmd();
+					cmd->opts[cmd->subcmd] = { // setting vertex option data
+						.flags  = 0,                       .depth = _canvas->_zDepth,
+						.matrix = _canvas->_state->matrix, .color = color,
+					};
+					auto vertexs = vertexBlocks.current;
+					auto prevSize = vertexs->size;
+					int  cpLen = Qk_MCCmd_VertexBlock_Capacity - prevSize;
+					auto cpSrc = vertexp;
+
+					optionBlocks.current->size++;
+
+					if (cpLen < vertexLen) { // not enough space
+						vertexs->size = Qk_MCCmd_VertexBlock_Capacity;
+						vertexp += cpLen;
+						vertexLen -= cpLen;
+					} else {
+						vertexs->size = prevSize + vertexLen;
+						cpLen = vertexLen;
+						vertexLen = 0;
+					}
+
+					const float subcmd = *((float*)&cmd->subcmd);
+					auto p = vertexs->val + prevSize;
+					auto p_1 = p + cpLen;
+
+					// copy vertex data
+					while (p < p_1) {
+#if DEBUG
+						#define Qk_CopyVec() *p = *((Vec4*)(cpSrc)); p->val[3] = subcmd; p++,cpSrc++
+#else
+						#define Qk_CopyVec() *p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd}; p++,cpSrc++
+#endif
+						Qk_CopyVec();
+						Qk_CopyVec();
+						Qk_CopyVec();
+						Qk_CopyVec();
+						#undef Qk_CopyVec
+					}
+					cmd->vCount += cpLen;
+					cmd->subcmd++;
+				} while(vertexLen);
+			} else {
 				checkMetrix(); // check matrix change
 				auto cmd = new(allocCmd(sizeof(ColorCmd))) ColorCmd;
 				cmd->type = kColor_CmdType;
@@ -221,55 +268,7 @@ namespace qk {
 				cmd->aafuzz = aafuzz;
 				cmd->aaclip = _canvas->_state->aaclip;
 				cmd->color = color;
-				return;
 			}
-
-			// add multi color subcmd
-			auto vertexp = vertex.vertex.val();
-			auto vertexLen = vertex.vCount;
-			do {
-				auto cmd = getMColorCmd();
-				cmd->opts[cmd->subcmd] = { // setting vertex option data
-					.flags  = 0,                       .depth = _canvas->_zDepth,
-					.matrix = _canvas->_state->matrix, .color = color,
-				};
-				auto vertexs = vertexBlocks.current;
-				auto prevSize = vertexs->size;
-				int  cpLen = Qk_MCCmd_VertexBlock_Capacity - prevSize;
-				auto cpSrc = vertexp;
-
-				optionBlocks.current->size++;
-
-				if (cpLen < vertexLen) { // not enough space
-					vertexs->size = Qk_MCCmd_VertexBlock_Capacity;
-					vertexp += cpLen;
-					vertexLen -= cpLen;
-				} else {
-					vertexs->size = prevSize + vertexLen;
-					cpLen = vertexLen;
-					vertexLen = 0;
-				}
-
-				const float subcmd = *((float*)&cmd->subcmd);
-				auto p = vertexs->val + prevSize;
-				auto p_1 = p + cpLen;
-
-				// copy vertex data
-				while (p < p_1) {
-#if DEBUG
-					#define Qk_CopyVec() *p = *((Vec4*)(cpSrc)); p->val[3] = subcmd; p++,cpSrc++
-#else
-					#define Qk_CopyVec() *p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd}; p++,cpSrc++
-#endif
-					Qk_CopyVec();
-					Qk_CopyVec();
-					Qk_CopyVec();
-					Qk_CopyVec();
-					#undef Qk_CopyVec
-				}
-				cmd->vCount += cpLen;
-				cmd->subcmd++;
-			} while(vertexLen);
 		}
 
 		void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {
@@ -375,7 +374,7 @@ namespace qk {
 			shader->use(vertex.vertex.size(), vertex.vertex.val());
 		}
 	}
-		
+
 	void GLC_CmdPack::switchStateCall(GLenum id, bool isEnable) {
 		isEnable ? glEnable(id): glDisable(id);
 	}
@@ -397,30 +396,30 @@ namespace qk {
 	) {
 		GLSLImage *s;
 		auto src = paint->source;
+		auto srcIndex = paint->srcIndex;
 
 		if (kColor_Type_YUV420P_Y_8 == src->type()) { // yuv420p or yuv420sp
 			auto yuv = aafuzz ?
 				aaclip ? &_render->_shaders.imageYuv_AAFUZZ_AACLIP: &_render->_shaders.imageYuv_AAFUZZ:
 				aaclip ? &_render->_shaders.imageYuv_AACLIP: &_render->_shaders.imageYuv;
 			s = (GLSLImage*)yuv;
-
 			useShader(s, vertex);
 
-			_render->setTexture(src->pixels().val() + 1, 1, paint);
 			if (src->pixels()[1].type() == kColor_Type_YUV420P_U_8) { // yuv420p
 				glUniform1i(yuv->format, 1);
-				_render->setTexture(src->pixels().val() + 2, 2, paint);
+				_render->setTexture(src->pixels().val() + srcIndex + 2, 2, paint); // v
 			} else { // yuv420sp
 				glUniform1i(yuv->format, 0);
 			}
+			_render->setTexture(src->pixels().val() + srcIndex + 1, 1, paint); // u or uv
 		} else {
 			s = aafuzz ?
 				aaclip ? &_render->_shaders.image_AAFUZZ_AACLIP: &_render->_shaders.image_AAFUZZ:
 				aaclip ? &_render->_shaders.image_AACLIP: &_render->_shaders.image;
 			useShader(s, vertex);
 		}
+		_render->setTexture(src->pixels().val() + srcIndex, 0, paint); // rgb or y
 
-		_render->setTexture(src->pixels().val(), 0, paint);
 		glUniform1f(s->depth, depth);
 		glUniform1f(s->alpha, alpha);
 		glUniform4fv(s->coord, 1, paint->coord.origin.val);

@@ -74,6 +74,7 @@ namespace qk {
 
 		union {
 			uint32_t bitfields = (
+				// 0 | // src index default zero
 				(kClamp_TileMode << 8) | // 2 bits
 				(kClamp_TileMode << 10) | // 2 bits
 				(kNone_MipmapMode << 12) | // 2 bits
@@ -81,7 +82,7 @@ namespace qk {
 				0
 			);
 			struct {
-				uint8_t       offset: 8; // default zero, image source pixel index offset
+				uint8_t       srcIndex: 8; // default zero, image source pixel index offset
 				TileMode      tileModeX: 2; // default kClamp_TileMode
 				TileMode      tileModeY: 2; // default kClamp_TileMode
 				MipmapMode    mipmapMode: 2;// default kNone_MipmapMode, image source mipmap mode
