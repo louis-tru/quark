@@ -117,7 +117,7 @@ namespace qk {
 		}
 	}
 
-	uint32_t gl_pixel_internal_format(ColorType type) {
+	uint32_t gl_get_pixel_internalformat(ColorType type) {
 		switch (type) {
 			case kColor_Type_RGB_565: return GL_RGB565;
 			case kColor_Type_RGBA_8888: return GL_RGBA8;
@@ -180,7 +180,7 @@ namespace qk {
 		return id;
 	}
 
-	void gl_set_texture(GLuint id, uint32_t slot, const ImagePaint* paint) {
+	void gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, id);
 
@@ -238,7 +238,7 @@ namespace qk {
 		}
 	}
 
-	void gl_set_blend_mode(BlendMode blendMode) {
+	void gl_set_color_blend_mode(BlendMode blendMode) {
 		switch (blendMode) {
 			case kClear_BlendMode:         //!< r = 0 + (1-sa)*d
 				// glBlendFunc (sfactor, dfactor)
@@ -321,25 +321,25 @@ namespace qk {
 			int idx = str.indexOf(s);
 			if (idx >= 0) {
 				int num = str.substr(idx + strlen(s)).trim().substr(0,1).toNumber<int>();
-				if (num > 2)
+				if (num > 2) // version > 2
 					return true;
-				else if (extensions.indexOf( "multisample" ) >= 0)
+				else if (extensions.indexOf( "multisample" ) >= 0) // not use extensions
 					return false;
 			}
 		}
 
-		return version.indexOf("Metal") >= 0;
+		return version.indexOf("Metal") >= 0; // test apple metal
 	}
 
 	void gl_setMainRenderBuffer(GLuint buff, ColorType type, Vec2 size) {
 		glBindRenderbuffer(GL_RENDERBUFFER, buff);
-		glRenderbufferStorage(GL_RENDERBUFFER, gl_pixel_internal_format(type), size[0], size[1]);
+		glRenderbufferStorage(GL_RENDERBUFFER, gl_get_pixel_internalformat(type), size[0], size[1]);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, buff);
 	}
 
 	void gl_setMSAARenderBuffer(GLuint buff, ColorType type, Vec2 size, int msaaSample) {
 		glBindRenderbuffer(GL_RENDERBUFFER, buff); // render buffer
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, gl_pixel_internal_format(type), size[0], size[1]);
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, gl_get_pixel_internalformat(type), size[0], size[1]);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, buff);
 	}
 
@@ -514,12 +514,12 @@ namespace qk {
 			}
 			_texBuffer[slot] = id;
 		}
-		gl_set_texture(id, slot, paint);
+		gl_set_texture_param(id, slot, paint);
 	}
 
 	void GLRender::setBlendMode(BlendMode mode) {
 		_blendMode = mode;
-		gl_set_blend_mode(mode);
+		gl_set_color_blend_mode(mode);
 	}
 
 }
