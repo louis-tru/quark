@@ -41,6 +41,7 @@ namespace qk {
 	void gl_setMSAARenderBuffer(GLuint buff, ColorType type, Vec2 size, int msaaSample);
 	void gl_setDepthStencilBuffer(GLuint depth, GLuint stencil, Vec2 size, int msaaSample);
 	void gl_setClipAABuffer(GLuint buff, Vec2 size, int msaaSample);
+	void gl_textureBarrier();
 
 	extern uint32_t GL_MaxTextureImageUnits;
 	extern const  Region ZeroRegion;
@@ -332,12 +333,7 @@ namespace qk {
 		if (!_IsDeviceMsaa) { // clear clip aa buffer
 			float color[] = {1.0f,1.0f,1.0f,1.0f};
 			glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
-#if Qk_OSX
-			// ensure clip texture clear can be executed correctly in sequence
-			glFlushRenderAPPLE();
-#else
-			glFlush();
-#endif
+			gl_textureBarrier(); // ensure clip texture clear can be executed correctly in sequence
 		}
 		glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
 		glDisable(GL_STENCIL_TEST); // disable stencil test

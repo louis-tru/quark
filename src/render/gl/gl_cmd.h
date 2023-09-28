@@ -169,7 +169,7 @@ namespace qk {
 		};
 		ArrayMemBlock<Vec4>  vertexBlocks; // vertex storage
 		ArrayMemBlock<MCOpt> optionBlocks; //
-		MemBlock<Cmd>        cmds; // cmd queue
+		ArrayMemBlock<Cmd>   cmds; // cmd queue
 		Cmd                  *lastCmd;
 		GLRender             *_render;
 		GLCanvas             *_canvas;

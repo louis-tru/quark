@@ -374,6 +374,18 @@ namespace qk {
 		}
 	}
 
+	void gl_textureBarrier() {
+#if defined(GL_NV_texture_barrier)
+		glTextureBarrierNV();
+#elif defined(GL_ARB_texture_barrier)
+		glTextureBarrier();
+#elif Qk_OSX
+		glTextureBarrierNV();
+#else
+		glFlush();
+#endif
+	}
+
 	GLRender::GLRender(Options opts)
 		: Render(opts)
 		, _IsSupportMultisampled(gl_is_support_multisampled())

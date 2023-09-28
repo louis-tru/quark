@@ -36,9 +36,12 @@
 #define Qk_MCCmd_Option_Capacity 1024
 #define Qk_MCCmd_VertexBlock_Capacity 65535
 #define Qk_MCCmd_OptBlock_Capacity 16384
+#define Qk_MCCmd_CmdBlock_Capacity 65536
 
 namespace qk {
 	extern const float aa_fuzz_weight;
+
+	void gl_textureBarrier();
 
 	GLC_CmdPack::ImageCmd::~ImageCmd() {
 		paint.source->release();
@@ -50,26 +53,29 @@ namespace qk {
 
 	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
 		: _render(render), _canvas(canvas), _cache(canvas->_cache)
-		, cmds{nullptr,0,0}
 		, lastCmd(nullptr)
 	{
 #if Qk_USE_GLC_CMD_QUEUE
-		cmds.size = sizeof(Cmd);
-		cmds.capacity = 65536;
-		cmds.val = (Cmd*)malloc(65536); // init, alloc 64k memory
-		cmds.val->size = cmds.size;
-		cmds.val->type = kEmpty_CmdType;
-		lastCmd = cmds.val;
 		vertexBlocks.blocks.push({
 			(Vec4*)malloc(Qk_MCCmd_VertexBlock_Capacity * sizeof(Vec4)),0,Qk_MCCmd_VertexBlock_Capacity
 		});
+		vertexBlocks.current = vertexBlocks.blocks.val();
+		vertexBlocks.index = 0;
+
 		optionBlocks.blocks.push({
 			(MCOpt*)malloc(Qk_MCCmd_OptBlock_Capacity * sizeof(MCOpt)),0,Qk_MCCmd_OptBlock_Capacity
 		});
-		vertexBlocks.current = vertexBlocks.blocks.val();
-		vertexBlocks.index = 0;
 		optionBlocks.current = optionBlocks.blocks.val();
 		optionBlocks.index = 0;
+
+		cmds.blocks.push({ // init, alloc 64k memory
+			(Cmd*)malloc(Qk_MCCmd_CmdBlock_Capacity),sizeof(Cmd),Qk_MCCmd_CmdBlock_Capacity
+		});
+		cmds.current = cmds.blocks.val();
+		cmds.index = 0;
+		lastCmd = cmds.current->val;
+		lastCmd->size = sizeof(Cmd);
+		lastCmd->type = kEmpty_CmdType;
 #endif
 	}
 
@@ -79,50 +85,61 @@ namespace qk {
 			free(i.val);
 		for (auto &i: optionBlocks.blocks)
 			free(i.val);
+		for (auto &i: cmds.blocks)
+			free(i.val);
 		clear();
-		free(cmds.val);
 #endif
 	}
 
 #if Qk_USE_GLC_CMD_QUEUE
 	void GLC_CmdPack::clear() {
-		auto cmd = cmds.val;
-
-		while (cmd <= lastCmd) {
-			switch (cmd->type) {
-				case kClip_CmdType:
-					((ClipCmd*)cmd)->~ClipCmd();
-					break;
-				case kColor_CmdType:
-					((ColorCmd*)cmd)->~ColorCmd();
-					break;
-				case kGradient_CmdType:
-					((GradientCmd*)cmd)->~GradientCmd();
-					break;
-				case kImage_CmdType:
-					((ImageCmd*)cmd)->~ImageCmd();
-					break;
-				case kImageMask_CmdType:
-					((ImageMaskCmd*)cmd)->~ImageMaskCmd();
-					break;
-				default: break;
+		for (auto &i: cmds.blocks) {
+			auto cmd = i.val;
+			auto end = (Cmd*)(((char*)cmd) + i.size);
+			while (cmd < end) {
+				switch (cmd->type) {
+					case kClip_CmdType:
+						((ClipCmd*)cmd)->~ClipCmd();
+						break;
+					case kColor_CmdType:
+						((ColorCmd*)cmd)->~ColorCmd();
+						break;
+					case kGradient_CmdType:
+						((GradientCmd*)cmd)->~GradientCmd();
+						break;
+					case kImage_CmdType:
+						((ImageCmd*)cmd)->~ImageCmd();
+						break;
+					case kImageMask_CmdType:
+						((ImageMaskCmd*)cmd)->~ImageMaskCmd();
+						break;
+					default: break;
+				}
+				cmd = (Cmd*)(((char*)cmd) + cmd->size);
 			}
-			cmd = (Cmd*)(((char*)cmd) + cmd->size);
+			i.size = 0;
 		}
-
-		lastCmd = cmds.val;
-		cmds.size = lastCmd->size;
+		cmds.current = cmds.blocks.val();
+		cmds.current->size = sizeof(Cmd);
+		cmds.index = 0;
+		lastCmd = cmds.current->val;
 	}
 
 	GLC_CmdPack::Cmd* GLC_CmdPack::allocCmd(uint32_t size) {
-		auto newSize = cmds.size + size;
-		if (newSize > cmds.capacity) {
-			cmds.capacity <<= 1;
-			cmds.val = (Cmd*)realloc(cmds.val, cmds.capacity);
+		auto cmds_ = cmds.current;
+		auto newSize = cmds_->size + size;
+		if (newSize > cmds_->capacity) {
+			if (++cmds.index == cmds.blocks.length()) {
+				cmds.blocks.push({ // init, alloc 64k memory
+					(Cmd*)malloc(Qk_MCCmd_CmdBlock_Capacity),0,Qk_MCCmd_CmdBlock_Capacity
+				});
+			}
+			cmds.current = cmds_ = cmds.blocks.val() + cmds.index;
+			newSize = size;
 		}
-		lastCmd = (Cmd*)(((char*)cmds.val) + cmds.size);
+		lastCmd = (Cmd*)(((char*)cmds_->val) + cmds_->size);
 		lastCmd->size = size;
-		cmds.size = newSize;
+		cmds_->size = newSize;
 		return lastCmd;
 	}
 
@@ -472,7 +489,8 @@ namespace qk {
 
 		auto aaClip = [](GLRender *_render, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C) {
 			auto chMode = _render->_blendMode;
-			if (chMode != kSrc_BlendMode)
+			auto ch = chMode != kSrc_BlendMode && chMode != kSrcOver_BlendMode;
+			if (ch)
 				_render->setBlendMode(kSrc_BlendMode);
 			auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
 			float aafuzzWeight = W * 0.1f;
@@ -483,14 +501,9 @@ namespace qk {
 			glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W
 			// glUniform1f(shader->aafuzzConst, C);
 			glDrawArrays(GL_TRIANGLES, 0, clip.aafuzz.vCount); // draw test
-			if (chMode != kSrc_BlendMode)
-				_render->setBlendMode(chMode);
-#if Qk_OSX
-			// ensure aa clip can be executed correctly in sequence
-			glFlushRenderAPPLE();
-#else
-			glFlush();
-#endif
+			if (ch)
+				_render->setBlendMode(chMode); // revoke blend mode
+			gl_textureBarrier(); // ensure aa clip can be executed correctly in sequence
 		};
 
 		if (clip.op == Canvas::kDifference_ClipOp) { // difference clip
@@ -542,79 +555,79 @@ namespace qk {
 
 	void GLC_CmdPack::flush() {
 #if Qk_USE_GLC_CMD_QUEUE
-		auto cmd = cmds.val;
 		if (_render->_blendMode != _canvas->_blendMode) {
 			_render->setBlendMode(_canvas->_blendMode); // maintain final status
 		}
 		setMetrixUnifromBuffer(_canvas->_state->matrix); // maintain final status
-		allocCmd(sizeof(Cmd))->type = kEmpty_CmdType;
 
-		while(cmd != lastCmd) {
+		for (auto &i: cmds.blocks) {
+			if (i.size == 0) break;
+			auto cmd = i.val;
+			auto end = (Cmd*)(((char*)cmd) + i.size);
 			Qk_ASSERT(cmd->size);
-			cmd = (Cmd*)(((char*)cmd) + cmd->size); // skip first empty
-			switch (cmd->type) {
-				case kMatrix_CmdType:
-					setMetrixUnifromBuffer(((MatrixCmd*)cmd)->matrix);
-					break;
-				case kBlend_CmdType:
-					_render->setBlendMode(((BlendCmd*)cmd)->mode);
-					break;
-				case kSwitch_CmdType:
-					switchStateCall(((SwitchCmd*)cmd)->id, ((SwitchCmd*)cmd)->isEnable);
-					break;
-				case kClear_CmdType: {
-					auto c = (ClearCmd*)cmd;
-					clearColor4fCall(c->color, c->full, c->depth);
-					break;
-				}
-				case kClip_CmdType: {
-					auto c = (ClipCmd*)cmd;
-					drawClipCall(c->clip, c->ref, c->revoke, c->depth);
-					c->~ClipCmd();
-					break;
-				}
-				case kColor_CmdType: {
-					auto c = (ColorCmd*)cmd;
-					drawColor4fCall(c->vertex, c->color, c->aafuzz, c->aaclip, c->depth);
-					break;
-				}
-				case kImage_CmdType: {
-					auto c = (ImageCmd*)cmd;
-					drawImageCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
-					c->~ImageCmd();
-					break;
-				}
-				case kImageMask_CmdType: {
-					auto c = (ImageMaskCmd*)cmd;
-					drawImageMaskCall(c->vertex, &c->paint, c->color, c->aafuzz, c->aaclip, c->depth);
-					c->~ImageMaskCmd();
-					break;
-				}
-				case kGradient_CmdType: {
-					auto c = (GradientCmd*)cmd;
-					drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
-					break;
-				}
-				case kMultiColor_CmdType: {
-					auto c = (MultiColorCmd*)cmd;
-					auto s = c->aaclip ? &_render->_shaders.color1_AACLIP: &_render->_shaders.color1;
-					glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
-					glBufferData(GL_UNIFORM_BUFFER, sizeof(MultiColorCmd::Option) * c->subcmd, c->opts, GL_DYNAMIC_DRAW);
-					glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
-					glBufferData(GL_ARRAY_BUFFER, c->vCount * sizeof(Vec4), c->vertex, GL_DYNAMIC_DRAW);
-					glBindVertexArray(s->vao);
-					glUseProgram(s->shader);
-					glDrawArrays(GL_TRIANGLES, 0, c->vCount);
-					break;
-				}
-				default: break;
-			}
-		}
 
-		vertexBlocks.current = vertexBlocks.blocks.val();
-		optionBlocks.current = optionBlocks.blocks.val();
-		cmds.size = sizeof(Cmd);
-		lastCmd = cmds.val;
+			while (cmd < end) {
+				switch (cmd->type) {
+					case kMatrix_CmdType:
+						setMetrixUnifromBuffer(((MatrixCmd*)cmd)->matrix);
+						break;
+					case kBlend_CmdType:
+						_render->setBlendMode(((BlendCmd*)cmd)->mode);
+						break;
+					case kSwitch_CmdType:
+						switchStateCall(((SwitchCmd*)cmd)->id, ((SwitchCmd*)cmd)->isEnable);
+						break;
+					case kClear_CmdType: {
+						auto c = (ClearCmd*)cmd;
+						clearColor4fCall(c->color, c->full, c->depth);
+						break;
+					}
+					case kClip_CmdType: {
+						auto c = (ClipCmd*)cmd;
+						drawClipCall(c->clip, c->ref, c->revoke, c->depth);
+						c->~ClipCmd();
+						break;
+					}
+					case kColor_CmdType: {
+						auto c = (ColorCmd*)cmd;
+						drawColor4fCall(c->vertex, c->color, c->aafuzz, c->aaclip, c->depth);
+						break;
+					}
+					case kImage_CmdType: {
+						auto c = (ImageCmd*)cmd;
+						drawImageCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
+						c->~ImageCmd();
+						break;
+					}
+					case kImageMask_CmdType: {
+						auto c = (ImageMaskCmd*)cmd;
+						drawImageMaskCall(c->vertex, &c->paint, c->color, c->aafuzz, c->aaclip, c->depth);
+						c->~ImageMaskCmd();
+						break;
+					}
+					case kGradient_CmdType: {
+						auto c = (GradientCmd*)cmd;
+						drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
+						break;
+					}
+					case kMultiColor_CmdType: {
+						auto c = (MultiColorCmd*)cmd;
+						auto s = c->aaclip ? &_render->_shaders.color1_AACLIP: &_render->_shaders.color1;
+						glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
+						glBufferData(GL_UNIFORM_BUFFER, sizeof(MultiColorCmd::Option) * c->subcmd, c->opts, GL_DYNAMIC_DRAW);
+						glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
+						glBufferData(GL_ARRAY_BUFFER, c->vCount * sizeof(Vec4), c->vertex, GL_DYNAMIC_DRAW);
+						glBindVertexArray(s->vao);
+						glUseProgram(s->shader);
+						glDrawArrays(GL_TRIANGLES, 0, c->vCount);
+						break;
+					}
+					default: break;
+				}
+				cmd = (Cmd*)(((char*)cmd) + cmd->size); // next cmd
+			}
+			i.size = 0;
+		}
 
 		for (int i = vertexBlocks.index; i >= 0; i--) {
 			vertexBlocks.blocks[i].size = 0;
@@ -622,8 +635,15 @@ namespace qk {
 		for (int i = optionBlocks.index; i >= 0; i--) {
 			optionBlocks.blocks[i].size = 0;
 		}
+
+		vertexBlocks.current = vertexBlocks.blocks.val();
 		vertexBlocks.index = 0;
+		optionBlocks.current = optionBlocks.blocks.val();
 		optionBlocks.index = 0;
+		cmds.current       = cmds.blocks.val();
+		cmds.current->size = sizeof(Cmd);
+		cmds.index = 0;
+		lastCmd = cmds.current->val;
 #endif
 	}
 
