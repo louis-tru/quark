@@ -330,7 +330,8 @@ namespace qk {
 
 		static void getBlurSampling(float size, int &n, int &lod) {
 			n = ceilf(Qk_MIN(13,Qk_MAX(3,size))); // sampling rate
-			if (n % 2 == 0) n += 1; // keep singular
+			if (n % 2 == 0)
+				n += 1; // keep singular
 			lod = ceilf(Float::max(0,log2f(size/n)));
 		}
 
