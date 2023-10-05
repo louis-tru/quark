@@ -526,14 +526,14 @@ namespace qk {
 		[ d, e, f ]   [-sin(z),  cos(z), 0 ]
 		[ 0, 0, 1 ]   [ 0,       0,      1 ]
 		*/
-		float cz  = cosf(z);
-		float sz  = sinf(z);
-		float a   = val[0] * cz - val[1] * sz;
-		float d   = val[3] * cz - val[4] * sz;
-		val[1] = val[0] * sz + val[1] * cz;
-		val[4] = val[3] * sz + val[4] * cz;
-		val[0] = a;
-		val[3] = d;
+		float cz = cosf(z);
+		float sz = sinf(z);
+		float v0 = val[0] * cz - val[1] * sz;
+		float v3 = val[3] * cz - val[4] * sz;
+		val[1]   = val[0] * sz + val[1] * cz;
+		val[4]   = val[3] * sz + val[4] * cz;
+		val[0]   = v0;
+		val[3]   = v3;
 		return *this;
 	}
 
@@ -578,6 +578,14 @@ namespace qk {
 		return *this;
 	}
 
+	bool Mat::operator==(const Mat& b) const {
+		return (
+			*reinterpret_cast<const double*>(val+0) == *reinterpret_cast<const double*>(b.val+0) &&
+			*reinterpret_cast<const double*>(val+2) == *reinterpret_cast<const double*>(b.val+2) &&
+			*reinterpret_cast<const double*>(val+4) == *reinterpret_cast<const double*>(b.val+4)
+		);
+	}
+
 	Mat Mat::operator*(const Mat& b) const {
 		Mat output;
 		mul(b, output);
@@ -614,6 +622,30 @@ namespace qk {
 #endif
 	}
 
+	Vec2 Mat::mul_vec2_no_translate(const Vec2& b) const {
+		/*
+		[ a, b, c ]   [ a ]
+		[ d, e, f ] * [ b ]
+		[ 0, 0, 1 ]   [ 1 ]
+		*/
+		const float* _a = val;
+		const float* _b = b.val;
+#if Qk_ARCH_ARM
+		float32x4_t p0 = {_a[0],_a[1],_a[3],_a[4]};
+		float32x4_t p1 = {_b[0],_b[1],_b[0],_b[1]};
+		float32x4_t p3 = vmulq_f32(p0, p1); // *
+		float32x2_t p4 = {p3[0],p3[2]};
+		float32x2_t p5 = {p3[1],p3[3]};
+		float32x2_t p8 = vadd_f32(p4, p5); // +
+		return Vec2(p8[0],p8[1]);
+#else
+		return Vec2(
+			_a[0] * _b[0] + _a[1] * _b[1],
+			_a[3] * _b[0] + _a[4] * _b[1]
+		);
+#endif
+	}
+
 	/**
 	* @method mul # 矩阵乘法
 	* @arg b {const Mat&}
@@ -637,6 +669,12 @@ namespace qk {
 		_v[3] = _a[3]*_b[0] + _a[4]*_b[3];
 		_v[4] = _a[3]*_b[1] + _a[4]*_b[4];
 		_v[5] = _a[3]*_b[2] + _a[4]*_b[5] + _a[5];
+	}
+
+	static const Mat UnitMatrix;
+
+	bool Mat::is_unit_matrix() const {
+		return operator==(UnitMatrix);
 	}
 
 	Mat4::Mat4(float value) {

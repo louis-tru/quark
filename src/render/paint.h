@@ -105,7 +105,7 @@ namespace qk {
 			kBackdropBlur_Type, //!< backdrop blur type
 		};
 		Type  type; //!< paint filter type
-		float value; //!< blur value
+		float value; //!< blur value radius
 	};
 
 	struct Paint {
@@ -114,7 +114,7 @@ namespace qk {
 			kColor_Type,          //!< set to color paint type
 			kGradient_Type,       //!< set to gradient paint type
 			kBitmap_Type,         //!< set to bitmap image paint type
-			kBitmapMask_Type,     //!<  set to bitmap image mask paint type
+			kBitmapMask_Type,     //!< set to bitmap image mask paint type
 		};
 
 		enum Style {

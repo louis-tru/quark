@@ -50,33 +50,34 @@ namespace qk {
 			kSwitch_CmdType,
 			kClear_CmdType,
 			kClip_CmdType,
+			kBlurBegin_CmdType,
+			kBlurEnd_CmdType,
 			kColor_CmdType, // draw cmd
 			kImage_CmdType,
 			kImageMask_CmdType,
 			kGradient_CmdType,
 			kMultiColor_CmdType,
+			kFramebufferRenderbuffer_CmdType,
+			kFramebufferTexture2D_CmdType,
 		};
 
 		struct Cmd { // Cmd list
 			CmdType        type;
 			uint32_t       size; // cmd size
 		};
+
 		struct DrawCmd: Cmd {
 			VertexData     vertex;
 			float          depth;
 			bool           aafuzz,aaclip;
 		};
+
 		struct MatrixCmd: Cmd {
 			Mat            matrix;
 		};
+
 		struct BlendCmd: Cmd {
 			BlendMode      mode;
-		};
-
-		struct ClearCmd: Cmd {
-			float          depth;
-			Color4f        color;
-			bool           full;
 		};
 
 		struct SwitchCmd: Cmd {
@@ -84,11 +85,32 @@ namespace qk {
 			bool           isEnable;
 		};
 
+		struct ClearCmd: Cmd {
+			float          depth;
+			Color4f        color;
+			Region         region;
+			bool           fullClear;
+		};
+
 		struct ClipCmd: Cmd { //!
 			GLC_State::Clip clip;
 			float          depth;
 			uint32_t       ref;
 			bool           revoke;
+		};
+
+		struct BlurBeginCmd: Cmd {
+			float     depth;
+			Region    bounds;
+			bool      isClipState;
+		};
+
+		struct BlurEndCmd: Cmd {
+			float     depth;
+			Region    bounds;
+			float     size; // blur size
+			int       n, lod; // sampling rate and image lod
+			BlendMode mode;
 		};
 
 		struct ColorCmd: DrawCmd { //!
@@ -125,44 +147,41 @@ namespace qk {
 			int            subcmd; // subcmd count
 			uint32_t       aaclip;
 		};
+
+		struct FramebufferRenderbufferCmd: Cmd {
+			GLenum target, attachment, renderbuffertarget;
+			GLuint renderbuffer;
+		};
+
+		struct FramebufferTexture2DCmd: Cmd {
+			GLenum target,attachment,textarget;
+			GLuint texture;
+			GLint level;
+		};
+
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();
-		Cmd*           allocCmd(uint32_t size);
-		MultiColorCmd* newMColorCmd();
-		MultiColorCmd* getMColorCmd();
 		void flush();
 		void setMetrixUnifromBuffer(const Mat &mat);
 		void setBlendMode(BlendMode mode);
-		void switchState(GLenum id, bool isEnable);
+		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable
 		void drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz); // add cmd
 		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz);
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
-		void clearColor4f(const Color4f &color, bool full);
-	private:
-		void switchStateCall(GLenum id, bool isEnable);
-		void drawColor4fCall(const VertexData &vertex,
-			const Color4f &color, bool aafuzz, bool aaclip, float depth); // call gl api
-		void drawImageCall(const VertexData &vertex,
-			const ImagePaint *paint, float alpha, bool aafuzz, bool aaclip, float depth);
-		void drawImageMaskCall(const VertexData &vertex,
-			const ImagePaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth);
-		void drawGradientCall(const VertexData &vertex,
-			const GradientPaint *paint, float alpha, bool aafuzz, bool aaclip, float depth);
-		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, bool revoke, float depth);
-		void clearColor4fCall(const Color4f &color, bool full, float depth);
-		void clear(); //
-		void checkMetrix();
-		void useShader(GLSLShader *shader, const VertexData &vertex);
+		void clearColor4f(const Color4f &color, const Region &region, bool fullClear);
+		void blurBegin(Region bounds);
+		int  blurEnd(Region bounds, float size);
+		void glFramebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb);
+		void glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level);
 
+	private:
 		typedef MultiColorCmd::Option MCOpt;
-		template<class T>
-		struct MemBlock {
+		template<class T> struct MemBlock {
 			T *val; uint32_t size,capacity;
 		};
-		template<class T>
-		struct ArrayMemBlock {
+		template<class T> struct ArrayMemBlock {
 			Array<MemBlock<T>> blocks;
 			MemBlock<T>       *current;
 			uint32_t           index;
@@ -174,6 +193,8 @@ namespace qk {
 		GLRender             *_render;
 		GLCanvas             *_canvas;
 		PathvCache           *_cache;
+
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

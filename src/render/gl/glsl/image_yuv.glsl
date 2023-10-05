@@ -4,7 +4,7 @@
 #frag
 smooth in lowp vec2      coord_f;
 uniform   lowp float     alpha;
-uniform        sampler2D image;   // y
+uniform        sampler2D image;   // y of yuv
 uniform        sampler2D image_u; // 420p u or 420sp uv
 uniform        sampler2D image_v; // 420p v
 uniform   lowp int       format; // 0: YUV420SP, 1: YUV420P

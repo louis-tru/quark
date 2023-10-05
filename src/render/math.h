@@ -38,6 +38,7 @@
 #define Qk_PI_2 6.2831853071796f                 // PI * 2
 #define Qk_PI_2_1 1.5707963267949f               // PI / 2
 #define Qk_PI_RATIO_180  0.017453292519943f      // PI / 180
+#define Qk_SQRT_2        1.4142135623730951f     // sqrt(2)
 
 namespace qk {
 
@@ -296,10 +297,14 @@ namespace qk {
 		Mat& skew(Vec2 v);
 		Mat& skew_x(float x);
 		Mat& skew_y(float y);
+		bool operator==(const Mat& b) const;
+		bool operator!=(const Mat& b) const {return !operator==(b);}
 		Mat  operator*(const Mat& b) const;
 		Mat& operator*=(const Mat& b);
 		Vec2 operator*(const Vec2& b) const;
+		Vec2 mul_vec2_no_translate(const Vec2& b) const;
 		void mul(const Mat& b, Mat& output) const;
+		bool is_unit_matrix() const;
 	};
 
 	struct Qk_EXPORT Mat4: Vec<float, 16> {

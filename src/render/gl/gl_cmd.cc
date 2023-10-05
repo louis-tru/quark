@@ -40,8 +40,376 @@
 
 namespace qk {
 	extern const float aa_fuzz_weight;
-
+	extern const float DepthNextUnit;
 	void gl_textureBarrier();
+
+	Qk_DEFINE_INLINE_MEMBERS(GLC_CmdPack, Inl) {
+	public:
+		#define _this _inl(this)
+		#define _inl(self) static_cast<GLC_CmdPack::Inl*>(self)
+
+#if Qk_USE_GLC_CMD_QUEUE
+		void clearCmds() {
+			for (auto &i: cmds.blocks) {
+				auto cmd = i.val;
+				auto end = (Cmd*)(((char*)cmd) + i.size);
+				while (cmd < end) {
+					switch (cmd->type) {
+						case kClip_CmdType:
+							((ClipCmd*)cmd)->~ClipCmd();
+							break;
+						case kColor_CmdType:
+							((ColorCmd*)cmd)->~ColorCmd();
+							break;
+						case kGradient_CmdType:
+							((GradientCmd*)cmd)->~GradientCmd();
+							break;
+						case kImage_CmdType:
+							((ImageCmd*)cmd)->~ImageCmd();
+							break;
+						case kImageMask_CmdType:
+							((ImageMaskCmd*)cmd)->~ImageMaskCmd();
+							break;
+						default: break;
+					}
+					cmd = (Cmd*)(((char*)cmd) + cmd->size);
+				}
+				i.size = 0;
+			}
+			cmds.current = cmds.blocks.val();
+			cmds.current->size = sizeof(Cmd);
+			cmds.index = 0;
+			lastCmd = cmds.current->val;
+		}
+
+		Cmd* allocCmd(uint32_t size) {
+			auto cmds_ = cmds.current;
+			auto newSize = cmds_->size + size;
+			if (newSize > cmds_->capacity) {
+				if (++cmds.index == cmds.blocks.length()) {
+					cmds.blocks.push({ // init, alloc 64k memory
+						(Cmd*)malloc(Qk_MCCmd_CmdBlock_Capacity),0,Qk_MCCmd_CmdBlock_Capacity
+					});
+				}
+				cmds.current = cmds_ = cmds.blocks.val() + cmds.index;
+				newSize = size;
+			}
+			lastCmd = (Cmd*)(((char*)cmds_->val) + cmds_->size);
+			lastCmd->size = size;
+			cmds_->size = newSize;
+			return lastCmd;
+		}
+
+		MultiColorCmd* newMColorCmd() {
+			auto cmd = (MultiColorCmd*)allocCmd(sizeof(MultiColorCmd));
+			cmd->type = kMultiColor_CmdType;
+
+			auto vertexs = vertexBlocks.current;
+			auto opts    = optionBlocks.current;
+
+			if (vertexs->size == Qk_MCCmd_VertexBlock_Capacity) {
+				if (++vertexBlocks.index == vertexBlocks.blocks.length()) {
+					vertexBlocks.blocks.push({
+						(Vec4*)malloc(Qk_MCCmd_VertexBlock_Capacity * sizeof(Vec4)),0,Qk_MCCmd_VertexBlock_Capacity
+					});
+				}
+				vertexBlocks.current = vertexs = vertexBlocks.blocks.val() + vertexBlocks.index;
+			}
+
+			if (opts->size == Qk_MCCmd_OptBlock_Capacity) {
+				if (++optionBlocks.index == optionBlocks.blocks.length()) {
+					optionBlocks.blocks.push({
+						(MCOpt*)malloc(Qk_MCCmd_OptBlock_Capacity * sizeof(MCOpt)),0,Qk_MCCmd_OptBlock_Capacity
+					});
+				}
+				optionBlocks.current = opts = optionBlocks.blocks.val() + optionBlocks.index;
+			}
+
+			cmd->vertex = vertexs->val + vertexs->size;
+			cmd->opts    = opts->val    + opts->size;
+			cmd->subcmd = 0;
+			cmd->vCount = 0;
+			cmd->aaclip = _canvas->_state->aaclip;
+
+			return cmd;
+		}
+
+		MultiColorCmd* getMColorCmd() {
+			auto cmd = (MultiColorCmd*)lastCmd;
+			if (cmd->type == kMultiColor_CmdType) {
+				if (vertexBlocks.current->size != Qk_MCCmd_VertexBlock_Capacity &&
+						optionBlocks.current->size != Qk_MCCmd_OptBlock_Capacity &&
+						cmd->subcmd != Qk_MCCmd_Option_Capacity
+				) {
+					return cmd;
+				}
+			}
+			return newMColorCmd();
+		}
+
+		void checkMetrix() {
+			if (_canvas->_chMatrix) { // check canvas matrix change state
+				auto cmd = (MatrixCmd*)allocCmd(sizeof(MatrixCmd));
+				cmd->type = kMatrix_CmdType;
+				cmd->matrix = _canvas->_state->matrix;
+				_canvas->_chMatrix = false;
+			}
+		}
+#endif
+
+		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
+			if (_cache->setGpuBufferData(vertex.id)) {
+				glBindVertexArray(vertex.id->vao); // use vao
+				glUseProgram(shader->shader); // use shader program
+			} else {
+				// copy vertex data to gpu and use shader
+				shader->use(vertex.vertex.size(), vertex.vertex.val());
+			}
+		}
+
+		void drawColor4fCall(const VertexData &vertex,
+			const Color4f &color, bool aafuzz, bool aaclip, float depth
+		) {
+			auto s = aafuzz ? 
+				aaclip ? &_render->_shaders.color_AAFUZZ_AACLIP: &_render->_shaders.color_AAFUZZ:
+				aaclip ? &_render->_shaders.color_AACLIP: &_render->_shaders.color;
+			useShaderProgram(s, vertex);
+			glUniform1f(s->depth, depth);
+			glUniform4fv(s->color, 1, color.val);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
+		}
+
+		void drawImageCall(const VertexData &vertex,
+			const ImagePaint *paint, float alpha, bool aafuzz, bool aaclip, float depth
+		) {
+			GLSLImage *s;
+			auto src = paint->source;
+			auto srcIndex = paint->srcIndex;
+
+			if (kColor_Type_YUV420P_Y_8 == src->type()) { // yuv420p or yuv420sp
+				auto yuv = aafuzz ?
+					aaclip ? &_render->_shaders.imageYuv_AAFUZZ_AACLIP: &_render->_shaders.imageYuv_AAFUZZ:
+					aaclip ? &_render->_shaders.imageYuv_AACLIP: &_render->_shaders.imageYuv;
+				s = (GLSLImage*)yuv;
+				useShaderProgram(s, vertex);
+
+				if (src->pixels()[1].type() == kColor_Type_YUV420P_U_8) { // yuv420p
+					glUniform1i(yuv->format, 1);
+					_render->setTexture(src->pixels().val() + srcIndex + 2, 2, paint); // v
+				} else { // yuv420sp
+					glUniform1i(yuv->format, 0);
+				}
+				_render->setTexture(src->pixels().val() + srcIndex + 1, 1, paint); // u or uv
+			} else {
+				s = aafuzz ?
+					aaclip ? &_render->_shaders.image_AAFUZZ_AACLIP: &_render->_shaders.image_AAFUZZ:
+					aaclip ? &_render->_shaders.image_AACLIP: &_render->_shaders.image;
+				useShaderProgram(s, vertex);
+			}
+			_render->setTexture(src->pixels().val() + srcIndex, 0, paint); // rgb or y
+
+			glUniform1f(s->depth, depth);
+			glUniform1f(s->alpha, alpha);
+			glUniform4fv(s->coord, 1, paint->coord.origin.val);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
+		}
+
+		void drawImageMaskCall(const VertexData &vertex,
+			const ImagePaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth
+		) {
+			auto s = aafuzz ? 
+				aaclip ? &_render->_shaders.imageMask_AAFUZZ_AACLIP: &_render->_shaders.imageMask_AAFUZZ:
+				aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
+			_render->setTexture(paint->source->pixels().val(), 0, paint);
+			useShaderProgram(s, vertex);
+			glUniform1f(s->depth, depth);
+			glUniform4fv(s->color, 1, color.val);
+			glUniform4fv(s->coord, 1, paint->coord.origin.val);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
+		}
+
+		void drawGradientCall(const VertexData &vertex, 
+			const GradientPaint *paint, float alpha, bool aafuzz, bool aaclip, float depth
+		) {
+			GLSLColorRadial *s;
+			auto count = paint->count;
+
+			if (paint->type == GradientPaint::kRadial_Type) {
+				s = count == 2 ?
+					aaclip ? &_render->_shaders.colorRadial_COUNT2_AACLIP: &_render->_shaders.colorRadial_COUNT2:
+					aaclip ? &_render->_shaders.colorRadial_AACLIP: &_render->_shaders.colorRadial;
+			} else {
+				s = (GLSLColorRadial*)(count == 2 ?
+					aaclip ? &_render->_shaders.colorLinear_COUNT2_AACLIP: &_render->_shaders.colorLinear_COUNT2:
+					aaclip ? &_render->_shaders.colorLinear_AACLIP: &_render->_shaders.colorLinear);
+			}
+
+			useShaderProgram(s, vertex);
+			glUniform1f(s->depth, depth);
+			glUniform1f(s->alpha, alpha);
+			glUniform4fv(s->range, 1, paint->origin.val);
+			glUniform1i(s->count, count);
+			glUniform4fv(s->colors, count, (const GLfloat*)paint->colors);
+			glUniform1fv(s->positions, count, (const GLfloat*)paint->positions);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
+			//glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.length());
+			//glDrawArrays(GL_LINES, 0, vertex.length());
+		}
+
+		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, bool revoke, float depth) {
+
+			auto aaClip = [](GLRender *_render, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C) {
+				auto chMode = _render->_blendMode;
+				auto ch = chMode != kSrc_BlendMode && chMode != kSrcOver_BlendMode;
+				if (ch)
+					_render->setBlendMode(kSrc_BlendMode);
+				auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
+				float aafuzzWeight = W * 0.1f;
+				// float aafuzzWeight = W;
+				shader->use(clip.aafuzz.vertex.size(), clip.aafuzz.vertex.val());
+				glUniform1f(shader->depth, depth);
+				glUniform1f(shader->aafuzzWeight, aafuzzWeight);
+				glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W
+				// glUniform1f(shader->aafuzzConst, C);
+				glDrawArrays(GL_TRIANGLES, 0, clip.aafuzz.vCount); // draw test
+				if (ch)
+					_render->setBlendMode(chMode); // revoke blend mode
+				gl_textureBarrier(); // ensure aa clip can be executed correctly in sequence
+			};
+
+			if (clip.op == Canvas::kDifference_ClipOp) { // difference clip
+				glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
+				glStencilOp(GL_KEEP/*fail*/, GL_KEEP/*zfail*/, revoke ? GL_INCR: GL_DECR/*zpass*/); // test success op
+				_render->_shaders.clipTest.use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
+				glUniform1f(_render->_shaders.clipTest.depth, depth);
+				glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
+
+				if (clip.aafuzz.vCount) { // draw anti alias alpha
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
+					glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
+					aaClip(_render, depth, clip, revoke, aa_fuzz_weight, 0);
+					return;
+				}
+			} else { // intersect clip
+				auto shader = ref == 128 && !revoke ?
+					(GLSLClipTest*)&_render->_shaders.clipTest_CLIP_FILL: &_render->_shaders.clipTest; // init fill
+				glStencilOp(GL_KEEP, GL_KEEP, revoke ? GL_DECR: GL_INCR); // test success op
+				shader->use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
+				glUniform1f(shader->depth, depth);
+				glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
+
+				if (clip.aafuzz.vCount) { // draw anti alias alpha
+					aaClip(_render, depth, clip, revoke, -aa_fuzz_weight, -1);
+				}
+			}
+			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
+			glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
+		}
+
+		void clearColor4fCall(const Color4f &color, const Region &region, bool full, float depth) {
+			if (full) {
+				glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
+				glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
+				// glClearColor(color.r(), color.g(), color.b(), color.a());
+				// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			} else {
+				float x1 = region.origin.x(), y1 = region.origin.y();
+				float x2 = region.end.x(), y2 = region.end.y();
+				float data[] = {
+					x1,y1,0,/*left top*/
+					x2,y1,0,/*right top*/
+					x1,y2,0, /*left bottom*/
+					x2,y2,0, /*right bottom*/
+				};
+				_render->_shaders.clear.use(sizeof(float) * 12, data);
+				glUniform1f(_render->_shaders.clear.depth, depth);
+				glUniform4fv(_render->_shaders.clear.color, 1, color.val);
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			}
+		}
+
+		static void getBlurSampling(float size, int &n, int &lod) {
+			n = ceilf(Qk_MIN(13,Qk_MAX(3,size))); // sampling rate
+			if (n % 2 == 0) n += 1; // keep singular
+			lod = ceilf(Float::max(0,log2f(size/n)));
+		}
+
+		void blurBeginCall(Region bounds, bool isClipState, float depth) {
+			if (kSrc_BlendMode != _render->_blendMode)
+				_render->setBlendMode(kSrc_BlendMode); // switch blend mode to src
+			if (isClipState) glDisable(GL_STENCIL_TEST); // ignore clip
+			// output to texture buffer then do post processing
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_blurBuffer, 0);
+			clearColor4fCall({0,0,0,0}, bounds, false, depth); // clear pixels within boundaries
+			if (isClipState) glEnable(GL_STENCIL_TEST); // restore clip state
+		}
+
+		/**
+		 * Fast gaussian blur reference https://www.shadertoy.com/view/ctjcWR
+		 * Relevant information reference:
+		 *   https://www.shadertoy.com/view/WtKfD3
+		 *   https://blog.ivank.net/fastest-gaussian-blur.html
+		 *   https://elynxsdk.free.fr/ext-docs/Blur/Fast_box_blur.pdf
+		 *   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
+		 */
+		void blurEndCall(Region bounds, float size, BlendMode mode, int n, int lod, float depth) {
+			float x1 = bounds.origin.x(), y1 = bounds.origin.y();
+			float x2 = bounds.end.x(), y2 = bounds.end.y();
+			float data[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
+			auto blur = _render->_shaders.blur; // blur shader
+			auto R = _canvas->_surfaceSize;
+			size *= _canvas->_surfaceScale;
+			auto size0 = size;
+
+			gl_textureBarrier();
+
+			if (lod) { // copy image, gen mipmap texture
+				auto &cp = _render->_shaders.imageCp;
+				uint32_t rw = R.x(), rh = R.y();
+				cp.use(sizeof(float) * 12, data);
+				glUniform2f(cp.iResolution, rw, rh);
+				for (int i = 0; i < lod; i++) { // copy image level
+					rw >>= 1; rh >>= 1;
+					glUniform1i(cp.depth, depth);
+					glUniform1i(cp.imageLod, i);
+					glUniform2f(cp.oResolution, rw, rh);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_blurBuffer, i+1);
+					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+					gl_textureBarrier();
+					depth += DepthNextUnit;
+				}
+			}
+
+			uint32_t orw = R.x(), orh = R.y();
+			for (int i = 0; i < lod; i++) {
+				orw >>= 1; orw >>= 1;
+				size *= 0.5; // reduce blur size
+			}
+
+			blur.use(sizeof(float) * 12, data);
+			// blur horizontal blur
+			glUniform1i(blur.depth, depth);
+			glUniform2f(blur.iResolution, R.x(), R.y());
+			glUniform2f(blur.oResolution, orw, orh);
+			glUniform1i(blur.imageLod, lod);
+			glUniform1i(blur.n, n);
+			glUniform2f(blur.blurSize, size / R.x(), size / R.y());
+			glUniform2f(blur.dir, 1, 0); // horizontal
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
+			gl_textureBarrier(); // complete horizontal blur
+			// blur vertical blur
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_mainRenderBuff);
+			glUniform1i(blur.depth, depth + DepthNextUnit);
+			glUniform2f(blur.oResolution, R.x(), R.y());
+			glUniform2f(blur.blurSize, size0 / R.x(), size0 / R.y()); // restore original blur size
+			glUniform2f(blur.dir, 0, 1); // vertical
+			if (mode != kSrc_BlendMode)
+				_render->setBlendMode(mode); // restore blend mode
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
+		}
+	};
+
+	// ---------------------------------------------------------------------------------------
 
 	GLC_CmdPack::ImageCmd::~ImageCmd() {
 		paint.source->release();
@@ -87,112 +455,9 @@ namespace qk {
 			free(i.val);
 		for (auto &i: cmds.blocks)
 			free(i.val);
-		clear();
+		_this->clearCmds();
 #endif
 	}
-
-#if Qk_USE_GLC_CMD_QUEUE
-	void GLC_CmdPack::clear() {
-		for (auto &i: cmds.blocks) {
-			auto cmd = i.val;
-			auto end = (Cmd*)(((char*)cmd) + i.size);
-			while (cmd < end) {
-				switch (cmd->type) {
-					case kClip_CmdType:
-						((ClipCmd*)cmd)->~ClipCmd();
-						break;
-					case kColor_CmdType:
-						((ColorCmd*)cmd)->~ColorCmd();
-						break;
-					case kGradient_CmdType:
-						((GradientCmd*)cmd)->~GradientCmd();
-						break;
-					case kImage_CmdType:
-						((ImageCmd*)cmd)->~ImageCmd();
-						break;
-					case kImageMask_CmdType:
-						((ImageMaskCmd*)cmd)->~ImageMaskCmd();
-						break;
-					default: break;
-				}
-				cmd = (Cmd*)(((char*)cmd) + cmd->size);
-			}
-			i.size = 0;
-		}
-		cmds.current = cmds.blocks.val();
-		cmds.current->size = sizeof(Cmd);
-		cmds.index = 0;
-		lastCmd = cmds.current->val;
-	}
-
-	GLC_CmdPack::Cmd* GLC_CmdPack::allocCmd(uint32_t size) {
-		auto cmds_ = cmds.current;
-		auto newSize = cmds_->size + size;
-		if (newSize > cmds_->capacity) {
-			if (++cmds.index == cmds.blocks.length()) {
-				cmds.blocks.push({ // init, alloc 64k memory
-					(Cmd*)malloc(Qk_MCCmd_CmdBlock_Capacity),0,Qk_MCCmd_CmdBlock_Capacity
-				});
-			}
-			cmds.current = cmds_ = cmds.blocks.val() + cmds.index;
-			newSize = size;
-		}
-		lastCmd = (Cmd*)(((char*)cmds_->val) + cmds_->size);
-		lastCmd->size = size;
-		cmds_->size = newSize;
-		return lastCmd;
-	}
-
-	GLC_CmdPack::MultiColorCmd* GLC_CmdPack::newMColorCmd() {
-		auto cmd = (MultiColorCmd*)allocCmd(sizeof(MultiColorCmd));
-		cmd->type = kMultiColor_CmdType;
-
-		auto vertexs = vertexBlocks.current;
-		auto opts    = optionBlocks.current;
-
-		if (vertexs->size == Qk_MCCmd_VertexBlock_Capacity) {
-			if (++vertexBlocks.index == vertexBlocks.blocks.length()) {
-				vertexBlocks.blocks.push({
-					(Vec4*)malloc(Qk_MCCmd_VertexBlock_Capacity * sizeof(Vec4)),0,Qk_MCCmd_VertexBlock_Capacity
-				});
-			}
-			vertexBlocks.current = vertexs = vertexBlocks.blocks.val() + vertexBlocks.index;
-		}
-
-		if (opts->size == Qk_MCCmd_OptBlock_Capacity) {
-			if (++optionBlocks.index == optionBlocks.blocks.length()) {
-				optionBlocks.blocks.push({
-					(MCOpt*)malloc(Qk_MCCmd_OptBlock_Capacity * sizeof(MCOpt)),0,Qk_MCCmd_OptBlock_Capacity
-				});
-			}
-			optionBlocks.current = opts = optionBlocks.blocks.val() + optionBlocks.index;
-		}
-
-		cmd->vertex = vertexs->val + vertexs->size;
-		cmd->opts    = opts->val    + opts->size;
-		cmd->subcmd = 0;
-		cmd->vCount = 0;
-		cmd->aaclip = _canvas->_state->aaclip;
-
-		return cmd;
-	}
-
-	GLC_CmdPack::MultiColorCmd* GLC_CmdPack::getMColorCmd() {
-		auto cmd = (MultiColorCmd*)lastCmd;
-		if (cmd->type == kMultiColor_CmdType) {
-			if (vertexBlocks.current->size != Qk_MCCmd_VertexBlock_Capacity &&
-					optionBlocks.current->size != Qk_MCCmd_OptBlock_Capacity &&
-					cmd->subcmd != Qk_MCCmd_Option_Capacity
-			) {
-				return cmd;
-			}
-		}
-		return newMColorCmd();
-	}
-
-#endif
-
-// ---------------------------------------------------------------------------------------
 
 	void GLC_CmdPack::setMetrixUnifromBuffer(const Mat &mat) {
 		const float m4x4[16] = {
@@ -206,91 +471,86 @@ namespace qk {
 	}
 
 #if Qk_USE_GLC_CMD_QUEUE
-		void GLC_CmdPack::checkMetrix() {
-			if (_canvas->_chMatrix) {
-				auto cmd = (MatrixCmd*)allocCmd(sizeof(MatrixCmd));
-				cmd->type = kMatrix_CmdType;
-				cmd->matrix = _canvas->_state->matrix;
-				_canvas->_chMatrix = false;
-			}
-		}
-
 		void GLC_CmdPack::setBlendMode(BlendMode mode) {
-			auto cmd = (BlendCmd*)allocCmd(sizeof(BlendCmd));
+			auto cmd = (BlendCmd*)_this->allocCmd(sizeof(BlendCmd));
 			cmd->type = kBlend_CmdType;
 			cmd->mode = mode;
 		}
 
-		void GLC_CmdPack::switchState(GLenum id, bool value) {
-			auto cmd = (SwitchCmd*)allocCmd(sizeof(SwitchCmd));
+		void GLC_CmdPack::switchState(GLenum id, bool isEnable) {
+			auto cmd = (SwitchCmd*)_this->allocCmd(sizeof(SwitchCmd));
 			cmd->type = kSwitch_CmdType;
 			cmd->id = id;
-			cmd->isEnable = value;
+			cmd->isEnable = isEnable;
 		}
 
 		void GLC_CmdPack::drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz) {
-			if ( vertex.vertex.length() ) { // length != 0
-				// add multi color subcmd
-				auto vertexp = vertex.vertex.val();
-				auto vertexLen = vertex.vCount;
-				do {
-					auto cmd = getMColorCmd();
-					cmd->opts[cmd->subcmd] = { // setting vertex option data
-						.flags  = 0,                       .depth = _canvas->_zDepth,
-						.matrix = _canvas->_state->matrix, .color = color,
-					};
-					auto vertexs = vertexBlocks.current;
-					auto prevSize = vertexs->size;
-					int  cpLen = Qk_MCCmd_VertexBlock_Capacity - prevSize;
-					auto cpSrc = vertexp;
-
-					optionBlocks.current->size++;
-
-					if (cpLen < vertexLen) { // not enough space
-						vertexs->size = Qk_MCCmd_VertexBlock_Capacity;
-						vertexp += cpLen;
-						vertexLen -= cpLen;
-					} else {
-						vertexs->size = prevSize + vertexLen;
-						cpLen = vertexLen;
-						vertexLen = 0;
-					}
-
-					const float subcmd = *((float*)&cmd->subcmd);
-					auto p = vertexs->val + prevSize;
-					auto p_1 = p + cpLen;
-
-					// copy vertex data
-					while (p < p_1) {
-#if DEBUG
-						#define Qk_CopyVec() *p = *((Vec4*)(cpSrc)); p->val[3] = subcmd; p++,cpSrc++
-#else
-						#define Qk_CopyVec() *p = {cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd}; p++,cpSrc++
-#endif
-						Qk_CopyVec();
-						Qk_CopyVec();
-						Qk_CopyVec();
-						Qk_CopyVec();
-						#undef Qk_CopyVec
-					}
-					cmd->vCount += cpLen;
-					cmd->subcmd++;
-				} while(vertexLen);
-			} else {
-				checkMetrix(); // check matrix change
-				auto cmd = new(allocCmd(sizeof(ColorCmd))) ColorCmd;
+			if ( vertex.vertex.length() == 0 ) { // length == 0
+				_this->checkMetrix(); // check matrix change
+				auto cmd = new(_this->allocCmd(sizeof(ColorCmd))) ColorCmd;
 				cmd->type = kColor_CmdType;
 				cmd->vertex = vertex;
 				cmd->depth = _canvas->_zDepth;
 				cmd->aafuzz = aafuzz;
 				cmd->aaclip = _canvas->_state->aaclip;
 				cmd->color = color;
+				return;
 			}
+
+			// add multi color subcmd
+			auto vertexp = vertex.vertex.val();
+			auto vertexLen = vertex.vCount;
+			do {
+				auto cmd = _this->getMColorCmd();
+				cmd->opts[cmd->subcmd] = { // setting vertex option data
+					.flags  = 0,                       .depth = _canvas->_zDepth,
+					.matrix = _canvas->_state->matrix, .color = color,
+				};
+				auto vertexs = vertexBlocks.current;
+				auto prevSize = vertexs->size;
+				int  cpLen = Qk_MCCmd_VertexBlock_Capacity - prevSize;
+				auto cpSrc = vertexp;
+
+				optionBlocks.current->size++;
+
+				if (cpLen < vertexLen) { // not enough space
+					vertexs->size = Qk_MCCmd_VertexBlock_Capacity;
+					vertexp += cpLen;
+					vertexLen -= cpLen;
+				} else {
+					vertexs->size = prevSize + vertexLen;
+					cpLen = vertexLen;
+					vertexLen = 0;
+				}
+
+				const float subcmd = *((float*)&cmd->subcmd);
+				auto p = vertexs->val + prevSize;
+				auto p_1 = p + cpLen;
+
+				// copy vertex data
+				while (p < p_1) {
+#if DEBUG
+					#define Qk_CopyVec() *p = \
+						*((Vec4*)(cpSrc)); p->val[3] = subcmd; p++,cpSrc++
+#else
+					#define Qk_CopyVec() *p = {\
+						cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd\
+					}; p++,cpSrc++
+#endif
+					Qk_CopyVec();
+					Qk_CopyVec();
+					Qk_CopyVec();
+					Qk_CopyVec();
+					#undef Qk_CopyVec
+				}
+				cmd->vCount += cpLen;
+				cmd->subcmd++;
+			} while(vertexLen);
 		}
 
 		void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {
-			checkMetrix(); // check matrix change
-			auto cmd = new(allocCmd(sizeof(ImageCmd))) ImageCmd;
+			_this->checkMetrix(); // check matrix change
+			auto cmd = new(_this->allocCmd(sizeof(ImageCmd))) ImageCmd;
 			cmd->type = kImage_CmdType;
 			cmd->vertex = vertex;
 			cmd->depth = _canvas->_zDepth;
@@ -302,8 +562,8 @@ namespace qk {
 		}
 
 		void GLC_CmdPack::drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
-			checkMetrix(); // check matrix change
-			auto cmd = new(allocCmd(sizeof(ImageMaskCmd))) ImageMaskCmd;
+			_this->checkMetrix(); // check matrix change
+			auto cmd = new(_this->allocCmd(sizeof(ImageMaskCmd))) ImageMaskCmd;
 			cmd->type = kImageMask_CmdType;
 			cmd->vertex = vertex;
 			cmd->depth = _canvas->_zDepth;
@@ -315,11 +575,11 @@ namespace qk {
 		}
 
 		void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz) {
-			checkMetrix(); // check matrix change
+			_this->checkMetrix(); // check matrix change
 			auto colorsSize = sizeof(Color4f) * paint->count;
 			auto positionsSize = sizeof(float) * paint->count;
 			auto cmdSize = sizeof(GradientCmd);
-			auto cmd = new(allocCmd(cmdSize + colorsSize + positionsSize)) GradientCmd;
+			auto cmd = new(_this->allocCmd(cmdSize + colorsSize + positionsSize)) GradientCmd;
 			auto cmdp = (char*)cmd;
 			auto colors = reinterpret_cast<Color4f*>(cmdp + cmdSize);
 			auto positions = reinterpret_cast<float*>(cmdp + cmdSize + colorsSize);
@@ -337,8 +597,8 @@ namespace qk {
 		}
 
 		void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke) {
-			checkMetrix(); // check matrix change
-			auto cmd = new(allocCmd(sizeof(ClipCmd))) ClipCmd;
+			_this->checkMetrix(); // check matrix change
+			auto cmd = new(_this->allocCmd(sizeof(ClipCmd))) ClipCmd;
 			cmd->type = kClip_CmdType;
 			cmd->clip = clip; // copy clip
 			cmd->depth = _canvas->_zDepth;
@@ -346,219 +606,104 @@ namespace qk {
 			cmd->revoke = revoke;
 		}
 
-		void GLC_CmdPack::clearColor4f(const Color4f &color, bool full) {
-			auto cmd = new(allocCmd(sizeof(ClearCmd))) ClearCmd;
+		void GLC_CmdPack::clearColor4f(const Color4f &color, const Region &region, bool full) {
+			auto cmd = new(_this->allocCmd(sizeof(ClearCmd))) ClearCmd;
 			cmd->type = kClear_CmdType;
 			cmd->color = color;
+			cmd->region = region;
 			cmd->depth = _canvas->_zDepth;
-			cmd->full = full;
+			cmd->fullClear = full;
+		}
+
+		void GLC_CmdPack::glFramebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb) {
+			auto cmd = new(_this->allocCmd(sizeof(FramebufferRenderbufferCmd))) FramebufferRenderbufferCmd;
+			cmd->type = kFramebufferRenderbuffer_CmdType;
+			cmd->target = target;
+			cmd->attachment = at;
+			cmd->renderbuffertarget = rbt;
+			cmd->renderbuffer = rb;
+		}
+
+		void GLC_CmdPack::glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level) {
+			auto cmd = new(_this->allocCmd(sizeof(FramebufferTexture2DCmd))) FramebufferTexture2DCmd;
+			cmd->type = kFramebufferTexture2D_CmdType;
+			cmd->target = target;
+			cmd->attachment = at;
+			cmd->textarget = tt;
+			cmd->texture = tex;
+			cmd->level = level;
+		}
+
+		void GLC_CmdPack::blurBegin(Region bounds) {
+			auto cmd = new(_this->allocCmd(sizeof(BlurBeginCmd))) BlurBeginCmd;
+			cmd->type = kBlurBegin_CmdType;
+			cmd->bounds = bounds;
+			cmd->depth = _canvas->_zDepth;
+			cmd->isClipState = _canvas->_isClipState;
+		}
+
+		int GLC_CmdPack::blurEnd(Region bounds, float size) {
+			auto cmd = new(_this->allocCmd(sizeof(BlurEndCmd))) BlurEndCmd;
+			cmd->type = kBlurEnd_CmdType;
+			cmd->bounds = bounds;
+			cmd->depth = _canvas->_zDepth;
+			cmd->mode = _canvas->_blendMode;
+			cmd->size = size;
+			_this->getBlurSampling(size, cmd->n, cmd->lod);
+			return cmd->lod + 2;
 		}
 
 #else
 		void GLC_CmdPack::setBlendMode(BlendMode mode) {
 			_render->setBlendMode(mode);
 		}
-		void GLC_CmdPack::switchState(GLenum id, bool value) {
-			switchStateCall(id, value);
+		void GLC_CmdPack::switchState(GLenum id, bool isEnable) {
+			isEnable ? glEnable(id): glDisable(id);
 		}
 		void GLC_CmdPack::drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz) {
-			drawColor4fCall(vertex, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+			_this->drawColor4fCall(vertex, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 		}
 		void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {
-			drawImageCall(vertex, paint, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+			_this->drawImageCall(vertex, paint, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 		}
 		void GLC_CmdPack::drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
-			drawImageMaskCall(vertex, paint, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+			_this->drawImageMaskCall(vertex, paint, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 		}
 		void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz) {
-			drawGradientCall(vertex, paint, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+			_this->drawGradientCall(vertex, paint, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 		}
 		void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke) {
-			drawClipCall(clip, ref, revoke, _canvas->_zDepth);
+			_this->drawClipCall(clip, ref, revoke, _canvas->_zDepth);
 		}
-		void GLC_CmdPack::clearColor4f(const Color4f &color, bool full) {
-			clearColor4fCall(color, full, _canvas->_zDepth);
+		void GLC_CmdPack::clearColor4f(const Color4f &color, const Region &region, bool full) {
+			_this->clearColor4fCall(color, region, full, _canvas->_zDepth);
+		}
+		void GLC_CmdPack::glFramebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb) {
+			glFramebufferRenderbuffer(target, at, rbt, rb);
+		}
+		void GLC_CmdPack::glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level) {
+			glFramebufferTexture2D(target, at, tt, tex, level);
+		}
+		void GLC_CmdPack::blurBegin(Region bounds) {
+			_this->blurBeginCall(bounds, _canvas->_isClipState, _canvas->_zDepth);
+		}
+		int GLC_CmdPack::blurEnd(Region bounds, float size) {
+			int n, lod;
+			_this->getBlurSampling(size, n, lod);
+			_this->blurEndCall(bounds, size, _canvas->_blendMode, n, lod, _canvas->_zDepth);
+			return lod + 2;
 		}
 #endif
 
 	// ----------------------------------------------------------------------------------------
 
-	void GLC_CmdPack::useShader(GLSLShader *shader, const VertexData &vertex) {
-		if (_cache->setGpuBufferData(vertex.id)) {
-			glBindVertexArray(vertex.id->vao);
-			glUseProgram(shader->shader);
-		} else {
-			shader->use(vertex.vertex.size(), vertex.vertex.val());
-		}
-	}
-
-	void GLC_CmdPack::switchStateCall(GLenum id, bool isEnable) {
-		isEnable ? glEnable(id): glDisable(id);
-	}
-
-	void GLC_CmdPack::drawColor4fCall(const VertexData &vertex,
-		const Color4f &color, bool aafuzz, bool aaclip, float depth
-	) {
-		auto s = aafuzz ? 
-			aaclip ? &_render->_shaders.color_AAFUZZ_AACLIP: &_render->_shaders.color_AAFUZZ:
-			aaclip ? &_render->_shaders.color_AACLIP: &_render->_shaders.color;
-		useShader(s, vertex);
-		glUniform1f(s->depth, depth);
-		glUniform4fv(s->color, 1, color.val);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
-	}
-
-	void GLC_CmdPack::drawImageCall(const VertexData &vertex,
-		const ImagePaint *paint, float alpha, bool aafuzz, bool aaclip, float depth
-	) {
-		GLSLImage *s;
-		auto src = paint->source;
-		auto srcIndex = paint->srcIndex;
-
-		if (kColor_Type_YUV420P_Y_8 == src->type()) { // yuv420p or yuv420sp
-			auto yuv = aafuzz ?
-				aaclip ? &_render->_shaders.imageYuv_AAFUZZ_AACLIP: &_render->_shaders.imageYuv_AAFUZZ:
-				aaclip ? &_render->_shaders.imageYuv_AACLIP: &_render->_shaders.imageYuv;
-			s = (GLSLImage*)yuv;
-			useShader(s, vertex);
-
-			if (src->pixels()[1].type() == kColor_Type_YUV420P_U_8) { // yuv420p
-				glUniform1i(yuv->format, 1);
-				_render->setTexture(src->pixels().val() + srcIndex + 2, 2, paint); // v
-			} else { // yuv420sp
-				glUniform1i(yuv->format, 0);
-			}
-			_render->setTexture(src->pixels().val() + srcIndex + 1, 1, paint); // u or uv
-		} else {
-			s = aafuzz ?
-				aaclip ? &_render->_shaders.image_AAFUZZ_AACLIP: &_render->_shaders.image_AAFUZZ:
-				aaclip ? &_render->_shaders.image_AACLIP: &_render->_shaders.image;
-			useShader(s, vertex);
-		}
-		_render->setTexture(src->pixels().val() + srcIndex, 0, paint); // rgb or y
-
-		glUniform1f(s->depth, depth);
-		glUniform1f(s->alpha, alpha);
-		glUniform4fv(s->coord, 1, paint->coord.origin.val);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
-	}
-
-	void GLC_CmdPack::drawImageMaskCall(const VertexData &vertex,
-		const ImagePaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth
-	) {
-		auto s = aafuzz ? 
-			aaclip ? &_render->_shaders.imageMask_AAFUZZ_AACLIP: &_render->_shaders.imageMask_AAFUZZ:
-			aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
-		_render->setTexture(paint->source->pixels().val(), 0, paint);
-		useShader(s, vertex);
-		glUniform1f(s->depth, depth);
-		glUniform4fv(s->color, 1, color.val);
-		glUniform4fv(s->coord, 1, paint->coord.origin.val);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
-	}
-
-	void GLC_CmdPack::drawGradientCall(const VertexData &vertex, 
-		const GradientPaint *paint, float alpha, bool aafuzz, bool aaclip, float depth
-	) {
-		GLSLColorRadial *s;
-		auto count = paint->count;
-
-		if (paint->type == GradientPaint::kRadial_Type) {
-			s = count == 2 ?
-				aaclip ? &_render->_shaders.colorRadial_COUNT2_AACLIP: &_render->_shaders.colorRadial_COUNT2:
-				aaclip ? &_render->_shaders.colorRadial_AACLIP: &_render->_shaders.colorRadial;
-		} else {
-			s = (GLSLColorRadial*)(count == 2 ?
-				aaclip ? &_render->_shaders.colorLinear_COUNT2_AACLIP: &_render->_shaders.colorLinear_COUNT2:
-				aaclip ? &_render->_shaders.colorLinear_AACLIP: &_render->_shaders.colorLinear);
-		}
-
-		useShader(s, vertex);
-		glUniform1f(s->depth, depth);
-		glUniform1f(s->alpha, alpha);
-		glUniform4fv(s->range, 1, paint->origin.val);
-		glUniform1i(s->count, count);
-		glUniform4fv(s->colors, count, (const GLfloat*)paint->colors);
-		glUniform1fv(s->positions, count, (const GLfloat*)paint->positions);
-		glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
-		//glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.length());
-		//glDrawArrays(GL_LINES, 0, vertex.length());
-	}
-
-	void GLC_CmdPack::drawClipCall(const GLC_State::Clip &clip, uint32_t ref, bool revoke, float depth) {
-
-		auto aaClip = [](GLRender *_render, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C) {
-			auto chMode = _render->_blendMode;
-			auto ch = chMode != kSrc_BlendMode && chMode != kSrcOver_BlendMode;
-			if (ch)
-				_render->setBlendMode(kSrc_BlendMode);
-			auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
-			float aafuzzWeight = W * 0.1f;
-			// float aafuzzWeight = W;
-			shader->use(clip.aafuzz.vertex.size(), clip.aafuzz.vertex.val());
-			glUniform1f(shader->depth, depth);
-			glUniform1f(shader->aafuzzWeight, aafuzzWeight);
-			glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W
-			// glUniform1f(shader->aafuzzConst, C);
-			glDrawArrays(GL_TRIANGLES, 0, clip.aafuzz.vCount); // draw test
-			if (ch)
-				_render->setBlendMode(chMode); // revoke blend mode
-			gl_textureBarrier(); // ensure aa clip can be executed correctly in sequence
-		};
-
-		if (clip.op == Canvas::kDifference_ClipOp) { // difference clip
-			glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
-			glStencilOp(GL_KEEP/*fail*/, GL_KEEP/*zfail*/, revoke ? GL_INCR: GL_DECR/*zpass*/); // test success op
-			_render->_shaders.clipTest.use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
-			glUniform1f(_render->_shaders.clipTest.depth, depth);
-			glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
-
-			if (clip.aafuzz.vCount) { // draw anti alias alpha
-				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
-				glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
-				aaClip(_render, depth, clip, revoke, aa_fuzz_weight, 0);
-				return;
-			}
-		} else { // intersect clip
-			auto shader = ref == 128 && !revoke ?
-				(GLSLClipTest*)&_render->_shaders.clipTest_CLIP_FILL: &_render->_shaders.clipTest; // init fill
-			glStencilOp(GL_KEEP, GL_KEEP, revoke ? GL_DECR: GL_INCR); // test success op
-			shader->use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
-			glUniform1f(shader->depth, depth);
-			glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
-
-			if (clip.aafuzz.vCount) { // draw anti alias alpha
-				aaClip(_render, depth, clip, revoke, -aa_fuzz_weight, -1);
-			}
-		}
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
-		glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
-	}
-
-	void GLC_CmdPack::clearColor4fCall(const Color4f &color, bool full, float depth) {
-		if (full) {
-			glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
-			glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
-			// glClearColor(color.r(), color.g(), color.b(), color.a());
-			// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		} else {
-			float data[] = {
-				-1,1,0,/*left top*/1,1,0,/*right top*/
-				-1,-1,0, /*left bottom*/1,-1,0, /*right bottom*/
-			};
-			_render->_shaders.clear.use(sizeof(float) * 12, data);
-			glUniform1f(_render->_shaders.clear.depth, depth);
-			glUniform4fv(_render->_shaders.clear.color, 1, color.val);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		}
-	}
-
 	void GLC_CmdPack::flush() {
 #if Qk_USE_GLC_CMD_QUEUE
-		if (_render->_blendMode != _canvas->_blendMode) {
-			_render->setBlendMode(_canvas->_blendMode); // maintain final status
-		}
+		// set canvas root matrix
+		//glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
+		//glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _canvas->_rootMatrix.val, GL_DYNAMIC_DRAW);
 		setMetrixUnifromBuffer(_canvas->_state->matrix); // maintain final status
+		_render->setBlendMode(_canvas->_blendMode); // maintain final status
 
 		for (auto &i: cmds.blocks) {
 			if (i.size == 0) break;
@@ -574,40 +719,60 @@ namespace qk {
 					case kBlend_CmdType:
 						_render->setBlendMode(((BlendCmd*)cmd)->mode);
 						break;
-					case kSwitch_CmdType:
-						switchStateCall(((SwitchCmd*)cmd)->id, ((SwitchCmd*)cmd)->isEnable);
+					case kFramebufferRenderbuffer_CmdType: {
+						auto c = (FramebufferRenderbufferCmd*)cmd;
+						glFramebufferRenderbuffer(c->target, c->attachment, c->renderbuffertarget, c->renderbuffer);
 						break;
+					}
+					case kFramebufferTexture2D_CmdType: {
+						auto c = (FramebufferTexture2DCmd*)cmd;
+						glFramebufferTexture2D(c->target, c->attachment, c->textarget, c->texture, c->level);
+						break;
+					}
+					case kBlurBegin_CmdType: {
+						auto c = (BlurBeginCmd*)cmd;
+						_this->blurBeginCall(c->bounds, c->isClipState, c->depth);
+					}
+					case kBlurEnd_CmdType: {
+						auto c = (BlurEndCmd*)cmd;
+						_this->blurEndCall(c->bounds, c->size, c->mode, c->n, c->lod, c->depth);
+					}
+					case kSwitch_CmdType: {
+						auto c = (SwitchCmd*)cmd;
+						c->isEnable ? glEnable(c->id): glDisable(c->id);
+						break;
+					}
 					case kClear_CmdType: {
 						auto c = (ClearCmd*)cmd;
-						clearColor4fCall(c->color, c->full, c->depth);
+						_this->clearColor4fCall(c->color, c->region, c->fullClear, c->depth);
 						break;
 					}
 					case kClip_CmdType: {
 						auto c = (ClipCmd*)cmd;
-						drawClipCall(c->clip, c->ref, c->revoke, c->depth);
+						_this->drawClipCall(c->clip, c->ref, c->revoke, c->depth);
 						c->~ClipCmd();
 						break;
 					}
 					case kColor_CmdType: {
 						auto c = (ColorCmd*)cmd;
-						drawColor4fCall(c->vertex, c->color, c->aafuzz, c->aaclip, c->depth);
+						_this->drawColor4fCall(c->vertex, c->color, c->aafuzz, c->aaclip, c->depth);
 						break;
 					}
 					case kImage_CmdType: {
 						auto c = (ImageCmd*)cmd;
-						drawImageCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
+						_this->drawImageCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
 						c->~ImageCmd();
 						break;
 					}
 					case kImageMask_CmdType: {
 						auto c = (ImageMaskCmd*)cmd;
-						drawImageMaskCall(c->vertex, &c->paint, c->color, c->aafuzz, c->aaclip, c->depth);
+						_this->drawImageMaskCall(c->vertex, &c->paint, c->color, c->aafuzz, c->aaclip, c->depth);
 						c->~ImageMaskCmd();
 						break;
 					}
 					case kGradient_CmdType: {
 						auto c = (GradientCmd*)cmd;
-						drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
+						_this->drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
 						break;
 					}
 					case kMultiColor_CmdType: {

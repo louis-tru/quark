@@ -33,7 +33,7 @@
 
 #ifndef TEST_FUNC_NAME
 // #define TEST_FUNC_NAME test_layout
-#define TEST_FUNC_NAME test_canvas2
+#define TEST_FUNC_NAME test_canvas
 #endif
 
 using namespace qk;

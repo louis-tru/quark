@@ -8,6 +8,11 @@ if [ "$USER" != "root" ]; then
 	SUDO="sudo"
 fi
 
+if [ "`which node`" = "" ]; then
+	echo "\nError: nodejs needs to be installed first\n";
+	exit -1;
+fi
+
 if [ "`which tsc`" = "" ]; then
 	$SUDO npm install typescript -g;
 fi

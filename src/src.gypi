@@ -316,6 +316,8 @@
 					'render/gl/glsl/image.glsl',
 					'render/gl/glsl/image_mask.glsl',
 					'render/gl/glsl/image_yuv.glsl',
+					'render/gl/glsl/image_cp.glsl',
+					'render/gl/glsl/blur.glsl',
 				],
 				'outputs': [
 					'render/gl/glsl_shaders.h',

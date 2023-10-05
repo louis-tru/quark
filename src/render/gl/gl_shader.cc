@@ -37,10 +37,11 @@ namespace qk {
 	extern String GL_MaxTextureImageUnits_GLSL_Macros;
 	extern uint32_t GL_MaxTextureImageUnits;
 
-	static GLuint compile_shader(cChar* name, const GLchar* code, GLenum shader_type) {
+	static GLuint compile_shader(cChar* name, cString &code, GLenum shader_type) {
 		GLuint shader_handle = glCreateShader(shader_type);
-		GLint code_len = (GLint)strlen(code);
-		glShaderSource(shader_handle, 1, &code, &code_len);
+		GLint code_len = (GLint)code.length();
+		const GLchar *code_p = code.c_str();
+		glShaderSource(shader_handle, 1, &code_p, &code_len);
 		glCompileShader(shader_handle);
 		GLint ok;
 		glGetShaderiv(shader_handle, GL_COMPILE_STATUS, &ok);
@@ -68,10 +69,8 @@ namespace qk {
 		vertexCode += vertexShader;
 		fragmentCode += fragmentShader;
 
-		GLuint vertex_handle =
-			compile_shader(name, vertexCode.c_str(), GL_VERTEX_SHADER);
-		GLuint fragment_handle =
-			compile_shader(name, fragmentCode.c_str(), GL_FRAGMENT_SHADER);
+		GLuint vertex_handle = compile_shader(name, vertexCode, GL_VERTEX_SHADER);
+		GLuint fragment_handle = compile_shader(name, fragmentCode, GL_FRAGMENT_SHADER);
 		GLuint program = glCreateProgram();
 		glAttachShader(program, vertex_handle);
 		glAttachShader(program, fragment_handle);
@@ -137,7 +136,7 @@ namespace qk {
 			glEnableVertexAttribArray(local);
 			pointer += i.stride;
 		}
-		glUniform1i(glGetUniformLocation(program, "aaclip"), GL_MaxTextureImageUnits); // set texture slot
+		glUniform1i(glGetUniformLocation(program, "aaclip"), GL_MaxTextureImageUnits-1); // set aa texture slot
 		glBindVertexArray(0);
 
 		s->shader = program;

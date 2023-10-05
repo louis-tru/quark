@@ -37,24 +37,28 @@ namespace qk {
 	float get_level_font_size(float fontSize);
 	bool gl_read_pixels(Pixel* dst, uint32_t srcX, uint32_t srcY);
 	void gl_set_blend_mode(BlendMode blendMode);
-	void gl_setMainRenderBuffer(GLuint buff, ColorType type, Vec2 size);
-	void gl_setMSAARenderBuffer(GLuint buff, ColorType type, Vec2 size, int msaaSample);
+	void gl_setColorRenderBuffer(GLuint buff, ColorType type, Vec2 size, int msaaSample);
 	void gl_setDepthStencilBuffer(GLuint depth, GLuint stencil, Vec2 size, int msaaSample);
-	void gl_setClipAABuffer(GLuint buff, Vec2 size, int msaaSample);
+	void gl_setClipaaBuffer(GLuint tex, Vec2 size, int msaaSample);
+	void gl_setBlurRenderBuffer(GLuint tex, Vec2 size, int msaaSample);
 	void gl_textureBarrier();
 
-	extern uint32_t GL_MaxTextureImageUnits;
-	extern const  Region ZeroRegion;
-	extern const  float  aa_fuzz_weight = 0.9;
-	extern const  float  aa_fuzz_width = 0.6;
+	extern const Region ZeroRegion;
+	extern const float  aa_fuzz_weight = 0.9;
+	extern const float  aa_fuzz_width = 0.6;
+	extern const float  DepthNextUnit = 0.000000125f; // 1/8000000
 
 	Qk_DEFINE_INLINE_MEMBERS(GLCanvas, Inl) {
 	public:
 		#define _this _inl(this)
 		#define _inl(self) static_cast<GLCanvas::Inl*>(self)
 
-		void zDepthNext() {
-			_zDepth += 0.000000125f; // 1/8000000
+		inline void zDepthNext() {
+			_zDepth += DepthNextUnit;
+		}
+
+		inline void zDepthNextCount(uint32_t count) {
+			_zDepth += (DepthNextUnit * count);
 		}
 
 		void setMatrixInl(const Mat& mat) {
@@ -63,11 +67,14 @@ namespace qk {
 #else
 			_cmdPack->setMetrixUnifromBuffer(mat);
 #endif
-			auto mScale = Float::max(mat[0], mat[4]);
-			if (_transfromScale != mScale) {
-				_transfromScale = mScale;
-				_scale = _surfaceScale * _transfromScale;
-				_unitPixel = 2 / _scale;
+			auto ch = _state->matrix[0] != 1 || _state->matrix[4] != 1;
+			auto scale = ch ? _state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2: 1;
+			//auto scale1 = ch ? _state->matrix.mul_vec2_no_translate(Vec2(1,-1)).length() / Qk_SQRT_2: 1;
+			//auto scale2 = (scale + scale1) * 0.5; // this scale2 is a more accurate value
+			if (_scale != scale) {
+				_scale = scale;
+				_fullScale = _surfaceScale * scale;
+				_phy2Pixel = 2 / _fullScale;
 			}
 		}
 
@@ -93,9 +100,9 @@ namespace qk {
 			if (clip.vertex.vCount == 0) return;
 
 			if (antiAlias && !_IsDeviceMsaa) {
-				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_unitPixel*aa_fuzz_width);
+				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_phy2Pixel*aa_fuzz_width);
 				if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
-					clip.aafuzz = path.getAAFuzzStrokeTriangle(_unitPixel*aa_fuzz_width);
+					clip.aafuzz = path.getAAFuzzStrokeTriangle(_phy2Pixel*aa_fuzz_width);
 				}
 				_state->aaclip++;
 			}
@@ -160,11 +167,11 @@ namespace qk {
 
 		void strokePath(const Path &path, const Paint& paint, bool aa) {
 			if (aa) {
-				auto width = paint.width - _unitPixel * 0.45f;
+				auto width = paint.width - _phy2Pixel * 0.45f;
 				if (width > 0) {
 					fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, true);
 				} else {
-					width /= (_unitPixel * 0.65f); // range: -1 => 0
+					width /= (_phy2Pixel * 0.65f); // range: -1 => 0
 					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.006
 					drawAAFuzzStroke(path, paint, 0.5 / (0.5 - width), 0.5);
 					zDepthNext();
@@ -176,9 +183,9 @@ namespace qk {
 
 		void drawAAFuzzStroke(const Path& path, const Paint& paint, float aaFuzzWeight, float aaFuzzWidth) {
 			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
-			//auto &vertex = _render->getSDFStrokeTriangleStripCache(newPath, _Scale);
-			// _UnitPixel*0.6=1.2/_Scale, 2.4px
-			auto &vertex = _cache->getAAFuzzStrokeTriangle(path, _unitPixel*aaFuzzWidth);
+			//auto &vertex = _render->getAAFuzzStrokeTriangle(newPath, _Scale);
+			// _phy2Pixel*0.6=1.2/_Scale, 2.4px
+			auto &vertex = _cache->getAAFuzzStrokeTriangle(path, _phy2Pixel*aaFuzzWidth);
 			// Qk_DEBUG("%p", &vertex);
 			switch (paint.type) {
 				case Paint::kColor_Type:
@@ -217,31 +224,113 @@ namespace qk {
 			return scale_1;
 		}
 
+		void drawPathvInl(const Pathv& path, const Paint& paint) {
+			bool aa = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
+			// gen stroke path and fill path and polygons
+			switch (paint.style) {
+				case Paint::kFill_Style:
+					_this->fillPathv(path, paint, aa); break;
+				case Paint::kStrokeAndFill_Style:
+					_this->fillPathv(path, paint, aa);
+				case Paint::kStroke_Style: {
+					_this->strokePath(path.path, paint, aa); break;
+				}
+			}
+		}
+
 	};
+
+	class GLCFilter {
+	public:
+		typedef NonObjectTraits Traits;
+		template<typename... Args>
+		static GLCFilter* Make(GLCanvas::Inl *host, const Paint &paint, Args... args);
+		virtual ~GLCFilter() = default;
+	};
+
+	class GLCBlurFilter: public GLCFilter {
+	public:
+		GLCBlurFilter(GLCanvas::Inl *host, const Paint &paint, const Path *path)
+			: _host(host), _paint(paint), _bounds(path->getBounds(&host->_state->matrix))
+		{
+			begin();
+		}
+		GLCBlurFilter(GLCanvas::Inl *host, const Paint &paint, const Rect *rect)
+			: _host(host), _paint(paint), _bounds{rect->origin,rect->origin+rect->size}
+		{
+			if (!host->_state->matrix.is_unit_matrix()) {
+				auto &mat = host->_state->matrix;
+				if (mat[0] != 1 || mat[4] != 1) { // no rotate or skew
+					Vec2 pts[] = {
+						_bounds.origin, {_bounds.end.x(),_bounds.origin.y()},
+						{_bounds.end.x(),_bounds.end.y()}, {_bounds.origin.x(),_bounds.end.y()}
+					};
+					_bounds = Path::getBoundsFromPoints(pts, 4, &host->_state->matrix);
+				} else {
+					_bounds.origin += {mat[2],mat[5]}; // translate
+				}
+			}
+			begin();
+		}
+
+		~GLCBlurFilter() override {
+			auto ct = _host->_cmdPack->blurEnd(_bounds, _size);
+			_host->zDepthNextCount(ct);
+		}
+
+	private:
+		void begin() {
+			_size = _paint.filter->value * _host->_scale;
+			_bounds = {_bounds.origin - _size, _bounds.end + _size};
+			_host->_cmdPack->blurBegin(_bounds);
+			_host->zDepthNext();
+		}
+		GLCanvas::Inl *_host;
+		const Paint &_paint;
+		Region _bounds; // bounds for draw path
+		float _size; // blur size
+	};
+
+	template<typename... Args>
+	GLCFilter* GLCFilter::Make(GLCanvas::Inl *host, const Paint &paint, Args... args)
+	{
+		if (!paint.filter) {
+			host->setBlendMode(paint.blendMode); // switch blend mode
+			return nullptr;
+		}
+
+		switch(paint.filter->type) {
+			case PaintFilter::kBlur_Type:
+				return new GLCBlurFilter(host, paint, args...);
+			case PaintFilter::kBackdropBlur_Type:
+				// TODO unrealized
+				return nullptr;
+		}
+	}
 
 	GLCanvas::GLCanvas(GLRender *render, bool isMultiThreading)
 		: _render(render)
 		, _cache(new PathvCache(render))
 		, _frameBuffer(0), _msaaFrameBuffer(0)
 		, _renderBuffer(0), _msaaRenderBuffer(0), _stencilBuffer(0), _depthBuffer(0)
-		, _clipAAAlphaBuffer(0)
+		, _clipaaBuffer(0)
+		, _blurBuffer(0)
 		, _stencilRef(0), _stencilRefDecr(0)
 		, _zDepth(0)
 		, _state(nullptr)
-		, _surfaceScale(1), _transfromScale(1), _scale(1)
+		, _surfaceScale(1), _scale(1), _fullScale(1), _phy2Pixel(1)
 		, _rootMatrix()
 		, _blendMode(kSrcOver_BlendMode), _chMatrix(true)
 		, _isMultiThreading(isMultiThreading)
 		, _isClipState(false)
 		, _IsDeviceMsaa(false)
 	{
-
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(2, &_frameBuffer); // _frame_buffer,_msaa_frame_buffer
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
 		glGenRenderbuffers(4, &_renderBuffer); // _render_buffer,_msaa_render_buffer,_stencil_buffer,_depth_buffer
-		// Create aa texture buffer
-		glGenTextures(1, &_clipAAAlphaBuffer); // _clipAlphaBuffer
+		// Create texture buffer
+		glGenTextures(2, &_clipaaBuffer); // _clipaaBuffer,_blurBuffer
 
 		_cmdPack = new GLC_CmdPack(render, this);
 		_cmdPackFront = isMultiThreading ? new GLC_CmdPack(render, this): _cmdPack;
@@ -259,7 +348,7 @@ namespace qk {
 
 		glDeleteFramebuffers(2, &_frameBuffer); // _frameBuffer,_msaaFrameBuffer
 		glDeleteRenderbuffers(4, &_renderBuffer); // _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer
-		glDeleteTextures(4, &_clipAAAlphaBuffer); // _clipAAAlphaBuffer, _texBuffer
+		glDeleteTextures(2, &_clipaaBuffer); // _clipaaBuffer, _blurBuffer
 	}
 
 	void GLCanvas::swapBuffer() {
@@ -324,8 +413,8 @@ namespace qk {
 	}
 
 	void GLCanvas::onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size) {
-		setBuffers(size); // set buffers
 		_mutex.lock();
+		setBuffers(size); // set buffers
 		// update shader root matrix and clear all save state
 		_rootMatrix = root.transpose(); // transpose matrix
 		glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
@@ -345,10 +434,12 @@ namespace qk {
 		_stencilRef = _stencilRefDecr = 127;
 		_isClipState = false; // clear clip state
 		// set surface scale
-		_surfaceScale = Float::max(surfaceScale[0], surfaceScale[1]);
-		_transfromScale = Float::max(_state->matrix[0], _state->matrix[4]);
-		_scale = _surfaceScale * _transfromScale;
-		_unitPixel = 2 / _scale;
+		_surfaceSize = size;
+		_size = size / surfaceScale;
+		_surfaceScale = (surfaceScale[0] + surfaceScale[1]) * 0.5;
+		_scale = _state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2;
+		_fullScale = _surfaceScale * _scale;
+		_phy2Pixel = 2 / _fullScale;
 		_mutex.unlock();
 	}
 
@@ -396,26 +487,18 @@ namespace qk {
 
 	void GLCanvas::clearColor(const Color4f& color) {
 		_zDepth = 0; // set z depth state
-		_cmdPack->clearColor4f(color, true); // clear color/clip/depth
+		_cmdPack->clearColor4f(color, {}, true); // clear color/clip/depth
 	}
 
 	void GLCanvas::drawColor(const Color4f &color, BlendMode mode) {
 		auto isBlend = mode != kSrc_BlendMode;// || color.a() != 1;
 		if (isBlend) { // draw color
 			_this->setBlendMode(mode); // switch blend mode
-			_cmdPack->clearColor4f(color, false);
+			_cmdPack->clearColor4f(color, {{},_size}, false);
 			_this->zDepthNext();
 		} else { // clear color
 			clearColor(color);
 		}
-	}
-
-	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
-		drawPathv(_cache->getRectPath(rect), paint);
-	}
-
-	void GLCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
-		drawPathv(_cache->getRRectPath(rect,radius), paint);
 	}
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
@@ -423,43 +506,44 @@ namespace qk {
 			_this->setBlendMode(mode); // switch blend mode
 			_cmdPack->drawColor4f(path, color, false);
 			if (!_IsDeviceMsaa) { // Anti-aliasing using software
-				auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _unitPixel*aa_fuzz_width);
+				auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _phy2Pixel*aa_fuzz_width);
 				_cmdPack->drawColor4f(vertex, color.to_color4f_alpha(aa_fuzz_weight), true);
 			}
 			_this->zDepthNext();
 		}
 	}
 
-	void GLCanvas::drawPath(const Path &path_, const Paint &paint) {
-		_this->setBlendMode(paint.blendMode); // switch blend mode
+	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
+		auto &path = _cache->getRectPath(rect);
+		Sp<GLCFilter> filter = GLCFilter::Make(_this, paint, &path.rect);
+		_this->drawPathvInl(path, paint);
+	}
 
-		bool aa = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
-		auto path = &_cache->getNormalizedPath(path_);
-
-		// gen stroke path and fill path and polygons
-		switch (paint.style) {
-			case Paint::kFill_Style:
-				_this->fillPath(*path, paint, aa); break;
-			case Paint::kStrokeAndFill_Style:
-				_this->fillPath(*path, paint, aa);
-			case Paint::kStroke_Style: {
-				_this->strokePath(*path, paint, aa); break;
-			}
-		}
+	void GLCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
+		auto &path = _cache->getRRectPath(rect,radius);
+		Sp<GLCFilter> filter = GLCFilter::Make(_this, paint, &path.rect);
+		_this->drawPathvInl(path, paint);
 	}
 
 	void GLCanvas::drawPathv(const Pathv& path, const Paint& paint) {
-		_this->setBlendMode(paint.blendMode); // switch blend mode
+		Sp<GLCFilter> filter = GLCFilter::Make(_this, paint, &path.path);
+		_this->drawPathvInl(path, paint);
+	}
 
+	void GLCanvas::drawPath(const Path &path_, const Paint &paint) {
 		bool aa = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
+		auto &path = _cache->getNormalizedPath(path_);
+
+		Sp<GLCFilter> filter = GLCFilter::Make(_this, paint, &path);
+
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
-				_this->fillPathv(path, paint, aa); break;
+				_this->fillPath(path, paint, aa); break;
 			case Paint::kStrokeAndFill_Style:
-				_this->fillPathv(path, paint, aa);
+				_this->fillPath(path, paint, aa);
 			case Paint::kStroke_Style: {
-				_this->strokePath(path.path, paint, aa); break;
+				_this->strokePath(path, paint, aa); break;
 			}
 		}
 	}
@@ -470,16 +554,16 @@ namespace qk {
 
 		Sp<ImageSource> img;
 		auto tf = glyphs.typeface();
-		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _scale, offset, &img);
+		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _fullScale, offset, &img);
 		img->mark_as_texture(_render);
-		auto scale_1 = _this->drawTextImage(*img, bound.y(), _scale, origin, paint);
+		auto scale_1 = _this->drawTextImage(*img, bound.y(), _fullScale, origin, paint);
 		return scale_1 * bound.x();
 	}
 
 	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
 
-		fontSize *= _transfromScale;
+		fontSize *= _scale;
 		auto levelSize = get_level_font_size(fontSize);
 		auto levelScale = fontSize / levelSize;
 		auto imageFontSize = levelSize * _surfaceScale;
@@ -494,28 +578,26 @@ namespace qk {
 			blob->image->mark_as_texture(_render);
 		}
 
-		_this->drawTextImage(*blob->image, blob->imageBound.y(), _scale * levelScale, origin, paint);
+		_this->drawTextImage(*blob->image, blob->imageBound.y(), _fullScale * levelScale, origin, paint);
 	}
 
 	// --------------------------------------------------------
 
 	void GLCanvas::setBuffers(Vec2 size) {
-		auto w = size[0], h = size[1];
+		auto w = size.x(), h = size.y();
 		auto type = _render->_opts.colorType;
 		auto msaaCnt = _render->_opts.msaa;
 
 		Qk_ASSERT(w, "Invalid viewport size width");
 		Qk_ASSERT(h, "Invalid viewport size height");
 
+		_IsDeviceMsaa = false;
 		glViewport(0, 0, w, h);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer); // bind frame buffer
-		gl_setMainRenderBuffer(_renderBuffer, type, size);
 
 		if (msaaCnt > 1) {
 			glBindFramebuffer(GL_FRAMEBUFFER, _msaaFrameBuffer);
 			do { // enable multisampling
-				gl_setMSAARenderBuffer(_msaaRenderBuffer, type, size, msaaCnt);
+				gl_setColorRenderBuffer(_mainRenderBuff = _msaaRenderBuffer, type, size, msaaCnt);
 				// Test the framebuffer for completeness.
 				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE )
 					break;
@@ -523,14 +605,21 @@ namespace qk {
 			} while (msaaCnt > 1);
 			_IsDeviceMsaa = msaaCnt > 1;
 		}
-
-		if (!_IsDeviceMsaa) { // no device msaa
-			glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+		if (!_IsDeviceMsaa || Qk_iOS) {
+			glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer); // bind frame buffer
+			gl_setColorRenderBuffer(_mainRenderBuff = _renderBuffer, type, size, 1);
 		}
-		gl_setDepthStencilBuffer(_depthBuffer, _stencilBuffer, size, msaaCnt);
-		gl_setClipAABuffer(_clipAAAlphaBuffer, size, msaaCnt);
+		if (_IsDeviceMsaa) { // msaa
+			glBindFramebuffer(GL_FRAMEBUFFER, _msaaFrameBuffer);
+		}
 
-		const GLenum buffers[]{ GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
+		gl_setDepthStencilBuffer(_depthBuffer, _stencilBuffer, size, msaaCnt);
+		gl_setClipaaBuffer(_clipaaBuffer, size, msaaCnt);
+		gl_setBlurRenderBuffer(_blurBuffer, size, msaaCnt);
+
+		const GLenum buffers[]{
+			GL_COLOR_ATTACHMENT0/*main color output*/, GL_COLOR_ATTACHMENT1/*aaclip output*/,
+		};
 		glDrawBuffers(2, buffers);
 
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {

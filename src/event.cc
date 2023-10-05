@@ -690,7 +690,7 @@ namespace qk {
 			mousemove(*view, pos);
 		}
 
-		if (view.is_null()) return;
+		if (!view) return;
 
 		auto evt = NewMouseEvent(*view, x, y, name);
 

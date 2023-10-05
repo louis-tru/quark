@@ -532,6 +532,43 @@ namespace qk {
 		}
 	}
 
+	Region Path::getBounds(const Mat* mat) const {
+		mat = mat && !mat->is_unit_matrix() ? mat: nullptr;
+		return getBoundsFromPoints((const Vec2*)*_pts, ptsLen(), mat);
+	}
+
+	// get rect bounds from pts
+	Region Path::getBoundsFromPoints(const Vec2 *pts, uint32_t ptsLen, const Mat* mat) {
+		const Vec2* e = pts + ptsLen;
+		float top = Float::limit_max,
+					right = Float::limit_min,
+					bottom = right, left = top;
+		Vec2 offset;
+		bool isMul = false;
+
+		if (mat) {
+			offset = {mat->val[2], mat->val[5]}; // translate
+			isMul = mat->val[0] != 1 || mat->val[4] != 1; // is call mul_vec2_no_translate
+		}
+
+		while (pts < e) {
+			auto p = isMul ? mat->mul_vec2_no_translate(*pts): *pts;
+			auto x = p.x(), y = p.y();
+			if (x < left) {
+				left = x;
+			} else if (right < x) {
+				right = x;
+			}
+			if (y < top) {
+				top = y;
+			} else if (bottom < y) {
+				bottom = y;
+			}
+			pts++;
+		}
+		return {{offset.x()+left,offset.y()+top}, {offset.x()+right,offset.y()+bottom}};
+	}
+
 	// estimate sample rate
 	static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon);
 	static int getCubicBezierSample(const CubicBezier& curve, float epsilon);

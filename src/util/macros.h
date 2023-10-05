@@ -132,6 +132,8 @@
 
 #if TARGET_OS_IPHONE
 # define Qk_iOS        1
+#else
+# define Qk_iOS        0
 #endif
 
 #if TARGET_OS_MAC && !TARGET_OS_IPHONE

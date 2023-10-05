@@ -52,6 +52,7 @@ namespace qk {
 
 	class GLRender; // gl render backend
 	class GLC_CmdPack;
+	class GLCBlurFilter;
 
 	class GLCanvas: public Canvas {
 	public:
@@ -96,19 +97,24 @@ namespace qk {
 		PathvCache   *_cache;
 		GLuint _frameBuffer,_msaaFrameBuffer;
 		GLuint _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer;
-		GLuint _clipAAAlphaBuffer; // aa texture buffer
+		GLuint _clipaaBuffer; // aa texture buffer
+		GLuint _blurBuffer; // blur tex buffer
 		GLuint _stencilRef, _stencilRefDecr; // stencil clip state
 		float  _zDepth;
-		float  _surfaceScale, _transfromScale;
-		float  _scale, _unitPixel; // surface scale * transfrom scale, _unitPixel = 2 / _scale
+		float  _surfaceScale, _scale;
+		float  _fullScale, _phy2Pixel; // surface scale * transfrom scale, _phy2Pixel = 2 / _scale
+		Vec2   _size, _surfaceSize; // canvas size and surface size
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
+		GLuint   _mainRenderBuff; // main render buffer, ref to _renderBuffer or _msaaRenderBuffer
 		bool   _chMatrix; // matrix change state
 		bool   _isMultiThreading, _isClipState; // clip state
 		bool _IsDeviceMsaa; // device anti alias, msaa
 		Mutex  _mutex; // submit swap mutex
-		Qk_DEFINE_INLINE_CLASS(Inl);
+
 		friend class GLC_CmdPack;
+		friend class GLCBlurFilter;
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

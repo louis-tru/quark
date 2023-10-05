@@ -4,7 +4,7 @@
 #frag
 smooth in lowp vec2      coord_f;
 uniform   lowp float     alpha;
-uniform        sampler2D image;   // y
+uniform        sampler2D image;
 
 void main() {
 	fragColor = texture(image, coord_f);
