@@ -260,7 +260,7 @@ namespace qk {
 		{
 			if (!host->_state->matrix.is_unit_matrix()) {
 				auto &mat = host->_state->matrix;
-				if (mat[0] != 1 || mat[4] != 1) { // no rotate or skew
+				if (mat[0] != 1 || mat[4] != 1) { // rotate or skew
 					Vec2 pts[] = {
 						_bounds.origin, {_bounds.end.x(),_bounds.origin.y()},
 						{_bounds.end.x(),_bounds.end.y()}, {_bounds.origin.x(),_bounds.end.y()}
