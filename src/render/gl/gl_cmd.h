@@ -50,8 +50,8 @@ namespace qk {
 			kSwitch_CmdType,
 			kClear_CmdType,
 			kClip_CmdType,
-			kBlurBegin_CmdType,
-			kBlurEnd_CmdType,
+			kBeginBlur_CmdType,
+			kEndBlur_CmdType,
 			kColor_CmdType, // draw cmd
 			kImage_CmdType,
 			kImageMask_CmdType,
@@ -99,13 +99,13 @@ namespace qk {
 			bool           revoke;
 		};
 
-		struct BlurBeginCmd: Cmd {
+		struct BeginBlurCmd: Cmd {
 			float     depth;
 			Region    bounds;
 			bool      isClipState;
 		};
 
-		struct BlurEndCmd: Cmd {
+		struct EndBlurCmd: Cmd {
 			float     depth;
 			Region    bounds;
 			float     size; // blur size
@@ -171,8 +171,8 @@ namespace qk {
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
 		void clearColor4f(const Color4f &color, const Region &region, bool fullClear);
-		void blurBegin(Region bounds);
-		int  blurEnd(Region bounds, float size);
+		void beginBlur(Region bounds);
+		int  endBlur(Region bounds, float size);
 		void glFramebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb);
 		void glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level);
 

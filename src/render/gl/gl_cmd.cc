@@ -329,19 +329,19 @@ namespace qk {
 		}
 
 		static void getBlurSampling(float size, int &n, int &lod) {
-			n = ceilf(Qk_MIN(13,Qk_MAX(3,size))); // sampling rate
+			n = ceilf(Float::clamp(size*1.25, 3, 13)); // sampling rate
 			if (n % 2 == 0)
 				n += 1; // keep singular
 			lod = ceilf(Float::max(0,log2f(size/n)));
 		}
 
-		void blurBeginCall(Region bounds, bool isClipState, float depth) {
+		void beginBlurCall(Region bounds, bool isClipState, float depth) {
 			if (kSrc_BlendMode != _render->_blendMode)
 				_render->setBlendMode(kSrc_BlendMode); // switch blend mode to src
 			if (isClipState) glDisable(GL_STENCIL_TEST); // ignore clip
 			// output to texture buffer then do post processing
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_blurBuffer, 0);
-			clearColor4fCall({0,0,0,0}, bounds, false, depth); // clear pixels within boundaries
+			clearColor4fCall({0,0,0,0}, bounds, false, depth); // clear pixels within bounds
 			if (isClipState) glEnable(GL_STENCIL_TEST); // restore clip state
 		}
 
@@ -353,27 +353,26 @@ namespace qk {
 		 *   https://elynxsdk.free.fr/ext-docs/Blur/Fast_box_blur.pdf
 		 *   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		 */
-		void blurEndCall(Region bounds, float size, BlendMode mode, int n, int lod, float depth) {
+		void endBlurCall(Region bounds, float size, BlendMode mode, int n, int lod, float depth) {
 			float x1 = bounds.origin.x(), y1 = bounds.origin.y();
 			float x2 = bounds.end.x(), y2 = bounds.end.y();
 			float data[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
 			auto blur = _render->_shaders.blur; // blur shader
-			auto R = _canvas->_surfaceSize;
 			size *= _canvas->_surfaceScale;
-			auto size0 = size;
+			auto R = _canvas->_surfaceSize;
+			uint32_t oRw = R.x(), oRh = R.y();
 
 			gl_textureBarrier();
 
 			if (lod) { // copy image, gen mipmap texture
 				auto &cp = _render->_shaders.imageCp;
-				uint32_t rw = R.x(), rh = R.y();
 				cp.use(sizeof(float) * 12, data);
-				glUniform2f(cp.iResolution, rw, rh);
+				glUniform2f(cp.iResolution, R.x(), R.y());
 				for (int i = 0; i < lod; i++) { // copy image level
-					rw >>= 1; rh >>= 1;
+					oRw >>= 1; oRh >>= 1;
 					glUniform1i(cp.depth, depth);
 					glUniform1i(cp.imageLod, i);
-					glUniform2f(cp.oResolution, rw, rh);
+					glUniform2f(cp.oResolution, oRw, oRh);
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_blurBuffer, i+1);
 					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					gl_textureBarrier();
@@ -381,29 +380,21 @@ namespace qk {
 				}
 			}
 
-			uint32_t orw = R.x(), orh = R.y();
-			for (int i = 0; i < lod; i++) {
-				orw >>= 1; orw >>= 1;
-				size *= 0.5; // reduce blur size
-			}
-
 			blur.use(sizeof(float) * 12, data);
 			// blur horizontal blur
 			glUniform1i(blur.depth, depth);
 			glUniform2f(blur.iResolution, R.x(), R.y());
-			glUniform2f(blur.oResolution, orw, orh);
+			glUniform2f(blur.oResolution, oRw, oRh);
 			glUniform1i(blur.imageLod, lod);
-			glUniform1i(blur.n, n);
-			glUniform2f(blur.blurSize, size / R.x(), size / R.y());
-			glUniform2f(blur.dir, 1, 0); // horizontal
+			glUniform1f(blur.step, 2.0/(n-1));
+			glUniform2f(blur.blurSize, size / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
-			gl_textureBarrier(); // complete horizontal blur
+			//gl_textureBarrier(); // complete horizontal blur
 			// blur vertical blur
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_mainRenderBuff);
 			glUniform1i(blur.depth, depth + DepthNextUnit);
 			glUniform2f(blur.oResolution, R.x(), R.y());
-			glUniform2f(blur.blurSize, size0 / R.x(), size0 / R.y()); // restore original blur size
-			glUniform2f(blur.dir, 0, 1); // vertical
+			glUniform2f(blur.blurSize, 0, size / R.y()); // vertical blur
 			if (mode != kSrc_BlendMode)
 				_render->setBlendMode(mode); // restore blend mode
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
@@ -635,17 +626,17 @@ namespace qk {
 			cmd->level = level;
 		}
 
-		void GLC_CmdPack::blurBegin(Region bounds) {
-			auto cmd = new(_this->allocCmd(sizeof(BlurBeginCmd))) BlurBeginCmd;
-			cmd->type = kBlurBegin_CmdType;
+		void GLC_CmdPack::beginBlur(Region bounds) {
+			auto cmd = new(_this->allocCmd(sizeof(BeginBlurCmd))) BeginBlurCmd;
+			cmd->type = kBeginBlur_CmdType;
 			cmd->bounds = bounds;
 			cmd->depth = _canvas->_zDepth;
 			cmd->isClipState = _canvas->_isClipState;
 		}
 
-		int GLC_CmdPack::blurEnd(Region bounds, float size) {
-			auto cmd = new(_this->allocCmd(sizeof(BlurEndCmd))) BlurEndCmd;
-			cmd->type = kBlurEnd_CmdType;
+		int GLC_CmdPack::endBlur(Region bounds, float size) {
+			auto cmd = new(_this->allocCmd(sizeof(EndBlurCmd))) EndBlurCmd;
+			cmd->type = kEndBlur_CmdType;
 			cmd->bounds = bounds;
 			cmd->depth = _canvas->_zDepth;
 			cmd->mode = _canvas->_blendMode;
@@ -730,13 +721,13 @@ namespace qk {
 						glFramebufferTexture2D(c->target, c->attachment, c->textarget, c->texture, c->level);
 						break;
 					}
-					case kBlurBegin_CmdType: {
-						auto c = (BlurBeginCmd*)cmd;
-						_this->blurBeginCall(c->bounds, c->isClipState, c->depth);
+					case kBeginBlur_CmdType: {
+						auto c = (BeginBlurCmd*)cmd;
+						_this->beginBlurCall(c->bounds, c->isClipState, c->depth);
 					}
-					case kBlurEnd_CmdType: {
-						auto c = (BlurEndCmd*)cmd;
-						_this->blurEndCall(c->bounds, c->size, c->mode, c->n, c->lod, c->depth);
+					case kEndBlur_CmdType: {
+						auto c = (EndBlurCmd*)cmd;
+						_this->endBlurCall(c->bounds, c->size, c->mode, c->n, c->lod, c->depth);
 					}
 					case kSwitch_CmdType: {
 						auto c = (SwitchCmd*)cmd;

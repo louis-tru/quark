@@ -48,6 +48,14 @@ namespace qk {
 	extern const float  aa_fuzz_width = 0.6;
 	extern const float  DepthNextUnit = 0.000000125f; // 1/8000000
 
+	class GLCFilter {
+	public:
+		typedef NonObjectTraits Traits;
+		template<typename... Args>
+		static GLCFilter* Make(GLCanvas *host, const Paint &paint, Args... args);
+		virtual ~GLCFilter() = default;
+	};
+
 	Qk_DEFINE_INLINE_MEMBERS(GLCanvas, Inl) {
 	public:
 		#define _this _inl(this)
@@ -206,8 +214,11 @@ namespace qk {
 			// default use baseline align
 			Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
 			Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
+			Rect rect{dst_start, dst_size};
 
-			p.setImage(textImg, {dst_start, dst_size});
+			Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &rect);
+
+			p.setImage(textImg, rect);
 
 			Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
 			Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
@@ -240,23 +251,15 @@ namespace qk {
 
 	};
 
-	class GLCFilter {
-	public:
-		typedef NonObjectTraits Traits;
-		template<typename... Args>
-		static GLCFilter* Make(GLCanvas::Inl *host, const Paint &paint, Args... args);
-		virtual ~GLCFilter() = default;
-	};
-
 	class GLCBlurFilter: public GLCFilter {
 	public:
-		GLCBlurFilter(GLCanvas::Inl *host, const Paint &paint, const Path *path)
-			: _host(host), _paint(paint), _bounds(path->getBounds(&host->_state->matrix))
+		GLCBlurFilter(GLCanvas *host, const Paint &paint, const Path *path)
+			: _host(host), _size(paint.filter->value), _bounds(path->getBounds(&host->_state->matrix))
 		{
 			begin();
 		}
-		GLCBlurFilter(GLCanvas::Inl *host, const Paint &paint, const Rect *rect)
-			: _host(host), _paint(paint), _bounds{rect->origin,rect->origin+rect->size}
+		GLCBlurFilter(GLCanvas *host, const Paint &paint, const Rect *rect)
+			: _host(host), _size(paint.filter->value), _bounds{rect->origin,rect->origin+rect->size}
 		{
 			if (!host->_state->matrix.is_unit_matrix()) {
 				auto &mat = host->_state->matrix;
@@ -274,28 +277,27 @@ namespace qk {
 		}
 
 		~GLCBlurFilter() override {
-			auto ct = _host->_cmdPack->blurEnd(_bounds, _size);
-			_host->zDepthNextCount(ct);
+			auto ct = _host->_cmdPack->endBlur(_bounds, _size);
+			_inl(_host)->zDepthNextCount(ct);
 		}
 
 	private:
 		void begin() {
-			_size = _paint.filter->value * _host->_scale;
+			_size *= _host->_scale;
 			_bounds = {_bounds.origin - _size, _bounds.end + _size};
-			_host->_cmdPack->blurBegin(_bounds);
-			_host->zDepthNext();
+			_host->_cmdPack->beginBlur(_bounds);
+			_inl(_host)->zDepthNext();
 		}
-		GLCanvas::Inl *_host;
-		const Paint &_paint;
+		GLCanvas *_host;
+		float  _size; // blur size
 		Region _bounds; // bounds for draw path
-		float _size; // blur size
 	};
 
 	template<typename... Args>
-	GLCFilter* GLCFilter::Make(GLCanvas::Inl *host, const Paint &paint, Args... args)
+	GLCFilter* GLCFilter::Make(GLCanvas *host, const Paint &paint, Args... args)
 	{
 		if (!paint.filter) {
-			host->setBlendMode(paint.blendMode); // switch blend mode
+			_inl(host)->setBlendMode(paint.blendMode); // switch blend mode
 			return nullptr;
 		}
 
@@ -515,18 +517,18 @@ namespace qk {
 
 	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
 		auto &path = _cache->getRectPath(rect);
-		Sp<GLCFilter> filter = GLCFilter::Make(_this, paint, &path.rect);
+		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &path.rect);
 		_this->drawPathvInl(path, paint);
 	}
 
 	void GLCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
 		auto &path = _cache->getRRectPath(rect,radius);
-		Sp<GLCFilter> filter = GLCFilter::Make(_this, paint, &path.rect);
+		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &path.rect);
 		_this->drawPathvInl(path, paint);
 	}
 
 	void GLCanvas::drawPathv(const Pathv& path, const Paint& paint) {
-		Sp<GLCFilter> filter = GLCFilter::Make(_this, paint, &path.path);
+		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &path.path);
 		_this->drawPathvInl(path, paint);
 	}
 
@@ -534,7 +536,7 @@ namespace qk {
 		bool aa = paint.antiAlias && !_IsDeviceMsaa; // Anti-aliasing using software
 		auto &path = _cache->getNormalizedPath(path_);
 
-		Sp<GLCFilter> filter = GLCFilter::Make(_this, paint, &path);
+		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &path);
 
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
