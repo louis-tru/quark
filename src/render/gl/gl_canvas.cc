@@ -303,7 +303,7 @@ namespace qk {
 			case PaintFilter::kBlur_Type:
 				return new GLCBlurFilter(host, paint, args...);
 			case PaintFilter::kBackdropBlur_Type:
-				// TODO unrealized
+				// TODO unrealized.
 				return nullptr;
 		}
 	}
