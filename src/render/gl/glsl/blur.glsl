@@ -15,7 +15,7 @@ void main() {
 #frag
 uniform lowp uint           imageLod; // image image lod
 uniform sampler2D           image; // image image input
-uniform lowp vec2           blurSize; // blur size resolution %
+uniform lowp vec2           size; // blur size resolution %
 uniform lowp float          step; // N target sampling rate, step = 1.0 / ((n-1)*0.5)
 
 // gaussian kernel function
@@ -27,15 +27,18 @@ void main() {
 	coord.y -= (iResolution.y - oResolution.y); // correct offset
 	coord /= oResolution; // image texture coord
 
-	lowp vec4  o = vec4(0);
 	lowp float x = -1.0, t = 0.0, g;
+	lowp vec4  o = textureLod(image, coord, imageLod);
+	lowp vec2  s; // blue size
 
 	do {
 		g = gk(x);
-		o += g * textureLod(image, blurSize * x + coord, imageLod);
+		s = size * x;
+		o += (textureLod(image, coord + s, imageLod) +
+					textureLod(image, coord - s, imageLod)) * g;
 		t += g;
 		x += step;
-	} while(x <= 1.0);
+	} while(x < 0.0);
 
-	fragColor = o / t;
+	fragColor = o / (t*2.0+1.0);
 }

@@ -387,14 +387,14 @@ namespace qk {
 			glUniform2f(blur.oResolution, oRw, oRh);
 			glUniform1i(blur.imageLod, lod);
 			glUniform1f(blur.step, 2.0/(n-1));
-			glUniform2f(blur.blurSize, size / R.x(), 0); // horizontal blur
+			glUniform2f(blur.size, size / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 			//gl_textureBarrier(); // complete horizontal blur
 			// blur vertical blur
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_mainRenderBuff);
 			glUniform1i(blur.depth, depth + DepthNextUnit);
 			glUniform2f(blur.oResolution, R.x(), R.y());
-			glUniform2f(blur.blurSize, 0, size / R.y()); // vertical blur
+			glUniform2f(blur.size, 0, size / R.y()); // vertical blur
 			if (mode != kSrc_BlendMode)
 				_render->setBlendMode(mode); // restore blend mode
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
