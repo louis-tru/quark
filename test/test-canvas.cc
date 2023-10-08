@@ -15,6 +15,7 @@ public:
 	MyCanvas(App *host): Box(host) {}
 
 	virtual void accept(ViewVisitor *visitor) override {
+		// mark_none(kLayout_None); return;
 		auto canvas = shared_app()->render()->getCanvas();
 		auto size = shared_app()->display()->size();
 
