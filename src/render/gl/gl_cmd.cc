@@ -365,10 +365,11 @@ namespace qk {
 			gl_textureBarrier();
 
 			if (lod) { // copy image, gen mipmap texture
+				int i = 0;
 				auto &cp = _render->_shaders.imageCp;
 				cp.use(sizeof(float) * 12, data);
 				glUniform2f(cp.iResolution, R.x(), R.y());
-				for (int i = 0; i < lod; i++) { // copy image level
+				do { // copy image level
 					oRw >>= 1; oRh >>= 1;
 					glUniform1i(cp.depth, depth);
 					glUniform1i(cp.imageLod, i);
@@ -377,7 +378,7 @@ namespace qk {
 					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					gl_textureBarrier();
 					depth += DepthNextUnit;
-				}
+				} while(++i < lod);
 			}
 
 			blur.use(sizeof(float) * 12, data);

@@ -78,6 +78,9 @@ namespace qk {
 		virtual void drawPath(const Path& path, const Paint& paint) = 0;
 		virtual void drawPathv(const Pathv& path, const Paint& paint) = 0;
 		virtual void drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode);
+		virtual void drawRectBlurColor(const Rect& rect, const Color4f &color, BlendMode mode) = 0;
+		virtual void drawRRectBlurColor(const Rect& rect,
+			const Path::BorderRadius &radius, const Color4f &color, BlendMode mode) = 0;
 		virtual void drawRect(const Rect& rect, const Paint& paint);
 		virtual void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint);
 		virtual void drawOval(const Rect& oval, const Paint& paint);

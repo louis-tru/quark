@@ -64,7 +64,7 @@ namespace qk {
 		}
 	};
 
-#define define_number(N, T) \
+	#define define_number(N, T) \
 	typedef Number<T> N; template<> \
 	Qk_EXPORT const T N::limit_min; template<> const T N::limit_max
 
@@ -75,7 +75,6 @@ namespace qk {
 	define_number(Float, float);   define_number(Double, double);
 	define_number(Bool, bool);
 
-#undef define_number
-
+	#undef define_number
 }
 #endif
