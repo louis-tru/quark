@@ -1,4 +1,8 @@
 
+// Ref:
+// https://raphlinus.github.io/graphics/2020/04/21/blurred-rounded-rects.html
+// https://madebyevan.com/shaders/fast-rounded-rectangle-shadows/
+
 // vec4 erf(vec4 x) {
 // 	vec4 s = sign(x), a = abs(x);
 // 	x = 1.0 + (0.278393 + (0.230389 + 0.078108 * (a * a)) * a) * a;
