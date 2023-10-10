@@ -65,7 +65,7 @@ namespace qk {
 
 	float get_level_font_size(float fontSize) {
 		if (fontSize <= 0) {
-			 return 0;
+			return 0;
 		}
 		if (fontSize <= 10) {
 			return 10;
