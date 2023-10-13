@@ -2,6 +2,7 @@
 // Ref:
 // https://raphlinus.github.io/graphics/2020/04/21/blurred-rounded-rects.html
 // https://madebyevan.com/shaders/fast-rounded-rectangle-shadows/
+// https://www.shadertoy.com/view/DsdfDN
 
 fn erf6(x: f64) -> f64 {
 	let s = sign(x), a = abs(x);
