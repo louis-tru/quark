@@ -179,6 +179,43 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 		}
 
+		void drawRRectBlurColorCall(const Rect& rect,
+			const float *r, float s, const Color4f &color, bool aaclip, float depth
+		) {
+			s = Qk_MAX(s, 0.5);
+			float s1 = s * 1.15, s2 = s * 2.0;
+			auto sh = aaclip ?
+				&_render->_shaders.colorRrectBlur_AACLIP: &_render->_shaders.colorRrectBlur;
+			float min_edge = Qk_MIN(rect.size[0],rect.size[1]); // min w or h
+			float rmax = 0.5 * min_edge; // max r
+			Vec2 size = rect.size * 0.5;
+			Vec2 c = rect.origin + size; // rect center
+			float w = size[0] + s, h = size[1] + s;
+			float x1 = c[0] - w, x2 = c[0] + w;
+			float y1 = c[1] - h, y2 = c[1] + h;
+			Vec2 p_[] = { {x1,y1}, {x2,y1}, {x2,y2}, {x1,y2} };
+
+			glUseProgram(sh->shader); // use shader program
+			glUniform4fv(sh->color, 1, color.val);
+			glUniform1f(sh->min_edge, min_edge);
+			glUniform1f(sh->depth, depth);
+			glUniform1f(sh->s_inv, 1.0/s); // 1/s blur size reciprocal
+			glBindBuffer(GL_ARRAY_BUFFER, sh->vbo);
+			glBindVertexArray(sh->vao);
+
+			for (int i = 0; i < 4; i++) {
+				auto p = p_[i];
+				float v[] = { c[0],c[1],p[0],c[1],p[0],p[1],c[0],p[1] };
+				float r0 = Float::min(Vec2(r[i], s1).length(), rmax); // len
+				float r1 = Float::min(Vec2(r[i], s2).length(), rmax);
+				float n = 2.0 * r1 / r0;
+				glUniform3f(sh->__, r1, n, 1.0/n);
+				glUniform2f(sh->horn, p[0], p[1]);
+				glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			}
+		}
+
 		void drawImageCall(const VertexData &vertex,
 			const ImagePaint *paint, float alpha, bool aafuzz, bool aaclip, float depth
 		) {
@@ -335,7 +372,7 @@ namespace qk {
 			lod = ceilf(Float::max(0,log2f(size/n)));
 		}
 
-		void beginBlurCall(Region bounds, bool isClipState, float depth) {
+		void blurFilterBeginCall(Region bounds, bool isClipState, float depth) {
 			if (kSrc_BlendMode != _render->_blendMode)
 				_render->setBlendMode(kSrc_BlendMode); // switch blend mode to src
 			if (isClipState) glDisable(GL_STENCIL_TEST); // ignore clip
@@ -353,7 +390,7 @@ namespace qk {
 		 *   https://elynxsdk.free.fr/ext-docs/Blur/Fast_box_blur.pdf
 		 *   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		 */
-		void endBlurCall(Region bounds, float size, BlendMode mode, int n, int lod, float depth) {
+		void blurFilterEndCall(Region bounds, float size, BlendMode mode, int n, int lod, float depth) {
 			float x1 = bounds.origin.x(), y1 = bounds.origin.y();
 			float x2 = bounds.end.x(), y2 = bounds.end.y();
 			float data[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
@@ -541,6 +578,24 @@ namespace qk {
 			} while(vertexLen);
 		}
 
+		void GLC_CmdPack::drawRRectBlurColor(
+			const Rect& rect, const float *radius, float blur, const Color4f &color
+		) {
+			_this->checkMetrix(); // check matrix change
+			auto cmd = new(_this->allocCmd(sizeof(ColorRRectBlurCmd))) ColorRRectBlurCmd;
+			cmd->type = kRRectBlurColor_CmdType;
+			cmd->depth = _canvas->_zDepth;
+			cmd->rect = rect;
+			cmd->radius[0] = radius[0];
+			cmd->radius[1] = radius[1];
+			cmd->radius[2] = radius[2];
+			cmd->radius[3] = radius[3];
+			cmd->color = color;
+			cmd->blur = blur;
+			cmd->aaclip = _canvas->_state->aaclip;
+			return;
+		}
+
 		void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {
 			_this->checkMetrix(); // check matrix change
 			auto cmd = new(_this->allocCmd(sizeof(ImageCmd))) ImageCmd;
@@ -627,17 +682,17 @@ namespace qk {
 			cmd->level = level;
 		}
 
-		void GLC_CmdPack::beginBlur(Region bounds) {
-			auto cmd = new(_this->allocCmd(sizeof(BeginBlurCmd))) BeginBlurCmd;
-			cmd->type = kBeginBlur_CmdType;
+		void GLC_CmdPack::blurFilterBegin(Region bounds) {
+			auto cmd = new(_this->allocCmd(sizeof(BlurFilterBeginCmd))) BlurFilterBeginCmd;
+			cmd->type = kBlurFilterBegin_CmdType;
 			cmd->bounds = bounds;
 			cmd->depth = _canvas->_zDepth;
 			cmd->isClipState = _canvas->_isClipState;
 		}
 
-		int GLC_CmdPack::endBlur(Region bounds, float size) {
-			auto cmd = new(_this->allocCmd(sizeof(EndBlurCmd))) EndBlurCmd;
-			cmd->type = kEndBlur_CmdType;
+		int GLC_CmdPack::blurFilterEnd(Region bounds, float size) {
+			auto cmd = new(_this->allocCmd(sizeof(BlurFilterEndCmd))) BlurFilterEndCmd;
+			cmd->type = kBlurFilterEnd_CmdType;
 			cmd->bounds = bounds;
 			cmd->depth = _canvas->_zDepth;
 			cmd->mode = _canvas->_blendMode;
@@ -655,6 +710,10 @@ namespace qk {
 		}
 		void GLC_CmdPack::drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz) {
 			_this->drawColor4fCall(vertex, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+		}
+		void GLC_CmdPack::drawRRectBlurColor(
+			const Rect& rect, const float *radius, float blur, const Color4f &color) {
+			_this->drawRRectBlurColorCall(rect, radius, blur, color, _canvas->_state->aaclip, _canvas->_zDepth);
 		}
 		void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {
 			_this->drawImageCall(vertex, paint, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
@@ -677,13 +736,13 @@ namespace qk {
 		void GLC_CmdPack::glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level) {
 			glFramebufferTexture2D(target, at, tt, tex, level);
 		}
-		void GLC_CmdPack::blurBegin(Region bounds) {
-			_this->blurBeginCall(bounds, _canvas->_isClipState, _canvas->_zDepth);
+		void GLC_CmdPack::blurFilterBegin(Region bounds) {
+			_this->blurFilterBeginCall(bounds, _canvas->_isClipState, _canvas->_zDepth);
 		}
-		int GLC_CmdPack::blurEnd(Region bounds, float size) {
+		int GLC_CmdPack::blurFilterEnd(Region bounds, float size) {
 			int n, lod;
 			_this->getBlurSampling(size, n, lod);
-			_this->blurEndCall(bounds, size, _canvas->_blendMode, n, lod, _canvas->_zDepth);
+			_this->blurFilterEndCall(bounds, size, _canvas->_blendMode, n, lod, _canvas->_zDepth);
 			return lod + 2;
 		}
 #endif
@@ -722,13 +781,13 @@ namespace qk {
 						glFramebufferTexture2D(c->target, c->attachment, c->textarget, c->texture, c->level);
 						break;
 					}
-					case kBeginBlur_CmdType: {
-						auto c = (BeginBlurCmd*)cmd;
-						_this->beginBlurCall(c->bounds, c->isClipState, c->depth);
+					case kBlurFilterBegin_CmdType: {
+						auto c = (BlurFilterBeginCmd*)cmd;
+						_this->blurFilterBeginCall(c->bounds, c->isClipState, c->depth);
 					}
-					case kEndBlur_CmdType: {
-						auto c = (EndBlurCmd*)cmd;
-						_this->endBlurCall(c->bounds, c->size, c->mode, c->n, c->lod, c->depth);
+					case kBlurFilterEnd_CmdType: {
+						auto c = (BlurFilterEndCmd*)cmd;
+						_this->blurFilterEndCall(c->bounds, c->size, c->mode, c->n, c->lod, c->depth);
 					}
 					case kSwitch_CmdType: {
 						auto c = (SwitchCmd*)cmd;
@@ -749,6 +808,11 @@ namespace qk {
 					case kColor_CmdType: {
 						auto c = (ColorCmd*)cmd;
 						_this->drawColor4fCall(c->vertex, c->color, c->aafuzz, c->aaclip, c->depth);
+						break;
+					}
+					case kRRectBlurColor_CmdType: {
+						auto c = (ColorRRectBlurCmd*)cmd;
+						_this->drawRRectBlurColorCall(c->rect, c->radius, c->blur, c->color, c->aaclip, c->depth);
 						break;
 					}
 					case kImage_CmdType: {

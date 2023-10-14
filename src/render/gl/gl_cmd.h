@@ -50,9 +50,10 @@ namespace qk {
 			kSwitch_CmdType,
 			kClear_CmdType,
 			kClip_CmdType,
-			kBeginBlur_CmdType,
-			kEndBlur_CmdType,
+			kBlurFilterBegin_CmdType,
+			kBlurFilterEnd_CmdType,
 			kColor_CmdType, // draw cmd
+			kRRectBlurColor_CmdType,
 			kImage_CmdType,
 			kImageMask_CmdType,
 			kGradient_CmdType,
@@ -99,13 +100,13 @@ namespace qk {
 			bool           revoke;
 		};
 
-		struct BeginBlurCmd: Cmd {
+		struct BlurFilterBeginCmd: Cmd {
 			float     depth;
 			Region    bounds;
 			bool      isClipState;
 		};
 
-		struct EndBlurCmd: Cmd {
+		struct BlurFilterEndCmd: Cmd {
 			float     depth;
 			Region    bounds;
 			float     size; // blur size
@@ -114,7 +115,16 @@ namespace qk {
 		};
 
 		struct ColorCmd: DrawCmd { //!
-			Color4f        color;
+			Color4f    color;
+		};
+
+		struct ColorRRectBlurCmd: Cmd { //!
+			float      depth; // 4 width
+			Rect       rect;
+			float      radius[4];
+			Color4f    color;
+			float      blur;
+			bool       aaclip;
 		};
 
 		struct GradientCmd: DrawCmd { //!
@@ -166,13 +176,15 @@ namespace qk {
 		void setBlendMode(BlendMode mode);
 		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable
 		void drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz); // add cmd
+		void drawRRectBlurColor(const Rect& rect,
+			const float *radius, float blur, const Color4f &color);
 		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz);
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
 		void clearColor4f(const Color4f &color, const Region &region, bool fullClear);
-		void beginBlur(Region bounds);
-		int  endBlur(Region bounds, float size);
+		void blurFilterBegin(Region bounds);
+		int  blurFilterEnd(Region bounds, float size);
 		void glFramebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb);
 		void glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level);
 

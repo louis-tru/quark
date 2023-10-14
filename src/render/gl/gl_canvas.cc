@@ -277,7 +277,7 @@ namespace qk {
 		}
 
 		~GLCBlurFilter() override {
-			auto ct = _host->_cmdPack->endBlur(_bounds, _size);
+			auto ct = _host->_cmdPack->blurFilterEnd(_bounds, _size);
 			_inl(_host)->zDepthNextCount(ct);
 		}
 
@@ -285,7 +285,7 @@ namespace qk {
 		void begin() {
 			_size *= _host->_scale;
 			_bounds = {_bounds.origin - _size, _bounds.end + _size};
-			_host->_cmdPack->beginBlur(_bounds);
+			_host->_cmdPack->blurFilterBegin(_bounds);
 			_inl(_host)->zDepthNext();
 		}
 		GLCanvas *_host;
@@ -511,6 +511,15 @@ namespace qk {
 				auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _phy2Pixel*aa_fuzz_width);
 				_cmdPack->drawColor4f(vertex, color.to_color4f_alpha(aa_fuzz_weight), true);
 			}
+			_this->zDepthNext();
+		}
+	}
+
+	void GLCanvas::drawRRectBlurColor(const Rect& rect,
+		const float radius[4], float blur, const Color4f &color, BlendMode mode) {
+		if (!rect.size.is_zero_axis()) {
+			_this->setBlendMode(mode); // switch blend mode
+			_cmdPack->drawRRectBlurColor(rect, radius, blur, color);
 			_this->zDepthNext();
 		}
 	}

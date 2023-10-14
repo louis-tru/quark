@@ -313,6 +313,7 @@
 					'render/gl/glsl/color.glsl',
 					'render/gl/glsl/color_linear.glsl',
 					'render/gl/glsl/color_radial.glsl',
+					'render/gl/glsl/color_rrect_blur.glsl',
 					'render/gl/glsl/image.glsl',
 					'render/gl/glsl/image_mask.glsl',
 					'render/gl/glsl/image_yuv.glsl',
