@@ -21,10 +21,10 @@ uniform lowp vec3  __; // consts
 
 // blur radius
 #define r1 __.x
-// squircle exponent, https://en.wikipedia.org/wiki/Squircle
-#define n  __.y
+// squircle exponent
+#define n __.y
 // 1/n
-#define n_inv  __.z
+#define n_inv __.z
 
 float erf(float x) {
 	float s = sign(x), a = abs(x);
@@ -34,6 +34,7 @@ float erf(float x) {
 }
 
 float sqLen(vec2 p) { // squircle length
+	// https://en.wikipedia.org/wiki/Squircle
 	vec2 q = max(p,0.0);
 	return pow(pow(q.x,n) + pow(q.y,n), n_inv);
 }

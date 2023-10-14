@@ -261,7 +261,6 @@ namespace qk {
 			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
 				/** [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] */
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				// glBlendFuncSeparate (sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha)
 				//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 			case kDstOver_BlendMode:       //!< r = (1-da)*s + d

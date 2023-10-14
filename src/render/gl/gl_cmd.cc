@@ -33,6 +33,7 @@
 #include "./gl_render.h"
 #include "./gl_canvas.h"
 
+#define Qk_USE_GLC_CMD_QUEUE 1
 #define Qk_MCCmd_Option_Capacity 1024
 #define Qk_MCCmd_VertexBlock_Capacity 65535
 #define Qk_MCCmd_OptBlock_Capacity 16384

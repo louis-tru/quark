@@ -273,13 +273,19 @@ namespace qk {
 		}
 
 		void drawBoxShadow(Box *box, BoxData &data) {
+			getOutsideRectPath(box, data);
+			_canvas->save();
+			_canvas->clipPathv(*data.outside, Canvas::kDifference_ClipOp, false);
 			auto shadow = box->box_shadow();
 			do {
-				if (shadow->type() == BoxFilter::kShadow) {
-					// TODO ...
-				}
+				auto s = shadow->value();
+				auto &o = data.outside->rect.origin;
+				_canvas->drawRRectBlurColor({
+					{o.x()+s.offset_x, o.y()+s.offset_y}, data.outside->rect.size,
+				},&box->_radius_left_top, s.size, s.color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 				shadow = shadow->next();
 			} while(shadow);
+			_canvas->restore();
 		}
 
 		void drawBoxBorder(Box *box, BoxData &data) {
@@ -398,12 +404,12 @@ namespace qk {
 	void ViewRender::visitBox(Box* box) {
 		BoxData data;
 		_canvas->setMatrix(box->matrix());
+		if (box->_box_shadow)
+			_this->drawBoxShadow(box, data);
 		if (box->_background_color.a())
 			_this->drawBoxColor(box, data);
 		if (box->_background)
 			_this->drawBoxFill(box, data);
-		if (box->_box_shadow)
-			_this->drawBoxShadow(box, data);
 		if (box->_border)
 			_this->drawBoxBorder(box, data);
 		_this->drawBoxEnd(box, data);
@@ -412,6 +418,8 @@ namespace qk {
 	void ViewRender::visitImage(Image* v) {
 		BoxData data;
 		_canvas->setMatrix(v->matrix());
+		if (v->_box_shadow)
+			_this->drawBoxShadow(v, data);
 		if (v->_background_color.a())
 			_this->drawBoxColor(v, data);
 		if (v->_background)
@@ -434,8 +442,6 @@ namespace qk {
 			paint.setImage(src, data.inside->rect);
 			_canvas->drawPathv(*data.inside, p0);
 		}
-		if (v->_box_shadow)
-			_this->drawBoxShadow(v, data);
 		if (v->_border)
 			_this->drawBoxBorder(v, data);
 		_this->drawBoxEnd(v, data);
@@ -453,12 +459,12 @@ namespace qk {
 	void ViewRender::visitInput(Input* v) {
 		BoxData data;
 		_canvas->setMatrix(v->matrix());
+		if (v->_box_shadow)
+			_this->drawBoxShadow(v, data);
 		if (v->_background_color.a())
 			_this->drawBoxColor(v, data);
 		if (v->_background)
 			_this->drawBoxFill(v, data);
-		if (v->_box_shadow)
-			_this->drawBoxShadow(v, data);
 		if (v->_border)
 			_this->drawBoxBorder(v, data);
 
@@ -553,7 +559,7 @@ namespace qk {
 					_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 				}
 			}
-			
+
 			if (v->text_color().value.a()) {
 				// TODO draw text shadow..
 				Paint paint;
@@ -604,10 +610,10 @@ namespace qk {
 				BoxData data;
 				_canvas->setMatrix(v->matrix());
 				_canvas->clearColor(v->_background_color.to_color4f());
-				if (v->_background)
-					_this->drawBoxFill(v, data);
 				if (v->_box_shadow)
 					_this->drawBoxShadow(v, data);
+				if (v->_background)
+					_this->drawBoxFill(v, data);
 				if (v->_border)
 					_this->drawBoxBorder(v, data);
 				_this->drawBoxEnd(v, data);

@@ -36,8 +36,6 @@
 #include "./glsl_shaders.h"
 #include "./gl_canvas.h"
 
-#define Qk_USE_GLC_CMD_QUEUE 1
-
 namespace qk {
 
 	class GLC_CmdPack {
@@ -176,8 +174,7 @@ namespace qk {
 		void setBlendMode(BlendMode mode);
 		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable
 		void drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz); // add cmd
-		void drawRRectBlurColor(const Rect& rect,
-			const float *radius, float blur, const Color4f &color);
+		void drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color);
 		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz);
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);

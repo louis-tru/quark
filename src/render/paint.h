@@ -102,7 +102,6 @@ namespace qk {
 	struct PaintFilter {
 		enum Type {
 			kBlur_Type, //!< blur type
-			kBackdropBlur_Type, //!< backdrop blur type
 		};
 		Type  type; //!< paint filter type
 		float value; //!< blur value radius

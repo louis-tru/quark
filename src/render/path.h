@@ -31,11 +31,11 @@
 #ifndef __quark__render__path__
 #define __quark__render__path__
 
-#include "../types.h"
-#include "../render/bezier.h"
 #include "../util/array.h"
-#include "./paint.h"
 #include "../util/hash.h"
+#include "../types.h"
+#include "./bezier.h"
+#include "./paint.h"
 
 namespace qk {
 

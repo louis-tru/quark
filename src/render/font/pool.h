@@ -36,8 +36,6 @@
 
 namespace qk {
 
-	class Application;
-
 	class Qk_EXPORT FontPool: public Object {
 		Qk_HIDDEN_ALL_COPY(FontPool);
 	public:

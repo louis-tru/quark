@@ -304,8 +304,7 @@ namespace qk {
 		switch(paint.filter->type) {
 			case PaintFilter::kBlur_Type:
 				return new GLCBlurFilter(host, paint, args...);
-			case PaintFilter::kBackdropBlur_Type:
-				// TODO unrealized.
+			default:
 				return nullptr;
 		}
 	}
