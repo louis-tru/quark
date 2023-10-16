@@ -409,7 +409,7 @@ namespace qk {
 		: Render(opts)
 		, _IsSupportMultisampled(gl_is_support_multisampled())
 		, _texBuffer{0,0,0}
-		, _glCanvas(this, opts.isMultiThreading)
+		, _glCanvas(this, opts.doubleCmds)
 	{
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
@@ -517,7 +517,7 @@ namespace qk {
 
 	void GLRender::makeVertexData(VertexData::ID *id) {
 		if (!id->vao) {
-			auto &vertex = id->ref->vertex;
+			auto &vertex = id->self->vertex;
 			glGenVertexArrays(1, &id->vao);
 			glGenBuffers(1, &id->vbo);
 			glBindVertexArray(id->vao);

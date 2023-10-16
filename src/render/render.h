@@ -51,7 +51,7 @@ namespace qk {
 			ColorType   colorType;
 			uint16_t    msaa; // gpu msaa
 			uint16_t    fps; // if fps is 0 then use vSync, else limit fps value
-			bool        isMultiThreading; // multi threading support
+			bool        doubleCmds; // double cmds queue
 		};
 		class Delegate {
 		public:

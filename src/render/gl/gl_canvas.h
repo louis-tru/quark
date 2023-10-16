@@ -56,7 +56,7 @@ namespace qk {
 
 	class GLCanvas: public Canvas {
 	public:
-		GLCanvas(GLRender *render, bool isMultiThreading);
+		GLCanvas(GLRender *render, bool doubleCmds);
 		virtual ~GLCanvas();
 		virtual int  save() override;
 		virtual void restore(uint32_t count) override;
@@ -83,7 +83,7 @@ namespace qk {
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
-		virtual void swapBuffer() override; // swap gl cmd pkg
+		virtual void swapBuffer() override; // swap gl double cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call
 		virtual PathvCache* gtePathvCache() override;
 		void         onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size); // surface reload
@@ -109,8 +109,7 @@ namespace qk {
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
 		GLuint   _mainRenderBuff; // main render buffer, ref to _renderBuffer or _msaaRenderBuffer
-		bool   _chMatrix; // matrix change state
-		bool   _isMultiThreading, _isClipState; // clip state
+		bool   _isDoubleCmds, _isClipState; // clip state
 		bool _IsDeviceMsaa; // device anti alias, msaa
 		Mutex  _mutex; // submit swap mutex
 

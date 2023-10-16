@@ -70,11 +70,6 @@ namespace qk {
 		}
 
 		void setMatrixInl(const Mat& mat) {
-#if Qk_USE_GLC_CMD_QUEUE
-			_chMatrix = true; // mark matrix change
-#else
-			_cmdPack->setMetrixUnifromBuffer(mat);
-#endif
 			auto ch = _state->matrix[0] != 1 || _state->matrix[4] != 1;
 			auto scale = ch ? _state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2: 1;
 			//auto scale1 = ch ? _state->matrix.mul_vec2_no_translate(Vec2(1,-1)).length() / Qk_SQRT_2: 1;
@@ -84,6 +79,7 @@ namespace qk {
 				_fullScale = _surfaceScale * scale;
 				_phy2Pixel = 2 / _fullScale;
 			}
+			_cmdPack->setMetrix();
 		}
 
 		void setBlendMode(BlendMode mode) {
@@ -309,7 +305,7 @@ namespace qk {
 		}
 	}
 
-	GLCanvas::GLCanvas(GLRender *render, bool isMultiThreading)
+	GLCanvas::GLCanvas(GLRender *render, bool doubleCmds)
 		: _render(render)
 		, _cache(new PathvCache(render))
 		, _frameBuffer(0), _msaaFrameBuffer(0)
@@ -321,8 +317,8 @@ namespace qk {
 		, _state(nullptr)
 		, _surfaceScale(1), _scale(1), _fullScale(1), _phy2Pixel(1)
 		, _rootMatrix()
-		, _blendMode(kSrcOver_BlendMode), _chMatrix(true)
-		, _isMultiThreading(isMultiThreading)
+		, _blendMode(kSrcOver_BlendMode)
+		, _isDoubleCmds(Qk_USE_GLC_CMD_QUEUE && doubleCmds)
 		, _isClipState(false)
 		, _IsDeviceMsaa(false)
 	{
@@ -334,7 +330,7 @@ namespace qk {
 		glGenTextures(2, &_clipaaBuffer); // _clipaaBuffer,_blurBuffer
 
 		_cmdPack = new GLC_CmdPack(render, this);
-		_cmdPackFront = isMultiThreading ? new GLC_CmdPack(render, this): _cmdPack;
+		_cmdPackFront = _isDoubleCmds ? new GLC_CmdPack(render, this): _cmdPack;
 		_stateStack.push({ .matrix=Mat(), .aaclip=0 }); // init state
 		_state = &_stateStack.back();
 		setMatrix(_state->matrix); // init shader matrix
@@ -353,7 +349,7 @@ namespace qk {
 	}
 
 	void GLCanvas::swapBuffer() {
-		if (_isMultiThreading) {
+		if (_isDoubleCmds) {
 			_mutex.lock();
 			auto pack = _cmdPackFront;
 			_cmdPackFront = _cmdPack;

@@ -33,7 +33,6 @@
 #include "./gl_render.h"
 #include "./gl_canvas.h"
 
-#define Qk_USE_GLC_CMD_QUEUE 1
 #define Qk_MCCmd_Option_Capacity 1024
 #define Qk_MCCmd_VertexBlock_Capacity 65535
 #define Qk_MCCmd_OptBlock_Capacity 16384
@@ -149,14 +148,25 @@ namespace qk {
 		}
 
 		void checkMetrix() {
-			if (_canvas->_chMatrix) { // check canvas matrix change state
+			if (_chMatrix) { // check canvas matrix change state
 				auto cmd = (MatrixCmd*)allocCmd(sizeof(MatrixCmd));
 				cmd->type = kMatrix_CmdType;
 				cmd->matrix = _canvas->_state->matrix;
-				_canvas->_chMatrix = false;
+				_chMatrix = false;
 			}
 		}
 #endif
+
+		void setMetrixCall(const Mat &mat) {
+			const float m4x4[16] = {
+				mat[0], mat[3], 0.0, 0.0,
+				mat[1], mat[4], 0.0, 0.0,
+				0.0,    0.0,    1.0, 0.0,
+				mat[2], mat[5], 0.0, 1.0
+			}; // transpose matrix
+			glBindBuffer(GL_UNIFORM_BUFFER, _render->_viewMatrixBlock);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4, GL_DYNAMIC_DRAW);
+		}
 
 		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
 			if (_cache->setGpuBufferData(vertex.id)) {
@@ -452,7 +462,7 @@ namespace qk {
 
 	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
 		: _render(render), _canvas(canvas), _cache(canvas->_cache)
-		, lastCmd(nullptr)
+		, lastCmd(nullptr), _chMatrix(true)
 	{
 #if Qk_USE_GLC_CMD_QUEUE
 		vertexBlocks.blocks.push({
@@ -490,18 +500,12 @@ namespace qk {
 #endif
 	}
 
-	void GLC_CmdPack::setMetrixUnifromBuffer(const Mat &mat) {
-		const float m4x4[16] = {
-			mat[0], mat[3], 0.0, 0.0,
-			mat[1], mat[4], 0.0, 0.0,
-			0.0,    0.0,    1.0, 0.0,
-			mat[2], mat[5], 0.0, 1.0
-		}; // transpose matrix
-		glBindBuffer(GL_UNIFORM_BUFFER, _render->_viewMatrixBlock);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4, GL_DYNAMIC_DRAW);
-	}
-
 #if Qk_USE_GLC_CMD_QUEUE
+
+		void GLC_CmdPack::setMetrix() {
+			_chMatrix = true; // mark matrix change
+		}
+
 		void GLC_CmdPack::setBlendMode(BlendMode mode) {
 			auto cmd = (BlendCmd*)_this->allocCmd(sizeof(BlendCmd));
 			cmd->type = kBlend_CmdType;
@@ -579,9 +583,7 @@ namespace qk {
 			} while(vertexLen);
 		}
 
-		void GLC_CmdPack::drawRRectBlurColor(
-			const Rect& rect, const float *radius, float blur, const Color4f &color
-		) {
+		void GLC_CmdPack::drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color) {
 			_this->checkMetrix(); // check matrix change
 			auto cmd = new(_this->allocCmd(sizeof(ColorRRectBlurCmd))) ColorRRectBlurCmd;
 			cmd->type = kRRectBlurColor_CmdType;
@@ -703,6 +705,9 @@ namespace qk {
 		}
 
 #else
+		void GLC_CmdPack::setMetrix() {
+			_this->setMetrixCall(_canvas->_state->matrix);
+		}
 		void GLC_CmdPack::setBlendMode(BlendMode mode) {
 			_render->setBlendMode(mode);
 		}
@@ -712,8 +717,7 @@ namespace qk {
 		void GLC_CmdPack::drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz) {
 			_this->drawColor4fCall(vertex, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 		}
-		void GLC_CmdPack::drawRRectBlurColor(
-			const Rect& rect, const float *radius, float blur, const Color4f &color) {
+		void GLC_CmdPack::drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color) {
 			_this->drawRRectBlurColorCall(rect, radius, blur, color, _canvas->_state->aaclip, _canvas->_zDepth);
 		}
 		void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {
@@ -753,9 +757,9 @@ namespace qk {
 	void GLC_CmdPack::flush() {
 #if Qk_USE_GLC_CMD_QUEUE
 		// set canvas root matrix
-		//glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
-		//glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _canvas->_rootMatrix.val, GL_DYNAMIC_DRAW);
-		setMetrixUnifromBuffer(_canvas->_state->matrix); // maintain final status
+		glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _canvas->_rootMatrix.val, GL_DYNAMIC_DRAW);
+		_this->setMetrixCall(_canvas->_state->matrix); // maintain final status
 		_render->setBlendMode(_canvas->_blendMode); // maintain final status
 
 		for (auto &i: cmds.blocks) {
@@ -767,7 +771,7 @@ namespace qk {
 			while (cmd < end) {
 				switch (cmd->type) {
 					case kMatrix_CmdType:
-						setMetrixUnifromBuffer(((MatrixCmd*)cmd)->matrix);
+						_this->setMetrixCall(((MatrixCmd*)cmd)->matrix);
 						break;
 					case kBlend_CmdType:
 						_render->setBlendMode(((BlendCmd*)cmd)->mode);

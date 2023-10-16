@@ -39,7 +39,7 @@ namespace qk
 	class PathvCache;
 	struct VertexData::ID {
 		PathvCache  *host;
-		VertexData  *ref;
+		VertexData  *self;
 		uint32_t    vao,vbo; // gpu buffer
 	};
 

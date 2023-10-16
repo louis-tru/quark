@@ -33,6 +33,8 @@
 #ifndef __quark_render_gl_cmd__
 #define __quark_render_gl_cmd__
 
+#define Qk_USE_GLC_CMD_QUEUE 1
+
 #include "./glsl_shaders.h"
 #include "./gl_canvas.h"
 
@@ -117,7 +119,7 @@ namespace qk {
 		};
 
 		struct ColorRRectBlurCmd: Cmd { //!
-			float      depth; // 4 width
+			float      depth;
 			Rect       rect;
 			float      radius[4];
 			Color4f    color;
@@ -170,7 +172,7 @@ namespace qk {
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();
 		void flush();
-		void setMetrixUnifromBuffer(const Mat &mat);
+		void setMetrix();
 		void setBlendMode(BlendMode mode);
 		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable
 		void drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz); // add cmd
@@ -202,6 +204,7 @@ namespace qk {
 		GLRender             *_render;
 		GLCanvas             *_canvas;
 		PathvCache           *_cache;
+		bool   _chMatrix; // matrix change state
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
