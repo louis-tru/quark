@@ -69,7 +69,9 @@ namespace qk {
 		virtual void translate(float x, float y) = 0;
 		virtual void scale(float x, float y) = 0;
 		virtual void rotate(float z) = 0; // arc rotation
-		// `readPixels()` sync read pixels caution use
+		/**
+		 * @method readPixels() sync read pixels caution use
+		*/
 		virtual bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) = 0;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) = 0;
 		virtual void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) = 0;
@@ -79,6 +81,9 @@ namespace qk {
 		virtual void drawPath(const Path& path, const Paint& paint) = 0;
 		virtual void drawPathv(const Pathv& path, const Paint& paint) = 0;
 		virtual void drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode);
+		/**
+		 * Optimized rounded rect blur color drawing command
+		*/
 		virtual void drawRRectBlurColor(const Rect& rect,
 			const float radius[4], float blur, const Color4f &color, BlendMode mode) = 0;
 		virtual void drawRect(const Rect& rect, const Paint& paint);
@@ -87,11 +92,22 @@ namespace qk {
 		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint& paint) = 0;
+		/**
+		 * quick off screen rendering.
+		 * return an image source canvas to enter area drawing mode, 
+		 * and all drawing commands target the returned image until the end of calling 'restore()'
+		*/
 		virtual ImageSource* region(const Rect &rect) = 0;
+		/**
+		 * Return an image source does not plunger threads
+		*/
 		virtual ImageSource* readImage(const Rect &rect) = 0; // async read image
+		/**
+		 * swap draw commands buffer, if there are multiple command queues
+		*/
 		virtual void swapBuffer() = 0;
 		/**
-		 * @dev drawTextBlob Draw with text baseline aligned
+		 * @dev drawTextBlob() Draw with text baseline aligned
 		*/
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float fontSize, const Paint& paint) = 0;
 		virtual PathvCache* gtePathvCache() = 0;

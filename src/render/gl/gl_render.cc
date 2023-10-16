@@ -378,9 +378,9 @@ namespace qk {
 	void gl_setBlurRenderBuffer(GLuint tex, Vec2 size, int msaaSample) {
 		if (msaaSample > 1)
 			size *= ceilf(sqrtf(msaaSample));
-		auto format = gl_get_texture_pixel_format(kColor_Type_RGBA_8888);
-		auto type = gl_get_texture_data_type(kColor_Type_RGBA_8888);
-		gl_TexImage2D(tex, size, format, type, GL_MaxTextureImageUnits - 2);
+		gl_TexImage2D(tex, size,
+			gl_get_texture_pixel_format(kColor_Type_RGBA_8888),
+			gl_get_texture_data_type(kColor_Type_RGBA_8888), GL_MaxTextureImageUnits - 2);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glGenerateMipmap(GL_TEXTURE_2D);

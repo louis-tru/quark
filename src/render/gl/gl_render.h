@@ -50,7 +50,6 @@ namespace qk {
 		void         setBlendMode(BlendMode mode);
 		virtual void lock(); // lock render
 		virtual void unlock(); // unlock render
-
 	protected:
 		GLRender(Options opts);
 		friend class GLCanvas;
