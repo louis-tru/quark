@@ -192,12 +192,16 @@ public:
 	}
 
 	void lock() override {
-		CGLLockContext(_ctx.CGLContextObj);
-		[_ctx makeCurrentContext];
+		if (threadId() != qk::thread_current_id()) {
+			CGLLockContext(_ctx.CGLContextObj);
+			[_ctx makeCurrentContext];
+		}
 	}
 
 	void unlock() override {
-		CGLUnlockContext(_ctx.CGLContextObj);
+		if (threadId() != qk::thread_current_id()) {
+			CGLUnlockContext(_ctx.CGLContextObj);
+		}
 	}
 
 	Vec2 getSurfaceSize() override {
