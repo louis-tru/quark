@@ -35,13 +35,14 @@
 namespace qk {
 
 	float get_level_font_size(float fontSize);
-	bool gl_read_pixels(Pixel* dst, uint32_t srcX, uint32_t srcY);
-	void gl_set_blend_mode(BlendMode blendMode);
-	void gl_setColorRenderBuffer(GLuint buff, ColorType type, Vec2 size, int msaaSample);
-	void gl_setDepthStencilBuffer(GLuint depth, GLuint stencil, Vec2 size, int msaaSample);
-	void gl_setClipaaBuffer(GLuint tex, Vec2 size, int msaaSample);
-	void gl_setBlurRenderBuffer(GLuint tex, Vec2 size, int msaaSample);
-	void gl_textureBarrier();
+	GLint gl_get_texture_pixel_format(ColorType type);
+	GLint gl_get_texture_data_type(ColorType format);
+	void  gl_set_blend_mode(BlendMode blendMode);
+	void  gl_setColorRenderBuffer(GLuint buff, ColorType type, Vec2 size, int msaaSample);
+	void  gl_setDepthStencilBuffer(GLuint depth, GLuint stencil, Vec2 size, int msaaSample);
+	void  gl_setClipaaBuffer(GLuint tex, Vec2 size, int msaaSample);
+	void  gl_setBlurRenderBuffer(GLuint tex, Vec2 size, int msaaSample);
+	void  gl_textureBarrier();
 
 	extern const Region ZeroRegion;
 	extern const float  aa_fuzz_weight = 0.9;
@@ -464,9 +465,26 @@ namespace qk {
 		_this->setMatrixInl(_state->matrix);
 	}
 
-	bool GLCanvas::readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) {
-		//return gl_read_pixels(dst, srcX, srcY);
-		return false;
+	bool GLCanvas::readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) {
+		GLenum format = gl_get_texture_pixel_format(dst->type());
+		GLenum type = gl_get_texture_data_type(dst->type());
+		if (format && dst->bytes() != dst->body().size())
+			return false;
+#if Qk_USE_GLC_CMD_QUEUE
+		_render->lock();
+		glBindFramebuffer(GL_FRAMEBUFFER, _IsDeviceMsaa ? _msaaFrameBuffer: _frameBuffer);
+		flushBuffer();
+#endif
+		// glGenBuffers(1, &readBuffer);
+		// glBindBuffer(GL_ARRAY_BUFFER, readBuffer);
+		// glBufferData(GL_ARRAY_BUFFER, sizeof(float) * FRAME_WIDTH * FRAME_HEIGHT * 3, NULL, GL_DYNAMIC_DRAW);
+		// glBindBuffer(GL_PIXEL_PACK_BUFFER, readBuffer);
+		// glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLvoid *pixels)
+		glReadPixels(srcX, srcY, dst->width(), dst->height(), format, type, *dst->body());
+#if Qk_USE_GLC_CMD_QUEUE
+		_render->unlock();
+#endif
+		return true;
 	}
 
 	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
@@ -585,6 +603,14 @@ namespace qk {
 		}
 
 		_this->drawTextImage(*blob->image, blob->imageBound.y(), _fullScale * levelScale, origin, paint);
+	}
+
+	ImageSource* GLCanvas::region(const Rect &rect) {
+		return nullptr;
+	}
+
+	ImageSource* GLCanvas::readImage(const Rect &rect) {
+		return nullptr;
 	}
 
 	// --------------------------------------------------------

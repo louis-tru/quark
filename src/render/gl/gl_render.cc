@@ -301,20 +301,6 @@ namespace qk {
 		}
 	}
 
-	bool gl_read_pixels(Pixel* dst, uint32_t srcX, uint32_t srcY) {
-		GLenum format = gl_get_texture_pixel_format(dst->type());
-		GLenum type = gl_get_texture_data_type(dst->type());
-		if (format && dst->bytes() != dst->body().size())
-			return false;
-		// glGenBuffers(1, &readBuffer);
-		// glBindBuffer(GL_ARRAY_BUFFER, readBuffer);
-		// glBufferData(GL_ARRAY_BUFFER, sizeof(float) * FRAME_WIDTH * FRAME_HEIGHT * 3, NULL, GL_DYNAMIC_DRAW);
-		// glBindBuffer(GL_PIXEL_PACK_BUFFER, readBuffer);
-		// glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLvoid *pixels)
-		glReadPixels(srcX, srcY, dst->width(), dst->height(), format, type, *dst->body());
-		return true;
-	}
-
 	bool gl_is_support_multisampled() {
 		String VENDOR = (const char*)glGetString(GL_VENDOR);
 		String RENDERER = (const char*)glGetString(GL_RENDERER);
@@ -558,5 +544,8 @@ namespace qk {
 		_blendMode = mode;
 		gl_set_color_blend_mode(mode);
 	}
+
+	void GLRender::lock() {}
+	void GLRender::unlock() {}
 
 }

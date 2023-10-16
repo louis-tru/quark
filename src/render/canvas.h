@@ -69,7 +69,8 @@ namespace qk {
 		virtual void translate(float x, float y) = 0;
 		virtual void scale(float x, float y) = 0;
 		virtual void rotate(float z) = 0; // arc rotation
-		virtual bool readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) = 0;
+		// `readPixels()` sync read pixels caution use
+		virtual bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) = 0;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) = 0;
 		virtual void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) = 0;
 		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias);
@@ -86,6 +87,8 @@ namespace qk {
 		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint& paint) = 0;
+		virtual ImageSource* region(const Rect &rect) = 0;
+		virtual ImageSource* readImage(const Rect &rect) = 0; // async read image
 		virtual void swapBuffer() = 0;
 		/**
 		 * @dev drawTextBlob Draw with text baseline aligned

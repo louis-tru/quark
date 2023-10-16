@@ -48,6 +48,7 @@ namespace qk {
 		Mat         matrix;
 		Array<Clip> clips;
 		uint32_t    aaclip; // Is there a aa clip area
+		ImageSource *region; // region draw
 	};
 
 	class GLRender; // gl render backend
@@ -66,7 +67,7 @@ namespace qk {
 		virtual void translate(float x, float y) override;
 		virtual void scale(float x, float y) override;
 		virtual void rotate(float z) override;
-		virtual bool readPixels(Pixel* dst, uint32_t srcX, uint32_t srcY) override;
+		virtual bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) override;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
 		virtual void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) override;
 		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
@@ -83,6 +84,8 @@ namespace qk {
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
+		virtual ImageSource* region(const Rect &rect) override;
+		virtual ImageSource* readImage(const Rect &rect) override;
 		virtual void swapBuffer() override; // swap gl double cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call
 		virtual PathvCache* gtePathvCache() override;

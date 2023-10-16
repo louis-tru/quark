@@ -67,6 +67,7 @@ namespace qk {
 		virtual void    begin() = 0; // start render task
 		virtual void    submit() = 0; // submit render task
 		virtual void    activate(bool isActive);
+		virtual ThreadID threadId() = 0; // get render thread id
 		inline  Canvas* getCanvas() { return _canvas; } // default canvas object
 		inline  Vec2    surfaceSize() { return _surfaceSize; }
 		inline  float   defaultScale() { return _defaultScale; }

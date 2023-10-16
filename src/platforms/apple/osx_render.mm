@@ -47,7 +47,7 @@ extern QkApplicationDelegate* __appDelegate;
 	CVDisplayLinkRef _displayLink;
 	List<Cb>         _message;
 	Mutex            _mutexMsg;
-	bool             _isLockRender;
+	bool             _isLock; // lock render
 	qk::Render      *_render;
 	NSOpenGLContext *_ctx;
 	qk::ThreadID     _renderThreadID;
@@ -62,7 +62,7 @@ extern QkApplicationDelegate* __appDelegate;
 	{
 		if( (self = [super initWithFrame:frameRect pixelFormat:nil]) ) {
 			_ctx = context;
-			_isLockRender = false;
+			_isLock = false;
 			_displayLink = nil;
 			_render = render;
 			[self setOpenGLContext:context];
@@ -91,6 +91,7 @@ extern QkApplicationDelegate* __appDelegate;
 																												_ctx.pixelFormat.CGLPixelFormatObj);
 			// Activate the display link
 			CVDisplayLinkStart(_displayLink);
+			_renderThreadID = thread_current_id();
 		} else {
 			_renderThreadID = thread_fork([](void* arg) { // fork render thread
 				auto v = (__bridge GLView*)arg;
@@ -102,8 +103,8 @@ extern QkApplicationDelegate* __appDelegate;
 	}
 
 	- (void) lockRender {
-		if (!_isLockRender) {
-			_isLockRender = true;
+		if (!_isLock) {
+			_isLock = true;
 			CGLLockContext(_ctx.CGLContextObj);
 			[_ctx makeCurrentContext];
 			Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 3");
@@ -111,8 +112,8 @@ extern QkApplicationDelegate* __appDelegate;
 	}
 
 	- (void) unlockRender {
-		if (_isLockRender) {
-			_isLockRender = false;
+		if (_isLock) {
+			_isLock = false;
 			CGLUnlockContext(_ctx.CGLContextObj);
 		}
 	}
@@ -152,8 +153,12 @@ extern QkApplicationDelegate* __appDelegate;
 		_renderThreadID = qk::ThreadID();
 	}
 
+	- (qk::ThreadID) renderThreadID {
+		return _renderThreadID;
+	}
+
 	- (uint32_t) post_message:(Cb) cb delay_us:(uint64_t)delayUs {
-		if (_isLockRender) {
+		if (_renderThreadID == qk::thread_current_id()) {
 			cb->resolve();
 		} else {
 			_mutexMsg.lock();
@@ -180,6 +185,19 @@ public:
 
 	uint32_t post_message(Cb cb, uint64_t delay_us) override {
 		return [_view post_message:cb delay_us:delay_us];
+	}
+
+	qk::ThreadID threadId() override {
+		return _view.renderThreadID;
+	}
+
+	void lock() override {
+		CGLLockContext(_ctx.CGLContextObj);
+		[_ctx makeCurrentContext];
+	}
+
+	void unlock() override {
+		CGLUnlockContext(_ctx.CGLContextObj);
 	}
 
 	Vec2 getSurfaceSize() override {
@@ -209,9 +227,8 @@ public:
 
 	void begin() override {
 		[_view lockRender];
-		// _glCanvas->_frameBuffer
 		// bind frame buffer for main canvas
-		glBindFramebuffer(GL_FRAMEBUFFER, _glCanvas.isDeviceMsaa() ? 2: 1);
+		glBindFramebuffer(GL_FRAMEBUFFER, _glCanvas.isDeviceMsaa() ? 2: 1/*_frameBuffer*/);
 	}
 
 	void submit() override {

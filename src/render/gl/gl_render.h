@@ -40,14 +40,17 @@ namespace qk {
 
 	class GLRender: public RenderBackend {
 	public:
-		virtual          ~GLRender();
-		virtual void     reload() override;
+		virtual      ~GLRender();
+		virtual void reload() override;
 		virtual uint32_t makeTexture(cPixel *src, uint32_t id) override;
-		virtual void     deleteTextures(const uint32_t *ids, uint32_t count) override;
-		virtual void     makeVertexData(VertexData::ID *id) override;
-		virtual void     deleteVertexData(VertexData::ID *id) override;
-		void             setTexture(cPixel *pixel, int slot, const ImagePaint *paint);
-		void             setBlendMode(BlendMode mode);
+		virtual void deleteTextures(const uint32_t *ids, uint32_t count) override;
+		virtual void makeVertexData(VertexData::ID *id) override;
+		virtual void deleteVertexData(VertexData::ID *id) override;
+		void         setTexture(cPixel *pixel, int slot, const ImagePaint *paint);
+		void         setBlendMode(BlendMode mode);
+		virtual void lock(); // lock render
+		virtual void unlock(); // unlock render
+
 	protected:
 		GLRender(Options opts);
 		friend class GLCanvas;

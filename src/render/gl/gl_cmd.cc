@@ -157,6 +157,16 @@ namespace qk {
 		}
 #endif
 
+		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
+			if (_cache->setGpuBufferData(vertex.id)) {
+				glBindVertexArray(vertex.id->vao); // use vao
+				glUseProgram(shader->shader); // use shader program
+			} else {
+				// copy vertex data to gpu and use shader
+				shader->use(vertex.vertex.size(), vertex.vertex.val());
+			}
+		}
+
 		void setMetrixCall(const Mat &mat) {
 			const float m4x4[16] = {
 				mat[0], mat[3], 0.0, 0.0,
@@ -166,16 +176,6 @@ namespace qk {
 			}; // transpose matrix
 			glBindBuffer(GL_UNIFORM_BUFFER, _render->_viewMatrixBlock);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4, GL_DYNAMIC_DRAW);
-		}
-
-		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
-			if (_cache->setGpuBufferData(vertex.id)) {
-				glBindVertexArray(vertex.id->vao); // use vao
-				glUseProgram(shader->shader); // use shader program
-			} else {
-				// copy vertex data to gpu and use shader
-				shader->use(vertex.vertex.size(), vertex.vertex.val());
-			}
 		}
 
 		void drawColor4fCall(const VertexData &vertex,
