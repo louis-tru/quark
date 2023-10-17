@@ -60,6 +60,7 @@ namespace qk {
 			kMultiColor_CmdType,
 			kFramebufferRenderbuffer_CmdType,
 			kFramebufferTexture2D_CmdType,
+			kReadImage_CmdType,
 		};
 
 		struct Cmd { // Cmd list
@@ -158,6 +159,11 @@ namespace qk {
 			uint32_t       aaclip;
 		};
 
+		struct ReadImageCmd: Cmd {
+			Rect            rect;
+			Sp<ImageSource> img;
+		};
+
 		struct FramebufferRenderbufferCmd: Cmd {
 			GLenum target, attachment, renderbuffertarget;
 			GLuint renderbuffer;
@@ -186,6 +192,7 @@ namespace qk {
 		int  blurFilterEnd(Region bounds, float size);
 		void glFramebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb);
 		void glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level);
+		void readImage(const Rect &rect, ImageSource* img);
 
 	private:
 		typedef MultiColorCmd::Option MCOpt;

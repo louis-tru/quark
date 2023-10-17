@@ -84,6 +84,7 @@ namespace qk {
 		RenderBackend(Options opts);
 		virtual Vec2  getSurfaceSize() = 0;
 		virtual float getDefaultScale() = 0;
+		static  void  loadTexImage(ImageSource* s, cPixelInfo &i, uint32_t tex);
 		Options       _opts;
 		Canvas       *_canvas; // default canvas
 		Delegate     *_delegate;

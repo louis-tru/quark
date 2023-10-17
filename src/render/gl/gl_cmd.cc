@@ -41,7 +41,12 @@
 namespace qk {
 	extern const float aa_fuzz_weight;
 	extern const float DepthNextUnit;
-	void gl_textureBarrier();
+	void  gl_textureBarrier();
+	void  gl_setBlurRenderBuffer(GLuint tex, Vec2 size, int msaaSample);
+	void  gl_setAAClipBuffer(GLuint tex, Vec2 size, int msaaSample);
+	void  gl_setFramebufferRenderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at, int msaa);
+	GLint gl_get_texture_pixel_format(ColorType type);
+	GLint gl_get_texture_data_type(ColorType format);
 
 	Qk_DEFINE_INLINE_MEMBERS(GLC_CmdPack, Inl) {
 	public:
@@ -69,6 +74,9 @@ namespace qk {
 							break;
 						case kImageMask_CmdType:
 							((ImageMaskCmd*)cmd)->~ImageMaskCmd();
+							break;
+						case kReadImage_CmdType:
+							((ReadImageCmd*)cmd)->~ReadImageCmd();
 							break;
 						default: break;
 					}
@@ -306,9 +314,18 @@ namespace qk {
 
 		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, bool revoke, float depth) {
 
-			auto aaClip = [](GLRender *_render, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C) {
+			auto aaClip = [](GLCanvas *_c, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C) {
+				auto _render = _c->_render;
 				auto chMode = _render->_blendMode;
 				auto ch = chMode != kSrc_BlendMode && chMode != kSrcOver_BlendMode;
+
+				if (!_c->_aaclipTex) {
+					glGenTextures(1, &_c->_aaclipTex); // gen aaclip buffer tex
+					gl_setAAClipBuffer(_c->_aaclipTex, _c->_surfaceSize, _c->_DeviceMsaa);
+					float color[] = {1.0f,1.0f,1.0f,1.0f};
+					glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
+					gl_textureBarrier(); // ensure clip texture clear can be executed correctly in sequence
+				}
 				if (ch)
 					_render->setBlendMode(kSrc_BlendMode);
 				auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
@@ -325,6 +342,17 @@ namespace qk {
 				gl_textureBarrier(); // ensure aa clip can be executed correctly in sequence
 			};
 
+			auto _c = _canvas;
+
+			if (!_c->_stencilBuffer) {
+				glGenRenderbuffers(1, &_c->_stencilBuffer); // gen stencil buffer
+				gl_setFramebufferRenderbuffer(
+					_c->_stencilBuffer, _c->_surfaceSize,
+					GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT, _c->_DeviceMsaa
+				);
+				glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
+			}
+
 			if (clip.op == Canvas::kDifference_ClipOp) { // difference clip
 				glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
 				glStencilOp(GL_KEEP/*fail*/, GL_KEEP/*zfail*/, revoke ? GL_INCR: GL_DECR/*zpass*/); // test success op
@@ -335,7 +363,7 @@ namespace qk {
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 					glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
-					aaClip(_render, depth, clip, revoke, aa_fuzz_weight, 0);
+					aaClip(_c, depth, clip, revoke, aa_fuzz_weight, 0);
 					return;
 				}
 			} else { // intersect clip
@@ -347,7 +375,7 @@ namespace qk {
 				glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
 
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
-					aaClip(_render, depth, clip, revoke, -aa_fuzz_weight, -1);
+					aaClip(_c, depth, clip, revoke, -aa_fuzz_weight, -1);
 				}
 			}
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
@@ -387,8 +415,12 @@ namespace qk {
 			if (kSrc_BlendMode != _render->_blendMode)
 				_render->setBlendMode(kSrc_BlendMode); // switch blend mode to src
 			if (isClipState) glDisable(GL_STENCIL_TEST); // ignore clip
+			if (!_canvas->_blurTex) {
+				glGenTextures(1, &_canvas->_blurTex);
+				gl_setBlurRenderBuffer(_canvas->_blurTex, _canvas->_surfaceSize, _canvas->_DeviceMsaa);
+			}
 			// output to texture buffer then do post processing
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_blurBuffer, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_blurTex, 0);
 			clearColor4fCall({0,0,0,0}, bounds, false, depth); // clear pixels within bounds
 			if (isClipState) glEnable(GL_STENCIL_TEST); // restore clip state
 		}
@@ -422,7 +454,7 @@ namespace qk {
 					glUniform1i(cp.depth, depth);
 					glUniform1i(cp.imageLod, i);
 					glUniform2f(cp.oResolution, oRw, oRh);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_blurBuffer, i+1);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_blurTex, i+1);
 					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					gl_textureBarrier();
 					depth += DepthNextUnit;
@@ -440,7 +472,7 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 			//gl_textureBarrier(); // complete horizontal blur
 			// blur vertical blur
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_mainRenderBuff);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_mainRBO);
 			glUniform1i(blur.depth, depth + DepthNextUnit);
 			glUniform2f(blur.oResolution, R.x(), R.y());
 			glUniform2f(blur.size, 0, size / R.y()); // vertical blur
@@ -448,6 +480,29 @@ namespace qk {
 				_render->setBlendMode(mode); // restore blend mode
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
 		}
+	
+		void readImageCall(const Rect &rect, ImageSource* img) {
+			GLuint tex;
+			auto x = rect.origin.x() * _canvas->_surfaceScale;
+			auto y = rect.origin.y() * _canvas->_surfaceScale;
+			auto w = img->width(), h = img->height();
+			auto iformat = gl_get_texture_pixel_format(img->type());
+			auto type = gl_get_texture_data_type(img->type());
+			glGenTextures(1, &tex);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, tex);
+			glTexImage2D(GL_TEXTURE_2D, 0, iformat, img->width(), img->height(), 0, iformat, type, nullptr);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _render->_frameBuffer);
+			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+			glBlitFramebuffer(x, y, w, h, 0, _canvas->_surfaceSize.x() - h, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
+			// gl_textureBarrier();
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_mainFBO);
+			_render->loadTexImage(img, img->info(), tex);
+		}
+
 	};
 
 	// ---------------------------------------------------------------------------------------
@@ -704,6 +759,13 @@ namespace qk {
 			return cmd->lod + 2;
 		}
 
+		void GLC_CmdPack::readImage(const Rect &rect, ImageSource* img) {
+			auto cmd = new(_this->allocCmd(sizeof(ReadImageCmd))) ReadImageCmd;
+			cmd->type = kReadImage_CmdType;
+			cmd->rect = rect;
+			cmd->img = img;
+		}
+
 #else
 		void GLC_CmdPack::setMetrix() {
 			_this->setMetrixCall(_canvas->_state->matrix);
@@ -749,6 +811,9 @@ namespace qk {
 			_this->getBlurSampling(size, n, lod);
 			_this->blurFilterEndCall(bounds, size, _canvas->_blendMode, n, lod, _canvas->_zDepth);
 			return lod + 2;
+		}
+		void GLC_CmdPack::readImage(const Rect &rect, ImageSource* img) {
+			_this->readImageCall(rect, img);
 		}
 #endif
 
@@ -847,6 +912,12 @@ namespace qk {
 						glBindVertexArray(s->vao);
 						glUseProgram(s->shader);
 						glDrawArrays(GL_TRIANGLES, 0, c->vCount);
+						break;
+					}
+					case kReadImage_CmdType: {
+						auto c = (ReadImageCmd*)cmd;
+						_this->readImageCall(c->rect, *c->img);
+						c->~ReadImageCmd();
 						break;
 					}
 					default: break;

@@ -105,6 +105,9 @@ namespace qk {
 		, _body(body) {
 	}
 
+	Pixel::Pixel(cPixelInfo& info): PixelInfo(info), _texture(0) {
+	}
+
 	Pixel& Pixel::operator=(cPixel& pixel) {
 		PixelInfo::operator=(pixel);
 		_texture = pixel._texture;

@@ -48,7 +48,6 @@ namespace qk {
 		Mat         matrix;
 		Array<Clip> clips;
 		uint32_t    aaclip; // Is there a aa clip area
-		ImageSource *region; // region draw
 	};
 
 	class GLRender; // gl render backend
@@ -84,13 +83,13 @@ namespace qk {
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
-		virtual ImageSource* region(const Rect &rect) override;
-		virtual ImageSource* readImage(const Rect &rect) override;
+		virtual Sp<ImageSource> readImage(const Rect &rect, ColorType type) override;
 		virtual void swapBuffer() override; // swap gl double cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call
 		virtual PathvCache* gtePathvCache() override;
 		void         onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size); // surface reload
-		inline bool  isDeviceMsaa() const { return _IsDeviceMsaa; }
+		inline bool  isDeviceMsaa() const { return _DeviceMsaa; }
+		inline GLuint getMainFBO() const { return _mainFBO; }
 
 	private:
 		virtual void setBuffers(Vec2 size);
@@ -102,9 +101,8 @@ namespace qk {
 		GLRender     *_render;
 		PathvCache   *_cache;
 		GLuint _frameBuffer,_msaaFrameBuffer;
-		GLuint _renderBuffer,_msaaRenderBuffer,_stencilBuffer,_depthBuffer;
-		GLuint _clipaaBuffer; // aa texture buffer
-		GLuint _blurBuffer; // blur tex buffer
+		GLuint _renderBuffer,_msaaRenderBuffer,_depthBuffer,_stencilBuffer;
+		GLuint _aaclipTex, _blurTex; // aa clop tex buffer, blur filter tex buffer
 		GLuint _stencilRef, _stencilRefDecr; // stencil clip state
 		float  _zDepth;
 		float  _surfaceScale, _scale;
@@ -112,9 +110,9 @@ namespace qk {
 		Vec2   _size, _surfaceSize; // canvas size and surface size
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
-		GLuint   _mainRenderBuff; // main render buffer, ref to _renderBuffer or _msaaRenderBuffer
+		GLuint   _mainRBO, _mainFBO; // main render buffer, ref to _renderBuffer or _msaaRenderBuffer
+		uint8_t  _DeviceMsaa; // device anti alias, msaa
 		bool   _isDoubleCmds, _isClipState; // clip state
-		bool _IsDeviceMsaa; // device anti alias, msaa
 		Mutex  _mutex; // submit swap mutex
 
 		friend class GLC_CmdPack;

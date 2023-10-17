@@ -47,39 +47,37 @@ extern QkApplicationDelegate* __appDelegate;
 	CVDisplayLinkRef _displayLink;
 	List<Cb>         _message;
 	Mutex            _mutexMsg;
-	bool             _isLock; // lock render
+	bool             _isStart; // start render
 	qk::Render      *_render;
 	NSOpenGLContext *_ctx;
-	qk::ThreadID     _renderThreadID;
+	qk::ThreadID     _renderThreadId;
 }
 @end
 
 @implementation GLView
 
 	- (id) initWithFrame:(CGRect)frameRect
-							 context:(NSOpenGLContext*)context
+							 context:(NSOpenGLContext*)ctx
 							  render:(qk::Render*)render
 	{
 		if( (self = [super initWithFrame:frameRect pixelFormat:nil]) ) {
-			_ctx = context;
-			_isLock = false;
+			_ctx = ctx;
+      _isStart = false;
 			_displayLink = nil;
 			_render = render;
-			[self setOpenGLContext:context];
+			[self setOpenGLContext:ctx];
 		}
 		return self;
 	}
 
 	- (void) update {
 		_render->reload();
-		[super update];
-		//Qk_DEBUG("NSOpenGLView::update");
+    [super update];
 	}
 
-	-(void)reshape {}
+	//-(void) reshape {}
 
 	- (void) prepareOpenGL {
-		[super prepareOpenGL];
 		if (_render->options().fps == 0) {
 			// Create a display link capable of being used with all active displays
 			CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
@@ -91,34 +89,23 @@ extern QkApplicationDelegate* __appDelegate;
 																												_ctx.pixelFormat.CGLPixelFormatObj);
 			// Activate the display link
 			CVDisplayLinkStart(_displayLink);
-			_renderThreadID = thread_current_id();
 		} else {
-			_renderThreadID = thread_fork([](void* arg) { // fork render thread
+			_renderThreadId = thread_fork([](void* arg) { // fork render thread
 				auto v = (__bridge GLView*)arg;
-				while (v->_renderThreadID != qk::ThreadID()) {
+				while (v->_renderThreadId != qk::ThreadID()) {
 					[v renderDisplay];
 				}
 			}, (__bridge void*)self, "renderDisplay");
 		}
-	}
-
-	- (void) lockRender {
-		if (!_isLock) {
-			_isLock = true;
-			CGLLockContext(_ctx.CGLContextObj);
-			[_ctx makeCurrentContext];
-			Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context 3");
-		}
-	}
-
-	- (void) unlockRender {
-		if (_isLock) {
-			_isLock = false;
-			CGLUnlockContext(_ctx.CGLContextObj);
-		}
+    [super prepareOpenGL];
 	}
 
 	- (void) renderDisplay {
+		if (!_isStart) {
+			_isStart = true;
+			_renderThreadId = thread_current_id();
+			[_ctx makeCurrentContext];
+		}
 		List<Cb> msg;
 		if (_message.length()) { //
 			_mutexMsg.lock();
@@ -126,14 +113,11 @@ extern QkApplicationDelegate* __appDelegate;
 			_mutexMsg.unlock();
 		}
 		if (msg.length()) {
-			[self lockRender];
-			for ( auto &i : msg )
-				i->resolve();
-			_render->delegate()->onRenderBackendDisplay();
-			[self unlockRender];
-		} else {
-			_render->delegate()->onRenderBackendDisplay();
+			CGLLockContext(_ctx.CGLContextObj);
+			for ( auto &i : msg ) i->resolve();
+			CGLUnlockContext(_ctx.CGLContextObj);
 		}
+		_render->delegate()->onRenderBackendDisplay();
 	}
 
 	static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
@@ -150,15 +134,15 @@ extern QkApplicationDelegate* __appDelegate;
 		if (_render->options().fps == 0) {
 			CVDisplayLinkStop(_displayLink);
 		} else {}
-		_renderThreadID = qk::ThreadID();
+    _renderThreadId = qk::ThreadID();
 	}
 
-	- (qk::ThreadID) renderThreadID {
-		return _renderThreadID;
+	- (qk::ThreadID) renderThreadId {
+		return _renderThreadId;
 	}
 
-	- (uint32_t) post_message:(Cb) cb delay_us:(uint64_t)delayUs {
-		if (_renderThreadID == qk::thread_current_id()) {
+	- (uint32_t) postMessage:(Cb) cb delayUs:(uint64_t)delayUs {
+		if (_renderThreadId == thread_current_id()) {
 			cb->resolve();
 		} else {
 			_mutexMsg.lock();
@@ -184,22 +168,22 @@ public:
 	}
 
 	uint32_t post_message(Cb cb, uint64_t delay_us) override {
-		return [_view post_message:cb delay_us:delay_us];
+		return [_view postMessage:cb delayUs:delay_us];
 	}
 
 	qk::ThreadID threadId() override {
-		return _view.renderThreadID;
+		return _view.renderThreadId;
 	}
 
 	void lock() override {
-		if (threadId() != qk::thread_current_id()) {
+		if (_view.renderThreadId != thread_current_id()) {
 			CGLLockContext(_ctx.CGLContextObj);
 			[_ctx makeCurrentContext];
 		}
 	}
 
 	void unlock() override {
-		if (threadId() != qk::thread_current_id()) {
+		if (_view.renderThreadId != thread_current_id()) {
 			CGLUnlockContext(_ctx.CGLContextObj);
 		}
 	}
@@ -230,12 +214,18 @@ public:
 	}
 
 	void begin() override {
-		[_view lockRender];
+// #if !Qk_USE_GLC_CMD_QUEUE
+		CGLLockContext(_ctx.CGLContextObj);
 		// bind frame buffer for main canvas
-		glBindFramebuffer(GL_FRAMEBUFFER, _glCanvas.isDeviceMsaa() ? 2: 1/*_frameBuffer*/);
+		glBindFramebuffer(GL_FRAMEBUFFER, _glCanvas.getMainFBO());
+// #endif
 	}
 
 	void submit() override {
+// #if Qk_USE_GLC_CMD_QUEUE
+// 		CGLLockContext(_ctx.CGLContextObj);
+// 		glBindFramebuffer(GL_FRAMEBUFFER, _glCanvas.getMainFBO());
+// #endif
 		_glCanvas.flushBuffer(); // commit gl canvas cmd
 		// copy pixels to default color buffer
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -244,7 +234,7 @@ public:
 		// flush gl buffer
 		glFlush(); // glFinish, glFenceSync, glWaitSync
 		[_ctx flushBuffer]; // swap double buffer
-		[_view unlockRender];
+		CGLUnlockContext(_ctx.CGLContextObj);
 	}
 
 	UIView* make_surface_view(CGRect rect) override {

@@ -134,10 +134,10 @@ namespace qk {
 			return 0;
 
 		ColorType type = src->type();
-		GLint internalformat = gl_get_texture_pixel_format(type);
-		Qk_ASSERT(internalformat);
+		GLint iformat = gl_get_texture_pixel_format(type);
+		Qk_ASSERT(iformat);
 
-		if (!internalformat)
+		if (!iformat)
 			return 0;
 
 		if (!id) {
@@ -162,13 +162,13 @@ namespace qk {
 		if ( type >= kColor_Type_PVRTCI_2BPP_RGB ) {
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_level - 1);
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0/*level*/, internalformat,
+			glCompressedTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat,
 														src->width(),
 														src->height(), 0/*border*/, src->body().length(), *src->body());
 		} else {
-			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, internalformat,
+			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat,
 									src->width(),
-									src->height(), 0/*border*/, internalformat/*format*/,
+									src->height(), 0/*border*/, iformat/*format*/,
 									gl_get_texture_data_type(type)/*type*/, *src->body());
 			if (genMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
@@ -349,12 +349,6 @@ namespace qk {
 		gl_setFramebufferRenderbuffer(buff, size, ifo, GL_COLOR_ATTACHMENT0, msaaSample);
 	}
 
-	// set depth buffer and clip stencil buffer
-	void gl_setDepthStencilBuffer(GLuint depth, GLuint stencil, Vec2 size, int msaaSample) {
-		gl_setFramebufferRenderbuffer(depth, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT, msaaSample);
-		gl_setFramebufferRenderbuffer(stencil, size, GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT, msaaSample);
-	}
-
 	void gl_TexImage2D(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, tex);
@@ -365,7 +359,7 @@ namespace qk {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
-	void gl_setClipaaBuffer(GLuint tex, Vec2 size, int msaaSample) {
+	void gl_setAAClipBuffer(GLuint tex, Vec2 size, int msaaSample) {
 		if (msaaSample <= 1) { // clip anti alias buffer
 			gl_TexImage2D(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_MaxTextureImageUnits - 1);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -412,6 +406,7 @@ namespace qk {
 		}
 		_canvas = &_glCanvas; // set default canvas
 
+		glGenFramebuffers(1, &_frameBuffer);
 		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
 		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _rootMatrixBlock);
@@ -480,6 +475,7 @@ namespace qk {
 	}
 
 	GLRender::~GLRender() {
+		glDeleteFramebuffers(1, &_frameBuffer);
 		glDeleteBuffers(3, &_rootMatrixBlock); // _rootMatrixBlock, _viewMatrixBlock, _optsBlock
 		glDeleteTextures(3, _texBuffer); // _texBuffer
 	}

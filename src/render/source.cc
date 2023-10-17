@@ -42,22 +42,27 @@ namespace qk {
 
 	ImageSource::ImageSource(cString& uri): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _load_id(0), _render(nullptr), _loop(current_loop())
+		, _loadId(0), _render(nullptr), _loop(current_loop())
 	{
 		if (!uri.isEmpty())
 			_uri = fs_reader()->format(uri);
 	}
 
 	ImageSource::ImageSource(Array<Pixel>&& pixels): Qk_Init_Event(State)
-		, _uri(String::format("mem://%d", random()))
 		, _state(kSTATE_NONE)
-		, _load_id(0), _render(nullptr), _loop(current_loop())
+		, _loadId(0), _render(nullptr), _loop(current_loop())
 	{
 		if (pixels.length()) {
 			_state = kSTATE_LOAD_COMPLETE;
 			_info = pixels[0];
 			_pixels = std::move(pixels);
 		}
+	}
+
+	ImageSource::ImageSource(cPixelInfo &info, RenderBackend *render): Qk_Init_Event(State)
+		, _state(kSTATE_NONE)
+		, _info(info)
+		, _loadId(0), _render(render), _loop(current_loop()) {
 	}
 
 	ImageSource::~ImageSource() {
@@ -98,7 +103,7 @@ namespace qk {
 			_state = State(_state | kSTATE_LOADING);
 			Qk_Trigger(State, _state); // trigger
 
-			_load_id = fs_reader()->read_file(_uri, Cb([this](auto& e) { // read data
+			_loadId = fs_reader()->read_file(_uri, Cb([this](auto& e) { // read data
 				if (_state & kSTATE_LOADING) {
 					if (e.error) {
 						_state = State((_state | kSTATE_LOAD_ERROR) & ~kSTATE_LOADING);
@@ -108,7 +113,7 @@ namespace qk {
 						_Decode(*static_cast<Buffer*>(e.data));
 					}
 				}
-				_load_id = 0;
+				_loadId = 0;
 			}, this));
 		}, this));
 
@@ -159,9 +164,9 @@ namespace qk {
 	void ImageSource::_Unload(bool isDestroy) {
 		_state = State( _state & ~(kSTATE_LOADING | kSTATE_LOAD_COMPLETE) );
 
-		if (_load_id) {
-			fs_reader()->abort(_load_id); // cancel load and ready
-			_load_id = 0;
+		if (_loadId) {
+			fs_reader()->abort(_loadId); // cancel load and ready
+			_loadId = 0;
 		}
 		if (_render) { // as texture, Must be processed in the rendering thread
 			auto render = _render;
@@ -240,7 +245,7 @@ namespace qk {
 				i++;
 			}
 
-			if (_render && i < old_len) {
+			if (i < old_len) {
 				do
 					_render->deleteTextures(&_pixels[i]._texture, 1);
 				while(++i < old_len);
@@ -250,6 +255,13 @@ namespace qk {
 			_info = pixels->indexAt(0);
 			_pixels = std::move(*pixels);
 		}, this));
+	}
+
+	void ImageSource::_LoadTex(const PixelInfo &info, uint32_t texture) {
+		_state = kSTATE_LOAD_COMPLETE;
+		_info = info;
+		_pixels = {Pixel{info}};
+		_pixels[0]._texture = texture;
 	}
 
 	// -------------------- I m a g e . S o u r c e . P o o l --------------------

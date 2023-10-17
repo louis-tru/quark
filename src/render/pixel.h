@@ -143,7 +143,8 @@ namespace qk {
 		Pixel(cPixel& data); // copy
 		Pixel(Pixel&& data); // move
 		Pixel(cPixelInfo& info, Buffer body); // move body
-		Pixel(cPixelInfo& info, cWeakBuffer& body = WeakBuffer()); // weak ref
+		Pixel(cPixelInfo& info, cWeakBuffer& body); // weak ref
+		Pixel(cPixelInfo& info);
 
 		// operator=
 		Pixel& operator=(cPixel& pixel); // copy
@@ -152,8 +153,9 @@ namespace qk {
 		/**
 		 * Returns image data body
 		*/
-		inline  WeakBuffer& body() { return _body; }
 		inline cWeakBuffer& body() const { return _body; }
+
+		inline uint8_t*     val() { return reinterpret_cast<uint8_t*>(_hold.val()); }
 
 	private:
 		Buffer     _hold; // hold data

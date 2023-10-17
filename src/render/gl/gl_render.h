@@ -57,6 +57,7 @@ namespace qk {
 		// --------------- define props ---------------
 		bool _IsSupportMultisampled;
 		BlendMode _blendMode;
+		GLuint _frameBuffer; // temp frame buffer
 		GLuint _texBuffer[3]; // temp texture buffers
 		GLuint _rootMatrixBlock,_viewMatrixBlock; // matrixBlock => root view matrix
 		GLuint _optsBlock; // generic optsBlock

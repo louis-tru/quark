@@ -93,15 +93,9 @@ namespace qk {
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint& paint) = 0;
 		/**
-		 * quick off screen rendering.
-		 * return an image source canvas to enter area drawing mode, 
-		 * and all drawing commands target the returned image until the end of calling 'restore()'
-		*/
-		virtual ImageSource* region(const Rect &rect) = 0;
-		/**
 		 * Return an image source does not plunger threads
 		*/
-		virtual ImageSource* readImage(const Rect &rect) = 0; // async read image
+		virtual Sp<ImageSource> readImage(const Rect &rect, ColorType type) = 0; // async read image
 		/**
 		 * swap draw commands buffer, if there are multiple command queues
 		*/
@@ -111,6 +105,7 @@ namespace qk {
 		*/
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float fontSize, const Paint& paint) = 0;
 		virtual PathvCache* gtePathvCache() = 0;
+
 	protected:
 		Canvas() = default;
 	};

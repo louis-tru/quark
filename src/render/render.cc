@@ -60,4 +60,8 @@ namespace qk {
 	void RenderBackend::activate(bool isActive) {
 	}
 
+	void RenderBackend::loadTexImage(ImageSource* s, cPixelInfo &i, uint32_t tex) {
+		s->_LoadTex(i, tex);
+	}
+
 }

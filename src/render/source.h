@@ -77,6 +77,7 @@ namespace qk {
 		// </FlowLayout>
 		ImageSource(cString& uri = String());
 		ImageSource(Array<Pixel>&& pixels);
+		ImageSource(cPixelInfo &info, RenderBackend *render = nullptr);
 
 		/**
 		 * @destructor
@@ -146,12 +147,14 @@ namespace qk {
 	private:
 		void _Decode(Buffer& data);
 		void _Unload(bool isDestroy);
+		void _LoadTex(const PixelInfo &info, uint32_t texture);
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
-		uint32_t     _load_id;
+		uint32_t     _loadId;
 		RenderBackend *_render; // weak ref, texture mark
 		RunLoop       *_loop;
 		friend class ImageSourcePool;
+		friend class RenderBackend;
 	};
 
 

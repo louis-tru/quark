@@ -107,13 +107,13 @@ namespace qk {
 	}
 
 	void Display::set_size(Vec2 size) {
-		float width = size.x();
-		float height = size.y();
-		if (width >= 0.0 && height >= 0.0) {
+		float w = size.x(), h = size.y();
+		if (w >= 0.0 && h >= 0.0) {
 			UILock lock(_host);
-			if (_lock_size.x() != width || _lock_size.y() != height) {
-				_lock_size = { width, height };
+			if (_lock_size.x() != w || _lock_size.y() != h) {
+				_lock_size = { w, h };
 				_lock_size_mark = true;
+				lock.unlock();
 				_host->render()->reload();
 			}
 		} else {
@@ -185,14 +185,12 @@ namespace qk {
 			Qk_DEBUG("Display::onDeviceReload");
 			UILock lock(_host);
 			if ( _lock_size_mark
-				|| _surface_region.origin.x() != region.origin.x()
-				||	_surface_region.origin.y() != region.origin.y()
-				||	_surface_region.end.x() != region.end.x()
-				||	_surface_region.end.y() != region.end.y()
-				||	_surface_region.size.x() != size.x()
-				||	_surface_region.size.y() != size.y()
-				||  _default_scale != defaultScale
+				|| _surface_region.origin != region.origin
+				|| _surface_region.end != region.end
+				|| _surface_region.size != size
+				|| _default_scale != defaultScale
 			) {
+				_lock_size_mark = false;
 				_surface_region = { region.origin, region.end, size };
 				_default_scale = defaultScale;
 				updateState(&lock, mat, scale);
