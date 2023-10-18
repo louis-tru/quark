@@ -50,6 +50,7 @@ namespace qk {
 		, _canvas(nullptr)
 		, _delegate(nullptr)
 		, _defaultScale(1)
+		, _isActive(true)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
 		_opts.msaa = massSample(_opts.msaa);
@@ -58,6 +59,7 @@ namespace qk {
 	RenderBackend::~RenderBackend() {}
 
 	void RenderBackend::activate(bool isActive) {
+		_isActive = isActive;
 	}
 
 	void RenderBackend::loadTexImage(ImageSource* s, cPixelInfo &i, uint32_t tex) {

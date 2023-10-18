@@ -105,7 +105,7 @@ namespace qk {
 		* @method clip_region
 		*/
 		inline const RegionSize& clip_region() const {
-			return _clip_region.back();
+			return _clipRegion.back();
 		}
 
 		/**
@@ -185,19 +185,20 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(ViewRender*, view_render);
 
 	private:
-		Mat4 updateState();
+		void updateState();
 		void solveNextFrame();
 		void onRenderBackendReload(Region region, Vec2 size, float defaultScale) override;
-		void onRenderBackendDisplay() override;
+		bool onRenderBackendDisplay() override;
 
 		// member data
 		Application      *_host;
-		Vec2              _lock_size;  //!< Lock the size of the viewport
-		List<Cb>          _next_frame;
-		uint32_t          _next_fsp;
-		int64_t           _next_fsp_time;
-		Array<RegionSize> _clip_region;
-		bool              _lock_size_mark;
+		Vec2              _lockSize;  //!< Lock the size of the viewport
+		List<Cb>          _nextFrame;
+		uint32_t          _nextFsp;
+		int64_t           _nextFspTime;
+		Array<RegionSize> _clipRegion;
+		Mat4              _surfaceMat;
+		bool _lockSizeMark;
 	};
 
 }

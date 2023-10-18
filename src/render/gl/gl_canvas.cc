@@ -314,7 +314,7 @@ namespace qk {
 		, _fbo(0), _rbo(0), _depthBuffer(0), _stencilBuffer(0)
 		, _aaclipTex(0)
 		, _blurTex(0)
-		, _stencilRef(0), _stencilRefDecr(0)
+		, _stencilRef(127), _stencilRefDecr(127)
 		, _zDepth(0)
 		, _surfaceScale(1), _scale(1), _fullScale(1), _phy2Pixel(1)
 		, _rootMatrix()

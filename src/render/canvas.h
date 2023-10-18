@@ -106,6 +106,10 @@ namespace qk {
 
 		/**
 		 * @method onSurfaceReload() Surface params change reload
+		 * 
+		 * Note that it is not thread safe and must be used in the same thread as the drawing method
+		 * 
+		 * or have protective measures shown
 		*/
 		virtual void onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size) = 0;
 

@@ -52,15 +52,13 @@ namespace qk {
 		class Delegate {
 		public:
 			virtual void onRenderBackendReload(Region region, Vec2 size, float defaultScale) = 0;
-			virtual void onRenderBackendDisplay() = 0;
+			virtual bool onRenderBackendDisplay() = 0;
 		};
 
 		inline const Options& options() const { return _opts; }
 		static  RenderBackend* Make(Options opts, Delegate *delegate);
 		virtual        ~RenderBackend();
 		virtual void    reload() = 0; // surface size and scale change
-		virtual void    begin() = 0; // start render task
-		virtual void    submit() = 0; // submit render task
 		virtual void    activate(bool isActive);
 		virtual ThreadID threadId() = 0; // get render thread id
 		inline  Canvas* getCanvas() { return _canvas; } // default canvas object
@@ -85,6 +83,7 @@ namespace qk {
 		Delegate     *_delegate;
 		Vec2         _surfaceSize; // current surface size
 		float        _defaultScale; // recommend default surface scale
+		bool         _isActive;
 	};
 
 	typedef RenderBackend Render;
