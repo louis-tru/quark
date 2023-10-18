@@ -33,6 +33,7 @@
 #ifndef __quark_render_gl_glcanvas__
 #define __quark_render_gl_glcanvas__
 
+#include "../render.h"
 #include "../canvas.h"
 #include "./glsl_shaders.h"
 
@@ -46,8 +47,8 @@ namespace qk {
 			Canvas::ClipOp  op;
 		};
 		Mat         matrix;
-		Array<Clip> clips;
 		uint32_t    aaclip; // Is there a aa clip area
+		Array<Clip> clips;
 	};
 
 	class GLRender; // gl render backend
@@ -56,7 +57,7 @@ namespace qk {
 
 	class GLCanvas: public Canvas {
 	public:
-		GLCanvas(GLRender *render, bool doubleCmds);
+		GLCanvas(GLRender *render, Render::Options opts);
 		virtual ~GLCanvas();
 		virtual int  save() override;
 		virtual void restore(uint32_t count) override;
@@ -87,9 +88,9 @@ namespace qk {
 		virtual void swapBuffer() override; // swap gl double cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call
 		virtual PathvCache* gtePathvCache() override;
-		void         onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size); // surface reload
-		inline bool  isDeviceMsaa() const { return _DeviceMsaa; }
-		inline GLuint getMainFBO() const { return _mainFBO; }
+		virtual void onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size) override;
+		inline bool  isDeviceMsaa() { return _DeviceMsaa; }
+		inline GLuint fbo() { return _fbo; }
 
 	private:
 		virtual void setBuffers(Vec2 size);
@@ -100,8 +101,7 @@ namespace qk {
 		GLC_CmdPack  *_cmdPackFront;
 		GLRender     *_render;
 		PathvCache   *_cache;
-		GLuint _frameBuffer,_msaaFrameBuffer;
-		GLuint _renderBuffer,_msaaRenderBuffer,_depthBuffer,_stencilBuffer;
+		GLuint _fbo, _rbo, _depthBuffer, _stencilBuffer;
 		GLuint _aaclipTex, _blurTex; // aa clop tex buffer, blur filter tex buffer
 		GLuint _stencilRef, _stencilRefDecr; // stencil clip state
 		float  _zDepth;
@@ -110,9 +110,9 @@ namespace qk {
 		Vec2   _size, _surfaceSize; // canvas size and surface size
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
-		GLuint   _mainRBO, _mainFBO; // main render buffer, ref to _renderBuffer or _msaaRenderBuffer
 		uint8_t  _DeviceMsaa; // device anti alias, msaa
-		bool   _isDoubleCmds, _isClipState; // clip state
+		bool   _isClipState; // clip state
+		Render::Options _opts;
 		Mutex  _mutex; // submit swap mutex
 
 		friend class GLC_CmdPack;

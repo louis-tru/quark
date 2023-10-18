@@ -313,6 +313,16 @@ namespace qk {
 		}
 
 		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, bool revoke, float depth) {
+			auto _c = _canvas;
+
+			if (!_c->_stencilBuffer) {
+				glGenRenderbuffers(1, &_c->_stencilBuffer); // gen stencil buffer
+				gl_setFramebufferRenderbuffer(
+					_c->_stencilBuffer, _c->_surfaceSize,
+					GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT, _c->_DeviceMsaa
+				);
+				glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
+			}
 
 			auto aaClip = [](GLCanvas *_c, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C) {
 				auto _render = _c->_render;
@@ -341,17 +351,6 @@ namespace qk {
 					_render->setBlendMode(chMode); // revoke blend mode
 				gl_textureBarrier(); // ensure aa clip can be executed correctly in sequence
 			};
-
-			auto _c = _canvas;
-
-			if (!_c->_stencilBuffer) {
-				glGenRenderbuffers(1, &_c->_stencilBuffer); // gen stencil buffer
-				gl_setFramebufferRenderbuffer(
-					_c->_stencilBuffer, _c->_surfaceSize,
-					GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT, _c->_DeviceMsaa
-				);
-				glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
-			}
 
 			if (clip.op == Canvas::kDifference_ClipOp) { // difference clip
 				glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
@@ -412,13 +411,13 @@ namespace qk {
 		}
 
 		void blurFilterBeginCall(Region bounds, bool isClipState, float depth) {
-			if (kSrc_BlendMode != _render->_blendMode)
-				_render->setBlendMode(kSrc_BlendMode); // switch blend mode to src
-			if (isClipState) glDisable(GL_STENCIL_TEST); // ignore clip
 			if (!_canvas->_blurTex) {
 				glGenTextures(1, &_canvas->_blurTex);
 				gl_setBlurRenderBuffer(_canvas->_blurTex, _canvas->_surfaceSize, _canvas->_DeviceMsaa);
 			}
+			if (kSrc_BlendMode != _render->_blendMode)
+				_render->setBlendMode(kSrc_BlendMode); // switch blend mode to src
+			if (isClipState) glDisable(GL_STENCIL_TEST); // ignore clip
 			// output to texture buffer then do post processing
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_blurTex, 0);
 			clearColor4fCall({0,0,0,0}, bounds, false, depth); // clear pixels within bounds
@@ -472,7 +471,7 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 			//gl_textureBarrier(); // complete horizontal blur
 			// blur vertical blur
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_mainRBO);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_rbo);
 			glUniform1i(blur.depth, depth + DepthNextUnit);
 			glUniform2f(blur.oResolution, R.x(), R.y());
 			glUniform2f(blur.size, 0, size / R.y()); // vertical blur
@@ -499,7 +498,7 @@ namespace qk {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 			// gl_textureBarrier();
 			glGenerateMipmap(GL_TEXTURE_2D);
-			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_mainFBO);
+			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_rbo);
 			_render->loadTexImage(img, img->info(), tex);
 		}
 
@@ -821,6 +820,8 @@ namespace qk {
 
 	void GLC_CmdPack::flush() {
 #if Qk_USE_GLC_CMD_QUEUE
+		if (cmds.blocks[0].size == sizeof(Cmd)) return; // no cmds
+
 		// set canvas root matrix
 		glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _canvas->_rootMatrix.val, GL_DYNAMIC_DRAW);

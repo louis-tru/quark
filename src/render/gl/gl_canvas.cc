@@ -306,32 +306,31 @@ namespace qk {
 		}
 	}
 
-	GLCanvas::GLCanvas(GLRender *render, bool doubleCmds)
+	GLCanvas::GLCanvas(GLRender *render, Render::Options opts)
 		: _render(render)
+		, _stateStack{{ .matrix=Mat(), .aaclip=0 }}
+		, _state(&_stateStack.back())
 		, _cache(new PathvCache(render))
-		, _frameBuffer(0), _msaaFrameBuffer(0)
-		, _renderBuffer(0), _msaaRenderBuffer(0), _depthBuffer(0), _stencilBuffer(0)
+		, _fbo(0), _rbo(0), _depthBuffer(0), _stencilBuffer(0)
 		, _aaclipTex(0)
 		, _blurTex(0)
 		, _stencilRef(0), _stencilRefDecr(0)
 		, _zDepth(0)
-		, _state(nullptr)
 		, _surfaceScale(1), _scale(1), _fullScale(1), _phy2Pixel(1)
 		, _rootMatrix()
 		, _blendMode(kSrcOver_BlendMode)
-		, _isDoubleCmds(Qk_USE_GLC_CMD_QUEUE && doubleCmds)
+		, _opts(opts)
 		, _isClipState(false)
-		, _DeviceMsaa(false)
+		, _DeviceMsaa(0)
 	{
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
-		glGenFramebuffers(2, &_frameBuffer); // _frame_buffer,_msaa_frame_buffer
+		glGenFramebuffers(1, &_fbo); // _fbo
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-		glGenRenderbuffers(3, &_renderBuffer); // _renderBuffer,_msaaRenderBuffer,_depthBuffer
+		glGenRenderbuffers(2, &_rbo); // _rbo,_depthBuffer
 
+		_opts.doubleCmds = _opts.doubleCmds && Qk_USE_GLC_CMD_QUEUE;
 		_cmdPack = new GLC_CmdPack(render, this);
-		_cmdPackFront = _isDoubleCmds ? new GLC_CmdPack(render, this): _cmdPack;
-		_stateStack.push({ .matrix=Mat(), .aaclip=0 }); // init state
-		_state = &_stateStack.back();
+		_cmdPackFront = _opts.doubleCmds ? new GLC_CmdPack(render, this): _cmdPack;
 		setMatrix(_state->matrix); // init shader matrix
 	}
 
@@ -342,13 +341,13 @@ namespace qk {
 		_cmdPack = _cmdPackFront = nullptr;
 		Release(_cache); _cache = nullptr;
 
-		glDeleteFramebuffers(2, &_frameBuffer); // _frameBuffer,_msaaFrameBuffer
-		glDeleteRenderbuffers(4, &_renderBuffer); // _renderBuffer,_msaaRenderBuffer,_depthBuffer,_stencilBuffer
+		glDeleteFramebuffers(1, &_fbo); // _fbo
+		glDeleteRenderbuffers(3, &_rbo); // _rbo,_depthBuffer,_stencilBuffer
 		glDeleteTextures(2, &_aaclipTex); // _aaclipTex, _blurTex
 	}
 
 	void GLCanvas::swapBuffer() {
-		if (_isDoubleCmds) {
+		if (_opts.doubleCmds) {
 			_mutex.lock();
 			auto pack = _cmdPackFront;
 			_cmdPackFront = _cmdPack;
@@ -439,7 +438,7 @@ namespace qk {
 			return false;
 #if Qk_USE_GLC_CMD_QUEUE
 		_render->lock();
-		glBindFramebuffer(GL_FRAMEBUFFER, _mainFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 		flushBuffer();
 #endif
 		// glGenBuffers(1, &readBuffer);
@@ -589,10 +588,10 @@ namespace qk {
 
 	void GLCanvas::onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size) {
 		_mutex.lock();
-		setBuffers(size); // set buffers
+		_render->lock();
+
 		// clear state all
-		_stateStack.clear();
-		_stateStack.push({ .matrix=Mat() }); // init state
+		_stateStack = {{ .matrix=Mat(), .aaclip=0 }}; // init state
 		_state = &_stateStack.back();
 		_stencilRef = _stencilRefDecr = 127;
 		_isClipState = false; // clear clip state
@@ -603,9 +602,10 @@ namespace qk {
 		_scale = _state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2;
 		_fullScale = _surfaceScale * _scale;
 		_phy2Pixel = 2 / _fullScale;
-
-		// update shader root matrix and clear all save state
 		_rootMatrix = root.transpose(); // transpose matrix
+
+		setBuffers(size); // set buffers
+		// update shader root matrix and clear all save state
 		glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _rootMatrix.val, GL_STREAM_DRAW);
 		if (!_DeviceMsaa && _aaclipTex) { // clear aa clip tex buffer
@@ -617,23 +617,24 @@ namespace qk {
 			glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
 			glDisable(GL_STENCIL_TEST); // disable stencil test
 		}
+		_render->unlock();
 		_mutex.unlock();
 	}
 
 	void GLCanvas::setBuffers(Vec2 size) {
 		auto w = size.x(), h = size.y();
-		auto type = _render->_opts.colorType;
-		auto msaa = _render->_opts.msaa;
+		auto type = _opts.colorType;
+		auto msaa = _opts.msaa;
 
 		Qk_ASSERT(w, "Invalid viewport size width");
 		Qk_ASSERT(h, "Invalid viewport size height");
 
 		glViewport(0, 0, w, h);
+		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
 		if (msaa > 1) {
-			glBindFramebuffer(GL_FRAMEBUFFER, _msaaFrameBuffer);
 			do { // enable multisampling
-				gl_setColorRenderBuffer(_msaaRenderBuffer, type, size, msaa);
+				gl_setColorRenderBuffer(_rbo, type, size, msaa);
 				// Test the framebuffer for completeness.
 				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE )
 					break;
@@ -641,15 +642,10 @@ namespace qk {
 			} while (msaa > 1);
 		}
 		_DeviceMsaa = msaa > 1 ? msaa: 0;
-		_mainFBO = _DeviceMsaa ? _msaaFrameBuffer: _frameBuffer;
-		_mainRBO = _DeviceMsaa ? _msaaRenderBuffer: _renderBuffer;
 
-		if (!_DeviceMsaa || Qk_iOS) {
-			glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer); // bind frame buffer
-			gl_setColorRenderBuffer(_renderBuffer, type, size, 1);
+		if (!_DeviceMsaa) {
+			gl_setColorRenderBuffer(_rbo, type, size, 0);
 		}
-		glBindFramebuffer(GL_FRAMEBUFFER, _mainFBO);
-
 		if (_aaclipTex) {
 			gl_setAAClipBuffer(_aaclipTex, size, _DeviceMsaa);
 		}
@@ -662,7 +658,7 @@ namespace qk {
 		gl_setFramebufferRenderbuffer(_depthBuffer, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT, _DeviceMsaa);
 
 		const GLenum buffers[]{
-			GL_COLOR_ATTACHMENT0/*main color*/, GL_COLOR_ATTACHMENT1/*aaclip*/,
+			GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*aaclip out*/,
 		};
 		glDrawBuffers(2, buffers);
 
@@ -677,7 +673,6 @@ namespace qk {
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
-		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
 }

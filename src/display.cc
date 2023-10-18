@@ -61,51 +61,6 @@ namespace qk {
 		Release(_view_render); _view_render = nullptr;
 	}
 
-	void Display::updateState(void *lock, Mat4 *surfaceMat, Vec2* surfaceScale) { // Lock before calling
-		auto _lock = static_cast<UILock*>(lock);
-		Vec2 size = surface_size();
-		float width = size.x();
-		float height = size.y();
-
-		if (_lock_size.x() == 0 && _lock_size.y() == 0) { // Use the system default most suitable size
-			_size = { width / _default_scale, height / _default_scale };
-		}
-		else if (_lock_size.x() != 0) { // lock width
-			_size = { _lock_size.x(), _lock_size.x() / width * height };
-		}
-		else if (_lock_size.y() != 0) { // lock height
-			_size = { _lock_size.y() / height * width, _lock_size.y() };
-		}
-		else { // Use the system default most suitable size
-			_size = { width / _default_scale, height / _default_scale };
-		}
-
-		_scale = (width + height) / (_size.x() + _size.y());
-		_atom_pixel = 1.0f / _scale;
-
-		// set default draw region
-		_clip_region.front() = {
-			Vec2{0, 0},
-			Vec2{_size.x(), _size.y()},
-			Vec2{_size.x(), _size.y()},
-		};
-
-		_host->loop()->post(Cb([this](Cb::Data& e) { // main loop call
-			Qk_Trigger(Change); // trigger display change
-		}));
-		
-		auto region = _surface_region;
-		Vec2 start = Vec2(-region.origin.x() / _scale, -region.origin.y() / _scale);
-		Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
-		*surfaceMat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
-		*surfaceScale = Vec2(_scale);
-
-		_host->root()->onDisplayChange();
-		_view_render->set_render(_host->render());
-
-		Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
-	}
-
 	void Display::set_size(Vec2 size) {
 		float w = size.x(), h = size.y();
 		if (w >= 0.0 && h >= 0.0) {
@@ -180,7 +135,52 @@ namespace qk {
 		}
 	}
 
-	bool Display::onRenderBackendReload(Region region, Vec2 size, float defaultScale, Mat4 *mat, Vec2 *scale) {
+	Mat4 Display::updateState() { // Lock before calling
+		Vec2 size = surface_size();
+		float width = size.x();
+		float height = size.y();
+
+		if (_lock_size.x() == 0 && _lock_size.y() == 0) { // Use the system default most suitable size
+			_size = { width / _default_scale, height / _default_scale };
+		}
+		else if (_lock_size.x() != 0) { // lock width
+			_size = { _lock_size.x(), _lock_size.x() / width * height };
+		}
+		else if (_lock_size.y() != 0) { // lock height
+			_size = { _lock_size.y() / height * width, _lock_size.y() };
+		}
+		else { // Use the system default most suitable size
+			_size = { width / _default_scale, height / _default_scale };
+		}
+
+		_scale = (width + height) / (_size.x() + _size.y());
+		_atom_pixel = 1.0f / _scale;
+
+		// set default draw region
+		_clip_region.front() = {
+			Vec2{0, 0},
+			Vec2{_size.x(), _size.y()},
+			Vec2{_size.x(), _size.y()},
+		};
+
+		_host->loop()->post(Cb([this](Cb::Data& e) { // main loop call
+			Qk_Trigger(Change); // trigger display change
+		}));
+
+		auto region = _surface_region;
+		Vec2 start = Vec2(-region.origin.x() / _scale, -region.origin.y() / _scale);
+		Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
+		Mat4 root = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
+
+		_view_render->set_render(_host->render());
+		_host->root()->onDisplayChange();
+
+		Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
+
+		return root;
+	}
+
+	void Display::onRenderBackendReload(Region region, Vec2 size, float defaultScale) {
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
 			Qk_DEBUG("Display::onDeviceReload");
 			UILock lock(_host);
@@ -193,13 +193,13 @@ namespace qk {
 				_lock_size_mark = false;
 				_surface_region = { region.origin, region.end, size };
 				_default_scale = defaultScale;
-				updateState(&lock, mat, scale);
-				return true;
+				Mat4 root = updateState();
+				lock.unlock();
+				_host->render()->getCanvas()->onSurfaceReload(root, _scale, size);
 			} else {
 				_host->root()->onDisplayChange();
 			}
 		}
-		return false;
 	}
 
 	void Display::onRenderBackendDisplay() {
@@ -210,7 +210,6 @@ namespace qk {
 			return;
 		}
 		int64_t now_time = time_second();
-		// Qk_DEBUG("Display::render()");
 
 		if (now_time - _next_fsp_time >= 1) { // 1s
 			_fsp = _next_fsp;

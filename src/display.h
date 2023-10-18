@@ -94,13 +94,13 @@ namespace qk {
 		* @method push_clip_region
 		*/
 		void push_clip_region(Region value);
-		
+
 		/**
 		 * @thread render
 		 * @method pop_clip_region()
 		*/
 		void pop_clip_region();
-		
+
 		/**
 		* @method clip_region
 		*/
@@ -156,11 +156,6 @@ namespace qk {
 		}
 
 		/**
-		 * settings the display screen surface pixel region and size
-		 */
-		bool set_surface_region(RegionSize region, float defaultScale);
-
-		/**
 		 * @method default_atom_pixel
 		*/
 		static float default_atom_pixel();
@@ -190,10 +185,9 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(ViewRender*, view_render);
 
 	private:
-		void updateState(void *lock, Mat4 *mat, Vec2* scale);
+		Mat4 updateState();
 		void solveNextFrame();
-		bool onRenderBackendReload(Region region, Vec2 size,
-															 float defaultScale, Mat4 *mat, Vec2 *scale) override;
+		void onRenderBackendReload(Region region, Vec2 size, float defaultScale) override;
 		void onRenderBackendDisplay() override;
 
 		// member data

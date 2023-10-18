@@ -389,7 +389,7 @@ namespace qk {
 		: Render(opts)
 		, _IsSupportMultisampled(gl_is_support_multisampled())
 		, _texBuffer{0,0,0}
-		, _glCanvas(this, opts.doubleCmds)
+		, _glCanvas(this, opts)
 	{
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
@@ -482,11 +482,7 @@ namespace qk {
 
 	void GLRender::reload() {
 		auto size = getSurfaceSize();
-		Mat4 mat;
-		Vec2 surfaceScale;
-		if (_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale(), &mat, &surfaceScale))
-			return;
-		_glCanvas.onSurfaceReload(mat, surfaceScale, size);
+		_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale());
 	}
 
 	uint32_t GLRender::makeTexture(cPixel *src, uint32_t id) {

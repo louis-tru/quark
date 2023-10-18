@@ -62,7 +62,7 @@ extern QkApplicationDelegate* __appDelegate;
 	{
 		if( (self = [super initWithFrame:frameRect pixelFormat:nil]) ) {
 			_ctx = ctx;
-      _isStart = false;
+			_isStart = false;
 			_displayLink = nil;
 			_render = render;
 			[self setOpenGLContext:ctx];
@@ -72,7 +72,7 @@ extern QkApplicationDelegate* __appDelegate;
 
 	- (void) update {
 		_render->reload();
-    [super update];
+		[super update];
 	}
 
 	//-(void) reshape {}
@@ -97,7 +97,7 @@ extern QkApplicationDelegate* __appDelegate;
 				}
 			}, (__bridge void*)self, "renderDisplay");
 		}
-    [super prepareOpenGL];
+		[super prepareOpenGL];
 	}
 
 	- (void) renderDisplay {
@@ -204,28 +204,22 @@ public:
 
 	void reload() override {
 		auto size = getSurfaceSize();
-		Mat4 mat;
-		Vec2 surfaceScale;
-		if (!_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _defaultScale, &mat, &surfaceScale))
-			return;
-		CGLLockContext(_ctx.CGLContextObj);
-		_glCanvas.onSurfaceReload(mat, surfaceScale, size);
-		CGLUnlockContext(_ctx.CGLContextObj);
+		_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _defaultScale);
 	}
 
 	void begin() override {
-// #if !Qk_USE_GLC_CMD_QUEUE
+#if !Qk_USE_GLC_CMD_QUEUE
 		CGLLockContext(_ctx.CGLContextObj);
 		// bind frame buffer for main canvas
-		glBindFramebuffer(GL_FRAMEBUFFER, _glCanvas.getMainFBO());
-// #endif
+		glBindFramebuffer(GL_FRAMEBUFFER, _glCanvas.fbo());
+#endif
 	}
 
 	void submit() override {
-// #if Qk_USE_GLC_CMD_QUEUE
-// 		CGLLockContext(_ctx.CGLContextObj);
-// 		glBindFramebuffer(GL_FRAMEBUFFER, _glCanvas.getMainFBO());
-// #endif
+#if Qk_USE_GLC_CMD_QUEUE
+		CGLLockContext(_ctx.CGLContextObj);
+		glBindFramebuffer(GL_FRAMEBUFFER, _glCanvas.fbo());
+#endif
 		_glCanvas.flushBuffer(); // commit gl canvas cmd
 		// copy pixels to default color buffer
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

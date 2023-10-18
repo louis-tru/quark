@@ -28,16 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
-
 #ifndef __quark_render_canvas__
 #define __quark_render_canvas__
 
 #include "../util/util.h"
+#include "./font/font.h"
 #include "./pathv_cache.h"
 #include "./pixel.h"
 #include "./paint.h"
-#include "./font/font.h"
 
 namespace qk {
 
@@ -105,6 +103,11 @@ namespace qk {
 		*/
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float fontSize, const Paint& paint) = 0;
 		virtual PathvCache* gtePathvCache() = 0;
+
+		/**
+		 * @method onSurfaceReload() Surface params change reload
+		*/
+		virtual void onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size) = 0;
 
 	protected:
 		Canvas() = default;

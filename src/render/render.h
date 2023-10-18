@@ -28,16 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
-
 #ifndef __quark__render_render__
 #define __quark__render_render__
 
-#include "../util/json.h"
 #include "./math.h"
 #include "./source.h"
 #include "./canvas.h"
-#include "./font/pool.h"
 
 namespace qk {
 
@@ -55,8 +51,7 @@ namespace qk {
 		};
 		class Delegate {
 		public:
-			virtual bool onRenderBackendReload(Region region, Vec2 size,
-								float defaultScale, Mat4 *surfaceMat, Vec2* surfaceScale) = 0;
+			virtual void onRenderBackendReload(Region region, Vec2 size, float defaultScale) = 0;
 			virtual void onRenderBackendDisplay() = 0;
 		};
 
@@ -85,11 +80,11 @@ namespace qk {
 		virtual Vec2  getSurfaceSize() = 0;
 		virtual float getDefaultScale() = 0;
 		static  void  loadTexImage(ImageSource* s, cPixelInfo &i, uint32_t tex);
-		Options       _opts;
+		Options      _opts;
 		Canvas       *_canvas; // default canvas
 		Delegate     *_delegate;
-		Vec2          _surfaceSize; // current surface size
-		float         _defaultScale; // recommend default surface scale
+		Vec2         _surfaceSize; // current surface size
+		float        _defaultScale; // recommend default surface scale
 	};
 
 	typedef RenderBackend Render;
