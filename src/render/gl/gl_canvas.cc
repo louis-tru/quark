@@ -328,9 +328,8 @@ namespace qk {
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
 		glGenRenderbuffers(2, &_rbo); // _rbo,_depthBuffer
 
-		_opts.doubleCmds = _opts.doubleCmds && Qk_USE_GLC_CMD_QUEUE;
 		_cmdPack = new GLC_CmdPack(render, this);
-		_cmdPackFront = _opts.doubleCmds ? new GLC_CmdPack(render, this): _cmdPack;
+		_cmdPackFront = Qk_USE_GLC_CMD_QUEUE ? new GLC_CmdPack(render, this): _cmdPack;
 		setMatrix(_state->matrix); // init shader matrix
 	}
 
@@ -347,13 +346,13 @@ namespace qk {
 	}
 
 	void GLCanvas::swapBuffer() {
-		if (_opts.doubleCmds) {
-			_mutex.lock();
-			auto pack = _cmdPackFront;
-			_cmdPackFront = _cmdPack;
-			_cmdPack = pack;
-			_mutex.unlock();
-		}
+#if Qk_USE_GLC_CMD_QUEUE
+		_mutex.lock();
+		auto pack = _cmdPackFront;
+		_cmdPackFront = _cmdPack;
+		_cmdPack = pack;
+		_mutex.unlock();
+#endif
 	}
 
 	void GLCanvas::flushBuffer() { // only can rendering thread call
@@ -571,22 +570,38 @@ namespace qk {
 		_this->drawTextImage(*blob->image, blob->imageBound.y(), _fullScale * levelScale, origin, paint);
 	}
 
-	Sp<ImageSource> GLCanvas::readImage(const Rect &rect, ColorType type) {
-		auto o = rect.origin;
-		auto w = Float::min(o.x()+rect.size.x(), _size.x()) - o.x(),
-				 h = Float::min(o.y()+rect.size.y(), _size.y()) - o.y();
-		if (w > 0 && h > 0) {
-			Sp<ImageSource> src = new ImageSource({
-				int(w*_surfaceScale),int(h*_surfaceScale),type}, _render);
-			_cmdPack->readImage(rect, *src);
-			Qk_ReturnLocal(src);
+	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, bool genMipmap) {
+		auto o = src.origin;
+		auto s = Vec2{
+			Float::min(o.x()+src.size.x(), _size.x()) - o.x(),
+			Float::min(o.y()+src.size.y(), _size.y()) - o.y()
+		};
+		if (s[0] > 0 && s[1] > 0 && dest[0] > 0 && dest[1] > 0) {
+			Sp<ImageSource> img = new ImageSource({
+				int(Qk_MIN(dest.x(),_surfaceSize.x())),int(Qk_MIN(dest.y(),_surfaceSize.y())),type}, _render);
+			_cmdPack->readImage({{o*_surfaceScale},s*_surfaceScale}, *img, genMipmap);
+			Qk_ReturnLocal(img);
 		}
 		return nullptr;
 	}
 
+	void GLCanvas::flushCanvas(Canvas* canvas, const Rect &src, const Rect &dest) {
+#if Qk_USE_GLC_CMD_QUEUE
+		if (canvas == this || !canvas->isGpu()) return; // Not supported at the moment
+		if (static_cast<GLCanvas*>(canvas)->_render != _render) return;
+		auto srcC = static_cast<GLCanvas*>(canvas);
+		srcC->_mutex.lock();
+		auto srcCmd = srcC->_cmdPackFront;
+		srcC->_cmdPackFront = new GLC_CmdPack(_render, srcC);
+		srcC->_mutex.unlock();
+		auto ss = srcC->_surfaceScale, ds = _surfaceScale;
+		_cmdPack->flushCanvas(srcC, srcCmd, {src.origin*ss, src.size*ss}, {dest.origin*ds,dest.size*ds});
+#endif
+	}
+
 	// --------------------------------------------------------
 
-	void GLCanvas::onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size) {
+	void GLCanvas::setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) {
 		_mutex.lock();
 		_render->lock();
 
@@ -596,15 +611,15 @@ namespace qk {
 		_stencilRef = _stencilRefDecr = 127;
 		_isClipState = false; // clear clip state
 		// set surface scale
-		_surfaceSize = size;
-		_size = size / surfaceScale;
-		_surfaceScale = (surfaceScale[0] + surfaceScale[1]) * 0.5;
+		_surfaceSize = surfaceSize;
+		_size = surfaceSize / scale;
+		_surfaceScale = (scale[0] + scale[1]) * 0.5;
 		_scale = _state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2;
 		_fullScale = _surfaceScale * _scale;
 		_phy2Pixel = 2 / _fullScale;
 		_rootMatrix = root.transpose(); // transpose matrix
 
-		setBuffers(size); // set buffers
+		setBuffers(surfaceSize); // set buffers
 		// update shader root matrix and clear all save state
 		glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _rootMatrix.val, GL_STREAM_DRAW);
@@ -673,6 +688,10 @@ namespace qk {
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
+	}
+
+	bool GLCanvas::isGpu() {
+		return true;
 	}
 
 }

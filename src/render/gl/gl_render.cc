@@ -328,6 +328,16 @@ namespace qk {
 		return version.indexOf("Metal") >= 0; // test apple metal
 	}
 
+	void gl_TexImage2D(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
+		// glTexStorage2D(GL_TEXTURE_2D, 1, iformat, size[0], size[1]);
+		glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat, size[0], size[1], 0, iformat, type, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // range: 0 - 1, no repeat
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
+
 	void gl_setFramebufferRenderbuffer(GLuint buff, Vec2 size, GLenum iformat, GLenum attachment, int msaaSample) {
 		glBindRenderbuffer(GL_RENDERBUFFER, buff);
 		msaaSample > 1 ?
@@ -347,16 +357,6 @@ namespace qk {
 			default: ifo = GL_RGBA8; break;
 		}
 		gl_setFramebufferRenderbuffer(buff, size, ifo, GL_COLOR_ATTACHMENT0, msaaSample);
-	}
-
-	void gl_TexImage2D(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
-		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
-		// glTexStorage2D(GL_TEXTURE_2D, 1, iformat, size[0], size[1]);
-		glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat, size[0], size[1], 0, iformat, type, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // range: 0 - 1, no repeat
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
 	void gl_setAAClipBuffer(GLuint tex, Vec2 size, int msaaSample) {
@@ -405,6 +405,7 @@ namespace qk {
 			_opts.msaa = 0;
 		}
 		_canvas = &_glCanvas; // set default canvas
+		_glCanvas.retain(); // retain
 
 		glGenFramebuffers(1, &_frameBuffer);
 		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
@@ -539,5 +540,9 @@ namespace qk {
 
 	void GLRender::lock() {}
 	void GLRender::unlock() {}
+
+	Sp<Canvas> GLRender::newCanvas(Options opts) {
+		return new GLCanvas(this, opts);
+	}
 
 }

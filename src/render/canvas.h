@@ -42,7 +42,7 @@ namespace qk {
 	/**
 	 * @class Canvas base abstract type, define all draw apis
 	 */
-	class Qk_EXPORT Canvas: public Object {
+	class Qk_EXPORT Canvas: public Reference {
 		Qk_HIDDEN_ALL_COPY(Canvas);
 	public:
 		enum ClipOp {
@@ -93,25 +93,41 @@ namespace qk {
 		/**
 		 * Return an image source does not plunger threads
 		*/
-		virtual Sp<ImageSource> readImage(const Rect &rect, ColorType type) = 0; // async read image
-		/**
-		 * swap draw commands buffer, if there are multiple command queues
-		*/
-		virtual void swapBuffer() = 0;
+		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool genMipmap) = 0; // async read image
+
 		/**
 		 * @dev drawTextBlob() Draw with text baseline aligned
 		*/
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float fontSize, const Paint& paint) = 0;
+
+		/**
+		 * return is gpu implement
+		*/
+		virtual bool isGpu();
+
+		/**
+		 * swap draw commands buffer, if there are multiple command queues
+		*/
+		virtual void swapBuffer() = 0;
+
+		/**
+		 * @method gtePathvCache() Returns pathv cache object
+		*/
 		virtual PathvCache* gtePathvCache() = 0;
 
 		/**
-		 * @method onSurfaceReload() Surface params change reload
+		 * @method setSurface() Surface params change reload
 		 * 
 		 * Note that it is not thread safe and must be used in the same thread as the drawing method
 		 * 
 		 * or have protective measures shown
 		*/
-		virtual void onSurfaceReload(const Mat4& root, Vec2 surfaceScale, Vec2 size) = 0;
+		virtual void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) = 0;
+
+		/**
+		 * flush sub canvas and draw to current canvas
+		*/
+		virtual void flushCanvas(Canvas* srcC, const Rect &src, const Rect &dest) = 0;
 
 	protected:
 		Canvas() = default;

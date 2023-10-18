@@ -61,6 +61,7 @@ namespace qk {
 			kFramebufferRenderbuffer_CmdType,
 			kFramebufferTexture2D_CmdType,
 			kReadImage_CmdType,
+			kFlushCanvas_CmdType,
 		};
 
 		struct Cmd { // Cmd list
@@ -151,7 +152,7 @@ namespace qk {
 				float        depth; // depth
 				Mat          matrix; // 2d mat2x3
 				Color4f      color;  // color
-			};
+			}; // 48b
 			Vec4           *vertex; // vertex + option index
 			Option         *opts;  // subcmd option
 			uint32_t       vCount; // vertex count
@@ -160,8 +161,18 @@ namespace qk {
 		};
 
 		struct ReadImageCmd: Cmd {
-			Rect            rect;
+			Rect            src;
 			Sp<ImageSource> img;
+			bool            genMipmap;
+		};
+
+		struct FlushCanvasCmd: Cmd {
+			GLCanvas        *srcC;
+			GLC_CmdPack     *srcCmd;
+			Rect            src,dest;
+			Mat4            root;
+			Mat             mat;
+			BlendMode       mode;
 		};
 
 		struct FramebufferRenderbufferCmd: Cmd {
@@ -192,7 +203,8 @@ namespace qk {
 		int  blurFilterEnd(Region bounds, float size);
 		void glFramebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb);
 		void glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level);
-		void readImage(const Rect &rect, ImageSource* img);
+		void readImage(const Rect &rect, ImageSource* img, bool genMipmap);
+		void flushCanvas(GLCanvas* that, GLC_CmdPack* thatCmd, const Rect &src, const Rect &dest);
 
 	private:
 		typedef MultiColorCmd::Option MCOpt;

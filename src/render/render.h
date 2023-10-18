@@ -47,7 +47,6 @@ namespace qk {
 			ColorType   colorType;
 			uint16_t    msaa; // gpu msaa
 			uint16_t    fps; // if fps is 0 then use vSync, else limit fps value
-			bool        doubleCmds; // double cmds queue
 		};
 		class Delegate {
 		public:
@@ -69,6 +68,7 @@ namespace qk {
 		virtual void    deleteTextures(const uint32_t *ids, uint32_t count) = 0;
 		virtual void    makeVertexData(VertexData::ID *id) = 0;
 		virtual void    deleteVertexData(VertexData::ID *id) = 0;
+		virtual Sp<Canvas> newCanvas(Options opts) = 0;
 
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;

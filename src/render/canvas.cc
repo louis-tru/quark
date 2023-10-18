@@ -61,6 +61,10 @@ namespace qk {
 		drawPath(Path::MakeCircle(center, radius), paint);
 	}
 
+	bool Canvas::isGpu() {
+		return false;
+	}
+
 	// ---------------------------------------------------------------------
 
 	float get_level_font_size(float fontSize) {

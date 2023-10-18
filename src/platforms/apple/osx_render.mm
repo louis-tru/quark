@@ -54,7 +54,6 @@ class AppleGLRender;
 @property (assign, nonatomic) qk::ThreadID renderThreadId;
 - (id) init:(CGRect)frameRect
 		context:(NSOpenGLContext*)ctx render:(AppleGLRender*)r;
-- (void) renderDisplay;
 - (void) stopDisplay;
 @end
 
@@ -152,8 +151,10 @@ public:
 			_glCanvas.flushBuffer(); // commit gl canvas cmd
 			// copy pixels to default color buffer
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-			auto w = _surfaceSize.x(), h = _surfaceSize.y();
-			glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			auto src = _glCanvas.surfaceSize();
+			auto dest = _surfaceSize;
+			glBlitFramebuffer(0, 0, src[0], src[1],
+				0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, src == dest ? GL_NEAREST: GL_LINEAR);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glCanvas.fbo()); // bind frame buffer for main canvas
 			// flush gl buffer
 			glFlush(); // glFinish, glFenceSync, glWaitSync
@@ -174,7 +175,7 @@ public:
 		_view.wantsLayer = YES; // Enable layer-backed drawing of view
 
 		[_ctx makeCurrentContext];
-		_ctx.view = _view;
+		//_ctx.view = _view;
 		//[_ctx setFullScreen];
 
 		GLint swapInterval = 1; // enable vsync
@@ -250,13 +251,6 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 	return kCVReturnSuccess;
 }
 
--(void) stopDisplay {
-	if (_render->options().fps == 0) {
-		CVDisplayLinkStop(_displayLink);
-	} else {}
-	_renderThreadId = qk::ThreadID();
-}
-
 - (void) renderDisplay {
 	if (!_isStart) {
 		_isStart = true;
@@ -265,6 +259,14 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 	}
 	_render->renderDisplay();
 }
+
+-(void) stopDisplay {
+	if (_render->options().fps == 0) {
+		CVDisplayLinkStop(_displayLink);
+	} else {}
+	_renderThreadId = qk::ThreadID();
+}
+
 @end
 
 // ----------------------------------------------------------------------------------------------
