@@ -50,7 +50,7 @@ namespace qk {
 		void         setBlendMode(BlendMode mode);
 		virtual void lock(); // lock render
 		virtual void unlock(); // unlock render
-		virtual Sp<Canvas> newCanvas(Options opts) override;
+		virtual Canvas* newCanvas(Options opts) override;
 
 	protected:
 		GLRender(Options opts);

@@ -68,7 +68,7 @@ namespace qk {
 		virtual void    deleteTextures(const uint32_t *ids, uint32_t count) = 0;
 		virtual void    makeVertexData(VertexData::ID *id) = 0;
 		virtual void    deleteVertexData(VertexData::ID *id) = 0;
-		virtual Sp<Canvas> newCanvas(Options opts) = 0;
+		virtual Canvas* newCanvas(Options opts) = 0;
 
 		// @overwrite class PostMessage
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;

@@ -541,7 +541,7 @@ namespace qk {
 	void GLRender::lock() {}
 	void GLRender::unlock() {}
 
-	Sp<Canvas> GLRender::newCanvas(Options opts) {
+	Canvas* GLRender::newCanvas(Options opts) {
 		return new GLCanvas(this, opts);
 	}
 
