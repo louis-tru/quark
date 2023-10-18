@@ -323,14 +323,8 @@ namespace qk {
 		, _isClipState(false)
 		, _DeviceMsaa(0)
 	{
-		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
-		glGenFramebuffers(1, &_fbo); // _fbo
-		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-		glGenRenderbuffers(2, &_rbo); // _rbo,_depthBuffer
-
 		_cmdPack = new GLC_CmdPack(render, this);
 		_cmdPackFront = Qk_USE_GLC_CMD_QUEUE ? new GLC_CmdPack(render, this): _cmdPack;
-		setMatrix(_state->matrix); // init shader matrix
 	}
 
 	GLCanvas::~GLCanvas() {
@@ -643,6 +637,15 @@ namespace qk {
 
 		Qk_ASSERT(w, "Invalid viewport size width");
 		Qk_ASSERT(h, "Invalid viewport size height");
+
+		if (!_fbo) {
+			// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
+			glGenFramebuffers(1, &_fbo); // _fbo
+			// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
+			glGenRenderbuffers(2, &_rbo); // _rbo,_depthBuffer
+			// init matrix buffer
+			_cmdPack->setMetrix();
+		}
 
 		glViewport(0, 0, w, h);
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
