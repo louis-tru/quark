@@ -49,6 +49,13 @@ namespace qk {
 	extern const float  aa_fuzz_width = 0.6;
 	extern const float  DepthNextUnit = 0.000000125f; // 1/8000000
 
+	class GLPathvCache: public PathvCache {
+	public:
+		void swapClear() {
+			clearUnsafe(0/*max limit clear*/);
+		}
+	};
+
 	class GLCFilter {
 	public:
 		typedef NonObjectTraits Traits;
@@ -310,7 +317,7 @@ namespace qk {
 		: _render(render)
 		, _stateStack{{ .matrix=Mat(), .aaclip=0 }}
 		, _state(&_stateStack.back())
-		, _cache(new PathvCache(render))
+		, _cache(nullptr)
 		, _fbo(0), _rbo(0), _depthBuffer(0), _stencilBuffer(0)
 		, _aaclipTex(0)
 		, _blurTex(0)
@@ -323,20 +330,31 @@ namespace qk {
 		, _isClipState(false)
 		, _DeviceMsaa(0)
 	{
+		auto capacity = opts.maxCapacityForPathvCache ?
+			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
+		_cache = new PathvCache(Uint32::clamp(capacity, 1024000/*1mb*/, 512000000/*512mb*/), render, this);
 		_cmdPack = new GLC_CmdPack(render, this);
 		_cmdPackFront = Qk_USE_GLC_CMD_QUEUE ? new GLC_CmdPack(render, this): _cmdPack;
 	}
 
 	GLCanvas::~GLCanvas() {
-		delete _cmdPack;
+		GLuint fbo = _fbo,
+					rbo[] = { _rbo, _depthBuffer, _stencilBuffer },
+					tex[] = { _aaclipTex, _blurTex};
+		_render->post_message(Cb([fbo,rbo,tex](auto &e) {
+			glDeleteFramebuffers(1, &fbo);
+			glDeleteRenderbuffers(3, rbo);
+			glDeleteTextures(2, tex);
+		}));
+
+		_mutex.lock();
 		if (_cmdPack != _cmdPackFront)
 			delete _cmdPackFront;
+		delete _cmdPack;
 		_cmdPack = _cmdPackFront = nullptr;
-		Release(_cache); _cache = nullptr;
+		_mutex.unlock();
 
-		glDeleteFramebuffers(1, &_fbo); // _fbo
-		glDeleteRenderbuffers(3, &_rbo); // _rbo,_depthBuffer,_stencilBuffer
-		glDeleteTextures(2, &_aaclipTex); // _aaclipTex, _blurTex
+		Release(_cache); _cache = nullptr;
 	}
 
 	void GLCanvas::swapBuffer() {
@@ -345,6 +363,7 @@ namespace qk {
 		auto pack = _cmdPackFront;
 		_cmdPackFront = _cmdPack;
 		_cmdPack = pack;
+		static_cast<GLPathvCache*>(_cache)->swapClear();
 		_mutex.unlock();
 #endif
 	}
@@ -488,7 +507,8 @@ namespace qk {
 	}
 
 	void GLCanvas::drawRRectBlurColor(const Rect& rect,
-		const float radius[4], float blur, const Color4f &color, BlendMode mode) {
+		const float radius[4], float blur, const Color4f &color, BlendMode mode) 
+	{
 		if (!rect.size.is_zero_axis()) {
 			_this->setBlendMode(mode); // switch blend mode
 			_cmdPack->drawRRectBlurColor(rect, radius, blur, color);
@@ -596,8 +616,8 @@ namespace qk {
 	// --------------------------------------------------------
 
 	void GLCanvas::setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) {
-		_mutex.lock();
 		_render->lock();
+		_mutex.lock();
 
 		// clear state all
 		_stateStack = {{ .matrix=Mat(), .aaclip=0 }}; // init state
@@ -626,14 +646,14 @@ namespace qk {
 			glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
 			glDisable(GL_STENCIL_TEST); // disable stencil test
 		}
-		_render->unlock();
 		_mutex.unlock();
+		_render->unlock();
 	}
 
 	void GLCanvas::setBuffers(Vec2 size) {
 		auto w = size.x(), h = size.y();
 		auto type = _opts.colorType;
-		auto msaa = _opts.msaa;
+		auto msaa = _opts.msaaSample;
 
 		Qk_ASSERT(w, "Invalid viewport size width");
 		Qk_ASSERT(h, "Invalid viewport size height");
@@ -697,4 +717,11 @@ namespace qk {
 		return true;
 	}
 
+	void GLCanvas::lock() {
+		_mutex.lock();
+	}
+
+	void GLCanvas::unlock() {
+		_mutex.unlock();
+	}
 }

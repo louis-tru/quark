@@ -155,13 +155,13 @@ namespace qk {
 	 * @method unload() delete load and ready
 	 */
 	void ImageSource::unload() {
-		_loop->post(Cb([this](auto& e) {
+		_loop->post(Cb([this](auto &e) {
 			_Unload(false);
 			Qk_Trigger(State, _state);
 		}, this));
 	}
 
-	void ImageSource::_Unload(bool isDestroy) {
+	void ImageSource::_Unload(bool destroy) {
 		_state = State( _state & ~(kSTATE_LOADING | kSTATE_LOAD_COMPLETE) );
 
 		if (_loadId) {
@@ -171,7 +171,7 @@ namespace qk {
 		if (_render) { // as texture, Must be processed in the rendering thread
 			auto render = _render;
 
-			if (isDestroy) {
+			if (destroy) {
 				Array<uint32_t> ids; // copy ids
 				for (auto &i: _pixels) {
 					if (i._texture)
@@ -287,9 +287,11 @@ namespace qk {
 	}
 
 	ImageSourcePool::~ImageSourcePool() {
+		_Mutex.lock();
 		for (auto& it: _sources) {
 			it.value.source->Qk_Off(State, &ImageSourcePool::handleSourceState, this);
 		}
+		_Mutex.unlock();
 	}
 
 	ImageSource* ImageSourcePool::get(cString& uri) {

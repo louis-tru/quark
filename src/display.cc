@@ -192,6 +192,7 @@ namespace qk {
 				_surface_region = { region.origin, region.end, size };
 				_default_scale = defaultScale;
 				updateState();
+				lock.unlock(); // Unlock cycle lock
 				_host->render()->getCanvas()->setSurface(_surfaceMat, size, _scale);
 			} else {
 				_host->root()->onDisplayChange();

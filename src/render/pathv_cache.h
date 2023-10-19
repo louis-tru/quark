@@ -36,6 +36,7 @@
 namespace qk
 {
 	class RenderBackend;
+	class Canvas;
 	class PathvCache;
 	struct VertexData::ID {
 		PathvCache  *host;
@@ -48,12 +49,18 @@ namespace qk
 		Qk_HIDDEN_ALL_COPY(PathvCache);
 	public:
 		template<class T, int N = 1>
-		struct GpuBuffer {
+		struct Wrap {
 			T              base;
 			VertexData::ID id[N];
 		};
 
-		PathvCache(RenderBackend *render);
+		class ClearSync {
+		public:
+			virtual void lock() = 0;
+			virtual void unlock() = 0;
+		};
+
+		PathvCache(uint32_t maxCapacity, RenderBackend *render, ClearSync *lock);
 		~PathvCache();
 
 		/**
@@ -126,33 +133,35 @@ namespace qk
 		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]);
 
 		/**
+		 * Setting and use gpu vertex data
 		 * @dev If the incoming data belongs to the self updated data to the GPU, and update the id
 		 * @note that this function can only be called on the rendering thread
 		 * @returns {bool} Returns true if data is successfully set to GPU
 		 * @thread gpu render thread
 		*/
-		bool setGpuBufferData(const VertexData::ID *vertexInThisCache);
-
-		/**
-		 * @dev Called by the system when memory is low
-		*/
-		void onLowMemoryWarning();
+		bool makeVertexData(const VertexData::ID *vertexInThis);
 
 		/**
 		 * @dev clear cache data
 		 * @note Must be called in a worker thread,
 		 *  these methods are called on the same thread as `getRRectOutlinePath()`
+		 *  or displayed thread mutual exclusion measures
 		*/
 		void clear(bool all = false);
 
-	private:
-		bool          _lowMemoryWarning;
+	protected:
+		void clearUnsafe(int flags);
+		void clearAll();
+		void clearPart(uint32_t capacity);
 		RenderBackend *_render;
+		ClearSync     *_sync;
+		uint32_t      _capacity;
+		uint32_t      _maxCapacity;
 		Dict<uint64_t, Path*> _NormalizedPathCache, _StrokePathCache; // path hash => path
-		Dict<uint64_t, GpuBuffer<VertexData>*> _PathTrianglesCache; // path hash => triangles
-		Dict<uint64_t, GpuBuffer<VertexData>*> _AAFuzzStrokeTriangleCache; // path hash => aa fuzz stroke triangles
-		Dict<uint64_t, GpuBuffer<RectPath>*> _RectPathCache; // rect hash => rect path
-		Dict<uint64_t, GpuBuffer<RectOutlinePath,4>*> _RectOutlinePathCache; // rect hash => rect outline path
+		Dict<uint64_t, Wrap<VertexData>*> _PathTrianglesCache; // path hash => triangles
+		Dict<uint64_t, Wrap<VertexData>*> _AAFuzzStrokeTriangleCache; // path hash => aa fuzz stroke triangles
+		Dict<uint64_t, Wrap<RectPath>*> _RectPathCache; // rect hash => rect path
+		Dict<uint64_t, Wrap<RectOutlinePath,4>*> _RectOutlinePathCache; // rect hash => rect outline path
 	};
 
 } // namespace qk

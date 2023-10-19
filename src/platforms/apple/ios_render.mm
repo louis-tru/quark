@@ -48,35 +48,35 @@ extern QkApplicationDelegate *__appDelegate;
 
 @implementation GLView
 
-	+ (Class) layerClass {
-		return CAEAGLLayer.class;
-	}
++ (Class) layerClass {
+	return CAEAGLLayer.class;
+}
 
-	- (id) initWithFrame:(CGRect)frame {
-		self = [super initWithFrame:frame];
-		if (self) {
-			_displayLink = [CADisplayLink displayLinkWithTarget:self
-																									selector:@selector(display:)];
-			[_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
-													forMode:NSDefaultRunLoopMode];
-		}
-		return self;
+- (id) initWithFrame:(CGRect)frame {
+	self = [super initWithFrame:frame];
+	if (self) {
+		_displayLink = [CADisplayLink displayLinkWithTarget:self
+																								selector:@selector(display:)];
+		[_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
+												forMode:NSDefaultRunLoopMode];
 	}
+	return self;
+}
 
-	- (void) display:(CADisplayLink*)displayLink {
-		static int _fps = 0;
-		if (_fps == 0) { // 3 = 15, 1 = 30
-			Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 2");
-			self.render->delegate()->onRenderBackendDisplay();
-			_fps = 0;
-		} else {
-			_fps++;
-		}
+- (void) display:(CADisplayLink*)displayLink {
+	static int _fps = 0;
+	if (_fps == 0) { // 3 = 15, 1 = 30
+		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 2");
+		self.render->delegate()->onRenderBackendDisplay();
+		_fps = 0;
+	} else {
+		_fps++;
 	}
+}
 
-	- (void) stopDisplay {
-		[_displayLink removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-	}
+- (void) stopDisplay {
+	[_displayLink removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+}
 
 @end
 
@@ -89,6 +89,20 @@ public:
 	~AppleGLRender() {
 		[_view stopDisplay];
 		[EAGLContext setCurrentContext:nullptr];
+	}
+
+	uint32_t post_message(Cb cb, uint64_t delay_us) override {
+		auto main = dispatch_get_main_queue();
+		if (main == dispatch_get_current_queue()) {
+			cb->resolve();
+		} else {
+			auto core = cb.Handle::collapse();
+			dispatch_async(main, ^{
+				core->resolve();
+				core->release();
+			});
+		}
+		return 0;
 	}
 
 	Vec2 getSurfaceSize() override {

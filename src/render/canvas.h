@@ -49,6 +49,7 @@ namespace qk {
 			kDifference_ClipOp,
 			kIntersect_ClipOp,
 		};
+
 		struct TextBlob {
 			Sp<Typeface>    typeface;
 			Array<GlyphID>  glyphs;
@@ -59,6 +60,7 @@ namespace qk {
 			Vec2            imageBound; // image bound cache
 			// -------------------------------------------
 		};
+
 		virtual int  save() = 0;
 		virtual void restore(uint32_t count = 1) = 0;
 		virtual int  getSaveCount() const = 0;
@@ -67,10 +69,6 @@ namespace qk {
 		virtual void translate(float x, float y) = 0;
 		virtual void scale(float x, float y) = 0;
 		virtual void rotate(float z) = 0; // arc rotation
-		/**
-		 * @method readPixels() sync read pixels caution use
-		*/
-		virtual bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) = 0;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) = 0;
 		virtual void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) = 0;
 		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias);
@@ -79,17 +77,23 @@ namespace qk {
 		virtual void drawPath(const Path& path, const Paint& paint) = 0;
 		virtual void drawPathv(const Pathv& path, const Paint& paint) = 0;
 		virtual void drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode);
+		virtual void drawRect(const Rect& rect, const Paint& paint);
+		virtual void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint);
+		virtual void drawOval(const Rect& oval, const Paint& paint);
+		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
+		virtual float drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint& paint) = 0;
+
 		/**
 		 * Optimized rounded rect blur color drawing command
 		*/
 		virtual void drawRRectBlurColor(const Rect& rect,
 			const float radius[4], float blur, const Color4f &color, BlendMode mode) = 0;
-		virtual void drawRect(const Rect& rect, const Paint& paint);
-		virtual void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint);
-		virtual void drawOval(const Rect& oval, const Paint& paint);
-		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
-		virtual float drawGlyphs(const FontGlyphs &glyphs,
-			Vec2 origin, const Array<Vec2> *offset, const Paint& paint) = 0;
+
+		/**
+		 * @method readPixels() sync read pixels caution use
+		*/
+		virtual bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) = 0;
+
 		/**
 		 * Return an image source does not plunger threads
 		*/
@@ -120,7 +124,7 @@ namespace qk {
 		 * 
 		 * Note that it is not thread safe and must be used in the same thread as the drawing method
 		 * 
-		 * or have protective measures shown
+		 * or displayed thread mutual exclusion measures
 		*/
 		virtual void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) = 0;
 

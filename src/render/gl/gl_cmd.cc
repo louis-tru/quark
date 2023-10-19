@@ -314,7 +314,7 @@ namespace qk {
 		//  ---------------------------------- call gl cmd ----------------------------------
 
 		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
-			if (_cache->setGpuBufferData(vertex.id)) {
+			if (_cache->makeVertexData(vertex.id)) {
 				glBindVertexArray(vertex.id->vao); // use vao
 				glUseProgram(shader->shader); // use shader program
 			} else {
@@ -655,8 +655,7 @@ namespace qk {
 
 		void flushCanvasCall(GLCanvas* srcC,
 			GLC_CmdPack* srcCmd, const Rect &src, const Rect &dest,
-			const Mat4 &root, const Mat &mat, BlendMode mode,
-			const Mat4 &curRoot, const Mat &curMat
+			const Mat4 &root, const Mat &mat, BlendMode mode, const Mat4 &curRoot, const Mat &curMat
 		) {
 			if (srcCmd->cmds.blocks[0].size > sizeof(Cmd)) {
 				auto chPort = srcC->_surfaceSize != _canvas->_surfaceSize;
@@ -700,7 +699,7 @@ namespace qk {
 	}
 
 	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
-		: _render(render), _canvas(canvas), _cache(canvas->_cache)
+		: _render(render), _canvas(canvas), _cache(canvas->gtePathvCache())
 		, lastCmd(nullptr), _chMatrix(true)
 	{
 #if Qk_USE_GLC_CMD_QUEUE

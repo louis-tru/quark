@@ -173,9 +173,9 @@ namespace qk {
 	}
 
 	void Application::clear(bool all) {
-		_render->post_message(Cb([this, all](Cb::Data& e){
-			_img_pool->clear(all);
-		}));
+		UILock(this);
+		_img_pool->clear(all);
+		_render->getCanvas()->gtePathvCache()->clear(all);
 	}
 
 	uint64_t Application::max_image_memory_limit() const {

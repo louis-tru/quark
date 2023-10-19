@@ -35,29 +35,41 @@ namespace qk {
 
 	template<>
 	void Dict<uint64_t, Path*, Compare<uint64_t>, MemoryAllocator>::
-	erase(IteratorConst f, IteratorConst e) {
+	clear() {
+		MemoryAllocator::free(_nodes);
+		_nodes = nullptr;
+		_length = 0;
+		_capacity = 0;
 	}
 	template<>
-	void Dict<uint64_t, PathvCache::GpuBuffer<VertexData>*, Compare<uint64_t>, MemoryAllocator>::
-	erase(IteratorConst f, IteratorConst e) {
+	void Dict<uint64_t, PathvCache::Wrap<VertexData>*, Compare<uint64_t>, MemoryAllocator>::
+	clear() {
+		MemoryAllocator::free(_nodes);
+		_nodes = nullptr;
+		_length = 0;
+		_capacity = 0;
 	}
 	template<>
-	void Dict<uint64_t, PathvCache::GpuBuffer<RectPath>*, Compare<uint64_t>, MemoryAllocator>::
-	erase(IteratorConst f, IteratorConst e) {
+	void Dict<uint64_t, PathvCache::Wrap<RectPath>*, Compare<uint64_t>, MemoryAllocator>::
+	clear() {
+		MemoryAllocator::free(_nodes);
+		_nodes = nullptr;
+		_length = 0;
+		_capacity = 0;
 	}
 	template<>
-	void Dict<uint64_t, PathvCache::GpuBuffer<RectOutlinePath,4>*, Compare<uint64_t>, MemoryAllocator>::
-	erase(IteratorConst f, IteratorConst e) {
+	void Dict<uint64_t, PathvCache::Wrap<RectOutlinePath,4>*, Compare<uint64_t>, MemoryAllocator>::
+	clear() {
+		MemoryAllocator::free(_nodes);
+		_nodes = nullptr;
+		_length = 0;
+		_capacity = 0;
 	}
 
-	PathvCache::PathvCache(RenderBackend *render): _render(render), _lowMemoryWarning(false) {}
+	PathvCache::PathvCache(uint32_t maxCapacity, RenderBackend *render, ClearSync *sync)
+		: _render(render), _sync(sync), _capacity(0), _maxCapacity(maxCapacity) {}
 	PathvCache::~PathvCache() {
-		Qk_STRICT_ASSERT(_NormalizedPathCache.length() == 0);
-		Qk_STRICT_ASSERT(_StrokePathCache.length() == 0);
-		Qk_STRICT_ASSERT(_PathTrianglesCache.length() == 0);
-		Qk_STRICT_ASSERT(_AAFuzzStrokeTriangleCache.length() == 0);
-		Qk_STRICT_ASSERT(_RectPathCache.length() == 0);
-		Qk_STRICT_ASSERT(_RectOutlinePathCache.length() == 0);
+		clear(true);
 	}
 
 	const Path& PathvCache::getNormalizedPath(const Path &path) {
@@ -65,8 +77,9 @@ namespace qk {
 		auto hash = path.hashCode();
 		Path *const *out;
 		if (_NormalizedPathCache.get(hash, out)) return **out;
-		// if (_NormalizedPathCache.length() >= 1024) _NormalizedPathCache.clear(); // TODO ... release data
-		return *_NormalizedPathCache.set(hash, new Path(path.normalizedPath(1)));
+		auto p = new Path(path.normalizedPath(1));
+		_capacity += p->ptsLen() * sizeof(Vec2);
+		return *_NormalizedPathCache.set(hash, p);
 	}
 
 	const Path& PathvCache::getStrokePath(
@@ -77,21 +90,20 @@ namespace qk {
 		hash += (hash << 5) + hash_part + ((cap << 2) | join);
 		Path *const*out;
 		if (_StrokePathCache.get(hash, out)) return **out;
-		// if (_StrokePathCache.length() >= 1024) _StrokePathCache.clear(); // TODO ... release data
 		auto stroke = path.strokePath(width,cap,join,miterLimit);
-		return *_StrokePathCache.set(hash,
-			new Path(stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath(1))
-		);
+		auto p = new Path(stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath(1));
+		_capacity += p->ptsLen() * sizeof(Vec2);
+		return *_StrokePathCache.set(hash, p);
 	}
 
 	const VertexData& PathvCache::getPathTriangles(const Path &path) {
 		auto hash = path.hashCode();
-		GpuBuffer<VertexData> *const*out;
+		Wrap<VertexData> *const*out;
 		if (_PathTrianglesCache.get(hash, out)) return (*out)->base;
-		// if (_PathTrianglesCache.length() >= 1024) _PathTrianglesCache.clear(); // TODO ... release data
-		auto gb = new GpuBuffer<VertexData>{path.getTriangles(1),{{this,0,0,0}}};
+		auto gb = new Wrap<VertexData>{path.getTriangles(1),{{this,0,0,0}}};
 		gb->base.id = gb->id;
 		gb->id->self = &gb->base;
+		_capacity += gb->base.vCount * sizeof(Vec3);
 		return _PathTrianglesCache.set(hash, gb)->base;
 	}
 
@@ -99,26 +111,25 @@ namespace qk {
 		auto hash = path.hashCode();
 		hash += (hash << 5) + *(int32_t*)&width;
 		//Qk_DEBUG("getAAFuzzTriangle, %lu", hash);
-		GpuBuffer<VertexData> *const *out;
+		Wrap<VertexData> *const *out;
 		if (_AAFuzzStrokeTriangleCache.get(hash, out)) return (*out)->base;
-		// if (_AAFuzzStrokeTriangleCache.length() >= 1024) _AAFuzzStrokeTriangleCache.clear();// TODO ... release data
-		auto gb = new GpuBuffer<VertexData>{path.getAAFuzzStrokeTriangle(width, 1),{{this,0,0,0}}};
+		auto gb = new Wrap<VertexData>{path.getAAFuzzStrokeTriangle(width, 1),{{this,0,0,0}}};
 		gb->base.id = gb->id;
 		gb->id->self = &gb->base;
+		_capacity += gb->base.vCount * sizeof(Vec3);
 		return _AAFuzzStrokeTriangleCache.set(hash, gb)->base;
 	}
 
 	const RectPath& PathvCache::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
-		// if (_RectPathCache.length() >= 1024) _RectPathCache.clear(); // TODO ... release data
-		auto gb = new GpuBuffer<RectPath>{std::move(rect),{{this,0,0,0}}};
+		auto gb = new Wrap<RectPath>{std::move(rect),{{this,0,0,0}}};
 		gb->base.id = gb->id;
 		gb->id->self = &gb->base;
+		_capacity += gb->base.vCount * sizeof(Vec3);
 		return _RectPathCache.set(hash, gb)->base;
 	}
 
 	const RectOutlinePath& PathvCache::setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline) {
-		// if (_RectOutlinePathCache.length() >= 1024) _RectPathCache.clear(); // TODO ... release data
-		auto gb = new GpuBuffer<RectOutlinePath,4>{std::move(outline),{{this,0,0,0},{this,0,0,0},{this,0,0,0},{this,0,0,0}}};
+		auto gb = new Wrap<RectOutlinePath,4>{std::move(outline),{{this,0,0,0},{this,0,0,0},{this,0,0,0},{this,0,0,0}}};
 		gb->base.top.id = gb->id;
 		gb->base.right.id = gb->id+1;
 		gb->base.bottom.id = gb->id+2;
@@ -127,17 +138,21 @@ namespace qk {
 		gb->id[1].self = &gb->base.right;
 		gb->id[2].self = &gb->base.bottom;
 		gb->id[3].self = &gb->base.left;
+		_capacity += (
+			gb->base.top.vCount +
+			gb->base.right.vCount +
+			gb->base.bottom.vCount + gb->base.left.vCount) * sizeof(Vec3);
 		return _RectOutlinePathCache.set(hash, gb)->base;
 	}
 
 	const RectPath* PathvCache::getRRectPathFromHash(uint64_t hash) {
-		GpuBuffer<RectPath> *const *out;
+		Wrap<RectPath> *const *out;
 		if (_RectPathCache.get(hash, out)) return &(*out)->base;
 		return nullptr;
 	}
 
 	const RectOutlinePath* PathvCache::getRRectOutlinePathFromHash(uint64_t hash) {
-		GpuBuffer<RectOutlinePath,4> *const *out;
+		Wrap<RectOutlinePath,4> *const *out;
 		if (_RectOutlinePathCache.get(hash, out)) return &(*out)->base;
 		return nullptr;
 	}
@@ -145,7 +160,7 @@ namespace qk {
 	const RectPath& PathvCache::getRectPath(const Rect &rect) {
 		Hash5381 hash;
 		hash.updatefv4(rect.origin.val);
-		GpuBuffer<RectPath> *const *out;
+		Wrap<RectPath> *const *out;
 		if (_RectPathCache.get(hash.hashCode(), out)) return (*out)->base;
 		return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 	}
@@ -155,7 +170,7 @@ namespace qk {
 		hash.updatefv4(rect.origin.val);
 		hash.updatefv4(radius.leftTop.val);
 		hash.updatefv4(radius.rightBottom.val);
-		GpuBuffer<RectPath> *const *out;
+		Wrap<RectPath> *const *out;
 		if (_RectPathCache.get(hash.hashCode(), out)) return (*out)->base;
 		return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, radius));
 	}
@@ -164,7 +179,7 @@ namespace qk {
 		Hash5381 hash;
 		hash.updatefv4(rect.origin.val);
 		hash.updatefv4(radius);
-		GpuBuffer<RectPath> *const *out;
+		Wrap<RectPath> *const *out;
 		if (_RectPathCache.get(hash.hashCode(), out)) return (*out)->base;
 
 		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
@@ -185,7 +200,7 @@ namespace qk {
 		hash.updatefv4(rect.origin.val);
 		hash.updatefv4(border);
 		hash.updatefv4(radius);
-		GpuBuffer<RectOutlinePath,4> *const *out;
+		Wrap<RectOutlinePath,4> *const *out;
 		if (_RectOutlinePathCache.get(hash.hashCode(), out)) return (*out)->base;
 
 		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
@@ -201,25 +216,93 @@ namespace qk {
 		}
 	}
 
-	bool PathvCache::setGpuBufferData(const VertexData::ID *vertexInThisCache) {
-		if (vertexInThisCache) {
-			if (vertexInThisCache->vao) {
+	bool PathvCache::makeVertexData(const VertexData::ID *vertexInThis) {
+		if (vertexInThis) {
+			if (vertexInThis->vao) {
 				return true;
-			} else if (vertexInThisCache->host == this) {
-				_render->makeVertexData(const_cast<VertexData::ID*>(vertexInThisCache));
+			} else if (vertexInThis->host == this) {
+				_render->makeVertexData(const_cast<VertexData::ID*>(vertexInThis));
 				return true;
 			}
 		}
 		return false;
 	}
 
-	void PathvCache::onLowMemoryWarning() {
-		// TODO ...
-		_lowMemoryWarning = true;
+	void PathvCache::clear(bool all) {
+		_sync->lock();
+		clearUnsafe(all ? 2: 1/*memory warning clear half*/);
+		_sync->unlock();
 	}
 
-	void PathvCache::clear(bool all) {
-		// TODO ...
+	void PathvCache::clearUnsafe(int flags) {
+		if (flags) {
+			if (flags == 1) { // memory warning
+				if (_capacity > _maxCapacity) {
+					clearPart(Int32::max(_capacity * 0.5, _capacity - _maxCapacity)); // clean half
+				}
+			} else { // clear all
+				clearAll();
+			}
+		} else if (_capacity > _maxCapacity) { // max limit clear
+			clearPart(_capacity - _maxCapacity);
+		}
+	}
+
+	void PathvCache::clearPart(uint32_t capacity) {
+		clearAll(); // TODO: Not yet realized
+	}
+
+	void PathvCache::clearAll() {
+		for (auto &i: _NormalizedPathCache) {
+			Release(i.value);
+		}
+		_NormalizedPathCache.clear();
+
+		for (auto &i: _StrokePathCache) {
+			Release(i.value);
+		}
+		_StrokePathCache.clear();
+
+		auto render = _render;
+		auto a0 = new Dict<uint64_t, Wrap<VertexData>*>(std::move(_PathTrianglesCache));
+		auto a1 = new Dict<uint64_t, Wrap<VertexData>*>(std::move(_AAFuzzStrokeTriangleCache));
+		auto b = new Dict<uint64_t, Wrap<RectPath>*>(std::move(_RectPathCache));
+		auto c = new Dict<uint64_t, Wrap<RectOutlinePath,4>*>(std::move(_RectOutlinePathCache));
+
+		render->post_message(Cb([render,a0,a1,b,c](auto &e){
+			for (auto &i: *a0) {
+				render->deleteVertexData(i.value->id);
+				delete i.value;
+			}
+			for (auto &i: *a1) {
+				render->deleteVertexData(i.value->id);
+				delete i.value;
+			}
+			for (auto &i: *b) {
+				render->deleteVertexData(i.value->id);
+				delete i.value;
+			}
+			for (auto &i: *c) {
+				render->deleteVertexData(i.value->id);
+				render->deleteVertexData(i.value->id+1);
+				render->deleteVertexData(i.value->id+2);
+				render->deleteVertexData(i.value->id+3);
+				delete i.value;
+			}
+			Release(a0);
+			Release(a1);
+			Release(b);
+			Release(c);
+		}));
+
+		Qk_STRICT_ASSERT(_NormalizedPathCache.length() == 0);
+		Qk_STRICT_ASSERT(_StrokePathCache.length() == 0);
+		Qk_STRICT_ASSERT(_PathTrianglesCache.length() == 0);
+		Qk_STRICT_ASSERT(_AAFuzzStrokeTriangleCache.length() == 0);
+		Qk_STRICT_ASSERT(_RectPathCache.length() == 0);
+		Qk_STRICT_ASSERT(_RectOutlinePathCache.length() == 0);
+
+		_capacity = 0;
 	}
 
 }

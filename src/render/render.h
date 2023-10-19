@@ -45,9 +45,11 @@ namespace qk {
 	public:
 		struct Options {
 			ColorType   colorType;
-			uint16_t    msaa; // gpu msaa
+			uint16_t    msaaSample; // gpu msaa
 			uint16_t    fps; // if fps is 0 then use vSync, else limit fps value
+			uint32_t    maxCapacityForPathvCache; // default 128mb
 		};
+
 		class Delegate {
 		public:
 			virtual void onRenderBackendReload(Region region, Vec2 size, float defaultScale) = 0;
@@ -69,9 +71,6 @@ namespace qk {
 		virtual void    makeVertexData(VertexData::ID *id) = 0;
 		virtual void    deleteVertexData(VertexData::ID *id) = 0;
 		virtual Canvas* newCanvas(Options opts) = 0;
-
-		// @overwrite class PostMessage
-		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) override;
 
 	protected:
 		RenderBackend(Options opts);

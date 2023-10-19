@@ -55,7 +55,7 @@ namespace qk {
 	class GLC_CmdPack;
 	class GLCBlurFilter;
 
-	class GLCanvas: public Canvas {
+	class GLCanvas: public Canvas, public PathvCache::ClearSync {
 	public:
 		GLCanvas(GLRender *render, Render::Options opts);
 		virtual ~GLCanvas();
@@ -94,6 +94,8 @@ namespace qk {
 		inline GLuint fbo() { return _fbo; }
 		virtual bool isGpu() override;
 		inline Vec2 surfaceSize() { return _surfaceSize; }
+		virtual void lock() override; // clear sync lock
+		virtual void unlock() override; // clear sync unlock
 
 	private:
 		virtual void setBuffers(Vec2 size);

@@ -377,6 +377,7 @@ namespace qk {
 		erase(IteratorConst(_end._next), IteratorConst(&_end));
 		A::free(_nodes);
 		_nodes = nullptr;
+		_length = 0;
 		_capacity = 0;
 	}
 
@@ -417,6 +418,8 @@ namespace qk {
 		_nodes = indexed;
 		_end._prev = last;
 		_end._next = first;
+		first->_prev = &_end;
+		last->_next = &_end;
 		_length = len;
 		_capacity = capacity;
 	}

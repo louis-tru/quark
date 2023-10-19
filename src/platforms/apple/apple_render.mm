@@ -34,20 +34,6 @@
 
 using namespace qk;
 
-uint32_t Render::post_message(Cb cb, uint64_t delay_us) {
-	auto main = dispatch_get_main_queue();
-	if (main == dispatch_get_current_queue()) {
-		cb->resolve();
-	} else {
-		auto core = cb.Handle::collapse();
-		dispatch_async(main, ^{
-			core->resolve();
-			core->release();
-		});
-	}
-	return 0;
-}
-
 // ------------------- Metal ------------------
 #if Qk_ENABLE_METAL
 #import "../../render/metal/metal_render.h"

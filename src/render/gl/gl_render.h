@@ -51,6 +51,7 @@ namespace qk {
 		virtual void lock(); // lock render
 		virtual void unlock(); // unlock render
 		virtual Canvas* newCanvas(Options opts) override;
+		virtual void release() override;
 
 	protected:
 		GLRender(Options opts);
@@ -66,7 +67,7 @@ namespace qk {
 		GLint  _maxTextureSize;
 		GLint  _maxTextureBufferSize;
 		GLint  _maxTextureImageUnits;
-		GLCanvas _glCanvas; // main canvas
+		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders;
 		// --------------------------------------------
 	};

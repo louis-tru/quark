@@ -389,7 +389,7 @@ namespace qk {
 		: Render(opts)
 		, _IsSupportMultisampled(gl_is_support_multisampled())
 		, _texBuffer{0,0,0}
-		, _glCanvas(this, opts)
+		, _glcanvas(new GLCanvas(this, opts))
 	{
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
@@ -402,10 +402,10 @@ namespace qk {
 		}
 
 		if (!_IsSupportMultisampled) {
-			_opts.msaa = 0;
+			_opts.msaaSample = 0;
 		}
-		_canvas = &_glCanvas; // set default canvas
-		_glCanvas.retain(); // retain
+		_canvas = _glcanvas; // set default canvas
+		_glcanvas->retain(); // retain
 
 		glGenFramebuffers(1, &_frameBuffer);
 		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
@@ -476,9 +476,20 @@ namespace qk {
 	}
 
 	GLRender::~GLRender() {
-		glDeleteFramebuffers(1, &_frameBuffer);
-		glDeleteBuffers(3, &_rootMatrixBlock); // _rootMatrixBlock, _viewMatrixBlock, _optsBlock
-		glDeleteTextures(3, _texBuffer); // _texBuffer
+		Qk_ASSERT(_glcanvas == nullptr);
+	}
+
+	void GLRender::release() {
+		GLuint fbo = _frameBuffer,
+					tbo[] = {_texBuffer[0],_texBuffer[1],_texBuffer[2]},
+					ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock};
+		post_message(Cb([fbo,tbo,ubo](auto &e){
+			glDeleteFramebuffers(1, &fbo);
+			glDeleteTextures(3, tbo);
+			glDeleteBuffers(3, ubo);
+		}));
+		Qk_ASSERT(_glcanvas->refCount() == 1);
+		_glcanvas->release(); _glcanvas = nullptr;
 	}
 
 	void GLRender::reload() {

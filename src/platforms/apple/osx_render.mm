@@ -49,8 +49,10 @@ class AppleGLRender;
 	CVDisplayLinkRef _displayLink;
 	AppleGLRender    *_render;
 	NSOpenGLContext  *_ctx;
-	bool             _isStart; // start render
+	bool             _isInit; // start render
+	Mutex            _mutexRender;
 }
+@property (assign, nonatomic) bool         isRun;
 @property (assign, nonatomic) qk::ThreadID renderThreadId;
 - (id) init:(CGRect)frameRect
 		context:(NSOpenGLContext*)ctx render:(AppleGLRender*)r;
@@ -65,8 +67,29 @@ public:
 		: GLRender(opts), _ctx(ctx)
 	{}
 
-	~AppleGLRender() {
-		[_view stopDisplay];
+	~AppleGLRender() override {
+		Qk_ASSERT(_view.isRun == false);
+	}
+
+	void release() override {
+		AppleGLRender::lock();
+		[_view stopDisplay]; // thread task must be forced to end
+		AppleGLRender::unlock();
+
+		GLRender::release(); // Destroy the pre object first
+
+		// Perform the final message task
+		_mutexMsg.lock();
+		if (_message.length()) {
+			AppleGLRender::lock();
+			for ( auto &i : _message )
+				i->resolve();
+			_message.clear();
+			AppleGLRender::unlock();
+		}
+		_mutexMsg.unlock();
+
+		Object::release(); // final destruction
 	}
 
 	Render* render() override {
@@ -77,28 +100,31 @@ public:
 		return _view.renderThreadId;
 	}
 
+	bool isRenderThread() {
+		return _view.renderThreadId == thread_current_id();
+	}
+
 	void lock() override {
-		if (_view.renderThreadId == thread_current_id()) {
-			if (_lockCount++ == 0)
-				CGLLockContext(_ctx.CGLContextObj);
+		if (isRenderThread()) {
+			if (_lockCount++ == 0) CGLLockContext(_ctx.CGLContextObj);
 		} else {
-			CGLLockContext(_ctx.CGLContextObj);
-			[_ctx makeCurrentContext];
+			CGLLockContext(_ctx.CGLContextObj); [_ctx makeCurrentContext];
 		}
 	}
 
 	void unlock() override {
-		if (_view.renderThreadId == thread_current_id()) {
-			if (--_lockCount == 0)
-				CGLUnlockContext(_ctx.CGLContextObj);
+		if (isRenderThread()) {
+			if (--_lockCount == 0) CGLUnlockContext(_ctx.CGLContextObj);
 		} else {
 			CGLUnlockContext(_ctx.CGLContextObj);
 		}
 	}
 
 	uint32_t post_message(Cb cb, uint64_t delay_us) override {
-		if (_view.renderThreadId == thread_current_id()) {
+		if (isRenderThread()) {
+			AppleGLRender::lock();
 			cb->resolve();
+			AppleGLRender::unlock();
 		} else {
 			_mutexMsg.lock();
 			_message.pushBack(cb);
@@ -127,44 +153,33 @@ public:
 	}
 
 	void renderDisplay() {
-		List<Cb> msg;
+		AppleGLRender::lock();
+
+		if (!_view.isRun) return AppleGLRender::unlock();
+
 		if (_message.length()) { //
+			List<Cb> msg;
 			_mutexMsg.lock();
 			msg = std::move(_message);
 			_mutexMsg.unlock();
-		}
-		if (msg.length()) {
-			lock();
 			for ( auto &i : msg ) i->resolve();
-			unlock();
 		}
 		//if (!_isActive) return;
 
-#if !Qk_USE_GLC_CMD_QUEUE
-		lock();
-#endif
-
 		if (_delegate->onRenderBackendDisplay()) {
-#if Qk_USE_GLC_CMD_QUEUE
-			lock();
-#endif
-			_glCanvas.flushBuffer(); // commit gl canvas cmd
+			_glcanvas->flushBuffer(); // commit gl canvas cmd
 			// copy pixels to default color buffer
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-			auto src = _glCanvas.surfaceSize();
+			auto src = _glcanvas->surfaceSize();
 			auto dest = _surfaceSize;
 			glBlitFramebuffer(0, 0, src[0], src[1],
 				0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, src == dest ? GL_NEAREST: GL_LINEAR);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glCanvas.fbo()); // bind frame buffer for main canvas
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas
 			// flush gl buffer
 			glFlush(); // glFinish, glFenceSync, glWaitSync
 			[_ctx flushBuffer]; // swap double buffer
-			unlock();
-		} else {
-#if !Qk_USE_GLC_CMD_QUEUE
-			unlock();
-#endif
 		}
+		AppleGLRender::unlock();
 	}
 
 	UIView* make_surface_view(CGRect rect) override {
@@ -204,7 +219,8 @@ private:
 {
 	if( (self = [super initWithFrame:frameRect pixelFormat:nil]) ) {
 		_ctx = ctx;
-		_isStart = false;
+		_isInit = false;
+		_isRun = true;
 		_displayLink = nil;
 		_render = r;
 		[self setOpenGLContext:ctx];
@@ -212,10 +228,16 @@ private:
 	return self;
 }
 
-//-(void) reshape {}
 - (void) update {
 	_render->reload();
 	[super update];
+}
+
+static CVReturn displayLinkCallback(
+	CVDisplayLinkRef displayLink, const CVTimeStamp* now,
+	const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* view) {
+	[((__bridge GLView*)view) renderDisplay];
+	return kCVReturnSuccess;
 }
 
 - (void) prepareOpenGL {
@@ -225,15 +247,15 @@ private:
 		// Set the renderer output callback function
 		CVDisplayLinkSetOutputCallback(_displayLink, &displayLinkCallback, (__bridge void*)self);
 		// Set the display link for the current renderer
-		CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(_displayLink,
-																											_ctx.CGLContextObj,
-																											_ctx.pixelFormat.CGLPixelFormatObj);
+		CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(
+			_displayLink, _ctx.CGLContextObj, _ctx.pixelFormat.CGLPixelFormatObj
+		);
 		// Activate the display link
 		CVDisplayLinkStart(_displayLink);
 	} else {
 		_renderThreadId = thread_fork([](void* arg) { // fork render thread
 			auto v = (__bridge GLView*)arg;
-			while (v->_renderThreadId != qk::ThreadID()) {
+			while (v->_isRun) {
 				[v renderDisplay];
 			}
 		}, (__bridge void*)self, "renderDisplay");
@@ -241,30 +263,20 @@ private:
 	[super prepareOpenGL];
 }
 
-static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
-																		const CVTimeStamp* now,
-																		const CVTimeStamp* outputTime,
-																		CVOptionFlags flagsIn,
-																		CVOptionFlags* flagsOut, void* view)
-{
-	[((__bridge GLView*)view) renderDisplay];
-	return kCVReturnSuccess;
-}
-
 - (void) renderDisplay {
-	if (!_isStart) {
-		_isStart = true;
+	if (!_isInit) {
+		_isInit = true;
 		_renderThreadId = thread_current_id();
 		[_ctx makeCurrentContext];
 	}
 	_render->renderDisplay();
 }
 
--(void) stopDisplay {
+- (void) stopDisplay {
 	if (_render->options().fps == 0) {
 		CVDisplayLinkStop(_displayLink);
 	} else {}
-	_renderThreadId = qk::ThreadID();
+	_isRun = false;
 }
 
 @end
@@ -281,11 +293,11 @@ QkAppleRender* qk_make_apple_gl_render(Render::Options opts) {
 		for (int i = 0; i < count; i++)
 			glDisplayMask = glDisplayMask | CGDisplayIDToOpenGLDisplayMask(dspys[i]);
 	}
-	
-	uint32_t MSAA = opts.msaa;
+
+	uint32_t MSAA = opts.msaaSample;
 	uint32_t i = 0;
 	NSOpenGLPixelFormatAttribute attrs[32] = {0};
-	
+
 	attrs[i++] = NSOpenGLPFAAccelerated; // Choose a hardware accelerated renderer
 	attrs[i++] = NSOpenGLPFAClosestPolicy;
 	// attrs[i++] = NSOpenGLPFADoubleBuffer; // use double buffering
