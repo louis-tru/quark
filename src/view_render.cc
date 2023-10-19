@@ -56,11 +56,9 @@ namespace qk {
 		#define _inl(self) static_cast<ViewRender::Inl*>(self)
 
 		Rect getRect(Box* box) {
-			// auto fix = _render->getUnitPixel() * 0.225f; // fix aa stroke width
-			auto fix = 2.0f / _display->scale() * 0.225f;// fix aa stroke width
 			return {
-				Vec2{fix}-box->_origin_value,
-				box->_client_size-(fix+fix),
+				{_fix-box->_origin_value[0],_fix-box->_origin_value[0]},
+				{box->_client_size[0]-_fix2,box->_client_size[1]-_fix2},
 			};
 		}
 
@@ -607,6 +605,9 @@ namespace qk {
 				_mark_recursive = mark & Layout::kRecursive_Mark;
 			}
 			if (v->_visible_region && v->_opacity != 0) {
+				// _fix = _render->getUnitPixel() * 0.225f; // fix aa stroke width
+				_fix = 2.0f / _display->scale() * 0.225f; // fix aa stroke width
+				_fix2 = _fix + _fix;
 				BoxData data;
 				_canvas->setMatrix(v->matrix());
 				_canvas->clearColor(v->_background_color.to_color4f());

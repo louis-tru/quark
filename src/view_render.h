@@ -66,6 +66,7 @@ namespace qk {
 		PathvCache   *_cache;
 		float         _opacity;
 		uint32_t      _mark_recursive;
+		float        _fix,_fix2; // fix rect stroke width
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
