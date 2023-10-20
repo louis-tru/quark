@@ -95,15 +95,17 @@ namespace qk {
 		virtual bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) = 0;
 
 		/**
-		 * Return an image source does not plunger threads
+		 * Return an image source does not plunger threads, async read image
 		*/
-		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool genMipmap) = 0; // async read image
+		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool genMipmap = false) = 0;
 
 		/**
-		 * return an image source canvas to enter area drawing mode, share the current canvas state.
+		 * Returns an image buffer and switches output to this buffer, share the current canvas state.
 		 * all drawing commands target the returned image until the end of calling 'restore()'
+		 * 
+		 * @param img {ImageSource*} Create a new image if the image is empty
 		*/
-		virtual Sp<ImageSource> region(const Rect &src, ColorType type, bool genMipmap) = 0;
+		virtual Sp<ImageSource> output(ImageSource* dest, bool genMipmap = false) = 0;
 
 		/**
 		 * @dev drawTextBlob() Draw with text baseline aligned

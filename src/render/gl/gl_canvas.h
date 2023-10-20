@@ -92,7 +92,7 @@ namespace qk {
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool genMipmap) override;
-		virtual Sp<ImageSource> region(const Rect &src, ColorType type, bool genMipmap) override;
+		virtual Sp<ImageSource> output(ImageSource* dest, bool genMipmap) override;
 		virtual void flushCanvas(Canvas* srcC, const Rect &src, const Rect &dest) override;
 		virtual void swapBuffer() override; // swap gl double cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call

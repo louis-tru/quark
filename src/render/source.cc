@@ -200,7 +200,7 @@ namespace qk {
 			return;
 
 		_state = kSTATE_LOAD_COMPLETE;
-		_info = pixels_[0];
+		_info = pixels_[0]; // TODO Is it thread safe ?
 
 		auto pixels = new Array<Pixel>(std::move(pixels_));
 

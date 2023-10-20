@@ -697,14 +697,14 @@ namespace qk {
 		}
 
 		void regionEndCall(ImageSource* img, bool genMipmap) {
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_rbo);
 			gl_textureBarrier();
 			if (genMipmap) {
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, img->pixels()[0].texture());
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
-			glViewport(0, 0, _canvas->_surfaceSize[0], _canvas->_surfaceSize[1]);
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_rbo);
+			//glViewport(0, 0, _canvas->_surfaceSize[0], _canvas->_surfaceSize[1]);
 		}
 
 		void flushCanvasCall(GLCanvas* srcC,
