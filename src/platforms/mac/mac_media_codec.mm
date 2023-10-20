@@ -37,9 +37,9 @@ namespace qk {
 	#define OUTPUT_BUFFER_NUM 12
 
 	/**
-	* @class AppleVideoCodec
+	* @class MacVideoCodec
 	*/
-	class AppleVideoCodec: public MediaCodec {
+	class MacVideoCodec: public MediaCodec {
 	 public:
 		
 		struct OutputBufferInfo {
@@ -48,7 +48,7 @@ namespace qk {
 			uint64_t                  time;
 		};
 		
-		AppleVideoCodec(Extractor* ex)
+		MacVideoCodec(Extractor* ex)
 			: MediaCodec(ex)
 			, _session(nullptr)
 			, _format_desc(nullptr)
@@ -60,7 +60,7 @@ namespace qk {
 		{
 		}
 		
-		virtual ~AppleVideoCodec() {
+		virtual ~MacVideoCodec() {
 			close();
 			if ( _sample_data ) {
 				CFRelease(_sample_data);
@@ -147,7 +147,7 @@ namespace qk {
 		/**
 		* @func decompress_frame_cb
 		*/
-		static void decompress_frame_cb(AppleVideoCodec* self,
+		static void decompress_frame_cb(MacVideoCodec* self,
 																		void* source_sample,
 																		OSStatus status,
 																		VTDecodeInfoFlags flags,
@@ -205,7 +205,7 @@ namespace qk {
 			];
 			
 			VTDecompressionOutputCallbackRecord cb = {
-				(VTDecompressionOutputCallback)&AppleVideocodec_decompress_frame_cb,
+				(VTDecompressionOutputCallback)&MacVideocodec_decompress_frame_cb,
 				this,
 			};
 			status = VTDecompressionSessionCreate(NULL, _format_desc, NULL, attrs, &cb, &_session);
@@ -464,7 +464,7 @@ namespace qk {
 			if (type == MEDIA_TYPE_AUDIO) {
 				return NULL;
 			} else {
-				Handle<AppleVideoCodec> codec = new AppleVideoCodec(ex);
+				Handle<MacVideoCodec> codec = new MacVideoCodec(ex);
 				if (codec->initialize()) {
 					return codec.collapse();
 				}

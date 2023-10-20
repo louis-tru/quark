@@ -111,7 +111,7 @@
 			}],
 			['OS=="mac"', {
 				'sources': [
-					'fs_path_apple.mm',
+					'fs_path_mac.mm',
 				],
 				'link_settings': {'libraries': [ '$(SDKROOT)/usr/lib/libz.tbd' ]},
 			}],

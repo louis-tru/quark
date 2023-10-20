@@ -51,7 +51,7 @@ namespace qk {
 	}
 
 	GLint gl_get_texture_pixel_format(ColorType type) {
-#if Qk_APPLE
+#if Qk_MAC
 #if Qk_OSX
 #define GL_LUMINANCE                      GL_RED
 #define GL_LUMINANCE_ALPHA                0x190A
@@ -325,7 +325,7 @@ namespace qk {
 			}
 		}
 
-		return version.indexOf("Metal") >= 0; // test apple metal
+		return version.indexOf("Metal") >= 0; // test mac metal
 	}
 
 	void gl_TexImage2D(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
@@ -476,7 +476,7 @@ namespace qk {
 	}
 
 	GLRender::~GLRender() {
-		Qk_ASSERT(_glcanvas == nullptr);
+		Qk_STRICT_ASSERT(_glcanvas == nullptr);
 	}
 
 	void GLRender::release() {

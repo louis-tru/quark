@@ -55,7 +55,7 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 		__appDelegate = self;
 		_host = Application::shared();
 		_app = app;
-		_render = dynamic_cast<QkAppleRender*>(_host->render());
+		_render = dynamic_cast<QkMacRender*>(_host->render());
 
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];

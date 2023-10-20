@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./render/render.h"
-#include "./filter.h"
+#include "./layout/box_filter.h"
 #include "./view_render.h"
 #include "./layout/root.h"
 #include "./layout/image.h"

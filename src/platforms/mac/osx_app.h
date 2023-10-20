@@ -31,22 +31,12 @@
 // @private head
 
 #include "../../util/macros.h"
-#if Qk_iOS
-#import "./apple_app.h"
-#import "../../display.h"
-#import <MessageUI/MFMailComposeViewController.h>
+#if Qk_OSX
+#import "./mac_app.h"
 
-typedef qk::Display::Orientation Orientation;
-
-@interface QkApplicationDelegate()<MFMailComposeViewControllerDelegate>
+@interface QkApplicationDelegate()<NSWindowDelegate>
 	{
-		BOOL _is_background;
+		BOOL _is_background, _is_pause;
 	}
-	@property (assign, nonatomic) Orientation setting_orientation;
-	@property (assign, nonatomic) Orientation current_orientation;
-	@property (assign, nonatomic) bool        visible_status_bar;
-	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
-	// methods
-	- (void)refresh_status;
 @end
 #endif

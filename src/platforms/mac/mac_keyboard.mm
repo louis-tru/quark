@@ -33,14 +33,14 @@
 namespace qk {
 
 	/**
-	* @class AppleKeyboardAdapter
+	* @class MacKeyboardAdapter
 	*/
-	class AppleKeyboardAdapter: public KeyboardAdapter {
+	class MacKeyboardAdapter: public KeyboardAdapter {
 	public:
-		AppleKeyboardAdapter();
+		MacKeyboardAdapter();
 	};
 
-	AppleKeyboardAdapter::AppleKeyboardAdapter() {
+	MacKeyboardAdapter::MacKeyboardAdapter() {
 		// _keycodes[AKEYCODE_DEL] = KEYCODE_BACK_SPACE;
 		// _keycodes[AKEYCODE_TAB] = KEYCODE_TAB;
 		// _keycodes[AKEYCODE_CLEAR] = KEYCODE_CLEAR;
@@ -183,7 +183,7 @@ namespace qk {
 	}
 
 	KeyboardAdapter* KeyboardAdapter::create() {
-		return new AppleKeyboardAdapter();
+		return new MacKeyboardAdapter();
 	}
 
 }

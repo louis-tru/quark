@@ -33,6 +33,7 @@
 
 #include "./util/util.h"
 #include "./render/math.h"
+#include "./render/font/style.h"
 
 namespace qk {
 
@@ -182,9 +183,6 @@ namespace qk {
 	typedef WrapValue<BoxSizeKind, BoxSizeKind::kPixel> BoxSize;
 	typedef WrapValue<BoxOriginKind, BoxOriginKind::kPixel> BoxOrigin;
 
-	// typedef BoxSize       Size;
-	// typedef BoxOrigin     Origin;
-
 	// ---------------- T e x t . F o n t ----------------
 
 	enum class TextAlign: uint8_t {
@@ -192,43 +190,6 @@ namespace qk {
 		kCenter,         /* 居中 */
 		kRight,          /* 右对齐 */
 		kDefault = kLeft,
-	};
-
-	enum class TextWeight: uint16_t {
-		kInherit      = 0,
-		kThin         = 100,
-		kUltralight   = 200,
-		kLight        = 300,
-		kRegular      = 400,
-		kMedium       = 500,
-		kSemibold     = 600,
-		kBold         = 700,
-		kHeavy        = 800,
-		kBlack        = 900,
-		kExtraBlack   = 1000,
-		kDefault      = kRegular, // default
-	};
-
-	enum class TextWidth: uint8_t {
-		kInherit          = 0, // inherit
-		kUltraCondensed   = 1,
-		kExtraCondensed   = 2,
-		kCondensed        = 3,
-		kSemiCondensed    = 4,
-		kNormal           = 5,
-		kSemiExpanded     = 6,
-		kExpanded         = 7,
-		kExtraExpanded    = 8,
-		kUltraExpanded    = 9,
-		kDefault          = kNormal,
-	};
-
-	enum class TextSlant: uint8_t {
-		kInherit, // inherit
-		kNormal, // 正常
-		kItalic, // 斜体
-		kOblique,  // 倾斜
-		kDefault = kNormal,
 	};
 
 	enum class TextDecoration: uint8_t {
@@ -267,9 +228,6 @@ namespace qk {
 		kKeepAll,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
 		kDefault = kNormal,
 	};
-
-	class FontFamilys;
-	typedef FontFamilys* FFID;
 
 	/**
 	* @enum TextValueKind

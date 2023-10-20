@@ -191,7 +191,7 @@ namespace qk {
 		bool onRenderBackendDisplay() override;
 
 		// member data
-		Application      *_host;
+		Application       *_host;
 		Vec2              _lockSize;  //!< Lock the size of the viewport
 		List<Cb>          _nextFrame;
 		uint32_t          _nextFsp;

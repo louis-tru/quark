@@ -28,13 +28,59 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./apple_app.h"
-#import "../../util/util.h"
-#import "../../event.h"
+// @private head
+
+#include "quark/util/macros.h"
+#if Qk_MAC
 #import "../../app.h"
+#import "../../render/render.h"
+#if Qk_OSX
+#import <AppKit/AppKit.h>
+#define UIResponder NSResponder
+#define UIApplicationDelegate NSApplicationDelegate
+#define UIWindow NSWindow
+#define UIKit NSView
+#define UIView NSView
+#define CGRect NSRect
+#define UIApplication NSApplication
+#define UIColor NSColor
+#define UIScreen NSScreen
+#define UIViewController NSViewController
+#else
+#import <UIKit/UIKit.h>
+#endif
 
-using namespace qk;
+class QkMacRender {
+public:
+	virtual UIView* make_surface_view(CGRect rect) = 0;
+	virtual qk::Render* render() = 0;
+};
 
-id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
-	return nil;
-}
+@protocol QkIMEHelprt<NSObject>
+	- (void)open;
+	- (void)close;
+	- (void)clear;
+	- (void)set_keyboard_can_backspace:(bool)can_backspace
+													can_delete:(bool)can_delete;
+	- (void)set_keyboard_type:(qk::KeyboardType)type;
+	- (void)set_keyboard_return_type:(qk::KeyboardReturnType)type;
+	- (UIView*) view; // only ios return view
+@end
+
+QkMacRender*  qk_make_mac_render(qk::Render::Options opts);
+id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host);
+
+@interface QkRootViewController: UIViewController
+@end
+
+@interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
+	@property (assign, nonatomic, readonly) UIApplication *app; // strong
+	@property (assign, nonatomic, readonly) qk::Application *host;
+	@property (assign, nonatomic, readonly) QkMacRender *render;
+	@property (strong, nonatomic) QkRootViewController *root_ctr;
+	@property (strong, nonatomic) UIWindow *window;
+	@property (strong, nonatomic) UIView *surface_view; // strong
+	@property (strong, nonatomic) id<QkIMEHelprt> ime; // strong
+@end
+
+#endif

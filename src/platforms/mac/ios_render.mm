@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./apple_app.h"
+#import "./mac_app.h"
 #import "../../display.h"
 #import "../../render/gl/gl_render.h"
 
@@ -80,13 +80,13 @@ extern QkApplicationDelegate *__appDelegate;
 
 @end
 
-class AppleGLRender: public GLRender, public QkAppleRender {
+class MacGLRender: public GLRender, public QkMacRender {
 public:
-	AppleGLRender(Options opts, EAGLContext* ctx)
+	MacGLRender(Options opts, EAGLContext* ctx)
 		: GLRender(opts), _ctx(ctx)
 	{}
 
-	~AppleGLRender() {
+	~MacGLRender() {
 		[_view stopDisplay];
 		[EAGLContext setCurrentContext:nullptr];
 	}
@@ -187,13 +187,13 @@ private:
 	GLView      *_view;
 };
 
-QkAppleRender* qk_make_apple_gl_render(Render::Options opts) {
+QkMacRender* qk_make_mac_gl_render(Render::Options opts) {
 	EAGLContext* ctx = [EAGLContext alloc];
 	if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
 		[EAGLContext setCurrentContext:ctx];
 		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
 		ctx.multiThreaded = NO;
-		return new AppleGLRender(opts, ctx);
+		return new MacGLRender(opts, ctx);
 	}
 	return nullptr;
 }

@@ -33,7 +33,6 @@
 
 #include "../util/array.h"
 #include "../util/hash.h"
-#include "../types.h"
 #include "./bezier.h"
 #include "./paint.h"
 

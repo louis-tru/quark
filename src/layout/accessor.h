@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__property__
-#define __quark__property__
+#ifndef __quark__props__
+#define __quark__props__
 
-#include "./util/util.h"
-#include "./util/dict.h"
+#include "../util/util.h"
+#include "../util/dict.h"
 
 namespace qk {
 

@@ -51,7 +51,7 @@
 namespace qk {
 
 	String device_brand() {
-		return "Apple";
+		return "Mac";
 	}
 
 #if Qk_iOS
@@ -73,7 +73,7 @@ namespace qk {
 	}
 #endif
 
-	void device_get_languages_apple(Array<String>& langs) {
+	void device_get_languages_mac(Array<String>& langs) {
 		NSArray* languages = [NSLocale preferredLanguages];
 		for ( int i = 0; i < [languages count]; i++ ) {
 			NSString* str = [languages objectAtIndex:0];
@@ -82,7 +82,7 @@ namespace qk {
 	}
 
 	int device_network_status() {
-		Reachability* reachability = [Reachability reachabilityWithHostName:@"www.apple.com"];
+		Reachability* reachability = [Reachability reachabilityWithHostName:@"www.mac.com"];
 		int code = [reachability currentReachabilityStatus];
 		if ( code == 1 ) { // wwan
 			return 3; // mobile network

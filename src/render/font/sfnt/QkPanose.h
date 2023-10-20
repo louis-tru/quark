@@ -86,7 +86,7 @@ struct QkPanose {
 			} bContrast;
 
 #ifdef Qk_WIN_PANOSE
-			//This is what Windows (and FontForge and Apple TT spec) define.
+			//This is what Windows (and FontForge and Mac TT spec) define.
 			//The Impact font uses 9.
 			enum class StrokeVariation : Qk_OT_BYTE {
 				Any = 0,

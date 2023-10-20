@@ -39,6 +39,10 @@
 		}, # direct_dependent_settings
 		'sources': [
 			# layout
+			# 'layout/accessor.h',
+			# 'layout/accessor.cc',
+			'layout/box_filter.h',
+			'layout/box_filter.cc',
 			'layout/box.h',
 			'layout/box.cc',
 			'layout/float.h',
@@ -133,8 +137,6 @@
 			'device.cc',
 			'display.h',
 			'display.cc',
-			'filter.h',
-			'filter.cc',
 			'errno.h',
 			'event.h',
 			'event.cc',
@@ -142,8 +144,6 @@
 			'keyboard.cc',
 			'pre_render.h',
 			'pre_render.cc',
-			# 'property.h',
-			# 'property.cc',
 			'types.h',
 			'version.h',
 		],
@@ -170,7 +170,7 @@
 					'render/metal/metal_render.mm',
 				],
 			}],
-			['OS!="mac"', { # not apple mac
+			['OS!="mac"', { # not mac mac
 				'dependencies': [
 					'deps/libjpeg/libjpeg.gyp:libjpeg',
 					'deps/libpng/libpng.gyp:libpng',
@@ -203,17 +203,17 @@
 					],
 				},
 			}],
-			['OS=="mac"', { # apple mac, osx ios
+			['OS=="mac"', { # mac mac, osx ios
 				'dependencies': [
 					'deps/reachability/reachability.gyp:reachability',
 				],
 				'sources':[
-					'platforms/apple/apple_app.h',
-					'platforms/apple/apple_device.mm',
-					'platforms/apple/apple_image_codec.mm',
-					'platforms/apple/apple_keyboard.mm',
-					'platforms/apple/apple_render.mm',
-					'platforms/apple/apple_util.h',
+					'platforms/mac/mac_app.h',
+					'platforms/mac/mac_device.mm',
+					'platforms/mac/mac_image_codec.mm',
+					'platforms/mac/mac_keyboard.mm',
+					'platforms/mac/mac_render.mm',
+					'render/mac_util.h',
 					'render/font/ct/ct_pool.cc',
 					'render/font/ct/ct_typeface.cc',
 					'render/font/ct/ct_typeface.h',
@@ -230,13 +230,13 @@
 			}],
 			['os=="ios"', {
 				'sources':[
-					'platforms/apple/ios_app.h',
-					'platforms/apple/ios_app.mm',
-					'platforms/apple/ios_ctr.mm',
-					'platforms/apple/ios_display.mm',
-					'platforms/apple/ios_ime_helper.mm',
-					'platforms/apple/ios_main.mm',
-					'platforms/apple/ios_render.mm',
+					'platforms/mac/ios_app.h',
+					'platforms/mac/ios_app.mm',
+					'platforms/mac/ios_ctr.mm',
+					'platforms/mac/ios_display.mm',
+					'platforms/mac/ios_ime_helper.mm',
+					'platforms/mac/ios_main.mm',
+					'platforms/mac/ios_render.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -249,12 +249,12 @@
 			}],
 			['os=="osx"', {
 				'sources': [
-					'platforms/apple/osx_app.h',
-					'platforms/apple/osx_app.mm',
-					'platforms/apple/osx_display.mm',
-					'platforms/apple/osx_ime_helper.mm',
-					'platforms/apple/osx_main.mm',
-					'platforms/apple/osx_render.mm',
+					'platforms/mac/osx_app.h',
+					'platforms/mac/osx_app.mm',
+					'platforms/mac/osx_display.mm',
+					'platforms/mac/osx_ime_helper.mm',
+					'platforms/mac/osx_main.mm',
+					'platforms/mac/osx_render.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -366,8 +366,8 @@
 			}],
 			['OS=="mac"', {
 				'sources':[
-					'platforms/apple/apple_media_codec.mm',
-					'platforms/apple/apple_pcm_player.mm',
+					'platforms/mac/mac_media_codec.mm',
+					'platforms/mac/mac_pcm_player.mm',
 				],
 			}],
 			['os=="linux"', {

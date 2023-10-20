@@ -30,7 +30,7 @@
 
 #import <MacTypes.h>
 #import <AppKit/AppKit.h>
-// typedef UIEvent AppleUIEvent;
+// typedef UIEvent MacUIEvent;
 #import "../../util/loop.h"
 #import "../../app.h"
 #import "../../event.h"
@@ -51,7 +51,7 @@ QkApplicationDelegate* __appDelegate = nil;
 		__appDelegate = self;
 		_host = Application::shared();
 		_app = UIApplication.sharedApplication;
-		_render = dynamic_cast<QkAppleRender*>(_host->render());
+		_render = dynamic_cast<QkMacRender*>(_host->render());
 		
 		_is_background = NO;
 		_is_pause = YES;

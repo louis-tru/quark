@@ -69,8 +69,8 @@ namespace qk {
 	}
 #endif
 
-#if Qk_APPLE
-	void device_get_languages_apple(Array<String>& langs);
+#if Qk_MAC
+	void device_get_languages_mac(Array<String>& langs);
 #endif
 
 	struct language_t {
@@ -81,7 +81,7 @@ namespace qk {
 		if (!langs_) {
 			langs_ = new language_t;
 #if Qk_iOS
-			device_get_languages_apple(langs_->langs);
+			device_get_languages_mac(langs_->langs);
 #elif Qk_ANDROID
 			langs_->langs.push(API::language());
 #elif Qk_LINUX

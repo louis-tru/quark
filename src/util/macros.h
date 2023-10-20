@@ -104,7 +104,7 @@
 
 #if defined(__APPLE__)
 # include <TargetConditionals.h>
-# define Qk_APPLE      1
+# define Qk_MAC        TARGET_OS_MAC
 # define Qk_POSIX      1
 # define Qk_BSD        1
 # define Qk_UNIX       1

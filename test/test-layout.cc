@@ -8,7 +8,7 @@
 #include <quark/layout/text.h>
 #include <quark/layout/input.h>
 #include <quark/layout/textarea.h>
-#include <quark/filter.h>
+#include <quark/layout/box_filter.h>
 #include <quark/display.h>
 #include <quark/util/fs.h>
 #include <quark/render/font/pool.h>

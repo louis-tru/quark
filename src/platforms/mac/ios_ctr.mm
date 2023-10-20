@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import <UIKit/UIKit.h>
-typedef UIEvent AppleUIEvent;
+typedef UIEvent MacUIEvent;
 #import "../../app.h"
 #import "../../event.h"
 #import "./ios_app.h"
@@ -132,20 +132,20 @@ extern QkApplicationDelegate *__appDelegate;
 		return rv;
 	}
 
-	-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
+	-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable MacUIEvent *)event {
 		__appDelegate.host->dispatch()->onTouchstart( [self touchsList:touches] );
 	}
 
-	-(void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
+	-(void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable MacUIEvent *)event {
 		// Qk_DEBUG("touchesMoved, count: %d", touches.count);
 		__appDelegate.host->dispatch()->onTouchmove( [self touchsList:touches] );
 	}
 
-	-(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event{
+	-(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable MacUIEvent *)event{
 		__appDelegate.host->dispatch()->onTouchend( [self touchsList:touches] );
 	}
 
-	-(void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable AppleUIEvent *)event {
+	-(void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable MacUIEvent *)event {
 		__appDelegate.host->dispatch()->onTouchcancel( [self touchsList:touches] );
 	}
 

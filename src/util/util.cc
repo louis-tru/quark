@@ -37,7 +37,7 @@
 # include <unistd.h>
 #endif
 
-#if Qk_APPLE
+#if Qk_MAC
 # include <mach/mach_time.h>
 # include <mach/mach.h>
 # include <mach/clock.h>

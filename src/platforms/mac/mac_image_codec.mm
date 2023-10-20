@@ -37,11 +37,11 @@
 #else
 #import <UIKit/UIKit.h>
 #endif
-#include "./apple_util.h"
+#include "../../render/mac_util.h"
 
 namespace qk {
 
-	bool apple_img_decode(cBuffer& data, Array<Pixel> *out) {
+	bool mac_img_decode(cBuffer& data, Array<Pixel> *out) {
 		NSData* nsData = [NSData dataWithBytesNoCopy:(void*)*data
 																					length:data.length()
 																		freeWhenDone:NO];
@@ -97,7 +97,7 @@ namespace qk {
 		return true;
 	}
 
-	bool apple_img_test(cBuffer& data, PixelInfo* out) {
+	bool mac_img_test(cBuffer& data, PixelInfo* out) {
 		
 		NSData* nsData = [NSData dataWithBytesNoCopy:(void*)*data
 																					length:data.length()

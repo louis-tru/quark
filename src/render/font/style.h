@@ -33,9 +33,48 @@
 
 #include "../../util/numbers.h"
 #include "../../util/dict.h"
-#include "../../types.h"
 
 namespace qk {
+
+	enum class TextWeight: uint16_t {
+		kInherit      = 0,
+		kThin         = 100,
+		kUltralight   = 200,
+		kLight        = 300,
+		kRegular      = 400,
+		kMedium       = 500,
+		kSemibold     = 600,
+		kBold         = 700,
+		kHeavy        = 800,
+		kBlack        = 900,
+		kExtraBlack   = 1000,
+		kDefault      = kRegular, // default
+	};
+
+	enum class TextWidth: uint8_t {
+		kInherit          = 0, // inherit
+		kUltraCondensed   = 1,
+		kExtraCondensed   = 2,
+		kCondensed        = 3,
+		kSemiCondensed    = 4,
+		kNormal           = 5,
+		kSemiExpanded     = 6,
+		kExpanded         = 7,
+		kExtraExpanded    = 8,
+		kUltraExpanded    = 9,
+		kDefault          = kNormal,
+	};
+
+	enum class TextSlant: uint8_t {
+		kInherit, // inherit
+		kNormal, // 正常
+		kItalic, // 斜体
+		kOblique,  // 倾斜
+		kDefault = kNormal,
+	};
+
+	class FontFamilys;
+	typedef FontFamilys* FFID;
 
 	class Qk_EXPORT FontStyle {
 	public:
@@ -45,7 +84,7 @@ namespace qk {
 			(Int32::clamp(int(slant) - 1, 0, 2) << 24)
 		) {}
 
-    FontStyle(): FontStyle{TextWeight::kDefault, TextWidth::kDefault, TextSlant::kNormal} {}
+		FontStyle(): FontStyle{TextWeight::kDefault, TextWidth::kDefault, TextSlant::kNormal} {}
 
 		bool operator==(const FontStyle& rhs) const {
 			return _value == rhs._value;

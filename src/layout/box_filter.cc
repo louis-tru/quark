@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./app.h"
-#include "./filter.h"
-#include "./pre_render.h"
-#include "./layout/box.h"
-#include "./render/source.h"
-#include "./render/render.h"
+#include "./box_filter.h"
+#include "./box.h"
+#include "../app.h"
+#include "../pre_render.h"
+#include "../render/source.h"
+#include "../render/render.h"
 #include <math.h>
 
 namespace qk {

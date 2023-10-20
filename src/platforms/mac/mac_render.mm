@@ -28,15 +28,63 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
+#import "./mac_app.h"
+#import "../../display.h"
+#import "../../render/gl/gl_render.h"
 
-#include "../../util/macros.h"
-#if Qk_OSX
-#import "./apple_app.h"
+using namespace qk;
 
-@interface QkApplicationDelegate()<NSWindowDelegate>
-	{
-		BOOL _is_background, _is_pause;
-	}
+// ------------------- Metal ------------------
+#if Qk_ENABLE_METAL
+#import "../../render/metal/metal_render.h"
+
+@interface MTView: UIView
 @end
+
+@implementation MTView
++ (Class)layerClass {
+	if (@available(iOS 13.0, *))
+		return CAMetalLayer.class;
+	return nil;
+}
+@end
+
+class MacMetalRender: public MetalRender, public QkMacRender {
+public:
+	MacMetalRender(Options opts, FontPool *pool, Delegate *delegate): MetalRender(opts,pool,delegate)
+	{}
+	UIView* make_surface_view(CGRect rect) override {
+		_view = [[MTKView alloc] initWithFrame:rect device:nil];
+		_view.layer.opaque = YES;
+		return _view;
+	}
+	Render* render() override {
+		return this;
+	}
+};
 #endif
+
+
+QkMacRender* qk_make_mac_gl_render(Render::Options opts);
+
+QkMacRender* qk_make_mac_render(Render::Options opts) {
+	QkMacRender* r = nullptr;
+
+#if Qk_ENABLE_METAL
+	if (@available(macOS 10.11, iOS 13.0, *))
+		r = new MacMetalRender(opts,pool,delegate);
+#endif
+#if Qk_ENABLE_GL
+	if (!r)
+		r = qk_make_mac_gl_render(opts);
+#endif
+	Qk_ASSERT(r, "create render object fail");
+
+	return r;
+}
+
+Render* Render::Make(Options opts, Delegate *delegate) {
+	auto render = qk_make_mac_render(opts)->render();
+	render->_delegate = delegate;
+	return render;
+}

@@ -39,9 +39,9 @@ namespace qk {
 	#define WAIT_WRITE_BUFFER_COUNT 3
 
 	/**
-	* @class ApplePCMPlayer
+	* @class MacPCMPlayer
 	*/
-	class ApplePCMPlayer: public Object, public PCMPlayer {
+	class MacPCMPlayer: public Object, public PCMPlayer {
 	public:
 		typedef ObjectTraits Traits;
 
@@ -52,7 +52,7 @@ namespace qk {
 			uint32_t    size = 0;
 		};
 		
-		ApplePCMPlayer()
+		MacPCMPlayer()
 			: _queue(NULL)
 			, _wait_write_buffer_index(0)
 			, _wait_write_buffer_count(0)
@@ -62,7 +62,7 @@ namespace qk {
 			memset(_buffer_free, 0, sizeof(_buffer_free));
 		}
 		
-		virtual ~ApplePCMPlayer() {
+		virtual ~MacPCMPlayer() {
 			
 			for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) {
 				if ( _buffer_all[i] ) {
@@ -92,7 +92,7 @@ namespace qk {
 			desc.mBytesPerFrame     = 2 * channel_count;
 			desc.mBytesPerPacket    = 2 * channel_count;
 			
-			AudioQueueOutputCallback cb = (AudioQueueOutputCallback)&ApplePCMPlayer::buffer_callback;
+			AudioQueueOutputCallback cb = (AudioQueueOutputCallback)&MacPCMPlayer::buffer_callback;
 			
 			if ( AudioQueueNewOutput(&desc, cb, this, NULL, NULL, 0, &_queue) == noErr ) { // new
 				uint32_t size = buffer_size() * 4;
@@ -112,7 +112,7 @@ namespace qk {
 		/**
 		* @func buffer_callback
 		*/
-		static void buffer_callback(ApplePCMPlayer* self,
+		static void buffer_callback(MacPCMPlayer* self,
 																AudioQueueRef queue, AudioQueueBufferRef in) {
 			self->buffer_callback2(in);
 		}
@@ -294,7 +294,7 @@ namespace qk {
 	};
 
 	PCMPlayer* PCMPlayer::create(uint32_t channel_count, uint32_t sample_rate) {
-		Handle<ApplePCMPlayer> player = new ApplePCMPlayer();
+		Handle<MacPCMPlayer> player = new MacPCMPlayer();
 		if ( player->initialize(channel_count, sample_rate) ) {
 			return player.collapse();
 		}

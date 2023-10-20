@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./property.h"
-#include "./layout/view.h"
-#include "./layout/box.h"
-#include "./layout/text.h"
-#include "./layout/label.h"
-#include "./layout/image.h"
-#include "./layout/sprite.h"
+#include "./accessor.h"
+#include "./view.h"
+#include "./box.h"
+#include "./text.h"
+#include "./label.h"
+#include "./image.h"
+// #include "./sprite.h"
 
 namespace qk {
 

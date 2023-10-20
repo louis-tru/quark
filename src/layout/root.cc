@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./root.h"
-#include "../filter.h"
+#include "./box_filter.h"
 #include "../app.h"
 #include "../util/handle.h"
 #include "../display.h"

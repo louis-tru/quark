@@ -28,46 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./fs.h"
-#if Qk_APPLE
-#include <Foundation/Foundation.h>
-#if Qk_iOS
-# import <UIKit/UIKit.h>
-#else
-# import <AppKit/AppKit.h>
-#endif
+#import "./mac_app.h"
+#import "../../util/util.h"
+#import "../../event.h"
+#import "../../app.h"
 
-namespace qk {
+using namespace qk;
 
-	String fs_executable() {
-		static cString path( fs_format([[[NSBundle mainBundle] executablePath] UTF8String]) );
-		return path;
-	}
-
-	String fs_documents(cString& child) {
-		static String path(
-			fs_format([NSSearchPathForDirectoriesInDomains(
-				NSDocumentDirectory,
-				NSUserDomainMask,
-				YES
-			) objectAtIndex:0].UTF8String)
-		);
-		return child.isEmpty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());
-	}
-
-	String fs_temp(cString& child) {
-		static cString path( fs_format("%s", [NSTemporaryDirectory() UTF8String]) );
-		return child.isEmpty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());;
-	}
-
-	/**
-	 * Get the resoures dir
-	 */
-	String fs_resources(cString& child) {
-		static cString path( fs_format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
-		return child.isEmpty()? path: fs_format("%s/%s", path.c_str(), child.c_str());
-	}
-
+id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
+	return nil;
 }
-
-#endif

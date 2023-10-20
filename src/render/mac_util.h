@@ -30,10 +30,10 @@
 
 //@private head
 
-#ifndef __quark__platforms__apple_util__
-#define __quark__platforms__apple_util__
+#ifndef __quark__render__mac_util__
+#define __quark__render__mac_util__
 
-#include "../../util/util.h"
+#include "../util/util.h"
 #include <CoreFoundation/CoreFoundation.h>
 
 using namespace qk;

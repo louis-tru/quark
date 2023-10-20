@@ -33,9 +33,9 @@
 
 namespace qk {
 
-#if Qk_APPLE
-	bool apple_img_test(cBuffer& data, PixelInfo* out);
-	bool apple_img_decode(cBuffer& data, Array<Pixel>* out);
+#if Qk_MAC
+	bool mac_img_test(cBuffer& data, PixelInfo* out);
+	bool mac_img_decode(cBuffer& data, Array<Pixel>* out);
 #else
 	bool img_jpeg_test(cBuffer& data, PixelInfo* out);
 	bool img_png_test(cBuffer& data, PixelInfo* out);
@@ -54,8 +54,8 @@ namespace qk {
 	bool img_pvrt_decode(cBuffer& data, Array<Pixel> *out);
 
 	bool img_test(cBuffer& data, PixelInfo* out, ImageFormat fmt) {
-#if Qk_APPLE
-		return img_gif_test(data, out) || apple_img_test(data, out) || img_pvrt_test(data, out);
+#if Qk_MAC
+		return img_gif_test(data, out) || mac_img_test(data, out) || img_pvrt_test(data, out);
 #else
 		bool ok = false;
 
@@ -80,8 +80,8 @@ namespace qk {
 	}
 
 	bool img_decode(cBuffer& data, Array<Pixel> *out, ImageFormat fmt) {
-#if Qk_APPLE
-	return img_gif_decode(data, out) || apple_img_decode(data, out) || img_pvrt_decode(data, out);
+#if Qk_MAC
+	return img_gif_decode(data, out) || mac_img_decode(data, out) || img_pvrt_decode(data, out);
 #else
 		bool ok = false;
 

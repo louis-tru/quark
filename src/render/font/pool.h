@@ -31,7 +31,6 @@
 #ifndef __quark__font__pool__
 #define __quark__font__pool__
 
-#include "../../types.h"
 #include "./font.h"
 
 namespace qk {
