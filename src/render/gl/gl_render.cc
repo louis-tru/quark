@@ -374,7 +374,7 @@ namespace qk {
 			size *= ceilf(sqrtf(msaaSample));
 		gl_TexImage2D(tex, size,
 			gl_get_texture_pixel_format(kColor_Type_RGBA_8888),
-			gl_get_texture_data_type(kColor_Type_RGBA_8888), GL_MaxTextureImageUnits - 2);
+			gl_get_texture_data_type(kColor_Type_RGBA_8888), 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -458,9 +458,9 @@ namespace qk {
 			glUniformBlockBinding(s->shader, glGetUniformBlockIndex(s->shader, "optsBlock"), 2); // binding = 2
 		}
 		glUseProgram(_shaders.imageCp.shader);
-		glUniform1i(_shaders.imageCp.image, GL_MaxTextureImageUnits - 2);
+		glUniform1i(_shaders.imageCp.image, 0);
 		glUseProgram(_shaders.blur.shader);
-		glUniform1i(_shaders.blur.image, GL_MaxTextureImageUnits - 2);
+		glUniform1i(_shaders.blur.image, 0); // GL_MaxTextureImageUnits - 2
 
 		glEnable(GL_BLEND); // enable color blend
 		setBlendMode(kSrcOver_BlendMode); // set default color blend mode

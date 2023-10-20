@@ -38,22 +38,62 @@
 
 namespace qk {
 
-	String inl_format_part_path(cString& path);
+	enum IOProtocol {
+		Unknown,
+		FILE,
+		ZIP,
+		HTTP,
+		HTTPS,
+		FTP,
+		FTPS,
+	};
 
-	static const String SEPARATOR("@/", 2);
+	IOProtocol fs_get_protocol_from_str(cString& path) {
+		if ( fs_is_local_file( path ) ) {
+			return FILE;
+		}
+		if ( fs_is_local_zip( path ) ) {
+			return ZIP;
+		}
+		if ((path[0] == 'h' || path[0] == 'H') &&
+				(path[1] == 't' || path[1] == 'T') &&
+				(path[2] == 't' || path[2] == 'T') &&
+				(path[3] == 'p' || path[3] == 'P')) {
+			if (path[4] == ':' &&
+					path[5] == '/' &&
+					path[6] == '/') {
+				return HTTP;
+			}
+			if ((path[4] == 's' || path[4] == 'S') &&
+					path[5] == ':' &&
+					path[6] == '/' &&
+					path[7] == '/') {
+				return HTTPS;
+			}
+		}
+		if ((path[0] == 'f' || path[0] == 'F') &&
+				(path[1] == 't' || path[1] == 'T') &&
+				(path[2] == 'p' || path[2] == 'P')) {
+			if (path[3] == ':' &&
+					path[4] == '/' &&
+					path[5] == '/') {
+				return FTP;
+			}
+			if ((path[3] == 's' || path[3] == 'S') &&
+					path[4] == ':' &&
+					path[5] == '/' &&
+					path[6] == '/') {
+				return FTPS;
+			}
+		}
+		return Unknown;
+	}
+
+	String fs_format_part_path(cString& path);
+	static const String fs_SEPARATOR("@/", 2);
 
 	class FileReader::Core {
 	public:
-		enum Protocol {
-			FILE = 0,
-			ZIP,
-			HTTP,
-			HTTPS,
-			FTP,
-			FTPS,
-			Unknown,
-		};
-
 		~Core() {
 			ScopeLock lock(zip_mutex_);
 			for (auto i: zips_ ) {
@@ -61,54 +101,13 @@ namespace qk {
 			}
 		}
 
-		Protocol protocol(cString& path) {
-			if ( fs_is_local_file( path ) ) {
-				return FILE;
-			}
-			if ( fs_is_local_zip( path ) ) {
-				return ZIP;
-			}
-			if ((path[0] == 'h' || path[0] == 'H') &&
-					(path[1] == 't' || path[1] == 'T') &&
-					(path[2] == 't' || path[2] == 'T') &&
-					(path[3] == 'p' || path[3] == 'P')) {
-				if (path[4] == ':' &&
-						path[5] == '/' &&
-						path[6] == '/') {
-					return HTTP;
-				}
-				if ((path[4] == 's' || path[4] == 'S') &&
-						path[5] == ':' &&
-						path[6] == '/' &&
-						path[7] == '/') {
-					return HTTPS;
-				}
-			}
-			if ((path[0] == 'f' || path[0] == 'F') &&
-					(path[1] == 't' || path[1] == 'T') &&
-					(path[2] == 'p' || path[2] == 'P')) {
-				if (path[3] == ':' &&
-						path[4] == '/' &&
-						path[5] == '/') {
-					return FTP;
-				}
-				if ((path[3] == 's' || path[3] == 'S') &&
-						path[4] == ':' &&
-						path[5] == '/' &&
-						path[6] == '/') {
-					return FTPS;
-				}
-			}
-			return Unknown;
-		}
-
 		String zip_path(cString& path) {
 			if (path.isEmpty())
 				return String();
-			int i = path.indexOf(SEPARATOR);
+			int i = path.indexOf(fs_SEPARATOR);
 			if (i != -1)
 				return path.substr(0, i);
-			if (path[path.length() - 1] == SEPARATOR[0])
+			if (path[path.length() - 1] == fs_SEPARATOR[0])
 				return path.substr(0, path.length() - 1);
 			return String();
 		}
@@ -132,7 +131,7 @@ namespace qk {
 			Buffer buffer;
 			try {
 				ZipReader* read = get_zip_reader(zip);
-				String inl_path = inl_format_part_path(path.substr(zip.length() + SEPARATOR.length()));
+				String inl_path = fs_format_part_path(path.substr(zip.length() + fs_SEPARATOR.length()));
 				if ( read->jump(inl_path) ) {
 					buffer = read->read();
 				} else {
@@ -153,11 +152,9 @@ namespace qk {
 		}
 
 		uint32_t read(cString& path, Cb cb, bool stream) {
-			
-			Protocol p = protocol(path);
 			uint32_t id = 0;
 
-			switch (p) {
+			switch (fs_get_protocol_from_str(path)) {
 				default:
 				case FILE:
 					if ( stream ) {
@@ -208,7 +205,7 @@ namespace qk {
 		Buffer read_sync(cString& path) throw(Error) {
 			Buffer rv;
 
-			switch ( protocol(path) ) {
+			switch ( fs_get_protocol_from_str(path) ) {
 				default:
 				case FILE:
 					Qk_CHECK(fs_exists_sync(path),
@@ -222,7 +219,7 @@ namespace qk {
 					ScopeLock lock(zip_mutex_);
 					
 					ZipReader* read = get_zip_reader(zip);
-					String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
+					String inl_path = fs_format_part_path( path.substr(zip.length() + fs_SEPARATOR.length()) );
 					
 					if ( read->jump(inl_path) ) {
 						rv = read->read();
@@ -247,7 +244,7 @@ namespace qk {
 		}
 
 		bool exists_sync(cString& path, bool file, bool dir) {
-			switch ( protocol(path) ) {
+			switch ( fs_get_protocol_from_str(path) ) {
 				default:
 				case FILE:
 					if ( file && fs_is_file_sync(path) )
@@ -261,7 +258,7 @@ namespace qk {
 						Qk_ERROR_IGNORE({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
-							String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
+							String inl_path = fs_format_part_path( path.substr(zip.length() + fs_SEPARATOR.length()) );
 							if ( file && read->is_file( inl_path ) )
 								return true;
 							if ( dir && read->is_directory( inl_path ) )
@@ -276,7 +273,7 @@ namespace qk {
 
 		Array<Dirent> readdir_sync(cString& path) throw(Error) {
 			Array<Dirent> rv;
-			switch ( protocol(path) ) {
+			switch ( fs_get_protocol_from_str(path) ) {
 				default:
 				case FILE:
 					rv = fs_readdir_sync(path);
@@ -286,7 +283,7 @@ namespace qk {
 						Qk_ERROR_IGNORE({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
-							String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
+							String inl_path = fs_format_part_path( path.substr(zip.length() + fs_SEPARATOR.length()) );
 							rv = read->readdir(inl_path);
 						});
 					}
@@ -298,7 +295,7 @@ namespace qk {
 
 		String format(cString& path) {
 			int index = -1;
-			switch ( protocol(path) ) {
+			switch ( fs_get_protocol_from_str(path) ) {
 				default:
 				case ZIP:
 				case FILE: return fs_format("%s", *path);
@@ -310,7 +307,7 @@ namespace qk {
 			if (index == -1) {
 				return path;
 			}
-			String s = inl_format_part_path(path.substr(index));
+			String s = fs_format_part_path(path.substr(index));
 			if (s.isEmpty()) {
 				return path.substr(0, index);
 			} else {
@@ -323,7 +320,7 @@ namespace qk {
 			if ( fs_is_local_absolute(path) ) {
 				return true;
 			} else {
-				switch ( protocol(path) ) {
+				switch ( fs_get_protocol_from_str(path) ) {
 					case ZIP:
 					case FILE:
 					case HTTP:

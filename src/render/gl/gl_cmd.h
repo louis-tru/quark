@@ -61,6 +61,8 @@ namespace qk {
 			kFramebufferRenderbuffer_CmdType,
 			kFramebufferTexture2D_CmdType,
 			kReadImage_CmdType,
+			kRegionBegin_CmdType,
+			kRegionEnd_CmdType,
 			kFlushCanvas_CmdType,
 		};
 
@@ -112,6 +114,7 @@ namespace qk {
 			float     depth;
 			Region    bounds;
 			float     size; // blur size
+			GLint     r_tbo; // is have region draw
 			int       n, lod; // sampling rate and image lod
 			BlendMode mode;
 		};
@@ -166,6 +169,16 @@ namespace qk {
 			bool            genMipmap;
 		};
 
+		struct RegionBeginCmd: Cmd {
+			Vec2            origin;
+			Sp<ImageSource> img;
+		};
+
+		struct RegionEndCmd: Cmd {
+			Sp<ImageSource> img;
+			bool            genMipmap;
+		};
+
 		struct FlushCanvasCmd: Cmd {
 			GLCanvas        *srcC;
 			GLC_CmdPack     *srcCmd;
@@ -200,10 +213,12 @@ namespace qk {
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
 		void clearColor4f(const Color4f &color, const Region &region, bool fullClear);
 		void blurFilterBegin(Region bounds);
-		int  blurFilterEnd(Region bounds, float size);
-		void glFramebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb);
-		void glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level);
-		void readImage(const Rect &rect, ImageSource* img, bool genMipmap);
+		int  blurFilterEnd(Region bounds, float size, GLuint r_tbo);
+		void framebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb);
+		void framebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level);
+		void readImage(const Rect &src, ImageSource* img, bool genMipmap);
+		void regionBegin(Vec2 origin, ImageSource* img);
+		void regionEnd(ImageSource* img, bool genMipmap);
 		void flushCanvas(GLCanvas* that, GLC_CmdPack* thatCmd, const Rect &src, const Rect &dest);
 
 	private:

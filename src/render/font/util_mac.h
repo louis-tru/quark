@@ -33,7 +33,8 @@
 #ifndef __quark__render__mac_util__
 #define __quark__render__mac_util__
 
-#include "../util/util.h"
+#include "../../util/util.h"
+#if Qk_MAC
 #include <CoreFoundation/CoreFoundation.h>
 
 using namespace qk;
@@ -53,4 +54,5 @@ template <typename CFRef> using QkUniqueCFRef =
 /** Assumes src and dst are not nullptr. */
 String QkStringFromCFString(CFStringRef src);
 
+#endif
 #endif

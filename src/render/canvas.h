@@ -100,6 +100,12 @@ namespace qk {
 		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool genMipmap) = 0; // async read image
 
 		/**
+		 * return an image source canvas to enter area drawing mode, share the current canvas state.
+		 * all drawing commands target the returned image until the end of calling 'restore()'
+		*/
+		virtual Sp<ImageSource> region(const Rect &src, ColorType type, bool genMipmap) = 0;
+
+		/**
 		 * @dev drawTextBlob() Draw with text baseline aligned
 		*/
 		virtual void drawTextBlob(TextBlob* blob, Vec2 origin, float fontSize, const Paint& paint) = 0;

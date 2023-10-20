@@ -213,7 +213,7 @@
 					'platforms/mac/mac_image_codec.mm',
 					'platforms/mac/mac_keyboard.mm',
 					'platforms/mac/mac_render.mm',
-					'render/mac_util.h',
+					'render/font/util_mac.h',
 					'render/font/ct/ct_pool.cc',
 					'render/font/ct/ct_typeface.cc',
 					'render/font/ct/ct_typeface.h',

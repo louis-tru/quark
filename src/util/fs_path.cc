@@ -157,8 +157,8 @@ namespace qk {
 		return false;
 	}
 
-	String inl_format_part_path(cString& path) {
-		
+	String fs_format_part_path(cString& path) {
+
 		Array<String> ls = path.split("/");
 		Array<String> rev;
 		int up = 0;
@@ -267,7 +267,7 @@ namespace qk {
 			}
 #endif
 		
-		s = inl_format_part_path(s);
+		s = fs_format_part_path(s);
 		
 		return prefix.append( s );
 	}

@@ -41,7 +41,7 @@
 # include <CoreGraphics/CoreGraphics.h>
 # include <CoreFoundation/CoreFoundation.h>
 #endif
-#include "../../mac_util.h"
+#include "../util_mac.h"
 
 using namespace qk;
 

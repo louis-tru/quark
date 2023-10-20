@@ -37,7 +37,7 @@ namespace qk {
 
 	// FileSearch implementation
 
-	String inl_format_part_path(cString& path);
+	String fs_format_part_path(cString& path);
 
 	class FileSearch::SearchPath {
 	public:
@@ -85,7 +85,7 @@ namespace qk {
 	}
 
 	String FileSearch::ZipInSearchPath::formatPath(cString& path1, cString& path2) {
-		return inl_format_part_path(String(path1).append('/').append(path2));
+		return fs_format_part_path(String(path1).append('/').append(path2));
 	}
 
 	String FileSearch::ZipInSearchPath::get_absolute_path(cString& path) {
@@ -171,7 +171,7 @@ namespace qk {
 #if Qk_WIN
 			_path = path.replace_all('\\', '/');
 #endif
-		_path = inl_format_part_path(path);
+		_path = fs_format_part_path(path);
 		
 		auto it = m_search_paths.begin();
 		auto end = m_search_paths.end();

@@ -47,7 +47,7 @@ class OsxGLRender;
 @interface GLView: NSOpenGLView
 {
 	CVDisplayLinkRef _displayLink;
-	OsxGLRender    *_render;
+	OsxGLRender      *_render;
 	NSOpenGLContext  *_ctx;
 	bool             _isInit; // start render
 	Mutex            _mutexRender;
@@ -61,31 +61,31 @@ class OsxGLRender;
 
 // ----------------------------------------------------------------------------------------------
 
-class OsxGLRender: public GLRender, public QkMacRender {
+class OsxGLRender final: public GLRender, public QkMacRender {
 public:
 	OsxGLRender(Options opts, NSOpenGLContext *ctx)
 		: GLRender(opts), _ctx(ctx)
 	{}
 
 	~OsxGLRender() override {
-		Qk_STRICT_ASSERT(_view.isRun == false);
+		Qk_STRICT_ASSERT(_message.length() == 0);
 	}
 
 	void release() override {
-		OsxGLRender::lock();
+		lock();
 		[_view stopDisplay]; // thread task must be forced to end
-		OsxGLRender::unlock();
+		unlock();
 
 		GLRender::release(); // Destroy the pre object first
 
 		// Perform the final message task
 		_mutexMsg.lock();
 		if (_message.length()) {
-			OsxGLRender::lock();
+			lock();
 			for ( auto &i : _message )
 				i->resolve();
 			_message.clear();
-			OsxGLRender::unlock();
+			unlock();
 		}
 		_mutexMsg.unlock();
 
@@ -122,9 +122,9 @@ public:
 
 	uint32_t post_message(Cb cb, uint64_t delay_us) override {
 		if (isRenderThread()) {
-			OsxGLRender::lock();
+			lock();
 			cb->resolve();
-			OsxGLRender::unlock();
+			unlock();
 		} else {
 			_mutexMsg.lock();
 			_message.pushBack(cb);
@@ -153,9 +153,8 @@ public:
 	}
 
 	void renderDisplay() {
-		OsxGLRender::lock();
-
-		if (!_view.isRun) return OsxGLRender::unlock();
+		lock();
+		if (!_view.isRun) return unlock();
 
 		if (_message.length()) { //
 			List<Cb> msg;
@@ -164,7 +163,6 @@ public:
 			_mutexMsg.unlock();
 			for ( auto &i : msg ) i->resolve();
 		}
-		//if (!_isActive) return;
 
 		if (_delegate->onRenderBackendDisplay()) {
 			_glcanvas->flushBuffer(); // commit gl canvas cmd
@@ -179,7 +177,7 @@ public:
 			glFlush(); // glFinish, glFenceSync, glWaitSync
 			[_ctx flushBuffer]; // swap double buffer
 		}
-		OsxGLRender::unlock();
+		unlock();
 	}
 
 	UIView* make_surface_view(CGRect rect) override {

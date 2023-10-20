@@ -78,6 +78,12 @@ namespace qk {
 						case kReadImage_CmdType:
 							((ReadImageCmd*)cmd)->~ReadImageCmd();
 							break;
+						case kRegionBegin_CmdType:
+							((RegionBeginCmd*)cmd)->~RegionBeginCmd();
+							break;
+						case kRegionEnd_CmdType:
+							((RegionEndCmd*)cmd)->~RegionEndCmd();
+							break;
 						case kFlushCanvas_CmdType: {
 							auto c = ((FlushCanvasCmd*)cmd);
 							c->srcC->release();
@@ -173,12 +179,6 @@ namespace qk {
 
 		void callCmds(const Mat4& root, const Mat& mat, BlendMode mode) {
 #if Qk_USE_GLC_CMD_QUEUE
-			// set canvas root matrix
-			glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
-			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, root.val, GL_DYNAMIC_DRAW);
-			setMetrixCall(mat); // maintain final status
-			_render->setBlendMode(mode); // maintain final status
-
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
 
 			MatrixCmd *curMat = nullptr;
@@ -215,7 +215,7 @@ namespace qk {
 						}
 						case kBlurFilterEnd_CmdType: {
 							auto c = (BlurFilterEndCmd*)cmd;
-							blurFilterEndCall(c->bounds, c->size, c->mode, c->n, c->lod, c->depth);
+							blurFilterEndCall(c->bounds, c->size, c->r_tbo, c->mode, c->n, c->lod, c->depth);
 						}
 						case kSwitch_CmdType: {
 							auto c = (SwitchCmd*)cmd;
@@ -278,6 +278,18 @@ namespace qk {
 							c->~ReadImageCmd();
 							break;
 						}
+						case kRegionBegin_CmdType: {
+							auto c = (RegionBeginCmd*)cmd;
+							regionBeginCall(c->origin, *c->img);
+							c->~RegionBeginCmd();
+							break;
+						}
+						case kRegionEnd_CmdType: {
+							auto c = (RegionEndCmd*)cmd;
+							regionEndCall(*c->img, c->genMipmap);
+							c->~RegionEndCmd();
+							break;
+						}
 						case kFlushCanvas_CmdType: {
 							auto c = (FlushCanvasCmd*)cmd;
 							flushCanvasCall(c->srcC, c->srcCmd, c->src, c->dest,
@@ -332,6 +344,11 @@ namespace qk {
 			}; // transpose matrix
 			glBindBuffer(GL_UNIFORM_BUFFER, _render->_viewMatrixBlock);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4, GL_DYNAMIC_DRAW);
+		}
+
+		void setRootMatrixCall(const Mat4 &root) {
+			glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, root.val, GL_DYNAMIC_DRAW);
 		}
 
 		void drawColor4fCall(const VertexData &vertex,
@@ -580,7 +597,7 @@ namespace qk {
 		 *   https://elynxsdk.free.fr/ext-docs/Blur/Fast_box_blur.pdf
 		 *   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		 */
-		void blurFilterEndCall(Region bounds, float size, BlendMode mode, int n, int lod, float depth) {
+		void blurFilterEndCall(Region bounds, float size, GLuint r_tbo, BlendMode mode, int n, int lod, float depth) {
 			float x1 = bounds.origin.x(), y1 = bounds.origin.y();
 			float x2 = bounds.end.x(), y2 = bounds.end.y();
 			float data[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
@@ -590,6 +607,11 @@ namespace qk {
 			uint32_t oRw = R.x(), oRh = R.y();
 
 			gl_textureBarrier();
+
+			glActiveTexture(GL_TEXTURE0);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glBindTexture(GL_TEXTURE_2D, _canvas->_blurTex);
 
 			if (lod) { // copy image, gen mipmap texture
 				int i = 0;
@@ -618,8 +640,12 @@ namespace qk {
 			glUniform2f(blur.size, size / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 			gl_textureBarrier(); // complete horizontal blur
+			if (r_tbo) { // region draw
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_tbo, 0);
+			} else {
+				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_rbo);
+			}
 			// blur vertical blur
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_rbo);
 			glUniform1i(blur.depth, depth + DepthNextUnit);
 			glUniform2f(blur.oResolution, R.x(), R.y());
 			glUniform2f(blur.size, 0, size / R.y()); // vertical blur
@@ -629,37 +655,73 @@ namespace qk {
 		}
 	
 		void readImageCall(const Rect &src, ImageSource* img, bool genMipmap) {
-			GLuint tex;
+			GLuint tex = img->pixels()[0].texture();
 			auto o = src.origin, s = src.size;
 			auto w = img->width(), h = img->height();
 			auto iformat = gl_get_texture_pixel_format(img->type());
 			auto type = gl_get_texture_data_type(img->type());
-			glGenTextures(1, &tex);
-			glActiveTexture(GL_TEXTURE1);
+			if (!tex)
+				glGenTextures(1, &tex);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, iformat, type, nullptr);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _render->_frameBuffer);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-			glBlitFramebuffer(o[0], o[1], s[0], s[1],
-				0, /*_canvas->_surfaceSize.y() - h*/0, w, h, 
-				GL_COLOR_BUFFER_BIT, s == Vec2(w,h) ? GL_NEAREST: GL_LINEAR);
+			glBlitFramebuffer(o[0], o[1], s[0], s[1], 0, 0, w, h,
+				GL_COLOR_BUFFER_BIT, s == Vec2(w,h) ? GL_NEAREST: GL_LINEAR
+			);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_rbo);
 			gl_textureBarrier();
+			if (genMipmap)
+				glGenerateMipmap(GL_TEXTURE_2D);
+			_render->loadTexImage(img, img->info(), tex);
+		}
+
+		void regionBeginCall(Vec2 origin, ImageSource* img) {
+			GLuint tex = img->pixels()[0].texture();
+			auto w = img->width(), h = img->height();
+			auto iformat = gl_get_texture_pixel_format(img->type());
+			auto type = gl_get_texture_data_type(img->type());
+			if (!tex)
+				glGenTextures(1, &tex);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, tex);
+			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, iformat, type, nullptr);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
+			//glViewport(origin[0], origin[1], w, h); // TODO ...?
+			_render->loadTexImage(img, img->info(), tex);
+		}
+
+		void regionEndCall(ImageSource* img, bool genMipmap) {
+			gl_textureBarrier();
 			if (genMipmap) {
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, img->pixels()[0].texture());
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
-			_render->loadTexImage(img, img->info(), tex);
+			glViewport(0, 0, _canvas->_surfaceSize[0], _canvas->_surfaceSize[1]);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_rbo);
 		}
 
 		void flushCanvasCall(GLCanvas* srcC,
 			GLC_CmdPack* srcCmd, const Rect &src, const Rect &dest,
-			const Mat4 &root, const Mat &mat, BlendMode mode, const Mat4 &curRoot, const Mat &curMat
+			const Mat4 &root, const Mat &mat, BlendMode mode, const Mat4 &parentRoot, const Mat &parentMat
 		) {
 			if (srcCmd->cmds.blocks[0].size > sizeof(Cmd)) {
+				auto parentMode = _render->_blendMode;
 				auto chPort = srcC->_surfaceSize != _canvas->_surfaceSize;
-				auto curMode = _render->_blendMode;
+				auto chMode = mode != parentMode;
+
+				 // switch canvas status
+				if (chMode) {
+					_render->setBlendMode(mode);
+				}
+				setRootMatrixCall(root);
+				setMetrixCall(mat);
 
 				if (chPort) {
 					glViewport(0, 0, srcC->_surfaceSize[0], srcC->_surfaceSize[1]);
@@ -667,23 +729,23 @@ namespace qk {
 				// call subcanvas subs
 				_inl(srcCmd)->callCmds(root, mat, mode);
 
-				// Restore to current state value
+				// * Restore to current state value *
 				if (chPort) {
 					glViewport(0, 0, _canvas->_surfaceSize[0], _canvas->_surfaceSize[1]);
 				}
-
-				glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
-				glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, curRoot.val, GL_DYNAMIC_DRAW);
-				setMetrixCall(curMat);
-				if (curMode != _render->_blendMode)
-					_render->setBlendMode(curMode);
-				glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
+				if (chMode) {
+					_render->setBlendMode(parentMode); // ch mode
+				}
+				setRootMatrixCall(parentRoot); // ch root matrix
+				setMetrixCall(parentMat); // ch matrix
+				glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo); // bind top fbo
 			}
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, srcC->_fbo);
 			glBlitFramebuffer(
 				src.origin[0], src.origin[1], src.size[0], src.size[1],
 				dest.origin[0], dest.origin[1], dest.size[0], dest.size[1],
-				GL_COLOR_BUFFER_BIT, src.size == dest.size ? GL_NEAREST: GL_LINEAR);
+				GL_COLOR_BUFFER_BIT, src.size == dest.size ? GL_NEAREST: GL_LINEAR
+			);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, _canvas->_fbo);
 		}
 	};
@@ -902,7 +964,7 @@ namespace qk {
 		cmd->fullClear = full;
 	}
 
-	void GLC_CmdPack::glFramebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb) {
+	void GLC_CmdPack::framebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb) {
 		auto cmd = new(_this->allocCmd(sizeof(FramebufferRenderbufferCmd))) FramebufferRenderbufferCmd;
 		cmd->type = kFramebufferRenderbuffer_CmdType;
 		cmd->target = target;
@@ -911,7 +973,7 @@ namespace qk {
 		cmd->renderbuffer = rb;
 	}
 
-	void GLC_CmdPack::glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level) {
+	void GLC_CmdPack::framebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level) {
 		auto cmd = new(_this->allocCmd(sizeof(FramebufferTexture2DCmd))) FramebufferTexture2DCmd;
 		cmd->type = kFramebufferTexture2D_CmdType;
 		cmd->target = target;
@@ -929,13 +991,14 @@ namespace qk {
 		cmd->isClipState = _canvas->_isClipState;
 	}
 
-	int GLC_CmdPack::blurFilterEnd(Region bounds, float size) {
+	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, GLuint r_tbo) {
 		auto cmd = new(_this->allocCmd(sizeof(BlurFilterEndCmd))) BlurFilterEndCmd;
 		cmd->type = kBlurFilterEnd_CmdType;
 		cmd->bounds = bounds;
 		cmd->depth = _canvas->_zDepth;
 		cmd->mode = _canvas->_blendMode;
 		cmd->size = size;
+		cmd->r_tbo = r_tbo;
 		_this->getBlurSampling(size, cmd->n, cmd->lod);
 		return cmd->lod + 2;
 	}
@@ -944,6 +1007,20 @@ namespace qk {
 		auto cmd = new(_this->allocCmd(sizeof(ReadImageCmd))) ReadImageCmd;
 		cmd->type = kReadImage_CmdType;
 		cmd->src = src;
+		cmd->img = img;
+		cmd->genMipmap = genMipmap;
+	}
+
+	void GLC_CmdPack::regionBegin(Vec2 origin, ImageSource* img) {
+		auto cmd = new(_this->allocCmd(sizeof(RegionBeginCmd))) RegionBeginCmd;
+		cmd->type = kRegionBegin_CmdType;
+		cmd->origin = origin;
+		cmd->img = img;
+	}
+
+	void GLC_CmdPack::regionEnd(ImageSource* img, bool genMipmap) {
+		auto cmd = new(_this->allocCmd(sizeof(RegionEndCmd))) RegionEndCmd;
+		cmd->type = kRegionEnd_CmdType;
 		cmd->img = img;
 		cmd->genMipmap = genMipmap;
 	}
@@ -992,24 +1069,33 @@ namespace qk {
 	void GLC_CmdPack::clearColor4f(const Color4f &color, const Region &region, bool full) {
 		_this->clearColor4fCall(color, region, full, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::glFramebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb) {
+	void GLC_CmdPack::framebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb) {
 		glFramebufferRenderbuffer(target, at, rbt, rb);
 	}
-	void GLC_CmdPack::glFramebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level) {
+	void GLC_CmdPack::framebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level) {
 		glFramebufferTexture2D(target, at, tt, tex, level);
 	}
 	void GLC_CmdPack::blurFilterBegin(Region bounds) {
 		_this->blurFilterBeginCall(bounds, _canvas->_isClipState, _canvas->_zDepth);
 	}
-	int GLC_CmdPack::blurFilterEnd(Region bounds, float size) {
+	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, GLuint r_tbo) {
 		int n, lod;
 		_this->getBlurSampling(size, n, lod);
-		_this->blurFilterEndCall(bounds, size, _canvas->_blendMode, n, lod, _canvas->_zDepth);
+		_this->blurFilterEndCall(bounds, size, r_tbo, _canvas->_blendMode, n, lod, _canvas->_zDepth);
 		return lod + 2;
 	}
-	void GLC_CmdPack::readImage(const Rect &rect, ImageSource* img, bool genMipmap) {
-		_this->readImageCall(rect, img, genMipmap);
+	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img, bool genMipmap) {
+		_this->readImageCall(src, img, genMipmap);
 	}
+
+	void GLC_CmdPack::regionBegin(Vec2 origin, ImageSource* img) {
+		_this->regionBeginCall(origin, img);
+	}
+
+	void GLC_CmdPack::regionEnd(ImageSource* img, bool genMipmap) {
+		_this->regionEndCall(img, genMipmap);
+	}
+
 	void GLC_CmdPack::flushCanvas(GLCanvas* that, GLC_CmdPack* thatCmd, const Rect &src, const Rect &dest) {
 	}
 #endif

@@ -281,7 +281,10 @@ namespace qk {
 		}
 
 		~GLCBlurFilter() override {
-			auto ct = _host->_cmdPack->blurFilterEnd(_bounds, _size);
+			GLint r_tbo = 0;
+			if (_host->_state->region)
+				r_tbo = _host->_state->region->dest->pixels()[0].texture();
+			auto ct = _host->_cmdPack->blurFilterEnd(_bounds, _size, r_tbo);
 			_inl(_host)->zDepthNextCount(ct);
 		}
 
@@ -315,8 +318,6 @@ namespace qk {
 
 	GLCanvas::GLCanvas(GLRender *render, Render::Options opts)
 		: _render(render)
-		, _stateStack{{ .matrix=Mat(), .aaclip=0 }}
-		, _state(&_stateStack.back())
 		, _cache(nullptr)
 		, _fbo(0), _rbo(0), _depthBuffer(0), _stencilBuffer(0)
 		, _aaclipTex(0)
@@ -335,6 +336,8 @@ namespace qk {
 		_cache = new PathvCache(Uint32::clamp(capacity, 1024000/*1mb*/, 512000000/*512mb*/), render, this);
 		_cmdPack = new GLC_CmdPack(render, this);
 		_cmdPackFront = Qk_USE_GLC_CMD_QUEUE ? new GLC_CmdPack(render, this): _cmdPack;
+		_stateStack.push({ .matrix=Mat(), .aaclip=0 });
+		_state = &_stateStack.back();
 	}
 
 	GLCanvas::~GLCanvas() {
@@ -387,6 +390,7 @@ namespace qk {
 		count = Uint32::min(count, _stateStack.length() - 1);
 
 		if (count > 0) {
+			bool restore_region = false;
 			do {
 				for (int i = _state->clips.length() - 1; i >= 0; i--) {
 					auto &clip = _state->clips[i];
@@ -399,13 +403,20 @@ namespace qk {
 					_cmdPack->drawClip(clip, _stencilRef, true);
 					_this->zDepthNext();
 				}
+				if (_state->region) {
+					restore_region = true;
+					_cmdPack->regionEnd(*_state->region->dest, _state->region->genMipmap);
+				}
 				_state = &_stateStack.pop().back();
 				count--;
 			} while (count > 0);
 
-			if (_isClipState && _stencilRef == 127 && _stencilRefDecr == 127) { // not stencil test
+			if (_stencilRef == _stencilRefDecr) { // not stencil test
 				_isClipState = false;
 				_cmdPack->switchState(GL_STENCIL_TEST, false); // disable stencil test
+			}
+			if (restore_region && _state->region) { // restore region draw
+				_cmdPack->regionBegin(_state->region->origin, *_state->region->dest);
 			}
 			_this->setMatrixInl(_state->matrix);
 		}
@@ -591,10 +602,26 @@ namespace qk {
 			Float::min(o.y()+src.size.y(), _size.y()) - o.y()
 		};
 		if (s[0] > 0 && s[1] > 0 && dest[0] > 0 && dest[1] > 0) {
-			Sp<ImageSource> img = new ImageSource({
+			auto img = new ImageSource({
 				int(Qk_MIN(dest.x(),_surfaceSize.x())),int(Qk_MIN(dest.y(),_surfaceSize.y())),type}, _render);
-			_cmdPack->readImage({{o*_surfaceScale},s*_surfaceScale}, *img, genMipmap);
-			Qk_ReturnLocal(img);
+			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, img, genMipmap);
+			return img;
+		}
+		return nullptr;
+	}
+
+	Sp<ImageSource> GLCanvas::region(const Rect &src, ColorType type, bool genMipmap) {
+		auto o = src.origin;
+		auto s = Vec2{
+			Float::min(o.x()+src.size.x(), _size.x()) - o.x(),
+			Float::min(o.y()+src.size.y(), _size.y()) - o.y()
+		};
+		if (s[0] > 0 && s[1] > 0) {
+			o *= _surfaceScale; s *= _surfaceScale;
+			auto img = new ImageSource({ int(s[0]),int(s[1]),type }, _render);
+			_state->region = new GLC_State::Region{o,img,genMipmap};
+			_cmdPack->regionBegin(o, img);
+			return img;
 		}
 		return nullptr;
 	}
@@ -619,11 +646,12 @@ namespace qk {
 		_render->lock();
 		_mutex.lock();
 
-		// clear state all
-		_stateStack = {{ .matrix=Mat(), .aaclip=0 }}; // init state
+		auto chSize = surfaceSize != _surfaceSize;
+		// clear all state
+		_stateStack.clear();
+		_stateStack.push({ .matrix=Mat(), .aaclip=0 });
 		_state = &_stateStack.back();
 		_stencilRef = _stencilRefDecr = 127;
-		_isClipState = false; // clear clip state
 		// set surface scale
 		_surfaceSize = surfaceSize;
 		_size = surfaceSize / scale;
@@ -633,19 +661,28 @@ namespace qk {
 		_phy2Pixel = 2 / _fullScale;
 		_rootMatrix = root.transpose(); // transpose matrix
 
-		setBuffers(surfaceSize); // set buffers
+		if (chSize) { // ch size
+			setBuffers(surfaceSize); // set buffers
+		}
 		// update shader root matrix and clear all save state
-		glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _rootMatrix.val, GL_STREAM_DRAW);
-		if (!_DeviceMsaa && _aaclipTex) { // clear aa clip tex buffer
-			float color[] = {1.0f,1.0f,1.0f,1.0f};
-			glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
-			gl_textureBarrier(); // ensure clip texture clear can be executed correctly in sequence
+		if (_render->_glcanvas == this) { // main canvas
+			glViewport(0, 0, surfaceSize[0], surfaceSize[1]);
+			glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _rootMatrix.val, GL_STREAM_DRAW);
 		}
-		if (_stencilBuffer) {
-			glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
-			glDisable(GL_STENCIL_TEST); // disable stencil test
+		if (chSize || _isClipState) {
+			if (_aaclipTex) { // clear aa clip tex buffer
+				float color[] = {1.0f,1.0f,1.0f,1.0f};
+				glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
+				gl_textureBarrier(); // ensure clip texture clear can be executed correctly in sequence
+			}
+			if (_stencilBuffer) {
+				glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
+				glDisable(GL_STENCIL_TEST); // disable stencil test
+			}
 		}
+
+		_isClipState = false; // clear clip state
 		_mutex.unlock();
 		_render->unlock();
 	}
@@ -666,8 +703,6 @@ namespace qk {
 			// init matrix buffer
 			_cmdPack->setMetrix();
 		}
-
-		glViewport(0, 0, w, h);
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
 		if (msaa > 1) {
