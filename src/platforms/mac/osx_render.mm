@@ -42,12 +42,12 @@ extern QkApplicationDelegate* __appDelegate;
 // ------------------- OpenGL ------------------
 #if Qk_ENABLE_GL && Qk_OSX
 
-class MacGLRender;
+class OsxGLRender;
 
 @interface GLView: NSOpenGLView
 {
 	CVDisplayLinkRef _displayLink;
-	MacGLRender    *_render;
+	OsxGLRender    *_render;
 	NSOpenGLContext  *_ctx;
 	bool             _isInit; // start render
 	Mutex            _mutexRender;
@@ -55,37 +55,37 @@ class MacGLRender;
 @property (assign, nonatomic) bool         isRun;
 @property (assign, nonatomic) qk::ThreadID renderThreadId;
 - (id) init:(CGRect)frameRect
-		context:(NSOpenGLContext*)ctx render:(MacGLRender*)r;
+		context:(NSOpenGLContext*)ctx render:(OsxGLRender*)r;
 - (void) stopDisplay;
 @end
 
 // ----------------------------------------------------------------------------------------------
 
-class MacGLRender: public GLRender, public QkMacRender {
+class OsxGLRender: public GLRender, public QkMacRender {
 public:
-	MacGLRender(Options opts, NSOpenGLContext *ctx)
+	OsxGLRender(Options opts, NSOpenGLContext *ctx)
 		: GLRender(opts), _ctx(ctx)
 	{}
 
-	~MacGLRender() override {
+	~OsxGLRender() override {
 		Qk_STRICT_ASSERT(_view.isRun == false);
 	}
 
 	void release() override {
-		MacGLRender::lock();
+		OsxGLRender::lock();
 		[_view stopDisplay]; // thread task must be forced to end
-		MacGLRender::unlock();
+		OsxGLRender::unlock();
 
 		GLRender::release(); // Destroy the pre object first
 
 		// Perform the final message task
 		_mutexMsg.lock();
 		if (_message.length()) {
-			MacGLRender::lock();
+			OsxGLRender::lock();
 			for ( auto &i : _message )
 				i->resolve();
 			_message.clear();
-			MacGLRender::unlock();
+			OsxGLRender::unlock();
 		}
 		_mutexMsg.unlock();
 
@@ -122,9 +122,9 @@ public:
 
 	uint32_t post_message(Cb cb, uint64_t delay_us) override {
 		if (isRenderThread()) {
-			MacGLRender::lock();
+			OsxGLRender::lock();
 			cb->resolve();
-			MacGLRender::unlock();
+			OsxGLRender::unlock();
 		} else {
 			_mutexMsg.lock();
 			_message.pushBack(cb);
@@ -153,9 +153,9 @@ public:
 	}
 
 	void renderDisplay() {
-		MacGLRender::lock();
+		OsxGLRender::lock();
 
-		if (!_view.isRun) return MacGLRender::unlock();
+		if (!_view.isRun) return OsxGLRender::unlock();
 
 		if (_message.length()) { //
 			List<Cb> msg;
@@ -179,7 +179,7 @@ public:
 			glFlush(); // glFinish, glFenceSync, glWaitSync
 			[_ctx flushBuffer]; // swap double buffer
 		}
-		MacGLRender::unlock();
+		OsxGLRender::unlock();
 	}
 
 	UIView* make_surface_view(CGRect rect) override {
@@ -215,7 +215,7 @@ private:
 @implementation GLView
 
 - (id) init:(CGRect)frameRect
-		context:(NSOpenGLContext*)ctx render:(MacGLRender*)r
+		context:(NSOpenGLContext*)ctx render:(OsxGLRender*)r
 {
 	if( (self = [super initWithFrame:frameRect pixelFormat:nil]) ) {
 		_ctx = ctx;
@@ -334,7 +334,7 @@ QkMacRender* qk_make_mac_gl_render(Render::Options opts) {
 	CGLLockContext(ctx.CGLContextObj);
 	[ctx makeCurrentContext];
 	Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
-	auto render = new MacGLRender(opts,ctx);
+	auto render = new OsxGLRender(opts,ctx);
 	CGLUnlockContext(ctx.CGLContextObj);
 	[NSOpenGLContext clearCurrentContext]; // clear ctx
 
