@@ -1,5 +1,5 @@
 uniform vec2                iResolution; // viewport resolution
-uniform vec2                oResolution; // generate image resolution
+uniform vec2                oResolution; // output image resolution of fragColor
 #vert
 void main() {
 	gl_Position = rootMatrix * vec4(vertexIn.xy * oResolution / iResolution, depth, 1.0);

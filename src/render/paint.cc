@@ -29,26 +29,45 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./paint.h"
+#include "./canvas.h"
 
 namespace qk {
 
-	void ImagePaint::setImage(ImageSource *image, const Rect& dest, const Rect& src) {
-		this->source = image;
+	void ImagePaint_setImage(ImagePaint *paint, const Rect &dest, const Rect &src, Vec2 srcSize) {
 		Vec2 scale(dest.size.x() / src.size.x(), dest.size.y() / src.size.y());
-		coord = {
+		paint->coord = {
 			Vec2(
 				src.origin.x() * scale.x() - dest.origin.x(),
 				src.origin.y() * scale.y() - dest.origin.y()
 			),
 			// shader tex scale
-			//Vec2(1.0 / scale.x() / image->width(), 1.0 / scale.y() / image->height()),
-			Vec2(1.0 / (scale.x() * image->width()), 1.0 / (scale.y() * image->height())),
+			Vec2(1.0 / (scale.x() * srcSize[0]), 1.0 / (scale.y() * srcSize[1])),
 		};
+	}
+
+	void ImagePaint::setCanvas(Canvas *canvas, const Rect &dest, const Rect &src) {
+		this->canvas = canvas;
+		_flushCanvas = true;
+		ImagePaint_setImage(this, dest, src, canvas->size());
+	}
+
+	void ImagePaint::setCanvas(Canvas *canvas, const Rect &dest) {
+		setCanvas(canvas, dest, { 0, canvas->size() });
+	}
+
+	void ImagePaint::setImage(ImageSource *image, const Rect& dest, const Rect& src) {
+		this->image = image;
+		_flushCanvas = false;
+		ImagePaint_setImage(this, dest, src, Vec2(image->width(), image->height()));
+	}
+
+	void ImagePaint::setImage(ImageSource *image, const Rect &dest) {
+		setImage(image, dest, { 0, Vec2(image->width(), image->height()) });
 	}
 
 	// -------------------------------------------------------
 
-	void test() {
+	void paint_test() {
 		Paint paint;
 		paint.style = Paint::kFill_Style;
 		paint.antiAlias = true;

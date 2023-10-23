@@ -167,9 +167,9 @@ public:
 		if (_delegate->onRenderBackendDisplay()) {
 			_glcanvas->flushBuffer(); // commit gl canvas cmd
 			// copy pixels to default color buffer
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 			auto src = _glcanvas->surfaceSize();
 			auto dest = _surfaceSize;
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 			glBlitFramebuffer(0, 0, src[0], src[1],
 				0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, src == dest ? GL_NEAREST: GL_LINEAR);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas

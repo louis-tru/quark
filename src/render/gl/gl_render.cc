@@ -301,77 +301,55 @@ namespace qk {
 		}
 	}
 
-	bool gl_is_support_multisampled() {
-		String VENDOR = (const char*)glGetString(GL_VENDOR);
-		String RENDERER = (const char*)glGetString(GL_RENDERER);
-		String version = (const char*)glGetString(GL_VERSION);
-		String extensions = (const char*)glGetString(GL_EXTENSIONS);
-
-		Qk_DEBUG("OGL VENDOR: %s", *VENDOR);
-		Qk_DEBUG("OGL RENDERER: %s", *RENDERER);
-		Qk_DEBUG("OGL VERSION: %s", *version);
-		Qk_DEBUG("OGL EXTENSIONS: %s", *extensions);
-
-		auto str = String::format("%s %s %s %s", *VENDOR, *RENDERER, *version, *extensions);
-
-		for (auto s : {"OpenGL ES", "OpenGL", "OpenGL Entity"}) {
-			int idx = str.indexOf(s);
-			if (idx >= 0) {
-				int num = str.substr(idx + strlen(s)).trim().substr(0,1).toNumber<int>();
-				if (num > 2) // version > 2
-					return true;
-				else if (extensions.indexOf( "multisample" ) >= 0) // not use extensions
-					return false;
-			}
-		}
-
-		return version.indexOf("Metal") >= 0; // test mac metal
-	}
-
 	void gl_TexImage2D(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, tex);
 		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
 		// glTexStorage2D(GL_TEXTURE_2D, 1, iformat, size[0], size[1]);
 		glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat, size[0], size[1], 0, iformat, type, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // range: 0 - 1, no repeat
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
-	void gl_setFramebufferRenderbuffer(GLuint buff, Vec2 size, GLenum iformat, GLenum attachment, int msaaSample) {
+	void gl_setFramebufferRenderbuffer(GLuint buff, Vec2 size, GLenum iformat, GLenum attachment) {
 		glBindRenderbuffer(GL_RENDERBUFFER, buff);
-		msaaSample > 1 ?
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSample, iformat, size[0], size[1]):
+		// msaa > 1 ?
+		// glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaa, iformat, size[0], size[1]):
 		glRenderbufferStorage(GL_RENDERBUFFER, iformat, size[0], size[1]);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, buff);
 	}
 
-	void gl_setColorRenderBuffer(GLuint buff, ColorType type, Vec2 size, int msaaSample) {
-		GLenum ifo;
-		switch (type) {
-			case kColor_Type_RGB_565: ifo = GL_RGB565; break;
-			case kColor_Type_RGBA_8888: ifo = GL_RGBA8; break;
-			case kColor_Type_RGB_888X: ifo = GL_RGBA8; break;
-			case kColor_Type_RGBA_1010102: ifo = GL_RGB10_A2; break;
-			case kColor_Type_RGB_101010X: ifo = GL_RGB10_A2; break;
-			default: ifo = GL_RGBA8; break;
-		}
-		gl_setFramebufferRenderbuffer(buff, size, ifo, GL_COLOR_ATTACHMENT0, msaaSample);
-	}
-
-	void gl_setAAClipBuffer(GLuint tex, Vec2 size, int msaaSample) {
-		if (msaaSample <= 1) { // clip anti alias buffer
-			gl_TexImage2D(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_MaxTextureImageUnits - 1);
+	void gl_setColorRenderBuffer(GLuint buff, ColorType type, Vec2 size, bool texRBO) {
+		if (texRBO) {
+			// use texture render buffer
+			gl_TexImage2D(buff, size, gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tex, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buff, 0);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
+		} else {
+			GLenum ifo;
+			switch (type) {
+				case kColor_Type_RGB_565: ifo = GL_RGB565; break;
+				case kColor_Type_RGBA_8888: ifo = GL_RGBA8; break;
+				case kColor_Type_RGB_888X: ifo = GL_RGBA8; break;
+				case kColor_Type_RGBA_1010102: ifo = GL_RGB10_A2; break;
+				case kColor_Type_RGB_101010X: ifo = GL_RGB10_A2; break;
+				default: ifo = GL_RGBA8; break;
+			}
+			gl_setFramebufferRenderbuffer(buff, size, ifo, GL_COLOR_ATTACHMENT0);
 		}
 	}
 
-	void gl_setBlurRenderBuffer(GLuint tex, Vec2 size, int msaaSample) {
-		if (msaaSample > 1)
-			size *= ceilf(sqrtf(msaaSample));
+	void gl_setAAClipBuffer(GLuint tex, Vec2 size) {
+		// clip anti alias buffer
+		gl_TexImage2D(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_MaxTextureImageUnits - 1);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);// range: 0 - 1, no repeat
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tex, 0);
+	}
+
+	void gl_setBlurRenderBuffer(GLuint tex, Vec2 size) {
 		gl_TexImage2D(tex, size,
 			gl_get_texture_pixel_format(kColor_Type_RGBA_8888),
 			gl_get_texture_data_type(kColor_Type_RGBA_8888), 0);
@@ -387,23 +365,9 @@ namespace qk {
 
 	GLRender::GLRender(Options opts)
 		: Render(opts)
-		, _IsSupportMultisampled(gl_is_support_multisampled())
-		, _texBuffer{0,0,0}
-		, _glcanvas(new GLCanvas(this, opts))
+		, _texBuffer{0,0,0}, _glcanvas(nullptr)
 	{
-		switch(_opts.colorType) {
-			case kColor_Type_BGRA_8888:
-				_opts.colorType = kColor_Type_RGBA_8888; break;
-			case kColor_Type_BGRA_1010102:
-				_opts.colorType = kColor_Type_RGBA_1010102; break;
-			case kColor_Type_BGR_101010X:
-				_opts.colorType = kColor_Type_RGB_101010X; break;
-			default: break;
-		}
-
-		if (!_IsSupportMultisampled) {
-			_opts.msaaSample = 0;
-		}
+		_glcanvas = new GLCanvas(this, _opts);
 		_canvas = _glcanvas; // set default canvas
 		_glcanvas->retain(); // retain
 
@@ -553,6 +517,7 @@ namespace qk {
 	void GLRender::unlock() {}
 
 	Canvas* GLRender::newCanvas(Options opts) {
+		opts.colorType = opts.colorType ? opts.colorType: kColor_Type_RGBA_8888;
 		return new GLCanvas(this, opts);
 	}
 

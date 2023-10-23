@@ -28,7 +28,7 @@ public:
 		canvas->save();
 		canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kIntersect_ClipOp, 1);
 
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < 100000; i++) {
 			canvas->drawPath(circle, paint);
 		}
 		canvas->restore();

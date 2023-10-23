@@ -140,6 +140,11 @@ namespace qk {
 		inline const Array<Pixel>& pixels() const { return _pixels; }
 
 		/**
+		 * @method texture() get the first image texture
+		*/
+		inline uint32_t texture() const { return _pixels[0]._texture; }
+
+		/**
 		 * @method is_texture() Whether to mark as texture
 		*/
 		inline bool is_texture() const { return _render; }

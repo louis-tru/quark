@@ -51,9 +51,9 @@ namespace qk {
 		String   tag;
 	};
 
-	struct Thread_INL: Thread, Wait {
+	struct Thread_INL: Thread, CondMutex {
 		RunLoop*    _loop;
-		List<Wait*> _wait_ends; // external wait thread end
+		List<CondMutex*> _wait_ends; // external wait thread end
 		void        (*_exec)(void* arg);
 		void        *_arg;
 	};
@@ -65,7 +65,7 @@ namespace qk {
 	static std::atomic_int __is_process_exit(0);
 	static EventNoticer<Event<>, Mutex> *__on_process_safe_exit = nullptr;
 
-	void Wait::wait_for(uint64_t timeoutUs) {
+	void CondMutex::lock_wait_for(uint64_t timeoutUs) {
 		Lock lock(mutex);
 		if (timeoutUs) {
 			cond.wait_for(lock, std::chrono::microseconds(timeoutUs));
@@ -74,12 +74,12 @@ namespace qk {
 		}
 	}
 
-	void Wait::notify_one() {
+	void CondMutex::lock_notify_one() {
 		ScopeLock scope(mutex);
 		cond.notify_one();
 	}
 
-	void Wait::notify_all() {
+	void CondMutex::lock_notify_all() {
 		ScopeLock scope(mutex);
 		cond.notify_all();
 	}
@@ -150,7 +150,7 @@ namespace qk {
 					thread->abort = -3; // abort
 				Qk_DEBUG("Thread end ..., %s", thread->tag.c_str());
 				for (auto& i : thread->_wait_ends)
-					i->notify_one();
+					i->lock_notify_one();
 				Qk_DEBUG("Thread end  ok, %s", thread->tag.c_str());
 			}
 		}, thread);
@@ -181,7 +181,7 @@ namespace qk {
 	void thread_pause(uint64_t timeoutUs) {
 		auto t = thread_current_inl();
 		Qk_ASSERT(t, "Cannot find current qk::Thread handle, use Thread::sleep()");
-		t->wait_for(timeoutUs);
+		t->lock_wait_for(timeoutUs);
 	}
 
 	static void thread_resume_inl(Thread_INL *t, int abort) {
@@ -216,12 +216,12 @@ namespace qk {
 		if ( i != __threads->end() ) {
 			i->value->mutex.lock();
 			lock.unlock();
-			Wait wait;
+			CondMutex wait;
 			auto &tag = i->value->tag;
 			auto it = i->value->_wait_ends.pushBack(&wait);
 			i->value->mutex.unlock();
 			Qk_DEBUG("thread_wait_for(), ..., %p, %s", id, *tag);
-			wait.wait_for(timeoutUs); // permanent wait
+			wait.lock_wait_for(timeoutUs); // permanent wait
 			Qk_DEBUG("thread_wait_for(), end, %p, %s", id, *tag);
 		}
 	}
@@ -248,7 +248,7 @@ namespace qk {
 			}
 		}
 		for ( auto& i: threads_id ) {
-			// Wait for the end of this thread here, this time defaults to 1 second
+			// CondMutex for the end of this thread here, this time defaults to 1 second
 			Qk_DEBUG("thread_try_abort_and_exit_inl,join, %p", i);
 			thread_wait_for(i, Qk_ATEXIT_WAIT_TIMEOUT); // wait 1s
 		}

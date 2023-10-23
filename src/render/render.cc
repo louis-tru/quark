@@ -52,7 +52,7 @@ namespace qk {
 		, _defaultScale(1)
 		, _isActive(true)
 	{
-		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;//kColor_Type_BGRA_8888;
+		_opts.colorType = _opts.colorType ? _opts.colorType: kColor_Type_RGBA_8888;
 		_opts.msaaSample = massSample(_opts.msaaSample);
 	}
 

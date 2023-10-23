@@ -58,7 +58,6 @@ namespace qk {
 		friend class GLCanvas;
 		friend class GLC_CmdPack;
 		// --------------- define props ---------------
-		bool _IsSupportMultisampled;
 		BlendMode _blendMode;
 		GLuint _frameBuffer; // temp frame buffer
 		GLuint _texBuffer[3]; // temp texture buffers
@@ -69,7 +68,6 @@ namespace qk {
 		GLint  _maxTextureImageUnits;
 		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders;
-		// --------------------------------------------
 	};
 }
 #endif

@@ -37,16 +37,18 @@
 
 namespace qk {
 
+	class Canvas;
+
 	struct GradientPaint {
 		enum Type {
 			kLinear_Type,  //!< linear gradient type
 			kRadial_Type,  //!< radial gradient type
 		};
-		Type type; // gradient color type
-		Vec2 origin,endOrRadius;
+		Type    type; // gradient color type
+		Vec2    origin,endOrRadius;
 		uint32_t       count;
-		const Color4f *colors;
-		const float   *positions;
+		const Color4f  *colors;
+		const float    *positions;
 	};
 
 	struct ImagePaint {
@@ -87,15 +89,25 @@ namespace qk {
 				TileMode      tileModeY: 2; // default kClamp_TileMode
 				MipmapMode    mipmapMode: 2;// default kNone_MipmapMode, image source mipmap mode
 				FilterMode    filterMode: 1;// default kNearest_FilterMode, image source filter mode
-				unsigned      padding: 17;
+				bool          _flushCanvas: 1;// default false, flush canvas and draw canvas
+				unsigned      _padding: 16;
 			};
 		}; // size 32bit
 
+		/**
+		 * @method setCanvas flush and draw canvas
+		*/
+		void setCanvas(Canvas *canvas, const Rect &dest, const Rect &src);
+		void setCanvas(Canvas *canvas, const Rect &dest);
+		/**
+		 * @method setImage set image draw region
+		*/
 		void setImage(ImageSource *image, const Rect &dest, const Rect &src);
-		void setImage(ImageSource *image, const Rect &dest) {
-			setImage(image, dest, { Vec2(0,0), Vec2(image->width(), image->height()) });
-		}
-		ImageSource      *source; // image source, weak ref
+		void setImage(ImageSource *image, const Rect &dest);
+		union {
+			ImageSource     *image; // image source, weak ref
+			Canvas          *canvas; // flush canvas, weak ref
+		};
 		Region            coord; // bitmap uv coord
 	};
 
@@ -151,7 +163,7 @@ namespace qk {
 				Join          join: 2;// default kMiter_Join;
 				BlendMode     blendMode: 6; // default kSrcOver_BlendMode
 				bool          antiAlias: 2;// default true;
-				bool          padding: 16;
+				bool          _padding: 16;
 			};
 		}; // size 32bit
 

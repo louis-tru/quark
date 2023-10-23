@@ -61,12 +61,12 @@ namespace qk {
 	template<> Qk_EXPORT uint64_t Compare<ThreadID>::hashCode(const ThreadID& key);
 
 	struct Thread;
-	struct Wait {
+	struct CondMutex {
 		Mutex     mutex;
 		Condition cond;
-		void wait_for(uint64_t timeoutUs = 0);
-		void notify_one();
-		void notify_all();
+		void lock_wait_for(uint64_t timeoutUs = 0);
+		void lock_notify_one();
+		void lock_notify_all();
 	};
 
 	Qk_EXPORT ThreadID thread_fork(void exec(void* arg), void* arg = nullptr, cString& tag = String());

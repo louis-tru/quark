@@ -100,12 +100,12 @@ namespace qk {
 		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool genMipmap = false) = 0;
 
 		/**
-		 * Returns an image buffer and switches output to this buffer, share the current canvas state.
+		 * Returns an image buffer and switches canvas output to dest image buffer, share the current canvas state.
 		 * all drawing commands target the returned image until the end of calling 'restore()'
 		 * 
-		 * @param img {ImageSource*} Create a new image if the image is empty
+		 * @param dest {ImageSource*} Create a new image if the image is empty
 		*/
-		virtual Sp<ImageSource> output(ImageSource* dest, bool genMipmap = false) = 0;
+		virtual Sp<ImageSource> outputImage(ImageSource* dest, bool genMipmap = false) = 0;
 
 		/**
 		 * @dev drawTextBlob() Draw with text baseline aligned
@@ -137,9 +137,9 @@ namespace qk {
 		virtual void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) = 0;
 
 		/**
-		 * flush sub canvas and draw to current canvas
+		 * @method get this canvas draw region size
 		*/
-		virtual void flushCanvas(Canvas* srcC, const Rect &src, const Rect &dest) = 0;
+		virtual Vec2 size() = 0;
 
 	protected:
 		Canvas() = default;

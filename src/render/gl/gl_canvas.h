@@ -33,6 +33,8 @@
 #ifndef __quark_render_gl_glcanvas__
 #define __quark_render_gl_glcanvas__
 
+#define Qk_USE_TEXTURE_RENDER_BUFFER 1
+
 #include "../render.h"
 #include "../canvas.h"
 #include "./glsl_shaders.h"
@@ -46,16 +48,15 @@ namespace qk {
 			Path            path;
 			Canvas::ClipOp  op;
 		};
-		struct Region {
+		struct Output {
 			typedef NonObjectTraits Traits;
-			Vec2            origin;
-			Sp<ImageSource> dest; // region draw target
-			bool            genMipmap;
+			Sp<ImageSource> dest; // output draw target
+			bool       genMipmap;
 		};
 		Mat         matrix;
 		uint32_t    aaclip; // Is there a aa clip area
-		Array<Clip> clips;
-		Sp<Region>  region; // region draw
+		Array<Clip> clips; // clip queue
+		Sp<Output>  output; // output dest
 	};
 
 	class GLRender; // gl render backend
@@ -92,13 +93,13 @@ namespace qk {
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool genMipmap) override;
-		virtual Sp<ImageSource> output(ImageSource* dest, bool genMipmap) override;
-		virtual void flushCanvas(Canvas* srcC, const Rect &src, const Rect &dest) override;
+		virtual Sp<ImageSource> outputImage(ImageSource* dest, bool genMipmap) override;
 		virtual void swapBuffer() override; // swap gl double cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call
 		virtual PathvCache* gtePathvCache() override;
 		virtual void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
-		inline bool  isDeviceMsaa() { return _DeviceMsaa; }
+		virtual Vec2 size() override;
+		inline uint8_t  isDeviceMsaa() { return _DeviceMsaa; }
 		inline GLuint fbo() { return _fbo; }
 		virtual bool isGpu() override;
 		inline Vec2 surfaceSize() { return _surfaceSize; }
@@ -126,7 +127,7 @@ namespace qk {
 		uint8_t  _DeviceMsaa; // device anti alias, msaa
 		bool   _isClipState; // clip state
 		Render::Options _opts;
-		Mutex  _mutex; // submit swap mutex
+		CondMutex _mutex; // submit swap mutex
 
 		friend class GLC_CmdPack;
 		friend class GLCBlurFilter;

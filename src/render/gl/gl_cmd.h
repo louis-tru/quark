@@ -58,11 +58,9 @@ namespace qk {
 			kImageMask_CmdType,
 			kGradient_CmdType,
 			kMultiColor_CmdType,
-			kFramebufferRenderbuffer_CmdType,
-			kFramebufferTexture2D_CmdType,
 			kReadImage_CmdType,
-			kRegionBegin_CmdType,
-			kRegionEnd_CmdType,
+			kOutputImageBegin_CmdType,
+			kOutputImageEnd_CmdType,
 			kFlushCanvas_CmdType,
 		};
 
@@ -105,18 +103,18 @@ namespace qk {
 		};
 
 		struct BlurFilterBeginCmd: Cmd {
-			float     depth;
-			Region    bounds;
-			bool      isClipState;
+			float           depth;
+			Region          bounds;
+			bool            isClipState;
 		};
 
 		struct BlurFilterEndCmd: Cmd {
-			float     depth;
-			Region    bounds;
-			float     size; // blur size
-			GLint     r_tbo; // is have region draw
-			int       n, lod; // sampling rate and image lod
-			BlendMode mode;
+			float           depth;
+			Region          bounds;
+			float           size; // blur size
+			Sp<ImageSource> dest; // output dest
+			int             n, lod; // sampling rate and image lod
+			BlendMode       mode;
 		};
 
 		struct ColorCmd: DrawCmd { //!
@@ -169,12 +167,11 @@ namespace qk {
 			bool            genMipmap;
 		};
 
-		struct RegionBeginCmd: Cmd {
-			Vec2            origin;
+		struct OutputImageBeginCmd: Cmd {
 			Sp<ImageSource> img;
 		};
 
-		struct RegionEndCmd: Cmd {
+		struct OutputImageEndCmd: Cmd {
 			Sp<ImageSource> img;
 			bool            genMipmap;
 		};
@@ -182,21 +179,9 @@ namespace qk {
 		struct FlushCanvasCmd: Cmd {
 			GLCanvas        *srcC;
 			GLC_CmdPack     *srcCmd;
-			Rect            src,dest;
 			Mat4            root;
 			Mat             mat;
 			BlendMode       mode;
-		};
-
-		struct FramebufferRenderbufferCmd: Cmd {
-			GLenum target, attachment, renderbuffertarget;
-			GLuint renderbuffer;
-		};
-
-		struct FramebufferTexture2DCmd: Cmd {
-			GLenum target,attachment,textarget;
-			GLuint texture;
-			GLint level;
 		};
 
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
@@ -205,21 +190,18 @@ namespace qk {
 		void setMetrix();
 		void setBlendMode(BlendMode mode);
 		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable
-		void drawColor4f(const VertexData &vertex, const Color4f &color, bool aafuzz); // add cmd
+		void drawColor(const VertexData &vertex, const Color4f &color, bool aafuzz); // add cmd
 		void drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color);
 		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz);
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
-		void clearColor4f(const Color4f &color, const Region &region, bool fullClear);
+		void clearColor(const Color4f &color, const Region &region, bool fullClear);
 		void blurFilterBegin(Region bounds);
-		int  blurFilterEnd(Region bounds, float size, GLuint r_tbo);
-		void framebufferRenderbuffer(GLenum target, GLenum at, GLenum rbt, GLuint rb);
-		void framebufferTexture2D(GLenum target, GLenum at, GLenum tt, GLuint tex, GLint level);
+		int  blurFilterEnd(Region bounds, float size, ImageSource* dest);
 		void readImage(const Rect &src, ImageSource* img, bool genMipmap);
-		void regionBegin(Vec2 origin, ImageSource* img);
-		void regionEnd(ImageSource* img, bool genMipmap);
-		void flushCanvas(GLCanvas* that, GLC_CmdPack* thatCmd, const Rect &src, const Rect &dest);
+		void outputImageBegin(ImageSource* img);
+		void outputImageEnd(ImageSource* img, bool genMipmap);
 
 	private:
 		typedef MultiColorCmd::Option MCOpt;

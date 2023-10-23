@@ -38,10 +38,10 @@ namespace qk {
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
 	void  gl_set_blend_mode(BlendMode blendMode);
-	void  gl_setColorRenderBuffer(GLuint buff, ColorType type, Vec2 size, int msaaSample);
-	void  gl_setFramebufferRenderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at, int msaa);
-	void  gl_setAAClipBuffer(GLuint tex, Vec2 size, int msaaSample);
-	void  gl_setBlurRenderBuffer(GLuint tex, Vec2 size, int msaaSample);
+	void  gl_setColorRenderBuffer(GLuint buff, ColorType type, Vec2 size, bool texRBO);
+	void  gl_setFramebufferRenderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
+	void  gl_setAAClipBuffer(GLuint tex, Vec2 size);
+	void  gl_setBlurRenderBuffer(GLuint tex, Vec2 size);
 	void  gl_textureBarrier();
 
 	extern const Region ZeroRegion;
@@ -167,7 +167,7 @@ namespace qk {
 		void fillv(const VertexData &vertex, const Paint &paint) {
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					_cmdPack->drawColor4f(vertex, paint.color, false); break;
+					_cmdPack->drawColor(vertex, paint.color, false); break;
 				case Paint::kGradient_Type:
 					_cmdPack->drawGradient(vertex, paint.gradient, paint.color.a(), false); break;
 				case Paint::kBitmap_Type:
@@ -201,7 +201,7 @@ namespace qk {
 			// Qk_DEBUG("%p", &vertex);
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					_cmdPack->drawColor4f(vertex, paint.color.to_color4f_alpha(aaFuzzWeight), true); break;
+					_cmdPack->drawColor(vertex, paint.color.to_color4f_alpha(aaFuzzWeight), true); break;
 				case Paint::kGradient_Type:
 					_cmdPack->drawGradient(vertex, paint.gradient, aaFuzzWeight * paint.color.a(), true); break;
 				case Paint::kBitmap_Type:
@@ -282,9 +282,8 @@ namespace qk {
 
 		~GLCBlurFilter() override {
 			GLint r_tbo = 0;
-			if (_host->_state->region)
-				r_tbo = _host->_state->region->dest->pixels()[0].texture();
-			auto ct = _host->_cmdPack->blurFilterEnd(_bounds, _size, r_tbo);
+			auto ct = _host->_cmdPack->blurFilterEnd(
+				_bounds, _size, _host->_state->output ? *_host->_state->output->dest: nullptr);
 			_inl(_host)->zDepthNextCount(ct);
 		}
 
@@ -329,8 +328,17 @@ namespace qk {
 		, _blendMode(kSrcOver_BlendMode)
 		, _opts(opts)
 		, _isClipState(false)
-		, _DeviceMsaa(0)
 	{
+		switch(_opts.colorType) {
+			case kColor_Type_BGRA_8888:
+				_opts.colorType = kColor_Type_RGBA_8888; break;
+			case kColor_Type_BGRA_1010102:
+				_opts.colorType = kColor_Type_RGBA_1010102; break;
+			case kColor_Type_BGR_101010X:
+				_opts.colorType = kColor_Type_RGB_101010X; break;
+			default: break;
+		}
+		_DeviceMsaa = _opts.msaaSample > 1 ? _opts.msaaSample: 0;
 		auto capacity = opts.maxCapacityForPathvCache ?
 			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
 		_cache = new PathvCache(Uint32::clamp(capacity, 1024000/*1mb*/, 512000000/*512mb*/), render, this);
@@ -342,39 +350,48 @@ namespace qk {
 
 	GLCanvas::~GLCanvas() {
 		GLuint fbo = _fbo,
-					rbo[] = { _rbo, _depthBuffer, _stencilBuffer },
+					rbo1  = _rbo,
+					rbo[] = { _depthBuffer, _stencilBuffer },
 					tex[] = { _aaclipTex, _blurTex};
-		_render->post_message(Cb([fbo,rbo,tex](auto &e) {
+		_render->post_message(Cb([fbo,rbo,tex,rbo1](auto &e) {
 			glDeleteFramebuffers(1, &fbo);
-			glDeleteRenderbuffers(3, rbo);
+			glDeleteRenderbuffers(2, rbo);
 			glDeleteTextures(2, tex);
+#if Qk_USE_TEXTURE_RENDER_BUFFER
+			glDeleteTextures(1, &rbo1);
+#else
+			glDeleteRenderbuffers(1, &rbo1);
+#endif
 		}));
 
-		_mutex.lock();
+		_mutex.mutex.lock();
 		if (_cmdPack != _cmdPackFront)
 			delete _cmdPackFront;
 		delete _cmdPack;
 		_cmdPack = _cmdPackFront = nullptr;
-		_mutex.unlock();
+		_mutex.mutex.unlock();
 
 		Release(_cache); _cache = nullptr;
 	}
 
 	void GLCanvas::swapBuffer() {
 #if Qk_USE_GLC_CMD_QUEUE
-		_mutex.lock();
+		_mutex.mutex.lock();
 		auto pack = _cmdPackFront;
 		_cmdPackFront = _cmdPack;
 		_cmdPack = pack;
 		static_cast<GLPathvCache*>(_cache)->swapClear();
-		_mutex.unlock();
+		_mutex.mutex.unlock();
 #endif
 	}
 
 	void GLCanvas::flushBuffer() { // only can rendering thread call
-		_mutex.lock();
-		_cmdPackFront->flush(); // commit gl cmd
-		_mutex.unlock();
+#if Qk_USE_GLC_CMD_QUEUE
+		_mutex.mutex.lock();
+		auto cmd = _cmdPackFront;
+		cmd->flush(); // commit gl cmd
+		_mutex.mutex.unlock();
+#endif
 	}
 
 	int GLCanvas::save() {
@@ -390,7 +407,7 @@ namespace qk {
 		count = Uint32::min(count, _stateStack.length() - 1);
 
 		if (count > 0) {
-			bool restore_region = false;
+			bool restore_output = false;
 			do {
 				for (int i = _state->clips.length() - 1; i >= 0; i--) {
 					auto &clip = _state->clips[i];
@@ -403,9 +420,9 @@ namespace qk {
 					_cmdPack->drawClip(clip, _stencilRef, true);
 					_this->zDepthNext();
 				}
-				if (_state->region) {
-					restore_region = true;
-					_cmdPack->regionEnd(*_state->region->dest, _state->region->genMipmap);
+				if (_state->output) {
+					restore_output = true;
+					_cmdPack->outputImageEnd(*_state->output->dest, _state->output->genMipmap);
 				}
 				_state = &_stateStack.pop().back();
 				count--;
@@ -415,8 +432,8 @@ namespace qk {
 				_isClipState = false;
 				_cmdPack->switchState(GL_STENCIL_TEST, false); // disable stencil test
 			}
-			if (restore_region && _state->region) { // restore region draw
-				_cmdPack->regionBegin(_state->region->origin, *_state->region->dest);
+			if (restore_output && _state->output) { // restore region draw
+				_cmdPack->outputImageBegin(*_state->output->dest);
 			}
 			_this->setMatrixInl(_state->matrix);
 		}
@@ -491,14 +508,14 @@ namespace qk {
 
 	void GLCanvas::clearColor(const Color4f& color) {
 		_zDepth = 0; // set z depth state
-		_cmdPack->clearColor4f(color, {}, true); // clear color/clip/depth
+		_cmdPack->clearColor(color, {}, true); // clear color/clip/depth
 	}
 
 	void GLCanvas::drawColor(const Color4f &color, BlendMode mode) {
 		auto isBlend = mode != kSrc_BlendMode;// || color.a() != 1;
 		if (isBlend) { // draw color
 			_this->setBlendMode(mode); // switch blend mode
-			_cmdPack->clearColor4f(color, {{},_size}, false);
+			_cmdPack->clearColor(color, {{},_size}, false);
 			_this->zDepthNext();
 		} else { // clear color
 			clearColor(color);
@@ -508,10 +525,10 @@ namespace qk {
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
 		if (path.vCount) {
 			_this->setBlendMode(mode); // switch blend mode
-			_cmdPack->drawColor4f(path, color, false);
+			_cmdPack->drawColor(path, color, false);
 			if (!_DeviceMsaa) { // Anti-aliasing using software
 				auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _phy2Pixel*aa_fuzz_width);
-				_cmdPack->drawColor4f(vertex, color.to_color4f_alpha(aa_fuzz_weight), true);
+				_cmdPack->drawColor(vertex, color.to_color4f_alpha(aa_fuzz_weight), true);
 			}
 			_this->zDepthNext();
 		}
@@ -610,42 +627,26 @@ namespace qk {
 		return nullptr;
 	}
 
-	Sp<ImageSource> GLCanvas::region(const Rect &src, ColorType type, bool genMipmap) {
-		auto o = src.origin;
-		auto s = Vec2{
-			Float::min(o.x()+src.size.x(), _size.x()) - o.x(),
-			Float::min(o.y()+src.size.y(), _size.y()) - o.y()
-		};
-		if (s[0] > 0 && s[1] > 0) {
-			o *= _surfaceScale; s *= _surfaceScale;
-			auto img = new ImageSource({ int(s[0]),int(s[1]),type }, _render);
-			_state->region = new GLC_State::Region{o,img,genMipmap};
-			_cmdPack->regionBegin(o, img);
-			return img;
-		}
-		return nullptr;
-	}
-
-	void GLCanvas::flushCanvas(Canvas* canvas, const Rect &src, const Rect &dest) {
-#if Qk_USE_GLC_CMD_QUEUE
-		if (canvas == this || !canvas->isGpu()) return; // Not supported at the moment
-		if (static_cast<GLCanvas*>(canvas)->_render != _render) return;
-		auto srcC = static_cast<GLCanvas*>(canvas);
-		srcC->_mutex.lock();
-		auto srcCmd = srcC->_cmdPackFront;
-		srcC->_cmdPackFront = new GLC_CmdPack(_render, srcC);
-		srcC->_mutex.unlock();
-		auto ss = srcC->_surfaceScale, ds = _surfaceScale;
-		_cmdPack->flushCanvas(srcC, srcCmd, {src.origin*ss, src.size*ss}, {dest.origin*ds,dest.size*ds});
-#endif
+	Sp<ImageSource> GLCanvas::outputImage(ImageSource* dest, bool genMipmap) {
+		if (!dest)
+			dest = new ImageSource({ 0,0,kColor_Type_RGBA_8888 }, _render);
+		dest->mark_as_texture(_render);
+		_state->output = new GLC_State::Output{dest,genMipmap};
+		_cmdPack->outputImageBegin(dest);
+		return dest;
 	}
 
 	// --------------------------------------------------------
 
 	void GLCanvas::setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) {
 		_render->lock();
-		_mutex.lock();
+		_mutex.mutex.lock();
 
+		if (_DeviceMsaa) {
+			auto msaa = ceilf(sqrtf(_DeviceMsaa));
+			surfaceSize *= msaa;
+			scale *= msaa;
+		}
 		auto chSize = surfaceSize != _surfaceSize;
 		// clear all state
 		_stateStack.clear();
@@ -683,14 +684,14 @@ namespace qk {
 		}
 
 		_isClipState = false; // clear clip state
-		_mutex.unlock();
+		_mutex.mutex.unlock();
 		_render->unlock();
 	}
 
 	void GLCanvas::setBuffers(Vec2 size) {
 		auto w = size.x(), h = size.y();
 		auto type = _opts.colorType;
-		auto msaa = _opts.msaaSample;
+		// auto msaa = _opts.msaaSample;
 
 		Qk_ASSERT(w, "Invalid viewport size width");
 		Qk_ASSERT(h, "Invalid viewport size height");
@@ -699,36 +700,28 @@ namespace qk {
 			// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 			glGenFramebuffers(1, &_fbo); // _fbo
 			// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-			glGenRenderbuffers(2, &_rbo); // _rbo,_depthBuffer
+#if Qk_USE_TEXTURE_RENDER_BUFFER
+			glGenTextures(1, &_rbo);
+#else
+			glGenRenderbuffers(1, &_rbo);
+#endif
+			glGenRenderbuffers(1, &_depthBuffer); // _depthBuffer
 			// init matrix buffer
 			_cmdPack->setMetrix();
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+		gl_setColorRenderBuffer(_rbo, type, size, Qk_USE_TEXTURE_RENDER_BUFFER);
+		gl_setFramebufferRenderbuffer(_depthBuffer, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT);
 
-		if (msaa > 1) {
-			do { // enable multisampling
-				gl_setColorRenderBuffer(_rbo, type, size, msaa);
-				// Test the framebuffer for completeness.
-				if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE )
-					break;
-				msaa >>= 1;
-			} while (msaa > 1);
-		}
-		_DeviceMsaa = msaa > 1 ? msaa: 0;
-
-		if (!_DeviceMsaa) {
-			gl_setColorRenderBuffer(_rbo, type, size, 0);
-		}
 		if (_aaclipTex) {
-			gl_setAAClipBuffer(_aaclipTex, size, _DeviceMsaa);
+			gl_setAAClipBuffer(_aaclipTex, size);
 		}
 		if (_stencilBuffer) {
-			gl_setFramebufferRenderbuffer(_stencilBuffer, size, GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT, _DeviceMsaa);
+			gl_setFramebufferRenderbuffer(_stencilBuffer, size, GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT);
 		}
 		if (_blurTex) {
-			gl_setBlurRenderBuffer(_blurTex, size, _DeviceMsaa);
+			gl_setBlurRenderBuffer(_blurTex, size);
 		}
-		gl_setFramebufferRenderbuffer(_depthBuffer, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT, _DeviceMsaa);
 
 		const GLenum buffers[]{
 			GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*aaclip out*/,
@@ -748,15 +741,19 @@ namespace qk {
 #endif
 	}
 
+	Vec2 GLCanvas::size() {
+		return _size;
+	}
+
 	bool GLCanvas::isGpu() {
 		return true;
 	}
 
 	void GLCanvas::lock() {
-		_mutex.lock();
+		_mutex.mutex.lock();
 	}
 
 	void GLCanvas::unlock() {
-		_mutex.unlock();
+		_mutex.mutex.unlock();
 	}
 }

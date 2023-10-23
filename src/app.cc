@@ -46,7 +46,7 @@ Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;
 namespace qk {
 	typedef Application::Inl AppInl;
 	// thread helper
-	static auto __run_main_wait = new Wait;
+	static auto __run_main_wait = new CondMutex;
 
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
@@ -140,7 +140,7 @@ namespace qk {
 		if (!_keep) {
 			_keep = _loop->keep_alive("Application::run(), keep"); // keep loop
 		}
-		__run_main_wait->notify_all(); // The external thread continues to run
+		__run_main_wait->lock_notify_all(); // The external thread continues to run
 
 		if (!_loop->runing()) {
 			_loop->run(); // run message loop
@@ -168,7 +168,7 @@ namespace qk {
 
 		// Block this main thread until calling Application::run()
 		while (!_shared || !_shared->_keep) {
-			__run_main_wait->wait_for();
+			__run_main_wait->lock_wait_for();
 		}
 	}
 
