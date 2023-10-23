@@ -660,6 +660,7 @@ namespace qk {
 			glUniform2f(blur.size, size / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 			gl_textureBarrier(); // complete horizontal blur
+
 			if (dest) { // region draw
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dest->texture(), 0);
 			} else {
