@@ -55,6 +55,9 @@ namespace qk {
 		#define _inl(self) static_cast<GLC_CmdPack::Inl*>(self)
 
 #if Qk_USE_GLC_CMD_QUEUE
+
+		void callCmds(const Mat4& root, const Mat& mat, BlendMode mode);
+
 		void clearCmds() {
 			for (auto &i: cmds.blocks) {
 				auto cmd = i.val;
@@ -180,8 +183,6 @@ namespace qk {
 			}
 		}
 #endif
-
-		void callCmds(const Mat4& root, const Mat& mat, BlendMode mode);
 
 		void flushAAClipBuffer() {
 			//gl_textureBarrier();
