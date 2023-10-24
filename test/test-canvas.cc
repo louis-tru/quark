@@ -14,7 +14,7 @@ class MyCanvas: public Box {
 public:
 	MyCanvas(App *host): Box(host) {}
 
-	virtual void accept(ViewVisitor *visitor) override {
+	void draw() {
 		// mark_none(kLayout_None); return;
 		auto canvas = shared_app()->render()->getCanvas();
 		auto size = shared_app()->display()->size();
@@ -26,7 +26,9 @@ public:
 
 		// -------- clip ------
 		canvas->save();
-		canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+		{ // clip
+			//canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+		}
 
 		{ // gradient
 			Paint paint;
@@ -53,9 +55,30 @@ public:
 			canvas->drawPath(Path::MakeOval({Vec2(200, 100), Vec2(100, 200)}), paint);
 		}
 
-		// -------- clip ------
-		canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kDifference_ClipOp, 1);
-		// canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kIntersect_ClipOp, 1);
+		{ // -------- clip ------
+			auto clip = Path::MakeCircle(size*0.5, 100);
+			auto aa = 0;
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+		}
 
 		{ // polygon
 			paint.color = Color4f(0, 0, 0, 0.8);
@@ -106,6 +129,10 @@ public:
 		}
 
 		mark_none(kLayout_None);
+	}
+
+	virtual void accept(ViewVisitor *visitor) override {
+		draw();
 	}
 };
 

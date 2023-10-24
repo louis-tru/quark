@@ -47,6 +47,10 @@ namespace qk {
 	extern const float  aa_fuzz_width = 0.6;
 	extern const float  DepthNextUnit = 0.000000125f; // 1/8000000
 
+	const GLenum DrawBuffers[]{
+		GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*aaclip out*/,
+	};
+
 	class GLPathvCache: public PathvCache {
 	public:
 		void swapClear() {
@@ -109,17 +113,22 @@ namespace qk {
 			}
 			if (clip.vertex.vCount == 0) return;
 
+			if (!_isClipState) {
+				_isClipState = true;
+				_cmdPack->switchState(GL_STENCIL_TEST, true); // enable stencil test
+			}
+
 			if (antiAlias && !_DeviceMsaa) {
+				clip.aaclip = true;
 				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_phy2Pixel*aa_fuzz_width);
 				if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
 					clip.aafuzz = path.getAAFuzzStrokeTriangle(_phy2Pixel*aa_fuzz_width);
 				}
+				if (_state->aaclip == 0) {
+					//_cmdPack->drawBuffers(2, DrawBuffers); // enable aaclip GL_COLOR_ATTACHMENT1
+					//Qk_DEBUG("_cmdPack->drawBuffers(2, DrawBuffers)");
+				}
 				_state->aaclip++;
-			}
-
-			if (!_isClipState) {
-				_isClipState = true;
-				_cmdPack->switchState(GL_STENCIL_TEST, true); // enable stencil test
 			}
 
 			if (clip.op == kDifference_ClipOp) {
@@ -417,6 +426,14 @@ namespace qk {
 					_this->setMatrixInl(clip.matrix);
 					_cmdPack->drawClip(clip, _stencilRef, true);
 					_this->zDepthNext();
+
+					if (clip.aaclip) {
+						_state->aaclip--;
+						if (_state->aaclip == 0) {
+							//_cmdPack->drawBuffers(1, DrawBuffers);
+							//Qk_DEBUG("_cmdPack->drawBuffers(1, DrawBuffers)");
+						}
+					}
 				}
 				if (_state->output) {
 					restore_output = true;
@@ -426,7 +443,7 @@ namespace qk {
 				count--;
 			} while (count > 0);
 
-			if (_stencilRef == _stencilRefDecr) { // not stencil test
+			if (_isClipState && _stencilRef == _stencilRefDecr) { // not stencil test
 				_isClipState = false;
 				_cmdPack->switchState(GL_STENCIL_TEST, false); // disable stencil test
 			}
@@ -692,10 +709,7 @@ namespace qk {
 			gl_setBlurRenderBuffer(_blurTex, size);
 		}
 
-		const GLenum buffers[]{
-			GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*aaclip out*/,
-		};
-		glDrawBuffers(2, buffers);
+		glDrawBuffers(2, DrawBuffers);
 
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
 			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));

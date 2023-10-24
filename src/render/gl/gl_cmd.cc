@@ -214,7 +214,7 @@ namespace qk {
 						}
 						case kSwitch_CmdType: {
 							auto c = (SwitchCmd*)cmd;
-							c->isEnable ? glEnable(c->id): glDisable(c->id);
+							switchStateCall(c->id, c->isEnable);
 							break;
 						}
 						case kClear_CmdType: {
@@ -299,6 +299,11 @@ namespace qk {
 							setBuffersCall(c->size, c->chSize, c->isClip);
 							break;
 						}
+						case kDrawBuffers_CmdType: {
+							auto c = (DrawBuffersCmd*)cmd;
+							drawBuffersCall(c->num, c->buffers);
+							break;
+						}
 						default: break;
 					}
 					cmd = (Cmd*)(((char*)cmd) + cmd->size); // next cmd
@@ -345,6 +350,10 @@ namespace qk {
 			}; // transpose matrix
 			glBindBuffer(GL_UNIFORM_BUFFER, _render->_viewMatrixBlock);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4, GL_DYNAMIC_DRAW);
+		}
+
+		void switchStateCall(GLenum id, bool isEnable) {
+			isEnable ? glEnable(id): glDisable(id);
 		}
 
 		void setRootMatrixCall(const Mat4 &root) {
@@ -664,7 +673,7 @@ namespace qk {
 			glUniform1f(blur.step, 2.0/(n-1));
 			glUniform2f(blur.size, size / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
-			gl_textureBarrier(); // complete horizontal blur
+			//gl_textureBarrier(); // complete horizontal blur
 
 			if (dest) { // region draw
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dest->texture(), 0);
@@ -775,7 +784,7 @@ namespace qk {
 			setMatrixCall(parentMat); // ch matrix
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo); // bind top fbo
 
-			gl_textureBarrier();
+			// gl_textureBarrier();
 
 			if (_canvas->_opts.genMipmap) { // gen mipmap texture
 				glGenerateMipmap(GL_TEXTURE_2D);
@@ -845,6 +854,9 @@ namespace qk {
 			}
 		}
 
+		void drawBuffersCall(GLsizei num, const GLenum buffers[2]) {
+			glDrawBuffers(num, buffers);
+		}
 	};
 
 	// ---------------------------------------------------------------------------------------
@@ -1115,6 +1127,14 @@ namespace qk {
 		cmd->isClip = isClip;
 	}
 
+	void GLC_CmdPack::drawBuffers(GLsizei num, const GLenum buffers[2]) {
+		auto cmd = new(_this->allocCmd(sizeof(DrawBuffersCmd))) DrawBuffersCmd;
+		cmd->type = kDrawBuffers_CmdType;
+		cmd->num = num;
+		cmd->buffers[0] = buffers[0];
+		cmd->buffers[1] = buffers[1];
+	}
+
 #else
 	void GLC_CmdPack::setMetrix() {
 		_this->setMatrixCall(_canvas->_state->matrix);
@@ -1123,7 +1143,7 @@ namespace qk {
 		_render->setBlendMode(mode);
 	}
 	void GLC_CmdPack::switchState(GLenum id, bool isEnable) {
-		isEnable ? glEnable(id): glDisable(id);
+		_this->switchStateCall(id, isEnable);
 	}
 	void GLC_CmdPack::drawColor(const VertexData &vertex, const Color4f &color, bool aafuzz) {
 		_this->drawColorCall(vertex, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
@@ -1166,6 +1186,9 @@ namespace qk {
 	}
 	void GLC_CmdPack::setBuffers(Vec2 size, bool chSize, bool isClip) {
 		_this->setBuffersCall(size, chSize, isClip);
+	}
+	void GLC_CmdPack::drawBuffers(GLsizei num, const GLenum buffers[2]) {
+		_this->drawBuffersCall(num, buffers);
 	}
 #endif
 

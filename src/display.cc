@@ -127,7 +127,6 @@ namespace qk {
 			if (_lockSize.x() != w || _lockSize.y() != h) {
 				_lockSize = { w, h };
 				updateState();
-				_host->render()->getCanvas()->setSurface(_surfaceMat, size, _scale);
 			}
 		} else {
 			Qk_DEBUG("Lock size value can not be less than zero\n");
@@ -175,6 +174,8 @@ namespace qk {
 		_host->root()->onDisplayChange();
 
 		Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
+
+		_host->render()->getCanvas()->setSurface(_surfaceMat, size, _scale);
 	}
 
 	void Display::onRenderBackendReload(Region region, Vec2 size, float defaultScale) {
@@ -189,7 +190,6 @@ namespace qk {
 				_surface_region = { region.origin, region.end, size };
 				_default_scale = defaultScale;
 				updateState();
-				_host->render()->getCanvas()->setSurface(_surfaceMat, size, _scale);
 			} else {
 				_host->root()->onDisplayChange();
 			}

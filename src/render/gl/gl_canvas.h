@@ -45,6 +45,7 @@ namespace qk {
 			VertexData      vertex,aafuzz;
 			Path            path;
 			Canvas::ClipOp  op;
+			bool            aaclip; // is aaclip
 		};
 		struct Output {
 			typedef NonObjectTraits Traits;
@@ -52,7 +53,7 @@ namespace qk {
 			bool       genMipmap;
 		};
 		Mat         matrix;
-		uint32_t    aaclip; // Is there a aa clip area
+		uint32_t    aaclip; // Is there a aa clip area and aaclip count
 		Array<Clip> clips; // clip queue
 		Sp<Output>  output; // output dest
 	};

@@ -19,11 +19,7 @@ public:
 
 		Paint paint;
 		paint.color = Color4f(0, 0, 0);
-		// auto circle = Path::MakeArc({size/2-150,300}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
-		auto circle = Path::MakeRect({size/2-150,300});
-		circle.close();
-
-		paint.antiAlias = false;
+		auto circle = Path::MakeArc({size/2-150,300}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
 
 		// canvas->save();
 		// canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kIntersect_ClipOp, 0);

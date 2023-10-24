@@ -64,6 +64,7 @@ namespace qk {
 			kOutputImageEnd_CmdType,
 			kFlushCanvas_CmdType,
 			kSetBuffers_CmdType,
+			kDrawBuffers_CmdType,
 		};
 
 		struct Cmd { // Cmd list
@@ -191,6 +192,11 @@ namespace qk {
 			bool chSize, isClip;
 		};
 
+		struct DrawBuffersCmd: Cmd {
+			GLsizei num;
+			GLenum  buffers[2];
+		};
+
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();
 		void flush();
@@ -210,6 +216,7 @@ namespace qk {
 		void outputImageBegin(ImageSource* img);
 		void outputImageEnd(ImageSource* img, bool genMipmap);
 		void setBuffers(Vec2 size, bool chSize, bool isClip);
+		void drawBuffers(GLsizei num, const GLenum buffers[2]);
 
 	private:
 		typedef MultiColorCmd::Option MCOpt;
