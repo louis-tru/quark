@@ -181,155 +181,7 @@ namespace qk {
 		}
 #endif
 
-		void callCmds(const Mat4& root, const Mat& mat, BlendMode mode) {
-#if Qk_USE_GLC_CMD_QUEUE
-			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
-
-			MatrixCmd *curMat = nullptr;
-
-			for (auto &i: cmds.blocks) {
-				if (i.size == 0) break;
-				auto cmd = i.val;
-				auto end = (Cmd*)(((char*)cmd) + i.size);
-				Qk_ASSERT(cmd->size);
-
-				while (cmd < end) {
-					switch (cmd->type) {
-						case kMatrix_CmdType: {
-							curMat = (MatrixCmd*)cmd;
-							setMatrixCall(curMat->matrix);
-							break;
-						}
-						case kBlend_CmdType:
-							_render->setBlendMode(((BlendCmd*)cmd)->mode);
-							break;
-						case kBlurFilterBegin_CmdType: {
-							auto c = (BlurFilterBeginCmd*)cmd;
-							blurFilterBeginCall(c->bounds, c->isClipState, c->depth);
-						}
-						case kBlurFilterEnd_CmdType: {
-							auto c = (BlurFilterEndCmd*)cmd;
-							blurFilterEndCall(c->bounds, c->size, *c->dest, c->mode, c->n, c->lod, c->depth);
-							c->~BlurFilterEndCmd();
-						}
-						case kSwitch_CmdType: {
-							auto c = (SwitchCmd*)cmd;
-							switchStateCall(c->id, c->isEnable);
-							break;
-						}
-						case kClear_CmdType: {
-							auto c = (ClearCmd*)cmd;
-							clearColorCall(c->color, c->region, c->fullClear, c->depth);
-							break;
-						}
-						case kClip_CmdType: {
-							auto c = (ClipCmd*)cmd;
-							drawClipCall(c->clip, c->ref, c->revoke, c->depth);
-							c->~ClipCmd();
-							break;
-						}
-						case kColor_CmdType: {
-							auto c = (ColorCmd*)cmd;
-							drawColorCall(c->vertex, c->color, c->aafuzz, c->aaclip, c->depth);
-							break;
-						}
-						case kRRectBlurColor_CmdType: {
-							auto c = (ColorRRectBlurCmd*)cmd;
-							drawRRectBlurColorCall(c->rect, c->radius, c->blur, c->color, c->aaclip, c->depth);
-							break;
-						}
-						case kImage_CmdType: {
-							auto c = (ImageCmd*)cmd;
-							drawImageCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
-							c->~ImageCmd();
-							break;
-						}
-						case kImageMask_CmdType: {
-							auto c = (ImageMaskCmd*)cmd;
-							drawImageMaskCall(c->vertex, &c->paint, c->color, c->aafuzz, c->aaclip, c->depth);
-							c->~ImageMaskCmd();
-							break;
-						}
-						case kGradient_CmdType: {
-							auto c = (GradientCmd*)cmd;
-							drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
-							break;
-						}
-						case kMultiColor_CmdType: {
-							auto c = (MultiColorCmd*)cmd;
-							auto s = c->aaclip ? &_render->_shaders.color1_AACLIP: &_render->_shaders.color1;
-							glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
-							glBufferData(GL_UNIFORM_BUFFER, sizeof(MultiColorCmd::Option) * c->subcmd, c->opts,
-								GL_DYNAMIC_DRAW);
-							glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
-							glBufferData(GL_ARRAY_BUFFER, c->vCount * sizeof(Vec4), c->vertex, GL_DYNAMIC_DRAW);
-							glBindVertexArray(s->vao);
-							glUseProgram(s->shader);
-							glDrawArrays(GL_TRIANGLES, 0, c->vCount);
-							break;
-						}
-						case kReadImage_CmdType: {
-							auto c = (ReadImageCmd*)cmd;
-							readImageCall(c->src, *c->img, c->genMipmap);
-							c->~ReadImageCmd();
-							break;
-						}
-						case kOutputImageBegin_CmdType: {
-							auto c = (OutputImageBeginCmd*)cmd;
-							outputImageBeginCall(*c->img);
-							c->~OutputImageBeginCmd();
-							break;
-						}
-						case kOutputImageEnd_CmdType: {
-							auto c = (OutputImageEndCmd*)cmd;
-							outputImageEndCall(*c->img, c->genMipmap);
-							c->~OutputImageEndCmd();
-							break;
-						}
-						case kFlushCanvas_CmdType: {
-							auto c = (FlushCanvasCmd*)cmd;
-							flushCanvasCall(c->srcC, c->srcCmd, c->root, c->mat, c->mode, root,
-								curMat ? curMat->matrix: mat);
-							c->srcC->release();
-							delete c->srcCmd; // delete gl cmd pack
-							break;
-						}
-						case kSetBuffers_CmdType: {
-							auto c = (SetBuffersCmd*)cmd;
-							setBuffersCall(c->size, c->chSize, c->isClip);
-							break;
-						}
-						case kDrawBuffers_CmdType: {
-							auto c = (DrawBuffersCmd*)cmd;
-							drawBuffersCall(c->num, c->buffers);
-							break;
-						}
-						default: break;
-					}
-					cmd = (Cmd*)(((char*)cmd) + cmd->size); // next cmd
-				}
-				i.size = 0;
-			}
-
-			for (int i = vertexBlocks.index; i >= 0; i--) {
-				vertexBlocks.blocks[i].size = 0;
-			}
-			for (int i = optionBlocks.index; i >= 0; i--) {
-				optionBlocks.blocks[i].size = 0;
-			}
-
-			vertexBlocks.current = vertexBlocks.blocks.val();
-			vertexBlocks.index = 0;
-			optionBlocks.current = optionBlocks.blocks.val();
-			optionBlocks.index = 0;
-			cmds.current       = cmds.blocks.val();
-			cmds.current->size = sizeof(Cmd);
-			cmds.index = 0;
-			lastCmd = cmds.current->val;
-#endif
-		}
-
-		// ---------------------------------- call gl cmd ----------------------------------
+		void callCmds(const Mat4& root, const Mat& mat, BlendMode mode);
 
 		void flushAAClipBuffer() {
 			//gl_textureBarrier();
@@ -364,6 +216,10 @@ namespace qk {
 
 		void switchStateCall(GLenum id, bool isEnable) {
 			isEnable ? glEnable(id): glDisable(id);
+		}
+
+		void setBlendModeCall(BlendMode mode) {
+			_render->setBlendMode(mode);
 		}
 
 		void drawColorCall(const VertexData &vertex,
@@ -880,11 +736,12 @@ namespace qk {
 		paint.image->release();
 	}
 
+#if Qk_USE_GLC_CMD_QUEUE
+
 	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
 		: _render(render), _canvas(canvas), _cache(canvas->gtePathvCache())
 		, lastCmd(nullptr), _chMatrix(true)
 	{
-#if Qk_USE_GLC_CMD_QUEUE
 		// multi color cmd storage
 		vertexBlocks.blocks.push({
 			(Vec4*)malloc(Qk_MCCmd_VertexBlock_Capacity * sizeof(Vec4)),0,Qk_MCCmd_VertexBlock_Capacity // 104k
@@ -906,11 +763,9 @@ namespace qk {
 		lastCmd = cmds.current->val;
 		lastCmd->size = sizeof(Cmd);
 		lastCmd->type = kEmpty_CmdType;
-#endif
 	}
 
 	GLC_CmdPack::~GLC_CmdPack() {
-#if Qk_USE_GLC_CMD_QUEUE
 		_this->clearCmds();
 		for (auto &i: vertexBlocks.blocks)
 			free(i.val);
@@ -918,10 +773,159 @@ namespace qk {
 			free(i.val);
 		for (auto &i: cmds.blocks)
 			free(i.val);
-#endif
 	}
 
-#if Qk_USE_GLC_CMD_QUEUE
+	void GLC_CmdPack::Inl::callCmds(const Mat4& root, const Mat& mat, BlendMode mode) {
+		glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
+
+		MatrixCmd *curMat = nullptr;
+
+		for (auto &i: cmds.blocks) {
+			if (i.size == 0) break;
+			auto cmd = i.val;
+			auto end = (Cmd*)(((char*)cmd) + i.size);
+			Qk_ASSERT(cmd->size);
+
+			while (cmd < end) {
+				switch (cmd->type) {
+					case kMatrix_CmdType: {
+						curMat = (MatrixCmd*)cmd;
+						setMatrixCall(curMat->matrix);
+						break;
+					}
+					case kBlend_CmdType:
+						setBlendModeCall(((BlendCmd*)cmd)->mode);
+						break;
+					case kBlurFilterBegin_CmdType: {
+						auto c = (BlurFilterBeginCmd*)cmd;
+						blurFilterBeginCall(c->bounds, c->isClipState, c->depth);
+					}
+					case kBlurFilterEnd_CmdType: {
+						auto c = (BlurFilterEndCmd*)cmd;
+						blurFilterEndCall(c->bounds, c->size, *c->dest, c->mode, c->n, c->lod, c->depth);
+						c->~BlurFilterEndCmd();
+					}
+					case kSwitch_CmdType: {
+						auto c = (SwitchCmd*)cmd;
+						switchStateCall(c->id, c->isEnable);
+						break;
+					}
+					case kClear_CmdType: {
+						auto c = (ClearCmd*)cmd;
+						clearColorCall(c->color, c->region, c->fullClear, c->depth);
+						break;
+					}
+					case kClip_CmdType: {
+						auto c = (ClipCmd*)cmd;
+						drawClipCall(c->clip, c->ref, c->revoke, c->depth);
+						c->~ClipCmd();
+						break;
+					}
+					case kColor_CmdType: {
+						auto c = (ColorCmd*)cmd;
+						drawColorCall(c->vertex, c->color, c->aafuzz, c->aaclip, c->depth);
+						break;
+					}
+					case kRRectBlurColor_CmdType: {
+						auto c = (ColorRRectBlurCmd*)cmd;
+						drawRRectBlurColorCall(c->rect, c->radius, c->blur, c->color, c->aaclip, c->depth);
+						break;
+					}
+					case kImage_CmdType: {
+						auto c = (ImageCmd*)cmd;
+						drawImageCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
+						c->~ImageCmd();
+						break;
+					}
+					case kImageMask_CmdType: {
+						auto c = (ImageMaskCmd*)cmd;
+						drawImageMaskCall(c->vertex, &c->paint, c->color, c->aafuzz, c->aaclip, c->depth);
+						c->~ImageMaskCmd();
+						break;
+					}
+					case kGradient_CmdType: {
+						auto c = (GradientCmd*)cmd;
+						drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
+						break;
+					}
+					case kMultiColor_CmdType: {
+						auto c = (MultiColorCmd*)cmd;
+						auto s = c->aaclip ? &_render->_shaders.color1_AACLIP: &_render->_shaders.color1;
+						glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
+						glBufferData(GL_UNIFORM_BUFFER, sizeof(MultiColorCmd::Option) * c->subcmd, c->opts,
+							GL_DYNAMIC_DRAW);
+						glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
+						glBufferData(GL_ARRAY_BUFFER, c->vCount * sizeof(Vec4), c->vertex, GL_DYNAMIC_DRAW);
+						glBindVertexArray(s->vao);
+						glUseProgram(s->shader);
+						glDrawArrays(GL_TRIANGLES, 0, c->vCount);
+						break;
+					}
+					case kReadImage_CmdType: {
+						auto c = (ReadImageCmd*)cmd;
+						readImageCall(c->src, *c->img, c->genMipmap);
+						c->~ReadImageCmd();
+						break;
+					}
+					case kOutputImageBegin_CmdType: {
+						auto c = (OutputImageBeginCmd*)cmd;
+						outputImageBeginCall(*c->img);
+						c->~OutputImageBeginCmd();
+						break;
+					}
+					case kOutputImageEnd_CmdType: {
+						auto c = (OutputImageEndCmd*)cmd;
+						outputImageEndCall(*c->img, c->genMipmap);
+						c->~OutputImageEndCmd();
+						break;
+					}
+					case kFlushCanvas_CmdType: {
+						auto c = (FlushCanvasCmd*)cmd;
+						flushCanvasCall(c->srcC, c->srcCmd, c->root, c->mat, c->mode, root,
+							curMat ? curMat->matrix: mat);
+						c->srcC->release();
+						delete c->srcCmd; // delete gl cmd pack
+						break;
+					}
+					case kSetBuffers_CmdType: {
+						auto c = (SetBuffersCmd*)cmd;
+						setBuffersCall(c->size, c->chSize, c->isClip);
+						break;
+					}
+					case kDrawBuffers_CmdType: {
+						auto c = (DrawBuffersCmd*)cmd;
+						drawBuffersCall(c->num, c->buffers);
+						break;
+					}
+					default: break;
+				}
+				cmd = (Cmd*)(((char*)cmd) + cmd->size); // next cmd
+			}
+			i.size = 0;
+		}
+
+		for (int i = vertexBlocks.index; i >= 0; i--) {
+			vertexBlocks.blocks[i].size = 0;
+		}
+		for (int i = optionBlocks.index; i >= 0; i--) {
+			optionBlocks.blocks[i].size = 0;
+		}
+
+		vertexBlocks.current = vertexBlocks.blocks.val();
+		vertexBlocks.index = 0;
+		optionBlocks.current = optionBlocks.blocks.val();
+		optionBlocks.index = 0;
+		cmds.current       = cmds.blocks.val();
+		cmds.current->size = sizeof(Cmd);
+		cmds.index = 0;
+		lastCmd = cmds.current->val;
+	}
+
+	void GLC_CmdPack::flush() {
+		if (cmds.blocks[0].size > sizeof(Cmd)) {
+			_this->callCmds(_canvas->_rootMatrix, _canvas->_state->matrix, _canvas->_blendMode);
+		}
+	}
 
 	void GLC_CmdPack::setMetrix() {
 		_chMatrix = true; // mark matrix change
@@ -1147,6 +1151,14 @@ namespace qk {
 	}
 
 #else
+	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
+		: _render(render), _canvas(canvas), _cache(canvas->gtePathvCache())
+		, lastCmd(nullptr), _chMatrix(true)
+	{}
+	GLC_CmdPack::~GLC_CmdPack() {
+	}
+	void GLC_CmdPack::flush() {
+	}
 	void GLC_CmdPack::setMetrix() {
 		_this->setMatrixCall(_canvas->_state->matrix);
 	}
@@ -1202,15 +1214,5 @@ namespace qk {
 		_this->drawBuffersCall(num, buffers);
 	}
 #endif
-
-	// ----------------------------------------------------------------------------------------
-
-	void GLC_CmdPack::flush() {
-#if Qk_USE_GLC_CMD_QUEUE
-		if (cmds.blocks[0].size > sizeof(Cmd)) {
-			_this->callCmds(_canvas->_rootMatrix, _canvas->_state->matrix, _canvas->_blendMode);
-		}
-#endif
-	}
 
 }
