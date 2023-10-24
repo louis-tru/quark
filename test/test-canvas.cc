@@ -20,14 +20,14 @@ public:
 		auto size = shared_app()->display()->size();
 
 		// clear color
-		// canvas->clearColor(Color4f(1,1,1));
+		//canvas->clearColor(Color4f(1,1,1));
 		//canvas->drawColor(Color4f(1,0,0));
 		Paint paint;
 
 		// -------- clip ------
 		canvas->save();
 		{ // clip
-			//canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+			canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
 
 		{ // gradient
@@ -57,26 +57,7 @@ public:
 
 		{ // -------- clip ------
 			auto clip = Path::MakeCircle(size*0.5, 100);
-			auto aa = 0;
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			auto aa = 1;
 			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
 		}
 
@@ -131,7 +112,7 @@ public:
 		mark_none(kLayout_None);
 	}
 
-	virtual void accept(ViewVisitor *visitor) override {
+	void accept(ViewVisitor *visitor) {
 		draw();
 	}
 };
