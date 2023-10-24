@@ -44,8 +44,8 @@ namespace qk {
 			kLinear_Type,  //!< linear gradient type
 			kRadial_Type,  //!< radial gradient type
 		};
-		Type    type; // gradient color type
-		Vec2    origin,endOrRadius;
+		Type           type; // gradient color type
+		Vec2           origin,endOrRadius;
 		uint32_t       count;
 		const Color4f  *colors;
 		const float    *positions;

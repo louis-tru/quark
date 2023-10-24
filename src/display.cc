@@ -51,7 +51,7 @@ namespace qk {
 		, _default_scale(0)
 		, _fsp(0)
 		, _nextFsp(0)
-		, _nextFspTime(0), _surface_region(), _lockSizeMark(false)
+		, _nextFspTime(0), _surface_region()
 	{
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_view_render = new ViewRender(this);
@@ -59,21 +59,6 @@ namespace qk {
 
 	Display::~Display() {
 		Release(_view_render); _view_render = nullptr;
-	}
-
-	void Display::set_size(Vec2 size) {
-		float w = size.x(), h = size.y();
-		if (w >= 0.0 && h >= 0.0) {
-			UILock lock(_host);
-			if (_lockSize.x() != w || _lockSize.y() != h) {
-				_lockSize = { w, h };
-				_lockSizeMark = true;
-				lock.unlock();
-				_host->render()->reload();
-			}
-		} else {
-			Qk_DEBUG("Lock size value can not be less than zero\n");
-		}
 	}
 
 	void Display::push_clip_region(Region clip) {
@@ -135,6 +120,20 @@ namespace qk {
 		}
 	}
 
+	void Display::set_size(Vec2 size) {
+		float w = size.x(), h = size.y();
+		if (w >= 0.0 && h >= 0.0) {
+			UILock lock(_host);
+			if (_lockSize.x() != w || _lockSize.y() != h) {
+				_lockSize = { w, h };
+				updateState();
+				_host->render()->getCanvas()->setSurface(_surfaceMat, size, _scale);
+			}
+		} else {
+			Qk_DEBUG("Lock size value can not be less than zero\n");
+		}
+	}
+
 	void Display::updateState() { // Lock before calling
 		Vec2 size = surface_size();
 		float width = size.x();
@@ -182,17 +181,14 @@ namespace qk {
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
 			Qk_DEBUG("Display::onDeviceReload");
 			UILock lock(_host);
-			if ( _lockSizeMark
-				|| _surface_region.origin != region.origin
+			if ( _surface_region.origin != region.origin
 				|| _surface_region.end != region.end
 				|| _surface_region.size != size
 				|| _default_scale != defaultScale
 			) {
-				_lockSizeMark = false;
 				_surface_region = { region.origin, region.end, size };
 				_default_scale = defaultScale;
 				updateState();
-				lock.unlock(); // Unlock cycle lock
 				_host->render()->getCanvas()->setSurface(_surfaceMat, size, _scale);
 			} else {
 				_host->root()->onDisplayChange();

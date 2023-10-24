@@ -33,8 +33,6 @@
 #ifndef __quark_render_gl_glcanvas__
 #define __quark_render_gl_glcanvas__
 
-#define Qk_USE_TEXTURE_RENDER_BUFFER 1
-
 #include "../render.h"
 #include "../canvas.h"
 #include "./glsl_shaders.h"
@@ -107,7 +105,7 @@ namespace qk {
 		virtual void unlock() override; // clear sync unlock
 
 	private:
-		virtual void setBuffers(Vec2 size);
+		virtual void setBuffers();
 		// define props
 		Array<GLC_State> _stateStack; // state
 		GLC_State    *_state; // state

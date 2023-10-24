@@ -32,7 +32,6 @@
 #include "quark/util/loop.h"
 
 #ifndef TEST_FUNC_NAME
-// #define TEST_FUNC_NAME test_layout
 #define TEST_FUNC_NAME test_canvas
 #endif
 
@@ -41,7 +40,6 @@ using namespace qk;
 void TEST_FUNC_NAME(int argc, char** argv);
 
 Qk_Main() {
-	// node::QuarkEnvironment::test();
 
 	uint64_t st = time_micro();
 	
@@ -52,7 +50,7 @@ Qk_Main() {
 	return 0;
 }
 
-#if FX_ANDROID
+#if Qk_ANDROID
 int main(int argc, char *argv[]) {
 	Application::runMain(argc, argv);
 	return 0;

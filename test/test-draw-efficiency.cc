@@ -8,9 +8,9 @@ using namespace qk;
 
 constexpr unsigned int u32 = 1;
 
-class TestCanvas2: public Box {
+class TestDrawEfficiency: public Box {
 public:
-	TestCanvas2(App *host): Box(host) {}
+	TestDrawEfficiency(App *host): Box(host) {}
 
 	void accept(ViewVisitor *visitor) override {
 		auto app = pre_render()->host();
@@ -36,10 +36,10 @@ public:
 	}
 };
 
-void test_canvas2(int argc, char **argv) {
+void test_draw_efficiency(int argc, char **argv) {
 	App app({.fps=0x0, .windowFrame={{0,0}, {400,400}}});
 	// layout
-	auto t = (new TestCanvas2(&app))->append_to<Box>(app.root());
+	auto t = (new TestDrawEfficiency(&app))->append_to<Box>(app.root());
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

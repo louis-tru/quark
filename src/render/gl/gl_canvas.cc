@@ -37,12 +37,10 @@ namespace qk {
 	float get_level_font_size(float fontSize);
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
-	void  gl_set_blend_mode(BlendMode blendMode);
 	void  gl_setColorRenderBuffer(GLuint buff, ColorType type, Vec2 size, bool texRBO);
 	void  gl_setFramebufferRenderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	void  gl_setAAClipBuffer(GLuint tex, Vec2 size);
 	void  gl_setBlurRenderBuffer(GLuint tex, Vec2 size);
-	void  gl_textureBarrier();
 
 	extern const Region ZeroRegion;
 	extern const float  aa_fuzz_weight = 0.9;
@@ -639,9 +637,6 @@ namespace qk {
 	// --------------------------------------------------------
 
 	void GLCanvas::setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) {
-		_render->lock();
-		_mutex.mutex.lock();
-
 		if (_DeviceMsaa) {
 			auto msaa = ceilf(sqrtf(_DeviceMsaa));
 			surfaceSize *= msaa;
@@ -662,39 +657,15 @@ namespace qk {
 		_phy2Pixel = 2 / _fullScale;
 		_rootMatrix = root.transpose(); // transpose matrix
 
-		if (chSize) { // ch size
-			setBuffers(surfaceSize); // set buffers
-		}
-		// update shader root matrix and clear all save state
-		if (_render->_glcanvas == this) { // main canvas
-			glViewport(0, 0, surfaceSize[0], surfaceSize[1]);
-			glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
-			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, _rootMatrix.val, GL_STREAM_DRAW);
-		}
-		if (chSize || _isClipState) {
-			if (_aaclipTex) { // clear aa clip tex buffer
-				float color[] = {1.0f,1.0f,1.0f,1.0f};
-				glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
-				gl_textureBarrier(); // ensure clip texture clear can be executed correctly in sequence
-			}
-			if (_stencilBuffer) {
-				glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
-				glDisable(GL_STENCIL_TEST); // disable stencil test
-			}
-		}
+		_cmdPack->setBuffers(surfaceSize, chSize, _isClipState);// set buffers
 
 		_isClipState = false; // clear clip state
-		_mutex.mutex.unlock();
-		_render->unlock();
 	}
 
-	void GLCanvas::setBuffers(Vec2 size) {
+	void GLCanvas::setBuffers() {
+		auto size = _surfaceSize;
 		auto w = size.x(), h = size.y();
 		auto type = _opts.colorType;
-		// auto msaa = _opts.msaaSample;
-
-		Qk_ASSERT(w, "Invalid viewport size width");
-		Qk_ASSERT(h, "Invalid viewport size height");
 
 		if (!_fbo) {
 			// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
@@ -706,8 +677,6 @@ namespace qk {
 			glGenRenderbuffers(1, &_rbo);
 #endif
 			glGenRenderbuffers(1, &_depthBuffer); // _depthBuffer
-			// init matrix buffer
-			_cmdPack->setMetrix();
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 		gl_setColorRenderBuffer(_rbo, type, size, Qk_USE_TEXTURE_RENDER_BUFFER);
@@ -739,6 +708,7 @@ namespace qk {
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
+
 	}
 
 	Vec2 GLCanvas::size() {

@@ -198,7 +198,6 @@ namespace qk {
 		int64_t           _nextFspTime;
 		Array<RegionSize> _clipRegion;
 		Mat4              _surfaceMat;
-		bool _lockSizeMark;
 	};
 
 }

@@ -150,7 +150,7 @@ namespace qk {
 			}
 
 			cmd->vertex = vertexs->val + vertexs->size;
-			cmd->opts    = opts->val    + opts->size;
+			cmd->opts   = opts->val    + opts->size;
 			cmd->subcmd = 0;
 			cmd->vCount = 0;
 			cmd->aaclip = _canvas->_state->aaclip;
@@ -197,7 +197,7 @@ namespace qk {
 					switch (cmd->type) {
 						case kMatrix_CmdType: {
 							curMat = (MatrixCmd*)cmd;
-							setMetrixCall(curMat->matrix);
+							setMatrixCall(curMat->matrix);
 							break;
 						}
 						case kBlend_CmdType:
@@ -294,6 +294,11 @@ namespace qk {
 							delete c->srcCmd; // delete gl cmd pack
 							break;
 						}
+						case kSetBuffers_CmdType: {
+							auto c = (SetBuffersCmd*)cmd;
+							setBuffersCall(c->size, c->chSize, c->isClip);
+							break;
+						}
 						default: break;
 					}
 					cmd = (Cmd*)(((char*)cmd) + cmd->size); // next cmd
@@ -331,7 +336,7 @@ namespace qk {
 			}
 		}
 
-		void setMetrixCall(const Mat &mat) {
+		void setMatrixCall(const Mat &mat) {
 			const float m4x4[16] = {
 				mat[0], mat[3], 0.0, 0.0,
 				mat[1], mat[4], 0.0, 0.0,
@@ -751,7 +756,7 @@ namespace qk {
 				_render->setBlendMode(mode);
 			}
 			setRootMatrixCall(root);
-			setMetrixCall(mat);
+			setMatrixCall(mat);
 
 			if (chPort) {
 				glViewport(0, 0, srcC->_surfaceSize[0], srcC->_surfaceSize[1]);
@@ -767,7 +772,7 @@ namespace qk {
 				_render->setBlendMode(parentMode); // ch mode
 			}
 			setRootMatrixCall(parentRoot); // ch root matrix
-			setMetrixCall(parentMat); // ch matrix
+			setMatrixCall(parentMat); // ch matrix
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo); // bind top fbo
 
 			gl_textureBarrier();
@@ -804,6 +809,40 @@ namespace qk {
 				srcC->retain();
 			}
 #endif
+		}
+
+		void setBuffersCall(Vec2 size, bool chSize, bool isClip) {
+			auto _c = _canvas;
+			auto w = size.x(), h = size.y();
+			auto type = _c->_opts.colorType;
+
+			Qk_ASSERT(w, "Invalid viewport size width");
+			Qk_ASSERT(h, "Invalid viewport size height");
+
+			chSize = chSize && size == _c->_surfaceSize;
+
+			if (chSize) {
+				_c->setBuffers();
+			}
+			// update shader root matrix and clear all save state
+			if (_render->_glcanvas == _canvas) { // main canvas
+				glViewport(0, 0, size[0], size[1]);
+				// init root matrix buffer
+				setRootMatrixCall(_c->_rootMatrix);
+				// init matrix buffer
+				setMatrixCall(_c->_state->matrix);
+			}
+			if (chSize || isClip) { // is clear clip buffer
+				if (_c->_aaclipTex) { // clear aa clip tex buffer
+					float color[] = {1.0f,1.0f,1.0f,1.0f};
+					glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
+					gl_textureBarrier(); // ensure clip texture clear can be executed correctly in sequence
+				}
+				if (_c->_stencilBuffer) {
+					glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
+					glDisable(GL_STENCIL_TEST); // disable stencil test
+				}
+			}
 		}
 
 	};
@@ -1068,9 +1107,17 @@ namespace qk {
 		cmd->genMipmap = genMipmap;
 	}
 
+	void GLC_CmdPack::setBuffers(Vec2 size, bool chSize, bool isClip) {
+		auto cmd = new(_this->allocCmd(sizeof(SetBuffersCmd))) SetBuffersCmd;
+		cmd->type = kSetBuffers_CmdType;
+		cmd->size = size;
+		cmd->chSize = chSize;
+		cmd->isClip = isClip;
+	}
+
 #else
 	void GLC_CmdPack::setMetrix() {
-		_this->setMetrixCall(_canvas->_state->matrix);
+		_this->setMatrixCall(_canvas->_state->matrix);
 	}
 	void GLC_CmdPack::setBlendMode(BlendMode mode) {
 		_render->setBlendMode(mode);
@@ -1116,6 +1163,9 @@ namespace qk {
 	}
 	void GLC_CmdPack::outputImageEnd(ImageSource* img, bool genMipmap) {
 		_this->outputImageEndCall(img, genMipmap);
+	}
+	void GLC_CmdPack::setBuffers(Vec2 size, bool chSize, bool isClip) {
+		_this->setBuffersCall(size, chSize, isClip);
 	}
 #endif
 

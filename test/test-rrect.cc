@@ -8,9 +8,9 @@ using namespace qk;
 
 constexpr unsigned int u32 = 1;
 
-class TestCanvas1: public Box {
+class TestRRect: public Box {
 public:
-	TestCanvas1(App *host): Box(host) {}
+	TestRRect(App *host): Box(host) {}
 
 	void accept(ViewVisitor *visitor) override {
 
@@ -78,10 +78,10 @@ public:
 	}
 };
 
-void test_canvas1(int argc, char **argv) {
+void test_rrect(int argc, char **argv) {
 	App app({.fps=0x0, .windowFrame={{0,0}, {400,400}}});
 	// layout
-	auto t = (new TestCanvas1(&app))->append_to<Box>(app.root());
+	auto t = (new TestRRect(&app))->append_to<Box>(app.root());
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

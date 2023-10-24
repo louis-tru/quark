@@ -147,9 +147,11 @@ public:
 		return _defaultScale;
 	}
 
-	void reload() override {
+	void reload() override { // reload surface size
+		lock();
 		auto size = getSurfaceSize();
 		_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _defaultScale);
+		unlock();
 	}
 
 	void renderDisplay() {

@@ -33,6 +33,7 @@
 #ifndef __quark_render_gl_cmd__
 #define __quark_render_gl_cmd__
 
+#define Qk_USE_TEXTURE_RENDER_BUFFER 1
 #define Qk_USE_GLC_CMD_QUEUE 1
 
 #include "./glsl_shaders.h"
@@ -62,6 +63,7 @@ namespace qk {
 			kOutputImageBegin_CmdType,
 			kOutputImageEnd_CmdType,
 			kFlushCanvas_CmdType,
+			kSetBuffers_CmdType,
 		};
 
 		struct Cmd { // Cmd list
@@ -184,6 +186,11 @@ namespace qk {
 			BlendMode       mode;
 		};
 
+		struct SetBuffersCmd: Cmd {
+			Vec2 size;
+			bool chSize, isClip;
+		};
+
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();
 		void flush();
@@ -202,6 +209,7 @@ namespace qk {
 		void readImage(const Rect &src, ImageSource* img, bool genMipmap);
 		void outputImageBegin(ImageSource* img);
 		void outputImageEnd(ImageSource* img, bool genMipmap);
+		void setBuffers(Vec2 size, bool chSize, bool isClip);
 
 	private:
 		typedef MultiColorCmd::Option MCOpt;
