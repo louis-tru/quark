@@ -1157,6 +1157,8 @@ namespace qk {
 	{}
 	GLC_CmdPack::~GLC_CmdPack() {
 	}
+	void GLC_CmdPack::Inl::callCmds(const Mat4& root, const Mat& mat, BlendMode mode) {
+	}
 	void GLC_CmdPack::flush() {
 	}
 	void GLC_CmdPack::setMetrix() {
