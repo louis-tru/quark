@@ -179,8 +179,10 @@ namespace qk {
 				_chMatrix = false;
 			}
 		}
+#endif
 
 		void callCmds(const Mat4& root, const Mat& mat, BlendMode mode) {
+#if Qk_USE_GLC_CMD_QUEUE
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
 
 			MatrixCmd *curMat = nullptr;
@@ -324,10 +326,8 @@ namespace qk {
 			cmds.current->size = sizeof(Cmd);
 			cmds.index = 0;
 			lastCmd = cmds.current->val;
-		}
-#else
-		void callCmds(const Mat4& root, const Mat& mat, BlendMode mode) {}
 #endif
+		}
 
 		void flushAAClipBuffer() {
 			//gl_textureBarrier();
