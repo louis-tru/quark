@@ -737,7 +737,6 @@ namespace qk {
 
 			// flush blur texture buffer
 			// gl_textureBarrier();
-
 			if (genMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
@@ -765,7 +764,6 @@ namespace qk {
 #else
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_rbo);
 #endif
-			//gl_textureBarrier();
 			if (genMipmap) {
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, img->texture());
@@ -804,10 +802,12 @@ namespace qk {
 			setMatrixCall(parentMat); // ch matrix
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo); // bind top fbo
 
-			// gl_textureBarrier();
-
 			if (_canvas->_opts.genMipmap) { // gen mipmap texture
+#if Qk_USE_TEXTURE_RENDER_BUFFER
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, srcC->_rbo);
 				glGenerateMipmap(GL_TEXTURE_2D);
+#endif
 			}
 		}
 
