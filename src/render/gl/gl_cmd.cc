@@ -48,6 +48,7 @@ namespace qk {
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
 	void  gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint);
+	void  gl_set_texture_no_repeat(GLenum pname);
 
 	Qk_DEFINE_INLINE_MEMBERS(GLC_CmdPack, Inl) {
 	public:
@@ -206,11 +207,13 @@ namespace qk {
 						case kBlurFilterBegin_CmdType: {
 							auto c = (BlurFilterBeginCmd*)cmd;
 							blurFilterBeginCall(c->bounds, c->isClipState, c->depth);
+              break;
 						}
 						case kBlurFilterEnd_CmdType: {
 							auto c = (BlurFilterEndCmd*)cmd;
-							blurFilterEndCall(c->bounds, c->size, *c->dest, c->mode, c->n, c->lod, c->depth);
+							blurFilterEndCall(c->bounds, c->size, *c->output, c->mode, c->n, c->lod, c->depth);
 							c->~BlurFilterEndCmd();
+              break;
 						}
 						case kSwitch_CmdType: {
 							auto c = (SwitchCmd*)cmd;
@@ -640,7 +643,7 @@ namespace qk {
 		 *   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		 */
 		void blurFilterEndCall(Region bounds, float size,
-			ImageSource* dest, BlendMode mode, int n, int lod, float depth) 
+			ImageSource* output, BlendMode mode, int n, int lod, float depth)
 		{
 			float x1 = bounds.origin.x(), y1 = bounds.origin.y();
 			float x2 = bounds.end.x(), y2 = bounds.end.y();
@@ -653,9 +656,15 @@ namespace qk {
 			int level = 0;
 
 			glActiveTexture(GL_TEXTURE0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glBindTexture(GL_TEXTURE_2D, _canvas->_blurTex);
+			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
+			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 
 			if (lod) { // copy image, gen mipmap texture
 				auto &cp = _render->_shaders.imageCp;
@@ -663,7 +672,7 @@ namespace qk {
 				glUniform2f(cp.iResolution, R.x(), R.y());
 				do { // copy image level
 					oRw >>= 1; oRh >>= 1;
-					glUniform1i(cp.depth, depth);
+					glUniform1f(cp.depth, depth);
 					glUniform1i(cp.imageLod, level);
 					glUniform2f(cp.oResolution, oRw, oRh);
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_blurTex, level+1);
@@ -673,21 +682,20 @@ namespace qk {
 			}
 
 			// flush blur texture buffer
-			// gl_textureBarrier();
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_blurTex, level);
 
 			blur.use(sizeof(float) * 12, data);
 			// blur horizontal blur
-			glUniform1i(blur.depth, depth);
+			glUniform1f(blur.depth, depth);
 			glUniform2f(blur.iResolution, R.x(), R.y());
 			glUniform2f(blur.oResolution, oRw, oRh);
 			glUniform1i(blur.imageLod, lod);
-			glUniform1f(blur.step, 2.0/(n-1));
+			glUniform1f(blur.step, 2.0f/(n-1));
 			glUniform2f(blur.size, size / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 
-			if (dest) { // region draw
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dest->texture(), 0);
+			if (output) { // region draw
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output->texture(), 0);
 			} else {
 #if Qk_USE_TEXTURE_RENDER_BUFFER
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_rbo, 0);
@@ -700,7 +708,7 @@ namespace qk {
 				_render->setBlendMode(mode); // restore blend mode
 			}
 			// blur vertical blur
-			glUniform1i(blur.depth, depth + DepthNextUnit);
+			glUniform1f(blur.depth, depth + DepthNextUnit);
 			glUniform2f(blur.oResolution, R.x(), R.y());
 			glUniform2f(blur.size, 0, size / R.y()); // vertical blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
@@ -1101,14 +1109,14 @@ namespace qk {
 		cmd->isClipState = _canvas->_isClipState;
 	}
 
-	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, ImageSource* dest) {
+	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, ImageSource* output) {
 		auto cmd = new(_this->allocCmd(sizeof(BlurFilterEndCmd))) BlurFilterEndCmd;
 		cmd->type = kBlurFilterEnd_CmdType;
 		cmd->bounds = bounds;
 		cmd->depth = _canvas->_zDepth;
 		cmd->mode = _canvas->_blendMode;
 		cmd->size = size;
-		cmd->dest = dest;
+		cmd->output = output;
 		_this->getBlurSampling(size, cmd->n, cmd->lod);
 		return cmd->lod + 2;
 	}
@@ -1192,10 +1200,10 @@ namespace qk {
 	void GLC_CmdPack::blurFilterBegin(Region bounds) {
 		_this->blurFilterBeginCall(bounds, _canvas->_isClipState, _canvas->_zDepth);
 	}
-	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, ImageSource* dest) {
+	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, ImageSource* output) {
 		int n, lod;
 		_this->getBlurSampling(size, n, lod);
-		_this->blurFilterEndCall(bounds, size, dest, _canvas->_blendMode, n, lod, _canvas->_zDepth);
+		_this->blurFilterEndCall(bounds, size, output, _canvas->_blendMode, n, lod, _canvas->_zDepth);
 		return lod + 2;
 	}
 	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img, bool genMipmap) {

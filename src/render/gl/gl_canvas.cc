@@ -288,7 +288,6 @@ namespace qk {
 		}
 
 		~GLCBlurFilter() override {
-			GLint r_tbo = 0;
 			auto ct = _host->_cmdPack->blurFilterEnd(
 				_bounds, _size, _host->_state->output ? *_host->_state->output->dest: nullptr);
 			_inl(_host)->zDepthNextCount(ct);
@@ -298,7 +297,7 @@ namespace qk {
 		void begin() {
 			_size *= _host->_scale;
 			_bounds = {_bounds.origin - _size, _bounds.end + _size};
-			_host->_cmdPack->blurFilterBegin(_bounds);
+			_host->_cmdPack->blurFilterBegin({_bounds.origin - _size, _bounds.end +_size});
 			_inl(_host)->zDepthNext();
 		}
 		GLCanvas *_host;

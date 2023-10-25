@@ -59,14 +59,21 @@ namespace qk {
 		inline ~Handle() { release(); }
 
 		inline Handle& operator=(Handle& handle) {
-			release();
+			Traits::Release(_data);
 			_data = handle.move();
 			return *this;
 		}
 
 		inline Handle& operator=(Handle&& handle) {
-			release();
+			Traits::Release(_data);
 			_data = handle.move();
+			return *this;
+		}
+
+		inline Handle& operator=(T *data) {
+			Traits::Retain(data);
+			Traits::Release(_data);
+			_data = data;
 			return *this;
 		}
 

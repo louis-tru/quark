@@ -181,6 +181,14 @@ namespace qk {
 		return id;
 	}
 
+	void gl_set_texture_no_repeat(GLenum pname) {
+#if Qk_OSX
+		glTexParameteri(GL_TEXTURE_2D, pname, GL_CLAMP_TO_BORDER);
+#else
+		glTexParameteri(GL_TEXTURE_2D, pname, GL_CLAMP_TO_EDGE);
+#endif
+	}
+
 	void gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, id);
@@ -196,11 +204,7 @@ namespace qk {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 				break;
 			case ImagePaint::kDecal_TileMode: // no repeat
-#if Qk_OSX
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-#else
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-#endif
+				gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
 				break;
 		}
 
@@ -215,11 +219,7 @@ namespace qk {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 				break;
 			case ImagePaint::kDecal_TileMode: // no repeat
-#if Qk_OSX
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-#else
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-#endif
+				gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
 				break;
 		}
 
@@ -258,13 +258,11 @@ namespace qk {
 			case kDst_BlendMode:           //!< r = d
 				glBlendFunc(GL_ZERO, GL_ONE);
 				break;
-			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
-				/** [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] */
+			case kSrcOver_BlendMode:       //!< r = sa*s + (1-sa)*d
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
-			case kDstOver_BlendMode:       //!< r = (1-da)*s + d
-				/** [Sa + (1 - Sa)*Da, Rc = Dc + (1 - Da)*Sc] */
+			case kDstOver_BlendMode:       //!< r = (1-da)*s + da*d
 				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
 				//glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
 				break;

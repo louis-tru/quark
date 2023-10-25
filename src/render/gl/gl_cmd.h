@@ -115,7 +115,7 @@ namespace qk {
 			float           depth;
 			Region          bounds;
 			float           size; // blur size
-			Sp<ImageSource> dest; // output dest
+			Sp<ImageSource> output; // output dest
 			int             n, lod; // sampling rate and image lod
 			BlendMode       mode;
 		};
@@ -211,7 +211,7 @@ namespace qk {
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
 		void clearColor(const Color4f &color, const Region &region, bool fullClear);
 		void blurFilterBegin(Region bounds);
-		int  blurFilterEnd(Region bounds, float size, ImageSource* dest);
+		int  blurFilterEnd(Region bounds, float size, ImageSource* output);
 		void readImage(const Rect &src, ImageSource* img, bool genMipmap);
 		void outputImageBegin(ImageSource* img);
 		void outputImageEnd(ImageSource* img, bool genMipmap);

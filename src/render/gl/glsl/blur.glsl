@@ -9,11 +9,11 @@ uniform vec2                oResolution; // generate image resolution
 #vert
 void main() {
 	gl_Position = rootMatrix * vec4(vertexIn.xy * oResolution / iResolution, depth, 1.0);
-	gl_Position.y += (iResolution.y - oResolution.y); // correct canvas offset
+	gl_Position.y += (oResolution.y / iResolution.y - 1.0) * 2.0; // correct canvas offset
 }
 
 #frag
-uniform lowp uint           imageLod; // image image lod
+uniform lowp int            imageLod; // image image lod
 uniform sampler2D           image; // image image input
 uniform lowp vec2           size; // blur size resolution %
 uniform lowp float          step; // N target sampling rate, step = 1.0 / ((n-1)*0.5)
@@ -23,22 +23,27 @@ uniform lowp float          step; // N target sampling rate, step = 1.0 / ((n-1)
 #define gk(x) exp(-x*x*2.0)
 
 void main() {
-	lowp vec2 coord = gl_FragCoord.xy;
-	coord.y -= (iResolution.y - oResolution.y); // correct offset
-	coord /= oResolution; // image texture coord
-
-	lowp float x = -1.0, t = 0.0, g;
-	lowp vec4  o = textureLod(image, coord, imageLod);
-	lowp vec2  s; // blue size
+	lowp vec2 coord = gl_FragCoord.xy / oResolution;
+	lowp vec4  o = textureLod(image, coord, imageLod), a, b;
+	lowp float x = -1.0, t = 0.0, tc = o.a, g, ga, gb;
+	lowp vec2  d; // offset distance
 
 	do {
 		g = gk(x);
-		s = size * x;
-		o += (textureLod(image, coord + s, imageLod) +
-					textureLod(image, coord - s, imageLod)) * g;
+		d = size * x;
+		a = textureLod(image, coord + d, imageLod);
+		b = textureLod(image, coord - d, imageLod);
+		// ga = a.a * g;
+		// gb = b.a * g;
+		// o += vec4(a.rgb * ga + b.rgb * gb, ga+gb);
+		o += (a + b) * g;
 		t += g;
+		// tc+= ga+gb;
 		x += step;
 	} while(x < 0.0);
 
-	fragColor = o / (t*2.0+1.0);
+	// fragColor = vec4(o.rgb/tc, o.a/(t*2.0+1.0));
+	fragColor = o/(t*2.0+1.0);
+
+	fragColor.rgb = vec3(fragColor.rgb) / fragColor.a;
 }

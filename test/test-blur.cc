@@ -18,22 +18,28 @@ public:
 		auto size = canvas->size();
 
 		Paint paint;
-		paint.color = Color4f(0, 0, 0);
-		auto circle = Path::MakeArc({size/2-150,300}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
+		paint.color = Color4f(1, 0, 0);
+		PaintFilter filter{PaintFilter::kBlur_Type,50};
+		paint.filter = &filter;
+		// auto path = Path::MakeArc({size/2-150,300}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
+		auto path = Path::MakeRect({size/2-100,200}); path.close();
 
-		// canvas->save();
-		// canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kIntersect_ClipOp, 0);
+		canvas->drawPath(path, paint);
 
-		canvas->drawPath(circle, paint);
-		// canvas->restore();
+		//paint.color = Color4f(1, 0, 0, 0.1);
+		//paint.filter = nullptr;
+		//canvas->drawPath(path, paint);
+
 		mark_none(kLayout_None);
 	}
 };
 
 void test_blur(int argc, char **argv) {
-	App app({.fps=0x0, .windowFrame={{0,0}, {400,400}}});
+	App app({.fps=0x0, .windowFrame={{0,0}, {500,500}}});
 	// layout
+	auto r = app.root();
 	auto t = app.root()->append_new<TestBlur>();
+	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end
