@@ -37,10 +37,10 @@ namespace qk {
 	float get_level_font_size(float fontSize);
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
-	void  gl_setColorRenderBuffer(GLuint buff, ColorType type, Vec2 size, bool texRBO);
-	void  gl_setFramebufferRenderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
-	void  gl_setAAClipBuffer(GLuint tex, Vec2 size);
-	void  gl_setBlurRenderBuffer(GLuint tex, Vec2 size);
+	void  gl_set_color_renderbuffer(GLuint buff, ColorType type, Vec2 size, bool texRBO);
+	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
+	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
+	void  gl_set_blur_renderbuffer(GLuint tex, Vec2 size);
 
 	extern const Region ZeroRegion;
 	extern const float  aa_fuzz_weight = 0.9;
@@ -695,17 +695,17 @@ namespace qk {
 			glGenRenderbuffers(1, &_depthBuffer); // _depthBuffer
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-		gl_setColorRenderBuffer(_rbo, type, size, Qk_USE_TEXTURE_RENDER_BUFFER);
-		gl_setFramebufferRenderbuffer(_depthBuffer, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT);
+		gl_set_color_renderbuffer(_rbo, type, size, Qk_USE_TEXTURE_RENDER_BUFFER);
+		gl_set_framebuffer_renderbuffer(_depthBuffer, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT);
 
 		if (_aaclipTex) {
-			gl_setAAClipBuffer(_aaclipTex, size);
+			gl_set_aaclip_buffer(_aaclipTex, size);
 		}
 		if (_stencilBuffer) {
-			gl_setFramebufferRenderbuffer(_stencilBuffer, size, GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT);
+			gl_set_framebuffer_renderbuffer(_stencilBuffer, size, GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT);
 		}
 		if (_blurTex) {
-			gl_setBlurRenderBuffer(_blurTex, size);
+			gl_set_blur_renderbuffer(_blurTex, size);
 		}
 
 		glDrawBuffers(2, DrawBuffers);

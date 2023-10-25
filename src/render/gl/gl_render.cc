@@ -299,7 +299,7 @@ namespace qk {
 		}
 	}
 
-	void gl_TexImage2D(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
+	void gl_tex_image2D(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, tex);
 		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
@@ -307,7 +307,7 @@ namespace qk {
 		glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat, size[0], size[1], 0, iformat, type, nullptr);
 	}
 
-	void gl_setFramebufferRenderbuffer(GLuint buff, Vec2 size, GLenum iformat, GLenum attachment) {
+	void gl_set_framebuffer_renderbuffer(GLuint buff, Vec2 size, GLenum iformat, GLenum attachment) {
 		glBindRenderbuffer(GL_RENDERBUFFER, buff);
 		// msaa > 1 ?
 		// glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaa, iformat, size[0], size[1]):
@@ -315,10 +315,10 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, buff);
 	}
 
-	void gl_setColorRenderBuffer(GLuint buff, ColorType type, Vec2 size, bool texRBO) {
+	void gl_set_color_renderbuffer(GLuint buff, ColorType type, Vec2 size, bool texRBO) {
 		if (texRBO) {
 			// use texture render buffer
-			gl_TexImage2D(buff, size, gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), 0);
+			gl_tex_image2D(buff, size, gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buff, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
@@ -332,13 +332,13 @@ namespace qk {
 				case kColor_Type_RGB_101010X: ifo = GL_RGB10_A2; break;
 				default: ifo = GL_RGBA8; break;
 			}
-			gl_setFramebufferRenderbuffer(buff, size, ifo, GL_COLOR_ATTACHMENT0);
+			gl_set_framebuffer_renderbuffer(buff, size, ifo, GL_COLOR_ATTACHMENT0);
 		}
 	}
 
-	void gl_setAAClipBuffer(GLuint tex, Vec2 size) {
+	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
 		// clip anti alias buffer
-		gl_TexImage2D(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_MaxTextureImageUnits - 1);
+		gl_tex_image2D(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_MaxTextureImageUnits - 1);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);// range: 0 - 1, no repeat
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -347,8 +347,8 @@ namespace qk {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tex, 0);
 	}
 
-	void gl_setBlurRenderBuffer(GLuint tex, Vec2 size) {
-		gl_TexImage2D(tex, size,
+	void gl_set_blur_renderbuffer(GLuint tex, Vec2 size) {
+		gl_tex_image2D(tex, size,
 			gl_get_texture_pixel_format(kColor_Type_RGBA_8888),
 			gl_get_texture_data_type(kColor_Type_RGBA_8888), 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

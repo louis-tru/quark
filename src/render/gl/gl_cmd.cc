@@ -41,10 +41,10 @@
 namespace qk {
 	extern const float aa_fuzz_weight;
 	extern const float DepthNextUnit;
-	void  gl_textureBarrier();
-	void  gl_setBlurRenderBuffer(GLuint tex, Vec2 size);
-	void  gl_setAAClipBuffer(GLuint tex, Vec2 size);
-	void  gl_setFramebufferRenderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
+	void  gl_texture_barrier();
+	void  gl_set_blur_renderbuffer(GLuint tex, Vec2 size);
+	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
+	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
 	void  gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint);
@@ -519,7 +519,7 @@ namespace qk {
 
 			if (!_c->_stencilBuffer) {
 				glGenRenderbuffers(1, &_c->_stencilBuffer); // gen stencil buffer
-				gl_setFramebufferRenderbuffer(
+				gl_set_framebuffer_renderbuffer(
 					_c->_stencilBuffer, _c->_surfaceSize, GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT
 				);
 				glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
@@ -533,7 +533,7 @@ namespace qk {
 
 				if (!_c->_aaclipTex) {
 					glGenTextures(1, &_c->_aaclipTex); // gen aaclip buffer tex
-					gl_setAAClipBuffer(_c->_aaclipTex, _c->_surfaceSize);
+					gl_set_aaclip_buffer(_c->_aaclipTex, _c->_surfaceSize);
 					float color[] = {1.0f,1.0f,1.0f,1.0f};
 					glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
 					// ensure clip texture clear can be executed correctly in sequence
@@ -619,7 +619,7 @@ namespace qk {
 		void blurFilterBeginCall(Region bounds, bool isClipState, float depth) {
 			if (!_canvas->_blurTex) {
 				glGenTextures(1, &_canvas->_blurTex);
-				gl_setBlurRenderBuffer(_canvas->_blurTex, _canvas->_surfaceSize);
+				gl_set_blur_renderbuffer(_canvas->_blurTex, _canvas->_surfaceSize);
 			}
 			if (kSrc_BlendMode != _render->_blendMode) {
 				_render->setBlendMode(kSrc_BlendMode); // switch blend mode to src
