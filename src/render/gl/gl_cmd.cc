@@ -607,10 +607,12 @@ namespace qk {
 			}
 		}
 
-		static void getBlurSampling(float size, int &n, int &lod) {
-			n = ceilf(Float::clamp(size*1.25, 3, 13)); // sampling rate
+		void getBlurSampling(float size, int &n, int &lod) {
+			size *= _canvas->_surfaceScale;
+			n = ceilf(Float::clamp(size, 3, 13)); // sampling rate
 			if (n % 2 == 0)
 				n += 1; // keep singular
+			size *= 1.1;
 			lod = ceilf(Float::max(0,log2f(size/n)));
 		}
 
@@ -659,11 +661,7 @@ namespace qk {
 			glBindTexture(GL_TEXTURE_2D, _canvas->_blurTex);
 			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
 			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 
 			if (lod) { // copy image, gen mipmap texture
@@ -704,6 +702,8 @@ namespace qk {
 #endif
 			}
 
+			//!< r = s + (1-sa)*d
+			//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 			if (mode != kSrc_BlendMode) {
 				_render->setBlendMode(mode); // restore blend mode
 			}

@@ -18,17 +18,18 @@ public:
 		auto size = canvas->size();
 
 		Paint paint;
-		paint.color = Color4f(1, 0, 0);
+		paint.color = Color4f(0, 0, 0);
 		PaintFilter filter{PaintFilter::kBlur_Type,50};
 		paint.filter = &filter;
-		// auto path = Path::MakeArc({size/2-150,300}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
-		auto path = Path::MakeRect({size/2-100,200}); path.close();
+		paint.antiAlias = false;
+		auto path = Path::MakeArc({size/2-150,300}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
+		// auto path = Path::MakeRect({size/2-100,200}); path.close();
 
 		canvas->drawPath(path, paint);
 
-		//paint.color = Color4f(1, 0, 0, 0.1);
-		//paint.filter = nullptr;
-		//canvas->drawPath(path, paint);
+		// paint.color = Color4f(1, 0, 0, 0.1);
+		// paint.filter = nullptr;
+		// canvas->drawPath(path, paint);
 
 		mark_none(kLayout_None);
 	}

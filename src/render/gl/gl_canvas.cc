@@ -296,7 +296,7 @@ namespace qk {
 	private:
 		void begin() {
 			_size *= _host->_scale;
-			_bounds = {_bounds.origin - _size, _bounds.end + _size};
+			_bounds = {_bounds.origin - _size * 1.1, _bounds.end + _size * 1.1};
 			_host->_cmdPack->blurFilterBegin({_bounds.origin - _size, _bounds.end +_size});
 			_inl(_host)->zDepthNext();
 		}
