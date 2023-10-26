@@ -38,7 +38,7 @@ namespace qk {
 	String gl_MaxTextureImageUnits_GLSL_Macros;
 	int    gl_MaxTextureImageUnits = 0;
 
-	void gl_textureBarrier() {
+	void gl_texture_barrier() {
 #if defined(GL_ARB_texture_barrier)
 		glTextureBarrier();
 #elif defined(GL_NV_texture_barrier)

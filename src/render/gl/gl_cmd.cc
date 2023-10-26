@@ -618,7 +618,7 @@ namespace qk {
 
 			//n = Int32::max(3,ceilf(size/(n * powf(2,lod)) * n));
 
-			Qk_DEBUG("getBlurSampling lod %d", lod);
+			//Qk_DEBUG("getBlurSampling lod %d", lod);
 		}
 
 		void blurFilterBeginCall(Region bounds, bool isClipState, float depth) {
@@ -667,7 +667,6 @@ namespace qk {
 			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 
 			if (lod) { // copy image, gen mipmap texture
 				if (isClipState) {
