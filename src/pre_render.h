@@ -74,9 +74,9 @@ namespace qk {
 		/**
 		 * @method mark
 		 */
-		void mark(Layout *layout, uint32_t depth);
+		void mark_layout(Layout *layout, uint32_t depth);
 		void delete_mark(Layout *layout, uint32_t depth);
-		void mark_none();
+		void mark_render();
 		void addtask(Task* task);
 		void untask(Task* task);
 

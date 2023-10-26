@@ -237,9 +237,9 @@ namespace qk {
 		void mark(uint32_t mark);
 
 		/**
-			* @func mark_none(mark)
+			* @func mark_render(mark)
 			*/
-		void mark_none(uint32_t mark = kLayout_None);
+		void mark_render(uint32_t mark = kLayout_None);
 
 		/**
 			* @func unmark(mark)

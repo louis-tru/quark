@@ -72,7 +72,7 @@ namespace qk {
 			}
 
 			unmark(kLayout_Typesetting);
-			mark_none(kRecursive_Visible_Region); // force test region and lines region
+			mark_render(kRecursive_Visible_Region); // force test region and lines region
 
 			// check transform_origin change
 			solve_origin_value();
@@ -82,7 +82,7 @@ namespace qk {
 	}
 
 	void TextLayout::onTextChange(uint32_t value) {
-		value ? mark(value): mark_none();
+		value ? mark(value): mark_render();
 	}
 
 	bool TextLayout::solve_visible_region() {

@@ -45,7 +45,7 @@ namespace qk {
 	}
 
 	void Label::onTextChange(uint32_t value) {
-		value ? mark(value): mark_none();
+		value ? mark(value): mark_render();
 	}
 
 	bool Label::layout_forward(uint32_t mark) {
@@ -94,14 +94,14 @@ namespace qk {
 		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
 		layout_text(*lines, pre_render()->host()->default_text_options());
 		lines->finish();
-		mark_none(kRecursive_Transform);
+		mark_render(kRecursive_Transform);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 size) {
 		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
 		layout_text(*lines, pre_render()->host()->default_text_options());
 		lines->finish();
-		mark_none(kRecursive_Transform);
+		mark_render(kRecursive_Transform);
 	}
 
 	void Label::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {

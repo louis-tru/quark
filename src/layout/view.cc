@@ -113,7 +113,7 @@ namespace qk {
 				if ( layout_mark() ) { // remark
 					mark(kLayout_None);
 				}
-				mark_none(kRecursive_Transform);
+				mark_render(kRecursive_Transform);
 
 				View *v = _first;
 				while ( v ) {
@@ -422,7 +422,7 @@ namespace qk {
 	void View::set_translate(Vec2 val) {
 		if (translate() != val) {
 			transform_p()->translate = val;
-			mark_none(kRecursive_Transform); // mark transform
+			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -434,7 +434,7 @@ namespace qk {
 	void View::set_scale(Vec2 val) {
 		if (scale() != val) {
 			transform_p()->scale = val;
-			mark_none(kRecursive_Transform); // mark transform
+			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -447,7 +447,7 @@ namespace qk {
 		val *= Qk_PI_RATIO_180;
 		if (!_transform || _transform->skew != val) {
 			transform_p()->skew = val;
-			mark_none(kRecursive_Transform); // mark transform
+			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -460,7 +460,7 @@ namespace qk {
 		val *= Qk_PI_RATIO_180;
 		if (!_transform || _transform->rotate != val) {
 			transform_p()->rotate = val;
-			mark_none(kRecursive_Transform); // mark transform
+			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -521,7 +521,7 @@ namespace qk {
 	void View::set_x(float val) {
 		if (translate().x() != val) {
 			transform_p()->translate.set_x(val);
-			mark_none(kRecursive_Transform); // mark transform
+			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -534,7 +534,7 @@ namespace qk {
 	void View::set_y(float val) {
 		if (translate().y() != val) {
 			transform_p()->translate.set_y(val);
-			mark_none(kRecursive_Transform); // mark transform
+			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -547,7 +547,7 @@ namespace qk {
 	void View::set_scale_x(float val) {
 		if (scale().x() != val) {
 			transform_p()->scale.set_x(val);
-			mark_none(kRecursive_Transform); // mark transform
+			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -560,7 +560,7 @@ namespace qk {
 	void View::set_scale_y(float val) {
 		if (scale().y() != val) {
 			transform_p()->scale.set_y(val);
-			mark_none(kRecursive_Transform); // mark transform
+			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -573,7 +573,7 @@ namespace qk {
 	void View::set_skew_x(float val) {
 		if (skew().x() != val) {
 			transform_p()->skew.set_x(val);
-			mark_none(kRecursive_Transform); // mark transform
+			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 
@@ -586,7 +586,7 @@ namespace qk {
 	void View::set_skew_y(float val) {
 		if (skew().y() != val) {
 			transform_p()->skew.set_y(val);
-			mark_none(kRecursive_Transform); // mark transform
+			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 

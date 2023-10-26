@@ -139,7 +139,7 @@ namespace qk {
 		}
 	}
 
-	void PreRender::mark(Layout *layout, uint32_t depth) {
+	void PreRender::mark_layout(Layout *layout, uint32_t depth) {
 		Qk_ASSERT(depth);
 		_marks.extend(depth + 1);
 		auto& arr = _marks[depth];
@@ -161,7 +161,7 @@ namespace qk {
 		_is_render = true;
 	}
 
-	void PreRender::mark_none() {
+	void PreRender::mark_render() {
 		_is_render = true;
 	}
 

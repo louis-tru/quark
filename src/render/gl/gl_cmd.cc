@@ -611,14 +611,10 @@ namespace qk {
 
 		void getBlurSampling(float size, int &n, int &lod) {
 			size *= _canvas->_surfaceScale;
-			n = ceilf(Float::clamp(size, 3, 13)); // sampling rate
+			n = ceilf(Float::clamp(size, 3, 19)); // sampling rate
 			if (n % 2 == 0) n += 1; // keep singular
-			float log = Float::max(0,log2f(size*2.0/n));
-			lod = ceilf(log);
-
-			//n = Int32::max(3,ceilf(size/(n * powf(2,lod)) * n));
-
-			//Qk_DEBUG("getBlurSampling lod %d", lod);
+			lod = ceilf(Float::max(0,log2f(size/n)));
+			//Qk_DEBUG("getBlurSampling %d", n);
 		}
 
 		void blurFilterBeginCall(Region bounds, bool isClipState, float depth) {
@@ -696,7 +692,7 @@ namespace qk {
 			glUniform2f(blur.iResolution, R.x(), R.y());
 			glUniform2f(blur.oResolution, oRw, oRh);
 			glUniform1i(blur.imageLod, lod);
-			glUniform1f(blur.step, 2.0f/(n-1));
+			glUniform1f(blur.step, 1.0f/(n-1));
 			glUniform2f(blur.size, size / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 

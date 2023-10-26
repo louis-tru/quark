@@ -173,7 +173,7 @@ namespace qk {
 			if (_mark_index >= 0) {
 				_pre_render->delete_mark(this, oldDepth);
 				if (newDepth) {
-					_pre_render->mark(this, newDepth);
+					_pre_render->mark_layout(this, newDepth);
 				}
 			}
 		}
@@ -186,15 +186,15 @@ namespace qk {
 		_layout_mark |= mark;
 		if (_mark_index < 0) {
 			if (_layout_depth) {
-				_pre_render->mark(this, _layout_depth); // push to pre render
+				_pre_render->mark_layout(this, _layout_depth); // push to pre render
 			}
 		}
 	}
 
-	void Layout::mark_none(uint32_t mark) {
+	void Layout::mark_render(uint32_t mark) {
 		_layout_mark |= mark;
 		if (_layout_depth) {
-			_pre_render->mark_none(); // push to pre render
+			_pre_render->mark_render(); // push to pre render
 		}
 	}
 

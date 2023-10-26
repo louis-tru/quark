@@ -17,16 +17,16 @@ public:
 		auto canvas = pre_render()->host()->render()->getCanvas();
 		auto size = canvas->size();
 
-		i+=Qk_PI_RATIO_180*0.5;
+		i+=Qk_PI_RATIO_180*0.2;
 
 		float c = abs(sinf(i));
 
 		Paint paint;
-		paint.color = Color4f(0, 0, 0);
-		PaintFilter filter{PaintFilter::kBlur_Type,c * 50};
+		paint.color = Color4f(0, 0, 1);
+		PaintFilter filter{PaintFilter::kBlur_Type,c*200};
 		paint.filter = &filter;
 		paint.antiAlias = false;
-		Rect rect{size/2-150,300};
+		Rect rect{size/2-300,600};
 		// auto path = Path::MakeArc(rect, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
 		auto path = Path::MakeRect(rect); path.close();
 
@@ -44,15 +44,15 @@ public:
 		// ipaint.setImage(*img, {{0},{300}});
 		paint.image = &ipaint;
 		paint.type = Paint::kBitmap_Type;
-		// paint.type = Paint::kBitmapMask_Type;
+		paint.type = Paint::kBitmapMask_Type;
 		// canvas->drawRect({{0},{300}}, paint);
 
-		mark_none(kLayout_None);
+		mark_render();
 	}
 };
 
 void test_blur(int argc, char **argv) {
-	App app({.fps=0x0, .windowFrame={{0,0}, {500,500}}});
+	App app({.fps=0x0, .windowFrame={{0,0}, {1000,1000}}});
 	// layout
 	auto r = app.root();
 	auto t = app.root()->append_new<TestBlur>();

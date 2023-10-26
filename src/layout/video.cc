@@ -479,7 +479,7 @@ namespace qk {
 	void Video::stop() {
 		Lock lock(_mutex);
 		if ( Inl_Video(this)->stop_from(lock, true) ) {
-			mark_none();
+			mark_render();
 		}
 	}
 

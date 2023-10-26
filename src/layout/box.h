@@ -119,7 +119,7 @@ namespace qk {
 		virtual float solve_layout_content_width(Size &parent_layout_size);
 		virtual float solve_layout_content_height(Size &parent_layout_size);
 
-		void mark_layout_size(uint32_t mark);
+		void mark_size(uint32_t mark);
 		void solve_origin_value(); // compute origint value
 
 		// --------------- m e m b e r . f i e l d ---------------

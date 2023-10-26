@@ -109,7 +109,7 @@ public:
 			// canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
 		}
 
-		mark_none(kLayout_None);
+		mark_render();
 	}
 
 	void accept(ViewVisitor *visitor) {

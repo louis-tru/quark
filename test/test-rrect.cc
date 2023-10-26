@@ -74,7 +74,7 @@ public:
 		canvas->drawPath(circle, paint);
 		canvas->restore();
 
-		mark_none(kLayout_None);
+		mark_render();
 	}
 };
 

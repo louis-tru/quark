@@ -134,7 +134,7 @@ namespace qk {
 				
 				limit_cursor_in_marked_text();
 				reset_cursor_twinkle_task_timeout();
-				mark_none(kInput_Status);
+				mark_render(kInput_Status);
 			}
 		}
 
@@ -145,7 +145,7 @@ namespace qk {
 				_editing = true;
 			_cursor_twinkle_status = 0;
 			_flag = kFlag_Normal;
-			mark_none(kInput_Status);
+			mark_render(kInput_Status);
 			pre_render()->addtask(this);
 		}
 
@@ -155,7 +155,7 @@ namespace qk {
 			if ( _marked_text.length() ) {
 				input_unmark_text(_marked_text);
 			} else {
-				mark_none(kInput_Status);
+				mark_render(kInput_Status);
 			}
 			pre_render()->untask(this);
 		}
@@ -450,7 +450,7 @@ namespace qk {
 			
 			limit_cursor_in_marked_text();
 			reset_cursor_twinkle_task_timeout();
-			mark_none(kInput_Status);
+			mark_render(kInput_Status);
 		}
 
 		void limit_cursor_in_marked_text() {
@@ -702,7 +702,7 @@ namespace qk {
 		solve_origin_value();
 
 		// mark input status change
-		mark_none(kInput_Status | kRecursive_Visible_Region);
+		mark_render(kInput_Status | kRecursive_Visible_Region);
 
 		return Vec2(_lines->max_width(), _lines->max_height());
 	}
@@ -956,7 +956,7 @@ namespace qk {
 	}
 
 	void Input::onTextChange(uint32_t value) {
-		value ? mark(value): mark_none();
+		value ? mark(value): mark_render();
 	}
 
 	void Input::set_type(KeyboardType value) {
@@ -987,7 +987,7 @@ namespace qk {
 	void Input::set_placeholder_color(Color value) {
 		if (value != _placeholder_color) {
 			_placeholder_color = value;
-			mark_none(kLayout_None);
+			mark_render(kLayout_None);
 		}
 	}
 

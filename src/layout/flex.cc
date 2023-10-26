@@ -288,7 +288,7 @@ namespace qk {
 
 			if (layout_content_size_change_mark) {
 				mark(kLayout_Typesetting); // rearrange
-				mark_none(kRecursive_Visible_Region);
+				mark_render(kRecursive_Visible_Region);
 			}
 
 			// if no lock child layout then must be processed in reverse iteration, layout_reverse()

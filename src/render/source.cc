@@ -408,7 +408,7 @@ namespace qk {
 			auto _ = shared_app();
 			// Qk_ASSERT(_, "Application needs to be initialized first");
 			if (_) {
-				_->pre_render()->mark_none();
+				_->pre_render()->mark_render();
 			}
 		}
 	}

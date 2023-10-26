@@ -50,8 +50,8 @@ namespace qk {
 			Notification<UIEvent, UIEventName, Layout>::trigger(UIEvent_Scroll, **evt);
 		}
 
-		void mark_none(uint32_t mark = kLayout_None) {
-			Layout::mark_none(mark);
+		void mark_render(uint32_t mark = kLayout_None) {
+			Layout::mark_render(mark);
 		}
 
 		void unmark(uint32_t mark = (~View::kLayout_None)) {
@@ -175,18 +175,18 @@ namespace qk {
 
 			virtual void run(float y) {
 				m_host->_scrollbar_opacity = (m_to - m_from) * y + m_from;
-				m_host->_host->mark_none();
+				m_host->_host->mark_render();
 			}
 
 			virtual void end() {
 				m_host->_scrollbar_opacity = m_to;
-				m_host->_host->mark_none();
+				m_host->_host->mark_render();
 				_inl(m_host)->termination_task(this);
 			}
 
 			virtual void immediate_end() {
 				m_host->_scrollbar_opacity = m_to;
-				m_host->_host->mark_none();
+				m_host->_host->mark_render();
 				_inl(m_host)->termination_task(this);
 			}
 
@@ -380,7 +380,7 @@ namespace qk {
 				set_h_scrollbar_pos();
 				set_v_scrollbar_pos();
 				
-				_host->mark_none(View::kScroll); // mark
+				_host->mark_render(View::kScroll); // mark
 				
 				_host->pre_render()->host()->loop()->post(Cb([this](Cb::Data& se) {
 					_host->triggerScroll(); // trigger event
@@ -409,7 +409,7 @@ namespace qk {
 				} else {
 					if ( _scrollbar_opacity != 0 ) {
 						_scrollbar_opacity = 0;
-						_host->mark_none();
+						_host->mark_render();
 					}
 				}
 			} else {
@@ -703,7 +703,7 @@ namespace qk {
 		if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
 			_this->scroll_to_valid_scroll(scroll, duration, curve);
 		}
-		_host->mark_none(View::kScroll);
+		_host->mark_render(View::kScroll);
 	}
 
 	void BaseScroll::set_scroll(Vec2 value) {
@@ -712,20 +712,20 @@ namespace qk {
 		} else {
 			_scroll_raw = Vec2(-value.x(), -value.y());
 			_scroll = _this->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
-			_host->mark_none();
+			_host->mark_render();
 		}
 	}
 
 	void BaseScroll::set_scroll_x(float value) {
 		_scroll_raw.set_x(-value);
 		_scroll = _this->catch_valid_scroll( Vec2(-value, _scroll_raw.y()) );
-		_host->mark_none(View::kScroll);
+		_host->mark_render(View::kScroll);
 	}
 
 	void BaseScroll::set_scroll_y(float value) {
 		_scroll_raw.set_y(-value);
 		_scroll = _this->catch_valid_scroll( Vec2(_scroll_raw.x(), -value) );
-		_host->mark_none(View::kScroll);
+		_host->mark_render(View::kScroll);
 	}
 
 	Vec2 BaseScroll::scroll() const {
@@ -815,7 +815,7 @@ namespace qk {
 		_scrollbar_h = (_scroll_h && _scrollbar);
 		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);
 		//
-		_host->mark_none(View::kScroll);
+		_host->mark_render(View::kScroll);
 	}
 
 	void BaseScroll::solve(uint32_t mark) {
@@ -826,7 +826,7 @@ namespace qk {
 				_scroll_raw = _scroll;
 			}
 			_host->unmark(View::kScroll);
-			_host->mark_none(View::kRecursive_Transform);
+			_host->mark_render(View::kRecursive_Transform);
 		}
 	}
 

@@ -49,7 +49,7 @@ namespace qk {
 		set_height({0, BoxSizeKind::kMatch});
 		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		set_background_color(Color(255, 255, 255, 255)); // 默认白色背景
-		mark_none(kRecursive_Transform);
+		mark_render(kRecursive_Transform);
 	}
 
 	void Root::onDisplayChange() {

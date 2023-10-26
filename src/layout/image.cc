@@ -81,7 +81,7 @@ namespace qk {
 	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
 			UILock lock(pre_render()->host());
-			mark_layout_size(kLayout_Size_Width | kLayout_Size_Height);
+			mark_size(kLayout_Size_Width | kLayout_Size_Height);
 		}
 	}
 
