@@ -142,7 +142,7 @@ namespace qk {
 		/**
 		 * @method texture() get the first image texture
 		*/
-		inline uint32_t texture() const { return _pixels[0]._texture; }
+		inline uint32_t texture() const { return _pixels.length() ? _pixels[0]._texture: 0; }
 
 		/**
 		 * @method is_texture() Whether to mark as texture

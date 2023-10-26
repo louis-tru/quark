@@ -25,7 +25,7 @@ uniform lowp float          step; // N target sampling rate, step = 1.0 / ((n-1)
 void main() {
 	lowp vec2 coord = gl_FragCoord.xy / oResolution;
 	lowp vec4  o = textureLod(image, coord, imageLod), a, b;
-	lowp float x = -1.0, t = 0.0, tc = o.a, g;//, ga, gb;
+	lowp float x = -1.0, t = 0.0, g;//, tc = o.a, ga, gb;
 	lowp vec2  d; // offset distance
 
 	do {
@@ -44,5 +44,6 @@ void main() {
 
 	t = t * 2.0 + 1.0;
 	// fragColor = vec4(o.rgb/tc, o.a/(t*2.0+1.0));
+	// fragColor = o/t;
 	fragColor = vec4(o.rgb / o.a, o.a / t);
 }

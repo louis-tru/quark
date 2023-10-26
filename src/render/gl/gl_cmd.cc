@@ -612,10 +612,13 @@ namespace qk {
 		void getBlurSampling(float size, int &n, int &lod) {
 			size *= _canvas->_surfaceScale;
 			n = ceilf(Float::clamp(size, 3, 13)); // sampling rate
-			if (n % 2 == 0)
-				n += 1; // keep singular
-			size *= 1.1;
-			lod = ceilf(Float::max(0,log2f(size/n)));
+			if (n % 2 == 0) n += 1; // keep singular
+			float log = Float::max(0,log2f(size*2.0/n));
+			lod = ceilf(log);
+
+			//n = Int32::max(3,ceilf(size/(n * powf(2,lod)) * n));
+
+			Qk_DEBUG("getBlurSampling lod %d", lod);
 		}
 
 		void blurFilterBeginCall(Region bounds, bool isClipState, float depth) {
@@ -664,6 +667,7 @@ namespace qk {
 			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 
 			if (lod) { // copy image, gen mipmap texture
 				if (isClipState) {
@@ -736,14 +740,11 @@ namespace qk {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _render->_fbo);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-			glBlitFramebuffer(o[0], o[1], s[0], s[1], 0, 0, w, h,
+			glBlitFramebuffer(o[0], o[1], o[0]+s[0], o[1]+s[1], 0, 0, w, h,
 				GL_COLOR_BUFFER_BIT, s == Vec2(w,h) ? GL_NEAREST: GL_LINEAR
 			);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
-
-			// flush blur texture buffer
-			// gl_textureBarrier();
 			if (genMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
@@ -1208,7 +1209,7 @@ namespace qk {
 		_this->blurFilterBeginCall(bounds, _canvas->_isClipState, _canvas->_zDepth);
 	}
 	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, ImageSource* output) {
-		int n, lod;
+		int n,lod;
 		_this->getBlurSampling(size, n, lod);
 		_this->blurFilterEndCall(bounds, size, output,
 			_canvas->_blendMode, n, lod, _canvas->_isClipState, _canvas->_zDepth

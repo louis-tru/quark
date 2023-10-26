@@ -271,7 +271,13 @@ namespace qk {
 	void ImageSource::_LoadTex(const PixelInfo &info, uint32_t texture) {
 		_state = kSTATE_LOAD_COMPLETE;
 		_info = info;
-		_pixels = {Pixel{info}};
+		if (_pixels.length()) {
+			if (_pixels[0]._texture != texture)
+				_render->deleteTextures(&_pixels[0]._texture, 1);
+			_pixels[0] = info;
+		} else {
+			_pixels.push(info);
+		}
 		_pixels[0]._texture = texture;
 	}
 

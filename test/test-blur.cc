@@ -11,27 +11,41 @@ constexpr unsigned int u32 = 1;
 class TestBlur: public Box {
 public:
 	TestBlur(App *host): Box(host) {}
+	float i = 0;
 
 	void accept(ViewVisitor *visitor) override {
-		auto app = pre_render()->host();
-		auto canvas = app->render()->getCanvas();
+		auto canvas = pre_render()->host()->render()->getCanvas();
 		auto size = canvas->size();
+
+		i+=Qk_PI_RATIO_180*0.5;
+
+		float c = abs(sinf(i));
 
 		Paint paint;
 		paint.color = Color4f(0, 0, 0);
-		PaintFilter filter{PaintFilter::kBlur_Type,50};
+		PaintFilter filter{PaintFilter::kBlur_Type,c * 50};
 		paint.filter = &filter;
 		paint.antiAlias = false;
-		auto path = Path::MakeArc({size/2-150,300}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
-		// auto path = Path::MakeRect({size/2-100,200}); path.close();
+		Rect rect{size/2-150,300};
+		// auto path = Path::MakeArc(rect, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
+		auto path = Path::MakeRect(rect); path.close();
 
 		canvas->drawPath(path, paint);
 
-		// canvas->readImage();
+		// auto img = canvas->readImage(rect, {300*2}, kColor_Type_RGBA_8888, true);
 
-		// paint.color = Color4f(1, 0, 0, 0.1);
-		// paint.filter = nullptr;
-		// canvas->drawPath(path, paint);
+		paint.color = Color4f(1, 0, 0, 1);
+		paint.filter = nullptr;
+		ImagePaint ipaint;
+		// ipaint.tileModeX = ImagePaint::kDecal_TileMode;
+		// ipaint.tileModeY = ImagePaint::kDecal_TileMode;
+		ipaint.mipmapMode = ImagePaint::kLinear_MipmapMode;
+		ipaint.filterMode = ImagePaint::kLinear_FilterMode;
+		// ipaint.setImage(*img, {{0},{300}});
+		paint.image = &ipaint;
+		paint.type = Paint::kBitmap_Type;
+		// paint.type = Paint::kBitmapMask_Type;
+		// canvas->drawRect({{0},{300}}, paint);
 
 		mark_none(kLayout_None);
 	}

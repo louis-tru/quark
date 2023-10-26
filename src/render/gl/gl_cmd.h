@@ -115,7 +115,7 @@ namespace qk {
 			Region          bounds;
 			float           size; // blur size
 			Sp<ImageSource> output; // output dest
-			int             n, lod; // sampling rate and image lod
+			int             n,lod; // sampling rate and image lod
 			BlendMode       mode;
 			bool            isClipState;
 		};

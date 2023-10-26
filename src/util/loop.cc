@@ -582,7 +582,7 @@ namespace qk {
 	RunLoop* RunLoop::current() {
 		auto t = thread_current_inl();
 		if (!t) {
-			Qk_WARN("Can't get thread specific data");
+			// Qk_WARN("Can't get thread specific data");
 			return nullptr;
 		}
 		auto loop = t->_loop;

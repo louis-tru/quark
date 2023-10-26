@@ -682,11 +682,6 @@ namespace qk {
 		auto type = _opts.colorType;
 
 		if (!_fbo) {
-			if (this == _render->_glcanvas) { // main canvas
-#if Qk_iOS
-				_isTexRender = false; // no use texture
-#endif
-			}
 			// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 			glGenFramebuffers(1, &_fbo); // _fbo
 			// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
