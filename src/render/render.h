@@ -57,13 +57,12 @@ namespace qk {
 			virtual bool onRenderBackendDisplay() = 0;
 		};
 
-		inline const Options& options() const { return _opts; }
+		RenderBackend(Options opts);
+		const   Options& options() const { return _opts; }
 		static  RenderBackend* Make(Options opts, Delegate *delegate);
-		virtual        ~RenderBackend();
 		virtual void    reload() = 0; // surface size and scale change
 		virtual void    activate(bool isActive);
-		virtual ThreadID threadId() = 0; // get render thread id
-		inline  Canvas* getCanvas() { return _canvas; } // default canvas object
+		inline  Canvas* getCanvas() { return _canvas; } // default main canvas object
 		inline  Vec2    surfaceSize() { return _surfaceSize; }
 		inline  float   defaultScale() { return _defaultScale; }
 		inline  Delegate* delegate() { return _delegate; }
@@ -74,10 +73,8 @@ namespace qk {
 		virtual Canvas* newCanvas(Options opts) = 0;
 
 	protected:
-		RenderBackend(Options opts);
-		virtual Vec2  getSurfaceSize() = 0;
-		virtual float getDefaultScale() = 0;
-		static  void  loadTexImage(ImageSource* s, cPixelInfo &i, uint32_t tex);
+		virtual Vec2 getSurfaceSize(float *defaultScaleOut) = 0;
+		// define props
 		Options      _opts;
 		Canvas       *_canvas; // default canvas
 		Delegate     *_delegate;

@@ -42,7 +42,7 @@ namespace qk {
 
 	static uint32_t massSample(uint32_t n) {
 		n = integerExp(n);
-		return Qk_MIN(n, 8);
+		return Qk_MIN(n, 9);
 	}
 
 	RenderBackend::RenderBackend(Options opts)
@@ -56,14 +56,8 @@ namespace qk {
 		_opts.msaaSample = massSample(_opts.msaaSample);
 	}
 
-	RenderBackend::~RenderBackend() {}
-
 	void RenderBackend::activate(bool isActive) {
 		_isActive = isActive;
-	}
-
-	void RenderBackend::loadTexImage(ImageSource* s, cPixelInfo &i, uint32_t tex) {
-		s->_LoadTex(i, tex);
 	}
 
 }

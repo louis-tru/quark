@@ -49,6 +49,7 @@ namespace qk {
 	GLint gl_get_texture_data_type(ColorType format);
 	void  gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint);
 	void  gl_set_texture_no_repeat(GLenum pname);
+	void  loadTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex);
 
 	Qk_DEFINE_INLINE_MEMBERS(GLC_CmdPack, Inl) {
 	public:
@@ -211,7 +212,8 @@ namespace qk {
 						}
 						case kBlurFilterEnd_CmdType: {
 							auto c = (BlurFilterEndCmd*)cmd;
-							blurFilterEndCall(c->bounds, c->size, *c->output, c->mode, c->n, c->lod, c->depth);
+							blurFilterEndCall(c->bounds, c->size,
+								*c->output, c->mode, c->n, c->lod, c->isClipState, c->depth);
 							c->~BlurFilterEndCmd();
               break;
 						}
@@ -422,13 +424,13 @@ namespace qk {
 
 		bool setTextureSlot0(const ImagePaint *paint) {
 			if (paint->_flushCanvas) { // flush canvas to current canvas
-#if Qk_USE_TEXTURE_RENDER_BUFFER
-				auto canvas = static_cast<GLCanvas*>(paint->canvas);
-				if (canvas != _canvas && canvas->isGpu()) { // now only supported gpu
-					gl_set_texture_param(canvas->_rbo, 0, paint);
-					return true;
+				auto srcC = static_cast<GLCanvas*>(paint->canvas);
+				if (srcC != _canvas && srcC->isGpu()) { // now only supported gpu
+					if (srcC->_isTexRender) {
+						gl_set_texture_param(srcC->_rbo, 0, paint);
+						return true;
+					}
 				}
-#endif
 			} else {
 				_render->setTexture(paint->image->pixels().val(), 0, paint);
 				return true;
@@ -625,7 +627,7 @@ namespace qk {
 				_render->setBlendMode(kSrc_BlendMode); // switch blend mode to src
 			}
 			if (isClipState) {
-				glDisable(GL_STENCIL_TEST); // ignore clip
+				glDisable(GL_STENCIL_TEST); // close clip
 			}
 			// output to texture buffer then do post processing
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_blurTex, 0);
@@ -645,7 +647,7 @@ namespace qk {
 		 *   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		 */
 		void blurFilterEndCall(Region bounds, float size,
-			ImageSource* output, BlendMode mode, int n, int lod, float depth)
+			ImageSource* output, BlendMode mode, int n, int lod, bool isClipState, float depth)
 		{
 			float x1 = bounds.origin.x(), y1 = bounds.origin.y();
 			float x2 = bounds.end.x(), y2 = bounds.end.y();
@@ -655,7 +657,6 @@ namespace qk {
 			auto R = _canvas->_surfaceSize;
 			uint32_t oRw = R.x(), oRh = R.y();
 			auto _c = _canvas;
-			int level = 0;
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, _canvas->_blurTex);
@@ -665,6 +666,10 @@ namespace qk {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 
 			if (lod) { // copy image, gen mipmap texture
+				if (isClipState) {
+					glDisable(GL_STENCIL_TEST); // close clip
+				}
+				int level = 0;
 				auto &cp = _render->_shaders.imageCp;
 				cp.use(sizeof(float) * 12, data);
 				glUniform2f(cp.iResolution, R.x(), R.y());
@@ -680,7 +685,7 @@ namespace qk {
 			}
 
 			// flush blur texture buffer
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_blurTex, level);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_blurTex, lod);
 
 			blur.use(sizeof(float) * 12, data);
 			// blur horizontal blur
@@ -692,14 +697,16 @@ namespace qk {
 			glUniform2f(blur.size, size / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 
-			if (output) { // region draw
+			if (output) { // output target
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output->texture(), 0);
-			} else {
-#if Qk_USE_TEXTURE_RENDER_BUFFER
+			} else if (_canvas->_isTexRender) {
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_rbo, 0);
-#else
+			} else {
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _c->_rbo);
-#endif
+			}
+
+			if (lod && isClipState) {
+				glEnable(GL_STENCIL_TEST); // close clip
 			}
 
 			//!< r = s + (1-sa)*d
@@ -727,7 +734,7 @@ namespace qk {
 			glBindTexture(GL_TEXTURE_2D, tex);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, iformat, type, nullptr);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _render->_frameBuffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _render->_fbo);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 			glBlitFramebuffer(o[0], o[1], s[0], s[1], 0, 0, w, h,
 				GL_COLOR_BUFFER_BIT, s == Vec2(w,h) ? GL_NEAREST: GL_LINEAR
@@ -740,7 +747,7 @@ namespace qk {
 			if (genMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
-			_render->loadTexImage(img, img->info(), tex);
+			loadTex_SourceImage(img, img->info(), tex);
 		}
 
 		void outputImageBeginCall(ImageSource* img) {
@@ -755,15 +762,14 @@ namespace qk {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
-			_render->loadTexImage(img, {int(size[0]),int(size[1]),img->type(),img->info().alphaType()}, tex);
+			loadTex_SourceImage(img, {int(size[0]),int(size[1]),img->type(),img->info().alphaType()}, tex);
 		}
 
 		void outputImageEndCall(ImageSource* img, bool genMipmap) {
-#if Qk_USE_TEXTURE_RENDER_BUFFER
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_rbo, 0);
-#else
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_rbo);
-#endif
+			if (_canvas->_isTexRender)
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_rbo, 0);
+			else
+				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_rbo);
 			if (genMipmap) {
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, img->texture());
@@ -802,21 +808,21 @@ namespace qk {
 			setMatrixCall(parentMat); // ch matrix
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo); // bind top fbo
 
-			if (_canvas->_opts.genMipmap) { // gen mipmap texture
-#if Qk_USE_TEXTURE_RENDER_BUFFER
+			if (_canvas->_opts.genMipmap && srcC->_isTexRender) { // gen mipmap texture
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, srcC->_rbo);
 				glGenerateMipmap(GL_TEXTURE_2D);
-#endif
 			}
 		}
 
 		void flushCanvas(const ImagePaint *paint) {
-#if Qk_USE_GLC_CMD_QUEUE && Qk_USE_TEXTURE_RENDER_BUFFER
+#if Qk_USE_GLC_CMD_QUEUE
 			auto srcC = static_cast<GLCanvas*>(paint->canvas);
 			if (!paint->_flushCanvas || !srcC->isGpu())
 				return; // now only supported gpu
 			if (srcC->_render != _render || srcC == _canvas)
+				return;
+			if (!srcC->_isTexRender)
 				return;
 			GLC_CmdPack *srcCmd = nullptr;
 
@@ -1116,6 +1122,7 @@ namespace qk {
 		cmd->depth = _canvas->_zDepth;
 		cmd->mode = _canvas->_blendMode;
 		cmd->size = size;
+		cmd->isClipState = _canvas->_isClipState;
 		cmd->output = output;
 		_this->getBlurSampling(size, cmd->n, cmd->lod);
 		return cmd->lod + 2;
@@ -1203,7 +1210,9 @@ namespace qk {
 	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, ImageSource* output) {
 		int n, lod;
 		_this->getBlurSampling(size, n, lod);
-		_this->blurFilterEndCall(bounds, size, output, _canvas->_blendMode, n, lod, _canvas->_zDepth);
+		_this->blurFilterEndCall(bounds, size, output,
+			_canvas->_blendMode, n, lod, _canvas->_isClipState, _canvas->_zDepth
+		);
 		return lod + 2;
 	}
 	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img, bool genMipmap) {

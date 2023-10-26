@@ -33,7 +33,6 @@
 #ifndef __quark_render_gl_cmd__
 #define __quark_render_gl_cmd__
 
-#define Qk_USE_TEXTURE_RENDER_BUFFER 1
 #define Qk_USE_GLC_CMD_QUEUE 1
 
 #include "./glsl_shaders.h"
@@ -118,6 +117,7 @@ namespace qk {
 			Sp<ImageSource> output; // output dest
 			int             n, lod; // sampling rate and image lod
 			BlendMode       mode;
+			bool            isClipState;
 		};
 
 		struct ColorCmd: DrawCmd { //!

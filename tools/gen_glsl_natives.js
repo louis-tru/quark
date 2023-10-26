@@ -312,7 +312,7 @@ function main() {
 	write(cpp,
 		`#include "./${path.basename(output_h)}"`,
 		'namespace qk {',
-		'extern String GL_MaxTextureImageUnits_Str;'
+		'extern String gl_MaxTextureImageUnits_GLSL_Macros;'
 	);
 
 	for (let {name,input} of Object.values(pair_inputs)) {

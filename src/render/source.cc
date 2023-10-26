@@ -257,6 +257,17 @@ namespace qk {
 		}, this));
 	}
 
+	class ImageSourceInl: public ImageSource {
+	public:
+		inline void loadTex(cPixelInfo &i, uint32_t tex) {
+			_LoadTex(i, tex);
+		}
+	};
+
+	void loadTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex) {
+		static_cast<ImageSourceInl*>(s)->loadTex(i, tex);
+	}
+
 	void ImageSource::_LoadTex(const PixelInfo &info, uint32_t texture) {
 		_state = kSTATE_LOAD_COMPLETE;
 		_info = info;

@@ -55,19 +55,17 @@ namespace qk {
 
 	protected:
 		GLRender(Options opts);
+		// define props
+		BlendMode _blendMode; // last setting status
+		GLuint _fbo; // temp fbo
+		GLuint _texBuffer[3]; // temp tbo
+		GLuint _rootMatrixBlock,_viewMatrixBlock; // ubo, matrixBlock => root view matrix
+		GLuint _optsBlock; // ubo, generic optsBlock
+		GLCanvas* _glcanvas; // main canvas
+		GLSLShaders _shaders; // glsl shaders
+
 		friend class GLCanvas;
 		friend class GLC_CmdPack;
-		// --------------- define props ---------------
-		BlendMode _blendMode;
-		GLuint _frameBuffer; // temp frame buffer
-		GLuint _texBuffer[3]; // temp texture buffers
-		GLuint _rootMatrixBlock,_viewMatrixBlock; // matrixBlock => root view matrix
-		GLuint _optsBlock; // generic optsBlock
-		GLint  _maxTextureSize;
-		GLint  _maxTextureBufferSize;
-		GLint  _maxTextureImageUnits;
-		GLCanvas* _glcanvas; // main canvas
-		GLSLShaders _shaders;
 	};
 }
 #endif

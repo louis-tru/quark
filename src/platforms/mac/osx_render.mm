@@ -96,10 +96,6 @@ public:
 		return this;
 	}
 
-	qk::ThreadID threadId() override {
-		return _view.renderThreadId;
-	}
-
 	bool isRenderThread() {
 		return _view.renderThreadId == thread_current_id();
 	}
@@ -133,25 +129,12 @@ public:
 		return 0;
 	}
 
-	Vec2 getSurfaceSize() override {
+	Vec2 getSurfaceSize(float *defaultScaleOut) override {
 		CGSize size = _view.frame.size;
-		_defaultScale = _view.window.backingScaleFactor;
-		float w = size.width * _defaultScale;
-		float h = size.height * _defaultScale;
-		_surfaceSize = Vec2(w,h);
-		return _surfaceSize;
-	}
-
-	float getDefaultScale() override {
-		_defaultScale = _view.window.backingScaleFactor;
-		return _defaultScale;
-	}
-
-	void reload() override { // reload surface size
-		lock();
-		auto size = getSurfaceSize();
-		_delegate->onRenderBackendReload({ Vec2{0,0},size}, size, _defaultScale);
-		unlock();
+		float defaultScale = _view.window.backingScaleFactor;
+		if (defaultScaleOut)
+			*defaultScaleOut = defaultScale;
+		return Vec2(size.width * defaultScale, size.height * defaultScale);
 	}
 
 	void renderDisplay() {

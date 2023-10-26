@@ -333,7 +333,7 @@ namespace qk {
 		, _rootMatrix()
 		, _blendMode(kSrcOver_BlendMode)
 		, _opts(opts)
-		, _isClipState(false)
+		, _isClipState(false), _isTexRender(true)
 	{
 		switch(_opts.colorType) {
 			case kColor_Type_BGRA_8888:
@@ -355,19 +355,17 @@ namespace qk {
 	}
 
 	GLCanvas::~GLCanvas() {
+		bool is_trbo = _isTexRender;
 		GLuint fbo = _fbo,
-					rbo1  = _rbo,
+					rbo0  = _rbo,
 					rbo[] = { _depthBuffer, _stencilBuffer },
-					tex[] = { _aaclipTex, _blurTex};
-		_render->post_message(Cb([fbo,rbo,tex,rbo1](auto &e) {
+					tex[] = { _aaclipTex, _blurTex };
+		_render->post_message(Cb([fbo,rbo,tex,rbo0,is_trbo](auto &e) {
+			if (is_trbo) glDeleteTextures(1, &rbo0);
+			else glDeleteRenderbuffers(1, &rbo0);
 			glDeleteFramebuffers(1, &fbo);
 			glDeleteRenderbuffers(2, rbo);
 			glDeleteTextures(2, tex);
-#if Qk_USE_TEXTURE_RENDER_BUFFER
-			glDeleteTextures(1, &rbo1);
-#else
-			glDeleteRenderbuffers(1, &rbo1);
-#endif
 		}));
 
 		_mutex.mutex.lock();
@@ -684,18 +682,20 @@ namespace qk {
 		auto type = _opts.colorType;
 
 		if (!_fbo) {
+			if (this == _render->_glcanvas) { // main canvas
+#if Qk_iOS
+				_isTexRender = false; // no use texture
+#endif
+			}
 			// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 			glGenFramebuffers(1, &_fbo); // _fbo
 			// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-#if Qk_USE_TEXTURE_RENDER_BUFFER
-			glGenTextures(1, &_rbo);
-#else
-			glGenRenderbuffers(1, &_rbo);
-#endif
+			_isTexRender ? glGenTextures(1, &_rbo): glGenRenderbuffers(1, &_rbo);
+			// Create depth buffer
 			glGenRenderbuffers(1, &_depthBuffer); // _depthBuffer
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-		gl_set_color_renderbuffer(_rbo, type, size, Qk_USE_TEXTURE_RENDER_BUFFER);
+		gl_set_color_renderbuffer(_rbo, type, size, _isTexRender);
 		gl_set_framebuffer_renderbuffer(_depthBuffer, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT);
 
 		if (_aaclipTex) {

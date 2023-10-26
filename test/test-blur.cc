@@ -27,6 +27,8 @@ public:
 
 		canvas->drawPath(path, paint);
 
+		// canvas->readImage();
+
 		// paint.color = Color4f(1, 0, 0, 0.1);
 		// paint.filter = nullptr;
 		// canvas->drawPath(path, paint);

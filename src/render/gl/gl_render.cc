@@ -35,8 +35,8 @@
 
 namespace qk {
 
-	String GL_MaxTextureImageUnits_GLSL_Macros;
-	uint32_t GL_MaxTextureImageUnits = 8;
+	String gl_MaxTextureImageUnits_GLSL_Macros;
+	int    gl_MaxTextureImageUnits = 0;
 
 	void gl_textureBarrier() {
 #if defined(GL_ARB_texture_barrier)
@@ -338,7 +338,7 @@ namespace qk {
 
 	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
 		// clip anti alias buffer
-		gl_tex_image2D(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_MaxTextureImageUnits - 1);
+		gl_tex_image2D(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, gl_MaxTextureImageUnits - 1);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);// range: 0 - 1, no repeat
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -369,7 +369,7 @@ namespace qk {
 		_canvas = _glcanvas; // set default canvas
 		_glcanvas->retain(); // retain
 
-		glGenFramebuffers(1, &_frameBuffer);
+		glGenFramebuffers(1, &_fbo);
 		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
 		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _rootMatrixBlock);
@@ -382,15 +382,20 @@ namespace qk {
 		// Create texture buffer
 		glGenTextures(3, _texBuffer); // _texBuffer
 
-		// get consts
-		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_maxTextureSize);
-		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &_maxTextureBufferSize);
-		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_maxTextureImageUnits);
+#if DEBUG
+		GLint maxTextureSize,maxTextureBufferSize,maxTextureImageUnits;
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &maxTextureBufferSize);
+		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
+		Qk_DEBUG("GL_MAX_TEXTURE_SIZE: %d", maxTextureSize);
+		Qk_DEBUG("GL_MAX_TEXTURE_BUFFER_SIZE: %d", maxTextureBufferSize);
+		Qk_DEBUG("GL_MAX_TEXTURE_IMAGE_UNITS: %d", maxTextureImageUnits);
+#endif
 
-		if (!GL_MaxTextureImageUnits) {
-			GL_MaxTextureImageUnits_GLSL_Macros = 
-				String("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS ") + _maxTextureImageUnits + "\n";
-			GL_MaxTextureImageUnits = _maxTextureImageUnits;
+		if (!gl_MaxTextureImageUnits) {
+			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &gl_MaxTextureImageUnits);
+			gl_MaxTextureImageUnits_GLSL_Macros = 
+				String("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS ") + gl_MaxTextureImageUnits + "\n";
 		}
 
 #if DEBUG || QK_MoreLog
@@ -442,7 +447,7 @@ namespace qk {
 	}
 
 	void GLRender::release() {
-		GLuint fbo = _frameBuffer,
+		GLuint fbo = _fbo,
 					tbo[] = {_texBuffer[0],_texBuffer[1],_texBuffer[2]},
 					ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock};
 		post_message(Cb([fbo,tbo,ubo](auto &e){
@@ -452,11 +457,14 @@ namespace qk {
 		}));
 		Qk_ASSERT(_glcanvas->refCount() == 1);
 		_glcanvas->release(); _glcanvas = nullptr;
+		_canvas = nullptr;
 	}
 
 	void GLRender::reload() {
-		auto size = getSurfaceSize();
-		_delegate->onRenderBackendReload({Vec2{0,0},size}, size, getDefaultScale());
+		lock();
+		_surfaceSize = getSurfaceSize(&_defaultScale);
+		_delegate->onRenderBackendReload({Vec2{0,0},_surfaceSize}, _surfaceSize, _defaultScale);
+		unlock();
 	}
 
 	uint32_t GLRender::makeTexture(cPixel *src, uint32_t id) {

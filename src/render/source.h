@@ -149,19 +149,18 @@ namespace qk {
 		*/
 		inline bool is_texture() const { return _render; }
 
+	protected:
+		void _LoadTex(const PixelInfo &info, uint32_t texture);
 	private:
 		void _Decode(Buffer& data);
 		void _Unload(bool isDestroy);
-		void _LoadTex(const PixelInfo &info, uint32_t texture);
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
 		uint32_t     _loadId;
 		RenderBackend *_render; // weak ref, texture mark
 		RunLoop       *_loop;
 		friend class ImageSourcePool;
-		friend class RenderBackend;
 	};
-
 
 	/**
 	* @class ImageSourcePool
