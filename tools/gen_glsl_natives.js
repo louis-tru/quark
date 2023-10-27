@@ -233,8 +233,8 @@ function resolve_glsl(name, input, hpp, cpp) {
 	let [first, fragstr] = codestr.split(/^#frag/gm);
 	let [util, vertstr] = first.split(/^#vert/gm);
 
-	vertstr = '#import "_util.glsl"\n' + util + vertstr;
-	fragstr = '#import "_util.glsl"\n' + util + fragstr;
+	vertstr = '#import "_util.glsl"\n' + util + (vertstr || '');
+	fragstr = '#import "_util.glsl"\n' + util + (fragstr || '');
 
 	let vert_ast = resolve_code_ast_from_codestr(name+'_vert', dir, vertstr, 1, 0, hpp, cpp);
 	let frag_ast = resolve_code_ast_from_codestr(name+'_ftag', dir, fragstr, 0, 1, hpp, cpp);

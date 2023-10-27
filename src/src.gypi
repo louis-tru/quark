@@ -305,6 +305,7 @@
 				'inputs': [
 					'../tools/gen_glsl_natives.js',
 					'render/gl/glsl/_util.glsl',
+					'render/gl/glsl/_blur.glsl',
 					'render/gl/glsl/_image.glsl',
 					'render/gl/glsl/clear.glsl',
 					'render/gl/glsl/clip_test.glsl',
@@ -317,8 +318,12 @@
 					'render/gl/glsl/image.glsl',
 					'render/gl/glsl/image_mask.glsl',
 					'render/gl/glsl/image_yuv.glsl',
-					'render/gl/glsl/image_cp.glsl',
+					'render/gl/glsl/vport_cp.glsl',
 					'render/gl/glsl/blur.glsl',
+					'render/gl/glsl/blur3.glsl',
+					'render/gl/glsl/blur7.glsl',
+					'render/gl/glsl/blur13.glsl',
+					'render/gl/glsl/blur19.glsl',
 				],
 				'outputs': [
 					'render/gl/glsl_shaders.h',

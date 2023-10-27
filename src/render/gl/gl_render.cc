@@ -407,6 +407,9 @@ namespace qk {
 #endif
 
 		// settings shader
+		for (auto s = &_shaders.color1, e = s + 2; s < e; s++) {
+			glUniformBlockBinding(s->shader, glGetUniformBlockIndex(s->shader, "optsBlock"), 2); // binding = 2
+		}
 		for (auto s = &_shaders.image, e = s + 4; s < e; s++) {
 			glUseProgram(s->shader);
 			glUniform1i(s->image, 0); // set texture slot
@@ -421,13 +424,12 @@ namespace qk {
 			glUniform1i(s->image_u, 1);
 			glUniform1i(s->image_v, 2);
 		}
-		for (auto s = &_shaders.color1, e = s + 2; s < e; s++) {
-			glUniformBlockBinding(s->shader, glGetUniformBlockIndex(s->shader, "optsBlock"), 2); // binding = 2
+		for (auto s = &_shaders.blur, e = s + 5; s < e; s++) {
+			glUseProgram(s->shader);
+			glUniform1i(s->image, 0);
 		}
-		glUseProgram(_shaders.imageCp.shader);
-		glUniform1i(_shaders.imageCp.image, 0);
-		glUseProgram(_shaders.blur.shader);
-		glUniform1i(_shaders.blur.image, 0); // GL_MaxTextureImageUnits - 2
+		glUseProgram(_shaders.vportCp.shader);
+		glUniform1i(_shaders.vportCp.image, 0);
 
 		glEnable(GL_BLEND); // enable color blend
 		setBlendMode(kSrcOver_BlendMode); // set default color blend mode

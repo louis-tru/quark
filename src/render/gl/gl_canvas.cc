@@ -296,8 +296,8 @@ namespace qk {
 	private:
 		void begin() {
 			_size *= _host->_scale;
-			_bounds = {_bounds.origin - _size * 1.1, _bounds.end + _size * 1.1};
-			_host->_cmdPack->blurFilterBegin({_bounds.origin - _size, _bounds.end +_size});
+			_bounds = {_bounds.origin - _size, _bounds.end + _size};
+			_host->_cmdPack->blurFilterBegin({_bounds.origin - _size, _bounds.end + _size});
 			_inl(_host)->zDepthNext();
 		}
 		GLCanvas *_host;
@@ -315,10 +315,12 @@ namespace qk {
 
 		switch(paint.filter->type) {
 			case PaintFilter::kBlur_Type:
-				return new GLCBlurFilter(host, paint, args...);
-			default:
-				return nullptr;
+				if (host->_fullScale * paint.filter->value >= 1.0) {
+					return new GLCBlurFilter(host, paint, args...);
+				}
+				break;
 		}
+		return nullptr;
 	}
 
 	GLCanvas::GLCanvas(GLRender *render, Render::Options opts)
@@ -634,6 +636,7 @@ namespace qk {
 			auto img = new ImageSource({
 				int(Qk_MIN(dest.x(),_surfaceSize.x())),int(Qk_MIN(dest.y(),_surfaceSize.y())),type}, _render);
 			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, img, genMipmap);
+			_this->zDepthNext();
 			return img;
 		}
 		return nullptr;

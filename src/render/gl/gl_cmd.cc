@@ -275,7 +275,7 @@ namespace qk {
 						}
 						case kReadImage_CmdType: {
 							auto c = (ReadImageCmd*)cmd;
-							readImageCall(c->src, *c->img, c->genMipmap);
+							readImageCall(c->src, *c->img, c->genMipmap, c->canvasSize, c->surfaceSize, c->depth);
 							c->~ReadImageCmd();
 							break;
 						}
@@ -610,11 +610,12 @@ namespace qk {
 		}
 
 		void getBlurSampling(float size, int &n, int &lod) {
+			const int N[] = { 3,3,3,3, 7,7,7,7, 13,13,13,13,13,13, 19,19,19,19,19,19 };
 			size *= _canvas->_surfaceScale;
-			n = ceilf(Float::clamp(size, 3, 19)); // sampling rate
-			if (n % 2 == 0) n += 1; // keep singular
+			n = ceilf(size); // sampling rate
+			n = N[Qk_MIN(n,19)];
 			lod = ceilf(Float::max(0,log2f(size/n)));
-			//Qk_DEBUG("getBlurSampling %d", n);
+			// Qk_DEBUG("getBlurSampling %d, lod: %d", n, lod);
 		}
 
 		void blurFilterBeginCall(Region bounds, bool isClipState, float depth) {
@@ -651,17 +652,16 @@ namespace qk {
 			float x1 = bounds.origin.x(), y1 = bounds.origin.y();
 			float x2 = bounds.end.x(), y2 = bounds.end.y();
 			float data[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
-			auto blur = _render->_shaders.blur; // blur shader
-			size *= _canvas->_surfaceScale;
+			auto fullSize = size * _canvas->_surfaceScale;
 			auto R = _canvas->_surfaceSize;
 			uint32_t oRw = R.x(), oRh = R.y();
 			auto _c = _canvas;
+			auto blur = &_render->_shaders.blur;
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, _canvas->_blurTex);
 			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
 			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 
 			if (lod) { // copy image, gen mipmap texture
@@ -669,9 +669,10 @@ namespace qk {
 					glDisable(GL_STENCIL_TEST); // close clip
 				}
 				int level = 0;
-				auto &cp = _render->_shaders.imageCp;
+				auto &cp = _render->_shaders.vportCp;
 				cp.use(sizeof(float) * 12, data);
 				glUniform2f(cp.iResolution, R.x(), R.y());
+				glUniform4f(cp.coord, 0, 0, 1, 1);
 				do { // copy image level
 					oRw >>= 1; oRh >>= 1;
 					glUniform1f(cp.depth, depth);
@@ -683,17 +684,26 @@ namespace qk {
 				} while(++level < lod);
 			}
 
+			/*switch(n) {
+				case 3: blur = blur + 1; break;
+				case 7: blur = blur + 2; break;
+				case 13: blur = blur + 3; break;
+				case 19: blur = blur + 4; break;
+			}*/
+
 			// flush blur texture buffer
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_blurTex, lod);
 
-			blur.use(sizeof(float) * 12, data);
+			y1 += size; y2 -= size; // reduce blank areas
+			float datax[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
+			blur->use(sizeof(float) * 12, datax);
 			// blur horizontal blur
-			glUniform1f(blur.depth, depth);
-			glUniform2f(blur.iResolution, R.x(), R.y());
-			glUniform2f(blur.oResolution, oRw, oRh);
-			glUniform1i(blur.imageLod, lod);
-			glUniform1f(blur.step, 1.0f/(n-1));
-			glUniform2f(blur.size, size / R.x(), 0); // horizontal blur
+			glUniform1f(blur->depth, depth);
+			glUniform2f(blur->iResolution, R.x(), R.y());
+			glUniform2f(blur->oResolution, oRw, oRh);
+			glUniform1i(blur->imageLod, lod);
+			glUniform1f(blur->detail, 1.0f/(n-1));
+			glUniform2f(blur->size, fullSize / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 
 			if (output) { // output target
@@ -707,39 +717,69 @@ namespace qk {
 			if (lod && isClipState) {
 				glEnable(GL_STENCIL_TEST); // close clip
 			}
-
 			//!< r = s + (1-sa)*d
 			//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 			if (mode != kSrc_BlendMode) {
 				_render->setBlendMode(mode); // restore blend mode
 			}
+
+			blur->use(sizeof(float) * 12, data);
 			// blur vertical blur
-			glUniform1f(blur.depth, depth + DepthNextUnit);
-			glUniform2f(blur.oResolution, R.x(), R.y());
-			glUniform2f(blur.size, 0, size / R.y()); // vertical blur
+			glUniform1f(blur->depth, depth + DepthNextUnit);
+			glUniform2f(blur->oResolution, R.x(), R.y());
+			glUniform2f(blur->size, 0, fullSize / R.y()); // vertical blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
 		}
-	
-		void readImageCall(const Rect &src, ImageSource* img, bool genMipmap) {
+
+		void readImageCall(const Rect &src, ImageSource* img,
+			bool genMipmap, Vec2 canvasSize, Vec2 surfaceSize, float depth
+		){
 			GLuint tex = img->texture();
 			auto o = src.origin, s = src.size;
 			auto w = img->width(), h = img->height();
 			auto iformat = gl_get_texture_pixel_format(img->type());
 			auto type = gl_get_texture_data_type(img->type());
-			if (!tex)
-				glGenTextures(1, &tex);
 
+			if (!tex) {
+				glGenTextures(1, &tex);
+			}
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, iformat, type, nullptr);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _render->_fbo);
-			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-			glBlitFramebuffer(o[0], o[1], o[0]+s[0], o[1]+s[1], 0, 0, w, h,
-				GL_COLOR_BUFFER_BIT, s == Vec2(w,h) ? GL_NEAREST: GL_LINEAR
-			);
+
+			if (_canvas->_isTexRender) {
+				float x2 = canvasSize[0], y2 = canvasSize[1];
+				float data[] = { 0,0,0, x2,0,0, 0,y2,0, x2,y2,0 };
+				auto &cp = _render->_shaders.vportCp;
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+				glBindTexture(GL_TEXTURE_2D, _canvas->_rbo);
+				if (s == Vec2(w,h)) {
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+				} else {
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+				}
+				cp.use(sizeof(float) * 12, data);
+				glUniform1f(cp.depth, depth);
+				glUniform2f(cp.iResolution, surfaceSize.x(), surfaceSize.y());
+				glUniform2f(cp.oResolution, w, h);
+				glUniform1i(cp.imageLod, 0);
+				o /= surfaceSize; s /= surfaceSize;
+				glUniform4f(cp.coord, o[0], o[1], s[0], s[1]);
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_rbo, 0);
+			} else {
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _render->_fbo);
+				glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+				glBlitFramebuffer(o[0], o[1], o[0]+s[0], o[1]+s[1], 0, 0, w, h,
+					GL_COLOR_BUFFER_BIT, s == Vec2(w,h) ? GL_NEAREST: GL_LINEAR
+				);
+				glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
+			}
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
-			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
+
 			if (genMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
@@ -1130,6 +1170,9 @@ namespace qk {
 		cmd->src = src;
 		cmd->img = img;
 		cmd->genMipmap = genMipmap;
+		cmd->depth = _canvas->_zDepth;
+		cmd->canvasSize = _canvas->_size;
+		cmd->surfaceSize = _canvas->_surfaceSize;
 	}
 
 	void GLC_CmdPack::outputImageBegin(ImageSource* img) {
@@ -1212,7 +1255,8 @@ namespace qk {
 		return lod + 2;
 	}
 	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img, bool genMipmap) {
-		_this->readImageCall(src, img, genMipmap);
+		_this->readImageCall(src, img, genMipmap,
+			_canvas->_size, _canvas->_surfaceSize, _canvas->_zDepth);
 	}
 	void GLC_CmdPack::outputImageBegin(ImageSource* img) {
 		_this->outputImageBeginCall(img);

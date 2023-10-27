@@ -167,6 +167,9 @@ namespace qk {
 		struct ReadImageCmd: Cmd {
 			Rect            src;
 			Sp<ImageSource> img;
+			Vec2            canvasSize;
+			Vec2            surfaceSize;
+			float           depth;
 			bool            genMipmap;
 		};
 

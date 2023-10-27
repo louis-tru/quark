@@ -60,6 +60,7 @@ namespace qk {
 
 	class GLRender; // gl render backend
 	class GLC_CmdPack;
+	class GLCFilter;
 	class GLCBlurFilter;
 
 	class GLCanvas: public Canvas, public PathvCache::ClearSync {
@@ -129,6 +130,7 @@ namespace qk {
 		Render::Options _opts;
 		CondMutex _mutex; // submit swap mutex
 
+		friend class GLCFilter;
 		friend class GLC_CmdPack;
 		friend class GLCBlurFilter;
 		Qk_DEFINE_INLINE_CLASS(Inl);
