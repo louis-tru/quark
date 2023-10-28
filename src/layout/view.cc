@@ -269,7 +269,7 @@ namespace qk {
 
 	/**
 		*
-		* Remove and destroy self
+		* Remove destroy self and child views from parent view
 		* 
 		* @method remove()
 		*/

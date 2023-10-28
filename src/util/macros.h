@@ -320,6 +320,7 @@
 	Each(__Qk_DEFINE_CLASS); \
 	class Name##Visitor { \
 	public: \
+		virtual uint32_t flags() = 0; \
 		Each(__Qk_DEFINE_VISITOR_VISIT) \
 }
 

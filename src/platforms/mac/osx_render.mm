@@ -236,7 +236,7 @@ static CVReturn displayLinkCallback(
 		// Activate the display link
 		CVDisplayLinkStart(_displayLink);
 	} else {
-		_renderThreadId = thread_fork([](void* arg) { // fork render thread
+		_renderThreadId = thread_new([](void* arg) { // fork render thread
 			auto v = (__bridge GLView*)arg;
 			while (v->_isRun) {
 				[v renderDisplay];

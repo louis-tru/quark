@@ -121,7 +121,7 @@ namespace qk {
 		return reinterpret_cast<Thread_INL*>(pthread_getspecific(__specific_key));
 	}
 
-	ThreadID thread_fork(void (*exec)(void* arg), void* arg, cString& tag) {
+	ThreadID thread_new(void (*exec)(void* arg), void* arg, cString& tag) {
 		if ( __is_process_exit != 0 )
 			return ThreadID();
 		Thread_INL* thread = Thread_INL_init(new Thread_INL, tag, arg, exec);
@@ -129,7 +129,7 @@ namespace qk {
 
 		ThreadID id;
 		uv_thread_create((uv_thread_t*)&id, [](void* t) {
-			{ // wait thread_fork main call return
+			{ // wait thread_new main call return
 				ScopeLock scope(*__threads_mutex);
 			}
 			auto thread = (Thread_INL*)t;
@@ -166,9 +166,9 @@ namespace qk {
 
 	typedef std::function<void()> ForkFunc;
 
-	ThreadID thread_fork(ForkFunc func, cString& tag) {
+	ThreadID thread_new(ForkFunc func, cString& tag) {
 		auto funcp = new ForkFunc(func);
-		return thread_fork([](void* arg) {
+		return thread_new([](void* arg) {
 			std::unique_ptr<ForkFunc> f( (ForkFunc*)arg );
 			(*f)();
 		}, funcp, tag);
@@ -234,7 +234,7 @@ namespace qk {
 
 		Qk_DEBUG("thread_try_abort_and_exit_inl(), 0");
 		Event<> ev(Int32(rc), nullptr, rc);
-		Qk_Trigger(Exit, ev);
+		Qk_Trigger(ProcessExit, ev);
 		rc = ev.return_value;
 		Qk_DEBUG("thread_try_abort_and_exit_inl(), 1");
 
@@ -263,7 +263,7 @@ namespace qk {
 		}
 	}
 
-	EventNoticer<Event<>, Mutex>& onExit() {
+	EventNoticer<Event<>, Mutex>& onProcessExit() {
 		return *__on_process_safe_exit;
 	}
 
@@ -282,8 +282,8 @@ namespace qk {
 	// --------------------- R u n L o o p ---------------------
 
 	Qk_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
-		#define _inl(self) static_cast<RunLoop::Inl*>(self)
 	public:
+		#define _inl(self) static_cast<RunLoop::Inl*>(self)
 
 		void stop_after_print_message();
 

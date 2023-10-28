@@ -42,7 +42,7 @@ namespace qk {
 
 	ImageSource::ImageSource(cString& uri): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _loadId(0), _render(nullptr), _loop(current_loop())
+		, _loadId(0), _render(nullptr), _loop(current_loop()), _isMipmap(true)
 	{
 		if (!uri.isEmpty())
 			_uri = fs_reader()->format(uri);
@@ -50,7 +50,7 @@ namespace qk {
 
 	ImageSource::ImageSource(Array<Pixel>&& pixels): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _loadId(0), _render(nullptr), _loop(current_loop())
+		, _loadId(0), _render(nullptr), _loop(current_loop()), _isMipmap(true)
 	{
 		if (pixels.length()) {
 			_state = kSTATE_LOAD_COMPLETE;
@@ -62,7 +62,7 @@ namespace qk {
 	ImageSource::ImageSource(cPixelInfo &info, RenderBackend *render): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
 		, _info(info)
-		, _loadId(0), _render(render), _loop(current_loop()) {
+		, _loadId(0), _render(render), _loop(current_loop()), _isMipmap(true) {
 	}
 
 	ImageSource::~ImageSource() {
@@ -73,9 +73,9 @@ namespace qk {
 		* 
 		* mark as gpu texture
 		*
-	 * @method mark_as_texture()
+	 * @method markAsTexture()
 	 */
-	bool ImageSource::mark_as_texture(RenderBackend *render) {
+	bool ImageSource::markAsTexture(RenderBackend *render) {
 		if (_render)
 			return true;
 		if (!render)
@@ -259,26 +259,28 @@ namespace qk {
 
 	class ImageSourceInl: public ImageSource {
 	public:
-		inline void loadTex(cPixelInfo &i, uint32_t tex) {
-			_LoadTex(i, tex);
+		inline void loadTex(cPixelInfo &i, uint32_t tex, bool isMipmap) {
+			_LoadTex(i, tex, isMipmap);
 		}
 	};
 
-	void loadTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex) {
-		static_cast<ImageSourceInl*>(s)->loadTex(i, tex);
+	void loadTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex, bool isMipmap) {
+		static_cast<ImageSourceInl*>(s)->loadTex(i, tex, isMipmap);
 	}
 
-	void ImageSource::_LoadTex(const PixelInfo &info, uint32_t texture) {
+	void ImageSource::_LoadTex(const PixelInfo &info, uint32_t texture, bool isMipmap) {
 		_state = kSTATE_LOAD_COMPLETE;
 		_info = info;
 		if (_pixels.length()) {
-			if (_pixels[0]._texture != texture)
-				_render->deleteTextures(&_pixels[0]._texture, 1);
+			auto oldTex = _pixels[0]._texture;
+			if (oldTex && oldTex != texture)
+				_render->deleteTextures(&oldTex, 1);
 			_pixels[0] = info;
 		} else {
 			_pixels.push(info);
 		}
 		_pixels[0]._texture = texture;
+		_isMipmap = isMipmap;
 	}
 
 	// -------------------- I m a g e . S o u r c e . P o o l --------------------

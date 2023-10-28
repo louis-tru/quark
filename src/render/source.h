@@ -105,14 +105,14 @@ namespace qk {
 		 *
 		 * mark as gpu texture and return success or failure
 		 *
-		 * @method mark_as_texture()
+		 * @method markAsTexture()
 		 */
-		bool mark_as_texture(RenderBackend *render);
+		bool markAsTexture(RenderBackend *render);
 
 		/**
-		 * @method is_loaded() is ready draw image
+		 * @method isLoaded() is ready draw image
 		 */
-		inline bool is_loaded() const { return _state & kSTATE_LOAD_COMPLETE; }
+		inline bool isLoaded() const { return _state & kSTATE_LOAD_COMPLETE; }
 
 		/**
 		 * @method info() Returns pixel info
@@ -145,12 +145,12 @@ namespace qk {
 		inline uint32_t texture() const { return _pixels.length() ? _pixels[0]._texture: 0; }
 
 		/**
-		 * @method is_texture() Whether to mark as texture
+		 * @method isMipmap() Whether generate mipmap texture
 		*/
-		inline bool is_texture() const { return _render; }
+		inline bool isMipmap() const { return _isMipmap; }
 
 	protected:
-		void _LoadTex(const PixelInfo &info, uint32_t texture);
+		void _LoadTex(const PixelInfo &info, uint32_t texture, bool isMipmap);
 	private:
 		void _Decode(Buffer& data);
 		void _Unload(bool isDestroy);
@@ -159,6 +159,7 @@ namespace qk {
 		uint32_t     _loadId;
 		RenderBackend *_render; // weak ref, texture mark
 		RunLoop       *_loop;
+		bool          _isMipmap; // Whether generate mipmap texture
 		friend class ImageSourcePool;
 	};
 

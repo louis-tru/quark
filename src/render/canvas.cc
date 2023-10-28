@@ -65,6 +65,12 @@ namespace qk {
 		return false;
 	}
 
+	void Canvas::setSurface(Vec2 surfaceSize, float scale) {
+		auto size = surfaceSize / scale;
+		auto root = Mat4::ortho(0, size.x(), 0, size.y(), -1.0f, 1.0f);
+		setSurface(root, surfaceSize, scale);
+	}
+
 	// ---------------------------------------------------------------------
 
 	float get_level_font_size(float fontSize) {

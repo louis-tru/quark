@@ -94,7 +94,7 @@ namespace qk {
 			Qk_FATAL("At the same time can only run a Application entity");
 		_shared = this;
 
-		Qk_On(Exit, &Application::handleExit, this);
+		Qk_On(ProcessExit, &Application::handleExit, this);
 
 		// init
 		_pre_render = new PreRender(this); Qk_DEBUG("new PreRender ok");
@@ -119,7 +119,7 @@ namespace qk {
 	Application::~Application() {
 		UILock lock(this);
 
-		Qk_Off(Exit, &Application::handleExit, this);
+		Qk_Off(ProcessExit, &Application::handleExit, this);
 
 		_root->remove();
 		Release(_root);         _root = nullptr;
@@ -156,14 +156,14 @@ namespace qk {
 		struct Args { int argc; char** argv; } arg = { argc, argv };
 
 		// Create a new child worker thread. This function must be called by the main entry
-		thread_fork([](void* arg) {
+		thread_new([](void* arg) {
 			auto args = (Args*)arg;
 			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
 			Qk_ASSERT( main, "No gui main");
 			int rc = main(args->argc, args->argv); // Run this custom gui entry function
-			Qk_DEBUG("Application::runMain() thread_fork() Exit");
+			Qk_DEBUG("Application::runMain() thread_new() Exit");
 			thread_try_abort_and_exit(rc); // if sub thread end then exit
-			Qk_DEBUG("Application::runMain() thread_fork() Exit ok");
+			Qk_DEBUG("Application::runMain() thread_new() Exit ok");
 		}, &arg, "runMain");
 
 		// Block this main thread until calling Application::run()

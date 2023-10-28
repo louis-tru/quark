@@ -97,7 +97,7 @@ namespace qk {
 		/**
 		 * Return an image source does not plunger threads, async read image
 		*/
-		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool genMipmap = false) = 0;
+		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap = false) = 0;
 
 		/**
 		 * Returns an image buffer and switches canvas output to dest image buffer, share the current canvas state.
@@ -105,7 +105,7 @@ namespace qk {
 		 * 
 		 * @param dest {ImageSource*} Create a new image if the image is empty
 		*/
-		virtual Sp<ImageSource> outputImage(ImageSource* dest, bool genMipmap = false) = 0;
+		virtual Sp<ImageSource> outputImage(ImageSource* dest, bool isMipmap = false) = 0;
 
 		/**
 		 * @dev drawTextBlob() Draw with text baseline aligned
@@ -135,6 +135,11 @@ namespace qk {
 		 * or displayed thread mutual exclusion measures
 		*/
 		virtual void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) = 0;
+
+		/**
+		 * @method setSurface() Surface params change reload, Simplified approach
+		*/
+		void setSurface(Vec2 surfaceSize, float scale = 1);
 
 		/**
 		 * @method get this canvas draw region size

@@ -68,7 +68,7 @@ namespace qk {
 			ParallelWorking* self;
 			Func func;
 		};
-		auto id = thread_fork([](void* arg) {
+		auto id = thread_new([](void* arg) {
 			Handle<Tmp> tmp = (Tmp*)arg;
 			auto id = thread_current_id();
 			tmp->func();
@@ -184,7 +184,7 @@ namespace qk {
 			if (_loop)
 				return _loop;
 
-			thread_fork([](void* arg) {
+			thread_new([](void* arg) {
 				auto t = thread_current();
 				auto self = (BackendLoop*)arg;
 				self->_mutex.lock();

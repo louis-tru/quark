@@ -57,7 +57,7 @@ namespace qk {
 			kImage_CmdType,
 			kImageMask_CmdType,
 			kGradient_CmdType,
-			kMultiColor_CmdType,
+			kColorGroup_CmdType,
 			kReadImage_CmdType,
 			kOutputImageBegin_CmdType,
 			kOutputImageEnd_CmdType,
@@ -150,7 +150,7 @@ namespace qk {
 			~ImageMaskCmd();
 		};
 
-		struct MultiColorCmd: Cmd {
+		struct ColorGroupCmd: Cmd {
 			struct Option { // subcmd option
 				int          flags; // reserve
 				float        depth; // depth
@@ -170,16 +170,17 @@ namespace qk {
 			Vec2            canvasSize;
 			Vec2            surfaceSize;
 			float           depth;
-			bool            genMipmap;
+			bool            isMipmap;
 		};
 
 		struct OutputImageBeginCmd: Cmd {
 			Sp<ImageSource> img;
+			bool            isMipmap;
 		};
 
 		struct OutputImageEndCmd: Cmd {
 			Sp<ImageSource> img;
-			bool            genMipmap;
+			bool            isMipmap;
 		};
 
 		struct FlushCanvasCmd: Cmd {
@@ -202,6 +203,7 @@ namespace qk {
 
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();
+		bool isHaveCmds();
 		void flush();
 		void setMetrix();
 		void setBlendMode(BlendMode mode);
@@ -215,26 +217,26 @@ namespace qk {
 		void clearColor(const Color4f &color, const Region &region, bool fullClear);
 		void blurFilterBegin(Region bounds);
 		int  blurFilterEnd(Region bounds, float size, ImageSource* output);
-		void readImage(const Rect &src, ImageSource* img, bool genMipmap);
-		void outputImageBegin(ImageSource* img);
-		void outputImageEnd(ImageSource* img, bool genMipmap);
+		void readImage(const Rect &src, ImageSource* img, bool isMipmap);
+		void outputImageBegin(ImageSource* img, bool isMipmap);
+		void outputImageEnd(ImageSource* img, bool isMipmap);
 		void setBuffers(Vec2 size, bool chSize, bool isClip);
 		void drawBuffers(GLsizei num, const GLenum buffers[2]);
 
 	private:
-		typedef MultiColorCmd::Option MCOpt;
+		typedef ColorGroupCmd::Option CGOpt;
 		template<class T> struct MemBlock {
 			T *val; uint32_t size,capacity;
 		};
-		template<class T> struct ArrayMemBlock {
+		template<class T> struct MemBlockArray {
 			Array<MemBlock<T>> blocks;
-			MemBlock<T>       *current;
+			MemBlock<T>        *current;
 			uint32_t           index;
 		};
-		ArrayMemBlock<Vec4>  vertexBlocks; // vertex storage
-		ArrayMemBlock<MCOpt> optionBlocks; //
-		ArrayMemBlock<Cmd>   cmds; // cmd queue
-		Cmd                  *lastCmd;
+		MemBlockArray<Cmd>   _cmds; // cmd queue
+		MemBlockArray<Vec4>  _vertexBlocks; // vertex storage
+		MemBlockArray<CGOpt> _optionBlocks; //
+		Cmd                  *_lastCmd;
 		GLRender             *_render;
 		GLCanvas             *_canvas;
 		PathvCache           *_cache;

@@ -56,7 +56,7 @@ namespace qk {
 			int r = bp_open(&_db, fs_fallback_c(get_db_filename()));
 			if ( r == BP_OK ) {
 				if (_has_initialize++ == 0)
-					Qk_On(Exit, [](Event<>& e) { storage_close(); });
+					Qk_On(ProcessExit, [](Event<>& e) { storage_close(); });
 			} else {
 				_db = nullptr;
 			}

@@ -40,7 +40,7 @@ static void message_cb(Cb::Data& ev, RunLoop* loop) {
 void test_loop(int argc, char **argv) {
 	RunLoop* loop = RunLoop::current();
 	KeepLoop* keep = loop->keep_alive("test_loop");
-	thread_fork([&]() {
+	thread_new([&]() {
 		for ( int i = 0; i < 5; i++) {
 			thread_sleep(1e6);
 			loop->post(Cb(message_cb, loop));

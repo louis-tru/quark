@@ -42,8 +42,9 @@ namespace qk {
 	class Qk_EXPORT ViewRender: public Object, public ViewVisitor {
 		Qk_HIDDEN_ALL_COPY(ViewRender);
 	public:
+		Qk_DEFINE_PROP(Render*, render);
 		ViewRender(Display *display);
-		// @overwrite class ViewVisitor
+		virtual uint32_t flags() override;
 		virtual void  visitView(View* v) override;
 		virtual void  visitBox(Box* box) override;
 		virtual void  visitImage(Image* image) override;
@@ -58,8 +59,6 @@ namespace qk {
 		virtual void  visitFloatLayout(FloatLayout* flow) override;
 		virtual void  visitFlowLayout(FlowLayout* flow) override;
 		virtual void  visitFlexLayout(FlexLayout* flex) override;
-		// props
-		Qk_DEFINE_PROP(Render*, render);
 	private:
 		Display      *_display;
 		Canvas       *_canvas;

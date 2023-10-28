@@ -37,6 +37,7 @@
 #include "./gl_canvas.h"
 
 namespace qk {
+	struct GL_TexSlotStat;
 
 	class GLRender: public RenderBackend {
 	public:
@@ -46,23 +47,34 @@ namespace qk {
 		virtual void deleteTextures(const uint32_t *ids, uint32_t count) override;
 		virtual void makeVertexData(VertexData::ID *id) override;
 		virtual void deleteVertexData(VertexData::ID *id) override;
-		void         setTexture(cPixel *pixel, int slot, const ImagePaint *paint);
-		void         setBlendMode(BlendMode mode);
 		virtual void lock(); // lock render
 		virtual void unlock(); // unlock render
 		virtual Canvas* newCanvas(Options opts) override;
 		virtual void release() override;
 
+		// set gl state
+		void gl_set_blend_mode(BlendMode mode);
+		void gl_set_texture(cPixel *pixel, int slot, const ImagePaint *paint);
+		void gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint);
+		void gl_set_texture_wrap_s(uint32_t slot, int param);
+		void gl_set_texture_wrap_t(uint32_t slot, int param);
+		void gl_set_texture_mag_filter(uint32_t slot, int filter);
+		void gl_set_texture_min_filter(uint32_t slot, int filter);
+		void gl_set_texture_max_level(uint32_t slot, GLint level);
+		void gl_set_color_renderbuffer(GLuint buff, ColorType type, Vec2 size, bool texRbo);
+		void gl_set_blur_renderbuffer(GLuint tex, Vec2 size);
+
 	protected:
 		GLRender(Options opts);
 		// define props
-		BlendMode _blendMode; // last setting status
 		GLuint _fbo; // temp fbo
 		GLuint _texBuffer[3]; // temp tbo
 		GLuint _rootMatrixBlock,_viewMatrixBlock; // ubo, matrixBlock => root view matrix
 		GLuint _optsBlock; // ubo, generic optsBlock
 		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders; // glsl shaders
+		GL_TexSlotStat *_glTexSlotStat;
+		BlendMode _blendMode; // last setting status
 
 		friend class GLCanvas;
 		friend class GLC_CmdPack;

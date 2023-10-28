@@ -95,7 +95,7 @@ namespace qk {
 				bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
 				if (_has_initialize++ == 0) {
 					_http_cookie_date = time_monotonic();
-					Qk_On(Exit, [](Event<>& e) { http_cookie_close(); });
+					Qk_On(ProcessExit, [](Event<>& e) { http_cookie_close(); });
 				}
 			} else {
 				_db = nullptr;

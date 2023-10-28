@@ -48,7 +48,7 @@ namespace qk {
 			uint16_t    msaaSample; // gpu msaa
 			uint16_t    fps; // if fps is 0 then use vSync, else limit fps value
 			uint32_t    maxCapacityForPathvCache; // default 128mb
-			bool        genMipmap; // In some commands, indicates whether to generate a mipmap color buffer
+			bool        isMipmap; // In some commands, indicates whether to generate a mipmap color buffer
 		};
 
 		class Delegate {

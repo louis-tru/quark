@@ -227,7 +227,8 @@ namespace qk {
 
 	void Basic::trigger_event(Object& event) {
 		if (_listener) {
-			lock(); auto /*register c++17*/ l = _listener;
+			lock();
+			auto /*register c++17*/ l = _listener;
 			if (l->length()) {
 				OnShellListener::set_event(event, _sender);
 				for (auto i = l->begin(); i != l->end(); ) {

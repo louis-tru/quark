@@ -60,6 +60,8 @@ namespace qk {
 	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
 		Qk_HIDDEN_ALL_COPY(View);
 	public:
+		typedef ViewVisitor Visitor;
+
 		View(Application *host);
 		virtual ~View();
 
@@ -135,7 +137,7 @@ namespace qk {
 
 		/**
 		 *
-		 * Remove and destroy self
+		 * Remove destroy self and child views from parent view
 		 *
 		 * @method remove()
 		 */

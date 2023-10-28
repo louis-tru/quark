@@ -37,10 +37,8 @@ namespace qk {
 	float get_level_font_size(float fontSize);
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
-	void  gl_set_color_renderbuffer(GLuint buff, ColorType type, Vec2 size, bool texRBO);
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
-	void  gl_set_blur_renderbuffer(GLuint tex, Vec2 size);
 
 	extern const Region ZeroRegion;
 	extern const float  aa_fuzz_weight = 0.9;
@@ -53,7 +51,7 @@ namespace qk {
 
 	class GLPathvCache: public PathvCache {
 	public:
-		void swapClear() {
+		void clear() {
 			clearUnsafe(0/*max limit clear*/);
 		}
 	};
@@ -126,7 +124,6 @@ namespace qk {
 				}
 				if (_state->aaclip == 0) {
 					//_cmdPack->drawBuffers(2, DrawBuffers); // enable aaclip GL_COLOR_ATTACHMENT1
-					//Qk_DEBUG("_cmdPack->drawBuffers(2, DrawBuffers)");
 				}
 				_state->aaclip++;
 			}
@@ -386,7 +383,7 @@ namespace qk {
 		auto pack = _cmdPackFront;
 		_cmdPackFront = _cmdPack;
 		_cmdPack = pack;
-		static_cast<GLPathvCache*>(_cache)->swapClear();
+		static_cast<GLPathvCache*>(_cache)->clear();
 		_mutex.mutex.unlock();
 #endif
 	}
@@ -394,8 +391,8 @@ namespace qk {
 	void GLCanvas::flushBuffer() { // only can rendering thread call
 #if Qk_USE_GLC_CMD_QUEUE
 		_mutex.mutex.lock();
-		auto cmd = _cmdPackFront;
-		cmd->flush(); // commit gl cmd
+		if (_cmdPackFront->isHaveCmds())
+			_cmdPackFront->flush(); // commit gl cmd
 		_mutex.mutex.unlock();
 #endif
 	}
@@ -430,13 +427,12 @@ namespace qk {
 						_state->aaclip--;
 						if (_state->aaclip == 0) {
 							//_cmdPack->drawBuffers(1, DrawBuffers);
-							//Qk_DEBUG("_cmdPack->drawBuffers(1, DrawBuffers)");
 						}
 					}
 				}
 				if (_state->output) {
 					restore_output = true;
-					_cmdPack->outputImageEnd(*_state->output->dest, _state->output->genMipmap);
+					_cmdPack->outputImageEnd(*_state->output->dest, _state->output->isMipmap);
 				}
 				_state = &_stateStack.pop().back();
 				count--;
@@ -447,7 +443,7 @@ namespace qk {
 				_cmdPack->switchState(GL_STENCIL_TEST, false); // disable stencil test
 			}
 			if (restore_output && _state->output) { // restore region draw
-				_cmdPack->outputImageBegin(*_state->output->dest);
+				_cmdPack->outputImageBegin(*_state->output->dest, _state->output->isMipmap);
 			}
 			_this->setMatrixInl(_state->matrix);
 		}
@@ -600,7 +596,7 @@ namespace qk {
 		Sp<ImageSource> img;
 		auto tf = glyphs.typeface();
 		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _fullScale, offset, &img);
-		img->mark_as_texture(_render);
+		img->markAsTexture(_render);
 		auto scale_1 = _this->drawTextImage(*img, bound.y(), _fullScale, origin, paint);
 		return scale_1 * bound.x();
 	}
@@ -620,13 +616,13 @@ namespace qk {
 			auto tf = blob->typeface;
 			auto offset = blob->offset.length() == blob->glyphs.length() ? &blob->offset: NULL;
 			blob->imageBound = tf->getImage(blob->glyphs,imageFontSize, offset, &blob->image);
-			blob->image->mark_as_texture(_render);
+			blob->image->markAsTexture(_render);
 		}
 
 		_this->drawTextImage(*blob->image, blob->imageBound.y(), _fullScale * levelScale, origin, paint);
 	}
 
-	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, bool genMipmap) {
+	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) {
 		auto o = src.origin;
 		auto s = Vec2{
 			Float::min(o.x()+src.size.x(), _size.x()) - o.x(),
@@ -635,19 +631,22 @@ namespace qk {
 		if (s[0] > 0 && s[1] > 0 && dest[0] > 0 && dest[1] > 0) {
 			auto img = new ImageSource({
 				int(Qk_MIN(dest.x(),_surfaceSize.x())),int(Qk_MIN(dest.y(),_surfaceSize.y())),type}, _render);
-			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, img, genMipmap);
+			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, img, isMipmap);
 			_this->zDepthNext();
 			return img;
 		}
 		return nullptr;
 	}
 
-	Sp<ImageSource> GLCanvas::outputImage(ImageSource* dest, bool genMipmap) {
-		if (!dest)
-			dest = new ImageSource({ 0,0,kColor_Type_RGBA_8888 }, _render);
-		dest->mark_as_texture(_render);
-		_state->output = new GLC_State::Output{dest,genMipmap};
-		_cmdPack->outputImageBegin(dest);
+	Sp<ImageSource> GLCanvas::outputImage(ImageSource* dest, bool isMipmap) {
+		if (!dest) {
+			dest = new ImageSource({
+				int(_surfaceSize[0]),int(_surfaceSize[1]),kColor_Type_RGBA_8888
+			}, _render);
+		}
+		dest->markAsTexture(_render);
+		_state->output = new GLC_State::Output{dest,isMipmap};
+		_cmdPack->outputImageBegin(dest, isMipmap);
 		return dest;
 	}
 
@@ -683,8 +682,9 @@ namespace qk {
 		auto size = _surfaceSize;
 		auto w = size.x(), h = size.y();
 		auto type = _opts.colorType;
+		auto isInit = !_fbo;
 
-		if (!_fbo) {
+		if (isInit) {
 			// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 			glGenFramebuffers(1, &_fbo); // _fbo
 			// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
@@ -693,9 +693,16 @@ namespace qk {
 			glGenRenderbuffers(1, &_depthBuffer); // _depthBuffer
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+		_render->
 		gl_set_color_renderbuffer(_rbo, type, size, _isTexRender);
 		gl_set_framebuffer_renderbuffer(_depthBuffer, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT);
 
+		if (isInit) {
+			float depth = 0;
+			Color4f color{0,0,0,0};
+			glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
+			glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
+		}
 		if (_aaclipTex) {
 			gl_set_aaclip_buffer(_aaclipTex, size);
 		}
@@ -703,7 +710,7 @@ namespace qk {
 			gl_set_framebuffer_renderbuffer(_stencilBuffer, size, GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT);
 		}
 		if (_blurTex) {
-			gl_set_blur_renderbuffer(_blurTex, size);
+			_render->gl_set_blur_renderbuffer(_blurTex, size);
 		}
 
 		glDrawBuffers(2, DrawBuffers);

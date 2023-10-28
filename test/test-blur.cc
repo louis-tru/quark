@@ -13,7 +13,8 @@ public:
 	TestBlur(App *host): Box(host) {}
 	float i = 0;
 
-	void accept(ViewVisitor *visitor) override {
+	void accept(Visitor *vv) override {
+		if (vv->flags()) return;
 		auto canvas = pre_render()->host()->render()->getCanvas();
 		auto size = canvas->size();
 

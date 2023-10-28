@@ -69,8 +69,8 @@ namespace qk {
 		void lock_notify_all();
 	};
 
-	Qk_EXPORT ThreadID thread_fork(void exec(void* arg), void* arg = nullptr, cString& tag = String());
-	Qk_EXPORT ThreadID thread_fork(std::function<void()> func, cString& tag = String());
+	Qk_EXPORT ThreadID thread_new(void exec(void* arg), void* arg = nullptr, cString& tag = String());
+	Qk_EXPORT ThreadID thread_new(std::function<void()> func, cString& tag = String());
 	//!< sleep The current thread cannot be awakened
 	Qk_EXPORT void     thread_sleep(uint64_t timeoutUs = 0);
 	//!< Pause the current operation can be awakened by 'resume()'
@@ -80,10 +80,9 @@ namespace qk {
 	//!< Wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
 	Qk_EXPORT void     thread_wait_for(ThreadID id, uint64_t timeoutUs = 0);
 	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc); //!< try abort run loop, signal=-2
-
 	Qk_EXPORT ThreadID thread_current_id();
 
-	Qk_EXPORT EventNoticer<Event<>, Mutex>& onExit();
+	Qk_EXPORT EventNoticer<Event<>, Mutex>& onProcessExit();
 
 	/**
 	* @class PostMessage
@@ -185,20 +184,15 @@ namespace qk {
 		inline ThreadID thread_id() const { return _tid; }
 
 		/**
-		 * Returns the thread object for run loop
-		 */
-		// inline const Thread* thread() const { return _thread; }
-		
-		/**
 		 * Returns the run loop for current thrend
 		*/
 		static RunLoop* current();
-		
+
 		/**
 		 * is it the current run loop
 		*/
 		static bool is_current(RunLoop* loop);
-		
+
 		/**
 		 * Returns the process first main run loop
 		 *
@@ -217,10 +211,7 @@ namespace qk {
 		 * @destructor
 		*/
 		virtual ~RunLoop();
-		
-		Qk_DEFINE_INLINE_CLASS(Inl);
 
-		friend class KeepLoop;
 		struct Queue {
 			uint32_t id, group;
 			int64_t time;
@@ -237,6 +228,9 @@ namespace qk {
 		uv_async_t* _uv_async;
 		uv_timer_t* _uv_timer;
 		int64_t     _timeout, _record_timeout;
+
+		friend class KeepLoop;
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	/**

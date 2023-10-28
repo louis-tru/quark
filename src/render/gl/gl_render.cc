@@ -38,6 +38,14 @@ namespace qk {
 	String gl_MaxTextureImageUnits_GLSL_Macros;
 	int    gl_MaxTextureImageUnits = 0;
 
+	struct GL_TexSlotStat {
+		int tileModeX;
+		int tileModeY;
+		int mipmapMode;
+		int filterMode;
+		int maxLevel;
+	};
+
 	void gl_texture_barrier() {
 #if defined(GL_ARB_texture_barrier)
 		glTextureBarrier();
@@ -129,7 +137,7 @@ namespace qk {
 		}
 	}
 
-	uint32_t gl_gen_texture(cPixel* src, GLuint id, bool genMipmap) {
+	GLuint gl_gen_texture(cPixel* src, GLuint id, bool isMipmap) {
 		if ( src->body().length() == 0 )
 			return 0;
 
@@ -170,13 +178,10 @@ namespace qk {
 									src->width(),
 									src->height(), 0/*border*/, iformat/*format*/,
 									gl_get_texture_data_type(type)/*type*/, *src->body());
-			if (genMipmap) {
+			if (isMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
 		}
-
-		//constexpr float black[4] = {0,0,0,0};
-		//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
 
 		return id;
 	}
@@ -184,69 +189,193 @@ namespace qk {
 	void gl_set_texture_no_repeat(GLenum pname) {
 #if Qk_OSX
 		glTexParameteri(GL_TEXTURE_2D, pname, GL_CLAMP_TO_BORDER);
+		//constexpr float black[4] = {0,0,0,0};
+		//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
 #else
 		glTexParameteri(GL_TEXTURE_2D, pname, GL_CLAMP_TO_EDGE);
 #endif
 	}
 
-	void gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint) {
+	void gl_tex_image2D(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
 		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, id);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
+		// glTexStorage2D(GL_TEXTURE_2D, 1, iformat, size[0], size[1]);
+		glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat, size[0], size[1], 0, iformat, type, nullptr);
+	}
 
-		switch (paint->tileModeX) {
-			case ImagePaint::kClamp_TileMode: // border repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				break;
-			case ImagePaint::kRepeat_TileMode: // repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				break;
-			case ImagePaint::kMirror_TileMode: // mirror repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-				break;
-			case ImagePaint::kDecal_TileMode: // no repeat
-				gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
-				break;
+	void gl_set_framebuffer_renderbuffer(GLuint buff, Vec2 size, GLenum iformat, GLenum attachment) {
+		glBindRenderbuffer(GL_RENDERBUFFER, buff);
+		// msaa > 1 ?
+		// glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaa, iformat, size[0], size[1]):
+		glRenderbufferStorage(GL_RENDERBUFFER, iformat, size[0], size[1]);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, buff);
+	}
+
+	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
+		// clip anti alias buffer
+		gl_tex_image2D(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, gl_MaxTextureImageUnits - 1);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);// range: 0 - 1, no repeat
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tex, 0);
+	}
+
+	GLRender::GLRender(Options opts)
+		: Render(opts)
+		, _texBuffer{0,0,0}, _glcanvas(nullptr)
+	{
+		_glcanvas = new GLCanvas(this, _opts);
+		_canvas = _glcanvas; // set default canvas
+		_glcanvas->retain(); // retain
+
+		glGenFramebuffers(1, &_fbo);
+		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
+		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _rootMatrixBlock);
+		// _viewMatrixBlock
+		glBindBuffer(GL_UNIFORM_BUFFER, _viewMatrixBlock);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 1, _viewMatrixBlock);
+		// _optsBlock
+		glBindBuffer(GL_UNIFORM_BUFFER, _optsBlock);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 2, _optsBlock);
+		// Create texture buffer
+		glGenTextures(3, _texBuffer); // _texBuffer
+
+#if DEBUG
+		GLint maxTextureSize,maxTextureBufferSize,maxTextureImageUnits;
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &maxTextureBufferSize);
+		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
+		Qk_DEBUG("GL_MAX_TEXTURE_SIZE: %d", maxTextureSize);
+		Qk_DEBUG("GL_MAX_TEXTURE_BUFFER_SIZE: %d", maxTextureBufferSize);
+		Qk_DEBUG("GL_MAX_TEXTURE_IMAGE_UNITS: %d", maxTextureImageUnits);
+#endif
+
+		if (!gl_MaxTextureImageUnits) {
+			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &gl_MaxTextureImageUnits);
+			gl_MaxTextureImageUnits_GLSL_Macros = 
+				String("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS ") + gl_MaxTextureImageUnits + "\n";
 		}
 
-		switch (paint->tileModeY) {
-			case ImagePaint::kClamp_TileMode: // border repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				break;
-			case ImagePaint::kRepeat_TileMode: // repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-				break;
-			case ImagePaint::kMirror_TileMode: // mirror repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-				break;
-			case ImagePaint::kDecal_TileMode: // no repeat
-				gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
-				break;
-		}
+		_glTexSlotStat = new GL_TexSlotStat[gl_MaxTextureImageUnits];
+		int __pattern4 = -1;
+		memset_pattern4(_glTexSlotStat, &__pattern4, sizeof(GL_TexSlotStat) * gl_MaxTextureImageUnits);
 
-		switch (paint->filterMode) {
-			case ImagePaint::kNearest_FilterMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				break;
-			case ImagePaint::kLinear_FilterMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				break;
-		}
+#if DEBUG || QK_MoreLog
+		int64_t st = time_micro();
+		_shaders.buildAll(); // compile all shaders
+		Qk_DEBUG("shaders.buildAll time: %ld (micro s)", time_micro() - st);
+#else
+		_shaders.buildAll();
+#endif
 
-		switch (paint->mipmapMode) {
-			case ImagePaint::kNone_MipmapMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-				break;
-			case ImagePaint::kNearest_MipmapMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-				break;
-			case ImagePaint::kLinear_MipmapMode:
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				break;
+		// settings shader
+		for (auto s = &_shaders.color1, e = s + 2; s < e; s++) {
+			glUniformBlockBinding(s->shader, glGetUniformBlockIndex(s->shader, "optsBlock"), 2); // binding = 2
+		}
+		for (auto s = &_shaders.image, e = s + 4; s < e; s++) {
+			glUseProgram(s->shader);
+			glUniform1i(s->image, 0); // set texture slot
+		}
+		for (auto s = &_shaders.imageMask, e = s + 4; s < e; s++) {
+			glUseProgram(s->shader);
+			glUniform1i(s->image, 0); // set texture slot
+		}
+		for (auto s = &_shaders.imageYuv, e = s + 4; s < e; s++) {
+			glUseProgram(s->shader);
+			glUniform1i(s->image, 0); // set texture slot
+			glUniform1i(s->image_u, 1);
+			glUniform1i(s->image_v, 2);
+		}
+		for (auto s = &_shaders.blur, e = s + 5; s < e; s++) {
+			glUseProgram(s->shader);
+			glUniform1i(s->image, 0);
+		}
+		glUseProgram(_shaders.vportCp.shader);
+		glUniform1i(_shaders.vportCp.image, 0);
+
+		glEnable(GL_BLEND); // enable color blend
+		gl_set_blend_mode(kSrcOver_BlendMode); // set default color blend mode
+		// enable and disable test function
+		glClearStencil(127);
+		glStencilMask(0xFFFFFFFF);
+		glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
+		glDisable(GL_STENCIL_TEST); // disable stencil test
+		// set depth test
+		glEnable(GL_DEPTH_TEST); // enable depth test
+		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
+		glClearDepth(0.0f); // set depth clear value to -1.0
+	}
+
+	GLRender::~GLRender() {
+		Qk_STRICT_ASSERT(_glcanvas == nullptr);
+	}
+
+	void GLRender::lock() {}
+	void GLRender::unlock() {}
+
+	void GLRender::release() {
+		GLuint fbo = _fbo,
+					tbo[] = {_texBuffer[0],_texBuffer[1],_texBuffer[2]},
+					ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock};
+		post_message(Cb([fbo,tbo,ubo](auto &e){
+			glDeleteFramebuffers(1, &fbo);
+			glDeleteTextures(3, tbo);
+			glDeleteBuffers(3, ubo);
+		}));
+		Qk_ASSERT(_glcanvas->refCount() == 1);
+		_glcanvas->release(); _glcanvas = nullptr;
+		_canvas = nullptr;
+		delete[] _glTexSlotStat;
+	}
+
+	void GLRender::reload() {
+		lock();
+		_surfaceSize = getSurfaceSize(&_defaultScale);
+		_delegate->onRenderBackendReload({Vec2{0,0},_surfaceSize}, _surfaceSize, _defaultScale);
+		unlock();
+	}
+
+	void GLRender::makeVertexData(VertexData::ID *id) {
+		if (!id->vao) {
+			auto &vertex = id->self->vertex;
+			glGenVertexArrays(1, &id->vao);
+			glGenBuffers(1, &id->vbo);
+			glBindVertexArray(id->vao);
+			glBindBuffer(GL_ARRAY_BUFFER, id->vbo);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)0);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)sizeof(Vec2));
+			glEnableVertexAttribArray(1);
+			glBufferData(GL_ARRAY_BUFFER, vertex.size(), vertex.val(), GL_STREAM_DRAW);
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			vertex.clear(); // clear memory data
 		}
 	}
 
-	void gl_set_color_blend_mode(BlendMode blendMode) {
-		switch (blendMode) {
+	void GLRender::deleteVertexData(VertexData::ID *id) {
+		if (id->vao) {
+			glDeleteVertexArrays(1, &id->vao);
+			glDeleteBuffers(1, &id->vbo);
+			id->vao = 0;
+			id->vbo = 0;
+		}
+	}
+
+	uint32_t GLRender::makeTexture(cPixel *src, uint32_t id) {
+		return gl_gen_texture(src, id, true);
+	}
+
+	void GLRender::deleteTextures(const uint32_t *ids, uint32_t count) {
+		glDeleteTextures(count, ids);
+	}
+
+	void GLRender::gl_set_blend_mode(BlendMode mode) {
+		switch (mode) {
 			case kClear_BlendMode:         //!< r = 0 + (1-sa)*d
 				// glBlendFunc (sfactor, dfactor)
 				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
@@ -297,31 +426,125 @@ namespace qk {
 				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
 				break;
 		}
+		_blendMode = mode;
 	}
 
-	void gl_tex_image2D(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
+	void GLRender::gl_set_texture(cPixel *pixel, int slot, const ImagePaint *paint) {
+		auto id = pixel->texture();
+		if (!id) {
+			id = gl_gen_texture(pixel, _texBuffer[slot], true);
+			if (!id) {
+				Qk_DEBUG("setTexturePixel() fail"); return;
+			}
+			_texBuffer[slot] = id;
+		}
+		gl_set_texture_param(id, slot, paint);
+	}
+
+	Canvas* GLRender::newCanvas(Options opts) {
+		opts.colorType = opts.colorType ? opts.colorType: kColor_Type_RGBA_8888;
+		return new GLCanvas(this, opts);
+	}
+
+	void GLRender::gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint) {
 		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
-		// glTexStorage2D(GL_TEXTURE_2D, 1, iformat, size[0], size[1]);
-		glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat, size[0], size[1], 0, iformat, type, nullptr);
+		glBindTexture(GL_TEXTURE_2D, id);
+		gl_set_texture_wrap_s(slot, paint->tileModeX);
+		gl_set_texture_wrap_t(slot, paint->tileModeY);
+		gl_set_texture_mag_filter(slot, paint->filterMode);
+		gl_set_texture_min_filter(slot, paint->mipmapMode);
 	}
 
-	void gl_set_framebuffer_renderbuffer(GLuint buff, Vec2 size, GLenum iformat, GLenum attachment) {
-		glBindRenderbuffer(GL_RENDERBUFFER, buff);
-		// msaa > 1 ?
-		// glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaa, iformat, size[0], size[1]):
-		glRenderbufferStorage(GL_RENDERBUFFER, iformat, size[0], size[1]);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, buff);
+	void GLRender::gl_set_texture_wrap_s(uint32_t slot, int param) {
+		auto stat = _glTexSlotStat + slot;
+		if (stat->tileModeX != param) {
+			switch (param) {
+				case ImagePaint::kClamp_TileMode: // border repeat
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+					break;
+				case ImagePaint::kRepeat_TileMode: // repeat
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+					break;
+				case ImagePaint::kMirror_TileMode: // mirror repeat
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+					break;
+				case ImagePaint::kDecal_TileMode: // no repeat
+					gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
+					break;
+			}
+			stat->tileModeX = param;
+		}
 	}
 
-	void gl_set_color_renderbuffer(GLuint buff, ColorType type, Vec2 size, bool texRBO) {
-		if (texRBO) {
+	void GLRender::gl_set_texture_wrap_t(uint32_t slot, int param) {
+		auto stat = _glTexSlotStat + slot;
+		if (stat->tileModeY != param) {
+			switch (param) {
+				case ImagePaint::kClamp_TileMode: // border repeat
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+					break;
+				case ImagePaint::kRepeat_TileMode: // repeat
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+					break;
+				case ImagePaint::kMirror_TileMode: // mirror repeat
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+					break;
+				case ImagePaint::kDecal_TileMode: // no repeat
+					gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
+					break;
+			}
+			stat->tileModeY = param;
+		}
+	}
+
+	void GLRender::gl_set_texture_mag_filter(uint32_t slot, int filter) {
+		auto stat = _glTexSlotStat + slot;
+		if (stat->filterMode != filter) {
+			switch (filter) {
+				case ImagePaint::kNearest_FilterMode:
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					break;
+				case ImagePaint::kLinear_FilterMode:
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					break;
+			}
+			stat->filterMode = filter;
+		}
+	}
+
+	void GLRender::gl_set_texture_min_filter(uint32_t slot, int filter) {
+		auto stat = _glTexSlotStat + slot;
+		if (stat->mipmapMode != filter) {
+			switch (filter) {
+				case ImagePaint::kNone_MipmapMode:
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+					break;
+				case ImagePaint::kNearest_MipmapMode:
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+					break;
+				case ImagePaint::kLinear_MipmapMode:
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+					break;
+			}
+			stat->mipmapMode = filter;
+		}
+	}
+
+	void GLRender::gl_set_texture_max_level(uint32_t slot, GLint level) {
+		auto stat = _glTexSlotStat + slot;
+		if (stat->maxLevel != level) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level);
+			stat->maxLevel = level;
+		}
+	}
+
+	void GLRender::gl_set_color_renderbuffer(GLuint buff, ColorType type, Vec2 size, bool texRbo) {
+		if (texRbo) {
 			// use texture render buffer
 			gl_tex_image2D(buff, size, gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), 0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			gl_set_texture_max_level(0, 0);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buff, 0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
+			gl_set_texture_max_level(0, 64);
 		} else {
 			GLenum ifo;
 			switch (type) {
@@ -336,197 +559,18 @@ namespace qk {
 		}
 	}
 
-	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
-		// clip anti alias buffer
-		gl_tex_image2D(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, gl_MaxTextureImageUnits - 1);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);// range: 0 - 1, no repeat
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tex, 0);
-	}
-
-	void gl_set_blur_renderbuffer(GLuint tex, Vec2 size) {
+	void GLRender::gl_set_blur_renderbuffer(GLuint tex, Vec2 size) {
 		gl_tex_image2D(tex, size,
 			gl_get_texture_pixel_format(kColor_Type_RGBA_8888),
 			gl_get_texture_data_type(kColor_Type_RGBA_8888), 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		gl_set_texture_mag_filter(0, ImagePaint::kLinear_FilterMode);
+		gl_set_texture_min_filter(0, ImagePaint::kLinear_MipmapMode);
 		glGenerateMipmap(GL_TEXTURE_2D);
 #if DEBUG
 		int texDims;
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 4, GL_TEXTURE_WIDTH, &texDims);
 		Qk_DEBUG("glGetTexLevelParameteriv: %d", texDims);
 #endif
-	}
-
-	GLRender::GLRender(Options opts)
-		: Render(opts)
-		, _texBuffer{0,0,0}, _glcanvas(nullptr)
-	{
-		_glcanvas = new GLCanvas(this, _opts);
-		_canvas = _glcanvas; // set default canvas
-		_glcanvas->retain(); // retain
-
-		glGenFramebuffers(1, &_fbo);
-		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
-		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _rootMatrixBlock);
-		// _viewMatrixBlock
-		glBindBuffer(GL_UNIFORM_BUFFER, _viewMatrixBlock);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 1, _viewMatrixBlock);
-		// _optsBlock
-		glBindBuffer(GL_UNIFORM_BUFFER, _optsBlock);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 2, _optsBlock);
-		// Create texture buffer
-		glGenTextures(3, _texBuffer); // _texBuffer
-
-#if DEBUG
-		GLint maxTextureSize,maxTextureBufferSize,maxTextureImageUnits;
-		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &maxTextureBufferSize);
-		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
-		Qk_DEBUG("GL_MAX_TEXTURE_SIZE: %d", maxTextureSize);
-		Qk_DEBUG("GL_MAX_TEXTURE_BUFFER_SIZE: %d", maxTextureBufferSize);
-		Qk_DEBUG("GL_MAX_TEXTURE_IMAGE_UNITS: %d", maxTextureImageUnits);
-#endif
-
-		if (!gl_MaxTextureImageUnits) {
-			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &gl_MaxTextureImageUnits);
-			gl_MaxTextureImageUnits_GLSL_Macros = 
-				String("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS ") + gl_MaxTextureImageUnits + "\n";
-		}
-
-#if DEBUG || QK_MoreLog
-		int64_t st = time_micro();
-		_shaders.buildAll(); // compile all shaders
-		Qk_DEBUG("shaders.buildAll time: %ld (micro s)", time_micro() - st);
-#else
-		_shaders.buildAll();
-#endif
-
-		// settings shader
-		for (auto s = &_shaders.color1, e = s + 2; s < e; s++) {
-			glUniformBlockBinding(s->shader, glGetUniformBlockIndex(s->shader, "optsBlock"), 2); // binding = 2
-		}
-		for (auto s = &_shaders.image, e = s + 4; s < e; s++) {
-			glUseProgram(s->shader);
-			glUniform1i(s->image, 0); // set texture slot
-		}
-		for (auto s = &_shaders.imageMask, e = s + 4; s < e; s++) {
-			glUseProgram(s->shader);
-			glUniform1i(s->image, 0); // set texture slot
-		}
-		for (auto s = &_shaders.imageYuv, e = s + 4; s < e; s++) {
-			glUseProgram(s->shader);
-			glUniform1i(s->image, 0); // set texture slot
-			glUniform1i(s->image_u, 1);
-			glUniform1i(s->image_v, 2);
-		}
-		for (auto s = &_shaders.blur, e = s + 5; s < e; s++) {
-			glUseProgram(s->shader);
-			glUniform1i(s->image, 0);
-		}
-		glUseProgram(_shaders.vportCp.shader);
-		glUniform1i(_shaders.vportCp.image, 0);
-
-		glEnable(GL_BLEND); // enable color blend
-		setBlendMode(kSrcOver_BlendMode); // set default color blend mode
-		// enable and disable test function
-		glClearStencil(127);
-		glStencilMask(0xFFFFFFFF);
-		glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
-		glDisable(GL_STENCIL_TEST); // disable stencil test
-		// set depth test
-		glEnable(GL_DEPTH_TEST); // enable depth test
-		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
-		glClearDepth(0.0f); // set depth clear value to -1.0
-	}
-
-	GLRender::~GLRender() {
-		Qk_STRICT_ASSERT(_glcanvas == nullptr);
-	}
-
-	void GLRender::release() {
-		GLuint fbo = _fbo,
-					tbo[] = {_texBuffer[0],_texBuffer[1],_texBuffer[2]},
-					ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock};
-		post_message(Cb([fbo,tbo,ubo](auto &e){
-			glDeleteFramebuffers(1, &fbo);
-			glDeleteTextures(3, tbo);
-			glDeleteBuffers(3, ubo);
-		}));
-		Qk_ASSERT(_glcanvas->refCount() == 1);
-		_glcanvas->release(); _glcanvas = nullptr;
-		_canvas = nullptr;
-	}
-
-	void GLRender::reload() {
-		lock();
-		_surfaceSize = getSurfaceSize(&_defaultScale);
-		_delegate->onRenderBackendReload({Vec2{0,0},_surfaceSize}, _surfaceSize, _defaultScale);
-		unlock();
-	}
-
-	uint32_t GLRender::makeTexture(cPixel *src, uint32_t id) {
-		return gl_gen_texture(src, id, true);
-	}
-
-	void GLRender::deleteTextures(const uint32_t *ids, uint32_t count) {
-		glDeleteTextures(count, ids);
-	}
-
-	void GLRender::makeVertexData(VertexData::ID *id) {
-		if (!id->vao) {
-			auto &vertex = id->self->vertex;
-			glGenVertexArrays(1, &id->vao);
-			glGenBuffers(1, &id->vbo);
-			glBindVertexArray(id->vao);
-			glBindBuffer(GL_ARRAY_BUFFER, id->vbo);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)sizeof(Vec2));
-			glEnableVertexAttribArray(1);
-			glBufferData(GL_ARRAY_BUFFER, vertex.size(), vertex.val(), GL_STREAM_DRAW);
-			glBindVertexArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			vertex.clear(); // clear memory data
-		}
-	}
-
-	void GLRender::deleteVertexData(VertexData::ID *id) {
-		if (id->vao) {
-			glDeleteVertexArrays(1, &id->vao);
-			glDeleteBuffers(1, &id->vbo);
-			id->vao = 0;
-			id->vbo = 0;
-		}
-	}
-
-	void GLRender::setTexture(cPixel *pixel, int slot, const ImagePaint *paint) {
-		auto id = pixel->texture();
-		if (!id) {
-			id = gl_gen_texture(pixel, _texBuffer[slot], true);
-			if (!id) {
-				Qk_DEBUG("setTexturePixel() fail"); return;
-			}
-			_texBuffer[slot] = id;
-		}
-		gl_set_texture_param(id, slot, paint);
-	}
-
-	void GLRender::setBlendMode(BlendMode mode) {
-		_blendMode = mode;
-		gl_set_color_blend_mode(mode);
-	}
-
-	void GLRender::lock() {}
-	void GLRender::unlock() {}
-
-	Canvas* GLRender::newCanvas(Options opts) {
-		opts.colorType = opts.colorType ? opts.colorType: kColor_Type_RGBA_8888;
-		return new GLCanvas(this, opts);
 	}
 
 }

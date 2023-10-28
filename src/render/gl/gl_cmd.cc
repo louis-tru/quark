@@ -33,23 +33,21 @@
 #include "./gl_render.h"
 #include "./gl_canvas.h"
 
-#define Qk_MCCmd_Option_Capacity 1024
-#define Qk_MCCmd_VertexBlock_Capacity 6555
-#define Qk_MCCmd_OptBlock_Capacity 2048
-#define Qk_MCCmd_CmdBlock_Capacity 65536
+#define Qk_CGCmd_Option_Capacity 1024
+#define Qk_CGCmd_VertexBlock_Capacity 6555
+#define Qk_CGCmd_OptBlock_Capacity 2048
+#define Qk_CGCmd_CmdBlock_Capacity 65536
 
 namespace qk {
 	extern const float aa_fuzz_weight;
 	extern const float DepthNextUnit;
 	void  gl_texture_barrier();
-	void  gl_set_blur_renderbuffer(GLuint tex, Vec2 size);
 	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
-	void  gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint);
 	void  gl_set_texture_no_repeat(GLenum pname);
-	void  loadTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex);
+	void  loadTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex, bool isMipmap);
 
 	Qk_DEFINE_INLINE_MEMBERS(GLC_CmdPack, Inl) {
 	public:
@@ -58,7 +56,7 @@ namespace qk {
 
 #if Qk_USE_GLC_CMD_QUEUE
 		void clearCmds() {
-			for (auto &i: cmds.blocks) {
+			for (auto &i: _cmds.blocks) {
 				auto cmd = i.val;
 				auto end = (Cmd*)(((char*)cmd) + i.size);
 				while (cmd < end) {
@@ -102,53 +100,52 @@ namespace qk {
 				}
 				i.size = 0;
 			}
-			cmds.current = cmds.blocks.val();
-			cmds.current->size = sizeof(Cmd);
-			cmds.index = 0;
-			lastCmd = cmds.current->val;
+			_cmds.index = 0;
+			_cmds.current = _cmds.blocks.val();
+			_lastCmd = _cmds.current->val;
 		}
 
 		Cmd* allocCmd(uint32_t size) {
-			auto cmds_ = cmds.current;
-			auto newSize = cmds_->size + size;
-			if (newSize > cmds_->capacity) {
-				if (++cmds.index == cmds.blocks.length()) {
-					cmds.blocks.push({ // init, alloc 64k memory
-						(Cmd*)malloc(Qk_MCCmd_CmdBlock_Capacity),0,Qk_MCCmd_CmdBlock_Capacity
+			auto cmds = _cmds.current;
+			auto newSize = cmds->size + size;
+			if (newSize > cmds->capacity) {
+				if (++_cmds.index == _cmds.blocks.length()) {
+					_cmds.blocks.push({ // init, alloc 64k memory
+						(Cmd*)malloc(Qk_CGCmd_CmdBlock_Capacity),0,Qk_CGCmd_CmdBlock_Capacity
 					});
 				}
-				cmds.current = cmds_ = cmds.blocks.val() + cmds.index;
+				_cmds.current = cmds = _cmds.blocks.val() + _cmds.index;
 				newSize = size;
 			}
-			lastCmd = (Cmd*)(((char*)cmds_->val) + cmds_->size);
-			lastCmd->size = size;
-			cmds_->size = newSize;
-			return lastCmd;
+			_lastCmd = (Cmd*)(((char*)cmds->val) + cmds->size);
+			_lastCmd->size = size;
+			cmds->size = newSize;
+			return _lastCmd;
 		}
 
-		MultiColorCmd* newMColorCmd() {
-			auto cmd = (MultiColorCmd*)allocCmd(sizeof(MultiColorCmd));
-			cmd->type = kMultiColor_CmdType;
+		ColorGroupCmd* newColorGroupCmd() {
+			auto cmd = (ColorGroupCmd*)allocCmd(sizeof(ColorGroupCmd));
+			cmd->type = kColorGroup_CmdType;
 
-			auto vertexs = vertexBlocks.current;
-			auto opts    = optionBlocks.current;
+			auto vertexs = _vertexBlocks.current;
+			auto opts    = _optionBlocks.current;
 
-			if (vertexs->size == Qk_MCCmd_VertexBlock_Capacity) {
-				if (++vertexBlocks.index == vertexBlocks.blocks.length()) {
-					vertexBlocks.blocks.push({
-						(Vec4*)malloc(Qk_MCCmd_VertexBlock_Capacity * sizeof(Vec4)),0,Qk_MCCmd_VertexBlock_Capacity
+			if (vertexs->size == Qk_CGCmd_VertexBlock_Capacity) {
+				if (++_vertexBlocks.index == _vertexBlocks.blocks.length()) {
+					_vertexBlocks.blocks.push({
+						(Vec4*)malloc(Qk_CGCmd_VertexBlock_Capacity * sizeof(Vec4)),0,Qk_CGCmd_VertexBlock_Capacity
 					});
 				}
-				vertexBlocks.current = vertexs = vertexBlocks.blocks.val() + vertexBlocks.index;
+				_vertexBlocks.current = vertexs = _vertexBlocks.blocks.val() + _vertexBlocks.index;
 			}
 
-			if (opts->size == Qk_MCCmd_OptBlock_Capacity) {
-				if (++optionBlocks.index == optionBlocks.blocks.length()) {
-					optionBlocks.blocks.push({
-						(MCOpt*)malloc(Qk_MCCmd_OptBlock_Capacity * sizeof(MCOpt)),0,Qk_MCCmd_OptBlock_Capacity
+			if (opts->size == Qk_CGCmd_OptBlock_Capacity) {
+				if (++_optionBlocks.index == _optionBlocks.blocks.length()) {
+					_optionBlocks.blocks.push({
+						(CGOpt*)malloc(Qk_CGCmd_OptBlock_Capacity * sizeof(CGOpt)),0,Qk_CGCmd_OptBlock_Capacity
 					});
 				}
-				optionBlocks.current = opts = optionBlocks.blocks.val() + optionBlocks.index;
+				_optionBlocks.current = opts = _optionBlocks.blocks.val() + _optionBlocks.index;
 			}
 
 			cmd->vertex = vertexs->val + vertexs->size;
@@ -160,17 +157,17 @@ namespace qk {
 			return cmd;
 		}
 
-		MultiColorCmd* getMColorCmd() {
-			auto cmd = (MultiColorCmd*)lastCmd;
-			if (cmd->type == kMultiColor_CmdType) {
-				if (vertexBlocks.current->size != Qk_MCCmd_VertexBlock_Capacity &&
-						optionBlocks.current->size != Qk_MCCmd_OptBlock_Capacity &&
-						cmd->subcmd != Qk_MCCmd_Option_Capacity
+		ColorGroupCmd* getMColorCmd() {
+			auto cmd = (ColorGroupCmd*)_lastCmd;
+			if (cmd->type == kColorGroup_CmdType) {
+				if (_vertexBlocks.current->size != Qk_CGCmd_VertexBlock_Capacity &&
+						_optionBlocks.current->size != Qk_CGCmd_OptBlock_Capacity &&
+						cmd->subcmd != Qk_CGCmd_Option_Capacity
 				) {
 					return cmd;
 				}
 			}
-			return newMColorCmd();
+			return newColorGroupCmd();
 		}
 
 		void checkMetrix() {
@@ -185,11 +182,9 @@ namespace qk {
 
 		void callCmds(const Mat4& root, const Mat& mat, BlendMode mode) {
 #if Qk_USE_GLC_CMD_QUEUE
-			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
-
 			MatrixCmd *curMat = nullptr;
 
-			for (auto &i: cmds.blocks) {
+			for (auto &i: _cmds.blocks) {
 				if (i.size == 0) break;
 				auto cmd = i.val;
 				auto end = (Cmd*)(((char*)cmd) + i.size);
@@ -260,11 +255,11 @@ namespace qk {
 							drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
 							break;
 						}
-						case kMultiColor_CmdType: {
-							auto c = (MultiColorCmd*)cmd;
+						case kColorGroup_CmdType: {
+							auto c = (ColorGroupCmd*)cmd;
 							auto s = c->aaclip ? &_render->_shaders.color1_AACLIP: &_render->_shaders.color1;
 							glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
-							glBufferData(GL_UNIFORM_BUFFER, sizeof(MultiColorCmd::Option) * c->subcmd, c->opts,
+							glBufferData(GL_UNIFORM_BUFFER, sizeof(ColorGroupCmd::Option) * c->subcmd, c->opts,
 								GL_DYNAMIC_DRAW);
 							glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
 							glBufferData(GL_ARRAY_BUFFER, c->vCount * sizeof(Vec4), c->vertex, GL_DYNAMIC_DRAW);
@@ -275,19 +270,19 @@ namespace qk {
 						}
 						case kReadImage_CmdType: {
 							auto c = (ReadImageCmd*)cmd;
-							readImageCall(c->src, *c->img, c->genMipmap, c->canvasSize, c->surfaceSize, c->depth);
+							readImageCall(c->src, *c->img, c->isMipmap, c->canvasSize, c->surfaceSize, c->depth);
 							c->~ReadImageCmd();
 							break;
 						}
 						case kOutputImageBegin_CmdType: {
 							auto c = (OutputImageBeginCmd*)cmd;
-							outputImageBeginCall(*c->img);
+							outputImageBeginCall(*c->img, c->isMipmap);
 							c->~OutputImageBeginCmd();
 							break;
 						}
 						case kOutputImageEnd_CmdType: {
 							auto c = (OutputImageEndCmd*)cmd;
-							outputImageEndCall(*c->img, c->genMipmap);
+							outputImageEndCall(*c->img, c->isMipmap);
 							c->~OutputImageEndCmd();
 							break;
 						}
@@ -316,21 +311,21 @@ namespace qk {
 				i.size = 0;
 			}
 
-			for (int i = vertexBlocks.index; i >= 0; i--) {
-				vertexBlocks.blocks[i].size = 0;
+			_cmds.index = 0;
+			_cmds.current = _cmds.blocks.val();
+			_lastCmd = _cmds.current->val;
+
+			for (int i = _vertexBlocks.index; i >= 0; i--) {
+				_vertexBlocks.blocks[i].size = 0;
 			}
-			for (int i = optionBlocks.index; i >= 0; i--) {
-				optionBlocks.blocks[i].size = 0;
+			for (int i = _optionBlocks.index; i >= 0; i--) {
+				_optionBlocks.blocks[i].size = 0;
 			}
 
-			vertexBlocks.current = vertexBlocks.blocks.val();
-			vertexBlocks.index = 0;
-			optionBlocks.current = optionBlocks.blocks.val();
-			optionBlocks.index = 0;
-			cmds.current       = cmds.blocks.val();
-			cmds.current->size = sizeof(Cmd);
-			cmds.index = 0;
-			lastCmd = cmds.current->val;
+			_vertexBlocks.current = _vertexBlocks.blocks.val();
+			_vertexBlocks.index = 0;
+			_optionBlocks.current = _optionBlocks.blocks.val();
+			_optionBlocks.index = 0;
 #endif
 		}
 
@@ -370,7 +365,7 @@ namespace qk {
 		}
 
 		void setBlendModeCall(BlendMode mode) {
-			_render->setBlendMode(mode);
+			_render->gl_set_blend_mode(mode);
 		}
 
 		void drawColorCall(const VertexData &vertex,
@@ -427,12 +422,14 @@ namespace qk {
 				auto srcC = static_cast<GLCanvas*>(paint->canvas);
 				if (srcC != _canvas && srcC->isGpu()) { // now only supported gpu
 					if (srcC->_isTexRender) {
-						gl_set_texture_param(srcC->_rbo, 0, paint);
+						_render->gl_set_texture_param(srcC->_rbo, 0, paint);
+						_render->gl_set_texture_max_level(0, srcC->_opts.isMipmap ? 64: 0);
 						return true;
 					}
 				}
 			} else {
-				_render->setTexture(paint->image->pixels().val(), 0, paint);
+				_render->gl_set_texture(paint->image->pixels().val(), 0, paint);
+				_render->gl_set_texture_max_level(0, paint->image->isMipmap() ? 64: 0);
 				return true;
 			}
 			return false;
@@ -455,11 +452,11 @@ namespace qk {
 
 					if (src->pixels()[1].type() == kColor_Type_YUV420P_U_8) { // yuv420p
 						glUniform1i(yuv->format, 1);
-						_render->setTexture(src->pixels().val() + srcIndex + 2, 2, paint); // v
+						_render->gl_set_texture(src->pixels().val() + srcIndex + 2, 2, paint); // v
 					} else { // yuv420sp
 						glUniform1i(yuv->format, 0);
 					}
-					_render->setTexture(src->pixels().val() + srcIndex + 1, 1, paint); // u or uv
+					_render->gl_set_texture(src->pixels().val() + srcIndex + 1, 1, paint); // u or uv
 				} else {
 					s = aafuzz ?
 						aaclip ? &_render->_shaders.image_AAFUZZ_AACLIP: &_render->_shaders.image_AAFUZZ:
@@ -542,7 +539,7 @@ namespace qk {
 					self->flushAAClipBuffer();
 				}
 				if (ch)
-					_render->setBlendMode(kSrc_BlendMode);
+					_render->gl_set_blend_mode(kSrc_BlendMode);
 				auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
 				float aafuzzWeight = W * 0.1f;
 				// float aafuzzWeight = W;
@@ -553,7 +550,7 @@ namespace qk {
 				// glUniform1f(shader->aafuzzConst, C);
 				glDrawArrays(GL_TRIANGLES, 0, clip.aafuzz.vCount); // draw test
 				if (ch)
-					_render->setBlendMode(chMode); // revoke blend mode
+					_render->gl_set_blend_mode(chMode); // revoke blend mode
 				// ensure aa clip can be executed correctly in sequence
 				self->flushAAClipBuffer();
 			};
@@ -621,10 +618,10 @@ namespace qk {
 		void blurFilterBeginCall(Region bounds, bool isClipState, float depth) {
 			if (!_canvas->_blurTex) {
 				glGenTextures(1, &_canvas->_blurTex);
-				gl_set_blur_renderbuffer(_canvas->_blurTex, _canvas->_surfaceSize);
+				_render->gl_set_blur_renderbuffer(_canvas->_blurTex, _canvas->_surfaceSize);
 			}
 			if (kSrc_BlendMode != _render->_blendMode) {
-				_render->setBlendMode(kSrc_BlendMode); // switch blend mode to src
+				_render->gl_set_blend_mode(kSrc_BlendMode); // switch blend mode to src
 			}
 			if (isClipState) {
 				glDisable(GL_STENCIL_TEST); // close clip
@@ -660,9 +657,10 @@ namespace qk {
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, _canvas->_blurTex);
-			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
-			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+			// min_filter = GL_LINEAR_MIPMAP_NEAREST
+			_render->gl_set_texture_min_filter(0, ImagePaint::kNearest_MipmapMode);
+			_render->gl_set_texture_wrap_s(0, ImagePaint::kDecal_TileMode); // no repeat
+			_render->gl_set_texture_wrap_t(0, ImagePaint::kDecal_TileMode);
 
 			if (lod) { // copy image, gen mipmap texture
 				if (isClipState) {
@@ -678,7 +676,8 @@ namespace qk {
 					glUniform1f(cp.depth, depth);
 					glUniform1i(cp.imageLod, level);
 					glUniform2f(cp.oResolution, oRw, oRh);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_blurTex, level+1);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+						_c->_blurTex, level+1);
 					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					depth += DepthNextUnit;
 				} while(++level < lod);
@@ -720,7 +719,7 @@ namespace qk {
 			//!< r = s + (1-sa)*d
 			//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 			if (mode != kSrc_BlendMode) {
-				_render->setBlendMode(mode); // restore blend mode
+				_render->gl_set_blend_mode(mode); // restore blend mode
 			}
 
 			blur->use(sizeof(float) * 12, data);
@@ -732,7 +731,7 @@ namespace qk {
 		}
 
 		void readImageCall(const Rect &src, ImageSource* img,
-			bool genMipmap, Vec2 canvasSize, Vec2 surfaceSize, float depth
+			bool isMipmap, Vec2 canvasSize, Vec2 surfaceSize, float depth
 		){
 			GLuint tex = img->texture();
 			auto o = src.origin, s = src.size;
@@ -746,7 +745,7 @@ namespace qk {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, iformat, type, nullptr);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			_render->gl_set_texture_max_level(0, 0);
 
 			if (_canvas->_isTexRender) {
 				float x2 = canvasSize[0], y2 = canvasSize[1];
@@ -755,11 +754,11 @@ namespace qk {
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 				glBindTexture(GL_TEXTURE_2D, _canvas->_rbo);
 				if (s == Vec2(w,h)) {
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+					_render->gl_set_texture_mag_filter(0, ImagePaint::kNearest_FilterMode); // GL_NEAREST
+					_render->gl_set_texture_min_filter(0, ImagePaint::kNone_MipmapMode); // GL_NEAREST_MIPMAP_NEAREST
 				} else {
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+					_render->gl_set_texture_mag_filter(0, ImagePaint::kLinear_FilterMode); // GL_LINEAR
+					_render->gl_set_texture_min_filter(0, ImagePaint::kNearest_MipmapMode); // GL_LINEAR_MIPMAP_NEAREST
 				}
 				cp.use(sizeof(float) * 12, data);
 				glUniform1f(cp.depth, depth);
@@ -778,35 +777,37 @@ namespace qk {
 				);
 				glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
 			}
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
+			_render->gl_set_texture_max_level(0, 64);
 
-			if (genMipmap) {
+			if (isMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
-			loadTex_SourceImage(img, img->info(), tex);
+			loadTex_SourceImage(img, img->info(), tex, isMipmap);
 		}
 
-		void outputImageBeginCall(ImageSource* img) {
+		void outputImageBeginCall(ImageSource* img, bool isMipmap) {
 			GLuint tex = img->texture();
 			auto size = _canvas->_surfaceSize;
 			auto iformat = gl_get_texture_pixel_format(img->type());
 			auto type = gl_get_texture_data_type(img->type());
-			if (!tex) glGenTextures(1, &tex);
+			if (!tex) {
+				glGenTextures(1, &tex);
+			}
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, size[0], size[1], 0, iformat, type, nullptr);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			_render->gl_set_texture_max_level(0, 0);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
-			loadTex_SourceImage(img, {int(size[0]),int(size[1]),img->type(),img->info().alphaType()}, tex);
+			_render->gl_set_texture_max_level(0, 64);
+			loadTex_SourceImage(img, {int(size[0]),int(size[1]),img->type(),img->info().alphaType()}, tex, isMipmap);
 		}
 
-		void outputImageEndCall(ImageSource* img, bool genMipmap) {
+		void outputImageEndCall(ImageSource* img, bool isMipmap) {
 			if (_canvas->_isTexRender)
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_rbo, 0);
 			else
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_rbo);
-			if (genMipmap) {
+			if (isMipmap) {
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, img->texture());
 				glGenerateMipmap(GL_TEXTURE_2D);
@@ -822,8 +823,10 @@ namespace qk {
 
 				// switch canvas status
 			if (chMode) {
-				_render->setBlendMode(mode);
+				_render->gl_set_blend_mode(mode);
 			}
+
+			glBindFramebuffer(GL_FRAMEBUFFER, srcC->_fbo);
 			setRootMatrixCall(root);
 			setMatrixCall(mat);
 
@@ -838,13 +841,13 @@ namespace qk {
 				glViewport(0, 0, _canvas->_surfaceSize[0], _canvas->_surfaceSize[1]);
 			}
 			if (chMode) {
-				_render->setBlendMode(parentMode); // ch mode
+				_render->gl_set_blend_mode(parentMode); // ch mode
 			}
 			setRootMatrixCall(parentRoot); // ch root matrix
 			setMatrixCall(parentMat); // ch matrix
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo); // bind top fbo
 
-			if (_canvas->_opts.genMipmap && srcC->_isTexRender) { // gen mipmap texture
+			if (srcC->_opts.isMipmap) { // gen mipmap texture
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, srcC->_rbo);
 				glGenerateMipmap(GL_TEXTURE_2D);
@@ -860,10 +863,10 @@ namespace qk {
 				return;
 			if (!srcC->_isTexRender)
 				return;
-			GLC_CmdPack *srcCmd = nullptr;
 
+			GLC_CmdPack *srcCmd = nullptr;
 			srcC->_mutex.mutex.lock();
-			if (srcCmd->cmds.blocks[0].size > sizeof(Cmd)) { // use canvas cmd pack
+			if (srcC->_cmdPackFront->isHaveCmds()) { // use canvas cmd pack
 				srcCmd = srcC->_cmdPackFront;
 				srcC->_cmdPackFront = new GLC_CmdPack(_render, srcC);
 			}
@@ -934,47 +937,49 @@ namespace qk {
 
 #if Qk_USE_GLC_CMD_QUEUE
 
+	bool GLC_CmdPack::isHaveCmds() {
+		return _lastCmd->type != kEmpty_CmdType;
+	}
+
 	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
 		: _render(render), _canvas(canvas), _cache(canvas->gtePathvCache())
-		, lastCmd(nullptr), _chMatrix(true)
+		, _lastCmd(nullptr), _chMatrix(true)
 	{
-		// multi color cmd storage
-		vertexBlocks.blocks.push({
-			(Vec4*)malloc(Qk_MCCmd_VertexBlock_Capacity * sizeof(Vec4)),0,Qk_MCCmd_VertexBlock_Capacity // 104k
+		_cmds.blocks.push({ // init, alloc 64k memory
+			(Cmd*)malloc(Qk_CGCmd_CmdBlock_Capacity),sizeof(Cmd),Qk_CGCmd_CmdBlock_Capacity // 65k
 		});
-		vertexBlocks.current = vertexBlocks.blocks.val();
-		vertexBlocks.index = 0;
+		_cmds.index = 0;
+		_cmds.current = _cmds.blocks.val();
+		_lastCmd = _cmds.current->val;
+		_lastCmd->size = sizeof(Cmd);
+		_lastCmd->type = kEmpty_CmdType;
 
-		optionBlocks.blocks.push({
-			(MCOpt*)malloc(Qk_MCCmd_OptBlock_Capacity * sizeof(MCOpt)),0,Qk_MCCmd_OptBlock_Capacity // 98k
+		// color group cmd storage
+		_vertexBlocks.blocks.push({
+			(Vec4*)malloc(Qk_CGCmd_VertexBlock_Capacity * sizeof(Vec4)),0,Qk_CGCmd_VertexBlock_Capacity // 104k
 		});
-		optionBlocks.current = optionBlocks.blocks.val();
-		optionBlocks.index = 0;
-		// -------------------
-		cmds.blocks.push({ // init, alloc 64k memory
-			(Cmd*)malloc(Qk_MCCmd_CmdBlock_Capacity),sizeof(Cmd),Qk_MCCmd_CmdBlock_Capacity // 65k
+		_vertexBlocks.current = _vertexBlocks.blocks.val();
+		_vertexBlocks.index = 0;
+
+		_optionBlocks.blocks.push({
+			(CGOpt*)malloc(Qk_CGCmd_OptBlock_Capacity * sizeof(CGOpt)),0,Qk_CGCmd_OptBlock_Capacity // 98k
 		});
-		cmds.current = cmds.blocks.val();
-		cmds.index = 0;
-		lastCmd = cmds.current->val;
-		lastCmd->size = sizeof(Cmd);
-		lastCmd->type = kEmpty_CmdType;
+		_optionBlocks.current = _optionBlocks.blocks.val();
+		_optionBlocks.index = 0;
 	}
 
 	GLC_CmdPack::~GLC_CmdPack() {
 		_this->clearCmds();
-		for (auto &i: vertexBlocks.blocks)
+		for (auto &i: _vertexBlocks.blocks)
 			free(i.val);
-		for (auto &i: optionBlocks.blocks)
+		for (auto &i: _optionBlocks.blocks)
 			free(i.val);
-		for (auto &i: cmds.blocks)
+		for (auto &i: _cmds.blocks)
 			free(i.val);
 	}
 
 	void GLC_CmdPack::flush() {
-		if (cmds.blocks[0].size > sizeof(Cmd)) {
-			_this->callCmds(_canvas->_rootMatrix, _canvas->_state->matrix, _canvas->_blendMode);
-		}
+		_this->callCmds(_canvas->_rootMatrix, _canvas->_state->matrix, _canvas->_blendMode);
 	}
 
 	void GLC_CmdPack::setMetrix() {
@@ -1016,15 +1021,15 @@ namespace qk {
 				.flags  = 0,                       .depth = _canvas->_zDepth,
 				.matrix = _canvas->_state->matrix, .color = color,
 			};
-			auto vertexs = vertexBlocks.current;
+			auto vertexs = _vertexBlocks.current;
 			auto prevSize = vertexs->size;
-			int  cpLen = Qk_MCCmd_VertexBlock_Capacity - prevSize;
+			int  cpLen = Qk_CGCmd_VertexBlock_Capacity - prevSize;
 			auto cpSrc = vertexp;
 
-			optionBlocks.current->size++;
+			_optionBlocks.current->size++;
 
 			if (cpLen < vertexLen) { // not enough space
-				vertexs->size = Qk_MCCmd_VertexBlock_Capacity;
+				vertexs->size = Qk_CGCmd_VertexBlock_Capacity;
 				vertexp += cpLen;
 				vertexLen -= cpLen;
 			} else {
@@ -1164,28 +1169,29 @@ namespace qk {
 		return cmd->lod + 2;
 	}
 
-	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img, bool genMipmap) {
+	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img, bool isMipmap) {
 		auto cmd = new(_this->allocCmd(sizeof(ReadImageCmd))) ReadImageCmd;
 		cmd->type = kReadImage_CmdType;
 		cmd->src = src;
 		cmd->img = img;
-		cmd->genMipmap = genMipmap;
+		cmd->isMipmap = isMipmap;
 		cmd->depth = _canvas->_zDepth;
 		cmd->canvasSize = _canvas->_size;
 		cmd->surfaceSize = _canvas->_surfaceSize;
 	}
 
-	void GLC_CmdPack::outputImageBegin(ImageSource* img) {
+	void GLC_CmdPack::outputImageBegin(ImageSource* img, bool isMipmap) {
 		auto cmd = new(_this->allocCmd(sizeof(OutputImageBeginCmd))) OutputImageBeginCmd;
 		cmd->type = kOutputImageBegin_CmdType;
 		cmd->img = img;
+		cmd->isMipmap = isMipmap;
 	}
 
-	void GLC_CmdPack::outputImageEnd(ImageSource* img, bool genMipmap) {
+	void GLC_CmdPack::outputImageEnd(ImageSource* img, bool isMipmap) {
 		auto cmd = new(_this->allocCmd(sizeof(OutputImageEndCmd))) OutputImageEndCmd;
 		cmd->type = kOutputImageEnd_CmdType;
 		cmd->img = img;
-		cmd->genMipmap = genMipmap;
+		cmd->isMipmap = isMipmap;
 	}
 
 	void GLC_CmdPack::setBuffers(Vec2 size, bool chSize, bool isClip) {
@@ -1211,13 +1217,16 @@ namespace qk {
 	{}
 	GLC_CmdPack::~GLC_CmdPack() {
 	}
+	bool GLC_CmdPack::isHaveCmds() {
+		return false;
+	}
 	void GLC_CmdPack::flush() {
 	}
 	void GLC_CmdPack::setMetrix() {
 		_this->setMatrixCall(_canvas->_state->matrix);
 	}
-	void GLC_CmdPack::setBlendMode(BlendMode mode) {
-		_render->setBlendMode(mode);
+	void GLC_CmdPack::gl_set_blend_mode(BlendMode mode) {
+		_render->gl_set_blend_mode(mode);
 	}
 	void GLC_CmdPack::switchState(GLenum id, bool isEnable) {
 		_this->switchStateCall(id, isEnable);
@@ -1254,15 +1263,15 @@ namespace qk {
 		);
 		return lod + 2;
 	}
-	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img, bool genMipmap) {
-		_this->readImageCall(src, img, genMipmap,
+	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img, bool isMipmap) {
+		_this->readImageCall(src, img, isMipmap,
 			_canvas->_size, _canvas->_surfaceSize, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::outputImageBegin(ImageSource* img) {
-		_this->outputImageBeginCall(img);
+	void GLC_CmdPack::outputImageBegin(ImageSource* img, bool isMipmap) {
+		_this->outputImageBeginCall(img, isMipmap);
 	}
-	void GLC_CmdPack::outputImageEnd(ImageSource* img, bool genMipmap) {
-		_this->outputImageEndCall(img, genMipmap);
+	void GLC_CmdPack::outputImageEnd(ImageSource* img, bool isMipmap) {
+		_this->outputImageEndCall(img, isMipmap);
 	}
 	void GLC_CmdPack::setBuffers(Vec2 size, bool chSize, bool isClip) {
 		_this->setBuffersCall(size, chSize, isClip);
