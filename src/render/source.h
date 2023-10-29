@@ -150,7 +150,7 @@ namespace qk {
 		inline bool isMipmap() const { return _isMipmap; }
 
 	protected:
-		void _LoadTex(const PixelInfo &info, uint32_t texture, bool isMipmap);
+		void _SetTex(const PixelInfo &info, uint32_t texture, bool isMipmap);
 	private:
 		void _Decode(Buffer& data);
 		void _Unload(bool isDestroy);

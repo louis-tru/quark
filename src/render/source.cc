@@ -259,16 +259,16 @@ namespace qk {
 
 	class ImageSourceInl: public ImageSource {
 	public:
-		inline void loadTex(cPixelInfo &i, uint32_t tex, bool isMipmap) {
-			_LoadTex(i, tex, isMipmap);
+		inline void setTex(cPixelInfo &i, uint32_t tex, bool isMipmap) {
+			_SetTex(i, tex, isMipmap);
 		}
 	};
 
-	void loadTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex, bool isMipmap) {
-		static_cast<ImageSourceInl*>(s)->loadTex(i, tex, isMipmap);
+	void setTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex, bool isMipmap) {
+		static_cast<ImageSourceInl*>(s)->setTex(i, tex, isMipmap);
 	}
 
-	void ImageSource::_LoadTex(const PixelInfo &info, uint32_t texture, bool isMipmap) {
+	void ImageSource::_SetTex(const PixelInfo &info, uint32_t texture, bool isMipmap) {
 		_state = kSTATE_LOAD_COMPLETE;
 		_info = info;
 		if (_pixels.length()) {

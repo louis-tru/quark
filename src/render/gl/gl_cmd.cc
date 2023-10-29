@@ -47,7 +47,7 @@ namespace qk {
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
 	void  gl_set_texture_no_repeat(GLenum pname);
-	void  loadTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex, bool isMipmap);
+	void  setTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex, bool isMipmap);
 
 	Qk_DEFINE_INLINE_MEMBERS(GLC_CmdPack, Inl) {
 	public:
@@ -782,7 +782,7 @@ namespace qk {
 			if (isMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
-			loadTex_SourceImage(img, img->info(), tex, isMipmap);
+			setTex_SourceImage(img, img->info(), tex, isMipmap);
 		}
 
 		void outputImageBeginCall(ImageSource* img, bool isMipmap) {
@@ -799,7 +799,7 @@ namespace qk {
 			_render->gl_set_texture_max_level(0, 0);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 			_render->gl_set_texture_max_level(0, 64);
-			loadTex_SourceImage(img, {int(size[0]),int(size[1]),img->type(),img->info().alphaType()}, tex, isMipmap);
+			setTex_SourceImage(img, {int(size[0]),int(size[1]),img->type(),img->info().alphaType()}, tex, isMipmap);
 		}
 
 		void outputImageEndCall(ImageSource* img, bool isMipmap) {
@@ -979,7 +979,8 @@ namespace qk {
 	}
 
 	void GLC_CmdPack::flush() {
-		_this->callCmds(_canvas->_rootMatrix, _canvas->_state->matrix, _canvas->_blendMode);
+		if (isHaveCmds())
+			_this->callCmds(_canvas->_rootMatrix, _canvas->_state->matrix, _canvas->_blendMode);
 	}
 
 	void GLC_CmdPack::setMetrix() {

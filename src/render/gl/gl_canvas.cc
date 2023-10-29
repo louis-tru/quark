@@ -391,8 +391,7 @@ namespace qk {
 	void GLCanvas::flushBuffer() { // only can rendering thread call
 #if Qk_USE_GLC_CMD_QUEUE
 		_mutex.mutex.lock();
-		if (_cmdPackFront->isHaveCmds())
-			_cmdPackFront->flush(); // commit gl cmd
+		_cmdPackFront->flush(); // commit gl cmd
 		_mutex.mutex.unlock();
 #endif
 	}
