@@ -38,11 +38,11 @@ public:
 
 		auto img = canvas->readImage(rect, {width}, kColor_Type_RGBA_8888, false);
 
-		paint.color = Color4f(1, 0, 0, 1);
+		paint.color = Color4f(1, 1, 0, 1);
 		paint.filter = nullptr;
 		ImagePaint ipaint;
-		// ipaint.tileModeX = ImagePaint::kDecal_TileMode;
-		// ipaint.tileModeY = ImagePaint::kDecal_TileMode;
+		ipaint.tileModeX = ImagePaint::kMirror_TileMode;
+		ipaint.tileModeY = ImagePaint::kRepeat_TileMode;
 		ipaint.mipmapMode = ImagePaint::kLinear_MipmapMode;
 		ipaint.filterMode = ImagePaint::kLinear_FilterMode;
 		ipaint.setImage(*img, {{0},{width*0.5f}});

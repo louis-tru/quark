@@ -228,7 +228,7 @@ namespace qk {
 		};
 
 		// set gpu texture, Must be processed in the rendering thread
-		_render->post_message(Cb([this,pixels](auto& data) {
+		_render->post_message(Cb([this,pixgit els](auto& data) {
 			Sp<Array<Pixel>> hold(pixels);
 			uint32_t i = 0;
 			uint32_t old_len = _pixels.length();
