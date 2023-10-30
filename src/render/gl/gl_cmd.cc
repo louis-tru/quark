@@ -42,12 +42,12 @@ namespace qk {
 	extern const float aa_fuzz_weight;
 	extern const float DepthNextUnit;
 	void  gl_texture_barrier();
-	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
-	void  gl_set_texture_no_repeat(GLenum pname);
 	void  setTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex, bool isMipmap);
+	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
+	void  gl_set_blur_renderbuffer(GLuint tex, Vec2 size);
 
 	Qk_DEFINE_INLINE_MEMBERS(GLC_CmdPack, Inl) {
 	public:
@@ -203,14 +203,14 @@ namespace qk {
 						case kBlurFilterBegin_CmdType: {
 							auto c = (BlurFilterBeginCmd*)cmd;
 							blurFilterBeginCall(c->bounds, c->isClipState, c->depth);
-              break;
+							break;
 						}
 						case kBlurFilterEnd_CmdType: {
 							auto c = (BlurFilterEndCmd*)cmd;
 							blurFilterEndCall(c->bounds, c->size,
 								*c->output, c->mode, c->n, c->lod, c->isClipState, c->depth);
 							c->~BlurFilterEndCmd();
-              break;
+							break;
 						}
 						case kSwitch_CmdType: {
 							auto c = (SwitchCmd*)cmd;
@@ -330,7 +330,7 @@ namespace qk {
 		}
 
 		void flushAAClipBuffer() {
-			//gl_textureBarrier();
+			//gl_texture_barrier();
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _canvas->_aaclipTex, 0);
 		}
 
@@ -421,18 +421,17 @@ namespace qk {
 			if (paint->_flushCanvas) { // flush canvas to current canvas
 				auto srcC = static_cast<GLCanvas*>(paint->canvas);
 				if (srcC != _canvas && srcC->isGpu()) { // now only supported gpu
-					if (srcC->_isTexRender) {
-						_render->gl_set_texture_param(srcC->_rbo, 0, paint);
-						_render->gl_set_texture_max_level(0, srcC->_opts.isMipmap ? 64: 0);
-						return true;
+					if (srcC->_render == _render) {
+						if (srcC->_isTexRender) {
+							_render->gl_set_texture_param(srcC->_rbo, 0, paint);
+							return true;
+						}
 					}
 				}
+				return false;
 			} else {
-				_render->gl_set_texture(paint->image->pixels().val(), 0, paint);
-				_render->gl_set_texture_max_level(0, paint->image->isMipmap() ? 64: 0);
-				return true;
+				return _render->gl_set_texture(paint->image, 0, paint);
 			}
-			return false;
 		}
 
 		void drawImageCall(const VertexData &vertex,
@@ -452,11 +451,11 @@ namespace qk {
 
 					if (src->pixels()[1].type() == kColor_Type_YUV420P_U_8) { // yuv420p
 						glUniform1i(yuv->format, 1);
-						_render->gl_set_texture(src->pixels().val() + srcIndex + 2, 2, paint); // v
+						_render->gl_set_texture(src, 2, paint); // v
 					} else { // yuv420sp
 						glUniform1i(yuv->format, 0);
 					}
-					_render->gl_set_texture(src->pixels().val() + srcIndex + 1, 1, paint); // u or uv
+					_render->gl_set_texture(src, 1, paint); // u or uv
 				} else {
 					s = aafuzz ?
 						aaclip ? &_render->_shaders.image_AAFUZZ_AACLIP: &_render->_shaders.image_AAFUZZ:
@@ -618,7 +617,7 @@ namespace qk {
 		void blurFilterBeginCall(Region bounds, bool isClipState, float depth) {
 			if (!_canvas->_blurTex) {
 				glGenTextures(1, &_canvas->_blurTex);
-				_render->gl_set_blur_renderbuffer(_canvas->_blurTex, _canvas->_surfaceSize);
+				gl_set_blur_renderbuffer(_canvas->_blurTex, _canvas->_surfaceSize);
 			}
 			if (kSrc_BlendMode != _render->_blendMode) {
 				_render->gl_set_blend_mode(kSrc_BlendMode); // switch blend mode to src
@@ -657,10 +656,6 @@ namespace qk {
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, _canvas->_blurTex);
-			// min_filter = GL_LINEAR_MIPMAP_NEAREST
-			_render->gl_set_texture_min_filter(0, ImagePaint::kNearest_MipmapMode);
-			_render->gl_set_texture_wrap_s(0, ImagePaint::kDecal_TileMode); // no repeat
-			_render->gl_set_texture_wrap_t(0, ImagePaint::kDecal_TileMode);
 
 			if (lod) { // copy image, gen mipmap texture
 				if (isClipState) {
@@ -692,8 +687,11 @@ namespace qk {
 
 			// flush blur texture buffer
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_blurTex, lod);
-
-			y1 += size; y2 -= size; // reduce blank areas
+			
+			if (size > lod) {
+				size -= lod; // reduce blank areas, fault tolerance
+				y1 += size; y2 -= size; // reduce horizontal blank areas
+			}
 			float datax[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
 			blur->use(sizeof(float) * 12, datax);
 			// blur horizontal blur
@@ -744,21 +742,21 @@ namespace qk {
 			}
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, iformat, type, nullptr);
-			_render->gl_set_texture_max_level(0, 0);
 
 			if (_canvas->_isTexRender) {
 				float x2 = canvasSize[0], y2 = canvasSize[1];
 				float data[] = { 0,0,0, x2,0,0, 0,y2,0, x2,y2,0 };
 				auto &cp = _render->_shaders.vportCp;
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-				glBindTexture(GL_TEXTURE_2D, _canvas->_rbo);
+				glBindTexture(GL_TEXTURE_2D, _canvas->_rbo); // read image source
 				if (s == Vec2(w,h)) {
-					_render->gl_set_texture_mag_filter(0, ImagePaint::kNearest_FilterMode); // GL_NEAREST
-					_render->gl_set_texture_min_filter(0, ImagePaint::kNone_MipmapMode); // GL_NEAREST_MIPMAP_NEAREST
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 				} else {
-					_render->gl_set_texture_mag_filter(0, ImagePaint::kLinear_FilterMode); // GL_LINEAR
-					_render->gl_set_texture_min_filter(0, ImagePaint::kNearest_MipmapMode); // GL_LINEAR_MIPMAP_NEAREST
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 				}
 				cp.use(sizeof(float) * 12, data);
 				glUniform1f(cp.depth, depth);
@@ -769,17 +767,17 @@ namespace qk {
 				glUniform4f(cp.coord, o[0], o[1], s[0], s[1]);
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_rbo, 0);
+				glBindTexture(GL_TEXTURE_2D, tex);
 			} else {
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _render->_fbo);
 				glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-				glBlitFramebuffer(o[0], o[1], o[0]+s[0], o[1]+s[1], 0, 0, w, h,
-					GL_COLOR_BUFFER_BIT, s == Vec2(w,h) ? GL_NEAREST: GL_LINEAR
-				);
+				glBlitFramebuffer(o[0], o[1], o[0]+s[0], o[1]+s[1],
+					0, 0, w, h, GL_COLOR_BUFFER_BIT, s == Vec2(w,h) ? GL_NEAREST: GL_LINEAR);
 				glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
 			}
-			_render->gl_set_texture_max_level(0, 64);
 
 			if (isMipmap) {
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
 			setTex_SourceImage(img, img->info(), tex, isMipmap);
@@ -795,10 +793,9 @@ namespace qk {
 			}
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, size[0], size[1], 0, iformat, type, nullptr);
-			_render->gl_set_texture_max_level(0, 0);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-			_render->gl_set_texture_max_level(0, 64);
 			setTex_SourceImage(img, {int(size[0]),int(size[1]),img->type(),img->info().alphaType()}, tex, isMipmap);
 		}
 
@@ -810,6 +807,7 @@ namespace qk {
 			if (isMipmap) {
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, img->texture());
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
 		}
@@ -850,6 +848,7 @@ namespace qk {
 			if (srcC->_opts.isMipmap) { // gen mipmap texture
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, srcC->_rbo);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
 		}
@@ -1010,58 +1009,57 @@ namespace qk {
 			cmd->aafuzz = aafuzz;
 			cmd->aaclip = _canvas->_state->aaclip;
 			cmd->color = color;
-			return;
-		}
+		} else {
+			// add multi color subcmd
+			auto vertexp = vertex.vertex.val();
+			auto vertexLen = vertex.vCount;
+			do {
+				auto cmd = _this->getMColorCmd();
+				cmd->opts[cmd->subcmd] = { // setting vertex option data
+					.flags  = 0,                       .depth = _canvas->_zDepth,
+					.matrix = _canvas->_state->matrix, .color = color,
+				};
+				auto vertexs = _vertexBlocks.current;
+				auto prevSize = vertexs->size;
+				int  cpLen = Qk_CGCmd_VertexBlock_Capacity - prevSize;
+				auto cpSrc = vertexp;
 
-		// add multi color subcmd
-		auto vertexp = vertex.vertex.val();
-		auto vertexLen = vertex.vCount;
-		do {
-			auto cmd = _this->getMColorCmd();
-			cmd->opts[cmd->subcmd] = { // setting vertex option data
-				.flags  = 0,                       .depth = _canvas->_zDepth,
-				.matrix = _canvas->_state->matrix, .color = color,
-			};
-			auto vertexs = _vertexBlocks.current;
-			auto prevSize = vertexs->size;
-			int  cpLen = Qk_CGCmd_VertexBlock_Capacity - prevSize;
-			auto cpSrc = vertexp;
+				_optionBlocks.current->size++;
 
-			_optionBlocks.current->size++;
+				if (cpLen < vertexLen) { // not enough space
+					vertexs->size = Qk_CGCmd_VertexBlock_Capacity;
+					vertexp += cpLen;
+					vertexLen -= cpLen;
+				} else {
+					vertexs->size = prevSize + vertexLen;
+					cpLen = vertexLen;
+					vertexLen = 0;
+				}
 
-			if (cpLen < vertexLen) { // not enough space
-				vertexs->size = Qk_CGCmd_VertexBlock_Capacity;
-				vertexp += cpLen;
-				vertexLen -= cpLen;
-			} else {
-				vertexs->size = prevSize + vertexLen;
-				cpLen = vertexLen;
-				vertexLen = 0;
-			}
+				const float subcmd = *((float*)&cmd->subcmd);
+				auto p = vertexs->val + prevSize;
+				auto p_1 = p + cpLen;
 
-			const float subcmd = *((float*)&cmd->subcmd);
-			auto p = vertexs->val + prevSize;
-			auto p_1 = p + cpLen;
-
-			// copy vertex data
-			while (p < p_1) {
+				// copy vertex data
+				while (p < p_1) {
 #if DEBUG
-				#define Qk_CopyVec() *p = \
-					*((Vec4*)(cpSrc)); p->val[3] = subcmd; p++,cpSrc++
+					#define Qk_CopyVec() *p = \
+						*((Vec4*)(cpSrc)); p->val[3] = subcmd; p++,cpSrc++
 #else
-				#define Qk_CopyVec() *p = {\
-					cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd\
-				}; p++,cpSrc++
+					#define Qk_CopyVec() *p = {\
+						cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd\
+					}; p++,cpSrc++
 #endif
-				Qk_CopyVec();
-				Qk_CopyVec();
-				Qk_CopyVec();
-				Qk_CopyVec();
-				#undef Qk_CopyVec
-			}
-			cmd->vCount += cpLen;
-			cmd->subcmd++;
-		} while(vertexLen);
+					Qk_CopyVec();
+					Qk_CopyVec();
+					Qk_CopyVec();
+					Qk_CopyVec();
+					#undef Qk_CopyVec
+				}
+				cmd->vCount += cpLen;
+				cmd->subcmd++;
+			} while(vertexLen);
+		}
 	}
 
 	void GLC_CmdPack::drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color) {
@@ -1077,7 +1075,6 @@ namespace qk {
 		cmd->color = color;
 		cmd->blur = blur;
 		cmd->aaclip = _canvas->_state->aaclip;
-		return;
 	}
 
 	void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {

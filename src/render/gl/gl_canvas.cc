@@ -38,7 +38,9 @@ namespace qk {
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
+	void  gl_set_color_renderbuffer(GLuint buff, ColorType type, Vec2 size, bool texRbo);
 	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
+	void  gl_set_blur_renderbuffer(GLuint tex, Vec2 size);
 
 	extern const Region ZeroRegion;
 	extern const float  aa_fuzz_weight = 0.9;
@@ -692,7 +694,6 @@ namespace qk {
 			glGenRenderbuffers(1, &_depthBuffer); // _depthBuffer
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-		_render->
 		gl_set_color_renderbuffer(_rbo, type, size, _isTexRender);
 		gl_set_framebuffer_renderbuffer(_depthBuffer, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT);
 
@@ -709,7 +710,7 @@ namespace qk {
 			gl_set_framebuffer_renderbuffer(_stencilBuffer, size, GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT);
 		}
 		if (_blurTex) {
-			_render->gl_set_blur_renderbuffer(_blurTex, size);
+			gl_set_blur_renderbuffer(_blurTex, size);
 		}
 
 		glDrawBuffers(2, DrawBuffers);

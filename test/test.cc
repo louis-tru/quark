@@ -32,7 +32,7 @@
 #include "quark/util/loop.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_subcanvas
+#define TEST_FUNC_NAME test_outimg
 #endif
 
 using namespace qk;
@@ -42,7 +42,7 @@ void TEST_FUNC_NAME(int argc, char** argv);
 Qk_Main() {
 
 	uint64_t st = time_micro();
-	
+
 	TEST_FUNC_NAME(argc, argv);
 	
 	Qk_LOG("MAIN", "eclapsed time:%dms", (time_micro() - st) / 1000);

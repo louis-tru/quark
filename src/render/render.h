@@ -65,7 +65,6 @@ namespace qk {
 		inline  Canvas* getCanvas() { return _canvas; } // default main canvas object
 		inline  Vec2    surfaceSize() { return _surfaceSize; }
 		inline  float   defaultScale() { return _defaultScale; }
-		inline  Delegate* delegate() { return _delegate; }
 		virtual uint32_t makeTexture(cPixel *src, uint32_t id) = 0;
 		virtual void    deleteTextures(const uint32_t *ids, uint32_t count) = 0;
 		virtual void    makeVertexData(VertexData::ID *id) = 0;

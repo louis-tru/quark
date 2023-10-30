@@ -77,6 +77,7 @@
 				'test-util.cc',
 				'test-uv.cc',
 				'test-subcanvas.cc',
+				'test-outimg.cc',
 				# 'test-v8.cc',
 				'test-zlib.cc',
 				'test.cc',

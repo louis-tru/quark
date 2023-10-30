@@ -112,8 +112,9 @@ public:
 		mark_render();
 	}
 
-	void accept(ViewVisitor *visitor) {
-		draw();
+	void accept(Visitor *vv) {
+		if (vv->flags() == 0)
+			draw();
 	}
 };
 

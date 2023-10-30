@@ -37,7 +37,6 @@
 #include "./gl_canvas.h"
 
 namespace qk {
-	struct GL_TexSlotStat;
 
 	class GLRender: public RenderBackend {
 	public:
@@ -51,18 +50,10 @@ namespace qk {
 		virtual void unlock(); // unlock render
 		virtual Canvas* newCanvas(Options opts) override;
 		virtual void release() override;
-
 		// set gl state
 		void gl_set_blend_mode(BlendMode mode);
-		void gl_set_texture(cPixel *pixel, int slot, const ImagePaint *paint);
+		bool gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint);
 		void gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint);
-		void gl_set_texture_wrap_s(uint32_t slot, int param);
-		void gl_set_texture_wrap_t(uint32_t slot, int param);
-		void gl_set_texture_mag_filter(uint32_t slot, int filter);
-		void gl_set_texture_min_filter(uint32_t slot, int filter);
-		void gl_set_texture_max_level(uint32_t slot, GLint level);
-		void gl_set_color_renderbuffer(GLuint buff, ColorType type, Vec2 size, bool texRbo);
-		void gl_set_blur_renderbuffer(GLuint tex, Vec2 size);
 
 	protected:
 		GLRender(Options opts);
@@ -73,8 +64,8 @@ namespace qk {
 		GLuint _optsBlock; // ubo, generic optsBlock
 		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders; // glsl shaders
-		GL_TexSlotStat *_glTexSlotStat;
 		BlendMode _blendMode; // last setting status
+		Dict<GLuint, TexStat> _texStat;
 
 		friend class GLCanvas;
 		friend class GLC_CmdPack;

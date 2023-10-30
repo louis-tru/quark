@@ -149,6 +149,11 @@ namespace qk {
 		*/
 		inline bool isMipmap() const { return _isMipmap; }
 
+		/**
+		 * @method render() as texture for render backend
+		*/
+		inline RenderBackend* render() const { return _render; }
+
 	protected:
 		void _SetTex(const PixelInfo &info, uint32_t texture, bool isMipmap);
 	private:

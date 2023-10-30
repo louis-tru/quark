@@ -111,6 +111,17 @@ namespace qk {
 		Region            coord; // bitmap uv coord
 	};
 
+	/**
+	 * @struct render backend pixel texture stat
+	*/
+	struct TexStat {
+		uint32_t             id;
+		ImagePaint::TileMode tileModeX;
+		ImagePaint::TileMode tileModeY;
+		ImagePaint::FilterMode filterMode;
+		ImagePaint::MipmapMode mipmapMode;
+	};
+
 	struct PaintFilter {
 		enum Type {
 			kBlur_Type, //!< blur type

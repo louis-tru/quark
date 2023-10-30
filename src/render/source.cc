@@ -254,6 +254,8 @@ namespace qk {
 			_state = kSTATE_LOAD_COMPLETE; // Reset to ensure it is valid
 			_info = pixels->indexAt(0);
 			_pixels = std::move(*pixels);
+
+			Pixel test = Pixel(_pixels[0], _pixels[0].body().copy());
 		}, this));
 	}
 

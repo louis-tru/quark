@@ -12,8 +12,8 @@ class TestRRect: public Box {
 public:
 	TestRRect(App *host): Box(host) {}
 
-	void accept(ViewVisitor *visitor) override {
-
+	void accept(Visitor *vv) override {
+		if (vv->flags()) return;
 		auto canvas = shared_app()->render()->getCanvas();
 		canvas->save();
 		canvas->translate(-115, 0);
