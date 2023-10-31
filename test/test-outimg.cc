@@ -8,46 +8,29 @@ using namespace qk;
 
 class TestOutImg: public Box {
 public:
-	float i = 0;
-	Sp<Canvas> _c;
 	TestOutImg(App *host): Box(host) {
-		_c = host->render()->newCanvas({.isMipmap=0});
-		_c->setSurface({600},2);
 	}
 
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
 		auto canvas = pre_render()->host()->render()->getCanvas();
 		auto size = canvas->size();
-
-		i+=Qk_PI_RATIO_180*0.2;
-
-		float c = abs(sinf(i));
-
 		float width = 300;
 
 		Paint paint;
 		paint.color = Color4f(0, 0, 1);
-		PaintFilter filter{PaintFilter::kBlur_Type,c*200};
-		paint.filter = &filter;
-		paint.antiAlias = false;
 		Rect rect{size/2-width*0.5,width};
 		auto path = Path::MakeArc(rect, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
 
+		canvas->save();
+		auto img = canvas->outputImage(nullptr, false);
 		canvas->drawPath(path, paint);
+		canvas->restore();
 
-		auto img = canvas->readImage(rect, {width}, kColor_Type_RGBA_8888, false);
-
-		paint.color = Color4f(1, 1, 0, 1);
-		paint.filter = nullptr;
 		ImagePaint ipaint;
-		ipaint.tileModeX = ImagePaint::kMirror_TileMode;
-		ipaint.tileModeY = ImagePaint::kRepeat_TileMode;
-		ipaint.mipmapMode = ImagePaint::kLinear_MipmapMode;
-		ipaint.filterMode = ImagePaint::kLinear_FilterMode;
-		ipaint.setImage(*img, {{0},{width*0.5f}});
+		ipaint.setImage(*img, {{0},size});
 		paint.image = &ipaint;
-		paint.type = Paint::kBitmapMask_Type;
+		paint.type = Paint::kBitmap_Type;
 		canvas->drawRect({{0},{width}}, paint);
 
 		mark_render();

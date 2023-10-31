@@ -65,8 +65,8 @@ namespace qk {
 		inline  Canvas* getCanvas() { return _canvas; } // default main canvas object
 		inline  Vec2    surfaceSize() { return _surfaceSize; }
 		inline  float   defaultScale() { return _defaultScale; }
-		virtual uint32_t makeTexture(cPixel *src, uint32_t id) = 0;
-		virtual void    deleteTextures(const uint32_t *ids, uint32_t count) = 0;
+		virtual void    makeTexture(cPixel *pix, TexStat *&out, bool isMipmap) = 0;
+		virtual void    deleteTexture(TexStat *tex) = 0;
 		virtual void    makeVertexData(VertexData::ID *id) = 0;
 		virtual void    deleteVertexData(VertexData::ID *id) = 0;
 		virtual Canvas* newCanvas(Options opts) = 0;

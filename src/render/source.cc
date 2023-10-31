@@ -170,23 +170,17 @@ namespace qk {
 		}
 		if (_render) { // as texture, Must be processed in the rendering thread
 			auto render = _render;
-
 			if (destroy) {
-				Array<uint32_t> ids; // copy ids
-				for (auto &i: _pixels) {
-					if (i._texture)
-						ids.push(i._texture);
-				}
-				render->post_message(Cb([render,ids](auto& data) {
-					render->deleteTextures(ids.val(), ids.length());
+				auto pix = new Array<Pixel>(std::move(_pixels));
+				render->post_message(Cb([render,pix](auto& data) {
+					for (auto &i: *pix)
+						if (i._texture) render->deleteTexture(const_cast<TexStat *>(i._texture));
+					Release(pix);
 				}));
-			}
-			else {
+			} else {
 				render->post_message(Cb([render,this](auto& data) { 
-					for (auto &i: _pixels) {
-						if (i._texture)
-							render->deleteTextures(&i._texture, 1);
-					}
+					for (auto &i: _pixels)
+						if (i._texture) render->deleteTexture(const_cast<TexStat *>(i._texture));
 					_pixels.clear();
 				}, this));
 			}
@@ -215,73 +209,53 @@ namespace qk {
 			return;
 		}
 
-		static auto bollback = [](
-			RenderBackend *render,
-			int idx, Array<Pixel> &old, Array<Pixel> &pixels
-		) {
-			for (int j = 0; j < idx; j++) {
-				if (old[j]._texture == 0 && pixels[j]._texture != 0) {
-					render->deleteTextures(&pixels[j]._texture, 1); // RollBACK
-					pixels[j]._texture = 0;
-				}
-			}
-		};
-
 		// set gpu texture, Must be processed in the rendering thread
-		_render->post_message(Cb([this,pixgit els](auto& data) {
+		_render->post_message(Cb([this,pixels](auto& data) {
 			Sp<Array<Pixel>> hold(pixels);
-			uint32_t i = 0;
-			uint32_t old_len = _pixels.length();
+			int i = 0;
+			int old_len = _pixels.length();
 
-			while (i < pixels->length()) {
-				auto &pix = pixels->indexAt(i);
-				auto id = _render->makeTexture(&pix, i < old_len ? _pixels[i]._texture: 0);
-				if (id == 0) {
-					bollback(_render, i, _pixels, *pixels);
-					return; // make fail
-				}
-				pix = PixelInfo(pix); // clear memory pixel data
-				pix._texture = id;
-				i++;
+			for (int len = pixels->length(); i < len; i++) {
+				auto pix = pixels->val() + i;
+				auto tex = const_cast<TexStat *>(i < old_len ? _pixels[i]._texture: nullptr);
+				_render->makeTexture(pix, tex, true);
+				pix->_body.clear(); // clear memory pixel data
+				pix->_texture = tex; // set tex
 			}
 
-			if (i < old_len) {
-				do
-					_render->deleteTextures(&_pixels[i]._texture, 1);
-				while(++i < old_len);
+			while(i < old_len) {
+				if (_pixels[i]._texture)
+					_render->deleteTexture(const_cast<TexStat *>(_pixels[i]._texture));
+				i++;
 			}
 
 			_state = kSTATE_LOAD_COMPLETE; // Reset to ensure it is valid
 			_info = pixels->indexAt(0);
 			_pixels = std::move(*pixels);
-
-			Pixel test = Pixel(_pixels[0], _pixels[0].body().copy());
 		}, this));
 	}
 
 	class ImageSourceInl: public ImageSource {
 	public:
-		inline void setTex(cPixelInfo &i, uint32_t tex, bool isMipmap) {
-			_SetTex(i, tex, isMipmap);
-		}
+		friend void setTex_SourceImage(ImageSource* s, cPixelInfo &i, const TexStat *tex, bool isMipmap);
 	};
 
-	void setTex_SourceImage(ImageSource* s, cPixelInfo &i, uint32_t tex, bool isMipmap) {
-		static_cast<ImageSourceInl*>(s)->setTex(i, tex, isMipmap);
+	void setTex_SourceImage(ImageSource* s, cPixelInfo &i, const TexStat *tex, bool isMipmap) {
+		static_cast<ImageSourceInl*>(s)->_SetTex(i, tex, isMipmap);
 	}
 
-	void ImageSource::_SetTex(const PixelInfo &info, uint32_t texture, bool isMipmap) {
-		_state = kSTATE_LOAD_COMPLETE;
-		_info = info;
+	void ImageSource::_SetTex(const PixelInfo &info, const TexStat *tex, bool isMipmap) {
 		if (_pixels.length()) {
 			auto oldTex = _pixels[0]._texture;
-			if (oldTex && oldTex != texture)
-				_render->deleteTextures(&oldTex, 1);
+			if (oldTex && oldTex != tex)
+				_render->deleteTexture(const_cast<TexStat *>(_pixels.val()->_texture));
 			_pixels[0] = info;
 		} else {
 			_pixels.push(info);
 		}
-		_pixels[0]._texture = texture;
+		_state = kSTATE_LOAD_COMPLETE;
+		_info = info;
+		_pixels[0]._texture = tex;
 		_isMipmap = isMipmap;
 	}
 

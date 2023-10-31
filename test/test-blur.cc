@@ -22,7 +22,7 @@ public:
 
 		float c = abs(sinf(i));
 
-		float width = 600;
+		float width = 300;
 
 		Paint paint;
 		paint.color = Color4f(0, 0, 1);
@@ -31,24 +31,23 @@ public:
 		paint.antiAlias = false;
 		Rect rect{size/2-width*0.5,width};
 		// auto path = Path::MakeArc(rect, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
-		auto path = Path::MakeRect(rect); path.close();
+		auto path = Path::MakeArc(rect, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
 
 		canvas->drawPath(path, paint);
 
-		auto img = canvas->readImage(rect, {width}, kColor_Type_RGBA_8888, true);
+		auto img = canvas->readImage(rect, {width}, kColor_Type_RGBA_8888, false);
 
-		paint.color = Color4f(1, 0, 0, 1);
+		paint.color = Color4f(1, 1, 0, 1);
 		paint.filter = nullptr;
 		ImagePaint ipaint;
-		// ipaint.tileModeX = ImagePaint::kDecal_TileMode;
-		// ipaint.tileModeY = ImagePaint::kDecal_TileMode;
+		ipaint.tileModeX = ImagePaint::kMirror_TileMode;
+		ipaint.tileModeY = ImagePaint::kRepeat_TileMode;
 		ipaint.mipmapMode = ImagePaint::kLinear_MipmapMode;
 		ipaint.filterMode = ImagePaint::kLinear_FilterMode;
 		ipaint.setImage(*img, {{0},{width*0.5f}});
 		paint.image = &ipaint;
-		paint.type = Paint::kBitmap_Type;
 		paint.type = Paint::kBitmapMask_Type;
-		canvas->drawRect({{0},{width*0.5f}}, paint);
+		canvas->drawRect({{0},{width}}, paint);
 
 		mark_render();
 	}

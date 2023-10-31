@@ -36,13 +36,12 @@
 #include "../util/array.h"
 
 namespace qk {
+	struct        TexStat;
 	class         ImageSource;
 	class         PixelInfo;
 	class         Pixel;
 	typedef const Pixel cPixel;
 	typedef const PixelInfo cPixelInfo;
-	typedef       Pixel BitmapPixel;
-	typedef const Pixel cBitmapPixel;
 
 	/**
 	 * @enum ColorType color tye enum
@@ -117,12 +116,12 @@ namespace qk {
 
 	class Qk_EXPORT PixelInfo {
 	public:
-		PixelInfo();
-		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
 		Qk_DEFINE_PROP_GET(int, width); //!< bitmap width
 		Qk_DEFINE_PROP_GET(int, height); //!< bitmap height
 		Qk_DEFINE_PROP_GET(ColorType, type); //!< bitmap pixel color type
 		Qk_DEFINE_PROP_GET(AlphaType, alphaType); //!< is premultiplied by alpha
+		PixelInfo();
+		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
 		uint32_t rowbytes() const;
 		uint32_t bytes() const;
 	};
@@ -132,7 +131,7 @@ namespace qk {
 	 */
 	class Qk_EXPORT Pixel: public PixelInfo {
 	public:
-		Qk_DEFINE_PROP_GET(uint32_t, texture); // gpu texture id
+		Qk_DEFINE_PROP_GET(const TexStat*, texture); // gpu texture id
 
 		/**
 		 * @method pixel_bit_size()
@@ -143,7 +142,6 @@ namespace qk {
 		Pixel(cPixel& data); // copy
 		Pixel(Pixel&& data); // move
 		Pixel(cPixelInfo& info, Buffer body); // move body
-		Pixel(cPixelInfo& info, cWeakBuffer& body); // weak ref
 		Pixel(cPixelInfo& info);
 
 		// operator=
@@ -153,13 +151,11 @@ namespace qk {
 		/**
 		 * Returns image data body
 		*/
-		inline cWeakBuffer& body() const { return _body; }
-
-		inline uint8_t*     val() { return reinterpret_cast<uint8_t*>(_hold.val()); }
+		inline cBuffer& body() const { return _body; }
+		inline uint8_t* val() { return reinterpret_cast<uint8_t*>(_body.val()); }
 
 	private:
-		Buffer     _hold; // hold data
-		WeakBuffer _body;
+		Buffer _body; // pixel data
 		friend class ImageSource;
 	};
 

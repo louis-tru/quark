@@ -38,9 +38,10 @@ namespace qk {
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
-	void  gl_set_color_renderbuffer(GLuint buff, ColorType type, Vec2 size, bool texRbo);
+	void  gl_set_color_renderbuffer(GLuint rbo, TexStat *t_rbo, ColorType type, Vec2 size);
 	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
 	void  gl_set_blur_renderbuffer(GLuint tex, Vec2 size);
+	TexStat* gl_new_texture();
 
 	extern const Region ZeroRegion;
 	extern const float  aa_fuzz_weight = 0.9;
@@ -356,17 +357,17 @@ namespace qk {
 	}
 
 	GLCanvas::~GLCanvas() {
-		bool is_trbo = _isTexRender;
 		GLuint fbo = _fbo,
-					rbo0  = _rbo,
-					rbo[] = { _depthBuffer, _stencilBuffer },
+					rbo[] = { _rbo,_depthBuffer, _stencilBuffer },
 					tex[] = { _aaclipTex, _blurTex };
-		_render->post_message(Cb([fbo,rbo,tex,rbo0,is_trbo](auto &e) {
-			if (is_trbo) glDeleteTextures(1, &rbo0);
-			else glDeleteRenderbuffers(1, &rbo0);
+		auto t_rbo = _t_rbo;
+		auto render = _render;
+		_render->post_message(Cb([render,fbo,rbo,tex,t_rbo](auto &e) {
 			glDeleteFramebuffers(1, &fbo);
-			glDeleteRenderbuffers(2, rbo);
+			glDeleteRenderbuffers(3, rbo);
 			glDeleteTextures(2, tex);
+			if (t_rbo)
+				render->GLRender::deleteTexture(t_rbo);
 		}));
 
 		_mutex.mutex.lock();
@@ -683,21 +684,28 @@ namespace qk {
 		auto size = _surfaceSize;
 		auto w = size.x(), h = size.y();
 		auto type = _opts.colorType;
-		auto isInit = !_fbo;
+		auto init = !_fbo;
 
-		if (isInit) {
-			// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
-			glGenFramebuffers(1, &_fbo); // _fbo
-			// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-			_isTexRender ? glGenTextures(1, &_rbo): glGenRenderbuffers(1, &_rbo);
+		if (init) {
+			if (_isTexRender) {
+				// Create a texture color renderbuffer
+				_t_rbo = gl_new_texture();
+			} else {
+				// Create a color renderbuffer
+				glGenRenderbuffers(1, &_rbo);
+			}
+			// Create the framebuffer
+			glGenFramebuffers(1, &_fbo);
 			// Create depth buffer
-			glGenRenderbuffers(1, &_depthBuffer); // _depthBuffer
+			glGenRenderbuffers(1, &_depthBuffer);
 		}
+		// Bind framebuffer future OpenGL ES framebuffer commands are directed to it.
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-		gl_set_color_renderbuffer(_rbo, type, size, _isTexRender);
+		// Allocate storage for it, and attach it to the framebuffer.
+		gl_set_color_renderbuffer(_rbo, _t_rbo, type, size);
 		gl_set_framebuffer_renderbuffer(_depthBuffer, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT);
 
-		if (isInit) {
+		if (init) {
 			float depth = 0;
 			Color4f color{0,0,0,0};
 			glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0

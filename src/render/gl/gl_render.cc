@@ -129,95 +129,29 @@ namespace qk {
 		}
 	}
 
-	GLuint gl_gen_texture(cPixel* src, GLuint id, bool isMipmap) {
-		if ( src->body().length() == 0 )
-			return 0;
-
-		ColorType type = src->type();
-		GLint iformat = gl_get_texture_pixel_format(type);
-		Qk_ASSERT(iformat);
-
-		if (!iformat)
-			return 0;
-
-		if (!id) {
-			glGenTextures(1, &id);
-		}
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, id);
-
-#if defined(GL_EXT_texture_filter_anisotropic)
-		//  GLfloat largest;
-		//  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest);
-		//  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
-#endif
-
-		glPixelStorei(GL_UNPACK_ALIGNMENT, Pixel::bytes_per_pixel(type));
-		// GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT 
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-		if ( type >= kColor_Type_PVRTCI_2BPP_RGB ) {
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_level - 1);
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat,
-														src->width(),
-														src->height(), 0/*border*/, src->body().length(), *src->body());
-		} else {
-			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat,
-									src->width(),
-									src->height(), 0/*border*/, iformat/*format*/,
-									gl_get_texture_data_type(type)/*type*/, *src->body());
-			if (isMipmap) {
-				glGenerateMipmap(GL_TEXTURE_2D);
-			}
-		}
-
-		return id;
-	}
-
-	void gl_set_texture_no_repeat(GLenum pname) {
+	void gl_set_texture_no_repeat(GLenum wrapdir) {
 #if Qk_OSX
-		glTexParameteri(GL_TEXTURE_2D, pname, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, wrapdir, GL_CLAMP_TO_BORDER);
 		//constexpr float black[4] = {0,0,0,0};
 		//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
 #else
-		glTexParameteri(GL_TEXTURE_2D, pname, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, wrapdir, GL_CLAMP_TO_EDGE);
 #endif
 	}
 
-	void gl_set_texture_wrap_s(ImagePaint::TileMode param) {
+	void gl_set_texture_wrap(GLenum wrapdir, ImagePaint::TileMode param) {
 		switch (param) {
 			case ImagePaint::kClamp_TileMode: // border repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, wrapdir, GL_CLAMP_TO_EDGE);
 				break;
 			case ImagePaint::kRepeat_TileMode: // repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, wrapdir, GL_REPEAT);
 				break;
 			case ImagePaint::kMirror_TileMode: // mirror repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, wrapdir, GL_MIRRORED_REPEAT);
 				break;
 			case ImagePaint::kDecal_TileMode: // no repeat
-				gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
-				break;
-		}
-	}
-
-	void gl_set_texture_wrap_t(ImagePaint::TileMode param) {
-		switch (param) {
-			case ImagePaint::kClamp_TileMode: // border repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				break;
-			case ImagePaint::kRepeat_TileMode: // repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-				break;
-			case ImagePaint::kMirror_TileMode: // mirror repeat
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-				break;
-			case ImagePaint::kDecal_TileMode: // no repeat
-				gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
+				gl_set_texture_no_repeat(wrapdir);
 				break;
 		}
 	}
@@ -247,7 +181,22 @@ namespace qk {
 		}
 	}
 
-	void gl_tex_image2D(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
+	TexStat* gl_new_texture() {
+		auto tex = new TexStat{
+			0, ImagePaint::kClamp_TileMode, ImagePaint::kClamp_TileMode,
+			ImagePaint::kNearest_FilterMode, ImagePaint::kNone_MipmapMode,
+		};
+		glActiveTexture(GL_TEXTURE0);
+		glGenTextures(1, &tex->id);
+		glBindTexture(GL_TEXTURE_2D, tex->id);
+		gl_set_texture_wrap(GL_TEXTURE_WRAP_S, tex->tileModeX);
+		gl_set_texture_wrap(GL_TEXTURE_WRAP_T, tex->tileModeY);
+		gl_set_texture_mag_filter(tex->filterMode);
+		gl_set_texture_min_filter(tex->mipmapMode);
+		return tex;
+	}
+
+	void gl_tex_image2D_null(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, tex);
 		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
@@ -262,12 +211,12 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, buff);
 	}
 
-	void gl_set_color_renderbuffer(GLuint buff, ColorType type, Vec2 size, bool texRbo) {
-		if (texRbo) {
+	void gl_set_color_renderbuffer(GLuint rbo, TexStat *t_rbo, ColorType type, Vec2 size) {
+		if (t_rbo) {
 			// use texture render buffer
-			gl_tex_image2D(buff, size, gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), 0);
+			gl_tex_image2D_null(t_rbo->id, size, gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buff, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, t_rbo->id, 0);
 		} else {
 			GLenum ifo;
 			switch (type) {
@@ -278,12 +227,12 @@ namespace qk {
 				case kColor_Type_RGB_101010X: ifo = GL_RGB10_A2; break;
 				default: ifo = GL_RGBA8; break;
 			}
-			gl_set_framebuffer_renderbuffer(buff, size, ifo, GL_COLOR_ATTACHMENT0);
+			gl_set_framebuffer_renderbuffer(rbo, size, ifo, GL_COLOR_ATTACHMENT0);
 		}
 	}
 
 	void gl_set_blur_renderbuffer(GLuint tex, Vec2 size) {
-		gl_tex_image2D(tex, size,
+		gl_tex_image2D_null(tex, size,
 			gl_get_texture_pixel_format(kColor_Type_RGBA_8888),
 			gl_get_texture_data_type(kColor_Type_RGBA_8888), 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -299,7 +248,7 @@ namespace qk {
 	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
 		// clip anti alias buffer
 		uint32_t slot = gl_MaxTextureImageUnits - 1;
-		gl_tex_image2D(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, slot);
+		gl_tex_image2D_null(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, slot);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
@@ -308,7 +257,7 @@ namespace qk {
 
 	GLRender::GLRender(Options opts)
 		: Render(opts)
-		, _texBuffer{0,0,0}, _glcanvas(nullptr)
+		, _texStat(new TexStat*[8]{0}), _glcanvas(nullptr)
 	{
 		_glcanvas = new GLCanvas(this, _opts);
 		_canvas = _glcanvas; // set default canvas
@@ -324,8 +273,6 @@ namespace qk {
 		// _optsBlock
 		glBindBuffer(GL_UNIFORM_BUFFER, _optsBlock);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 2, _optsBlock);
-		// Create texture buffer
-		glGenTextures(3, _texBuffer); // _texBuffer
 
 #if DEBUG
 		GLint maxTextureSize,maxTextureBufferSize,maxTextureImageUnits;
@@ -397,13 +344,16 @@ namespace qk {
 	void GLRender::unlock() {}
 
 	void GLRender::release() {
-		GLuint fbo = _fbo,
-					tbo[] = {_texBuffer[0],_texBuffer[1],_texBuffer[2]},
-					ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock};
-		post_message(Cb([fbo,tbo,ubo](auto &e){
+		GLuint fbo = _fbo, ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock};
+		auto texStat = _texStat;
+		post_message(Cb([fbo,ubo,texStat](auto &e){
 			glDeleteFramebuffers(1, &fbo);
-			glDeleteTextures(3, tbo);
 			glDeleteBuffers(3, ubo);
+      for (int i = 0; i < 8; i++) {
+        if (texStat[i])
+        	glDeleteTextures(1, &texStat[i]->id);
+      }
+			delete[] texStat;
 		}));
 		Qk_ASSERT(_glcanvas->refCount() == 1);
 		_glcanvas->release(); _glcanvas = nullptr;
@@ -444,16 +394,57 @@ namespace qk {
 		}
 	}
 
-	uint32_t GLRender::makeTexture(cPixel *src, uint32_t id) {
-		return gl_gen_texture(src, id, true);
+	void GLRender::makeTexture(cPixel *pix, TexStat *&out, bool isMipmap) {
+		if ( pix->body().length() == 0 )
+			return;
+
+		ColorType type = pix->type();
+		GLint iformat = gl_get_texture_pixel_format(type);
+		Qk_ASSERT(iformat);
+
+		if (!iformat)
+			return;
+
+		if (!out) {
+			out = gl_new_texture();
+		} else {
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, out->id);
+		}
+
+#if defined(GL_EXT_texture_filter_anisotropic)
+		//  GLfloat largest;
+		//  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest);
+		//  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
+#endif
+
+		glPixelStorei(GL_UNPACK_ALIGNMENT, Pixel::bytes_per_pixel(type));
+		// GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT 
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+		if ( type >= kColor_Type_PVRTCI_2BPP_RGB ) {
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_level - 1);
+			glCompressedTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat,
+														pix->width(),
+														pix->height(), 0/*border*/, pix->body().length(), *pix->body());
+		} else {
+			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat,
+									pix->width(),
+									pix->height(), 0/*border*/, iformat/*format*/,
+									gl_get_texture_data_type(type)/*type*/, *pix->body());
+			if (isMipmap) {
+				glGenerateMipmap(GL_TEXTURE_2D);
+			}
+		}
 	}
 
-	void GLRender::deleteTextures(const uint32_t *ids, uint32_t count) {
-		int i = 0;
-		while (i < count) {
-			_texStat.erase(ids[i++]);
-		}
-		glDeleteTextures(count, ids);
+	void GLRender::deleteTexture(TexStat *tex) {
+		glDeleteTextures(1, &tex->id);
+		delete tex;
 	}
 
 	void GLRender::gl_set_blend_mode(BlendMode mode) {
@@ -513,54 +504,42 @@ namespace qk {
 
 	bool GLRender::gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint) {
 		auto pixel = src->pixels().val() + paint->srcIndex + slot;
-		auto id = pixel->texture();
-		if (!id) {
-			id = gl_gen_texture(pixel, _texBuffer[slot], true);
-			if (!id) {
+		auto tex = const_cast<TexStat *>(pixel->texture());
+		if (!tex) {
+			Qk_ASSERT(slot < 8);
+			GLRender::makeTexture(pixel, _texStat[slot], true);
+			tex = _texStat[slot];
+			if (!tex) {
 				Qk_DEBUG("setTexturePixel() fail");
 				return false;
 			}
-			_texBuffer[slot] = id;
 		} else if (src->render() != this) {
 			// Spanning multiple backends is not supported for the time being.
 			Qk_DEBUG("setTexturePixel() Spanning multiple backends is not supported for the time being.");
 			return false;
 		}
-		gl_set_texture_param(id, slot, paint);
+		gl_set_texture_param(tex, slot, paint);
 		return true;
 	}
 
-	void GLRender::gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint) {
+	void GLRender::gl_set_texture_param(TexStat *tex, uint32_t slot, const ImagePaint* paint) {
 		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, id);
-		auto it = _texStat.find(id);
-		if (it == _texStat.end()) {
-			_texStat[id] = {
-				.tileModeX=paint->tileModeX, .tileModeY=paint->tileModeY,
-				.filterMode=paint->filterMode, .mipmapMode=paint->mipmapMode,
-			};
-			gl_set_texture_wrap_s(paint->tileModeX);
-			gl_set_texture_wrap_t(paint->tileModeY);
+		glBindTexture(GL_TEXTURE_2D, tex->id);
+		if (tex->tileModeX != paint->tileModeX) {
+			gl_set_texture_wrap(GL_TEXTURE_WRAP_S, paint->tileModeX);
+			tex->tileModeX = paint->tileModeX;
+		}
+		if (tex->tileModeY != paint->tileModeY) {
+			gl_set_texture_wrap(GL_TEXTURE_WRAP_T, paint->tileModeY);
+			tex->tileModeY = paint->tileModeY;
+		}
+		if (tex->filterMode != paint->filterMode) {
 			gl_set_texture_mag_filter(paint->filterMode);
+			tex->filterMode = paint->filterMode;
+		}
+		if (tex->mipmapMode != paint->mipmapMode) {
 			gl_set_texture_min_filter(paint->mipmapMode);
-		} else {
-			auto &stat = it->value;
-			if (stat.tileModeX != paint->tileModeX) {
-				gl_set_texture_wrap_s(paint->tileModeX);
-				stat.tileModeX = paint->tileModeX;
-			}
-			if (stat.tileModeY != paint->tileModeY) {
-				gl_set_texture_wrap_t(paint->tileModeY);
-				stat.tileModeY = paint->tileModeY;
-			}
-			if (stat.filterMode != paint->filterMode) {
-				gl_set_texture_mag_filter(paint->filterMode);
-				stat.filterMode = paint->filterMode;
-			}
-			if (stat.mipmapMode != paint->mipmapMode) {
-				gl_set_texture_min_filter(paint->mipmapMode);
-				stat.mipmapMode = paint->mipmapMode;
-			}
+			tex->mipmapMode = paint->mipmapMode;
 		}
 	}
 

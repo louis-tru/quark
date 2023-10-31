@@ -118,6 +118,7 @@ namespace qk {
 		GLuint _fbo, _rbo, _depthBuffer, _stencilBuffer;
 		GLuint _aaclipTex, _blurTex; // aa clop tex buffer, blur filter tex buffer
 		GLuint _stencilRef, _stencilRefDecr; // stencil clip state
+		TexStat *_t_rbo; // texture render buffer
 		float  _zDepth;
 		float  _surfaceScale, _scale;
 		float  _fullScale, _phy2Pixel; // surface scale * transfrom scale, _phy2Pixel = 2 / _scale

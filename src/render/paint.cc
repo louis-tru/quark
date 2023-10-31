@@ -30,6 +30,7 @@
 
 #include "./paint.h"
 #include "./canvas.h"
+#include "./source.h"
 
 namespace qk {
 

@@ -32,12 +32,12 @@
 #define __quark_render_paint__
 
 #include "./math.h"
-#include "./source.h"
 #include "./blend.h"
 
 namespace qk {
 
 	class Canvas;
+	class ImageSource;
 
 	struct GradientPaint {
 		enum Type {
@@ -111,17 +111,6 @@ namespace qk {
 		Region            coord; // bitmap uv coord
 	};
 
-	/**
-	 * @struct render backend pixel texture stat
-	*/
-	struct TexStat {
-		uint32_t             id;
-		ImagePaint::TileMode tileModeX;
-		ImagePaint::TileMode tileModeY;
-		ImagePaint::FilterMode filterMode;
-		ImagePaint::MipmapMode mipmapMode;
-	};
-
 	struct PaintFilter {
 		enum Type {
 			kBlur_Type, //!< blur type
@@ -183,6 +172,17 @@ namespace qk {
 		ImagePaint        *image; // image source, weak ref
 		GradientPaint     *gradient; // gradient color, weak ref
 		PaintFilter       *filter = nullptr; // filter
+	};
+
+	/**
+	 * @struct render backend pixel texture stat
+	*/
+	struct TexStat {
+		uint32_t             id;
+		ImagePaint::TileMode tileModeX;
+		ImagePaint::TileMode tileModeY;
+		ImagePaint::FilterMode filterMode;
+		ImagePaint::MipmapMode mipmapMode;
 	};
 
 }

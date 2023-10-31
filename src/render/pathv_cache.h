@@ -32,6 +32,7 @@
 #define __quark__render__pathv_cache__
 
 #include "./path.h"
+#include "../util/dict.h"
 
 namespace qk
 {

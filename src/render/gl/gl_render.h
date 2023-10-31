@@ -38,12 +38,13 @@
 
 namespace qk {
 
+	// Not thread safe, called in the rendering thread
 	class GLRender: public RenderBackend {
 	public:
 		virtual      ~GLRender();
 		virtual void reload() override;
-		virtual uint32_t makeTexture(cPixel *src, uint32_t id) override;
-		virtual void deleteTextures(const uint32_t *ids, uint32_t count) override;
+		virtual void makeTexture(cPixel *pix, TexStat *&out, bool isMipmap) override;
+		virtual void deleteTexture(TexStat *tex) override;
 		virtual void makeVertexData(VertexData::ID *id) override;
 		virtual void deleteVertexData(VertexData::ID *id) override;
 		virtual void lock(); // lock render
@@ -53,19 +54,18 @@ namespace qk {
 		// set gl state
 		void gl_set_blend_mode(BlendMode mode);
 		bool gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint);
-		void gl_set_texture_param(GLuint id, uint32_t slot, const ImagePaint* paint);
+		void gl_set_texture_param(TexStat *tex, uint32_t slot, const ImagePaint* paint);
 
 	protected:
 		GLRender(Options opts);
 		// define props
 		GLuint _fbo; // temp fbo
-		GLuint _texBuffer[3]; // temp tbo
+		TexStat **_texStat; // temp tbo
 		GLuint _rootMatrixBlock,_viewMatrixBlock; // ubo, matrixBlock => root view matrix
 		GLuint _optsBlock; // ubo, generic optsBlock
 		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders; // glsl shaders
 		BlendMode _blendMode; // last setting status
-		Dict<GLuint, TexStat> _texStat;
 
 		friend class GLCanvas;
 		friend class GLC_CmdPack;

@@ -142,7 +142,7 @@ namespace qk {
 		/**
 		 * @method texture() get the first image texture
 		*/
-		inline uint32_t texture() const { return _pixels.length() ? _pixels[0]._texture: 0; }
+		inline const TexStat* texture() const { return _pixels.length() ? _pixels[0]._texture: 0; }
 
 		/**
 		 * @method isMipmap() Whether generate mipmap texture
@@ -155,7 +155,7 @@ namespace qk {
 		inline RenderBackend* render() const { return _render; }
 
 	protected:
-		void _SetTex(const PixelInfo &info, uint32_t texture, bool isMipmap);
+		void _SetTex(const PixelInfo &info, const TexStat *tex, bool isMipmap);
 	private:
 		void _Decode(Buffer& data);
 		void _Unload(bool isDestroy);
