@@ -54,11 +54,11 @@ namespace qk {
 			Sp<Typeface>    typeface;
 			Array<GlyphID>  glyphs;
 			Array<Vec2>     offset;
-			// ------------ image cache items ------------
-			Sp<ImageSource> image;  // image cache
-			float           imageFontSize; // current image cache font size
-			Vec2            imageBound; // image bound cache
-			// -------------------------------------------
+			struct Out {// output image cache
+				Sp<ImageSource> img;  // image
+				float fontSize; // current image cache font size
+				Vec2 bounds; // image bound cache
+			} out;
 		};
 
 		virtual int  save() = 0;

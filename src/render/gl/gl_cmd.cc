@@ -688,7 +688,7 @@ namespace qk {
 
 			// flush blur texture buffer
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_blurTex, lod);
-			
+
 			if (size > lod) {
 				size -= lod; // reduce blank areas, fault tolerance
 				y1 += size; y2 -= size; // reduce horizontal blank areas

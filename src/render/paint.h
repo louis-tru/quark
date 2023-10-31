@@ -35,9 +35,19 @@
 #include "./blend.h"
 
 namespace qk {
-
 	class Canvas;
 	class ImageSource;
+
+	struct PaintFilter {
+		enum Type {
+			kGra_Type, //!< gra filter
+			kBlur_Type, //!< blur filter
+			kMotionBlur_Type, //!< motion blur
+		};
+		Type  type; //!< paint filter type
+		float val0; //!< blur value radius
+		float val1; //!< motion blur direction
+	};
 
 	struct GradientPaint {
 		enum Type {
@@ -111,16 +121,7 @@ namespace qk {
 		Region            coord; // bitmap uv coord
 	};
 
-	struct PaintFilter {
-		enum Type {
-			kBlur_Type, //!< blur type
-		};
-		Type  type; //!< paint filter type
-		float value; //!< blur value radius
-	};
-
 	struct Paint {
-
 		enum Type {
 			kColor_Type,          //!< set to color paint type
 			kGradient_Type,       //!< set to gradient paint type

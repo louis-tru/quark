@@ -265,12 +265,12 @@ namespace qk {
 	class GLCBlurFilter: public GLCFilter {
 	public:
 		GLCBlurFilter(GLCanvas *host, const Paint &paint, const Path *path)
-			: _host(host), _size(paint.filter->value), _bounds(path->getBounds(&host->_state->matrix))
+			: _host(host), _size(paint.filter->val0), _bounds(path->getBounds(&host->_state->matrix))
 		{
 			begin();
 		}
 		GLCBlurFilter(GLCanvas *host, const Paint &paint, const Rect *rect)
-			: _host(host), _size(paint.filter->value), _bounds{rect->origin,rect->origin+rect->size}
+			: _host(host), _size(paint.filter->val0), _bounds{rect->origin,rect->origin+rect->size}
 		{
 			if (!host->_state->matrix.is_unit_matrix()) {
 				auto &mat = host->_state->matrix;
@@ -315,10 +315,11 @@ namespace qk {
 
 		switch(paint.filter->type) {
 			case PaintFilter::kBlur_Type:
-				if (host->_fullScale * paint.filter->value >= 1.0) {
+				if (host->_fullScale * paint.filter->val0 >= 1.0) {
 					return new GLCBlurFilter(host, paint, args...);
 				}
 				break;
+			default: break;
 		}
 		return nullptr;
 	}
@@ -609,19 +610,19 @@ namespace qk {
 		fontSize *= _scale;
 		auto levelSize = get_level_font_size(fontSize);
 		auto levelScale = fontSize / levelSize;
-		auto imageFontSize = levelSize * _surfaceScale;
+		auto finalFontSize = levelSize * _surfaceScale;
 
-		if (imageFontSize == 0.0)
+		if (finalFontSize == 0.0)
 			return;
 
-		if (blob->imageFontSize != imageFontSize || !blob->image) { // fill text bolb
+		if (blob->out.fontSize != finalFontSize || !blob->out.img) { // fill text bolb
 			auto tf = blob->typeface;
 			auto offset = blob->offset.length() == blob->glyphs.length() ? &blob->offset: NULL;
-			blob->imageBound = tf->getImage(blob->glyphs,imageFontSize, offset, &blob->image);
-			blob->image->markAsTexture(_render);
+			blob->out.bounds = tf->getImage(blob->glyphs, finalFontSize, offset, &blob->out.img);
+			blob->out.img->markAsTexture(_render);
 		}
 
-		_this->drawTextImage(*blob->image, blob->imageBound.y(), _fullScale * levelScale, origin, paint);
+		_this->drawTextImage(*blob->out.img, blob->out.bounds.y(), _fullScale * levelScale, origin, paint);
 	}
 
 	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) {
