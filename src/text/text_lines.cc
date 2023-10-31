@@ -312,8 +312,7 @@ namespace qk {
 			auto origin = _last->width;
 
 			_blob->push({
-				{tf},
-				ascent, height, _last->width, _last->line, index_of_unichar
+				ascent, height, _last->width, _last->line, index_of_unichar, {tf},
 			});
 		}
 	}
@@ -342,8 +341,8 @@ namespace qk {
 		auto origin = _last->width - offset[0].x();
 
 		pre.blob->push({
+			ascent, height, origin, line, pre.index_of_unichar,
 			{pre.typeface, glyphs.copy(), offset},
-			ascent, height, origin, line, pre.index_of_unichar
 		});
 		_last->width = origin + offset.back().x();
 

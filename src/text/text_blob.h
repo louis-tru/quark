@@ -49,13 +49,12 @@ namespace qk {
 	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
 
 	struct TextBlob {
-		Canvas::TextBlob core; // glyphs + cache
-		// -------------------------------------------
 		float           ascent; // 当前blob基线距离文本顶部
 		float           height; // 当前blob高度
 		float           origin; // x-axis offset origin start
 		uint32_t        line;   // line number
 		uint32_t        index;  // blob index in unichar glyphs
+		Canvas::TextBlob core; // glyphs + cache
 	};
 
 	class Qk_EXPORT TextBlobBuilder {
