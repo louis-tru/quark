@@ -349,10 +349,10 @@ namespace qk {
 		post_message(Cb([fbo,ubo,texStat](auto &e){
 			glDeleteFramebuffers(1, &fbo);
 			glDeleteBuffers(3, ubo);
-      for (int i = 0; i < 8; i++) {
-        if (texStat[i])
-        	glDeleteTextures(1, &texStat[i]->id);
-      }
+			for (int i = 0; i < 8; i++) {
+				if (texStat[i])
+					glDeleteTextures(1, &texStat[i]->id);
+			}
 			delete[] texStat;
 		}));
 		Qk_ASSERT(_glcanvas->refCount() == 1);
