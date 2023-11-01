@@ -69,7 +69,7 @@
 				'test-net-ssl.cc',
 				'test-net.cc',
 				'test-number.cc',
-				'test-device.cc',
+				'test-os-info.cc',
 				'test-sizeof.cc',
 				'test-ssl.cc',
 				'test-string.cc',

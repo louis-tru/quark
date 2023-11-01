@@ -28,25 +28,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/device.h"
-#include "quark/util/string.h"
+#ifndef __quark__os__info__
+#define __quark__os__info__
 
-using namespace qk;
+#include <quark/util/util.h>
+#include <quark/util/array.h>
 
-void test_os(int argc, char **argv) {
-	Qk_LOG(device_info());
-	Qk_LOG(device_version());
-	Qk_LOG(device_brand());
-	Qk_LOG(device_languages().join(','));
-	Qk_LOG(device_is_wifi());
-	Qk_LOG(device_is_mobile());
-	Qk_LOG(device_network_status());
-	Qk_LOG(device_is_ac_power());
-	Qk_LOG(device_is_battery());
-	Qk_LOG(device_battery_level());
-	Qk_LOG(device_memory());
-	Qk_LOG(device_used_memory());
-	Qk_LOG(device_available_memory());
+namespace qk {
+	Qk_EXPORT String os_version();
+	Qk_EXPORT String os_brand();
+	Qk_EXPORT String os_model();
+	Qk_EXPORT String os_info();
+	Qk_EXPORT const Array<String>& os_languages();
+	Qk_EXPORT bool  os_is_wifi();
+	Qk_EXPORT bool  os_is_mobile();
+	Qk_EXPORT int   os_network_status();
+	Qk_EXPORT bool  os_is_ac_power();
+	Qk_EXPORT bool  os_is_battery();
+	Qk_EXPORT float os_battery_level();
+	Qk_EXPORT uint64_t os_memory();
+	Qk_EXPORT uint64_t os_used_memory();
+	Qk_EXPORT uint64_t os_available_memory();
+	Qk_EXPORT float os_cpu_usage();
 }
-
-
+#endif

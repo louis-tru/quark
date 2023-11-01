@@ -129,12 +129,13 @@
 			'text/text_opts.h',
 			'media/media.h',
 			'media/media.cc',
+			#os
+			'os/info.h',
+			'os/info.cc',
 			#
 			'app.h',
 			'app.cc',
 			'app.h',
-			'device.h',
-			'device.cc',
 			'display.h',
 			'display.cc',
 			'errno.h',
@@ -208,8 +209,8 @@
 					'deps/reachability/reachability.gyp:reachability',
 				],
 				'sources':[
+					'os/info_mac.mm',
 					'platforms/mac/mac_app.h',
-					'platforms/mac/mac_device.mm',
 					'platforms/mac/mac_image_codec.mm',
 					'platforms/mac/mac_keyboard.mm',
 					'platforms/mac/mac_render.mm',

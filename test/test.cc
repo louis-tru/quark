@@ -32,7 +32,7 @@
 #include "quark/util/loop.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_outimg
+#define TEST_FUNC_NAME test_os_info
 #endif
 
 using namespace qk;
@@ -45,7 +45,7 @@ Qk_Main() {
 
 	TEST_FUNC_NAME(argc, argv);
 	
-	Qk_LOG("MAIN", "eclapsed time:%dms", (time_micro() - st) / 1000);
+	Qk_LOG("Test eclapsed time:%dms\n\n", (time_micro() - st) / 1000);
 
 	return 0;
 }

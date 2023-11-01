@@ -28,8 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./device.h"
+#include "./info.h"
 #include <quark/util/fs.h>
+#include <quark/util/loop.h>
 #include <quark/util/dict.h>
 #include <string.h>
 #include <atomic>
@@ -44,68 +45,75 @@
 #endif
 
 namespace qk {
-
+	static Mutex mutex;
 #if Qk_UNIX
 	static String* info_str = nullptr;
-
-	String device_info() {
+	String os_info() {
 		if (!info_str) {
-			info_str = new String();
-			static struct utsname uts;
-			static Char name[256];
-			gethostname(name, 255);
-			uname(&uts);
-			*info_str = String::format(
-				"host: %s\nsys: %s\nmachine: %s\n"
-				"nodename: %s\nversion: %s\nrelease: %s",
-				name,
-				uts.sysname,
-				uts.machine,
-				uts.nodename, uts.version, uts.release
-			);
-			//  getlogin(), getuid(), getgid(),
+			ScopeLock lock(mutex);
+			if (!info_str) {
+				auto str = new String();
+				static struct utsname uts;
+				static Char name[256];
+				gethostname(name, 255);
+				uname(&uts);
+				*str = String::format(
+					"host: %s\nsys: %s\nmachine: %s\n"
+					"nodename: %s\nversion: %s\nrelease: %s",
+					name,
+					uts.sysname,
+					uts.machine,
+					uts.nodename, uts.version, uts.release
+				);
+				//  getlogin(), getuid(), getgid(),
+				info_str = str;
+			}
 		}
 		return *info_str;
 	}
 #endif
 
 #if Qk_MAC
-	void device_get_languages_mac(Array<String>& langs);
+	void os_get_languages_mac(Array<String>& langs);
 #endif
 
 	struct language_t {
 		Array<String> langs;
 	};
-	static language_t* langs_ = nullptr;
+	static language_t* language = nullptr;
 	static language_t* get_languages() {
-		if (!langs_) {
-			langs_ = new language_t;
+		if (!language) {
+			ScopeLock lock(mutex);
+			if (!language) {
+				auto langs = new language_t;
 #if Qk_iOS
-			device_get_languages_mac(langs_->langs);
+				os_get_languages_mac(langs->langs);
 #elif Qk_ANDROID
-			langs_->langs.push(API::language());
+				langs->langs.push(API::language());
 #elif Qk_LINUX
-			cChar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
-			if ( lang ) {
-				langs_->langs.push(String(lang).split('.')[0]);
-			} else {
-				langs_->langs.push("en_US");
-			}
+				cChar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
+				if ( lang ) {
+					langs->langs.push(String(lang).split('.')[0]);
+				} else {
+					langs->langs.push("en_US");
+				}
 #endif
+				language = langs;
+			}
 		}
-		return langs_;
+		return language;
 	}
 
-	const Array<String>& device_languages() {
+	const Array<String>& os_languages() {
 		return get_languages()->langs;
 	}
 
-	bool device_is_wifi() {
-		return device_network_status() == 2;
+	bool os_is_wifi() {
+		return os_network_status() == 2;
 	}
 
-	bool device_is_mobile() {
-		return device_network_status() >= 3;
+	bool os_is_mobile() {
+		return os_network_status() >= 3;
 	}
 
 #if Qk_LINUX || Qk_ANDROID
@@ -113,7 +121,7 @@ namespace qk {
 	static std::atomic_int priv_cpu_total_count(0);
 	static std::atomic_int priv_cpu_usage_count(0);
 
-	float device_cpu_usage() {
+	float os_cpu_usage() {
 		Char bf[512] = {0};
 		Array<String> cpus;
 		String prev_str;

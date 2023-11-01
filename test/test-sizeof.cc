@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/device.h"
+#include "quark/os/info.h"
 
 using namespace qk;
 
