@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./osx_app.h"
+#import "./mac_app.h"
 #import "../../display.h"
 
 using namespace qk;

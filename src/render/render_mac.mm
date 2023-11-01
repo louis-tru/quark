@@ -28,25 +28,64 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
+#include "./render_mac.h"
 
-#include "../../util/macros.h"
-#if Qk_iOS
-#import "./mac_app.h"
-#import "../../display.h"
-#import <MessageUI/MFMailComposeViewController.h>
+using namespace qk;
 
-typedef qk::Display::Orientation Orientation;
+// ------------------- Metal ------------------
+#if Qk_ENABLE_METAL
+#import "../../render/metal/metal_render.h"
 
-@interface QkApplicationDelegate()<MFMailComposeViewControllerDelegate>
-	{
-		BOOL _is_background;
-	}
-	@property (assign, nonatomic) Orientation setting_orientation;
-	@property (assign, nonatomic) Orientation current_orientation;
-	@property (assign, nonatomic) bool        visible_status_bar;
-	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
-	// methods
-	- (void)refresh_status;
+@interface MTView: UIView
 @end
+
+@implementation MTView
++ (Class)layerClass {
+	if (@available(iOS 13.0, *))
+		return CAMetalLayer.class;
+	return nil;
+}
+@end
+
+namespace qk {
+
+	class MacMetalRender: public MetalRender, public RenderSurface {
+	public:
+		MacMetalRender(Options opts, FontPool *pool, Delegate *delegate)
+			: MetalRender(opts,pool,delegate)
+		{}
+		UIView* surfaceView() override {
+			if (_view) return _view;
+			_view = [[MTKView alloc] initWithFrame:CGRectZero device:nil];
+			_view.layer.opaque = YES;
+			return _view;
+		}
+		RenderSurface* surface() override {
+			return this;
+		}
+	};
+}
 #endif
+
+namespace qk {
+
+	Render* make_mac_gl_render(Render::Options opts);
+
+	Render* Render::Make(Options opts, Delegate *delegate) {
+		Render* r = nullptr;
+
+#if Qk_ENABLE_METAL
+		if (@available(macOS 10.11, iOS 13.0, *))
+			r = new MacMetalRender(opts,pool,delegate);
+#endif
+#if Qk_ENABLE_GL
+		if (!r)
+			r = make_mac_gl_render(opts);
+#endif
+		Qk_ASSERT(r, "create render object fail");
+
+		r->_delegate = delegate;
+		return r;
+	}
+
+}

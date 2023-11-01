@@ -30,12 +30,11 @@
 
 #import <MacTypes.h>
 #import <AppKit/AppKit.h>
-// typedef UIEvent MacUIEvent;
 #import "../../util/loop.h"
 #import "../../app.h"
 #import "../../event.h"
 #import "../../display.h"
-#import "./osx_app.h"
+#import "./mac_app.h"
 
 using namespace qk;
 
@@ -51,8 +50,8 @@ QkApplicationDelegate* __appDelegate = nil;
 		__appDelegate = self;
 		_host = Application::shared();
 		_app = UIApplication.sharedApplication;
-		_render = dynamic_cast<QkMacRender*>(_host->render());
-		
+		_surface = _host->render()->surface();
+
 		_is_background = NO;
 		_is_pause = YES;
 
@@ -95,14 +94,15 @@ QkApplicationDelegate* __appDelegate = nil;
 
 		UIView *rootView = self.window.contentView;
 
-		self.ime = qk_ime_helper_new(_host);
+		self.ime = qk_make_ime_helprt(_host);
 
-		self.surface_view = self.render->make_surface_view(rootView.bounds);
-		self.surface_view.translatesAutoresizingMaskIntoConstraints = NO;
+		UIView *view = self.surface->surfaceView();
+		view.frame = rootView.bounds;
+		view.translatesAutoresizingMaskIntoConstraints = NO;
 
-		[rootView addSubview:self.surface_view];
+		[rootView addSubview:view];
 		[rootView addConstraint:[NSLayoutConstraint
-														constraintWithItem:self.surface_view
+														constraintWithItem:view
 														attribute:NSLayoutAttributeWidth
 														relatedBy:NSLayoutRelationEqual
 														toItem:rootView
@@ -110,7 +110,7 @@ QkApplicationDelegate* __appDelegate = nil;
 														multiplier:1
 														constant:0]];
 		[rootView addConstraint:[NSLayoutConstraint
-														constraintWithItem:self.surface_view
+														constraintWithItem:view
 														attribute:NSLayoutAttributeHeight
 														relatedBy:NSLayoutRelationEqual
 														toItem:rootView

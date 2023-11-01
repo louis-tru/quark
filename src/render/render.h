@@ -36,6 +36,7 @@
 #include "./canvas.h"
 
 namespace qk {
+	class RenderSurface; // platform render surface
 
 	/**
 	 * @class RenderBackend drawing device backend
@@ -57,10 +58,13 @@ namespace qk {
 			virtual bool onRenderBackendDisplay() = 0;
 		};
 
-		RenderBackend(Options opts);
-		const   Options& options() const { return _opts; }
+		/**
+		 * @method Make() create new render backend object
+		*/
 		static  RenderBackend* Make(Options opts, Delegate *delegate);
-		virtual void    reload() = 0; // surface size and scale change
+
+		const   Options& options() const { return _opts; }
+		virtual void    reload() = 0; // surface size and scale change => onRenderBackendReload()
 		virtual void    activate(bool isActive);
 		inline  Canvas* getCanvas() { return _canvas; } // default main canvas object
 		inline  Vec2    surfaceSize() { return _surfaceSize; }
@@ -71,8 +75,18 @@ namespace qk {
 		virtual void    deleteVertexData(VertexData::ID *id) = 0;
 		virtual Canvas* newCanvas(Options opts) = 0;
 
+		/**
+		 * @method surface() Returns render surface object for platforms
+		*/
+		virtual RenderSurface* surface() = 0;
+
 	protected:
+		RenderBackend(Options opts);
+		/**
+		 * @method getSurfaceSize() Returns surface size and default surface  scale
+		*/
 		virtual Vec2 getSurfaceSize(float *defaultScaleOut) = 0;
+
 		// define props
 		Options      _opts;
 		Canvas       *_canvas; // default canvas

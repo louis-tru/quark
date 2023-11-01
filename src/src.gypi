@@ -213,7 +213,8 @@
 					'platforms/mac/mac_app.h',
 					'platforms/mac/mac_image_codec.mm',
 					'platforms/mac/mac_keyboard.mm',
-					'platforms/mac/mac_render.mm',
+					'render/render_mac.h',
+					'render/render_mac.mm',
 					'render/font/util_mac.h',
 					'render/font/ct/ct_pool.cc',
 					'render/font/ct/ct_typeface.cc',
@@ -250,12 +251,11 @@
 			}],
 			['os=="osx"', {
 				'sources': [
-					'platforms/mac/osx_app.h',
 					'platforms/mac/osx_app.mm',
 					'platforms/mac/osx_display.mm',
 					'platforms/mac/osx_ime_helper.mm',
 					'platforms/mac/osx_main.mm',
-					'platforms/mac/osx_render.mm',
+					'render/render_osx.mm',
 				],
 				'link_settings': {
 					'libraries': [

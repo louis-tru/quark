@@ -35,6 +35,6 @@
 
 using namespace qk;
 
-id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
+id<QkIMEHelprt> qk_make_ime_helprt(Application *host) {
 	return nil;
 }

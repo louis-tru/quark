@@ -32,7 +32,7 @@
 #import "../../app.h"
 #import "../../event.h"
 #import "../../display.h"
-#import "./ios_app.h"
+#import "./mac_app.h"
 
 using namespace qk;
 

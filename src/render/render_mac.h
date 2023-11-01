@@ -28,15 +28,32 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
-
-#include "../../util/macros.h"
+#ifndef __quark__render__render_mac__
+#define __quark__render__render_mac__
+#include "../util/macros.h"
+#if Qk_MAC
+#include "./render.h"
 #if Qk_OSX
-#import "./mac_app.h"
+#import <AppKit/AppKit.h>
+#define UIResponder NSResponder
+#define UIApplication NSApplication
+#define UIApplicationDelegate NSApplicationDelegate
+#define UIWindow NSWindow
+#define UIView NSView
+#define CGRect NSRect
+#define UIColor NSColor
+#define UIScreen NSScreen
+#define UIViewController NSViewController
+#else // iOS
+#import <UIKit/UIKit.h>
+#endif
 
-@interface QkApplicationDelegate()<NSWindowDelegate>
-	{
-		BOOL _is_background, _is_pause;
-	}
-@end
+namespace qk {
+	class RenderSurface {
+	public:
+		virtual UIView* surfaceView() = 0;
+	};
+}
+
+#endif
 #endif

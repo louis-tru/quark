@@ -54,7 +54,7 @@ public:
 };
 
 void test_blur(int argc, char **argv) {
-	App app({.fps=0x0, .windowFrame={{0,0}, {1000,1000}}});
+	App app({.fps=0x0, .windowFrame={{0,0}, {500,500}}});
 	// layout
 	auto r = app.root();
 	auto t = app.root()->append_new<TestBlur>();
