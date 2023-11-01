@@ -253,7 +253,7 @@ namespace qk {
 		static inline ArrayBuffer alloc(uint32_t length, uint32_t capacity = 0) {
 			return ArrayBuffer<T, A>(length, capacity);
 		}
-		
+
 		// operator=
 		inline ArrayBuffer& operator=(ArrayBuffer<T, A>& arr) {
 			Array<T, A>::operator=(std::move(arr)); return *this;
@@ -261,7 +261,7 @@ namespace qk {
 		inline ArrayBuffer& operator=(ArrayBuffer<T, A>&& arr) {
 			Array<T, A>::operator=(std::move(arr)); return *this;
 		}
-		
+
 	protected:
 		inline ArrayBuffer(uint32_t length, int32_t capacity, T* data)
 			: Array<T, A>(length, capacity, data) {}
@@ -366,10 +366,11 @@ namespace qk {
 				_capacity = arr._capacity;
 				_length = arr._length;
 				_val = arr._val;
-				if (arr._capacity != -1)
+				if (arr._capacity != -1) {
 					arr._capacity = 0;
-				arr._length = 0;
-				arr._val = nullptr;
+					arr._length = 0;
+					arr._val = nullptr;
+				}
 			}
 		}
 		return *this;

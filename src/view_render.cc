@@ -510,8 +510,25 @@ namespace qk {
 
 			auto color = v->_text_value_u4.length() ? v->text_color().value: v->placeholder_color();
 			if (color.a()) {
+				// draw text shadow
 				auto size = v->text_size().value;
-				// TODO draw text shadow..
+				auto shadow = v->text_shadow().value;
+				if (shadow.size) {
+					Paint paint;
+					PaintFilter filter;
+					filter.type = PaintFilter::kBlur_Type;
+					filter.val0 = shadow.size;
+					paint.filter = &filter;
+					paint.color = shadow.color.to_color4f_alpha(_opacity * color.a());
+					for (auto i: v->_blob_visible) {
+						auto &blob = v->_blob[i];
+						auto &line = lines->line(blob.line);
+						_canvas->drawTextBlob(&blob.core, {
+							line.origin + blob.origin + shadow.offset_x, line.baseline + shadow.offset_y
+						}, size, paint);
+					}
+				}
+
 				Paint paint;
 				paint.color = v->text_color().value.to_color4f_alpha(_opacity);
 				for (auto i: v->_blob_visible) {
@@ -563,7 +580,24 @@ namespace qk {
 			}
 
 			if (v->text_color().value.a()) {
-				// TODO draw text shadow..
+				// draw text shadow
+				auto shadow = v->text_shadow().value;
+				if (shadow.size) {
+					Paint paint;
+					PaintFilter filter;
+					filter.type = PaintFilter::kBlur_Type;
+					filter.val0 = shadow.size;
+					paint.filter = &filter;
+					paint.color = shadow.color.to_color4f_alpha(_opacity * v->text_color().value.a());
+					for (auto i: v->_blob_visible) {
+						auto &blob = v->_blob[i];
+						auto &line = lines->line(blob.line);
+						_canvas->drawTextBlob(&blob.core, {
+							line.origin + blob.origin + shadow.offset_x, line.baseline + shadow.offset_y
+						}, size, paint);
+					}
+				}
+
 				Paint paint;
 				paint.color = v->text_color().value.to_color4f_alpha(_opacity);
 				for (auto i: v->_blob_visible) {
