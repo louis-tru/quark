@@ -32,7 +32,7 @@
 
 namespace qk {
 
-	FloatLayout::FloatLayout(App *host): Box(host) {}
+	FloatLayout::FloatLayout(Window *win): Box(win) {}
 
 	bool FloatLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {

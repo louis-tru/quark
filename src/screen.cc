@@ -28,36 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__layout__flex__
-#define __quark__layout__flex__
-
-#include "./box.h"
+#include "./screen.h"
 
 namespace qk {
 
-	class Qk_EXPORT FlexLayout: public Box {
-		Qk_Define_View(FlexLayout);
-	public:
-		FlexLayout(Window *win);
-		// define props
-		Qk_DEFINE_PROP(Direction, direction); // typesetting direction
-		Qk_DEFINE_PROP(ItemsAlign, items_align); // alignment mode of the main axis
-		Qk_DEFINE_PROP(CrossAlign, cross_align); // alignment mode of the cross axis
-		// @overwrite
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
-		virtual Vec2 layout_lock(Vec2 layout_size) override;
-		virtual bool is_lock_child_layout_size() override;
-		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
-	private:
-		template<bool is_horizontal> void layout_typesetting_auto(bool is_reverse);
-		template<bool is_horizontal> void layout_typesetting_flex(bool is_reverse);
-		void layout_typesetting_auto_impl(bool is_horizontal, bool is_reverse);
-		bool update_IsLockChild();
-		bool _is_lock_child;
-		friend class FlowLayout;
-		Qk_DEFINE_INLINE_CLASS(Inl);
-	};
+	Screen::Screen(Application* host)
+		: Qk_Init_Event(Orientation)
+		, _host(host)
+	{
+	}
 
 }
-#endif

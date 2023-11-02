@@ -151,7 +151,8 @@ namespace qk {
 		auto app_ = shared_app();
 		// Qk_ASSERT(app_, "Application needs to be initialized first");
 		if (app_) {
-			app_->pre_render()->mark_render();
+			// TODO ...
+			// app_->pre_render()->mark_render();
 		}
 	}
 

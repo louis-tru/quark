@@ -96,7 +96,7 @@ namespace qk {
 		virtual Sp<ImageSource> outputImage(ImageSource* dest, bool isMipmap) override;
 		virtual void swapBuffer() override; // swap gl double cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call
-		virtual PathvCache* gtePathvCache() override;
+		virtual PathvCache* getPathvCache() override;
 		virtual void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
 		virtual Vec2 size() override;
 		inline uint8_t  isDeviceMsaa() { return _DeviceMsaa; }

@@ -41,7 +41,7 @@ namespace qk {
 		Qk_Define_View(TextLayout);
 	public:
 		Qk_DEFINE_PROP(TextAlign, text_align);
-		TextLayout(App *host);
+		TextLayout(Window *win);
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void set_visible(bool val) override;

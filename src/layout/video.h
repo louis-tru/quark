@@ -46,7 +46,7 @@ namespace qk {
 		typedef MultimediaSource::TrackInfo TrackInfo;
 		typedef PreRender::Task::ID TaskID;
 
-		Video(App *host);
+		Video(Window *win);
 		virtual ~Video();
 		// define props
 		Qk_DEFINE_PROP_ACC(bool, auto_play, NoConst);

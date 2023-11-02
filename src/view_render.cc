@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "./window.h"
 #include "./render/render.h"
 #include "./layout/box_filter.h"
 #include "./view_render.h"
@@ -164,8 +165,8 @@ namespace qk {
 			} else if (FillImage::compute_size(fill->size_y(), dh, h)) { // auto x, ok y
 				w = h / src_h * src_w;
 			} else { // auto x,y
-				w = src_w / _display->atom_pixel();
-				h = src_h / _display->atom_pixel();
+				w = src_w / _window->atom_pixel();
+				h = src_h / _window->atom_pixel();
 			}
 			x = FillImage::compute_position(fill->position_x(), dw, w) - box->_origin_value.val[0];
 			y = FillImage::compute_position(fill->position_y(), dh, h) - box->_origin_value.val[1];
@@ -360,10 +361,10 @@ namespace qk {
 
 	// --------------------------------------------------------------------------
 
-	ViewRender::ViewRender(Display *display)
+	ViewRender::ViewRender(Window *window)
 		: _render(nullptr), _canvas(nullptr)
 		, _cache(nullptr)
-		, _display(display)
+		, _window(window)
 		, _opacity(1), _mark_recursive(0)
 	{
 	}
@@ -371,7 +372,7 @@ namespace qk {
 	void ViewRender::set_render(Render *render) {
 		_render = render;
 		_canvas = render->getCanvas();
-		_cache = _canvas->gtePathvCache();
+		_cache = _canvas->getPathvCache();
 	}
 
 	uint32_t ViewRender::flags() {
@@ -644,7 +645,7 @@ namespace qk {
 			}
 			if (v->_visible_region && v->_opacity != 0) {
 				// _fix = _render->getUnitPixel() * 0.225f; // fix aa stroke width
-				_fix = 2.0f / _display->scale() * 0.225f; // fix aa stroke width
+				_fix = 2.0f / _window->scale() * 0.225f; // fix aa stroke width
 				_fix2 = _fix + _fix;
 				BoxData data;
 				_canvas->setMatrix(v->matrix());

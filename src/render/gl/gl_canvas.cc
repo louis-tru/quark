@@ -460,7 +460,7 @@ namespace qk {
 		return _state->matrix;
 	}
 
-	PathvCache* GLCanvas::gtePathvCache() {
+	PathvCache* GLCanvas::getPathvCache() {
 		return _cache;
 	}
 

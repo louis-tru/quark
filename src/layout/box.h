@@ -42,7 +42,13 @@ namespace qk {
 	class Qk_EXPORT Box: public View {
 		Qk_Define_View(Box);
 	public:
-		Box(App *host);
+		/**
+		 * @constructor
+		*/
+		Box(Window *win);
+		/**
+		 * @destructor
+		*/
 		virtual ~Box();
 
 		/**

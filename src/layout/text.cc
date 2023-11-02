@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	TextLayout::TextLayout(App *host): Box(host) {}
+	TextLayout::TextLayout(Window *win): Box(win) {}
 
 	void TextLayout::set_text_align(TextAlign value) {
 		if(_text_align != value) {

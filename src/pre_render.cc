@@ -31,6 +31,7 @@
 #include "./pre_render.h"
 #include "./layout/layout.h"
 #include "./app.h"
+#include "./window.h"
 #include "./text/text_opts.h"
 
 namespace qk {
@@ -94,11 +95,12 @@ namespace qk {
 		_is_render = true;
 	}
 
-	PreRender::PreRender(Application* host)
-		: _host(host)
+	PreRender::PreRender(Window *win)
+		: _window(win)
 		, _mark_total(0)
 		, _marks(0)
 		, _is_render(false)
+		, _host(win->host())
 	{}
 
 	PreRender::~PreRender() {}

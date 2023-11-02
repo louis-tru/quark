@@ -38,7 +38,7 @@ namespace qk {
 	class TextLines;
 	class TextConfig;
 	class Application;
-	typedef Application App;
+	class Window;
 
 	/**
 		*
@@ -79,7 +79,14 @@ namespace qk {
 			bool wrap_x, wrap_y;
 		};
 
-		Layout(App* host);
+		/**
+		 * @constructor
+		*/
+		Layout(Window *win);
+
+		/**
+		 * @destructor
+		*/
 		virtual ~Layout();
 
 		/**
@@ -257,8 +264,9 @@ namespace qk {
 		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
 		*/
 		int32_t _mark_index;
-
+	
 	public:
+		// @props 
 		/* 
 		* @field layout_mark
 		*
@@ -266,6 +274,7 @@ namespace qk {
 		* 运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
 		*/
 		Qk_DEFINE_PROP_GET(uint32_t, layout_mark);
+
 		/*
 		* @field layout_mark
 		*

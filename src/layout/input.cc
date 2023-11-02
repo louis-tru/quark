@@ -543,8 +543,8 @@ namespace qk {
 
 	};
 
-	Input::Input(App *host)
-		: Box(host)
+	Input::Input(Window *win)
+		: Box(win)
 		, _security(false), _readonly(false)
 		, _text_align(TextAlign::kLeft)
 		, _type(KeyboardType::kNormal)

@@ -944,7 +944,7 @@ namespace qk {
 	}
 
 	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
-		: _render(render), _canvas(canvas), _cache(canvas->gtePathvCache())
+		: _render(render), _canvas(canvas), _cache(canvas->getPathvCache())
 		, _lastCmd(nullptr), _chMatrix(true)
 	{
 		_cmds.blocks.push({ // init, alloc 64k memory
@@ -1213,7 +1213,7 @@ namespace qk {
 
 #else
 	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
-		: _render(render), _canvas(canvas), _cache(canvas->gtePathvCache())
+		: _render(render), _canvas(canvas), _cache(canvas->getPathvCache())
 		, lastCmd(nullptr), _chMatrix(true)
 	{}
 	GLC_CmdPack::~GLC_CmdPack() {

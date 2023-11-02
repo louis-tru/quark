@@ -38,6 +38,7 @@
 
 namespace qk {
 	class Application;
+	class Window;
 	class Layout;
 
 	/**
@@ -46,24 +47,31 @@ namespace qk {
 	class Qk_EXPORT PreRender: public Object {
 		Qk_HIDDEN_ALL_COPY(PreRender);
 	public:
-		PreRender(Application *host);
+		Qk_DEFINE_PROP_GET(Window*, window);
+		Qk_DEFINE_PROP_GET(Application*, host);
+
+		/**
+		 * @constructor
+		*/
+		PreRender(Window *win);
+		/**
+		 * @destructor
+		*/
 		virtual ~PreRender();
 
 		class Qk_EXPORT Task {
 		public:
 			typedef List<Task*>::Iterator ID;
-			Task(): _task_timeout(0) {}
-			virtual ~Task();
-			virtual bool run_task(int64_t sys_time) = 0;
-			inline bool is_register_task() const { return _task_id != ID(); }
 			// define props
 			Qk_DEFINE_PROP_GET(ID, task_id);
 			Qk_DEFINE_PROP_GET(PreRender*, pre);
 			Qk_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
+			Task(): _task_timeout(0) {}
+			virtual ~Task();
+			virtual bool run_task(int64_t sys_time) = 0;
+			inline bool is_register_task() const { return _task_id != ID(); }
 			friend class PreRender;
 		};
-
-		Qk_DEFINE_PROP_GET(Application*, host);
 
 		/**
 		 * Solve the pre-rendering problem, return true if the view needs to be updated
@@ -83,7 +91,7 @@ namespace qk {
 	private:
 		void solve_mark();
 
-		// member data
+		// props data
 		int32_t _mark_total;
 		List<Task*>  _tasks;
 		Array<Array<Layout*>> _marks; // marked view

@@ -35,7 +35,6 @@
 #include "./util/event.h"
 #include "./util/loop.h"
 #include "./types.h"
-#include "./pre_render.h"
 #include "./render/pixel.h"
 
 #define Qk_Main() \
@@ -44,14 +43,12 @@
 	int __f_main__(int argc, Char** argv)
 
 namespace qk {
-	class Display;
-	class Root;
+	class Screen;
 	class EventDispatch;
-	class ActionDirect;
 	class DefaultTextOptions;
 	class FontPool;
 	class ImageSourcePool;
-	class RenderBackend;
+	class Window;
 
 	/**
 	 *
@@ -64,15 +61,17 @@ namespace qk {
 	class Qk_EXPORT Application: public Object {
 		Qk_HIDDEN_ALL_COPY(Application);
 	public:
-		struct Options {
-			ColorType   colorType;
-			uint16_t    msaa; // gpu msaa count
-			uint16_t    fps;
-			Rect        windowFrame;
-			String      windowTitle;
-			Color       backgroundColor;
-		};
 
+		// @props
+		Qk_DEFINE_PROP_GET(bool, is_loaded);
+		Qk_DEFINE_PROP_GET(DefaultTextOptions*, default_text_options); //! default font settings
+		Qk_DEFINE_PROP_GET(Screen*, screen); //! screen object
+		Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
+		Qk_DEFINE_PROP_GET(FontPool*, font_pool); //! font and font familys manage
+		Qk_DEFINE_PROP_GET(ImageSourcePool*, img_pool); //! image loader and image cache
+		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
+
+		// @events
 		Qk_Event(Load);
 		Qk_Event(Unload);
 		Qk_Event(Background);
@@ -96,7 +95,7 @@ namespace qk {
 			bool _lock;
 		};
 
-		Application(Options opts = {}, RunLoop *loop = RunLoop::current());
+		Application(RunLoop *loop = RunLoop::current());
 
 		/**
 		 * @method ~Application()
@@ -112,23 +111,6 @@ namespace qk {
 		 * @method pending() suspend ui application process
 		 */
 		void pending();
-
-		/**
-		 * @method options application options
-		 */
-		inline const Options& options() const { return _opts; }
-
-		Qk_DEFINE_PROP_GET(bool, is_loaded);
-		Qk_DEFINE_PROP_GET(DefaultTextOptions*, default_text_options); //! default font settings
-		Qk_DEFINE_PROP_GET(Display*, display); //! current display window
-		Qk_DEFINE_PROP_GET(Root*, root); //! root view
-		Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
-		Qk_DEFINE_PROP_GET(ActionDirect*, action_direct); //! action direct  manage
-		Qk_DEFINE_PROP_GET(PreRender*, pre_render); //! pre-renderer
-		Qk_DEFINE_PROP_GET(RenderBackend*, render); //! renderer
-		Qk_DEFINE_PROP_GET(FontPool*, font_pool); //! font and font familys manage
-		Qk_DEFINE_PROP_GET(ImageSourcePool*, img_pool); //! image loader and image cache
-		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
 
 		/**
 		 * Clean up garbage and recycle memory resources, all=true clean up all resources
@@ -189,22 +171,21 @@ namespace qk {
 		void handleExit(Event<>& e);
 
 		static Application*  _shared;   //! current shared application
-		Options        _opts;
 		KeepLoop*      _keep;
 		RecursiveMutex _render_mutex;
-		uint64_t       _max_image_memory_limit; //! Texture memory limit, cannot be less than 64MB, the default is 512MB.
+		//! Texture memory limit, cannot be less than 64MB, the default is 512MB.
+		uint64_t       _max_image_memory_limit;
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
-
 		friend class UILock;
 	};
+
+	typedef Application::UILock UILock;
+	typedef Application App;
 
 	inline Application* shared_app() {
 		return Application::shared();
 	}
-
-	typedef Application::UILock UILock;
-	typedef Application App;
 
 	//@private head
 	Qk_DEFINE_INLINE_MEMBERS(Application, Inl) {

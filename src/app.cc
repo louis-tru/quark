@@ -29,15 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./util/loop.h"
-#include "./util/http.h"
-#include "./render/render.h"
-#include "./layout/root.h"
-#include "./display.h"
+#include "./screen.h"
 #include "./app.h"
 #include "./render/font/pool.h"
 #include "./render/source.h"
-#include "./pre_render.h"
-#include "./layout/label.h"
+#include "./text/text_opts.h"
 #include "./event.h"
 
 Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
@@ -73,7 +69,7 @@ namespace qk {
 		}
 	}
 
-	Application::Application(Options opts, RunLoop *loop)
+	Application::Application(RunLoop *loop)
 		: Qk_Init_Event(Load)
 		, Qk_Init_Event(Unload)
 		, Qk_Init_Event(Background)
@@ -82,12 +78,11 @@ namespace qk {
 		, Qk_Init_Event(Resume)
 		, Qk_Init_Event(Memorywarning)
 		, _is_loaded(false)
-		, _opts(opts)
 		, _loop(loop), _keep(nullptr)
-		, _render(nullptr), _display(nullptr)
-		, _root(nullptr), _default_text_options(nullptr)
-		, _dispatch(nullptr), _action_direct(nullptr)
-		, _pre_render(nullptr), _font_pool(nullptr), _img_pool(nullptr)
+		, _screen(nullptr)
+		, _default_text_options(nullptr)
+		, _dispatch(nullptr)
+		, _font_pool(nullptr), _img_pool(nullptr)
 		, _max_image_memory_limit(512 * 1024 * 1024) // init 512MB
 	{
 		if (_shared)
@@ -95,24 +90,12 @@ namespace qk {
 		_shared = this;
 
 		Qk_On(ProcessExit, &Application::handleExit, this);
-
 		// init
-		_pre_render = new PreRender(this); Qk_DEBUG("new PreRender ok");
-		_display = NewRetain<Display>(this); Qk_DEBUG("NewRetain<Display> ok"); // strong ref
+		_screen = New<Screen>(this); Qk_DEBUG("New<Screen> ok"); // strong ref
 		_font_pool = FontPool::Make();
 		_img_pool = new ImageSourcePool(this);
 		_dispatch = new EventDispatch(this); Qk_DEBUG("new EventDispatch ok");
 		_default_text_options = new DefaultTextOptions(_font_pool);
-		// _action_direct = new ActionDirect(); Qk_DEBUG("new ActionDirect ok");
-		_render = Render::Make({ _opts.colorType, _opts.msaa, _opts.fps }, _display);
-		Qk_DEBUG("Render::Make() ok");
-
-		// init root
-		_root = new Root(this); Qk_DEBUG("new Root ok");
-		_root->reset();
-		_root->retain(); // strong ref
-		_root->focus();  // set focus
-
 		Qk_DEBUG("new Application ok");
 	}
 
@@ -121,14 +104,10 @@ namespace qk {
 
 		Qk_Off(ProcessExit, &Application::handleExit, this);
 
-		_root->remove();
-		Release(_root);         _root = nullptr;
 		delete _default_text_options; _default_text_options = nullptr;
 		Release(_dispatch);     _dispatch = nullptr;
-		// Release(_action_direct); _action_direct = nullptr;
-		Release(_display);     _display = nullptr;
-		Release(_pre_render);  _pre_render = nullptr;
-		Release(_render);      _render = nullptr;
+		Release(_screen);       _screen = nullptr;
+		// TODO delete windows ..
 		delete _keep;          _keep = nullptr;  _loop = nullptr;
 		Release(_font_pool);   _font_pool = nullptr;
 		Release(_img_pool);    _img_pool = nullptr;
@@ -175,7 +154,7 @@ namespace qk {
 	void Application::clear(bool all) {
 		UILock(this);
 		_img_pool->clear(all);
-		_render->getCanvas()->gtePathvCache()->clear(all);
+		// TODO clear windows cache ..
 	}
 
 	uint64_t Application::max_image_memory_limit() const {

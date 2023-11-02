@@ -123,9 +123,9 @@ namespace qk {
 		virtual void swapBuffer() = 0;
 
 		/**
-		 * @method gtePathvCache() Returns pathv cache object
+		 * @method getPathvCache() Returns pathv cache object
 		*/
-		virtual PathvCache* gtePathvCache() = 0;
+		virtual PathvCache* getPathvCache() = 0;
 
 		/**
 		 * @method setSurface() Surface params change reload

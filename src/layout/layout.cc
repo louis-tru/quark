@@ -30,18 +30,18 @@
 
 #include "./layout.h"
 #include "../pre_render.h"
-#include "../app.h"
+#include "../window.h"
 
 namespace qk {
 
 	/**
 		* @constructors
 		*/
-	Layout::Layout(App* host)
+	Layout::Layout(Window *win)
 		: _mark_index(-1)
 		, _layout_mark(kLayout_None)
 		, _layout_depth(0)
-		, _pre_render(host->pre_render())
+		, _pre_render(win->preRender())
 	{
 		Qk_ASSERT(_pre_render, "PreRender host cannot be null");
 	}

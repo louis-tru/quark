@@ -832,7 +832,7 @@ namespace qk {
 
 	// ------------------------ S c r o l l --------------------------
 
-	Scroll::Scroll(App *host): FloatLayout(host), BaseScroll(this)
+	Scroll::Scroll(Window *win): FloatLayout(win), BaseScroll(this)
 	{
 		set_is_clip(true);
 	}

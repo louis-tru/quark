@@ -136,8 +136,8 @@
 			'app.h',
 			'app.cc',
 			'app.h',
-			'display.h',
-			'display.cc',
+			'screen.h',
+			'screen.cc',
 			'errno.h',
 			'event.h',
 			'event.cc',
@@ -235,7 +235,7 @@
 					'platforms/mac/ios_app.h',
 					'platforms/mac/ios_app.mm',
 					'platforms/mac/ios_ctr.mm',
-					'platforms/mac/ios_display.mm',
+					'platforms/mac/ios_screen.mm',
 					'platforms/mac/ios_ime_helper.mm',
 					'platforms/mac/ios_main.mm',
 					'platforms/mac/ios_render.mm',
@@ -252,7 +252,7 @@
 			['os=="osx"', {
 				'sources': [
 					'platforms/mac/osx_app.mm',
-					'platforms/mac/osx_display.mm',
+					'platforms/mac/osx_screen.mm',
 					'platforms/mac/osx_ime_helper.mm',
 					'platforms/mac/osx_main.mm',
 					'render/render_osx.mm',

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./display.h"
+#include "./window.h"
 #include "./app.h"
 #include "./pre_render.h"
 #include "./layout/root.h"
@@ -41,27 +41,40 @@
 
 namespace qk {
 
-	Display::Display(Application* host)
-		: Qk_Init_Event(Change), Qk_Init_Event(Orientation)
-		, _host(host)
-		, _view_render(nullptr)
+	Window::Window(Options opts)
+		: Qk_Init_Event(Change)
+		, _host(shared_app())
+		, _viewRender(nullptr)
 		, _lockSize()
 		, _size(), _scale(1)
-		, _atom_pixel(1)
-		, _default_scale(0)
+		, _atomPixel(1)
+		, _defaultScale(0)
 		, _fsp(0)
 		, _nextFsp(0)
-		, _nextFspTime(0), _surface_region()
+		, _nextFspTime(0), _surfaceRegion()
 	{
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
-		_view_render = new ViewRender(this);
+		_viewRender = new ViewRender(this);
+		_preRender = new PreRender(this);
+		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
+		_viewRender->set_render(_render);
+
+		// init root
+		_root = new Root(this); Qk_DEBUG("new Root ok");
+		_root->reset();
+		_root->retain(); // strong ref
+		_root->focus();  // set focus
 	}
 
-	Display::~Display() {
-		Release(_view_render); _view_render = nullptr;
+	Window::~Window() {
+		_root->remove();
+		Release(_root);       _root = nullptr;
+		Release(_viewRender); _viewRender = nullptr;
+		Release(_preRender); _preRender = nullptr;
+		Release(_render); _render = nullptr;
 	}
 
-	void Display::push_clip_region(Region clip) {
+	void Window::clipRegion(Region clip) {
 		RegionSize re = {
 			Vec2{clip.origin.x(), clip.origin.y()}, Vec2{clip.end.x(), clip.end.y()}, Vec2{0,0}
 		};
@@ -97,17 +110,17 @@ namespace qk {
 		_clipRegion.push(re);
 	}
 
-	void Display::pop_clip_region() {
+	void Window::clipRestore() {
 		Qk_ASSERT( _clipRegion.length() > 1 );
 		_clipRegion.pop();
 	}
 
-	void Display::next_frame(cCb& cb) {
+	void Window::nextFrame(cCb& cb) {
 		UILock lock(_host);
 		_nextFrame.pushBack(cb);
 	}
 
-	void Display::solveNextFrame() {
+	void Window::solveNextFrame() {
 		if (_nextFrame.length()) {
 			List<Cb>* cb = new List<Cb>(std::move(_nextFrame));
 			_host->loop()->post(Cb([this, cb](Cb::Data& e) {
@@ -120,7 +133,7 @@ namespace qk {
 		}
 	}
 
-	void Display::set_size(Vec2 size) {
+	void Window::set_size(Vec2 size) {
 		float w = size.x(), h = size.y();
 		if (w >= 0.0 && h >= 0.0) {
 			UILock lock(_host);
@@ -131,15 +144,17 @@ namespace qk {
 		} else {
 			Qk_DEBUG("Lock size value can not be less than zero\n");
 		}
+		// this->set_defaultScale();
+		// this->set_size();
 	}
 
-	void Display::updateState() { // Lock before calling
-		Vec2 size = surface_size();
+	void Window::updateState() { // Lock before calling
+		Vec2 size = surfaceSize();
 		float width = size.x();
 		float height = size.y();
 
 		if (_lockSize.x() == 0 && _lockSize.y() == 0) { // Use the system default most suitable size
-			_size = { width / _default_scale, height / _default_scale };
+			_size = { width / _defaultScale, height / _defaultScale };
 		}
 		else if (_lockSize.x() != 0) { // lock width
 			_size = { _lockSize.x(), _lockSize.x() / width * height };
@@ -148,11 +163,11 @@ namespace qk {
 			_size = { _lockSize.y() / height * width, _lockSize.y() };
 		}
 		else { // Use the system default most suitable size
-			_size = { width / _default_scale, height / _default_scale };
+			_size = { width / _defaultScale, height / _defaultScale };
 		}
 
 		_scale = (width + height) / (_size.x() + _size.y());
-		_atom_pixel = 1.0f / _scale;
+		_atomPixel = 1.0f / _scale;
 
 		// set default draw region
 		_clipRegion.front() = {
@@ -165,41 +180,40 @@ namespace qk {
 			Qk_Trigger(Change); // trigger display change
 		}));
 
-		auto region = _surface_region;
+		auto region = _surfaceRegion;
 		Vec2 start = Vec2(-region.origin.x() / _scale, -region.origin.y() / _scale);
 		Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
-		_surfaceMat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
+		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
-		_view_render->set_render(_host->render());
-		_host->root()->onDisplayChange();
+		_root->onDisplayChange();
 
 		Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
 
-		_host->render()->getCanvas()->setSurface(_surfaceMat, size, _scale);
+		_render->getCanvas()->setSurface(mat, size, _scale);
 	}
 
-	void Display::onRenderBackendReload(Region region, Vec2 size, float defaultScale) {
+	void Window::onRenderBackendReload(Region region, Vec2 size, float defaultScale) {
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
-			Qk_DEBUG("Display::onDeviceReload");
+			Qk_DEBUG("Window::onDeviceReload");
 			UILock lock(_host);
-			if ( _surface_region.origin != region.origin
-				|| _surface_region.end != region.end
-				|| _surface_region.size != size
-				|| _default_scale != defaultScale
+			if ( _surfaceRegion.origin != region.origin
+				|| _surfaceRegion.end != region.end
+				|| _surfaceRegion.size != size
+				|| _defaultScale != defaultScale
 			) {
-				_surface_region = { region.origin, region.end, size };
-				_default_scale = defaultScale;
+				_surfaceRegion = { region.origin, region.end, size };
+				_defaultScale = defaultScale;
 				updateState();
 			} else {
-				_host->root()->onDisplayChange();
+				_root->onDisplayChange();
 			}
 		}
 	}
 
-	bool Display::onRenderBackendDisplay() {
+	bool Window::onRenderBackendDisplay() {
 		UILock lock(_host); // ui main local
 
-		if (!_host->pre_render()->solve()) {
+		if (!_preRender->solve()) {
 			solveNextFrame();
 			return false;
 		}
@@ -213,7 +227,7 @@ namespace qk {
 		}
 		_nextFsp++;
 
-		_host->root()->accept(_view_render); // start drawing
+		_root->accept(_viewRender); // start drawing
 
 		solveNextFrame(); // solve frame
 
@@ -221,7 +235,7 @@ namespace qk {
 		int64_t st = time_micro();
 #endif
 
-		_host->render()->getCanvas()->swapBuffer();
+		_render->getCanvas()->swapBuffer();
 
 #if DEBUG && PRINT_RENDER_FRAME_TIME
 		int64_t ts2 = (time_micro() - st) / 1e3;

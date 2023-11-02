@@ -62,7 +62,13 @@ namespace qk {
 	public:
 		typedef ViewVisitor Visitor;
 
-		View(Application *host);
+		/**
+		 * @constructor
+		*/
+		View(Window *win);
+		/**
+		 * @destructor
+		*/
 		virtual ~View();
 
 		template<class T = View> inline T* New() {
@@ -300,12 +306,19 @@ namespace qk {
 		virtual void set_parent(View* parent);
 
 		struct Transform {
-			Vec2 translate, scale, skew; float rotate; // 平移向量, 缩放向量, 倾斜向量, z轴旋转弧度
+			Vec2 translate, scale, skew;
+			float rotate; // 平移向量, 缩放向量, 倾斜向量, z轴旋转弧度
 		};
 		Transform *_transform; // 矩阵变换
-		Mat        _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
+		Mat       _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
+
+		friend class ViewRender;
+
+		Qk_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(InlEvent);
 
 	public:
+		// @props
 		Qk_DEFINE_PROP_ACC(Vec2, translate); // matrix displacement for the view
 		Qk_DEFINE_PROP_ACC(Vec2, scale); // Matrix scaling
 		Qk_DEFINE_PROP_ACC(Vec2, skew); // Matrix skew, (radian)
@@ -333,20 +346,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(bool, visible);
 		// 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		Qk_DEFINE_PROP_GET(bool, visible_region);
-
-		Qk_DEFINE_INLINE_CLASS(Inl);
-		Qk_DEFINE_INLINE_CLASS(InlEvent);
-
-	private:
-		void remove_all_child_(); // remove all child views
-		void clear(); // Cleaning up associated view information
-		void clear_layout_depth(); //  clear layout depth
-		void set_layout_depth_(uint32_t depth); // settings depth
-		// get transform instance
-		Transform* transform_p();
-
-		// friend class
-		friend class ViewRender;
 	};
 
 }

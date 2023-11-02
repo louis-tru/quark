@@ -44,7 +44,7 @@ namespace qk {
 		Qk_Define_View(Input);
 	public:
 		typedef ReferenceTraits Traits;
-		Input(App *host);
+		Input(Window *win);
 		// define props
 		Qk_DEFINE_PROP(bool, security);
 		Qk_DEFINE_PROP(bool, readonly);

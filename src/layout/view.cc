@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../app.h"
+#include "../window.h"
 #include "./view.h"
 #include "../text/text_lines.h"
 #include "../pre_render.h"
@@ -42,6 +43,7 @@ namespace qk {
 	// view private members method
 	Qk_DEFINE_INLINE_MEMBERS(View, Inl) {
 	public:
+		#define _this _inl(this)
 		#define _inl(self) static_cast<View::Inl*>(self)
 
 		static void set_visible_static(View::Inl* self, bool val, uint32_t layout_depth) {
@@ -58,85 +60,81 @@ namespace qk {
 				self->clear_layout_depth();
 			}
 		}
+
+		// get transform instance
+		Transform* transform_ptr() {
+			if (!_transform) {
+				_transform = new Transform();
+				_transform->scale = Vec2(1);
+				_transform->rotate = 0;
+			}
+			return _transform;
+		}
+
+		void remove_all_child_() { // remove all child views
+			while (_first) {
+				_first->remove();
+			}
+		}
+
+		void clear() { // Cleaning up associated view information
+			if (_parent) {
+				/* 当前为第一个子视图 */
+				if (_parent->_first == this) {
+					_parent->_first = _next;
+				} else {
+					_prev->_next = _next;
+				}
+				/* 当前为最后一个子视图 */
+				if (_parent->_last == this) {
+					_parent->_last = _prev;
+				} else {
+					_next->_prev = _prev;
+				}
+			}
+		}
+
+		void clear_layout_depth() { //  clear layout depth
+			if ( layout_depth() ) {
+				set_layout_depth(0);
+				blur();
+				View *v = _first;
+				while ( v ) {
+					_inl(v)->clear_layout_depth();
+					v = v->_next;
+				}
+			}
+		}
+
+		void set_layout_depth_(uint32_t depth) { // settings depth
+			if (_visible) {
+				if ( layout_depth() != depth ) {
+					set_layout_depth(depth++);
+
+					if ( layout_mark() ) { // remark
+						mark(kLayout_None);
+					}
+					mark_render(kRecursive_Transform);
+
+					View *v = _first;
+					while ( v ) {
+						_inl(v)->set_layout_depth_(depth);
+						v = v->_next;
+					}
+				}
+			} else {
+				clear_layout_depth();
+			}
+		}
+
 	};
 
 	void __View_set_visible(View* self, bool val, uint32_t layout_depth) {
 		View::Inl::set_visible_static(_inl(self), val, layout_depth);
 	}
 
-	/**
-	* @method remove_all_child_()
-	*/
-	void View::remove_all_child_() {
-		while (_first) {
-			_first->remove();
-		}
-	}
-
-	/**
-	* @method clear() Cleaning up associated view information
-	*/
-	void View::clear() {
-		if (_parent) {
-			/* 当前为第一个子视图 */
-			if (_parent->_first == this) {
-				_parent->_first = _next;
-			} else {
-				_prev->_next = _next;
-			}
-			/* 当前为最后一个子视图 */
-			if (_parent->_last == this) {
-				_parent->_last = _prev;
-			} else {
-				_next->_prev = _prev;
-			}
-		}
-	}
-
-	void View::clear_layout_depth() {
-		if ( layout_depth() ) {
-			set_layout_depth(0);
-			blur();
-			View *v = _first;
-			while ( v ) {
-				v->clear_layout_depth();
-				v = v->_next;
-			}
-		}
-	}
-
-	void View::set_layout_depth_(uint32_t depth) {
-		if (_visible) {
-			if ( layout_depth() != depth ) {
-				set_layout_depth(depth++);
-
-				if ( layout_mark() ) { // remark
-					mark(kLayout_None);
-				}
-				mark_render(kRecursive_Transform);
-
-				View *v = _first;
-				while ( v ) {
-					v->set_layout_depth_(depth);
-					v = v->_next;
-				}
-			}
-		} else {
-			clear_layout_depth();
-		}
-	}
-
-	View::Transform* View::transform_p() {
-		if (!_transform) {
-			_transform = new Transform();
-			_transform->scale = Vec2(1);
-			_transform->rotate = 0;
-		}
-		return _transform;
-	}
-
-	View::View(Application *host)
-		: Notification<UIEvent, UIEventName, Layout>(host)
+	View::View(Window *win)
+		: Notification<UIEvent, UIEventName, Layout>(win)
 		, _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
@@ -151,7 +149,7 @@ namespace qk {
 		Qk_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		blur();
 		set_action(nullptr); // del action
-		remove_all_child_(); // 删除子视图
+		_this->remove_all_child_(); // 删除子视图
 		delete _transform; _transform = nullptr;
 	}
 
@@ -165,7 +163,7 @@ namespace qk {
 		if (_parent) {
 			if (view == this) return;
 			if (view->_parent == _parent) {
-				view->clear();  // 清除关联
+				_inl(view)->clear();  // 清除关联
 			} else {
 				view->set_parent(_parent);
 			}
@@ -190,7 +188,7 @@ namespace qk {
 		if (_parent) {
 			if (view == this) return;
 			if (view->_parent == _parent) {
-				view->clear(); // 清除关联
+				_inl(view)->clear(); // 清除关联
 			} else {
 				view->set_parent(_parent);
 			}
@@ -217,7 +215,7 @@ namespace qk {
 			return;
 		}
 		if (this == child->_parent) {
-			child->clear();
+			_inl(child)->clear();
 		} else {
 			child->set_parent(this);
 		}
@@ -246,7 +244,7 @@ namespace qk {
 			return;
 		}
 		if (this == child->_parent) {
-			child->clear();
+			_inl(child)->clear();
 		} else {
 			child->set_parent(this);
 		}
@@ -277,8 +275,8 @@ namespace qk {
 		if (_parent) {
 			blur(); // 辞去焦点
 			set_action(nullptr); // del action
-			remove_all_child_(); // 删除子视图
-			clear();
+			_this->remove_all_child_(); // 删除子视图
+			_this->clear();
 			// remove_event_listener();
 			set_layout_depth(0);
 			_parent = _prev = _next = nullptr;
@@ -287,7 +285,7 @@ namespace qk {
 		else {
 			// remove_event_listener();
 			set_action(nullptr); // del action
-			remove_all_child_(); // 删除子视图
+			_this->remove_all_child_(); // 删除子视图
 		}
 	}
 
@@ -298,7 +296,7 @@ namespace qk {
 		* @method remove_all_child()
 		*/
 	void View::remove_all_child() {
-		remove_all_child_();
+		_this->remove_all_child_();
 	}
 
 	/**
@@ -310,7 +308,7 @@ namespace qk {
 	void View::set_parent(View* parent) {
 		// clear parent
 		if (parent != _parent) {
-			clear();
+			_this->clear();
 			
 			if ( _parent ) {
 				_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
@@ -323,9 +321,9 @@ namespace qk {
 
 			uint32_t depth = parent->layout_depth();
 			if (depth) {
-				set_layout_depth_(depth + 1);
+				_this->set_layout_depth_(depth + 1);
 			} else {
-				clear_layout_depth();
+				_this->clear_layout_depth();
 			}
 		}
 	}
@@ -421,7 +419,7 @@ namespace qk {
 		*/
 	void View::set_translate(Vec2 val) {
 		if (translate() != val) {
-			transform_p()->translate = val;
+			_this->transform_ptr()->translate = val;
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -433,7 +431,7 @@ namespace qk {
 		*/
 	void View::set_scale(Vec2 val) {
 		if (scale() != val) {
-			transform_p()->scale = val;
+			_this->transform_ptr()->scale = val;
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -446,7 +444,7 @@ namespace qk {
 	void View::set_skew(Vec2 val) {
 		val *= Qk_PI_RATIO_180;
 		if (!_transform || _transform->skew != val) {
-			transform_p()->skew = val;
+			_this->transform_ptr()->skew = val;
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -459,7 +457,7 @@ namespace qk {
 	void View::set_rotate(float val) {
 		val *= Qk_PI_RATIO_180;
 		if (!_transform || _transform->rotate != val) {
-			transform_p()->rotate = val;
+			_this->transform_ptr()->rotate = val;
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -520,7 +518,7 @@ namespace qk {
 		*/
 	void View::set_x(float val) {
 		if (translate().x() != val) {
-			transform_p()->translate.set_x(val);
+			_this->transform_ptr()->translate.set_x(val);
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -533,7 +531,7 @@ namespace qk {
 		*/
 	void View::set_y(float val) {
 		if (translate().y() != val) {
-			transform_p()->translate.set_y(val);
+			_this->transform_ptr()->translate.set_y(val);
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -546,7 +544,7 @@ namespace qk {
 		*/
 	void View::set_scale_x(float val) {
 		if (scale().x() != val) {
-			transform_p()->scale.set_x(val);
+			_this->transform_ptr()->scale.set_x(val);
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -559,7 +557,7 @@ namespace qk {
 		*/
 	void View::set_scale_y(float val) {
 		if (scale().y() != val) {
-			transform_p()->scale.set_y(val);
+			_this->transform_ptr()->scale.set_y(val);
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -572,7 +570,7 @@ namespace qk {
 		*/
 	void View::set_skew_x(float val) {
 		if (skew().x() != val) {
-			transform_p()->skew.set_x(val);
+			_this->transform_ptr()->skew.set_x(val);
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -585,7 +583,7 @@ namespace qk {
 		*/
 	void View::set_skew_y(float val) {
 		if (skew().y() != val) {
-			transform_p()->skew.set_y(val);
+			_this->transform_ptr()->skew.set_y(val);
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -839,7 +837,7 @@ namespace qk {
 	 */
 	bool View::blur() {
 		if ( is_focus() ) {
-			auto root = pre_render()->host()->root();
+			auto root = pre_render()->window()->root();
 			if ( root && root != this ) {
 				return root->focus();
 			}

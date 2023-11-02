@@ -42,7 +42,7 @@ namespace qk {
 		Qk_Define_View(Label);
 	public:
 		Qk_DEFINE_PROP(String, text_value);
-		Label(App *host);
+		Label(Window *win);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;

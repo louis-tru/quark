@@ -35,15 +35,16 @@
 
 #include "./layout/view.h"
 #include "./render/render.h"
-#include "./display.h"
 
 namespace qk {
+
+	class Window;
 
 	class Qk_EXPORT ViewRender: public Object, public ViewVisitor {
 		Qk_HIDDEN_ALL_COPY(ViewRender);
 	public:
 		Qk_DEFINE_PROP(Render*, render);
-		ViewRender(Display *display);
+		ViewRender(Window *window);
 		virtual uint32_t flags() override;
 		virtual void  visitView(View* v) override;
 		virtual void  visitBox(Box* box) override;
@@ -60,7 +61,7 @@ namespace qk {
 		virtual void  visitFlowLayout(FlowLayout* flow) override;
 		virtual void  visitFlexLayout(FlexLayout* flex) override;
 	private:
-		Display      *_display;
+		Window      *_window;
 		Canvas       *_canvas;
 		PathvCache   *_cache;
 		float         _opacity;

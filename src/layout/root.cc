@@ -40,7 +40,7 @@ namespace qk {
 
 	void __View_set_visible(View* self, bool val, uint32_t layout_depth);
 
-	Root::Root(Application *host): Box(host) {}
+	Root::Root(Window *win): Box(win) {}
 
 	void Root::reset() {
 		set_layout_depth(1);

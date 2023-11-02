@@ -230,8 +230,8 @@ namespace qk {
 		}
 	}
 
-	FlexLayout::FlexLayout(App *host)
-		: Box(host)
+	FlexLayout::FlexLayout(Window *win)
+		: Box(win)
 		, _direction(Direction::kRow)
 		, _items_align(ItemsAlign::kStart)
 		, _cross_align(CrossAlign::kStart)

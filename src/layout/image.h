@@ -39,7 +39,7 @@ namespace qk {
 	class Qk_EXPORT Image: public Box, public ImageSourceHolder {
 		Qk_Define_View(Image);
 	public:
-		Image(App *host);
+		Image(Window *win);
 		virtual bool layout_forward(uint32_t mark) override;
 	protected:
 		virtual float solve_layout_content_width(Size &parent_layout_size) override;

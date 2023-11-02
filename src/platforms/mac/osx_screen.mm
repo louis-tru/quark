@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, blue.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of blue.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,39 +25,79 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__layout__flex__
-#define __quark__layout__flex__
+#import "./mac_app.h"
+#import "../../screen.h"
 
-#include "./box.h"
+using namespace qk;
 
-namespace qk {
+// ***************** D i s p l a y *****************
 
-	class Qk_EXPORT FlexLayout: public Box {
-		Qk_Define_View(FlexLayout);
-	public:
-		FlexLayout(Window *win);
-		// define props
-		Qk_DEFINE_PROP(Direction, direction); // typesetting direction
-		Qk_DEFINE_PROP(ItemsAlign, items_align); // alignment mode of the main axis
-		Qk_DEFINE_PROP(CrossAlign, cross_align); // alignment mode of the cross axis
-		// @overwrite
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
-		virtual Vec2 layout_lock(Vec2 layout_size) override;
-		virtual bool is_lock_child_layout_size() override;
-		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
-	private:
-		template<bool is_horizontal> void layout_typesetting_auto(bool is_reverse);
-		template<bool is_horizontal> void layout_typesetting_flex(bool is_reverse);
-		void layout_typesetting_auto_impl(bool is_horizontal, bool is_reverse);
-		bool update_IsLockChild();
-		bool _is_lock_child;
-		friend class FlowLayout;
-		Qk_DEFINE_INLINE_CLASS(Inl);
-	};
+typedef Screen::StatusBarStyle StatusBarStyle;
 
+extern QkApplicationDelegate *__appDelegate;
+
+/**
+ * @func default_atom_pixel
+ */
+float Screen::default_atom_pixel() {
+	return 1.0 / UIScreen.mainScreen.backingScaleFactor;
 }
-#endif
+
+/**
+ * @func set_keep_screen(keep)
+ */
+void Screen::set_keep_screen(bool keep) {
+	// TODO
+}
+
+/**
+ * @func status_bar_height()
+ */
+float Screen::status_bar_height() const {
+	return 0;
+}
+
+/**
+ * @func default_status_bar_height
+ */
+float Screen::default_status_bar_height() {
+	return 0;
+}
+
+/**
+ * @func set_visible_status_bar(visible)
+ */
+void Screen::set_visible_status_bar(bool visible) {
+	// TODO
+}
+
+/**
+ * @func set_status_bar_text_color(color)
+ */
+void Screen::set_status_bar_style(StatusBarStyle style) {
+	// TODO
+}
+
+/**
+ * @func request_fullscreen(fullscreen)
+ */
+void Screen::set_fullscreen(bool fullscreen) {
+	// TODO
+}
+
+/**
+ * @func orientation()
+ */
+Screen::Orientation Screen::orientation() const {
+	return ORIENTATION_INVALID;
+}
+
+/**
+ * @func set_orientation(orientation)
+ */
+void Screen::set_orientation(Orientation orientation) {
+	// noop
+}
