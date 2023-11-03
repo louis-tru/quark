@@ -116,12 +116,13 @@ namespace qk {
 	}
 
 	ThreadID thread_new(void (*exec)(void* arg), void* arg, cString& tag) {
-		if ( __is_process_exit != 0 )
+		if ( __is_process_exit != 0 ) {
 			return ThreadID();
-		Thread_INL* thread = Thread_INL_init(new Thread_INL, tag, arg, exec);
+		}
+		Thread_INL *t = Thread_INL_init(new Thread_INL, tag, arg, exec);
 		ScopeLock scope(*__threads_mutex);
-
 		ThreadID id;
+
 		uv_thread_create((uv_thread_t*)&id, [](void* t) {
 			{ // wait thread_new main call return
 				ScopeLock scope(*__threads_mutex);
@@ -151,10 +152,10 @@ namespace qk {
 				Qk_DEBUG("Thread end  ok, %s", thread->tag.c_str());
 			}
 			delete thread;
-		}, thread);
+		}, t);
 
 		if (id != ThreadID()) {
-			__threads->set(thread->id = id, thread);
+			__threads->set(t->id = id, t);
 		} else { // fail
 			Qk_FATAL("id != ThreadID()");
 			// delete thread;
