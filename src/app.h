@@ -44,7 +44,6 @@
 
 namespace qk {
 	class Screen;
-	class EventDispatch;
 	class DefaultTextOptions;
 	class FontPool;
 	class ImageSourcePool;
@@ -69,7 +68,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
 		Qk_DEFINE_PROP_GET(FontPool*, font_pool); //! font and font familys manage
 		Qk_DEFINE_PROP_GET(ImageSourcePool*, img_pool); //! image loader and image cache
-		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
 
 		// @events
 		Qk_Event(Load);

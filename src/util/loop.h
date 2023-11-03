@@ -77,9 +77,9 @@ namespace qk {
 	Qk_EXPORT void     thread_pause(uint64_t timeoutUs = 0 /*Less than 1 permanent wait*/);
 	Qk_EXPORT void     thread_resume(ThreadID id, int abort = 0); //!< resume thread running and send abort signal
 	Qk_EXPORT void     thread_abort(ThreadID id); //!< send abort to run loop, signal=-1
-	//!< Wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
-	Qk_EXPORT void     thread_wait_for(ThreadID id, uint64_t timeoutUs = 0);
-	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc); //!< try abort run loop, signal=-2
+	//!< wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
+	Qk_EXPORT void     thread_join_for(ThreadID id, uint64_t timeoutUs = 0);
+	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc); //!< try abort all run loop, signal=-2
 	Qk_EXPORT ThreadID thread_current_id();
 
 	Qk_EXPORT EventNoticer<Event<>, Mutex>& onProcessExit();
@@ -89,7 +89,7 @@ namespace qk {
 	*/
 	class Qk_EXPORT PostMessage {
 	public:
-		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) = 0;
+		virtual void post_message(Cb cb, uint64_t delay_us = 0) = 0;
 	};
 
 	/**
@@ -98,21 +98,21 @@ namespace qk {
 	class Qk_EXPORT RunLoop: public Object, public PostMessage {
 		Qk_HIDDEN_ALL_COPY(RunLoop);
 	public:
-		
+
 		/**
 		 * @method runing()
 		*/
 		bool runing() const;
-		
+
 		/**
 		 * @method is_alive
 		*/
 		bool is_alive() const;
-		
+
 		/**
 		* @func post(cb[,delay_us]) post message and setting delay
 		*/
-		uint32_t post(Cb cb, uint64_t delay_us = 0);
+		void post(Cb cb, uint64_t delay_us = 0);
 
 		/**
 		 * @class PostSyncData
@@ -132,19 +132,14 @@ namespace qk {
 		/**
 		 * @overwrite
 		*/
-		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0);
-		
-		/**
-		* @func cancel(id) cancel message with id
-		*/
-		void cancel(uint32_t id);
-		
+		virtual void post_message(Cb cb, uint64_t delay_us = 0);
+
 		/**
 		 * Running the message loop
 		 * @arg [timeout=0] {uint64_t} Timeout (subtle us), when it is equal to 0, no new message will end immediately
 		*/
 		void run(uint64_t timeout = 0);
-		
+
 		/**
 		 * Stop running message loop
 		 *
@@ -158,7 +153,7 @@ namespace qk {
 		 * @method work(cb[,done[,name]])
 		*/
 		uint32_t work(Cb cb, Cb done = 0, cString& name = String());
-		
+
 		/**
 		* @func cancel_work(id)
 		*/
@@ -169,15 +164,14 @@ namespace qk {
 		 * the message queue will always remain in the running state
 		 *
 		 * @arg name {cString&} alias
-		 * @arg [clean=true] {bool} Whether to clean up the unfinished `post` message initiated by keekloop when releasing
 		*/
-		KeepLoop* keep_alive(cString& name = String(), bool clean = true);
+		KeepLoop* keep_alive(cString& name = String());
 
 		/**
 		 * Returns the libuv C library uv loop object for current run loop
 		*/
 		inline uv_loop_t* uv_loop() { return _uv_loop; }
-		
+
 		/**
 		 * Returns the thread id for run loop
 		 */
@@ -207,27 +201,27 @@ namespace qk {
 		 * @constructor
 		*/
 		RunLoop(Thread* t, uv_loop_t* uv);
+
 		/**
 		 * @destructor
 		*/
 		virtual ~RunLoop();
 
-		struct Queue {
-			uint32_t id, group;
+		struct Msg {
 			int64_t time;
-			Cb resolve;
+			Cb      cb;
 		};
 		struct Work;
-		List<Queue>     _queue;
-		List<Work*>     _works;
-		List<KeepLoop*> _keeps;
+		List<Msg>       _msg;
+		List<Work*>     _work;
+		List<KeepLoop*> _keep;
 		Mutex       _mutex;
 		Thread*     _thread;
 		ThreadID    _tid;
 		uv_loop_t*  _uv_loop;
 		uv_async_t* _uv_async;
 		uv_timer_t* _uv_timer;
-		int64_t     _timeout, _record_timeout;
+		int64_t _timeout, _record_timeout;
 
 		friend class KeepLoop;
 		Qk_DEFINE_INLINE_CLASS(Inl);
@@ -242,42 +236,30 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(KeepLoop);
 	public:
 		/**
-		 * @destructor `destructor_clear=true` will cancel all messages `post` through it
+		 * @destructor
 		*/
 		virtual ~KeepLoop();
+
 		/**
 		 * @func post_message(cb[,delay_us])
 		*/
-		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0);
-		/**
-		 * @method post(cb[,delay_us])
-		*/
-		uint32_t post(Cb cb, uint64_t delay_us = 0);
-		/**
-		 * @method cancel_all() Cancel all messages from the previous `post`
-		*/
-		void cancel_all();
-		/**
-		 * @method cancel(id)
-		*/
-		void cancel(uint32_t id);
+		virtual void post_message(Cb cb, uint64_t delay_us = 0);
+
 		/**
 		 * @method host() Returns `nullptr` if the target thread has ended
 		*/
 		inline RunLoop* host() { return _loop; }
 
 	private:
-		typedef List<KeepLoop*>::Iterator Iterator;
 		/**
-		* @constructor `declear=true` means that it will be cleaned up when it is destructed
+		 * @private
+		 * @constructor
 		*/
-		KeepLoop(cString& name, bool destructor_clean);
+		KeepLoop(cString &name);
 
-		RunLoop*  _loop;
-		uint32_t  _group;
-		Iterator  _id;
-		String    _name;
-		bool      _de_clean;
+		RunLoop* _loop;
+		String _name;
+		List<KeepLoop*>::Iterator _id;
 		friend class RunLoop;
 	};
 

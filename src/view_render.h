@@ -61,11 +61,11 @@ namespace qk {
 		virtual void  visitFlowLayout(FlowLayout* flow) override;
 		virtual void  visitFlexLayout(FlexLayout* flex) override;
 	private:
-		Window      *_window;
+		Window       *_window;
 		Canvas       *_canvas;
 		PathvCache   *_cache;
-		float         _opacity;
-		uint32_t      _mark_recursive;
+		float        _opacity;
+		uint32_t     _mark_recursive;
 		float        _fix,_fix2; // fix rect stroke width
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};

@@ -80,11 +80,11 @@
 
 
 namespace qk {
-
 	class Application;
 	class View;
 	class Action;
 	class TextInput;
+	class Window;
 
 	// event category
 	enum {
@@ -265,11 +265,12 @@ namespace qk {
 		};
 
 		Qk_DEFINE_PROP_GET(Application*, host);
+		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(KeyboardAdapter*, keyboard);
 		Qk_DEFINE_PROP(TextInput*, text_input);
 		Qk_DEFINE_PROP_GET(View*, focus_view); // 焦点视图
 
-		EventDispatch(Application* app);
+		EventDispatch(Window* win);
 		virtual ~EventDispatch();
 		// handles
 		void onTouchstart(List<TouchPoint>&& touches);
@@ -295,6 +296,7 @@ namespace qk {
 		void set_ime_keyboard_close();
 		void set_ime_keyboard_spot_location(Vec2 location);
 		bool set_focus_view(View* view);
+
 	private:
 		void touchstart_erase(View* view, List<TouchPoint>& in);
 		void touchstart(View* view, List<TouchPoint>& in);

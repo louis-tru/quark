@@ -30,11 +30,11 @@
 
 #include "./event.h"
 #include "./app.h"
+#include "./window.h"
 #include "./layout/root.h"
 #include "./layout/button.h"
 #include "./keyboard.h"
 #include "./pre_render.h"
-#include <math.h>
 
 namespace qk {
 
@@ -82,8 +82,8 @@ namespace qk {
 					view = view->parent();
 				} else {
 					if (evt.is_default()) {
-						auto app = pre_render()->host();
-						if (evt.origin() != app->dispatch()->focus_view())
+						auto win = pre_render()->window();
+						if (evt.origin() != win->dispatch()->focus_view())
 							view->focus(); // root
 					}
 					break;
@@ -120,7 +120,7 @@ namespace qk {
 	bool View::focus() {
 		if ( is_focus() ) return true;
 
-		auto dispatch = pre_render()->host()->dispatch();
+		auto dispatch = pre_render()->window()->dispatch();
 		View* old = dispatch->focus_view();
 
 		if ( !dispatch->set_focus_view(this) ) {
@@ -287,8 +287,9 @@ namespace qk {
 		Vec2 _start_position, _position;
 	};
 
-	EventDispatch::EventDispatch(Application* app)
-		: _host(app)
+	EventDispatch::EventDispatch(Window* win)
+		: _window(win)
+		, _host(win->host())
 		, _text_input(nullptr), _focus_view(nullptr) 
 	{
 		_keyboard = KeyboardAdapter::create();
@@ -539,7 +540,7 @@ namespace qk {
 		Qk_DEBUG("onTouchstart x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
 			UILock lock;
-			Root* r = _host->root();
+			Root* r = _window->root();
 			if (r) {
 				touchstart(r, *evt.data);
 			}
@@ -608,7 +609,7 @@ namespace qk {
 	}
 
 	View* EventDispatch::find_receive_event_view(Vec2 pos) {
-		return _host->root() ? qk::find_receive_event_view(_host->root(), pos) : nullptr;
+		return _window->root() ? qk::find_receive_event_view(_window->root(), pos) : nullptr;
 	}
 
 	Sp<MouseEvent> EventDispatch::NewMouseEvent(View* view, float x, float y, uint32_t keycode) {
@@ -735,7 +736,7 @@ namespace qk {
 			// set current mouse pos
 			_mouse_h->set_position(pos);
 
-			if (_host->root()) {
+			if (_window->root()) {
 				Handle<View> v(find_receive_event_view(pos));
 				mousemove(*v, pos);
 			}
@@ -770,7 +771,7 @@ namespace qk {
 
 		View* view = _focus_view;
 		if ( !view )
-			view = _host->root();
+			view = _window->root();
 
 		if ( view ) {
 			auto name = _keyboard->keyname();
@@ -834,7 +835,7 @@ namespace qk {
 
 		View* view = _focus_view;
 		if ( !view )
-			view = _host->root();
+			view = _window->root();
 
 		if ( view ) {
 			auto name = _keyboard->keyname();

@@ -93,7 +93,7 @@ namespace qk {
 				thread_abort(i.key);
 			}
 			for (auto& i : childs) {
-				thread_wait_for(i.key);
+				thread_join_for(i.key);
 			}
 			Qk_DEBUG("ParallelWorking::abort_child() ok, count: %d", childs.length());
 		} else {
@@ -103,7 +103,7 @@ namespace qk {
 					"Only subthreads belonging to \"ParallelWorking\" can be aborted");
 			}
 			thread_abort(id);
-			thread_wait_for(id);
+			thread_join_for(id);
 			Qk_DEBUG("ParallelWorking::abort_child(id) ok");
 		}
 	}

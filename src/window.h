@@ -42,6 +42,7 @@ namespace qk {
 	class PreRender;
 	class ViewRender;
 	class Root;
+	class EventDispatch;
 
 	/**
 	 * @class Window system window ui components
@@ -83,6 +84,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Root*, root); //! root view
 		Qk_DEFINE_PROP_GET(Application*, host); //! application host
 		Qk_DEFINE_PROP_GET(PreRender*, preRender); //! pre render
+		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
 
 		/**
 		 * @event onChange show port change event

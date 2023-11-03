@@ -53,7 +53,7 @@ namespace qk {
 
 	struct Thread_INL: Thread, CondMutex {
 		RunLoop*    _loop;
-		List<CondMutex*> _wait_ends; // external wait thread end
+		List<CondMutex*> _waitSelfEnd; // external wait thread end
 		void        (*_exec)(void* arg);
 		void        *_arg;
 	};
@@ -98,15 +98,9 @@ namespace qk {
 		return t;
 	}
 
-	static void thread_destructor(void* ptr) {
-		auto thread = reinterpret_cast<Thread_INL*>(ptr);
-		Release(thread->_loop);
-		delete thread;
-	}
-
-	static void thread_set_specific_data(Thread* thread) {
+	static void thread_set_specific_data(Thread *t) {
 		Qk_ASSERT(!pthread_getspecific(__specific_key));
-		pthread_setspecific(__specific_key, thread);
+		pthread_setspecific(__specific_key, t);
 	}
 
 	ThreadID thread_current_id() {
@@ -144,15 +138,19 @@ namespace qk {
 				ScopeLock scope(*__threads_mutex);
 				__threads->erase(thread->id);
 			}
-			{ // notify wait
+			{ // notify wait and release loop
 				ScopeLock scope(thread->mutex);
-				if (!thread->abort)
-					thread->abort = -3; // abort
+				if (!thread->abort) {
+					thread->abort = -3; // exit abort
+				}
+				Release(thread->_loop); // release loop object
 				Qk_DEBUG("Thread end ..., %s", thread->tag.c_str());
-				for (auto& i : thread->_wait_ends)
+				for (auto& i : thread->_waitSelfEnd) {
 					i->lock_notify_one();
+				}
 				Qk_DEBUG("Thread end  ok, %s", thread->tag.c_str());
 			}
+			delete thread;
 		}, thread);
 
 		if (id != ThreadID()) {
@@ -206,23 +204,23 @@ namespace qk {
 		thread_resume(id, -1);
 	}
 
-	void thread_wait_for(ThreadID id, uint64_t timeoutUs) {
+	void thread_join_for(ThreadID id, uint64_t timeoutUs) {
 		if (id == thread_current_id()) {
-			Qk_DEBUG("thread_wait_for(), cannot wait self thread");
+			Qk_DEBUG("thread_join_for(), cannot wait self thread");
 			return;
 		}
 		Lock lock(*__threads_mutex);
 		auto i = __threads->find(id);
 		if ( i != __threads->end() ) {
-			i->value->mutex.lock();
+			auto t = i->value;
+			t->mutex.lock();
 			lock.unlock();
 			CondMutex wait;
-			auto &tag = i->value->tag;
-			auto it = i->value->_wait_ends.pushBack(&wait);
-			i->value->mutex.unlock();
-			Qk_DEBUG("thread_wait_for(), ..., %p, %s", id, *tag);
+			t->_waitSelfEnd.pushBack(&wait);
+			t->mutex.unlock();
+			Qk_DEBUG("thread_join_for(), ..., %p, %s", id, *t->tag);
 			wait.lock_wait_for(timeoutUs); // permanent wait
-			Qk_DEBUG("thread_wait_for(), end, %p, %s", id, *tag);
+			Qk_DEBUG("thread_join_for(), end, %p, %s", id, *t->tag);
 		}
 	}
 
@@ -234,7 +232,7 @@ namespace qk {
 
 		Qk_DEBUG("thread_try_abort_and_exit_inl(), 0");
 		Event<> ev(Int32(rc), nullptr, rc);
-		Qk_Trigger(ProcessExit, ev);
+		Qk_Trigger(ProcessExit, ev); // trigger event
 		rc = ev.return_value;
 		Qk_DEBUG("thread_try_abort_and_exit_inl(), 1");
 
@@ -250,7 +248,7 @@ namespace qk {
 		for ( auto& i: threads_id ) {
 			// CondMutex for the end of this thread here, this time defaults to 1 second
 			Qk_DEBUG("thread_try_abort_and_exit_inl,join, %p", i);
-			thread_wait_for(i, Qk_ATEXIT_WAIT_TIMEOUT); // wait 1s
+			thread_join_for(i, Qk_ATEXIT_WAIT_TIMEOUT); // wait 1s
 		}
 
 		Qk_DEBUG("thread_try_abort_and_exit_inl() 2");
@@ -259,7 +257,7 @@ namespace qk {
 	void thread_try_abort_and_exit(int rc) {
 		if (!__is_process_exit) {
 			thread_try_abort_all(rc);
-			::exit(rc);
+			::exit(rc); // exit process
 		}
 	}
 
@@ -275,7 +273,7 @@ namespace qk {
 		Qk_DEBUG("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
 		Qk_DEBUG("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
 		atexit([](){ thread_try_abort_all(0); });
-		int err = pthread_key_create(&__specific_key, thread_destructor);
+		int err = pthread_key_create(&__specific_key, nullptr);
 		Qk_ASSERT(err == 0);
 	}
 
@@ -283,43 +281,50 @@ namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
 	public:
+		#define _this _inl(this)
 		#define _inl(self) static_cast<RunLoop::Inl*>(self)
 
-		void stop_after_print_message();
+		static void before_resolve_msg(uv_handle_t* handle) {
+			_inl(handle->data)->resolve_msg();
+		}
+
+		void stop_after_print_message() {
+			ScopeLock lock(_mutex);
+			for (auto& i: _keep) {
+				Qk_DEBUG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
+			}
+			for (auto& i: _work) {
+				Qk_DEBUG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
+			}
+		}
 
 		bool is_alive() {
-			// _uv_async 外是否还有活着的`handle`与请求
-			// return _uv_loop->active_handles > 1 ||
-			// 				QUEUE_EMPTY(&(_uv_loop)->active_reqs) == 0 ||
-			// 				_uv_loop->closing_handles != NULL;
 			return uv_loop_alive(_uv_loop);
 		}
-		
+
 		void close_uv_req_handles() {
-			if (!uv_is_closing((uv_handle_t*)_uv_async))
+			if (!uv_is_closing((uv_handle_t*)_uv_async)) {
 				uv_close((uv_handle_t*)_uv_async, nullptr); // close async
+			}
 			uv_timer_stop(_uv_timer);
-			if (!uv_is_closing((uv_handle_t*)_uv_timer))
+			if (!uv_is_closing((uv_handle_t*)_uv_timer)) {
 				uv_close((uv_handle_t*)_uv_timer, nullptr);
-		}
-		
-		static void before_resolve_queue(uv_handle_t* handle) {
-			((Inl*)handle->data)->resolve_queue();
-		}
-		
-		inline void uv_timer_req(int64_t timeout_ms) {
-			uv_timer_start(_uv_timer, (uv_timer_cb)before_resolve_queue, timeout_ms, 0);
+			}
 		}
 
-		void after_resolve_queue(int64_t timeout_ms) {
+		void timer_req(int64_t timeout_ms) {
+			uv_timer_start(_uv_timer, (uv_timer_cb)before_resolve_msg, timeout_ms, 0);
+		}
+
+		void after_resolve_msg(int64_t timeout_ms) {
 			if (_uv_loop->stop_flag != 0) { // 循环停止标志
 				close_uv_req_handles();
 			}
 			else if (timeout_ms == -1) { // -1 end loop, 没有更多需要处理的工作
-				if (_keeps.length() == 0 && _works.length() == 0) {
+				if (_keep.length() == 0 && _work.length() == 0) {
 					// RunLoop 已经没有需要处理的消息
 					if (is_alive()) { // 如果uv还有其它活着,那么间隔一秒测试一次
-						uv_timer_req(1000);
+						timer_req(1000);
 						_record_timeout = 0; // 取消超时记录
 					} else { // 已没有活着的其它uv请求
 						if (_record_timeout) { // 如果已开始记录继续等待
@@ -327,13 +332,13 @@ namespace qk {
 							if (timeout >= 0) { // 已经超时
 								close_uv_req_handles();
 							} else { // 继续等待超时
-								uv_timer_req(-timeout);
+								timer_req(-timeout);
 							}
 						} else {
 							int64_t timeout = _timeout / 1000;
 							if (timeout > 0) { // 需要等待超时
 								_record_timeout = time_monotonic(); // 开始记录超时
-								uv_timer_req(timeout);
+								timer_req(timeout);
 							} else {
 								close_uv_req_handles();
 							}
@@ -342,7 +347,7 @@ namespace qk {
 				}
 			} else {
 				if (timeout_ms > 0) { // > 0, delay
-					uv_timer_req(timeout_ms);
+					timer_req(timeout_ms);
 				} else { // == 0
 					/* Do a cheap read first. */
 					uv_async_send(_uv_async);
@@ -351,37 +356,38 @@ namespace qk {
 			}
 		}
 
-		void resolve_queue() {
-			List<Queue> queue;
+		void resolve_msg() {
+			List<Msg> msg;
 			{
 				ScopeLock lock(_mutex);
-				if (_queue.length()) {
-					queue = std::move(_queue);
+				if (_msg.length()) {
+					msg = std::move(_msg);
 				} else {
-					after_resolve_queue(-1);
+					after_resolve_msg(-1);
+					return;
 				}
 			}
 
-			if (queue.length()) {
+			// exec message
+			if (msg.length()) {
 				int64_t now = time_monotonic();
-				for (auto i = queue.begin(), e = queue.end(); i != e; ) {
+				auto i = msg.begin(), e = msg.end();
+				do {
 					auto t = i++;
 					if (now >= t->time) { //
-						t->resolve->resolve(this);
-						queue.erase(t);
+						t->cb->resolve(this);
+						msg.erase(t);
 					}
-				}
+				} while(i != e);
 			}
 
-			{
-				ScopeLock lock(_mutex);
-				_queue.splice(_queue.begin(), queue);
-				if (_queue.length() == 0) {
-					after_resolve_queue(-1);
-				}
+			// after resolve queue message
+			_mutex.lock();
+			_msg.splice(_msg.begin(), msg); // add
+			if (_msg.length()) {
 				int64_t now = time_monotonic();
 				int64_t duration = Int64::limit_max;
-				for ( auto& i : _queue ) {
+				for ( auto& i : _msg ) {
 					int64_t du = i.time - now;
 					if (du <= 0) {
 						duration = 0; break;
@@ -389,100 +395,20 @@ namespace qk {
 						duration = du;
 					}
 				}
-				after_resolve_queue(duration / 1e3);
-			}
-		}
-
-		/**
-		 * @func post()
-		 */
-		uint32_t post(Cb exec, uint32_t group, uint64_t delay_us) {
-			if (_thread->abort) {
-				Qk_DEBUG("RunLoop::post, _thread->is_abort() == true");
-				return 0;
-			}
-			if (!delay_us && _tid == thread_current_id()) { //is current
-				exec->resolve();
-				return 0;
-			}
-			ScopeLock lock(_mutex);
-			uint32_t id = getId32();
-			if (delay_us) {
-				int64_t time = time_monotonic() + delay_us;
-				_queue.pushBack({ id, group, time, exec });
+				after_resolve_msg(duration / 1e3);
 			} else {
-				_queue.pushBack({ id, group, 0, exec });
+				after_resolve_msg(-1);
 			}
-			activate(); // 通知继续
-			return id;
+			_mutex.unlock();
 		}
 
-		void post_sync(Callback<RunLoop::PostSyncData> cb, uint32_t group, uint64_t delay_us) {
-			//Qk_ASSERT(!_thread->abort, "RunLoop::post_sync, _thread->abort != 0");
-			if (_thread->abort) {
-				Qk_DEBUG("RunLoop::post_sync, _thread->abort != 0");
-				return;
-			}
-			struct Data: public RunLoop::PostSyncData {
-				virtual void complete() {
-					ScopeLock scope(inl->_mutex);
-					ok = true;
-					cond.notify_all();
-				}
-				Inl* inl;
-				bool ok;
-				Condition cond;
-			} data;
-
-			Data* datap = &data;
-			data.inl = this;
-			data.ok = false;
-
-			bool isCur = thread_current_id() == _thread->id;
-			if (isCur) { // 立即调用
-				cb->resolve(datap);
-			}
-
-			Lock lock(_mutex);
-
-			if (!isCur) {
-				_queue.pushBack({
-					0, group, 0,
-					Cb([cb, datap, this](Cb::Data& e) {
-						cb->resolve(datap);
-					})
-				});
-				activate(); // 通知继续
-			}
-
-			while(!data.ok) {
-				data.cond.wait(lock); // wait
-			}
-		}
-		
-		inline void cancel_group(uint32_t group) {
-			ScopeLock lock(_mutex);
-			cancel_group_non_lock(group);
-		}
-
-		void cancel_group_non_lock(uint32_t group) {
-			for (auto i = _queue.begin(), e = _queue.end(); i != e; ) {
-				auto j = i++;
-				if (j->group == group) {
-					// NOTE: 删除时如果析构函数间接调用锁定`_mutex`的函数会锁死线程
-					_queue.erase(j);
-				}
-			}
-			activate(); // 通知继续
-		}
-		
-		inline void activate() {
+		void activate() {
 			if (_uv_async)
 				uv_async_send(_uv_async);
 		}
-		
-		inline void delete_work(List<Work*>::Iterator it) {
-			_works.erase(it);
+
+		void erase_work(List<Work*>::Iterator it) {
+			_work.erase(it);
 		}
 	};
 
@@ -506,24 +432,13 @@ namespace qk {
 			self->done_work(status);
 		}
 		void done_work(int status) {
-			_inl(host)->delete_work(it);
+			_inl(host)->erase_work(it);
 			if (UV_ECANCELED != status) { // cancel
 				done->resolve(host);
 			}
 			_inl(host)->activate();
 		}
 	};
-
-	void RunLoop::Inl::stop_after_print_message() {
-		ScopeLock lock(_mutex);
-		for (auto& i: _keeps) {
-			Qk_DEBUG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
-		}
-		for (auto& i: _works) {
-			Qk_DEBUG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
-		}
-	}
-
 
 	/**
 	 * @constructor
@@ -548,18 +463,22 @@ namespace qk {
 	 */
 	RunLoop::~RunLoop() {
 		ScopeLock lock(*__threads_mutex);
-		Qk_ASSERT(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
-		
+		Qk_STRICT_ASSERT(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
+
 		{
 			ScopeLock lock(_mutex);
-			for (auto& i: _keeps) {
+			for (auto& i: _keep) {
 				Qk_WARN("RunLoop keep not release \"%s\"", i->_name.c_str());
 				i->_loop = nullptr;
 			}
-			for (auto& i: _works) {
+			for (auto& i: _work) {
 				Qk_WARN("RunLoop work not complete: \"%s\"", i->name.c_str());
 				delete i;
 			}
+		}
+
+		for (auto &i: _msg) {
+			i.cb->resolve(this); // resolve last message
 		}
 
 		if (__first_loop == this) {
@@ -571,9 +490,11 @@ namespace qk {
 		}
 
 		// delete run loop
-		Qk_ASSERT(static_cast<Thread_INL*>(_thread)->_loop);
-		Qk_ASSERT(static_cast<Thread_INL*>(_thread)->_loop == this);
-		static_cast<Thread_INL*>(_thread)->_loop = nullptr;
+		auto t = static_cast<Thread_INL*>(_thread);
+		Qk_ASSERT(t->_loop);
+		Qk_ASSERT(t->_loop == this);
+		t->_loop = nullptr;
+		_thread = nullptr;
 	}
 
 	/**
@@ -582,7 +503,6 @@ namespace qk {
 	RunLoop* RunLoop::current() {
 		auto t = thread_current_inl();
 		if (!t) {
-			// Qk_WARN("Can't get thread specific data");
 			return nullptr;
 		}
 		auto loop = t->_loop;
@@ -630,15 +550,31 @@ namespace qk {
 	 * @func is_alive
 	 */
 	bool RunLoop::is_alive() const {
-		return uv_loop_alive(_uv_loop) /*|| _keeps.length() || _works.length()*/;
+		return uv_loop_alive(_uv_loop);
 	}
 
 	/**
 	 * NOTE: Be careful about thread security issues
 	 * @func sync # 延时
 	 */
-	uint32_t RunLoop::post(Cb cb, uint64_t delay_us) {
-		return _inl(this)->post(cb, 0, delay_us);
+	void RunLoop::post(Cb cb, uint64_t delay_us) {
+		Lock lock(_mutex);
+		if (_thread->abort) {
+			Qk_WARN("RunLoop::post, _thread->abort == true"); return;
+		}
+		if (!delay_us && _tid == thread_current_id()) { //is current
+			lock.unlock();
+			cb->resolve();
+			return;
+		}
+
+		if (delay_us) {
+			int64_t time = time_monotonic() + delay_us;
+			_msg.pushBack({ time, cb });
+		} else {
+			_msg.pushBack({ 0, cb });
+		}
+		_this->activate(); // 通知继续
 	}
 
 	/**
@@ -646,7 +582,44 @@ namespace qk {
 	 * @func post_sync(cb)
 	 */
 	void RunLoop::post_sync(Callback<PostSyncData> cb) {
-		_inl(this)->post_sync(cb, 0, 0);
+		Lock lock(_mutex);
+		if (_thread->abort) {
+			Qk_WARN("RunLoop::post_sync, _thread->abort != 0"); return;
+		}
+		struct Data: public RunLoop::PostSyncData {
+			virtual void complete() {
+				ScopeLock scope(ctx->_mutex);
+				ok = true;
+				cond.notify_all();
+			}
+			RunLoop* ctx;
+			bool ok;
+			Condition cond;
+		} data;
+
+		Data* datap = &data;
+		data.ctx = this;
+		data.ok = false;
+
+		if (thread_current_id() == _thread->id) { // is current
+			lock.unlock();
+			cb->resolve(datap);
+			if (data.ok) {
+				return;
+			}
+			lock.lock();
+		} else {
+			_msg.pushBack({
+				0, Cb([cb, datap, this](Cb::Data& e) {
+					cb->resolve(datap);
+				})
+			});
+			_this->activate(); // 通知继续
+		}
+
+		while (!data.ok) {
+			data.cond.wait(lock); // wait
+		}
 	}
 
 	/**
@@ -655,10 +628,8 @@ namespace qk {
 	 */
 	uint32_t RunLoop::work(Cb cb, Cb done, cString& name) {
 		if (_thread->abort) {
-			Qk_DEBUG("RunLoop::work, _thread->abort != 0");
-			return 0;
+			Qk_WARN("RunLoop::work, _thread->abort != 0"); return 0;
 		}
-
 		Work* work = new Work();
 		work->id = getId32();
 		work->work = cb;
@@ -671,7 +642,7 @@ namespace qk {
 			int r = uv_queue_work(_uv_loop, &work->uv_req,
 														Work::uv_work_cb, Work::uv_after_work_cb);
 			Qk_ASSERT(!r);
-			work->it = _works.pushBack(work);
+			work->it = _work.pushBack(work);
 		}));
 
 		return work->id;
@@ -683,7 +654,7 @@ namespace qk {
 	 */
 	void RunLoop::cancel_work(uint32_t id) {
 		post(Cb([=](Cb::Data& ev) {
-			for (auto& i : _works) {
+			for (auto& i : _work) {
 				if (i->id == id) {
 					int r = uv_cancel((uv_req_t*)&i->uv_req);
 					Qk_ASSERT(!r);
@@ -697,24 +668,8 @@ namespace qk {
 	 * NOTE: Be careful about thread security issues
 	 * @overwrite
 	 */
-	uint32_t RunLoop::post_message(Cb cb, uint64_t delay_us) {
-		return _inl(this)->post(cb, 0, delay_us);
-	}
-
-	/**
-	 * NOTE: Be careful about thread security issues
-	 * @func cancel # 取消同步
-	 */
-	void RunLoop::cancel(uint32_t id) {
-		ScopeLock lock(_mutex);
-		for (auto i = _queue.begin(), e = _queue.end(); i != e; i++) {
-			if (i->id == id) {
-				// NOTE: 删除时如果析构函数间接调用锁定`_mutex`的函数会锁死线程
-				_queue.erase(i);
-				break;
-			}
-		}
-		_inl(this)->activate();
+	void RunLoop::post_message(Cb cb, uint64_t delay_us) {
+		post(cb, delay_us);
 	}
 
 	/**
@@ -722,41 +677,41 @@ namespace qk {
 	 */
 	void RunLoop::run(uint64_t timeout) {
 		if (__is_process_exit) {
-			Qk_DEBUG("cannot run RunLoop, __is_process_exit != 0");
-			return;
+			Qk_WARN("cannot run RunLoop::run(), __is_process_exit != 0"); return;
 		}
 		if (_thread->abort) {
-			Qk_DEBUG("cannot run RunLoop, _thread->abort != 0");
-			return;
+			Qk_WARN("cannot run RunLoop::run(), _thread->abort != 0"); return;
 		}
 
 		uv_async_t uv_async;
 		uv_timer_t uv_timer;
-		{ //
-			ScopeLock lock(_mutex);
-			Qk_ASSERT(!_uv_async, "It is running and cannot be called repeatedly");
-			Qk_ASSERT(thread_current_id() == _tid, "Must run on the target thread");
-			_timeout = Qk_MAX(timeout, 0);
-			_record_timeout = 0;
-			_uv_async = &uv_async; uv_async.data = this;
-			_uv_timer = &uv_timer; uv_timer.data = this;
-			uv_async_init(_uv_loop, _uv_async, (uv_async_cb)(RunLoop::Inl::before_resolve_queue));
-			uv_timer_init(_uv_loop, _uv_timer);
-			_inl(this)->activate();
-		}
 
-		uv_run(_uv_loop, UV_RUN_DEFAULT); // run uv loop
-		_inl(this)->close_uv_req_handles();
+		// init run
+		_mutex.lock();
+		Qk_ASSERT(!_uv_async, "It is running and cannot be called repeatedly");
+		Qk_ASSERT(thread_current_id() == _tid, "Must run on the target thread");
+		_timeout = Qk_MAX(timeout, 0);
+		_record_timeout = 0;
+		_uv_async = &uv_async; uv_async.data = this;
+		_uv_timer = &uv_timer; uv_timer.data = this;
+		uv_async_init(_uv_loop, _uv_async, (uv_async_cb)(RunLoop::Inl::before_resolve_msg));
+		uv_timer_init(_uv_loop, _uv_timer);
+		_this->activate();
+		_mutex.unlock();
 
-		{ // loop end
-			ScopeLock lock(_mutex);
-			_uv_async = nullptr;
-			_uv_timer = nullptr;
-			_timeout = 0;
-			_record_timeout = 0;
-		}
+		// run uv loop
+		uv_run(_uv_loop, UV_RUN_DEFAULT);
+		_this->close_uv_req_handles();
 
-		_inl(this)->stop_after_print_message();
+		// loop end
+		_mutex.lock();
+		_uv_async = nullptr;
+		_uv_timer = nullptr;
+		_timeout = 0;
+		_record_timeout = 0;
+		_mutex.unlock();
+
+		_this->stop_after_print_message();
 	}
 
 	/**
@@ -776,33 +731,26 @@ namespace qk {
 	 * 保持活动状态,并返回一个代理,只要不删除返回的代理对像,消息队列会一直保持活跃状态
 	 * @func keep_alive
 	 */
-	KeepLoop* RunLoop::keep_alive(cString& name, bool clean) {
+	KeepLoop* RunLoop::keep_alive(cString& name) {
 		ScopeLock lock(_mutex);
-		auto keep = new KeepLoop(name, clean);
-		keep->_id = _keeps.pushBack(keep);
+		auto keep = new KeepLoop(name);
+		keep->_id = _keep.pushBack(keep);
 		keep->_loop = this;
 		return keep;
 	}
 
-	// ************** KeepLoop **************
-
-	KeepLoop::KeepLoop(cString& name, bool clean)
-		: _group(getId32()), _name(name), _de_clean(clean) {
+	KeepLoop::KeepLoop(cString& name): _name(name) {
 	}
 
 	KeepLoop::~KeepLoop() {
 		ScopeLock lock(*__threads_mutex);
-
 		if (_loop) {
 			ScopeLock lock(_loop->_mutex);
-			if ( _de_clean ) {
-				_inl(_loop)->cancel_group_non_lock(_group);
-			}
-			Qk_ASSERT(_loop->_keeps.length());
+			Qk_ASSERT(_loop->_keep.length());
 
-			_loop->_keeps.erase(_id); // 减少一个引用计数
+			_loop->_keep.erase(_id); // delete keep object for runloop
 
-			if (_loop->_keeps.length() == 0 && !_loop->_uv_loop->stop_flag) { // 可以结束了
+			if (_loop->_keep.length() == 0 && !_loop->_uv_loop->stop_flag) { // 可以结束了
 				_inl(_loop)->activate(); // 激活循环状态,不再等待
 			}
 		} else {
@@ -810,33 +758,10 @@ namespace qk {
 		}
 	}
 
-	uint32_t KeepLoop::post(Cb exec, uint64_t delay_us) {
+	void KeepLoop::post_message(Cb cb, uint64_t delay_us) {
 		// NOTE: Be careful about thread security issues
 		if (_loop)
-			return _inl(_loop)->post(exec, _group, delay_us);
-		else
-			return 0;
+			_inl(_loop)->post(cb, delay_us);
 	}
-
-	uint32_t KeepLoop::post_message(Cb cb, uint64_t delay_us) {
-		// NOTE: Be careful about thread security issues
-		if (_loop)
-			return _inl(_loop)->post(cb, _group, delay_us);
-		else
-			return 0;
-	}
-
-	void KeepLoop::cancel_all() {
-		// NOTE: Be careful about thread security issues
-		if (_loop)
-			_inl(_loop)->cancel_group(_group); // abort all
-	}
-
-	void KeepLoop::cancel(uint32_t id) {
-		// NOTE: Be careful about thread security issues
-		if (_loop)
-			_loop->cancel(id);
-	}
-
 }
 

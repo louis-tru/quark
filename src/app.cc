@@ -81,7 +81,6 @@ namespace qk {
 		, _loop(loop), _keep(nullptr)
 		, _screen(nullptr)
 		, _default_text_options(nullptr)
-		, _dispatch(nullptr)
 		, _font_pool(nullptr), _img_pool(nullptr)
 		, _max_image_memory_limit(512 * 1024 * 1024) // init 512MB
 	{
@@ -91,26 +90,23 @@ namespace qk {
 
 		Qk_On(ProcessExit, &Application::handleExit, this);
 		// init
-		_screen = New<Screen>(this); Qk_DEBUG("New<Screen> ok"); // strong ref
+		_screen = New<Screen>(this); // strong ref
 		_font_pool = FontPool::Make();
 		_img_pool = new ImageSourcePool(this);
-		_dispatch = new EventDispatch(this); Qk_DEBUG("new EventDispatch ok");
 		_default_text_options = new DefaultTextOptions(_font_pool);
-		Qk_DEBUG("new Application ok");
 	}
 
 	Application::~Application() {
 		UILock lock(this);
 
-		Qk_Off(ProcessExit, &Application::handleExit, this);
-
-		delete _default_text_options; _default_text_options = nullptr;
-		Release(_dispatch);     _dispatch = nullptr;
-		Release(_screen);       _screen = nullptr;
 		// TODO delete windows ..
-		delete _keep;          _keep = nullptr;  _loop = nullptr;
-		Release(_font_pool);   _font_pool = nullptr;
-		Release(_img_pool);    _img_pool = nullptr;
+		delete _default_text_options; _default_text_options = nullptr;
+		Release(_screen);     _screen = nullptr;
+		delete _keep;         _keep = nullptr;  _loop = nullptr;
+		Release(_font_pool);  _font_pool = nullptr;
+		Release(_img_pool);   _img_pool = nullptr;
+
+		Qk_Off(ProcessExit, &Application::handleExit, this);
 
 		_shared = nullptr;
 	}

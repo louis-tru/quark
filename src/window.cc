@@ -34,6 +34,7 @@
 #include "./layout/root.h"
 #include "./render/render.h"
 #include "./view_render.h"
+#include "./event.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
 # define PRINT_RENDER_FRAME_TIME 0
@@ -57,10 +58,12 @@ namespace qk {
 		_viewRender = new ViewRender(this);
 		_preRender = new PreRender(this);
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
+		_dispatch = new EventDispatch(this);
+
 		_viewRender->set_render(_render);
 
 		// init root
-		_root = new Root(this); Qk_DEBUG("new Root ok");
+		_root = new Root(this);
 		_root->reset();
 		_root->retain(); // strong ref
 		_root->focus();  // set focus
@@ -68,7 +71,8 @@ namespace qk {
 
 	Window::~Window() {
 		_root->remove();
-		Release(_root);       _root = nullptr;
+		Release(_root);      _root = nullptr;
+		Release(_dispatch); _dispatch = nullptr;
 		Release(_viewRender); _viewRender = nullptr;
 		Release(_preRender); _preRender = nullptr;
 		Release(_render); _render = nullptr;
@@ -79,11 +83,10 @@ namespace qk {
 			Vec2{clip.origin.x(), clip.origin.y()}, Vec2{clip.end.x(), clip.end.y()}, Vec2{0,0}
 		};
 		RegionSize dre = _clipRegion.back();
-			
+
 		// Compute an intersection area
-			
 		float x, x2, y, y2;
-		
+
 		y = dre.end.y() > re.end.y() ? re.end.y() : dre.end.y(); // choose a small
 		y2 = dre.origin.y() > re.origin.y() ? dre.origin.y() : re.origin.y(); // choose a large
 		x = dre.end.x() > re.end.x() ? re.end.x() : dre.end.x(); // choose a small
@@ -96,7 +99,7 @@ namespace qk {
 			re.origin.set_x(x);
 			re.end.set_x(x2);
 		}
-		
+
 		if ( y > y2 ) {
 			re.origin.set_y(y2);
 			re.end.set_y(y);
