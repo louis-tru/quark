@@ -39,7 +39,6 @@
 #endif
 
 namespace qk {
-	// ---------------------------------------------------------
 
 	template<> uint64_t Compare<ThreadID>::hashCode(const ThreadID& key) {
 		return *reinterpret_cast<const uint32_t*>(&key);

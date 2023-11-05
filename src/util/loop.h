@@ -89,7 +89,7 @@ namespace qk {
 	*/
 	class Qk_EXPORT PostMessage {
 	public:
-		virtual void post_message(Cb cb, uint64_t delay_us = 0) = 0;
+		virtual void post_message(Cb cb, uint64_t delayUs = 0) = 0;
 	};
 
 	/**
@@ -132,7 +132,7 @@ namespace qk {
 		/**
 		 * @overwrite
 		*/
-		virtual void post_message(Cb cb, uint64_t delay_us = 0);
+		virtual void post_message(Cb cb, uint64_t delayUs = 0);
 
 		/**
 		 * Running the message loop
@@ -251,10 +251,6 @@ namespace qk {
 		inline RunLoop* host() { return _loop; }
 
 	private:
-		/**
-		 * @private
-		 * @constructor
-		*/
 		KeepLoop(cString &name);
 
 		RunLoop* _loop;
