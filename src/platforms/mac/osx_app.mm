@@ -33,90 +33,32 @@
 #import "../../util/loop.h"
 #import "../../app.h"
 #import "../../event.h"
-#import "../../display.h"
+#import "../../screen.h"
 #import "./mac_app.h"
 
 using namespace qk;
 
 // ***************** Q k . A p p l i c a t i o n . D e l e g a t e *****************
 
-QkApplicationDelegate* __appDelegate = nil;
+QkApplicationDelegate* __app = nil;
+
+@interface QkApplicationDelegate() {
+	BOOL _is_background, _is_pause;
+}
+@end
 
 @implementation QkApplicationDelegate
 
 	- (void)applicationDidFinishLaunching:(NSNotification*) notification {
-		Qk_ASSERT(!__appDelegate);
+		Qk_ASSERT(!__app);
 		Qk_ASSERT(Application::shared());
-		__appDelegate = self;
+		__app = self;
 		_host = Application::shared();
 		_app = UIApplication.sharedApplication;
-		_surface = _host->render()->surface();
-
 		_is_background = NO;
 		_is_pause = YES;
 
-		auto &opts = _host->options();
-
-		NSWindowStyleMask style = NSWindowStyleMaskBorderless |
-			NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-			NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
-		UIScreen* screen = UIScreen.mainScreen;
-
-		float w = opts.windowFrame.size.x() > 0 ?
-			opts.windowFrame.size.x(): screen.frame.size.width / 2;
-		float h = opts.windowFrame.size.y() > 0 ?
-			opts.windowFrame.size.y(): screen.frame.size.height / 2;
-		float x = opts.windowFrame.origin.x() > 0 ?
-			opts.windowFrame.origin.x(): (screen.frame.size.width - w) / 2.0;
-		float y = opts.windowFrame.origin.y() > 0 ?
-			opts.windowFrame.origin.y(): (screen.frame.size.height - h) / 2.0;
-
-		Color4f color = opts.backgroundColor.to_color4f();
-
-		self.window = [[UIWindow alloc] initWithContentRect:NSMakeRect(x, y, w, h)
-																							styleMask:style
-																								backing:NSBackingStoreBuffered
-																									defer:NO
-																								 screen:screen];
-		self.root_ctr = nil; // nil
-		self.window.backgroundColor = [UIColor colorWithSRGBRed:color.r()
-																											green:color.g()
-																											blue:color.b()
-																											alpha:color.a()];
-		self.window.title = [NSString stringWithFormat:@"%s", opts.windowTitle.c_str()];
-		self.window.delegate = self;
-
-		[self.window makeKeyAndOrderFront:nil];
-
-		if (opts.windowFrame.origin.x() < 0 && opts.windowFrame.origin.y() < 0) {
-			[self.window center];
-		}
-
-		UIView *rootView = self.window.contentView;
-
-		self.ime = qk_make_ime_helprt(_host);
-
-		UIView *view = self.surface->surfaceView();
-		view.frame = rootView.bounds;
-		view.translatesAutoresizingMaskIntoConstraints = NO;
-
-		[rootView addSubview:view];
-		[rootView addConstraint:[NSLayoutConstraint
-														constraintWithItem:view
-														attribute:NSLayoutAttributeWidth
-														relatedBy:NSLayoutRelationEqual
-														toItem:rootView
-														attribute:NSLayoutAttributeWidth
-														multiplier:1
-														constant:0]];
-		[rootView addConstraint:[NSLayoutConstraint
-														constraintWithItem:view
-														attribute:NSLayoutAttributeHeight
-														relatedBy:NSLayoutRelationEqual
-														toItem:rootView
-														attribute:NSLayoutAttributeHeight
-														multiplier:1
-														constant:0]];
+		self.ime = qk_make_ime_helper(_host);
 
 		Inl_Application(_host)->triggerLoad();
 	}
@@ -132,7 +74,6 @@ QkApplicationDelegate* __appDelegate = nil;
 		if (!_is_pause) return;
 		_is_pause = NO;
 		Inl_Application(_host)->triggerResume();
-		_host->render()->reload();
 		Qk_DEBUG("applicationDidBecomeActive, triggerResume");
 	}
 
@@ -159,32 +100,6 @@ QkApplicationDelegate* __appDelegate = nil;
 		return YES;
 	}
 
-	// ******* NSWindowDelegate *******
-
-	- (BOOL)windowShouldClose:(NSWindow*)sender {
-		return YES;
-	}
-
-	- (NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)size {
-		return size;
-	}
-
-	- (void)windowDidMiniaturize:(NSNotification*)notification {
-		if (_is_background) return;
-		_is_background = YES;
-		[self applicationWillResignActive:notification];
-		Inl_Application(_host)->triggerBackground();
-		Qk_DEBUG("windowDidMiniaturize, triggerBackground");
-	}
-
-	- (void)windowDidDeminiaturize:(NSNotification*)notification {
-		if (!_is_background) return;
-		_is_background = NO;
-		Inl_Application(_host)->triggerForeground();
-		Qk_DEBUG("windowDidDeminiaturize,triggerForeground");
-		[self applicationDidBecomeActive:notification];
-	}
-
 @end
 
 // ***************** A p p l i c a t i o n *****************
@@ -193,11 +108,11 @@ void Application::pending() {
 	// exit(0);
 }
 
-void Application::open_url(cString& url) {
+void Application::openURL(cString& url) {
 	// TODO
 }
 
-void Application::send_email(cString& recipient,
+void Application::sendEmail(cString& recipient,
 														 cString& subject,
 														 cString& cc, cString& bcc, cString& body)
 {

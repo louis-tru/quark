@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./textarea.h"
-#include "../display.h"
+#include "../screen.h"
 #include "../app.h"
 
 namespace qk {

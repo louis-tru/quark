@@ -1,7 +1,8 @@
 
 #include <quark/app.h>
+#include <quark/window.h>
 #include <quark/render/paint.h>
-#include <quark/display.h>
+#include <quark/screen.h>
 #include <quark/util/codec.h>
 #include <quark/pre_render.h>
 #include <quark/render/render.h>
@@ -12,12 +13,12 @@ using namespace qk;
 
 class MyCanvas: public Box {
 public:
-	MyCanvas(App *host): Box(host) {}
+	MyCanvas(Window *host): Box(host) {}
 
 	void draw() {
 		// mark_none(kLayout_None); return;
-		auto canvas = shared_app()->render()->getCanvas();
-		auto size = shared_app()->display()->size();
+		auto canvas = pre_render()->render()->getCanvas();
+		auto size = pre_render()->window()->size();
 
 		// clear color
 		//canvas->clearColor(Color4f(1,1,1));
@@ -119,9 +120,11 @@ public:
 };
 
 void test_canvas(int argc, char **argv) {
-	App app({.fps=0});
+	App app;
+	auto win = new Window({.fps=0x0});
+	win->setKeyWindow();
 	// layout
-	auto t = (new MyCanvas(&app))->append_to<Box>(app.root());
+	auto t = (new MyCanvas(win))->append_to<Box>(win->root());
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

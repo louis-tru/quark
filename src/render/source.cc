@@ -362,7 +362,7 @@ namespace qk {
 	}
 
 	void ImageSourceHolder::set_src(String value) {
-		set_source(shared_app() ? shared_app()->img_pool()->get(value): new ImageSource(value));
+		set_source(shared_app() ? shared_app()->imgPool()->get(value): new ImageSource(value));
 	}
 
 	void ImageSourceHolder::set_source(ImageSource* source) {
@@ -383,11 +383,12 @@ namespace qk {
 
 	void ImageSourceHolder::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
-			auto _ = shared_app();
+			// TODO ...
+			// auto _ = shared_app();
 			// Qk_ASSERT(_, "Application needs to be initialized first");
-			if (_) {
-				_->pre_render()->mark_render();
-			}
+			//if (_) {
+			//	_->pre_render()->mark_render();
+			//}
 		}
 	}
 

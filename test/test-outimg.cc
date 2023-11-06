@@ -1,19 +1,20 @@
 
 #include <quark/app.h>
+#include <quark/window.h>
 #include <quark/render/render.h>
 #include <quark/layout/root.h>
-#include <quark/display.h>
+#include <quark/screen.h>
 
 using namespace qk;
 
 class TestOutImg: public Box {
 public:
-	TestOutImg(App *host): Box(host) {
+	TestOutImg(Window *host): Box(host) {
 	}
 
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
-		auto canvas = pre_render()->host()->render()->getCanvas();
+		auto canvas = pre_render()->render()->getCanvas();
 		auto size = canvas->size();
 		float width = 300;
 
@@ -38,8 +39,10 @@ public:
 };
 
 void test_outimg(int argc, char **argv) {
-	App app({.fps=0x0, .windowFrame={{0,0}, {500,500}}});
-	auto r = app.root();
+	App app;
+	auto win = new Window({.fps=0x0, .frame={{0,0}, {500,500}}});
+	win->setKeyWindow();
+	auto r = win->root();
 	auto t = r->append_new<TestOutImg>();
 	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });

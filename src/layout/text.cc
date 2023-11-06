@@ -53,7 +53,7 @@ namespace qk {
 			_lines = new TextLines(this, _text_align, size, layout_wrap_x());
 
 			if (v) {
-				TextConfig cfg(this, pre_render()->host()->default_text_options());
+				TextConfig cfg(this, pre_render()->host()->defaultTextOptions());
 				do {
 					v->layout_text(*_lines, &cfg);
 					v = v->next();

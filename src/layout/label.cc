@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./label.h"
-#include "../display.h"
+#include "../screen.h"
 #include "../pre_render.h"
 #include "../app.h"
 
@@ -92,14 +92,14 @@ namespace qk {
 	void Label::set_layout_offset(Vec2 val) {
 		auto size = parent()->layout_size().content_size;
 		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
-		layout_text(*lines, pre_render()->host()->default_text_options());
+		layout_text(*lines, pre_render()->host()->defaultTextOptions());
 		lines->finish();
 		mark_render(kRecursive_Transform);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 size) {
 		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
-		layout_text(*lines, pre_render()->host()->default_text_options());
+		layout_text(*lines, pre_render()->host()->defaultTextOptions());
 		lines->finish();
 		mark_render(kRecursive_Transform);
 	}

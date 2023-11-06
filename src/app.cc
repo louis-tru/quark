@@ -35,14 +35,13 @@
 #include "./render/source.h"
 #include "./text/text_opts.h"
 #include "./event.h"
+#include "./window.h"
 
 Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
 Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;
 
 namespace qk {
 	typedef Application::Inl AppInl;
-	// thread helper
-	static auto __run_main_wait = new CondMutex;
 
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
@@ -77,12 +76,13 @@ namespace qk {
 		, Qk_Init_Event(Pause)
 		, Qk_Init_Event(Resume)
 		, Qk_Init_Event(Memorywarning)
-		, _is_loaded(false)
+		, _isLoaded(false)
 		, _loop(loop), _keep(nullptr)
 		, _screen(nullptr)
-		, _default_text_options(nullptr)
-		, _font_pool(nullptr), _img_pool(nullptr)
-		, _max_image_memory_limit(512 * 1024 * 1024) // init 512MB
+		, _defaultTextOptions(nullptr)
+		, _fontPool(nullptr), _imgPool(nullptr)
+		, _maxImageMemoryLimit(512 * 1024 * 1024) // init 512MB
+		, _keyWindow(nullptr)
 	{
 		if (_shared)
 			Qk_FATAL("At the same time can only run a Application entity");
@@ -91,20 +91,22 @@ namespace qk {
 		Qk_On(ProcessExit, &Application::handleExit, this);
 		// init
 		_screen = New<Screen>(this); // strong ref
-		_font_pool = FontPool::Make();
-		_img_pool = new ImageSourcePool(this);
-		_default_text_options = new DefaultTextOptions(_font_pool);
+		_fontPool = FontPool::Make();
+		_imgPool = new ImageSourcePool(this);
+		_defaultTextOptions = new DefaultTextOptions(_fontPool);
 	}
 
 	Application::~Application() {
 		UILock lock(this);
-
-		// TODO delete windows ..
-		delete _default_text_options; _default_text_options = nullptr;
-		Release(_screen);     _screen = nullptr;
-		delete _keep;         _keep = nullptr;  _loop = nullptr;
-		Release(_font_pool);  _font_pool = nullptr;
-		Release(_img_pool);   _img_pool = nullptr;
+		for (auto i = _windows.begin(), e = _windows.end(); i != e;) {
+			Release(*(i++));
+		}
+		Release(_keyWindow); _keyWindow =  nullptr;
+		delete _defaultTextOptions; _defaultTextOptions = nullptr;
+		Release(_screen);    _screen = nullptr;
+		delete _keep;        _keep = nullptr;  _loop = nullptr;
+		Release(_fontPool);  _fontPool = nullptr;
+		Release(_imgPool);   _imgPool = nullptr;
 
 		Qk_Off(ProcessExit, &Application::handleExit, this);
 
@@ -115,8 +117,6 @@ namespace qk {
 		if (!_keep) {
 			_keep = _loop->keep_alive("Application::run(), keep"); // keep loop
 		}
-		__run_main_wait->lock_notify_all(); // The external thread continues to run
-
 		if (!_loop->runing()) {
 			_loop->run(); // run message loop
 			Qk_DEBUG("_loop->run() end");
@@ -128,8 +128,7 @@ namespace qk {
 	}
 
 	void Application::runMain(int argc, char* argv[]) {
-		struct Args { int argc; char** argv; } arg = { argc, argv };
-
+		struct Args { int argc; char** argv; };
 		// Create a new child worker thread. This function must be called by the main entry
 		thread_new([](void* arg) {
 			auto args = (Args*)arg;
@@ -139,44 +138,35 @@ namespace qk {
 			Qk_DEBUG("Application::runMain() thread_new() Exit");
 			thread_try_abort_and_exit(rc); // if sub thread end then exit
 			Qk_DEBUG("Application::runMain() thread_new() Exit ok");
-		}, &arg, "runMain");
-
-		// Block this main thread until calling Application::run()
-		while (!_shared || !_shared->_keep) {
-			__run_main_wait->lock_wait_for();
-		}
+		}, new Args{argc, argv}, "runMain");
 	}
 
 	void Application::clear(bool all) {
 		UILock(this);
-		_img_pool->clear(all);
+		_imgPool->clear(all);
 		// TODO clear windows cache ..
 	}
 
-	uint64_t Application::max_image_memory_limit() const {
-		return _max_image_memory_limit;
-	}
-
-	void Application::set_max_image_memory_limit(uint64_t limit) {
-		_max_image_memory_limit = Qk_MAX(limit, 64 * 1024 * 1024);
+	void Application::set_maxImageMemoryLimit(uint64_t limit) {
+		_maxImageMemoryLimit = Qk_MAX(limit, 64 * 1024 * 1024);
 	}
 
 	uint64_t Application::used_image_memory() const {
-		return _img_pool->total_data_size();
+		return _imgPool->total_data_size();
 	}
 
 	bool Application::adjust_image_memory(uint64_t will_alloc_size) {
 		int i = 0;
 		do {
-			if (will_alloc_size + used_image_memory() <= _max_image_memory_limit) {
+			if (will_alloc_size + used_image_memory() <= _maxImageMemoryLimit) {
 				return true;
 			}
 			clear();
 			i++;
 		} while(i < 3);
-		
+
 		Qk_WARN("Adjust image memory fail");
-		
+
 		return false;
 	}
 
@@ -185,17 +175,21 @@ namespace qk {
 		Inl_Application(this)->triggerUnload();
 	}
 
+	const List<Window*>& Application::windows() const { //! window list
+		return _windows;
+	}
+
 	// ------------------- A p p l i c a t i o n :: I n l -------------------
 
 	typedef void (*CbFunc) (Cb::Data&, AppInl*);
 
 	void AppInl::triggerLoad() {
 		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) {
-			if (app->_is_loaded || !app->_keep)
+			if (app->_isLoaded || !app->_keep)
 				return;
 			UILock lock(app);
-			if (!app->_is_loaded) {
-				app->_is_loaded = true;
+			if (!app->_isLoaded) {
+				app->_isLoaded = true;
 				app->Qk_Trigger(Load);
 			}
 		}, this));
@@ -207,8 +201,8 @@ namespace qk {
 
 		_loop->post_sync(Cb([&](Cb::Data& d) {
 			if (_keep) {
-				if (_is_loaded) {
-					_is_loaded = false;
+				if (_isLoaded) {
+					_isLoaded = false;
 					Qk_DEBUG("AppInl::onUnload()");
 					Qk_Trigger(Unload);
 				}
@@ -239,6 +233,17 @@ namespace qk {
 	void AppInl::triggerMemorywarning() {
 		clear();
 		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
+	}
+
+	void AppInl::set_keyWindow(Window *key) {
+		UILock lock;
+		if (key != _keyWindow) {
+			Release(_keyWindow);
+			if (key) {
+				key->retain();
+			}
+			_keyWindow = key;
+		}
 	}
 
 }

@@ -31,7 +31,7 @@
 #include "./box.h"
 #include "../app.h"
 #include "../window.h"
-#include "../display.h"
+#include "../screen.h"
 #include "../render/render.h"
 #include "../pre_render.h"
 #include "../text/text_lines.h"
@@ -903,7 +903,7 @@ namespace qk {
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 		* 这种模糊测试在大多数时候都是正确有效的。
 		*/
-		auto& clip = pre_render()->window()->clip_region();
+		auto& clip = pre_render()->window()->getClipRegion();
 		auto  re   = screen_region_from_convex_quadrilateral(_vertex);
 
 		if (Qk_MAX( clip.end.y(), re.end.y() ) - Qk_MIN( clip.origin.y(), re.origin.y() )

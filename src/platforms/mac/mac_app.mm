@@ -28,13 +28,25 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#import "../../util/loop.h"
 #import "./mac_app.h"
-#import "../../util/util.h"
-#import "../../event.h"
-#import "../../app.h"
 
 using namespace qk;
 
-id<QkIMEHelprt> qk_make_ime_helper(Application *host) {
-	return nil;
+void qk_post_messate_sync_main(Cb cb) {
+	auto main = dispatch_get_main_queue();
+	if (main == dispatch_get_current_queue()) {
+		cb->resolve();
+	} else {
+		CondMutex mutex;
+		CondMutex *mutexp = &mutex;
+		auto core = cb.Handle::collapse();
+		dispatch_async(main, ^{
+			core->resolve();
+			core->release();
+			mutexp->lock_notify_one();
+		});
+		mutex.lock_wait_for(); // wait
+	}
+	return 0;
 }

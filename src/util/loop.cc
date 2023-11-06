@@ -288,15 +288,7 @@ namespace qk {
 			_inl(handle->data)->resolve_msg();
 		}
 
-		void stop_after_print_message() {
-			ScopeLock lock(_mutex);
-			for (auto& i: _keep) {
-				Qk_DEBUG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
-			}
-			for (auto& i: _work) {
-				Qk_DEBUG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
-			}
-		}
+		void stop_after_print_message();
 
 		bool is_alive() {
 			return uv_loop_alive(_uv_loop);
@@ -439,6 +431,16 @@ namespace qk {
 			_inl(host)->activate();
 		}
 	};
+
+	void RunLoop::Inl::stop_after_print_message() {
+		ScopeLock lock(_mutex);
+		for (auto& i: _keep) {
+			Qk_DEBUG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
+		}
+		for (auto& i: _work) {
+			Qk_DEBUG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
+		}
+	}
 
 	/**
 	 * @constructor

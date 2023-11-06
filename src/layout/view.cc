@@ -819,7 +819,7 @@ namespace qk {
 	 * @method is_focus()
 	 */
 	bool View::is_focus() const {
-		return this == pre_render()->host()->dispatch()->focus_view();
+		return this == pre_render()->window()->dispatch()->focus_view();
 	}
 
 	/**

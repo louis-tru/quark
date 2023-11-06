@@ -95,7 +95,7 @@ namespace qk {
 		
 		Inl(HttpClientRequest* host, RunLoop* loop)
 			: _host(host)
-			, _keep(loop->keep_alive("HttpClientRequest::Inl", false))
+			, _keep(loop->keep_alive("HttpClientRequest::Inl"))
 			, _delegate(this)
 			, _upload_total(0)
 			, _upload_size(0)

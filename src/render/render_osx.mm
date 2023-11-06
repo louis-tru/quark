@@ -114,7 +114,7 @@ public:
 		}
 	}
 
-	uint32_t post_message(Cb cb, uint64_t delay_us) override {
+	void post_message(Cb cb, uint64_t delayUs) override {
 		if (isRenderThread()) {
 			lock();
 			cb->resolve();
@@ -124,7 +124,6 @@ public:
 			_message.pushBack(cb);
 			_mutexMsg.unlock();
 		}
-		return 0;
 	}
 
 	Vec2 getSurfaceSize(float *defaultScaleOut) override {

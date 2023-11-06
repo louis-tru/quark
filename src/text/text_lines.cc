@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../display.h"
+#include "../window.h"
 #include "../pre_render.h"
 #include "../app.h"
 #include "../layout/view.h"
@@ -213,7 +213,7 @@ namespace qk {
 
 	void TextLines::solve_visible_region() {
 		// solve lines visible region
-		auto& clip = _host->pre_render()->host()->display()->clip_region();
+		auto& clip = _host->pre_render()->window()->getClipRegion();
 		auto& mat = _host->matrix();
 		auto  offset_in = _host->layout_offset_inside();
 		auto  x1 = _min_origin + offset_in.x();
@@ -270,7 +270,7 @@ namespace qk {
 			return;
 		}
 
-		auto& clip = _host->pre_render()->host()->display()->clip_region();
+		auto& clip = _host->pre_render()->window()->getClipRegion();
 		bool is_break = false;
 
 		for (int i = 0, len = blob->length(); i < len; i++) {

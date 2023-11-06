@@ -30,7 +30,7 @@
 
 #include "./scroll.h"
 #include "../pre_render.h"
-#include "../display.h"
+#include "../window.h"
 #include "../app.h"
 #include "../util/numbers.h"
 #include <math.h>
@@ -276,7 +276,7 @@ namespace qk {
 		}
 
 		Vec2 optimal_display(Vec2 value) {
-			auto scale = _host->pre_render()->host()->display()->scale();
+			auto scale = _host->pre_render()->window()->scale();
 			value.set_x( round(value.x() * scale) / scale );
 			value.set_y( round(value.y() * scale) / scale );
 			return value;

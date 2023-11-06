@@ -1,8 +1,9 @@
 
 #include <quark/app.h>
+#include <quark/window.h>
 #include <quark/render/render.h>
 #include <quark/layout/root.h>
-#include <quark/display.h>
+#include <quark/screen.h>
 
 using namespace qk;
 
@@ -10,16 +11,16 @@ constexpr unsigned int u32 = 1;
 
 class TestRRect: public Box {
 public:
-	TestRRect(App *host): Box(host) {}
+	TestRRect(Window *host): Box(host) {}
 
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
-		auto canvas = shared_app()->render()->getCanvas();
+		auto canvas = pre_render()->render()->getCanvas();
 		canvas->save();
 		canvas->translate(-115, 0);
 
 		canvas->clearColor(Color4f(0,0,1));
-		auto size = pre_render()->host()->display()->size();
+		auto size = pre_render()->window()->size();
 
 		Paint paint;
 
@@ -79,9 +80,11 @@ public:
 };
 
 void test_rrect(int argc, char **argv) {
-	App app({.fps=0x0, .windowFrame={{0,0}, {400,400}}});
+	App app;
+	auto win = new Window({.fps=0x0, .frame={{0,0}, {400,400}}});
+	win->setKeyWindow();
 	// layout
-	auto t = (new TestRRect(&app))->append_to<Box>(app.root());
+	auto t = (new TestRRect(win))->append_to<Box>(win->root());
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

@@ -54,18 +54,23 @@ namespace qk {
 		, _nextFsp(0)
 		, _nextFspTime(0), _surfaceRegion()
 	{
+		Qk_STRICT_ASSERT(_host);
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
-		_viewRender = new ViewRender(this);
-		_preRender = new PreRender(this);
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
+		_preRender = new PreRender(this);
+		_viewRender = new ViewRender(this);
 		_dispatch = new EventDispatch(this);
-
 		_viewRender->set_render(_render);
-
+		_backgroundColor = opts.backgroundColor;
 		// init root
 		_root = new Root(this);
 		_root->reset();
 		_root->retain(); // strong ref
+		{
+			UILock lock;
+			_id = _host->_windows.pushBack(this); retain();
+		}
+		newImpl(opts);
 		_root->focus();  // set focus
 	}
 
@@ -76,6 +81,11 @@ namespace qk {
 		Release(_viewRender); _viewRender = nullptr;
 		Release(_preRender); _preRender = nullptr;
 		Release(_render); _render = nullptr;
+		{
+			UILock lock;
+			_host->_windows.erase(_id);
+		}
+		deleteImpl();
 	}
 
 	void Window::clipRegion(Region clip) {

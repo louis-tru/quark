@@ -38,7 +38,7 @@ using namespace qk;
 
 // ***************** Q k . A p p l i c a t i o n . D e l e g a t e *****************
 
-QkApplicationDelegate *__appDelegate = nil; // global object
+QkApplicationDelegate *__app = nil; //
 
 @implementation QkApplicationDelegate
 
@@ -50,9 +50,9 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		Qk_ASSERT(!__appDelegate);
+		Qk_ASSERT(!__app);
 		Qk_ASSERT(Application::shared());
-		__appDelegate = self;
+		__app = self;
 		_host = Application::shared();
 		_app = app;
 		_render = dynamic_cast<QkMacRender*>(_host->render());
@@ -111,7 +111,7 @@ QkApplicationDelegate *__appDelegate = nil; // global object
 	}
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(CGRect)frame {
-		if ( __appDelegate && !_is_background ) {
+		if ( __app && !_is_background ) {
 			self.host->render()->reload(); // set size
 		}
 	}
@@ -175,7 +175,7 @@ void Application::pending() {
 void Application::open_url(cString& url) {
 	NSURL* url_ = [NSURL URLWithString:[NSString stringWithUTF8String:*url]];
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[__appDelegate.app openURL:url_ options:@{} completionHandler:nil];
+		[__app.app openURL:url_ options:@{} completionHandler:nil];
 	});
 }
 
@@ -195,8 +195,8 @@ void Application::send_email(cString& recipient,
 		[mail setCcRecipients:cc_];
 		[mail setBccRecipients:bcc_];
 		[mail setMessageBody:body_ isHTML:NO];
-		mail.mailComposeDelegate = __appDelegate;
-		[__appDelegate.root_ctr presentViewController:mail animated:YES completion:nil];
+		mail.mailComposeDelegate = __app;
+		[__app.root_ctr presentViewController:mail animated:YES completion:nil];
 	});
 }
 
@@ -212,24 +212,24 @@ void EventDispatch::set_volume_down() {
 
 void EventDispatch::set_ime_keyboard_open(KeyboardOptions options) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[__appDelegate.ime set_keyboard_type:options.type];
-		[__appDelegate.ime set_keyboard_return_type:options.return_type];
+		[__app.ime set_keyboard_type:options.type];
+		[__app.ime set_keyboard_return_type:options.return_type];
 		if ( options.is_clear ) {
-			[__appDelegate.ime clear];
+			[__app.ime clear];
 		}
-		[__appDelegate.ime open];
+		[__app.ime open];
 	});
 }
 
 void EventDispatch::set_ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[__appDelegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
+		[__app.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
 	});
 }
 
 void EventDispatch::set_ime_keyboard_close() {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[__appDelegate.ime close];
+		[__app.ime close];
 	});
 }
 

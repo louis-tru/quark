@@ -54,7 +54,7 @@ namespace qk {
 	}
 
 	void PreRender::solve_mark() {
-		TextConfig cfg(_host->default_text_options(), _host->default_text_options()->base());
+		TextConfig cfg(_host->defaultTextOptions(), _host->defaultTextOptions()->base());
 
 		do {
 			{ // forward iteration
@@ -101,7 +101,9 @@ namespace qk {
 		, _marks(0)
 		, _is_render(false)
 		, _host(win->host())
-	{}
+		, _render(win->render())
+	{
+	}
 
 	PreRender::~PreRender() {}
 

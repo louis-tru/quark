@@ -141,6 +141,8 @@
 			'errno.h',
 			'event.h',
 			'event.cc',
+			'window.h',
+			'window.cc',
 			'keyboard.h',
 			'keyboard.cc',
 			'pre_render.h',
@@ -211,6 +213,7 @@
 				'sources':[
 					'os/info_mac.mm',
 					'platforms/mac/mac_app.h',
+					'platforms/mac/mac_app.mm',
 					'platforms/mac/mac_image_codec.mm',
 					'platforms/mac/mac_keyboard.mm',
 					'render/render_mac.h',
@@ -255,6 +258,7 @@
 					'platforms/mac/osx_screen.mm',
 					'platforms/mac/osx_ime_helper.mm',
 					'platforms/mac/osx_main.mm',
+					'platforms/mac/osx_window.mm',
 					'render/render_osx.mm',
 				],
 				'link_settings': {

@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../../app.h"
-#include "../../display.h"
+#include "../../screen.h"
 #include "./gl_render.h"
 #include "./gl_cmd.h"
 

@@ -1,8 +1,9 @@
 
 #include <quark/app.h>
+#include <quark/window.h>
 #include <quark/render/render.h>
 #include <quark/layout/root.h>
-#include <quark/display.h>
+#include <quark/screen.h>
 
 using namespace qk;
 
@@ -10,12 +11,11 @@ constexpr unsigned int u32 = 1;
 
 class TestDrawEfficiency: public Box {
 public:
-	TestDrawEfficiency(App *host): Box(host) {}
+	TestDrawEfficiency(Window *host): Box(host) {}
 
 	void accept(ViewVisitor *visitor) override {
-		auto app = pre_render()->host();
-		auto canvas = app->render()->getCanvas();
-		auto size = app->display()->size();
+		auto canvas = pre_render()->render()->getCanvas();
+		auto size = pre_render()->window()->size();
 
 		Paint paint;
 		paint.color = Color4f(0, 0, 0);
@@ -37,9 +37,11 @@ public:
 };
 
 void test_draw_efficiency(int argc, char **argv) {
-	App app({.fps=0x0, .windowFrame={{0,0}, {400,400}}});
+	App app;
+	auto win = new Window({.fps=0x0, .frame={{0,0}, {400,400}}});
+	win->setKeyWindow();
 	// layout
-	auto t = (new TestDrawEfficiency(&app))->append_to<Box>(app.root());
+	auto t = (new TestDrawEfficiency(win))->append_to<Box>(win->root());
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

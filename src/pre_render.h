@@ -40,6 +40,7 @@ namespace qk {
 	class Application;
 	class Window;
 	class Layout;
+	class RenderBackend;
 
 	/**
 	 * @class PreRender
@@ -48,6 +49,7 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(PreRender);
 	public:
 		Qk_DEFINE_PROP_GET(Window*, window);
+		Qk_DEFINE_PROP_GET(RenderBackend*, render);
 		Qk_DEFINE_PROP_GET(Application*, host);
 
 		/**

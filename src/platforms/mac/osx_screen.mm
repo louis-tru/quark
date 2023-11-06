@@ -37,7 +37,7 @@ using namespace qk;
 
 typedef Screen::StatusBarStyle StatusBarStyle;
 
-extern QkApplicationDelegate *__appDelegate;
+extern QkApplicationDelegate *__app;
 
 /**
  * @func default_atom_pixel

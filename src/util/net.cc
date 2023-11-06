@@ -77,7 +77,7 @@ namespace qk {
 		Inl(Socket* host, RunLoop* loop) 
 			: _host(host)
 			, _delegate(this)
-			, _keep(loop->keep_alive("Socket::Inl", false))
+			, _keep(loop->keep_alive("Socket::Inl"))
 			, _uv_handle(nullptr)
 			, _is_open(false)
 			, _is_opening(false)

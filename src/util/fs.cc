@@ -240,7 +240,7 @@ namespace qk {
 		: _path(path)
 		, _fd(0)
 		, _opening(false)
-		, _keep(loop->keep_alive("File::Inl", false))
+		, _keep(loop->keep_alive("File::Inl"))
 		, _delegate(nullptr)
 		, _host(host)
 		{

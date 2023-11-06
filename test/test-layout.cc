@@ -1,5 +1,6 @@
 
 #include <quark/app.h>
+#include <quark/window.h>
 #include <quark/layout/root.h>
 #include <quark/render/render.h>
 #include <quark/layout/flow.h>
@@ -9,7 +10,7 @@
 #include <quark/layout/input.h>
 #include <quark/layout/textarea.h>
 #include <quark/layout/box_filter.h>
-#include <quark/display.h>
+#include <quark/screen.h>
 #include <quark/util/fs.h>
 #include <quark/render/font/pool.h>
 
@@ -17,7 +18,7 @@ using namespace qk;
 
 class TestImage: public Image {
 public:
-	TestImage(App *host): Image(host) {}
+	TestImage(Window *host): Image(host) {}
 
 //	virtual void accept(ViewVisitor *visitor) override {
 //		auto render = static_cast<SkiaRender*>(visitor);
@@ -162,10 +163,12 @@ void layout_input(Box* box) {
 }
 
 void layout(Event<>& evt, Application* app) {
-	app->display()->set_status_bar_style(Display::STATUS_BAR_STYLE_BLACK);
-	app->default_text_options()->set_text_family({ app->font_pool()->getFFID("Helvetica, PingFang SC") });
+	auto win = new Window({.msaa=1});
+	win->setKeyWindow();
+	app->screen()->set_status_bar_style(Screen::STATUS_BAR_STYLE_BLACK);
+	app->defaultTextOptions()->set_text_family({ app->fontPool()->getFFID("Helvetica, PingFang SC") });
 
-	auto r = app->root();
+	auto r = win->root();
 	auto flex = r->append_new<FlexLayout>();
 	auto flow = r->append_new<FlowLayout>();
 	//auto img  = r->append_new<Image>();
@@ -278,8 +281,8 @@ void layout(Event<>& evt, Application* app) {
 }
 
 void test_layout(int argc, char **argv) {
-	Application::Options opts{.msaa=1};
-	Application app(opts);
+	Application app;
+	auto win = new Window({.msaa=1});
 	app.Qk_On(Load, layout, &app);
 	app.run();
 }

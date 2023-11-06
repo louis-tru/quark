@@ -32,7 +32,7 @@
 #include "./box_filter.h"
 #include "../app.h"
 #include "../util/handle.h"
-#include "../display.h"
+#include "../window.h"
 #include "../render/render.h"
 #include "../pre_render.h"
 
@@ -64,8 +64,8 @@ namespace qk {
 
 	bool Root::layout_forward(uint32_t _mark) {
 		if (_mark & (kLayout_Size_Width | kLayout_Size_Height)) {
-			auto display = pre_render()->host()->display();
-			Size size{ Vec2(), display->size(), false, false };
+			auto win = pre_render()->window();
+			Size size{ Vec2(), win->size(), false, false };
 			Vec2 xy(solve_layout_content_width(size), solve_layout_content_height(size));
 
 			xy += Vec2(margin_left() + margin_right(), margin_top() + margin_bottom());

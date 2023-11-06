@@ -1,22 +1,23 @@
 
 #include <quark/app.h>
+#include <quark/window.h>
 #include <quark/render/render.h>
 #include <quark/layout/root.h>
-#include <quark/display.h>
+#include <quark/screen.h>
 
 using namespace qk;
 
 class TestSubcanvas: public Box {
 public:
 	Sp<Canvas> _c;
-	TestSubcanvas(App *host): Box(host) {
+	TestSubcanvas(Window *host): Box(host) {
 		_c = host->render()->newCanvas({.isMipmap=0});
 		_c->setSurface({600},2);
 	}
 
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
-		auto canvas = pre_render()->host()->render()->getCanvas();
+		auto canvas = pre_render()->render()->getCanvas();
 		auto size = canvas->size();
 
 		Paint paint;
@@ -40,8 +41,10 @@ public:
 };
 
 void test_subcanvas(int argc, char **argv) {
-	App app({.fps=0x0, .windowFrame={{0,0}, {500,500}}});
-	auto r = app.root();
+	App app;
+	auto win = new Window({.fps=0x0, .frame={{0,0}, {500,500}}});
+	win->setKeyWindow();
+	auto r = win->root();
 	auto t = r->append_new<TestSubcanvas>();
 	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });

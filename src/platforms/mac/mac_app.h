@@ -36,8 +36,15 @@
 #include "../../types.h"
 #if Qk_MAC
 
+@class QkWindowDelegate;
+
 namespace qk {
 	class Application;
+	class WindowImpl {
+	public:
+		QkWindowDelegate* delegate();
+		UIWindow*         window();
+	};
 }
 
 @protocol QkIMEHelprt<NSObject>
@@ -51,34 +58,33 @@ namespace qk {
 	- (UIView*)view; // only ios return view
 @end
 
-id<QkIMEHelprt> qk_make_ime_helprt(qk::Application *host);
+id<QkIMEHelprt> qk_make_ime_helper(qk::Application *host);
+void            qk_post_messate_sync_main(qk::Cb cb);
 
 @interface QkRootViewController: UIViewController
+@end
+
+@interface QkWindowDelegate: NSObject
+#if Qk_OSX
+<NSWindowDelegate>
+#endif
+	@property (strong, nonatomic) UIWindow *window; // strong
+	@property (strong, nonatomic) QkRootViewController *root_ctr;
 @end
 
 @interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
 	@property (assign, nonatomic, readonly) UIApplication *app; // strong
 	@property (assign, nonatomic, readonly) qk::Application *host;
-	@property (assign, nonatomic, readonly) qk::RenderSurface *surface;
-	@property (strong, nonatomic) QkRootViewController *root_ctr;
-	@property (strong, nonatomic) UIWindow *window;
 	@property (strong, nonatomic) id<QkIMEHelprt> ime; // strong
 @end
 
 #endif // #if Qk_MAC
 
-#if Qk_OSX // if OSX
-@interface QkApplicationDelegate()<NSWindowDelegate> {
-	BOOL _is_background, _is_pause;
-}
-@end
-#endif // #if Qk_OSX
-
-#if Qk_iOS // if iOS
+#if Qk_iOS
 #include "../../display.h"
 #import <MessageUI/MFMailComposeViewController.h>
 
-typedef qk::Display::Orientation Orientation;
+typedef qk::Screen::Orientation Orientation;
 
 @interface QkApplicationDelegate()<MFMailComposeViewControllerDelegate>
 	{

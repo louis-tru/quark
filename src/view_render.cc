@@ -165,8 +165,8 @@ namespace qk {
 			} else if (FillImage::compute_size(fill->size_y(), dh, h)) { // auto x, ok y
 				w = h / src_h * src_w;
 			} else { // auto x,y
-				w = src_w / _window->atom_pixel();
-				h = src_h / _window->atom_pixel();
+				w = src_w / _window->atomPixel();
+				h = src_h / _window->atomPixel();
 			}
 			x = FillImage::compute_position(fill->position_x(), dw, w) - box->_origin_value.val[0];
 			y = FillImage::compute_position(fill->position_y(), dh, h) - box->_origin_value.val[1];

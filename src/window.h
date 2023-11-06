@@ -43,6 +43,7 @@ namespace qk {
 	class ViewRender;
 	class Root;
 	class EventDispatch;
+	class WindowImpl; // window platform impl
 
 	/**
 	 * @class Window system window ui components
@@ -84,7 +85,10 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Root*, root); //! root view
 		Qk_DEFINE_PROP_GET(Application*, host); //! application host
 		Qk_DEFINE_PROP_GET(PreRender*, preRender); //! pre render
+		Qk_DEFINE_PROP_GET(Render*, render); //! render object
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
+		Qk_DEFINE_PROP(Color, backgroundColor); //! background color
+		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 
 		/**
 		 * @event onChange show port change event
@@ -133,19 +137,26 @@ namespace qk {
 		*/
 		void nextFrame(cCb& cb);
 
+		/**
+		 * @method setKeyWindow() set to key window and order front
+		*/
+		void setKeyWindow();
+
 	private:
 		void updateState();
 		void solveNextFrame();
 		void onRenderBackendReload(Region region, Vec2 size, float defaultScale) override;
 		bool onRenderBackendDisplay() override;
+		void newImpl(Options opts);
+		void deleteImpl();
 
 		ViewRender        *_viewRender;
-		RenderBackend     *_render;
 		Vec2              _lockSize;  //!< Lock the size of the viewport
 		List<Cb>          _nextFrame;
 		uint32_t          _nextFsp;
 		int64_t           _nextFspTime;
 		Array<RegionSize> _clipRegion;
+		List<Window*>::Iterator _id;
 	};
 
 }

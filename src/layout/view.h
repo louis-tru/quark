@@ -72,7 +72,7 @@ namespace qk {
 		virtual ~View();
 
 		template<class T = View> inline T* New() {
-			return new T(pre_render()->host());
+			return new T(pre_render()->window());
 		}
 
 		template<class T = View> inline T* prepend_new() {

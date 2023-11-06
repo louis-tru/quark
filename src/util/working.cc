@@ -128,25 +128,27 @@ namespace qk {
 	* @func post message to main thread
 	*/
 	uint32_t ParallelWorking::post(Cb exec) {
-		return _proxy->post(exec);
+		_proxy->post_message(exec);
+		return 0;
 	}
 
 	/**
 	* @func post
 	*/
 	uint32_t ParallelWorking::post(Cb exec, uint64_t delayUs) {
-		return _proxy->post(exec, delayUs);
+		_proxy->post_message(exec, delayUs);
+		return 0;
 	}
 
 	/**
 	* @func cancel
 	*/
 	void ParallelWorking::cancel(uint32_t id) {
-		if ( id ) {
+		/*if ( id ) {
 			_proxy->cancel(id);
 		} else {
 			_proxy->cancel_all();
-		}
+		}*/
 	}
 
 

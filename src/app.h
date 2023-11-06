@@ -62,12 +62,16 @@ namespace qk {
 	public:
 
 		// @props
-		Qk_DEFINE_PROP_GET(bool, is_loaded);
-		Qk_DEFINE_PROP_GET(DefaultTextOptions*, default_text_options); //! default font settings
+		Qk_DEFINE_PROP_GET(bool, isLoaded);
+		Qk_DEFINE_PROP_GET(DefaultTextOptions*, defaultTextOptions); //! default font settings
 		Qk_DEFINE_PROP_GET(Screen*, screen); //! screen object
 		Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
-		Qk_DEFINE_PROP_GET(FontPool*, font_pool); //! font and font familys manage
-		Qk_DEFINE_PROP_GET(ImageSourcePool*, img_pool); //! image loader and image cache
+		Qk_DEFINE_PROP_GET(FontPool*, fontPool); //! font and font familys manage
+		Qk_DEFINE_PROP_GET(ImageSourcePool*, imgPool); //! image loader and image cache
+		Qk_DEFINE_PROP_GET(Window*, keyWindow); //! current key window
+		//! Texture memory limit, cannot be less than 64MB, the default is 512MB.
+		Qk_DEFINE_PROP(uint64_t, maxImageMemoryLimit);
+		Qk_DEFINE_PROP_ACC_GET(const List<Window*>&, windows); //! all window list
 
 		// @events
 		Qk_Event(Load);
@@ -116,16 +120,6 @@ namespace qk {
 		void clear(bool all = false);
 
 		/**
-		 * @method max_image_memory_limit()
-		*/
-		uint64_t max_image_memory_limit() const;
-
-		/**
-		 * Set the texture memory limit, which cannot be less than 64MB, and the default is 512MB.
-		*/
-		void set_max_image_memory_limit(uint64_t limit);
-
-		/**
 		 * The amount of memory used by the current texture data, including image textures and font textures
 		*/
 		uint64_t used_image_memory() const;
@@ -136,14 +130,14 @@ namespace qk {
 		bool adjust_image_memory(uint64_t will_alloc_size);
 
 		/**
-		 * @method open_url()
+		 * @method openURL()
 		*/
-		void open_url(cString& url);
+		void openURL(cString& url);
 
 		/**
 		 * @method send_email
 		*/
-		void send_email(cString& recipient,
+		void sendEmail(cString& recipient,
 										cString& subject,
 										cString& cc = String(),
 										cString& bcc = String(), cString& body = String());
@@ -168,14 +162,14 @@ namespace qk {
 	private:
 		void handleExit(Event<>& e);
 
-		static Application*  _shared;   //! current shared application
+		static Application *_shared;   //! current shared application
 		KeepLoop*      _keep;
+		List<Window*>  _windows; // window list
 		RecursiveMutex _render_mutex;
-		//! Texture memory limit, cannot be less than 64MB, the default is 512MB.
-		uint64_t       _max_image_memory_limit;
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class UILock;
+		friend class Window;
 	};
 
 	typedef Application::UILock UILock;
@@ -195,6 +189,7 @@ namespace qk {
 		void triggerBackground();
 		void triggerForeground();
 		void triggerMemorywarning();
+		void set_keyWindow(Window *key);
 	};
 	//@end
 }

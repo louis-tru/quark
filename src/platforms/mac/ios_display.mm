@@ -37,7 +37,7 @@ using namespace qk;
 
 typedef Display::StatusBarStyle StatusBarStyle;
 
-extern QkApplicationDelegate *__appDelegate;
+extern QkApplicationDelegate *__app;
 
 float Display::default_atom_pixel() {
 	return 1.0 / UIScreen.mainScreen.scale;
@@ -46,43 +46,43 @@ float Display::default_atom_pixel() {
 void Display::keep_screen(bool keep) {
 	dispatch_async(dispatch_get_main_queue(), ^{
 		if ( keep ) {
-			__appDelegate.app.idleTimerDisabled = YES;
+			__app.app.idleTimerDisabled = YES;
 		} else {
-			__appDelegate.app.idleTimerDisabled = NO;
+			__app.app.idleTimerDisabled = NO;
 		}
 	});
 }
 
 float Display::status_bar_height() {
-	CGRect rect = __appDelegate.app.statusBarFrame;
+	CGRect rect = __app.app.statusBarFrame;
 	return Qk_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale;
 }
 
 float Display::default_status_bar_height() { // static method
-	if (__appDelegate && __appDelegate.host) {
-		return __appDelegate.host->display()->status_bar_height();
+	if (__app && __app.host) {
+		return __app.host->display()->status_bar_height();
 	} else {
 		return 20;
 	}
 }
 
 void Display::set_visible_status_bar(bool visible) {
-	if ( visible == __appDelegate.visible_status_bar )
+	if ( visible == __app.visible_status_bar )
 		return;
-	__appDelegate.visible_status_bar = visible;
+	__app.visible_status_bar = visible;
 
 	dispatch_async(dispatch_get_main_queue(), ^{
 		//if ( visible ) {
-		//  [__appDelegate.app setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
+		//  [__app.app setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
 		//} else {
-		//  [__appDelegate.app setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
+		//  [__app.app setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
 		//}
-		[__appDelegate refresh_status];
+		[__app refresh_status];
 		// TODO 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 ?
-		__appDelegate.host->render()->reload();
+		__app.host->render()->reload();
 
 		// TODO 绘图表面尺寸没有改变? 表示只是单纯状态栏改变? 这个改变也当成change通知给用户
-		__appDelegate.host->loop()->post(Cb([this](Cb::Data& e) {
+		__app.host->loop()->post(Cb([this](Cb::Data& e) {
 			Qk_Trigger(Change);
 		}));
 	});
@@ -99,11 +99,11 @@ void Display::set_status_bar_style(StatusBarStyle style) {
 			style_2 = UIStatusBarStyleDefault;
 		}
 	}
-	if ( __appDelegate && __appDelegate.status_bar_style != style_2 ) {
+	if ( __app && __app.status_bar_style != style_2 ) {
 		dispatch_async(dispatch_get_main_queue(), ^{
-			[__appDelegate refresh_status];
+			[__app refresh_status];
 		});
-		__appDelegate.status_bar_style = style_2;
+		__app.status_bar_style = style_2;
 	}
 }
 
@@ -113,7 +113,7 @@ void Display::request_fullscreen(bool fullscreen) {
 
 Display::Orientation Display::orientation() {
 	Orientation r = ORIENTATION_INVALID;
-	switch ( __appDelegate.app.statusBarOrientation ) {
+	switch ( __app.app.statusBarOrientation ) {
 		case UIInterfaceOrientationPortrait:
 			r = ORIENTATION_PORTRAIT;
 			break;
@@ -134,10 +134,10 @@ Display::Orientation Display::orientation() {
 }
 
 void Display::set_orientation(Orientation orientation) {
-	if ( __appDelegate.setting_orientation != orientation ) {
+	if ( __app.setting_orientation != orientation ) {
 		dispatch_async(dispatch_get_main_queue(), ^{
-			[__appDelegate refresh_status];
+			[__app refresh_status];
 		});
-		__appDelegate.setting_orientation = orientation;
+		__app.setting_orientation = orientation;
 	}
 }

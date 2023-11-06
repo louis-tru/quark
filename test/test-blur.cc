@@ -1,8 +1,9 @@
 
 #include <quark/app.h>
+#include <quark/window.h>
 #include <quark/render/render.h>
 #include <quark/layout/root.h>
-#include <quark/display.h>
+#include <quark/screen.h>
 
 using namespace qk;
 
@@ -10,12 +11,12 @@ constexpr unsigned int u32 = 1;
 
 class TestBlur: public Box {
 public:
-	TestBlur(App *host): Box(host) {}
+	TestBlur(Window *host): Box(host) {}
 	float i = 0;
 
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
-		auto canvas = pre_render()->host()->render()->getCanvas();
+		auto canvas = pre_render()->render()->getCanvas();
 		auto size = canvas->size();
 
 		i+=Qk_PI_RATIO_180*0.2;
@@ -54,10 +55,12 @@ public:
 };
 
 void test_blur(int argc, char **argv) {
-	App app({.fps=0x0, .windowFrame={{0,0}, {500,500}}});
+	App app;
+	auto win = new Window({.fps=0x0, .frame={{0,0}, {500,500}}});
+	win->setKeyWindow();
 	// layout
-	auto r = app.root();
-	auto t = app.root()->append_new<TestBlur>();
+	auto r = win->root();
+	auto t = win->root()->append_new<TestBlur>();
 	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
