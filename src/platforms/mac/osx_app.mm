@@ -43,7 +43,7 @@ using namespace qk;
 QkApplicationDelegate* __app = nil;
 
 @interface QkApplicationDelegate() {
-	BOOL _is_background, _is_pause;
+	BOOL _is_background, _is_pause; 
 }
 @end
 
