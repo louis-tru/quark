@@ -86,7 +86,7 @@ namespace qk {
 			Qk_FATAL("At the same time can only run a Application entity");
 		_shared = this;
 		// init
-		_screen = New<Screen>(this); // strong ref
+		_screen = new Screen(this); // strong ref
 		_fontPool = FontPool::Make();
 		_imgPool = new ImageSourcePool(this);
 		_defaultTextOptions = new DefaultTextOptions(_fontPool);
