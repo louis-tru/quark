@@ -91,17 +91,8 @@ public:
 		[EAGLContext setCurrentContext:nullptr];
 	}
 
-	uint32_t post_message(Cb cb, uint64_t delay_us) override {
-		auto main = dispatch_get_main_queue();
-		if (main == dispatch_get_current_queue()) {
-			cb->resolve();
-		} else {
-			auto core = cb.Handle::collapse();
-			dispatch_async(main, ^{
-				core->resolve();
-				core->release();
-			});
-		}
+	void post_message(Cb cb, uint64_t delayUs) override {
+		qk_post_messate_main(cb, false);
 		return 0;
 	}
 
