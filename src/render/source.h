@@ -174,6 +174,9 @@ namespace qk {
 	class Qk_EXPORT ImageSourcePool: public Object {
 		Qk_HIDDEN_ALL_COPY(ImageSourcePool);
 	public:
+
+		Qk_DEFINE_PROP_GET(uint32_t, capacity); // Used memory size total
+
 		/**
 		 * @constructor
 		 */
@@ -183,11 +186,6 @@ namespace qk {
 		 * @destructor
 		 */
 		virtual ~ImageSourcePool();
-
-		/**
-		 * @method total_data_size() returns the data memory size total
-		 */
-		uint64_t total_data_size() const { return _total_data_size; }
 
 		/**
 		 * @method get(uri) get image source by uri
@@ -218,7 +216,6 @@ namespace qk {
 			int64_t time; // load time
 		};
 		Dict<uint64_t, Member> _sources;
-		uint64_t _total_data_size; /* 当前数据占用memory总容量 */
 		Mutex _Mutex;
 		Application* _host;
 	};

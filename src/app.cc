@@ -79,7 +79,7 @@ namespace qk {
 		, _screen(nullptr)
 		, _defaultTextOptions(nullptr)
 		, _fontPool(nullptr), _imgPool(nullptr)
-		, _maxImageMemoryLimit(512 * 1024 * 1024) // init 512MB
+		, _maxResourceMemoryLimit(512 * 1024 * 1024) // init 512MB
 		, _activeWindow(nullptr)
 	{
 		if (_shared)
@@ -137,31 +137,22 @@ namespace qk {
 
 	void Application::clear(bool all) {
 		UILock(this);
-		_imgPool->clear(all);
-		// TODO clear windows cache ..
+		for (auto &i: _windows) {
+			i->render()->getCanvas()->getPathvCache()->clear(all);
+		}
+		_imgPool->clear(all); // clear image cache
 	}
 
-	void Application::set_maxImageMemoryLimit(uint64_t limit) {
-		_maxImageMemoryLimit = Qk_MAX(limit, 64 * 1024 * 1024);
+	void Application::set_maxResourceMemoryLimit(uint64_t limit) {
+		_maxResourceMemoryLimit = Qk_MAX(limit, 64 * 1024 * 1024);
 	}
 
-	uint64_t Application::used_image_memory() const {
-		return _imgPool->total_data_size();
-	}
-
-	bool Application::adjust_image_memory(uint64_t will_alloc_size) {
-		int i = 0;
-		do {
-			if (will_alloc_size + used_image_memory() <= _maxImageMemoryLimit) {
-				return true;
-			}
-			clear();
-			i++;
-		} while(i < 3);
-
-		Qk_WARN("Adjust image memory fail");
-
-		return false;
+	uint32_t Application::usedResourceMemory() const {
+		auto capacity = _imgPool->capacity();
+		for (auto &i: _windows) {
+			capacity += i->render()->getCanvas()->getPathvCache()->capacity();
+		}
+		return capacity;
 	}
 
 	const List<Window*>& Application::windows() const { //! window list

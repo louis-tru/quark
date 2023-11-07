@@ -69,8 +69,8 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(FontPool*, fontPool); //! font and font familys manage
 		Qk_DEFINE_PROP_GET(ImageSourcePool*, imgPool); //! image loader and image cache
 		Qk_DEFINE_PROP_GET(Window*, activeWindow); //! current active window
-		//! Texture memory limit, cannot be less than 64MB, the default is 512MB.
-		Qk_DEFINE_PROP(uint64_t, maxImageMemoryLimit);
+		//! Resource memory limit, cannot be less than 64MB, the default is 512MB.
+		Qk_DEFINE_PROP(uint64_t, maxResourceMemoryLimit);
 		Qk_DEFINE_PROP_ACC_GET(const List<Window*>&, windows); //! all window list
 
 		// @events
@@ -113,14 +113,10 @@ namespace qk {
 		void clear(bool all = false);
 
 		/**
-		 * The amount of memory used by the current texture data, including image textures and font textures
+		 * The amount of memory used by the current resource data,
+		 * including image textures and font cache and pathv cache
 		*/
-		uint64_t used_image_memory() const;
-
-		/**
-		 * @method adjust_image_memory()
-		*/
-		bool adjust_image_memory(uint64_t will_alloc_size);
+		uint32_t usedResourceMemory() const;
 
 		/**
 		 * @method openURL()

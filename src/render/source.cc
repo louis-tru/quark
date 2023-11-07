@@ -270,7 +270,7 @@ namespace qk {
 				auto info = evt.sender()->info();
 				int ch = int(info.bytes()) - int(it->value.bytes);
 				if (ch != 0) {
-					_total_data_size += ch; // change
+					_capacity += ch; // change
 					it->value.bytes = info.bytes();
 					it->value.time = time_micro();
 				}
@@ -303,7 +303,7 @@ namespace qk {
 		source->Qk_On(State, &ImageSourcePool::handleSourceState, this);
 		auto info = source->info();
 		_sources.set(id, { source, info.bytes(), 0 });
-		_total_data_size += info.bytes();
+		_capacity += info.bytes();
 
 		return source;
 	}
@@ -322,7 +322,7 @@ namespace qk {
 		if (it != _sources.end()) {
 			it->value.source->Qk_Off(State, &ImageSourcePool::handleSourceState, this);
 			_sources.erase(it);
-			_total_data_size -= it->value.bytes;
+			_capacity -= it->value.bytes;
 		}
 	}
 
@@ -335,7 +335,7 @@ namespace qk {
 					)
 				) {
 					i.value.source->unload();
-					_total_data_size -= i.value.bytes;
+					_capacity -= i.value.bytes;
 					i.value.bytes = 0;
 					i.value.time = 0;
 				}

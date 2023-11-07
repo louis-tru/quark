@@ -61,6 +61,9 @@ namespace qk
 			virtual void unlock() = 0;
 		};
 
+		Qk_DEFINE_PROP_GET(uint32_t, capacity); // Used memory capacity
+		Qk_DEFINE_PROP_GET(uint32_t, maxCapacity); // max memory capacity
+
 		PathvCache(uint32_t maxCapacity, RenderBackend *render, ClearSync *lock);
 		~PathvCache();
 
@@ -156,8 +159,6 @@ namespace qk
 		void clearPart(uint32_t capacity);
 		RenderBackend *_render;
 		ClearSync     *_sync;
-		uint32_t      _capacity;
-		uint32_t      _maxCapacity;
 		Dict<uint64_t, Path*> _NormalizedPathCache, _StrokePathCache; // path hash => path
 		Dict<uint64_t, Wrap<VertexData>*> _PathTrianglesCache; // path hash => triangles
 		Dict<uint64_t, Wrap<VertexData>*> _AAFuzzStrokeTriangleCache; // path hash => aa fuzz stroke triangles
