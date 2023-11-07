@@ -138,7 +138,7 @@ namespace qk {
 		void nextFrame(cCb& cb);
 
 		/**
-		 * @method activate() activate window to key window
+		 * @method activate() activate window
 		*/
 		void activate();
 
