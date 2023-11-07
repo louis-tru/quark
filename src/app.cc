@@ -137,7 +137,7 @@ namespace qk {
 
 	void Application::clear(bool all) {
 		UILock(this);
-		for (auto &i: _windows) {
+		for (auto i: _windows) {
 			i->render()->getCanvas()->getPathvCache()->clear(all);
 		}
 		_imgPool->clear(all); // clear image cache
@@ -149,7 +149,7 @@ namespace qk {
 
 	uint32_t Application::usedResourceMemory() const {
 		auto capacity = _imgPool->capacity();
-		for (auto &i: _windows) {
+		for (auto i: _windows) {
 			capacity += i->render()->getCanvas()->getPathvCache()->capacity();
 		}
 		return capacity;
