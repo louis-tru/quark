@@ -33,11 +33,11 @@
 
 using namespace qk;
 
-void qk_post_messate_sync_main(Cb cb) {
+void qk_post_messate_main(Cb cb, bool sync) {
 	auto main = dispatch_get_main_queue();
 	if (main == dispatch_get_current_queue()) {
 		cb->resolve();
-	} else {
+	} else if (sync) {
 		CondMutex mutex;
 		CondMutex *mutexp = &mutex;
 		auto core = cb.Handle::collapse();
@@ -47,6 +47,12 @@ void qk_post_messate_sync_main(Cb cb) {
 			mutexp->lock_notify_one();
 		});
 		mutex.lock_wait_for(); // wait
+	} else {
+		auto core = cb.Handle::collapse();
+		dispatch_async(main, ^{
+			core->resolve();
+			core->release();
+		});
 	}
 	return 0;
 }

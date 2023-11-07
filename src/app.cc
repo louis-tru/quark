@@ -71,8 +71,6 @@ namespace qk {
 	Application::Application(RunLoop *loop)
 		: Qk_Init_Event(Load)
 		, Qk_Init_Event(Unload)
-		, Qk_Init_Event(Background)
-		, Qk_Init_Event(Foreground)
 		, Qk_Init_Event(Pause)
 		, Qk_Init_Event(Resume)
 		, Qk_Init_Event(Memorywarning)
@@ -82,13 +80,11 @@ namespace qk {
 		, _defaultTextOptions(nullptr)
 		, _fontPool(nullptr), _imgPool(nullptr)
 		, _maxImageMemoryLimit(512 * 1024 * 1024) // init 512MB
-		, _keyWindow(nullptr)
+		, _activeWindow(nullptr)
 	{
 		if (_shared)
 			Qk_FATAL("At the same time can only run a Application entity");
 		_shared = this;
-
-		Qk_On(ProcessExit, &Application::handleExit, this);
 		// init
 		_screen = New<Screen>(this); // strong ref
 		_fontPool = FontPool::Make();
@@ -99,16 +95,14 @@ namespace qk {
 	Application::~Application() {
 		UILock lock(this);
 		for (auto i = _windows.begin(), e = _windows.end(); i != e;) {
-			Release(*(i++));
+			(*(i++))->close(); // destroy
 		}
-		Release(_keyWindow); _keyWindow =  nullptr;
+		_activeWindow =  nullptr;
 		delete _defaultTextOptions; _defaultTextOptions = nullptr;
 		Release(_screen);    _screen = nullptr;
-		delete _keep;        _keep = nullptr;  _loop = nullptr;
 		Release(_fontPool);  _fontPool = nullptr;
 		Release(_imgPool);   _imgPool = nullptr;
-
-		Qk_Off(ProcessExit, &Application::handleExit, this);
+		delete _keep;        _keep = nullptr;  _loop = nullptr;
 
 		_shared = nullptr;
 	}
@@ -170,11 +164,6 @@ namespace qk {
 		return false;
 	}
 
-	void Application::handleExit(Event<>& e) {
-		Qk_DEBUG("Application::handleExit(), rc=%d", static_cast<const Int32*>(e.data())->value);
-		Inl_Application(this)->triggerUnload();
-	}
-
 	const List<Window*>& Application::windows() const { //! window list
 		return _windows;
 	}
@@ -196,21 +185,18 @@ namespace qk {
 	}
 
 	void AppInl::triggerUnload() {
-		typedef Callback<RunLoop::PostSyncData> Cb;
-		if (!_loop) return; // Block access after object is deleted
-
-		_loop->post_sync(Cb([&](Cb::Data& d) {
+		if (!_keep)
+			return; // Block access after object is deleted
+		_loop->post(Cb([&](auto&d) {
 			if (_keep) {
+				UILock lock(this);
 				if (_isLoaded) {
 					_isLoaded = false;
-					Qk_DEBUG("AppInl::onUnload()");
 					Qk_Trigger(Unload);
+					Qk_DEBUG("AppInl::onUnload()");
 				}
-				thread_abort(_loop->thread_id()); // abort Signal
-				delete _keep; // stop loop
-				_keep = nullptr;
+				delete _keep; _keep = nullptr; // stop loop run
 			}
-			d.data->complete();
 		}));
 	}
 
@@ -222,12 +208,12 @@ namespace qk {
 		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) { app->Qk_Trigger(Resume); }, this));
 	}
 
-	void AppInl::triggerBackground() {
-		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) { app->Qk_Trigger(Background); }, this));
+	void AppInl::triggerBackground(Window *win) {
+		_loop->post(Cb([win](Cb::Data& d) { win->Qk_Trigger(Background); }, win));
 	}
 
-	void AppInl::triggerForeground() {
-		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) { app->Qk_Trigger(Foreground); }, this));
+	void AppInl::triggerForeground(Window *win) {
+		_loop->post(Cb([win](Cb::Data& d) { win->Qk_Trigger(Foreground); }, win));
 	}
 
 	void AppInl::triggerMemorywarning() {
@@ -235,15 +221,15 @@ namespace qk {
 		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
 	}
 
-	void AppInl::set_keyWindow(Window *key) {
-		UILock lock;
-		if (key != _keyWindow) {
-			Release(_keyWindow);
-			if (key) {
-				key->retain();
+	void AppInl::setActiveWindow(Window *win) {
+		if (!win) { // key == nullptr, auto select key window
+			if (_windows.length()) {
+				_windows.front()->activate(); // select front window
+				return;
 			}
-			_keyWindow = key;
 		}
+		UILock lock;
+		_activeWindow = win;
 	}
 
 }

@@ -42,8 +42,8 @@ public:
 
 void test_subcanvas(int argc, char **argv) {
 	App app;
-	auto win = new Window({.fps=0x0, .frame={{0,0}, {500,500}}});
-	win->setKeyWindow();
+	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}});
+	win->activate();
 	auto r = win->root();
 	auto t = r->append_new<TestSubcanvas>();
 	r->set_background_color({255,255,255,0});

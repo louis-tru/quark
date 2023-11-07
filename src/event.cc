@@ -855,8 +855,7 @@ namespace qk {
 					_inl_view(view)->bubble_trigger(UIEvent_Back, **evt); // emit back
 					
 					if ( evt->is_default() ) {
-						// pending gui application (挂起应用)
-						_host->pending();
+						 _window->pending();
 					}
 				}
 				else if ( name == KEYCODE_CENTER ) {

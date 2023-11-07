@@ -43,7 +43,7 @@ namespace qk {
 	class Qk_EXPORT ViewRender: public Object, public ViewVisitor {
 		Qk_HIDDEN_ALL_COPY(ViewRender);
 	public:
-		Qk_DEFINE_PROP(Render*, render);
+		Qk_DEFINE_PROP_GET(Render*, render);
 		ViewRender(Window *window);
 		virtual uint32_t flags() override;
 		virtual void  visitView(View* v) override;

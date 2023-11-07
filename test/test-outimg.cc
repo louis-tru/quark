@@ -40,8 +40,7 @@ public:
 
 void test_outimg(int argc, char **argv) {
 	App app;
-	auto win = new Window({.fps=0x0, .frame={{0,0}, {500,500}}});
-	win->setKeyWindow();
+	auto win = Window::Make({.frame={{0,0}, {500,500}}});
 	auto r = win->root();
 	auto t = r->append_new<TestOutImg>();
 	r->set_background_color({255,255,255,0});

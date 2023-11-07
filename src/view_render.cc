@@ -362,16 +362,12 @@ namespace qk {
 	// --------------------------------------------------------------------------
 
 	ViewRender::ViewRender(Window *window)
-		: _render(nullptr), _canvas(nullptr)
+		: _render(window->render()), _canvas(nullptr)
 		, _cache(nullptr)
 		, _window(window)
 		, _opacity(1), _mark_recursive(0)
 	{
-	}
-
-	void ViewRender::set_render(Render *render) {
-		_render = render;
-		_canvas = render->getCanvas();
+		_canvas = _render->getCanvas();
 		_cache = _canvas->getPathvCache();
 	}
 

@@ -47,7 +47,6 @@ class OsxGLRender;
 	OsxGLRender      *_render;
 	NSOpenGLContext  *_ctx;
 	bool             _isInit; // start render
-	Mutex            _mutexRender;
 }
 @property (assign, nonatomic) bool         isRun;
 @property (assign, nonatomic) qk::ThreadID renderThreadId;
@@ -60,8 +59,10 @@ class OsxGLRender;
 class OsxGLRender final: public GLRender, public RenderSurface {
 public:
 	OsxGLRender(Options opts, NSOpenGLContext *ctx)
-		: GLRender(opts), _ctx(ctx)
-	{}
+		: GLRender(opts), _ctx(ctx), _lockCount(0)
+	{
+		//CFBridgingRetain(_ctx);
+	}
 
 	~OsxGLRender() override {
 		Qk_STRICT_ASSERT(_message.length() == 0);
@@ -87,6 +88,7 @@ public:
 		}
 		_mutexMsg.unlock();
 
+		//CFBridgingRelease((__bridge void*)_ctx);
 		Object::release(); // final destruction
 	}
 
@@ -202,13 +204,15 @@ private:
 		_isRun = true;
 		_displayLink = nil;
 		_render = r;
+		_renderThreadId = qk::ThreadID();
 		[self setOpenGLContext:ctx];
 	}
 	return self;
 }
 
 - (void) update {
-	_render->reload();
+	if (_isRun)
+		_render->reload();
 	[super update];
 }
 

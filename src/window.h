@@ -94,14 +94,14 @@ namespace qk {
 		 * @event onChange show port change event
 		*/
 		Qk_Event(Change);
+		Qk_Event(Background); // @event onBackground, window into background
+		Qk_Event(Foreground); // @event onForeground, window into foreground
 
 		/**
-		 * Create an application object before creating a window
-		 * 
-		 * @constructor
-		 * @param opts {Options} create options
+		 * @static
+		 * @method Make(opts) create new window object
 		*/
-		Window(Options opts);
+		static Window* Make(Options opts) { return new Window(opts); }
 
 		/**
 		 * @destructor
@@ -138,25 +138,45 @@ namespace qk {
 		void nextFrame(cCb& cb);
 
 		/**
-		 * @method setKeyWindow() set to key window and order front
+		 * @method activate() activate window to key window
 		*/
-		void setKeyWindow();
+		void activate();
+
+		/**
+		 * @method close() close window object
+		*/
+		void close();
+
+		/**
+		 * @method pending() suspend ui window object
+		 */
+		void pending();
 
 	private:
 		void updateState();
 		void solveNextFrame();
 		void onRenderBackendReload(Region region, Vec2 size, float defaultScale) override;
 		bool onRenderBackendDisplay() override;
-		void newImpl(Options opts);
-		void deleteImpl();
+		void openImpl(Options &opts);
+		void closeImpl();
+		bool destroy(); // destroy window and protform window
 
-		ViewRender        *_viewRender;
-		Vec2              _lockSize;  //!< Lock the size of the viewport
-		List<Cb>          _nextFrame;
-		uint32_t          _nextFsp;
-		int64_t           _nextFspTime;
+		/**
+		 * Create an application object before creating a window
+		 * 
+		 * @constructor
+		 * @param opts {Options} create options
+		*/
+		Window(Options &opts);
+
+		ViewRender     *_viewRender;
+		Vec2           _lockSize;  //!< Lock the size of the viewport
+		List<Cb>       _nextFrame;
+		uint32_t       _nextFsp;
+		int64_t        _nextFspTime;
 		Array<RegionSize> _clipRegion;
 		List<Window*>::Iterator _id;
+		friend class WindowImpl;
 	};
 
 }

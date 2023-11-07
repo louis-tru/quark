@@ -35,7 +35,7 @@
 #include <pthread.h>
 
 #ifndef Qk_ATEXIT_WAIT_TIMEOUT
-# define Qk_ATEXIT_WAIT_TIMEOUT 1e6
+# define Qk_ATEXIT_WAIT_TIMEOUT 1e6 // 1s
 #endif
 
 namespace qk {

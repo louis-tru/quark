@@ -42,8 +42,10 @@
 
 namespace qk {
 
-	Window::Window(Options opts)
+	Window::Window(Options &opts)
 		: Qk_Init_Event(Change)
+		, Qk_Init_Event(Background)
+		, Qk_Init_Event(Foreground)
 		, _host(shared_app())
 		, _viewRender(nullptr)
 		, _lockSize()
@@ -58,34 +60,49 @@ namespace qk {
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_preRender = new PreRender(this);
-		_viewRender = new ViewRender(this);
 		_dispatch = new EventDispatch(this);
-		_viewRender->set_render(_render);
+		_viewRender = new ViewRender(this);
 		_backgroundColor = opts.backgroundColor;
+		{
+			UILock lock;
+			_id = _host->_windows.pushBack(this);
+		}
+		retain(); // strong ref count retain
 		// init root
 		_root = new Root(this);
 		_root->reset();
 		_root->retain(); // strong ref
-		{
-			UILock lock;
-			_id = _host->_windows.pushBack(this); retain();
-		}
-		newImpl(opts);
+		openImpl(opts); // open platform window
 		_root->focus();  // set focus
 	}
 
 	Window::~Window() {
-		_root->remove();
+		destroy();
+	}
+
+	void Window::close() {
+		if (destroy()) {
+			release(); // release ref count from host windows
+		}
+	}
+
+	bool Window::destroy() {
+		UILock lock; // lock ui
+		if (!_render) return false;
+		lock.unlock(); // Avoid deadlocks with rendering threads
+		Release(_render); _render = nullptr; // delete obj and stop render draw
+		lock.lock(); // relock
+		_root->remove(); // remove child view
 		Release(_root);      _root = nullptr;
 		Release(_dispatch); _dispatch = nullptr;
 		Release(_viewRender); _viewRender = nullptr;
 		Release(_preRender); _preRender = nullptr;
-		Release(_render); _render = nullptr;
-		{
-			UILock lock;
-			_host->_windows.erase(_id);
+		_host->_windows.erase(_id);
+		if (_host->_activeWindow == this) {
+			Inl_Application(_host)->setActiveWindow(nullptr);
 		}
-		deleteImpl();
+		closeImpl(); // close platform window
+		return true;
 	}
 
 	void Window::clipRegion(Region clip) {

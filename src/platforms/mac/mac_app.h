@@ -40,10 +40,11 @@
 
 namespace qk {
 	class Application;
+	class Window;
 	class WindowImpl {
 	public:
 		QkWindowDelegate* delegate();
-		UIWindow*         window();
+		UIWindow* window();
 	};
 }
 
@@ -59,7 +60,7 @@ namespace qk {
 @end
 
 id<QkIMEHelprt> qk_make_ime_helper(qk::Application *host);
-void            qk_post_messate_sync_main(qk::Cb cb);
+void            qk_post_messate_main(qk::Cb cb, bool sync);
 
 @interface QkRootViewController: UIViewController
 @end
@@ -68,14 +69,15 @@ void            qk_post_messate_sync_main(qk::Cb cb);
 #if Qk_OSX
 <NSWindowDelegate>
 #endif
+	@property (assign, nonatomic) qk::Window *win0;
 	@property (strong, nonatomic) UIWindow *window; // strong
+	@property (strong, nonatomic) id<QkIMEHelprt> ime; // strong
 	@property (strong, nonatomic) QkRootViewController *root_ctr;
 @end
 
 @interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
 	@property (assign, nonatomic, readonly) UIApplication *app; // strong
 	@property (assign, nonatomic, readonly) qk::Application *host;
-	@property (strong, nonatomic) id<QkIMEHelprt> ime; // strong
 @end
 
 #endif // #if Qk_MAC

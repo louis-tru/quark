@@ -38,16 +38,21 @@ using namespace qk;
 // ***************** W i n d o w *****************
 
 QkWindowDelegate* WindowImpl::delegate() {
-	return (__bridge QkWindowDelegate*)(this);
+	return ((__bridge QkWindowDelegate*)(this));
 }
 
 UIWindow* WindowImpl::window() {
-	return delegate().window;
+	return ((__bridge QkWindowDelegate*)(this)).window;
 }
+
+@interface QkWindowDelegate()
+@property (assign, nonatomic) BOOL isClose;
+@property (assign, nonatomic) BOOL isBackground;
+@end
 
 @implementation QkWindowDelegate
 
-	- (id) init:(Window::Options&)opts render:(Render*)render {
+	- (id) init:(Window::Options&)opts win0:(Window*)win0 render:(Render*)render {
 		if ( !(self = [super init]) ) return nil;
 
 		NSWindowStyleMask style = NSWindowStyleMaskBorderless |
@@ -64,28 +69,24 @@ UIWindow* WindowImpl::window() {
 		float y = opts.frame.origin.y() > 0 ?
 			opts.frame.origin.y(): (screen.frame.size.height - h) / 2.0;
 
-		Color4f color = opts.backgroundColor.to_color4f();
-
-		QkWindowDelegate *delegate = [QkWindowDelegate new];
 		UIWindow *window = [[UIWindow alloc] initWithContentRect:NSMakeRect(x, y, w, h)
 																							styleMask:style
 																								backing:NSBackingStoreBuffered
 																									defer:NO
 																									screen:screen];
-		window.backgroundColor = [UIColor colorWithSRGBRed:color.r()
-																								 green:color.g()
-																									blue:color.b()
-																								 alpha:color.a()];
-		window.title = [NSString stringWithFormat:@"%s", opts.title.c_str()];
-		window.delegate = delegate;
-		delegate.window = window;
-		delegate.root_ctr = nil;
+		window.title = [NSString stringWithUTF8String:opts.title.c_str()];
+		window.delegate = self;
+
+		self.isBackground = NO;
+		self.isClose = NO;
+		self.win0 = win0;
+		self.window = window;
+		self.root_ctr = nil;
+		self.ime = qk_make_ime_helper(shared_app());
 
 		if (opts.frame.origin.x() < 0 && opts.frame.origin.y() < 0) {
 			[window center];
 		}
-
-		[window makeKeyAndOrderFront:nil];
 
 		UIView *rootView = window.contentView;
 		UIView *view = render->surface()->surfaceView();
@@ -114,6 +115,12 @@ UIWindow* WindowImpl::window() {
 	}
 
 	- (BOOL)windowShouldClose:(NSWindow*)sender {
+		if (!self.isClose) {
+			self.isClose = YES;
+			self.win0->host()->loop()->post(Cb([self](auto&e){
+				self.win0->close(); // close destroy window
+			}));
+		}
 		return YES;
 	}
 
@@ -122,49 +129,59 @@ UIWindow* WindowImpl::window() {
 	}
 
 	- (void)windowDidMiniaturize:(NSNotification*)notification {
-		// if (_is_background) return;
-		// _is_background = YES;
-		// [self applicationWillResignActive:notification];
-		// Inl_Application(_host)->triggerBackground();
-		// Qk_DEBUG("windowDidMiniaturize, triggerBackground");
+		if (self.isBackground) return;
+		self.isBackground = YES;
+		Inl_Application(self.win0->host())->triggerBackground(self.win0);
+		Qk_DEBUG("windowDidMiniaturize, triggerBackground");
 	}
 
 	- (void)windowDidDeminiaturize:(NSNotification*)notification {
-		// if (!_is_background) return;
-		// _is_background = NO;
-		// Inl_Application(_host)->triggerForeground();
-		// Qk_DEBUG("windowDidDeminiaturize,triggerForeground");
-		// [self applicationDidBecomeActive:notification];
+		if (!self.isBackground) return;
+		self.isBackground = NO;
+		Inl_Application(self.win0->host())->triggerForeground(self.win0);
+		Qk_DEBUG("windowDidDeminiaturize,triggerForeground");
 	}
 
 @end
 
-
-void Window::newImpl(Options opts) {
-	qk_post_messate_sync_main(Cb([&opts,this](auto&e) {
-		QkWindowDelegate *delegate = [[QkWindowDelegate alloc] init:opts render:_render];
-		_impl = (WindowImpl*)CFBridgingRetain(delegate);
-	}));
+void Window::pending() {
+	// noop
 }
 
-void Window::deleteImpl() {
-	qk_post_messate_sync_main(Cb([this](auto&e) {
-		_impl->delegate().window = nil;
-		CFBridgingRelease((WindowImpl*)_impl);
-		_impl = nullptr;
-	}));
+void Window::openImpl(Options &opts) {
+	qk_post_messate_main(Cb([&opts,this](auto&e) {
+		auto del = [[QkWindowDelegate alloc] init:opts win0:this render:_render];
+		CFBridgingRetain(del);
+		_impl = (__bridge WindowImpl*)del;
+		set_backgroundColor(opts.backgroundColor);
+		activate();
+	}), true);
+}
+
+void Window::closeImpl() {
+	auto win = _impl->delegate();
+	if (!win.isClose) {
+		win.isClose = YES;
+		qk_post_messate_main(Cb([win](auto&e) {
+			[win.window close]; // close platform window
+		}), false);
+	}
+	//CFBridgingRelease(_impl);
+	_impl = nullptr;
 }
 
 void Window::set_backgroundColor(Color val) {
-	Color4f color = val.to_color4f();
-	_impl->window().backgroundColor = 
-		[UIColor colorWithSRGBRed:color.r() green:color.g() blue:color.b() alpha:color.a()];
+	qk_post_messate_main(Cb([this,val](auto&e) {
+		Color4f color = val.to_color4f();
+		_impl->window().backgroundColor = 
+			[UIColor colorWithSRGBRed:color.r() green:color.g() blue:color.b() alpha:color.a()];
+	}), false);
 	_backgroundColor = val;
 }
 
-void Window::setKeyWindow() {
-	qk_post_messate_sync_main(Cb([this](auto&e) {
-		Inl_Application(_host)->set_keyWindow(this);
+void Window::activate() {
+	qk_post_messate_main(Cb([this](auto&e) {
 		[_impl->window() makeKeyAndOrderFront:nil];
-	}));
+	}), false);
+	Inl_Application(_host)->setActiveWindow(this);
 }

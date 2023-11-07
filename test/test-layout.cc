@@ -163,8 +163,8 @@ void layout_input(Box* box) {
 }
 
 void layout(Event<>& evt, Application* app) {
-	auto win = new Window({.msaa=1});
-	win->setKeyWindow();
+	auto win = Window::Make({.msaa=1});
+	win->activate();
 	app->screen()->set_status_bar_style(Screen::STATUS_BAR_STYLE_BLACK);
 	app->defaultTextOptions()->set_text_family({ app->fontPool()->getFFID("Helvetica, PingFang SC") });
 
@@ -282,7 +282,7 @@ void layout(Event<>& evt, Application* app) {
 
 void test_layout(int argc, char **argv) {
 	Application app;
-	auto win = new Window({.msaa=1});
+	auto win = Window::Make({.msaa=1});
 	app.Qk_On(Load, layout, &app);
 	app.run();
 }

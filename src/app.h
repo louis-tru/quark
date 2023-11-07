@@ -68,7 +68,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
 		Qk_DEFINE_PROP_GET(FontPool*, fontPool); //! font and font familys manage
 		Qk_DEFINE_PROP_GET(ImageSourcePool*, imgPool); //! image loader and image cache
-		Qk_DEFINE_PROP_GET(Window*, keyWindow); //! current key window
+		Qk_DEFINE_PROP_GET(Window*, activeWindow); //! current active window
 		//! Texture memory limit, cannot be less than 64MB, the default is 512MB.
 		Qk_DEFINE_PROP(uint64_t, maxImageMemoryLimit);
 		Qk_DEFINE_PROP_ACC_GET(const List<Window*>&, windows); //! all window list
@@ -76,8 +76,6 @@ namespace qk {
 		// @events
 		Qk_Event(Load);
 		Qk_Event(Unload);
-		Qk_Event(Background);
-		Qk_Event(Foreground);
 		Qk_Event(Pause);
 		Qk_Event(Resume);
 		Qk_Event(Memorywarning);
@@ -108,11 +106,6 @@ namespace qk {
 		 * start run application message loop
 		*/
 		void run();
-
-		/**
-		 * @method pending() suspend ui application process
-		 */
-		void pending();
 
 		/**
 		 * Clean up garbage and recycle memory resources, all=true clean up all resources
@@ -160,8 +153,6 @@ namespace qk {
 		static inline Application* shared() { return _shared; }
 
 	private:
-		void handleExit(Event<>& e);
-
 		static Application *_shared;   //! current shared application
 		KeepLoop*      _keep;
 		List<Window*>  _windows; // window list
@@ -186,11 +177,10 @@ namespace qk {
 		void triggerUnload();
 		void triggerPause();
 		void triggerResume();
-		void triggerBackground();
-		void triggerForeground();
+		void triggerBackground(Window *win);
+		void triggerForeground(Window *win);
 		void triggerMemorywarning();
-		void set_keyWindow(Window *key);
+		void setActiveWindow(Window *win);
 	};
-	//@end
 }
 #endif

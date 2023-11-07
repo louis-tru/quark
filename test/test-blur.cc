@@ -56,14 +56,12 @@ public:
 
 void test_blur(int argc, char **argv) {
 	App app;
-	auto win = new Window({.fps=0x0, .frame={{0,0}, {500,500}}});
-	win->setKeyWindow();
-	// layout
+	auto win2 = Window::Make({.frame={{0,0}, {200,200}}, .title="win2"});
+	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="win"});
 	auto r = win->root();
 	auto t = win->root()->append_new<TestBlur>();
 	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
-	// layout end
 	app.run();
 }

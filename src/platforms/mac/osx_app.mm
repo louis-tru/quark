@@ -42,9 +42,8 @@ using namespace qk;
 
 QkApplicationDelegate* __app = nil;
 
-@interface QkApplicationDelegate() {
-	BOOL _is_background, _is_pause; 
-}
+@interface QkApplicationDelegate()
+@property (assign, nonatomic) BOOL isPause;
 @end
 
 @implementation QkApplicationDelegate
@@ -55,24 +54,21 @@ QkApplicationDelegate* __app = nil;
 		__app = self;
 		_host = Application::shared();
 		_app = UIApplication.sharedApplication;
-		_is_background = NO;
-		_is_pause = YES;
-
-		self.ime = qk_make_ime_helper(_host);
+		self.isPause = YES;
 
 		Inl_Application(_host)->triggerLoad();
 	}
 
 	- (void)applicationWillResignActive:(NSNotification*)notification {
-		if (_is_pause) return;
-		_is_pause = YES;
+		if (self.isPause) return;
+		self.isPause = YES;
 		Inl_Application(_host)->triggerPause();
 		Qk_DEBUG("applicationWillResignActive, triggerPause");
 	}
 
 	- (void)applicationDidBecomeActive:(NSNotification*)notification {
-		if (!_is_pause) return;
-		_is_pause = NO;
+		if (!self.isPause) return;
+		self.isPause = NO;
 		Inl_Application(_host)->triggerResume();
 		Qk_DEBUG("applicationDidBecomeActive, triggerResume");
 	}
@@ -103,10 +99,6 @@ QkApplicationDelegate* __app = nil;
 @end
 
 // ***************** A p p l i c a t i o n *****************
-
-void Application::pending() {
-	// exit(0);
-}
 
 void Application::openURL(cString& url) {
 	// TODO
