@@ -80,8 +80,6 @@ namespace qk {
 			bool wrap_x, wrap_y;
 		};
 
-		friend class PreRender;
-
 	private:
 		/* 下一个预处理视图标记
 		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
@@ -297,6 +295,8 @@ namespace qk {
 		inline void set_pre_render(PreRender *pre) {
 			_pre_render = pre;
 		}
+
+		friend class PreRender;
 	};
 
 }

@@ -67,6 +67,7 @@ namespace qk {
 		struct Transform *_transform; // 矩阵变换
 		Mat              _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 	public:
+		typedef ViewVisitor Visitor;
 		// @props
 		Qk_DEFINE_PROP_ACC(Vec2, translate); // matrix displacement for the view
 		Qk_DEFINE_PROP_ACC(Vec2, scale); // Matrix scaling
@@ -95,13 +96,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(bool, visible);
 		// 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		Qk_DEFINE_PROP_GET(bool, visible_region);
-
-		Qk_DEFINE_INLINE_CLASS(Inl);
-		Qk_DEFINE_INLINE_CLASS(InlEvent);
-
-		friend class ViewRender;
-	public:
-		typedef ViewVisitor Visitor;
 
 		/**
 		 * @constructor
@@ -342,6 +336,10 @@ namespace qk {
 		 * @method set_parent(parent) setting parent view
 		 */
 		virtual void set_parent(View* parent);
+
+		friend class ViewRender;
+		Qk_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(InlEvent);
 	};
 
 }
