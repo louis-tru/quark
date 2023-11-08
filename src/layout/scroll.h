@@ -91,7 +91,7 @@ namespace qk {
 	class Qk_EXPORT Scroll: public FloatLayout, public BaseScroll {
 		Qk_Define_View(Scroll);
 	public:
-		Scroll(Window *win);
+		Scroll();
 		virtual Vec2 layout_offset_inside() override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(uint32_t mark) override;

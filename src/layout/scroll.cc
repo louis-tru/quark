@@ -382,7 +382,7 @@ namespace qk {
 				
 				_host->mark_render(View::kScroll); // mark
 				
-				_host->pre_render()->host()->loop()->post(Cb([this](Cb::Data& se) {
+				shared_app()->loop()->post(Cb([this](Cb::Data& se) {
 					_host->triggerScroll(); // trigger event
 				}, _host));
 			}
@@ -832,7 +832,7 @@ namespace qk {
 
 	// ------------------------ S c r o l l --------------------------
 
-	Scroll::Scroll(Window *win): FloatLayout(win), BaseScroll(this)
+	Scroll::Scroll(): FloatLayout(), BaseScroll(this)
 	{
 		set_is_clip(true);
 	}

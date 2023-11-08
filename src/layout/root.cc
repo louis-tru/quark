@@ -40,7 +40,10 @@ namespace qk {
 
 	void __View_set_visible(View* self, bool val, uint32_t layout_depth);
 
-	Root::Root(Window *win): Box(win) {}
+	Root::Root(Window *win): Box() {
+		Qk_STRICT_ASSERT(win, "Window host cannot be null");
+		set_pre_render(win->preRender()); // set pre render
+	}
 
 	void Root::reset() {
 		set_layout_depth(1);

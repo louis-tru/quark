@@ -11,8 +11,6 @@ constexpr unsigned int u32 = 1;
 
 class TestRRect: public Box {
 public:
-	TestRRect(Window *host): Box(host) {}
-
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
 		auto canvas = pre_render()->render()->getCanvas();
@@ -84,7 +82,7 @@ void test_rrect(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();
 	// layout
-	auto t = (new TestRRect(win))->append_to<Box>(win->root());
+	auto t = New<TestRRect>()->append_to<Box>(win->root());
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

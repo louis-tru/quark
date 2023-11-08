@@ -42,8 +42,8 @@ namespace qk {
 	typedef PreRender::Task::ID TaskID;
 	typedef Mediacodec_OutputBuffer OutputBuffer;
 
-	Video::Video(Window *win)
-		: Image(win)
+	Video::Video()
+		: Image()
 		, _source(NULL)
 		, _audio(NULL)
 		, _video(NULL)
@@ -447,7 +447,7 @@ namespace qk {
 			}
 			Inl_Video(this)->stop_and_release(lock, true);
 		}
-		auto loop = pre_render()->host()->loop();
+		auto loop = shared_app()->loop();
 		Qk_ASSERT(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
 		_keep = loop->keep_alive("Video::set_source");

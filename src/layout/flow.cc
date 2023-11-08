@@ -152,8 +152,8 @@ namespace qk {
 		}
 	}
 
-	FlowLayout::FlowLayout(Window *win)
-		: FlexLayout(win)
+	FlowLayout::FlowLayout()
+		: FlexLayout()
 		, _wrap(Wrap::kNoWrap)
 		, _wrap_align(WrapAlign::kStart)
 	{

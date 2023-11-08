@@ -32,7 +32,7 @@
 
 namespace qk {
 
-	Button::Button(Window *win): TextLayout(win) {
+	Button::Button(): TextLayout() {
 		set_receive(true); // default enable event receive
 	}
 

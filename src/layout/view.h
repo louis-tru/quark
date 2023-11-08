@@ -65,15 +65,11 @@ namespace qk {
 		/**
 		 * @constructor
 		*/
-		View(Window *win);
+		View();
 		/**
 		 * @destructor
 		*/
 		virtual ~View();
-
-		template<class T = View> inline T* New() {
-			return new T(pre_render()->window());
-		}
 
 		template<class T = View> inline T* prepend_new() {
 			return New<T>()->template prepend_to<T>(this);

@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	TextLayout::TextLayout(Window *win): Box(win) {}
+	TextLayout::TextLayout(): Box(), _text_align(TextAlign::kLeft) {}
 
 	void TextLayout::set_text_align(TextAlign value) {
 		if(_text_align != value) {
@@ -53,7 +53,7 @@ namespace qk {
 			_lines = new TextLines(this, _text_align, size, layout_wrap_x());
 
 			if (v) {
-				TextConfig cfg(this, pre_render()->host()->defaultTextOptions());
+				TextConfig cfg(this, shared_app()->defaultTextOptions());
 				do {
 					v->layout_text(*_lines, &cfg);
 					v = v->next();

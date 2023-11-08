@@ -82,7 +82,7 @@ namespace qk {
 		/**
 		 * @constructor
 		*/
-		Layout(Window *win);
+		Layout();
 
 		/**
 		 * @destructor
@@ -253,6 +253,13 @@ namespace qk {
 			*/
 		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {
 			_layout_mark &= (~mark);
+		}
+
+		/**
+		 * @func set_pre_render()
+		*/
+		inline void set_pre_render(PreRender *pre) {
+			_pre_render = pre;
 		}
 
 	private:

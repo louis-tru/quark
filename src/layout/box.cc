@@ -145,8 +145,8 @@ namespace qk {
 	/**
 		* @constructors
 		*/
-	Box::Box(Window *win)
-		: View(win)
+	Box::Box()
+		: View()
 		, _layout_wrap_x(true), _layout_wrap_y(true), _is_clip(false)
 		, _width{0, BoxSizeKind::kWrap}, _height{0, BoxSizeKind::kWrap}
 		, _width_limit{0, BoxSizeKind::kNone}, _height_limit{0, BoxSizeKind::kNone}
@@ -420,7 +420,7 @@ namespace qk {
 		if (_border->width[0] != val) {
 			_border->width[0] = val;
 			// fix aa sdf stroke for view render
-			val -= (2.0f * 0.45f / pre_render()->window()->scale());
+			//val -= (2.0f * 0.45f / pre_render()->window()->scale());
 			_border->_fix_width[0] = Qk_MAX(0, val);
 			mark_size(kLayout_Size_Height);
 		}
@@ -432,7 +432,7 @@ namespace qk {
 		if (_border->width[1] != val) {
 			_border->width[1] = val;
 			// fix aa sdf stroke for view render
-			val -= (2.0f * 0.45f / pre_render()->window()->scale());
+			//val -= (2.0f * 0.45f / pre_render()->window()->scale());
 			_border->_fix_width[1] = Qk_MAX(0, val);
 			mark_size(kLayout_Size_Width);
 		}
@@ -444,7 +444,7 @@ namespace qk {
 		if (_border->width[2] != val) {
 			_border->width[2] = val;
 			// fix aa sdf stroke for view render
-			val -= (2.0f * 0.45f / pre_render()->window()->scale());
+			//val -= (2.0f * 0.45f / pre_render()->window()->scale());
 			_border->_fix_width[2] = Qk_MAX(0, val);
 			mark_size(kLayout_Size_Height);
 		}
@@ -456,7 +456,7 @@ namespace qk {
 		if (_border->width[3] != val) {
 			_border->width[3] = val;
 			// fix aa sdf stroke for view render
-			val -= (2.0f * 0.45f / pre_render()->window()->scale());
+			//val -= (2.0f * 0.45f / pre_render()->window()->scale());
 			_border->_fix_width[3] = Qk_MAX(0, val);
 			mark_size(kLayout_Size_Width);
 		}

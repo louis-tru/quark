@@ -180,7 +180,7 @@ namespace qk {
 					_flag = kFlag_Wait_Find;
 					int64_t timeout = is_multiline() ? 1e6/*1s*/: 0;
 					if ( timeout ) {
-						pre_render()->host()->loop()->post(Cb([this](Cb::Data& evt) { // delay
+						shared_app()->loop()->post(Cb([this](Cb::Data& evt) { // delay
 							UILock lock;
 							if ( _flag == kFlag_Wait_Find ) {
 								_flag = kFlag_Find; // 激活光标定位
@@ -536,7 +536,7 @@ namespace qk {
 		}
 
 		void trigger_change() {
-			pre_render()->host()->loop()->post(Cb([this](Cb::Data& e){
+			shared_app()->loop()->post(Cb([this](Cb::Data& e){
 				Handle<UIEvent> evt = qk::New<UIEvent>(this);
 				trigger(UIEvent_Change, **evt); // trigger event
 			}, this));
@@ -544,8 +544,8 @@ namespace qk {
 
 	};
 
-	Input::Input(Window *win)
-		: Box(win)
+	Input::Input()
+		: Box()
 		, _security(false), _readonly(false)
 		, _text_align(TextAlign::kLeft)
 		, _type(KeyboardType::kNormal)
@@ -625,7 +625,7 @@ namespace qk {
 
 		Vec2 size = content_size();
 		_lines = new TextLines(this, _text_align, size, layout_wrap_x());
-		TextConfig cfg(this, pre_render()->host()->defaultTextOptions());
+		TextConfig cfg(this, shared_app()->defaultTextOptions());
 
 		FontMetricsBase metrics;
 		text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);

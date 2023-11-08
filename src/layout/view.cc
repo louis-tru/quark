@@ -96,8 +96,8 @@ namespace qk {
 
 		void clear_layout_depth() { //  clear layout depth
 			if ( layout_depth() ) {
-				set_layout_depth(0);
 				blur();
+				set_layout_depth(0);
 				View *v = _first;
 				while ( v ) {
 					_inl(v)->clear_layout_depth();
@@ -110,6 +110,7 @@ namespace qk {
 			if (_visible) {
 				if ( layout_depth() != depth ) {
 					set_layout_depth(depth++);
+					set_pre_render(_parent->pre_render()); // set pre render
 
 					if ( layout_mark() ) { // remark
 						mark(kLayout_None);
@@ -133,8 +134,8 @@ namespace qk {
 		View::Inl::set_visible_static(_inl(self), val, layout_depth);
 	}
 
-	View::View(Window *win)
-		: Notification<UIEvent, UIEventName, Layout>(win)
+	View::View()
+		: Notification<UIEvent, UIEventName, Layout>()
 		, _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
@@ -819,7 +820,7 @@ namespace qk {
 	 * @method is_focus()
 	 */
 	bool View::is_focus() const {
-		return this == pre_render()->window()->dispatch()->focus_view();
+		return pre_render() && pre_render()->window()->dispatch()->focus_view() == this;
 	}
 
 	/**

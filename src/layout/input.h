@@ -44,7 +44,6 @@ namespace qk {
 		Qk_Define_View(Input);
 	public:
 		typedef ReferenceTraits Traits;
-		Input(Window *win);
 		// define props
 		Qk_DEFINE_PROP(bool, security);
 		Qk_DEFINE_PROP(bool, readonly);
@@ -59,6 +58,8 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(String, text_value);
 		Qk_DEFINE_PROP_ACC(String, placeholder);
 		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length);
+
+		Input();
 		// virtual func
 		virtual bool is_multiline();
 		// @override

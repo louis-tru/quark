@@ -38,7 +38,7 @@ namespace qk {
 	class Qk_EXPORT FlexLayout: public Box {
 		Qk_Define_View(FlexLayout);
 	public:
-		FlexLayout(Window *win);
+		FlexLayout();
 		// define props
 		Qk_DEFINE_PROP(Direction, direction); // typesetting direction
 		Qk_DEFINE_PROP(ItemsAlign, items_align); // alignment mode of the main axis

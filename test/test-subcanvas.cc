@@ -10,8 +10,10 @@ using namespace qk;
 class TestSubcanvas: public Box {
 public:
 	Sp<Canvas> _c;
-	TestSubcanvas(Window *host): Box(host) {
-		_c = host->render()->newCanvas({.isMipmap=0});
+
+	void set_parent(View* parent) override {
+		Box::set_parent(parent);
+		_c = pre_render()->render()->newCanvas({.isMipmap=0});
 		_c->setSurface({600},2);
 	}
 

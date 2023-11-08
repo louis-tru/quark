@@ -18,7 +18,6 @@ using namespace qk;
 
 class TestImage: public Image {
 public:
-	TestImage(Window *host): Image(host) {}
 
 //	virtual void accept(ViewVisitor *visitor) override {
 //		auto render = static_cast<SkiaRender*>(visitor);

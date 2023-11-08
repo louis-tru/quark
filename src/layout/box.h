@@ -45,7 +45,8 @@ namespace qk {
 		/**
 		 * @constructor
 		*/
-		Box(Window *win);
+		Box();
+
 		/**
 		 * @destructor
 		*/

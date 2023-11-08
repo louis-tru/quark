@@ -37,13 +37,12 @@ namespace qk {
 	/**
 		* @constructors
 		*/
-	Layout::Layout(Window *win)
+	Layout::Layout()
 		: _mark_index(-1)
 		, _layout_mark(kLayout_None)
 		, _layout_depth(0)
-		, _pre_render(win->preRender())
+		, _pre_render(nullptr)
 	{
-		Qk_ASSERT(_pre_render, "PreRender host cannot be null");
 	}
 
 	/**
@@ -174,7 +173,11 @@ namespace qk {
 				_pre_render->delete_mark(this, oldDepth);
 				if (newDepth) {
 					_pre_render->mark_layout(this, newDepth);
+				} else {
+					_pre_render = nullptr;
 				}
+			} else if (!newDepth) {
+				_pre_render = nullptr; // clear pre render
 			}
 		}
 	}
@@ -197,7 +200,6 @@ namespace qk {
 			_pre_render->mark_render(); // push to pre render
 		}
 	}
-
 
 // *******************************************************************
 }

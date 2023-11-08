@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	Label::Label(Window *win): View(win) {}
+	Label::Label(): View() {}
 
 	void Label::set_text_value(String val) {
 		if (_text_value != val) {
@@ -92,14 +92,14 @@ namespace qk {
 	void Label::set_layout_offset(Vec2 val) {
 		auto size = parent()->layout_size().content_size;
 		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
-		layout_text(*lines, pre_render()->host()->defaultTextOptions());
+		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
 		mark_render(kRecursive_Transform);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 size) {
 		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
-		layout_text(*lines, pre_render()->host()->defaultTextOptions());
+		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
 		mark_render(kRecursive_Transform);
 	}

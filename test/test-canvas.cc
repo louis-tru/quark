@@ -13,7 +13,6 @@ using namespace qk;
 
 class MyCanvas: public Box {
 public:
-	MyCanvas(Window *host): Box(host) {}
 
 	void draw() {
 		// mark_none(kLayout_None); return;
@@ -124,7 +123,7 @@ void test_canvas(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0});
 	win->activate();
 	// layout
-	auto t = (new MyCanvas(win))->append_to<Box>(win->root());
+	auto t = New<MyCanvas>()->append_to<Box>(win->root());
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

@@ -9,8 +9,6 @@ using namespace qk;
 
 class TestOutImg: public Box {
 public:
-	TestOutImg(Window *host): Box(host) {
-	}
 
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;

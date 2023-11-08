@@ -11,7 +11,6 @@ constexpr unsigned int u32 = 1;
 
 class TestBlur: public Box {
 public:
-	TestBlur(Window *host): Box(host) {}
 	float i = 0;
 
 	void accept(Visitor *vv) override {
