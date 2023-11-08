@@ -130,6 +130,35 @@ namespace qk {
 
 	};
 
+	/**
+		*
+		* Setting parent parent view
+		*
+		* @method set_parent(parent)
+		*/
+	void View::set_parent(View* parent) {
+		// clear parent
+		if (parent != _parent) {
+			_this->clear();
+
+			if ( _parent ) {
+				_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
+			} else {
+				retain(); // link to parent and retain ref
+			}
+			_parent = parent;
+			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
+			mark(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
+
+			uint32_t depth = parent->layout_depth();
+			if (depth) {
+				_this->set_layout_depth_(depth + 1);
+			} else {
+				_this->clear_layout_depth();
+			}
+		}
+	}
+
 	void __View_set_visible(View* self, bool val, uint32_t layout_depth) {
 		View::Inl::set_visible_static(_inl(self), val, layout_depth);
 	}
@@ -298,35 +327,6 @@ namespace qk {
 		*/
 	void View::remove_all_child() {
 		_this->remove_all_child_();
-	}
-
-	/**
-		*
-		* Setting parent parent view
-		*
-		* @method set_parent(parent)
-		*/
-	void View::set_parent(View* parent) {
-		// clear parent
-		if (parent != _parent) {
-			_this->clear();
-			
-			if ( _parent ) {
-				_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
-			} else {
-				retain(); // link to parent and retain ref
-			}
-			_parent = parent;
-			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
-			mark(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
-
-			uint32_t depth = parent->layout_depth();
-			if (depth) {
-				_this->set_layout_depth_(depth + 1);
-			} else {
-				_this->clear_layout_depth();
-			}
-		}
 	}
 
 	/**

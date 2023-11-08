@@ -39,6 +39,7 @@ namespace qk {
 	class TextConfig;
 	class Application;
 	class Window;
+	class View;
 
 	/**
 		*
@@ -78,6 +79,41 @@ namespace qk {
 			Vec2 layout_size, content_size;
 			bool wrap_x, wrap_y;
 		};
+
+		friend class PreRender;
+
+	private:
+		/* 下一个预处理视图标记
+		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
+		*  同一时间不会所有视图都会发生改变,如果视图树很庞大的时候,
+		*  如果涉及到布局时为了跟踪其中一个视图的变化就需要遍历整颗视图树,为了避免这种情况
+		*  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
+		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
+		*/
+		int32_t _mark_index;
+	
+	public:
+		// @props 
+		/* 
+		* @field layout_mark
+		*
+		* 标记后的视图会在开始帧绘制前进行更新.
+		* 运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
+		*/
+		Qk_DEFINE_PROP_GET(uint32_t, layout_mark);
+
+		/*
+		* @field layout_mark
+		*
+		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
+		* 这个值受`View::_visible`影响, View::_visible=false时_depth=0
+		*/
+		Qk_DEFINE_PROP_GET(uint32_t, layout_depth);
+
+		/*
+		* @field pre_render
+		*/
+		Qk_DEFINE_PROP_GET(PreRender*, pre_render);
 
 		/**
 		 * @constructor
@@ -261,41 +297,6 @@ namespace qk {
 		inline void set_pre_render(PreRender *pre) {
 			_pre_render = pre;
 		}
-
-	private:
-		/* 下一个预处理视图标记
-		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
-		*  同一时间不会所有视图都会发生改变,如果视图树很庞大的时候,
-		*  如果涉及到布局时为了跟踪其中一个视图的变化就需要遍历整颗视图树,为了避免这种情况
-		*  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
-		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
-		*/
-		int32_t _mark_index;
-	
-	public:
-		// @props 
-		/* 
-		* @field layout_mark
-		*
-		* 标记后的视图会在开始帧绘制前进行更新.
-		* 运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
-		*/
-		Qk_DEFINE_PROP_GET(uint32_t, layout_mark);
-
-		/*
-		* @field layout_mark
-		*
-		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
-		* 这个值受`View::_visible`影响, View::_visible=false时_depth=0
-		*/
-		Qk_DEFINE_PROP_GET(uint32_t, layout_depth);
-
-		/*
-		* @field pre_render
-		*/
-		Qk_DEFINE_PROP_GET(PreRender*, pre_render);
-
-		friend class PreRender;
 	};
 
 }

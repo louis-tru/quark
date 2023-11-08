@@ -49,7 +49,9 @@ namespace qk {
 		* @destructor
 		*/
 	Layout::~Layout() {
-		set_layout_depth(0);
+		if (_mark_index >= 0) {
+			_pre_render->delete_mark(this, _layout_depth); // clear mark
+		}
 	}
 
 	/**
@@ -173,12 +175,14 @@ namespace qk {
 				_pre_render->delete_mark(this, oldDepth);
 				if (newDepth) {
 					_pre_render->mark_layout(this, newDepth);
-				} else {
-					_pre_render = nullptr;
 				}
-			} else if (!newDepth) {
-				_pre_render = nullptr; // clear pre render
+				// else {
+				// 	_pre_render = nullptr;
+				// }
 			}
+			// else if (!newDepth) {
+			// 	_pre_render = nullptr; // clear pre render
+			// }
 		}
 	}
 
