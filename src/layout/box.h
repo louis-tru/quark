@@ -41,11 +41,10 @@ namespace qk {
 		*/
 	class Qk_EXPORT Box: public View {
 		Qk_Define_View(Box);
-	protected:
-		// define private props
-		Qk_DEFINE_PROP_GET(bool,       layout_wrap_x); protected: // Returns the x-axis is wrap content
-		Qk_DEFINE_PROP_GET(bool,       layout_wrap_y); // Returns the y-axis is wrap content
 	public:
+		// define private props
+		Qk_DEFINE_PROP_GET(bool,       layout_wrap_x); // Returns the x-axis is wrap content
+		Qk_DEFINE_PROP_GET(bool,       layout_wrap_y); // Returns the y-axis is wrap content
 		Qk_DEFINE_PROP    (bool,       is_clip); // is clip box display range
 		Qk_DEFINE_PROP    (BoxSize,    width); // size width
 		Qk_DEFINE_PROP    (BoxSize,    height); // size height
@@ -81,6 +80,18 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Vec2,       origin_value);
 		Qk_DEFINE_PROP_GET(Vec2,       content_size); // width,height, no include padding
 		Qk_DEFINE_PROP_GET(Vec2,       client_size); // border + padding + content
+
+	protected:
+		// define private props
+		BoxBorder* _border; // BoxBorder, top/right/bottom/left
+		// box layout attrs
+		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
+		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
+		float _layout_weight; // layout weight
+		Vec2  _vertex[4];     // box vertex
+		Align _layout_align;  // layout align
+
+	public:
 
 		/**
 		 * @constructor
@@ -169,15 +180,6 @@ namespace qk {
 		void mark_size(uint32_t mark);
 		void solve_origin_value(); // compute origint value
 
-	protected:
-		// define private props
-		BoxBorder* _border; // BoxBorder, top/right/bottom/left
-		// box layout attrs
-		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
-		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
-		float _layout_weight; // layout weight
-		Vec2  _vertex[4];     // box vertex
-		Align _layout_align;  // layout align
 	};
 
 }

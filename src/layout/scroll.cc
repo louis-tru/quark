@@ -58,13 +58,6 @@ namespace qk {
 			Layout::unmark(mark);
 		}
 
-		inline bool layout_wrap_x() const {
-			return Box::layout_wrap_x();
-		}
-
-		inline bool layout_wrap_y() const {
-			return Box::layout_wrap_y();
-		}
 	};
 
 	class BaseScroll::Task: public PreRender::Task {
