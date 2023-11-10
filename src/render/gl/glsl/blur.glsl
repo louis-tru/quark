@@ -8,12 +8,10 @@ void main() {
 	lowp vec2  coord = gl_FragCoord.xy / oResolution;
 	lowp vec4  o = textureLod(image, coord, imageLod);
 	lowp float g, x = -1.0, t = 0.0;
-	lowp vec2  d; // offset distance
 
 	do {
 		g = gk(x);
-		d = size * x;
-		o += (textureLod(image, coord + d, imageLod) + textureLod(image, coord - d, imageLod)) * g;
+		o += tex(coord, size * x/*offset distance*/) * g;
 		t += g;
 		x += detail;
 	} while(x < 0.0);
