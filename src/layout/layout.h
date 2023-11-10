@@ -37,8 +37,6 @@
 namespace qk {
 	class TextLines;
 	class TextConfig;
-	class Application;
-	class Window;
 	class View;
 
 	/**
