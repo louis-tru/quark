@@ -50,7 +50,7 @@ namespace qk {
 		*/
 	Layout::~Layout() {
 		if (_mark_index >= 0) {
-			_pre_render->delete_mark(this, _layout_depth); // clear mark
+			_pre_render->unmark_layout(this, _layout_depth); // clear mark
 		}
 	}
 
@@ -172,7 +172,7 @@ namespace qk {
 			auto oldDepth = _layout_depth;
 			_layout_depth = newDepth;
 			if (_mark_index >= 0) {
-				_pre_render->delete_mark(this, oldDepth);
+				_pre_render->unmark_layout(this, oldDepth);
 				if (newDepth) {
 					_pre_render->mark_layout(this, newDepth);
 				}

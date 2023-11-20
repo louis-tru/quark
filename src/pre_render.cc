@@ -152,7 +152,7 @@ namespace qk {
 		_mark_total++;
 	}
 
-	void PreRender::delete_mark(Layout *layout, uint32_t depth) {
+	void PreRender::unmark_layout(Layout *layout, uint32_t depth) {
 		Qk_ASSERT(depth);
 		auto& arr = _marks[depth];
 		auto last = arr[arr.length() - 1];

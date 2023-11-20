@@ -66,6 +66,7 @@ namespace qk {
 		};
 		struct Transform *_transform; // 矩阵变换
 		Mat              _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
+
 	public:
 		typedef ViewVisitor Visitor;
 		// @props

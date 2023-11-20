@@ -87,9 +87,10 @@ namespace qk {
 		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
 		*/
 		int32_t _mark_index;
-	
+
 	public:
-		// @props 
+		// @props
+
 		/* 
 		* @field layout_mark
 		*
