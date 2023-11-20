@@ -44,7 +44,7 @@ namespace qk {
 	class WindowImpl {
 	public:
 		QkWindowDelegate* delegate();
-		UIWindow* window();
+		UIWindow*         window();
 	};
 }
 
