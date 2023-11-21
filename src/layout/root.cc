@@ -41,7 +41,7 @@ namespace qk {
 
 	Root::Root(Window *win): Box() {
 		Qk_STRICT_ASSERT(win, "Window host cannot be null");
-		set_window(win); // set pre render
+		set_window(win); // set window
 		set_layout_depth(1);
 		set_receive(1);
 		set_width({0, BoxSizeKind::kMatch});
