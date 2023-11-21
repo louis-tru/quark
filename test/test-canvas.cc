@@ -4,8 +4,8 @@
 #include <quark/render/paint.h>
 #include <quark/screen.h>
 #include <quark/util/codec.h>
-#include <quark/pre_render.h>
 #include <quark/render/render.h>
+#include <quark/render/canvas.h>
 #include <quark/layout/box.h>
 #include <quark/layout/root.h>
 
@@ -16,8 +16,8 @@ public:
 
 	void draw() {
 		// mark_none(kLayout_None); return;
-		auto canvas = pre_render()->render()->getCanvas();
-		auto size = pre_render()->window()->size();
+		auto canvas = window()->render()->getCanvas();
+		auto size = window()->size();
 
 		// clear color
 		//canvas->clearColor(Color4f(1,1,1));

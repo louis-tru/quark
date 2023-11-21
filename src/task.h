@@ -28,78 +28,30 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
-
-#ifndef __quark__pre_render__
-#define __quark__pre_render__
+#ifndef __quark__task__
+#define __quark__task__
 
 #include "./util/list.h"
-#include "./util/array.h"
 
 namespace qk {
-	class Application;
 	class Window;
-	class Layout;
-	class RenderBackend;
 
 	/**
-	 * @class PreRender
-	 */
-	class Qk_EXPORT PreRender: public Object {
-		Qk_HIDDEN_ALL_COPY(PreRender);
+	 * @class RenderTask render task
+	*/
+	class Qk_EXPORT RenderTask {
 	public:
-		Qk_DEFINE_PROP_GET(Window*, window);
-		Qk_DEFINE_PROP_GET(RenderBackend*, render);
-		Qk_DEFINE_PROP_GET(Application*, host);
-
-		/**
-		 * @constructor
-		*/
-		PreRender(Window *win);
-		/**
-		 * @destructor
-		*/
-		virtual ~PreRender();
-
-		class Qk_EXPORT Task {
-		public:
-			typedef List<Task*>::Iterator ID;
-			// define props
-			Qk_DEFINE_PROP_GET(ID, task_id);
-			Qk_DEFINE_PROP_GET(PreRender*, pre);
-			Qk_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
-			Task(): _task_timeout(0) {}
-			virtual ~Task();
-			virtual bool run_task(int64_t sys_time) = 0;
-			inline bool is_register_task() const { return _task_id != ID(); }
-			friend class PreRender;
-		};
-
-		/**
-		 * Solve the pre-rendering problem, return true if the view needs to be updated
-		 * @method solve()
-		 */
-		bool solve();
-
-		/**
-		 * @method mark
-		 */
-		void mark_layout(Layout *layout, uint32_t depth);
-		void unmark_layout(Layout *layout, uint32_t depth);
-		void mark_render();
-		void addtask(Task* task);
-		void untask(Task* task);
-
-	private:
-		void solve_mark();
-
-		// props data
-		int32_t _mark_total;
-		List<Task*>  _tasks;
-		Array<Array<Layout*>> _marks; // marked view
-		bool _is_render;
+		typedef List<RenderTask*>::Iterator ID;
+		// define props
+		Qk_DEFINE_PROP_GET(ID, task_id);
+		Qk_DEFINE_PROP_GET(Window*, win);
+		Qk_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
+		RenderTask(): _task_timeout(0) {}
+		virtual ~RenderTask();
+		virtual bool run_task(int64_t sys_time) = 0;
+		inline bool is_register_task() const { return _task_id != ID(); }
+		friend class Window;
 	};
 
 }
 #endif
-

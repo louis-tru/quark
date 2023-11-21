@@ -38,7 +38,6 @@ namespace qk {
 	class Qk_EXPORT Root: public Box {
 		Qk_Define_View(Root);
 	public:
-		void onDisplayChange();
 		virtual void set_visible(bool val) override;
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
@@ -47,7 +46,7 @@ namespace qk {
 		virtual bool can_become_focus() override;
 	private:
 		Root(Window *win);
-		void reset();
+		void reload();
 		friend class Window;
 	};
 

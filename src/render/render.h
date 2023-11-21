@@ -31,12 +31,13 @@
 #ifndef __quark__render_render__
 #define __quark__render_render__
 
-#include "./math.h"
-#include "./source.h"
-#include "./canvas.h"
+#include "../util/loop.h"
+#include "./path.h"
+#include "./pixel.h"
 
 namespace qk {
 	class RenderSurface; // platform render surface
+	class Canvas;
 
 	/**
 	 * @class RenderBackend drawing device backend

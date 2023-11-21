@@ -42,7 +42,7 @@ namespace qk {
 	class Qk_EXPORT Box: public View {
 		Qk_Define_View(Box);
 	public:
-		// define private props
+		// define props
 		Qk_DEFINE_PROP_GET(bool,       layout_wrap_x); // Returns the x-axis is wrap content
 		Qk_DEFINE_PROP_GET(bool,       layout_wrap_y); // Returns the y-axis is wrap content
 		Qk_DEFINE_PROP    (bool,       is_clip); // is clip box display range

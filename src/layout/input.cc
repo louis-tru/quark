@@ -31,7 +31,6 @@
 #include "./input.h"
 #include "../app.h"
 #include "../window.h"
-#include "../pre_render.h"
 #include "../util/codec.h"
 #include "./textarea.h"
 #include <math.h>
@@ -86,7 +85,7 @@ namespace qk {
 		void click_handle(UIEvent& evt) {
 			ClickEvent* e = static_cast<ClickEvent*>(&evt);
 			if ( _editing ) {
-				pre_render()->window()->dispatch()->
+				window()->dispatch()->
 					set_ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
 			} else {
 				if ( _flag == kFlag_Disable_Click_Find ) { // 禁用点击聚焦
@@ -147,7 +146,7 @@ namespace qk {
 			_cursor_twinkle_status = 0;
 			_flag = kFlag_Normal;
 			mark_render(kInput_Status);
-			pre_render()->addtask(this);
+			window()->addtask(this);
 		}
 
 		void blur_handle(UIEvent& evt) {
@@ -158,7 +157,7 @@ namespace qk {
 			} else {
 				mark_render(kInput_Status);
 			}
-			pre_render()->untask(this);
+			window()->untask(this);
 		}
 
 		Vec2 get_position() {
@@ -717,7 +716,7 @@ namespace qk {
 			View::solve_marks(mark);
 
 			if (_editing) {
-				pre_render()->window()->dispatch()->
+				window()->dispatch()->
 					set_ime_keyboard_spot_location(input_spot_location());
 			}
 		} else {
@@ -964,7 +963,7 @@ namespace qk {
 		if (value != _type) {
 			_type = value;
 			if ( _editing ) {
-				pre_render()->window()->dispatch()->
+				window()->dispatch()->
 					set_ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
 			}
 		}
@@ -974,7 +973,7 @@ namespace qk {
 		if (value != _return_type) {
 			_return_type = value;
 			if ( _editing ) {
-				pre_render()->window()->dispatch()->
+				window()->dispatch()->
 					set_ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
 			}
 		}

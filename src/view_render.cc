@@ -30,6 +30,7 @@
 
 #include "./window.h"
 #include "./render/render.h"
+#include "./render/canvas.h"
 #include "./layout/box_filter.h"
 #include "./view_render.h"
 #include "./layout/root.h"

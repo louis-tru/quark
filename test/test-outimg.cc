@@ -12,7 +12,7 @@ public:
 
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
-		auto canvas = pre_render()->render()->getCanvas();
+		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 		float width = 300;
 

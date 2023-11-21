@@ -39,11 +39,12 @@
 
 namespace qk {
 	class Application;
-	class PreRender;
 	class ViewRender;
 	class Root;
 	class EventDispatch;
 	class WindowImpl; // window platform impl
+	class RenderTask;
+	class Layout;
 
 	/**
 	 * @class Window system window ui components
@@ -66,6 +67,8 @@ namespace qk {
 			Vec2 size; // full surface
 		};
 
+		typedef RenderTask Task;
+
 		/**
 		*
 		* Vec2,width与height都设置为0时自动设置系统默认显示尺寸
@@ -84,7 +87,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, atomPixel); // atom pixel size
 		Qk_DEFINE_PROP_GET(Root*, root); //! root view
 		Qk_DEFINE_PROP_GET(Application*, host); //! application host
-		Qk_DEFINE_PROP_GET(PreRender*, preRender); //! pre render
 		Qk_DEFINE_PROP_GET(Render*, render); //! render object
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
 		Qk_DEFINE_PROP(Color, backgroundColor); //! background color
@@ -152,14 +154,30 @@ namespace qk {
 		 */
 		void pending();
 
+		/**
+		 * @method mark_layout
+		 */
+		void mark_layout(Layout *layout, uint32_t depth);
+		void unmark_layout(Layout *layout, uint32_t depth);
+		void mark_render(); // mark render state
+		void addtask(Task* task); // add pre render task
+		void untask(Task* task); // delete pre render task
+
 	private:
-		void updateState();
+		void reload();
 		void solveNextFrame();
 		void onRenderBackendReload(Region region, Vec2 size, float defaultScale) override;
 		bool onRenderBackendDisplay() override;
 		void openImpl(Options &opts);
 		void closeImpl();
 		bool destroy(); // destroy window and protform window
+		void solveMarks(); // solve layout marks
+
+		/**
+		 * Solve the pre-rendering problem, return true if the view needs to be updated
+		 * @method preRender()
+		 */
+		bool preRender();
 
 		/**
 		 * Create an application object before creating a window
@@ -169,6 +187,7 @@ namespace qk {
 		*/
 		Window(Options &opts);
 
+		// props data
 		ViewRender     *_viewRender;
 		Vec2           _lockSize;  //!< Lock the size of the viewport
 		List<Cb>       _nextFrame;
@@ -176,6 +195,12 @@ namespace qk {
 		int64_t        _nextFspTime;
 		Array<RegionSize> _clipRegion;
 		List<Window*>::Iterator _id;
+		// pre render props
+		int32_t _mark_total;
+		List<Task*>  _tasks;
+		Array<Array<Layout*>> _marks; // marked view
+		bool _is_render; // next frame render
+
 		friend class WindowImpl;
 	};
 

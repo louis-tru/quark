@@ -2,6 +2,7 @@
 #include <quark/app.h>
 #include <quark/window.h>
 #include <quark/render/render.h>
+#include <quark/render/canvas.h>
 #include <quark/layout/root.h>
 #include <quark/screen.h>
 
@@ -15,7 +16,7 @@ public:
 
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
-		auto canvas = pre_render()->render()->getCanvas();
+		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 
 		i+=Qk_PI_RATIO_180*0.2;

@@ -36,6 +36,7 @@
 #include "./text/text_opts.h"
 #include "./event.h"
 #include "./window.h"
+#include "./render/canvas.h"
 
 Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
 Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;

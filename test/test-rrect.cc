@@ -2,6 +2,7 @@
 #include <quark/app.h>
 #include <quark/window.h>
 #include <quark/render/render.h>
+#include <quark/render/canvas.h>
 #include <quark/layout/root.h>
 #include <quark/screen.h>
 
@@ -13,12 +14,12 @@ class TestRRect: public Box {
 public:
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
-		auto canvas = pre_render()->render()->getCanvas();
+		auto canvas = window()->render()->getCanvas();
 		canvas->save();
 		canvas->translate(-115, 0);
 
 		canvas->clearColor(Color4f(0,0,1));
-		auto size = pre_render()->window()->size();
+		auto size = window()->size();
 
 		Paint paint;
 

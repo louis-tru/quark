@@ -32,12 +32,12 @@
 #define __quark__layout__layout__
 
 #include "../types.h"
-#include "../pre_render.h"
 
 namespace qk {
 	class TextLines;
 	class TextConfig;
 	class View;
+	class Window;
 
 	/**
 		*
@@ -108,9 +108,9 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, layout_depth);
 
 		/*
-		* @field pre_render
+		* @field window
 		*/
-		Qk_DEFINE_PROP_GET(PreRender*, pre_render);
+		Qk_DEFINE_PROP_GET(Window*, window);
 
 		/**
 		 * @constructor
@@ -289,13 +289,13 @@ namespace qk {
 		}
 
 		/**
-		 * @func set_pre_render()
+		 * @func set_window()
 		*/
-		inline void set_pre_render(PreRender *pre) {
-			_pre_render = pre;
+		inline void set_window(Window *win) {
+			_window = win;
 		}
 
-		friend class PreRender;
+		friend class Window;
 	};
 
 }

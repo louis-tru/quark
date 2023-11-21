@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./scroll.h"
-#include "../pre_render.h"
 #include "../window.h"
 #include "../app.h"
+#include "../task.h"
 #include "../util/numbers.h"
 #include <math.h>
 
@@ -60,7 +60,7 @@ namespace qk {
 
 	};
 
-	class BaseScroll::Task: public PreRender::Task {
+	class BaseScroll::Task: public RenderTask {
 	public:
 
 		Task(BaseScroll* host, uint64_t duration, cCurve& curve = ease_out)
@@ -195,7 +195,7 @@ namespace qk {
 		void register_task(Task* task) {
 			if ( !task->is_register_task() ) {
 				task->m_id2 = _tasks.pushBack(task);
-				_host->pre_render()->addtask(task);
+				_host->window()->addtask(task);
 				task->run_task(0);
 			}
 		}
@@ -269,7 +269,7 @@ namespace qk {
 		}
 
 		Vec2 optimal_display(Vec2 value) {
-			auto scale = _host->pre_render()->window()->scale();
+			auto scale = _host->window()->scale();
 			value.set_x( round(value.x() * scale) / scale );
 			value.set_y( round(value.y() * scale) / scale );
 			return value;

@@ -2,6 +2,7 @@
 #include <quark/app.h>
 #include <quark/window.h>
 #include <quark/render/render.h>
+#include <quark/render/canvas.h>
 #include <quark/layout/root.h>
 #include <quark/screen.h>
 
@@ -13,8 +14,8 @@ class TestDrawEfficiency: public Box {
 public:
 
 	void accept(ViewVisitor *visitor) override {
-		auto canvas = pre_render()->render()->getCanvas();
-		auto size = pre_render()->window()->size();
+		auto canvas = window()->render()->getCanvas();
+		auto size = window()->size();
 
 		Paint paint;
 		paint.color = Color4f(0, 0, 0);

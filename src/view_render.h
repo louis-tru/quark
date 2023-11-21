@@ -35,6 +35,7 @@
 
 #include "./layout/view.h"
 #include "./render/render.h"
+#include "./render/canvas.h"
 
 namespace qk {
 

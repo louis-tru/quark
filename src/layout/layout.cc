@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./layout.h"
-#include "../pre_render.h"
 #include "../window.h"
 
 namespace qk {
@@ -41,7 +40,7 @@ namespace qk {
 		: _mark_index(-1)
 		, _layout_mark(kLayout_None)
 		, _layout_depth(0)
-		, _pre_render(nullptr)
+		, _window(nullptr)
 	{
 	}
 
@@ -50,7 +49,7 @@ namespace qk {
 		*/
 	Layout::~Layout() {
 		if (_mark_index >= 0) {
-			_pre_render->unmark_layout(this, _layout_depth); // clear mark
+			_window->unmark_layout(this, _layout_depth); // clear mark
 		}
 	}
 
@@ -172,16 +171,16 @@ namespace qk {
 			auto oldDepth = _layout_depth;
 			_layout_depth = newDepth;
 			if (_mark_index >= 0) {
-				_pre_render->unmark_layout(this, oldDepth);
+				_window->unmark_layout(this, oldDepth);
 				if (newDepth) {
-					_pre_render->mark_layout(this, newDepth);
+					_window->mark_layout(this, newDepth);
 				}
 				// else {
-				// 	_pre_render = nullptr;
+				// 	_window = nullptr;
 				// }
 			}
 			// else if (!newDepth) {
-			// 	_pre_render = nullptr; // clear pre render
+			// 	_window = nullptr; // clear pre render
 			// }
 		}
 	}
@@ -193,7 +192,7 @@ namespace qk {
 		_layout_mark |= mark;
 		if (_mark_index < 0) {
 			if (_layout_depth) {
-				_pre_render->mark_layout(this, _layout_depth); // push to pre render
+				_window->mark_layout(this, _layout_depth); // push to pre render
 			}
 		}
 	}
@@ -201,7 +200,7 @@ namespace qk {
 	void Layout::mark_render(uint32_t mark) {
 		_layout_mark |= mark;
 		if (_layout_depth) {
-			_pre_render->mark_render(); // push to pre render
+			_window->mark_render(); // push to pre render
 		}
 	}
 

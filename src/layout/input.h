@@ -31,16 +31,16 @@
 #ifndef __quark__layout__input__
 #define __quark__layout__input__
 
+#include "../task.h"
 #include "./box.h"
 #include "../text/text_blob.h"
 #include "../text/text_opts.h"
 #include "../text/text_lines.h"
 #include "../text/text_input.h"
-#include "../pre_render.h"
 
 namespace qk {
 
-	class Qk_EXPORT Input: public Box, public TextOptions, public PreRender::Task, public TextInput {
+	class Qk_EXPORT Input: public Box, public TextOptions, public RenderTask, public TextInput {
 		Qk_Define_View(Input);
 	public:
 		typedef ReferenceTraits Traits;

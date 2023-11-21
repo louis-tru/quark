@@ -34,7 +34,6 @@
 #include "../util/handle.h"
 #include "../window.h"
 #include "../render/render.h"
-#include "../pre_render.h"
 
 namespace qk {
 
@@ -42,10 +41,7 @@ namespace qk {
 
 	Root::Root(Window *win): Box() {
 		Qk_STRICT_ASSERT(win, "Window host cannot be null");
-		set_pre_render(win->preRender()); // set pre render
-	}
-
-	void Root::reset() {
+		set_window(win); // set pre render
 		set_layout_depth(1);
 		set_receive(1);
 		set_width({0, BoxSizeKind::kMatch});
@@ -55,7 +51,7 @@ namespace qk {
 		mark_render(kRecursive_Transform);
 	}
 
-	void Root::onDisplayChange() {
+	void Root::reload() {
 		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 	}
 
@@ -67,7 +63,7 @@ namespace qk {
 
 	bool Root::layout_forward(uint32_t _mark) {
 		if (_mark & (kLayout_Size_Width | kLayout_Size_Height)) {
-			auto win = pre_render()->window();
+			auto win = window();
 			Size size{ Vec2(), win->size(), false, false };
 			Vec2 xy(solve_layout_content_width(size), solve_layout_content_height(size));
 

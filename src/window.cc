@@ -30,11 +30,12 @@
 
 #include "./window.h"
 #include "./app.h"
-#include "./pre_render.h"
 #include "./layout/root.h"
 #include "./render/render.h"
 #include "./view_render.h"
 #include "./event.h"
+#include "./task.h"
+#include "./text/text_opts.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
 # define PRINT_RENDER_FRAME_TIME 0
@@ -55,11 +56,13 @@ namespace qk {
 		, _fsp(0)
 		, _nextFsp(0)
 		, _nextFspTime(0), _surfaceRegion()
+		, _mark_total(0)
+		, _marks(0)
+		, _is_render(false)
 	{
 		Qk_STRICT_ASSERT(_host);
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
-		_preRender = new PreRender(this);
 		_dispatch = new EventDispatch(this);
 		_viewRender = new ViewRender(this);
 		_backgroundColor = opts.backgroundColor;
@@ -68,9 +71,7 @@ namespace qk {
 			_id = _host->_windows.pushBack(this);
 		}
 		retain(); // strong ref count retain
-		// init root
-		_root = new Root(this);
-		_root->reset();
+		_root = new Root(this); // new root
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
 		_root->focus();  // set focus
@@ -96,7 +97,9 @@ namespace qk {
 		Release(_root);      _root = nullptr;
 		Release(_dispatch); _dispatch = nullptr;
 		Release(_viewRender); _viewRender = nullptr;
-		Release(_preRender); _preRender = nullptr;
+		for (auto t: _tasks) {
+			t->_win = nullptr; // clear task
+		}
 		_host->_windows.erase(_id);
 		if (_host->_activeWindow == this) {
 			Inl_Application(_host)->setActiveWindow(nullptr);
@@ -169,16 +172,14 @@ namespace qk {
 			UILock lock(_host);
 			if (_lockSize.x() != w || _lockSize.y() != h) {
 				_lockSize = { w, h };
-				updateState();
+				reload();
 			}
 		} else {
 			Qk_DEBUG("Lock size value can not be less than zero\n");
 		}
-		// this->set_defaultScale();
-		// this->set_size();
 	}
 
-	void Window::updateState() { // Lock before calling
+	void Window::reload() { // Lock before calling
 		Vec2 size = surfaceSize();
 		float width = size.x();
 		float height = size.y();
@@ -207,7 +208,7 @@ namespace qk {
 		};
 
 		_host->loop()->post(Cb([this](Cb::Data& e) { // main loop call
-			Qk_Trigger(Change); // trigger display change
+			Qk_Trigger(Change); // trigger window change
 		}));
 
 		auto region = _surfaceRegion;
@@ -215,9 +216,9 @@ namespace qk {
 		Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
 		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
-		_root->onDisplayChange();
+		_root->reload();
 
-		Qk_DEBUG("Display::updateState() %f, %f", region.size.x(), region.size.y());
+		Qk_DEBUG("Display::updateSurface() %f, %f", region.size.x(), region.size.y());
 
 		_render->getCanvas()->setSurface(mat, size, _scale);
 	}
@@ -233,9 +234,9 @@ namespace qk {
 			) {
 				_surfaceRegion = { region.origin, region.end, size };
 				_defaultScale = defaultScale;
-				updateState();
+				reload();
 			} else {
-				_root->onDisplayChange();
+				_root->reload();
 			}
 		}
 	}
@@ -243,7 +244,7 @@ namespace qk {
 	bool Window::onRenderBackendDisplay() {
 		UILock lock(_host); // ui main local
 
-		if (!_preRender->solve()) {
+		if (!preRender()) {
 			solveNextFrame();
 			return false;
 		}
@@ -277,6 +278,139 @@ namespace qk {
 #endif
 
 		return true;
+	}
+
+	// ----------------------------- pre render -----------------------------
+
+	void Window::mark_layout(Layout *layout, uint32_t depth) {
+		Qk_ASSERT(depth);
+		_marks.extend(depth + 1);
+		auto& arr = _marks[depth];
+		layout->_mark_index = arr.length();
+		arr.push(layout);
+		_mark_total++;
+	}
+
+	void Window::unmark_layout(Layout *layout, uint32_t depth) {
+		Qk_ASSERT(depth);
+		auto& arr = _marks[depth];
+		auto last = arr[arr.length() - 1];
+		if (last != layout) {
+			arr[layout->_mark_index] = last;
+		}
+		arr.pop();
+		layout->_mark_index = -1;
+		_mark_total--;
+		_is_render = true;
+	}
+
+	void Window::mark_render() {
+		_is_render = true;
+	}
+
+	void Window::addtask(Task* task) {
+		if ( task->task_id() == Task::ID() ) {
+			Task::ID id = _tasks.pushBack(task);
+			task->_task_id = id;
+			task->_win = this;
+		}
+	}
+
+	void Window::untask(Task* task) {
+		Task::ID id = task->task_id();
+		if ( id != Task::ID() ) {
+			(*id)->_win = nullptr;
+			(*id)->_task_id = Task::ID();
+			(*id) = nullptr;
+		}
+	}
+
+	void Window::solveMarks() {
+		TextConfig cfg(_host->defaultTextOptions(), _host->defaultTextOptions()->base());
+
+		do {
+			{ // forward iteration
+				for (auto& levelMarks: _marks) {
+					for (auto& layout: levelMarks) {
+						if (layout) {
+							if ( !layout->layout_forward(layout->layout_mark()) ) {
+								// simple delete mark
+								layout->_mark_index = -1;
+								layout = nullptr;
+								_mark_total--;
+							}
+						}
+					}
+				}
+			}
+			if (_mark_total > 0) { // reverse iteration
+				for (int i = _marks.length() - 1; i >= 0; i--) {
+					auto& levelMarks = _marks[i];
+					for (auto& layout: levelMarks) {
+						if (layout) {
+							if ( !layout->layout_reverse(layout->layout_mark()) ) {
+								// simple delete mark recursive
+								layout->_mark_index = -1;
+								layout = nullptr;
+								_mark_total--;
+							}
+						}
+					}
+				}
+			}
+			Qk_ASSERT(_mark_total >= 0);
+		} while (_mark_total);
+
+		for (auto& levelMarks: _marks) {
+			levelMarks.clear();
+		}
+		_is_render = true;
+	}
+
+	/**
+	 * Work around flagging views that need to be updated
+	 */
+	bool Window::preRender() {
+		int64_t now_time = time_monotonic();
+		// _host->action_direct()->advance(now_time); // advance action
+
+		if ( _tasks.length() ) { // solve task
+			auto i = _tasks.begin(), end = _tasks.end();
+			while ( i != end ) {
+				Task* task = *i;
+				if ( task ) {
+					if ( now_time > task->task_timeout() ) {
+						if ( task->run_task(now_time) ) {
+							_is_render = true;
+						}
+					}
+					i++;
+				} else {
+					_tasks.erase(i++);
+				}
+			}
+		}
+
+		if (_mark_total) { // solve marks
+			solveMarks();
+		}
+
+		if (_is_render) {
+			_is_render = false;
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	Window::Task::~RenderTask() {
+		if (_win) {
+			_win->untask(this);
+		}
+	}
+
+	void Window::Task::set_task_timeout(int64_t timeout_us) {
+		_task_timeout = timeout_us;
 	}
 
 }

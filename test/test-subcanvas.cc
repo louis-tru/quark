@@ -2,6 +2,7 @@
 #include <quark/app.h>
 #include <quark/window.h>
 #include <quark/render/render.h>
+#include <quark/render/canvas.h>
 #include <quark/layout/root.h>
 #include <quark/screen.h>
 
@@ -13,13 +14,13 @@ public:
 
 	void set_parent(View* parent) override {
 		Box::set_parent(parent);
-		_c = pre_render()->render()->newCanvas({.isMipmap=0});
+		_c = window()->render()->newCanvas({.isMipmap=0});
 		_c->setSurface({600},2);
 	}
 
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
-		auto canvas = pre_render()->render()->getCanvas();
+		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 
 		Paint paint;

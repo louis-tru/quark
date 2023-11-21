@@ -30,7 +30,6 @@
 
 #include "./label.h"
 #include "../screen.h"
-#include "../pre_render.h"
 #include "../app.h"
 
 namespace qk {

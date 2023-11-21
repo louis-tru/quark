@@ -32,7 +32,6 @@
 #include "../window.h"
 #include "./view.h"
 #include "../text/text_lines.h"
-#include "../pre_render.h"
 #include "./root.h"
 #include <math.h>
 
@@ -110,7 +109,7 @@ namespace qk {
 			if (_visible) {
 				if ( layout_depth() != depth ) {
 					set_layout_depth(depth++);
-					set_pre_render(_parent->pre_render()); // set pre render
+					set_window(_parent->window()); // set pre render
 
 					if ( layout_mark() ) { // remark
 						mark(kLayout_None);
@@ -820,7 +819,7 @@ namespace qk {
 	 * @method is_focus()
 	 */
 	bool View::is_focus() const {
-		return pre_render() && pre_render()->window()->dispatch()->focus_view() == this;
+		return window() && window()->dispatch()->focus_view() == this;
 	}
 
 	/**
@@ -838,7 +837,7 @@ namespace qk {
 	 */
 	bool View::blur() {
 		if ( is_focus() ) {
-			auto root = pre_render()->window()->root();
+			auto root = window()->root();
 			if ( root && root != this ) {
 				return root->focus();
 			}

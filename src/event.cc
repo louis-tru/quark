@@ -34,7 +34,6 @@
 #include "./layout/root.h"
 #include "./layout/button.h"
 #include "./keyboard.h"
-#include "./pre_render.h"
 
 namespace qk {
 
@@ -82,7 +81,7 @@ namespace qk {
 					view = view->parent();
 				} else {
 					if (evt.is_default()) {
-						auto win = pre_render()->window();
+						auto win = window();
 						if (evt.origin() != win->dispatch()->focus_view())
 							view->focus(); // root
 					}
@@ -120,7 +119,7 @@ namespace qk {
 	bool View::focus() {
 		if ( is_focus() ) return true;
 
-		auto dispatch = pre_render()->window()->dispatch();
+		auto dispatch = window()->dispatch();
 		View* old = dispatch->focus_view();
 
 		if ( !dispatch->set_focus_view(this) ) {
