@@ -74,7 +74,7 @@ namespace qk {
 			mark_render(kRecursive_Visible_Region); // force test region and lines region
 
 			// check transform_origin change
-			solve_origin_value();
+			// solve_origin_value();
 		}
 
 		return false;

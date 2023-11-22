@@ -118,7 +118,7 @@ namespace qk {
 		unmark(kLayout_Typesetting);
 
 		// check transform_origin change
-		solve_origin_value();
+		// solve_origin_value();
 
 		return full_size;
 	}

@@ -60,16 +60,6 @@ namespace qk {
 			}
 		}
 
-		// get transform instance
-		Transform* transform_ptr() {
-			if (!_transform) {
-				_transform = new Transform();
-				_transform->scale = Vec2(1);
-				_transform->rotate = 0;
-			}
-			return _transform;
-		}
-
 		void remove_all_child_() { // remove all child views
 			while (_first) {
 				_first->remove();
@@ -167,7 +157,7 @@ namespace qk {
 		, _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
-		, _transform(nullptr), _opacity(1.0)
+		, _opacity(1.0)
 		, _visible(true)
 		, _visible_region(false)
 		, _receive(false)
@@ -179,7 +169,6 @@ namespace qk {
 		blur();
 		set_action(nullptr); // del action
 		_this->remove_all_child_(); // 删除子视图
-		delete _transform; _transform = nullptr;
 	}
 
 	/**
@@ -377,218 +366,6 @@ namespace qk {
 	}
 
 	/**
-		* Returns matrix displacement for the view
-		*
-		* @method translate
-		*/
-	Vec2 View::translate() const {
-		return _transform ? _transform->translate: Vec2();
-	}
-
-	/**
-		* Returns the Matrix scaling
-		*
-		* @method scale()
-		*/
-	Vec2 View::scale() const {
-		return _transform ? _transform->scale: Vec2(1);
-	}
-
-	/**
-		* Returns the Matrix skew
-		*
-		* @method skew()
-		*/
-	Vec2 View::skew() const {
-		return _transform ? _transform->skew * 57.29577951308232f: Vec2();
-	}
-
-	/**
-		* Returns the z-axis rotation of the matrix
-		*
-		* @method rotate()
-		*/
-	float View::rotate() const {
-		return _transform ? _transform->rotate * 57.29577951308232f: 0;
-	}
-
-	/**
-		* Set the matrix `translate` properties of the view object
-		*
-		* @method set_translate(val)
-		*/
-	void View::set_translate(Vec2 val) {
-		if (translate() != val) {
-			_this->transform_ptr()->translate = val;
-			mark_render(kRecursive_Transform); // mark transform
-		}
-	}
-
-	/**
-		* Set the matrix `scale` properties of the view object
-		*
-		* @method set_scale(val)
-		*/
-	void View::set_scale(Vec2 val) {
-		if (scale() != val) {
-			_this->transform_ptr()->scale = val;
-			mark_render(kRecursive_Transform); // mark transform
-		}
-	}
-
-	/**
-		* Set the matrix `skew` properties of the view object
-		*
-		* @method set_skew(val)
-		*/
-	void View::set_skew(Vec2 val) {
-		val *= Qk_PI_RATIO_180;
-		if (!_transform || _transform->skew != val) {
-			_this->transform_ptr()->skew = val;
-			mark_render(kRecursive_Transform); // mark transform
-		}
-	}
-
-	/**
-		* Set the z-axis  matrix `rotate` properties of the view object
-		*
-		* @method set_rotate(val)
-		*/
-	void View::set_rotate(float val) {
-		val *= Qk_PI_RATIO_180;
-		if (!_transform || _transform->rotate != val) {
-			_this->transform_ptr()->rotate = val;
-			mark_render(kRecursive_Transform); // mark transform
-		}
-	}
-
-	/**
-		* 
-		* Returns x-axis matrix displacement for the view
-		*
-		* @method x()
-		*/
-	float View::x() const { return translate()[0]; }
-
-	/**
-		* 
-		* Returns y-axis matrix displacement for the view
-		*
-		* @method y()
-		*/
-	float View::y() const { return translate()[1]; }
-
-	/**
-		* 
-		* Returns x-axis matrix scaling for the view
-		*
-		* @method scale_x()
-		*/
-	float View::scale_x() const { return scale()[0]; }
-
-	/**
-		* 
-		* Returns y-axis matrix scaling for the view
-		*
-		* @method scale_y()
-		*/
-	float View::scale_y() const { return scale()[1]; }
-
-	/**
-		* 
-		* Returns x-axis matrix skew for the view
-		*
-		* @method skew_x()
-		*/
-	float View::skew_x() const { return skew()[0]; }
-
-	/**
-		* 
-		* Returns y-axis matrix skew for the view
-		*
-		* @method skew_y()
-		*/
-	float View::skew_y() const { return skew()[1]; }
-
-	/**
-		* 
-		* Setting x-axis matrix displacement for the view
-		*
-		* @method set_x(val)
-		*/
-	void View::set_x(float val) {
-		if (translate().x() != val) {
-			_this->transform_ptr()->translate.set_x(val);
-			mark_render(kRecursive_Transform); // mark transform
-		}
-	}
-
-	/**
-		* 
-		* Setting y-axis matrix displacement for the view
-		*
-		* @method set_y(val)
-		*/
-	void View::set_y(float val) {
-		if (translate().y() != val) {
-			_this->transform_ptr()->translate.set_y(val);
-			mark_render(kRecursive_Transform); // mark transform
-		}
-	}
-
-	/**
-		* 
-		* Returns x-axis matrix scaling for the view
-		*
-		* @method set_scale_x(val)
-		*/
-	void View::set_scale_x(float val) {
-		if (scale().x() != val) {
-			_this->transform_ptr()->scale.set_x(val);
-			mark_render(kRecursive_Transform); // mark transform
-		}
-	}
-
-	/**
-		* 
-		* Returns y-axis matrix scaling for the view
-		*
-		* @method set_scale_y(val)
-		*/
-	void View::set_scale_y(float val) {
-		if (scale().y() != val) {
-			_this->transform_ptr()->scale.set_y(val);
-			mark_render(kRecursive_Transform); // mark transform
-		}
-	}
-
-	/**
-		* 
-		* Returns x-axis matrix skew for the view
-		*
-		* @method set_skew_x(val)
-		*/
-	void View::set_skew_x(float val) {
-		if (skew().x() != val) {
-			_this->transform_ptr()->skew.set_x(val);
-			mark_render(kRecursive_Transform); // mark transform
-		}
-	}
-
-	/**
-		* 
-		* Returns y-axis matrix skew for the view
-		*
-		* @method set_skew_y(val)
-		*/
-	void View::set_skew_y(float val) {
-		if (skew().y() != val) {
-			_this->transform_ptr()->skew.set_y(val);
-			mark_render(kRecursive_Transform); // mark transform
-		}
-	}
-
-	/**
 		* Set the `opacity` properties of the view object
 		*
 		* @method set_opacity(val)
@@ -611,20 +388,11 @@ namespace qk {
 		* @method layout_matrix()
 		*/
 	Mat View::layout_matrix() {
-		if (_transform) {
-			return Mat(
-				layout_offset() + _transform->translate + _parent->layout_offset_inside(), // translate
-				_transform->scale,
-				-_transform->rotate,
-				_transform->skew
-			);
-		} else {
-			Vec2 translate = layout_offset() + _parent->layout_offset_inside();
-			return Mat(
-				1, 0, translate.x(),
-				0, 1, translate.y()
-			);
-		}
+		Vec2 translate = layout_offset() + _parent->layout_offset_inside();
+		return Mat(
+			1, 0, translate.x(),
+			0, 1, translate.y()
+		);
 	}
 
 	// --------------- o v e r w r i t e ---------------

@@ -81,8 +81,6 @@ namespace qk {
 
 		if (layout_mark() & kLayout_Typesetting) {
 			return true;
-		} else if (_mark & kTransform_Origin) {
-			solve_origin_value();
 		}
 
 		return false;
@@ -97,28 +95,16 @@ namespace qk {
 				v = v->next();
 			}
 			unmark(kLayout_Typesetting);
-
-			solve_origin_value();
 		}
 		return false; // stop iteration
 	}
 
 	Mat Root::layout_matrix() {
-		if (_transform) {
-			return Mat(
-				layout_offset() + Vec2(margin_left(), margin_top()) +
-									origin_value() + _transform->translate, // translate
-				_transform->scale,
-				-_transform->rotate,
-				_transform->skew
-			);
-		} else {
-			Vec2 translate = layout_offset() + Vec2(margin_left(), margin_top()) + origin_value();
-			return Mat(
-				1, 0, translate.x(),
-				0, 1, translate.y()
-			);
-		}
+		Vec2 translate = layout_offset() + Vec2(margin_left(), margin_top());
+		return Mat(
+			1, 0, translate.x(),
+			0, 1, translate.y()
+		);
 	}
 
 	void Root::set_parent(View* parent) {

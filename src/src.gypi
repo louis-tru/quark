@@ -68,6 +68,8 @@
 			'ui/layout/view.cc',
 			'ui/layout/button.h',
 			'ui/layout/button.cc',
+			'ui/layout/transform.h',
+			'ui/layout/transform.cc',
 			# 'accessor.h',
 			# 'accessor.cc',
 			'ui/filter.h',

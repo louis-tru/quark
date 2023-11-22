@@ -58,8 +58,8 @@ void layout_text(Box* box) {
 	text->set_width({ 0, SizeKind::kMatch });
 	text->set_height({ 0, SizeKind::kMatch });
 	text->set_text_size({ 80 });
-	text->set_origin_x({ 0, BoxOriginKind::kAuto });
-	text->set_origin_y({ 0, BoxOriginKind::kAuto });
+	//text->set_origin_x({ 0, BoxOriginKind::kAuto });
+	//text->set_origin_y({ 0, BoxOriginKind::kAuto });
 	//text->set_rotate(45);
 	//text->set_text_line_height({16});
 	text->set_text_background_color({ Color(0,255,0) });
@@ -254,9 +254,9 @@ void layout(Event<>& evt, Application* app) {
 	img2->set_margin_left(100);
 	img2->set_margin_top(30);
 	img2->set_margin_right(100);
-	img2->set_rotate(2);
-	img2->set_origin_x({0.5,OriginKind::kRatio});
-	img2->set_origin_y({0.5,OriginKind::kRatio});
+	//img2->set_rotate(2);
+	//img2->set_origin_x({0.5,OriginKind::kRatio});
+	//img2->set_origin_y({0.5,OriginKind::kRatio});
 	//img2->set_border_width_right(10);
 	//img2->set_border_width_left(10);
 	//img2->set_border_width_top(10);

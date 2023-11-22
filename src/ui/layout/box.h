@@ -50,8 +50,6 @@ namespace qk {
 		Qk_DEFINE_PROP    (BoxSize,    height); // size height
 		Qk_DEFINE_PROP    (BoxSize,    width_limit); // limit max size
 		Qk_DEFINE_PROP    (BoxSize,    height_limit);
-		Qk_DEFINE_PROP    (BoxOrigin,  origin_x);
-		Qk_DEFINE_PROP    (BoxOrigin,  origin_y);
 		Qk_DEFINE_PROP    (float,      margin_top); // margin
 		Qk_DEFINE_PROP    (float,      margin_right);
 		Qk_DEFINE_PROP    (float,      margin_bottom);
@@ -75,9 +73,6 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(float,      border_width_right);
 		Qk_DEFINE_PROP_ACC(float,      border_width_bottom);
 		Qk_DEFINE_PROP_ACC(float,      border_width_left);
-		// Start the matrix transform from this origin point start.
-		// with border as the starting point.
-		Qk_DEFINE_PROP_GET(Vec2,       origin_value);
 		Qk_DEFINE_PROP_GET(Vec2,       content_size); // width,height, no include padding
 		Qk_DEFINE_PROP_GET(Vec2,       client_size); // border + padding + content
 
@@ -107,12 +102,6 @@ namespace qk {
 			*/
 		void set_layout_weight(float weight);
 
-		/**
-			* client rect = border + padding + content
-			* @func solve_rect_vertex(vertex)
-			*/
-		void solve_rect_vertex(Vec2 vertex[4]);
-
 		// --------------- o v e r w r i t e ---------------
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
@@ -132,10 +121,16 @@ namespace qk {
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_lazy(Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
-		virtual bool solve_visible_region() override;
+		virtual bool solve_visible_region() override; // compute visible region
 		virtual bool clip() override;
 		virtual bool overlap_test(Vec2 point) override;
 		virtual Vec2 position() override;
+
+		/**
+			* client rect = border + padding + content
+			* @func solve_rect_vertex(vertex)
+			*/
+		virtual void solve_rect_vertex(Vec2 vertexOut[4]); // compute rect vertex
 
 	protected:
 		/**
@@ -166,7 +161,6 @@ namespace qk {
 		virtual float solve_layout_content_height(Size &parent_layout_size);
 
 		void mark_size(uint32_t mark);
-		void solve_origin_value(); // compute origint value
 
 	protected:
 		// define private props

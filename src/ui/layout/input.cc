@@ -162,8 +162,8 @@ namespace qk {
 
 		Vec2 get_position() {
 			Vec2 point(
-				padding_left() - origin_value()[0],
-				padding_top() - origin_value()[1]
+				padding_left(),// - origin_value()[0],
+				padding_top()// - origin_value()[1]
 			);
 			if (_border) {
 				point[0] += _border->width[3]; // left
@@ -265,7 +265,7 @@ namespace qk {
 			auto offset = input_text_offset();
 			auto y = _lines->line(_cursor_linenum).baseline - _text_ascent + _text_height + offset.y();
 			auto x = _cursor_x + offset.x();
-			auto origin = origin_value();
+			// auto origin = origin_value();
 
 			x += padding_left();
 			y += padding_top();
@@ -275,7 +275,8 @@ namespace qk {
 				y += _border->width[0]; // top
 			}
 
-			Vec2 cursor_offset(x - origin.x(), y - origin.y());
+			//Vec2 cursor_offset(x - origin.x(), y - origin.y());
+			Vec2 cursor_offset(x, y);
 			Vec2 location = matrix() * cursor_offset;
 
 			// Qk_DEBUG("input_spot_location,x:%f,y:%f", location.x(), location.y());
@@ -699,7 +700,7 @@ namespace qk {
 		unmark(kLayout_Typesetting);
 
 		// check transform_origin change
-		solve_origin_value();
+		// solve_origin_value();
 
 		// mark input status change
 		mark_render(kInput_Status | kRecursive_Visible_Region);
@@ -1025,11 +1026,11 @@ namespace qk {
 	}
 
 	Vec2 Input::layout_offset_inside() {
-		auto origin = origin_value();
+		// auto origin = origin_value();
 		auto text_offset = input_text_offset();
 		Vec2 offset(
-			padding_left() - origin.x() + text_offset.x(),
-			padding_top()  - origin.y() + text_offset.y()
+			padding_left() /*- origin.x()*/ + text_offset.x(),
+			padding_top()  /*- origin.y()*/ + text_offset.y()
 		);
 		if (_border) {
 			offset.val[0] += _border->width[3]; // left

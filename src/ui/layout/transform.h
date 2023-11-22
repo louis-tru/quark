@@ -28,51 +28,46 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
+#ifndef __quark__layout__transform__
+#define __quark__layout__transform__
 
-#ifndef __quark__view_render__
-#define __quark__view_render__
-
-#include "./layout/view.h"
-#include "../render/render.h"
-#include "../render/canvas.h"
+#include "./box.h"
 
 namespace qk {
 
-	class Window;
-
-	class Qk_EXPORT ViewRender: public Object, public ViewVisitor {
-		Qk_HIDDEN_ALL_COPY(ViewRender);
+	/**
+		* Box matrix transform
+		*
+	 * @class Transform
+		*/
+	class Transform: public Box {
+		Qk_Define_View(Transform);
 	public:
-		Qk_DEFINE_PROP_GET(Render*, render);
-		ViewRender(Window *window);
-		virtual uint32_t flags() override;
-		virtual void  visitView(View* v) override;
-		virtual void  visitBox(Box* box) override;
-		virtual void  visitImage(Image* image) override;
-		virtual void  visitVideo(Video* video) override;
-		virtual void  visitScroll(Scroll* scroll) override;
-		virtual void  visitInput(Input* input) override;
-		virtual void  visitTextarea(Textarea* textarea) override;
-		virtual void  visitButton(Button* btn) override;
-		virtual void  visitTextLayout(TextLayout* text) override;
-		virtual void  visitLabel(Label* label) override;
-		virtual void  visitRoot(Root* root) override;
-		virtual void  visitFloatLayout(FloatLayout* flow) override;
-		virtual void  visitFlowLayout(FlowLayout* flow) override;
-		virtual void  visitFlexLayout(FlexLayout* flex) override;
-		virtual void  visitTransform(Transform* transform) override;
-		
+		Transform();
+		Qk_DEFINE_PROP    (Vec2, translate); // matrix displacement for the view
+		Qk_DEFINE_PROP    (Vec2, scale); // Matrix scaling
+		Qk_DEFINE_PROP    (Vec2, skew); // Matrix skew, (radian)
+		Qk_DEFINE_PROP    (float, rotate); // z-axis rotation of the matrix
+		Qk_DEFINE_PROP    (BoxOrigin,  origin_x); //  x-axis transform origin
+		Qk_DEFINE_PROP    (BoxOrigin,  origin_y); //  y-axis transform origin
+		// Start the matrix transform from this origin point start.
+		// with border as the starting point.
+		Qk_DEFINE_PROP_GET(Vec2,       origin_value);
+		Qk_DEFINE_PROP_ACC(float, x); // x-axis matrix displacement for the view
+		Qk_DEFINE_PROP_ACC(float, y); // y-axis matrix displacement for the view
+		Qk_DEFINE_PROP_ACC(float, scale_x); // x-axis matrix scaling for the view
+		Qk_DEFINE_PROP_ACC(float, scale_y); // y-axis matrix scaling for the view
+		Qk_DEFINE_PROP_ACC(float, skew_x); // x-axis matrix skew for the view
+		Qk_DEFINE_PROP_ACC(float, skew_y); // y-axis matrix skew for the view
+		// --------------- o v e r w r i t e ---------------
+		virtual bool layout_forward(uint32_t mark) override;
+		virtual bool layout_reverse(uint32_t mark) override;
+		virtual Vec2 layout_offset_inside() override;
+		virtual Mat  layout_matrix() override;
+		virtual Vec2 position() override;
+		virtual void solve_rect_vertex(Vec2 vertexOut[4]) override; // compute rect vertex
 	private:
-		Window       *_window;
-		Canvas       *_canvas;
-		PathvCache   *_cache;
-		float        _opacity;
-		uint32_t     _mark_recursive;
-		Vec2        _fixOrigin;
-		float       _fixSize; // fix rect stroke width
-		Qk_DEFINE_INLINE_CLASS(Inl);
+		void solve_origin_value(); // compute origint value
 	};
-
 }
 #endif

@@ -346,10 +346,11 @@ namespace qk {
 			unmark(kLayout_Typesetting);
 
 			// check transform_origin change
-			solve_origin_value();
-		} else if (_mark & kTransform_Origin) {
-			solve_origin_value();
+			//solve_origin_value();
 		}
+		// else if (_mark & kTransform_Origin) {
+			//solve_origin_value();
+		// }
 
 		return false;
 	}
@@ -400,7 +401,7 @@ namespace qk {
 			unmark(kLayout_Typesetting);
 
 			// check transform_origin change
-			solve_origin_value();
+			//solve_origin_value();
 		}
 		return false;
 	}

@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./window.h"
 #include "../render/render.h"
 #include "../render/canvas.h"
+#include "./window.h"
 #include "./filter.h"
 #include "./view_render.h"
 #include "./layout/root.h"
@@ -43,6 +43,7 @@
 #include "./layout/input.h"
 #include "./layout/textarea.h"
 #include "./layout/label.h"
+#include "./layout/transform.h"
 
 namespace qk {
 
@@ -59,8 +60,7 @@ namespace qk {
 
 		Rect getRect(Box* box) {
 			return {
-				{_fix-box->_origin_value[0],_fix-box->_origin_value[0]},
-				{box->_client_size[0]-_fix2,box->_client_size[1]-_fix2},
+				_fixOrigin, {box->_client_size[0]-_fixSize,box->_client_size[1]-_fixSize},
 			};
 		}
 
@@ -169,8 +169,8 @@ namespace qk {
 				w = src_w / _window->atomPixel();
 				h = src_h / _window->atomPixel();
 			}
-			x = FillImage::compute_position(fill->position_x(), dw, w) - box->_origin_value.val[0];
-			y = FillImage::compute_position(fill->position_y(), dh, h) - box->_origin_value.val[1];
+			x = FillImage::compute_position(fill->position_x(), dw, w);
+			y = FillImage::compute_position(fill->position_y(), dh, h);
 
 			if (box->_border) {
 				x += box->_border->width[3]; // left
@@ -326,12 +326,12 @@ namespace qk {
 			if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_opacity ) {
 				auto width = v->_scrollbar_width;
 				auto margin = v->_scrollbar_margin;
-				auto origin = b->_origin_value;
+				auto origin = Vec2();
 				auto size = b->_client_size;
 				auto color = v->scrollbar_color().to_color4f_alpha(_opacity * v->_scrollbar_opacity);
 
 				if (b->_border) {
-					origin += Vec2{b->_border->width[3],b->_border->width[0]};
+					origin = Vec2{b->_border->width[3],b->_border->width[0]};
 					size[0] -= (b->_border->width[3] + b->_border->width[1]); // left + right
 					size[1] -= (b->_border->width[0] + b->_border->width[2]); // top + bottom
 				}
@@ -633,6 +633,13 @@ namespace qk {
 		ViewRender::visitBox(flex);
 	}
 
+	void ViewRender::visitTransform(Transform* box) {
+		auto fixOrigin = _fixOrigin;
+		_fixOrigin -= box->_origin_value;
+		ViewRender::visitBox(box);
+		_fixOrigin = fixOrigin;
+	}
+
 	void ViewRender::visitRoot(Root* v) {
 		if (_canvas && v->_visible) {
 			uint32_t mark = v->layout_mark();
@@ -642,8 +649,8 @@ namespace qk {
 			}
 			if (v->_visible_region && v->_opacity != 0) {
 				// _fix = _render->getUnitPixel() * 0.225f; // fix aa stroke width
-				_fix = 2.0f / _window->scale() * 0.225f; // fix aa stroke width
-				_fix2 = _fix + _fix;
+				_fixOrigin = 2.0f / _window->scale() * 0.225f; // fix aa stroke width
+				_fixSize = _fixOrigin[0] + _fixOrigin[0];
 				BoxData data;
 				_canvas->setMatrix(v->matrix());
 				_canvas->clearColor(v->_background_color.to_color4f());
