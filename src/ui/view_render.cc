@@ -658,6 +658,7 @@ namespace qk {
 				_mark_recursive = mark & Layout::kRecursive_Mark;
 			}
 			if (v->_visible_region && v->_opacity != 0) {
+				// Fix rect aa stroke width
 				// _fix = _render->getUnitPixel() * 0.225f; // fix aa stroke width
 				_fixOrigin = 2.0f * 0.225f / _window->scale(); // fix aa stroke width
 				_fixSize = _fixOrigin[0] + _fixOrigin[0];
