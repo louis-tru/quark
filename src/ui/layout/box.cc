@@ -403,9 +403,6 @@ namespace qk {
 		val = Qk_MAX(0, val);
 		if (_border->width[0] != val) {
 			_border->width[0] = val;
-			// fix aa sdf stroke for view render
-			//val -= (2.0f * 0.45f / pre_render()->window()->scale());
-			_border->_fix_width[0] = Qk_MAX(0, val);
 			mark_size(kLayout_Size_Height);
 		}
 	} // border_widrh
@@ -415,9 +412,6 @@ namespace qk {
 		val = Qk_MAX(0, val);
 		if (_border->width[1] != val) {
 			_border->width[1] = val;
-			// fix aa sdf stroke for view render
-			//val -= (2.0f * 0.45f / pre_render()->window()->scale());
-			_border->_fix_width[1] = Qk_MAX(0, val);
 			mark_size(kLayout_Size_Width);
 		}
 	}
@@ -427,9 +421,6 @@ namespace qk {
 		val = Qk_MAX(0, val);
 		if (_border->width[2] != val) {
 			_border->width[2] = val;
-			// fix aa sdf stroke for view render
-			//val -= (2.0f * 0.45f / pre_render()->window()->scale());
-			_border->_fix_width[2] = Qk_MAX(0, val);
 			mark_size(kLayout_Size_Height);
 		}
 	}
@@ -439,9 +430,6 @@ namespace qk {
 		val = Qk_MAX(0, val);
 		if (_border->width[3] != val) {
 			_border->width[3] = val;
-			// fix aa sdf stroke for view render
-			//val -= (2.0f * 0.45f / pre_render()->window()->scale());
-			_border->_fix_width[3] = Qk_MAX(0, val);
 			mark_size(kLayout_Size_Width);
 		}
 	}

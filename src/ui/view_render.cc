@@ -65,11 +65,12 @@ namespace qk {
 		}
 
 		void getInsideRectPath(Box *box, BoxData &out) {
-			if (out.inside) return;
+			if (out.inside)
+				return;
 			if (box->_border) {
 				auto rect = getRect(box);
 				auto radius = &box->_radius_left_top;
-				auto border = box->_border->_fix_width;
+				auto border = box->_border->width;
 				Hash5381 hash;
 				hash.updatefv4(rect.origin.val);
 				hash.updatefv4(radius);
@@ -78,10 +79,14 @@ namespace qk {
 				out.inside = _cache->getRRectPathFromHash(hash.hashCode());
 				if (!out.inside) {
 					float xy_0_5    = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
-					rect.origin[0] += border[3]; // left
-					rect.origin[1] += border[0]; // top
-					rect.size[0]   -= (border[3] + border[1]); // left + right
-					rect.size[1]   -= (border[0] + border[2]); // top + bottom
+					float borderFix[4] = {
+						Float::max(0, border[0]-_fixSize), Float::max(0, border[1]-_fixSize),
+						Float::max(0, border[2]-_fixSize), Float::max(0, border[3]-_fixSize),
+					};
+					rect.origin[0] += borderFix[3]; // left
+					rect.origin[1] += borderFix[0]; // top
+					rect.size  [0] -= borderFix[3] + borderFix[1]; // left + right
+					rect.size  [1] -= borderFix[0] + borderFix[2]; // top + bottom
 
 					//Qk_DEBUG("getInsideRectPath have border");
 
@@ -112,7 +117,12 @@ namespace qk {
 
 		void getRRectOutlinePath(Box *box, BoxData &out) {
 			if (!out.outline) {
-				out.outline = &_cache->getRRectOutlinePath(getRect(box), box->_border->_fix_width, &box->_radius_left_top);
+				auto border = box->_border->width;
+				float borderFix[4] = {
+					Float::max(0, border[0]-_fixSize), Float::max(0, border[1]-_fixSize),
+					Float::max(0, border[2]-_fixSize), Float::max(0, border[3]-_fixSize),
+				};
+				out.outline = &_cache->getRRectOutlinePath(getRect(box), borderFix, &box->_radius_left_top);
 			}
 		}
 
@@ -649,7 +659,7 @@ namespace qk {
 			}
 			if (v->_visible_region && v->_opacity != 0) {
 				// _fix = _render->getUnitPixel() * 0.225f; // fix aa stroke width
-				_fixOrigin = 2.0f / _window->scale() * 0.225f; // fix aa stroke width
+				_fixOrigin = 2.0f * 0.225f / _window->scale(); // fix aa stroke width
 				_fixSize = _fixOrigin[0] + _fixOrigin[0];
 				BoxData data;
 				_canvas->setMatrix(v->matrix());

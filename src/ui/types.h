@@ -301,8 +301,6 @@ namespace qk {
 	struct BoxBorder {
 		Color color[4]; // top/right/bottom/left
 		float width[4];
-		// @private view render
-		float _fix_width[4]; // fix aa sdf stroke
 	};
 
 }
