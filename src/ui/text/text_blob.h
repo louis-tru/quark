@@ -29,37 +29,49 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __ftr__render__raster__
-#define __ftr__render__raster__
+#ifndef __quark_textblob__
+#define __quark_textblob__
 
-#include "quark/util/util.h"
-#include "quark/ui/types.h"
-#include "quark/render/path.h"
+#include "../../render/font/font.h"
+#include "../../render/source.h"
+#include "../../render/canvas.h"
+#include "./text_lines.h"
+#include "./text_opts.h"
 
 namespace qk {
 
-	class Qk_EXPORT XLineScaner: public Object {
-		Qk_HIDDEN_ALL_COPY(XLineScaner);
+	// @dev text layout 
+
+	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(const Unichar *src, uint32_t length,
+		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
+	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(cString4& str,
+		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
+	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
+
+	struct TextBlob {
+		float           ascent; // 当前blob基线距离文本顶部
+		float           height; // 当前blob高度
+		float           origin; // x-axis offset origin start
+		uint32_t        line;   // line number
+		uint32_t        index;  // blob index in unichar glyphs
+		Canvas::TextBlob core; // glyphs + cache
+	};
+
+	class Qk_EXPORT TextBlobBuilder {
 	public:
-		typedef void (*ScanCb)(int32_t left, int32_t right, int32_t y, void* ctx);
-		XLineScaner(const Path& path, Rect clip, float scale = 1.0, bool is_convex_polygon = false);
-		void scan(ScanCb cb, void* ctx);
+		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
+		Qk_DEFINE_PROP(bool, disable_overflow);
+		Qk_DEFINE_PROP(bool, disable_auto_wrap);
+		Qk_DEFINE_PROP(TextLines*, lines);
+		Qk_DEFINE_PROP(TextOptions*, opts);
+		Qk_DEFINE_PROP(Array<TextBlob>*, blob);
+		void make(cString& text);
+		void make(Array<Array<Unichar>>& lines);
+		void make(Array<Array<Unichar>>&& lines);
 	private:
-		void scan_polygon(ScanCb cb, void* ctx);
-		void scan_convex_polygon(ScanCb cb, void* ctx);
-		void check_new_edges(int y);
-		void clip(Array<iVec2>& edges, Rect clip);
-		struct Edge {
-			int32_t min_y, max_y;
-			int32_t x, incr_x;
-			Edge* next;
-		};
-		Array<Edge>  _edges;
-		Array<Edge*> _newEdges;
-		Edge* _firstLineEdges;
-		Edge _activeEdges;
-		int32_t _start_y, _end_y;
-		bool _is_convex_polygon;
+		void as_normal(FontGlyphs &fg, Unichar *unichar, uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL);
+		void as_break_all(FontGlyphs &fg, Unichar *unichar, uint32_t index);
+		void as_no_auto_wrap(FontGlyphs &fg, uint32_t index);
 	};
 
 }

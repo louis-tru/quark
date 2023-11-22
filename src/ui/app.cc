@@ -28,15 +28,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./util/loop.h"
+#include "../util/loop.h"
 #include "./screen.h"
 #include "./app.h"
-#include "./render/font/pool.h"
-#include "./render/source.h"
+#include "../render/font/pool.h"
+#include "../render/source.h"
+#include "../render/canvas.h"
 #include "./text/text_opts.h"
 #include "./event.h"
 #include "./window.h"
-#include "./render/canvas.h"
 
 Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
 Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;

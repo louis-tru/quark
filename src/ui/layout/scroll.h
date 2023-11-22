@@ -32,7 +32,7 @@
 #define __quark__layout__scroll__
 
 #include "./float.h"
-#include "../render/bezier.h"
+#include "../../render/bezier.h"
 
 namespace qk {
 

@@ -31,11 +31,11 @@
 #ifndef __quark__app__
 #define __quark__app__
 
-#include "./util/util.h"
-#include "./util/event.h"
-#include "./util/loop.h"
+#include "../util/util.h"
+#include "../util/event.h"
+#include "../util/loop.h"
+#include "../render/pixel.h"
 #include "./types.h"
-#include "./render/pixel.h"
 
 #define Qk_Main() \
 	int __f_main__(int, Char**); \

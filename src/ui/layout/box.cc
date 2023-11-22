@@ -32,7 +32,7 @@
 #include "../app.h"
 #include "../window.h"
 #include "../screen.h"
-#include "../render/render.h"
+#include "../../render/render.h"
 #include "../text/text_lines.h"
 #include "../text/text_opts.h"
 

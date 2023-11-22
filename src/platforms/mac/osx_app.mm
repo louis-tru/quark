@@ -31,9 +31,9 @@
 #import <MacTypes.h>
 #import <AppKit/AppKit.h>
 #import "../../util/loop.h"
-#import "../../app.h"
-#import "../../event.h"
-#import "../../screen.h"
+#import "../../ui/app.h"
+#import "../../ui/event.h"
+#import "../../ui/screen.h"
 #import "./mac_app.h"
 
 using namespace qk;

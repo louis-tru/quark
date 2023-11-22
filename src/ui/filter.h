@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__box_filter__
-#define __quark__box_filter__
+#ifndef __quark__filter__
+#define __quark__filter__
 
-#include "../types.h"
+#include "./types.h"
 #include "../render/source.h"
 #include "../util/handle.h"
 #include "../util/array.h"

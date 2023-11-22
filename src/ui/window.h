@@ -31,11 +31,11 @@
 #ifndef __quark__window__
 #define __quark__window__
 
-#include "./util/util.h"
-#include "./util/event.h"
-#include "./math.h"
-#include "./util/cb.h"
-#include "./render/render.h"
+#include "../util/util.h"
+#include "../util/event.h"
+#include "../util/cb.h"
+#include "../render/math.h"
+#include "../render/render.h"
 
 namespace qk {
 	class Application;

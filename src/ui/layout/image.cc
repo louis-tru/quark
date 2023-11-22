@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015, blue.chu
+ * Copyright © 2015-2016, blue.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,58 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__layout__image__
-#define __quark__layout__image__
-
-#include "./box.h"
-#include "../render/source.h"
+#include "./image.h"
+#include "../../render/render.h"
+#include "../app.h"
 
 namespace qk {
 
-	class Qk_EXPORT Image: public Box, public ImageSourceHolder {
-		Qk_Define_View(Image);
-	public:
-		virtual bool layout_forward(uint32_t mark) override;
-	protected:
-		virtual float solve_layout_content_width(Size &parent_layout_size) override;
-		virtual float solve_layout_content_height(Size &parent_layout_size) override;
-		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
-	};
+	bool Image::layout_forward(uint32_t mark) {
+		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
+			mark |= (kLayout_Size_Width | kLayout_Size_Height);
+		}
+		return Box::layout_forward(mark);
+	}
+
+	float Image::solve_layout_content_width(Size &parent_layout_size) {
+		auto result = Box::solve_layout_content_width(parent_layout_size);
+		auto src = source();
+
+		if (parent_layout_size.wrap_x && src && src->type()) { // wrap x
+			auto v = Box::solve_layout_content_height(parent_layout_size);
+			if (parent_layout_size.wrap_y) { // wrap y
+				result = src->width();
+			} else {
+				result = v / src->height() * src->width();
+			}
+		}
+		parent_layout_size.wrap_x = false;
+
+		return result;
+	}
+
+	float Image::solve_layout_content_height(Size &parent_layout_size) {
+		auto result = Box::solve_layout_content_height(parent_layout_size);
+		auto src = source();
+
+		if (parent_layout_size.wrap_y && src && src->type()) { // wrap y
+			auto v = Box::solve_layout_content_width(parent_layout_size);
+			if (parent_layout_size.wrap_x) { // wrap x
+				result = src->height();
+			} else {
+				result = v / src->width() * src->height();
+			}
+		}
+		parent_layout_size.wrap_y = false;
+
+		return result;
+	}
+
+	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
+		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
+			UILock lock;
+			mark_size(kLayout_Size_Width | kLayout_Size_Height);
+		}
+	}
 
 }
-#endif

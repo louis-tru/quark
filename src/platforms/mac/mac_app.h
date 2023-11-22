@@ -33,7 +33,7 @@
 #ifndef __quark__mac__mac_app__
 #define __quark__mac__mac_app__
 #include "../../render/render_mac.h"
-#include "../../types.h"
+#include "../../ui/types.h"
 #if Qk_MAC
 
 @class QkWindowDelegate;

@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__props__
-#define __quark__props__
+#ifndef __quark__accessor__
+#define __quark__accessor__
 
 #include "../util/util.h"
 #include "../util/dict.h"
@@ -112,22 +112,23 @@ namespace qk {
 	 */
 	class Qk_EXPORT PropertysAccessor: public Object {
 	public:
-		
+
 		typedef void (View::*Func)();
 		typedef int ViewType;
 		
 		struct Qk_EXPORT Accessor {
-			inline Accessor(): get_accessor(nullptr), set_accessor(nullptr) {}
-
+			Accessor()
+			: get_accessor(nullptr), set_accessor(nullptr) {}
 			template<typename T, typename T2>
-			inline Accessor(T get, T2 set): get_accessor(Func(get)), set_accessor(Func(set)) {}
+			Accessor(T get, T2 set)
+			: get_accessor(Func(get)), set_accessor(Func(set)) {}
 
 			Func get_accessor;
 			Func set_accessor;
 		};
 		
 		PropertysAccessor();
-		
+
 		/**
 		 * @func accessor
 		 */
@@ -137,16 +138,16 @@ namespace qk {
 		 * @func has_accessor
 		 */
 		bool has_accessor(ViewType type, PropertyName name);
-		
+
 		/**
 		 * @func shared
 		 */
 		static PropertysAccessor* shared();
-		
+
 	private:
-		
+
 		typedef Dict<PropertyName, Accessor> Accessors;
-		
+
 		Dict<ViewType, Accessors> _property_func_table;
 	};
 

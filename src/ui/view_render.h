@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright © 2015-2016, blue.chu
+ * Copyright (c) 2015, blue.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,58 +28,48 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./image.h"
+// @private head
+
+#ifndef __quark__view_render__
+#define __quark__view_render__
+
+#include "./layout/view.h"
 #include "../render/render.h"
-#include "../app.h"
+#include "../render/canvas.h"
 
 namespace qk {
 
-	bool Image::layout_forward(uint32_t mark) {
-		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
-			mark |= (kLayout_Size_Width | kLayout_Size_Height);
-		}
-		return Box::layout_forward(mark);
-	}
+	class Window;
 
-	float Image::solve_layout_content_width(Size &parent_layout_size) {
-		auto result = Box::solve_layout_content_width(parent_layout_size);
-		auto src = source();
-
-		if (parent_layout_size.wrap_x && src && src->type()) { // wrap x
-			auto v = Box::solve_layout_content_height(parent_layout_size);
-			if (parent_layout_size.wrap_y) { // wrap y
-				result = src->width();
-			} else {
-				result = v / src->height() * src->width();
-			}
-		}
-		parent_layout_size.wrap_x = false;
-
-		return result;
-	}
-
-	float Image::solve_layout_content_height(Size &parent_layout_size) {
-		auto result = Box::solve_layout_content_height(parent_layout_size);
-		auto src = source();
-
-		if (parent_layout_size.wrap_y && src && src->type()) { // wrap y
-			auto v = Box::solve_layout_content_width(parent_layout_size);
-			if (parent_layout_size.wrap_x) { // wrap x
-				result = src->height();
-			} else {
-				result = v / src->width() * src->height();
-			}
-		}
-		parent_layout_size.wrap_y = false;
-
-		return result;
-	}
-
-	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
-			UILock lock;
-			mark_size(kLayout_Size_Width | kLayout_Size_Height);
-		}
-	}
+	class Qk_EXPORT ViewRender: public Object, public ViewVisitor {
+		Qk_HIDDEN_ALL_COPY(ViewRender);
+	public:
+		Qk_DEFINE_PROP_GET(Render*, render);
+		ViewRender(Window *window);
+		virtual uint32_t flags() override;
+		virtual void  visitView(View* v) override;
+		virtual void  visitBox(Box* box) override;
+		virtual void  visitImage(Image* image) override;
+		virtual void  visitVideo(Video* video) override;
+		virtual void  visitScroll(Scroll* scroll) override;
+		virtual void  visitInput(Input* input) override;
+		virtual void  visitTextarea(Textarea* textarea) override;
+		virtual void  visitButton(Button* btn) override;
+		virtual void  visitTextLayout(TextLayout* text) override;
+		virtual void  visitLabel(Label* label) override;
+		virtual void  visitRoot(Root* root) override;
+		virtual void  visitFloatLayout(FloatLayout* flow) override;
+		virtual void  visitFlowLayout(FlowLayout* flow) override;
+		virtual void  visitFlexLayout(FlexLayout* flex) override;
+	private:
+		Window       *_window;
+		Canvas       *_canvas;
+		PathvCache   *_cache;
+		float        _opacity;
+		uint32_t     _mark_recursive;
+		float        _fix,_fix2; // fix rect stroke width
+		Qk_DEFINE_INLINE_CLASS(Inl);
+	};
 
 }
+#endif

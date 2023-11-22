@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../../app.h"
+#import "../../ui/app.h"
 #include "./mac_app.h"
-#include "../../window.h"
+#include "../../ui/window.h"
 #include "../../render/render_mac.h"
 
 using namespace qk;

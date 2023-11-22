@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "./mac_app.h"
-#import "../../screen.h"
+#import "../../ui/screen.h"
 
 using namespace qk;
 

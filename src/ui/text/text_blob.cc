@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text_blob.h"
-#include "../util/codec.h"
+#include "../../util/codec.h"
 
 namespace qk {
 

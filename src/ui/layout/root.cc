@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./root.h"
-#include "./box_filter.h"
+#include "../filter.h"
 #include "../app.h"
-#include "../util/handle.h"
+#include "../../util/handle.h"
 #include "../window.h"
-#include "../render/render.h"
+#include "../../render/render.h"
 
 namespace qk {
 

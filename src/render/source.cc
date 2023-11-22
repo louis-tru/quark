@@ -28,12 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../app.h"
 #include "./source.h"
 #include "../util/fs.h"
 #include "./codec/codec.h"
 #include "./render.h"
-
 
 namespace qk {
 
@@ -361,7 +359,8 @@ namespace qk {
 	}
 
 	void ImageSourceHolder::set_src(String value) {
-		set_source(shared_app() ? shared_app()->imgPool()->get(value): new ImageSource(value));
+		// TODO ...
+		//set_source(shared_app() ? shared_app()->imgPool()->get(value): new ImageSource(value));
 	}
 
 	void ImageSourceHolder::set_source(ImageSource* source) {

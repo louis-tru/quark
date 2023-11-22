@@ -32,7 +32,7 @@
 #define __quark_textlines__
 
 #include "../layout/layout.h"
-#include "../render/font/font.h"
+#include "../../render/font/font.h"
 
 namespace qk {
 

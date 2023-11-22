@@ -32,7 +32,7 @@
 #define __quark__layout__box__
 
 #include "./view.h"
-#include "./box_filter.h"
+#include "../filter.h"
 
 namespace qk {
 

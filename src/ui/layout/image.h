@@ -28,81 +28,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__screen__
-#define __quark__screen__
+#ifndef __quark__layout__image__
+#define __quark__layout__image__
 
-#include "./util/util.h"
-#include "./util/event.h"
+#include "./box.h"
+#include "../../render/source.h"
 
 namespace qk {
-	class Application;
 
-	/**
-	 * @class Screen some common method properties and events for display and screen
-	*/
-	class Qk_EXPORT Screen: public Object {
-		Qk_HIDDEN_ALL_COPY(Screen);
+	class Qk_EXPORT Image: public Box, public ImageSourceHolder {
+		Qk_Define_View(Image);
 	public:
-		enum Orientation {
-			ORIENTATION_INVALID = -1,
-			ORIENTATION_PORTRAIT = 0,
-			ORIENTATION_LANDSCAPE,
-			ORIENTATION_REVERSE_PORTRAIT,
-			ORIENTATION_REVERSE_LANDSCAPE,
-			ORIENTATION_USER,
-			ORIENTATION_USER_PORTRAIT,
-			ORIENTATION_USER_LANDSCAPE,
-			ORIENTATION_USER_LOCKED,
-		};
-
-		enum StatusBarStyle {
-			STATUS_BAR_STYLE_WHITE = 0,
-			STATUS_BAR_STYLE_BLACK,
-		};
-
-		Qk_DEFINE_PROP_GET(Application*, host); // host app
-		Qk_DEFINE_PROP_ACC(Orientation, orientation); // orientation
-		Qk_DEFINE_PROP_ACC_GET(float, status_bar_height); // status_bar_height
-
-		/**
-		 * @event onOrientation Triggered when the screen orientation changes
-		*/
-		Qk_Event(Orientation);
-
-		/**
-		 * @constructor
-		*/
-		Screen(Application* host);
-
-		/**
-		* @method set_visible_status_bar(visible)
-		*/
-		void set_visible_status_bar(bool visible);
-
-		/**
-		* @method set_status_bar_style(style)
-		*/
-		void set_status_bar_style(StatusBarStyle style);
-
-		/**
-		* @method set_keep_screen(keep)
-		*/
-		void set_keep_screen(bool keep);
-
-		/**
-		 * @method set_fullscreen(fullscreen)
-		*/
-		void set_fullscreen(bool fullscreen);
-
-		/**
-		 * @method default_atom_pixel
-		*/
-		static float default_atom_pixel();
-
-		/**
-		 * @method default_status_bar_height
-		*/
-		static float default_status_bar_height();
+		virtual bool layout_forward(uint32_t mark) override;
+	protected:
+		virtual float solve_layout_content_width(Size &parent_layout_size) override;
+		virtual float solve_layout_content_height(Size &parent_layout_size) override;
+		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
 	};
 
 }

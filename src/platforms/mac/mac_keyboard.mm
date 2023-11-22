@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../../keyboard.h"
+#import "../../ui/keyboard.h"
 
 namespace qk {
 

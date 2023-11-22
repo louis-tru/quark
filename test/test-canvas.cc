@@ -1,13 +1,13 @@
 
-#include <quark/app.h>
-#include <quark/window.h>
+#include <quark/ui/app.h>
+#include <quark/ui/window.h>
+#include <quark/ui/screen.h>
+#include <quark/ui/layout/box.h>
+#include <quark/ui/layout/root.h>
 #include <quark/render/paint.h>
-#include <quark/screen.h>
 #include <quark/util/codec.h>
 #include <quark/render/render.h>
 #include <quark/render/canvas.h>
-#include <quark/layout/box.h>
-#include <quark/layout/root.h>
 
 using namespace qk;
 

@@ -31,7 +31,7 @@
 #include "./input.h"
 #include "../app.h"
 #include "../window.h"
-#include "../util/codec.h"
+#include "../../util/codec.h"
 #include "./textarea.h"
 #include <math.h>
 

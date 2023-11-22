@@ -31,8 +31,8 @@
 #ifndef __quark__event__
 #define __quark__event__
 
-#include "./util/event.h"
-#include "./util/handle.h"
+#include "../util/event.h"
+#include "../util/handle.h"
 #include "./math.h"
 #include "./types.h"
 #include "./text/text_input.h"

@@ -28,50 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __quark__task__
+#define __quark__task__
 
-#ifndef __quark_textblob__
-#define __quark_textblob__
-
-#include "../render/font/font.h"
-#include "../render/source.h"
-#include "./text_lines.h"
-#include "./text_opts.h"
-#include "../render/canvas.h"
+#include "../util/list.h"
 
 namespace qk {
+	class Window;
 
-	// @dev text layout 
-
-	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(const Unichar *src, uint32_t length,
-		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
-	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(cString4& str,
-		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
-	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
-
-	struct TextBlob {
-		float           ascent; // 当前blob基线距离文本顶部
-		float           height; // 当前blob高度
-		float           origin; // x-axis offset origin start
-		uint32_t        line;   // line number
-		uint32_t        index;  // blob index in unichar glyphs
-		Canvas::TextBlob core; // glyphs + cache
-	};
-
-	class Qk_EXPORT TextBlobBuilder {
+	/**
+	 * @class RenderTask render task
+	*/
+	class Qk_EXPORT RenderTask {
 	public:
-		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
-		Qk_DEFINE_PROP(bool, disable_overflow);
-		Qk_DEFINE_PROP(bool, disable_auto_wrap);
-		Qk_DEFINE_PROP(TextLines*, lines);
-		Qk_DEFINE_PROP(TextOptions*, opts);
-		Qk_DEFINE_PROP(Array<TextBlob>*, blob);
-		void make(cString& text);
-		void make(Array<Array<Unichar>>& lines);
-		void make(Array<Array<Unichar>>&& lines);
-	private:
-		void as_normal(FontGlyphs &fg, Unichar *unichar, uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL);
-		void as_break_all(FontGlyphs &fg, Unichar *unichar, uint32_t index);
-		void as_no_auto_wrap(FontGlyphs &fg, uint32_t index);
+		typedef List<RenderTask*>::Iterator ID;
+		// define props
+		Qk_DEFINE_PROP_GET(ID, task_id);
+		Qk_DEFINE_PROP_GET(Window*, win);
+		Qk_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
+		RenderTask(): _task_timeout(0) {}
+		virtual ~RenderTask();
+		virtual bool run_task(int64_t sys_time) = 0;
+		inline bool is_register_task() const { return _task_id != ID(); }
+		friend class Window;
 	};
 
 }

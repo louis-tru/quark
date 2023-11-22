@@ -31,9 +31,9 @@
 #ifndef __quark__types__
 #define __quark__types__
 
-#include "./util/util.h"
-#include "./render/math.h"
-#include "./render/font/style.h"
+#include "../util/util.h"
+#include "../render/math.h"
+#include "../render/font/style.h"
 
 namespace qk {
 

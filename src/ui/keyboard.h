@@ -31,8 +31,8 @@
 #ifndef __quark__keyboard__
 #define __quark__keyboard__
 
-#include "./util/util.h"
-#include "./util/dict.h"
+#include "../util/util.h"
+#include "../util/dict.h"
 
 namespace qk {
 
