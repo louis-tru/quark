@@ -181,7 +181,7 @@ namespace qk {
 
 	bool FlowLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) return true; // continue iteration
+			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
 			if (_direction == Direction::kRow || _direction == Direction::kRowReverse) { // ROW
 				if (layout_wrap_x() && _wrap == Wrap::kNoWrap) { // no wrap, single-line
@@ -265,7 +265,7 @@ namespace qk {
 			// check transform_origin change
 			// solve_origin_value();
 		}
-		return false;
+		return true; // complete
 	}
 
 	Vec2 FlowLayout::layout_lock(Vec2 layout_size) {

@@ -398,7 +398,7 @@ namespace qk {
 	// --------------- o v e r w r i t e ---------------
 
 	bool View::layout_forward(uint32_t mark) {
-		return (mark & kLayout_Typesetting);
+		return !(mark & kLayout_Typesetting);
 	}
 
 	bool View::layout_reverse(uint32_t mark) {
@@ -410,7 +410,7 @@ namespace qk {
 			}
 			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height);
 		}
-		return false;
+		return true; // complete
 	}
 
 	void View::layout_text(TextLines *lines, TextConfig* cfg) {

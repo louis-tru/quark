@@ -48,7 +48,7 @@ namespace qk {
 	}
 
 	bool Label::layout_forward(uint32_t mark) {
-		return true; // continue iteration
+		return false; // continue iteration
 	}
 
 	bool Label::layout_reverse(uint32_t mark) {
@@ -56,7 +56,7 @@ namespace qk {
 			parent()->onChildLayoutChange(this, kChild_Layout_Text);
 			unmark(kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting);
 		}
-		return false;
+		return true; // complete
 	}
 
 	void Label::layout_text(TextLines *lines, TextConfig *base) {

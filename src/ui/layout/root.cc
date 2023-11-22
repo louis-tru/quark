@@ -80,10 +80,10 @@ namespace qk {
 		}
 
 		if (layout_mark() & kLayout_Typesetting) {
-			return true;
+			return false;
 		}
 
-		return false;
+		return true; // complete
 	}
 
 	bool Root::layout_reverse(uint32_t mark) {
@@ -96,7 +96,7 @@ namespace qk {
 			}
 			unmark(kLayout_Typesetting);
 		}
-		return false; // stop iteration
+		return true; // complete iteration
 	}
 
 	Mat Root::layout_matrix() {

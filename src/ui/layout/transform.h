@@ -44,6 +44,7 @@ namespace qk {
 		Qk_Define_View(Transform);
 	public:
 		Transform();
+		// define props
 		Qk_DEFINE_PROP    (Vec2, translate); // matrix displacement for the view
 		Qk_DEFINE_PROP    (Vec2, scale); // Matrix scaling
 		Qk_DEFINE_PROP    (Vec2, skew); // Matrix skew, (radian)

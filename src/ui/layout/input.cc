@@ -615,10 +615,10 @@ namespace qk {
 	bool Input::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting())
-				return true; // continue iteration
+				return false; // continue iteration
 			layout_typesetting_input_text();
 		}
-		return false;
+		return true; // complete
 	}
 
 	Vec2 Input::layout_typesetting_input_text() {

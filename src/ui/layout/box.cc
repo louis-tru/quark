@@ -540,19 +540,19 @@ namespace qk {
 			}
 			mark(kLayout_Typesetting); // rearrange
 			mark_render(kRecursive_Visible_Region);
-			return true;
+			return false; // next continue iteration
 		}
 
 		if (layout_mark() & kLayout_Typesetting) {
-			return true;
+			return false; // next continue iteration
 		}
 
-		return false;
+		return true; // complete iteration
 	}
 
 	bool Box::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) return true; // continue iteration
+			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
 			auto v = first();
 			if (v) {
@@ -565,7 +565,7 @@ namespace qk {
 			unmark(kLayout_Typesetting);
 		}
 
-		return false; // stop iteration
+		return true; // complete, stop iteration
 	}
 
 	void Box::layout_text(TextLines *lines, TextConfig *cfg) {
@@ -712,8 +712,7 @@ namespace qk {
 
 	Vec2 Box::layout_offset_inside() {
 		Vec2 offset(
-			_padding_left,
-			_padding_top
+			_padding_left, _padding_top
 		);
 		if (_border) {
 			offset.val[0] += _border->width[3]; // left

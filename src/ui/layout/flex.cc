@@ -300,13 +300,13 @@ namespace qk {
 						v = v->next();
 					}
 				}
-				return true;
+				return false;
 			}
 
 			// is ready typesetting
 			if (!is_ready_layout_typesetting()) {
 				// not ready continue iteration, wait call layout_reverse
-				return true;
+				return false;
 			}
 
 			// flex lock child
@@ -352,12 +352,12 @@ namespace qk {
 			//solve_origin_value();
 		// }
 
-		return false;
+		return true; // complete
 	}
 
 	bool FlexLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) return true; // continue iteration
+			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
 			if (_direction == Direction::kRow || _direction == Direction::kRowReverse) { // ROW
 				if (!layout_wrap_x()) // no wrap, flex layout must be handled in forward iteration
@@ -375,7 +375,7 @@ namespace qk {
 				layout_typesetting_auto<true>(_direction == Direction::kRowReverse);
 			} else { // COLUMN
 				if (layout_wrap_y()) // no wrap, flex layout must be handled in forward iteration
-					return true; // layout_forward()
+					return false; // layout_forward()
 				/*
 					|-----------|
 					|height=WRAP|
@@ -403,7 +403,7 @@ namespace qk {
 			// check transform_origin change
 			//solve_origin_value();
 		}
-		return false;
+		return true; // complete
 	}
 
 	Vec2 FlexLayout::layout_lock(Vec2 layout_size) {

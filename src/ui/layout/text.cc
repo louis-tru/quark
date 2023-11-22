@@ -45,7 +45,7 @@ namespace qk {
 
 	bool TextLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) return true; // continue iteration
+			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
 			auto size = content_size();
 			auto v = first();
@@ -77,7 +77,7 @@ namespace qk {
 			// solve_origin_value();
 		}
 
-		return false;
+		return true; // complete
 	}
 
 	void TextLayout::onTextChange(uint32_t value) {

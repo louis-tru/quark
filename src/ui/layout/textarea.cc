@@ -44,11 +44,11 @@ namespace qk {
 	bool Textarea::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting())
-				return true; // continue iteration
+				return false; // continue iteration
 			auto full_size = layout_typesetting_input_text(); // return full content size
 			set_scroll_size(full_size);
 		}
-		return false; // stop iteration
+		return true; // complete
 	}
 
 	void Textarea::solve_marks(uint32_t mark) {

@@ -264,25 +264,25 @@ namespace qk {
 	}
 
 	bool Transform::layout_forward(uint32_t mark) {
-		auto ok = Box::layout_forward(mark);
-		if (!ok) {
+		auto complete = Box::layout_forward(mark);
+		if (complete) {
 			if (mark & kTransform_Origin) {
 				// check transform_origin change
 				solve_origin_value();
 			}
 		}
-		return ok;
+		return complete;
 	}
 
 	bool Transform::layout_reverse(uint32_t mark) {
-		auto ok = Box::layout_reverse(mark);
-		if (!ok) {
+		auto complete = Box::layout_reverse(mark);
+		if (complete) {
 			if (mark & kLayout_Typesetting) {
 				// check transform_origin change
 				solve_origin_value();
 			}
 		}
-		return  ok;
+		return complete;
 	}
 
 	void Transform::solve_origin_value() {

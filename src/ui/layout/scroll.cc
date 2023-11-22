@@ -845,11 +845,11 @@ namespace qk {
 	bool Scroll::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting())
-				return true; // continue iteration
+				return false; // continue iteration
 			auto full_size = layout_typesetting_float(); // return full content size
 			set_scroll_size(full_size);
 		}
-		return false; // stop iteration
+		return true; // complete iteration
 	}
 
 	void Scroll::solve_marks(uint32_t mark) {

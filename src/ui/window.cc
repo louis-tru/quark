@@ -333,7 +333,7 @@ namespace qk {
 				for (auto& levelMarks: _marks) {
 					for (auto& layout: levelMarks) {
 						if (layout) {
-							if ( !layout->layout_forward(layout->layout_mark()) ) {
+							if ( layout->layout_forward(layout->layout_mark()) ) {
 								// simple delete mark
 								layout->_mark_index = -1;
 								layout = nullptr;
@@ -348,7 +348,7 @@ namespace qk {
 					auto& levelMarks = _marks[i];
 					for (auto& layout: levelMarks) {
 						if (layout) {
-							if ( !layout->layout_reverse(layout->layout_mark()) ) {
+							if ( layout->layout_reverse(layout->layout_mark()) ) {
 								// simple delete mark recursive
 								layout->_mark_index = -1;
 								layout = nullptr;
