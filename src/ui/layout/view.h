@@ -269,7 +269,7 @@ namespace qk {
 		 * @method overlap_test
 		*/
 		virtual bool overlap_test(Vec2 point);
-		
+
 		/**
 		 * define access receiver
 		 * @method accept()
