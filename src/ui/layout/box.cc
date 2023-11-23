@@ -136,7 +136,7 @@ namespace qk {
 			if (_parent->is_lock_child_layout_size()) {
 				_parent->onChildLayoutChange(this, kChild_Layout_Size);
 			} else {
-				mark(_mark);
+				mark_layout(_mark);
 			}
 		}
 	}
@@ -474,7 +474,7 @@ namespace qk {
 					if (val != _content_size.x() || _layout_wrap_x != size.wrap_x) {
 						_content_size.set_x(val);
 						_layout_wrap_x = size.wrap_x;
-						// mark(kLayout_Typesetting);
+						// mark_layout(kLayout_Typesetting);
 						layout_content_size_change_mark = kLayout_Size_Width;
 					}
 					_client_size.set_x(_padding_left + _padding_right + val);
@@ -494,7 +494,7 @@ namespace qk {
 					if (val != _content_size.y() || _layout_wrap_y != size.wrap_y) {
 						_content_size.set_y(val);
 						_layout_wrap_y = size.wrap_y;
-						// mark(kLayout_Typesetting);
+						// mark_layout(kLayout_Typesetting);
 						layout_content_size_change_mark |= kLayout_Size_Height;
 					}
 					_client_size.set_y(_padding_top + _padding_bottom + val);
@@ -526,7 +526,7 @@ namespace qk {
 				v->onParentLayoutContentSizeChange(this, layout_content_size_change_mark);
 				v = v->next();
 			}
-			mark(kLayout_Typesetting); // rearrange
+			mark_layout(kLayout_Typesetting); // rearrange
 			mark_render(kRecursive_Visible_Region);
 			return false; // next continue iteration
 		}
@@ -635,7 +635,7 @@ namespace qk {
 					v = v->next();
 				}
 			}
-			mark(kLayout_Typesetting); // rearrange
+			mark_layout(kLayout_Typesetting); // rearrange
 			mark_render(kRecursive_Visible_Region);
 		}
 
@@ -789,7 +789,7 @@ namespace qk {
 	}
 
 	void Box::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {
-		mark(value);
+		mark_layout(value);
 	}
 
 	/**

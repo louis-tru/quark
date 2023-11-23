@@ -162,14 +162,14 @@ namespace qk {
 	void FlowLayout::set_wrap(Wrap wrap) {
 		if (wrap != _wrap) {
 			_wrap = wrap;
-			mark(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting);
 		}
 	}
 
 	void FlowLayout::set_wrap_align(WrapAlign align) {
 		if (align != _wrap_align) {
 			_wrap_align = align;
-			mark(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting);
 		}
 	}
 

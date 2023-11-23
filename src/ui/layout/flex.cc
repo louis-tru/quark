@@ -242,21 +242,21 @@ namespace qk {
 	void FlexLayout::set_direction(Direction val) {
 		if (val != _direction) {
 			_direction = val;
-			mark(kLayout_Typesetting); // 排版参数改变,后续需对子布局重新排版
+			mark_layout(kLayout_Typesetting); // 排版参数改变,后续需对子布局重新排版
 		}
 	}
 
 	void FlexLayout::set_items_align(ItemsAlign align) {
 		if (align != _items_align) {
 			_items_align = align;
-			mark(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting);
 		}
 	}
 
 	void FlexLayout::set_cross_align(CrossAlign align) {
 		if (align != _cross_align) {
 			_cross_align = align;
-			mark(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting);
 		}
 	}
 
@@ -287,7 +287,7 @@ namespace qk {
 			}
 
 			if (layout_content_size_change_mark) {
-				mark(kLayout_Typesetting); // rearrange
+				mark_layout(kLayout_Typesetting); // rearrange
 				mark_render(kRecursive_Visible_Region);
 			}
 
@@ -419,7 +419,7 @@ namespace qk {
 	void FlexLayout::onChildLayoutChange(Layout* child, uint32_t value) {
 		if (value & (kChild_Layout_Size | kChild_Layout_Align | 
 								kChild_Layout_Visible | kChild_Layout_Weight | kChild_Layout_Text)) {
-			mark(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting);
 		}
 	}
 

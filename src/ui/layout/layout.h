@@ -272,9 +272,9 @@ namespace qk {
 		void set_layout_depth(uint32_t newDepth);
 
 		/**
-			* @func mark(mark)
+			* @func mark_layout(mark)
 			*/
-		void mark(uint32_t mark);
+		void mark_layout(uint32_t mark);
 
 		/**
 			* @func mark_render(mark)

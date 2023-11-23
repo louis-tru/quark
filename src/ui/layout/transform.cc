@@ -216,14 +216,14 @@ namespace qk {
 	void Transform::set_origin_x(BoxOrigin val) {
 		if (_origin_x != val) {
 			_origin_x = val;
-			mark(kTransform_Origin);
+			mark_layout(kTransform_Origin);
 		}
 	}
 
 	void Transform::set_origin_y(BoxOrigin val) {
 		if (_origin_y != val) {
 			_origin_y = val;
-			mark(kTransform_Origin);
+			mark_layout(kTransform_Origin);
 		}
 	}
 

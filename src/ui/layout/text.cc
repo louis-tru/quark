@@ -39,7 +39,7 @@ namespace qk {
 	void TextLayout::set_text_align(TextAlign value) {
 		if(_text_align != value) {
 			_text_align = value;
-			mark(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting);
 		}
 	}
 
@@ -81,7 +81,7 @@ namespace qk {
 	}
 
 	void TextLayout::onTextChange(uint32_t value) {
-		value ? mark(value): mark_render();
+		value ? mark_layout(value): mark_render();
 	}
 
 	bool TextLayout::solve_visible_region() {

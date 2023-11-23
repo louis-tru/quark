@@ -46,13 +46,13 @@ namespace qk {
 		set_receive(1);
 		set_width({0, BoxSizeKind::kMatch});
 		set_height({0, BoxSizeKind::kMatch});
-		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+		mark_layout(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 		set_background_color(Color(255, 255, 255, 255)); // 默认白色背景
 		mark_render(kRecursive_Transform);
 	}
 
 	void Root::reload() {
-		mark(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
+		mark_layout(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 	}
 
 	void Root::set_visible(bool val) {

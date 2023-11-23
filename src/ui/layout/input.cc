@@ -503,7 +503,7 @@ namespace qk {
 					_text_value_u4.append( text );
 				}
 				_cursor += text.length();
-				mark(kLayout_Typesetting); // 标记内容变化
+				mark_layout(kLayout_Typesetting); // 标记内容变化
 			}
 		}
 
@@ -523,7 +523,7 @@ namespace qk {
 			_cursor += text.length() - _marked_text.length();
 			_cursor = Qk_MAX(_marked_text_idx, _cursor);
 			_marked_text = text;
-			mark(kLayout_Typesetting); // 标记内容变化
+			mark_layout(kLayout_Typesetting); // 标记内容变化
 
 			return true;
 		}
@@ -584,14 +584,14 @@ namespace qk {
 	void Input::set_text_align(TextAlign val) {
 		if(_text_align != val) {
 			_text_align = val;
-			mark(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting);
 		}
 	}
 
 	void Input::set_text_value_u4(String4 val) {
 		if (_text_value_u4 != val) {
 			_text_value_u4 = val;
-			mark(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting);
 			set_max_length(_max_length);
 		}
 	}
@@ -879,7 +879,7 @@ namespace qk {
 						String4 old = _text_value_u4;
 						_text_value_u4 = String4(*old, cursor - count, *old + cursor, int(old.length()) - cursor);
 						_cursor -= count;
-						mark(kLayout_Typesetting); // 标记内容变化
+						mark_layout(kLayout_Typesetting); // 标记内容变化
 					}
 				} else if ( count > 0 ) {
 					count = Qk_MIN(int(text_length()) - cursor, count);
@@ -888,7 +888,7 @@ namespace qk {
 						_text_value_u4 = String4(*old, cursor,
 																	*old + cursor + count,
 																	int(old.length()) - cursor - count);
-						mark(kLayout_Typesetting); // 标记内容变化
+						mark_layout(kLayout_Typesetting); // 标记内容变化
 					}
 				}
 			}
@@ -957,7 +957,7 @@ namespace qk {
 	}
 
 	void Input::onTextChange(uint32_t value) {
-		value ? mark(value): mark_render();
+		value ? mark_layout(value): mark_render();
 	}
 
 	void Input::set_type(KeyboardType value) {
@@ -982,7 +982,7 @@ namespace qk {
 
 	void Input::set_placeholder_u4(String4 value) {
 		_placeholder_u4 = value;
-		mark(kLayout_Typesetting);
+		mark_layout(kLayout_Typesetting);
 	}
 
 	void Input::set_placeholder_color(Color value) {
@@ -995,7 +995,7 @@ namespace qk {
 	void Input::set_security(bool value) {
 		if (_security != value) {
 			_security = value;
-			mark(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting);
 		}
 	}
 
@@ -1007,7 +1007,7 @@ namespace qk {
 			} else if (is_focus()) {
 				_editing = true;
 			}
-			mark(kInput_Status);
+			mark_layout(kInput_Status);
 		}
 	}
 
@@ -1016,7 +1016,7 @@ namespace qk {
 		if (_max_length) { // check mx length
 			if (_text_value_u4.length() > _max_length) {
 				_text_value_u4 = _text_value_u4.substr(0, _max_length);
-				mark(kLayout_Typesetting);
+				mark_layout(kLayout_Typesetting);
 			}
 		}
 	}

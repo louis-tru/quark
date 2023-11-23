@@ -39,12 +39,12 @@ namespace qk {
 	void Label::set_text_value(String val) {
 		if (_text_value != val) {
 			_text_value = std::move(val);
-			mark(kLayout_Size_Width | kLayout_Size_Height);
+			mark_layout(kLayout_Size_Width | kLayout_Size_Height);
 		}
 	}
 
 	void Label::onTextChange(uint32_t value) {
-		value ? mark(value): mark_render();
+		value ? mark_layout(value): mark_render();
 	}
 
 	bool Label::layout_forward(uint32_t mark) {
@@ -104,7 +104,7 @@ namespace qk {
 	}
 
 	void Label::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {
-		mark(value);
+		mark_layout(value);
 	}
 
 	bool Label::solve_visible_region() {

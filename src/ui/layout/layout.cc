@@ -186,9 +186,9 @@ namespace qk {
 	}
 
 	/**
-		* @func mark(mark)
+		* @func mark_layout(mark)
 		*/
-	void Layout::mark(uint32_t mark) {
+	void Layout::mark_layout(uint32_t mark) {
 		_layout_mark |= mark;
 		if (_mark_index < 0) {
 			if (_layout_depth) {

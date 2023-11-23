@@ -51,7 +51,7 @@ namespace qk {
 				self->_parent->onChildLayoutChange(self, kChild_Layout_Visible); // mark parent layout 
 			}
 			if (val) {
-				self->mark(kLayout_Size_Width | kLayout_Size_Height); // reset layout size
+				self->mark_layout(kLayout_Size_Width | kLayout_Size_Height); // reset layout size
 			}
 			if (layout_depth) {
 				self->set_layout_depth_(layout_depth);
@@ -102,7 +102,7 @@ namespace qk {
 					set_window(_parent->window()); // set pre render
 
 					if ( layout_mark() ) { // remark
-						mark(kLayout_None);
+						mark_layout(kLayout_None);
 					}
 					mark_render(kRecursive_Transform);
 
@@ -137,7 +137,7 @@ namespace qk {
 			}
 			_parent = parent;
 			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
-			mark(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
+			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
 
 			uint32_t depth = parent->layout_depth();
 			if (depth) {
@@ -373,7 +373,7 @@ namespace qk {
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
 			_opacity = Qk_MAX(0, Qk_MIN(val, 1));
-			mark(kLayout_None); // mark none
+			mark_layout(kLayout_None); // mark none
 		}
 	}
 
@@ -419,7 +419,7 @@ namespace qk {
 
 	void View::onChildLayoutChange(Layout* child, uint32_t value) {
 		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
-			mark(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting);
 		}
 	}
 
