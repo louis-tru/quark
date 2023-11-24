@@ -32,6 +32,7 @@
 #define __quark__screen__
 
 #include "../util/util.h"
+#include "../render/math.h"
 #include "../util/event.h"
 
 namespace qk {

@@ -42,7 +42,7 @@ namespace qk {
 	static const Curve ease_in_out(0.3, 0.3, 0.3, 1);
 	static const Curve ease_out(0, 0, 0.58, 1);
 
-	class BaseScroll::ScrollBox: public Box {
+	class ScrollBase::ScrollBox: public Box {
 	public:
 
 		void triggerScroll() {
@@ -60,10 +60,10 @@ namespace qk {
 
 	};
 
-	class BaseScroll::Task: public RenderTask {
+	class ScrollBase::Task: public RenderTask {
 	public:
 
-		Task(BaseScroll* host, uint64_t duration, cCurve& curve = ease_out)
+		Task(ScrollBase* host, uint64_t duration, cCurve& curve = ease_out)
 			: m_host(host)
 			, m_start_time(time_monotonic())
 			, m_duration(duration)
@@ -108,7 +108,7 @@ namespace qk {
 		}
 
 	protected:
-		BaseScroll* m_host;
+		ScrollBase* m_host;
 		uint64_t m_start_time;
 		uint64_t m_duration;
 		List<Task*>::Iterator m_id2;
@@ -116,23 +116,23 @@ namespace qk {
 		cCurve m_curve;
 		bool m_is_inl_ease_out;
 
-		friend class BaseScroll::Inl;
+		friend class ScrollBase::Inl;
 	};
 
-	Qk_DEFINE_INLINE_MEMBERS(BaseScroll, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(ScrollBase, Inl) {
 	public:
 		#define _this _inl(this)
-		#define _inl(self) static_cast<BaseScroll::Inl*>(static_cast<BaseScroll*>(self))
+		#define _inl(self) static_cast<ScrollBase::Inl*>(static_cast<ScrollBase*>(self))
 
 		struct Momentum {
 			float dist;
 			uint64_t time;
 		};
 
-		class ScrollMotionTask: public BaseScroll::Task {
+		class ScrollMotionTask: public ScrollBase::Task {
 		public:
 			
-			ScrollMotionTask(BaseScroll* host, uint64_t duration, Vec2 to, cCurve& curve = ease_out)
+			ScrollMotionTask(ScrollBase* host, uint64_t duration, Vec2 to, cCurve& curve = ease_out)
 				: Task(host, duration, curve)
 				, m_from(host->_scroll)
 				, m_to(to)
@@ -157,10 +157,10 @@ namespace qk {
 			Vec2  m_to;
 		};
 
-		class ScrollBarFadeInOutTask: public BaseScroll::Task {
+		class ScrollBarFadeInOutTask: public ScrollBase::Task {
 		public:
 			
-			ScrollBarFadeInOutTask(BaseScroll* host, uint64_t duration, float to, cCurve& curve = ease_out)
+			ScrollBarFadeInOutTask(ScrollBase* host, uint64_t duration, float to, cCurve& curve = ease_out)
 				: Task(host, duration, curve)
 				, m_from(host->_scrollbar_opacity)
 				, m_to(to)
@@ -188,7 +188,7 @@ namespace qk {
 			float m_to;
 		};
 
-		friend class BaseScroll::Task;
+		friend class ScrollBase::Task;
 		friend class ScrollMotionTask;
 		friend class ScrollBarFadeOutTask;
 
@@ -643,7 +643,7 @@ namespace qk {
 
 	};
 
-	BaseScroll::BaseScroll(Box *host)
+	ScrollBase::ScrollBase(Box *host)
 		: _scrollbar(true)
 		, _bounce(true)
 		, _bounce_lock(true)
@@ -676,21 +676,21 @@ namespace qk {
 		host->add_event_listener(UIEvent_MouseDown, &Inl::mouse_down_handle, _this);
 		host->add_event_listener(UIEvent_MouseMove, &Inl::mouse_move_handle, _this);
 		host->add_event_listener(UIEvent_MouseUp, &Inl::mouse_up_handle, _this);
-		// Qk_DEBUG("BaseScroll: %d", sizeof(BaseScroll));
+		// Qk_DEBUG("ScrollBase: %d", sizeof(ScrollBase));
 	}
 
-	BaseScroll::~BaseScroll() {
+	ScrollBase::~ScrollBase() {
 		_this->termination_all_task();
 		if ( _scroll_curve != &ease_out ) {
 			delete _scroll_curve;
 		}
 	}
 
-	void BaseScroll::scroll_to(Vec2 value, uint64_t duration) {
+	void ScrollBase::scroll_to(Vec2 value, uint64_t duration) {
 		scroll_to(value, duration, *_scroll_curve);
 	}
 
-	void BaseScroll::scroll_to(Vec2 value, uint64_t duration, cCurve& curve) {
+	void ScrollBase::scroll_to(Vec2 value, uint64_t duration, cCurve& curve) {
 		_scroll_raw = Vec2(-value.x(), -value.y());
 		Vec2 scroll = _this->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
 		if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
@@ -699,7 +699,7 @@ namespace qk {
 		_host->mark_render(View::kScroll);
 	}
 
-	void BaseScroll::set_scroll(Vec2 value) {
+	void ScrollBase::set_scroll(Vec2 value) {
 		if ( _scroll_duration ) {
 			scroll_to(value, _scroll_duration, *_scroll_curve);
 		} else {
@@ -709,89 +709,89 @@ namespace qk {
 		}
 	}
 
-	void BaseScroll::set_scroll_x(float value) {
+	void ScrollBase::set_scroll_x(float value) {
 		_scroll_raw.set_x(-value);
 		_scroll = _this->catch_valid_scroll( Vec2(-value, _scroll_raw.y()) );
 		_host->mark_render(View::kScroll);
 	}
 
-	void BaseScroll::set_scroll_y(float value) {
+	void ScrollBase::set_scroll_y(float value) {
 		_scroll_raw.set_y(-value);
 		_scroll = _this->catch_valid_scroll( Vec2(_scroll_raw.x(), -value) );
 		_host->mark_render(View::kScroll);
 	}
 
-	Vec2 BaseScroll::scroll() const {
+	Vec2 ScrollBase::scroll() const {
 		return  Vec2(-_scroll.x(), -_scroll.y());
 	}
 
-	float BaseScroll::scroll_x() const {
+	float ScrollBase::scroll_x() const {
 		return -_scroll.x();
 	}
 
-	float BaseScroll::scroll_y() const {
+	float ScrollBase::scroll_y() const {
 		return -_scroll.y();
 	}
 
-	void BaseScroll::set_scrollbar(bool value) {
+	void ScrollBase::set_scrollbar(bool value) {
 		_scrollbar = value;
 	}
 
-	void BaseScroll::set_resistance(float value) {
+	void ScrollBase::set_resistance(float value) {
 		_resistance = Qk_MAX(0.5, value);
 	}
 
-	void BaseScroll::set_bounce(bool value) {
+	void ScrollBase::set_bounce(bool value) {
 		_bounce = value;
 	}
 
-	void BaseScroll::set_bounce_lock(bool value) {
+	void ScrollBase::set_bounce_lock(bool value) {
 		_bounce_lock = value;
 	}
 
-	void BaseScroll::set_momentum(bool value) {
+	void ScrollBase::set_momentum(bool value) {
 		_momentum = value;
 	}
 
-	void BaseScroll::set_lock_direction(bool value) {
+	void ScrollBase::set_lock_direction(bool value) {
 		_lock_direction = value;
 	}
 
-	void BaseScroll::set_catch_position_x(float value) {
+	void ScrollBase::set_catch_position_x(float value) {
 		_catch_position_x = value;
 	}
 
-	void BaseScroll::set_catch_position_y(float value) {
+	void ScrollBase::set_catch_position_y(float value) {
 		_catch_position_y = value;
 	}
 
-	void BaseScroll::set_scrollbar_color(Color value) {
+	void ScrollBase::set_scrollbar_color(Color value) {
 		_scrollbar_color = value;
 	}
 
-	void BaseScroll::set_scrollbar_width(float value) {
+	void ScrollBase::set_scrollbar_width(float value) {
 		_scrollbar_width = Float::max(1.0, value);
 	}
 
-	void BaseScroll::set_scrollbar_margin(float value) {
+	void ScrollBase::set_scrollbar_margin(float value) {
 		_scrollbar_margin = Float::max(1.0, value);
 	}
 
-	void BaseScroll::set_scroll_duration(uint64_t value) {
+	void ScrollBase::set_scroll_duration(uint64_t value) {
 		_scroll_duration = value;
 	}
 
-	void BaseScroll::terminate() {
+	void ScrollBase::terminate() {
 		_this->termination_recovery(0);
 	}
 
-	void BaseScroll::set_scroll_curve(cCurve* value) {
+	void ScrollBase::set_scroll_curve(cCurve* value) {
 		if ( _scroll_curve == &ease_out )
 			_scroll_curve = new Curve();
 		*const_cast<Curve*>(_scroll_curve) = *value;
 	}
 
-	void BaseScroll::set_scroll_size(Vec2 size) {
+	void ScrollBase::set_scroll_size(Vec2 size) {
 		if (_scroll_size != size) {
 			_this->immediate_end_all_task(); // change size immediate task
 			_scroll_size = size;
@@ -811,7 +811,7 @@ namespace qk {
 		_host->mark_render(View::kScroll);
 	}
 
-	void BaseScroll::solve(uint32_t mark) {
+	void ScrollBase::solve(uint32_t mark) {
 		if ( mark & View::kScroll ) {
 			if ( !_moved && !_this->is_task() ) {
 				// fix scroll value
@@ -825,7 +825,7 @@ namespace qk {
 
 	// ------------------------ S c r o l l --------------------------
 
-	Scroll::Scroll(): FloatLayout(), BaseScroll(this)
+	Scroll::Scroll(): FloatLayout(), ScrollBase(this)
 	{
 		set_is_clip(true);
 	}
@@ -853,7 +853,7 @@ namespace qk {
 	}
 
 	void Scroll::solve_marks(uint32_t mark) {
-		BaseScroll::solve(mark);
+		ScrollBase::solve(mark);
 		View::solve_marks(mark);
 	}
 

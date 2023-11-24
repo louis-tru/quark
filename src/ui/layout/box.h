@@ -173,5 +173,15 @@ namespace qk {
 		Align _layout_align;  // layout align
 	};
 
+	/**
+	* @method overlap_test_from_convex_quadrilateral
+	*/
+	Qk_EXPORT bool overlap_test_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4], Vec2 point);
+	
+	/**
+	 * @method screen_region_from_convex_quadrilateral
+	*/
+	Qk_EXPORT Region screen_region_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
+
 }
 #endif

@@ -282,18 +282,18 @@ namespace qk {
 
 	// ----------------------------- pre render -----------------------------
 
-	void Window::mark_layout(Layout *layout, uint32_t depth) {
-		Qk_ASSERT(depth);
-		_marks.extend(depth + 1);
-		auto& arr = _marks[depth];
+	void Window::mark_layout(Layout *layout, uint32_t level) {
+		Qk_ASSERT(level);
+		_marks.extend(level + 1);
+		auto& arr = _marks[level];
 		layout->_mark_index = arr.length();
 		arr.push(layout);
 		_mark_total++;
 	}
 
-	void Window::unmark_layout(Layout *layout, uint32_t depth) {
-		Qk_ASSERT(depth);
-		auto& arr = _marks[depth];
+	void Window::unmark_layout(Layout *layout, uint32_t level) {
+		Qk_ASSERT(level);
+		auto& arr = _marks[level];
 		auto last = arr[arr.length() - 1];
 		if (last != layout) {
 			arr[layout->_mark_index] = last;

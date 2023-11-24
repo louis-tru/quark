@@ -33,6 +33,80 @@
 
 namespace qk {
 
+	// view private members method
+	Qk_DEFINE_INLINE_MEMBERS(Layout, Inl) {
+	public:
+		#define _this _inl(this)
+		#define _inl(self) static_cast<Layout::Inl*>(self)
+
+		static void set_visible_static(Layout::Inl* self, bool val, uint32_t layout_depth) {
+			self->_visible = val;
+			if (self->_parent) {
+				self->_parent->onChildLayoutChange(self, kChild_Layout_Visible); // mark parent layout 
+			}
+			if (val) {
+				self->mark_layout(kLayout_Size_Width | kLayout_Size_Height); // reset layout size
+			}
+			if (layout_depth) {
+				self->set_layout_depth_(layout_depth);
+			} else {
+				self->clear_layout_depth();
+			}
+		}
+
+		void clear_link() { // Cleaning up associated view information
+			if (_parent) {
+				/* 当前为第一个子视图 */
+				if (_parent->_first == this) {
+					_parent->_first = _next;
+				} else {
+					_prev->_next = _next;
+				}
+				/* 当前为最后一个子视图 */
+				if (_parent->_last == this) {
+					_parent->_last = _prev;
+				} else {
+					_next->_prev = _prev;
+				}
+			}
+		}
+
+		void clear_layout_depth() { //  clear layout depth
+			if ( layout_depth() ) {
+				// blur();
+				set_layout_depth(0);
+				auto v = _first;
+				while ( v ) {
+					_inl(v)->clear_layout_depth();
+					v = v->_next;
+				}
+			}
+		}
+
+		void set_layout_depth_(uint32_t depth) { // settings depth
+			if (_visible) {
+				if ( layout_depth() != depth ) {
+					set_layout_depth(depth++);
+					set_window(_parent->window()); // set pre render
+
+					if ( layout_mark() ) { // remark
+						mark_layout(kLayout_None);
+					}
+					mark_render(kRecursive_Transform);
+
+					auto v = _first;
+					while ( v ) {
+						_inl(v)->set_layout_depth_(depth);
+						v = v->_next;
+					}
+				}
+			} else {
+				clear_layout_depth();
+			}
+		}
+
+	};
+
 	/**
 		* @constructors
 		*/
@@ -41,8 +115,11 @@ namespace qk {
 		, _layout_mark(kLayout_None)
 		, _layout_depth(0)
 		, _window(nullptr)
-	{
-	}
+		, _parent(nullptr), _first(nullptr)
+		, _last(nullptr), _prev(nullptr), _next(nullptr)
+		, _visible(true)
+		, _visible_region(false)
+	{}
 
 	/**
 		* @destructor
@@ -175,13 +252,7 @@ namespace qk {
 				if (newDepth) {
 					_window->mark_layout(this, newDepth);
 				}
-				// else {
-				// 	_window = nullptr;
-				// }
 			}
-			// else if (!newDepth) {
-			// 	_window = nullptr; // clear pre render
-			// }
 		}
 	}
 
@@ -205,4 +276,164 @@ namespace qk {
 	}
 
 // *******************************************************************
+
+	/**
+		* 
+		* Returns layout transformation matrix of the object view
+		* 
+		* Mat(layout_offset + transform_origin + translate + parent->layout_offset_inside, scale, rotate, skew)
+		* 
+		* @method layout_matrix()
+		*/
+	Mat Layout::layout_matrix() {
+		Vec2 translate = layout_offset() + _parent->layout_offset_inside();
+		return Mat(
+			1, 0, translate.x(),
+			0, 1, translate.y()
+		);
+	}
+
+	bool Layout::layout_forward(uint32_t mark) {
+		return !(mark & kLayout_Typesetting);
+	}
+
+	bool Layout::layout_reverse(uint32_t mark) {
+		if (mark & kLayout_Typesetting) {
+			auto v = _first;
+			while (v) {
+				v->set_layout_offset_lazy(Vec2()); // lazy layout
+				v = v->next();
+			}
+			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height);
+		}
+		return true; // complete
+	}
+
+	void Layout::layout_text(TextLines *lines, TextConfig* cfg) {
+		// NOOP
+	}
+
+	void Layout::onChildLayoutChange(Layout* child, uint32_t value) {
+		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
+			mark_layout(kLayout_Typesetting);
+		}
+	}
+
+	void Layout::onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) {
+		// NOOP
+	}
+
+	void Layout::solve_marks(uint32_t mark) {
+
+		if (mark & kRecursive_Transform) { // update transform matrix
+			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
+			if (_parent) {
+				_parent->matrix().mul(layout_matrix(), _matrix);
+			} else {
+				_matrix = layout_matrix();
+			}
+			goto visible_region;
+		}
+
+		if (mark & kRecursive_Visible_Region) {
+			unmark(kRecursive_Visible_Region); // unmark
+		visible_region:
+			_visible_region = solve_visible_region();
+		}
+	}
+
+	Vec2 Layout::position() {
+		return Vec2(_matrix[2], _matrix[5]);
+	}
+
+	bool Layout::solve_visible_region() {
+		return true;
+	}
+
+	/**
+	* @method overlap_test Overlap test, test whether the point on the screen overlaps with the view
+	*/
+	bool Layout::overlap_test(Vec2 point) {
+		return false;
+	}
+
+	/**
+		*
+		* Setting parent parent view
+		*
+		* @method set_parent(parent)
+		*/
+	void Layout::set_parent(Layout* parent) {
+		// clear parent
+		if (parent != _parent) {
+			_this->clear_link();
+
+			if ( _parent ) {
+				_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
+			} else {
+				retain(); // link to parent and retain ref
+			}
+			_parent = parent;
+			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
+			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
+
+			uint32_t depth = parent->layout_depth();
+			if (depth) {
+				_this->set_layout_depth_(depth + 1);
+			} else {
+				_this->clear_layout_depth();
+			}
+		}
+	}
+
+	/**
+		*
+		* Append subview to end
+		*
+		* @method append(child)
+		*/
+	void Layout::append(Layout* child) {
+		if (this == child->_parent) {
+			_inl(child)->clear_link();
+		} else {
+			child->set_parent(this);
+		}
+		if (_last) {
+			child->_prev = _last;
+			child->_next = nullptr;
+			_last->_next = child;
+			_last = child;
+		} else { // 当前还没有子视图
+			child->_prev = nullptr;
+			child->_next = nullptr;
+			_first = child;
+			_last = child;
+		}
+	}
+
+	/**
+		*
+		* Add a sibling view to the back
+		*
+		* @method after(view)
+		*/
+	void Layout::after(Layout* view) {
+		if (_parent) {
+			if (view == this) return;
+			if (view->_parent == _parent) {
+				_inl(view)->clear_link();
+			} else {
+				view->set_parent(_parent);
+			}
+			if (_next) {
+				_next->_prev = view;
+			} else { // 下面没有兄弟
+				_parent->_last = view;
+			}
+			view->_prev = this;
+			view->_next = _next;
+			_next = view;
+		}
+	}
+
 }

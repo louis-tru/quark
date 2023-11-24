@@ -34,13 +34,27 @@
 #include "../types.h"
 
 namespace qk {
+
+	#define Qk_Each_View(F) \
+		F(View)  F(Box) F(Transform) \
+		F(Image) F(Video) F(Scroll) F(Button) F(FloatLayout) F(Textarea) \
+		F(Label) F(Input) F(Root) F(TextLayout) F(FlexLayout) F(FlowLayout)
+
+	// #define Qk_Define_View(N) \
+	// public: \
+	// 	friend class ViewRender; \
+	// 	virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
+
+	class ViewRender;
 	class TextLines;
 	class TextConfig;
 	class Window;
 
+	// Qk_DEFINE_VISITOR(Layout, Qk_Each_View);
+
 	/**
 		*
-		* Layout and typesetting protocol
+		* View layout and typesetting backend
 		*
 		* @class Layout
 		*/
@@ -77,6 +91,8 @@ namespace qk {
 			bool wrap_x, wrap_y;
 		};
 
+	protected:
+		Mat _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 	private:
 		/* 下一个预处理视图标记
 		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
@@ -89,7 +105,6 @@ namespace qk {
 
 	public:
 		// @props
-
 		/* 
 		* @field layout_mark
 		*
@@ -110,6 +125,15 @@ namespace qk {
 		* @field window
 		*/
 		Qk_DEFINE_PROP_GET(Window*, window);
+		Qk_DEFINE_PROP_GET(Layout*, parent);
+		Qk_DEFINE_PROP_GET(Layout*, first);
+		Qk_DEFINE_PROP_GET(Layout*, last);
+		Qk_DEFINE_PROP_GET(Layout*, prev);
+		Qk_DEFINE_PROP_GET(Layout*, next);
+		// 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
+		Qk_DEFINE_PROP_GET(bool, visible); // *
+		// 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
+		Qk_DEFINE_PROP_GET(bool, visible_region);
 
 		/**
 		 * @constructor
@@ -220,7 +244,7 @@ namespace qk {
 			* 
 			* @func layout_forward(mark)
 			*/
-		virtual bool layout_forward(uint32_t/*LayoutMark*/ mark) = 0;
+		virtual bool layout_forward(uint32_t/*LayoutMark*/ mark);
 
 		/**
 			* 
@@ -233,7 +257,7 @@ namespace qk {
 			* 
 			* @func layout_reverse(mark)
 			*/
-		virtual bool layout_reverse(uint32_t/*LayoutMark*/ mark) = 0;
+		virtual bool layout_reverse(uint32_t/*LayoutMark*/ mark);
 
 		/**
 		 * 
@@ -241,7 +265,7 @@ namespace qk {
 		 * 
 		 * @func layout_text(lines)
 		 */
-		virtual void layout_text(TextLines *lines, TextConfig* textSet) = 0;
+		virtual void layout_text(TextLines *lines, TextConfig* textSet);
 
 		/**
 			* 
@@ -251,7 +275,7 @@ namespace qk {
 			*
 			* @func onChildLayoutChange(child, mark)
 			*/
-		virtual void onChildLayoutChange(Layout* child, uint32_t/*ChildLayoutChangeMark*/ mark) = 0;
+		virtual void onChildLayoutChange(Layout* child, uint32_t/*ChildLayoutChangeMark*/ mark);
 
 		/**
 			* 
@@ -259,7 +283,70 @@ namespace qk {
 			* 
 			* @func onParentLayoutContentSizeChange(parent, mark)
 			*/
-		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t/*LayoutMark*/ mark) = 0;
+		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t/*LayoutMark*/ mark);
+
+		/**
+		 *
+		 * Returns layout transformation matrix of the object view
+		 *
+		 * Mat(layout_offset + transform_origin? + translate + parent->layout_offset_inside, scale, rotate, skew)
+		 *
+		 * @method layout_matrix()
+		 */
+		virtual Mat layout_matrix();
+
+		/**
+		 * @method solve_marks(mark)
+		*/
+		virtual void solve_marks(uint32_t mark);
+
+		/**
+		 * 
+		 * returns view position in the screen
+		 * 
+		 * @method screen_position()
+		*/
+		virtual Vec2 position();
+
+		/**
+			* @method solve_visible_region()
+			*/
+		virtual bool solve_visible_region();
+
+		/**
+		 * Overlap test, test whether the point on the screen overlaps with the view
+		 * @method overlap_test
+		*/
+		virtual bool overlap_test(Vec2 point);
+
+		// --------------------------------------
+		/**
+			*
+			* Append subview to end
+			*
+			* @method append(child)
+			*/
+		void append(Layout* child);
+
+		/**
+			*
+			* Add a sibling view to the back
+			*
+			* @method after(view)
+			*/
+		void after(Layout* view);
+
+		/**
+		 *
+		 * Returns final transformation matrix of the view layout
+		 *
+		 * parent.matrix * layout_matrix
+		 *
+		 * @method matrix()
+		 */
+		inline const Mat& matrix() const {
+			return _matrix;
+		}
 
 	protected:
 		/**
@@ -294,7 +381,14 @@ namespace qk {
 			_window = win;
 		}
 
+		/**
+		 * @method set_parent(parent) setting parent view
+		 */
+		virtual void set_parent(Layout* parent);
+
+	private:
 		friend class Window;
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }
