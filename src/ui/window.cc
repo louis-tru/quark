@@ -43,6 +43,29 @@
 
 namespace qk {
 
+	UILock::UILock(Window* win): _win(win), _lock(false) {
+		lock();
+	}
+
+	UILock::~UILock() {
+		unlock();
+	}
+
+	void UILock::lock() {
+		if (!_lock) {
+			_lock = true;
+			_win->_render_mutex.lock();
+		}
+	}
+
+	void UILock::unlock() {
+		if (_lock) {
+			_win->_render_mutex.unlock();
+			_lock = false;
+		}
+	}
+
+
 	Window::Window(Options &opts)
 		: Qk_Init_Event(Change)
 		, Qk_Init_Event(Background)
@@ -67,7 +90,7 @@ namespace qk {
 		_viewRender = new ViewRender(this);
 		_backgroundColor = opts.backgroundColor;
 		{
-			UILock lock;
+			ScopeLock lock(_host->_mutex);
 			_id = _host->_windows.pushBack(this);
 		}
 		retain(); // strong ref count retain
@@ -149,7 +172,7 @@ namespace qk {
 	}
 
 	void Window::nextFrame(cCb& cb) {
-		UILock lock(_host);
+		UILock lock(this);
 		_nextFrame.pushBack(cb);
 	}
 
@@ -157,7 +180,7 @@ namespace qk {
 		if (_nextFrame.length()) {
 			List<Cb>* cb = new List<Cb>(std::move(_nextFrame));
 			_host->loop()->post(Cb([this, cb](Cb::Data& e) {
-				UILock lock(_host);
+				UILock lock(this);
 				Handle<List<Cb>> handle(cb);
 				for ( auto& i : *cb ) {
 					i->resolve();
@@ -169,7 +192,7 @@ namespace qk {
 	void Window::set_size(Vec2 size) {
 		float w = size.x(), h = size.y();
 		if (w >= 0.0 && h >= 0.0) {
-			UILock lock(_host);
+			UILock lock(this);
 			if (_lockSize.x() != w || _lockSize.y() != h) {
 				_lockSize = { w, h };
 				reload();
@@ -226,7 +249,7 @@ namespace qk {
 	void Window::onRenderBackendReload(Region region, Vec2 size, float defaultScale) {
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
 			Qk_DEBUG("Window::onDeviceReload");
-			UILock lock(_host);
+			UILock lock(this);
 			if ( _surfaceRegion.origin != region.origin
 				|| _surfaceRegion.end != region.end
 				|| _surfaceRegion.size != size
@@ -242,7 +265,7 @@ namespace qk {
 	}
 
 	bool Window::onRenderBackendDisplay() {
-		UILock lock(_host); // ui main local
+		UILock lock(this); // ui render lock
 
 		if (!preRender()) {
 			solveNextFrame();

@@ -36,7 +36,7 @@
 namespace qk {
 	class Action;
 	class Window;
-	class Root;
+	class Layout;
 
 	/**
 		* The basic elements of UI tree
@@ -47,10 +47,9 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(View);
 	public:
 		// @props
-		Qk_DEFINE_PROP_ACC(bool, is_focus); // keyboard focus view
-		// the objects that automatically adjust view properties
-		Qk_DEFINE_PROP(Action*, action); // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
+		Qk_DEFINE_PROP(Action*, action); // the objects that automatically adjust view properties
 		Qk_DEFINE_PROP_GET(Window*, window); // window object
+		Qk_DEFINE_PROP_GET(Layout*, layout); // layout backend
 		Qk_DEFINE_PROP_GET(View*, parent);
 		Qk_DEFINE_PROP_GET(View*, prev);
 		Qk_DEFINE_PROP_GET(View*, next);
@@ -62,7 +61,8 @@ namespace qk {
 		*/
 		Qk_DEFINE_PROP_GET(uint32_t, level);
 		// 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
-		Qk_DEFINE_PROP_GET(bool, visible);
+		Qk_DEFINE_PROP(bool, visible);
+		Qk_DEFINE_PROP_ACC(bool, is_focus); // keyboard focus view
 
 		/**
 		 * @constructor
@@ -133,20 +133,12 @@ namespace qk {
 		void append(View* child);
 
 		/**
-		 * 
-		 * Returns is can allow append child view
-		 * 
-		 * @method is_allow_append_child()
-		*/
-		virtual bool is_allow_append_child();
-
-		/**
 		 *
 		 * Remove self from parent view
 		 *
 		 * @method remove()
 		 */
-		virtual void remove();
+		void remove();
 
 		/**
 		 *
@@ -155,22 +147,6 @@ namespace qk {
 		 * @method remove_all_child()
 		 */
 		void remove_all_child();
-
-		/**
-		 *
-		 * Setting the visibility properties the view object
-		 *
-		 * @method set_visible(val)
-		 */
-		virtual void set_visible(bool val);
-
-		/**
-		 *
-		 * Setting the level properties the view object
-		 *
-		 * @method set_level(val)
-		 */
-		virtual void set_level(uint32_t level);
 
 		/**
 		 *
@@ -197,42 +173,19 @@ namespace qk {
 		virtual bool can_become_focus();
 
 		/**
-		 * @overwrite
-		 */
-		virtual void trigger_listener_change(uint32_t name, int count, int change) override;
-
-		/**
 		 * @method is_self_child(child)
 		 */
-		bool is_self_child(View* child);
-
-		/**
-		 * 
-		 * Returns text input object
-		 * 
-		 * @method as_text_input()
-		*/
-		virtual View* as_text_input();
-
-		/**
-		 * 
-		 * Returns button object
-		 * 
-		 * @method as_buttn()
-		*/
-		virtual View* as_button();
+		bool is_self_child(View *child);
 
 	private:
 		void clear_link(); // Cleaning up associated view information
 		void clear_level(Window *win); //  clear layout depth
-		void set_level_(uint32_t level, Window *win); // settings depth
+		void set_level(uint32_t level, Window *win); // settings depth
 		void set_visible_(bool visible, uint32_t level);
-		/**
-		 * @method set_parent(parent) setting parent view
-		 */
-		virtual void set_parent(View* parent);
+		void set_parent(View* parent);
+		bool is_root();
 
-		friend class Root;
+		friend class Window;
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
 	};
 

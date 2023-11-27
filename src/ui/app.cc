@@ -47,28 +47,6 @@ namespace qk {
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
 
-	UILock::UILock(Application* host): _host(host), _lock(false) {
-		lock();
-	}
-
-	UILock::~UILock() {
-		unlock();
-	}
-
-	void UILock::lock() {
-		if (!_lock) {
-			_lock = true;
-			_host->_render_mutex.lock();
-		}
-	}
-
-	void UILock::unlock() {
-		if (_lock) {
-			_host->_render_mutex.unlock();
-			_lock = false;
-		}
-	}
-
 	Application::Application(RunLoop *loop)
 		: Qk_Init_Event(Load)
 		, Qk_Init_Event(Unload)
@@ -94,7 +72,7 @@ namespace qk {
 	}
 
 	Application::~Application() {
-		UILock lock(this);
+		_mutex.lock();
 		for (auto i = _windows.begin(), e = _windows.end(); i != e;) {
 			(*(i++))->close(); // destroy
 		}
@@ -106,6 +84,7 @@ namespace qk {
 		delete _keep;        _keep = nullptr;  _loop = nullptr;
 
 		_shared = nullptr;
+		_mutex.unlock();
 	}
 
 	void Application::run() {
@@ -137,7 +116,7 @@ namespace qk {
 	}
 
 	void Application::clear(bool all) {
-		UILock(this);
+		ScopeLock lock(_mutex);
 		for (auto i: _windows) {
 			i->render()->getCanvas()->getPathvCache()->clear(all);
 		}
@@ -168,7 +147,7 @@ namespace qk {
 		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) {
 			if (app->_isLoaded || !app->_keep)
 				return;
-			UILock lock(app);
+			ScopeLock lock(app->_mutex); // TODO ... is safe, is release app ?
 			if (!app->_isLoaded) {
 				app->_isLoaded = true;
 				app->Qk_Trigger(Load);
@@ -181,7 +160,7 @@ namespace qk {
 			return; // Block access after object is deleted
 		_loop->post(Cb([&](auto&d) {
 			if (_keep) {
-				UILock lock(this);
+				ScopeLock lock(_mutex); // TODO ... is safe, is release app ?
 				if (_isLoaded) {
 					_isLoaded = false;
 					Qk_Trigger(Unload);
@@ -220,7 +199,7 @@ namespace qk {
 				return;
 			}
 		}
-		UILock lock;
+		ScopeLock lock(_mutex);
 		_activeWindow = win;
 	}
 

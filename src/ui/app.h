@@ -81,20 +81,8 @@ namespace qk {
 		Qk_Event(Memorywarning);
 
 		/**
-		 * Note: If `main loop` and `render loop` run in different threads,
-		 * Then any UI-API function called in the main thread must be locked.
-		 */
-		class Qk_EXPORT UILock {
-		public:
-			UILock(Application* host = _shared);
-			~UILock();
-			void lock();
-			void unlock();
-		private:
-			Application* _host;
-			bool _lock;
-		};
-
+		 * @constructor
+		*/
 		Application(RunLoop *loop = RunLoop::current());
 
 		/**
@@ -152,14 +140,13 @@ namespace qk {
 		static Application *_shared;   //! current shared application
 		KeepLoop*      _keep;
 		List<Window*>  _windows; // window list
-		RecursiveMutex _render_mutex;
+		Mutex          _mutex;
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class UILock;
 		friend class Window;
 	};
 
-	typedef Application::UILock UILock;
 	typedef Application App;
 
 	inline Application* shared_app() {

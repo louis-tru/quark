@@ -35,6 +35,31 @@
 
 namespace qk {
 
+	class UILocks {
+		struct UILock_Inl {
+			Window *win;
+			bool lock;
+		};
+		UILock_Inl _l0,_l1;
+	public:
+		UILocks(View *v0, View *v1): _l0{nullptr}, _l1{nullptr} {
+			if (v0 && v0->window()) {
+				new(&_l0)UILock(v0->window());
+			} 
+			if (v1 && v1->window() && v1->window() != _l0.win) {
+				new(&_l1)UILock(v1->window());
+			}
+		}
+		~UILocks() {
+			if (_l0.win) {
+				((UILock*)&_l0)->unlock();
+			}
+			if (_l1.win) {
+				((UILock*)&_l1)->unlock();
+			}
+		}
+	};
+
 	View::View()
 		: Notification<UIEvent, UIEventName>()
 		, _window(nullptr)
@@ -46,6 +71,7 @@ namespace qk {
 	{}
 
 	View::~View() {
+		UILocks lock(this, nullptr);
 		Qk_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		set_action(nullptr); // del action
 		remove_all_child(); // 删除子视图
@@ -57,9 +83,10 @@ namespace qk {
 		*
 		* @method before(view)
 		*/
-	void View::before(View* view) {
+	void View::before(View *view) {
+		if (view == this) return;
 		if (_parent) {
-			if (view == this) return;
+			UILocks lock(this, view);
 			if (view->_parent == _parent) {
 				view->clear_link();  // 清除关联
 			} else {
@@ -82,9 +109,10 @@ namespace qk {
 		*
 		* @method after(view)
 		*/
-	void View::after(View* view) {
+	void View::after(View *view) {
+		if (view == this) return;
 		if (_parent) {
-			if (view == this) return;
+			UILocks lock(this, view);
 			if (view->_parent == _parent) {
 				view->clear_link(); // 清除关联
 			} else {
@@ -107,11 +135,8 @@ namespace qk {
 		* 
 		* @method prepend(child)
 		*/
-	void View::prepend(View* child) {
-		if (!is_allow_append_child()) {
-			Qk_WARN("Not can allow prepend child view");
-			return;
-		}
+	void View::prepend(View *child) {
+		UILocks lock(this, child);
 		if (this == child->_parent) {
 			child->clear_link();
 		} else {
@@ -136,11 +161,8 @@ namespace qk {
 		*
 		* @method append(child)
 		*/
-	void View::append(View* child) {
-		if (!is_allow_append_child()) {
-			Qk_WARN("Not can allow append child view");
-			return;
-		}
+	void View::append(View *child) {
+		UILocks lock(this, child);
 		if (this == child->_parent) {
 			child->clear_link();
 		} else {
@@ -159,18 +181,15 @@ namespace qk {
 		}
 	}
 
-	bool View::is_allow_append_child() {
-		return true;
-	}
-
 	/**
 		*
-		* Remove destroy self and child views from parent view
+		* Remove self from parent view
 		* 
 		* @method remove()
 		*/
 	void View::remove() {
 		if (_parent) {
+			UILocks lock(this, nullptr);
 			clear_link();
 			_parent = nullptr;
 			clear_level(nullptr);
@@ -199,21 +218,9 @@ namespace qk {
 		*/
 	void View::set_visible(bool val) {
 		if (_visible != val) {
-			set_visible_(val, _parent && _parent->_level ? _parent->_level + 1: 0);
+			set_visible_(val, _parent && _parent->_level ?
+				_parent->_level + 1: is_root() && val ? 1: 0);
 		}
-	}
-
-	/**
-	 *
-	 * Setting the level properties the view object
-	 *
-	 * @method set_level(val)
-	 */
-	void View::set_level(uint32_t level) {
-		if (level == 0) {
-			// set_action(nullptr); // del action
-		}
-		_level = level;
 	}
 
 	/**
@@ -233,14 +240,6 @@ namespace qk {
 				// load new action
 			}
 		}
-	}
-
-	View* View::as_text_input() {
-		return nullptr;
-	}
-
-	View* View::as_button() {
-		return nullptr;
 	}
 
 	/**
@@ -286,15 +285,6 @@ namespace qk {
 	}
 
 	/**
-		* @overwrite
-		*/
-	void View::trigger_listener_change(uint32_t name, int count, int change) {
-		if ( change > 0 ) {
-			// _receive = true; // bind event auto open option
-		}
-	}
-
-	/**
 		* @method has_selfChild(child)
 		*/
 	bool View::is_self_child(View *child) {
@@ -334,7 +324,7 @@ namespace qk {
 
 		if (visible && level) {
 			if (_level != level)
-				set_level_(level, nullptr);
+				set_level(level, nullptr);
 		} else {  // set level = 0
 			if (_level)
 				clear_level(_window/*no set window*/);
@@ -344,7 +334,8 @@ namespace qk {
 	void View::clear_level(Window *win) { //  clear layout depth
 		blur();
 		_window = win;
-		set_level(0);
+		_level = 0;
+		// set_action(nullptr); // TODO stop action .. ?
 		View *v = _first;
 		while ( v ) {
 			v->clear_level(win);
@@ -352,16 +343,18 @@ namespace qk {
 		}
 	}
 
-	void View::set_level_(uint32_t level, Window *win) { // settings level
+	void View::set_level(uint32_t level, Window *win) { // settings level
 		if (_visible) {
-			if (win) { // set new window
+			// if level > 0 then
+			if (win) { // change new window
 				blur();
 				_window = win;
 			}
-			set_level(level++);
+			_level = level++;
+			// TODO run start action .. ?
 			View *v = _first;
 			while ( v ) {
-				v->set_level_(level, win);
+				v->set_level(level, win);
 				v = v->_next;
 			}
 		} else {
@@ -378,19 +371,33 @@ namespace qk {
 		*/
 	void View::set_parent(View *parent) {
 		if (parent != _parent) {
+			Qk_STRICT_ASSERT(!is_root(), "root view not allow set parent");
 			clear_link();
+
+			if ( _parent ) {
+				//_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
+			} else {
+				retain(); // link to parent and retain ref
+			}
 			_parent = parent;
+			//_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
+			//mark_layout(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
+
 			auto level = parent->_level;
 			auto win = parent->_window;
 
 			if (_visible && level) {
 				if (_level != ++level || _window != win)
-					set_level_(level, _window != win ? win: nullptr);
+					set_level(level, _window != win ? win: nullptr);
 			} else {
 				if (_level || _window != win)
 					clear_level(win);
 			}
 		}
+	}
+
+	bool View::is_root() {
+		return _window && _window->root() == this;
 	}
 
 }

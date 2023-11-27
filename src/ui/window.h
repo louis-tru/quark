@@ -47,6 +47,21 @@ namespace qk {
 	class Layout;
 
 	/**
+	 * Note: If `main loop` and `render loop` run in different threads,
+	 * Then any UI-API function called in the main thread must be locked.
+	 */
+	class Qk_EXPORT UILock {
+	public:
+		UILock(Window* win);
+		~UILock();
+		void lock();
+		void unlock();
+	private:
+		Window *_win;
+		bool _lock;
+	};
+
+	/**
 	 * @class Window system window ui components
 	*/
 	class Qk_EXPORT Window: public Reference, public RenderBackend::Delegate {
@@ -199,9 +214,11 @@ namespace qk {
 		int32_t _mark_total;
 		List<Task*>  _tasks;
 		Array<Array<Layout*>> _marks; // marked view
+		RecursiveMutex _render_mutex;
 		bool _is_render; // next frame render
 
 		friend class WindowImpl;
+		friend class UILock;
 	};
 
 }
