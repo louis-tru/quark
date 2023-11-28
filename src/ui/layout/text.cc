@@ -92,13 +92,7 @@ namespace qk {
 		return ok;
 	}
 
-	void TextLayout::set_visible(bool val) {
-		Box::set_visible(val);
-		_text_flags = 0xffffffffu;
-	}
-
-	void TextLayout::set_parent(View *val) {
-		Box::set_parent(val);
+	void TextLayout::onSetParentOrLevel(uint32_t level) {
 		_text_flags = 0xffffffffu;
 	}
 

@@ -180,7 +180,7 @@ namespace qk {
 					int64_t timeout = is_multiline() ? 1e6/*1s*/: 0;
 					if ( timeout ) {
 						shared_app()->loop()->post(Cb([this](Cb::Data& evt) { // delay
-							UILock lock;
+							UILock lock(window());
 							if ( _flag == kFlag_Wait_Find ) {
 								_flag = kFlag_Find; // 激活光标定位
 								find_cursor(_point);
@@ -561,7 +561,7 @@ namespace qk {
 		, _editing(false), _cursor_twinkle_status(true), _flag(kFlag_Normal)
 	{
 		set_is_clip(true);
-		set_receive(true);
+		// set_receive(true);
 		set_text_word_break(TextWordBreak::kBreakWord);
 		// bind events
 		add_event_listener(UIEvent_Click, &Inl::click_handle, Inl_Input(this));
@@ -847,18 +847,8 @@ namespace qk {
 		}
 	}
 
-	void Input::set_visible(bool val) {
-		View::set_visible(val);
+	void Input::onSetParentOrLevel(uint32_t level) {
 		_text_flags = 0xffffffff;
-	}
-
-	void Input::set_parent(View *val) {
-		View::set_parent(val);
-		_text_flags = 0xffffffff;
-	}
-
-	bool Input::is_allow_append_child() {
-		return false;
 	}
 
 	bool Input::can_become_focus() {

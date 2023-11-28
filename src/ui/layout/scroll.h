@@ -36,7 +36,9 @@
 
 namespace qk {
 
-	class Qk_EXPORT ScrollBase {
+	class SkiaRender;
+
+	class Qk_EXPORT BaseScroll {
 	public:
 		// define props
 		Qk_DEFINE_PROP(bool, scrollbar); // 显示scrollbar
@@ -63,8 +65,8 @@ namespace qk {
 		void scroll_to(Vec2 value, uint64_t duration, cCurve& curve);
 		void terminate();
 	protected:
-		ScrollBase(Box *host);
-		~ScrollBase();
+		BaseScroll(Box *host);
+		~BaseScroll();
 		void set_scroll_size(Vec2 size);
 		void solve(uint32_t mark);
 	private:
@@ -86,7 +88,7 @@ namespace qk {
 		bool _lock_h, _lock_v;
 	};
 
-	class Qk_EXPORT Scroll: public FloatLayout, public ScrollBase {
+	class Qk_EXPORT Scroll: public FloatLayout, public BaseScroll {
 		Qk_Define_View(Scroll);
 	public:
 		Scroll();

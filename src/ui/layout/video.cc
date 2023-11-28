@@ -671,12 +671,12 @@ namespace qk {
 		_auto_play = value;
 	}
 
-	void Video::remove() {
-		{
+	void Video::onSetParentOrLevel(uint32_t level) {
+		if (level == 0) { // remove
 			Lock lock(_mutex);
-			Inl_Video(this)->stop_and_release(lock, true);
+			if (_audio)
+				Inl_Video(this)->stop_and_release(lock, true);
 		}
-		Image::remove();
 	}
 
 }

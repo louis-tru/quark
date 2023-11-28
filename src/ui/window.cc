@@ -94,7 +94,9 @@ namespace qk {
 			_id = _host->_windows.pushBack(this);
 		}
 		retain(); // strong ref count retain
-		_root = new Root(this); // new root
+		_root = new Root(); // new root
+		_root->_window = this;
+		_root->init();
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
 		_root->focus();  // set focus
@@ -111,7 +113,7 @@ namespace qk {
 	}
 
 	bool Window::destroy() {
-		UILock lock; // lock ui
+		UILock lock(this); // lock ui
 		if (!_render) return false;
 		lock.unlock(); // Avoid deadlocks with rendering threads
 		Release(_render); _render = nullptr; // delete obj and stop render draw
@@ -123,9 +125,12 @@ namespace qk {
 		for (auto t: _tasks) {
 			t->_win = nullptr; // clear task
 		}
-		_host->_windows.erase(_id);
-		if (_host->_activeWindow == this) {
-			Inl_Application(_host)->setActiveWindow(nullptr);
+		{
+			ScopeLock lock1(_host->_mutex);
+			_host->_windows.erase(_id);
+			if (_host->_activeWindow == this) {
+				Inl_Application(_host)->setActiveWindow(nullptr);
+			}
 		}
 		closeImpl(); // close platform window
 		return true;
@@ -356,7 +361,7 @@ namespace qk {
 				for (auto& levelMarks: _marks) {
 					for (auto& layout: levelMarks) {
 						if (layout) {
-							if ( layout->layout_forward(layout->layout_mark()) ) {
+							if ( layout->layout_forward(layout->_mark) ) {
 								// simple delete mark
 								layout->_mark_index = -1;
 								layout = nullptr;
@@ -371,7 +376,7 @@ namespace qk {
 					auto& levelMarks = _marks[i];
 					for (auto& layout: levelMarks) {
 						if (layout) {
-							if ( layout->layout_reverse(layout->layout_mark()) ) {
+							if ( layout->layout_reverse(layout->_mark) ) {
 								// simple delete mark recursive
 								layout->_mark_index = -1;
 								layout = nullptr;

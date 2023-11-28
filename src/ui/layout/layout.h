@@ -34,27 +34,14 @@
 #include "../types.h"
 
 namespace qk {
-
-	#define Qk_Each_View(F) \
-		F(View)  F(Box) F(Transform) \
-		F(Image) F(Video) F(Scroll) F(Button) F(FloatLayout) F(Textarea) \
-		F(Label) F(Input) F(Root) F(TextLayout) F(FlexLayout) F(FlowLayout)
-
-	// #define Qk_Define_View(N) \
-	// public: \
-	// 	friend class ViewRender; \
-	// 	virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
-
-	class ViewRender;
 	class TextLines;
 	class TextConfig;
 	class Window;
-
-	// Qk_DEFINE_VISITOR(Layout, Qk_Each_View);
+	class View;
 
 	/**
 		*
-		* View layout and typesetting backend
+		* Layout and typesetting protocol
 		*
 		* @class Layout
 		*/
@@ -91,8 +78,6 @@ namespace qk {
 			bool wrap_x, wrap_y;
 		};
 
-	protected:
-		Mat _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 	private:
 		/* 下一个预处理视图标记
 		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
@@ -106,34 +91,25 @@ namespace qk {
 	public:
 		// @props
 		/* 
-		* @field layout_mark
+		* @field mark
 		*
 		* 标记后的视图会在开始帧绘制前进行更新.
 		* 运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
 		*/
-		Qk_DEFINE_PROP_GET(uint32_t, layout_mark);
+		Qk_DEFINE_PROP_GET(uint32_t, mark);
 
 		/*
-		* @field layout_mark
+		* @field level
 		*
 		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
-		* 这个值受`View::_visible`影响, View::_visible=false时_depth=0
+		* 这个值受`View::_visible`影响, View::_visible=false时_level=0
 		*/
-		Qk_DEFINE_PROP_GET(uint32_t, layout_depth);
+		Qk_DEFINE_PROP_GET(uint32_t, level);
 
 		/*
 		* @field window
 		*/
 		Qk_DEFINE_PROP_GET(Window*, window);
-		Qk_DEFINE_PROP_GET(Layout*, parent);
-		Qk_DEFINE_PROP_GET(Layout*, first);
-		Qk_DEFINE_PROP_GET(Layout*, last);
-		Qk_DEFINE_PROP_GET(Layout*, prev);
-		Qk_DEFINE_PROP_GET(Layout*, next);
-		// 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
-		Qk_DEFINE_PROP_GET(bool, visible); // *
-		// 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
-		Qk_DEFINE_PROP_GET(bool, visible_region);
 
 		/**
 		 * @constructor
@@ -244,7 +220,7 @@ namespace qk {
 			* 
 			* @func layout_forward(mark)
 			*/
-		virtual bool layout_forward(uint32_t/*LayoutMark*/ mark);
+		virtual bool layout_forward(uint32_t/*LayoutMark*/ mark) = 0;
 
 		/**
 			* 
@@ -257,7 +233,7 @@ namespace qk {
 			* 
 			* @func layout_reverse(mark)
 			*/
-		virtual bool layout_reverse(uint32_t/*LayoutMark*/ mark);
+		virtual bool layout_reverse(uint32_t/*LayoutMark*/ mark) = 0;
 
 		/**
 		 * 
@@ -265,7 +241,7 @@ namespace qk {
 		 * 
 		 * @func layout_text(lines)
 		 */
-		virtual void layout_text(TextLines *lines, TextConfig* textSet);
+		virtual void layout_text(TextLines *lines, TextConfig* textSet) = 0;
 
 		/**
 			* 
@@ -275,7 +251,7 @@ namespace qk {
 			*
 			* @func onChildLayoutChange(child, mark)
 			*/
-		virtual void onChildLayoutChange(Layout* child, uint32_t/*ChildLayoutChangeMark*/ mark);
+		virtual void onChildLayoutChange(Layout* child, uint32_t/*ChildLayoutChangeMark*/ mark) = 0;
 
 		/**
 			* 
@@ -283,79 +259,16 @@ namespace qk {
 			* 
 			* @func onParentLayoutContentSizeChange(parent, mark)
 			*/
-		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t/*LayoutMark*/ mark);
-
-		/**
-		 *
-		 * Returns layout transformation matrix of the object view
-		 *
-		 * Mat(layout_offset + transform_origin? + translate + parent->layout_offset_inside, scale, rotate, skew)
-		 *
-		 * @method layout_matrix()
-		 */
-		virtual Mat layout_matrix();
-
-		/**
-		 * @method solve_marks(mark)
-		*/
-		virtual void solve_marks(uint32_t mark);
-
-		/**
-		 * 
-		 * returns view position in the screen
-		 * 
-		 * @method screen_position()
-		*/
-		virtual Vec2 position();
-
-		/**
-			* @method solve_visible_region()
-			*/
-		virtual bool solve_visible_region();
-
-		/**
-		 * Overlap test, test whether the point on the screen overlaps with the view
-		 * @method overlap_test
-		*/
-		virtual bool overlap_test(Vec2 point);
-
-		// --------------------------------------
-		/**
-			*
-			* Append subview to end
-			*
-			* @method append(child)
-			*/
-		void append(Layout* child);
-
-		/**
-			*
-			* Add a sibling view to the back
-			*
-			* @method after(view)
-			*/
-		void after(Layout* view);
-
-		/**
-		 *
-		 * Returns final transformation matrix of the view layout
-		 *
-		 * parent.matrix * layout_matrix
-		 *
-		 * @method matrix()
-		 */
-		inline const Mat& matrix() const {
-			return _matrix;
-		}
+		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t/*LayoutMark*/ mark) = 0;
 
 	protected:
 		/**
 			* 
-			* set layout depth for the cureent view object
+			* set layout level for the cureent view object
 			*
-			* @func set_layout_depth(newDepth)
+			* @func set_level(level)
 			*/	
-		void set_layout_depth(uint32_t newDepth);
+		void set_level(uint32_t level);
 
 		/**
 			* @func mark_layout(mark)
@@ -371,24 +284,11 @@ namespace qk {
 			* @func unmark(mark)
 			*/
 		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {
-			_layout_mark &= (~mark);
+			_mark &= (~mark);
 		}
 
-		/**
-		 * @func set_window()
-		*/
-		inline void set_window(Window *win) {
-			_window = win;
-		}
-
-		/**
-		 * @method set_parent(parent) setting parent view
-		 */
-		virtual void set_parent(Layout* parent);
-
-	private:
 		friend class Window;
-		Qk_DEFINE_INLINE_CLASS(Inl);
+		friend class View;
 	};
 
 }

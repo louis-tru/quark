@@ -114,13 +114,7 @@ namespace qk {
 		return _blob_visible.length();
 	}
 
-	void Label::set_visible(bool val) {
-		View::set_visible(val);
-		_text_flags = 0xffffffff;
-	}
-
-	void Label::set_parent(View *val) {
-		View::set_parent(val);
+	void Label::onSetParentOrLevel(uint32_t level) {
 		_text_flags = 0xffffffff;
 	}
 

@@ -32,36 +32,65 @@
 #define __quark__ui__view__
 
 #include "../event.h"
+#include "./layout.h"
 
 namespace qk {
+
+	#define Qk_Each_View(F) \
+		F(View)  F(Box) F(Transform) \
+		F(Image) F(Video) F(Scroll) F(Button) F(FloatLayout) F(Textarea) \
+		F(Label) F(Input) F(Root) F(TextLayout) F(FlexLayout) F(FlowLayout)
+
+	#define Qk_Define_View(N) \
+	public: \
+		friend class ViewRender; \
+		virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
+
 	class Action;
-	class Window;
-	class Layout;
+	class ViewRender;
+	class TextInput;
+
+	Qk_DEFINE_VISITOR(View, Qk_Each_View);
 
 	/**
 		* The basic elements of UI tree
 		*
 	 * @class View
 		*/
-	class Qk_EXPORT View: public Notification<UIEvent, UIEventName> {
+	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
 		Qk_HIDDEN_ALL_COPY(View);
+	protected:
+		Mat _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 	public:
-		// @props
-		Qk_DEFINE_PROP(Action*, action); // the objects that automatically adjust view properties
-		Qk_DEFINE_PROP_GET(Window*, window); // window object
-		Qk_DEFINE_PROP_GET(Layout*, layout); // layout backend
+		typedef ViewVisitor Visitor;
+		/* 
+		* 标记后的视图会在开始帧绘制前进行更新.
+		* 运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
+		*/
+		Qk_DEFINE_PROP_GET(uint32_t, mark);
+
+		/**
+		 * the objects that automatically adjust view properties
+		*/
+		Qk_DEFINE_PROP(Action*, action);
 		Qk_DEFINE_PROP_GET(View*, parent);
 		Qk_DEFINE_PROP_GET(View*, prev);
 		Qk_DEFINE_PROP_GET(View*, next);
 		Qk_DEFINE_PROP_GET(View*, first);
 		Qk_DEFINE_PROP_GET(View*, last);
-		/*
-		* 视图节点在UI树中所处的层级，0表示还没有加入到UI视图树中
-		* 这个值受`View::_visible`影响, View::_visible=false时_level=0
+		/**
+		 *  can affect the transparency of subviews
+		 */
+		Qk_DEFINE_PROP(float, opacity);
+		/** 
+		 * Set the visibility of the view. When this value is set to 'false',
+		 * the view is invisible and does not occupy any layout space
 		*/
-		Qk_DEFINE_PROP_GET(uint32_t, level);
-		// 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
 		Qk_DEFINE_PROP(bool, visible);
+		/**
+		 *  这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
+		*/
+		Qk_DEFINE_PROP_GET(bool, visible_region);
 		Qk_DEFINE_PROP_ACC(bool, is_focus); // keyboard focus view
 
 		/**
@@ -99,6 +128,11 @@ namespace qk {
 		template<class T = View> inline T* append_to(View* parent) {
 			parent->append(this); return static_cast<T*>(this);
 		}
+
+		/**
+		 * @method is_self_child(child)
+		 */
+		bool is_self_child(View *child);
 
 		/**
 			*
@@ -149,12 +183,34 @@ namespace qk {
 		void remove_all_child();
 
 		/**
+		 * 
+		 * Returns text input object
+		 * 
+		 * @method as_text_input()
+		*/
+		virtual TextInput* as_text_input();
+
+		/**
+		 * 
+		 * Returns button object
+		 * 
+		 * @method as_buttn()
+		*/
+		virtual Button* as_button();
+
+		/**
+		 * define access receiver
+		 * @method accept()
+		 */
+		virtual void accept(ViewVisitor *visitor);
+
+		/**
 		 *
 		 * focus keyboard
 		 *
 		 * @method focus()
 		 */
-		bool focus();
+		virtual bool focus();
 
 		/**
 		 *
@@ -162,7 +218,7 @@ namespace qk {
 		 *
 		 * @method blur()
 		 */
-		bool blur();
+		virtual bool blur();
 
 		/**
 		 *
@@ -173,19 +229,82 @@ namespace qk {
 		virtual bool can_become_focus();
 
 		/**
-		 * @method is_self_child(child)
+			* @overwrite
+			*/
+		virtual bool layout_forward(uint32_t mark) override;
+		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void layout_text(TextLines *lines, TextConfig* textSet) override;
+		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
+		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
+
+	protected:
+		// @thread unsafe --------------------------------------------------------------------------
+		/**
+		 *
+		 * Returns final transformation matrix of the view layout
+		 *
+		 * parent.matrix * layout_matrix
+		 *
+		 * @method matrix()
 		 */
-		bool is_self_child(View *child);
+		inline const Mat& matrix() const {
+			return _matrix;
+		}
+
+		/**
+
+		 * Returns layout transformation matrix of the object view
+		 *
+		 * Mat(layout_offset + transform_origin? + translate + parent->layout_offset_inside, scale, rotate, skew)
+		 *
+		 * @method layout_matrix()
+		 * @thread unsafe 
+		 */
+		virtual Mat layout_matrix();
+
+		/**
+		 * 
+		 * returns view position in the screen
+		 * 
+		 * @method screen_position()
+		*/
+		virtual Vec2 position();
+
+		/**
+		 * Overlap test, test whether the point on the screen overlaps with the view
+		 * @method overlap_test
+		*/
+		virtual bool overlap_test(Vec2 point);
+
+		/**
+		 * @method solve_marks(mark)
+		*/
+		virtual void solve_marks(uint32_t mark);
+
+		/**
+			* @method solve_visible_region()
+			*/
+		virtual bool solve_visible_region();
+
+		/**
+		 * notice update for set parent or level
+		 * 
+		 * @method onSetParentOrLevel()
+		*/
+		virtual void onSetParentOrLevel(uint32_t level);
 
 	private:
 		void clear_link(); // Cleaning up associated view information
 		void clear_level(Window *win); //  clear layout depth
-		void set_level(uint32_t level, Window *win); // settings depth
+		void set_level_(uint32_t level, Window *win); // settings depth
 		void set_visible_(bool visible, uint32_t level);
-		void set_parent(View* parent);
 		bool is_root();
+		void remove_all_child_();
+		/**
+		 * @method set_parent(parent) setting parent view
+		 */
+		void set_parent(View* parent);
 
-		friend class Window;
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
 	};
 

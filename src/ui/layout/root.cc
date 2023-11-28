@@ -37,13 +37,11 @@
 
 namespace qk {
 
-	void __View_set_visible(View* self, bool val, uint32_t layout_depth);
+	Root::Root(): Box() {}
 
-	Root::Root(Window *win): Box() {
-		Qk_STRICT_ASSERT(win, "Window host cannot be null");
-		set_window(win); // set window
-		set_layout_depth(1);
-		set_receive(1);
+	void Root::init() {
+		set_level(1);
+		// set_receive(1);
 		set_width({0, BoxSizeKind::kMatch});
 		set_height({0, BoxSizeKind::kMatch});
 		mark_layout(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
@@ -53,12 +51,6 @@ namespace qk {
 
 	void Root::reload() {
 		mark_layout(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
-	}
-
-	void Root::set_visible(bool val) {
-		if (visible() != val) {
-			__View_set_visible(this, val, val ? 1: 0);
-		}
 	}
 
 	bool Root::layout_forward(uint32_t _mark) {
@@ -79,7 +71,7 @@ namespace qk {
 			set_layout_size(xy, &size.wrap_x, false);
 		}
 
-		if (layout_mark() & kLayout_Typesetting) {
+		if (mark() & kLayout_Typesetting) {
 			return false;
 		}
 
@@ -105,10 +97,6 @@ namespace qk {
 			1, 0, translate.x(),
 			0, 1, translate.y()
 		);
-	}
-
-	void Root::set_parent(View* parent) {
-		Qk_UNREACHABLE();
 	}
 
 	bool Root::can_become_focus() {
