@@ -114,7 +114,7 @@ namespace qk {
 		return _blob_visible.length();
 	}
 
-	void Label::onSetParentOrLevel(uint32_t level) {
+	void Label::onActivate() {
 		_text_flags = 0xffffffff;
 	}
 

@@ -51,7 +51,7 @@ namespace qk {
 		virtual void set_layout_offset_lazy(Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 		virtual bool solve_visible_region() override;
-		virtual void onSetParentOrLevel(uint32_t level) override;
+		virtual void onActivate() override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
 		Array<TextBlob> _blob;

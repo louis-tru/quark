@@ -45,6 +45,7 @@ namespace qk {
 	class WindowImpl; // window platform impl
 	class RenderTask;
 	class Layout;
+	class Window;
 
 	/**
 	 * Note: If `main loop` and `render loop` run in different threads,
@@ -52,7 +53,7 @@ namespace qk {
 	 */
 	class Qk_EXPORT UILock {
 	public:
-		UILock(Window* win);
+		UILock(Window *win);
 		~UILock();
 		void lock();
 		void unlock();

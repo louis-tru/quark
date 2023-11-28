@@ -66,6 +66,7 @@ namespace qk {
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
 		, _opacity(1.0)
+		, _receive(false)
 		, _visible(true)
 		, _visible_region(false)
 	{}
@@ -185,8 +186,13 @@ namespace qk {
 		remove_all_child_();
 	}
 
+	void View::set_receive(bool val) {
+		_receive = val;
+	}
+
 	void View::set_visible(bool val) {
 		if (_visible != val) {
+			UILocks lock(this, nullptr);
 			set_visible_(val, _parent && _parent->_level ?
 				_parent->_level + 1: is_root() && val ? 1: 0);
 		}
@@ -209,7 +215,7 @@ namespace qk {
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
 			_opacity = Qk_MAX(0, Qk_MIN(val, 1));
-			mark_layout(kLayout_None); // mark none
+			mark_render(); // mark render
 		}
 	}
 
@@ -226,6 +232,10 @@ namespace qk {
 	}
 
 	bool View::can_become_focus() {
+		return false;
+	}
+
+	bool View::clip() {
 		return false;
 	}
 
@@ -341,7 +351,12 @@ namespace qk {
 
 	void View::set_visible_(bool visible, uint32_t level) {
 		_visible = visible;
-
+		if (_parent) {
+			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent layout 
+		}
+		if (visible) {
+			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // reset layout size
+		}
 		if (visible && level) {
 			if (_level != level)
 				set_level_(level, nullptr);
@@ -353,9 +368,12 @@ namespace qk {
 
 	void View::clear_level(Window *win) { //  clear layout depth
 		blur();
-		onSetParentOrLevel(0);
-		set_level(0);
+		if (_mark_index >= 0) {
+			_window->unmark_layout(this, _level);
+		}
 		_window = win;
+		_level = 0;
+		onActivate();
 		auto v = _first;
 		while ( v ) {
 			v->clear_level(win);
@@ -366,12 +384,19 @@ namespace qk {
 	void View::set_level_(uint32_t level, Window *win) { // settings level
 		if (_visible) {
 			// if level > 0 then
+			auto wi_ = _window; // old window
 			if (win) { // change new window
 				blur();
 				_window = win;
 			}
-			onSetParentOrLevel(level);
-			set_level(level++);
+			if (_mark_index >= 0) {
+				wi_->unmark_layout(this, _level);
+				win->mark_layout(this, level);
+			}
+			_level = level++;
+
+			onActivate();
+
 			auto v = _first;
 			while ( v ) {
 				v->set_level_(level, win);
@@ -383,21 +408,15 @@ namespace qk {
 		}
 	}
 
-	void View::onSetParentOrLevel(uint32_t level) {
-		if (level == 0) {
+	void View::onActivate() {
+		if (_level == 0) {
 			// set_action(nullptr);
 		}
 	}
 
-	/**
-		*
-		* Setting parent parent view
-		*
-		* @method set_parent(parent)
-		*/
 	void View::set_parent(View *parent) {
 		if (parent != _parent) {
-			Qk_STRICT_ASSERT(!is_root(), "root view not allow set parent");
+			Qk_STRICT_ASSERT(!is_root(), "root view not allow set parent"); // check
 			clear_link();
 
 			if ( _parent ) {
@@ -420,7 +439,7 @@ namespace qk {
 					clear_level(win);
 			}
 
-			onSetParentOrLevel(_level);
+			onActivate();
 		}
 	}
 

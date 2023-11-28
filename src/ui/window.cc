@@ -96,6 +96,7 @@ namespace qk {
 		retain(); // strong ref count retain
 		_root = new Root(); // new root
 		_root->_window = this;
+		_root->_level = 1;
 		_root->init();
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window

@@ -12,10 +12,11 @@ class TestSubcanvas: public Box {
 public:
 	Sp<Canvas> _c;
 
-	void set_parent(View* parent) override {
-		Box::set_parent(parent);
-		_c = window()->render()->newCanvas({.isMipmap=0});
-		_c->setSurface({600},2);
+	void onActivate() override {
+		if (level()) {
+			_c = window()->render()->newCanvas({.isMipmap=0});
+			_c->setSurface({600},2);
+		}
 	}
 
 	void accept(Visitor *vv) override {

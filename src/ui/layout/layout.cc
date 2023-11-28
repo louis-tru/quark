@@ -157,17 +157,6 @@ namespace qk {
 		return false;
 	}
 
-	void Layout::set_level(uint32_t level) {
-		auto oldLevel = _level;
-		_level = level;
-		if (_mark_index >= 0) {
-			_window->unmark_layout(this, oldLevel);
-			if (level) {
-				_window->mark_layout(this, level);
-			}
-		}
-	}
-
 	void Layout::mark_layout(uint32_t mark) {
 		_mark |= mark;
 		if (_mark_index < 0) {

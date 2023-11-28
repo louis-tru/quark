@@ -671,8 +671,8 @@ namespace qk {
 		_auto_play = value;
 	}
 
-	void Video::onSetParentOrLevel(uint32_t level) {
-		if (level == 0) { // remove
+	void Video::onActivate() {
+		if (level() == 0) { // remove
 			Lock lock(_mutex);
 			if (_audio)
 				Inl_Video(this)->stop_and_release(lock, true);

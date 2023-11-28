@@ -33,7 +33,7 @@
 namespace qk {
 
 	Button::Button(): TextLayout() {
-		//set_receive(true); // default enable event receive
+		set_receive(true); // default enable event receive
 	}
 
 	bool Button::can_become_focus() {

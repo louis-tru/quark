@@ -92,7 +92,7 @@ namespace qk {
 		return ok;
 	}
 
-	void TextLayout::onSetParentOrLevel(uint32_t level) {
+	void TextLayout::onActivate() {
 		_text_flags = 0xffffffffu;
 	}
 

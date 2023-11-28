@@ -35,6 +35,7 @@
 #include "./text_lines.h"
 #include "./text_opts.h"
 #include "./text_blob.h"
+#include "../layout/box.h"
 
 namespace qk {
 
@@ -240,7 +241,7 @@ namespace qk {
 			vertex[3] = mat * Vec2(x1, y2);
 			vertex[2] = mat * Vec2(x2, y2);
 
-			auto re = View::screen_region_from_convex_quadrilateral(vertex);
+			auto re = screen_region_from_convex_quadrilateral(vertex);
 
 			if (Qk_MAX( clip.end.y(), re.end.y() ) - Qk_MIN( clip.origin.y(), re.origin.y() )
 						<= re.end.y() - re.origin.y() + clip.size.y() &&

@@ -309,7 +309,7 @@ namespace qk {
 
 	bool EventDispatch::set_focus_view(View* view) {
 		if ( _focus_view != view ) {
-			if ( view->layout_depth() && view->can_become_focus() ) {
+			if ( view->level() && view->can_become_focus() ) {
 				if ( _focus_view ) {
 					_focus_view->release(); // unref
 				}
@@ -520,7 +520,7 @@ namespace qk {
 							auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
 							_inl_view(view)->trigger_highlightted(**evt);
 							
-							if ( type == UIEvent_TouchEnd && view->layout_depth() ) {
+							if ( type == UIEvent_TouchEnd && view->level() ) {
 								auto evt = NewEvent<ClickEvent>(view, item.x, item.y, ClickEvent::TOUCH);
 								_inl_view(view)->trigger_click(**evt); // emit click event
 							}
@@ -538,7 +538,7 @@ namespace qk {
 	void EventDispatch::onTouchstart(List<TouchPoint>&& list) {
 		Qk_DEBUG("onTouchstart x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
-			UILock lock;
+			UILock lock(_window);
 			Root* r = _window->root();
 			if (r) {
 				touchstart(r, *evt.data);
@@ -549,7 +549,7 @@ namespace qk {
 	void EventDispatch::onTouchmove(List<TouchPoint>&& list) {
 		Qk_DEBUG("onTouchmove x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
-			UILock lock;
+			UILock lock(_window);
 			touchmove(*evt.data);
 		}), std::move(list), _loop);
 	}
@@ -557,7 +557,7 @@ namespace qk {
 	void EventDispatch::onTouchend(List<TouchPoint>&& list) {
 		Qk_DEBUG("onTouchend x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
-			UILock lock;
+			UILock lock(_window);
 			touchend(*evt.data, UIEvent_TouchEnd);
 		}), std::move(list), _loop);
 	}
@@ -565,14 +565,14 @@ namespace qk {
 	void EventDispatch::onTouchcancel(List<TouchPoint>&& list) {
 		Qk_DEBUG("onTouchcancel x: %f, y: %f", list.front().y, list.front().y);
 		async_resolve(TouchCb([this](TouchCb::Data& evt) {
-			UILock lock;
+			UILock lock(_window);
 			touchend(*evt.data, UIEvent_TouchCancel);
 		}), std::move(list), _loop);
 	}
 
 // -------------------------- M o u s e --------------------------
 
-	static View* find_receive_event_view(View* view, Vec2 pos) {
+	View* EventDispatch::find_receive_event_view_0(View* view, Vec2 pos) {
 		if ( view->visible() ) {
 			if ( view->visible_region() ) {
 				View* v = view->last();
@@ -580,7 +580,7 @@ namespace qk {
 				if (v && view->clip() ) {
 					if (view->overlap_test(pos)) {
 						while (v) {
-							auto r = find_receive_event_view(v, pos);
+							auto r = find_receive_event_view_0(v, pos);
 							if (r) {
 								return r;
 							}
@@ -592,7 +592,7 @@ namespace qk {
 					}
 				} else {
 					while (v) {
-						auto r = find_receive_event_view(v, pos);
+						auto r = find_receive_event_view_0(v, pos);
 						if (r) {
 							return r;
 						}
@@ -608,7 +608,7 @@ namespace qk {
 	}
 
 	View* EventDispatch::find_receive_event_view(Vec2 pos) {
-		return _window->root() ? qk::find_receive_event_view(_window->root(), pos) : nullptr;
+		return _window->root() ? find_receive_event_view_0(_window->root(), pos) : nullptr;
 	}
 
 	Sp<MouseEvent> EventDispatch::NewMouseEvent(View* view, float x, float y, uint32_t keycode) {
@@ -651,7 +651,7 @@ namespace qk {
 				if (evt->is_default()) {
 					evt->return_value = RETURN_VALUE_MASK_ALL;
 
-					if (!view || !old->has_child(view)) {
+					if (!view || !old->is_self_child(view)) {
 						_inl_view(old)->bubble_trigger(UIEvent_MouseLeave, **evt);
 					}
 
@@ -666,7 +666,7 @@ namespace qk {
 				if (evt->is_default()) {
 					evt->return_value = RETURN_VALUE_MASK_ALL;
 					
-					if (!old || !view->has_child(old)) {
+					if (!old || !view->is_self_child(old)) {
 						_inl_view(view)->bubble_trigger(UIEvent_MouseEnter, **evt);
 					}
 
@@ -730,7 +730,7 @@ namespace qk {
 
 	void EventDispatch::onMousemove(float x, float y) {
 		async_resolve(Cb([=](Cb::Data& evt) {
-			UILock lock;
+			UILock lock(_window);
 			Vec2 pos(x, y);
 			// set current mouse pos
 			_mouse_h->set_position(pos);
@@ -744,7 +744,7 @@ namespace qk {
 
 	void EventDispatch::onMousepress(KeyboardKeyName name, bool down) {
 		async_resolve(Cb([=](Cb::Data& evt) {
-			UILock lock;
+			UILock lock(_window);
 			switch(name) {
 				case KEYCODE_MOUSE_LEFT:
 				case KEYCODE_MOUSE_CENTER:
@@ -854,7 +854,7 @@ namespace qk {
 					_inl_view(view)->bubble_trigger(UIEvent_Back, **evt); // emit back
 					
 					if ( evt->is_default() ) {
-						 _window->pending();
+						_window->pending();
 					}
 				}
 				else if ( name == KEYCODE_CENTER ) {
@@ -873,7 +873,7 @@ namespace qk {
 
 	void EventDispatch::onImeDelete(int count) {
 		async_resolve(Cb([=](Cb::Data& d) {
-			UILock lock;
+			UILock lock(_window);
 			if ( _text_input ) {
 				_text_input->input_delete(count);
 				bool can_backspace = _text_input->input_can_backspace();
@@ -885,7 +885,7 @@ namespace qk {
 
 	void EventDispatch::onImeInsert(cString& text) {
 		async_resolve(Cb([=](Cb::Data& d) {
-			UILock lock;
+			UILock lock(_window);
 			if ( _text_input ) {
 				_text_input->input_insert(text);
 			}
@@ -894,7 +894,7 @@ namespace qk {
 
 	void EventDispatch::onImeMarked(cString& text) {
 		async_resolve(Cb([=](Cb::Data& d) {
-			UILock lock;
+			UILock lock(_window);
 			if ( _text_input ) {
 				_text_input->input_marked(text);
 			}
@@ -903,7 +903,7 @@ namespace qk {
 
 	void EventDispatch::onImeUnmark(cString& text) {
 		async_resolve(Cb([=](Cb::Data& d) {
-			UILock lock;
+			UILock lock(_window);
 			if ( _text_input ) {
 				_text_input->input_unmark(text);
 			}
@@ -912,7 +912,7 @@ namespace qk {
 
 	void EventDispatch::onImeControl(KeyboardKeyName name) {
 		async_resolve(Cb([=](Cb::Data& d) {
-			UILock lock;
+			UILock lock(_window);
 			if ( _text_input ) {
 				_text_input->input_control(name);
 			}

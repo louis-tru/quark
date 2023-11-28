@@ -262,13 +262,6 @@ namespace qk {
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t/*LayoutMark*/ mark) = 0;
 
 	protected:
-		/**
-			* 
-			* set layout level for the cureent view object
-			*
-			* @func set_level(level)
-			*/	
-		void set_level(uint32_t level);
 
 		/**
 			* @func mark_layout(mark)

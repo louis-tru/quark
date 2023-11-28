@@ -30,7 +30,7 @@
 
 #include "./image.h"
 #include "../../render/render.h"
-#include "../app.h"
+#include "../window.h"
 
 namespace qk {
 
@@ -77,7 +77,7 @@ namespace qk {
 
 	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
-			UILock lock;
+			UILock lock(window());
 			mark_size(kLayout_Size_Width | kLayout_Size_Height);
 		}
 	}

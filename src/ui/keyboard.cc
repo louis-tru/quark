@@ -193,7 +193,8 @@ namespace qk {
 	void KeyboardAdapter::onDispatch(uint32_t keycode, bool unicode, bool down, int repeat, int device, int source)
 	{
 		async_resolve(Cb([=](Cb::Data& evt) {
-			UILock lock;
+			// TODO ...
+			// UILock lock;
 			_repeat = repeat;
 			_device = device;
 			_source = source;

@@ -40,8 +40,7 @@ namespace qk {
 	Root::Root(): Box() {}
 
 	void Root::init() {
-		set_level(1);
-		// set_receive(1);
+		set_receive(true);
 		set_width({0, BoxSizeKind::kMatch});
 		set_height({0, BoxSizeKind::kMatch});
 		mark_layout(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);

@@ -49,6 +49,7 @@ namespace qk {
 	class Action;
 	class ViewRender;
 	class TextInput;
+	class EventDispatch;
 
 	Qk_DEFINE_VISITOR(View, Qk_Each_View);
 
@@ -82,6 +83,11 @@ namespace qk {
 		 *  can affect the transparency of subviews
 		 */
 		Qk_DEFINE_PROP(float, opacity);
+		/**
+		 * Do views need to receive or handle system event throws? In most cases, 
+		 * these events do not need to be handled, which can improve overall event processing efficiency
+		*/
+		Qk_DEFINE_PROP(bool, receive);
 		/** 
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space
@@ -183,6 +189,22 @@ namespace qk {
 		void remove_all_child();
 
 		/**
+		 *
+		 * focus keyboard
+		 *
+		 * @method focus()
+		 */
+		bool focus();
+
+		/**
+		 *
+		 * Unfocus keyboard
+		 *
+		 * @method blur()
+		 */
+		bool blur();
+
+		/**
 		 * 
 		 * Returns text input object
 		 * 
@@ -206,27 +228,19 @@ namespace qk {
 
 		/**
 		 *
-		 * focus keyboard
-		 *
-		 * @method focus()
-		 */
-		virtual bool focus();
-
-		/**
-		 *
-		 * Unfocus keyboard
-		 *
-		 * @method blur()
-		 */
-		virtual bool blur();
-
-		/**
-		 *
 		 * Can it be the focus
 		 *
 		 * @method can_become_focus()
 		 */
 		virtual bool can_become_focus();
+
+		/**
+		 *
+		 * is clip render the view
+		 *
+		 * @method clip()
+		 */
+		virtual bool clip();
 
 		/**
 			* @overwrite
@@ -237,7 +251,6 @@ namespace qk {
 		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 
-	protected:
 		// @thread unsafe --------------------------------------------------------------------------
 		/**
 		 *
@@ -251,6 +264,7 @@ namespace qk {
 			return _matrix;
 		}
 
+	protected:
 		/**
 
 		 * Returns layout transformation matrix of the object view
@@ -289,9 +303,9 @@ namespace qk {
 		/**
 		 * notice update for set parent or level
 		 * 
-		 * @method onSetParentOrLevel()
+		 * @method onActivate()
 		*/
-		virtual void onSetParentOrLevel(uint32_t level);
+		virtual void onActivate();
 
 	private:
 		void clear_link(); // Cleaning up associated view information
@@ -306,6 +320,8 @@ namespace qk {
 		void set_parent(View* parent);
 
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
+		friend class ViewRender;
+		friend class EventDispatch;
 	};
 
 }

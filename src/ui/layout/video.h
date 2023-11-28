@@ -78,7 +78,7 @@ namespace qk {
 		virtual void multimedia_source_wait_buffer(MultimediaSource* src, float process);
 		virtual void multimedia_source_eof(MultimediaSource* src);
 		virtual void multimedia_source_error(MultimediaSource* src, cError& err);
-		virtual void onSetParentOrLevel(uint32_t level) override;
+		virtual void onActivate() override;
 	private:
 		MultimediaSource* _source;
 		MediaCodec   *_audio, *_video;

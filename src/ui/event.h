@@ -307,6 +307,7 @@ namespace qk {
 		void mousewhell(KeyboardKeyName name, bool down, float x, float y);
 		View* find_receive_event_view(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View* view, float x, float y, uint32_t keycode = 0);
+		static View* find_receive_event_view_0(View* view, Vec2 pos);
 		class OriginTouche;
 		class MouseHandle;
 		Dict<View*, OriginTouche*> _origin_touches;

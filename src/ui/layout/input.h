@@ -67,7 +67,7 @@ namespace qk {
 		virtual Vec2 layout_offset_inside() override;
 		virtual void solve_marks(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
-		virtual void onSetParentOrLevel(uint32_t level) override;
+		virtual void onActivate() override;
 		virtual bool can_become_focus() override;
 		virtual TextInput* as_text_input() override;
 		virtual bool run_task(int64_t sys_time) override;

@@ -44,7 +44,7 @@ namespace qk {
 		TextLayout();
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
-		virtual void onSetParentOrLevel(uint32_t level) override;
+		virtual void onActivate() override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
 	private:
