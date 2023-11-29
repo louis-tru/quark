@@ -531,7 +531,7 @@ namespace qk {
 			return false; // next continue iteration
 		}
 
-		if (mark() & kLayout_Typesetting) {
+		if (mark_value() & kLayout_Typesetting) {
 			return false; // next continue iteration
 		}
 
@@ -800,7 +800,7 @@ namespace qk {
 		*/
 	bool Box::is_ready_layout_typesetting() {
 		if (parent()->is_lock_child_layout_size()) { // layout size locked by parent layout
-			if (parent()->mark() & kLayout_Typesetting) {
+			if (parent()->mark_value() & kLayout_Typesetting) {
 				// The parent layout needs to be readjusted
 				return false;
 			}
@@ -866,10 +866,6 @@ namespace qk {
 		return overlap_test_from_convex_quadrilateral(_vertex, point);
 	}
 
-
-	/**
-	* @func overlap_test_from_convex_quadrilateral
-	*/
 	bool overlap_test_from_convex_quadrilateral(Vec2* quadrilateral_vertex, Vec2 point) {
 		/*
 		* 直线方程：(x-x1)(y2-y1)-(y-y1)(x2-x1)=0
@@ -908,9 +904,6 @@ namespace qk {
 		return false;
 	}
 
-	/**
-	* @method screen_region_from_convex_quadrilateral
-	*/
 	Region screen_region_from_convex_quadrilateral(Vec2* quadrilateral_vertex) {
 		#define A quadrilateral_vertex[0]
 		#define B quadrilateral_vertex[1]

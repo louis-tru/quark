@@ -31,7 +31,7 @@
 #ifndef __quark_textlines__
 #define __quark_textlines__
 
-#include "../layout/layout.h"
+#include "../types.h"
 #include "../../render/font/font.h"
 
 namespace qk {
@@ -41,6 +41,8 @@ namespace qk {
 	class TextBlob;
 	class View;
 	class TextBlobBuilder;
+
+	typedef View Layout;;
 
 	class Qk_EXPORT TextLines: public Reference {
 	public:

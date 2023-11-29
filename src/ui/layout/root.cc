@@ -31,8 +31,8 @@
 #include "./root.h"
 #include "../filter.h"
 #include "../app.h"
-#include "../../util/handle.h"
 #include "../window.h"
+#include "../../util/handle.h"
 #include "../../render/render.h"
 
 namespace qk {
@@ -70,7 +70,7 @@ namespace qk {
 			set_layout_size(xy, &size.wrap_x, false);
 		}
 
-		if (mark() & kLayout_Typesetting) {
+		if (mark_value() & kLayout_Typesetting) {
 			return false;
 		}
 

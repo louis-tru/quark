@@ -47,7 +47,7 @@ namespace qk {
 
 		void triggerScroll() {
 			Sp<UIEvent> evt = qk::New<UIEvent>(this);
-			Notification<UIEvent, UIEventName, Layout>::trigger(UIEvent_Scroll, **evt);
+			Notification<UIEvent, UIEventName, Reference>::trigger(UIEvent_Scroll, **evt);
 		}
 
 		void mark_render(uint32_t mark = kLayout_None) {

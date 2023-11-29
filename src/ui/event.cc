@@ -572,7 +572,11 @@ namespace qk {
 
 // -------------------------- M o u s e --------------------------
 
-	View* EventDispatch::find_receive_event_view_0(View* view, Vec2 pos) {
+	View* EventDispatch::find_receive_view(Vec2 pos) {
+		return _window->root() ? find_receive_view_rec(_window->root(), pos) : nullptr;
+	}
+
+	View* EventDispatch::find_receive_view_rec(View* view, Vec2 pos) {
 		if ( view->visible() ) {
 			if ( view->visible_region() ) {
 				View* v = view->last();
@@ -580,7 +584,7 @@ namespace qk {
 				if (v && view->clip() ) {
 					if (view->overlap_test(pos)) {
 						while (v) {
-							auto r = find_receive_event_view_0(v, pos);
+							auto r = find_receive_view_rec(v, pos);
 							if (r) {
 								return r;
 							}
@@ -592,7 +596,7 @@ namespace qk {
 					}
 				} else {
 					while (v) {
-						auto r = find_receive_event_view_0(v, pos);
+						auto r = find_receive_view_rec(v, pos);
 						if (r) {
 							return r;
 						}
@@ -605,10 +609,6 @@ namespace qk {
 			}
 		}
 		return nullptr;
-	}
-
-	View* EventDispatch::find_receive_event_view(Vec2 pos) {
-		return _window->root() ? find_receive_event_view_0(_window->root(), pos) : nullptr;
 	}
 
 	Sp<MouseEvent> EventDispatch::NewMouseEvent(View* view, float x, float y, uint32_t keycode) {
@@ -684,7 +684,7 @@ namespace qk {
 
 	void EventDispatch::mousepress(KeyboardKeyName name, bool down, Vec2 pos) {
 		float x = pos[0], y = pos[1];
-		Handle<View> view(find_receive_event_view(pos));
+		Handle<View> view(find_receive_view(pos));
 
 		if (_mouse_h->view() != *view) {
 			mousemove(*view, pos);
@@ -736,7 +736,7 @@ namespace qk {
 			_mouse_h->set_position(pos);
 
 			if (_window->root()) {
-				Handle<View> v(find_receive_event_view(pos));
+				Handle<View> v(find_receive_view(pos));
 				mousemove(*v, pos);
 			}
 		}), _loop);

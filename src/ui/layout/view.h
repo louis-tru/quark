@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__ui__view__
-#define __quark__ui__view__
+#ifndef __quark__ui__layout__
+#define __quark__ui__layout__
 
+#include "../types.h"
 #include "../event.h"
-#include "./layout.h"
 
 namespace qk {
 
@@ -44,36 +44,94 @@ namespace qk {
 	#define Qk_Define_View(N) \
 	public: \
 		friend class ViewRender; \
-		virtual void accept(ViewVisitor *visitor) override { visitor->visit##N(this); } \
+		virtual void accept(Visitor *visitor) override { visitor->visit##N(this); } \
 
-	class Action;
 	class ViewRender;
 	class TextInput;
+	class TextLines;
+	class TextConfig;
 	class EventDispatch;
+	class Window;
 
 	Qk_DEFINE_VISITOR(View, Qk_Each_View);
+
+	typedef View Layout;
 
 	/**
 		* The basic elements of UI tree
 		*
 	 * @class View
 		*/
-	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Layout> {
+	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Reference> {
 		Qk_HIDDEN_ALL_COPY(View);
+		/* 下一个预处理视图标记
+		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
+		*  同一时间不会所有视图都会发生改变,如果视图树很庞大的时候,
+		*  如果涉及到布局时为了跟踪其中一个视图的变化就需要遍历整颗视图树,为了避免这种情况
+		*  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
+		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
+		*/
+		int32_t _mark_index;
 	protected:
 		Mat _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 	public:
+
+		// Layout mark key values
+		enum LayoutMark: uint32_t {
+			kLayout_None              = (0),      /* 没有任何标记 */
+			kLayout_Size_Width        = (1 << 0), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
+			kLayout_Size_Height       = (1 << 1),
+			kLayout_Typesetting       = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
+			kTransform_Origin         = (1 << 3),
+			kInput_Status             = (1 << 4), /* 输入状态这不包含布局的改变 */
+			kScroll                   = (1 << 5), /* scroll status change */
+			// RECURSIVE MARKS
+			kRecursive_Transform      = (1 << 30), /* 矩阵变换 recursive mark */
+			kRecursive_Visible_Region = (1U << 31), /* 可见范围 */
+			kRecursive_Mark           = (kRecursive_Transform | kRecursive_Visible_Region),
+		};
+
+		// child layout change mark key values
+		enum ChildLayoutChangeMark : uint32_t {
+			kChild_Layout_Size     = (1 << 0),
+			kChild_Layout_Visible  = (1 << 1),
+			kChild_Layout_Align    = (1 << 2),
+			kChild_Layout_Weight   = (1 << 3),
+			kChild_Layout_Text     = (1 << 4),
+		};
+
+		// layout size
+		struct Size {
+			Vec2 layout_size, content_size;
+			bool wrap_x, wrap_y;
+		};
+
 		typedef ViewVisitor Visitor;
+
 		/* 
+		* @field mark_value
+		*
 		* 标记后的视图会在开始帧绘制前进行更新.
 		* 运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
 		*/
-		Qk_DEFINE_PROP_GET(uint32_t, mark);
+		Qk_DEFINE_PROP_GET(uint32_t, mark_value);
+
+		/*
+		* @field level
+		*
+		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
+		* 这个值受`View::_visible`影响, View::_visible=false时_level=0
+		*/
+		Qk_DEFINE_PROP_GET(uint32_t, level);
+
+		/*
+		* @field window
+		*/
+		Qk_DEFINE_PROP_GET(Window*, window);
 
 		/**
-		 * the objects that automatically adjust view properties
+		 * parent layout view
 		*/
-		Qk_DEFINE_PROP(Action*, action);
 		Qk_DEFINE_PROP_GET(View*, parent);
 		Qk_DEFINE_PROP_GET(View*, prev);
 		Qk_DEFINE_PROP_GET(View*, next);
@@ -84,11 +142,11 @@ namespace qk {
 		 */
 		Qk_DEFINE_PROP(float, opacity);
 		/**
-		 * Do views need to receive or handle system event throws? In most cases, 
+		 * Do views need to receive or handle system event throws? In most cases,
 		 * these events do not need to be handled, which can improve overall event processing efficiency
 		*/
 		Qk_DEFINE_PROP(bool, receive);
-		/** 
+		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space
 		*/
@@ -97,7 +155,6 @@ namespace qk {
 		 *  这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		*/
 		Qk_DEFINE_PROP_GET(bool, visible_region);
-		Qk_DEFINE_PROP_ACC(bool, is_focus); // keyboard focus view
 
 		/**
 		 * @constructor
@@ -108,6 +165,17 @@ namespace qk {
 		 * @destructor
 		*/
 		virtual ~View();
+
+		// ---------------------------------
+		virtual void onActivate() {}
+		bool is_focus() { return false; }
+		bool focus();
+		bool blur() { return false; };
+		bool is_self_child(View *child) {return false;}
+		virtual bool can_become_focus() { return false; }
+		virtual bool clip() { return false; }
+
+		// ---------------------------------
 
 		template<class T = View> inline T* prepend_new() {
 			return New<T>()->template prepend_to<T>(this);
@@ -134,11 +202,6 @@ namespace qk {
 		template<class T = View> inline T* append_to(View* parent) {
 			parent->append(this); return static_cast<T*>(this);
 		}
-
-		/**
-		 * @method is_self_child(child)
-		 */
-		bool is_self_child(View *child);
 
 		/**
 			*
@@ -189,22 +252,6 @@ namespace qk {
 		void remove_all_child();
 
 		/**
-		 *
-		 * focus keyboard
-		 *
-		 * @method focus()
-		 */
-		bool focus();
-
-		/**
-		 *
-		 * Unfocus keyboard
-		 *
-		 * @method blur()
-		 */
-		bool blur();
-
-		/**
 		 * 
 		 * Returns text input object
 		 * 
@@ -224,34 +271,148 @@ namespace qk {
 		 * define access receiver
 		 * @method accept()
 		 */
-		virtual void accept(ViewVisitor *visitor);
+		virtual void accept(Visitor *visitor);
 
 		/**
-		 *
-		 * Can it be the focus
-		 *
-		 * @method can_become_focus()
-		 */
-		virtual bool can_become_focus();
-
-		/**
-		 *
-		 * is clip render the view
-		 *
-		 * @method clip()
-		 */
-		virtual bool clip();
-
-		/**
-			* @overwrite
+			*
+			* 布局权重（比如在flex布局中代表布局的尺寸）
+			*
+			* @func layout_weight()
 			*/
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
-		virtual void layout_text(TextLines *lines, TextConfig* textSet) override;
-		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
-		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
+		virtual float layout_weight();
 
-		// @thread unsafe --------------------------------------------------------------------------
+		/**
+			*
+			* 布局的对齐方式（九宫格）
+			*
+			* @func layout_align()
+			*/
+		virtual Align layout_align();
+
+		/**
+			* 
+			* Relative to the parent view (layout_offset) to start offset
+			* 
+			* @func layout_offset()
+			*/
+		virtual Vec2 layout_offset();
+
+		/**
+			*
+			* Returns the layout size of view object (if is box view the: size=margin+border+padding+content)
+			*
+			* Returns the layout content size of object view, 
+			* Returns false to indicate that the size is unknown,
+			* indicates that the size changes with the size of the subview, and the content is wrapped
+			*
+			* @func layout_size()
+			*/
+		virtual Size layout_size();
+
+		/**
+			*
+			* Returns the and compute layout size of object view
+			*
+			* @func layout_raw_size(parent_content_size)
+			*/
+		virtual Size layout_raw_size(Size parent_content_size);
+
+		/**
+			* Returns internal layout offset compensation of the view, which affects the sub view offset position
+			* 
+			* For example: when a view needs to set the scrolling property scroll of a subview, you can set this property
+			*
+			* @func layout_offset_inside()
+			*/
+		virtual Vec2 layout_offset_inside();
+
+		/**
+			*
+			* whether the child layout has been locked
+			*
+			* @func is_lock_child_layout_size()
+			*/
+		virtual bool is_lock_child_layout_size();
+
+		/**
+			* 
+			* Setting the layout offset of the view object in the parent view
+			*
+			* @func set_layout_offset(val)
+			*/
+		virtual void set_layout_offset(Vec2 val);
+
+		/**
+			* 
+			* Setting layout offset values lazily mode for the view object
+			*
+			* @func set_layout_offset_lazy(size)
+			*/
+		virtual void set_layout_offset_lazy(Vec2 size);
+
+		/**
+			* 锁定布局的尺寸。在特定的布局类型中自身无法直接确定其自身尺寸，一般由父布局调用如：flex布局类型
+			*
+			* 这个方法应该在`layout_forward()`正向迭代中由父布局调用,因为尺寸的调整一般在正向迭代中
+			* 
+			* 返回锁定后的最终尺寸，调用后视返回后的尺寸为最终尺寸
+			* 
+			* @func layout_lock(layout_size)
+			*/
+		virtual Vec2 layout_lock(Vec2 layout_size);
+
+		/**
+			*
+			* (计算布局自身的尺寸)
+			*
+			* 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
+			* 
+			* 这个方法被调用时父视图尺寸一定是有效的，在调用`content_size`时有两种情况，
+			* 返回`false`表示父视图尺寸是wrap的，返回`true`时表示父视图有明确的尺寸
+			* 
+			* @func layout_forward(mark)
+			*/
+		virtual bool layout_forward(uint32_t/*LayoutMark*/ mark);
+
+		/**
+			* 
+			* (计算子布局的偏移位置，以及确定在`layout_forward()`函数没有能确定的尺寸)
+			* 
+			* 从内向外反向迭代布局，比如有些视图外部并没有明确的尺寸，
+			* 尺寸是由内部视图挤压外部视图造成的，所以只能先明确内部视图的尺寸。
+			*
+			* 这个方法被调用时子视图尺寸一定是明确的有效的，调用`layout_size()`返回子视图外框尺寸。
+			* 
+			* @func layout_reverse(mark)
+			*/
+		virtual bool layout_reverse(uint32_t/*LayoutMark*/ mark);
+
+		/**
+		 * 
+		 * solve text layout
+		 * 
+		 * @func layout_text(lines)
+		 */
+		virtual void layout_text(TextLines *lines, TextConfig* textSet);
+
+		/**
+			* 
+			* This method of the parent view is called when the layout content of the child view changes
+			*
+			* This is not necessarily called by the child layout
+			*
+			* @func onChildLayoutChange(child, mark)
+			*/
+		virtual void onChildLayoutChange(View* child, uint32_t/*ChildLayoutChangeMark*/ mark);
+
+		/**
+			* 
+			* This method of the child view is called when the layout size of the parent view changes
+			* 
+			* @func onParentLayoutContentSizeChange(parent, mark)
+			*/
+		virtual void onParentLayoutContentSizeChange(View* parent, uint32_t/*LayoutMark*/ mark);
+
 		/**
 		 *
 		 * Returns final transformation matrix of the view layout
@@ -301,27 +462,38 @@ namespace qk {
 		virtual bool solve_visible_region();
 
 		/**
-		 * notice update for set parent or level
-		 * 
-		 * @method onActivate()
-		*/
-		virtual void onActivate();
+			* @func mark_layout(mark)
+			*/
+		void mark_layout(uint32_t mark);
+
+		/**
+			* @func mark_render(mark)
+			*/
+		void mark_render(uint32_t mark = kLayout_None);
+
+		/**
+			* @func unmark(mark)
+			*/
+		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {
+			_mark_value &= (~mark);
+		}
 
 	private:
-		void clear_link(); // Cleaning up associated view information
-		void clear_level(Window *win); //  clear layout depth
-		void set_level_(uint32_t level, Window *win); // settings depth
-		void set_visible_(bool visible, uint32_t level);
-		bool is_root();
-		void remove_all_child_();
 		/**
 		 * @method set_parent(parent) setting parent view
 		 */
 		void set_parent(View* parent);
 
+		void clear_link(); // Cleaning up associated view information
+		void clear_level(Window *win); //  clear layout depth
+		void set_level_(uint32_t level, Window *win); // settings depth
+		void set_visible_(bool visible, uint32_t level);
+		void remove_all_child_();
+
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
 		friend class ViewRender;
 		friend class EventDispatch;
+		friend class Window;
 	};
 
 }

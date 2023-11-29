@@ -13,7 +13,7 @@ public:
 	Sp<Canvas> _c;
 
 	void onActivate() override {
-		if (level()) {
+		if (!_c) {
 			_c = window()->render()->newCanvas({.isMipmap=0});
 			_c->setSurface({600},2);
 		}

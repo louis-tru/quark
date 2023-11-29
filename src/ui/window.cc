@@ -43,8 +43,8 @@
 
 namespace qk {
 
-	UILock::UILock(Window* win): _win(win), _lock(false) {
-		lock();
+	UILock::UILock(Window *win): _win(win), _lock(true) {
+		win->_render_mutex.lock();
 	}
 
 	UILock::~UILock() {
@@ -64,7 +64,6 @@ namespace qk {
 			_lock = false;
 		}
 	}
-
 
 	Window::Window(Options &opts)
 		: Qk_Init_Event(Change)
@@ -100,7 +99,8 @@ namespace qk {
 		_root->init();
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
-		_root->focus();  // set focus
+		// TODO ...
+		//_root->focus();  // set focus
 	}
 
 	Window::~Window() {
@@ -114,6 +114,7 @@ namespace qk {
 	}
 
 	bool Window::destroy() {
+		if (!_render) return false;
 		UILock lock(this); // lock ui
 		if (!_render) return false;
 		lock.unlock(); // Avoid deadlocks with rendering threads
@@ -126,8 +127,7 @@ namespace qk {
 		for (auto t: _tasks) {
 			t->_win = nullptr; // clear task
 		}
-		{
-			ScopeLock lock1(_host->_mutex);
+		{ ScopeLock lock(_host->_mutex);
 			_host->_windows.erase(_id);
 			if (_host->_activeWindow == this) {
 				Inl_Application(_host)->setActiveWindow(nullptr);
@@ -184,10 +184,9 @@ namespace qk {
 
 	void Window::solveNextFrame() {
 		if (_nextFrame.length()) {
-			List<Cb>* cb = new List<Cb>(std::move(_nextFrame));
-			_host->loop()->post(Cb([this, cb](Cb::Data& e) {
-				UILock lock(this);
-				Handle<List<Cb>> handle(cb);
+			auto cb = new List<Cb>(std::move(_nextFrame));
+			_host->loop()->post(Cb([this, cb](auto e) {
+				Sp<List<Cb>> handle(cb);
 				for ( auto& i : *cb ) {
 					i->resolve();
 				}
@@ -294,7 +293,6 @@ namespace qk {
 #if DEBUG && PRINT_RENDER_FRAME_TIME
 		int64_t st = time_micro();
 #endif
-
 		_render->getCanvas()->swapBuffer();
 
 #if DEBUG && PRINT_RENDER_FRAME_TIME
@@ -362,7 +360,7 @@ namespace qk {
 				for (auto& levelMarks: _marks) {
 					for (auto& layout: levelMarks) {
 						if (layout) {
-							if ( layout->layout_forward(layout->_mark) ) {
+							if ( layout->layout_forward(layout->_mark_value) ) {
 								// simple delete mark
 								layout->_mark_index = -1;
 								layout = nullptr;
@@ -377,7 +375,7 @@ namespace qk {
 					auto& levelMarks = _marks[i];
 					for (auto& layout: levelMarks) {
 						if (layout) {
-							if ( layout->layout_reverse(layout->_mark) ) {
+							if ( layout->layout_reverse(layout->_mark_value) ) {
 								// simple delete mark recursive
 								layout->_mark_index = -1;
 								layout = nullptr;

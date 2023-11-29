@@ -56,8 +56,8 @@ public:
 
 void test_blur(int argc, char **argv) {
 	App app;
-	auto win2 = Window::Make({.frame={{0,0}, {200,200}}, .title="win2"});
-	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="win"});
+	// auto win2 = Window::Make({.frame={{0,0}, {200,200}}, .title="win2"});
+	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Blur"});
 	auto r = win->root();
 	auto t = win->root()->append_new<TestBlur>();
 	r->set_background_color({255,255,255,0});

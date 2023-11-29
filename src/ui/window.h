@@ -44,8 +44,10 @@ namespace qk {
 	class EventDispatch;
 	class WindowImpl; // window platform impl
 	class RenderTask;
-	class Layout;
+	class View;
 	class Window;
+
+	typedef View Layout;
 
 	/**
 	 * Note: If `main loop` and `render loop` run in different threads,

@@ -34,13 +34,34 @@
 
 namespace qk {
 
+	class UILocks {
+		struct UILock_Inl {
+			Window *win;
+			bool lock;
+		};
+		UILock_Inl _l0,_l1;
+	public:
+		UILocks(View *v0, View *v1 = nullptr): _l0{nullptr}, _l1{nullptr} {
+			if (v0->window()) {
+				new(&_l0)UILock(v0->window());
+			} 
+			if (v1 && v1->window() && v1->window() != _l0.win) {
+				new(&_l1)UILock(v1->window());
+			}
+		}
+		~UILocks() {
+			if (_l0.win) {
+				((UILock*)&_l0)->unlock();
+			}
+			if (_l1.win) {
+				((UILock*)&_l1)->unlock();
+			}
+		}
+	};
+
 	View::View()
-		: Notification<UIEvent, UIEventName, Reference>()
-		, _mark_index(-1)
-		, _mark_value(kLayout_None)
-		, _level(0)
-		, _window(nullptr)
-		, _parent(nullptr)
+		: Notification<UIEvent, UIEventName, Layout>()
+		, _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
 		, _opacity(1.0)
@@ -50,13 +71,31 @@ namespace qk {
 	{}
 
 	View::~View() {
+		UILocks lock(this);
 		Qk_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
+		set_action(nullptr); // del action
 		remove_all_child_(); // 删除子视图
+	}
+
+	// ------------------------------------------------------------------------------------------
+
+	bool View::is_self_child(View *child) {
+		if ( child ) {
+			auto parent = child->_parent;
+			while (parent) {
+				if ( parent == this ) {
+					return true;
+				}
+				parent = parent->_parent;
+			}
+		}
+		return false;
 	}
 
 	void View::before(View *view) {
 		if (view == this) return;
 		if (_parent) {
+			UILocks lock(this, view);
 			if (view->_parent == _parent) {
 				view->clear_link();  // 清除关联
 			} else {
@@ -76,6 +115,7 @@ namespace qk {
 	void View::after(View *view) {
 		if (view == this) return;
 		if (_parent) {
+			UILocks lock(this, view);
 			if (view->_parent == _parent) {
 				view->clear_link(); // 清除关联
 			} else {
@@ -93,6 +133,7 @@ namespace qk {
 	}
 
 	void View::prepend(View *child) {
+		UILocks lock(this, child);
 		if (this == child->_parent) {
 			child->clear_link();
 		} else {
@@ -112,6 +153,7 @@ namespace qk {
 	}
 
 	void View::append(View *child) {
+		UILocks lock(this, child);
 		if (this == child->_parent) {
 			child->clear_link();
 		} else {
@@ -132,6 +174,7 @@ namespace qk {
 
 	void View::remove() {
 		if (_parent) {
+			UILocks lock(this);
 			clear_link();
 			_parent = nullptr;
 			if (_level)
@@ -141,6 +184,7 @@ namespace qk {
 	}
 
 	void View::remove_all_child() {
+		UILocks lock(this);
 		remove_all_child_();
 	}
 
@@ -150,18 +194,62 @@ namespace qk {
 
 	void View::set_visible(bool val) {
 		if (_visible != val) {
-			#define is_root() (_window && _window->root() == this)
+			UILocks lock(this);
 			set_visible_(val, _parent && _parent->_level ?
-				_parent->_level + 1: val && is_root() ? 1: 0);
+				_parent->_level + 1: is_root() && val ? 1: 0);
 		}
 	}
 
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
-			val = Qk_MAX(0, Qk_MIN(val, 1));
-			if (_opacity != val)
-				mark_render(); // mark render
+			_opacity = Qk_MAX(0, Qk_MIN(val, 1));
+			mark_render(); // mark render
 		}
+	}
+
+	void View::set_is_focus(bool value) {
+		if ( value ) {
+			focus();
+		} else {
+			blur();
+		}
+	}
+
+	void View::set_action(Action* val) {
+		if (_action != val) {
+			// TODO ...
+			if (_action) {
+				// unload _action
+				_action = nullptr;
+			}
+			if (val) {
+				_action = val;
+				// load new action
+			}
+		}
+	}
+
+	bool View::is_focus() const {
+		return _window && _window->dispatch()->focus_view() == this;
+	}
+
+	bool View::can_become_focus() {
+		return false;
+	}
+
+	bool View::clip() {
+		return false;
+	}
+
+	bool View::blur() {
+		if ( is_focus() ) {
+			auto root = _window->root();
+			if ( root && root != this ) {
+				return root->focus();
+			}
+			return false;
+		}
+		return true;
 	}
 
 	// ------------------------------------------------------------------------------------------
@@ -215,64 +303,6 @@ namespace qk {
 		return nullptr;
 	}
 
-	float View::layout_weight() {
-		return 0;
-	}
-
-	Align View::layout_align() {
-		return Align::kAuto;
-	}
-
-	Vec2 View::layout_offset() {
-		return Vec2();
-	}
-
-	View::Size View::layout_size() {
-		return {
-			Vec2(), Vec2(), true, true,
-		};
-	}
-
-	View::Size View::layout_raw_size(Size parent_content_size) {
-		return {
-			Vec2(), Vec2(), true, true,
-		};
-	}
-
-	Vec2 View::layout_offset_inside() {
-		return Vec2();
-	}
-
-	void View::set_layout_offset(Vec2 val) {
-	}
-
-	void View::set_layout_offset_lazy(Vec2 size) {
-	}
-
-	Vec2 View::layout_lock(Vec2 layout_size) {
-		return Vec2();
-	}
-
-	bool View::is_lock_child_layout_size() {
-		return false;
-	}
-
-	void View::mark_layout(uint32_t mark) {
-		_mark_value |= mark;
-		if (_mark_index < 0) {
-			if (_level) {
-				_window->mark_layout(this, _level); // push to pre render
-			}
-		}
-	}
-
-	void View::mark_render(uint32_t mark) {
-		_mark_value |= mark;
-		if (_level) {
-			_window->mark_render(); // push to pre render
-		}
-	}
-
 	bool View::layout_forward(uint32_t mark) {
 		return !(mark & kLayout_Typesetting);
 	}
@@ -293,13 +323,13 @@ namespace qk {
 		// NOOP
 	}
 
-	void View::onChildLayoutChange(View *child, uint32_t value) {
+	void View::onChildLayoutChange(Layout *child, uint32_t value) {
 		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
 			mark_layout(kLayout_Typesetting);
 		}
 	}
 
-	void View::onParentLayoutContentSizeChange(View* parent, uint32_t mark) {
+	void View::onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) {
 		// NOOP
 	}
 
@@ -341,11 +371,13 @@ namespace qk {
 	}
 
 	void View::clear_level(Window *win) { //  clear layout depth
+		blur();
 		if (_mark_index >= 0) {
 			_window->unmark_layout(this, _level);
 		}
 		_window = win;
 		_level = 0;
+		onActivate();
 		auto v = _first;
 		while ( v ) {
 			v->clear_level(win);
@@ -358,6 +390,7 @@ namespace qk {
 			// if level > 0 then
 			auto wi_ = _window; // old window
 			if (win) { // change new window
+				blur();
 				_window = win;
 			}
 			if (_mark_index >= 0) {
@@ -365,6 +398,9 @@ namespace qk {
 				win->mark_layout(this, level);
 			}
 			_level = level++;
+
+			// mark_render(kRecursive_Transform);
+			onActivate();
 
 			auto v = _first;
 			while ( v ) {
@@ -377,8 +413,15 @@ namespace qk {
 		}
 	}
 
+	void View::onActivate() {
+		if (_level == 0) {
+			// set_action(nullptr);
+		}
+	}
+
 	void View::set_parent(View *parent) {
 		if (parent != _parent) {
+			Qk_STRICT_ASSERT(!is_root(), "root view not allow set parent"); // check
 			clear_link();
 
 			if ( _parent ) {
@@ -400,6 +443,8 @@ namespace qk {
 			}
 			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
+
+			onActivate();
 		}
 	}
 
@@ -408,6 +453,10 @@ namespace qk {
 			_first->remove_all_child();
 			_first->remove();
 		}
+	}
+
+	bool View::is_root() {
+		return _window && _window->root() == this;
 	}
 
 }

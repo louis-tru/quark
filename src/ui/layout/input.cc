@@ -360,7 +360,6 @@ namespace qk {
 		}
 
 		void find_cursor(Vec2 screen_coord) {
-
 			if ( !_editing || text_length() == 0 ) {
 				return;
 			}

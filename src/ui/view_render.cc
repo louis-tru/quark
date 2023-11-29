@@ -394,7 +394,7 @@ namespace qk {
 			auto markCurr = _mark_recursive;
 			do {
 				if (v->_visible) {
-					uint32_t mark = markCurr | v->mark(); // inherit recursive
+					uint32_t mark = markCurr | v->mark_value(); // inherit recursive
 					if (mark) {
 						v->solve_marks(mark);
 						_mark_recursive = mark & Layout::kRecursive_Mark;
@@ -652,7 +652,7 @@ namespace qk {
 
 	void ViewRender::visitRoot(Root* v) {
 		if (_canvas && v->_visible) {
-			uint32_t mark = v->mark();
+			uint32_t mark = v->mark_value();
 			if (mark) {
 				v->solve_marks(mark);
 				_mark_recursive = mark & Layout::kRecursive_Mark;

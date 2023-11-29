@@ -47,22 +47,22 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Render*, render);
 		ViewRender(Window *window);
 		virtual uint32_t flags() override;
-		virtual void  visitView(View* v) override;
-		virtual void  visitBox(Box* box) override;
-		virtual void  visitImage(Image* image) override;
-		virtual void  visitVideo(Video* video) override;
-		virtual void  visitScroll(Scroll* scroll) override;
-		virtual void  visitInput(Input* input) override;
-		virtual void  visitTextarea(Textarea* textarea) override;
-		virtual void  visitButton(Button* btn) override;
-		virtual void  visitTextLayout(TextLayout* text) override;
-		virtual void  visitLabel(Label* label) override;
-		virtual void  visitRoot(Root* root) override;
-		virtual void  visitFloatLayout(FloatLayout* flow) override;
-		virtual void  visitFlowLayout(FlowLayout* flow) override;
-		virtual void  visitFlexLayout(FlexLayout* flex) override;
-		virtual void  visitTransform(Transform* transform) override;
-		
+		virtual void visitView(View* v) override;
+		virtual void visitBox(Box* box) override;
+		virtual void visitImage(Image* image) override;
+		virtual void visitVideo(Video* video) override;
+		virtual void visitScroll(Scroll* scroll) override;
+		virtual void visitInput(Input* input) override;
+		virtual void visitTextarea(Textarea* textarea) override;
+		virtual void visitButton(Button* btn) override;
+		virtual void visitTextLayout(TextLayout* text) override;
+		virtual void visitLabel(Label* label) override;
+		virtual void visitRoot(Root* root) override;
+		virtual void visitFloatLayout(FloatLayout* flow) override;
+		virtual void visitFlowLayout(FlowLayout* flow) override;
+		virtual void visitFlexLayout(FlexLayout* flex) override;
+		virtual void visitTransform(Transform* transform) override;
+
 	private:
 		Window       *_window;
 		Canvas       *_canvas;
