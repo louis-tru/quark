@@ -37,11 +37,11 @@
 
 namespace qk {
 
-	class Qk_EXPORT TextLayout: public Box, public TextOptions {
-		Qk_Define_View(TextLayout);
+	class Qk_EXPORT Text: public Box, public TextOptions {
+		Qk_Define_Layout(Text);
 	public:
 		Qk_DEFINE_PROP(TextAlign, text_align);
-		TextLayout();
+		Text(Window *win);
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void onActivate() override;

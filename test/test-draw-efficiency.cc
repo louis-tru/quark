@@ -12,8 +12,9 @@ constexpr unsigned int u32 = 1;
 
 class TestDrawEfficiency: public Box {
 public:
+	TestDrawEfficiency(Window *win): Box(win) {}
 
-	void accept(ViewVisitor *visitor) override {
+	void accept(Visitor *visitor) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
 
@@ -41,7 +42,7 @@ void test_draw_efficiency(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();
 	// layout
-	auto t = New<TestDrawEfficiency>()->append_to<Box>(win->root());
+	auto t = New<TestDrawEfficiency>(win)->append_to<Box>(win->root());
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

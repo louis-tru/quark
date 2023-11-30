@@ -30,7 +30,7 @@
 
 #include "../window.h"
 #include "../app.h"
-#include "../layout/view.h"
+#include "../layout/layout.h"
 #include "../../render/font/font.h"
 #include "./text_lines.h"
 #include "./text_opts.h"

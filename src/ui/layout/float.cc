@@ -32,6 +32,8 @@
 
 namespace qk {
 
+	FloatLayout::FloatLayout(Window *win): Box(win) {}
+
 	bool FloatLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return false; // continue iteration

@@ -41,9 +41,9 @@ namespace qk {
 	 * @class Transform
 		*/
 	class Transform: public Box {
-		Qk_Define_View(Transform);
+		Qk_Define_Layout(Transform);
 	public:
-		Transform();
+		Transform(Window *win);
 		// define props
 		Qk_DEFINE_PROP    (Vec2, translate); // matrix displacement for the view
 		Qk_DEFINE_PROP    (Vec2, scale); // Matrix scaling

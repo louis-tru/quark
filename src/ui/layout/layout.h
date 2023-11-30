@@ -36,34 +36,33 @@
 
 namespace qk {
 
-	#define Qk_Each_View(F) \
-		F(View)  F(Box) F(Transform) \
-		F(Image) F(Video) F(Scroll) F(Button) F(FloatLayout) F(Textarea) \
-		F(Label) F(Input) F(Root) F(TextLayout) F(FlexLayout) F(FlowLayout)
+	#define Qk_Each_Layout(F) \
+		F(Layout) F(Box) F(Transform) \
+		F(Image)  F(Video) F(Scroll) F(Button) F(Textarea) \
+		F(Label)  F(Input) F(Root) \
+		/*Main Layout*/\
+		F(Flex) F(Flow) F(Text) F(FloatLayout)
 
-	#define Qk_Define_View(N) \
+	#define Qk_Define_Layout(N) \
 	public: \
-		friend class ViewRender; \
+		friend class UIRender; \
 		virtual void accept(Visitor *visitor) override { visitor->visit##N(this); } \
 
-	class ViewRender;
+	class UIRender;
 	class TextInput;
 	class TextLines;
 	class TextConfig;
-	class EventDispatch;
 	class Window;
 
-	Qk_DEFINE_VISITOR(View, Qk_Each_View);
-
-	typedef View Layout;
+	Qk_DEFINE_VISITOR(Layout, Qk_Each_Layout);
 
 	/**
 		* The basic elements of UI tree
 		*
-	 * @class View
+	 * @class Layout
 		*/
-	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Reference> {
-		Qk_HIDDEN_ALL_COPY(View);
+	class Qk_EXPORT Layout: public Reference {
+		Qk_HIDDEN_ALL_COPY(Layout);
 		/* 下一个预处理视图标记
 		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
 		*  同一时间不会所有视图都会发生改变,如果视图树很庞大的时候,
@@ -106,7 +105,7 @@ namespace qk {
 			bool wrap_x, wrap_y;
 		};
 
-		typedef ViewVisitor Visitor;
+		typedef LayoutVisitor Visitor;
 
 		/* 
 		* @field mark_value
@@ -120,7 +119,7 @@ namespace qk {
 		* @field level
 		*
 		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
-		* 这个值受`View::_visible`影响, View::_visible=false时_level=0
+		* 这个值受`Layout::_visible`影响, Layout::_visible=false时_level=0
 		*/
 		Qk_DEFINE_PROP_GET(uint32_t, level);
 
@@ -132,11 +131,11 @@ namespace qk {
 		/**
 		 * parent layout view
 		*/
-		Qk_DEFINE_PROP_GET(View*, parent);
-		Qk_DEFINE_PROP_GET(View*, prev);
-		Qk_DEFINE_PROP_GET(View*, next);
-		Qk_DEFINE_PROP_GET(View*, first);
-		Qk_DEFINE_PROP_GET(View*, last);
+		Qk_DEFINE_PROP_GET(Layout*, parent);
+		Qk_DEFINE_PROP_GET(Layout*, prev);
+		Qk_DEFINE_PROP_GET(Layout*, next);
+		Qk_DEFINE_PROP_GET(Layout*, first);
+		Qk_DEFINE_PROP_GET(Layout*, last);
 		/**
 		 *  can affect the transparency of subviews
 		 */
@@ -159,30 +158,28 @@ namespace qk {
 		/**
 		 * @constructor
 		*/
-		View();
+		Layout(Window *win);
 
 		/**
 		 * @destructor
 		*/
-		virtual ~View();
+		virtual ~Layout();
 
 		// ---------------------------------
-		virtual void onActivate() {}
 		bool is_focus() { return false; }
 		bool focus();
 		bool blur() { return false; };
 		bool is_self_child(View *child) {return false;}
 		virtual bool can_become_focus() { return false; }
 		virtual bool clip() { return false; }
-
 		// ---------------------------------
 
-		template<class T = View> inline T* prepend_new() {
-			return New<T>()->template prepend_to<T>(this);
+		template<class T = Layout> inline T* prepend_new() {
+			return New<T>(_window)->template prepend_to<T>(this);
 		}
 
-		template<class T = View> inline T* append_new() {
-			return New<T>()->template append_to<T>(this);
+		template<class T = Layout> inline T* append_new() {
+			return New<T>(_window)->template append_to<T>(this);
 		}
 
 		/**
@@ -190,7 +187,7 @@ namespace qk {
 		 *
 		 * @method prepend_to(parent)
 		 */
-		template<class T = View> inline T* prepend_to(View* parent) {
+		template<class T = Layout> inline T* prepend_to(Layout* parent) {
 			parent->prepend(this); return static_cast<T*>(this);
 		}
 
@@ -199,7 +196,7 @@ namespace qk {
 		 *
 		 * @method append_to(parent)
 		 */
-		template<class T = View> inline T* append_to(View* parent) {
+		template<class T = Layout> inline T* append_to(Layout* parent) {
 			parent->append(this); return static_cast<T*>(this);
 		}
 
@@ -209,7 +206,7 @@ namespace qk {
 			*
 			* @method before(view)
 			*/
-		void before(View* view);
+		void before(Layout* view);
 
 		/**
 			*
@@ -217,7 +214,7 @@ namespace qk {
 			*
 			* @method after(view)
 			*/
-		void after(View* view);
+		void after(Layout* view);
 
 		/**
 			* 
@@ -225,7 +222,7 @@ namespace qk {
 			* 
 			* @method prepend(child)
 			*/
-		void prepend(View* child);
+		void prepend(Layout* child);
 
 		/**
 			*
@@ -233,7 +230,7 @@ namespace qk {
 			*
 			* @method append(child)
 			*/
-		void append(View* child);
+		void append(Layout* child);
 
 		/**
 		 *
@@ -403,7 +400,7 @@ namespace qk {
 			*
 			* @func onChildLayoutChange(child, mark)
 			*/
-		virtual void onChildLayoutChange(View* child, uint32_t/*ChildLayoutChangeMark*/ mark);
+		virtual void onChildLayoutChange(Layout* child, uint32_t/*ChildLayoutChangeMark*/ mark);
 
 		/**
 			* 
@@ -411,7 +408,7 @@ namespace qk {
 			* 
 			* @func onParentLayoutContentSizeChange(parent, mark)
 			*/
-		virtual void onParentLayoutContentSizeChange(View* parent, uint32_t/*LayoutMark*/ mark);
+		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t/*LayoutMark*/ mark);
 
 		/**
 		 *
@@ -425,7 +422,6 @@ namespace qk {
 			return _matrix;
 		}
 
-	protected:
 		/**
 
 		 * Returns layout transformation matrix of the object view
@@ -438,18 +434,18 @@ namespace qk {
 		virtual Mat layout_matrix();
 
 		/**
+		 * Overlap test, test whether the point on the screen overlaps with the view
+		 * @method overlap_test
+		*/
+		virtual bool overlap_test(Vec2 point);
+
+		/**
 		 * 
 		 * returns view position in the screen
 		 * 
 		 * @method screen_position()
 		*/
 		virtual Vec2 position();
-
-		/**
-		 * Overlap test, test whether the point on the screen overlaps with the view
-		 * @method overlap_test
-		*/
-		virtual bool overlap_test(Vec2 point);
 
 		/**
 		 * @method solve_marks(mark)
@@ -460,6 +456,13 @@ namespace qk {
 			* @method solve_visible_region()
 			*/
 		virtual bool solve_visible_region();
+
+		/**
+		 * notice update for set parent or level
+		 * 
+		 * @method onActivate()
+		*/
+		virtual void onActivate();
 
 		/**
 			* @func mark_layout(mark)
@@ -482,17 +485,15 @@ namespace qk {
 		/**
 		 * @method set_parent(parent) setting parent view
 		 */
-		void set_parent(View* parent);
+		void set_parent(Layout* parent);
 
 		void clear_link(); // Cleaning up associated view information
-		void clear_level(Window *win); //  clear layout depth
-		void set_level_(uint32_t level, Window *win); // settings depth
+		void clear_level(); //  clear layout depth
+		void set_level_(uint32_t level); // settings depth
 		void set_visible_(bool visible, uint32_t level);
-		void remove_all_child_();
 
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
-		friend class ViewRender;
-		friend class EventDispatch;
+		friend class UIRender;
 		friend class Window;
 	};
 

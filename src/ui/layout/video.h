@@ -32,19 +32,19 @@
 #define __quark__layout__video__
 
 #include "./image.h"
-#include "../pre_render.h"
+#include "../task.h"
 #include "../media/media_codec.h"
 #include "../media/pcm.h"
 
 namespace qk {
 
 	class Qk_EXPORT Video: public Image,
-												public PreRender::Task, public MultimediaSource::Delegate {
-		Qk_Define_View(Video);
+												public RenderTask, public MultimediaSource::Delegate {
+		Qk_Define_Layout(Video);
 	public:
 		typedef Mediacodec_OutputBuffer OutputBuffer;
 		typedef MultimediaSource::TrackInfo TrackInfo;
-		typedef PreRender::Task::ID TaskID;
+		typedef RenderTask::ID TaskID;
 
 		Video();
 		virtual ~Video();

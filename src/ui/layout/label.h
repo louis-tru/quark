@@ -31,18 +31,18 @@
 #ifndef __quark__layout__label__
 #define __quark__layout__label__
 
-#include "./view.h"
+#include "./layout.h"
 #include "../text/text_blob.h"
 #include "../text/text_lines.h"
 #include "../text/text_opts.h"
 
 namespace qk {
 
-	class Qk_EXPORT Label: public View, public TextOptions {
-		Qk_Define_View(Label);
+	class Qk_EXPORT Label: public Layout, public TextOptions {
+		Qk_Define_Layout(Label);
 	public:
 		Qk_DEFINE_PROP(String, text_value);
-		Label();
+		Label(Window *win);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;

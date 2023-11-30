@@ -34,6 +34,8 @@
 
 namespace qk {
 
+	Image::Image(Window *win): Box(win) {}
+
 	bool Image::layout_forward(uint32_t mark) {
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
 			mark |= (kLayout_Size_Width | kLayout_Size_Height);

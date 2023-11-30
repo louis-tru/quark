@@ -47,7 +47,8 @@ namespace qk {
 
 		void triggerScroll() {
 			Sp<UIEvent> evt = qk::New<UIEvent>(this);
-			Notification<UIEvent, UIEventName, Reference>::trigger(UIEvent_Scroll, **evt);
+			// TODO ...
+			// Notification<UIEvent, UIEventName, Reference>::trigger(UIEvent_Scroll, **evt);
 		}
 
 		void mark_render(uint32_t mark = kLayout_None) {
@@ -667,15 +668,16 @@ namespace qk {
 		, _scroll_h(false), _scroll_v(false)
 		, _lock_h(false), _lock_v(false)
 	{
+		// TODO ...
 		// bind touch event
-		host->add_event_listener(UIEvent_TouchStart, &Inl::touch_start_handle, _this);
-		host->add_event_listener(UIEvent_TouchMove, &Inl::touch_move_handle, _this);
-		host->add_event_listener(UIEvent_TouchEnd, &Inl::touch_end_handle, _this);
-		host->add_event_listener(UIEvent_TouchCancel, &Inl::touch_end_handle, _this);
+		//host->add_event_listener(UIEvent_TouchStart, &Inl::touch_start_handle, _this);
+		//host->add_event_listener(UIEvent_TouchMove, &Inl::touch_move_handle, _this);
+		//host->add_event_listener(UIEvent_TouchEnd, &Inl::touch_end_handle, _this);
+		//host->add_event_listener(UIEvent_TouchCancel, &Inl::touch_end_handle, _this);
 		// bind mouse event
-		host->add_event_listener(UIEvent_MouseDown, &Inl::mouse_down_handle, _this);
-		host->add_event_listener(UIEvent_MouseMove, &Inl::mouse_move_handle, _this);
-		host->add_event_listener(UIEvent_MouseUp, &Inl::mouse_up_handle, _this);
+		//host->add_event_listener(UIEvent_MouseDown, &Inl::mouse_down_handle, _this);
+		//host->add_event_listener(UIEvent_MouseMove, &Inl::mouse_move_handle, _this);
+		//host->add_event_listener(UIEvent_MouseUp, &Inl::mouse_up_handle, _this);
 		// Qk_DEBUG("BaseScroll: %d", sizeof(BaseScroll));
 	}
 
@@ -825,7 +827,7 @@ namespace qk {
 
 	// ------------------------ S c r o l l --------------------------
 
-	Scroll::Scroll(): FloatLayout(), BaseScroll(this)
+	Scroll::Scroll(Window *win): FloatLayout(win), BaseScroll(this)
 	{
 		set_is_clip(true);
 	}

@@ -57,7 +57,8 @@ namespace qk {
 			View* view = this;
 			if ( view ) {
 				if ( view->_receive ) {
-					view->trigger(UIEvent_Highlighted, evt);
+					// TODO ...
+					// view->trigger(UIEvent_Highlighted, evt);
 					if ( evt.is_default() ) {
 						// auto classs = view->classs();
 						// if ( classs ) { // 切换样式表状态
@@ -72,7 +73,8 @@ namespace qk {
 			View* view = this;
 			do {
 				if ( view->_receive ) {
-					view->trigger(UIEvent_Click, evt);
+					// TODO ...
+					// view->trigger(UIEvent_Click, evt);
 					if ( !evt.is_bubble() ) {
 						break; // Stop bubble
 					}
@@ -93,11 +95,12 @@ namespace qk {
 		/**
 		 * @func bubble_trigger
 		 */
-		void bubble_trigger(const NameType& name, UIEvent& evt) {
+		void bubble_trigger(/*const NameType& name*/const UIEventName& name, UIEvent& evt) {
 			View* view = this;
 			while( view ) {
 				if ( view->_receive ) {
-					view->trigger(name, evt);
+					// TODO ...
+					// view->trigger(name, evt);
 					if ( !evt.is_bubble() ) {
 						break; // Stop bubble
 					}
@@ -106,9 +109,11 @@ namespace qk {
 			}
 		}
 		
-		void trigger(const NameType& name, UIEvent& evt) {
+		void trigger(/*const NameType& name*/const UIEventName& name, UIEvent& evt) {
 			if ( _receive ) {
-				Notification::trigger(name, evt);
+				
+				// TODO ...
+				// Notification::trigger(name, evt);
 			}
 		}
 	};

@@ -35,10 +35,10 @@
 
 namespace qk {
 
-	class Qk_EXPORT Button: public TextLayout {
-		Qk_Define_View(Button);
+	class Qk_EXPORT Button: public Text {
+		Qk_Define_Layout(Button);
 	public:
-		Button();
+		Button(Window *win);
 		virtual bool can_become_focus() override;
 		virtual Button* as_button() override;
 		virtual Button* next_button(FindDirection dir);

@@ -39,10 +39,10 @@ namespace qk {
 	class FontMetrics;
 	class TextOptions;
 	class TextBlob;
-	class View;
+	class Layout;
 	class TextBlobBuilder;
 
-	typedef View Layout;;
+	typedef Layout View;
 
 	class Qk_EXPORT TextLines: public Reference {
 	public:

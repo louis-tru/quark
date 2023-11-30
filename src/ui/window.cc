@@ -32,7 +32,7 @@
 #include "./app.h"
 #include "./layout/root.h"
 #include "../render/render.h"
-#include "./view_render.h"
+#include "./ui_render.h"
 #include "./event.h"
 #include "./task.h"
 #include "./text/text_opts.h"
@@ -70,7 +70,7 @@ namespace qk {
 		, Qk_Init_Event(Background)
 		, Qk_Init_Event(Foreground)
 		, _host(shared_app())
-		, _viewRender(nullptr)
+		, _uiRender(nullptr)
 		, _lockSize()
 		, _size(), _scale(1)
 		, _atomPixel(1)
@@ -86,14 +86,14 @@ namespace qk {
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
-		_viewRender = new ViewRender(this);
+		_uiRender = new UIRender(this);
 		_backgroundColor = opts.backgroundColor;
 		{
 			ScopeLock lock(_host->_mutex);
 			_id = _host->_windows.pushBack(this);
 		}
 		retain(); // strong ref count retain
-		_root = new Root(); // new root
+		_root = new Root(this); // new root
 		_root->_window = this;
 		_root->_level = 1;
 		_root->init();
@@ -123,7 +123,7 @@ namespace qk {
 		_root->remove(); // remove child view
 		Release(_root);      _root = nullptr;
 		Release(_dispatch); _dispatch = nullptr;
-		Release(_viewRender); _viewRender = nullptr;
+		Release(_uiRender); _uiRender = nullptr;
 		for (auto t: _tasks) {
 			t->_win = nullptr; // clear task
 		}
@@ -286,7 +286,7 @@ namespace qk {
 		}
 		_nextFsp++;
 
-		_root->accept(_viewRender); // start drawing
+		_root->accept(_uiRender); // start drawing
 
 		solveNextFrame(); // solve frame
 

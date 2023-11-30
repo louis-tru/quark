@@ -74,7 +74,7 @@ namespace qk {
 		UILocks lock(this);
 		Qk_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		set_action(nullptr); // del action
-		remove_all_child_(); // 删除子视图
+		remove_all_child(); // 删除子视图
 	}
 
 	// ------------------------------------------------------------------------------------------
@@ -184,8 +184,11 @@ namespace qk {
 	}
 
 	void View::remove_all_child() {
-		UILocks lock(this);
-		remove_all_child_();
+		// UILocks lock(this);
+		while (_first) {
+			_first->remove_all_child();
+			_first->remove();
+		}
 	}
 
 	void View::set_receive(bool val) {
@@ -333,8 +336,8 @@ namespace qk {
 		// NOOP
 	}
 
-	// --------------------------------------------------------------------------------------
 	// @private
+	// --------------------------------------------------------------------------------------
 
 	void View::clear_link() { // Cleaning up associated view information
 		if (_parent) {
@@ -355,105 +358,105 @@ namespace qk {
 
 	void View::set_visible_(bool visible, uint32_t level) {
 		_visible = visible;
-		if (visible && level) {
-			if (_level != level)
-				set_level_(level, nullptr);
-		} else { // set level = 0
-			if (_level)
-				clear_level(_window/*no set window*/);
-		}
-		if (_parent) {
-			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent layout 
-		}
-		if (visible) {
-			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // reset layout size
-		}
+		// if (visible && level) {
+		// 	if (_level != level)
+		// 		set_level_(level, nullptr);
+		// } else { // set level = 0
+		// 	if (_level)
+		// 		clear_level(_window/*no set window*/);
+		// }
+		// if (_parent) {
+		// 	_parent->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent layout 
+		// }
+		// if (visible) {
+		// 	mark_layout(kLayout_Size_Width | kLayout_Size_Height); // reset layout size
+		// }
 	}
 
-	void View::clear_level(Window *win) { //  clear layout depth
-		blur();
-		if (_mark_index >= 0) {
-			_window->unmark_layout(this, _level);
-		}
-		_window = win;
-		_level = 0;
-		onActivate();
-		auto v = _first;
-		while ( v ) {
-			v->clear_level(win);
-			v = v->_next;
-		}
-	}
+	// void View::clear_level(Window *win) { //  clear layout depth
+	// 	blur();
+	// 	// if (_mark_index >= 0) {
+	// 	// 	_window->unmark_layout(this, _level);
+	// 	// }
+	// 	_window = win;
+	// 	_level = 0;
+	// 	// onActivate();
+	// 	auto v = _first;
+	// 	while ( v ) {
+	// 		v->clear_level(win);
+	// 		v = v->_next;
+	// 	}
+	// }
 
-	void View::set_level_(uint32_t level, Window *win) { // settings level
-		if (_visible) {
-			// if level > 0 then
-			auto wi_ = _window; // old window
-			if (win) { // change new window
-				blur();
-				_window = win;
-			}
-			if (_mark_index >= 0) {
-				wi_->unmark_layout(this, _level);
-				win->mark_layout(this, level);
-			}
-			_level = level++;
+	// void View::set_level_(uint32_t level, Window *win) { // settings level
+	// 	if (_visible) {
+	// 		// if level > 0 then
+	// 		auto wi_ = _window; // old window
+	// 		if (win) { // change new window
+	// 			blur();
+	// 			_window = win;
+	// 		}
+	// 		// if (_mark_index >= 0) {
+	// 		// 	wi_->unmark_layout(this, _level);
+	// 		// 	win->mark_layout(this, level);
+	// 		// }
+	// 		_level = level++;
 
-			// mark_render(kRecursive_Transform);
-			onActivate();
+	// 		// mark_render(kRecursive_Transform);
+	// 		// onActivate();
 
-			auto v = _first;
-			while ( v ) {
-				v->set_level_(level, win);
-				v = v->_next;
-			}
-		} else {
-			if ( _level )
-				clear_level(_window/*no set window*/);
-		}
-	}
+	// 		auto v = _first;
+	// 		while ( v ) {
+	// 			v->set_level_(level, win);
+	// 			v = v->_next;
+	// 		}
+	// 	} else {
+	// 		if ( _level )
+	// 			clear_level(_window/*no set window*/);
+	// 	}
+	// }
 
-	void View::onActivate() {
-		if (_level == 0) {
-			// set_action(nullptr);
-		}
-	}
+	// void View::onActivate() {
+	// 	if (_level == 0) {
+	// 		// set_action(nullptr);
+	// 	}
+	// }
 
 	void View::set_parent(View *parent) {
 		if (parent != _parent) {
-			Qk_STRICT_ASSERT(!is_root(), "root view not allow set parent"); // check
+			// Qk_STRICT_ASSERT(!is_root(), "root view not allow set parent"); // check
 			clear_link();
 
-			if ( _parent ) {
-				_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
-			} else {
+			if ( !_parent ) {
 				retain(); // link to parent and retain ref
+			} else {
+				// _parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
 			}
 			_parent = parent;
 
-			auto level = parent->_level;
-			auto win = parent->_window;
+			// auto level = parent->_level;
+			// auto win = parent->_window;
 
-			if (_visible && level) {
-				if (_level != ++level || _window != win)
-					set_level_(level, _window != win ? win: nullptr);
-			} else {
-				if (_level || _window != win)
-					clear_level(win);
-			}
-			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
-			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
+			// if (_visible && level) {
+			// 	if (_level != ++level || _window != win)
+			// 		set_level_(level, _window != win ? win: nullptr);
+			// } else {
+			// 	if (_level || _window != win)
+			// 		clear_level(win);
+			// }
+			// _parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
+			// mark_layout(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
 
-			onActivate();
+			// onActivate();
 		}
 	}
 
-	void View::remove_all_child_() {
-		while (_first) {
-			_first->remove_all_child();
-			_first->remove();
-		}
-	}
+	// void View::remove_all_child_() {
+	// 	while (_first) {
+	// 		_first->remove_all_child_();
+	// 		_first->remove();
+	// 	}
+	// }
 
 	bool View::is_root() {
 		return _window && _window->root() == this;

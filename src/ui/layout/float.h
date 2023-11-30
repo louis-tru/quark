@@ -36,8 +36,9 @@
 namespace qk {
 
 	class Qk_EXPORT FloatLayout: public Box {
-		Qk_Define_View(FloatLayout);
+		Qk_Define_Layout(FloatLayout);
 	public:
+		FloatLayout(Window *win);
 		virtual bool layout_reverse(uint32_t mark) override;
 	protected:
 		Vec2 layout_typesetting_float();

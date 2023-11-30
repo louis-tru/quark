@@ -35,10 +35,10 @@
 
 namespace qk {
 
-	class Qk_EXPORT FlowLayout: public FlexLayout {
-		Qk_Define_View(FlowLayout);
+	class Qk_EXPORT Flow: public Flex {
+		Qk_Define_Layout(Flow);
 	public:
-		FlowLayout();
+		Flow(Window *win);
 		// define props
 		Qk_DEFINE_PROP(Wrap, wrap); // 主轴溢出后换行，开启后当主轴溢出时分裂成多根交叉轴
 		Qk_DEFINE_PROP(WrapAlign, wrap_align); // 多根交叉轴的对齐方式,如果只有一根交叉轴该属性不起作用

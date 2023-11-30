@@ -144,8 +144,8 @@ namespace qk {
 	/**
 		* @constructors
 		*/
-	Box::Box()
-		: View()
+	Box::Box(Window *win)
+		: Layout(win)
 		, _layout_wrap_x(true), _layout_wrap_y(true), _is_clip(false)
 		, _width{0, BoxSizeKind::kWrap}, _height{0, BoxSizeKind::kWrap}
 		, _width_limit{0, BoxSizeKind::kNone}, _height_limit{0, BoxSizeKind::kNone}

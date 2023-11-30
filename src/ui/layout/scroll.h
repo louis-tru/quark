@@ -36,8 +36,6 @@
 
 namespace qk {
 
-	class SkiaRender;
-
 	class Qk_EXPORT BaseScroll {
 	public:
 		// define props
@@ -71,7 +69,7 @@ namespace qk {
 		void solve(uint32_t mark);
 	private:
 		class ScrollBox;
-		friend class ViewRender;
+		friend class UIRender;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
 
@@ -89,9 +87,9 @@ namespace qk {
 	};
 
 	class Qk_EXPORT Scroll: public FloatLayout, public BaseScroll {
-		Qk_Define_View(Scroll);
+		Qk_Define_Layout(Scroll);
 	public:
-		Scroll();
+		Scroll(Window *win);
 		virtual Vec2 layout_offset_inside() override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(uint32_t mark) override;

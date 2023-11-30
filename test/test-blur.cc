@@ -13,6 +13,7 @@ constexpr unsigned int u32 = 1;
 class TestBlur: public Box {
 public:
 	float i = 0;
+	TestBlur(Window *win): Box(win) {}
 
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;

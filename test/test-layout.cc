@@ -18,6 +18,7 @@ using namespace qk;
 
 class TestImage: public Image {
 public:
+	TestImage(Window *win): Image(win){}
 
 //	virtual void accept(ViewVisitor *visitor) override {
 //		auto render = static_cast<SkiaRender*>(visitor);
@@ -52,7 +53,7 @@ public:
 };
 
 void layout_text(Box* box) {
-	auto text = box->append_new<TextLayout>();
+	auto text = box->append_new<Text>();
 	auto labe = text->append_new<Label>();
 
 	text->set_width({ 0, SizeKind::kMatch });
@@ -168,8 +169,8 @@ void layout(Event<>& evt, Application* app) {
 	app->defaultTextOptions()->set_text_family({ app->fontPool()->getFFID("Helvetica, PingFang SC") });
 
 	auto r = win->root();
-	auto flex = r->append_new<FlexLayout>();
-	auto flow = r->append_new<FlowLayout>();
+	auto flex = r->append_new<Flex>();
+	auto flow = r->append_new<Flow>();
 	//auto img  = r->append_new<Image>();
 	auto img2 = r->append_new<TestImage>();
 
@@ -274,8 +275,8 @@ void layout(Event<>& evt, Application* app) {
 	Qk_DEBUG("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Layout>));
 	Qk_DEBUG("View size %d", sizeof(View));
 	Qk_DEBUG("Box size %d", sizeof(Box));
-	Qk_DEBUG("FlowLayout size %d", sizeof(FlowLayout));
-	Qk_DEBUG("FlexLayout size %d", sizeof(FlexLayout));
+	Qk_DEBUG("Flow size %d", sizeof(Flow));
+	Qk_DEBUG("Flex size %d", sizeof(Flex));
 	Qk_DEBUG("Root size %d", sizeof(Root));
 }
 

@@ -12,11 +12,9 @@ class TestSubcanvas: public Box {
 public:
 	Sp<Canvas> _c;
 
-	void onActivate() override {
-		if (!_c) {
-			_c = window()->render()->newCanvas({.isMipmap=0});
-			_c->setSurface({600},2);
-		}
+	TestSubcanvas(Window *win): Box(win) {
+		_c = window()->render()->newCanvas({.isMipmap=0});
+		_c->setSurface({600},2);
 	}
 
 	void accept(Visitor *vv) override {

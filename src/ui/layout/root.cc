@@ -37,7 +37,7 @@
 
 namespace qk {
 
-	Root::Root(): Box() {}
+	Root::Root(Window *win): Box(win) {}
 
 	void Root::init() {
 		set_receive(true);

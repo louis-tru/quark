@@ -76,13 +76,13 @@ template<> void Property2<TextDecoration>::set_property(List<View*>& views) {
 	}
 }
 template<> void Property2<TextOverflow>::set_property(List<View*>& views) {
-	typedef void (TextLayout::*Func)(TextOverflow);
+	typedef void (Text::*Func)(TextOverflow);
 	for ( auto& i : views ) {
 		(i->as_text_layout()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 	}
 }
 template<> void Property2<TextWhiteSpace>::set_property(List<View*>& views) {
-	typedef void (TextLayout::*Func)(TextWhiteSpace);
+	typedef void (Text::*Func)(TextWhiteSpace);
 	for ( auto& i : views ) {
 		(i->as_text_layout()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 	}
@@ -118,11 +118,11 @@ template<> TextDecoration Property2<TextDecoration>::get_property(View* view) {
 	return (view->as_text_font()->*reinterpret_cast<Func>(_get_property_func))();
 }
 template<> TextOverflow Property2<TextOverflow>::get_property(View* view) {
-	typedef TextOverflow (TextLayout::*Func)() const;
+	typedef TextOverflow (Text::*Func)() const;
 	return (view->as_text_layout()->*reinterpret_cast<Func>(_get_property_func))();
 }
 template<> TextWhiteSpace Property2<TextWhiteSpace>::get_property(View* view) {
-	typedef TextWhiteSpace (TextLayout::*Func)() const;
+	typedef TextWhiteSpace (Text::*Func)() const;
 	return (view->as_text_layout()->*reinterpret_cast<Func>(_get_property_func))();
 }
 

@@ -32,7 +32,7 @@
 #include "../render/canvas.h"
 #include "./window.h"
 #include "./filter.h"
-#include "./view_render.h"
+#include "./ui_render.h"
 #include "./layout/root.h"
 #include "./layout/image.h"
 #include "./layout/flex.h"
@@ -53,10 +53,10 @@ namespace qk {
 		const RectOutlinePath *outline = nullptr;
 	};
 
-	Qk_DEFINE_INLINE_MEMBERS(ViewRender, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(UIRender, Inl) {
 	public:
 		#define _this _inl(this)
-		#define _inl(self) static_cast<ViewRender::Inl*>(self)
+		#define _inl(self) static_cast<UIRender::Inl*>(self)
 
 		Rect getRect(Box* box) {
 			return {
@@ -324,11 +324,11 @@ namespace qk {
 					getInsideRectPath(box, data);
 					_canvas->save();
 					_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
-					ViewRender::visitView(box);
+					UIRender::visitLayout(box);
 					_canvas->restore(); // cancel clip
 				}
 			} else {
-				ViewRender::visitView(box);
+				UIRender::visitLayout(box);
 			}
 		}
 
@@ -372,7 +372,7 @@ namespace qk {
 
 	// --------------------------------------------------------------------------
 
-	ViewRender::ViewRender(Window *window)
+	UIRender::UIRender(Window *window)
 		: _render(window->render()), _canvas(nullptr)
 		, _cache(nullptr)
 		, _window(window)
@@ -382,11 +382,11 @@ namespace qk {
 		_cache = _canvas->getPathvCache();
 	}
 
-	uint32_t ViewRender::flags() {
+	uint32_t UIRender::flags() {
 		return 0;
 	}
 
-	void ViewRender::visitView(View* view) {
+	void UIRender::visitLayout(Layout* view) {
 		// visit child
 		auto v = view->_first;
 		if (v) {
@@ -411,7 +411,7 @@ namespace qk {
 		}
 	}
 
-	void ViewRender::visitBox(Box* box) {
+	void UIRender::visitBox(Box* box) {
 		BoxData data;
 		_canvas->setMatrix(box->matrix());
 		if (box->_box_shadow)
@@ -425,7 +425,7 @@ namespace qk {
 		_this->drawBoxEnd(box, data);
 	}
 
-	void ViewRender::visitImage(Image* v) {
+	void UIRender::visitImage(Image* v) {
 		BoxData data;
 		_canvas->setMatrix(v->matrix());
 		if (v->_box_shadow)
@@ -457,16 +457,16 @@ namespace qk {
 		_this->drawBoxEnd(v, data);
 	}
 
-	void ViewRender::visitVideo(Video* video) {
-		//ViewRender::visitBox(video);
+	void UIRender::visitVideo(Video* video) {
+		//UIRender::visitBox(video);
 	}
 
-	void ViewRender::visitScroll(Scroll* v) {
-		ViewRender::visitBox(v);
+	void UIRender::visitScroll(Scroll* v) {
+		UIRender::visitBox(v);
 		_this->drawScrollBar(v,v);
 	}
 
-	void ViewRender::visitInput(Input* v) {
+	void UIRender::visitInput(Input* v) {
 		BoxData data;
 		_canvas->setMatrix(v->matrix());
 		if (v->_box_shadow)
@@ -565,7 +565,7 @@ namespace qk {
 		}
 	}
 
-	void ViewRender::visitLabel(Label* v) {
+	void UIRender::visitLabel(Label* v) {
 		if (v->_blob_visible.length()) {
 			_canvas->setMatrix(v->matrix());
 
@@ -616,41 +616,41 @@ namespace qk {
 			} // if (v->text_color().value.a())
 		}
 		
-		ViewRender::visitView(v);
+		UIRender::visitLayout(v);
 	}
 
-	void ViewRender::visitTextarea(Textarea* textarea) {
-		ViewRender::visitInput(textarea);
+	void UIRender::visitTextarea(Textarea* textarea) {
+		UIRender::visitInput(textarea);
 	}
 
-	void ViewRender::visitButton(Button* btn) {
-		ViewRender::visitBox(btn);
+	void UIRender::visitButton(Button* btn) {
+		UIRender::visitBox(btn);
 	}
 
-	void ViewRender::visitTextLayout(TextLayout* text) {
-		ViewRender::visitBox(text);
+	void UIRender::visitText(Text* text) {
+		UIRender::visitBox(text);
 	}
 
-	void ViewRender::visitFloatLayout(FloatLayout* box) {
-		ViewRender::visitBox(box);
+	void UIRender::visitFloatLayout(FloatLayout* box) {
+		UIRender::visitBox(box);
 	}
 
-	void ViewRender::visitFlowLayout(FlowLayout* flow) {
-		ViewRender::visitBox(flow);
+	void UIRender::visitFlow(Flow* flow) {
+		UIRender::visitBox(flow);
 	}
 
-	void ViewRender::visitFlexLayout(FlexLayout* flex) {
-		ViewRender::visitBox(flex);
+	void UIRender::visitFlex(Flex* flex) {
+		UIRender::visitBox(flex);
 	}
 
-	void ViewRender::visitTransform(Transform* box) {
+	void UIRender::visitTransform(Transform* box) {
 		auto fixOrigin = _fixOrigin;
 		_fixOrigin -= box->_origin_value;
-		ViewRender::visitBox(box);
+		UIRender::visitBox(box);
 		_fixOrigin = fixOrigin;
 	}
 
-	void ViewRender::visitRoot(Root* v) {
+	void UIRender::visitRoot(Root* v) {
 		if (_canvas && v->_visible) {
 			uint32_t mark = v->mark_value();
 			if (mark) {

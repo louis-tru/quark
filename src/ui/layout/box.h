@@ -31,7 +31,7 @@
 #ifndef __quark__layout__box__
 #define __quark__layout__box__
 
-#include "./view.h"
+#include "./layout.h"
 #include "../filter.h"
 
 namespace qk {
@@ -39,8 +39,8 @@ namespace qk {
 	/**
 		* @class Box
 		*/
-	class Qk_EXPORT Box: public View {
-		Qk_Define_View(Box);
+	class Qk_EXPORT Box: public Layout {
+		Qk_Define_Layout(Box);
 	public:
 		// define props
 		Qk_DEFINE_PROP_GET(bool,       layout_wrap_x); // Returns the x-axis is wrap content
@@ -79,7 +79,7 @@ namespace qk {
 		/**
 		 * @constructor
 		*/
-		Box();
+		Box(Window *win);
 
 		/**
 		 * @destructor

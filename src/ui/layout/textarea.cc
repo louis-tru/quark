@@ -34,7 +34,7 @@
 
 namespace qk {
 
-	Textarea::Textarea(): Input(), BaseScroll(this) {
+	Textarea::Textarea(Window *win): Input(win), BaseScroll(this) {
 	}
 
 	bool Textarea::is_multiline() {

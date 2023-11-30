@@ -36,14 +36,14 @@
 namespace qk {
 
 	class Root: public Box {
-		Qk_Define_View(Root);
+		Qk_Define_Layout(Root);
 	public:
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual Mat  layout_matrix() override;
 		virtual bool can_become_focus() override;
 	private:
-		Root();
+		Root(Window *win);
 		void init();
 		void reload();
 		friend class Window;

@@ -32,7 +32,7 @@
 
 namespace qk {
 
-	Transform::Transform(): Box()
+	Transform::Transform(Window *win): Box(win)
 		, _translate(0), _scale(1), _skew(0), _rotate(0)
 		, _origin_x{0, BoxOriginKind::kPixel}, _origin_y{0, BoxOriginKind::kPixel}
 	{

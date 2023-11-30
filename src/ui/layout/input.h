@@ -41,7 +41,7 @@
 namespace qk {
 
 	class Qk_EXPORT Input: public Box, public TextOptions, public RenderTask, public TextInput {
-		Qk_Define_View(Input);
+		Qk_Define_Layout(Input);
 	public:
 		typedef ReferenceTraits Traits;
 		// define props
@@ -59,7 +59,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(String, placeholder);
 		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length);
 
-		Input();
+		Input(Window *win);
 		// virtual func
 		virtual bool is_multiline();
 		// @override

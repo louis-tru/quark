@@ -537,14 +537,15 @@ namespace qk {
 		void trigger_change() {
 			shared_app()->loop()->post(Cb([this](Cb::Data& e){
 				Handle<UIEvent> evt = qk::New<UIEvent>(this);
-				trigger(UIEvent_Change, **evt); // trigger event
+				// TODO ...
+				//trigger(UIEvent_Change, **evt); // trigger event
 			}, this));
 		}
 
 	};
 
-	Input::Input()
-		: Box()
+	Input::Input(Window *win)
+		: Box(win)
 		, _security(false), _readonly(false)
 		, _text_align(TextAlign::kLeft)
 		, _type(KeyboardType::kNormal)
@@ -563,17 +564,18 @@ namespace qk {
 		set_receive(true);
 		set_text_word_break(TextWordBreak::kBreakWord);
 		// bind events
-		add_event_listener(UIEvent_Click, &Inl::click_handle, Inl_Input(this));
-		add_event_listener(UIEvent_TouchStart, &Inl::touchstart_handle, Inl_Input(this));
-		add_event_listener(UIEvent_TouchMove, &Inl::touchmove_handle, Inl_Input(this));
-		add_event_listener(UIEvent_TouchEnd, &Inl::touchend_handle, Inl_Input(this));
-		add_event_listener(UIEvent_TouchCancel, &Inl::touchend_handle, Inl_Input(this));
-		add_event_listener(UIEvent_MouseDown, &Inl::mousedown_handle, Inl_Input(this));
-		add_event_listener(UIEvent_MouseMove, &Inl::mousemove_handle, Inl_Input(this));
-		add_event_listener(UIEvent_MouseUp, &Inl::mouseup_handle, Inl_Input(this));
-		add_event_listener(UIEvent_Focus, &Inl::focus_handle, Inl_Input(this));
-		add_event_listener(UIEvent_Blur, &Inl::blur_handle, Inl_Input(this));
-		add_event_listener(UIEvent_KeyDown, &Inl::keydown_handle, Inl_Input(this));
+		// TODO ...
+//		add_event_listener(UIEvent_Click, &Inl::click_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_TouchStart, &Inl::touchstart_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_TouchMove, &Inl::touchmove_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_TouchEnd, &Inl::touchend_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_TouchCancel, &Inl::touchend_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_MouseDown, &Inl::mousedown_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_MouseMove, &Inl::mousemove_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_MouseUp, &Inl::mouseup_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_Focus, &Inl::focus_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_Blur, &Inl::blur_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_KeyDown, &Inl::keydown_handle, Inl_Input(this));
 	}
 
 	bool Input::is_multiline() {

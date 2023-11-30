@@ -83,7 +83,7 @@ namespace qk {
 
 	// auto typesetting of horizontal or vertical
 	template<bool is_horizontal>
-	void FlexLayout::layout_typesetting_auto(bool is_reverse) {
+	void Flex::layout_typesetting_auto(bool is_reverse) {
 		// get layouts raw size total
 		Size cur_size = layout_size();
 		Vec2 cur = cur_size.content_size;
@@ -138,7 +138,7 @@ namespace qk {
 
 	// flex typesetting of horizontal or vertical
 	template<bool is_horizontal>
-	void FlexLayout::layout_typesetting_flex(bool is_reverse) { // flex
+	void Flex::layout_typesetting_flex(bool is_reverse) { // flex
 		Size cur_size = layout_size();
 		Vec2 cur = cur_size.content_size;
 		bool is_wrap_cross = is_horizontal ? cur_size.wrap_y: cur_size.wrap_x;
@@ -222,7 +222,7 @@ namespace qk {
 		}
 	}
 	
-	void FlexLayout::layout_typesetting_auto_impl(bool is_horizontal, bool is_reverse) {
+	void Flex::layout_typesetting_auto_impl(bool is_horizontal, bool is_reverse) {
 		if (is_horizontal) {
 			layout_typesetting_auto<true>(is_reverse);
 		} else {
@@ -230,8 +230,8 @@ namespace qk {
 		}
 	}
 
-	FlexLayout::FlexLayout()
-		: Box()
+	Flex::Flex(Window *win)
+		: Box(win)
 		, _direction(Direction::kRow)
 		, _items_align(ItemsAlign::kStart)
 		, _cross_align(CrossAlign::kStart)
@@ -239,28 +239,28 @@ namespace qk {
 	{
 	}
 
-	void FlexLayout::set_direction(Direction val) {
+	void Flex::set_direction(Direction val) {
 		if (val != _direction) {
 			_direction = val;
 			mark_layout(kLayout_Typesetting); // 排版参数改变,后续需对子布局重新排版
 		}
 	}
 
-	void FlexLayout::set_items_align(ItemsAlign align) {
+	void Flex::set_items_align(ItemsAlign align) {
 		if (align != _items_align) {
 			_items_align = align;
 			mark_layout(kLayout_Typesetting);
 		}
 	}
 
-	void FlexLayout::set_cross_align(CrossAlign align) {
+	void Flex::set_cross_align(CrossAlign align) {
 		if (align != _cross_align) {
 			_cross_align = align;
 			mark_layout(kLayout_Typesetting);
 		}
 	}
 
-	bool FlexLayout::update_IsLockChild() {
+	bool Flex::update_IsLockChild() {
 		bool is_lock_child = false;
 
 		if (parent()->is_lock_child_layout_size()) { // parent lock
@@ -278,7 +278,7 @@ namespace qk {
 		return false;
 	}
 
-	bool FlexLayout::layout_forward(uint32_t _mark) {
+	bool Flex::layout_forward(uint32_t _mark) {
 		if (_mark & (kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height)) {
 			auto layout_content_size_change_mark = solve_layout_size_forward(_mark);
 
@@ -355,7 +355,7 @@ namespace qk {
 		return true; // complete
 	}
 
-	bool FlexLayout::layout_reverse(uint32_t mark) {
+	bool Flex::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
@@ -406,17 +406,17 @@ namespace qk {
 		return true; // complete
 	}
 
-	Vec2 FlexLayout::layout_lock(Vec2 layout_size) {
+	Vec2 Flex::layout_lock(Vec2 layout_size) {
 		bool is_wrap[2] = { false, false};
 		set_layout_size(layout_size, is_wrap, true);
 		return _layout_size;
 	}
 
-	bool FlexLayout::is_lock_child_layout_size() {
+	bool Flex::is_lock_child_layout_size() {
 		return _is_lock_child;
 	}
 
-	void FlexLayout::onChildLayoutChange(Layout* child, uint32_t value) {
+	void Flex::onChildLayoutChange(Layout* child, uint32_t value) {
 		if (value & (kChild_Layout_Size | kChild_Layout_Align | 
 								kChild_Layout_Visible | kChild_Layout_Weight | kChild_Layout_Text)) {
 			mark_layout(kLayout_Typesetting);

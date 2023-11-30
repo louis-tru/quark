@@ -39,15 +39,15 @@
 
 namespace qk {
 	class Application;
-	class ViewRender;
+	class UIRender;
 	class Root;
 	class EventDispatch;
 	class WindowImpl; // window platform impl
 	class RenderTask;
-	class View;
+	class Layout;
 	class Window;
 
-	typedef View Layout;
+	typedef Layout View;
 
 	/**
 	 * Note: If `main loop` and `render loop` run in different threads,
@@ -206,7 +206,7 @@ namespace qk {
 		Window(Options &opts);
 
 		// props data
-		ViewRender     *_viewRender;
+		UIRender       *_uiRender;
 		Vec2           _lockSize;  //!< Lock the size of the viewport
 		List<Cb>       _nextFrame;
 		uint32_t       _nextFsp;

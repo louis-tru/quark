@@ -10,7 +10,7 @@ using namespace qk;
 
 class TestOutImg: public Box {
 public:
-
+	TestOutImg(Window *win): Box(win) {}
 	void accept(Visitor *vv) override {
 		if (vv->flags()) return;
 		auto canvas = window()->render()->getCanvas();

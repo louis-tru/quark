@@ -39,7 +39,7 @@ namespace qk {
 	#define Qk_Each_View(F) \
 		F(View)  F(Box) F(Transform) \
 		F(Image) F(Video) F(Scroll) F(Button) F(FloatLayout) F(Textarea) \
-		F(Label) F(Input) F(Root) F(TextLayout) F(FlexLayout) F(FlowLayout)
+		F(Label) F(Input) F(Root) F(Text) F(Flex) F(Flow)
 
 	#define Qk_Define_View(N) \
 	public: \

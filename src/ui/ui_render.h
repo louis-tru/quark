@@ -33,7 +33,7 @@
 #ifndef __quark__view_render__
 #define __quark__view_render__
 
-#include "./layout/view.h"
+#include "./layout/layout.h"
 #include "../render/render.h"
 #include "../render/canvas.h"
 
@@ -41,13 +41,13 @@ namespace qk {
 
 	class Window;
 
-	class Qk_EXPORT ViewRender: public Object, public ViewVisitor {
-		Qk_HIDDEN_ALL_COPY(ViewRender);
+	class Qk_EXPORT UIRender: public Object, public LayoutVisitor {
+		Qk_HIDDEN_ALL_COPY(UIRender);
 	public:
 		Qk_DEFINE_PROP_GET(Render*, render);
-		ViewRender(Window *window);
+		UIRender(Window *window);
 		virtual uint32_t flags() override;
-		virtual void visitView(View* v) override;
+		virtual void visitLayout(View* v) override;
 		virtual void visitBox(Box* box) override;
 		virtual void visitImage(Image* image) override;
 		virtual void visitVideo(Video* video) override;
@@ -55,12 +55,12 @@ namespace qk {
 		virtual void visitInput(Input* input) override;
 		virtual void visitTextarea(Textarea* textarea) override;
 		virtual void visitButton(Button* btn) override;
-		virtual void visitTextLayout(TextLayout* text) override;
+		virtual void visitText(Text* text) override;
 		virtual void visitLabel(Label* label) override;
 		virtual void visitRoot(Root* root) override;
 		virtual void visitFloatLayout(FloatLayout* flow) override;
-		virtual void visitFlowLayout(FlowLayout* flow) override;
-		virtual void visitFlexLayout(FlexLayout* flex) override;
+		virtual void visitFlow(Flow* flow) override;
+		virtual void visitFlex(Flex* flex) override;
 		virtual void visitTransform(Transform* transform) override;
 
 	private:

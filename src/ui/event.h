@@ -81,10 +81,12 @@
 
 namespace qk {
 	class Application;
-	class View;
+	class Layout;
 	class Action;
 	class TextInput;
 	class Window;
+
+typedef Layout View;
 
 	// event category
 	enum {

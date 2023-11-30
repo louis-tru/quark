@@ -155,8 +155,8 @@ namespace qk {
 		}
 		
 		// text-layout
-		set_func(font, TextLayout, PROPERTY_TEXT_OVERFLOW, text_overflow);
-		set_func(font, TextLayout, PROPERTY_TEXT_WHITE_SPACE, text_white_space);
+		set_func(font, Text, PROPERTY_TEXT_OVERFLOW, text_overflow);
+		set_func(font, Text, PROPERTY_TEXT_WHITE_SPACE, text_white_space);
 		
 		for (auto& i : font) { // extend
 			_property_func_table[View::HYBRID].set(i.key, i.value);  // hybrid

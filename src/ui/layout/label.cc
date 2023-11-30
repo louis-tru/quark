@@ -34,7 +34,7 @@
 
 namespace qk {
 
-	Label::Label(): View() {}
+	Label::Label(Window *win): Layout(win) {}
 
 	void Label::set_text_value(String val) {
 		if (_text_value != val) {

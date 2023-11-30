@@ -47,7 +47,7 @@ public:
 	typedef T (View::*Get)();
 	typedef void (View::*Set)(T value);
 	typedef void (TextFont::*Set2)(T value);
-	typedef void (TextLayout::*Set3)(T value);
+	typedef void (Text::*Set3)(T value);
 	
 	CSSProperty(T value): _value(value) {}
 	virtual ~CSSProperty() {}

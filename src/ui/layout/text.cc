@@ -34,16 +34,16 @@
 
 namespace qk {
 
-	TextLayout::TextLayout(): Box(), _text_align(TextAlign::kLeft) {}
+	Text::Text(Window *win): Box(win), _text_align(TextAlign::kLeft) {}
 
-	void TextLayout::set_text_align(TextAlign value) {
+	void Text::set_text_align(TextAlign value) {
 		if(_text_align != value) {
 			_text_align = value;
 			mark_layout(kLayout_Typesetting);
 		}
 	}
 
-	bool TextLayout::layout_reverse(uint32_t mark) {
+	bool Text::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
@@ -80,11 +80,11 @@ namespace qk {
 		return true; // complete
 	}
 
-	void TextLayout::onTextChange(uint32_t value) {
+	void Text::onTextChange(uint32_t value) {
 		value ? mark_layout(value): mark_render();
 	}
 
-	bool TextLayout::solve_visible_region() {
+	bool Text::solve_visible_region() {
 		bool ok = Box::solve_visible_region();
 		if (ok && _lines) {
 			_lines->solve_visible_region();
@@ -92,7 +92,7 @@ namespace qk {
 		return ok;
 	}
 
-	void TextLayout::onActivate() {
+	void Text::onActivate() {
 		_text_flags = 0xffffffffu;
 	}
 
