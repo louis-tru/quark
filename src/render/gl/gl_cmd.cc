@@ -408,8 +408,8 @@ namespace qk {
 			for (int i = 0; i < 4; i++) {
 				auto p = p_[i];
 				float v[] = { c[0],c[1],p[0],c[1],p[0],p[1],c[0],p[1] };
-				float r0 = Float::min(Vec2(r[i], s1).length(), rmax); // len
-				float r1 = Float::min(Vec2(r[i], s2).length(), rmax);
+				float r0 = Float32::min(Vec2(r[i], s1).length(), rmax); // len
+				float r1 = Float32::min(Vec2(r[i], s2).length(), rmax);
 				float n = 2.0 * r1 / r0;
 				glUniform3f(sh->__, r1, n, 1.0/n);
 				glUniform2f(sh->horn, p[0], p[1]);
@@ -611,7 +611,7 @@ namespace qk {
 			size *= _canvas->_surfaceScale;
 			n = ceilf(size); // sampling rate
 			n = N[Qk_MIN(n,19)];
-			lod = ceilf(Float::max(0,log2f(size/n)));
+			lod = ceilf(Float32::max(0,log2f(size/n)));
 			// Qk_DEBUG("getBlurSampling %d, lod: %d", n, lod);
 		}
 

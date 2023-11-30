@@ -246,7 +246,7 @@ namespace qk {
 		if (miterLimit == 0)
 			miterLimit = 1024.0;
 
-		miterLimit = Float::min(miterLimit, 1024);
+		miterLimit = Float32::min(miterLimit, 1024);
 		width *= 0.5;
 
 		Path tmp,out;

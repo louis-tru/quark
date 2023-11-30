@@ -78,10 +78,10 @@ namespace qk {
 
 				out.inside = _cache->getRRectPathFromHash(hash.hashCode());
 				if (!out.inside) {
-					float xy_0_5    = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
+					float xy_0_5    = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 					float borderFix[4] = {
-						Float::max(0, border[0]-_fixSize), Float::max(0, border[1]-_fixSize),
-						Float::max(0, border[2]-_fixSize), Float::max(0, border[3]-_fixSize),
+						Float32::max(0, border[0]-_fixSize), Float32::max(0, border[1]-_fixSize),
+						Float32::max(0, border[2]-_fixSize), Float32::max(0, border[3]-_fixSize),
 					};
 					rect.origin[0] += borderFix[3]; // left
 					rect.origin[1] += borderFix[0]; // top
@@ -119,8 +119,8 @@ namespace qk {
 			if (!out.outline) {
 				auto border = box->_border->width;
 				float borderFix[4] = {
-					Float::max(0, border[0]-_fixSize), Float::max(0, border[1]-_fixSize),
-					Float::max(0, border[2]-_fixSize), Float::max(0, border[3]-_fixSize),
+					Float32::max(0, border[0]-_fixSize), Float32::max(0, border[1]-_fixSize),
+					Float32::max(0, border[2]-_fixSize), Float32::max(0, border[3]-_fixSize),
 				};
 				out.outline = &_cache->getRRectOutlinePath(getRect(box), borderFix, &box->_radius_left_top);
 			}
@@ -631,7 +631,7 @@ namespace qk {
 		UIRender::visitBox(text);
 	}
 
-	void UIRender::visitFloatLayout(FloatLayout* box) {
+	void UIRender::visitFloat(Float* box) {
 		UIRender::visitBox(box);
 	}
 

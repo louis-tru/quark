@@ -35,8 +35,6 @@
 
 #include "../../util/util.h"
 
-using namespace qk;
-
 typedef uint8_t Qk_OT_BYTE;
 #if CHAR_BIT == 8
 typedef signed char Qk_OT_CHAR; //easier to debug

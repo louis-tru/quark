@@ -58,7 +58,7 @@ namespace qk {
 		virtual void visitText(Text* text) override;
 		virtual void visitLabel(Label* label) override;
 		virtual void visitRoot(Root* root) override;
-		virtual void visitFloatLayout(FloatLayout* flow) override;
+		virtual void visitFloat(Float* flow) override;
 		virtual void visitFlow(Flow* flow) override;
 		virtual void visitFlex(Flex* flex) override;
 		virtual void visitTransform(Transform* transform) override;

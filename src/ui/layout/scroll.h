@@ -86,7 +86,7 @@ namespace qk {
 		bool _lock_h, _lock_v;
 	};
 
-	class Qk_EXPORT Scroll: public FloatLayout, public BaseScroll {
+	class Qk_EXPORT Scroll: public Float, public BaseScroll {
 		Qk_Define_Layout(Scroll);
 	public:
 		Scroll(Window *win);

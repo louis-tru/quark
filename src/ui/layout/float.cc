@@ -32,9 +32,9 @@
 
 namespace qk {
 
-	FloatLayout::FloatLayout(Window *win): Box(win) {}
+	Float::Float(Window *win): Box(win) {}
 
-	bool FloatLayout::layout_reverse(uint32_t mark) {
+	bool Float::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return false; // continue iteration
 			layout_typesetting_float();
@@ -42,7 +42,7 @@ namespace qk {
 		return true; // complete iterations
 	}
 
-	Vec2 FloatLayout::layout_typesetting_float() {
+	Vec2 Float::layout_typesetting_float() {
 		Vec2 full_size;
 
 		auto v = first();
@@ -54,7 +54,7 @@ namespace qk {
 				size_x = 0;
 				do {
 					if (v->visible()) {
-						size_x = Float::max(size_x, v->layout_size().layout_size.x());
+						size_x = Float32::max(size_x, v->layout_size().layout_size.x());
 					}
 					v = v->next();
 				} while(v);
@@ -71,10 +71,10 @@ namespace qk {
 					auto size = v->layout_size().layout_size;
 					auto new_width = line_width + size.x();
 
-					line_height = Float::max(line_height, size.y());
+					line_height = Float32::max(line_height, size.y());
 
 					if (new_width > size_x && line_width != 0) { // new line
-						max_width = Float::max(max_width, line_width);
+						max_width = Float32::max(max_width, line_width);
 						offset_left = offset_right = 0;
 						offset_y += line_height;
 						line_width = size.x();
@@ -103,7 +103,7 @@ namespace qk {
 				v = v->next();
 			} while(v);
 
-			max_width = Float::max(max_width, line_width);
+			max_width = Float32::max(max_width, line_width);
 			full_size = Vec2(max_width, offset_y + line_height);
 
 			Vec2 new_size(

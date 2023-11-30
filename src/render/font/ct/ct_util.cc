@@ -28,13 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "./ct_util.h"
 #include "../../../util/array.h"
 #include "../sfnt/QkOTTable_OS_2.h"
 #include "../sfnt/QkSFNTHeader.h"
-#include "./ct_util.h"
 #include <dlfcn.h>
-
-using namespace qk;
 
 static constexpr CGBitmapInfo kBitmapInfoRGB = ((CGBitmapInfo)kCGImageAlphaNoneSkipFirst |
                                                 kCGBitmapByteOrder32Host);

@@ -109,10 +109,10 @@ namespace qk {
 		origin = inside_origin;
 		end    = inside_end;
 
-		a = { Float::max(a.x() - left, 0.0), Float::max(a.y() - top, 0.0) }; // left/top
-		b = { Float::max(b.x() - right, 0.0), Float::max(b.y() - top, 0.0) }; // left/bottom
-		c = { Float::max(c.x() - right, 0.0), Float::max(c.y() - bottom, 0.0) }; // right/bottom
-		d = { Float::max(d.x() - left, 0.0), Float::max(d.y() - bottom, 0.0) }; // right/top
+		a = { Float32::max(a.x() - left, 0.0), Float32::max(a.y() - top, 0.0) }; // left/top
+		b = { Float32::max(b.x() - right, 0.0), Float32::max(b.y() - top, 0.0) }; // left/bottom
+		c = { Float32::max(c.x() - right, 0.0), Float32::max(c.y() - bottom, 0.0) }; // right/bottom
+		d = { Float32::max(d.x() - left, 0.0), Float32::max(d.y() - bottom, 0.0) }; // right/top
 
 		// ccw
 		arc(origin, a, Vec2(0), Qk_PI_2_1, Qk_PI_2_1); // left-top
@@ -449,7 +449,7 @@ namespace qk {
 			do {
 				stageIdx = (stageIdx + step + stageCount) % stageCount;
 				stage = stageP[stageIdx];
-				auto use = Float::min(offset, stage);
+				auto use = Float32::min(offset, stage);
 				stage -= use;
 				offset -= use;
 			} while (offset > 0);
@@ -470,7 +470,7 @@ namespace qk {
 					nextStage();
 					if (useStage) out.moveTo(from);
 				}
-				float use = Float::min(len - useLen, stage);
+				float use = Float32::min(len - useLen, stage);
 				useLen += use; stage -= use;
 				from = start + point * Vec2(useLen / len);
 			}
@@ -540,8 +540,8 @@ namespace qk {
 	// get rect bounds from pts
 	Region Path::getBoundsFromPoints(const Vec2 *pts, uint32_t ptsLen, const Mat* mat) {
 		const Vec2* e = pts + ptsLen;
-		float top = Float::limit_max,
-					right = Float::limit_min,
+		float top = Float32::limit_max,
+					right = Float32::limit_min,
 					bottom = right, left = top;
 		Vec2 offset;
 		bool isMul = false;

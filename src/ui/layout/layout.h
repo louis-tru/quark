@@ -41,7 +41,7 @@ namespace qk {
 		F(Image)  F(Video) F(Scroll) F(Button) F(Textarea) \
 		F(Label)  F(Input) F(Root) \
 		/*Main Layout*/\
-		F(Flex) F(Flow) F(Text) F(FloatLayout)
+		F(Flex) F(Flow) F(Text) F(Float)
 
 	#define Qk_Define_Layout(N) \
 	public: \

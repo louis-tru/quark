@@ -53,7 +53,7 @@ namespace qk {
 		_preLayout.clear();
 		_preLayout.push(Array<Layout*>());
 		_max_width = 0;
-		_min_origin = Float::limit_max;
+		_min_origin = Float32::limit_max;
 		_visible_region = false;
 	}
 

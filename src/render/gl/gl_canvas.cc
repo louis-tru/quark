@@ -628,8 +628,8 @@ namespace qk {
 	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) {
 		auto o = src.origin;
 		auto s = Vec2{
-			Float::min(o.x()+src.size.x(), _size.x()) - o.x(),
-			Float::min(o.y()+src.size.y(), _size.y()) - o.y()
+			Float32::min(o.x()+src.size.x(), _size.x()) - o.x(),
+			Float32::min(o.y()+src.size.y(), _size.y()) - o.y()
 		};
 		if (s[0] > 0 && s[1] > 0 && dest[0] > 0 && dest[1] > 0) {
 			auto img = new ImageSource({

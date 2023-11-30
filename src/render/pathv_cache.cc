@@ -186,7 +186,7 @@ namespace qk {
 		{
 			return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 		} else {
-			float xy_0_5 = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
+			float xy_0_5 = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 			Path::BorderRadius Br{
 				Qk_MIN(radius[0], xy_0_5), Qk_MIN(radius[1], xy_0_5),
 				Qk_MIN(radius[2], xy_0_5), Qk_MIN(radius[3], xy_0_5),
@@ -207,7 +207,7 @@ namespace qk {
 		{
 				return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, border));
 		} else {
-			float xy_0_5 = Float::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
+			float xy_0_5 = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 			Path::BorderRadius Br{
 				{Qk_MIN(radius[0],xy_0_5)}, {Qk_MIN(radius[1],xy_0_5)},
 				{Qk_MIN(radius[2],xy_0_5)}, {Qk_MIN(radius[3],xy_0_5)},
