@@ -39,8 +39,7 @@ namespace qk {
 	/**
 		* @class Box
 		*/
-	class Qk_EXPORT Box: public Layout {
-		Qk_Define_Layout(Box);
+	class Qk_EXPORT BoxLayout: public Layout {
 	public:
 		// define props
 		Qk_DEFINE_PROP_GET(bool,       layout_wrap_x); // Returns the x-axis is wrap content
@@ -79,12 +78,12 @@ namespace qk {
 		/**
 		 * @constructor
 		*/
-		Box(Window *win);
+		BoxLayout(Window *win);
 
 		/**
 		 * @destructor
 		*/
-		virtual ~Box();
+		virtual ~BoxLayout();
 
 		/**
 			*
@@ -125,6 +124,7 @@ namespace qk {
 		virtual bool overlap_test(Vec2 point) override;
 		virtual Vec2 position() override;
 		virtual bool clip() override;
+		virtual void draw(UIRender *render) override;
 
 		/**
 			* client rect = border + padding + content
@@ -171,6 +171,8 @@ namespace qk {
 		float _layout_weight; // layout weight
 		Vec2  _vertex[4];     // box vertex
 		Align _layout_align;  // layout align
+
+		friend class UIRender;
 	};
 
 	/**

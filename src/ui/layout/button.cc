@@ -32,19 +32,19 @@
 
 namespace qk {
 
-	Button::Button(Window *win): Text(win) {
+	ButtonLayout::ButtonLayout(Window *win): TextLayout(win) {
 		set_receive(true); // default enable event receive
 	}
 
-	bool Button::can_become_focus() {
+	bool ButtonLayout::can_become_focus() {
 		return true;
 	}
 
-	Button* Button::as_button() {
+	ButtonLayout* ButtonLayout::as_button() {
 		return this;
 	}
 
-	Button* Button::next_button(FindDirection dir) {
+	ButtonLayout* ButtonLayout::next_button(FindDirection dir) {
 		// if ( (panel = button->panel()) && panel->enable_select() ) {}
 		return nullptr;
 	}

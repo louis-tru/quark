@@ -10,13 +10,11 @@ using namespace qk;
 
 constexpr unsigned int u32 = 1;
 
-class TestBlur: public Box {
+class TestBlur: public BoxLayout {
 public:
 	float i = 0;
-	TestBlur(Window *win): Box(win) {}
 
-	void accept(Visitor *vv) override {
-		if (vv->flags()) return;
+	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 

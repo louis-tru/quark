@@ -35,40 +35,30 @@
 #include "../event.h"
 
 namespace qk {
-
-	#define Qk_Each_Layout(F) \
-		F(Layout) F(Box) F(Transform) \
-		F(Image)  F(Video) F(Scroll) F(Button) F(Textarea) \
-		F(Label)  F(Input) F(Root) \
-		/*Main Layout*/\
-		F(Flex) F(Flow) F(Text) F(Float)
-
-	#define Qk_Define_Layout(N) \
-	public: \
-		friend class UIRender; \
-		virtual void accept(Visitor *visitor) override { visitor->visit##N(this); } \
-
-	class UIRender;
 	class TextInput;
+	class ButtonLayout;
 	class TextLines;
 	class TextConfig;
+	class UIRender;
 	class Window;
-
-	Qk_DEFINE_VISITOR(Layout, Qk_Each_Layout);
+	class View;
+	class EventDispatch;
 
 	/**
-		* The basic elements of UI tree
+		* Layout tree nodes that can only be called in rendering threads.
+		* 
+		* The local tree receives command messages sent by the view tree and executes them in the rendering thread.
 		*
 	 * @class Layout
 		*/
 	class Qk_EXPORT Layout: public Reference {
 		Qk_HIDDEN_ALL_COPY(Layout);
-		/* 下一个预处理视图标记
-		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
-		*  同一时间不会所有视图都会发生改变,如果视图树很庞大的时候,
-		*  如果涉及到布局时为了跟踪其中一个视图的变化就需要遍历整颗视图树,为了避免这种情况
-		*  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
-		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
+		/* Next preprocessing layout tag
+		* You need to call `layout_forward` and `layout_reverse` to process these marked layouts before drawing.
+		* Not all layouts will change at the same time. If the layout tree is very large,
+		* If it comes to layout, in order to track changes in one of the layout nodes, it is necessary to traverse the entire layout tree. In order to avoid this situation
+		* Separate the marked views outside the layout, classify them according to the layout level, and store them in the form of a two-way circular linked list (PreRender)
+		* This avoids accessing views that have not changed and allows them to be accessed sequentially according to the layout hierarchy.
 		*/
 		int32_t _mark_index;
 	protected:
@@ -105,13 +95,11 @@ namespace qk {
 			bool wrap_x, wrap_y;
 		};
 
-		typedef LayoutVisitor Visitor;
-
 		/* 
 		* @field mark_value
 		*
-		* 标记后的视图会在开始帧绘制前进行更新.
-		* 运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
+		* The marked layout will be updated before starting frame drawing.
+		* During operation, layout local attributes may be updated frequently or the layout may rarely change.
 		*/
 		Qk_DEFINE_PROP_GET(uint32_t, mark_value);
 
@@ -127,6 +115,11 @@ namespace qk {
 		* @field window
 		*/
 		Qk_DEFINE_PROP_GET(Window*, window);
+
+		/*
+		* @field window
+		*/
+		Qk_DEFINE_PROP_GET(View*, view);
 
 		/**
 		 * parent layout view
@@ -164,41 +157,6 @@ namespace qk {
 		 * @destructor
 		*/
 		virtual ~Layout();
-
-		// ---------------------------------
-		bool is_focus() { return false; }
-		bool focus();
-		bool blur() { return false; };
-		bool is_self_child(View *child) {return false;}
-		virtual bool can_become_focus() { return false; }
-		virtual bool clip() { return false; }
-		// ---------------------------------
-
-		template<class T = Layout> inline T* prepend_new() {
-			return New<T>(_window)->template prepend_to<T>(this);
-		}
-
-		template<class T = Layout> inline T* append_new() {
-			return New<T>(_window)->template append_to<T>(this);
-		}
-
-		/**
-		 * Prepend subview to parent
-		 *
-		 * @method prepend_to(parent)
-		 */
-		template<class T = Layout> inline T* prepend_to(Layout* parent) {
-			parent->prepend(this); return static_cast<T*>(this);
-		}
-
-		/**
-		 * Append subview to parent
-		 *
-		 * @method append_to(parent)
-		 */
-		template<class T = Layout> inline T* append_to(Layout* parent) {
-			parent->append(this); return static_cast<T*>(this);
-		}
 
 		/**
 			*
@@ -262,13 +220,12 @@ namespace qk {
 		 * 
 		 * @method as_buttn()
 		*/
-		virtual Button* as_button();
+		virtual ButtonLayout* as_button();
 
 		/**
-		 * define access receiver
-		 * @method accept()
+		 * @method draw()
 		 */
-		virtual void accept(Visitor *visitor);
+		virtual void draw(UIRender *render);
 
 		/**
 			*
@@ -465,6 +422,22 @@ namespace qk {
 		virtual void onActivate();
 
 		/**
+		 *
+		 * is clip render the view
+		 *
+		 * @method clip()
+		 */
+		virtual bool clip();
+
+		/**
+		 *
+		 * Can it be the focus
+		 *
+		 * @method can_become_focus()
+		 */
+		virtual bool can_become_focus();
+
+		/**
 			* @func mark_layout(mark)
 			*/
 		void mark_layout(uint32_t mark);
@@ -492,9 +465,12 @@ namespace qk {
 		void set_level_(uint32_t level); // settings depth
 		void set_visible_(bool visible, uint32_t level);
 
-		Qk_DEFINE_INLINE_CLASS(InlEvent);
 		friend class UIRender;
 		friend class Window;
+		friend class EventDispatch;
+		friend class View;
+
+		Qk_DEFINE_INLINE_CLASS(InlEvent);
 	};
 
 }

@@ -32,9 +32,9 @@
 
 namespace qk {
 
-	Float::Float(Window *win): Box(win) {}
+	FloatLayout::FloatLayout(Window *win): BoxLayout(win) {}
 
-	bool Float::layout_reverse(uint32_t mark) {
+	bool FloatLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return false; // continue iteration
 			layout_typesetting_float();
@@ -42,7 +42,7 @@ namespace qk {
 		return true; // complete iterations
 	}
 
-	Vec2 Float::layout_typesetting_float() {
+	Vec2 FloatLayout::layout_typesetting_float() {
 		Vec2 full_size;
 
 		auto v = first();

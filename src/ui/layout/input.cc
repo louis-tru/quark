@@ -49,7 +49,8 @@ namespace qk {
 		kFlag_Disable_Click_Find, // 禁用点击聚焦
 	};
 
-	Qk_DEFINE_INLINE_MEMBERS(Input, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(InputLayout, Inl) {
+		#define _this static_cast<InputLayout::Inl*>(this)
 	public:
 
 		void touchstart_handle(UIEvent& evt) {
@@ -239,7 +240,7 @@ namespace qk {
 			} else {
 				if ( _flag == kFlag_Check_Move_Focus ) { // 已经开始检测
 					if ( is_multiline() ) { // 多行移动后禁用点击聚焦
-						auto textarea = static_cast<Textarea*>(static_cast<Input*>(this));
+						auto textarea = static_cast<TextareaLayout*>(static_cast<InputLayout*>(this));
 						if ( textarea->scroll_x() != 0 || textarea->scroll_y() != 0 ) {
 							// 计算移动距离
 							float d = sqrtf(powf(point.x() - _point.x(), 2) + powf(point.y() - _point.y(), 2));
@@ -544,8 +545,8 @@ namespace qk {
 
 	};
 
-	Input::Input(Window *win)
-		: Box(win)
+	InputLayout::InputLayout(Window *win)
+		: BoxLayout(win)
 		, _security(false), _readonly(false)
 		, _text_align(TextAlign::kLeft)
 		, _type(KeyboardType::kNormal)
@@ -561,35 +562,35 @@ namespace qk {
 		, _editing(false), _cursor_twinkle_status(true), _flag(kFlag_Normal)
 	{
 		set_is_clip(true);
-		set_receive(true);
+		//set_receive(true);
 		set_text_word_break(TextWordBreak::kBreakWord);
 		// bind events
 		// TODO ...
-//		add_event_listener(UIEvent_Click, &Inl::click_handle, Inl_Input(this));
-//		add_event_listener(UIEvent_TouchStart, &Inl::touchstart_handle, Inl_Input(this));
-//		add_event_listener(UIEvent_TouchMove, &Inl::touchmove_handle, Inl_Input(this));
-//		add_event_listener(UIEvent_TouchEnd, &Inl::touchend_handle, Inl_Input(this));
-//		add_event_listener(UIEvent_TouchCancel, &Inl::touchend_handle, Inl_Input(this));
-//		add_event_listener(UIEvent_MouseDown, &Inl::mousedown_handle, Inl_Input(this));
-//		add_event_listener(UIEvent_MouseMove, &Inl::mousemove_handle, Inl_Input(this));
-//		add_event_listener(UIEvent_MouseUp, &Inl::mouseup_handle, Inl_Input(this));
-//		add_event_listener(UIEvent_Focus, &Inl::focus_handle, Inl_Input(this));
-//		add_event_listener(UIEvent_Blur, &Inl::blur_handle, Inl_Input(this));
-//		add_event_listener(UIEvent_KeyDown, &Inl::keydown_handle, Inl_Input(this));
+//		add_event_listener(UIEvent_Click, &Inl::click_handle, _this);
+//		add_event_listener(UIEvent_TouchStart, &Inl::touchstart_handle, _this);
+//		add_event_listener(UIEvent_TouchMove, &Inl::touchmove_handle, _this);
+//		add_event_listener(UIEvent_TouchEnd, &Inl::touchend_handle, _this);
+//		add_event_listener(UIEvent_TouchCancel, &Inl::touchend_handle, _this);
+//		add_event_listener(UIEvent_MouseDown, &Inl::mousedown_handle, _this);
+//		add_event_listener(UIEvent_MouseMove, &Inl::mousemove_handle, _this);
+//		add_event_listener(UIEvent_MouseUp, &Inl::mouseup_handle, _this);
+//		add_event_listener(UIEvent_Focus, &Inl::focus_handle, _this);
+//		add_event_listener(UIEvent_Blur, &Inl::blur_handle, _this);
+//		add_event_listener(UIEvent_KeyDown, &Inl::keydown_handle, _this);
 	}
 
-	bool Input::is_multiline() {
+	bool InputLayout::is_multiline() {
 		return false;
 	}
 
-	void Input::set_text_align(TextAlign val) {
+	void InputLayout::set_text_align(TextAlign val) {
 		if(_text_align != val) {
 			_text_align = val;
 			mark_layout(kLayout_Typesetting);
 		}
 	}
 
-	void Input::set_text_value_u4(String4 val) {
+	void InputLayout::set_text_value_u4(String4 val) {
 		if (_text_value_u4 != val) {
 			_text_value_u4 = val;
 			mark_layout(kLayout_Typesetting);
@@ -597,23 +598,23 @@ namespace qk {
 		}
 	}
 
-	String Input::text_value() const {
+	String InputLayout::text_value() const {
 		return String(codec_encode(kUTF8_Encoding, _text_value_u4));
 	}
 
-	String Input::placeholder() const {
+	String InputLayout::placeholder() const {
 		return String(codec_encode(kUTF8_Encoding, _placeholder_u4));
 	}
 
-	void Input::set_text_value(String val) {
+	void InputLayout::set_text_value(String val) {
 		set_text_value_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
 	}
 
-	void Input::set_placeholder(String val) {
+	void InputLayout::set_placeholder(String val) {
 		set_placeholder_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
 	}
 
-	bool Input::layout_reverse(uint32_t mark) {
+	bool InputLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting())
 				return false; // continue iteration
@@ -622,7 +623,7 @@ namespace qk {
 		return true; // complete
 	}
 
-	Vec2 Input::layout_typesetting_input_text() {
+	Vec2 InputLayout::layout_typesetting_input_text() {
 
 		Vec2 size = content_size();
 		_lines = new TextLines(this, _text_align, size, layout_wrap_x());
@@ -709,7 +710,7 @@ namespace qk {
 		return Vec2(_lines->max_width(), _lines->max_height());
 	}
 
-	void Input::solve_marks(uint32_t mark) {
+	void InputLayout::solve_marks(uint32_t mark) {
 		if (mark & kInput_Status) {
 			unmark(kInput_Status);
 			// text cursor status
@@ -726,15 +727,15 @@ namespace qk {
 		}
 	}
 
-	bool Input::solve_visible_region() {
-		if (!Box::solve_visible_region())
+	bool InputLayout::solve_visible_region() {
+		if (!BoxLayout::solve_visible_region())
 			return false;
 		_lines->solve_visible_region();
 		_lines->solve_visible_region_blob(&_blob, &_blob_visible);
 		return true;
 	}
 
-	void Input::refresh_cursor_screen_position() {
+	void InputLayout::refresh_cursor_screen_position() {
 
 		if ( _editing ) {
 			auto size = content_size();
@@ -848,19 +849,19 @@ namespace qk {
 		}
 	}
 
-	void Input::onActivate() {
+	void InputLayout::onActivate() {
 		_text_flags = 0xffffffff;
 	}
 
-	bool Input::can_become_focus() {
+	bool InputLayout::can_become_focus() {
 		return true;
 	}
 
-	TextInput* Input::as_text_input() {
+	TextInput* InputLayout::as_text_input() {
 		return this;
 	}
 
-	void Input::input_delete(int count) {
+	void InputLayout::input_delete(int count) {
 		if ( _editing ) {
 			int cursor = _cursor;
 			if ( !_marked_text.length() ) {
@@ -884,74 +885,74 @@ namespace qk {
 				}
 			}
 
-			Inl_Input(this)->trigger_change();
-			Inl_Input(this)->reset_cursor_twinkle_task_timeout();
+			Inl_InputLayout(this)->trigger_change();
+			Inl_InputLayout(this)->reset_cursor_twinkle_task_timeout();
 		}
 	}
 
-	void Input::input_insert(cString& text) {
+	void InputLayout::input_insert(cString& text) {
 		if ( _editing ) {
-			Inl_Input(this)->input_insert_text(Inl_Input(this)->delete_line_feed_format(text));
-			Inl_Input(this)->trigger_change();
-			Inl_Input(this)->reset_cursor_twinkle_task_timeout();
+			_this->input_insert_text(_this->delete_line_feed_format(text));
+			_this->trigger_change();
+			_this->reset_cursor_twinkle_task_timeout();
 		}
 	}
 
-	void Input::input_marked(cString& text) {
+	void InputLayout::input_marked(cString& text) {
 		if ( _editing ) {
-			Inl_Input(this)->input_marked_text(Inl_Input(this)->delete_line_feed_format(text));
-			Inl_Input(this)->trigger_change();
-			Inl_Input(this)->reset_cursor_twinkle_task_timeout();
+			_this->input_marked_text(_this->delete_line_feed_format(text));
+			_this->trigger_change();
+			_this->reset_cursor_twinkle_task_timeout();
 		}
 	}
 
-	void Input::input_unmark(cString& text) {
+	void InputLayout::input_unmark(cString& text) {
 		if ( _editing ) {
-			Inl_Input(this)->input_unmark_text(Inl_Input(this)->delete_line_feed_format(text));
-			Inl_Input(this)->trigger_change();
-			Inl_Input(this)->reset_cursor_twinkle_task_timeout();
+			_this->input_unmark_text(_this->delete_line_feed_format(text));
+			_this->trigger_change();
+			_this->reset_cursor_twinkle_task_timeout();
 		}
 	}
 
-	void Input::input_control(KeyboardKeyName name) {
+	void InputLayout::input_control(KeyboardKeyName name) {
 		if ( _editing && _flag == kFlag_Normal ) {
 			// LOG("input_control,%d", name);
 		}
 	}
 
-	bool Input::input_can_delete() {
+	bool InputLayout::input_can_delete() {
 		return _editing && _cursor < text_length();
 	}
 
-	bool Input::input_can_backspace() {
+	bool InputLayout::input_can_backspace() {
 		return _editing && _cursor;
 	}
 
-	Vec2 Input::input_spot_location() {
+	Vec2 InputLayout::input_spot_location() {
 		if (_editing) {
-			return Inl_Input(this)->spot_location();
+			return _this->spot_location();
 		} else {
 			return Vec2();
 		}
 	}
 
-	KeyboardType Input::input_keyboard_type() {
+	KeyboardType InputLayout::input_keyboard_type() {
 		return _type;
 	}
 
-	KeyboardReturnType Input::input_keyboard_return_type() {
+	KeyboardReturnType InputLayout::input_keyboard_return_type() {
 		return _return_type;
 	}
 
-	Object* Input::toObject() {
+	Object* InputLayout::toObject() {
 		return this;
 	}
 
-	void Input::onTextChange(uint32_t value) {
+	void InputLayout::onTextChange(uint32_t value) {
 		value ? mark_layout(value): mark_render();
 	}
 
-	void Input::set_type(KeyboardType value) {
+	void InputLayout::set_type(KeyboardType value) {
 		if (value != _type) {
 			_type = value;
 			if ( _editing ) {
@@ -961,7 +962,7 @@ namespace qk {
 		}
 	}
 
-	void Input::set_return_type(KeyboardReturnType value) {
+	void InputLayout::set_return_type(KeyboardReturnType value) {
 		if (value != _return_type) {
 			_return_type = value;
 			if ( _editing ) {
@@ -971,26 +972,26 @@ namespace qk {
 		}
 	}
 
-	void Input::set_placeholder_u4(String4 value) {
+	void InputLayout::set_placeholder_u4(String4 value) {
 		_placeholder_u4 = value;
 		mark_layout(kLayout_Typesetting);
 	}
 
-	void Input::set_placeholder_color(Color value) {
+	void InputLayout::set_placeholder_color(Color value) {
 		if (value != _placeholder_color) {
 			_placeholder_color = value;
 			mark_render(kLayout_None);
 		}
 	}
 
-	void Input::set_security(bool value) {
+	void InputLayout::set_security(bool value) {
 		if (_security != value) {
 			_security = value;
 			mark_layout(kLayout_Typesetting);
 		}
 	}
 
-	void Input::set_readonly(bool value) {
+	void InputLayout::set_readonly(bool value) {
 		if (_readonly != value) {
 			_readonly = value;
 			if (_readonly) {
@@ -1002,7 +1003,7 @@ namespace qk {
 		}
 	}
 
-	void Input::set_max_length(uint32_t value) {
+	void InputLayout::set_max_length(uint32_t value) {
 		_max_length = value;
 		if (_max_length) { // check mx length
 			if (_text_value_u4.length() > _max_length) {
@@ -1012,11 +1013,11 @@ namespace qk {
 		}
 	}
 
-	uint32_t Input::text_length() const {
+	uint32_t InputLayout::text_length() const {
 		return _text_value_u4.length();
 	}
 
-	Vec2 Input::layout_offset_inside() {
+	Vec2 InputLayout::layout_offset_inside() {
 		// auto origin = origin_value();
 		auto text_offset = input_text_offset();
 		Vec2 offset(
@@ -1030,20 +1031,20 @@ namespace qk {
 		return offset;
 	}
 
-	Vec2 Input::input_text_offset() {
+	Vec2 InputLayout::input_text_offset() {
 		return Vec2(_input_text_offset_x, _input_text_offset_y);
 	}
 
-	void Input::set_input_text_offset(Vec2 val) {
+	void InputLayout::set_input_text_offset(Vec2 val) {
 		_input_text_offset_x = val.x();
 		_input_text_offset_y = val.y();
 	}
 
-	bool Input::run_task(int64_t sys_time) {
+	bool InputLayout::run_task(int64_t sys_time) {
 		if ( _flag > kFlag_Disable_Find ) {
 			_cursor_twinkle_status = 1;
 			if ( _flag == kFlag_Auto_Find || _flag == kFlag_Auto_Range_Select ) {
-				Inl_Input(this)->auto_selectd();
+				_this->auto_selectd();
 			}
 			set_task_timeout(sys_time + 100000); /* 100ms */
 		} else {

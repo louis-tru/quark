@@ -34,14 +34,14 @@
 
 namespace qk {
 
-	Textarea::Textarea(Window *win): Input(win), BaseScroll(this) {
+	TextareaLayout::TextareaLayout(Window *win): InputLayout(win), BaseScroll(this) {
 	}
 
-	bool Textarea::is_multiline() {
+	bool TextareaLayout::is_multiline() {
 		return true;
 	}
 
-	bool Textarea::layout_reverse(uint32_t mark) {
+	bool TextareaLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting())
 				return false; // continue iteration
@@ -51,7 +51,7 @@ namespace qk {
 		return true; // complete
 	}
 
-	void Textarea::solve_marks(uint32_t mark) {
+	void TextareaLayout::solve_marks(uint32_t mark) {
 		if (mark & kInput_Status) {
 			auto final_width = content_size().x();
 			auto max_width = _lines->max_width();
@@ -71,14 +71,14 @@ namespace qk {
 			}
 		}
 		BaseScroll::solve(mark);
-		Input::solve_marks(mark);
+		InputLayout::solve_marks(mark);
 	}
 
-	Vec2 Textarea::input_text_offset() {
+	Vec2 TextareaLayout::input_text_offset() {
 		return Vec2( -scroll_x() + _input_text_offset_x, -scroll_y() );
 	}
 
-	void Textarea::set_input_text_offset(Vec2 value) {
+	void TextareaLayout::set_input_text_offset(Vec2 value) {
 		set_scroll( Vec2(-value.x() + _input_text_offset_x, -value.y()) );
 	}
 

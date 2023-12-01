@@ -36,10 +36,9 @@
 
 namespace qk {
 
-	class Qk_EXPORT Textarea: public Input, public BaseScroll {
-		Qk_Define_Layout(Textarea);
+	class Qk_EXPORT TextareaLayout: public InputLayout, public BaseScroll {
 	public:
-		Textarea(Window *win);
+		TextareaLayout(Window *win);
 		virtual bool is_multiline() override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(uint32_t mark) override;

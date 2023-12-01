@@ -40,8 +40,7 @@
 
 namespace qk {
 
-	class Qk_EXPORT Input: public Box, public TextOptions, public RenderTask, public TextInput {
-		Qk_Define_Layout(Input);
+	class Qk_EXPORT InputLayout: public BoxLayout, public TextOptions, public RenderTask, public TextInput {
 	public:
 		typedef ReferenceTraits Traits;
 		// define props
@@ -59,7 +58,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(String, placeholder);
 		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length);
 
-		Input(Window *win);
+		InputLayout(Window *win);
 		// virtual func
 		virtual bool is_multiline();
 		// @override
@@ -83,6 +82,7 @@ namespace qk {
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 		virtual Object* toObject() override;
+		virtual void draw(UIRender *render) override;
 	protected:
 		Vec2 layout_typesetting_input_text();
 		void refresh_cursor_screen_position();
@@ -103,7 +103,8 @@ namespace qk {
 		char  _flag;
 		Vec2  _point;
 
-		friend class Textarea;
+		friend class TextareaLayout;
+		friend class UIRender;
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};

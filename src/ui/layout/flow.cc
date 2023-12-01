@@ -36,7 +36,7 @@ namespace qk {
 
 	// content wrap typesetting of horizontal or vertical
 	template<bool is_horizontal>
-	void Flow::layout_typesetting_wrap(bool is_reverse) { // wrap Line feed
+	void FlowLayout::layout_typesetting_wrap(bool is_reverse) { // wrap Line feed
 
 		Size cur_size = layout_size();
 		Vec2 cur = cur_size.content_size;
@@ -152,21 +152,21 @@ namespace qk {
 		}
 	}
 
-	Flow::Flow(Window *win)
-		: Flex(win)
+	FlowLayout::FlowLayout(Window *win)
+		: FlexLayout(win)
 		, _wrap(Wrap::kNoWrap)
 		, _wrap_align(WrapAlign::kStart)
 	{
 	}
 
-	void Flow::set_wrap(Wrap wrap) {
+	void FlowLayout::set_wrap(Wrap wrap) {
 		if (wrap != _wrap) {
 			_wrap = wrap;
 			mark_layout(kLayout_Typesetting);
 		}
 	}
 
-	void Flow::set_wrap_align(WrapAlign align) {
+	void FlowLayout::set_wrap_align(WrapAlign align) {
 		if (align != _wrap_align) {
 			_wrap_align = align;
 			mark_layout(kLayout_Typesetting);
@@ -175,11 +175,11 @@ namespace qk {
 
 	// --------------- o v e r w r i t e ---------------
 
-	bool Flow::layout_forward(uint32_t mark) {
-		return Box::layout_forward(mark);
+	bool FlowLayout::layout_forward(uint32_t mark) {
+		return BoxLayout::layout_forward(mark);
 	}
 
-	bool Flow::layout_reverse(uint32_t mark) {
+	bool FlowLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
@@ -268,16 +268,16 @@ namespace qk {
 		return true; // complete
 	}
 
-	Vec2 Flow::layout_lock(Vec2 layout_size) {
-		return Box::layout_lock(layout_size);
+	Vec2 FlowLayout::layout_lock(Vec2 layout_size) {
+		return BoxLayout::layout_lock(layout_size);
 	}
 
-	bool Flow::is_lock_child_layout_size() {
+	bool FlowLayout::is_lock_child_layout_size() {
 		return false;
 	}
 
-	void Flow::onChildLayoutChange(Layout* child, uint32_t value) {
-		Box::onChildLayoutChange(child, value);
+	void FlowLayout::onChildLayoutChange(Layout* child, uint32_t value) {
+		BoxLayout::onChildLayoutChange(child, value);
 	}
 
 // *******************************************************************

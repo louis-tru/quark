@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./layout.h"
+#include "../view/view.h"
 #include "../window.h"
 #include "./root.h"
 
@@ -40,11 +41,11 @@ namespace qk {
 		, _mark_value(kLayout_None)
 		, _level(0)
 		, _window(win)
+		, _view(nullptr)
 		, _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
 		, _opacity(1.0)
-		, _receive(false)
 		, _visible(true)
 		, _visible_region(false)
 	{}
@@ -153,7 +154,7 @@ namespace qk {
 
 	void Layout::set_visible(bool val) {
 		if (_visible != val) {
-			#define is_root() (_window && _window->root() == this)
+			#define is_root() (_window && _window->root()->layout() == this)
 			set_visible_(val, _parent && _parent->_level ?
 				_parent->_level + 1: val && is_root() ? 1: 0);
 		}
@@ -205,16 +206,12 @@ namespace qk {
 	bool Layout::overlap_test(Vec2 point) {
 		return false;
 	}
-	
-	void Layout::accept(Visitor *visitor) {
-		visitor->visitLayout(this);
-	}
 
 	TextInput* Layout::as_text_input() {
 		return nullptr;
 	}
 
-	Button* Layout::as_button() {
+	ButtonLayout* Layout::as_button() {
 		return nullptr;
 	}
 
@@ -309,6 +306,14 @@ namespace qk {
 	void Layout::onActivate() {
 	}
 
+	bool Layout::clip() {
+		return false;
+	}
+
+	bool Layout::can_become_focus() {
+		return false;
+	}
+
 	// @private
 	// --------------------------------------------------------------------------------------
 
@@ -348,7 +353,8 @@ namespace qk {
 	}
 
 	void Layout::clear_level() { //  clear layout depth
-		blur();
+		// TODO ...
+		// blur();
 		if (_mark_index >= 0) {
 			_window->unmark_layout(this, _level);
 		}

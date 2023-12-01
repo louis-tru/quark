@@ -10,11 +10,11 @@ using namespace qk;
 
 constexpr unsigned int u32 = 1;
 
-class TestRRect: public Box {
+class TestRRect: public BoxLayout {
 public:
-	TestRRect(Window *win): Box(win) {}
-	void accept(Visitor *vv) override {
-		if (vv->flags()) return;
+	TestRRect(Window *win): BoxLayout(win) {}
+
+	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
 		canvas->save();
 		canvas->translate(-115, 0);
@@ -84,7 +84,7 @@ void test_rrect(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();
 	// layout
-	auto t = New<TestRRect>(win)->append_to<Box>(win->root());
+	auto t = New<TestRRect>(win)->append_to<BoxLayout>(win->root());
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

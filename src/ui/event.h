@@ -81,12 +81,10 @@
 
 namespace qk {
 	class Application;
-	class Layout;
+	class View;
 	class Action;
 	class TextInput;
 	class Window;
-
-typedef Layout View;
 
 	// event category
 	enum {
@@ -254,9 +252,6 @@ typedef Layout View;
 
 	typedef TouchEvent::TouchPoint TouchPoint;
 
-	/**
-	* @class EventDispatch
-	*/
 	class Qk_EXPORT EventDispatch: public Object {
 	public:
 		struct KeyboardOptions {
@@ -270,7 +265,7 @@ typedef Layout View;
 		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(KeyboardAdapter*, keyboard);
 		Qk_DEFINE_PROP(TextInput*, text_input);
-		Qk_DEFINE_PROP_GET(View*, focus_view); // 焦点视图
+		Qk_DEFINE_PROP_GET(View*, focus);
 
 		EventDispatch(Window* win);
 		virtual ~EventDispatch();
@@ -297,7 +292,7 @@ typedef Layout View;
 		void set_ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
 		void set_ime_keyboard_close();
 		void set_ime_keyboard_spot_location(Vec2 location);
-		bool set_focus_view(View* view);
+		bool set_focus(View* view);
 
 	private:
 		void touchstart_erase(View* view, List<TouchPoint>& in);

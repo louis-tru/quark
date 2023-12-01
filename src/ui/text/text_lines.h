@@ -42,8 +42,6 @@ namespace qk {
 	class Layout;
 	class TextBlobBuilder;
 
-	typedef Layout View;
-
 	class Qk_EXPORT TextLines: public Reference {
 	public:
 		struct Line {
@@ -71,12 +69,12 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(TextAlign, text_align);
 		Qk_DEFINE_PROP_GET(Vec2, host_size);
 		Qk_DEFINE_PROP_GET(Line*, last);
-		Qk_DEFINE_PROP_GET(View*, host);
+		Qk_DEFINE_PROP_GET(Layout*, host);
 		Qk_DEFINE_PROP_GET(float, max_width);
 		Qk_DEFINE_PROP_GET(float, min_origin);
 
 		// defines methods
-		TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap);
+		TextLines(Layout *host, TextAlign text_align, Vec2 host_size, bool no_wrap);
 		void lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar); // push new row
 		void push(TextOptions *opts = nullptr, bool trim_start = false); // first call finish() then add new row
 		void finish(); // finish all

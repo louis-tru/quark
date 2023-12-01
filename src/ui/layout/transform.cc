@@ -32,7 +32,7 @@
 
 namespace qk {
 
-	Transform::Transform(Window *win): Box(win)
+	TransformLayout::TransformLayout(Window *win): BoxLayout(win)
 		, _translate(0), _scale(1), _skew(0), _rotate(0)
 		, _origin_x{0, BoxOriginKind::kPixel}, _origin_y{0, BoxOriginKind::kPixel}
 	{
@@ -43,7 +43,7 @@ namespace qk {
 		*
 		* @method set_translate(val)
 		*/
-	void Transform::set_translate(Vec2 val) {
+	void TransformLayout::set_translate(Vec2 val) {
 		if (_translate != val) {
 			_translate = val;
 			mark_render(kRecursive_Transform); // mark transform
@@ -55,7 +55,7 @@ namespace qk {
 		*
 		* @method set_scale(val)
 		*/
-	void Transform::set_scale(Vec2 val) {
+	void TransformLayout::set_scale(Vec2 val) {
 		if (_scale != val) {
 			_scale = val;
 			mark_render(kRecursive_Transform); // mark transform
@@ -67,7 +67,7 @@ namespace qk {
 		*
 		* @method set_skew(val)
 		*/
-	void Transform::set_skew(Vec2 val) {
+	void TransformLayout::set_skew(Vec2 val) {
 		if (_skew != val) {
 			_skew = val;
 			mark_render(kRecursive_Transform); // mark transform
@@ -79,7 +79,7 @@ namespace qk {
 		*
 		* @method set_rotate(val)
 		*/
-	void Transform::set_rotate(float val) {
+	void TransformLayout::set_rotate(float val) {
 		val *= Qk_PI_RATIO_180;
 		if (_rotate != val) {
 			_rotate = val;
@@ -93,7 +93,7 @@ namespace qk {
 		*
 		* @method x()
 		*/
-	float Transform::x() const { return _translate[0]; }
+	float TransformLayout::x() const { return _translate[0]; }
 
 	/**
 		* 
@@ -101,7 +101,7 @@ namespace qk {
 		*
 		* @method y()
 		*/
-	float Transform::y() const { return _translate[1]; }
+	float TransformLayout::y() const { return _translate[1]; }
 
 	/**
 		* 
@@ -109,7 +109,7 @@ namespace qk {
 		*
 		* @method scale_x()
 		*/
-	float Transform::scale_x() const { return _scale[0]; }
+	float TransformLayout::scale_x() const { return _scale[0]; }
 
 	/**
 		* 
@@ -117,7 +117,7 @@ namespace qk {
 		*
 		* @method scale_y()
 		*/
-	float Transform::scale_y() const { return _scale[1]; }
+	float TransformLayout::scale_y() const { return _scale[1]; }
 
 	/**
 		* 
@@ -125,7 +125,7 @@ namespace qk {
 		*
 		* @method skew_x()
 		*/
-	float Transform::skew_x() const { return _skew[0]; }
+	float TransformLayout::skew_x() const { return _skew[0]; }
 
 	/**
 		* 
@@ -133,7 +133,7 @@ namespace qk {
 		*
 		* @method skew_y()
 		*/
-	float Transform::skew_y() const { return _skew[1]; }
+	float TransformLayout::skew_y() const { return _skew[1]; }
 
 	/**
 		* 
@@ -141,7 +141,7 @@ namespace qk {
 		*
 		* @method set_x(val)
 		*/
-	void Transform::set_x(float val) {
+	void TransformLayout::set_x(float val) {
 		if (_translate[0] != val) {
 			_translate[0] = val;
 			mark_render(kRecursive_Transform); // mark transform
@@ -154,7 +154,7 @@ namespace qk {
 		*
 		* @method set_y(val)
 		*/
-	void Transform::set_y(float val) {
+	void TransformLayout::set_y(float val) {
 		if (_translate[1] != val) {
 			_translate[1] = val;
 			mark_render(kRecursive_Transform); // mark transform
@@ -167,7 +167,7 @@ namespace qk {
 		*
 		* @method set_scale_x(val)
 		*/
-	void Transform::set_scale_x(float val) {
+	void TransformLayout::set_scale_x(float val) {
 		if (_scale[0] != val) {
 			_scale[0] = val;
 			mark_render(kRecursive_Transform); // mark transform
@@ -180,7 +180,7 @@ namespace qk {
 		*
 		* @method set_scale_y(val)
 		*/
-	void Transform::set_scale_y(float val) {
+	void TransformLayout::set_scale_y(float val) {
 		if (_scale[1] != val) {
 			_scale[1] = val;
 			mark_render(kRecursive_Transform); // mark transform
@@ -193,7 +193,7 @@ namespace qk {
 		*
 		* @method set_skew_x(val)
 		*/
-	void Transform::set_skew_x(float val) {
+	void TransformLayout::set_skew_x(float val) {
 		if (_skew[0] != val) {
 			_skew[0] = val;
 			mark_render(kRecursive_Transform); // mark transform
@@ -206,21 +206,21 @@ namespace qk {
 		*
 		* @method set_skew_y(val)
 		*/
-	void Transform::set_skew_y(float val) {
+	void TransformLayout::set_skew_y(float val) {
 		if (_skew[1] != val) {
 			_skew[1] = val;
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
 
-	void Transform::set_origin_x(BoxOrigin val) {
+	void TransformLayout::set_origin_x(BoxOrigin val) {
 		if (_origin_x != val) {
 			_origin_x = val;
 			mark_layout(kTransform_Origin);
 		}
 	}
 
-	void Transform::set_origin_y(BoxOrigin val) {
+	void TransformLayout::set_origin_y(BoxOrigin val) {
 		if (_origin_y != val) {
 			_origin_y = val;
 			mark_layout(kTransform_Origin);
@@ -229,7 +229,7 @@ namespace qk {
 
 	// ----------------------------------------------------------------------------------
 
-	Mat Transform::layout_matrix() {
+	Mat TransformLayout::layout_matrix() {
 		Vec2 translate = layout_offset() + parent()->layout_offset_inside()
 			+ Vec2(margin_left(), margin_top()) + _origin_value;
 		return Mat(
@@ -240,7 +240,7 @@ namespace qk {
 		);
 	}
 
-	void Transform::solve_rect_vertex(Vec2 vertex[4]) {
+	void TransformLayout::solve_rect_vertex(Vec2 vertex[4]) {
 		auto& mat = matrix();
 		Vec2 origin(-_origin_value.x(), -_origin_value.y());
 		Vec2 end = origin + client_size();
@@ -250,7 +250,7 @@ namespace qk {
 		vertex[3] = mat * Vec2(origin.x(), end.y());
 	}
 
-	Vec2 Transform::position() {
+	Vec2 TransformLayout::position() {
 		auto size = client_size();
 		Vec2 point(
 			size.x() * 0.5 - _origin_value.x(),
@@ -259,12 +259,12 @@ namespace qk {
 		return matrix() * point;
 	}
 
-	Vec2 Transform::layout_offset_inside() {
-		return Box::layout_offset_inside() - _origin_value;
+	Vec2 TransformLayout::layout_offset_inside() {
+		return BoxLayout::layout_offset_inside() - _origin_value;
 	}
 
-	bool Transform::layout_forward(uint32_t mark) {
-		auto complete = Box::layout_forward(mark);
+	bool TransformLayout::layout_forward(uint32_t mark) {
+		auto complete = BoxLayout::layout_forward(mark);
 		if (complete) {
 			if (mark & kTransform_Origin) {
 				// check transform_origin change
@@ -274,8 +274,8 @@ namespace qk {
 		return complete;
 	}
 
-	bool Transform::layout_reverse(uint32_t mark) {
-		auto complete = Box::layout_reverse(mark);
+	bool TransformLayout::layout_reverse(uint32_t mark) {
+		auto complete = BoxLayout::layout_reverse(mark);
 		if (complete) {
 			if (mark & kLayout_Typesetting) {
 				// check transform_origin change
@@ -285,7 +285,7 @@ namespace qk {
 		return complete;
 	}
 
-	void Transform::solve_origin_value() {
+	void TransformLayout::solve_origin_value() {
 		auto old = _origin_value;
 		auto _client_size = client_size();
 

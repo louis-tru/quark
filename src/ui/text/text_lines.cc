@@ -39,7 +39,7 @@
 
 namespace qk {
 
-	TextLines::TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
+	TextLines::TextLines(Layout *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
 		: _pre_width(0), _trim_start(false), _host(host)
 		, _host_size(host_size), _no_wrap(no_wrap), _text_align(text_align), _visible_region(false)
 	{

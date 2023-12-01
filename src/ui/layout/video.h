@@ -38,16 +38,15 @@
 
 namespace qk {
 
-	class Qk_EXPORT Video: public Image,
-												public RenderTask, public MultimediaSource::Delegate {
-		Qk_Define_Layout(Video);
+	class Qk_EXPORT VideoLayout: public Image,
+															public RenderTask, public MultimediaSource::Delegate {
 	public:
 		typedef Mediacodec_OutputBuffer OutputBuffer;
 		typedef MultimediaSource::TrackInfo TrackInfo;
 		typedef RenderTask::ID TaskID;
 
-		Video();
-		virtual ~Video();
+		VideoLayout();
+		virtual ~VideoLayout();
 		// define props
 		Qk_DEFINE_PROP_ACC(bool, auto_play, NoConst);
 		Qk_DEFINE_PROP_ACC(bool, mute, NoConst);

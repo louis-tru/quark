@@ -37,10 +37,10 @@
 
 namespace qk {
 
-	Root::Root(Window *win): Box(win) {}
+	RootLayout::RootLayout(Window *win): BoxLayout(win) {}
 
-	void Root::init() {
-		set_receive(true);
+	void RootLayout::init() {
+		// set_receive(true);
 		set_width({0, BoxSizeKind::kMatch});
 		set_height({0, BoxSizeKind::kMatch});
 		mark_layout(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
@@ -48,11 +48,11 @@ namespace qk {
 		mark_render(kRecursive_Transform);
 	}
 
-	void Root::reload() {
+	void RootLayout::reload() {
 		mark_layout(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 	}
 
-	bool Root::layout_forward(uint32_t _mark) {
+	bool RootLayout::layout_forward(uint32_t _mark) {
 		if (_mark & (kLayout_Size_Width | kLayout_Size_Height)) {
 			auto win = window();
 			Size size{ Vec2(), win->size(), false, false };
@@ -77,7 +77,7 @@ namespace qk {
 		return true; // complete
 	}
 
-	bool Root::layout_reverse(uint32_t mark) {
+	bool RootLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			Vec2 size = content_size();
 			auto v = first();
@@ -90,7 +90,7 @@ namespace qk {
 		return true; // complete iteration
 	}
 
-	Mat Root::layout_matrix() {
+	Mat RootLayout::layout_matrix() {
 		Vec2 translate = layout_offset() + Vec2(margin_left(), margin_top());
 		return Mat(
 			1, 0, translate.x(),
@@ -98,7 +98,7 @@ namespace qk {
 		);
 	}
 
-	bool Root::can_become_focus() {
+	bool RootLayout::can_become_focus() {
 		return true;
 	}
 

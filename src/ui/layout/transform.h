@@ -40,10 +40,9 @@ namespace qk {
 		*
 	 * @class Transform
 		*/
-	class Transform: public Box {
-		Qk_Define_Layout(Transform);
+	class TransformLayout: public BoxLayout {
 	public:
-		Transform(Window *win);
+		TransformLayout(Window *win);
 		// define props
 		Qk_DEFINE_PROP    (Vec2, translate); // matrix displacement for the view
 		Qk_DEFINE_PROP    (Vec2, scale); // Matrix scaling
@@ -67,8 +66,11 @@ namespace qk {
 		virtual Mat  layout_matrix() override;
 		virtual Vec2 position() override;
 		virtual void solve_rect_vertex(Vec2 vertexOut[4]) override; // compute rect vertex
+		virtual void draw(UIRender *render) override;
 	private:
 		void solve_origin_value(); // compute origint value
+
+		friend class UIRender;
 	};
 }
 #endif

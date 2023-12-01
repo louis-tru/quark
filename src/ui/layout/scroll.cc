@@ -42,7 +42,7 @@ namespace qk {
 	static const Curve ease_in_out(0.3, 0.3, 0.3, 1);
 	static const Curve ease_out(0, 0, 0.58, 1);
 
-	class BaseScroll::ScrollBox: public Box {
+	class BaseScroll::ScrollBox: public BoxLayout {
 	public:
 
 		void triggerScroll() {
@@ -644,7 +644,7 @@ namespace qk {
 
 	};
 
-	BaseScroll::BaseScroll(Box *host)
+	BaseScroll::BaseScroll(BoxLayout *host)
 		: _scrollbar(true)
 		, _bounce(true)
 		, _bounce_lock(true)
@@ -827,12 +827,12 @@ namespace qk {
 
 	// ------------------------ S c r o l l --------------------------
 
-	Scroll::Scroll(Window *win): Float(win), BaseScroll(this)
+	ScrollLayout::ScrollLayout(Window *win): FloatLayout(win), BaseScroll(this)
 	{
 		set_is_clip(true);
 	}
 
-	Vec2 Scroll::layout_offset_inside() {
+	Vec2 ScrollLayout::layout_offset_inside() {
 		Vec2 offset(
 			padding_left() - scroll_x(),
 			padding_top() - scroll_y()
@@ -844,7 +844,7 @@ namespace qk {
 		return offset;
 	}
 
-	bool Scroll::layout_reverse(uint32_t mark) {
+	bool ScrollLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting())
 				return false; // continue iteration
@@ -854,7 +854,7 @@ namespace qk {
 		return true; // complete iteration
 	}
 
-	void Scroll::solve_marks(uint32_t mark) {
+	void ScrollLayout::solve_marks(uint32_t mark) {
 		BaseScroll::solve(mark);
 		View::solve_marks(mark);
 	}

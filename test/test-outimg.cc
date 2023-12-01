@@ -8,11 +8,11 @@
 
 using namespace qk;
 
-class TestOutImg: public Box {
+class TestOutImg: public BoxLayout {
 public:
-	TestOutImg(Window *win): Box(win) {}
-	void accept(Visitor *vv) override {
-		if (vv->flags()) return;
+	TestOutImg(Window *win): BoxLayout(win) {}
+
+	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 		float width = 300;

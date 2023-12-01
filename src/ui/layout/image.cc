@@ -34,21 +34,21 @@
 
 namespace qk {
 
-	Image::Image(Window *win): Box(win) {}
+	ImageLayout::ImageLayout(Window *win): BoxLayout(win) {}
 
-	bool Image::layout_forward(uint32_t mark) {
+	bool ImageLayout::layout_forward(uint32_t mark) {
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
 			mark |= (kLayout_Size_Width | kLayout_Size_Height);
 		}
-		return Box::layout_forward(mark);
+		return BoxLayout::layout_forward(mark);
 	}
 
-	float Image::solve_layout_content_width(Size &parent_layout_size) {
-		auto result = Box::solve_layout_content_width(parent_layout_size);
+	float ImageLayout::solve_layout_content_width(Size &parent_layout_size) {
+		auto result = BoxLayout::solve_layout_content_width(parent_layout_size);
 		auto src = source();
 
 		if (parent_layout_size.wrap_x && src && src->type()) { // wrap x
-			auto v = Box::solve_layout_content_height(parent_layout_size);
+			auto v = BoxLayout::solve_layout_content_height(parent_layout_size);
 			if (parent_layout_size.wrap_y) { // wrap y
 				result = src->width();
 			} else {
@@ -60,12 +60,12 @@ namespace qk {
 		return result;
 	}
 
-	float Image::solve_layout_content_height(Size &parent_layout_size) {
-		auto result = Box::solve_layout_content_height(parent_layout_size);
+	float ImageLayout::solve_layout_content_height(Size &parent_layout_size) {
+		auto result = BoxLayout::solve_layout_content_height(parent_layout_size);
 		auto src = source();
 
 		if (parent_layout_size.wrap_y && src && src->type()) { // wrap y
-			auto v = Box::solve_layout_content_width(parent_layout_size);
+			auto v = BoxLayout::solve_layout_content_width(parent_layout_size);
 			if (parent_layout_size.wrap_x) { // wrap x
 				result = src->height();
 			} else {
@@ -77,7 +77,7 @@ namespace qk {
 		return result;
 	}
 
-	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
+	void ImageLayout::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
 			UILock lock(window());
 			mark_size(kLayout_Size_Width | kLayout_Size_Height);

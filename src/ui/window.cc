@@ -31,6 +31,7 @@
 #include "./window.h"
 #include "./app.h"
 #include "./layout/root.h"
+#include "./view/view.h"
 #include "../render/render.h"
 #include "./ui_render.h"
 #include "./event.h"
@@ -93,11 +94,11 @@ namespace qk {
 			_id = _host->_windows.pushBack(this);
 		}
 		retain(); // strong ref count retain
-		_root = new Root(this); // new root
-		_root->_window = this;
-		_root->_level = 1;
-		_root->init();
-		_root->retain(); // strong ref
+		// _root = new RootLayout(this); // new root
+		// _root->_window = this;
+		// _root->_level = 1;
+		// _root->init();
+		// _root->retain(); // strong ref
 		openImpl(opts); // open platform window
 		// TODO ...
 		//_root->focus();  // set focus
@@ -244,7 +245,7 @@ namespace qk {
 		Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
 		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
-		_root->reload();
+		_root->layout<RootLayout>()->reload();
 
 		Qk_DEBUG("Display::updateSurface() %f, %f", region.size.x(), region.size.y());
 
@@ -264,7 +265,7 @@ namespace qk {
 				_defaultScale = defaultScale;
 				reload();
 			} else {
-				_root->reload();
+				_root->layout<RootLayout>()->reload();
 			}
 		}
 	}
@@ -286,7 +287,7 @@ namespace qk {
 		}
 		_nextFsp++;
 
-		_root->accept(_uiRender); // start drawing
+		_root->layout()->draw(_uiRender); // start drawing
 
 		solveNextFrame(); // solve frame
 

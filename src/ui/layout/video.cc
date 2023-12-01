@@ -39,11 +39,11 @@
 namespace qk {
 
 	typedef MultimediaSource::TrackInfo TrackInfo;
-	typedef PreRender::Task::ID TaskID;
+	typedef RenderTask::ID TaskID;
 	typedef Mediacodec_OutputBuffer OutputBuffer;
 
-	Video::Video()
-		: Image()
+	VideoLayout::VideoLayout()
+		: ImageLayout()
 		, _source(NULL)
 		, _audio(NULL)
 		, _video(NULL)
@@ -67,7 +67,7 @@ namespace qk {
 	{
 	}
 
-	Qk_DEFINE_INLINE_MEMBERS(Video, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(VideoLayout, Inl) {
 	public:
 
 		bool load_yuv_texture(OutputBuffer& buffer) { // set yuv texture ..
@@ -332,12 +332,12 @@ namespace qk {
 		}
 	};
 
-	Video::~Video() {
+	VideoLayout::~Video() {
 		Lock lock(_mutex);
 		Inl_Video(this)->stop_and_release(lock, false);
 	}
 
-	void Video::multimedia_source_wait_buffer(MultimediaSource* so, float process) {
+	void VideoLayout::multimedia_source_wait_buffer(MultimediaSource* so, float process) {
 		
 		if ( _waiting_buffer ) { /* 开始等待数据缓存不触发事件,因为在解码器队列可能还存在数据,
 															* 所以等待解码器也无法输出数据时再触发事件
@@ -348,16 +348,16 @@ namespace qk {
 		}
 	}
 
-	void Video::multimedia_source_eof(MultimediaSource* so) {
+	void VideoLayout::multimedia_source_eof(MultimediaSource* so) {
 		Inl_Video(this)->trigger(UIEvent_SourceEnd); // trigger event eof
 	}
 
-	void Video::multimedia_source_error(MultimediaSource* so, cError& err) {
+	void VideoLayout::multimedia_source_error(MultimediaSource* so, cError& err) {
 		Inl_Video(this)->trigger(UIEvent_Error, err); // trigger event error
 		stop();
 	}
 
-	String Video::src() {
+	String VideoLayout::src() {
 		if ( _source ) {
 			return _source->uri().href();
 		} else {
@@ -365,7 +365,7 @@ namespace qk {
 		}
 	}
 
-	void Video::multimedia_source_ready(MultimediaSource* src) {
+	void VideoLayout::multimedia_source_ready(MultimediaSource* src) {
 		Qk_ASSERT( _source == src);
 		
 		if ( _video ) {
@@ -434,7 +434,7 @@ namespace qk {
 		}));
 	}
 
-	void Video::set_src(String value) {
+	void VideoLayout::set_src(String value) {
 		if ( value.is_empty() ) {
 			return;
 		}
@@ -450,13 +450,13 @@ namespace qk {
 		auto loop = shared_app()->loop();
 		Qk_ASSERT(loop, "Cannot find main run loop");
 		_source = new MultimediaSource(src, loop);
-		_keep = loop->keep_alive("Video::set_source");
+		_keep = loop->keep_alive("VideoLayout::set_source");
 		_source->set_delegate(this);
 		_source->disable_wait_buffer(_disable_wait_buffer);
 		_source->start();
 	}
 
-	void Video::start() {
+	void VideoLayout::start() {
 		Lock scope(_mutex);
 		
 		if ( _status == PLAYER_STATUS_STOP && _source ) {
@@ -476,14 +476,14 @@ namespace qk {
 		}
 	}
 
-	void Video::stop() {
+	void VideoLayout::stop() {
 		Lock lock(_mutex);
 		if ( Inl_Video(this)->stop_from(lock, true) ) {
 			mark_render();
 		}
 	}
 
-	bool Video::seek(uint64_t timeUs) {
+	bool VideoLayout::seek(uint64_t timeUs) {
 		ScopeLock scope(_mutex);
 		
 		if ( Inl_Video(this)->is_active() && timeUs < _duration ) {
@@ -515,7 +515,7 @@ namespace qk {
 	/**
 	 * @func pause play
 	 * */
-	void Video::pause() {
+	void VideoLayout::pause() {
 		ScopeLock scope(_mutex);
 		if ( _status == PLAYER_STATUS_PLAYING && _duration /* 没有长度信息不能暂停*/ ) {
 			_status = PLAYER_STATUS_PAUSED;
@@ -529,7 +529,7 @@ namespace qk {
 	/**
 	 * @func resume play
 	 * */
-	void Video::resume() {
+	void VideoLayout::resume() {
 		ScopeLock scope(_mutex);
 		if ( _status == PLAYER_STATUS_PAUSED ) {
 			_status = PLAYER_STATUS_PLAYING;
@@ -540,7 +540,7 @@ namespace qk {
 		}
 	}
 
-	void Video::set_mute(bool value) {
+	void VideoLayout::set_mute(bool value) {
 		ScopeLock scope(_mutex);
 		if ( value != _mute ) {
 			_mute = value;
@@ -550,7 +550,7 @@ namespace qk {
 		}
 	}
 
-	void Video::set_volume(uint32_t value) {
+	void VideoLayout::set_volume(uint32_t value) {
 		ScopeLock scope(_mutex);
 		value = Qk_MIN(value, 100);
 		_volume = value;
@@ -559,17 +559,17 @@ namespace qk {
 		}
 	}
 
-	uint64_t Video::time() {
+	uint64_t VideoLayout::time() {
 		ScopeLock scope(_mutex);
 		return _time;
 	}
 
-	uint64_t Video::duration() {
+	uint64_t VideoLayout::duration() {
 		ScopeLock scope(_mutex);
 		return _duration;
 	}
 
-	uint32_t Video::audio_track_count() {
+	uint32_t VideoLayout::audio_track_count() {
 		ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return _audio->extractor()->track_count();
@@ -577,7 +577,7 @@ namespace qk {
 		return 0;
 	}
 
-	uint32_t Video::audio_track_index() {
+	uint32_t VideoLayout::audio_track_index() {
 		ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return _audio->extractor()->track_index();
@@ -585,7 +585,7 @@ namespace qk {
 		return 0;
 	}
 
-	const TrackInfo* Video::audio_track() {
+	const TrackInfo* VideoLayout::audio_track() {
 		ScopeLock lock(_mutex);
 		if ( _audio ) {
 			return &_audio->extractor()->track();
@@ -593,7 +593,7 @@ namespace qk {
 		return nullptr;
 	}
 
-	const TrackInfo* Video::audio_track_at(uint32_t index) {
+	const TrackInfo* VideoLayout::audio_track_at(uint32_t index) {
 		ScopeLock lock(_mutex);
 		if ( _audio && index < _audio->extractor()->track_count() ) {
 			return &_audio->extractor()->track(index);
@@ -601,7 +601,7 @@ namespace qk {
 		return nullptr;
 	}
 
-	const TrackInfo* Video::video_track() {
+	const TrackInfo* VideoLayout::video_track() {
 		ScopeLock lock(_mutex);
 		if ( _video ) {
 			return &_video->extractor()->track();
@@ -609,14 +609,14 @@ namespace qk {
 		return nullptr;
 	}
 
-	void Video::select_audio_track(uint32_t index) {
+	void VideoLayout::select_audio_track(uint32_t index) {
 		ScopeLock scope(_mutex);
 		if ( _audio && index < _audio->extractor()->track_count() ) {
 			_audio->extractor()->select_track(index);
 		}
 	}
 
-	MultimediaSourceStatus Video::source_status() {
+	MultimediaSourceStatus VideoLayout::source_status() {
 		ScopeLock lock(_mutex);
 		if ( _source ) {
 			return _source->status();
@@ -624,22 +624,22 @@ namespace qk {
 		return MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
 	}
 
-	uint32_t Video::video_width() {
+	uint32_t VideoLayout::video_width() {
 		ScopeLock lock(_mutex);
 		return _video_width;
 	}
 
-	uint32_t Video::video_height() {
+	uint32_t VideoLayout::video_height() {
 		ScopeLock lock(_mutex);
 		return _video_height;
 	}
 
-	PlayerStatus Video::status() {
+	PlayerStatus VideoLayout::status() {
 		ScopeLock lock(_mutex);
 		return _status;
 	}
 
-	bool Video::run_task(int64_t sys_time) {
+	bool VideoLayout::run_task(int64_t sys_time) {
 		// video
 		bool draw = Inl_Video(this)->advance_video(sys_time);
 		// FX_DEBUG("------------------------ frame: %llu", sys_time_monotonic() - sys_time);
@@ -658,7 +658,7 @@ namespace qk {
 		return draw && layout_depth();
 	}
 
-	void Video::set_disable_wait_buffer(bool value) {
+	void VideoLayout::set_disable_wait_buffer(bool value) {
 		ScopeLock scope(_mutex);
 		_disable_wait_buffer = value;
 		if (_source) {
@@ -666,12 +666,12 @@ namespace qk {
 		}
 	}
 
-	void Video::set_auto_play(bool value) {
+	void VideoLayout::set_auto_play(bool value) {
 		ScopeLock scope(_mutex);
 		_auto_play = value;
 	}
 
-	void Video::onActivate() {
+	void VideoLayout::onActivate() {
 		if (level() == 0) { // remove
 			Lock lock(_mutex);
 			if (_audio)

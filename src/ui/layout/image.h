@@ -36,11 +36,11 @@
 
 namespace qk {
 
-	class Qk_EXPORT Image: public Box, public ImageSourceHolder {
-		Qk_Define_Layout(Image);
+	class Qk_EXPORT ImageLayout: public BoxLayout, public ImageSourceHolder {
 	public:
-		Image(Window *win);
+		ImageLayout(Window *win);
 		virtual bool layout_forward(uint32_t mark) override;
+		virtual void draw(UIRender *render) override;
 	protected:
 		virtual float solve_layout_content_width(Size &parent_layout_size) override;
 		virtual float solve_layout_content_height(Size &parent_layout_size) override;

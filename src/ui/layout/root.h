@@ -35,15 +35,15 @@
 
 namespace qk {
 
-	class Root: public Box {
-		Qk_Define_Layout(Root);
+	class RootLayout: public BoxLayout {
 	public:
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual Mat  layout_matrix() override;
 		virtual bool can_become_focus() override;
+		virtual void draw(UIRender *render) override;
 	private:
-		Root(Window *win);
+		RootLayout(Window *win);
 		void init();
 		void reload();
 		friend class Window;

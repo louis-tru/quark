@@ -38,41 +38,54 @@
 #include "../render/canvas.h"
 
 namespace qk {
-
 	class Window;
+	class BoxLayout;
+	class ImageLayout;
+	class ScrollLayout;
+	class InputLayout;
+	class LabelLayout;
+	class RootLayout;
+	class TransformLayout;
+	class BaseScroll;
 
-	class Qk_EXPORT UIRender: public Object, public LayoutVisitor {
-		Qk_HIDDEN_ALL_COPY(UIRender);
+	class Qk_EXPORT UIRender: public Object {
 	public:
-		Qk_DEFINE_PROP_GET(Render*, render);
+		struct BoxData {
+			const RectPath *inside = nullptr;
+			const RectPath *outside = nullptr;
+			const RectOutlinePath *outline = nullptr;
+		};
 		UIRender(Window *window);
-		virtual uint32_t flags() override;
-		virtual void visitLayout(View* v) override;
-		virtual void visitBox(Box* box) override;
-		virtual void visitImage(Image* image) override;
-		virtual void visitVideo(Video* video) override;
-		virtual void visitScroll(Scroll* scroll) override;
-		virtual void visitInput(Input* input) override;
-		virtual void visitTextarea(Textarea* textarea) override;
-		virtual void visitButton(Button* btn) override;
-		virtual void visitText(Text* text) override;
-		virtual void visitLabel(Label* label) override;
-		virtual void visitRoot(Root* root) override;
-		virtual void visitFloat(Float* flow) override;
-		virtual void visitFlow(Flow* flow) override;
-		virtual void visitFlex(Flex* flex) override;
-		virtual void visitTransform(Transform* transform) override;
-
+		void visitLayout(Layout* v);
+		void visitBox(BoxLayout* box);
+		void visitImage(ImageLayout* image);
+		void visitScroll(ScrollLayout* scroll);
+		void visitInput(InputLayout* input);
+		void visitLabel(LabelLayout* label);
+		void visitRoot(RootLayout* root);
+		void visitTransform(TransformLayout* transform);
 	private:
-		Window       *_window;
-		Canvas       *_canvas;
-		PathvCache   *_cache;
-		float        _opacity;
-		uint32_t     _mark_recursive;
-		Vec2        _fixOrigin;
-		float       _fixSize; // fix rect stroke width
-		Qk_DEFINE_INLINE_CLASS(Inl);
+		Rect getRect(BoxLayout* box);
+		void getInsideRectPath(BoxLayout *box, BoxData &out);
+		void getOutsideRectPath(BoxLayout *box, BoxData &out);
+		void getRRectOutlinePath(BoxLayout *box, BoxData &out);
+		void drawBoxColor(BoxLayout *box, BoxData &data);
+		void drawBoxFill(BoxLayout *box, BoxData &data);
+		void drawBoxFillImage(BoxLayout *box, FillImage *fill, BoxData &data);
+		void drawBoxFillLinear(BoxLayout *box, FillGradientLinear *fill, BoxData &data);
+		void drawBoxFillRadial(BoxLayout *box, FillGradientRadial *fill, BoxData &data);
+		void drawBoxShadow(BoxLayout *box, BoxData &data);
+		void drawBoxBorder(BoxLayout *box, BoxData &data);
+		void drawBoxEnd(BoxLayout *box, BoxData &data);
+		void drawScrollBar(BoxLayout *box, BaseScroll *v);
+		Window     *_window;
+		Render     *_render;
+		Canvas     *_canvas;
+		PathvCache *_cache;
+		float      _opacity;
+		uint32_t   _mark_recursive;
+		Vec2       _fixOrigin;
+		float      _fixSize; // fix rect stroke width
 	};
-
 }
 #endif

@@ -34,24 +34,24 @@
 
 namespace qk {
 
-	Label::Label(Window *win): Layout(win) {}
+	LabelLayout::LabelLayout(Window *win): Layout(win) {}
 
-	void Label::set_text_value(String val) {
+	void LabelLayout::set_text_value(String val) {
 		if (_text_value != val) {
 			_text_value = std::move(val);
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height);
 		}
 	}
 
-	void Label::onTextChange(uint32_t value) {
+	void LabelLayout::onTextChange(uint32_t value) {
 		value ? mark_layout(value): mark_render();
 	}
 
-	bool Label::layout_forward(uint32_t mark) {
+	bool LabelLayout::layout_forward(uint32_t mark) {
 		return false; // continue iteration
 	}
 
-	bool Label::layout_reverse(uint32_t mark) {
+	bool LabelLayout::layout_reverse(uint32_t mark) {
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting)) {
 			parent()->onChildLayoutChange(this, kChild_Layout_Text);
 			unmark(kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting);
@@ -59,7 +59,7 @@ namespace qk {
 		return true; // complete
 	}
 
-	void Label::layout_text(TextLines *lines, TextConfig *base) {
+	void LabelLayout::layout_text(TextLines *lines, TextConfig *base) {
 		TextConfig cfg(this, base);
 
 		_blob_visible.clear();
@@ -80,7 +80,7 @@ namespace qk {
 	}
 
 	// disable layout matrix prop
-	Mat Label::layout_matrix() {
+	Mat LabelLayout::layout_matrix() {
 		Vec2 translate = parent()->layout_offset_inside();
 		return Mat(
 			1, 0, translate.x(),
@@ -88,7 +88,7 @@ namespace qk {
 		);
 	}
 
-	void Label::set_layout_offset(Vec2 val) {
+	void LabelLayout::set_layout_offset(Vec2 val) {
 		auto size = parent()->layout_size().content_size;
 		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
 		layout_text(*lines, shared_app()->defaultTextOptions());
@@ -96,25 +96,25 @@ namespace qk {
 		mark_render(kRecursive_Transform);
 	}
 
-	void Label::set_layout_offset_lazy(Vec2 size) {
+	void LabelLayout::set_layout_offset_lazy(Vec2 size) {
 		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
 		mark_render(kRecursive_Transform);
 	}
 
-	void Label::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {
+	void LabelLayout::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {
 		mark_layout(value);
 	}
 
-	bool Label::solve_visible_region() {
+	bool LabelLayout::solve_visible_region() {
 		if (_lines->host() == this)
 			_lines->solve_visible_region();
 		_lines->solve_visible_region_blob(&_blob, &_blob_visible);
 		return _blob_visible.length();
 	}
 
-	void Label::onActivate() {
+	void LabelLayout::onActivate() {
 		_text_flags = 0xffffffff;
 	}
 

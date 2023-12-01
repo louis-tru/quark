@@ -8,17 +8,16 @@
 
 using namespace qk;
 
-class TestSubcanvas: public Box {
+class TestSubcanvas: public BoxLayout {
 public:
 	Sp<Canvas> _c;
 
-	TestSubcanvas(Window *win): Box(win) {
+	TestSubcanvas(Window *win): BoxLayout(win) {
 		_c = window()->render()->newCanvas({.isMipmap=0});
 		_c->setSurface({600},2);
 	}
 
-	void accept(Visitor *vv) override {
-		if (vv->flags()) return;
+	void draw(UIRender *vv) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 

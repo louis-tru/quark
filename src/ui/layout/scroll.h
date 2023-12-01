@@ -63,7 +63,7 @@ namespace qk {
 		void scroll_to(Vec2 value, uint64_t duration, cCurve& curve);
 		void terminate();
 	protected:
-		BaseScroll(Box *host);
+		BaseScroll(BoxLayout *host);
 		~BaseScroll();
 		void set_scroll_size(Vec2 size);
 		void solve(uint32_t mark);
@@ -86,13 +86,13 @@ namespace qk {
 		bool _lock_h, _lock_v;
 	};
 
-	class Qk_EXPORT Scroll: public Float, public BaseScroll {
-		Qk_Define_Layout(Scroll);
+	class Qk_EXPORT ScrollLayout: public FloatLayout, public BaseScroll {
 	public:
-		Scroll(Window *win);
+		ScrollLayout(Window *win);
 		virtual Vec2 layout_offset_inside() override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(uint32_t mark) override;
+		virtual void draw(UIRender *render) override;
 	};
 
 }

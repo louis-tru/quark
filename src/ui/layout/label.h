@@ -38,11 +38,10 @@
 
 namespace qk {
 
-	class Qk_EXPORT Label: public Layout, public TextOptions {
-		Qk_Define_Layout(Label);
+	class Qk_EXPORT LabelLayout: public Layout, public TextOptions {
 	public:
 		Qk_DEFINE_PROP(String, text_value);
-		Label(Window *win);
+		LabelLayout(Window *win);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
@@ -52,11 +51,14 @@ namespace qk {
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void onActivate() override;
+		virtual void draw(UIRender *render) override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;
 		Sp<TextLines>   _lines;
+
+		friend class UIRender;
 	};
 
 }

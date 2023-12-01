@@ -16,9 +16,9 @@
 
 using namespace qk;
 
-class TestImage: public Image {
+class TestImage: public ImageLayout {
 public:
-	TestImage(Window *win): Image(win){}
+	TestImage(Window *win): ImageLayout(win){}
 
 //	virtual void accept(ViewVisitor *visitor) override {
 //		auto render = static_cast<SkiaRender*>(visitor);
@@ -52,9 +52,9 @@ public:
 //	}
 };
 
-void layout_text(Box* box) {
-	auto text = box->append_new<Text>();
-	auto labe = text->append_new<Label>();
+void layout_text(BoxLayout* box) {
+	auto text = box->append_new<TextLayout>();
+	auto labe = text->append_new<LabelLayout>();
 
 	text->set_width({ 0, SizeKind::kMatch });
 	text->set_height({ 0, SizeKind::kMatch });
@@ -81,8 +81,8 @@ void layout_text(Box* box) {
 	labe->set_text_color({ Color(0,0,0) });
 }
 
-void layout_scroll(Box *box) {
-	auto v = box->append_new<Scroll>();
+void layout_scroll(BoxLayout *box) {
+	auto v = box->append_new<ScrollLayout>();
 	//v->set_is_clip(false);
 	
 	v->set_width({ 200 });
@@ -96,43 +96,43 @@ void layout_scroll(Box *box) {
 	v->set_radius_left_bottom(5);
 	v->set_radius_right_bottom(5);
 
-	auto a = v->append_new<Box>();
+	auto a = v->append_new<BoxLayout>();
 	a->set_margin_top(10);
 	a->set_width({ 0, SizeKind::kMatch });
 	a->set_height({ 100 });
 	a->set_background_color(Color(255,0,0));
 
-	auto b = v->append_new<Box>();
+	auto b = v->append_new<BoxLayout>();
 	b->set_margin_top(10);
 	b->set_width({ 0, SizeKind::kMatch });
 	b->set_height({ 100 });
 	b->set_background_color(Color(0,255,0));
 
-	auto c = v->append_new<Box>();
+	auto c = v->append_new<BoxLayout>();
 	c->set_margin_top(10);
 	c->set_width({ 0.5, SizeKind::kRatio });
 	c->set_height({ 100 });
 	c->set_background_color(Color(0,0,255));
 
-	auto d = v->append_new<Box>();
+	auto d = v->append_new<BoxLayout>();
 	d->set_margin_top(10);
 	d->set_width({ 0.5, SizeKind::kRatio });
 	d->set_height({ 100 });
 	d->set_background_color(Color(0,255,255));
 
-	auto e = v->append_new<Box>();
+	auto e = v->append_new<BoxLayout>();
 	e->set_margin_top(10);
 	e->set_width({ 0, SizeKind::kMatch });
 	e->set_height({ 100 });
 	e->set_background_color(Color(0,255,0));
 
-	auto f = v->append_new<Box>();
+	auto f = v->append_new<BoxLayout>();
 	f->set_margin_top(10);
 	f->set_width({ 0, SizeKind::kMatch });
 	f->set_height({ 100 });
 	f->set_background_color(Color(0,0,255));
 	
-	auto g = v->append_new<Box>();
+	auto g = v->append_new<BoxLayout>();
 	g->set_margin_top(10);
 	g->set_width({ 0, SizeKind::kMatch });
 	g->set_height({ 100 });
@@ -140,8 +140,8 @@ void layout_scroll(Box *box) {
 	
 }
 
-void layout_input(Box* box) {
-	auto input = box->append_new<Textarea>();
+void layout_input(BoxLayout* box) {
+	auto input = box->append_new<TextareaLayout>();
 	//auto input = (Input*)New<Input>()->append_to(box);
 
 	input->set_width({ 200 });
@@ -169,8 +169,8 @@ void layout(Event<>& evt, Application* app) {
 	app->defaultTextOptions()->set_text_family({ app->fontPool()->getFFID("Helvetica, PingFang SC") });
 
 	auto r = win->root();
-	auto flex = r->append_new<Flex>();
-	auto flow = r->append_new<Flow>();
+	auto flex = r->append_new<FlexLayout>();
+	auto flow = r->append_new<FlowLayout>();
 	//auto img  = r->append_new<Image>();
 	auto img2 = r->append_new<TestImage>();
 
@@ -274,10 +274,10 @@ void layout(Event<>& evt, Application* app) {
 	Qk_DEBUG("Layout size %d", sizeof(Layout));
 	Qk_DEBUG("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Layout>));
 	Qk_DEBUG("View size %d", sizeof(View));
-	Qk_DEBUG("Box size %d", sizeof(Box));
-	Qk_DEBUG("Flow size %d", sizeof(Flow));
-	Qk_DEBUG("Flex size %d", sizeof(Flex));
-	Qk_DEBUG("Root size %d", sizeof(Root));
+	Qk_DEBUG("Box size %d", sizeof(BoxLayout));
+	Qk_DEBUG("Flow size %d", sizeof(FlowLayout));
+	Qk_DEBUG("Flex size %d", sizeof(FlexLayout));
+	Qk_DEBUG("Root size %d", sizeof(RootLayout));
 }
 
 void test_layout(int argc, char **argv) {

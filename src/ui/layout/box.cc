@@ -38,7 +38,7 @@
 
 namespace qk {
 
-	float Box::solve_layout_content_width(Size &parent_layout_size) {
+	float BoxLayout::solve_layout_content_width(Size &parent_layout_size) {
 		float ps = parent_layout_size.content_size.x();
 		bool* is_wrap_in_out = &parent_layout_size.wrap_x;
 		float result;
@@ -84,7 +84,7 @@ namespace qk {
 		return result;
 	}
 
-	float Box::solve_layout_content_height(Size &parent_layout_size) {
+	float BoxLayout::solve_layout_content_height(Size &parent_layout_size) {
 		float ps = parent_layout_size.content_size.y();
 		bool* is_wrap_in_out = &parent_layout_size.wrap_y;
 		float result;
@@ -130,7 +130,7 @@ namespace qk {
 		return result;
 	}
 
-	void Box::mark_size(uint32_t _mark) {
+	void BoxLayout::mark_size(uint32_t _mark) {
 		auto _parent = parent();
 		if (_parent) {
 			if (_parent->is_lock_child_layout_size()) {
@@ -144,7 +144,7 @@ namespace qk {
 	/**
 		* @constructors
 		*/
-	Box::Box(Window *win)
+	BoxLayout::BoxLayout(Window *win)
 		: Layout(win)
 		, _layout_wrap_x(true), _layout_wrap_y(true), _is_clip(false)
 		, _width{0, BoxSizeKind::kWrap}, _height{0, BoxSizeKind::kWrap}
@@ -163,14 +163,14 @@ namespace qk {
 	{
 	}
 
-	Box::~Box() {
+	BoxLayout::~BoxLayout() {
 		Release(_background); _background = nullptr;
 		Release(_box_shadow); _box_shadow = nullptr;
 		::free(_border); _border = nullptr;
 	}
 
 	// is clip box display range
-	void Box::set_is_clip(bool val) {
+	void BoxLayout::set_is_clip(bool val) {
 		if (_is_clip != val) {
 			_is_clip = val;
 			mark_render();
@@ -183,7 +183,7 @@ namespace qk {
 		*
 		* @func set_width(width)
 		*/
-	void Box::set_width(BoxSize val) {
+	void BoxLayout::set_width(BoxSize val) {
 		if (_width != val) {
 			_width = val;
 			mark_size(kLayout_Size_Width);
@@ -196,7 +196,7 @@ namespace qk {
 		*
 		* @func set_height(height)
 		*/
-	void Box::set_height(BoxSize val) {
+	void BoxLayout::set_height(BoxSize val) {
 		if (_height != val) {
 			_height = val;
 			mark_size(kLayout_Size_Height);
@@ -209,7 +209,7 @@ namespace qk {
 		*
 		* @func set_width_limit(width_limit)
 		*/
-	void Box::set_width_limit(BoxSize val) {
+	void BoxLayout::set_width_limit(BoxSize val) {
 		if (_width_limit != val) {
 			_width_limit = val;
 			mark_size(kLayout_Size_Width);
@@ -222,14 +222,14 @@ namespace qk {
 		*
 		* @func set_height_limit(height_limit)
 		*/
-	void Box::set_height_limit(BoxSize val) {
+	void BoxLayout::set_height_limit(BoxSize val) {
 		if (_height_limit != val) {
 			_height_limit = val;
 			mark_size(kLayout_Size_Height);
 		}
 	}
 
-	void Box::set_margin_top(float val) { // margin
+	void BoxLayout::set_margin_top(float val) { // margin
 		if (_margin_top != val) {
 			_margin_top = val;
 			mark_size(kLayout_Size_Height);
@@ -237,7 +237,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_margin_left(float val) {
+	void BoxLayout::set_margin_left(float val) {
 		if (_margin_left != val) {
 			_margin_left = val;
 			mark_size(kLayout_Size_Width);
@@ -245,7 +245,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_padding_top(float val) { // padding
+	void BoxLayout::set_padding_top(float val) { // padding
 		if (_padding_top != val) {
 			_padding_top = val;
 			mark_size(kLayout_Size_Height);
@@ -255,7 +255,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_padding_left(float val) {
+	void BoxLayout::set_padding_left(float val) {
 		if (_padding_left != val) {
 			_padding_left = val;
 			mark_size(kLayout_Size_Width);
@@ -264,7 +264,7 @@ namespace qk {
 	}
 
 	// --
-	void Box::set_margin_right(float val) {
+	void BoxLayout::set_margin_right(float val) {
 		if (_margin_right != val) {
 			_margin_right = val;
 			mark_size(kLayout_Size_Width);
@@ -272,7 +272,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_margin_bottom(float val) {
+	void BoxLayout::set_margin_bottom(float val) {
 		if (_margin_bottom != val) {
 			_margin_bottom = val;
 			mark_size(kLayout_Size_Height);
@@ -280,7 +280,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_padding_right(float val) {
+	void BoxLayout::set_padding_right(float val) {
 		if (_padding_right != val) {
 			_padding_right = val;
 			mark_size(kLayout_Size_Width);
@@ -288,7 +288,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_padding_bottom(float val) {
+	void BoxLayout::set_padding_bottom(float val) {
 		if (_padding_bottom != val) {
 			_padding_bottom = val;
 			mark_size(kLayout_Size_Height);
@@ -298,28 +298,28 @@ namespace qk {
 
 	// -- border radius
 
-	void Box::set_radius_left_top(float val) {
+	void BoxLayout::set_radius_left_top(float val) {
 		if (val >= 0.0 && _radius_left_top != val) {
 			_radius_left_top = val;
 			mark_render();
 		}
 	}
 
-	void Box::set_radius_right_top(float val) {
+	void BoxLayout::set_radius_right_top(float val) {
 		if (val >= 0.0 && _radius_right_top != val) {
 			_radius_right_top = val;
 			mark_render();
 		}
 	}
 
-	void Box::set_radius_right_bottom(float val) {
+	void BoxLayout::set_radius_right_bottom(float val) {
 		if (val >= 0.0 && _radius_right_bottom != val) {
 			_radius_right_bottom = val;
 			mark_render();
 		}
 	}
 
-	void Box::set_radius_left_bottom(float val) {
+	void BoxLayout::set_radius_left_bottom(float val) {
 		if (val >= 0.0 && _radius_left_bottom != val) {
 			_radius_left_bottom = val;
 			mark_render();
@@ -334,39 +334,39 @@ namespace qk {
 		}
 	}
 
-	Color Box::border_color_top() const {
+	Color BoxLayout::border_color_top() const {
 		return _border ? _border->color[0]: Color::from(0);
 	}
 
-	Color Box::border_color_right() const {
+	Color BoxLayout::border_color_right() const {
 		return _border ? _border->color[1]: Color::from(0);
 	}
 
-	Color Box::border_color_bottom() const {
+	Color BoxLayout::border_color_bottom() const {
 		return _border ? _border->color[2]: Color::from(0);
 	}
 
-	Color Box::border_color_left() const {
+	Color BoxLayout::border_color_left() const {
 		return _border ? _border->color[3]: Color::from(0);
 	}
 
-	float Box::border_width_top() const {
+	float BoxLayout::border_width_top() const {
 		return _border ? _border->width[0]: 0;
 	} // border_widrh
 
-	float Box::border_width_right() const {
+	float BoxLayout::border_width_right() const {
 		return _border ? _border->width[1]: 0;
 	}
 
-	float Box::border_width_bottom() const {
+	float BoxLayout::border_width_bottom() const {
 		return _border ? _border->width[2]: 0;
 	}
 
-	float Box::border_width_left() const {
+	float BoxLayout::border_width_left() const {
 		return _border ? _border->width[3]: 0;
 	}
 
-	void Box::set_border_color_top(Color val) {
+	void BoxLayout::set_border_color_top(Color val) {
 		alloc_border(_border);
 		if (_border->color[0] != val) {
 			_border->color[0] = val;
@@ -374,7 +374,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_color_right(Color val) {
+	void BoxLayout::set_border_color_right(Color val) {
 		alloc_border(_border);
 		if (_border->color[1] != val) {
 			_border->color[1] = val;
@@ -382,7 +382,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_color_bottom(Color val) {
+	void BoxLayout::set_border_color_bottom(Color val) {
 		alloc_border(_border);
 		if (_border->color[2] != val) {
 			_border->color[2] = val;
@@ -390,7 +390,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_color_left(Color val) {
+	void BoxLayout::set_border_color_left(Color val) {
 		alloc_border(_border);
 		if (_border->color[3] != val) {
 			_border->color[3] = val;
@@ -398,7 +398,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_width_top(float val) {
+	void BoxLayout::set_border_width_top(float val) {
 		alloc_border(_border);
 		val = Qk_MAX(0, val);
 		if (_border->width[0] != val) {
@@ -407,7 +407,7 @@ namespace qk {
 		}
 	} // border_widrh
 
-	void Box::set_border_width_right(float val) {
+	void BoxLayout::set_border_width_right(float val) {
 		alloc_border(_border);
 		val = Qk_MAX(0, val);
 		if (_border->width[1] != val) {
@@ -416,7 +416,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_width_bottom(float val) {
+	void BoxLayout::set_border_width_bottom(float val) {
 		alloc_border(_border);
 		val = Qk_MAX(0, val);
 		if (_border->width[2] != val) {
@@ -425,7 +425,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_width_left(float val) {
+	void BoxLayout::set_border_width_left(float val) {
 		alloc_border(_border);
 		val = Qk_MAX(0, val);
 		if (_border->width[3] != val) {
@@ -434,21 +434,21 @@ namespace qk {
 		}
 	}
 
-	void Box::set_background_color(Color color) {
+	void BoxLayout::set_background_color(Color color) {
 		if (_background_color != color) {
 			_background_color = color;
 			mark_render();
 		}
 	}
 
-	void Box::set_background(BoxFill* val) {
+	void BoxLayout::set_background(BoxFill* val) {
 		if (_background != val) {
 			_background = static_cast<BoxFill*>(BoxFilter::assign(_background, val));
 			mark_render();
 		}
 	}
 
-	void Box::set_box_shadow(BoxShadow* val) {
+	void BoxLayout::set_box_shadow(BoxShadow* val) {
 		if (_box_shadow != val) {
 			_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign(_box_shadow, val));
 			mark_render();
@@ -458,7 +458,7 @@ namespace qk {
 	/**
 		* @func solve_layout_size_forward()
 		*/
-	uint32_t Box::solve_layout_size_forward(uint32_t mark) {
+	uint32_t BoxLayout::solve_layout_size_forward(uint32_t mark) {
 		uint32_t layout_content_size_change_mark = kLayout_None;
 
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
@@ -517,7 +517,7 @@ namespace qk {
 		return layout_content_size_change_mark;
 	}
 
-	bool Box::layout_forward(uint32_t _mark) {
+	bool BoxLayout::layout_forward(uint32_t _mark) {
 		uint32_t layout_content_size_change_mark = solve_layout_size_forward(_mark);
 
 		if (layout_content_size_change_mark) {
@@ -538,7 +538,7 @@ namespace qk {
 		return true; // complete iteration
 	}
 
-	bool Box::layout_reverse(uint32_t mark) {
+	bool BoxLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
@@ -556,7 +556,7 @@ namespace qk {
 		return true; // complete, stop iteration
 	}
 
-	void Box::layout_text(TextLines *lines, TextConfig *cfg) {
+	void BoxLayout::layout_text(TextLines *lines, TextConfig *cfg) {
 		auto opts = cfg->opts();
 		auto text_white_space = opts->text_white_space_value();
 		//auto text_word_break = opts->text_word_break_value();
@@ -588,7 +588,7 @@ namespace qk {
 		lines->add_layout(this);
 	}
 
-	Vec2 Box::layout_lock(Vec2 layout_size) {
+	Vec2 BoxLayout::layout_lock(Vec2 layout_size) {
 		bool wrap[2] = { false, false };
 		set_layout_size(layout_size, wrap, false);
 		return _layout_size;
@@ -597,7 +597,7 @@ namespace qk {
 	/**
 		* @func set_layout_size(layout_size, is_wrap)
 		*/
-	void Box::set_layout_size(Vec2 layout_size, bool is_wrap[2], bool is_lock_child) {
+	void BoxLayout::set_layout_size(Vec2 layout_size, bool is_wrap[2], bool is_lock_child) {
 		uint32_t layout_content_size_change_mark = kLayout_None;
 		auto content_size_old = _content_size;
 
@@ -645,7 +645,7 @@ namespace qk {
 	/**
 		* @func set_content_size(content_size)
 		*/
-	void Box::set_content_size(Vec2 content_size) {
+	void BoxLayout::set_content_size(Vec2 content_size) {
 		_content_size = content_size;
 		_client_size = Vec2(content_size.x() + _padding_left + _padding_right,
 												content_size.y() + _padding_top + _padding_bottom);
@@ -659,17 +659,17 @@ namespace qk {
 		mark_render(kRecursive_Visible_Region);
 	}
 
-	Vec2 Box::layout_offset() {
+	Vec2 BoxLayout::layout_offset() {
 		return _layout_offset;
 	}
 
-	Layout::Size Box::layout_size() {
+	Layout::Size BoxLayout::layout_size() {
 		return {
 			_layout_size, _content_size, _layout_wrap_x, _layout_wrap_y
 		};
 	}
 
-	Layout::Size Box::layout_raw_size(Size size) {
+	Layout::Size BoxLayout::layout_raw_size(Size size) {
 		size.content_size.set_x(solve_layout_content_width(size));
 		size.content_size.set_x(solve_layout_content_height(size));
 		size.layout_size.set_x(_margin_left + _padding_left + size.content_size.x() + _padding_right + _margin_right);
@@ -681,15 +681,15 @@ namespace qk {
 		return size;
 	}
 
-	float Box::layout_weight() {
+	float BoxLayout::layout_weight() {
 		return _layout_weight;
 	}
 
-	Align Box::layout_align() {
+	Align BoxLayout::layout_align() {
 		return _layout_align;
 	}
 
-	Mat Box::layout_matrix() {
+	Mat BoxLayout::layout_matrix() {
 		Vec2 translate = layout_offset() + parent()->layout_offset_inside()
 			+ Vec2(_margin_left, _margin_top);
 		return Mat(
@@ -698,7 +698,7 @@ namespace qk {
 		);
 	}
 
-	Vec2 Box::layout_offset_inside() {
+	Vec2 BoxLayout::layout_offset_inside() {
 		Vec2 offset(
 			_padding_left, _padding_top
 		);
@@ -715,7 +715,7 @@ namespace qk {
 		*
 		* @func set_layout_align(align)
 		*/
-	void Box::set_layout_align(Align align) {
+	void BoxLayout::set_layout_align(Align align) {
 		if (_layout_align != align) {
 			_layout_align = align;
 			if (parent()) {
@@ -730,7 +730,7 @@ namespace qk {
 		*
 		* @func set_layout_weight(weight)
 		*/
-	void Box::set_layout_weight(float weight) {
+	void BoxLayout::set_layout_weight(float weight) {
 		if (_layout_weight != weight) {
 			_layout_weight = weight;
 			if (parent()) {
@@ -739,12 +739,12 @@ namespace qk {
 		}
 	}
 
-	void Box::set_layout_offset(Vec2 val) {
+	void BoxLayout::set_layout_offset(Vec2 val) {
 		_layout_offset = val;
 		mark_render(kRecursive_Transform); // mark recursive transform
 	}
 
-	void Box::set_layout_offset_lazy(Vec2 size) {
+	void BoxLayout::set_layout_offset_lazy(Vec2 size) {
 		Vec2 offset;
 
 		switch(_layout_align) {
@@ -788,7 +788,7 @@ namespace qk {
 		set_layout_offset(offset);
 	}
 
-	void Box::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {
+	void BoxLayout::onParentLayoutContentSizeChange(Layout* parent, uint32_t value) {
 		mark_layout(value);
 	}
 
@@ -798,7 +798,7 @@ namespace qk {
 		*
 		* @func is_ready_layout_typesetting()
 		*/
-	bool Box::is_ready_layout_typesetting() {
+	bool BoxLayout::is_ready_layout_typesetting() {
 		if (parent()->is_lock_child_layout_size()) { // layout size locked by parent layout
 			if (parent()->mark_value() & kLayout_Typesetting) {
 				// The parent layout needs to be readjusted
@@ -808,7 +808,7 @@ namespace qk {
 		return true;
 	}
 
-	Vec2 Box::position() {
+	Vec2 BoxLayout::position() {
 		Vec2 point(
 			_client_size.x() * 0.5,
 			_client_size.y() * 0.5
@@ -816,14 +816,14 @@ namespace qk {
 		return matrix() * point;
 	}
 
-	bool Box::clip() {
+	bool BoxLayout::clip() {
 		return _is_clip;
 	}
 
 	/**
 		* @func solve_rect_vertex(vertex)
 		*/
-	void Box::solve_rect_vertex(Vec2 vertex[4]) {
+	void BoxLayout::solve_rect_vertex(Vec2 vertex[4]) {
 		auto& mat = matrix();
 		Vec2 origin;
 		Vec2 end = _client_size;
@@ -833,7 +833,7 @@ namespace qk {
 		vertex[3] = mat * Vec2(origin.x(), end.y());
 	}
 
-	bool Box::solve_visible_region() {
+	bool BoxLayout::solve_visible_region() {
 		// Vec2 vertex[4];
 		solve_rect_vertex(_vertex);
 
@@ -862,7 +862,7 @@ namespace qk {
 		return false;
 	}
 
-	bool Box::overlap_test(Vec2 point) {
+	bool BoxLayout::overlap_test(Vec2 point) {
 		return overlap_test_from_convex_quadrilateral(_vertex, point);
 	}
 

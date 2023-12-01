@@ -10,11 +10,11 @@ using namespace qk;
 
 constexpr unsigned int u32 = 1;
 
-class TestDrawEfficiency: public Box {
+class TestDrawEfficiency: public BoxLayout {
 public:
-	TestDrawEfficiency(Window *win): Box(win) {}
+	TestDrawEfficiency(Window *win): BoxLayout(win) {}
 
-	void accept(Visitor *visitor) override {
+	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
 
@@ -42,7 +42,7 @@ void test_draw_efficiency(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();
 	// layout
-	auto t = New<TestDrawEfficiency>(win)->append_to<Box>(win->root());
+	auto t = New<TestDrawEfficiency>(win)->append_to<BoxLayout>(win->root());
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

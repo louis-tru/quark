@@ -35,10 +35,9 @@
 
 namespace qk {
 
-	class Qk_EXPORT Flex: public Box {
-		Qk_Define_Layout(Flex);
+	class Qk_EXPORT FlexLayout: public BoxLayout {
 	public:
-		Flex(Window *win);
+		FlexLayout(Window *win);
 		// define props
 		Qk_DEFINE_PROP(Direction, direction); // typesetting direction
 		Qk_DEFINE_PROP(ItemsAlign, items_align); // alignment mode of the main axis
@@ -55,7 +54,7 @@ namespace qk {
 		void layout_typesetting_auto_impl(bool is_horizontal, bool is_reverse);
 		bool update_IsLockChild();
 		bool _is_lock_child;
-		friend class Flow;
+		friend class FlowLayout;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
