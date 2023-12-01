@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./view.h"
-#include "../window.h"
-#include "../layout/layout.h"
+#include "./window.h"
+#include "./layout/layout.h"
 
 namespace qk {
 
@@ -42,12 +42,14 @@ namespace qk {
 		, _first(nullptr), _last(nullptr)
 	{
 		layout->_view = this;
+		layout->retain();
 	}
 
 	View::~View() {
 		Qk_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		set_action(nullptr); // del action
 		remove_all_child(); // 删除子视图
+		_layout->release(); _layout = nullptr;
 	}
 
 	bool View::is_self_child(View *child) {
@@ -80,6 +82,7 @@ namespace qk {
 			view->_next = this;
 			_prev = view;
 		}
+		_layout->before(view->_layout); // TODO ... layout cmd
 	}
 
 	void View::after(View *view) {
@@ -99,6 +102,7 @@ namespace qk {
 			view->_next = _next;
 			_next = view;
 		}
+		_layout->after(view->_layout); // TODO ... layout cmd
 	}
 
 	void View::prepend(View *child) {
@@ -118,6 +122,7 @@ namespace qk {
 			_first = child;
 			_last = child;
 		}
+		_layout->prepend(child->_layout); // TODO ... layout cmd
 	}
 
 	void View::append(View *child) {
@@ -137,6 +142,7 @@ namespace qk {
 			_first = child;
 			_last = child;
 		}
+		_layout->append(child->_layout); // TODO ... layout cmd
 	}
 
 	void View::remove() {
@@ -144,6 +150,7 @@ namespace qk {
 			clear_link();
 			_parent = nullptr;
 			release(); // Disconnect from parent view strong reference
+			_layout->remove(); // TODO ... layout cmd
 		}
 	}
 
@@ -152,14 +159,15 @@ namespace qk {
 			_first->remove_all_child();
 			_first->remove();
 		}
+		_layout->remove_all_child(); // TODO ... layout cmd
 	}
 
 	void View::set_visible(bool val) {
-		// TODO ...
+		_layout->set_visible(val); // TODO ... layout cmd
 	}
 
 	bool View::visible() const {
-		return false;
+		return _layout->visible(); // TODO ... layout cmd
 	}
 
 	void View::set_is_focus(bool value) {
@@ -218,6 +226,7 @@ namespace qk {
 
 	void View::set_parent(View *parent) {
 		if (parent != _parent) {
+			#define is_root() (_layout->_window && _layout->_window->root() == this)
 			// Qk_STRICT_ASSERT(!is_root(), "root view not allow set parent"); // check
 			clear_link();
 			if ( !_parent ) {
@@ -225,11 +234,6 @@ namespace qk {
 			}
 			_parent = parent;
 		}
-	}
-
-	bool View::is_root() {
-		// return _layout->_window && _layout->_window->root() == this;
-		return false;
 	}
 
 }

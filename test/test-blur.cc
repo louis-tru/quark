@@ -13,6 +13,7 @@ constexpr unsigned int u32 = 1;
 class TestBlur: public BoxLayout {
 public:
 	float i = 0;
+	TestBlur(Window *win): BoxLayout(win) {}
 
 	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
@@ -58,8 +59,8 @@ void test_blur(int argc, char **argv) {
 	// auto win2 = Window::Make({.frame={{0,0}, {200,200}}, .title="win2"});
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Blur"});
 	auto r = win->root();
-	auto t = win->root()->append_new<TestBlur>();
-	r->set_background_color({255,255,255,0});
+	auto t = win->root()->append_new<TestBlur>()->layout<TestBlur>();
+	r->layout<BoxLayout>()->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	app.run();

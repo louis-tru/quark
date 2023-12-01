@@ -92,7 +92,8 @@ namespace qk {
 				if ( _flag == kFlag_Disable_Click_Find ) { // 禁用点击聚焦
 					_flag = kFlag_Normal;
 				} else {
-					focus();
+					// TODO ...
+					view()->focus();
 					find_cursor(Vec2(e->x(), e->y()));
 				}
 			}
@@ -537,7 +538,7 @@ namespace qk {
 
 		void trigger_change() {
 			shared_app()->loop()->post(Cb([this](Cb::Data& e){
-				Handle<UIEvent> evt = qk::New<UIEvent>(this);
+				Handle<UIEvent> evt = qk::New<UIEvent>(view()); // TODO ...
 				// TODO ...
 				//trigger(UIEvent_Change, **evt); // trigger event
 			}, this));
@@ -716,14 +717,14 @@ namespace qk {
 			// text cursor status
 			refresh_cursor_screen_position(); // text layout
 
-			View::solve_marks(mark);
+			Layout::solve_marks(mark);
 
 			if (_editing) {
 				window()->dispatch()->
 					set_ime_keyboard_spot_location(input_spot_location());
 			}
 		} else {
-			View::solve_marks(mark);
+			Layout::solve_marks(mark);
 		}
 	}
 
@@ -996,7 +997,7 @@ namespace qk {
 			_readonly = value;
 			if (_readonly) {
 				_editing = false;
-			} else if (is_focus()) {
+			} else if (view()->is_focus()) { // TODO ...
 				_editing = true;
 			}
 			mark_layout(kInput_Status);

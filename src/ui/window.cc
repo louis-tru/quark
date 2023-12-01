@@ -31,7 +31,7 @@
 #include "./window.h"
 #include "./app.h"
 #include "./layout/root.h"
-#include "./view/view.h"
+#include "./view.h"
 #include "../render/render.h"
 #include "./ui_render.h"
 #include "./event.h"
@@ -94,14 +94,13 @@ namespace qk {
 			_id = _host->_windows.pushBack(this);
 		}
 		retain(); // strong ref count retain
-		// _root = new RootLayout(this); // new root
-		// _root->_window = this;
-		// _root->_level = 1;
-		// _root->init();
-		// _root->retain(); // strong ref
+		_root = new View(new RootLayout(this)); // new root
+		auto root = _root->layout<RootLayout>();
+		root->_level = 1;
+		root->init();
+		root->retain(); // strong ref
 		openImpl(opts); // open platform window
-		// TODO ...
-		//_root->focus();  // set focus
+		_root->focus();  // set focus
 	}
 
 	Window::~Window() {

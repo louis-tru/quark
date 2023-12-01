@@ -31,7 +31,7 @@
 #ifndef __quark__ui__view__
 #define __quark__ui__view__
 
-#include "../event.h"
+#include "./event.h"
 
 namespace qk {
 	class Action;
@@ -81,20 +81,18 @@ namespace qk {
 		*/
 		virtual ~View();
 
+		template<class Layout = Layout, class View = View> inline View* New();
+
 		template<class T = Layout> T* layout() const {
 			return static_cast<T*>(_layout);
 		}
 
-		template<class Layout = Layout, class View = View> inline View* New() {
-			return new View(new Layout(_layout->_window));
-		}
-
 		template<class Layout = Layout, class View = View> inline View prepend_new() {
-			return New<Layout, View>()->template prepend_to<T>(this);
+			return New<Layout, View>()->template prepend_to<View>(this);
 		}
 
 		template<class Layout = Layout, class View = View> inline View* append_new() {
-			return New<Layout, View>()->template append_to<T>(this);
+			return New<Layout, View>()->template append_to<View>(this);
 		}
 
 		template<class T = View> inline T* prepend_to(View* parent) {
@@ -180,7 +178,6 @@ namespace qk {
 		 */
 		void set_parent(View* parent);
 		void clear_link(); // Cleaning up associated view information
-		bool is_root();
 
 		friend class EventDispatch;
 

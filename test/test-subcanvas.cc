@@ -46,8 +46,8 @@ void test_subcanvas(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}});
 	win->activate();
 	auto r = win->root();
-	auto t = r->append_new<TestSubcanvas>();
-	r->set_background_color({255,255,255,0});
+	auto t = r->append_new<TestSubcanvas>()->layout<TestSubcanvas>();
+	r->layout<BoxLayout>()->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	app.run();

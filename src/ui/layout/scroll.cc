@@ -46,7 +46,7 @@ namespace qk {
 	public:
 
 		void triggerScroll() {
-			Sp<UIEvent> evt = qk::New<UIEvent>(this);
+			Sp<UIEvent> evt = qk::New<UIEvent>(view());// TODO ...
 			// TODO ...
 			// Notification<UIEvent, UIEventName, Reference>::trigger(UIEvent_Scroll, **evt);
 		}
@@ -55,7 +55,7 @@ namespace qk {
 			Layout::mark_render(mark);
 		}
 
-		void unmark(uint32_t mark = (~View::kLayout_None)) {
+		void unmark(uint32_t mark = (~Layout::kLayout_None)) {
 			Layout::unmark(mark);
 		}
 
@@ -374,7 +374,7 @@ namespace qk {
 				set_h_scrollbar_pos();
 				set_v_scrollbar_pos();
 				
-				_host->mark_render(View::kScroll); // mark
+				_host->mark_render(Layout::kScroll); // mark
 				
 				shared_app()->loop()->post(Cb([this](Cb::Data& se) {
 					_host->triggerScroll(); // trigger event
@@ -698,7 +698,7 @@ namespace qk {
 		if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
 			_this->scroll_to_valid_scroll(scroll, duration, curve);
 		}
-		_host->mark_render(View::kScroll);
+		_host->mark_render(Layout::kScroll);
 	}
 
 	void BaseScroll::set_scroll(Vec2 value) {
@@ -714,13 +714,13 @@ namespace qk {
 	void BaseScroll::set_scroll_x(float value) {
 		_scroll_raw.set_x(-value);
 		_scroll = _this->catch_valid_scroll( Vec2(-value, _scroll_raw.y()) );
-		_host->mark_render(View::kScroll);
+		_host->mark_render(Layout::kScroll);
 	}
 
 	void BaseScroll::set_scroll_y(float value) {
 		_scroll_raw.set_y(-value);
 		_scroll = _this->catch_valid_scroll( Vec2(_scroll_raw.x(), -value) );
-		_host->mark_render(View::kScroll);
+		_host->mark_render(Layout::kScroll);
 	}
 
 	Vec2 BaseScroll::scroll() const {
@@ -810,18 +810,18 @@ namespace qk {
 		_scrollbar_h = (_scroll_h && _scrollbar);
 		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);
 		//
-		_host->mark_render(View::kScroll);
+		_host->mark_render(Layout::kScroll);
 	}
 
 	void BaseScroll::solve(uint32_t mark) {
-		if ( mark & View::kScroll ) {
+		if ( mark & Layout::kScroll ) {
 			if ( !_moved && !_this->is_task() ) {
 				// fix scroll value
 				_scroll = _this->catch_valid_scroll(_scroll_raw);
 				_scroll_raw = _scroll;
 			}
-			_host->unmark(View::kScroll);
-			_host->mark_render(View::kRecursive_Transform);
+			_host->unmark(Layout::kScroll);
+			_host->mark_render(Layout::kRecursive_Transform);
 		}
 	}
 
@@ -856,7 +856,7 @@ namespace qk {
 
 	void ScrollLayout::solve_marks(uint32_t mark) {
 		BaseScroll::solve(mark);
-		View::solve_marks(mark);
+		Layout::solve_marks(mark);
 	}
 
 }

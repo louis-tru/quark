@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./layout.h"
-#include "../view/view.h"
+#include "../view.h"
 #include "../window.h"
 #include "./root.h"
 

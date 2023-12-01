@@ -42,7 +42,7 @@ void test_draw_efficiency(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();
 	// layout
-	auto t = New<TestDrawEfficiency>(win)->append_to<BoxLayout>(win->root());
+	auto t = win->root()->append_new<TestDrawEfficiency>()->layout<TestDrawEfficiency>();
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

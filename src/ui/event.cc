@@ -31,7 +31,7 @@
 #include "./event.h"
 #include "./app.h"
 #include "./window.h"
-#include "./view/view.h"
+#include "./view.h"
 #include "./layout/root.h"
 #include "./layout/button.h"
 #include "./keyboard.h"

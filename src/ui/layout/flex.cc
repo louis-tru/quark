@@ -147,7 +147,7 @@ namespace qk {
 		float cross_size = is_wrap_cross ? 0: cross_size_old;
 
 		if (first()) {
-			struct Item { Vec2 s; View* v; };
+			struct Item { Vec2 s; Layout* v; };
 			float weight_total = 0;
 			Array<Item> items;
 			float total_main = 0, max_cross = 0;

@@ -32,7 +32,7 @@
 #define __quark__ui__layout__
 
 #include "../types.h"
-#include "../event.h"
+#include "../view.h"
 
 namespace qk {
 	class TextInput;
@@ -41,8 +41,8 @@ namespace qk {
 	class TextConfig;
 	class UIRender;
 	class Window;
-	class View;
 	class EventDispatch;
+	class View;
 
 	/**
 		* Layout tree nodes that can only be called in rendering threads.
@@ -472,6 +472,11 @@ namespace qk {
 
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
 	};
+
+	template<class L, class V>
+	inline V* View::New() {
+		return new V(new L(_layout->_window));
+	}
 
 }
 #endif

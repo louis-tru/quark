@@ -52,7 +52,7 @@ namespace qk {
 
 			struct Line {
 				struct Item {
-					Vec2 s; View* v;
+					Vec2 s; Layout* v;
 				};
 				float total_main;
 				float max_cross;
