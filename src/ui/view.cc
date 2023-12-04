@@ -165,6 +165,10 @@ namespace qk {
 		// _layout->remove_all_child(); // TODO ... layout cmd
 	}
 
+	Window* View::window() const {
+		return _layout->_window;
+	}
+
 	void View::set_visible(bool val) {
 		_layout->set_visible(val); // TODO ... layout cmd
 	}

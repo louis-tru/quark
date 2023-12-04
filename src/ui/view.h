@@ -66,6 +66,10 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(View*, next);
 		Qk_DEFINE_PROP_GET(View*, first);
 		Qk_DEFINE_PROP_GET(View*, last);
+		/*
+		* @field window
+		*/
+		Qk_DEFINE_PROP_ACC_GET(Window*, window);
 		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space
