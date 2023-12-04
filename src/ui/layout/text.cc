@@ -96,4 +96,19 @@ namespace qk {
 		_text_flags = 0xffffffffu;
 	}
 
+	Text::Text(Layout *layout): Box(layout) {
+	}
+
+	bool Button::can_become_focus() {
+		return true;
+	}
+
+	Button* Button::as_button() {
+		return this;
+	}
+
+	Button* Button::next_button(FindDirection dir) {
+		return nullptr;
+	}
+
 }

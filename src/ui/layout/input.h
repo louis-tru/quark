@@ -42,7 +42,8 @@ namespace qk {
 
 	class Qk_EXPORT InputLayout: public BoxLayout, public TextOptions, public RenderTask, public TextInput {
 	public:
-		typedef ReferenceTraits Traits;
+		//typedef ReferenceTraits Traits;
+		typedef NonObjectTraits Traits;
 		// define props
 		Qk_DEFINE_PROP(bool, security);
 		Qk_DEFINE_PROP(bool, readonly);
@@ -67,7 +68,6 @@ namespace qk {
 		virtual void solve_marks(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void onActivate() override;
-		virtual bool can_become_focus() override;
 		virtual TextInput* as_text_input() override;
 		virtual bool run_task(int64_t sys_time) override;
 		// impl text input
@@ -82,7 +82,6 @@ namespace qk {
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 		virtual Object* toObject() override;
-		virtual void draw(UIRender *render) override;
 	protected:
 		Vec2 layout_typesetting_input_text();
 		void refresh_cursor_screen_position();
@@ -107,6 +106,13 @@ namespace qk {
 		friend class UIRender;
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
+	};
+
+	class Qk_EXPORT Input: public Box {
+	public:
+		Qk_Define_View(Input, Box);
+		virtual bool can_become_focus() override;
+		virtual void draw(UIRender *render) override;
 	};
 
 }

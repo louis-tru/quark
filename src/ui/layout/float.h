@@ -43,5 +43,10 @@ namespace qk {
 		Vec2 layout_typesetting_float();
 	};
 
+	class Qk_EXPORT Float: public Box {
+	public:
+		Qk_Define_View(Float, Box);
+	};
+
 }
 #endif

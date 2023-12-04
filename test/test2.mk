@@ -52,6 +52,7 @@ CXX_SOURCES = \
 	test2-math_InvSqrt.cc \
 	test2-render_path.cc \
 	test2-arr.cc \
+	test2-cls.cc \
 	../src/util/log.cc \
 	../src/util/array.cc \
 	../src/util/string.cc \

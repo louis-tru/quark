@@ -52,5 +52,10 @@ namespace qk {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
+	class Qk_EXPORT Flow: public Flex {
+	public:
+		Qk_Define_View(Flow, Flex);
+	};
+
 }
 #endif

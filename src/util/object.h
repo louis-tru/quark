@@ -130,6 +130,10 @@ namespace qk {
 		std::atomic_int _ref_count;
 	};
 
+	Qk_EXPORT bool Retain(Object* obj);
+	Qk_EXPORT void Release(Object* obj);
+	Qk_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+
 	/**
 	* @class Protocol protocol base
 	*/
@@ -161,15 +165,13 @@ namespace qk {
 	*/
 	struct ProtocolTraits {
 		template<class T> inline static bool Retain(T* obj) {
-			return obj ? obj->toObject()->retain() : 0;
+			return obj ? qk::Retain(obj->toObject()) : 0;
 		}
 		template<class T> inline static void Release(T* obj) {
-			if (obj) obj->toObject()->release();
+			if (obj) qk::Release(obj->toObject());
 		}
 		static constexpr bool isReference = false;
 	};
-
-	typedef ProtocolTraits InterfaceTraits;
 
 	/**
 	 * @class NonObjectTraits
@@ -181,10 +183,6 @@ namespace qk {
 		template<class T> inline static void Release(T* obj) { delete obj; }
 		static constexpr bool isReference = false;
 	};
-
-	Qk_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
-	Qk_EXPORT bool Retain(Object* obj);
-	Qk_EXPORT void Release(Object* obj);
 
 	template<class T, typename... Args>
 	inline T* New(Args... args) { return new T(args...); }

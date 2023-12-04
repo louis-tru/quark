@@ -98,7 +98,7 @@ namespace qk {
 		auto root = _root->layout<RootLayout>();
 		root->_level = 1;
 		root->init();
-		root->retain(); // strong ref
+		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
 		_root->focus();  // set focus
 	}

@@ -31,13 +31,11 @@
 #include "./layout.h"
 #include "../view.h"
 #include "../window.h"
-#include "./root.h"
 
 namespace qk {
 
 	Layout::Layout(Window *win)
-		: Reference()
-		, _mark_index(-1)
+		: _mark_index(-1)
 		, _mark_value(kLayout_None)
 		, _level(0)
 		, _window(win)
@@ -51,9 +49,159 @@ namespace qk {
 	{}
 
 	Layout::~Layout() {
-		Qk_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
-		remove_all_child(); // 删除子视图
 	}
+
+	void Layout::set_visible(bool val) {
+		if (_visible != val) {
+			#define is_root() (_window && _window->root()->layout() == this)
+			set_visible_(val, _parent && _parent->_level ?
+				_parent->_level + 1: val && is_root() ? 1: 0);
+		}
+	}
+
+	void Layout::set_opacity(float val) {
+		if (_opacity != val) {
+			val = Qk_MAX(0, Qk_MIN(val, 1));
+			if (_opacity != val)
+				mark_render(); // mark render
+		}
+	}
+
+	// @layout
+	// ------------------------------------------------------------------------------------------
+
+	Mat Layout::layout_matrix() {
+		Vec2 translate = layout_offset() + _parent->layout_offset_inside();
+		return Mat(
+			1, 0, translate.x(),
+			0, 1, translate.y()
+		);
+	}
+
+	void Layout::solve_marks(uint32_t mark) {
+		if (mark & kRecursive_Transform) { // update transform matrix
+			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
+			if (_parent) {
+				_parent->matrix().mul(layout_matrix(), _matrix);
+			} else {
+				_matrix = layout_matrix();
+			}
+			goto visible_region;
+		}
+		if (mark & kRecursive_Visible_Region) {
+			unmark(kRecursive_Visible_Region); // unmark
+		visible_region:
+			_visible_region = solve_visible_region();
+		}
+	}
+
+	Vec2 Layout::position() {
+		return Vec2(_matrix[2], _matrix[5]);
+	}
+
+	bool Layout::solve_visible_region() {
+		return true;
+	}
+
+	bool Layout::overlap_test(Vec2 point) {
+		return false;
+	}
+
+	TextInput* Layout::as_text_input() {
+		return nullptr;
+	}
+
+	ButtonLayout* Layout::as_button() {
+		return nullptr;
+	}
+
+	float Layout::layout_weight() {
+		return 0;
+	}
+
+	Align Layout::layout_align() {
+		return Align::kAuto;
+	}
+
+	Vec2 Layout::layout_offset() {
+		return Vec2();
+	}
+
+	Layout::Size Layout::layout_size() {
+		return { Vec2(), Vec2(), true, true };
+	}
+
+	Layout::Size Layout::layout_raw_size(Size parent_content_size) {
+		return { Vec2(), Vec2(), true, true };
+	}
+
+	Vec2 Layout::layout_offset_inside() {
+		return Vec2();
+	}
+
+	void Layout::set_layout_offset(Vec2 val) {
+	}
+
+	void Layout::set_layout_offset_lazy(Vec2 size) {
+	}
+
+	Vec2 Layout::layout_lock(Vec2 layout_size) {
+		return Vec2();
+	}
+
+	bool Layout::is_lock_child_layout_size() {
+		return false;
+	}
+
+	bool Layout::layout_forward(uint32_t mark) {
+		return !(mark & kLayout_Typesetting);
+	}
+
+	bool Layout::layout_reverse(uint32_t mark) {
+		if (mark & kLayout_Typesetting) {
+			auto v = _first;
+			while (v) {
+				v->set_layout_offset_lazy(Vec2()); // lazy layout
+				v = v->_next;
+			}
+			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height);
+		}
+		return true; // complete
+	}
+
+	void Layout::layout_text(TextLines *lines, TextConfig *cfg) {
+	}
+
+	void Layout::onChildLayoutChange(Layout *child, uint32_t value) {
+		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
+			mark_layout(kLayout_Typesetting);
+		}
+	}
+
+	void Layout::onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) {
+	}
+
+	void Layout::onActivate() {
+	}
+
+	void Layout::mark_layout(uint32_t mark) {
+		_mark_value |= mark;
+		if (_mark_index < 0) {
+			if (_level) {
+				_window->mark_layout(this, _level); // push to pre render
+			}
+		}
+	}
+
+	void Layout::mark_render(uint32_t mark) {
+		_mark_value |= mark;
+		if (_level) {
+			_window->mark_render(); // push to pre render
+		}
+	}
+
+	// @private
+	// --------------------------------------------------------------------------------------
 
 	void Layout::before(Layout *view) {
 		if (view == this) return;
@@ -135,187 +283,11 @@ namespace qk {
 		if (_parent) {
 			clear_link();
 			_parent = nullptr;
-			if (_level)
-				clear_level();
-			release(); // Disconnect from parent view strong reference
-		}
-	}
-
-	void Layout::remove_all_child() {
-		while (_first) {
-			_first->remove_all_child();
-			_first->remove();
-		}
-	}
-
-	void Layout::set_receive(bool val) {
-		_receive = val;
-	}
-
-	void Layout::set_visible(bool val) {
-		if (_visible != val) {
-			#define is_root() (_window && _window->root()->layout() == this)
-			set_visible_(val, _parent && _parent->_level ?
-				_parent->_level + 1: val && is_root() ? 1: 0);
-		}
-	}
-
-	void Layout::set_opacity(float val) {
-		if (_opacity != val) {
-			val = Qk_MAX(0, Qk_MIN(val, 1));
-			if (_opacity != val)
-				mark_render(); // mark render
-		}
-	}
-
-	// ------------------------------------------------------------------------------------------
-
-	Mat Layout::layout_matrix() {
-		Vec2 translate = layout_offset() + _parent->layout_offset_inside();
-		return Mat(
-			1, 0, translate.x(),
-			0, 1, translate.y()
-		);
-	}
-
-	void Layout::solve_marks(uint32_t mark) {
-		if (mark & kRecursive_Transform) { // update transform matrix
-			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
-			if (_parent) {
-				_parent->matrix().mul(layout_matrix(), _matrix);
-			} else {
-				_matrix = layout_matrix();
-			}
-			goto visible_region;
-		}
-		if (mark & kRecursive_Visible_Region) {
-			unmark(kRecursive_Visible_Region); // unmark
-		visible_region:
-			_visible_region = solve_visible_region();
-		}
-	}
-
-	Vec2 Layout::position() {
-		return Vec2(_matrix[2], _matrix[5]);
-	}
-
-	bool Layout::solve_visible_region() {
-		return true;
-	}
-
-	bool Layout::overlap_test(Vec2 point) {
-		return false;
-	}
-
-	TextInput* Layout::as_text_input() {
-		return nullptr;
-	}
-
-	ButtonLayout* Layout::as_button() {
-		return nullptr;
-	}
-
-	float Layout::layout_weight() {
-		return 0;
-	}
-
-	Align Layout::layout_align() {
-		return Align::kAuto;
-	}
-
-	Vec2 Layout::layout_offset() {
-		return Vec2();
-	}
-
-	Layout::Size Layout::layout_size() {
-		return {
-			Vec2(), Vec2(), true, true,
-		};
-	}
-
-	Layout::Size Layout::layout_raw_size(Size parent_content_size) {
-		return {
-			Vec2(), Vec2(), true, true,
-		};
-	}
-
-	Vec2 Layout::layout_offset_inside() {
-		return Vec2();
-	}
-
-	void Layout::set_layout_offset(Vec2 val) {
-	}
-
-	void Layout::set_layout_offset_lazy(Vec2 size) {
-	}
-
-	Vec2 Layout::layout_lock(Vec2 layout_size) {
-		return Vec2();
-	}
-
-	bool Layout::is_lock_child_layout_size() {
-		return false;
-	}
-
-	void Layout::mark_layout(uint32_t mark) {
-		_mark_value |= mark;
-		if (_mark_index < 0) {
 			if (_level) {
-				_window->mark_layout(this, _level); // push to pre render
+				clear_level();
 			}
 		}
 	}
-
-	void Layout::mark_render(uint32_t mark) {
-		_mark_value |= mark;
-		if (_level) {
-			_window->mark_render(); // push to pre render
-		}
-	}
-
-	bool Layout::layout_forward(uint32_t mark) {
-		return !(mark & kLayout_Typesetting);
-	}
-
-	bool Layout::layout_reverse(uint32_t mark) {
-		if (mark & kLayout_Typesetting) {
-			auto v = _first;
-			while (v) {
-				v->set_layout_offset_lazy(Vec2()); // lazy layout
-				v = v->_next;
-			}
-			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height);
-		}
-		return true; // complete
-	}
-
-	void Layout::layout_text(TextLines *lines, TextConfig *cfg) {
-		// NOOP
-	}
-
-	void Layout::onChildLayoutChange(Layout *child, uint32_t value) {
-		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
-			mark_layout(kLayout_Typesetting);
-		}
-	}
-
-	void Layout::onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) {
-		// NOOP
-	}
-
-	void Layout::onActivate() {
-	}
-
-	bool Layout::clip() {
-		return false;
-	}
-
-	bool Layout::can_become_focus() {
-		return false;
-	}
-
-	// @private
-	// --------------------------------------------------------------------------------------
 
 	void Layout::clear_link() { // Cleaning up associated view information
 		if (_parent) {
@@ -333,7 +305,6 @@ namespace qk {
 			}
 		}
 	}
-	// --------------------------------------------------------------------------------------
 
 	void Layout::set_visible_(bool visible, uint32_t level) {
 		_visible = visible;
@@ -353,8 +324,7 @@ namespace qk {
 	}
 
 	void Layout::clear_level() { //  clear layout depth
-		// TODO ...
-		// blur();
+		// blur(); // TODO ...
 		if (_mark_index >= 0) {
 			_window->unmark_layout(this, _level);
 		}
@@ -394,13 +364,10 @@ namespace qk {
 
 			if ( _parent ) {
 				_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
-			} else {
-				retain(); // link to parent and retain ref
 			}
 			_parent = parent;
 
 			auto level = parent->_level;
-			auto win = parent->_window;
 
 			if (_visible && level) {
 				if (_level != ++level)

@@ -11,9 +11,9 @@ using namespace qk;
 
 constexpr unsigned int u32 = 1;
 
-class TestRRect: public BoxLayout {
+class TestRRect: public Box {
 public:
-	TestRRect(Window *win): BoxLayout(win) {}
+	TestRRect(Layout *o): Box(o) {}
 
 	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();

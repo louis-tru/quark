@@ -37,7 +37,6 @@
 #include "./layout/float.h"
 #include "./layout/flow.h"
 #include "./layout/text.h"
-#include "./layout/button.h"
 #include "./layout/input.h"
 #include "./layout/textarea.h"
 #include "./layout/label.h"
@@ -382,7 +381,7 @@ namespace qk {
 					}
 					if (v->_visible_region && v->_opacity) {
 						_opacity = opacityCurr * v->_opacity;
-						v->draw(this);
+						v->_view->draw(this);
 					}
 				}
 				v = v->_next;
@@ -632,35 +631,35 @@ namespace qk {
 		}
 	}
 
-	void Layout::draw(UIRender *render) {
-		render->visitLayout(this);
+	void View::draw(UIRender *render) {
+		render->visitLayout(layout());
 	}
 
-	void BoxLayout::draw(UIRender *render) {
-		render->visitBox(this);
+	void Box::draw(UIRender *render) {
+		render->visitBox(layout<BoxLayout>());
 	}
 
-	void ImageLayout::draw(UIRender *render) {
-		render->visitImage(this);
+	void Image::draw(UIRender *render) {
+		render->visitImage(layout<ImageLayout>());
 	}
 
-	void ScrollLayout::draw(UIRender *render) {
-		render->visitScroll(this);
+	void Scroll::draw(UIRender *render) {
+		render->visitScroll(layout<ScrollLayout>());
 	}
 
-	void InputLayout::draw(UIRender *render) {
-		render->visitInput(this);
+	void Input::draw(UIRender *render) {
+		render->visitInput(layout<InputLayout>());
 	}
 
-	void LabelLayout::draw(UIRender *render) {
-		render->visitLabel(this);
+	void Label::draw(UIRender *render) {
+		render->visitLabel(layout<LabelLayout>());
 	}
 
-	void RootLayout::draw(UIRender *render) {
-		render->visitRoot(this);
+	void Root::draw(UIRender *render) {
+		render->visitRoot(layout<RootLayout>());
 	}
 
-	void TransformLayout::draw(UIRender *render) {
-		render->visitTransform(this);
+	void Transform::draw(UIRender *render) {
+		render->visitTransform(layout<TransformLayout>());
 	}
 }

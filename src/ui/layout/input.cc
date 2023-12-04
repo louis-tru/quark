@@ -181,6 +181,7 @@ namespace qk {
 					_flag = kFlag_Wait_Find;
 					int64_t timeout = is_multiline() ? 1e6/*1s*/: 0;
 					if ( timeout ) {
+						// TODO ///
 						shared_app()->loop()->post(Cb([this](Cb::Data& evt) { // delay
 							UILock lock(window());
 							if ( _flag == kFlag_Wait_Find ) {
@@ -854,7 +855,7 @@ namespace qk {
 		_text_flags = 0xffffffff;
 	}
 
-	bool InputLayout::can_become_focus() {
+	bool Input::can_become_focus() {
 		return true;
 	}
 
@@ -946,7 +947,8 @@ namespace qk {
 	}
 
 	Object* InputLayout::toObject() {
-		return this;
+		// return this;
+		return nullptr;
 	}
 
 	void InputLayout::onTextChange(uint32_t value) {

@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright © 2015-2016, blue.chu
+ * Copyright (c) 2015, blue.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +28,34 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./button.h"
+#include <stdlib.h>
+#include <stdio.h>
 
-namespace qk {
-
-	ButtonLayout::ButtonLayout(Window *win): TextLayout(win) {
-		set_receive(true); // default enable event receive
+class TestA {
+public:
+	TestA() {
+		printf("log: %s \n", test());
 	}
-
-	bool ButtonLayout::can_become_focus() {
-		return true;
+	virtual const char* test() {
+		return "Test AAAA";
 	}
+};
 
-	ButtonLayout* ButtonLayout::as_button() {
-		return this;
+class TestB: public TestA {
+public:
+	TestB() {
+		printf("log: %s \n", test());
 	}
-
-	ButtonLayout* ButtonLayout::next_button(FindDirection dir) {
-		// if ( (panel = button->panel()) && panel->enable_select() ) {}
-		return nullptr;
+	virtual const char* test() override {
+		return "Test B";
 	}
+};
 
+int test2_cls(int argc, char *argv[]) {
+
+	TestB t;
+
+	// printf("log: %s -------------- \n", "AAAA");
+
+	return 0;
 }

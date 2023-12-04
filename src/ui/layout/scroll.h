@@ -92,6 +92,12 @@ namespace qk {
 		virtual Vec2 layout_offset_inside() override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(uint32_t mark) override;
+		
+	};
+
+	class Qk_EXPORT Scroll: public Float {
+	public:
+		Qk_Define_View(Scroll, Float);
 		virtual void draw(UIRender *render) override;
 	};
 

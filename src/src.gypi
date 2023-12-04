@@ -64,8 +64,6 @@
 			# 'ui/layout/video.h',
 			'ui/layout/layout.h',
 			'ui/layout/layout.cc',
-			'ui/layout/button.h',
-			'ui/layout/button.cc',
 			'ui/layout/transform.h',
 			'ui/layout/transform.cc',
 			'ui/view.h',

@@ -66,11 +66,17 @@ namespace qk {
 		virtual Mat  layout_matrix() override;
 		virtual Vec2 position() override;
 		virtual void solve_rect_vertex(Vec2 vertexOut[4]) override; // compute rect vertex
-		virtual void draw(UIRender *render) override;
 	private:
 		void solve_origin_value(); // compute origint value
 
 		friend class UIRender;
 	};
+
+	class Qk_EXPORT Transform: public Box {
+	public:
+		Qk_Define_View(Transform, Box);
+		virtual void draw(UIRender *render) override;
+	};
+
 }
 #endif

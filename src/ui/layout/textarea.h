@@ -47,6 +47,11 @@ namespace qk {
 		virtual void set_input_text_offset(Vec2 val) override;
 	};
 
+	class Qk_EXPORT Textarea: public Input {
+	public:
+		Qk_Define_View(Textarea, Input);
+	};
+
 }
 
 #endif

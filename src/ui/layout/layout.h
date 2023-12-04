@@ -41,8 +41,8 @@ namespace qk {
 	class TextConfig;
 	class UIRender;
 	class Window;
-	class EventDispatch;
 	class View;
+	class EventDispatch;
 
 	/**
 		* Layout tree nodes that can only be called in rendering threads.
@@ -51,7 +51,7 @@ namespace qk {
 		*
 	 * @class Layout
 		*/
-	class Qk_EXPORT Layout: public Reference {
+	class Qk_EXPORT Layout {
 		Qk_HIDDEN_ALL_COPY(Layout);
 		/* Next preprocessing layout tag
 		* You need to call `layout_forward` and `layout_reverse` to process these marked layouts before drawing.
@@ -64,6 +64,7 @@ namespace qk {
 	protected:
 		Mat _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 	public:
+		typedef NonObjectTraits Traits;
 
 		// Layout mark key values
 		enum LayoutMark: uint32_t {
@@ -134,11 +135,6 @@ namespace qk {
 		 */
 		Qk_DEFINE_PROP(float, opacity);
 		/**
-		 * Do views need to receive or handle system event throws? In most cases,
-		 * these events do not need to be handled, which can improve overall event processing efficiency
-		*/
-		Qk_DEFINE_PROP(bool, receive);
-		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space
 		*/
@@ -159,73 +155,12 @@ namespace qk {
 		virtual ~Layout();
 
 		/**
-			*
-			* Add a sibling view to the front
-			*
-			* @method before(view)
-			*/
-		void before(Layout* view);
-
-		/**
-			*
-			* Add a sibling view to the back
-			*
-			* @method after(view)
-			*/
-		void after(Layout* view);
-
-		/**
-			* 
-			* Append subview to front
-			* 
-			* @method prepend(child)
-			*/
-		void prepend(Layout* child);
-
-		/**
-			*
-			* Append subview to end
-			*
-			* @method append(child)
-			*/
-		void append(Layout* child);
-
-		/**
-		 *
-		 * Remove self from parent view
-		 *
-		 * @method remove()
-		 */
-		void remove();
-
-		/**
-		 *
-		 * remove all subview
-		 *
-		 * @method remove_all_child()
-		 */
-		void remove_all_child();
-
-		/**
 		 * 
 		 * Returns text input object
 		 * 
 		 * @method as_text_input()
 		*/
 		virtual TextInput* as_text_input();
-
-		/**
-		 * 
-		 * Returns button object
-		 * 
-		 * @method as_buttn()
-		*/
-		virtual ButtonLayout* as_button();
-
-		/**
-		 * @method draw()
-		 */
-		virtual void draw(UIRender *render);
 
 		/**
 			*
@@ -422,22 +357,6 @@ namespace qk {
 		virtual void onActivate();
 
 		/**
-		 *
-		 * is clip render the view
-		 *
-		 * @method clip()
-		 */
-		virtual bool clip();
-
-		/**
-		 *
-		 * Can it be the focus
-		 *
-		 * @method can_become_focus()
-		 */
-		virtual bool can_become_focus();
-
-		/**
 			* @func mark_layout(mark)
 			*/
 		void mark_layout(uint32_t mark);
@@ -455,11 +374,12 @@ namespace qk {
 		}
 
 	private:
-		/**
-		 * @method set_parent(parent) setting parent view
-		 */
+		void before(Layout* view);
+		void after(Layout* view);
+		void prepend(Layout* child);
+		void append(Layout* child);
+		void remove();
 		void set_parent(Layout* parent);
-
 		void clear_link(); // Cleaning up associated view information
 		void clear_level(); //  clear layout depth
 		void set_level_(uint32_t level); // settings depth
@@ -473,9 +393,9 @@ namespace qk {
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
 	};
 
-	template<class L, class V>
-	inline V* View::New() {
-		return new V(new L(_layout->_window));
+	template<class _View>
+	inline _View* View::New() {
+		return new _View(new _View::Layout(_layout->_window));
 	}
 
 }

@@ -40,16 +40,19 @@ namespace qk {
 		, _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
+		, _receive(false)
 	{
 		layout->_view = this;
-		layout->retain();
 	}
 
 	View::~View() {
 		Qk_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		set_action(nullptr); // del action
 		remove_all_child(); // 删除子视图
-		_layout->release(); _layout = nullptr;
+	}
+
+	void View::set_receive(bool val) {
+		_receive = val;
 	}
 
 	bool View::is_self_child(View *child) {
@@ -159,7 +162,7 @@ namespace qk {
 			_first->remove_all_child();
 			_first->remove();
 		}
-		_layout->remove_all_child(); // TODO ... layout cmd
+		// _layout->remove_all_child(); // TODO ... layout cmd
 	}
 
 	void View::set_visible(bool val) {
@@ -206,6 +209,21 @@ namespace qk {
 		}
 		return true;
 	}
+
+	bool View::can_become_focus() {
+		return false;
+	}
+
+	bool View::clip() {
+		return false;
+	}
+
+	Button* View::as_button() {
+		return nullptr;
+	}
+
+	// @private
+	// --------------------------------------------------------------------------------------
 
 	void View::clear_link() { // Cleaning up associated view information
 		if (_parent) {

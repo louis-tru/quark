@@ -816,10 +816,6 @@ namespace qk {
 		return matrix() * point;
 	}
 
-	bool BoxLayout::clip() {
-		return _is_clip;
-	}
-
 	/**
 		* @func solve_rect_vertex(vertex)
 		*/
@@ -950,4 +946,9 @@ namespace qk {
 			min, max
 		};
 	}
+
+	bool Box::clip() {
+		return layout<BoxLayout>()->_is_clip;
+	}
+
 }

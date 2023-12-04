@@ -36,6 +36,11 @@
 namespace qk {
 	class Action;
 	class Layout;
+	class Button;
+
+	#define Qk_Define_View(ViewName, Base) \
+		typedef ViewName##Layout Layout; \
+		inline ViewName(ViewName##Layout *layout): Base(layout) {}
 
 	/**
 		* The basic elements of UI view tree
@@ -61,7 +66,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(View*, next);
 		Qk_DEFINE_PROP_GET(View*, first);
 		Qk_DEFINE_PROP_GET(View*, last);
-		/** 
+		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space
 		*/
@@ -70,6 +75,11 @@ namespace qk {
 		 * keyboard focus view
 		*/
 		Qk_DEFINE_PROP_ACC(bool, is_focus);
+		/**
+		 * Do views need to receive or handle system event throws? In most cases,
+		 * these events do not need to be handled, which can improve overall event processing efficiency
+		*/
+		Qk_DEFINE_PROP(bool, receive);
 
 		/**
 		 * @constructor
@@ -81,14 +91,12 @@ namespace qk {
 		*/
 		virtual ~View();
 
-		template<class Layout = Layout, class View = View> inline View* New();
+		template<class T = Layout> T* layout() const { return static_cast<T*>(_layout); }
 
-		template<class T = Layout> T* layout() const {
-			return static_cast<T*>(_layout);
-		}
+		template<class View = View> inline View* New();
 
-		template<class Layout = Layout, class View = View> inline View prepend_new() {
-			return New<Layout, View>()->template prepend_to<View>(this);
+		template<class View = View> inline View prepend_new() {
+			return New<View>()->template prepend_to<View>(this);
 		}
 
 		template<class Layout = Layout, class View = View> inline View* append_new() {
@@ -171,6 +179,35 @@ namespace qk {
 		 * @method blur()
 		 */
 		bool blur();
+
+		/**
+		 *
+		 * Can it be the focus
+		 *
+		 * @method can_become_focus()
+		 */
+		virtual bool can_become_focus();
+
+		/**
+		 *
+		 * is clip render the view
+		 *
+		 * @method clip()
+		 */
+		virtual bool clip();
+
+		/**
+		 * @method draw()
+		 */
+		virtual void draw(UIRender *render);
+
+		/**
+		 * 
+		 * Returns button object
+		 * 
+		 * @method as_buttn()
+		*/
+		virtual Button* as_button();
 
 	private:
 		/**

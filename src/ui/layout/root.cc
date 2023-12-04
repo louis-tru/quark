@@ -40,7 +40,7 @@ namespace qk {
 	RootLayout::RootLayout(Window *win): BoxLayout(win) {}
 
 	void RootLayout::init() {
-		set_receive(true);
+		//set_receive(true);
 		set_width({0, BoxSizeKind::kMatch});
 		set_height({0, BoxSizeKind::kMatch});
 		mark_layout(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
@@ -98,7 +98,7 @@ namespace qk {
 		);
 	}
 
-	bool RootLayout::can_become_focus() {
+	bool Root::can_become_focus() {
 		return true;
 	}
 

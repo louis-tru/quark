@@ -33,8 +33,8 @@
 #include "./window.h"
 #include "./view.h"
 #include "./layout/root.h"
-#include "./layout/button.h"
 #include "./keyboard.h"
+#include "./layout/text.h"
 
 namespace qk {
 
@@ -54,7 +54,7 @@ namespace qk {
 		void trigger_highlightted(HighlightedEvent& evt) {
 			View* view = this;
 			if ( view ) {
-				if ( view->_layout->receive() ) {
+				if ( view->_receive ) {
 					view->trigger(UIEvent_Highlighted, evt);
 					if ( evt.is_default() ) {
 						// auto classs = view->classs();
@@ -69,7 +69,7 @@ namespace qk {
 		void trigger_click(UIEvent& evt) {
 			View* view = this;
 			do {
-				if ( view->_layout->receive() ) {
+				if ( view->_receive ) {
 					view->trigger(UIEvent_Click, evt);
 					if ( !evt.is_bubble() ) {
 						break; // Stop bubble
@@ -91,7 +91,7 @@ namespace qk {
 		void bubble_trigger(const NameType& name, UIEvent& evt) {
 			View* view = this;
 			while( view ) {
-				if ( view->_layout->receive() ) {
+				if ( view->_receive ) {
 					view->trigger(name, evt);
 					if ( !evt.is_bubble() ) {
 						break; // Stop bubble
@@ -102,7 +102,7 @@ namespace qk {
 		}
 
 		void trigger(const NameType& name, UIEvent& evt) {
-			if ( _layout->receive() ) {
+			if ( _receive ) {
 				Notification::trigger(name, evt);
 			}
 		}
@@ -301,7 +301,7 @@ namespace qk {
 
 	bool EventDispatch::set_focus(View* view) {
 		if ( _focus != view ) {
-			if ( view->_layout->_level && view->_layout->can_become_focus() ) {
+			if ( view->_layout->_level && view->can_become_focus() ) {
 				if ( _focus ) {
 					_focus->release(); // unref
 				}
@@ -322,7 +322,7 @@ namespace qk {
 	// -------------------------- T o u c h --------------------------
 
 	void EventDispatch::touchstart_erase(View* view, List<TouchPoint>& in) {
-		if ( /*view->receive() &&*/ in.length() ) {
+		if ( view->_receive && in.length() ) {
 			Array<TouchPoint> change_touches;
 			
 			for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -364,7 +364,7 @@ namespace qk {
 		if ( view->visible() && in.length() ) {
 			if ( view->_layout->visible_region() ) {
 				
-				if ( view->last() && view->_layout->clip() ) {
+				if ( view->last() && view->clip() ) {
 					List<TouchPoint> in2;
 
 					for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -573,7 +573,7 @@ namespace qk {
 			if ( view->_layout->visible_region() ) {
 				View* v = view->last();
 
-				if (v && view->_layout->clip() ) {
+				if (v && view->clip() ) {
 					if (view->_layout->overlap_test(pos)) {
 						while (v) {
 							auto r = find_receive_view_rec(v, pos);
@@ -582,7 +582,7 @@ namespace qk {
 							}
 							v = v->prev();
 						}
-						if (view->_layout->receive()) {
+						if (view->_receive) {
 							return view;
 						}
 					}
@@ -594,7 +594,7 @@ namespace qk {
 						}
 						v = v->prev();
 					}
-					if (view->_layout->receive() && view->_layout->overlap_test(pos)) {
+					if (view->_receive && view->_layout->overlap_test(pos)) {
 						return view;
 					}
 				}
@@ -766,8 +766,8 @@ namespace qk {
 
 		if ( view ) {
 			auto name = _keyboard->keyname();
-			auto btn = view->_layout->as_button();
-			Layout *focus_move = nullptr;
+			auto btn = view->as_button();
+			View *focus_move = nullptr;
 
 			if (btn) {
 				FindDirection dir;
@@ -790,7 +790,7 @@ namespace qk {
 				_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 			);
 
-			evt->set_focus_move(focus_move->_view);
+			evt->set_focus_move(focus_move);
 
 			_inl_view(view)->bubble_trigger(UIEvent_KeyDown, **evt);
 			
