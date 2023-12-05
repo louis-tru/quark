@@ -53,36 +53,24 @@ namespace qk {
 		inline void lock() {}
 		inline void unlock() {}
 	};
-
-	template<class Sender = Object, class SendData = Object, class Origin = Object, typename RC = int> class Event;
+	template<class Sender = Object, class SendData = Object, typename RC = int> class Event;
 	template<class Event = Event<>, class Lock = _Lock> class EventNoticer;
 
-	template<class T_Sender, class T_SendData, class T_Origin, typename T_RC>
+	template<class T_Sender, class T_SendData, typename T_RC>
 	class Event: public Object {
-		Qk_HIDDEN_ALL_COPY(Event);
 	public:
 		typedef T_SendData       SendData;
 		typedef T_Sender         Sender;
-		typedef T_Origin         Origin;
 		typedef T_RC             ReturnValue;
 		typedef const SendData   cSendData;
 
-		Event(cSendData& data = SendData(), Origin* origin = nullptr, const ReturnValue& rc = ReturnValue())
-			: _sender(nullptr), _origin(origin), _data(&data), return_value(rc) {}
-
+		Event(cSendData& data = SendData(), const ReturnValue& rc = ReturnValue())
+			: _sender(nullptr), _data(&data), return_value(rc),  {}
 		inline Sender* sender() const { return _sender; }
-		inline Origin* origin() const { return _origin; }
 		inline cSendData* data() const { return _data; }
-
-		// "new" method alloc can call，Otherwise, fatal exception will be caused
-		virtual void release() {
-			_sender = 0; _origin = 0; _data = 0;
-			Object::release();
-		}
-	private:
-		Sender      *_sender;
-		Origin      *_origin;
-		cSendData   *_data;
+	protected:
+		Sender    *_sender;
+		cSendData *_data;
 	public:
 		ReturnValue return_value;
 	};
@@ -176,7 +164,6 @@ namespace qk {
 		typedef typename Event::SendData        SendData;
 		typedef typename Event::cSendData       cSendData;
 		typedef typename Event::Sender          Sender;
-		typedef typename Event::Origin          Origin;
 		typedef typename Event::ReturnValue     ReturnValue;
 		
 		EventNoticer(Sender *sender = nullptr)

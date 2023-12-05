@@ -132,8 +132,8 @@ namespace qk {
 		inline OnShellListener(void* host_sender, Basic* shell, bool once)
 			: Listener(ev_hash_code(shell),once), _host_sender(host_sender), _shell(shell) {}
 		virtual void call(Object& evt) {
-			 _shell->trigger_event(evt);
-			 set_event(evt, _host_sender);
+			_shell->trigger_event(evt);
+			set_event(evt, _host_sender);
 		}
 	protected:
 		void  *_host_sender;

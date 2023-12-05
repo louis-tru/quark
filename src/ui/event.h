@@ -39,45 +39,44 @@
 
 // all ui events / NAME, FLAG
 #define Qk_UI_Events(F) \
-	/* can bubble event */ \
-	F(Click, CLICK, UI_EVENT_FLAG_BUBBLE) \
-	F(Back, CLICK, UI_EVENT_FLAG_BUBBLE) \
-	F(KeyDown, KEYBOARD, UI_EVENT_FLAG_BUBBLE) /* View */\
-	F(KeyPress, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
-	F(KeyUp, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
-	F(KeyEnter, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
-	F(TouchStart, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-	F(TouchMove, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-	F(TouchEnd, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-	F(TouchCancel, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-	F(MouseOver, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MouseOut, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MouseLeave, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MouseEnter, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MouseMove, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MouseDown, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MouseUp, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(MouseWheel, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-	F(Focus, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
-	F(Blur, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
-	/* canno bubble event */ \
-	F(Highlighted, HIGHLIGHTED, UI_EVENT_FLAG_NONE) /* normal / hover / down */ \
-	F(ActionKeyframe, ACTION, UI_EVENT_FLAG_NONE) \
-	F(ActionLoop, ACTION, UI_EVENT_FLAG_NONE) \
-	F(Scroll, DEFAULT, UI_EVENT_FLAG_NONE) /*ScrollBase*/\
-	F(Change, DEFAULT, UI_EVENT_FLAG_NONE) /*Input*/ \
-	F(Load, DEFAULT, UI_EVENT_FLAG_NONE) /* Image */ \
-	/* player */ \
-	F(Error, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_ERROR) \
-	F(Ready, DEFAULT, UI_EVENT_FLAG_PLAYER) /* AutoPlayer / Video */ \
-	F(WaitBuffer, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_FLOAT) \
-	F(StartPlay, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-	F(SourceEnd, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-	F(Pause, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-	F(Resume, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-	F(Stop, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-	F(Seek, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_UINT64) \
-
+/* can bubble event */ \
+F(Click, CLICK, UI_EVENT_FLAG_BUBBLE) \
+F(Back, CLICK, UI_EVENT_FLAG_BUBBLE) \
+F(KeyDown, KEYBOARD, UI_EVENT_FLAG_BUBBLE) /* View */\
+F(KeyPress, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
+F(KeyUp, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
+F(KeyEnter, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
+F(TouchStart, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+F(TouchMove, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+F(TouchEnd, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+F(TouchCancel, TOUCH, UI_EVENT_FLAG_BUBBLE) \
+F(MouseOver, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+F(MouseOut, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+F(MouseLeave, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+F(MouseEnter, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+F(MouseMove, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+F(MouseDown, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+F(MouseUp, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+F(MouseWheel, MOUSE, UI_EVENT_FLAG_BUBBLE) \
+F(Focus, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
+F(Blur, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
+/* canno bubble event */ \
+F(Highlighted, HIGHLIGHTED, UI_EVENT_FLAG_NONE) /* normal / hover / down */ \
+F(ActionKeyframe, ACTION, UI_EVENT_FLAG_NONE) \
+F(ActionLoop, ACTION, UI_EVENT_FLAG_NONE) \
+F(Scroll, DEFAULT, UI_EVENT_FLAG_NONE) /*ScrollBase*/\
+F(Change, DEFAULT, UI_EVENT_FLAG_NONE) /*Input*/ \
+F(Load, DEFAULT, UI_EVENT_FLAG_NONE) /* Image */ \
+/* player */ \
+F(Error, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_ERROR) \
+F(Ready, DEFAULT, UI_EVENT_FLAG_PLAYER) /* AutoPlayer / Video */ \
+F(WaitBuffer, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_FLOAT) \
+F(StartPlay, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+F(SourceEnd, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+F(Pause, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+F(Resume, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+F(Stop, DEFAULT, UI_EVENT_FLAG_PLAYER) \
+F(Seek, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_UINT64) \
 
 namespace qk {
 	class Application;
@@ -139,27 +138,28 @@ namespace qk {
 
 	// event names string => UIEventName
 	Qk_EXPORT extern const Dict<String, UIEventName> UIEventNames;
-
 	// define event names
-#define Qk_FUN(NAME, C, F) \
-	Qk_EXPORT extern const UIEventName UIEvent_##NAME;
-	Qk_UI_Events(Qk_FUN)
-#undef Qk_FUN
+	#define _Fun(Name, C, F) \
+	Qk_EXPORT extern const UIEventName UIEvent_##Name;
+	Qk_UI_Events(_Fun)
+	#undef _Fun
 
 	// -----------------------------------
 
 	/**
 	* @func UIEvent gui event
 	*/
-	class Qk_EXPORT UIEvent: public Event<View, Object, View, int> {
+	class Qk_EXPORT UIEvent: public Event<View, Object, int> {
+		Qk_HIDDEN_ALL_COPY(UIEvent);
 	public:
-		// inline UIEvent(cSendData& data): Event<View, Object, View>() { Qk_UNREACHABLE(); }
 		UIEvent(View* origin);
+		Qk_DEFINE_PROP_GET(View*, origin);
 		Qk_DEFINE_PROP_GET(uint64_t, timestamp);
 		inline bool is_default() const { return return_value & RETURN_VALUE_MASK_DEFAULT; }
 		inline bool is_bubble() const { return return_value & RETURN_VALUE_MASK_BUBBLE; }
 		inline void cancel_default() { return_value &= ~RETURN_VALUE_MASK_DEFAULT; }
 		inline void cancel_bubble() { return_value &= ~RETURN_VALUE_MASK_BUBBLE; }
+		virtual void release() override;
 	};
 
 	/**
@@ -172,7 +172,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint64_t, delay);
 		Qk_DEFINE_PROP_GET(uint32_t, frame);
 		Qk_DEFINE_PROP_GET(uint32_t, loop);
-		virtual void release();
+		virtual void release() override;
 	};
 
 	/**
@@ -193,7 +193,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, alt);
 		Qk_DEFINE_PROP_GET(uint32_t, command);
 		Qk_DEFINE_PROP_GET(uint32_t, caps_lock);
-		virtual void release();
+		virtual void release() override;
 	};
 
 	/**
@@ -242,10 +242,10 @@ namespace qk {
 			float    start_x, start_y;
 			float    x, y, force;
 			bool     click_in;
-			View    *view;
+			View     *view;
 		};
 		TouchEvent(View* origin, Array<TouchPoint>& touches);
-		inline Array<TouchPoint>& changed_touches() { return _change_touches; }
+		Array<TouchPoint>& changed_touches() { return _change_touches; }
 	private:
 		Array<TouchPoint> _change_touches;
 	};
@@ -291,7 +291,7 @@ namespace qk {
 		void set_ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
 		void set_ime_keyboard_close();
 		void set_ime_keyboard_spot_location(Vec2 location);
-		bool set_focus_view(View* view); // set focus from main thread
+		bool set_focus_view(View *view); // set focus from main thread
 
 	private:
 		void touchstart_use(View* view, List<TouchPoint>& in);
@@ -301,9 +301,9 @@ namespace qk {
 		void mousemove(View* view, Vec2 pos);
 		void mousepress(View* view, Vec2 pos, KeyboardKeyName name, bool down);
 		void mousewhell(KeyboardKeyName name, bool down, float x, float y);
-		Sp<View>     find_receive_view(Vec2 pos);
-		static View* find_receive_view_rec(Layout *view, Vec2 pos);
-		Sp<MouseEvent> NewMouseEvent(View* view, float x, float y, uint32_t keycode = 0);
+		Sp<View> find_receive_view(Vec2 pos);
+		View*    find_receive_view_exec(Layout *view, Vec2 pos);
+		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, uint32_t keycode = 0);
 		Sp<View> get_focus_view();
 		class OriginTouche;
 		class MouseHandle;

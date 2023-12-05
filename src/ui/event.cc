@@ -137,9 +137,16 @@ namespace qk {
 		: _toString(name), _hashCode((uint32_t)name.hashCode()), _category(category), _flag(flag)
 	{}
 
-	UIEvent::UIEvent(View* origin)
-		: Event(SendData(), origin), _timestamp(time_micro()) {
+	UIEvent::UIEvent(View *origin)
+		: Event(SendData()), _origin(origin), _timestamp(time_micro()) {
 		return_value = RETURN_VALUE_MASK_ALL;
+	}
+
+	void UIEvent::release() {
+		_sender = nullptr;
+		_data = nullptr;
+		_origin = nullptr;
+		Object::release();
 	}
 
 	ActionEvent::ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop)
@@ -268,16 +275,17 @@ namespace qk {
 		Vec2 _start_position, _position;
 	};
 
-	#define Qk_FUN(NAME, C, FLAG) \
-		const UIEventName UIEvent_##NAME(#NAME, UI_EVENT_CATEGORY_##C, FLAG);
-		Qk_UI_Events(Qk_FUN)
-	#undef Qk_FUN
+	#define _Fun(Name, C, Flag) \
+	const UIEventName UIEvent_##Name(#Name, UI_EVENT_CATEGORY_##C, Flag);
+	Qk_UI_Events(_Fun)
+	#undef _Fun
 
 	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
 		Dict<String, UIEventName> r;
-		#define Qk_FUN(NAME, C, F) r.set(UIEvent_##NAME.toString(), UIEvent_##NAME);
-		Qk_UI_Events(Qk_FUN)
-		#undef Qk_FUN
+		#define _Fun(Name, C, F) \
+		r.set(UIEvent_##Name.toString(), UIEvent_##Name);
+		Qk_UI_Events(_Fun)
+		#undef _Fun
 		return r;
 	}());
 
@@ -592,13 +600,13 @@ namespace qk {
 		auto root = _window->root();
 		if (root) {
 			std::lock_guard<RecursiveMutex> lock(_view_mutex);
-			return find_receive_view_rec(root->layout(), pos);
+			return find_receive_view_exec(root->layout(), pos);
 		} else {
 			return nullptr;
 		}
 	}
 
-	View* EventDispatch::find_receive_view_rec(Layout* layout, Vec2 pos) {
+	View* EventDispatch::find_receive_view_exec(Layout* layout, Vec2 pos) {
 		if ( layout->visible() ) {
 			if ( layout->visible_region() ) {
 				auto v = layout->last();
@@ -606,7 +614,7 @@ namespace qk {
 				if (v && layout->clip() ) {
 					if (layout->overlap_test(pos)) {
 						while (v) {
-							auto r = find_receive_view_rec(v, pos);
+							auto r = find_receive_view_exec(v, pos);
 							if (r) {
 								return r;
 							}
@@ -618,7 +626,7 @@ namespace qk {
 					}
 				} else {
 					while (v) {
-						auto r = find_receive_view_rec(v, pos);
+						auto r = find_receive_view_exec(v, pos);
 						if (r) {
 							return r;
 						}
