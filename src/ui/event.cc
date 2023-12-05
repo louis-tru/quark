@@ -203,7 +203,6 @@ namespace qk {
 	 */
 	class EventDispatch::OriginTouche {
 	public:
-		OriginTouche() { Qk_UNREACHABLE(); }
 		OriginTouche(View* view)
 			: _view(view)
 			, _start_position(view_position(view))
