@@ -123,6 +123,7 @@ namespace qk {
 		virtual bool solve_visible_region() override; // compute visible region
 		virtual bool overlap_test(Vec2 point) override;
 		virtual Vec2 position() override;
+		virtual bool clip() override;
 
 		/**
 			* client rect = border + padding + content
@@ -177,7 +178,6 @@ namespace qk {
 	class Qk_EXPORT Box: public View {
 	public:
 		Qk_Define_View(Box, View);
-		virtual bool clip() override;
 		virtual void draw(UIRender *render) override;
 	};
 

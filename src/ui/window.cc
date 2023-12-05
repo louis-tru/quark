@@ -79,9 +79,7 @@ namespace qk {
 		, _fsp(0)
 		, _nextFsp(0)
 		, _nextFspTime(0), _surfaceRegion()
-		, _mark_total(0)
-		, _marks(0)
-		, _is_render(false)
+		, _preRender(this)
 	{
 		Qk_STRICT_ASSERT(_host);
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
@@ -124,9 +122,9 @@ namespace qk {
 		Release(_root);      _root = nullptr;
 		Release(_dispatch); _dispatch = nullptr;
 		Release(_uiRender); _uiRender = nullptr;
-		for (auto t: _tasks) {
-			t->_win = nullptr; // clear task
-		}
+
+		_preRender.clearTasks();
+
 		{ ScopeLock lock(_host->_mutex);
 			_host->_windows.erase(_id);
 			if (_host->_activeWindow == this) {
@@ -272,7 +270,7 @@ namespace qk {
 	bool Window::onRenderBackendDisplay() {
 		UILock lock(this); // ui render lock
 
-		if (!preRender()) {
+		if (!_preRender.solve()) {
 			solveNextFrame();
 			return false;
 		}
@@ -286,7 +284,7 @@ namespace qk {
 		}
 		_nextFsp++;
 
-		_root->layout()->draw(_uiRender); // start drawing
+		_root->draw(_uiRender); // start drawing
 
 		solveNextFrame(); // solve frame
 
@@ -305,139 +303,6 @@ namespace qk {
 #endif
 
 		return true;
-	}
-
-	// ----------------------------- pre render -----------------------------
-
-	void Window::mark_layout(Layout *layout, uint32_t level) {
-		Qk_ASSERT(level);
-		_marks.extend(level + 1);
-		auto& arr = _marks[level];
-		layout->_mark_index = arr.length();
-		arr.push(layout);
-		_mark_total++;
-	}
-
-	void Window::unmark_layout(Layout *layout, uint32_t level) {
-		Qk_ASSERT(level);
-		auto& arr = _marks[level];
-		auto last = arr[arr.length() - 1];
-		if (last != layout) {
-			arr[layout->_mark_index] = last;
-		}
-		arr.pop();
-		layout->_mark_index = -1;
-		_mark_total--;
-		_is_render = true;
-	}
-
-	void Window::mark_render() {
-		_is_render = true;
-	}
-
-	void Window::addtask(Task* task) {
-		if ( task->task_id() == Task::ID() ) {
-			Task::ID id = _tasks.pushBack(task);
-			task->_task_id = id;
-			task->_win = this;
-		}
-	}
-
-	void Window::untask(Task* task) {
-		Task::ID id = task->task_id();
-		if ( id != Task::ID() ) {
-			(*id)->_win = nullptr;
-			(*id)->_task_id = Task::ID();
-			(*id) = nullptr;
-		}
-	}
-
-	void Window::solveMarks() {
-		TextConfig cfg(_host->defaultTextOptions(), _host->defaultTextOptions()->base());
-
-		do {
-			{ // forward iteration
-				for (auto& levelMarks: _marks) {
-					for (auto& layout: levelMarks) {
-						if (layout) {
-							if ( layout->layout_forward(layout->_mark_value) ) {
-								// simple delete mark
-								layout->_mark_index = -1;
-								layout = nullptr;
-								_mark_total--;
-							}
-						}
-					}
-				}
-			}
-			if (_mark_total > 0) { // reverse iteration
-				for (int i = _marks.length() - 1; i >= 0; i--) {
-					auto& levelMarks = _marks[i];
-					for (auto& layout: levelMarks) {
-						if (layout) {
-							if ( layout->layout_reverse(layout->_mark_value) ) {
-								// simple delete mark recursive
-								layout->_mark_index = -1;
-								layout = nullptr;
-								_mark_total--;
-							}
-						}
-					}
-				}
-			}
-			Qk_ASSERT(_mark_total >= 0);
-		} while (_mark_total);
-
-		for (auto& levelMarks: _marks) {
-			levelMarks.clear();
-		}
-		_is_render = true;
-	}
-
-	/**
-	 * Work around flagging views that need to be updated
-	 */
-	bool Window::preRender() {
-		int64_t now_time = time_monotonic();
-		// _host->action_direct()->advance(now_time); // advance action
-
-		if ( _tasks.length() ) { // solve task
-			auto i = _tasks.begin(), end = _tasks.end();
-			while ( i != end ) {
-				Task* task = *i;
-				if ( task ) {
-					if ( now_time > task->task_timeout() ) {
-						if ( task->run_task(now_time) ) {
-							_is_render = true;
-						}
-					}
-					i++;
-				} else {
-					_tasks.erase(i++);
-				}
-			}
-		}
-
-		if (_mark_total) { // solve marks
-			solveMarks();
-		}
-
-		if (_is_render) {
-			_is_render = false;
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	Window::Task::~RenderTask() {
-		if (_win) {
-			_win->untask(this);
-		}
-	}
-
-	void Window::Task::set_task_timeout(int64_t timeout_us) {
-		_task_timeout = timeout_us;
 	}
 
 }

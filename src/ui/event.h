@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__event__
-#define __quark__event__
+#ifndef __quark__ui__event__
+#define __quark__ui__event__
 
 #include "../util/event.h"
 #include "../util/handle.h"
@@ -64,7 +64,7 @@
 	F(Highlighted, HIGHLIGHTED, UI_EVENT_FLAG_NONE) /* normal / hover / down */ \
 	F(ActionKeyframe, ACTION, UI_EVENT_FLAG_NONE) \
 	F(ActionLoop, ACTION, UI_EVENT_FLAG_NONE) \
-	F(Scroll, DEFAULT, UI_EVENT_FLAG_NONE) /*BasicScroll*/\
+	F(Scroll, DEFAULT, UI_EVENT_FLAG_NONE) /*ScrollBase*/\
 	F(Change, DEFAULT, UI_EVENT_FLAG_NONE) /*Input*/ \
 	F(Load, DEFAULT, UI_EVENT_FLAG_NONE) /* Image */ \
 	/* player */ \
@@ -242,7 +242,7 @@ namespace qk {
 			float    start_x, start_y;
 			float    x, y, force;
 			bool     click_in;
-			View*    view;
+			View    *view;
 		};
 		TouchEvent(View* origin, Array<TouchPoint>& touches);
 		inline Array<TouchPoint>& changed_touches() { return _change_touches; }
@@ -264,8 +264,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Application*, host);
 		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(KeyboardAdapter*, keyboard);
-		Qk_DEFINE_PROP(TextInput*, text_input);
-		Qk_DEFINE_PROP_GET(View*, focus);
+		Qk_DEFINE_PROP_GET(View*, focus_view);
 
 		EventDispatch(Window* win);
 		virtual ~EventDispatch();
@@ -283,8 +282,8 @@ namespace qk {
 		void onImeUnmark(cString& text);
 		void onImeControl(KeyboardKeyName name);
 		// keyboard main loop call
-		void onKeyboard_down();
-		void onKeyboard_up();
+		void onKeyboardDown();
+		void onKeyboardUp();
 		// setting state
 		void set_volume_up();
 		void set_volume_down();
@@ -292,23 +291,27 @@ namespace qk {
 		void set_ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
 		void set_ime_keyboard_close();
 		void set_ime_keyboard_spot_location(Vec2 location);
-		bool set_focus(View* view);
+		bool set_focus_view(View* view); // set focus from main thread
 
 	private:
-		void touchstart_erase(View* view, List<TouchPoint>& in);
-		void touchstart(View* view, List<TouchPoint>& in);
+		void touchstart_use(View* view, List<TouchPoint>& in);
+		void touchstart(Layout* layout, List<TouchPoint>& in);
 		void touchmove(List<TouchPoint>& in);
 		void touchend(List<TouchPoint>& in, const UIEventName& type);
 		void mousemove(View* view, Vec2 pos);
-		void mousepress(KeyboardKeyName name, bool down, Vec2 pos);
+		void mousepress(View* view, Vec2 pos, KeyboardKeyName name, bool down);
 		void mousewhell(KeyboardKeyName name, bool down, float x, float y);
-		View* find_receive_view(Vec2 pos);
-		static View* find_receive_view_rec(View *view, Vec2 pos);
+		Sp<View>     find_receive_view(Vec2 pos);
+		static View* find_receive_view_rec(Layout *view, Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View* view, float x, float y, uint32_t keycode = 0);
+		Sp<View> get_focus_view();
 		class OriginTouche;
 		class MouseHandle;
 		Dict<View*, OriginTouche*> _origin_touches;
-		MouseHandle*  _mouse_h;
+		MouseHandle *_mouse_handle;
+		std::atomic<TextInput*> _text_input;
+		RecursiveMutex _view_mutex;
+		friend class View;
 	};
 
 }

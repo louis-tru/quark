@@ -947,8 +947,8 @@ namespace qk {
 		};
 	}
 
-	bool Box::clip() {
-		return layout<BoxLayout>()->_is_clip;
+	bool BoxLayout::clip() {
+		return _is_clip;
 	}
 
 }

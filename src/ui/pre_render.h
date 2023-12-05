@@ -28,13 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private
+
 #ifndef __quark__task__
 #define __quark__task__
 
 #include "../util/list.h"
+#include "../util/array.h"
+#include "../util/loop.h"
 
 namespace qk {
 	class Window;
+	class Layout;
+	class PreRender;
 
 	/**
 	 * @class RenderTask render task
@@ -44,13 +50,48 @@ namespace qk {
 		typedef List<RenderTask*>::Iterator ID;
 		// define props
 		Qk_DEFINE_PROP_GET(ID, task_id);
-		Qk_DEFINE_PROP_GET(Window*, win);
+		Qk_DEFINE_PROP_GET(PreRender*, pre);
 		Qk_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
 		RenderTask(): _task_timeout(0) {}
 		virtual ~RenderTask();
 		virtual bool run_task(int64_t sys_time) = 0;
 		inline bool is_register_task() const { return _task_id != ID(); }
-		friend class Window;
+		friend class PreRender;
+	};
+
+	/**
+	 * @class PreRender pre render for thread
+	*/
+	class PreRender {
+	public:
+		typedef RenderTask Task;
+		/*
+		* @constructor
+		*/
+		PreRender(Window *window);
+		/**
+		 * @method mark_layout
+		 */
+		void mark_layout(Layout *layout, uint32_t depth);
+		void unmark_layout(Layout *layout, uint32_t depth);
+		void mark_render(); // mark render state
+		void addtask(Task* task); // add pre render task
+		void untask(Task* task); // delete pre render task
+		void clearTasks();
+
+		/**
+		 * Solve the pre-rendering problem, return true if the view needs to be updated
+		 * @method solve()
+		 */
+		bool solve();
+
+	private:
+		void solveMarks(); // solve layout marks
+		Window *_window;
+		int32_t _mark_total;
+		List<Task*>  _tasks;
+		Array<Array<Layout*>> _marks; // marked view
+		bool _is_render; // next frame render
 	};
 
 }

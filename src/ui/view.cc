@@ -40,7 +40,6 @@ namespace qk {
 		, _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
-		, _receive(false)
 	{
 		layout->_view = this;
 	}
@@ -49,10 +48,8 @@ namespace qk {
 		Qk_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		set_action(nullptr); // del action
 		remove_all_child(); // 删除子视图
-	}
-
-	void View::set_receive(bool val) {
-		_receive = val;
+		_layout->_view = nullptr;
+		// TODO release layout ..
 	}
 
 	bool View::is_self_child(View *child) {
@@ -162,7 +159,6 @@ namespace qk {
 			_first->remove_all_child();
 			_first->remove();
 		}
-		// _layout->remove_all_child(); // TODO ... layout cmd
 	}
 
 	Window* View::window() const {
@@ -200,7 +196,7 @@ namespace qk {
 	}
 
 	bool View::is_focus() const {
-		return _layout->window() && _layout->window()->dispatch()->focus() == this;
+		return _layout->window() && _layout->window()->dispatch()->focus_view() == this;
 	}
 
 	bool View::blur() {
@@ -218,12 +214,15 @@ namespace qk {
 		return false;
 	}
 
-	bool View::clip() {
-		return false;
-	}
-
 	Button* View::as_button() {
 		return nullptr;
+	}
+
+	void View::release() {
+		auto dispatch = _layout->_window->dispatch();
+		dispatch->_view_mutex.lock();
+		Reference::release();
+		dispatch->_view_mutex.unlock();
 	}
 
 	// @private

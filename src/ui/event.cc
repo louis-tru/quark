@@ -54,7 +54,7 @@ namespace qk {
 		void trigger_highlightted(HighlightedEvent& evt) {
 			View* view = this;
 			if ( view ) {
-				if ( view->_receive ) {
+				if ( view->_layout->_receive ) {
 					view->trigger(UIEvent_Highlighted, evt);
 					if ( evt.is_default() ) {
 						// auto classs = view->classs();
@@ -69,7 +69,7 @@ namespace qk {
 		void trigger_click(UIEvent& evt) {
 			View* view = this;
 			do {
-				if ( view->_receive ) {
+				if ( view->_layout->_receive ) {
 					view->trigger(UIEvent_Click, evt);
 					if ( !evt.is_bubble() ) {
 						break; // Stop bubble
@@ -80,7 +80,7 @@ namespace qk {
 				} else {
 					if (evt.is_default()) {
 						auto win = _layout->window();
-						if (evt.origin() != win->dispatch()->focus())
+						if (evt.origin() != win->dispatch()->focus_view())
 							view->focus(); // root
 					}
 					break;
@@ -91,7 +91,7 @@ namespace qk {
 		void bubble_trigger(const NameType& name, UIEvent& evt) {
 			View* view = this;
 			while( view ) {
-				if ( view->_receive ) {
+				if ( view->_layout->_receive ) {
 					view->trigger(name, evt);
 					if ( !evt.is_bubble() ) {
 						break; // Stop bubble
@@ -102,7 +102,7 @@ namespace qk {
 		}
 
 		void trigger(const NameType& name, UIEvent& evt) {
-			if ( _receive ) {
+			if ( _layout->_receive ) {
 				Notification::trigger(name, evt);
 			}
 		}
@@ -112,9 +112,9 @@ namespace qk {
 		if ( is_focus() ) return true;
 
 		auto dispatch = _layout->window()->dispatch();
-		View* old = dispatch->focus();
+		View* old = dispatch->focus_view();
 
-		if ( !dispatch->set_focus(this) ) {
+		if ( !dispatch->set_focus_view(this) ) {
 			return false;
 		}
 
@@ -132,19 +132,6 @@ namespace qk {
 	}
 
 	// -------------------------- E v e n t --------------------------
-
-#define Qk_FUN(NAME, C, FLAG) \
-	const UIEventName UIEvent_##NAME(#NAME, UI_EVENT_CATEGORY_##C, FLAG);
-	Qk_UI_Events(Qk_FUN)
-#undef Qk_FUN
-
-	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
-		Dict<String, UIEventName> r;
-#define Qk_FUN(NAME, C, F) r.set(UIEvent_##NAME.toString(), UIEvent_##NAME);
-		Qk_UI_Events(Qk_FUN)
-#undef Qk_FUN
-		return r;
-	}());
 
 	UIEventName::UIEventName(cString& name, uint32_t category, uint32_t flag)
 		: _toString(name), _hashCode((uint32_t)name.hashCode()), _category(category), _flag(flag)
@@ -254,7 +241,10 @@ namespace qk {
 	class EventDispatch::MouseHandle {
 	public:
 		MouseHandle(): _view(nullptr), _click_view(nullptr) {}
-		~MouseHandle() { Release(_view); }
+		~MouseHandle() {
+			Release(_view); _view = nullptr;
+			Release(_click_view); _click_view = nullptr;
+		}
 		inline View* view() { return _view; }
 		inline Vec2 view_start_position() { return _start_position; }
 		inline Vec2 position() { return _position; }
@@ -274,40 +264,84 @@ namespace qk {
 			_view = view;
 		}
 	private:
-		View* _view, *_click_view;
+		View *_view, *_click_view;
 		Vec2 _start_position, _position;
 	};
+
+	#define Qk_FUN(NAME, C, FLAG) \
+		const UIEventName UIEvent_##NAME(#NAME, UI_EVENT_CATEGORY_##C, FLAG);
+		Qk_UI_Events(Qk_FUN)
+	#undef Qk_FUN
+
+	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
+		Dict<String, UIEventName> r;
+		#define Qk_FUN(NAME, C, F) r.set(UIEvent_##NAME.toString(), UIEvent_##NAME);
+		Qk_UI_Events(Qk_FUN)
+		#undef Qk_FUN
+		return r;
+	}());
+
+	// @EventDispatch
+	// ----------------------------------------------------------------------------------------
+	#define _loop static_cast<PostMessage*>(_host->loop())
 
 	EventDispatch::EventDispatch(Window* win)
 		: _window(win)
 		, _host(win->host())
-		, _text_input(nullptr), _focus(nullptr) 
+		, _text_input(nullptr), _focus_view(nullptr) 
 	{
 		_keyboard = KeyboardAdapter::create();
 		_keyboard->_host = this;
-		_mouse_h = new MouseHandle();
+		_mouse_handle = new MouseHandle();
 	}
 
 	EventDispatch::~EventDispatch() {
 		for (auto& i : _origin_touches)
 			delete i.value;
-		if ( _focus ) {
-			_focus->release();
-			_focus = nullptr;
+		if ( _focus_view ) {
+			_focus_view->release();
+			_focus_view = nullptr;
 		}
 		Release(_keyboard);
-		delete _mouse_h;
+		delete _mouse_handle;
 	}
 
-	bool EventDispatch::set_focus(View* view) {
-		if ( _focus != view ) {
+	Sp<View> EventDispatch::get_focus_view() {
+		std::lock_guard<RecursiveMutex> lock(_view_mutex);
+		return Sp<View>(_focus_view);
+	}
+
+	bool EventDispatch::set_focus_view(View* view) {
+		if ( _focus_view != view ) {
 			if ( view->_layout->_level && view->can_become_focus() ) {
-				if ( _focus ) {
-					_focus->release(); // unref
+				std::lock_guard<RecursiveMutex> lock(_view_mutex);
+				if ( _focus_view ) {
+					_focus_view->release(); // unref
 				}
-				_focus = view;
-				_focus->retain(); // strong ref
-				set_text_input(view->_layout->as_text_input());
+				_focus_view = view;
+				_focus_view->retain(); // strong ref
+				// set text input
+				auto input = view->_layout->as_text_input();
+				if ( _text_input != input ) {
+					_text_input = input;
+					if ( input ) {
+						set_ime_keyboard_open({
+							true,
+							input->input_keyboard_type(),
+							input->input_keyboard_return_type(),
+							input->input_spot_location(),
+						});
+					} else {
+						set_ime_keyboard_close();
+					}
+				} else if ( input ) {
+					set_ime_keyboard_open({
+						false,
+						input->input_keyboard_type(),
+						input->input_keyboard_return_type(),
+						input->input_spot_location(),
+					});
+				} // if ( _text_input != input ) {
 			} else {
 				return false;
 			}
@@ -315,25 +349,22 @@ namespace qk {
 		return true;
 	}
 
-	#define _loop static_cast<PostMessage*>(_host->loop())
-
 	typedef Callback<List<TouchPoint>> TouchCb;
 
 	// -------------------------- T o u c h --------------------------
 
-	void EventDispatch::touchstart_erase(View* view, List<TouchPoint>& in) {
-		if ( view->_receive && in.length() ) {
+	void EventDispatch::touchstart_use(View *view, List<TouchPoint>& in) {
+		if ( view->_layout->_receive && in.length() ) {
 			Array<TouchPoint> change_touches;
-			
-			for ( auto i = in.begin(), e = in.end(); i != e; ) {
 
+			for ( auto i = in.begin(), e = in.end(); i != e; ) {
 				if ( view->_layout->overlap_test(Vec2(i->x, i->y)) ) {
 					TouchPoint& touch = *i;
 					touch.start_x = touch.x;
 					touch.start_y = touch.y;
 					touch.click_in = true;
 					touch.view = view;
-					
+
 					if ( !_origin_touches.has(view) ) {
 						_origin_touches[view] = new OriginTouche(view);
 					}
@@ -345,57 +376,62 @@ namespace qk {
 					i++;
 				}
 			}
-			
+
 			if ( change_touches.length() ) { // notice
-				auto evt = NewEvent<TouchEvent>(view, change_touches);
-				_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
-				
-				if ( !_origin_touches[view]->is_click_down() ) { // trigger click down
+				auto clickDown = !_origin_touches[view]->is_click_down();
+				if (clickDown) { // trigger click down
 					_origin_touches[view]->set_is_click_down(true);
-					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
-					_inl_view(view)->trigger_highlightted(**evt); // emit event
 				}
+				// post main thread
+				async_resolve(Cb([view, clickDown, change_touches](auto& e) {
+					auto evt = NewEvent<TouchEvent>(view, change_touches);
+					_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
+					if ( clickDown ) {
+						auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
+						_inl_view(view)->trigger_highlightted(**evt); // emit event
+					}
+				}, view), _loop);
 			}
 		}
 	}
 
-	void EventDispatch::touchstart(View* view, List<TouchPoint>& in) {
-		
-		if ( view->visible() && in.length() ) {
-			if ( view->_layout->visible_region() ) {
-				
-				if ( view->last() && view->clip() ) {
+	void EventDispatch::touchstart(Layout* layout, List<TouchPoint>& in) {
+		std::lock_guard<RecursiveMutex> lock(_view_mutex);
+
+		if ( layout->_visible && layout->_view && in.length() ) {
+			if ( layout->_visible_region ) {
+
+				if ( layout->_last && layout->clip() ) {
 					List<TouchPoint> in2;
 
 					for ( auto i = in.begin(), e = in.end(); i != e; ) {
-						if ( view->_layout->overlap_test(Vec2(i->x, i->y)) ) {
+						if ( layout->overlap_test(Vec2(i->x, i->y)) ) {
 							in2.pushBack(*i);
 							in.erase(i++);
 						} else {
 							i++;
 						}
 					}
-					
-					View* v = view->last();
+
+					auto v = layout->_last;
 					while( v && in2.length() ) {
 						touchstart(v, in2);
 						v = v->prev();
 					}
-					
-					touchstart_erase(view, in2);
-					
+
+					touchstart_use(layout->_view, in2);
+
 					if ( in2.length() ) {
 						in.splice(in.end(), in2);
 					}
 				} else {
-					View* v = view->last();
+					auto v = layout->_last;
 					while( v && in.length() ) {
 						touchstart(v, in);
 						v = v->prev();
 					}
-					touchstart_erase(view, in);
+					touchstart_use(layout->_view, in);
 				}
-				
 			}
 		}
 	}
@@ -418,23 +454,19 @@ namespace qk {
 				}
 			}
 		}
-		
+
 		for ( auto i : change_touches ) {
-			
 			Array<TouchPoint>& touchs = i.value;
 			View* view = touchs[0].view;
 			// emit event
-			_inl_view(view)->bubble_trigger(
-				UIEvent_TouchMove,
-				**NewEvent<TouchEvent>(view, i.value)
-			);
-			
+			_inl_view(view)->bubble_trigger(UIEvent_TouchMove, **NewEvent<TouchEvent>(view, i.value));
+
 			OriginTouche* origin_touche = _origin_touches[view];
-			
+
 			if ( !origin_touche->is_click_invalid() ) { // no invalid
 				Vec2 position = OriginTouche::view_position(view);
 				Vec2 start_position = origin_touche->view_start_position();
-				
+
 				float d = sqrtf(powf((position.x() - start_position.x()), 2) +
 												powf((position.y() - start_position.y()), 2));
 				// 视图位置移动超过2取消点击状态
@@ -447,7 +479,7 @@ namespace qk {
 					origin_touche->set_click_invalid();
 				}
 				else { // no invalid
-					
+
 					if ( origin_touche->is_click_down() ) { // May trigger click up
 						bool trigger_event = true;
 						for ( auto t : origin_touche->values() ) {
@@ -478,10 +510,10 @@ namespace qk {
 			} // if end
 		} // each end
 	}
-	
+
 	void EventDispatch::touchend(List<TouchPoint>& in, const UIEventName& type) {
 		Dict<View*, Array<TouchPoint>> change_touches;
-		
+
 		for ( auto& in_touch : in ) {
 			for ( auto& item : _origin_touches ) {
 				if ( item.value->has(in_touch.id) ) {
@@ -495,14 +527,14 @@ namespace qk {
 				}
 			}
 		}
-		
+
 		for ( auto& i : change_touches ) { // views
 			Array<TouchPoint>& touchs = i.value;
 			View* view = touchs[0].view;
 			_inl_view(view)->bubble_trigger(type, **NewEvent<TouchEvent>(view, touchs)); // emit touch end event
-			
+
 			OriginTouche* origin_touche = _origin_touches[view];
-			
+
 			if ( origin_touche->count() == 0 ) {
 				if ( origin_touche->is_click_down() ) { // trigger click
 					for ( auto& item : touchs ) {
@@ -529,52 +561,50 @@ namespace qk {
 
 	void EventDispatch::onTouchstart(List<TouchPoint>&& list) {
 		Qk_DEBUG("onTouchstart x: %f, y: %f", list.front().y, list.front().y);
-		async_resolve(TouchCb([this](TouchCb::Data& evt) {
-			UILock lock(_window);
-			auto r = _window->root();
-			if (r) {
-				touchstart(r, *evt.data);
-			}
-		}), std::move(list), _loop);
+		UILock lock(_window);
+		auto r = _window->root();
+		if (r) {
+			touchstart(r->_layout, list);
+		}
 	}
 
 	void EventDispatch::onTouchmove(List<TouchPoint>&& list) {
 		Qk_DEBUG("onTouchmove x: %f, y: %f", list.front().y, list.front().y);
-		async_resolve(TouchCb([this](TouchCb::Data& evt) {
-			UILock lock(_window);
-			touchmove(*evt.data);
-		}), std::move(list), _loop);
+		UILock lock(_window);
+		touchmove(list);
 	}
 
 	void EventDispatch::onTouchend(List<TouchPoint>&& list) {
 		Qk_DEBUG("onTouchend x: %f, y: %f", list.front().y, list.front().y);
-		async_resolve(TouchCb([this](TouchCb::Data& evt) {
-			UILock lock(_window);
-			touchend(*evt.data, UIEvent_TouchEnd);
-		}), std::move(list), _loop);
+		UILock lock(_window);
+		touchend(list, UIEvent_TouchEnd);
 	}
 
 	void EventDispatch::onTouchcancel(List<TouchPoint>&& list) {
 		Qk_DEBUG("onTouchcancel x: %f, y: %f", list.front().y, list.front().y);
-		async_resolve(TouchCb([this](TouchCb::Data& evt) {
-			UILock lock(_window);
-			touchend(*evt.data, UIEvent_TouchCancel);
-		}), std::move(list), _loop);
+		UILock lock(_window);
+		touchend(list, UIEvent_TouchCancel);
 	}
 
 // -------------------------- M o u s e --------------------------
 
-	View* EventDispatch::find_receive_view(Vec2 pos) {
-		return _window->root() ? find_receive_view_rec(_window->root(), pos) : nullptr;
+	Sp<View> EventDispatch::find_receive_view(Vec2 pos) {
+		auto root = _window->root();
+		if (root) {
+			std::lock_guard<RecursiveMutex> lock(_view_mutex);
+			return find_receive_view_rec(root->layout(), pos);
+		} else {
+			return nullptr;
+		}
 	}
 
-	View* EventDispatch::find_receive_view_rec(View* view, Vec2 pos) {
-		if ( view->visible() ) {
-			if ( view->_layout->visible_region() ) {
-				View* v = view->last();
+	View* EventDispatch::find_receive_view_rec(Layout* layout, Vec2 pos) {
+		if ( layout->visible() ) {
+			if ( layout->visible_region() ) {
+				auto v = layout->last();
 
-				if (v && view->clip() ) {
-					if (view->_layout->overlap_test(pos)) {
+				if (v && layout->clip() ) {
+					if (layout->overlap_test(pos)) {
 						while (v) {
 							auto r = find_receive_view_rec(v, pos);
 							if (r) {
@@ -582,8 +612,8 @@ namespace qk {
 							}
 							v = v->prev();
 						}
-						if (view->_receive) {
-							return view;
+						if (layout->_receive && layout->_view) {
+							return layout->_view;
 						}
 					}
 				} else {
@@ -594,8 +624,8 @@ namespace qk {
 						}
 						v = v->prev();
 					}
-					if (view->_receive && view->_layout->overlap_test(pos)) {
-						return view;
+					if (layout->_receive && layout->_view && layout->overlap_test(pos)) {
+						return layout->_view;
 					}
 				}
 			}
@@ -611,12 +641,11 @@ namespace qk {
 		);
 	}
 
-	void EventDispatch::mousemove(View* view, Vec2 pos) {
-		View* d_view = _mouse_h->click_down_view();
-
+	void EventDispatch::mousemove(View *view, Vec2 pos) {
+		View* d_view = _mouse_handle->click_down_view();
 		if ( d_view ) { // no invalid
 			Vec2 position = OriginTouche::view_position(d_view);
-			Vec2 start_position = _mouse_h->view_start_position();
+			Vec2 start_position = _mouse_handle->view_start_position();
 			float d = sqrtf(powf((position.x() - start_position.x()), 2) +
 											powf((position.y() - start_position.y()), 2));
 			// 视图位置移动超过2取消点击状态
@@ -625,16 +654,16 @@ namespace qk {
 					_inl_view(view)->trigger_highlightted( // emit style status event
 						**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER));
 				}
-				_mouse_h->set_click_down_view(nullptr);
+				_mouse_handle->set_click_down_view(nullptr);
 			}
 		}
 
 		float x = pos[0], y = pos[1];
 
-		View* old = _mouse_h->view();
+		View* old = _mouse_handle->view();
 
 		if (old != view) {
-			_mouse_h->set_view(view);
+			_mouse_handle->set_view(view);
 
 			if (old) {
 				auto evt = NewMouseEvent(old, x, y);
@@ -674,46 +703,44 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::mousepress(KeyboardKeyName name, bool down, Vec2 pos) {
+	void EventDispatch::mousepress(View *view, Vec2 pos, KeyboardKeyName name, bool down) {
 		float x = pos[0], y = pos[1];
-		Handle<View> view(find_receive_view(pos));
 
-		if (_mouse_h->view() != *view) {
-			mousemove(*view, pos);
+		if (_mouse_handle->view() != view) {
+			mousemove(view, pos);
 		}
-
 		if (!view) return;
 
-		auto evt = NewMouseEvent(*view, x, y, name);
+		auto evt = NewMouseEvent(view, x, y, name);
 
-		Handle<View> raw_down_view = _mouse_h->click_down_view();
+		Sp<View> raw_down_view = _mouse_handle->click_down_view();
 
 		if (down) {
-			_mouse_h->set_click_down_view(*view);
-			_inl_view(*view)->bubble_trigger(UIEvent_MouseDown, **evt);
+			_mouse_handle->set_click_down_view(view);
+			_inl_view(view)->bubble_trigger(UIEvent_MouseDown, **evt);
 		} else {
-			_mouse_h->set_click_down_view(nullptr);
-			_inl_view(*view)->bubble_trigger(UIEvent_MouseUp, **evt);
+			_mouse_handle->set_click_down_view(nullptr);
+			_inl_view(view)->bubble_trigger(UIEvent_MouseUp, **evt);
 		}
 
 		if (name != KEYCODE_MOUSE_LEFT || !evt->is_default()) return;
 
 		if (down) {
-			_inl_view(*view)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(*view, HIGHLIGHTED_DOWN)); // emit style status event
+			_inl_view(view)->trigger_highlightted(
+				**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN)); // emit style status event
 		} else {
-			_inl_view(*view)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(*view, HIGHLIGHTED_HOVER)); // emit style status event
+			_inl_view(view)->trigger_highlightted(
+				**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER)); // emit style status event
 
-			if (*view == *raw_down_view) {
-				_inl_view(*view)->trigger_click(**NewEvent<ClickEvent>(*view, x, y, ClickEvent::MOUSE));
+			if (view == *raw_down_view) {
+				_inl_view(view)->trigger_click(**NewEvent<ClickEvent>(view, x, y, ClickEvent::MOUSE));
 			}
 		}
 	}
 
 	void EventDispatch::mousewhell(KeyboardKeyName name, bool down, float x, float y) {
 		if (down) {
-			auto view = _mouse_h->view();
+			auto view = _mouse_handle->view();
 			if (view) {
 				_inl_view(view)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(view, x, y, name));
 			}
@@ -721,93 +748,105 @@ namespace qk {
 	}
 
 	void EventDispatch::onMousemove(float x, float y) {
-		async_resolve(Cb([=](Cb::Data& evt) {
-			UILock lock(_window);
+		UILock lock(_window);
+		if (_window->root()) {
 			Vec2 pos(x, y);
-			// set current mouse pos
-			_mouse_h->set_position(pos);
-
-			if (_window->root()) {
-				Handle<View> v(find_receive_view(pos));
-				mousemove(*v, pos);
-			}
-		}), _loop);
+			_mouse_handle->set_position(pos); // set current mouse pos
+			auto v = find_receive_view(pos).collapse();
+			async_resolve(Cb([=](auto& e) {
+				mousemove(v, pos);
+				Release(v);
+			}), _loop);
+		}
 	}
 
 	void EventDispatch::onMousepress(KeyboardKeyName name, bool down) {
-		async_resolve(Cb([=](Cb::Data& evt) {
-			UILock lock(_window);
-			switch(name) {
-				case KEYCODE_MOUSE_LEFT:
-				case KEYCODE_MOUSE_CENTER:
-				case KEYCODE_MOUSE_RIGHT:
-					mousepress(name, down, _mouse_h->position());
-					break;
-				case KEYCODE_MOUSE_WHEEL_UP:
-					mousewhell(name, down, 0, -53); break;
-				case KEYCODE_MOUSE_WHEEL_DOWN:
-					mousewhell(name, down, 0, 53); break;
-				case KEYCODE_MOUSE_WHEEL_LEFT:
-					mousewhell(name, down, -53, 0); break;
-				case KEYCODE_MOUSE_WHEEL_RIGHT:
-					mousewhell(name, down, 53, 0); break;
-				default: break;
+		switch(name) {
+			case KEYCODE_MOUSE_LEFT:
+			case KEYCODE_MOUSE_CENTER:
+			case KEYCODE_MOUSE_RIGHT: {
+				UILock lock(_window);
+				auto pos = _mouse_handle->position(); // get current mouse pos
+				auto v = find_receive_view(pos).collapse();
+				async_resolve(Cb([=](auto& e) {
+					mousepress(v, pos, name, down);
+					Release(v);
+				}), _loop);
+				break;
 			}
-		}), _loop);
+			case KEYCODE_MOUSE_WHEEL_UP:
+				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 0, -53); }, _loop));
+				break;
+			case KEYCODE_MOUSE_WHEEL_DOWN:
+				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 0, 53); }, _loop));
+				break;
+			case KEYCODE_MOUSE_WHEEL_LEFT:
+				async_resolve(Cb([=](auto& e) { mousewhell(name, down, -53, 0); }, _loop));
+				break;
+			case KEYCODE_MOUSE_WHEEL_RIGHT:
+				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 53, 0); }, _loop));
+				break;
+			default: break;
+		}
 	}
 
 	// -------------------------- k e y b o a r d --------------------------
 
-	void EventDispatch::onKeyboard_down() {
-
-		auto view = _focus;
+	void EventDispatch::onKeyboardDown() {
+		// UILock lock(_window);
+		auto view_ = get_focus_view();
+		auto view = *view_;
 		if ( !view )
 			view = _window->root();
+		if ( !view ) return;
 
-		if ( view ) {
-			auto name = _keyboard->keyname();
-			auto btn = view->as_button();
-			View *focus_move = nullptr;
+		auto name = _keyboard->keyname();
+		auto btn = view->as_button();
+		View *focus_move = nullptr;
 
-			if (btn) {
-				FindDirection dir;
-				switch ( name ) {
-					case KEYCODE_LEFT: dir = FindDirection::kLeft; break;  // left
-					case KEYCODE_UP: dir = FindDirection::kTop; break;     // top
-					case KEYCODE_RIGHT: dir = FindDirection::kRight; break; // right
-					case KEYCODE_DOWN: dir = FindDirection::kBottom; break; // bottom
-					default: dir = FindDirection::kNone; break;
-				}
-				if ( dir != FindDirection::kNone ) {
-					focus_move = btn->next_button(dir);
-				}
+		if (btn) {
+			FindDirection dir;
+			switch ( name ) {
+				case KEYCODE_LEFT: dir = FindDirection::kLeft; break;  // left
+				case KEYCODE_UP: dir = FindDirection::kTop; break;     // top
+				case KEYCODE_RIGHT: dir = FindDirection::kRight; break; // right
+				case KEYCODE_DOWN: dir = FindDirection::kBottom; break; // bottom
+				default: dir = FindDirection::kNone; break;
 			}
+			if ( dir != FindDirection::kNone ) {
+				focus_move = btn->next_button(dir);
+			}
+		}
 
-			auto evt = NewEvent<KeyEvent>(view, name,
-				_keyboard->shift(),
-				_keyboard->ctrl(), _keyboard->alt(),
-				_keyboard->command(), _keyboard->caps_lock(),
-				_keyboard->repeat(), _keyboard->device(), _keyboard->source()
-			);
+		auto evt = new KeyEvent(view, name,
+			_keyboard->shift(),
+			_keyboard->ctrl(), _keyboard->alt(),
+			_keyboard->command(), _keyboard->caps_lock(),
+			_keyboard->repeat(), _keyboard->device(), _keyboard->source()
+		);
+
+		view->retain(); // retain view
+
+		async_resolve(Cb([=](auto& e) {
+			Sp<KeyEvent> h(evt);
 
 			evt->set_focus_move(focus_move);
 
-			_inl_view(view)->bubble_trigger(UIEvent_KeyDown, **evt);
+			_inl_view(view)->bubble_trigger(UIEvent_KeyDown, *evt);
 			
 			if ( evt->is_default() ) {
 				
 				if ( name == KEYCODE_ENTER ) {
-					_inl_view(view)->bubble_trigger(UIEvent_KeyEnter, **evt);
+					_inl_view(view)->bubble_trigger(UIEvent_KeyEnter, *evt);
 				} else if ( name == KEYCODE_VOLUME_UP ) {
 					set_volume_up();
 				} else if ( name == KEYCODE_VOLUME_DOWN ) {
 					set_volume_down();
 				}
-				
 				int keypress_code = _keyboard->keypress();
 				if ( keypress_code ) { // keypress
 					evt->set_keycode( keypress_code );
-					_inl_view(view)->bubble_trigger(UIEvent_KeyPress, **evt);
+					_inl_view(view)->bubble_trigger(UIEvent_KeyPress, *evt);
 				}
 
 				if ( name == KEYCODE_CENTER && _keyboard->repeat() == 0 ) {
@@ -819,26 +858,32 @@ namespace qk {
 					evt->focus_move()->focus();
 				}
 			} // if ( evt->is_default() ) {
-		} // if ( view )
+
+			view->release(); // release view
+		}, focus_move), _loop); // async_resolve(
 	}
 	
-	void EventDispatch::onKeyboard_up() {
-
-		View* view = _focus;
+	void EventDispatch::onKeyboardUp() {
+		// UILock lock(_window);
+		auto view_ = get_focus_view();
+		View* view = *view_;
 		if ( !view )
 			view = _window->root();
+		if ( !view ) return;
 
-		if ( view ) {
-			auto name = _keyboard->keyname();
-			auto evt = NewEvent<KeyEvent>(view, name,
-				_keyboard->shift(),
-				_keyboard->ctrl(), _keyboard->alt(),
-				_keyboard->command(), _keyboard->caps_lock(),
-				_keyboard->repeat(), _keyboard->device(), _keyboard->source()
-			);
+		auto name = _keyboard->keyname();
+		auto evt = new KeyEvent(view, name,
+			_keyboard->shift(),
+			_keyboard->ctrl(), _keyboard->alt(),
+			_keyboard->command(), _keyboard->caps_lock(),
+			_keyboard->repeat(), _keyboard->device(), _keyboard->source()
+		);
 
-			_inl_view(view)->bubble_trigger(UIEvent_KeyUp, **evt);
-			
+		async_resolve(Cb([=](auto& e) {
+			Sp<KeyEvent> h(evt);
+
+			_inl_view(view)->bubble_trigger(UIEvent_KeyUp, *evt);
+
 			if ( evt->is_default() ) {
 				if ( name == KEYCODE_BACK ) {
 					auto point = view->_layout->position();
@@ -858,83 +903,51 @@ namespace qk {
 					_inl_view(view)->trigger_click(**evt2);
 				} //
 			}
-		}
+		}, view), _loop); // async_resolve(
 	}
 
 	// -------------------------- I M E --------------------------
 
 	void EventDispatch::onImeDelete(int count) {
-		async_resolve(Cb([=](Cb::Data& d) {
-			UILock lock(_window);
-			if ( _text_input ) {
-				_text_input->input_delete(count);
-				bool can_backspace = _text_input->input_can_backspace();
-				bool can_delete = _text_input->input_can_delete();
-				set_ime_keyboard_can_backspace(can_backspace, can_delete);
-			}
-		}), _loop);
+		UILock lock(_window);
+		TextInput* input = _text_input;
+		if ( input ) {
+			input->input_delete(count);
+			bool can_backspace = input->input_can_backspace();
+			bool can_delete = input->input_can_delete();
+			set_ime_keyboard_can_backspace(can_backspace, can_delete);
+		}
 	}
 
 	void EventDispatch::onImeInsert(cString& text) {
-		async_resolve(Cb([=](Cb::Data& d) {
-			UILock lock(_window);
-			if ( _text_input ) {
-				_text_input->input_insert(text);
-			}
-		}), _loop);
+		UILock lock(_window);
+		TextInput* input = _text_input;
+		if ( input ) {
+			input->input_insert(text);
+		}
 	}
 
 	void EventDispatch::onImeMarked(cString& text) {
-		async_resolve(Cb([=](Cb::Data& d) {
-			UILock lock(_window);
-			if ( _text_input ) {
-				_text_input->input_marked(text);
-			}
-		}), _loop);
+		UILock lock(_window);
+		TextInput* input = _text_input;
+		if ( input ) {
+			input->input_marked(text);
+		}
 	}
 
 	void EventDispatch::onImeUnmark(cString& text) {
-		async_resolve(Cb([=](Cb::Data& d) {
-			UILock lock(_window);
-			if ( _text_input ) {
-				_text_input->input_unmark(text);
-			}
-		}), _loop);
+		UILock lock(_window);
+		TextInput* input = _text_input;
+		if ( input ) {
+			input->input_unmark(text);
+		}
 	}
 
 	void EventDispatch::onImeControl(KeyboardKeyName name) {
-		async_resolve(Cb([=](Cb::Data& d) {
-			UILock lock(_window);
-			if ( _text_input ) {
-				_text_input->input_control(name);
-			}
-		}), _loop);
-	}
-
-	void EventDispatch::set_text_input(TextInput* input) {
-		Qk_DEBUG("set_text_input");
-		if ( input != _text_input ) {
-			_text_input = input;
-
-			if ( input ) {
-				set_ime_keyboard_open({
-					true,
-					input->input_keyboard_type(),
-					input->input_keyboard_return_type(),
-					input->input_spot_location(),
-				});
-			} else {
-				set_ime_keyboard_close();
-			}
-		} else {
-			if ( input ) {
-				set_ime_keyboard_open({
-					false,
-					input->input_keyboard_type(),
-					input->input_keyboard_return_type(),
-					input->input_spot_location(),
-				});
-			}
+		UILock lock(_window);
+		TextInput* input = _text_input;
+		if ( input ) {
+			input->input_control(name);
 		}
 	}
 

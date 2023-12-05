@@ -31,6 +31,7 @@
 #include "./keyboard.h"
 #include "./app.h"
 #include "./event.h"
+#include "./window.h"
 
 namespace qk {
 
@@ -38,7 +39,6 @@ namespace qk {
 	* @constructor 
 	*/
 	KeyboardAdapter::KeyboardAdapter()  {
-
 		_keyname = KEYCODE_UNKNOWN;
 		_keypress = 0;
 		_shift = false;
@@ -187,37 +187,29 @@ namespace qk {
 		_ascii_keycodes['}'] = { KEYCODE_RIGHT_BRACKET, 1 };
 		_ascii_keycodes['"'] = { KEYCODE_APOSTROPHE, 1 };
 		_ascii_keycodes[127] = { KEYCODE_DELETE, 0 };
-
 	}
 
 	void KeyboardAdapter::onDispatch(uint32_t keycode, bool unicode, bool down, int repeat, int device, int source)
 	{
-		async_resolve(Cb([=](Cb::Data& evt) {
-			// TODO ...
-			// UILock lock;
-			_repeat = repeat;
-			_device = device;
-			_source = source;
+		_repeat = repeat;
+		_device = device;
+		_source = source;
 
-			bool is_clear = convert(keycode, unicode, down);
-
-			if ( down ) {
-				_host->onKeyboard_down();
-			} else {
-				_host->onKeyboard_up();
-			}
-
-			if ( is_clear ) {
-				_ctrl = _command = _shift = _alt = false;
-			}
-		}), static_cast<PostMessage*>(_host->host()->loop()));
+		bool is_clear = convert(keycode, unicode, down);
+		if ( down ) {
+			_host->onKeyboardDown();
+		} else {
+			_host->onKeyboardUp();
+		}
+		if ( is_clear ) {
+			_ctrl = _command = _shift = _alt = false;
+		}
 	}
 
 	/**
 	* @func keypress
 	*/
 	int KeyboardAdapter::keypress(KeyboardKeyName name) {
-
 		// Letters
 		if ( name >= 65 && name <= 90 ) {
 			if ( _caps_lock || _shift ) { // A - Z
@@ -240,7 +232,6 @@ namespace qk {
 	}
 
 	bool KeyboardAdapter::convert(uint32_t keycode, bool unicode, bool down) {
-		
 		if ( unicode ) {
 			auto it = _ascii_keycodes.find(keycode);
 			if ( it == _ascii_keycodes.end() ) {

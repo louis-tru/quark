@@ -79,11 +79,6 @@ namespace qk {
 		 * keyboard focus view
 		*/
 		Qk_DEFINE_PROP_ACC(bool, is_focus);
-		/**
-		 * Do views need to receive or handle system event throws? In most cases,
-		 * these events do not need to be handled, which can improve overall event processing efficiency
-		*/
-		Qk_DEFINE_PROP(bool, receive);
 
 		/**
 		 * @constructor
@@ -193,14 +188,6 @@ namespace qk {
 		virtual bool can_become_focus();
 
 		/**
-		 *
-		 * is clip render the view
-		 *
-		 * @method clip()
-		 */
-		virtual bool clip();
-
-		/**
 		 * @method draw()
 		 */
 		virtual void draw(UIRender *render);
@@ -212,6 +199,9 @@ namespace qk {
 		 * @method as_buttn()
 		*/
 		virtual Button* as_button();
+
+		// @override
+		virtual void release() override;
 
 	private:
 		/**

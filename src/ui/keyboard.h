@@ -209,13 +209,6 @@ namespace qk {
 	*/
 	class Qk_EXPORT KeyboardAdapter: public Object {
 	public:
-		static KeyboardAdapter* create();
-
-		KeyboardAdapter();
-
-		void onDispatch(uint32_t keycode, bool ascii, bool down,
-									int repeat = 0, int device = 0, int source = 0);
-
 		Qk_DEFINE_PROP_GET(EventDispatch*, host);
 		Qk_DEFINE_PROP_GET(KeyboardKeyName, keyname);
 		Qk_DEFINE_PROP_GET(int, keypress);
@@ -228,10 +221,12 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(bool, device);
 		Qk_DEFINE_PROP_GET(bool, source);
 
+		KeyboardAdapter();
+		void onDispatch(uint32_t keycode, bool ascii, bool down,
+									int repeat = 0, int device = 0, int source = 0);
+		static KeyboardAdapter* create();
+
 	protected:
-
-		friend class EventDispatch;
-
 		virtual int  keypress(KeyboardKeyName name);
 		virtual bool convert(uint32_t keycode, bool unicode, bool down);
 
@@ -239,14 +234,14 @@ namespace qk {
 			KeyboardKeyName name;
 			bool is_shift;
 		};
-
 		struct SymbolKeypressValue {
 			int normal, shift;
 		};
-
 		Dict<int, KeyboardKeyName>      _keycodes;
 		Dict<int, AsciiKeyboardKeycode> _ascii_keycodes;
 		Dict<int, SymbolKeypressValue>  _symbol_keypress;
+
+		friend class EventDispatch;
 	};
 
 }

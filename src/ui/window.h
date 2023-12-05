@@ -36,6 +36,7 @@
 #include "../util/cb.h"
 #include "../render/math.h"
 #include "../render/render.h"
+#include "../pre_render.h"
 
 namespace qk {
 	class Application;
@@ -82,8 +83,6 @@ namespace qk {
 			Vec2 origin,end;
 			Vec2 size; // full surface
 		};
-
-		typedef RenderTask Task;
 
 		/**
 		*
@@ -171,13 +170,11 @@ namespace qk {
 		void pending();
 
 		/**
-		 * @method mark_layout
-		 */
-		void mark_layout(Layout *layout, uint32_t depth);
-		void unmark_layout(Layout *layout, uint32_t depth);
-		void mark_render(); // mark render state
-		void addtask(Task* task); // add pre render task
-		void untask(Task* task); // delete pre render task
+		 * @func preRender()
+		*/
+		inline PreRender& preRender() {
+			return _preRender;
+		}
 
 	private:
 		void reload();
@@ -187,13 +184,6 @@ namespace qk {
 		void openImpl(Options &opts);
 		void closeImpl();
 		bool destroy(); // destroy window and protform window
-		void solveMarks(); // solve layout marks
-
-		/**
-		 * Solve the pre-rendering problem, return true if the view needs to be updated
-		 * @method preRender()
-		 */
-		bool preRender();
 
 		/**
 		 * Create an application object before creating a window
@@ -211,13 +201,8 @@ namespace qk {
 		int64_t        _nextFspTime;
 		Array<RegionSize> _clipRegion;
 		List<Window*>::Iterator _id;
-		// pre render props
-		int32_t _mark_total;
-		List<Task*>  _tasks;
-		Array<Array<Layout*>> _marks; // marked view
 		RecursiveMutex _render_mutex;
-		bool _is_render; // next frame render
-
+		PreRender _preRender;
 		friend class WindowImpl;
 		friend class UILock;
 	};

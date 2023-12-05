@@ -46,9 +46,14 @@ namespace qk {
 		, _opacity(1.0)
 		, _visible(true)
 		, _visible_region(false)
+		, _receive(false)
 	{}
 
 	Layout::~Layout() {
+	}
+
+	void Layout::set_receive(bool val) {
+		_receive = val;
 	}
 
 	void Layout::set_visible(bool val) {
@@ -108,10 +113,6 @@ namespace qk {
 	}
 
 	TextInput* Layout::as_text_input() {
-		return nullptr;
-	}
-
-	ButtonLayout* Layout::as_button() {
 		return nullptr;
 	}
 
@@ -188,7 +189,7 @@ namespace qk {
 		_mark_value |= mark;
 		if (_mark_index < 0) {
 			if (_level) {
-				_window->mark_layout(this, _level); // push to pre render
+				preRender().mark_layout(this, _level); // push to pre render
 			}
 		}
 	}
@@ -196,8 +197,12 @@ namespace qk {
 	void Layout::mark_render(uint32_t mark) {
 		_mark_value |= mark;
 		if (_level) {
-			_window->mark_render(); // push to pre render
+			preRender().mark_render(); // push to pre render
 		}
+	}
+
+	bool Layout::clip() {
+		return false;
 	}
 
 	// @private
@@ -326,7 +331,7 @@ namespace qk {
 	void Layout::clear_level() { //  clear layout depth
 		// blur(); // TODO ...
 		if (_mark_index >= 0) {
-			_window->unmark_layout(this, _level);
+			preRender().unmark_layout(this, _level);
 		}
 		_level = 0;
 		onActivate();
@@ -341,8 +346,8 @@ namespace qk {
 		if (_visible) {
 			// if level > 0 then
 			if (_mark_index >= 0) {
-				_window->unmark_layout(this, _level);
-				_window->mark_layout(this, level);
+				preRender().unmark_layout(this, _level);
+				preRender().mark_layout(this, level);
 			}
 			_level = level++;
 			onActivate();

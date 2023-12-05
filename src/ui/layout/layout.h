@@ -41,7 +41,7 @@ namespace qk {
 	class TextConfig;
 	class UIRender;
 	class Window;
-	class View;
+	class PreRender;
 	class EventDispatch;
 
 	/**
@@ -143,6 +143,11 @@ namespace qk {
 		 *  这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		*/
 		Qk_DEFINE_PROP_GET(bool, visible_region);
+		/**
+		 * Do views need to receive or handle system event throws? In most cases,
+		 * these events do not need to be handled, which can improve overall event processing efficiency
+		*/
+		Qk_DEFINE_PROP(bool, receive);
 
 		/**
 		 * @constructor
@@ -357,6 +362,14 @@ namespace qk {
 		virtual void onActivate();
 
 		/**
+		 *
+		 * is clip render the view
+		 *
+		 * @method clip()
+		 */
+		virtual bool clip();
+
+		/**
 			* @func mark_layout(mark)
 			*/
 		void mark_layout(uint32_t mark);
@@ -373,6 +386,13 @@ namespace qk {
 			_mark_value &= (~mark);
 		}
 
+		/**
+		 * @func preRender()
+		*/
+		inline PreRender& preRender() {
+			return _window->preRender();
+		}
+
 	private:
 		void before(Layout* view);
 		void after(Layout* view);
@@ -386,9 +406,10 @@ namespace qk {
 		void set_visible_(bool visible, uint32_t level);
 
 		friend class UIRender;
-		friend class Window;
+		friend class PreRender;
 		friend class EventDispatch;
 		friend class View;
+		friend class Window;
 
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
 	};
