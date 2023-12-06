@@ -409,11 +409,13 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::touchstart(Layout* layout, List<TouchPoint>& in) {
-		std::lock_guard<RecursiveMutex> lock(_view_mutex);
+	void EventDispatch::touchstart(Layout *layout, List<TouchPoint>& in) {
+		if ( layout->_visible && in.length() ) {
+			std::unique_lock<RecursiveMutex> lock(_view_mutex); // disable view release operate
 
-		if ( layout->_visible && layout->_view && in.length() ) {
-			if ( layout->_visible_region ) {
+			if ( layout->_visible_region && layout->_view ) {
+				Sp<View> view = layout->_view; // retain view
+				lock.unlock(); // unlock scope
 
 				if ( layout->_last && layout->clip() ) {
 					List<TouchPoint> in2;
@@ -433,7 +435,7 @@ namespace qk {
 						v = v->prev();
 					}
 
-					touchstart_use(layout->_view, in2);
+					touchstart_use(*view, in2);
 
 					if ( in2.length() ) {
 						in.splice(in.end(), in2);
@@ -444,7 +446,7 @@ namespace qk {
 						touchstart(v, in);
 						v = v->prev();
 					}
-					touchstart_use(layout->_view, in);
+					touchstart_use(*view, in);
 				}
 			}
 		}
@@ -845,6 +847,8 @@ namespace qk {
 			_keyboard->command(), _keyboard->caps_lock(),
 			_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 		);
+		auto keypress = _keyboard->keypress();
+		auto repeat = _keyboard->repeat();
 
 		view->retain(); // retain view
 
@@ -864,17 +868,16 @@ namespace qk {
 				} else if ( name == KEYCODE_VOLUME_DOWN ) {
 					set_volume_down();
 				}
-				int keypress_code = _keyboard->keypress();
-				if ( keypress_code ) { // keypress
-					evt->set_keycode( keypress_code );
+				if ( keypress ) { // keypress
+					evt->set_keycode( keypress );
 					_inl_view(view)->bubble_trigger(UIEvent_KeyPress, *evt);
 				}
 
-				if ( name == KEYCODE_CENTER && _keyboard->repeat() == 0 ) {
+				if ( name == KEYCODE_CENTER && repeat == 0 ) {
 					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
 					_inl_view(view)->trigger_highlightted(**evt); // emit click status event
 				}
-				
+
 				if ( evt->focus_move() ) {
 					evt->focus_move()->focus();
 				}
@@ -898,18 +901,18 @@ namespace qk {
 			_keyboard->command(), _keyboard->caps_lock(),
 			_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 		);
+		auto point = view->_layout->position();
 
-		async_resolve(Cb([=](auto& e) {
+		async_resolve(Cb([this,evt,name,view,point](auto& e) {
 			Sp<KeyEvent> h(evt);
 
 			_inl_view(view)->bubble_trigger(UIEvent_KeyUp, *evt);
 
 			if ( evt->is_default() ) {
 				if ( name == KEYCODE_BACK ) {
-					auto point = view->_layout->position();
 					auto evt = NewEvent<ClickEvent>(view, point.x(), point.y(), ClickEvent::KEYBOARD);
 					_inl_view(view)->bubble_trigger(UIEvent_Back, **evt); // emit back
-					
+
 					if ( evt->is_default() ) {
 						_window->pending();
 					}
@@ -917,8 +920,7 @@ namespace qk {
 				else if ( name == KEYCODE_CENTER ) {
 					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER);
 					_inl_view(view)->trigger_highlightted(**evt); // emit style status event
-					
-					auto point = view->_layout->position();
+
 					auto evt2 = NewEvent<ClickEvent>(view, point.x(), point.y(), ClickEvent::KEYBOARD);
 					_inl_view(view)->trigger_click(**evt2);
 				} //
