@@ -330,7 +330,7 @@ namespace qk {
 		}
 	}
 
-	void UIRender::drawScrollBar(BoxLayout *b, BaseScroll *v) {
+	void UIRender::drawScrollBar(BoxLayout *b, ScrollLayoutBase *v) {
 		if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_opacity ) {
 			auto width = v->_scrollbar_width;
 			auto margin = v->_scrollbar_margin;
@@ -381,7 +381,7 @@ namespace qk {
 					}
 					if (v->_visible_region && v->_opacity) {
 						_opacity = opacityCurr * v->_opacity;
-						v->_view->draw(this);
+						v->draw(this);
 					}
 				}
 				v = v->_next;
@@ -631,35 +631,35 @@ namespace qk {
 		}
 	}
 
-	void View::draw(UIRender *render) {
-		render->visitLayout(layout());
+	void Layout::draw(UIRender *render) {
+		render->visitLayout(this);
 	}
 
-	void Box::draw(UIRender *render) {
-		render->visitBox(layout<BoxLayout>());
+	void BoxLayout::draw(UIRender *render) {
+		render->visitBox(this);
 	}
 
-	void Image::draw(UIRender *render) {
-		render->visitImage(layout<ImageLayout>());
+	void ImageLayout::draw(UIRender *render) {
+		render->visitImage(this);
 	}
 
-	void Scroll::draw(UIRender *render) {
-		render->visitScroll(layout<ScrollLayout>());
+	void ScrollLayout::draw(UIRender *render) {
+		render->visitScroll(this);
 	}
 
-	void Input::draw(UIRender *render) {
-		render->visitInput(layout<InputLayout>());
+	void InputLayout::draw(UIRender *render) {
+		render->visitInput(this);
 	}
 
-	void Label::draw(UIRender *render) {
-		render->visitLabel(layout<LabelLayout>());
+	void LabelLayout::draw(UIRender *render) {
+		render->visitLabel(this);
 	}
 
-	void Root::draw(UIRender *render) {
-		render->visitRoot(layout<RootLayout>());
+	void RootLayout::draw(UIRender *render) {
+		render->visitRoot(this);
 	}
 
-	void Transform::draw(UIRender *render) {
-		render->visitTransform(layout<TransformLayout>());
+	void TransformLayout::draw(UIRender *render) {
+		render->visitTransform(this);
 	}
 }

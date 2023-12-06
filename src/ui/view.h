@@ -71,6 +71,10 @@ namespace qk {
 		*/
 		Qk_DEFINE_PROP_ACC_GET(Window*, window);
 		/**
+		 * @field level
+		*/
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, level);
+		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space
 		*/
@@ -90,16 +94,18 @@ namespace qk {
 		*/
 		virtual ~View();
 
-		template<class T = Layout> T* layout() const { return static_cast<T*>(_layout); }
-
-		template<class View = View> inline View* New();
-
-		template<class View = View> inline View prepend_new() {
-			return New<View>()->template prepend_to<View>(this);
+		template<class T = Layout> T* layout() const {
+			return static_cast<T*>(_layout);
 		}
 
-		template<class Layout = Layout, class View = View> inline View* append_new() {
-			return New<Layout, View>()->template append_to<View>(this);
+		template<class View = View> inline View* newView();
+
+		template<class View = View> inline View prepend_new() {
+			return newView<View>()->template prepend_to<View>(this);
+		}
+
+		template<class View = View> inline View* append_new() {
+			return newView<Layout>()->template append_to<View>(this);
 		}
 
 		template<class T = View> inline T* prepend_to(View* parent) {
@@ -188,11 +194,6 @@ namespace qk {
 		virtual bool can_become_focus();
 
 		/**
-		 * @method draw()
-		 */
-		virtual void draw(UIRender *render);
-
-		/**
 		 * 
 		 * Returns button object
 		 * 
@@ -200,7 +201,9 @@ namespace qk {
 		*/
 		virtual Button* as_button();
 
-		// @override
+		/**
+		 * @override
+		 */
 		virtual void release() override;
 
 	private:

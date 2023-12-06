@@ -75,12 +75,12 @@ namespace qk {
 						break; // Stop bubble
 					}
 				}
-				if (view->parent()) { // root
-					view = view->parent();
+				if (view->_parent) { // root
+					view = view->_parent;
 				} else {
 					if (evt.is_default()) {
-						auto win = _layout->window();
-						if (evt.origin() != win->dispatch()->focus_view())
+						auto dispatch = _layout->_window->dispatch();
+						if (evt.origin() != dispatch->_focus_view)
 							view->focus(); // root
 					}
 					break;
@@ -97,7 +97,7 @@ namespace qk {
 						break; // Stop bubble
 					}
 				}
-				view = view->parent();
+				view = view->_parent;
 			}
 		}
 
@@ -129,6 +129,13 @@ namespace qk {
 				**NewEvent<HighlightedEvent>(this, HIGHLIGHTED_HOVER)
 		);
 		return true;
+	}
+
+	void View::release() {
+		auto dispatch = _layout->_window->dispatch();
+		dispatch->_view_mutex.lock();
+		Reference::release();
+		dispatch->_view_mutex.unlock();
 	}
 
 	// -------------------------- E v e n t --------------------------
@@ -295,7 +302,7 @@ namespace qk {
 	EventDispatch::EventDispatch(Window* win)
 		: _window(win)
 		, _host(win->host())
-		, _text_input(nullptr), _focus_view(nullptr) 
+		, _text_input(nullptr), _focus_view(nullptr)
 	{
 		_keyboard = KeyboardAdapter::create();
 		_keyboard->_host = this;
@@ -318,7 +325,7 @@ namespace qk {
 		return Sp<View>(_focus_view);
 	}
 
-	bool EventDispatch::set_focus_view(View* view) {
+	bool EventDispatch::set_focus_view(View *view) {
 		if ( _focus_view != view ) {
 			if ( view->_layout->_level && view->can_become_focus() ) {
 				std::lock_guard<RecursiveMutex> lock(_view_mutex);
@@ -385,15 +392,15 @@ namespace qk {
 			}
 
 			if ( change_touches.length() ) { // notice
-				auto clickDown = !_origin_touches[view]->is_click_down();
-				if (clickDown) { // trigger click down
+				auto clickDownNo = !_origin_touches[view]->is_click_down();
+				if (clickDownNo) { // trigger click down
 					_origin_touches[view]->set_is_click_down(true);
 				}
 				// post main thread
-				async_resolve(Cb([view, clickDown, change_touches](auto& e) {
+				async_resolve(Cb([view, clickDownNo, change_touches](auto& e) {
 					auto evt = NewEvent<TouchEvent>(view, change_touches);
 					_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
-					if ( clickDown ) {
+					if ( clickDownNo ) {
 						auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
 						_inl_view(view)->trigger_highlightted(**evt); // emit event
 					}
@@ -445,7 +452,7 @@ namespace qk {
 
 	void EventDispatch::touchmove(List<TouchPoint>& in) {
 		Dict<View*, Array<TouchPoint>> change_touches;
-		
+
 		for ( auto in_touch : in ) {
 			for ( auto touches : _origin_touches ) {
 				if ( touches.value->has(in_touch.id) ) {
@@ -463,10 +470,12 @@ namespace qk {
 		}
 
 		for ( auto i : change_touches ) {
-			Array<TouchPoint>& touchs = i.value;
+			auto& touchs = i.value;
 			View* view = touchs[0].view;
-			// emit event
-			_inl_view(view)->bubble_trigger(UIEvent_TouchMove, **NewEvent<TouchEvent>(view, i.value));
+
+			async_resolve(Cb([view, touchs](auto &e){// emit event
+				_inl_view(view)->bubble_trigger(UIEvent_TouchMove, **NewEvent<TouchEvent>(view, touchs));
+			}, view), _loop);
 
 			OriginTouche* origin_touche = _origin_touches[view];
 
@@ -476,17 +485,18 @@ namespace qk {
 
 				float d = sqrtf(powf((position.x() - start_position.x()), 2) +
 												powf((position.y() - start_position.y()), 2));
+
 				// 视图位置移动超过2取消点击状态
 				if ( d > 2 ) { // trigger invalid status
 					if ( origin_touche->is_click_down() ) { // trigger style up
-						// emit style status event
-						auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
-						_inl_view(view)->trigger_highlightted(**evt);
+						async_resolve(Cb([view](auto &e){ // emit style status event
+							auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
+							_inl_view(view)->trigger_highlightted(**evt);
+						}, view), _loop);
 					}
 					origin_touche->set_click_invalid();
 				}
 				else { // no invalid
-
 					if ( origin_touche->is_click_down() ) { // May trigger click up
 						bool trigger_event = true;
 						for ( auto t : origin_touche->values() ) {
@@ -497,18 +507,20 @@ namespace qk {
 						}
 						if ( trigger_event ) {
 							origin_touche->set_is_click_down(false); // set up status
-							// emit style status event
-							auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
-							_inl_view(view)->trigger_highlightted(**evt);
+							async_resolve(Cb([view](auto &e) { // emit style status event
+								auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
+								_inl_view(view)->trigger_highlightted(**evt);
+							}, view), _loop);
 						}
 					} else { // May trigger click down
 						for ( int i = 0; i < touchs.length(); i++) {
 							auto item = touchs[i];
 							if ( item.click_in ) { // find range == true
 								origin_touche->set_is_click_down(true); // set down status
-								// emit style down event
-								auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
-								_inl_view(view)->trigger_highlightted(**evt);
+								async_resolve(Cb([view](auto &e) { // emit style down event
+									auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
+									_inl_view(view)->trigger_highlightted(**evt);
+								}, view), _loop);
 								break;
 							}
 						}
@@ -536,22 +548,23 @@ namespace qk {
 		}
 
 		for ( auto& i : change_touches ) { // views
-			Array<TouchPoint>& touchs = i.value;
+			auto& touchs = i.value;
 			View* view = touchs[0].view;
-			_inl_view(view)->bubble_trigger(type, **NewEvent<TouchEvent>(view, touchs)); // emit touch end event
+			auto origin_touche = _origin_touches[view];
+			auto is_touches_zero = origin_touche->count() == 0;
+			bool is_click_down = is_touches_zero && origin_touche->is_click_down();
 
-			OriginTouche* origin_touche = _origin_touches[view];
+			async_resolve(Cb([view, type, touchs, is_click_down](auto &e) {
+				auto evt0 = NewEvent<TouchEvent>(view, touchs);
+				_inl_view(view)->bubble_trigger(type, **evt0); // emit touch end event
 
-			if ( origin_touche->count() == 0 ) {
-				if ( origin_touche->is_click_down() ) { // trigger click
+				if ( is_click_down ) { // trigger click
 					for ( auto& item : touchs ) {
-						// find range == true
-						if ( item.click_in ) {
-							// emit style up event
+						if ( item.click_in ) { // find range == true
 							auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
 							_inl_view(view)->trigger_highlightted(**evt);
-							
-							if ( type == UIEvent_TouchEnd && view->_layout->_level ) {
+
+							if ( evt0->is_default() && type == UIEvent_TouchEnd && view->_layout->_level ) {
 								auto evt = NewEvent<ClickEvent>(view, item.x, item.y, ClickEvent::TOUCH);
 								_inl_view(view)->trigger_click(**evt); // emit click event
 							}
@@ -559,10 +572,12 @@ namespace qk {
 						}
 					}
 				}
+			}, view), _loop);
+
+			if (is_touches_zero) {
 				delete origin_touche;
 				_origin_touches.erase(view); // del
 			}
-			//
 		}
 	}
 
@@ -594,16 +609,6 @@ namespace qk {
 	}
 
 // -------------------------- M o u s e --------------------------
-
-	Sp<View> EventDispatch::find_receive_view(Vec2 pos) {
-		auto root = _window->root();
-		if (root) {
-			std::lock_guard<RecursiveMutex> lock(_view_mutex);
-			return find_receive_view_exec(root->layout(), pos);
-		} else {
-			return nullptr;
-		}
-	}
 
 	View* EventDispatch::find_receive_view_exec(Layout* layout, Vec2 pos) {
 		if ( layout->visible() ) {
@@ -638,6 +643,16 @@ namespace qk {
 			}
 		}
 		return nullptr;
+	}
+
+	Sp<View> EventDispatch::find_receive_view(Vec2 pos) {
+		auto root = _window->root();
+		if (root) {
+			std::lock_guard<RecursiveMutex> lock(_view_mutex);
+			return find_receive_view_exec(root->layout(), pos);
+		} else {
+			return nullptr;
+		}
 	}
 
 	Sp<MouseEvent> EventDispatch::NewMouseEvent(View* view, float x, float y, uint32_t keycode) {
@@ -760,7 +775,7 @@ namespace qk {
 			Vec2 pos(x, y);
 			_mouse_handle->set_position(pos); // set current mouse pos
 			auto v = find_receive_view(pos).collapse();
-			async_resolve(Cb([=](auto& e) {
+			async_resolve(Cb([this,v,pos](auto& e) {
 				mousemove(v, pos);
 				Release(v);
 			}), _loop);
@@ -775,7 +790,7 @@ namespace qk {
 				UILock lock(_window);
 				auto pos = _mouse_handle->position(); // get current mouse pos
 				auto v = find_receive_view(pos).collapse();
-				async_resolve(Cb([=](auto& e) {
+				async_resolve(Cb([this,v,pos,name,down](auto& e) {
 					mousepress(v, pos, name, down);
 					Release(v);
 				}), _loop);
@@ -800,7 +815,6 @@ namespace qk {
 	// -------------------------- k e y b o a r d --------------------------
 
 	void EventDispatch::onKeyboardDown() {
-		// UILock lock(_window);
 		auto view_ = get_focus_view();
 		auto view = *view_;
 		if ( !view )
@@ -871,7 +885,6 @@ namespace qk {
 	}
 	
 	void EventDispatch::onKeyboardUp() {
-		// UILock lock(_window);
 		auto view_ = get_focus_view();
 		View* view = *view_;
 		if ( !view )

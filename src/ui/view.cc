@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
-#include "./window.h"
 #include "./layout/layout.h"
+#include "./layout/root.h"
+#include "./window.h"
 
 namespace qk {
 
@@ -165,12 +165,16 @@ namespace qk {
 		return _layout->_window;
 	}
 
-	void View::set_visible(bool val) {
-		_layout->set_visible(val); // TODO ... layout cmd
+	uint32_t View::level() const {
+		return _layout->_level;
 	}
 
 	bool View::visible() const {
 		return _layout->visible(); // TODO ... layout cmd
+	}
+
+	void View::set_visible(bool val) {
+		_layout->set_visible(val); // TODO ... layout cmd
 	}
 
 	void View::set_is_focus(bool value) {
@@ -216,13 +220,6 @@ namespace qk {
 
 	Button* View::as_button() {
 		return nullptr;
-	}
-
-	void View::release() {
-		auto dispatch = _layout->_window->dispatch();
-		dispatch->_view_mutex.lock();
-		Reference::release();
-		dispatch->_view_mutex.unlock();
 	}
 
 	// @private

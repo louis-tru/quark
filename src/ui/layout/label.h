@@ -51,6 +51,7 @@ namespace qk {
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void onActivate() override;
+		virtual void draw(UIRender *render) override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
 		Array<TextBlob> _blob;
@@ -63,7 +64,6 @@ namespace qk {
 	class Qk_EXPORT Label: public View {
 	public:
 		Qk_Define_View(Label, View);
-		virtual void draw(UIRender *render) override;
 	};
 
 }

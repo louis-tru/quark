@@ -370,6 +370,11 @@ namespace qk {
 		virtual bool clip();
 
 		/**
+		 * @method draw()
+		 */
+		virtual void draw(UIRender *render);
+
+		/**
 			* @func mark_layout(mark)
 			*/
 		void mark_layout(uint32_t mark);
@@ -410,12 +415,10 @@ namespace qk {
 		friend class EventDispatch;
 		friend class View;
 		friend class Window;
-
-		Qk_DEFINE_INLINE_CLASS(InlEvent);
 	};
 
 	template<class _View>
-	inline _View* View::New() {
+	inline _View* View::newView() {
 		return new _View(new _View::Layout(_layout->_window));
 	}
 

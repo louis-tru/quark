@@ -36,7 +36,7 @@
 
 namespace qk {
 
-	class Qk_EXPORT TextareaLayout: public InputLayout, public BaseScroll {
+	class Qk_EXPORT TextareaLayout: public InputLayout, public ScrollLayoutBase {
 	public:
 		TextareaLayout(Window *win);
 		virtual bool is_multiline() override;

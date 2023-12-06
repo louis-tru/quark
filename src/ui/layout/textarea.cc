@@ -34,7 +34,7 @@
 
 namespace qk {
 
-	TextareaLayout::TextareaLayout(Window *win): InputLayout(win), BaseScroll(this) {
+	TextareaLayout::TextareaLayout(Window *win): InputLayout(win), ScrollLayoutBase(this) {
 	}
 
 	bool TextareaLayout::is_multiline() {
@@ -70,7 +70,7 @@ namespace qk {
 				}
 			}
 		}
-		BaseScroll::solve(mark);
+		ScrollLayoutBase::solve(mark);
 		InputLayout::solve_marks(mark);
 	}
 

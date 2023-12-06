@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./layout.h"
-#include "../view.h"
+#include "./root.h"
 #include "../window.h"
 
 namespace qk {

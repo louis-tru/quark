@@ -36,7 +36,7 @@
 
 namespace qk {
 
-	class Qk_EXPORT ScrollBase {
+	class Qk_EXPORT ScrollLayoutBase {
 	public:
 		// define props
 		Qk_DEFINE_PROP(bool, scrollbar); // 显示scrollbar
@@ -63,8 +63,8 @@ namespace qk {
 		void scroll_to(Vec2 value, uint64_t duration, cCurve& curve);
 		void terminate();
 	protected:
-		ScrollBase(BoxLayout *host);
-		~ScrollBase();
+		ScrollLayoutBase(BoxLayout *host);
+		~ScrollLayoutBase();
 		void set_scroll_size(Vec2 size);
 		void solve(uint32_t mark);
 	private:
@@ -86,18 +86,18 @@ namespace qk {
 		bool _lock_h, _lock_v;
 	};
 
-	class Qk_EXPORT ScrollLayout: public FloatLayout, public ScrollBase {
+	class Qk_EXPORT ScrollLayout: public FloatLayout, public ScrollLayoutBase {
 	public:
 		ScrollLayout(Window *win);
 		virtual Vec2 layout_offset_inside() override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(uint32_t mark) override;
+		virtual void draw(UIRender *render) override;
 	};
 
 	class Qk_EXPORT Scroll: public Float {
 	public:
 		Qk_Define_View(Scroll, Float);
-		virtual void draw(UIRender *render) override;
 	};
 
 }

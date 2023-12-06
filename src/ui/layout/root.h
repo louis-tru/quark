@@ -40,6 +40,7 @@ namespace qk {
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual Mat  layout_matrix() override;
+		virtual void draw(UIRender *render) override;
 	private:
 		RootLayout(Window *win);
 		void init();
@@ -51,7 +52,6 @@ namespace qk {
 	public:
 		Qk_Define_View(Root, Box);
 		virtual bool can_become_focus() override;
-		virtual void draw(UIRender *render) override;
 	};
 
 }

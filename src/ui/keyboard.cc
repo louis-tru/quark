@@ -35,9 +35,6 @@
 
 namespace qk {
 
-	/**
-	* @constructor 
-	*/
 	KeyboardAdapter::KeyboardAdapter()  {
 		_keyname = KEYCODE_UNKNOWN;
 		_keypress = 0;
@@ -191,6 +188,7 @@ namespace qk {
 
 	void KeyboardAdapter::onDispatch(uint32_t keycode, bool unicode, bool down, int repeat, int device, int source)
 	{
+		UILock lock(_host->window());
 		_repeat = repeat;
 		_device = device;
 		_source = source;
@@ -206,9 +204,6 @@ namespace qk {
 		}
 	}
 
-	/**
-	* @func keypress
-	*/
 	int KeyboardAdapter::keypress(KeyboardKeyName name) {
 		// Letters
 		if ( name >= 65 && name <= 90 ) {

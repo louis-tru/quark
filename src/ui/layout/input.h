@@ -82,6 +82,7 @@ namespace qk {
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 		virtual Object* toObject() override;
+		virtual void draw(UIRender *render) override;
 	protected:
 		Vec2 layout_typesetting_input_text();
 		void refresh_cursor_screen_position();
@@ -112,7 +113,6 @@ namespace qk {
 	public:
 		Qk_Define_View(Input, Box);
 		virtual bool can_become_focus() override;
-		virtual void draw(UIRender *render) override;
 	};
 
 }

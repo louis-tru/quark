@@ -124,6 +124,7 @@ namespace qk {
 		virtual bool overlap_test(Vec2 point) override;
 		virtual Vec2 position() override;
 		virtual bool clip() override;
+		virtual void draw(UIRender *render) override;
 
 		/**
 			* client rect = border + padding + content
@@ -178,7 +179,6 @@ namespace qk {
 	class Qk_EXPORT Box: public View {
 	public:
 		Qk_Define_View(Box, View);
-		virtual void draw(UIRender *render) override;
 	};
 
 	/**

@@ -31,7 +31,6 @@
 #include "./window.h"
 #include "./app.h"
 #include "./layout/root.h"
-#include "./view.h"
 #include "../render/render.h"
 #include "./ui_render.h"
 #include "./event.h"
@@ -92,10 +91,10 @@ namespace qk {
 			_id = _host->_windows.pushBack(this);
 		}
 		retain(); // strong ref count retain
-		_root = new View(new RootLayout(this)); // new root
-		auto root = _root->layout<RootLayout>();
+		auto root = new RootLayout(this); // new root layout
 		root->_level = 1;
 		root->init();
+		_root = new Root(root); // new root
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
 		_root->focus();  // set focus
@@ -284,7 +283,7 @@ namespace qk {
 		}
 		_nextFsp++;
 
-		_root->draw(_uiRender); // start drawing
+		_root->layout()->draw(_uiRender); // start drawing
 
 		solveNextFrame(); // solve frame
 

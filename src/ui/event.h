@@ -37,7 +37,7 @@
 #include "./types.h"
 #include "./text/text_input.h"
 
-// all ui events / NAME, FLAG
+// all ui events / Name, Flag
 #define Qk_UI_Events(F) \
 /* can bubble event */ \
 F(Click, CLICK, UI_EVENT_FLAG_BUBBLE) \
@@ -80,6 +80,7 @@ F(Seek, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_UINT64) \
 
 namespace qk {
 	class Application;
+	class Layout;
 	class View;
 	class Action;
 	class TextInput;
@@ -260,7 +261,6 @@ namespace qk {
 			KeyboardReturnType return_type;
 			Vec2               spot_location;
 		};
-
 		Qk_DEFINE_PROP_GET(Application*, host);
 		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(KeyboardAdapter*, keyboard);
@@ -292,7 +292,6 @@ namespace qk {
 		void set_ime_keyboard_close();
 		void set_ime_keyboard_spot_location(Vec2 location);
 		bool set_focus_view(View *view); // set focus from main thread
-
 	private:
 		void touchstart_use(View* view, List<TouchPoint>& in);
 		void touchstart(Layout* layout, List<TouchPoint>& in);
@@ -301,16 +300,17 @@ namespace qk {
 		void mousemove(View* view, Vec2 pos);
 		void mousepress(View* view, Vec2 pos, KeyboardKeyName name, bool down);
 		void mousewhell(KeyboardKeyName name, bool down, float x, float y);
-		Sp<View> find_receive_view(Vec2 pos);
 		View*    find_receive_view_exec(Layout *view, Vec2 pos);
+		Sp<View> find_receive_view(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, uint32_t keycode = 0);
 		Sp<View> get_focus_view();
+
 		class OriginTouche;
 		class MouseHandle;
 		Dict<View*, OriginTouche*> _origin_touches;
 		MouseHandle *_mouse_handle;
 		std::atomic<TextInput*> _text_input;
-		RecursiveMutex _view_mutex;
+		RecursiveMutex _view_mutex; // view layout mutex for main and render thread
 		friend class View;
 	};
 

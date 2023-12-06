@@ -46,7 +46,7 @@ namespace qk {
 	class LabelLayout;
 	class RootLayout;
 	class TransformLayout;
-	class BaseScroll;
+	class ScrollLayoutBase;
 
 	class Qk_EXPORT UIRender: public Object {
 	public:
@@ -77,7 +77,7 @@ namespace qk {
 		void drawBoxShadow(BoxLayout *box, BoxData &data);
 		void drawBoxBorder(BoxLayout *box, BoxData &data);
 		void drawBoxEnd(BoxLayout *box, BoxData &data);
-		void drawScrollBar(BoxLayout *box, BaseScroll *v);
+		void drawScrollBar(BoxLayout *box, ScrollLayoutBase *v);
 		Window     *_window;
 		Render     *_render;
 		Canvas     *_canvas;

@@ -36,7 +36,7 @@
 #include "../util/cb.h"
 #include "../render/math.h"
 #include "../render/render.h"
-#include "../pre_render.h"
+#include "./pre_render.h"
 
 namespace qk {
 	class Application;
@@ -44,8 +44,7 @@ namespace qk {
 	class EventDispatch;
 	class WindowImpl; // window platform impl
 	class RenderTask;
-	class Layout;
-	class View;
+	class Root;
 	class Window;
 
 	/**
@@ -100,7 +99,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion); //!< Select the area on the drawing surface
 		Qk_DEFINE_PROP_GET(uint32_t, fsp); //!< current fsp
 		Qk_DEFINE_PROP_GET(uint32_t, atomPixel); // atom pixel size
-		Qk_DEFINE_PROP_GET(View*, root); //! root view
+		Qk_DEFINE_PROP_GET(Root*, root); //! root view
 		Qk_DEFINE_PROP_GET(Application*, host); //! application host
 		Qk_DEFINE_PROP_GET(Render*, render); //! render object
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch

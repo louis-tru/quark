@@ -44,6 +44,7 @@ namespace qk {
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual bool solve_visible_region() override;
 		virtual void onActivate() override;
+		virtual void draw(UIRender *render) override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;
 	private:
@@ -53,7 +54,6 @@ namespace qk {
 	class Qk_EXPORT Text: public Box {
 	public:
 		Qk_Define_View(Text, Box);
-		virtual void draw(UIRender *render) override;
 	};
 
 	class Qk_EXPORT Button: public Text {
