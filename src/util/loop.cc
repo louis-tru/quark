@@ -231,7 +231,7 @@ namespace qk {
 		Array<ThreadID> threads_id;
 
 		Qk_DEBUG("thread_try_abort_and_exit_inl(), 0");
-		Event<> ev(Int32(rc), nullptr, rc);
+		Event<> ev(Int32(rc), rc);
 		Qk_Trigger(ProcessExit, ev); // trigger event
 		rc = ev.return_value;
 		Qk_DEBUG("thread_try_abort_and_exit_inl(), 1");

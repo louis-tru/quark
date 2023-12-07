@@ -56,6 +56,10 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(View);
 	public:
 		typedef Layout Layout;
+		/*
+		* @field window
+		*/
+		Qk_DEFINE_PROP_ACC_GET(Window*, window);
 		/**
 		 * the objects that automatically adjust view properties
 		*/
@@ -66,10 +70,10 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(View*, next);
 		Qk_DEFINE_PROP_GET(View*, first);
 		Qk_DEFINE_PROP_GET(View*, last);
-		/*
-		* @field window
-		*/
-		Qk_DEFINE_PROP_ACC_GET(Window*, window);
+		/**
+		 *  can affect the transparency of subviews
+		 */
+		Qk_DEFINE_PROP_ACC(float, opacity);
 		/**
 		 * @field level
 		*/
@@ -83,6 +87,11 @@ namespace qk {
 		 * keyboard focus view
 		*/
 		Qk_DEFINE_PROP_ACC(bool, is_focus);
+		/**
+		 * Do views need to receive or handle system event throws? In most cases,
+		 * these events do not need to be handled, which can improve overall event processing efficiency
+		*/
+		Qk_DEFINE_PROP_ACC(bool, receive);
 
 		/**
 		 * @constructor
@@ -115,6 +124,22 @@ namespace qk {
 		template<class T = View> inline T* append_to(View* parent) {
 			parent->append(this); return static_cast<T*>(this);
 		}
+
+		/**
+		 *
+		 * focus keyboard
+		 *
+		 * @method focus()
+		 */
+		bool focus();
+
+		/**
+		 *
+		 * Unfocus keyboard
+		 *
+		 * @method blur()
+		 */
+		bool blur();
 
 		/**
 		 * @method is_self_child(child)
@@ -168,22 +193,6 @@ namespace qk {
 		 * @method remove_all_child()
 		 */
 		void remove_all_child();
-
-		/**
-		 *
-		 * focus keyboard
-		 *
-		 * @method focus()
-		 */
-		bool focus();
-
-		/**
-		 *
-		 * Unfocus keyboard
-		 *
-		 * @method blur()
-		 */
-		bool blur();
 
 		/**
 		 *

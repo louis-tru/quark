@@ -36,9 +36,9 @@ namespace qk {
 
 	LabelLayout::LabelLayout(Window *win): Layout(win) {}
 
-	void LabelLayout::set_text_value(String val) {
-		if (_text_value != val) {
-			_text_value = std::move(val);
+	void LabelLayout::set_value(String val) {
+		if (_value != val) {
+			_value = std::move(val);
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height);
 		}
 	}
@@ -68,7 +68,7 @@ namespace qk {
 
 		TextBlobBuilder tbb(lines, this, &_blob);
 
-		tbb.make(_text_value);
+		tbb.make(_value);
 
 		auto v = first();
 		while(v) {

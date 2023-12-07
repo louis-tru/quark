@@ -50,12 +50,12 @@ namespace qk {
 		Qk_DEFINE_PROP(TextAlign, text_align);
 		Qk_DEFINE_PROP(KeyboardType, type);
 		Qk_DEFINE_PROP(KeyboardReturnType, return_type);
-		Qk_DEFINE_PROP(String4, text_value_u4);
+		Qk_DEFINE_PROP(String4, value_u4);
 		Qk_DEFINE_PROP(String4, placeholder_u4);
 		Qk_DEFINE_PROP(Color, placeholder_color);
 		Qk_DEFINE_PROP(Color, cursor_color);
 		Qk_DEFINE_PROP(uint32_t, max_length);
-		Qk_DEFINE_PROP_ACC(String, text_value);
+		Qk_DEFINE_PROP_ACC(String, value);
 		Qk_DEFINE_PROP_ACC(String, placeholder);
 		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length);
 

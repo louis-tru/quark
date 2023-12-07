@@ -44,6 +44,8 @@ Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;
 namespace qk {
 	typedef Application::Inl AppInl;
 
+	void view_prop_acc_init();
+
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
 
@@ -63,6 +65,7 @@ namespace qk {
 	{
 		if (_shared)
 			Qk_FATAL("At the same time can only run a Application entity");
+		view_prop_acc_init();
 		_shared = this;
 		// init
 		_screen = new Screen(this); // strong ref

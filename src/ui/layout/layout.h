@@ -365,9 +365,9 @@ namespace qk {
 		 *
 		 * is clip render the view
 		 *
-		 * @method clip()
+		 * @method is_clip()
 		 */
-		virtual bool clip();
+		virtual bool is_clip();
 
 		/**
 		 * @method draw()
@@ -389,13 +389,6 @@ namespace qk {
 			*/
 		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {
 			_mark_value &= (~mark);
-		}
-
-		/**
-		 * @func preRender()
-		*/
-		inline PreRender& preRender() {
-			return _window->preRender();
 		}
 
 	private:

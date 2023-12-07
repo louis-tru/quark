@@ -196,7 +196,7 @@ namespace qk {
 		void register_task(Task* task) {
 			if ( !task->is_register_task() ) {
 				task->m_id2 = _tasks.pushBack(task);
-				_host->preRender().addtask(task);
+				_host->window()->preRender().addtask(task);
 				task->run_task(0);
 			}
 		}
@@ -829,7 +829,8 @@ namespace qk {
 
 	ScrollLayout::ScrollLayout(Window *win): FloatLayout(win), ScrollLayoutBase(this)
 	{
-		set_is_clip(true);
+		set_clip(true);
+		set_receive(true);
 	}
 
 	Vec2 ScrollLayout::layout_offset_inside() {

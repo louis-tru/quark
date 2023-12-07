@@ -44,7 +44,7 @@ namespace qk {
 		// define props
 		Qk_DEFINE_PROP_GET(bool,       layout_wrap_x); // Returns the x-axis is wrap content
 		Qk_DEFINE_PROP_GET(bool,       layout_wrap_y); // Returns the y-axis is wrap content
-		Qk_DEFINE_PROP    (bool,       is_clip); // is clip box display range
+		Qk_DEFINE_PROP    (bool,       clip); // is clip box display range
 		Qk_DEFINE_PROP    (BoxSize,    width); // size width
 		Qk_DEFINE_PROP    (BoxSize,    height); // size height
 		Qk_DEFINE_PROP    (BoxSize,    width_limit); // limit max size
@@ -57,13 +57,10 @@ namespace qk {
 		Qk_DEFINE_PROP    (float,      padding_right);
 		Qk_DEFINE_PROP    (float,      padding_bottom);
 		Qk_DEFINE_PROP    (float,      padding_left);
-		Qk_DEFINE_PROP    (float,      radius_left_top); // border_radius
-		Qk_DEFINE_PROP    (float,      radius_right_top);
-		Qk_DEFINE_PROP    (float,      radius_right_bottom);
-		Qk_DEFINE_PROP    (float,      radius_left_bottom);
-		Qk_DEFINE_PROP    (Color,      background_color); // fill background color
-		Qk_DEFINE_PROP    (BoxFill*,   background); // fill background, image|gradient
-		Qk_DEFINE_PROP    (BoxShadow*, box_shadow); // box shadow, shadow
+		Qk_DEFINE_PROP    (float,      border_radius_left_top); // border_radius
+		Qk_DEFINE_PROP    (float,      border_radius_right_top);
+		Qk_DEFINE_PROP    (float,      border_radius_right_bottom);
+		Qk_DEFINE_PROP    (float,      border_radius_left_bottom);
 		Qk_DEFINE_PROP_ACC(Color,      border_color_top); // border_color
 		Qk_DEFINE_PROP_ACC(Color,      border_color_right);
 		Qk_DEFINE_PROP_ACC(Color,      border_color_bottom);
@@ -72,6 +69,9 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(float,      border_width_right);
 		Qk_DEFINE_PROP_ACC(float,      border_width_bottom);
 		Qk_DEFINE_PROP_ACC(float,      border_width_left);
+		Qk_DEFINE_PROP    (Color,      background_color); // fill background color
+		Qk_DEFINE_PROP    (BoxFill*,   background); // fill background, image|gradient
+		Qk_DEFINE_PROP    (BoxShadow*, box_shadow); // box shadow, shadow
 		Qk_DEFINE_PROP_GET(Vec2,       content_size); // width,height, no include padding
 		Qk_DEFINE_PROP_GET(Vec2,       client_size); // border + padding + content
 
@@ -87,19 +87,19 @@ namespace qk {
 
 		/**
 			*
-			* 设置布局对齐方式
-			*
-			* @func set_layout_align(align)
-			*/
-		void set_layout_align(Align align);
-
-		/**
-			*
 			* 设置布局权重
 			*
 			* @func set_layout_weight(val)
 			*/
 		void set_layout_weight(float weight);
+
+		/**
+			*
+			* 设置布局对齐方式
+			*
+			* @func set_layout_align(align)
+			*/
+		void set_layout_align(Align align);
 
 		// --------------- o v e r w r i t e ---------------
 		virtual bool layout_forward(uint32_t mark) override;
@@ -123,7 +123,7 @@ namespace qk {
 		virtual bool solve_visible_region() override; // compute visible region
 		virtual bool overlap_test(Vec2 point) override;
 		virtual Vec2 position() override;
-		virtual bool clip() override;
+		virtual bool is_clip() override;
 		virtual void draw(UIRender *render) override;
 
 		/**

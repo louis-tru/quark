@@ -146,15 +146,15 @@ namespace qk {
 		*/
 	BoxLayout::BoxLayout(Window *win)
 		: Layout(win)
-		, _layout_wrap_x(true), _layout_wrap_y(true), _is_clip(false)
+		, _layout_wrap_x(true), _layout_wrap_y(true), _clip(false)
 		, _width{0, BoxSizeKind::kWrap}, _height{0, BoxSizeKind::kWrap}
 		, _width_limit{0, BoxSizeKind::kNone}, _height_limit{0, BoxSizeKind::kNone}
 		, _margin_top(0), _margin_right(0)
 		, _margin_bottom(0), _margin_left(0)
 		, _padding_top(0), _padding_right(0)
 		, _padding_bottom(0), _padding_left(0)
-		, _radius_left_top(0), _radius_right_top(0)
-		, _radius_right_bottom(0), _radius_left_bottom(0)
+		, _border_radius_left_top(0), _border_radius_right_top(0)
+		, _border_radius_right_bottom(0), _border_radius_left_bottom(0)
 		, _background_color(Color::from(0))
 		, _background(nullptr)
 		, _box_shadow(nullptr)
@@ -170,9 +170,9 @@ namespace qk {
 	}
 
 	// is clip box display range
-	void BoxLayout::set_is_clip(bool val) {
-		if (_is_clip != val) {
-			_is_clip = val;
+	void BoxLayout::set_clip(bool val) {
+		if (_clip != val) {
+			_clip = val;
 			mark_render();
 		}
 	}
@@ -298,30 +298,30 @@ namespace qk {
 
 	// -- border radius
 
-	void BoxLayout::set_radius_left_top(float val) {
-		if (val >= 0.0 && _radius_left_top != val) {
-			_radius_left_top = val;
+	void BoxLayout::set_border_radius_left_top(float val) {
+		if (val >= 0.0 && _border_radius_left_top != val) {
+			_border_radius_left_top = val;
 			mark_render();
 		}
 	}
 
-	void BoxLayout::set_radius_right_top(float val) {
-		if (val >= 0.0 && _radius_right_top != val) {
-			_radius_right_top = val;
+	void BoxLayout::set_border_radius_right_top(float val) {
+		if (val >= 0.0 && _border_radius_right_top != val) {
+			_border_radius_right_top = val;
 			mark_render();
 		}
 	}
 
-	void BoxLayout::set_radius_right_bottom(float val) {
-		if (val >= 0.0 && _radius_right_bottom != val) {
-			_radius_right_bottom = val;
+	void BoxLayout::set_border_radius_right_bottom(float val) {
+		if (val >= 0.0 && _border_radius_right_bottom != val) {
+			_border_radius_right_bottom = val;
 			mark_render();
 		}
 	}
 
-	void BoxLayout::set_radius_left_bottom(float val) {
-		if (val >= 0.0 && _radius_left_bottom != val) {
-			_radius_left_bottom = val;
+	void BoxLayout::set_border_radius_left_bottom(float val) {
+		if (val >= 0.0 && _border_radius_left_bottom != val) {
+			_border_radius_left_bottom = val;
 			mark_render();
 		}
 	}
@@ -947,8 +947,8 @@ namespace qk {
 		};
 	}
 
-	bool BoxLayout::clip() {
-		return _is_clip;
+	bool BoxLayout::is_clip() {
+		return _clip;
 	}
 
 }

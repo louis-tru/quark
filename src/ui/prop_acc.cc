@@ -28,36 +28,27 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./accessor.h"
+#include "./prop_acc.h"
 #include "./view.h"
 #include "./box.h"
 #include "./text.h"
 #include "./label.h"
 #include "./image.h"
-// #include "./sprite.h"
 
 namespace qk {
+	#define set_func(view, cls, Name, func) view.set(Name, Accessor(&cls::func, &cls::set_##func))
 
-#define set_func(view, cls, Name, func) \
-	view.set(Name, Accessor(&cls::func, &cls::set_##func))
+	struct PropAccessors {
+		PropAccessor accessors[kEnum_Counts_PropName];
+	};
+	static PropAccessors *view_prop_accessors = nullptr;
 
-	static PropertysAccessor* fx_accessor_shared = nullptr;
+	void view_prop_acc_init() {
+		if (view_prop_accessors)
+			return;
+		view_prop_accessors = new PropAccessors[kEnum_Counts_ViewType];
 
-	/**
-	 * @func shared
-	 */
-	PropertysAccessor* PropertysAccessor::shared() {
-		if ( ! fx_accessor_shared ) {
-			fx_accessor_shared = new PropertysAccessor();
-		}
-		return fx_accessor_shared;
-	}
-
-	PropertysAccessor::PropertysAccessor() {
-		
-		Dict<PropertyName, Accessor> view;
-		
-		set_func(view, View, PROPERTY_X, x);
+		set_func(view, View, kX_PropName, x);
 		set_func(view, View, PROPERTY_Y, y);
 		set_func(view, View, PROPERTY_SCALE_X, scale_x);
 		set_func(view, View, PROPERTY_SCALE_Y, scale_y);
@@ -67,10 +58,10 @@ namespace qk {
 		set_func(view, View, PROPERTY_ORIGIN_X, origin_x);
 		set_func(view, View, PROPERTY_ORIGIN_Y, origin_y);
 		set_func(view, View, PROPERTY_OPACITY, opacity);
-		view[PROPERTY_VISIBLE] = Accessor(&View::visible, &View::set_visible_1);
-		
-		Dict<PropertyName, Accessor> box = view;
-		
+		view[STYLE_VISIBLE] = Accessor(&View::visible, &View::set_visible_1);
+
+		Dict<StyleName, Accessor> box = view;
+
 		set_func(box, Box, PROPERTY_WIDTH, width);  // Value
 		set_func(box, Box, PROPERTY_HEIGHT, height); // Value
 		set_func(box, Box, PROPERTY_MARGIN_LEFT, margin_left);
@@ -94,8 +85,8 @@ namespace qk {
 		set_func(box, Box, PROPERTY_NEWLINE, newline);
 		set_func(box, Box, PROPERTY_CLIP, clip);
 
-		Dict<PropertyName, Accessor> div = box;
-		Dict<PropertyName, Accessor> hybrid = box;
+		Dict<StyleName, Accessor> div = box;
+		Dict<StyleName, Accessor> hybrid = box;
 		set_func(div, Div, PROPERTY_CONTENT_ALIGN, content_align);
 		set_func(hybrid, Hybrid, PROPERTY_TEXT_ALIGN, text_align);
 
@@ -140,7 +131,7 @@ namespace qk {
 		set_func(_property_func_table[View::LABEL], Label, PROPERTY_TEXT_ALIGN, text_align);
 		
 		// text-font
-		Dict<PropertyName, Accessor> font;
+		Dict<StyleName, Accessor> font;
 		set_func(font, TextFont, PROPERTY_TEXT_BACKGROUND_COLOR, text_background_color);
 		set_func(font, TextFont, PROPERTY_TEXT_COLOR, text_color);
 		set_func(font, TextFont, PROPERTY_TEXT_SIZE, text_size);
@@ -170,19 +161,8 @@ namespace qk {
 		_property_func_table[View::TEXT_NODE] = _property_func_table[View::SPAN];
 	}
 
-	/**
-	 * @func accessor
-	 */
-	PropertysAccessor::Accessor
-	PropertysAccessor::accessor(ViewType type, PropertyName name) {
-		return _property_func_table[type][name];
-	}
-
-	/**
-	 * @func has_accessor
-	 */
-	bool PropertysAccessor::has_accessor(int view_type, PropertyName name) {
-		return _property_func_table[view_type].count(name);
+	PropAccessor view_prop_acc_get(ViewType type, PropName name) {
+		return _accessors[type].accessors[name];
 	}
 
 }

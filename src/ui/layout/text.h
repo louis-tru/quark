@@ -56,14 +56,5 @@ namespace qk {
 		Qk_Define_View(Text, Box);
 	};
 
-	class Qk_EXPORT Button: public Text {
-	public:
-		typedef TextLayout Layout;
-		inline Button(Layout *layout): Text(layout) {}
-		virtual bool can_become_focus() override;
-		virtual Button* as_button() override;
-		virtual Button* next_button(FindDirection dir);
-	};
-
 }
 #endif

@@ -40,7 +40,7 @@ namespace qk {
 
 	class Qk_EXPORT LabelLayout: public Layout, public TextOptions {
 	public:
-		Qk_DEFINE_PROP(String, text_value);
+		Qk_DEFINE_PROP(String, value);
 		LabelLayout(Window *win);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;

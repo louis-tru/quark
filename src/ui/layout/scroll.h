@@ -38,7 +38,6 @@ namespace qk {
 
 	class Qk_EXPORT ScrollLayoutBase {
 	public:
-		// define props
 		Qk_DEFINE_PROP(bool, scrollbar); // 显示scrollbar
 		Qk_DEFINE_PROP(bool, bounce);    // 使用回弹力
 		Qk_DEFINE_PROP(bool, bounce_lock); // 使用回弹力锁定

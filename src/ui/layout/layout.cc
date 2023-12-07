@@ -46,8 +46,10 @@ namespace qk {
 		, _opacity(1.0)
 		, _visible(true)
 		, _visible_region(false)
-		, _receive(false)
-	{}
+		, _receive(true)
+	{
+		Qk_ASSERT(win);
+	}
 
 	Layout::~Layout() {
 	}
@@ -58,9 +60,8 @@ namespace qk {
 
 	void Layout::set_visible(bool val) {
 		if (_visible != val) {
-			#define is_root() (_window && _window->root()->layout() == this)
-			set_visible_(val, _parent && _parent->_level ?
-				_parent->_level + 1: val && is_root() ? 1: 0);
+			#define is_root (_window->root()->layout() == this)
+			set_visible_(val, _parent && _parent->_level ? _parent->_level + 1: val && is_root ? 1: 0);
 		}
 	}
 
@@ -189,7 +190,7 @@ namespace qk {
 		_mark_value |= mark;
 		if (_mark_index < 0) {
 			if (_level) {
-				preRender().mark_layout(this, _level); // push to pre render
+				_window->preRender().mark_layout(this, _level); // push to pre render
 			}
 		}
 	}
@@ -197,11 +198,11 @@ namespace qk {
 	void Layout::mark_render(uint32_t mark) {
 		_mark_value |= mark;
 		if (_level) {
-			preRender().mark_render(); // push to pre render
+			_window->preRender().mark_render(); // push to pre render
 		}
 	}
 
-	bool Layout::clip() {
+	bool Layout::is_clip() {
 		return false;
 	}
 
@@ -331,7 +332,7 @@ namespace qk {
 	void Layout::clear_level() { //  clear layout depth
 		// blur(); // TODO ...
 		if (_mark_index >= 0) {
-			preRender().unmark_layout(this, _level);
+			_window->preRender().unmark_layout(this, _level);
 		}
 		_level = 0;
 		onActivate();
@@ -346,8 +347,8 @@ namespace qk {
 		if (_visible) {
 			// if level > 0 then
 			if (_mark_index >= 0) {
-				preRender().unmark_layout(this, _level);
-				preRender().mark_layout(this, level);
+				_window->preRender().unmark_layout(this, _level);
+				_window->preRender().mark_layout(this, level);
 			}
 			_level = level++;
 			onActivate();

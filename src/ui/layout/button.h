@@ -28,71 +28,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// @private
+#ifndef __quark__layout__button__
+#define __quark__layout__button__
 
-#ifndef __quark__task__
-#define __quark__task__
-
-#include "../util/list.h"
-#include "../util/array.h"
-#include "../util/loop.h"
+#include "./text.h"
 
 namespace qk {
-	class Window;
-	class Layout;
-	class PreRender;
 
-	/**
-	 * @class RenderTask render task
-	*/
-	class Qk_EXPORT RenderTask {
+	class Qk_EXPORT ButtonLayout: public TextLayout {
 	public:
-		typedef List<RenderTask*>::Iterator ID;
-		// define props
-		Qk_DEFINE_PROP_GET(ID, task_id);
-		Qk_DEFINE_PROP_GET(PreRender*, pre);
-		Qk_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
-		RenderTask(): _task_timeout(0) {}
-		virtual ~RenderTask();
-		virtual bool run_task(int64_t sys_time) = 0;
-		inline bool is_register_task() const { return _task_id != ID(); }
-		friend class PreRender;
+		ButtonLayout(Window *win);
+		virtual ButtonLayout* next_button(FindDirection dir);
 	};
 
-	/**
-	 * @class PreRender pre render for thread
-	*/
-	class PreRender {
+	class Qk_EXPORT Button: public Text {
 	public:
-		typedef RenderTask Task;
-		/*
-		* @constructor
-		*/
-		PreRender(Window *window);
-		/**
-		 * @method mark_layout
-		 */
-		void mark_layout(Layout *layout, uint32_t depth);
-		void unmark_layout(Layout *layout, uint32_t depth);
-		void mark_render(); // mark render state
-		void addtask(Task* task); // add pre render task
-		void untask(Task* task); // delete pre render task
-		void clearTasks();
-
-		/**
-		 * Solve the pre-rendering problem, return true if the view needs to be updated
-		 * @method solve()
-		 */
-		bool solve();
-
-	private:
-		void solveMarks(); // solve layout marks
-		Window *_window;
-		int32_t _mark_total;
-		List<Task*>  _tasks;
-		Array<Array<Layout*>> _marks; // marked view
-		// cmds
-		bool _is_render; // next frame render
+		Qk_Define_View(Button, Text);
+		virtual bool can_become_focus() override;
+		virtual Button* as_button() override;
 	};
 
 }

@@ -99,16 +99,4 @@ namespace qk {
 	Text::Text(Layout *layout): Box(layout) {
 	}
 
-	bool Button::can_become_focus() {
-		return true;
-	}
-
-	Button* Button::as_button() {
-		return this;
-	}
-
-	Button* Button::next_button(FindDirection dir) {
-		return nullptr;
-	}
-
 }

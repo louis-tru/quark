@@ -67,7 +67,7 @@ namespace qk {
 			return;
 		if (box->_border) {
 			auto rect = getRect(box);
-			auto radius = &box->_radius_left_top;
+			auto radius = &box->_border_radius_left_top;
 			auto border = box->_border->width;
 			Hash5381 hash;
 			hash.updatefv4(rect.origin.val);
@@ -104,13 +104,13 @@ namespace qk {
 				}
 			}
 		} else {
-			out.inside = &_cache->getRRectPath(getRect(box), &box->_radius_left_top);
+			out.inside = &_cache->getRRectPath(getRect(box), &box->_border_radius_left_top);
 		}
 	}
 
 	void UIRender::getOutsideRectPath(BoxLayout *box, BoxData &out) {
 		if (!out.outside)
-			out.outside = &_cache->getRRectPath(getRect(box), &box->_radius_left_top);
+			out.outside = &_cache->getRRectPath(getRect(box), &box->_border_radius_left_top);
 	}
 
 	void UIRender::getRRectOutlinePath(BoxLayout *box, BoxData &out) {
@@ -120,7 +120,7 @@ namespace qk {
 				Float32::max(0, border[0]-_fixSize), Float32::max(0, border[1]-_fixSize),
 				Float32::max(0, border[2]-_fixSize), Float32::max(0, border[3]-_fixSize),
 			};
-			out.outline = &_cache->getRRectOutlinePath(getRect(box), borderFix, &box->_radius_left_top);
+			out.outline = &_cache->getRRectOutlinePath(getRect(box), borderFix, &box->_border_radius_left_top);
 		}
 	}
 
@@ -290,7 +290,7 @@ namespace qk {
 			auto &o = data.outside->rect.origin;
 			_canvas->drawRRectBlurColor({
 				{o.x()+s.offset_x, o.y()+s.offset_y}, data.outside->rect.size,
-			},&box->_radius_left_top, s.size, s.color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+			},&box->_border_radius_left_top, s.size, s.color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 			shadow = shadow->next();
 		} while(shadow);
 		_canvas->restore();
@@ -317,7 +317,7 @@ namespace qk {
 	}
 
 	void UIRender::drawBoxEnd(BoxLayout *box, BoxData &data) {
-		if (box->_is_clip) {
+		if (box->_clip) {
 			if (box->_first) {
 				getInsideRectPath(box, data);
 				_canvas->save();
@@ -458,7 +458,7 @@ namespace qk {
 		auto offset = v->input_text_offset() + Vec2(v->_padding_left, v->_padding_top);
 		auto twinkle = v->_editing && v->_cursor_twinkle_status;
 		auto visible = v->_blob_visible.length() > 0;
-		auto clip = v->_is_clip && (visible || twinkle);
+		auto clip = v->_clip && (visible || twinkle);
 
 		if (clip) {
 			getInsideRectPath(v, data);

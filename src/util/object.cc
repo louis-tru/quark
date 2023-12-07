@@ -131,7 +131,6 @@ namespace qk {
 	int Object::mark_objects_count() {
 		return active_mark_objects_count_;
 	}
-
 #endif
 
 	bool Object::isReference() const {
@@ -148,11 +147,11 @@ namespace qk {
 
 	void* Object::operator new(size_t size) {
 #if Qk_MEMORY_TRACE_MARK
-			void* p = object_allocator_alloc(size);
-			((Object*)p)->mark_index_ = 123456;
-			return p;
+		void* p = object_allocator_alloc(size);
+		((Object*)p)->mark_index_ = 123456;
+		return p;
 #else
-			return object_allocator_alloc(size);
+		return object_allocator_alloc(size);
 #endif
 	}
 
@@ -208,7 +207,6 @@ namespace qk {
 
 	void Reference::release() {
 		Qk_ASSERT(_ref_count >= 0);
-		// Released when the reference count is less than or equal to 0
 		if ( --_ref_count <= 0 ) {
 			object_allocator_release(this);
 		}

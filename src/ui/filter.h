@@ -151,5 +151,7 @@ namespace qk {
 		virtual BoxFilter* copy(BoxFilter* to) override;
 	};
 
+	typedef BoxFill* BoxFillPtr;
+	typedef BoxShadow* BoxShadowPtr;
 }
 #endif

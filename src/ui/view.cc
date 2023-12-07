@@ -52,6 +52,83 @@ namespace qk {
 		// TODO release layout ..
 	}
 
+	Window* View::window() const {
+		return _layout->_window;
+	}
+
+	float View::opacity() const {
+		return _layout->_opacity;
+	}
+
+	void View::set_opacity(float val) {
+		_layout->set_opacity(val); // TODO ... layout cmd
+	}
+
+	uint32_t View::level() const {
+		return _layout->_level;
+	}
+
+	bool View::visible() const {
+		return _layout->_visible;
+	}
+
+	void View::set_visible(bool val) {
+		_layout->set_visible(val); // TODO ... layout cmd
+	}
+
+	bool View::receive() const {
+		return _layout->_receive;
+	}
+
+	void View::set_receive(bool val) {
+		_layout->set_receive(val); // TODO ... layout cmd
+	}
+
+	void View::set_is_focus(bool value) {
+		if ( value ) {
+			focus();
+		} else {
+			blur();
+		}
+	}
+
+	void View::set_action(Action* val) {
+		if (_action != val) {
+			// TODO ...
+			if (_action) {
+				// unload _action
+				_action = nullptr;
+			}
+			if (val) {
+				_action = val;
+				// load new action
+			}
+		}
+	}
+
+	bool View::is_focus() const {
+		return _layout->_window->dispatch()->focus_view() == this;
+	}
+
+	bool View::blur() {
+		if ( is_focus() ) {
+			auto root = _layout->_window->root();
+			if ( root && root != this ) {
+				return root->focus();
+			}
+			return false;
+		}
+		return true;
+	}
+
+	bool View::can_become_focus() {
+		return false;
+	}
+
+	Button* View::as_button() {
+		return nullptr;
+	}
+
 	bool View::is_self_child(View *child) {
 		if ( child ) {
 			auto parent = child->_parent;
@@ -161,67 +238,6 @@ namespace qk {
 		}
 	}
 
-	Window* View::window() const {
-		return _layout->_window;
-	}
-
-	uint32_t View::level() const {
-		return _layout->_level;
-	}
-
-	bool View::visible() const {
-		return _layout->visible(); // TODO ... layout cmd
-	}
-
-	void View::set_visible(bool val) {
-		_layout->set_visible(val); // TODO ... layout cmd
-	}
-
-	void View::set_is_focus(bool value) {
-		if ( value ) {
-			focus();
-		} else {
-			blur();
-		}
-	}
-
-	void View::set_action(Action* val) {
-		if (_action != val) {
-			// TODO ...
-			if (_action) {
-				// unload _action
-				_action = nullptr;
-			}
-			if (val) {
-				_action = val;
-				// load new action
-			}
-		}
-	}
-
-	bool View::is_focus() const {
-		return _layout->window() && _layout->window()->dispatch()->focus_view() == this;
-	}
-
-	bool View::blur() {
-		if ( is_focus() ) {
-			auto root = _layout->window()->root();
-			if ( root && root != this ) {
-				return root->focus();
-			}
-			return false;
-		}
-		return true;
-	}
-
-	bool View::can_become_focus() {
-		return false;
-	}
-
-	Button* View::as_button() {
-		return nullptr;
-	}
-
 	// @private
 	// --------------------------------------------------------------------------------------
 
@@ -244,8 +260,8 @@ namespace qk {
 
 	void View::set_parent(View *parent) {
 		if (parent != _parent) {
-			#define is_root() (_layout->_window && _layout->_window->root() == this)
-			// Qk_STRICT_ASSERT(!is_root(), "root view not allow set parent"); // check
+			#define is_root (_layout->_window->root() == this)
+			Qk_STRICT_ASSERT(!is_root, "root view not allow set parent"); // check
 			clear_link();
 			if ( !_parent ) {
 				retain(); // link to parent and retain ref

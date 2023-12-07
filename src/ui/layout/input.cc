@@ -148,7 +148,7 @@ namespace qk {
 			_cursor_twinkle_status = 0;
 			_flag = kFlag_Normal;
 			mark_render(kInput_Status);
-			preRender().addtask(this);
+			window()->preRender().addtask(this);
 		}
 
 		void blur_handle(UIEvent& evt) {
@@ -159,7 +159,7 @@ namespace qk {
 			} else {
 				mark_render(kInput_Status);
 			}
-			preRender().untask(this);
+			window()->preRender().untask(this);
 		}
 
 		Vec2 get_position() {
@@ -494,15 +494,15 @@ namespace qk {
 
 		void input_insert_text(cString4& text) {
 			if ( text.length() ) {
-				if (_max_length && _text_value_u4.length() + text.length() > _max_length)
+				if (_max_length && _value_u4.length() + text.length() > _max_length)
 					return;
 
 				if ( _cursor < text_length() ) { // insertd
-					String4 old = _text_value_u4;
-					_text_value_u4 = String4(*old, _cursor, *text, text.length());
-					_text_value_u4.append(*old + _cursor, old.length() - _cursor);
+					String4 old = _value_u4;
+					_value_u4 = String4(*old, _cursor, *text, text.length());
+					_value_u4.append(*old + _cursor, old.length() - _cursor);
 				} else { // append
-					_text_value_u4.append( text );
+					_value_u4.append( text );
 				}
 				_cursor += text.length();
 				mark_layout(kLayout_Typesetting); // 标记内容变化
@@ -511,15 +511,15 @@ namespace qk {
 
 		bool input_marked_text(cString4& text) {
 			if (_max_length) {
-				if ( _text_value_u4.length() + text.length() - _marked_text.length() > _max_length)
+				if ( _value_u4.length() + text.length() - _marked_text.length() > _max_length)
 					return false;
 			}
 			if ( _marked_text.length() == 0 ) {
 				_marked_text_idx = _cursor;
 			}
-			String4 old = _text_value_u4;
-			_text_value_u4 = String4(*old, _marked_text_idx, *text, text.length());
-			_text_value_u4.append(*old + _marked_text_idx + _marked_text.length(),
+			String4 old = _value_u4;
+			_value_u4 = String4(*old, _marked_text_idx, *text, text.length());
+			_value_u4.append(*old + _marked_text_idx + _marked_text.length(),
 												old.length() - _marked_text_idx - _marked_text.length());
 			
 			_cursor += text.length() - _marked_text.length();
@@ -563,8 +563,8 @@ namespace qk {
 		, _text_ascent(0), _text_height(0)
 		, _editing(false), _cursor_twinkle_status(true), _flag(kFlag_Normal)
 	{
-		set_is_clip(true);
-		//set_receive(true);
+		set_clip(true);
+		set_receive(true);
 		set_text_word_break(TextWordBreak::kBreakWord);
 		// bind events
 		// TODO ...
@@ -592,24 +592,24 @@ namespace qk {
 		}
 	}
 
-	void InputLayout::set_text_value_u4(String4 val) {
-		if (_text_value_u4 != val) {
-			_text_value_u4 = val;
+	void InputLayout::set_value_u4(String4 val) {
+		if (_value_u4 != val) {
+			_value_u4 = val;
 			mark_layout(kLayout_Typesetting);
 			set_max_length(_max_length);
 		}
 	}
 
-	String InputLayout::text_value() const {
-		return String(codec_encode(kUTF8_Encoding, _text_value_u4));
+	String InputLayout::value() const {
+		return String(codec_encode(kUTF8_Encoding, _value_u4));
 	}
 
 	String InputLayout::placeholder() const {
 		return String(codec_encode(kUTF8_Encoding, _placeholder_u4));
 	}
 
-	void InputLayout::set_text_value(String val) {
-		set_text_value_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
+	void InputLayout::set_value(String val) {
+		set_value_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
 	}
 
 	void InputLayout::set_placeholder(String val) {
@@ -642,7 +642,7 @@ namespace qk {
 		_blob_visible.clear();
 		_blob.clear();
 
-		auto str = _text_value_u4.length() ? &_text_value_u4: &_placeholder_u4;
+		auto str = _value_u4.length() ? &_value_u4: &_placeholder_u4;
 
 		if (str->length()) { // text layout
 			TextBlobBuilder tbb(*_lines, this, &_blob);
@@ -652,8 +652,8 @@ namespace qk {
 			}
 			tbb.set_disable_overflow(true);
 
-			if (_text_value_u4.length() && !_security && _marked_text.length()) { // marked text layout
-				auto src = *_text_value_u4;
+			if (_value_u4.length() && !_security && _marked_text.length()) { // marked text layout
+				auto src = *_value_u4;
 				auto mark = _marked_text_idx;
 				auto mark_end = mark + _marked_text.length();
 
@@ -672,16 +672,16 @@ namespace qk {
 				make(src+mark, _marked_text.length());
 				_marked_blob_end = blobTmp.length();
 
-				if ( mark_end < _text_value_u4.length() ) {
-					make(src+mark_end, _text_value_u4.length()-mark_end);
+				if ( mark_end < _value_u4.length() ) {
+					make(src+mark_end, _value_u4.length()-mark_end);
 				}
 				_blob = std::move(blobTmp);
 			}
-			else if ( _text_value_u4.length() && _security ) { // password
+			else if ( _value_u4.length() && _security ) { // password
 				Unichar pwd = 9679; /*●*/
 				Array<Array<Unichar>> lines(1);
-				lines.front().extend(_text_value_u4.length());
-				memset_pattern4(*lines.front(), &pwd, _text_value_u4.length());
+				lines.front().extend(_value_u4.length());
+				memset_pattern4(*lines.front(), &pwd, _value_u4.length());
 				tbb.make(lines);
 			}
 			else {
@@ -764,7 +764,7 @@ namespace qk {
 			// 计算光标的具体偏移位置
 			TextLines::Line* line = nullptr;
 
-			if ( blob && _text_value_u4.length() ) { // set cursor pos
+			if ( blob && _value_u4.length() ) { // set cursor pos
 				auto idx = _cursor - blob->index;
 				float offset = 0;
 				if (idx < blob->core.offset.length()) {
@@ -870,16 +870,16 @@ namespace qk {
 				if ( count < 0 ) {
 					count = Qk_MIN(cursor, -count);
 					if ( count ) {
-						String4 old = _text_value_u4;
-						_text_value_u4 = String4(*old, cursor - count, *old + cursor, int(old.length()) - cursor);
+						String4 old = _value_u4;
+						_value_u4 = String4(*old, cursor - count, *old + cursor, int(old.length()) - cursor);
 						_cursor -= count;
 						mark_layout(kLayout_Typesetting); // 标记内容变化
 					}
 				} else if ( count > 0 ) {
 					count = Qk_MIN(int(text_length()) - cursor, count);
 					if ( count ) {
-						String4 old = _text_value_u4;
-						_text_value_u4 = String4(*old, cursor,
+						String4 old = _value_u4;
+						_value_u4 = String4(*old, cursor,
 																	*old + cursor + count,
 																	int(old.length()) - cursor - count);
 						mark_layout(kLayout_Typesetting); // 标记内容变化
@@ -1009,15 +1009,15 @@ namespace qk {
 	void InputLayout::set_max_length(uint32_t value) {
 		_max_length = value;
 		if (_max_length) { // check mx length
-			if (_text_value_u4.length() > _max_length) {
-				_text_value_u4 = _text_value_u4.substr(0, _max_length);
+			if (_value_u4.length() > _max_length) {
+				_value_u4 = _value_u4.substr(0, _max_length);
 				mark_layout(kLayout_Typesetting);
 			}
 		}
 	}
 
 	uint32_t InputLayout::text_length() const {
-		return _text_value_u4.length();
+		return _value_u4.length();
 	}
 
 	Vec2 InputLayout::layout_offset_inside() {

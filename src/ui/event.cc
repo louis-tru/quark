@@ -34,7 +34,7 @@
 #include "./view.h"
 #include "./layout/root.h"
 #include "./keyboard.h"
-#include "./layout/text.h"
+#include "./layout/button.h"
 
 namespace qk {
 
@@ -111,8 +111,8 @@ namespace qk {
 	bool View::focus() {
 		if ( is_focus() ) return true;
 
-		auto dispatch = _layout->window()->dispatch();
-		View* old = dispatch->focus_view();
+		auto dispatch = _layout->_window->dispatch();
+		auto old = dispatch->focus_view();
 
 		if ( !dispatch->set_focus_view(this) ) {
 			return false;
@@ -132,10 +132,15 @@ namespace qk {
 	}
 
 	void View::release() {
-		auto dispatch = _layout->_window->dispatch();
-		dispatch->_view_mutex.lock();
-		Reference::release();
-		dispatch->_view_mutex.unlock();
+		Qk_ASSERT(_ref_count >= 0);
+		if ( --_ref_count <= 0 ) {
+			auto dispatch = _layout->_window->dispatch();
+			dispatch->_view_mutex.lock();
+			if (_ref_count <= 0) {
+				Object::release();
+			}
+			dispatch->_view_mutex.unlock();
+		}
 	}
 
 	// -------------------------- E v e n t --------------------------
@@ -173,7 +178,7 @@ namespace qk {
 		, _ctrl(ctrl), _alt(alt), _command(command), _caps_lock(caps_lock), _focus_move(nullptr)
 	{}
 
-	void KeyEvent::set_focus_move(View* view) {
+	void KeyEvent::set_focus_move(View *view) {
 		if (origin())
 			_focus_move = view;
 	}
@@ -282,14 +287,14 @@ namespace qk {
 	};
 
 	#define _Fun(Name, C, Flag) \
-	const UIEventName UIEvent_##Name(#Name, UI_EVENT_CATEGORY_##C, Flag);
+		const UIEventName UIEvent_##Name(#Name, UI_EVENT_CATEGORY_##C, Flag);
 	Qk_UI_Events(_Fun)
 	#undef _Fun
 
 	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
 		Dict<String, UIEventName> r;
 		#define _Fun(Name, C, F) \
-		r.set(UIEvent_##Name.toString(), UIEvent_##Name);
+			r.set(UIEvent_##Name.toString(), UIEvent_##Name);
 		Qk_UI_Events(_Fun)
 		#undef _Fun
 		return r;
@@ -417,7 +422,7 @@ namespace qk {
 				Sp<View> view = layout->_view; // retain view
 				lock.unlock(); // unlock scope
 
-				if ( layout->_last && layout->clip() ) {
+				if ( layout->_last && layout->is_clip() ) {
 					List<TouchPoint> in2;
 
 					for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -617,7 +622,7 @@ namespace qk {
 			if ( layout->visible_region() ) {
 				auto v = layout->last();
 
-				if (v && layout->clip() ) {
+				if (v && layout->is_clip() ) {
 					if (layout->overlap_test(pos)) {
 						while (v) {
 							auto r = find_receive_view_exec(v, pos);
@@ -837,7 +842,10 @@ namespace qk {
 				default: dir = FindDirection::kNone; break;
 			}
 			if ( dir != FindDirection::kNone ) {
-				focus_move = btn->next_button(dir);
+				auto layout = btn->layout<ButtonLayout>()->next_button(dir);
+				std::lock_guard<RecursiveMutex> lock(_view_mutex);
+				focus_move = layout->_view;
+				Retain(focus_move); // retain view
 			}
 		}
 
@@ -850,17 +858,15 @@ namespace qk {
 		auto keypress = _keyboard->keypress();
 		auto repeat = _keyboard->repeat();
 
-		view->retain(); // retain view
-
 		async_resolve(Cb([=](auto& e) {
 			Sp<KeyEvent> h(evt);
 
 			evt->set_focus_move(focus_move);
 
 			_inl_view(view)->bubble_trigger(UIEvent_KeyDown, *evt);
-			
+
 			if ( evt->is_default() ) {
-				
+
 				if ( name == KEYCODE_ENTER ) {
 					_inl_view(view)->bubble_trigger(UIEvent_KeyEnter, *evt);
 				} else if ( name == KEYCODE_VOLUME_UP ) {
@@ -883,10 +889,10 @@ namespace qk {
 				}
 			} // if ( evt->is_default() ) {
 
-			view->release(); // release view
-		}, focus_move), _loop); // async_resolve(
+			Release(focus_move); // release view
+		}, view), _loop); // async_resolve(
 	}
-	
+
 	void EventDispatch::onKeyboardUp() {
 		auto view_ = get_focus_view();
 		View* view = *view_;
