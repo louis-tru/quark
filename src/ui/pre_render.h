@@ -89,7 +89,7 @@ namespace qk {
 		bool solve();
 		void solveMarks(); // solve layout marks
 		void clearTasks();
-		void asyncReady(); // commit async cmd to ready, only main thread call
+		void asyncCommit(); // commit async cmd to ready, only main thread call
 		void solveAsyncCall();
 
 		struct AsyncCall {
@@ -103,7 +103,7 @@ namespace qk {
 		List<Task*>  _tasks;
 		Array<Array<Layout*>> _marks; // marked view
 		Array<AsyncCall> _asyncCall;
-		Array<AsyncCall> _asyncReady;
+		Array<AsyncCall> _asyncCommit;
 		bool _is_render; // next frame render
 		friend class View;
 		friend class Application;

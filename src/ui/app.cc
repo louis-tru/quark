@@ -97,7 +97,7 @@ namespace qk {
 				if (app->_windows.length()) {
 					ScopeLock lock(app->_mutex);
 					for(auto w: app->_windows) {
-						w->preRender().asyncReady();
+						w->preRender().asyncCommit();
 					}
 				}
 			}, this); // keep loop

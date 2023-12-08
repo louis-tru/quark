@@ -123,7 +123,7 @@ namespace qk {
 		Release(_uiRender); _uiRender = nullptr;
 
 		_preRender.clearTasks();
-		_preRender.asyncReady();
+		_preRender.asyncCommit();
 		_preRender.solveAsyncCall();
 
 		{ ScopeLock lock(_host->_mutex);
