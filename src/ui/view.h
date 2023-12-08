@@ -32,6 +32,7 @@
 #define __quark__ui__view__
 
 #include "./event.h"
+#include "./pre_render.h"
 
 namespace qk {
 	class Action;
@@ -41,6 +42,17 @@ namespace qk {
 	#define Qk_Define_View(ViewName, Base) \
 		typedef ViewName##Layout Layout; \
 		inline ViewName(ViewName##Layout *layout): Base(layout) {}
+
+	#define Qk_IMPL_PROP_ACC_GET(cls, type, name) \
+		type cls::name() const { \
+			return layout<cls##Layout>()->name(); \
+		}
+	#define Qk_IMPL_PROP_ACC_SET(cls, type, name) \
+		void cls::set_##name(type val) { \
+			async_call([](auto ctx, auto val) { ctx->set_##name(val); }, layout<cls##Layout>(), val); \
+		}
+	#define Qk_IMPL_PROP_ACC(cls, type, name) \
+		Qk_IMPL_PROP_ACC_GET(cls, type, name) Qk_IMPL_PROP_ACC_SET(cls, type, name)
 
 	/**
 		* The basic elements of UI view tree
@@ -114,7 +126,7 @@ namespace qk {
 		}
 
 		template<class View = View> inline View* append_new() {
-			return newView<Layout>()->template append_to<View>(this);
+			return newView<View>()->template append_to<View>(this);
 		}
 
 		template<class T = View> inline T* prepend_to(View* parent) {
@@ -215,12 +227,26 @@ namespace qk {
 		 */
 		virtual void release() override;
 
+		/**
+		 * Issue commands from the main thread and execute them in the rendering thread
+		 * 
+		 * Note that the Args parameter size cannot exceed 16 bytes
+		 * 
+		 * @method async_call()
+		*/
+		template<typename E, typename Args, typename Ctx = Layout>
+		inline void async_call(E exec, Ctx *ctx, Args args) {
+			typedef void (*Exec)(Ctx *ctx, Args args);
+			async_call_((void*)static_cast<Exec>(exec), ctx, &args);
+		}
+
 	private:
 		/**
 		 * @method set_parent(parent) setting parent view
 		 */
 		void set_parent(View* parent);
 		void clear_link(); // Cleaning up associated view information
+		void async_call_(void *exec, void *ctx, void *args);
 
 		friend class EventDispatch;
 

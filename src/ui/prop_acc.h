@@ -75,7 +75,7 @@ namespace qk {
 	F(WRAP, Wrap, wrap) /*flow*/ \
 	F(WRAP_ALIGN, WrapAlign, wrap_align) \
 	F(SRC, String, src) /*image*/\
-	F(TEXT_WEIGHT, TextWeight, text_weight) /*text/input/label*/\
+	F(TEXT_WEIGHT, TextWeight, text_weight) /*text/input/label of TextOptions*/\
 	F(TEXT_SLANT, TextSlant, text_slant) \
 	F(TEXT_DECORATION, TextDecoration, text_decoration) \
 	F(TEXT_OVERFLOW, TextOverflow, text_overflow) \
@@ -96,7 +96,7 @@ namespace qk {
 	F(CURSOR_COLOR, Color, cursor_color) \
 	F(MAX_LENGTH, uint32_t, max_length) \
 	F(PLACEHOLDER, String, placeholder) \
-	F(SCROLLBAR_COLOR, Color, scrollbar_color) /*scroll/textarea*/ \
+	F(SCROLLBAR_COLOR, Color, scrollbar_color) /*scroll/textarea of ScrollLayoutBase*/ \
 	F(SCROLLBAR_WIDTH, float, scrollbar_width) \
 	F(SCROLLBAR_MARGIN, float, scrollbar_margin) \
 	F(X, float, x) /*transform*/ \
@@ -135,11 +135,13 @@ namespace qk {
 		#undef _Fun
 	};
 
-	struct PropAccessor {
-		void *get = nullptr, *set = nullptr; // accessor function ptr
-	};
+	// struct PropAccessor {
+	// 	void *get = nullptr;
+	// 	void *set = nullptr;
+	// };
 
-	Qk_EXPORT PropAccessor view_prop_acc_get(ViewType type, PropName name);
+	//typedef void (View::*SetPropertyForView)();
+	//Qk_EXPORT PropAccessor* view_prop_acc(ViewType type, PropName name);
 }
 
 #endif

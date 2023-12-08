@@ -96,7 +96,4 @@ namespace qk {
 		_text_flags = 0xffffffffu;
 	}
 
-	Text::Text(Layout *layout): Box(layout) {
-	}
-
 }

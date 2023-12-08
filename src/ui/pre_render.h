@@ -39,6 +39,7 @@
 
 namespace qk {
 	class Window;
+	class View;
 	class Layout;
 	class PreRender;
 
@@ -69,7 +70,9 @@ namespace qk {
 		* @constructor
 		*/
 		PreRender(Window *window);
+
 		/**
+		 * NOTE only render thread call
 		 * @method mark_layout
 		 */
 		void mark_layout(Layout *layout, uint32_t depth);
@@ -77,22 +80,34 @@ namespace qk {
 		void mark_render(); // mark render state
 		void addtask(Task* task); // add pre render task
 		void untask(Task* task); // delete pre render task
-		void clearTasks();
 
+	private:
 		/**
 		 * Solve the pre-rendering problem, return true if the view needs to be updated
 		 * @method solve()
 		 */
 		bool solve();
-
-	private:
 		void solveMarks(); // solve layout marks
+		void clearTasks();
+		void asyncReady(); // commit async cmd to ready, only main thread call
+		void solveAsyncCall();
+
+		struct AsyncCall {
+			struct Args {uint64_t value[2];};
+			void *ctx;
+			Args args;
+			void (*exec)(void *ctx, Args args);
+		};
 		Window *_window;
 		int32_t _mark_total;
 		List<Task*>  _tasks;
 		Array<Array<Layout*>> _marks; // marked view
-		// cmds
+		Array<AsyncCall> _asyncCall;
+		Array<AsyncCall> _asyncReady;
 		bool _is_render; // next frame render
+		friend class View;
+		friend class Application;
+		friend class Window;
 	};
 
 }

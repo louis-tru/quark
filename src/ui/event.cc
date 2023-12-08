@@ -330,6 +330,14 @@ namespace qk {
 		return Sp<View>(_focus_view);
 	}
 
+	void EventDispatch::send_blur_msg(Layout *layout) {
+		std::lock_guard<RecursiveMutex> lock(_view_mutex);
+		auto view = layout->_view;
+		if (view && _window->dispatch()->focus_view() == view) {
+			async_resolve(Cb([view](auto &e) { view->blur(); }, view), _loop);
+		}
+	}
+
 	bool EventDispatch::set_focus_view(View *view) {
 		if ( _focus_view != view ) {
 			if ( view->_layout->_level && view->can_become_focus() ) {
@@ -804,16 +812,16 @@ namespace qk {
 				break;
 			}
 			case KEYCODE_MOUSE_WHEEL_UP:
-				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 0, -53); }, _loop));
+				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 0, -53); }), _loop);
 				break;
 			case KEYCODE_MOUSE_WHEEL_DOWN:
-				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 0, 53); }, _loop));
+				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 0, 53); }), _loop);
 				break;
 			case KEYCODE_MOUSE_WHEEL_LEFT:
-				async_resolve(Cb([=](auto& e) { mousewhell(name, down, -53, 0); }, _loop));
+				async_resolve(Cb([=](auto& e) { mousewhell(name, down, -53, 0); }), _loop);
 				break;
 			case KEYCODE_MOUSE_WHEEL_RIGHT:
-				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 53, 0); }, _loop));
+				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 53, 0); }), _loop);
 				break;
 			default: break;
 		}

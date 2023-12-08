@@ -65,7 +65,7 @@ namespace qk {
 	{
 		if (_shared)
 			Qk_FATAL("At the same time can only run a Application entity");
-		view_prop_acc_init();
+		//view_prop_acc_init();
 		_shared = this;
 		// init
 		_screen = new Screen(this); // strong ref
@@ -92,7 +92,15 @@ namespace qk {
 
 	void Application::run() {
 		if (!_keep) {
-			_keep = _loop->keep_alive("Application::run(), keep"); // keep loop
+			_keep = _loop->keep_alive("Application::run(), keep", [](void *ctx) {
+				auto app = (Application*)(ctx);
+				if (app->_windows.length()) {
+					ScopeLock lock(app->_mutex);
+					for(auto w: app->_windows) {
+						w->preRender().asyncReady();
+					}
+				}
+			}, this); // keep loop
 		}
 		if (!_loop->runing()) {
 			_loop->run(); // run message loop

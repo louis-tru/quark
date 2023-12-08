@@ -49,7 +49,10 @@ namespace qk {
 		set_action(nullptr); // del action
 		remove_all_child(); // 删除子视图
 		_layout->_view = nullptr;
-		// TODO release layout ..
+
+		async_call([](auto ctx, auto val) {
+			delete ctx;
+		}, _layout, 0);
 	}
 
 	Window* View::window() const {
@@ -61,11 +64,7 @@ namespace qk {
 	}
 
 	void View::set_opacity(float val) {
-		_layout->set_opacity(val); // TODO ... layout cmd
-	}
-
-	uint32_t View::level() const {
-		return _layout->_level;
+		async_call([](auto ctx, auto val) { ctx->set_opacity(val); }, _layout, val);
 	}
 
 	bool View::visible() const {
@@ -73,7 +72,7 @@ namespace qk {
 	}
 
 	void View::set_visible(bool val) {
-		_layout->set_visible(val); // TODO ... layout cmd
+		async_call([](auto ctx, auto val) { ctx->set_visible(val); }, _layout, val);
 	}
 
 	bool View::receive() const {
@@ -81,7 +80,11 @@ namespace qk {
 	}
 
 	void View::set_receive(bool val) {
-		_layout->set_receive(val); // TODO ... layout cmd
+		async_call([](auto ctx, auto val) { ctx->set_receive(val); }, _layout, val);
+	}
+
+	uint32_t View::level() const {
+		return _layout->_level;
 	}
 
 	void View::set_is_focus(bool value) {
@@ -159,7 +162,7 @@ namespace qk {
 			view->_next = this;
 			_prev = view;
 		}
-		_layout->before(view->_layout); // TODO ... layout cmd
+		async_call([](auto ctx, auto val) { ctx->before(val); }, _layout, view->_layout);
 	}
 
 	void View::after(View *view) {
@@ -179,7 +182,7 @@ namespace qk {
 			view->_next = _next;
 			_next = view;
 		}
-		_layout->after(view->_layout); // TODO ... layout cmd
+		async_call([](auto ctx, auto val) { ctx->after(val); }, _layout, view->_layout);
 	}
 
 	void View::prepend(View *child) {
@@ -199,7 +202,7 @@ namespace qk {
 			_first = child;
 			_last = child;
 		}
-		_layout->prepend(child->_layout); // TODO ... layout cmd
+		async_call([](auto ctx, auto val) { ctx->prepend(val); }, _layout, child->_layout);
 	}
 
 	void View::append(View *child) {
@@ -219,15 +222,18 @@ namespace qk {
 			_first = child;
 			_last = child;
 		}
-		_layout->append(child->_layout); // TODO ... layout cmd
+		async_call([](auto ctx, auto val) {
+			ctx->append(val);
+		}, _layout, child->_layout);
 	}
 
 	void View::remove() {
 		if (_parent) {
+			blur();
 			clear_link();
 			_parent = nullptr;
+			async_call([](auto ctx, auto val) { ctx->remove(); }, _layout, 0);
 			release(); // Disconnect from parent view strong reference
-			_layout->remove(); // TODO ... layout cmd
 		}
 	}
 
@@ -268,6 +274,12 @@ namespace qk {
 			}
 			_parent = parent;
 		}
+	}
+
+	void View::async_call_(void *exec, void *ctx, void *args) {
+		typedef PreRender::AsyncCall::Args AsyncCallArgs;
+		_layout->_window->preRender()._asyncCall
+			.push({ ctx,*(AsyncCallArgs*)args,(void(*)(void*,AsyncCallArgs))exec });
 	}
 
 }

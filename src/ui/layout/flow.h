@@ -55,6 +55,8 @@ namespace qk {
 	class Qk_EXPORT Flow: public Flex {
 	public:
 		Qk_Define_View(Flow, Flex);
+		Qk_DEFINE_PROP_ACC(Wrap, wrap);
+		Qk_DEFINE_PROP_ACC(WrapAlign, wrap_align);
 	};
 
 }

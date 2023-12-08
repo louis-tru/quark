@@ -34,7 +34,6 @@
 #include "../render/render.h"
 #include "./ui_render.h"
 #include "./event.h"
-#include "./task.h"
 #include "./text/text_opts.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
@@ -114,6 +113,7 @@ namespace qk {
 		if (!_render) return false;
 		UILock lock(this); // lock ui
 		if (!_render) return false;
+
 		lock.unlock(); // Avoid deadlocks with rendering threads
 		Release(_render); _render = nullptr; // delete obj and stop render draw
 		lock.lock(); // relock
@@ -123,6 +123,8 @@ namespace qk {
 		Release(_uiRender); _uiRender = nullptr;
 
 		_preRender.clearTasks();
+		_preRender.asyncReady();
+		_preRender.solveAsyncCall();
 
 		{ ScopeLock lock(_host->_mutex);
 			_host->_windows.erase(_id);

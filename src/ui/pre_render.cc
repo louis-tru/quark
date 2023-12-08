@@ -135,11 +135,30 @@ namespace qk {
 		_tasks.clear();
 	}
 
+	void PreRender::asyncReady() {
+		if (_asyncCall.length()) {
+			UILock lock(_window);
+			_asyncReady.concat(std::move(_asyncCall));
+		}
+	}
+
+	void PreRender::solveAsyncCall() {
+		if (_asyncReady.length()) {
+			for (auto &i: _asyncReady) {
+				i.exec(i.ctx, i.args); // exec async call
+			}
+			_asyncReady.clear();
+		}
+	}
+
 	/**
 	 * Work around flagging views that need to be updated
 	 */
 	bool PreRender::solve() {
 		int64_t now_time = time_monotonic();
+
+		solveAsyncCall();
+
 		// _host->action_direct()->advance(now_time); // advance action
 
 		if ( _tasks.length() ) { // solve task

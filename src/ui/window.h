@@ -84,6 +84,13 @@ namespace qk {
 		};
 
 		/**
+		 * @event onChange show port change event
+		*/
+		Qk_Event(Change);
+		Qk_Event(Background); // @event onBackground, window into background
+		Qk_Event(Foreground); // @event onForeground, window into foreground
+
+		/**
 		*
 		* Vec2,width与height都设置为0时自动设置系统默认显示尺寸
 		*
@@ -105,13 +112,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
 		Qk_DEFINE_PROP(Color, backgroundColor); //! background color
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
-
-		/**
-		 * @event onChange show port change event
-		*/
-		Qk_Event(Change);
-		Qk_Event(Background); // @event onBackground, window into background
-		Qk_Event(Foreground); // @event onForeground, window into foreground
 
 		/**
 		 * @static

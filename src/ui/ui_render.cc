@@ -492,7 +492,7 @@ namespace qk {
 				while(begin < v->_marked_blob_end);
 			}
 
-			auto color = v->_text_value_u4.length() ? v->text_color().value: v->placeholder_color();
+			auto color = v->_value_u4.length() ? v->text_color().value: v->placeholder_color();
 			if (color.a()) {
 				// draw text shadow
 				auto size = v->text_size().value;
@@ -662,4 +662,5 @@ namespace qk {
 	void TransformLayout::draw(UIRender *render) {
 		render->visitTransform(this);
 	}
+	
 }

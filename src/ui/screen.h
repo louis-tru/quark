@@ -61,14 +61,14 @@ namespace qk {
 			STATUS_BAR_STYLE_BLACK,
 		};
 
-		Qk_DEFINE_PROP_GET(Application*, host); // host app
-		Qk_DEFINE_PROP_ACC(Orientation, orientation); // orientation
-		Qk_DEFINE_PROP_ACC_GET(float, status_bar_height); // status_bar_height
-
 		/**
 		 * @event onOrientation Triggered when the screen orientation changes
 		*/
 		Qk_Event(Orientation);
+
+		Qk_DEFINE_PROP_GET(Application*, host); // host app
+		Qk_DEFINE_PROP_ACC(Orientation, orientation); // orientation
+		Qk_DEFINE_PROP_ACC_GET(float, status_bar_height); // status_bar_height
 
 		/**
 		 * @constructor

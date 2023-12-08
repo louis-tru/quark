@@ -423,4 +423,9 @@ namespace qk {
 		}
 	}
 
+	// --------------------------------- F l e x ---------------------------------
+
+	Qk_IMPL_PROP_ACC(Flex, Direction, direction);
+	Qk_IMPL_PROP_ACC(Flex, ItemsAlign, items_align);
+	Qk_IMPL_PROP_ACC(Flex, CrossAlign, cross_align);
 }

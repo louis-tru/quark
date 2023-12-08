@@ -52,9 +52,9 @@ public:
 //	}
 };
 
-void layout_text(BoxLayout* box) {
-	auto text = box->view()->append_new<TextLayout>()->layout<TextLayout>();
-	auto labe = text->view()->append_new<LabelLayout>()->layout<LabelLayout>();
+void layout_text(Box* box) {
+	auto text = box->append_new<Text>()->layout<TextLayout>();
+	auto labe = text->view()->append_new<Label>()->layout<LabelLayout>();
 
 	text->set_width({ 0, SizeKind::kMatch });
 	text->set_height({ 0, SizeKind::kMatch });
@@ -74,15 +74,15 @@ void layout_text(BoxLayout* box) {
 	labe->set_text_slant(TextSlant::kItalic);
 	labe->set_text_weight(TextWeight::kBold);
   //labe->set_text_value("楚文学");
-	labe->set_text_value("BAC");
+	labe->set_value("BAC");
 	//labe->set_text_value("ABC  DEFG楚");
 	//labe->set_text_value("Quark 1           abcdefghijkmln 禁忌");
 	//labe->set_text_value("Quark 1           abcdefghijkmln 禁忌学");
 	labe->set_text_color({ Color(0,0,0) });
 }
 
-void layout_scroll(BoxLayout *box) {
-	auto v = box->view()->append_new<ScrollLayout>()->layout<ScrollLayout>();
+void layout_scroll(Box *box) {
+	auto v = box->append_new<Scroll>()->layout<ScrollLayout>();
 	//v->set_is_clip(false);
 
 	v->set_width({ 200 });
@@ -91,48 +91,48 @@ void layout_scroll(BoxLayout *box) {
 	v->set_padding_right(10);
 	v->set_padding_bottom(10);
 	v->set_background_color(Color(255,255,255));
-	v->set_radius_left_top(5);
-	v->set_radius_right_top(5);
-	v->set_radius_left_bottom(5);
-	v->set_radius_right_bottom(5);
+	v->set_border_radius_left_top(5);
+	v->set_border_radius_right_top(5);
+	v->set_border_radius_left_bottom(5);
+	v->set_border_radius_right_bottom(5);
 
-	auto a = v->view()->append_new<BoxLayout>()->layout<BoxLayout>();
+	auto a = v->view()->append_new<Box>()->layout<BoxLayout>();
 	a->set_margin_top(10);
 	a->set_width({ 0, SizeKind::kMatch });
 	a->set_height({ 100 });
 	a->set_background_color(Color(255,0,0));
 
-	auto b = v->view()->append_new<BoxLayout>()->layout<BoxLayout>();
+	auto b = v->view()->append_new<Box>()->layout<BoxLayout>();
 	b->set_margin_top(10);
 	b->set_width({ 0, SizeKind::kMatch });
 	b->set_height({ 100 });
 	b->set_background_color(Color(0,255,0));
 
-	auto c = v->view()->append_new<BoxLayout>()->layout<BoxLayout>();
+	auto c = v->view()->append_new<Box>()->layout<BoxLayout>();
 	c->set_margin_top(10);
 	c->set_width({ 0.5, SizeKind::kRatio });
 	c->set_height({ 100 });
 	c->set_background_color(Color(0,0,255));
 
-	auto d = v->view()->append_new<BoxLayout>()->layout<BoxLayout>();
+	auto d = v->view()->append_new<Box>()->layout<BoxLayout>();
 	d->set_margin_top(10);
 	d->set_width({ 0.5, SizeKind::kRatio });
 	d->set_height({ 100 });
 	d->set_background_color(Color(0,255,255));
 
-	auto e = v->view()->append_new<BoxLayout>()->layout<BoxLayout>();
+	auto e = v->view()->append_new<Box>()->layout<BoxLayout>();
 	e->set_margin_top(10);
 	e->set_width({ 0, SizeKind::kMatch });
 	e->set_height({ 100 });
 	e->set_background_color(Color(0,255,0));
 
-	auto f = v->view()->append_new<BoxLayout>()->layout<BoxLayout>();
+	auto f = v->view()->append_new<Box>()->layout<BoxLayout>();
 	f->set_margin_top(10);
 	f->set_width({ 0, SizeKind::kMatch });
 	f->set_height({ 100 });
 	f->set_background_color(Color(0,0,255));
 	
-	auto g = v->view()->append_new<BoxLayout>()->layout<BoxLayout>();
+	auto g = v->view()->append_new<Box>()->layout<BoxLayout>();
 	g->set_margin_top(10);
 	g->set_width({ 0, SizeKind::kMatch });
 	g->set_height({ 100 });
@@ -140,8 +140,8 @@ void layout_scroll(BoxLayout *box) {
 	
 }
 
-void layout_input(BoxLayout* box) {
-	auto input = box->view()->append_new<TextareaLayout>()->layout<TextareaLayout>();
+void layout_input(Box* box) {
+	auto input = box->append_new<Textarea>()->layout<TextareaLayout>();
 	//auto input = (Input*)New<Input>()->append_to(box);
 
 	input->set_width({ 200 });
@@ -169,10 +169,9 @@ void layout(Event<>& evt, Application* app) {
 	app->defaultTextOptions()->set_text_family({ app->fontPool()->getFFID("Helvetica, PingFang SC") });
 
 	auto r = win->root();
-	auto flex = r->append_new<FlexLayout>()->layout<FlexLayout>();
-	auto flow = r->append_new<FlowLayout>()->layout<FlowLayout>();
-	//auto img  = r->append_new<Image>();
-	auto img2 = r->append_new<TestImage>()->layout<TestImage>();
+	auto flex = r->append_new<Flex>()->layout<FlexLayout>();
+	auto flow = r->append_new<Flow>()->layout<FlowLayout>();
+	auto img2 = New<Image>(new TestImage(win))->append_to(r)->layout<TestImage>();
 
 	//layout_text(r);
 	//layout_text(flow);
@@ -207,10 +206,10 @@ void layout(Event<>& evt, Application* app) {
 	flex->set_padding_right(20);
 	flex->set_padding_bottom(20);
 
-	flex->set_radius_left_top(80);
-	flex->set_radius_right_top(10);
-	flex->set_radius_right_bottom(80);
-	flex->set_radius_left_bottom(40);
+	flex->set_border_radius_left_top(80);
+	flex->set_border_radius_right_top(10);
+	flex->set_border_radius_right_bottom(80);
+	flex->set_border_radius_left_bottom(40);
 
 	flex->set_border_width_top(40);
 	flex->set_border_width_right(10);

@@ -11,9 +11,9 @@ using namespace qk;
 
 constexpr unsigned int u32 = 1;
 
-class TestRRect: public Box {
+class TestRRect: public BoxLayout {
 public:
-	TestRRect(Layout *o): Box(o) {}
+	TestRRect(Window *o): BoxLayout(o) {}
 
 	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
@@ -84,7 +84,7 @@ void test_rrect(int argc, char **argv) {
 	App app;
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();
-	auto t = win->root()->append_new<TestRRect>()->layout<TestRRect>();
+	auto t = New<Box>(new TestRRect(win))->append_to<Box>(win->root())->layout<TestRRect>();
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

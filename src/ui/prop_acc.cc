@@ -161,8 +161,8 @@ namespace qk {
 		_property_func_table[View::TEXT_NODE] = _property_func_table[View::SPAN];
 	}
 
-	PropAccessor view_prop_acc_get(ViewType type, PropName name) {
-		return _accessors[type].accessors[name];
+	PropAccessor* view_prop_acc(ViewType type, PropName name) {
+		return &view_prop_accessors[type].accessors[name];
 	}
 
 }

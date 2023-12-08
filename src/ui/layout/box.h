@@ -173,12 +173,39 @@ namespace qk {
 		Align _layout_align;  // layout align
 
 		friend class UIRender;
-		friend class Box;
 	};
 
 	class Qk_EXPORT Box: public View {
 	public:
 		Qk_Define_View(Box, View);
+		Qk_DEFINE_PROP_ACC(bool,       clip); // is clip box display range
+		Qk_DEFINE_PROP_ACC(BoxSize,    width); // size width
+		Qk_DEFINE_PROP_ACC(BoxSize,    height); // size height
+		Qk_DEFINE_PROP_ACC(BoxSize,    width_limit); // limit max size
+		Qk_DEFINE_PROP_ACC(BoxSize,    height_limit);
+		Qk_DEFINE_PROP_ACC(float,      margin_top); // margin
+		Qk_DEFINE_PROP_ACC(float,      margin_right);
+		Qk_DEFINE_PROP_ACC(float,      margin_bottom);
+		Qk_DEFINE_PROP_ACC(float,      margin_left);
+		Qk_DEFINE_PROP_ACC(float,      padding_top); // padding
+		Qk_DEFINE_PROP_ACC(float,      padding_right);
+		Qk_DEFINE_PROP_ACC(float,      padding_bottom);
+		Qk_DEFINE_PROP_ACC(float,      padding_left);
+		Qk_DEFINE_PROP_ACC(float,      border_radius_left_top); // border_radius
+		Qk_DEFINE_PROP_ACC(float,      border_radius_right_top);
+		Qk_DEFINE_PROP_ACC(float,      border_radius_right_bottom);
+		Qk_DEFINE_PROP_ACC(float,      border_radius_left_bottom);
+		Qk_DEFINE_PROP_ACC(Color,      border_color_top); // border_color
+		Qk_DEFINE_PROP_ACC(Color,      border_color_right);
+		Qk_DEFINE_PROP_ACC(Color,      border_color_bottom);
+		Qk_DEFINE_PROP_ACC(Color,      border_color_left);
+		Qk_DEFINE_PROP_ACC(float,      border_width_top); // border_width
+		Qk_DEFINE_PROP_ACC(float,      border_width_right);
+		Qk_DEFINE_PROP_ACC(float,      border_width_bottom);
+		Qk_DEFINE_PROP_ACC(float,      border_width_left);
+		Qk_DEFINE_PROP_ACC(Color,      background_color); // fill background color
+		Qk_DEFINE_PROP_ACC(BoxFill*,   background); // fill background, image|gradient
+		Qk_DEFINE_PROP_ACC(BoxShadow*, box_shadow); // box shadow, shadow
 	};
 
 	/**

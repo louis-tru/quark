@@ -733,15 +733,25 @@ namespace qk {
 	 * 保持活动状态,并返回一个代理,只要不删除返回的代理对像,消息队列会一直保持活跃状态
 	 * @func keep_alive
 	 */
-	KeepLoop* RunLoop::keep_alive(cString& name) {
+	KeepLoop* RunLoop::keep_alive(cString& name, void (*check)(void *ctx), void* check_data) {
 		ScopeLock lock(_mutex);
-		auto keep = new KeepLoop(name);
+		auto keep = new KeepLoop(this, name, check, check_data);
 		keep->_id = _keep.pushBack(keep);
-		keep->_loop = this;
 		return keep;
 	}
 
-	KeepLoop::KeepLoop(cString& name): _name(name) {
+	KeepLoop::KeepLoop(RunLoop *loop, cString& name, void (*check)(void *ctx), void* check_data)
+		: _loop(loop), _name(name), _uv_check(nullptr), _check(check), _check_data(check_data)
+	{
+		if (check) {
+			_uv_check = (uv_check_t*)::malloc(sizeof(uv_idle_t));
+			uv_check_init(_loop->uv_loop(), _uv_check);
+			_uv_check->data = this;
+			uv_check_start(_uv_check, [](uv_check_t *idle) {
+				auto keep = ((KeepLoop*)idle->data);
+				keep->_check(keep->_check_data);
+			});
+		}
 	}
 
 	KeepLoop::~KeepLoop() {
@@ -749,6 +759,11 @@ namespace qk {
 		if (_loop) {
 			ScopeLock lock(_loop->_mutex);
 			Qk_ASSERT(_loop->_keep.length());
+
+			if (_uv_check) {
+				uv_check_stop(_uv_check);
+				::free(_uv_check);
+			}
 
 			_loop->_keep.erase(_id); // delete keep object for runloop
 

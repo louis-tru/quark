@@ -46,6 +46,8 @@
 typedef struct uv_loop_s uv_loop_t;
 typedef struct uv_async_s uv_async_t;
 typedef struct uv_timer_s uv_timer_t;
+typedef struct uv_idle_s uv_idle_t;
+typedef struct uv_check_s uv_check_t;
 
 namespace qk {
 	class RunLoop;
@@ -165,7 +167,7 @@ namespace qk {
 		 *
 		 * @arg name {cString&} alias
 		*/
-		KeepLoop* keep_alive(cString& name = String());
+		KeepLoop* keep_alive(cString& name = String(), void (*tickCheck)(void *ctx) = 0, void* check_data = 0);
 
 		/**
 		 * Returns the libuv C library uv loop object for current run loop
@@ -251,11 +253,14 @@ namespace qk {
 		inline RunLoop* host() { return _loop; }
 
 	private:
-		KeepLoop(cString &name);
+		KeepLoop(RunLoop *loop, cString &name, void (*check)(void *ctx), void* check_data);
 
 		RunLoop* _loop;
 		String _name;
 		List<KeepLoop*>::Iterator _id;
+		uv_check_t *_uv_check;
+		void (*_check)(void *ctx);
+		void *_check_data;
 		friend class RunLoop;
 	};
 

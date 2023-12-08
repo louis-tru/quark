@@ -33,6 +33,7 @@
 
 #include "../util/event.h"
 #include "../util/handle.h"
+#include "../util/loop.h"
 #include "./math.h"
 #include "./types.h"
 #include "./text/text_input.h"
@@ -301,9 +302,10 @@ namespace qk {
 		void mousepress(View* view, Vec2 pos, KeyboardKeyName name, bool down);
 		void mousewhell(KeyboardKeyName name, bool down, float x, float y);
 		View*    find_receive_view_exec(Layout *view, Vec2 pos);
-		Sp<View> find_receive_view(Vec2 pos);
+		Sp<View, ReferenceTraits> find_receive_view(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, uint32_t keycode = 0);
-		Sp<View> get_focus_view();
+		Sp<View, ReferenceTraits> get_focus_view();
+		void send_blur_msg(Layout *layout);
 
 		class OriginTouche;
 		class MouseHandle;
@@ -312,6 +314,7 @@ namespace qk {
 		std::atomic<TextInput*> _text_input;
 		RecursiveMutex _view_mutex; // view layout mutex for main and render thread
 		friend class View;
+		friend class Layout;
 	};
 
 }

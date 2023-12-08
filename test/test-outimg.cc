@@ -41,7 +41,7 @@ void test_outimg(int argc, char **argv) {
 	App app;
 	auto win = Window::Make({.frame={{0,0}, {500,500}}});
 	auto r = win->root();
-	auto t = r->append_new<TestOutImg>()->layout<TestOutImg>();
+	auto t = New<Box>(new TestOutImg(win))->append_to<Box>(r)->layout<TestOutImg>();
 	r->layout<BoxLayout>()->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });

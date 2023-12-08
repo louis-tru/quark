@@ -330,7 +330,9 @@ namespace qk {
 	}
 
 	void Layout::clear_level() { //  clear layout depth
-		// blur(); // TODO ...
+		if (_view && _view == _window->dispatch()->focus_view()) {
+			_window->dispatch()->send_blur_msg(this); // send blue message to main thread
+		}
 		if (_mark_index >= 0) {
 			_window->preRender().unmark_layout(this, _level);
 		}

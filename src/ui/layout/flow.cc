@@ -280,5 +280,8 @@ namespace qk {
 		BoxLayout::onChildLayoutChange(child, value);
 	}
 
-// *******************************************************************
+	// --------------------------------- F l o w ---------------------------------
+
+	Qk_IMPL_PROP_ACC(Flow, Wrap, wrap);
+	Qk_IMPL_PROP_ACC(Flow, WrapAlign, wrap_align);
 }
