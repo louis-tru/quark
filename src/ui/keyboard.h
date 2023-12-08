@@ -38,7 +38,7 @@ namespace qk {
 
 	class EventDispatch;
 
-#define n_each_keyboard_key_name_table(F) \
+#define Qk_Keyboard_Keys(F) \
 	F(KEYCODE_UNKNOWN,          0)  \
 	F(KEYCODE_MOUSE_LEFT,       1)  \
 	F(KEYCODE_MOUSE_CENTER,     2)  \
@@ -197,11 +197,10 @@ namespace qk {
 	F(KEYCODE_ZOOM_IN,          333)     /* 放大键 */ \
 	F(KEYCODE_ZOOM_OUT,         334)     /* 缩小键 */ \
 
-
 	enum KeyboardKeyName {
-#define n_def_enum_keyboard_key_name(Name, Code) Name = Code,
-		n_each_keyboard_key_name_table(n_def_enum_keyboard_key_name)
-#undef n_def_enum_keyboard_key_name
+		#define _Fun(Name, Code) Name = Code,
+		Qk_Keyboard_Keys(_Fun)
+		#undef _Fun
 	};
 
 	/**
