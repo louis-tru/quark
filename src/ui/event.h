@@ -305,7 +305,6 @@ namespace qk {
 		Sp<View, ReferenceTraits> find_receive_view(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, uint32_t keycode = 0);
 		Sp<View, ReferenceTraits> get_focus_view();
-		void send_blur_msg(Layout *layout);
 
 		class OriginTouche;
 		class MouseHandle;

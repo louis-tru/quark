@@ -330,14 +330,6 @@ namespace qk {
 		return Sp<View>(_focus_view);
 	}
 
-	void EventDispatch::send_blur_msg(Layout *layout) {
-		std::lock_guard<RecursiveMutex> lock(_view_mutex);
-		auto view = layout->_view;
-		if (view && _window->dispatch()->focus_view() == view) {
-			async_resolve(Cb([view](auto &e) { view->blur(); }, view), _loop);
-		}
-	}
-
 	bool EventDispatch::set_focus_view(View *view) {
 		if ( _focus_view != view ) {
 			if ( view->_layout->_level && view->can_become_focus() ) {

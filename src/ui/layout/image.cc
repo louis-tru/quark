@@ -31,6 +31,7 @@
 #include "./image.h"
 #include "../../render/render.h"
 #include "../window.h"
+#include "../app.h"
 
 namespace qk {
 
@@ -79,9 +80,17 @@ namespace qk {
 
 	void ImageLayout::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
-			UILock lock(window());
-			mark_size(kLayout_Size_Width | kLayout_Size_Height);
+			window()->preRender().async_call([](auto ctx, auto args){
+				ctx->mark_size(kLayout_Size_Width | kLayout_Size_Height);
+			}, this, 0);
 		}
 	}
 
+	ImagePool* ImageLayout::imgPool() {
+		return window()->host()->imgPool();
+	}
+
+	// --------------------------------- I m a g e ---------------------------------
+
+	Qk_IMPL_VIEW_PROP_ACC(Image, String, src);
 }

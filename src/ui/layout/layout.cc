@@ -31,6 +31,7 @@
 #include "./layout.h"
 #include "./root.h"
 #include "../window.h"
+#include "../app.h"
 
 namespace qk {
 
@@ -206,6 +207,15 @@ namespace qk {
 		return false;
 	}
 
+	Sp<View> Layout::safe_view() {
+		if (_view) {
+			std::lock_guard<RecursiveMutex> lock(_window->dispatch()->_view_mutex);
+			return _view;
+		} else {
+			return nullptr;
+		}
+	}
+
 	// @private
 	// --------------------------------------------------------------------------------------
 
@@ -331,7 +341,13 @@ namespace qk {
 
 	void Layout::clear_level() { //  clear layout depth
 		if (_view && _view == _window->dispatch()->focus_view()) {
-			_window->dispatch()->send_blur_msg(this); // send blue message to main thread
+			auto view = safe_view();
+			auto v = *view;
+			if (v && v->is_focus()) {
+				_window->host()->loop()->post(Cb([v](auto &e){
+					v->blur();
+				}, v));
+			}
 		}
 		if (_mark_index >= 0) {
 			_window->preRender().unmark_layout(this, _level);

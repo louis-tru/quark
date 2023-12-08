@@ -391,6 +391,11 @@ namespace qk {
 			_mark_value &= (~mark);
 		}
 
+		/**
+		 * @method safe_view()
+		*/
+		Sp<View> safe_view();
+
 	private:
 		void before(Layout* view);
 		void after(Layout* view);

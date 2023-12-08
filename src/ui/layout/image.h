@@ -45,11 +45,13 @@ namespace qk {
 		virtual float solve_layout_content_width(Size &parent_layout_size) override;
 		virtual float solve_layout_content_height(Size &parent_layout_size) override;
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
+		virtual ImagePool* imgPool() override;
 	};
 
 	class Qk_EXPORT Image: public Box {
 	public:
 		Qk_Define_View(Image, Box);
+		Qk_DEFINE_PROP_ACC(String, src);
 	};
 
 }

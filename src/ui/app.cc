@@ -65,12 +65,14 @@ namespace qk {
 	{
 		if (_shared)
 			Qk_FATAL("At the same time can only run a Application entity");
+		if (!_loop)
+			Qk_FATAL("The current thread does not have a RunLoop");
 		//view_prop_acc_init();
 		_shared = this;
 		// init
 		_screen = new Screen(this); // strong ref
 		_fontPool = FontPool::Make();
-		_imgPool = new ImageSourcePool(this);
+		_imgPool = new ImageSourcePool(_loop);
 		_defaultTextOptions = new DefaultTextOptions(_fontPool);
 	}
 

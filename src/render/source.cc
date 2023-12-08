@@ -37,17 +37,17 @@ namespace qk {
 
 	// -------------------- I m a g e . S o u r c e --------------------
 
-	ImageSource::ImageSource(cString& uri): Qk_Init_Event(State)
+	ImageSource::ImageSource(cString& uri, RunLoop *loop): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _loadId(0), _render(nullptr), _loop(current_loop()), _isMipmap(true)
+		, _loadId(0), _render(nullptr), _loop(loop), _isMipmap(true)
 	{
 		if (!uri.isEmpty())
 			_uri = fs_reader()->format(uri);
 	}
 
-	ImageSource::ImageSource(Array<Pixel>&& pixels): Qk_Init_Event(State)
+	ImageSource::ImageSource(Array<Pixel>&& pixels, RunLoop *loop): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _loadId(0), _render(nullptr), _loop(current_loop()), _isMipmap(true)
+		, _loadId(0), _render(nullptr), _loop(loop), _isMipmap(true)
 	{
 		if (pixels.length()) {
 			_state = kSTATE_LOAD_COMPLETE;
@@ -56,10 +56,10 @@ namespace qk {
 		}
 	}
 
-	ImageSource::ImageSource(cPixelInfo &info, RenderBackend *render): Qk_Init_Event(State)
+	ImageSource::ImageSource(cPixelInfo &info, RenderBackend *render, RunLoop *loop): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
 		, _info(info)
-		, _loadId(0), _render(render), _loop(current_loop()), _isMipmap(true) {
+		, _loadId(0), _render(render), _loop(loop), _isMipmap(true) {
 	}
 
 	ImageSource::~ImageSource() {
@@ -275,7 +275,7 @@ namespace qk {
 		}
 	}
 
-	ImageSourcePool::ImageSourcePool(Application* host): _host(host) {
+	ImageSourcePool::ImageSourcePool(RunLoop *loop): _loop(loop) {
 	}
 
 	ImageSourcePool::~ImageSourcePool() {
@@ -296,7 +296,7 @@ namespace qk {
 		if ( it != _sources.end() ) {
 			return it->value.source.value();
 		}
-		ImageSource* source = new ImageSource(_uri);
+		ImageSource* source = new ImageSource(_uri, _loop);
 		source->Qk_On(State, &ImageSourcePool::handleSourceState, this);
 		auto info = source->info();
 		_sources.set(id, { source, info.bytes(), 0 });
@@ -359,8 +359,12 @@ namespace qk {
 	}
 
 	void ImageSourceHolder::set_src(String value) {
-		// TODO ...
-		//set_source(shared_app() ? shared_app()->imgPool()->get(value): new ImageSource(value));
+		auto pool = imgPool();
+		set_source(pool ? pool->get(value): new ImageSource(value));
+	}
+
+	ImagePool* ImageSourceHolder::imgPool() {
+		return nullptr;
 	}
 
 	void ImageSourceHolder::set_source(ImageSource* source) {
@@ -380,14 +384,7 @@ namespace qk {
 	}
 
 	void ImageSourceHolder::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
-			// TODO ...
-			// auto _ = shared_app();
-			// Qk_ASSERT(_, "Application needs to be initialized first");
-			//if (_) {
-			//	_->pre_render()->mark_render();
-			//}
-		}
+		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {}
 	}
 
 }

@@ -49,7 +49,7 @@ namespace qk {
 		}
 	#define Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name) \
 		void cls::set_##name(type val) { \
-			async_call([](auto ctx, auto val) { ctx->set_##name(val); }, layout<cls##Layout>(), val); \
+			preRender().async_call([](auto ctx, auto val) { ctx->set_##name(val); }, layout<cls##Layout>(), val); \
 		}
 	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name) \
 		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)
@@ -228,17 +228,9 @@ namespace qk {
 		virtual void release() override;
 
 		/**
-		 * Issue commands from the main thread and execute them in the rendering thread
-		 * 
-		 * Note that the Args parameter size cannot exceed 16 bytes
-		 * 
-		 * @method async_call()
+		 * @method preRender()
 		*/
-		template<typename E, typename Args, typename Ctx = Layout>
-		inline void async_call(E exec, Ctx *ctx, Args args) {
-			typedef void (*Exec)(Ctx *ctx, Args args);
-			async_call_((void*)static_cast<Exec>(exec), ctx, &args);
-		}
+		PreRender& preRender();
 
 	private:
 		/**
@@ -246,7 +238,6 @@ namespace qk {
 		 */
 		void set_parent(View* parent);
 		void clear_link(); // Cleaning up associated view information
-		void async_call_(void *exec, void *ctx, void *args);
 
 		friend class EventDispatch;
 

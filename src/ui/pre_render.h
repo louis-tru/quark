@@ -81,6 +81,19 @@ namespace qk {
 		void addtask(Task* task); // add pre render task
 		void untask(Task* task); // delete pre render task
 
+		/**
+		 * Issue commands from the main thread and execute them in the rendering thread
+		 * 
+		 * Note that the Args parameter size cannot exceed 16 bytes
+		 * 
+		 * @method async_call()
+		*/
+		template<typename E, typename Args, typename Ctx = Layout>
+		inline void async_call(E exec, Ctx *ctx, Args args) {
+			typedef void (*Exec)(Ctx *ctx, Args args);
+			async_call_((void*)static_cast<Exec>(exec), ctx, &args);
+		}
+
 	private:
 		/**
 		 * Solve the pre-rendering problem, return true if the view needs to be updated
@@ -91,6 +104,7 @@ namespace qk {
 		void clearTasks();
 		void asyncCommit(); // commit async cmd to ready, only main thread call
 		void solveAsyncCall();
+		void async_call_(void *exec, void *ctx, void *args);
 
 		struct AsyncCall {
 			struct Args {uint64_t value[2];};
@@ -105,7 +119,6 @@ namespace qk {
 		Array<AsyncCall> _asyncCall;
 		Array<AsyncCall> _asyncCommit;
 		bool _is_render; // next frame render
-		friend class View;
 		friend class Application;
 		friend class Window;
 	};

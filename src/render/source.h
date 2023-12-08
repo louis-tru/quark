@@ -38,7 +38,6 @@
 #include "../util/loop.h"
 
 namespace qk {
-	class Application;
 	class RenderBackend;
 
 	/**
@@ -75,9 +74,9 @@ namespace qk {
 		// 		fill="#f00,rgba(0,0,0,1)" class="img1" style={{width:100, height: 100}}
 		// 	/>
 		// </FlowLayout>
-		ImageSource(cString& uri = String());
-		ImageSource(Array<Pixel>&& pixels);
-		ImageSource(cPixelInfo &info, RenderBackend *render = nullptr);
+		ImageSource(cString& uri = String(), RunLoop *loop = current_loop());
+		ImageSource(Array<Pixel>&& pixels, RunLoop *loop = current_loop());
+		ImageSource(cPixelInfo &info, RenderBackend *render = nullptr, RunLoop *loop = current_loop());
 
 		/**
 		 * @destructor
@@ -180,7 +179,7 @@ namespace qk {
 		/**
 		 * @constructor
 		 */
-		ImageSourcePool(Application* host);
+		ImageSourcePool(RunLoop *loop);
 
 		/**
 		 * @destructor
@@ -217,7 +216,7 @@ namespace qk {
 		};
 		Dict<uint64_t, Member> _sources;
 		Mutex _Mutex;
-		Application* _host;
+		RunLoop *_loop;
 	};
 
 	typedef ImageSourcePool ImagePool;
@@ -234,6 +233,7 @@ namespace qk {
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);
+		virtual ImagePool* imgPool();
 		Sp<ImageSource> _imageSource;
 	};
 

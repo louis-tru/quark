@@ -190,6 +190,11 @@ namespace qk {
 		}
 	}
 
+	void PreRender::async_call_(void *exec, void *ctx, void *args) {
+		typedef PreRender::AsyncCall::Args AsyncCallArgs;
+		_asyncCall.push({ ctx,*(AsyncCallArgs*)args,(void(*)(void*,AsyncCallArgs))exec });
+	}
+
 	RenderTask::~RenderTask() {
 		if (_pre) {
 			_pre->untask(this);
