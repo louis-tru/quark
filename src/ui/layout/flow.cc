@@ -282,6 +282,6 @@ namespace qk {
 
 	// --------------------------------- F l o w ---------------------------------
 
-	Qk_IMPL_PROP_ACC(Flow, Wrap, wrap);
-	Qk_IMPL_PROP_ACC(Flow, WrapAlign, wrap_align);
+	Qk_IMPL_VIEW_PROP_ACC(Flow, Wrap, wrap);
+	Qk_IMPL_VIEW_PROP_ACC(Flow, WrapAlign, wrap_align);
 }

@@ -953,32 +953,32 @@ namespace qk {
 
 	// --------------------------------- B o x ---------------------------------
 
-	Qk_IMPL_PROP_ACC(Box, bool,       clip);
-	Qk_IMPL_PROP_ACC(Box, BoxSize,    width);
-	Qk_IMPL_PROP_ACC(Box, BoxSize,    height);
-	Qk_IMPL_PROP_ACC(Box, BoxSize,    width_limit);
-	Qk_IMPL_PROP_ACC(Box, BoxSize,    height_limit);
-	Qk_IMPL_PROP_ACC(Box, float,      margin_top); // margin
-	Qk_IMPL_PROP_ACC(Box, float,      margin_right);
-	Qk_IMPL_PROP_ACC(Box, float,      margin_bottom);
-	Qk_IMPL_PROP_ACC(Box, float,      margin_left);
-	Qk_IMPL_PROP_ACC(Box, float,      padding_top); // padding
-	Qk_IMPL_PROP_ACC(Box, float,      padding_right);
-	Qk_IMPL_PROP_ACC(Box, float,      padding_bottom);
-	Qk_IMPL_PROP_ACC(Box, float,      padding_left);
-	Qk_IMPL_PROP_ACC(Box, float,      border_radius_left_top); // border_radius
-	Qk_IMPL_PROP_ACC(Box, float,      border_radius_right_top);
-	Qk_IMPL_PROP_ACC(Box, float,      border_radius_right_bottom);
-	Qk_IMPL_PROP_ACC(Box, float,      border_radius_left_bottom);
-	Qk_IMPL_PROP_ACC(Box, Color,      border_color_top); // border_color
-	Qk_IMPL_PROP_ACC(Box, Color,      border_color_right);
-	Qk_IMPL_PROP_ACC(Box, Color,      border_color_bottom);
-	Qk_IMPL_PROP_ACC(Box, Color,      border_color_left);
-	Qk_IMPL_PROP_ACC(Box, float,      border_width_top); // border_width
-	Qk_IMPL_PROP_ACC(Box, float,      border_width_right);
-	Qk_IMPL_PROP_ACC(Box, float,      border_width_bottom);
-	Qk_IMPL_PROP_ACC(Box, float,      border_width_left);
-	Qk_IMPL_PROP_ACC(Box, Color,      background_color); // fill background color
-	Qk_IMPL_PROP_ACC(Box, BoxFill*,   background); // fill background, image|gradient
-	Qk_IMPL_PROP_ACC(Box, BoxShadow*, box_shadow); // box shadow, shadow
+	Qk_IMPL_VIEW_PROP_ACC(Box, bool,       clip);
+	Qk_IMPL_VIEW_PROP_ACC(Box, BoxSize,    width);
+	Qk_IMPL_VIEW_PROP_ACC(Box, BoxSize,    height);
+	Qk_IMPL_VIEW_PROP_ACC(Box, BoxSize,    width_limit);
+	Qk_IMPL_VIEW_PROP_ACC(Box, BoxSize,    height_limit);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      margin_top); // margin
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      margin_right);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      margin_bottom);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      margin_left);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      padding_top); // padding
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      padding_right);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      padding_bottom);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      padding_left);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      border_radius_left_top); // border_radius
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      border_radius_right_top);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      border_radius_right_bottom);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      border_radius_left_bottom);
+	Qk_IMPL_VIEW_PROP_ACC(Box, Color,      border_color_top); // border_color
+	Qk_IMPL_VIEW_PROP_ACC(Box, Color,      border_color_right);
+	Qk_IMPL_VIEW_PROP_ACC(Box, Color,      border_color_bottom);
+	Qk_IMPL_VIEW_PROP_ACC(Box, Color,      border_color_left);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      border_width_top); // border_width
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      border_width_right);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      border_width_bottom);
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      border_width_left);
+	Qk_IMPL_VIEW_PROP_ACC(Box, Color,      background_color); // fill background color
+	Qk_IMPL_VIEW_PROP_ACC(Box, BoxFill*,   background); // fill background, image|gradient
+	Qk_IMPL_VIEW_PROP_ACC(Box, BoxShadow*, box_shadow); // box shadow, shadow
 }
