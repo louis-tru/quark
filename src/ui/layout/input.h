@@ -111,7 +111,7 @@ namespace qk {
 	public:
 		Qk_Define_View(Input, Box);
 		virtual bool can_become_focus() override;
-		virtual const TextOptions* getOptions() const override;
+		virtual TextOptions* getOptions() const override;
 		virtual PreRender& getPreRender() override;
 		Qk_DEFINE_PROP_ACC(bool, security);
 		Qk_DEFINE_PROP_ACC(bool, readonly);

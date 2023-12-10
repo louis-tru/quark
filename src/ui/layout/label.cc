@@ -120,7 +120,7 @@ namespace qk {
 
 	// --------------------------------- L a b e l ---------------------------------
 
-	const TextOptions* Label::getOptions() const {
+	TextOptions* Label::getOptions() const {
 		return layout<LabelLayout>();
 	}
 	PreRender& Label::getPreRender() {

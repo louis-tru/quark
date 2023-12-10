@@ -64,7 +64,7 @@ namespace qk {
 	class Qk_EXPORT Label: public View, public TextOptionsAsync {
 	public:
 		Qk_Define_View(Label, View);
-		virtual const TextOptions* getOptions() const override;
+		virtual TextOptions* getOptions() const override;
 		virtual PreRender& getPreRender() override;
 	};
 

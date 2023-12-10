@@ -45,11 +45,6 @@ namespace qk {
 	public:
 		typedef MultimediaSource::TrackInfo TrackInfo;
 		typedef Mediacodec_OutputBuffer    OutputBuffer;
-
-		static AudioPlayer* create(String src, Application* host = nullptr);
-
-		AudioPlayer(Application* host = nullptr);
-		virtual ~AudioPlayer();
 		// define props
 		Qk_DEFINE_PROP_ACC(bool, auto_play, NoConst);
 		Qk_DEFINE_PROP_ACC(bool, mute, NoConst);
@@ -63,6 +58,10 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_count, NoConst);
 		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_index, NoConst);
 		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, audio_track, NoConst);
+
+		AudioPlayer(Application* host);
+		virtual ~AudioPlayer();
+		static AudioPlayer* create(String src, Application* host = nullptr);
 		// define methods
 		const TrackInfo* audio_track_at(uint32_t index);
 		void select_audio_track(uint32_t index);
@@ -71,11 +70,13 @@ namespace qk {
 		void pause();
 		void resume();
 		void stop();
+
 		// @overwrite
 		virtual void multimedia_source_ready(MultimediaSource* src);
 		virtual void multimedia_source_wait_buffer(MultimediaSource* src, float process);
 		virtual void multimedia_source_eof(MultimediaSource* src);
 		virtual void multimedia_source_error(MultimediaSource* src, cError& err);
+
 	private:
 		Application *_host;
 		MultimediaSource* _source;

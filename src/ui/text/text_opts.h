@@ -104,7 +104,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC_GET(TextWordBreak, text_word_break_value);
 		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style);
 		// get host handle
-		virtual const TextOptions* getOptions() const = 0;
+		virtual TextOptions* getOptions() const = 0;
 		virtual PreRender& getPreRender() = 0;
 	};
 

@@ -53,7 +53,7 @@ namespace qk {
 	class Qk_EXPORT Text: public Box, public TextOptionsAsync {
 	public:
 		Qk_Define_View(Text, Box);
-		virtual const TextOptions* getOptions() const override;
+		virtual TextOptions* getOptions() const override;
 		virtual PreRender& getPreRender() override;
 	};
 

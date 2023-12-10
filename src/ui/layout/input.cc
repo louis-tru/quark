@@ -983,6 +983,13 @@ namespace qk {
 		}
 	}
 
+	void InputLayout::set_cursor_color(Color value) {
+		if (value != _cursor_color) {
+			_cursor_color = value;
+			mark_render(kLayout_None);
+		}
+	}
+
 	void InputLayout::set_security(bool value) {
 		if (_security != value) {
 			_security = value;
@@ -1059,7 +1066,7 @@ namespace qk {
 	bool Input::can_become_focus() {
 		return true;
 	}
-	const TextOptions* Input::getOptions() const {
+	TextOptions* Input::getOptions() const {
 		return layout<InputLayout>();
 	}
 	PreRender& Input::getPreRender() {
