@@ -93,4 +93,5 @@ namespace qk {
 	// --------------------------------- I m a g e ---------------------------------
 
 	Qk_IMPL_VIEW_PROP_ACC(Image, String, src);
+	Qk_IMPL_VIEW_PROP_ACC(Image, ImageSource*, source, NoConst);
 }

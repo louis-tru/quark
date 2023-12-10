@@ -43,16 +43,14 @@ namespace qk {
 		typedef ViewName##Layout Layout; \
 		inline ViewName(ViewName##Layout *layout): Base(layout) {}
 
-	#define Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name) \
-		type cls::name() const { \
-			return layout<cls##Layout>()->name(); \
-		}
+	#define Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name, ...) \
+		type cls::name() Qk_DEFINE_PROP_MODIFIER##__VA_ARGS__ { return layout<cls##Layout>()->name(); }
 	#define Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name) \
 		void cls::set_##name(type val) { \
 			preRender().async_call([](auto ctx, auto val) { ctx->set_##name(val); }, layout<cls##Layout>(), val); \
 		}
-	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name) \
-		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)
+	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name, ...) \
+		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name, ##__VA_ARGS__) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)
 
 	/**
 		* The basic elements of UI view tree
@@ -68,6 +66,7 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(View);
 	public:
 		typedef Layout Layout;
+
 		/*
 		* @field window
 		*/

@@ -118,4 +118,13 @@ namespace qk {
 		_text_flags = 0xffffffff;
 	}
 
+	// --------------------------------- L a b e l ---------------------------------
+
+	const TextOptions* Label::getOptions() const {
+		return layout<LabelLayout>();
+	}
+	PreRender& Label::getPreRender() {
+		return preRender();
+	}
+
 }

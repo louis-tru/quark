@@ -361,7 +361,6 @@ namespace qk {
 		}
 
 		void set_scroll_and_trigger_event(Vec2 scroll) {
-			
 			scroll = optimal_display(scroll);
 			scroll.set_x( _scroll_h ? scroll.x() : 0 );
 			scroll.set_y( _scroll_v ? scroll.y() : 0 );

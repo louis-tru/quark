@@ -52,6 +52,7 @@ namespace qk {
 	public:
 		Qk_Define_View(Image, Box);
 		Qk_DEFINE_PROP_ACC(String, src);
+		Qk_DEFINE_PROP_ACC(ImageSource*, source, NoConst);
 	};
 
 }

@@ -855,10 +855,6 @@ namespace qk {
 		_text_flags = 0xffffffff;
 	}
 
-	bool Input::can_become_focus() {
-		return true;
-	}
-
 	TextInput* InputLayout::as_text_input() {
 		return this;
 	}
@@ -1058,4 +1054,29 @@ namespace qk {
 		return false;
 	}
 
+	// --------------------------------- I n p u t ---------------------------------
+
+	bool Input::can_become_focus() {
+		return true;
+	}
+	const TextOptions* Input::getOptions() const {
+		return layout<InputLayout>();
+	}
+	PreRender& Input::getPreRender() {
+		return preRender();
+	}
+
+	Qk_IMPL_VIEW_PROP_ACC(Input, bool, security);
+	Qk_IMPL_VIEW_PROP_ACC(Input, bool, readonly);
+	Qk_IMPL_VIEW_PROP_ACC(Input, TextAlign, text_align);
+	Qk_IMPL_VIEW_PROP_ACC(Input, KeyboardType, type);
+	Qk_IMPL_VIEW_PROP_ACC(Input, KeyboardReturnType, return_type);
+	Qk_IMPL_VIEW_PROP_ACC(Input, String4, value_u4);
+	Qk_IMPL_VIEW_PROP_ACC(Input, String4, placeholder_u4);
+	Qk_IMPL_VIEW_PROP_ACC(Input, Color, placeholder_color);
+	Qk_IMPL_VIEW_PROP_ACC(Input, Color, cursor_color);
+	Qk_IMPL_VIEW_PROP_ACC(Input, uint32_t, max_length);
+	Qk_IMPL_VIEW_PROP_ACC(Input, String, value);
+	Qk_IMPL_VIEW_PROP_ACC(Input, String, placeholder);
+	Qk_IMPL_VIEW_PROP_ACC_GET(Input, uint32_t, text_length);
 }

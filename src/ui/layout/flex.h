@@ -61,7 +61,6 @@ namespace qk {
 	class Qk_EXPORT Flex: public Box {
 	public:
 		Qk_Define_View(Flex, Box);
-		// define props
 		Qk_DEFINE_PROP_ACC(Direction, direction);
 		Qk_DEFINE_PROP_ACC(ItemsAlign, items_align);
 		Qk_DEFINE_PROP_ACC(CrossAlign, cross_align);

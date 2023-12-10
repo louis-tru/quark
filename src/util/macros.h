@@ -31,8 +31,7 @@
 #ifndef __quark__util__macros__
 #define __quark__util__macros__
 
-//  ----------------------------- Compiling environment -----------------------------
-
+// Compiling environment
 #ifndef NULL
 # define NULL 0
 #endif
@@ -156,7 +155,8 @@
 # define Qk_QNX 1
 #endif
 
-// ----------------------------- Compiling environment end -----------------------------
+// Compiling environment end
+// ------------------------------------------------------------------
 
 #define Qk_STRICT_ASSERT(cond, ...) if(!(cond)) qk::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #if DEBUG

@@ -96,4 +96,11 @@ namespace qk {
 		_text_flags = 0xffffffffu;
 	}
 
+	const TextOptions* Text::getOptions() const {
+		return layout<TextLayout>();
+	}
+	PreRender& Text::getPreRender() {
+		return preRender();
+	}
+
 }

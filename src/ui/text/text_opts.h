@@ -34,10 +34,10 @@
 #include "../types.h"
 
 namespace qk {
-
 	class FontStyle;
 	class FontPool;
 	class TextConfig;
+	class PreRender;
 
 	class Qk_EXPORT TextOptions {
 	public:
@@ -61,7 +61,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(TextOverflow, text_overflow_value);
 		Qk_DEFINE_PROP_GET(TextWhiteSpace, text_white_space_value);
 		Qk_DEFINE_PROP_GET(TextWordBreak, text_word_break_value);
-		FontStyle font_style() const;
+		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style);
 	protected:
 		virtual void onTextChange(uint32_t mark);
 		uint32_t     _text_flags;
@@ -80,6 +80,32 @@ namespace qk {
 	public:
 		DefaultTextOptions(FontPool *pool);
 		~DefaultTextOptions();
+	};
+
+	class Qk_EXPORT TextOptionsAsync {
+	public:
+		Qk_DEFINE_PROP_ACC(TextWeight, text_weight);
+		Qk_DEFINE_PROP_ACC(TextSlant,  text_slant);
+		Qk_DEFINE_PROP_ACC(TextDecoration, text_decoration);
+		Qk_DEFINE_PROP_ACC(TextOverflow,   text_overflow);
+		Qk_DEFINE_PROP_ACC(TextWhiteSpace, text_white_space);
+		Qk_DEFINE_PROP_ACC(TextWordBreak,  text_word_break);
+		Qk_DEFINE_PROP_ACC(TextSize,  text_size); // TextValueWrap
+		Qk_DEFINE_PROP_ACC(TextColor, text_background_color);
+		Qk_DEFINE_PROP_ACC(TextColor, text_color);
+		Qk_DEFINE_PROP_ACC(TextShadow, text_shadow);
+		Qk_DEFINE_PROP_ACC(TextLineHeight, text_line_height);
+		Qk_DEFINE_PROP_ACC(TextFamily, text_family);
+		Qk_DEFINE_PROP_ACC_GET(TextWeight, text_weight_value);
+		Qk_DEFINE_PROP_ACC_GET(TextSlant, text_slant_value);
+		Qk_DEFINE_PROP_ACC_GET(TextDecoration, text_decoration_value);
+		Qk_DEFINE_PROP_ACC_GET(TextOverflow, text_overflow_value);
+		Qk_DEFINE_PROP_ACC_GET(TextWhiteSpace, text_white_space_value);
+		Qk_DEFINE_PROP_ACC_GET(TextWordBreak, text_word_break_value);
+		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style);
+		// get host handle
+		virtual const TextOptions* getOptions() const = 0;
+		virtual PreRender& getPreRender() = 0;
 	};
 
 }

@@ -31,7 +31,6 @@
 #ifndef __quark__layout__input__
 #define __quark__layout__input__
 
-#include "../pre_render.h"
 #include "./box.h"
 #include "../text/text_blob.h"
 #include "../text/text_opts.h"
@@ -40,9 +39,9 @@
 
 namespace qk {
 
-	class Qk_EXPORT InputLayout: public BoxLayout, public TextOptions, public RenderTask, public TextInput {
+	class Qk_EXPORT InputLayout: public BoxLayout
+	, public TextOptions, public RenderTask, public TextInput {
 	public:
-		//typedef ReferenceTraits Traits;
 		typedef NonObjectTraits Traits;
 		// define props
 		Qk_DEFINE_PROP(bool, security);
@@ -60,7 +59,6 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length);
 
 		InputLayout(Window *win);
-		// virtual func
 		virtual bool is_multiline();
 		// @override
 		virtual bool layout_reverse(uint32_t mark) override;
@@ -109,10 +107,25 @@ namespace qk {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
-	class Qk_EXPORT Input: public Box {
+	class Qk_EXPORT Input: public Box, public TextOptionsAsync {
 	public:
 		Qk_Define_View(Input, Box);
 		virtual bool can_become_focus() override;
+		virtual const TextOptions* getOptions() const override;
+		virtual PreRender& getPreRender() override;
+		Qk_DEFINE_PROP_ACC(bool, security);
+		Qk_DEFINE_PROP_ACC(bool, readonly);
+		Qk_DEFINE_PROP_ACC(TextAlign, text_align);
+		Qk_DEFINE_PROP_ACC(KeyboardType, type);
+		Qk_DEFINE_PROP_ACC(KeyboardReturnType, return_type);
+		Qk_DEFINE_PROP_ACC(String4, value_u4);
+		Qk_DEFINE_PROP_ACC(String4, placeholder_u4);
+		Qk_DEFINE_PROP_ACC(Color, placeholder_color);
+		Qk_DEFINE_PROP_ACC(Color, cursor_color);
+		Qk_DEFINE_PROP_ACC(uint32_t, max_length);
+		Qk_DEFINE_PROP_ACC(String, value);
+		Qk_DEFINE_PROP_ACC(String, placeholder);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length);
 	};
 
 }

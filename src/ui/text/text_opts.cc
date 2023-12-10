@@ -159,17 +159,17 @@ namespace qk {
 
 	// ---------------- T e x t . C o n f i g ----------------
 
-#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS(Type, name, flag) \
-	if (_opts->_##name == Type::kInherit) { \
-		_opts->_##name##_value = _base->_opts->_##name##_value; \
-	}
+	#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS(Type, name, flag) \
+		if (_opts->_##name == Type::kInherit) { \
+			_opts->_##name##_value = _base->_opts->_##name##_value; \
+		}
 
-#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Type, name, flag, Default) \
-	if (_opts->_##name.kind == TextValueKind::kInherit) {  \
-		_opts->_##name.value = _base->_opts->_##name.value; \
-	} else if (_opts->_##name.kind == TextValueKind::kDefault) { \
-		_opts->_##name.value = Default; \
-	}
+	#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Type, name, flag, Default) \
+		if (_opts->_##name.kind == TextValueKind::kInherit) {  \
+			_opts->_##name.value = _base->_opts->_##name.value; \
+		} else if (_opts->_##name.kind == TextValueKind::kDefault) { \
+			_opts->_##name.value = Default; \
+		}
 
 	TextConfig::TextConfig(TextOptions* opts, TextConfig* base)
 		: _opts(opts), _base(base)
@@ -226,4 +226,34 @@ namespace qk {
 		delete base();
 	}
 
+	// ---------------- T e x t . O p t i o n s . A s y n c ----------------
+
+	#define Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name) \
+		type cls::name() const { return getOptions()->name(); }
+	#define Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name) \
+		void cls::set_##name(type val) { \
+			getPreRender().async_call([](auto ctx, auto val) { ctx->set_##name(val); }, getOptions(), val); \
+		}
+	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name) \
+		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)
+
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextWeight, text_weight);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextSlant,  text_slant);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextDecoration, text_decoration);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextOverflow,   text_overflow);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextWhiteSpace, text_white_space);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextWordBreak,  text_word_break);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextSize,  text_size);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextColor, text_background_color);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextColor, text_color);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextShadow, text_shadow);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextLineHeight, text_line_height);
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextFamily, text_family);
+	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextWeight, text_weight_value);
+	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextSlant, text_slant_value);
+	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextDecoration, text_decoration_value);
+	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextOverflow, text_overflow_value);
+	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextWhiteSpace, text_white_space_value);
+	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextWordBreak, text_word_break_value);
+	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, FontStyle, font_style);
 }

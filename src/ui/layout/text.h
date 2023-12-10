@@ -50,9 +50,11 @@ namespace qk {
 		Sp<TextLines> _lines;
 	};
 
-	class Qk_EXPORT Text: public Box {
+	class Qk_EXPORT Text: public Box, public TextOptionsAsync {
 	public:
 		Qk_Define_View(Text, Box);
+		virtual const TextOptions* getOptions() const override;
+		virtual PreRender& getPreRender() override;
 	};
 
 }

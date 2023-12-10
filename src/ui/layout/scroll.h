@@ -85,6 +85,11 @@ namespace qk {
 		bool _lock_h, _lock_v;
 	};
 
+	class Qk_EXPORT ScrollLayoutBaseAsync {
+	public:
+		virtual ScrollLayoutBase* getScrollLayoutBase() = 0;
+	};
+
 	class Qk_EXPORT ScrollLayout: public FloatLayout, public ScrollLayoutBase {
 	public:
 		ScrollLayout(Window *win);

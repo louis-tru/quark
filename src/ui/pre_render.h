@@ -61,7 +61,7 @@ namespace qk {
 	};
 
 	/**
-	 * @class PreRender pre render for thread
+	 * @class PreRender pre render for render thread
 	*/
 	class PreRender {
 	public:
