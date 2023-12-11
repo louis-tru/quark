@@ -37,33 +37,13 @@
 
 namespace qk {
 
-	// ------------------------ B a s e . S c r o l l --------------------------
+	// ------------------------ S c r o l l . B a s e --------------------------
 
 	static const Curve ease_in_out(0.3, 0.3, 0.3, 1);
 	static const Curve ease_out(0, 0, 0.58, 1);
 
-	class ScrollLayoutBase::ScrollBox: public BoxLayout {
-	public:
-
-		void triggerScroll() {
-			Sp<UIEvent> evt = qk::New<UIEvent>(view());// TODO ...
-			// TODO ...
-			// Notification<UIEvent, UIEventName, Reference>::trigger(UIEvent_Scroll, **evt);
-		}
-
-		void mark_render(uint32_t mark = kLayout_None) {
-			Layout::mark_render(mark);
-		}
-
-		void unmark(uint32_t mark = (~Layout::kLayout_None)) {
-			Layout::unmark(mark);
-		}
-
-	};
-
 	class ScrollLayoutBase::Task: public RenderTask {
 	public:
-
 		Task(ScrollLayoutBase* host, uint64_t duration, cCurve& curve = ease_out)
 			: m_host(host)
 			, m_start_time(time_monotonic())
@@ -73,22 +53,14 @@ namespace qk {
 			, m_is_inl_ease_out(&ease_out == &curve)
 		{}
 
-		/**
-		 * @func immediate_end_flag
-		 */
 		inline void immediate_end_flag() {
 			m_immediate_end_flag = true;
 		}
-
 		virtual void run(float y) = 0;
 		virtual void end() = 0;
 		virtual void immediate_end() = 0;
-		
-		/**
-		 * @overwrite
-		 */
+
 		virtual bool run_task(int64_t sys_time) {
-			
 			if ( m_immediate_end_flag ) { // immediate end motion
 				immediate_end();
 			} else {
@@ -132,13 +104,12 @@ namespace qk {
 
 		class ScrollMotionTask: public ScrollLayoutBase::Task {
 		public:
-			
 			ScrollMotionTask(ScrollLayoutBase* host, uint64_t duration, Vec2 to, cCurve& curve = ease_out)
 				: Task(host, duration, curve)
 				, m_from(host->_scroll)
 				, m_to(to)
 			{}
-			
+
 			virtual void run(float y) {
 				Vec2 scroll = Vec2((m_to.x() - m_from.x()) * y + m_from.x(),
 													(m_to.y() - m_from.y()) * y + m_from.y());
@@ -152,7 +123,7 @@ namespace qk {
 				_inl(m_host)->set_scroll_and_trigger_event(m_to);
 				_inl(m_host)->termination_recovery(0, ease_in_out);
 			}
-			
+
 		private:
 			Vec2  m_from;
 			Vec2  m_to;
@@ -160,7 +131,6 @@ namespace qk {
 
 		class ScrollBarFadeInOutTask: public ScrollLayoutBase::Task {
 		public:
-			
 			ScrollBarFadeInOutTask(ScrollLayoutBase* host, uint64_t duration, float to, cCurve& curve = ease_out)
 				: Task(host, duration, curve)
 				, m_from(host->_scrollbar_opacity)
@@ -225,13 +195,12 @@ namespace qk {
 			return _tasks.length();
 		}
 
-		Momentum momentum(uint64_t time, float dist, float max_dist_upper, float max_dist_lower, float size) {
-			
+		Momentum get_momentum(uint64_t time, float dist, float max_dist_upper, float max_dist_lower, float size) {
 			float deceleration = 0.001 * _resistance;
 			float speed = fabsf(dist) / float(time) * 1000.0;
 			float new_dist = (speed * speed) / (2 * deceleration);
 			float outside_dist = 0;
-			
+
 			// Proportinally reduce speed if we are outside of the boundaries
 			if (dist > 0 && new_dist > max_dist_upper) {
 				outside_dist = size / (6 / (new_dist / speed * deceleration));
@@ -269,17 +238,17 @@ namespace qk {
 			return Vec2(x, y);
 		}
 
-		Vec2 optimal_display(Vec2 value) {
+		Vec2 get_optimal_display(Vec2 value) {
 			auto scale = _host->window()->scale();
 			value.set_x( round(value.x() * scale) / scale );
 			value.set_y( round(value.y() * scale) / scale );
 			return value;
 		}
 
-		Vec2 catch_valid_scroll(Vec2 scroll) {
+		Vec2 get_catch_valid_scroll(Vec2 scroll) {
 			Vec2 valid = get_valid_scroll(scroll.x(), scroll.y());
 			Vec2 Catch = get_catch_value();
-			
+
 			if ( Catch.x() != 1 && Catch.y() != 1 ) { // 捕获位置
 				valid.set_x( roundf(valid.x() / Catch.x()) * Catch.x() );
 				if ( valid.x() < _scroll_max.x() ) {
@@ -290,14 +259,14 @@ namespace qk {
 					valid.set_y( valid.y() + Catch.y() );
 				}
 			}
-			return optimal_display(valid);
+			return get_optimal_display(valid);
 		}
 
 		void set_h_scrollbar_pos() {
 			if ( ! _scrollbar_h ) {
 				return;
 			}
-			
+
 			float size_x = _host->content_size().x() + _host->padding_left() + _host->padding_right();
 			float left_margin = scrollbar_margin();
 			float right_margin = _scrollbar_v ? left_margin + scrollbar_width() : left_margin;
@@ -341,12 +310,12 @@ namespace qk {
 			
 			float v_scrollbar_max_scroll = v_scrollbar_max_size - v_scrollbar_indicator_size;
 			float v_scrollbar_prop = v_scrollbar_max_scroll / _scroll_max.y();
-			
+
 			// ------------------------------------------------------
-			
+
 			float pos = v_scrollbar_prop * _scroll.y();
 			float size = v_scrollbar_indicator_size;
-			
+
 			if ( pos < 0 ) {
 				size = v_scrollbar_indicator_size + roundf(pos * 3);
 				size = Float32::max(size, 8);
@@ -356,28 +325,31 @@ namespace qk {
 				size = Float32::max(size, 8);
 				pos = v_scrollbar_max_scroll + v_scrollbar_indicator_size - size;
 			}
-			
+
 			_scrollbar_position_v = Vec2(pos + top_margin, size);
 		}
 
 		void set_scroll_and_trigger_event(Vec2 scroll) {
-			scroll = optimal_display(scroll);
+			scroll = get_optimal_display(scroll);
 			scroll.set_x( _scroll_h ? scroll.x() : 0 );
 			scroll.set_y( _scroll_v ? scroll.y() : 0 );
-			
+
 			if ( _scroll.x() != scroll.x() || _scroll.y() != scroll.y() ) {
-				
 				_scroll = scroll;
 				_scroll_raw = scroll;
-				
+
 				set_h_scrollbar_pos();
 				set_v_scrollbar_pos();
-				
+
 				_host->mark_render(Layout::kScroll); // mark
-				
-				shared_app()->loop()->post(Cb([this](Cb::Data& se) {
-					_host->triggerScroll(); // trigger event
-				}, _host));
+				auto view = _host->safe_view();
+				auto v = *view;
+				if (!v) return;
+
+				_host->window()->host()->loop()->post(Cb([v](auto& e) {
+					Sp<UIEvent> evt = New<UIEvent>(v);
+					v->trigger(UIEvent_Scroll, **evt);
+				}, v));
 			}
 		}
 
@@ -392,8 +364,8 @@ namespace qk {
 
 		void termination_recovery(uint64_t duration, cCurve& curve = ease_out) {
 			termination_all_task();
-			
-			Vec2 scroll = catch_valid_scroll(_scroll);
+
+			Vec2 scroll = get_catch_valid_scroll(_scroll);
 			if ( scroll.x() == _scroll.x() && scroll.y() == _scroll.y() ) {
 				if ( duration ) {
 					if ( _scrollbar_opacity != 0 ) {
@@ -411,9 +383,7 @@ namespace qk {
 		}
 
 		void motion_start(Vec2 scroll, uint64_t duration, cCurve& curve) {
-			
 			if ( !is_task() && ! _moved ) {
-				
 				if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
 					register_task( new ScrollMotionTask(this, duration, scroll, curve) );
 					if ( _scrollbar_opacity != 1 ) {
@@ -437,7 +407,7 @@ namespace qk {
 			float delta_y = point.y() - _move_point.y();
 			float new_x = _scroll.x() + delta_x;
 			float new_y = _scroll.y() + delta_y;
-			
+
 			_move_point = point;
 			
 			// Slow down if outside of the boundaries
@@ -471,7 +441,7 @@ namespace qk {
 				}
 				_moved = true;
 			}
-			
+
 			// Lock direction
 			if ( _lock_direction ) {
 				
@@ -516,18 +486,17 @@ namespace qk {
 			
 			//计算惯性
 			if ( duration < 3e5 ) {
-				
 				if ( _momentum ) {
 					auto size = _host->content_size();
 					if ( new_x ) {
-						momentum_x = momentum(duration, new_x - _move_start_scroll.x(),
-																	-_scroll.x(), _scroll.x() - _scroll_max.x(),
-																	_bounce ? size.x() / 2.0 : 0);
+						momentum_x = get_momentum(duration, new_x - _move_start_scroll.x(),
+																			-_scroll.x(), _scroll.x() - _scroll_max.x(),
+																			_bounce ? size.x() / 2.0 : 0);
 					}
 					if ( new_y ) {
-						momentum_y = momentum(duration, new_y - _move_start_scroll.y(),
-																	-_scroll.y(), _scroll.y() - _scroll_max.y(),
-																	_bounce ? size.y() / 2.0 : 0);
+						momentum_y = get_momentum(duration, new_y - _move_start_scroll.y(),
+																			-_scroll.y(), _scroll.y() - _scroll_max.y(),
+																			_bounce ? size.y() / 2.0 : 0);
 					}
 					new_x = _scroll.x() + momentum_x.dist;
 					new_y = _scroll.y() + momentum_y.dist;
@@ -541,14 +510,14 @@ namespace qk {
 						momentum_y = { 0, 0 };
 					}
 				}
-				
+
 				//捕获位置
 				Vec2 Catch = get_catch_value();
-				
+
 				float mod_x = int(roundf(new_x)) % uint32_t(Catch.x());
 				float mod_y = int(roundf(new_y)) % uint32_t(Catch.y());
 				float dist_x, dist_y;
-				
+
 				if ( new_x < 0 && new_x > _scroll_max.x() && mod_x != 0 ) {
 					if ( _scroll.x() - _move_start_scroll.x() < 0 ) {
 						dist_x = Catch.x() + mod_x;
@@ -557,7 +526,7 @@ namespace qk {
 					}
 					new_x -= dist_x;
 					dist_x = fabsf(dist_x) * 1e4;
-					
+
 					momentum_x.time = Qk_MAX(Qk_MIN(dist_x, 3e5), momentum_x.time);
 				}
 				
@@ -573,7 +542,7 @@ namespace qk {
 					momentum_y.time = Qk_MAX(Qk_MIN(dist_y, 3e5), momentum_y.time);
 				}
 			}
-			
+
 			_moved = false;
 
 			//****************************************************************
@@ -658,7 +627,7 @@ namespace qk {
 		, _scrollbar_width(2.0)
 		, _scrollbar_margin(2.0)
 		, _scroll_duration(0)
-		, _host(static_cast<ScrollBox*>(host))
+		, _host(host)
 		, _move_start_time(0)
 		, _action_id(0)
 		, _scrollbar_opacity(0)
@@ -693,7 +662,7 @@ namespace qk {
 
 	void ScrollLayoutBase::scroll_to(Vec2 value, uint64_t duration, cCurve& curve) {
 		_scroll_raw = Vec2(-value.x(), -value.y());
-		Vec2 scroll = _this->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
+		Vec2 scroll = _this->get_catch_valid_scroll( Vec2(-value.x(), -value.y()) );
 		if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
 			_this->scroll_to_valid_scroll(scroll, duration, curve);
 		}
@@ -705,20 +674,20 @@ namespace qk {
 			scroll_to(value, _scroll_duration, *_scroll_curve);
 		} else {
 			_scroll_raw = Vec2(-value.x(), -value.y());
-			_scroll = _this->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
+			_scroll = _this->get_catch_valid_scroll( Vec2(-value.x(), -value.y()) );
 			_host->mark_render();
 		}
 	}
 
 	void ScrollLayoutBase::set_scroll_x(float value) {
 		_scroll_raw.set_x(-value);
-		_scroll = _this->catch_valid_scroll( Vec2(-value, _scroll_raw.y()) );
+		_scroll = _this->get_catch_valid_scroll( Vec2(-value, _scroll_raw.y()) );
 		_host->mark_render(Layout::kScroll);
 	}
 
 	void ScrollLayoutBase::set_scroll_y(float value) {
 		_scroll_raw.set_y(-value);
-		_scroll = _this->catch_valid_scroll( Vec2(_scroll_raw.x(), -value) );
+		_scroll = _this->get_catch_valid_scroll( Vec2(_scroll_raw.x(), -value) );
 		_host->mark_render(Layout::kScroll);
 	}
 
@@ -805,7 +774,7 @@ namespace qk {
 
 		_scroll_h = _scroll_h && !_host->layout_wrap_x(); // 非wrap的size才能滚动
 		_scroll_v = _scroll_v && !_host->layout_wrap_y();
-		
+
 		_scrollbar_h = (_scroll_h && _scrollbar);
 		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);
 		//
@@ -816,7 +785,7 @@ namespace qk {
 		if ( mark & Layout::kScroll ) {
 			if ( !_moved && !_this->is_task() ) {
 				// fix scroll value
-				_scroll = _this->catch_valid_scroll(_scroll_raw);
+				_scroll = _this->get_catch_valid_scroll(_scroll_raw);
 				_scroll_raw = _scroll;
 			}
 			_host->unmark(Layout::kScroll);

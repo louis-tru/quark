@@ -362,9 +362,8 @@ namespace qk {
 		void remove_event_listener(uint32_t id) {
 			remove_event_listener_for_id(id);
 		}
-		
-	protected:
 
+	// protected:
 		// Uninstall all listening functions on the specified event name
 		void remove_event_listener(const Name& name) {
 			remove_event_listener_for_name(name.hashCode());

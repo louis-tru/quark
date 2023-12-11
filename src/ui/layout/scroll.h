@@ -58,21 +58,20 @@ namespace qk {
 		Qk_DEFINE_PROP(uint64_t, scroll_duration);
 		Qk_DEFINE_PROP(cCurve*, scroll_curve);
 		// define methods
+		void terminate();
 		void scroll_to(Vec2 value, uint64_t duration);
 		void scroll_to(Vec2 value, uint64_t duration, cCurve& curve);
-		void terminate();
 	protected:
 		ScrollLayoutBase(BoxLayout *host);
 		~ScrollLayoutBase();
 		void set_scroll_size(Vec2 size);
 		void solve(uint32_t mark);
 	private:
-		class ScrollBox;
 		friend class UIRender;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
 
-		ScrollBox *_host;
+		BoxLayout *_host;
 		List<Task*> _tasks;
 		Vec2 _scroll_raw, _scroll, _scroll_max;
 		Vec2 _move_start_scroll, _move_point, _move_dist;
@@ -87,7 +86,8 @@ namespace qk {
 
 	class Qk_EXPORT ScrollLayoutBaseAsync {
 	public:
-		virtual ScrollLayoutBase* getScrollLayoutBase() = 0;
+		virtual ScrollLayoutBase* getScrollLayoutBase() const = 0;
+		virtual PreRender& getPreRender() = 0;
 	};
 
 	class Qk_EXPORT ScrollLayout: public FloatLayout, public ScrollLayoutBase {

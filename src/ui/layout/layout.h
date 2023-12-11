@@ -392,6 +392,9 @@ namespace qk {
 		}
 
 		/**
+		 * 
+		 * return safe view and retain view
+		 * 
 		 * @method safe_view()
 		*/
 		Sp<View> safe_view();
