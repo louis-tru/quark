@@ -195,6 +195,9 @@ namespace qk {
 			return _tasks.length();
 		}
 
+		// scroll
+		// ------------------------------------------------------------------------
+
 		Momentum get_momentum(uint64_t time, float dist, float max_dist_upper, float max_dist_lower, float size) {
 			float deceleration = 0.001 * _resistance;
 			float speed = fabsf(dist) / float(time) * 1000.0;
@@ -336,7 +339,6 @@ namespace qk {
 
 			if ( _scroll.x() != scroll.x() || _scroll.y() != scroll.y() ) {
 				_scroll = scroll;
-				_scroll_raw = scroll;
 
 				set_h_scrollbar_pos();
 				set_v_scrollbar_pos();
@@ -480,11 +482,11 @@ namespace qk {
 			uint64_t duration = int64_t(time) - _move_start_time;
 			float new_x = _scroll.x();
 			float new_y = _scroll.y();
-			
+
 			_lock_h = false;
 			_lock_v = false;
-			
-			//计算惯性
+
+			// Calculate inertia
 			if ( duration < 3e5 ) {
 				if ( _momentum ) {
 					auto size = _host->content_size();
@@ -511,8 +513,7 @@ namespace qk {
 					}
 				}
 
-				//捕获位置
-				Vec2 Catch = get_catch_value();
+				Vec2 Catch = get_catch_value(); // Capture location
 
 				float mod_x = int(roundf(new_x)) % uint32_t(Catch.x());
 				float mod_y = int(roundf(new_y)) % uint32_t(Catch.y());
@@ -554,6 +555,9 @@ namespace qk {
 				termination_recovery(3e5, ease_in_out);
 			}
 		}
+
+		// event handles
+		// ------------------------------------------------------------------------
 
 		void touch_start_handle(UIEvent& e) {
 			if ( !_action_id ) {
@@ -636,7 +640,6 @@ namespace qk {
 		, _scroll_h(false), _scroll_v(false)
 		, _lock_h(false), _lock_v(false)
 	{
-		// TODO ...
 		// bind touch event
 		//host->add_event_listener(UIEvent_TouchStart, &Inl::touch_start_handle, _this);
 		//host->add_event_listener(UIEvent_TouchMove, &Inl::touch_move_handle, _this);
@@ -661,7 +664,6 @@ namespace qk {
 	}
 
 	void ScrollLayoutBase::scroll_to(Vec2 value, uint64_t duration, cCurve& curve) {
-		_scroll_raw = Vec2(-value.x(), -value.y());
 		Vec2 scroll = _this->get_catch_valid_scroll( Vec2(-value.x(), -value.y()) );
 		if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
 			_this->scroll_to_valid_scroll(scroll, duration, curve);
@@ -673,21 +675,18 @@ namespace qk {
 		if ( _scroll_duration ) {
 			scroll_to(value, _scroll_duration, *_scroll_curve);
 		} else {
-			_scroll_raw = Vec2(-value.x(), -value.y());
 			_scroll = _this->get_catch_valid_scroll( Vec2(-value.x(), -value.y()) );
 			_host->mark_render();
 		}
 	}
 
 	void ScrollLayoutBase::set_scroll_x(float value) {
-		_scroll_raw.set_x(-value);
-		_scroll = _this->get_catch_valid_scroll( Vec2(-value, _scroll_raw.y()) );
+		_scroll = _this->get_catch_valid_scroll( Vec2(-value, _scroll.y()) );
 		_host->mark_render(Layout::kScroll);
 	}
 
 	void ScrollLayoutBase::set_scroll_y(float value) {
-		_scroll_raw.set_y(-value);
-		_scroll = _this->get_catch_valid_scroll( Vec2(_scroll_raw.x(), -value) );
+		_scroll = _this->get_catch_valid_scroll( Vec2(_scroll.x(), -value) );
 		_host->mark_render(Layout::kScroll);
 	}
 
@@ -784,9 +783,7 @@ namespace qk {
 	void ScrollLayoutBase::solve(uint32_t mark) {
 		if ( mark & Layout::kScroll ) {
 			if ( !_moved && !_this->is_task() ) {
-				// fix scroll value
-				_scroll = _this->get_catch_valid_scroll(_scroll_raw);
-				_scroll_raw = _scroll;
+				_scroll = _this->get_catch_valid_scroll(_scroll);
 			}
 			_host->unmark(Layout::kScroll);
 			_host->mark_render(Layout::kRecursive_Transform);

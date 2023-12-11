@@ -73,7 +73,7 @@ namespace qk {
 
 		BoxLayout *_host;
 		List<Task*> _tasks;
-		Vec2 _scroll_raw, _scroll, _scroll_max;
+		Vec2 _scroll, _scroll_max;
 		Vec2 _move_start_scroll, _move_point, _move_dist;
 		Vec2 _scrollbar_position_h, _scrollbar_position_v;
 		uint64_t _move_start_time;
@@ -88,6 +88,8 @@ namespace qk {
 	public:
 		virtual ScrollLayoutBase* getScrollLayoutBase() const = 0;
 		virtual PreRender& getPreRender() = 0;
+	private:
+		Vec2 _scroll;
 	};
 
 	class Qk_EXPORT ScrollLayout: public FloatLayout, public ScrollLayoutBase {
