@@ -47,9 +47,12 @@ namespace qk {
 		virtual void set_input_text_offset(Vec2 val) override;
 	};
 
-	class Qk_EXPORT Textarea: public Input {
+	class Qk_EXPORT Textarea: public Input, public ScrollLayoutBaseAsync {
 	public:
-		Qk_Define_View(Textarea, Input);
+		typedef TextareaLayout Layout;
+		Textarea(TextareaLayout *layout);
+		virtual ScrollLayoutBase* getScrollLayoutBase() const override;
+		virtual PreRender& getPreRender() override;
 	};
 
 }

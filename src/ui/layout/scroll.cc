@@ -166,7 +166,7 @@ namespace qk {
 		void register_task(Task* task) {
 			if ( !task->is_register_task() ) {
 				task->m_id2 = _tasks.pushBack(task);
-				_host->window()->preRender().addtask(task);
+				preRender().addtask(task);
 				task->run_task(0);
 			}
 		}
@@ -193,6 +193,10 @@ namespace qk {
 
 		inline bool is_task() {
 			return _tasks.length();
+		}
+
+		inline PreRender& preRender() {
+			return _host->window()->preRender();
 		}
 
 		// scroll
@@ -348,7 +352,8 @@ namespace qk {
 				auto v = *view;
 				if (!v) return;
 
-				_host->window()->host()->loop()->post(Cb([v](auto& e) {
+				_host->window()->host()->loop()->post(Cb([this, v, scroll](auto& e) {
+					_scroll_for_main_t = scroll;
 					Sp<UIEvent> evt = New<UIEvent>(v);
 					v->trigger(UIEvent_Scroll, **evt);
 				}, v));
@@ -560,58 +565,79 @@ namespace qk {
 		// ------------------------------------------------------------------------
 
 		void touch_start_handle(UIEvent& e) {
-			if ( !_action_id ) {
-				TouchEvent* evt = static_cast<TouchEvent*>(&e);
-				_action_id = evt->changed_touches()[0].id;
-				move_start(Vec2( evt->changed_touches()[0].x, evt->changed_touches()[0].y ));
-			}
+			auto evt = static_cast<TouchEvent*>(&e);
+			auto args = new TouchEvent::TouchPoint(evt->changed_touches()[0]);
+			preRender().async_call([](auto ctx, auto args) {
+				Sp<TouchEvent::TouchPoint> handle(args);
+				if ( !ctx->_action_id ) {
+					ctx->_action_id = args->id;
+					ctx->move_start(Vec2( args->x, args->y ));
+				}
+			}, this, args);
 		}
 
 		void touch_move_handle(UIEvent& e) {
-			if ( _action_id && e.return_value ) {
-				TouchEvent* evt = static_cast<TouchEvent*>(&e);
-				for ( auto& i : evt->changed_touches() ) {
-					if (i.id == _action_id) {
-						move(Vec2( i.x, i.y )); break;
+			if (_action_id && e.return_value) {
+				auto evt = static_cast<TouchEvent*>(&e);
+				auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
+				preRender().async_call([](auto ctx, auto args) {
+					Sp<Array<TouchEvent::TouchPoint>> handle(args);
+					if ( ctx->_action_id ) {
+						for ( auto &i : *args ) {
+							if (i.id == ctx->_action_id) {
+								ctx->move(Vec2( i.x, i.y )); break;
+							}
+						}
 					}
-				}
+				}, this, args);
 			}
 		}
 
 		void touch_end_handle(UIEvent& e) {
-			if ( _action_id ) {
-				TouchEvent* evt = static_cast<TouchEvent*>(&e);
-				for ( auto& i : evt->changed_touches() ) {
-					if (i.id == _action_id) {
-						move_end(Vec2( i.x, i.y ));
-						_action_id = 0;
-						break;
+			auto evt = static_cast<TouchEvent*>(&e);
+			auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
+			preRender().async_call([](auto ctx, auto args) {
+				if ( ctx->_action_id ) {
+					for ( auto &i: *args ) {
+						if (i.id == ctx->_action_id) {
+							ctx->move_end(Vec2( i.x, i.y ));
+							ctx->_action_id = 0;
+							break;
+						}
 					}
 				}
-			}
+			}, this, args);
 		}
 
 		void mouse_down_handle(UIEvent& e) {
-			if ( !_action_id ) {
-				MouseEvent* evt = static_cast<MouseEvent*>(&e);
-				_action_id = 1;
-				move_start(Vec2( evt->x(), evt->y() ));
-			}
+			auto evt = static_cast<MouseEvent*>(&e);
+			preRender().async_call([](auto ctx, auto args) {
+				if ( !ctx->_action_id ) {
+					ctx->_action_id = 1;
+					ctx->move_start(args);
+				}
+			}, this, Vec2( evt->x(), evt->y() ));
 		}
 
 		void mouse_move_handle(UIEvent& e) {
-			if ( _action_id && e.return_value ) {
-				MouseEvent* evt = static_cast<MouseEvent*>(&e);
-				move(Vec2( evt->x(), evt->y() ));
+			if (_action_id && e.return_value) {
+				auto evt = static_cast<MouseEvent*>(&e);
+				preRender().async_call([](auto ctx, auto args) {
+					if ( ctx->_action_id ) {
+						ctx->move(args);
+					}
+				}, this, Vec2( evt->x(), evt->y() ));
 			}
 		}
 
 		void mouse_up_handle(UIEvent& e) {
-			if ( _action_id ) {
-				MouseEvent* evt = static_cast<MouseEvent*>(&e);
-				move_end(Vec2( evt->x(), evt->y() ));
-				_action_id = 0;
-			}
+			auto evt = static_cast<MouseEvent*>(&e);
+			preRender().async_call([](auto ctx, auto args) {
+				if ( ctx->_action_id ) {
+					ctx->move_end(args);
+					ctx->_action_id = 0;
+				}
+			}, this, Vec2( evt->x(), evt->y() ));
 		}
 
 	};
@@ -639,18 +665,7 @@ namespace qk {
 		, _moved(false)
 		, _scroll_h(false), _scroll_v(false)
 		, _lock_h(false), _lock_v(false)
-	{
-		// bind touch event
-		//host->add_event_listener(UIEvent_TouchStart, &Inl::touch_start_handle, _this);
-		//host->add_event_listener(UIEvent_TouchMove, &Inl::touch_move_handle, _this);
-		//host->add_event_listener(UIEvent_TouchEnd, &Inl::touch_end_handle, _this);
-		//host->add_event_listener(UIEvent_TouchCancel, &Inl::touch_end_handle, _this);
-		// bind mouse event
-		//host->add_event_listener(UIEvent_MouseDown, &Inl::mouse_down_handle, _this);
-		//host->add_event_listener(UIEvent_MouseMove, &Inl::mouse_move_handle, _this);
-		//host->add_event_listener(UIEvent_MouseUp, &Inl::mouse_up_handle, _this);
-		// Qk_DEBUG("ScrollLayoutBase: %d", sizeof(ScrollLayoutBase));
-	}
+	{}
 
 	ScrollLayoutBase::~ScrollLayoutBase() {
 		_this->termination_all_task();
@@ -790,7 +805,7 @@ namespace qk {
 		}
 	}
 
-	// ------------------------ S c r o l l --------------------------
+	// ------------------------ S c r o l l .L a y o u t --------------------------
 
 	ScrollLayout::ScrollLayout(Window *win): FloatLayout(win), ScrollLayoutBase(this)
 	{
@@ -823,6 +838,120 @@ namespace qk {
 	void ScrollLayout::solve_marks(uint32_t mark) {
 		ScrollLayoutBase::solve(mark);
 		Layout::solve_marks(mark);
+	}
+
+	// -------------------------------- S c r o l l --------------------------------
+
+	Scroll::Scroll(ScrollLayout *layout): Float(layout), ScrollLayoutBaseAsync(layout, this) {
+	}
+
+	ScrollLayoutBase* Scroll::getScrollLayoutBase() const {
+		return layout<ScrollLayoutBase>();
+	}
+
+	PreRender& Scroll::getPreRender() {
+		return preRender();
+	}
+
+	// ---------------- S c r o l l . L a y o u t . B a s e . A s y n c ----------------
+
+	#undef Qk_IMPL_VIEW_PROP_ACC_GET
+	#undef Qk_IMPL_VIEW_PROP_ACC_SET
+	#undef Qk_IMPL_VIEW_PROP_ACC
+
+	#define Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name) \
+		type cls::name() const { return getScrollLayoutBase()->name(); }
+	#define Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name) \
+		void cls::set_##name(type val) { \
+			getPreRender().async_call([](auto ctx, auto val) { ctx->set_##name(val); }, getScrollLayoutBase(), val); \
+		}
+	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name) \
+		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)
+
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, bool, scrollbar);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, bool, bounce);   
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, bool, bounce_lock);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, bool, momentum);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, bool, lock_direction);
+	Qk_IMPL_VIEW_PROP_ACC_GET(ScrollLayoutBaseAsync, bool, scrollbar_h);
+	Qk_IMPL_VIEW_PROP_ACC_GET(ScrollLayoutBaseAsync, bool, scrollbar_v);
+	Qk_IMPL_VIEW_PROP_ACC_GET(ScrollLayoutBaseAsync, Vec2, scroll_size);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, float, resistance);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, float, catch_position_x);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, float, catch_position_y);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, Color, scrollbar_color);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, float, scrollbar_width);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, float, scrollbar_margin);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, uint64_t, scroll_duration);
+	Qk_IMPL_VIEW_PROP_ACC(ScrollLayoutBaseAsync, cCurve*, scroll_curve);
+
+	Vec2 ScrollLayoutBaseAsync::scroll() const {
+		return getScrollLayoutBase()->_scroll_for_main_t;
+	}
+
+	float ScrollLayoutBaseAsync::scroll_x() const {
+		return getScrollLayoutBase()->_scroll_for_main_t.x();
+	}
+
+	float ScrollLayoutBaseAsync::scroll_y() const {
+		return getScrollLayoutBase()->_scroll_for_main_t.y();
+	}
+
+	void ScrollLayoutBaseAsync::set_scroll(Vec2 val) {
+		auto base = getScrollLayoutBase();
+		base->_scroll_for_main_t = val;
+		getPreRender().async_call([](auto ctx, auto val) { ctx->set_scroll(val); }, base, val);
+	}
+
+	void ScrollLayoutBaseAsync::set_scroll_x(float val) {
+		auto base = getScrollLayoutBase();
+		base->_scroll_for_main_t.set_x(val);
+		getPreRender().async_call([](auto ctx, auto val) { ctx->set_scroll_x(val); }, base, val);
+	}
+
+	void ScrollLayoutBaseAsync::set_scroll_y(float val) {
+		auto base = getScrollLayoutBase();
+		base->_scroll_for_main_t.set_y(val);
+		getPreRender().async_call([](auto ctx, auto val) { ctx->set_scroll_y(val); }, base, val);
+	}
+
+	void ScrollLayoutBaseAsync::scroll_to(Vec2 value, uint64_t duration) {
+		auto base = getScrollLayoutBase();
+		base->_scroll_for_main_t = value;
+		struct Args {
+			Vec2 value; uint64_t duration;
+		};
+		getPreRender().async_call([](auto ctx, auto val) {
+			ctx->scroll_to(val.value, val.duration);
+		}, base, Args{value,duration});
+	}
+
+	void ScrollLayoutBaseAsync::scroll_to(Vec2 value, uint64_t duration, cCurve& curve) {
+		auto base = getScrollLayoutBase();
+		base->_scroll_for_main_t = value;
+		struct Args {
+			Vec2 value; uint64_t duration; Curve curve;
+		};
+		getPreRender().async_call([](auto ctx, auto val) {
+			ctx->scroll_to(val->value, val->duration, val->curve); delete val;
+		}, base, new Args{value,duration,curve});
+	}
+
+	void ScrollLayoutBaseAsync::terminate() {
+		getPreRender().async_call([](auto ctx, auto val) { ctx->terminate(); }, getScrollLayoutBase(), 0);
+	}
+
+	ScrollLayoutBaseAsync::ScrollLayoutBaseAsync(ScrollLayoutBase *layout, View *host) {
+		typedef ScrollLayoutBase::Inl Inl;
+		// bind touch event
+		host->add_event_listener(UIEvent_TouchStart, &Inl::touch_start_handle, _inl(layout));
+		host->add_event_listener(UIEvent_TouchMove, &Inl::touch_move_handle, _inl(layout));
+		host->add_event_listener(UIEvent_TouchEnd, &Inl::touch_end_handle, _inl(layout));
+		host->add_event_listener(UIEvent_TouchCancel, &Inl::touch_end_handle, _inl(layout));
+		// bind mouse event
+		host->add_event_listener(UIEvent_MouseDown, &Inl::mouse_down_handle, _inl(layout));
+		host->add_event_listener(UIEvent_MouseMove, &Inl::mouse_move_handle, _inl(layout));
+		host->add_event_listener(UIEvent_MouseUp, &Inl::mouse_up_handle, _inl(layout));
 	}
 
 }

@@ -35,6 +35,7 @@
 #include "../../render/bezier.h"
 
 namespace qk {
+	class ScrollLayout;
 
 	class Qk_EXPORT ScrollLayoutBase {
 	public:
@@ -57,7 +58,6 @@ namespace qk {
 		Qk_DEFINE_PROP(float, scrollbar_margin);
 		Qk_DEFINE_PROP(uint64_t, scroll_duration);
 		Qk_DEFINE_PROP(cCurve*, scroll_curve);
-		// define methods
 		void terminate();
 		void scroll_to(Vec2 value, uint64_t duration);
 		void scroll_to(Vec2 value, uint64_t duration, cCurve& curve);
@@ -68,12 +68,13 @@ namespace qk {
 		void solve(uint32_t mark);
 	private:
 		friend class UIRender;
+		friend class ScrollLayoutBaseAsync;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
 
 		BoxLayout *_host;
 		List<Task*> _tasks;
-		Vec2 _scroll, _scroll_max;
+		Vec2 _scroll, _scroll_max, _scroll_for_main_t;
 		Vec2 _move_start_scroll, _move_point, _move_dist;
 		Vec2 _scrollbar_position_h, _scrollbar_position_v;
 		uint64_t _move_start_time;
@@ -86,11 +87,35 @@ namespace qk {
 
 	class Qk_EXPORT ScrollLayoutBaseAsync {
 	public:
+		Qk_DEFINE_PROP_ACC(bool, scrollbar);
+		Qk_DEFINE_PROP_ACC(bool, bounce);   
+		Qk_DEFINE_PROP_ACC(bool, bounce_lock);
+		Qk_DEFINE_PROP_ACC(bool, momentum);
+		Qk_DEFINE_PROP_ACC(bool, lock_direction);
+		Qk_DEFINE_PROP_ACC_GET(bool, scrollbar_h);
+		Qk_DEFINE_PROP_ACC_GET(bool, scrollbar_v);
+		Qk_DEFINE_PROP_ACC(float, scroll_x);
+		Qk_DEFINE_PROP_ACC(float, scroll_y);
+		Qk_DEFINE_PROP_ACC(Vec2,  scroll);
+		Qk_DEFINE_PROP_ACC_GET(Vec2, scroll_size);
+		Qk_DEFINE_PROP_ACC(float, resistance);
+		Qk_DEFINE_PROP_ACC(float, catch_position_x);
+		Qk_DEFINE_PROP_ACC(float, catch_position_y);
+		Qk_DEFINE_PROP_ACC(Color, scrollbar_color);
+		Qk_DEFINE_PROP_ACC(float, scrollbar_width);
+		Qk_DEFINE_PROP_ACC(float, scrollbar_margin);
+		Qk_DEFINE_PROP_ACC(uint64_t, scroll_duration);
+		Qk_DEFINE_PROP_ACC(cCurve*, scroll_curve);
+		void scroll_to(Vec2 value, uint64_t duration);
+		void scroll_to(Vec2 value, uint64_t duration, cCurve& curve);
+		void terminate();
 		virtual ScrollLayoutBase* getScrollLayoutBase() const = 0;
 		virtual PreRender& getPreRender() = 0;
-	private:
-		Vec2 _scroll;
+	protected:
+		ScrollLayoutBaseAsync(ScrollLayoutBase *layout, View *v);
 	};
+
+	// -------------------------------
 
 	class Qk_EXPORT ScrollLayout: public FloatLayout, public ScrollLayoutBase {
 	public:
@@ -101,9 +126,12 @@ namespace qk {
 		virtual void draw(UIRender *render) override;
 	};
 
-	class Qk_EXPORT Scroll: public Float {
+	class Qk_EXPORT Scroll: public Float, public ScrollLayoutBaseAsync {
 	public:
-		Qk_Define_View(Scroll, Float);
+		typedef ScrollLayout Layout;
+		Scroll(ScrollLayout *layout);
+		virtual ScrollLayoutBase* getScrollLayoutBase() const override;
+		virtual PreRender& getPreRender() override;
 	};
 
 }

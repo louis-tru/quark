@@ -82,4 +82,17 @@ namespace qk {
 		set_scroll( Vec2(-value.x() + _input_text_offset_x, -value.y()) );
 	}
 
+	// ---------------- T e x t a r e a ----------------
+
+	Textarea::Textarea(TextareaLayout *layout): Input(layout), ScrollLayoutBaseAsync(layout, this) {
+	}
+
+	ScrollLayoutBase* Textarea::getScrollLayoutBase() const {
+		return layout<TextareaLayout>();
+	}
+
+	PreRender& Textarea::getPreRender() {
+		return preRender();
+	}
+
 }

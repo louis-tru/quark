@@ -227,7 +227,7 @@ namespace qk {
 	}
 
 	// ---------------- T e x t . O p t i o n s . A s y n c ----------------
-	
+
 	#undef Qk_IMPL_VIEW_PROP_ACC_GET
 	#undef Qk_IMPL_VIEW_PROP_ACC_SET
 	#undef Qk_IMPL_VIEW_PROP_ACC
