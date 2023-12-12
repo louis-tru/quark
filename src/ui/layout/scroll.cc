@@ -564,11 +564,11 @@ namespace qk {
 		// event handles
 		// ------------------------------------------------------------------------
 
-		void touch_start_handle(UIEvent& e) {
+		void handle_TouchStart(UIEvent& e) {
 			auto evt = static_cast<TouchEvent*>(&e);
 			auto args = new TouchEvent::TouchPoint(evt->changed_touches()[0]);
 			preRender().async_call([](auto ctx, auto args) {
-				Sp<TouchEvent::TouchPoint> handle(args);
+				Sp<TouchEvent::TouchPoint, NonObjectTraits> handle(args);
 				if ( !ctx->_action_id ) {
 					ctx->_action_id = args->id;
 					ctx->move_start(Vec2( args->x, args->y ));
@@ -576,7 +576,7 @@ namespace qk {
 			}, this, args);
 		}
 
-		void touch_move_handle(UIEvent& e) {
+		void handle_TouchMove(UIEvent& e) {
 			if (_action_id && e.return_value) {
 				auto evt = static_cast<TouchEvent*>(&e);
 				auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
@@ -593,7 +593,7 @@ namespace qk {
 			}
 		}
 
-		void touch_end_handle(UIEvent& e) {
+		void handle_TouchEnd(UIEvent& e) {
 			auto evt = static_cast<TouchEvent*>(&e);
 			auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
 			preRender().async_call([](auto ctx, auto args) {
@@ -609,7 +609,7 @@ namespace qk {
 			}, this, args);
 		}
 
-		void mouse_down_handle(UIEvent& e) {
+		void handle_MouseDown(UIEvent& e) {
 			auto evt = static_cast<MouseEvent*>(&e);
 			preRender().async_call([](auto ctx, auto args) {
 				if ( !ctx->_action_id ) {
@@ -619,7 +619,7 @@ namespace qk {
 			}, this, Vec2( evt->x(), evt->y() ));
 		}
 
-		void mouse_move_handle(UIEvent& e) {
+		void handle_MouseMove(UIEvent& e) {
 			if (_action_id && e.return_value) {
 				auto evt = static_cast<MouseEvent*>(&e);
 				preRender().async_call([](auto ctx, auto args) {
@@ -630,7 +630,7 @@ namespace qk {
 			}
 		}
 
-		void mouse_up_handle(UIEvent& e) {
+		void handle_MouseUp(UIEvent& e) {
 			auto evt = static_cast<MouseEvent*>(&e);
 			preRender().async_call([](auto ctx, auto args) {
 				if ( ctx->_action_id ) {
@@ -805,7 +805,7 @@ namespace qk {
 		}
 	}
 
-	// ------------------------ S c r o l l .L a y o u t --------------------------
+	// ------------------------ S c r o l l . L a y o u t --------------------------
 
 	ScrollLayout::ScrollLayout(Window *win): FloatLayout(win), ScrollLayoutBase(this)
 	{
@@ -846,7 +846,7 @@ namespace qk {
 	}
 
 	ScrollLayoutBase* Scroll::getScrollLayoutBase() const {
-		return layout<ScrollLayoutBase>();
+		return layout<ScrollLayout>();
 	}
 
 	PreRender& Scroll::getPreRender() {
@@ -944,14 +944,14 @@ namespace qk {
 	ScrollLayoutBaseAsync::ScrollLayoutBaseAsync(ScrollLayoutBase *layout, View *host) {
 		typedef ScrollLayoutBase::Inl Inl;
 		// bind touch event
-		host->add_event_listener(UIEvent_TouchStart, &Inl::touch_start_handle, _inl(layout));
-		host->add_event_listener(UIEvent_TouchMove, &Inl::touch_move_handle, _inl(layout));
-		host->add_event_listener(UIEvent_TouchEnd, &Inl::touch_end_handle, _inl(layout));
-		host->add_event_listener(UIEvent_TouchCancel, &Inl::touch_end_handle, _inl(layout));
+		host->add_event_listener(UIEvent_TouchStart, &Inl::handle_TouchStart, _inl(layout));
+		host->add_event_listener(UIEvent_TouchMove, &Inl::handle_TouchMove, _inl(layout));
+		host->add_event_listener(UIEvent_TouchEnd, &Inl::handle_TouchEnd, _inl(layout));
+		host->add_event_listener(UIEvent_TouchCancel, &Inl::handle_TouchEnd, _inl(layout));
 		// bind mouse event
-		host->add_event_listener(UIEvent_MouseDown, &Inl::mouse_down_handle, _inl(layout));
-		host->add_event_listener(UIEvent_MouseMove, &Inl::mouse_move_handle, _inl(layout));
-		host->add_event_listener(UIEvent_MouseUp, &Inl::mouse_up_handle, _inl(layout));
+		host->add_event_listener(UIEvent_MouseDown, &Inl::handle_MouseDown, _inl(layout));
+		host->add_event_listener(UIEvent_MouseMove, &Inl::handle_MouseMove, _inl(layout));
+		host->add_event_listener(UIEvent_MouseUp, &Inl::handle_MouseUp, _inl(layout));
 	}
 
 }
