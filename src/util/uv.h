@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
 * Distributed under the BSD license:
 *
@@ -29,6 +28,7 @@
 *
 * ***** END LICENSE BLOCK ***** */
 
+// @private head
 
 #ifndef __quark__util__uv__
 #define __quark__util__uv__
@@ -40,13 +40,10 @@
 
 namespace qk {
 
-	/**
-	 * @class UVRequestWrap
-	 */
 	template<class uv_req, class Context, class Data = Object, class CbData = Object>
 	class UVRequestWrap: public Object {
 	public:
-		inline UVRequestWrap(Context* ctx, Callback<CbData> cb = 0, Data data = Data())
+		UVRequestWrap(Context* ctx, Callback<CbData> cb = 0, Data data = Data())
 		: _ctx(ctx), _cb(cb), _data(std::move(data)) {
 			_req.data = this;
 			if (Context::Traits::isReference) Retain(_ctx);
@@ -68,9 +65,6 @@ namespace qk {
 		Data      _data;
 	};
 
-	/**
-	 * @class AsyncIOTask
-	 */
 	class AsyncIOTask: public Reference {
 		Qk_HIDDEN_ALL_COPY(AsyncIOTask);
 	public:
@@ -83,8 +77,8 @@ namespace qk {
 		virtual void abort();
 	private:
 		uint32_t _id;
-		bool _abort;
 		RunLoop* _loop;
+		bool _abort;
 	};
 
 }

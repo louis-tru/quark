@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./info.h"
+#include "./device.h"
 #include <quark/util/fs.h>
 #include <quark/util/loop.h>
 #include <quark/util/dict.h>
@@ -48,7 +48,7 @@ namespace qk {
 	static Mutex mutex;
 #if Qk_UNIX
 	static String* info_str = nullptr;
-	String os_info() {
+	String device_info() {
 		if (!info_str) {
 			ScopeLock lock(mutex);
 			if (!info_str) {
@@ -74,7 +74,7 @@ namespace qk {
 #endif
 
 #if Qk_MAC
-	void os_get_languages_mac(Array<String>& langs);
+	void device_get_languages_mac(Array<String>& langs);
 #endif
 
 	struct language_t {
@@ -87,7 +87,7 @@ namespace qk {
 			if (!language) {
 				auto langs = new language_t;
 #if Qk_iOS
-				os_get_languages_mac(langs->langs);
+				device_get_languages_mac(langs->langs);
 #elif Qk_ANDROID
 				langs->langs.push(API::language());
 #elif Qk_LINUX
@@ -104,16 +104,16 @@ namespace qk {
 		return language;
 	}
 
-	const Array<String>& os_languages() {
+	Array<String> device_languages() {
 		return get_languages()->langs;
 	}
 
-	bool os_is_wifi() {
-		return os_network_status() == 2;
+	bool device_is_wifi() {
+		return device_network_status() == 2;
 	}
 
-	bool os_is_mobile() {
-		return os_network_status() >= 3;
+	bool device_is_mobile() {
+		return device_network_status() >= 3;
 	}
 
 #if Qk_LINUX || Qk_ANDROID
@@ -121,7 +121,7 @@ namespace qk {
 	static std::atomic_int priv_cpu_total_count(0);
 	static std::atomic_int priv_cpu_usage_count(0);
 
-	float os_cpu_usage() {
+	float device_cpu_usage() {
 		Char bf[512] = {0};
 		Array<String> cpus;
 		String prev_str;

@@ -42,7 +42,7 @@ namespace qk {
 	static TaskList* tasks = new TaskList;
 
 	AsyncIOTask::AsyncIOTask(RunLoop* loop)
-		: _id(getId32()), _abort(false), _loop(loop)
+		: _id(getId32()), _loop(loop), _abort(false)
 	{
 		Qk_CHECK(_loop);
 		ScopeLock scope(tasks->mutex);

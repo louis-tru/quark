@@ -134,8 +134,8 @@
 			'media/media.h',
 			'media/media.cc',
 			#os
-			'os/info.h',
-			'os/info.cc',
+			'os/device.h',
+			'os/device.cc',
 			#
 			'ui/app.h',
 			'ui/app.cc',
@@ -215,7 +215,7 @@
 					'deps/reachability/reachability.gyp:reachability',
 				],
 				'sources':[
-					'os/info_mac.mm',
+					'os/device_mac.mm',
 					'platforms/mac/mac_app.h',
 					'platforms/mac/mac_app.mm',
 					'platforms/mac/mac_image_codec.mm',

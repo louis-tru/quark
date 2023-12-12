@@ -31,7 +31,7 @@
 #include <quark/util/util.h>
 #include <quark/util/loop.h>
 #include <quark/util/array.h>
-#include <quark/os/info.h>
+#include <quark/os/device.h>
 
 using namespace qk;
 

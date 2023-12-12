@@ -1,4 +1,3 @@
-// @private head
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -29,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
 
 #ifndef __quark__util___working__
 #define __quark__util___working__
@@ -38,9 +38,6 @@
 
 namespace qk {
 
-	/**
-	* @class ParallelWorking
-	*/
 	class ParallelWorking: public Object {
 		Qk_HIDDEN_ALL_COPY(ParallelWorking);
 	public:

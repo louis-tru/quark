@@ -127,10 +127,10 @@ namespace qk {
 		bool operator!=(const NonIteratorConst& that) const {
 			return !(_ptr == that._ptr);
 		}
-		
+
 		Pointer   operator->() const { return &((T2*)_ptr)->data(); }
 		Reference operator*() const { return ((T2*)_ptr)->data(); }
-		
+
 	private:
 		T* _ptr; //!< raw pointer
 	};

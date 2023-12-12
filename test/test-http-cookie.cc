@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "quark/util/http.h"
-#include "quark/os/info.h"
+#include "quark/os/device.h"
 
 using namespace qk;
 

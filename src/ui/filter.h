@@ -52,7 +52,6 @@ namespace qk {
 			kBlur,
 			kBackdropBlur,
 		};
-
 		enum HolderMode {
 			kIdependent,
 			kShared,
@@ -96,7 +95,6 @@ namespace qk {
 		Qk_DEFINE_PROP(FillPosition, position_x);
 		Qk_DEFINE_PROP(FillPosition, position_y);
 		Qk_DEFINE_PROP(Repeat, repeat);
-
 		FillImage();
 		FillImage(cString& src, Init init = {});
 		virtual Type       type() const override;

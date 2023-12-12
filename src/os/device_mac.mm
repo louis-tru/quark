@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./info.h"
+#import "./device.h"
 #import <quark/util/string.h>
 #import <quark/util/handle.h>
 #import <Foundation/Foundation.h>
@@ -50,30 +50,30 @@
 
 namespace qk {
 
-	String os_brand() {
+	String device_brand() {
 		return "Apple";
 	}
 
 #if Qk_iOS
-	String os_version() {
+	String device_system_version() {
 		return UIDevice.currentDevice.systemVersion.UTF8String;
 	}
 
-	String os_model() {
+	String device_model() {
 		return UIDevice.currentDevice.model.UTF8String;
 	}
 #else
-	String os_version() {
+	String device_system_version() {
 		return String();
 	}
 
-	String os_model() {
+	String device_model() {
 		static String name("MacOSX");
 		return name;
 	}
 #endif
 
-	void os_get_languages_mac(Array<String>& langs) {
+	void device_get_languages_mac(Array<String>& langs) {
 		NSArray* languages = [NSLocale preferredLanguages];
 		for ( int i = 0; i < [languages count]; i++ ) {
 			NSString* str = [languages objectAtIndex:0];
@@ -81,7 +81,7 @@ namespace qk {
 		}
 	}
 
-	int os_network_status() {
+	int device_network_status() {
 		Reachability* reachability = [Reachability reachabilityWithHostName:@"www.apple.com"];
 		int code = [reachability currentReachabilityStatus];
 		if ( code == 1 ) { // wwan
@@ -91,7 +91,7 @@ namespace qk {
 	}
 
 #if Qk_iOS
-	bool os_is_ac_power() {
+	bool device_is_ac_power() {
 		[UIDevice currentDevice].batteryMonitoringEnabled = YES;
 		UIDeviceBatteryState state = [UIDevice currentDevice].batteryState;
 		if ( state == UIDeviceBatteryStateFull ||
@@ -101,16 +101,16 @@ namespace qk {
 		return 0;
 	}
 
-	bool os_is_battery() {
+	bool device_is_battery() {
 		return 1;
 	}
 
-	float os_battery_level() {
+	float device_battery_level() {
 		[UIDevice currentDevice].batteryMonitoringEnabled = YES;
 		return [UIDevice currentDevice].batteryLevel;
 	}
 #else
-	bool os_is_ac_power() {
+	bool device_is_ac_power() {
 		CFTypeRef blob = IOPSCopyPowerSourcesInfo();
 		CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
 		CPointerHold<void> clear(nullptr, [=](void* _) {
@@ -136,7 +136,7 @@ namespace qk {
 		return 1;
 	}
 
-	bool os_is_battery() {
+	bool device_is_battery() {
 		CFTypeRef blob = IOPSCopyPowerSourcesInfo();
 		CFArrayRef sources = IOPSCopyPowerSourcesList(blob);
 		int numOfSources = CFArrayGetCount(sources);
@@ -145,7 +145,7 @@ namespace qk {
 		return numOfSources;
 	}
 
-	float os_battery_level() {
+	float device_battery_level() {
 		//Returns a blob of Power Source information in an opaque CFTypeRef.
 		CFTypeRef blob = IOPSCopyPowerSourcesInfo();
 		//Returns a CFArray of Power Source handles, each of type CFTypeRef.
@@ -184,18 +184,18 @@ namespace qk {
 	}
 #endif
 
-	uint64_t os_memory() {
+	uint64_t device_memory() {
 		return [NSProcessInfo processInfo].physicalMemory;
 	}
 
-	uint64_t os_used_memory() {
+	uint64_t device_used_memory() {
 		struct task_basic_info info;
 		mach_msg_type_number_t size = TASK_BASIC_INFO_COUNT;
 		kern_return_t kerr = task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&info, &size);
 		return (kerr == KERN_SUCCESS) ? info.resident_size : 0; // size in bytes
 	}
 
-	uint64_t os_available_memory() {
+	uint64_t device_available_memory() {
 		vm_statistics_data_t stats;
 		mach_msg_type_number_t size = HOST_VM_INFO_COUNT;
 		kern_return_t kerr = host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t)&stats, &size);
@@ -205,7 +205,7 @@ namespace qk {
 		return 0;
 	}
 
-	float os_cpu_usage() {
+	float device_cpu_usage() {
 		kern_return_t kr;
 		thread_array_t         thread_list;
 		mach_msg_type_number_t thread_count;
