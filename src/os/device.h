@@ -40,12 +40,12 @@ namespace qk {
 	Qk_EXPORT String device_model();
 	Qk_EXPORT String device_info();
 	Qk_EXPORT Array<String> device_languages();
-	Qk_EXPORT bool  device_is_wifi();
-	Qk_EXPORT bool  device_is_mobile();
-	Qk_EXPORT int   device_network_status();
-	Qk_EXPORT bool  device_is_ac_power();
-	Qk_EXPORT bool  device_is_battery();
-	Qk_EXPORT float device_battery_level();
+	Qk_EXPORT bool   device_is_wifi();
+	Qk_EXPORT bool   device_is_mobile();
+	Qk_EXPORT int    device_network_status();
+	Qk_EXPORT bool   device_is_ac_power();
+	Qk_EXPORT bool   device_is_battery();
+	Qk_EXPORT float  device_battery_level();
 	Qk_EXPORT uint64_t device_memory();
 	Qk_EXPORT uint64_t device_used_memory();
 	Qk_EXPORT uint64_t device_available_memory();

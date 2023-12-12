@@ -27,8 +27,8 @@ void test_template() {
 	};
 
 	class C: public Object {
-		public:
-		String to_string() const {
+	public:
+		String toString() const {
 			return String("class C;");
 		}
 	};

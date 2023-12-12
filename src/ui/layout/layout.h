@@ -36,13 +36,10 @@
 
 namespace qk {
 	class TextInput;
-	class ButtonLayout;
 	class TextLines;
 	class TextConfig;
 	class UIRender;
 	class Window;
-	class PreRender;
-	class EventDispatch;
 
 	/**
 		* Layout tree nodes that can only be called in rendering threads.
@@ -118,7 +115,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Window*, window);
 
 		/*
-		* @field window
+		* @field view
 		*/
 		Qk_DEFINE_PROP_GET(View*, view);
 

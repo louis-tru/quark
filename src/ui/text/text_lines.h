@@ -90,6 +90,7 @@ namespace qk {
 		float max_height() const { return _last->end_y; }
 		Line& operator[](uint32_t idx) { return _lines[idx]; }
 		Line& line(uint32_t idx) { return _lines[idx]; }
+
 	private:
 		void finish_line(); // finish line
 		void clear();
