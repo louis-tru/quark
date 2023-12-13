@@ -37,7 +37,7 @@
 
 namespace qk {
 
-	RootLayout::RootLayout(Window *win): BoxLayout(win) {}
+	RootLayout::RootLayout(Window *win): TransformLayout(win) {}
 
 	void RootLayout::init() {
 		set_receive(true);
@@ -52,8 +52,8 @@ namespace qk {
 		mark_layout(Layout::kLayout_Size_Width | Layout::kLayout_Size_Height);
 	}
 
-	bool RootLayout::layout_forward(uint32_t _mark) {
-		if (_mark & (kLayout_Size_Width | kLayout_Size_Height)) {
+	bool RootLayout::layout_forward(uint32_t mark) {
+		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
 			auto win = window();
 			Size size{ Vec2(), win->size(), false, false };
 			Vec2 xy(solve_layout_content_width(size), solve_layout_content_height(size));
@@ -66,12 +66,13 @@ namespace qk {
 					_border->width[0] + _border->width[2] // top + bottom
 				);
 			}
-
 			set_layout_size(xy, &size.wrap_x, false);
 		}
 
-		if (mark_value() & kLayout_Typesetting) {
+		if (mark & kLayout_Typesetting) {
 			return false;
+		} else if (mark & kTransform_Origin) {
+			solve_origin_value(); // check transform_origin change
 		}
 
 		return true; // complete
@@ -86,16 +87,24 @@ namespace qk {
 				v = v->next();
 			}
 			unmark(kLayout_Typesetting);
+
+			solve_origin_value(); // check transform_origin change
 		}
 		return true; // complete iteration
 	}
 
-	Mat RootLayout::layout_matrix() {
-		Vec2 translate = layout_offset() + Vec2(margin_left(), margin_top());
-		return Mat(
-			1, 0, translate.x(),
-			0, 1, translate.y()
-		);
+	void RootLayout::solve_marks(const Mat &mat, uint32_t mark) {
+		if (mark & kRecursive_Transform) { // update transform matrix
+			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
+			_position = layout_offset() + Vec2(margin_left(), margin_top()) + origin_value();
+			_matrix = Mat(_position, scale(), -rotate(), skew());
+			_visible_region = solve_visible_region(_matrix);
+			_matrix.set_translate(Vec2(0)); // clear translate, use position value
+		}
+		else if (mark & kRecursive_Visible_Region) {
+			unmark(kRecursive_Visible_Region); // unmark
+			_visible_region = solve_visible_region(_matrix.set_translate(_position));
+		}
 	}
 
 	bool Root::can_become_focus() {

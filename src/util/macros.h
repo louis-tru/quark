@@ -296,19 +296,25 @@
 	private: static void* operator new(size_t size) = delete; \
 	private: static void operator delete(void*, size_t) = delete
 
-#define Qk_DEFINE_PROP_MODIFIER const
-#define Qk_DEFINE_PROP_MODIFIERNoConst
+#define __Qk_DEFINE_PROP_Const const
+#define __Qk_DEFINE_PROP_ConstNoConst
+#define __Qk_DEFINE_PROP_ConstProtected const
+#define __Qk_DEFINE_PROP_ConstProtectedNoConst
+#define __Qk_DEFINE_PROP_Modifier private
+#define __Qk_DEFINE_PROP_ModifierNoConst private
+#define __Qk_DEFINE_PROP_ModifierProtected protected
+#define __Qk_DEFINE_PROP_ModifierProtectedNoConst protected
 
 #define Qk_DEFINE_PROP_ACC_GET(type, name, ...) \
-	type name () Qk_DEFINE_PROP_MODIFIER##__VA_ARGS__; public:
+	type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__; public:
 
 #define Qk_DEFINE_PROP_ACC(type, name, ...) \
 	void set_##name (type val); \
 	Qk_DEFINE_PROP_ACC_GET(type, name, ##__VA_ARGS__) \
 
 #define Qk_DEFINE_PROP_GET(type, name, ...) \
-	inline type name () Qk_DEFINE_PROP_MODIFIER##__VA_ARGS__ { return _##name; } \
-	private: type _##name; public:\
+	inline type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return _##name; } \
+	__Qk_DEFINE_PROP_Modifier##__VA_ARGS__: type _##name; public:\
 
 #define Qk_DEFINE_PROP(type, name, ...) \
 	void set_##name (type val); \

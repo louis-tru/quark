@@ -226,7 +226,7 @@ namespace qk {
 			_view->release();
 		}
 		static Vec2 view_position(View* view) {
-			return Vec2(view->_layout->matrix()[2], view->_layout->matrix()[5]);
+			return view->_layout->position();
 		}
 		inline View* view() { return _view; }
 		inline Vec2 view_start_position() { return _start_position; }
@@ -907,7 +907,7 @@ namespace qk {
 			_keyboard->command(), _keyboard->caps_lock(),
 			_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 		);
-		auto point = view->_layout->position();
+		auto point = view->_layout->center();
 
 		async_resolve(Cb([this,evt,name,view,point](auto& e) {
 			Sp<KeyEvent> h(evt);

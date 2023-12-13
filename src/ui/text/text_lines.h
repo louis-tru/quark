@@ -84,7 +84,7 @@ namespace qk {
 		void set_metrics(TextOptions *opts);
 		void add_layout(Layout* layout);
 		void add_text_blob(PreTextBlob pre, const Array<GlyphID>& glyphs, const Array<Vec2>& offset, bool is_pre);
-		void solve_visible_region();
+		void solve_visible_region(const Mat &mat);
 		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
 		uint32_t length() const { return _lines.length(); }
 		float max_height() const { return _last->end_y; }

@@ -42,7 +42,7 @@ namespace qk {
 		Qk_DEFINE_PROP(TextAlign, text_align);
 		TextLayout(Window *win);
 		virtual bool layout_reverse(uint32_t mark) override;
-		virtual bool solve_visible_region() override;
+		virtual bool solve_visible_region(const Mat &mat) override;
 		virtual void onActivate() override;
 	protected:
 		virtual void onTextChange(uint32_t mark) override;

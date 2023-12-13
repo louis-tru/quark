@@ -36,8 +36,8 @@
 namespace qk {
 
 	Layout::Layout(Window *win)
-		: _mark_index(-1)
-		, _mark_value(kLayout_None)
+		: _mark_value(kLayout_None)
+		, _mark_index(-1)
 		, _level(0)
 		, _window(win)
 		, _view(nullptr)
@@ -77,36 +77,24 @@ namespace qk {
 	// @layout
 	// ------------------------------------------------------------------------------------------
 
-	Mat Layout::layout_matrix() {
-		Vec2 translate = layout_offset() + _parent->layout_offset_inside();
-		return Mat(
-			1, 0, translate.x(),
-			0, 1, translate.y()
-		);
-	}
-
-	void Layout::solve_marks(uint32_t mark) {
+	void Layout::solve_marks(const Mat &mat, uint32_t mark) {
 		if (mark & kRecursive_Transform) { // update transform matrix
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
-			if (_parent) {
-				_parent->matrix().mul(layout_matrix(), _matrix);
-			} else {
-				_matrix = layout_matrix();
-			}
-			goto visible_region;
-		}
-		if (mark & kRecursive_Visible_Region) {
+			_position =
+				mat.mul_vec2_no_translate(layout_offset() + _parent->layout_offset_inside()) + 
+				_parent->_position;
+			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
+		} else if (mark & kRecursive_Visible_Region) {
 			unmark(kRecursive_Visible_Region); // unmark
-		visible_region:
-			_visible_region = solve_visible_region();
+			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
 		}
 	}
 
-	Vec2 Layout::position() {
-		return Vec2(_matrix[2], _matrix[5]);
+	Vec2 Layout::center() {
+		return Vec2();
 	}
 
-	bool Layout::solve_visible_region() {
+	bool Layout::solve_visible_region(const Mat &mat) {
 		return true;
 	}
 

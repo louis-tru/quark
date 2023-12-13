@@ -79,15 +79,6 @@ namespace qk {
 		}
 	}
 
-	// disable layout matrix prop
-	Mat LabelLayout::layout_matrix() {
-		Vec2 translate = parent()->layout_offset_inside();
-		return Mat(
-			1, 0, translate.x(),
-			0, 1, translate.y()
-		);
-	}
-
 	void LabelLayout::set_layout_offset(Vec2 val) {
 		auto size = parent()->layout_size().content_size;
 		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
@@ -107,9 +98,9 @@ namespace qk {
 		mark_layout(value);
 	}
 
-	bool LabelLayout::solve_visible_region() {
+	bool LabelLayout::solve_visible_region(const Mat &mat) {
 		if (_lines->host() == this)
-			_lines->solve_visible_region();
+			_lines->solve_visible_region(mat);
 		_lines->solve_visible_region_blob(&_blob, &_blob_visible);
 		return _blob_visible.length();
 	}

@@ -211,10 +211,9 @@ namespace qk {
 		}
 	}
 
-	void TextLines::solve_visible_region() {
+	void TextLines::solve_visible_region(const Mat &mat) {
 		// solve lines visible region
 		auto& clip = _host->window()->getClipRegion();
-		auto& mat = _host->matrix();
 		auto  offset_in = _host->layout_offset_inside();
 		auto  x1 = _min_origin + offset_in.x();
 		auto  x2 = x1 + _max_width;

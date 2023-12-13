@@ -689,13 +689,19 @@ namespace qk {
 		return _layout_align;
 	}
 
-	Mat BoxLayout::layout_matrix() {
-		Vec2 translate = layout_offset() + parent()->layout_offset_inside()
-			+ Vec2(_margin_left, _margin_top);
-		return Mat(
-			1, 0, translate.x(),
-			0, 1, translate.y()
-		);
+	void BoxLayout::solve_marks(const Mat &mat, uint32_t mark) {
+		if (mark & kRecursive_Transform) { // update transform matrix
+			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
+			Vec2 offset = layout_offset() + parent()->layout_offset_inside()
+				+ Vec2(_margin_left, _margin_top);
+			_position =
+				mat.mul_vec2_no_translate(offset) + 
+				parent()->position();
+			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
+		} else if (mark & kRecursive_Visible_Region) {
+			unmark(kRecursive_Visible_Region); // unmark
+			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
+		}
 	}
 
 	Vec2 BoxLayout::layout_offset_inside() {
@@ -808,19 +814,18 @@ namespace qk {
 		return true;
 	}
 
-	Vec2 BoxLayout::position() {
+	Vec2 BoxLayout::center() {
 		Vec2 point(
 			_client_size.x() * 0.5,
 			_client_size.y() * 0.5
 		);
-		return matrix() * point;
+		return point;
 	}
 
 	/**
 		* @func solve_rect_vertex(vertex)
 		*/
-	void BoxLayout::solve_rect_vertex(Vec2 vertex[4]) {
-		auto& mat = matrix();
+	void BoxLayout::solve_rect_vertex(const Mat &mat, Vec2 vertex[4]) {
 		Vec2 origin;
 		Vec2 end = _client_size;
 		vertex[0] = mat * origin;
@@ -829,9 +834,8 @@ namespace qk {
 		vertex[3] = mat * Vec2(origin.x(), end.y());
 	}
 
-	bool BoxLayout::solve_visible_region() {
-		// Vec2 vertex[4];
-		solve_rect_vertex(_vertex);
+	bool BoxLayout::solve_visible_region(const Mat &mat) {
+		solve_rect_vertex(mat, _vertex);
 
 		/*
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。

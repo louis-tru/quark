@@ -18,7 +18,7 @@ public:
 	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
 		canvas->save();
-		canvas->translate(-115, 0);
+		canvas->translate({-115, 0});
 
 		canvas->clearColor(Color4f(0,0,1));
 		auto size = window()->size();
@@ -66,7 +66,7 @@ public:
 		//paint.width = 1;
 		//paint.style = Paint::kStroke_Style;
 		//canvas->drawPath(dash, paint);
-		canvas->translate(70, 0);
+		canvas->translate({70, 0});
 		// canvas->drawPath(circle, paint);
 
 		// paint.antiAlias = false;

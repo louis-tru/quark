@@ -51,7 +51,7 @@ namespace qk {
 		return true; // complete
 	}
 
-	void TextareaLayout::solve_marks(uint32_t mark) {
+	void TextareaLayout::solve_marks(const Mat &mat, uint32_t mark) {
 		if (mark & kInput_Status) {
 			auto final_width = content_size().x();
 			auto max_width = _lines->max_width();
@@ -71,7 +71,7 @@ namespace qk {
 			}
 		}
 		ScrollLayoutBase::solve(mark);
-		InputLayout::solve_marks(mark);
+		InputLayout::solve_marks(mat, mark);
 	}
 
 	Vec2 TextareaLayout::input_text_offset() {

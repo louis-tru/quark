@@ -297,6 +297,7 @@ namespace qk {
 		Mat& skew(Vec2 v);
 		Mat& skew_x(float x);
 		Mat& skew_y(float y);
+		Mat& set_translate(Vec2 v);
 		bool operator==(const Mat& b) const;
 		bool operator!=(const Mat& b) const {return !operator==(b);}
 		Mat  operator*(const Mat& b) const;

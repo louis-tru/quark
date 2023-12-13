@@ -50,7 +50,7 @@ namespace qk {
 		: _render(window->render()), _canvas(nullptr)
 		, _cache(nullptr)
 		, _window(window)
-		, _opacity(1), _mark_recursive(0)
+		, _opacity(1), _mark_recursive(0), _matrix(nullptr)
 	{
 		_canvas = _render->getCanvas();
 		_cache = _canvas->getPathvCache();
@@ -350,7 +350,8 @@ namespace qk {
 					{-origin.x(), size.y() - width - margin - origin.y()},
 					{v->_scrollbar_position_h.val[1], width}
 				}, radius);
-				_canvas->setMatrix(Mat(b->_matrix).translate_x(v->_scrollbar_position_h.val[0]));
+				auto mat = Mat(*_matrix).set_translate(b->position());
+				_canvas->setMatrix(mat.translate_x(v->_scrollbar_position_h.val[0]));
 				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 			}
 
@@ -360,7 +361,8 @@ namespace qk {
 					{size.x() - width - margin - origin.x(), -origin.y()},
 					{width, v->_scrollbar_position_v.val[1]}
 				}, radius);
-				_canvas->setMatrix(Mat(b->_matrix).translate_y(v->_scrollbar_position_v.val[0]));
+				auto mat = Mat(*_matrix).set_translate(b->position());
+				_canvas->setMatrix(mat.translate_y(v->_scrollbar_position_v.val[0]));
 				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 			}
 		}
@@ -376,7 +378,7 @@ namespace qk {
 				if (v->_visible) {
 					uint32_t mark = markCurr | v->mark_value(); // inherit recursive
 					if (mark) {
-						v->solve_marks(mark);
+						v->solve_marks(*_matrix, mark);
 						_mark_recursive = mark & Layout::kRecursive_Mark;
 					}
 					if (v->_visible_region && v->_opacity) {
@@ -393,7 +395,7 @@ namespace qk {
 
 	void UIRender::visitBox(BoxLayout* box) {
 		BoxData data;
-		_canvas->setMatrix(box->matrix());
+		_canvas->setTranslate(box->position());
 		if (box->_box_shadow)
 			drawBoxShadow(box, data);
 		if (box->_background_color.a())
@@ -407,7 +409,7 @@ namespace qk {
 
 	void UIRender::visitImage(ImageLayout* v) {
 		BoxData data;
-		_canvas->setMatrix(v->matrix());
+		_canvas->setTranslate(v->position());
 		if (v->_box_shadow)
 			drawBoxShadow(v, data);
 		if (v->_background_color.a())
@@ -444,7 +446,7 @@ namespace qk {
 
 	void UIRender::visitInput(InputLayout* v) {
 		BoxData data;
-		_canvas->setMatrix(v->matrix());
+		_canvas->setTranslate(v->position());
 		if (v->_box_shadow)
 			drawBoxShadow(v, data);
 		if (v->_background_color.a())
@@ -543,7 +545,7 @@ namespace qk {
 
 	void UIRender::visitLabel(LabelLayout* v) {
 		if (v->_blob_visible.length()) {
-			_canvas->setMatrix(v->matrix());
+			_canvas->setTranslate(v->position());
 
 			auto lines = *v->_lines;
 			auto size = v->text_size().value;
@@ -596,17 +598,21 @@ namespace qk {
 	}
 
 	void UIRender::visitTransform(TransformLayout* box) {
+		auto matrix = _matrix;
 		auto fixOrigin = _fixOrigin;
 		_fixOrigin -= box->_origin_value;
+		_matrix = &box->matrix();
+		_canvas->setMatrix(*_matrix);
 		UIRender::visitBox(box);
 		_fixOrigin = fixOrigin;
+		_matrix = matrix;
 	}
 
 	void UIRender::visitRoot(RootLayout* v) {
 		if (_canvas && v->_visible) {
 			uint32_t mark = v->mark_value();
 			if (mark) {
-				v->solve_marks(mark);
+				v->solve_marks(Mat(), mark);
 				_mark_recursive = mark & Layout::kRecursive_Mark;
 			}
 			if (v->_visible_region && v->_opacity != 0) {
@@ -615,7 +621,8 @@ namespace qk {
 				_fixOrigin = 2.0f * 0.225f / _window->scale(); // fix aa stroke width
 				_fixSize = _fixOrigin[0] + _fixOrigin[0];
 				BoxData data;
-				_canvas->setMatrix(v->matrix());
+				_matrix = &v->matrix();
+				_canvas->setMatrix(Mat(*_matrix).set_translate(v->position()));
 				_canvas->clearColor(v->_background_color.to_color4f());
 				if (v->_box_shadow)
 					drawBoxShadow(v, data);

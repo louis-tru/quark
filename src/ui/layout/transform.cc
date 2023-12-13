@@ -229,19 +229,31 @@ namespace qk {
 
 	// ----------------------------------------------------------------------------------
 
-	Mat TransformLayout::layout_matrix() {
-		Vec2 translate = layout_offset() + parent()->layout_offset_inside()
-			+ Vec2(margin_left(), margin_top()) + _origin_value;
-		return Mat(
-			_translate + translate,
-			_scale,
-			-_rotate,
-			_skew
+	Vec2 TransformLayout::center() {
+		auto size = client_size();
+		Vec2 point(
+			size.x() * 0.5 - _origin_value.x(),
+			size.y() * 0.5 - _origin_value.y()
 		);
+		return point;
 	}
 
-	void TransformLayout::solve_rect_vertex(Vec2 vertex[4]) {
-		auto& mat = matrix();
+	void TransformLayout::solve_marks(const Mat &mat, uint32_t mark) {
+		if (mark & kRecursive_Transform) { // update transform matrix
+			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
+			auto v = layout_offset() + parent()->layout_offset_inside()
+				+ Vec2(margin_left(), margin_top()) + _origin_value;
+			_matrix = Mat(mat).set_translate(parent()->position()) * Mat(v, _scale, -_rotate, _skew);
+			_position = Vec2(_matrix[2],_matrix[5]);
+			_visible_region = solve_visible_region(_matrix);
+			_matrix.set_translate(Vec2(0)); // clear translate, use position value
+		} else if (mark & kRecursive_Visible_Region) {
+			unmark(kRecursive_Visible_Region); // unmark
+			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
+		}
+	}
+
+	void TransformLayout::solve_rect_vertex(const Mat &mat, Vec2 vertex[4]) {
 		Vec2 origin(-_origin_value.x(), -_origin_value.y());
 		Vec2 end = origin + client_size();
 		vertex[0] = mat * origin;
@@ -250,39 +262,28 @@ namespace qk {
 		vertex[3] = mat * Vec2(origin.x(), end.y());
 	}
 
-	Vec2 TransformLayout::position() {
-		auto size = client_size();
-		Vec2 point(
-			size.x() * 0.5 - _origin_value.x(),
-			size.y() * 0.5 - _origin_value.y()
-		);
-		return matrix() * point;
-	}
-
 	Vec2 TransformLayout::layout_offset_inside() {
 		return BoxLayout::layout_offset_inside() - _origin_value;
 	}
 
 	bool TransformLayout::layout_forward(uint32_t mark) {
-		auto complete = BoxLayout::layout_forward(mark);
-		if (complete) {
+		auto ok = BoxLayout::layout_forward(mark);
+		if (ok) {
 			if (mark & kTransform_Origin) {
-				// check transform_origin change
-				solve_origin_value();
+				solve_origin_value(); // check transform_origin change
 			}
 		}
-		return complete;
+		return ok;
 	}
 
 	bool TransformLayout::layout_reverse(uint32_t mark) {
-		auto complete = BoxLayout::layout_reverse(mark);
-		if (complete) {
+		auto ok = BoxLayout::layout_reverse(mark);
+		if (ok) {
 			if (mark & kLayout_Typesetting) {
-				// check transform_origin change
-				solve_origin_value();
+				solve_origin_value(); // check transform_origin change
 			}
 		}
-		return complete;
+		return ok;
 	}
 
 	void TransformLayout::solve_origin_value() {

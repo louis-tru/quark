@@ -114,23 +114,23 @@ namespace qk {
 		*/
 		virtual float layout_weight() override;
 		virtual Align layout_align() override;
-		virtual Mat  layout_matrix() override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual Vec2 layout_lock(Vec2 layout_size) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_lazy(Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
-		virtual bool solve_visible_region() override; // compute visible region
+		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
+		virtual bool solve_visible_region(const Mat &mat) override; // compute visible region
 		virtual bool overlap_test(Vec2 point) override;
-		virtual Vec2 position() override;
+		virtual Vec2 center() override;
 		virtual bool is_clip() override;
 		virtual void draw(UIRender *render) override;
 
 		/**
 			* client rect = border + padding + content
-			* @func solve_rect_vertex(vertex)
+			* @func solve_rect_vertex(mat, vertex)
 			*/
-		virtual void solve_rect_vertex(Vec2 vertexOut[4]); // compute rect vertex
+		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]); // compute rect vertex
 
 	protected:
 		/**

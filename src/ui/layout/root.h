@@ -31,15 +31,15 @@
 #ifndef __quark__layout__root__
 #define __quark__layout__root__
 
-#include "./box.h"
+#include "./transform.h"
 
 namespace qk {
 
-	class RootLayout: public BoxLayout {
+	class RootLayout: public TransformLayout {
 	public:
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
-		virtual Mat  layout_matrix() override;
+		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual void draw(UIRender *render) override;
 	private:
 		RootLayout(Window *win);
@@ -48,9 +48,9 @@ namespace qk {
 		friend class Window;
 	};
 
-	class Qk_EXPORT Root: public Box {
+	class Qk_EXPORT Root: public Transform {
 	public:
-		Qk_Define_View(Root, Box);
+		Qk_Define_View(Root, Transform);
 		virtual bool can_become_focus() override;
 	};
 

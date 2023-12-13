@@ -78,6 +78,7 @@ namespace qk {
 		void drawBoxBorder(BoxLayout *box, BoxData &data);
 		void drawBoxEnd(BoxLayout *box, BoxData &data);
 		void drawScrollBar(BoxLayout *box, ScrollLayoutBase *v);
+
 		Window     *_window;
 		Render     *_render;
 		Canvas     *_canvas;
@@ -86,6 +87,7 @@ namespace qk {
 		uint32_t   _mark_recursive;
 		Vec2       _fixOrigin;
 		float      _fixSize; // fix rect stroke width
+		const Mat *_matrix;
 	};
 }
 #endif

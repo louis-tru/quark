@@ -44,7 +44,7 @@ namespace qk {
 		inline ViewName(ViewName##Layout *layout): Base(layout) {}
 
 	#define Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name, ...) \
-		type cls::name() Qk_DEFINE_PROP_MODIFIER##__VA_ARGS__ { return layout<cls##Layout>()->name(); }
+		type cls::name() __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return layout<cls##Layout>()->name(); }
 	#define Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name) \
 		void cls::set_##name(type val) { \
 			preRender().async_call([](auto ctx, auto val) { ctx->set_##name(val); }, layout<cls##Layout>(), val); \

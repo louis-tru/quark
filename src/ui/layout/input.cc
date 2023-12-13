@@ -171,7 +171,7 @@ namespace qk {
 				point[0] += _border->width[3]; // left
 				point[1] += _border->width[0]; // top
 			}
-			return matrix() * point;
+			return _mat * point;
 		}
 
 		void start_action(Vec2 point) {
@@ -280,7 +280,7 @@ namespace qk {
 
 			//Vec2 cursor_offset(x - origin.x(), y - origin.y());
 			Vec2 cursor_offset(x, y);
-			Vec2 location = matrix() * cursor_offset;
+			Vec2 location = _mat * cursor_offset;
 
 			// Qk_DEBUG("input_spot_location,x:%f,y:%f", location.x(), location.y());
 			
@@ -712,27 +712,28 @@ namespace qk {
 		return Vec2(_lines->max_width(), _lines->max_height());
 	}
 
-	void InputLayout::solve_marks(uint32_t mark) {
+	void InputLayout::solve_marks(const Mat &mat, uint32_t mark) {
 		if (mark & kInput_Status) {
 			unmark(kInput_Status);
 			// text cursor status
 			refresh_cursor_screen_position(); // text layout
 
-			Layout::solve_marks(mark);
+			Layout::solve_marks(mat, mark);
 
 			if (_editing) {
 				window()->dispatch()->
 					set_ime_keyboard_spot_location(input_spot_location());
 			}
 		} else {
-			Layout::solve_marks(mark);
+			Layout::solve_marks(mat, mark);
 		}
 	}
 
-	bool InputLayout::solve_visible_region() {
-		if (!BoxLayout::solve_visible_region())
+	bool InputLayout::solve_visible_region(const Mat &mat) {
+		if (!BoxLayout::solve_visible_region(mat))
 			return false;
-		_lines->solve_visible_region();
+		_mat = mat;
+		_lines->solve_visible_region(mat);
 		_lines->solve_visible_region_blob(&_blob, &_blob_visible);
 		return true;
 	}

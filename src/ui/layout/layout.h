@@ -50,16 +50,6 @@ namespace qk {
 		*/
 	class Qk_EXPORT Layout {
 		Qk_HIDDEN_ALL_COPY(Layout);
-		/* Next preprocessing layout tag
-		* You need to call `layout_forward` and `layout_reverse` to process these marked layouts before drawing.
-		* Not all layouts will change at the same time. If the layout tree is very large,
-		* If it comes to layout, in order to track changes in one of the layout nodes, it is necessary to traverse the entire layout tree. In order to avoid this situation
-		* Separate the marked views outside the layout, classify them according to the layout level, and store them in the form of a two-way circular linked list (PreRender)
-		* This avoids accessing views that have not changed and allows them to be accessed sequentially according to the layout hierarchy.
-		*/
-		int32_t _mark_index;
-	protected:
-		Mat _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 	public:
 		typedef NonObjectTraits Traits;
 
@@ -102,12 +92,32 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, mark_value);
 
 		/*
+		* Next preprocessing layout tag
+		* You need to call `layout_forward` and `layout_reverse` to process these marked layouts before drawing.
+		* Not all layouts will change at the same time. If the layout tree is very large,
+		* If it comes to layout, in order to track changes in one of the layout nodes, it is necessary to traverse the entire layout tree. In order to avoid this situation
+		* Separate the marked views outside the layout, classify them according to the layout level, and store them in the form of a two-way circular linked list (PreRender)
+		* This avoids accessing views that have not changed and allows them to be accessed sequentially according to the layout hierarchy.
+		* 
+		* @field mark_index
+		*/
+		Qk_DEFINE_PROP_GET(int32_t, mark_index);
+
+		/*
 		* @field level
 		*
 		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
 		* 这个值受`Layout::_visible`影响, Layout::_visible=false时_level=0
 		*/
 		Qk_DEFINE_PROP_GET(uint32_t, level);
+
+		/**
+		 *
+		 * View at the final position on the screen (parent.matrix * (offset + offset_inside))
+		 *
+		 * @field position()
+		 */
+		Qk_DEFINE_PROP_GET(Vec2, position, Protected);
 
 		/*
 		* @field window
@@ -139,7 +149,7 @@ namespace qk {
 		/**
 		 *  这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		*/
-		Qk_DEFINE_PROP_GET(bool, visible_region);
+		Qk_DEFINE_PROP(bool, visible_region, Protected);
 		/**
 		 * Do views need to receive or handle system event throws? In most cases,
 		 * these events do not need to be handled, which can improve overall event processing efficiency
@@ -305,29 +315,6 @@ namespace qk {
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t/*LayoutMark*/ mark);
 
 		/**
-		 *
-		 * Returns final transformation matrix of the view layout
-		 *
-		 * parent.matrix * layout_matrix
-		 *
-		 * @method matrix()
-		 */
-		inline const Mat& matrix() const {
-			return _matrix;
-		}
-
-		/**
-
-		 * Returns layout transformation matrix of the object view
-		 *
-		 * Mat(layout_offset + transform_origin? + translate + parent->layout_offset_inside, scale, rotate, skew)
-		 *
-		 * @method layout_matrix()
-		 * @thread unsafe 
-		 */
-		virtual Mat layout_matrix();
-
-		/**
 		 * Overlap test, test whether the point on the screen overlaps with the view
 		 * @method overlap_test
 		*/
@@ -335,21 +322,21 @@ namespace qk {
 
 		/**
 		 * 
-		 * returns view position in the screen
+		 * returns view position center in the position
 		 * 
-		 * @method screen_position()
+		 * @method center()
 		*/
-		virtual Vec2 position();
+		virtual Vec2 center();
 
 		/**
 		 * @method solve_marks(mark)
 		*/
-		virtual void solve_marks(uint32_t mark);
+		virtual void solve_marks(const Mat &mat, uint32_t mark);
 
 		/**
 			* @method solve_visible_region()
 			*/
-		virtual bool solve_visible_region();
+		virtual bool solve_visible_region(const Mat &mat);
 
 		/**
 		 * notice update for set parent or level

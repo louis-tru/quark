@@ -80,11 +80,15 @@ namespace qk {
 			_zDepth += (DepthNextUnit * count);
 		}
 
-		void setMatrixInl(const Mat& mat) {
-			auto ch = _state->matrix[0] != 1 || _state->matrix[4] != 1;
-			auto scale = ch ? _state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2: 1;
-			//auto scale1 = ch ? _state->matrix.mul_vec2_no_translate(Vec2(1,-1)).length() / Qk_SQRT_2: 1;
-			//auto scale2 = (scale + scale1) * 0.5; // this scale2 is a more accurate value
+		void setMatrixAndScale(const Mat& mat) {
+			union {
+				struct { float a,b,c,d; } f;
+				struct { uint64_t a,b; } u;
+			} constexpr const _ = {.f={1,0,0,1}};
+			auto ch = *((uint64_t*)(_state->matrix.val)) != _.u.a ||
+								*((uint64_t*)(_state->matrix.val+3)) != _.u.b;
+			auto scale = ch ? 
+				_state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2: 1;
 			if (_scale != scale) {
 				_scale = scale;
 				_fullScale = _surfaceScale * scale;
@@ -422,7 +426,7 @@ namespace qk {
 					} else {
 						_stencilRef--;
 					}
-					_this->setMatrixInl(clip.matrix);
+					_this->setMatrixAndScale(clip.matrix);
 					_cmdPack->drawClip(clip, _stencilRef, true);
 					_this->zDepthNext();
 
@@ -448,7 +452,7 @@ namespace qk {
 			if (restore_output && _state->output) { // restore region draw
 				_cmdPack->outputImageBegin(*_state->output->dest, _state->output->isMipmap);
 			}
-			_this->setMatrixInl(_state->matrix);
+			_this->setMatrixAndScale(_state->matrix);
 		}
 	}
 
@@ -466,22 +470,27 @@ namespace qk {
 
 	void GLCanvas::setMatrix(const Mat& mat) {
 		_state->matrix = mat;
-		_this->setMatrixInl(mat);
+		_this->setMatrixAndScale(mat);
 	}
 
-	void GLCanvas::translate(float x, float y) {
-		_state->matrix.translate({x, y});
-		_this->setMatrixInl(_state->matrix);
+	void GLCanvas::translate(Vec2 val) {
+		_state->matrix.translate(val);
+		_cmdPack->setMetrix();
 	}
 
-	void GLCanvas::scale(float x, float y) {
-		_state->matrix.scale({x, y});
-		_this->setMatrixInl(_state->matrix);
+	void GLCanvas::setTranslate(Vec2 val) {
+		_state->matrix.set_translate(val);
+		_cmdPack->setMetrix();
+	}
+
+	void GLCanvas::scale(Vec2 val) {
+		_state->matrix.scale(val);
+		_this->setMatrixAndScale(_state->matrix);
 	}
 
 	void GLCanvas::rotate(float z) {
 		_state->matrix.rotate(z);
-		_this->setMatrixInl(_state->matrix);
+		_cmdPack->setMetrix();
 	}
 
 	bool GLCanvas::readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) {

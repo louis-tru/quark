@@ -63,8 +63,8 @@ namespace qk {
 		// @override
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual Vec2 layout_offset_inside() override;
-		virtual void solve_marks(uint32_t mark) override;
-		virtual bool solve_visible_region() override;
+		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
+		virtual bool solve_visible_region(const Mat &mat) override;
 		virtual void onActivate() override;
 		virtual TextInput* as_text_input() override;
 		virtual bool run_task(int64_t sys_time) override;
@@ -100,6 +100,7 @@ namespace qk {
 		bool  _editing, _cursor_twinkle_status;
 		char  _flag;
 		Vec2  _point;
+		Mat _mat; // cache matrix
 
 		friend class TextareaLayout;
 		friend class UIRender;

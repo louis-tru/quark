@@ -59,16 +59,23 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(float, scale_y); // y-axis matrix scaling for the view
 		Qk_DEFINE_PROP_ACC(float, skew_x); // x-axis matrix skew for the view
 		Qk_DEFINE_PROP_ACC(float, skew_y); // y-axis matrix skew for the view
+		/**
+		 * @field matrix()
+		*/
+		const Mat& matrix() const { return _matrix; }
+
 		// --------------- o v e r w r i t e ---------------
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual Vec2 layout_offset_inside() override;
-		virtual Mat  layout_matrix() override;
-		virtual Vec2 position() override;
-		virtual void solve_rect_vertex(Vec2 vertexOut[4]) override; // compute rect vertex
+		virtual Vec2 center() override;
+		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
+		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]) override; // compute rect vertex
 		virtual void draw(UIRender *render) override;
-	private:
+
+	protected:
 		void solve_origin_value(); // compute origint value
+		Mat _matrix; // parent transform Layout * Mat(translate, scale, skew, rotate);
 		friend class UIRender;
 	};
 

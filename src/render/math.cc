@@ -458,8 +458,23 @@ namespace qk {
 		[ d, e, f ] * [ 0, 1, y ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
+#if Qk_ARCH_ARM
+		float32x4_t p3 = vmulq_f32(
+			float32x4_t{val[0],val[1],val[3],val[4]},
+			float32x4_t{v.val[0],v.val[1],v.val[0],v.val[1]}
+		); // *
+		float32x2_t p4 = vadd_f32(
+			float32x2_t{p3[0],p3[2]},
+			float32x2_t{p3[1],p3[3]}
+		); // +
+		val[2] = p4[0];
+		val[5] = p4[1];
+#else
 		val[2] += val[0] * v.val[0] + val[1] * v.val[1];
 		val[5] += val[3] * v.val[0] + val[4] * v.val[1];
+				// _a[2] + _a[0] * _b[0] + _a[1] * _b[1],
+				// _a[5] + _a[3] * _b[0] + _a[4] * _b[1]
+#endif
 		return *this;
 	}
 
@@ -491,10 +506,21 @@ namespace qk {
 		[ d, e, f ] * [ 0, y, 0 ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
+#if Qk_ARCH_ARM
+		float32x4_t p3 = vmulq_f32(
+			float32x4_t{val[0],val[3],val[1],val[4]},
+			float32x4_t{v.val[0],v.val[0],v.val[1],v.val[1]}
+		);
+		val[0] = p3[0];
+		val[3] = p3[1];
+		val[1] = p3[2];
+		val[4] = p3[3];
+#else
 		val[0] *= v.val[0];
 		val[3] *= v.val[0];
 		val[1] *= v.val[1];
 		val[4] *= v.val[1];
+#endif
 		return *this;
 	}
 
@@ -528,12 +554,24 @@ namespace qk {
 		*/
 		float cz = cosf(z);
 		float sz = sinf(z);
+#if Qk_ARCH_ARM
+		float32x4_t _a = {val[0],val[1],val[3],val[4]};
+		float32x4_t p0 = vmulq_f32(_a, float32x4_t{cz,sz,cz,sz}); // *
+		float32x4_t p1 = vmulq_f32(_a,float32x4_t{sz,cz,sz,cz}); // *
+		float32x2_t p2 = vsub_f32(float32x2_t{p0[0],p0[2]},float32x2_t{p0[1],p0[3]}); // -
+		float32x2_t p3 = vadd_f32(float32x2_t{p1[0],p1[2]},float32x2_t{p1[1],p1[3]}); // +
+		val[1] = p3[0];
+		val[4] = p3[1];
+		val[0] = p2[0];
+		val[3] = p2[1];
+#else
 		float v0 = val[0] * cz - val[1] * sz;
 		float v3 = val[3] * cz - val[4] * sz;
 		val[1]   = val[0] * sz + val[1] * cz;
 		val[4]   = val[3] * sz + val[4] * cz;
 		val[0]   = v0;
 		val[3]   = v3;
+#endif
 		return *this;
 	}
 
@@ -578,6 +616,12 @@ namespace qk {
 		return *this;
 	}
 
+	Mat& Mat::set_translate(Vec2 v) {
+		val[2] = v[0];
+		val[5] = v[1];
+		return *this;
+	}
+
 	bool Mat::operator==(const Mat& b) const {
 		return (
 			*reinterpret_cast<const double*>(val+0) == *reinterpret_cast<const double*>(b.val+0) &&
@@ -606,13 +650,14 @@ namespace qk {
 		const float* _a = val;
 		const float* _b = b.val;
 #if Qk_ARCH_ARM
-		float32x4_t p0 = {_a[0],_a[1],_a[3],_a[4]};
-		float32x4_t p1 = {_b[0],_b[1],_b[0],_b[1]};
-		float32x4_t p3 = vmulq_f32(p0, p1); // *
-		float32x2_t p4 = {p3[0],p3[2]};
-		float32x2_t p5 = {p3[1],p3[3]};
-		float32x2_t p6 = {_a[2],_a[5]};
-		float32x2_t p8 = vadd_f32(vadd_f32(p4, p5), p6); // +
+		float32x4_t p3 = vmulq_f32(
+			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
+			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
+		); // *
+		float32x2_t p8 = vadd_f32(
+			vadd_f32(float32x2_t{p3[0],p3[2]}, float32x2_t{p3[1],p3[3]}),
+			float32x2_t{_a[2],_a[5]}
+		); // +
 		return Vec2(p8[0],p8[1]);
 #else
 		return Vec2(
@@ -631,12 +676,14 @@ namespace qk {
 		const float* _a = val;
 		const float* _b = b.val;
 #if Qk_ARCH_ARM
-		float32x4_t p0 = {_a[0],_a[1],_a[3],_a[4]};
-		float32x4_t p1 = {_b[0],_b[1],_b[0],_b[1]};
-		float32x4_t p3 = vmulq_f32(p0, p1); // *
-		float32x2_t p4 = {p3[0],p3[2]};
-		float32x2_t p5 = {p3[1],p3[3]};
-		float32x2_t p8 = vadd_f32(p4, p5); // +
+		float32x4_t p3 = vmulq_f32(
+			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
+			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
+		); // *
+		float32x2_t p8 = vadd_f32(
+			float32x2_t{p3[0],p3[2]},
+			float32x2_t{p3[1],p3[3]}
+		); // +
 		return Vec2(p8[0],p8[1]);
 #else
 		return Vec2(
@@ -661,6 +708,43 @@ namespace qk {
 		float* _v = output.val;
 		const float* _a = val;
 		const float* _b = b.val;
+#if Qk_ARCH_ARM
+		float32x4_t p0 = vmulq_f32(
+			float32x4_t{_a[0],_a[1],_a[0],_a[1]},
+			float32x4_t{_b[0],_b[3],_b[1],_b[4]}
+		); // *
+		float32x4_t p1 = vmulq_f32(
+			float32x4_t{_a[3],_a[4],_a[3],_a[4]},
+			float32x4_t{_b[0],_b[3],_b[1],_b[4]}
+		); // *
+		float32x2_t p3 = vadd_f32(
+			float32x2_t{p0[0],p0[2]},
+			float32x2_t{p0[1],p0[3]}
+		); // +
+		float32x2_t p3_1 = vadd_f32(
+			float32x2_t{p1[0],p1[2]},
+			float32x2_t{p1[1],p1[3]}
+		); // +
+		float32x4_t p4 = vmulq_f32(
+			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
+			float32x4_t{_b[2],_b[5],_b[2],_b[5]}
+		); // *
+		float32x2_t p5 = vadd_f32(
+			vadd_f32(
+				float32x2_t{p4[0],p4[2]},
+				float32x2_t{p4[1],p4[3]}
+			), // +
+			float32x2_t{_a[2],_a[5]}
+		); // +
+		// 1 row
+		_v[0] = p3[0];
+		_v[1] = p3[1];
+		_v[2] = p5[0];
+		// 2 row
+		_v[3] = p3_1[0];
+		_v[4] = p3_1[1];
+		_v[5] = p5[1];
+#else
 		// 1 row
 		_v[0] = _a[0]*_b[0] + _a[1]*_b[3];
 		_v[1] = _a[0]*_b[1] + _a[1]*_b[4];
@@ -669,6 +753,7 @@ namespace qk {
 		_v[3] = _a[3]*_b[0] + _a[4]*_b[3];
 		_v[4] = _a[3]*_b[1] + _a[4]*_b[4];
 		_v[5] = _a[3]*_b[2] + _a[4]*_b[5] + _a[5];
+#endif
 	}
 
 	static const Mat UnitMatrix;

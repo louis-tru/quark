@@ -72,8 +72,9 @@ namespace qk {
 		virtual int  getSaveCount() const override;
 		virtual const Mat& getMatrix() const override;
 		virtual void setMatrix(const Mat& mat) override;
-		virtual void translate(float x, float y) override;
-		virtual void scale(float x, float y) override;
+		virtual void setTranslate(Vec2 val) override;
+		virtual void translate(Vec2 val) override;
+		virtual void scale(Vec2 val) override;
 		virtual void rotate(float z) override;
 		virtual bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) override;
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) override;

@@ -835,9 +835,9 @@ namespace qk {
 		return true; // complete iteration
 	}
 
-	void ScrollLayout::solve_marks(uint32_t mark) {
+	void ScrollLayout::solve_marks(const Mat &mat, uint32_t mark) {
 		ScrollLayoutBase::solve(mark);
-		Layout::solve_marks(mark);
+		Layout::solve_marks(mat, mark);
 	}
 
 	// -------------------------------- S c r o l l --------------------------------

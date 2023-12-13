@@ -45,11 +45,10 @@ namespace qk {
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
-		virtual Mat  layout_matrix() override; // disable layout matrix prop
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_lazy(Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(Layout* parent, uint32_t mark) override;
-		virtual bool solve_visible_region() override;
+		virtual bool solve_visible_region(const Mat &mat) override;
 		virtual void onActivate() override;
 		virtual void draw(UIRender *render) override;
 	protected:

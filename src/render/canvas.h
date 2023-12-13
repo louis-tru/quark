@@ -66,8 +66,9 @@ namespace qk {
 		virtual int  getSaveCount() const = 0;
 		virtual const Mat& getMatrix() const = 0;
 		virtual void setMatrix(const Mat& mat) = 0;
-		virtual void translate(float x, float y) = 0;
-		virtual void scale(float x, float y) = 0;
+		virtual void setTranslate(Vec2 val) = 0;
+		virtual void translate(Vec2 val) = 0;
+		virtual void scale(Vec2 val) = 0;
 		virtual void rotate(float z) = 0; // arc rotation
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) = 0;
 		virtual void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) = 0;

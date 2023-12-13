@@ -84,10 +84,10 @@ namespace qk {
 		value ? mark_layout(value): mark_render();
 	}
 
-	bool TextLayout::solve_visible_region() {
-		bool ok = BoxLayout::solve_visible_region();
+	bool TextLayout::solve_visible_region(const Mat &mat) {
+		bool ok = BoxLayout::solve_visible_region(mat);
 		if (ok && _lines) {
-			_lines->solve_visible_region();
+			_lines->solve_visible_region(mat);
 		}
 		return ok;
 	}
