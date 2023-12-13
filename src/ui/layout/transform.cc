@@ -310,6 +310,10 @@ namespace qk {
 		}
 	}
 
+	TransformLayout* TransformLayout::as_transform() {
+		return this;
+	}
+
 	// --------------------------------- L a b e l ---------------------------------
 
 	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, translate); // matrix displacement for the view

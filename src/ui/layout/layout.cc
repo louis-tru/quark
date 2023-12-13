@@ -106,6 +106,10 @@ namespace qk {
 		return nullptr;
 	}
 
+	TransformLayout* Layout::as_transform() {
+		return nullptr;
+	}
+
 	float Layout::layout_weight() {
 		return 0;
 	}
@@ -202,6 +206,17 @@ namespace qk {
 		} else {
 			return nullptr;
 		}
+	}
+
+	TransformLayout* Layout::transform() {
+		auto *v = this;
+		do {
+			auto t = v->as_transform();
+			if (t)
+				return t;
+			v = v->_parent;
+		} while(v);
+		return nullptr;
 	}
 
 	// @private

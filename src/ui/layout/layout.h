@@ -40,6 +40,7 @@ namespace qk {
 	class TextConfig;
 	class UIRender;
 	class Window;
+	class TransformLayout;
 
 	/**
 		* Layout tree nodes that can only be called in rendering threads.
@@ -84,7 +85,7 @@ namespace qk {
 		};
 
 		/* 
-		* @field mark_value
+		* @prop mark_value
 		*
 		* The marked layout will be updated before starting frame drawing.
 		* During operation, layout local attributes may be updated frequently or the layout may rarely change.
@@ -99,12 +100,12 @@ namespace qk {
 		* Separate the marked views outside the layout, classify them according to the layout level, and store them in the form of a two-way circular linked list (PreRender)
 		* This avoids accessing views that have not changed and allows them to be accessed sequentially according to the layout hierarchy.
 		* 
-		* @field mark_index
+		* @prop mark_index
 		*/
 		Qk_DEFINE_PROP_GET(int32_t, mark_index);
 
 		/*
-		* @field level
+		* @prop level
 		*
 		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
 		* 这个值受`Layout::_visible`影响, Layout::_visible=false时_level=0
@@ -115,19 +116,27 @@ namespace qk {
 		 *
 		 * View at the final position on the screen (parent.matrix * (offset + offset_inside))
 		 *
-		 * @field position()
+		 * @prop position()
 		 */
 		Qk_DEFINE_PROP_GET(Vec2, position, Protected);
 
 		/*
-		* @field window
+		* @prop window
 		*/
 		Qk_DEFINE_PROP_GET(Window*, window);
 
 		/*
-		* @field view
+		* @prop view
 		*/
 		Qk_DEFINE_PROP_GET(View*, view);
+
+		/**
+		 * 
+		 * return safe view and retain view
+		 * 
+		 * @prop safe_view()
+		*/
+		Qk_DEFINE_PROP_ACC_GET(Sp<View>, safe_view, NoConst);
 
 		/**
 		 * parent layout view
@@ -137,24 +146,33 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Layout*, next);
 		Qk_DEFINE_PROP_GET(Layout*, first);
 		Qk_DEFINE_PROP_GET(Layout*, last);
+
 		/**
 		 *  can affect the transparency of subviews
 		 */
 		Qk_DEFINE_PROP(float, opacity);
+
 		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space
 		*/
 		Qk_DEFINE_PROP(bool, visible);
+
 		/**
 		 *  这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		*/
 		Qk_DEFINE_PROP(bool, visible_region, Protected);
+
 		/**
 		 * Do views need to receive or handle system event throws? In most cases,
 		 * these events do not need to be handled, which can improve overall event processing efficiency
 		*/
 		Qk_DEFINE_PROP(bool, receive);
+
+		/**
+		 * @prop transform()
+		*/
+		Qk_DEFINE_PROP_ACC_GET(TransformLayout*, transform, NoConst);
 
 		/**
 		 * @constructor
@@ -173,6 +191,14 @@ namespace qk {
 		 * @method as_text_input()
 		*/
 		virtual TextInput* as_text_input();
+
+		/**
+		 * 
+		 * Returns as transform
+		 * 
+		 * @method as_transform()
+		*/
+		virtual TransformLayout* as_transform();
 
 		/**
 			*
@@ -374,14 +400,6 @@ namespace qk {
 		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {
 			_mark_value &= (~mark);
 		}
-
-		/**
-		 * 
-		 * return safe view and retain view
-		 * 
-		 * @method safe_view()
-		*/
-		Sp<View> safe_view();
 
 	private:
 		void before(Layout* view);

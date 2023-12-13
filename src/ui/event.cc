@@ -907,7 +907,8 @@ namespace qk {
 			_keyboard->command(), _keyboard->caps_lock(),
 			_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 		);
-		auto point = view->_layout->center();
+		auto mat = view->_layout->transform()->matrix();
+		auto point = mat * view->_layout->center() + view->_layout->position();
 
 		async_resolve(Cb([this,evt,name,view,point](auto& e) {
 			Sp<KeyEvent> h(evt);
