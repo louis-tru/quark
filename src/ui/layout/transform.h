@@ -60,7 +60,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(float, skew_x); // x-axis matrix skew for the view
 		Qk_DEFINE_PROP_ACC(float, skew_y); // y-axis matrix skew for the view
 		/**
-		 * @field matrix()
+		 * @prop matrix()
 		*/
 		const Mat& matrix() const { return _matrix; }
 
