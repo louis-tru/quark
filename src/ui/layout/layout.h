@@ -159,7 +159,7 @@ namespace qk {
 		Qk_DEFINE_PROP(bool, visible);
 
 		/**
-		 *  这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
+		 *  这个值与`visible`不相关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		*/
 		Qk_DEFINE_PROP(bool, visible_region, Protected);
 

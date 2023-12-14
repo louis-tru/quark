@@ -54,8 +54,7 @@ namespace qk {
 		static void* alloc(uint32_t size);
 		static void  free(void* ptr);
 		static void* realloc(void* ptr, uint32_t size);
-		// auto alloc Memory
-		static void  aalloc(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf);
+		static void  aalloc(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf); // auto alloc Memory
 	};
 
 	template<typename T = char, typename A = MemoryAllocator> class ArrayString;
@@ -89,8 +88,7 @@ namespace qk {
 		static void* operator new(size_t size, void* p);
 		static void  operator delete(void* p);
 		static void setAllocator(
-			void* (*alloc)(size_t size) = nullptr,
-			void  (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
+			void* (*alloc)(size_t size), void (*release)(Object* obj), void (*retain)(Object* obj)
 		);
 		typedef void* __has_object_type;
 #if Qk_MEMORY_TRACE_MARK

@@ -164,24 +164,11 @@ namespace qk {
 	}
 
 	void Object::setAllocator(
-		void* (*alloc)(size_t size),
-		void (*release)(Object* obj), void (*retain)(Object* obj)
+		void* (*alloc)(size_t size), void (*release)(Object* obj), void (*retain)(Object* obj)
 	) {
-		if (alloc) {
-			object_allocator_alloc = alloc;
-		} else {
-			object_allocator_alloc = &default_object_alloc;
-		}
-		if (release) {
-			object_allocator_release = release;
-		} else {
-			object_allocator_release = &default_object_release;
-		}
-		if (retain) {
-			object_allocator_retain = retain;
-		} else {
-			object_allocator_retain = &default_object_retain;
-		}
+		object_allocator_alloc = alloc ? alloc: &default_object_alloc;
+		object_allocator_release = release ? release: &default_object_release;
+		object_allocator_retain = retain ? retain: &default_object_retain;
 	}
 
 	bool Retain(Object* obj) {

@@ -45,9 +45,11 @@ namespace qk {
 	}
 
 	View::~View() {
-		Qk_ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
-		set_action(nullptr); // del action
-		remove_all_child(); // 删除子视图
+		// The object maintained by the parent view should not be deconstructed,
+		// where the parent must be empty
+		Qk_ASSERT(_parent == nullptr);
+		set_action(nullptr); // Delete action
+		remove_all_child(); // Delete sub views
 		_layout->_view = nullptr;
 
 		preRender().async_call([](auto ctx, auto val) {
@@ -149,13 +151,13 @@ namespace qk {
 		if (view == this) return;
 		if (_parent) {
 			if (view->_parent == _parent) {
-				view->clear_link();  // 清除关联
+				view->clear_link();  // clear link
 			} else {
 				view->set_parent(_parent);
 			}
 			if (_prev) {
 				_prev->_next = view;
-			} else { // 上面没有兄弟
+			} else { // There are no brothers on top
 				_parent->_first = view;
 			}
 			view->_prev = _prev;
@@ -169,13 +171,13 @@ namespace qk {
 		if (view == this) return;
 		if (_parent) {
 			if (view->_parent == _parent) {
-				view->clear_link(); // 清除关联
+				view->clear_link(); // clear link
 			} else {
 				view->set_parent(_parent);
 			}
 			if (_next) {
 				_next->_prev = view;
-			} else { // 下面没有兄弟
+			} else { // There are no brothers below
 				_parent->_last = view;
 			}
 			view->_prev = this;
@@ -196,7 +198,7 @@ namespace qk {
 			child->_next = _first;
 			_first->_prev = child;
 			_first = child;
-		} else { // 当前还没有子视图
+		} else { // There are currently no sub views available yet
 			child->_prev = nullptr;
 			child->_next = nullptr;
 			_first = child;
@@ -216,7 +218,7 @@ namespace qk {
 			child->_next = nullptr;
 			_last->_next = child;
 			_last = child;
-		} else { // 当前还没有子视图
+		} else { // There are currently no sub views available yet
 			child->_prev = nullptr;
 			child->_next = nullptr;
 			_first = child;
@@ -253,13 +255,13 @@ namespace qk {
 
 	void View::clear_link() { // Cleaning up associated view information
 		if (_parent) {
-			/* 当前为第一个子视图 */
+			/* Currently the first sub view */
 			if (_parent->_first == this) {
 				_parent->_first = _next;
 			} else {
 				_prev->_next = _next;
 			}
-			/* 当前为最后一个子视图 */
+			/* Currently the last sub view */
 			if (_parent->_last == this) {
 				_parent->_last = _prev;
 			} else {
