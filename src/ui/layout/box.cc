@@ -695,8 +695,7 @@ namespace qk {
 			Vec2 offset = layout_offset() + parent()->layout_offset_inside()
 				+ Vec2(_margin_left, _margin_top);
 			_position =
-				mat.mul_vec2_no_translate(offset) + 
-				parent()->position();
+				mat.mul_vec2_no_translate(offset) + parent()->position();
 			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
 		} else if (mark & kRecursive_Visible_Region) {
 			unmark(kRecursive_Visible_Region); // unmark

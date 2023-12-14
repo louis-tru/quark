@@ -43,7 +43,6 @@ namespace qk {
 		virtual void draw(UIRender *render) override;
 	private:
 		RootLayout(Window *win);
-		void init();
 		void reload();
 		friend class Window;
 	};

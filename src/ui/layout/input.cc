@@ -31,8 +31,8 @@
 #include "./input.h"
 #include "../app.h"
 #include "../window.h"
-#include "../../util/codec.h"
 #include "./textarea.h"
+#include "../../util/codec.h"
 #include <math.h>
 
 namespace qk {
@@ -53,94 +53,115 @@ namespace qk {
 		#define _this static_cast<InputLayout::Inl*>(this)
 	public:
 
-		void touchstart_handle(UIEvent& evt) {
-			TouchEvent* e = static_cast<TouchEvent*>(&evt);
-			start_action(Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
+		inline PreRender& preRender() {
+			return window()->preRender();
 		}
 
-		void touchmove_handle(UIEvent& evt) {
-			TouchEvent* e = static_cast<TouchEvent*>(&evt);
-			move_action(evt, Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
+		void handle_Touchstart(UIEvent& evt) {
+			auto e = static_cast<TouchEvent*>(&evt);
+			Vec2 args(e->changed_touches()[0].x, e->changed_touches()[0].y);
+			preRender().async_call([](auto ctx, auto args) { ctx->start_action(args); }, this, args);
 		}
 
-		void touchend_handle(UIEvent& evt) {
-			TouchEvent* e = static_cast<TouchEvent*>(&evt);
-			end_action(Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
+		void handle_Touchmove(UIEvent& evt) {
+			prevent_default(evt);
+			auto e = static_cast<TouchEvent*>(&evt);
+			Vec2 args(e->changed_touches()[0].x, e->changed_touches()[0].y);
+			preRender().async_call([](auto ctx, auto args) { ctx->move_action(args); }, this, args);
 		}
 
-		void mousedown_handle(UIEvent& evt) {
-			MouseEvent* e = static_cast<MouseEvent*>(&evt);
-			start_action(Vec2(e->x(), e->y()));
+		void handle_Touchend(UIEvent& evt) {
+			auto e = static_cast<TouchEvent*>(&evt);
+			Vec2 args(e->changed_touches()[0].x, e->changed_touches()[0].y);
+			preRender().async_call([](auto ctx, auto args) { ctx->end_action(args); }, this, args);
 		}
 
-		void mousemove_handle(UIEvent& evt) {
-			MouseEvent* e = static_cast<MouseEvent*>(&evt);
-			move_action(evt, Vec2(e->x(), e->y()));
+		void handle_Mousedown(UIEvent& evt) {
+			auto e = static_cast<MouseEvent*>(&evt);
+			Vec2 args(e->x(), e->y());
+			preRender().async_call([](auto ctx, auto args) { ctx->start_action(args); }, this, args);
 		}
 
-		void mouseup_handle(UIEvent& evt) {
-			MouseEvent* e = static_cast<MouseEvent*>(&evt);
-			end_action(Vec2(e->x(), e->y()));
+		void handle_Mousemove(UIEvent& evt) {
+			prevent_default(evt);
+			auto e = static_cast<MouseEvent*>(&evt);
+			Vec2 args(e->x(), e->y());
+			preRender().async_call([](auto ctx, auto args) { ctx->move_action(args); }, this, args);
 		}
 
-		void click_handle(UIEvent& evt) {
-			ClickEvent* e = static_cast<ClickEvent*>(&evt);
-			if ( _editing ) {
-				window()->dispatch()->
-					set_ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
-			} else {
-				if ( _flag == kFlag_Disable_Click_Find ) { // 禁用点击聚焦
-					_flag = kFlag_Normal;
+		void handle_Mouseup(UIEvent& evt) {
+			auto e = static_cast<MouseEvent*>(&evt);
+			Vec2 args(e->x(), e->y());
+			preRender().async_call([](auto ctx, auto args) { ctx->end_action(args); }, this, args);
+		}
+
+		void handle_Click(UIEvent& evt) {
+			auto e = static_cast<ClickEvent*>(&evt);
+			Vec2 args(e->x(), e->y());
+			preRender().async_call([](auto ctx, auto args) {
+				if ( ctx->_editing ) {
+					ctx->window()->dispatch()->set_ime_keyboard_open({
+						false, ctx->_type, ctx->_return_type, ctx->input_spot_location()
+					});
 				} else {
-					// TODO ...
-					view()->focus();
-					find_cursor(Vec2(e->x(), e->y()));
+					if ( ctx->_flag == kFlag_Disable_Click_Find ) { // 禁用点击聚焦
+						ctx->_flag = kFlag_Normal;
+					} else {
+						auto view = ctx->safe_view();
+						auto v = *view;
+						if (v) {
+							ctx->window()->host()->loop()->post(Cb([v](auto &e) { v->focus(); },v));
+							ctx->handle_Focus_for_render_t();
+							ctx->find_cursor(args);
+						}
+					}
 				}
-			}
+			}, this, args);
 		}
 
-		void keydown_handle(UIEvent& evt) { // keyboard event
-			if ( _editing && _flag == kFlag_Normal ) {
-				
-				switch ( static_cast<KeyEvent*>(&evt)->keycode() ) {
-					default: break;
-					case KEYCODE_LEFT:
-						_cursor = Qk_MAX(0, int(_cursor - 1));
-						break;
-					case KEYCODE_UP: {
-						Vec2 location = spot_location();
-						Vec2 coord(location.x(), location.y() - (_text_height * 1.5));
-						find_cursor(coord);
-						break;
+		void handle_Keydown(UIEvent& evt) {
+			preRender().async_call([](auto ctx, auto args) {
+				if ( ctx->_editing && ctx->_flag == kFlag_Normal ) {
+					switch ( args ) {
+						default: break;
+						case KEYCODE_LEFT:
+							ctx->_cursor = Qk_MAX(0, int(ctx->_cursor - 1));
+							break;
+						case KEYCODE_UP: {
+							Vec2 location = ctx->spot_location();
+							Vec2 coord(location.x(), location.y() - (ctx->_text_height * 1.5));
+							ctx->find_cursor(coord);
+							break;
+						}
+						case KEYCODE_RIGHT:
+							ctx->_cursor = Qk_MIN(ctx->text_length(), ctx->_cursor + 1);
+							break;
+						case KEYCODE_DOWN: {
+							Vec2 location = ctx->spot_location();
+							Vec2 coord(location.x(), location.y() + (ctx->_text_height * 0.5));
+							ctx->find_cursor(coord);
+							break;
+						}
+						case KEYCODE_PAGE_UP: /* TODO page up */
+							break;
+						case KEYCODE_PAGE_DOWN: /* TODO page down */
+							break;
+						case KEYCODE_MOVE_HOME:
+							ctx->_cursor = 0;
+							break;
+						case KEYCODE_MOVE_END:
+							ctx->_cursor = ctx->text_length();
+							break;
 					}
-					case KEYCODE_RIGHT:
-						_cursor = Qk_MIN(text_length(), _cursor + 1);
-						break;
-					case KEYCODE_DOWN: {
-						Vec2 location = spot_location();
-						Vec2 coord(location.x(), location.y() + (_text_height * 0.5));
-						find_cursor(coord);
-						break;
-					}
-					case KEYCODE_PAGE_UP: /* TODO */
-						break;
-					case KEYCODE_PAGE_DOWN: /* TODO */
-						break;
-					case KEYCODE_MOVE_HOME:
-						_cursor = 0;
-						break;
-					case KEYCODE_MOVE_END:
-						_cursor = text_length();
-						break;
+					
+					ctx->limit_cursor_in_marked_text();
+					ctx->reset_cursor_twinkle_task_timeout();
+					ctx->mark_render(kInput_Status);
 				}
-				
-				limit_cursor_in_marked_text();
-				reset_cursor_twinkle_task_timeout();
-				mark_render(kInput_Status);
-			}
+			}, this, static_cast<KeyEvent*>(&evt)->keycode());
 		}
 
-		void focus_handle(UIEvent& evt) {
+		void handle_Focus_for_render_t() {
 			if (_readonly)
 				_editing = false;
 			else
@@ -148,19 +169,27 @@ namespace qk {
 			_cursor_twinkle_status = 0;
 			_flag = kFlag_Normal;
 			mark_render(kInput_Status);
-			window()->preRender().addtask(this);
+			preRender().addtask(this);
 		}
 
-		void blur_handle(UIEvent& evt) {
-			_editing = false;
-			_flag = kFlag_Normal;
-			if ( _marked_text.length() ) {
-				input_unmark_text(_marked_text);
-			} else {
-				mark_render(kInput_Status);
-			}
-			window()->preRender().untask(this);
+		void handle_Focus(UIEvent& evt) {
+			preRender().async_call([](auto ctx, auto args) { ctx->handle_Focus_for_render_t(); }, this, 0);
 		}
+
+		void handle_Blur(UIEvent& evt) {
+			preRender().async_call([](auto ctx, auto args) {
+				ctx->_editing = false;
+				ctx->_flag = kFlag_Normal;
+				if ( ctx->_marked_text.length() ) {
+					ctx->input_unmark_text(ctx->_marked_text);
+				} else {
+					ctx->mark_render(kInput_Status);
+				}
+				ctx->preRender().untask(ctx);
+			}, this, 0);
+		}
+
+		// -------------------------------------------------------------------------------
 
 		Vec2 get_position() {
 			Vec2 point(
@@ -181,14 +210,17 @@ namespace qk {
 					_flag = kFlag_Wait_Find;
 					int64_t timeout = is_multiline() ? 1e6/*1s*/: 0;
 					if ( timeout ) {
-						// TODO ///
-						shared_app()->loop()->post(Cb([this](Cb::Data& evt) { // delay
-							UILock lock(window());
-							if ( _flag == kFlag_Wait_Find ) {
-								_flag = kFlag_Find; // 激活光标定位
-								find_cursor(_point);
-							}
-						}, this), Qk_MIN(timeout, 1e6/*1s*/));
+						auto view = safe_view();
+						if (view) {
+							window()->host()->loop()->post(Cb([this](auto &evt) { // delay call
+								preRender().async_call([](auto ctx, auto args) {
+									if ( ctx->_flag == kFlag_Wait_Find ) {
+										ctx->_flag = kFlag_Find; // 激活光标定位
+										ctx->find_cursor(ctx->_point);
+									}
+								}, this, 0);
+							}, *view), Qk_MIN(timeout, 1e6/*1s*/));
+						}
 					} else { // 立即激活
 						_flag = kFlag_Find;
 					}
@@ -203,10 +235,18 @@ namespace qk {
 			}
 		}
 
-		void move_action(UIEvent& evt, Vec2 point) {
+		void prevent_default(UIEvent &evt) {
+			if (_editing) {
+				if (_flag == kFlag_Auto_Find || _flag == kFlag_Find) {
+					evt.return_value = 0;
+				}
+			}
+		}
+
+		void move_action(Vec2 point) {
 			if ( _editing ) {
 				_point = point;
-				
+
 				switch (_flag) {
 					case kFlag_Wait_Find:          // 等待激活光标定位
 						_flag = kFlag_Disable_Find;  // 禁用
@@ -218,7 +258,6 @@ namespace qk {
 						} else {
 							find_cursor(_point); // 立即查找位置
 						}
-						evt.return_value = 0;
 						break;
 					}
 					case kFlag_Auto_Find: { // 自动光标定位
@@ -230,7 +269,6 @@ namespace qk {
 						} else { // 不需要使用自动选择
 							_flag = kFlag_Find;
 						}
-						evt.return_value = 0;
 						break;
 					}
 					case kFlag_Range_Select: // 范围选择
@@ -537,12 +575,15 @@ namespace qk {
 			}
 		}
 
-		void trigger_change() {
-			shared_app()->loop()->post(Cb([this](Cb::Data& e){
-				Handle<UIEvent> evt = qk::New<UIEvent>(view()); // TODO ...
-				// TODO ...
-				//trigger(UIEvent_Change, **evt); // trigger event
-			}, this));
+		void trigger_Change() {
+			auto view = safe_view();
+			auto v = *view;
+			if (v) {
+				window()->host()->loop()->post(Cb([v](Cb::Data& e){
+					Sp<UIEvent> evt = qk::New<UIEvent>(v);
+					v->trigger(UIEvent_Change, **evt);
+				}, v));
+			}
 		}
 
 	};
@@ -566,19 +607,6 @@ namespace qk {
 		set_clip(true);
 		set_receive(true);
 		set_text_word_break(TextWordBreak::kBreakWord);
-		// bind events
-		// TODO ...
-//		add_event_listener(UIEvent_Click, &Inl::click_handle, _this);
-//		add_event_listener(UIEvent_TouchStart, &Inl::touchstart_handle, _this);
-//		add_event_listener(UIEvent_TouchMove, &Inl::touchmove_handle, _this);
-//		add_event_listener(UIEvent_TouchEnd, &Inl::touchend_handle, _this);
-//		add_event_listener(UIEvent_TouchCancel, &Inl::touchend_handle, _this);
-//		add_event_listener(UIEvent_MouseDown, &Inl::mousedown_handle, _this);
-//		add_event_listener(UIEvent_MouseMove, &Inl::mousemove_handle, _this);
-//		add_event_listener(UIEvent_MouseUp, &Inl::mouseup_handle, _this);
-//		add_event_listener(UIEvent_Focus, &Inl::focus_handle, _this);
-//		add_event_listener(UIEvent_Blur, &Inl::blur_handle, _this);
-//		add_event_listener(UIEvent_KeyDown, &Inl::keydown_handle, _this);
 	}
 
 	bool InputLayout::is_multiline() {
@@ -884,7 +912,7 @@ namespace qk {
 				}
 			}
 
-			Inl_InputLayout(this)->trigger_change();
+			Inl_InputLayout(this)->trigger_Change();
 			Inl_InputLayout(this)->reset_cursor_twinkle_task_timeout();
 		}
 	}
@@ -892,7 +920,7 @@ namespace qk {
 	void InputLayout::input_insert(cString& text) {
 		if ( _editing ) {
 			_this->input_insert_text(_this->delete_line_feed_format(text));
-			_this->trigger_change();
+			_this->trigger_Change();
 			_this->reset_cursor_twinkle_task_timeout();
 		}
 	}
@@ -900,7 +928,7 @@ namespace qk {
 	void InputLayout::input_marked(cString& text) {
 		if ( _editing ) {
 			_this->input_marked_text(_this->delete_line_feed_format(text));
-			_this->trigger_change();
+			_this->trigger_Change();
 			_this->reset_cursor_twinkle_task_timeout();
 		}
 	}
@@ -908,7 +936,7 @@ namespace qk {
 	void InputLayout::input_unmark(cString& text) {
 		if ( _editing ) {
 			_this->input_unmark_text(_this->delete_line_feed_format(text));
-			_this->trigger_change();
+			_this->trigger_Change();
 			_this->reset_cursor_twinkle_task_timeout();
 		}
 	}
@@ -1003,8 +1031,11 @@ namespace qk {
 			_readonly = value;
 			if (_readonly) {
 				_editing = false;
-			} else if (view()->is_focus()) { // TODO ...
-				_editing = true;
+			} else{
+				auto v = safe_view();
+				if (v && v->is_focus()) {
+					_editing = true;
+				}
 			}
 			mark_layout(kInput_Status);
 		}
@@ -1025,11 +1056,10 @@ namespace qk {
 	}
 
 	Vec2 InputLayout::layout_offset_inside() {
-		// auto origin = origin_value();
 		auto text_offset = input_text_offset();
 		Vec2 offset(
-			padding_left() /*- origin.x()*/ + text_offset.x(),
-			padding_top()  /*- origin.y()*/ + text_offset.y()
+			padding_left() + text_offset.x(),
+			padding_top() + text_offset.y()
 		);
 		if (_border) {
 			offset.val[0] += _border->width[3]; // left
@@ -1060,6 +1090,23 @@ namespace qk {
 			return true;
 		}
 		return false;
+	}
+
+	Input::Input(InputLayout *layout): Box(layout) {
+		typedef InputLayout::Inl Inl;
+		auto _inl = static_cast<InputLayout::Inl*>(layout);
+		// bind events
+		add_event_listener(UIEvent_Click, &Inl::handle_Click, _inl);
+		add_event_listener(UIEvent_TouchStart, &Inl::handle_Touchstart, _inl);
+		add_event_listener(UIEvent_TouchMove, &Inl::handle_Touchmove, _inl);
+		add_event_listener(UIEvent_TouchEnd, &Inl::handle_Touchend, _inl);
+		add_event_listener(UIEvent_TouchCancel, &Inl::handle_Touchend, _inl);
+		add_event_listener(UIEvent_MouseDown, &Inl::handle_Mousedown, _inl);
+		add_event_listener(UIEvent_MouseMove, &Inl::handle_Mousemove, _inl);
+		add_event_listener(UIEvent_MouseUp, &Inl::handle_Mouseup, _inl);
+		add_event_listener(UIEvent_Focus, &Inl::handle_Focus, _inl);
+		add_event_listener(UIEvent_Blur, &Inl::handle_Blur, _inl);
+		add_event_listener(UIEvent_KeyDown, &Inl::handle_Keydown, _inl);
 	}
 
 	// --------------------------------- I n p u t ---------------------------------

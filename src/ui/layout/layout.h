@@ -417,7 +417,7 @@ namespace qk {
 		friend class PreRender;
 		friend class EventDispatch;
 		friend class View;
-		friend class Window;
+		friend class RootLayout;
 	};
 
 	template<class _View>

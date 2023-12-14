@@ -37,9 +37,8 @@
 
 namespace qk {
 
-	RootLayout::RootLayout(Window *win): TransformLayout(win) {}
-
-	void RootLayout::init() {
+	RootLayout::RootLayout(Window *win): TransformLayout(win) {
+		_level = 1;
 		set_receive(true);
 		set_width({0, BoxSizeKind::kMatch});
 		set_height({0, BoxSizeKind::kMatch});

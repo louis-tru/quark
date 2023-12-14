@@ -90,10 +90,7 @@ namespace qk {
 			_id = _host->_windows.pushBack(this);
 		}
 		retain(); // strong ref count retain
-		auto root = new RootLayout(this); // new root layout
-		root->_level = 1;
-		root->init();
-		_root = new Root(root); // new root
+		_root = new Root(new RootLayout(this)); // new root
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
 		_root->focus();  // set focus
@@ -117,7 +114,7 @@ namespace qk {
 		lock.unlock(); // Avoid deadlocks with rendering threads
 		Release(_render); _render = nullptr; // delete obj and stop render draw
 		lock.lock(); // relock
-		_root->remove(); // remove child view
+		_root->remove_all_child(); // remove child view
 		Release(_root);      _root = nullptr;
 		Release(_dispatch); _dispatch = nullptr;
 		Release(_uiRender); _uiRender = nullptr;

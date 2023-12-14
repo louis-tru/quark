@@ -110,7 +110,8 @@ namespace qk {
 
 	class Qk_EXPORT Input: public Box, public TextOptionsAsync {
 	public:
-		Qk_Define_View(Input, Box);
+		typedef InputLayout Layout;
+		Input(InputLayout *layout);
 		virtual bool can_become_focus() override;
 		virtual TextOptions* getOptions() const override;
 		virtual PreRender& getPreRender() override;
