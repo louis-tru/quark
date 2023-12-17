@@ -87,8 +87,6 @@ namespace qk {
 	}
 
 	void PreRender::solveMarks() {
-		TextConfig cfg(_window->host()->defaultTextOptions(), _window->host()->defaultTextOptions()->base());
-
 		do {
 			{ // forward iteration
 				for (auto& levelMarks: _marks) {

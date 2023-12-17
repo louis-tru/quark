@@ -43,7 +43,7 @@ namespace qk {
 		}
 	}
 
-	void LabelLayout::onTextChange(uint32_t value) {
+	void LabelLayout::onTextChange(uint32_t value, uint32_t type) {
 		value ? mark_layout(value): mark_render();
 	}
 

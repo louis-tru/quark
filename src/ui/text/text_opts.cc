@@ -47,11 +47,11 @@ namespace qk {
 		, _text_shadow{ .kind=TextValueKind::kInherit }
 		, _text_line_height{ .kind=TextValueKind::kInherit }
 		, _text_family{ .kind=TextValueKind::kInherit }
-		, _text_flags(0xffffffff)
+		, _text_flags(0xffffffffu)
 	{
 	}
 
-	void TextOptions::onTextChange(uint32_t mark) {
+	void TextOptions::onTextChange(uint32_t mark, uint32_t type) {
 		// noop
 	}
 
@@ -59,7 +59,7 @@ namespace qk {
 		if (value != _text_weight) {
 			_text_weight = _text_weight_value = value;
 			_text_flags |= (1 << 0);
-			onTextChange(Layout::kLayout_Typesetting);
+			onTextChange(Layout::kLayout_Typesetting, 0);
 		}
 	}
 
@@ -67,7 +67,7 @@ namespace qk {
 		if (value != _text_slant) {
 			_text_slant = _text_slant_value = value;
 			_text_flags |= (1 << 1);
-			onTextChange(Layout::kLayout_None);
+			onTextChange(Layout::kLayout_None, 1);
 		}
 	}
 
@@ -75,7 +75,7 @@ namespace qk {
 		if (value != _text_decoration) {
 			_text_decoration = _text_decoration_value = value;
 			_text_flags |= (1 << 2);
-			onTextChange(Layout::kLayout_None);
+			onTextChange(Layout::kLayout_None, 2);
 		}
 	}
 
@@ -83,7 +83,7 @@ namespace qk {
 		if (value != _text_overflow) {
 			_text_overflow = _text_overflow_value = value;
 			_text_flags |= (1 << 3);
-			onTextChange(Layout::kLayout_Typesetting);
+			onTextChange(Layout::kLayout_Typesetting, 3);
 		}
 	}
 
@@ -91,7 +91,7 @@ namespace qk {
 		if (value != _text_white_space) {
 			_text_white_space = _text_white_space_value = value;
 			_text_flags |= (1 << 4);
-			onTextChange(Layout::kLayout_Typesetting);
+			onTextChange(Layout::kLayout_Typesetting, 4);
 		}
 	}
 
@@ -99,7 +99,7 @@ namespace qk {
 		if (value != _text_word_break) {
 			_text_word_break = _text_word_break_value = value;
 			_text_flags |= (1 << 5);
-			onTextChange(Layout::kLayout_Typesetting);
+			onTextChange(Layout::kLayout_Typesetting, 5);
 		}
 	}
 
@@ -108,7 +108,7 @@ namespace qk {
 			value.value = Qk_MAX(1, value.value);
 			_text_size = value;
 			_text_flags |= (1 << 6);
-			onTextChange(Layout::kLayout_Typesetting);
+			onTextChange(Layout::kLayout_Typesetting, 6);
 		}
 	}
 
@@ -116,7 +116,7 @@ namespace qk {
 		if (value != _text_background_color) {
 			_text_background_color = value;
 			_text_flags |= (1 << 7);
-			onTextChange(Layout::kLayout_None);
+			onTextChange(Layout::kLayout_None, 7);
 		}
 	}
 
@@ -124,7 +124,7 @@ namespace qk {
 		if (value != _text_color) {
 			_text_color = value;
 			_text_flags |= (1 << 8);
-			onTextChange(Layout::kLayout_None);
+			onTextChange(Layout::kLayout_None, 8);
 		}
 	}
 
@@ -132,7 +132,7 @@ namespace qk {
 		if (value != _text_shadow) {
 			_text_shadow = value;
 			_text_flags |= (1 << 9);
-			onTextChange(Layout::kLayout_None);
+			onTextChange(Layout::kLayout_None, 9);
 		}
 	}
 
@@ -141,7 +141,7 @@ namespace qk {
 			value.value = Qk_MAX(0, value.value);
 			_text_line_height = value;
 			_text_flags |= (1 << 10);
-			onTextChange(Layout::kLayout_Typesetting);
+			onTextChange(Layout::kLayout_Typesetting, 10);
 		}
 	}
 
@@ -149,7 +149,7 @@ namespace qk {
 		if (value != _text_family) {
 			_text_family = value;
 			_text_flags |= (1 << 11);
-			onTextChange(Layout::kLayout_Typesetting);
+			onTextChange(Layout::kLayout_Typesetting, 1 << 11);
 		}
 	}
 
@@ -161,12 +161,12 @@ namespace qk {
 
 	#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS(Type, name, flag) \
 		if (_opts->_##name == Type::kInherit) { \
-			_opts->_##name##_value = _base->_opts->_##name##_value; \
+			_opts->_##name##_value = _base_opts->_##name##_value; \
 		}
 
 	#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Type, name, flag, Default) \
 		if (_opts->_##name.kind == TextValueKind::kInherit) {  \
-			_opts->_##name.value = _base->_opts->_##name.value; \
+			_opts->_##name.value = _base_opts->_##name.value; \
 		} else if (_opts->_##name.kind == TextValueKind::kDefault) { \
 			_opts->_##name.value = Default; \
 		}
@@ -174,8 +174,9 @@ namespace qk {
 	TextConfig::TextConfig(TextOptions* opts, TextConfig* base)
 		: _opts(opts), _base(base)
 	{
-		if (_base && (_opts->_text_flags || _base->_opts->_text_flags)) {
+		if (_opts->_text_flags || _base->_opts->_text_flags) {
 			_opts->_text_flags |= _base->_opts->_text_flags;
+			auto _base_opts = _base->_opts;
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 0);
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 1);
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 2);
@@ -187,7 +188,7 @@ namespace qk {
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 8, Color(0, 0, 0));
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 9, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 10, 0);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 11, (_base->_opts->_text_family.value->pool()->getFFID()));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 11, (_base_opts->_text_family.value->pool()->getFFID()));
 		}
 	}
 
@@ -195,12 +196,11 @@ namespace qk {
 		_opts->_text_flags = 0; // clear flags
 	}
 
-	// ---------------- D e f a u l t . T e x t . S e t t i n g s ----------------
-
-	class DefaultTextConfig: public TextConfig {
-	public:
-		DefaultTextConfig(FontPool *pool): TextConfig(new TextOptions(), nullptr) {
-			auto opts = this->opts();
+	DefaultTextOptions::DefaultTextOptions(FontPool *pool)
+		: TextOptions()
+		, TextConfig(this, this)
+	{
+		auto setDefault = [](TextOptions *opts, FontPool *pool) {
 			opts->set_text_weight(TextWeight::kDefault);
 			opts->set_text_slant(TextSlant::kDefault);
 			opts->set_text_decoration(TextDecoration::kDefault);
@@ -213,17 +213,53 @@ namespace qk {
 			opts->set_text_line_height({0, TextValueKind::kDefault});
 			opts->set_text_family({pool->getFFID(), TextValueKind::kValue});
 			opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::kValue});
+		};
+		setDefault(&_unchanged, pool); // set base
+		setDefault(this, pool); // set self
+	}
+
+	void DefaultTextOptions::onTextChange(uint32_t mark, uint32_t type) {
+		auto _opts = this;
+		auto _base_opts = &_unchanged;
+		switch(type) {
+			case 0:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 0);
+				break;
+			case 1:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 1);
+				break;
+			case 2:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 2);
+				break;
+			case 3:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextOverflow, text_overflow, 3);
+				break;
+			case 4:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWhiteSpace, text_white_space, 4);
+				break;
+			case 5:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWordBreak, text_word_break, 5);
+				break;
+			case 6:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_size, 6, 16);
+				break;
+			case 7:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_background_color, 7, Color(0, 0, 0, 0));
+				break;
+			case 8:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 8, Color(0, 0, 0));
+				break;
+			case 9:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 9, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
+				break;
+			case 10:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 10, 0);
+				break;
+			case 11:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 11, (_base_opts->_text_family.value->pool()->getFFID()));
+				break;
 		}
-	};
-
-	DefaultTextOptions::DefaultTextOptions(FontPool *pool)
-		: TextOptions()
-		, TextConfig(this, new DefaultTextConfig(pool))
-	{}
-
-	DefaultTextOptions::~DefaultTextOptions() {
-		delete base()->opts();
-		delete base();
+		_text_flags = 0; // clear flags
 	}
 
 	// ---------------- T e x t . O p t i o n s . A s y n c ----------------

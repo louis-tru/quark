@@ -976,7 +976,7 @@ namespace qk {
 		return nullptr;
 	}
 
-	void InputLayout::onTextChange(uint32_t value) {
+	void InputLayout::onTextChange(uint32_t value, uint32_t type) {
 		value ? mark_layout(value): mark_render();
 	}
 

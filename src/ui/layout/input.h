@@ -84,7 +84,7 @@ namespace qk {
 	protected:
 		Vec2 layout_typesetting_input_text();
 		void refresh_cursor_screen_position();
-		virtual void onTextChange(uint32_t mark) override;
+		virtual void onTextChange(uint32_t mark, uint32_t type) override;
 		virtual Vec2 input_text_offset();
 		virtual void set_input_text_offset(Vec2 val);
 	private:

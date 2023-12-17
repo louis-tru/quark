@@ -63,9 +63,10 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(TextWordBreak, text_word_break_value);
 		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style);
 	protected:
-		virtual void onTextChange(uint32_t mark);
+		virtual void onTextChange(uint32_t mark, uint32_t type);
 		uint32_t     _text_flags;
 		friend class TextConfig;
+		friend class DefaultTextOptions;
 	};
 
 	class Qk_EXPORT TextConfig {
@@ -79,7 +80,9 @@ namespace qk {
 	class Qk_EXPORT DefaultTextOptions: public TextOptions, public TextConfig {
 	public:
 		DefaultTextOptions(FontPool *pool);
-		~DefaultTextOptions();
+	protected:
+		virtual void onTextChange(uint32_t mark, uint32_t type) override;
+		TextOptions _unchanged;
 	};
 
 	class Qk_EXPORT TextOptionsAsync {
