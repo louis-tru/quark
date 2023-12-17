@@ -214,13 +214,13 @@ namespace qk {
 			opts->set_text_family({pool->getFFID(), TextValueKind::kValue});
 			opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::kValue});
 		};
-		setDefault(&_unchanged, pool); // set base
+		setDefault(&_default, pool); // set base
 		setDefault(this, pool); // set self
 	}
 
 	void DefaultTextOptions::onTextChange(uint32_t mark, uint32_t type) {
 		auto _opts = this;
-		auto _base_opts = &_unchanged;
+		auto _base_opts = &_default;
 		switch(type) {
 			case 0:
 				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 0);

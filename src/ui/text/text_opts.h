@@ -82,7 +82,7 @@ namespace qk {
 		DefaultTextOptions(FontPool *pool);
 	protected:
 		virtual void onTextChange(uint32_t mark, uint32_t type) override;
-		TextOptions _unchanged;
+		TextOptions _default;
 	};
 
 	class Qk_EXPORT TextOptionsAsync {
