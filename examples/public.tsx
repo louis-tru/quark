@@ -67,14 +67,14 @@ quark.css({
 		borderRadius: 8,
 		border: `${px} #fff`,
 	},
-	
+
 	'.next_btn': {
 		width: 'full',
 		textLineHeight: 45,
 		textAlign: "left",
 		borderRadius: 0,
 	},
-	
+
 	'.next_btn:normal': {
 		backgroundColor: '#fff0', time: 180
 	},
@@ -82,7 +82,7 @@ quark.css({
 	'.next_btn:hover': {
 		backgroundColor: '#ececec', time: 50
 	},
-	
+
 	'.next_btn:down': {
 		backgroundColor: '#E1E4E4', time: 50
 	},

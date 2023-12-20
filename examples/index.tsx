@@ -57,7 +57,7 @@ const resolve = require.resolve;
 const px = quark.atomPixel;
 
 quark.css({
-	
+
 	'.category_title': {
 		width: 'full',
 		textLineHeight: 30,
@@ -71,9 +71,8 @@ quark.css({
 	},
 
 	'.text_mark': {
-
 	},
-	
+
 	'.hello': {
 		width: 'full',
 		textSize:46, 
@@ -83,7 +82,7 @@ quark.css({
 		marginTop: 18,
 		marginBottom: 18,
 	},
-	
+
 	'.category': {
 		width: 'full',
 		borderTop: `${px} #c8c7cc`,
@@ -108,7 +107,9 @@ quark.css({
 	'.codepre .keywork': { textColor: '#d73a49' },
 	'.codepre .identifier': { textColor: '#6f42c1' },
 	'.codepre .str': { textColor: '#007526' },
-	
+
+	'.keywork': { textColor: '#c73a45' },
+
 })
 
 function review_code(evt: ClickEvent) {
