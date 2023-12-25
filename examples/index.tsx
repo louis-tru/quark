@@ -167,6 +167,16 @@ const examples_source_vx = ()=>(
 	</Mynavpage>
 )
 
+const examples_source_vx_test = ()=>(
+	<Mynavpage title="Examples Source" source={resolve(__filename)}>
+		{/* :normal w400 tcf01 :hover w500 :down w550 */}
+		<Div style="wfull h100 b1#fffsold tcf00 bfff s'http://baidu.com/logo.png'">
+			<Text class="category_title" value="You can get the full examples source code from Github" />
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={examples_source}>Go Github</Button>
+		</Div>
+	</Mynavpage>
+)
+
 const documents_vx = ()=>(
 	<Mynavpage title="Documents" source={resolve(__filename)}>
 		<Div width="full">

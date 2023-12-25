@@ -52,16 +52,13 @@ namespace qk {
 		#define _inl_view(self) static_cast<View::InlEvent*>(static_cast<View*>(self))
 
 		void trigger_highlightted(HighlightedEvent& evt) {
-			View* view = this;
-			if ( view ) {
-				if ( view->_layout->_receive ) {
-					view->trigger(UIEvent_Highlighted, evt);
-					if ( evt.is_default() ) {
-						// auto classs = view->classs();
-						// if ( classs ) { // 切换样式表状态
-						// 	classs->set_style_pseudo_status( CSSPseudoClass(evt.status()) );
-						// }
-					}
+			if ( _layout->_receive ) {
+				trigger(UIEvent_Highlighted, evt);
+				if ( evt.is_default() ) {
+					// auto classs = this->classs();
+					// if ( classs ) { // 切换样式表状态
+					// 	classs->set_style_pseudo_status( CSSPseudoClass(evt.status()) );
+					// }
 				}
 			}
 		}
