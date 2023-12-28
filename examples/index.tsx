@@ -98,18 +98,38 @@ quark.css({
 	},
 
 	'.codepre': {
-		width:'full',
-		margin:10,
-		textColor:"#000",
+		'width': 'full',
+		'margin': 10,
+		// 'textColor': '#000',
+		':': {
+			textColor: '#000'
+		},
+		':hover': {
+			textColor: '#ff0'
+		},
+		':down': {
+			textColor: '#f00',
+		},
+		'.tag_name': {
+			textColor: '#005cc5'
+		},
+		'.keywork': {
+			textColor: '#d73a49'
+		},
+		'.identifier': {
+			textColor: '#6f42c1'
+		},
+		'.str': {
+			textColor: '#007526'
+		},
 	},
 
-	'.codepre .tag_name': { textColor: '#005cc5' },
-	'.codepre .keywork': { textColor: '#d73a49' },
-	'.codepre .identifier': { textColor: '#6f42c1' },
-	'.codepre .str': { textColor: '#007526' },
+	// '.codepre .tag_name': { textColor: '#005cc5' },
+	// '.codepre .keywork': { textColor: '#d73a49' },
+	// '.codepre .identifier': { textColor: '#6f42c1' },
+	// '.codepre .str': { textColor: '#007526' },
 
 	'.keywork': { textColor: '#c73a45' },
-
 })
 
 function review_code(evt: ClickEvent) {
