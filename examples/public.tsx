@@ -39,7 +39,7 @@ const px = quark.atomPixel;
 const resolve = require.resolve;
 
 quark.css({
-	
+
 	'.long_btn': {
 		margin: 10,
 		marginBottom: 0,
@@ -73,19 +73,26 @@ quark.css({
 		textLineHeight: 45,
 		textAlign: "left",
 		borderRadius: 0,
+		':normal': {
+			backgroundColor: '#fff0', time: 180
+		},
+		':hover': {
+			backgroundColor: '#ececec', time: 50
+		},
+		':down': {
+			backgroundColor: '#E1E4E4', time: 50
+		},
 	},
 
-	'.next_btn:normal': {
-		backgroundColor: '#fff0', time: 180
-	},
-
-	'.next_btn:hover': {
-		backgroundColor: '#ececec', time: 50
-	},
-
-	'.next_btn:down': {
-		backgroundColor: '#E1E4E4', time: 50
-	},
+	// '.next_btn:normal': {
+	// 	backgroundColor: '#fff0', time: 180
+	// },
+	// '.next_btn:hover': {
+	// 	backgroundColor: '#ececec', time: 50
+	// },
+	// '.next_btn:down': {
+	// 	backgroundColor: '#E1E4E4', time: 50
+	// },
 
 	'.input': {
 		margin:10,
