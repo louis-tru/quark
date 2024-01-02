@@ -31,14 +31,14 @@
 import { NavPage } from 'quark/nav';
 import { 
 	ViewController, Button, Hybrid,
-	Text, Indep, default as quark, _CVD
+	Text, Indep, default as qk, _CVD
 } from 'quark';
 import {ClickEvent} from 'quark/event';
 
-const px = quark.atomPixel;
+const px = qk.atomPixel;
 const resolve = require.resolve;
 
-quark.css({
+qk.css({
 
 	'.long_btn': {
 		margin: 10,
@@ -113,7 +113,7 @@ export class NavButton extends ViewController {
 		//util.log('---------------------', px);
 		return (
 			<Button
-				onClick={this._handle_click}
+				onClick={this._handleClick}
 				class="next_btn"
 				textColor="#0079ff"
 				defaultHighlighted={0}
@@ -128,7 +128,7 @@ export class NavButton extends ViewController {
 		);
 	}
 
-	private _handle_click = (evt: ClickEvent)=>{
+	private _handleClick = (evt: ClickEvent)=>{
 		if (!this.next) return;
 		var next = this.next();
 		if ( ViewController.typeOf(next, Mynavpage) ) {
