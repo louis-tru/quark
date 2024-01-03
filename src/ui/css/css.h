@@ -33,289 +33,148 @@
 
 #include "../util/util.h"
 #include "../util/string.h"
-#include "../property.h"
-#include "../types.h"
-#include "../action/action.h"
-#include "../action/keyframe.h"
 #include "../util/dict.h"
+#include "../types.h"
 
-Qk_NAMESPACE_START
+namespace qk {
+	// Cascading Style Sheets
 
-class Qk_EXPORT CSSName {
-public:
-	CSSName(const Array<String>& classs);
-	CSSName(cString& name);
-	inline String value() const { return _name; }
-	inline uint32_t hash() const { return _hash; }
-private:
-	String   _name;
-	uint32_t _hash;
-};
+	class Layout;
 
-enum CSSPseudoClass { // pseudo class
-	CSS_PSEUDO_CLASS_NONE = 0,
-	CSS_PSEUDO_CLASS_NORMAL,
-	CSS_PSEUDO_CLASS_HOVER,
-	CSS_PSEUDO_CLASS_DOWN,
-};
-
-/**
-* @class StyleSheets
-*/
-class Qk_EXPORT StyleSheets: public Object {
-	Qk_HIDDEN_ALL_COPY(StyleSheets);
-protected:
-	StyleSheets(const CSSName& name, StyleSheets* parent, CSSPseudoClass pseudo);
-	
-	/**
-	* @destructor
-	*/
-	virtual ~StyleSheets();
-	
-public:
-	typedef KeyframeAction::Frame Frame;
-	
-	class Qk_EXPORT Property {
+	class Qk_EXPORT CSSName {
 	public:
-		virtual ~Property() = default;
-		virtual void assignment(View* view) = 0;
-		virtual void assignment(Frame* frame) = 0;
+		Qk_DEFINE_PROP_ACC_GET(String, value);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, hash);
+		CSSName(const Array<String>& name);
+		CSSName(cString& name);
 	};
-	
-	// -------------------- set property --------------------
-	
-	# define fx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value);
-		Qk_EACH_PROPERTY_TABLE(fx_def_property)
-	# undef fx_def_property
-	
-	/**
-	* @func background()
-	*/
-	BackgroundPtr background();
-	
-	/**
-	* @func time
-	*/
-	inline uint64_t time() const { return _time; }
-	
-	/**
-	* @func set_time
-	*/
-	inline void set_time(uint64_t value) { _time = value; }
-	
-	/**
-	* @func name
-	*/
-	inline String name() const { return _css_name.value(); }
-	
-	/**
-	* @func hash
-	*/
-	inline uint32_t hash() const { return _css_name.hash(); }
-	
-	/**
-	* @func parent
-	*/
-	inline StyleSheets* parent() { return _parent; }
-	
-	/**
-	* @func normal
-	*/
-	inline StyleSheets* normal() { return _child_NORMAL; }
-	
-	/**
-	* @func normal
-	*/
-	inline StyleSheets* hover() { return _child_HOVER; }
-	
-	/**
-	* @func normal
-	*/
-	inline StyleSheets* down() { return _child_DOWN; }
-	
-	/**
-	* @func find children
-	*/
-	StyleSheets* find(const CSSName& name);
-	
-	/**
-	* @func has_child
-	*/
-	inline bool has_child() const { return _children.length(); }
-	
-	/**
-	* @func assignment
-	*/
-	void assignment(View* view);
-	
-	/**
-	* @func assignment
-	*/
-	void assignment(Frame* frame);
-	
-	/**
-	* @func is_support_pseudo support multiple pseudo status
-	*/
-	inline bool is_support_pseudo() const { return _is_support_pseudo; }
-	
-	/**
-	* @func pseudo
-	*/
-	inline CSSPseudoClass pseudo() const { return _pseudo; }
 
-private:
-	CSSName                       _css_name;
-	StyleSheets*                  _parent;
-	Dict<uint32_t, StyleSheets*>     _children;
-	// Dict<PropertyName, Property*>    _property;
-	Dict<uint32_t, Property*>    _property;
-	uint64_t       _time;
-	StyleSheets*   _child_NORMAL;
-	StyleSheets*   _child_HOVER;
-	StyleSheets*   _child_DOWN;
-	bool           _is_support_pseudo; // _NORMAL | _HOVER | _DOWN
-	CSSPseudoClass _pseudo;
-	
-	Qk_DEFINE_INLINE_CLASS(Inl);
-	friend class CSSManager;
-};
+	enum CSSType {
+		kNONE_CSSType = 0,
+		kNORMAL_CSSType,
+		kHOVER_CSSType,
+		kACTIVE_CSSType,
+	};
 
-/**
-* @class RootStyleSheets
-*/
-class Qk_EXPORT RootStyleSheets: public StyleSheets {
-public:
-	
-	RootStyleSheets();
-	
-	/**
-	*  ".div_cls.div_cls2 .aa.bb.cc, .div_cls.div_cls2:down .aa.bb.cc"
-	*
-	* @func instances
-	*/
-	Array<StyleSheets*> instances(cString& expression);
-	
-	/**
-	* @func shared
-	*/
-	static RootStyleSheets* shared();
-	
-private:
-	Dict<uint32_t, int>                    _all_css_names;
-	Dict<uint32_t, Array<uint32_t>>  _css_query_group_cache;
-
-	Qk_DEFINE_INLINE_CLASS(Inl);
-};
-
-/**
-* @class StyleSheetsClass
-*/
-class Qk_EXPORT StyleSheetsClass: public Object {
-	Qk_HIDDEN_ALL_COPY(StyleSheetsClass);
-public:
-	StyleSheetsClass(View* host);
-	
-	/**
-	* @destructor
-	*/
-	virtual ~StyleSheetsClass();
-	
-	/**
-	* @func name
-	*/
-	inline const Array<String>& name() const {
-		return _classs;
-	}
-	
-	/**
-	* @func name
-	*/
-	void name(const Array<String>& value);
-	
-	/**
-	* @func add
-	*/
-	void add(cString& name);
-	
-	/**
-	* @func remove
-	*/
-	void remove(cString& name);
-	
-	/**
-	* @func toggle
-	*/
-	void toggle(cString& name);
-	
-	/**
-	* @func has_child
-	*/
-	inline bool has_child() const {
-		return _child_style_sheets.size();
-	}
-	
-	/**
-	* @func set_style_pseudo_status
-	*/
-	void set_style_pseudo_status(CSSPseudoClass status);
-	
-	/**
-	* @func apply
-	*/
-	void apply(StyleSheetsScope* scope);
-	
-	/**
-	* @func apply
-	*/
-	void apply(StyleSheetsScope* scope, bool* effect_child);
-	
-	/**
-	* @func child_style_sheets current child style sheets
-	*/
-	inline const Array<StyleSheets*>& child_style_sheets() {
-		return _child_style_sheets;
-	}
-	
-private:
-	View*           _host;
-	Array<String>   _classs;
-	Array<uint32_t> _query_group;
-	Array<StyleSheets*> _child_style_sheets; // 当前应用的样式表中拥有子样式表的表供后代视图查询
-	bool            _is_support_pseudo;      // 当前样式表选择器能够找到支持伪类的样式表
-	bool            _once_apply;             // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
-	CSSPseudoClass  _multiple_status;
-	
-	Qk_DEFINE_INLINE_CLASS(Inl);
-};
-
-/**
-* @class StyleSheetsScope
-*/
-class Qk_EXPORT StyleSheetsScope: public Object {
-	Qk_HIDDEN_ALL_COPY(StyleSheetsScope);
-public:
-	struct Scope {
-		struct Wrap {
-			StyleSheets* sheets; int ref;
+	class Qk_EXPORT StyleSheets: public Object {
+		Qk_HIDDEN_ALL_COPY(StyleSheets);
+		Qk_DEFINE_INLINE_CLASS(Inl);
+	public:
+		class Property {
+		public:
+			virtual void apply(Layout* view) = 0;
 		};
-		Wrap* wrap;
-		int   ref;
+
+		// -------------------- set property --------------------
+
+		// # define fx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value);
+		// 	Qk_EACH_PROPERTY_TABLE(fx_def_property)
+		// # undef fx_def_property
+
+		// BackgroundPtr background();
+
+		Qk_DEFINE_PROP_GET(CSSName, name);
+		Qk_DEFINE_PROP(uint64_t, time);
+		// inline void set_time(uint64_t value) { _time = value; }
+		Qk_DEFINE_PROP_GET(StyleSheets*, parent, NoConst);
+		Qk_DEFINE_PROP_GET(StyleSheets*, normal, NoConst);
+		Qk_DEFINE_PROP_GET(StyleSheets*, hover, NoConst);
+		Qk_DEFINE_PROP_GET(StyleSheets*, active, NoConst);
+		Qk_DEFINE_PROP_GET(CSSType, type);
+		Qk_DEFINE_PROP_GET(bool, isSupportPseudoType);
+
+		StyleSheets(const CSSName& name, StyleSheets *parent, CSSType type);
+
+		virtual ~StyleSheets();
+
+		/**
+		* @func find children
+		*/
+		StyleSheets* find(const CSSName& name);
+
+		/**
+		* @func has_child
+		*/
+		inline bool has_child() const { return _children.length(); }
+
+		/**
+		* @method apply()
+		*/
+		void apply(Layout* view);
+
+	private:
+		Dict<uint32_t, StyleSheets*> _children;
+		// Dict<PropertyName, Property*> _props;
+		Dict<uint32_t, Property*>    _props;
 	};
-	StyleSheetsScope(View* scope);
-	void push_scope(View* scope);
-	void pop_scope();
-	inline View* bottom_scope() { return _scopes.length() ? _scopes.back() : nullptr; }
-	inline const List<Scope>& style_sheets() { return _style_sheets; }
-private:
-	typedef Dict<StyleSheets*, Scope::Wrap> StyleSheetsMap;
-	List<View*>   _scopes;
-	List<Scope>   _style_sheets;
-	StyleSheetsMap     _style_sheets_map;
-};
 
-Qk_INLINE RootStyleSheets* root_styles() { 
-	return RootStyleSheets::shared(); 
+	class Qk_EXPORT RootStyleSheets: public StyleSheets {
+	public:
+		RootStyleSheets();
+
+		/**
+		*  ".div_cls.div_cls2 .aa.bb.cc, .div_cls.div_cls2:down .aa.bb.cc"
+		*
+		* @method search()
+		*/
+		Array<StyleSheets*> search(cString& expression);
+
+	private:
+		Dict<uint32_t, int>              _all_css_names;
+		Dict<uint32_t, Array<uint32_t>>  _css_query_group_cache;
+	};
+
+	class Qk_EXPORT StyleSheetsClass: public Object {
+		Qk_HIDDEN_ALL_COPY(StyleSheetsClass);
+		Qk_DEFINE_INLINE_CLASS(Inl);
+	public:
+		Qk_DEFINE_PROP(CSSType, status);
+
+		StyleSheetsClass(Layout* host);
+
+		virtual ~StyleSheetsClass();
+
+		inline bool hasChild() const { return _childStyleSheets.length(); }
+		inline const Array<String>& name() const { return _name; }
+		inline const Array<StyleSheets*>& childStyleSheets() { return _childStyleSheets; }
+
+		void set(const Array<String> &value);
+		void add(cString &name);
+		void remove(cString &name);
+		void toggle(cString &name);
+		void apply(StyleSheetsScope* scope);
+		void apply(StyleSheetsScope *scope, bool* effect_child);
+
+	private:
+		Layout*         _host;
+		Array<String>   _name;
+		Array<uint32_t> _queryGroup;
+		Array<StyleSheets*> _childStyleSheets; // 当前应用的样式表中拥有子样式表的表供后代视图查询
+		bool            _isSupportPseudoType;  // 当前样式表选择器能够找到支持伪类的样式表
+		bool            _onceApply;            // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
+	};
+
+	class Qk_EXPORT StyleSheetsScope: public Object {
+		Qk_HIDDEN_ALL_COPY(StyleSheetsScope);
+	public:
+		struct Scope {
+			struct Wrap {
+				StyleSheets* sheets; int ref;
+			};
+			Wrap* wrap;
+			int   ref;
+		};
+		StyleSheetsScope(Layout* scope);
+		void push_scope(Layout* scope);
+		void pop_scope();
+		inline Layout* bottom_scope() { return _scopes.length() ? _scopes.back() : nullptr; }
+		inline const List<Scope>& style_sheets() { return _style_sheets; }
+	private:
+		typedef Dict<StyleSheets*, Scope::Wrap> StyleSheetsMap;
+		List<Layout*>  _scopes;
+		List<Scope>    _style_sheets;
+		StyleSheetsMap _style_sheets_map;
+	};
+
 }
-
-Qk_NAMESPACE_END
 #endif

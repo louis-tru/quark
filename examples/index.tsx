@@ -101,7 +101,7 @@ quark.css({
 		'width': 'full',
 		'margin': 10,
 		// 'textColor': '#000',
-		':': {
+		':normal': {
 			textColor: '#000'
 		},
 		':hover': {
@@ -122,6 +122,12 @@ quark.css({
 		'.str': {
 			textColor: '#007526'
 		},
+	},
+
+	'.codepre.a': {
+	},
+
+	'.codepre.a.b': {
 	},
 
 	// '.codepre .tag_name': { textColor: '#005cc5' },
