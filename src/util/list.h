@@ -43,18 +43,16 @@ namespace qk {
 	class List: public Object {
 	public:
 		struct Node {
-			typedef T     Data;
-			Node*    prev() const { return _prev; }
-			Node*    next() const { return _next; }
-			T&       data() { return *reinterpret_cast<Data*>((&_next) + 1); }
-			const T& data() const { return *reinterpret_cast<const Data*>((&_next) + 1); }
-		private:
-			friend class List;
+			typedef T Data;
+			inline Node* prev() const { return _prev; }
+			inline Node* next() const { return _next; }
+			inline T&    data() { return *reinterpret_cast<T*>((&_next) + 1); }
+			inline const T& data() const { return *reinterpret_cast<const T*>((&_next) + 1); }
 			Node *_prev, *_next;
 		};
 		typedef ComplexIterator<const Node, Node> IteratorConst;
-		typedef ComplexIterator<Node, Node>       Iterator;
-		
+		typedef ComplexIterator<      Node, Node> Iterator;
+
 		List();
 		List(List&&);
 		List(const List&);
@@ -113,6 +111,8 @@ namespace qk {
 		Node _end; // { _prev = last, _next = first }
 		uint32_t _length;
 	};
+
+	template<typename T, typename A = MemoryAllocator> using cList = const List<T, A>;
 
 	// -----------------------------------------------------------------
 

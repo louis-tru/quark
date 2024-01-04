@@ -80,16 +80,13 @@ namespace qk {
 
 		struct Node {
 			typedef Dict::Pair Data;
-			Node*       prev() const { return _prev; }
-			Node*       next() const { return _next; }
-			Data&       data() { return *reinterpret_cast<Data*>((&_conflict) + 1); }
-			const Data& data() const { return *reinterpret_cast<const Data*>((&_conflict) + 1); }
-		private:
-			friend class Dict;
+			inline Node* prev() const { return _prev; }
+			inline Node* next() const { return _next; }
+			inline Data& data() { return *reinterpret_cast<Data*>((&_conflict) + 1); }
+			inline const Data& data() const { return *reinterpret_cast<const Data*>((&_conflict) + 1); }
 			uint64_t hashCode;
 			Node *_prev, *_next, *_conflict;
 		};
-
 		typedef ComplexIterator<const Node, Node> IteratorConst;
 		typedef ComplexIterator<      Node, Node> Iterator;
 
@@ -149,6 +146,9 @@ namespace qk {
 		Node      _end; // { _prev = last, _next = first }
 		uint32_t  _length, _capacity;
 	};
+
+	template<typename K, typename V, typename C = Compare<K>, typename A = MemoryAllocator>
+	using cDict = const Dict<K, V, C, A>;
 
 	// -----------------------------------------------------------------
 

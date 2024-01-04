@@ -57,7 +57,6 @@ namespace qk {
 			kShared,
 			kDisable,
 		};
-
 		Qk_DEFINE_PROP(HolderMode, holder_mode); // holder mode
 
 		BoxFilter();
@@ -148,8 +147,5 @@ namespace qk {
 		virtual Type       type() const override;
 		virtual BoxFilter* copy(BoxFilter* to) override;
 	};
-
-	typedef BoxFill* BoxFillPtr;
-	typedef BoxShadow* BoxShadowPtr;
 }
 #endif

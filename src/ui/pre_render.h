@@ -36,6 +36,7 @@
 #include "../util/list.h"
 #include "../util/array.h"
 #include "../util/loop.h"
+#include "./view_prop.h"
 
 namespace qk {
 	class Window;
@@ -107,9 +108,9 @@ namespace qk {
 		void async_call_(void *exec, void *ctx, void *args);
 
 		struct AsyncCall {
-			struct Args {uint64_t value[2];};
+			typedef ViewPropertyValue Args;
 			void *ctx;
-			Args args;
+			uint64_t args;
 			void (*exec)(void *ctx, Args args);
 		};
 		Window *_window;

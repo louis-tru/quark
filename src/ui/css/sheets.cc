@@ -54,6 +54,7 @@ CSSName::CSSName(const Array<String>& classs)
 	, _hash((uint32_t)_name.hashCode())
 {
 }
+
 CSSName::CSSName(cString& n)
 : _name(n)
 , _hash((uint32_t)n.hashCode()) {

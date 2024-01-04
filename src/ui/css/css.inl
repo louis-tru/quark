@@ -33,113 +33,107 @@
 #ifndef __quark__css_inl__
 #define __quark__css_inl__
 
-Qk_NAMESPACE_START
+namespace qk {
 
-typedef StyleSheets::Property Property;
-typedef PropertysAccessor::Accessor Accessor;
-typedef KeyframeAction::Frame Frame;
+	typedef StyleSheets::Property Property;
+	typedef PropertysAccessor::Accessor Accessor;
+	typedef KeyframeAction::Frame Frame;
 
-/**
-* @class CSSProperty
-*/
-template<class T> class CSSProperty: public Property {
-public:
-	typedef T (View::*Get)();
-	typedef void (View::*Set)(T value);
-	typedef void (TextFont::*Set2)(T value);
-	typedef void (Text::*Set3)(T value);
-	
-	CSSProperty(T value): _value(value) {}
-	virtual ~CSSProperty() {}
-	
-	inline T value() const { return _value; }
-	inline void set_value(T value) { _value = value; }
-	
-	inline void assignment(View* view, PropertyName name) {
-		Qk_ASSERT(view);
-		PropertysAccessor::Accessor accessor =
-		PropertysAccessor::shared()->accessor(view->view_type(), name);
-		if (accessor.set_accessor) {
-			(view->*reinterpret_cast<Set>(accessor.set_accessor))(_value);
-		}
-	}
-protected:
-	T _value;
-};
-
-/**
-* @class CSSProperty1
-*/
-template<class T, PropertyName Name> class CSSProperty1: public CSSProperty<T> {
-public:
-	CSSProperty1(T value): CSSProperty<T>(value) {}
-	virtual void assignment(View* view) {
-		CSSProperty<T>::assignment(view, Name);
-	}
-	virtual void assignment(Frame* frame) {
-		Qk_UNREACHABLE();
-	}
-};
-
-Qk_DEFINE_INLINE_MEMBERS(StyleSheets, Inl) {
-public:
-	#define _inl_ss(self) static_cast<StyleSheets::Inl*>(self)
-
-	template<PropertyName Name, class T>
-	inline void set_property_value(T value) {
-		typedef CSSProperty1<T, Name> Type;
-		auto it = _property.find(Name);
-		if ( it == _property.end() ) {
-			Type* prop = new Type(value);
-			_property[Name] = prop;
-		} else {
-			static_cast<Type*>(it->value)->set_value(value);
-		}
-	}
-	
-	template<PropertyName Name, class T>
-	inline T get_property_value() {
-		typedef CSSProperty1<T, Name> Type;
-		auto it = _property.find(Name);
-		if ( it == _property.end() ) {
-			Type* prop = new Type(T());
-			_property[Name] = prop;
-			return prop->value();
-		} else {
-			return static_cast<Type*>(it->value)->value();
-		}
-	}
-	
-	StyleSheets* find1(uint32_t hash);
-	StyleSheets* find2(const CSSName& name, CSSPseudoClass pseudo);
-	KeyframeAction* assignment(View* view, KeyframeAction* action, bool ignore_action);
-};
-
-Qk_DEFINE_INLINE_MEMBERS(RootStyleSheets, Inl) {
+	template<class T> class CSSProperty: public Property {
 	public:
-	#define _inl_r(self) static_cast<RootStyleSheets::Inl*>(self)
-	static Array<String>& sort( Array<String>& arr, uint32_t len );
-	static bool verification_and_format(cString& name, CSSName& out, CSSPseudoClass& pseudo);
-	void mark_classs_names(const CSSName& name);
-	// ".div_cls.div_cls2 .aa.bb.cc"
-	// ".div_cls.div_cls2:down .aa.bb.cc"
-	StyleSheets* instance(cString& expression);
-	Array<uint32_t>* get_css_find_group(uint32_t hash);
-	void add_css_query_grpup(uint32_t hash, Array<uint32_t>& css_query_group);
-	CSSName new_css_name1(cString& a);
-	CSSName new_css_name2(cString& a, cString& b);
-	CSSName new_css_name3(cString& a, cString& b, cString& c);
-	Array<uint32_t> get_css_query_grpup(Array<String>& classs);
-};
+		typedef T (View::*Get)();
+		typedef void (View::*Set)(T value);
+		typedef void (TextFont::*Set2)(T value);
+		typedef void (Text::*Set3)(T value);
 
-Qk_DEFINE_INLINE_MEMBERS(StyleSheetsClass, Inl) {
+		CSSProperty(T value): _value(value) {}
+		virtual ~CSSProperty() {}
+
+		inline T value() const { return _value; }
+		inline void set_value(T value) { _value = value; }
+
+		inline void assignment(View* view, PropertyName name) {
+			Qk_ASSERT(view);
+			PropertysAccessor::Accessor accessor =
+			PropertysAccessor::shared()->accessor(view->view_type(), name);
+			if (accessor.set_accessor) {
+				(view->*reinterpret_cast<Set>(accessor.set_accessor))(_value);
+			}
+		}
+	protected:
+		T _value;
+	};
+
+	template<class T, PropertyName Name> class CSSProperty1: public CSSProperty<T> {
 	public:
-	#define _inl_cvc(self) static_cast<StyleSheetsClass::Inl*>(self)
-	void update_classs(Array<String>&& classs);
-	void apply(StyleSheetsScope* scope, bool* effect_child, bool RETURN_EFFECT_CHILD);
-};
+		CSSProperty1(T value): CSSProperty<T>(value) {}
+		virtual void assignment(View* view) {
+			CSSProperty<T>::assignment(view, Name);
+		}
+		virtual void assignment(Frame* frame) {
+			Qk_UNREACHABLE();
+		}
+	};
 
-static void mark_classs_names(const CSSName& name);
+	Qk_DEFINE_INLINE_MEMBERS(StyleSheets, Inl) {
+	public:
+		#define _inl_ss(self) static_cast<StyleSheets::Inl*>(self)
 
-Qk_NAMESPACE_END
+		template<PropertyName Name, class T>
+		inline void set_property_value(T value) {
+			typedef CSSProperty1<T, Name> Type;
+			auto it = _property.find(Name);
+			if ( it == _property.end() ) {
+				Type* prop = new Type(value);
+				_property[Name] = prop;
+			} else {
+				static_cast<Type*>(it->value)->set_value(value);
+			}
+		}
+		
+		template<PropertyName Name, class T>
+		inline T get_property_value() {
+			typedef CSSProperty1<T, Name> Type;
+			auto it = _property.find(Name);
+			if ( it == _property.end() ) {
+				Type* prop = new Type(T());
+				_property[Name] = prop;
+				return prop->value();
+			} else {
+				return static_cast<Type*>(it->value)->value();
+			}
+		}
+		
+		StyleSheets* find1(uint32_t hash);
+		StyleSheets* find2(const CSSName& name, CSSPseudoClass pseudo);
+		KeyframeAction* assignment(View* view, KeyframeAction* action, bool ignore_action);
+	};
+
+	Qk_DEFINE_INLINE_MEMBERS(RootStyleSheets, Inl) {
+		public:
+		#define _inl_r(self) static_cast<RootStyleSheets::Inl*>(self)
+		static Array<String>& sort( Array<String>& arr, uint32_t len );
+		static bool verification_and_format(cString& name, CSSName& out, CSSPseudoClass& pseudo);
+		void mark_classs_names(const CSSName& name);
+		// ".div_cls.div_cls2 .aa.bb.cc"
+		// ".div_cls.div_cls2:down .aa.bb.cc"
+		StyleSheets* instance(cString& expression);
+		Array<uint32_t>* get_css_find_group(uint32_t hash);
+		void add_css_query_grpup(uint32_t hash, Array<uint32_t>& css_query_group);
+		CSSName new_css_name1(cString& a);
+		CSSName new_css_name2(cString& a, cString& b);
+		CSSName new_css_name3(cString& a, cString& b, cString& c);
+		Array<uint32_t> get_css_query_grpup(Array<String>& classs);
+	};
+
+	Qk_DEFINE_INLINE_MEMBERS(StyleSheetsClass, Inl) {
+		public:
+		#define _inl_cvc(self) static_cast<StyleSheetsClass::Inl*>(self)
+		void update_classs(Array<String>&& classs);
+		void apply(StyleSheetsScope* scope, bool* effect_child, bool RETURN_EFFECT_CHILD);
+	};
+
+	static void mark_classs_names(const CSSName& name);
+
+}
 #endif

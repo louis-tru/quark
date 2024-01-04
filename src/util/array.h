@@ -40,6 +40,7 @@ namespace qk {
 	template<typename T = char, typename A = MemoryAllocator> class Array;
 	template<typename T = char, typename A = MemoryAllocator> class ArrayBuffer; // array no copy
 	template<typename T = char, typename A = MemoryAllocator> class ArrayWeak;
+	template<typename T = char, typename A = MemoryAllocator> using cArray = const Array<T, A>;
 
 	typedef       ArrayBuffer<char>     Buffer; // Array No Copy
 	typedef       ArrayWeak<char>       WeakBuffer;
@@ -52,8 +53,8 @@ namespace qk {
 	template<typename T, typename A>
 	class Array: public Object {
 	public:
-		typedef T     Type;
-		typedef A     Alloc;
+		typedef T Type;
+		typedef A Alloc;
 		// constructors
 		Array();
 		Array(Array&& arr); // right value copy constructors
@@ -62,7 +63,7 @@ namespace qk {
 		Array(const std::vector<T>& list);
 		Array(uint32_t length);
 
-		typedef SimpleIterator<T,       T> Iterator;
+		typedef SimpleIterator<      T, T> Iterator;
 		typedef SimpleIterator<const T, T> IteratorConst;
 
 		inline Iterator begin() { return Iterator(_val); }

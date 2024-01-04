@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./prop_acc.h"
+#include "./view_prop.h"
 #include "./view.h"
 #include "./box.h"
 #include "./text.h"

@@ -31,29 +31,29 @@
 #ifndef __quark__css__css__
 #define __quark__css__css__
 
+// *********** Cascading Style Sheets ***********
+
 #include "../util/util.h"
-#include "../util/string.h"
 #include "../util/dict.h"
-#include "../types.h"
+#include "../filter.h"
+#include "../view_prop.h"
 
 namespace qk {
-	// Cascading Style Sheets
-
 	class Layout;
+
+	enum CSSType {
+		kNone_CSSType = 0,
+		kNormal_CSSType, // css pseudo type
+		kHover_CSSType,
+		kActive_CSSType,
+	};
 
 	class Qk_EXPORT CSSName {
 	public:
 		Qk_DEFINE_PROP_ACC_GET(String, value);
 		Qk_DEFINE_PROP_ACC_GET(uint32_t, hash);
-		CSSName(const Array<String>& name);
+		CSSName(cArray<String>& name);
 		CSSName(cString& name);
-	};
-
-	enum CSSType {
-		kNONE_CSSType = 0,
-		kNORMAL_CSSType,
-		kHOVER_CSSType,
-		kACTIVE_CSSType,
 	};
 
 	class Qk_EXPORT StyleSheets: public Object {
@@ -62,50 +62,49 @@ namespace qk {
 	public:
 		class Property {
 		public:
-			virtual void apply(Layout* view) = 0;
+			virtual void apply(Layout *layout) = 0;
 		};
 
-		// -------------------- set property --------------------
-
-		// # define fx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value);
-		// 	Qk_EACH_PROPERTY_TABLE(fx_def_property)
-		// # undef fx_def_property
-
-		// BackgroundPtr background();
+		// define props
+		#define _Fun(Enum, Type, Name) void set_##Name(Type value);
+			Qk_View_Propertys(_Fun)
+		#undef _Fun
 
 		Qk_DEFINE_PROP_GET(CSSName, name);
 		Qk_DEFINE_PROP(uint64_t, time);
 		// inline void set_time(uint64_t value) { _time = value; }
 		Qk_DEFINE_PROP_GET(StyleSheets*, parent, NoConst);
-		Qk_DEFINE_PROP_GET(StyleSheets*, normal, NoConst);
+		Qk_DEFINE_PROP_GET(StyleSheets*, normal, NoConst); // style sheets for pseudo type
 		Qk_DEFINE_PROP_GET(StyleSheets*, hover, NoConst);
 		Qk_DEFINE_PROP_GET(StyleSheets*, active, NoConst);
 		Qk_DEFINE_PROP_GET(CSSType, type);
-		Qk_DEFINE_PROP_GET(bool, isSupportPseudoType);
+		Qk_DEFINE_PROP_GET(bool, havePseudoType); // normal | hover | active
 
-		StyleSheets(const CSSName& name, StyleSheets *parent, CSSType type);
+		StyleSheets(const CSSName &name, StyleSheets *parent, CSSType type);
 
+		/**
+		 * @constructor
+		*/
 		virtual ~StyleSheets();
 
 		/**
-		* @func find children
+		* @method haveSubstyles
 		*/
-		StyleSheets* find(const CSSName& name);
+		inline bool haveSubstyles() const { return _substyles.length(); }
 
 		/**
-		* @func has_child
+		* @method find children style sheets
 		*/
-		inline bool has_child() const { return _children.length(); }
+		StyleSheets* find(const CSSName &name);
 
 		/**
-		* @method apply()
+		* @method apply style to layout
 		*/
-		void apply(Layout* view);
+		void apply(Layout* layout);
 
 	private:
-		Dict<uint32_t, StyleSheets*> _children;
-		// Dict<PropertyName, Property*> _props;
-		Dict<uint32_t, Property*>    _props;
+		Dict<uint32_t, StyleSheets*> _substyles;
+		Dict<uint32_t, Property*> _props; // ViewProperty => Property
 	};
 
 	class Qk_EXPORT RootStyleSheets: public StyleSheets {
@@ -128,30 +127,30 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(StyleSheetsClass);
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
-		Qk_DEFINE_PROP(CSSType, status);
+		Qk_DEFINE_PROP(CSSType, status); // 当前伪类应用状态
+		Qk_DEFINE_PROP(bool, havePseudoType); // 当前样式表选择器能够找到支持伪类的样式表
+		Qk_DEFINE_PROP(bool, onceApply); // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
 
 		StyleSheetsClass(Layout* host);
 
 		virtual ~StyleSheetsClass();
 
-		inline bool hasChild() const { return _childStyleSheets.length(); }
-		inline const Array<String>& name() const { return _name; }
-		inline const Array<StyleSheets*>& childStyleSheets() { return _childStyleSheets; }
+		inline bool haveSubstyles() const { return _substyleSheets.length(); }
+		inline cArray<String>& name() const { return _name; }
+		inline cArray<StyleSheets*>& substyleSheets() { return _substyleSheets; }
 
-		void set(const Array<String> &value);
+		void set(cArray<String> &value);
 		void add(cString &name);
 		void remove(cString &name);
 		void toggle(cString &name);
-		void apply(StyleSheetsScope* scope);
-		void apply(StyleSheetsScope *scope, bool* effect_child);
+		void apply(StyleSheetsScope *scope);
+		void apply(StyleSheetsScope *scope, bool *effect_child);
 
 	private:
 		Layout*         _host;
 		Array<String>   _name;
 		Array<uint32_t> _queryGroup;
-		Array<StyleSheets*> _childStyleSheets; // 当前应用的样式表中拥有子样式表的表供后代视图查询
-		bool            _isSupportPseudoType;  // 当前样式表选择器能够找到支持伪类的样式表
-		bool            _onceApply;            // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
+		Array<StyleSheets*> _substyleSheets; // 当前应用的样式表中拥有子样式表的表供后代视图查询
 	};
 
 	class Qk_EXPORT StyleSheetsScope: public Object {
@@ -159,21 +158,21 @@ namespace qk {
 	public:
 		struct Scope {
 			struct Wrap {
-				StyleSheets* sheets; int ref;
+				StyleSheets *sheets; int ref;
 			};
-			Wrap* wrap;
+			Wrap *wrap;
 			int   ref;
 		};
 		StyleSheetsScope(Layout* scope);
-		void push_scope(Layout* scope);
-		void pop_scope();
-		inline Layout* bottom_scope() { return _scopes.length() ? _scopes.back() : nullptr; }
-		inline const List<Scope>& style_sheets() { return _style_sheets; }
+		void pushScope(Layout* scope);
+		void popScope();
+		inline Layout* bottomScope() { return _scopes.length() ? _scopes.back() : nullptr; }
+		inline cList<Scope>& styleSheets() { return _styleSheets; }
 	private:
 		typedef Dict<StyleSheets*, Scope::Wrap> StyleSheetsMap;
 		List<Layout*>  _scopes;
-		List<Scope>    _style_sheets;
-		StyleSheetsMap _style_sheets_map;
+		List<Scope>    _styleSheets;
+		StyleSheetsMap _styleSheetsMap;
 	};
 
 }

@@ -275,7 +275,7 @@ namespace qk {
 
 	/**
 	* @enum KeyboardReturnType
-	*/		
+	*/
 	enum class KeyboardReturnType: uint8_t {
 		kNormal,
 		kGo,
