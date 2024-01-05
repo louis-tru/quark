@@ -143,8 +143,7 @@ namespace qk {
 	void PreRender::solveAsyncCall() {
 		if (_asyncCommit.length()) {
 			for (auto &i: _asyncCommit) {
-				auto p = (AsyncCall::Args*)&i.args;
-				i.exec(i.ctx, *p); // exec async call
+				((void (*)(void*,uint64_t))i.exec)(i.ctx, i.args); // exec async call
 			}
 			_asyncCommit.clear();
 		}
@@ -187,11 +186,6 @@ namespace qk {
 		} else {
 			return false;
 		}
-	}
-
-	void PreRender::async_call_(void *exec, void *ctx, void *args) {
-		typedef PreRender::AsyncCall::Args AsyncCallArgs;
-		_asyncCall.push({ ctx,*(uint64_t*)args,(void(*)(void*,AsyncCallArgs))exec });
 	}
 
 	RenderTask::~RenderTask() {

@@ -238,6 +238,7 @@ namespace qk {
 
 	// text value template
 	template<typename Value> struct TextValueWrap {
+		typedef NonObjectTraits Traits;
 		inline bool operator!=(const TextValueWrap& val) const {
 			return kind != val.kind || (kind == TextValueKind::kValue && value != val.value);
 		}
@@ -250,8 +251,8 @@ namespace qk {
 
 	typedef TextValueWrap<Color> TextColor; // inherit / default / value
 	typedef TextValueWrap<float> TextSize;
-	typedef TextValueWrap<Shadow> TextShadow;
 	typedef TextValueWrap<float> TextLineHeight;
+	typedef TextValueWrap<Shadow> TextShadow;
 	typedef TextValueWrap<FFID> TextFamily;
 
 	// ---------------- K e y b o a r d . T y p e ----------------

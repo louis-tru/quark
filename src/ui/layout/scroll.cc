@@ -840,6 +840,10 @@ namespace qk {
 		Layout::solve_marks(mat, mark);
 	}
 
+	ScrollLayoutBase* ScrollLayout::asScrollLayoutBase() {
+		return this;
+	}
+
 	// -------------------------------- S c r o l l --------------------------------
 
 	Scroll::Scroll(ScrollLayout *layout): Float(layout), ScrollLayoutBaseAsync(layout, this) {
@@ -922,8 +926,9 @@ namespace qk {
 			Vec2 value; uint64_t duration;
 		};
 		getPreRender().async_call([](auto ctx, auto val) {
-			ctx->scroll_to(val.value, val.duration);
-		}, base, Args{value,duration});
+			ctx->scroll_to(val->value, val->duration);
+			delete val;
+		}, base, new Args{value,duration});
 	}
 
 	void ScrollLayoutBaseAsync::scroll_to(Vec2 value, uint64_t duration, cCurve& curve) {

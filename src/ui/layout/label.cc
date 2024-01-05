@@ -80,8 +80,8 @@ namespace qk {
 	}
 
 	void LabelLayout::set_layout_offset(Vec2 val) {
-		auto size = parent()->layout_size().content_size;
-		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
+		// auto size = parent()->layout_size().content_size;
+		Sp<TextLines> lines = new TextLines(this, text_align(), Vec2(), false); // use left align
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
 		mark_render(kRecursive_Transform);
@@ -107,6 +107,10 @@ namespace qk {
 
 	void LabelLayout::onActivate() {
 		_text_flags = 0xffffffff;
+	}
+
+	TextOptions* LabelLayout::asTextOptions() {
+		return this;
 	}
 
 	// --------------------------------- L a b e l ---------------------------------

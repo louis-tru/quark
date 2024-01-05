@@ -60,7 +60,7 @@ namespace qk {
 			if (max_width <= final_width) {
 				_input_text_offset_x = 0;
 			} else { // max_width > final_width
-				switch ( _text_align ) {
+				switch ( text_align() ) {
 					default:
 						_input_text_offset_x = 0; break;
 					case TextAlign::kCenter:
@@ -80,6 +80,10 @@ namespace qk {
 
 	void TextareaLayout::set_input_text_offset(Vec2 value) {
 		set_scroll( Vec2(-value.x() + _input_text_offset_x, -value.y()) );
+	}
+
+	ScrollLayoutBase* TextareaLayout::asScrollLayoutBase() {
+		return this;
 	}
 
 	// ---------------- T e x t a r e a ----------------

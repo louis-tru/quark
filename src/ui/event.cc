@@ -337,7 +337,7 @@ namespace qk {
 				_focus_view = view;
 				_focus_view->retain(); // strong ref
 				// set text input
-				auto input = view->_layout->as_text_input();
+				auto input = view->_layout->asTextInput();
 				if ( _text_input != input ) {
 					_text_input = input;
 					if ( input ) {

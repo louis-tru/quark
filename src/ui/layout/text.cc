@@ -34,14 +34,8 @@
 
 namespace qk {
 
-	TextLayout::TextLayout(Window *win): BoxLayout(win), _text_align(TextAlign::kLeft) {}
+	TextLayout::TextLayout(Window *win): BoxLayout(win) {}
 
-	void TextLayout::set_text_align(TextAlign value) {
-		if(_text_align != value) {
-			_text_align = value;
-			mark_layout(kLayout_Typesetting);
-		}
-	}
 
 	bool TextLayout::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
@@ -49,7 +43,7 @@ namespace qk {
 
 			auto size = content_size();
 			auto v = first();
-			_lines = new TextLines(this, _text_align, size, layout_wrap_x());
+			_lines = new TextLines(this, text_align(), size, layout_wrap_x());
 
 			if (v) {
 				TextConfig cfg(this, shared_app()->defaultTextOptions());
@@ -96,9 +90,14 @@ namespace qk {
 		_text_flags = 0xffffffffu;
 	}
 
+	TextOptions* TextLayout::asTextOptions() {
+		return this;
+	}
+
 	TextOptions* Text::getOptions() const {
 		return layout<TextLayout>();
 	}
+
 	PreRender& Text::getPreRender() {
 		return preRender();
 	}

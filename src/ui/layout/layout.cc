@@ -102,11 +102,19 @@ namespace qk {
 		return false;
 	}
 
-	TextInput* Layout::as_text_input() {
+	TextInput* Layout::asTextInput() {
 		return nullptr;
 	}
 
-	TransformLayout* Layout::as_transform() {
+	TransformLayout* Layout::asTransform() {
+		return nullptr;
+	}
+
+	TextOptions* Layout::asTextOptions() {
+		return nullptr;
+	}
+
+	ScrollLayoutBase* Layout::asScrollLayoutBase() {
 		return nullptr;
 	}
 
@@ -211,7 +219,7 @@ namespace qk {
 	TransformLayout* Layout::transform() {
 		auto *v = this;
 		do {
-			auto t = v->as_transform();
+			auto t = v->asTransform();
 			if (t)
 				return t;
 			v = v->_parent;

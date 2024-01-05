@@ -38,9 +38,11 @@ namespace qk {
 	class TextInput;
 	class TextLines;
 	class TextConfig;
+	class TextOptions;
 	class UIRender;
 	class Window;
 	class TransformLayout;
+	class ScrollLayoutBase;
 
 	/**
 		* Layout tree nodes that can only be called in rendering threads.
@@ -188,17 +190,33 @@ namespace qk {
 		 * 
 		 * Returns text input object
 		 * 
-		 * @method as_text_input()
+		 * @method asTextInput()
 		*/
-		virtual TextInput* as_text_input();
+		virtual TextInput* asTextInput();
 
 		/**
 		 * 
 		 * Returns as transform
 		 * 
-		 * @method as_transform()
+		 * @method asTransform()
 		*/
-		virtual TransformLayout* as_transform();
+		virtual TransformLayout* asTransform();
+
+		/**
+		 * 
+		 * Returns as textOptions
+		 * 
+		 * @method as_text_options()
+		*/
+		virtual TextOptions* asTextOptions();
+
+		/**
+		 * 
+		 * Returns as ScrollLayoutBase
+		 * 
+		 * @method asScrollLayoutBase()
+		*/
+		virtual ScrollLayoutBase* asScrollLayoutBase();
 
 		/**
 			*

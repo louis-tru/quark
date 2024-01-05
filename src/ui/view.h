@@ -39,19 +39,6 @@ namespace qk {
 	class Layout;
 	class Button;
 
-	#define Qk_Define_View(ViewName, Base) \
-		typedef ViewName##Layout Layout; \
-		inline ViewName(ViewName##Layout *layout): Base(layout) {}
-
-	#define Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name, ...) \
-		type cls::name() __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return layout<cls##Layout>()->name(); }
-	#define Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name) \
-		void cls::set_##name(type val) { \
-			preRender().async_call([](auto ctx, auto val) { ctx->set_##name(val); }, layout<cls##Layout>(), val); \
-		}
-	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name, ...) \
-		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name, ##__VA_ARGS__) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)
-
 	/**
 		* The basic elements of UI view tree
 		*
@@ -64,6 +51,7 @@ namespace qk {
 		*/
 	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Reference> {
 		Qk_HIDDEN_ALL_COPY(View);
+		Qk_DEFINE_INLINE_CLASS(InlEvent);
 	public:
 		typedef Layout Layout;
 
@@ -239,8 +227,26 @@ namespace qk {
 		void clear_link(); // Cleaning up associated view information
 
 		friend class EventDispatch;
-
-		Qk_DEFINE_INLINE_CLASS(InlEvent);
 	};
+
+	// ------------------------------------
+
+	#define Qk_Define_View(ViewName, Base) \
+		typedef ViewName##Layout Layout; \
+		inline ViewName(ViewName##Layout *layout): Base(layout) {}
+
+	#define Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name, ...) \
+		type cls::name() __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return layout<cls##Layout>()->name(); }
+	#define Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name) \
+		void cls::set_##name(type val) { \
+			preRender().async_call([](auto ctx, auto val) {ctx->set_##name(val);}, layout<cls##Layout>(), val); \
+		}
+	#define Qk_IMPL_VIEW_PROP_ACC_SET_Large(cls, type, name) \
+		void cls::set_##name(type val) { \
+			preRender().async_call([](auto ctx, auto val) {ctx->set_##name(*val); type::Traits::Release(val);}, layout<cls##Layout>(), new type(val)); \
+		}
+	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name, ...) \
+		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name, ##__VA_ARGS__) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)
+
 }
 #endif

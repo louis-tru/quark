@@ -591,7 +591,6 @@ namespace qk {
 	InputLayout::InputLayout(Window *win)
 		: BoxLayout(win)
 		, _security(false), _readonly(false)
-		, _text_align(TextAlign::kLeft)
 		, _type(KeyboardType::kNormal)
 		, _return_type(KeyboardReturnType::kNormal)
 		, _placeholder_color(150, 150, 150)
@@ -611,13 +610,6 @@ namespace qk {
 
 	bool InputLayout::is_multiline() {
 		return false;
-	}
-
-	void InputLayout::set_text_align(TextAlign val) {
-		if(_text_align != val) {
-			_text_align = val;
-			mark_layout(kLayout_Typesetting);
-		}
 	}
 
 	void InputLayout::set_value_u4(String4 val) {
@@ -656,7 +648,7 @@ namespace qk {
 	Vec2 InputLayout::layout_typesetting_input_text() {
 
 		Vec2 size = content_size();
-		_lines = new TextLines(this, _text_align, size, layout_wrap_x());
+		_lines = new TextLines(this, text_align(), size, layout_wrap_x());
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 
 		FontMetricsBase metrics;
@@ -805,7 +797,7 @@ namespace qk {
 				line = &_lines->line(_cursor_linenum);
 				_cursor_x = line->origin + blob->origin + offset;
 			} else { // 找不到cell定位到最后行
-				switch ( _text_align ) {
+				switch ( text_align() ) {
 					default:
 						_cursor_x = 0; break;
 					case TextAlign::kCenter:
@@ -853,7 +845,7 @@ namespace qk {
 				}
 				
 				// 检测文本x轴两端是在非法显示区域
-				switch ( _text_align ) {
+				switch ( text_align() ) {
 					default:
 						offset = text_offset.x(); break;
 					case TextAlign::kCenter:
@@ -884,7 +876,11 @@ namespace qk {
 		_text_flags = 0xffffffff;
 	}
 
-	TextInput* InputLayout::as_text_input() {
+	TextInput* InputLayout::asTextInput() {
+		return this;
+	}
+
+	TextOptions* InputLayout::asTextOptions() {
 		return this;
 	}
 
@@ -1123,15 +1119,18 @@ namespace qk {
 
 	Qk_IMPL_VIEW_PROP_ACC(Input, bool, security);
 	Qk_IMPL_VIEW_PROP_ACC(Input, bool, readonly);
-	Qk_IMPL_VIEW_PROP_ACC(Input, TextAlign, text_align);
 	Qk_IMPL_VIEW_PROP_ACC(Input, KeyboardType, type);
 	Qk_IMPL_VIEW_PROP_ACC(Input, KeyboardReturnType, return_type);
-	Qk_IMPL_VIEW_PROP_ACC(Input, String4, value_u4);
-	Qk_IMPL_VIEW_PROP_ACC(Input, String4, placeholder_u4);
+	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String4, value_u4); //
+	Qk_IMPL_VIEW_PROP_ACC_SET_Large(Input, String4, value_u4);
+	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String4, placeholder_u4); //
+	Qk_IMPL_VIEW_PROP_ACC_SET_Large(Input, String4, placeholder_u4);
 	Qk_IMPL_VIEW_PROP_ACC(Input, Color, placeholder_color);
 	Qk_IMPL_VIEW_PROP_ACC(Input, Color, cursor_color);
 	Qk_IMPL_VIEW_PROP_ACC(Input, uint32_t, max_length);
-	Qk_IMPL_VIEW_PROP_ACC(Input, String, value);
-	Qk_IMPL_VIEW_PROP_ACC(Input, String, placeholder);
+	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String, value); //
+	Qk_IMPL_VIEW_PROP_ACC_SET_Large(Input, String, value);
+	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String, placeholder); //
+	Qk_IMPL_VIEW_PROP_ACC_SET_Large(Input, String, placeholder);
 	Qk_IMPL_VIEW_PROP_ACC_GET(Input, uint32_t, text_length);
 }

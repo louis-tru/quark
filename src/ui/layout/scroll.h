@@ -38,6 +38,8 @@ namespace qk {
 	class ScrollLayout;
 
 	class Qk_EXPORT ScrollLayoutBase {
+		Qk_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Task);
 	public:
 		Qk_DEFINE_PROP(bool, scrollbar); // 显示scrollbar
 		Qk_DEFINE_PROP(bool, bounce);    // 使用回弹力
@@ -69,9 +71,6 @@ namespace qk {
 	private:
 		friend class UIRender;
 		friend class ScrollLayoutBaseAsync;
-		Qk_DEFINE_INLINE_CLASS(Inl);
-		Qk_DEFINE_INLINE_CLASS(Task);
-
 		BoxLayout *_host;
 		List<Task*> _tasks;
 		Vec2 _scroll, _scroll_max, _scroll_for_main_t;
@@ -124,6 +123,7 @@ namespace qk {
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual void draw(UIRender *render) override;
+		virtual ScrollLayoutBase* asScrollLayoutBase() override;
 	};
 
 	class Qk_EXPORT Scroll: public Float, public ScrollLayoutBaseAsync {

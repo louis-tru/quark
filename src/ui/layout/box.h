@@ -72,6 +72,8 @@ namespace qk {
 		Qk_DEFINE_PROP    (Color,      background_color); // fill background color
 		Qk_DEFINE_PROP    (BoxFill*,   background); // fill background, image|gradient
 		Qk_DEFINE_PROP    (BoxShadow*, box_shadow); // box shadow, shadow
+		Qk_DEFINE_PROP    (float,      weight); // layout weight
+		Qk_DEFINE_PROP_ACC(Align,      align); // layout align
 		Qk_DEFINE_PROP_GET(Vec2,       content_size); // width,height, no include padding
 		Qk_DEFINE_PROP_GET(Vec2,       client_size); // border + padding + content
 
@@ -84,22 +86,6 @@ namespace qk {
 		 * @destructor
 		*/
 		virtual ~BoxLayout();
-
-		/**
-			*
-			* 设置布局权重
-			*
-			* @func set_layout_weight(val)
-			*/
-		void set_layout_weight(float weight);
-
-		/**
-			*
-			* 设置布局对齐方式
-			*
-			* @func set_layout_align(align)
-			*/
-		void set_layout_align(Align align);
 
 		// --------------- o v e r w r i t e ---------------
 		virtual bool layout_forward(uint32_t mark) override;
@@ -168,9 +154,8 @@ namespace qk {
 		// box layout attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
-		float _layout_weight; // layout weight
-		Vec2  _vertex[4];     // box vertex
-		Align _layout_align;  // layout align
+		Vec2  _vertex[4]; // box vertex
+		Align _align;  // layout align
 
 		friend class UIRender;
 	};
@@ -206,6 +191,8 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(Color,      background_color); // fill background color
 		Qk_DEFINE_PROP_ACC(BoxFill*,   background); // fill background, image|gradient
 		Qk_DEFINE_PROP_ACC(BoxShadow*, box_shadow); // box shadow, shadow
+		Qk_DEFINE_PROP_ACC(float,      weight);
+		Qk_DEFINE_PROP_ACC(Align,      align);
 	};
 
 	/**

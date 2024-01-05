@@ -51,12 +51,12 @@ namespace qk {
 		virtual bool solve_visible_region(const Mat &mat) override;
 		virtual void onActivate() override;
 		virtual void draw(UIRender *render) override;
+		virtual TextOptions* asTextOptions() override;
 	protected:
 		virtual void onTextChange(uint32_t mark, uint32_t type) override;
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;
 		Sp<TextLines>   _lines;
-
 		friend class UIRender;
 	};
 

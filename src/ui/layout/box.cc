@@ -158,7 +158,7 @@ namespace qk {
 		, _background_color(Color::from(0))
 		, _background(nullptr)
 		, _box_shadow(nullptr)
-		, _layout_weight(0), _layout_align(Align::kAuto)
+		, _weight(0), _align(Align::kAuto)
 		, _border(nullptr)
 	{
 	}
@@ -682,11 +682,11 @@ namespace qk {
 	}
 
 	float BoxLayout::layout_weight() {
-		return _layout_weight;
+		return _weight;
 	}
 
 	Align BoxLayout::layout_align() {
-		return _layout_align;
+		return _align;
 	}
 
 	void BoxLayout::solve_marks(const Mat &mat, uint32_t mark) {
@@ -720,9 +720,9 @@ namespace qk {
 		*
 		* @func set_layout_align(align)
 		*/
-	void BoxLayout::set_layout_align(Align align) {
-		if (_layout_align != align) {
-			_layout_align = align;
+	void BoxLayout::set_align(Align align) {
+		if (_align != align) {
+			_align = align;
 			if (parent()) {
 				parent()->onChildLayoutChange(this, kChild_Layout_Align);
 			}
@@ -735,9 +735,9 @@ namespace qk {
 		*
 		* @func set_layout_weight(weight)
 		*/
-	void BoxLayout::set_layout_weight(float weight) {
-		if (_layout_weight != weight) {
-			_layout_weight = weight;
+	void BoxLayout::set_weight(float weight) {
+		if (_weight != weight) {
+			_weight = weight;
 			if (parent()) {
 				parent()->onChildLayoutChange(this, kChild_Layout_Weight);
 			}
@@ -752,7 +752,7 @@ namespace qk {
 	void BoxLayout::set_layout_offset_lazy(Vec2 size) {
 		Vec2 offset;
 
-		switch(_layout_align) {
+		switch(_align) {
 			default:
 			case Align::kLeftTop: // left top
 				break;
@@ -984,4 +984,6 @@ namespace qk {
 	Qk_IMPL_VIEW_PROP_ACC(Box, Color,      background_color); // fill background color
 	Qk_IMPL_VIEW_PROP_ACC(Box, BoxFill*,   background); // fill background, image|gradient
 	Qk_IMPL_VIEW_PROP_ACC(Box, BoxShadow*, box_shadow); // box shadow, shadow
+	Qk_IMPL_VIEW_PROP_ACC(Box, float,      weight);
+	Qk_IMPL_VIEW_PROP_ACC(Box, Align,      align);
 }

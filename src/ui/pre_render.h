@@ -36,7 +36,6 @@
 #include "../util/list.h"
 #include "../util/array.h"
 #include "../util/loop.h"
-#include "./view_prop.h"
 
 namespace qk {
 	class Window;
@@ -54,7 +53,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(ID, task_id);
 		Qk_DEFINE_PROP_GET(PreRender*, pre);
 		Qk_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
-		RenderTask(): _task_timeout(0) {}
+		inline RenderTask(): _task_timeout(0) {}
 		virtual ~RenderTask();
 		virtual bool run_task(int64_t sys_time) = 0;
 		inline bool is_register_task() const { return _task_id != ID(); }
@@ -85,14 +84,17 @@ namespace qk {
 		/**
 		 * Issue commands from the main thread and execute them in the rendering thread
 		 * 
-		 * Note that the Args parameter size cannot exceed 16 bytes
+		 * Note that the Args parameter size cannot exceed 8 bytes
 		 * 
 		 * @method async_call()
 		*/
 		template<typename E, typename Args, typename Ctx = Layout>
 		inline void async_call(E exec, Ctx *ctx, Args args) {
+			static_assert(sizeof(Args) <= sizeof(uint64_t));
 			typedef void (*Exec)(Ctx *ctx, Args args);
-			async_call_((void*)static_cast<Exec>(exec), ctx, &args);
+			auto exec_ = (void*)static_cast<Exec>(exec);
+			auto args_ = *(uint64_t*)&args;
+			_asyncCall.push({ ctx,exec_,args_ });
 		}
 
 	private:
@@ -105,13 +107,10 @@ namespace qk {
 		void clearTasks();
 		void asyncCommit(); // commit async cmd to ready, only main thread call
 		void solveAsyncCall();
-		void async_call_(void *exec, void *ctx, void *args);
 
 		struct AsyncCall {
-			typedef ViewPropertyValue Args;
-			void *ctx;
+			void *ctx, *exec;
 			uint64_t args;
-			void (*exec)(void *ctx, Args args);
 		};
 		Window *_window;
 		int32_t _mark_total;

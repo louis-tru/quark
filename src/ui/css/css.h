@@ -67,7 +67,7 @@ namespace qk {
 
 		// define props
 		#define _Fun(Enum, Type, Name) void set_##Name(Type value);
-			Qk_View_Propertys(_Fun)
+			Qk_View_Props(_Fun)
 		#undef _Fun
 
 		Qk_DEFINE_PROP_GET(CSSName, name);

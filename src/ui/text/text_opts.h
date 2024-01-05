@@ -42,6 +42,7 @@ namespace qk {
 	class Qk_EXPORT TextOptions {
 	public:
 		TextOptions();
+		Qk_DEFINE_PROP(TextAlign, text_align);
 		Qk_DEFINE_PROP(TextWeight, text_weight);
 		Qk_DEFINE_PROP(TextSlant,  text_slant);
 		Qk_DEFINE_PROP(TextDecoration, text_decoration);
@@ -51,8 +52,8 @@ namespace qk {
 		Qk_DEFINE_PROP(TextSize,  text_size); // TextValueWrap
 		Qk_DEFINE_PROP(TextColor, text_background_color);
 		Qk_DEFINE_PROP(TextColor, text_color);
-		Qk_DEFINE_PROP(TextShadow, text_shadow);
 		Qk_DEFINE_PROP(TextLineHeight, text_line_height);
+		Qk_DEFINE_PROP(TextShadow, text_shadow);
 		Qk_DEFINE_PROP(TextFamily, text_family);
 		// compute text final props
 		Qk_DEFINE_PROP_GET(TextWeight, text_weight_value);
@@ -87,6 +88,7 @@ namespace qk {
 
 	class Qk_EXPORT TextOptionsAsync {
 	public:
+		Qk_DEFINE_PROP_ACC(TextAlign, text_align);
 		Qk_DEFINE_PROP_ACC(TextWeight, text_weight);
 		Qk_DEFINE_PROP_ACC(TextSlant,  text_slant);
 		Qk_DEFINE_PROP_ACC(TextDecoration, text_decoration);
@@ -96,8 +98,8 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(TextSize,  text_size); // TextValueWrap
 		Qk_DEFINE_PROP_ACC(TextColor, text_background_color);
 		Qk_DEFINE_PROP_ACC(TextColor, text_color);
-		Qk_DEFINE_PROP_ACC(TextShadow, text_shadow);
 		Qk_DEFINE_PROP_ACC(TextLineHeight, text_line_height);
+		Qk_DEFINE_PROP_ACC(TextShadow, text_shadow);
 		Qk_DEFINE_PROP_ACC(TextFamily, text_family);
 		Qk_DEFINE_PROP_ACC_GET(TextWeight, text_weight_value);
 		Qk_DEFINE_PROP_ACC_GET(TextSlant, text_slant_value);
@@ -108,7 +110,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style);
 		// get host handle
 		virtual TextOptions* getOptions() const = 0;
-		virtual PreRender& getPreRender() = 0;
+		virtual PreRender&   getPreRender() = 0;
 	};
 
 }

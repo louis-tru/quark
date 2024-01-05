@@ -29,140 +29,161 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./view_prop.h"
-#include "./view.h"
-#include "./box.h"
-#include "./text.h"
-#include "./label.h"
-#include "./image.h"
+#include "../layout/layout.h"
+#include "../layout/box.h"
+#include "./layout/flex.h"
+#include "./layout/flow.h"
+#include "./layout/text.h"
+#include "./layout/input.h"
+#include "./layout/image.h"
+#include "./layout/scroll.h"
+#include "./layout/transform.h"
 
 namespace qk {
-	#define set_func(view, cls, Name, func) view.set(Name, Accessor(&cls::func, &cls::set_##func))
+	typedef Layout ViewLayout;
+
+	#define Qk_Set_Accessor(View, Prop, Name) \
+		view_prop_accessors[k##View##_ViewType].accessors[k##Prop##_ViewProp] = {\
+			(void*)&View##Layout::Name,(void*)&View##Layout::set_##Name,(void*)&View::Name,(void*)&View::set_##Name\
+		}
+
+	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
+		view_prop_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, view_prop_accessors[k##Dest##_ViewType]);
 
 	struct PropAccessors {
-		PropAccessor accessors[kEnum_Counts_PropName];
+		void copy(uint32_t index, uint32_t count, PropAccessors &dest) {
+			auto end = index + count;
+			do {
+				dest.accessors[index] = accessors[index];
+			} while (++index < end);
+		}
+		ViewPropAccessor accessors[kEnum_Counts_ViewProp] = {0};
 	};
+
 	static PropAccessors *view_prop_accessors = nullptr;
 
 	void view_prop_acc_init() {
 		if (view_prop_accessors)
 			return;
 		view_prop_accessors = new PropAccessors[kEnum_Counts_ViewType];
-
-		set_func(view, View, kX_PropName, x);
-		set_func(view, View, PROPERTY_Y, y);
-		set_func(view, View, PROPERTY_SCALE_X, scale_x);
-		set_func(view, View, PROPERTY_SCALE_Y, scale_y);
-		set_func(view, View, PROPERTY_SKEW_X, skew_x);
-		set_func(view, View, PROPERTY_SKEW_Y, skew_y);
-		set_func(view, View, PROPERTY_ROTATE_Z, rotate_z);
-		set_func(view, View, PROPERTY_ORIGIN_X, origin_x);
-		set_func(view, View, PROPERTY_ORIGIN_Y, origin_y);
-		set_func(view, View, PROPERTY_OPACITY, opacity);
-		view[STYLE_VISIBLE] = Accessor(&View::visible, &View::set_visible_1);
-
-		Dict<StyleName, Accessor> box = view;
-
-		set_func(box, Box, PROPERTY_WIDTH, width);  // Value
-		set_func(box, Box, PROPERTY_HEIGHT, height); // Value
-		set_func(box, Box, PROPERTY_MARGIN_LEFT, margin_left);
-		set_func(box, Box, PROPERTY_MARGIN_TOP, margin_top);
-		set_func(box, Box, PROPERTY_MARGIN_RIGHT, margin_right);
-		set_func(box, Box, PROPERTY_MARGIN_BOTTOM, margin_bottom);
-		set_func(box, Box, PROPERTY_BORDER_LEFT_WIDTH, border_left_width);
-		set_func(box, Box, PROPERTY_BORDER_TOP_WIDTH, border_top_width);
-		set_func(box, Box, PROPERTY_BORDER_RIGHT_WIDTH, border_right_width);
-		set_func(box, Box, PROPERTY_BORDER_BOTTOM_WIDTH, border_bottom_width);
-		set_func(box, Box, PROPERTY_BORDER_LEFT_COLOR, border_left_color);
-		set_func(box, Box, PROPERTY_BORDER_TOP_COLOR, border_top_color);
-		set_func(box, Box, PROPERTY_BORDER_RIGHT_COLOR, border_right_color);
-		set_func(box, Box, PROPERTY_BORDER_BOTTOM_COLOR, border_bottom_color);
-		set_func(box, Box, PROPERTY_BORDER_RADIUS_LEFT_TOP, border_radius_left_top);
-		set_func(box, Box, PROPERTY_BORDER_RADIUS_RIGHT_TOP, border_radius_right_top);
-		set_func(box, Box, PROPERTY_BORDER_RADIUS_RIGHT_BOTTOM, border_radius_right_bottom);
-		set_func(box, Box, PROPERTY_BORDER_RADIUS_LEFT_BOTTOM, border_radius_left_bottom);
-		set_func(box, Box, PROPERTY_BACKGROUND_COLOR, background_color);
-		set_func(box, Box, PROPERTY_BACKGROUND, background);
-		set_func(box, Box, PROPERTY_NEWLINE, newline);
-		set_func(box, Box, PROPERTY_CLIP, clip);
-
-		Dict<StyleName, Accessor> div = box;
-		Dict<StyleName, Accessor> hybrid = box;
-		set_func(div, Div, PROPERTY_CONTENT_ALIGN, content_align);
-		set_func(hybrid, Hybrid, PROPERTY_TEXT_ALIGN, text_align);
-
-		_property_func_table[View::VIEW] = view;
-		_property_func_table[View::BOX] = box;
-		_property_func_table[View::DIV] = div;
-		_property_func_table[View::INDEP] = div;
-		_property_func_table[View::SCROLL] = div;
-		_property_func_table[View::ROOT] = div;
-		_property_func_table[View::LIMIT] = div;
-		_property_func_table[View::IMAGE] = div;
-		_property_func_table[View::BOX_SHADOW] = div;
-		_property_func_table[View::PANEL] = div;
-		_property_func_table[View::SPAN] = view;
-		_property_func_table[View::LABEL] = view;
-		_property_func_table[View::SPRITE] = view;
-		_property_func_table[View::HYBRID] = hybrid;
-		// indep/limit_indep
-		set_func(_property_func_table[View::INDEP], Indep, PROPERTY_ALIGN_X, align_x);
-		set_func(_property_func_table[View::INDEP], Indep, PROPERTY_ALIGN_Y, align_y);
-		_property_func_table[View::LIMIT_INDEP] = _property_func_table[View::INDEP];
-		// shadow
-		set_func(_property_func_table[View::BOX_SHADOW], BoxShadow, PROPERTY_REPEAT, shadow);
-		// limit/limit_indep
-		set_func(_property_func_table[View::LIMIT], Limit, PROPERTY_MAX_WIDTH, max_width);
-		set_func(_property_func_table[View::LIMIT], Limit, PROPERTY_MAX_HEIGHT, max_height);
-		set_func(_property_func_table[View::LIMIT_INDEP], LimitIndep, PROPERTY_MAX_WIDTH, max_width);
-		set_func(_property_func_table[View::LIMIT_INDEP], LimitIndep, PROPERTY_MAX_HEIGHT, max_height);
-		// video/image
-		set_func(_property_func_table[View::IMAGE], Image, PROPERTY_SRC, src);
-		_property_func_table[View::VIDEO] = _property_func_table[View::IMAGE];
-		// sprite
-		set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_WIDTH, width_1);
-		set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_HEIGHT, height_1);
-		set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_START_X, start_x);
-		set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_START_Y, start_y);
-		set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_RATIO_X, ratio_x);
-		set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_RATIO_Y, ratio_y);
-		set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_REPEAT, repeat);
-		set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_SRC, src);
-		// label
-		set_func(_property_func_table[View::LABEL], Label, PROPERTY_TEXT_ALIGN, text_align);
-		
-		// text-font
-		Dict<StyleName, Accessor> font;
-		set_func(font, TextFont, PROPERTY_TEXT_BACKGROUND_COLOR, text_background_color);
-		set_func(font, TextFont, PROPERTY_TEXT_COLOR, text_color);
-		set_func(font, TextFont, PROPERTY_TEXT_SIZE, text_size);
-		set_func(font, TextFont, PROPERTY_text_slant, text_slant);
-		set_func(font, TextFont, PROPERTY_TEXT_FAMILY, text_family);
-		set_func(font, TextFont, PROPERTY_TEXT_SHADOW, text_shadow);
-		set_func(font, TextFont, PROPERTY_TEXT_LINE_HEIGHT, text_line_height);
-		set_func(font, TextFont, PROPERTY_TEXT_DECORATION, text_decoration);
-		
-		for (auto& i : font) { // extend
-			_property_func_table[View::LABEL].set(i.key, i.value); // label
-		}
-		
-		// text-layout
-		set_func(font, Text, PROPERTY_TEXT_OVERFLOW, text_overflow);
-		set_func(font, Text, PROPERTY_TEXT_WHITE_SPACE, text_white_space);
-		
-		for (auto& i : font) { // extend
-			_property_func_table[View::HYBRID].set(i.key, i.value);  // hybrid
-			_property_func_table[View::SPAN].set(i.key, i.value);  // span
-		}
-		
-		_property_func_table[View::BUTTON] = _property_func_table[View::HYBRID];
-		_property_func_table[View::TEXT] = _property_func_table[View::HYBRID];
-		_property_func_table[View::INPUT] = _property_func_table[View::HYBRID];
-		_property_func_table[View::TEXTAREA] = _property_func_table[View::HYBRID];
-		_property_func_table[View::TEXT_NODE] = _property_func_table[View::SPAN];
+		// view
+		Qk_Set_Accessor(View, OPACITY, opacity);
+		Qk_Set_Accessor(View, VISIBLE, visible);
+		Qk_Set_Accessor(View, RECEIVE, receive);
+		view_prop_accessors[kBox_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kFlex_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kFlow_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kFloat_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kImage_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kVideo_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kInput_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kTextarea_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kLabel_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kScroll_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kText_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kButton_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kTransform_ViewType] = view_prop_accessors[kView_ViewType];
+		view_prop_accessors[kRoot_ViewType] = view_prop_accessors[kView_ViewType];
+		// box
+		Qk_Set_Accessor(Box, CLIP, clip);
+		Qk_Set_Accessor(Box, WIDTH, width);
+		Qk_Set_Accessor(Box, HEIGHT, height);
+		Qk_Set_Accessor(Box, WIDTH, width_limit);
+		Qk_Set_Accessor(Box, HEIGHT, height_limit);
+		Qk_Set_Accessor(Box, MARGIN_TOP, margin_top);
+		Qk_Set_Accessor(Box, MARGIN_RIGHT, margin_right);
+		Qk_Set_Accessor(Box, MARGIN_BOTTOM, margin_bottom);
+		Qk_Set_Accessor(Box, MARGIN_LEFT, margin_left);
+		Qk_Set_Accessor(Box, MARGIN_TOP, padding_top);
+		Qk_Set_Accessor(Box, MARGIN_RIGHT, padding_right);
+		Qk_Set_Accessor(Box, MARGIN_BOTTOM, padding_bottom);
+		Qk_Set_Accessor(Box, MARGIN_LEFT, padding_left);
+		Qk_Set_Accessor(Box, BORDER_RADIUS_LEFT_TOP, border_radius_left_top);
+		Qk_Set_Accessor(Box, BORDER_RADIUS_RIGHT_TOP, border_radius_right_top);
+		Qk_Set_Accessor(Box, BORDER_RADIUS_RIGHT_BOTTOM, border_radius_right_bottom);
+		Qk_Set_Accessor(Box, BORDER_RADIUS_LEFT_BOTTOM, border_radius_left_bottom);
+		Qk_Set_Accessor(Box, BORDER_COLOR_TOP, border_color_top);
+		Qk_Set_Accessor(Box, BORDER_COLOR_RIGHT, border_color_right);
+		Qk_Set_Accessor(Box, BORDER_COLOR_BOTTOM, border_color_bottom);
+		Qk_Set_Accessor(Box, BORDER_COLOR_LEFT, border_color_left);
+		Qk_Set_Accessor(Box, BORDER_WIDTH_TOP, border_width_top);
+		Qk_Set_Accessor(Box, BORDER_WIDTH_RIGHT, border_width_right);
+		Qk_Set_Accessor(Box, BORDER_WIDTH_BOTTOM, border_width_bottom);
+		Qk_Set_Accessor(Box, BORDER_WIDTH_LEFT, border_width_left);
+		Qk_Set_Accessor(Box, BACKGROUND_COLOR, background_color);
+		Qk_Set_Accessor(Box, BACKGROUND, background);
+		Qk_Set_Accessor(Box, BOX_SHADOW, box_shadow);
+		Qk_Set_Accessor(Box, WEIGHT, weight);
+		Qk_Set_Accessor(Box, ALIGN, align);
+		Qk_Copy_Accessor(Box, Flex, CLIP, 30);
+		Qk_Copy_Accessor(Box, Flow, CLIP, 30);
+		Qk_Copy_Accessor(Box, Float, CLIP, 30);
+		Qk_Copy_Accessor(Box, Image, CLIP, 30);
+		Qk_Copy_Accessor(Box, Video, CLIP, 30);
+		Qk_Copy_Accessor(Box, Input, CLIP, 30);
+		Qk_Copy_Accessor(Box, Textarea, CLIP, 30);
+		Qk_Copy_Accessor(Box, Scroll, CLIP, 30);
+		Qk_Copy_Accessor(Box, Text, CLIP, 30);
+		Qk_Copy_Accessor(Box, Button, CLIP, 30);
+		Qk_Copy_Accessor(Box, Transform, CLIP, 30);
+		Qk_Copy_Accessor(Box, Root, CLIP, 30);
+		// flex
+		Qk_Set_Accessor(Flex, DIRECTION, direction);
+		Qk_Set_Accessor(Flex, ITEMS_ALIGN, items_align);
+		Qk_Set_Accessor(Flex, CROSS_ALIGN, cross_align);
+		Qk_Copy_Accessor(Flex, Flow, DIRECTION, 3);
+		// flow
+		Qk_Set_Accessor(Flow, WRAP, wrap);
+		Qk_Set_Accessor(Flow, WRAP_ALIGN, wrap_align);
+		// image
+		Qk_Set_Accessor(Image, SRC, src);
+		Qk_Copy_Accessor(Image, Video, SRC, 1);
+		// text/input/label of TextOptions
+		Qk_Set_Accessor(Text, TEXT_ALIGN, text_align);
+		Qk_Set_Accessor(Text, TEXT_WEIGHT, text_weight);
+		Qk_Set_Accessor(Text, TEXT_SLANT, text_slant);
+		Qk_Set_Accessor(Text, TEXT_DECORATION, text_decoration);
+		Qk_Set_Accessor(Text, TEXT_OVERFLOW, text_overflow);
+		Qk_Set_Accessor(Text, TEXT_WHITE_SPACE, text_white_space);
+		Qk_Set_Accessor(Text, TEXT_WORD_BREAK, text_word_break);
+		Qk_Set_Accessor(Text, TEXT_SIZE, text_size);
+		Qk_Set_Accessor(Text, TEXT_BACKGROUND_COLOR, text_background_color);
+		Qk_Set_Accessor(Text, TEXT_COLOR, text_color);
+		Qk_Set_Accessor(Text, TEXT_LINE_HEIGHT, text_line_height);
+		Qk_Set_Accessor(Text, TEXT_SHADOW, text_shadow);
+		Qk_Set_Accessor(Text, TEXT_FAMILY, text_family);
+		Qk_Copy_Accessor(Text, Input, TEXT_ALIGN, 13);
+		Qk_Copy_Accessor(Text, Textarea, TEXT_ALIGN, 13);
+		Qk_Copy_Accessor(Text, Label, TEXT_ALIGN, 13);
+		// input/textarea
+		Qk_Set_Accessor(Input, SECURITY, security);
+		Qk_Set_Accessor(Input, READONLY, readonly);
+		Qk_Set_Accessor(Input, KEYBOARD_TYPE, type);
+		Qk_Set_Accessor(Input, KEYBOARD_RETURN_TYPE, return_type);
+		Qk_Set_Accessor(Input, PLACEHOLDER_COLOR, placeholder_color);
+		Qk_Set_Accessor(Input, CURSOR_COLOR, cursor_color);
+		Qk_Set_Accessor(Input, MAX_LENGTH, max_length);
+		Qk_Set_Accessor(Input, PLACEHOLDER, placeholder);
+		Qk_Copy_Accessor(Input, Textarea, SECURITY, 8);
+		// scroll/textarea of ScrollLayoutBase
+		Qk_Set_Accessor(Scroll, SCROLLBAR_COLOR, scrollbar_color);
+		Qk_Set_Accessor(Scroll, SCROLLBAR_WIDTH, scrollbar_width);
+		Qk_Set_Accessor(Scroll, SCROLLBAR_MARGIN, scrollbar_margin);
+		Qk_Copy_Accessor(Scroll, Textarea, SCROLLBAR_COLOR, 3);
+		// transform
+		Qk_Set_Accessor(Transform, X, x);
+		Qk_Set_Accessor(Transform, Y, y);
+		Qk_Set_Accessor(Transform, SCALE_X, scale_x);
+		Qk_Set_Accessor(Transform, SCALE_Y, scale_y);
+		Qk_Set_Accessor(Transform, SKEW_X, skew_x);
+		Qk_Set_Accessor(Transform, SKEW_Y, skew_y);
+		Qk_Set_Accessor(Transform, ROTATE_Z, rotate_z);
+		Qk_Set_Accessor(Transform, ORIGIN_X, origin_x);
+		Qk_Set_Accessor(Transform, ORIGIN_Y, origin_y);
 	}
 
-	PropAccessor* view_prop_acc(ViewType type, PropName name) {
-		return &view_prop_accessors[type].accessors[name];
+	ViewPropAccessor* view_prop_accessor(ViewType type, ViewProp prop) {
+		return &view_prop_accessors[type].accessors[prop];
 	}
 
 }

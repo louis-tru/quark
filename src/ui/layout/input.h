@@ -40,13 +40,13 @@
 namespace qk {
 
 	class Qk_EXPORT InputLayout: public BoxLayout
-	, public TextOptions, public RenderTask, public TextInput {
+		, public TextOptions, public RenderTask, public TextInput {
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
 		typedef NonObjectTraits Traits;
 		// define props
 		Qk_DEFINE_PROP(bool, security);
 		Qk_DEFINE_PROP(bool, readonly);
-		Qk_DEFINE_PROP(TextAlign, text_align);
 		Qk_DEFINE_PROP(KeyboardType, type);
 		Qk_DEFINE_PROP(KeyboardReturnType, return_type);
 		Qk_DEFINE_PROP(String4, value_u4);
@@ -66,7 +66,8 @@ namespace qk {
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual bool solve_visible_region(const Mat &mat) override;
 		virtual void onActivate() override;
-		virtual TextInput* as_text_input() override;
+		virtual TextInput* asTextInput() override;
+		virtual TextOptions* asTextOptions() override;
 		virtual bool run_task(int64_t sys_time) override;
 		// impl text input
 		virtual void input_delete(int count) override;
@@ -104,8 +105,6 @@ namespace qk {
 
 		friend class TextareaLayout;
 		friend class UIRender;
-
-		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	class Qk_EXPORT Input: public Box, public TextOptionsAsync {
@@ -117,7 +116,6 @@ namespace qk {
 		virtual PreRender& getPreRender() override;
 		Qk_DEFINE_PROP_ACC(bool, security);
 		Qk_DEFINE_PROP_ACC(bool, readonly);
-		Qk_DEFINE_PROP_ACC(TextAlign, text_align);
 		Qk_DEFINE_PROP_ACC(KeyboardType, type);
 		Qk_DEFINE_PROP_ACC(KeyboardReturnType, return_type);
 		Qk_DEFINE_PROP_ACC(String4, value_u4);

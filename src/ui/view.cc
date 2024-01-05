@@ -65,7 +65,7 @@ namespace qk {
 		return _layout->_opacity;
 	}
 
-	void View::set_opacity(float val) {
+	void View::set_opacity(float val) { // async call set_opacity()
 		preRender().async_call([](auto ctx, auto val) { ctx->set_opacity(val); }, _layout, val);
 	}
 
@@ -73,7 +73,7 @@ namespace qk {
 		return _layout->_visible;
 	}
 
-	void View::set_visible(bool val) {
+	void View::set_visible(bool val) { // async call set_visible()
 		preRender().async_call([](auto ctx, auto val) { ctx->set_visible(val); }, _layout, val);
 	}
 
@@ -81,7 +81,7 @@ namespace qk {
 		return _layout->_receive;
 	}
 
-	void View::set_receive(bool val) {
+	void View::set_receive(bool val) { // async call set_receive()
 		preRender().async_call([](auto ctx, auto val) { ctx->set_receive(val); }, _layout, val);
 	}
 

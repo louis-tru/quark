@@ -47,7 +47,7 @@ namespace qk {
 		Qk_DEFINE_PROP(Vec2, translate); // matrix displacement for the view
 		Qk_DEFINE_PROP(Vec2, scale); // Matrix scaling
 		Qk_DEFINE_PROP(Vec2, skew); // Matrix skew, (radian)
-		Qk_DEFINE_PROP(float, rotate); // z-axis rotation of the matrix
+		Qk_DEFINE_PROP(float, rotate_z); // z-axis rotation of the matrix
 		Qk_DEFINE_PROP(BoxOrigin,  origin_x); //  x-axis transform origin
 		Qk_DEFINE_PROP(BoxOrigin,  origin_y); //  y-axis transform origin
 		// Start the matrix transform from this origin point start.
@@ -72,10 +72,10 @@ namespace qk {
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]) override; // compute rect vertex
 		virtual void draw(UIRender *render) override;
-		virtual TransformLayout* as_transform() override;
+		virtual TransformLayout* asTransform() override;
 	protected:
 		void solve_origin_value(); // compute origint value
-		Mat _matrix; // parent transform Layout * Mat(translate, scale, skew, rotate);
+		Mat _matrix; // parent transform Layout * Mat(translate, scale, skew, rotate_z);
 		friend class UIRender;
 	};
 
@@ -85,7 +85,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(Vec2, translate); // matrix displacement for the view
 		Qk_DEFINE_PROP_ACC(Vec2, scale); // Matrix scaling
 		Qk_DEFINE_PROP_ACC(Vec2, skew); // Matrix skew, (radian)
-		Qk_DEFINE_PROP_ACC(float, rotate); // z-axis rotation of the matrix
+		Qk_DEFINE_PROP_ACC(float, rotate_z); // z-axis rotation of the matrix
 		Qk_DEFINE_PROP_ACC(BoxOrigin,  origin_x); //  x-axis transform origin
 		Qk_DEFINE_PROP_ACC(BoxOrigin,  origin_y); //  y-axis transform origin
 		Qk_DEFINE_PROP_ACC_GET(Vec2, origin_value);

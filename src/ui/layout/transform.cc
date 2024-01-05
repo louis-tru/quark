@@ -33,7 +33,7 @@
 namespace qk {
 
 	TransformLayout::TransformLayout(Window *win): BoxLayout(win)
-		, _translate(0), _scale(1), _skew(0), _rotate(0)
+		, _translate(0), _scale(1), _skew(0), _rotate_z(0)
 		, _origin_x{0, BoxOriginKind::kPixel}, _origin_y{0, BoxOriginKind::kPixel}
 	{
 	}
@@ -77,12 +77,12 @@ namespace qk {
 	/**
 		* Set the z-axis  matrix `rotate` properties of the view object
 		*
-		* @method set_rotate(val)
+		* @method set_rotate_z(val)
 		*/
-	void TransformLayout::set_rotate(float val) {
+	void TransformLayout::set_rotate_z(float val) {
 		val *= Qk_PI_RATIO_180;
-		if (_rotate != val) {
-			_rotate = val;
+		if (_rotate_z != val) {
+			_rotate_z = val;
 			mark_render(kRecursive_Transform); // mark transform
 		}
 	}
@@ -243,7 +243,7 @@ namespace qk {
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
 			auto v = layout_offset() + parent()->layout_offset_inside()
 				+ Vec2(margin_left(), margin_top()) + _origin_value;
-			_matrix = Mat(mat).set_translate(parent()->position()) * Mat(v, _scale, -_rotate, _skew);
+			_matrix = Mat(mat).set_translate(parent()->position()) * Mat(v, _scale, -_rotate_z, _skew);
 			_position = Vec2(_matrix[2],_matrix[5]);
 			_visible_region = solve_visible_region(_matrix);
 			_matrix.set_translate(Vec2(0)); // clear translate, use position value
@@ -310,7 +310,7 @@ namespace qk {
 		}
 	}
 
-	TransformLayout* TransformLayout::as_transform() {
+	TransformLayout* TransformLayout::asTransform() {
 		return this;
 	}
 
@@ -319,7 +319,7 @@ namespace qk {
 	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, translate); // matrix displacement for the view
 	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, scale); // Matrix scaling
 	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, skew); // Matrix skew, (radian)
-	Qk_IMPL_VIEW_PROP_ACC(Transform, float, rotate); // z-axis rotation of the matrix
+	Qk_IMPL_VIEW_PROP_ACC(Transform, float, rotate_z); // z-axis rotation of the matrix
 	Qk_IMPL_VIEW_PROP_ACC(Transform, BoxOrigin,  origin_x); //  x-axis transform origin
 	Qk_IMPL_VIEW_PROP_ACC(Transform, BoxOrigin,  origin_y); //  y-axis transform origin
 	Qk_IMPL_VIEW_PROP_ACC_GET(Transform, Vec2, origin_value);

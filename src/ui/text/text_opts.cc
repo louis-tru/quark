@@ -35,7 +35,8 @@
 namespace qk {
 
 	TextOptions::TextOptions()
-		: _text_weight(TextWeight::kInherit)
+		: _text_align(TextAlign::kDefault)
+		, _text_weight(TextWeight::kInherit)
 		, _text_slant(TextSlant::kInherit)
 		, _text_decoration(TextDecoration::kInherit)
 		, _text_overflow(TextOverflow::kInherit)
@@ -55,51 +56,58 @@ namespace qk {
 		// noop
 	}
 
+	void TextOptions::set_text_align(TextAlign value) {
+		if(_text_align != value) {
+			_text_align = value;
+			onTextChange(Layout::kLayout_Typesetting, 0);
+		}
+	}
+
 	void TextOptions::set_text_weight(TextWeight value) {
 		if (value != _text_weight) {
 			_text_weight = _text_weight_value = value;
-			_text_flags |= (1 << 0);
-			onTextChange(Layout::kLayout_Typesetting, 0);
+			_text_flags |= (1 << 1);
+			onTextChange(Layout::kLayout_Typesetting, 1);
 		}
 	}
 
 	void TextOptions::set_text_slant(TextSlant value) {
 		if (value != _text_slant) {
 			_text_slant = _text_slant_value = value;
-			_text_flags |= (1 << 1);
-			onTextChange(Layout::kLayout_None, 1);
+			_text_flags |= (1 << 2);
+			onTextChange(Layout::kLayout_None, 2);
 		}
 	}
 
 	void TextOptions::set_text_decoration(TextDecoration value) {
 		if (value != _text_decoration) {
 			_text_decoration = _text_decoration_value = value;
-			_text_flags |= (1 << 2);
-			onTextChange(Layout::kLayout_None, 2);
+			_text_flags |= (1 << 3);
+			onTextChange(Layout::kLayout_None, 3);
 		}
 	}
 
 	void TextOptions::set_text_overflow(TextOverflow value) {
 		if (value != _text_overflow) {
 			_text_overflow = _text_overflow_value = value;
-			_text_flags |= (1 << 3);
-			onTextChange(Layout::kLayout_Typesetting, 3);
+			_text_flags |= (1 << 4);
+			onTextChange(Layout::kLayout_Typesetting, 4);
 		}
 	}
 
 	void TextOptions::set_text_white_space(TextWhiteSpace value) {
 		if (value != _text_white_space) {
 			_text_white_space = _text_white_space_value = value;
-			_text_flags |= (1 << 4);
-			onTextChange(Layout::kLayout_Typesetting, 4);
+			_text_flags |= (1 << 5);
+			onTextChange(Layout::kLayout_Typesetting, 5);
 		}
 	}
 
 	void TextOptions::set_text_word_break(TextWordBreak value) {
 		if (value != _text_word_break) {
 			_text_word_break = _text_word_break_value = value;
-			_text_flags |= (1 << 5);
-			onTextChange(Layout::kLayout_Typesetting, 5);
+			_text_flags |= (1 < 6);
+			onTextChange(Layout::kLayout_Typesetting, 6);
 		}
 	}
 
@@ -107,32 +115,32 @@ namespace qk {
 		if (value != _text_size) {
 			value.value = Qk_MAX(1, value.value);
 			_text_size = value;
-			_text_flags |= (1 << 6);
-			onTextChange(Layout::kLayout_Typesetting, 6);
+			_text_flags |= (1 << 7);
+			onTextChange(Layout::kLayout_Typesetting, 7);
 		}
 	}
 
 	void TextOptions::set_text_background_color(TextColor value) {
 		if (value != _text_background_color) {
 			_text_background_color = value;
-			_text_flags |= (1 << 7);
-			onTextChange(Layout::kLayout_None, 7);
+			_text_flags |= (1 << 8);
+			onTextChange(Layout::kLayout_None, 8);
 		}
 	}
 
 	void TextOptions::set_text_color(TextColor value) {
 		if (value != _text_color) {
 			_text_color = value;
-			_text_flags |= (1 << 8);
-			onTextChange(Layout::kLayout_None, 8);
+			_text_flags |= (1 << 9);
+			onTextChange(Layout::kLayout_None, 9);
 		}
 	}
 
 	void TextOptions::set_text_shadow(TextShadow value) {
 		if (value != _text_shadow) {
 			_text_shadow = value;
-			_text_flags |= (1 << 9);
-			onTextChange(Layout::kLayout_None, 9);
+			_text_flags |= (1 << 10);
+			onTextChange(Layout::kLayout_None, 10);
 		}
 	}
 
@@ -140,16 +148,16 @@ namespace qk {
 		if (value != _text_line_height) {
 			value.value = Qk_MAX(0, value.value);
 			_text_line_height = value;
-			_text_flags |= (1 << 10);
-			onTextChange(Layout::kLayout_Typesetting, 10);
+			_text_flags |= (1 << 11);
+			onTextChange(Layout::kLayout_Typesetting, 11);
 		}
 	}
 
 	void TextOptions::set_text_family(TextFamily value) {
 		if (value != _text_family) {
 			_text_family = value;
-			_text_flags |= (1 << 11);
-			onTextChange(Layout::kLayout_Typesetting, 1 << 11);
+			_text_flags |= (1 << 12);
+			onTextChange(Layout::kLayout_Typesetting, 1 << 12);
 		}
 	}
 
@@ -177,18 +185,18 @@ namespace qk {
 		if (_opts->_text_flags || _base->_opts->_text_flags) {
 			_opts->_text_flags |= _base->_opts->_text_flags;
 			auto _base_opts = _base->_opts;
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 0);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 1);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 2);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextOverflow, text_overflow, 3);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWhiteSpace, text_white_space, 4);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWordBreak, text_word_break, 5);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_size, 6, 16);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_background_color, 7, Color(0, 0, 0, 0));
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 8, Color(0, 0, 0));
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 9, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 10, 0);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 11, (_base_opts->_text_family.value->pool()->getFFID()));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 1);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 2);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 3);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextOverflow, text_overflow, 4);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWhiteSpace, text_white_space, 5);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWordBreak, text_word_break, 6);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_size, 7, 16);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_background_color, 8, Color(0, 0, 0, 0));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 9, Color(0, 0, 0));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 10, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 11, 0);
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 12, (_base_opts->_text_family.value->pool()->getFFID()));
 		}
 	}
 
@@ -201,6 +209,7 @@ namespace qk {
 		, TextConfig(this, this)
 	{
 		auto setDefault = [](TextOptions *opts, FontPool *pool) {
+			opts->set_text_align(TextAlign::kDefault);
 			opts->set_text_weight(TextWeight::kDefault);
 			opts->set_text_slant(TextSlant::kDefault);
 			opts->set_text_decoration(TextDecoration::kDefault);
@@ -223,40 +232,42 @@ namespace qk {
 		auto _base_opts = &_default;
 		switch(type) {
 			case 0:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 0);
 				break;
 			case 1:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 1);
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 1);
 				break;
 			case 2:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 2);
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 2);
 				break;
 			case 3:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextOverflow, text_overflow, 3);
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 3);
 				break;
 			case 4:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWhiteSpace, text_white_space, 4);
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextOverflow, text_overflow, 4);
 				break;
 			case 5:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWordBreak, text_word_break, 5);
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWhiteSpace, text_white_space, 5);
 				break;
 			case 6:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_size, 6, 16);
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWordBreak, text_word_break, 6);
 				break;
 			case 7:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_background_color, 7, Color(0, 0, 0, 0));
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_size, 7, 16);
 				break;
 			case 8:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 8, Color(0, 0, 0));
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_background_color, 8, Color(0, 0, 0, 0));
 				break;
 			case 9:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 9, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 9, Color(0, 0, 0));
 				break;
 			case 10:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 10, 0);
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 10, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
 				break;
 			case 11:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 11, (_base_opts->_text_family.value->pool()->getFFID()));
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 11, 0);
+				break;
+			case 12:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 12, (_base_opts->_text_family.value->pool()->getFFID()));
 				break;
 		}
 		_text_flags = 0; // clear flags
@@ -266,6 +277,7 @@ namespace qk {
 
 	#undef Qk_IMPL_VIEW_PROP_ACC_GET
 	#undef Qk_IMPL_VIEW_PROP_ACC_SET
+	#undef Qk_IMPL_VIEW_PROP_ACC_SET_Large
 	#undef Qk_IMPL_VIEW_PROP_ACC
 
 	#define Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name) \
@@ -274,9 +286,14 @@ namespace qk {
 		void cls::set_##name(type val) { \
 			getPreRender().async_call([](auto ctx, auto val) { ctx->set_##name(val); }, getOptions(), val); \
 		}
+	#define Qk_IMPL_VIEW_PROP_ACC_SET_Large(cls, type, name) \
+		void cls::set_##name(type val) { \
+			getPreRender().async_call([](auto ctx, auto val) { ctx->set_##name(*val); type::Traits::Release(val);}, getOptions(), new type(val)); \
+		}
 	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name) \
 		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)
 
+	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextAlign, text_align);
 	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextWeight, text_weight);
 	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextSlant,  text_slant);
 	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextDecoration, text_decoration);
@@ -286,9 +303,11 @@ namespace qk {
 	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextSize,  text_size);
 	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextColor, text_background_color);
 	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextColor, text_color);
-	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextShadow, text_shadow);
 	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextLineHeight, text_line_height);
-	Qk_IMPL_VIEW_PROP_ACC(TextOptionsAsync, TextFamily, text_family);
+	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextShadow, text_shadow); // large size data
+	Qk_IMPL_VIEW_PROP_ACC_SET_Large(TextOptionsAsync, TextShadow, text_shadow);
+	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextFamily, text_family); // large size data
+	Qk_IMPL_VIEW_PROP_ACC_SET_Large(TextOptionsAsync, TextFamily, text_family);
 	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextWeight, text_weight_value);
 	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextSlant, text_slant_value);
 	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextDecoration, text_decoration_value);
@@ -296,4 +315,6 @@ namespace qk {
 	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextWhiteSpace, text_white_space_value);
 	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, TextWordBreak, text_word_break_value);
 	Qk_IMPL_VIEW_PROP_ACC_GET(TextOptionsAsync, FontStyle, font_style);
+
+
 }
