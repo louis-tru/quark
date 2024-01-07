@@ -44,16 +44,16 @@ namespace qk {
 	F(CLIP, bool, clip) /* box */ \
 	F(WIDTH, BoxSize, width) \
 	F(HEIGHT, BoxSize, height) \
-	F(WIDTH, BoxSize, width_limit) \
-	F(HEIGHT, BoxSize, height_limit) \
+	F(WIDTH_LIMIT, BoxSize, width_limit) \
+	F(HEIGHT_LIMIT, BoxSize, height_limit) \
 	F(MARGIN_TOP, float, margin_top) \
 	F(MARGIN_RIGHT, float, margin_right) \
 	F(MARGIN_BOTTOM, float, margin_bottom) \
 	F(MARGIN_LEFT, float, margin_left) \
-	F(MARGIN_TOP, float, padding_top)\
-	F(MARGIN_RIGHT, float, padding_right) \
-	F(MARGIN_BOTTOM, float, padding_bottom) \
-	F(MARGIN_LEFT, float, padding_left) \
+	F(PADDING_TOP, float, padding_top)\
+	F(PADDING_RIGHT, float, padding_right) \
+	F(PADDING_BOTTOM, float, padding_bottom) \
+	F(PADDING_LEFT, float, padding_left) \
 	F(BORDER_RADIUS_LEFT_TOP, float, border_radius_left_top) \
 	F(BORDER_RADIUS_RIGHT_TOP, float, border_radius_right_top) \
 	F(BORDER_RADIUS_RIGHT_BOTTOM, float, border_radius_right_bottom) \
@@ -137,11 +137,13 @@ namespace qk {
 		#undef _Fun
 	};
 
-	struct ViewPropAccessor {
-		void *layout_get, *layout_set, *get, *set;
+	struct PropAccessor {
+		void (Object::*get)();
+		void (Object::*set)();
 	};
 
-	Qk_EXPORT ViewPropAccessor* view_prop_accessor(ViewType type, ViewProp prop);
+	Qk_EXPORT PropAccessor* view_prop_accessor(ViewType type, ViewProp prop);
+	Qk_EXPORT PropAccessor* layout_prop_accessor(ViewType type, ViewProp prop);
 }
 
 #endif

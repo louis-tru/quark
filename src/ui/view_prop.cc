@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./view_prop.h"
-#include "../layout/layout.h"
-#include "../layout/box.h"
+#include "./layout/layout.h"
+#include "./layout/box.h"
 #include "./layout/flex.h"
 #include "./layout/flow.h"
 #include "./layout/text.h"
@@ -41,10 +41,11 @@
 
 namespace qk {
 	typedef Layout ViewLayout;
+	typedef void (Object::*Func)();
 
 	#define Qk_Set_Accessor(View, Prop, Name) \
-		view_prop_accessors[k##View##_ViewType].accessors[k##Prop##_ViewProp] = {\
-			(void*)&View##Layout::Name,(void*)&View##Layout::set_##Name,(void*)&View::Name,(void*)&View::set_##Name\
+		view_prop_accessors[k##View##_ViewType].view[k##Prop##_ViewProp] = {\
+			(Func)&View##Layout::Name,(Func)&View##Layout::set_##Name,(Func)&View::Name,(Func)&View::set_##Name\
 		}
 
 	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
@@ -54,10 +55,12 @@ namespace qk {
 		void copy(uint32_t index, uint32_t count, PropAccessors &dest) {
 			auto end = index + count;
 			do {
-				dest.accessors[index] = accessors[index];
+				dest.view[index] = view[index];
+				dest.layout[index] = layout[index];
 			} while (++index < end);
 		}
-		ViewPropAccessor accessors[kEnum_Counts_ViewProp] = {0};
+		PropAccessor view[kEnum_Counts_ViewProp] = {0};
+		PropAccessor layout[kEnum_Counts_ViewProp] = {0};
 	};
 
 	static PropAccessors *view_prop_accessors = nullptr;
@@ -183,7 +186,7 @@ namespace qk {
 	}
 
 	ViewPropAccessor* view_prop_accessor(ViewType type, ViewProp prop) {
-		return &view_prop_accessors[type].accessors[prop];
+		return view_prop_accessors[type].accessors + prop;
 	}
 
 }

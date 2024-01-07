@@ -714,6 +714,10 @@ namespace qk {
 		return offset;
 	}
 
+	Align BoxLayout::align() const {
+		return _align;
+	}
+
 	/**
 		*
 		* 设置布局对齐方式

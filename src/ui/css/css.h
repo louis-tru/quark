@@ -31,15 +31,14 @@
 #ifndef __quark__css__css__
 #define __quark__css__css__
 
-// *********** Cascading Style Sheets ***********
-
-#include "../util/util.h"
-#include "../util/dict.h"
+#include "../../util/util.h"
+#include "../../util/dict.h"
 #include "../filter.h"
 #include "../view_prop.h"
 
 namespace qk {
 	class Layout;
+	class StyleSheetsScope;
 
 	enum CSSType {
 		kNone_CSSType = 0,
@@ -50,18 +49,25 @@ namespace qk {
 
 	class Qk_EXPORT CSSName {
 	public:
-		Qk_DEFINE_PROP_ACC_GET(String, value);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, hash);
+		Qk_DEFINE_PROP_GET(String, str);
+		Qk_DEFINE_PROP_GET(uint64_t, hash);
 		CSSName(cArray<String>& name);
 		CSSName(cString& name);
 	};
 
+	/**
+	 * 
+	 * Cascading style sheets
+	 * 
+	 * @class StyleSheets
+	*/
 	class Qk_EXPORT StyleSheets: public Object {
 		Qk_HIDDEN_ALL_COPY(StyleSheets);
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
 		class Property {
 		public:
+			virtual ~Property() = default;
 			virtual void apply(Layout *layout) = 0;
 		};
 
@@ -70,20 +76,22 @@ namespace qk {
 			Qk_View_Props(_Fun)
 		#undef _Fun
 
-		Qk_DEFINE_PROP_GET(CSSName, name);
 		Qk_DEFINE_PROP(uint64_t, time);
-		// inline void set_time(uint64_t value) { _time = value; }
+		Qk_DEFINE_PROP_GET(CSSName, name);
 		Qk_DEFINE_PROP_GET(StyleSheets*, parent, NoConst);
 		Qk_DEFINE_PROP_GET(StyleSheets*, normal, NoConst); // style sheets for pseudo type
-		Qk_DEFINE_PROP_GET(StyleSheets*, hover, NoConst);
+		Qk_DEFINE_PROP_GET(StyleSheets*, hover,  NoConst);
 		Qk_DEFINE_PROP_GET(StyleSheets*, active, NoConst);
 		Qk_DEFINE_PROP_GET(CSSType, type);
 		Qk_DEFINE_PROP_GET(bool, havePseudoType); // normal | hover | active
 
+		/**
+		 * @constructor
+		*/
 		StyleSheets(const CSSName &name, StyleSheets *parent, CSSType type);
 
 		/**
-		 * @constructor
+		 * @destructor
 		*/
 		virtual ~StyleSheets();
 
@@ -103,8 +111,9 @@ namespace qk {
 		void apply(Layout* layout);
 
 	private:
+		template<class T> void setProps(uint32_t, T value);
 		Dict<uint32_t, StyleSheets*> _substyles;
-		Dict<uint32_t, Property*> _props; // ViewProperty => Property
+		Dict<uint32_t, Property*> _props; // ViewProperty => Property*
 	};
 
 	class Qk_EXPORT RootStyleSheets: public StyleSheets {
