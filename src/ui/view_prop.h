@@ -130,7 +130,7 @@ namespace qk {
 		kEnum_Counts_ViewType,
 	};
 
-	enum ViewProp {
+	enum ViewPropName {
 		#define _Fun(Enum, Type, Name) k##Enum##_ViewProp,
 			Qk_View_Props(_Fun)
 			kEnum_Counts_ViewProp,
@@ -142,8 +142,8 @@ namespace qk {
 		void (Object::*set)();
 	};
 
-	Qk_EXPORT PropAccessor* view_prop_accessor(ViewType type, ViewProp prop);
-	Qk_EXPORT PropAccessor* layout_prop_accessor(ViewType type, ViewProp prop);
+	Qk_EXPORT PropAccessor* view_prop_accessor(ViewType type, ViewPropName prop);
+	Qk_EXPORT PropAccessor* layout_prop_accessor(ViewType type, ViewPropName prop);
 }
 
 #endif

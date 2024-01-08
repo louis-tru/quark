@@ -111,7 +111,7 @@ namespace qk {
 		void apply(Layout* layout);
 
 	private:
-		template<class T> void setProps(uint32_t, T value);
+		void setProps(uint32_t, Property* prop);
 		Dict<uint32_t, StyleSheets*> _substyles;
 		Dict<uint32_t, Property*> _props; // ViewProperty => Property*
 	};

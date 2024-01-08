@@ -67,25 +67,56 @@ namespace qk {
 		// TODO ...
 	}
 
-	class PropertyCommon: public StyleSheets::Property {
+	template<typename T>
+	void applyToLayout(Layout *layout, ViewPropName name, T value) {
+		typedef void (Layout::*Call)(T);
+		auto set = (Call)layout_prop_accessor(kView_ViewType, _name)->set;
+		if (set) {
+			(layout->*set)(_value);
+		}
+	}
+
+	template<typename T>
+	class Property: public StyleSheets::Property {
 	public:
-		void applyCommon(Layout *layout, uint64_t val) {
-			typedef void (Layout::*Call)(uint64_t);
-			auto c = (Call)view_prop_accessor(kView_ViewType, _prop)->layout_set;
-			if (c) {
-				(layout->*c)(val);
-			}
+		Property(ViewPropName name, T value)
+			: _name(name), _value(value) {}
+		void apply(Layout *layout) override {
+			applyToLayout(layout, _name, _value);
 		}
 	private:
-		ViewProp _prop;
+		ViewPropName _name;
+		T _value;
 	};
 
-	template<class T>
-	inline void StyleSheets::setProps(uint32_t key, T value) {
-		if (sizeof(T) > sizeof(uint64_t)) {
-			//			_props.set(kSRC_ViewProp, (uint64_t)new String(value));
+	template<typename T>
+	class Property<T*>: public StyleSheets::Property {
+	public:
+		typedef T* Type;
+		Property(ViewPropName name, Type value)
+			: _name(name), _value(value) 
+		{
+			static_assert(T::Traits::isReference, "");
+			_value->retain();
+		};
+		~Property() {
+			_value->release();
+		}
+		void apply(Layout *layout) override {
+			applyToLayout(layout, _name, _value);
+		}
+	private:
+		ViewPropName _name;
+		Type _value;
+	};
+
+	void StyleSheets::setProps(uint32_t key, Property* prop) {
+		auto it = _props.find(key);
+		if (it != _props.end()) {
+			delete it->value;
+			it->value = prop;
 		} else {
-			//			_props.set(kOPACITY_ViewProp, *(uint64_t*)&value);
+			_props.set(key, prop);
 		}
 	}
 
@@ -94,10 +125,11 @@ namespace qk {
 	}
 
 	#define _Fun(Enum, Type, Name) void StyleSheets::set_##Name(Type value) {\
-		setProps(k##Enum##_ViewProp, value);\
+		setProps(k##Enum##_ViewProp, new qk::Property<Type>(k##Enum##_ViewProp, value));\
 	}
 
-	// Qk_View_Props(_Fun)
+	Qk_View_Props(_Fun)
+
 	#undef _Fun
 
 }

@@ -44,12 +44,11 @@ namespace qk {
 	typedef void (Object::*Func)();
 
 	#define Qk_Set_Accessor(View, Prop, Name) \
-		view_prop_accessors[k##View##_ViewType].view[k##Prop##_ViewProp] = {\
-			(Func)&View##Layout::Name,(Func)&View##Layout::set_##Name,(Func)&View::Name,(Func)&View::set_##Name\
-		}
+		view_prop_accessors[k##View##_ViewType].view[k##Prop##_ViewProp] = {(Func)&View::Name,(Func)&View::set_##Name}; \
+		view_prop_accessors[k##View##_ViewType].layout[k##Prop##_ViewProp] = {(Func)&View##Layout::Name,(Func)&View##Layout::set_##Name}
 
 	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
-		view_prop_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, view_prop_accessors[k##Dest##_ViewType]);
+		view_prop_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, view_prop_accessors[k##Dest##_ViewType])
 
 	struct PropAccessors {
 		void copy(uint32_t index, uint32_t count, PropAccessors &dest) {
@@ -185,8 +184,12 @@ namespace qk {
 		Qk_Set_Accessor(Transform, ORIGIN_Y, origin_y);
 	}
 
-	ViewPropAccessor* view_prop_accessor(ViewType type, ViewProp prop) {
-		return view_prop_accessors[type].accessors + prop;
+	PropAccessor* view_prop_accessor(ViewType type, ViewPropName prop) {
+		return view_prop_accessors[type].view + prop;
+	}
+
+	PropAccessor* layout_prop_accessor(ViewType type, ViewPropName prop) {
+		return view_prop_accessors[type].layout + prop;
 	}
 
 }

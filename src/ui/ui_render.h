@@ -36,6 +36,7 @@
 #include "./layout/layout.h"
 #include "../render/render.h"
 #include "../render/canvas.h"
+#include "./filter.h"
 
 namespace qk {
 	class Window;
