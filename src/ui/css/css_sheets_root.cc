@@ -228,7 +228,7 @@ namespace qk {
 	}
 
 	void RootStyleSheets::markClasssName(cCSSName& name) {
-		_allCssNames[name.hash()] = 1;
+		_allCssNames.add(name.hash());
 		_cssQueryGroupCache.clear();
 	}
 

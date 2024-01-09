@@ -119,6 +119,8 @@ namespace qk {
 		Value&        set(const Key& key, Value&& value);
 		Value&        set(Key&& key, const Value& value);
 		Value&        set(Key&& key, Value&& value);
+		void          add(const Key& key) { get(key); }
+		void          add(Key&& key) { get(std::move(key)); }
 
 		Iterator      erase(IteratorConst it);
 		void          erase(IteratorConst first, IteratorConst end);
@@ -149,6 +151,12 @@ namespace qk {
 
 	template<typename K, typename V, typename C = Compare<K>, typename A = MemoryAllocator>
 	using cDict = const Dict<K, V, C, A>;
+
+	template<typename K, typename C = Compare<K>, typename A = MemoryAllocator>
+	using Set = Dict<K, bool, C, A>;
+
+	template<typename K, typename C = Compare<K>, typename A = MemoryAllocator>
+	using cSet = const Set<K, C, A>;
 
 	// -----------------------------------------------------------------
 
@@ -284,7 +292,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::get(K&& key) {
 		Pair* pair;
-		if (get_(key, &pair)) {
+		if (make_(key, &pair)) {
 			new(&pair->key) K(std::move(key));
 			new(&pair->value) V();
 		}

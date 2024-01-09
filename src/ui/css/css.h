@@ -140,7 +140,7 @@ namespace qk {
 		Array<uint32_t> getCssQueryGrpup(Array<String> &className);
 		void markClasssName(cCSSName& name);
 
-		Dict<uint32_t, int>              _allCssNames;
+		Set<uint32_t>                    _allCssNames;
 		Dict<uint32_t, Array<uint32_t>>  _cssQueryGroupCache;
 
 		friend class StyleSheets;

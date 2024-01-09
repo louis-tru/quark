@@ -44,9 +44,9 @@ namespace qk {
 	}
 
 	void StyleSheetsClass::set_value(cArray<String> &value) {
-		Dict<String, int> set;
+		Set<String> set;
 		for ( auto& j : value ) {
-			set[j] = 1;
+			set.add(j);
 		}
 		updateClass(set.keys());
 	}
@@ -54,15 +54,15 @@ namespace qk {
 	void StyleSheetsClass::add(cString &name) {
 		bool up = false;
 
-		Dict<String, int> set;
+		Set<String> set;
 		for ( auto& j : _value ) {
-			set[j] = 1;
+			set.add(j);
 		}
 		for ( auto& i : name.split(' ') ) {
 			String s = i.trim();
 			if ( !s.isEmpty() ) {
 				if ( !set.count(s) ) {
-					set[s] = 1;
+					set.add(s);
 					up = true;
 				}
 			}
@@ -75,9 +75,9 @@ namespace qk {
 	void StyleSheetsClass::remove(cString &name) {
 		bool up = false;
 
-		Dict<String, int> set;
+		Set<String> set;
 		for ( auto& j : _value ) {
-			set[j] = 1;
+			set.add(j);
 		}
 		for ( auto& i : name.split(' ') ) {
 			auto s = i.trim();
@@ -93,16 +93,16 @@ namespace qk {
 	void StyleSheetsClass::toggle(cString &name) {
 		bool up = false;
 
-		Dict<String, int> set;
+		Set<String> set;
 		for ( auto& j : _value ) {
-			set[j] = 1;
+			set.add(j);
 		}
 		for ( auto& i : name.split(' ') ) {
 			auto s = i.trim();
 			if ( !s.isEmpty() ) {
 				up = true;
 				if ( !set.erase(s) ) { // no del
-					set[s] = 1;
+					set.add(s);
 				}
 			}
 		}
@@ -131,11 +131,11 @@ namespace qk {
 	{
 		typedef StyleSheetsScope::Scope Scope;
 
-		Dict<StyleSheets*, int> origin_child_style_sheets_map;
+		Set<StyleSheets*> origin_child_style_sheets_set;
 
 		if ( out_effect_child ) {
 			for ( auto& i : _substyleSheets ) {
-				origin_child_style_sheets_map[i] = 1;
+				origin_child_style_sheets_set.add(i);
 			}
 		}
 		_substyleSheets.clear();
@@ -146,7 +146,7 @@ namespace qk {
 
 		if ( _queryGroup.length() ) {
 			const List<Scope>& style_sheets = scope->styleSheets();
-			Dict<StyleSheets*, int> child_style_sheets_map;
+			Set<StyleSheets*> child_style_sheets_set;
 			// KeyframeAction *action = nullptr;
 
 			for ( auto& i : _queryGroup ) {
@@ -159,13 +159,13 @@ namespace qk {
 						if ( ss ) {
 							// action = _inl_ss(ss)->assignment(_host, action, _once_apply);
 
-							if ( ss->haveSubstyles() && !child_style_sheets_map.count(ss) ) {
+							if ( ss->haveSubstyles() && !child_style_sheets_set.count(ss) ) {
 								if ( out_effect_child ) {
-									if ( !origin_child_style_sheets_map.count(ss) ) {
+									if ( !origin_child_style_sheets_set.count(ss) ) {
 										*out_effect_child = true;
 									}
 								}
-								child_style_sheets_map[ss] = 1;
+								child_style_sheets_set.add(ss);
 								_substyleSheets.push(ss);
 							}
 
@@ -185,13 +185,13 @@ namespace qk {
 							if ( ss ) {
 								// action = _inl_ss(ss)->assignment(_host, action, _once_apply);
 
-								if ( ss->haveSubstyles() && !child_style_sheets_map.count(ss) ) {
+								if ( ss->haveSubstyles() && !child_style_sheets_set.count(ss) ) {
 									if ( out_effect_child ) {
-										if ( !origin_child_style_sheets_map.count(ss) ) {
+										if ( !origin_child_style_sheets_set.count(ss) ) {
 											*out_effect_child = true;
 										}
 									}
-									child_style_sheets_map[ss] = 1;
+									child_style_sheets_set.add(ss);
 									_substyleSheets.push(ss);
 								}
 							}
@@ -207,7 +207,7 @@ namespace qk {
 			_onceApply = false;
 
 			if ( out_effect_child ) {
-				if (child_style_sheets_map.length() != origin_child_style_sheets_map.length() ) {
+				if (child_style_sheets_set.length() != origin_child_style_sheets_set.length() ) {
 					*out_effect_child = true;
 				}
 			}
