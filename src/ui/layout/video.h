@@ -78,6 +78,7 @@ namespace qk {
 		virtual void multimedia_source_eof(MultimediaSource* src);
 		virtual void multimedia_source_error(MultimediaSource* src, cError& err);
 		virtual void onActivate() override;
+		virtual ViewType viewType() const override;
 	private:
 		MultimediaSource* _source;
 		MediaCodec   *_audio, *_video;

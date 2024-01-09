@@ -41,6 +41,7 @@ namespace qk {
 		ImageLayout(Window *win);
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual void draw(UIRender *render) override;
+		virtual ViewType viewType() const override;
 	protected:
 		virtual float solve_layout_content_width(Size &parent_layout_size) override;
 		virtual float solve_layout_content_height(Size &parent_layout_size) override;

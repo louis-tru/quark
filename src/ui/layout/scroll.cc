@@ -844,6 +844,10 @@ namespace qk {
 		return this;
 	}
 
+	ViewType ScrollLayout::viewType() const {
+		return kScroll_ViewType;
+	}
+
 	// -------------------------------- S c r o l l --------------------------------
 
 	Scroll::Scroll(ScrollLayout *layout): Float(layout), ScrollLayoutBaseAsync(layout, this) {

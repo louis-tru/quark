@@ -39,6 +39,7 @@ namespace qk {
 	public:
 		FloatLayout(Window *win);
 		virtual bool layout_reverse(uint32_t mark) override;
+		virtual ViewType viewType() const override;
 	protected:
 		Vec2 layout_typesetting_float();
 	};

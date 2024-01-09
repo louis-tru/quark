@@ -280,6 +280,10 @@ namespace qk {
 		BoxLayout::onChildLayoutChange(child, value);
 	}
 
+	ViewType FlowLayout::viewType() const {
+		return kFlow_ViewType;
+	}
+
 	// --------------------------------- F l o w ---------------------------------
 
 	Qk_IMPL_VIEW_PROP_ACC(Flow, Wrap, wrap);

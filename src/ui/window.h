@@ -46,6 +46,7 @@ namespace qk {
 	class RenderTask;
 	class Root;
 	class Window;
+	class RootStyleSheets;
 
 	/**
 	 * Note: If `main loop` and `render loop` run in different threads,
@@ -110,6 +111,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Application*, host); //! application host
 		Qk_DEFINE_PROP_GET(Render*, render); //! render object
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
+		Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
 		Qk_DEFINE_PROP(Color, backgroundColor); //! background color
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 

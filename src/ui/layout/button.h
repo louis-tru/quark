@@ -39,6 +39,7 @@ namespace qk {
 	public:
 		ButtonLayout(Window *win);
 		virtual ButtonLayout* next_button(FindDirection dir);
+		virtual ViewType viewType() const override;
 	};
 
 	class Qk_EXPORT Button: public Text {

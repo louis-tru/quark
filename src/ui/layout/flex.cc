@@ -421,6 +421,10 @@ namespace qk {
 		}
 	}
 
+	ViewType FlexLayout::viewType() const {
+		return kFlex_ViewType;
+	}
+
 	// --------------------------------- F l e x ---------------------------------
 
 	Qk_IMPL_VIEW_PROP_ACC(Flex, Direction, direction);

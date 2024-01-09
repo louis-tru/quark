@@ -125,4 +125,8 @@ namespace qk {
 		return full_size;
 	}
 
+	ViewType FloatLayout::viewType() const {
+		return kFloat_ViewType;
+	}
+
 }

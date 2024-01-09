@@ -29,61 +29,66 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./css.h"
+#include "../app.h"
+#include "../layout/layout.h"
 
-Qk_NAMESPACE_START
+namespace qk {
 
-static void push_all_scope(StyleSheetsScope* self, View* scope) {
-	if ( scope ) {
-		push_all_scope(self, scope->parent());
-		self->push_scope(scope);
-	}
-}
-
-StyleSheetsScope::StyleSheetsScope(View* scope) {
-	auto wrap = _style_sheets_map[root_styles()] = { root_styles(), 1 };
-	_style_sheets.pushBack({ &wrap, 1 });
-	push_all_scope(this, scope);
-	Qk_DEBUG("use StyleSheetsScope");
-}
-
-void StyleSheetsScope::push_scope(View* scope) {
-	Qk_ASSERT(scope);
-	StyleSheetsClass* classs = scope->classs();
-	if ( classs && classs->has_child() ) {
-		for ( auto& i : classs->child_style_sheets() ) {
-			Scope::Wrap* wrap = nullptr;
-			auto it = _style_sheets_map.find(i);
-			if ( it == _style_sheets_map.end() ) { // 添加
-				wrap = &(_style_sheets_map[i] = { i, 1 });
-			} else {
-				wrap = &it->value;
-				wrap->ref++;
-			}
-			_style_sheets.pushBack({ wrap, wrap->ref });
+	static void push_all_scope(StyleSheetsScope *self, Layout *scope) {
+		if ( scope ) {
+			push_all_scope(self, scope->parent());
+			self->pushScope(scope);
 		}
 	}
-	_scopes.pushBack(scope);
-}
 
-void StyleSheetsScope::pop_scope() {
-	if ( _scopes.length() ) {
-		StyleSheetsClass* classs = _scopes.back()->classs();
-		if ( classs && classs->has_child() ) {
-			int count = classs->child_style_sheets().length();
-			for ( int i = 0; i < count; i++ ) {
-				Qk_ASSERT( _style_sheets.length() > 1 );
-				Scope scope = _style_sheets.back();
-				Qk_ASSERT( scope.wrap->ref == scope.ref );
-				if ( scope.ref == 1 ) {
-					_style_sheets_map.erase(scope.wrap->sheets);
+	StyleSheetsScope::StyleSheetsScope(Layout *scope) {
+		auto root = shared_app()->styleSheets();
+		auto wrap = _styleSheetsMap[root] = { root, 1 };
+		_styleSheets.pushBack({ &wrap, 1 });
+		push_all_scope(this, scope);
+		Qk_DEBUG("use StyleSheetsScope");
+	}
+
+	void StyleSheetsScope::pushScope(Layout *scope) {
+		Qk_ASSERT(scope);
+		//StyleSheetsClass* ssclass = scope->classs(); // TODO ...
+		StyleSheetsClass *ssclass = nullptr;
+		if ( ssclass && ssclass->haveSubstyles() ) {
+			for ( auto &i : ssclass->substyleSheets() ) {
+				Scope::Wrap *wrap = nullptr;
+				auto it = _styleSheetsMap.find(i);
+				if ( it == _styleSheetsMap.end() ) { // 添加
+					wrap = &(_styleSheetsMap[i] = { i, 1 });
 				} else {
-					scope.wrap->ref--;
+					wrap = &it->value;
+					wrap->ref++;
 				}
-				_style_sheets.pop_back();
+				_styleSheets.pushBack({ wrap, wrap->ref });
 			}
 		}
-		_scopes.pop_back();
+		_scopes.pushBack(scope);
 	}
-}
 
-Qk_NAMESPACE_END
+	void StyleSheetsScope::popScope() {
+		if ( _scopes.length() ) {
+			//StyleSheetsClass* ssclass = _scopes.back()->classs(); // TODO ...
+			StyleSheetsClass *ssclass = nullptr;
+			if ( ssclass && ssclass->haveSubstyles() ) {
+				int count = ssclass->substyleSheets().length();
+				for ( int i = 0; i < count; i++ ) {
+					Qk_ASSERT( _styleSheets.length() > 1 );
+					Scope scope = _styleSheets.back();
+					Qk_ASSERT( scope.wrap->ref == scope.ref );
+					if ( scope.ref == 1 ) {
+						_styleSheetsMap.erase(scope.wrap->sheets);
+					} else {
+						scope.wrap->ref--;
+					}
+					_styleSheets.popBack();
+				}
+			}
+			_scopes.popBack();
+		}
+	}
+
+}

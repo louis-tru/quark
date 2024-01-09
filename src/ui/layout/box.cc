@@ -958,6 +958,10 @@ namespace qk {
 		return _clip;
 	}
 
+	ViewType BoxLayout::viewType() const {
+		return kBox_ViewType;
+	}
+
 	// --------------------------------- B o x ---------------------------------
 
 	Qk_IMPL_VIEW_PROP_ACC(Box, bool,       clip);

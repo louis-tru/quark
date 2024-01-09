@@ -73,6 +73,7 @@ namespace qk {
 		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]) override; // compute rect vertex
 		virtual void draw(UIRender *render) override;
 		virtual TransformLayout* asTransform() override;
+		virtual ViewType viewType() const override;
 	protected:
 		void solve_origin_value(); // compute origint value
 		Mat _matrix; // parent transform Layout * Mat(translate, scale, skew, rotate_z);

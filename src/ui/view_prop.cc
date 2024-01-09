@@ -44,11 +44,11 @@ namespace qk {
 	typedef void (Object::*Func)();
 
 	#define Qk_Set_Accessor(View, Prop, Name) \
-		view_prop_accessors[k##View##_ViewType].view[k##Prop##_ViewProp] = {(Func)&View::Name,(Func)&View::set_##Name}; \
-		view_prop_accessors[k##View##_ViewType].layout[k##Prop##_ViewProp] = {(Func)&View##Layout::Name,(Func)&View##Layout::set_##Name}
+		prop_accessors[k##View##_ViewType].view[k##Prop##_ViewProp] = {(Func)&View::Name,(Func)&View::set_##Name}; \
+		prop_accessors[k##View##_ViewType].layout[k##Prop##_ViewProp] = {(Func)&View##Layout::Name,(Func)&View##Layout::set_##Name}
 
 	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
-		view_prop_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, view_prop_accessors[k##Dest##_ViewType])
+		prop_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, prop_accessors[k##Dest##_ViewType])
 
 	struct PropAccessors {
 		void copy(uint32_t index, uint32_t count, PropAccessors &dest) {
@@ -62,30 +62,30 @@ namespace qk {
 		PropAccessor layout[kEnum_Counts_ViewProp] = {0};
 	};
 
-	static PropAccessors *view_prop_accessors = nullptr;
+	static PropAccessors *prop_accessors = nullptr;
 
 	void view_prop_acc_init() {
-		if (view_prop_accessors)
+		if (prop_accessors)
 			return;
-		view_prop_accessors = new PropAccessors[kEnum_Counts_ViewType];
+		prop_accessors = new PropAccessors[kEnum_Counts_ViewType];
 		// view
 		Qk_Set_Accessor(View, OPACITY, opacity);
 		Qk_Set_Accessor(View, VISIBLE, visible);
 		Qk_Set_Accessor(View, RECEIVE, receive);
-		view_prop_accessors[kBox_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kFlex_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kFlow_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kFloat_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kImage_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kVideo_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kInput_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kTextarea_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kLabel_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kScroll_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kText_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kButton_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kTransform_ViewType] = view_prop_accessors[kView_ViewType];
-		view_prop_accessors[kRoot_ViewType] = view_prop_accessors[kView_ViewType];
+		prop_accessors[kBox_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kFlex_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kFlow_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kFloat_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kImage_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kVideo_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kInput_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kTextarea_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kLabel_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kScroll_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kText_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kButton_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kTransform_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kRoot_ViewType] = prop_accessors[kView_ViewType];
 		// box
 		Qk_Set_Accessor(Box, CLIP, clip);
 		Qk_Set_Accessor(Box, WIDTH, width);
@@ -184,12 +184,12 @@ namespace qk {
 		Qk_Set_Accessor(Transform, ORIGIN_Y, origin_y);
 	}
 
-	PropAccessor* view_prop_accessor(ViewType type, ViewPropName prop) {
-		return view_prop_accessors[type].view + prop;
+	PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop) {
+		return prop_accessors[type].view + prop;
 	}
 
-	PropAccessor* layout_prop_accessor(ViewType type, ViewPropName prop) {
-		return view_prop_accessors[type].layout + prop;
+	PropAccessor* prop_accessor_at_layout(ViewType type, ViewProp prop) {
+		return prop_accessors[type].layout + prop;
 	}
 
 }

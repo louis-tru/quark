@@ -90,6 +90,10 @@ namespace qk {
 		return window()->host()->imgPool();
 	}
 
+	ViewType ImageLayout::viewType() const {
+		return kImage_ViewType;
+	}
+
 	// --------------------------------- I m a g e ---------------------------------
 
 	Qk_IMPL_VIEW_PROP_ACC_GET(Image, String, src);

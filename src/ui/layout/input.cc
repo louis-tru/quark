@@ -1105,6 +1105,10 @@ namespace qk {
 		add_event_listener(UIEvent_KeyDown, &Inl::handle_Keydown, _inl);
 	}
 
+	ViewType InputLayout::viewType() const {
+		return kInput_ViewType;
+	}
+
 	// --------------------------------- I n p u t ---------------------------------
 
 	bool Input::can_become_focus() {

@@ -48,6 +48,7 @@ namespace qk {
 		virtual Vec2 layout_lock(Vec2 layout_size) override;
 		virtual bool is_lock_child_layout_size() override;
 		virtual void onChildLayoutChange(Layout* child, uint32_t mark) override;
+		virtual ViewType viewType() const override;
 	private:
 		template<bool is_horizontal> void layout_typesetting_auto(bool is_reverse);
 		template<bool is_horizontal> void layout_typesetting_flex(bool is_reverse);

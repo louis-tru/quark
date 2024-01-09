@@ -124,6 +124,7 @@ namespace qk {
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual void draw(UIRender *render) override;
 		virtual ScrollLayoutBase* asScrollLayoutBase() override;
+		virtual ViewType viewType() const override;
 	};
 
 	class Qk_EXPORT Scroll: public Float, public ScrollLayoutBaseAsync {

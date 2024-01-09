@@ -150,6 +150,11 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Layout*, last);
 
 		/**
+		 * @prop props accessor
+		*/
+		Qk_DEFINE_PROP_GET(PropAccessor*, accessor);
+
+		/**
 		 *  can affect the transparency of subviews
 		 */
 		Qk_DEFINE_PROP(float, opacity);
@@ -206,7 +211,7 @@ namespace qk {
 		 * 
 		 * Returns as textOptions
 		 * 
-		 * @method as_text_options()
+		 * @method asTextOptions()
 		*/
 		virtual TextOptions* asTextOptions();
 
@@ -401,6 +406,11 @@ namespace qk {
 		 * @method draw()
 		 */
 		virtual void draw(UIRender *render);
+
+		/**
+		 * @method viewType()
+		*/
+		virtual ViewType viewType() const;
 
 		/**
 			* @func mark_layout(mark)

@@ -37,6 +37,7 @@
 #include "./text/text_opts.h"
 #include "./event.h"
 #include "./window.h"
+#include "./css/css.h"
 
 Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
 Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;
@@ -62,6 +63,7 @@ namespace qk {
 		, _fontPool(nullptr), _imgPool(nullptr)
 		, _maxResourceMemoryLimit(512 * 1024 * 1024) // init 512MB
 		, _activeWindow(nullptr)
+		, _styleSheets(nullptr)
 	{
 		if (_shared)
 			Qk_FATAL("At the same time can only run a Application entity");
@@ -74,6 +76,7 @@ namespace qk {
 		_fontPool = FontPool::Make();
 		_imgPool = new ImageSourcePool(_loop);
 		_defaultTextOptions = new DefaultTextOptions(_fontPool);
+		_styleSheets = new RootStyleSheets();
 	}
 
 	Application::~Application() {
@@ -83,6 +86,7 @@ namespace qk {
 		}
 		_activeWindow =  nullptr;
 		delete _defaultTextOptions; _defaultTextOptions = nullptr;
+		Release(_styleSheets); _styleSheets = nullptr;
 		Release(_screen);    _screen = nullptr;
 		Release(_fontPool);  _fontPool = nullptr;
 		Release(_imgPool);   _imgPool = nullptr;

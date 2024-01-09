@@ -113,6 +113,10 @@ namespace qk {
 		return this;
 	}
 
+	ViewType LabelLayout::viewType() const {
+		return kLabel_ViewType;
+	}
+
 	// --------------------------------- L a b e l ---------------------------------
 
 	TextOptions* Label::getOptions() const {

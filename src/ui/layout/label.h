@@ -52,6 +52,7 @@ namespace qk {
 		virtual void onActivate() override;
 		virtual void draw(UIRender *render) override;
 		virtual TextOptions* asTextOptions() override;
+		virtual ViewType viewType() const override;
 	protected:
 		virtual void onTextChange(uint32_t mark, uint32_t type) override;
 		Array<TextBlob> _blob;

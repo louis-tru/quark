@@ -106,6 +106,10 @@ namespace qk {
 		}
 	}
 
+	ViewType RootLayout::viewType() const {
+		return kRoot_ViewType;
+	}
+
 	bool Root::can_become_focus() {
 		return true;
 	}

@@ -171,10 +171,10 @@
 		return reinterpret_cast<cls::Inl*>(self); \
 	} class cls::Inl: public cls
 
-#define Qk_LOG(msg, ...)      qk::log_println(msg, ##__VA_ARGS__)
-#define Qk_WARN(msg, ...)     qk::log_println_warn(msg, ##__VA_ARGS__)
-#define Qk_ERR(msg, ...)      qk::log_println_error(msg, ##__VA_ARGS__)
-#define Qk_FATAL(...)         qk::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#define Qk_LOG(msg, ...)      ::qk::log_println(msg, ##__VA_ARGS__)
+#define Qk_WARN(msg, ...)     ::qk::log_println_warn(msg, ##__VA_ARGS__)
+#define Qk_ERR(msg, ...)      ::qk::log_println_error(msg, ##__VA_ARGS__)
+#define Qk_FATAL(...)         ::qk::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #define Qk_UNIMPLEMENTED(...) Qk_FATAL("Unimplemented code, %s", ##__VA_ARGS__)
 #define Qk_UNREACHABLE(...)   Qk_FATAL("Unreachable code, %s", ##__VA_ARGS__)
 #define Qk_MIN(A, B)          ((A) < (B) ? (A) : (B))

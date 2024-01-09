@@ -94,6 +94,10 @@ namespace qk {
 		return this;
 	}
 
+	ViewType TextLayout::viewType() const {
+		return kText_ViewType;
+	}
+
 	TextOptions* Text::getOptions() const {
 		return layout<TextLayout>();
 	}

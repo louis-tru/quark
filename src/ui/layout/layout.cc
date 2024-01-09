@@ -44,6 +44,7 @@ namespace qk {
 		, _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
+		, _accessor(nullptr)
 		, _opacity(1.0)
 		, _visible(true)
 		, _visible_region(false)
@@ -225,6 +226,10 @@ namespace qk {
 			v = v->_parent;
 		} while(v);
 		return nullptr;
+	}
+
+	ViewType Layout::viewType() const {
+		return kView_ViewType;
 	}
 
 	// @private

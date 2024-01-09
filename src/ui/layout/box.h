@@ -111,6 +111,7 @@ namespace qk {
 		virtual Vec2 center() override;
 		virtual bool is_clip() override;
 		virtual void draw(UIRender *render) override;
+		virtual ViewType viewType() const override;
 
 		/**
 			* client rect = border + padding + content

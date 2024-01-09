@@ -33,6 +33,7 @@
 
 #include "./event.h"
 #include "./pre_render.h"
+#include "./view_prop.h"
 
 namespace qk {
 	class Action;
@@ -69,6 +70,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(View*, next);
 		Qk_DEFINE_PROP_GET(View*, first);
 		Qk_DEFINE_PROP_GET(View*, last);
+		Qk_DEFINE_PROP_GET(PropAccessor*, accessor);
 		/**
 		 *  can affect the transparency of subviews
 		 */
@@ -91,6 +93,11 @@ namespace qk {
 		 * these events do not need to be handled, which can improve overall event processing efficiency
 		*/
 		Qk_DEFINE_PROP_ACC(bool, receive);
+
+		/**
+		 * get view type
+		*/
+		Qk_DEFINE_PROP_ACC_GET(ViewType, viewType);
 
 		/**
 		 * @constructor

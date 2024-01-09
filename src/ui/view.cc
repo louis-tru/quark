@@ -42,6 +42,8 @@ namespace qk {
 		, _first(nullptr), _last(nullptr)
 	{
 		layout->_view = this;
+		layout->_accessor = prop_accessor_at_layout(layout->viewType(), kOPACITY_ViewProp);
+		_accessor = prop_accessor_at_view(layout->viewType(), kOPACITY_ViewProp);
 	}
 
 	View::~View() {
@@ -87,6 +89,10 @@ namespace qk {
 
 	uint32_t View::level() const {
 		return _layout->_level;
+	}
+
+	ViewType View::viewType() const {
+		return _layout->viewType();
 	}
 
 	void View::set_is_focus(bool value) {

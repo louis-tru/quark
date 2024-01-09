@@ -314,6 +314,10 @@ namespace qk {
 		return this;
 	}
 
+	ViewType TransformLayout::viewType() const {
+		return kTransform_ViewType;
+	}
+
 	// --------------------------------- L a b e l ---------------------------------
 
 	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, translate); // matrix displacement for the view

@@ -84,6 +84,7 @@ namespace qk {
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
 		_uiRender = new UIRender(this);
+		_styleSheets = _host->styleSheets();
 		_backgroundColor = opts.backgroundColor;
 		{
 			ScopeLock lock(_host->_mutex);

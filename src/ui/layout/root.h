@@ -41,6 +41,7 @@ namespace qk {
 		virtual bool layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual void draw(UIRender *render) override;
+		virtual ViewType viewType() const override;
 	private:
 		RootLayout(Window *win);
 		void reload();

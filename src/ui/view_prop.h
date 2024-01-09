@@ -38,78 +38,78 @@ namespace qk {
 	class BoxShadow;
 
 #define Qk_View_Props(F) \
-	F(OPACITY, float, opacity) /*view*/\
-	F(VISIBLE, bool, visible) \
-	F(RECEIVE, bool, receive) \
-	F(CLIP, bool, clip) /* box */ \
-	F(WIDTH, BoxSize, width) \
-	F(HEIGHT, BoxSize, height) \
-	F(WIDTH_LIMIT, BoxSize, width_limit) \
-	F(HEIGHT_LIMIT, BoxSize, height_limit) \
-	F(MARGIN_TOP, float, margin_top) \
-	F(MARGIN_RIGHT, float, margin_right) \
-	F(MARGIN_BOTTOM, float, margin_bottom) \
-	F(MARGIN_LEFT, float, margin_left) \
-	F(PADDING_TOP, float, padding_top)\
-	F(PADDING_RIGHT, float, padding_right) \
-	F(PADDING_BOTTOM, float, padding_bottom) \
-	F(PADDING_LEFT, float, padding_left) \
-	F(BORDER_RADIUS_LEFT_TOP, float, border_radius_left_top) \
-	F(BORDER_RADIUS_RIGHT_TOP, float, border_radius_right_top) \
-	F(BORDER_RADIUS_RIGHT_BOTTOM, float, border_radius_right_bottom) \
-	F(BORDER_RADIUS_LEFT_BOTTOM, float, border_radius_left_bottom) \
-	F(BORDER_COLOR_TOP, Color, border_color_top) \
-	F(BORDER_COLOR_RIGHT, Color, border_color_right) \
-	F(BORDER_COLOR_BOTTOM, Color, border_color_bottom) \
-	F(BORDER_COLOR_LEFT, Color, border_color_left) \
-	F(BORDER_WIDTH_TOP, float, border_width_top) \
-	F(BORDER_WIDTH_RIGHT, float, border_width_right) \
-	F(BORDER_WIDTH_BOTTOM, float, border_width_bottom) \
-	F(BORDER_WIDTH_LEFT, float, border_width_left) \
-	F(BACKGROUND_COLOR, Color, background_color) \
-	F(BACKGROUND, BoxFill*, background) \
-	F(BOX_SHADOW, BoxShadow*, box_shadow) \
-	F(WEIGHT, float, weight) \
-	F(ALIGN, Align, align) \
-	F(DIRECTION, Direction, direction) /*flex*/\
-	F(ITEMS_ALIGN, ItemsAlign, items_align) \
-	F(CROSS_ALIGN, CrossAlign, cross_align) \
-	F(WRAP, Wrap, wrap) /*flow*/ \
-	F(WRAP_ALIGN, WrapAlign, wrap_align) \
-	F(SRC, String, src) /*image/video*//*****Large size data*****/\
-	F(TEXT_ALIGN, TextAlign, text_align) /*text/input/label of TextOptions*/\
-	F(TEXT_WEIGHT, TextWeight, text_weight) \
-	F(TEXT_SLANT, TextSlant, text_slant) \
-	F(TEXT_DECORATION, TextDecoration, text_decoration) \
-	F(TEXT_OVERFLOW, TextOverflow, text_overflow) \
-	F(TEXT_WHITE_SPACE, TextWhiteSpace, text_white_space) \
-	F(TEXT_WORD_BREAK, TextWordBreak, text_word_break) \
-	F(TEXT_SIZE, TextSize, text_size) \
-	F(TEXT_BACKGROUND_COLOR, TextColor, text_background_color) \
-	F(TEXT_COLOR, TextColor, text_color) \
-	F(TEXT_LINE_HEIGHT, TextLineHeight, text_line_height) \
-	F(TEXT_SHADOW, TextShadow, text_shadow) /*****Large size data*****/\
-	F(TEXT_FAMILY, TextFamily, text_family) /*****Large size data*****/\
-	F(SECURITY, bool, security) /*input*/\
-	F(READONLY, bool, readonly) \
-	F(KEYBOARD_TYPE, KeyboardType, type) \
-	F(KEYBOARD_RETURN_TYPE, KeyboardReturnType, return_type) \
-	F(PLACEHOLDER_COLOR, Color, placeholder_color) \
-	F(CURSOR_COLOR, Color, cursor_color) \
-	F(MAX_LENGTH, uint32_t, max_length) \
-	F(PLACEHOLDER, String, placeholder) /*****Large size data*****/\
-	F(SCROLLBAR_COLOR, Color, scrollbar_color) /*scroll/textarea of ScrollLayoutBase*/ \
-	F(SCROLLBAR_WIDTH, float, scrollbar_width) \
-	F(SCROLLBAR_MARGIN, float, scrollbar_margin) \
-	F(X, float, x) /*transform*/ \
-	F(Y, float, y) \
-	F(SCALE_X, float, scale_x) \
-	F(SCALE_Y, float, scale_y) \
-	F(SKEW_X, float, skew_x) \
-	F(SKEW_Y, float, skew_y) \
-	F(ROTATE_Z, float, rotate_z) \
-	F(ORIGIN_X, float, origin_x) \
-	F(ORIGIN_Y, float, origin_y) \
+	F(OPACITY, float, opacity, View) /*view*/\
+	F(VISIBLE, bool, visible, View) \
+	F(RECEIVE, bool, receive, View) \
+	F(CLIP, bool, clip, Box) /* box */ \
+	F(WIDTH, BoxSize, width, Box) \
+	F(HEIGHT, BoxSize, height, Box) \
+	F(WIDTH_LIMIT, BoxSize, width_limit, Box) \
+	F(HEIGHT_LIMIT, BoxSize, height_limit, Box) \
+	F(MARGIN_TOP, float, margin_top, Box) \
+	F(MARGIN_RIGHT, float, margin_right, Box) \
+	F(MARGIN_BOTTOM, float, margin_bottom, Box) \
+	F(MARGIN_LEFT, float, margin_left, Box) \
+	F(PADDING_TOP, float, padding_to, Box) \
+	F(PADDING_RIGHT, float, padding_right, Box) \
+	F(PADDING_BOTTOM, float, padding_bottom, Box) \
+	F(PADDING_LEFT, float, padding_left, Box) \
+	F(BORDER_RADIUS_LEFT_TOP, float, border_radius_left_top, Box) \
+	F(BORDER_RADIUS_RIGHT_TOP, float, border_radius_right_top, Box) \
+	F(BORDER_RADIUS_RIGHT_BOTTOM, float, border_radius_right_bottom, Box) \
+	F(BORDER_RADIUS_LEFT_BOTTOM, float, border_radius_left_bottom, Box) \
+	F(BORDER_COLOR_TOP, Color, border_color_top, Box) \
+	F(BORDER_COLOR_RIGHT, Color, border_color_right, Box) \
+	F(BORDER_COLOR_BOTTOM, Color, border_color_bottom, Box) \
+	F(BORDER_COLOR_LEFT, Color, border_color_left, Box) \
+	F(BORDER_WIDTH_TOP, float, border_width_top, Box) \
+	F(BORDER_WIDTH_RIGHT, float, border_width_right, Box) \
+	F(BORDER_WIDTH_BOTTOM, float, border_width_bottom, Box) \
+	F(BORDER_WIDTH_LEFT, float, border_width_left, Box) \
+	F(BACKGROUND_COLOR, Color, background_color, Box) \
+	F(BACKGROUND, BoxFill*, background, Box) \
+	F(BOX_SHADOW, BoxShadow*, box_shadow, Box) \
+	F(WEIGHT, float, weight, Box) \
+	F(ALIGN, Align, align, Box) \
+	F(DIRECTION, Direction, direction, Flex) /*flex*/\
+	F(ITEMS_ALIGN, ItemsAlign, items_align, Flex) \
+	F(CROSS_ALIGN, CrossAlign, cross_align, Flex) \
+	F(WRAP, Wrap, wrap, Flow) /*flow*/ \
+	F(WRAP_ALIGN, WrapAlign, wrap_align, Flow) \
+	F(SRC, String, src, Image) /*image/video*//*****Large size data*****/\
+	F(TEXT_ALIGN, TextAlign, text_align, TextOptions) /*text/input/label of TextOptions*/\
+	F(TEXT_WEIGHT, TextWeight, text_weight, TextOptions) \
+	F(TEXT_SLANT, TextSlant, text_slant, TextOptions) \
+	F(TEXT_DECORATION, TextDecoration, text_decoration, TextOptions) \
+	F(TEXT_OVERFLOW, TextOverflow, text_overflow, TextOptions) \
+	F(TEXT_WHITE_SPACE, TextWhiteSpace, text_white_space, TextOptions) \
+	F(TEXT_WORD_BREAK, TextWordBreak, text_word_break, TextOptions) \
+	F(TEXT_SIZE, TextSize, text_size, TextOptions) \
+	F(TEXT_BACKGROUND_COLOR, TextColor, text_background_color, TextOptions) \
+	F(TEXT_COLOR, TextColor, text_color, TextOptions) \
+	F(TEXT_LINE_HEIGHT, TextLineHeight, text_line_height, TextOptions) \
+	F(TEXT_SHADOW, TextShadow, text_shadow, TextOptions) /*****Large size data*****/\
+	F(TEXT_FAMILY, TextFamily, text_family, TextOptions) /*****Large size data*****/\
+	F(SECURITY, bool, security, Input) /*input*/\
+	F(READONLY, bool, readonly, Input) \
+	F(KEYBOARD_TYPE, KeyboardType, type, Input) \
+	F(KEYBOARD_RETURN_TYPE, KeyboardReturnType, return_type, Input) \
+	F(PLACEHOLDER_COLOR, Color, placeholder_color, Input) \
+	F(CURSOR_COLOR, Color, cursor_color, Input) \
+	F(MAX_LENGTH, uint32_t, max_length, Input) \
+	F(PLACEHOLDER, String, placeholder, Input) /*****Large size data*****/\
+	F(SCROLLBAR_COLOR, Color, scrollbar_color, ScrollLayoutBase) /*scroll/textarea of ScrollLayoutBase*/ \
+	F(SCROLLBAR_WIDTH, float, scrollbar_width, ScrollLayoutBase) \
+	F(SCROLLBAR_MARGIN, float, scrollbar_margin, ScrollLayoutBase) \
+	F(X, float, x, Transform) /*transform*/ \
+	F(Y, float, y, Transform) \
+	F(SCALE_X, float, scale_x, Transform) \
+	F(SCALE_Y, float, scale_y, Transform) \
+	F(SKEW_X, float, skew_x, Transform) \
+	F(SKEW_Y, float, skew_y, Transform) \
+	F(ROTATE_Z, float, rotate_z, Transform) \
+	F(ORIGIN_X, float, origin_x, Transform) \
+	F(ORIGIN_Y, float, origin_y, Transform) \
 
 	enum ViewType {
 		kView_ViewType,
@@ -130,8 +130,8 @@ namespace qk {
 		kEnum_Counts_ViewType,
 	};
 
-	enum ViewPropName {
-		#define _Fun(Enum, Type, Name) k##Enum##_ViewProp,
+	enum ViewProp {
+		#define _Fun(Enum, Type, Name, From) k##Enum##_ViewProp,
 			Qk_View_Props(_Fun)
 			kEnum_Counts_ViewProp,
 		#undef _Fun
@@ -142,8 +142,8 @@ namespace qk {
 		void (Object::*set)();
 	};
 
-	Qk_EXPORT PropAccessor* view_prop_accessor(ViewType type, ViewPropName prop);
-	Qk_EXPORT PropAccessor* layout_prop_accessor(ViewType type, ViewPropName prop);
+	Qk_EXPORT PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop);
+	Qk_EXPORT PropAccessor* prop_accessor_at_layout(ViewType type, ViewProp prop);
 }
 
 #endif

@@ -86,6 +86,10 @@ namespace qk {
 		return this;
 	}
 
+	ViewType TextareaLayout::viewType() const {
+		return kTextarea_ViewType;
+	}
+
 	// ---------------- T e x t a r e a ----------------
 
 	Textarea::Textarea(TextareaLayout *layout): Input(layout), ScrollLayoutBaseAsync(layout, this) {

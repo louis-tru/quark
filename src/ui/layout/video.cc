@@ -679,4 +679,8 @@ namespace qk {
 		}
 	}
 
+	ViewType VideoLayout::viewType() const {
+		return kVideo_ViewType;
+	}
+
 }
