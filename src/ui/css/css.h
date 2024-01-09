@@ -181,9 +181,8 @@ namespace qk {
 		struct Scope {
 			struct Wrap {
 				StyleSheets *sheets; int ref;
-			};
-			Wrap *wrap;
-			int   ref;
+			} *wrap;
+			int ref;
 		};
 		StyleSheetsScope(Layout *scope);
 		void pushScope(Layout *scope);
