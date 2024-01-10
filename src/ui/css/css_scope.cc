@@ -51,14 +51,14 @@ namespace qk {
 
 	void StyleSheetsScope::pushScope(Layout *scope) {
 		Qk_ASSERT(scope);
-		//StyleSheetsClass* ssclass = scope->classs(); // TODO ...
-		StyleSheetsClass *ssclass = nullptr;
+		auto ssclass = scope->ssclass();
 		if ( ssclass && ssclass->haveSubstyles() ) {
-			for ( auto &i : ssclass->substyleSheets() ) {
+			for ( auto i : ssclass->substyleSheets() ) {
+				auto _i = const_cast<StyleSheets*>(i);
 				Scope::Wrap *wrap = nullptr;
-				auto it = _styleSheetsMap.find(i);
+				auto it = _styleSheetsMap.find(_i);
 				if ( it == _styleSheetsMap.end() ) { // 添加
-					wrap = &(_styleSheetsMap[i] = { i, 1 });
+					wrap = &(_styleSheetsMap[_i] = { _i, 1 });
 				} else {
 					wrap = &it->value;
 					wrap->ref++;
@@ -71,8 +71,7 @@ namespace qk {
 
 	void StyleSheetsScope::popScope() {
 		if ( _scopes.length() ) {
-			//StyleSheetsClass* ssclass = _scopes.back()->classs(); // TODO ...
-			StyleSheetsClass *ssclass = nullptr;
+			auto ssclass = _scopes.back()->ssclass();
 			if ( ssclass && ssclass->haveSubstyles() ) {
 				int count = ssclass->substyleSheets().length();
 				for ( int i = 0; i < count; i++ ) {

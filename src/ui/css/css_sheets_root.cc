@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./css.h"
+#include "../app.h"
 
 namespace qk {
 
@@ -36,7 +37,7 @@ namespace qk {
 		{"normal",kNormal_CSSType},{"normal",kHover_CSSType},{"active",kActive_CSSType}
 	});
 
-	static Array<String>& sortString( Array<String>& arr, uint32_t len ) {
+	static Array<String>& sortString( Array<String> &arr, uint32_t len ) {
 		for ( int i = len - 1; i > 0; i-- ) {
 			for ( int j = 0; j < i; j++ ) {
 				if ( arr[j] > arr[j+1] ) {
@@ -50,7 +51,6 @@ namespace qk {
 	}
 
 	static bool verifyCssName(cString &name, CSSName &out, CSSType &type) {
-		
 		if ( name[0] != '.' ) {
 			return false;
 		}
@@ -78,8 +78,9 @@ namespace qk {
 
 	// --------------
 
-	RootStyleSheets::RootStyleSheets(): StyleSheets(CSSName(""), nullptr, kNone_CSSType) {
-	}
+	RootStyleSheets::RootStyleSheets()
+		: StyleSheets(CSSName(""), nullptr, kNone_CSSType)
+	{}
 
 	Array<StyleSheets*> RootStyleSheets::search(cString& exp) {
 		Array<StyleSheets*> rv;
@@ -150,7 +151,7 @@ namespace qk {
 		Array<uint32_t> r;
 
 		auto addGrpup = [this, &r](uint32_t hash) {
-			if ( _allCssNames.count(hash) ) {
+			if ( _allClassNames.count(hash) ) {
 				r.push(hash);
 			}
 		};
@@ -194,7 +195,7 @@ namespace qk {
 				addGrpup(hash);
 				_cssQueryGroupCache[hash] = r;
 				break;
-			default:  // 4 ...
+			default: // 4 ...
 				if ( group ) { // len > 4
 					for ( uint32_t i = 4; i < len; i++ ) {
 						addGrpup(CSSName(className[i]).hash());
@@ -227,8 +228,8 @@ namespace qk {
 		return r;
 	}
 
-	void RootStyleSheets::markClasssName(cCSSName& name) {
-		_allCssNames.add(name.hash());
+	void RootStyleSheets::markClassName(cCSSName &name) {
+		_allClassNames.add(name.hash());
 		_cssQueryGroupCache.clear();
 	}
 

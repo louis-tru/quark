@@ -43,6 +43,7 @@ namespace qk {
 	class Window;
 	class TransformLayout;
 	class ScrollLayoutBase;
+	class StyleSheetsClass;
 
 	/**
 		* Layout tree nodes that can only be called in rendering threads.
@@ -65,6 +66,9 @@ namespace qk {
 			kTransform_Origin         = (1 << 3),
 			kInput_Status             = (1 << 4), /* 输入状态这不包含布局的改变 */
 			kScroll                   = (1 << 5), /* scroll status change */
+			kStyle_Class              = (1 << 6), /* 变化class引起的样式变化 */
+			kStyle_Full               = (1 << 7), /* 所有后代视图都受到影响 */
+			kStyle                    = (kStyle_Class | kStyle_Full),
 			// RECURSIVE MARKS
 			kRecursive_Transform      = (1 << 30), /* 矩阵变换 recursive mark */
 			kRecursive_Visible_Region = (1U << 31), /* 可见范围 */
@@ -125,12 +129,12 @@ namespace qk {
 		/*
 		* @prop window
 		*/
-		Qk_DEFINE_PROP_GET(Window*, window);
+		Qk_DEFINE_PROP_GET(Window*, window, NoConst);
 
 		/*
 		* @prop view
 		*/
-		Qk_DEFINE_PROP_GET(View*, view);
+		Qk_DEFINE_PROP_GET(View*, view, NoConst);
 
 		/**
 		 * 
@@ -143,16 +147,21 @@ namespace qk {
 		/**
 		 * parent layout view
 		*/
-		Qk_DEFINE_PROP_GET(Layout*, parent);
-		Qk_DEFINE_PROP_GET(Layout*, prev);
-		Qk_DEFINE_PROP_GET(Layout*, next);
-		Qk_DEFINE_PROP_GET(Layout*, first);
-		Qk_DEFINE_PROP_GET(Layout*, last);
+		Qk_DEFINE_PROP_GET(Layout*, parent, NoConst);
+		Qk_DEFINE_PROP_GET(Layout*, prev, NoConst);
+		Qk_DEFINE_PROP_GET(Layout*, next, NoConst);
+		Qk_DEFINE_PROP_GET(Layout*, first, NoConst);
+		Qk_DEFINE_PROP_GET(Layout*, last, NoConst);
 
 		/**
 		 * @prop props accessor
 		*/
-		Qk_DEFINE_PROP_GET(PropAccessor*, accessor);
+		Qk_DEFINE_PROP_GET(PropAccessor*, accessor, NoConst);
+
+		/**
+		 * @prop style sheets class object
+		*/
+		Qk_DEFINE_PROP_GET(StyleSheetsClass*, ssclass, NoConst);
 
 		/**
 		 *  can affect the transparency of subviews

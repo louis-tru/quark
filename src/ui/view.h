@@ -71,6 +71,12 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(View*, first);
 		Qk_DEFINE_PROP_GET(View*, last);
 		Qk_DEFINE_PROP_GET(PropAccessor*, accessor);
+
+		/**
+		 * @prop style sheets class object
+		*/
+		Qk_DEFINE_PROP_ACC_GET(StyleSheetsClass*, ssclass, NoConst);
+
 		/**
 		 *  can affect the transparency of subviews
 		 */
@@ -232,6 +238,8 @@ namespace qk {
 		 */
 		void set_parent(View* parent);
 		void clear_link(); // Cleaning up associated view information
+
+		StyleSheetsClass* _ssclass; // style sheets class object
 
 		friend class EventDispatch;
 	};

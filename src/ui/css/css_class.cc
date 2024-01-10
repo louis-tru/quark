@@ -34,7 +34,7 @@
 
 namespace qk {
 
-	StyleSheetsClass::StyleSheetsClass(Layout* host)
+	StyleSheetsClass::StyleSheetsClass(Layout *host)
 		: _host(host)
 		, _havePseudoType(false)
 		, _onceApply(true)
@@ -43,97 +43,61 @@ namespace qk {
 		Qk_ASSERT(host);
 	}
 
-	void StyleSheetsClass::set_value(cArray<String> &value) {
-		Set<String> set;
-		for ( auto& j : value ) {
-			set.add(j);
-		}
-		updateClass(set.keys());
+	void StyleSheetsClass::set(cArray<String> &name) {
+		_name.clear();
+		for ( auto &j: name )
+			_name.add(j);
+		updateClass();
 	}
 
 	void StyleSheetsClass::add(cString &name) {
-		bool up = false;
-
-		Set<String> set;
-		for ( auto& j : _value ) {
-			set.add(j);
-		}
-		for ( auto& i : name.split(' ') ) {
-			String s = i.trim();
-			if ( !s.isEmpty() ) {
-				if ( !set.count(s) ) {
-					set.add(s);
-					up = true;
-				}
-			}
-		}
-		if ( up ) {
-			updateClass(set.keys());
+		auto it = _name.find(name);
+		if (it == _name.end()) {
+			_name.add(name);
+			updateClass();
 		}
 	}
 
 	void StyleSheetsClass::remove(cString &name) {
-		bool up = false;
-
-		Set<String> set;
-		for ( auto& j : _value ) {
-			set.add(j);
-		}
-		for ( auto& i : name.split(' ') ) {
-			auto s = i.trim();
-			if ( !s.isEmpty() ) {
-				if ( set.erase(s) ) up = true;
-			}
-		}
-		if ( up ) {
-			updateClass(set.keys());
+		auto it = _name.find(name);
+		if (it != _name.end()) {
+			_name.erase(it);
+			updateClass();
 		}
 	}
 
 	void StyleSheetsClass::toggle(cString &name) {
-		bool up = false;
-
-		Set<String> set;
-		for ( auto& j : _value ) {
-			set.add(j);
+		auto it = _name.find(name);
+		if (it == _name.end()) {
+			_name.add(name);
+		} else {
+			_name.erase(it);
 		}
-		for ( auto& i : name.split(' ') ) {
-			auto s = i.trim();
-			if ( !s.isEmpty() ) {
-				up = true;
-				if ( !set.erase(s) ) { // no del
-					set.add(s);
-				}
-			}
-		}
-		if ( up ) {
-			updateClass(set.keys());
-		}
+		updateClass();
 	}
 
 	void StyleSheetsClass::set_status(CSSType status) {
 		if ( _status != status ) {
 			_status = status;
 			if ( _havePseudoType ) {
-				// _host->mark_pre(Layout::M_STYLE_CLASS); // TODO ...
+				_host->mark_layout(Layout::kStyle_Class);
 			}
 		}
 	}
 
-	void StyleSheetsClass::updateClass(Array<String> &&value) {
-		_value = std::move(value);
-		auto root = shared_app()->styleSheets();
-		_queryGroup = root->getCssQueryGrpup(_value);
-		// _host->mark_pre(View::M_STYLE_CLASS); // TODO ...
+	void StyleSheetsClass::updateClass() {
+		auto arr = _name.keys();
+		_queryGroup = shared_app()->styleSheets()->getCssQueryGrpup(arr);
+		_host->mark_layout(Layout::kStyle_Class);
 	}
 
-	void StyleSheetsClass::apply(StyleSheetsScope *scope, bool *out_effect_child)
+	void StyleSheetsClass::apply(StyleSheetsScope *scope, bool *out_effectChild)
 	{
 		typedef StyleSheetsScope::Scope Scope;
 
 		Set<StyleSheets*> origin_child_style_sheets_set;
 
-		if ( out_effect_child ) {
+		if ( out_effectChild ) {
 			for ( auto& i : _substyleSheets ) {
 				origin_child_style_sheets_set.add(i);
 			}
@@ -145,7 +109,7 @@ namespace qk {
 						_queryGroup.length(), scope->styleSheets().length(), _value.join(' ').c_str());
 
 		if ( _queryGroup.length() ) {
-			const List<Scope>& style_sheets = scope->styleSheets();
+			cList<Scope>& style_sheets = scope->styleSheets();
 			Set<StyleSheets*> child_style_sheets_set;
 			// KeyframeAction *action = nullptr;
 
@@ -160,9 +124,9 @@ namespace qk {
 							// action = _inl_ss(ss)->assignment(_host, action, _once_apply);
 
 							if ( ss->haveSubstyles() && !child_style_sheets_set.count(ss) ) {
-								if ( out_effect_child ) {
+								if ( out_effectChild ) {
 									if ( !origin_child_style_sheets_set.count(ss) ) {
-										*out_effect_child = true;
+										*out_effectChild = true;
 									}
 								}
 								child_style_sheets_set.add(ss);
@@ -186,9 +150,9 @@ namespace qk {
 								// action = _inl_ss(ss)->assignment(_host, action, _once_apply);
 
 								if ( ss->haveSubstyles() && !child_style_sheets_set.count(ss) ) {
-									if ( out_effect_child ) {
+									if ( out_effectChild ) {
 										if ( !origin_child_style_sheets_set.count(ss) ) {
-											*out_effect_child = true;
+											*out_effectChild = true;
 										}
 									}
 									child_style_sheets_set.add(ss);
@@ -206,9 +170,9 @@ namespace qk {
 
 			_onceApply = false;
 
-			if ( out_effect_child ) {
+			if ( out_effectChild ) {
 				if (child_style_sheets_set.length() != origin_child_style_sheets_set.length() ) {
-					*out_effect_child = true;
+					*out_effectChild = true;
 				}
 			}
 		}

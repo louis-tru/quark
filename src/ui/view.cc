@@ -31,6 +31,7 @@
 #include "./layout/layout.h"
 #include "./layout/root.h"
 #include "./window.h"
+#include "./css/css.h"
 
 namespace qk {
 
@@ -39,7 +40,7 @@ namespace qk {
 		, _action(nullptr), _layout(layout)
 		, _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
-		, _first(nullptr), _last(nullptr)
+		, _first(nullptr), _last(nullptr), _accessor(nullptr), _ssclass(nullptr)
 	{
 		layout->_view = this;
 		layout->_accessor = prop_accessor_at_layout(layout->viewType(), kOPACITY_ViewProp);
@@ -61,6 +62,14 @@ namespace qk {
 
 	Window* View::window() const {
 		return _layout->_window;
+	}
+
+	StyleSheetsClass* View::ssclass() {
+		if (!_ssclass) {
+			_ssclass = new StyleSheetsClass(_layout);
+			preRender().async_call([](auto ctx, auto val) { ctx->_ssclass = val; }, _layout, _ssclass);
+		}
+		return _ssclass;
 	}
 
 	float View::opacity() const {

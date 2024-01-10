@@ -41,8 +41,7 @@ namespace qk {
 	CSSName::CSSName(cArray<String>& name)
 		: _str(String('.').append(name.join(".")))
 		, _hash(_str.hashCode())
-	{
-	}
+	{}
 
 	CSSName::CSSName(cString& name)
 		: _str(name)
@@ -71,8 +70,8 @@ namespace qk {
 		Release(_active); _active = nullptr;
 	}
 
-	StyleSheets* StyleSheets::find(const CSSName &name) {
-		return nullptr;
+	StyleSheets* StyleSheets::find(cCSSName &name) {
+		return findHash(name.hash());
 	}
 
 	void StyleSheets::apply(Layout* layout) {
@@ -177,8 +176,7 @@ namespace qk {
 
 		auto it = _substyles.find(name.hash());
 		if ( it == _substyles.end() ) {
-
-			shared_app()->styleSheets()->markClasssName(name);
+			shared_app()->styleSheets()->markClassName(name);
 			ss = new StyleSheets(name, this, kNone_CSSType);
 			_substyles[name.hash()] = ss;
 		} else {
@@ -190,7 +188,7 @@ namespace qk {
 
 		// find pseudo type
 		StyleSheets **ss_pseudo = nullptr;
-		switch ( type ) {
+		switch ( type ) { 
 			case kNormal_CSSType: ss_pseudo = &ss->_normal; break;
 			case kHover_CSSType: ss_pseudo = &ss->_hover; break;
 			case kActive_CSSType: ss_pseudo = &ss->_active; break;

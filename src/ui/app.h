@@ -120,6 +120,14 @@ namespace qk {
 										cString& subject,
 										cString& cc = String(),
 										cString& bcc = String(), cString& body = String());
+
+		/**
+		 * Safe lock all window render threads, unlocked after the callback is completed
+		 * 
+		 * @method lockAllRenderThreads()
+		*/
+		void lockAllRenderThreads(Cb cb);
+
 		/**
 		 * 
 		 * setting main function

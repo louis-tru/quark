@@ -45,6 +45,7 @@ namespace qk {
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
 		, _accessor(nullptr)
+		, _ssclass(nullptr)
 		, _opacity(1.0)
 		, _visible(true)
 		, _visible_region(false)

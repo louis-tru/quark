@@ -38,9 +38,6 @@
 
 namespace qk {
 	class Layout;
-	class CSSName;
-	class StyleSheetsScope;
-	typedef const CSSName cCSSName;
 
 	enum CSSType {
 		kNone_CSSType = 0,
@@ -56,6 +53,8 @@ namespace qk {
 		CSSName(cArray<String>& name);
 		CSSName(cString& name);
 	};
+
+	typedef const CSSName cCSSName;
 
 	/**
 	 * 
@@ -122,6 +121,8 @@ namespace qk {
 		friend class StyleSheetsClass;
 	};
 
+	typedef const StyleSheets cStyleSheets;
+
 	class Qk_EXPORT RootStyleSheets: public StyleSheets {
 	public:
 		RootStyleSheets();
@@ -138,41 +139,13 @@ namespace qk {
 		// ".div_cls.div_cls2:down .aa.bb.cc"
 		StyleSheets* find(cString &exp);
 		Array<uint32_t> getCssQueryGrpup(Array<String> &className);
-		void markClasssName(cCSSName& name);
+		void markClassName(cCSSName &className);
 
-		Set<uint32_t>                    _allCssNames;
+		Set<uint32_t>                    _allClassNames;
 		Dict<uint32_t, Array<uint32_t>>  _cssQueryGroupCache;
 
 		friend class StyleSheets;
 		friend class StyleSheetsClass;
-	};
-
-	class Qk_EXPORT StyleSheetsClass {
-		Qk_HIDDEN_ALL_COPY(StyleSheetsClass);
-	public:
-		Qk_DEFINE_PROP(CSSType, status); // 当前伪类应用状态
-		Qk_DEFINE_PROP(bool, havePseudoType); // 当前样式表选择器能够找到支持伪类的样式表
-		Qk_DEFINE_PROP(bool, onceApply); // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
-
-		StyleSheetsClass(Layout *host);
-
-		inline bool haveSubstyles() const { return _substyleSheets.length(); }
-		inline cArray<String>& value() const { return _value; }
-		inline cArray<StyleSheets*>& substyleSheets() { return _substyleSheets; }
-
-		void set_value(cArray<String> &value);
-		void add(cString &name);
-		void remove(cString &name);
-		void toggle(cString &name);
-		void apply(StyleSheetsScope *scope, bool *effect_child = nullptr);
-
-	private:
-		void updateClass(Array<String> &&name);
-
-		Layout         *_host;
-		Array<String>   _value;
-		Array<uint32_t> _queryGroup;
-		Array<StyleSheets*> _substyleSheets; // 当前应用的样式表中拥有子样式表的表供后代视图查询
 	};
 
 	class Qk_EXPORT StyleSheetsScope {
@@ -195,6 +168,32 @@ namespace qk {
 		List<Layout*>  _scopes;
 		List<Scope>    _styleSheets;
 		StyleSheetsMap _styleSheetsMap;
+	};
+
+	class Qk_EXPORT StyleSheetsClass {
+		Qk_HIDDEN_ALL_COPY(StyleSheetsClass);
+	public:
+		Qk_DEFINE_PROP_GET(CSSType, status); // 当前伪类应用状态
+		Qk_DEFINE_PROP_GET(bool, havePseudoType); // 当前样式表选择器能够找到支持伪类的样式表
+		Qk_DEFINE_PROP_GET(bool, onceApply); // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
+		StyleSheetsClass(Layout *host);
+		inline cSet<String>& name() const { return _name; }
+		inline bool haveSubstyles() const { return _substyleSheets.length(); }
+		inline cArray<cStyleSheets*>& substyleSheets() const { return *(cArray<cStyleSheets*>*)&_substyleSheets; }
+		void set(cArray<String> &name);
+		void add(cString &name);
+		void remove(cString &name);
+		void toggle(cString &name);
+
+	private:
+		void set_status(CSSType status);
+		void apply(StyleSheetsScope *scope, bool *out_effectChild = nullptr);
+		void updateClass();
+		Layout         *_host;
+		Set<String>     _name;
+		Array<uint32_t> _queryGroup;
+		Array<StyleSheets*> _substyleSheets; // 当前应用的样式表中拥有子样式表的表供后代视图查询
+		friend class Layout;
 	};
 
 }

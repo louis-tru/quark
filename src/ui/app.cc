@@ -69,7 +69,7 @@ namespace qk {
 			Qk_FATAL("At the same time can only run a Application entity");
 		if (!_loop)
 			Qk_FATAL("The current thread does not have a RunLoop");
-		//view_prop_acc_init();
+		view_prop_acc_init();
 		_shared = this;
 		// init
 		_screen = new Screen(this); // strong ref
@@ -154,6 +154,10 @@ namespace qk {
 
 	const List<Window*>& Application::windows() const { //! window list
 		return _windows;
+	}
+
+	void Application::lockAllRenderThreads(Cb cb) {
+		// TODO ...
 	}
 
 	// ------------------- A p p l i c a t i o n :: I n l -------------------
