@@ -34,9 +34,9 @@
 
 namespace qk {
 
-	static void push_all_scope(StyleSheetsScope *self, Layout *scope) {
+	static void push_allScope(StyleSheetsScope *self, Layout *scope) {
 		if ( scope ) {
-			push_all_scope(self, scope->parent());
+			push_allScope(self, scope->parent());
 			self->pushScope(scope);
 		}
 	}
@@ -45,7 +45,7 @@ namespace qk {
 		auto root = shared_app()->styleSheets();
 		auto wrap = _styleSheetsMap[root] = { root, 1 };
 		_styleSheets.pushBack({ &wrap, 1 });
-		push_all_scope(this, scope);
+		push_allScope(this, scope);
 		Qk_DEBUG("use StyleSheetsScope");
 	}
 

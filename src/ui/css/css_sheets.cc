@@ -38,15 +38,17 @@ namespace qk {
 		kView,kBox,kFlex,kFlow,kImage,kTextOptions,kInput,kScrollLayoutBase,kTransform
 	};
 
+	CSSName::CSSName(): _hash(0) {}
+
+	CSSName::CSSName(cString &name)
+		: _str(String('.').append(name))
+		, _hash(_str.hashCode()) 
+	{}
+
 	CSSName::CSSName(cArray<String>& name)
 		: _str(String('.').append(name.join(".")))
 		, _hash(_str.hashCode())
 	{}
-
-	CSSName::CSSName(cString& name)
-		: _str(name)
-		, _hash(name.hashCode()) {
-	}
 
 	StyleSheets::StyleSheets(const CSSName& name, StyleSheets *parent, CSSType type)
 		: _name(name)

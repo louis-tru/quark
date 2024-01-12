@@ -50,8 +50,9 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_GET(String, str);
 		Qk_DEFINE_PROP_GET(uint64_t, hash);
-		CSSName(cArray<String>& name);
+		CSSName();
 		CSSName(cString& name);
+		CSSName(cArray<String>& name);
 	};
 
 	typedef const CSSName cCSSName;

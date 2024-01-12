@@ -34,7 +34,7 @@
 namespace qk {
 
 	static Dict<String, CSSType> pseudo_type_keys({
-		{"normal",kNormal_CSSType},{"normal",kHover_CSSType},{"active",kActive_CSSType}
+		{"normal",kNormal_CSSType},{"hover",kHover_CSSType},{"active",kActive_CSSType}
 	});
 
 	static Array<String>& sortString( Array<String> &arr, uint32_t len ) {
@@ -54,7 +54,6 @@ namespace qk {
 		if ( name[0] != '.' ) {
 			return false;
 		}
-
 		int len = name.length();
 		int i = name.indexOf(':'); // "cls:hover"
 		if ( i != -1 ) {
@@ -79,7 +78,7 @@ namespace qk {
 	// --------------
 
 	RootStyleSheets::RootStyleSheets()
-		: StyleSheets(CSSName(""), nullptr, kNone_CSSType)
+		: StyleSheets(CSSName(), nullptr, kNone_CSSType)
 	{}
 
 	Array<StyleSheets*> RootStyleSheets::search(cString& exp) {
@@ -106,14 +105,13 @@ namespace qk {
 		StyleSheets* ss = this;
 
 		for ( auto i : exp.split(' ') ) {
-			CSSName name((String()));
+			CSSName name;
 			CSSType type = kNone_CSSType;
 
 			if ( !verifyCssName(i.trim(), name, type) ) {
 				Qk_WARN("Invalid css name \"%s\"", *exp);
 				return nullptr;
 			}
-
 			Qk_ASSERT( !name.str().isEmpty() );
 
 			ss = ss->findFrom(name, type);
@@ -129,7 +127,7 @@ namespace qk {
 	}
 
 	static CSSName newCSSName1(cString &className) {
-		return CSSName(String('.').append(className));
+		return CSSName(className);
 	}
 
 	static CSSName newCSSname2(cString& a, cString& b) {
@@ -198,7 +196,7 @@ namespace qk {
 			default: // 4 ...
 				if ( group ) { // len > 4
 					for ( uint32_t i = 4; i < len; i++ ) {
-						addGrpup(CSSName(className[i]).hash());
+						addGrpup(newCSSName1(className[i]).hash());
 					}
 					r.write(**group, group->length());
 					return r;
@@ -220,7 +218,7 @@ namespace qk {
 				addGrpup(hash);
 				_cssQueryGroupCache[hash] = r;
 				for ( uint32_t i = 4; i < len; i++ ) { // len > 4
-					addGrpup(CSSName(className[i]).hash());
+					addGrpup(newCSSName1(className[i]).hash());
 				}
 				break;
 		}
