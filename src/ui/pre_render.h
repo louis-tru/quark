@@ -118,6 +118,7 @@ namespace qk {
 		Array<Array<Layout*>> _marks; // marked view
 		Array<AsyncCall> _asyncCall;
 		Array<AsyncCall> _asyncCommit;
+		Mutex _asyncCommitMutex;
 		bool _is_render; // next frame render
 		friend class Application;
 		friend class Window;

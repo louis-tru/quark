@@ -48,14 +48,10 @@ namespace qk {
 
 	class Qk_EXPORT CSSName {
 	public:
-		Qk_DEFINE_PROP_GET(String, str);
 		Qk_DEFINE_PROP_GET(uint64_t, hash);
-		CSSName();
 		CSSName(cString& name);
 		CSSName(cArray<String>& name);
 	};
-
-	typedef const CSSName cCSSName;
 
 	/**
 	 * 
@@ -89,7 +85,7 @@ namespace qk {
 		/**
 		 * @constructor
 		*/
-		StyleSheets(cCSSName &name, StyleSheets *parent, CSSType type);
+		StyleSheets(CSSName name, StyleSheets *parent, CSSType type);
 
 		/**
 		 * @destructor
@@ -104,18 +100,20 @@ namespace qk {
 		/**
 		* @method find children style sheets
 		*/
-		StyleSheets* find(cCSSName &name);
+		inline const StyleSheets* find(CSSName name) const {
+			return findHash(name.hash());
+		}
 
 		/**
 		* @method apply style to layout
 		*/
-		void apply(Layout* layout);
+		void apply(Layout *layout) const;
 
 	private:
-		StyleSheets* findHash(uint32_t hash);
-		StyleSheets* findFrom(cCSSName& name, CSSType type);
+		StyleSheets* findHash(uint64_t hash) const;
+		StyleSheets* findAndMake(CSSName name, CSSType type);
 		void setProps(uint32_t, Property* prop);
-		Dict<uint32_t, StyleSheets*> _substyles;
+		Dict<uint64_t, StyleSheets*> _substyles;
 		Dict<uint32_t, Property*> _props; // ViewProperty => Property*
 
 		friend class RootStyleSheets;
@@ -138,12 +136,12 @@ namespace qk {
 	private:
 		// ".div_cls.div_cls2 .aa.bb.cc"
 		// ".div_cls.div_cls2:down .aa.bb.cc"
-		StyleSheets* find(cString &exp);
-		Array<uint32_t> getCssQueryGrpup(Array<String> &className);
-		void markClassName(cCSSName &className);
+		StyleSheets* searchItem(cString &exp);
+		Array<uint64_t> getCssQueryGrpup(Array<String> &className);
+		void markClassName(CSSName className);
 
-		Set<uint32_t>                    _allClassNames;
-		Dict<uint32_t, Array<uint32_t>>  _cssQueryGroupCache;
+		Set<uint64_t>                    _allClassNames;
+		Dict<uint64_t, Array<uint64_t>>  _cssQueryGroupCache;
 
 		friend class StyleSheets;
 		friend class StyleSheetsClass;
@@ -161,9 +159,12 @@ namespace qk {
 		StyleSheetsScope(Layout *scope);
 		void pushScope(Layout *scope);
 		void popScope();
-		inline Layout* bottomScope() { return _scopes.length() ? _scopes.back() : nullptr; }
-		inline cList<Scope>& styleSheets() { return _styleSheets; }
-
+		inline Layout* bottomScope() {
+			return _scopes.length() ? _scopes.back() : nullptr;
+		}
+		inline cList<Scope>& styleSheets() {
+			return _styleSheets;
+		}
 	private:
 		typedef Dict<StyleSheets*, Scope::Wrap> StyleSheetsMap;
 		List<Layout*>  _scopes;
@@ -180,7 +181,9 @@ namespace qk {
 		StyleSheetsClass(Layout *host);
 		inline cSet<String>& name() const { return _name; }
 		inline bool haveSubstyles() const { return _substyleSheets.length(); }
-		inline cArray<cStyleSheets*>& substyleSheets() const { return *(cArray<cStyleSheets*>*)&_substyleSheets; }
+		inline cArray<cStyleSheets*>& substyleSheets() const {
+			return *(cArray<cStyleSheets*>*)&_substyleSheets;
+		}
 		void set(cArray<String> &name);
 		void add(cString &name);
 		void remove(cString &name);
@@ -192,7 +195,7 @@ namespace qk {
 		void updateClass();
 		Layout         *_host;
 		Set<String>     _name;
-		Array<uint32_t> _queryGroup;
+		Array<uint64_t> _queryGroup;
 		Array<StyleSheets*> _substyleSheets; // 当前应用的样式表中拥有子样式表的表供后代视图查询
 		friend class Layout;
 	};

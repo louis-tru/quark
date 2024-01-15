@@ -51,8 +51,7 @@ namespace qk {
 	}
 
 	void StyleSheetsClass::add(cString &name) {
-		auto it = _name.find(name);
-		if (it == _name.end()) {
+		if (!_name.has(name)) {
 			_name.add(name);
 			updateClass();
 		}
@@ -98,7 +97,7 @@ namespace qk {
 		Set<StyleSheets*> origin_child_style_sheets_set;
 
 		if ( out_effectChild ) {
-			for ( auto& i : _substyleSheets ) {
+			for ( auto &i : _substyleSheets ) {
 				origin_child_style_sheets_set.add(i);
 			}
 		}
@@ -106,20 +105,47 @@ namespace qk {
 		_havePseudoType = false;
 
 		Qk_DEBUG("StyleSheetsClass apply, query group count: %d, style sheets count: %d, '%s'",
-						_queryGroup.length(), scope->styleSheets().length(), _value.join(' ').c_str());
+						_queryGroup.length(), scope->styleSheets().length(), _name.keys().join(' ').c_str());
 
-		if ( _queryGroup.length() ) {
-			cList<Scope>& style_sheets = scope->styleSheets();
-			Set<StyleSheets*> child_style_sheets_set;
-			// KeyframeAction *action = nullptr;
+		if ( !_queryGroup.length() ) return;
 
-			for ( auto& i : _queryGroup ) {
-				for ( auto& j : style_sheets ) {
+		cList<Scope>& style_sheets = scope->styleSheets();
+		Set<StyleSheets*> child_style_sheets_set;
+		// KeyframeAction *action = nullptr;
 
-					Scope scope = j;
-					if ( scope.ref == scope.wrap->ref ) { // 引用数不相同表示不是最优先的,忽略
+		for ( auto& i : _queryGroup ) {
+			for ( auto& j : style_sheets ) {
 
-						StyleSheets* ss = scope.wrap->sheets->findHash(i);
+				Scope scope = j;
+				if ( scope.ref == scope.wrap->ref ) { // 引用数不相同表示不是最优先的,忽略
+
+					StyleSheets* ss = scope.wrap->sheets->findHash(i);
+					if ( ss ) {
+						// action = _inl_ss(ss)->assignment(_host, action, _once_apply);
+
+						if ( ss->haveSubstyles() && !child_style_sheets_set.count(ss) ) {
+							if ( out_effectChild ) {
+								if ( !origin_child_style_sheets_set.count(ss) ) {
+									*out_effectChild = true;
+								}
+							}
+							child_style_sheets_set.add(ss);
+							_substyleSheets.push(ss);
+						}
+
+						if ( ss->havePseudoType() ) {
+							_havePseudoType = true;
+							// _host->set_receive(true); // TODO...
+							switch ( _status ) {
+								default: ss = nullptr; break;
+								case kNormal_CSSType: ss = ss->normal(); break;
+								case kHover_CSSType:  ss = ss->hover(); break;
+								case kActive_CSSType:   ss = ss->active(); break;
+							}
+						} else {
+							ss = nullptr;
+						}
+
 						if ( ss ) {
 							// action = _inl_ss(ss)->assignment(_host, action, _once_apply);
 
@@ -132,50 +158,22 @@ namespace qk {
 								child_style_sheets_set.add(ss);
 								_substyleSheets.push(ss);
 							}
-
-							if ( ss->havePseudoType() ) {
-								_havePseudoType = true;
-								// _host->set_receive(true); // TODO...
-								switch ( _status ) {
-									default: ss = nullptr; break;
-									case kNormal_CSSType: ss = ss->normal(); break;
-									case kHover_CSSType:  ss = ss->hover(); break;
-									case kActive_CSSType:   ss = ss->active(); break;
-								}
-							} else {
-								ss = nullptr;
-							}
-
-							if ( ss ) {
-								// action = _inl_ss(ss)->assignment(_host, action, _once_apply);
-
-								if ( ss->haveSubstyles() && !child_style_sheets_set.count(ss) ) {
-									if ( out_effectChild ) {
-										if ( !origin_child_style_sheets_set.count(ss) ) {
-											*out_effectChild = true;
-										}
-									}
-									child_style_sheets_set.add(ss);
-									_substyleSheets.push(ss);
-								}
-							}
-						} // end if ( scope.ref == scope.wrap->ref ) {
-					}
-				}
-			}
-
-			// if ( action ) {
-				// action->frame(0)->fetch(); // fetch 0 frame property
-			// }
-
-			_onceApply = false;
-
-			if ( out_effectChild ) {
-				if (child_style_sheets_set.length() != origin_child_style_sheets_set.length() ) {
-					*out_effectChild = true;
+						}
+					} // end if ( scope.ref == scope.wrap->ref ) {
 				}
 			}
 		}
-	}
 
+		// if ( action ) {
+			// action->frame(0)->fetch(); // fetch 0 frame property
+		// }
+
+		_onceApply = false;
+
+		if ( out_effectChild ) {
+			if (child_style_sheets_set.length() != origin_child_style_sheets_set.length() ) {
+				*out_effectChild = true;
+			}
+		}
+	}
 }

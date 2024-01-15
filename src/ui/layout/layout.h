@@ -43,7 +43,6 @@ namespace qk {
 	class Window;
 	class TransformLayout;
 	class ScrollLayoutBase;
-	class StyleSheetsClass;
 
 	/**
 		* Layout tree nodes that can only be called in rendering threads.

@@ -135,17 +135,20 @@ namespace qk {
 
 	void PreRender::asyncCommit() {
 		if (_asyncCall.length()) {
-			UILock lock(_window);
+			_asyncCommitMutex.lock();
 			_asyncCommit.concat(std::move(_asyncCall));
+			_asyncCommitMutex.unlock();
 		}
 	}
 
 	void PreRender::solveAsyncCall() {
 		if (_asyncCommit.length()) {
-			for (auto &i: _asyncCommit) {
+			_asyncCommitMutex.lock();
+			auto calls(std::move(_asyncCommit));
+			_asyncCommitMutex.unlock();
+			for (auto &i: calls) {
 				((void (*)(void*,uint64_t))i.exec)(i.ctx, i.args); // exec async call
 			}
-			_asyncCommit.clear();
 		}
 	}
 

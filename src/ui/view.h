@@ -39,6 +39,7 @@ namespace qk {
 	class Action;
 	class Layout;
 	class Button;
+	class StyleSheetsClass;
 
 	/**
 		* The basic elements of UI view tree

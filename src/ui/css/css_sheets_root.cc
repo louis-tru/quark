@@ -51,9 +51,8 @@ namespace qk {
 	}
 
 	static bool verifyCssName(cString &name, CSSName &out, CSSType &type) {
-		if ( name[0] != '.' ) {
-			return false;
-		}
+		if ( name[0] != '.' ) return false;
+
 		int len = name.length();
 		int i = name.indexOf(':'); // "cls:hover"
 		if ( i != -1 ) {
@@ -67,58 +66,61 @@ namespace qk {
 		}
 
 		auto arr = name.substring(1, len).split('.');
-		if ( arr.length() > 1 ) { // ".cls.cls2"
-			sortString( arr, arr.length() );
-		}
-		out = CSSName(arr);
+		out = CSSName(sortString( arr, arr.length() ));
 
 		return true;
+	}
+
+	static CSSName newCSSname2(cString& a, cString& b) {
+		Array<String> arr{a,b};
+		return CSSName(sortString(arr, 2));
+	}
+
+	static CSSName newCSSName3(cString& a, cString& b, cString& c) {
+		Array<String> arr{a,b,c};
+		return CSSName(sortString({arr}, 3));
 	}
 
 	// --------------
 
 	RootStyleSheets::RootStyleSheets()
-		: StyleSheets(CSSName(), nullptr, kNone_CSSType)
+		: StyleSheets(CSSName(""), nullptr, kNone_CSSType)
 	{}
 
-	Array<StyleSheets*> RootStyleSheets::search(cString& exp) {
+	Array<StyleSheets*> RootStyleSheets::search(cString &exp) {
 		Array<StyleSheets*> rv;
 
 		if ( exp.indexOf(',') != -1 ) {
 			for ( auto& i : exp.split(',') ) {
-				auto ss = find(i.trim());
+				auto ss = searchItem(i.trim());
 				if ( ss ) {
 					rv.push(ss);
 				}
 			}
 		} else {
-			auto ss = find(exp.trim());
+			auto ss = searchItem(exp.trim());
 			if ( ss ) {
 				rv.push(ss);
 			}
 		}
-
 		Qk_ReturnLocal(rv);
 	}
 
-	StyleSheets* RootStyleSheets::find(cString& exp) {
-		StyleSheets* ss = this;
+	StyleSheets* RootStyleSheets::searchItem(cString &exp) {
+		StyleSheets *ss = this;
+		CSSName name((String()));
+		// ".div_cls.div_cls2 .aa.bb.cc"
+		// ".div_cls.div_cls2:down .aa.bb.cc"
 
 		for ( auto i : exp.split(' ') ) {
-			CSSName name;
 			CSSType type = kNone_CSSType;
-
 			if ( !verifyCssName(i.trim(), name, type) ) {
-				Qk_WARN("Invalid css name \"%s\"", *exp);
-				return nullptr;
+				Qk_WARN("Invalid css name \"%s\"", *exp); return nullptr;
 			}
-			Qk_ASSERT( !name.str().isEmpty() );
-
-			ss = ss->findFrom(name, type);
-
+			Qk_ASSERT( name.hash() != 5381 ); // is empty
+			ss = ss->findAndMake(name, type);
 			if ( ! ss ) {
-				Qk_WARN("Invalid css name \"%s\"", *exp);
-				return nullptr;
+				Qk_WARN("Invalid css name \"%s\"", *exp); return nullptr;
 			}
 		}
 		Qk_ASSERT( ss != this );
@@ -126,99 +128,76 @@ namespace qk {
 		return ss;
 	}
 
-	static CSSName newCSSName1(cString &className) {
-		return CSSName(className);
-	}
-
-	static CSSName newCSSname2(cString& a, cString& b) {
-		Array<String> r{a,b};
-		return CSSName(sortString(r, 2));
-	}
-
-	static CSSName newCSSName3(cString& a, cString& b, cString& c) {
-		Array<String> r{a,b,c};
-		return CSSName(sortString(r, 3));
-	}
-
-	Array<uint32_t> RootStyleSheets::getCssQueryGrpup(Array<String> &className) {
+	Array<uint64_t> RootStyleSheets::getCssQueryGrpup(Array<String> &className) {
 		uint32_t len = className.length();
 
 		if ( !len ) {
-			return Array<uint32_t>();
+			return Array<uint64_t>();
 		}
-		Array<uint32_t> r;
+		Array<uint64_t> r;
 
-		auto addGrpup = [this, &r](uint32_t hash) {
-			if ( _allClassNames.count(hash) ) {
-				r.push(hash);
-			}
-		};
-
-		auto getCssFindGroup = [this](uint32_t hash) -> Array<uint32_t>* {
-			auto it = _cssQueryGroupCache.find(hash);
-			if ( it == _cssQueryGroupCache.end() ) {
-				return nullptr;
-			} else {
-				return &it->value;
+		auto add = [this, &r](CSSName name) {
+			if ( _allClassNames.count(name.hash()) ) {
+				r.push(name.hash());
 			}
 		};
 
 		if ( len == 1 ) {
-			addGrpup(newCSSName1(className[0]).hash());
+			add(CSSName(className[0]));
 			return r;
 		}
 
-		CSSName cssName(len > 4 ? sortString(className, 4).slice(0, 4): sortString(className, len));
-		auto hash = cssName.hash();
-		Array<uint32_t>* group = getCssFindGroup(hash);
+		CSSName part(len > 4 ? sortString(className, 4).slice(0, 4): sortString(className, len));
+		cArray<uint64_t> *group = nullptr;
 
-		if ( group && len <= 4 ) {
+		if ( _cssQueryGroupCache.get(part.hash(), group) && len <= 4 ) {
 			return *group;
 		}
 
 		switch ( len ) {
 			case 2:
-				addGrpup(newCSSName1(className[0]).hash());
-				addGrpup(newCSSName1(className[1]).hash());
-				addGrpup(hash);
-				_cssQueryGroupCache[hash] = r;
+				add(CSSName(className[0]));
+				add(CSSName(className[1]));
+				add(part);
+				_cssQueryGroupCache[part.hash()] = r;
 				break;
 			case 3:
-				addGrpup(newCSSName1(className[0]).hash());
-				addGrpup(newCSSName1(className[1]).hash());
-				addGrpup(newCSSName1(className[2]).hash());
-				addGrpup(newCSSname2(className[0], className[1]).hash());
-				addGrpup(newCSSname2(className[0], className[2]).hash());
-				addGrpup(newCSSname2(className[1], className[2]).hash());
-				addGrpup(hash);
-				_cssQueryGroupCache[hash] = r;
+				add(CSSName(className[0]));
+				add(CSSName(className[1]));
+				add(CSSName(className[2]));
+				add(newCSSname2(className[0], className[1]));
+				add(newCSSname2(className[0], className[2]));
+				add(newCSSname2(className[1], className[2]));
+				add(part);
+				_cssQueryGroupCache[part.hash()] = r;
 				break;
 			default: // 4 ...
 				if ( group ) { // len > 4
 					for ( uint32_t i = 4; i < len; i++ ) {
-						addGrpup(newCSSName1(className[i]).hash());
+						add(CSSName(className[i]));
 					}
 					r.write(**group, group->length());
 					return r;
 				}
-				addGrpup(newCSSName1(className[0]).hash());
-				addGrpup(newCSSName1(className[1]).hash());
-				addGrpup(newCSSName1(className[2]).hash());
-				addGrpup(newCSSName1(className[3]).hash());
-				addGrpup(newCSSname2(className[0], className[1]).hash());
-				addGrpup(newCSSname2(className[0], className[2]).hash());
-				addGrpup(newCSSname2(className[0], className[3]).hash());
-				addGrpup(newCSSname2(className[1], className[2]).hash());
-				addGrpup(newCSSname2(className[1], className[3]).hash());
-				addGrpup(newCSSname2(className[2], className[3]).hash());
-				addGrpup(newCSSName3(className[0], className[1], className[2]).hash());
-				addGrpup(newCSSName3(className[0], className[1], className[3]).hash());
-				addGrpup(newCSSName3(className[1], className[2], className[3]).hash());
-				addGrpup(newCSSName3(className[0], className[2], className[3]).hash());
-				addGrpup(hash);
-				_cssQueryGroupCache[hash] = r;
+				add(CSSName(className[0]));
+				add(CSSName(className[1]));
+				add(CSSName(className[2]));
+				add(CSSName(className[3]));
+				add(newCSSname2(className[0], className[1]));
+				add(newCSSname2(className[0], className[2]));
+				add(newCSSname2(className[0], className[3]));
+				add(newCSSname2(className[1], className[2]));
+				add(newCSSname2(className[1], className[3]));
+				add(newCSSname2(className[2], className[3]));
+				add(newCSSName3(className[0], className[1], className[2]));
+				add(newCSSName3(className[0], className[1], className[3]));
+				add(newCSSName3(className[1], className[2], className[3]));
+				add(newCSSName3(className[0], className[2], className[3]));
+				add(part);
+				_cssQueryGroupCache[part.hash()] = r;
+
 				for ( uint32_t i = 4; i < len; i++ ) { // len > 4
-					addGrpup(newCSSName1(className[i]).hash());
+					add(CSSName(className[i]));
 				}
 				break;
 		}
@@ -226,7 +205,7 @@ namespace qk {
 		return r;
 	}
 
-	void RootStyleSheets::markClassName(cCSSName &name) {
+	void RootStyleSheets::markClassName(CSSName name) {
 		_allClassNames.add(name.hash());
 		_cssQueryGroupCache.clear();
 	}

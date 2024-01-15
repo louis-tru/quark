@@ -38,27 +38,27 @@ namespace qk {
 		kView,kBox,kFlex,kFlow,kImage,kTextOptions,kInput,kScrollLayoutBase,kTransform
 	};
 
-	CSSName::CSSName(): _hash(0) {}
-
-	CSSName::CSSName(cString &name)
-		: _str(String('.').append(name))
-		, _hash(_str.hashCode()) 
+	CSSName::CSSName(cString& name)
+		: _hash(name.hashCode()) 
 	{}
 
 	CSSName::CSSName(cArray<String>& name)
-		: _str(String('.').append(name.join(".")))
-		, _hash(_str.hashCode())
-	{}
+		: _hash(5381)
+	{
+		Hash5381 hash;
+		for (auto i: name)
+			hash.update(*i, i.length());
+		_hash = hash.hashCode();
+	}
 
-	StyleSheets::StyleSheets(const CSSName& name, StyleSheets *parent, CSSType type)
+	StyleSheets::StyleSheets(CSSName name, StyleSheets *parent, CSSType type)
 		: _name(name)
 		, _parent(parent)
 		, _time(0)
 		, _normal(nullptr), _hover(nullptr), _active(nullptr)
 		, _havePseudoType(false)
 		, _type( parent && parent->_type ? parent->_type: type )
-	{
-	}
+	{}
 
 	StyleSheets::~StyleSheets() {
 		for ( auto i : _substyles ) {
@@ -72,11 +72,7 @@ namespace qk {
 		Release(_active); _active = nullptr;
 	}
 
-	StyleSheets* StyleSheets::find(cCSSName &name) {
-		return findHash(name.hash());
-	}
-
-	void StyleSheets::apply(Layout* layout) {
+	void StyleSheets::apply(Layout *layout) const {
 		Qk_ASSERT(layout);
 		for ( auto i : _props ) {
 			i.value->apply(layout);
@@ -145,6 +141,10 @@ namespace qk {
 		Type _value;
 	};
 
+	void StyleSheets::set_time(uint64_t value) {
+		_time = value;
+	}
+
 	void StyleSheets::setProps(uint32_t key, Property *prop) {
 		auto it = _props.find(key);
 		if (it != _props.end()) {
@@ -153,10 +153,6 @@ namespace qk {
 		} else {
 			_props.set(key, prop);
 		}
-	}
-
-	void StyleSheets::set_time(uint64_t value) {
-		_time = value;
 	}
 
 	#define _Fun(Enum, Type, Name, From) void StyleSheets::set_##Name(Type value) {\
@@ -168,13 +164,13 @@ namespace qk {
 
 	// ------------------- @private -------------------
 
-	StyleSheets* StyleSheets::findHash(uint32_t hash) {
+	StyleSheets* StyleSheets::findHash(uint64_t hash) const {
 		auto i = _substyles.find(hash);
 		return i == _substyles.end() ? nullptr : i->value;
 	}
 
-	StyleSheets* StyleSheets::findFrom(cCSSName& name, CSSType type) {
-		StyleSheets* ss = nullptr;
+	StyleSheets* StyleSheets::findAndMake(CSSName name, CSSType type) {
+		StyleSheets *ss = nullptr;
 
 		auto it = _substyles.find(name.hash());
 		if ( it == _substyles.end() ) {
@@ -185,8 +181,8 @@ namespace qk {
 			ss = it->value;
 		}
 
-		if ( ! type ) return ss; // no find pseudo type
-		if ( ss->_type ) return nullptr; // illegal pseudo cls, 伪类样式表,不能存在子的伪类样式表
+		if ( !type ) return ss; // no find pseudo type
+		if ( _type ) return nullptr; // illegal pseudo cls, 伪类样式表,不能存在子伪类样式表
 
 		// find pseudo type
 		StyleSheets **ss_pseudo = nullptr;
@@ -196,14 +192,11 @@ namespace qk {
 			case kActive_CSSType: ss_pseudo = &ss->_active; break;
 		}
 
-		if ( *ss_pseudo ) {
-			ss = *ss_pseudo;
-		} else {
+		if ( !*ss_pseudo ) {
 			ss->_havePseudoType = true;
-			ss = *ss_pseudo = new StyleSheets(name, this, type);
+			*ss_pseudo = new StyleSheets(name, this, type);
 		}
-
-		return ss;
+		return *ss_pseudo;
 	}
 
 }
