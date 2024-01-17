@@ -140,7 +140,7 @@ namespace qk {
 								default: ss = nullptr; break;
 								case kNormal_CSSType: ss = ss->normal(); break;
 								case kHover_CSSType:  ss = ss->hover(); break;
-								case kActive_CSSType:   ss = ss->active(); break;
+								case kActive_CSSType: ss = ss->active(); break;
 							}
 						} else {
 							ss = nullptr;

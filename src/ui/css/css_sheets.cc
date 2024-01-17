@@ -61,21 +61,33 @@ namespace qk {
 	{}
 
 	StyleSheets::~StyleSheets() {
-		for ( auto i : _substyles ) {
+		for ( auto i : _substyles )
 			Release(i.value);
-		}
-		for (auto i: _props) {
+		for (auto i: _props)
 			delete i.value;
-		}
 		Release(_normal); _normal = nullptr;
 		Release(_hover); _hover = nullptr;
 		Release(_active); _active = nullptr;
+	}
+
+	void StyleSheets::set_time(uint64_t value) {
+		_time = value;
 	}
 
 	void StyleSheets::apply(Layout *layout) const {
 		Qk_ASSERT(layout);
 		for ( auto i : _props ) {
 			i.value->apply(layout);
+		}
+	}
+
+	void StyleSheets::setProp(uint32_t key, Property *prop) {
+		auto it = _props.find(key);
+		if (it != _props.end()) {
+			delete it->value;
+			it->value = prop;
+		} else {
+			_props.set(key, prop);
 		}
 	}
 
@@ -141,22 +153,8 @@ namespace qk {
 		Type _value;
 	};
 
-	void StyleSheets::set_time(uint64_t value) {
-		_time = value;
-	}
-
-	void StyleSheets::setProps(uint32_t key, Property *prop) {
-		auto it = _props.find(key);
-		if (it != _props.end()) {
-			delete it->value;
-			it->value = prop;
-		} else {
-			_props.set(key, prop);
-		}
-	}
-
 	#define _Fun(Enum, Type, Name, From) void StyleSheets::set_##Name(Type value) {\
-		setProps(k##Enum##_ViewProp, new qk::Property<Type, k##From>(k##Enum##_ViewProp, value));\
+		setProp(k##Enum##_ViewProp, new qk::Property<Type, k##From>(k##Enum##_ViewProp, value));\
 	}
 	Qk_View_Props(_Fun)
 
@@ -174,7 +172,7 @@ namespace qk {
 
 		auto it = _substyles.find(name.hash());
 		if ( it == _substyles.end() ) {
-			shared_app()->styleSheets()->markClassName(name);
+			shared_app()->styleSheets()->markClassName(name); // TODO ...
 			ss = new StyleSheets(name, this, kNone_CSSType);
 			_substyles[name.hash()] = ss;
 		} else {

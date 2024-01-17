@@ -51,7 +51,8 @@ namespace qk {
 	}
 
 	static bool verifyCssName(cString &name, CSSName &out, CSSType &type) {
-		if ( name[0] != '.' ) return false;
+		if ( name.isEmpty() || name[0] != '.' )
+			return false;
 
 		int len = name.length();
 		int i = name.indexOf(':'); // "cls:hover"
@@ -90,15 +91,29 @@ namespace qk {
 	Array<StyleSheets*> RootStyleSheets::search(cString &exp) {
 		Array<StyleSheets*> rv;
 
-		if ( exp.indexOf(',') != -1 ) {
-			for ( auto& i : exp.split(',') ) {
-				auto ss = searchItem(i.trim());
-				if ( ss ) {
-					rv.push(ss);
+		auto searchItem = [](StyleSheets* self, cString &exp) -> StyleSheets* {
+			StyleSheets *ss = self;
+			CSSName name((String()));
+			// ".div_cls.div_cls2 .aa.bb.cc"
+			// ".div_cls.div_cls2:down .aa.bb.cc"
+			for ( auto i : exp.split(' ') ) {
+				CSSType type = kNone_CSSType;
+				if ( !verifyCssName(i.trim(), name, type) ) {
+					Qk_WARN("Invalid css name \"%s\"", *exp); return nullptr;
+				}
+				Qk_ASSERT( name.hash() != 5381 ); // is empty
+				ss = ss->findAndMake(name, type);
+				if ( ! ss ) {
+					Qk_WARN("Invalid css name \"%s\"", *exp); return nullptr;
 				}
 			}
-		} else {
-			auto ss = searchItem(exp.trim());
+			Qk_ASSERT( ss != self );
+			return ss;
+		};
+
+		// .div_cls.div_cls2 .aa.bb.cc, .div_cls.div_cls2:down .aa.bb.cc
+		for ( auto& i : exp.split(',') ) {
+			auto ss = searchItem(this, i.trim());
 			if ( ss ) {
 				rv.push(ss);
 			}
@@ -106,31 +121,8 @@ namespace qk {
 		Qk_ReturnLocal(rv);
 	}
 
-	StyleSheets* RootStyleSheets::searchItem(cString &exp) {
-		StyleSheets *ss = this;
-		CSSName name((String()));
-		// ".div_cls.div_cls2 .aa.bb.cc"
-		// ".div_cls.div_cls2:down .aa.bb.cc"
-
-		for ( auto i : exp.split(' ') ) {
-			CSSType type = kNone_CSSType;
-			if ( !verifyCssName(i.trim(), name, type) ) {
-				Qk_WARN("Invalid css name \"%s\"", *exp); return nullptr;
-			}
-			Qk_ASSERT( name.hash() != 5381 ); // is empty
-			ss = ss->findAndMake(name, type);
-			if ( ! ss ) {
-				Qk_WARN("Invalid css name \"%s\"", *exp); return nullptr;
-			}
-		}
-		Qk_ASSERT( ss != this );
-
-		return ss;
-	}
-
 	Array<uint64_t> RootStyleSheets::getCssQueryGrpup(Array<String> &className) {
 		uint32_t len = className.length();
-
 		if ( !len ) {
 			return Array<uint64_t>();
 		}

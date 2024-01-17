@@ -80,15 +80,16 @@ namespace qk {
 
 		struct Node {
 			typedef Dict::Pair Data;
+			typedef const Data cData;
 			inline Node* prev() const { return _prev; }
 			inline Node* next() const { return _next; }
 			inline Data& data() { return *reinterpret_cast<Data*>((&_conflict) + 1); }
-			inline const Data& data() const { return *reinterpret_cast<const Data*>((&_conflict) + 1); }
+			inline cData& data() const { return *reinterpret_cast<cData*>((&_conflict) + 1); }
 			uint64_t hashCode;
 			Node *_prev, *_next, *_conflict;
 		};
 		typedef ComplexIterator<const Node, Node> IteratorConst;
-		typedef ComplexIterator<      Node, Node> Iterator;
+		typedef ComplexIterator<Node, Node> Iterator;
 
 		Dict();
 		Dict(Dict&& dict);

@@ -112,7 +112,7 @@ namespace qk {
 	private:
 		StyleSheets* findHash(uint64_t hash) const;
 		StyleSheets* findAndMake(CSSName name, CSSType type);
-		void setProps(uint32_t, Property* prop);
+		void setProp(uint32_t, Property* prop);
 		Dict<uint64_t, StyleSheets*> _substyles;
 		Dict<uint32_t, Property*> _props; // ViewProperty => Property*
 
@@ -134,9 +134,6 @@ namespace qk {
 		Array<StyleSheets*> search(cString& exp);
 
 	private:
-		// ".div_cls.div_cls2 .aa.bb.cc"
-		// ".div_cls.div_cls2:down .aa.bb.cc"
-		StyleSheets* searchItem(cString &exp);
 		Array<uint64_t> getCssQueryGrpup(Array<String> &className);
 		void markClassName(CSSName className);
 

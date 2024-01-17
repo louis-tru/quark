@@ -51,7 +51,7 @@ namespace qk {
 			Node *_prev, *_next;
 		};
 		typedef ComplexIterator<const Node, Node> IteratorConst;
-		typedef ComplexIterator<      Node, Node> Iterator;
+		typedef ComplexIterator<Node, Node> Iterator;
 
 		List();
 		List(List&&);
