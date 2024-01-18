@@ -438,12 +438,12 @@ namespace qk {
 		}
 
 	private:
-		void before(Layout* view);
-		void after(Layout* view);
-		void prepend(Layout* child);
-		void append(Layout* child);
+		void before(Layout *view);
+		void after(Layout *view);
+		void prepend(Layout *child);
+		void append(Layout *child);
 		void remove();
-		void set_parent(Layout* parent);
+		void set_parent(Layout *parent);
 		void clear_link(); // Cleaning up associated view information
 		void clear_level(); //  clear layout depth
 		void set_level_(uint32_t level); // settings depth

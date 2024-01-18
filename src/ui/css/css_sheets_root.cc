@@ -37,21 +37,8 @@ namespace qk {
 		{"normal",kNormal_CSSType},{"hover",kHover_CSSType},{"active",kActive_CSSType}
 	});
 
-	static Array<String>& sortString( Array<String> &arr, uint32_t len ) {
-		for ( int i = len - 1; i > 0; i-- ) {
-			for ( int j = 0; j < i; j++ ) {
-				if ( arr[j] > arr[j+1] ) {
-					String tmp = arr[j+1];
-					arr[j+1] = arr[j];
-					arr[j] = tmp;
-				}
-			}
-		}
-		return arr;
-	}
-
-	static bool verifyCssName(cString &name, CSSName &out, CSSType &type) {
-		if ( name.isEmpty() || name[0] != '.' )
+	static bool verifyCssName(cString &name, Array<CSSName> *out, CSSType &type) {
+		if ( name[0] != '.' )
 			return false;
 
 		int len = name.length();
@@ -66,20 +53,12 @@ namespace qk {
 			len = i;
 		}
 
-		auto arr = name.substring(1, len).split('.');
-		out = CSSName(sortString( arr, arr.length() ));
+		//auto arr = name.substring(1, len).split('.');
+		auto arr = name.split('.');
+
+		// out = CSSName(sortString( arr, arr.length() ));
 
 		return true;
-	}
-
-	static CSSName newCSSname2(cString& a, cString& b) {
-		Array<String> arr{a,b};
-		return CSSName(sortString(arr, 2));
-	}
-
-	static CSSName newCSSName3(cString& a, cString& b, cString& c) {
-		Array<String> arr{a,b,c};
-		return CSSName(sortString({arr}, 3));
 	}
 
 	// --------------
@@ -91,115 +70,48 @@ namespace qk {
 	Array<StyleSheets*> RootStyleSheets::search(cString &exp) {
 		Array<StyleSheets*> rv;
 
-		auto searchItem = [](StyleSheets* self, cString &exp) -> StyleSheets* {
-			StyleSheets *ss = self;
-			CSSName name((String()));
-			// ".div_cls.div_cls2 .aa.bb.cc"
-			// ".div_cls.div_cls2:down .aa.bb.cc"
-			for ( auto i : exp.split(' ') ) {
-				CSSType type = kNone_CSSType;
-				if ( !verifyCssName(i.trim(), name, type) ) {
-					Qk_WARN("Invalid css name \"%s\"", *exp); return nullptr;
-				}
-				Qk_ASSERT( name.hash() != 5381 ); // is empty
-				ss = ss->findAndMake(name, type);
-				if ( ! ss ) {
-					Qk_WARN("Invalid css name \"%s\"", *exp); return nullptr;
-				}
-			}
-			Qk_ASSERT( ss != self );
-			return ss;
-		};
+		auto searchItem = [this, &rv](cString &exp) {
+			#define Qk_InvalidCss(e) Qk_WARN("Invalid css name \"%s\"", *e); return;
+			StyleSheets *ss = this;
 
-		// .div_cls.div_cls2 .aa.bb.cc, .div_cls.div_cls2:down .aa.bb.cc
-		for ( auto& i : exp.split(',') ) {
-			auto ss = searchItem(this, i.trim());
-			if ( ss ) {
-				rv.push(ss);
-			}
-		}
-		Qk_ReturnLocal(rv);
-	}
-
-	Array<uint64_t> RootStyleSheets::getCssQueryGrpup(Array<String> &className) {
-		uint32_t len = className.length();
-		if ( !len ) {
-			return Array<uint64_t>();
-		}
-		Array<uint64_t> r;
-
-		auto add = [this, &r](CSSName name) {
-			if ( _allClassNames.count(name.hash()) ) {
-				r.push(name.hash());
-			}
-		};
-
-		if ( len == 1 ) {
-			add(CSSName(className[0]));
-			return r;
-		}
-
-		CSSName part(len > 4 ? sortString(className, 4).slice(0, 4): sortString(className, len));
-		cArray<uint64_t> *group = nullptr;
-
-		if ( _cssQueryGroupCache.get(part.hash(), group) && len <= 4 ) {
-			return *group;
-		}
-
-		switch ( len ) {
-			case 2:
-				add(CSSName(className[0]));
-				add(CSSName(className[1]));
-				add(part);
-				_cssQueryGroupCache[part.hash()] = r;
-				break;
-			case 3:
-				add(CSSName(className[0]));
-				add(CSSName(className[1]));
-				add(CSSName(className[2]));
-				add(newCSSname2(className[0], className[1]));
-				add(newCSSname2(className[0], className[2]));
-				add(newCSSname2(className[1], className[2]));
-				add(part);
-				_cssQueryGroupCache[part.hash()] = r;
-				break;
-			default: // 4 ...
-				if ( group ) { // len > 4
-					for ( uint32_t i = 4; i < len; i++ ) {
-						add(CSSName(className[i]));
+			for ( auto &j : exp.split(' ') ) { // .div_cls.div_cls2 .aa.bb.cc
+				auto e = j.trim();
+				if ( !e.isEmpty() ) {
+					if ( e[0] != '.' ) {
+						Qk_InvalidCss(exp);
 					}
-					r.write(**group, group->length());
-					return r;
+
+					for ( auto n: e.substr(1).split('.') ) { // .div_cls.div_cls2
+						auto type = kNone_CSSType;
+						auto k = n.split(':'); // .div_cls:hover
+						if (k.length() > 1) {
+							auto it = pseudo_type_keys.find(k[1]); // normal | hover | down
+							if (it != pseudo_type_keys.end()) {
+								type = it->value;
+								n = k[0];
+							}
+						}
+					}
+
+					if ( !verifyCssName(e, name, type) ) {
+						Qk_InvalidCss(exp);
+					}
+					Qk_ASSERT( name.hash() != 5381 ); // is empty
+					ss = ss->findAndMake(name, type);
+					if ( ! ss ) {
+						Qk_InvalidCss(exp);
+					}
 				}
-				add(CSSName(className[0]));
-				add(CSSName(className[1]));
-				add(CSSName(className[2]));
-				add(CSSName(className[3]));
-				add(newCSSname2(className[0], className[1]));
-				add(newCSSname2(className[0], className[2]));
-				add(newCSSname2(className[0], className[3]));
-				add(newCSSname2(className[1], className[2]));
-				add(newCSSname2(className[1], className[3]));
-				add(newCSSname2(className[2], className[3]));
-				add(newCSSName3(className[0], className[1], className[2]));
-				add(newCSSName3(className[0], className[1], className[3]));
-				add(newCSSName3(className[1], className[2], className[3]));
-				add(newCSSName3(className[0], className[2], className[3]));
-				add(part);
-				_cssQueryGroupCache[part.hash()] = r;
+			}
+			if (ss != this)
+				rv.push(ss);
+		};
 
-				for ( uint32_t i = 4; i < len; i++ ) { // len > 4
-					add(CSSName(className[i]));
-				}
-				break;
-		}
+		// .div_cls.div_cls2.kkk .aa.bb.cc, .div_cls.div_cls2.ddd:down .aa.bb.cc
+		for ( auto &i : exp.split(',') )
+			searchItem(i);
 
-		return r;
-	}
-
-	void RootStyleSheets::markClassName(CSSName name) {
-		_allClassNames.add(name.hash());
-		_cssQueryGroupCache.clear();
+		Qk_ReturnLocal(rv);
 	}
 
 }

@@ -60,18 +60,18 @@ namespace qk {
 		/*
 		* @field window
 		*/
-		Qk_DEFINE_PROP_ACC_GET(Window*, window);
+		Qk_DEFINE_PROP_ACC_GET(Window*, window, NoConst);
 		/**
 		 * the objects that automatically adjust view properties
 		*/
-		Qk_DEFINE_PROP(Action*, action);
-		Qk_DEFINE_PROP_GET(Layout*, layout);
-		Qk_DEFINE_PROP_GET(View*, parent);
-		Qk_DEFINE_PROP_GET(View*, prev);
-		Qk_DEFINE_PROP_GET(View*, next);
-		Qk_DEFINE_PROP_GET(View*, first);
-		Qk_DEFINE_PROP_GET(View*, last);
-		Qk_DEFINE_PROP_GET(PropAccessor*, accessor);
+		Qk_DEFINE_PROP(Action*, action, NoConst);
+		Qk_DEFINE_PROP_GET(Layout*, layout, NoConst);
+		Qk_DEFINE_PROP_GET(View*, parent, NoConst);
+		Qk_DEFINE_PROP_GET(View*, prev, NoConst);
+		Qk_DEFINE_PROP_GET(View*, next, NoConst);
+		Qk_DEFINE_PROP_GET(View*, first, NoConst);
+		Qk_DEFINE_PROP_GET(View*, last, NoConst);
+		Qk_DEFINE_PROP_GET(PropAccessor*, accessor, NoConst);
 
 		/**
 		 * @prop style sheets class object
@@ -122,7 +122,7 @@ namespace qk {
 
 		template<class View = View> inline View* newView();
 
-		template<class View = View> inline View prepend_new() {
+		template<class View = View> inline View* prepend_new() {
 			return newView<View>()->template prepend_to<View>(this);
 		}
 
@@ -165,7 +165,7 @@ namespace qk {
 			*
 			* @method before(view)
 			*/
-		void before(View* view);
+		void before(View *view);
 
 		/**
 			*
@@ -173,7 +173,7 @@ namespace qk {
 			*
 			* @method after(view)
 			*/
-		void after(View* view);
+		void after(View *view);
 
 		/**
 			* 
@@ -181,7 +181,7 @@ namespace qk {
 			* 
 			* @method prepend(child)
 			*/
-		void prepend(View* child);
+		void prepend(View *child);
 
 		/**
 			*
@@ -189,7 +189,7 @@ namespace qk {
 			*
 			* @method append(child)
 			*/
-		void append(View* child);
+		void append(View *child);
 
 		/**
 		 *
@@ -237,10 +237,10 @@ namespace qk {
 		/**
 		 * @method set_parent(parent) setting parent view
 		 */
-		void set_parent(View* parent);
+		void set_parent(View *parent);
 		void clear_link(); // Cleaning up associated view information
 
-		StyleSheetsClass* _ssclass; // style sheets class object
+		StyleSheetsClass *_ssclass; // style sheets class object
 
 		friend class EventDispatch;
 	};

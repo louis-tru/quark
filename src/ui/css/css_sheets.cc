@@ -39,19 +39,10 @@ namespace qk {
 	};
 
 	CSSName::CSSName(cString& name)
-		: _hash(name.hashCode()) 
+		: _hashCode(name.hashCode())
 	{}
 
-	CSSName::CSSName(cArray<String>& name)
-		: _hash(5381)
-	{
-		Hash5381 hash;
-		for (auto i: name)
-			hash.update(*i, i.length());
-		_hash = hash.hashCode();
-	}
-
-	StyleSheets::StyleSheets(CSSName name, StyleSheets *parent, CSSType type)
+	StyleSheets::StyleSheets(cCSSName &name, StyleSheets *parent, CSSType type)
 		: _name(name)
 		, _parent(parent)
 		, _time(0)
@@ -62,6 +53,8 @@ namespace qk {
 
 	StyleSheets::~StyleSheets() {
 		for ( auto i : _substyles )
+			Release(i.value);
+		for ( auto i : _extends )
 			Release(i.value);
 		for (auto i: _props)
 			delete i.value;
@@ -76,8 +69,10 @@ namespace qk {
 
 	void StyleSheets::apply(Layout *layout) const {
 		Qk_ASSERT(layout);
-		for ( auto i : _props ) {
-			i.value->apply(layout);
+		if (_props.length()) {
+			for ( auto i: _props ) {
+				i.value->apply(layout);
+			}
 		}
 	}
 
@@ -167,14 +162,27 @@ namespace qk {
 		return i == _substyles.end() ? nullptr : i->value;
 	}
 
-	StyleSheets* StyleSheets::findAndMake(CSSName name, CSSType type) {
+	StyleSheets* StyleSheets::findAndMake(cCSSName &name, CSSType type) {
 		StyleSheets *ss = nullptr;
-
-		auto it = _substyles.find(name.hash());
+		/*
+			.a {
+				.b {
+					.c {
+						height: 100px;
+					}
+				}
+				.b_1 {
+					.c {
+						width: 100pt;
+					}
+					color: #aaa;
+				}
+			}
+		*/
+		auto it = _substyles.find(name.hashCode());
 		if ( it == _substyles.end() ) {
-			shared_app()->styleSheets()->markClassName(name); // TODO ...
 			ss = new StyleSheets(name, this, kNone_CSSType);
-			_substyles[name.hash()] = ss;
+			_substyles[name.hashCode()] = ss;
 		} else {
 			ss = it->value;
 		}

@@ -60,7 +60,7 @@ namespace qk {
 		}, _layout, 0);
 	}
 
-	Window* View::window() const {
+	Window* View::window() {
 		return _layout->_window;
 	}
 
