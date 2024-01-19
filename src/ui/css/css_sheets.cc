@@ -40,6 +40,7 @@ namespace qk {
 
 	CSSName::CSSName(cString& name)
 		: _hashCode(name.hashCode())
+		, _name(name)
 	{}
 
 	StyleSheets::StyleSheets(cCSSName &name, StyleSheets *parent, CSSType type)
@@ -157,38 +158,23 @@ namespace qk {
 
 	// ------------------- @private -------------------
 
-	StyleSheets* StyleSheets::findHash(uint64_t hash) const {
-		auto i = _substyles.find(hash);
+	cStyleSheets* StyleSheets::find(cCSSName &name) const {
+		auto i = _substyles.find(name);
 		return i == _substyles.end() ? nullptr : i->value;
 	}
 
-	StyleSheets* StyleSheets::findAndMake(cCSSName &name, CSSType type) {
+	StyleSheets* StyleSheets::findAndMake(cCSSName &name, CSSType type, bool isExtend) {
 		StyleSheets *ss = nullptr;
-		/*
-			.a {
-				.b {
-					.c {
-						height: 100px;
-					}
-				}
-				.b_1 {
-					.c {
-						width: 100pt;
-					}
-					color: #aaa;
-				}
-			}
-		*/
-		auto it = _substyles.find(name.hashCode());
-		if ( it == _substyles.end() ) {
-			ss = new StyleSheets(name, this, kNone_CSSType);
-			_substyles[name.hashCode()] = ss;
+		StyleSheetsDict &from = isExtend ? _extends: _substyles;
+		auto it = from.find(name);
+		if ( it == from.end() ) {
+			ss = new StyleSheets(name, isExtend ? _parent: this, kNone_CSSType);
+			from[name] = ss;
 		} else {
 			ss = it->value;
 		}
-
 		if ( !type ) return ss; // no find pseudo type
-		if ( _type ) return nullptr; // illegal pseudo cls, 伪类样式表,不能存在子伪类样式表
+		if ( ss->_type ) return nullptr; // illegal pseudo cls, 伪类样式表,不能存在子伪类样式表
 
 		// find pseudo type
 		StyleSheets **ss_pseudo = nullptr;
@@ -197,10 +183,9 @@ namespace qk {
 			case kHover_CSSType: ss_pseudo = &ss->_hover; break;
 			case kActive_CSSType: ss_pseudo = &ss->_active; break;
 		}
-
 		if ( !*ss_pseudo ) {
 			ss->_havePseudoType = true;
-			*ss_pseudo = new StyleSheets(name, this, type);
+			*ss_pseudo = new StyleSheets(name, ss->parent(), type);
 		}
 		return *ss_pseudo;
 	}

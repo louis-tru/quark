@@ -37,32 +37,6 @@ namespace qk {
 		{"normal",kNormal_CSSType},{"hover",kHover_CSSType},{"active",kActive_CSSType}
 	});
 
-	static bool verifyCssName(cString &name, Array<CSSName> *out, CSSType &type) {
-		if ( name[0] != '.' )
-			return false;
-
-		int len = name.length();
-		int i = name.indexOf(':'); // "cls:hover"
-		if ( i != -1 ) {
-			auto it = pseudo_type_keys.find(name.substr(i + 1)); // normal | hover | down
-			if ( it == pseudo_type_keys.end() ) {
-				return false;
-			} else {
-				type = it->value;
-			}
-			len = i;
-		}
-
-		//auto arr = name.substring(1, len).split('.');
-		auto arr = name.split('.');
-
-		// out = CSSName(sortString( arr, arr.length() ));
-
-		return true;
-	}
-
-	// --------------
-
 	RootStyleSheets::RootStyleSheets()
 		: StyleSheets(CSSName(""), nullptr, kNone_CSSType)
 	{}
@@ -71,40 +45,36 @@ namespace qk {
 		Array<StyleSheets*> rv;
 
 		auto searchItem = [this, &rv](cString &exp) {
-			#define Qk_InvalidCss(e) Qk_WARN("Invalid css name \"%s\"", *e); return;
+			#define Qk_InvalidCss(e) { Qk_WARN("Invalid css name \"%s\"", *e); return; }
 			StyleSheets *ss = this;
 
 			for ( auto &j : exp.split(' ') ) { // .div_cls.div_cls2 .aa.bb.cc
+				bool isExt = false;
 				auto e = j.trim();
-				if ( !e.isEmpty() ) {
-					if ( e[0] != '.' ) {
-						Qk_InvalidCss(exp);
-					}
+				if ( e.isEmpty() ) continue;
+				if ( e[0] != '.' ) Qk_InvalidCss(exp);
 
-					for ( auto n: e.substr(1).split('.') ) { // .div_cls.div_cls2
-						auto type = kNone_CSSType;
-						auto k = n.split(':'); // .div_cls:hover
-						if (k.length() > 1) {
-							auto it = pseudo_type_keys.find(k[1]); // normal | hover | down
-							if (it != pseudo_type_keys.end()) {
-								type = it->value;
-								n = k[0];
-							}
+				for ( auto n: e.split('.') ) { // .div_cls.div_cls2
+					auto type = kNone_CSSType;
+					auto k = n.split(':'); // .div_cls:hover
+					if (k.length() > 1) {
+						auto it = pseudo_type_keys.find(k[1]); // normal | hover | down
+						if (it == pseudo_type_keys.end()) {
+							Qk_InvalidCss(exp);
+						} else {
+							type = it->value;
+							n = k[0];
 						}
 					}
-
-					if ( !verifyCssName(e, name, type) ) {
-						Qk_InvalidCss(exp);
-					}
-					Qk_ASSERT( name.hash() != 5381 ); // is empty
-					ss = ss->findAndMake(name, type);
-					if ( ! ss ) {
-						Qk_InvalidCss(exp);
-					}
+					if ( n.isEmpty() ) continue;
+					ss = ss->findAndMake(CSSName(n), type, isExt);
+					isExt = true;
+					if ( !ss ) Qk_InvalidCss(exp);
 				}
 			}
 			if (ss != this)
 				rv.push(ss);
+			#undef Qk_InvalidCss
 		};
 
 		// .div_cls.div_cls2.kkk .aa.bb.cc, .div_cls.div_cls2.ddd:down .aa.bb.cc
