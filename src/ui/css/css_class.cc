@@ -35,10 +35,10 @@
 namespace qk {
 
 	StyleSheetsClass::StyleSheetsClass(Layout *host)
-		: _host(host)
-		, _havePseudoType(false)
-		, _onceApply(true)
+		: _havePseudoType(false)
+		, _firstApply(true)
 		, _status(kNormal_CSSType)
+		, _host(host)
 		, _parent(nullptr)
 	{
 		Qk_ASSERT(host);
@@ -78,6 +78,10 @@ namespace qk {
 		updateClass();
 	}
 
+	void StyleSheetsClass::updateClass() {
+		_host->mark_layout(Layout::kStyle_Class);
+	}
+
 	void StyleSheetsClass::setStatus(CSSType status) {
 		if ( _status != status ) {
 			_status = status;
@@ -85,10 +89,6 @@ namespace qk {
 				_host->mark_layout(Layout::kStyle_Class);
 			}
 		}
-	}
-
-	void StyleSheetsClass::updateClass() {
-		_host->mark_layout(Layout::kStyle_Class);
 	}
 
 	void StyleSheetsClass::apply(StyleSheetsClass *parent) {
@@ -99,6 +99,7 @@ namespace qk {
 			applyStyleSheets(shared_app()->styleSheets()); // apply global style
 		}
 		_parent = parent;
+		_firstApply = false;
 	}
 
 	void StyleSheetsClass::applySubstyle(StyleSheetsClass *child) {
@@ -113,6 +114,8 @@ namespace qk {
 			}
 		}
 	}
+
+	// --------------------- apply StyleSheets ---------------------
 
 	void StyleSheetsClass::applyStyleSheets(StyleSheets *ss) {
 		for (auto &n: _name) {

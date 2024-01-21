@@ -145,7 +145,7 @@ namespace qk {
 		Node* node_(IteratorConst it);
 		const Node* find_(const Key& key) const;
 
-		Node**    _nodes;
+		Node**    _indexed;
 		Node      _end; // { _prev = last, _next = first }
 		uint32_t  _length, _capacity;
 	};
@@ -206,7 +206,7 @@ namespace qk {
 	Dict<K, V, C, A>& Dict<K, V, C, A>::operator=(Dict&& dict) {
 		clear();
 		if (dict._length) {
-			fill_(dict._nodes, dict._end._next, dict._end._prev, dict._length, dict._capacity);
+			fill_(dict._indexed, dict._end._next, dict._end._prev, dict._length, dict._capacity);
 			dict.init_();
 		}
 		return *this;
@@ -226,7 +226,7 @@ namespace qk {
 	const typename Dict<K, V, C, A>::Node* Dict<K, V, C, A>::find_(const K& key) const {
 		if (_length) {
 			auto hash = C::hashCode(key);
-			auto node = _nodes[hash % _capacity];
+			auto node = _indexed[hash % _capacity];
 			while (node) {
 				if (node->hashCode == hash)
 					return node;
@@ -253,7 +253,7 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A>
 	uint32_t Dict<K, V, C, A>::count(const K& key) const {
-		return _length && _nodes[C::hashCode(key) % _capacity] ? 1/*TODO use 1*/: 0;
+		return _length && _indexed[C::hashCode(key) % _capacity] ? 1/*TODO use 1*/: 0;
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -384,8 +384,8 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::clear() {
 		erase(IteratorConst(_end._next), IteratorConst(&_end));
-		A::free(_nodes);
-		_nodes = nullptr;
+		A::free(_indexed);
+		_indexed = nullptr;
 		_length = 0;
 		_capacity = 0;
 	}
@@ -424,7 +424,7 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::fill_(Node** indexed, Node* first, Node* last, uint32_t len, uint32_t capacity) {
-		_nodes = indexed;
+		_indexed = indexed;
 		_end._prev = last;
 		_end._next = first;
 		first->_prev = &_end;
@@ -432,16 +432,17 @@ namespace qk {
 		_length = len;
 		_capacity = capacity;
 	}
-	
+
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::make_(const K& key, Pair** data) {
 		if (!_capacity) {
-			A::aalloc((void**)&_nodes, 1, &_capacity, sizeof(Node*));
-			::memset(_nodes, 0, sizeof(Node*) * _capacity);
+			_capacity = Qk_MIN_CAPACITY;
+			_indexed = (Node**)A::alloc(sizeof(Node) * Qk_MIN_CAPACITY);
+			::memset(_indexed, 0, sizeof(Node*) * Qk_MIN_CAPACITY);
 		}
 		auto hash = C::hashCode(key);
 		auto index = hash % _capacity;
-		auto node = _nodes[index];
+		auto node = _indexed[index];
 		while (node) {
 			if (node->hashCode == hash) {
 				*data = &node->data();
@@ -455,20 +456,20 @@ namespace qk {
 		// insert new key
 		node = (Node*)A::alloc(sizeof(Node) + sizeof(Pair));
 		node->hashCode = hash;
-		node->_conflict = _nodes[index];
+		node->_conflict = _indexed[index];
 		link_(_end._prev, node);
 		link_(node, &_end);
-		_nodes[index] = node;
+		_indexed[index] = node;
 		*data = &node->data();
 		return true;
 	}
-	
+
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::erase_(Node* node) {
 		auto index = node->hashCode % _capacity;
-		auto begin = _nodes[index];
+		auto begin = _indexed[index];
 		if (begin == node) {
-			_nodes[index] = node->_conflict;
+			_indexed[index] = node->_conflict;
 		} else {
 			while (begin->_conflict != node)
 				begin = begin->_conflict;
@@ -477,18 +478,19 @@ namespace qk {
 		node->data().~Pair(); // destructor
 		A::free(node);
 	}
-	
+
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::optimize_() {
-		auto scale = float(_length) / _capacity;
-		if (scale > 0.7 || (scale < 0.2 && _capacity > Qk_MIN_CAPACITY)) {
-			A::aalloc((void**)&_nodes, uint32_t(_length * 1.43) , &_capacity, sizeof(Node*));
-			::memset(_nodes, 0, sizeof(Node*) * _capacity);
+		if (_length > (_capacity << 2)) {
+			A::free(_indexed);
+			_capacity >>= 2;
+			_indexed = (Node**)A::alloc(sizeof(Node) * _capacity);
+			::memset(_indexed, 0, sizeof(Node*) * _capacity);
 			auto node = _end._next;
 			while (node != &_end) {
 				auto index = node->hashCode % _capacity;
-				node->_conflict = _nodes[index];
-				_nodes[index] = node;
+				node->_conflict = _indexed[index];
+				_indexed[index] = node;
 				node = node->_next;
 			}
 		}

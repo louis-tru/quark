@@ -135,9 +135,9 @@ namespace qk {
 	class Qk_EXPORT StyleSheetsClass {
 		Qk_HIDDEN_ALL_COPY(StyleSheetsClass);
 	public:
+		Qk_DEFINE_PROP_GET(bool, havePseudoType); // 当前样式表组支持伪类型
+		Qk_DEFINE_PROP_GET(bool, firstApply); // 是否为首次应用样式表,在处理动作时如果为第一次忽略动作
 		Qk_DEFINE_PROP_GET(CSSType, status); // 当前伪类应用状态
-		Qk_DEFINE_PROP_GET(bool, havePseudoType); // 当前样式表选择器能够找到支持伪类的样式表
-		Qk_DEFINE_PROP_GET(bool, onceApply); // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
 		Qk_DEFINE_PROP_GET(Layout*, host, NoConst);
 		Qk_DEFINE_PROP_GET(StyleSheetsClass*, parent, NoConst); // apply parent ssc
 
@@ -150,12 +150,12 @@ namespace qk {
 		void toggle(cString &name);
 
 	private:
+		void updateClass();
 		void setStatus(CSSType status);
 		void apply(StyleSheetsClass *parent);
 		void applySubstyle(StyleSheetsClass *child);
 		void applyStyleSheets(StyleSheets *ss);
 		void applyExtend(StyleSheets *ss_left);
-		void updateClass();
 
 		Set<CSSName> _name; // class name
 		Array<StyleSheets*> _haveSubstyles; // 当前应用的样式表且拥有子样式表供后代视图查询

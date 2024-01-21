@@ -41,7 +41,7 @@
 namespace qk {
 
 #ifndef Qk_MIN_CAPACITY
-# define Qk_MIN_CAPACITY (8)
+# define Qk_MIN_CAPACITY (4)
 #endif
 
 	// -------------------------------------------------------
