@@ -153,12 +153,14 @@ namespace qk {
 		void updateClass();
 		void setStatus(CSSType status);
 		void apply(StyleSheetsClass *parent);
-		void applySubstyle(StyleSheetsClass *child);
-		void applyStyleSheets(StyleSheets *ss);
+		void applyFrom(StyleSheetsClass *ss);
+		void applySubstyle(StyleSheets *ss);
 		void applyExtend(StyleSheets *ss_left);
+		void applyStyle(StyleSheets *ss);
 
 		Set<CSSName> _name; // class name
 		Array<StyleSheets*> _haveSubstyles; // 当前应用的样式表且拥有子样式表供后代视图查询
+		
 		friend class Layout;
 	};
 

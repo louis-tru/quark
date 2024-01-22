@@ -93,40 +93,29 @@ namespace qk {
 
 	void StyleSheetsClass::apply(StyleSheetsClass *parent) {
 		_haveSubstyles.clear();
-		if (parent) {
-			parent->applySubstyle(this);
-		} else {
-			applyStyleSheets(shared_app()->styleSheets()); // apply global style
-		}
+		applyFrom(parent);
 		_parent = parent;
 		_firstApply = false;
 	}
 
-	void StyleSheetsClass::applySubstyle(StyleSheetsClass *child) {
-		if (_parent) {
-			_parent->applySubstyle(child);
-		} else {
-			child->applyStyleSheets(shared_app()->styleSheets()); // apply global style
-		}
-		if (_haveSubstyles.length()) {
-			for (auto ss: _haveSubstyles) {
-				child->applyStyleSheets(ss);
+	void StyleSheetsClass::applyFrom(StyleSheetsClass *ss) {
+		if (ss) {
+			applyFrom(ss->_parent);
+			if (ss->_haveSubstyles.length()) {
+				for (auto ss: ss->_haveSubstyles) {
+					applySubstyle(ss);
+				}
 			}
+		} else {
+			applySubstyle(shared_app()->styleSheets()); // apply global style
 		}
 	}
 
-	// --------------------- apply StyleSheets ---------------------
-
-	void StyleSheetsClass::applyStyleSheets(StyleSheets *ss) {
+	void StyleSheetsClass::applySubstyle(StyleSheets *ss) {
 		for (auto &n: _name) {
 			auto it = ss->_substyles.find(n.key);
 			if (it != ss->_substyles.end()) {
-				auto ss = it->value;
-				ss->apply(_host);
-				if (ss->_substyles.length()) {
-					_haveSubstyles.push(ss);
-				}
-				applyExtend(ss); // apply extend
+				applyStyle(it->value);
 			}
 		}
 	}
@@ -135,14 +124,17 @@ namespace qk {
 		if (ss_left->_extends.length() == 0) return;
 		for (auto i: ss_left->_extends) { // test right extend
 			if (_name.has(i.key)) { // test ok
-				auto ss = i.value;
-				ss->apply(_host);
-				if (ss->_substyles.length()) {
-					_haveSubstyles.push(ss);
-				}
-				applyExtend(ss); // apply extend
+				applyStyle(i.value);
 			}
 		}
+	}
+
+	void StyleSheetsClass::applyStyle(StyleSheets *ss) {
+		ss->apply(_host);
+		if (ss->_substyles.length()) {
+			_haveSubstyles.push(ss);
+		}
+		applyExtend(ss); // apply extend
 	}
 
 }

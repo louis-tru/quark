@@ -34,6 +34,8 @@
 
 namespace qk {
 
+	// --------------------------- S t y l e . S h e e t s ---------------------------
+
 	enum ViewPropFrom {
 		kView,kBox,kFlex,kFlow,kImage,kTextOptions,kInput,kScrollLayoutBase,kTransform
 	};
@@ -156,7 +158,7 @@ namespace qk {
 
 	#undef _Fun
 
-	// ------------------- @private -------------------
+	// @private -------------------
 
 	cStyleSheets* StyleSheets::find(cCSSName &name) const {
 		auto i = _substyles.find(name);
@@ -188,6 +190,59 @@ namespace qk {
 			*ss_pseudo = new StyleSheets(name, ss->parent(), type);
 		}
 		return *ss_pseudo;
+	}
+
+	// --------------------------- R o o t . S t y l e . S h e e t s ---------------------------
+
+	static Dict<String, CSSType> pseudo_type_keys({
+		{"normal",kNormal_CSSType},{"hover",kHover_CSSType},{"active",kActive_CSSType}
+	});
+
+	RootStyleSheets::RootStyleSheets()
+		: StyleSheets(CSSName(""), nullptr, kNone_CSSType)
+	{}
+
+	Array<StyleSheets*> RootStyleSheets::search(cString &exp) {
+		Array<StyleSheets*> rv;
+
+		auto searchItem = [this, &rv](cString &exp) {
+			#define Qk_InvalidCss(e) { Qk_WARN("Invalid css name \"%s\"", *e); return; }
+			StyleSheets *ss = this;
+
+			for ( auto &j : exp.split(' ') ) { // .div_cls.div_cls2 .aa.bb.cc
+				bool isExt = false;
+				auto e = j.trim();
+				if ( e.isEmpty() ) continue;
+				if ( e[0] != '.' ) Qk_InvalidCss(exp);
+
+				for ( auto n: e.split('.') ) { // .div_cls.div_cls2
+					auto type = kNone_CSSType;
+					auto k = n.split(':'); // .div_cls:hover
+					if (k.length() > 1) {
+						auto it = pseudo_type_keys.find(k[1]); // normal | hover | down
+						if (it == pseudo_type_keys.end()) {
+							Qk_InvalidCss(exp);
+						} else {
+							type = it->value;
+							n = k[0];
+						}
+					}
+					if ( n.isEmpty() ) continue;
+					ss = ss->findAndMake(CSSName(n), type, isExt);
+					isExt = true;
+					if ( !ss ) Qk_InvalidCss(exp);
+				}
+			}
+			if (ss != this)
+				rv.push(ss);
+			#undef Qk_InvalidCss
+		};
+
+		// .div_cls.div_cls2.kkk .aa.bb.cc, .div_cls.div_cls2.ddd:down .aa.bb.cc
+		for ( auto &i : exp.split(',') )
+			searchItem(i);
+
+		Qk_ReturnLocal(rv);
 	}
 
 }

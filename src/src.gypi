@@ -64,7 +64,6 @@
 			'ui/ui_render.cc',
 			'ui/css/css.h', # css
 			'ui/css/css_sheets.cc',
-			'ui/css/css_sheets_root.cc',
 			'ui/css/css_class.cc',
 			'ui/text/text_blob.h', # ui text
 			'ui/text/text_blob.cc',
