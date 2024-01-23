@@ -38,6 +38,7 @@
 
 namespace qk {
 	class Layout;
+	class View;
 
 	enum CSSType {
 		kNone_CSSType = 0,
@@ -160,8 +161,8 @@ namespace qk {
 
 		Set<CSSName> _name; // class name
 		Array<StyleSheets*> _haveSubstyles; // 当前应用的样式表且拥有子样式表供后代视图查询
-		
-		friend class Layout;
+
+		friend class View;
 	};
 
 }

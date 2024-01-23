@@ -93,7 +93,8 @@ namespace qk {
 	}
 
 	void View::set_receive(bool val) { // async call set_receive()
-		preRender().async_call([](auto ctx, auto val) { ctx->set_receive(val); }, _layout, val);
+		//preRender().async_call([](auto ctx, auto val) { ctx->set_receive(val); }, _layout, val);
+		_layout->_receive = val;
 	}
 
 	uint32_t View::level() const {

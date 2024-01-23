@@ -121,7 +121,7 @@ namespace qk {
 	enum HighlightedStatus {
 		HIGHLIGHTED_NORMAL = 1,
 		HIGHLIGHTED_HOVER,
-		HIGHLIGHTED_DOWN,
+		HIGHLIGHTED_ACTIVE,
 	};
 
 	class Qk_EXPORT UIEventName {
@@ -154,7 +154,7 @@ namespace qk {
 	class Qk_EXPORT UIEvent: public Event<View, Object, int> {
 		Qk_HIDDEN_ALL_COPY(UIEvent);
 	public:
-		UIEvent(View* origin);
+		UIEvent(View *origin);
 		Qk_DEFINE_PROP_GET(View*, origin);
 		Qk_DEFINE_PROP_GET(uint64_t, timestamp);
 		inline bool is_default() const { return return_value & RETURN_VALUE_MASK_DEFAULT; }

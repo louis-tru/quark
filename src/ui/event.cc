@@ -32,62 +32,44 @@
 #include "./app.h"
 #include "./window.h"
 #include "./view.h"
+#include "./css/css.h"
 #include "./layout/root.h"
 #include "./keyboard.h"
 #include "./layout/button.h"
 
 namespace qk {
 
-	static inline HighlightedStatus HOVER_or_NORMAL(View* view) {
+	static inline HighlightedStatus HOVER_or_NORMAL(View *view) {
 		return view->is_focus() ? HIGHLIGHTED_HOVER : HIGHLIGHTED_NORMAL;
 	}
 
 	template<class T, typename... Args>
 	inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
 
- // -------------------------- V i e w --------------------------
+	// -------------------------- V i e w --------------------------
 
 	Qk_DEFINE_INLINE_MEMBERS(View, InlEvent) {
 	public:
 		#define _inl_view(self) static_cast<View::InlEvent*>(static_cast<View*>(self))
 
-		void trigger_highlightted(HighlightedEvent& evt) {
+		void trigger_highlightted(HighlightedEvent &evt) {
 			if ( _layout->_receive ) {
 				trigger(UIEvent_Highlighted, evt);
-				if ( evt.is_default() ) {
-					// auto classs = this->classs();
-					// if ( classs ) { // 切换样式表状态
-					// 	classs->set_style_pseudo_status( CSSPseudoClass(evt.status()) );
-					// }
+				if ( evt.is_default()) {
+					if ( _ssclass ) {
+						_ssclass->setStatus( CSSType(evt.status()) );
+					}
 				}
 			}
 		}
 
-		void trigger_click(UIEvent& evt) {
-			View* view = this;
-			do {
-				if ( view->_layout->_receive ) {
-					view->trigger(UIEvent_Click, evt);
-					if ( !evt.is_bubble() ) {
-						break; // Stop bubble
-					}
-				}
-				if (view->_parent) { // root
-					view = view->_parent;
-				} else {
-					if (evt.is_default()) {
-						auto dispatch = _layout->_window->dispatch();
-						if (evt.origin() != dispatch->_focus_view)
-							view->focus(); // root
-					}
-					break;
-				}
-			} while(true);
+		void trigger_click(UIEvent &evt) {
+			bubble_trigger(UIEvent_Click, evt);
 		}
 
-		void bubble_trigger(const NameType& name, UIEvent& evt) {
-			View* view = this;
-			while( view ) {
+		void bubble_trigger(const NameType &name, UIEvent &evt) {
+			View *view = this;
+			do {
 				if ( view->_layout->_receive ) {
 					view->trigger(name, evt);
 					if ( !evt.is_bubble() ) {
@@ -95,13 +77,7 @@ namespace qk {
 					}
 				}
 				view = view->_parent;
-			}
-		}
-
-		void trigger(const NameType& name, UIEvent& evt) {
-			if ( _layout->_receive ) {
-				Notification::trigger(name, evt);
-			}
+			} while( view );
 		}
 	};
 
@@ -123,7 +99,7 @@ namespace qk {
 		}
 		_inl_view(this)->bubble_trigger(UIEvent_Focus, **NewEvent<UIEvent>(this));
 		_inl_view(this)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(this, HIGHLIGHTED_HOVER)
+			**NewEvent<HighlightedEvent>(this, HIGHLIGHTED_HOVER)
 		);
 		return true;
 	}
@@ -369,7 +345,7 @@ namespace qk {
 
 	// -------------------------- T o u c h --------------------------
 
-	void EventDispatch::touchstart_use(View *view, List<TouchPoint>& in) {
+	void EventDispatch::touchstart_use(View *view, List<TouchPoint> &in) {
 		if ( view->_layout->_receive && in.length() ) {
 			Array<TouchPoint> change_touches;
 
@@ -403,7 +379,7 @@ namespace qk {
 					auto evt = NewEvent<TouchEvent>(view, change_touches);
 					_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
 					if ( clickDownNo ) {
-						auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
+						auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_ACTIVE);
 						_inl_view(view)->trigger_highlightted(**evt); // emit event
 					}
 				}, view), _loop);
@@ -411,7 +387,7 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::touchstart(Layout *layout, List<TouchPoint>& in) {
+	void EventDispatch::touchstart(Layout *layout, List<TouchPoint> &in) {
 		if ( layout->_visible && in.length() ) {
 			std::unique_lock<RecursiveMutex> lock(_view_mutex); // disable view release operate
 
@@ -420,11 +396,11 @@ namespace qk {
 				lock.unlock(); // unlock scope
 
 				if ( layout->_last && layout->is_clip() ) {
-					List<TouchPoint> in2;
+					List<TouchPoint> clipIn;
 
 					for ( auto i = in.begin(), e = in.end(); i != e; ) {
 						if ( layout->overlap_test(Vec2(i->x, i->y)) ) {
-							in2.pushBack(*i);
+							clipIn.pushBack(*i);
 							in.erase(i++);
 						} else {
 							i++;
@@ -432,15 +408,14 @@ namespace qk {
 					}
 
 					auto v = layout->_last;
-					while( v && in2.length() ) {
-						touchstart(v, in2);
+					while( v && clipIn.length() ) {
+						touchstart(v, clipIn);
 						v = v->prev();
 					}
+					touchstart_use(*view, clipIn);
 
-					touchstart_use(*view, in2);
-
-					if ( in2.length() ) {
-						in.splice(in.end(), in2);
+					if ( clipIn.length() ) {
+						in.splice(in.end(), clipIn);
 					}
 				} else {
 					auto v = layout->_last;
@@ -522,7 +497,7 @@ namespace qk {
 							if ( item.click_in ) { // find range == true
 								origin_touche->set_is_click_down(true); // set down status
 								async_resolve(Cb([view](auto &e) { // emit style down event
-									auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
+									auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_ACTIVE);
 									_inl_view(view)->trigger_highlightted(**evt);
 								}, view), _loop);
 								break;
@@ -719,7 +694,7 @@ namespace qk {
 
 					_inl_view(view)->trigger_highlightted( // emit style status event
 						**NewEvent<HighlightedEvent>(view,
-							view == d_view ? HIGHLIGHTED_DOWN: HIGHLIGHTED_HOVER)
+							view == d_view ? HIGHLIGHTED_ACTIVE: HIGHLIGHTED_HOVER)
 					);
 				}
 			}
@@ -753,7 +728,7 @@ namespace qk {
 
 		if (down) {
 			_inl_view(view)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN)); // emit style status event
+				**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_ACTIVE)); // emit style status event
 		} else {
 			_inl_view(view)->trigger_highlightted(
 				**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER)); // emit style status event
@@ -877,7 +852,7 @@ namespace qk {
 				}
 
 				if ( name == KEYCODE_CENTER && repeat == 0 ) {
-					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_DOWN);
+					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_ACTIVE);
 					_inl_view(view)->trigger_highlightted(**evt); // emit click status event
 				}
 

@@ -224,7 +224,7 @@ namespace qk {
 		virtual Button* as_button();
 
 		/**
-		 * @override
+		 * @override Reference::release
 		 */
 		virtual void release() override;
 
