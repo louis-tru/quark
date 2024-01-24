@@ -28,11 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./css.h"
-#include "../layout/layout.h"
 #include "../app.h"
+#include "./css.h"
+#include "../window.h"
+#include "../layout/layout.h"
 
 namespace qk {
+	#define qk_async_call _host->window()->preRender().async_call
 
 	StyleSheetsClass::StyleSheetsClass(Layout *host)
 		: _havePseudoType(false)
@@ -45,37 +47,44 @@ namespace qk {
 	}
 
 	void StyleSheetsClass::set(cArray<String> &name) {
-		_name.clear();
-		for ( auto &j: name )
-			_name.add(CSSName(j));
-		updateClass();
+		qk_async_call([](auto ctx, auto val) {
+			Sp<Array<String>> valp(val);
+			ctx->_name.clear();
+			for ( auto &j: *valp )
+				ctx->_name.add(CSSName(j).hashCode());
+			ctx->updateClass();
+		}, this, new Array<String>(name));
 	}
 
 	void StyleSheetsClass::add(cString &name) {
-		CSSName cn(name);
-		if (!_name.has(cn)) {
-			_name.add(cn);
-			updateClass();
-		}
+		qk_async_call([](auto ctx, auto hash) {
+			if (!_nameHash.has(hash)) {
+				_nameHash.add(hash);
+				updateClass();
+			}
+		}, this, CSSName(name).hashCode());
 	}
 
 	void StyleSheetsClass::remove(cString &name) {
-		auto it = _name.find(CSSName(name));
-		if (it != _name.end()) {
-			_name.erase(it);
-			updateClass();
-		}
+		qk_async_call([](auto ctx, auto hash) {
+			auto it = _nameHash.find(hash);
+			if (it != _nameHash.end()) {
+				_nameHash.erase(it);
+				updateClass();
+			}
+		}, this, CSSName(name).hashCode());
 	}
 
 	void StyleSheetsClass::toggle(cString &name) {
-		CSSName cn(name);
-		auto it = _name.find(cn);
-		if (it == _name.end()) {
-			_name.add(cn);
-		} else {
-			_name.erase(it);
-		}
-		updateClass();
+		qk_async_call([](auto ctx, auto hash) {
+			auto it = _nameHash.find(hash);
+			if (it == _nameHash.end()) {
+				_nameHash.add(hash);
+			} else {
+				_nameHash.erase(it);
+			}
+			updateClass();
+		}, this, CSSName(name).hashCode());
 	}
 
 	void StyleSheetsClass::updateClass() {
@@ -112,7 +121,7 @@ namespace qk {
 	}
 
 	void StyleSheetsClass::applySubstyle(StyleSheets *ss) {
-		for (auto &n: _name) {
+		for (auto &n: _nameHash) {
 			auto it = ss->_substyles.find(n.key);
 			if (it != ss->_substyles.end()) {
 				applyStyle(it->value);
@@ -123,7 +132,7 @@ namespace qk {
 	void StyleSheetsClass::applyExtend(StyleSheets *ss_left) {
 		if (ss_left->_extends.length() == 0) return;
 		for (auto i: ss_left->_extends) { // test right extend
-			if (_name.has(i.key)) { // test ok
+			if (_nameHash.has(i.key)) { // test ok
 				applyStyle(i.value);
 			}
 		}

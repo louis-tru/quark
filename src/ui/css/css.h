@@ -106,7 +106,7 @@ namespace qk {
 		void apply(Layout *layout) const;
 
 	private:
-		typedef Dict<CSSName, StyleSheets*> StyleSheetsDict;
+		typedef Dict<uint64_t, StyleSheets*> StyleSheetsDict;
 
 		StyleSheets* findAndMake(cCSSName &name, CSSType type, bool isExtend);
 		void setProp(uint32_t, Property* prop);
@@ -143,8 +143,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(StyleSheetsClass*, parent, NoConst); // apply parent ssc
 
 		StyleSheetsClass(Layout *host);
-		inline cSet<CSSName>& name() const { return _name; }
-		inline bool haveSubstyles() const { return _haveSubstyles.length(); }
 		void set(cArray<String> &name);
 		void add(cString &name);
 		void remove(cString &name);
@@ -159,7 +157,7 @@ namespace qk {
 		void applyExtend(StyleSheets *ss_left);
 		void applyStyle(StyleSheets *ss);
 
-		Set<CSSName> _name; // class name
+		Set<uint64_t> _nameHash; // class name hash
 		Array<StyleSheets*> _haveSubstyles; // 当前应用的样式表且拥有子样式表供后代视图查询
 
 		friend class View;

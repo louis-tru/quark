@@ -39,8 +39,8 @@
 
 namespace qk {
 
-	static inline HighlightedStatus HOVER_or_NORMAL(View *view) {
-		return view->is_focus() ? HIGHLIGHTED_HOVER : HIGHLIGHTED_NORMAL;
+	static inline HighlightedEvent::Status HOVER_or_NORMAL(View *view) {
+		return view->is_focus() ? HighlightedEvent::kHover : HighlightedEvent::kNormal;
 	}
 
 	template<class T, typename... Args>
@@ -53,18 +53,29 @@ namespace qk {
 		#define _inl_view(self) static_cast<View::InlEvent*>(static_cast<View*>(self))
 
 		void trigger_highlightted(HighlightedEvent &evt) {
-			if ( _layout->_receive ) {
-				trigger(UIEvent_Highlighted, evt);
-				if ( evt.is_default()) {
-					if ( _ssclass ) {
-						_ssclass->setStatus( CSSType(evt.status()) );
-					}
-				}
+			bubble_trigger(UIEvent_Highlighted, evt);
+			if ( evt.is_default() ) {
+				preRender().async_call([](auto ctx, auto val) {
+					do {
+						if (ctx->_ssclass)
+							ctx->_ssclass->setStatus( val );
+						ctx = ctx->_parent;
+					} while(ctx);
+				}, _layout, CSSType(evt.status()));
 			}
 		}
 
 		void trigger_click(UIEvent &evt) {
 			bubble_trigger(UIEvent_Click, evt);
+			if (evt.is_default()) {
+				auto focus_view = _layout->_window->dispatch()->_focus_view;
+				auto root = _layout->_window->root();
+				if (focus_view != evt.origin() && focus_view != root) {
+					if (!focus_view->is_self_child(evt.origin())) {
+						root->focus(); // root
+					}
+				}
+			}
 		}
 
 		void bubble_trigger(const NameType &name, UIEvent &evt) {
@@ -72,9 +83,7 @@ namespace qk {
 			do {
 				if ( view->_layout->_receive ) {
 					view->trigger(name, evt);
-					if ( !evt.is_bubble() ) {
-						break; // Stop bubble
-					}
+					if ( !evt.is_bubble() ) break; // Stop bubble
 				}
 				view = view->_parent;
 			} while( view );
@@ -94,12 +103,12 @@ namespace qk {
 		if ( old ) {
 			_inl_view(old)->bubble_trigger(UIEvent_Blur, **NewEvent<UIEvent>(old));
 			_inl_view(old)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(old, HIGHLIGHTED_NORMAL)
+				**NewEvent<HighlightedEvent>(old, HighlightedStatus::kActive)
 			);
 		}
 		_inl_view(this)->bubble_trigger(UIEvent_Focus, **NewEvent<UIEvent>(this));
 		_inl_view(this)->trigger_highlightted(
-			**NewEvent<HighlightedEvent>(this, HIGHLIGHTED_HOVER)
+			**NewEvent<HighlightedEvent>(this, HighlightedStatus::kHover)
 		);
 		return true;
 	}
@@ -124,7 +133,7 @@ namespace qk {
 
 	UIEvent::UIEvent(View *origin)
 		: Event(SendData()), _origin(origin), _timestamp(time_micro()) {
-		return_value = RETURN_VALUE_MASK_ALL;
+		return_value = kAll_ReturnValueMask;
 	}
 
 	void UIEvent::release() {
@@ -260,7 +269,7 @@ namespace qk {
 	};
 
 	#define _Fun(Name, C, Flag) \
-		const UIEventName UIEvent_##Name(#Name, UI_EVENT_CATEGORY_##C, Flag);
+		const UIEventName UIEvent_##Name(#Name, k##C##_UIEventCategory, Flag);
 	Qk_UI_Events(_Fun)
 	#undef _Fun
 
@@ -379,7 +388,7 @@ namespace qk {
 					auto evt = NewEvent<TouchEvent>(view, change_touches);
 					_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
 					if ( clickDownNo ) {
-						auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_ACTIVE);
+						auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
 						_inl_view(view)->trigger_highlightted(**evt); // emit event
 					}
 				}, view), _loop);
@@ -497,7 +506,7 @@ namespace qk {
 							if ( item.click_in ) { // find range == true
 								origin_touche->set_is_click_down(true); // set down status
 								async_resolve(Cb([view](auto &e) { // emit style down event
-									auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_ACTIVE);
+									auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
 									_inl_view(view)->trigger_highlightted(**evt);
 								}, view), _loop);
 								break;
@@ -544,7 +553,7 @@ namespace qk {
 							_inl_view(view)->trigger_highlightted(**evt);
 
 							if ( evt0->is_default() && type == UIEvent_TouchEnd && view->_layout->_level ) {
-								auto evt = NewEvent<ClickEvent>(view, item.x, item.y, ClickEvent::TOUCH);
+								auto evt = NewEvent<ClickEvent>(view, item.x, item.y, ClickEvent::kTouch);
 								_inl_view(view)->trigger_click(**evt); // emit click event
 							}
 							break;
@@ -653,7 +662,7 @@ namespace qk {
 			if ( d > 2 ) { // trigger invalid status
 				if (view == d_view) {
 					_inl_view(view)->trigger_highlightted( // emit style status event
-						**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER));
+						**NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover));
 				}
 				_mouse_handle->set_click_down_view(nullptr);
 			}
@@ -671,14 +680,14 @@ namespace qk {
 				_inl_view(old)->bubble_trigger(UIEvent_MouseOut, **evt);
 
 				if (evt->is_default()) {
-					evt->return_value = RETURN_VALUE_MASK_ALL;
+					evt->return_value = kAll_ReturnValueMask;
 
 					if (!view || !old->is_self_child(view)) {
 						_inl_view(old)->bubble_trigger(UIEvent_MouseLeave, **evt);
 					}
-
 					_inl_view(old)->trigger_highlightted( // emit style status event
-						**NewEvent<HighlightedEvent>(old, HIGHLIGHTED_NORMAL));
+						**NewEvent<HighlightedEvent>(old, HighlightedStatus::kNormal)
+					);
 				}
 			}
 			if (view) {
@@ -686,15 +695,14 @@ namespace qk {
 				_inl_view(view)->bubble_trigger(UIEvent_MouseOver, **evt);
 
 				if (evt->is_default()) {
-					evt->return_value = RETURN_VALUE_MASK_ALL;
-					
+					evt->return_value = kAll_ReturnValueMask;
+
 					if (!old || !view->is_self_child(old)) {
 						_inl_view(view)->bubble_trigger(UIEvent_MouseEnter, **evt);
 					}
-
 					_inl_view(view)->trigger_highlightted( // emit style status event
 						**NewEvent<HighlightedEvent>(view,
-							view == d_view ? HIGHLIGHTED_ACTIVE: HIGHLIGHTED_HOVER)
+							view == d_view ? HighlightedStatus::kActive: HighlightedStatus::kHover)
 					);
 				}
 			}
@@ -728,13 +736,13 @@ namespace qk {
 
 		if (down) {
 			_inl_view(view)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_ACTIVE)); // emit style status event
+				**NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive)); // emit style status event
 		} else {
 			_inl_view(view)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER)); // emit style status event
+				**NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover)); // emit style status event
 
 			if (view == *raw_down_view) {
-				_inl_view(view)->trigger_click(**NewEvent<ClickEvent>(view, x, y, ClickEvent::MOUSE));
+				_inl_view(view)->trigger_click(**NewEvent<ClickEvent>(view, x, y, ClickEvent::kMouse));
 			}
 		}
 	}
@@ -852,7 +860,7 @@ namespace qk {
 				}
 
 				if ( name == KEYCODE_CENTER && repeat == 0 ) {
-					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_ACTIVE);
+					auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
 					_inl_view(view)->trigger_highlightted(**evt); // emit click status event
 				}
 
@@ -889,7 +897,7 @@ namespace qk {
 
 			if ( evt->is_default() ) {
 				if ( name == KEYCODE_BACK ) {
-					auto evt = NewEvent<ClickEvent>(view, point.x(), point.y(), ClickEvent::KEYBOARD);
+					auto evt = NewEvent<ClickEvent>(view, point.x(), point.y(), ClickEvent::kKeyboard);
 					_inl_view(view)->bubble_trigger(UIEvent_Back, **evt); // emit back
 
 					if ( evt->is_default() ) {
@@ -897,10 +905,10 @@ namespace qk {
 					}
 				}
 				else if ( name == KEYCODE_CENTER ) {
-					auto evt = NewEvent<HighlightedEvent>(view, HIGHLIGHTED_HOVER);
+					auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover);
 					_inl_view(view)->trigger_highlightted(**evt); // emit style status event
 
-					auto evt2 = NewEvent<ClickEvent>(view, point.x(), point.y(), ClickEvent::KEYBOARD);
+					auto evt2 = NewEvent<ClickEvent>(view, point.x(), point.y(), ClickEvent::kKeyboard);
 					_inl_view(view)->trigger_click(**evt2);
 				} //
 			}

@@ -161,17 +161,17 @@ namespace qk {
 	// @private -------------------
 
 	cStyleSheets* StyleSheets::find(cCSSName &name) const {
-		auto i = _substyles.find(name);
+		auto i = _substyles.find(name.hashCode());
 		return i == _substyles.end() ? nullptr : i->value;
 	}
 
 	StyleSheets* StyleSheets::findAndMake(cCSSName &name, CSSType type, bool isExtend) {
 		StyleSheets *ss = nullptr;
 		StyleSheetsDict &from = isExtend ? _extends: _substyles;
-		auto it = from.find(name);
+		auto it = from.find(name.hashCode());
 		if ( it == from.end() ) {
 			ss = new StyleSheets(name, isExtend ? _parent: this, kNone_CSSType);
-			from[name] = ss;
+			from[name.hashCode()] = ss;
 		} else {
 			ss = it->value;
 		}

@@ -98,6 +98,11 @@ namespace qk {
 		void handle_Click(UIEvent& evt) {
 			auto e = static_cast<ClickEvent*>(&evt);
 			Vec2 args(e->x(), e->y());
+
+			if ( !_editing && _flag != kFlag_Disable_Click_Find ) {
+				view()->focus();
+			}
+
 			preRender().async_call([](auto ctx, auto args) {
 				if ( ctx->_editing ) {
 					ctx->window()->dispatch()->set_ime_keyboard_open({
@@ -110,7 +115,8 @@ namespace qk {
 						auto view = ctx->safe_view();
 						auto v = *view;
 						if (v) {
-							ctx->window()->host()->loop()->post(Cb([v](auto &e) { v->focus(); },v));
+							if (!v->is_focus())
+								ctx->window()->host()->loop()->post(Cb([v](auto &e) { v->focus(); },v));
 							ctx->handle_Focus_for_render_t();
 							ctx->find_cursor(args);
 						}

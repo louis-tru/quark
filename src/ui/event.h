@@ -41,43 +41,43 @@
 // all ui events / Name, Flag
 #define Qk_UI_Events(F) \
 /* can bubble event */ \
-F(Click, CLICK, UI_EVENT_FLAG_BUBBLE) \
-F(Back, CLICK, UI_EVENT_FLAG_BUBBLE) \
-F(KeyDown, KEYBOARD, UI_EVENT_FLAG_BUBBLE) /* View */\
-F(KeyPress, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
-F(KeyUp, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
-F(KeyEnter, KEYBOARD, UI_EVENT_FLAG_BUBBLE) \
-F(TouchStart, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-F(TouchMove, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-F(TouchEnd, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-F(TouchCancel, TOUCH, UI_EVENT_FLAG_BUBBLE) \
-F(MouseOver, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-F(MouseOut, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-F(MouseLeave, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-F(MouseEnter, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-F(MouseMove, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-F(MouseDown, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-F(MouseUp, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-F(MouseWheel, MOUSE, UI_EVENT_FLAG_BUBBLE) \
-F(Focus, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
-F(Blur, DEFAULT, UI_EVENT_FLAG_BUBBLE) \
+F(Click, Click, kBubble_UIEventFlags) \
+F(Back, Click, kBubble_UIEventFlags) \
+F(KeyDown, Keyboard, kBubble_UIEventFlags) /* View */\
+F(KeyPress, Keyboard, kBubble_UIEventFlags) \
+F(KeyUp, Keyboard, kBubble_UIEventFlags) \
+F(KeyEnter, Keyboard, kBubble_UIEventFlags) \
+F(TouchStart, Touch, kBubble_UIEventFlags) \
+F(TouchMove, Touch, kBubble_UIEventFlags) \
+F(TouchEnd, Touch, kBubble_UIEventFlags) \
+F(TouchCancel, Touch, kBubble_UIEventFlags) \
+F(MouseOver, Mouse, kBubble_UIEventFlags) \
+F(MouseOut, Mouse, kBubble_UIEventFlags) \
+F(MouseLeave, Mouse, kBubble_UIEventFlags) \
+F(MouseEnter, Mouse, kBubble_UIEventFlags) \
+F(MouseMove, Mouse, kBubble_UIEventFlags) \
+F(MouseDown, Mouse, kBubble_UIEventFlags) \
+F(MouseUp, Mouse, kBubble_UIEventFlags) \
+F(MouseWheel, Mouse, kBubble_UIEventFlags) \
+F(Focus, Default, kBubble_UIEventFlags) \
+F(Blur, Default, kBubble_UIEventFlags) \
+F(Highlighted, Highlighted, kBubble_UIEventFlags) /* normal / hover / down */ \
 /* canno bubble event */ \
-F(Highlighted, HIGHLIGHTED, UI_EVENT_FLAG_NONE) /* normal / hover / down */ \
-F(ActionKeyframe, ACTION, UI_EVENT_FLAG_NONE) \
-F(ActionLoop, ACTION, UI_EVENT_FLAG_NONE) \
-F(Scroll, DEFAULT, UI_EVENT_FLAG_NONE) /*ScrollBase*/\
-F(Change, DEFAULT, UI_EVENT_FLAG_NONE) /*Input*/ \
-F(Load, DEFAULT, UI_EVENT_FLAG_NONE) /* Image */ \
+F(ActionKeyframe, Action, kNone_UIEventFlags) \
+F(ActionLoop, Action, kNone_UIEventFlags) \
+F(Scroll, Default, kNone_UIEventFlags) /*ScrollBase*/\
+F(Change, Default, kNone_UIEventFlags) /*Input*/ \
+F(Load, Default, kNone_UIEventFlags) /* Image */ \
 /* player */ \
-F(Error, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_ERROR) \
-F(Ready, DEFAULT, UI_EVENT_FLAG_PLAYER) /* AutoPlayer / Video */ \
-F(WaitBuffer, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_FLOAT) \
-F(StartPlay, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-F(SourceEnd, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-F(Pause, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-F(Resume, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-F(Stop, DEFAULT, UI_EVENT_FLAG_PLAYER) \
-F(Seek, DEFAULT, UI_EVENT_FLAG_PLAYER | UI_EVENT_FLAG_UINT64) \
+F(Error, Player, kError_UIEventFlags) \
+F(Ready, Player, kNone_UIEventFlags) /* AutoPlayer / Video */ \
+F(WaitBuffer, Player, kFloat_UIEventFlags) \
+F(StartPlay, Player, kNone_UIEventFlags) \
+F(SourceEnd, Player, kNone_UIEventFlags) \
+F(Pause, Player, kNone_UIEventFlags) \
+F(Resume, Player, kNone_UIEventFlags) \
+F(Stop, Player, kNone_UIEventFlags) \
+F(Seek, Player, kUint64_UIEventFlags) \
 
 namespace qk {
 	class Application;
@@ -87,41 +87,33 @@ namespace qk {
 	class TextInput;
 	class Window;
 
-	// event category
 	enum {
-		UI_EVENT_CATEGORY_DEFAULT = 0,
-		UI_EVENT_CATEGORY_KEYBOARD,
-		UI_EVENT_CATEGORY_CLICK,
-		UI_EVENT_CATEGORY_HIGHLIGHTED,
-		UI_EVENT_CATEGORY_TOUCH,
-		UI_EVENT_CATEGORY_MOUSE,
-		UI_EVENT_CATEGORY_ACTION,
-		UI_EVENT_CATEGORY_FOCUS_MOVE,
+		kDefault_UIEventCategory,
+		kKeyboard_UIEventCategory,
+		kClick_UIEventCategory,
+		kTouch_UIEventCategory,
+		kMouse_UIEventCategory,
+		kFocus_MOVE_UIEventCategory,
+		kAction_UIEventCategory,
+		kHighlighted_UIEventCategory,
+		kPlayer_UIEventCategory,
 	};
 
 	// event flags / cast
 	enum {
-		UI_EVENT_FLAG_NONE = 0,
-		UI_EVENT_FLAG_ERROR,  // cast data
-		UI_EVENT_FLAG_FLOAT,  // cast Float
-		UI_EVENT_FLAG_UINT64, // cast Uint64
-		UI_EVENT_FLAG_CAST = (255), // Event::data(), cast flag
-		UI_EVENT_FLAG_BUBBLE = (1 << 8), // bubble, other flag
-		UI_EVENT_FLAG_PLAYER = (1 << 9), // player
+		kNone_UIEventFlags,
+		kError_UIEventFlags,  // cast data
+		kFloat_UIEventFlags,  // cast Float
+		kUint64_UIEventFlags, // cast Uint64
+		kCast_UIEventFlags = (255), // Event::data(), cast flag
+		kBubble_UIEventFlags = (1 << 8), // bubble, other flag
 	};
 
 	// event returl value mask
 	enum ReturnValueMask {
-		RETURN_VALUE_MASK_DEFAULT = (1 << 0),
-		RETURN_VALUE_MASK_BUBBLE = (1 << 1),
-		RETURN_VALUE_MASK_ALL = (RETURN_VALUE_MASK_DEFAULT | RETURN_VALUE_MASK_BUBBLE),
-	};
-
-	// event highlighed status
-	enum HighlightedStatus {
-		HIGHLIGHTED_NORMAL = 1,
-		HIGHLIGHTED_HOVER,
-		HIGHLIGHTED_ACTIVE,
+		kDefault_ReturnValueMask = (1 << 0),
+		kBubble_ReturnValueMask = (1 << 1),
+		kAll_ReturnValueMask = (kDefault_ReturnValueMask | kBubble_ReturnValueMask),
 	};
 
 	class Qk_EXPORT UIEventName {
@@ -157,10 +149,10 @@ namespace qk {
 		UIEvent(View *origin);
 		Qk_DEFINE_PROP_GET(View*, origin);
 		Qk_DEFINE_PROP_GET(uint64_t, timestamp);
-		inline bool is_default() const { return return_value & RETURN_VALUE_MASK_DEFAULT; }
-		inline bool is_bubble() const { return return_value & RETURN_VALUE_MASK_BUBBLE; }
-		inline void cancel_default() { return_value &= ~RETURN_VALUE_MASK_DEFAULT; }
-		inline void cancel_bubble() { return_value &= ~RETURN_VALUE_MASK_BUBBLE; }
+		inline bool is_default() const { return return_value & kDefault_ReturnValueMask; }
+		inline bool is_bubble() const { return return_value & kBubble_ReturnValueMask; }
+		inline void cancel_default() { return_value &= ~kDefault_ReturnValueMask; }
+		inline void cancel_bubble() { return_value &= ~kBubble_ReturnValueMask; }
 		virtual void release() override;
 	};
 
@@ -204,7 +196,7 @@ namespace qk {
 	class Qk_EXPORT ClickEvent: public UIEvent {
 	public:
 		enum Type {
-			TOUCH = 1, KEYBOARD = 2, MOUSE = 3
+			kTouch = 1, kKeyboard = 2, kMouse = 3
 		};
 		ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1);
 		Qk_DEFINE_PROP_GET(float, x);
@@ -230,9 +222,14 @@ namespace qk {
 	*/
 	class Qk_EXPORT HighlightedEvent: public UIEvent {
 	public:
-		HighlightedEvent(View* origin, HighlightedStatus status);
-		Qk_DEFINE_PROP_GET(HighlightedStatus, status);
+		enum Status {
+			kNormal = 1, kHover, kActive,
+		};
+		HighlightedEvent(View* origin, Status status);
+		Qk_DEFINE_PROP_GET(Status, status);
 	};
+
+	typedef HighlightedEvent::Status HighlightedStatus;
 
 	/**
 	* @class TouchEvent touch event
