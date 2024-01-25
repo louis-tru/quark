@@ -136,6 +136,7 @@ namespace qk {
 	class Qk_EXPORT StyleSheetsClass {
 		Qk_HIDDEN_ALL_COPY(StyleSheetsClass);
 	public:
+		Qk_DEFINE_PROP_GET(bool, haveSubstyles); // Does the current applied style sheet have sub style sheets
 		Qk_DEFINE_PROP_GET(bool, havePseudoType); // 当前样式表组支持伪类型
 		Qk_DEFINE_PROP_GET(bool, firstApply); // 是否为首次应用样式表,在处理动作时如果为第一次忽略动作
 		Qk_DEFINE_PROP_GET(CSSType, status); // 当前伪类应用状态
@@ -143,22 +144,21 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(StyleSheetsClass*, parent, NoConst); // apply parent ssc
 
 		StyleSheetsClass(Layout *host);
-		void set(cArray<String> &name);
-		void add(cString &name);
-		void remove(cString &name);
-		void toggle(cString &name);
+		void set(cArray<String> &name); // Calling in the main loop
+		void add(cString &name); // Calling in the main loop
+		void remove(cString &name); // Calling in the main loop
+		void toggle(cString &name); // Calling in the main loop
 
 	private:
+		void setStatus_RT(CSSType status);
+		void apply_RT(StyleSheetsClass *parent);
 		void updateClass();
-		void setStatus(CSSType status);
-		void apply(StyleSheetsClass *parent);
-		void applyFrom(StyleSheetsClass *ss);
-		void applySubstyle(StyleSheets *ss);
-		void applyExtend(StyleSheets *ss_left);
+		void applyFrom(StyleSheetsClass *ssc);
+		void applyFindSubstyle(StyleSheets *ss);
 		void applyStyle(StyleSheets *ss);
 
 		Set<uint64_t> _nameHash; // class name hash
-		Array<StyleSheets*> _haveSubstyles; // 当前应用的样式表且拥有子样式表供后代视图查询
+		Set<StyleSheets*> _styles; // 当前应用的样式表且拥有子样式表供后代视图查询
 
 		friend class View;
 	};

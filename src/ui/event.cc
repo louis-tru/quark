@@ -58,7 +58,7 @@ namespace qk {
 				preRender().async_call([](auto ctx, auto val) {
 					do {
 						if (ctx->_ssclass)
-							ctx->_ssclass->setStatus( val );
+							ctx->_ssclass->setStatus_RT(val);
 						ctx = ctx->_parent;
 					} while(ctx);
 				}, _layout, CSSType(evt.status()));

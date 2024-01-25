@@ -37,7 +37,8 @@ namespace qk {
 	#define qk_async_call _host->window()->preRender().async_call
 
 	StyleSheetsClass::StyleSheetsClass(Layout *host)
-		: _havePseudoType(false)
+		: _haveSubstyles(false)
+		, _havePseudoType(false)
 		, _firstApply(true)
 		, _status(kNormal_CSSType)
 		, _host(host)
@@ -91,7 +92,7 @@ namespace qk {
 		_host->mark_layout(Layout::kStyle_Class);
 	}
 
-	void StyleSheetsClass::setStatus(CSSType status) {
+	void StyleSheetsClass::setStatus_RT(CSSType status) {
 		if ( _status != status ) {
 			_status = status;
 			if ( _havePseudoType ) {
@@ -100,27 +101,31 @@ namespace qk {
 		}
 	}
 
-	void StyleSheetsClass::apply(StyleSheetsClass *parent) {
-		_haveSubstyles.clear();
-		applyFrom(parent);
+	void StyleSheetsClass::apply_RT(StyleSheetsClass *parent) {
+		auto styles(std::move(_styles));
+		_havePseudoType = false;
 		_parent = parent;
+		if (_nameHash.length())
+			applyFrom(parent);
 		_firstApply = false;
 	}
 
-	void StyleSheetsClass::applyFrom(StyleSheetsClass *ss) {
-		if (ss) {
-			applyFrom(ss->_parent);
-			if (ss->_haveSubstyles.length()) {
-				for (auto ss: ss->_haveSubstyles) {
-					applySubstyle(ss);
+	void StyleSheetsClass::applyFrom(StyleSheetsClass *ssc) {
+		if (ssc) {
+			Qk_ASSERT(ssc->_haveSubstyles);
+			applyFrom(ssc->_parent);
+			if (ssc->_styles.length()) {
+				for (auto &it: ssc->_styles) {
+					if (it.key->_substyles.length())
+						applyFindSubstyle(it.key);
 				}
 			}
 		} else {
-			applySubstyle(shared_app()->styleSheets()); // apply global style
+			applyFindSubstyle(shared_app()->styleSheets()); // apply global style
 		}
 	}
 
-	void StyleSheetsClass::applySubstyle(StyleSheets *ss) {
+	void StyleSheetsClass::applyFindSubstyle(StyleSheets *ss) {
 		for (auto &n: _nameHash) {
 			auto it = ss->_substyles.find(n.key);
 			if (it != ss->_substyles.end()) {
@@ -129,21 +134,62 @@ namespace qk {
 		}
 	}
 
-	void StyleSheetsClass::applyExtend(StyleSheets *ss_left) {
-		if (ss_left->_extends.length() == 0) return;
-		for (auto i: ss_left->_extends) { // test right extend
-			if (_nameHash.has(i.key)) { // test ok
-				applyStyle(i.value);
+	// CSS Sample
+	/**
+	.a {
+		width: 100;
+		.a_a {
+			height: 110;
+			&:hover {
+				height: 170;
+			}
+		}
+		.a_b {
+			color: #f00;
+		}
+		&:hover {
+			width: 150;
+			.a_a {
+				height: 160;
+			}
+			.a_b {
+				color: #ff0;
 			}
 		}
 	}
-
+	<box ssclass="a">
+		<box ssclass="a_a">test a<box>
+		<box ssclass="a_a a_b">test b<box>
+	</bod>
+	*/
 	void StyleSheetsClass::applyStyle(StyleSheets *ss) {
 		ss->apply(_host);
+		_styles.add(ss);
+
 		if (ss->_substyles.length()) {
-			_haveSubstyles.push(ss);
+			_haveSubstyles = true;
 		}
-		applyExtend(ss); // apply extend
+
+		// apply pseudo class
+		if (ss->_havePseudoType) {
+			switch (_status) {
+				case kNormal_CSSType:
+					if (ss->_normal) applyStyle(ss->_normal); break;
+				case kHover_CSSType:
+					if (ss->_hover) applyStyle(ss->_hover); break;
+				case kActive_CSSType:
+					if (ss->_active) applyStyle(ss->_active); break;
+			}
+			_havePseudoType = true;
+		}
+
+		if (ss->_extends.length()) { // apply extend
+			for (auto &i: ss->_extends) { // test right extend
+				if (_nameHash.has(i.key)) { // test ok
+					applyStyle(i.value);
+				}
+			}
+		}
 	}
 
 }
