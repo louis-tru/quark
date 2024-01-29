@@ -52,6 +52,17 @@ namespace qk {
 	public:
 		#define _inl_view(self) static_cast<View::InlEvent*>(static_cast<View*>(self))
 
+		void bubble_trigger(const NameType &name, UIEvent &evt) {
+			View *view = this;
+			do {
+				if ( view->_layout->_receive ) {
+					view->trigger(name, evt);
+					if ( !evt.is_bubble() ) break; // Stop bubble
+				}
+				view = view->_parent;
+			} while( view );
+		}
+
 		void trigger_highlightted(HighlightedEvent &evt) {
 			bubble_trigger(UIEvent_Highlighted, evt);
 			if ( evt.is_default() ) {
@@ -67,7 +78,7 @@ namespace qk {
 
 		void trigger_click(UIEvent &evt) {
 			bubble_trigger(UIEvent_Click, evt);
-			if (evt.is_default()) {
+			if ( evt.is_default() ) {
 				auto focus_view = _layout->_window->dispatch()->_focus_view;
 				auto root = _layout->_window->root();
 				if (focus_view != evt.origin() && focus_view != root) {
@@ -78,16 +89,6 @@ namespace qk {
 			}
 		}
 
-		void bubble_trigger(const NameType &name, UIEvent &evt) {
-			View *view = this;
-			do {
-				if ( view->_layout->_receive ) {
-					view->trigger(name, evt);
-					if ( !evt.is_bubble() ) break; // Stop bubble
-				}
-				view = view->_parent;
-			} while( view );
-		}
 	};
 
 	bool View::focus() {
@@ -103,7 +104,7 @@ namespace qk {
 		if ( old ) {
 			_inl_view(old)->bubble_trigger(UIEvent_Blur, **NewEvent<UIEvent>(old));
 			_inl_view(old)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(old, HighlightedStatus::kActive)
+				**NewEvent<HighlightedEvent>(old, HighlightedStatus::kNormal)
 			);
 		}
 		_inl_view(this)->bubble_trigger(UIEvent_Focus, **NewEvent<UIEvent>(this));
@@ -354,7 +355,7 @@ namespace qk {
 
 	// -------------------------- T o u c h --------------------------
 
-	void EventDispatch::touchstart_use(View *view, List<TouchPoint> &in) {
+	void EventDispatch::touchstartErase(View *view, List<TouchPoint> &in) {
 		if ( view->_layout->_receive && in.length() ) {
 			Array<TouchPoint> change_touches;
 
@@ -421,7 +422,7 @@ namespace qk {
 						touchstart(v, clipIn);
 						v = v->prev();
 					}
-					touchstart_use(*view, clipIn);
+					touchstartErase(*view, clipIn);
 
 					if ( clipIn.length() ) {
 						in.splice(in.end(), clipIn);
@@ -432,7 +433,7 @@ namespace qk {
 						touchstart(v, in);
 						v = v->prev();
 					}
-					touchstart_use(*view, in);
+					touchstartErase(*view, in);
 				}
 			}
 		}

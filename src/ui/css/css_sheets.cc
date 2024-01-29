@@ -166,14 +166,12 @@ namespace qk {
 	}
 
 	StyleSheets* StyleSheets::findAndMake(cCSSName &name, CSSType type, bool isExtend) {
-		StyleSheets *ss = nullptr;
+		StyleSheets *ss;
 		StyleSheetsDict &from = isExtend ? _extends: _substyles;
-		auto it = from.find(name.hashCode());
-		if ( it == from.end() ) {
+
+		if (!from.get(name.hashCode(), ss)) {
 			ss = new StyleSheets(name, isExtend ? _parent: this, kNone_CSSType);
 			from[name.hashCode()] = ss;
-		} else {
-			ss = it->value;
 		}
 		if ( !type ) return ss; // no find pseudo type
 		if ( ss->_type ) return nullptr; // illegal pseudo cls, 伪类样式表,不能存在子伪类样式表
@@ -194,7 +192,7 @@ namespace qk {
 
 	// --------------------------- R o o t . S t y l e . S h e e t s ---------------------------
 
-	static Dict<String, CSSType> pseudo_type_keys({
+	static Dict<String, CSSType> Pseudo_type_keys({
 		{"normal",kNormal_CSSType},{"hover",kHover_CSSType},{"active",kActive_CSSType}
 	});
 
@@ -216,18 +214,16 @@ namespace qk {
 				if ( e[0] != '.' ) Qk_InvalidCss(exp);
 
 				for ( auto n: e.split('.') ) { // .div_cls.div_cls2
+					if ( n.isEmpty() ) continue;
 					auto type = kNone_CSSType;
 					auto k = n.split(':'); // .div_cls:hover
 					if (k.length() > 1) {
-						auto it = pseudo_type_keys.find(k[1]); // normal | hover | down
-						if (it == pseudo_type_keys.end()) {
+						// normal | hover | down
+						if (!Pseudo_type_keys.get(k[1], type))
 							Qk_InvalidCss(exp);
-						} else {
-							type = it->value;
-							n = k[0];
-						}
+						n = k[0];
+						if (n.isEmpty()) continue;
 					}
-					if ( n.isEmpty() ) continue;
 					ss = ss->findAndMake(CSSName(n), type, isExt);
 					isExt = true;
 					if ( !ss ) Qk_InvalidCss(exp);

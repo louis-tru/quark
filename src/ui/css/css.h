@@ -136,29 +136,34 @@ namespace qk {
 	class Qk_EXPORT StyleSheetsClass {
 		Qk_HIDDEN_ALL_COPY(StyleSheetsClass);
 	public:
-		Qk_DEFINE_PROP_GET(bool, haveSubstyles); // Does the current applied style sheet have sub style sheets
-		Qk_DEFINE_PROP_GET(bool, havePseudoType); // 当前样式表组支持伪类型
-		Qk_DEFINE_PROP_GET(bool, firstApply); // 是否为首次应用样式表,在处理动作时如果为第一次忽略动作
-		Qk_DEFINE_PROP_GET(CSSType, status); // 当前伪类应用状态
-		Qk_DEFINE_PROP_GET(Layout*, host, NoConst);
-		Qk_DEFINE_PROP_GET(StyleSheetsClass*, parent, NoConst); // apply parent ssc
+		Qk_DEFINE_PROP_GET(bool, havePseudoType); //!< The current style sheet group supports pseudo types
+		Qk_DEFINE_PROP_GET(bool, firstApply); //!< Is this the first time applying a style sheet
+		Qk_DEFINE_PROP_GET(CSSType, status); //!< Current pseudo type application status
+		Qk_DEFINE_PROP_GET(Hash5381, stylesHash); //!< hash for apply current style sheets
+		Qk_DEFINE_PROP_GET(Hash5381, haveSubstylesHash); //!< hash for apply current have substyle sheets
+		Qk_DEFINE_PROP_GET(Layout*, host, NoConst); //!< apply style sheet target object
+		Qk_DEFINE_PROP_GET(StyleSheetsClass*, parent, NoConst); //!< apply parent ssc
 
 		StyleSheetsClass(Layout *host);
-		void set(cArray<String> &name); // Calling in the main loop
-		void add(cString &name); // Calling in the main loop
-		void remove(cString &name); // Calling in the main loop
-		void toggle(cString &name); // Calling in the main loop
+		void set(cArray<String> &name); //!< Calling in the main loop
+		void add(cString &name); //!< Calling in the main loop
+		void remove(cString &name); //!< Calling in the main loop
+		void toggle(cString &name); //!< Calling in the main loop
+
+		inline bool haveSubstyles() const {
+			// return _stylesHash.hashCode() != 5381;
+		}
 
 	private:
 		void setStatus_RT(CSSType status);
-		void apply_RT(StyleSheetsClass *parent);
+		bool apply_RT(StyleSheetsClass *parent);
 		void updateClass();
 		void applyFrom(StyleSheetsClass *ssc);
 		void applyFindSubstyle(StyleSheets *ss);
 		void applyStyle(StyleSheets *ss);
 
-		Set<uint64_t> _nameHash; // class name hash
-		Set<StyleSheets*> _styles; // 当前应用的样式表且拥有子样式表供后代视图查询
+		Set<uint64_t> _nameHash; //!< class name hash
+		Set<StyleSheets*> _styles; //!< apply to all current style sheets
 
 		friend class View;
 	};

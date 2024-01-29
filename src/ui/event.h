@@ -291,14 +291,14 @@ namespace qk {
 		void set_ime_keyboard_spot_location(Vec2 location);
 		bool set_focus_view(View *view); // set focus from main thread
 	private:
-		void touchstart_use(View* view, List<TouchPoint>& in);
+		void touchstartErase(View *view, List<TouchPoint>& in);
 		void touchstart(Layout* layout, List<TouchPoint>& in);
 		void touchmove(List<TouchPoint>& in);
 		void touchend(List<TouchPoint>& in, const UIEventName& type);
 		void mousemove(View* view, Vec2 pos);
 		void mousepress(View* view, Vec2 pos, KeyboardKeyName name, bool down);
 		void mousewhell(KeyboardKeyName name, bool down, float x, float y);
-		View*    find_receive_view_exec(Layout *view, Vec2 pos);
+		View* find_receive_view_exec(Layout *view, Vec2 pos);
 		Sp<View, ReferenceTraits> find_receive_view(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, uint32_t keycode = 0);
 		Sp<View, ReferenceTraits> get_focus_view();

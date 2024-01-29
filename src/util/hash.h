@@ -42,7 +42,6 @@ namespace qk {
 		inline Hash5381(): _hash(5381) {}
 		inline Hash5381(uint64_t hash): _hash(hash) {}
 		uint64_t hashCode() const { return _hash; }
-		void   clear();
 		void   update(const void* data, uint32_t len);
 		void   updatestr(cString& str);
 		void   updateu16v(const uint16_t *data, uint32_t len);
