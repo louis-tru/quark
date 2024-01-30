@@ -93,6 +93,7 @@ namespace qk {
 
 	void StyleSheetsClass::setStatus_RT(CSSType status) {
 		if ( _status != status ) {
+			// TODO ...
 			_status = status;
 			if ( _havePseudoType ) {
 				_host->mark_layout(Layout::kStyle_Class);
@@ -111,9 +112,11 @@ namespace qk {
 
 		if (_nameHash.length()) {
 			applyFrom(parent);
-			if (_stylesHash.hashCode() != hash) {
+			if (_stylesHash.hashCode() != hash) { // is change styles
+				//hash = _haveSubstylesHash.hashCode();
 				for (auto &k: _styles) {
 					k.key->apply(_host);
+					// if (k.key->_haveSubstyles)
 				}
 			}
 		}
@@ -121,16 +124,16 @@ namespace qk {
 
 		// affects children StyleSheetsClass
 		// return _stylesHash.hashCode() != hash;
+
+		return false;
 	}
 
 	void StyleSheetsClass::applyFrom(StyleSheetsClass *ssc) {
 		if (ssc) {
 			applyFrom(ssc->_parent);
-			if (ssc->_styles.length()) {
-				for (auto &it: ssc->_styles) {
-					if (it.key->_substyles.length())
-						applyFindSubstyle(it.key);
-				}
+			for (auto &it: ssc->_styles) {
+				// if (it.key->_haveSubstyles)
+				applyFindSubstyle(it.key);
 			}
 		} else {
 			applyFindSubstyle(shared_app()->styleSheets()); // apply global style
@@ -181,13 +184,13 @@ namespace qk {
 	*/
 
 	void StyleSheetsClass::applyStyle(StyleSheets *ss) {
-		//ss->apply(_host);
+		// ss->apply(_host);
 		_styles.add(ss);
 		_stylesHash.updateu64(uint64_t(ss));
 
-		if (ss->_substyles.length()) {
+		//if (ss->_substyles.length()) {
 			// _stylesHash.updateu64(uint64_t(ss));
-		}
+		//}
 
 		// apply pseudo class
 		if (ss->_havePseudoType) {

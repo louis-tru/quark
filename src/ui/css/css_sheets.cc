@@ -51,6 +51,7 @@ namespace qk {
 		, _time(0)
 		, _normal(nullptr), _hover(nullptr), _active(nullptr)
 		, _havePseudoType(false)
+		, _haveSubstyles(false)
 		, _type( parent && parent->_type ? parent->_type: type )
 	{}
 
@@ -172,6 +173,7 @@ namespace qk {
 		if (!from.get(name.hashCode(), ss)) {
 			ss = new StyleSheets(name, isExtend ? _parent: this, kNone_CSSType);
 			from[name.hashCode()] = ss;
+			_haveSubstyles = _substyles.length();
 		}
 		if ( !type ) return ss; // no find pseudo type
 		if ( ss->_type ) return nullptr; // illegal pseudo cls, 伪类样式表,不能存在子伪类样式表
@@ -225,8 +227,8 @@ namespace qk {
 						if (n.isEmpty()) continue;
 					}
 					ss = ss->findAndMake(CSSName(n), type, isExt);
-					isExt = true;
 					if ( !ss ) Qk_InvalidCss(exp);
+					isExt = true;
 				}
 			}
 			if (ss != this)
