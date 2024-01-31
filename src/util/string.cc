@@ -171,24 +171,24 @@ namespace qk {
 		return -1;
 	}
 	
-	typedef ArrayStringBase::AAlloc AAlloc;
+	typedef ArrayStringBase::Realloc Realloc;
 	typedef _Str::Alloc Alloc;
 	typedef _Str::Size Size;
 	
 	struct _StrTmp {
 		void realloc(uint32_t capacity) {
-			_aalloc((void**)&_val, capacity, &_capacity, sizeof(Char));
+			_realloc((void**)&_val, capacity, &_capacity, sizeof(Char));
 		}
 		uint32_t _capacity;
 		Char*    _val;
-		AAlloc   _aalloc;
+		Realloc  _realloc;
 	};
 
 	void* _Str::replace(
 		const void* s1_, uint32_t s1_len,
 		const void* s2_, uint32_t s2_len,
 		const void* rep_, uint32_t rep_len,
-		int sizeOf, uint32_t* outLen, uint32_t* capacity_out, bool all, AAlloc realloc
+		int sizeOf, uint32_t* outLen, uint32_t* capacity_out, bool all, Realloc realloc
 	) {
 		_StrTmp s_tmp = {0, nullptr, realloc};
 		uint32_t s_tmp_to = 0;
@@ -460,7 +460,7 @@ namespace qk {
 			Retain(_val.l);
 	} // copy
 	
-	ArrayStringBase::ArrayStringBase(uint32_t len, AAlloc aalloc, uint8_t sizeOf)
+	ArrayStringBase::ArrayStringBase(uint32_t len, Realloc aalloc, uint8_t sizeOf)
 		: _val({.s={{0},0}})
 	{
 		realloc(len, aalloc, nullptr, sizeOf); // alloc
@@ -512,7 +512,7 @@ namespace qk {
 		return _val.s.length < 0 ? _val.l->val: (const char*)_val.s.val;
 	}
 	
-	char* ArrayStringBase::realloc(uint32_t len, AAlloc aalloc, Free free, uint8_t sizeOf) {
+	char* ArrayStringBase::realloc(uint32_t len, Realloc aalloc, Free free, uint8_t sizeOf) {
 		len *= sizeOf;
 		
 		if (_val.s.length < 0) { // long
@@ -556,7 +556,7 @@ namespace qk {
 		return _val.l->val;
 	}
 
-	Buffer ArrayStringBase::collapse(AAlloc aalloc, Free free) {
+	Buffer ArrayStringBase::collapse(Realloc aalloc, Free free) {
 		uint32_t s_len = _val.s.length;
 		if (s_len < 0) {
 			// long string

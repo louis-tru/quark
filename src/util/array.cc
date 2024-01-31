@@ -41,7 +41,7 @@ namespace qk {
 		{ \
 			if (length > _length) {  \
 				_length = length; \
-				realloc_(_length + APPEND_ZERO); \
+				increase_(_length + APPEND_ZERO); \
 				if (APPEND_ZERO) _val[_length] = 0; \
 			}\
 		}\
@@ -56,7 +56,7 @@ namespace qk {
 		template<> Array<T, A>& Array<T, A>::concat_(T* src, uint32_t src_length) { \
 			if (src_length) {\
 				_length += src_length; \
-				realloc_(_length + APPEND_ZERO); \
+				increase_(_length + APPEND_ZERO); \
 				T* src = _val; \
 				T* to = _val + _length - src_length; \
 				memcpy((void*)to, src, src_length * sizeof(T)); \
@@ -69,7 +69,7 @@ namespace qk {
 			if (size) { \
 				if ( to == -1 ) to = _length; \
 				_length = Qk_MAX(to + size, _length); \
-				realloc_(_length + APPEND_ZERO); \
+				increase_(_length + APPEND_ZERO); \
 				memcpy((void*)(_val + to), src, size * sizeof(T) ); \
 				if (APPEND_ZERO) _val[_length] = 0; \
 			} \
@@ -80,7 +80,8 @@ namespace qk {
 			uint32_t j = uint32_t(Qk_MAX(_length - count, 0)); \
 			if (_length > j) {  \
 				_length = j;  \
-				realloc_(_length + APPEND_ZERO); \
+				Qk_STRICT_ASSERT(_capacity >= 0, "the weak holder cannot be changed");\
+				A::reduce((void**)&_val, _length + APPEND_ZERO, (uint32_t*)&_capacity, sizeof(T));\
 				if (APPEND_ZERO) _val[_length] = 0; \
 			} \
 			/*return _length;*/ \
@@ -103,12 +104,13 @@ namespace qk {
 			if (capacity < _length) { /* clear Partial data */ \
 				_length = capacity;\
 			} \
-			realloc_(capacity + APPEND_ZERO); \
+			Qk_STRICT_ASSERT(_capacity >= 0, "the weak holder cannot be changed");\
+			A::realloc((void**)&_val, capacity+APPEND_ZERO, (uint32_t*)&_capacity, sizeof(T));\
 			if (APPEND_ZERO) _val[_length] = 0; \
 		} \
 		\
 		template<> void Array<T, A>::copy_(T** val, int *capacity, uint32_t start, uint32_t len) const { \
-			A::aalloc((void**)val, len+APPEND_ZERO, (uint32_t*)capacity, sizeof(T));\
+			A::realloc((void**)val, len+APPEND_ZERO, (uint32_t*)capacity, sizeof(T));\
 			memcpy(*val, _val + start, len * sizeof(T)); \
 			if (APPEND_ZERO) (*val)[len] = 0; \
 		} \

@@ -41,20 +41,32 @@ namespace qk {
 	void MemoryAllocator::free(void* ptr) {
 		::free(ptr);
 	}
-	
-	void* MemoryAllocator::realloc(void* ptr, uint32_t size) {
-		return ::realloc(ptr, size);
+
+	static void increase_f(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf) {
+		size = Qk_MAX(Qk_MIN_CAPACITY, size);
+		size = powf(2, ceilf(log2f(size)));
+		*ptrOut = ::realloc(*ptrOut, sizeOf * size);
+		*sizeOut = size;
+		Qk_ASSERT(*ptrOut);
 	}
 
-	void MemoryAllocator::aalloc(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf) {
+	void MemoryAllocator::realloc(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf) {
+		if ( size > *sizeOut ) {
+			increase_f(ptrOut, size, sizeOut, sizeOf);
+		} else {
+			reduce(ptrOut, size, sizeOut, sizeOf);
+		}
+	}
+
+	void MemoryAllocator::increase(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf) {
+		if ( size > *sizeOut ) {
+			increase_f(ptrOut, size, sizeOut, sizeOf);
+		}
+	}
+
+	void MemoryAllocator::reduce(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf) {
 		uint32_t capacity = *sizeOut;
-		if ( size > capacity ) {
-			size = Qk_MAX(Qk_MIN_CAPACITY, size);
-			size = powf(2, ceilf(log2f(size)));
-			*ptrOut = *ptrOut ? ::realloc(*ptrOut, sizeOf * size) : ::malloc(sizeOf * size);
-			*sizeOut = size;
-			Qk_ASSERT(*ptrOut);
-		} else if ( size > Qk_MIN_CAPACITY && size < (capacity >> 2) ) { // > 8
+		if ( size > Qk_MIN_CAPACITY && size < (capacity >> 2) ) { // > 8
 			capacity >>= 1;
 			size = powf(2, ceilf(log2f(size)));
 			size <<= 1;

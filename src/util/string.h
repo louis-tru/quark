@@ -47,7 +47,7 @@ namespace qk {
 	
 	class Qk_EXPORT ArrayStringBase: public Object {
 	public:
-		typedef void (*AAlloc)(void** val, uint32_t, uint32_t*, uint32_t sizeOf);
+		typedef void (*Realloc)(void** val, uint32_t, uint32_t*, uint32_t sizeOf);
 		typedef void (*Free)(void* ptr);
 		static constexpr char MAX_SHORT_LEN = 32;
 		struct ShortStr { char val[36]; char length; };
@@ -64,15 +64,15 @@ namespace qk {
 	protected:
 		ArrayStringBase();
 		ArrayStringBase(const ArrayStringBase& str);
-		ArrayStringBase(uint32_t len, AAlloc alloc, uint8_t size_of);
+		ArrayStringBase(uint32_t len, Realloc alloc, uint8_t size_of);
 		ArrayStringBase(uint32_t len, uint32_t capacity, char* val, uint8_t size_of);
 		void assign(    uint32_t len, uint32_t capacity, char* val, uint8_t size_of, Free free);
 		void assign(const ArrayStringBase& s, Free free);
 		char*       ptr();
 		const char* ptr() const;
 		uint32_t capacity() const;
-		char* realloc(uint32_t len, AAlloc alloc, Free free, uint8_t size_of);
-		Buffer collapse(AAlloc alloc, Free free);
+		char* realloc(uint32_t len, Realloc alloc, Free free, uint8_t size_of);
+		Buffer collapse(Realloc alloc, Free free);
 		void   clear(Free free);
 		static LongStr* NewLong(uint32_t length, uint32_t capacity, char* val);
 		static void Release(LongStr* l, Free free);
@@ -196,7 +196,7 @@ namespace qk {
 		// static methods
 		typedef char T;
 		typedef void* (*Alloc)(uint32_t);
-		typedef void  (*AAlloc)(void**, uint32_t, uint32_t*, uint32_t);
+		typedef void  (*Realloc)(void**, uint32_t, uint32_t*, uint32_t);
 
 		struct Size { uint32_t len; uint32_t capacity; };
 		static cChar ws[8];
@@ -266,7 +266,7 @@ namespace qk {
 			const void* s1, uint32_t s1_len,
 			const void* s2, uint32_t s2_len,
 			const void* rep, uint32_t rep_len,
-			int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all, AAlloc realloc
+			int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all, Realloc realloc
 		);
 		static int tolower(int c);
 		static int toupper(int c);
