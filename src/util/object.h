@@ -55,6 +55,8 @@ namespace qk {
 		static void  free(void* ptr);
 		static void* realloc(void* ptr, uint32_t size);
 		static void  aalloc(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf); // auto alloc Memory
+		// static void  increase(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf);
+		// static void  reduce(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf);
 	};
 
 	template<typename T = char, typename A = MemoryAllocator> class ArrayString;

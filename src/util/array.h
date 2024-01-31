@@ -214,6 +214,7 @@ namespace qk {
 		 * @arg realloc_ {uint32_t}
 		 */
 		void realloc_(uint32_t capacity);
+		void realloc_add_(uint32_t capacity);
 
 		/**
 		 * @method copy data and output data pointer and capacity
@@ -353,7 +354,7 @@ namespace qk {
 		: _length(0), _capacity(0), _val(nullptr)
 	{
 		extend(length);
-		realloc_(Qk_MAX(length, capacity));
+		realloc_add_(Qk_MAX(length, capacity));
 	}
 
 	template<typename T, typename A>
@@ -396,14 +397,14 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::push(const T& item) {
-		realloc_(++_length);
+		realloc_add_(++_length);
 		new(_val + _length - 1) T(item);
 		return *this;
 	}
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::push(T&& item) {
-		realloc_(++_length);
+		realloc_add_(++_length);
 		new(_val + _length - 1) T(std::move(item));
 		return *this;
 	}
@@ -428,7 +429,7 @@ namespace qk {
 			uint32_t old_len = _length;
 			uint32_t end = to + size_src;
 			_length = Qk_MAX(end, _length);
-			realloc_(_length);
+			realloc_add_(_length);
 			T* to_ = _val + to;
 			
 			for (int i = to; i < end; i++) {
@@ -446,7 +447,7 @@ namespace qk {
 	Array<T, A>& Array<T, A>::concat_(T* src, uint32_t src_length) {
 		if (src_length) {
 			_length += src_length;
-			realloc_(_length);
+			realloc_add_(_length);
 			T* end = _val + _length, *to = end - src_length;
 			do {
 				new(to) T(std::move(*src)); // call move constructor
@@ -546,7 +547,7 @@ namespace qk {
 	template<typename T, typename A>
 	void Array<T, A>::extend(uint32_t length) {
 		if (length > _length) {
-			realloc_(length);
+			realloc_add_(length);
 			new(_val + _length) T[length - _length];
 			_length = length;
 		}
@@ -562,6 +563,13 @@ namespace qk {
 	void Array<T, A>::realloc_(uint32_t capacity) {
 		Qk_STRICT_ASSERT(_capacity >= 0, "the weak holder cannot be changed");
 		A::aalloc((void**)&_val, capacity, (uint32_t*)&_capacity, sizeof(T));
+	}
+
+	template<typename T, typename A>
+	void Array<T, A>::realloc_add_(uint32_t capacity) {
+		Qk_STRICT_ASSERT(_capacity >= 0, "the weak holder cannot be changed");
+		if (capacity > _capacity)
+			A::aalloc((void**)&_val, capacity, (uint32_t*)&_capacity, sizeof(T));
 	}
 
 	template<> Qk_EXPORT

@@ -124,7 +124,6 @@ namespace qk {
 
 		// affects children StyleSheetsClass
 		// return _stylesHash.hashCode() != hash;
-
 		return false;
 	}
 
@@ -185,7 +184,7 @@ namespace qk {
 
 	void StyleSheetsClass::applyStyle(StyleSheets *ss) {
 		// ss->apply(_host);
-		_styles.add(ss);
+		// _styles.add(ss);
 		_stylesHash.updateu64(uint64_t(ss));
 
 		//if (ss->_substyles.length()) {

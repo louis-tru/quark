@@ -162,7 +162,7 @@ namespace qk {
 		void applyStyle(StyleSheets *ss);
 
 		Set<uint64_t> _nameHash; //!< class name hash
-		Set<StyleSheets*> _styles; //!< apply to all current style sheets
+		Array<StyleSheets*> _styles; //!< apply to all current style sheets
 
 		Hash5381 _stylesHash; //!< hash for apply current style sheets
 		Hash5381 _haveSubstylesHash; //!< hash for apply current have substyle sheets
