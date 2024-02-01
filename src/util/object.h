@@ -56,6 +56,21 @@ namespace qk {
 		static void  realloc(void** ptrOut, uint32_t size, uint32_t* prevSizeOut, uint32_t sizeOf);
 		static void  increase(void** ptrOut, uint32_t size, uint32_t* prevSizeOut, uint32_t sizeOf);
 		static void  reduce(void** ptrOut, uint32_t size, uint32_t* prevSizeOut, uint32_t sizeOf);
+
+		template<typename T, typename A = MemoryAllocator>
+		struct Prt {
+			void realloc(uint32_t size) {
+				A::realloc((void**)&val, size, &capacity, sizeof(T));
+			}
+			void increase(uint32_t size) {
+				A::increase((void**)&val, size, &capacity, sizeof(T));
+			}
+			void reduce(uint32_t size) {
+				A::reduce((void**)&val, size, &capacity, sizeof(T));
+			}
+			uint32_t capacity;
+			T*       val;
+		};
 	};
 
 	template<typename T = char, typename A = MemoryAllocator> class ArrayString;

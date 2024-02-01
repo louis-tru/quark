@@ -394,19 +394,19 @@ namespace qk {
 		buff[total] = 0;
 		return String(std::move(buff));
 	}
-	
+
 	String Object::toString() const {
 		static String str("[object]");
 		return str;
 	}
-	
+
 	String _Str::toString(const void* ptr, uint32_t len, int size_of) {
 		if (size_of == 1) { // char
 			return String((const char*)ptr, len);
 		} else if (size_of == 2) { // uint16_t
-			return codec_encode(kUTF8_Encoding, ArrayWeak<uint16_t>((const uint16_t*)ptr, len));
+			return codec_encode(kUTF8_Encoding, ArrayWeak<uint16_t>((const uint16_t*)ptr, len).buffer());
 		} else if (size_of == 4) { // uint32_t
-			return codec_encode(kUTF8_Encoding, ArrayWeak<uint32_t>((const uint32_t*)ptr, len));
+			return codec_encode(kUTF8_Encoding, ArrayWeak<uint32_t>((const uint32_t*)ptr, len).buffer());
 		} else {
 			Qk_FATAL("I won't support it, to_string");
 			return String();

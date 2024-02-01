@@ -42,14 +42,14 @@ namespace qk {
 			if (length > _length) {  \
 				_length = length; \
 				increase_(_length + APPEND_ZERO); \
-				if (APPEND_ZERO) _val[_length] = 0; \
+				if (APPEND_ZERO) _ptr.val[_length] = 0; \
 			}\
 		}\
 		\
 		template<> std::vector<T> Array<T, A>::vector() const { \
 			std::vector<T> r(_length); \
 			if (_length) \
-				memcpy(r.data(), _val, sizeof(T) * _length); \
+				memcpy(r.data(), _ptr.val, sizeof(T) * _length); \
 			Qk_ReturnLocal(r); \
 		} \
 		\
@@ -57,10 +57,10 @@ namespace qk {
 			if (src_length) {\
 				_length += src_length; \
 				increase_(_length + APPEND_ZERO); \
-				T* src = _val; \
-				T* to = _val + _length - src_length; \
+				T* src = _ptr.val; \
+				T* to = _ptr.val + _length - src_length; \
 				memcpy((void*)to, src, src_length * sizeof(T)); \
-				if (APPEND_ZERO) _val[_length] = 0; \
+				if (APPEND_ZERO) _ptr.val[_length] = 0; \
 			} \
 			return *this; \
 		} \
@@ -70,8 +70,8 @@ namespace qk {
 				if ( to == -1 ) to = _length; \
 				_length = Qk_MAX(to + size, _length); \
 				increase_(_length + APPEND_ZERO); \
-				memcpy((void*)(_val + to), src, size * sizeof(T) ); \
-				if (APPEND_ZERO) _val[_length] = 0; \
+				memcpy((void*)(_ptr.val + to), src, size * sizeof(T) ); \
+				if (APPEND_ZERO) _ptr.val[_length] = 0; \
 			} \
 			return size; \
 		} \
@@ -80,39 +80,33 @@ namespace qk {
 			uint32_t j = uint32_t(Qk_MAX(_length - count, 0)); \
 			if (_length > j) {  \
 				_length = j;  \
-				Qk_STRICT_ASSERT(_capacity >= 0, "the weak holder cannot be changed");\
-				A::reduce((void**)&_val, _length + APPEND_ZERO, (uint32_t*)&_capacity, sizeof(T));\
-				if (APPEND_ZERO) _val[_length] = 0; \
+				_ptr.reduce(_length + APPEND_ZERO);\
+				if (APPEND_ZERO) _ptr.val[_length] = 0; \
 			} \
-			/*return _length;*/ \
 			return *this; \
 		} \
 		\
 		template<> void Array<T, A>::clear() { \
-			if (_val) { \
-				if (!isWeak()) { \
-					A::free(_val); /* free */ \
-					_capacity = 0; \
-				} \
+			if (_ptr.val) { \
+				A::free(_ptr.val); /* free */ \
+				_ptr.capacity = 0; \
+				_ptr.val = nullptr; \
 				_length = 0; \
-				_val = nullptr; \
 			} \
 		} \
 		\
 		template<> void Array<T, A>::realloc(uint32_t capacity) { \
-			/*Qk_ASSERT(!isWeak(), "the weak holder cannot be changed");*/ \
 			if (capacity < _length) { /* clear Partial data */ \
 				_length = capacity;\
 			} \
-			Qk_STRICT_ASSERT(_capacity >= 0, "the weak holder cannot be changed");\
-			A::realloc((void**)&_val, capacity+APPEND_ZERO, (uint32_t*)&_capacity, sizeof(T));\
-			if (APPEND_ZERO) _val[_length] = 0; \
+			_ptr.realloc(capacity+APPEND_ZERO); \
+			if (APPEND_ZERO) _ptr.val[_length] = 0; \
 		} \
 		\
-		template<> void Array<T, A>::copy_(T** val, int *capacity, uint32_t start, uint32_t len) const { \
-			A::realloc((void**)val, len+APPEND_ZERO, (uint32_t*)capacity, sizeof(T));\
-			memcpy(*val, _val + start, len * sizeof(T)); \
-			if (APPEND_ZERO) (*val)[len] = 0; \
+		template<> void Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const { \
+			ptr->realloc(len+APPEND_ZERO);\
+			memcpy(ptr->val, _ptr.val + start, len * sizeof(T)); \
+			if (APPEND_ZERO) ptr->val[len] = 0; \
 		} \
 
 	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, APPEND_ZERO) \

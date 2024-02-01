@@ -625,13 +625,13 @@ namespace qk {
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::substr(uint32_t start, uint32_t len) const {
-		auto s = ArrayWeak<T, A>(c_str(), length()).slice(start, start + len);
+		auto s = ArrayWeak<T>(c_str(), length())->slice(start, start + len);
 		return ArrayString(*s, s.length());
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::substring(uint32_t start, uint32_t end) const {
-		auto s = ArrayWeak<T, A>(c_str(), length()).slice(start, end);
+		auto s = ArrayWeak<T>(c_str(), length())->slice(start, end);
 		return ArrayString(*s, s.length());
 	}
 

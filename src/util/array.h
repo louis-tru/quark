@@ -39,13 +39,12 @@ namespace qk {
 
 	template<typename T = char, typename A = MemoryAllocator> class Array;
 	template<typename T = char, typename A = MemoryAllocator> class ArrayBuffer; // array no copy
-	template<typename T = char, typename A = MemoryAllocator> class ArrayWeak;
 	template<typename T = char, typename A = MemoryAllocator> using cArray = const Array<T, A>;
+	template<typename T = char> class ArrayWeak;
 
-	typedef       ArrayBuffer<char>     Buffer; // Array No Copy
-	typedef       ArrayWeak<char>       WeakBuffer;
-	typedef const ArrayBuffer<char>     cBuffer;
-	typedef const ArrayWeak<char>       cWeakBuffer;
+	typedef       ArrayBuffer<char>   Buffer; // Array No Copy
+	typedef const ArrayBuffer<char>   cBuffer;
+	typedef       ArrayWeak<char>     WeakBuffer;
 
 	/**
 	 * @class Array
@@ -66,62 +65,57 @@ namespace qk {
 		typedef SimpleIterator<T, T> Iterator;
 		typedef SimpleIterator<const T, T> IteratorConst;
 
-		inline Iterator begin() { return Iterator(_val); }
-		inline Iterator end() { return Iterator(_val + _length); }
-		inline IteratorConst begin() const { return IteratorConst(_val); }
-		inline IteratorConst end() const { return IteratorConst(_val + _length); }
+		Iterator begin() { return Iterator(_ptr.val); }
+		Iterator end() { return Iterator(_ptr.val + _length); }
+		IteratorConst begin() const { return IteratorConst(_ptr.val); }
+		IteratorConst end() const { return IteratorConst(_ptr.val + _length); }
 
 		virtual ~Array() { clear(); }
 
 		/**
 		 * @method size() Get the memory size occupied by the data
 		 */
-		inline uint32_t size() const { return _length * sizeof(T); }
+		uint32_t size() const { return _length * sizeof(T); }
 
 		/**
 		 * @method is_null() Is null data available?
 		*/
-		inline bool isNull() const { return _length == 0; }
+		bool isNull() const { return _length == 0; }
 
-		/**
-		 * @method isWeak() is weak array buffer object
-		 */
-		inline bool isWeak() const { return _capacity < 0; }
+		uint32_t length() const { return _length; }
+		uint32_t capacity() const { return _ptr.capacity; }
 
-		inline uint32_t length() const { return _length; }
-		inline int32_t  capacity() const { return _capacity; }
-
-		inline operator bool() const { return _length != 0; }
+		operator bool() const { return _length != 0; }
 		// operator=
 		Array& operator=(Array&& arr);
 		Array& operator=(const Array& arr);
 
 		// get ptr
-		inline       T& operator[](uint32_t index) {
+		      T& operator[](uint32_t index) {
 			Qk_ASSERT(index < _length, "Array access violation.");
-			return _val[index];
+			return _ptr.val[index];
 		}
-		inline const T& operator[](uint32_t index) const {
+		const T& operator[](uint32_t index) const {
 			Qk_ASSERT(index < _length, "Array access violation.");
-			return _val[index];
+			return _ptr.val[index];
 		}
-		inline       T& indexAt(uint32_t index) { return operator[](index); }
-		inline const T& indexAt(uint32_t index) const { return operator[](index); }
-		inline       T& lastIndexAt(uint32_t index) { return operator[](_length - 1 - index); }
-		inline const T& lastIndexAt(uint32_t index) const { return operator[](_length - 1 - index); }
-		inline       T* operator*()       { return _val; }
-		inline const T* operator*() const { return _val; }
-		inline       T* val      ()       { return _val; }
-		inline const T* val      () const { return _val; }
+		      T& at(uint32_t index) { return operator[](index); }
+		const T& at(uint32_t index) const { return operator[](index); }
+		      T& lastAt(uint32_t index) { return operator[](_length - index - 1); }
+		const T& lastAt(uint32_t index) const { return operator[](_length - index - 1); }
+		      T* operator*()       { return _ptr.val; }
+		const T* operator*() const { return _ptr.val; }
+		      T* val      ()       { return _ptr.val; }
+		const T* val      () const { return _ptr.val; }
 
-		Array& push(T&& item);
-		Array& push(const T& item);
-		Array& pop (uint32_t count = 1);
+		Array&   push(T&& item);
+		Array&   push(const T& item);
+		Array&   pop (uint32_t count = 1);
 
-		const T& front() const { return _val[0]; }
-		const T& back()  const { return _val[_length - 1]; }
-		T&       front() { return _val[0]; }
-		T&       back()  { return _val[_length - 1]; }
+		const T& front() const { return _ptr.val[0]; }
+		const T& back()  const { return _ptr.val[_length - 1]; }
+		T&       front() { return _ptr.val[0]; }
+		T&       back()  { return _ptr.val[_length - 1]; }
 
 		/**
 		 * @method write() write data items
@@ -141,7 +135,7 @@ namespace qk {
 		/**
 		 * @method slice() weak copy array buffer
 		 */
-		ArrayWeak<T, A> slice(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
+		ArrayWeak<T> slice(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
 
 		/**
 		 * @method copy() strong copy array buffer
@@ -167,7 +161,7 @@ namespace qk {
 		 * @method join() to string
 		 */
 		String join(cString& sp) const;
-		
+
 		/**
 		 * @func toString() to_string
 		 */
@@ -177,7 +171,7 @@ namespace qk {
 		 * @method clear() clear data
 		*/
 		void clear();
-		
+
 		/**
 		 * @method realloc reset realloc length
 		*/
@@ -199,8 +193,10 @@ namespace qk {
 		 */
 		Array& reverse();
 
-	protected:
-		/** @constructors */
+	private:
+		/**
+		 * @constructors
+		 */
 		Array(uint32_t length, int32_t capacity, T* data); // greedy constructors
 		Array(uint32_t length, uint32_t capacity); // new array buffer from length
 
@@ -215,16 +211,16 @@ namespace qk {
 		 */
 		void increase_(uint32_t capacity);
 
+		struct Sham { T _item; }; // Used to call data destructors
+		typedef MemoryAllocator::Prt<T, A> Ptr;
+
+		uint32_t _length;
+		Ptr _ptr;
+
 		/**
 		 * @method copy data and output data pointer and capacity
 		*/
-		void copy_(T** val, int *capacity, uint32_t start, uint32_t len) const;
-
-		struct Sham { T _item; }; // Used to call data destructors
-
-		uint32_t  _length;
-		int32_t   _capacity; // -1 means that it does not hold a pointer. This value is determined when it is constructed
-		T*        _val;
+		void copy_(Ptr* ptr, uint32_t start, uint32_t len) const;
 
 		template<typename T2, typename A2> friend class Array;
 
@@ -237,68 +233,64 @@ namespace qk {
 	template<typename T, typename A>
 	class Qk_EXPORT ArrayBuffer: public Array<T, A> {
 	public:
-		inline ArrayBuffer() {}
-		inline ArrayBuffer(Array<T, A>& arr): Array<T, A>(std::move(arr)) {}
-		inline ArrayBuffer(ArrayBuffer<T, A>& arr): Array<T, A>(std::move(arr)) {}
-		inline ArrayBuffer(ArrayBuffer<T, A>&& arr): Array<T, A>(std::move(arr)) {}
+		ArrayBuffer() {}
+		ArrayBuffer(Array<T, A>& arr): Array<T, A>(std::move(arr)) {}
+		ArrayBuffer(ArrayBuffer<T, A>& arr): Array<T, A>(std::move(arr)) {}
+		ArrayBuffer(ArrayBuffer<T, A>&& arr): Array<T, A>(std::move(arr)) {}
 
+		ArrayBuffer(T* data, uint32_t length, int32_t capacity = 0)
+			: Array<T, A>(length, Qk_MAX(capacity, length), data) {}
+		ArrayBuffer(uint32_t length, uint32_t capacity = 0)
+			: Array<T, A>(length, capacity) {}
+
+		// Disable copy and assign value function
 		ArrayBuffer(const ArrayBuffer& arr) = delete;
 		ArrayBuffer& operator=(const ArrayBuffer& arr) = delete;
 
 		/**
 		 * @method from() greedy new Array from ...
 		 */
-		static inline ArrayBuffer from(T* data, uint32_t length, uint32_t capacity = 0) {
-			return ArrayBuffer<T, A>(length, Qk_MAX(capacity, length), data);
+		static ArrayBuffer from(T* data, uint32_t length, uint32_t capacity = 0) {
+			return ArrayBuffer<T, A>(data, length, capacity);
 		}
-		static inline ArrayBuffer alloc(uint32_t length, uint32_t capacity = 0) {
+		static ArrayBuffer alloc(uint32_t length, uint32_t capacity = 0) {
 			return ArrayBuffer<T, A>(length, capacity);
 		}
 
 		// operator=
-		inline ArrayBuffer& operator=(ArrayBuffer<T, A>& arr) {
+		ArrayBuffer& operator=(ArrayBuffer<T, A>& arr) {
 			Array<T, A>::operator=(std::move(arr)); return *this;
 		}
-		inline ArrayBuffer& operator=(ArrayBuffer<T, A>&& arr) {
+		ArrayBuffer& operator=(ArrayBuffer<T, A>&& arr) {
 			Array<T, A>::operator=(std::move(arr)); return *this;
 		}
-
-	protected:
-		inline ArrayBuffer(uint32_t length, int32_t capacity, T* data)
-			: Array<T, A>(length, capacity, data) {}
-		inline ArrayBuffer(uint32_t length, uint32_t capacity)
-			: Array<T, A>(length, capacity) {}
-
-		template<typename T2, typename A2> friend class Array;
 	};
 
 	/**
 	 * @class ArrayWeak
 	 */
-	template<typename T, typename A>
-	class Qk_EXPORT ArrayWeak: public ArrayBuffer<T, A> {
+	template<typename T>
+	class Qk_EXPORT ArrayWeak: public Object {
 	public:
-		inline ArrayWeak()
-			: ArrayBuffer<T, A>(0, -1, nullptr) {}
-		inline ArrayWeak(const T* data, uint32_t length)
-			: ArrayBuffer<T, A>(length, -1, const_cast<T*>(data)) {}
-		inline ArrayWeak(const ArrayWeak& arr)
-			: ArrayBuffer<T, A>(arr.length(), -1, const_cast<T*>(arr.val())) {}
+		ArrayWeak(): _length(0), _ptr{0,nullptr} {}
+		ArrayWeak(const T* data, uint32_t length)
+			: _length(length), _ptr{length,data} {}
 		template<class A2>
-		inline ArrayWeak(const Array<T, A2>& arr)
-			: ArrayBuffer<T, A>(arr.length(), -1, const_cast<T*>(arr.val())) {}
+		ArrayWeak(cArray<T, A2>& arr)
+			: _length(arr.length()), _ptr{arr.length(),const_cast<T*>(*arr)} {}
 
-		inline ArrayWeak& operator=(const ArrayWeak<T>& arr) {
-			this->_length = arr._length;
-			this->_val = arr._val;
-			return *this;
+		operator bool() const { return _ptr.val != nullptr; }
+		const T* operator*() const { return _ptr.val; }
+		const ArrayBuffer<T>* operator->() const {
+			return reinterpret_cast<const ArrayBuffer<T>*>(this);
 		}
-		template<class A2>
-		inline ArrayWeak& operator=(const Array<T, A2>& arr) {
-			this->_length = arr._length;
-			this->_val = arr._val;
-			return *this;
-		}
+		const ArrayBuffer<T>& buffer() const { return *(operator->()); }
+		uint32_t length() const { return _length; }
+		const T* val() const { return _ptr.val; }
+
+	private:
+		uint32_t _length;
+		MemoryAllocator::Prt<T, MemoryAllocator> _ptr;
 	};
 
 }
@@ -308,40 +300,40 @@ namespace qk {
 	// ---------------------------------- IMPL ----------------------------------
 
 	template<typename T, typename A>
-	Array<T, A>::Array(): _length(0), _capacity(0), _val(nullptr)
+	Array<T, A>::Array(): _length(0), _ptr{0, nullptr}
 	{}
 
 	template<typename T, typename A>
-	Array<T, A>::Array(Array&& arr): _length(0), _capacity(0), _val(nullptr)
+	Array<T, A>::Array(Array&& arr): _length(0), _ptr{0, nullptr}
 	{
 		if (arr._length)
 			operator=(std::move(arr));
 	}
 
 	template<typename T, typename A>
-	Array<T, A>::Array(const Array& arr): _length(arr._length), _capacity(0), _val(nullptr)
+	Array<T, A>::Array(const Array& arr): _length(arr._length), _ptr{0, nullptr}
 	{
 		if (_length)
-			arr.copy_(&_val, &_capacity, 0, _length);
+			arr.copy_(&_ptr, 0, _length);
 	}
-	
+
 	template<typename T, typename A>
 	Array<T, A>::Array(const std::initializer_list<T>& list)
-		: _length(0), _capacity(0), _val(nullptr)
+		: _length(0), _ptr{0, nullptr}
 	{
 		write(list.begin(), (uint32_t)list.size());
 	}
 
 	template<typename T, typename A>
 	Array<T, A>::Array(const std::vector<T>& list)
-		: _length(0), _capacity(0), _val(nullptr)
+		: _length(0), _ptr{0, nullptr}
 	{
 		write(list.data(), (uint32_t)list.size());
 	}
 
 	template<typename T, typename A>
 	Array<T, A>::Array(uint32_t length, int32_t capacity, T* data)
-		: _length(length), _capacity(capacity), _val(data)
+		: _length(length), _ptr{capacity,data}
 	{}
 
 	template<typename T, typename A>
@@ -350,7 +342,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>::Array(uint32_t length, uint32_t capacity)
-		: _length(0), _capacity(0), _val(nullptr)
+		: _length(0), _ptr{0,nullptr}
 	{
 		extend(length);
 		increase_(Qk_MAX(length, capacity));
@@ -358,37 +350,25 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::operator=(Array&& arr) {
-		if ( arr._val != _val ) {
-			if (isWeak()) {
-				_length = arr._length;
-				_val = arr._val;
-			} else {
-				clear();
-				_capacity = arr._capacity;
-				_length = arr._length;
-				_val = arr._val;
-				if (arr._capacity != -1) {
-					arr._capacity = 0;
-					arr._length = 0;
-					arr._val = nullptr;
-				}
-			}
+		if ( arr._ptr.val != _ptr.val ) {
+			clear();
+			_ptr.capacity = arr._ptr.capacity;
+			_length = arr._length;
+			_ptr.val = arr._ptr.val;
+			arr._length = 0;
+			arr._ptr.capacity = 0;
+			arr._ptr.val = nullptr;
 		}
 		return *this;
 	}
 	
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::operator=(const Array& arr) {
-		if (arr._val != _val) {
-			if (isWeak()) {
+		if (arr._ptr.val != _ptr.val) {
+			clear();
+			if (arr._length) {
 				_length = arr._length;
-				_val = arr._val;
-			} else {
-				clear();
-				if (arr._length) {
-					_length = arr._length;
-					arr.copy_(&_val, &_capacity, 0, _length);
-				}
+				arr.copy_(&_ptr, 0, _length);
 			}
 		}
 		return *this;
@@ -397,14 +377,14 @@ namespace qk {
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::push(const T& item) {
 		increase_(++_length);
-		new(_val + _length - 1) T(item);
+		new(_ptr.val + _length - 1) T(item);
 		return *this;
 	}
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::push(T&& item) {
 		increase_(++_length);
-		new(_val + _length - 1) T(std::move(item));
+		new(_ptr.val + _length - 1) T(std::move(item));
 		return *this;
 	}
 
@@ -414,10 +394,9 @@ namespace qk {
 		if (_length > j) {
 			do {
 				_length--;
-				reinterpret_cast<Sham*>(_val + _length)->~Sham(); // release
+				reinterpret_cast<Sham*>(_ptr.val + _length)->~Sham(); // release
 			} while (_length > j);
-			Qk_STRICT_ASSERT(_capacity >= 0, "the weak holder cannot be changed");
-			A::reduce((void**)&_val, capacity, (uint32_t*)&_capacity, sizeof(T));
+			_ptr.reduce(_length);
 		}
 		return *this;
 	}
@@ -430,7 +409,7 @@ namespace qk {
 			uint32_t end = to + size_src;
 			_length = Qk_MAX(end, _length);
 			increase_(_length);
-			T* to_ = _val + to;
+			T* to_ = _ptr.val + to;
 			
 			for (int i = to; i < end; i++) {
 				if (i < old_len) {
@@ -448,7 +427,7 @@ namespace qk {
 		if (src_length) {
 			_length += src_length;
 			increase_(_length);
-			T* end = _val + _length, *to = end - src_length;
+			T* end = _ptr.val + _length, *to = end - src_length;
 			do {
 				new(to) T(std::move(*src)); // call move constructor
 				src++; to++;
@@ -466,12 +445,12 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	ArrayWeak<T, A> Array<T, A>::slice(uint32_t start, uint32_t end) const {
+	ArrayWeak<T> Array<T, A>::slice(uint32_t start, uint32_t end) const {
 		end = Qk_MIN(end, _length);
 		if (start < end) {
-			return ArrayWeak<T, A>(_val + start, end - start);
+			return ArrayWeak<T>(_ptr.val + start, end - start);
 		} else {
-			return ArrayWeak<T, A>();
+			return ArrayWeak<T>();
 		}
 	}
 
@@ -481,17 +460,17 @@ namespace qk {
 		if (start < end) {
 			ArrayBuffer<T, A> arr;
 			arr._length = end - start;
-			copy_(&arr._val, &arr._capacity, start, arr._length);
+			copy_(&arr._ptr, start, arr._length);
 			Qk_ReturnLocal(arr);
 		}
 		return ArrayBuffer<T, A>();
 	}
 
 	template<typename T, typename A>
-	void Array<T, A>::copy_(T** val, int *capacity, uint32_t start, uint32_t len) const {
-		A::realloc((void**)val, len, (uint32_t*)capacity, sizeof(T));
-		T* to = *val, *e = to + len;
-		const T* src = _val + start;
+	void Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const {
+		ptr->realloc(len);
+		T* to = ptr->val, *e = to + len;
+		const T* src = _ptr.val + start;
 		do {
 			new(to) T(*src);
 			to++; src++;
@@ -500,12 +479,10 @@ namespace qk {
 
 	template<typename T, typename A>
 	T* Array<T, A>::collapse() {
-		if (isWeak())
-			return nullptr;
-		T* r = _val;
-		_capacity = 0;
+		T* r = _ptr.val;
 		_length = 0;
-		_val = nullptr;
+		_ptr.capacity = 0;
+		_ptr.val = nullptr;
 		return r;
 	}
 
@@ -519,52 +496,48 @@ namespace qk {
 
 	template<typename T, typename A>
 	void Array<T, A>::clear() {
-		if (_val) {
-			if (!isWeak()) {
-				T *i = _val, *end = i + _length;
-				while (i < end)
-					reinterpret_cast<Sham*>(i++)->~Sham(); // release
-				A::free(_val); // free
-				_capacity = 0;
-			}
+		if (_ptr.val) {
+			T *i = _ptr.val, *end = i + _length;
+			while (i < end)
+				reinterpret_cast<Sham*>(i++)->~Sham(); // release
+			A::free(_pre.val); // free
+			_ptr.capacity = 0;
+			_ptr.val = nullptr;
 			_length = 0;
-			_val = nullptr;
 		}
 	}
 
 	template<typename T, typename A>
 	void Array<T, A>::realloc(uint32_t capacity) {
 		if (capacity < _length) { // clear Partial data
-			T* i = _val + capacity;
+			T* i = _ptr.val + capacity;
 			T* end = i + _length;
 			while (i < end)
 				reinterpret_cast<Sham*>(i++)->~Sham(); // release
 			_length = capacity;
 		}
-		Qk_STRICT_ASSERT(_capacity >= 0, "the weak holder cannot be changed");
-		A::realloc((void**)&_val, capacity, (uint32_t*)&_capacity, sizeof(T));
+		_ptr.realloc(capacity);
 	}
 
 	template<typename T, typename A>
 	void Array<T, A>::extend(uint32_t length) {
 		if (length > _length) {
 			increase_(length);
-			new(_val + _length) T[length - _length];
+			new(_ptr.val + _length) T[length - _length];
 			_length = length;
 		}
 	}
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::reverse() {
-		Array<char, MemoryAllocator>::_Reverse(_val, sizeof(T), _length);
+		Array<char, MemoryAllocator>::_Reverse(_ptr.val, sizeof(T), _length);
 		return *this;
 	}
 
 	template<typename T, typename A>
 	void Array<T, A>::increase_(uint32_t capacity) {
-		Qk_STRICT_ASSERT(_capacity >= 0, "the weak holder cannot be changed");
-		if (capacity > _capacity)
-			A::increase((void**)&_val, capacity, (uint32_t*)&_capacity, sizeof(T));
+		if (capacity > _ptr.capacity)
+			_pre.increase(capacity);
 	}
 
 	template<> Qk_EXPORT
@@ -578,7 +551,7 @@ namespace qk {
 		template<> Qk_EXPORT Array<T, A>&    Array<T, A>::pop(uint32_t count); \
 		template<> Qk_EXPORT void            Array<T, A>::clear(); \
 		template<> Qk_EXPORT void            Array<T, A>::realloc(uint32_t capacity); \
-		template<> Qk_EXPORT void            Array<T, A>::copy_(T** val, int *capacity, uint32_t start, uint32_t len) const \
+		template<> Qk_EXPORT void            Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const \
 
 	#define Qk_DEF_ARRAY_SPECIAL(T) \
 		Qk_DEF_ARRAY_SPECIAL_(T, MemoryAllocator)

@@ -254,7 +254,7 @@ namespace qk {
 				if (lines[i].length() == 0) {
 					Qk_LOG("====== %s", "\\n");
 				} else {
-					auto weak = ArrayWeak<Unichar>(*lines[i], lines[i].length());
+					auto &weak = ArrayWeak<Unichar>(*lines[i], lines[i].length()).buffer();
 					auto buf = codec_encode(Encoding::kUTF8_Encoding, weak);
 					Qk_LOG("====== %s", *buf);
 				}
@@ -351,7 +351,7 @@ namespace qk {
 			wordEnd:
 				_lines->add_text_blob(
 					{fg.typeface(), text_size, line_height, index + start, _blob},
-					glyphs.slice(start, i), offset.slice(start, i + 1), false
+					glyphs.slice(start, i).buffer(), offset.slice(start, i + 1).buffer(), false
 				);
 				line_head = line->width == 0.0;
 				start = i;
@@ -376,7 +376,7 @@ namespace qk {
 				newLine:
 					_lines->add_text_blob(
 						{fg.typeface(), text_size, line_height, index + start, _blob},
-						glyphs.slice(start, j), offset.slice(start, j + 1), blob_pre
+						glyphs.slice(start, j).buffer(), offset.slice(start, j + 1).buffer(), blob_pre
 					);
 					_lines->push(_opts, true); // new row
 					line = _lines->last();
@@ -394,7 +394,7 @@ namespace qk {
 		if (start < len) {
 			_lines->add_text_blob(
 				{fg.typeface(), text_size, line_height, index + start, _blob},
-				glyphs.slice(start, len), offset.slice(start, len + 1), true
+				glyphs.slice(start, len).buffer(), offset.slice(start, len + 1).buffer(), true
 			);
 		}
 	}
@@ -430,7 +430,7 @@ namespace qk {
 			if (x > limitX) {
 				_lines->add_text_blob(
 					{fg.typeface(), text_size, line_height, index + start, _blob},
-					glyphs.slice(start, j), offset.slice(start, j + 1), false
+					glyphs.slice(start, j).buffer(), offset.slice(start, j + 1).buffer(), false
 				);
 				_lines->push(_opts, true); // new row
 				line = _lines->last();
@@ -445,7 +445,7 @@ namespace qk {
 
 		_lines->add_text_blob(
 			{fg.typeface(), text_size, line_height, index + start, _blob},
-			glyphs.slice(start, len), offset.slice(start, len + 1), false
+			glyphs.slice(start, len).buffer(), offset.slice(start, len + 1).buffer(), false
 		);
 	}
 
@@ -475,7 +475,7 @@ namespace qk {
 							// discard overflow part
 							_lines->add_text_blob(
 								{fg.typeface(), text_size, line_height, index, _blob},
-								fg.glyphs().slice(0, j), offset.slice(0, j + 1), false
+								fg.glyphs().slice(0, j).buffer(), offset.slice(0, j + 1).buffer(), false
 							);
 							_lines->set_pre_width(limitX);
 							break;
@@ -497,7 +497,7 @@ namespace qk {
 								if (j) {
 									_lines->add_text_blob(
 										{fg.typeface(), text_size, line_height, index, _blob},
-										fg.glyphs().slice(0, j), offset.slice(0, j + 1), false
+										fg.glyphs().slice(0, j).buffer(), offset.slice(0, j + 1).buffer(), false
 									);
 								}
 								break;
@@ -518,7 +518,7 @@ namespace qk {
 							if (x > limitX) {
 								_lines->add_text_blob(
 									{ellipsis.typeface(), text_size, line_height, index, _blob},
-									ellipsis.glyphs().slice(0, j), ellipsis_offset.slice(0, j + 1), false
+									ellipsis.glyphs().slice(0, j).buffer(), ellipsis_offset.slice(0, j + 1).buffer(), false
 								);
 								_lines->set_pre_width(limitX);
 								break;
