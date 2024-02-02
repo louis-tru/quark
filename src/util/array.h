@@ -213,14 +213,13 @@ namespace qk {
 
 		struct Sham { T _item; }; // Used to call data destructors
 		typedef MemoryAllocator::Prt<T, A> Ptr;
-
-		uint32_t _length;
-		Ptr _ptr;
-
 		/**
 		 * @method copy data and output data pointer and capacity
 		*/
 		void copy_(Ptr* ptr, uint32_t start, uint32_t len) const;
+
+		uint32_t _length;
+		Ptr _ptr;
 
 		template<typename T2, typename A2> friend class Array;
 
