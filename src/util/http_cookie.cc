@@ -354,7 +354,7 @@ namespace qk {
 				[](void *arg, const bp_key_t *key, const bp_value_t *val) {
 					auto m = reinterpret_cast<tmp_data_t*>(arg)->result;
 					try {
-						JSON json = JSON::parse(WeakBuffer(val->value, val->length));
+						JSON json = JSON::parse(WeakBuffer(val->value, val->length).buffer());
 						int64_t expires = json[0].to_int64();
 						int64_t date = json[1].to_int64();
 

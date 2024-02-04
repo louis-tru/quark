@@ -38,22 +38,25 @@
 
 namespace qk {
 
-	typedef        char                  Char;
-	typedef        ArrayString<uint16_t> String2;
-	typedef        ArrayString<uint32_t> String4;
-	typedef const  char                  cChar;
-	typedef const  ArrayString<uint16_t> cString2;
-	typedef const  ArrayString<uint32_t> cString4;
+	typedef char Char;
+	typedef ArrayString<uint16_t> String2;
+	typedef ArrayString<uint32_t> String4;
+	typedef const char cChar;
+	typedef const String2 cString2;
+	typedef const String4 cString4;
 	
 	class Qk_EXPORT ArrayStringBase: public Object {
 	public:
-		typedef void (*Realloc)(void** val, uint32_t, uint32_t*, uint32_t sizeOf);
+		typedef MemoryAllocator::Prt<char> Ptr;
+		typedef void (*Realloc)(Ptr *ptr, uint32_t, uint32_t);
 		typedef void (*Free)(void* ptr);
 		static constexpr char MAX_SHORT_LEN = 32;
-		struct ShortStr { char val[36]; char length; };
+		struct ShortStr {
+			char val[36]; char length;
+		};
 		struct LongStr {
-			uint32_t length, capacity;
-			char*    val;
+			uint32_t length;
+			Ptr ptr;
 			std::atomic_int ref;
 		};
 		union Value {
@@ -193,10 +196,10 @@ namespace qk {
 
 	class Qk_EXPORT _Str {
 	public:
-		// static methods
+		typedef MemoryAllocator::Prt<char> Ptr;
 		typedef char T;
 		typedef void* (*Alloc)(uint32_t);
-		typedef void  (*Realloc)(void**, uint32_t, uint32_t*, uint32_t);
+		typedef void  (*Realloc)(Ptr*, uint32_t, uint32_t);
 
 		struct Size { uint32_t len; uint32_t capacity; };
 		static cChar ws[8];
@@ -299,14 +302,14 @@ namespace qk {
 
 	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(const T* s, uint32_t len)
-		: ArrayStringBase(len, &A::aalloc, sizeof(T))
+		: ArrayStringBase(len, (Realloc)&A::realloc, sizeof(T))
 	{
 		_Str::strcpy(val(), s, len);
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len)
-		: ArrayStringBase(a_len + b_len, &A::aalloc, sizeof(T))
+		: ArrayStringBase(a_len + b_len, (Realloc)&A::realloc, sizeof(T))
 	{
 		_Str::strcpy(val(),         a, a_len);
 		_Str::strcpy(val() + a_len, b, b_len);
@@ -410,7 +413,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	ArrayString<T, A>& ArrayString<T, A>::assign(const T* s, uint32_t len) {
-		_Str::strcpy((T*)realloc(len, &A::aalloc, &A::free, sizeof(T)), s, len); // copy str
+		_Str::strcpy((T*)realloc(len, (Realloc)&A::realloc, &A::free, sizeof(T)), s, len); // copy str
 		return *this;
 	}
 
@@ -453,7 +456,7 @@ namespace qk {
 	ArrayString<T, A>& ArrayString<T, A>::append(const T* s, uint32_t len) {
 		if (len > 0) {
 			uint32_t len_raw = length();
-			auto str = (T*)realloc(len_raw + len, &A::aalloc, &A::free, sizeof(T));
+			auto str = (T*)realloc(len_raw + len, (Realloc)&A::realloc, &A::free, sizeof(T));
 			_Str::strcpy(str + len_raw, s, len);
 		}
 		return *this;
@@ -478,7 +481,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	ArrayBuffer<T, A> ArrayString<T, A>::collapse() {
-		Buffer b = ArrayStringBase::collapse(&A::aalloc, &A::free);
+		Buffer b = ArrayStringBase::collapse((Realloc)&A::realloc, &A::free);
 		uint32_t l = b.length(), c = b.capacity();
 		return ArrayBuffer<T, A>::from((T*)b.collapse(), l / sizeof(T), c / sizeof(T));
 	}
@@ -639,7 +642,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	ArrayString<T, A>&  ArrayString<T, A>::upperCase() {
-		T* s = (T*)realloc(length(), &A::aalloc, &A::free, sizeof(T));
+		T* s = (T*)realloc(length(), (Realloc)&A::realloc, &A::free, sizeof(T));
 		for (uint32_t i = 0, len = length(); i < len; i++, s++) {
 			*s = _Str::toupper(*s);
 		}
@@ -648,7 +651,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	ArrayString<T, A>&  ArrayString<T, A>::lowerCase() {
-		T* s = (T*)realloc(length(), &A::aalloc, &A::free, sizeof(T));
+		T* s = (T*)realloc(length(), (Realloc)&A::realloc, &A::free, sizeof(T));
 		for (uint32_t i = 0, len = length(); i < len; i++, s++)
 			*s = _Str::tolower(*s);
 		return *this;
@@ -684,7 +687,7 @@ namespace qk {
 		uint32_t len, capacity;
 		T* val = (T*)_Str::replace(
 			c_str(), length(), s.c_str(), s.length(),
-			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, false, &MemoryAllocator::aalloc
+			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, false, (Realloc)&MemoryAllocator::realloc
 		);
 		r.ArrayStringBase::assign( len, capacity, val, sizeof(T), &A::free );
 		return r;
@@ -696,7 +699,7 @@ namespace qk {
 		uint32_t len, capacity;
 		T* val = (T*)_Str::replace(
 			c_str(), length(), s.c_str(), s.length(),
-			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, true, &MemoryAllocator::aalloc
+			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, true, (Realloc)&MemoryAllocator::realloc
 		);
 		r.ArrayStringBase::assign( len, capacity, val, sizeof(T), &A::free );
 		return r;

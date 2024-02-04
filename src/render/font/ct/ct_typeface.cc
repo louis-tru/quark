@@ -693,8 +693,8 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
 		drawPoints[i].y = -cgBound.origin.y; //-cgBounds[i].origin.y;
 
 		if (offset) {
-			drawPoints[i].y -= offset->indexAt(i).y();
-			width_f += offset->indexAt(i).x();
+			drawPoints[i].y -= offset->at(i).y();
+			width_f += offset->at(i).x();
 		} else {
 			width_f += cgAdvance[i].width;
 		}

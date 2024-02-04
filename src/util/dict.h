@@ -51,7 +51,7 @@ namespace qk {
 			return (uint64_t)key;
 		}
 	};
-	
+
 	template<> Qk_EXPORT uint64_t Compare<char>::hashCode(const char& key);
 	template<> Qk_EXPORT uint64_t Compare<uint8_t>::hashCode(const uint8_t& key);
 	template<> Qk_EXPORT uint64_t Compare<int16_t>::hashCode(const int16_t& key);
@@ -280,7 +280,7 @@ namespace qk {
 	}
 
 	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::get(const K& key, V &out) const {
+	bool Dict<K, V, C, A>::get(const K& k, V &out) const {
 		auto node = find_(k);
 		return node ? (out = node->data().value, true): false;
 	}

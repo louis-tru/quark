@@ -287,7 +287,7 @@ namespace qk {
 #endif  // Qk_VLIBC_GLIBC || Qk_BSD
 	}
 
-	void fatal(cChar* file, uint32_t line, cChar* func, cChar* msg, ...) {
+	void Fatal(cChar* file, uint32_t line, cChar* func, cChar* msg, ...) {
 		Log::shared()->fflush();
 		if (msg) {
 			Qk_STRING_FORMAT(msg, str);

@@ -66,7 +66,7 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 	virtual void trigger_socket_error(Socket* stream, cError& error) {
 		Qk_LOG("Error, %d, %s", error.code(), error.message().c_str());
 	}
-	virtual void trigger_socket_data(Socket* stream, Buffer& buffer) {
+	virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) {
 		//LOG( String(buffer.value(), buffer.length()) );
 		Qk_LOG("DATA.., %d", buffer.length());
 	}

@@ -139,7 +139,6 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_GET(bool, havePseudoType); //!< The current style sheet group supports pseudo types
 		Qk_DEFINE_PROP_GET(bool, firstApply); //!< Is this the first time applying a style sheet
-		Qk_DEFINE_PROP_GET(CSSType, status); //!< Current pseudo type application status
 		Qk_DEFINE_PROP_GET(Layout*, host, NoConst); //!< apply style sheet target object
 		Qk_DEFINE_PROP_GET(StyleSheetsClass*, parent, NoConst); //!< apply parent ssc
 
@@ -150,22 +149,21 @@ namespace qk {
 		void toggle(cString &name); //!< Calling in the main loop
 
 		inline bool haveSubstyles() const {
-			return _haveSubstylesHash.hashCode() != 5381; // is default value
+			return _styles.length();
 		}
 
 	private:
+		void updateClass();
 		void setStatus_RT(CSSType status);
 		bool apply_RT(StyleSheetsClass *parent);
-		void updateClass();
 		void applyFrom(StyleSheetsClass *ssc);
 		void applyFindSubstyle(StyleSheets *ss);
 		void applyStyle(StyleSheets *ss);
 
 		Set<uint64_t> _nameHash; //!< class name hash
-		Array<StyleSheets*> _styles; //!< apply to all current style sheets
-
-		Hash5381 _stylesHash; //!< hash for apply current style sheets
-		Hash5381 _haveSubstylesHash; //!< hash for apply current have substyle sheets
+		Array<StyleSheets*> _styles; //!< apply to all current style sheets have substyle sheets
+		Hash5381 _stylesHash; //!< hash for apply current have substyle sheets
+		CSSType _status, _setStatus; //!< Current pseudo type application status
 
 		friend class View;
 	};

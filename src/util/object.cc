@@ -42,38 +42,38 @@ namespace qk {
 		::free(ptr);
 	}
 
-	static void increase_f(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf) {
+	static void increase_f(MemoryAllocator::Prt<void> *ptr, uint32_t size,uint32_t sizeOf) {
 		size = Qk_MAX(Qk_MIN_CAPACITY, size);
 		size = powf(2, ceilf(log2f(size)));
-		*ptrOut = ::realloc(*ptrOut, sizeOf * size);
-		*sizeOut = size;
-		Qk_ASSERT(*ptrOut);
+		ptr->val = ::realloc(ptr->val, sizeOf * size);
+		ptr->capacity = size;
+		Qk_ASSERT(ptr->val);
 	}
 
-	void MemoryAllocator::realloc(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf) {
-		if ( size > *sizeOut ) {
-			increase_f(ptrOut, size, sizeOut, sizeOf);
+	void MemoryAllocator::realloc(Prt<void> *ptr, uint32_t size, uint32_t sizeOf) {
+		if ( size > ptr->capacity ) {
+			increase_f(ptr, size, sizeOf);
 		} else {
-			reduce(ptrOut, size, sizeOut, sizeOf);
+			reduce(ptr, size, sizeOf);
 		}
 	}
 
-	void MemoryAllocator::increase(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf) {
-		if ( size > *sizeOut ) {
-			increase_f(ptrOut, size, sizeOut, sizeOf);
+	void MemoryAllocator::increase(Prt<void> *ptr, uint32_t size, uint32_t sizeOf) {
+		if ( size > ptr->capacity ) {
+			increase_f(ptr, size, sizeOf);
 		}
 	}
 
-	void MemoryAllocator::reduce(void** ptrOut, uint32_t size, uint32_t* sizeOut, uint32_t sizeOf) {
-		uint32_t capacity = *sizeOut;
+	void MemoryAllocator::reduce(Prt<void> *ptr, uint32_t size, uint32_t sizeOf) {
+		uint32_t capacity = ptr->capacity;
 		if ( size > Qk_MIN_CAPACITY && size < (capacity >> 2) ) { // > 8
 			capacity >>= 1;
 			size = powf(2, ceilf(log2f(size)));
 			size <<= 1;
 			size = Qk_MIN(size, capacity);
-			*ptrOut = ::realloc(*ptrOut, sizeOf * size);
-			*sizeOut = size;
-			Qk_ASSERT(*ptrOut);
+			ptr->val = ::realloc(ptr->val, sizeOf * size);
+			ptr->capacity = size;
+			Qk_ASSERT(ptr->val);
 		}
 	}
 

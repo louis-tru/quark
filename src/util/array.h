@@ -193,17 +193,17 @@ namespace qk {
 		 */
 		Array& reverse();
 
-	private:
+	protected:
 		/**
 		 * @constructors
 		 */
-		Array(uint32_t length, int32_t capacity, T* data); // greedy constructors
+		Array(uint32_t length, uint32_t capacity, T* data); // greedy constructors
 		Array(uint32_t length, uint32_t capacity); // new array buffer from length
 
 		/**
 		 * @method concat_() concat multiple array buffer
 		 */
-		Array& concat_(T* src, uint32_t src_length);
+		void concat_(T* src, uint32_t src_length);
 
 		/**
 		 * @method release realloc auro realloc
@@ -273,7 +273,7 @@ namespace qk {
 	public:
 		ArrayWeak(): _length(0), _ptr{0,nullptr} {}
 		ArrayWeak(const T* data, uint32_t length)
-			: _length(length), _ptr{length,data} {}
+			: _length(length), _ptr{length,const_cast<T*>(data)} {}
 		template<class A2>
 		ArrayWeak(cArray<T, A2>& arr)
 			: _length(arr.length()), _ptr{arr.length(),const_cast<T*>(*arr)} {}
@@ -331,7 +331,7 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	Array<T, A>::Array(uint32_t length, int32_t capacity, T* data)
+	Array<T, A>::Array(uint32_t length, uint32_t capacity, T* data)
 		: _length(length), _ptr{capacity,data}
 	{}
 
@@ -422,7 +422,7 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	Array<T, A>& Array<T, A>::concat_(T* src, uint32_t src_length) {
+	void Array<T, A>::concat_(T* src, uint32_t src_length) {
 		if (src_length) {
 			_length += src_length;
 			increase_(_length);
@@ -432,14 +432,14 @@ namespace qk {
 				src++; to++;
 			} while (to < end);
 		}
-		return *this;
 	}
 
 	template<typename T, typename A>
 	template<typename A2>
 	Array<T, A>& Array<T, A>::concat(Array<T, A2>&& arr) {
 		concat_(*arr, arr.length());
-		arr.clear();
+		//arr.clear();
+		arr._length = 0;
 		return *this;
 	}
 
@@ -499,10 +499,10 @@ namespace qk {
 			T *i = _ptr.val, *end = i + _length;
 			while (i < end)
 				reinterpret_cast<Sham*>(i++)->~Sham(); // release
-			A::free(_pre.val); // free
+			A::free(_ptr.val); // free
+			_length = 0;
 			_ptr.capacity = 0;
 			_ptr.val = nullptr;
-			_length = 0;
 		}
 	}
 
@@ -536,7 +536,7 @@ namespace qk {
 	template<typename T, typename A>
 	void Array<T, A>::increase_(uint32_t capacity) {
 		if (capacity > _ptr.capacity)
-			_pre.increase(capacity);
+			_ptr.increase(capacity);
 	}
 
 	template<> Qk_EXPORT
@@ -545,7 +545,7 @@ namespace qk {
 	#define Qk_DEF_ARRAY_SPECIAL_(T, A) \
 		template<> Qk_EXPORT void            Array<T, A>::extend(uint32_t length); \
 		template<> Qk_EXPORT std::vector<T>  Array<T, A>::vector() const; \
-		template<> Qk_EXPORT Array<T, A>&    Array<T, A>::concat_(T* src, uint32_t src_length); \
+		template<> Qk_EXPORT void            Array<T, A>::concat_(T* src, uint32_t src_length); \
 		template<> Qk_EXPORT uint32_t        Array<T, A>::write(const T* src, uint32_t size, int to); \
 		template<> Qk_EXPORT Array<T, A>&    Array<T, A>::pop(uint32_t count); \
 		template<> Qk_EXPORT void            Array<T, A>::clear(); \

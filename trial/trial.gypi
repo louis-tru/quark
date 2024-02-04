@@ -8,8 +8,8 @@
 			'jsx.cc',
 			'fs.h',
 			'fs-search.cc',
-			'raster.h',
-			'raster.cc',
+			# 'raster.h',
+			# 'raster.cc',
 		],
 	}],
 }

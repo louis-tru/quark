@@ -174,13 +174,13 @@ namespace qk {
 	typedef ArrayStringBase::Realloc Realloc;
 	typedef _Str::Alloc Alloc;
 	typedef _Str::Size Size;
+	typedef MemoryAllocator::Prt<char> Ptr;
 	
 	struct _StrTmp {
 		void realloc(uint32_t capacity) {
-			_realloc((void**)&_val, capacity, &_capacity, sizeof(Char));
+			_realloc(&_ptr, capacity, sizeof(Char));
 		}
-		uint32_t _capacity;
-		Char*    _val;
+		Ptr _ptr;
 		Realloc  _realloc;
 	};
 
@@ -205,14 +205,14 @@ namespace qk {
 
 			if (before_len) {
 				::memcpy(
-					s_tmp._val + s_tmp_to * sizeOf,  // to
+					s_tmp._ptr.val + s_tmp_to * sizeOf,  // to
 					s1         + from     * sizeOf,  // from
 					before_len            * sizeOf   // size
 				);
 				s_tmp_to += before_len;
 				from += before_len;
 			}
-			::memcpy(s_tmp._val + s_tmp_to * sizeOf, rep, rep_len * sizeOf);
+			::memcpy(s_tmp._ptr.val + s_tmp_to * sizeOf, rep, rep_len * sizeOf);
 			s_tmp_to += rep_len;
 			from += s2_len;
 
@@ -225,17 +225,17 @@ namespace qk {
 		s_tmp.realloc((s_tmp_to + before_len + 1) * sizeOf);
 
 		::memcpy(
-			s_tmp._val + s_tmp_to * sizeOf,  // to
+			s_tmp._ptr.val + s_tmp_to * sizeOf,  // to
 			s1         + from     * sizeOf,  // from
 			before_len            * sizeOf   // size
 		);
 		s_tmp_to += before_len;
 
-		::memset(s_tmp._val + s_tmp_to * sizeOf, 0, sizeOf);
+		::memset(s_tmp._ptr.val + s_tmp_to * sizeOf, 0, sizeOf);
 
-		*capacity_out = s_tmp._capacity;
+		*capacity_out = s_tmp._ptr.capacity;
 		*outLen = s_tmp_to;
-		return s_tmp._val;
+		return s_tmp._ptr.val;
 	}
 	
 	int _Str::tolower(int c) {
@@ -425,16 +425,16 @@ namespace qk {
 	
 	LongStr* ArrayStringBase::NewLong(uint32_t length, uint32_t capacity, char* val) {
 		auto l = (LongStr*)::malloc(sizeof(LongStr));
-		l->length = length; l->capacity = capacity;
-		l->val = val; l->ref = 1;
+		l->length = length; l->ptr.capacity = capacity;
+		l->ptr.val = val; l->ref = 1;
 		return l;
 	}
 
 	void ArrayStringBase::Release(LongStr* l, Free free) {
 		Qk_ASSERT(l->ref > 0);
 		if ( --l->ref == 0 ) {
-			free(l->val);
-			l->val = nullptr;
+			free(l->ptr.val);
+			l->ptr.val = nullptr;
 			delete l; // 只有当引用记数变成0才会释放
 		}
 	}
@@ -499,17 +499,17 @@ namespace qk {
 	uint32_t ArrayStringBase::size() const {
 		return _val.s.length < 0 ? _val.l->length: _val.s.length;
 	}
-	
+
 	uint32_t ArrayStringBase::capacity() const {
-		return _val.s.length < 0 ? _val.l->capacity: MAX_SHORT_LEN;
+		return _val.s.length < 0 ? _val.l->ptr.capacity: MAX_SHORT_LEN;
 	}
-	
+
 	char* ArrayStringBase::ptr() {
-		return _val.s.length < 0 ? _val.l->val: (char*)_val.s.val;
+		return _val.s.length < 0 ? _val.l->ptr.val: (char*)_val.s.val;
 	}
 
 	const char* ArrayStringBase::ptr() const {
-		return _val.s.length < 0 ? _val.l->val: (const char*)_val.s.val;
+		return _val.s.length < 0 ? _val.l->ptr.val: (const char*)_val.s.val;
 	}
 	
 	char* ArrayStringBase::realloc(uint32_t len, Realloc aalloc, Free free, uint8_t sizeOf) {
@@ -521,20 +521,20 @@ namespace qk {
 				auto leave = _val.l;
 				_val.l = NewLong(len, 0, nullptr);
 				// _val.l->val = (char*)
-				aalloc((void**)&_val.l->val, len + sizeOf, &_val.l->capacity, 1);
-				::memcpy(_val.l->val, leave->val, Qk_MIN(len, leave->length));
+				aalloc(&_val.l->ptr, len + sizeOf, 1);
+				::memcpy(_val.l->ptr.val, leave->ptr.val, Qk_MIN(len, leave->length));
 				Release(leave, free); // release old
 			} else {
 				_val.l->length = len;
 				// _val.l->val = (char*)
-				aalloc((void**)&_val.l->val, len + sizeOf, &_val.l->capacity, 1);
+				aalloc(&_val.l->ptr, len + sizeOf, 1);
 			}
 		}
 		else if (len > MAX_SHORT_LEN) {
 			auto l = NewLong(len, 0, nullptr);
-			l->val = nullptr;
-			aalloc((void**)&l->val, len + sizeOf, &l->capacity, 1);
-			::memcpy(l->val, _val.s.val, _val.s.length); // copy string
+			l->ptr.val = nullptr;
+			aalloc(&l->ptr, len + sizeOf, 1);
+			::memcpy(l->ptr.val, _val.s.val, _val.s.length); // copy string
 			_val.l = l;
 			_val.s.length = -1; // mark long string
 		}
@@ -549,46 +549,43 @@ namespace qk {
 		}
 		
 		if (sizeOf == 1) {
-			_val.l->val[len] = '\0';
+			_val.l->ptr.val[len] = '\0';
 		} else {
-			::memset(_val.l->val + len, 0, sizeOf);
+			::memset(_val.l->ptr.val + len, 0, sizeOf);
 		}
-		return _val.l->val;
+		return _val.l->ptr.val;
 	}
 
 	Buffer ArrayStringBase::collapse(Realloc aalloc, Free free) {
-		uint32_t s_len = _val.s.length;
+		auto s_len = _val.s.length;
 		if (s_len < 0) {
 			// long string
 			if (_val.l->length == 0) {
 				return Buffer();
-			} else { // collapse
-				uint32_t len = _val.l->length;
-				uint32_t capacity = _val.l->length;
-				char* val = _val.l->val;
-				if (_val.l->ref > 1) { //
-					val = nullptr;
-					aalloc((void**)&val, capacity, &capacity, 1);
-					::memcpy(val, _val.l->val, capacity);
-					Release(_val.l, free); // release ref
-				} else {
-					delete _val.l; // full delete
-				}
-				_val.s = {{0},0}; // use empty string
-				return Buffer::from(val, len, capacity);
 			}
+			// collapse
+			auto len = _val.l->length;
+			Ptr ptr{0,nullptr};
+			if (_val.l->ref > 1) { //
+				aalloc(&ptr, _val.l->ptr.capacity, 1);
+				::memcpy(ptr.val, _val.l->ptr.val, ptr.capacity);
+				Release(_val.l, free); // release ref
+			} else {
+				ptr = _val.l->ptr;
+				delete _val.l; // full delete memory
+			}
+			_val.s = {{0},0}; // use empty string
+			return Buffer(ptr.val, len, ptr.capacity);
 		} else {
 			// short string
 			if (s_len == 0) {
 				return Buffer();
-			} else {
-				uint32_t capacity;
-				char* val = nullptr;
-				aalloc((void**)&val, MAX_SHORT_LEN + 4, &capacity, 1);
-				::memcpy(val, _val.s.val, MAX_SHORT_LEN + 4);
-				_val.s = {{0},0}; // use empty string
-				return Buffer::from(val, s_len, capacity);
 			}
+			Ptr ptr{0,nullptr};
+			aalloc(&ptr, MAX_SHORT_LEN + 4, 1);
+			::memcpy(ptr.val, _val.s.val, MAX_SHORT_LEN + 4);
+			_val.s = {{0},0}; // use empty string
+			return Buffer(ptr.val, s_len, ptr.capacity);
 		}
 	}
 

@@ -44,51 +44,16 @@ namespace qk {
 # define Qk_MIN_CAPACITY (4)
 #endif
 
-	// -------------------------------------------------------
-
 	struct ObjectTraits;
 	struct ReferenceTraits;
 	struct ProtocolTraits;
+	struct MemoryAllocator;
 
-	struct MemoryAllocator {
-		static void* alloc(uint32_t size);
-		static void  free(void* ptr);
-		static void  realloc(void** ptrOut, uint32_t size, uint32_t* prevSizeOut, uint32_t sizeOf);
-		static void  increase(void** ptrOut, uint32_t size, uint32_t* prevSizeOut, uint32_t sizeOf);
-		static void  reduce(void** ptrOut, uint32_t size, uint32_t* prevSizeOut, uint32_t sizeOf);
-
-		template<typename T, typename A = MemoryAllocator>
-		struct Prt {
-			void realloc(uint32_t size) {
-				A::realloc((void**)&val, size, &capacity, sizeof(T));
-			}
-			void increase(uint32_t size) {
-				A::increase((void**)&val, size, &capacity, sizeof(T));
-			}
-			void reduce(uint32_t size) {
-				A::reduce((void**)&val, size, &capacity, sizeof(T));
-			}
-			uint32_t capacity;
-			T*       val;
-		};
-	};
-
-	template<typename T = char, typename A = MemoryAllocator> class ArrayString;
-
-	typedef       ArrayString<char, MemoryAllocator> String;
-	typedef const ArrayString<char, MemoryAllocator> cString;
-
-	template<typename T>
-	struct has_object_type {
-		typedef char Non[1]; typedef char Obj[2];
-		typedef char Ref[3];
-		template<typename C> static Obj& test(typename C::__has_object_type);
-		template<typename C> static Ref& test(typename C::__has_ref_type);
-		template<typename> static Non& test(...);
-		static const int type = sizeof(test<T>(0)) / sizeof(char) - 1;
-		static const bool isObj = sizeof(test<T>(0)) / sizeof(char) > 1;
-		static const bool isRef = sizeof(test<T>(0)) / sizeof(char) == 3;
-	};
+	template<
+		typename T = char, typename A = MemoryAllocator
+	> class ArrayString;
+	typedef ArrayString<> String;
+	typedef const String cString;
 
 	/**
 	* @class Object
@@ -96,15 +61,16 @@ namespace qk {
 	class Qk_EXPORT Object {
 	public:
 		typedef ObjectTraits Traits;
-		virtual bool isReference() const;
 		virtual bool retain();
 		virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
-		virtual ArrayString<char, MemoryAllocator> toString() const;
+		virtual bool isReference() const;
+		virtual String toString() const;
 		static void* operator new(size_t size);
 		static void* operator new(size_t size, void* p);
 		static void  operator delete(void* p);
 		static void setAllocator(
-			void* (*alloc)(size_t size), void (*release)(Object* obj), void (*retain)(Object* obj)
+			void* (*alloc)(size_t size), void (*release)(Object* obj),
+			void (*retain)(Object* obj)
 		);
 		typedef void* __has_object_type;
 #if Qk_MEMORY_TRACE_MARK
@@ -146,7 +112,7 @@ namespace qk {
 
 	Qk_EXPORT bool Retain(Object* obj);
 	Qk_EXPORT void Release(Object* obj);
-	Qk_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+	Qk_EXPORT void Fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
 	/**
 	* @class Protocol protocol base
@@ -196,6 +162,40 @@ namespace qk {
 		}
 		template<class T> inline static void Release(T* obj) { delete obj; }
 		static constexpr bool isReference = false;
+	};
+
+	struct MemoryAllocator {
+		template<typename T, typename A = MemoryAllocator>
+		struct Prt {
+			void realloc(uint32_t size) {
+				A::realloc((Prt<void>*)this, size, sizeof(T));
+			}
+			void increase(uint32_t size) {
+				A::increase((Prt<void>*)this, size, sizeof(T));
+			}
+			void reduce(uint32_t size) {
+				A::reduce((Prt<void>*)this, size, sizeof(T));
+			}
+			uint32_t capacity = 0;
+			T*       val = nullptr;
+		};
+		static void*alloc(uint32_t size);
+		static void free(void *ptr);
+		static void realloc(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
+		static void increase(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
+		static void reduce(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
+	};
+
+	template<typename T>
+	struct has_object_type {
+		typedef char Non[1]; typedef char Obj[2];
+		typedef char Ref[3];
+		template<typename C> static Obj& test(typename C::__has_object_type);
+		template<typename C> static Ref& test(typename C::__has_ref_type);
+		template<typename> static Non& test(...);
+		static const int type = sizeof(test<T>(0)) / sizeof(char) - 1;
+		static const bool isObj = sizeof(test<T>(0)) / sizeof(char) > 1;
+		static const bool isRef = sizeof(test<T>(0)) / sizeof(char) == 3;
 	};
 
 	template<class T, typename... Args>

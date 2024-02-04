@@ -92,7 +92,7 @@ namespace qk {
 		virtual void trigger_http_readystate_change(HttpClientRequest* req) {}
 		virtual void trigger_http_timeout(HttpClientRequest* req) {}
 		virtual void trigger_http_abort(HttpClientRequest* req) {}
-		
+
 		Inl(HttpClientRequest* host, RunLoop* loop)
 			: _host(host)
 			, _keep(loop->keep_alive("HttpClientRequest::Inl"))
@@ -334,7 +334,7 @@ namespace qk {
 						Qk_ERR("un gzip err, %d", r);
 					}
 				} else {
-					buff = WeakBuffer(at, uint32_t(length)).copy();
+					buff = WeakBuffer(at, uint32_t(length))->copy();
 				}
 				if ( buff.length() ) {
 					self->_client->trigger_http_data(buff);
@@ -531,7 +531,7 @@ namespace qk {
 				}
 			}
 			
-			virtual void trigger_socket_data(Socket* stream, Buffer& buffer) {
+			virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) {
 				if ( _client ) {
 					http_parser_execute(&_parser, &_settings, buffer.val(), buffer.length());
 				}
@@ -776,8 +776,7 @@ namespace qk {
 					if (connect_count < MAX_CONNECT_COUNT) {
 						conn = new Connect(req.hostname,
 															 req.port,
-															 req.uri_type == URI_HTTPS,
-															 req.client->loop());
+															 req.uri_type == URI_HTTPS, req.client->loop());
 						conn->_id = _pool.pushBack(conn);
 					}
 				}

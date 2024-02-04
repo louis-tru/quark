@@ -334,7 +334,7 @@ QkCTFontWeightMapping& QkCTFontGetDataFontWeightMapping() {
 	static CGFloat dataFontWeights[11];
 	static int once = []()->int{
 		constexpr size_t dataSize = Qk_ARRAY_COUNT(kSpiderSymbol_ttf);
-		Buffer data = WeakBuffer((char*)kSpiderSymbol_ttf, dataSize).copy();
+		Buffer data = WeakBuffer((char*)kSpiderSymbol_ttf, dataSize)->copy();
 
 		using TableDirectoryEntry = QkSFNTHeader::TableDirectoryEntry;
 

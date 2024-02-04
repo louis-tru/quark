@@ -70,7 +70,7 @@ namespace qk {
 		virtual void trigger_socket_open(Socket* stream) {}
 		virtual void trigger_socket_close(Socket* stream) {}
 		virtual void trigger_socket_error(Socket* stream, cError& error) {}
-		virtual void trigger_socket_data(Socket* stream, Buffer& buffer) {}
+		virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) {}
 		virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) {}
 		virtual void trigger_socket_timeout(Socket* socket) {}
 
@@ -447,8 +447,8 @@ namespace qk {
 				close2();
 			} else {
 				reset_timeout();
-				WeakBuffer buff = WeakBuffer::from(buffer, nread);
-				_delegate->trigger_socket_data(_host, buff);
+				WeakBuffer buff(buffer, nread);
+				_delegate->trigger_socket_data(_host, buff.buffer());
 			}
 		}
 		
@@ -688,7 +688,7 @@ namespace qk {
 			
 			int r;
 			
-			Buffer buffer = WeakBuffer(in, inl).copy();
+			Buffer buffer = WeakBuffer(in, inl)->copy();
 			
 			if ( self->_ssl_handshake == 1 ) { // handshake or SSL_shutdown
 				
@@ -836,7 +836,7 @@ namespace qk {
 						
 						if ( i > 0 ) {
 							WeakBuffer buff(_ssl_read_buffer.val(), i);
-							_delegate->trigger_socket_data(_host, buff);
+							_delegate->trigger_socket_data(_host, buff.buffer());
 						} else {
 							if ( i < 0 ) { // err
 								report_ssl_err(ERR_SSL_UNKNOWN_ERROR); close(); // close connect

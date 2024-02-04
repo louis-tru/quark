@@ -53,7 +53,7 @@ namespace qk {
 			Qk_ReturnLocal(r); \
 		} \
 		\
-		template<> Array<T, A>& Array<T, A>::concat_(T* src, uint32_t src_length) { \
+		template<> void Array<T, A>::concat_(T* src, uint32_t src_length) { \
 			if (src_length) {\
 				_length += src_length; \
 				increase_(_length + APPEND_ZERO); \
@@ -62,7 +62,6 @@ namespace qk {
 				memcpy((void*)to, src, src_length * sizeof(T)); \
 				if (APPEND_ZERO) _ptr.val[_length] = 0; \
 			} \
-			return *this; \
 		} \
 		\
 		template<> uint32_t Array<T, A>::write(const T* src, uint32_t size, int to) { \

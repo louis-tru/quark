@@ -200,7 +200,7 @@ namespace qk {
 			_loop->post(Cb([this,pixels](auto& e){
 				Sp<Array<Pixel>> hold(pixels);
 				_state = kSTATE_LOAD_COMPLETE; // Reset to ensure it is valid
-				_info = pixels->indexAt(0);
+				_info = pixels->at(0);
 				_pixels = std::move(*pixels);
 			}, this));
 			return;
@@ -227,7 +227,7 @@ namespace qk {
 			}
 
 			_state = kSTATE_LOAD_COMPLETE; // Reset to ensure it is valid
-			_info = pixels->indexAt(0);
+			_info = pixels->at(0);
 			_pixels = std::move(*pixels);
 		}, this));
 	}

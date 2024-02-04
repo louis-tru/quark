@@ -53,7 +53,7 @@ namespace qk {
 			virtual void trigger_socket_open(Socket* socket) = 0;
 			virtual void trigger_socket_close(Socket* socket) = 0;
 			virtual void trigger_socket_error(Socket* socket, cError& error) = 0;
-			virtual void trigger_socket_data(Socket* socket, Buffer& buffer) = 0;
+			virtual void trigger_socket_data(Socket* socket, cBuffer& buffer) = 0;
 			virtual void trigger_socket_write(Socket* socket, Buffer buffer, int mark) = 0;
 			virtual void trigger_socket_timeout(Socket* socket) = 0;
 		};
