@@ -198,8 +198,8 @@ namespace qk {
 		UIRender       *_uiRender;
 		Vec2           _lockSize;  //!< Lock the size of the viewport
 		List<Cb>       _nextFrame;
-		uint32_t       _nextFsp;
-		int64_t        _nextFspTime;
+		uint32_t       _fspTick;
+		int64_t        _fspTime;
 		Array<RegionSize> _clipRegion;
 		List<Window*>::Iterator _id;
 		RecursiveMutex _render_mutex;

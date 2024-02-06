@@ -153,9 +153,9 @@ namespace qk {
 		}
 
 	private:
-		void updateClass();
+		void updateClass_RT();
 		void setStatus_RT(CSSType status);
-		bool apply_RT(StyleSheetsClass *parent);
+		bool apply_RT(StyleSheetsClass *parent); // Return whether it affects sub styles
 		void applyFrom(StyleSheetsClass *ssc);
 		void applyFindSubstyle(StyleSheets *ss);
 		void applyStyle(StyleSheets *ss);
@@ -165,6 +165,7 @@ namespace qk {
 		Hash5381 _stylesHash; //!< hash for apply current have substyle sheets
 		CSSType _status, _setStatus; //!< Current pseudo type application status
 
+		friend class Layout;
 		friend class View;
 	};
 

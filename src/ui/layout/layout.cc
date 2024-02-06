@@ -32,6 +32,7 @@
 #include "./root.h"
 #include "../window.h"
 #include "../app.h"
+#include "../css/css.h"
 
 namespace qk {
 
@@ -353,6 +354,9 @@ namespace qk {
 		}
 		if (visible) {
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // reset layout size
+			if (_ssclass) {
+				_ssclass->updateClass_RT();
+			}
 		}
 	}
 
@@ -420,8 +424,39 @@ namespace qk {
 			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
 
+			if (_ssclass) {
+				_ssclass->updateClass_RT();
+			}
+
 			onActivate();
 		}
+	}
+
+	void Layout::applyClass(StyleSheetsClass *ssc) {
+		if (_ssclass->apply_RT(ssc)) { // Impact sub layout
+			if (_ssclass->haveSubstyles())
+				ssc = _ssclass;
+			auto l = _first;
+			while (l) {
+				if (l->_visible && l->_ssclass) {
+					l->applyClass(ssc);
+				}
+				l = l->_next;
+			}
+		}
+		unmark(kStyle_Class);
+	}
+
+	StyleSheetsClass* Layout::parentSsclass() {
+		auto layout = _parent;
+		while (layout) {
+			auto ss = layout->_ssclass;
+			if (ss && ss->haveSubstyles()) {
+				return ss;
+			}
+			layout = layout->_parent;
+		}
+		return nullptr;
 	}
 
 }

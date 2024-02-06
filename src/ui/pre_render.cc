@@ -36,12 +36,15 @@
 
 namespace qk {
 
+	void PreRender::LevelMarks::clear() {
+		_length = 0;
+	}
+
 	PreRender::PreRender(Window *win)
 		: _mark_total(0)
 		, _window(win)
 		, _is_render(false)
-	{
-	}
+	{}
 
 	void PreRender::mark_layout(Layout *layout, uint32_t level) {
 		Qk_ASSERT(level);
@@ -87,40 +90,58 @@ namespace qk {
 	}
 
 	void PreRender::solveMarks() {
-		do {
-			{ // forward iteration
-				for (auto& levelMarks: _marks) {
-					for (auto& layout: levelMarks) {
-						if (layout) {
-							if ( layout->layout_forward(layout->_mark_value) ) {
-								// simple delete mark
-								layout->_mark_index = -1;
-								layout = nullptr;
-								_mark_total--;
-							}
-						}
+		// First forward iteration
+		for (auto &levelMarks: _marks) {
+			for (auto layout: levelMarks) {
+				if (layout) {
+					if (layout->_mark_value & Layout::kStyle_Class) {
+						layout->applyClass(layout->parentSsclass());
+					}
+					if ( layout->layout_forward(layout->_mark_value) ) {
+						// simple delete mark
+						layout->_mark_index = -1;
+						layout = nullptr;
+						_mark_total--;
 					}
 				}
 			}
-			if (_mark_total > 0) { // reverse iteration
-				for (int i = _marks.length() - 1; i >= 0; i--) {
-					auto& levelMarks = _marks[i];
-					for (auto& layout: levelMarks) {
-						if (layout) {
-							if ( layout->layout_reverse(layout->_mark_value) ) {
-								// simple delete mark recursive
-								layout->_mark_index = -1;
-								layout = nullptr;
-								_mark_total--;
-							}
-						}
-					}
-				}
-			}
-			Qk_ASSERT(_mark_total >= 0);
-		} while (_mark_total);
+		}
 
-		for (auto& levelMarks: _marks) {
+		while (_mark_total) {
+			Qk_ASSERT(_mark_total > 0);
+
+			// reverse iteration
+			for (int i = _marks.length() - 1; i >= 0; i--) {
+				auto &levelMarks = _marks[i];
+				for (auto layout: levelMarks) {
+					if (layout) {
+						if ( layout->layout_reverse(layout->_mark_value) ) {
+							// simple delete mark recursive
+							layout->_mark_index = -1;
+							layout = nullptr;
+							_mark_total--;
+						}
+					}
+				}
+			}
+			if (!_mark_total) break;
+
+			// forward iteration
+			for (auto &levelMarks: _marks) {
+				for (auto layout: levelMarks) {
+					if (layout) {
+						if ( layout->layout_forward(layout->_mark_value) ) {
+							// simple delete mark
+							layout->_mark_index = -1;
+							layout = nullptr;
+							_mark_total--;
+						}
+					}
+				}
+			}
+		}
+
+		for (auto &levelMarks: _marks) {
 			levelMarks.clear();
 		}
 		_is_render = true;
@@ -155,20 +176,16 @@ namespace qk {
 	/**
 	 * Work around flagging views that need to be updated
 	 */
-	bool PreRender::solve() {
-		int64_t now_time = time_monotonic();
-
+	bool PreRender::solve(int64_t time) {
 		solveAsyncCall();
-
-		// _host->action_direct()->advance(now_time); // advance action
 
 		if ( _tasks.length() ) { // solve task
 			auto i = _tasks.begin(), end = _tasks.end();
 			while ( i != end ) {
 				Task* task = *i;
 				if ( task ) {
-					if ( now_time > task->task_timeout() ) {
-						if ( task->run_task(now_time) ) {
+					if ( time > task->task_timeout() ) {
+						if ( task->run_task(time) ) {
 							_is_render = true;
 						}
 					}

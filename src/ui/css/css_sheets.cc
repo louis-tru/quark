@@ -199,7 +199,7 @@ namespace qk {
 	});
 
 	RootStyleSheets::RootStyleSheets()
-		: StyleSheets(CSSName(""), nullptr, kNone_CSSType)
+		: StyleSheets(CSSName(String()), nullptr, kNone_CSSType)
 	{}
 
 	Array<StyleSheets*> RootStyleSheets::search(cString &exp) {

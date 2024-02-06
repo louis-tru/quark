@@ -102,7 +102,7 @@ namespace qk {
 		 * Solve the pre-rendering problem, return true if the view needs to be updated
 		 * @method solve()
 		 */
-		bool solve();
+		bool solve(int64_t time);
 		void solveMarks(); // solve layout marks
 		void clearTasks();
 		void asyncCommit(); // commit async cmd to ready, only main thread call
@@ -112,10 +112,15 @@ namespace qk {
 			void *ctx, *exec;
 			uint64_t args;
 		};
+
+		struct LevelMarks: Array<Layout*> {
+			void clear();
+		};
+
 		Window *_window;
 		int32_t _mark_total;
-		List<Task*>  _tasks;
-		Array<Array<Layout*>> _marks; // marked view
+		List<Task*> _tasks;
+		Array<LevelMarks> _marks; // marked view
 		Array<AsyncCall> _asyncCall;
 		Array<AsyncCall> _asyncCommit;
 		Mutex _asyncCommitMutex;

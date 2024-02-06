@@ -75,8 +75,8 @@ namespace qk {
 		, _atomPixel(1)
 		, _defaultScale(0)
 		, _fsp(0)
-		, _nextFsp(0)
-		, _nextFspTime(0), _surfaceRegion()
+		, _fspTick(0)
+		, _fspTime(0), _surfaceRegion()
 		, _preRender(this)
 	{
 		Qk_STRICT_ASSERT(_host);
@@ -268,20 +268,20 @@ namespace qk {
 
 	bool Window::onRenderBackendDisplay() {
 		UILock lock(this); // ui render lock
+		int64_t time = time_monotonic();
 
-		if (!_preRender.solve()) {
+		if (!_preRender.solve(time)) {
 			solveNextFrame();
 			return false;
 		}
-		int64_t now_time = time_second();
 
-		if (now_time - _nextFspTime >= 1) { // 1s
-			_fsp = _nextFsp;
-			_nextFsp = 0;
-			_nextFspTime = now_time;
+		if (time - _fspTime > 1e6) { // 1ns
+			_fsp = _fspTick;
+			_fspTick = 0;
+			_fspTime = time;
 			Qk_DEBUG("fps: %d", _fsp);
 		}
-		_nextFsp++;
+		_fspTick++;
 
 		_root->layout()->draw(_uiRender); // start drawing
 
@@ -295,9 +295,9 @@ namespace qk {
 #if DEBUG && PRINT_RENDER_FRAME_TIME
 		int64_t ts2 = (time_micro() - st) / 1e3;
 		if (ts2 > 16) {
-			Qk_LOG("ts: %ld -------------- ", ts2);
+			Qk_LOG("Window swapBuffer time: %ld -------------- ", ts2);
 		} else {
-			Qk_LOG("ts: %ld", ts2);
+			Qk_LOG("Window swapBuffer time: %ld", ts2);
 		}
 #endif
 
