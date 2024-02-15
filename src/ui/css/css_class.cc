@@ -90,7 +90,7 @@ namespace qk {
 
 	void StyleSheetsClass::updateClass_RT() {
 		_host->mark_layout(Layout::kStyle_Class);
-		_status = kNone_CSSType;
+		_status = kNone_CSSType; // force apply update
 	}
 
 	void StyleSheetsClass::setStatus_RT(CSSType status) {

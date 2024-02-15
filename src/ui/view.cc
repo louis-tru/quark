@@ -40,11 +40,10 @@ namespace qk {
 		, _action(nullptr), _layout(layout)
 		, _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
-		, _first(nullptr), _last(nullptr), _accessor(nullptr), _ssclass(nullptr)
+		, _first(nullptr), _last(nullptr), _ssclass(nullptr)
 	{
 		layout->_view = this;
 		layout->_accessor = prop_accessor_at_layout(layout->viewType(), kOPACITY_ViewProp);
-		_accessor = prop_accessor_at_view(layout->viewType(), kOPACITY_ViewProp);
 	}
 
 	View::~View() {

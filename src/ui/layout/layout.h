@@ -66,8 +66,6 @@ namespace qk {
 			kInput_Status             = (1 << 4), /* 输入状态这不包含布局的改变 */
 			kScroll                   = (1 << 5), /* scroll status change */
 			kStyle_Class              = (1 << 6), /* 变化class引起的样式变化 */
-			// kStyle_Full               = (1 << 7), /* 所有后代视图都受到影响 */
-			// kStyle                    = (kStyle_Class | kStyle_Full),
 			// RECURSIVE MARKS
 			kRecursive_Transform      = (1 << 30), /* 矩阵变换 recursive mark */
 			kRecursive_Visible_Region = (1U << 31), /* 可见范围 */

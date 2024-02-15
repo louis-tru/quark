@@ -44,22 +44,22 @@ namespace qk {
 	typedef void (Object::*Func)();
 
 	#define Qk_Set_Accessor(View, Prop, Name) \
-		prop_accessors[k##View##_ViewType].view[k##Prop##_ViewProp] = {(Func)&View::Name,(Func)&View::set_##Name}; \
-		prop_accessors[k##View##_ViewType].layout[k##Prop##_ViewProp] = {(Func)&View##Layout::Name,(Func)&View##Layout::set_##Name}
+		prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp] = {(Func)&View##Layout::Name,(Func)&View##Layout::set_##Name};\
+		prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp+kEnum_Counts_ViewProp] = {(Func)&View::Name,(Func)&View::set_##Name}\
 
 	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
 		prop_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, prop_accessors[k##Dest##_ViewType])
 
 	struct PropAccessors {
 		void copy(uint32_t index, uint32_t count, PropAccessors &dest) {
+			auto index2 = index + kEnum_Counts_ViewProp;
 			auto end = index + count;
 			do {
-				dest.view[index] = view[index];
-				dest.layout[index] = layout[index];
+				dest.value[index] = value[index];
+				dest.value[index2] = value[index2];
 			} while (++index < end);
 		}
-		PropAccessor view[kEnum_Counts_ViewProp] = {0};
-		PropAccessor layout[kEnum_Counts_ViewProp] = {0};
+		PropAccessor value[kEnum_Counts_ViewProp+kEnum_Counts_ViewProp] = {0};
 	};
 
 	static PropAccessors *prop_accessors = nullptr;
@@ -185,11 +185,11 @@ namespace qk {
 	}
 
 	PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop) {
-		return prop_accessors[type].view + prop;
+		return prop_accessors[type].value + prop + kEnum_Counts_ViewProp;
 	}
 
 	PropAccessor* prop_accessor_at_layout(ViewType type, ViewProp prop) {
-		return prop_accessors[type].layout + prop;
+		return prop_accessors[type].value + prop;
 	}
 
 }

@@ -101,7 +101,7 @@ QkApplicationDelegate* __app = nil;
 // ***************** A p p l i c a t i o n *****************
 
 void Application::openURL(cString& url) {
-	// TODO
+	// 
 }
 
 void Application::sendEmail(cString& recipient,

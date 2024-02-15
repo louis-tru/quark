@@ -71,7 +71,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(View*, next, NoConst);
 		Qk_DEFINE_PROP_GET(View*, first, NoConst);
 		Qk_DEFINE_PROP_GET(View*, last, NoConst);
-		Qk_DEFINE_PROP_GET(PropAccessor*, accessor, NoConst);
 
 		/**
 		 * @prop style sheets class object

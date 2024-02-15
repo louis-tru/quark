@@ -290,6 +290,8 @@ namespace qk {
 		kContinue,
 	};
 
+	// --------------------------------
+
 	enum class FindDirection: uint8_t {
 		kNone,
 		kLeft,
