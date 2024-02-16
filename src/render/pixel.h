@@ -116,10 +116,10 @@ namespace qk {
 
 	class Qk_EXPORT PixelInfo {
 	public:
-		Qk_DEFINE_PROP_GET(int, width); //!< bitmap width
-		Qk_DEFINE_PROP_GET(int, height); //!< bitmap height
-		Qk_DEFINE_PROP_GET(ColorType, type); //!< bitmap pixel color type
-		Qk_DEFINE_PROP_GET(AlphaType, alphaType); //!< is premultiplied by alpha
+		Qk_DEFINE_PROP_GET(int, width, Const); //!< bitmap width
+		Qk_DEFINE_PROP_GET(int, height, Const); //!< bitmap height
+		Qk_DEFINE_PROP_GET(ColorType, type, Const); //!< bitmap pixel color type
+		Qk_DEFINE_PROP_GET(AlphaType, alphaType, Const); //!< is premultiplied by alpha
 		PixelInfo();
 		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
 		uint32_t rowbytes() const;
@@ -131,7 +131,7 @@ namespace qk {
 	 */
 	class Qk_EXPORT Pixel: public PixelInfo {
 	public:
-		Qk_DEFINE_PROP_GET(const TexStat*, texture); // gpu texture id
+		Qk_DEFINE_PROP_GET(const TexStat*, texture, Const); // gpu texture id
 
 		/**
 		 * @method pixel_bit_size()

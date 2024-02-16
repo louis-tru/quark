@@ -60,8 +60,8 @@ namespace qk {
 		Qk_Event(State, Event<ImageSource, State>);
 
 		// Defines props
-		Qk_DEFINE_PROP_GET(String, uri);
-		Qk_DEFINE_PROP_GET(State, state);
+		Qk_DEFINE_PROP_GET(String, uri, Const);
+		Qk_DEFINE_PROP_GET(State, state, Const);
 
 		// @constructor
 		// <FlowLayout>
@@ -174,7 +174,7 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(ImageSourcePool);
 	public:
 
-		Qk_DEFINE_PROP_GET(uint32_t, capacity); // Used memory size total
+		Qk_DEFINE_PROP_GET(uint32_t, capacity, Const); // Used memory size total
 
 		/**
 		 * @constructor
@@ -228,8 +228,8 @@ namespace qk {
 	class Qk_EXPORT ImageSourceHolder {
 	public:
 		~ImageSourceHolder();
-		Qk_DEFINE_PROP_ACC(String, src);
-		Qk_DEFINE_PROP_ACC(ImageSource*, source, NoConst);
+		Qk_DEFINE_PROP_ACC(String, src, Const);
+		Qk_DEFINE_PROP_ACC(ImageSource*, source);
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);

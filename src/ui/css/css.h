@@ -49,8 +49,8 @@ namespace qk {
 
 	class Qk_EXPORT CSSName {
 	public:
-		Qk_DEFINE_PROP_GET(uint64_t, hashCode);
-		Qk_DEFINE_PROP_GET(String, name);
+		Qk_DEFINE_PROP_GET(uint64_t, hashCode, Const);
+		Qk_DEFINE_PROP_GET(String, name, Const);
 		CSSName(cString& name);
 	};
 
@@ -76,15 +76,15 @@ namespace qk {
 			Qk_View_Props(_Fun)
 		#undef _Fun
 
-		Qk_DEFINE_PROP(uint64_t, time);
-		Qk_DEFINE_PROP_GET(CSSName, name);
-		Qk_DEFINE_PROP_GET(StyleSheets*, parent, NoConst);
-		Qk_DEFINE_PROP_GET(StyleSheets*, normal, NoConst); // style sheets for pseudo type
-		Qk_DEFINE_PROP_GET(StyleSheets*, hover,  NoConst);
-		Qk_DEFINE_PROP_GET(StyleSheets*, active, NoConst);
-		Qk_DEFINE_PROP_GET(CSSType, type);
-		Qk_DEFINE_PROP_GET(bool, havePseudoType); // normal | hover | active
-		Qk_DEFINE_PROP_GET(bool, haveSubstyles);
+		Qk_DEFINE_PROP(uint64_t, time, Const);
+		Qk_DEFINE_PROP_GET(CSSName, name, Const);
+		Qk_DEFINE_PROP_GET(StyleSheets*, parent);
+		Qk_DEFINE_PROP_GET(StyleSheets*, normal); // style sheets for pseudo type
+		Qk_DEFINE_PROP_GET(StyleSheets*, hover);
+		Qk_DEFINE_PROP_GET(StyleSheets*, active);
+		Qk_DEFINE_PROP_GET(CSSType, type, Const);
+		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); // normal | hover | active
+		Qk_DEFINE_PROP_GET(bool, haveSubstyles, Const);
 
 		/**
 		 * @constructor
@@ -137,10 +137,10 @@ namespace qk {
 	class Qk_EXPORT StyleSheetsClass {
 		Qk_HIDDEN_ALL_COPY(StyleSheetsClass);
 	public:
-		Qk_DEFINE_PROP_GET(bool, havePseudoType); //!< The current style sheet group supports pseudo types
-		Qk_DEFINE_PROP_GET(bool, firstApply); //!< Is this the first time applying a style sheet
-		Qk_DEFINE_PROP_GET(Layout*, host, NoConst); //!< apply style sheet target object
-		Qk_DEFINE_PROP_GET(StyleSheetsClass*, parent, NoConst); //!< apply parent ssc
+		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
+		Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
+		Qk_DEFINE_PROP_GET(Layout*, host); //!< apply style sheet target object
+		Qk_DEFINE_PROP_GET(StyleSheetsClass*, parent); //!< apply parent ssc
 
 		StyleSheetsClass(Layout *host);
 		void set(cArray<String> &name); //!< Calling in the main loop

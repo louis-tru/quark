@@ -41,25 +41,25 @@ namespace qk {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
 	public:
-		Qk_DEFINE_PROP(bool, scrollbar); // 显示scrollbar
-		Qk_DEFINE_PROP(bool, bounce);    // 使用回弹力
-		Qk_DEFINE_PROP(bool, bounce_lock); // 使用回弹力锁定
-		Qk_DEFINE_PROP(bool, momentum); // 是否使用惯性
-		Qk_DEFINE_PROP(bool, lock_direction); // 锁定方向
-		Qk_DEFINE_PROP_GET(bool, scrollbar_h); // 是否显示水平滚动条
-		Qk_DEFINE_PROP_GET(bool, scrollbar_v); // 是否显示垂直滚动条
-		Qk_DEFINE_PROP_ACC(float, scroll_x);
-		Qk_DEFINE_PROP_ACC(float, scroll_y);
-		Qk_DEFINE_PROP_ACC(Vec2,  scroll);
-		Qk_DEFINE_PROP_GET(Vec2, scroll_size);
-		Qk_DEFINE_PROP(float, resistance); // resistance default=1
-		Qk_DEFINE_PROP(float, catch_position_x); // 停止后捕获位置
-		Qk_DEFINE_PROP(float, catch_position_y);
-		Qk_DEFINE_PROP(Color, scrollbar_color);
-		Qk_DEFINE_PROP(float, scrollbar_width);
-		Qk_DEFINE_PROP(float, scrollbar_margin);
-		Qk_DEFINE_PROP(uint64_t, scroll_duration);
-		Qk_DEFINE_PROP(cCurve*, scroll_curve);
+		Qk_DEFINE_PROP(bool, scrollbar, Const); // 显示scrollbar
+		Qk_DEFINE_PROP(bool, bounce, Const); // 使用回弹力
+		Qk_DEFINE_PROP(bool, bounce_lock, Const); // 使用回弹力锁定
+		Qk_DEFINE_PROP(bool, momentum, Const); // 是否使用惯性
+		Qk_DEFINE_PROP(bool, lock_direction, Const); // 锁定方向
+		Qk_DEFINE_PROP_GET(bool, scrollbar_h, Const); // 是否显示水平滚动条
+		Qk_DEFINE_PROP_GET(bool, scrollbar_v, Const); // 是否显示垂直滚动条
+		Qk_DEFINE_PROP_ACC(float, scroll_x, Const);
+		Qk_DEFINE_PROP_ACC(float, scroll_y, Const);
+		Qk_DEFINE_PROP_ACC(Vec2,  scroll, Const);
+		Qk_DEFINE_PROP_GET(Vec2, scroll_size, Const);
+		Qk_DEFINE_PROP(float, resistance, Const); // resistance default=1
+		Qk_DEFINE_PROP(float, catch_position_x, Const); // 停止后捕获位置
+		Qk_DEFINE_PROP(float, catch_position_y, Const);
+		Qk_DEFINE_PROP(Color, scrollbar_color, Const);
+		Qk_DEFINE_PROP(float, scrollbar_width, Const);
+		Qk_DEFINE_PROP(float, scrollbar_margin, Const);
+		Qk_DEFINE_PROP(uint64_t, scroll_duration, Const);
+		Qk_DEFINE_PROP(cCurve*, scroll_curve, Const);
 		void terminate();
 		void scroll_to(Vec2 value, uint64_t duration);
 		void scroll_to(Vec2 value, uint64_t duration, cCurve& curve);
@@ -86,25 +86,25 @@ namespace qk {
 
 	class Qk_EXPORT ScrollLayoutBaseAsync {
 	public:
-		Qk_DEFINE_PROP_ACC(bool, scrollbar);
-		Qk_DEFINE_PROP_ACC(bool, bounce);   
-		Qk_DEFINE_PROP_ACC(bool, bounce_lock);
-		Qk_DEFINE_PROP_ACC(bool, momentum);
-		Qk_DEFINE_PROP_ACC(bool, lock_direction);
-		Qk_DEFINE_PROP_ACC_GET(bool, scrollbar_h);
-		Qk_DEFINE_PROP_ACC_GET(bool, scrollbar_v);
-		Qk_DEFINE_PROP_ACC(float, scroll_x);
-		Qk_DEFINE_PROP_ACC(float, scroll_y);
-		Qk_DEFINE_PROP_ACC(Vec2,  scroll);
-		Qk_DEFINE_PROP_ACC_GET(Vec2, scroll_size);
-		Qk_DEFINE_PROP_ACC(float, resistance);
-		Qk_DEFINE_PROP_ACC(float, catch_position_x);
-		Qk_DEFINE_PROP_ACC(float, catch_position_y);
-		Qk_DEFINE_PROP_ACC(Color, scrollbar_color);
-		Qk_DEFINE_PROP_ACC(float, scrollbar_width);
-		Qk_DEFINE_PROP_ACC(float, scrollbar_margin);
-		Qk_DEFINE_PROP_ACC(uint64_t, scroll_duration);
-		Qk_DEFINE_PROP_ACC(cCurve*, scroll_curve);
+		Qk_DEFINE_PROP_ACC(bool, scrollbar, Const);
+		Qk_DEFINE_PROP_ACC(bool, bounce, Const);
+		Qk_DEFINE_PROP_ACC(bool, bounce_lock, Const);
+		Qk_DEFINE_PROP_ACC(bool, momentum, Const);
+		Qk_DEFINE_PROP_ACC(bool, lock_direction, Const);
+		Qk_DEFINE_PROP_ACC_GET(bool, scrollbar_h, Const);
+		Qk_DEFINE_PROP_ACC_GET(bool, scrollbar_v, Const);
+		Qk_DEFINE_PROP_ACC(float, scroll_x, Const);
+		Qk_DEFINE_PROP_ACC(float, scroll_y, Const);
+		Qk_DEFINE_PROP_ACC(Vec2,  scroll, Const);
+		Qk_DEFINE_PROP_ACC_GET(Vec2, scroll_size, Const);
+		Qk_DEFINE_PROP_ACC(float, resistance, Const);
+		Qk_DEFINE_PROP_ACC(float, catch_position_x, Const);
+		Qk_DEFINE_PROP_ACC(float, catch_position_y, Const);
+		Qk_DEFINE_PROP_ACC(Color, scrollbar_color, Const);
+		Qk_DEFINE_PROP_ACC(float, scrollbar_width, Const);
+		Qk_DEFINE_PROP_ACC(float, scrollbar_margin, Const);
+		Qk_DEFINE_PROP_ACC(uint64_t, scroll_duration, Const);
+		Qk_DEFINE_PROP_ACC(cCurve*, scroll_curve, Const);
 		void scroll_to(Vec2 value, uint64_t duration);
 		void scroll_to(Vec2 value, uint64_t duration, cCurve& curve);
 		void terminate();

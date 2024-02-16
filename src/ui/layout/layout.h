@@ -93,7 +93,7 @@ namespace qk {
 		* The marked layout will be updated before starting frame drawing.
 		* During operation, layout local attributes may be updated frequently or the layout may rarely change.
 		*/
-		Qk_DEFINE_PROP_GET(uint32_t, mark_value);
+		Qk_DEFINE_PROP_GET(uint32_t, mark_value, Const);
 
 		/*
 		* Next preprocessing layout tag
@@ -105,7 +105,7 @@ namespace qk {
 		* 
 		* @prop mark_index
 		*/
-		Qk_DEFINE_PROP_GET(int32_t, mark_index);
+		Qk_DEFINE_PROP_GET(int32_t, mark_index, Const);
 
 		/*
 		* @prop level
@@ -113,7 +113,7 @@ namespace qk {
 		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
 		* 这个值受`Layout::_visible`影响, Layout::_visible=false时_level=0
 		*/
-		Qk_DEFINE_PROP_GET(uint32_t, level);
+		Qk_DEFINE_PROP_GET(uint32_t, level, Const);
 
 		/**
 		 *
@@ -121,17 +121,17 @@ namespace qk {
 		 *
 		 * @prop position()
 		 */
-		Qk_DEFINE_PROP_GET(Vec2, position, Protected);
+		Qk_DEFINE_PROP_GET(Vec2, position, ProtectedConst);
 
 		/*
 		* @prop window
 		*/
-		Qk_DEFINE_PROP_GET(Window*, window, NoConst);
+		Qk_DEFINE_PROP_GET(Window*, window);
 
 		/*
 		* @prop view
 		*/
-		Qk_DEFINE_PROP_GET(View*, view, NoConst);
+		Qk_DEFINE_PROP_GET(View*, view);
 
 		/**
 		 * 
@@ -139,53 +139,53 @@ namespace qk {
 		 * 
 		 * @prop safe_view()
 		*/
-		Qk_DEFINE_PROP_ACC_GET(Sp<View>, safe_view, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(Sp<View>, safe_view);
 
 		/**
 		 * parent layout view
 		*/
-		Qk_DEFINE_PROP_GET(Layout*, parent, NoConst);
-		Qk_DEFINE_PROP_GET(Layout*, prev, NoConst);
-		Qk_DEFINE_PROP_GET(Layout*, next, NoConst);
-		Qk_DEFINE_PROP_GET(Layout*, first, NoConst);
-		Qk_DEFINE_PROP_GET(Layout*, last, NoConst);
+		Qk_DEFINE_PROP_GET(Layout*, parent);
+		Qk_DEFINE_PROP_GET(Layout*, prev);
+		Qk_DEFINE_PROP_GET(Layout*, next);
+		Qk_DEFINE_PROP_GET(Layout*, first);
+		Qk_DEFINE_PROP_GET(Layout*, last);
 
 		/**
 		 * @prop props accessor
 		*/
-		Qk_DEFINE_PROP_GET(PropAccessor*, accessor, NoConst);
+		Qk_DEFINE_PROP_GET(PropAccessor*, accessor);
 
 		/**
 		 * @prop style sheets class object
 		*/
-		Qk_DEFINE_PROP_GET(StyleSheetsClass*, ssclass, NoConst);
+		Qk_DEFINE_PROP_GET(StyleSheetsClass*, ssclass);
 
 		/**
 		 *  can affect the transparency of subviews
 		 */
-		Qk_DEFINE_PROP(float, opacity);
+		Qk_DEFINE_PROP(float, opacity, Const);
 
 		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space
 		*/
-		Qk_DEFINE_PROP(bool, visible);
+		Qk_DEFINE_PROP(bool, visible, Const);
 
 		/**
 		 *  这个值与`visible`不相关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		*/
-		Qk_DEFINE_PROP(bool, visible_region, Protected);
+		Qk_DEFINE_PROP(bool, visible_region, ProtectedConst);
 
 		/**
 		 * Do views need to receive or handle system event throws? In most cases,
 		 * these events do not need to be handled, which can improve overall event processing efficiency
 		*/
-		Qk_DEFINE_PROP(bool, receive);
+		Qk_DEFINE_PROP(bool, receive, Const);
 
 		/**
 		 * @prop transform()
 		*/
-		Qk_DEFINE_PROP_ACC_GET(TransformLayout*, transform, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(TransformLayout*, transform);
 
 		/**
 		 * @constructor

@@ -296,14 +296,14 @@
 	private: static void* operator new(size_t size) = delete; \
 	private: static void operator delete(void*, size_t) = delete
 
-#define __Qk_DEFINE_PROP_Const const
-#define __Qk_DEFINE_PROP_ConstNoConst
-#define __Qk_DEFINE_PROP_ConstProtected const
-#define __Qk_DEFINE_PROP_ConstProtectedNoConst
+#define __Qk_DEFINE_PROP_Const
+#define __Qk_DEFINE_PROP_ConstConst const
+#define __Qk_DEFINE_PROP_ConstProtected
+#define __Qk_DEFINE_PROP_ConstProtectedConst const
 #define __Qk_DEFINE_PROP_Modifier private
-#define __Qk_DEFINE_PROP_ModifierNoConst private
+#define __Qk_DEFINE_PROP_ModifierConst private
 #define __Qk_DEFINE_PROP_ModifierProtected protected
-#define __Qk_DEFINE_PROP_ModifierProtectedNoConst protected
+#define __Qk_DEFINE_PROP_ModifierProtectedConst protected
 
 #define Qk_DEFINE_PROP_ACC_GET(type, name, ...) \
 	type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__; public:

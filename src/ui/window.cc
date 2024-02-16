@@ -270,6 +270,8 @@ namespace qk {
 		UILock lock(this); // ui render lock
 		int64_t time = time_monotonic();
 
+		// m_host->action_center()->advance(now_time); // advance action
+
 		if (!_preRender.solve(time)) {
 			solveNextFrame();
 			return false;

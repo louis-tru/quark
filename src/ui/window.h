@@ -47,6 +47,7 @@ namespace qk {
 	class Root;
 	class Window;
 	class RootStyleSheets;
+	class ActionCenter;
 
 	/**
 	 * Note: If `main loop` and `render loop` run in different threads,
@@ -100,20 +101,21 @@ namespace qk {
 		* 同时只能指定一个项目,同时指定宽度与高度不生效
 		* 如果设置为非零表示锁定尺寸,不管display_size怎样变化对于视图这个值永远保持不变
 		*/
-		Qk_DEFINE_PROP(Vec2, size); //!< current viewport size
+		Qk_DEFINE_PROP(Vec2, size, Const); //!< current viewport size
 		//!< display scale, the larger the value, the smaller the size and the less content displayed
-		Qk_DEFINE_PROP_GET(float, scale);
-		Qk_DEFINE_PROP_GET(float, defaultScale); //!< default display scale
-		Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion); //!< Select the area on the drawing surface
-		Qk_DEFINE_PROP_GET(uint32_t, fsp); //!< current fsp
-		Qk_DEFINE_PROP_GET(uint32_t, atomPixel); // atom pixel size
+		Qk_DEFINE_PROP_GET(float, scale, Const);
+		Qk_DEFINE_PROP_GET(float, defaultScale, Const); //!< default display scale
+		Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
+		Qk_DEFINE_PROP_GET(uint32_t, fsp, Const); //!< current fsp
+		Qk_DEFINE_PROP_GET(uint32_t, atomPixel, Const); // atom pixel size
 		Qk_DEFINE_PROP_GET(Root*, root); //! root view
 		Qk_DEFINE_PROP_GET(Application*, host); //! application host
 		Qk_DEFINE_PROP_GET(Render*, render); //! render object
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
 		Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
-		Qk_DEFINE_PROP(Color, backgroundColor); //! background color
+		Qk_DEFINE_PROP(Color, backgroundColor, Const); //! background color
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
+		Qk_DEFINE_PROP_GET(ActionCenter*, action); //! Action scheduling
 
 		/**
 		 * @static

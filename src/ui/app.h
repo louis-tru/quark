@@ -63,7 +63,7 @@ namespace qk {
 	public:
 
 		// @props
-		Qk_DEFINE_PROP_GET(bool, isLoaded);
+		Qk_DEFINE_PROP_GET(bool, isLoaded, Const);
 		Qk_DEFINE_PROP_GET(DefaultTextOptions*, defaultTextOptions); //! default font settings
 		Qk_DEFINE_PROP_GET(Screen*, screen); //! screen object
 		Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
@@ -72,8 +72,8 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Window*, activeWindow); //! current active window
 		Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
 		//! Resource memory limit, cannot be less than 64MB, the default is 512MB.
-		Qk_DEFINE_PROP(uint64_t, maxResourceMemoryLimit);
-		Qk_DEFINE_PROP_ACC_GET(const List<Window*>&, windows); //! all window list
+		Qk_DEFINE_PROP(uint64_t, maxResourceMemoryLimit, Const);
+		Qk_DEFINE_PROP_ACC_GET(const List<Window*>&, windows, Const); //! all window list
 
 		// @events
 		Qk_Event(Load);

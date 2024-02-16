@@ -102,7 +102,7 @@ namespace qk {
 		int  read(void* buffer, int64_t size, int64_t offset = -1);
 		int  write(const void* buffer, int64_t size, int64_t offset = -1);
 		// props
-		Qk_DEFINE_PROP_GET(String, path);
+		Qk_DEFINE_PROP_GET(String, path, Const);
 	private:
 		int  _fd;
 	};

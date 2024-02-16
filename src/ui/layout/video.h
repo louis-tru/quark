@@ -48,21 +48,21 @@ namespace qk {
 		VideoLayout();
 		virtual ~VideoLayout();
 		// define props
-		Qk_DEFINE_PROP_ACC(bool, auto_play, NoConst);
-		Qk_DEFINE_PROP_ACC(bool, mute, NoConst);
-		Qk_DEFINE_PROP_ACC(bool, disable_wait_buffer, NoConst);
-		Qk_DEFINE_PROP_ACC(uint32_t, volume, NoConst);
-		Qk_DEFINE_PROP_ACC(String, src, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(MultimediaSourceStatus, source_status, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(PlayerStatus, status, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(uint64_t, time, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_count, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_index, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, audio_track, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, video_track, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, video_width, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, video_height, NoConst);
+		Qk_DEFINE_PROP_ACC(bool, auto_play);
+		Qk_DEFINE_PROP_ACC(bool, mute);
+		Qk_DEFINE_PROP_ACC(bool, disable_wait_buffer);
+		Qk_DEFINE_PROP_ACC(uint32_t, volume);
+		Qk_DEFINE_PROP_ACC(String, src);
+		Qk_DEFINE_PROP_ACC_GET(MultimediaSourceStatus, source_status);
+		Qk_DEFINE_PROP_ACC_GET(PlayerStatus, status);
+		Qk_DEFINE_PROP_ACC_GET(uint64_t, time);
+		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_count);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_index);
+		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, audio_track);
+		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, video_track);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, video_width);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, video_height);
 		// define methods
 		const TrackInfo* audio_track_at(uint32_t index);
 		void select_audio_track(uint32_t index);

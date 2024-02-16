@@ -50,9 +50,9 @@ namespace qk {
 	public:
 		typedef List<RenderTask*>::Iterator ID;
 		// define props
-		Qk_DEFINE_PROP_GET(ID, task_id);
+		Qk_DEFINE_PROP_GET(ID, task_id, Const);
 		Qk_DEFINE_PROP_GET(PreRender*, pre);
-		Qk_DEFINE_PROP(int64_t, task_timeout); // Unit is subtle
+		Qk_DEFINE_PROP(int64_t, task_timeout, Const); // Unit is subtle
 		inline RenderTask(): _task_timeout(0) {}
 		virtual ~RenderTask();
 		virtual bool run_task(int64_t sys_time) = 0;

@@ -57,7 +57,7 @@ namespace qk {
 			kShared,
 			kDisable,
 		};
-		Qk_DEFINE_PROP(HolderMode, holder_mode); // holder mode
+		Qk_DEFINE_PROP(HolderMode, holder_mode, Const); // holder mode
 
 		BoxFilter();
 		virtual ~BoxFilter();
@@ -89,11 +89,11 @@ namespace qk {
 			FillPosition position_x, position_y;
 			Repeat repeat;
 		};
-		Qk_DEFINE_PROP(FillSize, size_x);
-		Qk_DEFINE_PROP(FillSize, size_y);
-		Qk_DEFINE_PROP(FillPosition, position_x);
-		Qk_DEFINE_PROP(FillPosition, position_y);
-		Qk_DEFINE_PROP(Repeat, repeat);
+		Qk_DEFINE_PROP(FillSize, size_x, Const);
+		Qk_DEFINE_PROP(FillSize, size_y, Const);
+		Qk_DEFINE_PROP(FillPosition, position_x, Const);
+		Qk_DEFINE_PROP(FillPosition, position_y, Const);
+		Qk_DEFINE_PROP(Repeat, repeat, Const);
 		FillImage();
 		FillImage(cString& src, Init init = {});
 		virtual Type       type() const override;
@@ -118,10 +118,10 @@ namespace qk {
 
 	class Qk_EXPORT FillGradientLinear: public FillGradient {
 	public:
-		Qk_DEFINE_PROP(float, angle);
+		Qk_DEFINE_PROP(float, angle, Const);
 		FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors);
-		Qk_DEFINE_PROP_GET(float, radian);
-		Qk_DEFINE_PROP_GET(uint8_t, quadrant);
+		Qk_DEFINE_PROP_GET(float, radian, Const);
+		Qk_DEFINE_PROP_GET(uint8_t, quadrant, Const);
 		virtual Type       type() const override;
 		virtual BoxFilter* copy(BoxFilter* to) override;
 	private:
@@ -138,7 +138,7 @@ namespace qk {
 	// box shadow
 	class Qk_EXPORT BoxShadow: public BoxFilter {
 	public:
-		Qk_DEFINE_PROP(Shadow, value);
+		Qk_DEFINE_PROP(Shadow, value, Const);
 		BoxShadow();
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);

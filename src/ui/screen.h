@@ -67,8 +67,8 @@ namespace qk {
 		Qk_Event(Orientation);
 
 		Qk_DEFINE_PROP_GET(Application*, host); // host app
-		Qk_DEFINE_PROP_ACC(Orientation, orientation); // orientation
-		Qk_DEFINE_PROP_ACC_GET(float, status_bar_height); // status_bar_height
+		Qk_DEFINE_PROP_ACC(Orientation, orientation, Const); // orientation
+		Qk_DEFINE_PROP_ACC_GET(float, status_bar_height, Const); // status_bar_height
 
 		/**
 		 * @constructor

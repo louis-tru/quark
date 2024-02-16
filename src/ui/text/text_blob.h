@@ -60,8 +60,8 @@ namespace qk {
 	class Qk_EXPORT TextBlobBuilder {
 	public:
 		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
-		Qk_DEFINE_PROP(bool, disable_overflow);
-		Qk_DEFINE_PROP(bool, disable_auto_wrap);
+		Qk_DEFINE_PROP(bool, disable_overflow, Const);
+		Qk_DEFINE_PROP(bool, disable_auto_wrap, Const);
 		Qk_DEFINE_PROP(TextLines*, lines);
 		Qk_DEFINE_PROP(TextOptions*, opts);
 		Qk_DEFINE_PROP(Array<TextBlob>*, blob);

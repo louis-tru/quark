@@ -39,9 +39,9 @@ namespace qk {
 	public:
 		FlexLayout(Window *win);
 		// define props
-		Qk_DEFINE_PROP(Direction, direction); // typesetting direction
-		Qk_DEFINE_PROP(ItemsAlign, items_align); // alignment mode of the main axis
-		Qk_DEFINE_PROP(CrossAlign, cross_align); // alignment mode of the cross axis
+		Qk_DEFINE_PROP(Direction, direction, Const); // typesetting direction
+		Qk_DEFINE_PROP(ItemsAlign, items_align, Const); // alignment mode of the main axis
+		Qk_DEFINE_PROP(CrossAlign, cross_align, Const); // alignment mode of the cross axis
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
@@ -62,9 +62,9 @@ namespace qk {
 	class Qk_EXPORT Flex: public Box {
 	public:
 		Qk_Define_View(Flex, Box);
-		Qk_DEFINE_PROP_ACC(Direction, direction);
-		Qk_DEFINE_PROP_ACC(ItemsAlign, items_align);
-		Qk_DEFINE_PROP_ACC(CrossAlign, cross_align);
+		Qk_DEFINE_PROP_ACC(Direction, direction, Const);
+		Qk_DEFINE_PROP_ACC(ItemsAlign, items_align, Const);
+		Qk_DEFINE_PROP_ACC(CrossAlign, cross_align, Const);
 	};
 
 }

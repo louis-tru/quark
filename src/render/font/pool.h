@@ -40,10 +40,10 @@ namespace qk {
 	public:
 		static FontPool* Make();
 		// define ptops
-		Qk_DEFINE_PROP_ACC_GET(int32_t, countFamilies);
-		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, second);
-		Qk_DEFINE_PROP_GET(Sp<Typeface>, last, NoConst);
-		Qk_DEFINE_PROP_GET(GlyphID, last_65533);
+		Qk_DEFINE_PROP_ACC_GET(int32_t, countFamilies, Const);
+		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, second, Const);
+		Qk_DEFINE_PROP_GET(Sp<Typeface>, last);
+		Qk_DEFINE_PROP_GET(GlyphID, last_65533, Const);
 		// methods
 		FFID getFFID(cString& familys = String());
 		FFID getFFID(const Array<String>& familys);

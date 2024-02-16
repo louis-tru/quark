@@ -42,40 +42,40 @@ namespace qk {
 	class Qk_EXPORT BoxLayout: public Layout {
 	public:
 		// define props
-		Qk_DEFINE_PROP_GET(bool,       layout_wrap_x); // Returns the x-axis is wrap content
-		Qk_DEFINE_PROP_GET(bool,       layout_wrap_y); // Returns the y-axis is wrap content
-		Qk_DEFINE_PROP    (bool,       clip); // is clip box display range
-		Qk_DEFINE_PROP    (BoxSize,    width); // size width
-		Qk_DEFINE_PROP    (BoxSize,    height); // size height
-		Qk_DEFINE_PROP    (BoxSize,    width_limit); // limit max size
-		Qk_DEFINE_PROP    (BoxSize,    height_limit);
-		Qk_DEFINE_PROP    (float,      margin_top); // margin
-		Qk_DEFINE_PROP    (float,      margin_right);
-		Qk_DEFINE_PROP    (float,      margin_bottom);
-		Qk_DEFINE_PROP    (float,      margin_left);
-		Qk_DEFINE_PROP    (float,      padding_top); // padding
-		Qk_DEFINE_PROP    (float,      padding_right);
-		Qk_DEFINE_PROP    (float,      padding_bottom);
-		Qk_DEFINE_PROP    (float,      padding_left);
-		Qk_DEFINE_PROP    (float,      border_radius_left_top); // border_radius
-		Qk_DEFINE_PROP    (float,      border_radius_right_top);
-		Qk_DEFINE_PROP    (float,      border_radius_right_bottom);
-		Qk_DEFINE_PROP    (float,      border_radius_left_bottom);
-		Qk_DEFINE_PROP_ACC(Color,      border_color_top); // border_color
-		Qk_DEFINE_PROP_ACC(Color,      border_color_right);
-		Qk_DEFINE_PROP_ACC(Color,      border_color_bottom);
-		Qk_DEFINE_PROP_ACC(Color,      border_color_left);
-		Qk_DEFINE_PROP_ACC(float,      border_width_top); // border_width
-		Qk_DEFINE_PROP_ACC(float,      border_width_right);
-		Qk_DEFINE_PROP_ACC(float,      border_width_bottom);
-		Qk_DEFINE_PROP_ACC(float,      border_width_left);
-		Qk_DEFINE_PROP    (Color,      background_color); // fill background color
+		Qk_DEFINE_PROP_GET(bool,       layout_wrap_x, Const); // Returns the x-axis is wrap content
+		Qk_DEFINE_PROP_GET(bool,       layout_wrap_y, Const); // Returns the y-axis is wrap content
+		Qk_DEFINE_PROP    (bool,       clip, Const); // is clip box display range
+		Qk_DEFINE_PROP    (BoxSize,    width, Const); // size width
+		Qk_DEFINE_PROP    (BoxSize,    height, Const); // size height
+		Qk_DEFINE_PROP    (BoxSize,    width_limit, Const); // limit max size
+		Qk_DEFINE_PROP    (BoxSize,    height_limit, Const);
+		Qk_DEFINE_PROP    (float,      margin_top, Const); // margin
+		Qk_DEFINE_PROP    (float,      margin_right, Const);
+		Qk_DEFINE_PROP    (float,      margin_bottom, Const);
+		Qk_DEFINE_PROP    (float,      margin_left, Const);
+		Qk_DEFINE_PROP    (float,      padding_top, Const); // padding
+		Qk_DEFINE_PROP    (float,      padding_right, Const);
+		Qk_DEFINE_PROP    (float,      padding_bottom, Const);
+		Qk_DEFINE_PROP    (float,      padding_left, Const);
+		Qk_DEFINE_PROP    (float,      border_radius_left_top, Const); // border_radius
+		Qk_DEFINE_PROP    (float,      border_radius_right_top, Const);
+		Qk_DEFINE_PROP    (float,      border_radius_right_bottom, Const);
+		Qk_DEFINE_PROP    (float,      border_radius_left_bottom, Const);
+		Qk_DEFINE_PROP_ACC(Color,      border_color_top, Const); // border_color
+		Qk_DEFINE_PROP_ACC(Color,      border_color_right, Const);
+		Qk_DEFINE_PROP_ACC(Color,      border_color_bottom, Const);
+		Qk_DEFINE_PROP_ACC(Color,      border_color_left, Const);
+		Qk_DEFINE_PROP_ACC(float,      border_width_top, Const); // border_width
+		Qk_DEFINE_PROP_ACC(float,      border_width_right, Const);
+		Qk_DEFINE_PROP_ACC(float,      border_width_bottom, Const);
+		Qk_DEFINE_PROP_ACC(float,      border_width_left, Const);
+		Qk_DEFINE_PROP    (Color,      background_color, Const); // fill background color
 		Qk_DEFINE_PROP    (BoxFill*,   background); // fill background, image|gradient
 		Qk_DEFINE_PROP    (BoxShadow*, box_shadow); // box shadow, shadow
-		Qk_DEFINE_PROP    (float,      weight); // layout weight
-		Qk_DEFINE_PROP_ACC(Align,      align); // layout align
-		Qk_DEFINE_PROP_GET(Vec2,       content_size); // width,height, no include padding
-		Qk_DEFINE_PROP_GET(Vec2,       client_size); // border + padding + content
+		Qk_DEFINE_PROP    (float,      weight, Const); // layout weight
+		Qk_DEFINE_PROP_ACC(Align,      align, Const); // layout align
+		Qk_DEFINE_PROP_GET(Vec2,       content_size, Const); // width,height, no include padding
+		Qk_DEFINE_PROP_GET(Vec2,       client_size, Const); // border + padding + content
 
 		/**
 		 * @constructor
@@ -164,36 +164,36 @@ namespace qk {
 	class Qk_EXPORT Box: public View {
 	public:
 		Qk_Define_View(Box, View);
-		Qk_DEFINE_PROP_ACC(bool,       clip); // is clip box display range
-		Qk_DEFINE_PROP_ACC(BoxSize,    width); // size width
-		Qk_DEFINE_PROP_ACC(BoxSize,    height); // size height
-		Qk_DEFINE_PROP_ACC(BoxSize,    width_limit); // limit max size
-		Qk_DEFINE_PROP_ACC(BoxSize,    height_limit);
-		Qk_DEFINE_PROP_ACC(float,      margin_top); // margin
-		Qk_DEFINE_PROP_ACC(float,      margin_right);
-		Qk_DEFINE_PROP_ACC(float,      margin_bottom);
-		Qk_DEFINE_PROP_ACC(float,      margin_left);
-		Qk_DEFINE_PROP_ACC(float,      padding_top); // padding
-		Qk_DEFINE_PROP_ACC(float,      padding_right);
-		Qk_DEFINE_PROP_ACC(float,      padding_bottom);
-		Qk_DEFINE_PROP_ACC(float,      padding_left);
-		Qk_DEFINE_PROP_ACC(float,      border_radius_left_top); // border_radius
-		Qk_DEFINE_PROP_ACC(float,      border_radius_right_top);
-		Qk_DEFINE_PROP_ACC(float,      border_radius_right_bottom);
-		Qk_DEFINE_PROP_ACC(float,      border_radius_left_bottom);
-		Qk_DEFINE_PROP_ACC(Color,      border_color_top); // border_color
-		Qk_DEFINE_PROP_ACC(Color,      border_color_right);
-		Qk_DEFINE_PROP_ACC(Color,      border_color_bottom);
-		Qk_DEFINE_PROP_ACC(Color,      border_color_left);
-		Qk_DEFINE_PROP_ACC(float,      border_width_top); // border_width
-		Qk_DEFINE_PROP_ACC(float,      border_width_right);
-		Qk_DEFINE_PROP_ACC(float,      border_width_bottom);
-		Qk_DEFINE_PROP_ACC(float,      border_width_left);
-		Qk_DEFINE_PROP_ACC(Color,      background_color); // fill background color
+		Qk_DEFINE_PROP_ACC(bool,       clip, Const); // is clip box display range
+		Qk_DEFINE_PROP_ACC(BoxSize,    width, Const); // size width
+		Qk_DEFINE_PROP_ACC(BoxSize,    height, Const); // size height
+		Qk_DEFINE_PROP_ACC(BoxSize,    width_limit, Const); // limit max size
+		Qk_DEFINE_PROP_ACC(BoxSize,    height_limit, Const);
+		Qk_DEFINE_PROP_ACC(float,      margin_top, Const); // margin
+		Qk_DEFINE_PROP_ACC(float,      margin_right, Const);
+		Qk_DEFINE_PROP_ACC(float,      margin_bottom, Const);
+		Qk_DEFINE_PROP_ACC(float,      margin_left, Const);
+		Qk_DEFINE_PROP_ACC(float,      padding_top, Const); // padding
+		Qk_DEFINE_PROP_ACC(float,      padding_right, Const);
+		Qk_DEFINE_PROP_ACC(float,      padding_bottom, Const);
+		Qk_DEFINE_PROP_ACC(float,      padding_left, Const);
+		Qk_DEFINE_PROP_ACC(float,      border_radius_left_top, Const); // border_radius
+		Qk_DEFINE_PROP_ACC(float,      border_radius_right_top, Const);
+		Qk_DEFINE_PROP_ACC(float,      border_radius_right_bottom, Const);
+		Qk_DEFINE_PROP_ACC(float,      border_radius_left_bottom, Const);
+		Qk_DEFINE_PROP_ACC(Color,      border_color_top, Const); // border_color
+		Qk_DEFINE_PROP_ACC(Color,      border_color_right, Const);
+		Qk_DEFINE_PROP_ACC(Color,      border_color_bottom, Const);
+		Qk_DEFINE_PROP_ACC(Color,      border_color_left, Const);
+		Qk_DEFINE_PROP_ACC(float,      border_width_top, Const); // border_width
+		Qk_DEFINE_PROP_ACC(float,      border_width_right, Const);
+		Qk_DEFINE_PROP_ACC(float,      border_width_bottom, Const);
+		Qk_DEFINE_PROP_ACC(float,      border_width_left, Const);
+		Qk_DEFINE_PROP_ACC(Color,      background_color, Const); // fill background color
 		Qk_DEFINE_PROP_ACC(BoxFill*,   background); // fill background, image|gradient
 		Qk_DEFINE_PROP_ACC(BoxShadow*, box_shadow); // box shadow, shadow
-		Qk_DEFINE_PROP_ACC(float,      weight);
-		Qk_DEFINE_PROP_ACC(Align,      align);
+		Qk_DEFINE_PROP_ACC(float,      weight, Const);
+		Qk_DEFINE_PROP_ACC(Align,      align, Const);
 	};
 
 	/**

@@ -42,27 +42,27 @@ namespace qk {
 	class Qk_EXPORT TextOptions {
 	public:
 		TextOptions();
-		Qk_DEFINE_PROP(TextAlign, text_align);
-		Qk_DEFINE_PROP(TextWeight, text_weight);
-		Qk_DEFINE_PROP(TextSlant,  text_slant);
-		Qk_DEFINE_PROP(TextDecoration, text_decoration);
-		Qk_DEFINE_PROP(TextOverflow,   text_overflow);
-		Qk_DEFINE_PROP(TextWhiteSpace, text_white_space);
-		Qk_DEFINE_PROP(TextWordBreak,  text_word_break);
-		Qk_DEFINE_PROP(TextSize,  text_size); // TextValueWrap
-		Qk_DEFINE_PROP(TextColor, text_background_color);
-		Qk_DEFINE_PROP(TextColor, text_color);
-		Qk_DEFINE_PROP(TextLineHeight, text_line_height);
-		Qk_DEFINE_PROP(TextShadow, text_shadow);
-		Qk_DEFINE_PROP(TextFamily, text_family);
+		Qk_DEFINE_PROP(TextAlign, text_align, Const);
+		Qk_DEFINE_PROP(TextWeight, text_weight, Const);
+		Qk_DEFINE_PROP(TextSlant,  text_slant, Const);
+		Qk_DEFINE_PROP(TextDecoration, text_decoration, Const);
+		Qk_DEFINE_PROP(TextOverflow,   text_overflow, Const);
+		Qk_DEFINE_PROP(TextWhiteSpace, text_white_space, Const);
+		Qk_DEFINE_PROP(TextWordBreak,  text_word_break, Const);
+		Qk_DEFINE_PROP(TextSize,  text_size, Const); // TextValueWrap
+		Qk_DEFINE_PROP(TextColor, text_background_color, Const);
+		Qk_DEFINE_PROP(TextColor, text_color, Const);
+		Qk_DEFINE_PROP(TextLineHeight, text_line_height, Const);
+		Qk_DEFINE_PROP(TextShadow, text_shadow, Const);
+		Qk_DEFINE_PROP(TextFamily, text_family, Const);
 		// compute text final props
-		Qk_DEFINE_PROP_GET(TextWeight, text_weight_value);
-		Qk_DEFINE_PROP_GET(TextSlant, text_slant_value);
-		Qk_DEFINE_PROP_GET(TextDecoration, text_decoration_value);
-		Qk_DEFINE_PROP_GET(TextOverflow, text_overflow_value);
-		Qk_DEFINE_PROP_GET(TextWhiteSpace, text_white_space_value);
-		Qk_DEFINE_PROP_GET(TextWordBreak, text_word_break_value);
-		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style);
+		Qk_DEFINE_PROP_GET(TextWeight, text_weight_value, Const);
+		Qk_DEFINE_PROP_GET(TextSlant, text_slant_value, Const);
+		Qk_DEFINE_PROP_GET(TextDecoration, text_decoration_value, Const);
+		Qk_DEFINE_PROP_GET(TextOverflow, text_overflow_value, Const);
+		Qk_DEFINE_PROP_GET(TextWhiteSpace, text_white_space_value, Const);
+		Qk_DEFINE_PROP_GET(TextWordBreak, text_word_break_value, Const);
+		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style, Const);
 	protected:
 		virtual void onTextChange(uint32_t mark, uint32_t type);
 		uint32_t     _text_flags;
@@ -88,26 +88,26 @@ namespace qk {
 
 	class Qk_EXPORT TextOptionsAsync {
 	public:
-		Qk_DEFINE_PROP_ACC(TextAlign, text_align);
-		Qk_DEFINE_PROP_ACC(TextWeight, text_weight);
-		Qk_DEFINE_PROP_ACC(TextSlant,  text_slant);
-		Qk_DEFINE_PROP_ACC(TextDecoration, text_decoration);
-		Qk_DEFINE_PROP_ACC(TextOverflow,   text_overflow);
-		Qk_DEFINE_PROP_ACC(TextWhiteSpace, text_white_space);
-		Qk_DEFINE_PROP_ACC(TextWordBreak,  text_word_break);
-		Qk_DEFINE_PROP_ACC(TextSize,  text_size); // TextValueWrap
-		Qk_DEFINE_PROP_ACC(TextColor, text_background_color);
-		Qk_DEFINE_PROP_ACC(TextColor, text_color);
-		Qk_DEFINE_PROP_ACC(TextLineHeight, text_line_height);
-		Qk_DEFINE_PROP_ACC(TextShadow, text_shadow);
-		Qk_DEFINE_PROP_ACC(TextFamily, text_family);
-		Qk_DEFINE_PROP_ACC_GET(TextWeight, text_weight_value);
-		Qk_DEFINE_PROP_ACC_GET(TextSlant, text_slant_value);
-		Qk_DEFINE_PROP_ACC_GET(TextDecoration, text_decoration_value);
-		Qk_DEFINE_PROP_ACC_GET(TextOverflow, text_overflow_value);
-		Qk_DEFINE_PROP_ACC_GET(TextWhiteSpace, text_white_space_value);
-		Qk_DEFINE_PROP_ACC_GET(TextWordBreak, text_word_break_value);
-		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style);
+		Qk_DEFINE_PROP_ACC(TextAlign, text_align, Const);
+		Qk_DEFINE_PROP_ACC(TextWeight, text_weight, Const);
+		Qk_DEFINE_PROP_ACC(TextSlant,  text_slant, Const);
+		Qk_DEFINE_PROP_ACC(TextDecoration, text_decoration, Const);
+		Qk_DEFINE_PROP_ACC(TextOverflow,   text_overflow, Const);
+		Qk_DEFINE_PROP_ACC(TextWhiteSpace, text_white_space, Const);
+		Qk_DEFINE_PROP_ACC(TextWordBreak,  text_word_break, Const);
+		Qk_DEFINE_PROP_ACC(TextSize,  text_size, Const); // TextValueWrap
+		Qk_DEFINE_PROP_ACC(TextColor, text_background_color, Const);
+		Qk_DEFINE_PROP_ACC(TextColor, text_color, Const);
+		Qk_DEFINE_PROP_ACC(TextLineHeight, text_line_height, Const);
+		Qk_DEFINE_PROP_ACC(TextShadow, text_shadow, Const);
+		Qk_DEFINE_PROP_ACC(TextFamily, text_family, Const);
+		Qk_DEFINE_PROP_ACC_GET(TextWeight, text_weight_value, Const);
+		Qk_DEFINE_PROP_ACC_GET(TextSlant, text_slant_value, Const);
+		Qk_DEFINE_PROP_ACC_GET(TextDecoration, text_decoration_value, Const);
+		Qk_DEFINE_PROP_ACC_GET(TextOverflow, text_overflow_value, Const);
+		Qk_DEFINE_PROP_ACC_GET(TextWhiteSpace, text_white_space_value, Const);
+		Qk_DEFINE_PROP_ACC_GET(TextWordBreak, text_word_break_value, Const);
+		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style, Const);
 		// get host handle
 		virtual TextOptions* getOptions() const = 0;
 		virtual PreRender&   getPreRender() = 0;

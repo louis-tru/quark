@@ -41,7 +41,7 @@ namespace qk {
 	public:
 		FontGlyphs(float fontSize, Typeface *ft, const GlyphID glyphs[], uint32_t count);
 		FontGlyphs(float fontSize, Typeface *ft, Array<GlyphID> &&glyphs);
-		Qk_DEFINE_PROP(float, fontSize); // fontSize prop
+		Qk_DEFINE_PROP(float, fontSize, Const); // fontSize prop
 		Array<Vec2> getHorizontalOffset(Vec2 origin = 0) const;
 		inline Typeface* typeface() const { return const_cast<Typeface*>(*_typeface); }
 		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
@@ -53,7 +53,7 @@ namespace qk {
 	class Qk_EXPORT FontFamilys: public Object {
 	public:
 		FontFamilys(FontPool* pool, Array<String>& familys);
-		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, familys);
+		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, familys, Const);
 		Qk_DEFINE_PROP_GET(FontPool*, pool);
 		Sp<Typeface> match(FontStyle style, uint32_t index = 0);
 		Array<FontGlyphs> makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize);

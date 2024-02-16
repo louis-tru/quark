@@ -60,50 +60,50 @@ namespace qk {
 		/*
 		* @field window
 		*/
-		Qk_DEFINE_PROP_ACC_GET(Window*, window, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(Window*, window);
 		/**
 		 * the objects that automatically adjust view properties
 		*/
-		Qk_DEFINE_PROP(Action*, action, NoConst);
-		Qk_DEFINE_PROP_GET(Layout*, layout, NoConst);
-		Qk_DEFINE_PROP_GET(View*, parent, NoConst);
-		Qk_DEFINE_PROP_GET(View*, prev, NoConst);
-		Qk_DEFINE_PROP_GET(View*, next, NoConst);
-		Qk_DEFINE_PROP_GET(View*, first, NoConst);
-		Qk_DEFINE_PROP_GET(View*, last, NoConst);
+		Qk_DEFINE_PROP(Action*, action);
+		Qk_DEFINE_PROP_GET(Layout*, layout);
+		Qk_DEFINE_PROP_GET(View*, parent);
+		Qk_DEFINE_PROP_GET(View*, prev);
+		Qk_DEFINE_PROP_GET(View*, next);
+		Qk_DEFINE_PROP_GET(View*, first);
+		Qk_DEFINE_PROP_GET(View*, last);
 
 		/**
 		 * @prop style sheets class object
 		*/
-		Qk_DEFINE_PROP_ACC_GET(StyleSheetsClass*, ssclass, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(StyleSheetsClass*, ssclass);
 
 		/**
 		 *  can affect the transparency of subviews
 		 */
-		Qk_DEFINE_PROP_ACC(float, opacity);
+		Qk_DEFINE_PROP_ACC(float, opacity, Const);
 		/**
 		 * @field level
 		*/
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, level);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, level, Const);
 		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space
 		*/
-		Qk_DEFINE_PROP_ACC(bool, visible);
+		Qk_DEFINE_PROP_ACC(bool, visible, Const);
 		/**
 		 * keyboard focus view
 		*/
-		Qk_DEFINE_PROP_ACC(bool, is_focus);
+		Qk_DEFINE_PROP_ACC(bool, is_focus, Const);
 		/**
 		 * Do views need to receive or handle system event throws? In most cases,
 		 * these events do not need to be handled, which can improve overall event processing efficiency
 		*/
-		Qk_DEFINE_PROP_ACC(bool, receive);
+		Qk_DEFINE_PROP_ACC(bool, receive, Const);
 
 		/**
 		 * get view type
 		*/
-		Qk_DEFINE_PROP_ACC_GET(ViewType, viewType);
+		Qk_DEFINE_PROP_ACC_GET(ViewType, viewType, Const);
 
 		/**
 		 * @constructor

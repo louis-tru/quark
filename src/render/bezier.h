@@ -47,9 +47,9 @@ namespace qk {
 	class Qk_EXPORT QuadraticBezier {
 	public:
 		// define props
-		Qk_DEFINE_PROP_GET(Vec2, p0);
-		Qk_DEFINE_PROP_GET(Vec2, p1);
-		Qk_DEFINE_PROP_GET(Vec2, p2);
+		Qk_DEFINE_PROP_GET(Vec2, p0, Const);
+		Qk_DEFINE_PROP_GET(Vec2, p1, Const);
+		Qk_DEFINE_PROP_GET(Vec2, p2, Const);
 
 		/**
 		 * @constructor
@@ -86,10 +86,10 @@ namespace qk {
 	class Qk_EXPORT CubicBezier {
 	public:
 		// define props
-		Qk_DEFINE_PROP_GET(Vec2, p0);
-		Qk_DEFINE_PROP_GET(Vec2, p1);
-		Qk_DEFINE_PROP_GET(Vec2, p2);
-		Qk_DEFINE_PROP_GET(Vec2, p3);
+		Qk_DEFINE_PROP_GET(Vec2, p0, Const);
+		Qk_DEFINE_PROP_GET(Vec2, p1, Const);
+		Qk_DEFINE_PROP_GET(Vec2, p2, Const);
+		Qk_DEFINE_PROP_GET(Vec2, p3, Const);
 
 		/**
 		 * @constructor

@@ -119,10 +119,10 @@ namespace qk {
 	class Qk_EXPORT UIEventName {
 	public:
 		UIEventName(cString& name, uint32_t category, uint32_t flag);
-		Qk_DEFINE_PROP_GET(String, toString);
-		Qk_DEFINE_PROP_GET(uint32_t, category);
-		Qk_DEFINE_PROP_GET(uint32_t, flag);
-		Qk_DEFINE_PROP_GET(uint32_t, hashCode);
+		Qk_DEFINE_PROP_GET(String, toString, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, category, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, flag, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, hashCode, Const);
 		inline bool equals(const UIEventName& v) const { return v.hashCode() == _hashCode; }
 		inline bool operator==(const UIEventName& v) const { return v._hashCode == _hashCode; }
 		inline bool operator!=(const UIEventName& v) const { return v._hashCode != _hashCode; }
@@ -148,7 +148,7 @@ namespace qk {
 	public:
 		UIEvent(View *origin);
 		Qk_DEFINE_PROP_GET(View*, origin);
-		Qk_DEFINE_PROP_GET(uint64_t, timestamp);
+		Qk_DEFINE_PROP_GET(uint64_t, timestamp, Const);
 		inline bool is_default() const { return return_value & kDefault_ReturnValueMask; }
 		inline bool is_bubble() const { return return_value & kBubble_ReturnValueMask; }
 		inline void cancel_default() { return_value &= ~kDefault_ReturnValueMask; }
@@ -163,9 +163,9 @@ namespace qk {
 	public:
 		ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop);
 		Qk_DEFINE_PROP_GET(Action*, action);
-		Qk_DEFINE_PROP_GET(uint64_t, delay);
-		Qk_DEFINE_PROP_GET(uint32_t, frame);
-		Qk_DEFINE_PROP_GET(uint32_t, loop);
+		Qk_DEFINE_PROP_GET(uint64_t, delay, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, frame, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, loop, Const);
 		virtual void release() override;
 	};
 
@@ -178,15 +178,15 @@ namespace qk {
 						bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 						uint32_t repeat, int device, int source);
 		Qk_DEFINE_PROP(View*, focus_move);
-		Qk_DEFINE_PROP(uint32_t, keycode);
-		Qk_DEFINE_PROP_GET(uint32_t, repeat);
-		Qk_DEFINE_PROP_GET(uint32_t, device);
-		Qk_DEFINE_PROP_GET(uint32_t, source);
-		Qk_DEFINE_PROP_GET(uint32_t, shift);
-		Qk_DEFINE_PROP_GET(uint32_t, ctrl);
-		Qk_DEFINE_PROP_GET(uint32_t, alt);
-		Qk_DEFINE_PROP_GET(uint32_t, command);
-		Qk_DEFINE_PROP_GET(uint32_t, caps_lock);
+		Qk_DEFINE_PROP(uint32_t, keycode, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, repeat, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, device, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, source, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, shift, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, ctrl, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, alt, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, command, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, caps_lock, Const);
 		virtual void release() override;
 	};
 
@@ -199,10 +199,10 @@ namespace qk {
 			kTouch = 1, kKeyboard = 2, kMouse = 3
 		};
 		ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1);
-		Qk_DEFINE_PROP_GET(float, x);
-		Qk_DEFINE_PROP_GET(float, y);
-		Qk_DEFINE_PROP_GET(uint32_t, count);
-		Qk_DEFINE_PROP_GET(Type, type);
+		Qk_DEFINE_PROP_GET(float, x, Const);
+		Qk_DEFINE_PROP_GET(float, y, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, count, Const);
+		Qk_DEFINE_PROP_GET(Type, type, Const);
 	};
 
 	/**
@@ -213,8 +213,8 @@ namespace qk {
 		MouseEvent(View* origin, float x, float y, uint32_t keycode,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat = 0, int device = 0, int source = 0);
-		Qk_DEFINE_PROP_GET(float, x);
-		Qk_DEFINE_PROP_GET(float, y);
+		Qk_DEFINE_PROP_GET(float, x, Const);
+		Qk_DEFINE_PROP_GET(float, y, Const);
 	};
 
 	/**
@@ -226,7 +226,7 @@ namespace qk {
 			kNormal = 1, kHover, kActive,
 		};
 		HighlightedEvent(View* origin, Status status);
-		Qk_DEFINE_PROP_GET(Status, status);
+		Qk_DEFINE_PROP_GET(Status, status, Const);
 	};
 
 	typedef HighlightedEvent::Status HighlightedStatus;

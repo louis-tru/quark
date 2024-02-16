@@ -209,16 +209,16 @@ namespace qk {
 	class Qk_EXPORT KeyboardAdapter: public Object {
 	public:
 		Qk_DEFINE_PROP_GET(EventDispatch*, host);
-		Qk_DEFINE_PROP_GET(KeyboardKeyName, keyname);
-		Qk_DEFINE_PROP_GET(int, keypress);
-		Qk_DEFINE_PROP_GET(bool, shift);
-		Qk_DEFINE_PROP_GET(bool, alt);
-		Qk_DEFINE_PROP_GET(bool, ctrl);
-		Qk_DEFINE_PROP_GET(bool, command);
-		Qk_DEFINE_PROP_GET(bool, caps_lock);
-		Qk_DEFINE_PROP_GET(bool, repeat);
-		Qk_DEFINE_PROP_GET(bool, device);
-		Qk_DEFINE_PROP_GET(bool, source);
+		Qk_DEFINE_PROP_GET(KeyboardKeyName, keyname, Const);
+		Qk_DEFINE_PROP_GET(int, keypress, Const);
+		Qk_DEFINE_PROP_GET(bool, shift, Const);
+		Qk_DEFINE_PROP_GET(bool, alt, Const);
+		Qk_DEFINE_PROP_GET(bool, ctrl, Const);
+		Qk_DEFINE_PROP_GET(bool, command, Const);
+		Qk_DEFINE_PROP_GET(bool, caps_lock, Const);
+		Qk_DEFINE_PROP_GET(bool, repeat, Const);
+		Qk_DEFINE_PROP_GET(bool, device, Const);
+		Qk_DEFINE_PROP_GET(bool, source, Const);
 
 		KeyboardAdapter();
 		void onDispatch(uint32_t keycode, bool ascii, bool down,

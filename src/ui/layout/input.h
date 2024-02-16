@@ -45,18 +45,18 @@ namespace qk {
 	public:
 		typedef NonObjectTraits Traits;
 		// define props
-		Qk_DEFINE_PROP(bool, security);
-		Qk_DEFINE_PROP(bool, readonly);
-		Qk_DEFINE_PROP(KeyboardType, type);
-		Qk_DEFINE_PROP(KeyboardReturnType, return_type);
-		Qk_DEFINE_PROP(String4, value_u4);
-		Qk_DEFINE_PROP(String4, placeholder_u4);
-		Qk_DEFINE_PROP(Color, placeholder_color);
-		Qk_DEFINE_PROP(Color, cursor_color);
-		Qk_DEFINE_PROP(uint32_t, max_length);
-		Qk_DEFINE_PROP_ACC(String, value);
-		Qk_DEFINE_PROP_ACC(String, placeholder);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length);
+		Qk_DEFINE_PROP(bool, security, Const);
+		Qk_DEFINE_PROP(bool, readonly, Const);
+		Qk_DEFINE_PROP(KeyboardType, type, Const);
+		Qk_DEFINE_PROP(KeyboardReturnType, return_type, Const);
+		Qk_DEFINE_PROP(String4, value_u4, Const);
+		Qk_DEFINE_PROP(String4, placeholder_u4, Const);
+		Qk_DEFINE_PROP(Color, placeholder_color, Const);
+		Qk_DEFINE_PROP(Color, cursor_color, Const);
+		Qk_DEFINE_PROP(uint32_t, max_length, Const);
+		Qk_DEFINE_PROP_ACC(String, value, Const);
+		Qk_DEFINE_PROP_ACC(String, placeholder, Const);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length, Const);
 
 		InputLayout(Window *win);
 		virtual bool is_multiline();
@@ -115,18 +115,18 @@ namespace qk {
 		virtual bool can_become_focus() override;
 		virtual TextOptions* getOptions() const override;
 		virtual PreRender& getPreRender() override;
-		Qk_DEFINE_PROP_ACC(bool, security);
-		Qk_DEFINE_PROP_ACC(bool, readonly);
-		Qk_DEFINE_PROP_ACC(KeyboardType, type);
-		Qk_DEFINE_PROP_ACC(KeyboardReturnType, return_type);
-		Qk_DEFINE_PROP_ACC(String4, value_u4);
-		Qk_DEFINE_PROP_ACC(String4, placeholder_u4);
-		Qk_DEFINE_PROP_ACC(Color, placeholder_color);
-		Qk_DEFINE_PROP_ACC(Color, cursor_color);
-		Qk_DEFINE_PROP_ACC(uint32_t, max_length);
-		Qk_DEFINE_PROP_ACC(String, value);
-		Qk_DEFINE_PROP_ACC(String, placeholder);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length);
+		Qk_DEFINE_PROP_ACC(bool, security, Const);
+		Qk_DEFINE_PROP_ACC(bool, readonly, Const);
+		Qk_DEFINE_PROP_ACC(KeyboardType, type, Const);
+		Qk_DEFINE_PROP_ACC(KeyboardReturnType, return_type, Const);
+		Qk_DEFINE_PROP_ACC(String4, value_u4, Const);
+		Qk_DEFINE_PROP_ACC(String4, placeholder_u4, Const);
+		Qk_DEFINE_PROP_ACC(Color, placeholder_color, Const);
+		Qk_DEFINE_PROP_ACC(Color, cursor_color, Const);
+		Qk_DEFINE_PROP_ACC(uint32_t, max_length, Const);
+		Qk_DEFINE_PROP_ACC(String, value, Const);
+		Qk_DEFINE_PROP_ACC(String, placeholder, Const);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length, Const);
 	};
 
 }

@@ -62,16 +62,16 @@ namespace qk {
 		};
 
 		// defines props
-		Qk_DEFINE_PROP(float, pre_width);
-		Qk_DEFINE_PROP(bool,  trim_start);
-		Qk_DEFINE_PROP_GET(bool, no_wrap);
-		Qk_DEFINE_PROP_GET(bool, visible_region);
-		Qk_DEFINE_PROP_GET(TextAlign, text_align);
-		Qk_DEFINE_PROP_GET(Vec2, host_size);
+		Qk_DEFINE_PROP(float, pre_width, Const);
+		Qk_DEFINE_PROP(bool,  trim_start, Const);
+		Qk_DEFINE_PROP_GET(bool, no_wrap, Const);
+		Qk_DEFINE_PROP_GET(bool, visible_region, Const);
+		Qk_DEFINE_PROP_GET(TextAlign, text_align, Const);
+		Qk_DEFINE_PROP_GET(Vec2, host_size, Const);
 		Qk_DEFINE_PROP_GET(Line*, last);
 		Qk_DEFINE_PROP_GET(Layout*, host);
-		Qk_DEFINE_PROP_GET(float, max_width);
-		Qk_DEFINE_PROP_GET(float, min_origin);
+		Qk_DEFINE_PROP_GET(float, max_width, Const);
+		Qk_DEFINE_PROP_GET(float, min_origin, Const);
 
 		// defines methods
 		TextLines(Layout *host, TextAlign text_align, Vec2 host_size, bool no_wrap);
