@@ -38,7 +38,8 @@ endif
 
 INCLUDES	 = -I. -I.. -I../out -I../deps/libtess2/Include
 CFLAGS		 = -Wall -g -O0 '-DDEBUG' '-D_DEBUG'
-CXXFLAGS 	 = -std=c++0x -fexceptions -frtti
+# CXXFLAGS 	 = -std=c++0x -fexceptions -frtti
+CXXFLAGS 	 = -std=c++14 -fexceptions -frtti
 LINKFLAGS_START =
 LINKFLAGS  =
 CXX_SOURCES = \
@@ -53,6 +54,7 @@ CXX_SOURCES = \
 	test2-render_path.cc \
 	test2-arr.cc \
 	test2-cls.cc \
+	test2-try.cc \
 	../src/util/log.cc \
 	../src/util/array.cc \
 	../src/util/string.cc \

@@ -96,8 +96,8 @@ namespace qk {
 
 	// --------------------------------- I m a g e ---------------------------------
 
-	Qk_IMPL_VIEW_PROP_ACC_GET(Image, String, src);
-	Qk_IMPL_VIEW_PROP_ACC_GET(Image, ImageSource*, source, NoConst);
+	Qk_IMPL_VIEW_PROP_ACC_GET(Image, String, src, Const);
+	Qk_IMPL_VIEW_PROP_ACC_GET(Image, ImageSource*, source);
 	Qk_IMPL_VIEW_PROP_ACC_SET_Large(Image, String, src);
 
 	void Image::set_source(ImageSource *val) {

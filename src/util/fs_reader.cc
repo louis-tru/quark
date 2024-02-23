@@ -120,7 +120,7 @@ namespace qk {
 			reader = new ZipReader(path);
 			if ( !reader->open() ) {
 				Release(reader);
-				Qk_THROW(ERR_FILE_NOT_EXISTS, "Cannot open zip file, `%s`", *path);
+				Qk_Throw(ERR_FILE_NOT_EXISTS, "Cannot open zip file, `%s`", *path);
 			}
 			zips_[path] = reader;
 			return reader;
@@ -208,13 +208,13 @@ namespace qk {
 			switch ( fs_get_protocol_from_str(path) ) {
 				default:
 				case FILE:
-					Qk_CHECK(fs_exists_sync(path),
+					Qk_Check(fs_exists_sync(path),
 										ERR_FILE_NOT_EXISTS, "Unable to read file contents, \"%s\"", *path);
 					rv = fs_read_file_sync(path);
 					break;
 				case ZIP: {
 					String zip = zip_path(path);
-					Qk_CHECK(!zip.isEmpty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
+					Qk_Check(!zip.isEmpty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
 					
 					ScopeLock lock(zip_mutex_);
 					
@@ -224,14 +224,14 @@ namespace qk {
 					if ( read->jump(inl_path) ) {
 						rv = read->read();
 					} else {
-						Qk_THROW(ERR_ZIP_IN_FILE_NOT_EXISTS,
+						Qk_Throw(ERR_ZIP_IN_FILE_NOT_EXISTS,
 							"Zip package internal file does not exist, %s", *path);
 					}
 					break;
 				}
 				case FTP:
 				case FTPS:
-					Qk_THROW(ERR_NOT_SUPPORTED_FILE_PROTOCOL, "This file protocol is not supported");
+					Qk_Throw(ERR_NOT_SUPPORTED_FILE_PROTOCOL, "This file protocol is not supported");
 					break;
 				case HTTP:
 				case HTTPS: rv = http_get_sync(path); break;
@@ -255,7 +255,7 @@ namespace qk {
 				case ZIP: {
 					String zip = zip_path(path);
 					if ( !zip.isEmpty() ) {
-						Qk_ERROR_IGNORE({
+						try {
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
 							String inl_path = fs_format_part_path( path.substr(zip.length() + fs_SEPARATOR.length()) );
@@ -263,7 +263,9 @@ namespace qk {
 								return true;
 							if ( dir && read->is_directory( inl_path ) )
 								return true;
-						});
+						} catch(cError &e) {
+							Qk_WARN("Warn, %s", e.message().c_str());
+						}
 					}
 					return false;
 				}
@@ -280,12 +282,14 @@ namespace qk {
 				case ZIP: {
 					String zip = zip_path(path);
 					if ( !zip.isEmpty() ) {
-						Qk_ERROR_IGNORE({
+						try {
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
 							String inl_path = fs_format_part_path( path.substr(zip.length() + fs_SEPARATOR.length()) );
 							rv = read->readdir(inl_path);
-						});
+						} catch(cError &e) {
+							Qk_WARN("Warn, %s", e.message().c_str());
+						}
 					}
 					break;
 				}

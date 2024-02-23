@@ -274,7 +274,7 @@ namespace qk {
 		Qk_DEBUG("request_sync %s", options.url.c_str());
 		typedef Callback<RunLoop::PostSyncData> Cb2;
 		bool ok = false;
-		HttpError err = Error();
+		HttpError err = Error(0);
 		ResponseData data;
 
 		backend_loop()->post_sync(Cb2([&](Cb2::Data& d) {

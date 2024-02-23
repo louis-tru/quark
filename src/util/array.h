@@ -230,7 +230,7 @@ namespace qk {
 	 * @class ArrayBuffer array no copy
 	 */
 	template<typename T, typename A>
-	class Qk_EXPORT ArrayBuffer: public Array<T, A> {
+	class ArrayBuffer: public Array<T, A> {
 	public:
 		ArrayBuffer() {}
 		ArrayBuffer(Array<T, A>& arr): Array<T, A>(std::move(arr)) {}
@@ -269,7 +269,7 @@ namespace qk {
 	 * @class ArrayWeak
 	 */
 	template<typename T>
-	class Qk_EXPORT ArrayWeak: public Object {
+	class ArrayWeak: public Object {
 	public:
 		ArrayWeak(): _length(0), _ptr{0,nullptr} {}
 		ArrayWeak(const T* data, uint32_t length)

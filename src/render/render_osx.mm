@@ -65,7 +65,7 @@ public:
 	}
 
 	~OsxGLRender() override {
-		Qk_STRICT_ASSERT(_message.length() == 0);
+		Qk_Fatal_Assert(_message.length() == 0);
 	}
 
 	void release() override {

@@ -1127,20 +1127,20 @@ namespace qk {
 		return preRender();
 	}
 
-	Qk_IMPL_VIEW_PROP_ACC(Input, bool, security);
-	Qk_IMPL_VIEW_PROP_ACC(Input, bool, readonly);
-	Qk_IMPL_VIEW_PROP_ACC(Input, KeyboardType, type);
-	Qk_IMPL_VIEW_PROP_ACC(Input, KeyboardReturnType, return_type);
-	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String4, value_u4); //
+	Qk_IMPL_VIEW_PROP_ACC(Input, bool, security, Const);
+	Qk_IMPL_VIEW_PROP_ACC(Input, bool, readonly, Const);
+	Qk_IMPL_VIEW_PROP_ACC(Input, KeyboardType, type, Const);
+	Qk_IMPL_VIEW_PROP_ACC(Input, KeyboardReturnType, return_type, Const);
+	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String4, value_u4, Const); //
 	Qk_IMPL_VIEW_PROP_ACC_SET_Large(Input, String4, value_u4);
-	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String4, placeholder_u4); //
+	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String4, placeholder_u4, Const); //
 	Qk_IMPL_VIEW_PROP_ACC_SET_Large(Input, String4, placeholder_u4);
-	Qk_IMPL_VIEW_PROP_ACC(Input, Color, placeholder_color);
-	Qk_IMPL_VIEW_PROP_ACC(Input, Color, cursor_color);
-	Qk_IMPL_VIEW_PROP_ACC(Input, uint32_t, max_length);
-	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String, value); //
+	Qk_IMPL_VIEW_PROP_ACC(Input, Color, placeholder_color, Const);
+	Qk_IMPL_VIEW_PROP_ACC(Input, Color, cursor_color, Const);
+	Qk_IMPL_VIEW_PROP_ACC(Input, uint32_t, max_length, Const);
+	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String, value, Const); //
 	Qk_IMPL_VIEW_PROP_ACC_SET_Large(Input, String, value);
-	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String, placeholder); //
+	Qk_IMPL_VIEW_PROP_ACC_GET(Input, String, placeholder, Const); //
 	Qk_IMPL_VIEW_PROP_ACC_SET_Large(Input, String, placeholder);
-	Qk_IMPL_VIEW_PROP_ACC_GET(Input, uint32_t, text_length);
+	Qk_IMPL_VIEW_PROP_ACC_GET(Input, uint32_t, text_length, Const);
 }

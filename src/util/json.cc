@@ -393,7 +393,7 @@ namespace qk {
 	static JSON parse_for(cChar* json, int64_t len = 0xFFFFFFFFFFFFFFF) throw(Error) {
 		RDocument doc(&shareMemoryPoolAllocator);
 		doc.Parse(json, len);
-		Qk_CHECK(!doc.HasParseError(),
+		Qk_Check(!doc.HasParseError(),
 							ERR_JSON_PARSE_ERROR,
 							"json parse error, offset: %lu, code: %d\n%s, %p, %ld",
 							doc.GetErrorOffset(), doc.GetParseError(), json, json, len);

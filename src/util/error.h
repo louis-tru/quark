@@ -38,31 +38,24 @@
 	#error Exceptions must be turned on
 #endif
 
-#define Qk_THROW(code, ...) throw qk::Error(code, __VA_ARGS__)
-#define Qk_CHECK(cond, ...) if(!(cond)) throw qk::Error(__VA_ARGS__)
-
-#define Qk_ERROR_IGNORE(block) try block catch (qk::Error& err) {    \
-	Qk_DEBUG("%s,%s", "The exception is ignored", err.message().c_str());     \
-}((void)0)
+#define Qk_Throw_Errno(code) throw qk::Error(code, #code)
+#define Qk_Throw(code, ...) throw qk::Error(code, __VA_ARGS__)
+#define Qk_Check(cond, ...) if(!(cond)) throw qk::Error(__VA_ARGS__)
 
 namespace qk {
 
-	/**
-	* @class Error
-	*/
 	class Qk_EXPORT Error: public Object {
 	public:
-		Error(const Error& err);
 		Error(cChar* msg, ...);
 		Error(int code, cChar* msg, ...);
-		Error(int code = ERR_UNKNOWN_ERROR, cString& msg = "Unknown exception");
-		virtual ~Error();
-		Error& operator=(const Error& e);
-		String message() const throw();
-		int    code() const throw();
+		Error(int code, cString& msg = "Unknown exception");
+		Error(const Error &err);
+		Error& operator=(const Error &e);
+		cString& message() const throw();
+		int code() const throw();
 	private:
-		int     _code;
-		String _message;
+		int _code;
+		String _msg;
 	};
 
 	typedef const Error cError;

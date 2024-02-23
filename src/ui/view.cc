@@ -288,7 +288,7 @@ namespace qk {
 	void View::set_parent(View *parent) {
 		if (parent != _parent) {
 			#define is_root (_layout->_window->root() == this)
-			Qk_STRICT_ASSERT(!is_root, "root view not allow set parent"); // check
+			Qk_Fatal_Assert(!is_root, "root view not allow set parent"); // check
 			clear_link();
 			if ( !_parent ) {
 				retain(); // link to parent and retain ref

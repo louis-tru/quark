@@ -158,9 +158,9 @@
 // Compiling environment end
 // ------------------------------------------------------------------
 
-#define Qk_STRICT_ASSERT(cond, ...) if(!(cond)) qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#define Qk_Fatal_Assert(cond, ...) if(!(cond)) qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #if DEBUG
-# define Qk_ASSERT Qk_STRICT_ASSERT
+# define Qk_ASSERT Qk_Fatal_Assert
 #else
 # define Qk_ASSERT(cond, ...)
 #endif
@@ -309,16 +309,16 @@
 	type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__; public:
 
 #define Qk_DEFINE_PROP_ACC(type, name, ...) \
-	void set_##name (type val); \
 	Qk_DEFINE_PROP_ACC_GET(type, name, ##__VA_ARGS__) \
+	void set_##name (type val); \
 
 #define Qk_DEFINE_PROP_GET(type, name, ...) \
-	inline type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return _##name; } \
 	__Qk_DEFINE_PROP_Modifier##__VA_ARGS__: type _##name; public:\
+	inline type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return _##name; } \
 
 #define Qk_DEFINE_PROP(type, name, ...) \
-	void set_##name (type val); \
 	Qk_DEFINE_PROP_GET(type, name, ##__VA_ARGS__) \
+	void set_##name (type val) \
 
 #define __Qk_DEFINE_CLASS(Name) class Name;
 #define __Qk_DEFINE_VISITOR_VISIT(N) virtual void visit##N(N *v) = 0;

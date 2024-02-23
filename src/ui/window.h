@@ -115,7 +115,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
 		Qk_DEFINE_PROP(Color, backgroundColor, Const); //! background color
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
-		Qk_DEFINE_PROP_GET(ActionCenter*, action); //! Action scheduling
+		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
 
 		/**
 		 * @static

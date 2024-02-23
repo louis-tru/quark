@@ -320,17 +320,17 @@ namespace qk {
 
 	// --------------------------------- L a b e l ---------------------------------
 
-	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, translate); // matrix displacement for the view
-	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, scale); // Matrix scaling
-	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, skew); // Matrix skew, (radian)
-	Qk_IMPL_VIEW_PROP_ACC(Transform, float, rotate_z); // z-axis rotation of the matrix
-	Qk_IMPL_VIEW_PROP_ACC(Transform, BoxOrigin,  origin_x); //  x-axis transform origin
-	Qk_IMPL_VIEW_PROP_ACC(Transform, BoxOrigin,  origin_y); //  y-axis transform origin
-	Qk_IMPL_VIEW_PROP_ACC_GET(Transform, Vec2, origin_value);
-	Qk_IMPL_VIEW_PROP_ACC(Transform, float, x); // x-axis matrix displacement for the view
-	Qk_IMPL_VIEW_PROP_ACC(Transform, float, y); // y-axis matrix displacement for the view
-	Qk_IMPL_VIEW_PROP_ACC(Transform, float, scale_x); // x-axis matrix scaling for the view
-	Qk_IMPL_VIEW_PROP_ACC(Transform, float, scale_y); // y-axis matrix scaling for the view
-	Qk_IMPL_VIEW_PROP_ACC(Transform, float, skew_x); // x-axis matrix skew for the view
-	Qk_IMPL_VIEW_PROP_ACC(Transform, float, skew_y); // y-axis matrix skew for the view
+	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, translate, Const); // matrix displacement for the view
+	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, scale, Const); // Matrix scaling
+	Qk_IMPL_VIEW_PROP_ACC(Transform, Vec2, skew, Const); // Matrix skew, (radian)
+	Qk_IMPL_VIEW_PROP_ACC(Transform, float, rotate_z, Const); // z-axis rotation of the matrix
+	Qk_IMPL_VIEW_PROP_ACC(Transform, BoxOrigin,  origin_x, Const); //  x-axis transform origin
+	Qk_IMPL_VIEW_PROP_ACC(Transform, BoxOrigin,  origin_y, Const); //  y-axis transform origin
+	Qk_IMPL_VIEW_PROP_ACC_GET(Transform, Vec2, origin_value, Const);
+	Qk_IMPL_VIEW_PROP_ACC(Transform, float, x, Const); // x-axis matrix displacement for the view
+	Qk_IMPL_VIEW_PROP_ACC(Transform, float, y, Const); // y-axis matrix displacement for the view
+	Qk_IMPL_VIEW_PROP_ACC(Transform, float, scale_x, Const); // x-axis matrix scaling for the view
+	Qk_IMPL_VIEW_PROP_ACC(Transform, float, scale_y, Const); // y-axis matrix scaling for the view
+	Qk_IMPL_VIEW_PROP_ACC(Transform, float, skew_x, Const); // x-axis matrix skew for the view
+	Qk_IMPL_VIEW_PROP_ACC(Transform, float, skew_y, Const); // y-axis matrix skew for the view
 }

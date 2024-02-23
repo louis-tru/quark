@@ -79,7 +79,7 @@ namespace qk {
 		, _fspTime(0), _surfaceRegion()
 		, _preRender(this)
 	{
-		Qk_STRICT_ASSERT(_host);
+		Qk_Fatal_Assert(_host);
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
@@ -270,7 +270,7 @@ namespace qk {
 		UILock lock(this); // ui render lock
 		int64_t time = time_monotonic();
 
-		// m_host->action_center()->advance(now_time); // advance action
+		//_action->advance(now_time); // advance action
 
 		if (!_preRender.solve(time)) {
 			solveNextFrame();

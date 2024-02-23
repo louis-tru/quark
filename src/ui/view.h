@@ -64,7 +64,7 @@ namespace qk {
 		/**
 		 * the objects that automatically adjust view properties
 		*/
-		Qk_DEFINE_PROP(Action*, action);
+		Qk_DEFINE_PROP(Action*, action) throw(Error);
 		Qk_DEFINE_PROP_GET(Layout*, layout);
 		Qk_DEFINE_PROP_GET(View*, parent);
 		Qk_DEFINE_PROP_GET(View*, prev);

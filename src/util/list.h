@@ -73,7 +73,7 @@ namespace qk {
 
 		void     popBack();
 		void     popFront();
-		
+
 		Iterator insert(IteratorConst after, const T& item); // insert front
 		Iterator insert(IteratorConst after, T&& item); // insert front
 
@@ -99,7 +99,7 @@ namespace qk {
 		Iterator      begin();
 		Iterator      end();
 		uint32_t      length() const;
-		
+
 	private:
 		void init_();
 		void fill_(Node* first, Node* last, uint32_t len);
@@ -109,6 +109,7 @@ namespace qk {
 
 		struct Sham { T _item; }; // Used to call data destructors
 		Node _end; // { _prev = last, _next = first }
+		void *_nullptr; // End empty space, is length zero then List<T*>::Iterator.data() return nullptr
 		uint32_t _length;
 	};
 
@@ -353,6 +354,7 @@ namespace qk {
 	template<typename T, typename A>
 	void List<T, A>::init_() {
 		fill_(&_end, &_end, 0);
+		_nullptr = nullptr;
 	}
 
 	template<typename T, typename A>

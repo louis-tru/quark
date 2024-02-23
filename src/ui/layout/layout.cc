@@ -237,41 +237,41 @@ namespace qk {
 	// @private
 	// --------------------------------------------------------------------------------------
 
-	void Layout::before(Layout *view) {
-		if (view == this) return;
+	void Layout::before(Layout *layout) {
+		if (layout == this) return;
 		if (_parent) {
-			if (view->_parent == _parent) {
-				view->clear_link();  // clear link
+			if (layout->_parent == _parent) {
+				layout->clear_link();  // clear link
 			} else {
-				view->set_parent(_parent);
+				layout->set_parent(_parent);
 			}
 			if (_prev) {
-				_prev->_next = view;
+				_prev->_next = layout;
 			} else { // There are no brothers on top
-				_parent->_first = view;
+				_parent->_first = layout;
 			}
-			view->_prev = _prev;
-			view->_next = this;
-			_prev = view;
+			layout->_prev = _prev;
+			layout->_next = this;
+			_prev = layout;
 		}
 	}
 
-	void Layout::after(Layout *view) {
-		if (view == this) return;
+	void Layout::after(Layout *layout) {
+		if (layout == this) return;
 		if (_parent) {
-			if (view->_parent == _parent) {
-				view->clear_link(); // clear link
+			if (layout->_parent == _parent) {
+				layout->clear_link(); // clear link
 			} else {
-				view->set_parent(_parent);
+				layout->set_parent(_parent);
 			}
 			if (_next) {
-				_next->_prev = view;
+				_next->_prev = layout;
 			} else { // There are no brothers below
-				_parent->_last = view;
+				_parent->_last = layout;
 			}
-			view->_prev = this;
-			view->_next = _next;
-			_next = view;
+			layout->_prev = this;
+			layout->_next = _next;
+			_next = layout;
 		}
 	}
 

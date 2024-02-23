@@ -335,7 +335,7 @@ namespace qk {
 	}
 
 	GLRender::~GLRender() {
-		Qk_STRICT_ASSERT(_glcanvas == nullptr);
+		Qk_Fatal_Assert(_glcanvas == nullptr);
 	}
 
 	void GLRender::lock() {}

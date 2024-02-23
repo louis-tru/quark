@@ -30,7 +30,6 @@
 
 #include "./error.h"
 #include "./util.h"
-//#include <algorithm>
 
 namespace qk {
 
@@ -38,44 +37,36 @@ namespace qk {
 
 	Error::Error(const Error& e)
 		: _code(e.code())
-		, _message(e._message) {
-		 // std::exception _ex;
+		, _msg(e._msg) {
 	}
 	
 	Error::Error(cChar* msg, ...): _code(ERR_UNKNOWN_ERROR) {
 		va_list arg;
 		va_start(arg, msg);
-		_message = string_format(msg, arg);
+		_msg = string_format(msg, arg);
 		va_end(arg);
 	}
 
 	Error::Error(int code, cChar* msg, ...): _code(code) {
 		va_list arg;
 		va_start(arg, msg);
-		_message = string_format(msg, arg);
+		_msg = string_format(msg, arg);
 		va_end(arg);
 	}
 
 	Error::Error(int code, cString& msg)
 		: _code(code)
-		, _message(msg) {
+		, _msg(msg) {
 	}
 
 	Error& Error::operator=(const Error& e) {
 		_code = e._code;
-		_message = e._message;
-		
-		Qk_CHECK(0);
-		
+		_msg = e._msg;
 		return *this;
 	}
 
-	Error::~Error() {
-		// std::exception _e;
-	}
-
-	String Error::message() const throw() {
-		return _message;
+	cString& Error::message() const throw() {
+		return _msg;
 	}
 
 	int Error::code() const throw() {

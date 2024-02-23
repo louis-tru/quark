@@ -2932,7 +2932,7 @@ namespace qk {
 		}
 		
 		void error(cString& msg, Scanner::Location loc) {
-			Qk_THROW(ERR_SYNTAX_ERROR,
+			Qk_Throw(ERR_SYNTAX_ERROR,
 							"%s\nline:%d, pos:%d, %s",
 							*msg, loc.line + 1, loc.end_pos, *_path);
 		}

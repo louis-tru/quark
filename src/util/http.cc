@@ -1375,9 +1375,9 @@ namespace qk {
 		// public api
 		
 		void send(Buffer data) throw(Error) {
-			Qk_CHECK(!_sending, ERR_REPEAT_CALL, "Sending repeat call");
-			Qk_CHECK( !_uri.is_null(), ERR_INVALID_FILE_PATH, "Invalid path" );
-			Qk_CHECK(_uri.type() == URI_HTTP ||
+			Qk_Check(!_sending, ERR_REPEAT_CALL, "Sending repeat call");
+			Qk_Check( !_uri.is_null(), ERR_INVALID_FILE_PATH, "Invalid path" );
+			Qk_Check(_uri.type() == URI_HTTP ||
 							_uri.type() == URI_HTTPS, ERR_INVALID_FILE_PATH, "Invalid path `%s`", *_uri.href());
 			_post_data = data;
 			
@@ -1415,7 +1415,7 @@ namespace qk {
 		}
 		
 		void check_is_can_modify() throw(Error) {
-			Qk_CHECK(!_sending, ERR_SENDIF_CANNOT_MODIFY,
+			Qk_Check(!_sending, ERR_SENDIF_CANNOT_MODIFY,
 								"Http request sending cannot modify property");
 		}
 		
@@ -1558,7 +1558,7 @@ namespace qk {
 
 	void HttpClientRequest::set_form(cString& form_name, cString& value) throw(Error) {
 		_inl->check_is_can_modify();
-		Qk_CHECK( value.length() <= BUFFER_SIZE,
+		Qk_Check( value.length() <= BUFFER_SIZE,
 							ERR_HTTP_FORM_SIZE_LIMIT, "Http form field size limit <= %d", BUFFER_SIZE);
 		_inl->_post_form_data[form_name] = {
 			FORM_TYPE_TEXT, value, inl__uri_encode(form_name)

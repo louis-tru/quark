@@ -465,7 +465,7 @@ namespace qk {
 	 */
 	RunLoop::~RunLoop() {
 		ScopeLock lock(*__threads_mutex);
-		Qk_STRICT_ASSERT(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
+		Qk_Fatal_Assert(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 
 		{
 			ScopeLock lock(_mutex);
