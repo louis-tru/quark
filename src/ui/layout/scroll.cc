@@ -73,7 +73,7 @@ namespace qk {
 						float y = float(now - m_start_time) / float(m_duration);
 						run( sqrtf(1 - powf(y - 1, 2)) );
 					} else {
-						run( m_curve.solve_t(float(now - m_start_time) / float(m_duration), 0.001) );
+						run( m_curve.fixed_solve_t(float(now - m_start_time) / float(m_duration), 0.001) );
 					}
 				}
 			}

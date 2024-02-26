@@ -188,6 +188,8 @@
 # define Qk_DEBUG(msg, ...)  ((void)0)
 #endif
 
+#define throw(...)
+
 // ------------------------------------------------------------------
 
 // This macro allows to test for the version of the GNU C++ compiler.

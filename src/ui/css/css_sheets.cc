@@ -33,8 +33,9 @@
 #include "../app.h"
 
 namespace qk {
-
 	// --------------------------- S t y l e . S h e e t s ---------------------------
+
+	typedef StyleSheets::Property Property;
 
 	enum ViewPropFrom {
 		kView,kBox,kFlex,kFlow,kImage,kTextOptions,kInput,kScrollLayoutBase,kTransform
@@ -45,30 +46,12 @@ namespace qk {
 		, _name(name)
 	{}
 
-	StyleSheets::StyleSheets(cCSSName &name, StyleSheets *parent, CSSType type)
-		: _name(name)
-		, _parent(parent)
-		, _time(0)
-		, _normal(nullptr), _hover(nullptr), _active(nullptr)
-		, _havePseudoType(false)
-		, _haveSubstyles(false)
-		, _type( parent && parent->_type ? parent->_type: type )
-	{}
-
-	StyleSheets::~StyleSheets() {
-		for ( auto i : _substyles )
-			Release(i.value);
-		for ( auto i : _extends )
-			Release(i.value);
-		for (auto i: _props)
-			delete i.value;
-		Release(_normal); _normal = nullptr;
-		Release(_hover); _hover = nullptr;
-		Release(_active); _active = nullptr;
+	StyleSheets::StyleSheets() {
 	}
 
-	void StyleSheets::set_time(uint64_t value) {
-		_time = value;
+	StyleSheets::~StyleSheets() {
+		for (auto i: _props)
+			delete i.value;
 	}
 
 	void StyleSheets::apply(Layout *layout) const {
@@ -80,15 +63,50 @@ namespace qk {
 		}
 	}
 
-	void StyleSheets::setProp(uint32_t key, Property *prop) {
-		auto it = _props.find(key);
-		if (it != _props.end()) {
-			delete it->value;
-			it->value = prop;
-		} else {
-			_props.set(key, prop);
+	void StyleSheets::apply(cSet<Layout*> &layout) const {
+		if (_props.length()) {
+			for (auto &j: layout) {
+				for ( auto i: _props ) {
+					i.value->apply(j.key);
+				}
+			}
 		}
 	}
+
+	void StyleSheets::applyTransition(cSet<Layout*> &layout, float y, StyleSheets *to) const {
+		if (_props.length()) {
+			Qk_ASSERT(_props.length() == b->_props.length());
+			auto a = _props.begin(), e = _props.end();
+			auto b = to->_props.begin();
+			while (a != e) {
+				for (auto &j: layout) {
+					a->value->transition(j.key, y, b->value);
+				}
+				a++; b++;
+			}
+		}
+	}
+
+	void StyleSheets::setProp(uint32_t key, Property *prop) {
+		auto it = _props.find(key);
+		if (it == _props.end()) {
+			onMake(ViewProp(key), prop);
+			_props.set(key, prop);
+		} else {
+			delete it->value;
+			it->value = prop;
+		}
+	}
+
+	void StyleSheets::onMake(ViewProp key, Property* prop) {
+		// NOOP
+	}
+
+	bool StyleSheets::has_property(ViewProp name) const {
+		return _props.count(name);
+	}
+
+	// ----------------------------------------------------------------------------------------------
 
 	template<ViewPropFrom From>
 	struct ApplyProp {
@@ -119,12 +137,17 @@ namespace qk {
 	};
 
 	template<typename T, ViewPropFrom From>
-	class Property: public StyleSheets::Property {
+	class PropertyImpl: public Property {
 	public:
-		Property(ViewProp prop, T value)
-			: _prop(prop), _value(value) {}
-		void apply(Layout *layout) override {
+		PropertyImpl(ViewProp prop, T value): _prop(prop), _value(value){}
+		void apply(Layout *layout) {
 			ApplyProp<From>::template apply<T>(layout, _prop, _value);
+		}
+		Property* copy() {
+			// TODO ...
+		}
+		void transition(Layout *layout, float y, Property *to) {
+			// TODO ...
 		}
 	private:
 		ViewProp _prop;
@@ -132,20 +155,25 @@ namespace qk {
 	};
 
 	template<typename T, ViewPropFrom From>
-	class Property<T*, From>: public StyleSheets::Property {
+	class PropertyImpl<T*, From>: public Property {
 	public:
 		typedef T* Type;
-		Property(ViewProp prop, Type value)
-			: _prop(prop), _value(value) 
+		PropertyImpl(ViewProp prop, Type value): _prop(prop), _value(value)
 		{
 			static_assert(T::Traits::isReference, "Property value must be a reference type");
 			_value->retain();
-		};
-		~Property() {
+		}
+		~PropertyImpl() {
 			_value->release();
 		}
-		void apply(Layout *layout) override {
+		void apply(Layout *layout) {
 			ApplyProp<From>::template apply<Type>(layout, _prop, _value);
+		}
+		Property* copy() {
+			// TODO ...
+		}
+		void transition(Layout *layout, float y, Property *to) {
+			// TODO ...
 		}
 	private:
 		ViewProp _prop;
@@ -153,25 +181,45 @@ namespace qk {
 	};
 
 	#define _Fun(Enum, Type, Name, From) void StyleSheets::set_##Name(Type value) {\
-		setProp(k##Enum##_ViewProp, new qk::Property<Type, k##From>(k##Enum##_ViewProp, value));\
+		setProp(k##Enum##_ViewProp, new qk::PropertyImpl<Type, k##From>(k##Enum##_ViewProp, value));\
 	}
 	Qk_View_Props(_Fun)
 
 	#undef _Fun
 
-	// @private -------------------
+	// -------------------------------------------------------------------------------------
 
-	cStyleSheets* StyleSheets::find(cCSSName &name) const {
+	CStyleSheets::CStyleSheets(cCSSName &name, CStyleSheets *parent, CSSType type)
+		: StyleSheets()
+		, _name(name)
+		, _parent(parent)
+		, _normal(nullptr), _hover(nullptr), _active(nullptr)
+		, _havePseudoType(false)
+		, _haveSubstyles(false)
+		, _type( parent && parent->_type ? parent->_type: type )
+	{}
+
+	CStyleSheets::~CStyleSheets() {
+		for ( auto i : _substyles )
+			Release(i.value);
+		for ( auto i : _extends )
+			Release(i.value);
+		Release(_normal); _normal = nullptr;
+		Release(_hover); _hover = nullptr;
+		Release(_active); _active = nullptr;
+	}
+
+	cCStyleSheets* CStyleSheets::find(cCSSName &name) const {
 		auto i = _substyles.find(name.hashCode());
 		return i == _substyles.end() ? nullptr : i->value;
 	}
 
-	StyleSheets* StyleSheets::findAndMake(cCSSName &name, CSSType type, bool isExtend) {
-		StyleSheets *ss;
-		StyleSheetsDict &from = isExtend ? _extends: _substyles;
+	CStyleSheets* CStyleSheets::findAndMake(cCSSName &name, CSSType type, bool isExtend) {
+		CStyleSheets *ss;
+		CStyleSheetsDict &from = isExtend ? _extends: _substyles;
 
 		if (!from.get(name.hashCode(), ss)) {
-			ss = new StyleSheets(name, isExtend ? _parent: this, kNone_CSSType);
+			ss = new CStyleSheets(name, isExtend ? _parent: this, kNone_CSSType);
 			from[name.hashCode()] = ss;
 			_haveSubstyles = _substyles.length();
 		}
@@ -179,7 +227,7 @@ namespace qk {
 		if ( ss->_type ) return nullptr; // illegal pseudo cls, 伪类样式表,不能存在子伪类样式表
 
 		// find pseudo type
-		StyleSheets **ss_pseudo = nullptr;
+		CStyleSheets **ss_pseudo = nullptr;
 		switch ( type ) { 
 			case kNormal_CSSType: ss_pseudo = &ss->_normal; break;
 			case kHover_CSSType: ss_pseudo = &ss->_hover; break;
@@ -187,7 +235,7 @@ namespace qk {
 		}
 		if ( !*ss_pseudo ) {
 			ss->_havePseudoType = true;
-			*ss_pseudo = new StyleSheets(name, ss->parent(), type);
+			*ss_pseudo = new CStyleSheets(name, ss->parent(), type);
 		}
 		return *ss_pseudo;
 	}
@@ -199,15 +247,15 @@ namespace qk {
 	});
 
 	RootStyleSheets::RootStyleSheets()
-		: StyleSheets(CSSName(String()), nullptr, kNone_CSSType)
+		: CStyleSheets(CSSName(String()), nullptr, kNone_CSSType)
 	{}
 
-	Array<StyleSheets*> RootStyleSheets::search(cString &exp) {
-		Array<StyleSheets*> rv;
+	Array<CStyleSheets*> RootStyleSheets::search(cString &exp) {
+		Array<CStyleSheets*> rv;
 
 		auto searchItem = [this, &rv](cString &exp) {
 			#define Qk_InvalidCss(e) { Qk_WARN("Invalid css name \"%s\"", *e); return; }
-			StyleSheets *ss = this;
+			CStyleSheets *ss = this;
 
 			for ( auto &j : exp.split(' ') ) { // .div_cls.div_cls2 .aa.bb.cc
 				bool isExt = false;

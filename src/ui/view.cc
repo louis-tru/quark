@@ -112,20 +112,6 @@ namespace qk {
 		}
 	}
 
-	void View::set_action(Action* val) {
-		if (_action != val) {
-			// TODO ...
-			if (_action) {
-				// unload _action
-				_action = nullptr;
-			}
-			if (val) {
-				_action = val;
-				// load new action
-			}
-		}
-	}
-
 	bool View::is_focus() const {
 		return _layout->_window->dispatch()->focus_view() == this;
 	}

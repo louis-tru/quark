@@ -39,6 +39,7 @@
 namespace qk {
 	class Layout;
 	class View;
+	class KeyframeAction;
 
 	enum CSSType {
 		kNone_CSSType = 0,
@@ -56,32 +57,60 @@ namespace qk {
 
 	typedef const CSSName cCSSName;
 
-	/**
-	 * 
-	 * Cascading style sheets
-	 * 
-	 * @class StyleSheets
-	*/
-	class Qk_EXPORT StyleSheets: public Object {
+	class StyleSheets: public Object {
 		Qk_HIDDEN_ALL_COPY(StyleSheets);
 	public:
 		class Property {
 		public:
-			virtual ~Property() = default;
+			virtual ~Property() = 0;
 			virtual void apply(Layout *layout) = 0;
+			virtual void transition(Layout *layout, float y, Property *to) = 0;
+			virtual Property* copy() = 0;
 		};
-
 		// define props
 		#define _Fun(Enum, Type, Name, From) void set_##Name(Type value);
 			Qk_View_Props(_Fun)
 		#undef _Fun
 
-		Qk_DEFINE_PROP(uint64_t, time, Const);
+		StyleSheets();
+		~StyleSheets();
+
+		/**
+		 * @method has_property
+		*/
+		bool has_property(ViewProp name) const;
+
+		/**
+		* @method apply style to layout
+		*/
+		void apply(Layout *layout) const;
+		void apply(cSet<Layout*> &layout) const;
+
+	private:
+		void setProp(uint32_t, Property* prop);
+		void applyTransition(cSet<Layout*> &layout, float y, StyleSheets *to) const;
+	protected:
+		Dict<uint32_t, Property*> _props; // ViewProp => Property*
+
+		virtual void onMake(ViewProp key, Property* prop); // make new prop
+
+		friend class KeyframeAction;
+	};
+
+	/**
+	 * 
+	 * Cascading style sheets
+	 * 
+	 * @class CStyleSheets
+	*/
+	class Qk_EXPORT CStyleSheets: public StyleSheets {
+		Qk_HIDDEN_ALL_COPY(CStyleSheets);
+	public:
 		Qk_DEFINE_PROP_GET(CSSName, name, Const);
-		Qk_DEFINE_PROP_GET(StyleSheets*, parent);
-		Qk_DEFINE_PROP_GET(StyleSheets*, normal); // style sheets for pseudo type
-		Qk_DEFINE_PROP_GET(StyleSheets*, hover);
-		Qk_DEFINE_PROP_GET(StyleSheets*, active);
+		Qk_DEFINE_PROP_GET(CStyleSheets*, parent);
+		Qk_DEFINE_PROP_GET(CStyleSheets*, normal); // style sheets for pseudo type
+		Qk_DEFINE_PROP_GET(CStyleSheets*, hover);
+		Qk_DEFINE_PROP_GET(CStyleSheets*, active);
 		Qk_DEFINE_PROP_GET(CSSType, type, Const);
 		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); // normal | hover | active
 		Qk_DEFINE_PROP_GET(bool, haveSubstyles, Const);
@@ -89,40 +118,32 @@ namespace qk {
 		/**
 		 * @constructor
 		*/
-		StyleSheets(cCSSName &name, StyleSheets *parent, CSSType type);
+		CStyleSheets(cCSSName &name, CStyleSheets *parent, CSSType type);
 
 		/**
 		 * @destructor
 		*/
-		virtual ~StyleSheets();
+		~CStyleSheets();
 
 		/**
 		* @method find children style sheets
 		*/
-		const StyleSheets* find(cCSSName &name) const;
-
-		/**
-		* @method apply style to layout
-		*/
-		void apply(Layout *layout) const;
+		const CStyleSheets* find(cCSSName &name) const;
 
 	private:
-		typedef Dict<uint64_t, StyleSheets*> StyleSheetsDict;
+		CStyleSheets* findAndMake(cCSSName &name, CSSType type, bool isExtend);
 
-		StyleSheets* findAndMake(cCSSName &name, CSSType type, bool isExtend);
-		void setProp(uint32_t, Property* prop);
-
-		StyleSheetsDict _substyles; // css name => .self .sub { width: 100px }
-		StyleSheetsDict _extends; // css name => .self.extend { width: 100px }
-		Dict<uint32_t, Property*> _props; // ViewProperty => Property*
+		typedef Dict<uint64_t, CStyleSheets*> CStyleSheetsDict;
+		CStyleSheetsDict _substyles; // css name => .self .sub { width: 100px }
+		CStyleSheetsDict _extends; // css name => .self.extend { width: 100px }
 
 		friend class RootStyleSheets;
-		friend class StyleSheetsClass;
+		friend class CStyleSheetsClass;
 	};
 
-	typedef const StyleSheets cStyleSheets;
+	typedef const CStyleSheets cCStyleSheets;
 
-	class Qk_EXPORT RootStyleSheets: public StyleSheets {
+	class Qk_EXPORT RootStyleSheets: public CStyleSheets {
 	public:
 		RootStyleSheets();
 
@@ -131,18 +152,18 @@ namespace qk {
 		*
 		* @method search()
 		*/
-		Array<StyleSheets*> search(cString &exp);
+		Array<CStyleSheets*> search(cString &exp);
 	};
 
-	class Qk_EXPORT StyleSheetsClass {
-		Qk_HIDDEN_ALL_COPY(StyleSheetsClass);
+	class Qk_EXPORT CStyleSheetsClass {
+		Qk_HIDDEN_ALL_COPY(CStyleSheetsClass);
 	public:
 		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
 		Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
 		Qk_DEFINE_PROP_GET(Layout*, host); //!< apply style sheet target object
-		Qk_DEFINE_PROP_GET(StyleSheetsClass*, parent); //!< apply parent ssc
+		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< apply parent ssc
 
-		StyleSheetsClass(Layout *host);
+		CStyleSheetsClass(Layout *host);
 		void set(cArray<String> &name); //!< Calling in the main loop
 		void add(cString &name); //!< Calling in the main loop
 		void remove(cString &name); //!< Calling in the main loop
@@ -155,13 +176,13 @@ namespace qk {
 	private:
 		void updateClass_RT();
 		void setStatus_RT(CSSType status);
-		bool apply_RT(StyleSheetsClass *parent); // Return whether it affects sub styles
-		void applyFrom(StyleSheetsClass *ssc);
-		void applyFindSubstyle(StyleSheets *ss);
-		void applyStyle(StyleSheets *ss);
+		bool apply_RT(CStyleSheetsClass *parent); // Return whether it affects sub styles
+		void applyFrom(CStyleSheetsClass *ssc);
+		void applyFindSubstyle(CStyleSheets *ss);
+		void applyStyle(CStyleSheets *ss);
 
 		Set<uint64_t> _nameHash; //!< class name hash
-		Array<StyleSheets*> _styles; //!< apply to all current style sheets have substyle sheets
+		Array<CStyleSheets*> _styles; //!< apply to all current style sheets have substyle sheets
 		Hash5381 _stylesHash; //!< hash for apply current have substyle sheets
 		CSSType _status, _setStatus; //!< Current pseudo type application status
 

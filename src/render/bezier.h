@@ -85,22 +85,19 @@ namespace qk {
 	*/
 	class Qk_EXPORT CubicBezier {
 	public:
-		// define props
 		Qk_DEFINE_PROP_GET(Vec2, p0, Const);
 		Qk_DEFINE_PROP_GET(Vec2, p1, Const);
 		Qk_DEFINE_PROP_GET(Vec2, p2, Const);
 		Qk_DEFINE_PROP_GET(Vec2, p3, Const);
 
-		/**
-		 * @constructor
-		*/
-		inline CubicBezier() {}
-		
-		/**
-		 * @constructor
-		*/
+		CubicBezier(); // Fixed LINEAR, p0=0,p1=0,p2=1,p3=1
 		CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3);
-			
+
+		/**
+		 * @method fixed linear, p0=0 ... p3=1
+		*/
+		static CubicBezier fixed(Vec2 p1, Vec2 p2);
+
 		/**
 		 * @method sample_curve_x
 		*/
@@ -126,72 +123,39 @@ namespace qk {
 		*/
 		Array<Vec2> sample_curve_points(uint32_t sample_count) const;
 
-	protected:
-		float ax, bx, cx;
-		float ay, by, cy;
-	};
-
-	/**
-	* @class FixedCubicBezier
-	* @bases CubicBezier
-	*/
-	class Qk_EXPORT FixedCubicBezier: public CubicBezier {
-	public:
-		
-		/**
-		 * @constructor
-		*/
-		FixedCubicBezier();
-		
-		/**
-		 * Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
-		 * @constructor
-		*/
-		FixedCubicBezier(Vec2 p1, Vec2 p2);
-		
-		/**
-		 * @constructor
-		*/
-		inline FixedCubicBezier(float p1x, float p1y, float p2x, float p2y)
-			: FixedCubicBezier(Vec2(p1x, p1y), Vec2(p2x, p2y))
-		{}
-
 		/**
 		 * @method sample_curve_derivative_x
 		*/
 		inline float sample_curve_derivative_x(float t) const {
 			return (3.0 * ax * t + 2.0 * bx) * t + cx;
 		}
-		
+
 		/**
-		 * @method solve_t Given an x value, find a parametric value it came from.
+		 * @method fixed_solve_t Given an x value, find a parametric value it came from.
+		 * p0=0 and p1=1 valid
 		*/
-		float solve_t(float x, float epsilon) const;
-		
+		float fixed_solve_t(float x, float epsilon) const;
+
 		/**
-		 * @method solve_y
+		 * @method solve_y p0=0, p1=1 valid
 		*/
-		inline float solve_y(float x, float epsilon) const {
-			return (this->*_solve_y)(x, epsilon);
-		}
+		float fixed_solve_y(float x, float epsilon) const;
 
 	private:
-		
-		typedef float (FixedCubicBezier::*Solve)(float x, float epsilon) const;
-		
-		Solve _solve_y;
-
-		Qk_DEFINE_INLINE_CLASS(Inl);
+		float ax, bx, cx;
+		float ay, by, cy;
+		bool _isLINEAR;
 	};
 
-	typedef FixedCubicBezier Curve;
+	typedef CubicBezier Curve;
 	typedef const Curve cCurve;
 
-	Qk_EXPORT extern const FixedCubicBezier LINEAR;
-	Qk_EXPORT extern const FixedCubicBezier EASE;
-	Qk_EXPORT extern const FixedCubicBezier EASE_IN;
-	Qk_EXPORT extern const FixedCubicBezier EASE_OUT;
-	Qk_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
+	// Fixed value p0=0 ... p3=1
+	Qk_EXPORT extern cCurve LINEAR;
+	Qk_EXPORT extern cCurve EASE;
+	Qk_EXPORT extern cCurve EASE_IN;
+	Qk_EXPORT extern cCurve EASE_OUT;
+	Qk_EXPORT extern cCurve EASE_IN_OUT;
 
 }
 #endif

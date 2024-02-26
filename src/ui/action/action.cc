@@ -29,152 +29,18 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./action.h"
-#include "../view.h"
-#include "../errno.h"
+#include "../layout/layout.h"
+#include "../../errno.h"
+#include "../window.h"
 
 namespace qk {
-	typedef List<Action*>::Iterator ActionId;
-
-	void update_spawn_action_duration(SpawnAction* act);
-
-	// View* Action::Inl::view() {
-	// 	Action* action = this;
-	// 	while ( action->_parent ) {
-	// 		action = action->_parent;
-	// 	}
-	// 	return first_view();
-	// }
-
-	// List<View*>& Action::Inl::views() {
-	// 	return _views;
-	// }
-
-	// bool Action::Inl::is_playing() {
-	// 	return _action_center_id != ActionCenterId();
-	// }
-
-	// void Action::Inl::trigger_action_loop(uint64_t delay, Action* root) {
-	// 	auto i = _views.begin(), end = _views.end();
-	// 	while ( i != end ) { // trigger event action_loop
-	// 		View* v = *i;
-	// 		if (v) {
-	// 			auto evt = new UIActionEvent(this, v, delay, 0, _loop);
-	// 			main_loop()->post(Cb([this, evt, v](Cb::Data& e) {
-	// 				Handle<UIActionEvent> handle(evt);
-	// 				ActionInl_View(v)->trigger(UI_EVENT_ACTION_LOOP, *evt);
-	// 			}, v));
-	// 			i++;
-	// 		} else {
-	// 			_views.erase(i++);
-	// 		}
-	// 	}
-	// }
-
-	// void Action::Inl::trigger_action_key_frame(
-	// 	uint64_t delay, uint32_t frame_index, Action* root
-	// )
-	// {
-	// 	auto i = _views.begin(), end = _views.end();
-	// 	while ( i != end ) { // trigger event action_keyframe
-	// 		View* v = *i;
-	// 		if (v) {
-	// 			auto evt = new UIActionEvent(this, v, delay, frame_index, _loop);
-	// 			main_loop()->post(Cb([this, evt, v](Cb::Data& e) {
-	// 				Handle<UIActionEvent> handle(evt);
-	// 				ActionInl_View(v)->trigger(UI_EVENT_ACTION_KEYFRAME, *evt);
-	// 			}, v));
-	// 			i++;
-	// 		} else {
-	// 			_views.erase(i++);
-	// 		}
-	// 	}
-	// }
-
-	void Action::set_parent(Action *parent) throw(Error) {
-		
-		if ( _parent || _views.length() ) {
-			Qk_Throw(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
-		}
-		if (_id != ActionId()) {
-			Qk_Throw(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
-		}
-
-		_parent = parent;
-		retain(); // retain
-	}
-
-	void Action::add_view(View* view) throw(Error) {
-		if (!view) return;
-		if ( _parent ) {
-			Qk_Throw(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
-		}
-		_views.pushBack({view});
-		retain(); // retain from view
-	}
-
-	void Action::del_view(View *view) {
-		if (!view) return;
-		auto len = _views.length();
-		for ( auto& i : _views ) {
-			if ( i == view ) {
-				i = nullptr;
-				len--;
-				break;
-			}
-		}
-		if ( len == 0 ) {
-			stop(); // stop action
-		}
-		release(); // release from view
-	}
-
-	void Action::del_parent() {
-		_parent = nullptr;
-		release();
-	}
-
-	void Action::update_duration(int64_t diff) {
-		Action* action = this;
-		while (1) {
-			action->_full_duration += diff;
-			action = _parent;
-			if ( action ) {
-				auto act = action->as_spawn();
-				if ( act ) {
-					update_spawn_action_duration(act);
-					break;
-				}
-			} else {
-				break;
-			}
-		}
-	}
-
-	void View::set_action(Action* action) throw(Error) {
-		if ( action ) {
-			if ( _action ) {
-				_action->del_view(this);
-			}
-			action->add_view(this);
-			_action = action;
-		} else {
-			if ( _action ) {
-				_action->del_view(this);
-				_action = nullptr;
-			}
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------
 
 	Action::Action()
 		: _parent(nullptr)
 		, _loop(0)
-		, _delay(0)
+		, _duration(0)
 		, _speed(1)
 		, _looped(0)
-		, _delayed(-1)
-		, _full_duration(0)
 	{
 	}
 
@@ -189,8 +55,7 @@ namespace qk {
 	}
 
 	bool Action::playing() const {
-		//return _parent ? _parent->playing() : _id != ActionId();
-		return _parent ? _parent->playing(): _playing;
+		return _parent ? _parent->playing(): _id != Id();
 	}
 
 	void Action::set_speed(float value) {
@@ -201,22 +66,8 @@ namespace qk {
 		_loop = value;
 	}
 
-	void Action::set_delay(uint64_t value) {
-		int64_t du = value - _delay;
-		if ( du ) {
-			_delay = value;
-			update_duration(du);
-		}
-	}
-
-	uint64_t Action::duration() const {
-		return _full_duration - _delay;
-	}
-
-	void Action::seek(int64_t time) {
-		time += _delay;
-		time = Qk_MIN(time, _full_duration);
-		time = Qk_MAX(time, 0);
+	void Action::seek(uint32_t time) {
+		time = Qk_MIN(time, _duration);
 		if (_parent) {
 			_parent->seek_before(time, this);
 		} else {
@@ -224,12 +75,12 @@ namespace qk {
 		}
 	}
 
-	void Action::seek_play(int64_t time) {
+	void Action::seek_play(uint32_t time) {
 		seek(time);
 		play();
 	}
 
-	void Action::seek_stop(int64_t time) {
+	void Action::seek_stop(uint32_t time) {
 		seek(time);
 		stop();
 	}
@@ -238,8 +89,13 @@ namespace qk {
 		if ( _parent ) {
 			_parent->play();
 		} else {
-			// if (_views.length())
-			// _inl_action_center(ActionCenter::shared())->add(this);
+			if (_targets.length()) {
+				if (_id == Id()) {
+					auto center = _targets.begin()->key->window()->actionCenter();
+					_id = center->_actions.pushBack(this);
+					retain(); // retain for center
+				}
+			}
 		}
 	}
 
@@ -247,7 +103,135 @@ namespace qk {
 		if ( _parent ) {
 			_parent->stop();
 		} else {
-			// _inl_action_center(ActionCenter::shared())->del(this);
+			if (_targets.length()) {
+				if (_id != Id()) {
+					auto center = _targets.begin()->key->window()->actionCenter();
+					center->_actions.erase(_id);
+					_runAdvance = false;
+					_id = Id();
+					release(); // release for center
+				}
+			}
+		}
+	}
+
+	void Action::before(Action *act) throw(Error) {
+		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
+		static_cast<GroupAction*>(_parent)->insert(_id, act);
+	}
+
+	void Action::after(Action *act) throw(Error) {
+		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
+		auto id = _id;
+		static_cast<GroupAction*>(_parent)->insert(++id, act);
+	}
+
+	void Action::remove() throw(Error) {
+		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::remove, illegal parent empty");
+		static_cast<GroupAction*>(_parent)->remove_child(_id);
+	}
+
+	// -----------------------------------------------------------------------------------------------
+
+	void Action::trigger_action_loop(uint32_t delay, Action* root) {
+	// 	auto i = _views.begin(), end = _views.end();
+	// 	while ( i != end ) { // trigger event action_loop
+	// 		View* v = *i;
+	// 		if (v) {
+	// 			auto evt = new UIActionEvent(this, v, delay, 0, _loop);
+	// 			main_loop()->post(Cb([this, evt, v](Cb::Data& e) {
+	// 				Handle<UIActionEvent> handle(evt);
+	// 				ActionInl_View(v)->trigger(UI_EVENT_ACTION_LOOP, *evt);
+	// 			}, v));
+	// 			i++;
+	// 		} else {
+	// 			_views.erase(i++);
+	// 		}
+	// 	}
+	}
+
+	void Action::trigger_action_key_frame(
+		uint32_t delay, uint32_t frame_index, Action* root
+	) {
+	// 	auto i = _views.begin(), end = _views.end();
+	// 	while ( i != end ) { // trigger event action_keyframe
+	// 		View* v = *i;
+	// 		if (v) {
+	// 			auto evt = new UIActionEvent(this, v, delay, frame_index, _loop);
+	// 			main_loop()->post(Cb([this, evt, v](Cb::Data& e) {
+	// 				Handle<UIActionEvent> handle(evt);
+	// 				ActionInl_View(v)->trigger(UI_EVENT_ACTION_KEYFRAME, *evt);
+	// 			}, v));
+	// 			i++;
+	// 		} else {
+	// 			_views.erase(i++);
+	// 		}
+	// 	}
+	}
+
+	void View::set_action(Action* action) throw(Error) {
+		if (action != _action) {
+			if ( _action ) {
+				_action->del_target(_layout);
+				_action = nullptr;
+			}
+			if ( action ) {
+				action->add_target(_layout);
+				_action = action;
+			}
+		}
+	}
+
+	void Action::set_parent(Action *parent) throw(Error) {
+		if ( _parent || _targets.length() ) {
+			Qk_Throw(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
+		}
+		if (_id != Id()) {
+			Qk_Throw(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
+		}
+		_parent = parent;
+
+		retain(); // retain
+	}
+
+	void Action::del_parent() {
+		_parent = nullptr;
+		release();
+	}
+
+	void Action::add_target(Layout *target) throw(Error) {
+		Qk_ASSERT(target);
+		if ( _parent ) {
+			Qk_Throw(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
+		}
+		_targets.add(target);
+		retain(); // retain from view
+	}
+
+	void Action::del_target(Layout *target) {
+		Qk_ASSERT(target);
+		if ( _targets.length() == 1 ) {
+			stop(); // stop action
+		}
+		_targets.erase(target);
+		release(); // release from view
+	}
+
+	void Action::update_duration(int32_t diff) {
+		_duration += diff;
+		if (_parent) {
+			_parent->update_duration(diff);
+		}
+	}
+
+	void SpawnAction::update_duration(int32_t diff) {
+		int32_t new_duration = 0;
+		for ( auto &i : _actions ) {
+			new_duration = Qk_MAX(i->_duration, new_duration);
+		}
+		diff = new_duration - _duration;
+		if ( diff ) {
+			Action::update_duration(diff);
 		}
 	}
 

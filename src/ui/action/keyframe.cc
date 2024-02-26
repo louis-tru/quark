@@ -28,319 +28,207 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./action_prop.h"
+#include "./keyframe.h"
+#include "../../errno.h"
 
-Qk_NAMESPACE_START
+namespace qk {
 
-#define fx_def_property(ENUM, TYPE, NAME) \
-	TYPE Frame::NAME() { \
-		return _inl_frame(this)->property_value<ENUM, TYPE>(); \
-	}\
-	void Frame::set_##NAME(TYPE value) { \
-		_inl_frame(this)->set_property_value<ENUM>(value); \
+	typedef KeyframeFrame Frame;
+
+	Frame::KeyframeFrame(KeyframeAction* host, uint32_t index, cCurve& curve)
+		: _host(host) , _index(index), _curve(curve), _time(0)
+	{}
+
+	// -------------------------------------------------------------------------------------------
+
+	KeyframeAction::KeyframeAction(): _frame(-1), _time(0) {}
+
+	KeyframeAction::~KeyframeAction() {
+		clear();
 	}
 
-Qk_EACH_PROPERTY_TABLE(fx_def_property)
-#undef fx_def_accessor
+	Frame* KeyframeAction::add(uint32_t time, cCurve& curve) {
+		auto len = _frames.length();
+		auto frame = new Frame(this, len, curve);
 
-/**
-* @func time set
-*/
-void Frame::set_time(uint64_t value) {
-	if ( _host && _index && value != _time ) {
-		uint32_t next = _index + 1;
-		if ( next < _host->length() ) {
-			uint64_t max_time = _host->frame(next)->time();
-			_time = Qk_MIN(value, max_time);
-		} else { // no next
-			_time = value;
-		}
-	}
-}
-
-/**
-* @func fetch property
-*/
-void Frame::fetch(View* view) {
-	if ( view && view->view_type() == _host->_bind_view_type ) {
-		for ( auto& i : _host->_property ) {
-			i.value->fetch(_index, view);
-		}
-	} else {
-		view = _inl_action(_host)->view();
-		if ( view ) {
-			for ( auto& i : _host->_property ) {
-				i.value->fetch(_index, view);
-			}
-		}
-	}
-}
-
-/**
-* @func flush recovery default property value
-*/
-void Frame::flush() {
-	for ( auto& i : _host->_property ) {
-		i.value->default_value(_index);
-	}
-}
-
-void KeyframeAction::Inl::transition(uint32_t f1, uint32_t f2, float x, float y, Action* root) {
-	for ( auto& i : _property ) {
-		i.value->transition(f1, f2, x, y, root);
-	}
-}
-
-void KeyframeAction::Inl::transition(uint32_t f1, Action* root) {
-	for ( auto& i : _property ) {
-		i.value->transition(f1, root);
-	}
-}
-
-uint64_t KeyframeAction::Inl::advance(uint64_t time_span, Action* root) {
-	
-	start:
-	
-	uint32_t f1 = _frame;
-	uint32_t f2 = f1 + 1;
-	
-	if ( f2 < length() ) {
-		advance:
-		
-		if ( ! _inl_action(root)->is_playing() ) { // is playing
-			return 0;
-		}
-		
-		int64_t time = _time + time_span;
-		int64_t time1 = _frames[f1]->time();
-		int64_t time2 = _frames[f2]->time();
-		int64_t t = time - time2;
-		
-		if ( t < 0 ) {
-			
-			time_span = 0;
-			_time = time;
-			float x = (time - time1) / float(time2 - time1);
-			float y = _frames[f1]->curve().solve(x, 0.001);
-			transition(f1, f2, x, y, root);
-			
-		} else if ( t > 0 ) {
-			time_span = t;
-			_frame = f2;
-			_time = time2;
-			_inl_action(this)->trigger_action_key_frame(t, f2, root); // trigger event action_key_frame
-			
-			f1 = f2; f2++;
-			
-			if ( f2 < length() ) {
-				goto advance;
+		if ( len ) {
+			Frame* lastFrame = last();
+			int32_t d = time - lastFrame->time();
+			if ( d <= 0 ) {
+				time = lastFrame->time();
 			} else {
-				if ( _loop && _full_duration > _delay ) {
-					goto loop;
-				} else {
-					transition(f1, root);
+				Action::update_duration(d);
+			}
+			// copy prop
+			for (auto &i: lastFrame->_props) {
+				frame->_props.set(i.key, i.value->copy());
+			}
+			frame->_time = time;
+		}
+		_frames.push(frame);
+		return frame;
+	}
+
+	void KeyframeFrame::onMake(ViewProp key, Property* prop) {
+		if (_host) {
+			for (auto i: _host->_frames) {
+				if (i != this) {
+					i->_props.set(key, prop->copy());
 				}
 			}
-		} else { // t == 0
-			time_span = 0;
-			_time = time;
-			_frame = f2;
-			transition(f2, root);
-			_inl_action(this)->trigger_action_key_frame(0, f2, root); // trigger event action_key_frame
 		}
-		
-	} else { // last frame
-		
-		if ( _loop && _full_duration > _delay ) {
-			loop:
-			
-			if ( _loop > 0 ) {
-				if ( _loopd < _loop ) { // 可经继续循环
-					_loopd++;
-				} else { //
-					transition(f1, root);
-					goto end;
+	}
+
+	void KeyframeAction::clear() {
+		for (auto& i : _frames) {
+			i->_host = nullptr;
+			Release(i);
+		}
+		_frames.clear();
+
+		if ( _duration ) {
+			Action::update_duration( -_duration );
+		}
+	}
+
+	bool KeyframeAction::has_property(ViewProp name) {
+		return _frames.length() && _frames.front()->has_property(name);
+	}
+
+	uint32_t KeyframeAction::advance(uint32_t time_span, bool restart, Action* root) {
+		time_span *= _speed;
+
+		if ( _frame == -1 || restart ) { // no start play
+			if ( restart ) { // restart
+				_looped = 0;
+				_frame = -1;
+				_time = 0;
+			}
+
+			if ( length() ) {
+				_frame = 0;
+				_time = 0;
+				_frames[0]->apply(root->targets());
+				trigger_action_key_frame(time_span, 0, root);
+
+				if ( time_span == 0 ) {
+					return 0;
 				}
-			}
-			
-			_frame = 0;
-			_time = 0;
-			_inl_action(this)->trigger_action_loop(time_span, root);
-			_inl_action(this)->trigger_action_key_frame(time_span, 0, root);
-			goto start;
-		}
-	}
-	
-	end:
-	return time_span;
-}
 
-void KeyframeAction::seek_before(int64_t time, Action* child) {
-	Qk_UNIMPLEMENTED();
-}
-
-void KeyframeAction::seek_time(uint64_t time, Action* root) {
-	
-	int64_t t = time - _delay;
-	if ( t < 0 ) {
-		_delayd = time;
-		_frame = -1;
-		_time = 0; return;
-	} else {
-		_delayd = _delay;
-		time = t;
-	}
-	
-	_loopd = 0;// 重置循环
-	
-	if ( length() ) {
-		Frame* frame = nullptr;
-		
-		for ( auto& i: _frames ) {
-			if ( time < i->time() ) {
-				break;
+				if ( length() == 1 ) {
+					return time_span / _speed;
+				}
+			} else {
+				return time_span / _speed;
 			}
-			frame = i;
 		}
-		
-		_frame = frame->index();
-		_time = Qk_MIN(int64_t(time), _full_duration - _delay);
-		
+
+	start:
 		uint32_t f1 = _frame;
 		uint32_t f2 = f1 + 1;
 		
 		if ( f2 < length() ) {
-			int64_t time1 = frame->time();
-			int64_t time2 = _frames[f2]->time();
-			float x = (_time - time1) / float(time2 - time1);
-			float t = frame->curve().solve(x, 0.001);
-			_inl_key_action(this)->transition(f1, f2, x, t, root);
+		advance:
+			int32_t time = _time + time_span;
+			int32_t time1 = _frames[f1]->time();
+			int32_t time2 = _frames[f2]->time();
+			int32_t t = time - time2;
+
+			if ( t < 0 ) {
+				time_span = 0;
+				_time = time;
+				float x = (time - time1) / float(time2 - time1);
+				float y = _frames[f1]->curve().fixed_solve_y(x, 0.001);
+				_frames[f1]->applyTransition(root->targets(), y, _frames[f2]);
+			} else if ( t > 0 ) {
+				time_span = t;
+				_frame = f2;
+				_time = time2;
+				trigger_action_key_frame(t, f2, root); // trigger event action_key_frame
+
+				f1 = f2; f2++;
+
+				if ( f2 < length() ) {
+					goto advance;
+				} else {
+					if ( _loop ) {
+						goto loop;
+					} else {
+						_frames[f1]->apply(root->targets());
+					}
+				}
+			} else { // t == 0
+				time_span = 0;
+				_time = time;
+				_frame = f2;
+				_frames[f2]->apply(root->targets());
+				trigger_action_key_frame(0, f2, root); // trigger event action_key_frame
+			}
+
 		} else { // last frame
-			_inl_key_action(this)->transition(f1, root);
-		}
-		
-		if ( _time == int64_t(frame->time()) ) {
-			_inl_action(this)->trigger_action_key_frame(0, _frame, root);
-		}
-	}
-}
 
-KeyframeAction::~KeyframeAction() {
-	clear();
-}
-
-uint64_t KeyframeAction::advance(uint64_t time_span, bool restart, Action* root) {
-	
-	time_span *= _speed;
-	
-	if ( _frame == -1 || restart ) { // no start play
-		
-		if ( restart ) { // restart
-			_delayd = 0;
-			_loopd = 0;
-			_frame = -1;
-			_time = 0;
-		}
-
-		if ( _delay > _delayd ) { // 需要延时
-			int64_t time = _delay - _delayd - time_span;
-			if ( time >= 0 ) {
-				_delayd += time_span;
-				return 0;
-			} else {
-				_delayd = _delay;
-				time_span = -time;
+			if ( _loop ) {
+			loop:
+				if ( _loop > 0 ) {
+					if ( _looped < _loop ) { // 可经继续循环
+						_looped++;
+					} else { //
+						_frames[f1]->apply(root->targets());
+						goto end;
+					}
+				}
+				_frame = 0;
+				_time = 0;
+				trigger_action_loop(time_span, root);
+				trigger_action_key_frame(time_span, 0, root);
+				goto start;
 			}
 		}
-		
+
+	end:
+		return time_span / _speed;
+	}
+
+	void KeyframeAction::seek_time(uint32_t time, Action* root) {
+		_looped = 0;
+
 		if ( length() ) {
-			_frame = 0;
-			_time = 0;
-			_inl_key_action(this)->transition(0, root);
-			_inl_action(this)->trigger_action_key_frame(time_span, 0, root);
-			
-			if ( time_span == 0 ) {
-				return 0;
+			Frame* frame = nullptr;
+
+			for ( auto& i: _frames ) {
+				if ( time < i->time() ) {
+					break;
+				}
+				frame = i;
 			}
-			
-			if ( length() == 1 ) {
-				return time_span / _speed;
+			_frame = frame->index();
+			_time = Qk_MIN(time, _duration);
+
+			uint32_t f0 = _frame;
+			uint32_t f1 = f0 + 1;
+
+			if ( f1 < length() ) {
+				int32_t time0 = frame->time();
+				int32_t time1 = _frames[f1]->time();
+				float x = (_time - time0) / float(time1 - time0);
+				float y = frame->curve().fixed_solve_y(x, 0.001);
+				_frames[f0]->applyTransition(root->targets(), y, _frames[f1]);
+			} else { // last frame
+				_frames[f0]->apply(root->targets());
 			}
-		} else {
-			return time_span / _speed;
+
+			if ( _time == int32_t(frame->time()) ) {
+				trigger_action_key_frame(0, _frame, root);
+			}
 		}
 	}
-	
-	return _inl_key_action(this)->advance(time_span, root) / _speed;
-}
 
-void KeyframeAction::bind_view(View* view) {
-	int view_type = view->view_type();
-	if ( view_type != _bind_view_type ) {
-		_bind_view_type = view_type;
-		for ( auto& i : _property ) {
-			i.value->bind_view(view_type);
-		}
+	void KeyframeAction::seek_before(int32_t time, Action* child) {
+		Qk_UNIMPLEMENTED();
 	}
-}
 
-/**
-* @func add new frame
-*/
-Frame* KeyframeAction::add(uint64_t time, const FixedCubicBezier& curve) {
-	
-	if ( length() ) {
-		Frame* frame = last();
-		int64_t duration = time - frame->time();
-		if ( duration <= 0 ) {
-			time = frame->time();
-		} else {
-			_inl_action(this)->update_duration(duration);
-		}
-	} else {
-		time = 0;
+	void KeyframeAction::append(Action *child) {
+		Qk_Throw(ERR_ACTION_KEYFRAME_CANNOT_APPEND, "KeyframeAction::append, cannot call append method for keyfrane");
 	}
-	
-	Frame* frame = new Frame(this, _frames.length(), curve);
-	_frames.push(frame);
-	frame->_time = time;
-	
-	for ( auto& i : _property ) {
-		i.value->add_frame();
-	}
-	
-	return frame;
-}
 
-/**
-* @func clear all frame and property
-*/
-void KeyframeAction::clear() {
-	
-	for (auto& i : _frames) {
-		i->_host = nullptr;
-		Release(i);
-	}
-	for (auto& i : _property) {
-		delete i.value;
-	}
-	_frames.clear();
-	_property.clear();
-	
-	if ( _full_duration ) {
-		_inl_action(this)->update_duration( _delay - _full_duration );
-	}
 }
-
-bool KeyframeAction::has_property(PropertyName name) {
-	return _property.count(name);
-}
-
-/**
-* @func match_property
-*/
-bool KeyframeAction::match_property(PropertyName name) {
-	return PropertysAccessor::shared()->has_accessor(_bind_view_type, name);
-}
-
-Qk_NAMESPACE_END

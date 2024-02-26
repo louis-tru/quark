@@ -33,187 +33,85 @@
 
 #include "./action.h"
 #include "../util/dict.h"
+#include "../view_prop.h"
+#include "../css/css.h"
+#include "../../render/bezier.h"
 
-Qk_NAMESPACE_START
+namespace qk {
 
-/**
-* @class KeyframeAction
-*/
-class Qk_EXPORT KeyframeAction: public Action {
-public:
-	
-	class Qk_EXPORT Property {
+	/**
+	* @class KeyframeFrame
+	*/
+	class KeyframeFrame: public StyleSheets {
 	public:
-		virtual ~Property() { }
-		virtual void bind_view(int view_type) = 0;
-		virtual void transition(uint32_t frame1, Action* root) = 0;
-		virtual void transition(uint32_t frame1, uint32_t frame2, float x, float t, Action* root) = 0;
-		virtual void add_frame() = 0;
-		virtual void fetch(uint32_t frame, View* view) = 0;
-		virtual void default_value(uint32_t frame) = 0;
-	};
-	
-	class Qk_EXPORT Frame: public Object {
-		Qk_HIDDEN_ALL_COPY(Frame);
-	public:
-		inline Frame(KeyframeAction* host, uint32_t index, const FixedCubicBezier& curve)
-		: _host(host) , _index(index) , _curve(curve), _time(0) {}
-		
-		/**
-		* @func index
-		*/
-		inline uint32_t index() const { return _index; }
-		
-		/**
-		* @func time get
-		*/
-		inline uint64_t time() const { return _time; }
-		
-		/**
-		* @func time set
-		*/
-		void set_time(uint64_t value);
-		
-		/*
-		* @func host
-		*/
-		inline KeyframeAction* host() { return _host; }
-		
-		/**
-		* @func curve get
-		*/
-		inline FixedCubicBezier& curve() { return _curve; }
-		
-		/**
-		* @func curve get
-		*/
-		inline const FixedCubicBezier& curve() const { return _curve; }
-		
-		/**
-		* @func curve set
-		*/
-		inline void set_curve(const FixedCubicBezier& value) { _curve = value; }
-		
-		/**
-		* @func fetch property value
-		*/
-		void fetch(View* view = nullptr);
-		
-		/**
-		* @func flush recovery default property value
-		*/
-		void flush();
-		
-		#define fx_def_property(ENUM, TYPE, NAME) \
-			void set_##NAME(TYPE value); TYPE NAME();
-		Qk_EACH_PROPERTY_TABLE(fx_def_property)
-		#undef fx_def_property
-	
+		Qk_DEFINE_PROP_GET(KeyframeAction*, host);
+		Qk_DEFINE_PROP_GET(uint32_t, index, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, time, Const);
+		Qk_DEFINE_PROP_GET(Curve, curve, Const);
 	private:
-		KeyframeAction*   _host;
-		uint32_t          _index;
-		FixedCubicBezier  _curve;
-		uint64_t          _time;
-		
-		Qk_DEFINE_INLINE_CLASS(Inl);
+		KeyframeFrame(KeyframeAction* host, uint32_t index, cCurve& curve);
+		void onMake(ViewProp key, Property* prop) override;
 		friend class KeyframeAction;
 	};
-	
-	/**
-	* @constructor
-	*/
-	inline KeyframeAction(): _frame(-1), _time(0), _bind_view_type(0) {}
-	
-	/**
-	* @destructor
-	*/
-	virtual ~KeyframeAction();
-	
-	/**
-	* @overwrite
-	*/
-	virtual KeyframeAction* as_keyframe() { return this; }
-	
-	/**
-	* @func has_property
-	*/
-	bool has_property(PropertyName name);
-	
-	/**
-	* @func match_property
-	*/
-	bool match_property(PropertyName name);
-	
-	/**
-	* @func first
-	*/
-	inline Frame* first() { return _frames[0]; }
-	
-	/**
-	* @func last
-	*/
-	inline Frame* last() { return _frames[_frames.size() - 1]; }
-	
-	/**
-	* @func frame
-	*/
-	inline Frame* frame(uint32_t index) { return _frames[index]; }
-	
-	/**
-	* @func operator[]
-	*/
-	inline Frame* operator[](uint32_t index) { return _frames[index]; }
-	
-	/**
-	* @func length
-	*/
-	inline uint32_t length() const { return (uint32_t)_frames.size(); }
-	
-	/**
-	* @func position get play frame position
-	*/
-	inline int position() const { return _frame; }
-	
-	/**
-	* @func time get play time position
-	*/
-	inline int64_t time() const { return _time; }
-	
-	/**
-	* @func add new frame
-	*/
-	Frame* add(uint64_t time, const FixedCubicBezier& curve = EASE);
-	
-	/**
-	* @func clear all frame and property
-	*/
-	virtual void clear();
-	
-	/**
-	* @func is_bind_view
-	*/
-	inline bool is_bind_view() { return _bind_view_type; }
-		
-private:
-	/**
-	* @overwrite
-	*/
-	virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
-	virtual void seek_time(uint64_t time, Action* root);
-	virtual void seek_before(int64_t time, Action* child);
-	virtual void bind_view(View* view);
-	
-	typedef Dict<PropertyName, Property*> Propertys;
-	
-	int           _bind_view_type;
-	int           _frame;
-	int64_t       _time;
-	Array<Frame*> _frames;
-	
-	Propertys     _property;
 
-	Qk_DEFINE_INLINE_CLASS(Inl);
-};
+	/**
+	* @class KeyframeAction
+	*/
+	class Qk_EXPORT KeyframeAction: public Action {
+	public:
+		// Props
+		Qk_DEFINE_PROP_GET(uint32_t, time, Const); // play time
+		Qk_DEFINE_PROP_GET(int32_t, frame, Const);
 
-Qk_NAMESPACE_END
+		KeyframeAction();
+		~KeyframeAction();
+
+		/**
+		* @method has_property
+		*/
+		bool has_property(ViewProp name);
+
+		/**
+		* @method first
+		*/
+		inline Frame* first() { return _frames.front(); }
+
+		/**
+		* @method last
+		*/
+		inline Frame* last() { return _frames.back(); }
+
+		/**
+		* @method operator[]
+		*/
+		inline Frame* operator[](uint32_t index) { return _frames[index]; }
+
+		/**
+		* @method length
+		*/
+		inline uint32_t length() const { return _frames.size(); }
+
+		/**
+		* @method add new frame
+		*/
+		Frame* add(uint32_t time, cCurve& curve = EASE);
+
+		/**
+		 * @overwrite
+		* @method clear all frame and property
+		*/
+		virtual void clear() override;
+
+	private:
+		virtual uint32_t advance(uint32_t time_span, bool restart, Action* root);
+		virtual void seek_time(uint32_t time, Action* root);
+		virtual void seek_before(int32_t time, Action* child);
+		virtual void append(Action *child) override;
+
+		Array<Frame*> _frames;
+
+		friend class KeyframeFrame;
+	};
+
+}
 #endif

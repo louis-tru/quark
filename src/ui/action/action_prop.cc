@@ -28,8 +28,6 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./action_prop.h"
-
 Qk_NAMESPACE_START
 
 // set_property

@@ -28,86 +28,42 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./action.inl"
+#include "./action.h"
 
-Qk_NAMESPACE_START
+namespace qk {
 
-void ActionCenter::Inl::add(Action* action) {
-	if ( action->_action_center_id == Action::ActionCenterId() ) {
-		action->_action_center_id = _actions.insert(_actions.end(), { action, 0 });
-		action->retain();
+	ActionCenter::ActionCenter(): _prevTime(0) 
+	{}
+
+	ActionCenter::~ActionCenter() {
+		Qk_Fatal_Assert(_actions.length() == 0);
 	}
-}
 
-void ActionCenter::Inl::del(Action* action) {
-	if ( action && action->_action_center_id != Action::ActionCenterId() ) {
-		action->_action_center_id->value = nullptr; // del
-		// _actions.del(action->_action_center_id);
-		action->_action_center_id = Action::ActionCenterId();
-		action->release();
-	}
-}
+	void ActionCenter::advance(uint32_t time) {
+		if ( _actions.length() == 0) return; 
 
-static ActionCenter* action_center_shared = nullptr;
-
-ActionCenter::ActionCenter()
-: _prev_sys_time(0) {
-	Qk_ASSERT(!action_center_shared); action_center_shared = this;
-}
-
-ActionCenter::~ActionCenter() {
-	action_center_shared = nullptr;
-}
-
-/**
-* @func advance
-*/
-void ActionCenter::advance(int64_t now_time) {
-	/*
-	static int len = 0;
-	if (len != _actions.length()) {
-		len = _actions.length();
-		Qk_LOG("ActionCenter::advance,length, %d", len);
-	}*/
-	
-	if ( _actions.length() ) { // run task
-		int64_t time_span = 0;
-		if (_prev_sys_time) {  // 0表示还没开始
-			time_span = now_time - _prev_sys_time;
-			if ( time_span > 200000 ) {   // 距离上一帧超过200ms重新记时(如应用程序从休眠中恢复)
-				time_span = 200000; // 100ms
+		uint32_t time_span = 0;
+		if (_prevTime) {  // 0表示还没开始
+			time_span = time - _prevTime;
+			if ( time_span > 200 ) {   // 距离上一帧超过200ms重新记时(如应用程序从休眠中恢复)
+				time_span = 200;
 			}
 		}
 		auto i = _actions.begin(), end = _actions.end();
+
 		while ( i != end ) {
 			auto j = i++;
-			Action::Wrap& wrap = *j;
-			if ( wrap.value ) {
-				if (wrap.value->_views.length()) {
-					if (wrap.play) {
-						if ( wrap.value->advance(time_span, false, wrap.value) ) {
-							// 不能消耗所有时间表示动作已经结束
-							// end action play
-							_inl_action_center(this)->del(wrap.value);
-						}
-					} else {
-						wrap.play = true;
-						wrap.value->advance(0, false, wrap.value);
-					}
-				} else {
-					_inl_action_center(this)->del(wrap.value);
-					_actions.erase(j);
+			auto act = *j;
+			if (act->_runAdvance) {
+				if ( act->advance(time_span, false, act) ) {
+					act->stop(); // stop action
 				}
 			} else {
-				_actions.erase(j);
+				act->_runAdvance = true;
+				act->advance(0, false, act);
 			}
 		}
-		_prev_sys_time = now_time;
+		_prevTime = time;
 	}
-}
 
-ActionCenter* ActionCenter::shared() {
-	return action_center_shared;
 }
-
-Qk_NAMESPACE_END
