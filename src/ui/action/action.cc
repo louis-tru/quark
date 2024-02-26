@@ -45,7 +45,7 @@ namespace qk {
 	}
 
 	Action::~Action() {
-		Qk_ASSERT( _id == ActionId() );
+		Qk_ASSERT( _id == Id() );
 	}
 
 	void Action::release() {
@@ -167,19 +167,6 @@ namespace qk {
 	// 			_views.erase(i++);
 	// 		}
 	// 	}
-	}
-
-	void View::set_action(Action* action) throw(Error) {
-		if (action != _action) {
-			if ( _action ) {
-				_action->del_target(_layout);
-				_action = nullptr;
-			}
-			if ( action ) {
-				action->add_target(_layout);
-				_action = action;
-			}
-		}
 	}
 
 	void Action::set_parent(Action *parent) throw(Error) {

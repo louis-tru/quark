@@ -44,22 +44,24 @@ namespace qk {
 	typedef void (Object::*Func)();
 
 	#define Qk_Set_Accessor(View, Prop, Name) \
-		prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp] = {(Func)&View##Layout::Name,(Func)&View##Layout::set_##Name};\
-		prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp+kEnum_Counts_ViewProp] = {(Func)&View::Name,(Func)&View::set_##Name}\
+		prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp] = {\
+			(Func)&View##Layout::Name,(Func)&View##Layout::set_##Name};
+	// prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp+kEnum_Counts_ViewProp] = {\
+	// 	(Func)&View::Name,(Func)&View::set_##Name}\
 
 	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
 		prop_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, prop_accessors[k##Dest##_ViewType])
 
 	struct PropAccessors {
 		void copy(uint32_t index, uint32_t count, PropAccessors &dest) {
-			auto index2 = index + kEnum_Counts_ViewProp;
+			// auto index2 = index + kEnum_Counts_ViewProp;
 			auto end = index + count;
 			do {
 				dest.value[index] = value[index];
-				dest.value[index2] = value[index2];
+				// dest.value[index2] = value[index2];
 			} while (++index < end);
 		}
-		PropAccessor value[kEnum_Counts_ViewProp+kEnum_Counts_ViewProp] = {0};
+		PropAccessor value[kEnum_Counts_ViewProp/*+kEnum_Counts_ViewProp*/] = {0};
 	};
 
 	static PropAccessors *prop_accessors = nullptr;
@@ -68,6 +70,42 @@ namespace qk {
 		if (prop_accessors)
 			return;
 		prop_accessors = new PropAccessors[kEnum_Counts_ViewType];
+
+		#define _Func_TextOptions_Props(_Func) \
+			_Func(TextAlign, text_align) \
+			_Func(TextWeight, text_weight) \
+			_Func(TextSlant, text_slant) \
+			_Func(TextDecoration, text_decoration) \
+			_Func(TextOverflow, text_overflow) \
+			_Func(TextWhiteSpace, text_white_space) \
+			_Func(TextWordBreak, text_word_break) \
+			_Func(TextSize, text_size) \
+			_Func(TextColor, text_background_color) \
+			_Func(TextColor, text_color) \
+			_Func(TextLineHeight, text_line_height) \
+			_Func(TextShadow, text_shadow) \
+			_Func(TextFamily, text_family) \
+
+		#define _Func_ScrollLayoutBase_Props(_Func) \
+			_Func(Color, scrollbar_color) \
+			_Func(float, scrollbar_width) \
+			_Func(float, scrollbar_margin) \
+
+		struct TextLayout: public Layout {
+			#define _Func(Type, Name) Type Name() { asTextOptions()->Name(); } \
+				void set_##Name(Type v) { asTextOptions()->set_##Name(v); }
+			_Func_TextOptions_Props(_Func)
+			#undef _Func
+			#undef _Func_TextOptions_Props
+		};
+		struct ScrollLayout: public Layout {
+			#define _Func(Type, Name) Type Name() { asScrollLayoutBase()->Name(); } \
+				void set_##Name(Type v) { asScrollLayoutBase()->set_##Name(v); }
+			_Func_ScrollLayoutBase_Props(_Func)
+			#undef _Func
+			#undef _Func_ScrollLayoutBase_Props
+		};
+
 		// view
 		Qk_Set_Accessor(View, OPACITY, opacity);
 		Qk_Set_Accessor(View, VISIBLE, visible);
@@ -182,10 +220,6 @@ namespace qk {
 		Qk_Set_Accessor(Transform, ROTATE_Z, rotate_z);
 		Qk_Set_Accessor(Transform, ORIGIN_X, origin_x);
 		Qk_Set_Accessor(Transform, ORIGIN_Y, origin_y);
-	}
-
-	PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop) {
-		return prop_accessors[type].value + prop + kEnum_Counts_ViewProp;
 	}
 
 	PropAccessor* prop_accessor_at_layout(ViewType type, ViewProp prop) {

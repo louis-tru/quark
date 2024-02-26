@@ -65,6 +65,13 @@
 			'ui/css/css.h', # css
 			'ui/css/css_sheets.cc',
 			'ui/css/css_class.cc',
+			'ui/css/css_prop.cc',
+			'ui/action/action.h', # action
+			'ui/action/action.cc',
+			'ui/action/center.cc',
+			'ui/action/group.cc',
+			'ui/action/keyframe.cc',
+			'ui/action/keyframe.h',
 			'ui/text/text_blob.h', # ui text
 			'ui/text/text_blob.cc',
 			'ui/text/text_input.h',

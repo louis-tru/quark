@@ -142,7 +142,6 @@ namespace qk {
 		void (Object::*set)();
 	};
 
-	Qk_EXPORT PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop);
 	Qk_EXPORT PropAccessor* prop_accessor_at_layout(ViewType type, ViewProp prop);
 }
 

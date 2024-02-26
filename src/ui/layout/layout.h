@@ -158,7 +158,7 @@ namespace qk {
 		/**
 		 * @prop style sheets class object
 		*/
-		Qk_DEFINE_PROP_GET(StyleSheetsClass*, ssclass);
+		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, cssclass);
 
 		/**
 		 *  can affect the transparency of subviews
@@ -446,8 +446,8 @@ namespace qk {
 		void clear_level(); //  clear layout depth
 		void set_level_(uint32_t level); // settings depth
 		void set_visible_(bool visible, uint32_t level);
-		void applyClass(StyleSheetsClass* parentSsc);
-		StyleSheetsClass* parentSsclass();
+		void applyClass(CStyleSheetsClass* parentSsc);
+		CStyleSheetsClass* parentSsclass();
 
 		friend class UIRender;
 		friend class PreRender;

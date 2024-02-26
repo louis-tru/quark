@@ -53,7 +53,7 @@ namespace qk {
 	}
 
 	void GroupAction::append(Action *child) throw(Error) {
-		Qk_ASSERT(action);
+		Qk_ASSERT(child);
 		set_parent(this);
 		child->_id = _actions.pushBack(child);
 	}

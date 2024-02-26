@@ -39,7 +39,7 @@ namespace qk {
 	class Action;
 	class Layout;
 	class Button;
-	class StyleSheetsClass;
+	class CStyleSheetsClass;
 
 	/**
 		* The basic elements of UI view tree
@@ -75,7 +75,7 @@ namespace qk {
 		/**
 		 * @prop style sheets class object
 		*/
-		Qk_DEFINE_PROP_ACC_GET(StyleSheetsClass*, ssclass);
+		Qk_DEFINE_PROP_ACC_GET(CStyleSheetsClass*, cssclass);
 
 		/**
 		 *  can affect the transparency of subviews
@@ -239,7 +239,7 @@ namespace qk {
 		void set_parent(View *parent);
 		void clear_link(); // Cleaning up associated view information
 
-		StyleSheetsClass *_ssclass; // style sheets class object
+		CStyleSheetsClass *_cssclass; // style sheets class object
 
 		friend class EventDispatch;
 	};

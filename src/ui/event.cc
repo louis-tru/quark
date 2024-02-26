@@ -68,8 +68,8 @@ namespace qk {
 			if ( evt.is_default() ) {
 				preRender().async_call([](auto ctx, auto val) {
 					do {
-						if (ctx->_ssclass)
-							ctx->_ssclass->setStatus_RT(val);
+						if (ctx->_cssclass)
+							ctx->_cssclass->setStatus_RT(val);
 						ctx = ctx->_parent;
 					} while(ctx);
 				}, _layout, CSSType(evt.status()));

@@ -50,7 +50,7 @@ namespace qk {
 		return false;
 	}
 
-	BoxFilter* BoxFilter::assign_no_check(BoxFilter* left, BoxFilter* right) {
+	static BoxFilter* assign_no_check(BoxFilter* left, BoxFilter* right) {
 		if (right) {
 			if (left == right) {
 				return left;
@@ -133,7 +133,7 @@ namespace qk {
 			if (refCount() > 0) {
 				return false;
 			}
-		}
+		} // else kShared
 		return Reference::retain();
 	}
 
@@ -153,6 +153,10 @@ namespace qk {
 			// TODO ...
 			// app_->pre_render()->mark_render();
 		}
+	}
+
+	BoxFilter* BoxFilter::transition(BoxFilter *to, float t, BoxFilter* dest) {
+		return nullptr;
 	}
 
 	BoxFilter::Type FillImage::type() const { return kImage; }
@@ -275,8 +279,6 @@ namespace qk {
 		, _colors(to_color4f(colors))
 	{
 	}
-
-	FillGradient::~FillGradient() {}
 
 	void FillGradient::set_positions(const Array<float>& pos) {
 		_pos = pos;

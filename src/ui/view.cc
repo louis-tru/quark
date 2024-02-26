@@ -32,6 +32,7 @@
 #include "./layout/root.h"
 #include "./window.h"
 #include "./css/css.h"
+#include "./action/action.h"
 
 namespace qk {
 
@@ -40,7 +41,7 @@ namespace qk {
 		, _action(nullptr), _layout(layout)
 		, _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
-		, _first(nullptr), _last(nullptr), _ssclass(nullptr)
+		, _first(nullptr), _last(nullptr), _cssclass(nullptr)
 	{
 		layout->_view = this;
 		layout->_accessor = prop_accessor_at_layout(layout->viewType(), kOPACITY_ViewProp);
@@ -63,12 +64,12 @@ namespace qk {
 		return _layout->_window;
 	}
 
-	StyleSheetsClass* View::ssclass() {
-		if (!_ssclass) {
-			_ssclass = new StyleSheetsClass(_layout);
-			preRender().async_call([](auto ctx, auto val) { ctx->_ssclass = val; }, _layout, _ssclass);
+	CStyleSheetsClass* View::cssclass() {
+		if (!_cssclass) {
+			_cssclass = new CStyleSheetsClass(_layout);
+			preRender().async_call([](auto ctx, auto val) { ctx->_cssclass = val; }, _layout, _cssclass);
 		}
-		return _ssclass;
+		return _cssclass;
 	}
 
 	float View::opacity() const {
@@ -114,6 +115,19 @@ namespace qk {
 
 	bool View::is_focus() const {
 		return _layout->_window->dispatch()->focus_view() == this;
+	}
+
+	void View::set_action(Action* action) throw(Error) {
+		if (action != _action) {
+			if ( _action ) {
+				_action->del_target(_layout);
+				_action = nullptr;
+			}
+			if ( action ) {
+				action->add_target(_layout);
+				_action = action;
+			}
+		}
 	}
 
 	bool View::blur() {

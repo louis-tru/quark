@@ -32,7 +32,6 @@
 #define __quark__action__keyframe__
 
 #include "./action.h"
-#include "../util/dict.h"
 #include "../view_prop.h"
 #include "../css/css.h"
 #include "../../render/bezier.h"
@@ -74,17 +73,17 @@ namespace qk {
 		/**
 		* @method first
 		*/
-		inline Frame* first() { return _frames.front(); }
+		inline Keyframe* first() { return _frames.front(); }
 
 		/**
 		* @method last
 		*/
-		inline Frame* last() { return _frames.back(); }
+		inline Keyframe* last() { return _frames.back(); }
 
 		/**
 		* @method operator[]
 		*/
-		inline Frame* operator[](uint32_t index) { return _frames[index]; }
+		inline Keyframe* operator[](uint32_t index) { return _frames[index]; }
 
 		/**
 		* @method length
@@ -94,7 +93,7 @@ namespace qk {
 		/**
 		* @method add new frame
 		*/
-		Frame* add(uint32_t time, cCurve& curve = EASE);
+		Keyframe* add(uint32_t time, cCurve& curve = EASE);
 
 		/**
 		 * @overwrite
@@ -108,7 +107,7 @@ namespace qk {
 		virtual void seek_before(int32_t time, Action* child);
 		virtual void append(Action *child) override;
 
-		Array<Frame*> _frames;
+		Array<Keyframe*> _frames;
 
 		friend class Keyframe;
 	};

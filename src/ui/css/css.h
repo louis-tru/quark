@@ -62,9 +62,9 @@ namespace qk {
 	public:
 		class Property {
 		public:
-			virtual ~Property() = 0;
+			virtual ~Property() = default;
 			virtual void apply(Layout *layout) = 0;
-			virtual void transition(Layout *layout, float y, Property *to) = 0;
+			virtual void transition(Layout *layout, Property *to, float y) = 0;
 			virtual Property* copy() = 0;
 		};
 		// define props
@@ -78,7 +78,7 @@ namespace qk {
 		/**
 		 * @method has_property
 		*/
-		bool has_property(ViewProp name) const;
+		bool has_property(ViewProp key) const;
 
 		/**
 		* @method apply style to layout
@@ -88,7 +88,7 @@ namespace qk {
 
 	private:
 		void setProp(uint32_t, Property* prop);
-		void applyTransition(cSet<Layout*> &layout, float y, StyleSheets *to) const;
+		void applyTransition(cSet<Layout*> &layout, StyleSheets *to, float y) const;
 	protected:
 		Dict<uint32_t, Property*> _props; // ViewProp => Property*
 

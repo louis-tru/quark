@@ -52,26 +52,30 @@ namespace qk {
 			kBlur,
 			kBackdropBlur,
 		};
+
 		enum HolderMode {
 			kIdependent,
 			kShared,
 			kDisable,
 		};
-		Qk_DEFINE_PROP(HolderMode, holder_mode, Const); // holder mode
 
 		BoxFilter();
-		virtual ~BoxFilter();
+		~BoxFilter();
+
+		Qk_DEFINE_PROP(HolderMode, holder_mode, Const); // holder mode
+
 		virtual Type       type() const = 0;
 		virtual BoxFilter* copy(BoxFilter* to) = 0;
 		virtual bool       retain() override;
+		virtual BoxFilter* transition(BoxFilter *to, float t, BoxFilter* dest);
 		static  BoxFilter* assign(BoxFilter* left, BoxFilter* right);
 
 	protected:
-		static BoxFilter* assign_no_check(BoxFilter* left, BoxFilter* right);
 		void onChange();
 		bool check_loop_reference(BoxFilter* value);
 		void set_next_check(BoxFilter* value);
 		void set_next_no_check(BoxFilter* value);
+
 		BoxFilter* _next;
 	};
 
@@ -105,14 +109,13 @@ namespace qk {
 	class Qk_EXPORT FillGradient: public BoxFill {
 	public:
 		FillGradient(const Array<float>& pos, const Array<Color>& colors);
-		virtual ~FillGradient();
 		inline const Array<float>& positions() const { return _pos; }
 		inline const Array<Color4f>& colors() const { return _colors; }
 		void set_positions(const Array<float>& pos);
 		void set_colors(const Array<Color>& colors);
 		void set_colors4f(const Array<Color4f>& colors);
 	protected:
-		Array<float>    _pos;
+		Array<float>   _pos;
 		Array<Color4f> _colors;
 	};
 

@@ -39,9 +39,8 @@ namespace qk {
 		: _host(host) , _index(index), _curve(curve), _time(0)
 	{}
 
-	// -------------------------------------------------------------------------------------------
-
-	KeyframeAction::KeyframeAction(): _frame(-1), _time(0) {}
+	KeyframeAction::KeyframeAction(): _frame(-1), _time(0)
+	{}
 
 	KeyframeAction::~KeyframeAction() {
 		clear();
@@ -139,7 +138,7 @@ namespace qk {
 				_time = time;
 				float x = (time - time1) / float(time2 - time1);
 				float y = _frames[f1]->curve().fixed_solve_y(x, 0.001);
-				_frames[f1]->applyTransition(root->targets(), y, _frames[f2]);
+				_frames[f1]->applyTransition(root->targets(), _frames[f2], y);
 			} else if ( t > 0 ) {
 				time_span = t;
 				_frame = f2;
@@ -212,7 +211,7 @@ namespace qk {
 				int32_t time1 = _frames[f1]->time();
 				float x = (_time - time0) / float(time1 - time0);
 				float y = frame->curve().fixed_solve_y(x, 0.001);
-				_frames[f0]->applyTransition(root->targets(), y, _frames[f1]);
+				_frames[f0]->applyTransition(root->targets(), _frames[f1], y);
 			} else { // last frame
 				_frames[f0]->apply(root->targets());
 			}

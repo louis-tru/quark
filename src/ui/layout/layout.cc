@@ -46,7 +46,7 @@ namespace qk {
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
 		, _accessor(nullptr)
-		, _ssclass(nullptr)
+		, _cssclass(nullptr)
 		, _opacity(1.0)
 		, _visible(true)
 		, _visible_region(false)
@@ -354,8 +354,8 @@ namespace qk {
 		}
 		if (visible) {
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // reset layout size
-			if (_ssclass) {
-				_ssclass->updateClass_RT();
+			if (_cssclass) {
+				_cssclass->updateClass_RT();
 			}
 		}
 	}
@@ -424,21 +424,21 @@ namespace qk {
 			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent layout
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // mark layout size, reset layout size
 
-			if (_ssclass) {
-				_ssclass->updateClass_RT();
+			if (_cssclass) {
+				_cssclass->updateClass_RT();
 			}
 
 			onActivate();
 		}
 	}
 
-	void Layout::applyClass(StyleSheetsClass *ssc) {
-		if (_ssclass->apply_RT(ssc)) { // Impact sub layout
-			if (_ssclass->haveSubstyles())
-				ssc = _ssclass;
+	void Layout::applyClass(CStyleSheetsClass *ssc) {
+		if (_cssclass->apply_RT(ssc)) { // Impact sub layout
+			if (_cssclass->haveSubstyles())
+				ssc = _cssclass;
 			auto l = _first;
 			while (l) {
-				if (l->_visible && l->_ssclass) {
+				if (l->_visible && l->_cssclass) {
 					l->applyClass(ssc);
 				}
 				l = l->_next;
@@ -447,10 +447,10 @@ namespace qk {
 		unmark(kStyle_Class);
 	}
 
-	StyleSheetsClass* Layout::parentSsclass() {
+	CStyleSheetsClass* Layout::parentSsclass() {
 		auto layout = _parent;
 		while (layout) {
-			auto ss = layout->_ssclass;
+			auto ss = layout->_cssclass;
 			if (ss && ss->haveSubstyles()) {
 				return ss;
 			}

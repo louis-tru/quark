@@ -29,17 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./css.h"
-#include "../layout/layout.h"
-#include "../app.h"
 
 namespace qk {
-	// --------------------------- S t y l e . S h e e t s ---------------------------
-
-	typedef StyleSheets::Property Property;
-
-	enum ViewPropFrom {
-		kView,kBox,kFlex,kFlow,kImage,kTextOptions,kInput,kScrollLayoutBase,kTransform
-	};
 
 	CSSName::CSSName(cString& name)
 		: _hashCode(name.hashCode())
@@ -73,14 +64,14 @@ namespace qk {
 		}
 	}
 
-	void StyleSheets::applyTransition(cSet<Layout*> &layout, float y, StyleSheets *to) const {
+	void StyleSheets::applyTransition(cSet<Layout*> &layout, StyleSheets *to, float y) const {
 		if (_props.length()) {
-			Qk_ASSERT(_props.length() == b->_props.length());
+			Qk_ASSERT(_props.length() == to->_props.length());
 			auto a = _props.begin(), e = _props.end();
 			auto b = to->_props.begin();
 			while (a != e) {
 				for (auto &j: layout) {
-					a->value->transition(j.key, y, b->value);
+					a->value->transition(j.key, b->value, y);
 				}
 				a++; b++;
 			}
@@ -106,88 +97,7 @@ namespace qk {
 		return _props.count(name);
 	}
 
-	// ----------------------------------------------------------------------------------------------
-
-	template<ViewPropFrom From>
-	struct ApplyProp {
-		template<typename T>
-		static void apply(Layout *layout, ViewProp prop, T value) {
-			auto set = (void (Layout::*)(T))(layout->accessor() + prop)->set;
-			if (set)
-				(layout->*set)(value);
-		}
-	};
-
-	template<> struct ApplyProp<kScrollLayoutBase> {
-		template<typename T>
-		static void apply(Layout *layout, ViewProp prop, T value) {
-			auto set = (void (ScrollLayoutBase::*)(T))(layout->accessor() + prop)->set;
-			if (set)
-				(layout->asScrollLayoutBase()->*set)(value);
-		}
-	};
-
-	template<> struct ApplyProp<kTextOptions> {
-		template<typename T>
-		static void apply(Layout *layout, ViewProp prop, T value) {
-			auto set = (void (TextOptions::*)(T))(layout->accessor() + prop)->set;
-			if (set)
-				(layout->asTextOptions()->*set)(value);
-		}
-	};
-
-	template<typename T, ViewPropFrom From>
-	class PropertyImpl: public Property {
-	public:
-		PropertyImpl(ViewProp prop, T value): _prop(prop), _value(value){}
-		void apply(Layout *layout) {
-			ApplyProp<From>::template apply<T>(layout, _prop, _value);
-		}
-		Property* copy() {
-			// TODO ...
-		}
-		void transition(Layout *layout, float y, Property *to) {
-			// TODO ...
-		}
-	private:
-		ViewProp _prop;
-		T _value;
-	};
-
-	template<typename T, ViewPropFrom From>
-	class PropertyImpl<T*, From>: public Property {
-	public:
-		typedef T* Type;
-		PropertyImpl(ViewProp prop, Type value): _prop(prop), _value(value)
-		{
-			static_assert(T::Traits::isReference, "Property value must be a reference type");
-			_value->retain();
-		}
-		~PropertyImpl() {
-			_value->release();
-		}
-		void apply(Layout *layout) {
-			ApplyProp<From>::template apply<Type>(layout, _prop, _value);
-		}
-		Property* copy() {
-			// TODO ...
-		}
-		void transition(Layout *layout, float y, Property *to) {
-			// TODO ...
-		}
-	private:
-		ViewProp _prop;
-		Type _value;
-	};
-
-	#define _Fun(Enum, Type, Name, From) void StyleSheets::set_##Name(Type value) {\
-		setProp(k##Enum##_ViewProp, new qk::PropertyImpl<Type, k##From>(k##Enum##_ViewProp, value));\
-	}
-	Qk_View_Props(_Fun)
-
-	#undef _Fun
-
-	// -------------------------------------------------------------------------------------
+	// --------------------------- S t y l e . S h e e t s ---------------------------
 
 	CStyleSheets::CStyleSheets(cCSSName &name, CStyleSheets *parent, CSSType type)
 		: StyleSheets()
