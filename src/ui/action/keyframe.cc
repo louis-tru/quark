@@ -33,9 +33,9 @@
 
 namespace qk {
 
-	typedef KeyframeFrame Frame;
+	typedef Keyframe Frame;
 
-	Frame::KeyframeFrame(KeyframeAction* host, uint32_t index, cCurve& curve)
+	Frame::Keyframe(KeyframeAction* host, uint32_t index, cCurve& curve)
 		: _host(host) , _index(index), _curve(curve), _time(0)
 	{}
 
@@ -69,7 +69,7 @@ namespace qk {
 		return frame;
 	}
 
-	void KeyframeFrame::onMake(ViewProp key, Property* prop) {
+	void Keyframe::onMake(ViewProp key, Property* prop) {
 		if (_host) {
 			for (auto i: _host->_frames) {
 				if (i != this) {

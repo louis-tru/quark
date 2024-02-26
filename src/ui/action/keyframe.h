@@ -40,16 +40,16 @@
 namespace qk {
 
 	/**
-	* @class KeyframeFrame
+	* @class Keyframe
 	*/
-	class KeyframeFrame: public StyleSheets {
+	class Keyframe: public StyleSheets {
 	public:
 		Qk_DEFINE_PROP_GET(KeyframeAction*, host);
 		Qk_DEFINE_PROP_GET(uint32_t, index, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, time, Const);
 		Qk_DEFINE_PROP_GET(Curve, curve, Const);
 	private:
-		KeyframeFrame(KeyframeAction* host, uint32_t index, cCurve& curve);
+		Keyframe(KeyframeAction* host, uint32_t index, cCurve& curve);
 		void onMake(ViewProp key, Property* prop) override;
 		friend class KeyframeAction;
 	};
@@ -110,7 +110,7 @@ namespace qk {
 
 		Array<Frame*> _frames;
 
-		friend class KeyframeFrame;
+		friend class Keyframe;
 	};
 
 }
