@@ -37,11 +37,12 @@
 #include "../util/array.h"
 
 namespace qk {
+	class Layout;
 
 	/**
 	* @class Box Filter, Single linked list struct
 	*/
-	class Qk_EXPORT BoxFilter: public Reference {
+	class Qk_EXPORT BoxFilter: public Object {
 		Qk_HIDDEN_ALL_COPY(BoxFilter);
 	public:
 		enum Type {
@@ -52,41 +53,21 @@ namespace qk {
 			kBlur,
 			kBackdropBlur,
 		};
-
-		enum HolderMode {
-			kIdependent,
-			kShared,
-			kDisable,
-		};
-
+		Qk_DEFINE_PROP(BoxFilter*, next, Protected);
+		Qk_DEFINE_PROP(Layout*, host);
 		BoxFilter();
 		~BoxFilter();
-
-		Qk_DEFINE_PROP(HolderMode, holder_mode, Const); // holder mode
-
-		virtual Type       type() const = 0;
-		virtual BoxFilter* copy(BoxFilter* to) = 0;
-		virtual bool       retain() override;
-		virtual BoxFilter* transition(BoxFilter *to, float t, BoxFilter* dest);
-		static  BoxFilter* assign(BoxFilter* left, BoxFilter* right);
-
+		virtual Type type() const = 0;
+		virtual BoxFilter* copy(BoxFilter* dest) = 0;
+		virtual BoxFilter* transition(BoxFilter *to, float t, BoxFilter* dest) = 0;
+		static  BoxFilter* assign(BoxFilter* left, BoxFilter* right, Layout *host);
 	protected:
 		void onChange();
 		bool check_loop_reference(BoxFilter* value);
-		void set_next_check(BoxFilter* value);
 		void set_next_no_check(BoxFilter* value);
-
-		BoxFilter* _next;
 	};
 
-	// box fill, background
-	class Qk_EXPORT BoxFill: public BoxFilter {
-	public:
-		BoxFill* next() const;
-		BoxFill* set_next(BoxFill*);
-	};
-
-	class Qk_EXPORT FillImage: public BoxFill, public ImageSourceHolder {
+	class Qk_EXPORT FillImage: public BoxFilter, public ImageSourceHolder {
 	public:
 		struct Init {
 			FillSize size_x, size_y;
@@ -100,42 +81,46 @@ namespace qk {
 		Qk_DEFINE_PROP(Repeat, repeat, Const);
 		FillImage();
 		FillImage(cString& src, Init init = {});
-		virtual Type       type() const override;
-		virtual BoxFilter* copy(BoxFilter* to) override;
-		static bool  compute_size(FillSize size, float host, float& out);
+		virtual Type type() const override;
+		virtual BoxFilter* copy(BoxFilter* dest) override;
+		virtual BoxFilter* transition(BoxFilter *to, float t, BoxFilter* dest) override;
+		static bool compute_size(FillSize size, float host, float& out);
 		static float compute_position(FillPosition pos, float host, float size);
 	};
 
-	class Qk_EXPORT FillGradient: public BoxFill {
+	class Qk_EXPORT FillGradient: public BoxFilter {
 	public:
-		FillGradient(const Array<float>& pos, const Array<Color>& colors);
-		inline const Array<float>& positions() const { return _pos; }
-		inline const Array<Color4f>& colors() const { return _colors; }
-		void set_positions(const Array<float>& pos);
-		void set_colors(const Array<Color>& colors);
-		void set_colors4f(const Array<Color4f>& colors);
+		FillGradient(cArray<float>& pos, cArray<Color4f>& colors);
+		inline cArray<float>& positions() const { return _pos; }
+		inline cArray<Color4f>& colors() const { return _colors; }
+		void set_positions(cArray<float>& pos);
+		void set_colors(cArray<Color4f>& colors);
+		static Array<Color4f> to_color4fs(cArray<Color>& colors);
 	protected:
-		Array<float>   _pos;
+		Array<float> _pos;
 		Array<Color4f> _colors;
+		bool transition_gradient(BoxFilter *to, float t, BoxFilter* dest);
 	};
 
 	class Qk_EXPORT FillGradientLinear: public FillGradient {
 	public:
+		FillGradientLinear(float angle, cArray<float>& pos, cArray<Color4f>& colors);
 		Qk_DEFINE_PROP(float, angle, Const);
-		FillGradientLinear(float angle, const Array<float>& pos, const Array<Color>& colors);
 		Qk_DEFINE_PROP_GET(float, radian, Const);
 		Qk_DEFINE_PROP_GET(uint8_t, quadrant, Const);
-		virtual Type       type() const override;
-		virtual BoxFilter* copy(BoxFilter* to) override;
+		virtual Type type() const override;
+		virtual BoxFilter* copy(BoxFilter* dest) override;
+		virtual BoxFilter* transition(BoxFilter *to, float t, BoxFilter* dest) override;
 	private:
 		void setRadian();
 	};
 
 	class Qk_EXPORT FillGradientRadial: public FillGradient {
 	public:
-		FillGradientRadial(const Array<float>& pos, const Array<Color>& colors);
-		virtual Type       type() const override;
-		virtual BoxFilter* copy(BoxFilter* to) override;
+		FillGradientRadial(cArray<float>& pos, cArray<Color4f>& colors);
+		virtual Type type() const override;
+		virtual BoxFilter* copy(BoxFilter* dest) override;
+		virtual BoxFilter* transition(BoxFilter *to, float t, BoxFilter* dest) override;
 	};
 
 	// box shadow
@@ -145,10 +130,10 @@ namespace qk {
 		BoxShadow();
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
-		BoxShadow* next() const;
-		BoxShadow* set_next(BoxShadow*);
-		virtual Type       type() const override;
-		virtual BoxFilter* copy(BoxFilter* to) override;
+		virtual Type type() const override;
+		virtual BoxFilter* copy(BoxFilter* dest) override;
+		virtual BoxFilter* transition(BoxFilter *to, float t, BoxFilter* dest) override;
 	};
 }
+
 #endif

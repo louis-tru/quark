@@ -67,7 +67,7 @@ namespace qk {
 	F(BORDER_WIDTH_BOTTOM, float, border_width_bottom, Box) \
 	F(BORDER_WIDTH_LEFT, float, border_width_left, Box) \
 	F(BACKGROUND_COLOR, Color, background_color, Box) \
-	F(BACKGROUND, BoxFill*, background, Box) \
+	F(BACKGROUND, BoxFilter*, background, Box) \
 	F(BOX_SHADOW, BoxShadow*, box_shadow, Box) \
 	F(WEIGHT, float, weight, Box) \
 	F(ALIGN, Align, align, Box) \

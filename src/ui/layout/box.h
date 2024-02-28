@@ -70,7 +70,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(float,      border_width_bottom, Const);
 		Qk_DEFINE_PROP_ACC(float,      border_width_left, Const);
 		Qk_DEFINE_PROP    (Color,      background_color, Const); // fill background color
-		Qk_DEFINE_PROP    (BoxFill*,   background); // fill background, image|gradient
+		Qk_DEFINE_PROP    (BoxFilter*, background); // fill background, image|gradient
 		Qk_DEFINE_PROP    (BoxShadow*, box_shadow); // box shadow, shadow
 		Qk_DEFINE_PROP    (float,      weight, Const); // layout weight
 		Qk_DEFINE_PROP_ACC(Align,      align, Const); // layout align
@@ -190,7 +190,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(float,      border_width_bottom, Const);
 		Qk_DEFINE_PROP_ACC(float,      border_width_left, Const);
 		Qk_DEFINE_PROP_ACC(Color,      background_color, Const); // fill background color
-		Qk_DEFINE_PROP_ACC(BoxFill*,   background); // fill background, image|gradient
+		Qk_DEFINE_PROP_ACC(BoxFilter*, background); // fill background, image|gradient
 		Qk_DEFINE_PROP_ACC(BoxShadow*, box_shadow); // box shadow, shadow
 		Qk_DEFINE_PROP_ACC(float,      weight, Const);
 		Qk_DEFINE_PROP_ACC(Align,      align, Const);

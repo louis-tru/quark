@@ -60,7 +60,7 @@ namespace qk {
 	}
 
 	template<typename T>
-	inline static T transition_value(T v1, T v2, float t) {
+	inline T transition_value(T v1, T v2, float t) {
 		auto v = v1 - (v1 - v2) * t;
 		return v1;
 	}
@@ -166,11 +166,9 @@ namespace qk {
 
 	// @template Object or BoxFilter
 	template<typename T> struct PropImpl<T*>: Property {
-		PropImpl(ViewProp prop, T* value)
-		{
-			Qk_ASSERT(value);
-			static_assert(T::Traits::isReference, "Property value must be a reference type");
-			_value->retain();
+		PropImpl(ViewProp prop, T* value): _value(value) {
+			Qk_ASSERT(_value);
+			static_assert(T::Traits::isObject, "Property value must be a object type");
 		}
 		~PropImpl() {
 			_value->release();

@@ -441,16 +441,16 @@ namespace qk {
 		}
 	}
 
-	void BoxLayout::set_background(BoxFill* val) {
+	void BoxLayout::set_background(BoxFilter* val) {
 		if (_background != val) {
-			_background = static_cast<BoxFill*>(BoxFilter::assign(_background, val));
+			_background = BoxFilter::assign(_background, val, this);
 			mark_render();
 		}
 	}
 
 	void BoxLayout::set_box_shadow(BoxShadow* val) {
 		if (_box_shadow != val) {
-			_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign(_box_shadow, val));
+			_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign(_box_shadow, val, this));
 			mark_render();
 		}
 	}
@@ -990,7 +990,7 @@ namespace qk {
 	Qk_IMPL_VIEW_PROP_ACC(Box, float,      border_width_bottom, Const);
 	Qk_IMPL_VIEW_PROP_ACC(Box, float,      border_width_left, Const);
 	Qk_IMPL_VIEW_PROP_ACC(Box, Color,      background_color, Const); // fill background color
-	Qk_IMPL_VIEW_PROP_ACC(Box, BoxFill*,   background); // fill background, image|gradient
+	Qk_IMPL_VIEW_PROP_ACC(Box, BoxFilter*, background); // fill background, image|gradient
 	Qk_IMPL_VIEW_PROP_ACC(Box, BoxShadow*, box_shadow); // box shadow, shadow
 	Qk_IMPL_VIEW_PROP_ACC(Box, float,      weight, Const);
 	Qk_IMPL_VIEW_PROP_ACC(Box, Align,      align, Const);

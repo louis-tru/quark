@@ -286,12 +286,14 @@ namespace qk {
 		_canvas->clipPathv(*data.outside, Canvas::kDifference_ClipOp, false);
 		auto shadow = box->box_shadow();
 		do {
+			if (shadow->type() != BoxFilter::kShadow)
+				break;
 			auto s = shadow->value();
 			auto &o = data.outside->rect.origin;
 			_canvas->drawRRectBlurColor({
 				{o.x()+s.offset_x, o.y()+s.offset_y}, data.outside->rect.size,
 			},&box->_border_radius_left_top, s.size, s.color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
-			shadow = shadow->next();
+			shadow = static_cast<BoxShadow*>(shadow->next());
 		} while(shadow);
 		_canvas->restore();
 	}
