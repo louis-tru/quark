@@ -54,38 +54,15 @@ namespace qk {
 		}
 	}
 
-	void StyleSheets::apply(cSet<Layout*> &layout) const {
-		if (_props.length()) {
-			for (auto &j: layout) {
-				for ( auto i: _props ) {
-					i.value->apply(j.key);
-				}
-			}
-		}
-	}
-
-	void StyleSheets::applyTransition(cSet<Layout*> &layout, StyleSheets *to, float y) const {
+	void StyleSheets::applyTransition(Layout* layout, StyleSheets *to, float y) const {
 		if (_props.length()) {
 			Qk_ASSERT(_props.length() == to->_props.length());
 			auto a = _props.begin(), e = _props.end();
 			auto b = to->_props.begin();
 			while (a != e) {
-				for (auto &j: layout) {
-					a->value->transition(j.key, b->value, y);
-				}
+				a->value->transition(layout, b->value, y);
 				a++; b++;
 			}
-		}
-	}
-
-	void StyleSheets::setProp(uint32_t key, Property *prop) {
-		auto it = _props.find(key);
-		if (it == _props.end()) {
-			onMake(ViewProp(key), prop);
-			_props.set(key, prop);
-		} else {
-			delete it->value;
-			it->value = prop;
 		}
 	}
 

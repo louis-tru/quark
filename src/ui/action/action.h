@@ -114,20 +114,13 @@ namespace qk {
 		*/
 		virtual void clear() = 0;
 
-		/**
-		 * @method targets bind
-		*/
-		inline cSet<Layout*>& targets() const {
-			return _targets;
-		}
-
 	private:
 		void set_parent(Action* parent) throw(Error);
-		void add_target(Layout* t) throw(Error);
+		void ser_target(Layout* t) throw(Error);
 		void del_parent();
 		void del_target(Layout* t);
-		void trigger_action_loop(uint32_t delay, Action* root);
-		void trigger_action_key_frame(uint32_t delay, uint32_t frame_index, Action* root);
+		void trigger_ActionLoop(uint32_t delay, Action* root);
+		void trigger_ActionKeyframe(uint32_t delay, uint32_t frame_index, Action* root);
 
 	protected:
 		virtual uint32_t advance(uint32_t time_span, bool restart, Action *root) = 0;
@@ -137,7 +130,7 @@ namespace qk {
 
 		// props
 		int32_t _looped;
-		Set<Layout*> _targets;
+		Layout* _target;
 		Id _id; // action id from action center or group action
 		bool _runAdvance; // run advance for action center
 

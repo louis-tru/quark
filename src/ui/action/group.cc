@@ -32,6 +32,8 @@
 
 namespace qk {
 
+	const Action::Id nullId;
+
 	GroupAction::~GroupAction() {
 		_duration = 0;
 		clear();
@@ -49,12 +51,12 @@ namespace qk {
 
 	void SequenceAction::clear() {
 		GroupAction::clear();
-		_playIdx = Id();
+		_playIdx = nullId;
 	}
 
 	void GroupAction::append(Action *child) throw(Error) {
 		Qk_ASSERT(child);
-		set_parent(this);
+		child->set_parent(this);
 		child->_id = _actions.pushBack(child);
 	}
 
@@ -99,7 +101,7 @@ namespace qk {
 		auto act = *id;
 		act->del_parent();
 		_actions.erase( id );
-		act->_id = Id();
+		act->_id = nullId;
 		if ( act->_duration == _duration ) {
 			SpawnAction::update_duration(0);
 		}
@@ -108,11 +110,11 @@ namespace qk {
 	void SequenceAction::remove_child(Id id) {
 		Qk_ASSERT(id != _actions.end());
 		if ( id == _playIdx )
-			_playIdx = Id();
+			_playIdx = nullId;
 		auto act = *id;
 		act->del_parent();
 		_actions.erase(id);
-		act->_id = Id();
+		act->_id = nullId;
 		if ( act->_duration ) {
 			Action::update_duration(-act->_duration);
 		}
@@ -171,7 +173,6 @@ namespace qk {
 	}
 
 	uint32_t SpawnAction::advance(uint32_t time_span, bool restart, Action* root) {
-
 		time_span *= _speed; // Amplification time
 
 		if ( restart ) { // restart
@@ -214,14 +215,12 @@ namespace qk {
 	}
 
 	uint32_t SequenceAction::advance(uint32_t time_span, bool restart, Action *root) {
-
 		time_span *= _speed; // Amplification time
 
-		if ( _playIdx == Id() || restart ) { // no start play
-
+		if ( _playIdx == nullId || restart ) { // no start play
 			if ( restart ) { // restart
 				_looped = 0;
-				_playIdx = Id();
+				_playIdx = nullId;
 			}
 
 			if ( length() ) {
@@ -237,7 +236,7 @@ namespace qk {
 
 		if ( time_span ) {
 
-			if ( _playIdx == Id() ) { // May have been deleted
+			if ( _playIdx == nullId ) { // May have been deleted child action
 				if ( length() ) { // Restart
 					restart = true;
 					_playIdx = _actions.begin();
@@ -259,6 +258,7 @@ namespace qk {
 					_playIdx = _actions.begin();
 
 					if ( _playIdx == _actions.end() ) { // 可能在触发`action_loop`事件时被删除
+						_playIdx = nullId;
 						// 没有child action 无效,所以这里结束
 						goto end;
 					}

@@ -35,6 +35,7 @@
 #include "./ui_render.h"
 #include "./event.h"
 #include "./text/text_opts.h"
+#include "./action/action.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
 # define PRINT_RENDER_FRAME_TIME 0
@@ -270,7 +271,7 @@ namespace qk {
 		UILock lock(this); // ui render lock
 		int64_t time = time_monotonic();
 
-		//_action->advance(now_time); // advance action
+		_actionCenter->advance(time); // advance action
 
 		if (!_preRender.solve(time)) {
 			solveNextFrame();

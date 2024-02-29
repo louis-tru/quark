@@ -32,6 +32,8 @@
 #include "../layout/layout.h"
 #include "../../errno.h"
 #include "../window.h"
+#include "../app.h"
+#include "../event.h"
 
 namespace qk {
 
@@ -89,9 +91,9 @@ namespace qk {
 		if ( _parent ) {
 			_parent->play();
 		} else {
-			if (_targets.length()) {
+			if (_target) {
 				if (_id == Id()) {
-					auto center = _targets.begin()->key->window()->actionCenter();
+					auto center = _target->window()->actionCenter();
 					_id = center->_actions.pushBack(this);
 					retain(); // retain for center
 				}
@@ -103,9 +105,9 @@ namespace qk {
 		if ( _parent ) {
 			_parent->stop();
 		} else {
-			if (_targets.length()) {
+			if (_target) {
 				if (_id != Id()) {
-					auto center = _targets.begin()->key->window()->actionCenter();
+					auto center = _target->window()->actionCenter();
 					center->_actions.erase(_id);
 					_runAdvance = false;
 					_id = Id();
@@ -133,51 +135,34 @@ namespace qk {
 
 	// -----------------------------------------------------------------------------------------------
 
-	void Action::trigger_action_loop(uint32_t delay, Action* root) {
-	// 	auto i = _views.begin(), end = _views.end();
-	// 	while ( i != end ) { // trigger event action_loop
-	// 		View* v = *i;
-	// 		if (v) {
-	// 			auto evt = new UIActionEvent(this, v, delay, 0, _loop);
-	// 			main_loop()->post(Cb([this, evt, v](Cb::Data& e) {
-	// 				Handle<UIActionEvent> handle(evt);
-	// 				ActionInl_View(v)->trigger(UI_EVENT_ACTION_LOOP, *evt);
-	// 			}, v));
-	// 			i++;
-	// 		} else {
-	// 			_views.erase(i++);
-	// 		}
-	// 	}
+	void Action::trigger_ActionLoop(uint32_t delay, Action* root) {
+		auto v_h = root->_target->safe_view();
+		auto v = *v_h;
+		if (v) {
+			auto evt = new ActionEvent(this, v, delay, 0, _loop);
+			shared_app()->loop()->post(Cb([v,evt](auto& e) {
+				Sp<ActionEvent> h(evt);
+				v->trigger(UIEvent_ActionLoop, *evt);
+			}, v));
+		}
 	}
 
-	void Action::trigger_action_key_frame(
-		uint32_t delay, uint32_t frame_index, Action* root
-	) {
-	// 	auto i = _views.begin(), end = _views.end();
-	// 	while ( i != end ) { // trigger event action_keyframe
-	// 		View* v = *i;
-	// 		if (v) {
-	// 			auto evt = new UIActionEvent(this, v, delay, frame_index, _loop);
-	// 			main_loop()->post(Cb([this, evt, v](Cb::Data& e) {
-	// 				Handle<UIActionEvent> handle(evt);
-	// 				ActionInl_View(v)->trigger(UI_EVENT_ACTION_KEYFRAME, *evt);
-	// 			}, v));
-	// 			i++;
-	// 		} else {
-	// 			_views.erase(i++);
-	// 		}
-	// 	}
+	void Action::trigger_ActionKeyframe(uint32_t delay, uint32_t frame_index, Action* root) {
+		auto v_h = root->_target->safe_view();
+		auto v = *v_h;
+		if (v) {
+			auto evt = new ActionEvent(this, v, delay, frame_index, _loop);
+			shared_app()->loop()->post(Cb([v,evt](auto& e) {
+				Sp<ActionEvent> h(evt);
+				v->trigger(UIEvent_ActionKeyframe, *evt);
+			}, v));
+		}
 	}
 
 	void Action::set_parent(Action *parent) throw(Error) {
-		if ( _parent || _targets.length() ) {
-			Qk_Throw(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
-		}
-		if (_id != Id()) {
-			Qk_Throw(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
-		}
+		Qk_Check(!_parent && !_target, ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
+		Qk_ASSERT(_id == Id());
 		_parent = parent;
-
 		retain(); // retain
 	}
 
@@ -186,21 +171,19 @@ namespace qk {
 		release();
 	}
 
-	void Action::add_target(Layout *target) throw(Error) {
+	void Action::ser_target(Layout *target) throw(Error) {
 		Qk_ASSERT(target);
-		if ( _parent ) {
-			Qk_Throw(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
-		}
-		_targets.add(target);
+		Qk_Check(!_parent, ERR_ACTION_ILLEGAL_ROOT, "cannot set non root action");
+		Qk_Check(!_target, ERR_ACTION_DISABLE_MULTIPLE_TARGET, "action cannot set multiple target");
+		_target = target;
 		retain(); // retain from view
 	}
 
 	void Action::del_target(Layout *target) {
 		Qk_ASSERT(target);
-		if ( _targets.length() == 1 ) {
-			stop(); // stop action
-		}
-		_targets.erase(target);
+		Qk_ASSERT(target == _target);
+		stop(); // stop action
+		_target = nullptr;
 		release(); // release from view
 	}
 

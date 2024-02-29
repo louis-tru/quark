@@ -385,14 +385,14 @@ namespace qk {
 					_origin_touches[view]->set_is_click_down(true);
 				}
 				// post main thread
-				async_resolve(Cb([view, clickDownNo, change_touches](auto& e) {
+				_loop->post_message(Cb([view, clickDownNo, change_touches](auto& e) {
 					auto evt = NewEvent<TouchEvent>(view, change_touches);
 					_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
 					if ( clickDownNo ) {
 						auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
 						_inl_view(view)->trigger_highlightted(**evt); // emit event
 					}
-				}, view), _loop);
+				}, view));
 			}
 		}
 	}
@@ -462,9 +462,9 @@ namespace qk {
 			auto& touchs = i.value;
 			View* view = touchs[0].view;
 
-			async_resolve(Cb([view, touchs](auto &e){// emit event
+			_loop->post_message(Cb([view, touchs](auto &e){// emit event
 				_inl_view(view)->bubble_trigger(UIEvent_TouchMove, **NewEvent<TouchEvent>(view, touchs));
-			}, view), _loop);
+			}, view));
 
 			OriginTouche* origin_touche = _origin_touches[view];
 
@@ -478,10 +478,10 @@ namespace qk {
 				// 视图位置移动超过2取消点击状态
 				if ( d > 2 ) { // trigger invalid status
 					if ( origin_touche->is_click_down() ) { // trigger style up
-						async_resolve(Cb([view](auto &e){ // emit style status event
+						_loop->post_message(Cb([view](auto &e){ // emit style status event
 							auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
 							_inl_view(view)->trigger_highlightted(**evt);
-						}, view), _loop);
+						}, view));
 					}
 					origin_touche->set_click_invalid();
 				}
@@ -496,20 +496,20 @@ namespace qk {
 						}
 						if ( trigger_event ) {
 							origin_touche->set_is_click_down(false); // set up status
-							async_resolve(Cb([view](auto &e) { // emit style status event
+							_loop->post_message(Cb([view](auto &e) { // emit style status event
 								auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
 								_inl_view(view)->trigger_highlightted(**evt);
-							}, view), _loop);
+							}, view));
 						}
 					} else { // May trigger click down
 						for ( int i = 0; i < touchs.length(); i++) {
 							auto item = touchs[i];
 							if ( item.click_in ) { // find range == true
 								origin_touche->set_is_click_down(true); // set down status
-								async_resolve(Cb([view](auto &e) { // emit style down event
+								_loop->post_message(Cb([view](auto &e) { // emit style down event
 									auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
 									_inl_view(view)->trigger_highlightted(**evt);
-								}, view), _loop);
+								}, view));
 								break;
 							}
 						}
@@ -543,7 +543,7 @@ namespace qk {
 			auto is_touches_zero = origin_touche->count() == 0;
 			bool is_click_down = is_touches_zero && origin_touche->is_click_down();
 
-			async_resolve(Cb([view, type, touchs, is_click_down](auto &e) {
+			_loop->post_message(Cb([view, type, touchs, is_click_down](auto &e) {
 				auto evt0 = NewEvent<TouchEvent>(view, touchs);
 				_inl_view(view)->bubble_trigger(type, **evt0); // emit touch end event
 
@@ -561,7 +561,7 @@ namespace qk {
 						}
 					}
 				}
-			}, view), _loop);
+			}, view));
 
 			if (is_touches_zero) {
 				delete origin_touche;
@@ -763,10 +763,10 @@ namespace qk {
 			Vec2 pos(x, y);
 			_mouse_handle->set_position(pos); // set current mouse pos
 			auto v = find_receive_view(pos).collapse();
-			async_resolve(Cb([this,v,pos](auto& e) {
+			_loop->post_message(Cb([this,v,pos](auto& e) {
 				mousemove(v, pos);
 				Release(v);
-			}), _loop);
+			}));
 		}
 	}
 
@@ -778,23 +778,23 @@ namespace qk {
 				UILock lock(_window);
 				auto pos = _mouse_handle->position(); // get current mouse pos
 				auto v = find_receive_view(pos).collapse();
-				async_resolve(Cb([this,v,pos,name,down](auto& e) {
+				_loop->post_message(Cb([this,v,pos,name,down](auto& e) {
 					mousepress(v, pos, name, down);
 					Release(v);
-				}), _loop);
+				}));
 				break;
 			}
 			case KEYCODE_MOUSE_WHEEL_UP:
-				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 0, -53); }), _loop);
+				_loop->post_message(Cb([=](auto& e) { mousewhell(name, down, 0, -53); }));
 				break;
 			case KEYCODE_MOUSE_WHEEL_DOWN:
-				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 0, 53); }), _loop);
+				_loop->post_message(Cb([=](auto& e) { mousewhell(name, down, 0, 53); }));
 				break;
 			case KEYCODE_MOUSE_WHEEL_LEFT:
-				async_resolve(Cb([=](auto& e) { mousewhell(name, down, -53, 0); }), _loop);
+				_loop->post_message(Cb([=](auto& e) { mousewhell(name, down, -53, 0); }));
 				break;
 			case KEYCODE_MOUSE_WHEEL_RIGHT:
-				async_resolve(Cb([=](auto& e) { mousewhell(name, down, 53, 0); }), _loop);
+				_loop->post_message(Cb([=](auto& e) { mousewhell(name, down, 53, 0); }));
 				break;
 			default: break;
 		}
@@ -839,7 +839,7 @@ namespace qk {
 		auto keypress = _keyboard->keypress();
 		auto repeat = _keyboard->repeat();
 
-		async_resolve(Cb([=](auto& e) {
+		_loop->post_message(Cb([=](auto& e) {
 			Sp<KeyEvent> h(evt);
 
 			evt->set_focus_move(focus_move);
@@ -871,7 +871,7 @@ namespace qk {
 			} // if ( evt->is_default() ) {
 
 			Release(focus_move); // release view
-		}, view), _loop); // async_resolve(
+		}, view)); // async_resolve(
 	}
 
 	void EventDispatch::onKeyboardUp() {
@@ -891,7 +891,7 @@ namespace qk {
 		auto mat = view->_layout->transform()->matrix();
 		auto point = mat.mul_vec2_no_translate(view->_layout->center()) + view->_layout->position();
 
-		async_resolve(Cb([this,evt,name,view,point](auto& e) {
+		_loop->post_message(Cb([this,evt,name,view,point](auto& e) {
 			Sp<KeyEvent> h(evt);
 
 			_inl_view(view)->bubble_trigger(UIEvent_KeyUp, *evt);
@@ -913,7 +913,7 @@ namespace qk {
 					_inl_view(view)->trigger_click(**evt2);
 				} //
 			}
-		}, view), _loop); // async_resolve(
+		}, view)); // async_resolve(
 	}
 
 	// -------------------------- I M E --------------------------

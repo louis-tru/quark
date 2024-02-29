@@ -124,7 +124,7 @@ namespace qk {
 				_action = nullptr;
 			}
 			if ( action ) {
-				action->add_target(_layout);
+				action->ser_target(_layout);
 				_action = action;
 			}
 		}

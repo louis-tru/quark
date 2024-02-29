@@ -84,11 +84,9 @@ namespace qk {
 		* @method apply style to layout
 		*/
 		void apply(Layout *layout) const;
-		void apply(cSet<Layout*> &layout) const;
 
 	private:
-		void setProp(uint32_t, Property* prop);
-		void applyTransition(cSet<Layout*> &layout, StyleSheets *to, float y) const;
+		void applyTransition(Layout* layout, StyleSheets *to, float y) const;
 	protected:
 		Dict<uint32_t, Property*> _props; // ViewProp => Property*
 

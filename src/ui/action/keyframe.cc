@@ -107,8 +107,8 @@ namespace qk {
 			if ( length() ) {
 				_frame = 0;
 				_time = 0;
-				_frames[0]->apply(root->targets());
-				trigger_action_key_frame(time_span, 0, root);
+				_frames[0]->apply(root->_target);
+				trigger_ActionKeyframe(time_span, 0, root);
 
 				if ( time_span == 0 ) {
 					return 0;
@@ -128,6 +128,10 @@ namespace qk {
 		
 		if ( f2 < length() ) {
 		advance:
+			if ( root->_id == Id() ) { // is not playing
+				return 0;
+			}
+
 			int32_t time = _time + time_span;
 			int32_t time1 = _frames[f1]->time();
 			int32_t time2 = _frames[f2]->time();
@@ -138,12 +142,12 @@ namespace qk {
 				_time = time;
 				float x = (time - time1) / float(time2 - time1);
 				float y = _frames[f1]->curve().fixed_solve_y(x, 0.001);
-				_frames[f1]->applyTransition(root->targets(), _frames[f2], y);
+				_frames[f1]->applyTransition(root->_target, _frames[f2], y);
 			} else if ( t > 0 ) {
 				time_span = t;
 				_frame = f2;
 				_time = time2;
-				trigger_action_key_frame(t, f2, root); // trigger event action_key_frame
+				trigger_ActionKeyframe(t, f2, root); // trigger event action_key_frame
 
 				f1 = f2; f2++;
 
@@ -153,15 +157,15 @@ namespace qk {
 					if ( _loop ) {
 						goto loop;
 					} else {
-						_frames[f1]->apply(root->targets());
+						_frames[f1]->apply(root->_target);
 					}
 				}
 			} else { // t == 0
 				time_span = 0;
 				_time = time;
 				_frame = f2;
-				_frames[f2]->apply(root->targets());
-				trigger_action_key_frame(0, f2, root); // trigger event action_key_frame
+				_frames[f2]->apply(root->_target);
+				trigger_ActionKeyframe(0, f2, root); // trigger event action_key_frame
 			}
 
 		} else { // last frame
@@ -172,14 +176,14 @@ namespace qk {
 					if ( _looped < _loop ) { // 可经继续循环
 						_looped++;
 					} else { //
-						_frames[f1]->apply(root->targets());
+						_frames[f1]->apply(root->_target);
 						goto end;
 					}
 				}
 				_frame = 0;
 				_time = 0;
-				trigger_action_loop(time_span, root);
-				trigger_action_key_frame(time_span, 0, root);
+				trigger_ActionLoop(time_span, root);
+				trigger_ActionKeyframe(time_span, 0, root);
 				goto start;
 			}
 		}
@@ -211,13 +215,13 @@ namespace qk {
 				int32_t time1 = _frames[f1]->time();
 				float x = (_time - time0) / float(time1 - time0);
 				float y = frame->curve().fixed_solve_y(x, 0.001);
-				_frames[f0]->applyTransition(root->targets(), _frames[f1], y);
+				_frames[f0]->applyTransition(root->_target, _frames[f1], y);
 			} else { // last frame
-				_frames[f0]->apply(root->targets());
+				_frames[f0]->apply(root->_target);
 			}
 
 			if ( _time == int32_t(frame->time()) ) {
-				trigger_action_key_frame(0, _frame, root);
+				trigger_ActionKeyframe(0, _frame, root);
 			}
 		}
 	}

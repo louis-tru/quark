@@ -36,10 +36,6 @@ namespace qk {
 	typedef StyleSheets::Property Property;
 
 	template<typename T>
-	inline static void transition_value_ptr(T *v1, T *v2, float t, ViewProp prop, Layout *target) {
-	}
-
-	template<typename T>
 	inline static T* copy_value_ptr(T* value) {
 		return nullptr;
 	}
@@ -47,6 +43,11 @@ namespace qk {
 	template<>
 	BoxFilter* copy_value_ptr(BoxFilter *value) {
 		return value->copy(nullptr);
+	}
+
+	template<typename T>
+	inline static void transition_value_ptr(T *v1, T *v2, float t, ViewProp prop, Layout *target) {
+		Qk_UNIMPLEMENTED();
 	}
 
 	template<>
@@ -144,7 +145,8 @@ namespace qk {
 
 	// ----------------------------------------------------------------------------------------------
 
-	template<typename T> struct PropImpl: Property {
+	template<typename T>
+	struct PropImpl: Property {
 		inline PropImpl(ViewProp prop, T value): _prop(prop), _value(value) {}
 		void apply(Layout *target) override {
 			auto set = (void (Layout::*)(T))(target->accessor() + _prop)->set;
@@ -165,10 +167,12 @@ namespace qk {
 	};
 
 	// @template Object or BoxFilter
-	template<typename T> struct PropImpl<T*>: Property {
+	template<typename T>
+	struct PropImpl<T*>: Property {
 		PropImpl(ViewProp prop, T* value): _value(value) {
 			Qk_ASSERT(_value);
 			static_assert(T::Traits::isObject, "Property value must be a object type");
+			_value->retain();
 		}
 		~PropImpl() {
 			_value->release();
@@ -190,8 +194,35 @@ namespace qk {
 		T* _value;
 	};
 
+	template<typename T>
+	struct SetProp: StyleSheets {
+		void exec(ViewProp key, T value) {
+			Property *prop;
+			if (_props.get(key, prop)) {
+				static_cast<PropImpl<T>*>(prop)->_value = value;
+			} else {
+				onMake(key, _props.set(key, new PropImpl<T>(key, value)));
+			}
+		}
+	};
+
+	template<typename T>
+	struct SetProp<T*>: StyleSheets {
+		void exec(ViewProp key, T* value) {
+			Property *prop;
+			if (_props.get(key, prop)) {
+				auto p = static_cast<PropImpl<T*>*>(prop);
+				p->_value->release();
+				p->_value = value;
+				value->retain();
+			} else {
+				onMake(key, _props.set(key, new PropImpl<T*>(key, value)));
+			}
+		}
+	};
+
 	#define _Fun(Enum, Type, Name, _) void StyleSheets::set_##Name(Type value) {\
-		setProp(k##Enum##_ViewProp, new qk::PropImpl<Type>(k##Enum##_ViewProp, value));\
+		static_cast<SetProp<Type>*>(this)->exec(k##Enum##_ViewProp, value);\
 	}
 	Qk_View_Props(_Fun)
 
