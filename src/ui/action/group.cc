@@ -200,7 +200,7 @@ namespace qk {
 				restart = true;
 				time_span = surplus_time;
 
-				trigger_action_loop(time_span, root);
+				trigger_ActionLoop(time_span, root);
 
 				if ( root->_runAdvance ) {
 					goto advance;
@@ -254,7 +254,7 @@ namespace qk {
 
 					restart = true;
 
-					trigger_action_loop(time_span, root); // trigger event
+					trigger_ActionLoop(time_span, root); // trigger event
 					_playIdx = _actions.begin();
 
 					if ( _playIdx == _actions.end() ) { // 可能在触发`action_loop`事件时被删除
