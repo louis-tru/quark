@@ -47,8 +47,14 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, time, Const);
 		Qk_DEFINE_PROP_GET(Curve, curve, Const);
 	private:
+		// @constructor private
 		Keyframe(KeyframeAction* host, cCurve& curve);
+		/**
+		 * @method onMake trigger new prop make
+		 * @overwrite
+		*/
 		void onMake(ViewProp key, Property* prop) override;
+
 		KeyframeAction* _host;
 		friend class KeyframeAction;
 	};
@@ -60,34 +66,24 @@ namespace qk {
 	public:
 		// Props
 		Qk_DEFINE_PROP_GET(uint32_t, time, Const); //@RT get, play time
-		Qk_DEFINE_PROP_GET(int32_t, frame, Const); //@RT get
+		Qk_DEFINE_PROP_GET(uint32_t, frame, Const); //@RT get
 
 		KeyframeAction(Window *win);
 		~KeyframeAction();
 
 		/**
 		* @method length
-		* @RT
 		*/
-		inline uint32_t length() const { return _frames_RT.size(); }
-
-		/**
-		* @method first
-		* @RT
-		*/
-		inline Keyframe* first() { return _frames_RT.front(); }
-
-		/**
-		* @method last
-		* @RT
-		*/
-		inline Keyframe* last() { return _frames_RT.back(); }
+		inline uint32_t length() const {
+			return _frames.length();
+		}
 
 		/**
 		* @method operator[]
-		* @RT
 		*/
-		inline Keyframe* operator[](uint32_t index) { return _frames_RT[index]; }
+		inline Keyframe* operator[](uint32_t index) {
+			return _frames[index];
+		}
 
 		/**
 		* @method has_property
@@ -100,6 +96,11 @@ namespace qk {
 		*/
 		Keyframe* add(uint32_t time, cCurve& curve = EASE);
 
+		/**
+		 * @overwrite
+		*/
+		void clear() override;
+
 	private:
 		virtual void append(Action *child);
 		virtual uint32_t advance_RT(uint32_t time_span, bool restart, Action* root);
@@ -107,7 +108,8 @@ namespace qk {
 		virtual void seek_before_RT(int32_t time, Action* child);
 		virtual void clear_RT();
 
-		Array<Keyframe*> _frames_RT;
+		Array<Keyframe*> _frames, _frames_RT;
+		bool _startPlay;
 
 		friend class Keyframe;
 	};

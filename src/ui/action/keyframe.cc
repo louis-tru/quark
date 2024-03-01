@@ -30,43 +30,52 @@
 
 #include "./keyframe.h"
 #include "../../errno.h"
+#include "../window.h"
+
+#define _async_call _window->preRender().async_call
 
 namespace qk {
 
-	typedef Keyframe Frame;
-
-	Frame::Keyframe(KeyframeAction* host, cCurve& curve)
-		: _host(host) , _index(0), _curve(curve), _time(0)
+	Keyframe::Keyframe(KeyframeAction* host, cCurve& curve)
+		: _index(0), _time(0), _curve(curve), _host(host)
 	{}
 
-	KeyframeAction::KeyframeAction(Window *win): Action(win), _frame(-1), _time(0)
+	KeyframeAction::KeyframeAction(Window *win)
+		: Action(win), _frame(0), _time(0), _startPlay(false)
 	{}
 
 	KeyframeAction::~KeyframeAction() {
+		_frames.clear();
 		clear_RT();
 	}
 
-	Frame* KeyframeAction::add(uint32_t time, cCurve& curve) {
-		auto frame = new Frame(this, curve);
-		auto len = _frames_RT.length();
-		frame->_index = len;
-		frame->_time = time;
+	void KeyframeAction::clear() {
+		_frames.clear();
+		Action::clear();
+	}
 
-		if ( len ) {
-			Frame* lastFrame = last();
-			int32_t d = time - lastFrame->time();
-			if ( d <= 0 ) {
-				time = lastFrame->time();
-			} else {
-				Action::update_duration_RT(d);
+	Keyframe* KeyframeAction::add(uint32_t time, cCurve& curve) {
+		auto frame = new Keyframe(this, curve);
+		frame->_time = _frames.length() ? time: 0;
+		frame->_index = _frames.length();
+		_frames.push(frame);
+
+		_async_call([](auto self, auto frame) {
+			if (self->_frames_RT.length()) {
+				auto back = self->_frames_RT.back();
+				int32_t d = frame->_time - back->time();
+				if ( d <= 0 ) {
+					frame->_time = back->time();
+				} else {
+					self->Action::update_duration_RT(d);
+				}
+				for (auto &i: back->_props) { // copy prop
+					frame->_props.set(i.key, i.value->copy());
+				}
 			}
-			frame->_time = time;
-			// copy prop
-			for (auto &i: lastFrame->_props) {
-				frame->_props.set(i.key, i.value->copy());
-			}
-		}
-		_frames_RT.push(frame);
+			self->_frames_RT.push(frame);
+		}, this, frame);
+
 		return frame;
 	}
 
@@ -99,24 +108,23 @@ namespace qk {
 	uint32_t KeyframeAction::advance_RT(uint32_t time_span, bool restart, Action* root) {
 		time_span *= _speed;
 
-		if ( _frame == -1 || restart ) { // no start play
+		if ( !_startPlay || restart ) { // no start play or restart
 			if ( restart ) { // restart
 				_looped = 0;
-				_frame = -1;
-				_time = 0;
+				_time = _frame = 0;
+				_startPlay = false;
 			}
 
-			if ( length() ) {
-				_frame = 0;
-				_time = 0;
+			if ( _frames_RT.length() ) {
+				_startPlay = true;
+				_time = _frame = 0;
 				_frames_RT[0]->apply(root->_target);
 				trigger_ActionKeyframe_RT(time_span, 0, root);
 
 				if ( time_span == 0 ) {
 					return 0;
 				}
-
-				if ( length() == 1 ) {
+				if ( _frames_RT.length() == 1 ) {
 					return time_span / _speed;
 				}
 			} else {
@@ -128,7 +136,7 @@ namespace qk {
 		uint32_t f1 = _frame;
 		uint32_t f2 = f1 + 1;
 		
-		if ( f2 < length() ) {
+		if ( f2 < _frames_RT.length() ) {
 		advance:
 			if ( root->_id == Id() ) { // is not playing
 				return 0;
@@ -153,7 +161,7 @@ namespace qk {
 
 				f1 = f2; f2++;
 
-				if ( f2 < length() ) {
+				if ( f2 < _frames_RT.length() ) {
 					goto advance;
 				} else {
 					if ( _loop ) {
@@ -197,8 +205,8 @@ namespace qk {
 	void KeyframeAction::seek_time_RT(uint32_t time, Action* root) {
 		_looped = 0;
 
-		if ( length() ) {
-			Frame* frame = nullptr;
+		if ( _frames_RT.length() ) {
+			Keyframe* frame = nullptr;
 
 			for ( auto& i: _frames_RT ) {
 				if ( time < i->time() ) {
@@ -212,7 +220,7 @@ namespace qk {
 			uint32_t f0 = _frame;
 			uint32_t f1 = f0 + 1;
 
-			if ( f1 < length() ) {
+			if ( f1 < _frames_RT.length() ) {
 				int32_t time0 = frame->time();
 				int32_t time1 = _frames_RT[f1]->time();
 				float x = (_time - time0) / float(time1 - time0);

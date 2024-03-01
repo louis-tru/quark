@@ -32,38 +32,38 @@
 
 namespace qk {
 
-	ActionCenter::ActionCenter(): _prevTime(0) 
+	ActionCenter::ActionCenter(): _prevTime_RT(0) 
 	{}
 
 	ActionCenter::~ActionCenter() {
-		Qk_Fatal_Assert(_actions.length() == 0, "ActionCenter::~ActionCenter stop actions first");
+		Qk_Fatal_Assert(_actions_RT.length() == 0, "ActionCenter::~ActionCenter stop actions first");
 	}
 
 	void ActionCenter::advance_RT(uint32_t time) {
-		if ( _actions.length() == 0) return; 
+		if ( _actions_RT.length() == 0) return; 
 
 		uint32_t time_span = 0;
-		if (_prevTime) {  // 0表示还没开始
-			time_span = time - _prevTime;
+		if (_prevTime_RT) {  // 0表示还没开始
+			time_span = time - _prevTime_RT;
 			if ( time_span > 200 ) {   // 距离上一帧超过200ms重新记时(如应用程序从休眠中恢复)
 				time_span = 200;
 			}
 		}
-		auto i = _actions.begin(), end = _actions.end();
+		auto i = _actions_RT.begin(), end = _actions_RT.end();
 
 		while ( i != end ) {
 			auto j = i++;
 			auto act = *j;
-			if (act->_runAdvance) {
-				if ( act->advance_RT(time_span, false, act) ) {
-					act->stop_RT(); // stop action
+			if (act._runAdvance) {
+				if ( act.value->advance_RT(time_span, false, act.value) ) {
+					act.value->stop_RT(); // stop action
 				}
 			} else {
-				act->_runAdvance = true;
-				act->advance_RT(0, false, act);
+				act.value->advance_RT(0, false, act.value);
+				act._runAdvance = true;
 			}
 		}
-		_prevTime = time;
+		_prevTime_RT = time;
 	}
 
 }

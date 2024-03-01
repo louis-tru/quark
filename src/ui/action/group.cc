@@ -178,7 +178,7 @@ namespace qk {
 			duration = du;
 		}
 
-		if ( length() ) {
+		if ( _actions_RT.length() ) {
 			_actions_RT.back()->seek_time_RT(time - duration, root);
 		}
 	}
@@ -213,7 +213,7 @@ namespace qk {
 
 				trigger_ActionLoop_RT(time_span, root);
 
-				if ( root->_runAdvance ) {
+				if ( root->_id != Id() ) { // is playing
 					goto advance;
 				}
 
@@ -234,7 +234,7 @@ namespace qk {
 				_playIdx_RT = nullId;
 			}
 
-			if ( length() ) {
+			if ( _actions_RT.length() ) {
 				restart = true;
 				_playIdx_RT = _actions_RT.begin();
 			} else {
@@ -248,7 +248,7 @@ namespace qk {
 		if ( time_span ) {
 
 			if ( _playIdx_RT == nullId ) { // May have been deleted child action
-				if ( length() ) { // Restart
+				if ( _actions_RT.length() ) { // Restart
 					restart = true;
 					_playIdx_RT = _actions_RT.begin();
 					goto advance;
@@ -274,7 +274,7 @@ namespace qk {
 						goto end; // No child action then end
 					}
 
-					if ( root->_runAdvance ) {
+					if ( root->_id != Id() ) { // is playing
 						goto advance;
 					}
 					return 0; // end

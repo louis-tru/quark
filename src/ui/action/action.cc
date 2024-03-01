@@ -41,12 +41,12 @@ namespace qk {
 
 	Action::Action(Window *win)
 		: _window(win)
-		, _parent(nullptr)
 		, _loop(0)
 		, _duration(0)
 		, _speed(1)
-		, _looped(0)
+		, _parent(nullptr)
 		, _target(nullptr)
+		, _looped(0)
 	{}
 
 	Action::~Action() {
@@ -113,7 +113,8 @@ namespace qk {
 			_parent->play_RT();
 		}
 		else if (_id == Id()) {
-			_id = _window->actionCenter()->_actions.pushBack(this);
+			auto id = _window->actionCenter()->_actions_RT.pushBack({this,false});
+			_id = *reinterpret_cast<Id*>(&id);
 			retain(); // retain for center
 		}
 	}
@@ -123,8 +124,8 @@ namespace qk {
 			_parent->stop_RT();
 		}
 		else if (_id != Id()) {
-			_window->actionCenter()->_actions.erase(_id);
-			_runAdvance = false;
+			typedef List<ActionCenter::Action_Wrap>::Iterator Id1;
+			_window->actionCenter()->_actions_RT.erase(*reinterpret_cast<Id1*>(&_id));
 			_id = Id();
 			release(); // release for center
 		}

@@ -42,6 +42,7 @@ namespace qk {
 	class SequenceAction;
 	class KeyframeAction;
 	class Window;
+	class PreRender;
 
 	/**
 	* @class Action
@@ -52,7 +53,6 @@ namespace qk {
 		typedef List<Action*>::Iterator Id;
 
 		Qk_DEFINE_PROP_GET(Window*, window, Protected);
-		Qk_DEFINE_PROP_GET(Action*, parent); // @RT get
 		Qk_DEFINE_PROP(uint32_t, loop, Const); // @RT get
 		Qk_DEFINE_PROP_GET(uint32_t, duration, Const); // @RT get
 		Qk_DEFINE_PROP(float, speed, Const); // @RT get
@@ -65,12 +65,6 @@ namespace qk {
 		 * @overwrite
 		*/
 		void release() override;
-
-		/**
-		 * @async
-		* @method clear action
-		*/
-		void clear();
 
 		/**
 		 * @async
@@ -126,6 +120,12 @@ namespace qk {
 		*/
 		virtual void append(Action *child) = 0;
 
+		/**
+		 * @async
+		* @method clear action
+		*/
+		virtual void clear();
+
 	private:
 		void set_target(Layout* t);
 		void del_target(Layout* t);
@@ -144,10 +144,10 @@ namespace qk {
 		virtual void clear_RT() = 0;
 
 		// Props
-		int32_t _looped; // @RT
-		Layout* _target; // @RT
+		Action *_parent; // @RT
+		Layout *_target; // @RT
+		uint32_t _looped; // @RT
 		Id _id; // @RT action id from action center or group action
-		bool _runAdvance; // @RT run advance for action center
 
 		friend class View;
 		friend class ActionCenter;
@@ -164,29 +164,11 @@ namespace qk {
 	public:
 		GroupAction(Window *win);
 		~GroupAction();
-
-		/**
-		* @method length for actions
-		*/
-		inline uint32_t length() const { return _actions_RT.length(); }
-
-		/**
-		* @method first action
-		*/
-		inline Action* first() { return _actions_RT.front(); }
-
-		/**
-		* @method last action
-		*/
-		inline Action* last() { return _actions_RT.back(); }
-
 	protected:
 		virtual void insert_RT(Id after, Action *child) = 0;
 		virtual void remove_child_RT(Id id) = 0;
 		virtual void clear_RT() override;
-
 		List<Action*> _actions_RT;
-
 		friend class Action;
 	};
 
@@ -220,29 +202,31 @@ namespace qk {
 		virtual void insert_RT(Id after, Action *child);
 		virtual void remove_child_RT(Id id);
 		virtual void clear_RT();
-
 		List<Action*>::Iterator _playIdx_RT;
 	};
 
 	/**
 	* @class ActionCenter
 	*/
-	class Qk_EXPORT ActionCenter: public Object {
+	class ActionCenter: public Object {
+		Qk_HIDDEN_ALL_COPY(ActionCenter)
 	public:
 		ActionCenter();
 		~ActionCenter();
-
+	private:
+		struct Action_Wrap {
+			Action* value; bool _runAdvance;
+		};
+		uint32_t _prevTime_RT;
+		List<Action_Wrap> _actions_RT;
 		/**
 		* @method advance_RT() Action scheduling forward frame
 		* @thread render
 		*/
 		void advance_RT(uint32_t time);
 
-	private:
-		uint32_t _prevTime;
-		List<Action*> _actions;
-
 		friend class Action;
+		friend class PreRender;
 	};
 
 }
