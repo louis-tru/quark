@@ -113,20 +113,20 @@ namespace qk {
 		/**
 		 * @destructor
 		*/
-		virtual ~View();
+		~View();
 
 		template<class T = Layout> T* layout() const {
 			return static_cast<T*>(_layout);
 		}
 
-		template<class View = View> inline View* newView();
+		template<class View = View> inline View* new_view();
 
 		template<class View = View> inline View* prepend_new() {
-			return newView<View>()->template prepend_to<View>(this);
+			return new_view<View>()->template prepend_to<View>(this);
 		}
 
 		template<class View = View> inline View* append_new() {
-			return newView<View>()->template append_to<View>(this);
+			return new_view<View>()->template append_to<View>(this);
 		}
 
 		template<class T = View> inline T* prepend_to(View* parent) {
@@ -258,7 +258,8 @@ namespace qk {
 		}
 	#define Qk_IMPL_VIEW_PROP_ACC_SET_Large(cls, type, name) \
 		void cls::set_##name(type val) { \
-			preRender().async_call([](auto ctx, auto val) {ctx->set_##name(*val); type::Traits::Release(val);}, layout<cls##Layout>(), new type(val)); \
+			preRender().async_call([](auto ctx, auto val) {\
+				ctx->set_##name(*val); type::Traits::Release(val);}, layout<cls##Layout>(), new type(val)); \
 		}
 	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name, ...) \
 		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name, ##__VA_ARGS__) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)

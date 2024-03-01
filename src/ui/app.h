@@ -38,9 +38,9 @@
 #include "./types.h"
 
 #define Qk_Main() \
-	int __f_main__(int, Char**); \
-	Qk_INIT_BLOCK(__f_main__) { qk::Application::setMain(&__f_main__); } \
-	int __f_main__(int argc, Char** argv)
+	int __qk_main_func__(int, Char**); \
+	Qk_INIT_BLOCK(__qk_main_func__) { qk::Application::setMain(&__qk_main_func__); } \
+	int __qk_main_func__(int argc, Char** argv)
 
 namespace qk {
 	class Screen;
@@ -61,6 +61,12 @@ namespace qk {
 	class Qk_EXPORT Application: public Object {
 		Qk_HIDDEN_ALL_COPY(Application);
 	public:
+		// @events
+		Qk_Event(Load);
+		Qk_Event(Unload);
+		Qk_Event(Pause);
+		Qk_Event(Resume);
+		Qk_Event(Memorywarning);
 
 		// @props
 		Qk_DEFINE_PROP_GET(bool, isLoaded, Const);
@@ -74,13 +80,6 @@ namespace qk {
 		//! Resource memory limit, cannot be less than 64MB, the default is 512MB.
 		Qk_DEFINE_PROP(uint64_t, maxResourceMemoryLimit, Const);
 		Qk_DEFINE_PROP_ACC_GET(const List<Window*>&, windows, Const); //! all window list
-
-		// @events
-		Qk_Event(Load);
-		Qk_Event(Unload);
-		Qk_Event(Pause);
-		Qk_Event(Resume);
-		Qk_Event(Memorywarning);
 
 		/**
 		 * @constructor

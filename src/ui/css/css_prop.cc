@@ -206,18 +206,27 @@ namespace qk {
 		}
 	};
 
-	template<typename T>
-	struct SetProp<T*>: StyleSheets {
-		void exec(ViewProp key, T* value) {
+	template<>
+	struct SetProp<Object*>: StyleSheets {
+		void exec(ViewProp key, Object* value) {
 			Property *prop;
 			if (_props.get(key, prop)) {
-				auto p = static_cast<PropImpl<T*>*>(prop);
-				p->_value->release();
-				p->_value = value;
-				value->retain();
+				auto p = static_cast<PropImpl<Object*>*>(prop);
+				if (p->_value != value) {
+					p->_value->release();
+					p->_value = value;
+					p->_value->retain();
+				}
 			} else {
-				onMake(key, _props.set(key, new PropImpl<T*>(key, value)));
+				onMake(key, _props.set(key, new PropImpl<Object*>(key, value)));
 			}
+		}
+	};
+
+	template<typename T>
+	struct SetProp<T*>: StyleSheets {
+		inline void exec(ViewProp key, T* value) {
+			static_cast<SetProp<Object*>*>(static_cast<StyleSheets*>(this))->exec(key, value);
 		}
 	};
 

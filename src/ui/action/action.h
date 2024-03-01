@@ -41,6 +41,7 @@ namespace qk {
 	class SpawnAction;
 	class SequenceAction;
 	class KeyframeAction;
+	class Window;
 
 	/**
 	* @class Action
@@ -50,89 +51,103 @@ namespace qk {
 	public:
 		typedef List<Action*>::Iterator Id;
 
-		Qk_DEFINE_PROP_GET(Action*, parent);
-		Qk_DEFINE_PROP(uint32_t, loop, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, duration, Const);
-		Qk_DEFINE_PROP(float, speed, Const);
-		Qk_DEFINE_PROP_ACC_GET(bool, playing, Const);
+		Qk_DEFINE_PROP_GET(Window*, window, Protected);
+		Qk_DEFINE_PROP_GET(Action*, parent); // @RT get
+		Qk_DEFINE_PROP(uint32_t, loop, Const); // @RT get
+		Qk_DEFINE_PROP_GET(uint32_t, duration, Const); // @RT get
+		Qk_DEFINE_PROP(float, speed, Const); // @RT get
+		Qk_DEFINE_PROP_ACC_GET(bool, playing, Const); // @RT get
 
-		Action();
+		Action(Window *win);
 		~Action();
 
 		/**
-		* @overwrite
+		 * @overwrite
 		*/
 		void release() override;
 
 		/**
+		 * @async
+		* @method clear action
+		*/
+		void clear();
+
+		/**
+		 * @async
 		* @method play
 		*/
 		void play();
 
 		/**
-		* @method stop
+		 * @async
+		* @method stop async
 		*/
 		void stop();
 
 		/**
-		* @method seek
+		 * @async
+		* @method seek async
 		*/
 		void seek(uint32_t time);
 
 		/**
+		 * @async
 		* @method seek_play
 		*/
 		void seek_play(uint32_t time);
 
 		/**
+		 * @async
 		* @method seek_stop
 		*/
 		void seek_stop(uint32_t time);
 
 		/**
+		 * @async
 		 * @method before
 		*/
-		void before(Action *act) throw(Error);
+		void before(Action *act);
 
 		/**
+		 * @async
 		 * @method after
 		*/
-		void after(Action *act) throw(Error);
+		void after(Action *act);
 
 		/**
+		 * @async
 		 * @method remove from parent action
 		*/
-		void remove() throw(Error);
+		void remove();
 
 		/**
+		 * @async
 		* @method append child action
 		*/
-		virtual void append(Action *child) throw(Error) = 0;
-
-		/**
-		* @method clear action
-		*/
-		virtual void clear() = 0;
+		virtual void append(Action *child) = 0;
 
 	private:
-		void set_parent(Action* parent) throw(Error);
-		void ser_target(Layout* t) throw(Error);
-		void del_parent();
+		void set_target(Layout* t);
 		void del_target(Layout* t);
-		void trigger_ActionLoop(uint32_t delay, Action* root);
-		void trigger_ActionKeyframe(uint32_t delay, uint32_t frame_index, Action* root);
-
+		int  set_parent_RT(Action* parent);
+		void del_parent_RT();
+		void play_RT();
+		void stop_RT();
+		void seek_RT(uint32_t time);
+		void trigger_ActionLoop_RT(uint32_t delay, Action* root);
+		void trigger_ActionKeyframe_RT(uint32_t delay, uint32_t frame_index, Action* root);
 	protected:
-		virtual uint32_t advance(uint32_t time_span, bool restart, Action *root) = 0;
-		virtual void seek_time(uint32_t time, Action *root) = 0;
-		virtual void seek_before(int32_t time, Action *child) = 0;
-		virtual void update_duration(int32_t diff);
+		virtual uint32_t advance_RT(uint32_t time_span, bool restart, Action *root) = 0;
+		virtual void seek_time_RT(uint32_t time, Action *root) = 0;
+		virtual void seek_before_RT(int32_t time, Action *child) = 0;
+		virtual void update_duration_RT(int32_t diff);
+		virtual void clear_RT() = 0;
 
-		// props
-		int32_t _looped;
-		Layout* _target;
-		Id _id; // action id from action center or group action
-		bool _runAdvance; // run advance for action center
+		// Props
+		int32_t _looped; // @RT
+		Layout* _target; // @RT
+		Id _id; // @RT action id from action center or group action
+		bool _runAdvance; // @RT run advance for action center
 
 		friend class View;
 		friend class ActionCenter;
@@ -147,35 +162,30 @@ namespace qk {
 	*/
 	class Qk_EXPORT GroupAction: public Action {
 	public:
-
-		virtual ~GroupAction();
+		GroupAction(Window *win);
+		~GroupAction();
 
 		/**
 		* @method length for actions
 		*/
-		inline uint32_t length() const { return _actions.length(); }
+		inline uint32_t length() const { return _actions_RT.length(); }
 
 		/**
 		* @method first action
 		*/
-		inline Action* first() { return _actions.front(); }
+		inline Action* first() { return _actions_RT.front(); }
 
 		/**
 		* @method last action
 		*/
-		inline Action* last() { return _actions.back(); }
-
-		/**
-		* @overwrite
-		*/
-		virtual void clear() override;
-		virtual void append(Action *child) throw(Error) override;
+		inline Action* last() { return _actions_RT.back(); }
 
 	protected:
-		virtual void insert(Id after, Action *child) throw(Error);
-		virtual void remove_child(Id id) throw(Error) = 0;
+		virtual void insert_RT(Id after, Action *child) = 0;
+		virtual void remove_child_RT(Id id) = 0;
+		virtual void clear_RT() override;
 
-		List<Action*> _actions;
+		List<Action*> _actions_RT;
 
 		friend class Action;
 	};
@@ -185,14 +195,15 @@ namespace qk {
 	*/
 	class Qk_EXPORT SpawnAction: public GroupAction {
 	public:
-		virtual void append(Action* child) throw(Error);
+		SpawnAction(Window *win);
+		virtual void append(Action* child);
 	private:
-		virtual uint32_t advance(uint32_t time_span, bool restart, Action* root);
-		virtual void seek_time(uint32_t time, Action* root);
-		virtual void seek_before(int32_t time, Action* child);
-		virtual void insert(Id after, Action *child) throw(Error);
-		virtual void remove_child(Id id) throw(Error);
-		virtual void update_duration(int32_t diff);
+		virtual uint32_t advance_RT(uint32_t time_span, bool restart, Action* root);
+		virtual void seek_time_RT(uint32_t time, Action* root);
+		virtual void seek_before_RT(int32_t time, Action* child);
+		virtual void insert_RT(Id after, Action *child);
+		virtual void remove_child_RT(Id id);
+		virtual void update_duration_RT(int32_t diff);
 	};
 
 	/**
@@ -200,16 +211,17 @@ namespace qk {
 	*/
 	class Qk_EXPORT SequenceAction: public GroupAction {
 	public:
-		virtual void append(Action* child) throw(Error);
-		virtual void clear();
+		SequenceAction(Window *win);
+		virtual void append(Action* child);
 	private:
-		virtual uint32_t advance(uint32_t time_span, bool restart, Action* root);
-		virtual void seek_time(uint32_t time, Action* root);
-		virtual void seek_before(int32_t time, Action* child);
-		virtual void insert(Id after, Action *child) throw(Error);
-		virtual void remove_child(Id id) throw(Error);
+		virtual uint32_t advance_RT(uint32_t time_span, bool restart, Action* root);
+		virtual void seek_time_RT(uint32_t time, Action* root);
+		virtual void seek_before_RT(int32_t time, Action* child);
+		virtual void insert_RT(Id after, Action *child);
+		virtual void remove_child_RT(Id id);
+		virtual void clear_RT();
 
-		List<Action*>::Iterator _playIdx;
+		List<Action*>::Iterator _playIdx_RT;
 	};
 
 	/**
@@ -221,10 +233,10 @@ namespace qk {
 		~ActionCenter();
 
 		/**
-		* @method advance() Action scheduling forward frame
+		* @method advance_RT() Action scheduling forward frame
 		* @thread render
 		*/
-		void advance(uint32_t time);
+		void advance_RT(uint32_t time);
 
 	private:
 		uint32_t _prevTime;

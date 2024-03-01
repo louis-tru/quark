@@ -35,20 +35,22 @@ namespace qk {
 
 	typedef Keyframe Frame;
 
-	Frame::Keyframe(KeyframeAction* host, uint32_t index, cCurve& curve)
-		: _host(host) , _index(index), _curve(curve), _time(0)
+	Frame::Keyframe(KeyframeAction* host, cCurve& curve)
+		: _host(host) , _index(0), _curve(curve), _time(0)
 	{}
 
-	KeyframeAction::KeyframeAction(): _frame(-1), _time(0)
+	KeyframeAction::KeyframeAction(Window *win): Action(win), _frame(-1), _time(0)
 	{}
 
 	KeyframeAction::~KeyframeAction() {
-		clear();
+		clear_RT();
 	}
 
 	Frame* KeyframeAction::add(uint32_t time, cCurve& curve) {
-		auto len = _frames.length();
-		auto frame = new Frame(this, len, curve);
+		auto frame = new Frame(this, curve);
+		auto len = _frames_RT.length();
+		frame->_index = len;
+		frame->_time = time;
 
 		if ( len ) {
 			Frame* lastFrame = last();
@@ -56,21 +58,21 @@ namespace qk {
 			if ( d <= 0 ) {
 				time = lastFrame->time();
 			} else {
-				Action::update_duration(d);
+				Action::update_duration_RT(d);
 			}
+			frame->_time = time;
 			// copy prop
 			for (auto &i: lastFrame->_props) {
 				frame->_props.set(i.key, i.value->copy());
 			}
-			frame->_time = time;
 		}
-		_frames.push(frame);
+		_frames_RT.push(frame);
 		return frame;
 	}
 
 	void Keyframe::onMake(ViewProp key, Property* prop) {
 		if (_host) {
-			for (auto i: _host->_frames) {
+			for (auto i: _host->_frames_RT) {
 				if (i != this) {
 					i->_props.set(key, prop->copy());
 				}
@@ -78,23 +80,23 @@ namespace qk {
 		}
 	}
 
-	void KeyframeAction::clear() {
-		for (auto& i : _frames) {
+	void KeyframeAction::clear_RT() {
+		for (auto i : _frames_RT) {
 			i->_host = nullptr;
-			Release(i);
+			i->release();
 		}
-		_frames.clear();
+		_frames_RT.clear();
 
 		if ( _duration ) {
-			Action::update_duration( -_duration );
+			Action::update_duration_RT( -_duration );
 		}
 	}
 
 	bool KeyframeAction::has_property(ViewProp name) {
-		return _frames.length() && _frames.front()->has_property(name);
+		return _frames_RT.length() && _frames_RT.front()->has_property(name);
 	}
 
-	uint32_t KeyframeAction::advance(uint32_t time_span, bool restart, Action* root) {
+	uint32_t KeyframeAction::advance_RT(uint32_t time_span, bool restart, Action* root) {
 		time_span *= _speed;
 
 		if ( _frame == -1 || restart ) { // no start play
@@ -107,8 +109,8 @@ namespace qk {
 			if ( length() ) {
 				_frame = 0;
 				_time = 0;
-				_frames[0]->apply(root->_target);
-				trigger_ActionKeyframe(time_span, 0, root);
+				_frames_RT[0]->apply(root->_target);
+				trigger_ActionKeyframe_RT(time_span, 0, root);
 
 				if ( time_span == 0 ) {
 					return 0;
@@ -133,21 +135,21 @@ namespace qk {
 			}
 
 			int32_t time = _time + time_span;
-			int32_t time1 = _frames[f1]->time();
-			int32_t time2 = _frames[f2]->time();
+			int32_t time1 = _frames_RT[f1]->time();
+			int32_t time2 = _frames_RT[f2]->time();
 			int32_t t = time - time2;
 
 			if ( t < 0 ) {
 				time_span = 0;
 				_time = time;
 				float x = (time - time1) / float(time2 - time1);
-				float y = _frames[f1]->curve().fixed_solve_y(x, 0.001);
-				_frames[f1]->applyTransition(root->_target, _frames[f2], y);
+				float y = _frames_RT[f1]->curve().fixed_solve_y(x, 0.001);
+				_frames_RT[f1]->applyTransition(root->_target, _frames_RT[f2], y);
 			} else if ( t > 0 ) {
 				time_span = t;
 				_frame = f2;
 				_time = time2;
-				trigger_ActionKeyframe(t, f2, root); // trigger event action_key_frame
+				trigger_ActionKeyframe_RT(t, f2, root); // trigger event action_key_frame
 
 				f1 = f2; f2++;
 
@@ -157,15 +159,15 @@ namespace qk {
 					if ( _loop ) {
 						goto loop;
 					} else {
-						_frames[f1]->apply(root->_target);
+						_frames_RT[f1]->apply(root->_target);
 					}
 				}
 			} else { // t == 0
 				time_span = 0;
 				_time = time;
 				_frame = f2;
-				_frames[f2]->apply(root->_target);
-				trigger_ActionKeyframe(0, f2, root); // trigger event action_key_frame
+				_frames_RT[f2]->apply(root->_target);
+				trigger_ActionKeyframe_RT(0, f2, root); // trigger event action_key_frame
 			}
 
 		} else { // last frame
@@ -173,17 +175,17 @@ namespace qk {
 			if ( _loop ) {
 			loop:
 				if ( _loop > 0 ) {
-					if ( _looped < _loop ) { // 可经继续循环
+					if ( _looped < _loop ) { // Can continue to loop
 						_looped++;
 					} else { //
-						_frames[f1]->apply(root->_target);
+						_frames_RT[f1]->apply(root->_target);
 						goto end;
 					}
 				}
 				_frame = 0;
 				_time = 0;
-				trigger_ActionLoop(time_span, root);
-				trigger_ActionKeyframe(time_span, 0, root);
+				trigger_ActionLoop_RT(time_span, root);
+				trigger_ActionKeyframe_RT(time_span, 0, root);
 				goto start;
 			}
 		}
@@ -192,13 +194,13 @@ namespace qk {
 		return time_span / _speed;
 	}
 
-	void KeyframeAction::seek_time(uint32_t time, Action* root) {
+	void KeyframeAction::seek_time_RT(uint32_t time, Action* root) {
 		_looped = 0;
 
 		if ( length() ) {
 			Frame* frame = nullptr;
 
-			for ( auto& i: _frames ) {
+			for ( auto& i: _frames_RT ) {
 				if ( time < i->time() ) {
 					break;
 				}
@@ -212,26 +214,27 @@ namespace qk {
 
 			if ( f1 < length() ) {
 				int32_t time0 = frame->time();
-				int32_t time1 = _frames[f1]->time();
+				int32_t time1 = _frames_RT[f1]->time();
 				float x = (_time - time0) / float(time1 - time0);
 				float y = frame->curve().fixed_solve_y(x, 0.001);
-				_frames[f0]->applyTransition(root->_target, _frames[f1], y);
+				_frames_RT[f0]->applyTransition(root->_target, _frames_RT[f1], y);
 			} else { // last frame
-				_frames[f0]->apply(root->_target);
+				_frames_RT[f0]->apply(root->_target);
 			}
 
 			if ( _time == int32_t(frame->time()) ) {
-				trigger_ActionKeyframe(0, _frame, root);
+				trigger_ActionKeyframe_RT(0, _frame, root);
 			}
 		}
 	}
 
-	void KeyframeAction::seek_before(int32_t time, Action* child) {
+	void KeyframeAction::seek_before_RT(int32_t time, Action* child) {
 		Qk_UNIMPLEMENTED();
 	}
 
 	void KeyframeAction::append(Action *child) {
-		Qk_Throw(ERR_ACTION_KEYFRAME_CANNOT_APPEND, "KeyframeAction::append, cannot call append method for keyfrane");
+		// Qk_Throw(ERR_ACTION_KEYFRAME_CANNOT_APPEND, "KeyframeAction::append, cannot call append method for keyfrane");
+		Qk_ERR("KeyframeAction::append, cannot call append method for keyfrane");
 	}
 
 }

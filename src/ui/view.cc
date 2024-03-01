@@ -33,6 +33,7 @@
 #include "./window.h"
 #include "./css/css.h"
 #include "./action/action.h"
+#include "../errno.h"
 
 namespace qk {
 
@@ -54,10 +55,8 @@ namespace qk {
 		set_action(nullptr); // Delete action
 		remove_all_child(); // Delete sub views
 		_layout->_view = nullptr;
-
-		preRender().async_call([](auto ctx, auto val) {
-			delete ctx;
-		}, _layout, 0);
+		preRender().async_call([](auto ctx, auto arg) { delete ctx; }, _layout, 0);
+		_layout = nullptr;
 	}
 
 	Window* View::window() {
@@ -118,13 +117,18 @@ namespace qk {
 	}
 
 	void View::set_action(Action* action) throw(Error) {
+		Qk_Check(action->window() == window(),
+			ERR_ACTION_SET_WINDOW_NO_MATCH, "View::set_action, set action window not match"
+		);
 		if (action != _action) {
 			if ( _action ) {
 				_action->del_target(_layout);
+				_action->release();
 				_action = nullptr;
 			}
 			if ( action ) {
-				action->ser_target(_layout);
+				action->set_target(_layout);
+				action->retain(); // retain from view layout
 				_action = action;
 			}
 		}

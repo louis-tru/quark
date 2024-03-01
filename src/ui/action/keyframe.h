@@ -43,13 +43,13 @@ namespace qk {
 	*/
 	class Keyframe: public StyleSheets {
 	public:
-		Qk_DEFINE_PROP_GET(KeyframeAction*, host);
 		Qk_DEFINE_PROP_GET(uint32_t, index, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, time, Const);
 		Qk_DEFINE_PROP_GET(Curve, curve, Const);
 	private:
-		Keyframe(KeyframeAction* host, uint32_t index, cCurve& curve);
+		Keyframe(KeyframeAction* host, cCurve& curve);
 		void onMake(ViewProp key, Property* prop) override;
+		KeyframeAction* _host;
 		friend class KeyframeAction;
 	};
 
@@ -59,55 +59,55 @@ namespace qk {
 	class Qk_EXPORT KeyframeAction: public Action {
 	public:
 		// Props
-		Qk_DEFINE_PROP_GET(uint32_t, time, Const); // play time
-		Qk_DEFINE_PROP_GET(int32_t, frame, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, time, Const); //@RT get, play time
+		Qk_DEFINE_PROP_GET(int32_t, frame, Const); //@RT get
 
-		KeyframeAction();
+		KeyframeAction(Window *win);
 		~KeyframeAction();
 
 		/**
-		* @method has_property
+		* @method length
+		* @thread render
 		*/
-		bool has_property(ViewProp name);
+		inline uint32_t length() const { return _frames_RT.size(); }
 
 		/**
 		* @method first
+		* @thread render
 		*/
-		inline Keyframe* first() { return _frames.front(); }
+		inline Keyframe* first() { return _frames_RT.front(); }
 
 		/**
 		* @method last
+		* @thread render
 		*/
-		inline Keyframe* last() { return _frames.back(); }
+		inline Keyframe* last() { return _frames_RT.back(); }
 
 		/**
 		* @method operator[]
+		* @thread render
 		*/
-		inline Keyframe* operator[](uint32_t index) { return _frames[index]; }
+		inline Keyframe* operator[](uint32_t index) { return _frames_RT[index]; }
 
 		/**
-		* @method length
+		* @method has_property
+		* @thread render
 		*/
-		inline uint32_t length() const { return _frames.size(); }
+		bool has_property(ViewProp name);
 
 		/**
 		* @method add new frame
 		*/
 		Keyframe* add(uint32_t time, cCurve& curve = EASE);
 
-		/**
-		 * @overwrite
-		* @method clear all frame and property
-		*/
-		virtual void clear() override;
-
 	private:
-		virtual uint32_t advance(uint32_t time_span, bool restart, Action* root);
-		virtual void seek_time(uint32_t time, Action* root);
-		virtual void seek_before(int32_t time, Action* child);
-		virtual void append(Action *child) override;
+		virtual void append(Action *child);
+		virtual uint32_t advance_RT(uint32_t time_span, bool restart, Action* root);
+		virtual void seek_time_RT(uint32_t time, Action* root);
+		virtual void seek_before_RT(int32_t time, Action* child);
+		virtual void clear_RT();
 
-		Array<Keyframe*> _frames;
+		Array<Keyframe*> _frames_RT;
 
 		friend class Keyframe;
 	};

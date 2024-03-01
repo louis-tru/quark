@@ -64,7 +64,7 @@ namespace qk {
 		public:
 			virtual ~Property() = default;
 			virtual void apply(Layout *layout) = 0;
-			virtual void transition(Layout *layout, Property *to, float y) = 0;
+			virtual void transition(Layout *layout, Property *to, float t) = 0;
 			virtual Property* copy() = 0;
 		};
 		// define props

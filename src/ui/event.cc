@@ -36,6 +36,7 @@
 #include "./layout/root.h"
 #include "./keyboard.h"
 #include "./layout/button.h"
+#include "./action/action.h"
 
 namespace qk {
 
@@ -115,11 +116,11 @@ namespace qk {
 	}
 
 	void View::release() {
-		Qk_ASSERT(_ref_count >= 0);
-		if ( --_ref_count <= 0 ) {
+		Qk_ASSERT(_refCount >= 0);
+		if ( --_refCount <= 0 ) {
 			auto dispatch = _layout->_window->dispatch();
 			dispatch->_view_mutex.lock();
-			if (_ref_count <= 0) {
+			if (_refCount <= 0) {
 				Object::release();
 			}
 			dispatch->_view_mutex.unlock();
@@ -146,9 +147,12 @@ namespace qk {
 
 	ActionEvent::ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop)
 		: UIEvent(origin), _action(action), _delay(delay), _frame(frame), _loop(loop)
-	{}
+	{
+		action->retain();
+	}
 
 	void ActionEvent::release() {
+		_action->release();
 		_action = nullptr;
 		UIEvent::release();
 	}

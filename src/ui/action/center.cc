@@ -36,10 +36,10 @@ namespace qk {
 	{}
 
 	ActionCenter::~ActionCenter() {
-		Qk_Fatal_Assert(_actions.length() == 0);
+		Qk_Fatal_Assert(_actions.length() == 0, "ActionCenter::~ActionCenter stop actions first");
 	}
 
-	void ActionCenter::advance(uint32_t time) {
+	void ActionCenter::advance_RT(uint32_t time) {
 		if ( _actions.length() == 0) return; 
 
 		uint32_t time_span = 0;
@@ -55,12 +55,12 @@ namespace qk {
 			auto j = i++;
 			auto act = *j;
 			if (act->_runAdvance) {
-				if ( act->advance(time_span, false, act) ) {
-					act->stop(); // stop action
+				if ( act->advance_RT(time_span, false, act) ) {
+					act->stop_RT(); // stop action
 				}
 			} else {
 				act->_runAdvance = true;
-				act->advance(0, false, act);
+				act->advance_RT(0, false, act);
 			}
 		}
 		_prevTime = time;

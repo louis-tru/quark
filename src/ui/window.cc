@@ -85,13 +85,14 @@ namespace qk {
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
 		_uiRender = new UIRender(this);
+		_actionCenter = new ActionCenter();
 		_styleSheets = _host->styleSheets();
 		_backgroundColor = opts.backgroundColor;
 		{
 			ScopeLock lock(_host->_mutex);
 			_id = _host->_windows.pushBack(this);
 		}
-		retain(); // strong ref count retain
+		retain(); // strong ref count retain from application
 		_root = new Root(new RootLayout(this)); // new root
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
@@ -124,6 +125,8 @@ namespace qk {
 		_preRender.clearTasks();
 		_preRender.asyncCommit();
 		_preRender.solveAsyncCall();
+
+		Release(_actionCenter); _actionCenter = nullptr;
 
 		{ ScopeLock lock(_host->_mutex);
 			_host->_windows.erase(_id);
@@ -270,8 +273,6 @@ namespace qk {
 	bool Window::onRenderBackendDisplay() {
 		UILock lock(this); // ui render lock
 		int64_t time = time_monotonic();
-
-		_actionCenter->advance(time); // advance action
 
 		if (!_preRender.solve(time)) {
 			solveNextFrame();

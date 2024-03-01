@@ -34,7 +34,7 @@
 #include "../layout/layout.h"
 
 namespace qk {
-	#define qk_async_call _host->window()->preRender().async_call
+	#define _async_call _host->window()->preRender().async_call
 
 	CStyleSheetsClass::CStyleSheetsClass(Layout *host)
 		: _havePseudoType(false)
@@ -48,7 +48,7 @@ namespace qk {
 	}
 
 	void CStyleSheetsClass::set(cArray<String> &name) {
-		qk_async_call([](auto ctx, auto val) {
+		_async_call([](auto ctx, auto val) {
 			Sp<Array<String>> valp(val);
 			ctx->_nameHash.clear();
 			for ( auto &j: **valp )
@@ -58,7 +58,7 @@ namespace qk {
 	}
 
 	void CStyleSheetsClass::add(cString &name) {
-		qk_async_call([](auto ctx, auto hash) {
+		_async_call([](auto ctx, auto hash) {
 			if (!ctx->_nameHash.has(hash)) {
 				ctx->_nameHash.add(hash);
 				ctx->updateClass_RT();
@@ -67,7 +67,7 @@ namespace qk {
 	}
 
 	void CStyleSheetsClass::remove(cString &name) {
-		qk_async_call([](auto ctx, auto hash) {
+		_async_call([](auto ctx, auto hash) {
 			auto it = ctx->_nameHash.find(hash);
 			if (it != ctx->_nameHash.end()) {
 				ctx->_nameHash.erase(it);
@@ -77,7 +77,7 @@ namespace qk {
 	}
 
 	void CStyleSheetsClass::toggle(cString &name) {
-		qk_async_call([](auto ctx, auto hash) {
+		_async_call([](auto ctx, auto hash) {
 			auto it = ctx->_nameHash.find(hash);
 			if (it == ctx->_nameHash.end()) {
 				ctx->_nameHash.add(hash);

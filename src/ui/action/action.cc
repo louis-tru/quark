@@ -35,25 +35,33 @@
 #include "../app.h"
 #include "../event.h"
 
+#define _async_call _window->preRender().async_call
+
 namespace qk {
 
-	Action::Action()
-		: _parent(nullptr)
+	Action::Action(Window *win)
+		: _window(win)
+		, _parent(nullptr)
 		, _loop(0)
 		, _duration(0)
 		, _speed(1)
 		, _looped(0)
-	{
-	}
+		, _target(nullptr)
+	{}
 
 	Action::~Action() {
 		Qk_ASSERT( _id == Id() );
+		clear_RT();
+		_window = nullptr;
 	}
 
 	void Action::release() {
-		if (refCount() == 1)
-			clear();
-		Reference::release();
+		if ( --_refCount <= 0 ) {
+			_async_call([](auto self, auto arg) {
+				// To ensure safety and efficiency, it should be destroyed in RT (render thread)
+				self->Object::release();
+			}, this, 0);
+		}
 	}
 
 	bool Action::playing() const {
@@ -61,83 +69,179 @@ namespace qk {
 	}
 
 	void Action::set_speed(float value) {
-		_speed = Qk_MIN(10, Qk_MAX(value, 0.1));
+		_async_call([](auto self, auto arg) {
+			self->_speed = Qk_MIN(10, Qk_MAX(arg, 0.1));
+		}, this, value);
 	}
 
 	void Action::set_loop(uint32_t value) {
-		_loop = value;
-	}
-
-	void Action::seek(uint32_t time) {
-		time = Qk_MIN(time, _duration);
-		if (_parent) {
-			_parent->seek_before(time, this);
-		} else {
-			seek_time(time, this);
-		}
+		_async_call([](auto self, auto arg) { self->_loop = arg; }, this, value);
 	}
 
 	void Action::seek_play(uint32_t time) {
-		seek(time);
-		play();
+		_async_call([](auto self, auto arg) {
+			self->seek_RT(arg);
+			self->play_RT();
+		}, this, time);
 	}
 
 	void Action::seek_stop(uint32_t time) {
-		seek(time);
-		stop();
+		_async_call([](auto self, auto arg) {
+			self->seek_RT(arg);
+			self->stop_RT();
+		}, this, time);
+	}
+
+	void Action::seek(uint32_t time) {
+		_async_call([](auto self, auto time) { self->seek_RT(time); }, this, time);
+	}
+
+	void Action::clear() {
+		_async_call([](auto self, auto arg) { self->clear_RT(); }, this, 0);
 	}
 
 	void Action::play() {
-		if ( _parent ) {
-			_parent->play();
-		} else {
-			if (_target) {
-				if (_id == Id()) {
-					auto center = _target->window()->actionCenter();
-					_id = center->_actions.pushBack(this);
-					retain(); // retain for center
-				}
-			}
-		}
+		_async_call([](auto self, auto arg) { self->play_RT(); }, this, 0);
 	}
 
 	void Action::stop() {
-		if ( _parent ) {
-			_parent->stop();
-		} else {
-			if (_target) {
-				if (_id != Id()) {
-					auto center = _target->window()->actionCenter();
-					center->_actions.erase(_id);
-					_runAdvance = false;
-					_id = Id();
-					release(); // release for center
-				}
-			}
+		_async_call([](auto self, auto arg) { self->stop_RT(); }, this, 0);
+	}
+
+	void Action::play_RT() {
+		if (_parent) {
+			_parent->play_RT();
+		}
+		else if (_id == Id()) {
+			_id = _window->actionCenter()->_actions.pushBack(this);
+			retain(); // retain for center
 		}
 	}
 
-	void Action::before(Action *act) throw(Error) {
-		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
-		static_cast<GroupAction*>(_parent)->insert(_id, act);
+	void Action::stop_RT() {
+		if (_parent) {
+			_parent->stop_RT();
+		}
+		else if (_id != Id()) {
+			_window->actionCenter()->_actions.erase(_id);
+			_runAdvance = false;
+			_id = Id();
+			release(); // release for center
+		}
 	}
 
-	void Action::after(Action *act) throw(Error) {
-		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
-		auto id = _id;
-		static_cast<GroupAction*>(_parent)->insert(++id, act);
+	void Action::seek_RT(uint32_t time) {
+		time = Qk_MIN(time, _duration);
+		if (_parent) {
+			_parent->seek_before_RT(time, this);
+		} else {
+			seek_time_RT(time, this);
+		}
 	}
 
-	void Action::remove() throw(Error) {
-		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::remove, illegal parent empty");
-		static_cast<GroupAction*>(_parent)->remove_child(_id);
+	void Action::before(Action *act) {
+		_async_call([](auto self, auto arg) {
+			// Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
+			if (self->_parent) {
+				static_cast<GroupAction*>(self->_parent)->insert_RT(self->_id, arg);
+			} else {
+				Qk_ERR("Action::before, illegal parent empty");
+			}
+		}, this, act);
 	}
 
-	// -----------------------------------------------------------------------------------------------
+	void Action::after(Action *act) {
+		_async_call([](auto self, auto arg) {
+			// Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
+			if (self->_parent) {
+				auto id = self->_id;
+				static_cast<GroupAction*>(self->_parent)->insert_RT(++id, arg);
+			} else {
+				Qk_ERR("Action::after, illegal parent empty");
+			}
+		}, this, act);
+	}
 
-	void Action::trigger_ActionLoop(uint32_t delay, Action* root) {
-		auto v_h = root->_target->safe_view();
-		auto v = *v_h;
+	void Action::remove() {
+		_async_call([](auto self, auto arg) {
+			// Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::remove, illegal parent empty");
+			if (self->_parent) {
+				static_cast<GroupAction*>(self->_parent)->remove_child_RT(self->_id);
+			} else {
+				Qk_ERR("Action::remove, illegal parent empty");
+			}
+		}, this, 0);
+	}
+
+	void Action::set_target(Layout *target) {
+		Qk_ASSERT(target);
+		Qk_ASSERT(target->window() == _window);
+		_async_call([](auto self, auto arg) {
+			// Qk_Check(!_parent, ERR_ACTION_ILLEGAL_ROOT, "cannot set non root action");
+			if (self->_parent) {
+				Qk_ERR("Action::set_target, cannot set non root action"); return;
+			}
+			// Qk_Check(!_target, ERR_ACTION_DISABLE_MULTIPLE_TARGET, "Action::set_target, action cannot set multiple target");
+			if (self->_target) {
+				Qk_ERR("Action::set_target, action cannot set multiple target"); return;
+			}
+			self->_target = arg;
+		}, this, target);
+	}
+
+	void Action::del_target(Layout* target) {
+		Qk_ASSERT(target);
+		_async_call([](auto self, auto arg) {
+			if (arg == self->_target) {
+				self->stop_RT(); // stop action
+				self->_target = nullptr;
+			}
+		}, this, target);
+	}
+
+	int Action::set_parent_RT(Action *parent) {
+		if (_parent->_window != _window) {
+			Qk_ERR("Action::set_parent_RT, set action window not match");
+			return ERR_ACTION_SET_WINDOW_NO_MATCH;
+		}
+		// Qk_Check(!_parent, ERR_ACTION_ILLEGAL_CHILD, "illegal child action");
+		if (_parent) {
+			Qk_ERR("Action::set_parent, illegal child action");
+			return ERR_ACTION_ILLEGAL_CHILD;
+		}
+		Qk_ASSERT(_id == Id());
+		_parent = parent;
+		retain(); // retain
+		return 0;
+	}
+
+	void Action::del_parent_RT() {
+		Qk_ASSERT(_parent);
+		_parent = nullptr;
+		release();
+	}
+
+	void Action::update_duration_RT(int32_t diff) {
+		_duration += diff;
+		if (_parent) {
+			_parent->update_duration_RT(diff);
+		}
+	}
+
+	void SpawnAction::update_duration_RT(int32_t diff) {
+		int32_t new_duration = 0;
+		for ( auto &i : _actions_RT ) {
+			new_duration = Qk_MAX(i->_duration, new_duration);
+		}
+		diff = new_duration - _duration;
+		if ( diff ) {
+			Action::update_duration_RT(diff);
+		}
+	}
+
+	void Action::trigger_ActionLoop_RT(uint32_t delay, Action* root) {
+		auto sv = root->_target->safe_view();
+		auto v = *sv;
 		if (v) {
 			auto evt = new ActionEvent(this, v, delay, 0, _loop);
 			shared_app()->loop()->post(Cb([v,evt](auto& e) {
@@ -147,61 +251,15 @@ namespace qk {
 		}
 	}
 
-	void Action::trigger_ActionKeyframe(uint32_t delay, uint32_t frame_index, Action* root) {
-		auto v_h = root->_target->safe_view();
-		auto v = *v_h;
+	void Action::trigger_ActionKeyframe_RT(uint32_t delay, uint32_t frame_index, Action* root) {
+		auto sv = root->_target->safe_view();
+		auto v = *sv;
 		if (v) {
 			auto evt = new ActionEvent(this, v, delay, frame_index, _loop);
 			shared_app()->loop()->post(Cb([v,evt](auto& e) {
 				Sp<ActionEvent> h(evt);
 				v->trigger(UIEvent_ActionKeyframe, *evt);
 			}, v));
-		}
-	}
-
-	void Action::set_parent(Action *parent) throw(Error) {
-		Qk_Check(!_parent && !_target, ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
-		Qk_ASSERT(_id == Id());
-		_parent = parent;
-		retain(); // retain
-	}
-
-	void Action::del_parent() {
-		_parent = nullptr;
-		release();
-	}
-
-	void Action::ser_target(Layout *target) throw(Error) {
-		Qk_ASSERT(target);
-		Qk_Check(!_parent, ERR_ACTION_ILLEGAL_ROOT, "cannot set non root action");
-		Qk_Check(!_target, ERR_ACTION_DISABLE_MULTIPLE_TARGET, "action cannot set multiple target");
-		_target = target;
-		retain(); // retain from view
-	}
-
-	void Action::del_target(Layout *target) {
-		Qk_ASSERT(target);
-		Qk_ASSERT(target == _target);
-		stop(); // stop action
-		_target = nullptr;
-		release(); // release from view
-	}
-
-	void Action::update_duration(int32_t diff) {
-		_duration += diff;
-		if (_parent) {
-			_parent->update_duration(diff);
-		}
-	}
-
-	void SpawnAction::update_duration(int32_t diff) {
-		int32_t new_duration = 0;
-		for ( auto &i : _actions ) {
-			new_duration = Qk_MAX(i->_duration, new_duration);
-		}
-		diff = new_duration - _duration;
-		if ( diff ) {
-			Action::update_duration(diff);
 		}
 	}
 

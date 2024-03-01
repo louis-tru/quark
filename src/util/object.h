@@ -96,18 +96,18 @@ namespace qk {
 	class Qk_EXPORT Reference: public Object {
 	public:
 		typedef ReferenceTraits Traits;
-		inline Reference(): _ref_count(0) {}
-		inline Reference(const Reference& ref): _ref_count(0) {}
+		inline Reference(): _refCount(0) {}
+		inline Reference(const Reference& ref): _refCount(0) {}
 		inline Reference& operator=(const Reference& ref) { return *this; }
 		virtual ~Reference();
 		virtual bool retain();
 		virtual void release();
 		virtual bool isReference() const;
-		inline int refCount() const { return _ref_count; }
+		inline int refCount() const { return _refCount; }
 		typedef void* __has_ref_type; private:
 		typedef void* __has_object_type;
 	protected:
-		std::atomic_int _ref_count;
+		std::atomic_int _refCount;
 	};
 
 	Qk_EXPORT bool Retain(Object* obj);

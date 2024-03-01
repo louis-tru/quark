@@ -457,7 +457,7 @@ namespace qk {
 	};
 
 	template<class _View>
-	inline _View* View::newView() {
+	inline _View* View::new_view() {
 		return new _View(new _View::Layout(_layout->_window));
 	}
 

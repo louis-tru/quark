@@ -193,20 +193,20 @@ namespace qk {
 	}
 
 	Reference::~Reference() {
-		Qk_ASSERT( _ref_count <= 0 );
+		Qk_ASSERT( _refCount <= 0 );
 	}
 
 	bool Reference::retain() {
-		Qk_ASSERT(_ref_count >= 0);
-		if ( _ref_count++ == 0 ) {
+		Qk_ASSERT(_refCount >= 0);
+		if ( _refCount++ == 0 ) {
 			object_allocator_retain(this);
 		}
 		return true;
 	}
 
 	void Reference::release() {
-		Qk_ASSERT(_ref_count >= 0);
-		if ( --_ref_count <= 0 ) {
+		Qk_ASSERT(_refCount >= 0);
+		if ( --_refCount <= 0 ) {
 			object_allocator_release(this);
 		}
 	}

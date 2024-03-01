@@ -39,8 +39,8 @@
 #include "./window.h"
 #include "./css/css.h"
 
-Qk_EXPORT int (*__f_default_gui_main)(int, char**) = nullptr;
-Qk_EXPORT int (*__f_gui_main)        (int, char**) = nullptr;
+Qk_EXPORT int (*__qk_main__)(int, char**) = nullptr;
+Qk_EXPORT int (*__qk_main_1)(int, char**) = nullptr;
 
 namespace qk {
 	typedef Application::Inl AppInl;
@@ -115,7 +115,7 @@ namespace qk {
 	}
 
 	void Application::setMain(int (*main)(int, char**)) {
-		__f_gui_main = main;
+		__qk_main__ = main;
 	}
 
 	void Application::runMain(int argc, char* argv[]) {
@@ -123,7 +123,7 @@ namespace qk {
 		// Create a new child worker thread. This function must be called by the main entry
 		thread_new([](void* arg) {
 			auto args = (Args*)arg;
-			auto main = __f_gui_main ? __f_gui_main : __f_default_gui_main;
+			auto main = __qk_main__ ? __qk_main__ : __qk_main_1;
 			Qk_ASSERT( main, "No gui main");
 			int rc = main(args->argc, args->argv); // Run this custom gui entry function
 			Qk_DEBUG("Application::runMain() thread_new() Exit");
