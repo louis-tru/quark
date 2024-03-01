@@ -67,31 +67,31 @@ namespace qk {
 
 		/**
 		* @method length
-		* @thread render
+		* @RT
 		*/
 		inline uint32_t length() const { return _frames_RT.size(); }
 
 		/**
 		* @method first
-		* @thread render
+		* @RT
 		*/
 		inline Keyframe* first() { return _frames_RT.front(); }
 
 		/**
 		* @method last
-		* @thread render
+		* @RT
 		*/
 		inline Keyframe* last() { return _frames_RT.back(); }
 
 		/**
 		* @method operator[]
-		* @thread render
+		* @RT
 		*/
 		inline Keyframe* operator[](uint32_t index) { return _frames_RT[index]; }
 
 		/**
 		* @method has_property
-		* @thread render
+		* @RT
 		*/
 		bool has_property(ViewProp name);
 
