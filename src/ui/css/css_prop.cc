@@ -30,13 +30,14 @@
 
 #include "./css.h"
 #include "../layout/layout.h"
+#include "../window.h"
 
 namespace qk {
 
 	typedef StyleSheets::Property Property;
 
 	template<typename T>
-	inline static T* copy_value_ptr(T* value) {
+	inline T* copy_value_ptr(T* value) {
 		return nullptr;
 	}
 
@@ -46,7 +47,7 @@ namespace qk {
 	}
 
 	template<typename T>
-	inline static void transition_value_ptr(T *v1, T *v2, float t, ViewProp prop, Layout *target) {
+	inline void transition_value_ptr(T *v1, T *v2, float t, ViewProp prop, Layout *target) {
 		Qk_UNIMPLEMENTED();
 	}
 
@@ -123,7 +124,7 @@ namespace qk {
 		Type transition_value(Type f1, Type f2, float t) {\
 			return t < 1.0 ? f1: f2;\
 		}
-	_Define_Enum_transition(bool)
+	_Define_Enum_transition(int)
 	_Define_Enum_transition(Align)
 	_Define_Enum_transition(Direction)
 	_Define_Enum_transition(ItemsAlign)
@@ -172,7 +173,7 @@ namespace qk {
 		PropImpl(ViewProp prop, T* value): _value(value) {
 			Qk_ASSERT(_value);
 			static_assert(T::Traits::isObject, "Property value must be a object type");
-			_value->retain();
+			// value->retain(); // @line SetProp<Object*>::asyncExec, value->retain();
 		}
 		~PropImpl() {
 			_value->release();
@@ -194,6 +195,8 @@ namespace qk {
 		T* _value;
 	};
 
+	// ---- SetProp ----
+
 	template<typename T>
 	struct SetProp: StyleSheets {
 		void exec(ViewProp key, T value) {
@@ -204,7 +207,45 @@ namespace qk {
 				onMake(key, _props.set(key, new PropImpl<T>(key, value)));
 			}
 		}
+		template<ViewProp key>
+		void asyncExec(T value) {
+			auto win = window();
+			if (win) {
+				win->preRender().async_call([](auto self, auto arg) { self->exec(key, arg); }, this, value);
+			} else {
+				exec(key, value);
+			}
+		}
+		template<ViewProp key>
+		void asyncExecLarge(T &value) {
+			auto win = window();
+			if (win) {
+				win->preRender().async_call([](auto self, auto arg) {
+					Sp<T> h(arg); self->exec(key, *arg);
+				}, this, new T(value));
+			} else {
+				exec(key, value);
+			}
+		}
 	};
+
+	template<>
+	template<ViewProp key>
+	void SetProp<String>::asyncExec(String value) {
+		asyncExecLarge<key>(value);
+	}
+
+	template<>
+	template<ViewProp key>
+	void SetProp<TextShadow>::asyncExec(TextShadow value) {
+		asyncExecLarge<key>(value);
+	}
+
+	template<>
+	template<ViewProp key>
+	void SetProp<TextFamily>::asyncExec(TextFamily value) {
+		asyncExecLarge<key>(value);
+	}
 
 	template<>
 	struct SetProp<Object*>: StyleSheets {
@@ -215,23 +256,35 @@ namespace qk {
 				if (p->_value != value) {
 					p->_value->release();
 					p->_value = value;
-					p->_value->retain();
+				} else {
+					value->release();
 				}
 			} else {
 				onMake(key, _props.set(key, new PropImpl<Object*>(key, value)));
+			}
+		}
+		template<ViewProp key>
+		void asyncExec(Object* value) {
+			value->retain();
+			auto win = window();
+			if (win) {
+				win->preRender().async_call([](auto self, auto arg) { self->exec(key, arg); }, this, value);
+			} else {
+				exec(key, value);
 			}
 		}
 	};
 
 	template<typename T>
 	struct SetProp<T*>: StyleSheets {
-		inline void exec(ViewProp key, T* value) {
-			static_cast<SetProp<Object*>*>(static_cast<StyleSheets*>(this))->exec(key, value);
+		template<ViewProp key>
+		inline void asyncExec(T* value) {
+			static_cast<SetProp<Object*>*>(static_cast<StyleSheets*>(this))->asyncExec<key>(value);
 		}
 	};
 
 	#define _Fun(Enum, Type, Name, _) void StyleSheets::set_##Name(Type value) {\
-		static_cast<SetProp<Type>*>(this)->exec(k##Enum##_ViewProp, value);\
+		static_cast<SetProp<Type>*>(this)->asyncExec<k##Enum##_ViewProp>(value);\
 	}
 	Qk_View_Props(_Fun)
 

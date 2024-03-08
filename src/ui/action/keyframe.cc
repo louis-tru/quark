@@ -79,6 +79,10 @@ namespace qk {
 		return frame;
 	}
 
+	Window* Keyframe::window() {
+		return _host ? _host->_window: nullptr;
+	}
+
 	void Keyframe::onMake(ViewProp key, Property* prop) {
 		if (_host) {
 			for (auto i: _host->_frames_RT) {
@@ -101,8 +105,8 @@ namespace qk {
 		}
 	}
 
-	bool KeyframeAction::has_property(ViewProp name) {
-		return _frames_RT.length() && _frames_RT.front()->has_property(name);
+	bool KeyframeAction::hasProperty(ViewProp name) {
+		return _frames_RT.length() && _frames_RT.front()->hasProperty(name);
 	}
 
 	uint32_t KeyframeAction::advance_RT(uint32_t time_span, bool restart, Action* root) {

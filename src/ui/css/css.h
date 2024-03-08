@@ -40,6 +40,7 @@ namespace qk {
 	class Layout;
 	class View;
 	class KeyframeAction;
+	class Window;
 
 	enum CSSType {
 		kNone_CSSType = 0,
@@ -78,12 +79,18 @@ namespace qk {
 		/**
 		 * @method has_property
 		*/
-		bool has_property(ViewProp key) const;
+		bool hasProperty(ViewProp key) const;
 
 		/**
 		* @method apply style to layout
 		*/
 		void apply(Layout *layout) const;
+
+		/**
+		 * @method window
+		 * Use asynchronous calls when returning window objects
+		*/
+		virtual Window* window();
 
 	private:
 		void applyTransition(Layout* layout, StyleSheets *to, float y) const;

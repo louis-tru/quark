@@ -66,11 +66,15 @@ namespace qk {
 		}
 	}
 
+	Window* StyleSheets::window() {
+		return nullptr;
+	}
+
 	void StyleSheets::onMake(ViewProp key, Property* prop) {
 		// NOOP
 	}
 
-	bool StyleSheets::has_property(ViewProp name) const {
+	bool StyleSheets::hasProperty(ViewProp name) const {
 		return _props.count(name);
 	}
 

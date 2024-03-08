@@ -46,8 +46,11 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, index, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, time, Const);
 		Qk_DEFINE_PROP_GET(Curve, curve, Const);
+		// @overwrite
+		virtual Window* window() override;
 	private:
-		// @constructor private
+		// @constructor
+		// @private
 		Keyframe(KeyframeAction* host, cCurve& curve);
 		/**
 		 * @method onMake trigger new prop make
@@ -89,7 +92,7 @@ namespace qk {
 		* @method has_property
 		* @RT
 		*/
-		bool has_property(ViewProp name);
+		bool hasProperty(ViewProp name);
 
 		/**
 		* @method add new frame
