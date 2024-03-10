@@ -221,7 +221,8 @@ namespace qk {
 			auto win = window();
 			if (win) {
 				win->preRender().async_call([](auto self, auto arg) {
-					Sp<T> h(arg); self->exec(key, *arg);
+					Sp<T> h(arg);
+					self->exec(key, *arg);
 				}, this, new T(value));
 			} else {
 				exec(key, value);
