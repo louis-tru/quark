@@ -127,7 +127,7 @@ namespace qk {
 	}
 
 	String version() {
-    static String ver(QUARK_VERSION);
+    static String ver(Qk_VERSION);
 		return ver;
 	}
 

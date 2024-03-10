@@ -31,17 +31,17 @@
 #ifndef __quark__version__
 #define __quark__version__
 
-#define QUARK_MAJOR_VERSION 1
-#define QUARK_MINOR_VERSION 0
-#define QUARK_PATCH_VERSION 0
-#define QUARK_TAG ""
+#define Qk_MAJOR_VERSION 1
+#define Qk_MINOR_VERSION 0
+#define Qk_PATCH_VERSION 0
+#define Qk_TAG ""
 
 #define __STRINGIFY(n) __STRINGIFY_HELPER(n)
 #define __STRINGIFY_HELPER(s) #s
 
-#define QUARK_VERSION "v" \
-__STRINGIFY(QUARK_MAJOR_VERSION) "." \
-__STRINGIFY(QUARK_MINOR_VERSION) "." \
-__STRINGIFY(QUARK_PATCH_VERSION) QUARK_TAG
+#define Qk_VERSION "v" \
+__STRINGIFY(Qk_MAJOR_VERSION) "." \
+__STRINGIFY(Qk_MINOR_VERSION) "." \
+__STRINGIFY(Qk_PATCH_VERSION) Qk_TAG
 
 #endif
