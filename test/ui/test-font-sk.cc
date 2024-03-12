@@ -1,6 +1,6 @@
 
-#include <quark/app.h>
-#include <quark/display.h>
+#include <quark/ui/app.h>
+#include <quark/ui/window.h>
 #include <quark/render/skia/skia_render.h>
 #include <quark/render/font/pool.h>
 #include <skia/core/SkCanvas.h>
@@ -114,7 +114,7 @@ void testFontPool(Application* app, SkCanvas* canvas) {
 
 }
 
-void test_font(int argc, char **argv) {
+void test_font_sk(int argc, char **argv) {
 	auto post = [](Application* app) {
 		app->render()->post_message(Cb([app](CbData&data) {
 			auto render = static_cast<SkiaRender*>(app->render()->visitor());

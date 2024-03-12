@@ -60,7 +60,7 @@ void test_blur(int argc, char **argv) {
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Blur"});
 	auto r = win->root();
 	auto t = New<Box>(new TestBlur(win))->append_to<Box>(r);
-	r->set_background_color({255,255,0,0});
+	r->set_background_color({255,0,0,0});
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	app.run();

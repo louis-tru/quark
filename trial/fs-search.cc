@@ -35,95 +35,85 @@
 
 namespace qk {
 
-	// FileSearch implementation
-
 	String fs_format_part_path(cString& path);
 
 	class FileSearch::SearchPath {
 	public:
-		virtual ZipInSearchPath* as_zip() { return NULL; }
-		virtual String get_absolute_path(cString& path);
-		virtual Buffer read(cString& path);
-		inline String path() { return m_path; }
+		virtual ZipInSearchPath* as_zip() {
+			return nullptr;
+		}
+		virtual String get_absolute_path(cString& path) {
+			return fs_format("%s/%s", *m_searchPath, *path);
+		}
+		virtual bool exists(cString& path) {
+			return fs_exists_sync(fs_format("%s/%s", *m_searchPath, *path));
+		}
+		virtual Buffer read(cString& path) {
+			String p = fs_format("%s/%s", *m_searchPath, *path);
+			return fs_read_file_sync( p );
+		}
+		inline String searchPath() {
+			return m_searchPath;
+		}
+
 	protected:
-		String m_path;
+		String m_searchPath;
 		friend class ZipInSearchPath;
 	private:
-		SearchPath(cString& path): m_path(path) { }
-		virtual ~SearchPath() { }
+		SearchPath(cString& path): m_searchPath(path) { }
+		virtual ~SearchPath() {}
 		friend class FileSearch;
 	};
 
 	class FileSearch::ZipInSearchPath: public FileSearch::SearchPath {
 	public:
-		ZipInSearchPath* as_zip() { return this; }
-		String get_absolute_path(cString& path);
-		Buffer read(cString& path);
-		Buffer read_by_in_path(cString& path);
-		bool exists_by_abs(cString& path);
-		inline String zip_path() { return m_zip_path; }
-		static String formatPath(cString& path1, cString& path2);
+		String get_absolute_path(cString& path) override {
+			String s = formatPath(m_searchPath, path);
+			return String::format("zip://%s@/%s", /*file:// */ *m_zip_path.substr(7), *s);
+		}
+		bool exists(cString& path) override {
+			return m_zip.exists(formatPath(m_searchPath, path));
+		}
+		Buffer read(cString& path) override {
+			return read_by_in_path(formatPath(m_searchPath, path));
+		}
+		Buffer read_by_in_path(cString& path) {
+			if (m_zip.jump(path)) {
+				return m_zip.read();
+			}
+			return Buffer();
+		}
+		bool exists_by_full(cString& path) { // searchPath + path
+			return m_zip.exists(path);
+		}
+		inline String zip_path() {
+			return m_zip_path;
+		}
+		ZipInSearchPath* as_zip() override {
+			return this;
+		}
+		static String formatPath(cString& path1, cString& path2) {
+			return fs_format_part_path(String(path1).append('/').append(path2));
+		}
 	private:
-		ZipInSearchPath(cString& zip_path, cString& path);
-		~ZipInSearchPath();
+		ZipInSearchPath(cString& zip_path, cString& path)
+			: SearchPath(path)
+			, m_zip_path(zip_path)
+			, m_zip (zip_path)
+		{
+			auto isOpen = m_zip.open();
+			Qk_ASSERT( isOpen, "Cannot open zip file, `%s`", *zip_path );
+		}
+		~ZipInSearchPath() = default;
 		String m_zip_path;
 		ZipReader m_zip;
 		friend class FileSearch;
 	};
 
-	String FileSearch::SearchPath::get_absolute_path(cString& path) {
-		String p = fs_format("%s/%s", *m_path, *path);
-		if (fs_exists_sync(p)) {
-			return p;
-		}
-		return String();
-	}
-
-	Buffer FileSearch::SearchPath::read(cString& path) {
-		String p = fs_format("%s/%s", *m_path, *path);
-		return fs_read_file_sync( p );
-	}
-
-	String FileSearch::ZipInSearchPath::formatPath(cString& path1, cString& path2) {
-		return fs_format_part_path(String(path1).append('/').append(path2));
-	}
-
-	String FileSearch::ZipInSearchPath::get_absolute_path(cString& path) {
-		String s = formatPath(m_path, path);
-		if (m_zip.exists(s)) {
-			return String::format("zip://%s@/%s", /*file:// */ *m_zip_path.substr(7), *s);
-		}
-		return String();
-	}
-
-	Buffer FileSearch::ZipInSearchPath::read(cString& path) {
-		return read_by_in_path(formatPath(m_path, path));
-	}
-
-	Buffer FileSearch::ZipInSearchPath::read_by_in_path(cString& path) {
-		if (m_zip.jump(path)) {
-			return m_zip.read();
-		}
-		return Buffer();
-	}
-
-	bool FileSearch::ZipInSearchPath::exists_by_abs(cString& path) {
-		return m_zip.exists(path);
-	}
-
-	FileSearch::ZipInSearchPath::ZipInSearchPath(cString& zip_path, cString& path)
-		: SearchPath(path)
-		, m_zip_path(zip_path)
-		, m_zip (zip_path) {
-		Qk_ASSERT( m_zip.open(), "Cannot open zip file, `%s`", *zip_path );
-	}
-
-	FileSearch::ZipInSearchPath::~ZipInSearchPath() {
-	}
+	// ------------------ F i l e . S e a r c h ------------------
 
 	FileSearch::FileSearch() {
-		// 把资源目录加入进来
-		cString& res = fs_resources();
+		cString& res = fs_resources(); // 把资源目录加入进来
 		
 		if (fs_is_local_zip(res)) { // zip pkg
 			int i = res.indexOf("@/");
@@ -155,7 +145,7 @@ namespace qk {
 		for (; it != end; it++) {
 			FileSearch::SearchPath* s = *it;
 			if (!s->as_zip()) {
-				if (s->path() == str) {
+				if (s->searchPath() == str) {
 					Qk_WARN("SEARCH", "The repetitive path, \"%s\"", *path);
 					// Fault tolerance, skip the same path
 					return;
@@ -178,7 +168,7 @@ namespace qk {
 		for (; it != end; it++) {
 			if ((*it)->as_zip()) {
 				FileSearch::ZipInSearchPath* s = (*it)->as_zip();
-				if (s->zip_path() == _zip_path && s->path() == _path) {
+				if (s->zip_path() == _zip_path && s->searchPath() == _path) {
 					Qk_WARN("SEARCH", "The repetitive path, ZIP: %s, %s", *zip_path, *path);
 					// Fault tolerance,skip the same path
 					return;
@@ -188,29 +178,18 @@ namespace qk {
 		m_search_paths.pushBack(new FileSearch::ZipInSearchPath(_zip_path, _path));
 	}
 
-	/**
-	*  Gets the array of search paths.
-	*
-	*  @ret {const Array<String>} The array of search paths.
-	*/
 	Array<String> FileSearch::get_search_paths() const {
-		auto it = m_search_paths.begin();
-		auto end = m_search_paths.end();
-		Array<String> rest;
-		for (; it != end; it++) {
-			rest.push((*it)->path());
-		}
-		return rest;
+		Array<String> result;
+		for (auto i: m_search_paths)
+			result.push(i->searchPath());
+		Qk_ReturnLocal(result);
 	}
 
-	/**
-	* remove search path
-	*/
 	void FileSearch::remove_search_path(cString& path) {
 		auto it = m_search_paths.begin();
 		auto end = m_search_paths.end();
 		for ( ; it != end; it++) {
-			if ((*it)->path() == path) {
+			if ((*it)->searchPath() == path) {
 				delete (*it);
 				m_search_paths.erase(it);
 				return;
@@ -218,106 +197,82 @@ namespace qk {
 		}
 	}
 
-	/**
-	* Removes all search paths.
-	*/
 	void FileSearch::remove_all_search_path() {
-		auto it = m_search_paths.begin();
-		auto end = m_search_paths.end();
-		for (; it != end; it++) {
-			delete it.ptr();
-		}
+		for (auto i: m_search_paths)
+			delete i;
 		m_search_paths.clear();
 	}
 
+	bool FileSearch::exists(cString& path) const {
+		return searchPath(path, nullptr);
+	}
+
 	String FileSearch::get_absolute_path(cString& path) const {
-		
+		String restult;
+		searchPath(path, &restult);
+		Qk_ReturnLocal(restult);
+	}
+
+	bool FileSearch::searchPath(cString& path, String *outAbsolute) const {
 		if (path.isEmpty()) {
-			Qk_WARN("SEARCH", "Search path cannot be a empty and null");
-			return String();
+			return false;
 		}
-		
-		if (fs_is_local_absolute(path)) {
-			return fs_exists_sync(path) ? fs_format(path.c_str()) : String();
-		}
-		
-		auto it = m_search_paths.begin();
-		auto end = m_search_paths.end();
-		
-		if (path.substr(0, 7).lowerCase().indexOf("zip:///") == 0) {
-			
-			String path_s = path.substr(7);
-			Array<String> ls = path_s.split("@/");
-			
-			if (ls.length() > 1) {
-				String zip_path = ls[0];
-				path_s = ls[1];
-				
-				for ( ; it != end; it++ ) {
-					auto zip = (*it)->as_zip();
-					if (zip && zip->zip_path() == zip_path) {
-						if (zip->exists_by_abs(path_s)) {
-							return path;
+		if (fs_is_local_zip(path)) { // abs path
+			auto paths = path.substr(7).split("@/");
+			if (paths.length() > 1) {
+				for ( auto i: m_search_paths ) {
+					auto zip = i->as_zip();
+					if (zip && zip->zip_path() == paths[0]) {
+						if (zip->exists_by_full(paths[1])) {
+							if (outAbsolute)
+								*outAbsolute = path;
+							return true;
 						}
 					}
 				}
 			}
-		}
-		else {
-			for ( ; it != end; it++ ) {
-				String abs_path = (*it)->get_absolute_path(path);
-				if (String() != abs_path) {
-					return abs_path;
+		} else if (fs_is_local_absolute(path)) {
+			if (fs_exists_sync(path)) {
+				if (outAbsolute)
+					*outAbsolute = fs_format(path.c_str());
+				return true;
+			}
+		} else {
+			for ( auto i: m_search_paths ) {
+				if (i->exists(path)) {
+					if (outAbsolute)
+						*outAbsolute = i->get_absolute_path(path);
+					return true;
 				}
 			}
 		}
-		return String();
-	}
-
-	bool FileSearch::exists(cString& path) const {
-		return !get_absolute_path(path).isEmpty();
+		return false;
 	}
 
 	Buffer FileSearch::read(cString& path) const {
-		
 		if (path.isEmpty()) {
 			return Buffer();
 		}
-		
-		if (fs_is_local_absolute(path)) { // absolute path
+		if (fs_is_local_zip(path)) { // zip pkg inner file
+			auto paths = path.substr(7).split("@/");
+			if (paths.length() > 1) {
+				for ( auto i: m_search_paths ) {
+					auto zip = i->as_zip();
+					if (zip && zip->zip_path() == paths[0]) {
+						return zip->read_by_in_path(paths[1]);
+					}
+				}
+			}
+		} else if (fs_is_local_absolute(path)) { // absolute path
 			return fs_read_file_sync(path);
-		}
-		else {
-			
-			auto it = m_search_paths.begin();
-			auto end = m_search_paths.end();
-			if (path.substr(0, 7).lowerCase().indexOf("zip:///") == 0) { // zip pkg inner file
-				
-				String path_s = path.substr(7);
-				Array<String> ls = path_s.split("@/");
-				
-				if (ls.length() > 1) {
-					String zip_path = ls[0];
-					path_s = ls[1];
-					
-					for ( ; it != end; it++ ) {
-						auto zip = (*it)->as_zip();
-						if (zip && zip->zip_path() == zip_path) {
-							return zip->read_by_in_path(path_s);
-						}
-					}
-				}
-			}
-			else {
-				for ( ; it != end; it++ ) {
-					Buffer data = (*it)->read(path);
-					if (data.length()) {
-						return data;
-					}
+		} else {
+			for ( auto i: m_search_paths ) {
+				if (i->exists(path)) {
+					return i->read(path);
 				}
 			}
 		}
-		
+
 		return Buffer();
 	}
 

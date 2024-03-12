@@ -15,7 +15,7 @@ class MyCanvas: public BoxLayout {
 public:
 	MyCanvas(Window *win): BoxLayout(win) {}
 
-	void draw() {
+	void draw(UIRender *render) override {
 		// mark_none(kLayout_None); return;
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
@@ -113,9 +113,6 @@ public:
 		mark_render();
 	}
 
-	void render(UIRender *r) {
-		draw();
-	}
 };
 
 void test_canvas(int argc, char **argv) {
@@ -123,7 +120,7 @@ void test_canvas(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0});
 	win->activate();
 	// layout
-	auto t = New<Box>(new MyCanvas(win))->append_to<Box>((win->root()))->layout<MyCanvas>();
+	auto t = New<Box>(new MyCanvas(win))->append_to<Box>((win->root()));
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

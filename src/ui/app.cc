@@ -157,7 +157,11 @@ namespace qk {
 	}
 
 	void Application::lockAllRenderThreads(Cb cb) {
-		// TODO ...
+		ScopeLock lock(_mutex);
+		Array<UILock*> locks;
+		for (auto w: _windows) locks.push(new UILock(w));
+		cb->resolve();
+		for (auto lock: locks) delete lock;
 	}
 
 	// ------------------- A p p l i c a t i o n :: I n l -------------------

@@ -93,7 +93,7 @@ namespace qk {
 	void PreRender::solveMarks() {
 		// First forward iteration
 		for (auto &levelMarks: _marks) {
-			for (auto layout: levelMarks) {
+			for (auto &layout: levelMarks) {
 				if (layout) {
 					if (layout->_mark_value & Layout::kStyle_Class) {
 						layout->applyClass(layout->parentSsclass());
@@ -114,7 +114,7 @@ namespace qk {
 			// reverse iteration
 			for (int i = _marks.length() - 1; i >= 0; i--) {
 				auto &levelMarks = _marks[i];
-				for (auto layout: levelMarks) {
+				for (auto &layout: levelMarks) {
 					if (layout) {
 						if ( layout->layout_reverse(layout->_mark_value) ) {
 							// simple delete mark recursive
@@ -129,7 +129,7 @@ namespace qk {
 
 			// forward iteration
 			for (auto &levelMarks: _marks) {
-				for (auto layout: levelMarks) {
+				for (auto &layout: levelMarks) {
 					if (layout) {
 						if ( layout->layout_forward(layout->_mark_value) ) {
 							// simple delete mark
@@ -174,9 +174,11 @@ namespace qk {
 		}
 	}
 
-	/**
-	 * Work around flagging views that need to be updated
-	 */
+	void PreRender::flushAsyncCall() {
+		asyncCommit();
+		solveAsyncCall();
+	}
+
 	bool PreRender::solve(int64_t time) {
 		solveAsyncCall();
 

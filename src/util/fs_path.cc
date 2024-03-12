@@ -129,29 +129,31 @@ namespace qk {
 	}
 
 	bool fs_is_local_zip(cString& path) {
+		auto c = path.c_str();
 		if (
-				(path[0] == 'z' || path[0] == 'Z') &&
-				(path[1] == 'i' || path[1] == 'I') &&
-				(path[2] == 'p' || path[2] == 'P') &&
-				path[3] == ':' &&
-				path[4] == '/' &&
-				path[5] == '/' &&
-				path[6] == '/') {
+				(c[0] == 'z' || c[0] == 'Z') &&
+				(c[1] == 'i' || c[1] == 'I') &&
+				(c[2] == 'p' || c[2] == 'P') &&
+				c[3] == ':' &&
+				c[4] == '/' &&
+				c[5] == '/' &&
+				c[6] == '/') {
 			return true;
 		}
 		return false;
 	}
 
 	bool fs_is_local_file(cString& path) {
+		auto c = path.c_str();
 		if (
-				(path[0] == 'f' || path[0] == 'F') &&
-				(path[1] == 'i' || path[1] == 'I') &&
-				(path[2] == 'l' || path[2] == 'L') &&
-				(path[3] == 'e' || path[3] == 'E') &&
-				path[4] == ':' &&
-				path[5] == '/' &&
-				path[6] == '/' &&
-				path[7] == '/') {
+				(c[0] == 'f' || c[0] == 'F') &&
+				(c[1] == 'i' || c[1] == 'I') &&
+				(c[2] == 'l' || c[2] == 'L') &&
+				(c[3] == 'e' || c[3] == 'E') &&
+				c[4] == ':' &&
+				c[5] == '/' &&
+				c[6] == '/' &&
+				c[7] == '/') {
 			return true;
 		}
 		return false;

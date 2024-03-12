@@ -259,12 +259,11 @@ namespace qk {
 	 * @func
 	 */
 	bool ZipReader::open() {
-		
 		if ( _unzp ) {
-			Qk_ERR("First close the open file");
-			return false;
+			// Qk_ERR("First close the open file");
+			return true;
 		}
-		
+
 		unzFile unzp = unzOpen(fs_fallback_c(_path));
 		if ( !unzp ) {
 			Qk_ERR("Cannot open file ZipReader, %s", _path.c_str());
@@ -282,7 +281,7 @@ namespace qk {
 		unz_file_info unzfi;
 		unz_file_pos pos;
 		int code;
-		
+
 		do {
 			code = unzGetFilePos(unzp, &pos);
 			if ( code ) {
@@ -300,18 +299,15 @@ namespace qk {
 			_inl_reader(this)->add_dir_info_item(pathname, FTYPE_FILE);
 			_file_info[info.pathname] = info;
 		} while(unzGoToNextFile(unzp) == UNZ_OK);
-		
+
 		first();
-		
+
 		clear.collapse(); // 安全通过后取消
 		
 		_unzp = unzp;
 		return true;
 	}
 
-	/**
-	 * @func close
-	 */
 	bool ZipReader::close() {
 		if ( _unzp ) {
 			if ( !_inl_reader(this)->_close_current_file() ) {
@@ -345,9 +341,6 @@ namespace qk {
 		return _dir_info.find(path) != _dir_info.end();
 	}
 
-	/**
-	 * @func readdir(path)
-	 */
 	Array<Dirent> ZipReader::readdir(cString& path) const {
 		auto it = _dir_info.find(path);
 		if ( it == _dir_info.end() ) {
@@ -438,10 +431,10 @@ namespace qk {
 			Qk_ERR("First close the open file");
 			return false;
 		}
-		
+
 		_open_mode = mode;
 		_zipp = zipOpen(fs_fallback(_path).c_str(), _open_mode);
-		
+
 		if ( !_zipp ) {
 			Qk_ERR("Cannot open file ZipWriter, %s", _path.c_str());
 			return false;
@@ -449,9 +442,6 @@ namespace qk {
 		return true;
 	}
 
-	/**
-	 * @func close
-	 */
 	bool ZipWriter::close() {
 		if ( _zipp ) {
 			close_current_file();

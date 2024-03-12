@@ -44,7 +44,7 @@
 namespace qk {
 
 	UILock::UILock(Window *win): _win(win), _lock(true) {
-		win->_render_mutex.lock();
+		win->_renderMutex.lock();
 	}
 
 	UILock::~UILock() {
@@ -54,13 +54,13 @@ namespace qk {
 	void UILock::lock() {
 		if (!_lock) {
 			_lock = true;
-			_win->_render_mutex.lock();
+			_win->_renderMutex.lock();
 		}
 	}
 
 	void UILock::unlock() {
 		if (_lock) {
-			_win->_render_mutex.unlock();
+			_win->_renderMutex.unlock();
 			_lock = false;
 		}
 	}
@@ -114,17 +114,20 @@ namespace qk {
 		UILock lock(this); // lock ui
 		if (!_render) return false;
 
+		_root->remove_all_child(); // remove child view
+		Release(_root); _root = nullptr; // release root view
+		_preRender.flushAsyncCall(); // flush async call
+
+		// ------------------------
+
 		lock.unlock(); // Avoid deadlocks with rendering threads
 		Release(_render); _render = nullptr; // delete obj and stop render draw
 		lock.lock(); // relock
-		_root->remove_all_child(); // remove child view
-		Release(_root);      _root = nullptr;
 		Release(_dispatch); _dispatch = nullptr;
 		Release(_uiRender); _uiRender = nullptr;
 
-		_preRender.clearTasks();
-		_preRender.asyncCommit();
-		_preRender.solveAsyncCall();
+		_preRender.clearTasks(); // clear tasks
+		_preRender.flushAsyncCall(); // reflush async call
 
 		Release(_actionCenter); _actionCenter = nullptr;
 

@@ -128,8 +128,8 @@ namespace qk {
 		Qk_Set_Accessor(Box, CLIP, clip);
 		Qk_Set_Accessor(Box, WIDTH, width);
 		Qk_Set_Accessor(Box, HEIGHT, height);
-		Qk_Set_Accessor(Box, WIDTH, width_limit);
-		Qk_Set_Accessor(Box, HEIGHT, height_limit);
+		Qk_Set_Accessor(Box, WIDTH_LIMIT, width_limit);
+		Qk_Set_Accessor(Box, HEIGHT_LIMIT, height_limit);
 		Qk_Set_Accessor(Box, MARGIN_TOP, margin_top);
 		Qk_Set_Accessor(Box, MARGIN_RIGHT, margin_right);
 		Qk_Set_Accessor(Box, MARGIN_BOTTOM, margin_bottom);

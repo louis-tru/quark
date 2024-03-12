@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <quark/util/fs.h>
-#include <quark/fs.h>
+#include <trial/fs.h>
 #include <pwd.h>
 
 using namespace qk;
@@ -66,10 +66,10 @@ void test_fs(int argc, char **argv) {
 	Qk_LOG("设置工作目录,%s", *fs_cwd());
 	
 	FileSearch* search = FileSearch::shared();
-	search->add_search_path("res/test");
-	search->add_search_path("res/test/test");
-	search->add_zip_search_path("res/test-fs.apk", "assets");
-	search->add_zip_search_path("res/test-fs.apk", "assets/thk/res_r_hd");
+	search->add_search_path(fs_resources("res/test"));
+	search->add_search_path(fs_resources("res/test/test"));
+	search->add_zip_search_path(fs_resources("res/test-fs.apk"), "assets");
+	search->add_zip_search_path(fs_resources("res/test-fs.apk"), "assets/thk/res_r_hd");
 	
 	Qk_LOG("length, %d", search->get_search_paths().length());
 	

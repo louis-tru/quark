@@ -204,7 +204,7 @@ namespace qk {
 		int64_t        _fspTime;
 		Array<RegionSize> _clipRegion;
 		List<Window*>::Iterator _id;
-		RecursiveMutex _render_mutex;
+		RecursiveMutex _renderMutex;
 		PreRender _preRender;
 		friend class WindowImpl;
 		friend class UILock;

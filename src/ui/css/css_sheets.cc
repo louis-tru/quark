@@ -159,7 +159,7 @@ namespace qk {
 					auto type = kNone_CSSType;
 					auto k = n.split(':'); // .div_cls:hover
 					if (k.length() > 1) {
-						// normal | hover | down
+						// normal | hover | active
 						if (!Pseudo_type_keys.get(k[1], type))
 							Qk_InvalidCss(exp);
 						n = k[0];
@@ -175,7 +175,7 @@ namespace qk {
 			#undef Qk_InvalidCss
 		};
 
-		// .div_cls.div_cls2.kkk .aa.bb.cc, .div_cls.div_cls2.ddd:down .aa.bb.cc
+		// .div_cls.div_cls2.kkk .aa.bb.cc, .div_cls.div_cls2.ddd:active .aa.bb.cc
 		for ( auto &i : exp.split(',') )
 			searchItem(i);
 

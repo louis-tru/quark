@@ -32,8 +32,7 @@
 #include <quark/util/string.h>
 #include <quark/util/dict.h>
 #include <quark/util/fs.h>
-#include <trial/fs.h>
-#include <quark/os/os.h>
+#include <quark/os/device.h>
 #include <trial/fs.h>
 
 #include <ft2build.h>

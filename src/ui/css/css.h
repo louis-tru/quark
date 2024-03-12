@@ -153,7 +153,7 @@ namespace qk {
 		RootStyleSheets();
 
 		/**
-		*  ".div_cls.div_cls2 .aa.bb.cc, .div_cls.div_cls2:down .aa.bb.cc"
+		*  ".div_cls.div_cls2 .aa.bb.cc, .div_cls.div_cls2:active .aa.bb.cc"
 		*
 		* @method search()
 		*/

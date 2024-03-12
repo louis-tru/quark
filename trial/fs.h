@@ -33,10 +33,6 @@
 
 #include "quark/util/fs.h"
 
-/**
- * @ns quark
- */
-
 namespace qk {
 
 	/**
@@ -45,66 +41,64 @@ namespace qk {
 	class Qk_EXPORT FileSearch: public Object {
 		Qk_HIDDEN_ALL_COPY(FileSearch);
 	public:
-		
 		FileSearch();
-		
+		~FileSearch();
+
 		/**
-		* @destructor
-		*/
-		virtual ~FileSearch();
-		
-		/**
-		* 添加一个搜索路径,路径必需存在
+		* @method add_search_path()
+		* Add a search path, which must exist
 		*/
 		void add_search_path(cString& path);
-		
+
 		/**
-		* @func add_zip_search_path() 添加一个zip包内的搜索路径,只能添加没加密的zip包
+		* @method add_zip_search_path()
+		* Add a search path within a zip package, only unencrypted zip packages can be added
 		*/
 		void add_zip_search_path(cString& zip_path, cString& path);
-		
+
 		/**
-		* @func get_search_paths() Gets the array of search paths.
+		* @method get_search_paths() Gets the array of search paths.
 		*/
 		Array<String> get_search_paths() const;
-		
+
 		/**
-		* @func remove_search_path() remove search path
+		* @method remove_search_path() remove search path
 		*/
 		void remove_search_path(cString& path);
-		
+
 		/**
-		* @func remove_all_search_path() Removes all search paths.
+		* @method remove_all_search_path() Removes all search paths.
 		*/
 		void remove_all_search_path();
-		
+
+		/**
+		* @method exists() # Find the file exists
+		*/
+		bool exists(cString& path) const;
+
 		/**
 		*
 		* To obtain the absolute path to the file already exists.
 		* If no such file returns the empty string ""
 		* If it is a zip package path, will return with the prefix "zip:///home/xxx/test.apk@/assets/bb.jpg"
-		* @func get_absolute_path
+		* @method get_absolute_path()
 		*/
 		String get_absolute_path(cString& path) const;
-		
+
 		/**
-		* @func exists # Find the file exists
-		*/
-		bool exists(cString& path) const;
-		
-		/**
-		* @func read_file Read the all file data and return Data
+		* @method read() Read the all file data and return Data
 		*/
 		Buffer read(cString& path) const;
-		
+
 		/**
-		* @func share # Gets the instance of FileSearch.
+		* @method share # Gets the instance of FileSearch.
 		*/
 		static FileSearch* shared();
-		
+
 	private:
 		class SearchPath;
 		class ZipInSearchPath;
+		bool searchPath(cString& path, String *outAbsolute) const;
 		List<SearchPath*> m_search_paths; // Search path list
 	};
 

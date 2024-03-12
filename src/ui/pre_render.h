@@ -107,6 +107,7 @@ namespace qk {
 		void clearTasks();
 		void asyncCommit(); // commit async cmd to ready, only main thread call
 		void solveAsyncCall();
+		void flushAsyncCall();
 
 		struct AsyncCall {
 			void *ctx, *exec;

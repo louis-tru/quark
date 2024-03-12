@@ -29,18 +29,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <quark/util/util.h>
-#include <quark/codec/codec.h>
-//#include <quark/sprite.h>
-//#include <quark/div.h>
-#include <quark/app.h>
-#include <quark/display.h>
-#include <quark/layout/root.h>
 #include <quark/util/fs.h>
-#include <quark/gl/gl.h>
+#include <quark/ui/app.h>
+#include <quark/ui/layout/box.h>
+#include <quark/ui/window.h>
 
 using namespace qk;
-using qk::value::ValueType;
-using qk::value::Value;
+// using qk::value::ValueType;
+// using qk::value::Value;
 
 void onload_handle (Event<>& evt, void* user) {
 	Root* r = New<Root>();
@@ -115,7 +111,6 @@ void onload_handle (Event<>& evt, void* user) {
 	//  img->border_left_color(Color(255, 0, 0));
 	//  img->border_bottom_width(0);
 	r->append(img);
-	
 }
 
 void test_gui(int argc, char **argv) {
