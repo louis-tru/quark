@@ -39,7 +39,7 @@ namespace qk {
 	typedef Dict<String, String> Map;
 
 	static String http_cache_path_ = String();
-	static String http_user_agent_ = "Mozilla/5.0 quark " QUARK_VERSION " (KHTML, like Gecko)";
+	static String http_user_agent_ = "Mozilla/5.0 quark " Qk_VERSION " (KHTML, like Gecko)";
 	// "Mozilla/5.0 (%s/%s) quark " NOUG_VERSION " (KHTML, like Gecko)";
 
 	HttpError::HttpError(int rc, cString& msg, uint32_t status, cString& url)

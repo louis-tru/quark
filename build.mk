@@ -63,7 +63,7 @@ build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile,$(MAKE))
 
 test2: $(GYPFILES)
-	@make -C test -f test2.mk
+	@make -C test/2 -f test2.mk
 
 $(ANDROID_JAR): android/org/quark/*.java
 	@mkdir -p out/android.classs

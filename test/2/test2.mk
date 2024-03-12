@@ -1,12 +1,16 @@
 
-include ../out/config.mk
+BASE       ?= ../..
+
+include $(BASE)/out/config.mk
 
 SYSROOT    ?= /
 OS         ?= $(shell uname) # target os platform
 ARCH       ?= $(shell arch)  # target arch
 BUILDTYPE  ?= Release
 SUFFIX     ?= $(ARCH)
-OUT        ?= ../out/$(OS).$(SUFFIX).$(BUILDTYPE)/test2/out
+OUT        ?= $(BASE)/out/$(OS).$(SUFFIX).$(BUILDTYPE)/test2/out
+SRC        ?= $(BASE)/src
+DEPS       ?= $(BASE)/deps
 CXX        ?= g++
 CC         ?= gcc
 LINK       ?= g++
@@ -36,14 +40,14 @@ endif
 # android
 # -ffunction-sections -fdata-sections 
 
-INCLUDES	 = -I. -I.. -I../out -I../deps/libtess2/Include
+INCLUDES	 = -I. -I$(BASE) -I$(BASE)/out -I$(DEPS)/libtess2/Include
 CFLAGS		 = -Wall -g -O0 '-DDEBUG' '-D_DEBUG'
 # CXXFLAGS 	 = -std=c++0x -fexceptions -frtti
 CXXFLAGS 	 = -std=c++14 -fexceptions -frtti
 LINKFLAGS_START =
 LINKFLAGS  =
 CXX_SOURCES = \
-	../out/test2.cc \
+	$(BASE)/out/test2.cc \
 	test2-thread.cc \
 	test2-sys.cc \
 	test2-str.cc \
@@ -55,38 +59,38 @@ CXX_SOURCES = \
 	test2-arr.cc \
 	test2-cls.cc \
 	test2-try.cc \
-	../src/util/log.cc \
-	../src/util/array.cc \
-	../src/util/string.cc \
-	../src/util/object.cc \
-	../src/util/hash.cc \
-	../src/util/codec.cc \
-	../src/util/error.cc \
-	../src/util/dict.cc \
-	../src/util/util.cc \
-	../src/util/numbers.cc \
-	../src/render/bezier.cc \
-	../src/render/math.cc \
-	../src/render/path.cc \
-	../src/render/stroke.cc \
-	../src/render/ft/ft_path.cc \
+	$(SRC)/util/log.cc \
+	$(SRC)/util/array.cc \
+	$(SRC)/util/string.cc \
+	$(SRC)/util/object.cc \
+	$(SRC)/util/hash.cc \
+	$(SRC)/util/codec.cc \
+	$(SRC)/util/error.cc \
+	$(SRC)/util/dict.cc \
+	$(SRC)/util/util.cc \
+	$(SRC)/util/numbers.cc \
+	$(SRC)/render/bezier.cc \
+	$(SRC)/render/math.cc \
+	$(SRC)/render/path.cc \
+	$(SRC)/render/stroke.cc \
+	$(SRC)/render/ft/ft_path.cc \
 
 # deps/tess
 C_SOURCES += \
-	../deps/libtess2/Source/bucketalloc.c \
-	../deps/libtess2/Source/dict.c \
-	../deps/libtess2/Source/geom.c \
-	../deps/libtess2/Source/mesh.c \
-	../deps/libtess2/Source/priorityq.c \
-	../deps/libtess2/Source/sweep.c \
-	../deps/libtess2/Source/tess.c \
-	../src/render/ft/ft_math.c \
-	../src/render/ft/ft_stroke.c \
+	$(DEPS)/libtess2/Source/bucketalloc.c \
+	$(DEPS)/libtess2/Source/dict.c \
+	$(DEPS)/libtess2/Source/geom.c \
+	$(DEPS)/libtess2/Source/mesh.c \
+	$(DEPS)/libtess2/Source/priorityq.c \
+	$(DEPS)/libtess2/Source/sweep.c \
+	$(DEPS)/libtess2/Source/tess.c \
+	$(SRC)/render/ft/ft_math.c \
+	$(SRC)/render/ft/ft_stroke.c \
 
 # ---------------------------- Platform ----------------------------
 
 ifeq ($(LINUX),1)
-	INCLUDES += -I../tools/linux/usr/include
+	INCLUDES += -I$(BASE)/tools/linux/usr/include
 	LINKFLAGS_START += -Wl,--whole-archive
 	LINKFLAGS += -Wl,--no-whole-archive -lGLESv2 -lEGL -lX11 -pthread -lasound
 	CXX_SOURCES +=	test2-alsa.cc \
@@ -125,13 +129,13 @@ build: cfg
 	@make -f test2.mk $(TARGET)
 
 cfg:
-	@if [ ! -f ../out/test2_cfg.h ] || [ "`grep test2_$(TEST) ../out/test2_cfg.h`" == "" ]; then \
-		echo '#define TEST_FUNC_NAME test2_$(TEST)' > ../out/test2_cfg.h; \
+	@if [ ! -f $(BASE)/out/test2_cfg.h ] || [ "`grep test2_$(TEST) $(BASE)/out/test2_cfg.h`" == "" ]; then \
+		echo '#define TEST_FUNC_NAME test2_$(TEST)' > $(BASE)/out/test2_cfg.h; \
 	fi
 
-../out/test2.cc: test2.cc ../out/test2_cfg.h
-	@echo '#include "test2_cfg.h"' > ../out/test2.cc
-	@echo '#include "../test/test2.cc"' >> ../out/test2.cc
+$(BASE)/out/test2.cc: test2.cc $(BASE)/out/test2_cfg.h
+	@echo '#include "test2_cfg.h"' > $(BASE)/out/test2.cc
+	@echo '#include "../test/2/test2.cc"' >> $(BASE)/out/test2.cc
 
 $(TARGET): $(CXX_OBJS) $(C_OBJS)
 	$(LINK) -o $(TARGET) $(LINKFLAGS_START) $(CXX_OBJS) $(C_OBJS) $(LINKFLAGS)

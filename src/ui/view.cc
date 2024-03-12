@@ -117,9 +117,11 @@ namespace qk {
 	}
 
 	void View::set_action(Action* action) throw(Error) {
-		Qk_Check(action->window() == window(),
-			ERR_ACTION_SET_WINDOW_NO_MATCH, "View::set_action, set action window not match"
-		);
+		if (action) {
+			Qk_Check(action->window() == window(),
+				ERR_ACTION_SET_WINDOW_NO_MATCH, "View::set_action, set action window not match"
+			);
+		}
 		if (action != _action) {
 			if ( _action ) {
 				_action->del_target(_layout);

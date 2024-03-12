@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <quark/util/fs.h>
-#include <trial/fs.h>
+#include <quark/fs.h>
 #include <pwd.h>
 
 using namespace qk;

@@ -486,9 +486,9 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::optimize_() {
-		if (_length > (_capacity << 2)) {
+		if (_length > (_capacity >> 1)) {
 			A::free(_indexed);
-			_capacity >>= 2;
+			_capacity <<= 1;
 			_indexed = (Node**)A::alloc(sizeof(Node) * _capacity);
 			::memset(_indexed, 0, sizeof(Node*) * _capacity);
 			auto node = _end._next;
