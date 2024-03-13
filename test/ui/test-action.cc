@@ -12,7 +12,6 @@ void test_action(int argc, char **argv) {
 	div_cls->set_width({ 100, SizeKind::kMatch });
 	div_cls->set_height({ 0, SizeKind::kMatch });
 	div_cls->set_background_color({255,0,0,255});
-	//div_cls->set_background(new FillGradientRadial({1,0},{{1,0,0},{0,1,0}}));
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Action"});
 	auto box = win->root()->append_new<Box>();
 	box->cssclass()->add("div_cls");
