@@ -51,7 +51,6 @@ namespace qk {
 
 	Action::~Action() {
 		Qk_ASSERT( _id == Id() );
-		clear_RT();
 		_window = nullptr;
 	}
 
@@ -201,7 +200,7 @@ namespace qk {
 	}
 
 	int Action::set_parent_RT(Action *parent) {
-		if (_parent->_window != _window) {
+		if (parent->_window != _window) {
 			Qk_ERR("Action::set_parent_RT, set action window not match");
 			return ERR_ACTION_SET_WINDOW_NO_MATCH;
 		}

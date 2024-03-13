@@ -108,7 +108,7 @@ namespace qk {
 		virtual void append(Action *child);
 		virtual uint32_t advance_RT(uint32_t time_span, bool restart, Action* root);
 		virtual void seek_time_RT(uint32_t time, Action* root);
-		virtual void seek_before_RT(int32_t time, Action* child);
+		virtual void seek_before_RT(uint32_t time, Action* child);
 		virtual void clear_RT();
 
 		Array<Keyframe*> _frames, _frames_RT;

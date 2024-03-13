@@ -131,7 +131,7 @@ namespace qk {
 		}
 	}
 
-	void SpawnAction::seek_before_RT(int32_t time, Action *child) {
+	void SpawnAction::seek_before_RT(uint32_t time, Action *child) {
 		if (_parent) {
 			_parent->seek_before_RT(time, this);
 		} else {
@@ -139,7 +139,7 @@ namespace qk {
 		}
 	}
 
-	void SequenceAction::seek_before_RT(int32_t time, Action *child) {
+	void SequenceAction::seek_before_RT(uint32_t time, Action *child) {
 		for ( auto &i : _actions_RT ) {
 			if ( child == i ) {
 				break;

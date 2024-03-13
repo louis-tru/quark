@@ -103,25 +103,25 @@ namespace qk {
 		void before(Action *act);
 
 		/**
-		 * @async
-		 * @method after
+		* @async
+		* @method after
 		*/
 		void after(Action *act);
 
 		/**
-		 * @async
-		 * @method remove from parent action
+		* @async
+		* @method remove from parent action
 		*/
 		void remove();
 
 		/**
-		 * @async
+		* @async
 		* @method append child action
 		*/
 		virtual void append(Action *child) = 0;
 
 		/**
-		 * @async
+		* @async
 		* @method clear action
 		*/
 		virtual void clear();
@@ -139,7 +139,7 @@ namespace qk {
 	protected:
 		virtual uint32_t advance_RT(uint32_t time_span, bool restart, Action *root) = 0;
 		virtual void seek_time_RT(uint32_t time, Action *root) = 0;
-		virtual void seek_before_RT(int32_t time, Action *child) = 0;
+		virtual void seek_before_RT(uint32_t time, Action *child) = 0;
 		virtual void update_duration_RT(int32_t diff);
 		virtual void clear_RT() = 0;
 
@@ -182,7 +182,7 @@ namespace qk {
 	private:
 		virtual uint32_t advance_RT(uint32_t time_span, bool restart, Action* root);
 		virtual void seek_time_RT(uint32_t time, Action* root);
-		virtual void seek_before_RT(int32_t time, Action* child);
+		virtual void seek_before_RT(uint32_t time, Action* child);
 		virtual void insert_RT(Id after, Action *child);
 		virtual void remove_child_RT(Id id);
 		virtual void update_duration_RT(int32_t diff);
@@ -198,7 +198,7 @@ namespace qk {
 	private:
 		virtual uint32_t advance_RT(uint32_t time_span, bool restart, Action* root);
 		virtual void seek_time_RT(uint32_t time, Action* root);
-		virtual void seek_before_RT(int32_t time, Action* child);
+		virtual void seek_before_RT(uint32_t time, Action* child);
 		virtual void insert_RT(Id after, Action *child);
 		virtual void remove_child_RT(Id id);
 		virtual void clear_RT();

@@ -37,18 +37,19 @@ namespace qk {
 	typedef StyleSheets::Property Property;
 
 	template<typename T>
-	inline T* copy_value_ptr(T* value) {
+	T* copy_value_ptr(T* value) {
+		Qk_UNIMPLEMENTED();
 		return nullptr;
-	}
-
-	template<>
-	BoxFilter* copy_value_ptr(BoxFilter *value) {
-		return value->copy(nullptr);
 	}
 
 	template<typename T>
 	inline void transition_value_ptr(T *v1, T *v2, float t, ViewProp prop, Layout *target) {
 		Qk_UNIMPLEMENTED();
+	}
+
+	template<>
+	BoxFilter* copy_value_ptr(BoxFilter* value) {
+		return value->copy(nullptr);
 	}
 
 	template<>
@@ -170,7 +171,7 @@ namespace qk {
 	// @template Object or BoxFilter
 	template<typename T>
 	struct PropImpl<T*>: Property {
-		PropImpl(ViewProp prop, T* value): _value(value) {
+		PropImpl(ViewProp prop, T* value): _prop(prop), _value(value) {
 			Qk_ASSERT(_value);
 			static_assert(T::Traits::isObject, "Property value must be a object type");
 			// value->retain(); // @line SetProp<Object*>::asyncExec, value->retain();
@@ -185,11 +186,14 @@ namespace qk {
 		}
 		void transition(Layout *target, Property *to, float t) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
-			transition_value_ptr(this->_value, static_cast<PropImpl*>(to)->_value, t, _prop, target);
+			transition_value_ptr(
+				static_cast<BoxFilter*>(_value),
+				static_cast<BoxFilter*>(static_cast<PropImpl*>(to)->_value),
+				t, _prop, target
+			);
 		}
 		Property* copy() override {
-			auto v = copy_value_ptr(_value);
-			return v ? new PropImpl(_prop, static_cast<T*>(v)): nullptr;
+			return new PropImpl(_prop, copy_value_ptr(static_cast<BoxFilter*>(_value)));
 		}
 		ViewProp _prop;
 		T* _value;

@@ -99,6 +99,10 @@ namespace qk {
 		_root->focus();  // set focus
 	}
 
+	Window* Window::Make(Options opts) {
+		return new Window(opts);
+	}
+
 	Window::~Window() {
 		destroy();
 	}

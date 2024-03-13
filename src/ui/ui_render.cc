@@ -260,6 +260,7 @@ namespace qk {
 			fill->colors().val(), fill->positions().val()
 		};
 		paint.gradient = &g;
+		paint.type = Paint::kGradient_Type;
 
 		_canvas->drawPathv(*data.inside, paint);
 	}
@@ -277,6 +278,7 @@ namespace qk {
 			fill->colors().val(), fill->positions().val()
 		};
 		paint.gradient = &g;
+		paint.type = Paint::kGradient_Type;
 		_canvas->drawPathv(*data.inside, paint);
 	}
 

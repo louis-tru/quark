@@ -113,11 +113,8 @@ namespace qk {
 		time_span *= _speed;
 
 		if ( !_startPlay || restart ) { // no start play or restart
-			if ( restart ) { // restart
-				_looped = 0;
-				_time = _frame = 0;
-				_startPlay = false;
-			}
+			_time = _frame = 0;
+			_looped = 0;
 
 			if ( _frames_RT.length() ) {
 				_startPlay = true;
@@ -137,15 +134,13 @@ namespace qk {
 		}
 
 	start:
-		uint32_t f1 = _frame;
-		uint32_t f2 = f1 + 1;
-		
+		uint32_t f1 = _frame, f2 = f1 + 1;
+
 		if ( f2 < _frames_RT.length() ) {
 		advance:
 			if ( root->_id == Id() ) { // is not playing
 				return 0;
 			}
-
 			int32_t time = _time + time_span;
 			int32_t time1 = _frames_RT[f1]->time();
 			int32_t time2 = _frames_RT[f2]->time();
@@ -168,11 +163,7 @@ namespace qk {
 				if ( f2 < _frames_RT.length() ) {
 					goto advance;
 				} else {
-					if ( _loop ) {
-						goto loop;
-					} else {
-						_frames_RT[f1]->apply(root->_target);
-					}
+					goto loop;
 				}
 			} else { // t == 0
 				time_span = 0;
@@ -183,22 +174,17 @@ namespace qk {
 			}
 
 		} else { // last frame
-
-			if ( _loop ) {
-			loop:
-				if ( _loop > 0 ) {
-					if ( _looped < _loop ) { // Can continue to loop
-						_looped++;
-					} else { //
-						_frames_RT[f1]->apply(root->_target);
-						goto end;
-					}
-				}
+		loop:
+			if ( _looped < _loop ) { // Can continue to loop
+				_looped++;
 				_frame = 0;
 				_time = 0;
 				trigger_ActionLoop_RT(time_span, root);
 				trigger_ActionKeyframe_RT(time_span, 0, root);
 				goto start;
+			} else {
+				_frames_RT[f1]->apply(root->_target);
+				_startPlay = false; // end reset
 			}
 		}
 
@@ -234,13 +220,13 @@ namespace qk {
 				_frames_RT[f0]->apply(root->_target);
 			}
 
-			if ( _time == int32_t(frame->time()) ) {
+			if ( _time == frame->time() ) {
 				trigger_ActionKeyframe_RT(0, _frame, root);
 			}
 		}
 	}
 
-	void KeyframeAction::seek_before_RT(int32_t time, Action* child) {
+	void KeyframeAction::seek_before_RT(uint32_t time, Action* child) {
 		Qk_UNIMPLEMENTED();
 	}
 

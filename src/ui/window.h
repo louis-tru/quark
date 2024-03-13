@@ -121,7 +121,7 @@ namespace qk {
 		 * @static
 		 * @method Make(opts) create new window object
 		*/
-		static Window* Make(Options opts) { return new Window(opts); }
+		static Window* Make(Options opts);
 
 		/**
 		 * @destructor

@@ -53,7 +53,7 @@ namespace qk {
 
 		while ( i != end ) {
 			auto j = i++;
-			auto act = *j;
+			auto &act = *j;
 			if (act._runAdvance) {
 				if ( act.value->advance_RT(time_span, false, act.value) ) {
 					act.value->stop_RT(); // stop action

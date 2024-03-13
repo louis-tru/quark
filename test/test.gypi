@@ -63,7 +63,7 @@
 				'util/test-util.cc',
 				'util/test-uv.cc',
 				'util/test-zlib.cc',
-				####
+				#
 				'js/test-jsx.cc',
 				# 'js/test-v8.cc',
 				# 'ui/test-benchmark.cc',
@@ -83,6 +83,7 @@
 				'ui/test-linux-input-2.cc',
 				'ui/test-linux-input.cc',
 				'ui/test-css.cc',
+				'ui/test-action.cc',
 				'test.cc',
 			],
 			'conditions': [

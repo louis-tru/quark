@@ -40,7 +40,7 @@ namespace qk {
 	template<typename T>
 	inline T transition_value(T v1, T v2, float t) {
 		auto v = v1 - (v1 - v2) * t;
-		return v1;
+		return v;
 	}
 
 	Repeat transition_value(Repeat v1, Repeat v2, float t) {
@@ -367,7 +367,7 @@ namespace qk {
 		if (FillGradient::transition_gradient(to, t, dest)) {
 			auto to1 = static_cast<FillGradientLinear*>(to);
 			auto target = static_cast<FillGradientLinear*>(dest);
-			target->_angle = transition_value(_angle, t, to1->_angle);
+			target->_angle = transition_value(_angle, to1->_angle, t);
 			target->setRadian();
 		}
 		return dest;
