@@ -261,6 +261,8 @@ namespace qk {
 		}
 	}
 
+	const int* thread_safe_mark(new int(798));
+
 	EventNoticer<Event<>, Mutex>& onProcessExit() {
 		return *__on_process_safe_exit;
 	}

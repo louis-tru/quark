@@ -86,6 +86,13 @@ namespace qk {
 
 	Qk_EXPORT EventNoticer<Event<>, Mutex>& onProcessExit();
 
+	extern const int* thread_safe_mark;
+
+	template<typename T>
+	T* thread_safe_object(T* t) {
+		return t && t->thread_safe_mark() == thread_safe_mark ? t: nullptr;
+	}
+
 	/**
 	* @class PostMessage
 	*/

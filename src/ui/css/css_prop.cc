@@ -57,8 +57,8 @@ namespace qk {
 		auto acc = target->accessor() + prop;
 		if (acc->set) {
 			auto v = (target->*(BoxFilter* (Layout::*)())acc->get)();
-			auto new_v = v1->transition(v2, t, v);
-			(target->*(void (Layout::*)(BoxFilter*))acc->set)(new_v);
+			auto v_new = v1->transition(v2, v, t);
+			(target->*(void (Layout::*)(BoxFilter*))acc->set)(v_new);
 		}
 	}
 

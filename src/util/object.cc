@@ -183,6 +183,8 @@ namespace qk {
 		object_allocator_retain = retain ? retain: &default_object_retain;
 	}
 
+	// bool IsNullptr(const Object* obj) {}
+
 	bool Retain(Object* obj) {
 		return obj ? obj->retain() : false;
 	}

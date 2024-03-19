@@ -39,7 +39,7 @@ namespace qk {
 	Qk_EXPORT String device_brand();
 	Qk_EXPORT String device_model();
 	Qk_EXPORT String device_info();
-	Qk_EXPORT Array<String> device_languages();
+	Qk_EXPORT cArray<String>& device_languages();
 	Qk_EXPORT bool   device_is_wifi();
 	Qk_EXPORT bool   device_is_mobile();
 	Qk_EXPORT int    device_network_status();

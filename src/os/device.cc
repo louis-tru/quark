@@ -104,7 +104,7 @@ namespace qk {
 		return language;
 	}
 
-	Array<String> device_languages() {
+	cArray<String>& device_languages() {
 		return get_languages()->langs;
 	}
 

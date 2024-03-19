@@ -39,65 +39,38 @@ typedef Screen::StatusBarStyle StatusBarStyle;
 
 extern QkApplicationDelegate *__app;
 
-/**
- * @func default_atom_pixel
- */
 float Screen::default_atom_pixel() {
 	return 1.0 / UIScreen.mainScreen.backingScaleFactor;
 }
 
-/**
- * @func set_keep_screen(keep)
- */
 void Screen::set_keep_screen(bool keep) {
 	// TODO
 }
 
-/**
- * @func status_bar_height()
- */
 float Screen::status_bar_height() const {
 	return 0;
 }
 
-/**
- * @func default_status_bar_height
- */
 float Screen::default_status_bar_height() {
 	return 0;
 }
 
-/**
- * @func set_visible_status_bar(visible)
- */
 void Screen::set_visible_status_bar(bool visible) {
 	// TODO
 }
 
-/**
- * @func set_status_bar_text_color(color)
- */
 void Screen::set_status_bar_style(StatusBarStyle style) {
 	// TODO
 }
 
-/**
- * @func request_fullscreen(fullscreen)
- */
 void Screen::set_fullscreen(bool fullscreen) {
 	// TODO
 }
 
-/**
- * @func orientation()
- */
 Screen::Orientation Screen::orientation() const {
 	return ORIENTATION_INVALID;
 }
 
-/**
- * @func set_orientation(orientation)
- */
 void Screen::set_orientation(Orientation orientation) {
 	// noop
 }

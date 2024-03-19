@@ -444,14 +444,12 @@ namespace qk {
 	void BoxLayout::set_background(BoxFilter* val) {
 		if (_background != val) {
 			_background = BoxFilter::assign(_background, val, this);
-			mark_render();
 		}
 	}
 
 	void BoxLayout::set_box_shadow(BoxShadow* val) {
 		if (_box_shadow != val) {
 			_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign(_box_shadow, val, this));
-			mark_render();
 		}
 	}
 
