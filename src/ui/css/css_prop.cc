@@ -57,7 +57,7 @@ namespace qk {
 		auto acc = target->accessor() + prop;
 		if (acc->set) {
 			auto v = (target->*(BoxFilter* (Layout::*)())acc->get)();
-			auto v_new = v1->transition(v2, v, t);
+			auto v_new = v1->transition(v, v2, t);
 			(target->*(void (Layout::*)(BoxFilter*))acc->set)(v_new);
 		}
 	}
@@ -203,7 +203,7 @@ namespace qk {
 
 	template<typename T>
 	struct SetProp: StyleSheets {
-		void exec(ViewProp key, T value) {
+		void set(ViewProp key, T value) {
 			Property *prop;
 			if (_props.get(key, prop)) {
 				static_cast<PropImpl<T>*>(prop)->_value = value;
@@ -212,52 +212,55 @@ namespace qk {
 			}
 		}
 		template<ViewProp key>
-		void asyncExec(T value) {
+		void asyncSet(T value) {
 			auto win = window();
 			if (win) {
-				win->preRender().async_call([](auto self, auto arg) { self->exec(key, arg); }, this, value);
+				win->preRender().async_call([](auto self, auto arg) {
+					self->set(key, arg);
+				}, this, value);
 			} else {
-				exec(key, value);
+				set(key, value);
 			}
 		}
 		template<ViewProp key>
-		void asyncExecLarge(T &value) {
+		void asyncSetLarge(T &value) {
 			auto win = window();
 			if (win) {
 				win->preRender().async_call([](auto self, auto arg) {
 					Sp<T> h(arg);
-					self->exec(key, *arg);
+					self->set(key, *arg);
 				}, this, new T(value));
 			} else {
-				exec(key, value);
+				set(key, value);
 			}
 		}
 	};
 
 	template<>
 	template<ViewProp key>
-	void SetProp<String>::asyncExec(String value) {
-		asyncExecLarge<key>(value);
+	void SetProp<String>::asyncSet(String value) {
+		asyncSetLarge<key>(value);
 	}
 
 	template<>
 	template<ViewProp key>
-	void SetProp<TextShadow>::asyncExec(TextShadow value) {
-		asyncExecLarge<key>(value);
+	void SetProp<TextShadow>::asyncSet(TextShadow value) {
+		asyncSetLarge<key>(value);
 	}
 
 	template<>
 	template<ViewProp key>
-	void SetProp<TextFamily>::asyncExec(TextFamily value) {
-		asyncExecLarge<key>(value);
+	void SetProp<TextFamily>::asyncSet(TextFamily value) {
+		asyncSetLarge<key>(value);
 	}
 
 	template<>
-	struct SetProp<Object*>: StyleSheets {
-		void exec(ViewProp key, Object* value) {
+	struct SetProp<BoxFilter*>: StyleSheets {
+		void set(ViewProp key, BoxFilter* value) {
 			Property *prop;
+			value = BoxFilter::assign(nullptr, value, nullptr);
 			if (_props.get(key, prop)) {
-				auto p = static_cast<PropImpl<Object*>*>(prop);
+				auto p = static_cast<PropImpl<BoxFilter*>*>(prop);
 				if (p->_value != value) {
 					p->_value->release();
 					p->_value = value;
@@ -265,17 +268,19 @@ namespace qk {
 					value->release();
 				}
 			} else {
-				onMake(key, _props.set(key, new PropImpl<Object*>(key, value)));
+				onMake(key, _props.set(key, new PropImpl<BoxFilter*>(key, value)));
 			}
 		}
 		template<ViewProp key>
-		void asyncExec(Object* value) {
-			value->retain();
+		void asyncSet(BoxFilter* value) {
+			// value->retain();
 			auto win = window();
 			if (win) {
-				win->preRender().async_call([](auto self, auto arg) { self->exec(key, arg); }, this, value);
+				win->preRender().async_call([](auto self, auto arg) {
+					self->set(key, arg);
+				}, this, value);
 			} else {
-				exec(key, value);
+				set(key, value);
 			}
 		}
 	};
@@ -283,13 +288,13 @@ namespace qk {
 	template<typename T>
 	struct SetProp<T*>: StyleSheets {
 		template<ViewProp key>
-		inline void asyncExec(T* value) {
-			static_cast<SetProp<Object*>*>(static_cast<StyleSheets*>(this))->asyncExec<key>(value);
+		inline void asyncSet(T* value) {
+			static_cast<SetProp<BoxFilter*>*>(static_cast<StyleSheets*>(this))->asyncSet<key>(value);
 		}
 	};
 
 	#define _Fun(Enum, Type, Name, _) void StyleSheets::set_##Name(Type value) {\
-		static_cast<SetProp<Type>*>(this)->asyncExec<k##Enum##_ViewProp>(value);\
+		static_cast<SetProp<Type>*>(this)->asyncSet<k##Enum##_ViewProp>(value);\
 	}
 	Qk_View_Props(_Fun)
 

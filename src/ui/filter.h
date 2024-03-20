@@ -50,7 +50,6 @@ namespace qk {
 			kGradientLinear, kGradientRadial,
 			kShadow, kBlur, kBackdropBlur,
 		};
-		Qk_DEFINE_PROP_GET(const int*, thread_safe_mark);
 		Qk_DEFINE_PROP_GET(Layout*, holder);
 		Qk_DEFINE_PROP_ACC(BoxFilter*, next);
 
@@ -58,13 +57,15 @@ namespace qk {
 		virtual void release() override;
 		virtual Type type() const = 0;
 		virtual BoxFilter* copy(BoxFilter *dest) = 0; // @RT
-		virtual BoxFilter* transition(BoxFilter *to, BoxFilter *dest, float t) = 0; // @RT
+		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t) = 0; // @RT
 		static  BoxFilter* assign(BoxFilter *left, BoxFilter *right, Layout *holder); // @RT
 	protected:
 		void set_next_RT(BoxFilter* value);
 	private:
-		void set_holder_RT(Layout* value);
+		void set_holder_RT(Layout *holder);
 		BoxFilter *_next;
+		uint32_t _safe_mark;
+		bool     _isHolder;
 	};
 
 	class Qk_EXPORT FillImage: public BoxFilter, public ImageSourceHolder {
@@ -101,7 +102,7 @@ namespace qk {
 	protected:
 		Array<float> _pos;
 		Array<Color4f> _colors;
-		bool transition_g_RT(BoxFilter *to, BoxFilter* dest, float t);
+		void transition_g_RT(BoxFilter* dest, BoxFilter *to, float t);
 	};
 
 	class Qk_EXPORT FillGradientLinear: public FillGradient {
